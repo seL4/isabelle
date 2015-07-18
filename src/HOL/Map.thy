@@ -5,7 +5,7 @@
 The datatype of `maps' (written ~=>); strongly resembles maps in VDM.
 *)
 
-section {* Maps *}
+section \<open>Maps\<close>
 
 theory Map
 imports List
@@ -89,13 +89,13 @@ lemma map_of_Cons_code [code]:
   by simp_all
 
 
-subsection {* @{term [source] empty} *}
+subsection \<open>@{term [source] empty}\<close>
 
 lemma empty_upd_none [simp]: "empty(x := None) = empty"
 by (rule ext) simp
 
 
-subsection {* @{term [source] map_upd} *}
+subsection \<open>@{term [source] map_upd}\<close>
 
 lemma map_upd_triv: "t k = Some x ==> t(k|->x) = t"
 by (rule ext) simp
@@ -131,7 +131,7 @@ apply (auto)
 done
 
 
-subsection {* @{term [source] map_of} *}
+subsection \<open>@{term [source] map_of}\<close>
 
 lemma map_of_eq_None_iff:
   "(map_of xys x = None) = (x \<notin> fst ` (set xys))"
@@ -204,12 +204,12 @@ using assms(1) assms(2)[symmetric] using dist map_of proof (induct ys xs zs rule
   case Nil show ?case by simp
 next
   case (Cons y ys x xs z zs)
-  from `map_of (zip (x#xs) (y#ys)) = map_of (zip (x#xs) (z#zs))`
+  from \<open>map_of (zip (x#xs) (y#ys)) = map_of (zip (x#xs) (z#zs))\<close>
     have map_of: "map_of (zip xs ys)(x \<mapsto> y) = map_of (zip xs zs)(x \<mapsto> z)" by simp
   from Cons have "length ys = length xs" and "length zs = length xs"
     and "x \<notin> set xs" by simp_all
   then have "map_of (zip xs ys) = map_of (zip xs zs)" using map_of by (rule map_of_zip_upd)
-  with Cons.hyps `distinct (x # xs)` have "ys = zs" by simp
+  with Cons.hyps \<open>distinct (x # xs)\<close> have "ys = zs" by simp
   moreover from map_of have "y = z" by (rule map_upd_eqD1)
   ultimately show ?case by simp
 qed
@@ -254,7 +254,7 @@ lemma dom_map_option_comp [simp]:
   using dom_map_option [of "\<lambda>_. g" m] by (simp add: comp_def)
 
 
-subsection {* @{const map_option} related *}
+subsection \<open>@{const map_option} related\<close>
 
 lemma map_option_o_empty [simp]: "map_option f o empty = empty"
 by (rule ext) simp
@@ -264,7 +264,7 @@ lemma map_option_o_map_upd [simp]:
 by (rule ext) simp
 
 
-subsection {* @{term [source] map_comp} related *}
+subsection \<open>@{term [source] map_comp} related\<close>
 
 lemma map_comp_empty [simp]:
   "m \<circ>\<^sub>m empty = empty"
@@ -285,7 +285,7 @@ lemma map_comp_None_iff:
 by (auto simp add: map_comp_def split: option.splits)
 
 
-subsection {* @{text "++"} *}
+subsection \<open>@{text "++"}\<close>
 
 lemma map_add_empty[simp]: "m ++ empty = m"
 by(simp add: map_add_def)
@@ -352,7 +352,7 @@ lemma map_add_map_of_foldr:
   by (induct ps) (auto simp add: fun_eq_iff map_add_def)
 
 
-subsection {* @{term [source] restrict_map} *}
+subsection \<open>@{term [source] restrict_map}\<close>
 
 lemma restrict_map_to_empty [simp]: "m|`{} = empty"
 by (simp add: restrict_map_def)
@@ -405,7 +405,7 @@ lemma restrict_complement_singleton_eq:
   by (simp add: restrict_map_def fun_eq_iff)
 
 
-subsection {* @{term [source] map_upds} *}
+subsection \<open>@{term [source] map_upds}\<close>
 
 lemma map_upds_Nil1 [simp]: "m([] [|->] bs) = m"
 by (simp add: map_upds_def)
@@ -485,7 +485,7 @@ apply (simp add: map_upd_upds_conv_if)
 done
 
 
-subsection {* @{term [source] dom} *}
+subsection \<open>@{term [source] dom}\<close>
 
 lemma dom_eq_empty_conv [simp]: "dom f = {} \<longleftrightarrow> f = empty"
   by (auto simp: dom_def)
@@ -605,14 +605,14 @@ proof -
     proof
       fix m assume "m \<in> ?S'"
       hence 1: "dom m = A" by force
-      hence 2: "ran m \<subseteq> B" using `m \<in> ?S'` by(auto simp: dom_def ran_def)
+      hence 2: "ran m \<subseteq> B" using \<open>m \<in> ?S'\<close> by(auto simp: dom_def ran_def)
       from 1 2 show "m \<in> ?S" by blast
     qed
   qed
   with assms show ?thesis by(simp add: finite_set_of_finite_funs)
 qed
 
-subsection {* @{term [source] ran} *}
+subsection \<open>@{term [source] ran}\<close>
 
 lemma ranI: "m a = Some b ==> b : ran m"
 by(auto simp: ran_def)
@@ -644,7 +644,7 @@ qed
 lemma ran_map_option: "ran (\<lambda>x. map_option f (m x)) = f ` ran m"
 by(auto simp add: ran_def)
 
-subsection {* @{text "map_le"} *}
+subsection \<open>@{text "map_le"}\<close>
 
 lemma map_le_empty [simp]: "empty \<subseteq>\<^sub>m g"
 by (simp add: map_le_def)
@@ -702,14 +702,14 @@ next
   assume "dom f = {x}"
   then obtain v where "f x = Some v" by auto
   hence "[x \<mapsto> v] \<subseteq>\<^sub>m f" by(auto simp add: map_le_def)
-  moreover have "f \<subseteq>\<^sub>m [x \<mapsto> v]" using `dom f = {x}` `f x = Some v`
+  moreover have "f \<subseteq>\<^sub>m [x \<mapsto> v]" using \<open>dom f = {x}\<close> \<open>f x = Some v\<close>
     by(auto simp add: map_le_def)
   ultimately have "f = [x \<mapsto> v]" by-(rule map_le_antisym)
   thus "\<exists>v. f = [x \<mapsto> v]" by blast
 qed
 
 
-subsection {* Various *}
+subsection \<open>Various\<close>
 
 lemma set_map_of_compr:
   assumes distinct: "distinct (map fst xs)"
@@ -725,7 +725,7 @@ next
     {(k', v'). (map_of xs(k \<mapsto> v)) k' = Some v'}"
     by (auto split: if_splits)
   from Cons have "set xs = {(k, v). map_of xs k = Some v}" by simp
-  with * `x = (k, v)` show ?case by simp
+  with * \<open>x = (k, v)\<close> show ?case by simp
 qed
 
 lemma map_of_inject_set:
@@ -733,9 +733,9 @@ lemma map_of_inject_set:
   shows "map_of xs = map_of ys \<longleftrightarrow> set xs = set ys" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs
-  moreover from `distinct (map fst xs)` have "set xs = {(k, v). map_of xs k = Some v}"
+  moreover from \<open>distinct (map fst xs)\<close> have "set xs = {(k, v). map_of xs k = Some v}"
     by (rule set_map_of_compr)
-  moreover from `distinct (map fst ys)` have "set ys = {(k, v). map_of ys k = Some v}"
+  moreover from \<open>distinct (map fst ys)\<close> have "set ys = {(k, v). map_of ys k = Some v}"
     by (rule set_map_of_compr)
   ultimately show ?rhs by simp
 next
@@ -744,12 +744,12 @@ next
     fix k
     show "map_of xs k = map_of ys k" proof (cases "map_of xs k")
       case None
-      with `?rhs` have "map_of ys k = None"
+      with \<open>?rhs\<close> have "map_of ys k = None"
         by (simp add: map_of_eq_None_iff)
       with None show ?thesis by simp
     next
       case (Some v)
-      with distinct `?rhs` have "map_of ys k = Some v"
+      with distinct \<open>?rhs\<close> have "map_of ys k = Some v"
         by simp
       with Some show ?thesis by simp
     qed

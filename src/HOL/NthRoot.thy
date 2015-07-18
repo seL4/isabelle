@@ -4,7 +4,7 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-section {* Nth Roots of Real Numbers *}
+section \<open>Nth Roots of Real Numbers\<close>
 
 theory NthRoot
 imports Deriv Binomial
@@ -21,9 +21,9 @@ lemma power_eq_iff_eq_base:
   shows "0 < n \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> a ^ n = b ^ n \<longleftrightarrow> a = b"
   using power_eq_imp_eq_base[of a n b] by auto
 
-subsection {* Existence of Nth Root *}
+subsection \<open>Existence of Nth Root\<close>
 
-text {* Existence follows from the Intermediate Value Theorem *}
+text \<open>Existence follows from the Intermediate Value Theorem\<close>
 
 lemma realpow_pos_nth:
   assumes n: "0 < n"
@@ -52,21 +52,21 @@ qed
 lemma realpow_pos_nth2: "(0::real) < a \<Longrightarrow> \<exists>r>0. r ^ Suc n = a"
 by (blast intro: realpow_pos_nth)
 
-text {* Uniqueness of nth positive root *}
+text \<open>Uniqueness of nth positive root\<close>
 
 lemma realpow_pos_nth_unique: "\<lbrakk>0 < n; 0 < a\<rbrakk> \<Longrightarrow> \<exists>!r. 0 < r \<and> r ^ n = (a::real)"
   by (auto intro!: realpow_pos_nth simp: power_eq_iff_eq_base)
 
-subsection {* Nth Root *}
+subsection \<open>Nth Root\<close>
 
-text {* We define roots of negative reals such that
+text \<open>We define roots of negative reals such that
   @{term "root n (- x) = - root n x"}. This allows
-  us to omit side conditions from many theorems. *}
+  us to omit side conditions from many theorems.\<close>
 
 lemma inj_sgn_power: assumes "0 < n" shows "inj (\<lambda>y. sgn y * \<bar>y\<bar>^n :: real)" (is "inj ?f")
 proof (rule injI)
   have x: "\<And>a b :: real. (0 < a \<and> b < 0) \<or> (a < 0 \<and> 0 < b) \<Longrightarrow> a \<noteq> b" by auto
-  fix x y assume "?f x = ?f y" with power_eq_iff_eq_base[of n "\<bar>x\<bar>" "\<bar>y\<bar>"] `0<n` show "x = y"
+  fix x y assume "?f x = ?f y" with power_eq_iff_eq_base[of n "\<bar>x\<bar>" "\<bar>y\<bar>"] \<open>0<n\<close> show "x = y"
     by (cases rule: linorder_cases[of 0 x, case_product linorder_cases[of 0 y]])
        (simp_all add: x)
 qed
@@ -87,13 +87,13 @@ lemma sgn_power_root:
   assumes "0 < n" shows "sgn (root n x) * \<bar>(root n x)\<bar>^n = x" (is "?f (root n x) = x")
 proof cases
   assume "x \<noteq> 0"
-  with realpow_pos_nth[OF `0 < n`, of "\<bar>x\<bar>"] obtain r where "0 < r" "r ^ n = \<bar>x\<bar>" by auto
-  with `x \<noteq> 0` have S: "x \<in> range ?f"
+  with realpow_pos_nth[OF \<open>0 < n\<close>, of "\<bar>x\<bar>"] obtain r where "0 < r" "r ^ n = \<bar>x\<bar>" by auto
+  with \<open>x \<noteq> 0\<close> have S: "x \<in> range ?f"
     by (intro image_eqI[of _ _ "sgn x * r"])
        (auto simp: abs_mult sgn_mult power_mult_distrib abs_sgn_eq mult_sgn_abs)
-  from `0 < n` f_the_inv_into_f[OF inj_sgn_power[OF `0 < n`] this]  show ?thesis
+  from \<open>0 < n\<close> f_the_inv_into_f[OF inj_sgn_power[OF \<open>0 < n\<close>] this]  show ?thesis
     by (simp add: root_def)
-qed (insert `0 < n` root_sgn_power[of n 0], simp)
+qed (insert \<open>0 < n\<close> root_sgn_power[of n 0], simp)
 
 lemma split_root: "P (root n x) \<longleftrightarrow> (n = 0 \<longrightarrow> P 0) \<and> (0 < n \<longrightarrow> (\<forall>y. sgn y * \<bar>y\<bar>^n = x \<longrightarrow> P y))"
   apply (cases "n = 0")
@@ -151,7 +151,7 @@ by (erule subst, rule odd_real_root_power_cancel)
 lemma real_root_one [simp]: "0 < n \<Longrightarrow> root n 1 = 1"
 by (simp add: real_root_pos_unique)
 
-text {* Root function is strictly monotonic, hence injective *}
+text \<open>Root function is strictly monotonic, hence injective\<close>
 
 lemma real_root_le_mono: "\<lbrakk>0 < n; x \<le> y\<rbrakk> \<Longrightarrow> root n x \<le> root n y"
   by (auto simp add: order_le_less real_root_less_mono)
@@ -195,7 +195,7 @@ by (insert real_root_le_iff [where y=1], simp)
 lemma real_root_eq_1_iff [simp]: "0 < n \<Longrightarrow> (root n x = 1) = (x = 1)"
 by (insert real_root_eq_iff [where y=1], simp)
 
-text {* Roots of multiplication and division *}
+text \<open>Roots of multiplication and division\<close>
 
 lemma real_root_mult: "root n (x * y) = root n x * root n y"
   by (auto split: split_root elim!: sgn_power_injE simp: sgn_mult abs_mult power_mult_distrib)
@@ -212,7 +212,7 @@ lemma real_root_abs: "0 < n \<Longrightarrow> root n \<bar>x\<bar> = \<bar>root 
 lemma real_root_power: "0 < n \<Longrightarrow> root n (x ^ k) = root n x ^ k"
   by (induct k) (simp_all add: real_root_mult)
 
-text {* Roots of roots *}
+text \<open>Roots of roots\<close>
 
 lemma real_root_Suc_0 [simp]: "root (Suc 0) x = x"
 by (simp add: odd_real_root_unique)
@@ -224,7 +224,7 @@ lemma real_root_mult_exp: "root (m * n) x = root m (root n x)"
 lemma real_root_commute: "root m (root n x) = root n (root m x)"
   by (simp add: real_root_mult_exp [symmetric] mult.commute)
 
-text {* Monotonicity in first argument *}
+text \<open>Monotonicity in first argument\<close>
 
 lemma real_root_strict_decreasing:
   "\<lbrakk>0 < n; n < N; 1 < x\<rbrakk> \<Longrightarrow> root N x < root n x"
@@ -248,7 +248,7 @@ lemma real_root_increasing:
   "\<lbrakk>0 < n; n < N; 0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> root n x \<le> root N x"
 by (auto simp add: order_le_less real_root_strict_increasing)
 
-text {* Continuity and derivatives *}
+text \<open>Continuity and derivatives\<close>
 
 lemma isCont_real_root: "isCont (root n) x"
 proof cases
@@ -320,8 +320,8 @@ next
   show "\<forall>y. x - 1 < y \<and> y < 0 \<longrightarrow> - (root n y ^ n) = y"
   proof (rule allI, rule impI, erule conjE)
     fix y assume "x - 1 < y" and "y < 0"
-    hence "root n (-y) ^ n = -y" using `0 < n` by simp
-    with real_root_minus and `even n`
+    hence "root n (-y) ^ n = -y" using \<open>0 < n\<close> by simp
+    with real_root_minus and \<open>even n\<close>
     show "- (root n y ^ n) = y" by simp
   qed
 next
@@ -342,7 +342,7 @@ using assms by (cases "even n", cases "0 < x",
               DERIV_odd_real_root[THEN DERIV_cong]
               DERIV_even_real_root[THEN DERIV_cong])
 
-subsection {* Square Root *}
+subsection \<open>Square Root\<close>
 
 definition sqrt :: "real \<Rightarrow> real" where
   "sqrt = root 2"
@@ -546,7 +546,7 @@ lemma sqrt_at_top: "LIM x at_top. sqrt x :: real :> at_top"
   by (rule filterlim_at_top_at_top[where Q="\<lambda>x. True" and P="\<lambda>x. 0 < x" and g="power2"])
      (auto intro: eventually_gt_at_top)
 
-subsection {* Square Root of Sum of Squares *}
+subsection \<open>Square Root of Sum of Squares\<close>
 
 lemma sum_squares_bound: 
   fixes x:: "'a::linordered_field"
@@ -635,8 +635,8 @@ lemma sqrt2_less_2: "sqrt 2 < (2::real)"
   by (metis not_less not_less_iff_gr_or_eq numeral_less_iff real_sqrt_four real_sqrt_le_iff semiring_norm(75) semiring_norm(78) semiring_norm(85))
 
 
-text{*Needed for the infinitely close relation over the nonstandard
-    complex numbers*}
+text\<open>Needed for the infinitely close relation over the nonstandard
+    complex numbers\<close>
 lemma lemma_sqrt_hcomplex_capprox:
      "[| 0 < u; x < u/2; y < u/2; 0 \<le> x; 0 \<le> y |] ==> sqrt (x\<^sup>2 + y\<^sup>2) < u"
   apply (rule real_sqrt_sum_squares_less)
@@ -659,20 +659,20 @@ proof -
          (simp_all add: at_infinity_eq_at_top_bot)
     { fix n :: nat assume "2 < n"
       have "1 + (real (n - 1) * n) / 2 * x n^2 = 1 + of_nat (n choose 2) * x n^2"
-        using `2 < n` unfolding gbinomial_def binomial_gbinomial
+        using \<open>2 < n\<close> unfolding gbinomial_def binomial_gbinomial
         by (simp add: atLeast0AtMost atMost_Suc field_simps real_of_nat_diff numeral_2_eq_2 real_eq_of_nat[symmetric])
       also have "\<dots> \<le> (\<Sum>k\<in>{0, 2}. of_nat (n choose k) * x n^k)"
         by (simp add: x_def)
       also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"
-        using `2 < n` by (intro setsum_mono2) (auto intro!: mult_nonneg_nonneg zero_le_power simp: x_def le_diff_eq)
+        using \<open>2 < n\<close> by (intro setsum_mono2) (auto intro!: mult_nonneg_nonneg zero_le_power simp: x_def le_diff_eq)
       also have "\<dots> = (x n + 1) ^ n"
         by (simp add: binomial_ring)
       also have "\<dots> = n"
-        using `2 < n` by (simp add: x_def)
+        using \<open>2 < n\<close> by (simp add: x_def)
       finally have "real (n - 1) * (real n / 2 * (x n)\<^sup>2) \<le> real (n - 1) * 1"
         by simp
       then have "(x n)\<^sup>2 \<le> 2 / real n"
-        using `2 < n` unfolding mult_le_cancel_left by (simp add: field_simps)
+        using \<open>2 < n\<close> unfolding mult_le_cancel_left by (simp add: field_simps)
       from real_sqrt_le_mono[OF this] have "x n \<le> sqrt (2 / real n)"
         by simp }
     then show "eventually (\<lambda>n. x n \<le> sqrt (2 / real n)) sequentially"
@@ -697,21 +697,21 @@ proof -
            (simp_all add: at_infinity_eq_at_top_bot)
       { fix n :: nat assume "1 < n"
         have "1 + x n * n = 1 + of_nat (n choose 1) * x n^1"
-          using `1 < n` unfolding gbinomial_def binomial_gbinomial by (simp add: real_eq_of_nat[symmetric])
+          using \<open>1 < n\<close> unfolding gbinomial_def binomial_gbinomial by (simp add: real_eq_of_nat[symmetric])
         also have "\<dots> \<le> (\<Sum>k\<in>{0, 1}. of_nat (n choose k) * x n^k)"
           by (simp add: x_def)
         also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"
-          using `1 < n` `1 \<le> c` by (intro setsum_mono2) (auto intro!: mult_nonneg_nonneg zero_le_power simp: x_def le_diff_eq)
+          using \<open>1 < n\<close> \<open>1 \<le> c\<close> by (intro setsum_mono2) (auto intro!: mult_nonneg_nonneg zero_le_power simp: x_def le_diff_eq)
         also have "\<dots> = (x n + 1) ^ n"
           by (simp add: binomial_ring)
         also have "\<dots> = c"
-          using `1 < n` `1 \<le> c` by (simp add: x_def)
+          using \<open>1 < n\<close> \<open>1 \<le> c\<close> by (simp add: x_def)
         finally have "x n \<le> c / n"
-          using `1 \<le> c` `1 < n` by (simp add: field_simps) }
+          using \<open>1 \<le> c\<close> \<open>1 < n\<close> by (simp add: field_simps) }
       then show "eventually (\<lambda>n. x n \<le> c / n) sequentially"
         by (auto intro!: exI[of _ 3] simp: eventually_sequentially)
       show "eventually (\<lambda>n. 0 \<le> x n) sequentially"
-        using `1 \<le> c` by (auto intro!: exI[of _ 1] simp: eventually_sequentially le_diff_eq x_def)
+        using \<open>1 \<le> c\<close> by (auto intro!: exI[of _ 1] simp: eventually_sequentially le_diff_eq x_def)
     qed
     from tendsto_add[OF this tendsto_const[of 1]] have "(\<lambda>n. root n c) ----> 1"
       by (simp add: x_def) }
@@ -722,10 +722,10 @@ proof -
     assume "1 \<le> c" with ge_1 show ?thesis by blast
   next
     assume "\<not> 1 \<le> c"
-    with `0 < c` have "1 \<le> 1 / c"
+    with \<open>0 < c\<close> have "1 \<le> 1 / c"
       by simp
     then have "(\<lambda>n. 1 / root n (1 / c)) ----> 1 / 1"
-      by (intro tendsto_divide tendsto_const ge_1 `1 \<le> 1 / c` one_neq_zero)
+      by (intro tendsto_divide tendsto_const ge_1 \<open>1 \<le> 1 / c\<close> one_neq_zero)
     then show ?thesis
       by (rule filterlim_cong[THEN iffD1, rotated 3])
          (auto intro!: exI[of _ 1] simp: eventually_sequentially real_root_divide)

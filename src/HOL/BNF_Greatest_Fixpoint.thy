@@ -7,7 +7,7 @@
 Greatest fixpoint (codatatype) operation on bounded natural functors.
 *)
 
-section {* Greatest Fixpoint (Codatatype) Operation on Bounded Natural Functors *}
+section \<open>Greatest Fixpoint (Codatatype) Operation on Bounded Natural Functors\<close>
 
 theory BNF_Greatest_Fixpoint
 imports BNF_Fixpoint_Base String
@@ -17,7 +17,7 @@ keywords
   "primcorec" :: thy_decl
 begin
 
-setup {* Sign.const_alias @{binding proj} @{const_name Equiv_Relations.proj} *}
+setup \<open>Sign.const_alias @{binding proj} @{const_name Equiv_Relations.proj}\<close>
 
 lemma one_pointE: "\<lbrakk>\<And>x. s = x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   by simp
@@ -240,7 +240,7 @@ lemma rel_fun_image2p: "rel_fun R (image2p f g R) f g"
   unfolding rel_fun_def image2p_def by auto
 
 
-subsection {* Equivalence relations, quotients, and Hilbert's choice *}
+subsection \<open>Equivalence relations, quotients, and Hilbert's choice\<close>
 
 lemma equiv_Eps_in:
 "\<lbrakk>equiv A r; X \<in> A//r\<rbrakk> \<Longrightarrow> Eps (%x. x \<in> X) \<in> X"

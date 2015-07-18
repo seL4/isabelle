@@ -4,17 +4,17 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
 *)
 
-section {* Complex Numbers: Rectangular and Polar Representations *}
+section \<open>Complex Numbers: Rectangular and Polar Representations\<close>
 
 theory Complex
 imports Transcendental
 begin
 
-text {*
+text \<open>
 We use the @{text codatatype} command to define the type of complex numbers. This allows us to use
 @{text primcorec} to define complex functions by defining their real and imaginary result
 separately.
-*}
+\<close>
 
 codatatype complex = Complex (Re: real) (Im: real)
 
@@ -27,7 +27,7 @@ lemma complex_eqI [intro?]: "\<lbrakk>Re x = Re y; Im x = Im y\<rbrakk> \<Longri
 lemma complex_eq_iff: "x = y \<longleftrightarrow> Re x = Re y \<and> Im x = Im y"
   by (auto intro: complex.expand)
 
-subsection {* Addition and Subtraction *}
+subsection \<open>Addition and Subtraction\<close>
 
 instantiation complex :: ab_group_add
 begin
@@ -53,7 +53,7 @@ instance
 
 end
 
-subsection {* Multiplication and Division *}
+subsection \<open>Multiplication and Division\<close>
 
 instantiation complex :: field
 begin
@@ -99,7 +99,7 @@ lemma Re_power_real [simp]: "Im x = 0 \<Longrightarrow> Re (x ^ n) = Re x ^ n "
 lemma Im_power_real [simp]: "Im x = 0 \<Longrightarrow> Im (x ^ n) = 0"
   by (induct n) simp_all
 
-subsection {* Scalar Multiplication *}
+subsection \<open>Scalar Multiplication\<close>
 
 instantiation complex :: real_field
 begin
@@ -127,7 +127,7 @@ qed
 
 end
 
-subsection {* Numerals, Arithmetic, and Embedding from Reals *}
+subsection \<open>Numerals, Arithmetic, and Embedding from Reals\<close>
 
 abbreviation complex_of_real :: "real \<Rightarrow> complex"
   where "complex_of_real \<equiv> of_real"
@@ -171,7 +171,7 @@ lemma of_real_Re [simp]:
     "z \<in> \<real> \<Longrightarrow> of_real (Re z) = z"
   by (auto simp: Reals_def)
 
-subsection {* The Complex Number $i$ *}
+subsection \<open>The Complex Number $i$\<close>
 
 primcorec "ii" :: complex  ("\<i>") where
   "Re ii = 0"
@@ -231,7 +231,7 @@ lemma ii_times_eq_iff: "ii*w = z \<longleftrightarrow> w = -(ii*z)"
 lemma divide_numeral_i [simp]: "z / (numeral n * ii) = -(ii*z) / numeral n"
   by (metis divide_divide_eq_left divide_i mult.commute mult_minus_right)
 
-subsection {* Vector Norm *}
+subsection \<open>Vector Norm\<close>
 
 instantiation complex :: real_normed_field
 begin
@@ -329,7 +329,7 @@ lemma complex_unit_circle: "z \<noteq> 0 \<Longrightarrow> (Re z / cmod z)\<^sup
   by (simp add: norm_complex_def divide_simps complex_eq_iff)
 
 
-text {* Properties of complex signum. *}
+text \<open>Properties of complex signum.\<close>
 
 lemma sgn_eq: "sgn z = z / complex_of_real (cmod z)"
   by (simp add: sgn_div_norm divide_inverse scaleR_conv_of_real mult.commute)
@@ -341,7 +341,7 @@ lemma Im_sgn [simp]: "Im(sgn z) = Im(z)/cmod z"
   by (simp add: complex_sgn_def divide_inverse)
 
 
-subsection {* Completeness of the Complexes *}
+subsection \<open>Completeness of the Complexes\<close>
 
 lemma bounded_linear_Re: "bounded_linear Re"
   by (rule bounded_linear_intro [where K=1], simp_all add: norm_complex_def)
@@ -407,7 +407,7 @@ qed
 declare
   DERIV_power[where 'a=complex, unfolded of_nat_def[symmetric], derivative_intros]
 
-subsection {* Complex Conjugation *}
+subsection \<open>Complex Conjugation\<close>
 
 primcorec cnj :: "complex \<Rightarrow> complex" where
   "Re (cnj z) = Re z"
@@ -514,7 +514,7 @@ lemma sums_cnj: "((\<lambda>x. cnj(f x)) sums cnj l) \<longleftrightarrow> (f su
   by (simp add: sums_def lim_cnj cnj_setsum [symmetric] del: cnj_setsum)
 
 
-subsection{*Basic Lemmas*}
+subsection\<open>Basic Lemmas\<close>
 
 lemma complex_eq_0: "z=0 \<longleftrightarrow> (Re z)\<^sup>2 + (Im z)\<^sup>2 = 0"
   by (metis zero_complex.sel complex_eqI sum_power2_eq_zero_iff)
@@ -616,13 +616,13 @@ proof -
     done
 qed
 
-subsection{*Polar Form for Complex Numbers*}
+subsection\<open>Polar Form for Complex Numbers\<close>
 
 lemma complex_unimodular_polar: "(norm z = 1) \<Longrightarrow> \<exists>x. z = Complex (cos x) (sin x)"
   using sincos_total_2pi [of "Re z" "Im z"]
   by auto (metis cmod_power2 complex_eq power_one)
 
-subsubsection {* $\cos \theta + i \sin \theta$ *}
+subsubsection \<open>$\cos \theta + i \sin \theta$\<close>
 
 primcorec cis :: "real \<Rightarrow> complex" where
   "Re (cis a) = cos a"
@@ -661,7 +661,7 @@ lemma sin_n_Im_cis_pow_n: "sin (real n * a) = Im(cis a ^ n)"
 lemma cis_pi: "cis pi = -1"
   by (simp add: complex_eq_iff)
 
-subsubsection {* $r(\cos \theta + i \sin \theta)$ *}
+subsubsection \<open>$r(\cos \theta + i \sin \theta)$\<close>
 
 definition rcis :: "real \<Rightarrow> real \<Rightarrow> complex" where
   "rcis r a = complex_of_real r * cis a"
@@ -702,7 +702,7 @@ lemma rcis_inverse: "inverse(rcis r a) = rcis (1/r) (-a)"
 lemma rcis_divide: "rcis r1 a / rcis r2 b = rcis (r1/r2) (a - b)"
   by (simp add: rcis_def cis_divide [symmetric])
 
-subsubsection {* Complex exponential *}
+subsubsection \<open>Complex exponential\<close>
 
 abbreviation Exp :: "complex \<Rightarrow> complex"
   where "Exp \<equiv> exp"
@@ -747,7 +747,7 @@ lemma complex_Exp_Ex: "\<exists>a r. z = complex_of_real r * Exp a"
 lemma Exp_two_pi_i [simp]: "Exp((2::complex) * complex_of_real pi * ii) = 1"
   by (simp add: Exp_eq_polar complex_eq_iff)
 
-subsubsection {* Complex argument *}
+subsubsection \<open>Complex argument\<close>
 
 definition arg :: "complex \<Rightarrow> real" where
   "arg z = (if z = 0 then 0 else (SOME a. sgn z = cis a \<and> -pi < a \<and> a \<le> pi))"
@@ -775,7 +775,7 @@ proof -
       by (auto elim!: evenE dest!: less_2_cases)
     thus "a = x" unfolding d_def by simp
   qed (simp add: assms del: Re_sgn Im_sgn)
-  with `z \<noteq> 0` show "arg z = x"
+  with \<open>z \<noteq> 0\<close> show "arg z = x"
     unfolding arg_def by simp
 qed
 
@@ -786,7 +786,7 @@ proof (simp add: arg_def assms, rule someI_ex)
   with assms have "r \<noteq> 0" by auto
   def b \<equiv> "if 0 < r then a else a + pi"
   have b: "sgn z = cis b"
-    unfolding z b_def rcis_def using `r \<noteq> 0`
+    unfolding z b_def rcis_def using \<open>r \<noteq> 0\<close>
     by (simp add: of_real_def sgn_scaleR sgn_if complex_eq_iff)
   have cis_2pi_nat: "\<And>n. cis (2 * pi * real_of_nat n) = 1"
     by (induct_tac n) (simp_all add: distrib_left cis_mult [symmetric] complex_eq_iff)
@@ -815,7 +815,7 @@ lemma rcis_cmod_arg: "rcis (cmod z) (arg z) = z"
 lemma cos_arg_i_mult_zero [simp]: "y \<noteq> 0 \<Longrightarrow> Re y = 0 \<Longrightarrow> cos (arg y) = 0"
   using cis_arg [of y] by (simp add: complex_eq_iff)
 
-subsection {* Square root of complex numbers *}
+subsection \<open>Square root of complex numbers\<close>
 
 primcorec csqrt :: "complex \<Rightarrow> complex" where
   "Re (csqrt z) = sqrt ((cmod z + Re z) / 2)"
@@ -902,7 +902,7 @@ proof -
   finally show ?thesis .
 qed
 
-text {* Legacy theorem names *}
+text \<open>Legacy theorem names\<close>
 
 lemmas expand_complex_eq = complex_eq_iff
 lemmas complex_Re_Im_cancel_iff = complex_eq_iff

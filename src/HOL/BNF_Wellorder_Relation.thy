@@ -5,24 +5,24 @@
 Well-order relations as needed by bounded natural functors.
 *)
 
-section {* Well-Order Relations as Needed by Bounded Natural Functors *}
+section \<open>Well-Order Relations as Needed by Bounded Natural Functors\<close>
 
 theory BNF_Wellorder_Relation
 imports Order_Relation
 begin
 
-text{* In this section, we develop basic concepts and results pertaining
+text\<open>In this section, we develop basic concepts and results pertaining
 to well-order relations.  Note that we consider well-order relations
 as {\em non-strict relations},
-i.e., as containing the diagonals of their fields. *}
+i.e., as containing the diagonals of their fields.\<close>
 
 locale wo_rel =
   fixes r :: "'a rel"
   assumes WELL: "Well_order r"
 begin
 
-text{* The following context encompasses all this section. In other words,
-for the whole section, we consider a fixed well-order relation @{term "r"}. *}
+text\<open>The following context encompasses all this section. In other words,
+for the whole section, we consider a fixed well-order relation @{term "r"}.\<close>
 
 (* context wo_rel  *)
 
@@ -38,7 +38,7 @@ abbreviation ofilter where "ofilter \<equiv> Order_Relation.ofilter r"
 lemmas ofilter_def = Order_Relation.ofilter_def[of r]
 
 
-subsection {* Auxiliaries *}
+subsection \<open>Auxiliaries\<close>
 
 lemma REFL: "Refl r"
 using WELL order_on_defs[of _ r] by auto
@@ -72,13 +72,13 @@ lemma cases_Total3:
 using TOTALS by auto
 
 
-subsection {* Well-founded induction and recursion adapted to non-strict well-order relations *}
+subsection \<open>Well-founded induction and recursion adapted to non-strict well-order relations\<close>
 
-text{* Here we provide induction and recursion principles specific to {\em non-strict}
+text\<open>Here we provide induction and recursion principles specific to {\em non-strict}
 well-order relations.
 Although minor variations of those for well-founded relations, they will be useful
 for doing away with the tediousness of
-having to take out the diagonal each time in order to switch to a well-founded relation. *}
+having to take out the diagonal each time in order to switch to a well-founded relation.\<close>
 
 lemma well_order_induct:
 assumes IND: "\<And>x. \<forall>y. y \<noteq> x \<and> (y, x) \<in> r \<longrightarrow> P y \<Longrightarrow> P x"
@@ -113,9 +113,9 @@ proof-
 qed
 
 
-subsection {* The notions of maximum, minimum, supremum, successor and order filter *}
+subsection \<open>The notions of maximum, minimum, supremum, successor and order filter\<close>
 
-text{*
+text\<open>
 We define the successor {\em of a set}, and not of an element (the latter is of course
 a particular case).  Also, we define the maximum {\em of two elements}, @{text "max2"},
 and the minimum {\em of a set}, @{text "minim"} -- we chose these variants since we
@@ -124,7 +124,7 @@ auxiliary relational operator @{text "isMinim"}.  Then, supremum and successor a
 defined in terms of minimum as expected.
 The minimum is only meaningful for non-empty sets, and the successor is only
 meaningful for sets for which strict upper bounds exist.
-Order filters for well-orders are also known as ``initial segments". *}
+Order filters for well-orders are also known as ``initial segments".\<close>
 
 definition max2 :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 where "max2 a b \<equiv> if (a,b) \<in> r then b else a"
@@ -142,7 +142,7 @@ definition suc :: "'a set \<Rightarrow> 'a"
 where "suc A \<equiv> minim (AboveS A)"
 
 
-subsubsection {* Properties of max2 *}
+subsubsection \<open>Properties of max2\<close>
 
 lemma max2_greater_among:
 assumes "a \<in> Field r" and "b \<in> Field r"
@@ -191,7 +191,7 @@ using assms ANTISYM unfolding antisym_def using TOTALS
 unfolding max2_def by auto
 
 
-subsubsection {* Existence and uniqueness for isMinim and well-definedness of minim *}
+subsubsection \<open>Existence and uniqueness for isMinim and well-definedness of minim\<close>
 
 lemma isMinim_unique:
 assumes MINIM: "isMinim B a" and MINIM': "isMinim B a'"
@@ -254,7 +254,7 @@ proof-
   unfolding minim_def using theI[of ?phi b] by blast
 qed
 
-subsubsection{* Properties of minim *}
+subsubsection\<open>Properties of minim\<close>
 
 lemma minim_in:
 assumes "B \<le> Field r" and "B \<noteq> {}"
@@ -294,7 +294,7 @@ proof-
   using isMinim_unique by auto
 qed
 
-subsubsection{* Properties of successor *}
+subsubsection\<open>Properties of successor\<close>
 
 lemma suc_AboveS:
 assumes SUB: "B \<le> Field r" and ABOVES: "AboveS B \<noteq> {}"
@@ -388,7 +388,7 @@ proof-
 qed
 
 
-subsubsection {* Properties of order filters *}
+subsubsection \<open>Properties of order filters\<close>
 
 lemma under_ofilter:
 "ofilter (under a)"
@@ -494,7 +494,7 @@ next
   thus "A \<le> (\<Union>a \<in> A. under a)" by blast
 qed
 
-subsubsection{* Other properties *}
+subsubsection\<open>Other properties\<close>
 
 lemma ofilter_linord:
 assumes OF1: "ofilter A" and OF2: "ofilter B"

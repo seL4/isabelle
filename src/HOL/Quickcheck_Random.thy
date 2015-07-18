@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann & Lukas Bulwahn, TU Muenchen *)
 
-section {* A simple counterexample generator performing random testing *}
+section \<open>A simple counterexample generator performing random testing\<close>
 
 theory Quickcheck_Random
 imports Random Code_Evaluation Enum
@@ -9,22 +9,22 @@ begin
 notation fcomp (infixl "\<circ>>" 60)
 notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
-setup {* Code_Target.add_derived_target ("Quickcheck", [(Code_Runtime.target, I)]) *}
+setup \<open>Code_Target.add_derived_target ("Quickcheck", [(Code_Runtime.target, I)])\<close>
 
-subsection {* Catching Match exceptions *}
+subsection \<open>Catching Match exceptions\<close>
 
 axiomatization catch_match :: "'a => 'a => 'a"
 
 code_printing
   constant catch_match \<rightharpoonup> (Quickcheck) "((_) handle Match => _)"
 
-subsection {* The @{text random} class *}
+subsection \<open>The @{text random} class\<close>
 
 class random = typerep +
   fixes random :: "natural \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
 
 
-subsection {* Fundamental and numeric types*}
+subsection \<open>Fundamental and numeric types\<close>
 
 instantiation bool :: random
 begin
@@ -121,9 +121,9 @@ instance ..
 end
 
 
-subsection {* Complex generators *}
+subsection \<open>Complex generators\<close>
 
-text {* Towards @{typ "'a \<Rightarrow> 'b"} *}
+text \<open>Towards @{typ "'a \<Rightarrow> 'b"}\<close>
 
 axiomatization random_fun_aux :: "typerep \<Rightarrow> typerep \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> term)
   \<Rightarrow> (Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
@@ -147,7 +147,7 @@ instance ..
 
 end
 
-text {* Towards type copies and datatypes *}
+text \<open>Towards type copies and datatypes\<close>
 
 definition collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a"
   where "collapse f = (f \<circ>\<rightarrow> id)"
@@ -203,19 +203,19 @@ lemma random_aux_rec:
   shows "random_aux k = rhs k"
   using assms by (rule natural.induct)
 
-subsection {* Deriving random generators for datatypes *}
+subsection \<open>Deriving random generators for datatypes\<close>
 
 ML_file "Tools/Quickcheck/quickcheck_common.ML" 
 ML_file "Tools/Quickcheck/random_generators.ML"
 
 
-subsection {* Code setup *}
+subsection \<open>Code setup\<close>
 
 code_printing
   constant random_fun_aux \<rightharpoonup> (Quickcheck) "Random'_Generators.random'_fun"
-  -- {* With enough criminal energy this can be abused to derive @{prop False};
+  -- \<open>With enough criminal energy this can be abused to derive @{prop False};
   for this reason we use a distinguished target @{text Quickcheck}
-  not spoiling the regular trusted code generation *}
+  not spoiling the regular trusted code generation\<close>
 
 code_reserved Quickcheck Random_Generators
 

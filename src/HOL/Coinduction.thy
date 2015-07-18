@@ -6,7 +6,7 @@
 Coinduction method that avoids some boilerplate compared to coinduct.
 *)
 
-section {* Coinduction Method *}
+section \<open>Coinduction Method\<close>
 
 theory Coinduction
 imports Ctr_Sugar

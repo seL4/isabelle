@@ -25,13 +25,13 @@ Tobias Nipkow cleaned up a lot.
 *)
 
 
-section {* Greatest common divisor and least common multiple *}
+section \<open>Greatest common divisor and least common multiple\<close>
 
 theory GCD
 imports Main
 begin
 
-subsection {* GCD and LCM definitions *}
+subsection \<open>GCD and LCM definitions\<close>
 
 class gcd = zero + one + dvd +
   fixes gcd :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -592,7 +592,7 @@ instance proof qed
 end
 
 
-subsection {* Transfer setup *}
+subsection \<open>Transfer setup\<close>
 
 lemma transfer_nat_int_gcd:
   "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> gcd (nat x) (nat y) = nat (gcd x y)"
@@ -622,7 +622,7 @@ declare transfer_morphism_int_nat[transfer add return:
     transfer_int_nat_gcd transfer_int_nat_gcd_closures]
 
 
-subsection {* GCD properties *}
+subsection \<open>GCD properties\<close>
 
 (* was gcd_induct *)
 lemma gcd_nat_induct:
@@ -744,10 +744,10 @@ by (auto simp add: gcd_int_def)
 
 declare gcd_nat.simps [simp del]
 
-text {*
+text \<open>
   \medskip @{term "gcd m n"} divides @{text m} and @{text n}.  The
   conjunctions don't seem provable separately.
-*}
+\<close>
 
 instance nat :: semiring_gcd
 proof
@@ -868,12 +868,12 @@ lemma gcd_proj1_if_dvd_int [simp]: "x dvd y \<Longrightarrow> gcd (x::int) y = a
 lemma gcd_proj2_if_dvd_int [simp]: "y dvd x \<Longrightarrow> gcd (x::int) y = abs y"
   by (metis gcd_proj1_if_dvd_int gcd_commute_int)
 
-text {*
+text \<open>
   \medskip Multiplication laws
-*}
+\<close>
 
 lemma gcd_mult_distrib_nat: "(k::nat) * gcd m n = gcd (k * m) (k * n)"
-    -- {* @{cite \<open>page 27\<close> davenport92} *}
+    -- \<open>@{cite \<open>page 27\<close> davenport92}\<close>
   apply (induct m n rule: gcd_nat_induct)
   apply simp
   apply (case_tac "k = 0")
@@ -944,16 +944,16 @@ proof
   assume ?rhs then show ?lhs by simp
 next
   assume ?lhs
-  from `?lhs` have "a dvd b * d" by (auto intro: dvdI dest: sym)
-  with `coprime a d` have "a dvd b" by (simp add: coprime_dvd_mult_iff_nat)
-  from `?lhs` have "b dvd a * c" by (auto intro: dvdI dest: sym)
-  with `coprime b c` have "b dvd a" by (simp add: coprime_dvd_mult_iff_nat)
-  from `?lhs` have "c dvd d * b" by (auto intro: dvdI dest: sym simp add: mult.commute)
-  with `coprime b c` have "c dvd d" by (simp add: coprime_dvd_mult_iff_nat gcd_commute_nat)
-  from `?lhs` have "d dvd c * a" by (auto intro: dvdI dest: sym simp add: mult.commute)
-  with `coprime a d` have "d dvd c" by (simp add: coprime_dvd_mult_iff_nat gcd_commute_nat)
-  from `a dvd b` `b dvd a` have "a = b" by (rule Nat.dvd.antisym)
-  moreover from `c dvd d` `d dvd c` have "c = d" by (rule Nat.dvd.antisym)
+  from \<open>?lhs\<close> have "a dvd b * d" by (auto intro: dvdI dest: sym)
+  with \<open>coprime a d\<close> have "a dvd b" by (simp add: coprime_dvd_mult_iff_nat)
+  from \<open>?lhs\<close> have "b dvd a * c" by (auto intro: dvdI dest: sym)
+  with \<open>coprime b c\<close> have "b dvd a" by (simp add: coprime_dvd_mult_iff_nat)
+  from \<open>?lhs\<close> have "c dvd d * b" by (auto intro: dvdI dest: sym simp add: mult.commute)
+  with \<open>coprime b c\<close> have "c dvd d" by (simp add: coprime_dvd_mult_iff_nat gcd_commute_nat)
+  from \<open>?lhs\<close> have "d dvd c * a" by (auto intro: dvdI dest: sym simp add: mult.commute)
+  with \<open>coprime a d\<close> have "d dvd c" by (simp add: coprime_dvd_mult_iff_nat gcd_commute_nat)
+  from \<open>a dvd b\<close> \<open>b dvd a\<close> have "a = b" by (rule Nat.dvd.antisym)
+  moreover from \<open>c dvd d\<close> \<open>d dvd c\<close> have "c = d" by (rule Nat.dvd.antisym)
   ultimately show ?rhs ..
 qed
 
@@ -963,7 +963,7 @@ lemma coprime_crossproduct_int:
   shows "\<bar>a\<bar> * \<bar>c\<bar> = \<bar>b\<bar> * \<bar>d\<bar> \<longleftrightarrow> \<bar>a\<bar> = \<bar>b\<bar> \<and> \<bar>c\<bar> = \<bar>d\<bar>"
   using assms by (intro coprime_crossproduct_nat [transferred]) auto
 
-text {* \medskip Addition laws *}
+text \<open>\medskip Addition laws\<close>
 
 lemma gcd_add1_nat [simp]: "gcd ((m::nat) + n) n = gcd m n"
   apply (case_tac "n = 0")
@@ -1085,7 +1085,7 @@ lemma gcd_code_int [code]:
   by (simp add: gcd_int_def nat_mod_distrib gcd_non_0_nat)
 
 
-subsection {* Coprimality *}
+subsection \<open>Coprimality\<close>
 
 context semiring_gcd
 begin
@@ -1504,7 +1504,7 @@ lemma invertible_coprime_int: "(x::int) * y mod m = 1 \<Longrightarrow> coprime 
 by (metis coprime_lmult_int gcd_1_int gcd_commute_int gcd_red_int)
 
 
-subsection {* Bezout's theorem *}
+subsection \<open>Bezout's theorem\<close>
 
 (* Function bezw returns a pair of witnesses to Bezout's theorem --
    see the theorems that follow the definition. *)
@@ -1592,7 +1592,7 @@ proof -
   ultimately show ?thesis by blast
 qed
 
-text {* versions of Bezout for nat, by Amine Chaieb *}
+text \<open>versions of Bezout for nat, by Amine Chaieb\<close>
 
 lemma ind_euclid:
   assumes c: " \<forall>a b. P (a::nat) b \<longleftrightarrow> P b a" and z: "\<forall>a. P a 0"
@@ -1744,7 +1744,7 @@ proof-
 qed
 
 
-subsection {* LCM properties *}
+subsection \<open>LCM properties\<close>
 
 lemma lcm_altdef_int [code]: "lcm (a::int) b = (abs a) * (abs b) div gcd a b"
   by (simp add: lcm_int_def lcm_nat_def zdiv_int
@@ -1906,7 +1906,7 @@ lemma lcm_1_iff_int[simp]: "lcm (m::int) n = 1 \<longleftrightarrow> (m=1 \<or> 
 by (auto simp add: abs_mult_self trans [OF lcm_unique_int eq_commute, symmetric] zmult_eq_1_iff)
 
 
-subsection {* The complete divisibility lattice *}
+subsection \<open>The complete divisibility lattice\<close>
 
 interpretation gcd_semilattice_nat: semilattice_inf gcd "op dvd" "(\<lambda>m n::nat. m dvd n \<and> \<not> n dvd m)"
   by standard simp_all
@@ -1916,9 +1916,9 @@ interpretation lcm_semilattice_nat: semilattice_sup lcm "op dvd" "(\<lambda>m n:
 
 interpretation gcd_lcm_lattice_nat: lattice gcd "op dvd" "(\<lambda>m n::nat. m dvd n & ~ n dvd m)" lcm ..
 
-text{* Lifting gcd and lcm to sets (Gcd/Lcm).
+text\<open>Lifting gcd and lcm to sets (Gcd/Lcm).
 Gcd is defined via Lcm to facilitate the proof that we have a complete lattice.
-*}
+\<close>
 
 instantiation nat :: Gcd
 begin
@@ -2034,7 +2034,7 @@ proof
       simp add: unit_factor_Gcd uf)
 qed
 
-text{* Alternative characterizations of Gcd: *}
+text\<open>Alternative characterizations of Gcd:\<close>
 
 lemma Gcd_eq_Max: "finite(M::nat set) \<Longrightarrow> M \<noteq> {} \<Longrightarrow> 0 \<notin> M \<Longrightarrow> Gcd M = Max(\<Inter>m\<in>M. {d. d dvd m})"
 apply(rule antisym)
@@ -2097,7 +2097,7 @@ apply (metis gcd_semilattice_nat.inf_commute coprime_dvd_mult_iff_nat
              dvd.neq_le_trans dvd_triv_right mult.commute)
 done
 
-text{* Nitpick: *}
+text\<open>Nitpick:\<close>
 
 lemma gcd_eq_nitpick_gcd [nitpick_unfold]: "gcd x y = Nitpick.nat_gcd x y"
 by (induct x y rule: nat_gcd.induct)
@@ -2107,7 +2107,7 @@ lemma lcm_eq_nitpick_lcm [nitpick_unfold]: "lcm x y = Nitpick.nat_lcm x y"
 by (simp only: lcm_nat_def Nitpick.nat_lcm_def gcd_eq_nitpick_gcd)
 
 
-subsubsection {* Setwise gcd and lcm for integers *}
+subsubsection \<open>Setwise gcd and lcm for integers\<close>
 
 instantiation int :: Gcd
 begin

@@ -3,19 +3,19 @@
                 with contributions by Jeremy Avigad
 *)
 
-section {* Big infimum (minimum) and supremum (maximum) over finite (non-empty) sets *}
+section \<open>Big infimum (minimum) and supremum (maximum) over finite (non-empty) sets\<close>
 
 theory Lattices_Big
 imports Finite_Set Option
 begin
 
-subsection {* Generic lattice operations over a set *}
+subsection \<open>Generic lattice operations over a set\<close>
 
 no_notation times (infixl "*" 70)
 no_notation Groups.one ("1")
 
 
-subsubsection {* Without neutral element *}
+subsubsection \<open>Without neutral element\<close>
 
 locale semilattice_set = semilattice
 begin
@@ -50,9 +50,9 @@ lemma insert_not_elem:
   assumes "finite A" and "x \<notin> A" and "A \<noteq> {}"
   shows "F (insert x A) = x * F A"
 proof -
-  from `A \<noteq> {}` obtain b where "b \<in> A" by blast
+  from \<open>A \<noteq> {}\<close> obtain b where "b \<in> A" by blast
   then obtain B where *: "A = insert b B" "b \<notin> B" by (blast dest: mk_disjoint_insert)
-  with `finite A` and `x \<notin> A`
+  with \<open>finite A\<close> and \<open>x \<notin> A\<close>
     have "finite (insert x B)" and "b \<notin> insert x B" by auto
   then have "F (insert b (insert x B)) = x * F (insert b B)"
     by (simp add: eq_fold)
@@ -64,7 +64,7 @@ lemma in_idem:
   shows "x * F A = F A"
 proof -
   from assms have "A \<noteq> {}" by auto
-  with `finite A` show ?thesis using `x \<in> A`
+  with \<open>finite A\<close> show ?thesis using \<open>x \<in> A\<close>
     by (induct A rule: finite_ne_induct) (auto simp add: ac_simps insert_not_elem)
 qed
 
@@ -102,7 +102,7 @@ qed
 lemma closed:
   assumes "finite A" "A \<noteq> {}" and elem: "\<And>x y. x * y \<in> {x, y}"
   shows "F A \<in> A"
-using `finite A` `A \<noteq> {}` proof (induct rule: finite_ne_induct)
+using \<open>finite A\<close> \<open>A \<noteq> {}\<close> proof (induct rule: finite_ne_induct)
   case singleton then show ?case by simp
 next
   case insert with elem show ?case by force
@@ -156,7 +156,7 @@ lemma coboundedI:
   shows "F A \<preceq> a"
 proof -
   from assms have "A \<noteq> {}" by auto
-  from `finite A` `A \<noteq> {}` `a \<in> A` show ?thesis
+  from \<open>finite A\<close> \<open>A \<noteq> {}\<close> \<open>a \<in> A\<close> show ?thesis
   proof (induct rule: finite_ne_induct)
     case singleton thus ?case by (simp add: refl)
   next
@@ -173,7 +173,7 @@ proof (cases "A = B")
   case True then show ?thesis by (simp add: refl)
 next
   case False
-  have B: "B = A \<union> (B - A)" using `A \<subseteq> B` by blast
+  have B: "B = A \<union> (B - A)" using \<open>A \<subseteq> B\<close> by blast
   then have "F B = F (A \<union> (B - A))" by simp
   also have "\<dots> = F A * F (B - A)" using False assms by (subst union) (auto intro: finite_subset)
   also have "\<dots> \<preceq> F A" by simp
@@ -183,7 +183,7 @@ qed
 end
 
 
-subsubsection {* With neutral element *}
+subsubsection \<open>With neutral element\<close>
 
 locale semilattice_neutr_set = semilattice_neutr
 begin
@@ -213,7 +213,7 @@ lemma in_idem:
   shows "x * F A = F A"
 proof -
   from assms have "A \<noteq> {}" by auto
-  with `finite A` show ?thesis using `x \<in> A`
+  with \<open>finite A\<close> show ?thesis using \<open>x \<in> A\<close>
     by (induct A rule: finite_ne_induct) (auto simp add: ac_simps)
 qed
 
@@ -246,7 +246,7 @@ qed
 lemma closed:
   assumes "finite A" "A \<noteq> {}" and elem: "\<And>x y. x * y \<in> {x, y}"
   shows "F A \<in> A"
-using `finite A` `A \<noteq> {}` proof (induct rule: finite_ne_induct)
+using \<open>finite A\<close> \<open>A \<noteq> {}\<close> proof (induct rule: finite_ne_induct)
   case singleton then show ?case by simp
 next
   case insert with elem show ?case by force
@@ -279,7 +279,7 @@ lemma coboundedI:
   shows "F A \<preceq> a"
 proof -
   from assms have "A \<noteq> {}" by auto
-  from `finite A` `A \<noteq> {}` `a \<in> A` show ?thesis
+  from \<open>finite A\<close> \<open>A \<noteq> {}\<close> \<open>a \<in> A\<close> show ?thesis
   proof (induct rule: finite_ne_induct)
     case singleton thus ?case by (simp add: refl)
   next
@@ -296,7 +296,7 @@ proof (cases "A = B")
   case True then show ?thesis by (simp add: refl)
 next
   case False
-  have B: "B = A \<union> (B - A)" using `A \<subseteq> B` by blast
+  have B: "B = A \<union> (B - A)" using \<open>A \<subseteq> B\<close> by blast
   then have "F B = F (A \<union> (B - A))" by simp
   also have "\<dots> = F A * F (B - A)" using False assms by (subst union) (auto intro: finite_subset)
   also have "\<dots> \<preceq> F A" by simp
@@ -309,7 +309,7 @@ notation times (infixl "*" 70)
 notation Groups.one ("1")
 
 
-subsection {* Lattice operations on finite sets *}
+subsection \<open>Lattice operations on finite sets\<close>
 
 context semilattice_inf
 begin
@@ -348,7 +348,7 @@ qed
 end
 
 
-subsection {* Infimum and Supremum over non-empty sets *}
+subsection \<open>Infimum and Supremum over non-empty sets\<close>
 
 context lattice
 begin
@@ -357,9 +357,9 @@ lemma Inf_fin_le_Sup_fin [simp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA \<le> \<Squnion>\<^sub>f\<^sub>i\<^sub>nA"
 proof -
-  from `A \<noteq> {}` obtain a where "a \<in> A" by blast
-  with `finite A` have "\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA \<le> a" by (rule Inf_fin.coboundedI)
-  moreover from `finite A` `a \<in> A` have "a \<le> \<Squnion>\<^sub>f\<^sub>i\<^sub>nA" by (rule Sup_fin.coboundedI)
+  from \<open>A \<noteq> {}\<close> obtain a where "a \<in> A" by blast
+  with \<open>finite A\<close> have "\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA \<le> a" by (rule Inf_fin.coboundedI)
+  moreover from \<open>finite A\<close> \<open>a \<in> A\<close> have "a \<le> \<Squnion>\<^sub>f\<^sub>i\<^sub>nA" by (rule Sup_fin.coboundedI)
   ultimately show ?thesis by (rule order_trans)
 qed
 
@@ -477,7 +477,7 @@ qed
 end
 
 
-subsection {* Minimum and Maximum over non-empty sets *}
+subsection \<open>Minimum and Maximum over non-empty sets\<close>
 
 context linorder
 begin
@@ -506,7 +506,7 @@ qed
 
 end
 
-text {* An aside: @{const Min}/@{const Max} on linear orders as special case of @{const Inf_fin}/@{const Sup_fin} *}
+text \<open>An aside: @{const Min}/@{const Max} on linear orders as special case of @{const Inf_fin}/@{const Sup_fin}\<close>
 
 lemma Inf_fin_Min:
   "Inf_fin = (Min :: 'a::{semilattice_inf, linorder} set \<Rightarrow> 'a)"
@@ -566,9 +566,9 @@ lemma Min_insert2:
 proof (cases "A = {}")
   case True then show ?thesis by simp
 next
-  case False with `finite A` have "Min (insert a A) = min a (Min A)"
+  case False with \<open>finite A\<close> have "Min (insert a A) = min a (Min A)"
     by simp
-  moreover from `finite A` `A \<noteq> {}` min have "a \<le> Min A" by simp
+  moreover from \<open>finite A\<close> \<open>A \<noteq> {}\<close> min have "a \<le> Min A" by simp
   ultimately show ?thesis by (simp add: min.absorb1)
 qed
 
@@ -578,9 +578,9 @@ lemma Max_insert2:
 proof (cases "A = {}")
   case True then show ?thesis by simp
 next
-  case False with `finite A` have "Max (insert a A) = max a (Max A)"
+  case False with \<open>finite A\<close> have "Max (insert a A) = max a (Max A)"
     by simp
-  moreover from `finite A` `A \<noteq> {}` max have "Max A \<le> a" by simp
+  moreover from \<open>finite A\<close> \<open>A \<noteq> {}\<close> max have "Max A \<le> a" by simp
   ultimately show ?thesis by (simp add: max.absorb1)
 qed
 
@@ -600,7 +600,7 @@ lemma Min_eqI:
     and "x \<in> A"
   shows "Min A = x"
 proof (rule antisym)
-  from `x \<in> A` have "A \<noteq> {}" by auto
+  from \<open>x \<in> A\<close> have "A \<noteq> {}" by auto
   with assms show "Min A \<ge> x" by simp
 next
   from assms show "x \<ge> Min A" by simp
@@ -612,7 +612,7 @@ lemma Max_eqI:
     and "x \<in> A"
   shows "Max A = x"
 proof (rule antisym)
-  from `x \<in> A` have "A \<noteq> {}" by auto
+  from \<open>x \<in> A\<close> have "A \<noteq> {}" by auto
   with assms show "Max A \<le> x" by simp
 next
   from assms show "x \<le> Max A" by simp
@@ -687,14 +687,14 @@ lemma mono_Min_commute:
   assumes "finite A" and "A \<noteq> {}"
   shows "f (Min A) = Min (f ` A)"
 proof (rule linorder_class.Min_eqI [symmetric])
-  from `finite A` show "finite (f ` A)" by simp
+  from \<open>finite A\<close> show "finite (f ` A)" by simp
   from assms show "f (Min A) \<in> f ` A" by simp
   fix x
   assume "x \<in> f ` A"
   then obtain y where "y \<in> A" and "x = f y" ..
   with assms have "Min A \<le> y" by auto
-  with `mono f` have "f (Min A) \<le> f y" by (rule monoE)
-  with `x = f y` show "f (Min A) \<le> x" by simp
+  with \<open>mono f\<close> have "f (Min A) \<le> f y" by (rule monoE)
+  with \<open>x = f y\<close> show "f (Min A) \<le> x" by simp
 qed
 
 lemma mono_Max_commute:
@@ -702,14 +702,14 @@ lemma mono_Max_commute:
   assumes "finite A" and "A \<noteq> {}"
   shows "f (Max A) = Max (f ` A)"
 proof (rule linorder_class.Max_eqI [symmetric])
-  from `finite A` show "finite (f ` A)" by simp
+  from \<open>finite A\<close> show "finite (f ` A)" by simp
   from assms show "f (Max A) \<in> f ` A" by simp
   fix x
   assume "x \<in> f ` A"
   then obtain y where "y \<in> A" and "x = f y" ..
   with assms have "y \<le> Max A" by auto
-  with `mono f` have "f y \<le> f (Max A)" by (rule monoE)
-  with `x = f y` show "x \<le> f (Max A)" by simp
+  with \<open>mono f\<close> have "f y \<le> f (Max A)" by (rule monoE)
+  with \<open>x = f y\<close> show "x \<le> f (Max A)" by simp
 qed
 
 lemma finite_linorder_max_induct [consumes 1, case_names empty insert]:
@@ -727,18 +727,18 @@ proof (induct rule: finite_psubset_induct)
   show "P A"
   proof (cases "A = {}")
     assume "A = {}" 
-    then show "P A" using `P {}` by simp
+    then show "P A" using \<open>P {}\<close> by simp
   next
     let ?B = "A - {Max A}" 
     let ?A = "insert (Max A) ?B"
-    have "finite ?B" using `finite A` by simp
+    have "finite ?B" using \<open>finite A\<close> by simp
     assume "A \<noteq> {}"
-    with `finite A` have "Max A : A" by auto
+    with \<open>finite A\<close> have "Max A : A" by auto
     then have A: "?A = A" using insert_Diff_single insert_absorb by auto
-    then have "P ?B" using `P {}` step IH [of ?B] by blast
+    then have "P ?B" using \<open>P {}\<close> step IH [of ?B] by blast
     moreover 
-    have "\<forall>a\<in>?B. a < Max A" using Max_ge [OF `finite A`] by fastforce
-    ultimately show "P A" using A insert_Diff_single step [OF `finite ?B`] by fastforce
+    have "\<forall>a\<in>?B. a < Max A" using Max_ge [OF \<open>finite A\<close>] by fastforce
+    ultimately show "P A" using A insert_Diff_single step [OF \<open>finite ?B\<close>] by fastforce
   qed
 qed
 
@@ -770,7 +770,7 @@ lemma infinite_growing:
   shows "\<not> finite X"
 proof
   assume "finite X"
-  with `X \<noteq> {}` have "Max X \<in> X" "\<forall>x\<in>X. x \<le> Max X"
+  with \<open>X \<noteq> {}\<close> have "Max X \<in> X" "\<forall>x\<in>X. x \<le> Max X"
     by auto
   with *[of "Max X"] show False
     by auto

@@ -4,7 +4,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-section {* Sledgehammer: Isabelle--ATP Linkup *}
+section \<open>Sledgehammer: Isabelle--ATP Linkup\<close>
 
 theory Sledgehammer
 imports Presburger SMT

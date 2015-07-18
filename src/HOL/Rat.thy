@@ -2,15 +2,15 @@
     Author: Markus Wenzel, TU Muenchen
 *)
 
-section {* Rational numbers *}
+section \<open>Rational numbers\<close>
 
 theory Rat
 imports GCD Archimedean_Field
 begin
 
-subsection {* Rational numbers as quotient *}
+subsection \<open>Rational numbers as quotient\<close>
 
-subsubsection {* Construction of the type of rational numbers *}
+subsubsection \<open>Construction of the type of rational numbers\<close>
 
 definition
   ratrel :: "(int \<times> int) \<Rightarrow> (int \<times> int) \<Rightarrow> bool" where
@@ -52,7 +52,7 @@ quotient_type rat = "int \<times> int" / partial: "ratrel"
 lemma Domainp_cr_rat [transfer_domain_rule]: "Domainp pcr_rat = (\<lambda>x. snd x \<noteq> 0)"
 by (simp add: rat.domain_eq)
 
-subsubsection {* Representation and basic operations *}
+subsubsection \<open>Representation and basic operations\<close>
 
 lift_definition Fract :: "int \<Rightarrow> int \<Rightarrow> rat"
   is "\<lambda>a b. if b = 0 then (0, 1) else (a, b)"
@@ -72,12 +72,12 @@ proof -
     by transfer simp
   let ?a = "a div gcd a b"
   let ?b = "b div gcd a b"
-  from `b \<noteq> 0` have "?b * gcd a b = b"
+  from \<open>b \<noteq> 0\<close> have "?b * gcd a b = b"
     by simp
-  with `b \<noteq> 0` have "?b \<noteq> 0" by fastforce
-  from `q = Fract a b` `b \<noteq> 0` `?b \<noteq> 0` have q: "q = Fract ?a ?b"
+  with \<open>b \<noteq> 0\<close> have "?b \<noteq> 0" by fastforce
+  from \<open>q = Fract a b\<close> \<open>b \<noteq> 0\<close> \<open>?b \<noteq> 0\<close> have q: "q = Fract ?a ?b"
     by (simp add: eq_rat dvd_div_mult mult.commute [of a])
-  from `b \<noteq> 0` have coprime: "coprime ?a ?b"
+  from \<open>b \<noteq> 0\<close> have coprime: "coprime ?a ?b"
     by (auto intro: div_gcd_coprime_int)
   show C proof (cases "b > 0")
     case True
@@ -90,7 +90,7 @@ proof -
     case False
     note assms
     moreover have "q = Fract (- ?a) (- ?b)" unfolding q by transfer simp
-    moreover from False `b \<noteq> 0` have "- ?b > 0" by (simp add: pos_imp_zdiv_neg_iff)
+    moreover from False \<open>b \<noteq> 0\<close> have "- ?b > 0" by (simp add: pos_imp_zdiv_neg_iff)
     moreover from coprime have "coprime (- ?a) (- ?b)" by simp
     ultimately show C .
   qed
@@ -240,11 +240,11 @@ next
   case False
   then obtain a b where "q = Fract a b" and "b > 0" and "coprime a b" by (cases q) auto
   with False have "0 \<noteq> Fract a b" by simp
-  with `b > 0` have "a \<noteq> 0" by (simp add: Zero_rat_def eq_rat)
-  with Fract `q = Fract a b` `b > 0` `coprime a b` show C by blast
+  with \<open>b > 0\<close> have "a \<noteq> 0" by (simp add: Zero_rat_def eq_rat)
+  with Fract \<open>q = Fract a b\<close> \<open>b > 0\<close> \<open>coprime a b\<close> show C by blast
 qed
 
-subsubsection {* Function @{text normalize} *}
+subsubsection \<open>Function @{text normalize}\<close>
 
 lemma Fract_coprime: "Fract (a div gcd a b) (b div gcd a b) = Fract a b"
 proof (cases "b = 0")
@@ -302,9 +302,9 @@ lemma normalize_negative [simp]:
   "q < 0 \<Longrightarrow> normalize (p, q) = normalize (- p, - q)"
   by (simp add: normalize_def Let_def dvd_div_neg dvd_neg_div)
 
-text{*
+text\<open>
   Decompose a fraction into normalized, i.e. coprime numerator and denominator:
-*}
+\<close>
 
 definition quotient_of :: "rat \<Rightarrow> int \<times> int" where
   "quotient_of x = (THE pair. x = Fract (fst pair) (snd pair) &
@@ -327,11 +327,11 @@ proof (cases r)
       case False
       with Fract Fract' have *: "c * b = a * d" and "c \<noteq> 0" by (auto simp add: eq_rat)
       then have "c * b > 0 \<longleftrightarrow> a * d > 0" by auto
-      with `b > 0` `d > 0` have "a > 0 \<longleftrightarrow> c > 0" by (simp add: zero_less_mult_iff)
-      with `a \<noteq> 0` `c \<noteq> 0` have sgn: "sgn a = sgn c" by (auto simp add: not_less)
-      from `coprime a b` `coprime c d` have "\<bar>a\<bar> * \<bar>d\<bar> = \<bar>c\<bar> * \<bar>b\<bar> \<longleftrightarrow> \<bar>a\<bar> = \<bar>c\<bar> \<and> \<bar>d\<bar> = \<bar>b\<bar>"
+      with \<open>b > 0\<close> \<open>d > 0\<close> have "a > 0 \<longleftrightarrow> c > 0" by (simp add: zero_less_mult_iff)
+      with \<open>a \<noteq> 0\<close> \<open>c \<noteq> 0\<close> have sgn: "sgn a = sgn c" by (auto simp add: not_less)
+      from \<open>coprime a b\<close> \<open>coprime c d\<close> have "\<bar>a\<bar> * \<bar>d\<bar> = \<bar>c\<bar> * \<bar>b\<bar> \<longleftrightarrow> \<bar>a\<bar> = \<bar>c\<bar> \<and> \<bar>d\<bar> = \<bar>b\<bar>"
         by (simp add: coprime_crossproduct_int)
-      with `b > 0` `d > 0` have "\<bar>a\<bar> * d = \<bar>c\<bar> * b \<longleftrightarrow> \<bar>a\<bar> = \<bar>c\<bar> \<and> d = b" by simp
+      with \<open>b > 0\<close> \<open>d > 0\<close> have "\<bar>a\<bar> * d = \<bar>c\<bar> * b \<longleftrightarrow> \<bar>a\<bar> = \<bar>c\<bar> \<and> d = b" by simp
       then have "a * sgn a * d = c * sgn c * b \<longleftrightarrow> a * sgn a = c * sgn c \<and> d = b" by (simp add: abs_sgn)
       with sgn * show ?thesis by (auto simp add: sgn_0_0)
     qed
@@ -387,7 +387,7 @@ lemma quotient_of_inject_eq:
   by (auto simp add: quotient_of_inject)
 
 
-subsubsection {* Various *}
+subsubsection \<open>Various\<close>
 
 lemma Fract_of_int_quotient: "Fract k l = of_int k / of_int l"
   by (simp add: Fract_of_int_eq [symmetric])
@@ -404,7 +404,7 @@ proof -
   thus ?thesis using Fract_of_int_quotient by simp
 qed
 
-subsubsection {* The ordered field of rational numbers *}
+subsubsection \<open>The ordered field of rational numbers\<close>
 
 lift_definition positive :: "rat \<Rightarrow> bool"
   is "\<lambda>x. 0 < fst x * snd x"
@@ -418,7 +418,7 @@ proof (clarsimp)
   hence "0 < a * b * d\<^sup>2 \<longleftrightarrow> 0 < c * d * b\<^sup>2"
     by simp
   thus "0 < a * b \<longleftrightarrow> 0 < c * d"
-    using `b \<noteq> 0` and `d \<noteq> 0`
+    using \<open>b \<noteq> 0\<close> and \<open>d \<noteq> 0\<close>
     by (simp add: zero_less_mult_iff)
 qed
 
@@ -570,7 +570,7 @@ lemma Fract_le_one_iff:
   by (simp add: One_rat_def mult_le_cancel_right)
 
 
-subsubsection {* Rationals are an Archimedean field *}
+subsubsection \<open>Rationals are an Archimedean field\<close>
 
 lemma rat_floor_lemma:
   shows "of_int (a div b) \<le> Fract a b \<and> Fract a b < of_int (a div b + 1)"
@@ -613,9 +613,9 @@ lemma floor_Fract: "floor (Fract a b) = a div b"
   by (simp add: Fract_of_int_quotient floor_divide_of_int_eq)
 
 
-subsection {* Linear arithmetic setup *}
+subsection \<open>Linear arithmetic setup\<close>
 
-declaration {*
+declaration \<open>
   K (Lin_Arith.add_inj_thms [@{thm of_nat_le_iff} RS iffD2, @{thm of_nat_eq_iff} RS iffD2]
     (* not needed because x < (y::nat) can be rewritten as Suc x <= y: of_nat_less_iff RS iffD2 *)
   #> Lin_Arith.add_inj_thms [@{thm of_int_le_iff} RS iffD2, @{thm of_int_eq_iff} RS iffD2]
@@ -632,10 +632,10 @@ declaration {*
   #> Lin_Arith.add_simprocs Numeral_Simprocs.field_divide_cancel_numeral_factor
   #> Lin_Arith.add_inj_const (@{const_name of_nat}, @{typ "nat => rat"})
   #> Lin_Arith.add_inj_const (@{const_name of_int}, @{typ "int => rat"}))
-*}
+\<close>
 
 
-subsection {* Embedding from Rationals to other Fields *}
+subsection \<open>Embedding from Rationals to other Fields\<close>
 
 context field_char_0
 begin
@@ -735,7 +735,7 @@ proof (induct r, induct s)
     using not_zero by (simp add: pos_less_divide_eq pos_divide_less_eq)
   show "(of_rat (Fract a b) :: 'a::linordered_field) < of_rat (Fract c d)
     \<longleftrightarrow> Fract a b < Fract c d"
-    using not_zero `b * d > 0`
+    using not_zero \<open>b * d > 0\<close>
     by (simp add: of_rat_rat of_int_divide_less_eq of_int_mult [symmetric] del: of_int_mult)
 qed
 
@@ -775,7 +775,7 @@ proof
      (simp add: of_rat_rat Fract_of_int_eq [symmetric])
 qed
 
-text{*Collapse nested embeddings*}
+text\<open>Collapse nested embeddings\<close>
 lemma of_rat_of_nat_eq [simp]: "of_rat (of_nat n) = of_nat n"
 by (induct n) (simp_all add: of_rat_add)
 
@@ -803,7 +803,7 @@ abbreviation
 where
   "rat_of_int \<equiv> of_int"
 
-subsection {* The Set of Rational Numbers *}
+subsection \<open>The Set of Rational Numbers\<close>
 
 context field_char_0
 begin
@@ -909,7 +909,7 @@ lemma Rats_cases [cases set: Rats]:
   assumes "q \<in> \<rat>"
   obtains (of_rat) r where "q = of_rat r"
 proof -
-  from `q \<in> \<rat>` have "q \<in> range of_rat" unfolding Rats_def .
+  from \<open>q \<in> \<rat>\<close> have "q \<in> range of_rat" unfolding Rats_def .
   then obtain r where "q = of_rat r" ..
   then show thesis ..
 qed
@@ -921,9 +921,9 @@ lemma Rats_induct [case_names of_rat, induct set: Rats]:
 lemma Rats_infinite: "\<not> finite \<rat>"
   by (auto dest!: finite_imageD simp: inj_on_def infinite_UNIV_char_0 Rats_def)
 
-subsection {* Implementation of rational numbers as pairs of integers *}
+subsection \<open>Implementation of rational numbers as pairs of integers\<close>
 
-text {* Formal constructor *}
+text \<open>Formal constructor\<close>
 
 definition Frct :: "int \<times> int \<Rightarrow> rat" where
   [simp]: "Frct p = Fract (fst p) (snd p)"
@@ -933,7 +933,7 @@ lemma [code abstype]:
   by (cases q) (auto intro: quotient_of_eq)
 
 
-text {* Numerals *}
+text \<open>Numerals\<close>
 
 declare quotient_of_Fract [code abstract]
 
@@ -967,7 +967,7 @@ lemma Frct_code_post [code_post]:
   by (simp_all add: Fract_of_int_quotient)
 
 
-text {* Operations *}
+text \<open>Operations\<close>
 
 lemma rat_zero_code [code abstract]:
   "quotient_of 0 = (0, 1)"
@@ -1052,7 +1052,7 @@ lemma [code]:
   by (cases p) (simp add: quotient_of_Fract of_rat_rat)
 
 
-text {* Quickcheck *}
+text \<open>Quickcheck\<close>
 
 definition (in term_syntax)
   valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> rat \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
@@ -1126,9 +1126,9 @@ instance ..
 end
 
 
-subsection {* Setup for Nitpick *}
+subsection \<open>Setup for Nitpick\<close>
 
-declaration {*
+declaration \<open>
   Nitpick_HOL.register_frac_type @{type_name rat}
    [(@{const_name zero_rat_inst.zero_rat}, @{const_name Nitpick.zero_frac}),
     (@{const_name one_rat_inst.one_rat}, @{const_name Nitpick.one_frac}),
@@ -1139,7 +1139,7 @@ declaration {*
     (@{const_name ord_rat_inst.less_rat}, @{const_name Nitpick.less_frac}),
     (@{const_name ord_rat_inst.less_eq_rat}, @{const_name Nitpick.less_eq_frac}),
     (@{const_name field_char_0_class.of_rat}, @{const_name Nitpick.of_frac})]
-*}
+\<close>
 
 lemmas [nitpick_unfold] = inverse_rat_inst.inverse_rat
   one_rat_inst.one_rat ord_rat_inst.less_rat
@@ -1147,11 +1147,11 @@ lemmas [nitpick_unfold] = inverse_rat_inst.inverse_rat
   uminus_rat_inst.uminus_rat zero_rat_inst.zero_rat
 
 
-subsection {* Float syntax *}
+subsection \<open>Float syntax\<close>
 
 syntax "_Float" :: "float_const \<Rightarrow> 'a"    ("_")
 
-parse_translation {*
+parse_translation \<open>
   let
     fun mk_frac str =
       let
@@ -1165,14 +1165,14 @@ parse_translation {*
       | float_tr [t as Const (str, _)] = mk_frac str
       | float_tr ts = raise TERM ("float_tr", ts);
   in [(@{syntax_const "_Float"}, K float_tr)] end
-*}
+\<close>
 
-text{* Test: *}
+text\<open>Test:\<close>
 lemma "123.456 = -111.111 + 200 + 30 + 4 + 5/10 + 6/100 + (7/1000::rat)"
   by simp
 
 
-subsection {* Hiding implementation details *}
+subsection \<open>Hiding implementation details\<close>
 
 hide_const (open) normalize positive
 

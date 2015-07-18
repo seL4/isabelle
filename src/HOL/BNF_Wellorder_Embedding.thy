@@ -5,22 +5,22 @@
 Well-order embeddings as needed by bounded natural functors.
 *)
 
-section {* Well-Order Embeddings as Needed by Bounded Natural Functors *}
+section \<open>Well-Order Embeddings as Needed by Bounded Natural Functors\<close>
 
 theory BNF_Wellorder_Embedding
 imports Hilbert_Choice BNF_Wellorder_Relation
 begin
 
-text{* In this section, we introduce well-order {\em embeddings} and {\em isomorphisms} and
+text\<open>In this section, we introduce well-order {\em embeddings} and {\em isomorphisms} and
 prove their basic properties.  The notion of embedding is considered from the point
 of view of the theory of ordinals, and therefore requires the source to be injected
 as an {\em initial segment} (i.e., {\em order filter}) of the target.  A main result
 of this section is the existence of embeddings (in one direction or another) between
 any two well-orders, having as a consequence the fact that, given any two sets on
-any two types, one is smaller than (i.e., can be injected into) the other. *}
+any two types, one is smaller than (i.e., can be injected into) the other.\<close>
 
 
-subsection {* Auxiliaries *}
+subsection \<open>Auxiliaries\<close>
 
 lemma UNION_inj_on_ofilter:
 assumes WELL: "Well_order r" and
@@ -55,10 +55,10 @@ proof-
 qed
 
 
-subsection {* (Well-order) embeddings, strict embeddings, isomorphisms and order-compatible
-functions *}
+subsection \<open>(Well-order) embeddings, strict embeddings, isomorphisms and order-compatible
+functions\<close>
 
-text{* Standardly, a function is an embedding of a well-order in another if it injectively and
+text\<open>Standardly, a function is an embedding of a well-order in another if it injectively and
 order-compatibly maps the former into an order filter of the latter.
 Here we opt for a more succinct definition (operator @{text "embed"}),
 asking that, for any element in the source, the function should be a bijection
@@ -66,7 +66,7 @@ between the set of strict lower bounds of that element
 and the set of strict lower bounds of its image.  (Later we prove equivalence with
 the standard definition -- lemma @{text "embed_iff_compat_inj_on_ofilter"}.)
 A {\em strict embedding} (operator @{text "embedS"})  is a non-bijective embedding
-and an isomorphism (operator @{text "iso"}) is a bijective embedding. *}
+and an isomorphism (operator @{text "iso"}) is a bijective embedding.\<close>
 
 definition embed :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> ('a \<Rightarrow> 'a') \<Rightarrow> bool"
 where
@@ -74,7 +74,7 @@ where
 
 lemmas embed_defs = embed_def embed_def[abs_def]
 
-text {* Strict embeddings: *}
+text \<open>Strict embeddings:\<close>
 
 definition embedS :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> ('a \<Rightarrow> 'a') \<Rightarrow> bool"
 where
@@ -151,7 +151,7 @@ shows "iso r r'' (f' o f)"
 using assms unfolding iso_def
 by (auto simp add: comp_embed bij_betw_trans)
 
-text{* That @{text "embedS"} is also preserved by function composition shall be proved only later. *}
+text\<open>That @{text "embedS"} is also preserved by function composition shall be proved only later.\<close>
 
 lemma embed_Field:
 "\<lbrakk>Well_order r; embed r r' f\<rbrakk> \<Longrightarrow> f`(Field r) \<le> Field r'"
@@ -451,9 +451,9 @@ proof-
 qed
 
 
-subsection {* Given any two well-orders, one can be embedded in the other *}
+subsection \<open>Given any two well-orders, one can be embedded in the other\<close>
 
-text{* Here is an overview of the proof of of this fact, stated in theorem
+text\<open>Here is an overview of the proof of of this fact, stated in theorem
 @{text "wellorders_totally_ordered"}:
 
    Fix the well-orders @{text "r::'a rel"} and @{text "r'::'a' rel"}.
@@ -470,7 +470,7 @@ text{* Here is an overview of the proof of of this fact, stated in theorem
    Otherwise, it means that @{text "Field r'"} is the smaller one, and the inverse of
    (the "good" segment of) @{text "f"} is the desired embedding from @{text "r'"} to @{text "r"}
    (lemma @{text "wellorders_totally_ordered_aux2"}).
-*}
+\<close>
 
 lemma wellorders_totally_ordered_aux:
 fixes r ::"'a rel"  and r'::"'a' rel" and
@@ -768,12 +768,12 @@ proof-
 qed
 
 
-subsection {* Uniqueness of embeddings *}
+subsection \<open>Uniqueness of embeddings\<close>
 
-text{* Here we show a fact complementary to the one from the previous subsection -- namely,
+text\<open>Here we show a fact complementary to the one from the previous subsection -- namely,
 that between any two well-orders there is {\em at most} one embedding, and is the one
 definable by the expected well-order recursive equation.  As a consequence, any two
-embeddings of opposite directions are mutually inverse. *}
+embeddings of opposite directions are mutually inverse.\<close>
 
 lemma embed_determined:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
@@ -864,7 +864,7 @@ shows "iso r r' f"
 unfolding iso_def using assms by (auto simp add: embed_bothWays_bij_betw)
 
 
-subsection {* More properties of embeddings, strict embeddings and isomorphisms *}
+subsection \<open>More properties of embeddings, strict embeddings and isomorphisms\<close>
 
 lemma embed_bothWays_Field_bij_betw:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and

@@ -2,13 +2,13 @@
     Author:     Brian Huffman and Ondrej Kuncar
 *)
 
-section {* Setup for Lifting/Transfer for the set type *}
+section \<open>Setup for Lifting/Transfer for the set type\<close>
 
 theory Lifting_Set
 imports Lifting
 begin
 
-subsection {* Relator and predicator properties *}
+subsection \<open>Relator and predicator properties\<close>
 
 lemma rel_setD1: "\<lbrakk> rel_set R A B; x \<in> A \<rbrakk> \<Longrightarrow> \<exists>y \<in> B. R x y"
   and rel_setD2: "\<lbrakk> rel_set R A B; y \<in> B \<rbrakk> \<Longrightarrow> \<exists>x \<in> A. R x y"
@@ -82,21 +82,21 @@ lemma bi_unique_rel_set_lemma:
 proof
   def f \<equiv> "\<lambda>x. THE y. R x y"
   { fix x assume "x \<in> X"
-    with `rel_set R X Y` `bi_unique R` have "R x (f x)"
+    with \<open>rel_set R X Y\<close> \<open>bi_unique R\<close> have "R x (f x)"
       by (simp add: bi_unique_def rel_set_def f_def) (metis theI)
-    with assms `x \<in> X` 
+    with assms \<open>x \<in> X\<close> 
     have  "R x (f x)" "\<forall>x'\<in>X. R x' (f x) \<longrightarrow> x = x'" "\<forall>y\<in>Y. R x y \<longrightarrow> y = f x" "f x \<in> Y"
       by (fastforce simp add: bi_unique_def rel_set_def)+ }
   note * = this
   moreover
   { fix y assume "y \<in> Y"
-    with `rel_set R X Y` *(3) `y \<in> Y` have "\<exists>x\<in>X. y = f x"
+    with \<open>rel_set R X Y\<close> *(3) \<open>y \<in> Y\<close> have "\<exists>x\<in>X. y = f x"
       by (fastforce simp: rel_set_def) }
   ultimately show "\<forall>x\<in>X. R x (f x)" "Y = image f X" "inj_on f X"
     by (auto simp: inj_on_def image_iff)
 qed
 
-subsection {* Quotient theorem for the Lifting package *}
+subsection \<open>Quotient theorem for the Lifting package\<close>
 
 lemma Quotient_set[quot_map]:
   assumes "Quotient R Abs Rep T"
@@ -108,9 +108,9 @@ lemma Quotient_set[quot_map]:
   done
 
 
-subsection {* Transfer rules for the Transfer package *}
+subsection \<open>Transfer rules for the Transfer package\<close>
 
-subsubsection {* Unconditional transfer rules *}
+subsubsection \<open>Unconditional transfer rules\<close>
 
 context
 begin
@@ -183,7 +183,7 @@ lemma SUP_parametric [transfer_rule]:
   unfolding SUP_def [abs_def] by transfer_prover
 
 
-subsubsection {* Rules requiring bi-unique, bi-total or right-total relations *}
+subsubsection \<open>Rules requiring bi-unique, bi-total or right-total relations\<close>
 
 lemma member_transfer [transfer_rule]:
   assumes "bi_unique A"
@@ -281,7 +281,7 @@ lemma (in comm_monoid_set) F_parametric [transfer_rule]:
 proof (rule rel_funI)+
   fix f :: "'b \<Rightarrow> 'a" and g S T
   assume "rel_fun A (op =) f g" "rel_set A S T"
-  with `bi_unique A` obtain i where "bij_betw i S T" "\<And>x. x \<in> S \<Longrightarrow> f x = g (i x)"
+  with \<open>bi_unique A\<close> obtain i where "bij_betw i S T" "\<And>x. x \<in> S \<Longrightarrow> f x = g (i x)"
     by (auto elim: bi_unique_rel_set_lemma simp: rel_fun_def bij_betw_def)
   then show "F f S = F g T"
     by (simp add: reindex_bij_betw)

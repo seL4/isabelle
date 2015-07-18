@@ -7,20 +7,20 @@
     Construction of Cauchy Reals by Brian Huffman, 2010
 *)
 
-section {* Development of the Reals using Cauchy Sequences *}
+section \<open>Development of the Reals using Cauchy Sequences\<close>
 
 theory Real
 imports Rat Conditionally_Complete_Lattices
 begin
 
-text {*
+text \<open>
   This theory contains a formalization of the real numbers as
   equivalence classes of Cauchy sequences of rationals.  See
   @{file "~~/src/HOL/ex/Dedekind_Real.thy"} for an alternative
   construction using Dedekind cuts.
-*}
+\<close>
 
-subsection {* Preliminary lemmas *}
+subsection \<open>Preliminary lemmas\<close>
 
 lemma add_diff_add:
   fixes a b c d :: "'a::ab_group_add"
@@ -52,7 +52,7 @@ proof
     show "r = r/2 + r/2" by simp
 qed
 
-subsection {* Sequences that converge to zero *}
+subsection \<open>Sequences that converge to zero\<close>
 
 definition
   vanishes :: "(nat \<Rightarrow> rat) \<Rightarrow> bool"
@@ -120,7 +120,7 @@ proof (rule vanishesI)
   thus "\<exists>k. \<forall>n\<ge>k. \<bar>X n * Y n\<bar> < r" ..
 qed
 
-subsection {* Cauchy sequences *}
+subsection \<open>Cauchy sequences\<close>
 
 definition
   cauchy :: "(nat \<Rightarrow> rat) \<Rightarrow> bool"
@@ -196,7 +196,7 @@ proof -
       also have "\<bar>X k + (X n - X k)\<bar> \<le> \<bar>X k\<bar> + \<bar>X n - X k\<bar>"
         by (rule abs_triangle_ineq)
       also have "\<dots> < Max (abs ` X ` {..k}) + 1"
-        by (rule add_le_less_mono, simp, simp add: k `k \<le> n`)
+        by (rule add_le_less_mono, simp, simp add: k \<open>k \<le> n\<close>)
       finally show "\<bar>X n\<bar> < Max (abs ` X ` {..k}) + 1" .
     qed
   qed
@@ -218,7 +218,7 @@ proof (rule cauchyI)
     show "0 < v/b" using v b(1) by simp
     show "0 < u/a" using u a(1) by simp
     show "r = a * (u/a) + (v/b) * b"
-      using a(1) b(1) `r = u + v` by simp
+      using a(1) b(1) \<open>r = u + v\<close> by simp
   qed
   obtain i where i: "\<forall>m\<ge>i. \<forall>n\<ge>i. \<bar>X m - X n\<bar> < s"
     using cauchyD [OF X s] ..
@@ -248,17 +248,17 @@ proof -
   obtain r where "0 < r" and r: "\<forall>k. \<exists>n\<ge>k. r \<le> \<bar>X n\<bar>"
     using nz unfolding vanishes_def by (auto simp add: not_less)
   obtain s t where s: "0 < s" and t: "0 < t" and "r = s + t"
-    using `0 < r` by (rule obtain_pos_sum)
+    using \<open>0 < r\<close> by (rule obtain_pos_sum)
   obtain i where i: "\<forall>m\<ge>i. \<forall>n\<ge>i. \<bar>X m - X n\<bar> < s"
     using cauchyD [OF X s] ..
   obtain k where "i \<le> k" and "r \<le> \<bar>X k\<bar>"
     using r by fast
   have k: "\<forall>n\<ge>k. \<bar>X n - X k\<bar> < s"
-    using i `i \<le> k` by auto
+    using i \<open>i \<le> k\<close> by auto
   have "X k \<le> - r \<or> r \<le> X k"
-    using `r \<le> \<bar>X k\<bar>` by auto
+    using \<open>r \<le> \<bar>X k\<bar>\<close> by auto
   hence "(\<forall>n\<ge>k. t < - X n) \<or> (\<forall>n\<ge>k. t < X n)"
-    unfolding `r = s + t` using k by auto
+    unfolding \<open>r = s + t\<close> using k by auto
   hence "\<exists>k. (\<forall>n\<ge>k. t < - X n) \<or> (\<forall>n\<ge>k. t < X n)" ..
   thus "\<exists>t>0. \<exists>k. (\<forall>n\<ge>k. t < - X n) \<or> (\<forall>n\<ge>k. t < X n)"
     using t by auto
@@ -282,7 +282,7 @@ proof (rule cauchyI)
   from b i have nz: "\<forall>n\<ge>i. X n \<noteq> 0" by auto
   obtain s where s: "0 < s" and r: "r = inverse b * s * inverse b"
   proof
-    show "0 < b * r * b" by (simp add: `0 < r` b)
+    show "0 < b * r * b" by (simp add: \<open>0 < r\<close> b)
     show "r = inverse b * (b * r * b) * inverse b"
       using b by simp
   qed
@@ -334,13 +334,13 @@ proof (rule vanishesI)
       apply (intro mult_strict_mono' less_imp_inverse_less)
       apply (simp_all add: a b i j k n)
       done
-    also note `inverse a * s * inverse b = r`
+    also note \<open>inverse a * s * inverse b = r\<close>
     finally show "\<bar>inverse (X n) - inverse (Y n)\<bar> < r" .
   qed
   thus "\<exists>k. \<forall>n\<ge>k. \<bar>inverse (X n) - inverse (Y n)\<bar> < r" ..
 qed
 
-subsection {* Equivalence relation on Cauchy sequences *}
+subsection \<open>Equivalence relation on Cauchy sequences\<close>
 
 definition realrel :: "(nat \<Rightarrow> rat) \<Rightarrow> (nat \<Rightarrow> rat) \<Rightarrow> bool"
   where "realrel = (\<lambda>X Y. cauchy X \<and> cauchy Y \<and> vanishes (\<lambda>n. X n - Y n))"
@@ -368,7 +368,7 @@ lemma part_equivp_realrel: "part_equivp realrel"
   by (fast intro: part_equivpI symp_realrel transp_realrel
     realrel_refl cauchy_const)
 
-subsection {* The field of real numbers *}
+subsection \<open>The field of real numbers\<close>
 
 quotient_type real = "nat \<Rightarrow> rat" / partial: realrel
   morphisms rep_real Real
@@ -509,7 +509,7 @@ qed
 
 end
 
-subsection {* Positive reals *}
+subsection \<open>Positive reals\<close>
 
 lift_definition positive :: "real \<Rightarrow> bool"
   is "\<lambda>X. \<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < X n"
@@ -522,7 +522,7 @@ proof -
     then obtain r i where "0 < r" and i: "\<forall>n\<ge>i. r < X n"
       by fast
     obtain s t where s: "0 < s" and t: "0 < t" and r: "r = s + t"
-      using `0 < r` by (rule obtain_pos_sum)
+      using \<open>0 < r\<close> by (rule obtain_pos_sum)
     obtain j where j: "\<forall>n\<ge>j. \<bar>X n - Y n\<bar> < s"
       using vanishesD [OF XY s] ..
     have "\<forall>n\<ge>max i j. t < Y n"
@@ -684,7 +684,7 @@ qed
 
 end
 
-subsection {* Completeness *}
+subsection \<open>Completeness\<close>
 
 lemma not_positive_Real:
   assumes X: "cauchy X"
@@ -878,14 +878,14 @@ proof -
   proof
     fix x assume "x \<in> S"
     then show "x \<le> Real B"
-      using PB [unfolded P_def] `cauchy B`
+      using PB [unfolded P_def] \<open>cauchy B\<close>
       by (simp add: le_RealI)
   qed
   have 2: "\<forall>z. (\<forall>x\<in>S. x \<le> z) \<longrightarrow> Real A \<le> z"
     apply clarify
     apply (erule contrapos_pp)
     apply (simp add: not_le)
-    apply (drule less_RealD [OF `cauchy A`], clarify)
+    apply (drule less_RealD [OF \<open>cauchy A\<close>], clarify)
     apply (subgoal_tac "\<not> P (A n)")
     apply (simp add: P_def not_le, clarify)
     apply (erule rev_bexI)
@@ -910,7 +910,7 @@ proof -
     thus "\<exists>k. \<forall>n\<ge>k. \<bar>(b - a) / 2 ^ n\<bar> < r" ..
   qed
   hence 3: "Real B = Real A"
-    by (simp add: eq_Real `cauchy A` `cauchy B` width)
+    by (simp add: eq_Real \<open>cauchy A\<close> \<open>cauchy B\<close> width)
   show "\<exists>y. (\<forall>x\<in>S. x \<le> y) \<and> (\<forall>z. (\<forall>x\<in>S. x \<le> z) \<longrightarrow> y \<le> z)"
     using 1 2 3 by (rule_tac x="Real B" in exI, simp)
 qed
@@ -918,7 +918,7 @@ qed
 instantiation real :: linear_continuum
 begin
 
-subsection{*Supremum of a set of reals*}
+subsection\<open>Supremum of a set of reals\<close>
 
 definition "Sup X = (LEAST z::real. \<forall>x\<in>X. x \<le> z)"
 definition "Inf (X::real set) = - Sup (uminus ` X)"
@@ -954,7 +954,7 @@ qed
 end
 
 
-subsection {* Hiding implementation details *}
+subsection \<open>Hiding implementation details\<close>
 
 hide_const (open) vanishes cauchy positive Real
 
@@ -965,10 +965,10 @@ declare Abs_real_cases [cases del]
 lifting_update real.lifting
 lifting_forget real.lifting
   
-subsection{*More Lemmas*}
+subsection\<open>More Lemmas\<close>
 
-text {* BH: These lemmas should not be necessary; they should be
-covered by existing simp rules and simplification procedures. *}
+text \<open>BH: These lemmas should not be necessary; they should be
+covered by existing simp rules and simplification procedures.\<close>
 
 lemma real_mult_less_iff1 [simp]: "(0::real) < z ==> (x*z < y*z) = (x < y)"
 by simp (* solved by linordered_ring_less_cancel_factor simproc *)
@@ -980,7 +980,7 @@ lemma real_mult_le_cancel_iff2 [simp]: "(0::real) < z ==> (z*x \<le> z*y) = (x\<
 by simp (* solved by linordered_ring_le_cancel_factor simproc *)
 
 
-subsection {* Embedding numbers into the Reals *}
+subsection \<open>Embedding numbers into the Reals\<close>
 
 abbreviation
   real_of_nat :: "nat \<Rightarrow> real"
@@ -1167,7 +1167,7 @@ lemma Ints_real_of_int [simp]: "real (x::int) \<in> Ints"
 unfolding real_of_int_def by (rule Ints_of_int)
 
 
-subsection{*Embedding the Naturals into the Reals*}
+subsection\<open>Embedding the Naturals into the Reals\<close>
 
 lemma real_of_nat_zero [simp]: "real (0::nat) = 0"
 by (simp add: real_of_nat_def)
@@ -1306,7 +1306,7 @@ unfolding real_of_nat_def by (rule of_nat_in_Nats)
 lemma Ints_real_of_nat [simp]: "real (n::nat) \<in> Ints"
 unfolding real_of_nat_def by (rule Ints_of_nat)
 
-subsection {* The Archimedean Property of the Reals *}
+subsection \<open>The Archimedean Property of the Reals\<close>
 
 theorem reals_Archimedean:
   assumes x_pos: "0 < x"
@@ -1320,11 +1320,11 @@ lemma reals_Archimedean2: "\<exists>n. (x::real) < real (n::nat)"
 lemma reals_Archimedean3:
   assumes x_greater_zero: "0 < x"
   shows "\<forall>(y::real). \<exists>(n::nat). y < real n * x"
-  unfolding real_of_nat_def using `0 < x`
+  unfolding real_of_nat_def using \<open>0 < x\<close>
   by (auto intro: ex_less_of_nat_mult)
 
 
-subsection{* Rationals *}
+subsection\<open>Rationals\<close>
 
 lemma Rats_real_nat[simp]: "real(n::nat) \<in> \<rat>"
 by (simp add: real_eq_of_nat)
@@ -1338,7 +1338,7 @@ proof
     then obtain r where "x = of_rat r" unfolding Rats_def ..
     have "of_rat r : ?S"
       by (cases r)(auto simp add:of_rat_rat real_eq_of_int)
-    thus "x : ?S" using `x = of_rat r` by simp
+    thus "x : ?S" using \<open>x = of_rat r\<close> by simp
   qed
 next
   show "?S \<subseteq> \<rat>"
@@ -1362,7 +1362,7 @@ proof(auto simp:Rats_eq_int_div_int)
     thus ?thesis by blast
   next
     assume "~ j>0"
-    hence "real i/real j = real(-i)/real(nat(-j)) \<and> 0<nat(-j)" using `j\<noteq>0`
+    hence "real i/real j = real(-i)/real(nat(-j)) \<and> 0<nat(-j)" using \<open>j\<noteq>0\<close>
       by (simp add: real_eq_of_int real_eq_of_nat of_nat_nat)
     thus ?thesis by blast
   qed
@@ -1377,12 +1377,12 @@ lemma Rats_abs_nat_div_natE:
   obtains m n :: nat
   where "n \<noteq> 0" and "\<bar>x\<bar> = real m / real n" and "gcd m n = 1"
 proof -
-  from `x \<in> \<rat>` obtain i::int and n::nat where "n \<noteq> 0" and "x = real i / real n"
+  from \<open>x \<in> \<rat>\<close> obtain i::int and n::nat where "n \<noteq> 0" and "x = real i / real n"
     by(auto simp add: Rats_eq_int_div_nat)
   hence "\<bar>x\<bar> = real(nat(abs i)) / real n" by simp
   then obtain m :: nat where x_rat: "\<bar>x\<bar> = real m / real n" by blast
   let ?gcd = "gcd m n"
-  from `n\<noteq>0` have gcd: "?gcd \<noteq> 0" by simp
+  from \<open>n\<noteq>0\<close> have gcd: "?gcd \<noteq> 0" by simp
   let ?k = "m div ?gcd"
   let ?l = "n div ?gcd"
   let ?gcd' = "gcd ?k ?l"
@@ -1390,7 +1390,7 @@ proof -
     by (rule dvd_mult_div_cancel)
   have "?gcd dvd n" .. then have gcd_l: "?gcd * ?l = n"
     by (rule dvd_mult_div_cancel)
-  from `n \<noteq> 0` and gcd_l
+  from \<open>n \<noteq> 0\<close> and gcd_l
   have "?gcd * ?l \<noteq> 0" by simp
   then have "?l \<noteq> 0" by (blast dest!: mult_not_zero) 
   moreover
@@ -1414,17 +1414,17 @@ proof -
   ultimately show ?thesis ..
 qed
 
-subsection{*Density of the Rational Reals in the Reals*}
+subsection\<open>Density of the Rational Reals in the Reals\<close>
 
-text{* This density proof is due to Stefan Richter and was ported by TN.  The
+text\<open>This density proof is due to Stefan Richter and was ported by TN.  The
 original source is \emph{Real Analysis} by H.L. Royden.
-It employs the Archimedean property of the reals. *}
+It employs the Archimedean property of the reals.\<close>
 
 lemma Rats_dense_in_real:
   fixes x :: real
   assumes "x < y" shows "\<exists>r\<in>\<rat>. x < r \<and> r < y"
 proof -
-  from `x<y` have "0 < y-x" by simp
+  from \<open>x<y\<close> have "0 < y-x" by simp
   with reals_Archimedean obtain q::nat 
     where q: "inverse (real q) < y-x" and "0 < q" by auto
   def p \<equiv> "ceiling (y * real q) - 1"
@@ -1432,11 +1432,11 @@ proof -
   from q have "x < y - inverse (real q)" by simp
   also have "y - inverse (real q) \<le> r"
     unfolding r_def p_def
-    by (simp add: le_divide_eq left_diff_distrib le_of_int_ceiling `0 < q`)
+    by (simp add: le_divide_eq left_diff_distrib le_of_int_ceiling \<open>0 < q\<close>)
   finally have "x < r" .
   moreover have "r < y"
     unfolding r_def p_def
-    by (simp add: divide_less_eq diff_less_eq `0 < q`
+    by (simp add: divide_less_eq diff_less_eq \<open>0 < q\<close>
       less_ceiling_iff [symmetric])
   moreover from r_def have "r \<in> \<rat>" by simp
   ultimately show ?thesis by fast
@@ -1446,18 +1446,18 @@ lemma of_rat_dense:
   fixes x y :: real
   assumes "x < y"
   shows "\<exists>q :: rat. x < of_rat q \<and> of_rat q < y"
-using Rats_dense_in_real [OF `x < y`]
+using Rats_dense_in_real [OF \<open>x < y\<close>]
 by (auto elim: Rats_cases)
 
 
-subsection{*Numerals and Arithmetic*}
+subsection\<open>Numerals and Arithmetic\<close>
 
 lemma [code_abbrev]:
   "real_of_int (numeral k) = numeral k"
   "real_of_int (- numeral k) = - numeral k"
   by simp_all
 
-text{*Collapse applications of @{const real} to @{const numeral}*}
+text\<open>Collapse applications of @{const real} to @{const numeral}\<close>
 lemma real_numeral [simp]:
   "real (numeral v :: int) = numeral v"
   "real (- numeral v :: int) = - numeral v"
@@ -1467,7 +1467,7 @@ lemma  real_of_nat_numeral [simp]:
   "real (numeral v :: nat) = numeral v"
 by (simp add: real_of_nat_def)
 
-declaration {*
+declaration \<open>
   K (Lin_Arith.add_inj_thms [@{thm real_of_nat_le_iff} RS iffD2, @{thm real_of_nat_inject} RS iffD2]
     (* not needed because x < (y::nat) can be rewritten as Suc x <= y: real_of_nat_less_iff RS iffD2 *)
   #> Lin_Arith.add_inj_thms [@{thm real_of_int_le_iff} RS iffD2, @{thm real_of_int_inject} RS iffD2]
@@ -1482,14 +1482,14 @@ declaration {*
   #> Lin_Arith.add_inj_const (@{const_name real}, @{typ "int \<Rightarrow> real"})
   #> Lin_Arith.add_inj_const (@{const_name of_nat}, @{typ "nat \<Rightarrow> real"})
   #> Lin_Arith.add_inj_const (@{const_name of_int}, @{typ "int \<Rightarrow> real"}))
-*}
+\<close>
 
-subsection{* Simprules combining x+y and 0: ARE THEY NEEDED?*}
+subsection\<open>Simprules combining x+y and 0: ARE THEY NEEDED?\<close>
 
 lemma real_add_minus_iff [simp]: "(x + - a = (0::real)) = (x=a)" 
 by arith
 
-text {* FIXME: redundant with @{text add_eq_0_iff} below *}
+text \<open>FIXME: redundant with @{text add_eq_0_iff} below\<close>
 lemma real_add_eq_0_iff: "(x+y = (0::real)) = (y = -x)"
 by auto
 
@@ -1505,9 +1505,9 @@ by auto
 lemma real_0_le_add_iff: "((0::real) \<le> x+y) = (-x \<le> y)"
 by auto
 
-subsection {* Lemmas about powers *}
+subsection \<open>Lemmas about powers\<close>
 
-text {* FIXME: declare this in Rings.thy or not at all *}
+text \<open>FIXME: declare this in Rings.thy or not at all\<close>
 declare abs_mult_self [simp]
 
 (* used by Import/HOL/real.imp *)
@@ -1517,24 +1517,24 @@ by simp
 lemma two_realpow_gt [simp]: "real (n::nat) < 2 ^ n"
   by (simp add: of_nat_less_two_power real_of_nat_def)
 
-text {* TODO: no longer real-specific; rename and move elsewhere *}
+text \<open>TODO: no longer real-specific; rename and move elsewhere\<close>
 lemma realpow_Suc_le_self:
   fixes r :: "'a::linordered_semidom"
   shows "[| 0 \<le> r; r \<le> 1 |] ==> r ^ Suc n \<le> r"
 by (insert power_decreasing [of 1 "Suc n" r], simp)
 
-text {* TODO: no longer real-specific; rename and move elsewhere *}
+text \<open>TODO: no longer real-specific; rename and move elsewhere\<close>
 lemma realpow_minus_mult:
   fixes x :: "'a::monoid_mult"
   shows "0 < n \<Longrightarrow> x ^ (n - 1) * x = x ^ n"
 by (simp add: power_Suc power_commutes split add: nat_diff_split)
 
-text {* FIXME: declare this [simp] for all types, or not at all *}
+text \<open>FIXME: declare this [simp] for all types, or not at all\<close>
 lemma real_two_squares_add_zero_iff [simp]:
   "(x * x + y * y = 0) = ((x::real) = 0 \<and> y = 0)"
 by (rule sum_squares_eq_zero_iff)
 
-text {* FIXME: declare this [simp] for all types, or not at all *}
+text \<open>FIXME: declare this [simp] for all types, or not at all\<close>
 lemma realpow_two_sum_zero_iff [simp]:
      "(x\<^sup>2 + y\<^sup>2 = (0::real)) = (x = 0 & y = 0)"
 by (rule sum_power2_eq_zero_iff)
@@ -1606,7 +1606,7 @@ lemma real_of_int_le_neg_numeral_power_cancel_iff[simp]:
   unfolding real_of_int_le_iff[symmetric] by simp
 
 
-subsection{*Density of the Reals*}
+subsection\<open>Density of the Reals\<close>
 
 lemma real_lbound_gt_zero:
      "[| (0::real) < d1; 0 < d2 |] ==> \<exists>e. 0 < e & e < d1 & e < d2"
@@ -1615,7 +1615,7 @@ apply (simp add: min_def)
 done
 
 
-text{*Similar results are proved in @{text Fields}*}
+text\<open>Similar results are proved in @{text Fields}\<close>
 lemma real_less_half_sum: "x < y ==> x < (x+y) / (2::real)"
   by auto
 
@@ -1625,7 +1625,7 @@ lemma real_gt_half_sum: "x < y ==> (x+y)/(2::real) < y"
 lemma real_sum_of_halves: "x/2 + x/2 = (x::real)"
   by simp
 
-subsection{*Absolute Value Function for the Reals*}
+subsection\<open>Absolute Value Function for the Reals\<close>
 
 lemma abs_minus_add_cancel: "abs(x + (-y)) = abs (y + (-(x::real)))"
 by (simp add: abs_if)
@@ -1647,7 +1647,7 @@ lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) 
 by simp
 
 
-subsection{*Floor and Ceiling Functions from the Reals to the Integers*}
+subsection\<open>Floor and Ceiling Functions from the Reals to the Integers\<close>
 
 (* FIXME: theorems for negative numerals *)
 lemma numeral_less_real_of_int_iff [simp]:
@@ -1776,10 +1776,10 @@ proof cases
     then have "(j - i div b) * b \<le> i mod b" "i mod b < ((j - i div b) + 1) * b"
       by (auto simp: field_simps)
     then have "(j - i div b) * b < 1 * b" "0 * b < ((j - i div b) + 1) * b"
-      using pos_mod_bound[OF `0<b`, of i] pos_mod_sign[OF `0<b`, of i] by linarith+
+      using pos_mod_bound[OF \<open>0<b\<close>, of i] pos_mod_sign[OF \<open>0<b\<close>, of i] by linarith+
     then have "j = i div b"
-      using `0 < b` unfolding mult_less_cancel_right by auto }
-  with `0 < b` show ?thesis
+      using \<open>0 < b\<close> unfolding mult_less_cancel_right by auto }
+  with \<open>0 < b\<close> show ?thesis
     by (auto split: floor_split simp: field_simps)
 qed auto
 
@@ -1856,8 +1856,8 @@ lemma ceiling_minus_divide_eq_div_numeral [simp]:
   "\<lceil>- (numeral a / numeral b :: real)\<rceil> = - (numeral a div numeral b)"
   using ceiling_divide_eq_div[of "- numeral a" "numeral b"] by simp
 
-text{* The following lemmas are remnants of the erstwhile functions natfloor
-and natceiling. *}
+text\<open>The following lemmas are remnants of the erstwhile functions natfloor
+and natceiling.\<close>
 
 lemma nat_floor_neg: "(x::real) <= 0 ==> nat(floor x) = 0"
   by linarith
@@ -1886,7 +1886,7 @@ lemma Rats_no_bot_less: "\<exists> q \<in> \<rat>. q < (x :: real)"
   apply simp
   done
 
-subsection {* Exponentiation with floor *}
+subsection \<open>Exponentiation with floor\<close>
 
 lemma floor_power:
   assumes "x = real (floor x)"
@@ -1918,9 +1918,9 @@ lemma ceiling_numeral_power[simp]:
   by (metis ceiling_of_int of_int_numeral of_int_power)
 
 
-subsection {* Implementation of rational real numbers *}
+subsection \<open>Implementation of rational real numbers\<close>
 
-text {* Formal constructor *}
+text \<open>Formal constructor\<close>
 
 definition Ratreal :: "rat \<Rightarrow> real" where
   [code_abbrev, simp]: "Ratreal = of_rat"
@@ -1928,7 +1928,7 @@ definition Ratreal :: "rat \<Rightarrow> real" where
 code_datatype Ratreal
 
 
-text {* Numerals *}
+text \<open>Numerals\<close>
 
 lemma [code_abbrev]:
   "(of_rat (of_int a) :: real) = of_int a"
@@ -1962,7 +1962,7 @@ lemma [code_post]:
   by (simp_all add: of_rat_divide of_rat_minus)
 
 
-text {* Operations *}
+text \<open>Operations\<close>
 
 lemma zero_real_code [code]:
   "0 = Ratreal 0"
@@ -2018,7 +2018,7 @@ lemma real_floor_code [code]: "floor (Ratreal x) = floor x"
   by (metis Ratreal_def floor_le_iff floor_unique le_floor_iff of_int_floor_le of_rat_of_int_eq real_less_eq_code)
 
 
-text {* Quickcheck *}
+text \<open>Quickcheck\<close>
 
 definition (in term_syntax)
   valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
@@ -2071,9 +2071,9 @@ instance ..
 end
 
 
-subsection {* Setup for Nitpick *}
+subsection \<open>Setup for Nitpick\<close>
 
-declaration {*
+declaration \<open>
   Nitpick_HOL.register_frac_type @{type_name real}
    [(@{const_name zero_real_inst.zero_real}, @{const_name Nitpick.zero_frac}),
     (@{const_name one_real_inst.one_real}, @{const_name Nitpick.one_frac}),
@@ -2083,7 +2083,7 @@ declaration {*
     (@{const_name inverse_real_inst.inverse_real}, @{const_name Nitpick.inverse_frac}),
     (@{const_name ord_real_inst.less_real}, @{const_name Nitpick.less_frac}),
     (@{const_name ord_real_inst.less_eq_real}, @{const_name Nitpick.less_eq_frac})]
-*}
+\<close>
 
 lemmas [nitpick_unfold] = inverse_real_inst.inverse_real one_real_inst.one_real
     ord_real_inst.less_real ord_real_inst.less_eq_real plus_real_inst.plus_real
@@ -2091,7 +2091,7 @@ lemmas [nitpick_unfold] = inverse_real_inst.inverse_real one_real_inst.one_real
     zero_real_inst.zero_real
 
 
-subsection {* Setup for SMT *}
+subsection \<open>Setup for SMT\<close>
 
 ML_file "Tools/SMT/smt_real.ML"
 ML_file "Tools/SMT/z3_real.ML"

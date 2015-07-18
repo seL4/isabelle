@@ -1,7 +1,7 @@
 
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-section {* The Random-Predicate Monad *}
+section \<open>The Random-Predicate Monad\<close>
 
 theory Random_Pred
 imports Quickcheck_Random

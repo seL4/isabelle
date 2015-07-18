@@ -5,7 +5,7 @@
 Basic setup for the 'sat' and 'satx' tactics.
 *)
 
-section {* Reconstructing external resolution proofs for propositional logic *}
+section \<open>Reconstructing external resolution proofs for propositional logic\<close>
 
 theory SAT
 imports HOL
@@ -15,10 +15,10 @@ ML_file "Tools/prop_logic.ML"
 ML_file "Tools/sat_solver.ML"
 ML_file "Tools/sat.ML"
 
-method_setup sat = {* Scan.succeed (SIMPLE_METHOD' o SAT.sat_tac) *}
+method_setup sat = \<open>Scan.succeed (SIMPLE_METHOD' o SAT.sat_tac)\<close>
   "SAT solver"
 
-method_setup satx = {* Scan.succeed (SIMPLE_METHOD' o SAT.satx_tac) *}
+method_setup satx = \<open>Scan.succeed (SIMPLE_METHOD' o SAT.satx_tac)\<close>
   "SAT solver (with definitional CNF)"
 
 end

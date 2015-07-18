@@ -1,6 +1,6 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-section {* Reflecting Pure types into HOL *}
+section \<open>Reflecting Pure types into HOL\<close>
 
 theory Typerep
 imports String
@@ -20,7 +20,7 @@ end
 syntax
   "_TYPEREP" :: "type => logic"  ("(1TYPEREP/(1'(_')))")
 
-parse_translation {*
+parse_translation \<open>
   let
     fun typerep_tr (*"_TYPEREP"*) [ty] =
           Syntax.const @{const_syntax typerep} $
@@ -28,9 +28,9 @@ parse_translation {*
               (Syntax.const @{type_syntax itself} $ ty))
       | typerep_tr (*"_TYPEREP"*) ts = raise TERM ("typerep_tr", ts);
   in [(@{syntax_const "_TYPEREP"}, K typerep_tr)] end
-*}
+\<close>
 
-typed_print_translation {*
+typed_print_translation \<open>
   let
     fun typerep_tr' ctxt (*"typerep"*)
             (Type (@{type_name fun}, [Type (@{type_name itself}, [T]), _]))
@@ -39,9 +39,9 @@ typed_print_translation {*
             (Syntax.const @{syntax_const "_TYPEREP"} $ Syntax_Phases.term_of_typ ctxt T, ts)
       | typerep_tr' _ T ts = raise Match;
   in [(@{const_syntax typerep}, typerep_tr')] end
-*}
+\<close>
 
-setup {*
+setup \<open>
 let
 
 fun add_typerep tyco thy =
@@ -76,7 +76,7 @@ add_typerep @{type_name fun}
 #> Code.abstype_interpretation (ensure_typerep o fst)
 
 end
-*}
+\<close>
 
 lemma [code]:
   "HOL.equal (Typerep tyco1 tys1) (Typerep tyco2 tys2) \<longleftrightarrow> HOL.equal tyco1 tyco2

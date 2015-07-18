@@ -4,16 +4,16 @@
     Conversion of Mac Laurin to Isar by Lukas Bulwahn and Bernhard Häupler, 2005
 *)
 
-section{*MacLaurin Series*}
+section\<open>MacLaurin Series\<close>
 
 theory MacLaurin
 imports Transcendental
 begin
 
-subsection{*Maclaurin's Theorem with Lagrange Form of Remainder*}
+subsection\<open>Maclaurin's Theorem with Lagrange Form of Remainder\<close>
 
-text{*This is a very long, messy proof even now that it's been broken down
-into lemmas.*}
+text\<open>This is a very long, messy proof even now that it's been broken down
+into lemmas.\<close>
 
 lemma Maclaurin_lemma:
     "0 < h ==>
@@ -61,7 +61,7 @@ proof (rule allI impI)+
   moreover
   have "(n - m) * t ^ (n - Suc m) * B / (fact (n - m)) =
         B * (t ^ (n - Suc m) / (fact (n - Suc m)))"
-    using `0 < n - m`
+    using \<open>0 < n - m\<close>
     by (simp add: divide_simps fact_reduce)
   ultimately show "DERIV (difg m) t :> difg (Suc m) t"
     unfolding difg_def by simp
@@ -120,7 +120,7 @@ proof -
   have "m < n" using m by simp
 
   have "\<exists>t. 0 < t \<and> t < h \<and> DERIV (difg m) t :> 0"
-  using `m < n`
+  using \<open>m < n\<close>
   proof (induct m)
     case 0
     show ?case
@@ -140,26 +140,26 @@ proof -
     proof (rule Rolle)
       show "0 < t" by fact
       show "difg (Suc m') 0 = difg (Suc m') t"
-        using t `Suc m' < n` by (simp add: difg_Suc_eq_0 difg_eq_0)
+        using t \<open>Suc m' < n\<close> by (simp add: difg_Suc_eq_0 difg_eq_0)
       show "\<forall>x. 0 \<le> x \<and> x \<le> t \<longrightarrow> isCont (difg (Suc m')) x"
-        using `t < h` `Suc m' < n` by (simp add: isCont_difg)
+        using \<open>t < h\<close> \<open>Suc m' < n\<close> by (simp add: isCont_difg)
       show "\<forall>x. 0 < x \<and> x < t \<longrightarrow> difg (Suc m') differentiable (at x)"
-        using `t < h` `Suc m' < n` by (simp add: differentiable_difg)
+        using \<open>t < h\<close> \<open>Suc m' < n\<close> by (simp add: differentiable_difg)
     qed
     thus ?case
-      using `t < h` by auto
+      using \<open>t < h\<close> by auto
   qed
   then obtain t where "0 < t" "t < h" "DERIV (difg m) t :> 0" by fast
 
   hence "difg (Suc m) t = 0"
-    using `m < n` by (simp add: difg_Suc_eq_0)
+    using \<open>m < n\<close> by (simp add: difg_Suc_eq_0)
 
   show ?thesis
   proof (intro exI conjI)
     show "0 < t" by fact
     show "t < h" by fact
     show "f h = (\<Sum>m<n. diff m 0 / (fact m) * h ^ m) + diff n t / (fact n) * h ^ n"
-      using `difg (Suc m) t = 0`
+      using \<open>difg (Suc m) t = 0\<close>
       by (simp add: m f_h difg_def)
   qed
 qed
@@ -248,7 +248,7 @@ lemma Maclaurin_minus_objl:
 by (blast intro: Maclaurin_minus)
 
 
-subsection{*More Convenient "Bidirectional" Version.*}
+subsection\<open>More Convenient "Bidirectional" Version.\<close>
 
 (* not good for PVS sin_approx, cos_approx *)
 
@@ -266,27 +266,27 @@ lemma Maclaurin_bi_le:
               (\<Sum>m<n. diff m 0 / (fact m) * x ^ m) +
      diff n t / (fact n) * x ^ n" (is "\<exists>t. _ \<and> f x = ?f x t")
 proof cases
-  assume "n = 0" with `diff 0 = f` show ?thesis by force
+  assume "n = 0" with \<open>diff 0 = f\<close> show ?thesis by force
 next
   assume "n \<noteq> 0"
   show ?thesis
   proof (cases rule: linorder_cases)
-    assume "x = 0" with `n \<noteq> 0` `diff 0 = f` DERIV
+    assume "x = 0" with \<open>n \<noteq> 0\<close> \<open>diff 0 = f\<close> DERIV
     have "\<bar>0\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x 0" by (auto simp add: Maclaurin_bi_le_lemma)
     thus ?thesis ..
   next
     assume "x < 0"
-    with `n \<noteq> 0` DERIV
+    with \<open>n \<noteq> 0\<close> DERIV
     have "\<exists>t>x. t < 0 \<and> diff 0 x = ?f x t" by (intro Maclaurin_minus) auto
     then guess t ..
-    with `x < 0` `diff 0 = f` have "\<bar>t\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x t" by simp
+    with \<open>x < 0\<close> \<open>diff 0 = f\<close> have "\<bar>t\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x t" by simp
     thus ?thesis ..
   next
     assume "x > 0"
-    with `n \<noteq> 0` `diff 0 = f` DERIV
+    with \<open>n \<noteq> 0\<close> \<open>diff 0 = f\<close> DERIV
     have "\<exists>t>0. t < x \<and> diff 0 x = ?f x t" by (intro Maclaurin) auto
     then guess t ..
-    with `x > 0` `diff 0 = f` have "\<bar>t\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x t" by simp
+    with \<open>x > 0\<close> \<open>diff 0 = f\<close> have "\<bar>t\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x t" by simp
     thus ?thesis ..
   qed
 qed
@@ -304,13 +304,13 @@ next
   assume "x < 0"
   with assms have "\<exists>t>x. t < 0 \<and> f x = ?f x t" by (intro Maclaurin_minus) auto
   then guess t ..
-  with `x < 0` have "0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> f x = ?f x t" by simp
+  with \<open>x < 0\<close> have "0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> f x = ?f x t" by simp
   thus ?thesis ..
 next
   assume "x > 0"
   with assms have "\<exists>t>0. t < x \<and> f x = ?f x t " by (intro Maclaurin) auto
   then guess t ..
-  with `x > 0` have "0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> f x = ?f x t" by simp
+  with \<open>x > 0\<close> have "0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> f x = ?f x t" by simp
   thus ?thesis ..
 qed
 
@@ -347,13 +347,13 @@ proof cases
   show ?thesis
   proof cases
     assume "x = 0"
-    with `n \<noteq> 0` have "(\<Sum>m<n. diff m 0 / (fact m) * x ^ m) = diff 0 0"
+    with \<open>n \<noteq> 0\<close> have "(\<Sum>m<n. diff m 0 / (fact m) * x ^ m) = diff 0 0"
       by (intro Maclaurin_zero) auto
-    with INIT `x = 0` `n \<noteq> 0` have " \<bar>0\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x 0" by force
+    with INIT \<open>x = 0\<close> \<open>n \<noteq> 0\<close> have " \<bar>0\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x 0" by force
     thus ?thesis ..
   next
     assume "x \<noteq> 0"
-    with INIT `n \<noteq> 0` DERIV have "\<exists>t. 0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> f x = ?f x t"
+    with INIT \<open>n \<noteq> 0\<close> DERIV have "\<exists>t. 0 < \<bar>t\<bar> \<and> \<bar>t\<bar> < \<bar>x\<bar> \<and> f x = ?f x t"
       by (intro Maclaurin_all_lt) auto
     then guess t ..
     hence "\<bar>t\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x t" by simp
@@ -370,7 +370,7 @@ lemma Maclaurin_all_le_objl:
 by (blast intro: Maclaurin_all_le)
 
 
-subsection{*Version for Exponential Function*}
+subsection\<open>Version for Exponential Function\<close>
 
 lemma Maclaurin_exp_lt:
   fixes x::real
@@ -396,7 +396,7 @@ lemma exp_lower_taylor_quadratic:
   by (auto simp: numeral_3_eq_3 power2_eq_square power_Suc)
 
 
-subsection{*Version for Sine Function*}
+subsection\<open>Version for Sine Function\<close>
 
 lemma mod_exhaust_less_4:
   "m mod 4 = 0 | m mod 4 = 1 | m mod 4 = 2 | m mod 4 = (3::nat)"
@@ -415,7 +415,7 @@ lemma Suc_mult_two_diff_one [rule_format, simp]:
 by (induct "n", auto)
 
 
-text{*It is unclear why so many variant results are needed.*}
+text\<open>It is unclear why so many variant results are needed.\<close>
 
 lemma sin_expansion_lemma:
      "sin (x + real (Suc m) * pi / 2) =
@@ -485,7 +485,7 @@ apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE)
 done
 
 
-subsection{*Maclaurin Expansion for Cosine Function*}
+subsection\<open>Maclaurin Expansion for Cosine Function\<close>
 
 lemma sumr_cos_zero_one [simp]:
   "(\<Sum>m<(Suc n). cos_coeff m * 0 ^ m) = 1"

@@ -3,14 +3,14 @@
     Copyright   2001  University of Cambridge
 *)
 
-section {* Hilbert's Epsilon-Operator and the Axiom of Choice *}
+section \<open>Hilbert's Epsilon-Operator and the Axiom of Choice\<close>
 
 theory Hilbert_Choice
 imports Nat Wellfounded
 keywords "specification" :: thy_goal
 begin
 
-subsection {* Hilbert's epsilon *}
+subsection \<open>Hilbert's epsilon\<close>
 
 axiomatization Eps :: "('a => bool) => 'a" where
   someI: "P x ==> P (Eps P)"
@@ -24,11 +24,11 @@ syntax
 translations
   "SOME x. P" == "CONST Eps (%x. P)"
 
-print_translation {*
+print_translation \<open>
   [(@{const_syntax Eps}, fn _ => fn [Abs abs] =>
       let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
       in Syntax.const @{syntax_const "_Eps"} $ x $ t end)]
-*} -- {* to avoid eta-contraction of body *}
+\<close> -- \<open>to avoid eta-contraction of body\<close>
 
 definition inv_into :: "'a set => ('a => 'b) => ('b => 'a)" where
 "inv_into A f == %x. SOME y. y : A & f y = x"
@@ -37,22 +37,22 @@ abbreviation inv :: "('a => 'b) => ('b => 'a)" where
 "inv == inv_into UNIV"
 
 
-subsection {*Hilbert's Epsilon-operator*}
+subsection \<open>Hilbert's Epsilon-operator\<close>
 
-text{*Easier to apply than @{text someI} if the witness comes from an
-existential formula*}
+text\<open>Easier to apply than @{text someI} if the witness comes from an
+existential formula\<close>
 lemma someI_ex [elim?]: "\<exists>x. P x ==> P (SOME x. P x)"
 apply (erule exE)
 apply (erule someI)
 done
 
-text{*Easier to apply than @{text someI} because the conclusion has only one
-occurrence of @{term P}.*}
+text\<open>Easier to apply than @{text someI} because the conclusion has only one
+occurrence of @{term P}.\<close>
 lemma someI2: "[| P a;  !!x. P x ==> Q x |] ==> Q (SOME x. P x)"
 by (blast intro: someI)
 
-text{*Easier to apply than @{text someI2} if the witness comes from an
-existential formula*}
+text\<open>Easier to apply than @{text someI2} if the witness comes from an
+existential formula\<close>
 lemma someI2_ex: "[| \<exists>a. P a; !!x. P x ==> Q x |] ==> Q (SOME x. P x)"
 by (blast intro: someI2)
 
@@ -81,7 +81,7 @@ apply (erule sym)
 done
 
 
-subsection{*Axiom of Choice, Proved Using the Description Operator*}
+subsection\<open>Axiom of Choice, Proved Using the Description Operator\<close>
 
 lemma choice: "\<forall>x. \<exists>y. Q x y ==> \<exists>f. \<forall>x. Q x (f x)"
 by (fast elim: someI)
@@ -114,7 +114,7 @@ proof (intro exI allI conjI)
 qed
 
 
-subsection {*Function Inverse*}
+subsection \<open>Function Inverse\<close>
 
 lemma inv_def: "inv f = (%y. SOME x. f x = y)"
 by(simp add: inv_into_def)
@@ -152,7 +152,7 @@ by (simp add:inv_into_f_eq)
 lemma inj_imp_inv_eq: "[| inj f; ALL x. f(g x) = x |] ==> inv f = g"
   by (blast intro: inv_into_f_eq)
 
-text{*But is it useful?*}
+text\<open>But is it useful?\<close>
 lemma inj_transfer:
   assumes injf: "inj f" and minor: "!!y. y \<in> range(f) ==> P(inv f y)"
   shows "P x"
@@ -288,7 +288,7 @@ proof -
   ultimately show "finite (UNIV :: 'a set)" by simp
 qed
 
-text {*
+text \<open>
   Every infinite set contains a countable subset. More precisely we
   show that a set @{text S} is infinite if and only if there exists an
   injective function from the naturals into @{text S}.
@@ -298,12 +298,12 @@ text {*
   infinite set @{text S}. The idea is to construct a sequence of
   non-empty and infinite subsets of @{text S} obtained by successively
   removing elements of @{text S}.
-*}
+\<close>
 
 lemma infinite_countable_subset:
   assumes inf: "\<not> finite (S::'a set)"
   shows "\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S"
-  -- {* Courtesy of Stephan Merz *}
+  -- \<open>Courtesy of Stephan Merz\<close>
 proof -
   def Sseq \<equiv> "rec_nat S (\<lambda>n T. T - {SOME e. e \<in> T})"
   def pick \<equiv> "\<lambda>n. (SOME e. e \<in> Sseq n)"
@@ -321,7 +321,7 @@ proof -
 qed
 
 lemma infinite_iff_countable_subset: "\<not> finite S \<longleftrightarrow> (\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S)"
-  -- {* Courtesy of Stephan Merz *}
+  -- \<open>Courtesy of Stephan Merz\<close>
   using finite_imageD finite_subset infinite_UNIV_char_0 infinite_countable_subset by auto
 
 lemma image_inv_into_cancel:
@@ -345,9 +345,9 @@ proof -
   have 1: "bij_betw ?f' A' A" using assms
   by (auto simp add: bij_betw_inv_into)
   obtain a' where 2: "a' \<in> A'" and 3: "?f' a' = a"
-    using 1 `a \<in> A` unfolding bij_betw_def by force
+    using 1 \<open>a \<in> A\<close> unfolding bij_betw_def by force
   hence "?f'' a = a'"
-    using `a \<in> A` 1 3 by (auto simp add: f_inv_into_f bij_betw_def)
+    using \<open>a \<in> A\<close> 1 3 by (auto simp add: f_inv_into_f bij_betw_def)
   moreover have "f a = a'" using assms 2 3
     by (auto simp add: bij_betw_def)
   ultimately show "?f'' a = f a" by simp
@@ -432,7 +432,7 @@ lemma inv_unique_comp:
   using fg gf inv_equality[of g f] by (auto simp add: fun_eq_iff)
 
 
-subsection {* The Cantor-Bernstein Theorem *}
+subsection \<open>The Cantor-Bernstein Theorem\<close>
 
 lemma Cantor_Bernstein_aux:
   shows "\<exists>A' h. A' \<le> A \<and>
@@ -534,11 +534,11 @@ proof-
   ultimately show ?thesis unfolding bij_betw_def by auto
 qed
 
-subsection {*Other Consequences of Hilbert's Epsilon*}
+subsection \<open>Other Consequences of Hilbert's Epsilon\<close>
 
-text {*Hilbert's Epsilon and the @{term split} Operator*}
+text \<open>Hilbert's Epsilon and the @{term split} Operator\<close>
 
-text{*Looping simprule*}
+text\<open>Looping simprule\<close>
 lemma split_paired_Eps: "(SOME x. P x) = (SOME (a,b). P(a,b))"
   by simp
 
@@ -549,7 +549,7 @@ lemma Eps_split_eq [simp]: "(@(x',y'). x = x' & y = y') = (x,y)"
   by blast
 
 
-text{*A relation is wellfounded iff it has no infinite descending chain*}
+text\<open>A relation is wellfounded iff it has no infinite descending chain\<close>
 lemma wf_iff_no_infinite_down_chain:
   "wf r = (~(\<exists>f. \<forall>i. (f(Suc i),f i) \<in> r))"
 apply (simp only: wf_eq_minimal)
@@ -569,15 +569,15 @@ done
 
 lemma wf_no_infinite_down_chainE:
   assumes "wf r" obtains k where "(f (Suc k), f k) \<notin> r"
-using `wf r` wf_iff_no_infinite_down_chain[of r] by blast
+using \<open>wf r\<close> wf_iff_no_infinite_down_chain[of r] by blast
 
 
-text{*A dynamically-scoped fact for TFL *}
+text\<open>A dynamically-scoped fact for TFL\<close>
 lemma tfl_some: "\<forall>P x. P x --> P (Eps P)"
   by (blast intro: someI)
 
 
-subsection {* Least value operator *}
+subsection \<open>Least value operator\<close>
 
 definition
   LeastM :: "['a => 'b::ord, 'a => bool] => 'a" where
@@ -630,7 +630,7 @@ lemma LeastM_nat_le: "P x ==> m (LeastM m P) <= (m x::nat)"
 by (rule LeastM_nat_lemma [THEN conjunct2, THEN spec, THEN mp], assumption, assumption)
 
 
-subsection {* Greatest value operator *}
+subsection \<open>Greatest value operator\<close>
 
 definition
   GreatestM :: "['a => 'b::ord, 'a => bool] => 'a" where
@@ -699,7 +699,7 @@ lemma GreatestM_nat_le:
   done
 
 
-text {* \medskip Specialization to @{text GREATEST}. *}
+text \<open>\medskip Specialization to @{text GREATEST}.\<close>
 
 lemma GreatestI: "P (k::nat) ==> \<forall>y. P y --> y < b ==> P (GREATEST x. P x)"
   apply (simp add: Greatest_def)
@@ -713,9 +713,9 @@ lemma Greatest_le:
   done
 
 
-subsection {* An aside: bounded accessible part *}
+subsection \<open>An aside: bounded accessible part\<close>
 
-text {* Finite monotone eventually stable sequences *}
+text \<open>Finite monotone eventually stable sequences\<close>
 
 lemma finite_mono_remains_stable_implies_strict_prefix:
   fixes f :: "nat \<Rightarrow> 'a::order"
@@ -728,7 +728,7 @@ proof -
     assume "\<not> ?thesis"
     then have "\<And>n. f n \<noteq> f (Suc n)" by auto
     then have "\<And>n. f n < f (Suc n)"
-      using  `mono f` by (auto simp: le_less mono_iff_le_Suc)
+      using  \<open>mono f\<close> by (auto simp: le_less mono_iff_le_Suc)
     with lift_Suc_mono_less_iff[of f]
     have *: "\<And>n m. n < m \<Longrightarrow> f n < f m" by auto
     have "inj f"
@@ -737,7 +737,7 @@ proof -
       assume "f x = f y"
       then show "x = y" by (cases x y rule: linorder_cases) (auto dest: *)
     qed
-    with `finite (range f)` have "finite (UNIV::nat set)"
+    with \<open>finite (range f)\<close> have "finite (UNIV::nat set)"
       by (rule finite_imageD)
     then show False by simp
   qed
@@ -754,7 +754,7 @@ proof -
         using eq[rule_format, of "n - 1"] N
         by (cases n) (auto simp add: le_Suc_eq)
     qed simp
-    from this[of n] `N \<le> n` show "f N = f n" by auto
+    from this[of n] \<open>N \<le> n\<close> show "f N = f n" by auto
   next
     fix n m :: nat assume "m < n" "n \<le> N"
     then show "f m < f n"
@@ -763,7 +763,7 @@ proof -
       then have "i < N" by simp
       then have "f i \<noteq> f (Suc i)"
         unfolding N_def by (rule not_less_Least)
-      with `mono f` show ?case by (simp add: mono_iff_le_Suc less_le)
+      with \<open>mono f\<close> show ?case by (simp add: mono_iff_le_Suc less_le)
     qed auto
   qed
 qed
@@ -799,7 +799,7 @@ proof -
 qed
 
 
-subsection {* More on injections, bijections, and inverses *}
+subsection \<open>More on injections, bijections, and inverses\<close>
 
 lemma infinite_imp_bij_betw:
 assumes INF: "\<not> finite A"
@@ -913,7 +913,7 @@ using assms unfolding bij_betw_def
 by (auto intro: inj_on_inv_into)
 
 
-subsection {* Specification package -- Hilbertized version *}
+subsection \<open>Specification package -- Hilbertized version\<close>
 
 lemma exE_some: "[| Ex P ; c == Eps P |] ==> P c"
   by (simp only: someI_ex)

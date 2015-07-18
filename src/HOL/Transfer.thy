@@ -3,13 +3,13 @@
     Author:     Ondrej Kuncar, TU Muenchen
 *)
 
-section {* Generic theorem transfer using relations *}
+section \<open>Generic theorem transfer using relations\<close>
 
 theory Transfer
 imports Basic_BNF_LFPs Hilbert_Choice Metis
 begin
 
-subsection {* Relator for function space *}
+subsection \<open>Relator for function space\<close>
 
 locale lifting_syntax
 begin
@@ -38,15 +38,15 @@ shows "rel_fun (op =) R = (\<lambda>f g. \<forall>x. R (f x) (g x))"
   by (simp add: rel_fun_def)
 
 
-subsection {* Transfer method *}
+subsection \<open>Transfer method\<close>
 
-text {* Explicit tag for relation membership allows for
-  backward proof methods. *}
+text \<open>Explicit tag for relation membership allows for
+  backward proof methods.\<close>
 
 definition Rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
   where "Rel r \<equiv> r"
 
-text {* Handling of equality relations *}
+text \<open>Handling of equality relations\<close>
 
 definition is_equality :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
   where "is_equality R \<longleftrightarrow> R = (op =)"
@@ -54,12 +54,12 @@ definition is_equality :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow
 lemma is_equality_eq: "is_equality (op =)"
   unfolding is_equality_def by simp
 
-text {* Reverse implication for monotonicity rules *}
+text \<open>Reverse implication for monotonicity rules\<close>
 
 definition rev_implies where
   "rev_implies x y \<longleftrightarrow> (y \<longrightarrow> x)"
 
-text {* Handling of meta-logic connectives *}
+text \<open>Handling of meta-logic connectives\<close>
 
 definition transfer_forall where
   "transfer_forall \<equiv> All"
@@ -105,7 +105,7 @@ lemma Rel_abs:
   shows "Rel (A ===> B) (\<lambda>x. f x) (\<lambda>y. g y)"
   using assms unfolding Rel_def rel_fun_def by fast
 
-subsection {* Predicates on relations, i.e. ``class constraints'' *}
+subsection \<open>Predicates on relations, i.e. ``class constraints''\<close>
 
 definition left_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
   where "left_total R \<longleftrightarrow> (\<forall>x. \<exists>y. R x y)"
@@ -229,7 +229,7 @@ unfolding bi_unique_alt_def ..
 
 end
 
-subsection {* Equality restricted by a predicate *}
+subsection \<open>Equality restricted by a predicate\<close>
 
 definition eq_onp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
   where "eq_onp R = (\<lambda>x y. R x \<and> x = y)"
@@ -261,7 +261,7 @@ context
 begin
 interpretation lifting_syntax .
 
-text {* Handling of domains *}
+text \<open>Handling of domains\<close>
 
 lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
   by auto
@@ -275,7 +275,7 @@ lemma Domainp_prod_fun_eq[relator_domain]:
   "Domainp (op= ===> T) = (\<lambda>f. \<forall>x. (Domainp T) (f x))"
 by (auto intro: choice simp: Domainp_iff rel_fun_def fun_eq_iff)
 
-text {* Properties are preserved by relation composition. *}
+text \<open>Properties are preserved by relation composition.\<close>
 
 lemma OO_def: "R OO S = (\<lambda>x z. \<exists>y. R x y \<and> S y z)"
   by auto
@@ -301,7 +301,7 @@ lemma left_unique_OO: "left_unique R \<Longrightarrow> left_unique S \<Longright
 unfolding left_unique_def OO_def by blast
 
 
-subsection {* Properties of relators *}
+subsection \<open>Properties of relators\<close>
 
 lemma left_total_eq[transfer_rule]: "left_total op="
   unfolding left_total_def by blast
@@ -384,7 +384,7 @@ ML_file "Tools/BNF/bnf_fp_rec_sugar_transfer.ML"
 declare pred_fun_def [simp]
 declare rel_fun_eq [relator_eq]
 
-subsection {* Transfer rules *}
+subsection \<open>Transfer rules\<close>
 
 context
 begin
@@ -398,7 +398,7 @@ lemma Domainp_forall_transfer [transfer_rule]:
   unfolding transfer_forall_def transfer_bforall_def rel_fun_def Domainp_iff
   by fast
 
-text {* Transfer rules using implication instead of equality on booleans. *}
+text \<open>Transfer rules using implication instead of equality on booleans.\<close>
 
 lemma transfer_forall_transfer [transfer_rule]:
   "bi_total A \<Longrightarrow> ((A ===> op =) ===> op =) transfer_forall transfer_forall"
@@ -425,7 +425,7 @@ lemma eq_imp_transfer [transfer_rule]:
   "right_unique A \<Longrightarrow> (A ===> A ===> op \<longrightarrow>) (op =) (op =)"
   unfolding right_unique_alt_def2 .
 
-text {* Transfer rules using equality. *}
+text \<open>Transfer rules using equality.\<close>
 
 lemma left_unique_transfer [transfer_rule]:
   assumes "right_total A"
@@ -587,13 +587,13 @@ proof(rule rel_funI iffI)+
     thus "R'\<^sup>*\<^sup>* x' y'"
     proof(induction arbitrary: y')
       case base
-      with `bi_unique A` `A x x'` have "x' = y'" by(rule bi_uniqueDr)
+      with \<open>bi_unique A\<close> \<open>A x x'\<close> have "x' = y'" by(rule bi_uniqueDr)
       thus ?case by simp
     next
       case (step y z z')
-      from `bi_total A` obtain y' where "A y y'" unfolding bi_total_def by blast
+      from \<open>bi_total A\<close> obtain y' where "A y y'" unfolding bi_total_def by blast
       hence "R'\<^sup>*\<^sup>* x' y'" by(rule step.IH)
-      moreover from R `A y y'` `A z z'` `R y z`
+      moreover from R \<open>A y y'\<close> \<open>A z z'\<close> \<open>R y z\<close>
       have "R' y' z'" by(auto dest: rel_funD)
       ultimately show ?case ..
     qed
@@ -602,13 +602,13 @@ proof(rule rel_funI iffI)+
     thus "R\<^sup>*\<^sup>* x y"
     proof(induction arbitrary: y)
       case base
-      with `bi_unique A` `A x x'` have "x = y" by(rule bi_uniqueDl)
+      with \<open>bi_unique A\<close> \<open>A x x'\<close> have "x = y" by(rule bi_uniqueDl)
       thus ?case by simp
     next
       case (step y' z' z)
-      from `bi_total A` obtain y where "A y y'" unfolding bi_total_def by blast
+      from \<open>bi_total A\<close> obtain y where "A y y'" unfolding bi_total_def by blast
       hence "R\<^sup>*\<^sup>* x y" by(rule step.IH)
-      moreover from R `A y y'` `A z z'` `R' y' z'`
+      moreover from R \<open>A y y'\<close> \<open>A z z'\<close> \<open>R' y' z'\<close>
       have "R y z" by(auto dest: rel_funD)
       ultimately show ?case ..
     qed

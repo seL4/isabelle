@@ -2,7 +2,7 @@
    Author:     Amine Chaieb, TU Muenchen
 *)
 
-section {* Decision Procedure for Presburger Arithmetic *}
+section \<open>Decision Procedure for Presburger Arithmetic\<close>
 
 theory Presburger
 imports Groebner_Basis Set_Interval
@@ -12,7 +12,7 @@ begin
 ML_file "Tools/Qelim/qelim.ML"
 ML_file "Tools/Qelim/cooper_procedure.ML"
 
-subsection{* The @{text "-\<infinity>"} and @{text "+\<infinity>"} Properties *}
+subsection\<open>The @{text "-\<infinity>"} and @{text "+\<infinity>"} Properties\<close>
 
 lemma minf:
   "\<lbrakk>\<exists>(z ::'a::linorder).\<forall>x<z. P x = P' x; \<exists>z.\<forall>x<z. Q x = Q' x\<rbrakk> 
@@ -59,7 +59,7 @@ unfolding mult.assoc [symmetric] distrib_right [symmetric] left_diff_distrib [sy
 unfolding dvd_def mult.commute [of d] 
 by auto
 
-subsection{* The A and B sets *}
+subsection\<open>The A and B sets\<close>
 lemma bset:
   "\<lbrakk>\<forall>x.(\<forall>j \<in> {1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> P x \<longrightarrow> P(x - D) ;
      \<forall>x.(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> Q x \<longrightarrow> Q(x - D)\<rbrakk> \<Longrightarrow> 
@@ -176,9 +176,9 @@ next
   thus "\<forall>(x::int).(\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j)\<longrightarrow> (\<not>d dvd x+t) \<longrightarrow> (\<not>d dvd (x + D) + t)" by auto
 qed blast
 
-subsection{* Cooper's Theorem @{text "-\<infinity>"} and @{text "+\<infinity>"} Version *}
+subsection\<open>Cooper's Theorem @{text "-\<infinity>"} and @{text "+\<infinity>"} Version\<close>
 
-subsubsection{* First some trivial facts about periodic sets or predicates *}
+subsubsection\<open>First some trivial facts about periodic sets or predicates\<close>
 lemma periodic_finite_ex:
   assumes dpos: "(0::int) < d" and modd: "ALL x k. P x = P(x - k*d)"
   shows "(EX x. P x) = (EX j : {1..d}. P j)"
@@ -209,7 +209,7 @@ proof
   qed
 qed auto
 
-subsubsection{* The @{text "-\<infinity>"} Version*}
+subsubsection\<open>The @{text "-\<infinity>"} Version\<close>
 
 lemma decr_lemma: "0 < (d::int) \<Longrightarrow> x - (abs(x-z)+1) * d < z"
 by(induct rule: int_gr_induct,simp_all add:int_distrib)
@@ -277,7 +277,7 @@ proof-
  ultimately show ?thesis by blast
 qed
 
-subsubsection {* The @{text "+\<infinity>"} Version*}
+subsubsection \<open>The @{text "+\<infinity>"} Version\<close>
 
 lemma  plusinfinity:
   assumes dpos: "(0::int) < d" and
@@ -372,15 +372,15 @@ lemma uminus_dvd_conv:
   shows "d dvd t \<equiv> - d dvd t" and "d dvd t \<equiv> d dvd - t"
   by simp_all
 
-text {* \bigskip Theorems for transforming predicates on nat to predicates on @{text int}*}
+text \<open>\bigskip Theorems for transforming predicates on nat to predicates on @{text int}\<close>
 
 lemma zdiff_int_split: "P (int (x - y)) =
   ((y \<le> x \<longrightarrow> P (int x - int y)) \<and> (x < y \<longrightarrow> P 0))"
   by (cases "y \<le> x") (simp_all add: zdiff_int)
 
-text {*
+text \<open>
   \medskip Specific instances of congruence rules, to prevent
-  simplifier from looping. *}
+  simplifier from looping.\<close>
 
 theorem imp_le_cong:
   "\<lbrakk>x = x'; 0 \<le> x' \<Longrightarrow> P = P'\<rbrakk> \<Longrightarrow> (0 \<le> (x::int) \<longrightarrow> P) = (0 \<le> x' \<longrightarrow> P')"
@@ -392,7 +392,7 @@ theorem conj_le_cong:
 
 ML_file "Tools/Qelim/cooper.ML"
 
-method_setup presburger = {*
+method_setup presburger = \<open>
   let
     fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
     fun simple_keyword k = Scan.lift (Args.$$$ k) >> K ()
@@ -408,7 +408,7 @@ method_setup presburger = {*
     (fn ((elim, add_ths), del_ths) => fn ctxt =>
       SIMPLE_METHOD' (Cooper.tac elim add_ths del_ths ctxt))
   end
-*} "Cooper's algorithm for Presburger arithmetic"
+\<close> "Cooper's algorithm for Presburger arithmetic"
 
 declare dvd_eq_mod_eq_0 [symmetric, presburger]
 declare mod_1 [presburger] 
@@ -490,7 +490,7 @@ lemma [presburger]:
   using even_int_iff [of n] by simp
   
 
-subsection {* Nice facts about division by @{term 4} *}  
+subsection \<open>Nice facts about division by @{term 4}\<close>  
 
 lemma even_even_mod_4_iff:
   "even (n::nat) \<longleftrightarrow> even (n mod 4)"
@@ -505,7 +505,7 @@ lemma even_mod_4_div_2:
   by presburger
 
 
-subsection {* Try0 *}
+subsection \<open>Try0\<close>
 
 ML_file "Tools/try0.ML"
 

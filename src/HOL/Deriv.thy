@@ -6,13 +6,13 @@
     GMVT by Benjamin Porter, 2005
 *)
 
-section{* Differentiation *}
+section\<open>Differentiation\<close>
 
 theory Deriv
 imports Limits
 begin
 
-subsection {* Frechet derivative *}
+subsection \<open>Frechet derivative\<close>
 
 definition
   has_derivative :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightarrow>  bool"
@@ -22,12 +22,12 @@ where
     (bounded_linear f' \<and>
      ((\<lambda>y. ((f y - f (Lim F (\<lambda>x. x))) - f' (y - Lim F (\<lambda>x. x))) /\<^sub>R norm (y - Lim F (\<lambda>x. x))) ---> 0) F)"
 
-text {*
+text \<open>
   Usually the filter @{term F} is @{term "at x within s"}.  @{term "(f has_derivative D)
   (at x within s)"} means: @{term D} is the derivative of function @{term f} at point @{term x}
   within the set @{term s}. Where @{term s} is used to express left or right sided derivatives. In
   most cases @{term s} is either a variable or @{term UNIV}.
-*}
+\<close>
 
 lemma has_derivative_eq_rhs: "(f has_derivative f') F \<Longrightarrow> f' = g' \<Longrightarrow> (f has_derivative g') F"
   by simp
@@ -51,7 +51,7 @@ lemma has_vector_derivative_eq_rhs: "(f has_vector_derivative X) F \<Longrightar
   by simp
 
 named_theorems derivative_intros "structural introduction rules for derivatives"
-setup {*
+setup \<open>
   let
     val eq_thms = @{thms has_derivative_eq_rhs DERIV_cong has_vector_derivative_eq_rhs}
     fun eq_rule thm = get_first (try (fn eq_thm => eq_thm OF [thm])) eq_thms
@@ -62,11 +62,11 @@ setup {*
           Named_Theorems.get (Context.proof_of context) @{named_theorems derivative_intros}
           |> map_filter eq_rule)
   end;
-*}
+\<close>
 
-text {*
+text \<open>
   The following syntax is only used as a legacy syntax.
-*}
+\<close>
 abbreviation (input)
   FDERIV :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> bool"
   ("(FDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
@@ -189,7 +189,7 @@ lemma has_derivative_subset: "(f has_derivative f') (at x within s) \<Longrighta
 lemmas has_derivative_within_subset = has_derivative_subset 
 
 
-subsection {* Continuity *}
+subsection \<open>Continuity\<close>
 
 lemma has_derivative_continuous:
   assumes f: "(f has_derivative f') (at x within s)"
@@ -214,7 +214,7 @@ proof -
     by (simp add: continuous_within)
 qed
 
-subsection {* Composition *}
+subsection \<open>Composition\<close>
 
 lemma tendsto_at_iff_tendsto_nhds_within: "f x = y \<Longrightarrow> (f ---> y) (at x within s) \<longleftrightarrow> (f ---> y) (inf (nhds x) (principal s))"
   unfolding tendsto_def eventually_inf_principal eventually_at_filter
@@ -390,7 +390,7 @@ next
   then have "y \<noteq> 0"
     by (auto simp: norm_conv_dist dist_commute)
   have "norm (?inv y - ?inv x - ?f (y -x)) / norm (y - x) = norm ((?inv y - ?inv x) * (y - x) * ?inv x) / norm (y - x)"
-    apply (subst inverse_diff_inverse [OF `y \<noteq> 0` x])
+    apply (subst inverse_diff_inverse [OF \<open>y \<noteq> 0\<close> x])
     apply (subst minus_diff_minus)
     apply (subst norm_minus_cancel)
     apply (simp add: left_diff_distrib)
@@ -422,7 +422,7 @@ lemma has_derivative_divide[simp, derivative_intros]:
   using has_derivative_mult[OF f has_derivative_inverse[OF x g]]
   by (simp add: field_simps)
 
-text{*Conventional form requires mult-AC laws. Types real and complex only.*}
+text\<open>Conventional form requires mult-AC laws. Types real and complex only.\<close>
 
 lemma has_derivative_divide'[derivative_intros]: 
   fixes f :: "_ \<Rightarrow> 'a::real_normed_field"
@@ -439,14 +439,14 @@ proof -
     by simp
 qed
 
-subsection {* Uniqueness *}
+subsection \<open>Uniqueness\<close>
 
-text {*
+text \<open>
 
 This can not generally shown for @{const has_derivative}, as we need to approach the point from
 all directions. There is a proof in @{text Multivariate_Analysis} for @{text euclidean_space}.
 
-*}
+\<close>
 
 lemma has_derivative_zero_unique:
   assumes "((\<lambda>x. 0) has_derivative F) (at x)" shows "F = (\<lambda>h. 0)"
@@ -485,7 +485,7 @@ proof -
     unfolding fun_eq_iff right_minus_eq .
 qed
 
-subsection {* Differentiability predicate *}
+subsection \<open>Differentiability predicate\<close>
 
 definition
   differentiable :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a filter \<Rightarrow> bool"
@@ -609,7 +609,7 @@ lemma DERIV_def: "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) -
 lemma mult_commute_abs: "(\<lambda>x. x * c) = op * (c::'a::ab_semigroup_mult)"
   by (simp add: fun_eq_iff mult.commute)
 
-subsection {* Vector derivative *}
+subsection \<open>Vector derivative\<close>
 
 lemma has_field_derivative_iff_has_vector_derivative:
   "(f has_field_derivative y) F \<longleftrightarrow> (f has_vector_derivative y) F"
@@ -687,7 +687,7 @@ lemma has_vector_derivative_mult_left[derivative_intros]:
   by (rule bounded_linear.has_vector_derivative[OF bounded_linear_mult_left])
 
 
-subsection {* Derivatives *}
+subsection \<open>Derivatives\<close>
 
 lemma DERIV_D: "DERIV f x :> D \<Longrightarrow> (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
   by (simp add: DERIV_def)
@@ -748,7 +748,7 @@ lemma DERIV_mult[derivative_intros]:
   by (rule has_derivative_imp_has_field_derivative[OF has_derivative_mult])
      (auto simp: field_simps dest: has_field_derivative_imp_has_derivative)
 
-text {* Derivative of linear multiplication *}
+text \<open>Derivative of linear multiplication\<close>
 
 lemma DERIV_cmult:
   "(f has_field_derivative D) (at x within s) ==> ((\<lambda>x. c * f x) has_field_derivative c * D) (at x within s)"
@@ -784,24 +784,24 @@ proof -
     by (rule arg_cong [of "\<lambda>x. x * D"]) (simp add: fun_eq_iff)
   with assms have "(f has_derivative (\<lambda>x. x * D)) (at x within s)"
     by (auto dest!: has_field_derivative_imp_has_derivative)
-  then show ?thesis using `f x \<noteq> 0`
+  then show ?thesis using \<open>f x \<noteq> 0\<close>
     by (auto intro: has_derivative_imp_has_field_derivative has_derivative_inverse)
 qed
 
-text {* Power of @{text "-1"} *}
+text \<open>Power of @{text "-1"}\<close>
 
 lemma DERIV_inverse:
   "x \<noteq> 0 \<Longrightarrow> ((\<lambda>x. inverse(x)) has_field_derivative - (inverse x ^ Suc (Suc 0))) (at x within s)"
   by (drule DERIV_inverse' [OF DERIV_ident]) simp
 
-text {* Derivative of inverse *}
+text \<open>Derivative of inverse\<close>
 
 lemma DERIV_inverse_fun:
   "(f has_field_derivative d) (at x within s) \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow>
   ((\<lambda>x. inverse (f x)) has_field_derivative (- (d * inverse(f x ^ Suc (Suc 0))))) (at x within s)"
   by (drule (1) DERIV_inverse') (simp add: ac_simps nonzero_inverse_mult_distrib)
 
-text {* Derivative of quotient *}
+text \<open>Derivative of quotient\<close>
 
 lemma DERIV_divide[derivative_intros]:
   "(f has_field_derivative D) (at x within s) \<Longrightarrow>
@@ -842,7 +842,7 @@ corollary DERIV_chain2: "DERIV f (g x) :> Da \<Longrightarrow> (g has_field_deri
   ((\<lambda>x. f (g x)) has_field_derivative Da * Db) (at x within s)"
   by (rule DERIV_chain')
 
-text {* Standard version *}
+text \<open>Standard version\<close>
 
 lemma DERIV_chain:
   "DERIV f (g x) :> Da \<Longrightarrow> (g has_field_derivative Db) (at x within s) \<Longrightarrow> 
@@ -872,7 +872,7 @@ lemma DERIV_chain3: (*HAS_COMPLEX_DERIVATIVE_CHAIN_UNIV*)
 declare
   DERIV_power[where 'a=real, unfolded real_of_nat_def[symmetric], derivative_intros]
 
-text{*Alternative definition for differentiability*}
+text\<open>Alternative definition for differentiability\<close>
 
 lemma DERIV_LIM_iff:
   fixes f :: "'a::{real_normed_vector,inverse} \<Rightarrow> 'a" shows
@@ -908,7 +908,7 @@ lemma DERIV_mirror:
   by (simp add: DERIV_def filterlim_at_split filterlim_at_left_to_right
                 tendsto_minus_cancel_left field_simps conj_commute)
 
-text {* Caratheodory formulation of derivative at a point *}
+text \<open>Caratheodory formulation of derivative at a point\<close>
 
 lemma CARAT_DERIV: (*FIXME: SUPERSEDED BY THE ONE IN Deriv.thy. But still used by NSA/HDeriv.thy*)
   "(DERIV f x :> l) \<longleftrightarrow> (\<exists>g. (\<forall>z. f z - f x = g z * (z - x)) \<and> isCont g x \<and> g x = l)"
@@ -932,9 +932,9 @@ next
 qed
 
 
-subsection {* Local extrema *}
+subsection \<open>Local extrema\<close>
 
-text{*If @{term "0 < f'(x)"} then @{term x} is Locally Strictly Increasing At The Right*}
+text\<open>If @{term "0 < f'(x)"} then @{term x} is Locally Strictly Increasing At The Right\<close>
 
 lemma DERIV_pos_inc_right:
   fixes f :: "real => real"
@@ -1037,23 +1037,23 @@ next
 qed
 
 
-text{*Similar theorem for a local minimum*}
+text\<open>Similar theorem for a local minimum\<close>
 lemma DERIV_local_min:
   fixes f :: "real => real"
   shows "[| DERIV f x :> l; 0 < d; \<forall>y. \<bar>x-y\<bar> < d --> f(x) \<le> f(y) |] ==> l = 0"
 by (drule DERIV_minus [THEN DERIV_local_max], auto)
 
 
-text{*In particular, if a function is locally flat*}
+text\<open>In particular, if a function is locally flat\<close>
 lemma DERIV_local_const:
   fixes f :: "real => real"
   shows "[| DERIV f x :> l; 0 < d; \<forall>y. \<bar>x-y\<bar> < d --> f(x) = f(y) |] ==> l = 0"
 by (auto dest!: DERIV_local_max)
 
 
-subsection {* Rolle's Theorem *}
+subsection \<open>Rolle's Theorem\<close>
 
-text{*Lemma about introducing open ball in open interval*}
+text\<open>Lemma about introducing open ball in open interval\<close>
 lemma lemma_interval_lt:
      "[| a < x;  x < b |]
       ==> \<exists>d::real. 0 < d & (\<forall>y. \<bar>x-y\<bar> < d --> a < y & y < b)"
@@ -1070,11 +1070,11 @@ apply (drule lemma_interval_lt, auto)
 apply force
 done
 
-text{*Rolle's Theorem.
+text\<open>Rolle's Theorem.
    If @{term f} is defined and continuous on the closed interval
    @{text "[a,b]"} and differentiable on the open interval @{text "(a,b)"},
    and @{term "f(a) = f(b)"},
-   then there exists @{text "x0 \<in> (a,b)"} such that @{term "f'(x0) = 0"}*}
+   then there exists @{text "x0 \<in> (a,b)"} such that @{term "f'(x0) = 0"}\<close>
 theorem Rolle:
   assumes lt: "a < b"
       and eq: "f(a) = f(b)"
@@ -1094,7 +1094,7 @@ proof -
   show ?thesis
   proof cases
     assume axb: "a < x & x < b"
-        --{*@{term f} attains its maximum within the interval*}
+        --\<open>@{term f} attains its maximum within the interval\<close>
     hence ax: "a<x" and xb: "x<b" by arith + 
     from lemma_interval [OF ax xb]
     obtain d where d: "0<d" and bound: "\<forall>y. \<bar>x-y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b"
@@ -1104,7 +1104,7 @@ proof -
     from differentiableD [OF dif [OF axb]]
     obtain l where der: "DERIV f x :> l" ..
     have "l=0" by (rule DERIV_local_max [OF der d bound'])
-        --{*the derivative at a local maximum is zero*}
+        --\<open>the derivative at a local maximum is zero\<close>
     thus ?thesis using ax xb der by auto
   next
     assume notaxb: "~ (a < x & x < b)"
@@ -1113,7 +1113,7 @@ proof -
     show ?thesis
     proof cases
       assume ax'b: "a < x' & x' < b"
-        --{*@{term f} attains its minimum within the interval*}
+        --\<open>@{term f} attains its minimum within the interval\<close>
       hence ax': "a<x'" and x'b: "x'<b" by arith+ 
       from lemma_interval [OF ax' x'b]
       obtain d where d: "0<d" and bound: "\<forall>y. \<bar>x'-y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b"
@@ -1123,11 +1123,11 @@ proof -
       from differentiableD [OF dif [OF ax'b]]
       obtain l where der: "DERIV f x' :> l" ..
       have "l=0" by (rule DERIV_local_min [OF der d bound'])
-        --{*the derivative at a local minimum is zero*}
+        --\<open>the derivative at a local minimum is zero\<close>
       thus ?thesis using ax' x'b der by auto
     next
       assume notax'b: "~ (a < x' & x' < b)"
-        --{*@{term f} is constant througout the interval*}
+        --\<open>@{term f} is constant througout the interval\<close>
       hence x'eqab: "x'=a | x'=b" using alex' x'leb by arith
       hence fb_eq_fx': "f b = f x'" by (auto simp add: eq)
       from dense [OF lt]
@@ -1155,14 +1155,14 @@ proof -
       from differentiableD [OF dif [OF conjI [OF ar rb]]]
       obtain l where der: "DERIV f r :> l" ..
       have "l=0" by (rule DERIV_local_const [OF der d bound'])
-        --{*the derivative of a constant function is zero*}
+        --\<open>the derivative of a constant function is zero\<close>
       thus ?thesis using ar rb der by auto
     qed
   qed
 qed
 
 
-subsection{*Mean Value Theorem*}
+subsection\<open>Mean Value Theorem\<close>
 
 lemma lemma_MVT:
      "f a - (f b - f a)/(b-a) * a = f b - (f b - f a)/(b-a) * (b::real)"
@@ -1215,7 +1215,7 @@ apply (blast dest: DERIV_unique order_less_imp_le)
 done
 
 
-text{*A function is constant if its derivative is 0 over an interval.*}
+text\<open>A function is constant if its derivative is 0 over an interval.\<close>
 
 lemma DERIV_isconst_end:
   fixes f :: "real => real"
@@ -1261,14 +1261,14 @@ proof (cases "x = y")
   have "\<forall>z. ?a \<le> z \<and> z \<le> ?b \<longrightarrow> DERIV f z :> 0"
   proof (rule allI, rule impI)
     fix z :: real assume "?a \<le> z \<and> z \<le> ?b"
-    hence "a < z" and "z < b" using `x \<in> {a <..< b}` and `y \<in> {a <..< b}` by auto
+    hence "a < z" and "z < b" using \<open>x \<in> {a <..< b}\<close> and \<open>y \<in> {a <..< b}\<close> by auto
     hence "z \<in> {a<..<b}" by auto
     thus "DERIV f z :> 0" by (rule derivable)
   qed
   hence isCont: "\<forall>z. ?a \<le> z \<and> z \<le> ?b \<longrightarrow> isCont f z"
     and DERIV: "\<forall>z. ?a < z \<and> z < ?b \<longrightarrow> DERIV f z :> 0" using DERIV_isCont by auto
 
-  have "?a < ?b" using `x \<noteq> y` by auto
+  have "?a < ?b" using \<open>x \<noteq> y\<close> by auto
   from DERIV_isconst2[OF this isCont DERIV, of x] and DERIV_isconst2[OF this isCont DERIV, of y]
   show ?thesis by auto
 qed auto
@@ -1302,7 +1302,7 @@ by (simp)
 lemma real_average_minus_second [simp]: "((b + a)/2 - a) = (b-a)/(2::real)"
 by (simp)
 
-text{*Gallileo's "trick": average velocity = av. of end velocities*}
+text\<open>Gallileo's "trick": average velocity = av. of end velocities\<close>
 
 lemma DERIV_const_average:
   fixes v :: "real => real"
@@ -1455,7 +1455,7 @@ lemma DERIV_neg_imp_decreasing_at_top:
   apply (metis filterlim_at_top_mirror lim)
   done
 
-text {* Derivative of inverse function *}
+text \<open>Derivative of inverse function\<close>
 
 lemma DERIV_inverse_function:
   fixes f g :: "real \<Rightarrow> real"
@@ -1504,7 +1504,7 @@ next
     using neq by (rule tendsto_inverse)
 qed
 
-subsection {* Generalized Mean Value Theorem *}
+subsection \<open>Generalized Mean Value Theorem\<close>
 
 theorem GMVT:
   fixes a b :: real
@@ -1581,7 +1581,7 @@ proof -
 qed
 
 
-subsection {* L'Hopitals rule *}
+subsection \<open>L'Hopitals rule\<close>
 
 lemma isCont_If_ge:
   fixes a :: "'a :: linorder_topology"
@@ -1645,21 +1645,21 @@ proof -
   proof (rule bchoice, rule)
     fix x assume "x \<in> {0 <..< a}"
     then have x[arith]: "0 < x" "x < a" by auto
-    with g'_neq_0 g_neq_0 `g 0 = 0` have g': "\<And>x. 0 < x \<Longrightarrow> x < a  \<Longrightarrow> 0 \<noteq> g' x" "g 0 \<noteq> g x"
+    with g'_neq_0 g_neq_0 \<open>g 0 = 0\<close> have g': "\<And>x. 0 < x \<Longrightarrow> x < a  \<Longrightarrow> 0 \<noteq> g' x" "g 0 \<noteq> g x"
       by auto
     have "\<And>x. 0 \<le> x \<Longrightarrow> x < a \<Longrightarrow> isCont f x"
-      using `isCont f 0` f by (auto intro: DERIV_isCont simp: le_less)
+      using \<open>isCont f 0\<close> f by (auto intro: DERIV_isCont simp: le_less)
     moreover have "\<And>x. 0 \<le> x \<Longrightarrow> x < a \<Longrightarrow> isCont g x"
-      using `isCont g 0` g by (auto intro: DERIV_isCont simp: le_less)
+      using \<open>isCont g 0\<close> g by (auto intro: DERIV_isCont simp: le_less)
     ultimately have "\<exists>c. 0 < c \<and> c < x \<and> (f x - f 0) * g' c = (g x - g 0) * f' c"
-      using f g `x < a` by (intro GMVT') auto
+      using f g \<open>x < a\<close> by (intro GMVT') auto
     then obtain c where *: "0 < c" "c < x" "(f x - f 0) * g' c = (g x - g 0) * f' c"
       by blast
     moreover
     from * g'(1)[of c] g'(2) have "(f x - f 0)  / (g x - g 0) = f' c / g' c"
       by (simp add: field_simps)
     ultimately show "\<exists>y. 0 < y \<and> y < x \<and> f x / g x = f' y / g' y"
-      using `f 0 = 0` `g 0 = 0` by (auto intro!: exI[of _ c])
+      using \<open>f 0 = 0\<close> \<open>g 0 = 0\<close> by (auto intro!: exI[of _ c])
   qed
   then obtain \<zeta> where "\<forall>x\<in>{0 <..< a}. 0 < \<zeta> x \<and> \<zeta> x < x \<and> f x / g x = f' (\<zeta> x) / g' (\<zeta> x)" ..
   then have \<zeta>: "eventually (\<lambda>x. 0 < \<zeta> x \<and> \<zeta> x < x \<and> f x / g x = f' (\<zeta> x) / g' (\<zeta> x)) (at_right 0)"
@@ -1765,7 +1765,7 @@ proof safe
     by (intro tendsto_intros)
   then have "((\<lambda>t. norm (f a - x * g a) / norm (g t)) ---> 0) (at_right 0)"
     by (simp add: inverse_eq_divide)
-  from this[unfolded tendsto_iff, rule_format, of "e / 2"] `0 < e`
+  from this[unfolded tendsto_iff, rule_format, of "e / 2"] \<open>0 < e\<close>
   have "eventually (\<lambda>t. norm (f a - x * g a) / norm (g t) < e / 2) (at_right 0)"
     by (auto simp: dist_real_def)
 
@@ -1780,7 +1780,7 @@ proof safe
       and D_eq0: "(g a - g t) * f' y = (f a - f t) * g' y"
       by blast
     from D_eq0 have D_eq: "(f t - f a) / (g t - g a) = f' y / g' y"
-      using `g a < g t` g'_neq_0[of y] by (auto simp add: field_simps)
+      using \<open>g a < g t\<close> g'_neq_0[of y] by (auto simp add: field_simps)
 
     have *: "f t / g t - x = ((f t - f a) / (g t - g a) - x) * (1 - g a / g t) + (f a - x * g a) / g t"
       by (simp add: field_simps)
@@ -1790,7 +1790,7 @@ proof safe
     also have "\<dots> = dist (f' y / g' y) x * norm (1 - g a / g t) + norm (f a - x * g a) / norm (g t)"
       by (simp add: abs_mult D_eq dist_real_def)
     also have "\<dots> < (e / 4) * 2 + e / 2"
-      using ineq Df[of y] `0 < e` by (intro add_le_less_mono mult_mono) auto
+      using ineq Df[of y] \<open>0 < e\<close> by (intro add_le_less_mono mult_mono) auto
     finally show "dist (f t / g t) x < e"
       by (simp add: dist_real_def)
   qed

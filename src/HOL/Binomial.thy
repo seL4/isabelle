@@ -5,13 +5,13 @@
     The integer version of factorial and other additions by Jeremy Avigad.
 *)
 
-section{*Factorial Function, Binomial Coefficients and Binomial Theorem*}
+section\<open>Factorial Function, Binomial Coefficients and Binomial Theorem\<close>
 
 theory Binomial
 imports Main
 begin
 
-subsection {* Factorial *}
+subsection \<open>Factorial\<close>
 
 fun fact :: "nat \<Rightarrow> ('a::semiring_char_0)"
   where "fact 0 = 1" | "fact (Suc n) = of_nat (Suc n) * fact n"
@@ -74,7 +74,7 @@ begin
 
 end
 
-text{*Note that @{term "fact 0 = fact 1"}*}
+text\<open>Note that @{term "fact 0 = fact 1"}\<close>
 lemma fact_less_mono_nat: "\<lbrakk>0 < m; m < n\<rbrakk> \<Longrightarrow> fact m < (fact n :: nat)"
   by (induct n) (auto simp: less_Suc_eq)
 
@@ -121,7 +121,7 @@ proof -
       by (simp add: atLeastAtMostSuc_conv)
     finally show ?case .
   qed
-  from this `m = n + d` show ?thesis by simp
+  from this \<open>m = n + d\<close> show ?thesis by simp
 qed
 
 lemma fact_num_eq_if: 
@@ -141,15 +141,15 @@ proof -
     by (induct r rule: nat.induct) (auto simp add: fact_div_fact Suc_diff_Suc mult_le_mono)
 qed
 
-lemma fact_numeral:  --{*Evaluation for specific numerals*}
+lemma fact_numeral:  --\<open>Evaluation for specific numerals\<close>
   "fact (numeral k) = (numeral k) * (fact (pred_numeral k))"
   by (metis fact.simps(2) numeral_eq_Suc of_nat_numeral)
 
 
-text {* This development is based on the work of Andy Gordon and
-  Florian Kammueller. *}
+text \<open>This development is based on the work of Andy Gordon and
+  Florian Kammueller.\<close>
 
-subsection {* Basic definitions and lemmas *}
+subsection \<open>Basic definitions and lemmas\<close>
 
 primrec binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat" (infixl "choose" 65)
 where
@@ -207,27 +207,27 @@ lemma binomial_le_pow2: "n choose k \<le> 2^n"
   apply (auto simp: power_Suc)
   by (simp add: add_le_mono mult_2)
 
-text{*The absorption property*}
+text\<open>The absorption property\<close>
 lemma Suc_times_binomial:
   "Suc k * (Suc n choose Suc k) = Suc n * (n choose k)"
   using Suc_times_binomial_eq by auto
 
-text{*This is the well-known version of absorption, but it's harder to use because of the
-  need to reason about division.*}
+text\<open>This is the well-known version of absorption, but it's harder to use because of the
+  need to reason about division.\<close>
 lemma binomial_Suc_Suc_eq_times:
     "(Suc n choose Suc k) = (Suc n * (n choose k)) div Suc k"
   by (simp add: Suc_times_binomial_eq del: mult_Suc mult_Suc_right)
 
-text{*Another version of absorption, with -1 instead of Suc.*}
+text\<open>Another version of absorption, with -1 instead of Suc.\<close>
 lemma times_binomial_minus1_eq:
   "0 < k \<Longrightarrow> k * (n choose k) = n * ((n - 1) choose (k - 1))"
   using Suc_times_binomial_eq [where n = "n - 1" and k = "k - 1"]
   by (auto split add: nat_diff_split)
 
 
-subsection {* Combinatorial theorems involving @{text "choose"} *}
+subsection \<open>Combinatorial theorems involving @{text "choose"}\<close>
 
-text {*By Florian Kamm\"uller, tidied by LCP.*}
+text \<open>By Florian Kamm\"uller, tidied by LCP.\<close>
 
 lemma card_s_0_eq_empty: "finite A \<Longrightarrow> card {B. B \<subseteq> A & card B = 0} = 1"
   by (simp cong add: conj_cong add: finite_subset [THEN card_0_eq])
@@ -246,9 +246,9 @@ lemma finite_bex_subset [simp]:
   shows "finite {x. \<exists>A \<subseteq> B. P x A}"
   by (metis (no_types) assms finite_Collect_bounded_ex finite_Collect_subsets)
 
-text{*There are as many subsets of @{term A} having cardinality @{term k}
+text\<open>There are as many subsets of @{term A} having cardinality @{term k}
  as there are sets obtained from the former by inserting a fixed element
- @{term x} into each.*}
+ @{term x} into each.\<close>
 lemma constr_bij:
    "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow>
     card {B. \<exists>C. C \<subseteq> A \<and> card C = k \<and> B = insert x C} =
@@ -258,16 +258,16 @@ lemma constr_bij:
   apply (metis card_Diff_singleton_if finite_subset in_mono)
   done
 
-text {*
+text \<open>
   Main theorem: combinatorial statement about number of subsets of a set.
-*}
+\<close>
 
 theorem n_subsets: "finite A \<Longrightarrow> card {B. B \<subseteq> A \<and> card B = k} = (card A choose k)"
 proof (induct k arbitrary: A)
   case 0 then show ?case by (simp add: card_s_0_eq_empty)
 next
   case (Suc k)
-  show ?case using `finite A`
+  show ?case using \<open>finite A\<close>
   proof (induct A)
     case empty show ?case by (simp add: card_s_0_eq_empty)
   next
@@ -285,9 +285,9 @@ next
 qed
 
 
-subsection {* The binomial theorem (courtesy of Tobias Nipkow): *}
+subsection \<open>The binomial theorem (courtesy of Tobias Nipkow):\<close>
 
-text{* Avigad's version, generalized to any commutative ring *}
+text\<open>Avigad's version, generalized to any commutative ring\<close>
 theorem binomial_ring: "(a+b::'a::{comm_ring_1,power})^n =
   (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))" (is "?P n")
 proof (induct n)
@@ -324,7 +324,7 @@ next
   finally show "?P (Suc n)" by simp
 qed
 
-text{* Original version for the naturals *}
+text\<open>Original version for the naturals\<close>
 corollary binomial: "(a+b::nat)^n = (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))"
     using binomial_ring [of "int a" "int b" n]
   by (simp only: of_nat_add [symmetric] of_nat_mult [symmetric] of_nat_power [symmetric]
@@ -386,7 +386,7 @@ lemma natsum_reverse_index:
   shows "(\<And>k. m \<le> k \<Longrightarrow> k \<le> n \<Longrightarrow> g k = f (m + n - k)) \<Longrightarrow> (\<Sum>k=m..n. f k) = (\<Sum>k=m..n. g k)"
   by (rule setsum.reindex_bij_witness[where i="\<lambda>k. m+n-k" and j="\<lambda>k. m+n-k"]) auto
 
-text{*NW diagonal sum property*}
+text\<open>NW diagonal sum property\<close>
 lemma sum_choose_diagonal:
   assumes "m\<le>n" shows "(\<Sum>k=0..m. (n-k) choose (m-k)) = Suc n choose m"
 proof -
@@ -399,9 +399,9 @@ proof -
   finally show ?thesis .
 qed
 
-subsection{* Pochhammer's symbol : generalized rising factorial *}
+subsection\<open>Pochhammer's symbol : generalized rising factorial\<close>
 
-text {* See @{url "http://en.wikipedia.org/wiki/Pochhammer_symbol"} *}
+text \<open>See @{url "http://en.wikipedia.org/wiki/Pochhammer_symbol"}\<close>
 
 definition "pochhammer (a::'a::comm_semiring_1) n =
   (if n = 0 then 1 else setprod (\<lambda>n. a + of_nat n) {0 .. n - 1})"
@@ -548,7 +548,7 @@ lemma pochhammer_same: "pochhammer (- of_nat n) n =
   by (simp add: of_nat_diff pochhammer_fact)
 
 
-subsection{* Generalized binomial coefficients *}
+subsection\<open>Generalized binomial coefficients\<close>
 
 definition gbinomial :: "'a::field_char_0 \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
   where "a gchoose n =
@@ -729,8 +729,8 @@ proof-
   then show ?thesis using kn by simp
 qed
 
-text{*Contributed by Manuel Eberl, generalised by LCP.
-  Alternative definition of the binomial coefficient as @{term "\<Prod>i<k. (n - i) / (k - i)"} *}
+text\<open>Contributed by Manuel Eberl, generalised by LCP.
+  Alternative definition of the binomial coefficient as @{term "\<Prod>i<k. (n - i) / (k - i)"}\<close>
 lemma gbinomial_altdef_of_nat:
   fixes k :: nat
     and x :: "'a :: {field_char_0,field}"
@@ -769,15 +769,15 @@ proof -
     then have "x * of_nat (k - i) \<le> (x - of_nat i) * (of_nat k :: 'a)"
       unfolding of_nat_mult[symmetric] of_nat_le_iff .
     with assms show "x / of_nat k \<le> (x - of_nat i) / (of_nat (k - i) :: 'a)"
-      using `i < k` by (simp add: field_simps)
+      using \<open>i < k\<close> by (simp add: field_simps)
   qed (simp add: x zero_le_divide_iff)
   finally show ?thesis .
 qed
 
-text{*Versions of the theorems above for the natural-number version of "choose"*}
+text\<open>Versions of the theorems above for the natural-number version of "choose"\<close>
 lemma binomial_altdef_of_nat:
   fixes n k :: nat
-    and x :: "'a :: {field_char_0,field}"  --{*the point is to constrain @{typ 'a}*}
+    and x :: "'a :: {field_char_0,field}"  --\<open>the point is to constrain @{typ 'a}\<close>
   assumes "k \<le> n"
   shows "of_nat (n choose k) = (\<Prod>i<k. of_nat (n - i) / of_nat (k - i) :: 'a)"
 using assms
@@ -795,7 +795,7 @@ lemma binomial_le_pow:
   shows "n choose r \<le> n ^ r"
 proof -
   have "n choose r \<le> fact n div fact (n - r)"
-    using `r \<le> n` by (subst binomial_fact_lemma[symmetric]) auto
+    using \<open>r \<le> n\<close> by (subst binomial_fact_lemma[symmetric]) auto
   with fact_div_fact_le_pow [OF assms] show ?thesis by auto
 qed
 
@@ -838,7 +838,7 @@ proof -
     by (simp add: binomial_altdef_nat mult.commute)
 qed
 
-text{*The "Subset of a Subset" identity*}
+text\<open>The "Subset of a Subset" identity\<close>
 lemma choose_mult:
   assumes "k\<le>m" "m\<le>n"
     shows "(n choose m) * (m choose k) = (n choose k) * ((n-k) choose (m-k))"
@@ -846,7 +846,7 @@ using assms choose_mult_lemma [of "m-k" "n-m" k]
 by simp
 
 
-subsection {* Binomial coefficients *}
+subsection \<open>Binomial coefficients\<close>
 
 lemma choose_one: "(n::nat) choose 1 = n"
   by simp
@@ -885,7 +885,7 @@ proof -
     fix x
     assume x: "x \<in> \<Union>A"
     def K \<equiv> "{X \<in> A. x \<in> X}"
-    with `finite A` have K: "finite K" by auto
+    with \<open>finite A\<close> have K: "finite K" by auto
     let ?I = "\<lambda>i. {I. I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I}"
     have "inj_on snd (SIGMA i:{1..card A}. ?I i)"
       using assms by(auto intro!: inj_onI)
@@ -901,7 +901,7 @@ proof -
       by(subst setsum_right_distrib) simp
     also have "\<dots> = (\<Sum>i=1..card K. (- 1) ^ (i + 1) * (\<Sum>I|I \<subseteq> K \<and> card I = i. 1))" (is "_ = ?rhs")
     proof(rule setsum.mono_neutral_cong_right[rule_format])
-      show "{1..card K} \<subseteq> {1..card A}" using `finite A`
+      show "{1..card K} \<subseteq> {1..card A}" using \<open>finite A\<close>
         by(auto simp add: K_def intro: card_mono)
     next
       fix i
@@ -909,7 +909,7 @@ proof -
       hence i: "i \<le> card A" "card K < i" by auto
       have "{I. I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I} = {I. I \<subseteq> K \<and> card I = i}"
         by(auto simp add: K_def)
-      also have "\<dots> = {}" using `finite A` i
+      also have "\<dots> = {}" using \<open>finite A\<close> i
         by(auto simp add: K_def dest: card_mono[rotated 1])
       finally show "(- 1) ^ (i + 1) * (\<Sum>I | I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1 :: int) = 0"
         by(simp only:) simp
@@ -937,8 +937,8 @@ proof -
   finally show ?thesis ..
 qed
 
-text{* The number of nat lists of length @{text m} summing to @{text N} is
-@{term "(N + m - 1) choose N"}: *}
+text\<open>The number of nat lists of length @{text m} summing to @{text N} is
+@{term "(N + m - 1) choose N"}:\<close>
 
 lemma card_length_listsum_rec:
   assumes "m\<ge>1"
@@ -1007,7 +1007,7 @@ next
       proof cases
         assume "m = 1"
         with Suc.hyps have "N\<ge>1" by auto
-        with `m = 1` show ?thesis by (simp add: binomial_eq_0)
+        with \<open>m = 1\<close> show ?thesis by (simp add: binomial_eq_0)
       next
         assume "m \<noteq> 1" thus ?thesis using Suc by fastforce
       qed

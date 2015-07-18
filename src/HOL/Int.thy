@@ -3,13 +3,13 @@
     Author:     Tobias Nipkow, Florian Haftmann, TU Muenchen
 *)
 
-section {* The Integers as Equivalence Classes over Pairs of Natural Numbers *}
+section \<open>The Integers as Equivalence Classes over Pairs of Natural Numbers\<close>
 
 theory Int
 imports Equiv_Relations Power Quotient Fun_Def
 begin
 
-subsection {* Definition of integers as a quotient type *}
+subsection \<open>Definition of integers as a quotient type\<close>
 
 definition intrel :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat) \<Rightarrow> bool" where
   "intrel = (\<lambda>(x, y) (u, v). x + v = u + y)"
@@ -32,7 +32,7 @@ lemma eq_Abs_Integ [case_names Abs_Integ, cases type: int]:
      "(!!x y. z = Abs_Integ (x, y) ==> P) ==> P"
 by (induct z) auto
 
-subsection {* Integers form a commutative ring *}
+subsection \<open>Integers form a commutative ring\<close>
 
 instantiation int :: comm_ring_1
 begin
@@ -85,7 +85,7 @@ lemma int_diff_cases:
   obtains (diff) m n where "z = int m - int n"
   by transfer clarsimp
 
-subsection {* Integers are totally ordered *}
+subsection \<open>Integers are totally ordered\<close>
 
 instantiation int :: linorder
 begin
@@ -118,7 +118,7 @@ instance
 
 end
 
-subsection {* Ordering properties of arithmetic operations *}
+subsection \<open>Ordering properties of arithmetic operations\<close>
 
 instance int :: ordered_cancel_ab_semigroup_add
 proof
@@ -127,9 +127,9 @@ proof
     by transfer clarsimp
 qed
 
-text{*Strict Monotonicity of Multiplication*}
+text\<open>Strict Monotonicity of Multiplication\<close>
 
-text{*strict, in 1st argument; proof is by induction on k>0*}
+text\<open>strict, in 1st argument; proof is by induction on k>0\<close>
 lemma zmult_zless_mono2_lemma:
      "(i::int)<j ==> 0<k ==> int k * i < int k * j"
 apply (induct k)
@@ -156,7 +156,7 @@ apply (drule zero_less_imp_eq_int)
 apply (auto simp add: zmult_zless_mono2_lemma)
 done
 
-text{*The integers form an ordered integral domain*}
+text\<open>The integers form an ordered integral domain\<close>
 instantiation int :: linordered_idom
 begin
 
@@ -198,7 +198,7 @@ lemmas int_distrib =
   for z1 z2 w :: int
 
 
-subsection {* Embedding of the Integers into any @{text ring_1}: @{text of_int}*}
+subsection \<open>Embedding of the Integers into any @{text ring_1}: @{text of_int}\<close>
 
 context ring_1
 begin
@@ -225,7 +225,7 @@ lemma of_int_diff [simp]: "of_int (w - z) = of_int w - of_int z"
 lemma of_int_mult [simp]: "of_int (w*z) = of_int w * of_int z"
   by (transfer fixing: times) (clarsimp simp add: algebra_simps of_nat_mult)
 
-text{*Collapse nested embeddings*}
+text\<open>Collapse nested embeddings\<close>
 lemma of_int_of_nat_eq [simp]: "of_int (int n) = of_nat n"
 by (induct n) auto
 
@@ -249,7 +249,7 @@ lemma of_int_eq_iff [simp]:
   by transfer (clarsimp simp add: algebra_simps
     of_nat_add [symmetric] simp del: of_nat_add)
 
-text{*Special cases where either operand is zero*}
+text\<open>Special cases where either operand is zero\<close>
 lemma of_int_eq_0_iff [simp]:
   "of_int z = 0 \<longleftrightarrow> z = 0"
   using of_int_eq_iff [of z 0] by simp
@@ -263,7 +263,7 @@ end
 context linordered_idom
 begin
 
-text{*Every @{text linordered_idom} has characteristic zero.*}
+text\<open>Every @{text linordered_idom} has characteristic zero.\<close>
 subclass ring_char_0 ..
 
 lemma of_int_le_iff [simp]:
@@ -316,7 +316,7 @@ instance int :: no_bot
   apply simp
   done
 
-subsection {* Magnitude of an Integer, as a Natural Number: @{text nat} *}
+subsection \<open>Magnitude of an Integer, as a Natural Number: @{text nat}\<close>
 
 lift_definition nat :: "int \<Rightarrow> nat" is "\<lambda>(x, y). x - y"
   by auto
@@ -336,7 +336,7 @@ lemma nat_le_0 [simp]: "z \<le> 0 ==> nat z = 0"
 lemma nat_le_eq_zle: "0 < w | 0 \<le> z ==> (nat w \<le> nat z) = (w\<le>z)"
   by transfer (clarsimp, arith)
 
-text{*An alternative condition is @{term "0 \<le> w"} *}
+text\<open>An alternative condition is @{term "0 \<le> w"}\<close>
 corollary nat_mono_iff: "0 < z ==> (nat w < nat z) = (w < z)"
 by (simp add: nat_le_eq_zle linorder_not_le [symmetric])
 
@@ -432,11 +432,11 @@ lemma diff_nat_numeral [simp]:
   by (simp only: nat_diff_distrib' zero_le_numeral nat_numeral)
 
 
-text {* For termination proofs: *}
+text \<open>For termination proofs:\<close>
 lemma measure_function_int[measure_function]: "is_measure (nat o abs)" ..
 
 
-subsection{*Lemmas about the Function @{term of_nat} and Orderings*}
+subsection\<open>Lemmas about the Function @{term of_nat} and Orderings\<close>
 
 lemma negative_zless_0: "- (int (Suc n)) < (0 \<Colon> int)"
 by (simp add: order_less_le del: of_nat_Suc)
@@ -479,10 +479,10 @@ by simp
 lemma int_Suc0_eq_1: "int (Suc 0) = 1"
 by simp
 
-text{*This version is proved for all ordered rings, not just integers!
+text\<open>This version is proved for all ordered rings, not just integers!
       It is proved here because attribute @{text arith_split} is not available
       in theory @{text Rings}.
-      But is it really better than just rewriting with @{text abs_if}?*}
+      But is it really better than just rewriting with @{text abs_if}?\<close>
 lemma abs_split [arith_split, no_atp]:
      "P(abs(a::'a::linordered_idom)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
 by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
@@ -493,19 +493,19 @@ apply clarsimp
 apply (rule_tac x="b - Suc a" in exI, arith)
 done
 
-subsection {* Cases and induction *}
+subsection \<open>Cases and induction\<close>
 
-text{*Now we replace the case analysis rule by a more conventional one:
-whether an integer is negative or not.*}
+text\<open>Now we replace the case analysis rule by a more conventional one:
+whether an integer is negative or not.\<close>
 
-text{*This version is symmetric in the two subgoals.*}
+text\<open>This version is symmetric in the two subgoals.\<close>
 theorem int_cases2 [case_names nonneg nonpos, cases type: int]:
   "\<lbrakk>!! n. z = int n \<Longrightarrow> P;  !! n. z = - (int n) \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 apply (cases "z < 0")
 apply (auto simp add: linorder_not_less dest!: negD nat_0_le [THEN sym])
 done
 
-text{*This is the default, with a negative case.*}
+text\<open>This is the default, with a negative case.\<close>
 theorem int_cases [case_names nonneg neg, cases type: int]:
   "[|!! n. z = int n ==> P;  !! n. z = - (int (Suc n)) ==> P |] ==> P"
 apply (cases "z < 0")
@@ -524,14 +524,14 @@ lemma nonneg_int_cases:
   using assms by (rule nonneg_eq_int)
 
 lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
-  -- {* Unfold all @{text let}s involving constants *}
-  by (fact Let_numeral) -- {* FIXME drop *}
+  -- \<open>Unfold all @{text let}s involving constants\<close>
+  by (fact Let_numeral) -- \<open>FIXME drop\<close>
 
 lemma Let_neg_numeral [simp]: "Let (- numeral v) f = f (- numeral v)"
-  -- {* Unfold all @{text let}s involving constants *}
-  by (fact Let_neg_numeral) -- {* FIXME drop *}
+  -- \<open>Unfold all @{text let}s involving constants\<close>
+  by (fact Let_neg_numeral) -- \<open>FIXME drop\<close>
 
-text {* Unfold @{text min} and @{text max} on numerals. *}
+text \<open>Unfold @{text min} and @{text max} on numerals.\<close>
 
 lemmas max_number_of [simp] =
   max_def [of "numeral u" "numeral v"]
@@ -546,9 +546,9 @@ lemmas min_number_of [simp] =
   min_def [of "- numeral u" "- numeral v"] for u v
 
 
-subsubsection {* Binary comparisons *}
+subsubsection \<open>Binary comparisons\<close>
 
-text {* Preliminaries *}
+text \<open>Preliminaries\<close>
 
 lemma le_imp_0_less:
   assumes le: "0 \<le> z"
@@ -572,7 +572,7 @@ next
     add: algebra_simps of_nat_1 [where 'a=int, symmetric] of_nat_add [symmetric])
 qed
 
-subsubsection {* Comparisons, for Ordered Rings *}
+subsubsection \<open>Comparisons, for Ordered Rings\<close>
 
 lemmas double_eq_0_iff = double_zero
 
@@ -599,7 +599,7 @@ next
 qed
 
 
-subsection {* The Set of Integers *}
+subsection \<open>The Set of Integers\<close>
 
 context ring_1
 begin
@@ -654,7 +654,7 @@ lemma Ints_cases [cases set: Ints]:
   obtains (of_int) z where "q = of_int z"
   unfolding Ints_def
 proof -
-  from `q \<in> \<int>` have "q \<in> range of_int" unfolding Ints_def .
+  from \<open>q \<in> \<int>\<close> have "q \<in> range of_int" unfolding Ints_def .
   then obtain z where "q = of_int z" ..
   then show thesis ..
 qed
@@ -665,7 +665,7 @@ lemma Ints_induct [case_names of_int, induct set: Ints]:
 
 end
 
-text {* The premise involving @{term Ints} prevents @{term "a = 1/2"}. *}
+text \<open>The premise involving @{term Ints} prevents @{term "a = 1/2"}.\<close>
 
 lemma Ints_double_eq_0_iff:
   assumes in_Ints: "a \<in> Ints"
@@ -718,7 +718,7 @@ proof -
 qed
 
 
-subsection {* @{term setsum} and @{term setprod} *}
+subsection \<open>@{term setsum} and @{term setprod}\<close>
 
 lemma of_nat_setsum: "of_nat (setsum f A) = (\<Sum>x\<in>A. of_nat(f x))"
   apply (cases "finite A")
@@ -744,27 +744,27 @@ lemmas int_setsum = of_nat_setsum [where 'a=int]
 lemmas int_setprod = of_nat_setprod [where 'a=int]
 
 
-text {* Legacy theorems *}
+text \<open>Legacy theorems\<close>
 
 lemmas zle_int = of_nat_le_iff [where 'a=int]
 lemmas int_int_eq = of_nat_eq_iff [where 'a=int]
 lemmas numeral_1_eq_1 = numeral_One
 
-subsection {* Setting up simplification procedures *}
+subsection \<open>Setting up simplification procedures\<close>
 
 lemmas of_int_simps =
   of_int_0 of_int_1 of_int_add of_int_mult
 
 ML_file "Tools/int_arith.ML"
-declaration {* K Int_Arith.setup *}
+declaration \<open>K Int_Arith.setup\<close>
 
 simproc_setup fast_arith ("(m::'a::linordered_idom) < n" |
   "(m::'a::linordered_idom) <= n" |
   "(m::'a::linordered_idom) = n") =
-  {* fn _ => fn ss => fn ct => Lin_Arith.simproc ss (Thm.term_of ct) *}
+  \<open>fn _ => fn ss => fn ct => Lin_Arith.simproc ss (Thm.term_of ct)\<close>
 
 
-subsection{*More Inequality Reasoning*}
+subsection\<open>More Inequality Reasoning\<close>
 
 lemma zless_add1_eq: "(w < z + (1::int)) = (w<z | w=z)"
 by arith
@@ -782,15 +782,15 @@ lemma int_one_le_iff_zero_less: "((1::int) \<le> z) = (0 < z)"
 by arith
 
 
-subsection{*The functions @{term nat} and @{term int}*}
+subsection\<open>The functions @{term nat} and @{term int}\<close>
 
-text{*Simplify the term @{term "w + - z"}*}
+text\<open>Simplify the term @{term "w + - z"}\<close>
 
 lemma one_less_nat_eq [simp]: "(Suc 0 < nat z) = (1 < z)"
   using zless_nat_conj [of 1 z] by auto
 
-text{*This simplifies expressions of the form @{term "int n = z"} where
-      z is an integer literal.*}
+text\<open>This simplifies expressions of the form @{term "int n = z"} where
+      z is an integer literal.\<close>
 lemmas int_eq_iff_numeral [simp] = int_eq_iff [of _ "numeral v"] for v
 
 lemma split_nat [arith_split]:
@@ -895,7 +895,7 @@ lemma nat_numeral_diff_1 [simp]:
 
 subsection "Induction principles for int"
 
-text{*Well-founded segments of the integers*}
+text\<open>Well-founded segments of the integers\<close>
 
 definition
   int_ge_less_than  ::  "int => (int * int) set"
@@ -910,8 +910,8 @@ proof -
     by (rule wf_subset [OF wf_measure])
 qed
 
-text{*This variant looks odd, but is typical of the relations suggested
-by RankFinder.*}
+text\<open>This variant looks odd, but is typical of the relations suggested
+by RankFinder.\<close>
 
 definition
   int_ge_less_than2 ::  "int => (int * int) set"
@@ -1021,7 +1021,7 @@ proof -
   qed
 qed
 
-subsection{*Intermediate value theorems*}
+subsection\<open>Intermediate value theorems\<close>
 
 lemma int_val_lemma:
      "(\<forall>i<n::nat. abs(f(i+1) - f i) \<le> 1) -->
@@ -1053,7 +1053,7 @@ apply (rule_tac x = "i+m" in exI, arith)
 done
 
 
-subsection{*Products and 1, by T. M. Rasmussen*}
+subsection\<open>Products and 1, by T. M. Rasmussen\<close>
 
 lemma zabs_less_one_iff [simp]: "(\<bar>z\<bar> < 1) = (z = (0::int))"
 by arith
@@ -1110,18 +1110,18 @@ proof
 qed
 
 
-subsection {* Further theorems on numerals *}
+subsection \<open>Further theorems on numerals\<close>
 
-subsubsection{*Special Simplification for Constants*}
+subsubsection\<open>Special Simplification for Constants\<close>
 
-text{*These distributive laws move literals inside sums and differences.*}
+text\<open>These distributive laws move literals inside sums and differences.\<close>
 
 lemmas distrib_right_numeral [simp] = distrib_right [of _ _ "numeral v"] for v
 lemmas distrib_left_numeral [simp] = distrib_left [of "numeral v"] for v
 lemmas left_diff_distrib_numeral [simp] = left_diff_distrib [of _ _ "numeral v"] for v
 lemmas right_diff_distrib_numeral [simp] = right_diff_distrib [of "numeral v"] for v
 
-text{*These are actually for fields, like real: but where else to put them?*}
+text\<open>These are actually for fields, like real: but where else to put them?\<close>
 
 lemmas zero_less_divide_iff_numeral [simp, no_atp] = zero_less_divide_iff [of "numeral w"] for w
 lemmas divide_less_0_iff_numeral [simp, no_atp] = divide_less_0_iff [of "numeral w"] for w
@@ -1129,8 +1129,8 @@ lemmas zero_le_divide_iff_numeral [simp, no_atp] = zero_le_divide_iff [of "numer
 lemmas divide_le_0_iff_numeral [simp, no_atp] = divide_le_0_iff [of "numeral w"] for w
 
 
-text {*Replaces @{text "inverse #nn"} by @{text "1/#nn"}.  It looks
-  strange, but then other simprocs simplify the quotient.*}
+text \<open>Replaces @{text "inverse #nn"} by @{text "1/#nn"}.  It looks
+  strange, but then other simprocs simplify the quotient.\<close>
 
 lemmas inverse_eq_divide_numeral [simp] =
   inverse_eq_divide [of "numeral w"] for w
@@ -1138,8 +1138,8 @@ lemmas inverse_eq_divide_numeral [simp] =
 lemmas inverse_eq_divide_neg_numeral [simp] =
   inverse_eq_divide [of "- numeral w"] for w
 
-text {*These laws simplify inequalities, moving unary minus from a term
-into the literal.*}
+text \<open>These laws simplify inequalities, moving unary minus from a term
+into the literal.\<close>
 
 lemmas equation_minus_iff_numeral [no_atp] =
   equation_minus_iff [of "numeral v"] for v
@@ -1159,10 +1159,10 @@ lemmas less_minus_iff_numeral [no_atp] =
 lemmas minus_less_iff_numeral [no_atp] =
   minus_less_iff [of _ "numeral v"] for v
 
--- {* FIXME maybe simproc *}
+-- \<open>FIXME maybe simproc\<close>
 
 
-text {*Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"}) *}
+text \<open>Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"})\<close>
 
 lemmas mult_less_cancel_left_numeral [simp, no_atp] = mult_less_cancel_left [of "numeral v"] for v
 lemmas mult_less_cancel_right_numeral [simp, no_atp] = mult_less_cancel_right [of _ "numeral v"] for v
@@ -1170,7 +1170,7 @@ lemmas mult_le_cancel_left_numeral [simp, no_atp] = mult_le_cancel_left [of "num
 lemmas mult_le_cancel_right_numeral [simp, no_atp] = mult_le_cancel_right [of _ "numeral v"] for v
 
 
-text {*Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="}) *}
+text \<open>Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="})\<close>
 
 lemmas le_divide_eq_numeral1 [simp] =
   pos_le_divide_eq [of "numeral w", OF zero_less_numeral]
@@ -1197,9 +1197,9 @@ lemmas divide_eq_eq_numeral1 [simp] =
   divide_eq_eq [of _ "- numeral w"] for w
 
 
-subsubsection{*Optional Simplification Rules Involving Constants*}
+subsubsection\<open>Optional Simplification Rules Involving Constants\<close>
 
-text{*Simplify quotients that are compared with a literal constant.*}
+text\<open>Simplify quotients that are compared with a literal constant.\<close>
 
 lemmas le_divide_eq_numeral =
   le_divide_eq [of "numeral w"]
@@ -1226,14 +1226,14 @@ lemmas divide_eq_eq_numeral =
   divide_eq_eq [of _ _ "- numeral w"] for w
 
 
-text{*Not good as automatic simprules because they cause case splits.*}
+text\<open>Not good as automatic simprules because they cause case splits.\<close>
 lemmas divide_const_simps =
   le_divide_eq_numeral divide_le_eq_numeral less_divide_eq_numeral
   divide_less_eq_numeral eq_divide_eq_numeral divide_eq_eq_numeral
   le_divide_eq_1 divide_le_eq_1 less_divide_eq_1 divide_less_eq_1
 
 
-subsection {* The divides relation *}
+subsection \<open>The divides relation\<close>
 
 lemma zdvd_antisym_nonneg:
     "0 <= m ==> 0 <= n ==> m dvd n ==> n dvd m ==> m = (n::int)"
@@ -1247,11 +1247,11 @@ proof cases
   assume "a = 0" with assms show ?thesis by simp
 next
   assume "a \<noteq> 0"
-  from `a dvd b` obtain k where k:"b = a*k" unfolding dvd_def by blast
-  from `b dvd a` obtain k' where k':"a = b*k'" unfolding dvd_def by blast
+  from \<open>a dvd b\<close> obtain k where k:"b = a*k" unfolding dvd_def by blast
+  from \<open>b dvd a\<close> obtain k' where k':"a = b*k'" unfolding dvd_def by blast
   from k k' have "a = a*k*k'" by simp
   with mult_cancel_left1[where c="a" and b="k*k'"]
-  have kk':"k*k' = 1" using `a\<noteq>0` by (simp add: mult.assoc)
+  have kk':"k*k' = 1" using \<open>a\<noteq>0\<close> by (simp add: mult.assoc)
   hence "k = 1 \<and> k' = 1 \<or> k = -1 \<and> k' = -1" by (simp add: zmult_eq_1_iff)
   thus ?thesis using k k' by auto
 qed
@@ -1267,11 +1267,11 @@ lemma dvd_imp_le_int:
   assumes "i \<noteq> 0" and "d dvd i"
   shows "\<bar>d\<bar> \<le> \<bar>i\<bar>"
 proof -
-  from `d dvd i` obtain k where "i = d * k" ..
-  with `i \<noteq> 0` have "k \<noteq> 0" by auto
+  from \<open>d dvd i\<close> obtain k where "i = d * k" ..
+  with \<open>i \<noteq> 0\<close> have "k \<noteq> 0" by auto
   then have "1 \<le> \<bar>k\<bar>" and "0 \<le> \<bar>d\<bar>" by auto
   then have "\<bar>d\<bar> * 1 \<le> \<bar>d\<bar> * \<bar>k\<bar>" by (rule mult_left_mono)
-  with `i = d * k` show ?thesis by (simp add: abs_mult)
+  with \<open>i = d * k\<close> show ?thesis by (simp add: abs_mult)
 qed
 
 lemma zdvd_not_zless:
@@ -1281,10 +1281,10 @@ lemma zdvd_not_zless:
 proof
   from assms have "0 < n" by auto
   assume "n dvd m" then obtain k where k: "m = n * k" ..
-  with `0 < m` have "0 < n * k" by auto
-  with `0 < n` have "0 < k" by (simp add: zero_less_mult_iff)
-  with k `0 < n` `m < n` have "n * k < n * 1" by simp
-  with `0 < n` `0 < k` show False unfolding mult_less_cancel_left by auto
+  with \<open>0 < m\<close> have "0 < n * k" by auto
+  with \<open>0 < n\<close> have "0 < k" by (simp add: zero_less_mult_iff)
+  with k \<open>0 < n\<close> \<open>m < n\<close> have "n * k < n * 1" by simp
+  with \<open>0 < n\<close> \<open>0 < k\<close> show False unfolding mult_less_cancel_left by auto
 qed
 
 lemma zdvd_mult_cancel: assumes d:"k * m dvd k * n" and kz:"k \<noteq> (0::int)"
@@ -1381,17 +1381,17 @@ proof -
     assume "a dvd (x + t)"
     then obtain l where "x + t = a * l" by (rule dvdE)
     then have "x = a * l - t" by simp
-    with `d = a * k` show "a dvd x + c * d + t" by simp
+    with \<open>d = a * k\<close> show "a dvd x + c * d + t" by simp
   next
     assume "a dvd x + c * d + t"
     then obtain l where "x + c * d + t = a * l" by (rule dvdE)
     then have "x = a * l - c * d - t" by simp
-    with `d = a * k` show "a dvd (x + t)" by simp
+    with \<open>d = a * k\<close> show "a dvd (x + t)" by simp
   qed
 qed
 
 
-subsection {* Finiteness of intervals *}
+subsection \<open>Finiteness of intervals\<close>
 
 lemma finite_interval_int1 [iff]: "finite {i :: int. a <= i & i <= b}"
 proof (cases "a <= b")
@@ -1421,9 +1421,9 @@ lemma finite_interval_int4 [iff]: "finite {i :: int. a < i & i < b}"
 by (rule rev_finite_subset[OF finite_interval_int1[of "a" "b"]]) auto
 
 
-subsection {* Configuration of the code generator *}
+subsection \<open>Configuration of the code generator\<close>
 
-text {* Constructors *}
+text \<open>Constructors\<close>
 
 definition Pos :: "num \<Rightarrow> int" where
   [simp, code_abbrev]: "Pos = numeral"
@@ -1434,7 +1434,7 @@ definition Neg :: "num \<Rightarrow> int" where
 code_datatype "0::int" Pos Neg
 
 
-text {* Auxiliary operations *}
+text \<open>Auxiliary operations\<close>
 
 definition dup :: "int \<Rightarrow> int" where
   [simp]: "dup k = k + k"
@@ -1465,7 +1465,7 @@ lemma sub_code [code]:
   apply (simp_all only: minus_add add.assoc left_minus)
   done
 
-text {* Implementations *}
+text \<open>Implementations\<close>
 
 lemma one_int_code [code, code_unfold]:
   "1 = Pos Num.One"
@@ -1567,7 +1567,7 @@ lemma (in ring_1) of_int_code [code]:
   by simp_all
 
 
-text {* Serializer setup *}
+text \<open>Serializer setup\<close>
 
 code_identifier
   code_module Int \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
@@ -1577,7 +1577,7 @@ quickcheck_params [default_type = int]
 hide_const (open) Pos Neg sub dup
 
 
-subsection {* Legacy theorems *}
+subsection \<open>Legacy theorems\<close>
 
 lemmas inj_int = inj_of_nat [where 'a=int]
 lemmas zadd_int = of_nat_add [where 'a=int, symmetric]
@@ -1609,12 +1609,12 @@ lemma int_power:
 
 lemmas zpower_int = int_power [symmetric]
 
-text {* De-register @{text "int"} as a quotient type: *}
+text \<open>De-register @{text "int"} as a quotient type:\<close>
 
 lifting_update int.lifting
 lifting_forget int.lifting
 
-text{*Also the class for fields with characteristic zero.*}
+text\<open>Also the class for fields with characteristic zero.\<close>
 class field_char_0 = field + ring_char_0
 subclass (in linordered_field) field_char_0 ..
 

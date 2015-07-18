@@ -1,12 +1,12 @@
 (* Author: Tobias Nipkow, Florian Haftmann, TU Muenchen *)
 
-section {* Character and string types *}
+section \<open>Character and string types\<close>
 
 theory String
 imports Enum
 begin
 
-subsection {* Characters and strings *}
+subsection \<open>Characters and strings\<close>
 
 datatype nibble =
     Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 | Nibble6 | Nibble7
@@ -246,7 +246,7 @@ lemma nat_of_char_Char:
   "nat_of_char (Char x y) = nat_of_nibble x * 16 + nat_of_nibble y"
   by (simp add: nat_of_char_def)
 
-setup {*
+setup \<open>
 let
   val nibbles = map_range (Thm.cterm_of @{context} o HOLogic.mk_nibble) 16;
   val simpset =
@@ -261,7 +261,7 @@ in
     [((@{binding nat_of_char_simps}, []), [(code_eqns, [])])]
   #> snd
 end
-*}
+\<close>
 
 declare nat_of_char_simps [code]
 
@@ -281,7 +281,7 @@ proof (cases c)
   with Char show ?thesis by (simp add: nat_of_char_def add.commute)
 qed
 
-code_datatype Char -- {* drop case certificate for char *}
+code_datatype Char -- \<open>drop case certificate for char\<close>
 
 lemma case_char_code [code]:
   "case_char f c = (let n = nat_of_char c in f (nibble_of_nat (n div 16)) (nibble_of_nat n))"
@@ -354,7 +354,7 @@ proof -
 qed
 
 
-subsection {* Strings as dedicated type *}
+subsection \<open>Strings as dedicated type\<close>
 
 typedef literal = "UNIV :: string set"
   morphisms explode STR ..
@@ -399,7 +399,7 @@ lemma [code nbe]:
 lifting_update literal.lifting
 lifting_forget literal.lifting
 
-subsection {* Code generator *}
+subsection \<open>Code generator\<close>
 
 ML_file "Tools/string_code.ML"
 
@@ -414,9 +414,9 @@ code_printing
     and (Haskell) "String"
     and (Scala) "String"
 
-setup {*
+setup \<open>
   fold String_Code.add_literal_string ["SML", "OCaml", "Haskell", "Scala"]
-*}
+\<close>
 
 code_printing
   class_instance literal :: equal \<rightharpoonup>
@@ -427,7 +427,7 @@ code_printing
     and (Haskell) infix 4 "=="
     and (Scala) infixl 5 "=="
 
-setup {* Sign.map_naming (Name_Space.mandatory_path "Code") *}
+setup \<open>Sign.map_naming (Name_Space.mandatory_path "Code")\<close>
 
 definition abort :: "literal \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarrow> 'a"
 where [simp, code del]: "abort _ f = f ()"
@@ -435,9 +435,9 @@ where [simp, code del]: "abort _ f = f ()"
 lemma abort_cong: "msg = msg' ==> Code.abort msg f = Code.abort msg' f"
 by simp
 
-setup {* Sign.map_naming Name_Space.parent_path *}
+setup \<open>Sign.map_naming Name_Space.parent_path\<close>
 
-setup {* Code_Simp.map_ss (Simplifier.add_cong @{thm Code.abort_cong}) *}
+setup \<open>Code_Simp.map_ss (Simplifier.add_cong @{thm Code.abort_cong})\<close>
 
 code_printing constant Code.abort \<rightharpoonup>
     (SML) "!(raise/ Fail/ _)"

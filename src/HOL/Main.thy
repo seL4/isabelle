@@ -1,15 +1,15 @@
-section {* Main HOL *}
+section \<open>Main HOL\<close>
 
 theory Main
 imports Predicate_Compile Quickcheck_Narrowing Extraction Coinduction Nitpick BNF_Greatest_Fixpoint Filter
 begin
 
-text {*
+text \<open>
   Classical Higher-order Logic -- only ``Main'', excluding real and
   complex numbers etc.
-*}
+\<close>
 
-text {* See further @{cite "Nipkow-et-al:2002:tutorial"} *}
+text \<open>See further @{cite "Nipkow-et-al:2002:tutorial"}\<close>
 
 no_notation
   bot ("\<bottom>") and

@@ -3,7 +3,7 @@
     Author:     Johannes Hölzl
 *)
 
-section {* Topological Spaces *}
+section \<open>Topological Spaces\<close>
 
 theory Topological_Spaces
 imports Main Conditionally_Complete_Lattices
@@ -12,7 +12,7 @@ begin
 named_theorems continuous_intros "structural introduction rules for continuity"
 
 
-subsection {* Topological space *}
+subsection \<open>Topological space\<close>
 
 class "open" =
   fixes "open" :: "'a set \<Rightarrow> bool"
@@ -131,7 +131,7 @@ lemma closed_Collect_const: "closed {x. P}"
 
 end
 
-subsection{* Hausdorff and other separation properties *}
+subsection\<open>Hausdorff and other separation properties\<close>
 
 class t0_space = topological_space +
   assumes t0_space: "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> \<not> (x \<in> U \<longleftrightarrow> y \<in> U)"
@@ -172,7 +172,7 @@ lemma finite_imp_closed:
   shows "finite S \<Longrightarrow> closed S"
 by (induct set: finite, simp_all)
 
-text {* T2 spaces are also known as Hausdorff spaces. *}
+text \<open>T2 spaces are also known as Hausdorff spaces.\<close>
 
 class t2_space = topological_space +
   assumes hausdorff: "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
@@ -190,13 +190,13 @@ lemma separation_t0:
   shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> ~(x\<in>U \<longleftrightarrow> y\<in>U))"
   using t0_space[of x y] by blast
 
-text {* A perfect space is a topological space with no isolated points. *}
+text \<open>A perfect space is a topological space with no isolated points.\<close>
 
 class perfect_space = topological_space +
   assumes not_open_singleton: "\<not> open {x}"
 
 
-subsection {* Generators for toplogies *}
+subsection \<open>Generators for toplogies\<close>
 
 inductive generate_topology for S where
   UNIV: "generate_topology S UNIV"
@@ -214,7 +214,7 @@ lemma topological_space_generate_topology:
   "class.topological_space (generate_topology S)"
   by default (auto intro: generate_topology.intros)
 
-subsection {* Order topologies *}
+subsection \<open>Order topologies\<close>
 
 class order_topology = order + "open" +
   assumes open_generated_order: "open = generate_topology (range (\<lambda>a. {..< a}) \<union> range (\<lambda>a. {a <..}))"
@@ -262,7 +262,7 @@ proof (cases "\<exists>z. x < z \<and> z < y")
   then show ?thesis by blast
 next
   case False
-  with `x < y` have "x \<in> {..< y} \<and> y \<in> {x <..} \<and> {x <..} \<inter> {..< y} = {}"
+  with \<open>x < y\<close> have "x \<in> {..< y} \<and> y \<in> {x <..} \<and> {x <..} \<inter> {..< y} = {}"
     by auto
   then show ?thesis by blast
 qed
@@ -297,9 +297,9 @@ next
   case (Basis S) then show ?case by (fastforce intro: exI[of _ y] lt_ex)
 qed blast+
 
-subsubsection {* Boolean is an order topology *}
+subsubsection \<open>Boolean is an order topology\<close>
 
-text {* It also is a discrete topology, but don't have a type class for it (yet). *}
+text \<open>It also is a discrete topology, but don't have a type class for it (yet).\<close>
 
 instantiation bool :: order_topology
 begin
@@ -322,7 +322,7 @@ proof -
     by auto
 qed
 
-subsubsection {* Topological filters *}
+subsubsection \<open>Topological filters\<close>
 
 definition (in topological_space) nhds :: "'a \<Rightarrow> 'a filter"
   where "nhds a = (INF S:{S. open S \<and> a \<in> S}. principal S)"
@@ -458,7 +458,7 @@ lemma eventually_at_split:
   "eventually P (at (x::'a::linorder_topology)) \<longleftrightarrow> eventually P (at_left x) \<and> eventually P (at_right x)"
   by (subst at_eq_sup_left_right) (simp add: eventually_sup)
 
-subsubsection {* Tendsto *}
+subsubsection \<open>Tendsto\<close>
 
 abbreviation (in topological_space)
   tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
@@ -471,12 +471,12 @@ lemma tendsto_eq_rhs: "(f ---> x) F \<Longrightarrow> x = y \<Longrightarrow> (f
   by simp
 
 named_theorems tendsto_intros "introduction rules for tendsto"
-setup {*
+setup \<open>
   Global_Theory.add_thms_dynamic (@{binding tendsto_eq_intros},
     fn context =>
       Named_Theorems.get (Context.proof_of context) @{named_theorems tendsto_intros}
       |> map_filter (try (fn thm => @{thm tendsto_eq_rhs} OF [thm])))
-*}
+\<close>
 
 lemma (in topological_space) tendsto_def:
    "(f ---> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
@@ -562,20 +562,20 @@ lemma (in t2_space) tendsto_unique:
 proof (rule ccontr)
   assume "a \<noteq> b"
   obtain U V where "open U" "open V" "a \<in> U" "b \<in> V" "U \<inter> V = {}"
-    using hausdorff [OF `a \<noteq> b`] by fast
+    using hausdorff [OF \<open>a \<noteq> b\<close>] by fast
   have "eventually (\<lambda>x. f x \<in> U) F"
-    using `(f ---> a) F` `open U` `a \<in> U` by (rule topological_tendstoD)
+    using \<open>(f ---> a) F\<close> \<open>open U\<close> \<open>a \<in> U\<close> by (rule topological_tendstoD)
   moreover
   have "eventually (\<lambda>x. f x \<in> V) F"
-    using `(f ---> b) F` `open V` `b \<in> V` by (rule topological_tendstoD)
+    using \<open>(f ---> b) F\<close> \<open>open V\<close> \<open>b \<in> V\<close> by (rule topological_tendstoD)
   ultimately
   have "eventually (\<lambda>x. False) F"
   proof eventually_elim
     case (elim x)
     hence "f x \<in> U \<inter> V" by simp
-    with `U \<inter> V = {}` show ?case by simp
+    with \<open>U \<inter> V = {}\<close> show ?case by simp
   qed
-  with `\<not> trivial_limit F` show "False"
+  with \<open>\<not> trivial_limit F\<close> show "False"
     by (simp add: trivial_limit_def)
 qed
 
@@ -642,7 +642,7 @@ lemma tendsto_ge_const:
   shows "a \<ge> x"
   by (rule tendsto_le [OF F tendsto_const x a])
 
-subsubsection {* Rules about @{const Lim} *}
+subsubsection \<open>Rules about @{const Lim}\<close>
 
 lemma tendsto_Lim:
   "\<not>(trivial_limit net) \<Longrightarrow> (f ---> l) net \<Longrightarrow> Lim net f = l"
@@ -666,10 +666,10 @@ proof -
     fix z assume "z \<le> x"
     with x have "P z" by auto
     have "eventually (\<lambda>x. x \<le> g z) (at_right a)"
-      using bound[OF bij(2)[OF `P z`]]
-      unfolding eventually_at_right[OF bound[OF bij(2)[OF `P z`]]] by (auto intro!: exI[of _ "g z"])
+      using bound[OF bij(2)[OF \<open>P z\<close>]]
+      unfolding eventually_at_right[OF bound[OF bij(2)[OF \<open>P z\<close>]]] by (auto intro!: exI[of _ "g z"])
     with Q show "eventually (\<lambda>x. f x \<le> z) (at_right a)"
-      by eventually_elim (metis bij `P z` mono)
+      by eventually_elim (metis bij \<open>P z\<close> mono)
   qed
 qed
 
@@ -688,10 +688,10 @@ proof -
     fix z assume "x \<le> z"
     with x have "P z" by auto
     have "eventually (\<lambda>x. g z \<le> x) (at_left a)"
-      using bound[OF bij(2)[OF `P z`]]
-      unfolding eventually_at_left[OF bound[OF bij(2)[OF `P z`]]] by (auto intro!: exI[of _ "g z"])
+      using bound[OF bij(2)[OF \<open>P z\<close>]]
+      unfolding eventually_at_left[OF bound[OF bij(2)[OF \<open>P z\<close>]]] by (auto intro!: exI[of _ "g z"])
     with Q show "eventually (\<lambda>x. z \<le> f x) (at_left a)"
-      by eventually_elim (metis bij `P z` mono)
+      by eventually_elim (metis bij \<open>P z\<close> mono)
   qed
 qed
 
@@ -710,7 +710,7 @@ lemma eventually_nhds_top:
   unfolding eventually_nhds
 proof safe
   fix S :: "'a set" assume "open S" "top \<in> S"
-  note open_left[OF this `b < top`]
+  note open_left[OF this \<open>b < top\<close>]
   moreover assume "\<forall>s\<in>S. P s"
   ultimately show "\<exists>b<top. \<forall>z>b. P z"
     by (auto simp: subset_eq Ball_def)
@@ -725,7 +725,7 @@ lemma tendsto_at_within_iff_tendsto_nhds:
   unfolding tendsto_def eventually_at_filter eventually_inf_principal
   by (intro ext all_cong imp_cong) (auto elim!: eventually_elim1)
 
-subsection {* Limits on sequences *}
+subsection \<open>Limits on sequences\<close>
 
 abbreviation (in topological_space)
   LIMSEQ :: "[nat \<Rightarrow> 'a, 'a] \<Rightarrow> bool"
@@ -741,14 +741,14 @@ definition (in topological_space) convergent :: "(nat \<Rightarrow> 'a) \<Righta
 lemma lim_def: "lim X = (THE L. X ----> L)"
   unfolding Lim_def ..
 
-subsubsection {* Monotone sequences and subsequences *}
+subsubsection \<open>Monotone sequences and subsequences\<close>
 
 definition
   monoseq :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
-    --{*Definition of monotonicity.
+    --\<open>Definition of monotonicity.
         The use of disjunction here complicates proofs considerably.
         One alternative is to add a Boolean argument to indicate the direction.
-        Another is to develop the notions of increasing and decreasing first.*}
+        Another is to develop the notions of increasing and decreasing first.\<close>
   "monoseq X = ((\<forall>m. \<forall>n\<ge>m. X m \<le> X n) \<or> (\<forall>m. \<forall>n\<ge>m. X n \<le> X m))"
 
 abbreviation incseq :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
@@ -765,7 +765,7 @@ lemma decseq_def: "decseq X \<longleftrightarrow> (\<forall>m. \<forall>n\<ge>m.
 
 definition
   subseq :: "(nat \<Rightarrow> nat) \<Rightarrow> bool" where
-    --{*Definition of subsequence*}
+    --\<open>Definition of subsequence\<close>
   "subseq f \<longleftrightarrow> (\<forall>m. \<forall>n>m. f m < f n)"
 
 lemma incseq_SucI:
@@ -831,11 +831,11 @@ proof (cases "\<forall> m. \<forall> n \<ge> m. a m \<le> a n")
   thus ?thesis by (rule monoI2)
 next
   case False
-  hence "\<forall> m. \<forall> n \<ge> m. - a m \<le> - a n" using `monoseq a`[unfolded monoseq_def] by auto
+  hence "\<forall> m. \<forall> n \<ge> m. - a m \<le> - a n" using \<open>monoseq a\<close>[unfolded monoseq_def] by auto
   thus ?thesis by (rule monoI1)
 qed
 
-text{*Subsequence (alternative definition, (e.g. Hoskins)*}
+text\<open>Subsequence (alternative definition, (e.g. Hoskins)\<close>
 
 lemma subseq_Suc_iff: "subseq f = (\<forall>n. (f n) < (f (Suc n)))"
 apply (simp add: subseq_def)
@@ -844,7 +844,7 @@ apply (induct_tac k)
 apply (auto intro: less_trans)
 done
 
-text{* for any sequence, there is a monotonic subsequence *}
+text\<open>for any sequence, there is a monotonic subsequence\<close>
 lemma seq_monosub:
   fixes s :: "nat => 'a::linorder"
   shows "\<exists>f. subseq f \<and> monoseq (\<lambda>n. (s (f n)))"
@@ -927,7 +927,7 @@ proof safe
   show "x \<in> F i"
   proof cases
     from x have "x \<in> F n" by auto
-    also assume "i \<le> n" with `decseq F` have "F n \<subseteq> F i"
+    also assume "i \<le> n" with \<open>decseq F\<close> have "F n \<subseteq> F i"
       unfolding decseq_def by simp
     finally show ?thesis .
   qed (insert x, simp)
@@ -1015,7 +1015,7 @@ lemma limI: "X ----> L ==> lim X = L"
 lemma lim_le: "convergent f \<Longrightarrow> (\<And>n. f n \<le> (x::'a::linorder_topology)) \<Longrightarrow> lim f \<le> x"
   using LIMSEQ_le_const2[of f "lim f" x] by (simp add: convergent_LIMSEQ_iff)
 
-subsubsection{*Increasing and Decreasing Series*}
+subsubsection\<open>Increasing and Decreasing Series\<close>
 
 lemma incseq_le: "incseq X \<Longrightarrow> X ----> L \<Longrightarrow> X n \<le> (L::'a::linorder_topology)"
   by (metis incseq_def LIMSEQ_le_const)
@@ -1023,7 +1023,7 @@ lemma incseq_le: "incseq X \<Longrightarrow> X ----> L \<Longrightarrow> X n \<l
 lemma decseq_le: "decseq X \<Longrightarrow> X ----> L \<Longrightarrow> (L::'a::linorder_topology) \<le> X n"
   by (metis decseq_def LIMSEQ_le_const2)
 
-subsection {* First countable topologies *}
+subsection \<open>First countable topologies\<close>
 
 class first_countable_topology = topological_space +
   assumes first_countable_basis:
@@ -1139,7 +1139,7 @@ lemma tendsto_at_iff_sequentially:
   unfolding filterlim_def[of _ "nhds a"] le_filter_def eventually_filtermap at_within_def eventually_nhds_within_iff_sequentially comp_def
   by metis
 
-subsection {* Function limit at a point *}
+subsection \<open>Function limit at a point\<close>
 
 abbreviation
   LIM :: "('a::topological_space \<Rightarrow> 'b::topological_space) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
@@ -1168,7 +1168,7 @@ lemma LIM_unique:
   shows "f -- a --> L \<Longrightarrow> f -- a --> M \<Longrightarrow> L = M"
   using at_neq_bot by (rule tendsto_unique)
 
-text {* Limits are equal for functions equal except at limit point *}
+text \<open>Limits are equal for functions equal except at limit point\<close>
 
 lemma LIM_equal: "\<forall>x. x \<noteq> a --> (f x = g x) \<Longrightarrow> (f -- a --> l) \<longleftrightarrow> (g -- a --> l)"
   unfolding tendsto_def eventually_at_topological by simp
@@ -1205,7 +1205,7 @@ lemma LIM_compose_eventually:
 lemma tendsto_compose_filtermap: "((g \<circ> f) ---> T) F \<longleftrightarrow> (g ---> T) (filtermap f F)"
   by (simp add: filterlim_def filtermap_filtermap comp_def)
 
-subsubsection {* Relation of LIM and LIMSEQ *}
+subsubsection \<open>Relation of LIM and LIMSEQ\<close>
 
 lemma (in first_countable_topology) sequentially_imp_eventually_within:
   "(\<forall>f. (\<forall>n. f n \<in> s \<and> f n \<noteq> a) \<and> f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially) \<Longrightarrow>
@@ -1259,7 +1259,7 @@ proof (safe intro!: sequentially_imp_eventually_within)
     qed
     then guess s ..
     then have "\<And>n. b < X (s n)" "\<And>n. X (s n) < a" "incseq (\<lambda>n. X (s n))" "(\<lambda>n. X (s n)) ----> a" "\<And>n. \<not> P (X (s n))"
-      using X by (auto simp: subseq_Suc_iff Suc_le_eq incseq_Suc_iff intro!: LIMSEQ_subseq_LIMSEQ[OF `X ----> a`, unfolded comp_def])
+      using X by (auto simp: subseq_Suc_iff Suc_le_eq incseq_Suc_iff intro!: LIMSEQ_subseq_LIMSEQ[OF \<open>X ----> a\<close>, unfolded comp_def])
     from *[OF this(1,2,3,4)] this(5) show False by auto
   qed
 qed
@@ -1297,7 +1297,7 @@ proof (safe intro!: sequentially_imp_eventually_within)
     qed
     then guess s ..
     then have "\<And>n. a < X (s n)" "\<And>n. X (s n) < b" "decseq (\<lambda>n. X (s n))" "(\<lambda>n. X (s n)) ----> a" "\<And>n. \<not> P (X (s n))"
-      using X by (auto simp: subseq_Suc_iff Suc_le_eq decseq_Suc_iff intro!: LIMSEQ_subseq_LIMSEQ[OF `X ----> a`, unfolded comp_def])
+      using X by (auto simp: subseq_Suc_iff Suc_le_eq decseq_Suc_iff intro!: LIMSEQ_subseq_LIMSEQ[OF \<open>X ----> a\<close>, unfolded comp_def])
     from *[OF this(1,2,3,4)] this(5) show False by auto
   qed
 qed
@@ -1310,9 +1310,9 @@ lemma tendsto_at_right_sequentially:
   using assms unfolding tendsto_def [where l=L]
   by (simp add: sequentially_imp_eventually_at_right)
 
-subsection {* Continuity *}
+subsection \<open>Continuity\<close>
 
-subsubsection {* Continuity on a set *}
+subsubsection \<open>Continuity on a set\<close>
 
 definition continuous_on :: "'a set \<Rightarrow> ('a :: topological_space \<Rightarrow> 'b :: topological_space) \<Rightarrow> bool" where
   "continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. (f ---> f x) (at x within s))"
@@ -1343,7 +1343,7 @@ next
   proof safe
     fix x B assume "x \<in> s" "open B" "f x \<in> B"
     with B obtain A where A: "open A" "A \<inter> s = f -` B \<inter> s" by auto
-    with `x \<in> s` `f x \<in> B` show "\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)"
+    with \<open>x \<in> s\<close> \<open>f x \<in> B\<close> show "\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)"
       by (intro exI[of _ A]) auto
   qed
 qed
@@ -1478,7 +1478,7 @@ proof (rule continuous_on_generate_topology[OF open_generated_order], safe)
        (auto intro: less_le_trans[OF _ mono] less_imp_le)
 qed
 
-subsubsection {* Continuity at a point *}
+subsubsection \<open>Continuity at a point\<close>
 
 definition continuous :: "'a::t2_space filter \<Rightarrow> ('a \<Rightarrow> 'b::topological_space) \<Rightarrow> bool" where
   "continuous F f \<longleftrightarrow> (f ---> f (Lim F (\<lambda>x. x))) F"
@@ -1566,7 +1566,7 @@ lemma continuous_at_split:
   "continuous (at (x::'a::linorder_topology)) f = (continuous (at_left x) f \<and> continuous (at_right x) f)"
   by (simp add: continuous_within filterlim_at_split)
 
-subsubsection{* Open-cover compactness *}
+subsubsection\<open>Open-cover compactness\<close>
 
 context topological_space
 begin
@@ -1599,10 +1599,10 @@ lemma compact_inter_closed [intro]:
   shows "compact (s \<inter> t)"
 proof (rule compactI)
   fix C assume C: "\<forall>c\<in>C. open c" and cover: "s \<inter> t \<subseteq> \<Union>C"
-  from C `closed t` have "\<forall>c\<in>C \<union> {-t}. open c" by auto
+  from C \<open>closed t\<close> have "\<forall>c\<in>C \<union> {-t}. open c" by auto
   moreover from cover have "s \<subseteq> \<Union>(C \<union> {-t})" by auto
   ultimately have "\<exists>D\<subseteq>C \<union> {-t}. finite D \<and> s \<subseteq> \<Union>D"
-    using `compact s` unfolding compact_eq_heine_borel by auto
+    using \<open>compact s\<close> unfolding compact_eq_heine_borel by auto
   then obtain D where "D \<subseteq> C \<union> {- t} \<and> finite D \<and> s \<subseteq> \<Union>D" ..
   then show "\<exists>D\<subseteq>C. finite D \<and> s \<inter> t \<subseteq> \<Union>D"
     by (intro exI[of _ "D - {-t}"]) auto
@@ -1622,7 +1622,7 @@ proof (safe intro!: compact_eq_heine_borel[THEN iffD2])
     and fi: "\<forall>B \<subseteq> A. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {}"
   from A have "(\<forall>a\<in>uminus`A. open a) \<and> U \<subseteq> \<Union>(uminus`A)"
     by auto
-  with `compact U` obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<subseteq> \<Union>(uminus`B)"
+  with \<open>compact U\<close> obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<subseteq> \<Union>(uminus`B)"
     unfolding compact_eq_heine_borel by (metis subset_image_iff)
   with fi[THEN spec, of B] show False
     by (auto dest: finite_imageD intro: inj_setminus)
@@ -1632,7 +1632,7 @@ next
   assume "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A"
   then have "U \<inter> \<Inter>(uminus`A) = {}" "\<forall>a\<in>uminus`A. closed a"
     by auto
-  with `?R` obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<inter> \<Inter>(uminus`B) = {}"
+  with \<open>?R\<close> obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<inter> \<Inter>(uminus`B) = {}"
     by (metis subset_image_iff)
   then show "\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T"
     by  (auto intro!: exI[of _ B] inj_setminus dest: finite_imageD)
@@ -1649,7 +1649,7 @@ lemma compact_imp_fip_image:
     and Q: "\<And>I'. finite I' \<Longrightarrow> I' \<subseteq> I \<Longrightarrow> (s \<inter> (\<Inter>i\<in>I'. f i) \<noteq> {})"
   shows "s \<inter> (\<Inter>i\<in>I. f i) \<noteq> {}"
 proof -
-  note `compact s`
+  note \<open>compact s\<close>
   moreover from P have "\<forall>i \<in> f ` I. closed i" by blast
   moreover have "\<forall>A. finite A \<and> A \<subseteq> f ` I \<longrightarrow> (s \<inter> (\<Inter>A) \<noteq> {})"
   proof (rule, rule, erule conjE)
@@ -1672,23 +1672,23 @@ unfolding closed_def
 proof (rule openI)
   fix y assume "y \<in> - s"
   let ?C = "\<Union>x\<in>s. {u. open u \<and> x \<in> u \<and> eventually (\<lambda>y. y \<notin> u) (nhds y)}"
-  note `compact s`
+  note \<open>compact s\<close>
   moreover have "\<forall>u\<in>?C. open u" by simp
   moreover have "s \<subseteq> \<Union>?C"
   proof
     fix x assume "x \<in> s"
-    with `y \<in> - s` have "x \<noteq> y" by clarsimp
+    with \<open>y \<in> - s\<close> have "x \<noteq> y" by clarsimp
     hence "\<exists>u v. open u \<and> open v \<and> x \<in> u \<and> y \<in> v \<and> u \<inter> v = {}"
       by (rule hausdorff)
-    with `x \<in> s` show "x \<in> \<Union>?C"
+    with \<open>x \<in> s\<close> show "x \<in> \<Union>?C"
       unfolding eventually_nhds by auto
   qed
   ultimately obtain D where "D \<subseteq> ?C" and "finite D" and "s \<subseteq> \<Union>D"
     by (rule compactE)
-  from `D \<subseteq> ?C` have "\<forall>x\<in>D. eventually (\<lambda>y. y \<notin> x) (nhds y)" by auto
-  with `finite D` have "eventually (\<lambda>y. y \<notin> \<Union>D) (nhds y)"
+  from \<open>D \<subseteq> ?C\<close> have "\<forall>x\<in>D. eventually (\<lambda>y. y \<notin> x) (nhds y)" by auto
+  with \<open>finite D\<close> have "eventually (\<lambda>y. y \<notin> \<Union>D) (nhds y)"
     by (simp add: eventually_ball_finite)
-  with `s \<subseteq> \<Union>D` have "eventually (\<lambda>y. y \<notin> s) (nhds y)"
+  with \<open>s \<subseteq> \<Union>D\<close> have "eventually (\<lambda>y. y \<notin> s) (nhds y)"
     by (auto elim!: eventually_mono [rotated])
   thus "\<exists>t. open t \<and> y \<in> t \<and> t \<subseteq> - s"
     by (simp add: eventually_nhds subset_eq)
@@ -1721,10 +1721,10 @@ proof (clarsimp simp add: assms(3))
   have 1: "\<forall>x\<in>s. f x \<in> f ` (s - B) \<longleftrightarrow> x \<in> s - B"
     using assms(3) by (auto, metis)
   have "continuous_on (s - B) f"
-    using `continuous_on s f` Diff_subset
+    using \<open>continuous_on s f\<close> Diff_subset
     by (rule continuous_on_subset)
   moreover have "compact (s - B)"
-    using `open B` and `compact s`
+    using \<open>open B\<close> and \<open>compact s\<close>
     unfolding Diff_eq by (intro compact_inter_closed closed_Compl)
   ultimately have "compact (f ` (s - B))"
     by (rule compact_continuous_image)
@@ -1733,7 +1733,7 @@ proof (clarsimp simp add: assms(3))
   hence "open (- f ` (s - B))"
     by (rule open_Compl)
   moreover have "f x \<in> - f ` (s - B)"
-    using `x \<in> s` and `x \<in> B` by (simp add: 1)
+    using \<open>x \<in> s\<close> and \<open>x \<in> B\<close> by (simp add: 1)
   moreover have "\<forall>y\<in>s. f y \<in> - f ` (s - B) \<longrightarrow> y \<in> B"
     by (simp add: 1)
   ultimately show "\<exists>A. open A \<and> f x \<in> A \<and> (\<forall>y\<in>s. f y \<in> A \<longrightarrow> y \<in> B)"
@@ -1755,13 +1755,13 @@ proof (rule classical)
     by (metis not_le)
   then have "\<forall>s\<in>S. open {..< t s}" "S \<subseteq> (\<Union>s\<in>S. {..< t s})"
     by auto
-  with `compact S` obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {..< t s})"
+  with \<open>compact S\<close> obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {..< t s})"
     by (erule compactE_image)
-  with `S \<noteq> {}` have Max: "Max (t`C) \<in> t`C" and "\<forall>s\<in>t`C. s \<le> Max (t`C)"
+  with \<open>S \<noteq> {}\<close> have Max: "Max (t`C) \<in> t`C" and "\<forall>s\<in>t`C. s \<le> Max (t`C)"
     by (auto intro!: Max_in)
   with C have "S \<subseteq> {..< Max (t`C)}"
     by (auto intro: less_le_trans simp: subset_eq)
-  with t Max `C \<subseteq> S` show ?thesis
+  with t Max \<open>C \<subseteq> S\<close> show ?thesis
     by fastforce
 qed
 
@@ -1774,13 +1774,13 @@ proof (rule classical)
     by (metis not_le)
   then have "\<forall>s\<in>S. open {t s <..}" "S \<subseteq> (\<Union>s\<in>S. {t s <..})"
     by auto
-  with `compact S` obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {t s <..})"
+  with \<open>compact S\<close> obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {t s <..})"
     by (erule compactE_image)
-  with `S \<noteq> {}` have Min: "Min (t`C) \<in> t`C" and "\<forall>s\<in>t`C. Min (t`C) \<le> s"
+  with \<open>S \<noteq> {}\<close> have Min: "Min (t`C) \<in> t`C" and "\<forall>s\<in>t`C. Min (t`C) \<le> s"
     by (auto intro!: Min_in)
   with C have "S \<subseteq> {Min (t`C) <..}"
     by (auto intro: le_less_trans simp: subset_eq)
-  with t Min `C \<subseteq> S` show ?thesis
+  with t Min \<open>C \<subseteq> S\<close> show ?thesis
     by fastforce
 qed
 
@@ -1794,7 +1794,7 @@ lemma continuous_attains_inf:
   shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f \<Longrightarrow> (\<exists>x\<in>s. \<forall>y\<in>s. f x \<le> f y)"
   using compact_attains_inf[of "f ` s"] compact_continuous_image[of s f] by auto
 
-subsection {* Connectedness *}
+subsection \<open>Connectedness\<close>
 
 context topological_space
 begin
@@ -1827,7 +1827,7 @@ proof safe
   obtain t f where "open t" "open f" and *: "f \<inter> S = P -` {False} \<inter> S" "t \<inter> S = P -` {True} \<inter> S"
     by auto
   then have "t \<inter> S = {} \<or> f \<inter> S = {}"
-    by (intro connectedD[OF `connected S`])  auto
+    by (intro connectedD[OF \<open>connected S\<close>])  auto
   then show "\<exists>c. \<forall>s\<in>S. P s = c"
   proof (rule disjE)
     assume "t \<inter> S = {}" then show ?thesis
@@ -1876,17 +1876,17 @@ proof -
 
   let ?P = "\<Union>b\<in>{b\<in>A. f a = f b}. S b" and ?N = "\<Union>b\<in>{b\<in>A. f a \<noteq> f b}. S b"
   have "?P \<inter> A = {} \<or> ?N \<inter> A = {}"
-    using `connected A` S `a\<in>A`
+    using \<open>connected A\<close> S \<open>a\<in>A\<close>
     by (intro connectedD) (auto, metis)
   then show "f a = f b"
   proof
     assume "?N \<inter> A = {}"
     then have "\<forall>x\<in>A. f a = f x"
       using S(1) by auto
-    with `b\<in>A` show ?thesis by auto
+    with \<open>b\<in>A\<close> show ?thesis by auto
   next
     assume "?P \<inter> A = {}" then show ?thesis
-      using `a \<in> A` S(1)[of a] by auto
+      using \<open>a \<in> A\<close> S(1)[of a] by auto
   qed
 qed
 
@@ -1915,11 +1915,11 @@ proof (rule connectedI_const)
   fix P :: "'b \<Rightarrow> bool" assume "continuous_on (f ` s) P"
   then have "continuous_on s (P \<circ> f)"
     by (rule continuous_on_compose[OF *])
-  from connectedD_const[OF `connected s` this] show "\<exists>c. \<forall>s\<in>f ` s. P s = c"
+  from connectedD_const[OF \<open>connected s\<close> this] show "\<exists>c. \<forall>s\<in>f ` s. P s = c"
     by auto
 qed
 
-section {* Connectedness *}
+section \<open>Connectedness\<close>
 
 class linear_continuum_topology = linorder_topology + linear_continuum
 begin
@@ -1934,7 +1934,7 @@ proof
   with dense[of b "Inf A"] obtain c where "c < Inf A" "c \<in> A"
     by (auto simp: subset_eq)
   then show False
-    using cInf_lower[OF `c \<in> A`] bnd by (metis not_le less_imp_le bdd_belowI)
+    using cInf_lower[OF \<open>c \<in> A\<close>] bnd by (metis not_le less_imp_le bdd_belowI)
 qed
 
 lemma Sup_notin_open:
@@ -1947,7 +1947,7 @@ proof
   with dense[of "Sup A" b] obtain c where "Sup A < c" "c \<in> A"
     by (auto simp: subset_eq)
   then show False
-    using cSup_upper[OF `c \<in> A`] bnd by (metis less_imp_le not_le bdd_aboveI)
+    using cSup_upper[OF \<open>c \<in> A\<close>] bnd by (metis less_imp_le not_le bdd_aboveI)
 qed
 
 end
@@ -1973,30 +1973,30 @@ proof (rule connectedI)
     let ?z = "Inf (B \<inter> {x <..})"
 
     have "x \<le> ?z" "?z \<le> y"
-      using `y \<in> B` `x < y` by (auto intro: cInf_lower cInf_greatest)
-    with `x \<in> U` `y \<in> U` have "?z \<in> U"
+      using \<open>y \<in> B\<close> \<open>x < y\<close> by (auto intro: cInf_lower cInf_greatest)
+    with \<open>x \<in> U\<close> \<open>y \<in> U\<close> have "?z \<in> U"
       by (rule *)
     moreover have "?z \<notin> B \<inter> {x <..}"
-      using `open B` by (intro Inf_notin_open) auto
+      using \<open>open B\<close> by (intro Inf_notin_open) auto
     ultimately have "?z \<in> A"
-      using `x \<le> ?z` `A \<inter> B \<inter> U = {}` `x \<in> A` `U \<subseteq> A \<union> B` by auto
+      using \<open>x \<le> ?z\<close> \<open>A \<inter> B \<inter> U = {}\<close> \<open>x \<in> A\<close> \<open>U \<subseteq> A \<union> B\<close> by auto
 
     { assume "?z < y"
       obtain a where "?z < a" "{?z ..< a} \<subseteq> A"
-        using open_right[OF `open A` `?z \<in> A` `?z < y`] by auto
+        using open_right[OF \<open>open A\<close> \<open>?z \<in> A\<close> \<open>?z < y\<close>] by auto
       moreover obtain b where "b \<in> B" "x < b" "b < min a y"
-        using cInf_less_iff[of "B \<inter> {x <..}" "min a y"] `?z < a` `?z < y` `x < y` `y \<in> B`
+        using cInf_less_iff[of "B \<inter> {x <..}" "min a y"] \<open>?z < a\<close> \<open>?z < y\<close> \<open>x < y\<close> \<open>y \<in> B\<close>
         by (auto intro: less_imp_le)
       moreover have "?z \<le> b"
-        using `b \<in> B` `x < b`
+        using \<open>b \<in> B\<close> \<open>x < b\<close>
         by (intro cInf_lower) auto
       moreover have "b \<in> U"
-        using `x \<le> ?z` `?z \<le> b` `b < min a y`
-        by (intro *[OF `x \<in> U` `y \<in> U`]) (auto simp: less_imp_le)
+        using \<open>x \<le> ?z\<close> \<open>?z \<le> b\<close> \<open>b < min a y\<close>
+        by (intro *[OF \<open>x \<in> U\<close> \<open>y \<in> U\<close>]) (auto simp: less_imp_le)
       ultimately have "\<exists>b\<in>B. b \<in> A \<and> b \<in> U"
         by (intro bexI[of _ b]) auto }
     then have False
-      using `?z \<le> y` `?z \<in> A` `y \<in> B` `y \<in> U` `A \<inter> B \<inter> U = {}` unfolding le_less by blast }
+      using \<open>?z \<le> y\<close> \<open>?z \<in> A\<close> \<open>y \<in> B\<close> \<open>y \<in> U\<close> \<open>A \<inter> B \<inter> U = {}\<close> unfolding le_less by blast }
   note not_disjoint = this
 
   fix A B assume AB: "open A" "open B" "U \<subseteq> A \<union> B" "A \<inter> B \<inter> U = {}"
@@ -2043,7 +2043,7 @@ lemma connected_contains_Ioo:
   assumes A: "connected A" "a \<in> A" "b \<in> A" shows "{a <..< b} \<subseteq> A"
   using connectedD_interval[OF A] by (simp add: subset_eq Ball_def less_imp_le)
 
-subsection {* Intermediate Value Theorem *}
+subsection \<open>Intermediate Value Theorem\<close>
 
 lemma IVT':
   fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
@@ -2117,29 +2117,29 @@ proof (rule antisym)
   show "f (Sup S) \<le> (SUP s:S. f s)"
   proof cases
     assume "Sup S \<in> S" then show ?thesis
-      by (rule cSUP_upper) (auto intro: bdd_above_image_mono S `mono f`)
+      by (rule cSUP_upper) (auto intro: bdd_above_image_mono S \<open>mono f\<close>)
   next
     assume "Sup S \<notin> S"
-    from `S \<noteq> {}` obtain s where "s \<in> S"
+    from \<open>S \<noteq> {}\<close> obtain s where "s \<in> S"
       by auto
-    with `Sup S \<notin> S` S have "s < Sup S"
+    with \<open>Sup S \<notin> S\<close> S have "s < Sup S"
       unfolding less_le by (blast intro: cSup_upper)
     show ?thesis
     proof (rule ccontr)
       assume "\<not> ?thesis"
       with order_tendstoD(1)[OF f, of "SUP s:S. f s"] obtain b where "b < Sup S"
         and *: "\<And>y. b < y \<Longrightarrow> y < Sup S \<Longrightarrow> (SUP s:S. f s) < f y"
-        by (auto simp: not_le eventually_at_left[OF `s < Sup S`])
-      with `S \<noteq> {}` obtain c where "c \<in> S" "b < c"
+        by (auto simp: not_le eventually_at_left[OF \<open>s < Sup S\<close>])
+      with \<open>S \<noteq> {}\<close> obtain c where "c \<in> S" "b < c"
         using less_cSupD[of S b] by auto
-      with `Sup S \<notin> S` S have "c < Sup S"
+      with \<open>Sup S \<notin> S\<close> S have "c < Sup S"
         unfolding less_le by (blast intro: cSup_upper)
-      from *[OF `b < c` `c < Sup S`] cSUP_upper[OF `c \<in> S` bdd_above_image_mono[of f]]
+      from *[OF \<open>b < c\<close> \<open>c < Sup S\<close>] cSUP_upper[OF \<open>c \<in> S\<close> bdd_above_image_mono[of f]]
       show False
         by (auto simp: assms)
     qed
   qed
-qed (intro cSUP_least `mono f`[THEN monoD] cSup_upper S)
+qed (intro cSUP_least \<open>mono f\<close>[THEN monoD] cSup_upper S)
 
 lemma continuous_at_Sup_antimono:
   fixes f :: "'a :: {linorder_topology, conditionally_complete_linorder} \<Rightarrow> 'b :: {linorder_topology, conditionally_complete_linorder}"
@@ -2154,29 +2154,29 @@ proof (rule antisym)
   show "(INF s:S. f s) \<le> f (Sup S)"
   proof cases
     assume "Sup S \<in> S" then show ?thesis
-      by (intro cINF_lower) (auto intro: bdd_below_image_antimono S `antimono f`)
+      by (intro cINF_lower) (auto intro: bdd_below_image_antimono S \<open>antimono f\<close>)
   next
     assume "Sup S \<notin> S"
-    from `S \<noteq> {}` obtain s where "s \<in> S"
+    from \<open>S \<noteq> {}\<close> obtain s where "s \<in> S"
       by auto
-    with `Sup S \<notin> S` S have "s < Sup S"
+    with \<open>Sup S \<notin> S\<close> S have "s < Sup S"
       unfolding less_le by (blast intro: cSup_upper)
     show ?thesis
     proof (rule ccontr)
       assume "\<not> ?thesis"
       with order_tendstoD(2)[OF f, of "INF s:S. f s"] obtain b where "b < Sup S"
         and *: "\<And>y. b < y \<Longrightarrow> y < Sup S \<Longrightarrow> f y < (INF s:S. f s)"
-        by (auto simp: not_le eventually_at_left[OF `s < Sup S`])
-      with `S \<noteq> {}` obtain c where "c \<in> S" "b < c"
+        by (auto simp: not_le eventually_at_left[OF \<open>s < Sup S\<close>])
+      with \<open>S \<noteq> {}\<close> obtain c where "c \<in> S" "b < c"
         using less_cSupD[of S b] by auto
-      with `Sup S \<notin> S` S have "c < Sup S"
+      with \<open>Sup S \<notin> S\<close> S have "c < Sup S"
         unfolding less_le by (blast intro: cSup_upper)
-      from *[OF `b < c` `c < Sup S`] cINF_lower[OF bdd_below_image_antimono, of f S c] `c \<in> S`
+      from *[OF \<open>b < c\<close> \<open>c < Sup S\<close>] cINF_lower[OF bdd_below_image_antimono, of f S c] \<open>c \<in> S\<close>
       show False
         by (auto simp: assms)
     qed
   qed
-qed (intro cINF_greatest `antimono f`[THEN antimonoD] cSup_upper S)
+qed (intro cINF_greatest \<open>antimono f\<close>[THEN antimonoD] cSup_upper S)
 
 lemma continuous_at_Inf_mono:
   fixes f :: "'a :: {linorder_topology, conditionally_complete_linorder} \<Rightarrow> 'b :: {linorder_topology, conditionally_complete_linorder}"
@@ -2191,29 +2191,29 @@ proof (rule antisym)
   show "(INF s:S. f s) \<le> f (Inf S)"
   proof cases
     assume "Inf S \<in> S" then show ?thesis
-      by (rule cINF_lower[rotated]) (auto intro: bdd_below_image_mono S `mono f`)
+      by (rule cINF_lower[rotated]) (auto intro: bdd_below_image_mono S \<open>mono f\<close>)
   next
     assume "Inf S \<notin> S"
-    from `S \<noteq> {}` obtain s where "s \<in> S"
+    from \<open>S \<noteq> {}\<close> obtain s where "s \<in> S"
       by auto
-    with `Inf S \<notin> S` S have "Inf S < s"
+    with \<open>Inf S \<notin> S\<close> S have "Inf S < s"
       unfolding less_le by (blast intro: cInf_lower)
     show ?thesis
     proof (rule ccontr)
       assume "\<not> ?thesis"
       with order_tendstoD(2)[OF f, of "INF s:S. f s"] obtain b where "Inf S < b"
         and *: "\<And>y. Inf S < y \<Longrightarrow> y < b \<Longrightarrow> f y < (INF s:S. f s)"
-        by (auto simp: not_le eventually_at_right[OF `Inf S < s`])
-      with `S \<noteq> {}` obtain c where "c \<in> S" "c < b"
+        by (auto simp: not_le eventually_at_right[OF \<open>Inf S < s\<close>])
+      with \<open>S \<noteq> {}\<close> obtain c where "c \<in> S" "c < b"
         using cInf_lessD[of S b] by auto
-      with `Inf S \<notin> S` S have "Inf S < c"
+      with \<open>Inf S \<notin> S\<close> S have "Inf S < c"
         unfolding less_le by (blast intro: cInf_lower)
-      from *[OF `Inf S < c` `c < b`] cINF_lower[OF bdd_below_image_mono[of f] `c \<in> S`]
+      from *[OF \<open>Inf S < c\<close> \<open>c < b\<close>] cINF_lower[OF bdd_below_image_mono[of f] \<open>c \<in> S\<close>]
       show False
         by (auto simp: assms)
     qed
   qed
-qed (intro cINF_greatest `mono f`[THEN monoD] cInf_lower `bdd_below S` `S \<noteq> {}`)
+qed (intro cINF_greatest \<open>mono f\<close>[THEN monoD] cInf_lower \<open>bdd_below S\<close> \<open>S \<noteq> {}\<close>)
 
 lemma continuous_at_Inf_antimono:
   fixes f :: "'a :: {linorder_topology, conditionally_complete_linorder} \<Rightarrow> 'b :: {linorder_topology, conditionally_complete_linorder}"
@@ -2228,28 +2228,28 @@ proof (rule antisym)
   show "f (Inf S) \<le> (SUP s:S. f s)"
   proof cases
     assume "Inf S \<in> S" then show ?thesis
-      by (rule cSUP_upper) (auto intro: bdd_above_image_antimono S `antimono f`)
+      by (rule cSUP_upper) (auto intro: bdd_above_image_antimono S \<open>antimono f\<close>)
   next
     assume "Inf S \<notin> S"
-    from `S \<noteq> {}` obtain s where "s \<in> S"
+    from \<open>S \<noteq> {}\<close> obtain s where "s \<in> S"
       by auto
-    with `Inf S \<notin> S` S have "Inf S < s"
+    with \<open>Inf S \<notin> S\<close> S have "Inf S < s"
       unfolding less_le by (blast intro: cInf_lower)
     show ?thesis
     proof (rule ccontr)
       assume "\<not> ?thesis"
       with order_tendstoD(1)[OF f, of "SUP s:S. f s"] obtain b where "Inf S < b"
         and *: "\<And>y. Inf S < y \<Longrightarrow> y < b \<Longrightarrow> (SUP s:S. f s) < f y"
-        by (auto simp: not_le eventually_at_right[OF `Inf S < s`])
-      with `S \<noteq> {}` obtain c where "c \<in> S" "c < b"
+        by (auto simp: not_le eventually_at_right[OF \<open>Inf S < s\<close>])
+      with \<open>S \<noteq> {}\<close> obtain c where "c \<in> S" "c < b"
         using cInf_lessD[of S b] by auto
-      with `Inf S \<notin> S` S have "Inf S < c"
+      with \<open>Inf S \<notin> S\<close> S have "Inf S < c"
         unfolding less_le by (blast intro: cInf_lower)
-      from *[OF `Inf S < c` `c < b`] cSUP_upper[OF `c \<in> S` bdd_above_image_antimono[of f]]
+      from *[OF \<open>Inf S < c\<close> \<open>c < b\<close>] cSUP_upper[OF \<open>c \<in> S\<close> bdd_above_image_antimono[of f]]
       show False
         by (auto simp: assms)
     qed
   qed
-qed (intro cSUP_least `antimono f`[THEN antimonoD] cInf_lower S)
+qed (intro cSUP_least \<open>antimono f\<close>[THEN antimonoD] cInf_lower S)
 
 end

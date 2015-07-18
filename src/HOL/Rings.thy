@@ -7,7 +7,7 @@
     Author:     Jeremy Avigad
 *)
 
-section {* Rings *}
+section \<open>Rings\<close>
 
 theory Rings
 imports Groups
@@ -18,7 +18,7 @@ class semiring = ab_semigroup_add + semigroup_mult +
   assumes distrib_left[algebra_simps]: "a * (b + c) = a * b + a * c"
 begin
 
-text{*For the @{text combine_numerals} simproc*}
+text\<open>For the @{text combine_numerals} simproc\<close>
 lemma combine_common_factor:
   "a * e + (b * e + c) = (a + b) * e + c"
 by (simp add: distrib_right ac_simps)
@@ -118,7 +118,7 @@ end
 
 class semiring_1 = zero_neq_one + semiring_0 + monoid_mult
 
-text {* Abstract divisibility *}
+text \<open>Abstract divisibility\<close>
 
 class dvd = times
 begin
@@ -180,8 +180,8 @@ lemma mult_dvd_mono:
     and "c dvd d"
   shows "a * c dvd b * d"
 proof -
-  from `a dvd b` obtain b' where "b = a * b'" ..
-  moreover from `c dvd d` obtain d' where "d = c * d'" ..
+  from \<open>a dvd b\<close> obtain b' where "b = a * b'" ..
+  moreover from \<open>c dvd d\<close> obtain d' where "d = c * d'" ..
   ultimately have "b * d = (a * c) * (b' * d')" by (simp add: ac_simps)
   then show ?thesis ..
 qed
@@ -219,8 +219,8 @@ lemma dvd_add [simp]:
   assumes "a dvd b" and "a dvd c"
   shows "a dvd (b + c)"
 proof -
-  from `a dvd b` obtain b' where "b = a * b'" ..
-  moreover from `a dvd c` obtain c' where "c = a * c'" ..
+  from \<open>a dvd b\<close> obtain b' where "b = a * b'" ..
+  moreover from \<open>a dvd c\<close> obtain c' where "c = a * c'" ..
   ultimately have "b + c = a * (b' + c')" by (simp add: distrib_left)
   then show ?thesis ..
 qed
@@ -284,7 +284,7 @@ lemma dvd_add_right_iff:
   shows "a dvd b + c \<longleftrightarrow> a dvd c" (is "?P \<longleftrightarrow> ?Q")
 proof
   assume ?P then obtain d where "b + c = a * d" ..
-  moreover from `a dvd b` obtain e where "b = a * e" ..
+  moreover from \<open>a dvd b\<close> obtain e where "b = a * e" ..
   ultimately have "a * e + c = a * d" by simp
   then have "a * e + c - a * e = a * d - a * e" by simp
   then have "c = a * d - a * e" by simp
@@ -306,7 +306,7 @@ begin
 
 subclass semiring_0_cancel ..
 
-text {* Distribution rules *}
+text \<open>Distribution rules\<close>
 
 lemma minus_mult_left: "- (a * b) = - a * b"
 by (rule minus_unique) (simp add: distrib_right [symmetric])
@@ -314,7 +314,7 @@ by (rule minus_unique) (simp add: distrib_right [symmetric])
 lemma minus_mult_right: "- (a * b) = a * - b"
 by (rule minus_unique) (simp add: distrib_left [symmetric])
 
-text{*Extract signs from products*}
+text\<open>Extract signs from products\<close>
 lemmas mult_minus_left [simp] = minus_mult_left [symmetric]
 lemmas mult_minus_right [simp] = minus_mult_right [symmetric]
 
@@ -543,7 +543,7 @@ qed
 
 end
 
-text {*
+text \<open>
   The theory of partially ordered rings is taken from the books:
   \begin{itemize}
   \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979
@@ -554,12 +554,12 @@ text {*
   \item @{url "http://www.mathworld.com"} by Eric Weisstein et. al.
   \item \emph{Algebra I} by van der Waerden, Springer.
   \end{itemize}
-*}
+\<close>
 
 class divide =
   fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "div" 70)
 
-setup {* Sign.add_const_constraint (@{const_name "divide"}, SOME @{typ "'a \<Rightarrow> 'a \<Rightarrow> 'a"}) *}
+setup \<open>Sign.add_const_constraint (@{const_name "divide"}, SOME @{typ "'a \<Rightarrow> 'a \<Rightarrow> 'a"})\<close>
 
 context semiring
 begin
@@ -581,7 +581,7 @@ lemma [field_simps]:
 
 end
 
-setup {* Sign.add_const_constraint (@{const_name "divide"}, SOME @{typ "'a::divide \<Rightarrow> 'a \<Rightarrow> 'a"}) *}
+setup \<open>Sign.add_const_constraint (@{const_name "divide"}, SOME @{typ "'a::divide \<Rightarrow> 'a \<Rightarrow> 'a"})\<close>
 
 class semidom_divide = semidom + divide +
   assumes nonzero_mult_divide_cancel_right [simp]: "b \<noteq> 0 \<Longrightarrow> (a * b) div b = a"
@@ -761,14 +761,14 @@ lemma is_unitE [elim?]:
 proof (rule that)
   def b \<equiv> "1 div a"
   then show "1 div a = b" by simp
-  from b_def `is_unit a` show "is_unit b" by simp
-  from `is_unit a` and `is_unit b` show "a \<noteq> 0" and "b \<noteq> 0" by auto
-  from b_def `is_unit a` show "a * b = 1" by simp
+  from b_def \<open>is_unit a\<close> show "is_unit b" by simp
+  from \<open>is_unit a\<close> and \<open>is_unit b\<close> show "a \<noteq> 0" and "b \<noteq> 0" by auto
+  from b_def \<open>is_unit a\<close> show "a * b = 1" by simp
   then have "1 = a * b" ..
-  with b_def `b \<noteq> 0` show "1 div b = a" by simp
-  from `is_unit a` have "a dvd c" ..
+  with b_def \<open>b \<noteq> 0\<close> show "1 div b = a" by simp
+  from \<open>is_unit a\<close> have "a dvd c" ..
   then obtain d where "c = a * d" ..
-  with `a \<noteq> 0` `a * b = 1` show "c div a = c * b"
+  with \<open>a \<noteq> 0\<close> \<open>a * b = 1\<close> show "c div a = c * b"
     by (simp add: mult.assoc mult.left_commute [of a])
 qed
 
@@ -802,9 +802,9 @@ proof
   assume "a dvd c * b"
   with assms have "c * b dvd c * (b * (1 div b))"
     by (subst mult_assoc [symmetric]) simp
-  also from `is_unit b` have "b * (1 div b) = 1" by (rule is_unitE) simp
+  also from \<open>is_unit b\<close> have "b * (1 div b) = 1" by (rule is_unitE) simp
   finally have "c * b dvd c" by simp
-  with `a dvd c * b` show "a dvd c" by (rule dvd_trans)
+  with \<open>a dvd c * b\<close> show "a dvd c" by (rule dvd_trans)
 next
   assume "a dvd c"
   then show "a dvd c * b" by simp
@@ -1227,7 +1227,7 @@ using mult_left_mono [of b 0 a] by simp
 lemma mult_nonpos_nonneg: "a \<le> 0 \<Longrightarrow> 0 \<le> b \<Longrightarrow> a * b \<le> 0"
 using mult_right_mono [of a 0 b] by simp
 
-text {* Legacy - use @{text mult_nonpos_nonneg} *}
+text \<open>Legacy - use @{text mult_nonpos_nonneg}\<close>
 lemma mult_nonneg_nonpos2: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> b * a \<le> 0"
 by (drule mult_right_mono [of b 0], auto)
 
@@ -1303,7 +1303,7 @@ using mult_strict_left_mono [of b 0 a] by simp
 lemma mult_neg_pos: "a < 0 \<Longrightarrow> 0 < b \<Longrightarrow> a * b < 0"
 using mult_strict_right_mono [of a 0 b] by simp
 
-text {* Legacy - use @{text mult_neg_pos} *}
+text \<open>Legacy - use @{text mult_neg_pos}\<close>
 lemma mult_pos_neg2: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> b * a < 0"
 by (drule mult_strict_right_mono [of b 0], auto)
 
@@ -1323,7 +1323,7 @@ apply (drule_tac mult_pos_neg2 [of a b])
  apply (auto dest: less_not_sym)
 done
 
-text{*Strict monotonicity in both arguments*}
+text\<open>Strict monotonicity in both arguments\<close>
 lemma mult_strict_mono:
   assumes "a < b" and "c < d" and "0 < b" and "0 \<le> c"
   shows "a * c < b * d"
@@ -1334,7 +1334,7 @@ lemma mult_strict_mono:
   apply (erule mult_strict_left_mono, assumption)
   done
 
-text{*This weaker variant has more natural premises*}
+text\<open>This weaker variant has more natural premises\<close>
 lemma mult_strict_mono':
   assumes "a < b" and "c < d" and "0 \<le> a" and "0 \<le> c"
   shows "a * c < b * d"
@@ -1552,11 +1552,11 @@ lemma mult_le_0_iff:
   apply force
   done
 
-text{*Cancellation laws for @{term "c*a < c*b"} and @{term "a*c < b*c"},
-   also with the relations @{text "\<le>"} and equality.*}
+text\<open>Cancellation laws for @{term "c*a < c*b"} and @{term "a*c < b*c"},
+   also with the relations @{text "\<le>"} and equality.\<close>
 
-text{*These ``disjunction'' versions produce two cases when the comparison is
- an assumption, but effectively four when the comparison is a goal.*}
+text\<open>These ``disjunction'' versions produce two cases when the comparison is
+ an assumption, but effectively four when the comparison is a goal.\<close>
 
 lemma mult_less_cancel_right_disj:
   "a * c < b * c \<longleftrightarrow> 0 < c \<and> a < b \<or> c < 0 \<and>  b < a"
@@ -1584,8 +1584,8 @@ lemma mult_less_cancel_left_disj:
                       mult_left_mono_neg)
   done
 
-text{*The ``conjunction of implication'' lemmas produce two cases when the
-comparison is a goal, but give four when the comparison is an assumption.*}
+text\<open>The ``conjunction of implication'' lemmas produce two cases when the
+comparison is a goal, but give four when the comparison is an assumption.\<close>
 
 lemma mult_less_cancel_right:
   "a * c < b * c \<longleftrightarrow> (0 \<le> c \<longrightarrow> a < b) \<and> (c \<le> 0 \<longrightarrow> b < a)"
@@ -1640,7 +1640,7 @@ class linordered_semidom = semidom + linordered_comm_semiring_strict +
   assumes le_add_diff_inverse2 [simp]: "b \<le> a \<Longrightarrow> a - b + b = a"
 begin
 
-text {* Addition is the inverse of subtraction. *}
+text \<open>Addition is the inverse of subtraction.\<close>
 
 lemma le_add_diff_inverse [simp]: "b \<le> a \<Longrightarrow> b + (a - b) = a"
   by (frule le_add_diff_inverse2) (simp add: add.commute)
@@ -1720,7 +1720,7 @@ lemma linorder_neqE_linordered_idom:
   assumes "x \<noteq> y" obtains "x < y" | "y < x"
   using assms by (rule neqE)
 
-text {* These cancellation simprules also produce two cases when the comparison is a goal. *}
+text \<open>These cancellation simprules also produce two cases when the comparison is a goal.\<close>
 
 lemma mult_le_cancel_right1:
   "c \<le> b * c \<longleftrightarrow> (0 < c \<longrightarrow> 1 \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> 1)"
@@ -1803,9 +1803,9 @@ lemma dvd_if_abs_eq:
   "\<bar>l\<bar> = \<bar>k\<bar> \<Longrightarrow> l dvd k"
 by(subst abs_dvd_iff[symmetric]) simp
 
-text {* The following lemmas can be proven in more general structures, but
+text \<open>The following lemmas can be proven in more general structures, but
 are dangerous as simp rules in absence of @{thm neg_equal_zero},
-@{thm neg_less_pos}, @{thm neg_less_eq_nonneg}. *}
+@{thm neg_less_pos}, @{thm neg_less_eq_nonneg}.\<close>
 
 lemma equation_minus_iff_1 [simp, no_atp]:
   "1 = - a \<longleftrightarrow> a = - 1"
@@ -1833,7 +1833,7 @@ lemma minus_less_iff_1 [simp, no_atp]:
 
 end
 
-text {* Simprules for comparisons where common factors can be cancelled. *}
+text \<open>Simprules for comparisons where common factors can be cancelled.\<close>
 
 lemmas mult_compare_simps =
     mult_le_cancel_right mult_le_cancel_left
@@ -1846,7 +1846,7 @@ lemmas mult_compare_simps =
     mult_cancel_right1 mult_cancel_right2
     mult_cancel_left1 mult_cancel_left2
 
-text {* Reasoning about inequalities with division *}
+text \<open>Reasoning about inequalities with division\<close>
 
 context linordered_semidom
 begin
@@ -1876,7 +1876,7 @@ lemma mult_left_le_one_le:
 
 end
 
-text {* Absolute Value *}
+text \<open>Absolute Value\<close>
 
 context linordered_idom
 begin

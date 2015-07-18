@@ -11,7 +11,7 @@ where c = closed, o = open, i = infinite.
 Examples: Ico = {_ ..< _} and Ici = {_ ..}
 *)
 
-section {* Set intervals *}
+section \<open>Set intervals\<close>
 
 theory Set_Interval
 imports Lattices_Big Nat_Transfer
@@ -55,9 +55,9 @@ definition
 end
 
 
-text{* A note of warning when using @{term"{..<n}"} on type @{typ
+text\<open>A note of warning when using @{term"{..<n}"} on type @{typ
 nat}: it is equivalent to @{term"{0::nat..<n}"} but some lemmas involving
-@{term"{m..<n}"} may not exist in @{term"{..<n}"}-form as well. *}
+@{term"{m..<n}"} may not exist in @{term"{..<n}"}-form as well.\<close>
 
 syntax
   "_UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3UN _<=_./ _)" [0, 0, 10] 10)
@@ -84,7 +84,7 @@ translations
   "INT i<n. A"  == "INT i:{..<n}. A"
 
 
-subsection {* Various equivalences *}
+subsection \<open>Various equivalences\<close>
 
 lemma (in ord) lessThan_iff [iff]: "(i: lessThan k) = (i<k)"
 by (simp add: lessThan_def)
@@ -128,7 +128,7 @@ lemma (in linorder) lessThan_Int_lessThan: "{ a <..} \<inter> { b <..} = { max a
 lemma (in linorder) greaterThan_Int_greaterThan: "{..< a} \<inter> {..< b} = {..< min a b}"
   by auto
 
-subsection {* Logical Equivalences for Set Inclusion and Equality *}
+subsection \<open>Logical Equivalences for Set Inclusion and Equality\<close>
 
 lemma atLeast_subset_iff [iff]:
      "(atLeast x \<subseteq> atLeast y) = (y \<le> (x::'a::order))"
@@ -181,7 +181,7 @@ lemma (in linorder) Ici_subset_Ioi_iff: "{a ..} \<subseteq> {b <..} \<longleftri
 lemma (in linorder) Iic_subset_Iio_iff: "{.. a} \<subseteq> {..< b} \<longleftrightarrow> a < b"
   by auto
 
-subsection {*Two-sided intervals*}
+subsection \<open>Two-sided intervals\<close>
 
 context ord
 begin
@@ -202,16 +202,16 @@ lemma atLeastAtMost_iff [simp]:
   "(i : {l..u}) = (l <= i & i <= u)"
 by (simp add: atLeastAtMost_def)
 
-text {* The above four lemmas could be declared as iffs. Unfortunately this
+text \<open>The above four lemmas could be declared as iffs. Unfortunately this
 breaks many proofs. Since it only helps blast, it is better to leave them
-alone. *}
+alone.\<close>
 
 lemma greaterThanLessThan_eq: "{ a <..< b} = { a <..} \<inter> {..< b }"
   by auto
 
 end
 
-subsubsection{* Emptyness, singletons, subset *}
+subsubsection\<open>Emptyness, singletons, subset\<close>
 
 context order
 begin
@@ -276,7 +276,7 @@ lemma atLeastAtMost_singleton_iff[simp]:
 proof
   assume "{a..b} = {c}"
   hence *: "\<not> (\<not> a \<le> b)" unfolding atLeastatMost_empty_iff[symmetric] by simp
-  with `{a..b} = {c}` have "c \<le> a \<and> b \<le> c" by auto
+  with \<open>{a..b} = {c}\<close> have "c \<le> a \<and> b \<le> c" by auto
   with * show "a = b \<and> b = c" by auto
 qed simp
 
@@ -502,7 +502,7 @@ proof -
 qed
 
 
-subsection {* Infinite intervals *}
+subsection \<open>Infinite intervals\<close>
 
 context dense_linorder
 begin
@@ -513,16 +513,16 @@ lemma infinite_Ioo:
 proof
   assume fin: "finite {a<..<b}"
   moreover have ne: "{a<..<b} \<noteq> {}"
-    using `a < b` by auto
+    using \<open>a < b\<close> by auto
   ultimately have "a < Max {a <..< b}" "Max {a <..< b} < b"
     using Max_in[of "{a <..< b}"] by auto
   then obtain x where "Max {a <..< b} < x" "x < b"
     using dense[of "Max {a<..<b}" b] by auto
   then have "x \<in> {a <..< b}"
-    using `a < Max {a <..< b}` by auto
+    using \<open>a < Max {a <..< b}\<close> by auto
   then have "x \<le> Max {a <..< b}"
     using fin by auto
-  with `Max {a <..< b} < x` show False by auto
+  with \<open>Max {a <..< b} < x\<close> show False by auto
 qed
 
 lemma infinite_Icc: "a < b \<Longrightarrow> \<not> finite {a .. b}"
@@ -550,11 +550,11 @@ proof
   obtain y where "y < Min {..< a}"
     using lt_ex by auto
   also have "Min {..< a} \<le> x"
-    using `x < a` by fact
-  also note `x < a`
+    using \<open>x < a\<close> by fact
+  also note \<open>x < a\<close>
   finally have "Min {..< a} \<le> y"
     by fact
-  with `y < Min {..< a}` show False by auto
+  with \<open>y < Min {..< a}\<close> show False by auto
 qed
 
 lemma infinite_Iic: "\<not> finite {.. a :: 'a :: {no_bot, linorder}}"
@@ -574,17 +574,17 @@ proof
     using gt_ex by auto
   also then have "x \<le> Max {a <..}"
     by fact
-  also note `Max {a <..} < y`
+  also note \<open>Max {a <..} < y\<close>
   finally have "y \<le> Max { a <..}"
     by fact
-  with `Max {a <..} < y` show False by auto
+  with \<open>Max {a <..} < y\<close> show False by auto
 qed
 
 lemma infinite_Ici: "\<not> finite {a :: 'a :: {no_top, linorder} ..}"
   using infinite_Ioi[of a] finite_subset[of "{a <..}" "{a ..}"]
   by (auto simp: subset_eq less_imp_le)
 
-subsubsection {* Intersection *}
+subsubsection \<open>Intersection\<close>
 
 context linorder
 begin
@@ -652,9 +652,9 @@ lemma
     and Inf_greaterThanLessThan[simp]: "x < y \<Longrightarrow> Inf { x <..< y} = x"
   by (auto intro!: Inf_eqI Sup_eqI intro: dense_le dense_le_bounded dense_ge dense_ge_bounded)
 
-subsection {* Intervals of natural numbers *}
+subsection \<open>Intervals of natural numbers\<close>
 
-subsubsection {* The Constant @{term lessThan} *}
+subsubsection \<open>The Constant @{term lessThan}\<close>
 
 lemma lessThan_0 [simp]: "lessThan (0::nat) = {}"
 by (simp add: lessThan_def)
@@ -662,9 +662,9 @@ by (simp add: lessThan_def)
 lemma lessThan_Suc: "lessThan (Suc k) = insert k (lessThan k)"
 by (simp add: lessThan_def less_Suc_eq, blast)
 
-text {* The following proof is convenient in induction proofs where
+text \<open>The following proof is convenient in induction proofs where
 new elements get indices at the beginning. So it is used to transform
-@{term "{..<Suc n}"} to @{term "0::nat"} and @{term "{..< n}"}. *}
+@{term "{..<Suc n}"} to @{term "0::nat"} and @{term "{..< n}"}.\<close>
 
 lemma zero_notin_Suc_image: "0 \<notin> Suc ` A"
   by auto
@@ -681,7 +681,7 @@ lemma Iic_Suc_eq_insert_0: "{.. Suc n} = insert 0 (Suc ` {.. n})"
 lemma UN_lessThan_UNIV: "(UN m::nat. lessThan m) = UNIV"
 by blast
 
-subsubsection {* The Constant @{term greaterThan} *}
+subsubsection \<open>The Constant @{term greaterThan}\<close>
 
 lemma greaterThan_0 [simp]: "greaterThan 0 = range Suc"
 apply (simp add: greaterThan_def)
@@ -696,7 +696,7 @@ done
 lemma INT_greaterThan_UNIV: "(INT m::nat. greaterThan m) = {}"
 by blast
 
-subsubsection {* The Constant @{term atLeast} *}
+subsubsection \<open>The Constant @{term atLeast}\<close>
 
 lemma atLeast_0 [simp]: "atLeast (0::nat) = UNIV"
 by (unfold atLeast_def UNIV_def, simp)
@@ -713,7 +713,7 @@ lemma atLeast_Suc_greaterThan: "atLeast (Suc k) = greaterThan k"
 lemma UN_atLeast_UNIV: "(UN m::nat. atLeast m) = UNIV"
 by blast
 
-subsubsection {* The Constant @{term atMost} *}
+subsubsection \<open>The Constant @{term atMost}\<close>
 
 lemma atMost_0 [simp]: "atMost (0::nat) = {0}"
 by (simp add: atMost_def)
@@ -726,14 +726,14 @@ done
 lemma UN_atMost_UNIV: "(UN m::nat. atMost m) = UNIV"
 by blast
 
-subsubsection {* The Constant @{term atLeastLessThan} *}
+subsubsection \<open>The Constant @{term atLeastLessThan}\<close>
 
-text{*The orientation of the following 2 rules is tricky. The lhs is
+text\<open>The orientation of the following 2 rules is tricky. The lhs is
 defined in terms of the rhs.  Hence the chosen orientation makes sense
 in this theory --- the reverse orientation complicates proofs (eg
 nontermination). But outside, when the definition of the lhs is rarely
 used, the opposite orientation seems preferable because it reduces a
-specific concept to a more general one. *}
+specific concept to a more general one.\<close>
 
 lemma atLeast0LessThan: "{0::nat..<n} = {..<n}"
 by(simp add:lessThan_def atLeastLessThan_def)
@@ -747,9 +747,9 @@ declare atLeast0LessThan[symmetric, code_unfold]
 lemma atLeastLessThan0: "{m..<0::nat} = {}"
 by (simp add: atLeastLessThan_def)
 
-subsubsection {* Intervals of nats with @{term Suc} *}
+subsubsection \<open>Intervals of nats with @{term Suc}\<close>
 
-text{*Not a simprule because the RHS is too messy.*}
+text\<open>Not a simprule because the RHS is too messy.\<close>
 lemma atLeastLessThanSuc:
     "{m..<Suc n} = (if m \<le> n then insert n {m..<n} else {})"
 by (auto simp add: atLeastLessThan_def)
@@ -780,7 +780,7 @@ by (auto simp add: atLeastAtMost_def)
 lemma atLeastAtMost_insertL: "m \<le> n \<Longrightarrow> insert m {Suc m..n} = {m ..n}"
 by auto
 
-text {* The analogous result is useful on @{typ int}: *}
+text \<open>The analogous result is useful on @{typ int}:\<close>
 (* here, because we don't have an own int section *)
 lemma atLeastAtMostPlus1_int_conv:
   "m <= 1+n \<Longrightarrow> {m..1+n} = insert (1+n) {m..n::int}"
@@ -791,23 +791,23 @@ lemma atLeastLessThan_add_Un: "i \<le> j \<Longrightarrow> {i..<j+k} = {i..<j} \
   apply (simp_all add: atLeastLessThanSuc)   
   done
 
-subsubsection {* Intervals and numerals *}
+subsubsection \<open>Intervals and numerals\<close>
 
-lemma lessThan_nat_numeral:  --{*Evaluation for specific numerals*}
+lemma lessThan_nat_numeral:  --\<open>Evaluation for specific numerals\<close>
   "lessThan (numeral k :: nat) = insert (pred_numeral k) (lessThan (pred_numeral k))"
   by (simp add: numeral_eq_Suc lessThan_Suc)
 
-lemma atMost_nat_numeral:  --{*Evaluation for specific numerals*}
+lemma atMost_nat_numeral:  --\<open>Evaluation for specific numerals\<close>
   "atMost (numeral k :: nat) = insert (numeral k) (atMost (pred_numeral k))"
   by (simp add: numeral_eq_Suc atMost_Suc)
 
-lemma atLeastLessThan_nat_numeral:  --{*Evaluation for specific numerals*}
+lemma atLeastLessThan_nat_numeral:  --\<open>Evaluation for specific numerals\<close>
   "atLeastLessThan m (numeral k :: nat) = 
      (if m \<le> (pred_numeral k) then insert (pred_numeral k) (atLeastLessThan m (pred_numeral k))
                  else {})"
   by (simp add: numeral_eq_Suc atLeastLessThanSuc)
 
-subsubsection {* Image *}
+subsubsection \<open>Image\<close>
 
 lemma image_add_atLeastAtMost:
   fixes k ::"'a::linordered_semidom"
@@ -898,7 +898,7 @@ proof safe
 next
   fix y assume "y \<le> -x"
   have "- (-y) \<in> uminus ` {x..}"
-    by (rule imageI) (insert `y \<le> -x`[THEN le_imp_neg_le], simp)
+    by (rule imageI) (insert \<open>y \<le> -x\<close>[THEN le_imp_neg_le], simp)
   thus "y \<in> uminus ` {x..}" by simp
 qed simp_all
 
@@ -924,7 +924,7 @@ lemma
       greaterThanLessThan_def image_Int[OF inj_uminus] Int_commute)
 end
 
-subsubsection {* Finiteness *}
+subsubsection \<open>Finiteness\<close>
 
 lemma finite_lessThan [iff]: fixes k :: nat shows "finite {..<k}"
   by (induct k) (simp_all add: lessThan_Suc)
@@ -948,21 +948,21 @@ lemma finite_atLeastAtMost [iff]:
   fixes l :: nat shows "finite {l..u}"
 by (simp add: atLeastAtMost_def)
 
-text {* A bounded set of natural numbers is finite. *}
+text \<open>A bounded set of natural numbers is finite.\<close>
 lemma bounded_nat_set_is_finite:
   "(ALL i:N. i < (n::nat)) ==> finite N"
 apply (rule finite_subset)
  apply (rule_tac [2] finite_lessThan, auto)
 done
 
-text {* A set of natural numbers is finite iff it is bounded. *}
+text \<open>A set of natural numbers is finite iff it is bounded.\<close>
 lemma finite_nat_set_iff_bounded:
   "finite(N::nat set) = (EX m. ALL n:N. n<m)" (is "?F = ?B")
 proof
   assume f:?F  show ?B
-    using Max_ge[OF `?F`, simplified less_Suc_eq_le[symmetric]] by blast
+    using Max_ge[OF \<open>?F\<close>, simplified less_Suc_eq_le[symmetric]] by blast
 next
-  assume ?B show ?F using `?B` by(blast intro:bounded_nat_set_is_finite)
+  assume ?B show ?F using \<open>?B\<close> by(blast intro:bounded_nat_set_is_finite)
 qed
 
 lemma finite_nat_set_iff_bounded_le:
@@ -976,8 +976,8 @@ lemma finite_less_ub:
 by (rule_tac B="{..u}" in finite_subset, auto intro: order_trans)
 
 
-text{* Any subset of an interval of natural numbers the size of the
-subset is exactly that interval. *}
+text\<open>Any subset of an interval of natural numbers the size of the
+subset is exactly that interval.\<close>
 
 lemma subset_card_intvl_is_intvl:
   assumes "A \<subseteq> {k..<k + card A}"
@@ -1000,7 +1000,7 @@ next
 qed
 
 
-subsubsection {* Proving Inclusions and Equalities between Unions *}
+subsubsection \<open>Proving Inclusions and Equalities between Unions\<close>
 
 lemma UN_le_eq_Un0:
   "(\<Union>i\<le>n::nat. M i) = (\<Union>i\<in>{1..n}. M i) \<union> M 0" (is "?A = ?B")
@@ -1056,7 +1056,7 @@ lemma UN_finite2_eq:
  done
 
 
-subsubsection {* Cardinality *}
+subsubsection \<open>Cardinality\<close>
 
 lemma card_lessThan [simp]: "card {..<u} = u"
   by (induct u, simp_all add: lessThan_Suc)
@@ -1141,7 +1141,7 @@ proof (safe intro!: card_inj_on_le)
   ultimately show "(\<exists>f. inj_on f A \<and> f ` A \<le> B)" by blast
 qed (insert assms, auto)
 
-subsection {* Intervals of integers *}
+subsection \<open>Intervals of integers\<close>
 
 lemma atLeastLessThanPlusOne_atLeastAtMost_int: "{l..<u+1} = {l..(u::int)}"
   by (auto simp add: atLeastAtMost_def atLeastLessThan_def)
@@ -1153,7 +1153,7 @@ lemma atLeastPlusOneLessThan_greaterThanLessThan_int:
     "{l+1..<u} = {l<..<u::int}"
   by (auto simp add: atLeastLessThan_def greaterThanLessThan_def)
 
-subsubsection {* Finiteness *}
+subsubsection \<open>Finiteness\<close>
 
 lemma image_atLeastZeroLessThan_int: "0 \<le> u ==>
     {(0::int)..<u} = int ` {..<nat u}"
@@ -1188,7 +1188,7 @@ lemma finite_greaterThanLessThan_int [iff]: "finite {l<..<u::int}"
   by (subst atLeastPlusOneLessThan_greaterThanLessThan_int [THEN sym], simp)
 
 
-subsubsection {* Cardinality *}
+subsubsection \<open>Cardinality\<close>
 
 lemma card_atLeastZeroLessThan_int: "card {(0::int)..<u} = nat u"
   apply (cases "0 \<le> u")
@@ -1265,13 +1265,13 @@ proof -
 qed
 
 
-subsection {*Lemmas useful with the summation operator setsum*}
+subsection \<open>Lemmas useful with the summation operator setsum\<close>
 
-text {* For examples, see Algebra/poly/UnivPoly2.thy *}
+text \<open>For examples, see Algebra/poly/UnivPoly2.thy\<close>
 
-subsubsection {* Disjoint Unions *}
+subsubsection \<open>Disjoint Unions\<close>
 
-text {* Singletons and open intervals *}
+text \<open>Singletons and open intervals\<close>
 
 lemma ivl_disj_un_singleton:
   "{l::'a::linorder} Un {l<..} = {l..}"
@@ -1282,7 +1282,7 @@ lemma ivl_disj_un_singleton:
   "(l::'a::linorder) <= u ==> {l..<u} Un {u} = {l..u}"
 by auto
 
-text {* One- and two-sided intervals *}
+text \<open>One- and two-sided intervals\<close>
 
 lemma ivl_disj_un_one:
   "(l::'a::linorder) < u ==> {..l} Un {l<..<u} = {..<u}"
@@ -1295,7 +1295,7 @@ lemma ivl_disj_un_one:
   "(l::'a::linorder) <= u ==> {l..<u} Un {u..} = {l..}"
 by auto
 
-text {* Two- and two-sided intervals *}
+text \<open>Two- and two-sided intervals\<close>
 
 lemma ivl_disj_un_two:
   "[| (l::'a::linorder) < m; m <= u |] ==> {l<..<m} Un {m..<u} = {l<..<u}"
@@ -1317,9 +1317,9 @@ by auto
 
 lemmas ivl_disj_un = ivl_disj_un_singleton ivl_disj_un_one ivl_disj_un_two ivl_disj_un_two_touch
 
-subsubsection {* Disjoint Intersections *}
+subsubsection \<open>Disjoint Intersections\<close>
 
-text {* One- and two-sided intervals *}
+text \<open>One- and two-sided intervals\<close>
 
 lemma ivl_disj_int_one:
   "{..l::'a::order} Int {l<..<u} = {}"
@@ -1332,7 +1332,7 @@ lemma ivl_disj_int_one:
   "{l..<u} Int {u..} = {}"
   by auto
 
-text {* Two- and two-sided intervals *}
+text \<open>Two- and two-sided intervals\<close>
 
 lemma ivl_disj_int_two:
   "{l::'a::order<..<m} Int {m..<u} = {}"
@@ -1347,7 +1347,7 @@ lemma ivl_disj_int_two:
 
 lemmas ivl_disj_int = ivl_disj_int_one ivl_disj_int_two
 
-subsubsection {* Some Differences *}
+subsubsection \<open>Some Differences\<close>
 
 lemma ivl_diff[simp]:
  "i \<le> n \<Longrightarrow> {i..<m} - {i..<n} = {n..<(m::'a::linorder)}"
@@ -1358,7 +1358,7 @@ lemma (in linorder) lessThan_minus_lessThan [simp]:
   by auto
 
 
-subsubsection {* Some Subset Conditions *}
+subsubsection \<open>Some Subset Conditions\<close>
 
 lemma ivl_subset [simp]:
  "({i..<j} \<subseteq> {m..<n}) = (j \<le> i | m \<le> i & j \<le> (n::'a::linorder))"
@@ -1370,7 +1370,7 @@ apply(fastforce)
 done
 
 
-subsection {* Summation indexed over intervals *}
+subsection \<open>Summation indexed over intervals\<close>
 
 syntax
   "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(SUM _ = _.._./ _)" [0,0,0,10] 10)
@@ -1403,7 +1403,7 @@ translations
   "\<Sum>i\<le>n. t" == "CONST setsum (\<lambda>i. t) {..n}"
   "\<Sum>i<n. t" == "CONST setsum (\<lambda>i. t) {..<n}"
 
-text{* The above introduces some pretty alternative syntaxes for
+text\<open>The above introduces some pretty alternative syntaxes for
 summation over intervals:
 \begin{center}
 \begin{tabular}{lll}
@@ -1425,12 +1425,12 @@ works well with italic-style formulae, not tt-style.
 Note that for uniformity on @{typ nat} it is better to use
 @{term"\<Sum>x::nat=0..<n. e"} rather than @{text"\<Sum>x<n. e"}: @{text setsum} may
 not provide all lemmas available for @{term"{m..<n}"} also in the
-special form for @{term"{..<n}"}. *}
+special form for @{term"{..<n}"}.\<close>
 
-text{* This congruence rule should be used for sums over intervals as
+text\<open>This congruence rule should be used for sums over intervals as
 the standard theorem @{text[source]setsum.cong} does not work well
 with the simplifier who adds the unsimplified premise @{term"x:B"} to
-the context. *}
+the context.\<close>
 
 lemma setsum_ivl_cong:
  "\<lbrakk>a = c; b = d; !!x. \<lbrakk> c \<le> x; x < d \<rbrakk> \<Longrightarrow> f x = g x \<rbrakk> \<Longrightarrow>
@@ -1486,7 +1486,7 @@ done
 lemma setsum_ub_add_nat: assumes "(m::nat) \<le> n + 1"
   shows "setsum f {m..n + p} = setsum f {m..n} + setsum f {n + 1..n + p}"
 proof-
-  have "{m .. n+p} = {m..n} \<union> {n+1..n+p}" using `m \<le> n+1` by auto
+  have "{m .. n+p} = {m..n} \<union> {n+1..n+p}" using \<open>m \<le> n+1\<close> by auto
   thus ?thesis by (auto simp: ivl_disj_int setsum.union_disjoint
     atLeastSucAtMost_greaterThanAtMost)
 qed
@@ -1532,7 +1532,7 @@ by (simp only: Nat.less_Suc_eq_le lessThan_Suc_atMost)
 lemma nat_diff_setsum_reindex: "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
   by (rule setsum.reindex_bij_witness[where i="\<lambda>i. n - Suc i" and j="\<lambda>i. n - Suc i"]) auto
 
-subsection{* Shifting bounds *}
+subsection\<open>Shifting bounds\<close>
 
 lemma setsum_shift_bounds_nat_ivl:
   "setsum f {m+k..<n+k} = setsum (%i. f(i + k)){m..<n::nat}"
@@ -1603,7 +1603,7 @@ lemma setsum_zero_power' [simp]:
   by auto
 
 
-subsection {* The formula for geometric sums *}
+subsection \<open>The formula for geometric sums\<close>
 
 lemma geometric_sum:
   assumes "x \<noteq> 1"
@@ -1611,7 +1611,7 @@ lemma geometric_sum:
 proof -
   from assms obtain y where "y = x - 1" and "y \<noteq> 0" by simp_all
   moreover have "(\<Sum>i<n. (y + 1) ^ i) = ((y + 1) ^ n - 1) / y"
-    by (induct n) (simp_all add: power_Suc field_simps `y \<noteq> 0`)
+    by (induct n) (simp_all add: power_Suc field_simps \<open>y \<noteq> 0\<close>)
   ultimately show ?thesis by simp
 qed
 
@@ -1635,7 +1635,7 @@ proof (induct n)
   finally show ?case .
 qed simp
 
-corollary power_diff_sumr2: --{* @{text COMPLEX_POLYFUN} in HOL Light *}
+corollary power_diff_sumr2: --\<open>@{text COMPLEX_POLYFUN} in HOL Light\<close>
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows   "x^n - y^n = (x - y) * (\<Sum>i<n. y^(n - Suc i) * x^i)"
 using diff_power_eq_setsum[of x "n - 1" y]
@@ -1659,7 +1659,7 @@ lemma one_diff_power_eq:
 by (metis one_diff_power_eq' [of n x] nat_diff_setsum_reindex)
 
 
-subsection {* The formula for arithmetic sums *}
+subsection \<open>The formula for arithmetic sums\<close>
 
 lemma gauss_sum:
   "(2::'a::comm_semiring_1)*(\<Sum>i\<in>{1..n}. of_nat i) = of_nat n*((of_nat n)+1)"
@@ -1721,7 +1721,7 @@ lemma arith_series_int:
 lemma sum_diff_distrib: "\<forall>x. Q x \<le> P x  \<Longrightarrow> (\<Sum>x<n. P x) - (\<Sum>x<n. Q x) = (\<Sum>x<n. P x - Q x :: nat)"
   by (subst setsum_subtractf_nat) auto
 
-subsection {* Products indexed over intervals *}
+subsection \<open>Products indexed over intervals\<close>
 
 syntax
   "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(PROD _ = _.._./ _)" [0,0,0,10] 10)
@@ -1754,7 +1754,7 @@ translations
   "\<Prod>i\<le>n. t" == "CONST setprod (\<lambda>i. t) {..n}"
   "\<Prod>i<n. t" == "CONST setprod (\<lambda>i. t) {..<n}"
 
-subsection {* Transfer setup *}
+subsection \<open>Transfer setup\<close>
 
 lemma transfer_nat_int_set_functions:
     "{..n} = nat ` {0..int n}"

@@ -3,7 +3,7 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
-section {* Lifting package *}
+section \<open>Lifting package\<close>
 
 theory Lifting
 imports Equiv_Relations Transfer
@@ -14,7 +14,7 @@ keywords
   "setup_lifting" "lifting_forget" "lifting_update" :: thy_decl
 begin
 
-subsection {* Function map *}
+subsection \<open>Function map\<close>
 
 context
 begin
@@ -24,7 +24,7 @@ lemma map_fun_id:
   "(id ---> id) = id"
   by (simp add: fun_eq_iff)
 
-subsection {* Quotient Predicate *}
+subsection \<open>Quotient Predicate\<close>
 
 definition
   "Quotient R Abs Rep T \<longleftrightarrow>
@@ -55,7 +55,7 @@ lemma Quotient_rep_reflp: "R (Rep a) (Rep a)"
   by blast
 
 lemma Quotient_rel:
-  "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- {* orientation does not loop on rewriting *}
+  "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- \<open>orientation does not loop on rewriting\<close>
   using a unfolding Quotient_def
   by blast
 
@@ -122,7 +122,7 @@ end
 lemma identity_quotient: "Quotient (op =) id id (op =)"
 unfolding Quotient_def by simp
 
-text {* TODO: Use one of these alternatives as the real definition. *}
+text \<open>TODO: Use one of these alternatives as the real definition.\<close>
 
 lemma Quotient_alt_def:
   "Quotient R Abs Rep T \<longleftrightarrow>
@@ -195,7 +195,7 @@ proof -
   then show ?thesis using assms(2) by (auto intro: apply_rsp')
 qed
 
-subsection {* Quotient composition *}
+subsection \<open>Quotient composition\<close>
 
 lemma Quotient_compose:
   assumes 1: "Quotient R1 Abs1 Rep1 T1"
@@ -207,7 +207,7 @@ lemma equivp_reflp2:
   "equivp R \<Longrightarrow> reflp R"
   by (erule equivpE)
 
-subsection {* Respects predicate *}
+subsection \<open>Respects predicate\<close>
 
 definition Respects :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set"
   where "Respects R = {x. R x x}"
@@ -272,7 +272,7 @@ lemma type_definition_Quotient_not_empty_witness: "Quotient (eq_onp P) Abs Rep T
 unfolding eq_onp_def by (drule Quotient_rep_reflp) blast
 
 
-text {* Generating transfer rules for quotients. *}
+text \<open>Generating transfer rules for quotients.\<close>
 
 context
   fixes R Abs Rep T
@@ -294,7 +294,7 @@ lemma Quotient_abs_induct:
 
 end
 
-text {* Generating transfer rules for total quotients. *}
+text \<open>Generating transfer rules for total quotients.\<close>
 
 context
   fixes R Abs Rep T
@@ -318,7 +318,7 @@ lemma Quotient_total_abs_eq_iff: "Abs x = Abs y \<longleftrightarrow> R x y"
 
 end
 
-text {* Generating transfer rules for a type defined with @{text "typedef"}. *}
+text \<open>Generating transfer rules for a type defined with @{text "typedef"}.\<close>
 
 context
   fixes Rep Abs A T
@@ -349,15 +349,15 @@ lemma typedef_rep_transfer: "(T ===> op =) (\<lambda>x. x) Rep"
 
 end
 
-text {* Generating the correspondence rule for a constant defined with
-  @{text "lift_definition"}. *}
+text \<open>Generating the correspondence rule for a constant defined with
+  @{text "lift_definition"}.\<close>
 
 lemma Quotient_to_transfer:
   assumes "Quotient R Abs Rep T" and "R c c" and "c' \<equiv> Abs c"
   shows "T c c'"
   using assms by (auto dest: Quotient_cr_rel)
 
-text {* Proving reflexivity *}
+text \<open>Proving reflexivity\<close>
 
 lemma Quotient_to_left_total:
   assumes q: "Quotient R Abs Rep T"
@@ -383,7 +383,7 @@ lemma eq_onp_le_eq:
 lemma reflp_ge_eq:
   "reflp R \<Longrightarrow> R \<ge> op=" unfolding reflp_def by blast
 
-text {* Proving a parametrized correspondence relation *}
+text \<open>Proving a parametrized correspondence relation\<close>
 
 definition POS :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
 "POS A B \<equiv> A \<le> B"
@@ -443,7 +443,7 @@ lemma POS_apply:
   shows "R' f g"
 using assms unfolding POS_def by auto
 
-text {* Proving a parametrized correspondence relation *}
+text \<open>Proving a parametrized correspondence relation\<close>
 
 lemma fun_mono:
   assumes "A \<ge> C"
@@ -484,7 +484,7 @@ shows "(R OO R' ===> S OO S') \<le> ((R ===> S) OO (R' ===> S'))"
   apply (intro choice)
   by metis
 
-subsection {* Domains *}
+subsection \<open>Domains\<close>
 
 lemma composed_equiv_rel_eq_onp:
   assumes "left_unique R"
@@ -551,7 +551,7 @@ lemma right_total_UNIV_transfer:
   shows "(rel_set A) (Collect (Domainp A)) UNIV"
   using assms unfolding right_total_def rel_set_def Domainp_iff by blast
 
-subsection {* ML setup *}
+subsection \<open>ML setup\<close>
 
 ML_file "Tools/Lifting/lifting_util.ML"
 

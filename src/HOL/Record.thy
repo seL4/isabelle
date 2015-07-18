@@ -6,16 +6,16 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-section {* Extensible records with structural subtyping *}
+section \<open>Extensible records with structural subtyping\<close>
 
 theory Record
 imports Quickcheck_Exhaustive
 keywords "record" :: thy_decl
 begin
 
-subsection {* Introduction *}
+subsection \<open>Introduction\<close>
 
-text {*
+text \<open>
   Records are isomorphic to compound tuple types. To implement
   efficient records, we make this isomorphism explicit. Consider the
   record access/update simplification @{text "alpha (beta_update f
@@ -75,9 +75,9 @@ text {*
   is valid) left as a rule assumption. All rules are structured to aid
   net matching, using either a point-free form or an encapsulating
   predicate.
-*}
+\<close>
 
-subsection {* Operators and lemmas for types isomorphic to tuples *}
+subsection \<open>Operators and lemmas for types isomorphic to tuples\<close>
 
 datatype (dead 'a, dead 'b, dead 'c) tuple_isomorphism =
   Tuple_Isomorphism "'a \<Rightarrow> 'b \<times> 'c" "'b \<times> 'c \<Rightarrow> 'a"
@@ -114,7 +114,7 @@ definition
   "iso_tuple_cons isom = curry (abst isom)"
 
 
-subsection {* Logical infrastructure for records *}
+subsection \<open>Logical infrastructure for records\<close>
 
 definition
   iso_tuple_surjective_proof_assist :: "'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
@@ -412,7 +412,7 @@ lemma K_record_comp: "(\<lambda>x. c) \<circ> f = (\<lambda>x. c)"
   by (simp add: comp_def)
 
 
-subsection {* Concrete record syntax *}
+subsection \<open>Concrete record syntax\<close>
 
 nonterminal
   ident and
@@ -452,7 +452,7 @@ syntax (xsymbols)
   "_record_update"      :: "'a => field_updates => 'b"          ("_/(3\<lparr>_\<rparr>)" [900, 0] 900)
 
 
-subsection {* Record package *}
+subsection \<open>Record package\<close>
 
 ML_file "Tools/record.ML"
 

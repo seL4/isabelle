@@ -1,12 +1,12 @@
 (*  Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel *)
 
-section {* Set theory for higher-order logic *}
+section \<open>Set theory for higher-order logic\<close>
 
 theory Set
 imports Lattices
 begin
 
-subsection {* Sets as predicates *}
+subsection \<open>Sets as predicates\<close>
 
 typedecl 'a set
 
@@ -40,7 +40,7 @@ notation (HTML output)
   not_member  ("(_/ \<notin> _)" [51, 51] 50)
 
 
-text {* Set comprehensions *}
+text \<open>Set comprehensions\<close>
 
 syntax
   "_Coll" :: "pttrn => bool => 'a set"    ("(1{_./ _})")
@@ -63,12 +63,12 @@ lemma CollectD: "a \<in> {x. P x} \<Longrightarrow> P a"
 lemma Collect_cong: "(\<And>x. P x = Q x) ==> {x. P x} = {x. Q x}"
   by simp
 
-text {*
+text \<open>
 Simproc for pulling @{text "x=t"} in @{text "{x. \<dots> & x=t & \<dots>}"}
 to the front (and similarly for @{text "t=x"}):
-*}
+\<close>
 
-simproc_setup defined_Collect ("{x. P x & Q x}") = {*
+simproc_setup defined_Collect ("{x. P x & Q x}") = \<open>
   fn _ => Quantifier1.rearrange_Collect
     (fn ctxt =>
       resolve_tac ctxt @{thms Collect_cong} 1 THEN
@@ -76,7 +76,7 @@ simproc_setup defined_Collect ("{x. P x & Q x}") = {*
       ALLGOALS
         (EVERY' [REPEAT_DETERM o eresolve_tac ctxt @{thms conjE},
           DEPTH_SOLVE_1 o (assume_tac ctxt ORELSE' resolve_tac ctxt @{thms conjI})]))
-*}
+\<close>
 
 lemmas CollectE = CollectD [elim_format]
 
@@ -92,7 +92,7 @@ lemma set_eq_iff:
   "A = B \<longleftrightarrow> (\<forall>x. x \<in> A \<longleftrightarrow> x \<in> B)"
   by (auto intro:set_eqI)
 
-text {* Lifting of predicate class instances *}
+text \<open>Lifting of predicate class instances\<close>
 
 instantiation set :: (type) boolean_algebra
 begin
@@ -130,7 +130,7 @@ qed (simp_all add: less_eq_set_def less_set_def inf_set_def sup_set_def
 
 end
 
-text {* Set enumerations *}
+text \<open>Set enumerations\<close>
 
 abbreviation empty :: "'a set" ("{}") where
   "{} \<equiv> bot"
@@ -145,7 +145,7 @@ translations
   "{x}" == "CONST insert x {}"
 
 
-subsection {* Subsets and bounded quantifiers *}
+subsection \<open>Subsets and bounded quantifiers\<close>
 
 abbreviation
   subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
@@ -256,7 +256,7 @@ translations
  "\<exists>A\<subseteq>B. P"   =>  "EX A. A \<subseteq> B & P"
  "\<exists>!A\<subseteq>B. P"  =>  "EX! A. A \<subseteq> B & P"
 
-print_translation {*
+print_translation \<open>
   let
     val All_binder = Mixfix.binder_name @{const_syntax All};
     val Ex_binder = Mixfix.binder_name @{const_syntax Ex};
@@ -287,19 +287,19 @@ print_translation {*
   in
     [tr' All_binder, tr' Ex_binder]
   end
-*}
+\<close>
 
 
-text {*
+text \<open>
   \medskip Translate between @{text "{e | x1...xn. P}"} and @{text
   "{u. EX x1..xn. u = e & P}"}; @{text "{y. EX x1..xn. y = e & P}"} is
   only translated if @{text "[0..n] subset bvs(e)"}.
-*}
+\<close>
 
 syntax
   "_Setcompr" :: "'a => idts => bool => 'a set"    ("(1{_ |/_./ _})")
 
-parse_translation {*
+parse_translation \<open>
   let
     val ex_tr = snd (Syntax_Trans.mk_binder_tr ("EX ", @{const_syntax Ex}));
 
@@ -314,14 +314,14 @@ parse_translation {*
       in Syntax.const @{const_syntax Collect} $ absdummy dummyT exP end;
 
   in [(@{syntax_const "_Setcompr"}, setcompr_tr)] end;
-*}
+\<close>
 
-print_translation {*
+print_translation \<open>
  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Ball} @{syntax_const "_Ball"},
   Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Bex} @{syntax_const "_Bex"}]
-*} -- {* to avoid eta-contraction of body *}
+\<close> -- \<open>to avoid eta-contraction of body\<close>
 
-print_translation {*
+print_translation \<open>
 let
   val ex_tr' = snd (Syntax_Trans.mk_binder_tr' (@{const_syntax Ex}, "DUMMY"));
 
@@ -353,21 +353,21 @@ let
         end
     end;
   in [(@{const_syntax Collect}, setcompr_tr')] end;
-*}
+\<close>
 
-simproc_setup defined_Bex ("EX x:A. P x & Q x") = {*
+simproc_setup defined_Bex ("EX x:A. P x & Q x") = \<open>
   fn _ => Quantifier1.rearrange_bex
     (fn ctxt =>
       unfold_tac ctxt @{thms Bex_def} THEN
       Quantifier1.prove_one_point_ex_tac ctxt)
-*}
+\<close>
 
-simproc_setup defined_All ("ALL x:A. P x --> Q x") = {*
+simproc_setup defined_All ("ALL x:A. P x --> Q x") = \<open>
   fn _ => Quantifier1.rearrange_ball
     (fn ctxt =>
       unfold_tac ctxt @{thms Ball_def} THEN
       Quantifier1.prove_one_point_all_tac ctxt)
-*}
+\<close>
 
 lemma ballI [intro!]: "(!!x. x:A ==> P x) ==> ALL x:A. P x"
   by (simp add: Ball_def)
@@ -377,16 +377,16 @@ lemmas strip = impI allI ballI
 lemma bspec [dest?]: "ALL x:A. P x ==> x:A ==> P x"
   by (simp add: Ball_def)
 
-text {*
+text \<open>
   Gives better instantiation for bound:
-*}
+\<close>
 
-setup {*
+setup \<open>
   map_theory_claset (fn ctxt =>
     ctxt addbefore ("bspec", fn ctxt' => dresolve_tac ctxt' @{thms bspec} THEN' assume_tac ctxt'))
-*}
+\<close>
 
-ML {*
+ML \<open>
 structure Simpdata =
 struct
 
@@ -397,22 +397,22 @@ val mksimps_pairs = [(@{const_name Ball}, @{thms bspec})] @ mksimps_pairs;
 end;
 
 open Simpdata;
-*}
+\<close>
 
-declaration {* fn _ =>
+declaration \<open>fn _ =>
   Simplifier.map_ss (Simplifier.set_mksimps (mksimps mksimps_pairs))
-*}
+\<close>
 
 lemma ballE [elim]: "ALL x:A. P x ==> (P x ==> Q) ==> (x ~: A ==> Q) ==> Q"
   by (unfold Ball_def) blast
 
 lemma bexI [intro]: "P x ==> x:A ==> EX x:A. P x"
-  -- {* Normally the best argument order: @{prop "P x"} constrains the
-    choice of @{prop "x:A"}. *}
+  -- \<open>Normally the best argument order: @{prop "P x"} constrains the
+    choice of @{prop "x:A"}.\<close>
   by (unfold Bex_def) blast
 
 lemma rev_bexI [intro?]: "x:A ==> P x ==> EX x:A. P x"
-  -- {* The best argument order when there is only one @{prop "x:A"}. *}
+  -- \<open>The best argument order when there is only one @{prop "x:A"}.\<close>
   by (unfold Bex_def) blast
 
 lemma bexCI: "(ALL x:A. ~P x ==> P a) ==> a:A ==> EX x:A. P x"
@@ -422,11 +422,11 @@ lemma bexE [elim!]: "EX x:A. P x ==> (!!x. x:A ==> P x ==> Q) ==> Q"
   by (unfold Bex_def) blast
 
 lemma ball_triv [simp]: "(ALL x:A. P) = ((EX x. x:A) --> P)"
-  -- {* Trival rewrite rule. *}
+  -- \<open>Trival rewrite rule.\<close>
   by (simp add: Ball_def)
 
 lemma bex_triv [simp]: "(EX x:A. P) = ((EX x. x:A) & P)"
-  -- {* Dual form for existentials. *}
+  -- \<open>Dual form for existentials.\<close>
   by (simp add: Bex_def)
 
 lemma bex_triv_one_point1 [simp]: "(EX x:A. x = a) = (a:A)"
@@ -456,7 +456,7 @@ lemma bex_disj_distrib:
   by blast
 
 
-text {* Congruence rules *}
+text \<open>Congruence rules\<close>
 
 lemma ball_cong:
   "A = B ==> (!!x. x:B ==> P x = Q x) ==>
@@ -481,34 +481,34 @@ lemma strong_bex_cong [cong]:
 lemma bex1_def: "(\<exists>!x\<in>X. P x) \<longleftrightarrow> (\<exists>x\<in>X. P x) \<and> (\<forall>x\<in>X. \<forall>y\<in>X. P x \<longrightarrow> P y \<longrightarrow> x = y)"
   by auto
 
-subsection {* Basic operations *}
+subsection \<open>Basic operations\<close>
 
-subsubsection {* Subsets *}
+subsubsection \<open>Subsets\<close>
 
 lemma subsetI [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B) \<Longrightarrow> A \<subseteq> B"
   by (simp add: less_eq_set_def le_fun_def)
 
-text {*
+text \<open>
   \medskip Map the type @{text "'a set => anything"} to just @{typ
   'a}; for overloading constants whose first argument has type @{typ
   "'a set"}.
-*}
+\<close>
 
 lemma subsetD [elim, intro?]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
   by (simp add: less_eq_set_def le_fun_def)
-  -- {* Rule in Modus Ponens style. *}
+  -- \<open>Rule in Modus Ponens style.\<close>
 
 lemma rev_subsetD [intro?]: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
-  -- {* The same, with reversed premises for use with @{text erule} --
-      cf @{text rev_mp}. *}
+  -- \<open>The same, with reversed premises for use with @{text erule} --
+      cf @{text rev_mp}.\<close>
   by (rule subsetD)
 
-text {*
+text \<open>
   \medskip Converts @{prop "A \<subseteq> B"} to @{prop "x \<in> A ==> x \<in> B"}.
-*}
+\<close>
 
 lemma subsetCE [elim]: "A \<subseteq> B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
-  -- {* Classical elimination rule. *}
+  -- \<open>Classical elimination rule.\<close>
   by (auto simp add: less_eq_set_def le_fun_def)
 
 lemma subset_eq: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
@@ -539,16 +539,16 @@ lemmas basic_trans_rules [trans] =
   order_trans_rules set_rev_mp set_mp eq_mem_trans
 
 
-subsubsection {* Equality *}
+subsubsection \<open>Equality\<close>
 
 lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"
-  -- {* Anti-symmetry of the subset relation. *}
+  -- \<open>Anti-symmetry of the subset relation.\<close>
   by (iprover intro: set_eqI subsetD)
 
-text {*
+text \<open>
   \medskip Equality rules from ZF set theory -- are they appropriate
   here?
-*}
+\<close>
 
 lemma equalityD1: "A = B ==> A \<subseteq> B"
   by simp
@@ -556,11 +556,11 @@ lemma equalityD1: "A = B ==> A \<subseteq> B"
 lemma equalityD2: "A = B ==> B \<subseteq> A"
   by simp
 
-text {*
+text \<open>
   \medskip Be careful when adding this to the claset as @{text
   subset_empty} is in the simpset: @{prop "A = {}"} goes to @{prop "{}
   \<subseteq> A"} and @{prop "A \<subseteq> {}"} and then back to @{prop "A = {}"}!
-*}
+\<close>
 
 lemma equalityE: "A = B ==> (A \<subseteq> B ==> B \<subseteq> A ==> P) ==> P"
   by simp
@@ -576,7 +576,7 @@ lemma eqelem_imp_iff: "x = y ==> (x : A) = (y : A)"
   by simp
 
 
-subsubsection {* The empty set *}
+subsubsection \<open>The empty set\<close>
 
 lemma empty_def:
   "{} = {x. False}"
@@ -589,14 +589,14 @@ lemma emptyE [elim!]: "a : {} ==> P"
   by simp
 
 lemma empty_subsetI [iff]: "{} \<subseteq> A"
-    -- {* One effect is to delete the ASSUMPTION @{prop "{} <= A"} *}
+    -- \<open>One effect is to delete the ASSUMPTION @{prop "{} <= A"}\<close>
   by blast
 
 lemma equals0I: "(!!y. y \<in> A ==> False) ==> A = {}"
   by blast
 
 lemma equals0D: "A = {} ==> a \<notin> A"
-    -- {* Use for reasoning about disjointness: @{text "A Int B = {}"} *}
+    -- \<open>Use for reasoning about disjointness: @{text "A Int B = {}"}\<close>
   by blast
 
 lemma ball_empty [simp]: "Ball {} P = True"
@@ -606,7 +606,7 @@ lemma bex_empty [simp]: "Bex {} P = False"
   by (simp add: Bex_def)
 
 
-subsubsection {* The universal set -- UNIV *}
+subsubsection \<open>The universal set -- UNIV\<close>
 
 abbreviation UNIV :: "'a set" where
   "UNIV \<equiv> top"
@@ -618,7 +618,7 @@ lemma UNIV_def:
 lemma UNIV_I [simp]: "x : UNIV"
   by (simp add: UNIV_def)
 
-declare UNIV_I [intro]  -- {* unsafe makes it less likely to cause problems *}
+declare UNIV_I [intro]  -- \<open>unsafe makes it less likely to cause problems\<close>
 
 lemma UNIV_witness [intro?]: "EX x. x : UNIV"
   by simp
@@ -626,11 +626,11 @@ lemma UNIV_witness [intro?]: "EX x. x : UNIV"
 lemma subset_UNIV: "A \<subseteq> UNIV"
   by (fact top_greatest) (* already simp *)
 
-text {*
+text \<open>
   \medskip Eta-contracting these two rules (to remove @{text P})
   causes them to be ignored because of their interaction with
   congruence rules.
-*}
+\<close>
 
 lemma ball_UNIV [simp]: "Ball UNIV P = All P"
   by (simp add: Ball_def)
@@ -647,7 +647,7 @@ lemma UNIV_not_empty [iff]: "UNIV ~= {}"
 lemma empty_not_UNIV[simp]: "{} \<noteq> UNIV"
 by blast
 
-subsubsection {* The Powerset operator -- Pow *}
+subsubsection \<open>The Powerset operator -- Pow\<close>
 
 definition Pow :: "'a set => 'a set set" where
   Pow_def: "Pow A = {B. B \<le> A}"
@@ -671,7 +671,7 @@ lemma Pow_not_empty: "Pow A \<noteq> {}"
   using Pow_top by blast
 
 
-subsubsection {* Set complement *}
+subsubsection \<open>Set complement\<close>
 
 lemma Compl_iff [simp]: "(c \<in> -A) = (c \<notin> A)"
   by (simp add: fun_Compl_def uminus_set_def)
@@ -679,10 +679,10 @@ lemma Compl_iff [simp]: "(c \<in> -A) = (c \<notin> A)"
 lemma ComplI [intro!]: "(c \<in> A ==> False) ==> c \<in> -A"
   by (simp add: fun_Compl_def uminus_set_def) blast
 
-text {*
+text \<open>
   \medskip This form, with negated conclusion, works well with the
   Classical prover.  Negated assumptions behave like formulae on the
-  right side of the notional turnstile ... *}
+  right side of the notional turnstile ...\<close>
 
 lemma ComplD [dest!]: "c : -A ==> c~:A"
   by simp
@@ -693,7 +693,7 @@ lemma Compl_eq: "- A = {x. ~ x : A}"
   by blast
 
 
-subsubsection {* Binary intersection *}
+subsubsection \<open>Binary intersection\<close>
 
 abbreviation inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Int" 70) where
   "op Int \<equiv> inf"
@@ -727,7 +727,7 @@ lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<int
   by (fact mono_inf)
 
 
-subsubsection {* Binary union *}
+subsubsection \<open>Binary union\<close>
 
 abbreviation union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Un" 65) where
   "union \<equiv> sup"
@@ -751,10 +751,10 @@ lemma UnI1 [elim?]: "c:A ==> c : A Un B"
 lemma UnI2 [elim?]: "c:B ==> c : A Un B"
   by simp
 
-text {*
+text \<open>
   \medskip Classical introduction rule: no commitment to @{prop A} vs
   @{prop B}.
-*}
+\<close>
 
 lemma UnCI [intro!]: "(c~:B ==> c:A) ==> c : A Un B"
   by auto
@@ -769,7 +769,7 @@ lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<uni
   by (fact mono_sup)
 
 
-subsubsection {* Set difference *}
+subsubsection \<open>Set difference\<close>
 
 lemma Diff_iff [simp]: "(c : A - B) = (c:A & c~:B)"
   by (simp add: minus_set_def fun_diff_def)
@@ -792,7 +792,7 @@ lemma Compl_eq_Diff_UNIV: "-A = (UNIV - A)"
 by blast
 
 
-subsubsection {* Augmenting a set -- @{const insert} *}
+subsubsection \<open>Augmenting a set -- @{const insert}\<close>
 
 lemma insert_iff [simp]: "(a : insert b A) = (a = b | a:A)"
   by (unfold insert_def) blast
@@ -807,7 +807,7 @@ lemma insertE [elim!]: "a : insert b A ==> (a = b ==> P) ==> (a:A ==> P) ==> P"
   by (unfold insert_def) blast
 
 lemma insertCI [intro!]: "(a~:B ==> a = b) ==> a: insert b B"
-  -- {* Classical introduction rule. *}
+  -- \<open>Classical introduction rule.\<close>
   by auto
 
 lemma subset_insert_iff: "(A \<subseteq> insert x B) = (if x:A then A - {x} \<subseteq> B else A \<subseteq> B)"
@@ -833,13 +833,13 @@ proof
   assume ?L
   show ?R
   proof cases
-    assume "a=b" with assms `?L` show ?R by (simp add: insert_ident)
+    assume "a=b" with assms \<open>?L\<close> show ?R by (simp add: insert_ident)
   next
     assume "a\<noteq>b"
     let ?C = "A - {b}"
     have "A = insert b ?C \<and> b \<notin> ?C \<and> B = insert a ?C \<and> a \<notin> ?C"
-      using assms `?L` `a\<noteq>b` by auto
-    thus ?R using `a\<noteq>b` by auto
+      using assms \<open>?L\<close> \<open>a\<noteq>b\<close> by auto
+    thus ?R using \<open>a\<noteq>b\<close> by auto
   qed
 next
   assume ?R thus ?L by (auto split: if_splits)
@@ -848,10 +848,10 @@ qed
 lemma insert_UNIV: "insert x UNIV = UNIV"
 by auto
 
-subsubsection {* Singletons, using insert *}
+subsubsection \<open>Singletons, using insert\<close>
 
 lemma singletonI [intro!]: "a : {a}"
-    -- {* Redundant? But unlike @{text insertCI}, it proves the subgoal immediately! *}
+    -- \<open>Redundant? But unlike @{text insertCI}, it proves the subgoal immediately!\<close>
   by (rule insertI1)
 
 lemma singletonD [dest!]: "b : {a} ==> b = a"
@@ -897,11 +897,11 @@ lemma singleton_Un_iff:
 by auto
 
 
-subsubsection {* Image of a set under a function *}
+subsubsection \<open>Image of a set under a function\<close>
 
-text {*
+text \<open>
   Frequently @{term b} does not have the syntactic form of @{term "f x"}.
-*}
+\<close>
 
 definition image :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set" (infixr "`" 90)
 where
@@ -917,12 +917,12 @@ lemma imageI:
 
 lemma rev_image_eqI:
   "x \<in> A \<Longrightarrow> b = f x \<Longrightarrow> b \<in> f ` A"
-  -- {* This version's more effective when we already have the
-    required @{term x}. *}
+  -- \<open>This version's more effective when we already have the
+    required @{term x}.\<close>
   by (rule image_eqI)
 
 lemma imageE [elim!]:
-  assumes "b \<in> (\<lambda>x. f x) ` A" -- {* The eta-expansion gives variable-name preservation. *}
+  assumes "b \<in> (\<lambda>x. f x) ` A" -- \<open>The eta-expansion gives variable-name preservation.\<close>
   obtains x where "b = f x" and "x \<in> A"
   using assms by (unfold image_def) blast
 
@@ -940,13 +940,13 @@ lemma image_iff:
 
 lemma image_subsetI:
   "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> B) \<Longrightarrow> f ` A \<subseteq> B"
-  -- {* Replaces the three steps @{text subsetI}, @{text imageE},
-    @{text hypsubst}, but breaks too many existing proofs. *}
+  -- \<open>Replaces the three steps @{text subsetI}, @{text imageE},
+    @{text hypsubst}, but breaks too many existing proofs.\<close>
   by blast
 
 lemma image_subset_iff:
   "f ` A \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>A. f x \<in> B)"
-  -- {* This rewrite rule would confuse users if made default. *}
+  -- \<open>This rewrite rule would confuse users if made default.\<close>
   by blast
 
 lemma subset_imageE:
@@ -1000,9 +1000,9 @@ lemma empty_is_image [iff]:
 
 lemma image_Collect:
   "f ` {x. P x} = {f x | x. P x}"
-  -- {* NOT suitable as a default simprule: the RHS isn't simpler than the LHS,
+  -- \<open>NOT suitable as a default simprule: the RHS isn't simpler than the LHS,
       with its implicit quantifier and conjunction.  Also image enjoys better
-      equational properties than does the RHS. *}
+      equational properties than does the RHS.\<close>
   by blast
 
 lemma if_image_distrib [simp]:
@@ -1036,9 +1036,9 @@ lemma bex_imageD:
   using assms by auto
 
 
-text {*
+text \<open>
   \medskip Range of a function -- just a translation for image!
-*}
+\<close>
 
 abbreviation range :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b set"
 where -- "of function"
@@ -1065,9 +1065,9 @@ lemma range_composition:
   by auto
 
 
-subsubsection {* Some rules with @{text "if"} *}
+subsubsection \<open>Some rules with @{text "if"}\<close>
 
-text{* Elimination of @{text"{x. \<dots> & x=t & \<dots>}"}. *}
+text\<open>Elimination of @{text"{x. \<dots> & x=t & \<dots>}"}.\<close>
 
 lemma Collect_conv_if: "{x. x=a & P x} = (if P a then {a} else {})"
   by auto
@@ -1075,10 +1075,10 @@ lemma Collect_conv_if: "{x. x=a & P x} = (if P a then {a} else {})"
 lemma Collect_conv_if2: "{x. a=x & P x} = (if P a then {a} else {})"
   by auto
 
-text {*
+text \<open>
   Rewrite rules for boolean case-splitting: faster than @{text
   "split_if [split]"}.
-*}
+\<close>
 
 lemma split_if_eq1: "((if Q then x else y) = b) = ((Q --> x = b) & (~ Q --> y = b))"
   by (rule split_if)
@@ -1086,10 +1086,10 @@ lemma split_if_eq1: "((if Q then x else y) = b) = ((Q --> x = b) & (~ Q --> y = 
 lemma split_if_eq2: "(a = (if Q then x else y)) = ((Q --> a = x) & (~ Q --> a = y))"
   by (rule split_if)
 
-text {*
+text \<open>
   Split ifs on either side of the membership relation.  Not for @{text
   "[simp]"} -- can cause goals to blow up!
-*}
+\<close>
 
 lemma split_if_mem1: "((if Q then x else y) : b) = ((Q --> x : b) & (~ Q --> y : b))"
   by (rule split_if)
@@ -1109,9 +1109,9 @@ lemmas split_ifs = if_bool_eq_conj split_if_eq1 split_if_eq2 split_if_mem1 split
  *)
 
 
-subsection {* Further operations and lemmas *}
+subsection \<open>Further operations and lemmas\<close>
 
-subsubsection {* The ``proper subset'' relation *}
+subsubsection \<open>The ``proper subset'' relation\<close>
 
 lemma psubsetI [intro!]: "A \<subseteq> B ==> A \<noteq> B ==> A \<subset> B"
   by (unfold less_le) blast
@@ -1167,9 +1167,9 @@ lemma image_Pow_surj:
   using assms by (blast elim: subset_imageE)
 
 
-subsubsection {* Derived rules involving subsets. *}
+subsubsection \<open>Derived rules involving subsets.\<close>
 
-text {* @{text insert}. *}
+text \<open>@{text insert}.\<close>
 
 lemma subset_insertI: "B \<subseteq> insert a B"
   by (rule subsetI) (erule insertI2)
@@ -1181,7 +1181,7 @@ lemma subset_insert: "x \<notin> A ==> (A \<subseteq> insert x B) = (A \<subsete
   by blast
 
 
-text {* \medskip Finite Union -- the least upper bound of two sets. *}
+text \<open>\medskip Finite Union -- the least upper bound of two sets.\<close>
 
 lemma Un_upper1: "A \<subseteq> A \<union> B"
   by (fact sup_ge1)
@@ -1193,7 +1193,7 @@ lemma Un_least: "A \<subseteq> C ==> B \<subseteq> C ==> A \<union> B \<subseteq
   by (fact sup_least)
 
 
-text {* \medskip Finite Intersection -- the greatest lower bound of two sets. *}
+text \<open>\medskip Finite Intersection -- the greatest lower bound of two sets.\<close>
 
 lemma Int_lower1: "A \<inter> B \<subseteq> A"
   by (fact inf_le1)
@@ -1205,7 +1205,7 @@ lemma Int_greatest: "C \<subseteq> A ==> C \<subseteq> B ==> C \<subseteq> A \<i
   by (fact inf_greatest)
 
 
-text {* \medskip Set difference. *}
+text \<open>\medskip Set difference.\<close>
 
 lemma Diff_subset: "A - B \<subseteq> A"
   by blast
@@ -1214,12 +1214,12 @@ lemma Diff_subset_conv: "(A - B \<subseteq> C) = (A \<subseteq> B \<union> C)"
 by blast
 
 
-subsubsection {* Equalities involving union, intersection, inclusion, etc. *}
+subsubsection \<open>Equalities involving union, intersection, inclusion, etc.\<close>
 
-text {* @{text "{}"}. *}
+text \<open>@{text "{}"}.\<close>
 
 lemma Collect_const [simp]: "{s. P} = (if P then UNIV else {})"
-  -- {* supersedes @{text "Collect_False_empty"} *}
+  -- \<open>supersedes @{text "Collect_False_empty"}\<close>
   by auto
 
 lemma subset_empty [simp]: "(A \<subseteq> {}) = (A = {})"
@@ -1250,10 +1250,10 @@ lemma Collect_mono_iff: "Collect P \<subseteq> Collect Q \<longleftrightarrow> (
   by blast
 
 
-text {* \medskip @{text insert}. *}
+text \<open>\medskip @{text insert}.\<close>
 
 lemma insert_is_Un: "insert a A = {a} Un A"
-  -- {* NOT SUITABLE FOR REWRITING since @{text "{a} == insert a {}"} *}
+  -- \<open>NOT SUITABLE FOR REWRITING since @{text "{a} == insert a {}"}\<close>
   by blast
 
 lemma insert_not_empty [simp]: "insert a A \<noteq> {}"
@@ -1263,8 +1263,8 @@ lemmas empty_not_insert = insert_not_empty [symmetric]
 declare empty_not_insert [simp]
 
 lemma insert_absorb: "a \<in> A ==> insert a A = A"
-  -- {* @{text "[simp]"} causes recursive calls when there are nested inserts *}
-  -- {* with \emph{quadratic} running time *}
+  -- \<open>@{text "[simp]"} causes recursive calls when there are nested inserts\<close>
+  -- \<open>with \emph{quadratic} running time\<close>
   by blast
 
 lemma insert_absorb2 [simp]: "insert x (insert x A) = insert x A"
@@ -1277,7 +1277,7 @@ lemma insert_subset [simp]: "(insert x A \<subseteq> B) = (x \<in> B & A \<subse
   by blast
 
 lemma mk_disjoint_insert: "a \<in> A ==> \<exists>B. A = insert a B & a \<notin> B"
-  -- {* use new @{text B} rather than @{text "A - {a}"} to avoid infinite unfolding *}
+  -- \<open>use new @{text B} rather than @{text "A - {a}"} to avoid infinite unfolding\<close>
   apply (rule_tac x = "A - {a}" in exI, blast)
   done
 
@@ -1298,7 +1298,7 @@ lemma disjoint_insert [simp]:
   by auto
 
 
-text {* \medskip @{text Int} *}
+text \<open>\medskip @{text Int}\<close>
 
 lemma Int_absorb: "A \<inter> A = A"
   by (fact inf_idem) (* already simp *)
@@ -1316,7 +1316,7 @@ lemma Int_assoc: "(A \<inter> B) \<inter> C = A \<inter> (B \<inter> C)"
   by (fact inf_assoc)
 
 lemmas Int_ac = Int_assoc Int_left_absorb Int_commute Int_left_commute
-  -- {* Intersection is an AC-operator *}
+  -- \<open>Intersection is an AC-operator\<close>
 
 lemma Int_absorb1: "B \<subseteq> A ==> A \<inter> B = B"
   by (fact inf_absorb2)
@@ -1358,7 +1358,7 @@ lemma Int_Collect: "(x \<in> A \<inter> {x. P x}) = (x \<in> A & P x)"
   by blast
 
 
-text {* \medskip @{text Un}. *}
+text \<open>\medskip @{text Un}.\<close>
 
 lemma Un_absorb: "A \<union> A = A"
   by (fact sup_idem) (* already simp *)
@@ -1376,7 +1376,7 @@ lemma Un_assoc: "(A \<union> B) \<union> C = A \<union> (B \<union> C)"
   by (fact sup_assoc)
 
 lemmas Un_ac = Un_assoc Un_left_absorb Un_commute Un_left_commute
-  -- {* Union is an AC-operator *}
+  -- \<open>Union is an AC-operator\<close>
 
 lemma Un_absorb1: "A \<subseteq> B ==> A \<union> B = B"
   by (fact sup_absorb2)
@@ -1452,7 +1452,7 @@ lemma Diff_Int2: "A \<inter> C - B \<inter> C = A \<inter> C - B"
   by blast
 
 
-text {* \medskip Set complement *}
+text \<open>\medskip Set complement\<close>
 
 lemma Compl_disjoint [simp]: "A \<inter> -A = {}"
   by (fact inf_compl_bot)
@@ -1479,7 +1479,7 @@ lemma subset_Compl_self_eq: "(A \<subseteq> -A) = (A = {})"
   by blast
 
 lemma Un_Int_assoc_eq: "((A \<inter> B) \<union> C = A \<inter> (B \<union> C)) = (C \<subseteq> A)"
-  -- {* Halmos, Naive Set Theory, page 16. *}
+  -- \<open>Halmos, Naive Set Theory, page 16.\<close>
   by blast
 
 lemma Compl_UNIV_eq: "-UNIV = {}"
@@ -1497,10 +1497,10 @@ lemma Compl_eq_Compl_iff [iff]: "(-A = -B) = (A = (B::'a set))"
 lemma Compl_insert: "- insert x A = (-A) - {x}"
   by blast
 
-text {* \medskip Bounded quantifiers.
+text \<open>\medskip Bounded quantifiers.
 
   The following are not added to the default simpset because
-  (a) they duplicate the body and (b) there are no similar rules for @{text Int}. *}
+  (a) they duplicate the body and (b) there are no similar rules for @{text Int}.\<close>
 
 lemma ball_Un: "(\<forall>x \<in> A \<union> B. P x) = ((\<forall>x\<in>A. P x) & (\<forall>x\<in>B. P x))"
   by blast
@@ -1509,7 +1509,7 @@ lemma bex_Un: "(\<exists>x \<in> A \<union> B. P x) = ((\<exists>x\<in>A. P x) |
   by blast
 
 
-text {* \medskip Set difference. *}
+text \<open>\medskip Set difference.\<close>
 
 lemma Diff_eq: "A - B = A \<inter> (-B)"
   by blast
@@ -1539,11 +1539,11 @@ lemma Diff_insert0 [simp]: "x \<notin> A ==> A - insert x B = A - B"
   by blast
 
 lemma Diff_insert: "A - insert a B = A - B - {a}"
-  -- {* NOT SUITABLE FOR REWRITING since @{text "{a} == insert a 0"} *}
+  -- \<open>NOT SUITABLE FOR REWRITING since @{text "{a} == insert a 0"}\<close>
   by blast
 
 lemma Diff_insert2: "A - insert a B = A - {a} - B"
-  -- {* NOT SUITABLE FOR REWRITING since @{text "{a} == insert a 0"} *}
+  -- \<open>NOT SUITABLE FOR REWRITING since @{text "{a} == insert a 0"}\<close>
   by blast
 
 lemma insert_Diff_if: "insert x A - B = (if x \<in> B then A - B else insert x (A - B))"
@@ -1601,7 +1601,7 @@ lemma Compl_Diff_eq [simp]: "- (A - B) = -A \<union> B"
   by blast
 
 
-text {* \medskip Quantification over type @{typ bool}. *}
+text \<open>\medskip Quantification over type @{typ bool}.\<close>
 
 lemma bool_induct: "P True \<Longrightarrow> P False \<Longrightarrow> P x"
   by (cases x) auto
@@ -1618,7 +1618,7 @@ lemma ex_bool_eq: "(\<exists>b. P b) \<longleftrightarrow> P True \<or> P False"
 lemma UNIV_bool: "UNIV = {False, True}"
   by (auto intro: bool_induct)
 
-text {* \medskip @{text Pow} *}
+text \<open>\medskip @{text Pow}\<close>
 
 lemma Pow_empty [simp]: "Pow {} = {{}}"
   by (auto simp add: Pow_def)
@@ -1642,7 +1642,7 @@ lemma Pow_Int_eq [simp]: "Pow (A \<inter> B) = Pow A \<inter> Pow B"
   by blast
 
 
-text {* \medskip Miscellany. *}
+text \<open>\medskip Miscellany.\<close>
 
 lemma set_eq_subset: "(A = B) = (A \<subseteq> B & B \<subseteq> A)"
   by blast
@@ -1684,7 +1684,7 @@ lemma bex_simps [simp, no_atp]:
   by auto
 
 
-subsubsection {* Monotonicity of various operations *}
+subsubsection \<open>Monotonicity of various operations\<close>
 
 lemma image_mono: "A \<subseteq> B ==> f`A \<subseteq> f`B"
   by blast
@@ -1707,7 +1707,7 @@ lemma Diff_mono: "A \<subseteq> C ==> D \<subseteq> B ==> A - B \<subseteq> C - 
 lemma Compl_anti_mono: "A \<subseteq> B ==> -B \<subseteq> -A"
   by (fact compl_mono)
 
-text {* \medskip Monotonicity of implications. *}
+text \<open>\medskip Monotonicity of implications.\<close>
 
 lemma in_mono: "A \<subseteq> B ==> x \<in> A --> x \<in> B"
   apply (rule impI)
@@ -1749,7 +1749,7 @@ lemma eq_to_mono: "a = b ==> c = d ==> b --> d ==> a --> c"
   by iprover
 
 
-subsubsection {* Inverse image of a function *}
+subsubsection \<open>Inverse image of a function\<close>
 
 definition vimage :: "('a => 'b) => 'b set => 'a set" (infixr "-`" 90) where
   "f -` B == {x. f x : B}"
@@ -1791,7 +1791,7 @@ lemma vimage_Collect: "(!!x. P (f x) = Q x) ==> f -` (Collect P) = Collect Q"
   by blast
 
 lemma vimage_insert: "f-`(insert a B) = (f-`{a}) Un (f-`B)"
-  -- {* NOT suitable for rewriting because of the recurrence of @{term "{a}"}. *}
+  -- \<open>NOT suitable for rewriting because of the recurrence of @{term "{a}"}.\<close>
   by blast
 
 lemma vimage_Diff: "f -` (A - B) = (f -` A) - (f -` B)"
@@ -1801,7 +1801,7 @@ lemma vimage_UNIV [simp]: "f -` UNIV = UNIV"
   by blast
 
 lemma vimage_mono: "A \<subseteq> B ==> f -` A \<subseteq> f -` B"
-  -- {* monotonicity *}
+  -- \<open>monotonicity\<close>
   by blast
 
 lemma vimage_image_eq: "f -` (f ` A) = {y. EX x:A. f x = f y}"
@@ -1832,7 +1832,7 @@ lemma vimage_ident [simp]: "(%x. x) -` Y = Y"
   by blast
 
 
-subsubsection {* Getting the Contents of a Singleton Set *}
+subsubsection \<open>Getting the Contents of a Singleton Set\<close>
 
 definition the_elem :: "'a set \<Rightarrow> 'a" where
   "the_elem X = (THE x. X = {x})"
@@ -1845,20 +1845,20 @@ lemma the_elem_image_unique:
   assumes *: "\<And>y. y \<in> A \<Longrightarrow> f y = f x"
   shows "the_elem (f ` A) = f x"
 unfolding the_elem_def proof (rule the1_equality)
-  from `A \<noteq> {}` obtain y where "y \<in> A" by auto
+  from \<open>A \<noteq> {}\<close> obtain y where "y \<in> A" by auto
   with * have "f x = f y" by simp
-  with `y \<in> A` have "f x \<in> f ` A" by blast
+  with \<open>y \<in> A\<close> have "f x \<in> f ` A" by blast
   with * show "f ` A = {f x}" by auto
   then show "\<exists>!x. f ` A = {x}" by auto
 qed
 
 
-subsubsection {* Least value operator *}
+subsubsection \<open>Least value operator\<close>
 
 lemma Least_mono:
   "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
     ==> (LEAST y. y : f ` S) = f (LEAST x. x : S)"
-    -- {* Courtesy of Stephan Merz *}
+    -- \<open>Courtesy of Stephan Merz\<close>
   apply clarify
   apply (erule_tac P = "%x. x : S" in LeastI2_order, fast)
   apply (rule LeastI2_order)
@@ -1866,7 +1866,7 @@ lemma Least_mono:
   done
 
 
-subsubsection {* Monad operation *}
+subsubsection \<open>Monad operation\<close>
 
 definition bind :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
   "bind A f = {x. \<exists>B \<in> f`A. x \<in> B}"
@@ -1892,7 +1892,7 @@ lemma bind_const: "Set.bind A (\<lambda>_. B) = (if A = {} then {} else B)"
 lemma bind_singleton_conv_image: "Set.bind A (\<lambda>x. {f x}) = f ` A"
   by(auto simp add: bind_def)
 
-subsubsection {* Operations for execution *}
+subsubsection \<open>Operations for execution\<close>
 
 definition is_empty :: "'a set \<Rightarrow> bool" where
   [code_abbrev]: "is_empty A \<longleftrightarrow> A = {}"
@@ -1929,13 +1929,13 @@ qed (auto simp add: equal_set_def)
 end
 
 
-text {* Misc *}
+text \<open>Misc\<close>
 
 hide_const (open) member not_member
 
 lemmas equalityI = subset_antisym
 
-ML {*
+ML \<open>
 val Ball_def = @{thm Ball_def}
 val Bex_def = @{thm Bex_def}
 val CollectD = @{thm CollectD}
@@ -1988,7 +1988,7 @@ val vimageI2 = @{thm vimageI2}
 val vimage_Collect = @{thm vimage_Collect}
 val vimage_Int = @{thm vimage_Int}
 val vimage_Un = @{thm vimage_Un}
-*}
+\<close>
 
 end
 

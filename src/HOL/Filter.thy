@@ -3,17 +3,17 @@
     Author:     Johannes Hölzl
 *)
 
-section {* Filters on predicates *}
+section \<open>Filters on predicates\<close>
 
 theory Filter
 imports Set_Interval Lifting_Set
 begin
 
-subsection {* Filters *}
+subsection \<open>Filters\<close>
 
-text {*
+text \<open>
   This definition also allows non-proper filters.
-*}
+\<close>
 
 locale is_filter =
   fixes F :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
@@ -34,7 +34,7 @@ lemma Abs_filter_inverse':
   using assms by (simp add: Abs_filter_inverse)
 
 
-subsubsection {* Eventually *}
+subsubsection \<open>Eventually\<close>
 
 definition eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> bool"
   where "eventually P F \<longleftrightarrow> Rep_filter F P"
@@ -237,7 +237,7 @@ lemmas eventually_frequently_simps =
   frequently_all
   frequently_imp_iff
 
-ML {*
+ML \<open>
   fun eventually_elim_tac ctxt facts = SUBGOAL_CASES (fn (goal, i) =>
     let
       val mp_thms = facts RL @{thms eventually_rev_mp}
@@ -252,16 +252,16 @@ ML {*
     in
       CASES cases (resolve_tac ctxt [raw_elim_thm] i)
     end)
-*}
+\<close>
 
-method_setup eventually_elim = {*
+method_setup eventually_elim = \<open>
   Scan.succeed (fn ctxt => METHOD_CASES (HEADGOAL o eventually_elim_tac ctxt))
-*} "elimination of eventually quantifiers"
+\<close> "elimination of eventually quantifiers"
 
-subsubsection {* Finer-than relation *}
+subsubsection \<open>Finer-than relation\<close>
 
-text {* @{term "F \<le> F'"} means that filter @{term F} is finer than
-filter @{term F'}. *}
+text \<open>@{term "F \<le> F'"} means that filter @{term F} is finer than
+filter @{term F'}.\<close>
 
 instantiation filter :: (type) complete_lattice
 begin
@@ -457,12 +457,12 @@ proof (subst eventually_Inf, safe)
   then have "\<exists>b\<in>B. \<forall>x\<in>X. b \<le> x"
   proof induct
     case empty then show ?case
-      using `B \<noteq> {}` by auto
+      using \<open>B \<noteq> {}\<close> by auto
   next
     case (insert x X)
     then obtain b where "b \<in> B" "\<And>x. x \<in> X \<Longrightarrow> b \<le> x"
       by auto
-    with `insert x X \<subseteq> B` base[of b x] show ?case
+    with \<open>insert x X \<subseteq> B\<close> base[of b x] show ?case
       by (auto intro: order_trans)
   qed
   then obtain b where "b \<in> B" "b \<le> Inf X"
@@ -477,7 +477,7 @@ lemma eventually_INF_base:
   unfolding INF_def by (subst eventually_Inf_base) auto
 
 
-subsubsection {* Map function for filters *}
+subsubsection \<open>Map function for filters\<close>
 
 definition filtermap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightarrow> 'b filter"
   where "filtermap f F = Abs_filter (\<lambda>P. eventually (\<lambda>x. P (f x)) F)"
@@ -526,7 +526,7 @@ proof -
     unfolding le_filter_def eventually_filtermap
     by (subst (1 2) eventually_INF) auto
 qed
-subsubsection {* Standard filters *}
+subsubsection \<open>Standard filters\<close>
 
 definition principal :: "'a set \<Rightarrow> 'a filter" where
   "principal S = Abs_filter (\<lambda>P. \<forall>x\<in>S. P x)"
@@ -576,7 +576,7 @@ lemma INF_principal_finite: "finite X \<Longrightarrow> (INF x:X. principal (f x
 lemma filtermap_principal[simp]: "filtermap f (principal A) = principal (f ` A)"
   unfolding filter_eq_iff eventually_filtermap eventually_principal by simp
 
-subsubsection {* Order filters *}
+subsubsection \<open>Order filters\<close>
 
 definition at_top :: "('a::order) filter"
   where "at_top = (INF k. principal {k ..})"
@@ -648,7 +648,7 @@ lemma trivial_limit_at_top_linorder: "\<not> trivial_limit (at_top ::('a::linord
   unfolding trivial_limit_def
   by (metis eventually_at_top_linorder order_refl)
 
-subsection {* Sequentially *}
+subsection \<open>Sequentially\<close>
 
 abbreviation sequentially :: "nat filter"
   where "sequentially \<equiv> at_top"
@@ -734,7 +734,7 @@ next
     by (blast intro: finite_subset)
 qed
 
-subsection {* Limits *}
+subsection \<open>Limits\<close>
 
 definition filterlim :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightarrow> 'a filter \<Rightarrow> bool" where
   "filterlim f F2 F1 \<longleftrightarrow> filtermap f F1 \<le> F2"
@@ -828,7 +828,7 @@ proof (subst eventually_INF_base)
   fix i j assume "i \<in> I" "j \<in> I"
   with chain[OF this] show "\<exists>x\<in>I. principal (F x) \<le> inf (principal (F i)) (principal (F j))"
     by auto
-qed (auto simp: eventually_principal `I \<noteq> {}`)
+qed (auto simp: eventually_principal \<open>I \<noteq> {}\<close>)
 
 lemma filterlim_filtermap: "filterlim f F1 (filtermap g F2) = filterlim (\<lambda>x. f (g x)) F1 F2"
   unfolding filterlim_def filtermap_filtermap ..
@@ -850,7 +850,7 @@ lemma filterlim_If:
     LIM x F. if P x then f x else g x :> G"
   unfolding filterlim_iff eventually_inf_principal by (auto simp: eventually_conj_iff)
 
-subsection {* Limits to @{const at_top} and @{const at_bot} *}
+subsection \<open>Limits to @{const at_top} and @{const at_bot}\<close>
 
 lemma filterlim_at_top:
   fixes f :: "'a \<Rightarrow> ('b::linorder)"
@@ -890,7 +890,7 @@ proof -
     have "eventually (\<lambda>x. g z \<le> x) at_top"
       by (rule eventually_ge_at_top)
     with Q show "eventually (\<lambda>x. z \<le> f x) at_top"
-      by eventually_elim (metis mono bij `P z`)
+      by eventually_elim (metis mono bij \<open>P z\<close>)
   qed
 qed
 
@@ -937,7 +937,7 @@ lemma filterlim_at_bot_lt:
   by (metis filterlim_at_bot filterlim_at_bot_le lt_ex order_le_less_trans)
 
 
-subsection {* Setup @{typ "'a filter"} for lifting and transfer *}
+subsection \<open>Setup @{typ "'a filter"} for lifting and transfer\<close>
 
 context begin interpretation lifting_syntax .
 
@@ -1011,7 +1011,7 @@ proof -
     fix P' Q'
     assume "G P'" "G Q'"
     moreover
-    from bi_total_fun[OF `bi_unique A` bi_total_eq, unfolded bi_total_def]
+    from bi_total_fun[OF \<open>bi_unique A\<close> bi_total_eq, unfolded bi_total_def]
     obtain P Q where [transfer_rule]: "(A ===> op =) P P'" "(A ===> op =) Q Q'" by blast
     have "F P = G P'" "F Q = G Q'" by transfer_prover+
     ultimately have "F (\<lambda>x. P x \<and> Q x)" by(simp add: conj)
@@ -1021,7 +1021,7 @@ proof -
     fix P' Q'
     assume "\<forall>x. P' x \<longrightarrow> Q' x" "G P'"
     moreover
-    from bi_total_fun[OF `bi_unique A` bi_total_eq, unfolded bi_total_def]
+    from bi_total_fun[OF \<open>bi_unique A\<close> bi_total_eq, unfolded bi_total_def]
     obtain P Q where [transfer_rule]: "(A ===> op =) P P'" "(A ===> op =) Q Q'" by blast
     have "F P = G P'" by transfer_prover
     moreover have "(\<forall>x. P x \<longrightarrow> Q x) \<longleftrightarrow> (\<forall>x. P' x \<longrightarrow> Q' x)" by transfer_prover
@@ -1046,7 +1046,7 @@ lemma left_total_rel_filter [transfer_rule]:
   shows "left_total (rel_filter A)"
 proof(rule left_totalI)
   fix F :: "'a filter"
-  from bi_total_fun[OF bi_unique_fun[OF `bi_total A` bi_unique_eq] bi_total_eq]
+  from bi_total_fun[OF bi_unique_fun[OF \<open>bi_total A\<close> bi_unique_eq] bi_total_eq]
   obtain G where [transfer_rule]: "((A ===> op =) ===> op =) (\<lambda>P. eventually P F) G" 
     unfolding  bi_total_def by blast
   moreover have "is_filter (\<lambda>P. eventually P F) \<longleftrightarrow> is_filter G" by transfer_prover

@@ -1,19 +1,19 @@
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-section {* A simple counterexample generator performing exhaustive testing *}
+section \<open>A simple counterexample generator performing exhaustive testing\<close>
 
 theory Quickcheck_Exhaustive
 imports Quickcheck_Random
 keywords "quickcheck_generator" :: thy_decl
 begin
 
-subsection {* basic operations for exhaustive generators *}
+subsection \<open>basic operations for exhaustive generators\<close>
 
 definition orelse :: "'a option => 'a option => 'a option" (infixr "orelse" 55)
 where
   [code_unfold]: "x orelse y = (case x of Some x' => Some x' | None => y)"
 
-subsection {* exhaustive generator type classes *}
+subsection \<open>exhaustive generator type classes\<close>
 
 class exhaustive = term_of +
   fixes exhaustive :: "('a \<Rightarrow> (bool * term list) option) \<Rightarrow> natural \<Rightarrow> (bool * term list) option"
@@ -229,7 +229,7 @@ instance ..
 
 end
 
-subsubsection {* A smarter enumeration scheme for functions over finite datatypes *}
+subsubsection \<open>A smarter enumeration scheme for functions over finite datatypes\<close>
 
 class check_all = enum + term_of +
   fixes check_all :: "('a * (unit \<Rightarrow> term) \<Rightarrow> (bool * term list) option) \<Rightarrow> (bool * term list) option"
@@ -505,12 +505,12 @@ instance ..
 
 end
 
-subsection {* Bounded universal quantifiers *}
+subsection \<open>Bounded universal quantifiers\<close>
 
 class bounded_forall =
   fixes bounded_forall :: "('a \<Rightarrow> bool) \<Rightarrow> natural \<Rightarrow> bool"
 
-subsection {* Fast exhaustive combinators *}
+subsection \<open>Fast exhaustive combinators\<close>
 
 class fast_exhaustive = term_of +
   fixes fast_exhaustive :: "('a \<Rightarrow> unit) \<Rightarrow> natural \<Rightarrow> unit"
@@ -524,7 +524,7 @@ code_printing
 | constant catch_Counterexample \<rightharpoonup>
     (Quickcheck) "(((_); NONE) handle Exhaustive'_Generators.Counterexample ts => SOME ts)"
 
-subsection {* Continuation passing style functions as plus monad *}
+subsection \<open>Continuation passing style functions as plus monad\<close>
   
 type_synonym 'a cps = "('a => term list option) => term list option"
 
@@ -610,7 +610,7 @@ definition pos_bound_cps_not :: "unit neg_bound_cps => unit pos_bound_cps"
 where
   "pos_bound_cps_not n = (%c i. case n (%u. Value []) i of No_value => c () | Value _ => None | Unknown_value => None)"
 
-subsection {* Defining generators for any first-order data type *}
+subsection \<open>Defining generators for any first-order data type\<close>
 
 axiomatization unknown :: 'a
 
@@ -620,7 +620,7 @@ ML_file "Tools/Quickcheck/exhaustive_generators.ML"
 
 declare [[quickcheck_batch_tester = exhaustive]]
 
-subsection {* Defining generators for abstract types *}
+subsection \<open>Defining generators for abstract types\<close>
 
 ML_file "Tools/Quickcheck/abstract_generators.ML"
 

@@ -3,24 +3,24 @@
     Author:     Brian Huffman
 *)
 
-section {* Binary Numerals *}
+section \<open>Binary Numerals\<close>
 
 theory Num
 imports BNF_Least_Fixpoint
 begin
 
-subsection {* The @{text num} type *}
+subsection \<open>The @{text num} type\<close>
 
 datatype num = One | Bit0 num | Bit1 num
 
-text {* Increment function for type @{typ num} *}
+text \<open>Increment function for type @{typ num}\<close>
 
 primrec inc :: "num \<Rightarrow> num" where
   "inc One = Bit0 One" |
   "inc (Bit0 x) = Bit1 x" |
   "inc (Bit1 x) = Bit0 (inc x)"
 
-text {* Converting between type @{typ num} and type @{typ nat} *}
+text \<open>Converting between type @{typ num} and type @{typ nat}\<close>
 
 primrec nat_of_num :: "num \<Rightarrow> nat" where
   "nat_of_num One = Suc 0" |
@@ -44,10 +44,10 @@ lemma num_of_nat_double:
   "0 < n \<Longrightarrow> num_of_nat (n + n) = Bit0 (num_of_nat n)"
   by (induct n) simp_all
 
-text {*
+text \<open>
   Type @{typ num} is isomorphic to the strictly positive
   natural numbers.
-*}
+\<close>
 
 lemma nat_of_num_inverse: "num_of_nat (nat_of_num x) = x"
   by (induct x) (simp_all add: num_of_nat_double nat_of_num_pos)
@@ -81,14 +81,14 @@ proof -
     by (simp add: nat_of_num_inverse)
 qed
 
-text {*
+text \<open>
   From now on, there are two possible models for @{typ num}:
   as positive naturals (rule @{text "num_induct"})
   and as digit representation (rules @{text "num.induct"}, @{text "num.cases"}).
-*}
+\<close>
 
 
-subsection {* Numeral operations *}
+subsection \<open>Numeral operations\<close>
 
 instantiation num :: "{plus,times,linorder}"
 begin
@@ -174,7 +174,7 @@ lemma less_num_simps [simp, code]:
   using nat_of_num_pos [of n] nat_of_num_pos [of m]
   by (auto simp add: less_eq_num_def less_num_def)
 
-text {* Rules using @{text One} and @{text inc} as constructors *}
+text \<open>Rules using @{text One} and @{text inc} as constructors\<close>
 
 lemma add_One: "x + One = inc x"
   by (simp add: num_eq_iff nat_of_num_add nat_of_num_inc)
@@ -188,7 +188,7 @@ lemma add_inc: "x + inc y = inc (x + y)"
 lemma mult_inc: "x * inc y = x * y + x"
   by (simp add: num_eq_iff nat_of_num_mult nat_of_num_add nat_of_num_inc)
 
-text {* The @{const num_of_nat} conversion *}
+text \<open>The @{const num_of_nat} conversion\<close>
 
 lemma num_of_nat_One:
   "n \<le> 1 \<Longrightarrow> num_of_nat n = One"
@@ -198,7 +198,7 @@ lemma num_of_nat_plus_distrib:
   "0 < m \<Longrightarrow> 0 < n \<Longrightarrow> num_of_nat (m + n) = num_of_nat m + num_of_nat n"
   by (induct n) (auto simp add: add_One add_One_commute add_inc)
 
-text {* A double-and-decrement function *}
+text \<open>A double-and-decrement function\<close>
 
 primrec BitM :: "num \<Rightarrow> num" where
   "BitM One = One" |
@@ -211,7 +211,7 @@ lemma BitM_plus_one: "BitM n + One = Bit0 n"
 lemma one_plus_BitM: "One + BitM n = Bit0 n"
   unfolding add_One_commute BitM_plus_one ..
 
-text {* Squaring and exponentiation *}
+text \<open>Squaring and exponentiation\<close>
 
 primrec sqr :: "num \<Rightarrow> num" where
   "sqr One = One" |
@@ -230,12 +230,12 @@ lemma sqr_conv_mult: "sqr x = x * x"
   by (simp add: num_eq_iff nat_of_num_sqr nat_of_num_mult)
 
 
-subsection {* Binary numerals *}
+subsection \<open>Binary numerals\<close>
 
-text {*
+text \<open>
   We embed binary representations into a generic algebraic
   structure using @{text numeral}.
-*}
+\<close>
 
 class numeral = one + semigroup_add
 begin
@@ -275,14 +275,14 @@ declare numeral_One [code_post]
 
 end
 
-text {* Numeral syntax. *}
+text \<open>Numeral syntax.\<close>
 
 syntax
   "_Numeral" :: "num_const \<Rightarrow> 'a"    ("_")
 
 ML_file "Tools/numeral.ML"
 
-parse_translation {*
+parse_translation \<open>
   let
     fun numeral_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
           c $ numeral_tr [t] $ u
@@ -290,9 +290,9 @@ parse_translation {*
           (Numeral.mk_number_syntax o #value o Lexicon.read_num) num
       | numeral_tr ts = raise TERM ("numeral_tr", ts);
   in [(@{syntax_const "_Numeral"}, K numeral_tr)] end
-*}
+\<close>
 
-typed_print_translation {*
+typed_print_translation \<open>
   let
     fun dest_num (Const (@{const_syntax Bit0}, _) $ n) = 2 * dest_num n
       | dest_num (Const (@{const_syntax Bit1}, _) $ n) = 2 * dest_num n + 1
@@ -315,16 +315,16 @@ typed_print_translation {*
   in
    [(@{const_syntax numeral}, num_tr')]
   end
-*}
+\<close>
 
 
-subsection {* Class-specific numeral rules *}
+subsection \<open>Class-specific numeral rules\<close>
 
-text {*
+text \<open>
   @{const numeral} is a morphism.
-*}
+\<close>
 
-subsubsection {* Structures with addition: class @{text numeral} *}
+subsubsection \<open>Structures with addition: class @{text numeral}\<close>
 
 context numeral
 begin
@@ -350,9 +350,9 @@ lemmas add_numeral_special =
 
 end
 
-subsubsection {*
+subsubsection \<open>
   Structures with negation: class @{text neg_numeral}
-*}
+\<close>
 
 class neg_numeral = numeral + group_add
 begin
@@ -361,7 +361,7 @@ lemma uminus_numeral_One:
   "- Numeral1 = - 1"
   by (simp add: numeral_One)
 
-text {* Numerals form an abelian subgroup. *}
+text \<open>Numerals form an abelian subgroup.\<close>
 
 inductive is_num :: "'a \<Rightarrow> bool" where
   "is_num 1" |
@@ -488,9 +488,9 @@ lemma diff_numeral_special:
 
 end
 
-subsubsection {*
+subsubsection \<open>
   Structures with multiplication: class @{text semiring_numeral}
-*}
+\<close>
 
 class semiring_numeral = semiring + monoid_mult
 begin
@@ -514,9 +514,9 @@ lemma mult_2_right: "z * 2 = z + z"
 
 end
 
-subsubsection {*
+subsubsection \<open>
   Structures with a zero: class @{text semiring_1}
-*}
+\<close>
 
 context semiring_1
 begin
@@ -544,9 +544,9 @@ lemma nat_of_num_code [code]:
   "nat_of_num (Bit1 n) = (let m = nat_of_num n in Suc (m + m))"
   by (simp_all add: Let_def)
 
-subsubsection {*
+subsubsection \<open>
   Equality: class @{text semiring_char_0}
-*}
+\<close>
 
 context semiring_char_0
 begin
@@ -577,11 +577,11 @@ lemmas eq_numeral_simps [simp] =
 
 end
 
-subsubsection {*
+subsubsection \<open>
   Comparisons: class @{text linordered_semidom}
-*}
+\<close>
 
-text {*  Could be perhaps more general than here. *}
+text \<open>Could be perhaps more general than here.\<close>
 
 context linordered_semidom
 begin
@@ -648,9 +648,9 @@ lemmas less_numeral_simps [simp] =
 
 end
 
-subsubsection {*
+subsubsection \<open>
   Multiplication and negation: class @{text ring_1}
-*}
+\<close>
 
 context ring_1
 begin
@@ -672,9 +672,9 @@ lemma mult_minus1_right [simp]: "z * - 1 = - z"
 
 end
 
-subsubsection {*
+subsubsection \<open>
   Equality using @{text iszero} for rings with non-zero characteristic
-*}
+\<close>
 
 context ring_1
 begin
@@ -705,7 +705,7 @@ lemma iszero_neg_numeral [simp]:
 lemma eq_iff_iszero_diff: "x = y \<longleftrightarrow> iszero (x - y)"
   unfolding iszero_def by (rule eq_iff_diff_eq_0)
 
-text {* The @{text "eq_numeral_iff_iszero"} lemmas are not declared
+text \<open>The @{text "eq_numeral_iff_iszero"} lemmas are not declared
 @{text "[simp]"} by default, because for rings of characteristic zero,
 better simp rules are possible. For a type like integers mod @{text
 "n"}, type-instantiated versions of these rules should be added to the
@@ -715,7 +715,7 @@ of the form @{text "iszero (numeral w)"}.
 bh: Maybe it would not be so bad to just declare these as simp
 rules anyway? I should test whether these rules take precedence over
 the @{text "ring_char_0"} rules in the simplifier.
-*}
+\<close>
 
 lemma eq_numeral_iff_iszero:
   "numeral x = numeral y \<longleftrightarrow> iszero (sub x y)"
@@ -735,9 +735,9 @@ lemma eq_numeral_iff_iszero:
 
 end
 
-subsubsection {*
+subsubsection \<open>
   Equality and negation: class @{text ring_char_0}
-*}
+\<close>
 
 class ring_char_0 = ring_1 + semiring_char_0
 begin
@@ -811,9 +811,9 @@ lemmas eq_neg_numeral_simps [simp] =
 
 end
 
-subsubsection {*
+subsubsection \<open>
   Structures with negation and order: class @{text linordered_idom}
-*}
+\<close>
 
 context linordered_idom
 begin
@@ -944,9 +944,9 @@ lemma abs_neg_one [simp]:
 
 end
 
-subsubsection {*
+subsubsection \<open>
   Natural numbers
-*}
+\<close>
 
 lemma Suc_1 [simp]: "Suc 1 = 2"
   unfolding Suc_eq_plus1 by (rule one_add_one)
@@ -989,7 +989,7 @@ lemma Suc_nat_number_of_add:
 (*Maps #n to n for n = 1, 2*)
 lemmas numerals = numeral_One [where 'a=nat] numeral_2_eq_2
 
-text {* Comparisons involving @{term Suc}. *}
+text \<open>Comparisons involving @{term Suc}.\<close>
 
 lemma eq_numeral_Suc [simp]: "numeral k = Suc n \<longleftrightarrow> pred_numeral k = n"
   by (simp add: numeral_eq_Suc)
@@ -1031,7 +1031,7 @@ lemma min_numeral_Suc [simp]:
   "min (numeral k) (Suc n) = Suc (min (pred_numeral k) n)"
   by (simp add: numeral_eq_Suc)
 
-text {* For @{term case_nat} and @{term rec_nat}. *}
+text \<open>For @{term case_nat} and @{term rec_nat}.\<close>
 
 lemma case_nat_numeral [simp]:
   "case_nat a f (numeral v) = (let pv = pred_numeral v in f pv)"
@@ -1051,13 +1051,13 @@ lemma rec_nat_add_eq_if [simp]:
     (let pv = pred_numeral v in f (pv + n) (rec_nat a f (pv + n)))"
   by (simp add: numeral_eq_Suc Let_def)
 
-text {* Case analysis on @{term "n < 2"} *}
+text \<open>Case analysis on @{term "n < 2"}\<close>
 
 lemma less_2_cases: "n < 2 \<Longrightarrow> n = 0 \<or> n = Suc 0"
   by (auto simp add: numeral_2_eq_2)
 
-text {* Removal of Small Numerals: 0, 1 and (in additive positions) 2 *}
-text {* bh: Are these rules really a good idea? *}
+text \<open>Removal of Small Numerals: 0, 1 and (in additive positions) 2\<close>
+text \<open>bh: Are these rules really a good idea?\<close>
 
 lemma add_2_eq_Suc [simp]: "2 + n = Suc (Suc n)"
   by simp
@@ -1065,7 +1065,7 @@ lemma add_2_eq_Suc [simp]: "2 + n = Suc (Suc n)"
 lemma add_2_eq_Suc' [simp]: "n + 2 = Suc (Suc n)"
   by simp
 
-text {* Can be used to eliminate long strings of Sucs, but not by default. *}
+text \<open>Can be used to eliminate long strings of Sucs, but not by default.\<close>
 
 lemma Suc3_eq_add_3: "Suc (Suc (Suc n)) = 3 + n"
   by simp
@@ -1073,7 +1073,7 @@ lemma Suc3_eq_add_3: "Suc (Suc (Suc n)) = 3 + n"
 lemmas nat_1_add_1 = one_add_one [where 'a=nat] (* legacy *)
 
 
-subsection {* Particular lemmas concerning @{term 2} *}
+subsection \<open>Particular lemmas concerning @{term 2}\<close>
 
 context linordered_field
 begin
@@ -1089,7 +1089,7 @@ lemma half_gt_zero [simp]:
 end
 
 
-subsection {* Numeral equations as default simplification rules *}
+subsection \<open>Numeral equations as default simplification rules\<close>
 
 declare (in numeral) numeral_One [simp]
 declare (in numeral) numeral_plus_numeral [simp]
@@ -1101,7 +1101,7 @@ declare (in neg_numeral) diff_numeral_special [simp]
 declare (in semiring_numeral) numeral_times_numeral [simp]
 declare (in ring_1) mult_neg_numeral_simps [simp]
 
-subsection {* Setting up simprocs *}
+subsection \<open>Setting up simprocs\<close>
 
 lemma mult_numeral_1: "Numeral1 * a = (a::'a::semiring_numeral)"
   by simp
@@ -1116,8 +1116,8 @@ lemma inverse_numeral_1:
   "inverse Numeral1 = (Numeral1::'a::division_ring)"
   by simp
 
-text{*Theorem lists for the cancellation simprocs. The use of a binary
-numeral for 1 reduces the number of special cases.*}
+text\<open>Theorem lists for the cancellation simprocs. The use of a binary
+numeral for 1 reduces the number of special cases.\<close>
 
 lemma mult_1s:
   fixes a :: "'a::semiring_numeral"
@@ -1128,18 +1128,18 @@ lemma mult_1s:
     "b * - Numeral1 = - b"
   by simp_all
 
-setup {*
+setup \<open>
   Reorient_Proc.add
     (fn Const (@{const_name numeral}, _) $ _ => true
     | Const (@{const_name uminus}, _) $ (Const (@{const_name numeral}, _) $ _) => true
     | _ => false)
-*}
+\<close>
 
 simproc_setup reorient_numeral
   ("numeral w = x" | "- numeral w = y") = Reorient_Proc.proc
 
 
-subsubsection {* Simplification of arithmetic operations on integer constants. *}
+subsubsection \<open>Simplification of arithmetic operations on integer constants.\<close>
 
 lemmas arith_special = (* already declared simp above *)
   add_numeral_special add_neg_numeral_special
@@ -1154,10 +1154,10 @@ lemmas arith_extra_simps =
   mult_zero_left mult_zero_right
   abs_numeral abs_neg_numeral
 
-text {*
+text \<open>
   For making a minimal simpset, one must include these default simprules.
   Also include @{text simp_thms}.
-*}
+\<close>
 
 lemmas arith_simps =
   add_num_simps mult_num_simps sub_num_simps
@@ -1174,7 +1174,7 @@ lemmas more_arith_simps =
 lemmas of_nat_simps =
   of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
 
-text {* Simplification of relational operations *}
+text \<open>Simplification of relational operations\<close>
 
 lemmas eq_numeral_extra =
   zero_neq_one one_neq_zero
@@ -1186,14 +1186,14 @@ lemmas rel_simps =
   eq_numeral_simps eq_neg_numeral_simps eq_numeral_extra
 
 lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
-  -- {* Unfold all @{text let}s involving constants *}
+  -- \<open>Unfold all @{text let}s involving constants\<close>
   unfolding Let_def ..
 
 lemma Let_neg_numeral [simp]: "Let (- numeral v) f = f (- numeral v)"
-  -- {* Unfold all @{text let}s involving constants *}
+  -- \<open>Unfold all @{text let}s involving constants\<close>
   unfolding Let_def ..
 
-declaration {*
+declaration \<open>
 let 
   fun number_of ctxt T n =
     if not (Sign.of_sort (Proof_Context.theory_of ctxt) (T, @{sort numeral}))
@@ -1215,10 +1215,10 @@ in
       @{thm of_nat_numeral}]
     #> Lin_Arith.set_number_of number_of)
 end
-*}
+\<close>
 
 
-subsubsection {* Simplification of arithmetic when nested to the right. *}
+subsubsection \<open>Simplification of arithmetic when nested to the right.\<close>
 
 lemma add_numeral_left [simp]:
   "numeral v + (numeral w + z) = (numeral(v + w) + z)"
@@ -1240,7 +1240,7 @@ lemma mult_numeral_left [simp]:
 hide_const (open) One Bit0 Bit1 BitM inc pow sqr sub dbl dbl_inc dbl_dec
 
 
-subsection {* code module namespace *}
+subsection \<open>code module namespace\<close>
 
 code_identifier
   code_module Num \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith

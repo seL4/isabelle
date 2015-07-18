@@ -1,4 +1,4 @@
-section {* Comprehensive Complex Theory *}
+section \<open>Comprehensive Complex Theory\<close>
 
 theory Complex_Main
 imports

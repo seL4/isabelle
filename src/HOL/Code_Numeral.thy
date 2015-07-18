@@ -2,13 +2,13 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-section {* Numeric types for code generation onto target language numerals only *}
+section \<open>Numeric types for code generation onto target language numerals only\<close>
 
 theory Code_Numeral
 imports Nat_Transfer Divides Lifting
 begin
 
-subsection {* Type of target language integers *}
+subsection \<open>Type of target language integers\<close>
 
 typedef integer = "UNIV \<Colon> int set"
   morphisms int_of_integer integer_of_int ..
@@ -238,9 +238,9 @@ lemma integer_of_nat_numeral:
   "integer_of_nat (numeral n) = numeral n"
 by transfer simp
 
-subsection {* Code theorems for target language integers *}
+subsection \<open>Code theorems for target language integers\<close>
 
-text {* Constructors *}
+text \<open>Constructors\<close>
 
 definition Pos :: "num \<Rightarrow> integer"
 where
@@ -261,7 +261,7 @@ lemma [transfer_rule]:
 code_datatype "0::integer" Pos Neg
 
 
-text {* Auxiliary operations *}
+text \<open>Auxiliary operations\<close>
 
 lift_definition dup :: "integer \<Rightarrow> integer"
   is "\<lambda>k::int. k + k"
@@ -290,7 +290,7 @@ lemma sub_code [code]:
   by (transfer, simp add: dbl_def dbl_inc_def dbl_dec_def)+
 
 
-text {* Implementations *}
+text \<open>Implementations\<close>
 
 lemma one_integer_code [code, code_unfold]:
   "1 = Pos Num.One"
@@ -520,7 +520,7 @@ lemma integer_of_int_code [code]:
 hide_const (open) Pos Neg sub dup divmod_abs
 
 
-subsection {* Serializer setup for target language integers *}
+subsection \<open>Serializer setup for target language integers\<close>
 
 code_reserved Eval int Integer abs
 
@@ -541,12 +541,12 @@ code_printing
     and (Haskell) "!(0/ ::/ Integer)"
     and (Scala) "BigInt(0)"
 
-setup {*
+setup \<open>
   fold (fn target =>
     Numeral.add_code @{const_name Code_Numeral.Pos} I Code_Printer.literal_numeral target
     #> Numeral.add_code @{const_name Code_Numeral.Neg} (op ~) Code_Printer.literal_numeral target)
     ["SML", "OCaml", "Haskell", "Scala"]
-*}
+\<close>
 
 code_printing
   constant "plus :: integer \<Rightarrow> _ \<Rightarrow> _" \<rightharpoonup>
@@ -613,7 +613,7 @@ code_identifier
   code_module Code_Numeral \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 
-subsection {* Type of target language naturals *}
+subsection \<open>Type of target language naturals\<close>
 
 typedef natural = "UNIV \<Colon> nat set"
   morphisms nat_of_natural natural_of_nat ..
@@ -787,7 +787,7 @@ lemma [measure_function]:
   by (rule is_measure_trivial)
 
 
-subsection {* Inductive representation of target language naturals *}
+subsection \<open>Inductive representation of target language naturals\<close>
 
 lift_definition Suc :: "natural \<Rightarrow> natural"
   is Nat.Suc
@@ -831,7 +831,7 @@ lemma Suc_natural_minus_one: "Suc n - 1 = n"
 hide_const (open) Suc
 
 
-subsection {* Code refinement for target language naturals *}
+subsection \<open>Code refinement for target language naturals\<close>
 
 lift_definition Nat :: "integer \<Rightarrow> natural"
   is nat

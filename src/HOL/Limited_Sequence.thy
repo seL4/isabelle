@@ -1,13 +1,13 @@
 
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-section {* Depth-Limited Sequences with failure element *}
+section \<open>Depth-Limited Sequences with failure element\<close>
 
 theory Limited_Sequence
 imports Lazy_Sequence
 begin
 
-subsection {* Depth-Limited Sequence *}
+subsection \<open>Depth-Limited Sequence\<close>
 
 type_synonym 'a dseq = "natural \<Rightarrow> bool \<Rightarrow> 'a lazy_sequence option"
 
@@ -80,7 +80,7 @@ where
    | Some xq \<Rightarrow> Some (Lazy_Sequence.map f xq))"
 
 
-subsection {* Positive Depth-Limited Sequence *}
+subsection \<open>Positive Depth-Limited Sequence\<close>
 
 type_synonym 'a pos_dseq = "natural \<Rightarrow> 'a Lazy_Sequence.lazy_sequence"
 
@@ -121,7 +121,7 @@ where
   "pos_map f xq = (\<lambda>i. Lazy_Sequence.map f (xq i))"
 
 
-subsection {* Negative Depth-Limited Sequence *}
+subsection \<open>Negative Depth-Limited Sequence\<close>
 
 type_synonym 'a neg_dseq = "natural \<Rightarrow> 'a Lazy_Sequence.hit_bound_lazy_sequence"
 
@@ -162,7 +162,7 @@ where
   "neg_map f xq = (\<lambda>i. Lazy_Sequence.hb_map f (xq i))"
 
 
-subsection {* Negation *}
+subsection \<open>Negation\<close>
 
 definition pos_not_seq :: "unit neg_dseq \<Rightarrow> unit pos_dseq"
 where
@@ -175,7 +175,7 @@ where
   | Some ((), xq) => Lazy_Sequence.empty)"
 
 
-ML {*
+ML \<open>
 signature LIMITED_SEQUENCE =
 sig
   type 'a dseq = Code_Numeral.natural -> bool -> 'a Lazy_Sequence.lazy_sequence option
@@ -198,7 +198,7 @@ fun yieldn n f i pol = (case f i pol of
   | SOME s => let val (xs, s') = Lazy_Sequence.yieldn n s in (xs, fn _ => fn _ => SOME s') end);
 
 end;
-*}
+\<close>
 
 code_reserved Eval Limited_Sequence
 

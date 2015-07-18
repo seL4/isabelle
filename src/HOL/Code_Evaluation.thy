@@ -2,16 +2,16 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-section {* Term evaluation using the generic code generator *}
+section \<open>Term evaluation using the generic code generator\<close>
 
 theory Code_Evaluation
 imports Typerep Limited_Sequence
 keywords "value" :: diag
 begin
 
-subsection {* Term representation *}
+subsection \<open>Term representation\<close>
 
-subsubsection {* Terms and class @{text term_of} *}
+subsubsection \<open>Terms and class @{text term_of}\<close>
 
 datatype (plugins only: code extraction) "term" = dummy_term
 
@@ -44,7 +44,7 @@ lemma valapp_code [code, code_unfold]:
   by (simp only: valapp_def fst_conv snd_conv)
 
 
-subsubsection {* Syntax *}
+subsubsection \<open>Syntax\<close>
 
 definition termify :: "'a \<Rightarrow> term" where
   [code del]: "termify x = dummy_term"
@@ -66,7 +66,7 @@ no_notation App (infixl "<\<cdot>>" 70)
   and valapp (infixl "{\<cdot>}" 70)
 
 
-subsection {* Tools setup and evaluation *}
+subsection \<open>Tools setup and evaluation\<close>
 
 lemma eq_eq_TrueD:
   assumes "(x \<equiv> y) \<equiv> Trueprop True"
@@ -87,7 +87,7 @@ code_reserved Eval Code_Evaluation
 ML_file "~~/src/HOL/Tools/value.ML"
 
 
-subsection {* @{text term_of} instances *}
+subsection \<open>@{text term_of} instances\<close>
 
 instantiation "fun" :: (typerep, typerep) term_of
 begin
@@ -138,12 +138,12 @@ by(rule term_of_anything[THEN meta_eq_to_obj_eq])
 code_reserved Eval HOLogic
 
 
-subsection {* Generic reification *}
+subsection \<open>Generic reification\<close>
 
 ML_file "~~/src/HOL/Tools/reification.ML"
 
 
-subsection {* Diagnostic *}
+subsection \<open>Diagnostic\<close>
 
 definition tracing :: "String.literal \<Rightarrow> 'a \<Rightarrow> 'a" where
   [code del]: "tracing s x = x"

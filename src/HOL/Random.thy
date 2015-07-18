@@ -1,7 +1,7 @@
 
 (* Author: Florian Haftmann, TU Muenchen *)
 
-section {* A HOL random engine *}
+section \<open>A HOL random engine\<close>
 
 theory Random
 imports List Groups_List
@@ -11,7 +11,7 @@ notation fcomp (infixl "\<circ>>" 60)
 notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 
-subsection {* Auxiliary functions *}
+subsection \<open>Auxiliary functions\<close>
 
 fun log :: "natural \<Rightarrow> natural \<Rightarrow> natural" where
   "log b i = (if b \<le> 1 \<or> i < b then 1 else 1 + log b (i div b))"
@@ -23,7 +23,7 @@ definition minus_shift :: "natural \<Rightarrow> natural \<Rightarrow> natural \
   "minus_shift r k l = (if k < l then r + k - l else k - l)"
 
 
-subsection {* Random seeds *}
+subsection \<open>Random seeds\<close>
 
 type_synonym seed = "natural \<times> natural"
 
@@ -45,7 +45,7 @@ definition split_seed :: "seed \<Rightarrow> seed \<times> seed" where
    in ((v'', w'), (v', w'')))"
 
 
-subsection {* Base selectors *}
+subsection \<open>Base selectors\<close>
 
 fun iterate :: "natural \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
   "iterate k f x = (if k = 0 then Pair x else f x \<circ>\<rightarrow> iterate (k - 1) f)"
@@ -136,12 +136,12 @@ proof -
 qed
 
 
-subsection {* @{text ML} interface *}
+subsection \<open>@{text ML} interface\<close>
 
 code_reflect Random_Engine
   functions range select select_weight
 
-ML {*
+ML \<open>
 structure Random_Engine =
 struct
 
@@ -177,7 +177,7 @@ fun run f =
 end;
 
 end;
-*}
+\<close>
 
 hide_type (open) seed
 hide_const (open) inc_shift minus_shift log "next" split_seed

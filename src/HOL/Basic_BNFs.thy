@@ -7,7 +7,7 @@
 Registration of basic types as bounded natural functors.
 *)
 
-section {* Registration of Basic Types as Bounded Natural Functors *}
+section \<open>Registration of Basic Types as Bounded Natural Functors\<close>
 
 theory Basic_BNFs
 imports BNF_Def

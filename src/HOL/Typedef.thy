@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Munich
 *)
 
-section {* HOL type definitions *}
+section \<open>HOL type definitions\<close>
 
 theory Typedef
 imports Set
@@ -14,7 +14,7 @@ locale type_definition =
   assumes Rep: "Rep x \<in> A"
     and Rep_inverse: "Abs (Rep x) = x"
     and Abs_inverse: "y \<in> A ==> Rep (Abs y) = y"
-  -- {* This will be axiomatized for each typedef! *}
+  -- \<open>This will be axiomatized for each typedef!\<close>
 begin
 
 lemma Rep_inject:

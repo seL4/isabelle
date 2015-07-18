@@ -1,7 +1,7 @@
 
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-section {* Various kind of sequences inside the random monad *}
+section \<open>Various kind of sequences inside the random monad\<close>
 
 theory Random_Sequence
 imports Random_Pred

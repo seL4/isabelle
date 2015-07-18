@@ -2,7 +2,7 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-section {* Knaster-Tarski Fixpoint Theorem and inductive definitions *}
+section \<open>Knaster-Tarski Fixpoint Theorem and inductive definitions\<close>
 
 theory Inductive
 imports Complete_Lattices Ctr_Sugar
@@ -14,24 +14,24 @@ keywords
   "primrec" :: thy_decl
 begin
 
-subsection {* Least and greatest fixed points *}
+subsection \<open>Least and greatest fixed points\<close>
 
 context complete_lattice
 begin
 
 definition
   lfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "lfp f = Inf {u. f u \<le> u}"    --{*least fixed point*}
+  "lfp f = Inf {u. f u \<le> u}"    --\<open>least fixed point\<close>
 
 definition
   gfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "gfp f = Sup {u. u \<le> f u}"    --{*greatest fixed point*}
+  "gfp f = Sup {u. u \<le> f u}"    --\<open>greatest fixed point\<close>
 
 
-subsection{* Proof of Knaster-Tarski Theorem using @{term lfp} *}
+subsection\<open>Proof of Knaster-Tarski Theorem using @{term lfp}\<close>
 
-text{*@{term "lfp f"} is the least upper bound of
-      the set @{term "{u. f(u) \<le> u}"} *}
+text\<open>@{term "lfp f"} is the least upper bound of
+      the set @{term "{u. f(u) \<le> u}"}\<close>
 
 lemma lfp_lowerbound: "f A \<le> A ==> lfp f \<le> A"
   by (auto simp add: lfp_def intro: Inf_lower)
@@ -54,7 +54,7 @@ lemma lfp_const: "lfp (\<lambda>x. t) = t"
   by (rule lfp_unfold) (simp add:mono_def)
 
 
-subsection {* General induction rules for least fixed points *}
+subsection \<open>General induction rules for least fixed points\<close>
 
 lemma lfp_ordinal_induct[case_names mono step union]:
   fixes f :: "'a\<Colon>complete_lattice \<Rightarrow> 'a"
@@ -101,8 +101,8 @@ lemma lfp_ordinal_induct_set:
   using assms by (rule lfp_ordinal_induct)
 
 
-text{*Definition forms of @{text lfp_unfold} and @{text lfp_induct}, 
-    to control unfolding*}
+text\<open>Definition forms of @{text lfp_unfold} and @{text lfp_induct}, 
+    to control unfolding\<close>
 
 lemma def_lfp_unfold: "[| h==lfp(f);  mono(f) |] ==> h = f(h)"
   by (auto intro!: lfp_unfold)
@@ -124,10 +124,10 @@ lemma lfp_mono: "(!!Z. f Z \<le> g Z) ==> lfp f \<le> lfp g"
   by (rule lfp_lowerbound [THEN lfp_greatest], blast intro: order_trans)
 
 
-subsection {* Proof of Knaster-Tarski Theorem using @{term gfp} *}
+subsection \<open>Proof of Knaster-Tarski Theorem using @{term gfp}\<close>
 
-text{*@{term "gfp f"} is the greatest lower bound of 
-      the set @{term "{u. u \<le> f(u)}"} *}
+text\<open>@{term "gfp f"} is the greatest lower bound of 
+      the set @{term "{u. u \<le> f(u)}"}\<close>
 
 lemma gfp_upperbound: "X \<le> f X ==> X \<le> gfp f"
   by (auto simp add: gfp_def intro: Sup_upper)
@@ -145,9 +145,9 @@ lemma gfp_unfold: "mono f ==> gfp f = f (gfp f)"
   by (iprover intro: order_antisym gfp_lemma2 gfp_lemma3)
 
 
-subsection {* Coinduction rules for greatest fixed points *}
+subsection \<open>Coinduction rules for greatest fixed points\<close>
 
-text{*weak version*}
+text\<open>weak version\<close>
 lemma weak_coinduct: "[| a: X;  X \<subseteq> f(X) |] ==> a : gfp(f)"
   by (rule gfp_upperbound [THEN subsetD]) auto
 
@@ -169,7 +169,7 @@ lemma coinduct_lemma:
   apply assumption
   done
 
-text{*strong version, thanks to Coen and Frost*}
+text\<open>strong version, thanks to Coen and Frost\<close>
 lemma coinduct_set: "[| mono(f);  a: X;  X \<subseteq> f(X Un gfp(f)) |] ==> a : gfp(f)"
   by (rule weak_coinduct[rotated], rule coinduct_lemma) blast+
 
@@ -203,10 +203,10 @@ proof (induction rule: gfp_ordinal_induct)
     by (intro order_trans[OF ind _] monoD[OF mono]) auto
 qed (auto intro: mono Inf_greatest)
 
-subsection {* Even Stronger Coinduction Rule, by Martin Coen *}
+subsection \<open>Even Stronger Coinduction Rule, by Martin Coen\<close>
 
-text{* Weakens the condition @{term "X \<subseteq> f(X)"} to one expressed using both
-  @{term lfp} and @{term gfp}*}
+text\<open>Weakens the condition @{term "X \<subseteq> f(X)"} to one expressed using both
+  @{term lfp} and @{term gfp}\<close>
 
 lemma coinduct3_mono_lemma: "mono(f) ==> mono(%x. f(x) Un X Un B)"
 by (iprover intro: subset_refl monoI Un_mono monoD)
@@ -230,8 +230,8 @@ apply (rule coinduct3_mono_lemma [THEN lfp_unfold, THEN ssubst])
 apply (simp_all)
 done
 
-text{*Definition forms of @{text gfp_unfold} and @{text coinduct}, 
-    to control unfolding*}
+text\<open>Definition forms of @{text gfp_unfold} and @{text coinduct}, 
+    to control unfolding\<close>
 
 lemma def_gfp_unfold: "[| A==gfp(f);  mono(f) |] ==> A = f(A)"
   by (auto intro!: gfp_unfold)
@@ -255,11 +255,11 @@ lemma def_coinduct3:
     "[| A==gfp(f); mono(f);  a:X;  X \<subseteq> f(lfp(%x. f(x) Un X Un A)) |] ==> a: A"
   by (auto intro!: coinduct3)
 
-text{*Monotonicity of @{term gfp}!*}
+text\<open>Monotonicity of @{term gfp}!\<close>
 lemma gfp_mono: "(!!Z. f Z \<le> g Z) ==> gfp f \<le> gfp g"
   by (rule gfp_upperbound [THEN gfp_least], blast intro: order_trans)
 
-subsection {* Rules for fixed point calculus *}
+subsection \<open>Rules for fixed point calculus\<close>
 
 
 lemma lfp_rolling:
@@ -339,9 +339,9 @@ proof (rule antisym)
   qed
 qed
 
-subsection {* Inductive predicates and sets *}
+subsection \<open>Inductive predicates and sets\<close>
 
-text {* Package setup. *}
+text \<open>Package setup.\<close>
 
 theorems basic_monos =
   subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
@@ -356,9 +356,9 @@ theorems [mono] =
   induct_rulify_fallback
 
 
-subsection {* Inductive datatypes and primitive recursion *}
+subsection \<open>Inductive datatypes and primitive recursion\<close>
 
-text {* Package setup. *}
+text \<open>Package setup.\<close>
 
 ML_file "Tools/Old_Datatype/old_datatype_aux.ML"
 ML_file "Tools/Old_Datatype/old_datatype_prop.ML"
@@ -370,14 +370,14 @@ ML_file "Tools/Old_Datatype/old_primrec.ML"
 ML_file "Tools/BNF/bnf_fp_rec_sugar_util.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar.ML"
 
-text{* Lambda-abstractions with pattern matching: *}
+text\<open>Lambda-abstractions with pattern matching:\<close>
 
 syntax
   "_lam_pats_syntax" :: "cases_syn => 'a => 'b"               ("(%_)" 10)
 syntax (xsymbols)
   "_lam_pats_syntax" :: "cases_syn => 'a => 'b"               ("(\<lambda>_)" 10)
 
-parse_translation {*
+parse_translation \<open>
   let
     fun fun_tr ctxt [cs] =
       let
@@ -385,6 +385,6 @@ parse_translation {*
         val ft = Case_Translation.case_tr true ctxt [x, cs];
       in lambda x ft end
   in [(@{syntax_const "_lam_pats_syntax"}, fun_tr)] end
-*}
+\<close>
 
 end

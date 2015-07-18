@@ -3,13 +3,13 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-section {* Automatic Theorem Provers (ATPs) *}
+section \<open>Automatic Theorem Provers (ATPs)\<close>
 
 theory ATP
 imports Meson
 begin
 
-subsection {* ATP problems and proofs *}
+subsection \<open>ATP problems and proofs\<close>
 
 ML_file "Tools/ATP/atp_util.ML"
 ML_file "Tools/ATP/atp_problem.ML"
@@ -18,7 +18,7 @@ ML_file "Tools/ATP/atp_proof_redirect.ML"
 ML_file "Tools/ATP/atp_satallax.ML"
 
 
-subsection {* Higher-order reasoning helpers *}
+subsection \<open>Higher-order reasoning helpers\<close>
 
 definition fFalse :: bool where
 "fFalse \<longleftrightarrow> False"
@@ -131,7 +131,7 @@ lemma fequal_laws:
 unfolding fFalse_def fTrue_def fequal_def by auto
 
 
-subsection {* Waldmeister helpers *}
+subsection \<open>Waldmeister helpers\<close>
 
 (* Has all needed simplification lemmas for logic. *)
 lemma boolean_equality: "(P \<longleftrightarrow> P) = True"
@@ -144,7 +144,7 @@ lemmas waldmeister_fol = boolean_equality boolean_comm
   simp_thms(1-5,7-8,11-25,27-33) disj_comms disj_assoc conj_comms conj_assoc
 
 
-subsection {* Basic connection between ATPs and HOL *}
+subsection \<open>Basic connection between ATPs and HOL\<close>
 
 ML_file "Tools/lambda_lifting.ML"
 ML_file "Tools/monomorph.ML"

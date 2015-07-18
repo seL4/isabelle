@@ -7,17 +7,17 @@
     Author:     Jeremy Avigad
 *)
 
-section {* Fields *}
+section \<open>Fields\<close>
 
 theory Fields
 imports Rings
 begin
 
-subsection {* Division rings *}
+subsection \<open>Division rings\<close>
 
-text {*
+text \<open>
   A division ring is like a field, but without the commutativity requirement.
-*}
+\<close>
 
 class inverse = divide +
   fixes inverse :: "'a \<Rightarrow> 'a"
@@ -29,7 +29,7 @@ where
 
 end
 
-text{* Lemmas @{text divide_simps} move division to the outside and eliminates them on (in)equalities. *}
+text\<open>Lemmas @{text divide_simps} move division to the outside and eliminates them on (in)equalities.\<close>
 
 named_theorems divide_simps "rewrite rules to eliminate divisions"
 
@@ -94,9 +94,9 @@ lemma nonzero_inverse_eq_imp_eq:
   assumes "inverse a = inverse b" and "a \<noteq> 0" and "b \<noteq> 0"
   shows "a = b"
 proof -
-  from `inverse a = inverse b`
+  from \<open>inverse a = inverse b\<close>
   have "inverse (inverse a) = inverse (inverse b)" by (rule arg_cong)
-  with `a \<noteq> 0` and `b \<noteq> 0` show "a = b"
+  with \<open>a \<noteq> 0\<close> and \<open>b \<noteq> 0\<close> show "a = b"
     by (simp add: nonzero_inverse_inverse_eq)
 qed
 
@@ -272,7 +272,7 @@ lemma [divide_simps]:
 
 end
 
-subsection {* Fields *}
+subsection \<open>Fields\<close>
 
 class field = comm_ring_1 + inverse +
   assumes field_inverse: "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
@@ -306,7 +306,7 @@ next
     by (simp add: divide_inverse)
 qed
 
-text{*There is no slick version using division by zero.*}
+text\<open>There is no slick version using division by zero.\<close>
 lemma inverse_add:
   "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> inverse a + inverse b = (a + b) * inverse a * inverse b"
   by (simp add: division_ring_inverse_add ac_simps)
@@ -345,7 +345,7 @@ proof -
     by (simp only: mult.commute)
 qed
 
-text{*Special Cancellation Simprules for Division*}
+text\<open>Special Cancellation Simprules for Division\<close>
 
 lemma nonzero_divide_mult_cancel_right [simp]:
   "b \<noteq> 0 \<Longrightarrow> b / (a * b) = 1 / a"
@@ -374,8 +374,8 @@ lemma frac_eq_eq:
 lemma divide_minus1 [simp]: "x / - 1 = - x"
   using nonzero_minus_divide_right [of "1" x] by simp
 
-text{*This version builds in division by zero while also re-orienting
-      the right-hand side.*}
+text\<open>This version builds in division by zero while also re-orienting
+      the right-hand side.\<close>
 lemma inverse_mult_distrib [simp]:
   "inverse (a * b) = inverse a * inverse b"
 proof cases
@@ -391,11 +391,11 @@ lemma inverse_divide [simp]:
   by (simp add: divide_inverse mult.commute)
 
 
-text {* Calculations with fractions *}
+text \<open>Calculations with fractions\<close>
 
-text{* There is a whole bunch of simp-rules just for class @{text
+text\<open>There is a whole bunch of simp-rules just for class @{text
 field} but none for class @{text field} and @{text nonzero_divides}
-because the latter are covered by a simproc. *}
+because the latter are covered by a simproc.\<close>
 
 lemma mult_divide_mult_cancel_left:
   "c \<noteq> 0 \<Longrightarrow> (c * a) / (c * b) = a / b"
@@ -421,14 +421,14 @@ lemma divide_divide_times_eq:
   "(x / y) / (z / w) = (x * w) / (y * z)"
   by simp
 
-text {*Special Cancellation Simprules for Division*}
+text \<open>Special Cancellation Simprules for Division\<close>
 
 lemma mult_divide_mult_cancel_left_if [simp]:
   shows "(c * a) / (c * b) = (if c = 0 then 0 else a / b)"
   by simp
 
 
-text {* Division and Unary Minus *}
+text \<open>Division and Unary Minus\<close>
 
 lemma minus_divide_right:
   "- (a / b) = a / - b"
@@ -489,7 +489,7 @@ lemma add_num_frac:
 end
 
 
-subsection {* Ordered fields *}
+subsection \<open>Ordered fields\<close>
 
 class linordered_field = field + linordered_idom
 begin
@@ -579,7 +579,7 @@ apply (simp add: less_le [of "inverse a"] less_le [of "b"])
 apply (force dest!: inverse_le_imp_le nonzero_inverse_eq_imp_eq)
 done
 
-text{*Both premises are essential. Consider -1 and 1.*}
+text\<open>Both premises are essential. Consider -1 and 1.\<close>
 lemma inverse_less_iff_less [simp]:
   "0 < a \<Longrightarrow> 0 < b \<Longrightarrow> inverse a < inverse b \<longleftrightarrow> b < a"
   by (blast intro: less_imp_inverse_less dest: inverse_less_imp_less)
@@ -593,8 +593,8 @@ lemma inverse_le_iff_le [simp]:
   by (blast intro: le_imp_inverse_le dest: inverse_le_imp_le)
 
 
-text{*These results refer to both operands being negative.  The opposite-sign
-case is trivial, since inverse preserves signs.*}
+text\<open>These results refer to both operands being negative.  The opposite-sign
+case is trivial, since inverse preserves signs.\<close>
 lemma inverse_le_imp_le_neg:
   "inverse a \<le> inverse b \<Longrightarrow> b < 0 \<Longrightarrow> b \<le> a"
 apply (rule classical)
@@ -733,8 +733,8 @@ proof -
   finally show ?thesis .
 qed
 
-text{* The following @{text field_simps} rules are necessary, as minus is always moved atop of
-division but we want to get rid of division. *}
+text\<open>The following @{text field_simps} rules are necessary, as minus is always moved atop of
+division but we want to get rid of division.\<close>
 
 lemma pos_le_minus_divide_eq [field_simps]: "0 < c \<Longrightarrow> a \<le> - (b / c) \<longleftrightarrow> a * c \<le> - b"
   unfolding minus_divide_left by (rule pos_le_divide_eq)
@@ -768,10 +768,10 @@ lemma frac_le_eq:
   "y \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> x / y \<le> w / z \<longleftrightarrow> (x * z - w * y) / (y * z) \<le> 0"
   by (subst le_iff_diff_le_0) (simp add: diff_frac_eq )
 
-text{* Lemmas @{text sign_simps} is a first attempt to automate proofs
+text\<open>Lemmas @{text sign_simps} is a first attempt to automate proofs
 of positivity/negativity needed for @{text field_simps}. Have not added @{text
 sign_simps} to @{text field_simps} because the former can lead to case
-explosions. *}
+explosions.\<close>
 
 lemmas sign_simps = algebra_simps zero_less_mult_iff mult_less_0_iff
 
@@ -835,8 +835,8 @@ apply (drule divide_strict_right_mono [of _ _ "-c"], simp)
 apply (simp add: less_imp_not_eq nonzero_minus_divide_right [symmetric])
 done
 
-text{*The last premise ensures that @{term a} and @{term b}
-      have the same sign*}
+text\<open>The last premise ensures that @{term a} and @{term b}
+      have the same sign\<close>
 lemma divide_strict_left_mono:
   "[|b < a; 0 < c; 0 < a*b|] ==> c / a < c / b"
   by (auto simp: field_simps zero_less_mult_iff mult_strict_right_mono)
@@ -984,7 +984,7 @@ lemma [divide_simps]:
     and minus_divide_less_eq: "- (b / c) < a \<longleftrightarrow> (if 0 < c then - b < a * c else if c < 0 then a * c < - b else 0 < a)"
   by (auto simp: field_simps not_less dest: antisym)
 
-text {*Division and Signs*}
+text \<open>Division and Signs\<close>
 
 lemma
   shows zero_less_divide_iff: "0 < a / b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
@@ -993,9 +993,9 @@ lemma
     and divide_le_0_iff: "a / b \<le> 0 \<longleftrightarrow> 0 \<le> a \<and> b \<le> 0 \<or> a \<le> 0 \<and> 0 \<le> b"
   by (auto simp add: divide_simps)
 
-text {* Division and the Number One *}
+text \<open>Division and the Number One\<close>
 
-text{*Simplify expressions equated with 1*}
+text\<open>Simplify expressions equated with 1\<close>
 
 lemma zero_eq_1_divide_iff [simp]: "0 = 1 / a \<longleftrightarrow> a = 0"
   by (cases "a = 0") (auto simp: field_simps)
@@ -1003,7 +1003,7 @@ lemma zero_eq_1_divide_iff [simp]: "0 = 1 / a \<longleftrightarrow> a = 0"
 lemma one_divide_eq_0_iff [simp]: "1 / a = 0 \<longleftrightarrow> a = 0"
   using zero_eq_1_divide_iff[of a] by simp
 
-text{*Simplify expressions such as @{text "0 < 1/x"} to @{text "0 < x"}*}
+text\<open>Simplify expressions such as @{text "0 < 1/x"} to @{text "0 < x"}\<close>
 
 lemma zero_le_divide_1_iff [simp]:
   "0 \<le> 1 / a \<longleftrightarrow> 0 \<le> a"
@@ -1050,7 +1050,7 @@ lemma divide_le_cancel: "a / c \<le> b / c \<longleftrightarrow> (0 < c \<longri
 lemma divide_less_cancel: "a / c < b / c \<longleftrightarrow> (0 < c \<longrightarrow> a < b) \<and> (c < 0 \<longrightarrow> b < a) \<and> c \<noteq> 0"
   by (auto simp add: divide_inverse mult_less_cancel_right)
 
-text{*Simplify quotients that are compared with the value 1.*}
+text\<open>Simplify quotients that are compared with the value 1.\<close>
 
 lemma le_divide_eq_1:
   "(1 \<le> b / a) = ((0 < a & a \<le> b) | (a < 0 & b \<le> a))"
@@ -1084,7 +1084,7 @@ lemma divide_nonpos_nonneg:
   "x \<le> 0 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x / y \<le> 0"
   by (auto simp add: divide_simps)
 
-text {*Conditional Simplification Rules: No Case Splits*}
+text \<open>Conditional Simplification Rules: No Case Splits\<close>
 
 lemma le_divide_eq_1_pos [simp]:
   "0 < a \<Longrightarrow> (1 \<le> b/a) = (a \<le> b)"
@@ -1158,11 +1158,11 @@ proof (cases "0 < x")
   assume "0 < x"
   thus ?thesis
     using dense_le_bounded[of 0 1 "y/x"] *
-    unfolding le_divide_eq if_P[OF `0 < x`] by simp
+    unfolding le_divide_eq if_P[OF \<open>0 < x\<close>] by simp
 next
   assume "\<not>0 < x" hence "x \<le> 0" by simp
   obtain s::'a where s: "0 < s" "s < 1" using dense[of 0 "1\<Colon>'a"] by auto
-  hence "x \<le> s * x" using mult_le_cancel_right[of 1 x s] `x \<le> 0` by auto
+  hence "x \<le> s * x" using mult_le_cancel_right[of 1 x s] \<open>x \<le> 0\<close> by auto
   also note *[OF s]
   finally show ?thesis .
 qed

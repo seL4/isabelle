@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
-section {* Program extraction for HOL *}
+section \<open>Program extraction for HOL\<close>
 
 theory Extraction
 imports Option
@@ -10,9 +10,9 @@ begin
 
 ML_file "Tools/rewrite_hol_proof.ML"
 
-subsection {* Setup *}
+subsection \<open>Setup\<close>
 
-setup {*
+setup \<open>
   Extraction.add_types
       [("bool", ([], NONE))] #>
   Extraction.set_preprocessor (fn thy =>
@@ -22,7 +22,7 @@ setup {*
         (RewriteHOLProof.rews,
          ProofRewriteRules.rprocs true @ [ProofRewriteRules.expand_of_class thy]) o
       ProofRewriteRules.elim_vars (curry Const @{const_name default}))
-*}
+\<close>
 
 lemmas [extraction_expand] =
   meta_spec atomize_eq atomize_all atomize_imp atomize_conj
@@ -40,7 +40,7 @@ lemmas [extraction_expand_def] =
 
 datatype (plugins only: code extraction) sumbool = Left | Right
 
-subsection {* Type of extracted program *}
+subsection \<open>Type of extracted program\<close>
 
 extract_type
   "typeof (Trueprop P) \<equiv> typeof P"
@@ -90,7 +90,7 @@ extract_type
 
   "typeof (x \<in> P) \<equiv> typeof P"
 
-subsection {* Realizability *}
+subsection \<open>Realizability\<close>
 
 realizability
   "(realizes t (Trueprop P)) \<equiv> (Trueprop (realizes t P))"
@@ -150,7 +150,7 @@ realizability
 
   "(realizes t (P = Q)) \<equiv> (realizes t ((P \<longrightarrow> Q) \<and> (Q \<longrightarrow> P)))"
 
-subsection {* Computational content of basic inference rules *}
+subsection \<open>Computational content of basic inference rules\<close>
 
 theorem disjE_realizer:
   assumes r: "case x of Inl p \<Rightarrow> P p | Inr q \<Rightarrow> Q q"

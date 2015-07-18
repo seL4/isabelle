@@ -1,6 +1,6 @@
 (*  Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel; Florian Haftmann, TU Muenchen *)
 
-section {* Complete lattices *}
+section \<open>Complete lattices\<close>
 
 theory Complete_Lattices
 imports Fun
@@ -11,7 +11,7 @@ notation
   less (infix "\<sqsubset>" 50)
 
 
-subsection {* Syntactic infimum and supremum operations *}
+subsection \<open>Syntactic infimum and supremum operations\<close>
 
 class Inf =
   fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
@@ -79,11 +79,11 @@ lemma strong_SUP_cong [cong]:
 
 end
 
-text {*
+text \<open>
   Note: must use names @{const INFIMUM} and @{const SUPREMUM} here instead of
   @{text INF} and @{text SUP} to allow the following syntax coexist
   with the plain constant names.
-*}
+\<close>
 
 syntax
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
@@ -107,17 +107,17 @@ translations
   "SUP x. B"     == "SUP x:CONST UNIV. B"
   "SUP x:A. B"   == "CONST SUPREMUM A (%x. B)"
 
-print_translation {*
+print_translation \<open>
   [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFIMUM} @{syntax_const "_INF"},
     Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPREMUM} @{syntax_const "_SUP"}]
-*} -- {* to avoid eta-contraction of body *}
+\<close> -- \<open>to avoid eta-contraction of body\<close>
 
-subsection {* Abstract complete lattices *}
+subsection \<open>Abstract complete lattices\<close>
 
-text {* A complete lattice always has a bottom and a top,
+text \<open>A complete lattice always has a bottom and a top,
 so we include them into the following type class,
 along with assumptions that define bottom and top
-in terms of infimum and supremum. *}
+in terms of infimum and supremum.\<close>
 
 class complete_lattice = lattice + Inf + Sup + bot + top +
   assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
@@ -250,8 +250,8 @@ lemma Inf_mono:
 proof (rule Inf_greatest)
   fix b assume "b \<in> B"
   with assms obtain a where "a \<in> A" and "a \<sqsubseteq> b" by blast
-  from `a \<in> A` have "\<Sqinter>A \<sqsubseteq> a" by (rule Inf_lower)
-  with `a \<sqsubseteq> b` show "\<Sqinter>A \<sqsubseteq> b" by auto
+  from \<open>a \<in> A\<close> have "\<Sqinter>A \<sqsubseteq> a" by (rule Inf_lower)
+  with \<open>a \<sqsubseteq> b\<close> show "\<Sqinter>A \<sqsubseteq> b" by auto
 qed
 
 lemma INF_mono:
@@ -264,8 +264,8 @@ lemma Sup_mono:
 proof (rule Sup_least)
   fix a assume "a \<in> A"
   with assms obtain b where "b \<in> B" and "a \<sqsubseteq> b" by blast
-  from `b \<in> B` have "b \<sqsubseteq> \<Squnion>B" by (rule Sup_upper)
-  with `a \<sqsubseteq> b` show "a \<sqsubseteq> \<Squnion>B" by auto
+  from \<open>b \<in> B\<close> have "b \<sqsubseteq> \<Squnion>B" by (rule Sup_upper)
+  with \<open>a \<sqsubseteq> b\<close> show "a \<sqsubseteq> \<Squnion>B" by auto
 qed
 
 lemma SUP_mono:
@@ -274,7 +274,7 @@ lemma SUP_mono:
 
 lemma INF_superset_mono:
   "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> f x \<sqsubseteq> g x) \<Longrightarrow> (\<Sqinter>x\<in>A. f x) \<sqsubseteq> (\<Sqinter>x\<in>B. g x)"
-  -- {* The last inclusion is POSITIVE! *}
+  -- \<open>The last inclusion is POSITIVE!\<close>
   by (blast intro: INF_mono dest: subsetD)
 
 lemma SUP_subset_mono:
@@ -286,8 +286,8 @@ lemma Inf_less_eq:
     and "A \<noteq> {}"
   shows "\<Sqinter>A \<sqsubseteq> u"
 proof -
-  from `A \<noteq> {}` obtain v where "v \<in> A" by blast
-  moreover from `v \<in> A` assms(1) have "v \<sqsubseteq> u" by blast
+  from \<open>A \<noteq> {}\<close> obtain v where "v \<in> A" by blast
+  moreover from \<open>v \<in> A\<close> assms(1) have "v \<sqsubseteq> u" by blast
   ultimately show ?thesis by (rule Inf_lower2)
 qed
 
@@ -296,8 +296,8 @@ lemma less_eq_Sup:
     and "A \<noteq> {}"
   shows "u \<sqsubseteq> \<Squnion>A"
 proof -
-  from `A \<noteq> {}` obtain v where "v \<in> A" by blast
-  moreover from `v \<in> A` assms(1) have "u \<sqsubseteq> v" by blast
+  from \<open>A \<noteq> {}\<close> obtain v where "v \<in> A" by blast
+  moreover from \<open>v \<in> A\<close> assms(1) have "u \<sqsubseteq> v" by blast
   ultimately show ?thesis by (rule Sup_upper2)
 qed
 
@@ -359,7 +359,7 @@ proof -
       assume "\<not> (\<forall>x\<in>A. x = \<top>)"
       then obtain x where "x \<in> A" and "x \<noteq> \<top>" by blast
       then obtain B where "A = insert x B" by blast
-      with `\<Sqinter>A = \<top>` `x \<noteq> \<top>` show False by simp
+      with \<open>\<Sqinter>A = \<top>\<close> \<open>x \<noteq> \<top>\<close> show False by simp
     qed
   qed
   then show "\<top> = \<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)" by auto
@@ -435,8 +435,8 @@ lemma SUP_constant:
 lemma less_INF_D:
   assumes "y < (\<Sqinter>i\<in>A. f i)" "i \<in> A" shows "y < f i"
 proof -
-  note `y < (\<Sqinter>i\<in>A. f i)`
-  also have "(\<Sqinter>i\<in>A. f i) \<le> f i" using `i \<in> A`
+  note \<open>y < (\<Sqinter>i\<in>A. f i)\<close>
+  also have "(\<Sqinter>i\<in>A. f i) \<le> f i" using \<open>i \<in> A\<close>
     by (rule INF_lower)
   finally show "y < f i" .
 qed
@@ -444,9 +444,9 @@ qed
 lemma SUP_lessD:
   assumes "(\<Squnion>i\<in>A. f i) < y" "i \<in> A" shows "f i < y"
 proof -
-  have "f i \<le> (\<Squnion>i\<in>A. f i)" using `i \<in> A`
+  have "f i \<le> (\<Squnion>i\<in>A. f i)" using \<open>i \<in> A\<close>
     by (rule SUP_upper)
-  also note `(\<Squnion>i\<in>A. f i) < y`
+  also note \<open>(\<Squnion>i\<in>A. f i) < y\<close>
   finally show "f i < y" .
 qed
 
@@ -550,19 +550,19 @@ begin
 
 lemma mono_Inf:
   shows "f (\<Sqinter>A) \<le> (\<Sqinter>x\<in>A. f x)"
-  using `mono f` by (auto intro: complete_lattice_class.INF_greatest Inf_lower dest: monoD)
+  using \<open>mono f\<close> by (auto intro: complete_lattice_class.INF_greatest Inf_lower dest: monoD)
 
 lemma mono_Sup:
   shows "(\<Squnion>x\<in>A. f x) \<le> f (\<Squnion>A)"
-  using `mono f` by (auto intro: complete_lattice_class.SUP_least Sup_upper dest: monoD)
+  using \<open>mono f\<close> by (auto intro: complete_lattice_class.SUP_least Sup_upper dest: monoD)
 
 lemma mono_INF:
   "f (INF i : I. A i) \<le> (INF x : I. f (A x))"
-  by (intro complete_lattice_class.INF_greatest monoD[OF `mono f`] INF_lower)
+  by (intro complete_lattice_class.INF_greatest monoD[OF \<open>mono f\<close>] INF_lower)
 
 lemma mono_SUP:
   "(SUP x : I. f (A x)) \<le> f (SUP i : I. A i)"
-  by (intro complete_lattice_class.SUP_least monoD[OF `mono f`] SUP_upper)
+  by (intro complete_lattice_class.SUP_least monoD[OF \<open>mono f\<close>] SUP_upper)
 
 end
 
@@ -698,7 +698,7 @@ qed
 end
 
 
-subsection {* Complete lattice on @{typ bool} *}
+subsection \<open>Complete lattice on @{typ bool}\<close>
 
 instantiation bool :: complete_lattice
 begin
@@ -734,7 +734,7 @@ instance bool :: complete_boolean_algebra proof
 qed (auto intro: bool_induct)
 
 
-subsection {* Complete lattice on @{typ "_ \<Rightarrow> _"} *}
+subsection \<open>Complete lattice on @{typ "_ \<Rightarrow> _"}\<close>
 
 instantiation "fun" :: (type, Inf) Inf
 begin
@@ -787,7 +787,7 @@ qed (auto simp add: INF_def SUP_def inf_Sup sup_Inf fun_eq_iff image_image
 instance "fun" :: (type, complete_boolean_algebra) complete_boolean_algebra ..
 
 
-subsection {* Complete lattice on unary and binary predicates *}
+subsection \<open>Complete lattice on unary and binary predicates\<close>
 
 lemma Inf1_I: 
   "(\<And>P. P \<in> A \<Longrightarrow> P a) \<Longrightarrow> (\<Sqinter>A) a"
@@ -878,7 +878,7 @@ lemma SUP2_E:
   using assms by auto
 
 
-subsection {* Complete lattice on @{typ "_ set"} *}
+subsection \<open>Complete lattice on @{typ "_ set"}\<close>
 
 instantiation "set" :: (type) complete_lattice
 begin
@@ -899,7 +899,7 @@ proof
 qed (auto simp add: INF_def SUP_def Inf_set_def Sup_set_def image_def)
   
 
-subsubsection {* Inter *}
+subsubsection \<open>Inter\<close>
 
 abbreviation Inter :: "'a set set \<Rightarrow> 'a set" where
   "Inter S \<equiv> \<Sqinter>S"
@@ -923,18 +923,18 @@ lemma Inter_iff [simp]: "A \<in> \<Inter>C \<longleftrightarrow> (\<forall>X\<in
 lemma InterI [intro!]: "(\<And>X. X \<in> C \<Longrightarrow> A \<in> X) \<Longrightarrow> A \<in> \<Inter>C"
   by (simp add: Inter_eq)
 
-text {*
+text \<open>
   \medskip A ``destruct'' rule -- every @{term X} in @{term C}
   contains @{term A} as an element, but @{prop "A \<in> X"} can hold when
   @{prop "X \<in> C"} does not!  This rule is analogous to @{text spec}.
-*}
+\<close>
 
 lemma InterD [elim, Pure.elim]: "A \<in> \<Inter>C \<Longrightarrow> X \<in> C \<Longrightarrow> A \<in> X"
   by auto
 
 lemma InterE [elim]: "A \<in> \<Inter>C \<Longrightarrow> (X \<notin> C \<Longrightarrow> R) \<Longrightarrow> (A \<in> X \<Longrightarrow> R) \<Longrightarrow> R"
-  -- {* ``Classical'' elimination rule -- does not require proving
-    @{prop "X \<in> C"}. *}
+  -- \<open>``Classical'' elimination rule -- does not require proving
+    @{prop "X \<in> C"}.\<close>
   by (unfold Inter_eq) blast
 
 lemma Inter_lower: "B \<in> A \<Longrightarrow> \<Inter>A \<subseteq> B"
@@ -971,15 +971,15 @@ lemma Inter_anti_mono: "B \<subseteq> A \<Longrightarrow> \<Inter>A \<subseteq> 
   by (fact Inf_superset_mono)
 
 
-subsubsection {* Intersections of families *}
+subsubsection \<open>Intersections of families\<close>
 
 abbreviation INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
   "INTER \<equiv> INFIMUM"
 
-text {*
+text \<open>
   Note: must use name @{const INTER} here instead of @{text INT}
   to allow the following syntax coexist with the plain constant name.
-*}
+\<close>
 
 syntax
   "_INTER1"     :: "pttrns => 'b set => 'b set"           ("(3INT _./ _)" [0, 10] 10)
@@ -999,9 +999,9 @@ translations
   "INT x. B"    == "INT x:CONST UNIV. B"
   "INT x:A. B"  == "CONST INTER A (%x. B)"
 
-print_translation {*
+print_translation \<open>
   [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INTER} @{syntax_const "_INTER"}]
-*} -- {* to avoid eta-contraction of body *}
+\<close> -- \<open>to avoid eta-contraction of body\<close>
 
 lemma INTER_eq:
   "(\<Inter>x\<in>A. B x) = {y. \<forall>x\<in>A. y \<in> B x}"
@@ -1021,7 +1021,7 @@ lemma INT_D [elim, Pure.elim]: "b \<in> (\<Inter>x\<in>A. B x) \<Longrightarrow>
   by auto
 
 lemma INT_E [elim]: "b \<in> (\<Inter>x\<in>A. B x) \<Longrightarrow> (b \<in> B a \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
-  -- {* "Classical" elimination -- by the Excluded Middle on @{prop "a\<in>A"}. *}
+  -- \<open>"Classical" elimination -- by the Excluded Middle on @{prop "a\<in>A"}.\<close>
   by (auto simp add: INF_def image_def)
 
 lemma Collect_ball_eq: "{x. \<forall>y\<in>A. P x y} = (\<Inter>y\<in>A. {x. P x y})"
@@ -1068,7 +1068,7 @@ lemma INT_bool_eq: "(\<Inter>b. A b) = A True \<inter> A False"
 
 lemma INT_anti_mono:
   "A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<subseteq> g x) \<Longrightarrow> (\<Inter>x\<in>B. f x) \<subseteq> (\<Inter>x\<in>A. g x)"
-  -- {* The last inclusion is POSITIVE! *}
+  -- \<open>The last inclusion is POSITIVE!\<close>
   by (fact INF_superset_mono)
 
 lemma Pow_INT_eq: "Pow (\<Inter>x\<in>A. B x) = (\<Inter>x\<in>A. Pow (B x))"
@@ -1078,7 +1078,7 @@ lemma vimage_INT: "f -` (\<Inter>x\<in>A. B x) = (\<Inter>x\<in>A. f -` B x)"
   by blast
 
 
-subsubsection {* Union *}
+subsubsection \<open>Union\<close>
 
 abbreviation Union :: "'a set set \<Rightarrow> 'a set" where
   "Union S \<equiv> \<Squnion>S"
@@ -1102,8 +1102,8 @@ lemma Union_iff [simp]:
 
 lemma UnionI [intro]:
   "X \<in> C \<Longrightarrow> A \<in> X \<Longrightarrow> A \<in> \<Union>C"
-  -- {* The order of the premises presupposes that @{term C} is rigid;
-    @{term A} may be flexible. *}
+  -- \<open>The order of the premises presupposes that @{term C} is rigid;
+    @{term A} may be flexible.\<close>
   by auto
 
 lemma UnionE [elim!]:
@@ -1147,15 +1147,15 @@ lemma Union_mono: "A \<subseteq> B \<Longrightarrow> \<Union>A \<subseteq> \<Uni
   by (fact Sup_subset_mono)
 
 
-subsubsection {* Unions of families *}
+subsubsection \<open>Unions of families\<close>
 
 abbreviation UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
   "UNION \<equiv> SUPREMUM"
 
-text {*
+text \<open>
   Note: must use name @{const UNION} here instead of @{text UN}
   to allow the following syntax coexist with the plain constant name.
-*}
+\<close>
 
 syntax
   "_UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" [0, 10] 10)
@@ -1175,18 +1175,18 @@ translations
   "UN x. B"     == "UN x:CONST UNIV. B"
   "UN x:A. B"   == "CONST UNION A (%x. B)"
 
-text {*
+text \<open>
   Note the difference between ordinary xsymbol syntax of indexed
   unions and intersections (e.g.\ @{text"\<Union>a\<^sub>1\<in>A\<^sub>1. B"})
   and their \LaTeX\ rendition: @{term"\<Union>a\<^sub>1\<in>A\<^sub>1. B"}. The
   former does not make the index expression a subscript of the
   union/intersection symbol because this leads to problems with nested
   subscripts in Proof General.
-*}
+\<close>
 
-print_translation {*
+print_translation \<open>
   [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax UNION} @{syntax_const "_UNION"}]
-*} -- {* to avoid eta-contraction of body *}
+\<close> -- \<open>to avoid eta-contraction of body\<close>
 
 lemma UNION_eq:
   "(\<Union>x\<in>A. B x) = {y. \<exists>x\<in>A. y \<in> B x}"
@@ -1211,8 +1211,8 @@ lemma UN_iff [simp]: "b \<in> (\<Union>x\<in>A. B x) \<longleftrightarrow> (\<ex
   using Union_iff [of _ "B ` A"] by simp
 
 lemma UN_I [intro]: "a \<in> A \<Longrightarrow> b \<in> B a \<Longrightarrow> b \<in> (\<Union>x\<in>A. B x)"
-  -- {* The order of the premises presupposes that @{term A} is rigid;
-    @{term b} may be flexible. *}
+  -- \<open>The order of the premises presupposes that @{term A} is rigid;
+    @{term b} may be flexible.\<close>
   by auto
 
 lemma UN_E [elim!]: "b \<in> (\<Union>x\<in>A. B x) \<Longrightarrow> (\<And>x. x\<in>A \<Longrightarrow> b \<in> B x \<Longrightarrow> R) \<Longrightarrow> R"
@@ -1295,7 +1295,7 @@ lemma vimage_UN: "f -` (\<Union>x\<in>A. B x) = (\<Union>x\<in>A. f -` B x)"
   by blast
 
 lemma vimage_eq_UN: "f -` B = (\<Union>y\<in>B. f -` {y})"
-  -- {* NOT suitable for rewriting *}
+  -- \<open>NOT suitable for rewriting\<close>
   by blast
 
 lemma image_UN: "f ` UNION A B = (\<Union>x\<in>A. f ` B x)"
@@ -1305,7 +1305,7 @@ lemma UN_singleton [simp]: "(\<Union>x\<in>A. {x}) = A"
   by blast
 
 
-subsubsection {* Distributive laws *}
+subsubsection \<open>Distributive laws\<close>
 
 lemma Int_Union: "A \<inter> \<Union>B = (\<Union>C\<in>B. A \<inter> C)"
   by (fact inf_Sup)
@@ -1322,19 +1322,19 @@ lemma INT_Int_distrib: "(\<Inter>i\<in>I. A i \<inter> B i) = (\<Inter>i\<in>I. 
 lemma UN_Un_distrib: "(\<Union>i\<in>I. A i \<union> B i) = (\<Union>i\<in>I. A i) \<union> (\<Union>i\<in>I. B i)"
   by (rule sym) (rule SUP_sup_distrib)
 
-lemma Int_Inter_image: "(\<Inter>x\<in>C. A x \<inter> B x) = \<Inter>(A ` C) \<inter> \<Inter>(B ` C)" -- {* FIXME drop *}
+lemma Int_Inter_image: "(\<Inter>x\<in>C. A x \<inter> B x) = \<Inter>(A ` C) \<inter> \<Inter>(B ` C)" -- \<open>FIXME drop\<close>
   by (simp add: INT_Int_distrib)
 
-lemma Un_Union_image: "(\<Union>x\<in>C. A x \<union> B x) = \<Union>(A ` C) \<union> \<Union>(B ` C)" -- {* FIXME drop *}
-  -- {* Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: *}
-  -- {* Union of a family of unions *}
+lemma Un_Union_image: "(\<Union>x\<in>C. A x \<union> B x) = \<Union>(A ` C) \<union> \<Union>(B ` C)" -- \<open>FIXME drop\<close>
+  -- \<open>Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5:\<close>
+  -- \<open>Union of a family of unions\<close>
   by (simp add: UN_Un_distrib)
 
 lemma Un_INT_distrib: "B \<union> (\<Inter>i\<in>I. A i) = (\<Inter>i\<in>I. B \<union> A i)"
   by (fact sup_INF)
 
 lemma Int_UN_distrib: "B \<inter> (\<Union>i\<in>I. A i) = (\<Union>i\<in>I. B \<inter> A i)"
-  -- {* Halmos, Naive Set Theory, page 35. *}
+  -- \<open>Halmos, Naive Set Theory, page 35.\<close>
   by (fact inf_SUP)
 
 lemma Int_UN_distrib2: "(\<Union>i\<in>I. A i) \<inter> (\<Union>j\<in>J. B j) = (\<Union>i\<in>I. \<Union>j\<in>J. A i \<inter> B j)"
@@ -1347,7 +1347,7 @@ lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<fora
   by (fact Sup_inf_eq_bot_iff)
 
 
-subsection {* Injections and bijections *}
+subsection \<open>Injections and bijections\<close>
 
 lemma inj_on_Inter:
   "S \<noteq> {} \<Longrightarrow> (\<And>A. A \<in> S \<Longrightarrow> inj_on f A) \<Longrightarrow> inj_on f (\<Inter>S)"
@@ -1429,7 +1429,7 @@ lemma UNION_fun_upd:
 by (auto split: if_splits)
 
 
-subsubsection {* Complement *}
+subsubsection \<open>Complement\<close>
 
 lemma Compl_INT [simp]: "- (\<Inter>x\<in>A. B x) = (\<Union>x\<in>A. -B x)"
   by (fact uminus_INF)
@@ -1438,10 +1438,10 @@ lemma Compl_UN [simp]: "- (\<Union>x\<in>A. B x) = (\<Inter>x\<in>A. -B x)"
   by (fact uminus_SUP)
 
 
-subsubsection {* Miniscoping and maxiscoping *}
+subsubsection \<open>Miniscoping and maxiscoping\<close>
 
-text {* \medskip Miniscoping: pushing in quantifiers and big Unions
-           and Intersections. *}
+text \<open>\medskip Miniscoping: pushing in quantifiers and big Unions
+           and Intersections.\<close>
 
 lemma UN_simps [simp]:
   "\<And>a B C. (\<Union>x\<in>C. insert a (B x)) = (if C={} then {} else insert a (\<Union>x\<in>C. B x))"
@@ -1477,7 +1477,7 @@ lemma UN_ball_bex_simps [simp]:
   by auto
 
 
-text {* \medskip Maxiscoping: pulling out big Unions and Intersections. *}
+text \<open>\medskip Maxiscoping: pulling out big Unions and Intersections.\<close>
 
 lemma UN_extend_simps:
   "\<And>a B C. insert a (\<Union>x\<in>C. B x) = (if C={} then {a} else (\<Union>x\<in>C. insert a (B x)))"
@@ -1505,7 +1505,7 @@ lemma INT_extend_simps:
   "\<And>A B f. (\<Inter>a\<in>A. B (f a)) = (\<Inter>x\<in>f`A. B x)"
   by auto
 
-text {* Finally *}
+text \<open>Finally\<close>
 
 no_notation
   less_eq (infix "\<sqsubseteq>" 50) and
@@ -1514,7 +1514,7 @@ no_notation
 lemmas mem_simps =
   insert_iff empty_iff Un_iff Int_iff Compl_iff Diff_iff
   mem_Collect_eq UN_iff Union_iff INT_iff Inter_iff
-  -- {* Each of these has ALREADY been added @{text "[simp]"} above. *}
+  -- \<open>Each of these has ALREADY been added @{text "[simp]"} above.\<close>
 
 end
 

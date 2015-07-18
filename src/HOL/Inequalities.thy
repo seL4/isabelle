@@ -16,7 +16,7 @@ next
   case (Suc i)
   have 0: "i = nat((n-1) - m)" "m \<le> n-1" using Suc(2,3) by arith+
   have "\<Sum> {m..n} = \<Sum> {m..1+(n-1)}" by simp
-  also have "\<dots> = \<Sum> {m..n-1} + n" using `m \<le> n`
+  also have "\<dots> = \<Sum> {m..n-1} + n" using \<open>m \<le> n\<close>
     by(subst atLeastAtMostPlus1_int_conv) simp_all
   also have "\<dots> = ((n-1)*(n-1+1) - m*(m-1)) div 2 + n"
     by(simp add: Suc(1)[OF 0])
@@ -43,7 +43,7 @@ proof cases
   hence "{m..<n} = {m..n-1}" by auto
   hence "\<Sum>{m..<n} = \<Sum>{m..n-1}" by simp
   also have "\<dots> = (n*(n-1) - m*(m-1)) div 2"
-    using assms `m < n` by (simp add: Setsum_Icc_nat mult.commute)
+    using assms \<open>m < n\<close> by (simp add: Setsum_Icc_nat mult.commute)
   finally show ?thesis .
 next
   assume "\<not> m < n" with assms show ?thesis by simp

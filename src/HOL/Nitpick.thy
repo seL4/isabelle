@@ -5,7 +5,7 @@
 Nitpick: Yet another counterexample generator for Isabelle/HOL.
 *)
 
-section {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
+section \<open>Nitpick: Yet Another Counterexample Generator for Isabelle/HOL\<close>
 
 theory Nitpick
 imports Record
@@ -30,9 +30,9 @@ consts
   Quot :: "'a \<Rightarrow> 'b"
   safe_The :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
 
-text {*
+text \<open>
 Alternative definitions.
-*}
+\<close>
 
 lemma Ex1_unfold[nitpick_unfold]: "Ex1 P \<equiv> \<exists>x. {x. P x} = {x}"
   apply (rule eq_reflection)
@@ -79,10 +79,10 @@ inductive fold_graph' :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> '
   "fold_graph' f z {} z" |
   "\<lbrakk>x \<in> A; fold_graph' f z (A - {x}) y\<rbrakk> \<Longrightarrow> fold_graph' f z A (f x y)"
 
-text {*
+text \<open>
 The following lemmas are not strictly necessary but they help the
 \textit{specialize} optimization.
-*}
+\<close>
 
 lemma The_psimp[nitpick_psimp]: "P = (op =) x \<Longrightarrow> The P = x"
   by auto
@@ -114,10 +114,10 @@ lemma size_list_simp[nitpick_simp]:
   "size xs = (if xs = [] then 0 else Suc (size (tl xs)))"
   by (cases xs) auto
 
-text {*
+text \<open>
 Auxiliary definitions used to provide an alternative representation for
 @{text rat} and @{text real}.
-*}
+\<close>
 
 function nat_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "nat_gcd x y = (if y = 0 then x else nat_gcd y (x mod y))"
@@ -220,7 +220,7 @@ ML_file "Tools/Nitpick/nitpick.ML"
 ML_file "Tools/Nitpick/nitpick_commands.ML"
 ML_file "Tools/Nitpick/nitpick_tests.ML"
 
-setup {*
+setup \<open>
   Nitpick_HOL.register_ersatz_global
     [(@{const_name card}, @{const_name card'}),
      (@{const_name setsum}, @{const_name setsum'}),
@@ -228,7 +228,7 @@ setup {*
      (@{const_name wf}, @{const_name wf'}),
      (@{const_name wf_wfrec}, @{const_name wf_wfrec'}),
      (@{const_name wfrec}, @{const_name wfrec'})]
-*}
+\<close>
 
 hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The FunBox PairBox Word prod
   refl' wf' card' setsum' fold_graph' nat_gcd nat_lcm int_gcd int_lcm Frac Abs_Frac Rep_Frac

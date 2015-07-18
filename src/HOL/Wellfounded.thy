@@ -6,13 +6,13 @@
     Author:     Andrei Popescu, TU Muenchen
 *)
 
-section {*Well-founded Recursion*}
+section \<open>Well-founded Recursion\<close>
 
 theory Wellfounded
 imports Transitive_Closure
 begin
 
-subsection {* Basic Definitions *}
+subsection \<open>Basic Definitions\<close>
 
 definition wf :: "('a * 'a) set => bool" where
   "wf r \<longleftrightarrow> (!P. (!x. (!y. (y,x):r --> P(y)) --> P(x)) --> (!x. P(x)))"
@@ -29,8 +29,8 @@ lemma wfUNIVI:
 
 lemmas wfPUNIVI = wfUNIVI [to_pred]
 
-text{*Restriction to domain @{term A} and range @{term B}.  If @{term r} is
-    well-founded over their intersection, then @{term "wf r"}*}
+text\<open>Restriction to domain @{term A} and range @{term B}.  If @{term r} is
+    well-founded over their intersection, then @{term "wf r"}\<close>
 lemma wfI: 
  "[| r \<subseteq> A <*> B; 
      !!x P. [|\<forall>x. (\<forall>y. (y,x) : r --> P y) --> P x;  x : A; x : B |] ==> P x |]
@@ -75,9 +75,9 @@ lemma (in wellorder) wf:
 unfolding wf_def by (blast intro: less_induct)
 
 
-subsection {* Basic Results *}
+subsection \<open>Basic Results\<close>
 
-text {* Point-free characterization of well-foundedness *}
+text \<open>Point-free characterization of well-foundedness\<close>
 
 lemma wfE_pf:
   assumes wf: "wf R"
@@ -105,7 +105,7 @@ proof (rule wfUNIVI)
   with a show "P x" by blast
 qed
 
-text{*Minimal-element characterization of well-foundedness*}
+text\<open>Minimal-element characterization of well-foundedness\<close>
 
 lemma wfE_min:
   assumes wf: "wf R" and Q: "x \<in> Q"
@@ -131,7 +131,7 @@ done
 
 lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
 
-text{* Well-foundedness of transitive closure *}
+text\<open>Well-foundedness of transitive closure\<close>
 
 lemma wf_trancl:
   assumes "wf r"
@@ -143,17 +143,17 @@ proof -
     have "P x"
     proof (rule induct_step)
       fix y assume "(y, x) : r^+"
-      with `wf r` show "P y"
+      with \<open>wf r\<close> show "P y"
       proof (induct x arbitrary: y)
         case (less x)
-        note hyp = `\<And>x' y'. (x', x) : r ==> (y', x') : r^+ ==> P y'`
-        from `(y, x) : r^+` show "P y"
+        note hyp = \<open>\<And>x' y'. (x', x) : r ==> (y', x') : r^+ ==> P y'\<close>
+        from \<open>(y, x) : r^+\<close> show "P y"
         proof cases
           case base
           show "P y"
           proof (rule induct_step)
             fix y' assume "(y', y) : r^+"
-            with `(y, x) : r` show "P y'" by (rule hyp [of y y'])
+            with \<open>(y, x) : r\<close> show "P y'" by (rule hyp [of y y'])
           qed
         next
           case step
@@ -172,7 +172,7 @@ lemma wf_converse_trancl: "wf (r^-1) ==> wf ((r^+)^-1)"
   apply (erule wf_trancl)
   done
 
-text {* Well-foundedness of subsets *}
+text \<open>Well-foundedness of subsets\<close>
 
 lemma wf_subset: "[| wf(r);  p<=r |] ==> wf(p)"
   apply (simp (no_asm_use) add: wf_eq_minimal)
@@ -181,7 +181,7 @@ lemma wf_subset: "[| wf(r);  p<=r |] ==> wf(p)"
 
 lemmas wfP_subset = wf_subset [to_pred]
 
-text {* Well-foundedness of the empty relation *}
+text \<open>Well-foundedness of the empty relation\<close>
 
 lemma wf_empty [iff]: "wf {}"
   by (simp add: wf_def)
@@ -203,7 +203,7 @@ lemma wf_Int2: "wf r ==> wf (r' Int r)"
   apply (rule Int_lower2)
   done  
 
-text {* Exponentiation *}
+text \<open>Exponentiation\<close>
 
 lemma wf_exp:
   assumes "wf (R ^^ n)"
@@ -211,11 +211,11 @@ lemma wf_exp:
 proof (rule wfI_pf)
   fix A assume "A \<subseteq> R `` A"
   then have "A \<subseteq> (R ^^ n) `` A" by (induct n) force+
-  with `wf (R ^^ n)`
+  with \<open>wf (R ^^ n)\<close>
   show "A = {}" by (rule wfE_pf)
 qed
 
-text {* Well-foundedness of insert *}
+text \<open>Well-foundedness of insert\<close>
 
 lemma wf_insert [iff]: "wf(insert (y,x) r) = (wf(r) & (x,y) ~: r^*)"
 apply (rule iffI)
@@ -233,12 +233,12 @@ apply (case_tac "y:Q")
 apply (rule_tac x = "{z. z:Q & (z,y) : r^*}" in allE)
  apply assumption
 apply (erule_tac V = "ALL Q. (EX x. x : Q) --> P Q" for P in thin_rl) 
-  --{*essential for speed*}
-txt{*Blast with new substOccur fails*}
+  --\<open>essential for speed\<close>
+txt\<open>Blast with new substOccur fails\<close>
 apply (fast intro: converse_rtrancl_into_rtrancl)
 done
 
-text{*Well-foundedness of image*}
+text\<open>Well-foundedness of image\<close>
 
 lemma wf_map_prod_image: "[| wf r; inj f |] ==> wf (map_prod f f ` r)"
 apply (simp only: wf_eq_minimal, clarify)
@@ -248,7 +248,7 @@ apply (fast dest: inj_onD, blast)
 done
 
 
-subsection {* Well-Foundedness Results for Unions *}
+subsection \<open>Well-Foundedness Results for Unions\<close>
 
 lemma wf_union_compatible:
   assumes "wf R" "wf S"
@@ -259,8 +259,8 @@ proof (rule wfI_min)
   let ?Q' = "{x \<in> Q. \<forall>y. (y, x) \<in> R \<longrightarrow> y \<notin> Q}"
   assume "x \<in> Q"
   obtain a where "a \<in> ?Q'"
-    by (rule wfE_min [OF `wf R` `x \<in> Q`]) blast
-  with `wf S`
+    by (rule wfE_min [OF \<open>wf R\<close> \<open>x \<in> Q\<close>]) blast
+  with \<open>wf S\<close>
   obtain z where "z \<in> ?Q'" and zmin: "\<And>y. (y, z) \<in> S \<Longrightarrow> y \<notin> ?Q'" by (erule wfE_min)
   { 
     fix y assume "(y, z) \<in> S"
@@ -269,19 +269,19 @@ proof (rule wfI_min)
     have "y \<notin> Q"
     proof 
       assume "y \<in> Q"
-      with `y \<notin> ?Q'` 
+      with \<open>y \<notin> ?Q'\<close> 
       obtain w where "(w, y) \<in> R" and "w \<in> Q" by auto
-      from `(w, y) \<in> R` `(y, z) \<in> S` have "(w, z) \<in> R O S" by (rule relcompI)
-      with `R O S \<subseteq> R` have "(w, z) \<in> R" ..
-      with `z \<in> ?Q'` have "w \<notin> Q" by blast 
-      with `w \<in> Q` show False by contradiction
+      from \<open>(w, y) \<in> R\<close> \<open>(y, z) \<in> S\<close> have "(w, z) \<in> R O S" by (rule relcompI)
+      with \<open>R O S \<subseteq> R\<close> have "(w, z) \<in> R" ..
+      with \<open>z \<in> ?Q'\<close> have "w \<notin> Q" by blast 
+      with \<open>w \<in> Q\<close> show False by contradiction
     qed
   }
-  with `z \<in> ?Q'` show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> R \<union> S \<longrightarrow> y \<notin> Q" by blast
+  with \<open>z \<in> ?Q'\<close> show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> R \<union> S \<longrightarrow> y \<notin> Q" by blast
 qed
 
 
-text {* Well-foundedness of indexed union with disjoint domains and ranges *}
+text \<open>Well-foundedness of indexed union with disjoint domains and ranges\<close>
 
 lemma wf_UN: "[| ALL i:I. wf(r i);  
          ALL i:I. ALL j:I. r i ~= r j --> Domain(r i) Int Range(r j) = {}  
@@ -340,7 +340,7 @@ next
     fix Q :: "'a set" and x 
     assume "x \<in> Q"
 
-    with `wf ?B`
+    with \<open>wf ?B\<close>
     obtain z where "z \<in> Q" and "\<And>y. (y, z) \<in> ?B \<Longrightarrow> y \<notin> Q" 
       by (erule wfE_min)
     then have A1: "\<And>y. (y, z) \<in> R O R \<Longrightarrow> y \<notin> Q"
@@ -351,7 +351,7 @@ next
     show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> ?A \<longrightarrow> y \<notin> Q"
     proof (cases "\<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> Q")
       case True
-      with `z \<in> Q` A3 show ?thesis by blast
+      with \<open>z \<in> Q\<close> A3 show ?thesis by blast
     next
       case False 
       then obtain z' where "z'\<in>Q" "(z', z) \<in> R" by blast
@@ -362,24 +362,24 @@ next
         then show "y \<notin> Q"
         proof
           assume "(y, z') \<in> R" 
-          then have "(y, z) \<in> R O R" using `(z', z) \<in> R` ..
+          then have "(y, z) \<in> R O R" using \<open>(z', z) \<in> R\<close> ..
           with A1 show "y \<notin> Q" .
         next
           assume "(y, z') \<in> S" 
-          then have "(y, z) \<in> S O R" using  `(z', z) \<in> R` ..
+          then have "(y, z) \<in> S O R" using  \<open>(z', z) \<in> R\<close> ..
           with A2 show "y \<notin> Q" .
         qed
       qed
-      with `z' \<in> Q` show ?thesis ..
+      with \<open>z' \<in> Q\<close> show ?thesis ..
     qed
   qed
 qed
 
-lemma wf_comp_self: "wf R = wf (R O R)"  -- {* special case *}
+lemma wf_comp_self: "wf R = wf (R O R)"  -- \<open>special case\<close>
   by (rule wf_union_merge [where S = "{}", simplified])
 
 
-subsection {* Well-Foundedness of Composition *}
+subsection \<open>Well-Foundedness of Composition\<close>
 
 text \<open>Bachmair and Dershowitz 1986, Lemma 2. [Provided by Tjark Weber]\<close>
 
@@ -437,7 +437,7 @@ proof -
 qed
 
 
-subsection {* Acyclic relations *}
+subsection \<open>Acyclic relations\<close>
 
 lemma wf_acyclic: "wf r ==> acyclic r"
 apply (simp add: acyclic_def)
@@ -446,7 +446,7 @@ done
 
 lemmas wfP_acyclicP = wf_acyclic [to_pred]
 
-text{* Wellfoundedness of finite acyclic relations*}
+text\<open>Wellfoundedness of finite acyclic relations\<close>
 
 lemma finite_acyclic_wf [rule_format]: "finite r ==> acyclic r --> wf r"
 apply (erule finite_induct, blast)
@@ -463,7 +463,7 @@ lemma wf_iff_acyclic_if_finite: "finite r ==> wf r = acyclic r"
 by (blast intro: finite_acyclic_wf wf_acyclic)
 
 
-subsection {* @{typ nat} is well-founded *}
+subsection \<open>@{typ nat} is well-founded\<close>
 
 lemma less_nat_rel: "op < = (\<lambda>m n. n = Suc m)^++"
 proof (rule ext, rule ext, rule iffI)
@@ -517,12 +517,12 @@ lemma wf_less: "wf {(x, y::nat). x < y}"
   by (rule Wellfounded.wellorder_class.wf)
 
 
-subsection {* Accessible Part *}
+subsection \<open>Accessible Part\<close>
 
-text {*
+text \<open>
  Inductive definition of the accessible part @{term "acc r"} of a
  relation; see also @{cite "paulin-tlca"}.
-*}
+\<close>
 
 inductive_set
   acc :: "('a * 'a) set => 'a set"
@@ -545,7 +545,7 @@ lemma accp_eq_acc [code]:
   by (simp add: acc_def)
 
 
-text {* Induction rules *}
+text \<open>Induction rules\<close>
 
 theorem accp_induct:
   assumes major: "accp r a"
@@ -613,7 +613,7 @@ theorem wfP_accp_iff: "wfP r = (\<forall>x. accp r x)"
   done
 
 
-text {* Smaller relations have bigger accessible parts: *}
+text \<open>Smaller relations have bigger accessible parts:\<close>
 
 lemma accp_subset:
   assumes sub: "R1 \<le> R2"
@@ -630,8 +630,8 @@ proof (rule predicate1I)
 qed
 
 
-text {* This is a generalized induction theorem that works on
-  subsets of the accessible part. *}
+text \<open>This is a generalized induction theorem that works on
+  subsets of the accessible part.\<close>
 
 lemma accp_subset_induct:
   assumes subset: "D \<le> accp R"
@@ -640,9 +640,9 @@ lemma accp_subset_induct:
     and istep: "\<And>x. \<lbrakk>D x; (\<And>z. R z x \<Longrightarrow> P z)\<rbrakk> \<Longrightarrow> P x"
   shows "P x"
 proof -
-  from subset and `D x`
+  from subset and \<open>D x\<close>
   have "accp R x" ..
-  then show "P x" using `D x`
+  then show "P x" using \<open>D x\<close>
   proof (induct x)
     fix x
     assume "D x"
@@ -652,7 +652,7 @@ proof -
 qed
 
 
-text {* Set versions of the above theorems *}
+text \<open>Set versions of the above theorems\<close>
 
 lemmas acc_induct = accp_induct [to_set]
 
@@ -677,9 +677,9 @@ lemmas acc_subset = accp_subset [to_set]
 lemmas acc_subset_induct = accp_subset_induct [to_set]
 
 
-subsection {* Tools for building wellfounded relations *}
+subsection \<open>Tools for building wellfounded relations\<close>
 
-text {* Inverse Image *}
+text \<open>Inverse Image\<close>
 
 lemma wf_inv_image [simp,intro!]: "wf(r) ==> wf(inv_image r (f::'a=>'b))"
 apply (simp (no_asm_use) add: inv_image_def wf_eq_minimal)
@@ -691,7 +691,7 @@ apply (erule (1) notE impE)
 apply blast
 done
 
-text {* Measure functions into @{typ nat} *}
+text \<open>Measure functions into @{typ nat}\<close>
 
 definition measure :: "('a => nat) => ('a * 'a)set"
 where "measure = inv_image less_than"
@@ -713,7 +713,7 @@ apply auto
 done
 
 
-text{* Lexicographic combinations *}
+text\<open>Lexicographic combinations\<close>
 
 definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b)) set" (infixr "<*lex*>" 80) where
   "ra <*lex*> rb = {((a, b), (a', b')). (a, a') \<in> ra \<or> a = a' \<and> (b, b') \<in> rb}"
@@ -731,13 +731,13 @@ lemma in_lex_prod[simp]:
   "(((a,b),(a',b')): r <*lex*> s) = ((a,a'): r \<or> (a = a' \<and> (b, b') : s))"
   by (auto simp:lex_prod_def)
 
-text{* @{term "op <*lex*>"} preserves transitivity *}
+text\<open>@{term "op <*lex*>"} preserves transitivity\<close>
 
 lemma trans_lex_prod [intro!]: 
     "[| trans R1; trans R2 |] ==> trans (R1 <*lex*> R2)"
 by (unfold trans_def lex_prod_def, blast) 
 
-text {* lexicographic combinations with measure functions *}
+text \<open>lexicographic combinations with measure functions\<close>
 
 definition 
   mlex_prod :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" (infixr "<*mlex*>" 80)
@@ -754,7 +754,7 @@ unfolding mlex_prod_def by simp
 lemma mlex_leq: "f x \<le> f y \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> (x, y) \<in> f <*mlex*> R"
 unfolding mlex_prod_def by auto
 
-text {* proper subset relation on finite sets *}
+text \<open>proper subset relation on finite sets\<close>
 
 definition finite_psubset  :: "('a set * 'a set) set"
 where "finite_psubset = {(A,B). A < B & finite B}"
@@ -772,7 +772,7 @@ by (simp add: finite_psubset_def less_le trans_def, blast)
 lemma in_finite_psubset[simp]: "(A, B) \<in> finite_psubset = (A < B & finite B)"
 unfolding finite_psubset_def by auto
 
-text {* max- and min-extension of order to finite sets *}
+text \<open>max- and min-extension of order to finite sets\<close>
 
 inductive_set max_ext :: "('a \<times> 'a) set \<Rightarrow> ('a set \<times> 'a set) set" 
 for R :: "('a \<times> 'a) set"
@@ -828,9 +828,9 @@ proof (rule acc_wfI, intro allI)
           next
             assume "M \<noteq> {}"
             from asm1 finites have N2: "(?N2, M) \<in> max_ext r" 
-              by (rule_tac max_extI[OF _ _ `M \<noteq> {}`]) auto
+              by (rule_tac max_extI[OF _ _ \<open>M \<noteq> {}\<close>]) auto
 
-            with `M \<in> ?W` show "?N2 \<in> ?W" by (rule acc_downward)
+            with \<open>M \<in> ?W\<close> show "?N2 \<in> ?W" by (rule acc_downward)
           qed
           with finites have "?N1 \<union> ?N2 \<in> ?W" 
             by (rule add_less) simp
@@ -869,22 +869,22 @@ proof (rule wfI_min)
     with nonempty
     obtain e x where "x \<in> Q" "e \<in> x" by force
     then have eU: "e \<in> \<Union>Q" by auto
-    with `wf r` 
+    with \<open>wf r\<close> 
     obtain z where z: "z \<in> \<Union>Q" "\<And>y. (y, z) \<in> r \<Longrightarrow> y \<notin> \<Union>Q" 
       by (erule wfE_min)
     from z obtain m where "m \<in> Q" "z \<in> m" by auto
-    from `m \<in> Q`
+    from \<open>m \<in> Q\<close>
     show ?thesis
     proof (rule, intro bexI allI impI)
       fix n
       assume smaller: "(n, m) \<in> min_ext r"
-      with `z \<in> m` obtain y where y: "y \<in> n" "(y, z) \<in> r" by (auto simp: min_ext_def)
+      with \<open>z \<in> m\<close> obtain y where y: "y \<in> n" "(y, z) \<in> r" by (auto simp: min_ext_def)
       then show "n \<notin> Q" using z(2) by auto
     qed      
   qed
 qed
 
-text{* Bounded increase must terminate: *}
+text\<open>Bounded increase must terminate:\<close>
 
 lemma wf_bounded_measure:
 fixes ub :: "'a \<Rightarrow> nat" and f :: "'a \<Rightarrow> nat"

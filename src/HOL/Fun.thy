@@ -4,7 +4,7 @@
     Copyright   1994, 2012
 *)
 
-section {* Notions about functions *}
+section \<open>Notions about functions\<close>
 
 theory Fun
 imports Set
@@ -15,14 +15,14 @@ lemma apply_inverse:
   "f x = u \<Longrightarrow> (\<And>x. P x \<Longrightarrow> g (f x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"
   by auto
 
-text{*Uniqueness, so NOT the axiom of choice.*}
+text\<open>Uniqueness, so NOT the axiom of choice.\<close>
 lemma uniq_choice: "\<forall>x. \<exists>!y. Q x y \<Longrightarrow> \<exists>f. \<forall>x. Q x (f x)"
   by (force intro: theI')
 
 lemma b_uniq_choice: "\<forall>x\<in>S. \<exists>!y. Q x y \<Longrightarrow> \<exists>f. \<forall>x\<in>S. Q x (f x)"
   by (force intro: theI')
 
-subsection {* The Identity Function @{text id} *}
+subsection \<open>The Identity Function @{text id}\<close>
 
 definition id :: "'a \<Rightarrow> 'a" where
   "id = (\<lambda>x. x)"
@@ -40,7 +40,7 @@ code_printing
   constant id \<rightharpoonup> (Haskell) "id"
 
 
-subsection {* The Composition Operator @{text "f \<circ> g"} *}
+subsection \<open>The Composition Operator @{text "f \<circ> g"}\<close>
 
 definition comp :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "o" 55) where
   "f o g = (\<lambda>x. f (g x))"
@@ -98,7 +98,7 @@ code_printing
   constant comp \<rightharpoonup> (SML) infixl 5 "o" and (Haskell) infixr 9 "."
 
 
-subsection {* The Forward Composition Operator @{text fcomp} *}
+subsection \<open>The Forward Composition Operator @{text fcomp}\<close>
 
 definition fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "\<circ>>" 60) where
   "f \<circ>> g = (\<lambda>x. g (f x))"
@@ -121,7 +121,7 @@ code_printing
 no_notation fcomp (infixl "\<circ>>" 60)
 
 
-subsection {* Mapping functions *}
+subsection \<open>Mapping functions\<close>
 
 definition map_fun :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'c \<Rightarrow> 'd" where
   "map_fun f g h = g \<circ> h \<circ> f"
@@ -131,7 +131,7 @@ lemma map_fun_apply [simp]:
   by (simp add: map_fun_def)
 
 
-subsection {* Injectivity and Bijectivity *}
+subsection \<open>Injectivity and Bijectivity\<close>
 
 definition inj_on :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> bool" where -- "injective"
   "inj_on f A \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. f x = f y \<longrightarrow> x = y)"
@@ -139,8 +139,8 @@ definition inj_on :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> b
 definition bij_betw :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool" where -- "bijective"
   "bij_betw f A B \<longleftrightarrow> inj_on f A \<and> f ` A = B"
 
-text{*A common special case: functions injective, surjective or bijective over
-the entire domain type.*}
+text\<open>A common special case: functions injective, surjective or bijective over
+the entire domain type.\<close>
 
 abbreviation
   "inj f \<equiv> inj_on f UNIV"
@@ -151,7 +151,7 @@ abbreviation surj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool" where -- "surjec
 abbreviation
   "bij f \<equiv> bij_betw f UNIV UNIV"
 
-text{* The negated case: *}
+text\<open>The negated case:\<close>
 translations
 "\<not> CONST surj f" <= "CONST range f \<noteq> CONST UNIV"
 
@@ -278,14 +278,14 @@ proof -
   with assms * have "B = f ` (A - {x'})"
     by (auto dest: inj_on_contraD)
   have "x' \<notin> A - {x'}" by simp
-  from `x' \<notin> A - {x'}` `A = insert x' (A - {x'})` `x = f x'` `B = image f (A - {x'})`
+  from \<open>x' \<notin> A - {x'}\<close> \<open>A = insert x' (A - {x'})\<close> \<open>x = f x'\<close> \<open>B = image f (A - {x'})\<close>
   show ?thesis ..
 qed
 
 lemma linorder_injI:
   assumes hyp: "\<And>x y. x < (y::'a::linorder) \<Longrightarrow> f x \<noteq> f y"
   shows "inj f"
-  -- {* Courtesy of Stephan Merz *}
+  -- \<open>Courtesy of Stephan Merz\<close>
 proof (rule inj_onI)
   fix x y
   assume f_eq: "f x = f y"
@@ -395,9 +395,9 @@ proof -
   have "inj_on ?g B"
   proof(rule inj_onI)
     fix x y assume "x:B" "y:B" "?g x = ?g y"
-    from s `x:B` obtain a1 where a1: "?P x a1" by blast
-    from s `y:B` obtain a2 where a2: "?P y a2" by blast
-    from g[OF a1] a1 g[OF a2] a2 `?g x = ?g y` show "x=y" by simp
+    from s \<open>x:B\<close> obtain a1 where a1: "?P x a1" by blast
+    from s \<open>y:B\<close> obtain a2 where a2: "?P y a2" by blast
+    from g[OF a1] a1 g[OF a2] a2 \<open>?g x = ?g y\<close> show "x=y" by simp
   qed
   moreover have "?g ` B = A"
   proof(auto simp: image_def)
@@ -453,7 +453,7 @@ by simp
 
 lemma surj_vimage_empty:
   assumes "surj f" shows "f -` A = {} \<longleftrightarrow> A = {}"
-  using surj_image_vimage_eq[OF `surj f`, of A]
+  using surj_image_vimage_eq[OF \<open>surj f\<close>, of A]
   by (intro iffI) fastforce+
 
 lemma inj_vimage_image_eq: "inj f ==> f -` (f ` A) = A"
@@ -515,8 +515,8 @@ apply (simp_all (no_asm_simp) add: inj_image_Compl_subset surj_Compl_image_subse
 done
 
 lemma inj_vimage_singleton: "inj f \<Longrightarrow> f -` {a} \<subseteq> {THE x. f x = a}"
-  -- {* The inverse image of a singleton under an injective function
-         is included in a singleton. *}
+  -- \<open>The inverse image of a singleton under an injective function
+         is included in a singleton.\<close>
   apply (auto simp add: inj_on_def)
   apply (blast intro: the_equality [symmetric])
   done
@@ -594,7 +594,7 @@ next
 qed
 
 
-subsection{*Function Updating*}
+subsection\<open>Function Updating\<close>
 
 definition fun_upd :: "('a => 'b) => 'a => 'b => ('a => 'b)" where
   "fun_upd f a b == % x. if x=a then b else f x"
@@ -658,7 +658,7 @@ lemma fun_upd_comp: "f \<circ> (g(x := y)) = (f \<circ> g)(x := f y)"
   by auto
 
 
-subsection {* @{text override_on} *}
+subsection \<open>@{text override_on}\<close>
 
 definition override_on :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b" where
   "override_on f g A = (\<lambda>a. if a \<in> A then g a else f a)"
@@ -673,7 +673,7 @@ lemma override_on_apply_in[simp]: "a : A ==> (override_on f g A) a = g a"
 by(simp add:override_on_def)
 
 
-subsection {* @{text swap} *}
+subsection \<open>@{text swap}\<close>
 
 definition swap :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
 where
@@ -750,7 +750,7 @@ lemma bij_swap_iff [simp]: "bij (swap a b f) \<longleftrightarrow> bij f"
 hide_const (open) swap
 
 
-subsection {* Inversion of injective functions *}
+subsection \<open>Inversion of injective functions\<close>
 
 definition the_inv_into :: "'a set => ('a => 'b) => ('b => 'a)" where
   "the_inv_into A f == %x. THE y. y : A & f y = x"
@@ -813,7 +813,7 @@ lemma the_inv_f_f:
   by (rule the_inv_into_f_f)
 
 
-subsection {* Cantor's Paradox *}
+subsection \<open>Cantor's Paradox\<close>
 
 lemma Cantors_paradox:
   "\<not>(\<exists>f. f ` A = Pow A)"
@@ -825,14 +825,14 @@ proof clarify
   thus False by best
 qed
 
-subsection {* Setup *} 
+subsection \<open>Setup\<close> 
 
-subsubsection {* Proof tools *}
+subsubsection \<open>Proof tools\<close>
 
-text {* simplifies terms of the form
-  f(...,x:=y,...,x:=z,...) to f(...,x:=z,...) *}
+text \<open>simplifies terms of the form
+  f(...,x:=y,...,x:=z,...) to f(...,x:=z,...)\<close>
 
-simproc_setup fun_upd2 ("f(v := w, x := y)") = {* fn _ =>
+simproc_setup fun_upd2 ("f(v := w, x := y)") = \<open>fn _ =>
 let
   fun gen_fun_upd NONE T _ _ = NONE
     | gen_fun_upd (SOME f) T x y = SOME (Const (@{const_name fun_upd}, T) $ f $ x $ y)
@@ -860,10 +860,10 @@ let
               simp_tac (put_simpset ss ctxt) 1))
     end
 in proc end
-*}
+\<close>
 
 
-subsubsection {* Functorial structure of types *}
+subsubsection \<open>Functorial structure of types\<close>
 
 ML_file "Tools/functor.ML"
 
@@ -873,7 +873,7 @@ functor map_fun: map_fun
 functor vimage
   by (simp_all add: fun_eq_iff vimage_comp)
 
-text {* Legacy theorem names *}
+text \<open>Legacy theorem names\<close>
 
 lemmas o_def = comp_def
 lemmas o_apply = comp_apply

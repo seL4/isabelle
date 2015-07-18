@@ -1,12 +1,12 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-section {* Finite types as explicit enumerations *}
+section \<open>Finite types as explicit enumerations\<close>
 
 theory Enum
 imports Map Groups_List
 begin
 
-subsection {* Class @{text enum} *}
+subsection \<open>Class @{text enum}\<close>
 
 class enum =
   fixes enum :: "'a list"
@@ -16,7 +16,7 @@ class enum =
     and enum_distinct: "distinct enum"
   assumes enum_all_UNIV: "enum_all P \<longleftrightarrow> Ball UNIV P"
   assumes enum_ex_UNIV: "enum_ex P \<longleftrightarrow> Bex UNIV P" 
-   -- {* tailored towards simple instantiation *}
+   -- \<open>tailored towards simple instantiation\<close>
 begin
 
 subclass finite proof
@@ -52,9 +52,9 @@ lemma enum_ex [simp]:
 end
 
 
-subsection {* Implementations using @{class enum} *}
+subsection \<open>Implementations using @{class enum}\<close>
 
-subsubsection {* Unbounded operations and quantifiers *}
+subsubsection \<open>Unbounded operations and quantifiers\<close>
 
 lemma Collect_code [code]:
   "Collect P = set (filter P enum)"
@@ -82,7 +82,7 @@ lemma exists1_code [code]: "(\<exists>!x. P x) \<longleftrightarrow> list_ex1 P 
   by (auto simp add: list_ex1_iff enum_UNIV)
 
 
-subsubsection {* An executable choice operator *}
+subsubsection \<open>An executable choice operator\<close>
 
 definition
   [code del]: "enum_the = The"
@@ -106,7 +106,7 @@ proof -
           and "\<forall> x \<in> set vs. \<not> P x"
           and "P a"
           by (auto simp add: filter_eq_Cons_iff) (simp only: filter_empty_conv[symmetric])
-        with `P x` in_enum[of x, unfolded enum_eq] `x \<noteq> a` show "False" by auto
+        with \<open>P x\<close> in_enum[of x, unfolded enum_eq] \<open>x \<noteq> a\<close> show "False" by auto
       qed
     next
       from filter_enum show "P a" by (auto simp add: filter_eq_Cons_iff)
@@ -122,7 +122,7 @@ code_printing
   constant enum_the \<rightharpoonup> (Eval) "(fn '_ => raise Match)"
 
 
-subsubsection {* Equality and order on functions *}
+subsubsection \<open>Equality and order on functions\<close>
 
 instantiation "fun" :: (enum, equal) equal
 begin
@@ -150,7 +150,7 @@ lemma order_fun [code]:
   by (simp_all add: fun_eq_iff le_fun_def order_less_le)
 
 
-subsubsection {* Operations on relations *}
+subsubsection \<open>Operations on relations\<close>
 
 lemma [code]:
   "Id = image (\<lambda>x. (x, x)) (set Enum.enum)"
@@ -177,7 +177,7 @@ lemma mlex_eq [code]:
   by (auto simp add: mlex_prod_def)
 
 
-subsubsection {* Bounded accessible part *}
+subsubsection \<open>Bounded accessible part\<close>
 
 primrec bacc :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> 'a set" 
 where
@@ -219,7 +219,7 @@ proof
       fix y assume y: "(y, x) : r"
       with n have "y : bacc r (n y)" by auto
       moreover have "n y <= Max ((%(y, x). n y) ` r)"
-        using y `finite r` by (auto intro!: Max_ge)
+        using y \<open>finite r\<close> by (auto intro!: Max_ge)
       note bacc_mono[OF this, of r]
       ultimately show "y : bacc r (Max ((%(y, x). n y) ` r))" by auto
     qed
@@ -241,7 +241,7 @@ lemma [code]:
   by (simp add: card_UNIV_def acc_bacc_eq)
 
 
-subsection {* Default instances for @{class enum} *}
+subsection \<open>Default instances for @{class enum}\<close>
 
 lemma map_of_zip_enum_is_Some:
   assumes "length ys = length (enum \<Colon> 'a\<Colon>enum list)"
@@ -329,7 +329,7 @@ next
       fix f :: "'a \<Rightarrow> 'b"
       have f: "f = the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum))"
         by (auto simp add: map_of_zip_map fun_eq_iff intro: in_enum)
-      from `enum_all P` have "P (the \<circ> map_of (zip enum (map f enum)))"
+      from \<open>enum_all P\<close> have "P (the \<circ> map_of (zip enum (map f enum)))"
         unfolding enum_all_fun_def all_n_lists_def
         apply (simp add: set_n_lists)
         apply (erule_tac x="map f enum" in allE)
@@ -354,7 +354,7 @@ next
     from this obtain f where "P f" ..
     have f: "f = the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum))"
       by (auto simp add: map_of_zip_map fun_eq_iff intro: in_enum) 
-    from `P f` this have "P (the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum)))"
+    from \<open>P f\<close> this have "P (the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum)))"
       by auto
     from  this show "enum_ex P"
       unfolding enum_ex_fun_def ex_n_lists_def
@@ -489,9 +489,9 @@ qed (simp_all only: enum_option_def enum_all_option_def enum_ex_option_def UNIV_
 end
 
 
-subsection {* Small finite types *}
+subsection \<open>Small finite types\<close>
 
-text {* We define small finite types for use in Quickcheck *}
+text \<open>We define small finite types for use in Quickcheck\<close>
 
 datatype (plugins only: code "quickcheck" extraction) finite_1 =
   a\<^sub>1
@@ -562,12 +562,12 @@ instance finite_1 :: complete_linorder ..
 lemma finite_1_eq: "x = a\<^sub>1"
 by(cases x) simp
 
-simproc_setup finite_1_eq ("x::finite_1") = {*
+simproc_setup finite_1_eq ("x::finite_1") = \<open>
   fn _ => fn _ => fn ct =>
     (case Thm.term_of ct of
       Const (@{const_name a\<^sub>1}, _) => NONE
     | _ => SOME (mk_meta_eq @{thm finite_1_eq}))
-*}
+\<close>
 
 instantiation finite_1 :: complete_boolean_algebra
 begin
@@ -864,8 +864,8 @@ end
 
 instantiation finite_4 :: complete_lattice begin
 
-text {* @{term a\<^sub>1} $<$ @{term a\<^sub>2},@{term a\<^sub>3} $<$ @{term a\<^sub>4},
-  but @{term a\<^sub>2} and @{term a\<^sub>3} are incomparable. *}
+text \<open>@{term a\<^sub>1} $<$ @{term a\<^sub>2},@{term a\<^sub>3} $<$ @{term a\<^sub>4},
+  but @{term a\<^sub>2} and @{term a\<^sub>3} are incomparable.\<close>
 
 definition
   "x < y \<longleftrightarrow> (case (x, y) of
@@ -968,7 +968,7 @@ end
 instantiation finite_5 :: complete_lattice
 begin
 
-text {* The non-distributive pentagon lattice $N_5$ *}
+text \<open>The non-distributive pentagon lattice $N_5$\<close>
 
 definition
   "x < y \<longleftrightarrow> (case (x, y) of
@@ -1034,7 +1034,7 @@ end
 hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3 a\<^sub>4 a\<^sub>5
 
 
-subsection {* Closing up *}
+subsection \<open>Closing up\<close>
 
 hide_type (open) finite_1 finite_2 finite_3 finite_4 finite_5
 hide_const (open) enum enum_all enum_ex all_n_lists ex_n_lists ntrancl

@@ -5,7 +5,7 @@
 Cardinal arithmetic as needed by bounded natural functors.
 *)
 
-section {* Cardinal Arithmetic as Needed by Bounded Natural Functors *}
+section \<open>Cardinal Arithmetic as Needed by Bounded Natural Functors\<close>
 
 theory BNF_Cardinal_Arithmetic
 imports BNF_Cardinal_Order_Relation
@@ -39,7 +39,7 @@ lemma Field_card_order: "card_order r \<Longrightarrow> Field r = UNIV"
 using card_order_on_Card_order[of UNIV r] by simp
 
 
-subsection {* Zero *}
+subsection \<open>Zero\<close>
 
 definition czero where
   "czero = card_of {}"
@@ -80,7 +80,7 @@ apply (drule card_of_mono2)
 apply (simp only: card_of_empty3)
 done
 
-subsection {* (In)finite cardinals *}
+subsection \<open>(In)finite cardinals\<close>
 
 definition cinfinite where
   "cinfinite r = (\<not> finite (Field r))"
@@ -127,7 +127,7 @@ lemma cinfinite_mono: "\<lbrakk>r1 \<le>o r2; cinfinite r1\<rbrakk> \<Longrighta
 unfolding cinfinite_def by (auto dest: card_of_ordLeq_infinite[OF card_of_mono2])
 
 
-subsection {* Binary sum *}
+subsection \<open>Binary sum\<close>
 
 definition csum (infixr "+c" 65) where
   "r1 +c r2 \<equiv> |Field r1 <+> Field r2|"
@@ -223,7 +223,7 @@ lemma Un_csum: "|A \<union> B| \<le>o |A| +c |B|"
 using ordLeq_ordIso_trans[OF card_of_Un_Plus_ordLeq Plus_csum] by blast
 
 
-subsection {* One *}
+subsection \<open>One\<close>
 
 definition cone where
   "cone = card_of {()}"
@@ -241,7 +241,7 @@ lemma cone_ordLeq_Cnotzero: "Cnotzero r \<Longrightarrow> cone \<le>o r"
 unfolding cone_def by (rule Card_order_singl_ordLeq) (auto intro: czeroI)
 
 
-subsection {* Two *}
+subsection \<open>Two\<close>
 
 definition ctwo where
   "ctwo = |UNIV :: bool set|"
@@ -257,7 +257,7 @@ lemma ctwo_Cnotzero: "Cnotzero ctwo"
 by (simp add: ctwo_not_czero Card_order_ctwo)
 
 
-subsection {* Family sum *}
+subsection \<open>Family sum\<close>
 
 definition Csum where
   "Csum r rs \<equiv> |SIGMA i : Field r. Field (rs i)|"
@@ -278,7 +278,7 @@ operations on sets are reduced automatically to operations on cardinals.
 This should make cardinal reasoning more direct and natural.  *)
 
 
-subsection {* Product *}
+subsection \<open>Product\<close>
 
 definition cprod (infixr "*c" 80) where
   "r1 *c r2 = |Field r1 <*> Field r2|"
@@ -360,7 +360,7 @@ lemma csum_absorb1: "\<lbrakk>Cinfinite r2; r1 \<le>o r2\<rbrakk> \<Longrightarr
 by (rule csum_absorb1') auto
 
 
-subsection {* Exponentiation *}
+subsection \<open>Exponentiation\<close>
 
 definition cexp (infixr "^c" 90) where
   "r1 ^c r2 \<equiv> |Func (Field r2) (Field r1)|"
@@ -386,7 +386,7 @@ proof(cases "Field p1 = {}")
     with n have "Field r2 = {}" .
     hence "cone \<le>o r1 ^c r2" unfolding cone_def cexp_def Func_def
       by (auto intro: card_of_ordLeqI[where f="\<lambda>_ _. undefined"])
-    thus ?thesis using `p1 ^c p2 \<le>o cone` ordLeq_transitive by auto
+    thus ?thesis using \<open>p1 ^c p2 \<le>o cone\<close> ordLeq_transitive by auto
   next
     case False with True have "|Field (p1 ^c p2)| =o czero"
       unfolding card_of_ordIso_czero_iff_empty cexp_def Field_card_of Func_def by auto

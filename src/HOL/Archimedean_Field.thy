@@ -2,15 +2,15 @@
     Author:     Brian Huffman
 *)
 
-section {* Archimedean Fields, Floor and Ceiling Functions *}
+section \<open>Archimedean Fields, Floor and Ceiling Functions\<close>
 
 theory Archimedean_Field
 imports Main
 begin
 
-subsection {* Class of Archimedean fields *}
+subsection \<open>Class of Archimedean fields\<close>
 
-text {* Archimedean fields have no infinite elements. *}
+text \<open>Archimedean fields have no infinite elements.\<close>
 
 class archimedean_field = linordered_field +
   assumes ex_le_of_int: "\<exists>z. x \<le> of_int z"
@@ -48,53 +48,53 @@ proof -
   then show ?thesis ..
 qed
 
-text {* Archimedean fields have no infinitesimal elements. *}
+text \<open>Archimedean fields have no infinitesimal elements.\<close>
 
 lemma ex_inverse_of_nat_Suc_less:
   fixes x :: "'a::archimedean_field"
   assumes "0 < x" shows "\<exists>n. inverse (of_nat (Suc n)) < x"
 proof -
-  from `0 < x` have "0 < inverse x"
+  from \<open>0 < x\<close> have "0 < inverse x"
     by (rule positive_imp_inverse_positive)
   obtain n where "inverse x < of_nat n"
     using ex_less_of_nat ..
   then obtain m where "inverse x < of_nat (Suc m)"
-    using `0 < inverse x` by (cases n) (simp_all del: of_nat_Suc)
+    using \<open>0 < inverse x\<close> by (cases n) (simp_all del: of_nat_Suc)
   then have "inverse (of_nat (Suc m)) < inverse (inverse x)"
-    using `0 < inverse x` by (rule less_imp_inverse_less)
+    using \<open>0 < inverse x\<close> by (rule less_imp_inverse_less)
   then have "inverse (of_nat (Suc m)) < x"
-    using `0 < x` by (simp add: nonzero_inverse_inverse_eq)
+    using \<open>0 < x\<close> by (simp add: nonzero_inverse_inverse_eq)
   then show ?thesis ..
 qed
 
 lemma ex_inverse_of_nat_less:
   fixes x :: "'a::archimedean_field"
   assumes "0 < x" shows "\<exists>n>0. inverse (of_nat n) < x"
-  using ex_inverse_of_nat_Suc_less [OF `0 < x`] by auto
+  using ex_inverse_of_nat_Suc_less [OF \<open>0 < x\<close>] by auto
 
 lemma ex_less_of_nat_mult:
   fixes x :: "'a::archimedean_field"
   assumes "0 < x" shows "\<exists>n. y < of_nat n * x"
 proof -
   obtain n where "y / x < of_nat n" using ex_less_of_nat ..
-  with `0 < x` have "y < of_nat n * x" by (simp add: pos_divide_less_eq)
+  with \<open>0 < x\<close> have "y < of_nat n * x" by (simp add: pos_divide_less_eq)
   then show ?thesis ..
 qed
 
 
-subsection {* Existence and uniqueness of floor function *}
+subsection \<open>Existence and uniqueness of floor function\<close>
 
 lemma exists_least_lemma:
   assumes "\<not> P 0" and "\<exists>n. P n"
   shows "\<exists>n. \<not> P n \<and> P (Suc n)"
 proof -
-  from `\<exists>n. P n` have "P (Least P)" by (rule LeastI_ex)
-  with `\<not> P 0` obtain n where "Least P = Suc n"
+  from \<open>\<exists>n. P n\<close> have "P (Least P)" by (rule LeastI_ex)
+  with \<open>\<not> P 0\<close> obtain n where "Least P = Suc n"
     by (cases "Least P") auto
   then have "n < Least P" by simp
   then have "\<not> P n" by (rule not_less_Least)
   then have "\<not> P n \<and> P (Suc n)"
-    using `P (Least P)` `Least P = Suc n` by simp
+    using \<open>P (Least P)\<close> \<open>Least P = Suc n\<close> by simp
   then show ?thesis ..
 qed
 
@@ -135,7 +135,7 @@ next
 qed
 
 
-subsection {* Floor function *}
+subsection \<open>Floor function\<close>
 
 class floor_ceiling = archimedean_field +
   fixes floor :: "'a \<Rightarrow> int"
@@ -185,7 +185,7 @@ lemma floor_split[arith_split]: "P (floor t) \<longleftrightarrow> (\<forall>i. 
 lemma floor_mono: assumes "x \<le> y" shows "floor x \<le> floor y"
 proof -
   have "of_int (floor x) \<le> x" by (rule of_int_floor_le)
-  also note `x \<le> y`
+  also note \<open>x \<le> y\<close>
   finally show ?thesis by (simp add: le_floor_iff)
 qed
 
@@ -201,7 +201,7 @@ lemma floor_of_nat [simp]: "floor (of_nat n) = int n"
 lemma le_floor_add: "floor x + floor y \<le> floor (x + y)"
   by (simp only: le_floor_iff of_int_add add_mono of_int_floor_le)
 
-text {* Floor with numerals *}
+text \<open>Floor with numerals\<close>
 
 lemma floor_zero [simp]: "floor 0 = 0"
   using floor_of_int [of 0] by simp
@@ -271,7 +271,7 @@ lemma floor_less_neg_numeral [simp]:
   "floor x < - numeral v \<longleftrightarrow> x < - numeral v"
   by (simp add: floor_less_iff)
 
-text {* Addition and subtraction of integers *}
+text \<open>Addition and subtraction of integers\<close>
 
 lemma floor_add_of_int [simp]: "floor (x + of_int z) = floor x + z"
   using floor_correct [of x] by (simp add: floor_unique)
@@ -324,7 +324,7 @@ next
     case False
     obtain r where "r = - l" by blast
     then have l: "l = - r" by simp
-    moreover with `l \<noteq> 0` False have "r > 0" by simp
+    moreover with \<open>l \<noteq> 0\<close> False have "r > 0" by simp
     ultimately show ?thesis using pos_mod_bound [of r]
       by (auto simp add: zmod_zminus2_eq_if less_le field_simps intro: floor_unique)
   qed
@@ -374,7 +374,7 @@ next
 qed
 
 
-subsection {* Ceiling function *}
+subsection \<open>Ceiling function\<close>
 
 definition
   ceiling :: "'a::floor_ceiling \<Rightarrow> int" where
@@ -422,7 +422,7 @@ lemma ceiling_of_nat [simp]: "ceiling (of_nat n) = int n"
 lemma ceiling_add_le: "ceiling (x + y) \<le> ceiling x + ceiling y"
   by (simp only: ceiling_le_iff of_int_add add_mono le_of_int_ceiling)
 
-text {* Ceiling with numerals *}
+text \<open>Ceiling with numerals\<close>
 
 lemma ceiling_zero [simp]: "ceiling 0 = 0"
   using ceiling_of_int [of 0] by simp
@@ -492,7 +492,7 @@ lemma neg_numeral_less_ceiling [simp]:
   "- numeral v < ceiling x \<longleftrightarrow> - numeral v < x"
   by (simp add: less_ceiling_iff)
 
-text {* Addition and subtraction of integers *}
+text \<open>Addition and subtraction of integers\<close>
 
 lemma ceiling_add_of_int [simp]: "ceiling (x + of_int z) = ceiling x + z"
   using ceiling_correct [of x] by (simp add: ceiling_unique)
@@ -529,7 +529,7 @@ proof -
     unfolding of_int_less_iff by simp
 qed
 
-subsection {* Negation *}
+subsection \<open>Negation\<close>
 
 lemma floor_minus: "floor (- x) = - ceiling x"
   unfolding ceiling_def by simp
@@ -537,7 +537,7 @@ lemma floor_minus: "floor (- x) = - ceiling x"
 lemma ceiling_minus: "ceiling (- x) = - floor x"
   unfolding ceiling_def by simp
 
-subsection {* Frac Function *}
+subsection \<open>Frac Function\<close>
 
 
 definition frac :: "'a \<Rightarrow> 'a::floor_ceiling" where

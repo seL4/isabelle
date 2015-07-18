@@ -6,7 +6,7 @@
 Wrapping existing freely generated type's constructors.
 *)
 
-section {* Wrapping Existing Freely Generated Type's Constructors *}
+section \<open>Wrapping Existing Freely Generated Type's Constructors\<close>
 
 theory Ctr_Sugar
 imports HOL

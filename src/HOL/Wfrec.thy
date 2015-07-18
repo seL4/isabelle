@@ -4,7 +4,7 @@
     Author:     Konrad Slind
 *)
 
-section {* Well-Founded Recursion Combinator *}
+section \<open>Well-Founded Recursion Combinator\<close>
 
 theory Wfrec
 imports Wellfounded
@@ -28,20 +28,20 @@ lemma cuts_eq: "(cut f R x = cut g R x) \<longleftrightarrow> (\<forall>y. (y, x
 lemma cut_apply: "(x, a) \<in> R \<Longrightarrow> cut f R a x = f x"
   by (simp add: cut_def)
 
-text{*Inductive characterization of wfrec combinator; for details see:
-John Harrison, "Inductive definitions: automation and application"*}
+text\<open>Inductive characterization of wfrec combinator; for details see:
+John Harrison, "Inductive definitions: automation and application"\<close>
 
 lemma theI_unique: "\<exists>!x. P x \<Longrightarrow> P x \<longleftrightarrow> x = The P"
   by (auto intro: the_equality[symmetric] theI)
 
 lemma wfrec_unique: assumes "adm_wf R F" "wf R" shows "\<exists>!y. wfrec_rel R F x y"
-  using `wf R`
+  using \<open>wf R\<close>
 proof induct
   def f \<equiv> "\<lambda>y. THE z. wfrec_rel R F y z"
   case (less x)
   then have "\<And>y z. (y, x) \<in> R \<Longrightarrow> wfrec_rel R F y z \<longleftrightarrow> z = f y"
     unfolding f_def by (rule theI_unique)
-  with `adm_wf R F` show ?case
+  with \<open>adm_wf R F\<close> show ?case
     by (subst wfrec_rel.simps) (auto simp: adm_wf_def)
 qed
 
@@ -57,12 +57,12 @@ apply (erule adm_lemma [THEN wfrec_unique, THEN theI'])
 done
 
 
-text{** This form avoids giant explosions in proofs.  NOTE USE OF ==*}
+text\<open>* This form avoids giant explosions in proofs.  NOTE USE OF ==\<close>
 lemma def_wfrec: "f \<equiv> wfrec R F \<Longrightarrow> wf R \<Longrightarrow> f a = F (cut f R a) a"
  by (auto intro: wfrec)
 
 
-subsubsection {* Well-founded recursion via genuine fixpoints *}
+subsubsection \<open>Well-founded recursion via genuine fixpoints\<close>
 
 lemma wfrec_fixpoint:
   assumes WF: "wf R" and ADM: "adm_wf R F"
@@ -79,12 +79,12 @@ proof (rule ext)
   finally show "wfrec R F x = F (wfrec R F) x" .
 qed
 
-subsection {* Wellfoundedness of @{text same_fst} *}
+subsection \<open>Wellfoundedness of @{text same_fst}\<close>
 
 definition same_fst :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> ('b \<times> 'b) set) \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b)) set" where
   "same_fst P R = {((x', y'), (x, y)) . x' = x \<and> P x \<and> (y',y) \<in> R x}"
-   --{*For @{const wfrec} declarations where the first n parameters
-       stay unchanged in the recursive call. *}
+   --\<open>For @{const wfrec} declarations where the first n parameters
+       stay unchanged in the recursive call.\<close>
 
 lemma same_fstI [intro!]: "P x \<Longrightarrow> (y', y) \<in> R x \<Longrightarrow> ((x, y'), (x, y)) \<in> same_fst P R"
   by (simp add: same_fst_def)

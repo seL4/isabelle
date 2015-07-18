@@ -1,12 +1,12 @@
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-section {* Lazy sequences *}
+section \<open>Lazy sequences\<close>
 
 theory Lazy_Sequence
 imports Predicate
 begin
 
-subsection {* Type of lazy sequences *}
+subsection \<open>Type of lazy sequences\<close>
 
 datatype (plugins only: code extraction) (dead 'a) lazy_sequence =
   lazy_sequence_of_list "'a list"
@@ -171,12 +171,12 @@ where
   | Some ((), xq) \<Rightarrow> empty)"
 
   
-subsection {* Code setup *}
+subsection \<open>Code setup\<close>
 
 code_reflect Lazy_Sequence
   datatypes lazy_sequence = Lazy_Sequence
 
-ML {*
+ML \<open>
 signature LAZY_SEQUENCE =
 sig
   datatype 'a lazy_sequence = Lazy_Sequence of (unit -> ('a * 'a Lazy_Sequence.lazy_sequence) option)
@@ -197,19 +197,19 @@ fun yield P = @{code Lazy_Sequence.yield} P;
 fun yieldn k = Predicate.anamorph yield k;
 
 end;
-*}
+\<close>
 
 
-subsection {* Generator Sequences *}
+subsection \<open>Generator Sequences\<close>
 
-subsubsection {* General lazy sequence operation *}
+subsubsection \<open>General lazy sequence operation\<close>
 
 definition product :: "'a lazy_sequence \<Rightarrow> 'b lazy_sequence \<Rightarrow> ('a \<times> 'b) lazy_sequence"
 where
   "product s1 s2 = bind s1 (\<lambda>a. bind s2 (\<lambda>b. single (a, b)))"
 
 
-subsubsection {* Small lazy typeclasses *}
+subsubsection \<open>Small lazy typeclasses\<close>
 
 class small_lazy =
   fixes small_lazy :: "natural \<Rightarrow> 'a lazy_sequence"
@@ -226,8 +226,8 @@ end
 instantiation int :: small_lazy
 begin
 
-text {* maybe optimise this expression -> append (single x) xs == cons x xs 
-Performance difference? *}
+text \<open>maybe optimise this expression -> append (single x) xs == cons x xs 
+Performance difference?\<close>
 
 function small_lazy' :: "int \<Rightarrow> int \<Rightarrow> int lazy_sequence"
 where
@@ -268,8 +268,8 @@ instance ..
 
 end
 
-subsection {* With Hit Bound Value *}
-text {* assuming in negative context *}
+subsection \<open>With Hit Bound Value\<close>
+text \<open>assuming in negative context\<close>
 
 type_synonym 'a hit_bound_lazy_sequence = "'a option lazy_sequence"
 

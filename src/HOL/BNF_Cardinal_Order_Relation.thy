@@ -5,13 +5,13 @@
 Cardinal-order relations as needed by bounded natural functors.
 *)
 
-section {* Cardinal-Order Relations as Needed by Bounded Natural Functors *}
+section \<open>Cardinal-Order Relations as Needed by Bounded Natural Functors\<close>
 
 theory BNF_Cardinal_Order_Relation
 imports Zorn BNF_Wellorder_Constructions
 begin
 
-text{* In this section, we define cardinal-order relations to be minim well-orders
+text\<open>In this section, we define cardinal-order relations to be minim well-orders
 on their field.  Then we define the cardinal of a set to be {\em some} cardinal-order
 relation on that set, which will be unique up to order isomorphism.  Then we study
 the connection between cardinals and:
@@ -31,14 +31,14 @@ facts that, in the presence of infiniteness,
 most of the standard set-theoretic constructions (except for the powerset)
 {\em do not increase cardinality}.  In particular, e.g., the set of words/lists over
 any infinite set has the same cardinality (hence, is in bijection) with that set.
-*}
+\<close>
 
 
-subsection {* Cardinal orders *}
+subsection \<open>Cardinal orders\<close>
 
-text{* A cardinal order in our setting shall be a well-order {\em minim} w.r.t. the
+text\<open>A cardinal order in our setting shall be a well-order {\em minim} w.r.t. the
 order-embedding relation, @{text "\<le>o"} (which is the same as being {\em minimal} w.r.t. the
-strict order-embedding relation, @{text "<o"}), among all the well-orders on its field. *}
+strict order-embedding relation, @{text "<o"}), among all the well-orders on its field.\<close>
 
 definition card_order_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
 where
@@ -56,7 +56,7 @@ lemma card_order_on_Card_order:
 "card_order_on A r \<Longrightarrow> A = Field r \<and> Card_order r"
 unfolding card_order_on_def using well_order_on_Field by blast
 
-text{* The existence of a cardinal relation on any given set (which will mean
+text\<open>The existence of a cardinal relation on any given set (which will mean
 that any set has a cardinal) follows from two facts:
 \begin{itemize}
 \item Zermelo's theorem (proved in @{text "Zorn.thy"} as theorem @{text "well_order_on"}),
@@ -64,7 +64,7 @@ which states that on any given set there exists a well-order;
 \item The well-founded-ness of @{text "<o"}, ensuring that then there exists a minimal
 such well-order, i.e., a cardinal order.
 \end{itemize}
-*}
+\<close>
 
 theorem card_order_on: "\<exists>r. card_order_on A r"
 proof-
@@ -111,11 +111,11 @@ shows "Card_order r'"
 using assms Card_order_ordIso ordIso_symmetric by blast
 
 
-subsection {* Cardinal of a set *}
+subsection \<open>Cardinal of a set\<close>
 
-text{* We define the cardinal of set to be {\em some} cardinal order on that set.
+text\<open>We define the cardinal of set to be {\em some} cardinal order on that set.
 We shall prove that this notion is unique up to order isomorphism, meaning
-that order isomorphism shall be the true identity of cardinals. *}
+that order isomorphism shall be the true identity of cardinals.\<close>
 
 definition card_of :: "'a set \<Rightarrow> 'a rel" ("|_|" )
 where "card_of A = (SOME r. card_order_on A r)"
@@ -343,13 +343,13 @@ lemma internalize_card_of_ordLeq2:
 using internalize_card_of_ordLeq[of "A" "|C|"] Field_card_of[of C] by auto
 
 
-subsection {* Cardinals versus set operations on arbitrary sets *}
+subsection \<open>Cardinals versus set operations on arbitrary sets\<close>
 
-text{* Here we embark in a long journey of simple results showing
+text\<open>Here we embark in a long journey of simple results showing
 that the standard set-theoretic operations are well-behaved w.r.t. the notion of
 cardinal -- essentially, this means that they preserve the ``cardinal identity"
 @{text "=o"} and are monotonic w.r.t. @{text "\<le>o"}.
-*}
+\<close>
 
 lemma card_of_empty: "|{}| \<le>o |A|"
 using card_of_ordLeq inj_on_id by blast
@@ -819,21 +819,21 @@ shows "finite(Field r) = finite A"
 using assms card_of_Field_ordIso card_of_ordIso_finite ordIso_equivalence by blast
 
 
-subsection {* Cardinals versus set operations involving infinite sets *}
+subsection \<open>Cardinals versus set operations involving infinite sets\<close>
 
-text{* Here we show that, for infinite sets, most set-theoretic constructions
+text\<open>Here we show that, for infinite sets, most set-theoretic constructions
 do not increase the cardinality.  The cornerstone for this is
 theorem @{text "Card_order_Times_same_infinite"}, which states that self-product
 does not increase cardinality -- the proof of this fact adapts a standard
 set-theoretic argument, as presented, e.g., in the proof of theorem 1.5.11
-at page 47 in @{cite "card-book"}. Then everything else follows fairly easily. *}
+at page 47 in @{cite "card-book"}. Then everything else follows fairly easily.\<close>
 
 lemma infinite_iff_card_of_nat:
 "\<not> finite A \<longleftrightarrow> ( |UNIV::nat set| \<le>o |A| )"
 unfolding infinite_iff_countable_subset card_of_ordLeq ..
 
-text{* The next two results correspond to the ZF fact that all infinite cardinals are
-limit ordinals: *}
+text\<open>The next two results correspond to the ZF fact that all infinite cardinals are
+limit ordinals:\<close>
 
 lemma Card_order_infinite_not_under:
 assumes CARD: "Card_order r" and INF: "\<not>finite (Field r)"
@@ -1140,13 +1140,13 @@ proof-
 qed
 
 
-subsection {* The cardinal $\omega$ and the finite cardinals *}
+subsection \<open>The cardinal $\omega$ and the finite cardinals\<close>
 
-text{* The cardinal $\omega$, of natural numbers, shall be the standard non-strict
+text\<open>The cardinal $\omega$, of natural numbers, shall be the standard non-strict
 order relation on
 @{text "nat"}, that we abbreviate by @{text "natLeq"}.  The finite cardinals
 shall be the restrictions of these relations to the numbers smaller than
-fixed numbers @{text "n"}, that we abbreviate by @{text "natLeq_on n"}. *}
+fixed numbers @{text "n"}, that we abbreviate by @{text "natLeq_on n"}.\<close>
 
 definition "(natLeq::(nat * nat) set) \<equiv> {(x,y). x \<le> y}"
 definition "(natLess::(nat * nat) set) \<equiv> {(x,y). x < y}"
@@ -1160,12 +1160,12 @@ shows "\<not>finite (A \<times> B)"
 proof
   assume "finite (A \<times> B)"
   from assms(1) have "A \<noteq> {}" by auto
-  with `finite (A \<times> B)` have "finite B" using finite_cartesian_productD2 by auto
+  with \<open>finite (A \<times> B)\<close> have "finite B" using finite_cartesian_productD2 by auto
   with assms(2) show False by simp
 qed
 
 
-subsubsection {* First as well-orders *}
+subsubsection \<open>First as well-orders\<close>
 
 lemma Field_natLeq: "Field natLeq = (UNIV::nat set)"
 by(unfold Field_def natLeq_def, auto)
@@ -1225,7 +1225,7 @@ lemma natLeq_on_wo_rel: "wo_rel(natLeq_on n)"
 unfolding wo_rel_def using natLeq_on_Well_order .
 
 
-subsubsection {* Then as cardinals *}
+subsubsection \<open>Then as cardinals\<close>
 
 lemma natLeq_Card_order: "Card_order natLeq"
 proof(auto simp add: natLeq_Well_order
@@ -1258,11 +1258,11 @@ using infinite_iff_natLeq_ordLeq not_ordLeq_iff_ordLess
       card_of_Well_order natLeq_Well_order by blast
 
 
-subsection {* The successor of a cardinal *}
+subsection \<open>The successor of a cardinal\<close>
 
-text{* First we define @{text "isCardSuc r r'"}, the notion of @{text "r'"}
+text\<open>First we define @{text "isCardSuc r r'"}, the notion of @{text "r'"}
 being a successor cardinal of @{text "r"}. Although the definition does
-not require @{text "r"} to be a cardinal, only this case will be meaningful. *}
+not require @{text "r"} to be a cardinal, only this case will be meaningful.\<close>
 
 definition isCardSuc :: "'a rel \<Rightarrow> 'a set rel \<Rightarrow> bool"
 where
@@ -1270,9 +1270,9 @@ where
  Card_order r' \<and> r <o r' \<and>
  (\<forall>(r''::'a set rel). Card_order r'' \<and> r <o r'' \<longrightarrow> r' \<le>o r'')"
 
-text{* Now we introduce the cardinal-successor operator @{text "cardSuc"},
+text\<open>Now we introduce the cardinal-successor operator @{text "cardSuc"},
 by picking {\em some} cardinal-order relation fulfilling @{text "isCardSuc"}.
-Again, the picked item shall be proved unique up to order-isomorphism. *}
+Again, the picked item shall be proved unique up to order-isomorphism.\<close>
 
 definition cardSuc :: "'a rel \<Rightarrow> 'a set rel"
 where
@@ -1312,14 +1312,14 @@ lemma cardSuc_ordLeq:
 "Card_order r \<Longrightarrow> r \<le>o cardSuc r"
 using cardSuc_greater ordLeq_iff_ordLess_or_ordIso by blast
 
-text{* The minimality property of @{text "cardSuc"} originally present in its definition
-is local to the type @{text "'a set rel"}, i.e., that of @{text "cardSuc r"}: *}
+text\<open>The minimality property of @{text "cardSuc"} originally present in its definition
+is local to the type @{text "'a set rel"}, i.e., that of @{text "cardSuc r"}:\<close>
 
 lemma cardSuc_least_aux:
 "\<lbrakk>Card_order (r::'a rel); Card_order (r'::'a set rel); r <o r'\<rbrakk> \<Longrightarrow> cardSuc r \<le>o r'"
 using cardSuc_isCardSuc unfolding isCardSuc_def by blast
 
-text{* But from this we can infer general minimality: *}
+text\<open>But from this we can infer general minimality:\<close>
 
 lemma cardSuc_least:
 assumes CARD: "Card_order r" and CARD': "Card_order r'" and LESS: "r <o r'"
@@ -1497,7 +1497,7 @@ using assms card_of_Plus_ordLeq_infinite_Field card_of_Un_Plus_ordLeq
 ordLeq_transitive by fast
 
 
-subsection {* Regular cardinals *}
+subsection \<open>Regular cardinals\<close>
 
 definition cofinal where
 "cofinal A r \<equiv>
@@ -1616,7 +1616,7 @@ proof-
 qed
 
 
-subsection {* Others *}
+subsection \<open>Others\<close>
 
 lemma card_of_Func_Times:
 "|Func (A <*> B) C| =o |Func A (Func B C)|"

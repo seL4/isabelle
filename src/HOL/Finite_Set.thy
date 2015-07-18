@@ -3,30 +3,30 @@
                 with contributions by Jeremy Avigad and Andrei Popescu
 *)
 
-section {* Finite sets *}
+section \<open>Finite sets\<close>
 
 theory Finite_Set
 imports Product_Type Sum_Type Nat
 begin
 
-subsection {* Predicate for finite sets *}
+subsection \<open>Predicate for finite sets\<close>
 
 inductive finite :: "'a set \<Rightarrow> bool"
   where
     emptyI [simp, intro!]: "finite {}"
   | insertI [simp, intro!]: "finite A \<Longrightarrow> finite (insert a A)"
 
-simproc_setup finite_Collect ("finite (Collect P)") = {* K Set_Comprehension_Pointfree.simproc *}
+simproc_setup finite_Collect ("finite (Collect P)") = \<open>K Set_Comprehension_Pointfree.simproc\<close>
 
 declare [[simproc del: finite_Collect]]
 
 lemma finite_induct [case_names empty insert, induct set: finite]:
-  -- {* Discharging @{text "x \<notin> F"} entails extra work. *}
+  -- \<open>Discharging @{text "x \<notin> F"} entails extra work.\<close>
   assumes "finite F"
   assumes "P {}"
     and insert: "\<And>x F. finite F \<Longrightarrow> x \<notin> F \<Longrightarrow> P F \<Longrightarrow> P (insert x F)"
   shows "P F"
-using `finite F`
+using \<open>finite F\<close>
 proof induct
   show "P {}" by fact
   fix x F assume F: "finite F" and P: "P F"
@@ -53,7 +53,7 @@ next
 qed
 
 
-subsubsection {* Choice principles *}
+subsubsection \<open>Choice principles\<close>
 
 lemma ex_new_if_finite: -- "does not depend on def of finite at all"
   assumes "\<not> finite (UNIV :: 'a set)" and "finite A"
@@ -63,7 +63,7 @@ proof -
   then show ?thesis by blast
 qed
 
-text {* A finite choice principle. Does not need the SOME choice operator. *}
+text \<open>A finite choice principle. Does not need the SOME choice operator.\<close>
 
 lemma finite_set_choice:
   "finite A \<Longrightarrow> \<forall>x\<in>A. \<exists>y. P x y \<Longrightarrow> \<exists>f. \<forall>x\<in>A. P x (f x)"
@@ -79,7 +79,7 @@ next
 qed
 
 
-subsubsection {* Finite sets are the images of initial segments of natural numbers *}
+subsubsection \<open>Finite sets are the images of initial segments of natural numbers\<close>
 
 lemma finite_imp_nat_seg_image_inj_on:
   assumes "finite A" 
@@ -130,7 +130,7 @@ lemma finite_imp_inj_to_nat_seg:
   assumes "finite A"
   shows "\<exists>f n::nat. f ` A = {i. i < n} \<and> inj_on f A"
 proof -
-  from finite_imp_nat_seg_image_inj_on[OF `finite A`]
+  from finite_imp_nat_seg_image_inj_on[OF \<open>finite A\<close>]
   obtain f and n::nat where bij: "bij_betw f {i. i<n} A"
     by (auto simp:bij_betw_def)
   let ?f = "the_inv_into {i. i<n} f"
@@ -148,7 +148,7 @@ lemma finite_Collect_le_nat [iff]:
   by (simp add: le_eq_less_or_eq Collect_disj_eq)
 
 
-subsubsection {* Finiteness and common set operations *}
+subsubsection \<open>Finiteness and common set operations\<close>
 
 lemma rev_finite_subset:
   "finite B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> finite A"
@@ -215,7 +215,7 @@ lemma finite_Diff2 [simp]:
   shows "finite (A - B) \<longleftrightarrow> finite A"
 proof -
   have "finite A \<longleftrightarrow> finite((A - B) \<union> (A \<inter> B))" by (simp add: Un_Diff_Int)
-  also have "\<dots> \<longleftrightarrow> finite (A - B)" using `finite B` by simp
+  also have "\<dots> \<longleftrightarrow> finite (A - B)" using \<open>finite B\<close> by simp
   finally show ?thesis ..
 qed
 
@@ -277,10 +277,10 @@ next
   case (insert x B)
   then have B_A: "insert x B = f ` A" by simp
   then obtain y where "x = f y" and "y \<in> A" by blast
-  from B_A `x \<notin> B` have "B = f ` A - {x}" by blast
-  with B_A `x \<notin> B` `x = f y` `inj_on f A` `y \<in> A` have "B = f ` (A - {y})" 
+  from B_A \<open>x \<notin> B\<close> have "B = f ` A - {x}" by blast
+  with B_A \<open>x \<notin> B\<close> \<open>x = f y\<close> \<open>inj_on f A\<close> \<open>y \<in> A\<close> have "B = f ` (A - {y})" 
     by (simp add: inj_on_image_set_diff Set.Diff_subset)
-  moreover from `inj_on f A` have "inj_on f (A - {y})" by (rule inj_on_diff)
+  moreover from \<open>inj_on f A\<close> have "inj_on f (A - {y})" by (rule inj_on_diff)
   ultimately have "finite (A - {y})" by (rule insert.hyps)
   then show "finite A" by simp
 qed
@@ -397,7 +397,7 @@ proof -
   from assms obtain n f where "A \<times> B = f ` {i::nat. i < n}"
     by (auto simp add: finite_conv_nat_seg_image)
   then have "fst ` (A \<times> B) = fst ` f ` {i::nat. i < n}" by simp
-  with `B \<noteq> {}` have "A = (fst \<circ> f) ` {i::nat. i < n}"
+  with \<open>B \<noteq> {}\<close> have "A = (fst \<circ> f) ` {i::nat. i < n}"
     by (simp add: image_comp)
   then have "\<exists>n f. A = f ` {i::nat. i < n}" by blast
   then show ?thesis
@@ -411,7 +411,7 @@ proof -
   from assms obtain n f where "A \<times> B = f ` {i::nat. i < n}"
     by (auto simp add: finite_conv_nat_seg_image)
   then have "snd ` (A \<times> B) = snd ` f ` {i::nat. i < n}" by simp
-  with `A \<noteq> {}` have "B = (snd \<circ> f) ` {i::nat. i < n}"
+  with \<open>A \<noteq> {}\<close> have "B = (snd \<circ> f) ` {i::nat. i < n}"
     by (simp add: image_comp)
   then have "\<exists>n f. B = f ` {i::nat. i < n}" by blast
   then show ?thesis
@@ -468,7 +468,7 @@ proof (rule classical)
 qed
 
 
-subsubsection {* Further induction rules on finite sets *}
+subsubsection \<open>Further induction rules on finite sets\<close>
 
 lemma finite_ne_induct [case_names singleton insert, consumes 2]:
   assumes "finite F" and "F \<noteq> {}"
@@ -487,7 +487,7 @@ lemma finite_subset_induct [consumes 2, case_names empty insert]:
   assumes empty: "P {}"
     and insert: "\<And>a F. finite F \<Longrightarrow> a \<in> A \<Longrightarrow> a \<notin> F \<Longrightarrow> P F \<Longrightarrow> P (insert a F)"
   shows "P F"
-using `finite F` `F \<subseteq> A`
+using \<open>finite F\<close> \<open>F \<subseteq> A\<close>
 proof induct
   show "P {}" by fact
 next
@@ -514,16 +514,16 @@ proof -
   proof -
     fix B :: "'a set"
     assume "B \<subseteq> A"
-    with `finite A` have "finite B" by (rule rev_finite_subset)
-    from this `B \<subseteq> A` show "P (A - B)"
+    with \<open>finite A\<close> have "finite B" by (rule rev_finite_subset)
+    from this \<open>B \<subseteq> A\<close> show "P (A - B)"
     proof induct
       case empty
-      from `P A` show ?case by simp
+      from \<open>P A\<close> show ?case by simp
     next
       case (insert b B)
       have "P (A - B - {b})"
       proof (rule remove)
-        from `finite A` show "finite (A - B)" by induct auto
+        from \<open>finite A\<close> show "finite (A - B)" by induct auto
         from insert show "b \<in> A - B" by simp
         from insert show "P (A - B)" by simp
       qed
@@ -546,19 +546,19 @@ next
   case (insert a A)
   then have "A = {a'. (f(a := c)) a' \<noteq> c}" and "f a \<noteq> c"
     by auto
-  with `finite A` have "finite {a'. (f(a := c)) a' \<noteq> c}"
+  with \<open>finite A\<close> have "finite {a'. (f(a := c)) a' \<noteq> c}"
     by simp
   have "(f(a := c)) a = c"
     by simp
-  from insert `A = {a'. (f(a := c)) a' \<noteq> c}` have "P (f(a := c))"
+  from insert \<open>A = {a'. (f(a := c)) a' \<noteq> c}\<close> have "P (f(a := c))"
     by simp
-  with `finite {a'. (f(a := c)) a' \<noteq> c}` `(f(a := c)) a = c` `f a \<noteq> c` have "P ((f(a := c))(a := f a))"
+  with \<open>finite {a'. (f(a := c)) a' \<noteq> c}\<close> \<open>(f(a := c)) a = c\<close> \<open>f a \<noteq> c\<close> have "P ((f(a := c))(a := f a))"
     by (rule update)
   then show ?case by simp
 qed
 
 
-subsection {* Class @{text finite}  *}
+subsection \<open>Class @{text finite}\<close>
 
 class finite =
   assumes finite_UNIV: "finite (UNIV \<Colon> 'a set)"
@@ -605,12 +605,12 @@ instance sum :: (finite, finite) finite
   by default (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
 
 
-subsection {* A basic fold functional for finite sets *}
+subsection \<open>A basic fold functional for finite sets\<close>
 
-text {* The intended behaviour is
+text \<open>The intended behaviour is
 @{text "fold f z {x\<^sub>1, ..., x\<^sub>n} = f x\<^sub>1 (\<dots> (f x\<^sub>n z)\<dots>)"}
 if @{text f} is ``left-commutative'':
-*}
+\<close>
 
 locale comp_fun_commute =
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
@@ -637,17 +637,17 @@ inductive_cases empty_fold_graphE [elim!]: "fold_graph f z {} x"
 definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b" where
   "fold f z A = (if finite A then (THE y. fold_graph f z A y) else z)"
 
-text{*A tempting alternative for the definiens is
+text\<open>A tempting alternative for the definiens is
 @{term "if finite A then THE y. fold_graph f z A y else e"}.
 It allows the removal of finiteness assumptions from the theorems
 @{text fold_comm}, @{text fold_reindex} and @{text fold_distrib}.
-The proofs become ugly. It is not worth the effort. (???) *}
+The proofs become ugly. It is not worth the effort. (???)\<close>
 
 lemma finite_imp_fold_graph: "finite A \<Longrightarrow> \<exists>x. fold_graph f z A x"
 by (induct rule: finite_induct) auto
 
 
-subsubsection{*From @{const fold_graph} to @{term fold}*}
+subsubsection\<open>From @{const fold_graph} to @{term fold}\<close>
 
 context comp_fun_commute
 begin
@@ -670,7 +670,7 @@ proof (induct set: fold_graph)
     have "f x y = f a (f x y')"
       unfolding y by (rule fun_left_comm)
     moreover have "fold_graph f z (insert x A - {a}) (f x y')"
-      using y' and `x \<noteq> a` and `x \<notin> A`
+      using y' and \<open>x \<noteq> a\<close> and \<open>x \<notin> A\<close>
       by (simp add: insert_Diff_if fold_graph.insertI)
     ultimately show ?case by fast
   qed
@@ -685,11 +685,11 @@ lemma fold_graph_determ:
   "fold_graph f z A x \<Longrightarrow> fold_graph f z A y \<Longrightarrow> y = x"
 proof (induct arbitrary: y set: fold_graph)
   case (insertI x A y v)
-  from `fold_graph f z (insert x A) v` and `x \<notin> A`
+  from \<open>fold_graph f z (insert x A) v\<close> and \<open>x \<notin> A\<close>
   obtain y' where "v = f x y'" and "fold_graph f z A y'"
     by (rule fold_graph_insertE)
-  from `fold_graph f z A y'` have "y' = y" by (rule insertI)
-  with `v = f x y'` show "v = f x y" by simp
+  from \<open>fold_graph f z A y'\<close> have "y' = y" by (rule insertI)
+  with \<open>v = f x y'\<close> show "v = f x y" by simp
 qed fast
 
 lemma fold_equality:
@@ -707,7 +707,7 @@ proof -
   with assms show ?thesis by (simp add: fold_def)
 qed
 
-text {* The base case for @{text fold}: *}
+text \<open>The base case for @{text fold}:\<close>
 
 lemma (in -) fold_infinite [simp]:
   assumes "\<not> finite A"
@@ -718,20 +718,20 @@ lemma (in -) fold_empty [simp]:
   "fold f z {} = z"
   by (auto simp add: fold_def)
 
-text{* The various recursion equations for @{const fold}: *}
+text\<open>The various recursion equations for @{const fold}:\<close>
 
 lemma fold_insert [simp]:
   assumes "finite A" and "x \<notin> A"
   shows "fold f z (insert x A) = f x (fold f z A)"
 proof (rule fold_equality)
   fix z
-  from `finite A` have "fold_graph f z A (fold f z A)" by (rule fold_graph_fold)
-  with `x \<notin> A` have "fold_graph f z (insert x A) (f x (fold f z A))" by (rule fold_graph.insertI)
+  from \<open>finite A\<close> have "fold_graph f z A (fold f z A)" by (rule fold_graph_fold)
+  with \<open>x \<notin> A\<close> have "fold_graph f z (insert x A) (f x (fold f z A))" by (rule fold_graph.insertI)
   then show "fold_graph f z (insert x A) (f x (fold f z A))" by simp
 qed
 
 declare (in -) empty_fold_graphE [rule del] fold_graph.intros [rule del]
-  -- {* No more proofs involve these. *}
+  -- \<open>No more proofs involve these.\<close>
 
 lemma fold_fun_left_comm:
   "finite A \<Longrightarrow> f x (fold f z A) = fold f (f x z) A"
@@ -750,10 +750,10 @@ lemma fold_rec:
   assumes "finite A" and "x \<in> A"
   shows "fold f z A = f x (fold f z (A - {x}))"
 proof -
-  have A: "A = insert x (A - {x})" using `x \<in> A` by blast
+  have A: "A = insert x (A - {x})" using \<open>x \<in> A\<close> by blast
   then have "fold f z A = fold f z (insert x (A - {x}))" by simp
   also have "\<dots> = f x (fold f z (A - {x}))"
-    by (rule fold_insert) (simp add: `finite A`)+
+    by (rule fold_insert) (simp add: \<open>finite A\<close>)+
   finally show ?thesis .
 qed
 
@@ -761,7 +761,7 @@ lemma fold_insert_remove:
   assumes "finite A"
   shows "fold f z (insert x A) = f x (fold f z (A - {x}))"
 proof -
-  from `finite A` have "finite (insert x A)" by auto
+  from \<open>finite A\<close> have "finite (insert x A)" by auto
   moreover have "x \<in> insert x A" by auto
   ultimately have "fold f z (insert x A) = f x (fold f z (insert x A - {x}))"
     by (rule fold_rec)
@@ -775,7 +775,7 @@ using assms(2,1,3) by induction simp_all
 
 end
 
-text{* Other properties of @{const fold}: *}
+text\<open>Other properties of @{const fold}:\<close>
 
 lemma fold_image:
   assumes "inj_on g A"
@@ -794,12 +794,12 @@ next
         case emptyI then show ?case by (auto intro: fold_graph.emptyI)
       next
         case (insertI x A r B)
-        from `inj_on g B` `x \<notin> A` `insert x A = image g B` obtain x' A' where
+        from \<open>inj_on g B\<close> \<open>x \<notin> A\<close> \<open>insert x A = image g B\<close> obtain x' A' where
           "x' \<notin> A'" and [simp]: "B = insert x' A'" "x = g x'" "A = g ` A'"
           by (rule inj_img_insertE)
         from insertI.prems have "fold_graph (f o g) z A' r"
           by (auto intro: insertI.hyps)
-        with `x' \<notin> A'` have "fold_graph (f \<circ> g) z (insert x' A') ((f \<circ> g) x' r)"
+        with \<open>x' \<notin> A'\<close> have "fold_graph (f \<circ> g) z (insert x' A') ((f \<circ> g) x' r)"
           by (rule fold_graph.insertI)
         then show ?case by simp
       qed
@@ -809,7 +809,7 @@ next
         case emptyI thus ?case by (auto intro: fold_graph.emptyI)
       next
         case (insertI x A r)
-        from `x \<notin> A` insertI.prems have "g x \<notin> g ` A" by auto
+        from \<open>x \<notin> A\<close> insertI.prems have "g x \<notin> g ` A" by auto
         moreover from insertI have "fold_graph f z (g ` A) r" by simp
         ultimately have "fold_graph f z (insert (g x) (g ` A)) (f (g x) r)"
           by (rule fold_graph.insertI)
@@ -827,19 +827,19 @@ lemma fold_cong:
   shows "fold f s A = fold g t B"
 proof -
   have "fold f s A = fold g s A"  
-  using `finite A` cong proof (induct A)
+  using \<open>finite A\<close> cong proof (induct A)
     case empty then show ?case by simp
   next
     case (insert x A)
-    interpret f: comp_fun_commute f by (fact `comp_fun_commute f`)
-    interpret g: comp_fun_commute g by (fact `comp_fun_commute g`)
+    interpret f: comp_fun_commute f by (fact \<open>comp_fun_commute f\<close>)
+    interpret g: comp_fun_commute g by (fact \<open>comp_fun_commute g\<close>)
     from insert show ?case by simp
   qed
   with assms show ?thesis by simp
 qed
 
 
-text {* A simplified version for idempotent functions: *}
+text \<open>A simplified version for idempotent functions:\<close>
 
 locale comp_fun_idem = comp_fun_commute +
   assumes comp_fun_idem: "f x \<circ> f x = f x"
@@ -868,7 +868,7 @@ lemma fold_insert_idem2:
 end
 
 
-subsubsection {* Liftings to @{text comp_fun_commute} etc. *}
+subsubsection \<open>Liftings to @{text comp_fun_commute} etc.\<close>
 
 lemma (in comp_fun_commute) comp_comp_fun_commute:
   "comp_fun_commute (f \<circ> g)"
@@ -919,7 +919,7 @@ proof
 qed
 
 
-subsubsection {* Expressing set operations via @{const fold} *}
+subsubsection \<open>Expressing set operations via @{const fold}\<close>
 
 lemma comp_fun_commute_const:
   "comp_fun_commute (\<lambda>_. f)"
@@ -951,7 +951,7 @@ lemma union_fold_insert:
   shows "A \<union> B = fold insert B A"
 proof -
   interpret comp_fun_idem insert by (fact comp_fun_idem_insert)
-  from `finite A` show ?thesis by (induct A arbitrary: B) simp_all
+  from \<open>finite A\<close> show ?thesis by (induct A arbitrary: B) simp_all
 qed
 
 lemma minus_fold_remove:
@@ -959,7 +959,7 @@ lemma minus_fold_remove:
   shows "B - A = fold Set.remove B A"
 proof -
   interpret comp_fun_idem Set.remove by (fact comp_fun_idem_remove)
-  from `finite A` have "fold Set.remove B A = B - A" by (induct A arbitrary: B) auto
+  from \<open>finite A\<close> have "fold Set.remove B A = B - A" by (induct A arbitrary: B) auto
   then show ?thesis ..
 qed
 
@@ -1053,7 +1053,7 @@ lemma inf_Inf_fold_inf:
   shows "inf (Inf A) B = fold inf B A"
 proof -
   interpret comp_fun_idem inf by (fact comp_fun_idem_inf)
-  from `finite A` fold_fun_left_comm show ?thesis by (induct A arbitrary: B)
+  from \<open>finite A\<close> fold_fun_left_comm show ?thesis by (induct A arbitrary: B)
     (simp_all add: inf_commute fun_eq_iff)
 qed
 
@@ -1062,7 +1062,7 @@ lemma sup_Sup_fold_sup:
   shows "sup (Sup A) B = fold sup B A"
 proof -
   interpret comp_fun_idem sup by (fact comp_fun_idem_sup)
-  from `finite A` fold_fun_left_comm show ?thesis by (induct A arbitrary: B)
+  from \<open>finite A\<close> fold_fun_left_comm show ?thesis by (induct A arbitrary: B)
     (simp_all add: sup_commute fun_eq_iff)
 qed
 
@@ -1082,7 +1082,7 @@ lemma inf_INF_fold_inf:
 proof (rule sym)
   interpret comp_fun_idem inf by (fact comp_fun_idem_inf)
   interpret comp_fun_idem "inf \<circ> f" by (fact comp_comp_fun_idem)
-  from `finite A` show "?fold = ?inf"
+  from \<open>finite A\<close> show "?fold = ?inf"
     by (induct A arbitrary: B)
       (simp_all add: inf_left_commute)
 qed
@@ -1093,7 +1093,7 @@ lemma sup_SUP_fold_sup:
 proof (rule sym)
   interpret comp_fun_idem sup by (fact comp_fun_idem_sup)
   interpret comp_fun_idem "sup \<circ> f" by (fact comp_comp_fun_idem)
-  from `finite A` show "?fold = ?sup"
+  from \<open>finite A\<close> show "?fold = ?sup"
     by (induct A arbitrary: B)
       (simp_all add: sup_left_commute)
 qed
@@ -1111,9 +1111,9 @@ lemma SUP_fold_sup:
 end
 
 
-subsection {* Locales as mini-packages for fold operations *}
+subsection \<open>Locales as mini-packages for fold operations\<close>
 
-subsubsection {* The natural case *}
+subsubsection \<open>The natural case\<close>
 
 locale folding =
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
@@ -1142,16 +1142,16 @@ lemma insert [simp]:
 proof -
   from fold_insert assms
   have "fold f z (insert x A) = f x (fold f z A)" by simp
-  with `finite A` show ?thesis by (simp add: eq_fold fun_eq_iff)
+  with \<open>finite A\<close> show ?thesis by (simp add: eq_fold fun_eq_iff)
 qed
  
 lemma remove:
   assumes "finite A" and "x \<in> A"
   shows "F A = f x (F (A - {x}))"
 proof -
-  from `x \<in> A` obtain B where A: "A = insert x B" and "x \<notin> B"
+  from \<open>x \<in> A\<close> obtain B where A: "A = insert x B" and "x \<notin> B"
     by (auto dest: mk_disjoint_insert)
-  moreover from `finite A` A have "finite B" by simp
+  moreover from \<open>finite A\<close> A have "finite B" by simp
   ultimately show ?thesis by simp
 qed
 
@@ -1163,7 +1163,7 @@ lemma insert_remove:
 end
 
 
-subsubsection {* With idempotency *}
+subsubsection \<open>With idempotency\<close>
 
 locale folding_idem = folding +
   assumes comp_fun_idem: "f x \<circ> f x = f x"
@@ -1180,20 +1180,20 @@ lemma insert_idem [simp]:
 proof -
   from fold_insert_idem assms
   have "fold f z (insert x A) = f x (fold f z A)" by simp
-  with `finite A` show ?thesis by (simp add: eq_fold fun_eq_iff)
+  with \<open>finite A\<close> show ?thesis by (simp add: eq_fold fun_eq_iff)
 qed
 
 end
 
 
-subsection {* Finite cardinality *}
+subsection \<open>Finite cardinality\<close>
 
-text {*
+text \<open>
   The traditional definition
   @{prop "card A \<equiv> LEAST n. EX f. A = {f i | i. i < n}"}
   is ugly to work with.
   But now that we have @{const fold} things are easy:
-*}
+\<close>
 
 definition card :: "'a set \<Rightarrow> nat" where
   "card = folding.F (\<lambda>_. Suc) 0"
@@ -1289,7 +1289,7 @@ proof -
     then have "x \<in> B" by simp
     from insert have "A \<subseteq> B - {x}" and "finite (B - {x})" by auto
     with insert.hyps have "card A \<le> card (B - {x})" by auto
-    with `finite A` `x \<notin> A` `finite B` `x \<in> B` show ?case by simp (simp only: card.remove)
+    with \<open>finite A\<close> \<open>x \<notin> A\<close> \<open>finite B\<close> \<open>x \<in> B\<close> show ?case by simp (simp only: card.remove)
   qed
 qed
 
@@ -1467,24 +1467,24 @@ proof -
   have "0 \<le> card S" by simp
   then have "\<exists>T \<subseteq> S. card T = card S \<and> P T"
   proof (induct rule: dec_induct)
-    case base with `P {}` show ?case
+    case base with \<open>P {}\<close> show ?case
       by (intro exI[of _ "{}"]) auto
   next
     case (step n)
     then obtain T where T: "T \<subseteq> S" "card T = n" "P T"
       by auto
-    with `n < card S` have "T \<subset> S" "P T"
+    with \<open>n < card S\<close> have "T \<subset> S" "P T"
       by auto
     with select[of T] obtain s where "s \<in> S" "s \<notin> T" "P (insert s T)"
       by auto
-    with step(2) T `finite S` show ?case
+    with step(2) T \<open>finite S\<close> show ?case
       by (intro exI[of _ "insert s T"]) (auto dest: finite_subset)
   qed
-  with `finite S` show "P S"
+  with \<open>finite S\<close> show "P S"
     by (auto dest: card_subset_eq)
 qed
 
-text{* main cardinality theorem *}
+text\<open>main cardinality theorem\<close>
 lemma card_partition [rule_format]:
   "finite C ==>
      finite (\<Union>C) -->
@@ -1515,7 +1515,7 @@ proof
   qed
 qed
 
-text{*The form of a finite set of given cardinality*}
+text\<open>The form of a finite set of given cardinality\<close>
 
 lemma card_eq_SucD:
 assumes "card A = Suc k"
@@ -1568,7 +1568,7 @@ proof (induction n)
 next 
   case (Suc n)
   then guess B .. note B = this
-  with `\<not> finite A` have "A \<noteq> B" by auto
+  with \<open>\<not> finite A\<close> have "A \<noteq> B" by auto
   with B have "B \<subset> A" by auto
   hence "\<exists>x. x \<in> A - B" by (elim psubset_imp_ex_mem)
   then guess x .. note x = this
@@ -1577,7 +1577,7 @@ next
   thus "\<exists>B. finite B \<and> card B = Suc n \<and> B \<subseteq> A" ..
 qed
 
-subsubsection {* Cardinality of image *}
+subsubsection \<open>Cardinality of image\<close>
 
 lemma card_image_le: "finite A ==> card (f ` A) \<le> card A"
   by (induct rule: finite_induct) (simp_all add: le_SucI card_insert_if)
@@ -1643,7 +1643,7 @@ using assms finite_imageD finite_subset by blast
 lemma card_vimage_inj: "\<lbrakk> inj f; A \<subseteq> range f \<rbrakk> \<Longrightarrow> card (f -` A) = card A"
 by(auto 4 3 simp add: subset_image_iff inj_vimage_image_eq intro: card_image[symmetric, OF subset_inj_on])
 
-subsubsection {* Pigeonhole Principles *}
+subsubsection \<open>Pigeonhole Principles\<close>
 
 lemma pigeonhole: "card A > card(f ` A) \<Longrightarrow> ~ inj_on f A "
 by (auto dest: card_image less_irrefl_nat)
@@ -1660,7 +1660,7 @@ proof -
     show ?case
     proof cases
       assume "finite{a:A. f a = b}"
-      hence "~ finite(A - {a:A. f a = b})" using `\<not> finite A` by simp
+      hence "~ finite(A - {a:A. f a = b})" using \<open>\<not> finite A\<close> by simp
       also have "A - {a:A. f a = b} = {a:A. f a \<noteq> b}" by blast
       finally have "~ finite({a:A. f a \<noteq> b})" .
       from insert(3)[OF _ this]
@@ -1679,20 +1679,20 @@ assumes "~finite A" and "finite B" and "ALL a:A. EX b:B. R a b"
 shows "EX b:B. ~finite{a:A. R a b}"
 proof -
    let ?F = "%a. {b:B. R a b}"
-   from finite_Pow_iff[THEN iffD2, OF `finite B`]
+   from finite_Pow_iff[THEN iffD2, OF \<open>finite B\<close>]
    have "finite(?F ` A)" by(blast intro: rev_finite_subset)
    from pigeonhole_infinite[where f = ?F, OF assms(1) this]
    obtain a0 where "a0\<in>A" and 1: "\<not> finite {a\<in>A. ?F a = ?F a0}" ..
-   obtain b0 where "b0 : B" and "R a0 b0" using `a0:A` assms(3) by blast
+   obtain b0 where "b0 : B" and "R a0 b0" using \<open>a0:A\<close> assms(3) by blast
    { assume "finite{a:A. R a b0}"
      then have "finite {a\<in>A. ?F a = ?F a0}"
-       using `b0 : B` `R a0 b0` by(blast intro: rev_finite_subset)
+       using \<open>b0 : B\<close> \<open>R a0 b0\<close> by(blast intro: rev_finite_subset)
    }
-   with 1 `b0 : B` show ?thesis by blast
+   with 1 \<open>b0 : B\<close> show ?thesis by blast
 qed
 
 
-subsubsection {* Cardinality of sums *}
+subsubsection \<open>Cardinality of sums\<close>
 
 lemma card_Plus:
   assumes "finite A" and "finite B"
@@ -1708,7 +1708,7 @@ lemma card_Plus_conv_if:
   "card (A <+> B) = (if finite A \<and> finite B then card A + card B else 0)"
   by (auto simp add: card_Plus)
 
-text {* Relates to equivalence classes.  Based on a theorem of F. Kamm\"uller.  *}
+text \<open>Relates to equivalence classes.  Based on a theorem of F. Kamm\"uller.\<close>
 
 lemma dvd_partition:
   assumes f: "finite (\<Union>C)" and "\<forall>c\<in>C. k dvd card c" "\<forall>c1\<in>C. \<forall>c2\<in>C. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = {}"
@@ -1729,7 +1729,7 @@ proof -
   qed
 qed
 
-subsubsection {* Relating injectivity and surjectivity *}
+subsubsection \<open>Relating injectivity and surjectivity\<close>
 
 lemma finite_surj_inj: assumes "finite A" "A \<subseteq> f ` A" shows "inj_on f A"
 proof -

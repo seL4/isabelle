@@ -2,7 +2,7 @@
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 
-section {* Definition of Quotient Types *}
+section \<open>Definition of Quotient Types\<close>
 
 theory Quotient
 imports Lifting
@@ -12,12 +12,12 @@ keywords
   "quotient_definition" :: thy_goal
 begin
 
-text {*
+text \<open>
   Basic definition for equivalence relations
   that are represented by predicates.
-*}
+\<close>
 
-text {* Composition of Relations *}
+text \<open>Composition of Relations\<close>
 
 abbreviation
   rel_conj :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" (infixr "OOO" 75)
@@ -32,7 +32,7 @@ context
 begin
 interpretation lifting_syntax .
 
-subsection {* Quotient Predicate *}
+subsection \<open>Quotient Predicate\<close>
 
 definition
   "Quotient3 R Abs Rep \<longleftrightarrow>
@@ -64,7 +64,7 @@ lemma Quotient3_rep_reflp:
   by blast
 
 lemma Quotient3_rel:
-  "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- {* orientation does not loop on rewriting *}
+  "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- \<open>orientation does not loop on rewriting\<close>
   using a
   unfolding Quotient3_def
   by blast
@@ -192,12 +192,12 @@ lemma lambda_prs1:
   using Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2]
   by simp
 
-text{*
+text\<open>
   In the following theorem R1 can be instantiated with anything,
   but we know some of the types of the Rep and Abs functions;
   so by solving Quotient assumptions we can get a unique R1 that
   will be provable; which is why we need to use @{text apply_rsp} and
-  not the primed version *}
+  not the primed version\<close>
 
 lemma apply_rspQ3:
   fixes f g::"'a \<Rightarrow> 'c"
@@ -215,7 +215,7 @@ proof -
   then show ?thesis using assms(2) by (auto intro: apply_rsp')
 qed
 
-subsection {* lemmas for regularisation of ball and bex *}
+subsection \<open>lemmas for regularisation of ball and bex\<close>
 
 lemma ball_reg_eqv:
   fixes P :: "'a \<Rightarrow> bool"
@@ -315,7 +315,7 @@ lemma bex_ex_comm:
   shows "(\<exists>x. \<exists>y. A x y) \<longrightarrow> (\<exists>x\<in>P. \<exists>y. B x y)"
   using assms by auto
 
-subsection {* Bounded abstraction *}
+subsection \<open>Bounded abstraction\<close>
 
 definition
   Babs :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
@@ -392,7 +392,7 @@ lemma ex_prs:
   using a unfolding Quotient3_def Bex_def in_respects id_apply comp_def map_fun_def
   by metis
 
-subsection {* @{text Bex1_rel} quantifier *}
+subsection \<open>@{text Bex1_rel} quantifier\<close>
 
 definition
   Bex1_rel :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
@@ -506,7 +506,7 @@ lemma bex1_bexeq_reg_eqv:
   apply simp
   done
 
-subsection {* Various respects and preserve lemmas *}
+subsection \<open>Various respects and preserve lemmas\<close>
 
 lemma quot_rel_rsp:
   assumes a: "Quotient3 R Abs Rep"
@@ -605,7 +605,7 @@ lemma Quotient:
       have "R (SOME x. x \<in> Rep a) x"  using r rep some_collect by metis
       then have "R x (SOME x. x \<in> Rep a)" using part_equivp_symp[OF equivp] by fast
       then show "R (SOME x. x \<in> Rep a) (SOME x. x \<in> Rep a)"
-        using part_equivp_transp[OF equivp] by (metis `R (SOME x. x \<in> Rep a) x`)
+        using part_equivp_transp[OF equivp] by (metis \<open>R (SOME x. x \<in> Rep a) x\<close>)
     qed
     have "Collect (R (SOME x. x \<in> Rep a)) = (Rep a)" by (metis some_collect rep_prop)
     then show "Abs (Collect (R (SOME x. x \<in> Rep a))) = a" using rep_inverse by auto
@@ -624,7 +624,7 @@ lemma Quotient:
 
 end
 
-subsection {* Quotient composition *}
+subsection \<open>Quotient composition\<close>
 
 lemma OOO_quotient3:
   fixes R1 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
@@ -718,7 +718,7 @@ lemma OOO_eq_quotient3:
 using assms
 by (rule OOO_quotient3) auto
 
-subsection {* Quotient3 to Quotient *}
+subsection \<open>Quotient3 to Quotient\<close>
 
 lemma Quotient3_to_Quotient:
 assumes "Quotient3 R Abs Rep"
@@ -744,9 +744,9 @@ next
   show "T = (\<lambda>x y. R x x \<and> Abs x = y)" using T_def equivp_reflp[OF eR] by simp
 qed
 
-subsection {* ML setup *}
+subsection \<open>ML setup\<close>
 
-text {* Auxiliary data for the quotient package *}
+text \<open>Auxiliary data for the quotient package\<close>
 
 named_theorems quot_equiv "equivalence relation theorems"
   and quot_respect "respectfulness theorems"
@@ -763,7 +763,7 @@ lemmas [quot_preserve] = if_prs o_prs let_prs id_prs
 lemmas [quot_equiv] = identity_equivp
 
 
-text {* Lemmas about simplifying id's. *}
+text \<open>Lemmas about simplifying id's.\<close>
 lemmas [id_simps] =
   id_def[symmetric]
   map_fun_id
@@ -773,22 +773,22 @@ lemmas [id_simps] =
   eq_comp_r
   vimage_id
 
-text {* Translation functions for the lifting process. *}
+text \<open>Translation functions for the lifting process.\<close>
 ML_file "Tools/Quotient/quotient_term.ML"
 
 
-text {* Definitions of the quotient types. *}
+text \<open>Definitions of the quotient types.\<close>
 ML_file "Tools/Quotient/quotient_type.ML"
 
 
-text {* Definitions for quotient constants. *}
+text \<open>Definitions for quotient constants.\<close>
 ML_file "Tools/Quotient/quotient_def.ML"
 
 
-text {*
+text \<open>
   An auxiliary constant for recording some information
   about the lifted theorem in a tactic.
-*}
+\<close>
 definition
   Quot_True :: "'a \<Rightarrow> bool"
 where
@@ -809,55 +809,55 @@ context
 begin
 interpretation lifting_syntax .
 
-text {* Tactics for proving the lifted theorems *}
+text \<open>Tactics for proving the lifted theorems\<close>
 ML_file "Tools/Quotient/quotient_tacs.ML"
 
 end
 
-subsection {* Methods / Interface *}
+subsection \<open>Methods / Interface\<close>
 
 method_setup lifting =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
-       SIMPLE_METHOD' (Quotient_Tacs.lift_tac ctxt [] thms)) *}
-  {* lift theorems to quotient types *}
+  \<open>Attrib.thms >> (fn thms => fn ctxt => 
+       SIMPLE_METHOD' (Quotient_Tacs.lift_tac ctxt [] thms))\<close>
+  \<open>lift theorems to quotient types\<close>
 
 method_setup lifting_setup =
-  {* Attrib.thm >> (fn thm => fn ctxt => 
-       SIMPLE_METHOD' (Quotient_Tacs.lift_procedure_tac ctxt [] thm)) *}
-  {* set up the three goals for the quotient lifting procedure *}
+  \<open>Attrib.thm >> (fn thm => fn ctxt => 
+       SIMPLE_METHOD' (Quotient_Tacs.lift_procedure_tac ctxt [] thm))\<close>
+  \<open>set up the three goals for the quotient lifting procedure\<close>
 
 method_setup descending =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.descend_tac ctxt [])) *}
-  {* decend theorems to the raw level *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.descend_tac ctxt []))\<close>
+  \<open>decend theorems to the raw level\<close>
 
 method_setup descending_setup =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.descend_procedure_tac ctxt [])) *}
-  {* set up the three goals for the decending theorems *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.descend_procedure_tac ctxt []))\<close>
+  \<open>set up the three goals for the decending theorems\<close>
 
 method_setup partiality_descending =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.partiality_descend_tac ctxt [])) *}
-  {* decend theorems to the raw level *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.partiality_descend_tac ctxt []))\<close>
+  \<open>decend theorems to the raw level\<close>
 
 method_setup partiality_descending_setup =
-  {* Scan.succeed (fn ctxt => 
-       SIMPLE_METHOD' (Quotient_Tacs.partiality_descend_procedure_tac ctxt [])) *}
-  {* set up the three goals for the decending theorems *}
+  \<open>Scan.succeed (fn ctxt => 
+       SIMPLE_METHOD' (Quotient_Tacs.partiality_descend_procedure_tac ctxt []))\<close>
+  \<open>set up the three goals for the decending theorems\<close>
 
 method_setup regularize =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.regularize_tac ctxt)) *}
-  {* prove the regularization goals from the quotient lifting procedure *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.regularize_tac ctxt))\<close>
+  \<open>prove the regularization goals from the quotient lifting procedure\<close>
 
 method_setup injection =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.all_injection_tac ctxt)) *}
-  {* prove the rep/abs injection goals from the quotient lifting procedure *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.all_injection_tac ctxt))\<close>
+  \<open>prove the rep/abs injection goals from the quotient lifting procedure\<close>
 
 method_setup cleaning =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.clean_tac ctxt)) *}
-  {* prove the cleaning goals from the quotient lifting procedure *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (Quotient_Tacs.clean_tac ctxt))\<close>
+  \<open>prove the cleaning goals from the quotient lifting procedure\<close>
 
 attribute_setup quot_lifted =
-  {* Scan.succeed Quotient_Tacs.lifted_attrib *}
-  {* lift theorems to quotient types *}
+  \<open>Scan.succeed Quotient_Tacs.lifted_attrib\<close>
+  \<open>lift theorems to quotient types\<close>
 
 no_notation
   rel_conj (infixr "OOO" 75)

@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-section {* Reflexive and Transitive closure of a relation *}
+section \<open>Reflexive and Transitive closure of a relation\<close>
 
 theory Transitive_Closure
 imports Relation
@@ -11,14 +11,14 @@ begin
 
 ML_file "~~/src/Provers/trancl.ML"
 
-text {*
+text \<open>
   @{text rtrancl} is reflexive/transitive closure,
   @{text trancl} is transitive closure,
   @{text reflcl} is reflexive closure.
 
   These postfix operators have \emph{maximum priority}, forcing their
   operands to be atomic.
-*}
+\<close>
 
 inductive_set
   rtrancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"   ("(_^*)" [1000] 999)
@@ -68,7 +68,7 @@ notation (HTML output)
   reflcl  ("(_\<^sup>=)" [1000] 999)
 
 
-subsection {* Reflexive closure *}
+subsection \<open>Reflexive closure\<close>
 
 lemma refl_reflcl[simp]: "refl(r^=)"
 by(simp add:refl_on_def)
@@ -82,23 +82,23 @@ unfolding trans_def by blast
 lemma reflclp_idemp [simp]: "(P^==)^==  =  P^=="
 by blast
 
-subsection {* Reflexive-transitive closure *}
+subsection \<open>Reflexive-transitive closure\<close>
 
 lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) op =) = (\<lambda>x y. (x, y) \<in> r \<union> Id)"
   by (auto simp add: fun_eq_iff)
 
 lemma r_into_rtrancl [intro]: "!!p. p \<in> r ==> p \<in> r^*"
-  -- {* @{text rtrancl} of @{text r} contains @{text r} *}
+  -- \<open>@{text rtrancl} of @{text r} contains @{text r}\<close>
   apply (simp only: split_tupled_all)
   apply (erule rtrancl_refl [THEN rtrancl_into_rtrancl])
   done
 
 lemma r_into_rtranclp [intro]: "r x y ==> r^** x y"
-  -- {* @{text rtrancl} of @{text r} contains @{text r} *}
+  -- \<open>@{text rtrancl} of @{text r} contains @{text r}\<close>
   by (erule rtranclp.rtrancl_refl [THEN rtranclp.rtrancl_into_rtrancl])
 
 lemma rtranclp_mono: "r \<le> s ==> r^** \<le> s^**"
-  -- {* monotonicity of @{text rtrancl} *}
+  -- \<open>monotonicity of @{text rtrancl}\<close>
   apply (rule predicate2I)
   apply (erule rtranclp.induct)
    apply (rule_tac [2] rtranclp.rtrancl_into_rtrancl, blast+)
@@ -129,7 +129,7 @@ lemmas rtrancl_induct2 =
 lemma refl_rtrancl: "refl (r^*)"
 by (unfold refl_on_def) fast
 
-text {* Transitivity of transitive closure. *}
+text \<open>Transitivity of transitive closure.\<close>
 lemma trans_rtrancl: "trans (r^*)"
 proof (rule transI)
   fix x y z
@@ -141,7 +141,7 @@ proof (rule transI)
     show "(x, y) \<in> r\<^sup>*" by fact
   next
     case (step u v)
-    from `(x, u) \<in> r\<^sup>*` and `(u, v) \<in> r`
+    from \<open>(x, u) \<in> r\<^sup>*\<close> and \<open>(u, v) \<in> r\<close>
     show "(x, v) \<in> r\<^sup>*" ..
   qed
 qed
@@ -159,7 +159,7 @@ lemma rtranclE [cases set: rtrancl]:
   obtains
     (base) "a = b"
   | (step) y where "(a, y) : r^*" and "(y, b) : r"
-  -- {* elimination of @{text rtrancl} -- by induction on a special formula *}
+  -- \<open>elimination of @{text rtrancl} -- by induction on a special formula\<close>
   apply (subgoal_tac "(a::'a) = b | (EX y. (a,y) : r^* & (y,b) : r)")
    apply (rule_tac [2] major [THEN rtrancl_induct])
     prefer 2 apply blast
@@ -179,9 +179,9 @@ lemma converse_rtranclp_into_rtranclp:
 
 lemmas converse_rtrancl_into_rtrancl = converse_rtranclp_into_rtranclp [to_set]
 
-text {*
+text \<open>
   \medskip More @{term "r^*"} equations and inclusions.
-*}
+\<close>
 
 lemma rtranclp_idemp [simp]: "(r^**)^** = r^**"
   apply (auto intro!: order_antisym)
@@ -336,7 +336,7 @@ proof -
 qed
 
 
-subsection {* Transitive closure *}
+subsection \<open>Transitive closure\<close>
 
 lemma trancl_mono: "!!p. p \<in> r^+ ==> r \<subseteq> s ==> p \<in> s^+"
   apply (simp add: split_tupled_all)
@@ -347,9 +347,9 @@ lemma trancl_mono: "!!p. p \<in> r^+ ==> r \<subseteq> s ==> p \<in> s^+"
 lemma r_into_trancl': "!!p. p : r ==> p : r^+"
   by (simp only: split_tupled_all) (erule r_into_trancl)
 
-text {*
+text \<open>
   \medskip Conversions between @{text trancl} and @{text rtrancl}.
-*}
+\<close>
 
 lemma tranclp_into_rtranclp: "r^++ a b ==> r^** a b"
   by (erule tranclp.induct) iprover+
@@ -363,7 +363,7 @@ lemma rtranclp_into_tranclp1: assumes r: "r^** a b"
 lemmas rtrancl_into_trancl1 = rtranclp_into_tranclp1 [to_set]
 
 lemma rtranclp_into_tranclp2: "[| r a b; r^** b c |] ==> r^++ a c"
-  -- {* intro rule from @{text r} and @{text rtrancl} *}
+  -- \<open>intro rule from @{text r} and @{text rtrancl}\<close>
   apply (erule rtranclp.cases)
    apply iprover
   apply (rule rtranclp_trans [THEN rtranclp_into_tranclp1])
@@ -372,7 +372,7 @@ lemma rtranclp_into_tranclp2: "[| r a b; r^** b c |] ==> r^++ a c"
 
 lemmas rtrancl_into_trancl2 = rtranclp_into_tranclp2 [to_set]
 
-text {* Nice induction rule for @{text trancl} *}
+text \<open>Nice induction rule for @{text trancl}\<close>
 lemma tranclp_induct [consumes 1, case_names base step, induct pred: tranclp]:
   assumes a: "r^++ a b"
   and cases: "!!y. r a y ==> P y"
@@ -395,7 +395,7 @@ lemma tranclp_trans_induct:
     and cases: "!!x y. r x y ==> P x y"
       "!!x y z. [| r^++ x y; P x y; r^++ y z; P y z |] ==> P x z"
   shows "P x y"
-  -- {* Another induction rule for trancl, incorporating transitivity *}
+  -- \<open>Another induction rule for trancl, incorporating transitivity\<close>
   by (iprover intro: major [THEN tranclp_induct] cases)
 
 lemmas trancl_trans_induct = tranclp_trans_induct [to_set]
@@ -418,7 +418,7 @@ lemma trancl_Int_subset: "[| r \<subseteq> s; (r^+ \<inter> s) O r \<subseteq> s
 lemma trancl_unfold: "r^+ = r Un r^+ O r"
   by (auto intro: trancl_into_trancl elim: tranclE)
 
-text {* Transitivity of @{term "r^+"} *}
+text \<open>Transitivity of @{term "r^+"}\<close>
 lemma trans_trancl [simp]: "trans (r^+)"
 proof (rule transI)
   fix x y z
@@ -427,11 +427,11 @@ proof (rule transI)
   then show "(x, z) \<in> r^+"
   proof induct
     case (base u)
-    from `(x, y) \<in> r^+` and `(y, u) \<in> r`
+    from \<open>(x, y) \<in> r^+\<close> and \<open>(y, u) \<in> r\<close>
     show "(x, u) \<in> r^+" ..
   next
     case (step u v)
-    from `(x, u) \<in> r^+` and `(u, v) \<in> r`
+    from \<open>(x, u) \<in> r^+\<close> and \<open>(u, v) \<in> r\<close>
     show "(x, v) \<in> r^+" ..
   qed
 qed
@@ -521,12 +521,12 @@ proof -
   from this(2) show P
   proof (cases rule: rtranclp.cases)
     case rtrancl_refl
-    with `r x y` base show P by iprover
+    with \<open>r x y\<close> base show P by iprover
   next
     case rtrancl_into_rtrancl
     from this have "tranclp r y z"
       by (iprover intro: rtranclp_into_tranclp1)
-    with `r x y` step show P by iprover
+    with \<open>r x y\<close> step show P by iprover
   qed
 qed
 
@@ -596,7 +596,7 @@ by (auto dest: tranclD intro: rtrancl_into_trancl2)
 
 lemma trancl_insert:
   "(insert (y, x) r)^+ = r^+ \<union> {(a, b). (a, y) \<in> r^* \<and> (x, b) \<in> r^*}"
-  -- {* primitive recursion for @{text trancl} over finite relations *}
+  -- \<open>primitive recursion for @{text trancl} over finite relations\<close>
   apply (rule equalityI)
    apply (rule subsetI)
    apply (simp only: split_tupled_all)
@@ -617,7 +617,7 @@ using trancl_insert[of a b r]
 by(simp add: rtrancl_trancl_reflcl del: reflcl_trancl) blast
 
 
-text {* Simplifying nested closures *}
+text \<open>Simplifying nested closures\<close>
 
 lemma rtrancl_trancl_absorb[simp]: "(R^*)^+ = R^*"
 by (simp add: trans_rtrancl)
@@ -629,7 +629,7 @@ lemma rtrancl_reflcl_absorb[simp]: "(R^*)^= = R^*"
 by auto
 
 
-text {* @{text Domain} and @{text Range} *}
+text \<open>@{text Domain} and @{text Range}\<close>
 
 lemma Domain_rtrancl [simp]: "Domain (R^*) = UNIV"
   by blast
@@ -673,8 +673,8 @@ lemma finite_trancl[simp]: "finite (r^+) = finite r"
    apply (auto simp add: finite_Field)
   done
 
-text {* More about converse @{text rtrancl} and @{text trancl}, should
-  be merged with main body. *}
+text \<open>More about converse @{text rtrancl} and @{text trancl}, should
+  be merged with main body.\<close>
 
 lemma single_valued_confluent:
   "\<lbrakk> single_valued r; (x,y) \<in> r^*; (x,z) \<in> r^* \<rbrakk>
@@ -720,9 +720,9 @@ lemmas transitive_closurep_trans' [trans] =
 
 declare trancl_into_rtrancl [elim]
 
-subsection {* The power operation on relations *}
+subsection \<open>The power operation on relations\<close>
 
-text {* @{text "R ^^ n = R O ... O R"}, the n-fold composition of @{text R} *}
+text \<open>@{text "R ^^ n = R O ... O R"}, the n-fold composition of @{text R}\<close>
 
 overloading
   relpow == "compow :: nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"
@@ -744,7 +744,7 @@ lemma relpowp_relpow_eq [pred_set_conv]:
   shows "(\<lambda>x y. (x, y) \<in> R) ^^ n = (\<lambda>x y. (x, y) \<in> R ^^ n)"
   by (induct n) (simp_all add: relcompp_relcomp_eq)
 
-text {* for code generation *}
+text \<open>for code generation\<close>
 
 definition relpow :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" where
   relpow_code_def [code_abbrev]: "relpow = compow"
@@ -973,7 +973,7 @@ lemma rtranclp_imp_relpowp:
   "(P^**) x y \<Longrightarrow> \<exists>n. (P ^^ n) x y"
   by (auto dest: rtranclp_imp_Sup_relpowp)
 
-text{* By Sternagel/Thiemann: *}
+text\<open>By Sternagel/Thiemann:\<close>
 lemma relpow_fun_conv:
   "((a,b) \<in> R ^^ n) = (\<exists>f. f 0 = a \<and> f n = b \<and> (\<forall>i<n. (f i, f(Suc i)) \<in> R))"
 proof (induct n arbitrary: b)
@@ -1011,19 +1011,19 @@ proof-
     proof(induct k arbitrary: b)
       case 0
       hence "R \<noteq> {}" by auto
-      with card_0_eq[OF `finite R`] have "card R >= Suc 0" by auto
+      with card_0_eq[OF \<open>finite R\<close>] have "card R >= Suc 0" by auto
       thus ?case using 0 by force
     next
       case (Suc k)
       then obtain a' where "(a,a') : R^^(Suc k)" and "(a',b) : R" by auto
-      from Suc(1)[OF `(a,a') : R^^(Suc k)`]
+      from Suc(1)[OF \<open>(a,a') : R^^(Suc k)\<close>]
       obtain n where "n \<le> card R" and "(a,a') \<in> R ^^ n" by auto
-      have "(a,b) : R^^(Suc n)" using `(a,a') \<in> R^^n` and `(a',b)\<in> R` by auto
+      have "(a,b) : R^^(Suc n)" using \<open>(a,a') \<in> R^^n\<close> and \<open>(a',b)\<in> R\<close> by auto
       { assume "n < card R"
-        hence ?case using `(a,b): R^^(Suc n)` Suc_leI[OF `n < card R`] by blast
+        hence ?case using \<open>(a,b): R^^(Suc n)\<close> Suc_leI[OF \<open>n < card R\<close>] by blast
       } moreover
       { assume "n = card R"
-        from `(a,b) \<in> R ^^ (Suc n)`[unfolded relpow_fun_conv]
+        from \<open>(a,b) \<in> R ^^ (Suc n)\<close>[unfolded relpow_fun_conv]
         obtain f where "f 0 = a" and "f(Suc n) = b"
           and steps: "\<And>i. i <= n \<Longrightarrow> (f i, f (Suc i)) \<in> R" by auto
         let ?p = "%i. (f i, f(Suc i))"
@@ -1031,7 +1031,7 @@ proof-
         have "?p ` ?N <= R" using steps by auto
         from card_mono[OF assms(1) this]
         have "card(?p ` ?N) <= card R" .
-        also have "\<dots> < card ?N" using `n = card R` by simp
+        also have "\<dots> < card ?N" using \<open>n = card R\<close> by simp
         finally have "~ inj_on ?p ?N" by(rule pigeonhole)
         then obtain i j where i: "i <= n" and j: "j <= n" and ij: "i \<noteq> j" and
           pij: "?p i = ?p j" by(auto simp: inj_on_def)
@@ -1045,7 +1045,7 @@ proof-
         let ?n = "Suc(n - (j - i))"
         have abl: "(a,b) \<in> R ^^ ?n" unfolding relpow_fun_conv
         proof (rule exI[of _ ?g], intro conjI impI allI)
-          show "?g ?n = b" using `f(Suc n) = b` j ij by auto
+          show "?g ?n = b" using \<open>f(Suc n) = b\<close> j ij by auto
         next
           fix k assume "k < ?n"
           show "(?g k, ?g (Suc k)) \<in> R"
@@ -1062,19 +1062,19 @@ proof-
               thus ?thesis using ij pij steps[OF i] by simp
             next
               case False
-              with `i \<le> k` have "i < k" by auto
-              hence small: "k + (j - i) <= n" using `k<?n` by arith
-              show ?thesis using steps[OF small] `i<k` by auto
+              with \<open>i \<le> k\<close> have "i < k" by auto
+              hence small: "k + (j - i) <= n" using \<open>k<?n\<close> by arith
+              show ?thesis using steps[OF small] \<open>i<k\<close> by auto
             qed
           qed
-        qed (simp add: `f 0 = a`)
+        qed (simp add: \<open>f 0 = a\<close>)
         moreover have "?n <= n" using i j ij by arith
-        ultimately have ?case using `n = card R` by blast
+        ultimately have ?case using \<open>n = card R\<close> by blast
       }
-      ultimately show ?case using `n \<le> card R` by force
+      ultimately show ?case using \<open>n \<le> card R\<close> by force
     qed
   }
-  thus ?thesis using gr0_implies_Suc[OF `k>0`] by auto
+  thus ?thesis using gr0_implies_Suc[OF \<open>k>0\<close>] by auto
 qed
 
 lemma relpow_finite_bounded:
@@ -1121,7 +1121,7 @@ apply (fast dest: single_valuedD elim: relpow_Suc_E)
 done
 
 
-subsection {* Bounded transitive closure *}
+subsection \<open>Bounded transitive closure\<close>
 
 definition ntrancl :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"
 where
@@ -1151,15 +1151,15 @@ proof
     have "(a, b) \<in> ntrancl n R O (Id \<union> R)"
     proof (cases "i = 1")
       case True
-      from this `(a, b) \<in> R ^^ i` show ?thesis
+      from this \<open>(a, b) \<in> R ^^ i\<close> show ?thesis
         unfolding ntrancl_def by auto
     next
       case False
-      from this `0 < i` obtain j where j: "i = Suc j" "0 < j"
+      from this \<open>0 < i\<close> obtain j where j: "i = Suc j" "0 < j"
         by (cases i) auto
-      from this `(a, b) \<in> R ^^ i` obtain c where c1: "(a, c) \<in> R ^^ j" and c2:"(c, b) \<in> R"
+      from this \<open>(a, b) \<in> R ^^ i\<close> obtain c where c1: "(a, c) \<in> R ^^ j" and c2:"(c, b) \<in> R"
         by auto
-      from c1 j `i \<le> Suc (Suc n)` have "(a, c) \<in> ntrancl n R"
+      from c1 j \<open>i \<le> Suc (Suc n)\<close> have "(a, c) \<in> ntrancl n R"
         unfolding ntrancl_def by fastforce
       from this c2 show ?thesis by fastforce
     qed
@@ -1180,7 +1180,7 @@ lemma finite_trancl_ntranl:
   by (cases "card R") (auto simp add: trancl_finite_eq_relpow relpow_empty ntrancl_def)
 
 
-subsection {* Acyclic relations *}
+subsection \<open>Acyclic relations\<close>
 
 definition acyclic :: "('a * 'a) set => bool" where
   "acyclic r \<longleftrightarrow> (!x. (x,x) ~: r^+)"
@@ -1235,9 +1235,9 @@ apply (blast intro: trancl_mono)
 done
 
 
-subsection {* Setup of transitivity reasoner *}
+subsection \<open>Setup of transitivity reasoner\<close>
 
-ML {*
+ML \<open>
 
 structure Trancl_Tac = Trancl_Tac
 (
@@ -1284,30 +1284,30 @@ structure Tranclp_Tac = Trancl_Tac
     in dec t end
     | decomp _ = NONE;
 );
-*}
+\<close>
 
-setup {*
+setup \<open>
   map_theory_simpset (fn ctxt => ctxt
     addSolver (mk_solver "Trancl" Trancl_Tac.trancl_tac)
     addSolver (mk_solver "Rtrancl" Trancl_Tac.rtrancl_tac)
     addSolver (mk_solver "Tranclp" Tranclp_Tac.trancl_tac)
     addSolver (mk_solver "Rtranclp" Tranclp_Tac.rtrancl_tac))
-*}
+\<close>
 
 
-text {* Optional methods. *}
+text \<open>Optional methods.\<close>
 
 method_setup trancl =
-  {* Scan.succeed (SIMPLE_METHOD' o Trancl_Tac.trancl_tac) *}
-  {* simple transitivity reasoner *}
+  \<open>Scan.succeed (SIMPLE_METHOD' o Trancl_Tac.trancl_tac)\<close>
+  \<open>simple transitivity reasoner\<close>
 method_setup rtrancl =
-  {* Scan.succeed (SIMPLE_METHOD' o Trancl_Tac.rtrancl_tac) *}
-  {* simple transitivity reasoner *}
+  \<open>Scan.succeed (SIMPLE_METHOD' o Trancl_Tac.rtrancl_tac)\<close>
+  \<open>simple transitivity reasoner\<close>
 method_setup tranclp =
-  {* Scan.succeed (SIMPLE_METHOD' o Tranclp_Tac.trancl_tac) *}
-  {* simple transitivity reasoner (predicate version) *}
+  \<open>Scan.succeed (SIMPLE_METHOD' o Tranclp_Tac.trancl_tac)\<close>
+  \<open>simple transitivity reasoner (predicate version)\<close>
 method_setup rtranclp =
-  {* Scan.succeed (SIMPLE_METHOD' o Tranclp_Tac.rtrancl_tac) *}
-  {* simple transitivity reasoner (predicate version) *}
+  \<open>Scan.succeed (SIMPLE_METHOD' o Tranclp_Tac.rtrancl_tac)\<close>
+  \<open>simple transitivity reasoner (predicate version)\<close>
 
 end

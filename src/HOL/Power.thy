@@ -3,13 +3,13 @@
     Copyright   1997  University of Cambridge
 *)
 
-section {* Exponentiation *}
+section \<open>Exponentiation\<close>
 
 theory Power
 imports Num Equiv_Relations
 begin
 
-subsection {* Powers for Arbitrary Monoids *}
+subsection \<open>Powers for Arbitrary Monoids\<close>
 
 class power = one + times
 begin
@@ -24,7 +24,7 @@ notation (latex output)
 notation (HTML output)
   power ("(_\<^bsup>_\<^esup>)" [1000] 1000)
 
-text {* Special syntax for squares. *}
+text \<open>Special syntax for squares.\<close>
 
 abbreviation (xsymbols)
   power2 :: "'a \<Rightarrow> 'a"  ("(_\<^sup>2)" [1000] 999) where
@@ -131,7 +131,7 @@ lemma power_mult_distrib [field_simps]:
 
 end
 
-text{*Extract constant factors from powers*}
+text\<open>Extract constant factors from powers\<close>
 declare power_mult_distrib [where a = "numeral w" for w, simp]
 declare power_mult_distrib [where b = "numeral w" for w, simp]
 
@@ -191,13 +191,13 @@ end
 context comm_semiring_1
 begin
 
-text {* The divides relation *}
+text \<open>The divides relation\<close>
 
 lemma le_imp_power_dvd:
   assumes "m \<le> n" shows "a ^ m dvd a ^ n"
 proof
   have "a ^ n = a ^ (m + (n - m))"
-    using `m \<le> n` by simp
+    using \<open>m \<le> n\<close> by simp
   also have "\<dots> = a ^ m * a ^ (n - m)"
     by (rule power_add)
   finally show "a ^ n = a ^ m * a ^ (n - m)" .
@@ -322,7 +322,7 @@ end
 context division_ring
 begin
 
-text {* FIXME reorient or rename to @{text nonzero_inverse_power} *}
+text \<open>FIXME reorient or rename to @{text nonzero_inverse_power}\<close>
 lemma nonzero_power_inverse:
   "a \<noteq> 0 \<Longrightarrow> inverse (a ^ n) = (inverse a) ^ n"
   by (induct n)
@@ -342,7 +342,7 @@ declare nonzero_power_divide [where b = "numeral w" for w, simp]
 end
 
 
-subsection {* Exponentiation on ordered types *}
+subsection \<open>Exponentiation on ordered types\<close>
 
 context linordered_ring (* TODO: move *)
 begin
@@ -386,7 +386,7 @@ proof -
     by (fact order_trans [OF zero_le_one less_imp_le])
   have "1 * 1 < a * 1" using gt1 by simp
   also have "\<dots> \<le> a * a ^ n" using gt1
-    by (simp only: mult_mono `0 \<le> a` one_le_power order_less_imp_le
+    by (simp only: mult_mono \<open>0 \<le> a\<close> one_le_power order_less_imp_le
         zero_le_one order_refl)
   finally show ?thesis by simp
 qed
@@ -422,13 +422,13 @@ next
   qed
 qed
 
-text{*Surely we can strengthen this? It holds for @{text "0<a<1"} too.*}
+text\<open>Surely we can strengthen this? It holds for @{text "0<a<1"} too.\<close>
 lemma power_inject_exp [simp]:
   "1 < a \<Longrightarrow> a ^ m = a ^ n \<longleftrightarrow> m = n"
   by (force simp add: order_antisym power_le_imp_le_exp)
 
-text{*Can relax the first premise to @{term "0<a"} in the case of the
-natural numbers.*}
+text\<open>Can relax the first premise to @{term "0<a"} in the case of the
+natural numbers.\<close>
 lemma power_less_imp_less_exp:
   "1 < a \<Longrightarrow> a ^ m < a ^ n \<Longrightarrow> m < n"
   by (simp add: order_less_le [of m n] less_le [of "a^m" "a^n"]
@@ -439,7 +439,7 @@ lemma power_strict_mono [rule_format]:
   by (induct n)
    (auto simp add: mult_strict_mono le_less_trans [of 0 a b])
 
-text{*Lemma for @{text power_strict_decreasing}*}
+text\<open>Lemma for @{text power_strict_decreasing}\<close>
 lemma power_Suc_less:
   "0 < a \<Longrightarrow> a < 1 \<Longrightarrow> a * a ^ n < a ^ n"
   by (induct n)
@@ -458,7 +458,7 @@ next
   done
 qed
 
-text{*Proof resembles that of @{text power_strict_decreasing}*}
+text\<open>Proof resembles that of @{text power_strict_decreasing}\<close>
 lemma power_decreasing [rule_format]:
   "n \<le> N \<Longrightarrow> 0 \<le> a \<Longrightarrow> a \<le> 1 \<longrightarrow> a ^ N \<le> a ^ n"
 proof (induct N)
@@ -475,7 +475,7 @@ lemma power_Suc_less_one:
   "0 < a \<Longrightarrow> a < 1 \<Longrightarrow> a ^ Suc n < 1"
   using power_strict_decreasing [of 0 "Suc n" a] by simp
 
-text{*Proof again resembles that of @{text power_strict_decreasing}*}
+text\<open>Proof again resembles that of @{text power_strict_decreasing}\<close>
 lemma power_increasing [rule_format]:
   "n \<le> N \<Longrightarrow> 1 \<le> a \<Longrightarrow> a ^ n \<le> a ^ N"
 proof (induct N)
@@ -488,7 +488,7 @@ next
   done
 qed
 
-text{*Lemma for @{text power_strict_increasing}*}
+text\<open>Lemma for @{text power_strict_increasing}\<close>
 lemma power_less_power_Suc:
   "1 < a \<Longrightarrow> a ^ n < a * a ^ n"
   by (induct n) (auto simp add: mult_strict_left_mono less_trans [OF zero_less_one])
@@ -700,7 +700,7 @@ lemma abs_square_less_1: "x\<^sup>2 < 1 \<longleftrightarrow> abs(x) < 1"
 end
 
 
-subsection {* Miscellaneous rules *}
+subsection \<open>Miscellaneous rules\<close>
 
 lemma self_le_power:
   fixes x::"'a::linordered_semidom" 
@@ -722,7 +722,7 @@ lemma power_0_Suc [simp]:
   "(0::'a::{power, semiring_0}) ^ Suc n = 0"
   by simp
 
-text{*It looks plausible as a simprule, but its effect can be strange.*}
+text\<open>It looks plausible as a simprule, but its effect can be strange.\<close>
 lemma power_0_left:
   "0 ^ n = (if n = 0 then 1 else (0::'a::{power, semiring_0}))"
   by (induct n) simp_all
@@ -732,7 +732,7 @@ lemma (in field) power_diff:
   shows "n \<le> m \<Longrightarrow> a ^ (m - n) = a ^ m / a ^ n"
   by (induct m n rule: diff_induct) (simp_all add: nz field_power_not_zero)
 
-text{*Perhaps these should be simprules.*}
+text\<open>Perhaps these should be simprules.\<close>
 lemma power_inverse:
   fixes a :: "'a::division_ring"
   shows "inverse (a ^ n) = inverse a ^ n"
@@ -753,7 +753,7 @@ apply (rule nonzero_power_divide)
 apply assumption
 done
 
-text {* Simprules for comparisons where common factors can be cancelled. *}
+text \<open>Simprules for comparisons where common factors can be cancelled.\<close>
 
 lemmas zero_compare_simps =
     add_strict_increasing add_strict_increasing2 add_increasing
@@ -764,7 +764,7 @@ lemmas zero_compare_simps =
     zero_le_power2 power2_less_0
 
 
-subsection {* Exponentiation for the Natural Numbers *}
+subsection \<open>Exponentiation for the Natural Numbers\<close>
 
 lemma nat_one_le_power [simp]:
   "Suc 0 \<le> i \<Longrightarrow> Suc 0 \<le> i ^ n"
@@ -782,9 +782,9 @@ lemma power_Suc_0 [simp]:
   "Suc 0 ^ n = Suc 0"
   by simp
 
-text{*Valid for the naturals, but what if @{text"0<i<1"}?
+text\<open>Valid for the naturals, but what if @{text"0<i<1"}?
 Premises cannot be weakened: consider the case where @{term "i=0"},
-@{term "m=1"} and @{term "n=0"}.*}
+@{term "m=1"} and @{term "n=0"}.\<close>
 lemma nat_power_less_imp_less:
   assumes nonneg: "0 < (i\<Colon>nat)"
   assumes less: "i ^ m < i ^ n"
@@ -824,7 +824,7 @@ next
   qed
 qed
 
-subsubsection {* Cardinality of the Powerset *}
+subsubsection \<open>Cardinality of the Powerset\<close>
 
 lemma card_UNIV_bool [simp]: "card (UNIV :: bool set) = 2"
   unfolding UNIV_bool by simp
@@ -846,7 +846,7 @@ next
 qed
 
 
-subsubsection {* Generalized sum over a set *}
+subsubsection \<open>Generalized sum over a set\<close>
 
 lemma setsum_zero_power [simp]:
   fixes c :: "nat \<Rightarrow> 'a::division_ring"
@@ -861,7 +861,7 @@ lemma setsum_zero_power' [simp]:
   by auto
 
 
-subsubsection {* Generalized product over a set *}
+subsubsection \<open>Generalized product over a set\<close>
 
 lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{comm_monoid_mult})) = y^(card A)"
 apply (erule finite_induct)
@@ -910,7 +910,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-subsection {* Code generator tweak *}
+subsection \<open>Code generator tweak\<close>
 
 lemma power_power_power [code]:
   "power = power.power (1::'a::{power}) (op *)"

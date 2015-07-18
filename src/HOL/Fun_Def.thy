@@ -2,14 +2,14 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-section {* Function Definitions and Termination Proofs *}
+section \<open>Function Definitions and Termination Proofs\<close>
 
 theory Fun_Def
 imports Basic_BNF_LFPs Partial_Function SAT
 keywords "function" "termination" :: thy_goal and "fun" "fun_cases" :: thy_decl
 begin
 
-subsection {* Definitions with default value *}
+subsection \<open>Definitions with default value\<close>
 
 definition
   THE_default :: "'a \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a" where
@@ -66,7 +66,7 @@ proof -
   proof
     assume "\<exists>y. G x y"
     hence "D x" using graph ..
-    with `\<not> D x` show False ..
+    with \<open>\<not> D x\<close> show False ..
   qed
   hence "\<not>(\<exists>!y. G x y)" by blast
 
@@ -88,26 +88,26 @@ ML_file "Tools/Function/pattern_split.ML"
 ML_file "Tools/Function/relation.ML"
 ML_file "Tools/Function/function_elims.ML"
 
-method_setup relation = {*
+method_setup relation = \<open>
   Args.term >> (fn t => fn ctxt => SIMPLE_METHOD' (Function_Relation.relation_infer_tac ctxt t))
-*} "prove termination using a user-specified wellfounded relation"
+\<close> "prove termination using a user-specified wellfounded relation"
 
 ML_file "Tools/Function/function.ML"
 ML_file "Tools/Function/pat_completeness.ML"
 
-method_setup pat_completeness = {*
+method_setup pat_completeness = \<open>
   Scan.succeed (SIMPLE_METHOD' o Pat_Completeness.pat_completeness_tac)
-*} "prove completeness of (co)datatype patterns"
+\<close> "prove completeness of (co)datatype patterns"
 
 ML_file "Tools/Function/fun.ML"
 ML_file "Tools/Function/induction_schema.ML"
 
-method_setup induction_schema = {*
+method_setup induction_schema = \<open>
   Scan.succeed (EMPTY_CASES oo Induction_Schema.induction_schema_tac)
-*} "prove an induction principle"
+\<close> "prove an induction principle"
 
 
-subsection {* Measure functions *}
+subsection \<open>Measure functions\<close>
 
 inductive is_measure :: "('a \<Rightarrow> nat) \<Rightarrow> bool"
 where is_measure_trivial: "is_measure f"
@@ -125,13 +125,13 @@ by (rule is_measure_trivial)
 
 ML_file "Tools/Function/lexicographic_order.ML"
 
-method_setup lexicographic_order = {*
+method_setup lexicographic_order = \<open>
   Method.sections clasimp_modifiers >>
   (K (SIMPLE_METHOD o Lexicographic_Order.lexicographic_order_tac false))
-*} "termination prover for lexicographic orderings"
+\<close> "termination prover for lexicographic orderings"
 
 
-subsection {* Congruence rules *}
+subsection \<open>Congruence rules\<close>
 
 lemma let_cong [fundef_cong]:
   "M = N \<Longrightarrow> (\<And>x. x = N \<Longrightarrow> f x = g x) \<Longrightarrow> Let M f = Let N g"
@@ -151,7 +151,7 @@ lemma comp_cong [fundef_cong]:
   unfolding o_apply .
 
 
-subsection {* Simp rules for termination proofs *}
+subsection \<open>Simp rules for termination proofs\<close>
 
 declare
   trans_less_add1[termination_simp]
@@ -166,7 +166,7 @@ lemma size_prod_simp[termination_simp]:
 by (induct p) auto
 
 
-subsection {* Decomposition *}
+subsection \<open>Decomposition\<close>
 
 lemma less_by_empty:
   "A = {} \<Longrightarrow> A \<subseteq> B"
@@ -179,7 +179,7 @@ and wf_no_loop:
 by (auto simp add: wf_comp_self[of R])
 
 
-subsection {* Reduction pairs *}
+subsection \<open>Reduction pairs\<close>
 
 definition
   "reduction_pair P = (wf (fst P) \<and> fst P O snd P \<subseteq> fst P)"
@@ -194,11 +194,11 @@ lemma reduction_pair_lemma:
   assumes "wf S"
   shows "wf (R \<union> S)"
 proof -
-  from rp `S \<subseteq> snd P` have "wf (fst P)" "fst P O S \<subseteq> fst P"
+  from rp \<open>S \<subseteq> snd P\<close> have "wf (fst P)" "fst P O S \<subseteq> fst P"
     unfolding reduction_pair_def by auto
-  with `wf S` have "wf (fst P \<union> S)"
+  with \<open>wf S\<close> have "wf (fst P \<union> S)"
     by (auto intro: wf_union_compatible)
-  moreover from `R \<subseteq> fst P` have "R \<union> S \<subseteq> fst P \<union> S" by auto
+  moreover from \<open>R \<subseteq> fst P\<close> have "R \<union> S \<subseteq> fst P \<union> S" by auto
   ultimately show ?thesis by (rule wf_subset)
 qed
 
@@ -211,7 +211,7 @@ lemma rp_inv_image_rp:
   by force
 
 
-subsection {* Concrete orders for SCNP termination proofs *}
+subsection \<open>Concrete orders for SCNP termination proofs\<close>
 
 definition "pair_less = less_than <*lex*> less_than"
 definition "pair_leq = pair_less^="
@@ -223,14 +223,14 @@ definition "min_weak = min_ext pair_leq \<union> {({}, {})}"
 lemma wf_pair_less[simp]: "wf pair_less"
   by (auto simp: pair_less_def)
 
-text {* Introduction rules for @{text pair_less}/@{text pair_leq} *}
+text \<open>Introduction rules for @{text pair_less}/@{text pair_leq}\<close>
 lemma pair_leqI1: "a < b \<Longrightarrow> ((a, s), (b, t)) \<in> pair_leq"
   and pair_leqI2: "a \<le> b \<Longrightarrow> s \<le> t \<Longrightarrow> ((a, s), (b, t)) \<in> pair_leq"
   and pair_lessI1: "a < b  \<Longrightarrow> ((a, s), (b, t)) \<in> pair_less"
   and pair_lessI2: "a \<le> b \<Longrightarrow> s < t \<Longrightarrow> ((a, s), (b, t)) \<in> pair_less"
   unfolding pair_leq_def pair_less_def by auto
 
-text {* Introduction rules for max *}
+text \<open>Introduction rules for max\<close>
 lemma smax_emptyI:
   "finite Y \<Longrightarrow> Y \<noteq> {} \<Longrightarrow> ({}, Y) \<in> max_strict"
   and smax_insertI:
@@ -241,7 +241,7 @@ lemma smax_emptyI:
   "\<lbrakk>y \<in> YS; (x, y) \<in> pair_leq; (XS, YS) \<in> max_weak\<rbrakk> \<Longrightarrow> (insert x XS, YS) \<in> max_weak"
 unfolding max_strict_def max_weak_def by (auto elim!: max_ext.cases)
 
-text {* Introduction rules for min *}
+text \<open>Introduction rules for min\<close>
 lemma smin_emptyI:
   "X \<noteq> {} \<Longrightarrow> (X, {}) \<in> min_strict"
   and smin_insertI:
@@ -252,7 +252,7 @@ lemma smin_emptyI:
   "\<lbrakk>x \<in> XS; (x, y) \<in> pair_leq; (XS, YS) \<in> min_weak\<rbrakk> \<Longrightarrow> (XS, insert y YS) \<in> min_weak"
 by (auto simp: min_strict_def min_weak_def min_ext_def)
 
-text {* Reduction Pairs *}
+text \<open>Reduction Pairs\<close>
 
 lemma max_ext_compat:
   assumes "R O S \<subseteq> R"
@@ -294,7 +294,7 @@ apply (rule min_ext_compat)
 by (auto simp: pair_less_def pair_leq_def)
 
 
-subsection {* Tool setup *}
+subsection \<open>Tool setup\<close>
 
 ML_file "Tools/Function/termination.ML"
 ML_file "Tools/Function/scnp_solve.ML"
@@ -302,9 +302,9 @@ ML_file "Tools/Function/scnp_reconstruct.ML"
 ML_file "Tools/Function/fun_cases.ML"
 
 ML_val -- "setup inactive"
-{*
+\<open>
   Context.theory_map (Function_Common.set_termination_prover
     (K (ScnpReconstruct.decomp_scnp_tac [ScnpSolve.MAX, ScnpSolve.MIN, ScnpSolve.MS])))
-*}
+\<close>
 
 end

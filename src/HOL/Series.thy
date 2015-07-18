@@ -7,13 +7,13 @@ Converted to setsum and polished yet more by TNN
 Additional contributions by Jeremy Avigad
 *)
 
-section {* Infinite Series *}
+section \<open>Infinite Series\<close>
 
 theory Series
 imports Limits Inequalities
 begin 
 
-subsection {* Definition of infinite summability *}
+subsection \<open>Definition of infinite summability\<close>
 
 definition
   sums :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> 'a \<Rightarrow> bool"
@@ -30,7 +30,7 @@ definition
 where
   "suminf f = (THE s. f sums s)"
 
-subsection {* Infinite summability on topological monoids *}
+subsection \<open>Infinite summability on topological monoids\<close>
 
 lemma sums_subst[trans]: "f = g \<Longrightarrow> g sums z \<Longrightarrow> f sums z"
   by simp
@@ -141,7 +141,7 @@ lemma suminf_zero[simp]: "suminf (\<lambda>n. 0::'a::{t2_space, comm_monoid_add}
   by (rule sums_zero [THEN sums_unique, symmetric])
 
 
-subsection {* Infinite summability on ordered, topological monoids *}
+subsection \<open>Infinite summability on ordered, topological monoids\<close>
 
 lemma sums_le:
   fixes f g :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology}"
@@ -221,7 +221,7 @@ proof (intro exI order_tendstoI)
       by (auto intro: le_less_trans simp: eventually_sequentially) }
 qed
 
-subsection {* Infinite summability on real normed vector spaces *}
+subsection \<open>Infinite summability on real normed vector spaces\<close>
 
 lemma sums_Suc_iff:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
@@ -303,10 +303,10 @@ lemma suminf_exist_split:
   fixes r :: real assumes "0 < r" and "summable f"
   shows "\<exists>N. \<forall>n\<ge>N. norm (\<Sum>i. f (i + n)) < r"
 proof -
-  from LIMSEQ_D[OF summable_LIMSEQ[OF `summable f`] `0 < r`]
+  from LIMSEQ_D[OF summable_LIMSEQ[OF \<open>summable f\<close>] \<open>0 < r\<close>]
   obtain N :: nat where "\<forall> n \<ge> N. norm (setsum f {..<n} - suminf f) < r" by auto
   thus ?thesis
-    by (auto simp: norm_minus_commute suminf_minus_initial_segment[OF `summable f`])
+    by (auto simp: norm_minus_commute suminf_minus_initial_segment[OF \<open>summable f\<close>])
 qed
 
 lemma summable_LIMSEQ_zero: "summable f \<Longrightarrow> f ----> 0"
@@ -324,7 +324,7 @@ end
 lemma summable_minus_iff:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "summable (\<lambda>n. - f n) \<longleftrightarrow> summable f"
-  by (auto dest: summable_minus) --{*used two ways, hence must be outside the context above*}
+  by (auto dest: summable_minus) --\<open>used two ways, hence must be outside the context above\<close>
 
 
 context
@@ -363,7 +363,7 @@ lemmas sums_scaleR_right = bounded_linear.sums[OF bounded_linear_scaleR_right]
 lemmas summable_scaleR_right = bounded_linear.summable[OF bounded_linear_scaleR_right]
 lemmas suminf_scaleR_right = bounded_linear.suminf[OF bounded_linear_scaleR_right]
 
-subsection {* Infinite summability on real normed algebras *}
+subsection \<open>Infinite summability on real normed algebras\<close>
 
 context
   fixes f :: "nat \<Rightarrow> 'a::real_normed_algebra"
@@ -389,7 +389,7 @@ lemma suminf_mult2: "summable f \<Longrightarrow> suminf f * c = (\<Sum>n. f n *
 
 end
 
-subsection {* Infinite summability on real normed fields *}
+subsection \<open>Infinite summability on real normed fields\<close>
 
 context
   fixes c :: "'a::real_normed_field"
@@ -404,7 +404,7 @@ lemma summable_divide: "summable f \<Longrightarrow> summable (\<lambda>n. f n /
 lemma suminf_divide: "summable f \<Longrightarrow> suminf (\<lambda>n. f n / c) = suminf f / c"
   by (rule bounded_linear.suminf [OF bounded_linear_divide, symmetric])
 
-text{*Sum of a geometric progression.*}
+text\<open>Sum of a geometric progression.\<close>
 
 lemma geometric_sums: "norm c < 1 \<Longrightarrow> (\<lambda>n. c^n) sums (1 / (1 - c))"
 proof -
@@ -439,9 +439,9 @@ proof -
     by simp
 qed
 
-subsection {* Infinite summability on Banach spaces *}
+subsection \<open>Infinite summability on Banach spaces\<close>
 
-text{*Cauchy-type criterion for convergence of series (c.f. Harrison)*}
+text\<open>Cauchy-type criterion for convergence of series (c.f. Harrison)\<close>
 
 lemma summable_Cauchy:
   fixes f :: "nat \<Rightarrow> 'a::banach"
@@ -465,7 +465,7 @@ context
   fixes f :: "nat \<Rightarrow> 'a::banach"
 begin  
 
-text{*Absolute convergence imples normal convergence*}
+text\<open>Absolute convergence imples normal convergence\<close>
 
 lemma summable_norm_cancel: "summable (\<lambda>n. norm (f n)) \<Longrightarrow> summable f"
   apply (simp only: summable_Cauchy, safe)
@@ -480,7 +480,7 @@ lemma summable_norm_cancel: "summable (\<lambda>n. norm (f n)) \<Longrightarrow>
 lemma summable_norm: "summable (\<lambda>n. norm (f n)) \<Longrightarrow> norm (suminf f) \<le> (\<Sum>n. norm (f n))"
   by (auto intro: LIMSEQ_le tendsto_norm summable_norm_cancel summable_LIMSEQ norm_setsum)
 
-text {* Comparison tests *}
+text \<open>Comparison tests\<close>
 
 lemma summable_comparison_test: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n \<Longrightarrow> summable g \<Longrightarrow> summable f"
   apply (simp add: summable_Cauchy, safe)
@@ -499,7 +499,7 @@ lemma summable_comparison_test: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> 
 lemma summable_comparison_test': "summable g \<Longrightarrow> (\<And>n. n \<ge> N \<Longrightarrow> norm(f n) \<le> g n) \<Longrightarrow> summable f"
   by (rule summable_comparison_test) auto
 
-subsection {* The Ratio Test*}
+subsection \<open>The Ratio Test\<close>
 
 lemma summable_ratio_test: 
   assumes "c < 1" "\<And>n. n \<ge> N \<Longrightarrow> norm (f (Suc n)) \<le> c * norm (f n)"
@@ -514,12 +514,12 @@ proof cases
       proof (induct rule: inc_induct)
         case (step m)
         moreover have "norm (f (Suc m)) / c ^ Suc m * c ^ n \<le> norm (f m) / c ^ m * c ^ n"
-          using `0 < c` `c < 1` assms(2)[OF `N \<le> m`] by (simp add: field_simps)
+          using \<open>0 < c\<close> \<open>c < 1\<close> assms(2)[OF \<open>N \<le> m\<close>] by (simp add: field_simps)
         ultimately show ?case by simp
-      qed (insert `0 < c`, simp)
+      qed (insert \<open>0 < c\<close>, simp)
     qed
     show "summable (\<lambda>n. norm (f N) / c ^ N * c ^ n)"
-      using `0 < c` `c < 1` by (intro summable_mult summable_geometric) simp
+      using \<open>0 < c\<close> \<open>c < 1\<close> by (intro summable_mult summable_geometric) simp
   qed
 next
   assume c: "\<not> 0 < c"
@@ -536,7 +536,7 @@ qed
 
 end
 
-text{*Relations among convergence and absolute convergence for power series.*}
+text\<open>Relations among convergence and absolute convergence for power series.\<close>
 
 lemma abel_lemma:
   fixes a :: "nat \<Rightarrow> 'a::real_normed_vector"
@@ -557,7 +557,7 @@ next
 qed
 
 
-text{*Summability of geometric series for real algebras*}
+text\<open>Summability of geometric series for real algebras\<close>
 
 lemma complete_algebra_summable_geometric:
   fixes x :: "'a::{real_normed_algebra_1,banach}"
@@ -569,12 +569,12 @@ proof (rule summable_comparison_test)
     by (simp add: summable_geometric)
 qed
 
-subsection {* Cauchy Product Formula *}
+subsection \<open>Cauchy Product Formula\<close>
 
-text {*
+text \<open>
   Proof based on Analysis WebNotes: Chapter 07, Class 41
   @{url "http://www.math.unl.edu/~webnotes/classes/class41/prp77.htm"}
-*}
+\<close>
 
 lemma Cauchy_product_sums:
   fixes a b :: "nat \<Rightarrow> 'a::{real_normed_algebra,banach}"
@@ -655,7 +655,7 @@ lemma Cauchy_product:
   using a b
   by (rule Cauchy_product_sums [THEN sums_unique])
 
-subsection {* Series on @{typ real}s *}
+subsection \<open>Series on @{typ real}s\<close>
 
 lemma summable_norm_comparison_test: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n \<Longrightarrow> summable g \<Longrightarrow> summable (\<lambda>n. norm (f n))"
   by (rule summable_comparison_test) auto
@@ -702,7 +702,7 @@ proof -
     also have "\<dots> \<le> (\<Sum>i<m. f i)"
       by (rule setsum_mono3) (auto simp add: pos n[rule_format])
     also have "\<dots> \<le> suminf f"
-      using `summable f` 
+      using \<open>summable f\<close> 
       by (rule setsum_le_suminf) (simp add: pos)
     finally show "(\<Sum>i<n. (f \<circ>  g) i) \<le> suminf f" by simp
   qed

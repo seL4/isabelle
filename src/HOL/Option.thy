@@ -2,7 +2,7 @@
     Author:     Folklore
 *)
 
-section {* Datatype option *}
+section \<open>Datatype option\<close>
 
 theory Option
 imports Lifting Finite_Set
@@ -15,23 +15,23 @@ datatype 'a option =
 datatype_compat option
 
 lemma [case_names None Some, cases type: option]:
-  -- {* for backward compatibility -- names of variables differ *}
+  -- \<open>for backward compatibility -- names of variables differ\<close>
   "(y = None \<Longrightarrow> P) \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> P) \<Longrightarrow> P"
 by (rule option.exhaust)
 
 lemma [case_names None Some, induct type: option]:
-  -- {* for backward compatibility -- names of variables differ *}
+  -- \<open>for backward compatibility -- names of variables differ\<close>
   "P None \<Longrightarrow> (\<And>option. P (Some option)) \<Longrightarrow> P option"
 by (rule option.induct)
 
-text {* Compatibility: *}
+text \<open>Compatibility:\<close>
 
-setup {* Sign.mandatory_path "option" *}
+setup \<open>Sign.mandatory_path "option"\<close>
 
 lemmas inducts = option.induct
 lemmas cases = option.case
 
-setup {* Sign.parent_path *}
+setup \<open>Sign.parent_path\<close>
 
 lemma not_None_eq [iff]: "(x ~= None) = (EX y. x = Some y)"
   by (induct x) auto
@@ -39,9 +39,9 @@ lemma not_None_eq [iff]: "(x ~= None) = (EX y. x = Some y)"
 lemma not_Some_eq [iff]: "(ALL y. x ~= Some y) = (x = None)"
   by (induct x) auto
 
-text{*Although it may appear that both of these equalities are helpful
+text\<open>Although it may appear that both of these equalities are helpful
 only when applied to assumptions, in practice it seems better to give
-them the uniform iff attribute. *}
+them the uniform iff attribute.\<close>
 
 lemma inj_Some [simp]: "inj_on Some A"
 by (rule inj_onI) simp
@@ -78,12 +78,12 @@ lemma rel_option_reflI:
 by(cases y) auto
 
 
-subsubsection {* Operations *}
+subsubsection \<open>Operations\<close>
 
 lemma ospec [dest]: "(ALL x:set_option A. P x) ==> A = Some x ==> P x"
   by simp
 
-setup {* map_theory_claset (fn ctxt => ctxt addSD2 ("ospec", @{thm ospec})) *}
+setup \<open>map_theory_claset (fn ctxt => ctxt addSD2 ("ospec", @{thm ospec}))\<close>
 
 lemma elem_set [iff]: "(x : set_option xo) = (xo = Some x)"
   by (cases xo) auto
@@ -251,7 +251,7 @@ hide_const (open) bind these
 hide_fact (open) bind_cong
 
 
-subsection {* Transfer rules for the Transfer package *}
+subsection \<open>Transfer rules for the Transfer package\<close>
 
 context
 begin
@@ -269,7 +269,7 @@ by(rule rel_funI)+(auto simp add: rel_option_unfold is_none_def dest: rel_funD)
 end
 
 
-subsubsection {* Interaction with finite sets *}
+subsubsection \<open>Interaction with finite sets\<close>
 
 lemma finite_option_UNIV [simp]:
   "finite (UNIV :: 'a option set) = finite (UNIV :: 'a set)"
@@ -279,7 +279,7 @@ instance option :: (finite) finite
   by default (simp add: UNIV_option_conv)
 
 
-subsubsection {* Code generator setup *}
+subsubsection \<open>Code generator setup\<close>
 
 lemma equal_None_code_unfold [code_unfold]:
   "HOL.equal x None \<longleftrightarrow> is_none x"

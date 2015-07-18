@@ -2,13 +2,13 @@
     Author:     Lukas Bulwahn and Florian Haftmann, TU Muenchen
 *)
 
-section {* Predicates as enumerations *}
+section \<open>Predicates as enumerations\<close>
 
 theory Predicate
 imports String
 begin
 
-subsection {* The type of predicate enumerations (a monad) *}
+subsection \<open>The type of predicate enumerations (a monad)\<close>
 
 datatype (plugins only: code extraction) (dead 'a) pred = Pred "'a \<Rightarrow> bool"
 
@@ -197,7 +197,7 @@ lemma not_bot:
   using assms by (cases A) (auto simp add: bot_pred_def)
 
 
-subsection {* Emptiness check and definite choice *}
+subsection \<open>Emptiness check and definite choice\<close>
 
 definition is_empty :: "'a pred \<Rightarrow> bool" where
   "is_empty A \<longleftrightarrow> A = \<bottom>"
@@ -321,7 +321,7 @@ lemma singleton_sup:
   using singleton_sup_aux [of default A B] by (simp only: singleton_sup_single_single)
 
 
-subsection {* Derived operations *}
+subsection \<open>Derived operations\<close>
 
 definition if_pred :: "bool \<Rightarrow> unit pred" where
   if_pred_eq: "if_pred b = (if b then single () else \<bottom>)"
@@ -411,7 +411,7 @@ functor map: map
   by (rule ext, rule pred_eqI, auto)+
 
 
-subsection {* Implementation *}
+subsection \<open>Implementation\<close>
 
 datatype (plugins only: code extraction) (dead 'a) seq =
   Empty
@@ -610,7 +610,7 @@ lemma the_eq [code]: "the A = singleton (\<lambda>x. Code.abort (STR ''not_uniqu
 code_reflect Predicate
   datatypes pred = Seq and seq = Empty | Insert | Join
 
-ML {*
+ML \<open>
 signature PREDICATE =
 sig
   val anamorph: ('a -> ('b * 'a) option) -> int -> 'a -> 'b list * 'a
@@ -648,9 +648,9 @@ and next Empty = NONE
 fun yieldn k = anamorph yield k;
 
 end;
-*}
+\<close>
 
-text {* Conversion from and to sets *}
+text \<open>Conversion from and to sets\<close>
 
 definition pred_of_set :: "'a set \<Rightarrow> 'a pred" where
   "pred_of_set = Pred \<circ> (\<lambda>A x. x \<in> A)"
@@ -686,7 +686,7 @@ lemma of_seq_code [code]:
   "set_of_seq (Predicate.Join P xq) = set_of_pred P \<union> set_of_seq xq"
   by auto
 
-text {* Lazy Evaluation of an indexed function *}
+text \<open>Lazy Evaluation of an indexed function\<close>
 
 function iterate_upto :: "(natural \<Rightarrow> 'a) \<Rightarrow> natural \<Rightarrow> natural \<Rightarrow> 'a Predicate.pred"
 where
@@ -698,7 +698,7 @@ by pat_completeness auto
 termination by (relation "measure (%(f, n, m). nat_of_natural (m + 1 - n))")
   (auto simp add: less_natural_def)
 
-text {* Misc *}
+text \<open>Misc\<close>
 
 declare Inf_set_fold [where 'a = "'a Predicate.pred", code]
 declare Sup_set_fold [where 'a = "'a Predicate.pred", code]
@@ -711,7 +711,7 @@ lemma pred_of_set_fold_sup:
 proof (rule sym)
   interpret comp_fun_idem "sup :: 'a Predicate.pred \<Rightarrow> 'a Predicate.pred \<Rightarrow> 'a Predicate.pred"
     by (fact comp_fun_idem_sup)
-  from `finite A` show "?rhs = ?lhs" by (induct A) (auto intro!: pred_eqI)
+  from \<open>finite A\<close> show "?rhs = ?lhs" by (induct A) (auto intro!: pred_eqI)
 qed
 
 lemma pred_of_set_set_fold_sup:

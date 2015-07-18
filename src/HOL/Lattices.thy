@@ -2,19 +2,19 @@
     Author:     Tobias Nipkow
 *)
 
-section {* Abstract lattices *}
+section \<open>Abstract lattices\<close>
 
 theory Lattices
 imports Groups
 begin
 
-subsection {* Abstract semilattice *}
+subsection \<open>Abstract semilattice\<close>
 
-text {*
+text \<open>
   These locales provide a basic structure for interpretation into
   bigger structures;  extensions require careful thinking, otherwise
   undesired effects may occur due to interpretation.
-*}
+\<close>
 
 no_notation times (infixl "*" 70)
 no_notation Groups.one ("1")
@@ -73,7 +73,7 @@ next
     by simp
   then have "a = (a * b) * c"
     by (simp add: assoc)
-  with `a = a * b` [symmetric] have "a = a * c" by simp
+  with \<open>a = a * b\<close> [symmetric] have "a = a * c" by simp
   then show "a \<preceq> c" by (rule orderI)
 qed
 
@@ -153,7 +153,7 @@ notation times (infixl "*" 70)
 notation Groups.one ("1")
 
 
-subsection {* Syntactic infimum and supremum operations *}
+subsection \<open>Syntactic infimum and supremum operations\<close>
 
 class inf =
   fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
@@ -162,7 +162,7 @@ class sup =
   fixes sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
 
 
-subsection {* Concrete lattices *}
+subsection \<open>Concrete lattices\<close>
 
 notation
   less_eq  (infix "\<sqsubseteq>" 50) and
@@ -179,7 +179,7 @@ class semilattice_sup = order + sup +
   and sup_least: "y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<squnion> z \<sqsubseteq> x"
 begin
 
-text {* Dual lattice *}
+text \<open>Dual lattice\<close>
 
 lemma dual_semilattice:
   "class.semilattice_inf sup greater_eq greater"
@@ -191,7 +191,7 @@ end
 class lattice = semilattice_inf + semilattice_sup
 
 
-subsubsection {* Intro and elim rules*}
+subsubsection \<open>Intro and elim rules\<close>
 
 context semilattice_inf
 begin
@@ -266,7 +266,7 @@ lemma mono_sup:
 end
 
 
-subsubsection {* Equational laws *}
+subsubsection \<open>Equational laws\<close>
 
 context semilattice_inf
 begin
@@ -373,7 +373,7 @@ lemmas inf_sup_aci = inf_aci sup_aci
 
 lemmas inf_sup_ord = inf_le1 inf_le2 sup_ge1 sup_ge2
 
-text{* Towards distributivity *}
+text\<open>Towards distributivity\<close>
 
 lemma distrib_sup_le: "x \<squnion> (y \<sqinter> z) \<sqsubseteq> (x \<squnion> y) \<sqinter> (x \<squnion> z)"
   by (auto intro: le_infI1 le_infI2 le_supI1 le_supI2)
@@ -381,7 +381,7 @@ lemma distrib_sup_le: "x \<squnion> (y \<sqinter> z) \<sqsubseteq> (x \<squnion>
 lemma distrib_inf_le: "(x \<sqinter> y) \<squnion> (x \<sqinter> z) \<sqsubseteq> x \<sqinter> (y \<squnion> z)"
   by (auto intro: le_infI1 le_infI2 le_supI1 le_supI2)
 
-text{* If you have one of them, you have them all. *}
+text\<open>If you have one of them, you have them all.\<close>
 
 lemma distrib_imp1:
 assumes D: "!!x y z. x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
@@ -411,7 +411,7 @@ qed
 
 end
 
-subsubsection {* Strict order *}
+subsubsection \<open>Strict order\<close>
 
 context semilattice_inf
 begin
@@ -442,7 +442,7 @@ lemma less_supI2:
 end
 
 
-subsection {* Distributive lattices *}
+subsection \<open>Distributive lattices\<close>
 
 class distrib_lattice = lattice +
   assumes sup_inf_distrib1: "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
@@ -479,7 +479,7 @@ lemmas distrib =
 end
 
 
-subsection {* Bounded lattices and boolean algebras *}
+subsection \<open>Bounded lattices and boolean algebras\<close>
 
 class bounded_semilattice_inf_top = semilattice_inf + order_top
 begin
@@ -710,7 +710,7 @@ qed
 end
 
 
-subsection {* @{text "min/max"} as special case of lattice *}
+subsection \<open>@{text "min/max"} as special case of lattice\<close>
 
 context linorder
 begin
@@ -788,7 +788,7 @@ lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{semilattice_sup, linorder} \<Righ
   by (auto intro: antisym simp add: max_def fun_eq_iff)
 
 
-subsection {* Uniqueness of inf and sup *}
+subsection \<open>Uniqueness of inf and sup\<close>
 
 lemma (in semilattice_inf) inf_unique:
   fixes f (infixl "\<triangle>" 70)
@@ -815,7 +815,7 @@ next
 qed
 
 
-subsection {* Lattice on @{typ bool} *}
+subsection \<open>Lattice on @{typ bool}\<close>
 
 instantiation bool :: boolean_algebra
 begin
@@ -850,7 +850,7 @@ lemma sup_boolE:
   by auto
 
 
-subsection {* Lattice on @{typ "_ \<Rightarrow> _"} *}
+subsection \<open>Lattice on @{typ "_ \<Rightarrow> _"}\<close>
 
 instantiation "fun" :: (type, semilattice_sup) semilattice_sup
 begin
@@ -921,7 +921,7 @@ instance "fun" :: (type, boolean_algebra) boolean_algebra proof
 qed (rule ext, simp_all add: inf_compl_bot sup_compl_top diff_eq)+
 
 
-subsection {* Lattice on unary and binary predicates *}
+subsection \<open>Lattice on unary and binary predicates\<close>
 
 lemma inf1I: "A x \<Longrightarrow> B x \<Longrightarrow> (A \<sqinter> B) x"
   by (simp add: inf_fun_def)
@@ -965,10 +965,10 @@ lemma sup1E: "(A \<squnion> B) x \<Longrightarrow> (A x \<Longrightarrow> P) \<L
 lemma sup2E: "(A \<squnion> B) x y \<Longrightarrow> (A x y \<Longrightarrow> P) \<Longrightarrow> (B x y \<Longrightarrow> P) \<Longrightarrow> P"
   by (simp add: sup_fun_def) iprover
 
-text {*
+text \<open>
   \medskip Classical introduction rule: no commitment to @{text A} vs
   @{text B}.
-*}
+\<close>
 
 lemma sup1CI: "(\<not> B x \<Longrightarrow> A x) \<Longrightarrow> (A \<squnion> B) x"
   by (auto simp add: sup_fun_def)

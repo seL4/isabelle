@@ -3,13 +3,13 @@
     Author:     Johannes Hölzl
 *)
 
-section {* Vector Spaces and Algebras over the Reals *}
+section \<open>Vector Spaces and Algebras over the Reals\<close>
 
 theory Real_Vector_Spaces
 imports Real Topological_Spaces
 begin
 
-subsection {* Locale for additive functions *}
+subsection \<open>Locale for additive functions\<close>
 
 locale additive =
   fixes f :: "'a::ab_group_add \<Rightarrow> 'b::ab_group_add"
@@ -43,7 +43,7 @@ done
 
 end
 
-subsection {* Vector spaces *}
+subsection \<open>Vector spaces\<close>
 
 locale vector_space =
   fixes scale :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b"
@@ -131,7 +131,7 @@ by (auto intro: scale_right_imp_eq)
 
 end
 
-subsection {* Real vector spaces *}
+subsection \<open>Real vector spaces\<close>
 
 class scaleR =
   fixes scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "*\<^sub>R" 75)
@@ -159,7 +159,7 @@ apply (rule scaleR_scaleR)
 apply (rule scaleR_one)
 done
 
-text {* Recover original theorem names *}
+text \<open>Recover original theorem names\<close>
 
 lemmas scaleR_left_commute = real_vector.scale_left_commute
 lemmas scaleR_zero_left = real_vector.scale_zero_left
@@ -176,7 +176,7 @@ lemmas scaleR_right_imp_eq = real_vector.scale_right_imp_eq
 lemmas scaleR_cancel_left = real_vector.scale_cancel_left
 lemmas scaleR_cancel_right = real_vector.scale_cancel_right
 
-text {* Legacy names *}
+text \<open>Legacy names\<close>
 
 lemmas scaleR_left_distrib = scaleR_add_left
 lemmas scaleR_right_distrib = scaleR_add_right
@@ -229,8 +229,8 @@ apply (erule (1) nonzero_inverse_scaleR_distrib)
 done
 
 
-subsection {* Embedding of the Reals into any @{text real_algebra_1}:
-@{term of_real} *}
+subsection \<open>Embedding of the Reals into any @{text real_algebra_1}:
+@{term of_real}\<close>
 
 definition
   of_real :: "real \<Rightarrow> 'a::real_algebra_1" where
@@ -303,7 +303,7 @@ proof
     by (simp add: of_real_def)
 qed
 
-text{*Collapse nested embeddings*}
+text\<open>Collapse nested embeddings\<close>
 lemma of_real_of_nat_eq [simp]: "of_real (of_nat n) = of_nat n"
 by (induct n) auto
 
@@ -322,7 +322,7 @@ using of_real_of_int_eq [of "numeral w"] by simp
 lemma of_real_neg_numeral [simp]: "of_real (- numeral w) = - numeral w"
 using of_real_of_int_eq [of "- numeral w"] by simp
 
-text{*Every real algebra has characteristic zero*}
+text\<open>Every real algebra has characteristic zero\<close>
 
 instance real_algebra_1 < ring_char_0
 proof
@@ -333,7 +333,7 @@ qed
 instance real_field < field_char_0 ..
 
 
-subsection {* The Set of Real Numbers *}
+subsection \<open>The Set of Real Numbers\<close>
 
 definition Reals :: "'a::real_algebra_1 set" where
   "Reals = range of_real"
@@ -439,7 +439,7 @@ lemma Reals_cases [cases set: Reals]:
   obtains (of_real) r where "q = of_real r"
   unfolding Reals_def
 proof -
-  from `q \<in> \<real>` have "q \<in> range of_real" unfolding Reals_def .
+  from \<open>q \<in> \<real>\<close> have "q \<in> range of_real" unfolding Reals_def .
   then obtain r where "q = of_real r" ..
   then show thesis ..
 qed
@@ -468,7 +468,7 @@ lemma Reals_induct [case_names of_real, induct set: Reals]:
   "q \<in> \<real> \<Longrightarrow> (\<And>r. P (of_real r)) \<Longrightarrow> P q"
   by (rule Reals_cases) auto
 
-subsection {* Ordered real vector spaces *}
+subsection \<open>Ordered real vector spaces\<close>
 
 class ordered_real_vector = real_vector + ordered_ab_group_add +
   assumes scaleR_left_mono: "x \<le> y \<Longrightarrow> 0 \<le> a \<Longrightarrow> a *\<^sub>R x \<le> a *\<^sub>R y"
@@ -583,16 +583,16 @@ proof cases
       assume "0 < a"
       with lhs have "inverse a *\<^sub>R 0 \<le> inverse a *\<^sub>R (a *\<^sub>R b)"
         by (intro scaleR_mono) auto
-      hence ?rhs using `0 < a`
+      hence ?rhs using \<open>0 < a\<close>
         by simp
     } moreover {
       assume "0 > a"
       with lhs have "- inverse a *\<^sub>R 0 \<le> - inverse a *\<^sub>R (a *\<^sub>R b)"
         by (intro scaleR_mono) auto
-      hence ?rhs using `0 > a`
+      hence ?rhs using \<open>0 > a\<close>
         by simp
-    } ultimately show ?rhs using `a \<noteq> 0` by arith
-  qed (auto simp: not_le `a \<noteq> 0` intro!: split_scaleR_pos_le)
+    } ultimately show ?rhs using \<open>a \<noteq> 0\<close> by arith
+  qed (auto simp: not_le \<open>a \<noteq> 0\<close> intro!: split_scaleR_pos_le)
 qed simp
 
 lemma scaleR_le_0_iff:
@@ -622,7 +622,7 @@ lemma scaleR_left_le_one_le:
   using scaleR_right_mono[of a 1 x] by simp
 
 
-subsection {* Real normed vector spaces *}
+subsection \<open>Real normed vector spaces\<close>
 
 class dist =
   fixes dist :: "'a \<Rightarrow> 'a \<Rightarrow> real"
@@ -862,7 +862,7 @@ lemma norm_power:
   shows "norm (x ^ n) = norm x ^ n"
 by (induct n) (simp_all add: norm_mult)
 
-text{*Despite a superficial resemblance, @{text norm_eq_1} is not relevant.*}
+text\<open>Despite a superficial resemblance, @{text norm_eq_1} is not relevant.\<close>
 lemma square_norm_one:
   fixes x :: "'a::real_normed_div_algebra"
   assumes "x^2 = 1" shows "norm x = 1"
@@ -939,7 +939,7 @@ proof -
   finally show ?thesis .
 qed
 
-subsection {* Metric spaces *}
+subsection \<open>Metric spaces\<close>
 
 class metric_space = open_dist +
   assumes dist_eq_0_iff [simp]: "dist x y = 0 \<longleftrightarrow> x = y"
@@ -1065,7 +1065,7 @@ proof
     by blast
 qed
 
-text {* Every normed vector space is a metric space. *}
+text \<open>Every normed vector space is a metric space.\<close>
 
 instance real_normed_vector < metric_space
 proof
@@ -1077,7 +1077,7 @@ next
     using norm_triangle_ineq4 [of "x - z" "y - z"] by simp
 qed
 
-subsection {* Class instances for real numbers *}
+subsection \<open>Class instances for real numbers\<close>
 
 instantiation real :: real_normed_field
 begin
@@ -1150,24 +1150,24 @@ lemmas closed_real_atMost = closed_atMost[where 'a=real]
 lemmas closed_real_atLeast = closed_atLeast[where 'a=real]
 lemmas closed_real_atLeastAtMost = closed_atLeastAtMost[where 'a=real]
 
-subsection {* Extra type constraints *}
+subsection \<open>Extra type constraints\<close>
 
-text {* Only allow @{term "open"} in class @{text topological_space}. *}
+text \<open>Only allow @{term "open"} in class @{text topological_space}.\<close>
 
-setup {* Sign.add_const_constraint
-  (@{const_name "open"}, SOME @{typ "'a::topological_space set \<Rightarrow> bool"}) *}
+setup \<open>Sign.add_const_constraint
+  (@{const_name "open"}, SOME @{typ "'a::topological_space set \<Rightarrow> bool"})\<close>
 
-text {* Only allow @{term dist} in class @{text metric_space}. *}
+text \<open>Only allow @{term dist} in class @{text metric_space}.\<close>
 
-setup {* Sign.add_const_constraint
-  (@{const_name dist}, SOME @{typ "'a::metric_space \<Rightarrow> 'a \<Rightarrow> real"}) *}
+setup \<open>Sign.add_const_constraint
+  (@{const_name dist}, SOME @{typ "'a::metric_space \<Rightarrow> 'a \<Rightarrow> real"})\<close>
 
-text {* Only allow @{term norm} in class @{text real_normed_vector}. *}
+text \<open>Only allow @{term norm} in class @{text real_normed_vector}.\<close>
 
-setup {* Sign.add_const_constraint
-  (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"}) *}
+setup \<open>Sign.add_const_constraint
+  (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"})\<close>
 
-subsection {* Sign function *}
+subsection \<open>Sign function\<close>
 
 lemma norm_sgn:
   "norm (sgn(x::'a::real_normed_vector)) = (if x = 0 then 0 else 1)"
@@ -1225,7 +1225,7 @@ lemma norm_conv_dist: "norm x = dist x 0"
 lemma dist_diff [simp]: "dist a (a - b) = norm b"  "dist (a - b) a = norm b"
   by (simp_all add: dist_norm)
   
-subsection {* Bounded Linear and Bilinear Operators *}
+subsection \<open>Bounded Linear and Bilinear Operators\<close>
 
 locale linear = additive f for f :: "'a::real_vector \<Rightarrow> 'b::real_vector" +
   assumes scaleR: "f (scaleR r x) = scaleR r (f x)"
@@ -1492,7 +1492,7 @@ proof
     by (clarsimp, rule_tac x="x + of_real (e/2)" in exI, simp)
 qed
 
-subsection {* Filters and Limits on Metric Space *}
+subsection \<open>Filters and Limits on Metric Space\<close>
 
 lemma (in metric_space) nhds_metric: "nhds x = (INF e:{0 <..}. principal {y. dist y x < e})"
   unfolding nhds_def
@@ -1552,7 +1552,7 @@ lemma filterlim_real_sequentially: "LIM x sequentially. real x :> at_top"
   apply (rule_tac c="nat(ceiling (Z + 1))" in eventually_sequentiallyI)
   by linarith
 
-subsubsection {* Limits of Sequences *}
+subsubsection \<open>Limits of Sequences\<close>
 
 lemma lim_sequentially: "X ----> (L::'a::metric_space) \<longleftrightarrow> (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. dist (X n) L < r)"
   unfolding tendsto_iff eventually_sequentially ..
@@ -1571,7 +1571,7 @@ lemma metric_LIMSEQ_D:
 by (simp add: lim_sequentially)
 
 
-subsubsection {* Limits of Functions *}
+subsubsection \<open>Limits of Functions\<close>
 
 lemma LIM_def: "f -- (a::'a::metric_space) --> (L::'b::metric_space) =
      (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & dist x a < s
@@ -1622,14 +1622,14 @@ lemma metric_isCont_LIM_compose2:
   shows "(\<lambda>x. g (f x)) -- a --> l"
 by (rule metric_LIM_compose2 [OF f g inj])
 
-subsection {* Complete metric spaces *}
+subsection \<open>Complete metric spaces\<close>
 
-subsection {* Cauchy sequences *}
+subsection \<open>Cauchy sequences\<close>
 
 definition (in metric_space) Cauchy :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool" where
   "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. dist (X m) (X n) < e)"
 
-subsection {* Cauchy Sequences *}
+subsection \<open>Cauchy Sequences\<close>
 
 lemma metric_CauchyI:
   "(\<And>e. 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e) \<Longrightarrow> Cauchy X"
@@ -1685,7 +1685,7 @@ lemma convergent_Cauchy: "convergent X \<Longrightarrow> Cauchy X"
 unfolding convergent_def
 by (erule exE, erule LIMSEQ_imp_Cauchy)
 
-subsubsection {* Cauchy Sequences are Convergent *}
+subsubsection \<open>Cauchy Sequences are Convergent\<close>
 
 class complete_space = metric_space +
   assumes Cauchy_convergent: "Cauchy X \<Longrightarrow> convergent X"
@@ -1695,17 +1695,17 @@ lemma Cauchy_convergent_iff:
   shows "Cauchy X = convergent X"
 by (fast intro: Cauchy_convergent convergent_Cauchy)
 
-subsection {* The set of real numbers is a complete metric space *}
+subsection \<open>The set of real numbers is a complete metric space\<close>
 
-text {*
+text \<open>
 Proof that Cauchy sequences converge based on the one from
 @{url "http://pirate.shu.edu/~wachsmut/ira/numseq/proofs/cauconv.html"}
-*}
+\<close>
 
-text {*
+text \<open>
   If sequence @{term "X"} is Cauchy, then its limit is the lub of
   @{term "{r::real. \<exists>N. \<forall>n\<ge>N. r < X n}"}
-*}
+\<close>
 
 lemma increasing_LIMSEQ:
   fixes f :: "nat \<Rightarrow> real"
@@ -1717,9 +1717,9 @@ proof (rule increasing_tendsto)
   fix x assume "x < l"
   with dense[of 0 "l - x"] obtain e where "0 < e" "e < l - x"
     by auto
-  from en[OF `0 < e`] obtain n where "l - e \<le> f n"
+  from en[OF \<open>0 < e\<close>] obtain n where "l - e \<le> f n"
     by (auto simp: field_simps)
-  with `e < l - x` `0 < e` have "x < f n" by simp
+  with \<open>e < l - x\<close> \<open>0 < e\<close> have "x < f n" by simp
   with incseq_SucI[of f, OF inc] show "eventually (\<lambda>n. x < f n) sequentially"
     by (auto simp: eventually_sequentially incseq_def intro: less_le_trans)
 qed (insert bdd, auto)

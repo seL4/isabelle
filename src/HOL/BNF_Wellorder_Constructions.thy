@@ -5,23 +5,23 @@
 Constructions on wellorders as needed by bounded natural functors.
 *)
 
-section {* Constructions on Wellorders as Needed by Bounded Natural Functors *}
+section \<open>Constructions on Wellorders as Needed by Bounded Natural Functors\<close>
 
 theory BNF_Wellorder_Constructions
 imports BNF_Wellorder_Embedding
 begin
 
-text {* In this section, we study basic constructions on well-orders, such as restriction to
+text \<open>In this section, we study basic constructions on well-orders, such as restriction to
 a set/order filter, copy via direct images, ordinal-like sum of disjoint well-orders,
 and bounded square.  We also define between well-orders
 the relations @{text "ordLeq"}, of being embedded (abbreviated @{text "\<le>o"}),
 @{text "ordLess"}, of being strictly embedded (abbreviated @{text "<o"}), and
 @{text "ordIso"}, of being isomorphic (abbreviated @{text "=o"}).  We study the
 connections between these relations, order filters, and the aforementioned constructions.
-A main result of this section is that @{text "<o"} is well-founded. *}
+A main result of this section is that @{text "<o"} is well-founded.\<close>
 
 
-subsection {* Restriction to a set *}
+subsection \<open>Restriction to a set\<close>
 
 abbreviation Restr :: "'a rel \<Rightarrow> 'a set \<Rightarrow> 'a rel"
 where "Restr r A \<equiv> r Int (A \<times> A)"
@@ -90,7 +90,7 @@ using Well_order_Restr[of r A] Refl_Field_Restr2[of r A]
      order_on_defs[of "Field r" r] by auto
 
 
-subsection {* Order filters versus restrictions and embeddings *}
+subsection \<open>Order filters versus restrictions and embeddings\<close>
 
 lemma Field_Restr_ofilter:
 "\<lbrakk>Well_order r; wo_rel.ofilter r A\<rbrakk> \<Longrightarrow> Field(Restr r A) = A"
@@ -261,7 +261,7 @@ proof-
 qed
 
 
-subsection {* The strict inclusion on proper ofilters is well-founded *}
+subsection \<open>The strict inclusion on proper ofilters is well-founded\<close>
 
 definition ofilterIncl :: "'a rel \<Rightarrow> 'a set rel"
 where
@@ -302,9 +302,9 @@ proof-
 qed
 
 
-subsection {* Ordering the well-orders by existence of embeddings *}
+subsection \<open>Ordering the well-orders by existence of embeddings\<close>
 
-text {* We define three relations between well-orders:
+text \<open>We define three relations between well-orders:
 \begin{itemize}
 \item @{text "ordLeq"}, of being embedded (abbreviated @{text "\<le>o"});
 \item @{text "ordLess"}, of being strictly embedded (abbreviated @{text "<o"});
@@ -314,7 +314,7 @@ text {* We define three relations between well-orders:
 The prefix "ord" and the index "o" in these names stand for "ordinal-like".
 These relations shall be proved to be inter-connected in a similar fashion as the trio
 @{text "\<le>"}, @{text "<"}, @{text "="} associated to a total order on a set.
-*}
+\<close>
 
 definition ordLeq :: "('a rel * 'a' rel) set"
 where
@@ -347,10 +347,10 @@ assumes "r \<le>o r'"
 shows "Well_order r \<and> Well_order r'"
 using assms unfolding ordLeq_def by simp
 
-text{* Notice that the relations @{text "\<le>o"}, @{text "<o"}, @{text "=o"} connect well-orders
+text\<open>Notice that the relations @{text "\<le>o"}, @{text "<o"}, @{text "=o"} connect well-orders
 on potentially {\em distinct} types. However, some of the lemmas below, including the next one,
 restrict implicitly the type of these relations to @{text "(('a rel) * ('a rel)) set"} , i.e.,
-to @{text "'a rel rel"}. *}
+to @{text "'a rel rel"}.\<close>
 
 lemma ordLeq_reflexive:
 "Well_order r \<Longrightarrow> r \<le>o r"
@@ -822,13 +822,13 @@ proof-
   ultimately show ?thesis using assms ordLeq_total ordIso_symmetric by blast
 qed
 
-subsection{* @{text "<o"} is well-founded *}
+subsection\<open>@{text "<o"} is well-founded\<close>
 
-text {* Of course, it only makes sense to state that the @{text "<o"} is well-founded
+text \<open>Of course, it only makes sense to state that the @{text "<o"} is well-founded
 on the restricted type @{text "'a rel rel"}.  We prove this by first showing that, for any set
 of well-orders all embedded in a fixed well-order, the function mapping each well-order
 in the set to an order filter of the fixed well-order is compatible w.r.t. to @{text "<o"} versus
-{\em strict inclusion}; and we already know that strict inclusion of order filters is well-founded. *}
+{\em strict inclusion}; and we already know that strict inclusion of order filters is well-founded.\<close>
 
 definition ord_to_filter :: "'a rel \<Rightarrow> 'a rel \<Rightarrow> 'a set"
 where "ord_to_filter r0 r \<equiv> (SOME f. embed r r0 f) ` (Field r)"
@@ -883,11 +883,11 @@ proof-
 qed
 
 
-subsection {* Copy via direct images *}
+subsection \<open>Copy via direct images\<close>
 
-text{* The direct image operator is the dual of the inverse image operator @{text "inv_image"}
+text\<open>The direct image operator is the dual of the inverse image operator @{text "inv_image"}
 from @{text "Relation.thy"}.  It is useful for transporting a well-order between
-different types. *}
+different types.\<close>
 
 definition dir_image :: "'a rel \<Rightarrow> ('a \<Rightarrow> 'a') \<Rightarrow> 'a' rel"
 where
@@ -1043,9 +1043,9 @@ proof-
 qed
 
 
-subsection {* Bounded square *}
+subsection \<open>Bounded square\<close>
 
-text{* This construction essentially defines, for an order relation @{text "r"}, a lexicographic
+text\<open>This construction essentially defines, for an order relation @{text "r"}, a lexicographic
 order @{text "bsqr r"} on @{text "(Field r) \<times> (Field r)"}, applying the
 following criteria (in this order):
 \begin{itemize}
@@ -1058,7 +1058,7 @@ The only application of this construction that we are aware of is
 at proving that the square of an infinite set has the same cardinal
 as that set. The essential property required there (and which is ensured by this
 construction) is that any proper order filter of the product order is included in a rectangle, i.e.,
-in a product of proper filters on the original relation (assumed to be a well-order). *}
+in a product of proper filters on the original relation (assumed to be a well-order).\<close>
 
 definition bsqr :: "'a rel => ('a * 'a)rel"
 where
@@ -1639,9 +1639,9 @@ next
         show ?thesis
         proof (cases "h b2 = undefined")
           case True
-          hence b1: "h b2 \<in> f1 ` A1" using h `b2 \<in> B2` unfolding B1 Func_def by auto
+          hence b1: "h b2 \<in> f1 ` A1" using h \<open>b2 \<in> B2\<close> unfolding B1 Func_def by auto
           show ?thesis using A2 f_inv_into_f[OF b1]
-            unfolding True g_def Func_map_def j1_def j2[OF `b2 \<in> B2`] by auto
+            unfolding True g_def Func_map_def j1_def j2[OF \<open>b2 \<in> B2\<close>] by auto
         qed(insert A2 True j2[OF True] h B1, unfold j1_def g_def Func_def Func_map_def,
           auto intro: f_inv_into_f)
       qed(insert h, unfold Func_def Func_map_def, auto)

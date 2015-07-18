@@ -2,13 +2,13 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-section {* Semiring normalization *}
+section \<open>Semiring normalization\<close>
 
 theory Semiring_Normalization
 imports Numeral_Simprocs Nat_Transfer
 begin
 
-text {* Prelude *}
+text \<open>Prelude\<close>
 
 class comm_semiring_1_cancel_crossproduct = comm_semiring_1_cancel +
   assumes crossproduct_eq: "w * y + x * z = w * z + x * y \<longleftrightarrow> w = x \<or> y = z"
@@ -57,15 +57,15 @@ proof
     assume "y < z" then have "\<exists>k. z = y + k \<and> k \<noteq> 0" by (intro exI [of _ "z - y"]) auto
     then obtain k where "z = y + k" and "k \<noteq> 0" by blast
     assume "w * y + x * z = w * z + x * y"
-    then have "(w * y + x * y) + x * k = (w * y + x * y) + w * k" by (simp add: `z = y + k` algebra_simps)
+    then have "(w * y + x * y) + x * k = (w * y + x * y) + w * k" by (simp add: \<open>z = y + k\<close> algebra_simps)
     then have "x * k = w * k" by simp
-    then show "w = x" using `k \<noteq> 0` by simp
+    then show "w = x" using \<open>k \<noteq> 0\<close> by simp
   qed
   show "w * y + x * z = w * z + x * y \<longleftrightarrow> w = x \<or> y = z"
     by (auto simp add: neq_iff dest!: aux)
 qed
 
-text {* Semiring normalization proper *}
+text \<open>Semiring normalization proper\<close>
 
 ML_file "Tools/semiring_normalizer.ML"
 

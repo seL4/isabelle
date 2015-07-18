@@ -3,13 +3,13 @@
                 with contributions by Jeremy Avigad
 *)
 
-section {* Big sum and product over finite (non-empty) sets *}
+section \<open>Big sum and product over finite (non-empty) sets\<close>
 
 theory Groups_Big
 imports Finite_Set
 begin
 
-subsection {* Generic monoid operation over a set *}
+subsection \<open>Generic monoid operation over a set\<close>
 
 no_notation times (infixl "*" 70)
 no_notation Groups.one ("1")
@@ -44,9 +44,9 @@ lemma remove:
   assumes "finite A" and "x \<in> A"
   shows "F g A = g x * F g (A - {x})"
 proof -
-  from `x \<in> A` obtain B where A: "A = insert x B" and "x \<notin> B"
+  from \<open>x \<in> A\<close> obtain B where A: "A = insert x B" and "x \<notin> B"
     by (auto dest: mk_disjoint_insert)
-  moreover from `finite A` A have "finite B" by simp
+  moreover from \<open>finite A\<close> A have "finite B" by simp
   ultimately show ?thesis by simp
 qed
 
@@ -67,7 +67,7 @@ lemma neutral_const [simp]:
 lemma union_inter:
   assumes "finite A" and "finite B"
   shows "F g (A \<union> B) * F g (A \<inter> B) = F g A * F g B"
-  -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
+  -- \<open>The reversed orientation looks more natural, but LOOPS as a simprule!\<close>
 using assms proof (induct A)
   case empty then show ?case by simp
 next
@@ -140,7 +140,7 @@ lemma cong:
   assumes "A = B"
   assumes g_h: "\<And>x. x \<in> B \<Longrightarrow> g x = h x"
   shows "F g A = F h B"
-  using g_h unfolding `A = B`
+  using g_h unfolding \<open>A = B\<close>
   by (induct B rule: infinite_finite_induct) auto
 
 lemma strong_cong [cong]:
@@ -207,9 +207,9 @@ lemma mono_neutral_cong_left:
   assumes "finite T" and "S \<subseteq> T" and "\<forall>i \<in> T - S. h i = 1"
   and "\<And>x. x \<in> S \<Longrightarrow> g x = h x" shows "F g S = F h T"
 proof-
-  have eq: "T = S \<union> (T - S)" using `S \<subseteq> T` by blast
-  have d: "S \<inter> (T - S) = {}" using `S \<subseteq> T` by blast
-  from `finite T` `S \<subseteq> T` have f: "finite S" "finite (T - S)"
+  have eq: "T = S \<union> (T - S)" using \<open>S \<subseteq> T\<close> by blast
+  have d: "S \<inter> (T - S) = {}" using \<open>S \<subseteq> T\<close> by blast
+  from \<open>finite T\<close> \<open>S \<subseteq> T\<close> have f: "finite S" "finite (T - S)"
     by (auto intro: finite_subset)
   show ?thesis using assms(4)
     by (simp add: union_disjoint [OF f d, unfolded eq [symmetric]] neutral [OF assms(3)])
@@ -268,7 +268,7 @@ proof -
     also have "\<dots> = F g (T - T')"
       using bij by (rule reindex_bij_betw)
     also have "\<dots> = F g T"
-      using nn `finite S` by (intro mono_neutral_cong_left) auto
+      using nn \<open>finite S\<close> by (intro mono_neutral_cong_left) auto
     finally show ?thesis .
   qed simp
 qed
@@ -280,7 +280,7 @@ lemma reindex_nontrivial:
 proof (subst reindex_bij_betw_not_neutral [symmetric])
   show "bij_betw h (A - {x \<in> A. (g \<circ> h) x = 1}) (h ` A - h ` {x \<in> A. (g \<circ> h) x = 1})"
     using nz by (auto intro!: inj_onI simp: bij_betw_def)
-qed (insert `finite A`, auto)
+qed (insert \<open>finite A\<close>, auto)
 
 lemma reindex_bij_witness_not_neutral:
   assumes fin: "finite S'" "finite T'"
@@ -369,7 +369,7 @@ proof -
   have "\<forall>i\<in>A - A \<inter> B. (if i \<in> A \<inter> B then g i else 1) = 1"
    by simp
   moreover have "A \<inter> B \<subseteq> A" by blast
-  ultimately have "F ?g (A \<inter> B) = F ?g A" using `finite A`
+  ultimately have "F ?g (A \<inter> B) = F ?g A" using \<open>finite A\<close>
     by (intro mono_neutral_left) auto
   then show ?thesis by simp
 qed
@@ -395,7 +395,7 @@ next
     and H: "F g (\<Union>B) = (F o F) g B" by auto
   then have "F g (A \<union> \<Union>B) = F g A * F g (\<Union>B)"
     by (simp add: union_inter_neutral)
-  with `finite B` `A \<notin> B` show ?case
+  with \<open>finite B\<close> \<open>A \<notin> B\<close> show ?case
     by (simp add: H)
 qed
 
@@ -430,7 +430,7 @@ lemma same_carrier:
   assumes trivial: "\<And>a. a \<in> C - A \<Longrightarrow> g a = 1" "\<And>b. b \<in> C - B \<Longrightarrow> h b = 1"
   shows "F g A = F h B \<longleftrightarrow> F g C = F h C"
 proof -
-  from `finite C` subset have
+  from \<open>finite C\<close> subset have
     "finite A" and "finite B" and "finite (C - A)" and "finite (C - B)"
     by (auto elim: finite_subset)
   from subset have [simp]: "A - (C - A) = A" by auto
@@ -438,12 +438,12 @@ proof -
   from subset have "C = A \<union> (C - A)" by auto
   then have "F g C = F g (A \<union> (C - A))" by simp
   also have "\<dots> = F g (A - (C - A)) * F g (C - A - A) * F g (A \<inter> (C - A))"
-    using `finite A` `finite (C - A)` by (simp only: union_diff2)
+    using \<open>finite A\<close> \<open>finite (C - A)\<close> by (simp only: union_diff2)
   finally have P: "F g C = F g A" using trivial by simp
   from subset have "C = B \<union> (C - B)" by auto
   then have "F h C = F h (B \<union> (C - B))" by simp
   also have "\<dots> = F h (B - (C - B)) * F h (C - B - B) * F h (B \<inter> (C - B))"
-    using `finite B` `finite (C - B)` by (simp only: union_diff2)
+    using \<open>finite B\<close> \<open>finite (C - B)\<close> by (simp only: union_diff2)
   finally have Q: "F h C = F h B" using trivial by simp
   from P Q show ?thesis by simp
 qed
@@ -462,7 +462,7 @@ notation times (infixl "*" 70)
 notation Groups.one ("1")
 
 
-subsection {* Generalized summation over a set *}
+subsection \<open>Generalized summation over a set\<close>
 
 context comm_monoid_add
 begin
@@ -486,8 +486,8 @@ abbreviation
 
 end
 
-text{* Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
-written @{text"\<Sum>x\<in>A. e"}. *}
+text\<open>Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
+written @{text"\<Sum>x\<in>A. e"}.\<close>
 
 syntax
   "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(3SUM _:_./ _)" [0, 51, 10] 10)
@@ -496,12 +496,12 @@ syntax (xsymbols)
 syntax (HTML output)
   "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(2\<Sum>_\<in>_./ _)" [0, 51, 10] 10)
 
-translations -- {* Beware of argument permutation! *}
+translations -- \<open>Beware of argument permutation!\<close>
   "SUM i:A. b" == "CONST setsum (%i. b) A"
   "\<Sum>i\<in>A. b" == "CONST setsum (%i. b) A"
 
-text{* Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter
- @{text"\<Sum>x|P. e"}. *}
+text\<open>Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter
+ @{text"\<Sum>x|P. e"}.\<close>
 
 syntax
   "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SUM _ |/ _./ _)" [0,0,10] 10)
@@ -514,7 +514,7 @@ translations
   "SUM x|P. t" => "CONST setsum (%x. t) {x. P}"
   "\<Sum>x|P. t" => "CONST setsum (%x. t) {x. P}"
 
-print_translation {*
+print_translation \<open>
 let
   fun setsum_tr' [Abs (x, Tx, t), Const (@{const_syntax Collect}, _) $ Abs (y, Ty, P)] =
         if x <> y then raise Match
@@ -528,9 +528,9 @@ let
           end
     | setsum_tr' _ = raise Match;
 in [(@{const_syntax setsum}, K setsum_tr')] end
-*}
+\<close>
 
-text {* TODO generalization candidates *}
+text \<open>TODO generalization candidates\<close>
 
 lemma setsum_image_gen:
   assumes fS: "finite S"
@@ -545,7 +545,7 @@ proof-
 qed
 
 
-subsubsection {* Properties in more restricted classes of structures *}
+subsubsection \<open>Properties in more restricted classes of structures\<close>
 
 lemma setsum_Un: "finite A ==> finite B ==>
   (setsum f (A Un B) :: 'a :: ab_group_add) =
@@ -618,15 +618,15 @@ shows "setsum f A < setsum g A"
 proof-
   from assms(3) obtain a where a: "a:A" "f a < g a" by blast
   have "setsum f A = setsum f ((A-{a}) \<union> {a})"
-    by(simp add:insert_absorb[OF `a:A`])
+    by(simp add:insert_absorb[OF \<open>a:A\<close>])
   also have "\<dots> = setsum f (A-{a}) + setsum f {a}"
-    using `finite A` by(subst setsum.union_disjoint) auto
+    using \<open>finite A\<close> by(subst setsum.union_disjoint) auto
   also have "setsum f (A-{a}) \<le> setsum g (A-{a})"
     by(rule setsum_mono)(simp add: assms(2))
   also have "setsum f {a} < setsum g {a}" using a by simp
   also have "setsum g (A - {a}) + setsum g {a} = setsum g((A-{a}) \<union> {a})"
-    using `finite A` by(subst setsum.union_disjoint[symmetric]) auto
-  also have "\<dots> = setsum g A" by(simp add:insert_absorb[OF `a:A`])
+    using \<open>finite A\<close> by(subst setsum.union_disjoint[symmetric]) auto
+  also have "\<dots> = setsum g A" by(simp add:insert_absorb[OF \<open>a:A\<close>])
   finally show ?thesis by (auto simp add: add_right_mono add_strict_left_mono)
 qed
 
@@ -880,7 +880,7 @@ lemmas setsum_eq_1_iff = setsum_eq_Suc0_iff[simplified One_nat_def[symmetric]]
 
 lemma setsum_Un_nat: "finite A ==> finite B ==>
   (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
-  -- {* For the natural numbers, we have subtraction. *}
+  -- \<open>For the natural numbers, we have subtraction.\<close>
 by (subst setsum.union_inter [symmetric], auto simp add: algebra_simps)
 
 lemma setsum_diff1_nat: "(setsum f (A - {a}) :: nat) =
@@ -932,7 +932,7 @@ lemma (in comm_semiring_1) dvd_setsum:
   by (induct A rule: infinite_finite_induct) simp_all
 
 
-subsubsection {* Cardinality as special case of @{const setsum} *}
+subsubsection \<open>Cardinality as special case of @{const setsum}\<close>
 
 lemma card_eq_setsum:
   "card A = setsum (\<lambda>x. 1) A"
@@ -1008,7 +1008,7 @@ lemma (in ordered_comm_monoid_add) setsum_pos:
   by (induct I rule: finite_ne_induct) (auto intro: add_pos_pos)
 
 
-subsubsection {* Cardinality of products *}
+subsubsection \<open>Cardinality of products\<close>
 
 lemma card_SigmaI [simp]:
   "\<lbrakk> finite A; ALL a:A. finite (B a) \<rbrakk>
@@ -1029,7 +1029,7 @@ lemma card_cartesian_product_singleton:  "card({x} <*> A) = card(A)"
 by (simp add: card_cartesian_product)
 
 
-subsection {* Generalized product over a set *}
+subsection \<open>Generalized product over a set\<close>
 
 context comm_monoid_mult
 begin
@@ -1060,12 +1060,12 @@ syntax (xsymbols)
 syntax (HTML output)
   "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>_\<in>_./ _)" [0, 51, 10] 10)
 
-translations -- {* Beware of argument permutation! *}
+translations -- \<open>Beware of argument permutation!\<close>
   "PROD i:A. b" == "CONST setprod (%i. b) A" 
   "\<Prod>i\<in>A. b" == "CONST setprod (%i. b) A" 
 
-text{* Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter
- @{text"\<Prod>x|P. e"}. *}
+text\<open>Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter
+ @{text"\<Prod>x|P. e"}.\<close>
 
 syntax
   "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(4PROD _ |/ _./ _)" [0,0,10] 10)
@@ -1102,7 +1102,7 @@ lemma setprod_dvd_setprod_subset:
 end
 
 
-subsubsection {* Properties in more restricted classes of structures *}
+subsubsection \<open>Properties in more restricted classes of structures\<close>
 
 context comm_semiring_1
 begin
@@ -1111,11 +1111,11 @@ lemma dvd_setprod_eqI [intro]:
   assumes "finite A" and "a \<in> A" and "b = f a"
   shows "b dvd setprod f A"
 proof -
-  from `finite A` have "setprod f (insert a (A - {a})) = f a * setprod f (A - {a})"
+  from \<open>finite A\<close> have "setprod f (insert a (A - {a})) = f a * setprod f (A - {a})"
     by (intro setprod.insert) auto
-  also from `a \<in> A` have "insert a (A - {a}) = A" by blast
+  also from \<open>a \<in> A\<close> have "insert a (A - {a}) = A" by blast
   finally have "setprod f A = f a * setprod f (A - {a})" .
-  with `b = f a` show ?thesis by simp
+  with \<open>b = f a\<close> show ?thesis by simp
 qed
 
 lemma dvd_setprodI [intro]:
@@ -1170,7 +1170,7 @@ next
     next
       case False with insert have "a \<in> B" by simp
       def C \<equiv> "B - {a}"
-      with `finite B` `a \<in> B`
+      with \<open>finite B\<close> \<open>a \<in> B\<close>
         have *: "B = insert a C" "finite C" "a \<notin> C" by auto
       with insert show ?thesis by (auto simp add: insert_commute ac_simps)
     qed

@@ -3,13 +3,13 @@
     Author:     Jacques D. Fleuriot
 *)
 
-section {* Parity in rings and semirings *}
+section \<open>Parity in rings and semirings\<close>
 
 theory Parity
 imports Nat_Transfer
 begin
 
-subsection {* Ring structures with parity and @{text even}/@{text odd} predicates *}
+subsection \<open>Ring structures with parity and @{text even}/@{text odd} predicates\<close>
 
 class semiring_parity = comm_semiring_1_cancel + numeral +
   assumes odd_one [simp]: "\<not> 2 dvd 1"
@@ -115,7 +115,7 @@ lemma even_diff [simp]:
 end
 
 
-subsection {* Instances for @{typ nat} and @{typ int} *}
+subsection \<open>Instances for @{typ nat} and @{typ int}\<close>
 
 lemma even_Suc_Suc_iff [simp]:
   "2 dvd Suc (Suc n) \<longleftrightarrow> 2 dvd n"
@@ -227,7 +227,7 @@ lemma even_nat_iff:
   by (simp add: even_int_iff [symmetric])
 
 
-subsection {* Parity and powers *}
+subsection \<open>Parity and powers\<close>
 
 context comm_ring_1
 begin
@@ -291,34 +291,34 @@ lemma power_mono_even:
   shows "a ^ n \<le> b ^ n"
 proof -
   have "0 \<le> \<bar>a\<bar>" by auto
-  with `\<bar>a\<bar> \<le> \<bar>b\<bar>`
+  with \<open>\<bar>a\<bar> \<le> \<bar>b\<bar>\<close>
   have "\<bar>a\<bar> ^ n \<le> \<bar>b\<bar> ^ n" by (rule power_mono)
-  with `even n` show ?thesis by (simp add: power_even_abs)  
+  with \<open>even n\<close> show ?thesis by (simp add: power_even_abs)  
 qed
 
 lemma power_mono_odd:
   assumes "odd n" and "a \<le> b"
   shows "a ^ n \<le> b ^ n"
 proof (cases "b < 0")
-  case True with `a \<le> b` have "- b \<le> - a" and "0 \<le> - b" by auto
+  case True with \<open>a \<le> b\<close> have "- b \<le> - a" and "0 \<le> - b" by auto
   hence "(- b) ^ n \<le> (- a) ^ n" by (rule power_mono)
-  with `odd n` show ?thesis by simp
+  with \<open>odd n\<close> show ?thesis by simp
 next
   case False then have "0 \<le> b" by auto
   show ?thesis
   proof (cases "a < 0")
-    case True then have "n \<noteq> 0" and "a \<le> 0" using `odd n` [THEN odd_pos] by auto
-    then have "a ^ n \<le> 0" unfolding power_le_zero_eq using `odd n` by auto
+    case True then have "n \<noteq> 0" and "a \<le> 0" using \<open>odd n\<close> [THEN odd_pos] by auto
+    then have "a ^ n \<le> 0" unfolding power_le_zero_eq using \<open>odd n\<close> by auto
     moreover
-    from `0 \<le> b` have "0 \<le> b ^ n" by auto
+    from \<open>0 \<le> b\<close> have "0 \<le> b ^ n" by auto
     ultimately show ?thesis by auto
   next
     case False then have "0 \<le> a" by auto
-    with `a \<le> b` show ?thesis using power_mono by auto
+    with \<open>a \<le> b\<close> show ?thesis using power_mono by auto
   qed
 qed
  
-text {* Simplify, when the exponent is a numeral *}
+text \<open>Simplify, when the exponent is a numeral\<close>
 
 lemma zero_le_power_eq_numeral [simp]:
   "0 \<le> a ^ numeral w \<longleftrightarrow> even (numeral w :: nat) \<or> odd (numeral w :: nat) \<and> 0 \<le> a"
@@ -345,7 +345,7 @@ lemma power_even_abs_numeral [simp]:
 end
 
 
-subsubsection {* Tools setup *}
+subsubsection \<open>Tools setup\<close>
 
 declare transfer_morphism_int_nat [transfer add return:
   even_int_iff

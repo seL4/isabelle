@@ -4,7 +4,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-section {* Metis Proof Method *}
+section \<open>Metis Proof Method\<close>
 
 theory Metis
 imports ATP
@@ -15,7 +15,7 @@ ML_file "~~/src/Tools/Metis/metis.ML"
 declare [[ML_print_depth = 10]]
 
 
-subsection {* Literal selection and lambda-lifting helpers *}
+subsection \<open>Literal selection and lambda-lifting helpers\<close>
 
 definition select :: "'a \<Rightarrow> 'a" where
 "select = (\<lambda>x. x)"
@@ -38,7 +38,7 @@ lemma eq_lambdaI: "x \<equiv> y \<Longrightarrow> x \<equiv> lambda y"
 unfolding lambda_def by assumption
 
 
-subsection {* Metis package *}
+subsection \<open>Metis package\<close>
 
 ML_file "Tools/Metis/metis_generate.ML"
 ML_file "Tools/Metis/metis_reconstruct.ML"

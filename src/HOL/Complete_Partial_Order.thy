@@ -3,15 +3,15 @@
    Author:   Alexander Krauss, TU Muenchen
 *)
 
-section {* Chain-complete partial orders and their fixpoints *}
+section \<open>Chain-complete partial orders and their fixpoints\<close>
 
 theory Complete_Partial_Order
 imports Product_Type
 begin
 
-subsection {* Monotone functions *}
+subsection \<open>Monotone functions\<close>
 
-text {* Dictionary-passing version of @{const Orderings.mono}. *}
+text \<open>Dictionary-passing version of @{const Orderings.mono}.\<close>
 
 definition monotone :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
 where "monotone orda ordb f \<longleftrightarrow> (\<forall>x y. orda x y \<longrightarrow> ordb (f x) (f y))"
@@ -24,11 +24,11 @@ lemma monotoneD[dest?]: "monotone orda ordb f \<Longrightarrow> orda x y \<Longr
 unfolding monotone_def by iprover
 
 
-subsection {* Chains *}
+subsection \<open>Chains\<close>
 
-text {* A chain is a totally-ordered set. Chains are parameterized over
+text \<open>A chain is a totally-ordered set. Chains are parameterized over
   the order for maximal flexibility, since type classes are not enough.
-*}
+\<close>
 
 definition
   chain :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
@@ -67,12 +67,12 @@ lemma chain_imageI:
   shows "chain le_b (f ` Y)"
 by(blast intro: chainI dest: chainD[OF chain] mono)
 
-subsection {* Chain-complete partial orders *}
+subsection \<open>Chain-complete partial orders\<close>
 
-text {*
+text \<open>
   A ccpo has a least upper bound for any chain.  In particular, the
   empty set is a chain, so every ccpo must have a bottom element.
-*}
+\<close>
 
 class ccpo = order + Sup +
   assumes ccpo_Sup_upper: "\<lbrakk>chain (op \<le>) A; x \<in> A\<rbrakk> \<Longrightarrow> x \<le> Sup A"
@@ -85,7 +85,7 @@ by(rule chainI) simp
 lemma ccpo_Sup_singleton [simp]: "\<Squnion>{x} = x"
 by(rule antisym)(auto intro: ccpo_Sup_least ccpo_Sup_upper simp add: chain_singleton)
 
-subsection {* Transfinite iteration of a function *}
+subsection \<open>Transfinite iteration of a function\<close>
 
 inductive_set iterates :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a set"
 for f :: "'a \<Rightarrow> 'a"
@@ -145,7 +145,7 @@ qed
 lemma bot_in_iterates: "Sup {} \<in> iterates f"
 by(auto intro: iterates.Sup simp add: chain_empty)
 
-subsection {* Fixpoint combinator *}
+subsection \<open>Fixpoint combinator\<close>
 
 definition
   fixp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
@@ -183,9 +183,9 @@ qed
 
 end
 
-subsection {* Fixpoint induction *}
+subsection \<open>Fixpoint induction\<close>
 
-setup {* Sign.map_naming (Name_Space.mandatory_path "ccpo") *}
+setup \<open>Sign.map_naming (Name_Space.mandatory_path "ccpo")\<close>
 
 definition admissible :: "('a set \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
 where "admissible lub ord P = (\<forall>A. chain ord A \<longrightarrow> (A \<noteq> {}) \<longrightarrow> (\<forall>x\<in>A. P x) \<longrightarrow> P (lub A))"
@@ -203,7 +203,7 @@ lemma admissibleD:
   shows "P (lub A)"
 using assms by (auto simp: ccpo.admissible_def)
 
-setup {* Sign.map_naming Name_Space.parent_path *}
+setup \<open>Sign.map_naming Name_Space.parent_path\<close>
 
 lemma (in ccpo) fixp_induct:
   assumes adm: "ccpo.admissible Sup (op \<le>) P"

@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow, TU Muenchen *)
 
-section {* Sum and product over lists *}
+section \<open>Sum and product over lists\<close>
 
 theory Groups_List
 imports List
@@ -56,7 +56,7 @@ notation times (infixl "*" 70)
 notation Groups.one ("1")
 
 
-subsection {* List summation *}
+subsection \<open>List summation\<close>
 
 context monoid_add
 begin
@@ -101,7 +101,7 @@ qed
 
 end
 
-text {* Some syntactic sugar for summing a function over a list: *}
+text \<open>Some syntactic sugar for summing a function over a list:\<close>
 
 syntax
   "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3SUM _<-_. _)" [0, 51, 10] 10)
@@ -110,11 +110,11 @@ syntax (xsymbols)
 syntax (HTML output)
   "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
 
-translations -- {* Beware of argument permutation! *}
+translations -- \<open>Beware of argument permutation!\<close>
   "SUM x<-xs. b" == "CONST listsum (CONST map (%x. b) xs)"
   "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (CONST map (%x. b) xs)"
 
-text {* TODO duplicates *}
+text \<open>TODO duplicates\<close>
 lemmas listsum_simps = listsum.Nil listsum.Cons
 lemmas listsum_append = listsum.append
 lemmas listsum_rev = listsum.rev
@@ -190,7 +190,7 @@ lemma (in monoid_add) listsum_0 [simp]:
   "(\<Sum>x\<leftarrow>xs. 0) = 0"
   by (induct xs) (simp_all add: distrib_right)
 
-text{* For non-Abelian groups @{text xs} needs to be reversed on one side: *}
+text\<open>For non-Abelian groups @{text xs} needs to be reversed on one side:\<close>
 lemma (in ab_group_add) uminus_listsum_map:
   "- listsum (map f xs) = listsum (map (uminus \<circ> f) xs)"
   by (induct xs) simp_all
@@ -232,7 +232,7 @@ lemma (in monoid_add) interv_listsum_conv_setsum_set_int:
   "listsum (map f [k..l]) = setsum f (set [k..l])"
   by (simp add: listsum_distinct_conv_setsum_set)
 
-text {* General equivalence between @{const listsum} and @{const setsum} *}
+text \<open>General equivalence between @{const listsum} and @{const setsum}\<close>
 lemma (in monoid_add) listsum_setsum_nth:
   "listsum xs = (\<Sum> i = 0 ..< length xs. xs ! i)"
   using interv_listsum_conv_setsum_set_nat [of "op ! xs" 0 "length xs"] by (simp add: map_nth)
@@ -245,14 +245,14 @@ proof(induction xs)
   proof cases
     assume "x \<in> set xs"
     have "?l = f x + (\<Sum>x\<in>set xs. count_list xs x * f x)" by (simp add: Cons.IH)
-    also have "set xs = insert x (set xs - {x})" using `x \<in> set xs`by blast
+    also have "set xs = insert x (set xs - {x})" using \<open>x \<in> set xs\<close>by blast
     also have "f x + (\<Sum>x\<in>insert x (set xs - {x}). count_list xs x * f x) = ?r"
       by (simp add: setsum.insert_remove eq_commute)
     finally show ?thesis .
   next
     assume "x \<notin> set xs"
     hence "\<And>xa. xa \<in> set xs \<Longrightarrow> x \<noteq> xa" by blast
-    thus ?thesis by (simp add: Cons.IH `x \<notin> set xs`)
+    thus ?thesis by (simp add: Cons.IH \<open>x \<notin> set xs\<close>)
   qed
 qed simp
 
@@ -270,7 +270,7 @@ proof-
 qed
 
 
-subsection {* Further facts about @{const List.n_lists} *}
+subsection \<open>Further facts about @{const List.n_lists}\<close>
 
 lemma length_n_lists: "length (List.n_lists n xs) = length xs ^ n"
   by (induct n) (auto simp add: comp_def length_concat listsum_triv)
@@ -298,7 +298,7 @@ proof (rule card_distinct)
 qed
 
 
-subsection {* Tools setup *}
+subsection \<open>Tools setup\<close>
 
 lemmas setsum_code = setsum.set_conv_list
 
@@ -325,7 +325,7 @@ lemma listsum_transfer[transfer_rule]:
 end
 
 
-subsection {* List product *}
+subsection \<open>List product\<close>
 
 context monoid_mult
 begin
@@ -370,7 +370,7 @@ qed
 
 end
 
-text {* Some syntactic sugar: *}
+text \<open>Some syntactic sugar:\<close>
 
 syntax
   "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3PROD _<-_. _)" [0, 51, 10] 10)
@@ -379,7 +379,7 @@ syntax (xsymbols)
 syntax (HTML output)
   "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
 
-translations -- {* Beware of argument permutation! *}
+translations -- \<open>Beware of argument permutation!\<close>
   "PROD x<-xs. b" == "CONST listprod (CONST map (%x. b) xs)"
   "\<Prod>x\<leftarrow>xs. b" == "CONST listprod (CONST map (%x. b) xs)"
 

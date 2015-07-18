@@ -3,13 +3,13 @@
     Author:     Andrei Popescu, TU Muenchen
 *)
 
-section {* Orders as Relations *}
+section \<open>Orders as Relations\<close>
 
 theory Order_Relation
 imports Wfrec
 begin
 
-subsection{* Orders on a set *}
+subsection\<open>Orders on a set\<close>
 
 definition "preorder_on A r \<equiv> refl_on A r \<and> trans r"
 
@@ -56,7 +56,7 @@ lemma strict_linear_order_on_diff_Id:
 by(simp add: order_on_defs trans_diff_Id)
 
 
-subsection{* Orders on the field *}
+subsection\<open>Orders on the field\<close>
 
 abbreviation "Refl r \<equiv> refl_on (Field r) r"
 
@@ -115,7 +115,7 @@ proof(auto)
 qed
 
 
-subsection{* Orders on a type *}
+subsection\<open>Orders on a type\<close>
 
 abbreviation "strict_linear_order \<equiv> strict_linear_order_on UNIV"
 
@@ -124,14 +124,14 @@ abbreviation "linear_order \<equiv> linear_order_on UNIV"
 abbreviation "well_order \<equiv> well_order_on UNIV"
 
 
-subsection {* Order-like relations *}
+subsection \<open>Order-like relations\<close>
 
-text{* In this subsection, we develop basic concepts and results pertaining
+text\<open>In this subsection, we develop basic concepts and results pertaining
 to order-like relations, i.e., to reflexive and/or transitive and/or symmetric and/or
-total relations. We also further define upper and lower bounds operators. *}
+total relations. We also further define upper and lower bounds operators.\<close>
 
 
-subsubsection {* Auxiliaries *}
+subsubsection \<open>Auxiliaries\<close>
 
 lemma refl_on_domain:
 "\<lbrakk>refl_on A r; (a,b) : r\<rbrakk> \<Longrightarrow> a \<in> A \<and> b \<in> A"
@@ -177,14 +177,14 @@ shows "((a,b) \<in> r) = ((b,a) \<notin> r - Id)"
 using assms unfolding order_on_defs total_on_def antisym_def Id_def refl_on_def by force
 
 
-subsubsection {* The upper and lower bounds operators  *}
+subsubsection \<open>The upper and lower bounds operators\<close>
 
-text{* Here we define upper (``above") and lower (``below") bounds operators.
+text\<open>Here we define upper (``above") and lower (``below") bounds operators.
 We think of @{text "r"} as a {\em non-strict} relation.  The suffix ``S"
 at the names of some operators indicates that the bounds are strict -- e.g.,
 @{text "underS a"} is the set of all strict lower bounds of @{text "a"} (w.r.t. @{text "r"}).
 Capitalization of the first letter in the name reminds that the operator acts on sets, rather
-than on individual elements. *}
+than on individual elements.\<close>
 
 definition under::"'a rel \<Rightarrow> 'a \<Rightarrow> 'a set"
 where "under r a \<equiv> {b. (b,a) \<in> r}"
@@ -213,9 +213,9 @@ where "AboveS r A \<equiv> {b \<in> Field r. \<forall>a \<in> A. b \<noteq> a \<
 definition ofilter :: "'a rel \<Rightarrow> 'a set \<Rightarrow> bool"
 where "ofilter r A \<equiv> (A \<le> Field r) \<and> (\<forall>a \<in> A. under r a \<le> A)"
 
-text{* Note:  In the definitions of @{text "Above[S]"} and @{text "Under[S]"},
+text\<open>Note:  In the definitions of @{text "Above[S]"} and @{text "Under[S]"},
   we bounded comprehension by @{text "Field r"} in order to properly cover
-  the case of @{text "A"} being empty. *}
+  the case of @{text "A"} being empty.\<close>
 
 lemma underS_subset_under: "underS r a \<le> under r a"
 by(auto simp add: underS_def under_def)
@@ -307,22 +307,22 @@ next
 qed
 
 
-subsection {* Variations on Well-Founded Relations  *}
+subsection \<open>Variations on Well-Founded Relations\<close>
 
-text {*
+text \<open>
 This subsection contains some variations of the results from @{theory Wellfounded}:
 \begin{itemize}
 \item means for slightly more direct definitions by well-founded recursion;
 \item variations of well-founded induction;
 \item means for proving a linear order to be a well-order.
 \end{itemize}
-*}
+\<close>
 
 
-subsubsection {* Characterizations of well-foundedness *}
+subsubsection \<open>Characterizations of well-foundedness\<close>
 
-text {* A transitive relation is well-founded iff it is ``locally'' well-founded,
-i.e., iff its restriction to the lower bounds of of any element is well-founded.  *}
+text \<open>A transitive relation is well-founded iff it is ``locally'' well-founded,
+i.e., iff its restriction to the lower bounds of of any element is well-founded.\<close>
 
 lemma trans_wf_iff:
 assumes "trans r"
@@ -362,8 +362,8 @@ proof-
   ultimately show ?thesis using R_def by blast
 qed
 
-text {* The next lemma is a variation of @{text "wf_eq_minimal"} from Wellfounded,
-allowing one to assume the set included in the field.  *}
+text \<open>The next lemma is a variation of @{text "wf_eq_minimal"} from Wellfounded,
+allowing one to assume the set included in the field.\<close>
 
 lemma wf_eq_minimal2:
 "wf r = (\<forall>A. A <= Field r \<and> A \<noteq> {} \<longrightarrow> (\<exists>a \<in> A. \<forall>a' \<in> A. \<not> (a',a) \<in> r))"
@@ -408,11 +408,11 @@ proof-
 qed
 
 
-subsubsection {* Characterizations of well-foundedness *}
+subsubsection \<open>Characterizations of well-foundedness\<close>
 
-text {* The next lemma and its corollary enable one to prove that
+text \<open>The next lemma and its corollary enable one to prove that
 a linear order is a well-order in a way which is more standard than
-via well-foundedness of the strict version of the relation.  *}
+via well-foundedness of the strict version of the relation.\<close>
 
 lemma Linear_order_wf_diff_Id:
 assumes LI: "Linear_order r"

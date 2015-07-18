@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer, Lukas Bulwahn, Florian Haftmann, TU Muenchen
 *)
 
-section {* A compiler for predicates defined by introduction rules *}
+section \<open>A compiler for predicates defined by introduction rules\<close>
 
 theory Predicate_Compile
 imports Random_Sequence Quickcheck_Exhaustive
@@ -22,12 +22,12 @@ ML_file "Tools/Predicate_Compile/predicate_compile_specialisation.ML"
 ML_file "Tools/Predicate_Compile/predicate_compile.ML"
 
 
-subsection {* Set membership as a generator predicate *}
+subsection \<open>Set membership as a generator predicate\<close>
 
-text {* 
+text \<open>
   Introduce a new constant for membership to allow 
   fine-grained control in code equations. 
-*}
+\<close>
 
 definition contains :: "'a set => 'a => bool"
 where "contains A x \<longleftrightarrow> x : A"
@@ -68,7 +68,7 @@ lemma contains_pred_notI:
    "\<not> contains A x ==> Predicate.eval (Predicate.not_pred (contains_pred A x)) ()"
 by(simp add: contains_pred_def contains_def not_pred_eq)
 
-setup {*
+setup \<open>
 let
   val Fun = Predicate_Compile_Aux.Fun
   val Input = Predicate_Compile_Aux.Input
@@ -97,7 +97,7 @@ in
           })],
        needs_random = []}))
 end
-*}
+\<close>
 
 hide_const (open) contains contains_pred
 hide_fact (open) pred_of_setE pred_of_setI pred_of_set_eq 

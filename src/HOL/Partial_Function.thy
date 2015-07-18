@@ -2,7 +2,7 @@
    Author:   Alexander Krauss, TU Muenchen
 *)
 
-section {* Partial Function Definitions *}
+section \<open>Partial Function Definitions\<close>
 
 theory Partial_Function
 imports Complete_Partial_Order Fun_Def_Base Option
@@ -20,7 +20,7 @@ proof induction
   case empty thus ?case by simp
 next
   case (insert x A)
-  note chain = `Complete_Partial_Order.chain op \<le> (insert x A)`
+  note chain = \<open>Complete_Partial_Order.chain op \<le> (insert x A)\<close>
   show ?case
   proof(cases "A = {}")
     case True thus ?thesis by simp
@@ -36,10 +36,10 @@ next
         by(rule ccpo_Sup_least)(auto simp add: True intro: ccpo_Sup_upper[OF chain'])
       hence "\<Squnion>insert x A = \<Squnion>A"
         by(rule antisym)(blast intro: ccpo_Sup_upper[OF chain] ccpo_Sup_least[OF chain'])
-      with `\<Squnion>A \<in> A` show ?thesis by simp
+      with \<open>\<Squnion>A \<in> A\<close> show ?thesis by simp
     next
       case False
-      with chainD[OF chain, of x "\<Squnion>A"] `\<Squnion>A \<in> A`
+      with chainD[OF chain, of x "\<Squnion>A"] \<open>\<Squnion>A \<in> A\<close>
       have "\<Squnion>insert x A = x"
         by(auto intro: antisym ccpo_Sup_least[OF chain] order_trans[OF ccpo_Sup_upper[OF chain']] ccpo_Sup_upper[OF chain])
       thus ?thesis by simp
@@ -47,10 +47,10 @@ next
   qed
 qed
 
-subsection {* Axiomatic setup *}
+subsection \<open>Axiomatic setup\<close>
 
-text {* This techical locale constains the requirements for function
-  definitions with ccpo fixed points. *}
+text \<open>This techical locale constains the requirements for function
+  definitions with ccpo fixed points.\<close>
 
 definition "fun_ord ord f g \<longleftrightarrow> (\<forall>x. ord (f x) (g x))"
 definition "fun_lub L A = (\<lambda>x. L {y. \<exists>f\<in>A. y = f x})"
@@ -165,8 +165,8 @@ abbreviation "fixp_fun \<equiv> ccpo.fixp lub_fun le_fun"
 abbreviation "mono_body \<equiv> monotone le_fun leq"
 abbreviation "admissible \<equiv> ccpo.admissible lub_fun le_fun"
 
-text {* Interpret manually, to avoid flooding everything with facts about
-  orders *}
+text \<open>Interpret manually, to avoid flooding everything with facts about
+  orders\<close>
 
 lemma ccpo: "class.ccpo lub_fun le_fun (mk_less le_fun)"
 apply (rule ccpo)
@@ -174,13 +174,13 @@ apply (rule partial_function_lift)
 apply (rule partial_function_definitions_axioms)
 done
 
-text {* The crucial fixed-point theorem *}
+text \<open>The crucial fixed-point theorem\<close>
 
 lemma mono_body_fixp: 
   "(\<And>x. mono_body (\<lambda>f. F f x)) \<Longrightarrow> fixp_fun F = F (fixp_fun F)"
 by (rule ccpo.fixp_unfold[OF ccpo]) (auto simp: monotone_def fun_ord_def)
 
-text {* Version with curry/uncurry combinators, to be used by package *}
+text \<open>Version with curry/uncurry combinators, to be used by package\<close>
 
 lemma fixp_rule_uc:
   fixes F :: "'c \<Rightarrow> 'c" and
@@ -199,7 +199,7 @@ proof -
   finally show "f = F f" .
 qed
 
-text {* Fixpoint induction rule *}
+text \<open>Fixpoint induction rule\<close>
 
 lemma fixp_induct_uc:
   fixes F :: "'c \<Rightarrow> 'c"
@@ -221,7 +221,7 @@ apply (simp add: inverse)
 done
 
 
-text {* Rules for @{term mono_body}: *}
+text \<open>Rules for @{term mono_body}:\<close>
 
 lemma const_mono[partial_function_mono]: "monotone ord leq (\<lambda>f. c)"
 by (rule monotoneI) (rule leq_refl)
@@ -229,7 +229,7 @@ by (rule monotoneI) (rule leq_refl)
 end
 
 
-subsection {* Flat interpretation: tailrec and option *}
+subsection \<open>Flat interpretation: tailrec and option\<close>
 
 definition 
   "flat_ord b x y \<longleftrightarrow> x = b \<or> x = y"
@@ -349,7 +349,7 @@ proof (rule ccpo.admissibleI)
   proof (rule ccpo.admissibleD)
     fix x assume "x \<in> f ` A"
     with P_A show "(P o g) x" by (auto simp: inj[OF inv])
-  qed(simp add: `A \<noteq> {}`)
+  qed(simp add: \<open>A \<noteq> {}\<close>)
   thus "P (img_lub f g lub A)" unfolding img_lub_def by simp
 qed
 
@@ -403,11 +403,11 @@ next
   case False
   then obtain c where "c \<in> A" and "c \<noteq> b" by auto
   { fix z assume "z \<in> A"
-    from chainD[OF ch `c \<in> A` this] have "z = c \<or> z = b"
-      unfolding flat_ord_def using `c \<noteq> b` by auto }
+    from chainD[OF ch \<open>c \<in> A\<close> this] have "z = c \<or> z = b"
+      unfolding flat_ord_def using \<open>c \<noteq> b\<close> by auto }
   with False have "A - {b} = {c}" by auto
   with False have "flat_lub b A = c" by (auto simp: flat_lub_def)
-  with `c \<in> A` lub show ?thesis by simp
+  with \<open>c \<in> A\<close> lub show ?thesis by simp
 qed
 
 lemma option_admissible: "option.admissible (%(f::'a \<Rightarrow> 'b option).
@@ -441,13 +441,13 @@ lemma fixp_induct_option:
   using step defined option.fixp_induct_uc[of U F C, OF mono eq inverse2 option_admissible]
   unfolding fun_lub_def flat_lub_def by(auto 9 2)
 
-declaration {* Partial_Function.init "tailrec" @{term tailrec.fixp_fun}
+declaration \<open>Partial_Function.init "tailrec" @{term tailrec.fixp_fun}
   @{term tailrec.mono_body} @{thm tailrec.fixp_rule_uc} @{thm tailrec.fixp_induct_uc}
-  (SOME @{thm fixp_induct_tailrec[where c=undefined]}) *}
+  (SOME @{thm fixp_induct_tailrec[where c=undefined]})\<close>
 
-declaration {* Partial_Function.init "option" @{term option.fixp_fun}
+declaration \<open>Partial_Function.init "option" @{term option.fixp_fun}
   @{term option.mono_body} @{thm option.fixp_rule_uc} @{thm option.fixp_induct_uc}
-  (SOME @{thm fixp_induct_option}) *}
+  (SOME @{thm fixp_induct_option})\<close>
 
 hide_const (open) chain
 

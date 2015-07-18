@@ -5,15 +5,15 @@
     Copyright   2001  University of Cambridge
 *)
 
-section {* MESON Proof Method *}
+section \<open>MESON Proof Method\<close>
 
 theory Meson
 imports Nat
 begin
 
-subsection {* Negation Normal Form *}
+subsection \<open>Negation Normal Form\<close>
 
-text {* de Morgan laws *}
+text \<open>de Morgan laws\<close>
 
 lemma not_conjD: "~(P&Q) ==> ~P | ~Q"
   and not_disjD: "~(P|Q) ==> ~P & ~Q"
@@ -22,32 +22,32 @@ lemma not_conjD: "~(P&Q) ==> ~P | ~Q"
   and not_exD: "!!P. ~(\<exists>x. P(x)) ==> \<forall>x. ~P(x)"
   by fast+
 
-text {* Removal of @{text "-->"} and @{text "<->"} (positive and
-negative occurrences) *}
+text \<open>Removal of @{text "-->"} and @{text "<->"} (positive and
+negative occurrences)\<close>
 
 lemma imp_to_disjD: "P-->Q ==> ~P | Q"
   and not_impD: "~(P-->Q) ==> P & ~Q"
   and iff_to_disjD: "P=Q ==> (~P | Q) & (~Q | P)"
   and not_iffD: "~(P=Q) ==> (P | Q) & (~P | ~Q)"
-    -- {* Much more efficient than @{prop "(P & ~Q) | (Q & ~P)"} for computing CNF *}
+    -- \<open>Much more efficient than @{prop "(P & ~Q) | (Q & ~P)"} for computing CNF\<close>
   and not_refl_disj_D: "x ~= x | P ==> P"
   by fast+
 
 
-subsection {* Pulling out the existential quantifiers *}
+subsection \<open>Pulling out the existential quantifiers\<close>
 
-text {* Conjunction *}
+text \<open>Conjunction\<close>
 
 lemma conj_exD1: "!!P Q. (\<exists>x. P(x)) & Q ==> \<exists>x. P(x) & Q"
   and conj_exD2: "!!P Q. P & (\<exists>x. Q(x)) ==> \<exists>x. P & Q(x)"
   by fast+
 
 
-text {* Disjunction *}
+text \<open>Disjunction\<close>
 
 lemma disj_exD: "!!P Q. (\<exists>x. P(x)) | (\<exists>x. Q(x)) ==> \<exists>x. P(x) | Q(x)"
-  -- {* DO NOT USE with forall-Skolemization: makes fewer schematic variables!! *}
-  -- {* With ex-Skolemization, makes fewer Skolem constants *}
+  -- \<open>DO NOT USE with forall-Skolemization: makes fewer schematic variables!!\<close>
+  -- \<open>With ex-Skolemization, makes fewer Skolem constants\<close>
   and disj_exD1: "!!P Q. (\<exists>x. P(x)) | Q ==> \<exists>x. P(x) | Q"
   and disj_exD2: "!!P Q. P | (\<exists>x. Q(x)) ==> \<exists>x. P | Q(x)"
   by fast+
@@ -59,31 +59,31 @@ lemma disj_assoc: "(P|Q)|R ==> P|(Q|R)"
   by fast+
 
 
-text{* Generation of contrapositives *}
+text\<open>Generation of contrapositives\<close>
 
-text{*Inserts negated disjunct after removing the negation; P is a literal.
+text\<open>Inserts negated disjunct after removing the negation; P is a literal.
   Model elimination requires assuming the negation of every attempted subgoal,
-  hence the negated disjuncts.*}
+  hence the negated disjuncts.\<close>
 lemma make_neg_rule: "~P|Q ==> ((~P==>P) ==> Q)"
 by blast
 
-text{*Version for Plaisted's "Postive refinement" of the Meson procedure*}
+text\<open>Version for Plaisted's "Postive refinement" of the Meson procedure\<close>
 lemma make_refined_neg_rule: "~P|Q ==> (P ==> Q)"
 by blast
 
-text{*@{term P} should be a literal*}
+text\<open>@{term P} should be a literal\<close>
 lemma make_pos_rule: "P|Q ==> ((P==>~P) ==> Q)"
 by blast
 
-text{*Versions of @{text make_neg_rule} and @{text make_pos_rule} that don't
-insert new assumptions, for ordinary resolution.*}
+text\<open>Versions of @{text make_neg_rule} and @{text make_pos_rule} that don't
+insert new assumptions, for ordinary resolution.\<close>
 
 lemmas make_neg_rule' = make_refined_neg_rule
 
 lemma make_pos_rule': "[|P|Q; ~P|] ==> Q"
 by blast
 
-text{* Generation of a goal clause -- put away the final literal *}
+text\<open>Generation of a goal clause -- put away the final literal\<close>
 
 lemma make_neg_goal: "~P ==> ((~P==>P) ==> False)"
 by blast
@@ -92,9 +92,9 @@ lemma make_pos_goal: "P ==> ((P==>~P) ==> False)"
 by blast
 
 
-subsection {* Lemmas for Forward Proof *}
+subsection \<open>Lemmas for Forward Proof\<close>
 
-text{*There is a similarity to congruence rules*}
+text\<open>There is a similarity to congruence rules\<close>
 
 (*NOTE: could handle conjunctions (faster?) by
     nf(th RS conjunct2) RS (nf(th RS conjunct1) RS conjI) *)
@@ -117,7 +117,7 @@ lemma ex_forward: "[| \<exists>x. P'(x);  !!x. P'(x) ==> P(x) |] ==> \<exists>x.
 by blast
 
 
-subsection {* Clausification helper *}
+subsection \<open>Clausification helper\<close>
 
 lemma TruepropI: "P \<equiv> Q \<Longrightarrow> Trueprop P \<equiv> Trueprop Q"
 by simp
@@ -129,7 +129,7 @@ apply (rule cong[where f = F])
 by auto
 
 
-text{* Combinator translation helpers *}
+text\<open>Combinator translation helpers\<close>
 
 definition COMBI :: "'a \<Rightarrow> 'a" where
 "COMBI P = P"
@@ -177,7 +177,7 @@ apply (simp add: COMBC_def)
 done
 
 
-subsection {* Skolemization helpers *}
+subsection \<open>Skolemization helpers\<close>
 
 definition skolem :: "'a \<Rightarrow> 'a" where
 "skolem = (\<lambda>x. x)"
@@ -189,7 +189,7 @@ lemmas skolem_COMBK_I = iffD1 [OF skolem_COMBK_iff]
 lemmas skolem_COMBK_D = iffD2 [OF skolem_COMBK_iff]
 
 
-subsection {* Meson package *}
+subsection \<open>Meson package\<close>
 
 ML_file "Tools/Meson/meson.ML"
 ML_file "Tools/Meson/meson_clausify.ML"

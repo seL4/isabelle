@@ -2,17 +2,17 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-section {* Groebner bases *}
+section \<open>Groebner bases\<close>
 
 theory Groebner_Basis
 imports Semiring_Normalization Parity
 begin
 
-subsection {* Groebner Bases *}
+subsection \<open>Groebner Bases\<close>
 
-lemmas bool_simps = simp_thms(1-34) -- {* FIXME move to @{theory HOL} *}
+lemmas bool_simps = simp_thms(1-34) -- \<open>FIXME move to @{theory HOL}\<close>
 
-lemma nnf_simps: -- {* FIXME shadows fact binding in @{theory HOL} *}
+lemma nnf_simps: -- \<open>FIXME shadows fact binding in @{theory HOL}\<close>
   "(\<not>(P \<and> Q)) = (\<not>P \<or> \<not>Q)" "(\<not>(P \<or> Q)) = (\<not>P \<and> \<not>Q)"
   "(P \<longrightarrow> Q) = (\<not>P \<or> Q)"
   "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not> \<not>(P)) = P"
@@ -35,7 +35,7 @@ lemma PFalse:
 named_theorems algebra "pre-simplification rules for algebraic methods"
 ML_file "Tools/groebner.ML"
 
-method_setup algebra = {*
+method_setup algebra = \<open>
   let
     fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
     val addN = "add"
@@ -48,7 +48,7 @@ method_setup algebra = {*
     (fn (add_ths, del_ths) => fn ctxt =>
       SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
   end
-*} "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
+\<close> "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
 
 declare dvd_def[algebra]
 declare dvd_eq_mod_eq_0[symmetric, algebra]

@@ -1,22 +1,22 @@
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-section {* Counterexample generator performing narrowing-based testing *}
+section \<open>Counterexample generator performing narrowing-based testing\<close>
 
 theory Quickcheck_Narrowing
 imports Quickcheck_Random
 keywords "find_unused_assms" :: diag
 begin
 
-subsection {* Counterexample generator *}
+subsection \<open>Counterexample generator\<close>
 
-subsubsection {* Code generation setup *}
+subsubsection \<open>Code generation setup\<close>
 
-setup {* Code_Target.add_derived_target ("Haskell_Quickcheck", [(Code_Haskell.target, I)]) *}
+setup \<open>Code_Target.add_derived_target ("Haskell_Quickcheck", [(Code_Haskell.target, I)])\<close>
 
 code_printing
-  code_module Typerep \<rightharpoonup> (Haskell_Quickcheck) {*
+  code_module Typerep \<rightharpoonup> (Haskell_Quickcheck) \<open>
 data Typerep = Typerep String [Typerep]
-*}
+\<close>
 | type_constructor typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep.Typerep"
 | constant Typerep.Typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep.Typerep"
 | type_constructor integer \<rightharpoonup> (Haskell_Quickcheck) "Prelude.Int"
@@ -27,7 +27,7 @@ code_printing
   constant "0::integer" \<rightharpoonup>
     (Haskell_Quickcheck) "!(0/ ::/ Prelude.Int)"
 
-setup {*
+setup \<open>
   let
     val target = "Haskell_Quickcheck";
     fun print _ = Code_Haskell.print_numeral "Prelude.Int";
@@ -35,10 +35,10 @@ setup {*
     Numeral.add_code @{const_name Code_Numeral.Pos} I print target
     #> Numeral.add_code @{const_name Code_Numeral.Neg} (op ~) print target
   end
-*}
+\<close>
 
 
-subsubsection {* Narrowing's deep representation of types and terms *}
+subsubsection \<open>Narrowing's deep representation of types and terms\<close>
 
 datatype (plugins only: code extraction) narrowing_type =
   Narrowing_sum_of_products "narrowing_type list list"
@@ -54,7 +54,7 @@ primrec map_cons :: "('a => 'b) => 'a narrowing_cons => 'b narrowing_cons"
 where
   "map_cons f (Narrowing_cons ty cs) = Narrowing_cons ty (map (\<lambda>c. f o c) cs)"
 
-subsubsection {* From narrowing's deep representation of terms to @{theory Code_Evaluation}'s terms *}
+subsubsection \<open>From narrowing's deep representation of terms to @{theory Code_Evaluation}'s terms\<close>
 
 class partial_term_of = typerep +
   fixes partial_term_of :: "'a itself => narrowing_term => Code_Evaluation.term"
@@ -62,7 +62,7 @@ class partial_term_of = typerep +
 lemma partial_term_of_anything: "partial_term_of x nt \<equiv> t"
   by (rule eq_reflection) (cases "partial_term_of x nt", cases t, simp)
  
-subsubsection {* Auxilary functions for Narrowing *}
+subsubsection \<open>Auxilary functions for Narrowing\<close>
 
 consts nth :: "'a list => integer => 'a"
 
@@ -80,7 +80,7 @@ consts marker :: "char"
 
 code_printing constant marker \<rightharpoonup> (Haskell_Quickcheck) "''\\0'"
 
-subsubsection {* Narrowing's basic operations *}
+subsubsection \<open>Narrowing's basic operations\<close>
 
 type_synonym 'a narrowing = "integer => 'a narrowing_cons"
 
@@ -136,7 +136,7 @@ proof -
       split: narrowing_cons.split narrowing_type.split)
 qed
 
-subsubsection {* Narrowing generator type class *}
+subsubsection \<open>Narrowing generator type class\<close>
 
 class narrowing =
   fixes narrowing :: "integer => 'a narrowing_cons"
@@ -155,9 +155,9 @@ definition "all" :: "('a :: {narrowing, partial_term_of} => property) => propert
 where
   "all f = (case narrowing (100 :: integer) of Narrowing_cons ty cs => Universal ty (\<lambda>t. f (conv cs t)) (partial_term_of (TYPE('a))))"
 
-subsubsection {* class @{text is_testable} *}
+subsubsection \<open>class @{text is_testable}\<close>
 
-text {* The class @{text is_testable} ensures that all necessary type instances are generated. *}
+text \<open>The class @{text is_testable} ensures that all necessary type instances are generated.\<close>
 
 class is_testable
 
@@ -170,7 +170,7 @@ where
   "ensure_testable f = f"
 
 
-subsubsection {* Defining a simple datatype to represent functions in an incomplete and redundant way *}
+subsubsection \<open>Defining a simple datatype to represent functions in an incomplete and redundant way\<close>
 
 datatype (plugins only: code quickcheck_narrowing extraction) (dead 'a, dead 'b) ffun =
   Constant 'b
@@ -193,7 +193,7 @@ where
 hide_type (open) cfun
 hide_const (open) Constant eval_cfun Abs_cfun Rep_cfun
 
-subsubsection {* Setting up the counterexample generator *}
+subsubsection \<open>Setting up the counterexample generator\<close>
 
 ML_file "Tools/Quickcheck/narrowing_generators.ML"
 
@@ -213,7 +213,7 @@ lemma [code]:
       z = (conv :: _ => _ => unit)  in f)"
 unfolding Let_def ensure_testable_def ..
 
-subsection {* Narrowing for sets *}
+subsection \<open>Narrowing for sets\<close>
 
 instantiation set :: (narrowing) narrowing
 begin
@@ -224,7 +224,7 @@ instance ..
 
 end
   
-subsection {* Narrowing for integers *}
+subsection \<open>Narrowing for integers\<close>
 
 
 definition drawn_from :: "'a list \<Rightarrow> 'a narrowing_cons"
@@ -319,11 +319,11 @@ code_printing constant "Code_Evaluation.term_of :: integer \<Rightarrow> term" \
            (Generated'_Code.Const \"Groups.uminus'_class.uminus\" (mkFunT t t))
            (mkNumber (- i)); } in mkNumber)"
 
-subsection {* The @{text find_unused_assms} command *}
+subsection \<open>The @{text find_unused_assms} command\<close>
 
 ML_file "Tools/Quickcheck/find_unused_assms.ML"
 
-subsection {* Closing up *}
+subsection \<open>Closing up\<close>
 
 hide_type narrowing_type narrowing_term narrowing_cons property
 hide_const map_cons nth error toEnum marker empty Narrowing_cons conv non_empty ensure_testable all exists drawn_from around_zero

@@ -1,13 +1,13 @@
 
 (* Authors: Jeremy Avigad and Amine Chaieb *)
 
-section {* Generic transfer machinery;  specific transfer from nats to ints and back. *}
+section \<open>Generic transfer machinery;  specific transfer from nats to ints and back.\<close>
 
 theory Nat_Transfer
 imports Int
 begin
 
-subsection {* Generic transfer machinery *}
+subsection \<open>Generic transfer machinery\<close>
 
 definition transfer_morphism:: "('b \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> bool"
   where "transfer_morphism f A \<longleftrightarrow> True"
@@ -18,9 +18,9 @@ lemma transfer_morphismI[intro]: "transfer_morphism f A"
 ML_file "Tools/legacy_transfer.ML"
 
 
-subsection {* Set up transfer from nat to int *}
+subsection \<open>Set up transfer from nat to int\<close>
 
-text {* set up transfer direction *}
+text \<open>set up transfer direction\<close>
 
 lemma transfer_morphism_nat_int: "transfer_morphism nat (op <= (0::int))" ..
 
@@ -30,7 +30,7 @@ declare transfer_morphism_nat_int [transfer add
   labels: nat_int
 ]
 
-text {* basic functions and relations *}
+text \<open>basic functions and relations\<close>
 
 lemma transfer_nat_int_numerals [transfer key: transfer_morphism_nat_int]:
     "(0::nat) = nat 0"
@@ -79,7 +79,7 @@ lemma transfer_nat_int_relations [transfer key: transfer_morphism_nat_int]:
   by (auto simp add: zdvd_int)
 
 
-text {* first-order quantifiers *}
+text \<open>first-order quantifiers\<close>
 
 lemma all_nat: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x\<ge>0. P (nat x))"
   by (simp split add: split_nat)
@@ -113,14 +113,14 @@ declare transfer_morphism_nat_int [transfer add
   cong: all_cong ex_cong]
 
 
-text {* if *}
+text \<open>if\<close>
 
 lemma nat_if_cong [transfer key: transfer_morphism_nat_int]:
   "(if P then (nat x) else (nat y)) = nat (if P then x else y)"
   by auto
 
 
-text {* operations with sets *}
+text \<open>operations with sets\<close>
 
 definition
   nat_set :: "int set \<Rightarrow> bool"
@@ -187,7 +187,7 @@ declare transfer_morphism_nat_int [transfer add
 ]
 
 
-text {* setsum and setprod *}
+text \<open>setsum and setprod\<close>
 
 (* this handles the case where the *domain* of f is nat *)
 lemma transfer_nat_int_sum_prod:
@@ -256,9 +256,9 @@ declare transfer_morphism_nat_int [transfer add
   cong: transfer_nat_int_sum_prod_cong]
 
 
-subsection {* Set up transfer from int to nat *}
+subsection \<open>Set up transfer from int to nat\<close>
 
-text {* set up transfer direction *}
+text \<open>set up transfer direction\<close>
 
 lemma transfer_morphism_int_nat: "transfer_morphism int (\<lambda>n. True)" ..
 
@@ -269,7 +269,7 @@ declare transfer_morphism_int_nat [transfer add
 ]
 
 
-text {* basic functions and relations *}
+text \<open>basic functions and relations\<close>
 
 definition
   is_nat :: "int \<Rightarrow> bool"
@@ -317,7 +317,7 @@ declare transfer_morphism_int_nat [transfer add return:
 ]
 
 
-text {* first-order quantifiers *}
+text \<open>first-order quantifiers\<close>
 
 lemma transfer_int_nat_quantifiers:
     "(ALL (x::int) >= 0. P x) = (ALL (x::nat). P (int x))"
@@ -332,7 +332,7 @@ declare transfer_morphism_int_nat [transfer add
   return: transfer_int_nat_quantifiers]
 
 
-text {* if *}
+text \<open>if\<close>
 
 lemma int_if_cong: "(if P then (int x) else (int y)) =
     int (if P then x else y)"
@@ -342,7 +342,7 @@ declare transfer_morphism_int_nat [transfer add return: int_if_cong]
 
 
 
-text {* operations with sets *}
+text \<open>operations with sets\<close>
 
 lemma transfer_int_nat_set_functions:
     "nat_set A \<Longrightarrow> card A = card (nat ` A)"
@@ -392,7 +392,7 @@ declare transfer_morphism_int_nat [transfer add
 ]
 
 
-text {* setsum and setprod *}
+text \<open>setsum and setprod\<close>
 
 (* this handles the case where the *domain* of f is int *)
 lemma transfer_int_nat_sum_prod:

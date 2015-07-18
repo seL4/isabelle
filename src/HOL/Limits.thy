@@ -5,13 +5,13 @@
     Author:     Jeremy Avigad
 *)
 
-section {* Limits on Real Vector Spaces *}
+section \<open>Limits on Real Vector Spaces\<close>
 
 theory Limits
 imports Real_Vector_Spaces
 begin
 
-subsection {* Filter going to infinity norm *}
+subsection \<open>Filter going to infinity norm\<close>
 
 definition at_infinity :: "'a::real_normed_vector filter" where
   "at_infinity = (INF r. principal {x. r \<le> norm x})"
@@ -47,7 +47,7 @@ lemma lim_infinity_imp_sequentially:
 by (simp add: filterlim_at_top_imp_at_infinity filterlim_compose filterlim_real_sequentially)
 
 
-subsubsection {* Boundedness *}
+subsubsection \<open>Boundedness\<close>
 
 definition Bfun :: "('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'a filter \<Rightarrow> bool" where
   Bfun_metric_def: "Bfun f F = (\<exists>y. \<exists>K>0. eventually (\<lambda>x. dist (f x) y \<le> K) F)"
@@ -72,7 +72,7 @@ proof safe
     by (intro always_eventually) (metis dist_commute dist_triangle)
   with * have "eventually (\<lambda>x. dist (f x) 0 \<le> K + dist 0 y) F"
     by eventually_elim auto
-  with `0 < K` show "\<exists>K>0. eventually (\<lambda>x. dist (f x) 0 \<le> K) F"
+  with \<open>0 < K\<close> show "\<exists>K>0. eventually (\<lambda>x. dist (f x) 0 \<le> K) F"
     by (intro exI[of _ "K + dist 0 y"] add_pos_nonneg conjI zero_le_dist) auto
 qed auto
 
@@ -105,7 +105,7 @@ lemma Cauchy_Bseq: "Cauchy X \<Longrightarrow> Bseq X"
   done
 
 
-subsubsection {* Bounded Sequences *}
+subsubsection \<open>Bounded Sequences\<close>
 
 lemma BseqI': "(\<And>n. norm (X n) \<le> K) \<Longrightarrow> Bseq X"
   by (intro BfunI) (auto simp: eventually_sequentially)
@@ -155,7 +155,7 @@ proof safe
   then show "\<exists>N. \<forall>n. norm (X n) \<le> real (Suc N)" ..
 qed (force simp add: real_of_nat_Suc)
 
-text{* alternative definition for Bseq *}
+text\<open>alternative definition for Bseq\<close>
 lemma Bseq_iff: "Bseq X = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
 apply (simp add: Bseq_def)
 apply (simp (no_asm) add: lemma_NBseq_def)
@@ -175,9 +175,9 @@ done
 lemma Bseq_iff1a: "Bseq X = (\<exists>N. \<forall>n. norm (X n) < real(Suc N))"
 by (simp add: Bseq_def lemma_NBseq_def2)
 
-subsubsection{*A Few More Equivalence Theorems for Boundedness*}
+subsubsection\<open>A Few More Equivalence Theorems for Boundedness\<close>
 
-text{*alternative formulation for boundedness*}
+text\<open>alternative formulation for boundedness\<close>
 lemma Bseq_iff2: "Bseq X = (\<exists>k > 0. \<exists>x. \<forall>n. norm (X(n) + -x) \<le> k)"
 apply (unfold Bseq_def, safe)
 apply (rule_tac [2] x = "k + norm x" in exI)
@@ -189,7 +189,7 @@ apply (drule order_trans [OF norm_triangle_ineq2])
 apply simp
 done
 
-text{*alternative formulation for boundedness*}
+text\<open>alternative formulation for boundedness\<close>
 lemma Bseq_iff3:
   "Bseq X \<longleftrightarrow> (\<exists>k>0. \<exists>N. \<forall>n. norm (X n + - X N) \<le> k)" (is "?P \<longleftrightarrow> ?Q")
 proof
@@ -201,7 +201,7 @@ proof
     by (auto intro: order_trans norm_triangle_ineq4)
   then have "\<forall>n. norm (X n + - X 0) \<le> K + norm (X 0)"
     by simp
-  with `0 < K + norm (X 0)` show ?Q by blast
+  with \<open>0 < K + norm (X 0)\<close> show ?Q by blast
 next
   assume ?Q then show ?P by (auto simp add: Bseq_iff2)
 qed
@@ -213,7 +213,7 @@ apply (drule_tac x = n in spec, arith)
 done
 
 
-subsubsection{*Upper Bounds and Lubs of Bounded Sequences*}
+subsubsection\<open>Upper Bounds and Lubs of Bounded Sequences\<close>
 
 lemma Bseq_minus_iff: "Bseq (%n. -(X n) :: 'a :: real_normed_vector) = Bseq X"
   by (simp add: Bseq_def)
@@ -231,9 +231,9 @@ lemma incseq_bounded: "incseq X \<Longrightarrow> \<forall>i. X i \<le> (B::real
 lemma decseq_bounded: "decseq X \<Longrightarrow> \<forall>i. (B::real) \<le> X i \<Longrightarrow> Bseq X"
   by (intro Bseq_eq_bounded[of X B "X 0"]) (auto simp: decseq_def)
 
-subsection {* Bounded Monotonic Sequences *}
+subsection \<open>Bounded Monotonic Sequences\<close>
 
-subsubsection{*A Bounded and Monotonic Sequence Converges*}
+subsubsection\<open>A Bounded and Monotonic Sequence Converges\<close>
 
 (* TODO: delete *)
 (* FIXME: one use in NSA/HSEQ.thy *)
@@ -244,7 +244,7 @@ lemma Bmonoseq_LIMSEQ: "\<forall>n. m \<le> n --> X n = X m ==> \<exists>L. (X -
   apply blast
   done
 
-subsection {* Convergence to Zero *}
+subsection \<open>Convergence to Zero\<close>
 
 definition Zfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a filter \<Rightarrow> bool"
   where "Zfun f F = (\<forall>r>0. eventually (\<lambda>x. norm (f x) < r) F)"
@@ -301,7 +301,7 @@ next
       also have "norm (f x) * K \<le> norm (f x) * 0"
         using K norm_ge_zero by (rule mult_left_mono)
       finally show ?case
-        using `0 < r` by simp
+        using \<open>0 < r\<close> by simp
     qed
   qed
 qed
@@ -400,7 +400,7 @@ lemma tendsto_0_le: "\<lbrakk>(f ---> 0) F; eventually (\<lambda>x. norm (g x) \
                      \<Longrightarrow> (g ---> 0) F"
   by (simp add: Zfun_imp_Zfun tendsto_Zfun_iff)
 
-subsubsection {* Distance and norms *}
+subsubsection \<open>Distance and norms\<close>
 
 lemma tendsto_dist [tendsto_intros]:
   fixes l m :: "'a :: metric_space"
@@ -481,7 +481,7 @@ lemma tendsto_rabs_zero_iff:
   "((\<lambda>x. \<bar>f x\<bar>) ---> (0::real)) F \<longleftrightarrow> (f ---> 0) F"
   by (fold real_norm_def, rule tendsto_norm_zero_iff)
 
-subsubsection {* Addition and subtraction *}
+subsubsection \<open>Addition and subtraction\<close>
 
 lemma tendsto_add [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
@@ -564,7 +564,7 @@ lemma continuous_on_setsum [continuous_intros]:
 
 lemmas real_tendsto_sandwich = tendsto_sandwich[where 'b=real]
 
-subsubsection {* Linear operators and multiplication *}
+subsubsection \<open>Linear operators and multiplication\<close>
 
 lemma (in bounded_linear) tendsto:
   "(g ---> a) F \<Longrightarrow> ((\<lambda>x. f (g x)) ---> f a) F"
@@ -679,7 +679,7 @@ lemma continuous_on_setprod [continuous_intros]:
   shows "(\<And>i. i \<in> S \<Longrightarrow> continuous_on s (f i)) \<Longrightarrow> continuous_on s (\<lambda>x. \<Prod>i\<in>S. f i x)"
   unfolding continuous_on_def by (auto intro: tendsto_setprod)
 
-subsubsection {* Inverse and division *}
+subsubsection \<open>Inverse and division\<close>
 
 lemma (in bounded_bilinear) Zfun_prod_Bfun:
   assumes f: "Zfun f F"
@@ -890,14 +890,14 @@ proof safe
   qed
 qed force
 
-subsection {* Relate @{const at}, @{const at_left} and @{const at_right} *}
+subsection \<open>Relate @{const at}, @{const at_left} and @{const at_right}\<close>
 
-text {*
+text \<open>
 
 This lemmas are useful for conversion between @{term "at x"} to @{term "at_left x"} and
 @{term "at_right x"} and also @{term "at_right 0"}.
 
-*}
+\<close>
 
 lemmas filterlim_split_at_real = filterlim_split_at[where 'a=real]
 
@@ -991,10 +991,10 @@ proof safe
   show "\<exists>b. \<forall>x. b \<le> norm x \<longrightarrow> norm (inverse x :: 'a) < r"
   proof (intro exI[of _ "inverse (r / 2)"] allI impI)
     fix x :: 'a
-    from `0 < r` have "0 < inverse (r / 2)" by simp
+    from \<open>0 < r\<close> have "0 < inverse (r / 2)" by simp
     also assume *: "inverse (r / 2) \<le> norm x"
     finally show "norm (inverse x) < r"
-      using * `0 < r` by (subst nonzero_norm_inverse) (simp_all add: inverse_eq_divide field_simps)
+      using * \<open>0 < r\<close> by (subst nonzero_norm_inverse) (simp_all add: inverse_eq_divide field_simps)
   qed
 qed
 
@@ -1106,12 +1106,12 @@ lemma lim_zero_infinity:
 by (simp add: inverse_eq_divide lim_at_infinity_0 comp_def)
 
 
-text {*
+text \<open>
 
 We only show rules for multiplication and addition when the functions are either against a real
 value or against infinity. Further rules are easy to derive by using @{thm filterlim_uminus_at_top}.
 
-*}
+\<close>
 
 lemma filterlim_tendsto_pos_mult_at_top:
   assumes f: "(f ---> c) F" and c: "0 < c"
@@ -1120,7 +1120,7 @@ lemma filterlim_tendsto_pos_mult_at_top:
   unfolding filterlim_at_top_gt[where c=0]
 proof safe
   fix Z :: real assume "0 < Z"
-  from f `0 < c` have "eventually (\<lambda>x. c / 2 < f x) F"
+  from f \<open>0 < c\<close> have "eventually (\<lambda>x. c / 2 < f x) F"
     by (auto dest!: tendstoD[where e="c / 2"] elim!: eventually_elim1
              simp: dist_real_def abs_real_def split: split_if_asm)
   moreover from g have "eventually (\<lambda>x. (Z / c * 2) \<le> g x) F"
@@ -1128,9 +1128,9 @@ proof safe
   ultimately show "eventually (\<lambda>x. Z \<le> f x * g x) F"
   proof eventually_elim
     fix x assume "c / 2 < f x" "Z / c * 2 \<le> g x"
-    with `0 < Z` `0 < c` have "c / 2 * (Z / c * 2) \<le> f x * g x"
+    with \<open>0 < Z\<close> \<open>0 < c\<close> have "c / 2 * (Z / c * 2) \<le> f x * g x"
       by (intro mult_mono) (auto simp: zero_le_divide_iff)
-    with `0 < c` show "Z \<le> f x * g x"
+    with \<open>0 < c\<close> show "Z \<le> f x * g x"
        by simp
   qed
 qed
@@ -1149,7 +1149,7 @@ proof safe
   ultimately show "eventually (\<lambda>x. Z \<le> f x * g x) F"
   proof eventually_elim
     fix x assume "1 \<le> f x" "Z \<le> g x"
-    with `0 < Z` have "1 * Z \<le> f x * g x"
+    with \<open>0 < Z\<close> have "1 * Z \<le> f x * g x"
       by (intro mult_mono) (auto simp: zero_le_divide_iff)
     then show "Z \<le> f x * g x"
        by simp
@@ -1172,7 +1172,7 @@ lemma filterlim_pow_at_top:
   fixes f :: "real \<Rightarrow> real"
   assumes "0 < n" and f: "LIM x F. f x :> at_top"
   shows "LIM x F. (f x)^n :: real :> at_top"
-using `0 < n` proof (induct n)
+using \<open>0 < n\<close> proof (induct n)
   case (Suc n) with f show ?case
     by (cases "n = 0") (auto intro!: filterlim_at_top_mult_at_top)
 qed simp
@@ -1264,7 +1264,7 @@ proof (intro filterlim_at_infinity[THEN iffD2] allI impI)
 qed simp
 
 
-subsection {* Limits of Sequences *}
+subsection \<open>Limits of Sequences\<close>
 
 lemma [trans]: "X=Y ==> Y ----> z ==> X ----> z"
   by simp
@@ -1300,7 +1300,7 @@ lemma Bseq_inverse:
   shows "\<lbrakk>X ----> a; a \<noteq> 0\<rbrakk> \<Longrightarrow> Bseq (\<lambda>n. inverse (X n))"
   by (rule Bfun_inverse)
 
-text{* Transformation of limit. *}
+text\<open>Transformation of limit.\<close>
 
 lemma eventually_at2:
   "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
@@ -1346,7 +1346,7 @@ proof (rule Lim_transform_eventually)
     using assms(1,2) by auto
 qed
 
-text{* Common case assuming being away from some crucial point like 0. *}
+text\<open>Common case assuming being away from some crucial point like 0.\<close>
 
 lemma Lim_transform_away_within:
   fixes a b :: "'a::t1_space"
@@ -1369,7 +1369,7 @@ lemma Lim_transform_away_at:
   shows "(g ---> l) (at a)"
   using Lim_transform_away_within[OF ab, of UNIV f g l] fg fl by simp
 
-text{* Alternatively, within an open set. *}
+text\<open>Alternatively, within an open set.\<close>
 
 lemma Lim_transform_within_open:
   assumes "open S" and "a \<in> S"
@@ -1383,7 +1383,7 @@ proof (rule Lim_transform_eventually)
   show "(f ---> l) (at a)" by fact
 qed
 
-text{* A congruence rule allowing us to transform limits assuming not at point. *}
+text\<open>A congruence rule allowing us to transform limits assuming not at point.\<close>
 
 (* FIXME: Only one congruence rule for tendsto can be used at a time! *)
 
@@ -1402,7 +1402,7 @@ lemma Lim_cong_at(*[cong add]*):
   shows "((\<lambda>x. f x) ---> x) (at a) \<longleftrightarrow> ((g ---> y) (at a))"
   unfolding tendsto_def eventually_at_topological
   using assms by simp
-text{*An unbounded sequence's inverse tends to 0*}
+text\<open>An unbounded sequence's inverse tends to 0\<close>
 
 lemma LIMSEQ_inverse_zero:
   "\<forall>r::real. \<exists>N. \<forall>n\<ge>N. r < X n \<Longrightarrow> (\<lambda>n. inverse (X n)) ----> 0"
@@ -1411,14 +1411,14 @@ lemma LIMSEQ_inverse_zero:
   apply (metis abs_le_D1 linorder_le_cases linorder_not_le)
   done
 
-text{*The sequence @{term "1/n"} tends to 0 as @{term n} tends to infinity*}
+text\<open>The sequence @{term "1/n"} tends to 0 as @{term n} tends to infinity\<close>
 
 lemma LIMSEQ_inverse_real_of_nat: "(%n. inverse(real(Suc n))) ----> 0"
   by (metis filterlim_compose tendsto_inverse_0 filterlim_mono order_refl filterlim_Suc
             filterlim_compose[OF filterlim_real_sequentially] at_top_le_at_infinity)
 
-text{*The sequence @{term "r + 1/n"} tends to @{term r} as @{term n} tends to
-infinity is now easily proved*}
+text\<open>The sequence @{term "r + 1/n"} tends to @{term r} as @{term n} tends to
+infinity is now easily proved\<close>
 
 lemma LIMSEQ_inverse_real_of_nat_add:
      "(%n. r + inverse(real(Suc n))) ----> r"
@@ -1434,7 +1434,7 @@ lemma LIMSEQ_inverse_real_of_nat_add_minus_mult:
   using tendsto_mult [OF tendsto_const LIMSEQ_inverse_real_of_nat_add_minus [of 1]]
   by auto
 
-subsection {* Convergence on sequences *}
+subsection \<open>Convergence on sequences\<close>
 
 lemma convergent_add:
   fixes X Y :: "nat \<Rightarrow> 'a::real_normed_vector"
@@ -1471,7 +1471,7 @@ apply (drule tendsto_minus, auto)
 done
 
 
-text {* A monotone sequence converges to its least upper bound. *}
+text \<open>A monotone sequence converges to its least upper bound.\<close>
 
 lemma LIMSEQ_incseq_SUP:
   fixes X :: "nat \<Rightarrow> 'a::{conditionally_complete_linorder, linorder_topology}"
@@ -1489,7 +1489,7 @@ lemma LIMSEQ_decseq_INF:
   by (rule order_tendstoI)
      (auto simp: eventually_sequentially u cINF_less_iff intro: X[THEN decseqD] le_less_trans less_cINF_D[OF u])
 
-text{*Main monotonicity theorem*}
+text\<open>Main monotonicity theorem\<close>
 
 lemma Bseq_monoseq_convergent: "Bseq X \<Longrightarrow> monoseq X \<Longrightarrow> convergent (X::nat\<Rightarrow>real)"
   by (auto simp: monoseq_iff convergent_def intro: LIMSEQ_decseq_INF LIMSEQ_incseq_SUP dest: Bseq_bdd_above Bseq_bdd_below)
@@ -1517,10 +1517,10 @@ lemma incseq_convergent:
   assumes "incseq X" and "\<forall>i. X i \<le> B"
   obtains L where "X ----> L" "\<forall>i. X i \<le> L"
 proof atomize_elim
-  from incseq_bounded[OF assms] `incseq X` Bseq_monoseq_convergent[of X]
+  from incseq_bounded[OF assms] \<open>incseq X\<close> Bseq_monoseq_convergent[of X]
   obtain L where "X ----> L"
     by (auto simp: convergent_def monoseq_def incseq_def)
-  with `incseq X` show "\<exists>L. X ----> L \<and> (\<forall>i. X i \<le> L)"
+  with \<open>incseq X\<close> show "\<exists>L. X ----> L \<and> (\<forall>i. X i \<le> L)"
     by (auto intro!: exI[of _ L] incseq_le)
 qed
 
@@ -1529,17 +1529,17 @@ lemma decseq_convergent:
   assumes "decseq X" and "\<forall>i. B \<le> X i"
   obtains L where "X ----> L" "\<forall>i. L \<le> X i"
 proof atomize_elim
-  from decseq_bounded[OF assms] `decseq X` Bseq_monoseq_convergent[of X]
+  from decseq_bounded[OF assms] \<open>decseq X\<close> Bseq_monoseq_convergent[of X]
   obtain L where "X ----> L"
     by (auto simp: convergent_def monoseq_def decseq_def)
-  with `decseq X` show "\<exists>L. X ----> L \<and> (\<forall>i. L \<le> X i)"
+  with \<open>decseq X\<close> show "\<exists>L. X ----> L \<and> (\<forall>i. L \<le> X i)"
     by (auto intro!: exI[of _ L] decseq_le)
 qed
 
-subsubsection {* Cauchy Sequences are Bounded *}
+subsubsection \<open>Cauchy Sequences are Bounded\<close>
 
-text{*A Cauchy sequence is bounded -- this is the standard
-  proof mechanization rather than the nonstandard proof*}
+text\<open>A Cauchy sequence is bounded -- this is the standard
+  proof mechanization rather than the nonstandard proof\<close>
 
 lemma lemmaCauchy: "\<forall>n \<ge> M. norm (X M - X n) < (1::real)
           ==>  \<forall>n \<ge> M. norm (X n :: 'a::real_normed_vector) < 1 + norm (X M)"
@@ -1549,11 +1549,11 @@ apply (drule order_le_less_trans [OF norm_triangle_ineq2])
 apply simp
 done
 
-subsection {* Power Sequences *}
+subsection \<open>Power Sequences\<close>
 
-text{*The sequence @{term "x^n"} tends to 0 if @{term "0\<le>x"} and @{term
+text\<open>The sequence @{term "x^n"} tends to 0 if @{term "0\<le>x"} and @{term
 "x<1"}.  Proof will use (NS) Cauchy equivalence for convergence and
-  also fact that bounded and monotonic sequence converges.*}
+  also fact that bounded and monotonic sequence converges.\<close>
 
 lemma Bseq_realpow: "[| 0 \<le> (x::real); x \<le> 1 |] ==> Bseq (%n. x ^ n)"
 apply (simp add: Bseq_def)
@@ -1598,7 +1598,7 @@ done
 lemma LIMSEQ_divide_realpow_zero: "1 < x \<Longrightarrow> (\<lambda>n. a / (x ^ n) :: real) ----> 0"
   by (rule tendsto_divide_0 [OF tendsto_const filterlim_realpow_sequentially_gt1]) simp
 
-text{*Limit of @{term "c^n"} for @{term"\<bar>c\<bar> < 1"}*}
+text\<open>Limit of @{term "c^n"} for @{term"\<bar>c\<bar> < 1"}\<close>
 
 lemma LIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. \<bar>c\<bar> ^ n :: real) ----> 0"
   by (rule LIMSEQ_realpow_zero [OF abs_ge_zero])
@@ -1607,7 +1607,7 @@ lemma LIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>
   by (rule LIMSEQ_power_zero) simp
 
 
-subsection {* Limits of Functions *}
+subsection \<open>Limits of Functions\<close>
 
 lemma LIM_eq:
   fixes a :: "'a::real_normed_vector" and L :: "'b::real_normed_vector"
@@ -1702,7 +1702,7 @@ proof (rule LIM_imp_LIM [OF f]) (* FIXME: use tendsto_sandwich *)
 qed
 
 
-subsection {* Continuity *}
+subsection \<open>Continuity\<close>
 
 lemma LIM_isCont_iff:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::topological_space"
@@ -1777,7 +1777,7 @@ lemma isCont_setsum [simp]:
   shows "\<forall>i\<in>A. isCont (f i) a \<Longrightarrow> isCont (\<lambda>x. \<Sum>i\<in>A. f i x) a"
   by (auto intro: continuous_setsum)
 
-subsection {* Uniform Continuity *}
+subsection \<open>Uniform Continuity\<close>
 
 definition
   isUCont :: "['a::metric_space \<Rightarrow> 'b::metric_space] \<Rightarrow> bool" where
@@ -1823,13 +1823,13 @@ lemma LIM_less_bound:
   shows "0 \<le> f x"
 proof (rule tendsto_le_const)
   show "(f ---> f x) (at_left x)"
-    using `isCont f x` by (simp add: filterlim_at_split isCont_def)
+    using \<open>isCont f x\<close> by (simp add: filterlim_at_split isCont_def)
   show "eventually (\<lambda>x. 0 \<le> f x) (at_left x)"
     using ev by (auto simp: eventually_at dist_real_def intro!: exI[of _ "x - b"])
 qed simp
 
 
-subsection {* Nested Intervals and Bisection -- Needed for Compactness *}
+subsection \<open>Nested Intervals and Bisection -- Needed for Compactness\<close>
 
 lemma nested_sequence_unique:
   assumes "\<forall>n. f n \<le> f (Suc n)" "\<forall>n. g (Suc n) \<le> g n" "\<forall>n. f n \<le> g n" "(\<lambda>n. f n - g n) ----> 0"
@@ -1839,17 +1839,17 @@ proof -
   have "decseq g" unfolding decseq_Suc_iff by fact
 
   { fix n
-    from `decseq g` have "g n \<le> g 0" by (rule decseqD) simp
-    with `\<forall>n. f n \<le> g n`[THEN spec, of n] have "f n \<le> g 0" by auto }
+    from \<open>decseq g\<close> have "g n \<le> g 0" by (rule decseqD) simp
+    with \<open>\<forall>n. f n \<le> g n\<close>[THEN spec, of n] have "f n \<le> g 0" by auto }
   then obtain u where "f ----> u" "\<forall>i. f i \<le> u"
-    using incseq_convergent[OF `incseq f`] by auto
+    using incseq_convergent[OF \<open>incseq f\<close>] by auto
   moreover
   { fix n
-    from `incseq f` have "f 0 \<le> f n" by (rule incseqD) simp
-    with `\<forall>n. f n \<le> g n`[THEN spec, of n] have "f 0 \<le> g n" by simp }
+    from \<open>incseq f\<close> have "f 0 \<le> f n" by (rule incseqD) simp
+    with \<open>\<forall>n. f n \<le> g n\<close>[THEN spec, of n] have "f 0 \<le> g n" by simp }
   then obtain l where "g ----> l" "\<forall>i. l \<le> g i"
-    using decseq_convergent[OF `decseq g`] by auto
-  moreover note LIMSEQ_unique[OF assms(4) tendsto_diff[OF `f ----> u` `g ----> l`]]
+    using decseq_convergent[OF \<open>decseq g\<close>] by auto
+  moreover note LIMSEQ_unique[OF assms(4) tendsto_diff[OF \<open>f ----> u\<close> \<open>g ----> l\<close>]]
   ultimately show ?thesis by auto
 qed
 
@@ -1877,7 +1877,7 @@ proof -
   qed fact
   then obtain x where x: "\<And>n. l n \<le> x" "\<And>n. x \<le> u n" and "l ----> x" "u ----> x" by auto
   obtain d where "0 < d" and d: "\<And>a b. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> b - a < d \<Longrightarrow> P a b"
-    using `l 0 \<le> x` `x \<le> u 0` local[of x] by auto
+    using \<open>l 0 \<le> x\<close> \<open>x \<le> u 0\<close> local[of x] by auto
 
   show "P a b"
   proof (rule ccontr)
@@ -1885,12 +1885,12 @@ proof -
     { fix n have "\<not> P (l n) (u n)"
       proof (induct n)
         case (Suc n) with trans[of "l n" "(l n + u n) / 2" "u n"] show ?case by auto
-      qed (simp add: `\<not> P a b`) }
+      qed (simp add: \<open>\<not> P a b\<close>) }
     moreover
     { have "eventually (\<lambda>n. x - d / 2 < l n) sequentially"
-        using `0 < d` `l ----> x` by (intro order_tendstoD[of _ x]) auto
+        using \<open>0 < d\<close> \<open>l ----> x\<close> by (intro order_tendstoD[of _ x]) auto
       moreover have "eventually (\<lambda>n. u n < x + d / 2) sequentially"
-        using `0 < d` `u ----> x` by (intro order_tendstoD[of _ x]) auto
+        using \<open>0 < d\<close> \<open>u ----> x\<close> by (intro order_tendstoD[of _ x]) auto
       ultimately have "eventually (\<lambda>n. P (l n) (u n)) sequentially"
       proof eventually_elim
         fix n assume "x - d / 2 < l n" "u n < x + d / 2"
@@ -1919,7 +1919,7 @@ proof (cases "a \<le> b", rule compactI)
     with C(2) obtain c where "x \<in> c" "open c" "c \<in> C" by auto
     then obtain e where "0 < e" "{x - e <..< x + e} \<subseteq> c"
       by (auto simp: open_real_def dist_real_def subset_eq Ball_def abs_less_iff)
-    with `c \<in> C` show ?case
+    with \<open>c \<in> C\<close> show ?case
       by (safe intro!: exI[of _ "e/2"] exI[of _ "{c}"]) auto
   qed
 qed simp
@@ -1932,7 +1932,7 @@ lemma continuous_image_closed_interval:
   shows "\<exists>c d. f`S = {c..d} \<and> c \<le> d"
 proof -
   have S: "compact S" "S \<noteq> {}"
-    using `a \<le> b` by (auto simp: S_def)
+    using \<open>a \<le> b\<close> by (auto simp: S_def)
   obtain c where "c \<in> S" "\<forall>d\<in>S. f d \<le> f c"
     using continuous_attains_sup[OF S f] by auto
   moreover obtain d where "d \<in> S" "\<forall>c\<in>S. f d \<le> f c"
@@ -1945,9 +1945,9 @@ proof -
     by auto
 qed
 
-subsection {* Boundedness of continuous functions *}
+subsection \<open>Boundedness of continuous functions\<close>
 
-text{*By bisection, function continuous on closed interval is bounded above*}
+text\<open>By bisection, function continuous on closed interval is bounded above\<close>
 
 lemma isCont_eq_Ub:
   fixes f :: "real \<Rightarrow> 'a::linorder_topology"
@@ -2006,7 +2006,7 @@ proof -
 qed
 
 
-text{*Continuity of inverse function*}
+text\<open>Continuity of inverse function\<close>
 
 lemma isCont_inverse_function:
   fixes f g :: "real \<Rightarrow> real"
@@ -2056,7 +2056,7 @@ lemma isCont_inv_fun:
       ==> isCont g (f x)"
 by (rule isCont_inverse_function)
 
-text{*Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110*}
+text\<open>Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110\<close>
 lemma LIM_fun_gt_zero:
   fixes f :: "real \<Rightarrow> real"
   shows "f -- c --> l \<Longrightarrow> 0 < l \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> 0 < f x)"

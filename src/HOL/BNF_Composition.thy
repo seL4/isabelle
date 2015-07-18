@@ -6,7 +6,7 @@
 Composition of bounded natural functors.
 *)
 
-section {* Composition of Bounded Natural Functors *}
+section \<open>Composition of Bounded Natural Functors\<close>
 
 theory BNF_Composition
 imports BNF_Def
@@ -129,7 +129,7 @@ proof safe
   fix b assume "F b"
   show "\<exists>b'. F (Rep b')"
   proof (rule exI)
-    from `F b` show "F (Rep (Abs b))" using type_definition.Abs_inverse[OF type_copy] by auto
+    from \<open>F b\<close> show "F (Rep (Abs b))" using type_definition.Abs_inverse[OF type_copy] by auto
   qed
 qed blast
 

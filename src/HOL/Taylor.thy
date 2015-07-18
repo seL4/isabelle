@@ -2,16 +2,16 @@
     Author:     Lukas Bulwahn, Bernhard Haeupler, Technische Universitaet Muenchen
 *)
 
-section {* Taylor series *}
+section \<open>Taylor series\<close>
 
 theory Taylor
 imports MacLaurin
 begin
 
-text {*
+text \<open>
 We use MacLaurin and the translation of the expansion point @{text c} to @{text 0}
 to prove Taylor's theorem.
-*}
+\<close>
 
 lemma taylor_up: 
   assumes INIT: "n>0" "diff 0 = f"

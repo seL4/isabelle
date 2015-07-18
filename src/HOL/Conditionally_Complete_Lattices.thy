@@ -4,7 +4,7 @@
     Author:     Luke S. Serafin, Carnegie Mellon University
 *)
 
-section {* Conditionally-complete Lattices *}
+section \<open>Conditionally-complete Lattices\<close>
 
 theory Conditionally_Complete_Lattices
 imports Main
@@ -166,12 +166,12 @@ lemma bdd_below_inf[simp]: "bdd_below ((\<lambda>x. inf (f x) (g x)) ` A) \<long
 end
 
 
-text {*
+text \<open>
 
 To avoid name classes with the @{class complete_lattice}-class we prefix @{const Sup} and
 @{const Inf} in theorem names with c.
 
-*}
+\<close>
 
 class conditionally_complete_lattice = lattice + Sup + Inf +
   assumes cInf_lower: "x \<in> X \<Longrightarrow> bdd_below X \<Longrightarrow> Inf X \<le> x"
@@ -426,13 +426,13 @@ lemma complete_interval:
 proof (rule exI [where x = "Sup {d. \<forall>x. a \<le> x & x < d --> P x}"], auto)
   show "a \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
     by (rule cSup_upper, auto simp: bdd_above_def)
-       (metis `a < b` `\<not> P b` linear less_le)
+       (metis \<open>a < b\<close> \<open>\<not> P b\<close> linear less_le)
 next
   show "Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c} \<le> b"
     apply (rule cSup_least) 
     apply auto
     apply (metis less_le_not_le)
-    apply (metis `a<b` `~ P b` linear less_le)
+    apply (metis \<open>a<b\<close> \<open>~ P b\<close> linear less_le)
     done
 next
   fix x
@@ -447,7 +447,7 @@ next
     assume 0: "\<forall>x. a \<le> x \<and> x < d \<longrightarrow> P x"
     thus "d \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
       by (rule_tac cSup_upper, auto simp: bdd_above_def)
-         (metis `a<b` `~ P b` linear less_le)
+         (metis \<open>a<b\<close> \<open>~ P b\<close> linear less_le)
 qed
 
 end
@@ -538,13 +538,13 @@ proof
       { fix z assume "z \<in> X"
         have "z \<le> Max (X \<inter> {x..y})"
         proof cases
-          assume "x \<le> z" with `z \<in> X` `X \<subseteq> {..y}` *(1) show ?thesis
+          assume "x \<le> z" with \<open>z \<in> X\<close> \<open>X \<subseteq> {..y}\<close> *(1) show ?thesis
             by (auto intro!: Max_ge)
         next
           assume "\<not> x \<le> z"
           then have "z < x" by simp
           also have "x \<le> Max (X \<inter> {x..y})"
-            using `x \<in> X` *(1) `x \<le> y` by (intro Max_ge) auto
+            using \<open>x \<in> X\<close> *(1) \<open>x \<le> y\<close> by (intro Max_ge) auto
           finally show ?thesis by simp
         qed }
       note le = this

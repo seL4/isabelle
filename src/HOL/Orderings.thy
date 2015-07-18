@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow, Markus Wenzel, and Larry Paulson
 *)
 
-section {* Abstract orderings *}
+section \<open>Abstract orderings\<close>
 
 theory Orderings
 imports HOL
@@ -12,13 +12,13 @@ begin
 ML_file "~~/src/Provers/order.ML"
 ML_file "~~/src/Provers/quasi.ML"  (* FIXME unused? *)
 
-subsection {* Abstract ordering *}
+subsection \<open>Abstract ordering\<close>
 
 locale ordering =
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<preceq>" 50)
    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<prec>" 50)
   assumes strict_iff_order: "a \<prec> b \<longleftrightarrow> a \<preceq> b \<and> a \<noteq> b"
-  assumes refl: "a \<preceq> a" -- {* not @{text iff}: makes problems due to multiple (dual) interpretations *}
+  assumes refl: "a \<preceq> a" -- \<open>not @{text iff}: makes problems due to multiple (dual) interpretations\<close>
     and antisym: "a \<preceq> b \<Longrightarrow> b \<preceq> a \<Longrightarrow> a = b"
     and trans: "a \<preceq> b \<Longrightarrow> b \<preceq> c \<Longrightarrow> a \<preceq> c"
 begin
@@ -39,7 +39,7 @@ lemma order_iff_strict:
   "a \<preceq> b \<longleftrightarrow> a \<prec> b \<or> a = b"
   by (auto simp add: strict_iff_order refl)
 
-lemma irrefl: -- {* not @{text iff}: makes problems due to multiple (dual) interpretations *}
+lemma irrefl: -- \<open>not @{text iff}: makes problems due to multiple (dual) interpretations\<close>
   "\<not> a \<prec> a"
   by (simp add: strict_iff_order)
 
@@ -85,7 +85,7 @@ lemma not_eq_extremum:
 end  
 
 
-subsection {* Syntactic orders *}
+subsection \<open>Syntactic orders\<close>
 
 class ord =
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
@@ -120,7 +120,7 @@ abbreviation (input)
 end
 
 
-subsection {* Quasi orders *}
+subsection \<open>Quasi orders\<close>
 
 class preorder = ord +
   assumes less_le_not_le: "x < y \<longleftrightarrow> x \<le> y \<and> \<not> (y \<le> x)"
@@ -128,10 +128,10 @@ class preorder = ord +
   and order_trans: "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
 begin
 
-text {* Reflexivity. *}
+text \<open>Reflexivity.\<close>
 
 lemma eq_refl: "x = y \<Longrightarrow> x \<le> y"
-    -- {* This form is useful with the classical reasoner. *}
+    -- \<open>This form is useful with the classical reasoner.\<close>
 by (erule ssubst) (rule order_refl)
 
 lemma less_irrefl [iff]: "\<not> x < x"
@@ -141,7 +141,7 @@ lemma less_imp_le: "x < y \<Longrightarrow> x \<le> y"
 unfolding less_le_not_le by blast
 
 
-text {* Asymmetry. *}
+text \<open>Asymmetry.\<close>
 
 lemma less_not_sym: "x < y \<Longrightarrow> \<not> (y < x)"
 by (simp add: less_le_not_le)
@@ -150,7 +150,7 @@ lemma less_asym: "x < y \<Longrightarrow> (\<not> P \<Longrightarrow> y < x) \<L
 by (drule less_not_sym, erule contrapos_np) simp
 
 
-text {* Transitivity. *}
+text \<open>Transitivity.\<close>
 
 lemma less_trans: "x < y \<Longrightarrow> y < z \<Longrightarrow> x < z"
 by (auto simp add: less_le_not_le intro: order_trans) 
@@ -162,7 +162,7 @@ lemma less_le_trans: "x < y \<Longrightarrow> y \<le> z \<Longrightarrow> x < z"
 by (auto simp add: less_le_not_le intro: order_trans) 
 
 
-text {* Useful for simplification, but too risky to include by default. *}
+text \<open>Useful for simplification, but too risky to include by default.\<close>
 
 lemma less_imp_not_less: "x < y \<Longrightarrow> (\<not> y < x) \<longleftrightarrow> True"
 by (blast elim: less_asym)
@@ -171,13 +171,13 @@ lemma less_imp_triv: "x < y \<Longrightarrow> (y < x \<longrightarrow> P) \<long
 by (blast elim: less_asym)
 
 
-text {* Transitivity rules for calculational reasoning *}
+text \<open>Transitivity rules for calculational reasoning\<close>
 
 lemma less_asym': "a < b \<Longrightarrow> b < a \<Longrightarrow> P"
 by (rule less_asym)
 
 
-text {* Dual order *}
+text \<open>Dual order\<close>
 
 lemma dual_preorder:
   "class.preorder (op \<ge>) (op >)"
@@ -186,7 +186,7 @@ proof qed (auto simp add: less_le_not_le intro: order_trans)
 end
 
 
-subsection {* Partial orders *}
+subsection \<open>Partial orders\<close>
 
 class order = preorder +
   assumes antisym: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
@@ -199,17 +199,17 @@ sublocale order!: ordering less_eq less +  dual_order!: ordering greater_eq grea
   by default (auto intro: antisym order_trans simp add: less_le)
 
 
-text {* Reflexivity. *}
+text \<open>Reflexivity.\<close>
 
 lemma le_less: "x \<le> y \<longleftrightarrow> x < y \<or> x = y"
-    -- {* NOT suitable for iff, since it can cause PROOF FAILED. *}
+    -- \<open>NOT suitable for iff, since it can cause PROOF FAILED.\<close>
 by (fact order.order_iff_strict)
 
 lemma le_imp_less_or_eq: "x \<le> y \<Longrightarrow> x < y \<or> x = y"
 unfolding less_le by blast
 
 
-text {* Useful for simplification, but too risky to include by default. *}
+text \<open>Useful for simplification, but too risky to include by default.\<close>
 
 lemma less_imp_not_eq: "x < y \<Longrightarrow> (x = y) \<longleftrightarrow> False"
 by auto
@@ -218,7 +218,7 @@ lemma less_imp_not_eq2: "x < y \<Longrightarrow> (y = x) \<longleftrightarrow> F
 by auto
 
 
-text {* Transitivity rules for calculational reasoning *}
+text \<open>Transitivity rules for calculational reasoning\<close>
 
 lemma neq_le_trans: "a \<noteq> b \<Longrightarrow> a \<le> b \<Longrightarrow> a < b"
 by (fact order.not_eq_order_implies_strict)
@@ -227,7 +227,7 @@ lemma le_neq_trans: "a \<le> b \<Longrightarrow> a \<noteq> b \<Longrightarrow> 
 by (rule order.not_eq_order_implies_strict)
 
 
-text {* Asymmetry. *}
+text \<open>Asymmetry.\<close>
 
 lemma eq_iff: "x = y \<longleftrightarrow> x \<le> y \<and> y \<le> x"
 by (blast intro: antisym)
@@ -239,7 +239,7 @@ lemma less_imp_neq: "x < y \<Longrightarrow> x \<noteq> y"
 by (fact order.strict_implies_not_eq)
 
 
-text {* Least value operator *}
+text \<open>Least value operator\<close>
 
 definition (in ord)
   Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "LEAST " 10) where
@@ -261,7 +261,7 @@ unfolding Least_def by (rule theI2)
   (blast intro: assms antisym)+
 
 
-text {* Dual order *}
+text \<open>Dual order\<close>
 
 lemma dual_order:
   "class.order (op \<ge>) (op >)"
@@ -270,7 +270,7 @@ by (intro_locales, rule dual_preorder) (unfold_locales, rule antisym)
 end
 
 
-text {* Alternative introduction rule with bias towards strict order *}
+text \<open>Alternative introduction rule with bias towards strict order\<close>
 
 lemma order_strictI:
   fixes less (infix "\<sqsubset>" 50)
@@ -299,7 +299,7 @@ next
 qed
 
 
-subsection {* Linear (total) orders *}
+subsection \<open>Linear (total) orders\<close>
 
 class linorder = order +
   assumes linear: "x \<le> y \<or> y \<le> x"
@@ -364,7 +364,7 @@ unfolding not_less .
 lemma not_leE: "\<not> y \<le> x \<Longrightarrow> x < y"
 unfolding not_le .
 
-text {* Dual order *}
+text \<open>Dual order\<close>
 
 lemma dual_linorder:
   "class.linorder (op \<ge>) (op >)"
@@ -373,7 +373,7 @@ by (rule class.linorder.intro, rule dual_order) (unfold_locales, rule linear)
 end
 
 
-text {* Alternative introduction rule with bias towards strict order *}
+text \<open>Alternative introduction rule with bias towards strict order\<close>
 
 lemma linorder_strictI:
   fixes less (infix "\<sqsubset>" 50)
@@ -383,7 +383,7 @@ lemma linorder_strictI:
   shows "class.linorder less_eq less"
 proof -
   interpret order less_eq less
-    by (fact `class.order less_eq less`)
+    by (fact \<open>class.order less_eq less\<close>)
   show ?thesis
   proof
     fix a b
@@ -393,9 +393,9 @@ proof -
 qed
 
 
-subsection {* Reasoning tools setup *}
+subsection \<open>Reasoning tools setup\<close>
 
-ML {*
+ML \<open>
 signature ORDERS =
 sig
   val print_structures: Proof.context -> unit
@@ -492,22 +492,22 @@ fun del_struct s =
     (fn _ => Data.map (AList.delete struct_eq s));
 
 end;
-*}
+\<close>
 
-attribute_setup order = {*
+attribute_setup order = \<open>
   Scan.lift ((Args.add -- Args.name >> (fn (_, s) => SOME s) || Args.del >> K NONE) --|
     Args.colon (* FIXME || Scan.succeed true *) ) -- Scan.lift Args.name --
     Scan.repeat Args.term
     >> (fn ((SOME tag, n), ts) => Orders.add_struct (n, ts) tag
          | ((NONE, n), ts) => Orders.del_struct (n, ts))
-*} "theorems controlling transitivity reasoner"
+\<close> "theorems controlling transitivity reasoner"
 
-method_setup order = {*
+method_setup order = \<open>
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (Orders.order_tac ctxt []))
-*} "transitivity reasoner"
+\<close> "transitivity reasoner"
 
 
-text {* Declarations to set up transitivity reasoner of partial and linear orders. *}
+text \<open>Declarations to set up transitivity reasoner of partial and linear orders.\<close>
 
 context order
 begin
@@ -592,16 +592,16 @@ declare not_sym [order add not_sym: linorder "op = :: 'a => 'a => bool" "op <=" 
 
 end
 
-setup {*
+setup \<open>
   map_theory_simpset (fn ctxt0 => ctxt0 addSolver
     mk_solver "Transitivity" (fn ctxt => Orders.order_tac ctxt (Simplifier.prems_of ctxt)))
   (*Adding the transitivity reasoners also as safe solvers showed a slight
     speed up, but the reasoning strength appears to be not higher (at least
     no breaking of additional proofs in the entire HOL distribution, as
     of 5 March 2004, was observed).*)
-*}
+\<close>
 
-ML {*
+ML \<open>
 local
   fun prp t thm = Thm.prop_of thm = t;  (* FIXME proper aconv!? *)
 in
@@ -645,13 +645,13 @@ fun antisym_less_simproc ctxt ct =
   | _ => NONE);
 
 end;
-*}
+\<close>
 
 simproc_setup antisym_le ("(x::'a::order) \<le> y") = "K antisym_le_simproc"
 simproc_setup antisym_less ("\<not> (x::'a::linorder) < y") = "K antisym_less_simproc"
 
 
-subsection {* Bounded quantifiers *}
+subsection \<open>Bounded quantifiers\<close>
 
 syntax
   "_All_less" :: "[idt, 'a, bool] => bool"    ("(3ALL _<_./ _)"  [0, 0, 10] 10)
@@ -702,7 +702,7 @@ translations
   "ALL x>=y. P"  =>  "ALL x. x >= y \<longrightarrow> P"
   "EX x>=y. P"   =>  "EX x. x >= y \<and> P"
 
-print_translation {*
+print_translation \<open>
 let
   val All_binder = Mixfix.binder_name @{const_syntax All};
   val Ex_binder = Mixfix.binder_name @{const_syntax Ex};
@@ -739,10 +739,10 @@ let
             else raise Match)
       | _ => raise Match));
 in [tr' All_binder, tr' Ex_binder] end
-*}
+\<close>
 
 
-subsection {* Transitivity reasoning *}
+subsection \<open>Transitivity reasoning\<close>
 
 context ord
 begin
@@ -869,9 +869,9 @@ proof -
   finally (ord_eq_less_trans) show ?thesis .
 qed
 
-text {*
+text \<open>
   Note that this list of rules is in reverse order of priorities.
-*}
+\<close>
 
 lemmas [trans] =
   order_less_subst2
@@ -945,8 +945,8 @@ lemmas order_trans_rules =
   ord_eq_less_trans
   trans
 
-text {* These support proving chains of decreasing inequalities
-    a >= b >= c ... in Isar proofs. *}
+text \<open>These support proving chains of decreasing inequalities
+    a >= b >= c ... in Isar proofs.\<close>
 
 lemma xt1 [no_atp]:
   "a = b ==> b > c ==> a > c"
@@ -1029,7 +1029,7 @@ qed
 *)
 
 
-subsection {* Monotonicity *}
+subsection \<open>Monotonicity\<close>
 
 context order
 begin
@@ -1100,7 +1100,7 @@ proof (rule monoI)
   proof (cases "x = y")
     case True then show ?thesis by simp
   next
-    case False with `x \<le> y` have "x < y" by simp
+    case False with \<open>x \<le> y\<close> have "x < y" by simp
     with assms strict_monoD have "f x < f y" by auto
     then show ?thesis by simp
   qed
@@ -1121,8 +1121,8 @@ proof
   proof (rule ccontr)
     assume "\<not> x \<le> y"
     then have "y \<le> x" by simp
-    with `mono f` obtain "f y \<le> f x" by (rule monoE)
-    with `f x < f y` show False by simp
+    with \<open>mono f\<close> obtain "f y \<le> f x" by (rule monoE)
+    with \<open>f x < f y\<close> show False by simp
   qed
 qed
 
@@ -1133,12 +1133,12 @@ proof
   assume "f x = f y"
   show "x = y" proof (cases x y rule: linorder_cases)
     case less with assms strict_monoD have "f x < f y" by auto
-    with `f x = f y` show ?thesis by simp
+    with \<open>f x = f y\<close> show ?thesis by simp
   next
     case equal then show ?thesis .
   next
     case greater with assms strict_monoD have "f y < f x" by auto
-    with `f x = f y` show ?thesis by simp
+    with \<open>f x = f y\<close> show ?thesis by simp
   qed
 qed simp
 
@@ -1153,7 +1153,7 @@ next
   show "x \<le> y" proof (rule ccontr)
     assume "\<not> x \<le> y" then have "y < x" by simp
     with assms strict_monoD have "f y < f x" by auto
-    with `f x \<le> f y` show False by simp
+    with \<open>f x \<le> f y\<close> show False by simp
   qed
 qed
   
@@ -1166,7 +1166,7 @@ lemma strict_mono_less:
 end
 
 
-subsection {* min and max -- fundamental *}
+subsection \<open>min and max -- fundamental\<close>
 
 definition (in ord) min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   "min a b = (if a \<le> b then a else b)"
@@ -1187,7 +1187,7 @@ lemma max_absorb1: "(y\<Colon>'a\<Colon>order) \<le> x \<Longrightarrow> max x y
   by (simp add: max_def)
 
 
-subsection {* (Unique) top and bottom elements *}
+subsection \<open>(Unique) top and bottom elements\<close>
 
 class bot =
   fixes bot :: 'a ("\<bottom>")
@@ -1246,7 +1246,7 @@ lemma less_top:
 end
 
 
-subsection {* Dense orders *}
+subsection \<open>Dense orders\<close>
 
 class dense_order = order +
   assumes dense: "x < y \<Longrightarrow> (\<exists>z. x < z \<and> z < y)"
@@ -1263,7 +1263,7 @@ proof (rule ccontr)
   hence "z < y" by simp
   from dense[OF this]
   obtain x where "x < y" and "z < x" by safe
-  moreover have "x \<le> z" using assms[OF `x < y`] .
+  moreover have "x \<le> z" using assms[OF \<open>x < y\<close>] .
   ultimately show False by auto
 qed
 
@@ -1274,16 +1274,16 @@ lemma dense_le_bounded:
   shows "y \<le> z"
 proof (rule dense_le)
   fix w assume "w < y"
-  from dense[OF `x < y`] obtain u where "x < u" "u < y" by safe
+  from dense[OF \<open>x < y\<close>] obtain u where "x < u" "u < y" by safe
   from linear[of u w]
   show "w \<le> z"
   proof (rule disjE)
     assume "u \<le> w"
-    from less_le_trans[OF `x < u` `u \<le> w`] `w < y`
+    from less_le_trans[OF \<open>x < u\<close> \<open>u \<le> w\<close>] \<open>w < y\<close>
     show "w \<le> z" by (rule *)
   next
     assume "w \<le> u"
-    from `w \<le> u` *[OF `x < u` `u < y`]
+    from \<open>w \<le> u\<close> *[OF \<open>x < u\<close> \<open>u < y\<close>]
     show "w \<le> z" by (rule order_trans)
   qed
 qed
@@ -1297,7 +1297,7 @@ proof (rule ccontr)
   hence "z < y" by simp
   from dense[OF this]
   obtain x where "x < y" and "z < x" by safe
-  moreover have "y \<le> x" using assms[OF `z < x`] .
+  moreover have "y \<le> x" using assms[OF \<open>z < x\<close>] .
   ultimately show False by auto
 qed
 
@@ -1308,16 +1308,16 @@ lemma dense_ge_bounded:
   shows "y \<le> z"
 proof (rule dense_ge)
   fix w assume "z < w"
-  from dense[OF `z < x`] obtain u where "z < u" "u < x" by safe
+  from dense[OF \<open>z < x\<close>] obtain u where "z < u" "u < x" by safe
   from linear[of u w]
   show "y \<le> w"
   proof (rule disjE)
     assume "w \<le> u"
-    from `z < w` le_less_trans[OF `w \<le> u` `u < x`]
+    from \<open>z < w\<close> le_less_trans[OF \<open>w \<le> u\<close> \<open>u < x\<close>]
     show "y \<le> w" by (rule *)
   next
     assume "u \<le> w"
-    from *[OF `z < u` `u < x`] `u \<le> w`
+    from *[OF \<open>z < u\<close> \<open>u < x\<close>] \<open>u \<le> w\<close>
     show "y \<le> w" by (rule order_trans)
   qed
 qed
@@ -1333,7 +1333,7 @@ class no_bot = order +
 class unbounded_dense_linorder = dense_linorder + no_top + no_bot
 
 
-subsection {* Wellorders *}
+subsection \<open>Wellorders\<close>
 
 class wellorder = linorder +
   assumes less_induct [case_names less]: "(\<And>x. (\<And>y. y < x \<Longrightarrow> P y) \<Longrightarrow> P x) \<Longrightarrow> P a"
@@ -1359,9 +1359,9 @@ proof -
           by auto
         then show "x \<le> y" by auto
       qed
-      with `P x` have Least: "(LEAST a. P a) = x"
+      with \<open>P x\<close> have Least: "(LEAST a. P a) = x"
         by (rule Least_equality)
-      with `P x` show ?thesis by simp
+      with \<open>P x\<close> show ?thesis by simp
     qed
   qed
   then show "P (LEAST x. P x)" and "(LEAST x. P x) \<le> k" by auto
@@ -1384,7 +1384,7 @@ lemma LeastI2_wellorder:
   and "\<And>a. \<lbrakk> P a; \<forall>b. P b \<longrightarrow> a \<le> b \<rbrakk> \<Longrightarrow> Q a"
   shows "Q (Least P)"
 proof (rule LeastI2_order)
-  show "P (Least P)" using `P a` by (rule LeastI)
+  show "P (Least P)" using \<open>P a\<close> by (rule LeastI)
 next
   fix y assume "P y" thus "Least P \<le> y" by (rule Least_le)
 next
@@ -1400,7 +1400,7 @@ done
 end
 
 
-subsection {* Order on @{typ bool} *}
+subsection \<open>Order on @{typ bool}\<close>
 
 instantiation bool :: "{order_bot, order_top, linorder}"
 begin
@@ -1448,7 +1448,7 @@ lemma [code]:
   by simp_all
 
 
-subsection {* Order on @{typ "_ \<Rightarrow> _"} *}
+subsection \<open>Order on @{typ "_ \<Rightarrow> _"}\<close>
 
 instantiation "fun" :: (type, ord) ord
 begin
@@ -1527,7 +1527,7 @@ lemma mono_compose: "mono Q \<Longrightarrow> mono (\<lambda>i x. Q i (f x))"
   unfolding mono_def le_fun_def by auto
 
 
-subsection {* Order on unary and binary predicates *}
+subsection \<open>Order on unary and binary predicates\<close>
 
 lemma predicate1I:
   assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
@@ -1582,7 +1582,7 @@ lemma top2I: "\<top> x y"
   by (simp add: top_fun_def)
 
 
-subsection {* Name duplicates *}
+subsection \<open>Name duplicates\<close>
 
 lemmas order_eq_refl = preorder_class.eq_refl
 lemmas order_less_irrefl = preorder_class.less_irrefl

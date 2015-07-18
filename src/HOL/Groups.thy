@@ -2,44 +2,44 @@
     Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, Markus Wenzel, Jeremy Avigad
 *)
 
-section {* Groups, also combined with orderings *}
+section \<open>Groups, also combined with orderings\<close>
 
 theory Groups
 imports Orderings
 begin
 
-subsection {* Dynamic facts *}
+subsection \<open>Dynamic facts\<close>
 
 named_theorems ac_simps "associativity and commutativity simplification rules"
 
 
-text{* The rewrites accumulated in @{text algebra_simps} deal with the
+text\<open>The rewrites accumulated in @{text algebra_simps} deal with the
 classical algebraic structures of groups, rings and family. They simplify
 terms by multiplying everything out (in case of a ring) and bringing sums and
 products into a canonical form (by ordered rewriting). As a result it decides
 group and ring equalities but also helps with inequalities.
 
 Of course it also works for fields, but it knows nothing about multiplicative
-inverses or division. This is catered for by @{text field_simps}. *}
+inverses or division. This is catered for by @{text field_simps}.\<close>
 
 named_theorems algebra_simps "algebra simplification rules"
 
 
-text{* Lemmas @{text field_simps} multiply with denominators in (in)equations
+text\<open>Lemmas @{text field_simps} multiply with denominators in (in)equations
 if they can be proved to be non-zero (for equations) or positive/negative
 (for inequations). Can be too aggressive and is therefore separate from the
-more benign @{text algebra_simps}. *}
+more benign @{text algebra_simps}.\<close>
 
 named_theorems field_simps "algebra simplification rules for fields"
 
 
-subsection {* Abstract structures *}
+subsection \<open>Abstract structures\<close>
 
-text {*
+text \<open>
   These locales provide basic structures for interpretation into
   bigger structures;  extensions require careful thinking, otherwise
   undesired effects may occur due to interpretation.
-*}
+\<close>
 
 locale semigroup =
   fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "*" 70)
@@ -76,7 +76,7 @@ sublocale monoid
 end
 
 
-subsection {* Generic operations *}
+subsection \<open>Generic operations\<close>
 
 class zero = 
   fixes zero :: 'a  ("0")
@@ -92,17 +92,17 @@ lemma Let_0 [simp]: "Let 0 f = f 0"
 lemma Let_1 [simp]: "Let 1 f = f 1"
   unfolding Let_def ..
 
-setup {*
+setup \<open>
   Reorient_Proc.add
     (fn Const(@{const_name Groups.zero}, _) => true
       | Const(@{const_name Groups.one}, _) => true
       | _ => false)
-*}
+\<close>
 
 simproc_setup reorient_zero ("0 = x") = Reorient_Proc.proc
 simproc_setup reorient_one ("1 = x") = Reorient_Proc.proc
 
-typed_print_translation {*
+typed_print_translation \<open>
   let
     fun tr' c = (c, fn ctxt => fn T => fn ts =>
       if null ts andalso Printer.type_emphasis ctxt T then
@@ -110,7 +110,7 @@ typed_print_translation {*
           Syntax_Phases.term_of_typ ctxt T
       else raise Match);
   in map tr' [@{const_syntax Groups.one}, @{const_syntax Groups.zero}] end;
-*} -- {* show types that are presumably too general *}
+\<close> -- \<open>show types that are presumably too general\<close>
 
 class plus =
   fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
@@ -125,7 +125,7 @@ class times =
   fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
 
 
-subsection {* Semigroups and Monoids *}
+subsection \<open>Semigroups and Monoids\<close>
 
 class semigroup_add = plus +
   assumes add_assoc [algebra_simps, field_simps]: "(a + b) + c = a + (b + c)"
@@ -327,7 +327,7 @@ qed
 end
 
 
-subsection {* Groups *}
+subsection \<open>Groups\<close>
 
 class group_add = minus + uminus + monoid_add +
   assumes left_minus [simp]: "- a + a = 0"
@@ -413,7 +413,7 @@ lemma right_minus_eq [simp]:
 proof
   assume "a - b = 0"
   have "a = (a - b) + b" by (simp add: add.assoc)
-  also have "\<dots> = b" using `a - b = 0` by simp
+  also have "\<dots> = b" using \<open>a - b = 0\<close> by simp
   finally show "a = b" .
 next
   assume "a = b" thus "a - b = 0" by simp
@@ -454,7 +454,7 @@ lemma neg_0_equal_iff_equal [simp]:
   "0 = - a \<longleftrightarrow> 0 = a"
   by (subst neg_equal_iff_equal [symmetric]) simp
 
-text{*The next two equations can make the simplifier loop!*}
+text\<open>The next two equations can make the simplifier loop!\<close>
 
 lemma equation_minus_iff:
   "a = - b \<longleftrightarrow> b = - a"
@@ -557,9 +557,9 @@ lemma diff_add_eq [algebra_simps, field_simps]:
 end
 
 
-subsection {* (Partially) Ordered Groups *} 
+subsection \<open>(Partially) Ordered Groups\<close> 
 
-text {*
+text \<open>
   The theory of partially ordered groups is taken from the books:
   \begin{itemize}
   \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979 
@@ -570,7 +570,7 @@ text {*
   \item @{url "http://www.mathworld.com"} by Eric Weisstein et. al.
   \item \emph{Algebra I} by van der Waerden, Springer.
   \end{itemize}
-*}
+\<close>
 
 class ordered_ab_semigroup_add = order + ab_semigroup_add +
   assumes add_left_mono: "a \<le> b \<Longrightarrow> c + a \<le> c + b"
@@ -580,7 +580,7 @@ lemma add_right_mono:
   "a \<le> b \<Longrightarrow> a + c \<le> b + c"
 by (simp add: add.commute [of _ c] add_left_mono)
 
-text {* non-strict, in both arguments *}
+text \<open>non-strict, in both arguments\<close>
 lemma add_mono:
   "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> a + c \<le> b + d"
   apply (erule add_right_mono [THEN order_trans])
@@ -601,7 +601,7 @@ lemma add_strict_right_mono:
   "a < b \<Longrightarrow> a + c < b + c"
 by (simp add: add.commute [of _ c] add_strict_left_mono)
 
-text{*Strict monotonicity in both arguments*}
+text\<open>Strict monotonicity in both arguments\<close>
 lemma add_strict_mono:
   "a < b \<Longrightarrow> c < d \<Longrightarrow> a + c < b + d"
 apply (erule add_strict_right_mono [THEN less_trans])
@@ -700,23 +700,23 @@ begin
 
 lemma add_diff_inverse:
   "a + (b - a) = b"
-  using `a \<le> b` by (auto simp add: le_iff_add)
+  using \<open>a \<le> b\<close> by (auto simp add: le_iff_add)
 
 lemma add_diff_assoc:
   "c + (b - a) = c + b - a"
-  using `a \<le> b` by (auto simp add: le_iff_add add.left_commute [of c])
+  using \<open>a \<le> b\<close> by (auto simp add: le_iff_add add.left_commute [of c])
 
 lemma add_diff_assoc2:
   "b - a + c = b + c - a"
-  using `a \<le> b` by (auto simp add: le_iff_add add.assoc)
+  using \<open>a \<le> b\<close> by (auto simp add: le_iff_add add.assoc)
 
 lemma diff_add_assoc:
   "c + b - a = c + (b - a)"
-  using `a \<le> b` by (simp add: add.commute add_diff_assoc)
+  using \<open>a \<le> b\<close> by (simp add: add.commute add_diff_assoc)
 
 lemma diff_add_assoc2:
   "b + c - a = b - a + c"
-  using `a \<le> b`by (simp add: add.commute add_diff_assoc)
+  using \<open>a \<le> b\<close>by (simp add: add.commute add_diff_assoc)
 
 lemma diff_diff_right:
   "c - (b - a) = c + a - b"
@@ -751,7 +751,7 @@ end
 end
 
 
-subsection {* Support for reasoning about signs *}
+subsection \<open>Support for reasoning about signs\<close>
 
 class ordered_comm_monoid_add =
   ordered_cancel_ab_semigroup_add + comm_monoid_add
@@ -915,7 +915,7 @@ lemma min_diff_distrib_left:
 lemma le_imp_neg_le:
   assumes "a \<le> b" shows "-b \<le> -a"
 proof -
-  have "-a+a \<le> -a+b" using `a \<le> b` by (rule add_left_mono) 
+  have "-a+a \<le> -a+b" using \<open>a \<le> b\<close> by (rule add_left_mono) 
   then have "0 \<le> -a+b" by simp
   then have "0 + (-b) \<le> (-a + b) + (-b)" by (rule add_right_mono) 
   then show ?thesis by (simp add: algebra_simps)
@@ -946,7 +946,7 @@ by (subst neg_less_iff_less [symmetric], simp)
 lemma neg_0_less_iff_less [simp]: "0 < - a \<longleftrightarrow> a < 0"
 by (subst neg_less_iff_less [symmetric], simp)
 
-text{*The next several equations can make the simplifier loop!*}
+text\<open>The next several equations can make the simplifier loop!\<close>
 
 lemma less_minus_iff: "a < - b \<longleftrightarrow> b < - a"
 proof -
@@ -1042,19 +1042,19 @@ end
 ML_file "Tools/group_cancel.ML"
 
 simproc_setup group_cancel_add ("a + b::'a::ab_group_add") =
-  {* fn phi => fn ss => try Group_Cancel.cancel_add_conv *}
+  \<open>fn phi => fn ss => try Group_Cancel.cancel_add_conv\<close>
 
 simproc_setup group_cancel_diff ("a - b::'a::ab_group_add") =
-  {* fn phi => fn ss => try Group_Cancel.cancel_diff_conv *}
+  \<open>fn phi => fn ss => try Group_Cancel.cancel_diff_conv\<close>
 
 simproc_setup group_cancel_eq ("a = (b::'a::ab_group_add)") =
-  {* fn phi => fn ss => try Group_Cancel.cancel_eq_conv *}
+  \<open>fn phi => fn ss => try Group_Cancel.cancel_eq_conv\<close>
 
 simproc_setup group_cancel_le ("a \<le> (b::'a::ordered_ab_group_add)") =
-  {* fn phi => fn ss => try Group_Cancel.cancel_le_conv *}
+  \<open>fn phi => fn ss => try Group_Cancel.cancel_le_conv\<close>
 
 simproc_setup group_cancel_less ("a < (b::'a::ordered_ab_group_add)") =
-  {* fn phi => fn ss => try Group_Cancel.cancel_less_conv *}
+  \<open>fn phi => fn ss => try Group_Cancel.cancel_less_conv\<close>
 
 class linordered_ab_semigroup_add =
   linorder + ordered_ab_semigroup_add
@@ -1380,7 +1380,7 @@ lemmas ab_left_minus = left_minus -- \<open>FIXME duplicate\<close>
 lemmas diff_diff_eq = diff_diff_add -- \<open>FIXME duplicate\<close>
 
 
-subsection {* Tools setup *}
+subsection \<open>Tools setup\<close>
 
 lemma add_mono_thms_linordered_semiring:
   fixes i j k :: "'a\<Colon>ordered_ab_semigroup_add"

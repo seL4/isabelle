@@ -2,13 +2,13 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory; Stefan Berghofer, TU Muenchen
 *)
 
-section {* Relations -- as sets of pairs, and binary predicates *}
+section \<open>Relations -- as sets of pairs, and binary predicates\<close>
 
 theory Relation
 imports Finite_Set
 begin
 
-text {* A preliminary: classical rules for reasoning on predicates *}
+text \<open>A preliminary: classical rules for reasoning on predicates\<close>
 
 declare predicate1I [Pure.intro!, intro!]
 declare predicate1D [Pure.dest, dest]
@@ -51,23 +51,23 @@ declare SUP1_E [elim!]
 declare Sup2_E [elim!]
 declare SUP2_E [elim!]
 
-subsection {* Fundamental *}
+subsection \<open>Fundamental\<close>
 
-subsubsection {* Relations as sets of pairs *}
+subsubsection \<open>Relations as sets of pairs\<close>
 
 type_synonym 'a rel = "('a * 'a) set"
 
-lemma subrelI: -- {* Version of @{thm [source] subsetI} for binary relations *}
+lemma subrelI: -- \<open>Version of @{thm [source] subsetI} for binary relations\<close>
   "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (x, y) \<in> s) \<Longrightarrow> r \<subseteq> s"
   by auto
 
-lemma lfp_induct2: -- {* Version of @{thm [source] lfp_induct} for binary relations *}
+lemma lfp_induct2: -- \<open>Version of @{thm [source] lfp_induct} for binary relations\<close>
   "(a, b) \<in> lfp f \<Longrightarrow> mono f \<Longrightarrow>
     (\<And>a b. (a, b) \<in> f (lfp f \<inter> {(x, y). P x y}) \<Longrightarrow> P a b) \<Longrightarrow> P a b"
   using lfp_induct_set [of "(a, b)" f "case_prod P"] by auto
 
 
-subsubsection {* Conversions between set and predicate relations *}
+subsubsection \<open>Conversions between set and predicate relations\<close>
 
 lemma pred_equals_eq [pred_set_conv]: "(\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S) \<longleftrightarrow> R = S"
   by (simp add: set_eq_iff fun_eq_iff)
@@ -141,16 +141,16 @@ lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> UN
 lemma SUP_Sup_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Union>S)"
   by (simp add: fun_eq_iff)
 
-subsection {* Properties of relations *}
+subsection \<open>Properties of relations\<close>
 
-subsubsection {* Reflexivity *}
+subsubsection \<open>Reflexivity\<close>
 
 definition refl_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
 where
   "refl_on A r \<longleftrightarrow> r \<subseteq> A \<times> A \<and> (\<forall>x\<in>A. (x, x) \<in> r)"
 
 abbreviation refl :: "'a rel \<Rightarrow> bool"
-where -- {* reflexivity over a type *}
+where -- \<open>reflexivity over a type\<close>
   "refl \<equiv> refl_on UNIV"
 
 definition reflp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
@@ -219,7 +219,7 @@ lemma refl_on_def' [nitpick_unfold, code]:
 lemma reflp_equality [simp]: "reflp op ="
 by(simp add: reflp_def)
 
-subsubsection {* Irreflexivity *}
+subsubsection \<open>Irreflexivity\<close>
 
 definition irrefl :: "'a rel \<Rightarrow> bool"
 where
@@ -246,7 +246,7 @@ lemma irrefl_distinct [code]:
   by (auto simp add: irrefl_def)
 
 
-subsubsection {* Asymmetry *}
+subsubsection \<open>Asymmetry\<close>
 
 inductive asym :: "'a rel \<Rightarrow> bool"
 where
@@ -261,7 +261,7 @@ lemma asymp_asym_eq [pred_set_conv]:
   by (auto intro!: asymI asympI elim: asym.cases asymp.cases simp add: irreflp_irrefl_eq)
 
 
-subsubsection {* Symmetry *}
+subsubsection \<open>Symmetry\<close>
 
 definition sym :: "'a rel \<Rightarrow> bool"
 where
@@ -336,7 +336,7 @@ lemma symp_SUP:
   by (fact sym_UNION [to_pred])
 
 
-subsubsection {* Antisymmetry *}
+subsubsection \<open>Antisymmetry\<close>
 
 definition antisym :: "'a rel \<Rightarrow> bool"
 where
@@ -362,7 +362,7 @@ lemma antisym_empty [simp]: "antisym {}"
 lemma antisymP_equality [simp]: "antisymP op ="
 by(auto intro: antisymI)
 
-subsubsection {* Transitivity *}
+subsubsection \<open>Transitivity\<close>
 
 definition trans :: "'a rel \<Rightarrow> bool"
 where
@@ -377,7 +377,7 @@ lemma transp_trans_eq [pred_set_conv]:
   by (simp add: trans_def transp_def)
 
 abbreviation transP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-where -- {* FIXME drop *}
+where -- \<open>FIXME drop\<close>
   "transP r \<equiv> trans {(x, y). r x y}"
 
 lemma transI:
@@ -433,7 +433,7 @@ lemma transp_trans:
 lemma transp_equality [simp]: "transp op ="
 by(auto intro: transpI)
 
-subsubsection {* Totality *}
+subsubsection \<open>Totality\<close>
 
 definition total_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
 where
@@ -445,7 +445,7 @@ lemma total_on_empty [simp]: "total_on {} r"
   by (simp add: total_on_def)
 
 
-subsubsection {* Single valued relations *}
+subsubsection \<open>Single valued relations\<close>
 
 definition single_valued :: "('a \<times> 'b) set \<Rightarrow> bool"
 where
@@ -470,9 +470,9 @@ lemma single_valued_subset:
   by (unfold single_valued_def) blast
 
 
-subsection {* Relation operations *}
+subsection \<open>Relation operations\<close>
 
-subsubsection {* The identity relation *}
+subsubsection \<open>The identity relation\<close>
 
 definition Id :: "'a rel"
 where
@@ -491,7 +491,7 @@ lemma refl_Id: "refl Id"
   by (simp add: refl_on_def)
 
 lemma antisym_Id: "antisym Id"
-  -- {* A strange result, since @{text Id} is also symmetric. *}
+  -- \<open>A strange result, since @{text Id} is also symmetric.\<close>
   by (simp add: antisym_def)
 
 lemma sym_Id: "sym Id"
@@ -513,7 +513,7 @@ lemma total_on_diff_Id [simp]: "total_on A (r - Id) = total_on A r"
   by (simp add: total_on_def)
 
 
-subsubsection {* Diagonal: identity over a set *}
+subsubsection \<open>Diagonal: identity over a set\<close>
 
 definition Id_on  :: "'a set \<Rightarrow> 'a rel"
 where
@@ -530,7 +530,7 @@ lemma Id_onI [intro!]: "a : A ==> (a, a) : Id_on A"
 
 lemma Id_onE [elim!]:
   "c : Id_on A ==> (!!x. x : A ==> c = (x, x) ==> P) ==> P"
-  -- {* The general elimination rule. *}
+  -- \<open>The general elimination rule.\<close>
   by (unfold Id_on_def) (iprover elim!: UN_E singletonE)
 
 lemma Id_on_iff: "((x, y) : Id_on A) = (x = y & x : A)"
@@ -559,7 +559,7 @@ lemma single_valued_Id_on [simp]: "single_valued (Id_on A)"
   by (unfold single_valued_def) blast
 
 
-subsubsection {* Composition *}
+subsubsection \<open>Composition\<close>
 
 inductive_set relcomp  :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'c) set \<Rightarrow> ('a \<times> 'c) set" (infixr "O" 75)
   for r :: "('a \<times> 'b) set" and s :: "('b \<times> 'c) set"
@@ -570,10 +570,10 @@ notation relcompp (infixr "OO" 75)
 
 lemmas relcomppI = relcompp.intros
 
-text {*
+text \<open>
   For historic reasons, the elimination rules are not wholly corresponding.
   Feel free to consolidate this.
-*}
+\<close>
 
 inductive_cases relcompEpair: "(a, c) \<in> r O s"
 inductive_cases relcomppE [elim!]: "(r OO s) a c"
@@ -677,7 +677,7 @@ lemma eq_OO: "op= OO R = R"
 by blast
 
 
-subsubsection {* Converse *}
+subsubsection \<open>Converse\<close>
 
 inductive_set converse :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'a) set" ("(_^-1)" [1000] 999)
   for r :: "('a \<times> 'b) set"
@@ -710,7 +710,7 @@ lemma conversepD (* CANDIDATE [sym] *):
   by (fact converseD [to_pred])
 
 lemma converseE [elim!]:
-  -- {* More general than @{text converseD}, as it ``splits'' the member of the relation. *}
+  -- \<open>More general than @{text converseD}, as it ``splits'' the member of the relation.\<close>
   "yx \<in> r\<inverse> \<Longrightarrow> (\<And>x y. yx = (y, x) \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> P) \<Longrightarrow> P"
   by (cases yx) (simp, erule converse.cases, iprover)
 
@@ -826,7 +826,7 @@ lemma converse_unfold [code]:
   by (simp add: set_eq_iff)
 
 
-subsubsection {* Domain, range and field *}
+subsubsection \<open>Domain, range and field\<close>
 
 inductive_set Domain :: "('a \<times> 'b) set \<Rightarrow> 'a set"
   for r :: "('a \<times> 'b) set"
@@ -980,7 +980,7 @@ lemma Domain_unfold:
   by blast
 
 
-subsubsection {* Image of a set under a relation *}
+subsubsection \<open>Image of a set under a relation\<close>
 
 definition Image :: "('a \<times> 'b) set \<Rightarrow> 'a set \<Rightarrow> 'b set" (infixr "``" 90)
 where
@@ -1003,7 +1003,7 @@ lemma ImageE [elim!]:
   by (unfold Image_def) (iprover elim!: CollectE bexE)
 
 lemma rev_ImageI: "a : A ==> (a, b) : r ==> b : r `` A"
-  -- {* This version's more effective when we already have the required @{text a} *}
+  -- \<open>This version's more effective when we already have the required @{text a}\<close>
   by blast
 
 lemma Image_empty [simp]: "R``{} = {}"
@@ -1032,7 +1032,7 @@ lemma Image_subset: "r \<subseteq> A \<times> B ==> r``C \<subseteq> B"
   by (iprover intro!: subsetI elim!: ImageE dest!: subsetD SigmaD2)
 
 lemma Image_eq_UN: "r``B = (\<Union>y\<in> B. r``{y})"
-  -- {* NOT suitable for rewriting *}
+  -- \<open>NOT suitable for rewriting\<close>
   by blast
 
 lemma Image_mono: "r' \<subseteq> r ==> A' \<subseteq> A ==> (r' `` A') \<subseteq> (r `` A)"
@@ -1047,7 +1047,7 @@ lemma UN_Image: "(\<Union>i\<in>I. X i) `` S = (\<Union>i\<in>I. X i `` S)"
 lemma Image_INT_subset: "(r `` INTER A B) \<subseteq> (\<Inter>x\<in>A. r `` (B x))"
   by blast
 
-text{*Converse inclusion requires some assumptions*}
+text\<open>Converse inclusion requires some assumptions\<close>
 lemma Image_INT_eq:
      "[|single_valued (r\<inverse>); A\<noteq>{}|] ==> r `` INTER A B = (\<Inter>x\<in>A. r `` B x)"
 apply (rule equalityI)
@@ -1067,7 +1067,7 @@ lemma Sigma_Image: "(SIGMA x:A. B x) `` X = (\<Union>x\<in>X \<inter> A. B x)"
 lemma relcomp_Image: "(X O Y) `` Z = Y `` (X `` Z)"
   by auto
 
-subsubsection {* Inverse image *}
+subsubsection \<open>Inverse image\<close>
 
 definition inv_image :: "'b rel \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a rel"
 where
@@ -1099,7 +1099,7 @@ lemma in_inv_imagep [simp]: "inv_imagep r f x y = r (f x) (f y)"
   by (simp add: inv_imagep_def)
 
 
-subsubsection {* Powerset *}
+subsubsection \<open>Powerset\<close>
 
 definition Powp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
 where
@@ -1110,7 +1110,7 @@ lemma Powp_Pow_eq [pred_set_conv]: "Powp (\<lambda>x. x \<in> A) = (\<lambda>x. 
 
 lemmas Powp_mono [mono] = Pow_mono [to_pred]
 
-subsubsection {* Expressing relation operations via @{const Finite_Set.fold} *}
+subsubsection \<open>Expressing relation operations via @{const Finite_Set.fold}\<close>
 
 lemma Id_on_fold:
   assumes "finite A"
@@ -1152,7 +1152,7 @@ proof -
   qed
   have *: "{x} O S = {(x', z). x' = fst x \<and> (snd x,z) \<in> S}" by (auto simp: relcomp_unfold intro!: exI)
   show ?thesis unfolding *
-  using `finite S` by (induct S) (auto split: prod.split)
+  using \<open>finite S\<close> by (induct S) (auto split: prod.split)
 qed
 
 lemma insert_relcomp_fold:
