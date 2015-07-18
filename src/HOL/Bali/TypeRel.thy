@@ -535,7 +535,7 @@ apply      (frule_tac [6] widen_Array)
 apply      safe
 apply            (rule widen.int_obj)
 prefer          6 apply (drule implmt_is_class) apply simp
-apply (tactic "ALLGOALS (etac thin_rl)")
+apply (erule_tac [!] thin_rl)
 prefer         6 apply simp
 apply          (rule_tac [9] widen.arr_obj)
 apply         (rotate_tac [9] -1)

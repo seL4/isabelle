@@ -355,14 +355,14 @@ local
   fun tag_rules thms = map_index (apsnd (pair NONE)) thms
   fun tag_prems thms = map (pair ~1 o pair NONE) thms
 
-  fun resolve (SOME thm) = rtac thm 1
-    | resolve NONE = no_tac
+  fun resolve ctxt (SOME thm) = resolve_tac ctxt [thm] 1
+    | resolve _ NONE = no_tac
 
   fun tac prove ctxt rules =
     CONVERSION (Old_SMT_Normalize.atomize_conv ctxt)
-    THEN' rtac @{thm ccontr}
-    THEN' SUBPROOF (fn {context, prems, ...} =>
-      resolve (prove context (tag_rules rules @ tag_prems prems))) ctxt
+    THEN' resolve_tac ctxt @{thms ccontr}
+    THEN' SUBPROOF (fn {context = ctxt', prems, ...} =>
+      resolve ctxt' (prove ctxt' (tag_rules rules @ tag_prems prems))) ctxt
 in
 
 val smt_tac = tac safe_solve

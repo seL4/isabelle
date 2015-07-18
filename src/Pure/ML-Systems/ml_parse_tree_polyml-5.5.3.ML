@@ -10,7 +10,7 @@ struct
 fun completions (PolyML.PTcompletions x) = SOME x
   | completions _ = NONE;
 
-fun break_point (PolyML.PTbreakPoint x) = SOME x
-  | break_point _ = NONE;
+fun breakpoint (PolyML.PTbreakPoint x) = SOME x
+  | breakpoint _ = NONE;
 
 end;

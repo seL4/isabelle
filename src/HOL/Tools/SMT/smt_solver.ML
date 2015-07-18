@@ -289,13 +289,14 @@ local
           "configuration option " ^ quote (Config.name_of SMT_Config.timeout) ^ " might help)")
     | SMT_Failure.SMT fail => error (str_of ctxt fail)
 
-  fun resolve (SOME thm) = rtac thm 1
-    | resolve NONE = no_tac
+  fun resolve ctxt (SOME thm) = resolve_tac ctxt [thm] 1
+    | resolve _ NONE = no_tac
 
   fun tac prove ctxt rules =
     CONVERSION (SMT_Normalize.atomize_conv ctxt)
-    THEN' rtac @{thm ccontr}
-    THEN' SUBPROOF (fn {context = ctxt', prems, ...} => resolve (prove ctxt' (rules @ prems))) ctxt
+    THEN' resolve_tac ctxt @{thms ccontr}
+    THEN' SUBPROOF (fn {context = ctxt', prems, ...} =>
+      resolve ctxt' (prove ctxt' (rules @ prems))) ctxt
 in
 
 val smt_tac = tac safe_solve

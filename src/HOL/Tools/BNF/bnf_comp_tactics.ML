@@ -30,7 +30,7 @@ sig
 
   val mk_le_rel_OO_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_simple_rel_OO_Grp_tac: Proof.context -> thm -> thm -> tactic
-  val mk_simple_wit_tac: thm list -> tactic
+  val mk_simple_wit_tac: Proof.context -> thm list -> tactic
   val mk_simplified_set_tac: Proof.context -> thm -> tactic
   val bd_ordIso_natLeq_tac: tactic
 end;
@@ -98,7 +98,7 @@ fun mk_comp_map_cong0_tac ctxt set'_eq_sets comp_set_alts map_cong0 map_cong0s =
             rtac ctxt trans_o_apply, rtac ctxt (@{thm collect_def} RS arg_cong_Union),
             rtac ctxt @{thm UnionI}, rtac ctxt @{thm UN_I}, REPEAT_DETERM_N i o rtac ctxt @{thm insertI2},
             rtac ctxt @{thm insertI1}, rtac ctxt (o_apply RS equalityD2 RS set_mp),
-            etac ctxt @{thm imageI}, atac])
+            etac ctxt @{thm imageI}, assume_tac ctxt])
           comp_set_alts))
       map_cong0s) 1)
   end;
@@ -158,8 +158,8 @@ fun mk_comp_in_alt_tac ctxt comp_set_alts =
     unfold_thms_tac ctxt @{thms mem_Collect_eq Ball_def} THEN
     (REPEAT_DETERM (CHANGED (etac ctxt conjE 1)) THEN
      REPEAT_DETERM (CHANGED ((
-       (rtac ctxt conjI THEN' (atac ORELSE' rtac ctxt subset_UNIV)) ORELSE'
-       atac ORELSE'
+       (rtac ctxt conjI THEN' (assume_tac ctxt ORELSE' rtac ctxt subset_UNIV)) ORELSE'
+       assume_tac ctxt ORELSE'
        (rtac ctxt subset_UNIV)) 1)) ORELSE rtac ctxt subset_UNIV 1));
 
 val comp_wit_thms = @{thms Union_empty_conv o_apply collect_def UN_insert UN_empty Un_empty_right
@@ -170,13 +170,13 @@ fun mk_comp_wit_tac ctxt set'_eq_sets Gwit_thms collect_set_map Fwit_thms =
   ALLGOALS (dtac ctxt @{thm in_Union_o_assoc}) THEN
   unfold_thms_tac ctxt [collect_set_map] THEN
   unfold_thms_tac ctxt comp_wit_thms THEN
-  REPEAT_DETERM ((atac ORELSE'
+  REPEAT_DETERM ((assume_tac ctxt ORELSE'
     REPEAT_DETERM o eresolve_tac ctxt @{thms UnionE UnE} THEN'
     etac ctxt imageE THEN' TRY o dresolve_tac ctxt Gwit_thms THEN'
     (etac ctxt FalseE ORELSE'
     hyp_subst_tac ctxt THEN'
     dresolve_tac ctxt Fwit_thms THEN'
-    (etac ctxt FalseE ORELSE' atac))) 1);
+    (etac ctxt FalseE ORELSE' assume_tac ctxt))) 1);
 
 
 (* Kill operation *)
@@ -190,9 +190,9 @@ fun kill_in_alt_tac ctxt =
   REPEAT_DETERM (CHANGED (etac ctxt conjE 1)) THEN
   REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE'
     rtac ctxt conjI THEN' rtac ctxt subset_UNIV) 1)) THEN
-  (rtac ctxt subset_UNIV ORELSE' atac) 1 THEN
+  (rtac ctxt subset_UNIV ORELSE' assume_tac ctxt) 1 THEN
   REPEAT_DETERM (CHANGED (etac ctxt conjE 1)) THEN
-  REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE' atac) 1))) ORELSE
+  REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE' assume_tac ctxt) 1))) ORELSE
   ((rtac ctxt @{thm UNIV_eq_I} THEN' rtac ctxt CollectI) 1 THEN
     REPEAT_DETERM (TRY (rtac ctxt conjI 1) THEN rtac ctxt subset_UNIV 1));
 
@@ -207,11 +207,11 @@ fun mk_lift_set_bd_tac ctxt bd_Card_order =
 fun lift_in_alt_tac ctxt =
   ((rtac ctxt @{thm Collect_cong} THEN' rtac ctxt iffI) 1 THEN
   REPEAT_DETERM (CHANGED (etac ctxt conjE 1)) THEN
-  REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE' atac) 1)) THEN
+  REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE' assume_tac ctxt) 1)) THEN
   REPEAT_DETERM (CHANGED (etac ctxt conjE 1)) THEN
   REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE'
     rtac ctxt conjI THEN' rtac ctxt @{thm empty_subsetI}) 1)) THEN
-  (rtac ctxt @{thm empty_subsetI} ORELSE' atac) 1) ORELSE
+  (rtac ctxt @{thm empty_subsetI} ORELSE' assume_tac ctxt) 1) ORELSE
   ((rtac ctxt sym THEN' rtac ctxt @{thm UNIV_eq_I} THEN' rtac ctxt CollectI) 1 THEN
     REPEAT_DETERM (TRY (rtac ctxt conjI 1) THEN rtac ctxt @{thm empty_subsetI} 1));
 
@@ -232,7 +232,8 @@ fun mk_le_rel_OO_tac ctxt outer_le_rel_OO outer_rel_mono inner_le_rel_OOs =
 fun mk_simple_rel_OO_Grp_tac ctxt rel_OO_Grp in_alt_thm =
   rtac ctxt (trans OF [rel_OO_Grp, in_alt_thm RS @{thm OO_Grp_cong} RS sym]) 1;
 
-fun mk_simple_wit_tac wit_thms = ALLGOALS (atac ORELSE' eresolve0_tac (@{thm emptyE} :: wit_thms));
+fun mk_simple_wit_tac ctxt wit_thms =
+  ALLGOALS (assume_tac ctxt ORELSE' eresolve0_tac (@{thm emptyE} :: wit_thms));
 
 val csum_thms =
   @{thms csum_cong1 csum_cong2 csum_cong  csum_dup[OF natLeq_cinfinite natLeq_Card_order]};

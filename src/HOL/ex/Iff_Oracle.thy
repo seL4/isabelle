@@ -58,7 +58,7 @@ subsection \<open>Oracle as proof method\<close>
 method_setup iff =
   \<open>Scan.lift Parse.nat >> (fn n => fn ctxt =>
     SIMPLE_METHOD
-      (HEADGOAL (rtac (iff_oracle (Proof_Context.theory_of ctxt, n)))
+      (HEADGOAL (resolve_tac ctxt [iff_oracle (Proof_Context.theory_of ctxt, n)])
         handle Fail _ => no_tac))\<close>
 
 

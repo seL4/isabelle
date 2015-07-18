@@ -931,11 +931,11 @@ fun ring_tac add_ths del_ths ctxt =
   Object_Logic.full_atomize_tac ctxt
   THEN' presimplify ctxt add_ths del_ths
   THEN' CSUBGOAL (fn (p, i) =>
-    rtac (let val form = Object_Logic.dest_judgment ctxt p
+    resolve_tac ctxt [let val form = Object_Logic.dest_judgment ctxt p
           in case get_ring_ideal_convs ctxt form of
            NONE => Thm.reflexive form
           | SOME thy => #ring_conv thy ctxt form
-          end) i
+          end] i
       handle TERM _ => no_tac
         | CTERM _ => no_tac
         | THM _ => no_tac);
@@ -944,8 +944,9 @@ local
  fun lhs t = case Thm.term_of t of
   Const(@{const_name HOL.eq},_)$_$_ => Thm.dest_arg1 t
  | _=> raise CTERM ("ideal_tac - lhs",[t])
- fun exitac NONE = no_tac
-   | exitac (SOME y) = rtac (instantiate' [SOME (Thm.ctyp_of_cterm y)] [NONE,SOME y] exI) 1
+ fun exitac _ NONE = no_tac
+   | exitac ctxt (SOME y) =
+      resolve_tac ctxt [instantiate' [SOME (Thm.ctyp_of_cterm y)] [NONE,SOME y] exI] 1
 
  val claset = claset_of @{context}
 in
@@ -964,7 +965,7 @@ fun ideal_tac add_ths del_ths ctxt =
      val ps = map_filter (try (lhs o Thm.dest_arg)) asms
      val cfs = (map swap o #multi_ideal thy evs ps)
                    (map Thm.dest_arg1 (conjuncts bod))
-     val ws = map (exitac o AList.lookup op aconvc cfs) evs
+     val ws = map (exitac ctxt o AList.lookup op aconvc cfs) evs
     in EVERY (rev ws) THEN Method.insert_tac prems 1
         THEN ring_tac add_ths del_ths ctxt 1
    end

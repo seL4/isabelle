@@ -621,23 +621,25 @@ fun dest_case ctxt case_term =
     | NONE => NONE)
   end
 
-fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
+fun tac ctxt [] =
+      resolve_tac ctxt [set_singleton] 1 ORELSE
+      resolve_tac ctxt [inst_Collect_mem_eq] 1
   | tac ctxt (If :: cont) =
       Splitter.split_tac ctxt @{thms split_if} 1
-      THEN rtac @{thm conjI} 1
-      THEN rtac @{thm impI} 1
+      THEN resolve_tac ctxt @{thms conjI} 1
+      THEN resolve_tac ctxt @{thms impI} 1
       THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
         CONVERSION (right_hand_set_comprehension_conv (K
           (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_TrueI})) Conv.all_conv
            then_conv
            rewr_conv' @{lemma "(True \<and> P) = P" by simp})) ctxt') 1) ctxt 1
       THEN tac ctxt cont
-      THEN rtac @{thm impI} 1
+      THEN resolve_tac ctxt @{thms impI} 1
       THEN Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
           CONVERSION (right_hand_set_comprehension_conv (K
             (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_FalseI})) Conv.all_conv
              then_conv rewr_conv' @{lemma "(False \<and> P) = False" by simp})) ctxt') 1) ctxt 1
-      THEN rtac set_Nil_I 1
+      THEN resolve_tac ctxt [set_Nil_I] 1
   | tac ctxt (Case (T, i) :: cont) =
       let
         val SOME {injects, distincts, case_thms, split, ...} =
@@ -646,9 +648,9 @@ fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
         (* do case distinction *)
         Splitter.split_tac ctxt [split] 1
         THEN EVERY (map_index (fn (i', _) =>
-          (if i' < length case_thms - 1 then rtac @{thm conjI} 1 else all_tac)
-          THEN REPEAT_DETERM (rtac @{thm allI} 1)
-          THEN rtac @{thm impI} 1
+          (if i' < length case_thms - 1 then resolve_tac ctxt @{thms conjI} 1 else all_tac)
+          THEN REPEAT_DETERM (resolve_tac ctxt @{thms allI} 1)
+          THEN resolve_tac ctxt @{thms impI} 1
           THEN (if i' = i then
             (* continue recursively *)
             Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
@@ -683,7 +685,7 @@ fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
                         Conv.repeat_conv
                           (Conv.bottom_conv
                             (K (rewr_conv' @{lemma "(\<exists>x. P) = P" by simp})) ctxt'')) ctxt'))) 1) ctxt 1
-            THEN rtac set_Nil_I 1)) case_thms)
+            THEN resolve_tac ctxt [set_Nil_I] 1)) case_thms)
       end
 
 in

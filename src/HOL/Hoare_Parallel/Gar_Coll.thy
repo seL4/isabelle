@@ -775,11 +775,21 @@ apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 --\<open>20 subgoals left\<close>
 apply(tactic\<open>TRYALL (clarify_tac @{context})\<close>)
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
-apply(tactic \<open>TRYALL (etac disjE)\<close>)
+apply(tactic \<open>TRYALL (eresolve_tac @{context} [disjE])\<close>)
 apply simp_all
-apply(tactic \<open>TRYALL(EVERY'[rtac disjI2,rtac subset_trans,etac @{thm Graph3},force_tac @{context}, assume_tac @{context}])\<close>)
-apply(tactic \<open>TRYALL(EVERY'[rtac disjI2,etac subset_trans,rtac @{thm Graph9},force_tac @{context}])\<close>)
-apply(tactic \<open>TRYALL(EVERY'[rtac disjI1,etac @{thm psubset_subset_trans},rtac @{thm Graph9},force_tac @{context}])\<close>)
+apply(tactic \<open>TRYALL(EVERY'[resolve_tac @{context} [disjI2],
+    resolve_tac @{context} [subset_trans],
+    eresolve_tac @{context} @{thms Graph3},
+    force_tac @{context},
+    assume_tac @{context}])\<close>)
+apply(tactic \<open>TRYALL(EVERY'[resolve_tac @{context} [disjI2],
+    eresolve_tac @{context} [subset_trans],
+    resolve_tac @{context} @{thms Graph9},
+    force_tac @{context}])\<close>)
+apply(tactic \<open>TRYALL(EVERY'[resolve_tac @{context} [disjI1],
+    eresolve_tac @{context} @{thms psubset_subset_trans},
+    resolve_tac @{context} @{thms Graph9},
+    force_tac @{context}])\<close>)
 done
 
 subsubsection \<open>Interference freedom Mutator-Collector\<close>

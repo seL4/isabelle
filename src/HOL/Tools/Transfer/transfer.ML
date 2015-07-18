@@ -627,7 +627,7 @@ fun transfer_rule_of_lhs ctxt t : thm =
 
 fun eq_rules_tac ctxt eq_rules =
   TRY o REPEAT_ALL_NEW (resolve_tac ctxt eq_rules)
-  THEN_ALL_NEW rtac @{thm is_equality_eq}
+  THEN_ALL_NEW resolve_tac ctxt @{thms is_equality_eq}
 
 fun eq_tac ctxt = eq_rules_tac ctxt (get_relator_eq_raw ctxt)
 
@@ -646,8 +646,8 @@ fun transfer_tac equiv ctxt i =
     val end_tac = if equiv then K all_tac else K no_tac
     val err_msg = "Transfer failed to convert goal to an object-logic formula"
     fun main_tac (t, i) =
-      rtac start_rule i THEN
-      (rtac (transfer_rule_of_term ctxt equiv (HOLogic.dest_Trueprop t))
+      resolve_tac ctxt [start_rule] i THEN
+      (resolve_tac ctxt [transfer_rule_of_term ctxt equiv (HOLogic.dest_Trueprop t)]
         THEN_ALL_NEW
           (SOLVED'
             (REPEAT_ALL_NEW (resolve_tac ctxt rules) THEN_ALL_NEW
@@ -673,12 +673,13 @@ fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
   in
     EVERY
       [CONVERSION prep_conv i,
-       rtac @{thm transfer_prover_start} i,
-       ((rtac rule1 ORELSE' (CONVERSION expand_eq_in_rel THEN' rtac rule1))
+       resolve_tac ctxt @{thms transfer_prover_start} i,
+       ((resolve_tac ctxt [rule1] ORELSE'
+         (CONVERSION expand_eq_in_rel THEN' resolve_tac ctxt [rule1]))
         THEN_ALL_NEW
          (REPEAT_ALL_NEW (resolve_tac ctxt rules) THEN_ALL_NEW
            (DETERM o eq_rules_tac ctxt eq_rules))) (i + 1),
-       rtac @{thm refl} i]
+       resolve_tac ctxt @{thms refl} i]
   end)
 
 (** Transfer attribute **)
@@ -702,7 +703,7 @@ fun transferred ctxt extra_rules thm =
     val rule = transfer_rule_of_lhs ctxt' t
     val tac =
       resolve_tac ctxt' [thm2 RS start_rule', thm2 RS start_rule] 1 THEN
-      (rtac rule
+      (resolve_tac ctxt' [rule]
         THEN_ALL_NEW
           (SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt' rules)
             THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1
@@ -737,8 +738,8 @@ fun untransferred ctxt extra_rules thm =
     val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)
     val rule = transfer_rule_of_term ctxt' true t
     val tac =
-      rtac (thm2 RS start_rule) 1 THEN
-      (rtac rule
+      resolve_tac ctxt' [thm2 RS start_rule] 1 THEN
+      (resolve_tac ctxt' [rule]
         THEN_ALL_NEW
           (SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt' rules)
             THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1

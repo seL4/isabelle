@@ -38,7 +38,7 @@ val HOL_basic_ss' =
   simpset_of (put_simpset HOL_basic_ss @{context}
     addsimps @{thms simp_thms Pair_eq}
     setSolver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
-    setSolver (mk_solver "True_solver" (fn _ => rtac @{thm TrueI})))
+    setSolver (mk_solver "True_solver" (fn ctxt => resolve_tac ctxt @{thms TrueI})))
 
 
 (* auxillary functions *)
@@ -74,13 +74,13 @@ fun prove_param options ctxt nargs t deriv =
           end) ctxt 1
       | Abs _ => raise Fail "prove_param: No valid parameter term")
   in
-    REPEAT_DETERM (rtac @{thm ext} 1)
+    REPEAT_DETERM (resolve_tac ctxt @{thms ext} 1)
     THEN trace_tac ctxt options "prove_param"
     THEN f_tac
     THEN trace_tac ctxt options "after prove_param"
     THEN (REPEAT_DETERM (assume_tac ctxt 1))
     THEN (EVERY (map2 (prove_param options ctxt nargs) ho_args param_derivations))
-    THEN REPEAT_DETERM (rtac @{thm refl} 1)
+    THEN REPEAT_DETERM (resolve_tac ctxt @{thms refl} 1)
   end
 
 fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
@@ -93,7 +93,7 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
         val ho_args = ho_args_of mode args
       in
         trace_tac ctxt options "before intro rule:"
-        THEN rtac introrule 1
+        THEN resolve_tac ctxt [introrule] 1
         THEN trace_tac ctxt options "after intro rule"
         (* for the right assumption in first position *)
         THEN rotate_tac premposition 1
@@ -118,7 +118,7 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
                 [rew_eq RS @{thm sym}, @{thm split_beta}, @{thm fst_conv}, @{thm snd_conv}])
               param_prem
           in
-            rtac param_prem' 1
+            resolve_tac ctxt' [param_prem'] 1
           end) ctxt 1
       THEN trace_tac ctxt options "after prove parameter call")
 
@@ -144,9 +144,9 @@ fun prove_match options ctxt nargs out_ts =
     asm_full_simp_tac (put_simpset HOL_basic_ss' ctxt addsimps simprules) 1
     THEN trace_tac ctxt options "after prove_match:"
     THEN (DETERM (TRY
-           (rtac eval_if_P 1
+           (resolve_tac ctxt [eval_if_P] 1
            THEN (SUBPROOF (fn {prems, context = ctxt', ...} =>
-             (REPEAT_DETERM (rtac @{thm conjI} 1
+             (REPEAT_DETERM (resolve_tac ctxt' @{thms conjI} 1
              THEN (SOLVED (asm_simp_tac (put_simpset HOL_basic_ss' ctxt') 1))))
              THEN trace_tac ctxt' options "if condition to be solved:"
              THEN asm_simp_tac (put_simpset HOL_basic_ss' ctxt') 1
@@ -157,7 +157,7 @@ fun prove_match options ctxt nargs out_ts =
                   rewrite_goal_tac ctxt'
                     (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
                 end
-             THEN REPEAT_DETERM (rtac @{thm refl} 1))
+             THEN REPEAT_DETERM (resolve_tac ctxt' @{thms refl} 1))
              THEN trace_tac ctxt' options "after if simp; in SUBPROOF") ctxt 1))))
     THEN trace_tac ctxt options "after if simplification"
   end;
@@ -199,13 +199,13 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
             in
               rewrite_goal_tac ctxt' (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
             end) ctxt 1
-        THEN (rtac (if null clause_out_ts then @{thm singleI_unit} else @{thm singleI}) 1)
+        THEN (resolve_tac ctxt [if null clause_out_ts then @{thm singleI_unit} else @{thm singleI}] 1)
     | prove_prems out_ts ((p, deriv) :: ps) =
         let
           val premposition = (find_index (equal p) clauses) + nargs
           val mode = head_mode_of deriv
           val rest_tac =
-            rtac @{thm bindI} 1
+            resolve_tac ctxt @{thms bindI} 1
             THEN (case p of Prem t =>
               let
                 val (_, us) = strip_comb t
@@ -238,15 +238,15 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
                 THEN (if (is_some name) then
                     trace_tac ctxt options "before applying not introduction rule"
                     THEN Subgoal.FOCUS_PREMS (fn {prems, ...} =>
-                      rtac (the neg_intro_rule) 1
-                      THEN rtac (nth prems premposition) 1) ctxt 1
+                      resolve_tac ctxt [the neg_intro_rule] 1
+                      THEN resolve_tac ctxt [nth prems premposition] 1) ctxt 1
                     THEN trace_tac ctxt options "after applying not introduction rule"
                     THEN (EVERY (map2 (prove_param options ctxt nargs) params param_derivations))
                     THEN (REPEAT_DETERM (assume_tac ctxt 1))
                   else
-                    rtac @{thm not_predI'} 1
+                    resolve_tac ctxt @{thms not_predI'} 1
                     (* test: *)
-                    THEN dtac @{thm sym} 1
+                    THEN dresolve_tac ctxt @{thms sym} 1
                     THEN asm_full_simp_tac
                       (put_simpset HOL_basic_ss ctxt addsimps [@{thm not_False_eq_True}]) 1)
                     THEN simp_tac
@@ -254,7 +254,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
                 THEN rec_tac
               end
             | Sidecond t =>
-             rtac @{thm if_predI} 1
+             resolve_tac ctxt @{thms if_predI} 1
              THEN trace_tac ctxt options "before sidecond:"
              THEN prove_sidecond ctxt t
              THEN trace_tac ctxt options "after sidecond:"
@@ -265,14 +265,14 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
     val prems_tac = prove_prems in_ts moded_ps
   in
     trace_tac ctxt options "Proving clause..."
-    THEN rtac @{thm bindI} 1
-    THEN rtac @{thm singleI} 1
+    THEN resolve_tac ctxt @{thms bindI} 1
+    THEN resolve_tac ctxt @{thms singleI} 1
     THEN prems_tac
   end
 
-fun select_sup 1 1 = []
-  | select_sup _ 1 = [rtac @{thm supI1}]
-  | select_sup n i = (rtac @{thm supI2})::(select_sup (n - 1) (i - 1));
+fun select_sup _ 1 1 = []
+  | select_sup ctxt _ 1 = [resolve_tac ctxt @{thms supI1}]
+  | select_sup ctxt n i = resolve_tac ctxt @{thms supI2} :: select_sup ctxt (n - 1) (i - 1);
 
 fun prove_one_direction options ctxt clauses preds pred mode moded_clauses =
   let
@@ -282,11 +282,11 @@ fun prove_one_direction options ctxt clauses preds pred mode moded_clauses =
   in
     REPEAT_DETERM (CHANGED (rewrite_goals_tac ctxt @{thms split_paired_all}))
     THEN trace_tac ctxt options "before applying elim rule"
-    THEN etac (predfun_elim_of ctxt pred mode) 1
-    THEN etac pred_case_rule 1
+    THEN eresolve_tac ctxt [predfun_elim_of ctxt pred mode] 1
+    THEN eresolve_tac ctxt [pred_case_rule] 1
     THEN trace_tac ctxt options "after applying elim rule"
     THEN (EVERY (map
-           (fn i => EVERY' (select_sup (length moded_clauses) i) i)
+           (fn i => EVERY' (select_sup ctxt (length moded_clauses) i) i)
              (1 upto (length moded_clauses))))
     THEN (EVERY (map2 (prove_clause options ctxt nargs mode) clauses moded_clauses))
     THEN trace_tac ctxt options "proved one direction"
@@ -313,15 +313,15 @@ fun prove_match2 options ctxt out_ts =
             (* THEN (Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt) 1)
               THEN (DETERM (TRY (etac @{thm Pair_inject} 1)))*)
               THEN (REPEAT_DETERM_N (num_of_constrs - 1)
-                (etac @{thm botE} 1 ORELSE etac @{thm botE} 2)))
+                (eresolve_tac ctxt @{thms botE} 1 ORELSE eresolve_tac ctxt @{thms botE} 2)))
             THEN assert_tac ctxt @{here} (fn st => Thm.nprems_of st <= 2)
             THEN (EVERY (map split_term_tac ts))
           end
       else all_tac
   in
     split_term_tac (HOLogic.mk_tuple out_ts)
-    THEN (DETERM (TRY ((Splitter.split_asm_tac ctxt [@{thm "split_if_asm"}] 1)
-    THEN (etac @{thm botE} 2))))
+    THEN (DETERM (TRY ((Splitter.split_asm_tac ctxt @{thms split_if_asm} 1)
+    THEN (eresolve_tac ctxt @{thms botE} 2))))
   end
 
 (* VERY LARGE SIMILIRATIY to function prove_param
@@ -357,15 +357,15 @@ fun prove_expr2 options ctxt (t, deriv) =
           val param_derivations = param_derivations_of deriv
           val ho_args = ho_args_of mode args
         in
-          etac @{thm bindE} 1
+          eresolve_tac ctxt @{thms bindE} 1
           THEN (REPEAT_DETERM (CHANGED (rewrite_goals_tac ctxt @{thms split_paired_all})))
           THEN trace_tac ctxt options "prove_expr2-before"
-          THEN etac (predfun_elim_of ctxt name mode) 1
+          THEN eresolve_tac ctxt [predfun_elim_of ctxt name mode] 1
           THEN trace_tac ctxt options "prove_expr2"
           THEN (EVERY (map2 (prove_param2 options ctxt) ho_args param_derivations))
           THEN trace_tac ctxt options "finished prove_expr2"
         end
-      | _ => etac @{thm bindE} 1)
+      | _ => eresolve_tac ctxt @{thms bindE} 1)
 
 fun prove_sidecond2 options ctxt t =
   let
@@ -399,15 +399,15 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
       trace_tac ctxt options "before prove_match2 - last call:"
       THEN prove_match2 options ctxt out_ts
       THEN trace_tac ctxt options "after prove_match2 - last call:"
-      THEN (etac @{thm singleE} 1)
-      THEN (REPEAT_DETERM (etac @{thm Pair_inject} 1))
+      THEN (eresolve_tac ctxt @{thms singleE} 1)
+      THEN (REPEAT_DETERM (eresolve_tac ctxt @{thms Pair_inject} 1))
       THEN (asm_full_simp_tac (put_simpset HOL_basic_ss' ctxt) 1)
       THEN TRY (
-        (REPEAT_DETERM (etac @{thm Pair_inject} 1))
+        (REPEAT_DETERM (eresolve_tac ctxt @{thms Pair_inject} 1))
         THEN (asm_full_simp_tac (put_simpset HOL_basic_ss' ctxt) 1)
 
         THEN SOLVED (trace_tac ctxt options "state before applying intro rule:"
-        THEN (rtac pred_intro_rule
+        THEN (resolve_tac ctxt [pred_intro_rule]
         (* How to handle equality correctly? *)
         THEN_ALL_NEW (K (trace_tac ctxt options "state before assumption matching")
         THEN' (assume_tac ctxt ORELSE'
@@ -438,20 +438,20 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
                 val ho_args = ho_args_of mode args
               in
                 trace_tac ctxt options "before neg prem 2"
-                THEN etac @{thm bindE} 1
+                THEN eresolve_tac ctxt @{thms bindE} 1
                 THEN (if is_some name then
                     full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
                       [predfun_definition_of ctxt (the name) mode]) 1
-                    THEN etac @{thm not_predE} 1
+                    THEN eresolve_tac ctxt @{thms not_predE} 1
                     THEN simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm not_False_eq_True}]) 1
                     THEN (EVERY (map2 (prove_param2 options ctxt) ho_args param_derivations))
                   else
-                    etac @{thm not_predE'} 1)
+                    eresolve_tac ctxt @{thms not_predE'} 1)
                 THEN rec_tac
               end
           | Sidecond t =>
-              etac @{thm bindE} 1
-              THEN etac @{thm if_predE} 1
+              eresolve_tac ctxt @{thms bindE} 1
+              THEN eresolve_tac ctxt @{thms if_predE} 1
               THEN prove_sidecond2 options ctxt t
               THEN prove_prems2 [] ps)
       in
@@ -463,9 +463,9 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
     val prems_tac = prove_prems2 in_ts ps
   in
     trace_tac ctxt options "starting prove_clause2"
-    THEN etac @{thm bindE} 1
-    THEN (etac @{thm singleE'} 1)
-    THEN (TRY (etac @{thm Pair_inject} 1))
+    THEN eresolve_tac ctxt @{thms bindE} 1
+    THEN (eresolve_tac ctxt @{thms singleE'} 1)
+    THEN (TRY (eresolve_tac ctxt @{thms Pair_inject} 1))
     THEN trace_tac ctxt options "after singleE':"
     THEN prems_tac
   end;
@@ -473,15 +473,15 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
 fun prove_other_direction options ctxt pred mode moded_clauses =
   let
     fun prove_clause clause i =
-      (if i < length moded_clauses then etac @{thm supE} 1 else all_tac)
+      (if i < length moded_clauses then eresolve_tac ctxt @{thms supE} 1 else all_tac)
       THEN (prove_clause2 options ctxt pred mode clause i)
   in
-    (DETERM (TRY (rtac @{thm unit.induct} 1)))
+    (DETERM (TRY (resolve_tac ctxt @{thms unit.induct} 1)))
      THEN (REPEAT_DETERM (CHANGED (rewrite_goals_tac ctxt @{thms split_paired_all})))
-     THEN (rtac (predfun_intro_of ctxt pred mode) 1)
-     THEN (REPEAT_DETERM (rtac @{thm refl} 2))
+     THEN (resolve_tac ctxt [predfun_intro_of ctxt pred mode] 1)
+     THEN (REPEAT_DETERM (resolve_tac ctxt @{thms refl} 2))
      THEN (
-       if null moded_clauses then etac @{thm botE} 1
+       if null moded_clauses then eresolve_tac ctxt @{thms botE} 1
        else EVERY (map2 prove_clause moded_clauses (1 upto (length moded_clauses))))
   end
 
@@ -496,7 +496,7 @@ fun prove_pred options thy clauses preds pred (_, mode) (moded_clauses, compiled
     Goal.prove ctxt (Term.add_free_names compiled_term []) [] compiled_term
       (if not (skip_proof options) then
         (fn _ =>
-        rtac @{thm pred_iffI} 1
+        resolve_tac ctxt @{thms pred_iffI} 1
         THEN trace_tac ctxt options "after pred_iffI"
         THEN prove_one_direction options ctxt clauses preds pred mode moded_clauses
         THEN trace_tac ctxt options "proved one direction"

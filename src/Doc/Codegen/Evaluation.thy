@@ -232,7 +232,7 @@ schematic_lemma "thm": fixes x y z :: "'a::order" shows "x < y \<and> x < z \<eq
 ML_prf 
 (*>*) \<open>val thm =
   Reification.conv @{context} @{thms interp.simps} @{cterm "x < y \<and> x < z"}\<close> (*<*)
-by (tactic \<open>ALLGOALS (rtac thm)\<close>)
+by (tactic \<open>ALLGOALS (resolve_tac @{context} [thm])\<close>)
 (*>*) 
 
 text \<open>

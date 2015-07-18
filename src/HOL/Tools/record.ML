@@ -112,7 +112,7 @@ fun do_typedef raw_tyco repT raw_vs thy =
   in
     thy
     |> Typedef.add_typedef_global false (raw_tyco, vs, NoSyn)
-        (HOLogic.mk_UNIV repT) NONE (fn _ => rtac UNIV_witness 1)
+        (HOLogic.mk_UNIV repT) NONE (fn ctxt' => resolve_tac ctxt' [UNIV_witness] 1)
     |-> (fn (tyco, info) => get_typedef_info tyco vs info)
   end;
 
@@ -184,7 +184,7 @@ fun iso_tuple_intros_tac ctxt =
         (case Symtab.lookup isthms (#1 is) of
           SOME isthm => isthm
         | NONE => err "no thm found for constant" (Const is));
-    in rtac isthm i end);
+    in resolve_tac ctxt [isthm] i end);
 
 end;
 
@@ -1380,7 +1380,7 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
         val thm = cterm_instantiate [(crec, cfree)] induct_thm;
       in
         simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms induct_atomize}) i THEN
-        rtac thm i THEN
+        resolve_tac ctxt [thm] i THEN
         simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms induct_rulify}) i
       end;
 
@@ -1591,9 +1591,9 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
           (fn {context = ctxt, ...} =>
             simp_tac (put_simpset HOL_basic_ss ctxt addsimps [ext_def]) 1 THEN
             REPEAT_DETERM
-              (rtac @{thm refl_conj_eq} 1 ORELSE
+              (resolve_tac ctxt @{thms refl_conj_eq} 1 ORELSE
                 Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1 ORELSE
-                rtac refl 1))));
+                resolve_tac ctxt [refl] 1))));
 
 
     (*We need a surjection property r = (| f = f r, g = g r ... |)
@@ -1610,7 +1610,8 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
         val tactic1 =
           simp_tac (put_simpset HOL_basic_ss defs_ctxt addsimps [ext_def]) 1 THEN
           REPEAT_ALL_NEW (Iso_Tuple_Support.iso_tuple_intros_tac defs_ctxt) 1;
-        val tactic2 = REPEAT (rtac surject_assistI 1 THEN rtac refl 1);
+        val tactic2 =
+          REPEAT (resolve_tac defs_ctxt [surject_assistI] 1 THEN resolve_tac defs_ctxt [refl] 1);
         val [halfway] = Seq.list_of (tactic1 start);
         val [surject] = Seq.list_of (tactic2 (Drule.export_without_context halfway));
       in
@@ -1621,10 +1622,11 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       Goal.prove_sorry_global defs_thy [] [] split_meta_prop
         (fn {context = ctxt, ...} =>
           EVERY1
-           [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac ctxt,
-            etac @{thm meta_allE}, assume_tac ctxt,
-            rtac (@{thm prop_subst} OF [surject]),
-            REPEAT o etac @{thm meta_allE}, assume_tac ctxt]));
+           [resolve_tac ctxt @{thms equal_intr_rule},
+            Goal.norm_hhf_tac ctxt,
+            eresolve_tac ctxt @{thms meta_allE}, assume_tac ctxt,
+            resolve_tac ctxt [@{thm prop_subst} OF [surject]],
+            REPEAT o eresolve_tac ctxt @{thms meta_allE}, assume_tac ctxt]));
 
     val induct = timeit_msg ctxt "record extension induct proof:" (fn () =>
       let val (assm, concl) = induct_prop in
@@ -1748,7 +1750,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       fun tac ctxt eq_def =
         Class.intro_classes_tac ctxt []
         THEN rewrite_goals_tac ctxt [Simpdata.mk_eq eq_def]
-        THEN ALLGOALS (rtac @{thm refl});
+        THEN ALLGOALS (resolve_tac ctxt @{thms refl});
       fun mk_eq thy eq_def =
         rewrite_rule (Proof_Context.init_global thy)
           [Axclass.unoverload thy (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
@@ -1946,7 +1948,8 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           val cterm_vrs = Thm.cterm_of ext_ctxt r_rec0_Vars;
           val insts = [("v", cterm_rec), ("v'", cterm_vrs)];
           val init_thm = named_cterm_instantiate insts updacc_eq_triv;
-          val terminal = rtac updacc_eq_idI 1 THEN rtac refl 1;
+          val terminal =
+            resolve_tac ext_ctxt [updacc_eq_idI] 1 THEN resolve_tac ext_ctxt [refl] 1;
           val tactic =
             simp_tac (put_simpset HOL_basic_ss ext_ctxt addsimps ext_defs) 1 THEN
             REPEAT (Iso_Tuple_Support.iso_tuple_intros_tac ext_ctxt 1 ORELSE terminal);
@@ -2131,11 +2134,11 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       Goal.prove_sorry_global defs_thy [] [] surjective_prop
         (fn {context = ctxt, ...} =>
           EVERY
-           [rtac surject_assist_idE 1,
+           [resolve_tac ctxt [surject_assist_idE] 1,
             simp_tac (put_simpset HOL_basic_ss ctxt addsimps ext_defs) 1,
             REPEAT
               (Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1 ORELSE
-                (rtac surject_assistI 1 THEN
+                (resolve_tac ctxt [surject_assistI] 1 THEN
                   simp_tac (put_simpset (get_sel_upd_defs defs_thy) ctxt
                     addsimps (sel_defs @ @{thms o_assoc id_apply id_o o_id})) 1))]));
 
@@ -2143,7 +2146,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       Goal.prove_sorry_global defs_thy [] [#1 cases_scheme_prop] (#2 cases_scheme_prop)
         (fn {context = ctxt, prems, ...} =>
           resolve_tac ctxt prems 1 THEN
-          rtac surjective 1));
+          resolve_tac ctxt [surjective] 1));
 
     val cases = timeit_msg ctxt "record cases proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] cases_prop
@@ -2156,26 +2159,26 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       Goal.prove_sorry_global defs_thy [] [] split_meta_prop
         (fn {context = ctxt', ...} =>
           EVERY1
-           [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac ctxt',
-            etac @{thm meta_allE}, assume_tac ctxt',
-            rtac (@{thm prop_subst} OF [surjective]),
-            REPEAT o etac @{thm meta_allE}, assume_tac ctxt']));
+           [resolve_tac ctxt' @{thms equal_intr_rule}, Goal.norm_hhf_tac ctxt',
+            eresolve_tac ctxt' @{thms meta_allE}, assume_tac ctxt',
+            resolve_tac ctxt' [@{thm prop_subst} OF [surjective]],
+            REPEAT o eresolve_tac ctxt' @{thms meta_allE}, assume_tac ctxt']));
 
     val split_object = timeit_msg ctxt "record split_object proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_object_prop
         (fn {context = ctxt, ...} =>
-          rtac @{lemma "Trueprop A == Trueprop B ==> A = B" by (rule iffI) unfold} 1 THEN
+          resolve_tac ctxt [@{lemma "Trueprop A \<equiv> Trueprop B \<Longrightarrow> A = B" by (rule iffI) unfold}] 1 THEN
           rewrite_goals_tac ctxt @{thms atomize_all [symmetric]} THEN
-          rtac split_meta 1));
+          resolve_tac ctxt [split_meta] 1));
 
     val split_ex = timeit_msg ctxt "record split_ex proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_ex_prop
         (fn {context = ctxt, ...} =>
           simp_tac
             (put_simpset HOL_basic_ss ctxt addsimps
-              (@{lemma "EX x. P x == ~ (ALL x. ~ P x)" by simp} ::
+              (@{lemma "\<exists>x. P x \<equiv> \<not> (\<forall>x. \<not> P x)" by simp} ::
                 @{thms not_not Not_eq_iff})) 1 THEN
-          rtac split_object 1));
+          resolve_tac ctxt [split_object] 1));
 
     val equality = timeit_msg ctxt "record equality proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] equality_prop

@@ -413,7 +413,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
          case_tac exhaust_rule ctxt THEN_ALL_NEW (
         EVERY' [hyp_subst_tac ctxt, (* does not kill wits because = was rewritten to eq_onp top *)
         Raw_Simplifier.rewrite_goal_tac ctxt (map safe_mk_meta_eq dt_rules), 
-        REPEAT_DETERM o etac ctxt conjE, atac])) i
+        REPEAT_DETERM o etac ctxt conjE, assume_tac ctxt])) i
     val pred_simps = Transfer.lookup_pred_data lthy (Tname rty) |> the |> Transfer.pred_simps
     val sel_tac = lift_sel_tac (#exhaust ctr_sugar) (#case_thms ctr_sugar @ pred_simps)
     val sel_names = map (fn (k, xs) => map (fn k' => Binding.qualified true
@@ -560,7 +560,7 @@ and constr qty (quot_thm, (lthy, rel_eq_onps)) =
 
         fun non_empty_typedef_tac non_empty_pred ctxt i =
           (Method.insert_tac [non_empty_pred] THEN' 
-            SELECT_GOAL (Local_Defs.unfold_tac ctxt [mem_Collect_eq]) THEN' atac) i
+            SELECT_GOAL (Local_Defs.unfold_tac ctxt [mem_Collect_eq]) THEN' assume_tac ctxt) i
         val uTname = unique_Tname (rty, qty)
         val Tdef_set = HOLogic.mk_Collect ("x", rty, pred $ Free("x", rty));
         val ((_, tcode_dt), lthy) = conceal_naming_result (typedef (Binding.concealed uTname, TFrees, NoSyn)

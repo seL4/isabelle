@@ -116,9 +116,9 @@ fun mir_tac ctxt q =
       val pth = mirfr_oracle (ctxt, Envir.eta_long [] t1)
     in 
        ((pth RS iffD2) RS pre_thm,
-        assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i))
+        assm_tac (i + 1) THEN (if q then I else TRY) (resolve_tac ctxt [TrueI] i))
     end
       | _ => (pre_thm, assm_tac i)
-  in rtac (((mp_step nh) o (spec_step np)) th) i THEN tac end);
+  in resolve_tac ctxt [((mp_step nh) o (spec_step np)) th] i THEN tac end);
 
 end

@@ -9,6 +9,9 @@ signature ML_ENV =
 sig
   val inherit: Context.generic -> Context.generic -> Context.generic
   val forget_structure: string -> Context.generic -> Context.generic
+  val add_breakpoint: serial * (bool Unsynchronized.ref * Position.T) ->
+    Context.generic -> Context.generic
+  val get_breakpoint: Context.generic -> serial -> (bool Unsynchronized.ref * Position.T) option
   val name_space: {SML: bool, exchange: bool} -> ML_Name_Space.T
   val local_context: use_context
   val local_name_space: ML_Name_Space.T
@@ -38,10 +41,14 @@ fun merge_tables
    Symtab.merge (K true) (signature1, signature2),
    Symtab.merge (K true) (functor1, functor2));
 
-type data = {bootstrap: bool, tables: tables, sml_tables: tables};
+type data =
+ {bootstrap: bool,
+  tables: tables,
+  sml_tables: tables,
+  breakpoints: (bool Unsynchronized.ref * Position.T) Inttab.table};
 
-fun make_data (bootstrap, tables, sml_tables) : data =
-  {bootstrap = bootstrap, tables = tables, sml_tables = sml_tables};
+fun make_data (bootstrap, tables, sml_tables, breakpoints) : data =
+  {bootstrap = bootstrap, tables = tables, sml_tables = sml_tables, breakpoints = breakpoints};
 
 structure Env = Generic_Data
 (
@@ -54,23 +61,32 @@ structure Env = Generic_Data
        Symtab.make ML_Name_Space.initial_fixity,
        Symtab.make ML_Name_Space.initial_structure,
        Symtab.make ML_Name_Space.initial_signature,
-       Symtab.make ML_Name_Space.initial_functor));
-  fun extend (data : T) = make_data (false, #tables data, #sml_tables data);
+       Symtab.make ML_Name_Space.initial_functor),
+      Inttab.empty);
+  fun extend (data : T) = make_data (false, #tables data, #sml_tables data, #breakpoints data);
   fun merge (data : T * T) =
     make_data (false,
       merge_tables (apply2 #tables data),
-      merge_tables (apply2 #sml_tables data));
+      merge_tables (apply2 #sml_tables data),
+      Inttab.merge (K true) (apply2 #breakpoints data));
 );
 
 val inherit = Env.put o Env.get;
 
 fun forget_structure name =
-  Env.map (fn {bootstrap, tables, sml_tables} =>
+  Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
     let
       val _ = if bootstrap then ML_Name_Space.forget_global_structure name else ();
       val tables' =
         (#1 tables, #2 tables, #3 tables, Symtab.delete_safe name (#4 tables), #5 tables, #6 tables);
-    in make_data (bootstrap, tables', sml_tables) end);
+    in make_data (bootstrap, tables', sml_tables, breakpoints) end);
+
+fun add_breakpoint breakpoint =
+  Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
+    let val breakpoints' = Inttab.update_new breakpoint breakpoints;
+    in make_data (bootstrap, tables, sml_tables, breakpoints') end);
+
+val get_breakpoint = Inttab.lookup o #breakpoints o Env.get;
 
 
 (* name space *)
@@ -98,15 +114,15 @@ fun name_space {SML, exchange} : ML_Name_Space.T =
 
     fun enter ap1 sel2 entry =
       if SML <> exchange then
-        Context.>> (Env.map (fn {bootstrap, tables, sml_tables} =>
+        Context.>> (Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
           let val sml_tables' = ap1 (Symtab.update entry) sml_tables
-          in make_data (bootstrap, tables, sml_tables') end))
+          in make_data (bootstrap, tables, sml_tables', breakpoints) end))
       else if is_some (Context.thread_data ()) then
-        Context.>> (Env.map (fn {bootstrap, tables, sml_tables} =>
+        Context.>> (Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
           let
             val _ = if bootstrap then sel2 ML_Name_Space.global entry else ();
             val tables' = ap1 (Symtab.update entry) tables;
-          in make_data (bootstrap, tables', sml_tables) end))
+          in make_data (bootstrap, tables', sml_tables, breakpoints) end))
       else sel2 ML_Name_Space.global entry;
   in
    {lookupVal    = lookup #1 #lookupVal,
@@ -145,4 +161,3 @@ fun check_functor name =
   else error ("Unknown ML functor: " ^ quote name);
 
 end;
-

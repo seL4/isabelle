@@ -262,19 +262,20 @@ structure CaseSplit: CASE_SPLIT =
 struct
 
 (* make a casethm from an induction thm *)
-val cases_thm_of_induct_thm =
-     Seq.hd o (ALLGOALS (fn i => REPEAT (etac Drule.thin_rl i)));
+fun cases_thm_of_induct_thm ctxt =
+  Seq.hd o (ALLGOALS (fn i => REPEAT (eresolve_tac ctxt [Drule.thin_rl] i)));
 
 (* get the case_thm (my version) from a type *)
-fun case_thm_of_ty thy ty  =
+fun case_thm_of_ty ctxt ty  =
     let
+      val thy = Proof_Context.theory_of ctxt
       val ty_str = case ty of
                      Type(ty_str, _) => ty_str
                    | TFree(s,_)  => error ("Free type: " ^ s)
                    | TVar((s,_),_) => error ("Free variable: " ^ s)
       val {induct, ...} = BNF_LFP_Compat.the_info thy [BNF_LFP_Compat.Keep_Nesting] ty_str
     in
-      cases_thm_of_induct_thm induct
+      cases_thm_of_induct_thm ctxt induct
     end;
 
 
@@ -287,7 +288,7 @@ fun mk_casesplit_goal_thm ctxt (vstr,ty) gt =
       val x = Free(vstr,ty);
       val abst = Abs(vstr, ty, Term.abstract_over (x, gt));
 
-      val case_thm = case_thm_of_ty thy ty;
+      val case_thm = case_thm_of_ty ctxt ty;
 
       val abs_ct = Thm.cterm_of ctxt abst;
       val free_ct = Thm.cterm_of ctxt x;
@@ -2640,7 +2641,8 @@ fun curry_rule ctxt rl =
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 fun meta_outer ctxt =
   curry_rule ctxt o Drule.export_without_context o
-  rule_by_tactic ctxt (REPEAT (FIRSTGOAL (resolve_tac ctxt [allI, impI, conjI] ORELSE' etac conjE)));
+  rule_by_tactic ctxt
+    (REPEAT (FIRSTGOAL (resolve_tac ctxt [allI, impI, conjI] ORELSE' eresolve_tac ctxt [conjE])));
 
 (*Strip off the outer !P*)
 val spec'=

@@ -4102,7 +4102,7 @@ fun tactic ctxt alternative T ps =
   THEN' CSUBGOAL (fn (g, i) =>
     let
       val th = frpar_oracle (ctxt, alternative, T, ps, g);
-    in rtac (th RS iffD2) i end);
+    in resolve_tac ctxt [th RS iffD2] i end);
 
 fun method alternative =
   let

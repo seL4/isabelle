@@ -289,13 +289,13 @@ fun wf_union_tac ctxt st = SUBGOAL (fn _ =>
         |> foldr1 (HOLogic.mk_binop @{const_name Lattices.sup})
 
     fun solve_membership_tac i =
-      (EVERY' (replicate (i - 2) (rtac @{thm UnI2}))  (* pick the right component of the union *)
-      THEN' (fn j => TRY (rtac @{thm UnI1} j))
-      THEN' (rtac @{thm CollectI})                    (* unfold comprehension *)
-      THEN' (fn i => REPEAT (rtac @{thm exI} i))      (* Turn existentials into schematic Vars *)
-      THEN' ((rtac @{thm refl})                       (* unification instantiates all Vars *)
-        ORELSE' ((rtac @{thm conjI})
-          THEN' (rtac @{thm refl})
+      (EVERY' (replicate (i - 2) (resolve_tac ctxt @{thms UnI2}))  (* pick the right component of the union *)
+      THEN' (fn j => TRY (resolve_tac ctxt @{thms UnI1} j))
+      THEN' (resolve_tac ctxt @{thms CollectI})                    (* unfold comprehension *)
+      THEN' (fn i => REPEAT (resolve_tac ctxt @{thms exI} i))      (* Turn existentials into schematic Vars *)
+      THEN' ((resolve_tac ctxt @{thms refl})                       (* unification instantiates all Vars *)
+        ORELSE' ((resolve_tac ctxt @{thms conjI})
+          THEN' (resolve_tac ctxt @{thms refl})
           THEN' (blast_tac ctxt)))    (* Solve rest of context... not very elegant *)
       ) i
   in
@@ -318,10 +318,10 @@ fun mk_dgraph D cs =
      then Term_Graph.add_edge (c2, c1) else I)
      cs cs
 
-fun ucomp_empty_tac T =
-  REPEAT_ALL_NEW (rtac @{thm union_comp_emptyR}
-    ORELSE' rtac @{thm union_comp_emptyL}
-    ORELSE' SUBGOAL (fn (_ $ (_ $ (_ $ c1 $ c2) $ _), i) => rtac (T c1 c2) i))
+fun ucomp_empty_tac ctxt T =
+  REPEAT_ALL_NEW (resolve_tac ctxt @{thms union_comp_emptyR}
+    ORELSE' resolve_tac ctxt @{thms union_comp_emptyL}
+    ORELSE' SUBGOAL (fn (_ $ (_ $ (_ $ c1 $ c2) $ _), i) => resolve_tac ctxt [T c1 c2] i))
 
 fun regroup_calls_tac ctxt cs = CALLS (fn (cs', i) =>
  let
@@ -332,11 +332,13 @@ fun regroup_calls_tac ctxt cs = CALLS (fn (cs', i) =>
  end)
 
 
-fun solve_trivial_tac D = CALLS (fn ([c], i) =>
-  (case get_chain D c c of
-     SOME (SOME thm) => rtac @{thm wf_no_loop} i
-                        THEN rtac thm i
-   | _ => no_tac)
+fun solve_trivial_tac ctxt D =
+  CALLS (fn ([c], i) =>
+    (case get_chain D c c of
+      SOME (SOME thm) =>
+        resolve_tac ctxt @{thms wf_no_loop} i THEN
+        resolve_tac ctxt [thm] i
+    | _ => no_tac)
   | _ => no_tac)
 
 fun decompose_tac ctxt D = CALLS (fn (cs, i) =>
@@ -344,17 +346,17 @@ fun decompose_tac ctxt D = CALLS (fn (cs, i) =>
     val G = mk_dgraph D cs
     val sccs = Term_Graph.strong_conn G
 
-    fun split [SCC] i = TRY (solve_trivial_tac D i)
+    fun split [SCC] i = TRY (solve_trivial_tac ctxt D i)
       | split (SCC::rest) i =
         regroup_calls_tac ctxt SCC i
-        THEN rtac @{thm wf_union_compatible} i
-        THEN rtac @{thm less_by_empty} (i + 2)
-        THEN ucomp_empty_tac (the o the oo get_chain D) (i + 2)
+        THEN resolve_tac ctxt @{thms wf_union_compatible} i
+        THEN resolve_tac ctxt @{thms less_by_empty} (i + 2)
+        THEN ucomp_empty_tac ctxt (the o the oo get_chain D) (i + 2)
         THEN split rest (i + 1)
-        THEN TRY (solve_trivial_tac D i)
+        THEN TRY (solve_trivial_tac ctxt D i)
   in
     if length sccs > 1 then split sccs i
-    else solve_trivial_tac D i
+    else solve_trivial_tac ctxt D i
   end)
 
 end

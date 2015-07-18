@@ -284,23 +284,24 @@ lemmas box_conjE_act = box_conjE [where 'a = "state * state"]
 lemma box_thin: "\<lbrakk> sigma \<Turnstile> \<box>F; PROP W \<rbrakk> \<Longrightarrow> PROP W" .
 
 ML \<open>
-fun merge_box_tac i =
-   REPEAT_DETERM (EVERY [etac @{thm box_conjE} i, atac i, etac @{thm box_thin} i])
+fun merge_box_tac ctxt i =
+   REPEAT_DETERM (EVERY [eresolve_tac ctxt @{thms box_conjE} i, assume_tac ctxt i,
+    eresolve_tac ctxt @{thms box_thin} i])
 
 fun merge_temp_box_tac ctxt i =
-  REPEAT_DETERM (EVERY [etac @{thm box_conjE_temp} i, atac i,
+  REPEAT_DETERM (EVERY [eresolve_tac ctxt @{thms box_conjE_temp} i, assume_tac ctxt i,
     Rule_Insts.eres_inst_tac ctxt [((("'a", 0), Position.none), "behavior")] [] @{thm box_thin} i])
 
 fun merge_stp_box_tac ctxt i =
-  REPEAT_DETERM (EVERY [etac @{thm box_conjE_stp} i, atac i,
+  REPEAT_DETERM (EVERY [eresolve_tac ctxt @{thms box_conjE_stp} i, assume_tac ctxt i,
     Rule_Insts.eres_inst_tac ctxt [((("'a", 0), Position.none), "state")] [] @{thm box_thin} i])
 
 fun merge_act_box_tac ctxt i =
-  REPEAT_DETERM (EVERY [etac @{thm box_conjE_act} i, atac i,
+  REPEAT_DETERM (EVERY [eresolve_tac ctxt @{thms box_conjE_act} i, assume_tac ctxt i,
     Rule_Insts.eres_inst_tac ctxt [((("'a", 0), Position.none), "state * state")] [] @{thm box_thin} i])
 \<close>
 
-method_setup merge_box = \<open>Scan.succeed (K (SIMPLE_METHOD' merge_box_tac))\<close>
+method_setup merge_box = \<open>Scan.succeed (SIMPLE_METHOD' o merge_box_tac)\<close>
 method_setup merge_temp_box = \<open>Scan.succeed (SIMPLE_METHOD' o merge_temp_box_tac)\<close>
 method_setup merge_stp_box = \<open>Scan.succeed (SIMPLE_METHOD' o merge_stp_box_tac)\<close>
 method_setup merge_act_box = \<open>Scan.succeed (SIMPLE_METHOD' o merge_act_box_tac)\<close>
@@ -577,9 +578,9 @@ fun inv_tac ctxt =
   SELECT_GOAL
     (EVERY
      [auto_tac ctxt,
-      TRY (merge_box_tac 1),
-      rtac (temp_use ctxt @{thm INV1}) 1, (* fail if the goal is not a box *)
-      TRYALL (etac @{thm Stable})]);
+      TRY (merge_box_tac ctxt 1),
+      resolve_tac ctxt [temp_use ctxt @{thm INV1}] 1, (* fail if the goal is not a box *)
+      TRYALL (eresolve_tac ctxt @{thms Stable})]);
 
 (* auto_inv_tac applies inv_tac and then tries to attack the subgoals
    in simple cases it may be able to handle goals like \<turnstile> MyProg \<longrightarrow> \<box>Inv.

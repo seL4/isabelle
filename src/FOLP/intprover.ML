@@ -55,7 +55,7 @@ val (safe0_brls, safep_brls) =
 fun safe_step_tac ctxt = FIRST' [uniq_assume_tac ctxt,
                             int_uniq_mp_tac ctxt,
                             biresolve_tac ctxt safe0_brls,
-                            hyp_subst_tac,
+                            hyp_subst_tac ctxt,
                             biresolve_tac ctxt safep_brls] ;
 
 (*Repeatedly attack subgoals using safe inferences*)

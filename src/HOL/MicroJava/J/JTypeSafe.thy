@@ -178,8 +178,9 @@ declare wf_prog_ws_prog [simp]
 
 ML{*
 fun forward_hyp_tac ctxt =
-  ALLGOALS (TRY o (EVERY' [dtac spec, mp_tac ctxt,
-    (mp_tac ctxt ORELSE' (dtac spec THEN' mp_tac ctxt)), REPEAT o (etac conjE)]))
+  ALLGOALS (TRY o (EVERY' [dresolve_tac ctxt [spec], mp_tac ctxt,
+    (mp_tac ctxt ORELSE' (dresolve_tac ctxt [spec] THEN' mp_tac ctxt)),
+    REPEAT o (eresolve_tac ctxt [conjE])]))
 *}
 
 
@@ -202,7 +203,7 @@ apply( simp_all)
 apply( tactic "ALLGOALS (REPEAT o resolve_tac @{context} [impI, allI])")
 apply( tactic {* ALLGOALS (eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
   THEN_ALL_NEW (full_simp_tac (put_simpset (simpset_of @{theory_context Conform}) @{context}))) *})
-apply(tactic "ALLGOALS (EVERY' [REPEAT o (etac conjE), REPEAT o hyp_subst_tac @{context}])")
+apply(tactic "ALLGOALS (EVERY' [REPEAT o (eresolve_tac @{context} [conjE]), REPEAT o hyp_subst_tac @{context}])")
 
 -- "Level 7"
 -- "15 NewC"
@@ -241,7 +242,7 @@ apply( fast elim: conforms_localD [THEN lconfD])
 
 -- "for FAss"
 apply( tactic {* EVERY'[eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
-       THEN_ALL_NEW (full_simp_tac @{context}), REPEAT o (etac conjE), hyp_subst_tac @{context}] 3*})
+       THEN_ALL_NEW (full_simp_tac @{context}), REPEAT o (eresolve_tac @{context} [conjE]), hyp_subst_tac @{context}] 3*})
 
 -- "for if"
 apply( tactic {* (Induct_Tacs.case_tac @{context} "the_Bool v" [] NONE THEN_ALL_NEW

@@ -148,10 +148,10 @@ local
 in
 
 fun discharge_sk_tac ctxt i st =
-  (rtac @{thm trans} i
+  (resolve_tac ctxt @{thms trans} i
    THEN resolve_tac ctxt sk_rules i
-   THEN (rtac @{thm refl} ORELSE' discharge_sk_tac ctxt) (i+1)
-   THEN rtac @{thm refl} i) st
+   THEN (resolve_tac ctxt @{thms refl} ORELSE' discharge_sk_tac ctxt) (i+1)
+   THEN resolve_tac ctxt @{thms refl} i) st
 
 end
 

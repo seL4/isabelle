@@ -434,7 +434,7 @@ apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
 --\<open>112 subgoals left\<close>
 apply(simp_all (no_asm))
 --\<open>43 subgoals left\<close>
-apply(tactic \<open>ALLGOALS (conjI_Tac (K all_tac))\<close>)
+apply(tactic \<open>ALLGOALS (conjI_Tac @{context} (K all_tac))\<close>)
 --\<open>419 subgoals left\<close>
 apply(tactic \<open>ALLGOALS (clarify_tac @{context})\<close>)
 --\<open>99 subgoals left\<close>

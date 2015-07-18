@@ -14,7 +14,7 @@ type location = PolyML.location;
 val on_entry = PolyML.DebuggerInterface.setOnEntry;
 val on_exit = PolyML.DebuggerInterface.setOnExit;
 val on_exit_exception = PolyML.DebuggerInterface.setOnExitException;
-val on_break_point = PolyML.DebuggerInterface.setOnBreakPoint;
+val on_breakpoint = PolyML.DebuggerInterface.setOnBreakPoint;
 
 
 (* debugger operations *)
@@ -29,6 +29,3 @@ val debug_location = PolyML.DebuggerInterface.debugLocation;
 val debug_name_space = PolyML.DebuggerInterface.debugNameSpace;
 
 end;
-
-fun ml_debugger_parameters false = []
-  | ml_debugger_parameters true = [PolyML.Compiler.CPDebug true];

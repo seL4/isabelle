@@ -395,17 +395,17 @@ val _ = Theory.setup
 
 val _ =
   Isabelle_Process.protocol_command "Simplifier_Trace.reply"
-    (fn [s, r] =>
+    (fn [serial_string, reply] =>
       let
-        val serial = Markup.parse_int s
-        fun lookup_delete tab =
-          (Inttab.lookup tab serial, Inttab.delete_safe serial tab)
-        fun apply_result (SOME promise) = Future.fulfill promise r
-          | apply_result NONE = () (* FIXME handle protocol failure, just like in active.ML? *)
+        val serial = Markup.parse_int serial_string
+        val result =
+          Synchronized.change_result futures
+            (fn tab => (Inttab.lookup tab serial, Inttab.delete_safe serial tab))
       in
-        (Synchronized.change_result futures lookup_delete |> apply_result)
-          handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn
-      end)
+        (case result of
+          SOME promise => Future.fulfill promise reply
+        | NONE => ()) (* FIXME handle protocol failure, just like in active.ML (!?) *)
+      end handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn)
 
 
 

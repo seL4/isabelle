@@ -975,9 +975,9 @@ local
             raise SKELETON (*FIXME or classify it as a Caboose: TRY (HEADGOAL atac) *)
           else
             case hd skel of
-                Assumed => TRY (HEADGOAL atac) THEN rest (tl skel) memo
-              | Caboose => TRY (HEADGOAL atac)
-              | Unconjoin => rtac @{thm conjI} 1 THEN rest (tl skel) memo
+                Assumed => TRY (HEADGOAL (assume_tac ctxt)) THEN rest (tl skel) memo
+              | Caboose => TRY (HEADGOAL (assume_tac ctxt))
+              | Unconjoin => resolve_tac ctxt @{thms conjI} 1 THEN rest (tl skel) memo
               | Split (split_node, solved_node, antes) =>
                   let
                     val split_fmla = node_info (#meta pannot) #fmla split_node
@@ -993,13 +993,13 @@ local
                     val split_thm =
                       simulate_split ctxt split_fmla minor_prems_assumps conclusion
                   in
-                    rtac split_thm 1 THEN rest (tl skel) memo
+                    resolve_tac ctxt [split_thm] 1 THEN rest (tl skel) memo
                   end
               | Step s =>
                   let
-                    val (tac, memo') = tac_and_memo s memo
+                    val (th, memo') = tac_and_memo s memo
                   in
-                    rtac tac 1 THEN rest (tl skel) memo'
+                    resolve_tac ctxt [th] 1 THEN rest (tl skel) memo'
                   end
               | Definition n =>
                   let
@@ -1008,7 +1008,7 @@ local
                           NONE => error ("Did not find definition: " ^ n)
                         | SOME binding => Global_Theory.get_thm thy (Binding.name_of binding)
                   in
-                    rtac def_thm 1 THEN rest (tl skel) memo
+                    resolve_tac ctxt [def_thm] 1 THEN rest (tl skel) memo
                   end
               | Axiom n =>
                   let
@@ -1017,7 +1017,7 @@ local
                           NONE => error ("Did not find axiom: " ^ n)
                         | SOME binding => Global_Theory.get_thm thy (Binding.name_of binding)
                   in
-                    rtac ax_thm 1 THEN rest (tl skel) memo
+                    resolve_tac ctxt [ax_thm] 1 THEN rest (tl skel) memo
                   end
               | _ => raise SKELETON
       in tactic st end
@@ -1065,7 +1065,7 @@ local
              let
                fun thm ctxt'' = prover_tac ctxt'' prob_name (hd skel |> stock_to_string)
                val reconstructed_inference = thm ctxt'
-               fun rec_inf_tac st = HEADGOAL (rtac (thm ctxt')) st
+               fun rec_inf_tac st = HEADGOAL (resolve_tac ctxt' [thm ctxt']) st
              in (reconstructed_inference,
                  rec_inf_tac)
              end)
@@ -1088,17 +1088,17 @@ local
                 (hd skel,
                  Thm.prop_of @{thm asm_rl}
                  |> SOME,
-                 SOME (@{thm asm_rl}, TRY (HEADGOAL atac))) :: rest memo ctxt
+                 SOME (@{thm asm_rl}, TRY (HEADGOAL (assume_tac ctxt)))) :: rest memo ctxt
             | Caboose =>
                 [(Caboose,
                   Thm.prop_of @{thm asm_rl}
                   |> SOME,
-                  SOME (@{thm asm_rl}, TRY (HEADGOAL atac)))]
+                  SOME (@{thm asm_rl}, TRY (HEADGOAL (assume_tac ctxt))))]
             | Unconjoin =>
                 (hd skel,
                  Thm.prop_of @{thm conjI}
                  |> SOME,
-                 SOME (@{thm conjI}, rtac @{thm conjI} 1)) :: rest memo ctxt
+                 SOME (@{thm conjI}, resolve_tac ctxt @{thms conjI} 1)) :: rest memo ctxt
             | Split (split_node, solved_node, antes) =>
                 let
                   val split_fmla = node_info (#meta pannot) #fmla split_node
@@ -1117,7 +1117,7 @@ local
                   (hd skel,
                    Thm.prop_of split_thm
                    |> SOME,
-                   SOME (split_thm, rtac split_thm 1)) :: rest memo ctxt
+                   SOME (split_thm, resolve_tac ctxt [split_thm] 1)) :: rest memo ctxt
                 end
             | Step node =>
                 let
@@ -1180,7 +1180,7 @@ local
                   (hd skel,
                    Thm.prop_of (def_thm thy)
                    |> SOME,
-                   SOME (def_thm thy, HEADGOAL (rtac (def_thm thy)))) :: rest memo ctxt
+                   SOME (def_thm thy, HEADGOAL (resolve_tac ctxt [def_thm thy]))) :: rest memo ctxt
                 end
             | Axiom n =>
                 let
@@ -1192,7 +1192,7 @@ local
                   (hd skel,
                    Thm.prop_of ax_thm
                    |> SOME,
-                   SOME (ax_thm, rtac ax_thm 1)) :: rest memo ctxt
+                   SOME (ax_thm, resolve_tac ctxt [ax_thm] 1)) :: rest memo ctxt
                 end
       end
 
@@ -1216,7 +1216,7 @@ local
          TPTP_Proof.is_inference_called "solved_all_splits"
           (the last_inference_info)
         then (@{thm asm_rl}, all_tac)
-        else (solved_all_splits, TRY (rtac solved_all_splits 1))
+        else (solved_all_splits, TRY (resolve_tac ctxt [solved_all_splits] 1))
       end
 in
   (*Build a tactic from a skeleton. This is naive because it uses the naive skeleton.
@@ -1226,8 +1226,8 @@ in
     let
       val thy = Proof_Context.theory_of ctxt
     in
-      rtac @{thm ccontr} 1
-      THEN dtac neg_eq_false 1
+      resolve_tac ctxt @{thms ccontr} 1
+      THEN dresolve_tac ctxt [neg_eq_false] 1
       THEN (sas_if_needed_tac ctxt prob_name |> #2)
       THEN skel_to_naive_tactic ctxt prover_tac prob_name
        (make_skeleton ctxt
@@ -1241,9 +1241,9 @@ in
       val thy = Proof_Context.theory_of ctxt
     in
       (Synth_step "ccontr", Thm.prop_of @{thm ccontr} |> SOME,
-       SOME (@{thm ccontr}, rtac @{thm ccontr} 1)) ::
+       SOME (@{thm ccontr}, resolve_tac ctxt @{thms ccontr} 1)) ::
       (Synth_step "neg_eq_false", Thm.prop_of neg_eq_false |> SOME,
-       SOME (neg_eq_false, dtac neg_eq_false 1)) ::
+       SOME (neg_eq_false, dresolve_tac ctxt [neg_eq_false] 1)) ::
       (Synth_step "sas_if_needed_tac", Thm.prop_of @{thm asm_rl} (*FIXME *) |> SOME,
        SOME (sas_if_needed_tac ctxt prob_name)) ::
       skel_to_naive_tactic_dbg prover_tac ctxt prob_name

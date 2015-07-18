@@ -44,8 +44,10 @@ fun proc ctxt lhs =
     val (lits, others) = sift_terms plus (lhs, ([],[]))
     val _ = length lits < 2 andalso raise Assoc_fail (*we can't reduce the number of terms*)
     val rhs = plus $ mk_sum plus lits $ mk_sum plus others
-    val th = Goal.prove ctxt [] [] (Logic.mk_equals (lhs, rhs))
-      (fn _ => rtac Data.eq_reflection 1 THEN simp_tac (put_simpset Data.assoc_ss ctxt) 1)
+    val th =
+      Goal.prove ctxt [] [] (Logic.mk_equals (lhs, rhs)) (fn _ =>
+        resolve_tac ctxt [Data.eq_reflection] 1 THEN
+        simp_tac (put_simpset Data.assoc_ss ctxt) 1)
   in SOME th end handle Assoc_fail => NONE;
 
 end;

@@ -104,17 +104,17 @@ fun search_table [] = SOME []
 
 (** Proof Reconstruction **)
 
-fun prove_row (c :: cs) =
-  (case Lazy.force c of
-     Less thm =>
-       rtac @{thm "mlex_less"} 1
-       THEN PRIMITIVE (Thm.elim_implies thm)
-   | LessEq (thm, _) =>
-       rtac @{thm "mlex_leq"} 1
-       THEN PRIMITIVE (Thm.elim_implies thm)
-       THEN prove_row cs
-   | _ => raise General.Fail "lexicographic_order")
- | prove_row [] = no_tac;
+fun prove_row_tac ctxt (c :: cs) =
+      (case Lazy.force c of
+        Less thm =>
+          resolve_tac ctxt @{thms mlex_less} 1
+          THEN PRIMITIVE (Thm.elim_implies thm)
+      | LessEq (thm, _) =>
+          resolve_tac ctxt @{thms mlex_leq} 1
+          THEN PRIMITIVE (Thm.elim_implies thm)
+          THEN prove_row_tac ctxt cs
+      | _ => raise General.Fail "lexicographic_order")
+  | prove_row_tac _ [] = no_tac;
 
 
 (** Error reporting **)
@@ -202,9 +202,9 @@ fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
         in (* 4: proof reconstruction *)
           st |>
           (PRIMITIVE (cterm_instantiate [apply2 (Thm.cterm_of ctxt) (rel, relation)])
-            THEN (REPEAT (rtac @{thm "wf_mlex"} 1))
-            THEN (rtac @{thm "wf_empty"} 1)
-            THEN EVERY (map prove_row clean_table))
+            THEN (REPEAT (resolve_tac ctxt @{thms wf_mlex} 1))
+            THEN (resolve_tac ctxt @{thms wf_empty} 1)
+            THEN EVERY (map (prove_row_tac ctxt) clean_table))
         end
   end) 1 st;
 

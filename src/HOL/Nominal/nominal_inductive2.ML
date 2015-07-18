@@ -109,8 +109,8 @@ fun inst_conj_all names ps pis (Const (@{const_name HOL.conj}, _) $ p $ q) _ =
   | inst_conj_all _ _ _ _ _ = NONE;
 
 fun inst_conj_all_tac ctxt k = EVERY
-  [TRY (EVERY [etac conjE 1, rtac conjI 1, atac 1]),
-   REPEAT_DETERM_N k (etac allE 1),
+  [TRY (EVERY [eresolve_tac ctxt [conjE] 1, resolve_tac ctxt [conjI] 1, assume_tac ctxt 1]),
+   REPEAT_DETERM_N k (eresolve_tac ctxt [allE] 1),
    simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm id_apply}]) 1];
 
 fun map_term f t u = (case f t u of
@@ -134,9 +134,9 @@ fun map_thm ctxt f tac monos opt th =
     val prop = Thm.prop_of th;
     fun prove t =
       Goal.prove ctxt [] [] t (fn _ =>
-        EVERY [cut_facts_tac [th] 1, etac rev_mp 1,
+        EVERY [cut_facts_tac [th] 1, eresolve_tac ctxt [rev_mp] 1,
           REPEAT_DETERM (FIRSTGOAL (resolve_tac ctxt monos)),
-          REPEAT_DETERM (rtac impI 1 THEN (atac 1 ORELSE tac))])
+          REPEAT_DETERM (resolve_tac ctxt [impI] 1 THEN (assume_tac ctxt 1 ORELSE tac))])
   in Option.map prove (map_term f prop (the_default prop opt)) end;
 
 fun abs_params params t =
@@ -321,11 +321,11 @@ fun prove_strong_ind s alt_name avoids ctxt =
           ([at_inst, fin, fs_atom] MRS @{thm at_set_avoiding});
         val (([(_, cx)], th1 :: th2 :: ths), ctxt') = Obtain.result
           (fn ctxt' => EVERY
-            [rtac avoid_th 1,
+            [resolve_tac ctxt' [avoid_th] 1,
              full_simp_tac (put_simpset HOL_ss ctxt' addsimps [@{thm fresh_star_prod_set}]) 1,
              full_simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]) 1,
              rotate_tac 1 1,
-             REPEAT (etac conjE 1)])
+             REPEAT (eresolve_tac ctxt' [conjE] 1)])
           [] ctxt;
         val (Ts1, _ :: Ts2) = take_prefix (not o equal T) (map snd sets);
         val pTs = map NominalAtoms.mk_permT (Ts1 @ Ts2);
@@ -348,10 +348,10 @@ fun prove_strong_ind s alt_name avoids ctxt =
     fun mk_ind_proof ctxt' thss =
       Goal.prove ctxt' [] prems' concl' (fn {prems = ihyps, context = ctxt} =>
         let val th = Goal.prove ctxt [] [] concl (fn {context, ...} =>
-          rtac raw_induct 1 THEN
+          resolve_tac ctxt [raw_induct] 1 THEN
           EVERY (maps (fn (((((_, sets, oprems, _),
               vc_compat_ths), vc_compat_vs), ihyp), vs_ihypt) =>
-            [REPEAT (rtac allI 1), simp_tac (put_simpset eqvt_ss context) 1,
+            [REPEAT (resolve_tac ctxt [allI] 1), simp_tac (put_simpset eqvt_ss context) 1,
              SUBPROOF (fn {prems = gprems, params, concl, context = ctxt', ...} =>
                let
                  val (cparams', (pis, z)) =
@@ -366,7 +366,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
                    if null (preds_of ps t) then SOME th
                    else
                      map_thm ctxt' (split_conj (K o I) names)
-                       (etac conjunct1 1) monos NONE th)
+                       (eresolve_tac ctxt' [conjunct1] 1) monos NONE th)
                    (gprems ~~ oprems);
                  val vc_compat_ths' = map2 (fn th => fn p =>
                    let
@@ -378,7 +378,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
                        (HOLogic.mk_Trueprop (list_comb (h,
                           map (fold_rev (NominalDatatype.mk_perm []) pis) ts)))
                        (fn _ => simp_tac (put_simpset HOL_basic_ss ctxt' addsimps
-                          (fresh_star_bij @ finite_ineq)) 1 THEN rtac th' 1)
+                          (fresh_star_bij @ finite_ineq)) 1 THEN resolve_tac ctxt' [th'] 1)
                    end) vc_compat_ths vc_compat_vs;
                  val (vc_compat_ths1, vc_compat_ths2) =
                    chop (length vc_compat_ths - length sets) vc_compat_ths';
@@ -416,8 +416,9 @@ fun prove_strong_ind s alt_name avoids ctxt =
                  val th = Goal.prove ctxt'' [] []
                    (HOLogic.mk_Trueprop (list_comb (P $ hd ts,
                      map (fold_rev (NominalDatatype.mk_perm []) pis') (tl ts))))
-                   (fn _ => EVERY ([simp_tac (put_simpset eqvt_ss ctxt'') 1, rtac ihyp' 1] @
-                     map (fn th => rtac th 1) fresh_ths3 @
+                   (fn _ => EVERY ([simp_tac (put_simpset eqvt_ss ctxt'') 1,
+                     resolve_tac ctxt'' [ihyp'] 1] @
+                     map (fn th => resolve_tac ctxt'' [th] 1) fresh_ths3 @
                      [REPEAT_DETERM_N (length gprems)
                        (simp_tac (put_simpset HOL_basic_ss ctxt''
                           addsimps [inductive_forall_def']
@@ -431,9 +432,10 @@ fun prove_strong_ind s alt_name avoids ctxt =
                in resolve_tac ctxt' final' 1 end) context 1])
                  (prems ~~ thss ~~ vc_compat' ~~ ihyps ~~ prems'')))
         in
-          cut_facts_tac [th] 1 THEN REPEAT (etac conjE 1) THEN
+          cut_facts_tac [th] 1 THEN REPEAT (eresolve_tac ctxt' [conjE] 1) THEN
           REPEAT (REPEAT (resolve_tac ctxt' [conjI, impI] 1) THEN
-            etac impE 1 THEN atac 1 THEN REPEAT (etac @{thm allE_Nil} 1) THEN
+            eresolve_tac ctxt' [impE] 1 THEN
+            assume_tac ctxt' 1 THEN REPEAT (eresolve_tac ctxt' @{thms allE_Nil} 1) THEN
             asm_full_simp_tac ctxt 1)
         end) |>
         fresh_postprocess ctxt' |>

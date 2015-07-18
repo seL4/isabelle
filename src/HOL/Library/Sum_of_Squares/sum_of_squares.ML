@@ -1007,12 +1007,12 @@ fun check_sos kcts ct =
       else error ("SOSO: Unknown constants in Subgoal:" ^ commas (map fst ukcs))
   in () end
 
-fun core_sos_tac print_cert prover = SUBPROOF (fn {concl, context, ...} =>
+fun core_sos_tac print_cert prover = SUBPROOF (fn {concl, context = ctxt, ...} =>
   let
     val _ = check_sos known_sos_constants concl
-    val (ths, certificates) = real_sos prover context (Thm.dest_arg concl)
+    val (th, certificates) = real_sos prover ctxt (Thm.dest_arg concl)
     val _ = print_cert certificates
-  in rtac ths 1 end);
+  in resolve_tac ctxt [th] 1 end);
 
 fun default_SOME _ NONE v = SOME v
   | default_SOME _ (SOME v) _ = SOME v;
@@ -1050,7 +1050,7 @@ fun elim_one_denom_tac ctxt = CSUBGOAL (fn (P, i) =>
           instantiate' [] [SOME d, SOME (Thm.dest_arg P)]
             (if ord then @{lemma "(d=0 --> P) & (d>0 --> P) & (d<(0::real) --> P) ==> P" by auto}
              else @{lemma "(d=0 --> P) & (d ~= (0::real) --> P) ==> P" by blast})
-      in rtac th i THEN Simplifier.asm_full_simp_tac simp_ctxt i end));
+      in resolve_tac ctxt [th] i THEN Simplifier.asm_full_simp_tac simp_ctxt i end));
 
 fun elim_denom_tac ctxt i = REPEAT (elim_one_denom_tac ctxt i);
 

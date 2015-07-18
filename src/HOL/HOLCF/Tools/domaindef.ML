@@ -108,8 +108,8 @@ fun gen_add_domaindef
     val set = @{term "defl_set :: udom defl => udom set"} $ defl
 
     (*pcpodef*)
-    fun tac1 _ = rtac @{thm defl_set_bottom} 1
-    fun tac2 _ = rtac @{thm adm_defl_set} 1
+    fun tac1 ctxt = resolve_tac ctxt @{thms defl_set_bottom} 1
+    fun tac2 ctxt = resolve_tac ctxt @{thms adm_defl_set} 1
     val ((info, cpo_info, pcpo_info), thy) = thy
       |> Cpodef.add_pcpodef typ set (SOME morphs) (tac1, tac2)
 
@@ -165,7 +165,7 @@ fun gen_add_domaindef
       liftemb_def, liftprj_def, liftdefl_def]
     val thy = lthy
       |> Class.prove_instantiation_instance
-          (K (rtac (@{thm typedef_domain_class} OF typedef_thms) 1))
+          (fn ctxt => resolve_tac ctxt [@{thm typedef_domain_class} OF typedef_thms] 1)
       |> Local_Theory.exit_global
 
     (*other theorems*)

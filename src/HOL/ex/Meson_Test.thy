@@ -29,7 +29,7 @@ lemma problem_25:
     val nnf25 = Meson.make_nnf ctxt prem25;
     val xsko25 = Meson.skolemize ctxt nnf25;
   *}
-  apply (tactic {* cut_tac xsko25 1 THEN REPEAT (etac exE 1) *})
+  apply (tactic {* cut_tac xsko25 1 THEN REPEAT (eresolve_tac @{context} [exE] 1) *})
   ML_val {*
     val ctxt = @{context};
     val [_, sko25] = #prems (#1 (Subgoal.focus ctxt 1 NONE (#goal @{Isar.goal})));
@@ -39,7 +39,7 @@ lemma problem_25:
 
     val ctxt' = fold Thm.declare_hyps (maps (#hyps o Thm.crep_thm) (go25 :: horns25)) ctxt;
     Goal.prove ctxt' [] [] @{prop False} (fn _ =>
-      rtac go25 1 THEN
+      resolve_tac ctxt' [go25] 1 THEN
       Meson.depth_prolog_tac ctxt' horns25);
   *}
   oops
@@ -53,7 +53,7 @@ lemma problem_26:
     val nnf26 = Meson.make_nnf ctxt prem26;
     val xsko26 = Meson.skolemize ctxt nnf26;
   *}
-  apply (tactic {* cut_tac xsko26 1 THEN REPEAT (etac exE 1) *})
+  apply (tactic {* cut_tac xsko26 1 THEN REPEAT (eresolve_tac @{context} [exE] 1) *})
   ML_val {*
     val ctxt = @{context};
     val [_, sko26] = #prems (#1 (Subgoal.focus ctxt 1 NONE (#goal @{Isar.goal})));
@@ -65,7 +65,7 @@ lemma problem_26:
 
     val ctxt' = fold Thm.declare_hyps (maps (#hyps o Thm.crep_thm) (go26 :: horns26)) ctxt;
     Goal.prove ctxt' [] [] @{prop False} (fn _ =>
-      rtac go26 1 THEN
+      resolve_tac ctxt' [go26] 1 THEN
       Meson.depth_prolog_tac ctxt' horns26);  (*7 ms*)
     (*Proof is of length 107!!*)
   *}
@@ -80,7 +80,7 @@ lemma problem_43:  -- "NOW PROVED AUTOMATICALLY!!"  (*16 Horn clauses*)
     val nnf43 = Meson.make_nnf ctxt prem43;
     val xsko43 = Meson.skolemize ctxt nnf43;
   *}
-  apply (tactic {* cut_tac xsko43 1 THEN REPEAT (etac exE 1) *})
+  apply (tactic {* cut_tac xsko43 1 THEN REPEAT (eresolve_tac @{context} [exE] 1) *})
   ML_val {*
     val ctxt = @{context};
     val [_, sko43] = #prems (#1 (Subgoal.focus ctxt 1 NONE (#goal @{Isar.goal})));
@@ -92,7 +92,7 @@ lemma problem_43:  -- "NOW PROVED AUTOMATICALLY!!"  (*16 Horn clauses*)
 
     val ctxt' = fold Thm.declare_hyps (maps (#hyps o Thm.crep_thm) (go43 :: horns43)) ctxt;
     Goal.prove ctxt' [] [] @{prop False} (fn _ =>
-      rtac go43 1 THEN
+      resolve_tac ctxt' [go43] 1 THEN
       Meson.best_prolog_tac ctxt' Meson.size_of_subgoals horns43);   (*7ms*)
     *}
   oops

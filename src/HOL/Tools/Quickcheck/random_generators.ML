@@ -108,7 +108,7 @@ fun random_aux_primrec eq lthy =
           [(cT_random_aux, Thm.cterm_of lthy' t_random_aux),
            (cT_rhs, Thm.cterm_of lthy' t_rhs)]);
     fun tac ctxt =
-      ALLGOALS (rtac rule)
+      ALLGOALS (resolve_tac ctxt [rule])
       THEN ALLGOALS (simp_tac (put_simpset rew_ss ctxt))
       THEN (ALLGOALS (Proof_Context.fact_tac ctxt eqs2));
     val simp = Goal.prove_sorry lthy' [v] [] eq (tac o #context);

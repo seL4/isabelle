@@ -19,8 +19,8 @@ signature HYPSUBST_DATA =
 
 signature HYPSUBST =
   sig
-  val bound_hyp_subst_tac : int -> tactic
-  val hyp_subst_tac       : int -> tactic
+  val bound_hyp_subst_tac : Proof.context -> int -> tactic
+  val hyp_subst_tac       : Proof.context -> int -> tactic
     (*exported purely for debugging purposes*)
   val eq_var              : bool -> term -> int * thm
   val inspect_pair        : bool -> term * term -> thm
@@ -68,16 +68,16 @@ fun eq_var bnd =
 
 (*Select a suitable equality assumption and substitute throughout the subgoal
   Replaces only Bound variables if bnd is true*)
-fun gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
+fun gen_hyp_subst_tac bnd ctxt = SUBGOAL(fn (Bi,i) =>
       let val n = length(Logic.strip_assums_hyp Bi) - 1
           val (k,symopt) = eq_var bnd Bi
       in
          DETERM
-           (EVERY [REPEAT_DETERM_N k (etac rev_mp i),
-                   etac revcut_rl i,
-                   REPEAT_DETERM_N (n-k) (etac rev_mp i),
-                   etac (symopt RS subst) i,
-                   REPEAT_DETERM_N n (rtac imp_intr i)])
+           (EVERY [REPEAT_DETERM_N k (eresolve_tac ctxt [rev_mp] i),
+                   eresolve_tac ctxt [revcut_rl] i,
+                   REPEAT_DETERM_N (n-k) (eresolve_tac ctxt [rev_mp] i),
+                   eresolve_tac ctxt [symopt RS subst] i,
+                   REPEAT_DETERM_N n (resolve_tac ctxt [imp_intr] i)])
       end
       handle THM _ => no_tac | EQ_VAR => no_tac);
 

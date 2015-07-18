@@ -421,25 +421,25 @@ fun eqintr_tac ctxt =
     The (rtac EqE i) lets them apply to equality judgements. **)
 
 fun NE_tac ctxt sp i =
-  TRY (rtac @{thm EqE} i) THEN
+  TRY (resolve_tac ctxt @{thms EqE} i) THEN
   Rule_Insts.res_inst_tac ctxt [((("p", 0), Position.none), sp)] [] @{thm NE} i
 
 fun SumE_tac ctxt sp i =
-  TRY (rtac @{thm EqE} i) THEN
+  TRY (resolve_tac ctxt @{thms EqE} i) THEN
   Rule_Insts.res_inst_tac ctxt [((("p", 0), Position.none), sp)] [] @{thm SumE} i
 
 fun PlusE_tac ctxt sp i =
-  TRY (rtac @{thm EqE} i) THEN
+  TRY (resolve_tac ctxt @{thms EqE} i) THEN
   Rule_Insts.res_inst_tac ctxt [((("p", 0), Position.none), sp)] [] @{thm PlusE} i
 
 (** Predicate logic reasoning, WITH THINNING!!  Procedures adapted from NJ. **)
 
 (*Finds f:Prod(A,B) and a:A in the assumptions, concludes there is z:B(a) *)
 fun add_mp_tac ctxt i =
-    rtac @{thm subst_prodE} i  THEN  assume_tac ctxt i  THEN  assume_tac ctxt i
+  resolve_tac ctxt @{thms subst_prodE} i  THEN  assume_tac ctxt i  THEN  assume_tac ctxt i
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
-fun mp_tac ctxt i = etac @{thm subst_prodE} i  THEN  assume_tac ctxt i
+fun mp_tac ctxt i = eresolve_tac ctxt @{thms subst_prodE} i  THEN  assume_tac ctxt i
 
 (*"safe" when regarded as predicate calculus rules*)
 val safe_brls = sort (make_ord lessb)

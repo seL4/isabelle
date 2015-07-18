@@ -204,7 +204,7 @@ fun distinctTree_tac ctxt = SUBGOAL (fn (goal, i) =>
       (Const (@{const_name Not}, _) $
         (Const (@{const_name HOL.eq}, _) $ (x as Free _) $ (y as Free _))) =>
       (case neq_x_y ctxt x y of
-        SOME neq => rtac neq i
+        SOME neq => resolve_tac ctxt [neq] i
       | NONE => no_tac)
   | _ => no_tac));
 
@@ -222,7 +222,7 @@ fun interprete_parent name dist_thm_name parent_expr thy =
       let
         val distinct_thm = Proof_Context.get_thm ctxt dist_thm_name;
         val rule = DistinctTreeProver.distinct_implProver ctxt distinct_thm goal;
-      in rtac rule i end);
+      in resolve_tac ctxt [rule] i end);
 
     fun tac ctxt =
       Locale.intro_locales_tac true ctxt [] THEN ALLGOALS (solve_tac ctxt);

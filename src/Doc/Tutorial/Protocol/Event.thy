@@ -261,7 +261,7 @@ lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)"] for Y ev
 ML
 {*
 fun analz_mono_contra_tac ctxt =
-  rtac @{thm analz_impI} THEN' 
+  resolve_tac ctxt @{thms analz_impI} THEN' 
   REPEAT1 o (dresolve_tac ctxt @{thms analz_mono_contra})
   THEN' mp_tac ctxt
 *}
@@ -331,7 +331,7 @@ val knows_Spy_subset_knows_Spy_Gets = @{thm knows_Spy_subset_knows_Spy_Gets};
 
 
 fun synth_analz_mono_contra_tac ctxt = 
-  rtac @{thm syan_impI} THEN'
+  resolve_tac ctxt @{thms syan_impI} THEN'
   REPEAT1 o 
     (dresolve_tac ctxt
      [@{thm knows_Spy_subset_knows_Spy_Says} RS @{thm synth_analz_mono} RS @{thm contra_subsetD},

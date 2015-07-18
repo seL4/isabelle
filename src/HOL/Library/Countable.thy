@@ -186,10 +186,10 @@ ML \<open>
         val rules = @{thms finite_item.intros}
       in
         SOLVED' (fn i => EVERY
-          [rtac @{thm countable_datatype} i,
-           rtac typedef_thm i,
-           etac induct_thm' i,
-           REPEAT (resolve_tac ctxt rules i ORELSE atac i)]) 1
+          [resolve_tac ctxt @{thms countable_datatype} i,
+           resolve_tac ctxt [typedef_thm] i,
+           eresolve_tac ctxt [induct_thm'] i,
+           REPEAT (resolve_tac ctxt rules i ORELSE assume_tac ctxt i)]) 1
       end)
 \<close>
 

@@ -1098,7 +1098,7 @@ fun Seq_induct_tac ctxt s rws i =
   THEN simp_tac (ctxt addsimps rws) i;
 
 fun Seq_Finite_induct_tac ctxt i =
-  etac @{thm Seq_Finite_ind} i
+  eresolve_tac ctxt @{thms Seq_Finite_ind} i
   THEN (REPEAT_DETERM (CHANGED (asm_simp_tac ctxt i)));
 
 fun pair_tac ctxt s =

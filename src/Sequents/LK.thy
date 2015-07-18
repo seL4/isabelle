@@ -178,7 +178,7 @@ lemma imp_cong:
   apply (lem p1)
   apply safe
    apply (tactic {*
-     REPEAT (rtac @{thm cut} 1 THEN
+     REPEAT (resolve_tac @{context} @{thms cut} 1 THEN
        DEPTH_SOLVE_1
          (resolve_tac @{context} [@{thm thinL}, @{thm thinR}, @{thm p2} COMP @{thm monotonic}] 1) THEN
            Cla.safe_tac @{context} 1) *})
@@ -191,7 +191,7 @@ lemma conj_cong:
   apply (lem p1)
   apply safe
    apply (tactic {*
-     REPEAT (rtac @{thm cut} 1 THEN
+     REPEAT (resolve_tac @{context} @{thms cut} 1 THEN
        DEPTH_SOLVE_1
          (resolve_tac @{context} [@{thm thinL}, @{thm thinR}, @{thm p2} COMP @{thm monotonic}] 1) THEN
            Cla.safe_tac @{context} 1) *})

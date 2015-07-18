@@ -477,7 +477,7 @@ back back back back
 apply (rule_tac x = "schA" in spec)
 apply (rule_tac x = "schB" in spec)
 apply (rule_tac x = "tr" in spec)
-apply (tactic "thin_tac' 5 1")
+apply (tactic "thin_tac' @{context} 5 1")
 apply (rule nat_less_induct)
 apply (rule allI)+
 apply (rename_tac tr schB schA)
@@ -487,7 +487,7 @@ apply (erule conjE)+
 apply (case_tac "Forall (%x. x:act B & x~:act A) tr")
 
 apply (rule seq_take_lemma [THEN iffD2, THEN spec])
-apply (tactic "thin_tac' 5 1")
+apply (tactic "thin_tac' @{context} 5 1")
 
 
 apply (case_tac "Finite tr")
@@ -697,7 +697,7 @@ back back back back
 apply (rule_tac x = "schA" in spec)
 apply (rule_tac x = "schB" in spec)
 apply (rule_tac x = "tr" in spec)
-apply (tactic "thin_tac' 5 1")
+apply (tactic "thin_tac' @{context} 5 1")
 apply (rule nat_less_induct)
 apply (rule allI)+
 apply (rename_tac tr schB schA)
@@ -707,7 +707,7 @@ apply (erule conjE)+
 apply (case_tac "Forall (%x. x:act A & x~:act B) tr")
 
 apply (rule seq_take_lemma [THEN iffD2, THEN spec])
-apply (tactic "thin_tac' 5 1")
+apply (tactic "thin_tac' @{context} 5 1")
 
 apply (case_tac "Finite tr")
 

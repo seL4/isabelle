@@ -83,7 +83,10 @@ definition
   "WT_bodies = (!(pn,b):set bodies. WT b)"
 
 
-ML {* val make_imp_tac = EVERY'[rtac mp, fn i => atac (i+1), etac thin_rl] *}
+ML {*
+  fun make_imp_tac ctxt =
+    EVERY' [resolve_tac ctxt [mp], fn i => assume_tac ctxt (i + 1), eresolve_tac ctxt [thin_rl]]
+*}
 
 lemma finite_dom_body: "finite (dom body)"
 apply (unfold body_def)

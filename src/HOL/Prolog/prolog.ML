@@ -74,7 +74,7 @@ val atomize_ss =
 (*val hyp_resolve_tac = Subgoal.FOCUS_PREMS (fn {prems, ...} =>
                                   resolve_tac (maps atomizeD prems) 1);
   -- is nice, but cannot instantiate unknowns in the assumptions *)
-val hyp_resolve_tac = SUBGOAL (fn (subgoal, i) =>
+fun hyp_resolve_tac ctxt = SUBGOAL (fn (subgoal, i) =>
   let
         fun ap (Const(@{const_name All},_)$Abs(_,_,t))=(case ap t of (k,a,t) => (k+1,a  ,t))
         |   ap (Const(@{const_name HOL.implies},_)$_$t)    =(case ap t of (k,_,t) => (k,true ,t))
@@ -91,9 +91,9 @@ val hyp_resolve_tac = SUBGOAL (fn (subgoal, i) =>
         val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl subgoal);
         fun drot_tac k i = DETERM (rotate_tac k i);
         fun spec_tac 0 i = all_tac
-        |   spec_tac k i = EVERY' [dtac spec, drot_tac ~1, spec_tac (k-1)] i;
+        |   spec_tac k i = EVERY' [dresolve_tac ctxt [spec], drot_tac ~1, spec_tac (k-1)] i;
         fun dup_spec_tac k i = if k = 0 then all_tac else EVERY'
-                      [DETERM o (etac all_dupE), drot_tac ~2, spec_tac (k-1)] i;
+                      [DETERM o (eresolve_tac ctxt [all_dupE]), drot_tac ~2, spec_tac (k-1)] i;
         fun same_head _ (Const (x,_)) (Const (y,_)) = x = y
         |   same_head k (s$_)         (t$_)         = same_head k s t
         |   same_head k (Bound i)     (Bound j)     = i = j + k
@@ -101,10 +101,10 @@ val hyp_resolve_tac = SUBGOAL (fn (subgoal, i) =>
         fun mapn f n []      = []
         |   mapn f n (x::xs) = f n x::mapn f (n+1) xs;
         fun pres_tac (k,arrow,t) n i = drot_tac n i THEN (
-                if same_head k t concl
-                then dup_spec_tac k i THEN
-                     (if arrow then etac mp i THEN drot_tac (~n) i else atac i)
-                else no_tac);
+          if same_head k t concl
+          then dup_spec_tac k i THEN
+               (if arrow then eresolve_tac ctxt [mp] i THEN drot_tac (~n) i else assume_tac ctxt i)
+          else no_tac);
         val ptacs = mapn (fn n => fn t =>
                           pres_tac (ap (HOLogic.dest_Trueprop t)) n i) 0 prems;
   in Library.foldl (op APPEND) (no_tac, ptacs) end);
@@ -112,16 +112,16 @@ val hyp_resolve_tac = SUBGOAL (fn (subgoal, i) =>
 fun ptac ctxt prog = let
   val proga = maps (atomizeD ctxt) prog         (* atomize the prog *)
   in    (REPEAT_DETERM1 o FIRST' [
-                rtac TrueI,                     (* "True" *)
-                rtac conjI,                     (* "[| P; Q |] ==> P & Q" *)
-                rtac allI,                      (* "(!!x. P x) ==> ! x. P x" *)
-                rtac exI,                       (* "P x ==> ? x. P x" *)
-                rtac impI THEN'                 (* "(P ==> Q) ==> P --> Q" *)
+                resolve_tac ctxt [TrueI],                     (* "True" *)
+                resolve_tac ctxt [conjI],                     (* "[| P; Q |] ==> P & Q" *)
+                resolve_tac ctxt [allI],                      (* "(!!x. P x) ==> ! x. P x" *)
+                resolve_tac ctxt [exI],                       (* "P x ==> ? x. P x" *)
+                resolve_tac ctxt [impI] THEN'                 (* "(P ==> Q) ==> P --> Q" *)
                   asm_full_simp_tac (put_simpset atomize_ss ctxt) THEN'    (* atomize the asms *)
-                  (REPEAT_DETERM o (etac conjE))        (* split the asms *)
+                  (REPEAT_DETERM o (eresolve_tac ctxt [conjE]))        (* split the asms *)
                 ])
         ORELSE' resolve_tac ctxt [disjI1,disjI2]     (* "P ==> P | Q","Q ==> P | Q"*)
-        ORELSE' ((resolve_tac ctxt proga APPEND' hyp_resolve_tac)
+        ORELSE' ((resolve_tac ctxt proga APPEND' hyp_resolve_tac ctxt)
                  THEN' (fn _ => check_HOHH_tac2))
 end;
 

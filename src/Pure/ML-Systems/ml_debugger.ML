@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/ml_debugger_dummy.ML
+(*  Title:      Pure/ML/ml_debugger.ML
     Author:     Makarius
 
-ML debugger interface -- dummy version.
+ML debugger interface.
 *)
 
 signature ML_DEBUGGER =
@@ -10,7 +10,7 @@ sig
   val on_entry: (string * location -> unit) option -> unit
   val on_exit: (string * location -> unit) option -> unit
   val on_exit_exception: (string * location -> exn -> unit) option -> unit
-  val on_break_point: (location * bool Unsynchronized.ref -> unit) option -> unit
+  val on_breakpoint: (location * bool Unsynchronized.ref -> unit) option -> unit
   type state
   val state: Thread.thread -> state list
   val debug_function: state -> string
@@ -29,7 +29,7 @@ type location = unit;
 fun on_entry _ = ();
 fun on_exit _ = ();
 fun on_exit_exception _ = ();
-fun on_break_point _ = ();
+fun on_breakpoint _ = ();
 
 
 (* debugger *)
@@ -46,6 +46,3 @@ fun debug_location () = fail ();
 fun debug_name_space () = fail ();
 
 end;
-
-
-fun ml_debugger_parameters (_: bool) = [];

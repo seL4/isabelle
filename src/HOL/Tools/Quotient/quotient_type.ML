@@ -42,8 +42,8 @@ fun typedef_term rel rty lthy =
 (* makes the new type definitions and proves non-emptyness *)
 fun typedef_make (vs, qty_name, mx, rel, rty) equiv_thm lthy =
   let
-    fun typedef_tac _ =
-      EVERY1 (map rtac [@{thm part_equivp_typedef}, equiv_thm])
+    fun typedef_tac ctxt =
+      EVERY1 (map (resolve_tac ctxt o single) [@{thm part_equivp_typedef}, equiv_thm])
   in
     Typedef.add_typedef false (qty_name, map (rpair dummyS) vs, mx)
       (typedef_term rel rty lthy) NONE typedef_tac lthy
@@ -58,12 +58,12 @@ fun typedef_quot_type_tac ctxt equiv_thm ((_, typedef_info): Typedef.info) =
     val abs_inv = #Abs_inverse typedef_info
     val rep_inj = #Rep_inject typedef_info
   in
-    (rtac @{thm quot_type.intro} THEN' RANGE [
-      rtac equiv_thm,
-      rtac rep_thm,
-      rtac rep_inv,
-      rtac abs_inv THEN' rtac mem_def2 THEN' assume_tac ctxt,
-      rtac rep_inj]) 1
+    (resolve_tac ctxt @{thms quot_type.intro} THEN' RANGE [
+      resolve_tac ctxt [equiv_thm],
+      resolve_tac ctxt [rep_thm],
+      resolve_tac ctxt [rep_inv],
+      resolve_tac ctxt [abs_inv] THEN' resolve_tac ctxt [mem_def2] THEN' assume_tac ctxt,
+      resolve_tac ctxt [rep_inj]]) 1
   end
 
 (* proves the quot_type theorem for the new type *)

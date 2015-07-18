@@ -413,7 +413,7 @@ local
     @{lemma "(!!x. ~P x == Q x) ==> ~(EX x. P x) == ALL x. Q x" by simp}])
 
   fun nnf_quant_tac ctxt thm (qs as (qs1, qs2)) i st = (
-    rtac thm ORELSE'
+    resolve_tac ctxt [thm] ORELSE'
     (match_tac ctxt qs1 THEN' nnf_quant_tac ctxt thm qs) ORELSE'
     (match_tac ctxt qs2 THEN' nnf_quant_tac ctxt thm qs)) i st
 
@@ -602,7 +602,7 @@ local
 in
 fun quant_inst ctxt = Thm o Old_Z3_Proof_Tools.by_tac ctxt (
   REPEAT_ALL_NEW (match_tac ctxt [rule])
-  THEN' rtac @{thm excluded_middle})
+  THEN' resolve_tac ctxt @{thms excluded_middle})
 end
 
 
@@ -640,10 +640,10 @@ fun skolemize vars =
   apfst Thm oo close vars (yield_singleton Assumption.add_assumes)
 
 fun discharge_sk_tac ctxt i st = (
-  rtac @{thm trans} i
+  resolve_tac ctxt @{thms trans} i
   THEN resolve_tac ctxt sk_rules i
-  THEN (rtac @{thm refl} ORELSE' discharge_sk_tac ctxt) (i+1)
-  THEN rtac @{thm refl} i) st
+  THEN (resolve_tac ctxt @{thms refl} ORELSE' discharge_sk_tac ctxt) (i+1)
+  THEN resolve_tac ctxt @{thms refl} i) st
 
 end
 
@@ -715,14 +715,14 @@ fun rewrite simpset ths ct ctxt =
         THEN_ALL_NEW NAMED ctxt' "fast (logic)" (fast_tac ctxt'))),
     Old_Z3_Proof_Tools.by_abstraction 0 (false, true) ctxt [] (fn ctxt' =>
       Old_Z3_Proof_Tools.by_tac ctxt' (
-        (rtac @{thm iff_allI} ORELSE' K all_tac)
+        (resolve_tac ctxt' @{thms iff_allI} ORELSE' K all_tac)
         THEN' NAMED ctxt' "simp (theory)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
         THEN_ALL_NEW (
           NAMED ctxt' "fast (theory)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
     Old_Z3_Proof_Tools.by_abstraction 0 (true, true) ctxt [] (fn ctxt' =>
       Old_Z3_Proof_Tools.by_tac ctxt' (
-        (rtac @{thm iff_allI} ORELSE' K all_tac)
+        (resolve_tac ctxt' @{thms iff_allI} ORELSE' K all_tac)
         THEN' NAMED ctxt' "simp (full)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
         THEN_ALL_NEW (
           NAMED ctxt' "fast (full)" (HOL_fast_tac ctxt')
@@ -731,7 +731,7 @@ fun rewrite simpset ths ct ctxt =
     Old_Z3_Proof_Tools.by_abstraction abstraction_depth (true, true) ctxt []
       (fn ctxt' =>
         Old_Z3_Proof_Tools.by_tac ctxt' (
-          (rtac @{thm iff_allI} ORELSE' K all_tac)
+          (resolve_tac ctxt' @{thms iff_allI} ORELSE' K all_tac)
           THEN' NAMED ctxt' "simp (deepen)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
           THEN_ALL_NEW (
             NAMED ctxt' "fast (deepen)" (HOL_fast_tac ctxt')

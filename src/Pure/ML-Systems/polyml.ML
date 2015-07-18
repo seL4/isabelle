@@ -133,12 +133,17 @@ PolyML.Compiler.maxInlineSize := 80;
 fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
 
 use "ML-Systems/ml_parse_tree.ML";
-if ML_System.name = "polyml-5.5.3" then use "ML-Systems/ml_parse_tree_polyml-5.5.3.ML" else ();
+if ML_System.name = "polyml-5.5.3"
+then use "ML-Systems/ml_parse_tree_polyml-5.5.3.ML" else ();
+
+use "ML-Systems/ml_compiler_parameters.ML";
+if ML_System.name = "polyml-5.5.3"
+then use "ML-Systems/ml_compiler_parameters_polyml-5.5.3.ML" else ();
 
 
 (* ML debugger *)
 
-use "ML-Systems/ml_debugger_dummy.ML";
+use "ML-Systems/ml_debugger.ML";
 if ML_System.name = "polyml-5.5.3" then use "ML-Systems/ml_debugger_polyml-5.5.3.ML" else ();
 
 

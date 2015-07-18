@@ -104,11 +104,11 @@ ML{*
 fun ns_constrains_tac ctxt i =
   SELECT_GOAL
     (EVERY
-     [REPEAT (etac @{thm Always_ConstrainsI} 1),
+     [REPEAT (eresolve_tac ctxt @{thms Always_ConstrainsI} 1),
       REPEAT (resolve_tac ctxt [@{thm StableI}, @{thm stableI}, @{thm constrains_imp_Constrains}] 1),
-      rtac @{thm ns_constrainsI} 1,
+      resolve_tac ctxt @{thms ns_constrainsI} 1,
       full_simp_tac ctxt 1,
-      REPEAT (FIRSTGOAL (etac disjE)),
+      REPEAT (FIRSTGOAL (eresolve_tac ctxt [disjE])),
       ALLGOALS (clarify_tac (ctxt delrules [impI, @{thm impCE}])),
       REPEAT (FIRSTGOAL (analz_mono_contra_tac ctxt)),
       ALLGOALS (asm_simp_tac ctxt)]) i;
@@ -116,10 +116,10 @@ fun ns_constrains_tac ctxt i =
 (*Tactic for proving secrecy theorems*)
 fun ns_induct_tac ctxt =
   (SELECT_GOAL o EVERY)
-     [rtac @{thm AlwaysI} 1,
+     [resolve_tac ctxt @{thms AlwaysI} 1,
       force_tac ctxt 1,
       (*"reachable" gets in here*)
-      rtac (@{thm Always_reachable} RS @{thm Always_ConstrainsI} RS @{thm StableI}) 1,
+      resolve_tac ctxt [@{thm Always_reachable} RS @{thm Always_ConstrainsI} RS @{thm StableI}] 1,
       ns_constrains_tac ctxt 1];
 *}
 

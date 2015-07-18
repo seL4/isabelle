@@ -117,10 +117,10 @@ fun create_nom_typedecls ak_names thy =
               val simp1 = @{thm inj_on_def} :: injects;
               
               fun proof1 ctxt = EVERY [simp_tac (put_simpset HOL_basic_ss ctxt addsimps simp1) 1,
-                                          rtac @{thm ballI} 1,
-                                          rtac @{thm ballI} 1,
-                                          rtac @{thm impI} 1,
-                                          atac 1]
+                resolve_tac ctxt @{thms ballI} 1,
+                resolve_tac ctxt @{thms ballI} 1,
+                resolve_tac ctxt @{thms impI} 1,
+                assume_tac ctxt 1]
              
               val (inj_thm,thy2) = 
                    add_thms_string [((ak^"_inj",Goal.prove_global thy1 [] [] stmnt1 (proof1 o #context)), [])] thy1
@@ -133,8 +133,8 @@ fun create_nom_typedecls ak_names thy =
               val proof2 = fn {prems, context = ctxt} =>
                 Induct_Tacs.case_tac ctxt "y" [] NONE 1 THEN
                 asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simp1) 1 THEN
-                rtac @{thm exI} 1 THEN
-                rtac @{thm refl} 1
+                resolve_tac ctxt @{thms exI} 1 THEN
+                resolve_tac ctxt @{thms refl} 1
 
               (* third statement *)
               val (inject_thm,thy3) =
@@ -149,9 +149,9 @@ fun create_nom_typedecls ak_names thy =
               val simp3 = [@{thm UNIV_def}]
 
               fun proof3 ctxt = EVERY [cut_facts_tac inj_thm 1,
-                                          dtac @{thm range_inj_infinite} 1,
-                                          asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simp2) 1,
-                                          simp_tac (put_simpset HOL_basic_ss ctxt addsimps simp3) 1]
+                dresolve_tac ctxt @{thms range_inj_infinite} 1,
+                asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simp2) 1,
+                simp_tac (put_simpset HOL_basic_ss ctxt addsimps simp3) 1]
            
               val (inf_thm,thy4) =  
                     add_thms_string [((ak^"_infinite",Goal.prove_global thy3 [] [] stmnt3 (proof3 o #context)), [])] thy3
@@ -437,7 +437,10 @@ fun create_nom_typedecls ak_names thy =
              fun proof ctxt =
               simp_tac (put_simpset HOL_basic_ss ctxt
                   addsimps maps (Global_Theory.get_thms thy') ["cp_def"]) 1
-                THEN EVERY [rtac allI 1, rtac allI 1, rtac allI 1, rtac cp1 1];
+                THEN EVERY [resolve_tac ctxt [allI] 1,
+                  resolve_tac ctxt [allI] 1,
+                  resolve_tac ctxt [allI] 1,
+                  resolve_tac ctxt [cp1] 1];
            in
              yield_singleton add_thms_string ((name,
                Goal.prove_global thy' [] [] statement (proof o #context)), []) thy'
@@ -504,10 +507,10 @@ fun create_nom_typedecls ak_names thy =
            val at_inst  = Global_Theory.get_thm thy' ("at_" ^ ak_name' ^ "_inst");
 
            fun proof1 ctxt = EVERY [Class.intro_classes_tac ctxt [],
-                                 rtac ((at_inst RS at_pt_inst) RS pt1) 1,
-                                 rtac ((at_inst RS at_pt_inst) RS pt2) 1,
-                                 rtac ((at_inst RS at_pt_inst) RS pt3) 1,
-                                 atac 1];
+             resolve_tac ctxt [(at_inst RS at_pt_inst) RS pt1] 1,
+             resolve_tac ctxt [(at_inst RS at_pt_inst) RS pt2] 1,
+             resolve_tac ctxt [(at_inst RS at_pt_inst) RS pt3] 1,
+             assume_tac ctxt 1];
            fun proof2 ctxt =
              Class.intro_classes_tac ctxt [] THEN
              REPEAT (asm_simp_tac
@@ -537,7 +540,10 @@ fun create_nom_typedecls ak_names thy =
 
           fun pt_proof thm ctxt =
               EVERY [Class.intro_classes_tac ctxt [],
-                     rtac (thm RS pt1) 1, rtac (thm RS pt2) 1, rtac (thm RS pt3) 1, atac 1];
+                resolve_tac ctxt [thm RS pt1] 1,
+                resolve_tac ctxt [thm RS pt2] 1,
+                resolve_tac ctxt [thm RS pt3] 1,
+                assume_tac ctxt 1];
 
           val pt_thm_fun   = at_thm RS (pt_inst RS (pt_inst RS pt_fun_inst));
           val pt_thm_set   = pt_inst RS pt_set_inst;
@@ -581,9 +587,10 @@ fun create_nom_typedecls ak_names thy =
            fun proof ctxt =
                (if ak_name = ak_name'
                 then
-                  let val at_thm = Global_Theory.get_thm thy' ("at_"^ak_name^"_inst");
-                  in  EVERY [Class.intro_classes_tac ctxt [],
-                             rtac ((at_thm RS fs_at_inst) RS fs1) 1] end
+                  let val at_thm = Global_Theory.get_thm thy' ("at_"^ak_name^"_inst") in
+                    EVERY [Class.intro_classes_tac ctxt [],
+                      resolve_tac ctxt [(at_thm RS fs_at_inst) RS fs1] 1]
+                  end
                 else
                   let val dj_inst = Global_Theory.get_thm thy' ("dj_"^ak_name'^"_"^ak_name);
                       val simp_s =
@@ -605,7 +612,8 @@ fun create_nom_typedecls ak_names thy =
         let
           val cls_name = Sign.full_bname thy ("fs_"^ak_name);
           val fs_inst  = Global_Theory.get_thm thy ("fs_"^ak_name^"_inst");
-          fun fs_proof thm ctxt = EVERY [Class.intro_classes_tac ctxt [], rtac (thm RS fs1) 1];
+          fun fs_proof thm ctxt =
+            EVERY [Class.intro_classes_tac ctxt [], resolve_tac ctxt [thm RS fs1] 1];
 
           val fs_thm_unit  = fs_unit_inst;
           val fs_thm_prod  = fs_inst RS (fs_inst RS fs_prod_inst);
@@ -652,7 +660,7 @@ fun create_nom_typedecls ak_names thy =
                     val at_inst  = Global_Theory.get_thm thy'' ("at_"^ak_name''^"_inst");
                   in
                    EVERY [Class.intro_classes_tac ctxt [],
-                          rtac (at_inst RS (pt_inst RS pt_perm_compose)) 1]
+                     resolve_tac ctxt [at_inst RS (pt_inst RS pt_perm_compose)] 1]
                   end)
                 else
                   (let
@@ -686,7 +694,8 @@ fun create_nom_typedecls ak_names thy =
             val pt_inst  = Global_Theory.get_thm thy' ("pt_"^ak_name^"_inst");
             val at_inst  = Global_Theory.get_thm thy' ("at_"^ak_name^"_inst");
 
-            fun cp_proof thm ctxt = EVERY [Class.intro_classes_tac ctxt [], rtac (thm RS cp1) 1];
+            fun cp_proof thm ctxt =
+              EVERY [Class.intro_classes_tac ctxt [], resolve_tac ctxt [thm RS cp1] 1];
           
             val cp_thm_unit = cp_unit_inst;
             val cp_thm_prod = cp_inst RS (cp_inst RS cp_prod_inst);

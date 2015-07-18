@@ -32,7 +32,7 @@ fun lift_conv ctxt conv some_t = Subgoal.FOCUS (fn {context = ctxt', concl, ...}
     val thm = conv ct;
   in
     if Thm.is_reflexive thm then no_tac
-    else ALLGOALS (rtac (pure_subst OF [thm]))
+    else ALLGOALS (resolve_tac ctxt [pure_subst OF [thm]])
   end) ctxt;
 
 (* Make a congruence rule out of a defining equation for the interpretation
@@ -82,7 +82,7 @@ fun mk_congeq ctxt fs th =
       (Goal.prove ctxt'' [] (map mk_def env)
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, replace_fterms rhs)))
         (fn {context, prems, ...} =>
-          Local_Defs.unfold_tac context (map tryext prems) THEN rtac th' 1)) RS sym;
+          Local_Defs.unfold_tac context (map tryext prems) THEN resolve_tac ctxt'' [th'] 1)) RS sym;
     val (cong' :: vars') =
       Variable.export ctxt'' ctxt (cong :: map (Drule.mk_term o Thm.cterm_of ctxt'') vs);
     val vs' = map (fst o fst o Term.dest_Var o Thm.term_of o Drule.dest_term) vars';

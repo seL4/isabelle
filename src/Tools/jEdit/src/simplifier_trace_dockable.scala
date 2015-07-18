@@ -22,6 +22,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 {
   GUI_Thread.require {}
 
+
   /* component state -- owned by GUI thread */
 
   private var current_snapshot = Document.State.init.snapshot()
@@ -36,9 +37,6 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   private def update_contents()
   {
-
-    GUI_Thread.require {}
-
     val snapshot = current_snapshot
     val context = Simplifier_Trace.handle_results(PIDE.session, current_id, current_results)
 
@@ -125,8 +123,6 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   override def init()
   {
-    GUI_Thread.require {}
-
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
     PIDE.session.caret_focus += main
@@ -136,8 +132,6 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   override def exit()
   {
-    GUI_Thread.require {}
-
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
     PIDE.session.caret_focus -= main

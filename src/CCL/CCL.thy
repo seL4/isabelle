@@ -268,7 +268,7 @@ val ccl_dstncts =
   let
     fun mk_raw_dstnct_thm rls s =
       Goal.prove_global @{theory} [] [] (Syntax.read_prop_global @{theory} s)
-        (fn {context = ctxt, ...} => rtac @{thm notI} 1 THEN eresolve_tac ctxt rls 1)
+        (fn {context = ctxt, ...} => resolve_tac ctxt @{thms notI} 1 THEN eresolve_tac ctxt rls 1)
   in map (mk_raw_dstnct_thm caseB_lemmas)
     (mk_dstnct_rls @{theory} ["bot","true","false","pair","lambda"]) end
 

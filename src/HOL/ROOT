@@ -467,6 +467,7 @@ session "HOL-Bali" in Bali = HOL +
     AxSound
     AxCompl
     Trans
+    TypeSafe
   document_files "root.tex"
 
 session "HOL-IOA" in IOA = HOL +

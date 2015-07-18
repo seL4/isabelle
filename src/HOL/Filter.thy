@@ -250,7 +250,7 @@ ML {*
           (Rule_Cases.internalize_params (raw_elim_thm RS Goal.init (Thm.cterm_of ctxt goal)))
       val cases = Rule_Cases.make_common ctxt cases_prop [(("elim", []), [])]
     in
-      CASES cases (rtac raw_elim_thm i)
+      CASES cases (resolve_tac ctxt [raw_elim_thm] i)
     end)
 *}
 
