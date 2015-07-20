@@ -1330,7 +1330,7 @@ lemmas [split] = split_if
 
 ML \<open>val HOL_ss = simpset_of @{context}\<close>
 
-text \<open>Simplifies x assuming c and y assuming \<not> c\<close>
+text \<open>Simplifies @{term x} assuming @{prop c} and @{term y} assuming @{prop "\<not> c"}\<close>
 lemma if_cong:
   assumes "b = c"
       and "c \<Longrightarrow> x = u"
