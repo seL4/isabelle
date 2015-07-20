@@ -576,6 +576,9 @@ qed
 lemma content_empty [simp]: "content {} = 0"
   unfolding content_def by auto
 
+lemma content_real_if [simp]: "content {a..b} = (if a \<le> b then b - a else 0)"
+  by (simp add: content_real)
+
 lemma content_subset:
   assumes "cbox a b \<subseteq> cbox c d"
   shows "content (cbox a b) \<le> content (cbox c d)"
@@ -2467,6 +2470,11 @@ corollary integral_mult_left:
   shows "f integrable_on s \<Longrightarrow> integral s (\<lambda>x. f x * c) = integral s f * c"
   by (blast intro:  has_integral_mult_left)
 
+lemma has_integral_mult_right:
+  fixes c :: "'a :: real_normed_algebra"
+  shows "(f has_integral y) i \<Longrightarrow> ((\<lambda>x. c * f x) has_integral (c * y)) i"
+  using has_integral_linear[OF _ bounded_linear_mult_right] by (simp add: comp_def)
+    
 lemma has_integral_cmul: "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_integral (c *\<^sub>R k)) s"
   unfolding o_def[symmetric]
   by (metis has_integral_linear bounded_linear_scaleR_right)
@@ -2780,8 +2788,11 @@ qed
 lemma integrable_on_refl[intro]: "f integrable_on cbox a a"
   unfolding integrable_on_def by auto
 
-lemma integral_refl: "integral (cbox a a) f = 0"
+lemma integral_refl [simp]: "integral (cbox a a) f = 0"
   by (rule integral_unique) auto
+
+lemma integral_singleton [simp]: "integral {a} f = 0"
+  by auto
 
 
 subsection \<open>Cauchy-type criterion for integrability.\<close>
@@ -5394,7 +5405,7 @@ lemma negligible_insert[simp]: "negligible (insert a s) \<longleftrightarrow> ne
   apply auto
   done
 
-lemma negligible_empty[intro]: "negligible {}"
+lemma negligible_empty[iff]: "negligible {}"
   by auto
 
 lemma negligible_finite[intro]:
@@ -5688,7 +5699,7 @@ lemma operative_1_lt:
   assumes "monoidal opp"
   shows "operative opp f \<longleftrightarrow> ((\<forall>a b. b \<le> a \<longrightarrow> f {a .. b::real} = neutral opp) \<and>
     (\<forall>a b c. a < c \<and> c < b \<longrightarrow> opp (f {a .. c}) (f {c .. b}) = f {a .. b}))"
-  apply (simp add: operative_def content_real_eq_0)
+  apply (simp add: operative_def content_real_eq_0 del: content_real_if)
 proof safe
   fix a b c :: real
   assume as:
@@ -6467,7 +6478,7 @@ proof -
         show "((\<lambda>xa. f x) has_integral (y - x) *\<^sub>R f x) {x .. y}"
           apply (subst *)
           unfolding **
-          by auto
+          by blast
         show "\<forall>xa\<in>{x .. y}. norm (f xa - f x) \<le> e"
           apply safe
           apply (rule less_imp_le)
@@ -6523,7 +6534,7 @@ proof -
         show "((\<lambda>xa. f x) has_integral (x - y) *\<^sub>R f x) {y .. x}"
           apply (subst *)
           unfolding **
-          apply auto
+          apply blast
           done
         show "\<forall>xa\<in>{y .. x}. norm (f xa - f x) \<le> e"
           apply safe
@@ -12132,11 +12143,6 @@ next
       done
   qed
 qed
-
-lemma dense_eq0_I:
-  fixes x::"'a::{dense_linorder,ordered_ab_group_add_abs}"
-  shows "(\<And>e. 0 < e \<Longrightarrow> \<bar>x\<bar> \<le> e) ==> x = 0"
-by (metis dense not_less zero_less_abs_iff)
 
 lemma integral_Pair_const:
     "integral (cbox (a,c) (b,d)) (\<lambda>x. k) =

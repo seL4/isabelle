@@ -1526,7 +1526,7 @@ abbreviation isCont :: "('a::t2_space \<Rightarrow> 'b::topological_space) \<Rig
 lemma isCont_def: "isCont f a \<longleftrightarrow> f -- a --> f a"
   by (rule continuous_at)
 
-lemma continuous_at_within: "isCont f x \<Longrightarrow> continuous (at x within s) f"
+lemma continuous_at_imp_continuous_at_within: "isCont f x \<Longrightarrow> continuous (at x within s) f"
   by (auto intro: tendsto_mono at_le simp: continuous_at continuous_within)
 
 lemma continuous_on_eq_continuous_at: "open s \<Longrightarrow> continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. isCont f x)"
@@ -1536,7 +1536,7 @@ lemma continuous_on_subset: "continuous_on s f \<Longrightarrow> t \<subseteq> s
   unfolding continuous_on_def by (metis subset_eq tendsto_within_subset)
 
 lemma continuous_at_imp_continuous_on: "\<forall>x\<in>s. isCont f x \<Longrightarrow> continuous_on s f"
-  by (auto intro: continuous_at_within simp: continuous_on_eq_continuous_within)
+  by (auto intro: continuous_at_imp_continuous_at_within simp: continuous_on_eq_continuous_within)
 
 lemma isCont_o2: "isCont f a \<Longrightarrow> isCont g (f a) \<Longrightarrow> isCont (\<lambda>x. g (f x)) a"
   unfolding isCont_def by (rule tendsto_compose)
@@ -1549,7 +1549,7 @@ lemma isCont_tendsto_compose: "isCont g l \<Longrightarrow> (f ---> l) F \<Longr
 
 lemma continuous_within_compose3:
   "isCont g (f x) \<Longrightarrow> continuous (at x within s) f \<Longrightarrow> continuous (at x within s) (\<lambda>x. g (f x))"
-  using continuous_within_compose2[of x s f g] by (simp add: continuous_at_within)
+  using continuous_within_compose2[of x s f g] by (simp add: continuous_at_imp_continuous_at_within)
 
 lemma filtermap_nhds_open_map:
   assumes cont: "isCont f a" and open_map: "\<And>S. open S \<Longrightarrow> open (f`S)"

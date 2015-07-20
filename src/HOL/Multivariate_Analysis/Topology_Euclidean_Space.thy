@@ -1826,7 +1826,7 @@ lemma Lim_Un_univ:
 
 text\<open>Interrelations between restricted and unrestricted limits.\<close>
 
-lemma Lim_at_within: (* FIXME: rename *)
+lemma Lim_at_imp_Lim_at_within: 
   "(f ---> l) (at x) \<Longrightarrow> (f ---> l) (at x within S)"
   by (metis order_refl filterlim_mono subset_UNIV at_le)
 
@@ -2726,6 +2726,11 @@ lemma bounded_pos: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<i
   apply (subgoal_tac "\<And>x (y::real). 0 < 1 + abs y \<and> (x \<le> y \<longrightarrow> x \<le> 1 + abs y)")
   apply metis
   apply arith
+  done
+
+lemma bounded_pos_less: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<in> S. norm x < b)"
+  apply (simp add: bounded_pos)
+  apply (safe; rule_tac x="b+1" in exI; force)
   done
 
 lemma Bseq_eq_bounded:
@@ -4636,7 +4641,7 @@ lemma uniformly_continuous_imp_continuous:
 
 lemma continuous_at_imp_continuous_within:
   "continuous (at x) f \<Longrightarrow> continuous (at x within s) f"
-  unfolding continuous_within continuous_at using Lim_at_within by auto
+  unfolding continuous_within continuous_at using Lim_at_imp_Lim_at_within by auto
 
 lemma Lim_trivial_limit: "trivial_limit net \<Longrightarrow> (f ---> l) net"
   by simp

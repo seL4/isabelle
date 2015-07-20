@@ -1249,6 +1249,12 @@ apply(rule_tac t = A in insert_Diff [THEN subst], assumption)
 apply(simp del:insert_Diff_single)
 done
 
+lemma card_insert_le_m1: "n>0 \<Longrightarrow> card y \<le> n-1 \<Longrightarrow> card (insert x y) \<le> n"
+  apply (cases "finite y")
+  apply (cases "x \<in> y")
+  apply (auto simp: insert_absorb)
+  done
+
 lemma card_Diff_singleton:
   "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> card (A - {x}) = card A - 1"
   by (simp add: card_Suc_Diff1 [symmetric])

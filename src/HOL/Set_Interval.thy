@@ -1357,6 +1357,10 @@ lemma (in linorder) lessThan_minus_lessThan [simp]:
   "{..< n} - {..< m} = {m ..< n}"
   by auto
 
+lemma (in linorder) atLeastAtMost_diff_ends:
+  "{a..b} - {a, b} = {a<..<b}"
+  by auto
+
 
 subsubsection \<open>Some Subset Conditions\<close>
 

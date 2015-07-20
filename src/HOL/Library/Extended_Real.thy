@@ -1820,7 +1820,7 @@ proof (rule continuous_at_Sup_mono)
     using * by (force simp: bot_ereal_def)
   then show "bdd_above A" "A \<noteq> {}"
     by (auto intro!: SUP_upper bdd_aboveI[of _ r] simp add: ereal_less_eq(3)[symmetric] simp del: ereal_less_eq)
-qed (auto simp: mono_def continuous_at_within continuous_at_ereal)
+qed (auto simp: mono_def continuous_at_imp_continuous_at_within continuous_at_ereal)
 
 lemma ereal_SUP: "\<bar>SUP a:A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (SUP a:A. f a) = (SUP a:A. ereal (f a))"
   using ereal_Sup[of "f`A"] by auto
@@ -1833,7 +1833,7 @@ proof (rule continuous_at_Inf_mono)
     using * by (force simp: top_ereal_def)
   then show "bdd_below A" "A \<noteq> {}"
     by (auto intro!: INF_lower bdd_belowI[of _ r] simp add: ereal_less_eq(3)[symmetric] simp del: ereal_less_eq)
-qed (auto simp: mono_def continuous_at_within continuous_at_ereal)
+qed (auto simp: mono_def continuous_at_imp_continuous_at_within continuous_at_ereal)
 
 lemma ereal_INF: "\<bar>INF a:A. ereal (f a)\<bar> \<noteq> \<infinity> \<Longrightarrow> ereal (INF a:A. f a) = (INF a:A. ereal (f a))"
   using ereal_Inf[of "f`A"] by auto
@@ -1947,7 +1947,7 @@ next
   assume "(SUP i:I. f i) \<noteq> - \<infinity>" then show ?thesis
     unfolding Sup_image_eq[symmetric]
     by (subst continuous_at_Sup_mono[where f="\<lambda>x. x + c"])
-       (auto simp: continuous_at_within continuous_at mono_def ereal_add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close>)
+       (auto simp: continuous_at_imp_continuous_at_within continuous_at mono_def ereal_add_mono \<open>I \<noteq> {}\<close> \<open>c \<noteq> -\<infinity>\<close>)
 qed
 
 lemma SUP_ereal_add_right:
@@ -2070,7 +2070,7 @@ next
   assume "(SUP i:I. f i) \<noteq> 0" then show ?thesis
     unfolding SUP_def
     by (subst continuous_at_Sup_mono[where f="\<lambda>x. c * x"])
-       (auto simp: mono_def continuous_at continuous_at_within \<open>I \<noteq> {}\<close>
+       (auto simp: mono_def continuous_at continuous_at_imp_continuous_at_within \<open>I \<noteq> {}\<close>
              intro!: ereal_mult_left_mono c)
 qed
 

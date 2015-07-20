@@ -2312,4 +2312,7 @@ lemma vector_diff_chain_within:
   apply (simp only: o_def real_scaleR_def scaleR_scaleR)
   done
 
+lemma vector_derivative_const_at [simp]: "vector_derivative (\<lambda>x. c) (at a) = 0"
+  by (simp add: vector_derivative_at)
+
 end

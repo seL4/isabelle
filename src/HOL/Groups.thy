@@ -1372,6 +1372,15 @@ qed
 
 end
 
+lemma dense_eq0_I:
+  fixes x::"'a::{dense_linorder,ordered_ab_group_add_abs}"
+  shows "(\<And>e. 0 < e \<Longrightarrow> \<bar>x\<bar> \<le> e) ==> x = 0"
+  apply (cases "abs x=0", simp)
+  apply (simp only: zero_less_abs_iff [symmetric])
+  apply (drule dense)
+  apply (auto simp add: not_less [symmetric])
+  done
+
 hide_fact (open) ab_diff_conv_add_uminus add_0 mult_1 ab_left_minus
 
 lemmas add_0 = add_0_left -- \<open>FIXME duplicate\<close>

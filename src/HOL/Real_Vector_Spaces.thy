@@ -862,6 +862,25 @@ lemma norm_power:
   shows "norm (x ^ n) = norm x ^ n"
 by (induct n) (simp_all add: norm_mult)
 
+lemma norm_mult_numeral1 [simp]:
+  fixes a b :: "'a::{real_normed_field, field}"
+  shows "norm (numeral w * a) = numeral w * norm a"
+by (simp add: norm_mult)
+
+lemma norm_mult_numeral2 [simp]:
+  fixes a b :: "'a::{real_normed_field, field}"
+  shows "norm (a * numeral w) = norm a * numeral w"
+by (simp add: norm_mult)
+
+lemma norm_divide_numeral [simp]:
+  fixes a b :: "'a::{real_normed_field, field}"
+  shows "norm (a / numeral w) = norm a / numeral w"
+by (simp add: norm_divide)
+
+lemma norm_of_real_diff [simp]:
+    "norm (of_real b - of_real a :: 'a::real_normed_algebra_1) \<le> \<bar>b - a\<bar>"
+  by (metis norm_of_real of_real_diff order_refl)
+
 text\<open>Despite a superficial resemblance, @{text norm_eq_1} is not relevant.\<close>
 lemma square_norm_one:
   fixes x :: "'a::real_normed_div_algebra"

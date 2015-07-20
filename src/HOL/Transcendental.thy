@@ -748,7 +748,7 @@ lemma termdiff_converges_all:
     shows "summable (\<lambda>n. diffs c n * x^n)"
   apply (rule termdiff_converges [where K = "1 + norm x"])
   using assms
-  apply (auto simp: )
+  apply auto
   done
 
 lemma termdiffs_strong:
@@ -757,17 +757,16 @@ lemma termdiffs_strong:
       and K: "norm x < norm K"
   shows "DERIV (\<lambda>x. \<Sum>n. c n * x^n) x :> (\<Sum>n. diffs c n * x^n)"
 proof -
-  have [simp]: "norm ((of_real (norm K) + of_real (norm x)) / 2 :: 'a) < norm K"
+  have K2: "norm ((of_real (norm K) + of_real (norm x)) / 2 :: 'a) < norm K"
     using K
     apply (auto simp: norm_divide)
     apply (rule le_less_trans [of _ "of_real (norm K) + of_real (norm x)"])
     apply (auto simp: mult_2_right norm_triangle_mono)
     done
+  then have [simp]: "norm ((of_real (norm K) + of_real (norm x)) :: 'a) < norm K * 2"
+    by simp
   have "summable (\<lambda>n. c n * (of_real (norm x + norm K) / 2) ^ n)"
-    apply (rule summable_norm_cancel [OF powser_insidea [OF sm]])
-    using K
-    apply (auto simp: algebra_simps)
-    done
+    by (metis K2 summable_norm_cancel [OF powser_insidea [OF sm]] add.commute of_real_add)
   moreover have "\<And>x. norm x < norm K \<Longrightarrow> summable (\<lambda>n. diffs c n * x ^ n)"
     by (blast intro: sm termdiff_converges powser_inside)
   moreover have "\<And>x. norm x < norm K \<Longrightarrow> summable (\<lambda>n. diffs(diffs c) n * x ^ n)"
@@ -776,8 +775,6 @@ proof -
     apply (rule termdiffs [where K = "of_real (norm x + norm K) / 2"])
     apply (auto simp: algebra_simps)
     using K
-    apply (simp add: norm_divide)
-    apply (rule less_le_trans [of _ "of_real (norm K) + of_real (norm x)"])
     apply (simp_all add: of_real_add [symmetric] del: of_real_add)
     done
 qed

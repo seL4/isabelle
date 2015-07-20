@@ -1437,7 +1437,7 @@ lemma connected_cball:
 
 subsection \<open>Convex hull\<close>
 
-lemma convex_convex_hull: "convex (convex hull s)"
+lemma convex_convex_hull [iff]: "convex (convex hull s)"
   unfolding hull_def
   using convex_Inter[of "{t. convex t \<and> s \<subseteq> t}"]
   by auto
@@ -6312,6 +6312,10 @@ lemma convex_contains_segment:
   "convex s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. closed_segment a b \<subseteq> s)"
   unfolding convex_alt closed_segment_def by auto
 
+lemma closed_segment_subset_convex_hull:
+    "\<lbrakk>x \<in> convex hull s; y \<in> convex hull s\<rbrakk> \<Longrightarrow> closed_segment x y \<subseteq> convex hull s"
+  using convex_contains_segment by blast  
+
 lemma convex_imp_starlike:
   "convex s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> starlike s"
   unfolding convex_contains_segment starlike_def by auto
@@ -8906,8 +8910,27 @@ next
   then show ?thesis
     using \<open>y < x\<close> by (simp add: field_simps)
 qed simp
+
 subsection\<open>Explicit formulas for interior and relative interior of convex hull\<close>
- 
+
+lemma interior_atLeastAtMost [simp]:
+  fixes a::real shows "interior {a..b} = {a<..<b}"
+  using interior_cbox [of a b] by auto
+
+lemma interior_atLeastLessThan [simp]:
+  fixes a::real shows "interior {a..<b} = {a<..<b}"
+  by (metis atLeastLessThan_def greaterThanLessThan_def interior_atLeastAtMost interior_inter interior_interior interior_real_semiline)
+
+lemma interior_lessThanAtMost [simp]:
+  fixes a::real shows "interior {a<..b} = {a<..<b}"
+  by (metis atLeastAtMost_def greaterThanAtMost_def interior_atLeastAtMost interior_inter
+            interior_interior interior_real_semiline)
+
+lemma at_within_closed_interval:
+    fixes x::real
+    shows "a < x \<Longrightarrow> x < b \<Longrightarrow> (at x within {a..b}) = at x"
+  by (metis at_within_interior greaterThanLessThan_iff interior_atLeastAtMost)
+
 lemma affine_independent_convex_affine_hull:
   fixes s :: "'a::euclidean_space set"
   assumes "~affine_dependent s" "t \<subseteq> s"
@@ -9276,7 +9299,7 @@ by (metis Diff_iff frontier_def)
 
 lemma interior_convex_hull_eq_empty:
   fixes s :: "'a::euclidean_space set"
-  assumes "card s = Suc (DIM ('a))" "x \<in> s"
+  assumes "card s = Suc (DIM ('a))"
   shows   "interior(convex hull s) = {} \<longleftrightarrow> affine_dependent s"
 proof -
   { fix a b
@@ -9293,5 +9316,206 @@ proof -
     apply (auto simp: affine_dependent_def)
     done
 qed
+
+subsection \<open>Coplanarity, and collinearity in terms of affine hull\<close>
+
+
+definition coplanar  where
+   "coplanar s \<equiv> \<exists>u v w. s \<subseteq> affine hull {u,v,w}"
+
+lemma collinear_affine_hull:
+  "collinear s \<longleftrightarrow> (\<exists>u v. s \<subseteq> affine hull {u,v})"
+proof (cases "s={}")
+  case True then show ?thesis
+    by simp
+next
+  case False
+  then obtain x where x: "x \<in> s" by auto
+  { fix u
+    assume *: "\<And>x y. \<lbrakk>x\<in>s; y\<in>s\<rbrakk> \<Longrightarrow> \<exists>c. x - y = c *\<^sub>R u"
+    have "\<exists>u v. s \<subseteq> {a *\<^sub>R u + b *\<^sub>R v |a b. a + b = 1}"
+      apply (rule_tac x=x in exI)
+      apply (rule_tac x="x+u" in exI, clarify)
+      apply (erule exE [OF * [OF x]])
+      apply (rename_tac c)
+      apply (rule_tac x="1+c" in exI)
+      apply (rule_tac x="-c" in exI)
+      apply (simp add: algebra_simps)
+      done
+  } moreover
+  { fix u v x y
+    assume *: "s \<subseteq> {a *\<^sub>R u + b *\<^sub>R v |a b. a + b = 1}"
+    have "x\<in>s \<Longrightarrow> y\<in>s \<Longrightarrow> \<exists>c. x - y = c *\<^sub>R (v-u)"
+      apply (drule subsetD [OF *])+
+      apply simp
+      apply clarify
+      apply (rename_tac r1 r2)
+      apply (rule_tac x="r1-r2" in exI)
+      apply (simp add: algebra_simps)
+      apply (metis scaleR_left.add)
+      done
+  } ultimately
+  show ?thesis
+  unfolding collinear_def affine_hull_2
+    by blast
+qed
+
+lemma collinear_imp_coplanar:
+  "collinear s ==> coplanar s"
+by (metis collinear_affine_hull coplanar_def insert_absorb2)
+
+lemma collinear_small:
+  assumes "finite s" "card s \<le> 2"
+    shows "collinear s"
+proof -
+  have "card s = 0 \<or> card s = 1 \<or> card s = 2"
+    using assms by linarith
+  then show ?thesis using assms
+    using card_eq_SucD
+    by auto (metis collinear_2 numeral_2_eq_2)
+qed
+
+lemma coplanar_small:
+  assumes "finite s" "card s \<le> 3"
+    shows "coplanar s"
+proof -
+  have "card s \<le> 2 \<or> card s = Suc (Suc (Suc 0))"
+    using assms by linarith
+  then show ?thesis using assms
+    apply safe
+    apply (simp add: collinear_small collinear_imp_coplanar)
+    apply (safe dest!: card_eq_SucD)
+    apply (auto simp: coplanar_def)
+    apply (metis hull_subset insert_subset)
+    done
+qed
+
+lemma coplanar_empty: "coplanar {}"
+  by (simp add: coplanar_small)
+
+lemma coplanar_sing: "coplanar {a}"
+  by (simp add: coplanar_small)
+
+lemma coplanar_2: "coplanar {a,b}"
+  by (auto simp: card_insert_if coplanar_small)
+
+lemma coplanar_3: "coplanar {a,b,c}"
+  by (auto simp: card_insert_if coplanar_small)
+
+lemma collinear_affine_hull_collinear: "collinear(affine hull s) \<longleftrightarrow> collinear s"
+  unfolding collinear_affine_hull
+  by (metis affine_affine_hull subset_hull hull_hull hull_mono)
+
+lemma coplanar_affine_hull_coplanar: "coplanar(affine hull s) \<longleftrightarrow> coplanar s"
+  unfolding coplanar_def
+  by (metis affine_affine_hull subset_hull hull_hull hull_mono)
+
+lemma coplanar_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "coplanar s" "linear f" shows "coplanar(f ` s)"
+proof -
+  { fix u v w
+    assume "s \<subseteq> affine hull {u, v, w}"
+    then have "f ` s \<subseteq> f ` (affine hull {u, v, w})"
+      by (simp add: image_mono)
+    then have "f ` s \<subseteq> affine hull (f ` {u, v, w})"
+      by (metis assms(2) linear_conv_bounded_linear affine_hull_linear_image)
+  } then
+  show ?thesis
+    by auto (meson assms(1) coplanar_def)
+qed
+
+(*?  Still not ported
+lemma COPLANAR_TRANSLATION_EQ: "coplanar((\<lambda>x. a + x) ` s) \<longleftrightarrow> coplanar s"
+  apply (simp add: coplanar_def)
+  apply (simp add: Set.image_subset_iff_subset_vimage)
+  apply (auto simp:)
+  apply (rule_tac x="u-a" in exI)
+  apply (rule_tac x="v-a" in exI)
+  apply (rule_tac x="w-a" in exI)
+  apply (auto simp:)
+  apply (drule_tac c="x+a" in subsetD)
+  apply (simp add: affine_alt)
+
+lemma COPLANAR_TRANSLATION:
+  !a:real^N s. coplanar s ==> coplanar(IMAGE (\x. a + x) s)"
+  REWRITE_TAC[COPLANAR_TRANSLATION_EQ]);;
+
+lemma coplanar_linear_image_eq:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "inj f" shows "coplanar(f ` s) = coplanar s"
+  MATCH_ACCEPT_TAC(LINEAR_INVARIANT_RULE COPLANAR_LINEAR_IMAGE));;
+*)
+
+lemma coplanar_subset: "\<lbrakk>coplanar t; s \<subseteq> t\<rbrakk> \<Longrightarrow> coplanar s"
+  by (meson coplanar_def order_trans)
+
+lemma affine_hull_3_imp_collinear: "c \<in> affine hull {a,b} \<Longrightarrow> collinear {a,b,c}"
+  by (metis collinear_2 collinear_affine_hull_collinear hull_redundant insert_commute)
+
+lemma collinear_3_imp_in_affine_hull: "\<lbrakk>collinear {a,b,c}; a \<noteq> b\<rbrakk> \<Longrightarrow> c \<in> affine hull {a,b}"
+  unfolding collinear_def
+  apply clarify
+  apply (frule_tac x=b in bspec, blast, drule_tac x=a in bspec, blast, erule exE)
+  apply (drule_tac x=c in bspec, blast, drule_tac x=a in bspec, blast, erule exE)
+  apply (rename_tac y x)
+  apply (simp add: affine_hull_2)
+  apply (rule_tac x="1 - x/y" in exI)
+  apply (simp add: algebra_simps)
+  done
+
+lemma collinear_3_affine_hull:
+  assumes "a \<noteq> b"
+    shows "collinear {a,b,c} \<longleftrightarrow> c \<in> affine hull {a,b}"
+using affine_hull_3_imp_collinear assms collinear_3_imp_in_affine_hull by blast
+
+lemma collinear_3_eq_affine_dependent:
+  "collinear{a,b,c} \<longleftrightarrow> a = b \<or> a = c \<or> b = c \<or> affine_dependent {a,b,c}"
+apply (case_tac "a=b", simp)
+apply (case_tac "a=c")
+apply (simp add: insert_commute)
+apply (case_tac "b=c")
+apply (simp add: insert_commute)
+apply (auto simp: affine_dependent_def collinear_3_affine_hull insert_Diff_if)
+apply (metis collinear_3_affine_hull insert_commute)+
+done
+
+lemma affine_dependent_imp_collinear_3:
+  "affine_dependent {a,b,c} \<Longrightarrow> collinear{a,b,c}"
+by (simp add: collinear_3_eq_affine_dependent)
+
+lemma collinear_3: "NO_MATCH 0 x \<Longrightarrow> collinear {x,y,z} \<longleftrightarrow> collinear {0, x-y, z-y}"
+  by (auto simp add: collinear_def)
+
+
+thm affine_hull_nonempty
+corollary affine_hull_eq_empty [simp]: "affine hull S = {} \<longleftrightarrow> S = {}"
+  using affine_hull_nonempty by blast
+
+lemma affine_hull_2_alt:
+  fixes a b :: "'a::real_vector"
+  shows "affine hull {a,b} = range (\<lambda>u. a + u *\<^sub>R (b - a))"
+apply (simp add: affine_hull_2, safe)
+apply (rule_tac x=v in image_eqI)
+apply (simp add: algebra_simps)
+apply (metis scaleR_add_left scaleR_one, simp)
+apply (rule_tac x="1-u" in exI)
+apply (simp add: algebra_simps)
+done
+
+lemma interior_convex_hull_3_minimal:
+  fixes a :: "'a::euclidean_space"
+  shows "\<lbrakk>~ collinear{a,b,c}; DIM('a) = 2\<rbrakk>
+         \<Longrightarrow> interior(convex hull {a,b,c}) =
+                {v. \<exists>x y z. 0 < x \<and> 0 < y \<and> 0 < z \<and> x + y + z = 1 \<and>
+                            x *\<^sub>R a + y *\<^sub>R b + z *\<^sub>R c = v}"
+apply (simp add: collinear_3_eq_affine_dependent interior_convex_hull_explicit_minimal, safe)
+apply (rule_tac x="u a" in exI, simp)
+apply (rule_tac x="u b" in exI, simp)
+apply (rule_tac x="u c" in exI, simp)
+apply (rename_tac uu x y z)
+apply (rule_tac x="\<lambda>r. (if r=a then x else if r=b then y else if r=c then z else 0)" in exI)
+apply simp
+done
 
 end

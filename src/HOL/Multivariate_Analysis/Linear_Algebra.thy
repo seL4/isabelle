@@ -462,6 +462,12 @@ lemma approachable_lt_le: "(\<exists>(d::real) > 0. \<forall>x. f x < d \<longri
   apply auto
   done
 
+lemma approachable_lt_le2:  --{*like the above, but pushes aside an extra formula*}
+    "(\<exists>(d::real) > 0. \<forall>x. Q x \<longrightarrow> f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> Q x \<longrightarrow> P x)"
+  apply auto
+  apply (rule_tac x="d/2" in exI, auto)
+  done
+
 lemma triangle_lemma:
   fixes x y z :: real
   assumes x: "0 \<le> x"
@@ -2933,13 +2939,13 @@ subsection \<open>Collinearity\<close>
 definition collinear :: "'a::real_vector set \<Rightarrow> bool"
   where "collinear S \<longleftrightarrow> (\<exists>u. \<forall>x \<in> S. \<forall> y \<in> S. \<exists>c. x - y = c *\<^sub>R u)"
 
-lemma collinear_empty: "collinear {}"
+lemma collinear_empty [iff]: "collinear {}"
   by (simp add: collinear_def)
 
-lemma collinear_sing: "collinear {x}"
+lemma collinear_sing [iff]: "collinear {x}"
   by (simp add: collinear_def)
 
-lemma collinear_2: "collinear {x, y}"
+lemma collinear_2 [iff]: "collinear {x, y}"
   apply (simp add: collinear_def)
   apply (rule exI[where x="x - y"])
   apply auto
