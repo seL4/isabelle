@@ -29,7 +29,7 @@ traytel@in.tum.de"
 
 LOGPREFIX=$HOME/log
 MASTERLOG=$LOGPREFIX/isatest.log
-LOGSERVER=lxbroy2.informatik.tu-muenchen.de
+LOGSERVER=lxbroy10.informatik.tu-muenchen.de
 
 ERRORDIR=$HOME/var
 ERRORLOG=$ERRORDIR/error.log
