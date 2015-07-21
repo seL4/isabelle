@@ -60,7 +60,8 @@ fun make channel =
     let
       val mbox = Mailbox.create ();
       val thread =
-        Simple_Thread.fork {stack_limit = NONE, interrupts = false} (message_output mbox channel);
+        Simple_Thread.fork {name = "channel", stack_limit = NONE, interrupts = false}
+          (message_output mbox channel);
       fun send msg = Mailbox.send mbox (SOME msg);
       fun shutdown () =
         (Mailbox.send mbox NONE; Mailbox.await_empty mbox; Simple_Thread.join thread);
