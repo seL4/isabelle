@@ -41,4 +41,16 @@ object Debugger
 
     val functions = Map.empty[String, (Prover, Prover.Protocol_Output) => Boolean]  // FIXME
   }
+
+
+  /* protocol commands */
+
+  def init(session: Session): Unit =
+    session.protocol_command("Debugger.init")
+
+  def cancel(session: Session, id: String): Unit =
+    session.protocol_command("Debugger.cancel", id)
+
+  def input(session: Session, id: String, msg: String*): Unit =
+    session.protocol_command("Debugger.input", (id :: msg.toList):_*)
 }
