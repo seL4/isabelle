@@ -212,7 +212,7 @@ next
     by atomize_elim arith
   then show ?case
   proof cases
-    case x: 1
+    case 1
     with 7 show ?thesis
       by (auto simp add: norm_Pinj_0_False)
   next

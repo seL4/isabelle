@@ -1726,7 +1726,7 @@ proof (induct p rule: isrlfm.induct)
     by atomize_elim auto
   then show ?case
   proof cases
-    case y: 1
+    case 1
     then have "y * real c < - ?N x e"
       by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
     then have "real c * y + ?N x e < 0"
@@ -1734,7 +1734,7 @@ proof (induct p rule: isrlfm.induct)
     then show ?thesis
       using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp
   next
-    case y: 2
+    case 2
     with yu have eu: "u > (- ?N x e) / real c"
       by auto
     with noSc ly yu have "(- ?N x e) / real c \<le> l"
@@ -1759,7 +1759,7 @@ next
     by atomize_elim auto
   then show ?case
   proof cases
-    case y: 1
+    case 1
     then have "y * real c < - ?N x e"
       by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
     then have "real c * y + ?N x e < 0"
@@ -1767,7 +1767,7 @@ next
     then show ?thesis
       using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp
   next
-    case y: 2
+    case 2
     with yu have eu: "u > (- ?N x e) / real c"
       by auto
     with noSc ly yu have "(- ?N x e) / real c \<le> l"
