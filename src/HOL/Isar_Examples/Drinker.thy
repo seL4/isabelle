@@ -33,17 +33,17 @@ qed
 
 theorem Drinker's_Principle: "\<exists>x. drunk x \<longrightarrow> (\<forall>x. drunk x)"
 proof cases
-  fix a assume "\<forall>x. drunk x"
-  then have "drunk a \<longrightarrow> (\<forall>x. drunk x)" ..
+  assume "\<forall>x. drunk x"
+  then have "drunk a \<longrightarrow> (\<forall>x. drunk x)" for a ..
   then show ?thesis ..
 next
   assume "\<not> (\<forall>x. drunk x)"
   then have "\<exists>x. \<not> drunk x" by (rule de_Morgan)
-  then obtain a where a: "\<not> drunk a" ..
+  then obtain a where "\<not> drunk a" ..
   have "drunk a \<longrightarrow> (\<forall>x. drunk x)"
   proof
     assume "drunk a"
-    with a show "\<forall>x. drunk x" by contradiction
+    with \<open>\<not> drunk a\<close> show "\<forall>x. drunk x" by contradiction
   qed
   then show ?thesis ..
 qed
