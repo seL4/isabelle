@@ -3,17 +3,17 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Hereditary Termination -- cf. Martin Lo\"f *}
+section \<open>Hereditary Termination -- cf. Martin Lo\"f\<close>
 
 theory Hered
 imports Type
 begin
 
-text {*
+text \<open>
   Note that this is based on an untyped equality and so @{text "lam
   x. b(x)"} is only hereditarily terminating if @{text "ALL x. b(x)"}
   is.  Not so useful for functions!
-*}
+\<close>
 
 definition HTTgen :: "i set \<Rightarrow> i set" where
   "HTTgen(R) ==
@@ -24,7 +24,7 @@ definition HTT :: "i set"
   where "HTT == gfp(HTTgen)"
 
 
-subsection {* Hereditary Termination *}
+subsection \<open>Hereditary Termination\<close>
 
 lemma HTTgen_mono: "mono(\<lambda>X. HTTgen(X))"
   apply (unfold HTTgen_def)
@@ -47,7 +47,7 @@ lemma HTTXH:
   done
 
 
-subsection {* Introduction Rules for HTT *}
+subsection \<open>Introduction Rules for HTT\<close>
 
 lemma HTT_bot: "\<not> bot : HTT"
   by (blast dest: HTTXH [THEN iffD1])
@@ -83,7 +83,7 @@ lemma HTT_rews2:
 lemmas HTT_rews = HTT_rews1 HTT_rews2
 
 
-subsection {* Coinduction for HTT *}
+subsection \<open>Coinduction for HTT\<close>
 
 lemma HTT_coinduct: "\<lbrakk>t : R; R <= HTTgen(R)\<rbrakk> \<Longrightarrow> t : HTT"
   apply (erule HTT_def [THEN def_coinduct])
@@ -111,7 +111,7 @@ lemma HTTgenIs:
   unfolding data_defs by (genIs HTTgenXH HTTgen_mono)+
 
 
-subsection {* Formation Rules for Types *}
+subsection \<open>Formation Rules for Types\<close>
 
 lemma UnitF: "Unit <= HTT"
   by (simp add: subsetXH UnitXH HTT_rews)

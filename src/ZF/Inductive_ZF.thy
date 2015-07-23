@@ -9,7 +9,7 @@ Sums are used only for mutual recursion;
 Products are used only to derive "streamlined" induction rules for relations
 *)
 
-section{*Inductive and Coinductive Definitions*}
+section\<open>Inductive and Coinductive Definitions\<close>
 
 theory Inductive_ZF
 imports Fixedpt QPair Nat_ZF
@@ -34,7 +34,7 @@ ML_file "Tools/inductive_package.ML"
 ML_file "Tools/induct_tacs.ML"
 ML_file "Tools/primrec_package.ML"
 
-ML {*
+ML \<open>
 structure Lfp =
   struct
   val oper      = @{const lfp}
@@ -127,6 +127,6 @@ structure CoInd_Package =
   Add_inductive_def_Fun(structure Fp=Gfp and Pr=Quine_Prod and CP=Quine_CP
     and Su=Quine_Sum val coind = true);
 
-*}
+\<close>
 
 end

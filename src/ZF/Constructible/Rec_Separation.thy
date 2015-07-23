@@ -2,22 +2,22 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {*Separation for Facts About Recursion*}
+section \<open>Separation for Facts About Recursion\<close>
 
 theory Rec_Separation imports Separation Internalize begin
 
-text{*This theory proves all instances needed for locales @{text
-"M_trancl"} and @{text "M_datatypes"}*}
+text\<open>This theory proves all instances needed for locales @{text
+"M_trancl"} and @{text "M_datatypes"}\<close>
 
 lemma eq_succ_imp_lt: "[|i = succ(j); Ord(i)|] ==> j<i"
 by simp
 
 
-subsection{*The Locale @{text "M_trancl"}*}
+subsection\<open>The Locale @{text "M_trancl"}\<close>
 
-subsubsection{*Separation for Reflexive/Transitive Closure*}
+subsubsection\<open>Separation for Reflexive/Transitive Closure\<close>
 
-text{*First, The Defining Formula*}
+text\<open>First, The Defining Formula\<close>
 
 (* "rtran_closure_mem(M,A,r,p) ==
       \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M].
@@ -72,7 +72,7 @@ apply (simp only: rtran_closure_mem_def)
 apply (intro FOL_reflections function_reflections fun_plus_reflections)
 done
 
-text{*Separation for @{term "rtrancl(r)"}.*}
+text\<open>Separation for @{term "rtrancl(r)"}.\<close>
 lemma rtrancl_separation:
      "[| L(r); L(A) |] ==> separation (L, rtran_closure_mem(L,A,r))"
 apply (rule gen_separation_multi [OF rtran_closure_mem_reflection, of "{r,A}"],
@@ -82,7 +82,7 @@ apply (rule rtran_closure_mem_iff_sats sep_rules | simp)+
 done
 
 
-subsubsection{*Reflexive/Transitive Closure, Internalized*}
+subsubsection\<open>Reflexive/Transitive Closure, Internalized\<close>
 
 (*  "rtran_closure(M,r,s) ==
         \<forall>A[M]. is_field(M,r,A) \<longrightarrow>
@@ -118,7 +118,7 @@ apply (intro FOL_reflections function_reflections rtran_closure_mem_reflection)
 done
 
 
-subsubsection{*Transitive Closure of a Relation, Internalized*}
+subsubsection\<open>Transitive Closure of a Relation, Internalized\<close>
 
 (*  "tran_closure(M,r,t) ==
          \<exists>s[M]. rtran_closure(M,r,s) & composition(M,r,s,t)" *)
@@ -152,7 +152,7 @@ apply (intro FOL_reflections function_reflections
 done
 
 
-subsubsection{*Separation for the Proof of @{text "wellfounded_on_trancl"}*}
+subsubsection\<open>Separation for the Proof of @{text "wellfounded_on_trancl"}\<close>
 
 lemma wellfounded_trancl_reflects:
   "REFLECTS[\<lambda>x. \<exists>w[L]. \<exists>wx[L]. \<exists>rp[L].
@@ -175,7 +175,7 @@ apply (rule sep_rules tran_closure_iff_sats | simp)+
 done
 
 
-subsubsection{*Instantiating the locale @{text M_trancl}*}
+subsubsection\<open>Instantiating the locale @{text M_trancl}\<close>
 
 lemma M_trancl_axioms_L: "M_trancl_axioms(L)"
   apply (rule M_trancl_axioms.intro)
@@ -188,9 +188,9 @@ by (rule M_trancl.intro [OF M_basic_L M_trancl_axioms_L])
 interpretation L?: M_trancl L by (rule M_trancl_L)
 
 
-subsection{*@{term L} is Closed Under the Operator @{term list}*}
+subsection\<open>@{term L} is Closed Under the Operator @{term list}\<close>
 
-subsubsection{*Instances of Replacement for Lists*}
+subsubsection\<open>Instances of Replacement for Lists\<close>
 
 lemma list_replacement1_Reflects:
  "REFLECTS
@@ -238,9 +238,9 @@ apply (rule sep_rules list_functor_iff_sats is_iterates_iff_sats | simp)+
 done
 
 
-subsection{*@{term L} is Closed Under the Operator @{term formula}*}
+subsection\<open>@{term L} is Closed Under the Operator @{term formula}\<close>
 
-subsubsection{*Instances of Replacement for Formulas*}
+subsubsection\<open>Instances of Replacement for Formulas\<close>
 
 (*FIXME: could prove a lemma iterates_replacementI to eliminate the 
 need to expand iterates_replacement and wfrec_replacement*)
@@ -287,11 +287,11 @@ apply (rule_tac env="[B,0,nat]" in DPow_LsetI)
 apply (rule sep_rules formula_functor_iff_sats is_iterates_iff_sats | simp)+
 done
 
-text{*NB The proofs for type @{term formula} are virtually identical to those
-for @{term "list(A)"}.  It was a cut-and-paste job! *}
+text\<open>NB The proofs for type @{term formula} are virtually identical to those
+for @{term "list(A)"}.  It was a cut-and-paste job!\<close>
 
 
-subsubsection{*The Formula @{term is_nth}, Internalized*}
+subsubsection\<open>The Formula @{term is_nth}, Internalized\<close>
 
 (* "is_nth(M,n,l,Z) ==
       \<exists>X[M]. is_iterates(M, is_tl(M), l, n, X) & is_hd(M,X,Z)" *)
@@ -328,7 +328,7 @@ apply (intro FOL_reflections is_iterates_reflection
 done
 
 
-subsubsection{*An Instance of Replacement for @{term nth}*}
+subsubsection\<open>An Instance of Replacement for @{term nth}\<close>
 
 (*FIXME: could prove a lemma iterates_replacementI to eliminate the 
 need to expand iterates_replacement and wfrec_replacement*)
@@ -356,7 +356,7 @@ apply (rule sep_rules is_nat_case_iff_sats tl_iff_sats
 done
 
 
-subsubsection{*Instantiating the locale @{text M_datatypes}*}
+subsubsection\<open>Instantiating the locale @{text M_datatypes}\<close>
 
 lemma M_datatypes_axioms_L: "M_datatypes_axioms(L)"
   apply (rule M_datatypes_axioms.intro)
@@ -375,9 +375,9 @@ theorem M_datatypes_L: "PROP M_datatypes(L)"
 interpretation L?: M_datatypes L by (rule M_datatypes_L)
 
 
-subsection{*@{term L} is Closed Under the Operator @{term eclose}*}
+subsection\<open>@{term L} is Closed Under the Operator @{term eclose}\<close>
 
-subsubsection{*Instances of Replacement for @{term eclose}*}
+subsubsection\<open>Instances of Replacement for @{term eclose}\<close>
 
 lemma eclose_replacement1_Reflects:
  "REFLECTS
@@ -422,7 +422,7 @@ apply (rule sep_rules is_iterates_iff_sats big_union_iff_sats | simp)+
 done
 
 
-subsubsection{*Instantiating the locale @{text M_eclose}*}
+subsubsection\<open>Instantiating the locale @{text M_eclose}\<close>
 
 lemma M_eclose_axioms_L: "M_eclose_axioms(L)"
   apply (rule M_eclose_axioms.intro)

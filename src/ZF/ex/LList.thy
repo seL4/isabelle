@@ -110,14 +110,14 @@ lemma llist_quniv_lemma:
      "Ord(i) ==> l \<in> llist(quniv(A)) \<Longrightarrow> l \<inter> Vset(i) \<subseteq> univ(eclose(A))"
 proof (induct i arbitrary: l rule: trans_induct)
   case (step i l)
-  show ?case using `l \<in> llist(quniv(A))`
+  show ?case using \<open>l \<in> llist(quniv(A))\<close>
   proof (cases l rule: llist.cases)
     case LNil thus ?thesis
       by (simp add: QInl_def QInr_def llist.con_defs)
   next
     case (LCons a l) thus ?thesis using step.hyps
     proof (simp add: QInl_def QInr_def llist.con_defs)
-      show "<1; <a; l>> \<inter> Vset(i) \<subseteq> univ(eclose(A))" using LCons `Ord(i)`
+      show "<1; <a; l>> \<inter> Vset(i) \<subseteq> univ(eclose(A))" using LCons \<open>Ord(i)\<close>
         by (fast intro: step Ord_trans Int_lower1 [THEN subset_trans])
     qed
   qed
@@ -145,7 +145,7 @@ lemma lleq_Int_Vset_subset:
      "Ord(i) ==> <l,l'> \<in> lleq(A) \<Longrightarrow> l \<inter> Vset(i) \<subseteq> l'"
 proof (induct i arbitrary: l l' rule: trans_induct)
   case (step i l l')
-  show ?case using `\<langle>l, l'\<rangle> \<in> lleq(A)`
+  show ?case using \<open>\<langle>l, l'\<rangle> \<in> lleq(A)\<close>
   proof (cases rule: lleq.cases)
     case LNil thus ?thesis
       by (auto simp add: QInr_def llist.con_defs)
@@ -224,7 +224,7 @@ lemma flip_llist_quniv_lemma:
      "Ord(i) ==> l \<in> llist(bool) \<Longrightarrow> flip(l) \<inter> Vset(i) \<subseteq> univ(eclose(bool))"
 proof (induct i arbitrary: l rule: trans_induct)
   case (step i l)
-  show ?case using `l \<in> llist(bool)`
+  show ?case using \<open>l \<in> llist(bool)\<close>
   proof (cases l rule: llist.cases)
     case LNil thus ?thesis
       by (simp, simp add: QInl_def QInr_def llist.con_defs)

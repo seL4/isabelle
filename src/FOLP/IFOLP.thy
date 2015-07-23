@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-section {* Intuitionistic First-Order Logic with Proofs *}
+section \<open>Intuitionistic First-Order Logic with Proofs\<close>
 
 theory IFOLP
 imports Pure
@@ -64,21 +64,21 @@ consts
 
 syntax "_Proof" :: "[p,o]=>prop"    ("(_ /: _)" [51, 10] 5)
 
-parse_translation {*
+parse_translation \<open>
   let fun proof_tr [p, P] = Const (@{const_syntax Proof}, dummyT) $ P $ p
   in [(@{syntax_const "_Proof"}, K proof_tr)] end
-*}
+\<close>
 
 (*show_proofs = true displays the proof terms -- they are ENORMOUS*)
-ML {* val show_proofs = Attrib.setup_config_bool @{binding show_proofs} (K false) *}
+ML \<open>val show_proofs = Attrib.setup_config_bool @{binding show_proofs} (K false)\<close>
 
-print_translation {*
+print_translation \<open>
   let
     fun proof_tr' ctxt [P, p] =
       if Config.get ctxt show_proofs then Const (@{syntax_const "_Proof"}, dummyT) $ p $ P
       else P
   in [(@{const_syntax Proof}, proof_tr')] end
-*}
+\<close>
 
 
 (**** Propositional logic ****)
@@ -248,7 +248,7 @@ schematic_lemma contrapos:
     Fails unless one assumption is equal and exactly one is unifiable
 **)
 
-ML {*
+ML \<open>
 local
   fun discard_proof (Const (@{const_name Proof}, _) $ P $ _) = P;
 in
@@ -265,23 +265,23 @@ fun uniq_assume_tac ctxt =
           else no_tac
       end);
 end;
-*}
+\<close>
 
 
 (*** Modus Ponens Tactics ***)
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
-ML {*
+ML \<open>
   fun mp_tac ctxt i =
     eresolve_tac ctxt [@{thm notE}, make_elim @{thm mp}] i  THEN  assume_tac ctxt i
-*}
+\<close>
 method_setup mp = \<open>Scan.succeed (SIMPLE_METHOD' o mp_tac)\<close>
 
 (*Like mp_tac but instantiates no variables*)
-ML {*
+ML \<open>
   fun int_uniq_mp_tac ctxt i =
     eresolve_tac ctxt [@{thm notE}, @{thm impE}] i  THEN  uniq_assume_tac ctxt i
-*}
+\<close>
 
 
 (*** If-and-only-if ***)
@@ -360,11 +360,11 @@ schematic_lemma ex1E:
 (*** <-> congruence rules for simplification ***)
 
 (*Use iffE on a premise.  For conj_cong, imp_cong, all_cong, ex_cong*)
-ML {*
+ML \<open>
 fun iff_tac ctxt prems i =
     resolve_tac ctxt (prems RL [@{thm iffE}]) i THEN
     REPEAT1 (eresolve_tac ctxt [asm_rl, @{thm mp}] i)
-*}
+\<close>
 
 method_setup iff =
   \<open>Attrib.thms >> (fn prems => fn ctxt => SIMPLE_METHOD' (iff_tac ctxt prems))\<close>
@@ -503,20 +503,20 @@ schematic_lemma simp_equals: "[| p:a=c;  q:b=d;  r:c=d |] ==> ?p:a=b"
 
 schematic_lemma pred1_cong: "p:a=a' ==> ?p:P(a) <-> P(a')"
   apply (rule iffI)
-   apply (tactic {*
-     DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1) *})
+   apply (tactic \<open>
+     DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1)\<close>)
   done
 
 schematic_lemma pred2_cong: "[| p:a=a';  q:b=b' |] ==> ?p:P(a,b) <-> P(a',b')"
   apply (rule iffI)
-   apply (tactic {*
-     DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1) *})
+   apply (tactic \<open>
+     DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1)\<close>)
   done
 
 schematic_lemma pred3_cong: "[| p:a=a';  q:b=b';  r:c=c' |] ==> ?p:P(a,b,c) <-> P(a',b',c')"
   apply (rule iffI)
-   apply (tactic {*
-     DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1) *})
+   apply (tactic \<open>
+     DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1)\<close>)
   done
 
 lemmas pred_congs = pred1_cong pred2_cong pred3_cong
@@ -543,9 +543,9 @@ schematic_lemma disj_impE:
   assumes major: "p:(P|Q)-->S"
     and minor: "!!x y.[| x:P-->S; y:Q-->S |] ==> q(x,y):R"
   shows "?p:R"
-  apply (tactic {* DEPTH_SOLVE (assume_tac @{context} 1 ORELSE
+  apply (tactic \<open>DEPTH_SOLVE (assume_tac @{context} 1 ORELSE
       resolve_tac @{context} [@{thm disjI1}, @{thm disjI2}, @{thm impI},
-        @{thm major} RS @{thm mp}, @{thm minor}] 1) *})
+        @{thm major} RS @{thm mp}, @{thm minor}] 1)\<close>)
   done
 
 (*Simplifies the implication.  Classical version is stronger.
@@ -607,7 +607,7 @@ lemma thin_refl: "!!X. [|p:x=x; PROP W|] ==> PROP W" .
 
 ML_file "hypsubst.ML"
 
-ML {*
+ML \<open>
 structure Hypsubst = Hypsubst
 (
   (*Take apart an equality judgement; otherwise raise Match!*)
@@ -625,7 +625,7 @@ structure Hypsubst = Hypsubst
   val thin_refl = @{thm thin_refl}
 );
 open Hypsubst;
-*}
+\<close>
 
 ML_file "intprover.ML"
 
@@ -641,7 +641,7 @@ schematic_lemma conj_rews:
   "?p6 : P & ~P <-> False"
   "?p7 : ~P & P <-> False"
   "?p8 : (P & Q) & R <-> P & (Q & R)"
-  apply (tactic {* fn st => IntPr.fast_tac @{context} 1 st *})+
+  apply (tactic \<open>fn st => IntPr.fast_tac @{context} 1 st\<close>)+
   done
 
 schematic_lemma disj_rews:
@@ -651,13 +651,13 @@ schematic_lemma disj_rews:
   "?p4 : False | P <-> P"
   "?p5 : P | P <-> P"
   "?p6 : (P | Q) | R <-> P | (Q | R)"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
 schematic_lemma not_rews:
   "?p1 : ~ False <-> True"
   "?p2 : ~ True <-> False"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
 schematic_lemma imp_rews:
@@ -667,7 +667,7 @@ schematic_lemma imp_rews:
   "?p4 : (True --> P) <-> P"
   "?p5 : (P --> P) <-> True"
   "?p6 : (P --> ~P) <-> ~P"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
 schematic_lemma iff_rews:
@@ -676,13 +676,13 @@ schematic_lemma iff_rews:
   "?p3 : (P <-> P) <-> True"
   "?p4 : (False <-> P) <-> ~P"
   "?p5 : (P <-> False) <-> ~P"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
 schematic_lemma quant_rews:
   "?p1 : (ALL x. P) <-> P"
   "?p2 : (EX x. P) <-> P"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
 (*These are NOT supplied by default!*)
@@ -691,7 +691,7 @@ schematic_lemma distrib_rews1:
   "?p2 : P & (Q | R) <-> P&Q | P&R"
   "?p3 : (Q | R) & P <-> Q&P | R&P"
   "?p4 : (P | Q --> R) <-> (P --> R) & (Q --> R)"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
 schematic_lemma distrib_rews2:
@@ -699,17 +699,17 @@ schematic_lemma distrib_rews2:
   "?p2 : ((EX x. NORM(P(x))) --> Q) <-> (ALL x. NORM(P(x)) --> Q)"
   "?p3 : (EX x. NORM(P(x))) & NORM(Q) <-> (EX x. NORM(P(x)) & NORM(Q))"
   "?p4 : NORM(Q) & (EX x. NORM(P(x))) <-> (EX x. NORM(Q) & NORM(P(x)))"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})+
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
 lemmas distrib_rews = distrib_rews1 distrib_rews2
 
 schematic_lemma P_Imp_P_iff_T: "p:P ==> ?p:(P <-> True)"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
   done
 
 schematic_lemma not_P_imp_P_iff_F: "p:~P ==> ?p:(P <-> False)"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
   done
 
 end

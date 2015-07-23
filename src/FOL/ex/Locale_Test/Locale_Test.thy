@@ -8,7 +8,7 @@ theory Locale_Test
 imports Locale_Test1 Locale_Test2 Locale_Test3
 begin
 
-text {* Result of theory merge with distinct but identical interpretations *}
+text \<open>Result of theory merge with distinct but identical interpretations\<close>
 
 context mixin_thy_merge
 begin

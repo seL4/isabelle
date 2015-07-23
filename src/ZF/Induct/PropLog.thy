@@ -3,11 +3,11 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Meta-theory of propositional logic *}
+section \<open>Meta-theory of propositional logic\<close>
 
 theory PropLog imports Main begin
 
-text {*
+text \<open>
   Datatype definition of propositional logic formulae and inductive
   definition of the propositional tautologies.
 
@@ -16,10 +16,10 @@ text {*
 
   Prove: If @{text "H |= p"} then @{text "G |= p"} where @{text "G \<in>
   Fin(H)"}
-*}
+\<close>
 
 
-subsection {* The datatype of propositions *}
+subsection \<open>The datatype of propositions\<close>
 
 consts
   propn :: i
@@ -30,7 +30,7 @@ datatype propn =
   | Imp ("p \<in> propn", "q \<in> propn")    (infixr "=>" 90)
 
 
-subsection {* The proof system *}
+subsection \<open>The proof system\<close>
 
 consts thms     :: "i => i"
 
@@ -52,9 +52,9 @@ inductive
 declare propn.intros [simp]
 
 
-subsection {* The semantics *}
+subsection \<open>The semantics\<close>
 
-subsubsection {* Semantics of propositional logic. *}
+subsubsection \<open>Semantics of propositional logic.\<close>
 
 consts
   is_true_fun :: "[i,i] => i"
@@ -66,7 +66,7 @@ primrec
 definition
   is_true :: "[i,i] => o"  where
   "is_true(p,t) == is_true_fun(p,t) = 1"
-  -- {* this definition is required since predicates can't be recursive *}
+  -- \<open>this definition is required since predicates can't be recursive\<close>
 
 lemma is_true_Fls [simp]: "is_true(Fls,t) \<longleftrightarrow> False"
   by (simp add: is_true_def)
@@ -78,22 +78,22 @@ lemma is_true_Imp [simp]: "is_true(p=>q,t) \<longleftrightarrow> (is_true(p,t)\<
   by (simp add: is_true_def)
 
 
-subsubsection {* Logical consequence *}
+subsubsection \<open>Logical consequence\<close>
 
-text {*
+text \<open>
   For every valuation, if all elements of @{text H} are true then so
   is @{text p}.
-*}
+\<close>
 
 definition
   logcon :: "[i,i] => o"    (infixl "|=" 50)  where
   "H |= p == \<forall>t. (\<forall>q \<in> H. is_true(q,t)) \<longrightarrow> is_true(p,t)"
 
 
-text {*
+text \<open>
   A finite set of hypotheses from @{text t} and the @{text Var}s in
   @{text p}.
-*}
+\<close>
 
 consts
   hyps :: "[i,i] => i"
@@ -104,7 +104,7 @@ primrec
 
 
 
-subsection {* Proof theory of propositional logic *}
+subsection \<open>Proof theory of propositional logic\<close>
 
 lemma thms_mono: "G \<subseteq> H ==> thms(G) \<subseteq> thms(H)"
   apply (unfold thms.defs)
@@ -118,13 +118,13 @@ lemmas thms_in_pl = thms.dom_subset [THEN subsetD]
 inductive_cases ImpE: "p=>q \<in> propn"
 
 lemma thms_MP: "[| H |- p=>q;  H |- p |] ==> H |- q"
-  -- {* Stronger Modus Ponens rule: no typechecking! *}
+  -- \<open>Stronger Modus Ponens rule: no typechecking!\<close>
   apply (rule thms.MP)
      apply (erule asm_rl thms_in_pl thms_in_pl [THEN ImpE])+
   done
 
 lemma thms_I: "p \<in> propn ==> H |- p=>p"
-  -- {*Rule is called @{text I} for Identity Combinator, not for Introduction. *}
+  -- \<open>Rule is called @{text I} for Identity Combinator, not for Introduction.\<close>
   apply (rule thms.S [THEN thms_MP, THEN thms_MP])
       apply (rule_tac [5] thms.K)
        apply (rule_tac [4] thms.K)
@@ -132,10 +132,10 @@ lemma thms_I: "p \<in> propn ==> H |- p=>p"
   done
 
 
-subsubsection {* Weakening, left and right *}
+subsubsection \<open>Weakening, left and right\<close>
 
 lemma weaken_left: "[| G \<subseteq> H;  G|-p |] ==> H|-p"
-  -- {* Order of premises is convenient with @{text THEN} *}
+  -- \<open>Order of premises is convenient with @{text THEN}\<close>
   by (erule thms_mono [THEN subsetD])
 
 lemma weaken_left_cons: "H |- p ==> cons(a,H) |- p"
@@ -148,7 +148,7 @@ lemma weaken_right: "[| H |- q;  p \<in> propn |] ==> H |- p=>q"
   by (simp_all add: thms.K [THEN thms_MP] thms_in_pl)
 
 
-subsubsection {* The deduction theorem *}
+subsubsection \<open>The deduction theorem\<close>
 
 theorem deduction: "[| cons(p,H) |- q;  p \<in> propn |] ==>  H |- p=>q"
   apply (erule thms.induct)
@@ -160,7 +160,7 @@ theorem deduction: "[| cons(p,H) |- q;  p \<in> propn |] ==>  H |- p=>q"
   done
 
 
-subsubsection {* The cut rule *}
+subsubsection \<open>The cut rule\<close>
 
 lemma cut: "[| H|-p;  cons(p,H) |- q |] ==>  H |- q"
   apply (rule deduction [THEN thms_MP])
@@ -177,7 +177,7 @@ lemma thms_notE: "[| H |- p=>Fls;  H |- p;  q \<in> propn |] ==> H |- q"
   by (erule thms_MP [THEN thms_FlsE])
 
 
-subsubsection {* Soundness of the rules wrt truth-table semantics *}
+subsubsection \<open>Soundness of the rules wrt truth-table semantics\<close>
 
 theorem soundness: "H |- p ==> H |= p"
   apply (unfold logcon_def)
@@ -186,9 +186,9 @@ theorem soundness: "H |- p ==> H |= p"
   done
 
 
-subsection {* Completeness *}
+subsection \<open>Completeness\<close>
 
-subsubsection {* Towards the completeness proof *}
+subsubsection \<open>Towards the completeness proof\<close>
 
 lemma Fls_Imp: "[| H |- p=>Fls; q \<in> propn |] ==> H |- p=>q"
   apply (frule thms_in_pl)
@@ -208,7 +208,7 @@ lemma Imp_Fls: "[| H |- p;  H |- q=>Fls |] ==> H |- (p=>q)=>Fls"
 
 lemma hyps_thms_if:
     "p \<in> propn ==> hyps(p,t) |- (if is_true(p,t) then p else p=>Fls)"
-  -- {* Typical example of strengthening the induction statement. *}
+  -- \<open>Typical example of strengthening the induction statement.\<close>
   apply simp
   apply (induct_tac p)
     apply (simp_all add: thms_I thms.H)
@@ -217,21 +217,21 @@ lemma hyps_thms_if:
   done
 
 lemma logcon_thms_p: "[| p \<in> propn;  0 |= p |] ==> hyps(p,t) |- p"
-  -- {* Key lemma for completeness; yields a set of assumptions satisfying @{text p} *}
+  -- \<open>Key lemma for completeness; yields a set of assumptions satisfying @{text p}\<close>
   apply (drule hyps_thms_if)
   apply (simp add: logcon_def)
   done
 
-text {*
+text \<open>
   For proving certain theorems in our new propositional logic.
-*}
+\<close>
 
 lemmas propn_SIs = propn.intros deduction
   and propn_Is = thms_in_pl thms.H thms.H [THEN thms_MP]
 
-text {*
+text \<open>
   The excluded middle in the form of an elimination rule.
-*}
+\<close>
 
 lemma thms_excluded_middle:
     "[| p \<in> propn;  q \<in> propn |] ==> H |- (p=>q) => ((p=>Fls)=>q) => q"
@@ -242,33 +242,33 @@ lemma thms_excluded_middle:
 
 lemma thms_excluded_middle_rule:
   "[| cons(p,H) |- q;  cons(p=>Fls,H) |- q;  p \<in> propn |] ==> H |- q"
-  -- {* Hard to prove directly because it requires cuts *}
+  -- \<open>Hard to prove directly because it requires cuts\<close>
   apply (rule thms_excluded_middle [THEN thms_MP, THEN thms_MP])
      apply (blast intro!: propn_SIs intro: propn_Is)+
   done
 
 
-subsubsection {* Completeness -- lemmas for reducing the set of assumptions *}
+subsubsection \<open>Completeness -- lemmas for reducing the set of assumptions\<close>
 
-text {*
+text \<open>
   For the case @{prop "hyps(p,t)-cons(#v,Y) |- p"} we also have @{prop
   "hyps(p,t)-{#v} \<subseteq> hyps(p, t-{v})"}.
-*}
+\<close>
 
 lemma hyps_Diff:
     "p \<in> propn ==> hyps(p, t-{v}) \<subseteq> cons(#v=>Fls, hyps(p,t)-{#v})"
   by (induct set: propn) auto
 
-text {*
+text \<open>
   For the case @{prop "hyps(p,t)-cons(#v => Fls,Y) |- p"} we also have
   @{prop "hyps(p,t)-{#v=>Fls} \<subseteq> hyps(p, cons(v,t))"}.
-*}
+\<close>
 
 lemma hyps_cons:
     "p \<in> propn ==> hyps(p, cons(v,t)) \<subseteq> cons(#v, hyps(p,t)-{#v=>Fls})"
   by (induct set: propn) auto
 
-text {* Two lemmas for use with @{text weaken_left} *}
+text \<open>Two lemmas for use with @{text weaken_left}\<close>
 
 lemma cons_Diff_same: "B-C \<subseteq> cons(a, B-cons(a,C))"
   by blast
@@ -276,36 +276,36 @@ lemma cons_Diff_same: "B-C \<subseteq> cons(a, B-cons(a,C))"
 lemma cons_Diff_subset2: "cons(a, B-{c}) - D \<subseteq> cons(a, B-cons(c,D))"
   by blast
 
-text {*
+text \<open>
   The set @{term "hyps(p,t)"} is finite, and elements have the form
   @{term "#v"} or @{term "#v=>Fls"}; could probably prove the stronger
   @{prop "hyps(p,t) \<in> Fin(hyps(p,0) \<union> hyps(p,nat))"}.
-*}
+\<close>
 
 lemma hyps_finite: "p \<in> propn ==> hyps(p,t) \<in> Fin(\<Union>v \<in> nat. {#v, #v=>Fls})"
   by (induct set: propn) auto
 
 lemmas Diff_weaken_left = Diff_mono [OF _ subset_refl, THEN weaken_left]
 
-text {*
+text \<open>
   Induction on the finite set of assumptions @{term "hyps(p,t0)"}.  We
   may repeatedly subtract assumptions until none are left!
-*}
+\<close>
 
 lemma completeness_0_lemma [rule_format]:
     "[| p \<in> propn;  0 |= p |] ==> \<forall>t. hyps(p,t) - hyps(p,t0) |- p"
   apply (frule hyps_finite)
   apply (erule Fin_induct)
    apply (simp add: logcon_thms_p Diff_0)
-  txt {* inductive step *}
+  txt \<open>inductive step\<close>
   apply safe
-   txt {* Case @{prop "hyps(p,t)-cons(#v,Y) |- p"} *}
+   txt \<open>Case @{prop "hyps(p,t)-cons(#v,Y) |- p"}\<close>
    apply (rule thms_excluded_middle_rule)
      apply (erule_tac [3] propn.intros)
     apply (blast intro: cons_Diff_same [THEN weaken_left])
    apply (blast intro: cons_Diff_subset2 [THEN weaken_left]
      hyps_Diff [THEN Diff_weaken_left])
-  txt {* Case @{prop "hyps(p,t)-cons(#v => Fls,Y) |- p"} *}
+  txt \<open>Case @{prop "hyps(p,t)-cons(#v => Fls,Y) |- p"}\<close>
   apply (rule thms_excluded_middle_rule)
     apply (erule_tac [3] propn.intros)
    apply (blast intro: cons_Diff_subset2 [THEN weaken_left]
@@ -314,16 +314,16 @@ lemma completeness_0_lemma [rule_format]:
   done
 
 
-subsubsection {* Completeness theorem *}
+subsubsection \<open>Completeness theorem\<close>
 
 lemma completeness_0: "[| p \<in> propn;  0 |= p |] ==> 0 |- p"
-  -- {* The base case for completeness *}
+  -- \<open>The base case for completeness\<close>
   apply (rule Diff_cancel [THEN subst])
   apply (blast intro: completeness_0_lemma)
   done
 
 lemma logcon_Imp: "[| cons(p,H) |= q |] ==> H |= p=>q"
-  -- {* A semantic analogue of the Deduction Theorem *}
+  -- \<open>A semantic analogue of the Deduction Theorem\<close>
   by (simp add: logcon_def)
 
 lemma completeness:

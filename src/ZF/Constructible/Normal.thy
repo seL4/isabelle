@@ -2,20 +2,20 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {*Closed Unbounded Classes and Normal Functions*}
+section \<open>Closed Unbounded Classes and Normal Functions\<close>
 
 theory Normal imports Main begin
 
-text{*
+text\<open>
 One source is the book
 
 Frank R. Drake.
 \emph{Set Theory: An Introduction to Large Cardinals}.
 North-Holland, 1974.
-*}
+\<close>
 
 
-subsection {*Closed and Unbounded (c.u.) Classes of Ordinals*}
+subsection \<open>Closed and Unbounded (c.u.) Classes of Ordinals\<close>
 
 definition
   Closed :: "(i=>o) => o" where
@@ -30,7 +30,7 @@ definition
     "Closed_Unbounded(P) == Closed(P) \<and> Unbounded(P)"
 
 
-subsubsection{*Simple facts about c.u. classes*}
+subsubsection\<open>Simple facts about c.u. classes\<close>
 
 lemma ClosedI:
      "[| !!I. [| I \<noteq> 0; \<forall>i\<in>I. Ord(i) \<and> P(i) |] ==> P(\<Union>(I)) |] 
@@ -50,16 +50,16 @@ lemma Closed_Unbounded_imp_Unbounded: "Closed_Unbounded(C) ==> Unbounded(C)"
 by (simp add: Closed_Unbounded_def) 
 
 
-text{*The universal class, V, is closed and unbounded.
-      A bit odd, since C. U. concerns only ordinals, but it's used below!*}
+text\<open>The universal class, V, is closed and unbounded.
+      A bit odd, since C. U. concerns only ordinals, but it's used below!\<close>
 theorem Closed_Unbounded_V [simp]: "Closed_Unbounded(\<lambda>x. True)"
 by (unfold Closed_Unbounded_def Closed_def Unbounded_def, blast)
 
-text{*The class of ordinals, @{term Ord}, is closed and unbounded.*}
+text\<open>The class of ordinals, @{term Ord}, is closed and unbounded.\<close>
 theorem Closed_Unbounded_Ord   [simp]: "Closed_Unbounded(Ord)"
 by (unfold Closed_Unbounded_def Closed_def Unbounded_def, blast)
 
-text{*The class of limit ordinals, @{term Limit}, is closed and unbounded.*}
+text\<open>The class of limit ordinals, @{term Limit}, is closed and unbounded.\<close>
 theorem Closed_Unbounded_Limit [simp]: "Closed_Unbounded(Limit)"
 apply (simp add: Closed_Unbounded_def Closed_def Unbounded_def Limit_Union, 
        clarify)
@@ -67,17 +67,17 @@ apply (rule_tac x="i++nat" in exI)
 apply (blast intro: oadd_lt_self oadd_LimitI Limit_nat Limit_has_0) 
 done
 
-text{*The class of cardinals, @{term Card}, is closed and unbounded.*}
+text\<open>The class of cardinals, @{term Card}, is closed and unbounded.\<close>
 theorem Closed_Unbounded_Card  [simp]: "Closed_Unbounded(Card)"
 apply (simp add: Closed_Unbounded_def Closed_def Unbounded_def Card_Union)
 apply (blast intro: lt_csucc Card_csucc)
 done
 
 
-subsubsection{*The intersection of any set-indexed family of c.u. classes is
-      c.u.*}
+subsubsection\<open>The intersection of any set-indexed family of c.u. classes is
+      c.u.\<close>
 
-text{*The constructions below come from Kunen, \emph{Set Theory}, page 78.*}
+text\<open>The constructions below come from Kunen, \emph{Set Theory}, page 78.\<close>
 locale cub_family =
   fixes P and A
   fixes next_greater -- "the next ordinal satisfying class @{term A}"
@@ -89,11 +89,11 @@ locale cub_family =
       and "sup_greater(x) == \<Union>a\<in>A. next_greater(a,x)"
  
 
-text{*Trivial that the intersection is closed.*}
+text\<open>Trivial that the intersection is closed.\<close>
 lemma (in cub_family) Closed_INT: "Closed(\<lambda>x. \<forall>i\<in>A. P(i,x))"
 by (blast intro: ClosedI ClosedD [OF closed])
 
-text{*All remaining effort goes to show that the intersection is unbounded.*}
+text\<open>All remaining effort goes to show that the intersection is unbounded.\<close>
 
 lemma (in cub_family) Ord_sup_greater:
      "Ord(sup_greater(x))"
@@ -103,8 +103,8 @@ lemma (in cub_family) Ord_next_greater:
      "Ord(next_greater(a,x))"
 by (simp add: next_greater_def Ord_Least)
 
-text{*@{term next_greater} works as expected: it returns a larger value
-and one that belongs to class @{term "P(a)"}. *}
+text\<open>@{term next_greater} works as expected: it returns a larger value
+and one that belongs to class @{term "P(a)"}.\<close>
 lemma (in cub_family) next_greater_lemma:
      "[| Ord(x); a\<in>A |] ==> P(a, next_greater(a,x)) \<and> x < next_greater(a,x)"
 apply (simp add: next_greater_def)
@@ -142,9 +142,9 @@ apply (simp add: iterates_omega_def)
 apply (rule le_anti_sym)
 apply (rule le_implies_UN_le_UN) 
 apply (blast intro: leI next_greater_gt Ord_iterates Ord_sup_greater)  
-txt{*Opposite bound:
+txt\<open>Opposite bound:
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 apply (rule UN_least_le) 
 apply (blast intro: Ord_UN Ord_iterates Ord_sup_greater)  
 apply (rule_tac a="succ(n)" in UN_upper_le)
@@ -199,7 +199,7 @@ apply (rule Closed_Unbounded_INT, auto)
 done
 
 
-subsection {*Normal Functions*} 
+subsection \<open>Normal Functions\<close> 
 
 definition
   mono_le_subset :: "(i=>i) => o" where
@@ -218,7 +218,7 @@ definition
     "Normal(F) == mono_Ord(F) \<and> cont_Ord(F)"
 
 
-subsubsection{*Immediate properties of the definitions*}
+subsubsection\<open>Immediate properties of the definitions\<close>
 
 lemma NormalI:
      "[|!!i j. i<j ==> F(i) < F(j);  !!l. Limit(l) ==> F(l) = (\<Union>i<l. F(i))|]
@@ -267,9 +267,9 @@ next
 qed
 
 
-subsubsection{*The class of fixedpoints is closed and unbounded*}
+subsubsection\<open>The class of fixedpoints is closed and unbounded\<close>
 
-text{*The proof is from Drake, pages 113--114.*}
+text\<open>The proof is from Drake, pages 113--114.\<close>
 
 lemma mono_Ord_imp_le_subset: "mono_Ord(F) ==> mono_le_subset(F)"
 apply (simp add: mono_le_subset_def, clarify)
@@ -278,26 +278,26 @@ apply (simp add: le_iff)
 apply (blast intro: lt_Ord2 mono_Ord_imp_Ord mono_Ord_imp_mono) 
 done
 
-text{*The following equation is taken for granted in any set theory text.*}
+text\<open>The following equation is taken for granted in any set theory text.\<close>
 lemma cont_Ord_Union:
      "[| cont_Ord(F); mono_le_subset(F); X=0 \<longrightarrow> F(0)=0; \<forall>x\<in>X. Ord(x) |] 
       ==> F(\<Union>(X)) = (\<Union>y\<in>X. F(y))"
 apply (frule Ord_set_cases)
 apply (erule disjE, force) 
 apply (thin_tac "X=0 \<longrightarrow> Q" for Q, auto)
- txt{*The trival case of @{term "\<Union>X \<in> X"}*}
+ txt\<open>The trival case of @{term "\<Union>X \<in> X"}\<close>
  apply (rule equalityI, blast intro: Ord_Union_eq_succD) 
  apply (simp add: mono_le_subset_def UN_subset_iff le_subset_iff) 
  apply (blast elim: equalityE)
-txt{*The limit case, @{term "Limit(\<Union>X)"}:
+txt\<open>The limit case, @{term "Limit(\<Union>X)"}:
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 apply (simp add: OUN_Union_eq cont_Ord_def)
 apply (rule equalityI) 
-txt{*First inclusion:*}
+txt\<open>First inclusion:\<close>
  apply (rule UN_least [OF OUN_least])
  apply (simp add: mono_le_subset_def, blast intro: leI) 
-txt{*Second inclusion:*}
+txt\<open>Second inclusion:\<close>
 apply (rule UN_least) 
 apply (frule Union_upper_le, blast, blast intro: Ord_Union)
 apply (erule leE, drule ltD, elim UnionE)
@@ -329,7 +329,7 @@ lemma Ord_iterates_Normal:
      "[| n\<in>nat;  Normal(F);  Ord(x) |] ==> Ord(F^n (x))"  
 by (simp add: Ord_iterates) 
 
-text{*THIS RESULT IS UNUSED*}
+text\<open>THIS RESULT IS UNUSED\<close>
 lemma iterates_omega_Limit:
      "[| Normal(F);  x < F(x) |] ==> Limit(F^\<omega> (x))"  
 apply (frule lt_Ord) 
@@ -353,9 +353,9 @@ apply (erule leE)
  apply (simp_all add: iterates_omega_triv [OF sym])  (*for subgoal 2*)
 apply (simp add:  iterates_omega_def Normal_Union) 
 apply (rule equalityI, force simp add: nat_succI) 
-txt{*Opposite inclusion:
+txt\<open>Opposite inclusion:
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 apply clarify
 apply (rule UN_I, assumption) 
 apply (frule iterates_Normal_increasing, assumption, assumption, simp)
@@ -382,13 +382,13 @@ by (simp add: Closed_Unbounded_def Normal_imp_fp_Closed
               Normal_imp_fp_Unbounded)
 
 
-subsubsection{*Function @{text normalize}*}
+subsubsection\<open>Function @{text normalize}\<close>
 
-text{*Function @{text normalize} maps a function @{text F} to a 
+text\<open>Function @{text normalize} maps a function @{text F} to a 
       normal function that bounds it above.  The result is normal if and
       only if @{text F} is continuous: succ is not bounded above by any 
       normal function, by @{thm [source] Normal_imp_fp_Unbounded}.
-*}
+\<close>
 definition
   normalize :: "[i=>i, i] => i" where
     "normalize(F,a) == transrec2(a, F(0), \<lambda>x r. F(succ(x)) \<union> succ(r))"
@@ -451,9 +451,9 @@ next
 qed
 
 
-subsection {*The Alephs*}
-text {*This is the well-known transfinite enumeration of the cardinal 
-numbers.*}
+subsection \<open>The Alephs\<close>
+text \<open>This is the well-known transfinite enumeration of the cardinal 
+numbers.\<close>
 
 definition
   Aleph :: "i => i" where

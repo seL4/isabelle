@@ -2,18 +2,18 @@
     Author:     Markus Wenzel, TU Munich
 *)
 
-section {* A simple formulation of First-Order Logic *}
+section \<open>A simple formulation of First-Order Logic\<close>
 
 theory First_Order_Logic imports Pure begin
 
-text {*
+text \<open>
   The subsequent theory development illustrates single-sorted
   intuitionistic first-order logic with equality, formulated within
   the Pure framework.  Actually this is not an example of
   Isabelle/FOL, but of Isabelle/Pure.
-*}
+\<close>
 
-subsection {* Syntax *}
+subsection \<open>Syntax\<close>
 
 typedecl i
 typedecl o
@@ -22,7 +22,7 @@ judgment
   Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
 
 
-subsection {* Propositional logic *}
+subsection \<open>Propositional logic\<close>
 
 axiomatization
   false :: o  ("\<bottom>") and
@@ -47,8 +47,8 @@ theorem conjE [elim]:
   assumes "A \<and> B"
   obtains A and B
 proof
-  from `A \<and> B` show A by (rule conjD1)
-  from `A \<and> B` show B by (rule conjD2)
+  from \<open>A \<and> B\<close> show A by (rule conjD1)
+  from \<open>A \<and> B\<close> show B by (rule conjD2)
 qed
 
 definition true :: o  ("\<top>")
@@ -101,7 +101,7 @@ proof (unfold iff_def)
 qed
 
 
-subsection {* Equality *}
+subsection \<open>Equality\<close>
 
 axiomatization
   equal :: "i \<Rightarrow> i \<Rightarrow> o"  (infixl "=" 50)
@@ -119,7 +119,7 @@ proof -
 qed
 
 
-subsection {* Quantifiers *}
+subsection \<open>Quantifiers\<close>
 
 axiomatization
   All :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<forall>" 10) and

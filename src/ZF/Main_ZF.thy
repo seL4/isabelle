@@ -1,11 +1,11 @@
-section{*Theory Main: Everything Except AC*}
+section\<open>Theory Main: Everything Except AC\<close>
 
 theory Main_ZF imports List_ZF IntDiv_ZF CardinalArith begin
 
 (*The theory of "iterates" logically belongs to Nat, but can't go there because
   primrec isn't available into after Datatype.*)
 
-subsection{* Iteration of the function @{term F} *}
+subsection\<open>Iteration of the function @{term F}\<close>
 
 consts  iterates :: "[i=>i,i,i] => i"   ("(_^_ '(_'))" [60,1000,1000] 60)
 
@@ -44,10 +44,10 @@ lemma iterates_commute: "n \<in> nat ==> F(F^n (x)) = F^n (F(x))"
 by (induct_tac n, simp_all)
 
 
-subsection{* Transfinite Recursion *}
+subsection\<open>Transfinite Recursion\<close>
 
-text{*Transfinite recursion for definitions based on the
-    three cases of ordinals*}
+text\<open>Transfinite recursion for definitions based on the
+    three cases of ordinals\<close>
 
 definition
   transrec3 :: "[i, i, [i,i]=>i, [i,i]=>i] =>i" where
@@ -70,9 +70,9 @@ lemma transrec3_Limit:
 by (rule transrec3_def [THEN def_transrec, THEN trans], force)
 
 
-declaration {* fn _ =>
+declaration \<open>fn _ =>
   Simplifier.map_ss (Simplifier.set_mksimps (fn ctxt =>
     map mk_eq o Ord_atomize o Drule.gen_all (Variable.maxidx_of ctxt)))
-*}
+\<close>
 
 end

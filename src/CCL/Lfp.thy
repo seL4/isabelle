@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-section {* The Knaster-Tarski Theorem *}
+section \<open>The Knaster-Tarski Theorem\<close>
 
 theory Lfp
 imports Set

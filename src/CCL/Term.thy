@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Definitions of usual program constructs in CCL *}
+section \<open>Definitions of usual program constructs in CCL\<close>
 
 theory Term
 imports CCL
@@ -52,7 +52,7 @@ syntax
   "_letrec3" :: "[id,id,id,id,i,i]\<Rightarrow>i" ("(3letrec _ _ _ _ be _/ in _)"
                         [0,0,0,0,0,60] 60)
 
-ML {*
+ML \<open>
 (** Quantifier translations: variable binding **)
 
 (* FIXME does not handle "_idtdummy" *)
@@ -91,21 +91,21 @@ fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
          val (x',a') = Syntax_Trans.variant_abs(x,T,a3)
      in Const(@{syntax_const "_letrec3"},dummyT) $ Free(f',SS) $ Free(x',T) $ Free(y',U) $ Free(z',V) $ a' $ b'
       end;
-*}
+\<close>
 
-parse_translation {*
+parse_translation \<open>
  [(@{syntax_const "_let"}, K let_tr),
   (@{syntax_const "_letrec"}, K letrec_tr),
   (@{syntax_const "_letrec2"}, K letrec2_tr),
   (@{syntax_const "_letrec3"}, K letrec3_tr)]
-*}
+\<close>
 
-print_translation {*
+print_translation \<open>
  [(@{const_syntax let}, K let_tr'),
   (@{const_syntax letrec}, K letrec_tr'),
   (@{const_syntax letrec2}, K letrec2_tr'),
   (@{const_syntax letrec3}, K letrec3_tr')]
-*}
+\<close>
 
 consts
   napply     :: "[i\<Rightarrow>i,i,i]\<Rightarrow>i"            ("(_ ^ _ ` _)" [56,56,56] 56)
@@ -156,7 +156,7 @@ lemmas data_defs = simp_defs ind_defs napply_def
   and genrec_defs = letrec_def letrec2_def letrec3_def
 
 
-subsection {* Beta Rules, including strictness *}
+subsection \<open>Beta Rules, including strictness\<close>
 
 lemma letB: "\<not> t=bot \<Longrightarrow> let x be t in f(x) = f(t)"
   apply (unfold let_def)
@@ -200,11 +200,11 @@ lemma letrecB:
 
 lemmas rawBs = caseBs applyB applyBbot
 
-method_setup beta_rl = {*
+method_setup beta_rl = \<open>
   Scan.succeed (fn ctxt =>
     SIMPLE_METHOD' (CHANGED o
       simp_tac (ctxt addsimps @{thms rawBs} setloop (fn _ => stac ctxt @{thm letrecB}))))
-*}
+\<close>
 
 lemma ifBtrue: "if true then t else u = t"
   and ifBfalse: "if false then t else u = u"
@@ -272,7 +272,7 @@ lemmas termBs = letB applyB applyBbot splitB splitBbot fstB fstBbot
   napplyBzero napplyBsucc
 
 
-subsection {* Constructors are injective *}
+subsection \<open>Constructors are injective\<close>
 
 lemma term_injs:
   "(inl(a) = inl(a')) \<longleftrightarrow> (a=a')"
@@ -282,16 +282,16 @@ lemma term_injs:
   by (inj_rl applyB splitB whenBinl whenBinr ncaseBsucc lcaseBcons)
 
 
-subsection {* Constructors are distinct *}
+subsection \<open>Constructors are distinct\<close>
 
-ML {*
+ML \<open>
 ML_Thms.bind_thms ("term_dstncts",
   mkall_dstnct_thms @{context} @{thms data_defs} (@{thms ccl_injs} @ @{thms term_injs})
     [["bot","inl","inr"], ["bot","zero","succ"], ["bot","nil","cons"]]);
-*}
+\<close>
 
 
-subsection {* Rules for pre-order @{text "[="} *}
+subsection \<open>Rules for pre-order @{text "[="}\<close>
 
 lemma term_porews:
   "inl(a) [= inl(a') \<longleftrightarrow> a [= a'"
@@ -301,11 +301,11 @@ lemma term_porews:
   by (simp_all add: data_defs ccl_porews)
 
 
-subsection {* Rewriting and Proving *}
+subsection \<open>Rewriting and Proving\<close>
 
-ML {*
+ML \<open>
   ML_Thms.bind_thms ("term_injDs", XH_to_Ds @{thms term_injs});
-*}
+\<close>
 
 lemmas term_rews = termBs term_injs term_dstncts ccl_porews term_porews
 

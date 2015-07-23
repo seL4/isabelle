@@ -27,7 +27,7 @@ Here is the division algorithm in ML:
                           else        negateSnd (posDivAlg (~a,~b));
 *)
 
-section{*The Division Operators Div and Mod*}
+section\<open>The Division Operators Div and Mod\<close>
 
 theory IntDiv_ZF
 imports Bin OrderArith
@@ -349,7 +349,7 @@ lemma zmult_cancel1 [simp]:
 by (simp add: zmult_commute [of k] zmult_cancel2)
 
 
-subsection{* Uniqueness and monotonicity of quotients and remainders *}
+subsection\<open>Uniqueness and monotonicity of quotients and remainders\<close>
 
 lemma unique_quotient_lemma:
      "[| b$*q' $+ r' $<= b$*q $+ r;  #0 $<= r';  #0 $< b;  r $< b |]
@@ -400,8 +400,8 @@ apply (simp add: quorem_def)
 done
 
 
-subsection{*Correctness of posDivAlg,
-           the Division Algorithm for @{text "a\<ge>0"} and @{text "b>0"} *}
+subsection\<open>Correctness of posDivAlg,
+           the Division Algorithm for @{text "a\<ge>0"} and @{text "b>0"}\<close>
 
 lemma adjust_eq [simp]:
      "adjust(b, <q,r>) = (let diff = r$-b in
@@ -466,7 +466,7 @@ lemma intify_eq_0_iff_zle: "intify(m) = #0 \<longleftrightarrow> (m $<= #0 & #0 
   by (simp add: int_eq_iff_zle)
 
 
-subsection{* Some convenient biconditionals for products of signs *}
+subsection\<open>Some convenient biconditionals for products of signs\<close>
 
 lemma zmult_pos: "[| #0 $< i; #0 $< j |] ==> #0 $< i $* j"
   by (drule zmult_zless_mono1, auto)
@@ -546,23 +546,23 @@ lemma posDivAlg_correct [rule_format]:
 apply (rule_tac u = "a" and v = "b" in posDivAlg_induct)
 apply auto
    apply (simp_all add: quorem_def)
-   txt{*base case: a<b*}
+   txt\<open>base case: a<b\<close>
    apply (simp add: posDivAlg_eqn)
   apply (simp add: not_zless_iff_zle [THEN iff_sym])
  apply (simp add: int_0_less_mult_iff)
-txt{*main argument*}
+txt\<open>main argument\<close>
 apply (subst posDivAlg_eqn)
 apply (simp_all (no_asm_simp))
 apply (erule splitE)
 apply (rule posDivAlg_type)
 apply (simp_all add: int_0_less_mult_iff)
 apply (auto simp add: zadd_zmult_distrib2 Let_def)
-txt{*now just linear arithmetic*}
+txt\<open>now just linear arithmetic\<close>
 apply (simp add: not_zle_iff_zless zdiff_zless_iff)
 done
 
 
-subsection{*Correctness of negDivAlg, the division algorithm for a<0 and b>0*}
+subsection\<open>Correctness of negDivAlg, the division algorithm for a<0 and b>0\<close>
 
 lemma negDivAlg_termination:
      "[| #0 $< b; a $+ b $< #0 |]
@@ -642,23 +642,23 @@ lemma negDivAlg_correct [rule_format]:
 apply (rule_tac u = "a" and v = "b" in negDivAlg_induct)
   apply auto
    apply (simp_all add: quorem_def)
-   txt{*base case: @{term "0$<=a$+b"}*}
+   txt\<open>base case: @{term "0$<=a$+b"}\<close>
    apply (simp add: negDivAlg_eqn)
   apply (simp add: not_zless_iff_zle [THEN iff_sym])
  apply (simp add: int_0_less_mult_iff)
-txt{*main argument*}
+txt\<open>main argument\<close>
 apply (subst negDivAlg_eqn)
 apply (simp_all (no_asm_simp))
 apply (erule splitE)
 apply (rule negDivAlg_type)
 apply (simp_all add: int_0_less_mult_iff)
 apply (auto simp add: zadd_zmult_distrib2 Let_def)
-txt{*now just linear arithmetic*}
+txt\<open>now just linear arithmetic\<close>
 apply (simp add: not_zle_iff_zless zdiff_zless_iff)
 done
 
 
-subsection{* Existence shown by proving the division algorithm to be correct *}
+subsection\<open>Existence shown by proving the division algorithm to be correct\<close>
 
 (*the case a=0*)
 lemma quorem_0: "[|b \<noteq> #0;  b \<in> int|] ==> quorem (<#0,b>, <#0,#0>)"
@@ -702,7 +702,7 @@ lemma quorem_neg:
       ==> quorem (<a,b>, negateSnd(qr))"
 apply clarify
 apply (auto elim: zless_asym simp add: quorem_def zless_zminus)
-txt{*linear arithmetic from here on*}
+txt\<open>linear arithmetic from here on\<close>
 apply (simp_all add: zminus_equation [of a] zminus_zless)
 apply (cut_tac [2] z = "b" and w = "#0" in zless_linear)
 apply (cut_tac [1] z = "b" and w = "#0" in zless_linear)
@@ -716,7 +716,7 @@ apply (auto simp add: quorem_0 divAlg_def)
 apply (safe intro!: quorem_neg posDivAlg_correct negDivAlg_correct
                     posDivAlg_type negDivAlg_type)
 apply (auto simp add: quorem_def neq_iff_zless)
-txt{*linear arithmetic from here on*}
+txt\<open>linear arithmetic from here on\<close>
 apply (auto simp add: zle_def)
 done
 
@@ -945,7 +945,7 @@ apply auto
 done
 
 
-subsection{* division of a number by itself *}
+subsection\<open>division of a number by itself\<close>
 
 lemma self_quotient_aux1: "[| #0 $< a; a = r $+ a$*q; r $< a |] ==> #1 $<= q"
 apply (subgoal_tac "#0 $< a$*q")
@@ -1011,7 +1011,7 @@ apply auto
 done
 
 
-subsection{* Computation of division and remainder *}
+subsection\<open>Computation of division and remainder\<close>
 
 lemma zdiv_zero [simp]: "#0 zdiv b = #0"
   by (simp add: zdiv_def divAlg_def)
@@ -1152,7 +1152,7 @@ done
 declare zdiv_minus1_right [simp]
 
 
-subsection{* Monotonicity in the first argument (divisor) *}
+subsection\<open>Monotonicity in the first argument (divisor)\<close>
 
 lemma zdiv_mono1: "[| a $<= a';  #0 $< b |] ==> a zdiv b $<= a' zdiv b"
 apply (cut_tac a = "a" and b = "b" in zmod_zdiv_equality)
@@ -1173,7 +1173,7 @@ apply (simp_all (no_asm_simp) add: neg_mod_sign neg_mod_bound)
 done
 
 
-subsection{* Monotonicity in the second argument (dividend) *}
+subsection\<open>Monotonicity in the second argument (dividend)\<close>
 
 lemma q_pos_lemma:
      "[| #0 $<= b'$*q' $+ r'; r' $< b';  #0 $< b' |] ==> #0 $<= q'"
@@ -1286,7 +1286,7 @@ done
 
 
 
-subsection{* More algebraic laws for zdiv and zmod *}
+subsection\<open>More algebraic laws for zdiv and zmod\<close>
 
 (** proving (a*b) zdiv c = a $* (b zdiv c) $+ a * (b zmod c) **)
 
@@ -1456,7 +1456,7 @@ apply (simp (no_asm_simp) add: zmod_zadd1_eq)
 done
 
 
-subsection{* proving  a zdiv (b*c) = (a zdiv b) zdiv c *}
+subsection\<open>proving  a zdiv (b*c) = (a zdiv b) zdiv c\<close>
 
 (*The condition c>0 seems necessary.  Consider that 7 zdiv ~6 = ~2 but
   7 zdiv 2 zdiv ~3 = 3 zdiv ~3 = ~1.  The subcase (a zdiv b) zmod c = 0 seems
@@ -1550,7 +1550,7 @@ apply (cut_tac a = "intify (a)" and b = "intify (b)" in zmod_zmult2_eq_raw)
 apply auto
 done
 
-subsection{* Cancellation of common factors in "zdiv" *}
+subsection\<open>Cancellation of common factors in "zdiv"\<close>
 
 lemma zdiv_zmult_zmult1_aux1:
      "[| #0 $< b;  intify(c) \<noteq> #0 |] ==> (c$*a) zdiv (c$*b) = a zdiv b"
@@ -1584,7 +1584,7 @@ apply (auto simp add: zmult_commute)
 done
 
 
-subsection{* Distribution of factors over "zmod" *}
+subsection\<open>Distribution of factors over "zmod"\<close>
 
 lemma zmod_zmult_zmult1_aux1:
      "[| #0 $< b;  intify(c) \<noteq> #0 |]

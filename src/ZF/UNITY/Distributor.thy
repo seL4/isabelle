@@ -8,9 +8,9 @@ Distributor specification.
 
 theory Distributor imports AllocBase Follows  Guar GenPrefix begin
 
-text{*Distributor specification (the number of outputs is Nclients)*}
+text\<open>Distributor specification (the number of outputs is Nclients)\<close>
 
-text{*spec (14)*}
+text\<open>spec (14)\<close>
 
 definition
   distr_follows :: "[i, i, i, i =>i] =>i"  where
@@ -37,10 +37,10 @@ definition
      distr_follows(A, In, iIn, Out) \<inter> distr_allowed_acts(Out)"
 
 locale distr =
-  fixes In  --{*items to distribute*}
-    and iIn --{*destinations of items to distribute*}
-    and Out --{*distributed items*}
-    and A   --{*the type of items being distributed *}
+  fixes In  --\<open>items to distribute\<close>
+    and iIn --\<open>destinations of items to distribute\<close>
+    and Out --\<open>distributed items\<close>
+    and A   --\<open>the type of items being distributed\<close>
     and D
  assumes
      var_assumes [simp]:  "In \<in> var & iIn \<in> var & (\<forall>n. Out(n):var)"

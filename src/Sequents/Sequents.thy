@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Parsing and pretty-printing of sequences *}
+section \<open>Parsing and pretty-printing of sequences\<close>
 
 theory Sequents
 imports Pure
@@ -17,7 +17,7 @@ declare [[unify_trace_bound = 20, unify_search_bound = 40]]
 typedecl o
 
 
-subsection {* Sequences *}
+subsection \<open>Sequences\<close>
 
 typedecl
  seq'
@@ -27,7 +27,7 @@ consts
  Seq1'         :: "o=>seq'"
 
 
-subsection {* Concrete syntax *}
+subsection \<open>Concrete syntax\<close>
 
 nonterminal seq and seqobj and seqcont
 
@@ -56,7 +56,7 @@ syntax
   (*Constant to allow definitions of SEQUENCES of formulas*)
   "_Side"        :: "seq=>(seq'=>seq')"     ("<<(_)>>")
 
-ML {*
+ML \<open>
 
 (* parse translation for sequences *)
 
@@ -139,12 +139,12 @@ fun four_seq_tr' c [s1, s2, s3, s4] =
 (** for the <<...>> notation **)
 
 fun side_tr [s1] = seq_tr s1;
-*}
+\<close>
 
-parse_translation {* [(@{syntax_const "_Side"}, K side_tr)] *}
+parse_translation \<open>[(@{syntax_const "_Side"}, K side_tr)]\<close>
 
 
-subsection {* Proof tools *}
+subsection \<open>Proof tools\<close>
 
 ML_file "prover.ML"
 

@@ -9,7 +9,7 @@
 Based on Lex/Prefix
 *)
 
-section{*Charpentier's Generalized Prefix Relation*}
+section\<open>Charpentier's Generalized Prefix Relation\<close>
 
 theory GenPrefix
 imports Main
@@ -206,7 +206,7 @@ apply (simp (no_asm) add: antisym_def)
 apply (rule impI [THEN allI, THEN allI])
 apply (erule gen_prefix.induct, blast)
 apply (simp add: antisym_def, blast)
-txt{*append case is hardest*}
+txt\<open>append case is hardest\<close>
 apply clarify
 apply (subgoal_tac "length (zs) = 0")
 apply (subgoal_tac "ys \<in> list (A) ")

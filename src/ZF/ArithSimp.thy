@@ -3,7 +3,7 @@
     Copyright   2000  University of Cambridge
 *)
 
-section{*Arithmetic with simplification*}
+section\<open>Arithmetic with simplification\<close>
 
 theory ArithSimp
 imports Arith
@@ -14,7 +14,7 @@ ML_file "~~/src/Provers/Arith/combine_numerals.ML"
 ML_file "arith_data.ML"
 
 
-subsection{*Difference*}
+subsection\<open>Difference\<close>
 
 lemma diff_self_eq_0 [simp]: "m #- m = 0"
 apply (subgoal_tac "natify (m) #- natify (m) = 0")
@@ -64,7 +64,7 @@ apply (simp (no_asm) add: mult_commute [of k] diff_mult_distrib)
 done
 
 
-subsection{*Remainder*}
+subsection\<open>Remainder\<close>
 
 (*We need m:nat even with natify*)
 lemma div_termination: "[| 0<n;  n \<le> m;  m:nat |] ==> m #- n < m"
@@ -135,7 +135,7 @@ apply (simp add: mod_def raw_mod_geq nat_into_Ord [THEN Ord_0_lt_iff])
 done
 
 
-subsection{*Division*}
+subsection\<open>Division\<close>
 
 lemma raw_div_type: "[| m:nat;  n:nat |] ==> raw_div (m, n) \<in> nat"
 apply (unfold raw_div_def)
@@ -183,9 +183,9 @@ apply (case_tac "n=0")
 apply (simp add: nat_into_Ord [THEN Ord_0_lt_iff])
 apply (erule complete_induct)
 apply (case_tac "x<n")
-txt{*case x<n*}
+txt\<open>case x<n\<close>
 apply (simp (no_asm_simp))
-txt{*case @{term"n \<le> x"}*}
+txt\<open>case @{term"n \<le> x"}\<close>
 apply (simp add: not_lt_iff_le add_assoc mod_geq div_termination [THEN ltD] add_diff_inverse)
 done
 
@@ -200,23 +200,23 @@ apply (simp (no_asm_simp) add: mod_div_equality_natify)
 done
 
 
-subsection{*Further Facts about Remainder*}
+subsection\<open>Further Facts about Remainder\<close>
 
-text{*(mainly for mutilated chess board)*}
+text\<open>(mainly for mutilated chess board)\<close>
 
 lemma mod_succ_lemma:
      "[| 0<n;  m:nat;  n:nat |]
       ==> succ(m) mod n = (if succ(m mod n) = n then 0 else succ(m mod n))"
 apply (erule complete_induct)
 apply (case_tac "succ (x) <n")
-txt{* case succ(x) < n *}
+txt\<open>case succ(x) < n\<close>
  apply (simp (no_asm_simp) add: nat_le_refl [THEN lt_trans] succ_neq_self)
  apply (simp add: ltD [THEN mem_imp_not_eq])
-txt{* case @{term"n \<le> succ(x)"} *}
+txt\<open>case @{term"n \<le> succ(x)"}\<close>
 apply (simp add: mod_geq not_lt_iff_le)
 apply (erule leE)
  apply (simp (no_asm_simp) add: mod_geq div_termination [THEN ltD] diff_succ)
-txt{*equality case*}
+txt\<open>equality case\<close>
 apply (simp add: diff_self_eq_0)
 done
 
@@ -235,7 +235,7 @@ lemma mod_less_divisor: "[| 0<n;  n:nat |] ==> m mod n < n"
 apply (subgoal_tac "natify (m) mod n < n")
 apply (rule_tac [2] i = "natify (m) " in complete_induct)
 apply (case_tac [3] "x<n", auto)
-txt{* case @{term"n \<le> x"}*}
+txt\<open>case @{term"n \<le> x"}\<close>
 apply (simp add: mod_geq not_lt_iff_le div_termination [THEN ltD])
 done
 
@@ -264,7 +264,7 @@ lemma mod2_add_self [simp]: "(m#+m) mod 2 = 0"
 by (cut_tac n = 0 in mod2_add_more, auto)
 
 
-subsection{*Additional theorems about @{text "\<le>"}*}
+subsection\<open>Additional theorems about @{text "\<le>"}\<close>
 
 lemma add_le_self: "m:nat ==> m \<le> (m #+ n)"
 apply (simp (no_asm_simp))
@@ -339,7 +339,7 @@ apply auto
 done
 
 
-subsection{*Cancellation Laws for Common Factors in Comparisons*}
+subsection\<open>Cancellation Laws for Common Factors in Comparisons\<close>
 
 lemma mult_less_cancel_lemma:
      "[| k: nat; m: nat; n: nat |] ==> (m#*k < n#*k) \<longleftrightarrow> (0<k & m<n)"
@@ -414,7 +414,7 @@ apply auto
 done
 
 
-subsection{*More Lemmas about Remainder*}
+subsection\<open>More Lemmas about Remainder\<close>
 
 lemma mult_mod_distrib_raw:
      "[| k:nat; m:nat; n:nat |] ==> (k#*m) mod (k#*n) = k #* (m mod n)"
@@ -507,7 +507,7 @@ lemma add_le_elim2:
 by (drule less_imp_succ_add, auto)
 
 
-subsubsection{*More Lemmas About Difference*}
+subsubsection\<open>More Lemmas About Difference\<close>
 
 lemma diff_is_0_lemma:
      "[| m: nat; n: nat |] ==> m #- n = 0 \<longleftrightarrow> m \<le> n"
@@ -538,7 +538,7 @@ apply (cut_tac P=P and a="natify(a)" and b="natify(b)" in raw_nat_diff_split)
 apply simp_all
 done
 
-text{*Difference and less-than*}
+text\<open>Difference and less-than\<close>
 
 lemma diff_lt_imp_lt: "[|(k#-i) < (k#-j); i\<in>nat; j\<in>nat; k\<in>nat|] ==> j<i"
 apply (erule rev_mp)

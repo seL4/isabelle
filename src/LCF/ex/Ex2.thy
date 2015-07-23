@@ -1,4 +1,4 @@
-section {* Example 3.8 *}
+section \<open>Example 3.8\<close>
 
 theory Ex2
 imports "../LCF"

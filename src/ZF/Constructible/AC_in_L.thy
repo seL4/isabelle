@@ -2,13 +2,13 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {* The Axiom of Choice Holds in L! *}
+section \<open>The Axiom of Choice Holds in L!\<close>
 
 theory AC_in_L imports Formula Separation begin
 
-subsection{*Extending a Wellordering over a List -- Lexicographic Power*}
+subsection\<open>Extending a Wellordering over a List -- Lexicographic Power\<close>
 
-text{*This could be moved into a library.*}
+text\<open>This could be moved into a library.\<close>
 
 consts
   rlist   :: "[i,i]=>i"
@@ -31,13 +31,13 @@ inductive
   type_intros list.intros
 
 
-subsubsection{*Type checking*}
+subsubsection\<open>Type checking\<close>
 
 lemmas rlist_type = rlist.dom_subset
 
 lemmas field_rlist = rlist_type [THEN field_rel_subset]
 
-subsubsection{*Linearity*}
+subsubsection\<open>Linearity\<close>
 
 lemma rlist_Nil_Cons [intro]:
     "[|a \<in> A; l \<in> list(A)|] ==> <[], Cons(a,l)> \<in> rlist(A, r)"
@@ -64,7 +64,7 @@ proof -
           done
       }
       note yConsCase = this
-      show ?case using `ys \<in> list(A)`
+      show ?case using \<open>ys \<in> list(A)\<close>
         by (cases rule: list.cases) (simp_all add: Cons rlist_Nil_Cons yConsCase) 
     qed
   }
@@ -72,9 +72,9 @@ proof -
 qed
 
 
-subsubsection{*Well-foundedness*}
+subsubsection\<open>Well-foundedness\<close>
 
-text{*Nothing preceeds Nil in this ordering.*}
+text\<open>Nothing preceeds Nil in this ordering.\<close>
 inductive_cases rlist_NilE: " <l,[]> \<in> rlist(A,r)"
 
 inductive_cases rlist_ConsE: " <l', Cons(x,l)> \<in> rlist(A,r)"
@@ -139,9 +139,9 @@ apply (simp add: well_ord_def tot_ord_def linear_rlist)
 done
 
 
-subsection{*An Injection from Formulas into the Natural Numbers*}
+subsection\<open>An Injection from Formulas into the Natural Numbers\<close>
 
-text{*There is a well-known bijection between @{term "nat*nat"} and @{term
+text\<open>There is a well-known bijection between @{term "nat*nat"} and @{term
 nat} given by the expression f(m,n) = triangle(m+n) + m, where triangle(k)
 enumerates the triangular numbers and can be defined by triangle(0)=0,
 triangle(succ(k)) = succ(k + triangle(k)).  Some small amount of effort is
@@ -151,10 +151,10 @@ needed to show that f is a bijection.  We already know that such a bijection exi
 However, this result merely states that there is a bijection between the two
 sets.  It provides no means of naming a specific bijection.  Therefore, we
 conduct the proofs under the assumption that a bijection exists.  The simplest
-way to organize this is to use a locale.*}
+way to organize this is to use a locale.\<close>
 
-text{*Locale for any arbitrary injection between @{term "nat*nat"}
-      and @{term nat}*}
+text\<open>Locale for any arbitrary injection between @{term "nat*nat"}
+      and @{term nat}\<close>
 locale Nat_Times_Nat =
   fixes fn
   assumes fn_inj: "fn \<in> inj(nat*nat, nat)"
@@ -214,7 +214,7 @@ lemmas nat_times_nat_lepoll_nat =
     InfCard_nat [THEN InfCard_square_eqpoll, THEN eqpoll_imp_lepoll]
 
 
-text{*Not needed--but interesting?*}
+text\<open>Not needed--but interesting?\<close>
 theorem formula_lepoll_nat: "formula \<lesssim> nat"
 apply (insert nat_times_nat_lepoll_nat)
 apply (unfold lepoll_def)
@@ -222,31 +222,31 @@ apply (blast intro: Nat_Times_Nat.inj_formula_nat Nat_Times_Nat.intro)
 done
 
 
-subsection{*Defining the Wellordering on @{term "DPow(A)"}*}
+subsection\<open>Defining the Wellordering on @{term "DPow(A)"}\<close>
 
-text{*The objective is to build a wellordering on @{term "DPow(A)"} from a
+text\<open>The objective is to build a wellordering on @{term "DPow(A)"} from a
 given one on @{term A}.  We first introduce wellorderings for environments,
 which are lists built over @{term "A"}.  We combine it with the enumeration of
 formulas.  The order type of the resulting wellordering gives us a map from
 (environment, formula) pairs into the ordinals.  For each member of @{term
-"DPow(A)"}, we take the minimum such ordinal.*}
+"DPow(A)"}, we take the minimum such ordinal.\<close>
 
 definition
   env_form_r :: "[i,i,i]=>i" where
-    --{*wellordering on (environment, formula) pairs*}
+    --\<open>wellordering on (environment, formula) pairs\<close>
    "env_form_r(f,r,A) ==
       rmult(list(A), rlist(A, r),
             formula, measure(formula, enum(f)))"
 
 definition
   env_form_map :: "[i,i,i,i]=>i" where
-    --{*map from (environment, formula) pairs to ordinals*}
+    --\<open>map from (environment, formula) pairs to ordinals\<close>
    "env_form_map(f,r,A,z)
       == ordermap(list(A) * formula, env_form_r(f,r,A)) ` z"
 
 definition
   DPow_ord :: "[i,i,i,i,i]=>o" where
-    --{*predicate that holds if @{term k} is a valid index for @{term X}*}
+    --\<open>predicate that holds if @{term k} is a valid index for @{term X}\<close>
    "DPow_ord(f,r,A,X,k) ==
            \<exists>env \<in> list(A). \<exists>p \<in> formula.
              arity(p) \<le> succ(length(env)) &
@@ -255,12 +255,12 @@ definition
 
 definition
   DPow_least :: "[i,i,i,i]=>i" where
-    --{*function yielding the smallest index for @{term X}*}
+    --\<open>function yielding the smallest index for @{term X}\<close>
    "DPow_least(f,r,A,X) == \<mu> k. DPow_ord(f,r,A,X,k)"
 
 definition
   DPow_r :: "[i,i,i]=>i" where
-    --{*a wellordering on @{term "DPow(A)"}*}
+    --\<open>a wellordering on @{term "DPow(A)"}\<close>
    "DPow_r(f,r,A) == measure(DPow(A), DPow_least(f,r,A))"
 
 
@@ -324,16 +324,16 @@ lemma (in Nat_Times_Nat) DPow_r_type:
 by (simp add: DPow_r_def measure_def, blast)
 
 
-subsection{*Limit Construction for Well-Orderings*}
+subsection\<open>Limit Construction for Well-Orderings\<close>
 
-text{*Now we work towards the transfinite definition of wellorderings for
+text\<open>Now we work towards the transfinite definition of wellorderings for
 @{term "Lset(i)"}.  We assume as an inductive hypothesis that there is a family
-of wellorderings for smaller ordinals.*}
+of wellorderings for smaller ordinals.\<close>
 
 definition
   rlimit :: "[i,i=>i]=>i" where
-  --{*Expresses the wellordering at limit ordinals.  The conditional
-      lets us remove the premise @{term "Limit(i)"} from some theorems.*}
+  --\<open>Expresses the wellordering at limit ordinals.  The conditional
+      lets us remove the premise @{term "Limit(i)"} from some theorems.\<close>
     "rlimit(i,r) ==
        if Limit(i) then 
          {z: Lset(i) * Lset(i).
@@ -344,8 +344,8 @@ definition
 
 definition
   Lset_new :: "i=>i" where
-  --{*This constant denotes the set of elements introduced at level
-      @{term "succ(i)"}*}
+  --\<open>This constant denotes the set of elements introduced at level
+      @{term "succ(i)"}\<close>
     "Lset_new(i) == {x \<in> Lset(succ(i)). lrank(x) = i}"
 
 lemma Limit_Lset_eq2:
@@ -412,7 +412,7 @@ apply (simp add: Limit_is_Ord Lset_lrank_lt)
 done
 
 
-subsection{*Transfinite Definition of the Wellordering on @{term "L"}*}
+subsection\<open>Transfinite Definition of the Wellordering on @{term "L"}\<close>
 
 definition
   L_r :: "[i, i] => i" where
@@ -420,15 +420,15 @@ definition
       transrec3(i, 0, \<lambda>x r. DPow_r(f, r, Lset(x)), 
                 \<lambda>x r. rlimit(x, \<lambda>y. r`y))"
 
-subsubsection{*The Corresponding Recursion Equations*}
+subsubsection\<open>The Corresponding Recursion Equations\<close>
 lemma [simp]: "L_r(f,0) = 0"
 by (simp add: L_r_def)
 
 lemma [simp]: "L_r(f, succ(i)) = DPow_r(f, L_r(f,i), Lset(i))"
 by (simp add: L_r_def)
 
-text{*The limit case is non-trivial because of the distinction between
-object-level and meta-level abstraction.*}
+text\<open>The limit case is non-trivial because of the distinction between
+object-level and meta-level abstraction.\<close>
 lemma [simp]: "Limit(i) ==> L_r(f,i) = rlimit(i, L_r(f))"
 by (simp cong: rlimit_cong add: transrec3_Limit L_r_def ltD)
 
@@ -454,8 +454,8 @@ apply (blast intro: Nat_Times_Nat.well_ord_L_r Nat_Times_Nat.intro)
 done
 
 
-text{*Every constructible set is well-ordered! Therefore the Wellordering Theorem and
-      the Axiom of Choice hold in @{term L}!!*}
+text\<open>Every constructible set is well-ordered! Therefore the Wellordering Theorem and
+      the Axiom of Choice hold in @{term L}!!\<close>
 theorem L_implies_AC: assumes x: "L(x)" shows "\<exists>r. well_ord(x,r)"
   using Transset_Lset x
 apply (simp add: Transset_def L_def)
@@ -474,8 +474,8 @@ proof
     by (blast intro: well_ord_imp_relativized)
 qed
 
-text{*In order to prove @{term" \<exists>r[L]. wellordered(L,x,r)"}, it's necessary to know 
+text\<open>In order to prove @{term" \<exists>r[L]. wellordered(L,x,r)"}, it's necessary to know 
 that @{term r} is actually constructible. It follows from the assumption ``@{term V} equals @{term L''}, 
-but this reasoning doesn't appear to work in Isabelle.*}
+but this reasoning doesn't appear to work in Isabelle.\<close>
 
 end

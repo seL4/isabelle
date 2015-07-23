@@ -2,18 +2,18 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {*Relativized Wellorderings*}
+section \<open>Relativized Wellorderings\<close>
 
 theory Wellorderings imports Relative begin
 
-text{*We define functions analogous to @{term ordermap} @{term ordertype} 
+text\<open>We define functions analogous to @{term ordermap} @{term ordertype} 
       but without using recursion.  Instead, there is a direct appeal
       to Replacement.  This will be the basis for a version relativized
       to some class @{text M}.  The main result is Theorem I 7.6 in Kunen,
-      page 17.*}
+      page 17.\<close>
 
 
-subsection{*Wellorderings*}
+subsection\<open>Wellorderings\<close>
 
 definition
   irreflexive :: "[i=>o,i,i]=>o" where
@@ -32,23 +32,23 @@ definition
 
 definition
   wellfounded :: "[i=>o,i]=>o" where
-    --{*EVERY non-empty set has an @{text r}-minimal element*}
+    --\<open>EVERY non-empty set has an @{text r}-minimal element\<close>
     "wellfounded(M,r) == 
         \<forall>x[M]. x\<noteq>0 \<longrightarrow> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 definition
   wellfounded_on :: "[i=>o,i,i]=>o" where
-    --{*every non-empty SUBSET OF @{text A} has an @{text r}-minimal element*}
+    --\<open>every non-empty SUBSET OF @{text A} has an @{text r}-minimal element\<close>
     "wellfounded_on(M,A,r) == 
         \<forall>x[M]. x\<noteq>0 \<longrightarrow> x\<subseteq>A \<longrightarrow> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 
 definition
   wellordered :: "[i=>o,i,i]=>o" where
-    --{*linear and wellfounded on @{text A}*}
+    --\<open>linear and wellfounded on @{text A}\<close>
     "wellordered(M,A,r) == 
         transitive_rel(M,A,r) & linear_rel(M,A,r) & wellfounded_on(M,A,r)"
 
 
-subsubsection {*Trivial absoluteness proofs*}
+subsubsection \<open>Trivial absoluteness proofs\<close>
 
 lemma (in M_basic) irreflexive_abs [simp]: 
      "M(A) ==> irreflexive(M,A,r) \<longleftrightarrow> irrefl(A,r)"
@@ -83,7 +83,7 @@ lemma (in M_basic) wellfounded_on_subset_A:
 by (simp add: wellfounded_on_def, blast)
 
 
-subsubsection {*Well-founded relations*}
+subsubsection \<open>Well-founded relations\<close>
 
 lemma  (in M_basic) wellfounded_on_iff_wellfounded:
      "wellfounded_on(M,A,r) \<longleftrightarrow> wellfounded(M, r \<inter> A*A)"
@@ -126,7 +126,7 @@ apply (blast intro: transM)+
 done
 
 
-subsubsection {*Kunen's lemma IV 3.14, page 123*}
+subsubsection \<open>Kunen's lemma IV 3.14, page 123\<close>
 
 lemma (in M_basic) linear_imp_relativized: 
      "linear(A,r) ==> linear_rel(M,A,r)" 
@@ -153,11 +153,11 @@ lemma (in M_basic) well_ord_imp_relativized:
 by (simp add: wellordered_def well_ord_def tot_ord_def part_ord_def
        linear_imp_relativized trans_on_imp_relativized wf_on_imp_relativized)
 
-text{*The property being well founded (and hence of being well ordered) is not absolute: 
+text\<open>The property being well founded (and hence of being well ordered) is not absolute: 
 the set that doesn't contain a minimal element may not exist in the class M. 
-However, every set that is well founded in a transitive model M is well founded (page 124).*}
+However, every set that is well founded in a transitive model M is well founded (page 124).\<close>
 
-subsection{* Relativized versions of order-isomorphisms and order types *}
+subsection\<open>Relativized versions of order-isomorphisms and order types\<close>
 
 lemma (in M_basic) order_isomorphism_abs [simp]: 
      "[| M(A); M(B); M(f) |] 
@@ -203,9 +203,9 @@ apply (insert Memrel_separation, simp)
 done
 
 
-subsection {* Main results of Kunen, Chapter 1 section 6 *}
+subsection \<open>Main results of Kunen, Chapter 1 section 6\<close>
 
-text{*Subset properties-- proved outside the locale*}
+text\<open>Subset properties-- proved outside the locale\<close>
 
 lemma linear_rel_subset: 
     "[| linear_rel(M,A,r);  B<=A |] ==> linear_rel(M,B,r)"

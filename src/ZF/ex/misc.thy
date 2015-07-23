@@ -5,53 +5,53 @@
 Composition of homomorphisms, Pastre's examples, ...
 *)
 
-section{*Miscellaneous ZF Examples*}
+section\<open>Miscellaneous ZF Examples\<close>
 
 theory misc imports Main begin
 
 
-subsection{*Various Small Problems*}
+subsection\<open>Various Small Problems\<close>
 
-text{*The singleton problems are much harder in HOL.*}
+text\<open>The singleton problems are much harder in HOL.\<close>
 lemma singleton_example_1:
      "\<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
   by blast
 
 lemma singleton_example_2:
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-  -- {*Variant of the problem above. *}
+  -- \<open>Variant of the problem above.\<close>
   by blast
 
 lemma "\<exists>!x. f (g(x)) = x \<Longrightarrow> \<exists>!y. g (f(y)) = y"
-  -- {* A unique fixpoint theorem --- @{text fast}/@{text best}/@{text auto} all fail. *} 
+  -- \<open>A unique fixpoint theorem --- @{text fast}/@{text best}/@{text auto} all fail.\<close> 
   apply (erule ex1E, rule ex1I, erule subst_context)
   apply (rule subst, assumption, erule allE, rule subst_context, erule mp)
   apply (erule subst_context)
   done
 
 
-text{*A weird property of ordered pairs.*}
+text\<open>A weird property of ordered pairs.\<close>
 lemma "b\<noteq>c ==> <a,b> \<inter> <a,c> = <a,a>"
 by (simp add: Pair_def Int_cons_left Int_cons_right doubleton_eq_iff, blast)
 
-text{*These two are cited in Benzmueller and Kohlhase's system description of
- LEO, CADE-15, 1998 (page 139-143) as theorems LEO could not prove.*}
+text\<open>These two are cited in Benzmueller and Kohlhase's system description of
+ LEO, CADE-15, 1998 (page 139-143) as theorems LEO could not prove.\<close>
 lemma "(X = Y \<union> Z) \<longleftrightarrow> (Y \<subseteq> X & Z \<subseteq> X & (\<forall>V. Y \<subseteq> V & Z \<subseteq> V \<longrightarrow> X \<subseteq> V))"
 by (blast intro!: equalityI)
 
-text{*the dual of the previous one*}
+text\<open>the dual of the previous one\<close>
 lemma "(X = Y \<inter> Z) \<longleftrightarrow> (X \<subseteq> Y & X \<subseteq> Z & (\<forall>V. V \<subseteq> Y & V \<subseteq> Z \<longrightarrow> V \<subseteq> X))"
 by (blast intro!: equalityI)
 
-text{*trivial example of term synthesis: apparently hard for some provers!*}
+text\<open>trivial example of term synthesis: apparently hard for some provers!\<close>
 schematic_lemma "a \<noteq> b ==> a:?X & b \<notin> ?X"
 by blast
 
-text{*Nice blast benchmark.  Proved in 0.3s; old tactics can't manage it!*}
+text\<open>Nice blast benchmark.  Proved in 0.3s; old tactics can't manage it!\<close>
 lemma "\<forall>x \<in> S. \<forall>y \<in> S. x \<subseteq> y ==> \<exists>z. S \<subseteq> {z}"
 by blast
 
-text{*variant of the benchmark above*}
+text\<open>variant of the benchmark above\<close>
 lemma "\<forall>x \<in> S. \<Union>(S) \<subseteq> x ==> \<exists>z. S \<subseteq> {z}"
 by blast
 
@@ -62,19 +62,19 @@ by blast
 lemma "(\<forall>F. {x} \<in> F \<longrightarrow> {y} \<in> F) \<longrightarrow> (\<forall>A. x \<in> A \<longrightarrow> y \<in> A)"
 by best
 
-text{*A characterization of functions suggested by Tobias Nipkow*}
+text\<open>A characterization of functions suggested by Tobias Nipkow\<close>
 lemma "r \<in> domain(r)->B  \<longleftrightarrow>  r \<subseteq> domain(r)*B & (\<forall>X. r `` (r -`` X) \<subseteq> X)"
 by (unfold Pi_def function_def, best)
 
 
-subsection{*Composition of homomorphisms is a Homomorphism*}
+subsection\<open>Composition of homomorphisms is a Homomorphism\<close>
 
-text{*Given as a challenge problem in
+text\<open>Given as a challenge problem in
   R. Boyer et al.,
   Set Theory in First-Order Logic: Clauses for G\"odel's Axioms,
-  JAR 2 (1986), 287-327 *}
+  JAR 2 (1986), 287-327\<close>
 
-text{*collecting the relevant lemmas*}
+text\<open>collecting the relevant lemmas\<close>
 declare comp_fun [simp] SigmaI [simp] apply_funtype [simp]
 
 (*Force helps prove conditions of rewrites such as comp_fun_apply, since
@@ -86,7 +86,7 @@ lemma "(\<forall>A f B g. hom(A,f,B,g) =
        (K O J) \<in> hom(A,f,C,h)"
 by force
 
-text{*Another version, with meta-level rewriting*}
+text\<open>Another version, with meta-level rewriting\<close>
 lemma "(!! A f B g. hom(A,f,B,g) ==  
            {H \<in> A->B. f \<in> A*A->A & g \<in> B*B->B &  
                      (\<forall>x \<in> A. \<forall>y \<in> A. H`(f`<x,y>) = g`<H`x,H`y>)}) 
@@ -94,11 +94,11 @@ lemma "(!! A f B g. hom(A,f,B,g) ==
 by force
 
 
-subsection{*Pastre's Examples*}
+subsection\<open>Pastre's Examples\<close>
 
-text{*D Pastre.  Automatic theorem proving in set theory. 
+text\<open>D Pastre.  Automatic theorem proving in set theory. 
         Artificial Intelligence, 10:1--27, 1978.
-Previously, these were done using ML code, but blast manages fine.*}
+Previously, these were done using ML code, but blast manages fine.\<close>
 
 lemmas compIs [intro] = comp_surj comp_inj comp_fun [intro]
 lemmas compDs [dest] =  comp_mem_injD1 comp_mem_surjD1 

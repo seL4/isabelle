@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-section {* The two-element type (booleans and conditionals) *}
+section \<open>The two-element type (booleans and conditionals)\<close>
 
 theory Bool
 imports CTT
@@ -28,7 +28,7 @@ definition
 lemmas bool_defs = Bool_def true_def false_def cond_def
 
 
-subsection {* Derivation of rules for the type Bool *}
+subsection \<open>Derivation of rules for the type Bool\<close>
 
 (*formation rule*)
 lemma boolF: "Bool type"

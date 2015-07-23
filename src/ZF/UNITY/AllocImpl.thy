@@ -209,9 +209,9 @@ apply safety
 apply (drule_tac a = k in Increasing_imp_Stable, auto)
 done
 
-subsection{* Towards proving the liveness property, (31) *}
+subsection\<open>Towards proving the liveness property, (31)\<close>
 
-subsubsection{*First, we lead up to a proof of Lemma 49, page 28.*}
+subsubsection\<open>First, we lead up to a proof of Lemma 49, page 28.\<close>
 
 lemma alloc_prog_transient_lemma:
      "[|G \<in> program; k\<in>nat|]
@@ -319,7 +319,7 @@ apply (blast dest: lt_asym)
 apply (force dest: add_lt_elim2)
 done
 
-subsubsection{*Towards proving lemma 50, page 29*}
+subsubsection\<open>Towards proving lemma 50, page 29\<close>
 
 lemma alloc_prog_giv_Ensures_lemma:
 "[| G \<in> program; k\<in>nat; alloc_prog ok G;
@@ -392,10 +392,10 @@ apply (simp_all add: refl_prefix Le_def comp_def length_type)
 done
 
 
-text{*Lemma 51, page 29.
+text\<open>Lemma 51, page 29.
   This theorem states as invariant that if the number of
   tokens given does not exceed the number returned, then the upper limit
-  (@{term NbT}) does not exceed the number currently available.*}
+  (@{term NbT}) does not exceed the number currently available.\<close>
 lemma alloc_prog_Always_lemma:
 "[| G \<in> program; alloc_prog ok G;
     alloc_prog \<squnion> G \<in> Incr(lift(ask));
@@ -421,7 +421,7 @@ done
 
 
 
-subsubsection{* Main lemmas towards proving property (31)*}
+subsubsection\<open>Main lemmas towards proving property (31)\<close>
 
 lemma LeadsTo_strength_R:
     "[|  F \<in> C LeadsTo B'; F \<in> A-C LeadsTo B; B'<=B |] ==> F \<in> A LeadsTo  B"

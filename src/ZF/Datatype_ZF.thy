@@ -3,7 +3,7 @@
     Copyright   1997  University of Cambridge
 *)
 
-section{*Datatype and CoDatatype Definitions*}
+section\<open>Datatype and CoDatatype Definitions\<close>
 
 theory Datatype_ZF
 imports Inductive_ZF Univ QUniv
@@ -12,7 +12,7 @@ begin
 
 ML_file "Tools/datatype_package.ML"
 
-ML {*
+ML \<open>
 (*Typechecking rules for most datatypes involving univ*)
 structure Data_Arg =
   struct
@@ -107,10 +107,10 @@ struct
  val conv = Simplifier.simproc_global @{theory} "data_free" ["(x::i) = y"] proc;
 
 end;
-*}
+\<close>
 
-setup {*
+setup \<open>
   Simplifier.map_theory_simpset (fn ctxt => ctxt addsimprocs [DataFree.conv])
-*}
+\<close>
 
 end

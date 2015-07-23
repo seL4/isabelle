@@ -3,12 +3,12 @@
     Copyright   1992  University of Cambridge
 *)
 
-section{*Basic Equalities and Inclusions*}
+section\<open>Basic Equalities and Inclusions\<close>
 
 theory equalities imports pair begin
 
-text{*These cover union, intersection, converse, domain, range, etc.  Philippe
-de Groote proved many of the inclusions.*}
+text\<open>These cover union, intersection, converse, domain, range, etc.  Philippe
+de Groote proved many of the inclusions.\<close>
 
 lemma in_mono: "A\<subseteq>B ==> x\<in>A \<longrightarrow> x\<in>B"
 by blast
@@ -16,11 +16,11 @@ by blast
 lemma the_eq_0 [simp]: "(THE x. False) = 0"
 by (blast intro: the_0)
 
-subsection{*Bounded Quantifiers*}
-text {* \medskip
+subsection\<open>Bounded Quantifiers\<close>
+text \<open>\medskip
 
   The following are not added to the default simpset because
-  (a) they duplicate the body and (b) there are no similar rules for @{text Int}.*}
+  (a) they duplicate the body and (b) there are no similar rules for @{text Int}.\<close>
 
 lemma ball_Un: "(\<forall>x \<in> A\<union>B. P(x)) \<longleftrightarrow> (\<forall>x \<in> A. P(x)) & (\<forall>x \<in> B. P(x))"
   by blast
@@ -34,7 +34,7 @@ lemma ball_UN: "(\<forall>z \<in> (\<Union>x\<in>A. B(x)). P(z)) \<longleftright
 lemma bex_UN: "(\<exists>z \<in> (\<Union>x\<in>A. B(x)). P(z)) \<longleftrightarrow> (\<exists>x\<in>A. \<exists>z\<in>B(x). P(z))"
   by blast
 
-subsection{*Converse of a Relation*}
+subsection\<open>Converse of a Relation\<close>
 
 lemma converse_iff [simp]: "<a,b>\<in> converse(r) \<longleftrightarrow> <b,a>\<in>r"
 by (unfold converse_def, blast)
@@ -68,7 +68,7 @@ lemma converse_subset_iff:
 by blast
 
 
-subsection{*Finite Set Constructions Using @{term cons}*}
+subsection\<open>Finite Set Constructions Using @{term cons}\<close>
 
 lemma cons_subsetI: "[| a\<in>C; B\<subseteq>C |] ==> cons(a,B) \<subseteq> C"
 by blast
@@ -138,7 +138,7 @@ lemma succ_subset_iff: "succ(a) \<subseteq> B \<longleftrightarrow> (a \<subsete
 by (unfold succ_def, blast)
 
 
-subsection{*Binary Intersection*}
+subsection\<open>Binary Intersection\<close>
 
 (** Intersection is the greatest lower bound of two sets **)
 
@@ -207,7 +207,7 @@ by auto
 lemma cons_Int_distrib: "cons(x, A \<inter> B) = cons(x, A) \<inter> cons(x, B)"
 by auto
 
-subsection{*Binary Union*}
+subsection\<open>Binary Union\<close>
 
 (** Union is the least upper bound of two sets *)
 
@@ -265,7 +265,7 @@ by blast
 lemma Un_eq_Union: "A \<union> B = \<Union>({A, B})"
 by blast
 
-subsection{*Set Difference*}
+subsection\<open>Set Difference\<close>
 
 lemma Diff_subset: "A-B \<subseteq> A"
 by blast
@@ -342,7 +342,7 @@ lemma Un_Int_assoc_iff: "(A \<inter> B) \<union> C = A \<inter> (B \<union> C)  
 by (blast elim!: equalityE)
 
 
-subsection{*Big Union and Intersection*}
+subsection\<open>Big Union and Intersection\<close>
 
 (** Big Union is the least upper bound of a set  **)
 
@@ -414,7 +414,7 @@ lemma Inter_cons [simp]:
      "\<Inter>(cons(a,B)) = (if B=0 then a else a \<inter> \<Inter>(B))"
 by force
 
-subsection{*Unions and Intersections of Families*}
+subsection\<open>Unions and Intersections of Families\<close>
 
 lemma subset_UN_iff_eq: "A \<subseteq> (\<Union>i\<in>I. B(i)) \<longleftrightarrow> A = (\<Union>i\<in>I. A \<inter> B(i))"
 by (blast elim!: equalityE)
@@ -737,7 +737,7 @@ lemma range_Diff_eq: "[| <c,b> \<in> r; c\<noteq>a |] ==> range(r-{<a,b>}) = ran
 by blast
 
 
-subsection{*Image of a Set under a Function or Relation*}
+subsection\<open>Image of a Set under a Function or Relation\<close>
 
 lemma image_iff: "b \<in> r``A \<longleftrightarrow> (\<exists>x\<in>A. <x,b>\<in>r)"
 by (unfold image_def, blast)
@@ -789,7 +789,7 @@ lemma image_Int_subset_left: "(r \<inter> s)``A \<subseteq> (r``A) \<inter> (s``
 by blast
 
 
-subsection{*Inverse Image of a Set under a Function or Relation*}
+subsection\<open>Inverse Image of a Set under a Function or Relation\<close>
 
 lemma vimage_iff:
     "a \<in> r-``B \<longleftrightarrow> (\<exists>y\<in>B. <a,y>\<in>r)"
@@ -874,7 +874,7 @@ apply (unfold Inter_def, blast)
 done
 
 
-subsection{*Powerset Operator*}
+subsection\<open>Powerset Operator\<close>
 
 lemma Pow_0 [simp]: "Pow(0) = {0}"
 by blast
@@ -907,7 +907,7 @@ lemma Pow_INT_eq: "A\<noteq>0 ==> Pow(\<Inter>x\<in>A. B(x)) = (\<Inter>x\<in>A.
 by (blast elim!: not_emptyE)
 
 
-subsection{*RepFun*}
+subsection\<open>RepFun\<close>
 
 lemma RepFun_subset: "[| !!x. x\<in>A ==> f(x) \<in> B |] ==> {f(x). x\<in>A} \<subseteq> B"
 by blast
@@ -919,7 +919,7 @@ lemma RepFun_constant [simp]: "{c. x\<in>A} = (if A=0 then 0 else {c})"
 by force
 
 
-subsection{*Collect*}
+subsection\<open>Collect\<close>
 
 lemma Collect_subset: "Collect(A,P) \<subseteq> A"
 by blast
@@ -969,7 +969,7 @@ lemmas subset_SIs = subset_refl cons_subsetI subset_consI
                     Inter_greatest Int_greatest RepFun_subset
                     Un_upper1 Un_upper2 Int_lower1 Int_lower2
 
-ML {*
+ML \<open>
 val subset_cs =
   claset_of (@{context}
     delrules [@{thm subsetI}, @{thm subsetCE}]
@@ -978,7 +978,7 @@ val subset_cs =
     addSEs [@{thm cons_subsetE}]);
 
 val ZF_cs = claset_of (@{context} delrules [@{thm equalityI}]);
-*}
+\<close>
 
 end
 

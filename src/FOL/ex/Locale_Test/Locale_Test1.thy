@@ -21,7 +21,7 @@ axiomatization where
   int_minus: "(-x) + x = 0" and
   int_minus2: "-(-x) = x"
 
-section {* Inference of parameter types *}
+section \<open>Inference of parameter types\<close>
 
 locale param1 = fixes p
 print_locale! param1
@@ -41,7 +41,7 @@ locale param4 = fixes p :: "'a => 'a => 'a" (infix ".." 50)
 print_locale! param4
 
 
-subsection {* Incremental type constraints *}
+subsection \<open>Incremental type constraints\<close>
 
 locale constraint1 =
   fixes  prod (infixl "**" 65)
@@ -55,7 +55,7 @@ locale constraint2 =
 print_locale! constraint2
 
 
-section {* Inheritance *}
+section \<open>Inheritance\<close>
 
 locale semi =
   fixes prod (infixl "**" 65)
@@ -86,12 +86,12 @@ print_locale! perturbation thm perturbation_def
 locale pert_hom = d1: perturbation f d1 + d2: perturbation f d2 for f d1 d2
 print_locale! pert_hom thm pert_hom_def
 
-text {* Alternative expression, obtaining nicer names in @{text "semi f"}. *}
+text \<open>Alternative expression, obtaining nicer names in @{text "semi f"}.\<close>
 locale pert_hom' = semi f + d1: perturbation f d1 + d2: perturbation f d2 for f d1 d2
 print_locale! pert_hom' thm pert_hom'_def
 
 
-section {* Syntax declarations *}
+section \<open>Syntax declarations\<close>
 
 locale logic =
   fixes land (infixl "&&" 55)
@@ -126,7 +126,7 @@ interpretation var?: extra_type "0" "%x y. x = 0" .
 thm var.test_def
 
 
-text {* Under which circumstances term syntax remains active. *}
+text \<open>Under which circumstances term syntax remains active.\<close>
 
 locale "syntax" =
   fixes p1 :: "'a => 'b"
@@ -147,7 +147,7 @@ begin
 
 thm d1_def d2_def  (* should print as "d1(?x) <-> ..." and "d2(?x) <-> ..." *)
 
-ML {*
+ML \<open>
   fun check_syntax ctxt thm expected =
     let
       val obtained =
@@ -157,14 +157,14 @@ ML {*
       then error ("Theorem syntax '" ^ obtained ^ "' obtained, but '" ^ expected ^ "' expected.")
       else ()
     end;
-*}
+\<close>
 
 declare [[show_hyps]]
 
-ML {*
+ML \<open>
   check_syntax @{context} @{thm d1_def} "d1(?x) <-> ~ p2(p1(?x))";
   check_syntax @{context} @{thm d2_def} "d2(?x) <-> ~ p2(?x)";
-*}
+\<close>
 
 end
 
@@ -174,21 +174,21 @@ begin
 thm d1_def d2_def
   (* should print as "syntax.d1(p3, p2, ?x) <-> ..." and "d2(?x) <-> ..." *)
 
-ML {*
+ML \<open>
   check_syntax @{context} @{thm d1_def} "syntax.d1(p3, p2, ?x) <-> ~ p2(p3(?x))";
   check_syntax @{context} @{thm d2_def} "d2(?x) <-> ~ p2(?x)";
-*}
+\<close>
 
 end
 
 
-section {* Foundational versions of theorems *}
+section \<open>Foundational versions of theorems\<close>
 
 thm logic.assoc
 thm logic.lor_def
 
 
-section {* Defines *}
+section \<open>Defines\<close>
 
 locale logic_def =
   fixes land (infixl "&&" 55)
@@ -217,7 +217,7 @@ lemma "x || y = --(-- x && --y)"
 end
 
 
-section {* Notes *}
+section \<open>Notes\<close>
 
 (* A somewhat arcane homomorphism example *)
 
@@ -247,7 +247,7 @@ lemma
   shows True ..
 
 
-section {* Theorem statements *}
+section \<open>Theorem statements\<close>
 
 lemma (in lgrp) lcancel:
   "x ** y = x ** z <-> y = z"
@@ -278,13 +278,13 @@ end
 print_locale! rgrp
 
 
-subsection {* Patterns *}
+subsection \<open>Patterns\<close>
 
 lemma (in rgrp)
   assumes "y ** x = z ** x" (is ?a)
   shows "y = z" (is ?t)
 proof -
-  txt {* Weird proof involving patterns from context element and conclusion. *}
+  txt \<open>Weird proof involving patterns from context element and conclusion.\<close>
   {
     assume ?a
     then have "y ** (x ** inv(x)) = z ** (x ** inv(x))"
@@ -292,11 +292,11 @@ proof -
     then have ?t by (simp add: rone rinv)
   }
   note x = this
-  show ?t by (rule x [OF `?a`])
+  show ?t by (rule x [OF \<open>?a\<close>])
 qed
 
 
-section {* Interpretation between locales: sublocales *}
+section \<open>Interpretation between locales: sublocales\<close>
 
 sublocale lgrp < right: rgrp
 print_facts
@@ -436,7 +436,7 @@ sublocale trivial < y: trivial Q Q
 print_locale! trivial  (* No instance for y created (subsumed). *)
 
 
-subsection {* Sublocale, then interpretation in theory *}
+subsection \<open>Sublocale, then interpretation in theory\<close>
 
 interpretation int?: lgrp "op +" "0" "minus"
 proof unfold_locales
@@ -447,15 +447,15 @@ thm int.assoc int.semi_axioms
 interpretation int2?: semi "op +"
   by unfold_locales  (* subsumed, thm int2.assoc not generated *)
 
-ML {* (Global_Theory.get_thms @{theory} "int2.assoc";
+ML \<open>(Global_Theory.get_thms @{theory} "int2.assoc";
     raise Fail "thm int2.assoc was generated")
-  handle ERROR _ => ([]:thm list); *}
+  handle ERROR _ => ([]:thm list);\<close>
 
 thm int.lone int.right.rone
   (* the latter comes through the sublocale relation *)
 
 
-subsection {* Interpretation in theory, then sublocale *}
+subsection \<open>Interpretation in theory, then sublocale\<close>
 
 interpretation fol: logic "op +" "minus"
   by unfold_locales (rule int_assoc int_minus2)+
@@ -478,7 +478,7 @@ sublocale logic < two: logic2
 thm fol.two.assoc
 
 
-subsection {* Declarations and sublocale *}
+subsection \<open>Declarations and sublocale\<close>
 
 locale logic_a = logic
 locale logic_b = logic
@@ -487,9 +487,9 @@ sublocale logic_a < logic_b
   by unfold_locales
 
 
-subsection {* Interpretation *}
+subsection \<open>Interpretation\<close>
 
-subsection {* Rewrite morphism *}
+subsection \<open>Rewrite morphism\<close>
 
 locale logic_o =
   fixes land (infixl "&&" 55)
@@ -521,7 +521,7 @@ thm lor_triv [where z = True] (* Check strict prefix. *)
   x.lor_triv
 
 
-subsection {* Inheritance of rewrite morphisms *}
+subsection \<open>Inheritance of rewrite morphisms\<close>
 
 locale reflexive =
   fixes le :: "'a => 'a => o" (infix "\<sqsubseteq>" 50)
@@ -539,7 +539,7 @@ where
   grefl: "gle(x, x)" and gless_def: "gless(x, y) <-> gle(x, y) & x ~= y" and
   grefl': "gle'(x, x)" and gless'_def: "gless'(x, y) <-> gle'(x, y) & x ~= y"
 
-text {* Setup *}
+text \<open>Setup\<close>
 
 locale mixin = reflexive
 begin
@@ -554,7 +554,7 @@ proof -
     by (simp add: reflexive.less_def[OF reflexive] gless_def)
 qed
 
-text {* Rewrite morphism propagated along the locale hierarchy *}
+text \<open>Rewrite morphism propagated along the locale hierarchy\<close>
 
 locale mixin2 = mixin
 begin
@@ -568,7 +568,7 @@ thm le.less_thm2  (* rewrite morphism applied *)
 lemma "gless(x, y) <-> gle(x, y) & x ~= y"
   by (rule le.less_thm2)
 
-text {* Rewrite morphism does not leak to a side branch. *}
+text \<open>Rewrite morphism does not leak to a side branch.\<close>
 
 locale mixin3 = reflexive
 begin
@@ -581,7 +581,7 @@ interpretation le: mixin3 gle
 thm le.less_thm3  (* rewrite morphism not applied *)
 lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y" by (rule le.less_thm3)
 
-text {* Rewrite morphism only available in original context *}
+text \<open>Rewrite morphism only available in original context\<close>
 
 locale mixin4_base = reflexive
 
@@ -613,7 +613,7 @@ thm le4.less_thm4' (* rewrite morphism not applied *)
 lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y"
   by (rule le4.less_thm4')
 
-text {* Inherited rewrite morphism applied to new theorem *}
+text \<open>Inherited rewrite morphism applied to new theorem\<close>
 
 locale mixin5_base = reflexive
 
@@ -637,7 +637,7 @@ thm le5.less_thm5  (* rewrite morphism applied *)
 lemma "gless(x, y) <-> gle(x, y) & x ~= y"
   by (rule le5.less_thm5)
 
-text {* Rewrite morphism pushed down to existing inherited locale *}
+text \<open>Rewrite morphism pushed down to existing inherited locale\<close>
 
 locale mixin6_base = reflexive
 
@@ -662,7 +662,7 @@ thm le6.less_thm6  (* mixin applied *)
 lemma "gless(x, y) <-> gle(x, y) & x ~= y"
   by (rule le6.less_thm6)
 
-text {* Existing rewrite morphism inherited through sublocale relation *}
+text \<open>Existing rewrite morphism inherited through sublocale relation\<close>
 
 locale mixin7_base = reflexive
 
@@ -696,16 +696,16 @@ lemma "gless(x, y) <-> gle(x, y) & x ~= y"
   by (rule le7.less_thm7b)
 
 
-text {* This locale will be interpreted in later theories. *}
+text \<open>This locale will be interpreted in later theories.\<close>
 
 locale mixin_thy_merge = le: reflexive le + le': reflexive le' for le le'
 
 
-subsection {* Rewrite morphisms in sublocale *}
+subsection \<open>Rewrite morphisms in sublocale\<close>
 
-text {* Simulate a specification of left groups where unit and inverse are defined
+text \<open>Simulate a specification of left groups where unit and inverse are defined
   rather than specified.  This is possible, but not in FOL, due to the lack of a
-  selection operator. *}
+  selection operator.\<close>
 
 axiomatization glob_one and glob_inv
   where glob_lone: "prod(glob_one(prod), x) = x"
@@ -745,24 +745,24 @@ print_locale! lgrp
 
 context lgrp begin
 
-text {* Equations stored in target *}
+text \<open>Equations stored in target\<close>
 
 lemma "dgrp.one(prod) = one" by (rule one_equation)
 lemma "dgrp.inv(prod, x) = inv(x)" by (rule inv_equation)
 
-text {* Rewrite morphisms applied *}
+text \<open>Rewrite morphisms applied\<close>
 
 lemma "one = glob_one(prod)" by (rule one_def)
 lemma "inv(x) = glob_inv(prod, x)" by (rule inv_def)
 
 end
 
-text {* Interpreted versions *}
+text \<open>Interpreted versions\<close>
 
 lemma "0 = glob_one (op +)" by (rule int.def.one_def)
 lemma "- x = glob_inv(op +, x)" by (rule int.def.inv_def)
 
-text {* Roundup applies rewrite morphisms at declaration level in DFS tree *}
+text \<open>Roundup applies rewrite morphisms at declaration level in DFS tree\<close>
 
 locale roundup = fixes x assumes true: "x <-> True"
 
@@ -771,7 +771,7 @@ sublocale roundup \<subseteq> sub: roundup x where "x <-> True & True"
 lemma (in roundup) "True & True <-> True" by (rule sub.true)
 
 
-section {* Interpretation in named contexts *}
+section \<open>Interpretation in named contexts\<close>
 
 locale container
 begin
@@ -780,15 +780,15 @@ lemmas true_copy = private.true
 end
 
 context container begin
-ML {* (Context.>> (fn generic => let val context = Context.proof_of generic
+ML \<open>(Context.>> (fn generic => let val context = Context.proof_of generic
   val _ = Proof_Context.get_thms context "private.true" in generic end);
   raise Fail "thm private.true was persisted")
-  handle ERROR _ => ([]:thm list); *}
+  handle ERROR _ => ([]:thm list);\<close>
 thm true_copy
 end
 
 
-section {* Interpretation in proofs *}
+section \<open>Interpretation in proofs\<close>
 
 lemma True
 proof

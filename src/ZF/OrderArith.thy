@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-section{*Combining Orderings: Foundations of Ordinal Arithmetic*}
+section\<open>Combining Orderings: Foundations of Ordinal Arithmetic\<close>
 
 theory OrderArith imports Order Sum Ordinal begin
 
@@ -34,9 +34,9 @@ definition
     "measure(A,f) == {<x,y>: A*A. f(x) < f(y)}"
 
 
-subsection{*Addition of Relations -- Disjoint Sum*}
+subsection\<open>Addition of Relations -- Disjoint Sum\<close>
 
-subsubsection{*Rewrite rules.  Can be used to obtain introduction rules*}
+subsubsection\<open>Rewrite rules.  Can be used to obtain introduction rules\<close>
 
 lemma radd_Inl_Inr_iff [iff]:
     "<Inl(a), Inr(b)> \<in> radd(A,r,B,s)  \<longleftrightarrow>  a \<in> A & b \<in> B"
@@ -56,7 +56,7 @@ by (unfold radd_def, blast)
 
 declare radd_Inr_Inl_iff [THEN iffD1, dest!]
 
-subsubsection{*Elimination Rule*}
+subsubsection\<open>Elimination Rule\<close>
 
 lemma raddE:
     "[| <p',p> \<in> radd(A,r,B,s);
@@ -66,7 +66,7 @@ lemma raddE:
      |] ==> Q"
 by (unfold radd_def, blast)
 
-subsubsection{*Type checking*}
+subsubsection\<open>Type checking\<close>
 
 lemma radd_type: "radd(A,r,B,s) \<subseteq> (A+B) * (A+B)"
 apply (unfold radd_def)
@@ -75,25 +75,25 @@ done
 
 lemmas field_radd = radd_type [THEN field_rel_subset]
 
-subsubsection{*Linearity*}
+subsubsection\<open>Linearity\<close>
 
 lemma linear_radd:
     "[| linear(A,r);  linear(B,s) |] ==> linear(A+B,radd(A,r,B,s))"
 by (unfold linear_def, blast)
 
 
-subsubsection{*Well-foundedness*}
+subsubsection\<open>Well-foundedness\<close>
 
 lemma wf_on_radd: "[| wf[A](r);  wf[B](s) |] ==> wf[A+B](radd(A,r,B,s))"
 apply (rule wf_onI2)
 apply (subgoal_tac "\<forall>x\<in>A. Inl (x) \<in> Ba")
- --{*Proving the lemma, which is needed twice!*}
+ --\<open>Proving the lemma, which is needed twice!\<close>
  prefer 2
  apply (erule_tac V = "y \<in> A + B" in thin_rl)
  apply (rule_tac ballI)
  apply (erule_tac r = r and a = x in wf_on_induct, assumption)
  apply blast
-txt{*Returning to main part of proof*}
+txt\<open>Returning to main part of proof\<close>
 apply safe
 apply blast
 apply (erule_tac r = s and a = ya in wf_on_induct, assumption, blast)
@@ -112,7 +112,7 @@ apply (simp add: well_ord_def wf_on_radd)
 apply (simp add: well_ord_def tot_ord_def linear_radd)
 done
 
-subsubsection{*An @{term ord_iso} congruence law*}
+subsubsection\<open>An @{term ord_iso} congruence law\<close>
 
 lemma sum_bij:
      "[| f \<in> bij(A,C);  g \<in> bij(B,D) |]
@@ -141,7 +141,7 @@ apply (rule_tac d = "%z. if z \<in> A then Inl (z) else Inr (z) " in lam_bijecti
 apply auto
 done
 
-subsubsection{*Associativity*}
+subsubsection\<open>Associativity\<close>
 
 lemma sum_assoc_bij:
      "(\<lambda>z\<in>(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z))
@@ -158,9 +158,9 @@ lemma sum_assoc_ord_iso:
 by (rule sum_assoc_bij [THEN ord_isoI], auto)
 
 
-subsection{*Multiplication of Relations -- Lexicographic Product*}
+subsection\<open>Multiplication of Relations -- Lexicographic Product\<close>
 
-subsubsection{*Rewrite rule.  Can be used to obtain introduction rules*}
+subsubsection\<open>Rewrite rule.  Can be used to obtain introduction rules\<close>
 
 lemma  rmult_iff [iff]:
     "<<a',b'>, <a,b>> \<in> rmult(A,r,B,s) \<longleftrightarrow>
@@ -176,20 +176,20 @@ lemma rmultE:
      |] ==> Q"
 by blast
 
-subsubsection{*Type checking*}
+subsubsection\<open>Type checking\<close>
 
 lemma rmult_type: "rmult(A,r,B,s) \<subseteq> (A*B) * (A*B)"
 by (unfold rmult_def, rule Collect_subset)
 
 lemmas field_rmult = rmult_type [THEN field_rel_subset]
 
-subsubsection{*Linearity*}
+subsubsection\<open>Linearity\<close>
 
 lemma linear_rmult:
     "[| linear(A,r);  linear(B,s) |] ==> linear(A*B,rmult(A,r,B,s))"
 by (simp add: linear_def, blast)
 
-subsubsection{*Well-foundedness*}
+subsubsection\<open>Well-foundedness\<close>
 
 lemma wf_on_rmult: "[| wf[A](r);  wf[B](s) |] ==> wf[A*B](rmult(A,r,B,s))"
 apply (rule wf_onI2)
@@ -217,7 +217,7 @@ apply (simp add: well_ord_def tot_ord_def linear_rmult)
 done
 
 
-subsubsection{*An @{term ord_iso} congruence law*}
+subsubsection\<open>An @{term ord_iso} congruence law\<close>
 
 lemma prod_bij:
      "[| f \<in> bij(A,C);  g \<in> bij(B,D) |]
@@ -277,7 +277,7 @@ apply (simp (no_asm_simp) add: pred_iff well_ord_is_wf [THEN wf_on_not_refl])
 apply (auto elim!: well_ord_is_wf [THEN wf_on_asym] predE)
 done
 
-subsubsection{*Distributive law*}
+subsubsection\<open>Distributive law\<close>
 
 lemma sum_prod_distrib_bij:
      "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x))
@@ -291,7 +291,7 @@ lemma sum_prod_distrib_ord_iso:
             (A*C)+(B*C), radd(A*C, rmult(A,r,C,t), B*C, rmult(B,s,C,t)))"
 by (rule sum_prod_distrib_bij [THEN ord_isoI], auto)
 
-subsubsection{*Associativity*}
+subsubsection\<open>Associativity\<close>
 
 lemma prod_assoc_bij:
      "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>) \<in> bij((A*B)*C, A*(B*C))"
@@ -303,14 +303,14 @@ lemma prod_assoc_ord_iso:
             A*(B*C), rmult(A, r, B*C, rmult(B,s,C,t)))"
 by (rule prod_assoc_bij [THEN ord_isoI], auto)
 
-subsection{*Inverse Image of a Relation*}
+subsection\<open>Inverse Image of a Relation\<close>
 
-subsubsection{*Rewrite rule*}
+subsubsection\<open>Rewrite rule\<close>
 
 lemma rvimage_iff: "<a,b> \<in> rvimage(A,f,r)  \<longleftrightarrow>  <f`a,f`b>: r & a \<in> A & b \<in> A"
 by (unfold rvimage_def, blast)
 
-subsubsection{*Type checking*}
+subsubsection\<open>Type checking\<close>
 
 lemma rvimage_type: "rvimage(A,f,r) \<subseteq> A*A"
 by (unfold rvimage_def, rule Collect_subset)
@@ -321,7 +321,7 @@ lemma rvimage_converse: "rvimage(A,f, converse(r)) = converse(rvimage(A,f,r))"
 by (unfold rvimage_def, blast)
 
 
-subsubsection{*Partial Ordering Properties*}
+subsubsection\<open>Partial Ordering Properties\<close>
 
 lemma irrefl_rvimage:
     "[| f \<in> inj(A,B);  irrefl(B,r) |] ==> irrefl(A, rvimage(A,f,r))"
@@ -341,7 +341,7 @@ apply (unfold part_ord_def)
 apply (blast intro!: irrefl_rvimage trans_on_rvimage)
 done
 
-subsubsection{*Linearity*}
+subsubsection\<open>Linearity\<close>
 
 lemma linear_rvimage:
     "[| f \<in> inj(A,B);  linear(B,r) |] ==> linear(A,rvimage(A,f,r))"
@@ -356,7 +356,7 @@ apply (blast intro!: part_ord_rvimage linear_rvimage)
 done
 
 
-subsubsection{*Well-foundedness*}
+subsubsection\<open>Well-foundedness\<close>
 
 lemma wf_rvimage [intro!]: "wf(r) ==> wf(rvimage(A,f,r))"
 apply (simp (no_asm_use) add: rvimage_def wf_eq_minimal)
@@ -369,8 +369,8 @@ apply (subgoal_tac "\<exists>w. w \<in> {w: {f`x. x \<in> Q}. \<exists>x. x \<in
 apply blast
 done
 
-text{*But note that the combination of @{text wf_imp_wf_on} and
- @{text wf_rvimage} gives @{prop "wf(r) ==> wf[C](rvimage(A,f,r))"}*}
+text\<open>But note that the combination of @{text wf_imp_wf_on} and
+ @{text wf_rvimage} gives @{prop "wf(r) ==> wf[C](rvimage(A,f,r))"}\<close>
 lemma wf_on_rvimage: "[| f \<in> A->B;  wf[B](r) |] ==> wf[A](rvimage(A,f,r))"
 apply (rule wf_onI2)
 apply (subgoal_tac "\<forall>z\<in>A. f`z=f`y \<longrightarrow> z \<in> Ba")
@@ -400,8 +400,8 @@ lemma ord_iso_rvimage_eq:
 by (unfold ord_iso_def rvimage_def, blast)
 
 
-subsection{*Every well-founded relation is a subset of some inverse image of
-      an ordinal*}
+subsection\<open>Every well-founded relation is a subset of some inverse image of
+      an ordinal\<close>
 
 lemma wf_rvimage_Ord: "Ord(i) \<Longrightarrow> wf(rvimage(A, f, Memrel(i)))"
 by (blast intro: wf_rvimage wf_Memrel)
@@ -455,12 +455,12 @@ by (blast dest!: relation_field_times_field wf_imp_subset_rvimage
           intro: wf_rvimage_Ord [THEN wf_subset])
 
 
-subsection{*Other Results*}
+subsection\<open>Other Results\<close>
 
 lemma wf_times: "A \<inter> B = 0 ==> wf(A*B)"
 by (simp add: wf_def, blast)
 
-text{*Could also be used to prove @{text wf_radd}*}
+text\<open>Could also be used to prove @{text wf_radd}\<close>
 lemma wf_Un:
      "[| range(r) \<inter> domain(s) = 0; wf(r);  wf(s) |] ==> wf(r \<union> s)"
 apply (simp add: wf_def, clarify)
@@ -473,7 +473,7 @@ apply simp
 apply (blast intro: elim: equalityE)
 done
 
-subsubsection{*The Empty Relation*}
+subsubsection\<open>The Empty Relation\<close>
 
 lemma wf0: "wf(0)"
 by (simp add: wf_def, blast)
@@ -484,7 +484,7 @@ by (simp add: linear_def)
 lemma well_ord0: "well_ord(0,0)"
 by (blast intro: wf_imp_wf_on well_ordI wf0 linear0)
 
-subsubsection{*The "measure" relation is useful with wfrec*}
+subsubsection\<open>The "measure" relation is useful with wfrec\<close>
 
 lemma measure_eq_rvimage_Memrel:
      "measure(A,f) = rvimage(A,Lambda(A,f),Memrel(Collect(RepFun(A,f),Ord)))"
@@ -524,7 +524,7 @@ done
 lemma measure_type: "measure(A,f) \<subseteq> A*A"
 by (auto simp add: measure_def)
 
-subsubsection{*Well-foundedness of Unions*}
+subsubsection\<open>Well-foundedness of Unions\<close>
 
 lemma wf_on_Union:
  assumes wfA: "wf[A](r)"
@@ -544,7 +544,7 @@ apply (erule mp, clarify)
 apply (frule ok, assumption+, blast)
 done
 
-subsubsection{*Bijections involving Powersets*}
+subsubsection\<open>Bijections involving Powersets\<close>
 
 lemma Pow_sum_bij:
     "(\<lambda>Z \<in> Pow(A+B). <{x \<in> A. Inl(x) \<in> Z}, {y \<in> B. Inr(y) \<in> Z}>)
@@ -554,7 +554,7 @@ apply (rule_tac d = "%<X,Y>. {Inl (x). x \<in> X} \<union> {Inr (y). y \<in> Y}"
 apply force+
 done
 
-text{*As a special case, we have @{term "bij(Pow(A*B), A -> Pow(B))"} *}
+text\<open>As a special case, we have @{term "bij(Pow(A*B), A -> Pow(B))"}\<close>
 lemma Pow_Sigma_bij:
     "(\<lambda>r \<in> Pow(Sigma(A,B)). \<lambda>x \<in> A. r``{x})
      \<in> bij(Pow(Sigma(A,B)), \<Pi> x \<in> A. Pow(B(x)))"

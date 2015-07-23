@@ -16,7 +16,7 @@ definition
     "HH(f,x,a) == transrec(a, %b r. let z = x - (\<Union>c \<in> b. r`c)
                                     in  if f`z \<in> Pow(z)-{0} then f`z else {x})"
 
-subsection{*Lemmas useful in each of the three proofs*}
+subsection\<open>Lemmas useful in each of the three proofs\<close>
 
 lemma HH_def_satisfies_eq:
      "HH(f,x,a) = (let z = x - (\<Union>b \<in> a. HH(f,x,b))   
@@ -126,7 +126,7 @@ apply (rule less_LeastE)
 apply (erule_tac [2] ltI [OF _ Ord_Least], assumption)
 done
 
-subsection{*Lemmas used in the proofs of AC1 ==> WO2 and AC17 ==> AC1*}
+subsection\<open>Lemmas used in the proofs of AC1 ==> WO2 and AC17 ==> AC1\<close>
 
 lemma lam_Least_HH_inj_Pow: 
         "(\<lambda>a \<in> (LEAST i. HH(f,x,i)={x}). HH(f,x,a))   
@@ -213,7 +213,7 @@ lemmas bij_Least_HH_x =
               lam_sing_bij [THEN bij_converse_bij]]
 
 
-subsection{*The proof of AC1 ==> WO2*}
+subsection\<open>The proof of AC1 ==> WO2\<close>
 
 (*Establishing the existence of a bijection, namely
 converse

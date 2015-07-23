@@ -106,10 +106,10 @@ apply (frule_tac a = Cb in fold_set.dom_subset [THEN subsetD, THEN SigmaD1])
 apply (simp add: Fin_into_Finite [THEN Finite_imp_cardinal_cons])
 apply (case_tac "x=xb", auto) 
 apply (simp add: cons_lemma1, blast)
-txt{*case @{term "x\<noteq>xb"}*}
+txt\<open>case @{term "x\<noteq>xb"}\<close>
 apply (drule cons_lemma2, safe)
 apply (frule Diff_sing_imp, assumption+) 
-txt{** LEVEL 17*}
+txt\<open>* LEVEL 17\<close>
 apply (subgoal_tac "|Ca| \<le> |Cb|")
  prefer 2
  apply (rule succ_le_imp_le)
@@ -117,7 +117,7 @@ apply (subgoal_tac "|Ca| \<le> |Cb|")
                   Fin_into_Finite [THEN Finite_imp_cardinal_cons])
 apply (rule_tac C1 = "Ca-{xb}" in Fin_imp_fold_set [THEN exE])
  apply (blast intro: Diff_subset [THEN Fin_subset])
-txt{** LEVEL 24 **}
+txt\<open>* LEVEL 24 *\<close>
 apply (frule Diff1_fold_set, blast, blast)
 apply (blast dest!: ftype fold_set.dom_subset [THEN subsetD])
 apply (subgoal_tac "ya = f(xb,xa) ")
@@ -159,7 +159,7 @@ apply (unfold fold_def)
 apply (blast elim!: empty_fold_setE intro: fold_set.intros)
 done
 
-text{*This result is the right-to-left direction of the subsequent result*}
+text\<open>This result is the right-to-left direction of the subsequent result\<close>
 lemma (in fold_typing) fold_set_imp_cons: 
      "[| <C, y> \<in> fold_set(C, B, f, e); C \<in> Fin(A); c \<in> A; c\<notin>C |]
       ==> <cons(c, C), f(c,y)> \<in> fold_set(cons(c, C), B, f, e)"
@@ -237,7 +237,7 @@ apply (drule Finite_into_Fin)
 apply (blast intro: Fin_mono [THEN subsetD])
 done
 
-subsection{*The Operator @{term setsum}*}
+subsection\<open>The Operator @{term setsum}\<close>
 
 lemma setsum_0 [simp]: "setsum(g, 0) = #0"
 by (simp add: setsum_def)

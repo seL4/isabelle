@@ -2,11 +2,11 @@
     Author:     Heiko Loetzbeyer and Robert Sandner, TU München
 *)
 
-section {* Denotational semantics of expressions and commands *}
+section \<open>Denotational semantics of expressions and commands\<close>
 
 theory Denotation imports Com begin
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
 consts
   A     :: "i => i => i"
@@ -43,7 +43,7 @@ primrec
   "C(\<WHILE> b \<DO> c) = lfp((loc->nat) \<times> (loc->nat), \<Gamma>(b,C(c)))"
 
 
-subsection {* Misc lemmas *}
+subsection \<open>Misc lemmas\<close>
 
 lemma A_type [TC]: "[|a \<in> aexp; sigma \<in> loc->nat|] ==> A(a,sigma) \<in> nat"
   by (erule aexp.induct) simp_all

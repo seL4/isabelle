@@ -9,11 +9,11 @@
   Also, rec(m, 0, %z w.z) is pred(m).
 *)
 
-section{*Arithmetic Operators and Their Definitions*}
+section\<open>Arithmetic Operators and Their Definitions\<close>
 
 theory Arith imports Univ begin
 
-text{*Proofs about elementary arithmetic: addition, multiplication, etc.*}
+text\<open>Proofs about elementary arithmetic: addition, multiplication, etc.\<close>
 
 definition
   pred   :: "i=>i"    (*inverse of succ*)  where
@@ -91,7 +91,7 @@ done
 lemmas zero_lt_natE = zero_lt_lemma [THEN bexE]
 
 
-subsection{*@{text natify}, the Coercion to @{term nat}*}
+subsection\<open>@{text natify}, the Coercion to @{term nat}\<close>
 
 lemma pred_succ_eq [simp]: "pred(succ(y)) = y"
 by (unfold pred_def, auto)
@@ -167,7 +167,7 @@ lemma div_natify2 [simp]: "m div natify(n) = m div n"
 by (simp add: div_def)
 
 
-subsection{*Typing rules*}
+subsection\<open>Typing rules\<close>
 
 (** Addition **)
 
@@ -222,7 +222,7 @@ apply (simp_all add: le_iff)
 done
 
 
-subsection{*Addition*}
+subsection\<open>Addition\<close>
 
 (*Natify has weakened this law, compared with the older approach*)
 lemma add_0_natify [simp]: "0 #+ m = natify(m)"
@@ -315,7 +315,7 @@ lemma zero_less_add: "[| n \<in> nat; m \<in> nat |] ==> 0 < m #+ n \<longleftri
 by (induct_tac "n", auto)
 
 
-subsection{*Monotonicity of Addition*}
+subsection\<open>Monotonicity of Addition\<close>
 
 (*strict, in 1st argument; proof is by rule induction on 'less than'.
   Still need j\<in>nat, for consider j = omega.  Then we can have i<omega,
@@ -326,11 +326,11 @@ apply (erule succ_lt_induct)
 apply (simp_all add: leI)
 done
 
-text{*strict, in second argument*}
+text\<open>strict, in second argument\<close>
 lemma add_lt_mono2: "[| i<j; j\<in>nat |] ==> k#+i < k#+j"
 by (simp add: add_commute [of k] add_lt_mono1)
 
-text{*A [clumsy] way of lifting < monotonicity to @{text "\<le>"} monotonicity*}
+text\<open>A [clumsy] way of lifting < monotonicity to @{text "\<le>"} monotonicity\<close>
 lemma Ord_lt_mono_imp_le_mono:
   assumes lt_mono: "!!i j. [| i<j; j:k |] ==> f(i) < f(j)"
       and ford:    "!!i. i:k ==> Ord(f(i))"
@@ -341,19 +341,19 @@ apply (insert leij jink)
 apply (blast intro!: leCI lt_mono ford elim!: leE)
 done
 
-text{*@{text "\<le>"} monotonicity, 1st argument*}
+text\<open>@{text "\<le>"} monotonicity, 1st argument\<close>
 lemma add_le_mono1: "[| i \<le> j; j\<in>nat |] ==> i#+k \<le> j#+k"
 apply (rule_tac f = "%j. j#+k" in Ord_lt_mono_imp_le_mono, typecheck)
 apply (blast intro: add_lt_mono1 add_type [THEN nat_into_Ord])+
 done
 
-text{*@{text "\<le>"} monotonicity, both arguments*}
+text\<open>@{text "\<le>"} monotonicity, both arguments\<close>
 lemma add_le_mono: "[| i \<le> j; k \<le> l; j\<in>nat; l\<in>nat |] ==> i#+k \<le> j#+l"
 apply (rule add_le_mono1 [THEN le_trans], assumption+)
 apply (subst add_commute, subst add_commute, rule add_le_mono1, assumption+)
 done
 
-text{*Combinations of less-than and less-than-or-equals*}
+text\<open>Combinations of less-than and less-than-or-equals\<close>
 
 lemma add_lt_le_mono: "[| i<j; k\<le>l; j\<in>nat; l\<in>nat |] ==> i#+k < j#+l"
 apply (rule add_lt_mono1 [THEN lt_trans2], assumption+)
@@ -363,7 +363,7 @@ done
 lemma add_le_lt_mono: "[| i\<le>j; k<l; j\<in>nat; l\<in>nat |] ==> i#+k < j#+l"
 by (subst add_commute, subst add_commute, erule add_lt_le_mono, assumption+)
 
-text{*Less-than: in other words, strict in both arguments*}
+text\<open>Less-than: in other words, strict in both arguments\<close>
 lemma add_lt_mono: "[| i<j; k<l; j\<in>nat; l\<in>nat |] ==> i#+k < j#+l"
 apply (rule add_lt_le_mono)
 apply (auto intro: leI)
@@ -433,7 +433,7 @@ lemma diff_Un_distrib:
     "[|i\<in>nat; j\<in>nat|] ==> (i \<union> j) #- k = (i#-k) \<union> (j#-k)"
 by (insert nat_diff_Un_distrib [of i j "natify(k)"], simp)
 
-text{*We actually prove @{term "i #- j #- k = i #- (j #+ k)"}*}
+text\<open>We actually prove @{term "i #- j #- k = i #- (j #+ k)"}\<close>
 lemma diff_diff_left [simplified]:
      "natify(i)#-natify(j)#-k = natify(i) #- (natify(j)#+k)"
 by (rule_tac m="natify(i)" and n="natify(j)" in diff_induct, auto)
@@ -464,7 +464,7 @@ lemma iff_cong2: "u \<longleftrightarrow> u' ==> (t==u) == (t==u')"
 by auto
 
 
-subsection{*Multiplication*}
+subsection\<open>Multiplication\<close>
 
 lemma mult_0 [simp]: "0 #* m = 0"
 by (simp add: mult_def)

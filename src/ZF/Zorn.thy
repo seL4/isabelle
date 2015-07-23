@@ -3,12 +3,12 @@
     Copyright   1994  University of Cambridge
 *)
 
-section{*Zorn's Lemma*}
+section\<open>Zorn's Lemma\<close>
 
 theory Zorn imports OrderArith AC Inductive_ZF begin
 
-text{*Based upon the unpublished article ``Towards the Mechanization of the
-Proofs of Some Classical Theorems of Set Theory,'' by Abrial and Laffitte.*}
+text\<open>Based upon the unpublished article ``Towards the Mechanization of the
+Proofs of Some Classical Theorems of Set Theory,'' by Abrial and Laffitte.\<close>
 
 definition
   Subset_rel :: "i=>i"  where
@@ -31,16 +31,16 @@ definition
     "increasing(A) == {f \<in> Pow(A)->Pow(A). \<forall>x. x<=A \<longrightarrow> x<=f`x}"
 
 
-text{*Lemma for the inductive definition below*}
+text\<open>Lemma for the inductive definition below\<close>
 lemma Union_in_Pow: "Y \<in> Pow(Pow(A)) ==> \<Union>(Y) \<in> Pow(A)"
 by blast
 
 
-text{*We could make the inductive definition conditional on
+text\<open>We could make the inductive definition conditional on
     @{term "next \<in> increasing(S)"}
     but instead we make this a side-condition of an introduction rule.  Thus
     the induction rule lets us assume that condition!  Many inductive proofs
-    are therefore unconditional.*}
+    are therefore unconditional.\<close>
 consts
   "TFin" :: "[i,i]=>i"
 
@@ -57,7 +57,7 @@ inductive
   type_intros   CollectD1 [THEN apply_funtype] Union_in_Pow
 
 
-subsection{*Mathematical Preamble *}
+subsection\<open>Mathematical Preamble\<close>
 
 lemma Union_lemma0: "(\<forall>x\<in>C. x<=A | B<=x) ==> \<Union>(C)<=A | B<=\<Union>(C)"
 by blast
@@ -67,7 +67,7 @@ lemma Inter_lemma0:
 by blast
 
 
-subsection{*The Transfinite Construction *}
+subsection\<open>The Transfinite Construction\<close>
 
 lemma increasingD1: "f \<in> increasing(A) ==> f \<in> Pow(A)->Pow(A)"
 apply (unfold increasing_def)
@@ -82,7 +82,7 @@ lemmas TFin_UnionI = PowI [THEN TFin.Pow_UnionI]
 lemmas TFin_is_subset = TFin.dom_subset [THEN subsetD, THEN PowD]
 
 
-text{*Structural induction on @{term "TFin(S,next)"} *}
+text\<open>Structural induction on @{term "TFin(S,next)"}\<close>
 lemma TFin_induct:
   "[| n \<in> TFin(S,next);
       !!x. [| x \<in> TFin(S,next);  P(x);  next \<in> increasing(S) |] ==> P(next`x);
@@ -91,12 +91,12 @@ lemma TFin_induct:
 by (erule TFin.induct, blast+)
 
 
-subsection{*Some Properties of the Transfinite Construction *}
+subsection\<open>Some Properties of the Transfinite Construction\<close>
 
 lemmas increasing_trans = subset_trans [OF _ increasingD2,
                                         OF _ _ TFin_is_subset]
 
-text{*Lemma 1 of section 3.1*}
+text\<open>Lemma 1 of section 3.1\<close>
 lemma TFin_linear_lemma1:
      "[| n \<in> TFin(S,next);  m \<in> TFin(S,next);
          \<forall>x \<in> TFin(S,next) . x<=m \<longrightarrow> x=m | next`x<=m |]
@@ -107,19 +107,19 @@ apply (erule_tac [2] Union_lemma0) (*or just Blast_tac*)
 apply (blast dest: increasing_trans)
 done
 
-text{*Lemma 2 of section 3.2.  Interesting in its own right!
-  Requires @{term "next \<in> increasing(S)"} in the second induction step.*}
+text\<open>Lemma 2 of section 3.2.  Interesting in its own right!
+  Requires @{term "next \<in> increasing(S)"} in the second induction step.\<close>
 lemma TFin_linear_lemma2:
     "[| m \<in> TFin(S,next);  next \<in> increasing(S) |]
      ==> \<forall>n \<in> TFin(S,next). n<=m \<longrightarrow> n=m | next`n \<subseteq> m"
 apply (erule TFin_induct)
 apply (rule impI [THEN ballI])
-txt{*case split using @{text TFin_linear_lemma1}*}
+txt\<open>case split using @{text TFin_linear_lemma1}\<close>
 apply (rule_tac n1 = n and m1 = x in TFin_linear_lemma1 [THEN disjE],
        assumption+)
 apply (blast del: subsetI
              intro: increasing_trans subsetI, blast)
-txt{*second induction step*}
+txt\<open>second induction step\<close>
 apply (rule impI [THEN ballI])
 apply (rule Union_lemma0 [THEN disjE])
 apply (erule_tac [3] disjI2)
@@ -133,13 +133,13 @@ apply (erule increasingD2 [THEN subset_trans, THEN disjI1])
 apply (blast dest: TFin_is_subset)+
 done
 
-text{*a more convenient form for Lemma 2*}
+text\<open>a more convenient form for Lemma 2\<close>
 lemma TFin_subsetD:
      "[| n<=m;  m \<in> TFin(S,next);  n \<in> TFin(S,next);  next \<in> increasing(S) |]
       ==> n=m | next`n \<subseteq> m"
 by (blast dest: TFin_linear_lemma2 [rule_format])
 
-text{*Consequences from section 3.3 -- Property 3.2, the ordering is total*}
+text\<open>Consequences from section 3.3 -- Property 3.2, the ordering is total\<close>
 lemma TFin_subset_linear:
      "[| m \<in> TFin(S,next);  n \<in> TFin(S,next);  next \<in> increasing(S) |]
       ==> n \<subseteq> m | m<=n"
@@ -151,7 +151,7 @@ apply (blast del: subsetI
 done
 
 
-text{*Lemma 3 of section 3.3*}
+text\<open>Lemma 3 of section 3.3\<close>
 lemma equal_next_upper:
      "[| n \<in> TFin(S,next);  m \<in> TFin(S,next);  m = next`m |] ==> n \<subseteq> m"
 apply (erule TFin_induct)
@@ -159,7 +159,7 @@ apply (drule TFin_subsetD)
 apply (assumption+, force, blast)
 done
 
-text{*Property 3.3 of section 3.3*}
+text\<open>Property 3.3 of section 3.3\<close>
 lemma equal_next_Union:
      "[| m \<in> TFin(S,next);  next \<in> increasing(S) |]
       ==> m = next`m <-> m = \<Union>(TFin(S,next))"
@@ -174,12 +174,12 @@ apply (blast del: subsetI
 done
 
 
-subsection{*Hausdorff's Theorem: Every Set Contains a Maximal Chain*}
+subsection\<open>Hausdorff's Theorem: Every Set Contains a Maximal Chain\<close>
 
-text{*NOTE: We assume the partial ordering is @{text "\<subseteq>"}, the subset
-relation!*}
+text\<open>NOTE: We assume the partial ordering is @{text "\<subseteq>"}, the subset
+relation!\<close>
 
-text{** Defining the "next" operation for Hausdorff's Theorem **}
+text\<open>* Defining the "next" operation for Hausdorff's Theorem *\<close>
 
 lemma chain_subset_Pow: "chain(A) \<subseteq> Pow(A)"
 apply (unfold chain_def)
@@ -211,7 +211,7 @@ apply (drule choice_super, assumption, assumption)
 apply (simp add: super_def)
 done
 
-text{*This justifies Definition 4.4*}
+text\<open>This justifies Definition 4.4\<close>
 lemma Hausdorff_next_exists:
      "ch \<in> (\<Pi> X \<in> Pow(chain(S))-{0}. X) ==>
       \<exists>next \<in> increasing(S). \<forall>X \<in> Pow(S).
@@ -226,7 +226,7 @@ apply (rule lam_type)
 apply (simp (no_asm_simp))
 apply (blast dest: super_subset_chain [THEN subsetD] 
                    chain_subset_Pow [THEN subsetD] choice_super)
-txt{*Now, verify that it increases*}
+txt\<open>Now, verify that it increases\<close>
 apply (simp (no_asm_simp) add: Pow_iff subset_refl)
 apply safe
 apply (drule choice_super)
@@ -234,7 +234,7 @@ apply (assumption+)
 apply (simp add: super_def, blast)
 done
 
-text{*Lemma 4*}
+text\<open>Lemma 4\<close>
 lemma TFin_chain_lemma4:
      "[| c \<in> TFin(S,next);
          ch \<in> (\<Pi> X \<in> Pow(chain(S))-{0}. X);
@@ -248,7 +248,7 @@ apply (simp (no_asm_simp) add: chain_subset_Pow [THEN subsetD, THEN PowD]
 apply (unfold chain_def)
 apply (rule CollectI, blast, safe)
 apply (rule_tac m1=B and n1=Ba in TFin_subset_linear [THEN disjE], fast+)
-      txt{*@{text "Blast_tac's"} slow*}
+      txt\<open>@{text "Blast_tac's"} slow\<close>
 done
 
 theorem Hausdorff: "\<exists>c. c \<in> maxchain(S)"
@@ -272,10 +272,10 @@ apply (assumption+)
 done
 
 
-subsection{*Zorn's Lemma: If All Chains in S Have Upper Bounds In S,
-       then S contains a Maximal Element*}
+subsection\<open>Zorn's Lemma: If All Chains in S Have Upper Bounds In S,
+       then S contains a Maximal Element\<close>
 
-text{*Used in the proof of Zorn's Lemma*}
+text\<open>Used in the proof of Zorn's Lemma\<close>
 lemma chain_extend:
     "[| c \<in> chain(A);  z \<in> A;  \<forall>x \<in> c. x<=z |] ==> cons(z,c) \<in> chain(A)"
 by (unfold chain_def, blast)
@@ -296,7 +296,7 @@ apply (fast elim: chain_extend)
 apply (fast elim: equalityE)
 done
 
-text {* Alternative version of Zorn's Lemma *}
+text \<open>Alternative version of Zorn's Lemma\<close>
 
 theorem Zorn2:
   "\<forall>c \<in> chain(S). \<exists>y \<in> S. \<forall>x \<in> c. x \<subseteq> y ==> \<exists>y \<in> S. \<forall>z \<in> S. y<=z \<longrightarrow> y=z"
@@ -317,21 +317,21 @@ apply (blast elim!: equalityCE)
 done
 
 
-subsection{*Zermelo's Theorem: Every Set can be Well-Ordered*}
+subsection\<open>Zermelo's Theorem: Every Set can be Well-Ordered\<close>
 
-text{*Lemma 5*}
+text\<open>Lemma 5\<close>
 lemma TFin_well_lemma5:
      "[| n \<in> TFin(S,next);  Z \<subseteq> TFin(S,next);  z:Z;  ~ \<Inter>(Z) \<in> Z |]
       ==> \<forall>m \<in> Z. n \<subseteq> m"
 apply (erule TFin_induct)
-prefer 2 apply blast txt{*second induction step is easy*}
+prefer 2 apply blast txt\<open>second induction step is easy\<close>
 apply (rule ballI)
 apply (rule bspec [THEN TFin_subsetD, THEN disjE], auto)
 apply (subgoal_tac "m = \<Inter>(Z) ")
 apply blast+
 done
 
-text{*Well-ordering of @{term "TFin(S,next)"} *}
+text\<open>Well-ordering of @{term "TFin(S,next)"}\<close>
 lemma well_ord_TFin_lemma: "[| Z \<subseteq> TFin(S,next);  z \<in> Z |] ==> \<Inter>(Z) \<in> Z"
 apply (rule classical)
 apply (subgoal_tac "Z = {\<Union>(TFin (S,next))}")
@@ -341,27 +341,27 @@ apply (rule Union_upper [THEN equalityI])
 apply (rule_tac [2] subset_refl [THEN TFin_UnionI, THEN TFin_well_lemma5, THEN bspec], blast+)
 done
 
-text{*This theorem just packages the previous result*}
+text\<open>This theorem just packages the previous result\<close>
 lemma well_ord_TFin:
      "next \<in> increasing(S) 
       ==> well_ord(TFin(S,next), Subset_rel(TFin(S,next)))"
 apply (rule well_ordI)
 apply (unfold Subset_rel_def linear_def)
-txt{*Prove the well-foundedness goal*}
+txt\<open>Prove the well-foundedness goal\<close>
 apply (rule wf_onI)
 apply (frule well_ord_TFin_lemma, assumption)
 apply (drule_tac x = "\<Inter>(Z) " in bspec, assumption)
 apply blast
-txt{*Now prove the linearity goal*}
+txt\<open>Now prove the linearity goal\<close>
 apply (intro ballI)
 apply (case_tac "x=y")
  apply blast
-txt{*The @{term "x\<noteq>y"} case remains*}
+txt\<open>The @{term "x\<noteq>y"} case remains\<close>
 apply (rule_tac n1=x and m1=y in TFin_subset_linear [THEN disjE],
        assumption+, blast+)
 done
 
-text{** Defining the "next" operation for Zermelo's Theorem **}
+text\<open>* Defining the "next" operation for Zermelo's Theorem *\<close>
 
 lemma choice_Diff:
      "[| ch \<in> (\<Pi> X \<in> Pow(S) - {0}. X);  X \<subseteq> S;  X\<noteq>S |] ==> ch ` (S-X) \<in> S-X"
@@ -369,7 +369,7 @@ apply (erule apply_type)
 apply (blast elim!: equalityE)
 done
 
-text{*This justifies Definition 6.1*}
+text\<open>This justifies Definition 6.1\<close>
 lemma Zermelo_next_exists:
      "ch \<in> (\<Pi> X \<in> Pow(S)-{0}. X) ==>
            \<exists>next \<in> increasing(S). \<forall>X \<in> Pow(S).
@@ -380,16 +380,16 @@ apply force
 apply (unfold increasing_def)
 apply (rule CollectI)
 apply (rule lam_type)
-txt{*Type checking is surprisingly hard!*}
+txt\<open>Type checking is surprisingly hard!\<close>
 apply (simp (no_asm_simp) add: Pow_iff cons_subset_iff subset_refl)
 apply (blast intro!: choice_Diff [THEN DiffD1])
-txt{*Verify that it increases*}
+txt\<open>Verify that it increases\<close>
 apply (intro allI impI)
 apply (simp add: Pow_iff subset_consI subset_refl)
 done
 
 
-text{*The construction of the injection*}
+text\<open>The construction of the injection\<close>
 lemma choice_imp_injection:
      "[| ch \<in> (\<Pi> X \<in> Pow(S)-{0}. X);
          next \<in> increasing(S);
@@ -404,8 +404,8 @@ apply (subgoal_tac "x \<notin> \<Union>({y \<in> TFin (S,next) . x \<notin> y}) 
 prefer 2 apply (blast elim: equalityE)
 apply (subgoal_tac "\<Union>({y \<in> TFin (S,next) . x \<notin> y}) \<noteq> S")
 prefer 2 apply (blast elim: equalityE)
-txt{*For proving @{text "x \<in> next`\<Union>(...)"}.
-  Abrial and Laffitte's justification appears to be faulty.*}
+txt\<open>For proving @{text "x \<in> next`\<Union>(...)"}.
+  Abrial and Laffitte's justification appears to be faulty.\<close>
 apply (subgoal_tac "~ next ` Union({y \<in> TFin (S,next) . x \<notin> y}) 
                     \<subseteq> \<Union>({y \<in> TFin (S,next) . x \<notin> y}) ")
  prefer 2
@@ -415,11 +415,11 @@ apply (subgoal_tac "~ next ` Union({y \<in> TFin (S,next) . x \<notin> y})
 apply (subgoal_tac "x \<in> next ` Union({y \<in> TFin (S,next) . x \<notin> y}) ")
  prefer 2
  apply (blast intro!: Collect_subset [THEN TFin_UnionI] TFin.nextI)
-txt{*End of the lemmas!*}
+txt\<open>End of the lemmas!\<close>
 apply (simp add: Collect_subset [THEN TFin_UnionI, THEN TFin_is_subset])
 done
 
-text{*The wellordering theorem*}
+text\<open>The wellordering theorem\<close>
 theorem AC_well_ord: "\<exists>r. well_ord(S,r)"
 apply (rule AC_Pi_Pow [THEN exE])
 apply (rule Zermelo_next_exists [THEN bexE], assumption)
@@ -430,9 +430,9 @@ apply (rule choice_imp_injection [THEN inj_weaken_type], blast+)
 done
 
 
-subsection {* Zorn's Lemma for Partial Orders *}
+subsection \<open>Zorn's Lemma for Partial Orders\<close>
 
-text {* Reimported from HOL by Clemens Ballarin. *}
+text \<open>Reimported from HOL by Clemens Ballarin.\<close>
 
 
 definition Chain :: "i => i" where
@@ -449,7 +449,7 @@ theorem Zorn_po:
   shows "\<exists>m\<in>field(r). \<forall>a\<in>field(r). <m, a> \<in> r \<longrightarrow> a = m"
 proof -
   have "Preorder(r)" using po by (simp add: partial_order_on_def)
-  --{* Mirror r in the set of subsets below (wrt r) elements of A (?). *}
+  --\<open>Mirror r in the set of subsets below (wrt r) elements of A (?).\<close>
   let ?B = "\<lambda>x\<in>field(r). r -`` {x}" let ?S = "?B `` field(r)"
   have "\<forall>C\<in>chain(?S). \<exists>U\<in>?S. \<forall>A\<in>C. A \<subseteq> U"
   proof (clarsimp simp: chain_def Subset_rel_def bex_image_simp)
@@ -478,7 +478,7 @@ proof -
       assume "a \<in> field(r)" "r -`` {a} \<in> C" "b \<in> field(r)" "r -`` {b} \<in> C"
       hence "r -`` {a} \<subseteq> r -`` {b} | r -`` {b} \<subseteq> r -`` {a}" using 2 by auto
       then show "<a, b> \<in> r | <b, a> \<in> r"
-        using `Preorder(r)` `a \<in> field(r)` `b \<in> field(r)`
+        using \<open>Preorder(r)\<close> \<open>a \<in> field(r)\<close> \<open>b \<in> field(r)\<close>
         by (simp add: subset_vimage1_vimage1_iff)
     qed
     then obtain u where uA: "u \<in> field(r)" "\<forall>a\<in>?A. <a, u> \<in> r"
@@ -498,20 +498,20 @@ proof -
         apply (erule lamE)
         apply simp
         done
-      then show "<a, u> \<in> r" using uA aB `Preorder(r)`
+      then show "<a, u> \<in> r" using uA aB \<open>Preorder(r)\<close>
         by (auto simp: preorder_on_def refl_def) (blast dest: trans_onD)+
     qed
     then show "\<exists>U\<in>field(r). \<forall>A\<in>C. A \<subseteq> r -`` {U}"
-      using `u \<in> field(r)` ..
+      using \<open>u \<in> field(r)\<close> ..
   qed
   from Zorn2 [OF this]
   obtain m B where "m \<in> field(r)" "B = r -`` {m}"
     "\<forall>x\<in>field(r). B \<subseteq> r -`` {x} \<longrightarrow> B = r -`` {x}"
     by (auto elim!: lamE simp: ball_image_simp)
   then have "\<forall>a\<in>field(r). <m, a> \<in> r \<longrightarrow> a = m"
-    using po `Preorder(r)` `m \<in> field(r)`
+    using po \<open>Preorder(r)\<close> \<open>m \<in> field(r)\<close>
     by (auto simp: subset_vimage1_vimage1_iff Partial_order_eq_vimage1_vimage1_iff)
-  then show ?thesis using `m \<in> field(r)` by blast
+  then show ?thesis using \<open>m \<in> field(r)\<close> by blast
 qed
 
 end

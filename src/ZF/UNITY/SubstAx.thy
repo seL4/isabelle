@@ -5,7 +5,7 @@
 Theory ported from HOL.
 *)
 
-section{*Weak LeadsTo relation (restricted to the set of reachable states)*}
+section\<open>Weak LeadsTo relation (restricted to the set of reachable states)\<close>
 
 theory SubstAx
 imports WFair Constrains
@@ -348,7 +348,7 @@ apply (rule_tac C1 = 0 in Finite_completion [THEN LeadsTo_weaken_R], simp_all)
 apply (rule_tac [3] subset_refl, auto)
 done
 
-ML {*
+ML \<open>
 (*proves "ensures/leadsTo" properties when the program is specified*)
 fun ensures_tac ctxt sact =
   SELECT_GOAL
@@ -374,11 +374,11 @@ fun ensures_tac ctxt sact =
            ALLGOALS (asm_full_simp_tac (ctxt addsimps [@{thm st_set_def}])),
                       ALLGOALS (clarify_tac ctxt),
           ALLGOALS (asm_lr_simp_tac ctxt)]);
-*}
+\<close>
 
-method_setup ensures = {*
+method_setup ensures = \<open>
     Args.goal_spec -- Scan.lift Args.name_inner_syntax >>
     (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (ensures_tac ctxt s))
-*} "for proving progress properties"
+\<close> "for proving progress properties"
 
 end

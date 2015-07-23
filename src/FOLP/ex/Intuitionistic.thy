@@ -31,167 +31,167 @@ imports IFOLP
 begin
 
 schematic_lemma "?p : ~~(P&Q) <-> ~~P & ~~Q"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 schematic_lemma "?p : ~~~P <-> ~P"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 schematic_lemma "?p : ~~((P --> Q | R)  -->  (P-->Q) | (P-->R))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 schematic_lemma "?p : (P<->Q) <-> (Q<->P)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 
-subsection {* Lemmas for the propositional double-negation translation *}
+subsection \<open>Lemmas for the propositional double-negation translation\<close>
 
 schematic_lemma "?p : P --> ~~P"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 schematic_lemma "?p : ~~(~~P --> P)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 schematic_lemma "?p : ~~P & ~~(P --> Q) --> ~~Q"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 
-subsection {* The following are classically but not constructively valid *}
+subsection \<open>The following are classically but not constructively valid\<close>
 
 (*The attempt to prove them terminates quickly!*)
 schematic_lemma "?p : ((P-->Q) --> P)  -->  P"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})?
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
   oops
 
 schematic_lemma "?p : (P&Q-->R)  -->  (P-->R) | (Q-->R)"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})?
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
   oops
 
 
-subsection {* Intuitionistic FOL: propositional problems based on Pelletier *}
+subsection \<open>Intuitionistic FOL: propositional problems based on Pelletier\<close>
 
 text "Problem ~~1"
 schematic_lemma "?p : ~~((P-->Q)  <->  (~Q --> ~P))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~2"
 schematic_lemma "?p : ~~(~~P  <->  P)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem 3"
 schematic_lemma "?p : ~(P-->Q) --> (Q-->P)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~4"
 schematic_lemma "?p : ~~((~P-->Q)  <->  (~Q --> P))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~5"
 schematic_lemma "?p : ~~((P|Q-->P|R) --> P|(Q-->R))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~6"
 schematic_lemma "?p : ~~(P | ~P)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~7"
 schematic_lemma "?p : ~~(P | ~~~P)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~8.  Peirce's law"
 schematic_lemma "?p : ~~(((P-->Q) --> P)  -->  P)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem 9"
 schematic_lemma "?p : ((P|Q) & (~P|Q) & (P| ~Q)) --> ~ (~P | ~Q)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem 10"
 schematic_lemma "?p : (Q-->R) --> (R-->P&Q) --> (P-->(Q|R)) --> (P<->Q)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "11.  Proved in each direction (incorrectly, says Pelletier!!) "
 schematic_lemma "?p : P<->P"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~12.  Dijkstra's law  "
 schematic_lemma "?p : ~~(((P <-> Q) <-> R)  <->  (P <-> (Q <-> R)))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 schematic_lemma "?p : ((P <-> Q) <-> R)  -->  ~~(P <-> (Q <-> R))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem 13.  Distributive law"
 schematic_lemma "?p : P | (Q & R)  <-> (P | Q) & (P | R)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~14"
 schematic_lemma "?p : ~~((P <-> Q) <-> ((Q | ~P) & (~Q|P)))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~15"
 schematic_lemma "?p : ~~((P --> Q) <-> (~P | Q))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~16"
 schematic_lemma "?p : ~~((P-->Q) | (Q-->P))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~17"
 schematic_lemma "?p : ~~(((P & (Q-->R))-->S) <-> ((~P | Q | S) & (~P | ~R | S)))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})  -- slow
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)  -- slow
 
 
-subsection {* Examples with quantifiers *}
+subsection \<open>Examples with quantifiers\<close>
 
 text "The converse is classical in the following implications..."
 
 schematic_lemma "?p : (EX x. P(x)-->Q)  -->  (ALL x. P(x)) --> Q"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 schematic_lemma "?p : ((ALL x. P(x))-->Q) --> ~ (ALL x. P(x) & ~Q)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 schematic_lemma "?p : ((ALL x. ~P(x))-->Q)  -->  ~ (ALL x. ~ (P(x)|Q))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 schematic_lemma "?p : (ALL x. P(x)) | Q  -->  (ALL x. P(x) | Q)"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 schematic_lemma "?p : (EX x. P --> Q(x)) --> (P --> (EX x. Q(x)))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 
 text "The following are not constructively valid!"
 text "The attempt to prove them terminates quickly!"
 
 schematic_lemma "?p : ((ALL x. P(x))-->Q) --> (EX x. P(x)-->Q)"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})?
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
   oops
 
 schematic_lemma "?p : (P --> (EX x. Q(x))) --> (EX x. P-->Q(x))"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})?
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
   oops
 
 schematic_lemma "?p : (ALL x. P(x) | Q) --> ((ALL x. P(x)) | Q)"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})?
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
   oops
 
 schematic_lemma "?p : (ALL x. ~~P(x)) --> ~~(ALL x. P(x))"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})?
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
   oops
 
 (*Classically but not intuitionistically valid.  Proved by a bug in 1986!*)
 schematic_lemma "?p : EX x. Q(x) --> (ALL x. Q(x))"
-  apply (tactic {* IntPr.fast_tac @{context} 1 *})?
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
   oops
 
 
 subsection "Hard examples with quantifiers"
 
-text {*
+text \<open>
   The ones that have not been proved are not known to be valid!
   Some will require quantifier duplication -- not currently available.
-*}
+\<close>
 
 text "Problem ~~18"
 schematic_lemma "?p : ~~(EX y. ALL x. P(y)-->P(x))" oops
@@ -204,7 +204,7 @@ schematic_lemma "?p : ~~(EX x. ALL y z. (P(y)-->Q(z)) --> (P(x)-->Q(x)))" oops
 text "Problem 20"
 schematic_lemma "?p : (ALL x y. EX z. ALL w. (P(x)&Q(y)-->R(z)&S(w)))      
     --> (EX x y. P(x) & Q(y)) --> (EX z. R(z))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem 21"
 schematic_lemma "?p : (EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> ~~(EX x. P<->Q(x))" oops
@@ -212,11 +212,11 @@ schematic_lemma "?p : (EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> ~~(EX x. P<->Q(x))
 
 text "Problem 22"
 schematic_lemma "?p : (ALL x. P <-> Q(x))  -->  (P <-> (ALL x. Q(x)))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem ~~23"
 schematic_lemma "?p : ~~ ((ALL x. P | Q(x))  <->  (P | (ALL x. Q(x))))"
-  by (tactic {* IntPr.fast_tac @{context} 1 *})
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text "Problem 24"
 schematic_lemma "?p : ~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &   
@@ -287,7 +287,7 @@ text "Problem 51"
 schematic_lemma
     "?p : (EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->   
      (EX z. ALL x. EX w. (ALL y. P(x,y) <-> y=w) <-> x=z)"
-  by (tactic "IntPr.best_tac @{context} 1") -- {*60 seconds*}
+  by (tactic "IntPr.best_tac @{context} 1") -- \<open>60 seconds\<close>
 
 text "Problem 56"
 schematic_lemma "?p : (ALL x. (EX y. P(y) & x=f(y)) --> P(x)) <-> (ALL x. P(x) --> P(f(x)))"

@@ -13,7 +13,7 @@ The representation expects that (m mod 2) is 0 or 1, even if m is negative;
 For instance, ~5 div 2 = ~3 and ~5 mod 2 = 1; thus ~5 = (~3)*2 + 1
 *)
 
-section{*Arithmetic on Binary Integers*}
+section\<open>Arithmetic on Binary Integers\<close>
 
 theory Bin
 imports Int_ZF Datatype_ZF
@@ -176,8 +176,8 @@ lemma bin_mult_type [TC]: "[| v \<in> bin; w \<in> bin |] ==> bin_mult(v,w) \<in
 by (induct_tac "v", auto)
 
 
-subsubsection{*The Carry and Borrow Functions,
-            @{term bin_succ} and @{term bin_pred}*}
+subsubsection\<open>The Carry and Borrow Functions,
+            @{term bin_succ} and @{term bin_pred}\<close>
 
 (*NCons preserves the integer value of its argument*)
 lemma integ_of_NCons [simp]:
@@ -199,7 +199,7 @@ apply (auto simp add: zadd_ac elim!: boolE)
 done
 
 
-subsubsection{*@{term bin_minus}: Unary Negation of Binary Integers*}
+subsubsection\<open>@{term bin_minus}: Unary Negation of Binary Integers\<close>
 
 lemma integ_of_minus: "w \<in> bin ==> integ_of(bin_minus(w)) = $- integ_of(w)"
 apply (erule bin.induct)
@@ -207,7 +207,7 @@ apply (auto simp add: zadd_ac zminus_zadd_distrib  elim!: boolE)
 done
 
 
-subsubsection{*@{term bin_add}: Binary Addition*}
+subsubsection\<open>@{term bin_add}: Binary Addition\<close>
 
 lemma bin_add_Pls [simp]: "w \<in> bin ==> bin_add(Pls,w) = w"
 by (unfold bin_add_def, simp)
@@ -255,7 +255,7 @@ apply (simp add: integ_of_add integ_of_minus)
 done
 
 
-subsubsection{*@{term bin_mult}: Binary Multiplication*}
+subsubsection\<open>@{term bin_mult}: Binary Multiplication\<close>
 
 lemma integ_of_mult:
      "[| v \<in> bin;  w \<in> bin |]
@@ -266,7 +266,7 @@ apply (auto simp add: zadd_ac integ_of_add zadd_zmult_distrib  elim!: boolE)
 done
 
 
-subsection{*Computations*}
+subsection\<open>Computations\<close>
 
 (** extra rules for bin_succ, bin_pred **)
 
@@ -351,8 +351,8 @@ apply (rule zmult_minus1)
 done
 
 
-subsection{*Simplification Rules for Comparison of Binary Numbers*}
-text{*Thanks to Norbert Voelker*}
+subsection\<open>Simplification Rules for Comparison of Binary Numbers\<close>
+text\<open>Thanks to Norbert Voelker\<close>
 
 (** Equals (=) **)
 
@@ -695,9 +695,9 @@ lemma le_add_iff2: "(i$*u $+ m $<= j$*u $+ n) \<longleftrightarrow> (m $<= (j$-i
 
 ML_file "int_arith.ML"
 
-subsection {* examples: *}
+subsection \<open>examples:\<close>
 
-text {* @{text combine_numerals_prod} (products of separate literals) *}
+text \<open>@{text combine_numerals_prod} (products of separate literals)\<close>
 lemma "#5 $* x $* #3 = y" apply simp oops
 
 schematic_lemma "y2 $+ ?x42 = y $+ y2" apply simp oops
@@ -741,7 +741,7 @@ lemma "#2 $* y $+ #3 $* z $+ #6 $* w $+ #2 $* y $+ #3 $* z $+ #2 $* u = #2 $* y'
 lemma "a $+ $-(b$+c) $+ b = d" apply simp oops
 lemma "a $+ $-(b$+c) $- b = d" apply simp oops
 
-text {* negative numerals *}
+text \<open>negative numerals\<close>
 lemma "(i $+ j $+ #-2 $+ k) $- (u $+ #5 $+ y) = zz" apply simp oops
 lemma "(i $+ j $+ #-3 $+ k) $< u $+ #5 $+ y" apply simp oops
 lemma "(i $+ j $+ #3 $+ k) $< u $+ #-6 $+ y" apply simp oops
@@ -749,7 +749,7 @@ lemma "(i $+ j $+ #-12 $+ k) $- #15 = y" apply simp oops
 lemma "(i $+ j $+ #12 $+ k) $- #-15 = y" apply simp oops
 lemma "(i $+ j $+ #-12 $+ k) $- #-15 = y" apply simp oops
 
-text {* Multiplying separated numerals *}
+text \<open>Multiplying separated numerals\<close>
 lemma "#6 $* ($# x $* #2) =  uu" apply simp oops
 lemma "#4 $* ($# x $* $# x) $* (#2 $* $# x) =  uu" apply simp oops
 

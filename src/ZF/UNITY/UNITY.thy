@@ -3,14 +3,14 @@
     Copyright   2001  University of Cambridge
 *)
 
-section {*The Basic UNITY Theory*}
+section \<open>The Basic UNITY Theory\<close>
 
 theory UNITY imports State begin
 
-text{*The basic UNITY theory (revised version, based upon the "co" operator)
+text\<open>The basic UNITY theory (revised version, based upon the "co" operator)
 From Misra, "A Logic for Concurrent Programming", 1994.
 
-This ZF theory was ported from its HOL equivalent.*}
+This ZF theory was ported from its HOL equivalent.\<close>
 
 consts
   "constrains" :: "[i, i] => i"  (infixl "co"     60)
@@ -24,8 +24,8 @@ definition
 
 definition
   mk_program :: "[i,i,i]=>i"  where
-  --{* The definition yields a program thanks to the coercions
-       init \<inter> state, acts \<inter> Pow(state*state), etc. *}
+  --\<open>The definition yields a program thanks to the coercions
+       init \<inter> state, acts \<inter> Pow(state*state), etc.\<close>
   "mk_program(init, acts, allowed) ==
     <init \<inter> state, cons(id(state), acts \<inter> Pow(state*state)),
               cons(id(state), allowed \<inter> Pow(state*state))>"
@@ -96,19 +96,19 @@ definition
 defs
   constrains_def:
      "A co B == {F \<in> program. (\<forall>act \<in> Acts(F). act``A\<subseteq>B) & st_set(A)}"
-    --{* the condition @{term "st_set(A)"} makes the definition slightly
-         stronger than the HOL one *}
+    --\<open>the condition @{term "st_set(A)"} makes the definition slightly
+         stronger than the HOL one\<close>
 
   unless_def:    "A unless B == (A - B) co (A \<union> B)"
 
 
-text{*SKIP*}
+text\<open>SKIP\<close>
 lemma SKIP_in_program [iff,TC]: "SKIP \<in> program"
 by (force simp add: SKIP_def program_def mk_program_def)
 
 
-subsection{*The function @{term programify}, the coercion from anything to
- program*}
+subsection\<open>The function @{term programify}, the coercion from anything to
+ program\<close>
 
 lemma programify_program [simp]: "F \<in> program ==> programify(F)=F"
 by (force simp add: programify_def) 
@@ -116,7 +116,7 @@ by (force simp add: programify_def)
 lemma programify_in_program [iff,TC]: "programify(F) \<in> program"
 by (force simp add: programify_def) 
 
-text{*Collapsing rules: to remove programify from expressions*}
+text\<open>Collapsing rules: to remove programify from expressions\<close>
 lemma programify_idem [simp]: "programify(programify(F))=programify(F)"
 by (force simp add: programify_def) 
 
@@ -130,7 +130,7 @@ lemma AllowedActs_programify [simp]:
      "AllowedActs(programify(F)) = AllowedActs(F)"
 by (simp add: AllowedActs_def)
 
-subsection{*The Inspectors for Programs*}
+subsection\<open>The Inspectors for Programs\<close>
 
 lemma id_in_RawActs: "F \<in> program ==>id(state) \<in> RawActs(F)"
 by (auto simp add: program_def RawActs_def)
@@ -152,7 +152,7 @@ lemma cons_id_AllowedActs [simp]:
 by (simp add: cons_absorb)
 
 
-subsection{*Types of the Inspectors*}
+subsection\<open>Types of the Inspectors\<close>
 
 lemma RawInit_type: "F \<in> program ==> RawInit(F)\<subseteq>state"
 by (auto simp add: program_def RawInit_def)
@@ -180,7 +180,7 @@ by (simp add: RawActs_type Acts_def)
 lemma AllowedActs_type: "AllowedActs(F) \<subseteq> Pow(state*state)"
 by (simp add: RawAllowedActs_type AllowedActs_def)
 
-text{*Needed in Behaviors*}
+text\<open>Needed in Behaviors\<close>
 lemma ActsD: "[| act \<in> Acts(F); <s,s'> \<in> act |] ==> s \<in> state & s' \<in> state"
 by (blast dest: Acts_type [THEN subsetD])
 
@@ -188,10 +188,10 @@ lemma AllowedActsD:
      "[| act \<in> AllowedActs(F); <s,s'> \<in> act |] ==> s \<in> state & s' \<in> state"
 by (blast dest: AllowedActs_type [THEN subsetD])
 
-subsection{*Simplification rules involving @{term state}, @{term Init}, 
-  @{term Acts}, and @{term AllowedActs}*}
+subsection\<open>Simplification rules involving @{term state}, @{term Init}, 
+  @{term Acts}, and @{term AllowedActs}\<close>
 
-text{*But are they really needed?*}
+text\<open>But are they really needed?\<close>
 
 lemma state_subset_is_Init_iff [iff]: "state \<subseteq> Init(F) \<longleftrightarrow> Init(F)=state"
 by (cut_tac F = F in Init_type, auto)
@@ -204,7 +204,7 @@ lemma Pow_state_times_state_is_subset_AllowedActs_iff [iff]:
      "Pow(state*state) \<subseteq> AllowedActs(F) \<longleftrightarrow> AllowedActs(F)=Pow(state*state)"
 by (cut_tac F = F in AllowedActs_type, auto)
 
-subsubsection{*Eliminating @{text "\<inter> state"} from expressions*}
+subsubsection\<open>Eliminating @{text "\<inter> state"} from expressions\<close>
 
 lemma Init_Int_state [simp]: "Init(F) \<inter> state = Init(F)"
 by (cut_tac F = F in Init_type, blast)
@@ -229,7 +229,7 @@ lemma state_times_state_Int_AllowedActs [simp]:
 by (cut_tac F = F in AllowedActs_type, blast)
 
 
-subsubsection{*The Operator @{term mk_program}*}
+subsubsection\<open>The Operator @{term mk_program}\<close>
 
 lemma mk_program_in_program [iff,TC]:
      "mk_program(init, acts, allowed) \<in> program"
@@ -262,7 +262,7 @@ lemma AllowedActs_eq [simp]:
       cons(id(state), allowed \<inter> Pow(state*state))"
 by (simp add: AllowedActs_def)
 
-text{*Init, Acts, and AlowedActs  of SKIP *}
+text\<open>Init, Acts, and AlowedActs  of SKIP\<close>
 
 lemma RawInit_SKIP [simp]: "RawInit(SKIP) = state"
 by (simp add: SKIP_def)
@@ -282,7 +282,7 @@ by (force simp add: SKIP_def)
 lemma AllowedActs_SKIP [simp]: "AllowedActs(SKIP) = Pow(state*state)"
 by (force simp add: SKIP_def)
 
-text{*Equality of UNITY programs*}
+text\<open>Equality of UNITY programs\<close>
 
 lemma raw_surjective_mk_program:
      "F \<in> program ==> mk_program(RawInit(F), RawActs(F), RawAllowedActs(F))=F"
@@ -315,7 +315,7 @@ lemma program_equality_iff:
      (Init(F) = Init(G) & Acts(F) = Acts(G) & AllowedActs(F) = AllowedActs(G))"
 by (blast intro: program_equalityI program_equalityE)
 
-subsection{*These rules allow "lazy" definition expansion*}
+subsection\<open>These rules allow "lazy" definition expansion\<close>
 
 lemma def_prg_Init:
      "F == mk_program (init,acts,allowed) ==> Init(F) = init \<inter> state"
@@ -339,18 +339,18 @@ lemma def_prg_simps:
 by auto
 
 
-text{*An action is expanded only if a pair of states is being tested against it*}
+text\<open>An action is expanded only if a pair of states is being tested against it\<close>
 lemma def_act_simp:
      "[| act == {<s,s'> \<in> A*B. P(s, s')} |]
       ==> (<s,s'> \<in> act) \<longleftrightarrow> (<s,s'> \<in> A*B & P(s, s'))"
 by auto
 
-text{*A set is expanded only if an element is being tested against it*}
+text\<open>A set is expanded only if an element is being tested against it\<close>
 lemma def_set_simp: "A == B ==> (x \<in> A) \<longleftrightarrow> (x \<in> B)"
 by auto
 
 
-subsection{*The Constrains Operator*}
+subsection\<open>The Constrains Operator\<close>
 
 lemma constrains_type: "A co B \<subseteq> program"
 by (force simp add: constrains_def)
@@ -383,13 +383,13 @@ apply (cut_tac F = F in Acts_type)
 apply (force simp add: constrains_def st_set_def)
 done
 
-text{*monotonic in 2nd argument*}
+text\<open>monotonic in 2nd argument\<close>
 lemma constrains_weaken_R:
     "[| F \<in> A co A'; A'\<subseteq>B' |] ==> F \<in> A co B'"
 apply (unfold constrains_def, blast)
 done
 
-text{*anti-monotonic in 1st argument*}
+text\<open>anti-monotonic in 1st argument\<close>
 lemma constrains_weaken_L:
     "[| F \<in> A co A'; B\<subseteq>A |] ==> F \<in> B co A'"
 apply (unfold constrains_def st_set_def, blast)
@@ -402,7 +402,7 @@ apply (drule_tac [2] constrains_weaken_L, blast+)
 done
 
 
-subsection{*Constrains and Union*}
+subsection\<open>Constrains and Union\<close>
 
 lemma constrains_Un:
     "[| F \<in> A co A'; F \<in> B co B' |] ==> F \<in> (A \<union> B) co (A' \<union> B')"
@@ -422,7 +422,7 @@ lemma constrains_UN_distrib:
 by (force simp add: constrains_def st_set_def)
 
 
-subsection{*Constrains and Intersection*}
+subsection\<open>Constrains and Intersection\<close>
 
 lemma constrains_Int_distrib: "C co (A \<inter> B) = (C co A) \<inter> (C co B)"
 by (force simp add: constrains_def st_set_def)
@@ -455,8 +455,8 @@ lemma constrains_imp_subset:
   "[| F \<in> A co A' |] ==> A \<subseteq> A'"
 by (unfold constrains_def st_set_def, force)
 
-text{*The reasoning is by subsets since "co" refers to single actions
-  only.  So this rule isn't that useful.*}
+text\<open>The reasoning is by subsets since "co" refers to single actions
+  only.  So this rule isn't that useful.\<close>
 
 lemma constrains_trans: "[| F \<in> A co B; F \<in> B co C |] ==> F \<in> A co C"
 by (unfold constrains_def st_set_def, auto, blast)
@@ -468,7 +468,7 @@ apply (blast intro: constrains_weaken_R)
 done
 
 
-subsection{*The Unless Operator*}
+subsection\<open>The Unless Operator\<close>
 
 lemma unless_type: "A unless B \<subseteq> program"
 by (force simp add: unless_def constrains_def) 
@@ -482,7 +482,7 @@ lemma unlessD: "F :A unless B ==> F \<in> (A-B) co (A \<union> B)"
 by (unfold unless_def, auto)
 
 
-subsection{*The Operator @{term initially}*}
+subsection\<open>The Operator @{term initially}\<close>
 
 lemma initially_type: "initially(A) \<subseteq> program"
 by (unfold initially_def, blast)
@@ -494,7 +494,7 @@ lemma initiallyD: "F \<in> initially(A) ==> Init(F)\<subseteq>A"
 by (unfold initially_def, blast)
 
 
-subsection{*The Operator @{term stable}*}
+subsection\<open>The Operator @{term stable}\<close>
 
 lemma stable_type: "stable(A)\<subseteq>program"
 by (unfold stable_def constrains_def, blast)
@@ -516,7 +516,7 @@ lemma stable_unless: "stable(A)= A unless 0"
 by (auto simp add: unless_def stable_def)
 
 
-subsection{*Union and Intersection with @{term stable}*}
+subsection\<open>Union and Intersection with @{term stable}\<close>
 
 lemma stable_Un:
     "[| F \<in> stable(A); F \<in> stable(A') |] ==> F \<in> stable(A \<union> A')"
@@ -564,7 +564,7 @@ by (unfold stable_def constrains_def st_set_def, blast)
 (* [| F \<in> stable(C); F  \<in> (C \<inter> A) co A |] ==> F \<in> stable(C \<inter> A) *)
 lemmas stable_constrains_stable = stable_constrains_Int [THEN stableI]
 
-subsection{*The Operator @{term invariant}*}
+subsection\<open>The Operator @{term invariant}\<close>
 
 lemma invariant_type: "invariant(A) \<subseteq> program"
 apply (unfold invariant_def)
@@ -584,8 +584,8 @@ apply (unfold invariant_def)
 apply (blast dest: stableD2)
 done
 
-text{*Could also say
-      @{term "invariant(A) \<inter> invariant(B) \<subseteq> invariant (A \<inter> B)"}*}
+text\<open>Could also say
+      @{term "invariant(A) \<inter> invariant(B) \<subseteq> invariant (A \<inter> B)"}\<close>
 lemma invariant_Int:
   "[| F \<in> invariant(A);  F \<in> invariant(B) |] ==> F \<in> invariant(A \<inter> B)"
 apply (unfold invariant_def initially_def)
@@ -593,25 +593,25 @@ apply (simp add: stable_Int, blast)
 done
 
 
-subsection{*The Elimination Theorem*}
+subsection\<open>The Elimination Theorem\<close>
 
 (** The "free" m has become universally quantified!
  Should the premise be !!m instead of \<forall>m ? Would make it harder
  to use in forward proof. **)
 
-text{*The general case is easier to prove than the special case!*}
+text\<open>The general case is easier to prove than the special case!\<close>
 lemma "elimination":
     "[| \<forall>m \<in> M. F \<in> {s \<in> A. x(s) = m} co B(m); F \<in> program  |]
      ==> F \<in> {s \<in> A. x(s) \<in> M} co (\<Union>m \<in> M. B(m))"
 by (auto simp add: constrains_def st_set_def, blast)
 
-text{*As above, but for the special case of A=state*}
+text\<open>As above, but for the special case of A=state\<close>
 lemma elimination2:
      "[| \<forall>m \<in> M. F \<in> {s \<in> state. x(s) = m} co B(m); F \<in> program  |]
      ==> F:{s \<in> state. x(s) \<in> M} co (\<Union>m \<in> M. B(m))"
 by (rule UNITY.elimination, auto)
 
-subsection{*The Operator @{term strongest_rhs}*}
+subsection\<open>The Operator @{term strongest_rhs}\<close>
 
 lemma constrains_strongest_rhs:
     "[| F \<in> program; st_set(A) |] ==> F \<in> A co (strongest_rhs(F,A))"
@@ -622,9 +622,9 @@ lemma strongest_rhs_is_strongest:
      "[| F \<in> A co B; st_set(B) |] ==> strongest_rhs(F,A) \<subseteq> B"
 by (auto simp add: constrains_def strongest_rhs_def st_set_def)
 
-ML {*
+ML \<open>
 fun simp_of_act def = def RS @{thm def_act_simp};
 fun simp_of_set def = def RS @{thm def_set_simp};
-*}
+\<close>
 
 end

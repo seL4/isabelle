@@ -2,19 +2,19 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {*Separation for Facts About Order Types, Rank Functions and 
-      Well-Founded Relations*}
+section \<open>Separation for Facts About Order Types, Rank Functions and 
+      Well-Founded Relations\<close>
 
 theory Rank_Separation imports Rank Rec_Separation begin
 
 
-text{*This theory proves all instances needed for locales
+text\<open>This theory proves all instances needed for locales
  @{text "M_ordertype"} and  @{text "M_wfrank"}.  But the material is not
- needed for proving the relative consistency of AC.*}
+ needed for proving the relative consistency of AC.\<close>
 
-subsection{*The Locale @{text "M_ordertype"}*}
+subsection\<open>The Locale @{text "M_ordertype"}\<close>
 
-subsubsection{*Separation for Order-Isomorphisms*}
+subsubsection\<open>Separation for Order-Isomorphisms\<close>
 
 lemma well_ord_iso_Reflects:
   "REFLECTS[\<lambda>x. x\<in>A \<longrightarrow>
@@ -34,7 +34,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsubsection{*Separation for @{term "obase"}*}
+subsubsection\<open>Separation for @{term "obase"}\<close>
 
 lemma obase_reflects:
   "REFLECTS[\<lambda>a. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
@@ -46,7 +46,7 @@ lemma obase_reflects:
 by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma obase_separation:
-     --{*part of the order type formalization*}
+     --\<open>part of the order type formalization\<close>
      "[| L(A); L(r) |]
       ==> separation(L, \<lambda>a. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
              ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &
@@ -57,7 +57,7 @@ apply (rule ordinal_iff_sats sep_rules | simp)+
 done
 
 
-subsubsection{*Separation for a Theorem about @{term "obase"}*}
+subsubsection\<open>Separation for a Theorem about @{term "obase"}\<close>
 
 lemma obase_equals_reflects:
   "REFLECTS[\<lambda>x. x\<in>A \<longrightarrow> ~(\<exists>y[L]. \<exists>g[L].
@@ -82,7 +82,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsubsection{*Replacement for @{term "omap"}*}
+subsubsection\<open>Replacement for @{term "omap"}\<close>
 
 lemma omap_reflects:
  "REFLECTS[\<lambda>z. \<exists>a[L]. a\<in>B & (\<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
@@ -109,9 +109,9 @@ done
 
 
 
-subsection{*Instantiating the locale @{text M_ordertype}*}
-text{*Separation (and Strong Replacement) for basic set-theoretic constructions
-such as intersection, Cartesian Product and image.*}
+subsection\<open>Instantiating the locale @{text M_ordertype}\<close>
+text\<open>Separation (and Strong Replacement) for basic set-theoretic constructions
+such as intersection, Cartesian Product and image.\<close>
 
 lemma M_ordertype_axioms_L: "M_ordertype_axioms(L)"
   apply (rule M_ordertype_axioms.intro)
@@ -127,9 +127,9 @@ theorem M_ordertype_L: "PROP M_ordertype(L)"
   done
 
 
-subsection{*The Locale @{text "M_wfrank"}*}
+subsection\<open>The Locale @{text "M_wfrank"}\<close>
 
-subsubsection{*Separation for @{term "wfrank"}*}
+subsubsection\<open>Separation for @{term "wfrank"}\<close>
 
 lemma wfrank_Reflects:
  "REFLECTS[\<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) \<longrightarrow>
@@ -150,7 +150,7 @@ apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
 done
 
 
-subsubsection{*Replacement for @{term "wfrank"}*}
+subsubsection\<open>Replacement for @{term "wfrank"}\<close>
 
 lemma wfrank_replacement_Reflects:
  "REFLECTS[\<lambda>z. \<exists>x[L]. x \<in> A &
@@ -182,7 +182,7 @@ apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
 done
 
 
-subsubsection{*Separation for Proving @{text Ord_wfrank_range}*}
+subsubsection\<open>Separation for Proving @{text Ord_wfrank_range}\<close>
 
 lemma Ord_wfrank_Reflects:
  "REFLECTS[\<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) \<longrightarrow>
@@ -213,7 +213,7 @@ apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
 done
 
 
-subsubsection{*Instantiating the locale @{text M_wfrank}*}
+subsubsection\<open>Instantiating the locale @{text M_wfrank}\<close>
 
 lemma M_wfrank_axioms_L: "M_wfrank_axioms(L)"
   apply (rule M_wfrank_axioms.intro)

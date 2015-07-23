@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Programs defined over streams *}
+section \<open>Programs defined over streams\<close>
 
 theory Stream
 imports List
@@ -22,7 +22,7 @@ Proving properties about infinite lists using coinduction:
 *)
 
 
-subsection {* Map of composition is composition of maps *}
+subsection \<open>Map of composition is composition of maps\<close>
 
 lemma map_comp:
   assumes 1: "l:Lists(A)"
@@ -49,7 +49,7 @@ lemma map_id:
   done
 
 
-subsection {* Mapping distributes over append *}
+subsection \<open>Mapping distributes over append\<close>
 
 lemma map_append:
   assumes "l:Lists(A)"
@@ -67,7 +67,7 @@ lemma map_append:
   done
 
 
-subsection {* Append is associative *}
+subsection \<open>Append is associative\<close>
 
 lemma append_assoc:
   assumes "k:Lists(A)"
@@ -82,12 +82,12 @@ lemma append_assoc:
   apply EQgen
    prefer 2
    apply blast
-  apply (tactic {* DEPTH_SOLVE (eresolve_tac @{context} [XH_to_E @{thm ListsXH}] 1
-    THEN EQgen_tac @{context} [] 1) *})
+  apply (tactic \<open>DEPTH_SOLVE (eresolve_tac @{context} [XH_to_E @{thm ListsXH}] 1
+    THEN EQgen_tac @{context} [] 1)\<close>)
   done
 
 
-subsection {* Appending anything to an infinite list doesn't alter it *}
+subsection \<open>Appending anything to an infinite list doesn't alter it\<close>
 
 lemma ilist_append:
   assumes "l:ILists(A)"

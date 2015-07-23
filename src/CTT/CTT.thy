@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Constructive Type Theory *}
+section \<open>Constructive Type Theory\<close>
 
 theory CTT
 imports Pure
@@ -314,9 +314,9 @@ apply (rule assms ProdE)+
 done
 
 
-subsection {* Tactics for type checking *}
+subsection \<open>Tactics for type checking\<close>
 
-ML {*
+ML \<open>
 
 local
 
@@ -336,13 +336,13 @@ fun ASSUME ctxt tf i = test_assume_tac ctxt i  ORELSE  tf i
 
 end;
 
-*}
+\<close>
 
 (*For simplification: type formation and checking,
   but no equalities between terms*)
 lemmas routine_rls = form_rls formL_rls refl_type element_rls
 
-ML {*
+ML \<open>
 local
   val equal_rls = @{thms form_rls} @ @{thms element_rls} @ @{thms intrL_rls} @
     @{thms elimL_rls} @ @{thms refl_elem}
@@ -378,15 +378,15 @@ fun equal_tac ctxt thms =
     (ASSUME ctxt (filt_resolve_from_net_tac ctxt 3 (Tactic.build_net (thms @ equal_rls))))
 
 end
-*}
+\<close>
 
-method_setup form = {* Scan.succeed (fn ctxt => SIMPLE_METHOD (form_tac ctxt)) *}
-method_setup typechk = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (typechk_tac ctxt ths)) *}
-method_setup intr = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (intr_tac ctxt ths)) *}
-method_setup equal = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (equal_tac ctxt ths)) *}
+method_setup form = \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (form_tac ctxt))\<close>
+method_setup typechk = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (typechk_tac ctxt ths))\<close>
+method_setup intr = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (intr_tac ctxt ths))\<close>
+method_setup equal = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (equal_tac ctxt ths))\<close>
 
 
-subsection {* Simplification *}
+subsection \<open>Simplification\<close>
 
 (*To simplify the type in a goal*)
 lemma replace_type: "\<lbrakk>B = A; a : A\<rbrakk> \<Longrightarrow> a : B"
@@ -409,7 +409,7 @@ done
 (*Simplification rules for Constructive Type Theory*)
 lemmas reduction_rls = comp_rls [THEN trans_elem]
 
-ML {*
+ML \<open>
 (*Converts each goal "e : Eq(A,a,b)" into "a=b:A" for simplification.
   Uses other intro rules to avoid changing flexible goals.*)
 val eqintr_net = Tactic.build_net @{thms EqI intr_rls}
@@ -466,21 +466,21 @@ fun step_tac ctxt thms = safestep_tac ctxt thms  ORELSE'  biresolve_tac ctxt uns
 
 (*Fails unless it solves the goal!*)
 fun pc_tac ctxt thms = DEPTH_SOLVE_1 o (step_tac ctxt thms)
-*}
+\<close>
 
-method_setup eqintr = {* Scan.succeed (SIMPLE_METHOD o eqintr_tac) *}
-method_setup NE = {*
+method_setup eqintr = \<open>Scan.succeed (SIMPLE_METHOD o eqintr_tac)\<close>
+method_setup NE = \<open>
   Scan.lift Args.name_inner_syntax >> (fn s => fn ctxt => SIMPLE_METHOD' (NE_tac ctxt s))
-*}
-method_setup pc = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (pc_tac ctxt ths)) *}
-method_setup add_mp = {* Scan.succeed (SIMPLE_METHOD' o add_mp_tac) *}
+\<close>
+method_setup pc = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (pc_tac ctxt ths))\<close>
+method_setup add_mp = \<open>Scan.succeed (SIMPLE_METHOD' o add_mp_tac)\<close>
 
 ML_file "rew.ML"
-method_setup rew = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (rew_tac ctxt ths)) *}
-method_setup hyp_rew = {* Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (hyp_rew_tac ctxt ths)) *}
+method_setup rew = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (rew_tac ctxt ths))\<close>
+method_setup hyp_rew = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (hyp_rew_tac ctxt ths))\<close>
 
 
-subsection {* The elimination rules for fst/snd *}
+subsection \<open>The elimination rules for fst/snd\<close>
 
 lemma SumE_fst: "p : Sum(A,B) \<Longrightarrow> fst(p) : A"
 apply (unfold basic_defs)

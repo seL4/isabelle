@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-section{*The Natural numbers As a Least Fixed Point*}
+section\<open>The Natural numbers As a Least Fixed Point\<close>
 
 theory Nat_ZF imports OrdQuant Bool begin
 
@@ -47,8 +47,8 @@ definition
   greater_than :: "i=>i"  where
     "greater_than(n) == {i \<in> nat. n < i}"
 
-text{*No need for a less-than operator: a natural number is its list of
-predecessors!*}
+text\<open>No need for a less-than operator: a natural number is its list of
+predecessors!\<close>
 
 
 lemma nat_bnd_mono: "bnd_mono(Inf, %X. {0} \<union> {succ(i). i \<in> X})"
@@ -83,7 +83,7 @@ by (blast elim!: boolE)
 lemmas bool_into_nat = bool_subset_nat [THEN subsetD]
 
 
-subsection{*Injectivity Properties and Induction*}
+subsection\<open>Injectivity Properties and Induction\<close>
 
 (*Mathematical induction*)
 lemma nat_induct [case_names 0 succ, induct set: nat]:
@@ -149,7 +149,7 @@ lemma le_in_nat: "[| m \<le> n; n \<in> nat |] ==> m \<in> nat"
 by (blast dest!: lt_nat_in_nat)
 
 
-subsection{*Variations on Mathematical Induction*}
+subsection\<open>Variations on Mathematical Induction\<close>
 
 (*complete induction*)
 
@@ -209,9 +209,9 @@ lemma succ_lt_induct:
      ==> P(m,n)"
 by (blast intro: succ_lt_induct_lemma lt_nat_in_nat)
 
-subsection{*quasinat: to allow a case-split rule for @{term nat_case}*}
+subsection\<open>quasinat: to allow a case-split rule for @{term nat_case}\<close>
 
-text{*True if the argument is zero or any successor*}
+text\<open>True if the argument is zero or any successor\<close>
 lemma [iff]: "quasinat(0)"
 by (simp add: quasinat_def)
 
@@ -255,7 +255,7 @@ apply (auto simp add: non_nat_case)
 done
 
 
-subsection{*Recursion on the Natural Numbers*}
+subsection\<open>Recursion on the Natural Numbers\<close>
 
 (** nat_rec is used to define eclose and transrec, then becomes obsolete.
     The operator rec, from arith.thy, has fewer typing conditions **)
@@ -288,7 +288,7 @@ done
 lemma nat_nonempty [simp]: "nat \<noteq> 0"
 by blast
 
-text{*A natural number is the set of its predecessors*}
+text\<open>A natural number is the set of its predecessors\<close>
 lemma nat_eq_Collect_lt: "i \<in> nat ==> {j\<in>nat. j<i} = i"
 apply (rule equalityI)
 apply (blast dest: ltD)

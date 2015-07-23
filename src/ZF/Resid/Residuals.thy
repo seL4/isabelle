@@ -30,7 +30,7 @@ definition
   "u |> v == THE w. residuals(u,v,w)"
 
 
-subsection{*Setting up rule lists*}
+subsection\<open>Setting up rule lists\<close>
 
 declare Sres.intros [intro]
 declare Sreg.intros [intro]
@@ -61,7 +61,7 @@ inductive_cases [elim!]:
 
 declare Sres.intros [simp]
 
-subsection{*residuals is a  partial function*}
+subsection\<open>residuals is a  partial function\<close>
 
 lemma residuals_function [rule_format]:
      "residuals(u,v,w) ==> \<forall>w1. residuals(u,v,w1) \<longrightarrow> w1 = w"
@@ -78,7 +78,7 @@ apply (subst the_equality)
 apply (blast intro: residuals_function)+
 done
 
-subsection{*Residual function*}
+subsection\<open>Residual function\<close>
 
 lemma res_Var [simp]: "n \<in> nat ==> Var(n) |> Var(n) = Var(n)"
 by (unfold res_func_def, blast)
@@ -108,7 +108,7 @@ lemma resfunc_type [simp]:
      "[|s~t; regular(t)|]==> regular(t) \<longrightarrow> s |> t \<in> redexes"
   by (erule Scomp.induct, auto)
 
-subsection{*Commutation theorem*}
+subsection\<open>Commutation theorem\<close>
 
 lemma sub_comp [simp]: "u<==v ==> u~v"
 by (erule Ssub.induct, simp_all)
@@ -140,7 +140,7 @@ lemma commutation [simp]:
 by (simp add: residuals_subst_rec)
 
 
-subsection{*Residuals are comp and regular*}
+subsection\<open>Residuals are comp and regular\<close>
 
 lemma residuals_preserve_comp [rule_format, simp]:
      "u~v ==> \<forall>w. u~w \<longrightarrow> v~w \<longrightarrow> regular(w) \<longrightarrow> (u|>w) ~ (v|>w)"
@@ -151,7 +151,7 @@ lemma residuals_preserve_reg [rule_format, simp]:
 apply (erule Scomp.induct, auto)
 done
 
-subsection{*Preservation lemma*}
+subsection\<open>Preservation lemma\<close>
 
 lemma union_preserve_comp: "u~v ==> v ~ (u un v)"
 by (erule Scomp.induct, simp_all)
@@ -166,7 +166,7 @@ done
 
 declare sub_comp [THEN comp_sym, simp]
 
-subsection{*Prism theorem*}
+subsection\<open>Prism theorem\<close>
 
 (* Having more assumptions than needed -- removed below  *)
 lemma prism_l [rule_format]:
@@ -181,7 +181,7 @@ apply (rule_tac [4] comp_trans, auto)
 done
 
 
-subsection{*Levy's Cube Lemma*}
+subsection\<open>Levy's Cube Lemma\<close>
 
 lemma cube: "[|u~v; regular(v); regular(u); w~u|]==>   
            (w|>u) |> (v|>u) = (w|>v) |> (u|>v)"
@@ -196,7 +196,7 @@ apply (simp add: prism [symmetric] union_l union_preserve_regular
 done
 
 
-subsection{*paving theorem*}
+subsection\<open>paving theorem\<close>
 
 lemma paving: "[|w~u; w~v; regular(u); regular(v)|]==>  
            \<exists>uv vu. (w|>u) |> vu = (w|>v) |> uv & (w|>u)~vu & 

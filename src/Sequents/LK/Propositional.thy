@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-section {* Classical sequent calculus: examples with propositional connectives *}
+section \<open>Classical sequent calculus: examples with propositional connectives\<close>
 
 theory Propositional
 imports "../LK"

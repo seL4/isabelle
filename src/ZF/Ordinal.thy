@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-section{*Transitive Sets and Ordinals*}
+section\<open>Transitive Sets and Ordinals\<close>
 
 theory Ordinal imports WF Bool equalities begin
 
@@ -38,9 +38,9 @@ notation (HTML output)
   le  (infixl "\<le>" 50)
 
 
-subsection{*Rules for Transset*}
+subsection\<open>Rules for Transset\<close>
 
-subsubsection{*Three Neat Characterisations of Transset*}
+subsubsection\<open>Three Neat Characterisations of Transset\<close>
 
 lemma Transset_iff_Pow: "Transset(A) <-> A<=Pow(A)"
 by (unfold Transset_def, blast)
@@ -53,7 +53,7 @@ done
 lemma Transset_iff_Union_subset: "Transset(A) <-> \<Union>(A) \<subseteq> A"
 by (unfold Transset_def, blast)
 
-subsubsection{*Consequences of Downwards Closure*}
+subsubsection\<open>Consequences of Downwards Closure\<close>
 
 lemma Transset_doubleton_D:
     "[| Transset(C); {a,b}: C |] ==> a\<in>C & b\<in>C"
@@ -73,7 +73,7 @@ lemma Transset_includes_range:
     "[| Transset(C); A*B \<subseteq> C; a \<in> A |] ==> B \<subseteq> C"
 by (blast dest: Transset_Pair_D)
 
-subsubsection{*Closure Properties*}
+subsubsection\<open>Closure Properties\<close>
 
 lemma Transset_0: "Transset(0)"
 by (unfold Transset_def, blast)
@@ -112,7 +112,7 @@ lemma Transset_INT:
 by (rule Transset_Inter_family, auto)
 
 
-subsection{*Lemmas for Ordinals*}
+subsection\<open>Lemmas for Ordinals\<close>
 
 lemma OrdI:
     "[| Transset(i);  !!x. x\<in>i ==> Transset(x) |]  ==>  Ord(i)"
@@ -149,7 +149,7 @@ lemma Ord_succ_subsetI: "[| i\<in>j;  Ord(j) |] ==> succ(i) \<subseteq> j"
 by (blast dest: OrdmemD)
 
 
-subsection{*The Construction of Ordinals: 0, succ, Union*}
+subsection\<open>The Construction of Ordinals: 0, succ, Union\<close>
 
 lemma Ord_0 [iff,TC]: "Ord(0)"
 by (blast intro: OrdI Transset_0)
@@ -172,7 +172,7 @@ apply (unfold Ord_def)
 apply (blast intro!: Transset_Int)
 done
 
-text{*There is no set of all ordinals, for then it would contain itself*}
+text\<open>There is no set of all ordinals, for then it would contain itself\<close>
 lemma ON_class: "~ (\<forall>i. i\<in>X <-> Ord(i))"
 proof (rule notI)
   assume X: "\<forall>i. i \<in> X \<longleftrightarrow> Ord(i)"
@@ -187,7 +187,7 @@ proof (rule notI)
   thus "False" by (rule mem_irrefl)
 qed
 
-subsection{*< is 'less Than' for Ordinals*}
+subsection\<open>< is 'less Than' for Ordinals\<close>
 
 lemma ltI: "[| i\<in>j;  Ord(j) |] ==> i<j"
 by (unfold lt_def, blast)
@@ -236,7 +236,7 @@ apply (erule lt_irrefl)
 done
 
 
-text{* Recall that  @{term"i \<le> j"}  abbreviates  @{term"i<succ(j)"} !! *}
+text\<open>Recall that  @{term"i \<le> j"}  abbreviates  @{term"i<succ(j)"} !!\<close>
 
 lemma le_iff: "i \<le> j <-> i<j | (i=j & Ord(j))"
 by (unfold lt_def, blast)
@@ -270,7 +270,7 @@ by (blast elim!: leE)
 
 lemmas le0D = le0_iff [THEN iffD1, dest!]
 
-subsection{*Natural Deduction Rules for Memrel*}
+subsection\<open>Natural Deduction Rules for Memrel\<close>
 
 (*The lemmas MemrelI/E give better speed than [iff] here*)
 lemma Memrel_iff [simp]: "<a,b> \<in> Memrel(A) <-> a\<in>b & a\<in>A & b\<in>A"
@@ -307,12 +307,12 @@ apply (unfold wf_def)
 apply (rule foundation [THEN disjE, THEN allI], erule disjI1, blast)
 done
 
-text{*The premise @{term "Ord(i)"} does not suffice.*}
+text\<open>The premise @{term "Ord(i)"} does not suffice.\<close>
 lemma trans_Memrel:
     "Ord(i) ==> trans(Memrel(i))"
 by (unfold Ord_def Transset_def trans_def, blast)
 
-text{*However, the following premise is strong enough.*}
+text\<open>However, the following premise is strong enough.\<close>
 lemma Transset_trans_Memrel:
     "\<forall>j\<in>i. Transset(j) ==> trans(Memrel(i))"
 by (unfold Transset_def trans_def, blast)
@@ -323,7 +323,7 @@ lemma Transset_Memrel_iff:
 by (unfold Transset_def, blast)
 
 
-subsection{*Transfinite Induction*}
+subsection\<open>Transfinite Induction\<close>
 
 (*Epsilon induction over a transitive set*)
 lemma Transset_induct:
@@ -348,17 +348,17 @@ apply (blast intro: Ord_succ [THEN Ord_in_Ord])
 done
 
 
-section{*Fundamental properties of the epsilon ordering (< on ordinals)*}
+section\<open>Fundamental properties of the epsilon ordering (< on ordinals)\<close>
 
 
-subsubsection{*Proving That < is a Linear Ordering on the Ordinals*}
+subsubsection\<open>Proving That < is a Linear Ordering on the Ordinals\<close>
 
 lemma Ord_linear:
      "Ord(i) \<Longrightarrow> Ord(j) \<Longrightarrow> i\<in>j | i=j | j\<in>i"
 proof (induct i arbitrary: j rule: trans_induct)
   case (step i)
   note step_i = step
-  show ?case using `Ord(j)`
+  show ?case using \<open>Ord(j)\<close>
     proof (induct j rule: trans_induct)
       case (step j)
       thus ?case using step_i
@@ -366,7 +366,7 @@ proof (induct i arbitrary: j rule: trans_induct)
     qed
 qed
 
-text{*The trichotomy law for ordinals*}
+text\<open>The trichotomy law for ordinals\<close>
 lemma Ord_linear_lt:
  assumes o: "Ord(i)" "Ord(j)"
  obtains (lt) "i<j" | (eq) "i=j" | (gt) "j<i"
@@ -395,7 +395,7 @@ by (blast elim!: leE elim: lt_asym)
 lemma not_lt_imp_le: "[| ~ i<j;  Ord(i);  Ord(j) |] ==> j \<le> i"
 by (rule_tac i = i and j = j in Ord_linear2, auto)
 
-subsubsection{*Some Rewrite Rules for <, le*}
+subsubsection\<open>Some Rewrite Rules for <, le\<close>
 
 lemma Ord_mem_iff_lt: "Ord(j) ==> i\<in>j <-> i<j"
 by (unfold lt_def, blast)
@@ -419,7 +419,7 @@ lemma Ord_0_lt_iff: "Ord(i) ==> i\<noteq>0 <-> 0<i"
 by (blast intro: Ord_0_lt)
 
 
-subsection{*Results about Less-Than or Equals*}
+subsection\<open>Results about Less-Than or Equals\<close>
 
 (** For ordinals, @{term"j\<subseteq>i"} implies @{term"j \<le> i"} (less-than or equals) **)
 
@@ -446,7 +446,7 @@ done
 lemma all_lt_imp_le: "[| Ord(i);  Ord(j);  !!x. x<j ==> x<i |] ==> j \<le> i"
 by (blast intro: not_lt_imp_le dest: lt_irrefl)
 
-subsubsection{*Transitivity Laws*}
+subsubsection\<open>Transitivity Laws\<close>
 
 lemma lt_trans1: "[| i \<le> j;  j<k |] ==> i<k"
 by (blast elim!: leE intro: lt_trans)
@@ -498,7 +498,7 @@ apply (insert succ_le_iff [of i j])
 apply (simp add: lt_def)
 done
 
-subsubsection{*Union and Intersection*}
+subsubsection\<open>Union and Intersection\<close>
 
 lemma Un_upper1_le: "[| Ord(i); Ord(j) |] ==> i \<le> i \<union> j"
 by (rule Un_upper1 [THEN subset_imp_le], auto)
@@ -560,7 +560,7 @@ lemma Ord_Union_succ_eq: "Ord(i) ==> \<Union>(succ(i)) = i"
 by (blast intro: Ord_trans)
 
 
-subsection{*Results about Limits*}
+subsection\<open>Results about Limits\<close>
 
 lemma Ord_Union [intro,simp,TC]: "[| !!i. i\<in>A ==> Ord(i) |] ==> Ord(\<Union>(A))"
 apply (rule Ord_is_Transset [THEN Transset_Union_family, THEN OrdI])
@@ -633,7 +633,7 @@ lemma Ord_Union_subset: "Ord(i) ==> \<Union>(i) \<subseteq> i"
 by (blast intro: Ord_trans)
 
 
-subsection{*Limit Ordinals -- General Properties*}
+subsection\<open>Limit Ordinals -- General Properties\<close>
 
 lemma Limit_Union_eq: "Limit(i) ==> \<Union>(i) = i"
 apply (unfold Limit_def)
@@ -701,7 +701,7 @@ lemma Limit_le_succD: "[| Limit(i);  i \<le> succ(j) |] ==> i \<le> j"
 by (blast elim!: leE)
 
 
-subsubsection{*Traditional 3-Way Case Analysis on Ordinals*}
+subsubsection\<open>Traditional 3-Way Case Analysis on Ordinals\<close>
 
 lemma Ord_cases_disj: "Ord(i) ==> i=0 | (\<exists>j. Ord(j) & i=succ(j)) | Limit(i)"
 by (blast intro!: non_succ_LimitI Ord_0_lt)
@@ -723,8 +723,8 @@ done
 
 lemmas trans_induct3 = trans_induct3_raw [rule_format, case_names 0 succ limit, consumes 1]
 
-text{*A set of ordinals is either empty, contains its own union, or its
-union is a limit ordinal.*}
+text\<open>A set of ordinals is either empty, contains its own union, or its
+union is a limit ordinal.\<close>
 
 lemma Union_le: "[| !!x. x\<in>I ==> x\<le>j; Ord(j) |] ==> \<Union>(I) \<le> j"
   by (auto simp add: le_subset_iff Union_least)
@@ -757,7 +757,7 @@ next
   assume "Limit(\<Union>I)" thus ?thesis by auto
 qed
 
-text{*If the union of a set of ordinals is a successor, then it is an element of that set.*}
+text\<open>If the union of a set of ordinals is a successor, then it is an element of that set.\<close>
 lemma Ord_Union_eq_succD: "[|\<forall>x\<in>X. Ord(x);  \<Union>X = succ(j)|] ==> succ(j) \<in> X"
   by (drule Ord_set_cases, auto)
 

@@ -2,7 +2,7 @@
     Author:     Sidi O Ehmety
 *)
 
-section {*Setsum for Multisets*}
+section \<open>Setsum for Multisets\<close>
 
 theory MultisetSum
 imports "../Induct/Multiset"

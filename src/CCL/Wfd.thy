@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Well-founded relations in CCL *}
+section \<open>Well-founded relations in CCL\<close>
 
 theory Wfd
 imports Trancl Type Hered
@@ -46,12 +46,12 @@ lemma wfd_strengthen_lemma:
   apply blast
   done
 
-method_setup wfd_strengthen = {*
+method_setup wfd_strengthen = \<open>
   Scan.lift Args.name_inner_syntax >> (fn s => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       Rule_Insts.res_inst_tac ctxt [((("Q", 0), Position.none), s)] [] @{thm wfd_strengthen_lemma} i
         THEN assume_tac ctxt (i + 1)))
-*}
+\<close>
 
 lemma wf_anti_sym: "\<lbrakk>Wfd(r); <a,x>:r; <x,a>:r\<rbrakk> \<Longrightarrow> P"
   apply (subgoal_tac "ALL x. <a,x>:r \<longrightarrow> <x,a>:r \<longrightarrow> P")
@@ -66,7 +66,7 @@ lemma wf_anti_refl: "\<lbrakk>Wfd(r); <a,a>: r\<rbrakk> \<Longrightarrow> P"
   done
 
 
-subsection {* Irreflexive transitive closure *}
+subsection \<open>Irreflexive transitive closure\<close>
 
 lemma trancl_wf:
   assumes 1: "Wfd(R)"
@@ -85,7 +85,7 @@ lemma trancl_wf:
   done
 
 
-subsection {* Lexicographic Ordering *}
+subsection \<open>Lexicographic Ordering\<close>
 
 lemma lexXH:
   "p : ra**rb \<longleftrightarrow> (EX a a' b b'. p = <<a,b>,<a',b'>> \<and> (<a,a'> : ra | a=a' \<and> <b,b'> : rb))"
@@ -128,7 +128,7 @@ lemma lex_wf:
   done
 
 
-subsection {* Mapping *}
+subsection \<open>Mapping\<close>
 
 lemma wmapXH: "p : wmap(f,r) \<longleftrightarrow> (EX x y. p=<x,y> \<and> <f(x),f(y)> : r)"
   unfolding wmap_def by blast
@@ -156,7 +156,7 @@ lemma wmap_wf:
   done
 
 
-subsection {* Projections *}
+subsection \<open>Projections\<close>
 
 lemma wfstI: "<xa,ya> : r \<Longrightarrow> <<xa,xb>,<ya,yb>> : wmap(fst,r)"
   apply (rule wmapI)
@@ -174,7 +174,7 @@ lemma wthdI: "<xc,yc> : r \<Longrightarrow> <<xa,<xb,xc>>,<ya,<yb,yc>>> : wmap(t
   done
 
 
-subsection {* Ground well-founded relations *}
+subsection \<open>Ground well-founded relations\<close>
 
 lemma wfI: "\<lbrakk>Wfd(r);  a : r\<rbrakk> \<Longrightarrow> a : wf(r)"
   unfolding wf_def by blast
@@ -220,7 +220,7 @@ lemma ListPR_wf: "Wfd(ListPR(A))"
   done
 
 
-subsection {* General Recursive Functions *}
+subsection \<open>General Recursive Functions\<close>
 
 lemma letrecT:
   assumes 1: "a : A"
@@ -282,7 +282,7 @@ lemma letrec3T:
 lemmas letrecTs = letrecT letrec2T letrec3T
 
 
-subsection {* Type Checking for Recursive Calls *}
+subsection \<open>Type Checking for Recursive Calls\<close>
 
 lemma rcallT:
   "\<lbrakk>ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x);  
@@ -303,7 +303,7 @@ lemma rcall3T:
 lemmas rcallTs = rcallT rcall2T rcall3T
 
 
-subsection {* Instantiating an induction hypothesis with an equality assumption *}
+subsection \<open>Instantiating an induction hypothesis with an equality assumption\<close>
 
 lemma hyprcallT:
   assumes 1: "g(a) = b"
@@ -360,7 +360,7 @@ lemma hyprcall3T:
 lemmas hyprcallTs = hyprcallT hyprcall2T hyprcall3T
 
 
-subsection {* Rules to Remove Induction Hypotheses after Type Checking *}
+subsection \<open>Rules to Remove Induction Hypotheses after Type Checking\<close>
 
 lemma rmIH1: "\<lbrakk>ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x); P\<rbrakk> \<Longrightarrow> P" .
 
@@ -372,7 +372,7 @@ lemma rmIH3:
 lemmas rmIHs = rmIH1 rmIH2 rmIH3
 
 
-subsection {* Lemmas for constructors and subtypes *}
+subsection \<open>Lemmas for constructors and subtypes\<close>
 
 (* 0-ary constructors do not need additional rules as they are handled *)
 (*                                      correctly by applying SubtypeI *)
@@ -404,9 +404,9 @@ lemma rcall_lemma2: "\<lbrakk>a:{x:A. Q(x)}; \<lbrakk>a:A; Q(a)\<rbrakk> \<Longr
 lemmas rcall_lemmas = asm_rl rcall_lemma1 SubtypeD1 rcall_lemma2
 
 
-subsection {* Typechecking *}
+subsection \<open>Typechecking\<close>
 
-ML {*
+ML \<open>
 local
 
 val type_rls =
@@ -478,35 +478,35 @@ fun gen_ccs_tac ctxt rls i =
   SELECT_GOAL (REPEAT_FIRST (tc_step_tac ctxt rls) THEN clean_ccs_tac ctxt) i
 
 end
-*}
+\<close>
 
-method_setup typechk = {*
+method_setup typechk = \<open>
   Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (typechk_tac ctxt ths))
-*}
+\<close>
 
-method_setup clean_ccs = {*
+method_setup clean_ccs = \<open>
   Scan.succeed (SIMPLE_METHOD o clean_ccs_tac)
-*}
+\<close>
 
-method_setup gen_ccs = {*
+method_setup gen_ccs = \<open>
   Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (gen_ccs_tac ctxt ths))
-*}
+\<close>
 
 
-subsection {* Evaluation *}
+subsection \<open>Evaluation\<close>
 
 named_theorems eval "evaluation rules"
 
-ML {*
+ML \<open>
 fun eval_tac ths =
   Subgoal.FOCUS_PREMS (fn {context = ctxt, prems, ...} =>
     let val eval_rules = Named_Theorems.get ctxt @{named_theorems eval}
     in DEPTH_SOLVE_1 (resolve_tac ctxt (ths @ prems @ rev eval_rules) 1) end)
-*}
+\<close>
 
-method_setup eval = {*
+method_setup eval = \<open>
   Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (CHANGED o eval_tac ths ctxt))
-*}
+\<close>
 
 
 lemmas eval_rls [eval] = trueV falseV pairV lamV caseVtrue caseVfalse caseVpair caseVlam
@@ -523,9 +523,9 @@ lemma letV:
   shows "let x be t in f(x) ---> c"
   apply (unfold let_def)
   apply (rule 1 [THEN canonical])
-  apply (tactic {*
+  apply (tactic \<open>
     REPEAT (DEPTH_SOLVE_1 (resolve_tac @{context} (@{thms assms} @ @{thms eval_rls}) 1 ORELSE
-      eresolve_tac @{context} @{thms substitute} 1)) *})
+      eresolve_tac @{context} @{thms substitute} 1))\<close>)
   done
 
 lemma fixV: "f(fix(f)) ---> c \<Longrightarrow> fix(f) ---> c"
@@ -566,7 +566,7 @@ lemma V_rls [eval]:
   unfolding data_defs by eval+
 
 
-subsection {* Factorial *}
+subsection \<open>Factorial\<close>
 
 schematic_lemma
   "letrec f n be ncase(n,succ(zero),\<lambda>x. nrec(n,zero,\<lambda>y g. nrec(f(x),g,\<lambda>z h. succ(h))))  
@@ -578,7 +578,7 @@ schematic_lemma
    in f(succ(succ(succ(zero)))) ---> ?a"
   by eval
 
-subsection {* Less Than Or Equal *}
+subsection \<open>Less Than Or Equal\<close>
 
 schematic_lemma
   "letrec f p be split(p,\<lambda>m n. ncase(m,true,\<lambda>x. ncase(n,false,\<lambda>y. f(<x,y>))))
@@ -596,7 +596,7 @@ schematic_lemma
   by eval
 
 
-subsection {* Reverse *}
+subsection \<open>Reverse\<close>
 
 schematic_lemma
   "letrec id l be lcase(l,[],\<lambda>x xs. x$id(xs))  

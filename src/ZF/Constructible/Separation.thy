@@ -2,13 +2,13 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section{*Early Instances of Separation and Strong Replacement*}
+section\<open>Early Instances of Separation and Strong Replacement\<close>
 
 theory Separation imports L_axioms WF_absolute begin
 
-text{*This theory proves all instances needed for locale @{text "M_basic"}*}
+text\<open>This theory proves all instances needed for locale @{text "M_basic"}\<close>
 
-text{*Helps us solve for de Bruijn indices!*}
+text\<open>Helps us solve for de Bruijn indices!\<close>
 lemma nth_ConsI: "[|nth(n,l) = x; n \<in> nat|] ==> nth(succ(n), Cons(a,l)) = x"
 by simp
 
@@ -36,7 +36,7 @@ apply (rule_tac x="{x\<in>z. P(x)}" in rexI)
 apply simp_all
 done
 
-text{*Reduces the original comprehension to the reflected one*}
+text\<open>Reduces the original comprehension to the reflected one\<close>
 lemma reflection_imp_L_separation:
       "[| \<forall>x\<in>Lset(j). P(x) \<longleftrightarrow> Q(x);
           {x \<in> Lset(j) . Q(x)} \<in> DPow(Lset(j));
@@ -49,8 +49,8 @@ apply (subgoal_tac "{x \<in> z. P(x)} = {x \<in> Lset(j). x \<in> z & (Q(x))}")
 apply (simp add: Lset_succ Collect_conj_in_DPow_Lset)
 done
 
-text{*Encapsulates the standard proof script for proving instances of 
-      Separation.*}
+text\<open>Encapsulates the standard proof script for proving instances of 
+      Separation.\<close>
 lemma gen_separation:
  assumes reflection: "REFLECTS [P,Q]"
      and Lu:         "L(u)"
@@ -66,10 +66,10 @@ apply (erule reflection_imp_L_separation)
 apply (rule collI, assumption)
 done
 
-text{*As above, but typically @{term u} is a finite enumeration such as
+text\<open>As above, but typically @{term u} is a finite enumeration such as
   @{term "{a,b}"}; thus the new subgoal gets the assumption
   @{term "{a,b} \<subseteq> Lset(i)"}, which is logically equivalent to 
-  @{term "a \<in> Lset(i)"} and @{term "b \<in> Lset(i)"}.*}
+  @{term "a \<in> Lset(i)"} and @{term "b \<in> Lset(i)"}.\<close>
 lemma gen_separation_multi:
  assumes reflection: "REFLECTS [P,Q]"
      and Lu:         "L(u)"
@@ -82,7 +82,7 @@ apply (erule collI)
 done
 
 
-subsection{*Separation for Intersection*}
+subsection\<open>Separation for Intersection\<close>
 
 lemma Inter_Reflects:
      "REFLECTS[\<lambda>x. \<forall>y[L]. y\<in>A \<longrightarrow> x \<in> y,
@@ -93,8 +93,8 @@ lemma Inter_separation:
      "L(A) ==> separation(L, \<lambda>x. \<forall>y[L]. y\<in>A \<longrightarrow> x\<in>y)"
 apply (rule gen_separation [OF Inter_Reflects], simp)
 apply (rule DPow_LsetI)
- txt{*I leave this one example of a manual proof.  The tedium of manually
-      instantiating @{term i}, @{term j} and @{term env} is obvious. *}
+ txt\<open>I leave this one example of a manual proof.  The tedium of manually
+      instantiating @{term i}, @{term j} and @{term env} is obvious.\<close>
 apply (rule ball_iff_sats)
 apply (rule imp_iff_sats)
 apply (rule_tac [2] i=1 and j=0 and env="[y,x,A]" in mem_iff_sats)
@@ -102,7 +102,7 @@ apply (rule_tac i=0 and j=2 in mem_iff_sats)
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
-subsection{*Separation for Set Difference*}
+subsection\<open>Separation for Set Difference\<close>
 
 lemma Diff_Reflects:
      "REFLECTS[\<lambda>x. x \<notin> B, \<lambda>i x. x \<notin> B]"
@@ -115,7 +115,7 @@ apply (rule_tac env="[B]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
 done
 
-subsection{*Separation for Cartesian Product*}
+subsection\<open>Separation for Cartesian Product\<close>
 
 lemma cartprod_Reflects:
      "REFLECTS[\<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. y\<in>B & pair(L,x,y,z)),
@@ -131,7 +131,7 @@ apply (rule_tac env="[A,B]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
 done
 
-subsection{*Separation for Image*}
+subsection\<open>Separation for Image\<close>
 
 lemma image_Reflects:
      "REFLECTS[\<lambda>y. \<exists>p[L]. p\<in>r & (\<exists>x[L]. x\<in>A & pair(L,x,y,p)),
@@ -147,7 +147,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsection{*Separation for Converse*}
+subsection\<open>Separation for Converse\<close>
 
 lemma converse_Reflects:
   "REFLECTS[\<lambda>z. \<exists>p[L]. p\<in>r & (\<exists>x[L]. \<exists>y[L]. pair(L,x,y,p) & pair(L,y,x,z)),
@@ -164,7 +164,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsection{*Separation for Restriction*}
+subsection\<open>Separation for Restriction\<close>
 
 lemma restrict_Reflects:
      "REFLECTS[\<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. pair(L,x,y,z)),
@@ -179,7 +179,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsection{*Separation for Composition*}
+subsection\<open>Separation for Composition\<close>
 
 lemma comp_Reflects:
      "REFLECTS[\<lambda>xz. \<exists>x[L]. \<exists>y[L]. \<exists>z[L]. \<exists>xy[L]. \<exists>yz[L].
@@ -196,16 +196,16 @@ lemma comp_separation:
                   pair(L,x,z,xz) & pair(L,x,y,xy) & pair(L,y,z,yz) &
                   xy\<in>s & yz\<in>r)"
 apply (rule gen_separation_multi [OF comp_Reflects, of "{r,s}"], auto)
-txt{*Subgoals after applying general ``separation'' rule:
-     @{subgoals[display,indent=0,margin=65]}*}
+txt\<open>Subgoals after applying general ``separation'' rule:
+     @{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule_tac env="[r,s]" in DPow_LsetI)
-txt{*Subgoals ready for automatic synthesis of a formula:
-     @{subgoals[display,indent=0,margin=65]}*}
+txt\<open>Subgoals ready for automatic synthesis of a formula:
+     @{subgoals[display,indent=0,margin=65]}\<close>
 apply (rule sep_rules | simp)+
 done
 
 
-subsection{*Separation for Predecessors in an Order*}
+subsection\<open>Separation for Predecessors in an Order\<close>
 
 lemma pred_Reflects:
      "REFLECTS[\<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p),
@@ -220,7 +220,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsection{*Separation for the Membership Relation*}
+subsection\<open>Separation for the Membership Relation\<close>
 
 lemma Memrel_Reflects:
      "REFLECTS[\<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) & x \<in> y,
@@ -235,7 +235,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsection{*Replacement for FunSpace*}
+subsection\<open>Replacement for FunSpace\<close>
 
 lemma funspace_succ_Reflects:
  "REFLECTS[\<lambda>z. \<exists>p[L]. p\<in>A & (\<exists>f[L]. \<exists>b[L]. \<exists>nb[L]. \<exists>cnbf[L].
@@ -260,7 +260,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsection{*Separation for a Theorem about @{term "is_recfun"}*}
+subsection\<open>Separation for a Theorem about @{term "is_recfun"}\<close>
 
 lemma is_recfun_reflects:
   "REFLECTS[\<lambda>x. \<exists>xa[L]. \<exists>xb[L].
@@ -274,7 +274,7 @@ lemma is_recfun_reflects:
 by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma is_recfun_separation:
-     --{*for well-founded recursion*}
+     --\<open>for well-founded recursion\<close>
      "[| L(r); L(f); L(g); L(a); L(b) |]
      ==> separation(L,
             \<lambda>x. \<exists>xa[L]. \<exists>xb[L].
@@ -288,9 +288,9 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsection{*Instantiating the locale @{text M_basic}*}
-text{*Separation (and Strong Replacement) for basic set-theoretic constructions
-such as intersection, Cartesian Product and image.*}
+subsection\<open>Instantiating the locale @{text M_basic}\<close>
+text\<open>Separation (and Strong Replacement) for basic set-theoretic constructions
+such as intersection, Cartesian Product and image.\<close>
 
 lemma M_basic_axioms_L: "M_basic_axioms(L)"
   apply (rule M_basic_axioms.intro)

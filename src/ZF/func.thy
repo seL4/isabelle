@@ -3,11 +3,11 @@
     Copyright   1991  University of Cambridge
 *)
 
-section{*Functions, Function Spaces, Lambda-Abstraction*}
+section\<open>Functions, Function Spaces, Lambda-Abstraction\<close>
 
 theory func imports equalities Sum begin
 
-subsection{*The Pi Operator: Dependent Function Space*}
+subsection\<open>The Pi Operator: Dependent Function Space\<close>
 
 lemma subset_Sigma_imp_relation: "r \<subseteq> Sigma(A,B) ==> relation(r)"
 by (simp add: relation_def, blast)
@@ -55,7 +55,7 @@ by (simp add: Pi_def cong add: Sigma_cong)
 lemma fun_weaken_type: "[| f \<in> A->B;  B<=D |] ==> f \<in> A->D"
 by (unfold Pi_def, best)
 
-subsection{*Function Application*}
+subsection\<open>Function Application\<close>
 
 lemma apply_equality2: "[| <a,b>: f;  <a,c>: f;  f \<in> Pi(A,B) |] ==> b=c"
 by (unfold Pi_def function_def, blast)
@@ -129,7 +129,7 @@ by (blast dest: fun_is_rel)
 lemma Pair_mem_PiD: "[| <a,b>: f;  f \<in> Pi(A,B) |] ==> a \<in> A & b \<in> B(a) & f`a = b"
 by (blast intro: domain_type range_type apply_equality)
 
-subsection{*Lambda Abstraction*}
+subsection\<open>Lambda Abstraction\<close>
 
 lemma lamI: "a \<in> A ==> <a,b(a)> \<in> (\<lambda>x\<in>A. b(x))"
 apply (unfold lam_def)
@@ -202,7 +202,7 @@ apply (fast intro!: equals0I intro: lam_type)
 done
 
 
-subsection{*Extensionality*}
+subsection\<open>Extensionality\<close>
 
 (*Semi-extensionality!*)
 
@@ -242,7 +242,7 @@ apply (blast intro: major apply_type)+
 done
 
 
-subsection{*Images of Functions*}
+subsection\<open>Images of Functions\<close>
 
 lemma image_lam: "C \<subseteq> A ==> (\<lambda>x\<in>A. b(x)) `` C = {b(x). x \<in> C}"
 by (unfold lam_def, blast)
@@ -278,7 +278,7 @@ lemma Pi_image_cons:
 by (blast dest: apply_equality apply_Pair)
 
 
-subsection{*Properties of @{term "restrict(f,A)"}*}
+subsection\<open>Properties of @{term "restrict(f,A)"}\<close>
 
 lemma restrict_subset: "restrict(f,A) \<subseteq> f"
 by (unfold restrict_def, blast)
@@ -338,7 +338,7 @@ apply (auto dest!: Pi_memberD simp add: restrict_def lam_def)
 done
 
 
-subsection{*Unions of Functions*}
+subsection\<open>Unions of Functions\<close>
 
 (** The Union of a set of COMPATIBLE functions is a function **)
 
@@ -381,7 +381,7 @@ by (simp add: apply_def, blast)
 lemma fun_disjoint_apply2: "c \<notin> domain(f) ==> (f \<union> g)`c = g`c"
 by (simp add: apply_def, blast)
 
-subsection{*Domain and Range of a Function or Relation*}
+subsection\<open>Domain and Range of a Function or Relation\<close>
 
 lemma domain_of_fun: "f \<in> Pi(A,B) ==> domain(f)=A"
 by (unfold Pi_def, blast)
@@ -392,7 +392,7 @@ by (erule apply_Pair [THEN rangeI], assumption)
 lemma range_of_fun: "f \<in> Pi(A,B) ==> f \<in> A->range(f)"
 by (blast intro: Pi_type apply_rangeI)
 
-subsection{*Extensions of Functions*}
+subsection\<open>Extensions of Functions\<close>
 
 lemma fun_extend:
      "[| f \<in> A->B;  c\<notin>A |] ==> cons(<c,b>,f) \<in> cons(c,A) -> cons(b,B)"
@@ -439,7 +439,7 @@ lemma succ_fun_eq: "succ(n) -> B = (\<Union>f \<in> n->B. \<Union>b\<in>B. {cons
 by (simp add: succ_def mem_not_refl cons_fun_eq)
 
 
-subsection{*Function Updates*}
+subsection\<open>Function Updates\<close>
 
 definition
   update  :: "[i,i,i] => i"  where
@@ -487,9 +487,9 @@ apply (simp add: domain_of_fun cons_absorb apply_funtype lam_type)
 done
 
 
-subsection{*Monotonicity Theorems*}
+subsection\<open>Monotonicity Theorems\<close>
 
-subsubsection{*Replacement in its Various Forms*}
+subsubsection\<open>Replacement in its Various Forms\<close>
 
 (*Not easy to express monotonicity in P, since any "bigger" predicate
   would have to be single-valued*)
@@ -525,7 +525,7 @@ by blast
 lemma Diff_mono: "[| A<=C;  D<=B |] ==> A-B \<subseteq> C-D"
 by blast
 
-subsubsection{*Standard Products, Sums and Function Spaces *}
+subsubsection\<open>Standard Products, Sums and Function Spaces\<close>
 
 lemma Sigma_mono [rule_format]:
      "[| A<=C;  !!x. x \<in> A \<longrightarrow> B(x) \<subseteq> D(x) |] ==> Sigma(A,B) \<subseteq> Sigma(C,D)"
@@ -543,7 +543,7 @@ apply (unfold lam_def)
 apply (erule RepFun_mono)
 done
 
-subsubsection{*Converse, Domain, Range, Field*}
+subsubsection\<open>Converse, Domain, Range, Field\<close>
 
 lemma converse_mono: "r<=s ==> converse(r) \<subseteq> converse(s)"
 by blast
@@ -565,7 +565,7 @@ lemma field_rel_subset: "r \<subseteq> A*A ==> field(r) \<subseteq> A"
 by (erule field_mono [THEN subset_trans], blast)
 
 
-subsubsection{*Images*}
+subsubsection\<open>Images\<close>
 
 lemma image_pair_mono:
     "[| !! x y. <x,y>:r ==> <x,y>:s;  A<=B |] ==> r``A \<subseteq> s``B"

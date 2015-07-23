@@ -2,7 +2,7 @@
 
 *)
 
-section {* Rings *}
+section \<open>Rings\<close>
 
 theory Ring imports Group begin
 
@@ -39,7 +39,7 @@ lemma zero_eq [simp]: "zero(<C,M,I,A,Z,z>) = Z"
   by (simp add: zero_def)
 
 
-text {* Derived operations. *}
+text \<open>Derived operations.\<close>
 
 definition
   a_inv :: "[i,i] => i" ("\<ominus>\<index> _" [81] 80) where
@@ -53,9 +53,9 @@ locale abelian_monoid = fixes G (structure)
   assumes a_comm_monoid:
     "comm_monoid (<carrier(G), add_field(G), zero(G), 0>)"
 
-text {*
+text \<open>
   The following definition is redundant but simple to use.
-*}
+\<close>
 
 locale abelian_group = abelian_monoid +
   assumes a_comm_group:
@@ -75,7 +75,7 @@ locale "domain" = cring +
                   a = \<zero> | b = \<zero>"
 
 
-subsection {* Basic Properties *}
+subsection \<open>Basic Properties\<close>
 
 lemma (in abelian_monoid) a_monoid:
      "monoid (<carrier(G), add_field(G), zero(G), 0>)"
@@ -172,9 +172,9 @@ lemma (in abelian_group) minus_add:
 
 lemmas (in abelian_monoid) a_ac = a_assoc a_comm a_lcomm
 
-text {*
+text \<open>
   The following proofs are from Jacobson, Basic Algebra I, pp.~88--89
-*}
+\<close>
 
 context ring
 begin
@@ -228,7 +228,7 @@ lemma minus_eq:
 end
 
 
-subsection {* Morphisms *}
+subsection \<open>Morphisms\<close>
 
 definition
   ring_hom :: "[i,i] => i" where

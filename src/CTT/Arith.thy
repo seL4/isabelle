@@ -3,13 +3,13 @@
     Copyright   1991  University of Cambridge
 *)
 
-section {* Elementary arithmetic *}
+section \<open>Elementary arithmetic\<close>
 
 theory Arith
 imports Bool
 begin
 
-subsection {* Arithmetic operators and their definitions *}
+subsection \<open>Arithmetic operators and their definitions\<close>
 
 definition
   add :: "[i,i]\<Rightarrow>i"   (infixr "#+" 65) where
@@ -46,7 +46,7 @@ notation (HTML output)
 lemmas arith_defs = add_def diff_def absdiff_def mult_def mod_def div_def
 
 
-subsection {* Proofs about elementary arithmetic: addition, multiplication, etc. *}
+subsection \<open>Proofs about elementary arithmetic: addition, multiplication, etc.\<close>
 
 (** Addition *)
 
@@ -144,7 +144,7 @@ apply hyp_rew
 done
 
 
-subsection {* Simplification *}
+subsection \<open>Simplification\<close>
 
 lemmas arith_typing_rls = add_typing mult_typing diff_typing
   and arith_congr_rls = add_typingL mult_typingL diff_typingL
@@ -155,7 +155,7 @@ lemmas arithC_rls =
   multC0 multC_succ
   diffC0 diff_0_eq_0 diff_succ_succ
 
-ML {*
+ML \<open>
 
 structure Arith_simp_data: TSIMP_DATA =
   struct
@@ -180,18 +180,18 @@ fun hyp_arith_rew_tac ctxt prems = make_rew_tac ctxt
   (Arith_simp.cond_norm_tac ctxt (prove_cond_tac ctxt, congr_rls, prems))
 
 end
-*}
+\<close>
 
-method_setup arith_rew = {*
+method_setup arith_rew = \<open>
   Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (arith_rew_tac ctxt ths))
-*}
+\<close>
 
-method_setup hyp_arith_rew = {*
+method_setup hyp_arith_rew = \<open>
   Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (hyp_arith_rew_tac ctxt ths))
-*}
+\<close>
 
 
-subsection {* Addition *}
+subsection \<open>Addition\<close>
 
 (*Associative law for addition*)
 lemma add_assoc: "\<lbrakk>a:N; b:N; c:N\<rbrakk> \<Longrightarrow> (a #+ b) #+ c = a #+ (b #+ c) : N"
@@ -214,7 +214,7 @@ apply hyp_arith_rew
 done
 
 
-subsection {* Multiplication *}
+subsection \<open>Multiplication\<close>
 
 (*right annihilation in product*)
 lemma mult_0_right: "a:N \<Longrightarrow> a #* 0 = 0 : N"
@@ -248,11 +248,11 @@ apply (hyp_arith_rew add_mult_distrib)
 done
 
 
-subsection {* Difference *}
+subsection \<open>Difference\<close>
 
-text {*
+text \<open>
 Difference on natural numbers, without negative numbers
-  a - b = 0  iff  a<=b    a - b = succ(c) iff a>b   *}
+  a - b = 0  iff  a<=b    a - b = succ(c) iff a>b\<close>
 
 lemma diff_self_eq_0: "a:N \<Longrightarrow> a - a = 0 : N"
 apply (NE a)
@@ -299,7 +299,7 @@ apply (assumption | rule EqI)+
 done
 
 
-subsection {* Absolute difference *}
+subsection \<open>Absolute difference\<close>
 
 (*typing of absolute difference: short and long versions*)
 
@@ -380,7 +380,7 @@ apply (hyp_arith_rew add_0_right)
 done
 
 
-subsection {* Remainder and Quotient *}
+subsection \<open>Remainder and Quotient\<close>
 
 (*typing of remainder: short and long versions*)
 

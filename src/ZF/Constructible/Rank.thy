@@ -2,12 +2,12 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {*Absoluteness for Order Types, Rank Functions and Well-Founded 
-         Relations*}
+section \<open>Absoluteness for Order Types, Rank Functions and Well-Founded 
+         Relations\<close>
 
 theory Rank imports WF_absolute begin
 
-subsection {*Order Types: A Direct Construction by Replacement*}
+subsection \<open>Order Types: A Direct Construction by Replacement\<close>
 
 locale M_ordertype = M_basic +
 assumes well_ord_iso_separation:
@@ -15,7 +15,7 @@ assumes well_ord_iso_separation:
       ==> separation (M, \<lambda>x. x\<in>A \<longrightarrow> (\<exists>y[M]. (\<exists>p[M].
                      fun_apply(M,f,x,y) & pair(M,y,x,p) & p \<in> r)))"
   and obase_separation:
-     --{*part of the order type formalization*}
+     --\<open>part of the order type formalization\<close>
      "[| M(A); M(r) |]
       ==> separation(M, \<lambda>a. \<exists>x[M]. \<exists>g[M]. \<exists>mx[M]. \<exists>par[M].
              ordinal(M,x) & membership(M,x,mx) & pred_set(M,A,a,r,par) &
@@ -34,8 +34,8 @@ assumes well_ord_iso_separation:
              pred_set(M,A,a,r,par) & order_isomorphism(M,par,r,x,mx,g))"
 
 
-text{*Inductive argument for Kunen's Lemma I 6.1, etc.
-      Simple proof from Halmos, page 72*}
+text\<open>Inductive argument for Kunen's Lemma I 6.1, etc.
+      Simple proof from Halmos, page 72\<close>
 lemma  (in M_ordertype) wellordered_iso_subset_lemma: 
      "[| wellordered(M,A,r);  f \<in> ord_iso(A,r, A',r);  A'<= A;  y \<in> A;  
        M(A);  M(f);  M(r) |] ==> ~ <f`y, y> \<in> r"
@@ -48,8 +48,8 @@ apply (drule_tac a = x in bij_is_fun [THEN apply_type], assumption, blast)
 done
 
 
-text{*Kunen's Lemma I 6.1, page 14: 
-      there's no order-isomorphism to an initial segment of a well-ordering*}
+text\<open>Kunen's Lemma I 6.1, page 14: 
+      there's no order-isomorphism to an initial segment of a well-ordering\<close>
 lemma (in M_ordertype) wellordered_iso_predD:
      "[| wellordered(M,A,r);  f \<in> ord_iso(A, r, Order.pred(A,x,r), r);  
        M(A);  M(f);  M(r) |] ==> x \<notin> A"
@@ -75,7 +75,7 @@ apply (blast intro: predI dest: transM)+
 done
 
 
-text{*Simple consequence of Lemma 6.1*}
+text\<open>Simple consequence of Lemma 6.1\<close>
 lemma (in M_ordertype) wellordered_iso_pred_eq:
      "[| wellordered(M,A,r);
        f \<in> ord_iso(Order.pred(A,a,r), r, Order.pred(A,c,r), r);   
@@ -89,11 +89,11 @@ apply (blast dest: wellordered_iso_pred_eq_lemma)+
 done
 
 
-text{*Following Kunen's Theorem I 7.6, page 17.  Note that this material is
-not required elsewhere.*}
+text\<open>Following Kunen's Theorem I 7.6, page 17.  Note that this material is
+not required elsewhere.\<close>
 
-text{*Can't use @{text well_ord_iso_preserving} because it needs the
-strong premise @{term "well_ord(A,r)"}*}
+text\<open>Can't use @{text well_ord_iso_preserving} because it needs the
+strong premise @{term "well_ord(A,r)"}\<close>
 lemma (in M_ordertype) ord_iso_pred_imp_lt:
      "[| f \<in> ord_iso(Order.pred(A,x,r), r, i, Memrel(i));
          g \<in> ord_iso(Order.pred(A,y,r), r, j, Memrel(j));
@@ -103,18 +103,18 @@ lemma (in M_ordertype) ord_iso_pred_imp_lt:
 apply (frule wellordered_is_trans_on, assumption)
 apply (frule_tac y=y in transM, assumption) 
 apply (rule_tac i=i and j=j in Ord_linear_lt, auto)  
-txt{*case @{term "i=j"} yields a contradiction*}
+txt\<open>case @{term "i=j"} yields a contradiction\<close>
  apply (rule_tac x1=x and A1="Order.pred(A,y,r)" in 
           wellordered_iso_predD [THEN notE]) 
    apply (blast intro: wellordered_subset [OF _ pred_subset]) 
   apply (simp add: trans_pred_pred_eq)
   apply (blast intro: Ord_iso_implies_eq ord_iso_sym ord_iso_trans) 
  apply (simp_all add: pred_iff pred_closed converse_closed comp_closed)
-txt{*case @{term "j<i"} also yields a contradiction*}
+txt\<open>case @{term "j<i"} also yields a contradiction\<close>
 apply (frule restrict_ord_iso2, assumption+) 
 apply (frule ord_iso_sym [THEN ord_iso_is_bij, THEN bij_is_fun]) 
 apply (frule apply_type, blast intro: ltD) 
-  --{*thus @{term "converse(f)`j \<in> Order.pred(A,x,r)"}*}
+  --\<open>thus @{term "converse(f)`j \<in> Order.pred(A,x,r)"}\<close>
 apply (simp add: pred_iff) 
 apply (subgoal_tac
        "\<exists>h[M]. h \<in> ord_iso(Order.pred(A,y,r), r, 
@@ -137,26 +137,26 @@ done
 
 definition  
   obase :: "[i=>o,i,i] => i" where
-       --{*the domain of @{text om}, eventually shown to equal @{text A}*}
+       --\<open>the domain of @{text om}, eventually shown to equal @{text A}\<close>
    "obase(M,A,r) == {a\<in>A. \<exists>x[M]. \<exists>g[M]. Ord(x) & 
                           g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x))}"
 
 definition
   omap :: "[i=>o,i,i,i] => o" where
-    --{*the function that maps wosets to order types*}
+    --\<open>the function that maps wosets to order types\<close>
    "omap(M,A,r,f) == 
         \<forall>z[M].
          z \<in> f \<longleftrightarrow> (\<exists>a\<in>A. \<exists>x[M]. \<exists>g[M]. z = <a,x> & Ord(x) & 
                         g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
 
 definition
-  otype :: "[i=>o,i,i,i] => o" where --{*the order types themselves*}
+  otype :: "[i=>o,i,i,i] => o" where --\<open>the order types themselves\<close>
    "otype(M,A,r,i) == \<exists>f[M]. omap(M,A,r,f) & is_range(M,f,i)"
 
 
-text{*Can also be proved with the premise @{term "M(z)"} instead of
+text\<open>Can also be proved with the premise @{term "M(z)"} instead of
       @{term "M(f)"}, but that version is less useful.  This lemma
-      is also more useful than the definition, @{text omap_def}.*}
+      is also more useful than the definition, @{text omap_def}.\<close>
 lemma (in M_ordertype) omap_iff:
      "[| omap(M,A,r,f); M(A); M(f) |] 
       ==> z \<in> f \<longleftrightarrow>
@@ -256,7 +256,7 @@ apply (blast intro: wellordered_iso_pred_eq ord_iso_sym ord_iso_trans)
 done
 
 
-text{*This is not the final result: we must show @{term "oB(A,r) = A"}*}
+text\<open>This is not the final result: we must show @{term "oB(A,r) = A"}\<close>
 lemma (in M_ordertype) omap_ord_iso:
      "[| wellordered(M,A,r); omap(M,A,r,f); otype(M,A,r,i); 
        M(A); M(r); M(f); M(i) |] ==> f \<in> ord_iso(obase(M,A,r),r,i,Memrel(i))"
@@ -266,15 +266,15 @@ apply (insert omap_funtype [of A r f i], simp)
 apply (frule_tac a=x in apply_Pair, assumption) 
 apply (frule_tac a=y in apply_Pair, assumption) 
 apply (auto simp add: omap_iff)
- txt{*direction 1: assuming @{term "\<langle>x,y\<rangle> \<in> r"}*}
+ txt\<open>direction 1: assuming @{term "\<langle>x,y\<rangle> \<in> r"}\<close>
  apply (blast intro: ltD ord_iso_pred_imp_lt)
- txt{*direction 2: proving @{term "\<langle>x,y\<rangle> \<in> r"} using linearity of @{term r}*}
+ txt\<open>direction 2: proving @{term "\<langle>x,y\<rangle> \<in> r"} using linearity of @{term r}\<close>
 apply (rename_tac x y g ga) 
 apply (frule wellordered_is_linear, assumption, 
        erule_tac x=x and y=y in linearE, assumption+) 
-txt{*the case @{term "x=y"} leads to immediate contradiction*} 
+txt\<open>the case @{term "x=y"} leads to immediate contradiction\<close> 
 apply (blast elim: mem_irrefl) 
-txt{*the case @{term "\<langle>y,x\<rangle> \<in> r"}: handle like the opposite direction*}
+txt\<open>the case @{term "\<langle>y,x\<rangle> \<in> r"}: handle like the opposite direction\<close>
 apply (blast dest: ord_iso_pred_imp_lt ltD elim: mem_asym) 
 done
 
@@ -284,7 +284,7 @@ lemma (in M_ordertype) Ord_omap_image_pred:
 apply (frule wellordered_is_trans_on, assumption)
 apply (rule OrdI) 
         prefer 2 apply (simp add: image_iff omap_iff Ord_def, blast) 
-txt{*Hard part is to show that the image is a transitive set.*}
+txt\<open>Hard part is to show that the image is a transitive set.\<close>
 apply (simp add: Transset_def, clarify) 
 apply (simp add: image_iff pred_iff apply_iff [OF omap_funtype [of A r f i]])
 apply (rename_tac c j, clarify)
@@ -331,8 +331,8 @@ done
 
 
 
-text{*Main result: @{term om} gives the order-isomorphism 
-      @{term "\<langle>A,r\<rangle> \<cong> \<langle>i, Memrel(i)\<rangle>"} *}
+text\<open>Main result: @{term om} gives the order-isomorphism 
+      @{term "\<langle>A,r\<rangle> \<cong> \<langle>i, Memrel(i)\<rangle>"}\<close>
 theorem (in M_ordertype) omap_ord_iso_otype:
      "[| wellordered(M,A,r); omap(M,A,r,f); otype(M,A,r,i);
        M(A); M(r); M(f); M(i) |] ==> f \<in> ord_iso(A, r, i, Memrel(i))"
@@ -390,15 +390,15 @@ apply (insert ordertype_exists [of A r], simp)
 apply (blast intro: well_ord_ord_iso well_ord_Memrel)  
 done
 
-subsection {*Kunen's theorem 5.4, page 127*}
+subsection \<open>Kunen's theorem 5.4, page 127\<close>
 
-text{*(a) The notion of Wellordering is absolute*}
+text\<open>(a) The notion of Wellordering is absolute\<close>
 theorem (in M_ordertype) well_ord_abs [simp]: 
      "[| M(A); M(r) |] ==> wellordered(M,A,r) \<longleftrightarrow> well_ord(A,r)" 
 by (blast intro: well_ord_imp_relativized relativized_imp_well_ord)  
 
 
-text{*(b) Order types are absolute*}
+text\<open>(b) Order types are absolute\<close>
 theorem (in M_ordertype) 
      "[| wellordered(M,A,r); f \<in> ord_iso(A, r, i, Memrel(i));
        M(A); M(r); M(f); M(i); Ord(i) |] ==> i = ordertype(A,r)"
@@ -406,11 +406,11 @@ by (blast intro: Ord_ordertype relativized_imp_well_ord ordertype_ord_iso
                  Ord_iso_implies_eq ord_iso_sym ord_iso_trans)
 
 
-subsection{*Ordinal Arithmetic: Two Examples of Recursion*}
+subsection\<open>Ordinal Arithmetic: Two Examples of Recursion\<close>
 
-text{*Note: the remainder of this theory is not needed elsewhere.*}
+text\<open>Note: the remainder of this theory is not needed elsewhere.\<close>
 
-subsubsection{*Ordinal Addition*}
+subsubsection\<open>Ordinal Addition\<close>
 
 (*FIXME: update to use new techniques!!*)
  (*This expresses ordinal addition in the language of ZF.  It also 
@@ -478,7 +478,7 @@ locale M_ord_arith = M_ordertype +
 
 
 
-text{*@{text is_oadd_fun}: Relating the pure "language of set theory" to Isabelle/ZF*}
+text\<open>@{text is_oadd_fun}: Relating the pure "language of set theory" to Isabelle/ZF\<close>
 lemma (in M_ord_arith) is_oadd_fun_iff:
    "[| a\<le>j; M(i); M(j); M(a); M(f) |] 
     ==> is_oadd_fun(M,i,j,a,f) \<longleftrightarrow>
@@ -563,7 +563,7 @@ apply (simp add: apply_closed is_oadd_fun_iff_oadd [symmetric])
 done
 
 
-subsubsection{*Ordinal Multiplication*}
+subsubsection\<open>Ordinal Multiplication\<close>
 
 lemma omult_eqns_unique:
      "[| omult_eqns(i,x,g,z); omult_eqns(i,x,g,z') |] ==> z=z'"
@@ -602,7 +602,7 @@ lemma (in M_ord_arith) the_omult_eqns_closed:
     "[| M(i); M(x); M(g); function(g) |] 
      ==> M(THE z. omult_eqns(i, x, g, z))"
 apply (case_tac "Ord(x)")
- prefer 2 apply (simp add: omult_eqns_Not) --{*trivial, non-Ord case*}
+ prefer 2 apply (simp add: omult_eqns_Not) --\<open>trivial, non-Ord case\<close>
 apply (erule Ord_cases) 
   apply (simp add: omult_eqns_0)
  apply (simp add: omult_eqns_succ apply_closed oadd_closed) 
@@ -669,11 +669,11 @@ done
 
 
 
-subsection {*Absoluteness of Well-Founded Relations*}
+subsection \<open>Absoluteness of Well-Founded Relations\<close>
 
-text{*Relativized to @{term M}: Every well-founded relation is a subset of some
+text\<open>Relativized to @{term M}: Every well-founded relation is a subset of some
 inverse image of an ordinal.  Key step is the construction (in @{term M}) of a
-rank function.*}
+rank function.\<close>
 
 locale M_wfrank = M_trancl +
   assumes wfrank_separation:
@@ -698,8 +698,8 @@ locale M_wfrank = M_trancl +
              ordinal(M,rangef)))" 
 
 
-text{*Proving that the relativized instances of Separation or Replacement
-agree with the "real" ones.*}
+text\<open>Proving that the relativized instances of Separation or Replacement
+agree with the "real" ones.\<close>
 
 lemma (in M_wfrank) wfrank_separation':
      "M(r) ==>
@@ -726,8 +726,8 @@ apply (insert Ord_wfrank_separation [of r])
 apply (simp add: relation2_def is_recfun_abs [of "%x. range"])
 done
 
-text{*This function, defined using replacement, is a rank function for
-well-founded relations within the class M.*}
+text\<open>This function, defined using replacement, is a rank function for
+well-founded relations within the class M.\<close>
 definition
   wellfoundedrank :: "[i=>o,i,i] => i" where
     "wellfoundedrank(M,r,A) ==
@@ -766,16 +766,16 @@ apply (drule wellfounded_trancl, assumption)
 apply (rule wellfounded_induct, assumption, erule (1) transM)
   apply simp
  apply (blast intro: Ord_wfrank_separation', clarify)
-txt{*The reasoning in both cases is that we get @{term y} such that
+txt\<open>The reasoning in both cases is that we get @{term y} such that
    @{term "\<langle>y, x\<rangle> \<in> r^+"}.  We find that
-   @{term "f`y = restrict(f, r^+ -`` {y})"}. *}
+   @{term "f`y = restrict(f, r^+ -`` {y})"}.\<close>
 apply (rule OrdI [OF _ Ord_is_Transset])
- txt{*An ordinal is a transitive set...*}
+ txt\<open>An ordinal is a transitive set...\<close>
  apply (simp add: Transset_def)
  apply clarify
  apply (frule apply_recfun2, assumption)
  apply (force simp add: restrict_iff)
-txt{*...of ordinals.  This second case requires the induction hyp.*}
+txt\<open>...of ordinals.  This second case requires the induction hyp.\<close>
 apply clarify
 apply (rename_tac i y)
 apply (frule apply_recfun2, assumption)
@@ -799,9 +799,9 @@ apply (frule trancl_subset_times)
 apply (simp add: wellfoundedrank_def)
 apply (rule OrdI [OF _ Ord_is_Transset])
  prefer 2
- txt{*by our previous result the range consists of ordinals.*}
+ txt\<open>by our previous result the range consists of ordinals.\<close>
  apply (blast intro: Ord_wfrank_range)
-txt{*We still must show that the range is a transitive set.*}
+txt\<open>We still must show that the range is a transitive set.\<close>
 apply (simp add: Transset_def, clarify, simp)
 apply (rename_tac x i f u)
 apply (frule is_recfun_imp_in_r, assumption)
@@ -814,7 +814,7 @@ apply (rule_tac x=u in ReplaceI)
    apply (blast intro: is_recfun_restrict trans_trancl dest: apply_recfun2)
   apply simp 
 apply blast 
-txt{*Unicity requirement of Replacement*}
+txt\<open>Unicity requirement of Replacement\<close>
 apply clarify
 apply (frule apply_recfun2, assumption)
 apply (simp add: trans_trancl is_recfun_cut)
@@ -824,7 +824,7 @@ lemma (in M_wfrank) function_wellfoundedrank:
     "[| wellfounded(M,r); M(r); M(A)|]
      ==> function(wellfoundedrank(M,r,A))"
 apply (simp add: wellfoundedrank_def function_def, clarify)
-txt{*Uniqueness: repeated below!*}
+txt\<open>Uniqueness: repeated below!\<close>
 apply (drule is_recfun_functional, assumption)
      apply (blast intro: wellfounded_trancl)
     apply (simp_all add: trancl_subset_times trans_trancl)
@@ -841,7 +841,7 @@ apply (rule_tac b="range(f)" in domainI)
 apply (rule_tac x=x in ReplaceI)
   apply simp 
   apply (rule_tac x=f in rexI, blast, simp_all)
-txt{*Uniqueness (for Replacement): repeated above!*}
+txt\<open>Uniqueness (for Replacement): repeated above!\<close>
 apply clarify
 apply (drule is_recfun_functional, assumption)
     apply (blast intro: wellfounded_trancl)
@@ -875,7 +875,7 @@ apply (rule ReplaceI)
   apply (rule_tac x="range(f)" in rexI) 
   apply blast
  apply simp_all
-txt{*Unicity requirement of Replacement*}
+txt\<open>Unicity requirement of Replacement\<close>
 apply clarify
 apply (drule is_recfun_functional, assumption)
     apply (blast intro: wellfounded_trancl)
@@ -897,12 +897,12 @@ apply (rename_tac fb)
 apply (frule is_recfun_restrict [of concl: "r^+" a])
     apply (rule trans_trancl, assumption)
    apply (simp_all add: r_into_trancl trancl_subset_times)
-txt{*Still the same goal, but with new @{text is_recfun} assumptions.*}
+txt\<open>Still the same goal, but with new @{text is_recfun} assumptions.\<close>
 apply (simp add: wellfoundedrank_eq)
 apply (frule_tac a=a in wellfoundedrank_eq, assumption+)
    apply (simp_all add: transM [of a])
-txt{*We have used equations for wellfoundedrank and now must use some
-    for  @{text is_recfun}. *}
+txt\<open>We have used equations for wellfoundedrank and now must use some
+    for  @{text is_recfun}.\<close>
 apply (rule_tac a=a in rangeI)
 apply (simp add: is_recfun_type [THEN apply_iff] vimage_singleton_iff
                  r_into_trancl apply_recfun r_into_trancl)

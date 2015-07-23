@@ -13,7 +13,7 @@ Theory ported from HOL.
   
 *)
 
-section{*Composition*}
+section\<open>Composition\<close>
 
 theory Comp imports Union Increasing begin
 

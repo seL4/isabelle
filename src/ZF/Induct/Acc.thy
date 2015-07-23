@@ -3,13 +3,13 @@
     Copyright   1994  University of Cambridge
 *)
 
-section {* The accessible part of a relation *}
+section \<open>The accessible part of a relation\<close>
 
 theory Acc imports Main begin
 
-text {*
+text \<open>
   Inductive definition of @{text "acc(r)"}; see @{cite "paulin-tlca"}.
-*}
+\<close>
 
 consts
   acc :: "i => i"
@@ -20,13 +20,13 @@ inductive
     vimage:  "[| r-``{a}: Pow(acc(r)); a \<in> field(r) |] ==> a \<in> acc(r)"
   monos      Pow_mono
 
-text {*
+text \<open>
   The introduction rule must require @{prop "a \<in> field(r)"},
   otherwise @{text "acc(r)"} would be a proper class!
 
   \medskip
   The intended introduction rule:
-*}
+\<close>
 
 lemma accI: "[| !!b. <b,a>:r ==> b \<in> acc(r);  a \<in> field(r) |] ==> a \<in> acc(r)"
   by (blast intro: acc.intros)

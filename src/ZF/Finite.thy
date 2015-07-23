@@ -5,7 +5,7 @@
 prove:  b \<in> Fin(A) ==> inj(b,b) \<subseteq> surj(b,b)
 *)
 
-section{*Finite Powerset Operator and Finite Function Space*}
+section\<open>Finite Powerset Operator and Finite Function Space\<close>
 
 theory Finite imports Inductive_ZF Epsilon Nat_ZF begin
 
@@ -38,7 +38,7 @@ inductive
   type_intros Fin.intros
 
 
-subsection {* Finite Powerset Operator *}
+subsection \<open>Finite Powerset Operator\<close>
 
 lemma Fin_mono: "A<=B ==> Fin(A) \<subseteq> Fin(B)"
 apply (unfold Fin.defs)
@@ -126,7 +126,7 @@ apply (fast intro!: Fin.consI)
 done
 
 
-subsection{*Finite Function Space*}
+subsection\<open>Finite Function Space\<close>
 
 lemma FiniteFun_mono:
     "[| A<=C;  B<=D |] ==> A -||> B  \<subseteq>  C -||> D"
@@ -197,7 +197,7 @@ apply (rule_tac B = "range (f) " in fun_weaken_type)
 done
 
 
-subsection{*The Contents of a Singleton Set*}
+subsection\<open>The Contents of a Singleton Set\<close>
 
 definition
   contents :: "i=>i"  where

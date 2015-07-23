@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-section{*The Divides Relation and Euclid's algorithm for the GCD*}
+section\<open>The Divides Relation and Euclid's algorithm for the GCD\<close>
 
 theory Primes imports Main begin
 
@@ -12,26 +12,26 @@ definition
     "m dvd n == m \<in> nat & n \<in> nat & (\<exists>k \<in> nat. n = m#*k)"
 
 definition
-  is_gcd  :: "[i,i,i]=>o"     --{*definition of great common divisor*}  where
+  is_gcd  :: "[i,i,i]=>o"     --\<open>definition of great common divisor\<close>  where
     "is_gcd(p,m,n) == ((p dvd m) & (p dvd n))   &
                        (\<forall>d\<in>nat. (d dvd m) & (d dvd n) \<longrightarrow> d dvd p)"
 
 definition
-  gcd     :: "[i,i]=>i"       --{*Euclid's algorithm for the gcd*}  where
+  gcd     :: "[i,i]=>i"       --\<open>Euclid's algorithm for the gcd\<close>  where
     "gcd(m,n) == transrec(natify(n),
                         %n f. \<lambda>m \<in> nat.
                                 if n=0 then m else f`(m mod n)`n) ` natify(m)"
 
 definition
-  coprime :: "[i,i]=>o"       --{*the coprime relation*}  where
+  coprime :: "[i,i]=>o"       --\<open>the coprime relation\<close>  where
     "coprime(m,n) == gcd(m,n) = 1"
   
 definition
-  prime   :: i                --{*the set of prime numbers*}  where
+  prime   :: i                --\<open>the set of prime numbers\<close>  where
    "prime == {p \<in> nat. 1<p & (\<forall>m \<in> nat. m dvd p \<longrightarrow> m=1 | m=p)}"
 
 
-subsection{*The Divides Relation*}
+subsection\<open>The Divides Relation\<close>
 
 lemma dvdD: "m dvd n ==> m \<in> nat & n \<in> nat & (\<exists>k \<in> nat. n = m#*k)"
 by (unfold divides_def, assumption)
@@ -77,7 +77,7 @@ apply (rule mult_type)
 done
 
 
-subsection{*Euclid's Algorithm for the GCD*}
+subsection\<open>Euclid's Algorithm for the GCD\<close>
 
 lemma gcd_0 [simp]: "gcd(m,0) = natify(m)"
 apply (simp add: gcd_def)
@@ -161,9 +161,9 @@ lemma gcd_induct: "!!P. [| m \<in> nat; n \<in> nat;
 by (blast intro: gcd_induct_lemma)
 
 
-subsection{*Basic Properties of @{term gcd}*}
+subsection\<open>Basic Properties of @{term gcd}\<close>
 
-text{*type of gcd*}
+text\<open>type of gcd\<close>
 lemma gcd_type [simp,TC]: "gcd(m, n) \<in> nat"
 apply (subgoal_tac "gcd (natify (m), natify (n)) \<in> nat")
 apply simp
@@ -173,7 +173,7 @@ apply (simp add: gcd_non_0)
 done
 
 
-text{* Property 1: gcd(a,b) divides a and b *}
+text\<open>Property 1: gcd(a,b) divides a and b\<close>
 
 lemma gcd_dvd_both:
      "[| m \<in> nat; n \<in> nat |] ==> gcd (m, n) dvd m & gcd (m, n) dvd n"
@@ -192,7 +192,7 @@ apply (cut_tac m = "natify (m)" and n = "natify (n)" in gcd_dvd_both)
 apply auto
 done
 
-text{* if f divides a and b then f divides gcd(a,b) *}
+text\<open>if f divides a and b then f divides gcd(a,b)\<close>
 
 lemma dvd_mod: "[| f dvd a; f dvd b |] ==> f dvd (a mod b)"
 apply (simp add: divides_def)
@@ -201,8 +201,8 @@ apply (case_tac "b=0")
 apply (blast intro: mod_mult_distrib2 [symmetric])
 done
 
-text{* Property 2: for all a,b,f naturals, 
-               if f divides a and f divides b then f divides gcd(a,b)*}
+text\<open>Property 2: for all a,b,f naturals, 
+               if f divides a and f divides b then f divides gcd(a,b)\<close>
 
 lemma gcd_greatest_raw [rule_format]:
      "[| m \<in> nat; n \<in> nat; f \<in> nat |]    
@@ -221,14 +221,14 @@ lemma gcd_greatest_iff [simp]: "[| k \<in> nat; m \<in> nat; n \<in> nat |]
 by (blast intro!: gcd_greatest gcd_dvd1 gcd_dvd2 intro: dvd_trans)
 
 
-subsection{*The Greatest Common Divisor*}
+subsection\<open>The Greatest Common Divisor\<close>
 
-text{*The GCD exists and function gcd computes it.*}
+text\<open>The GCD exists and function gcd computes it.\<close>
 
 lemma is_gcd: "[| m \<in> nat; n \<in> nat |] ==> is_gcd(gcd(m,n), m, n)"
 by (simp add: is_gcd_def)
 
-text{*The GCD is unique*}
+text\<open>The GCD is unique\<close>
 
 lemma is_gcd_unique: "[|is_gcd(m,a,b); is_gcd(n,a,b); m\<in>nat; n\<in>nat|] ==> m=n"
 apply (simp add: is_gcd_def)
@@ -271,7 +271,7 @@ lemma gcd_1_left [simp]: "gcd (1, m) = 1"
 by (simp add: gcd_commute [of 1])
 
 
-subsection{*Addition laws*}
+subsection\<open>Addition laws\<close>
 
 lemma gcd_add1 [simp]: "gcd (m #+ n, n) = gcd (m, n)"
 apply (subgoal_tac "gcd (m #+ natify (n), natify (n)) = gcd (m, natify (n))")
@@ -300,7 +300,7 @@ apply auto
 done
 
 
-subsection{* Multiplication Laws*}
+subsection\<open>Multiplication Laws\<close>
 
 lemma gcd_mult_distrib2_raw:
      "[| k \<in> nat; m \<in> nat; n \<in> nat |]  
@@ -349,9 +349,9 @@ lemma prime_nonzero: "p \<in> prime \<Longrightarrow> p\<noteq>0"
 by (auto simp add: prime_def)
 
 
-text{*This theorem leads immediately to a proof of the uniqueness of
+text\<open>This theorem leads immediately to a proof of the uniqueness of
   factorization.  If @{term p} divides a product of primes then it is
-  one of those primes.*}
+  one of those primes.\<close>
 
 lemma prime_dvd_mult:
      "[|p dvd m #* n; p \<in> prime; m \<in> nat; n \<in> nat |] ==> p dvd m \<or> p dvd n"
@@ -375,7 +375,7 @@ apply auto
 done
 
 
-subsection{*The Square Root of a Prime is Irrational: Key Lemma*}
+subsection\<open>The Square Root of a Prime is Irrational: Key Lemma\<close>
 
 lemma prime_dvd_other_side:
      "\<lbrakk>n#*n = p#*(k#*k); p \<in> prime; n \<in> nat\<rbrakk> \<Longrightarrow> p dvd n"

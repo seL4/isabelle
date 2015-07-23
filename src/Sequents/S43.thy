@@ -16,21 +16,21 @@ syntax
   "_S43pi" :: "[seq, seq, seq, seq, seq, seq] => prop"
                          ("S43pi((_);(_);(_);(_);(_);(_))" [] 5)
 
-parse_translation {*
+parse_translation \<open>
   let
     val tr  = seq_tr;
     fun s43pi_tr [s1, s2, s3, s4, s5, s6] =
       Const (@{const_syntax S43pi}, dummyT) $ tr s1 $ tr s2 $ tr s3 $ tr s4 $ tr s5 $ tr s6;
   in [(@{syntax_const "_S43pi"}, K s43pi_tr)] end
-*}
+\<close>
 
-print_translation {*
+print_translation \<open>
 let
   val tr' = seq_tr';
   fun s43pi_tr' [s1, s2, s3, s4, s5, s6] =
     Const(@{syntax_const "_S43pi"}, dummyT) $ tr' s1 $ tr' s2 $ tr' s3 $ tr' s4 $ tr' s5 $ tr' s6;
 in [(@{const_syntax S43pi}, K s43pi_tr')] end
-*}
+\<close>
 
 axiomatization where
 (* Definition of the star operation using a set of Horn clauses  *)
@@ -76,7 +76,7 @@ axiomatization where
    $L |- $R1, []P, $R2"
 
 
-ML {*
+ML \<open>
 structure S43_Prover = Modal_ProverFun
 (
   val rewrite_rls = @{thms rewrite_rls}
@@ -86,13 +86,13 @@ structure S43_Prover = Modal_ProverFun
   val aside_rls = [@{thm lstar0}, @{thm lstar1}, @{thm lstar2}, @{thm rstar0},
     @{thm rstar1}, @{thm rstar2}, @{thm S43pi0}, @{thm S43pi1}, @{thm S43pi2}]
 )
-*}
+\<close>
 
 
-method_setup S43_solve = {*
+method_setup S43_solve = \<open>
   Scan.succeed (fn ctxt => SIMPLE_METHOD
     (S43_Prover.solve_tac ctxt 2 ORELSE S43_Prover.solve_tac ctxt 3))
-*}
+\<close>
 
 
 (* Theorems of system T from Hughes and Cresswell and Hailpern, LNCS 129 *)

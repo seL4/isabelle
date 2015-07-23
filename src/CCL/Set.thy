@@ -1,4 +1,4 @@
-section {* Extending FOL by a modified version of HOL set theory *}
+section \<open>Extending FOL by a modified version of HOL set theory\<close>
 
 theory Set
 imports "~~/src/FOL/FOL"
@@ -83,7 +83,7 @@ lemma set_ext: "(\<And>x. x:A \<longleftrightarrow> x:B) \<Longrightarrow> A = B
   done
 
 
-subsection {* Bounded quantifiers *}
+subsection \<open>Bounded quantifiers\<close>
 
 lemma ballI: "(\<And>x. x:A \<Longrightarrow> P(x)) \<Longrightarrow> ALL x:A. P(x)"
   by (simp add: Ball_def)
@@ -108,7 +108,7 @@ lemma ball_rew: "(ALL x:A. True) \<longleftrightarrow> True"
   by (blast intro: ballI)
 
 
-subsection {* Congruence rules *}
+subsection \<open>Congruence rules\<close>
 
 lemma ball_cong:
   "\<lbrakk>A = A'; \<And>x. x:A' \<Longrightarrow> P(x) \<longleftrightarrow> P'(x)\<rbrakk> \<Longrightarrow>
@@ -121,7 +121,7 @@ lemma bex_cong:
   by (blast intro: bexI elim: bexE)
 
 
-subsection {* Rules for subsets *}
+subsection \<open>Rules for subsets\<close>
 
 lemma subsetI: "(\<And>x. x:A \<Longrightarrow> x:B) \<Longrightarrow> A <= B"
   unfolding subset_def by (blast intro: ballI)
@@ -141,7 +141,7 @@ lemma subset_trans: "\<lbrakk>A <= B; B <= C\<rbrakk> \<Longrightarrow> A <= C"
   by (blast intro: subsetI dest: subsetD)
 
 
-subsection {* Rules for equality *}
+subsection \<open>Rules for equality\<close>
 
 (*Anti-symmetry of the subset relation*)
 lemma subset_antisym: "\<lbrakk>A <= B; B <= A\<rbrakk> \<Longrightarrow> A = B"
@@ -164,7 +164,7 @@ lemma trivial_set: "{x. x:A} = A"
   by (blast intro: equalityI subsetI CollectI dest: CollectD)
 
 
-subsection {* Rules for binary union *}
+subsection \<open>Rules for binary union\<close>
 
 lemma UnI1: "c:A \<Longrightarrow> c : A Un B"
   and UnI2: "c:B \<Longrightarrow> c : A Un B"
@@ -178,7 +178,7 @@ lemma UnE: "\<lbrakk>c : A Un B; c:A \<Longrightarrow> P; c:B \<Longrightarrow> 
   unfolding Un_def by (blast dest: CollectD)
 
 
-subsection {* Rules for small intersection *}
+subsection \<open>Rules for small intersection\<close>
 
 lemma IntI: "\<lbrakk>c:A; c:B\<rbrakk> \<Longrightarrow> c : A Int B"
   unfolding Int_def by (blast intro: CollectI)
@@ -191,7 +191,7 @@ lemma IntE: "\<lbrakk>c : A Int B; \<lbrakk>c:A; c:B\<rbrakk> \<Longrightarrow> 
   by (blast dest: IntD1 IntD2)
 
 
-subsection {* Rules for set complement *}
+subsection \<open>Rules for set complement\<close>
 
 lemma ComplI: "(c:A \<Longrightarrow> False) \<Longrightarrow> c : Compl(A)"
   unfolding Compl_def by (blast intro: CollectI)
@@ -205,7 +205,7 @@ lemma ComplD: "c : Compl(A) \<Longrightarrow> \<not>c:A"
 lemmas ComplE = ComplD [elim_format]
 
 
-subsection {* Empty sets *}
+subsection \<open>Empty sets\<close>
 
 lemma empty_eq: "{x. False} = {}"
   by (simp add: empty_def)
@@ -225,7 +225,7 @@ proof -
 qed
 
 
-subsection {* Singleton sets *}
+subsection \<open>Singleton sets\<close>
 
 lemma singletonI: "a : {a}"
   unfolding singleton_def by (blast intro: CollectI)
@@ -236,7 +236,7 @@ lemma singletonD: "b : {a} \<Longrightarrow> b=a"
 lemmas singletonE = singletonD [elim_format]
 
 
-subsection {* Unions of families *}
+subsection \<open>Unions of families\<close>
 
 (*The order of the premises presupposes that A is rigid; b may be flexible*)
 lemma UN_I: "\<lbrakk>a:A; b: B(a)\<rbrakk> \<Longrightarrow> b: (UN x:A. B(x))"
@@ -249,7 +249,7 @@ lemma UN_cong: "\<lbrakk>A = B; \<And>x. x:B \<Longrightarrow> C(x) = D(x)\<rbra
   by (simp add: UNION_def cong: bex_cong)
 
 
-subsection {* Intersections of families *}
+subsection \<open>Intersections of families\<close>
 
 lemma INT_I: "(\<And>x. x:A \<Longrightarrow> b: B(x)) \<Longrightarrow> b : (INT x:A. B(x))"
   unfolding INTER_def by (blast intro: CollectI ballI)
@@ -265,7 +265,7 @@ lemma INT_cong: "\<lbrakk>A = B; \<And>x. x:B \<Longrightarrow> C(x) = D(x)\<rbr
   by (simp add: INTER_def cong: ball_cong)
 
 
-subsection {* Rules for Unions *}
+subsection \<open>Rules for Unions\<close>
 
 (*The order of the premises presupposes that C is rigid; A may be flexible*)
 lemma UnionI: "\<lbrakk>X:C; A:X\<rbrakk> \<Longrightarrow> A : Union(C)"
@@ -275,7 +275,7 @@ lemma UnionE: "\<lbrakk>A : Union(C); \<And>X. \<lbrakk> A:X; X:C\<rbrakk> \<Lon
   unfolding Union_def by (blast elim: UN_E)
 
 
-subsection {* Rules for Inter *}
+subsection \<open>Rules for Inter\<close>
 
 lemma InterI: "(\<And>X. X:C \<Longrightarrow> A:X) \<Longrightarrow> A : Inter(C)"
   unfolding Inter_def by (blast intro: INT_I)
@@ -290,9 +290,9 @@ lemma InterE: "\<lbrakk>A : Inter(C); A:X \<Longrightarrow> R; \<not> X:C \<Long
   unfolding Inter_def by (blast elim: INT_E)
 
 
-section {* Derived rules involving subsets; Union and Intersection as lattice operations *}
+section \<open>Derived rules involving subsets; Union and Intersection as lattice operations\<close>
 
-subsection {* Big Union -- least upper bound of a set *}
+subsection \<open>Big Union -- least upper bound of a set\<close>
 
 lemma Union_upper: "B:A \<Longrightarrow> B <= Union(A)"
   by (blast intro: subsetI UnionI)
@@ -301,7 +301,7 @@ lemma Union_least: "(\<And>X. X:A \<Longrightarrow> X<=C) \<Longrightarrow> Unio
   by (blast intro: subsetI dest: subsetD elim: UnionE)
 
 
-subsection {* Big Intersection -- greatest lower bound of a set *}
+subsection \<open>Big Intersection -- greatest lower bound of a set\<close>
 
 lemma Inter_lower: "B:A \<Longrightarrow> Inter(A) <= B"
   by (blast intro: subsetI dest: InterD)
@@ -310,7 +310,7 @@ lemma Inter_greatest: "(\<And>X. X:A \<Longrightarrow> C<=X) \<Longrightarrow> C
   by (blast intro: subsetI InterI dest: subsetD)
 
 
-subsection {* Finite Union -- the least upper bound of 2 sets *}
+subsection \<open>Finite Union -- the least upper bound of 2 sets\<close>
 
 lemma Un_upper1: "A <= A Un B"
   by (blast intro: subsetI UnI1)
@@ -322,7 +322,7 @@ lemma Un_least: "\<lbrakk>A<=C; B<=C\<rbrakk> \<Longrightarrow> A Un B <= C"
   by (blast intro: subsetI elim: UnE dest: subsetD)
 
 
-subsection {* Finite Intersection -- the greatest lower bound of 2 sets *}
+subsection \<open>Finite Intersection -- the greatest lower bound of 2 sets\<close>
 
 lemma Int_lower1: "A Int B <= A"
   by (blast intro: subsetI elim: IntE)
@@ -334,7 +334,7 @@ lemma Int_greatest: "\<lbrakk>C<=A; C<=B\<rbrakk> \<Longrightarrow> C <= A Int B
   by (blast intro: subsetI IntI dest: subsetD)
 
 
-subsection {* Monotonicity *}
+subsection \<open>Monotonicity\<close>
 
 lemma monoI: "(\<And>A B. A <= B \<Longrightarrow> f(A) <= f(B)) \<Longrightarrow> mono(f)"
   unfolding mono_def by blast
@@ -349,7 +349,7 @@ lemma mono_Int: "mono(f) \<Longrightarrow> f(A Int B) <= f(A) Int f(B)"
   by (blast intro: Int_greatest dest: monoD intro: Int_lower1 Int_lower2)
 
 
-subsection {* Automated reasoning setup *}
+subsection \<open>Automated reasoning setup\<close>
 
 lemmas [intro!] = ballI subsetI InterI INT_I CollectI ComplI IntI UnCI singletonI
   and [intro] = bexI UnionI UN_I
@@ -369,9 +369,9 @@ lemmas [simp] = trivial_set empty_eq mem_rews
   and [cong] = ball_cong bex_cong INT_cong UN_cong
 
 
-section {* Equalities involving union, intersection, inclusion, etc. *}
+section \<open>Equalities involving union, intersection, inclusion, etc.\<close>
 
-subsection {* Binary Intersection *}
+subsection \<open>Binary Intersection\<close>
 
 lemma Int_absorb: "A Int A = A"
   by (blast intro: equalityI)
@@ -389,7 +389,7 @@ lemma subset_Int_eq: "(A<=B) \<longleftrightarrow> (A Int B = A)"
   by (blast intro: equalityI elim: equalityE)
 
 
-subsection {* Binary Union *}
+subsection \<open>Binary Union\<close>
 
 lemma Un_absorb: "A Un A = A"
   by (blast intro: equalityI)
@@ -411,7 +411,7 @@ lemma subset_Un_eq: "(A<=B) \<longleftrightarrow> (A Un B = B)"
   by (blast intro: equalityI elim: equalityE)
 
 
-subsection {* Simple properties of @{text "Compl"} -- complement of a set *}
+subsection \<open>Simple properties of @{text "Compl"} -- complement of a set\<close>
 
 lemma Compl_disjoint: "A Int Compl(A) = {x. False}"
   by (blast intro: equalityI)
@@ -439,7 +439,7 @@ lemma Un_Int_assoc_eq: "((A Int B) Un C = A Int (B Un C)) \<longleftrightarrow> 
   by (blast intro: equalityI elim: equalityE)
 
 
-subsection {* Big Union and Intersection *}
+subsection \<open>Big Union and Intersection\<close>
 
 lemma Union_Un_distrib: "Union(A Un B) = Union(A) Un Union(B)"
   by (blast intro: equalityI)
@@ -452,7 +452,7 @@ lemma Inter_Un_distrib: "Inter(A Un B) = Inter(A) Int Inter(B)"
   by (blast intro: equalityI)
 
 
-subsection {* Unions and Intersections of Families *}
+subsection \<open>Unions and Intersections of Families\<close>
 
 lemma UN_eq: "(UN x:A. B(x)) = Union({Y. EX x:A. Y=B(x)})"
   by (blast intro: equalityI)
@@ -468,7 +468,7 @@ lemma Un_Inter_image: "A Un Inter(B) = (INT C:B. A Un C)"
   by (blast intro: equalityI)
 
 
-section {* Monotonicity of various operations *}
+section \<open>Monotonicity of various operations\<close>
 
 lemma Union_mono: "A<=B \<Longrightarrow> Union(A) <= Union(B)"
   by blast

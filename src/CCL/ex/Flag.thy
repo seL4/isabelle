@@ -3,8 +3,8 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Dutch national flag program -- except that the point of Dijkstra's example was to use
-  arrays and this uses lists. *}
+section \<open>Dutch national flag program -- except that the point of Dijkstra's example was to use
+  arrays and this uses lists.\<close>
 
 theory Flag
 imports List

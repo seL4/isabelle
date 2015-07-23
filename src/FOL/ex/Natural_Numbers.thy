@@ -2,16 +2,16 @@
     Author:     Markus Wenzel, TU Munich
 *)
 
-section {* Natural numbers *}
+section \<open>Natural numbers\<close>
 
 theory Natural_Numbers
 imports FOL
 begin
 
-text {*
+text \<open>
   Theory of the natural numbers: Peano's axioms, primitive recursion.
   (Modernized version of Larry Paulson's theory "Nat".)  \medskip
-*}
+\<close>
 
 typedecl nat
 instance nat :: "term" ..

@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-section{*Least and Greatest Fixed Points; the Knaster-Tarski Theorem*}
+section\<open>Least and Greatest Fixed Points; the Knaster-Tarski Theorem\<close>
 
 theory Fixedpt imports equalities begin
 
@@ -20,10 +20,10 @@ definition
   gfp      :: "[i,i=>i]=>i"  where
      "gfp(D,h) == \<Union>({X: Pow(D). X \<subseteq> h(X)})"
 
-text{*The theorem is proved in the lattice of subsets of @{term D}, 
-      namely @{term "Pow(D)"}, with Inter as the greatest lower bound.*}
+text\<open>The theorem is proved in the lattice of subsets of @{term D}, 
+      namely @{term "Pow(D)"}, with Inter as the greatest lower bound.\<close>
 
-subsection{*Monotone Operators*}
+subsection\<open>Monotone Operators\<close>
 
 lemma bnd_monoI:
     "[| h(D)<=D;   
@@ -69,7 +69,7 @@ apply (erule bnd_monoD2, rule Int_lower1, assumption)
 apply (erule bnd_monoD2, rule Int_lower2, assumption) 
 done
 
-subsection{*Proof of Knaster-Tarski Theorem using @{term lfp}*}
+subsection\<open>Proof of Knaster-Tarski Theorem using @{term lfp}\<close>
 
 (*lfp is contained in each pre-fixedpoint*)
 lemma lfp_lowerbound: 
@@ -124,7 +124,7 @@ apply simp
 apply (erule lfp_unfold)
 done
 
-subsection{*General Induction Rule for Least Fixedpoints*}
+subsection\<open>General Induction Rule for Least Fixedpoints\<close>
 
 lemma Collect_is_pre_fixedpt:
     "[| bnd_mono(D,h);  !!x. x \<in> h(Collect(lfp(D,h),P)) ==> P(x) |]
@@ -189,7 +189,7 @@ apply (rule Collect_cong, simp_all)
 done 
 
 
-subsection{*Proof of Knaster-Tarski Theorem using @{term gfp}*}
+subsection\<open>Proof of Knaster-Tarski Theorem using @{term gfp}\<close>
 
 (*gfp contains each post-fixedpoint that is contained in D*)
 lemma gfp_upperbound: "[| A \<subseteq> h(A);  A<=D |] ==> A \<subseteq> gfp(D,h)"
@@ -250,7 +250,7 @@ apply (erule gfp_unfold)
 done
 
 
-subsection{*Coinduction Rules for Greatest Fixed Points*}
+subsection\<open>Coinduction Rules for Greatest Fixed Points\<close>
 
 (*weak version*)
 lemma weak_coinduct: "[| a: X;  X \<subseteq> h(X);  X \<subseteq> D |] ==> a \<in> gfp(D,h)"

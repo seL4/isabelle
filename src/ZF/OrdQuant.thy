@@ -2,11 +2,11 @@
     Authors:    Krzysztof Grabczewski and L C Paulson
 *)
 
-section {*Special quantifiers*}
+section \<open>Special quantifiers\<close>
 
 theory OrdQuant imports Ordinal begin
 
-subsection {*Quantifiers and union operator for ordinals*}
+subsection \<open>Quantifiers and union operator for ordinals\<close>
 
 definition
   (* Ordinal Quantifiers *)
@@ -42,7 +42,7 @@ syntax (HTML output)
   "_OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
 
 
-subsubsection {*simplification of the new quantifiers*}
+subsubsection \<open>simplification of the new quantifiers\<close>
 
 
 (*MOST IMPORTANT that this is added to the simpset BEFORE Ord_atomize
@@ -64,7 +64,7 @@ apply (simp add: oex_def le_iff)
 apply (blast intro: lt_Ord2)
 done
 
-subsubsection {*Union over ordinals*}
+subsubsection \<open>Union over ordinals\<close>
 
 lemma Ord_OUN [intro,simp]:
      "[| !!x. x<A ==> Ord(B(x)) |] ==> Ord(\<Union>x<A. B(x))"
@@ -112,7 +112,7 @@ lemma atomize_oall [symmetric, rulify]:
      "(!!x. x<A ==> P(x)) == Trueprop (\<forall>x<A. P(x))"
 by (simp add: oall_def atomize_all atomize_imp)
 
-subsubsection {*universal quantifier for ordinals*}
+subsubsection \<open>universal quantifier for ordinals\<close>
 
 lemma oallI [intro!]:
     "[| !!x. x<A ==> P(x) |] ==> \<forall>x<A. P(x)"
@@ -141,7 +141,7 @@ lemma oall_cong [cong]:
 by (simp add: oall_def)
 
 
-subsubsection {*existential quantifier for ordinals*}
+subsubsection \<open>existential quantifier for ordinals\<close>
 
 lemma oexI [intro]:
     "[| P(x);  x<A |] ==> \<exists>x<A. P(x)"
@@ -166,7 +166,7 @@ apply (simp add: oex_def cong add: conj_cong)
 done
 
 
-subsubsection {*Rules for Ordinal-Indexed Unions*}
+subsubsection \<open>Rules for Ordinal-Indexed Unions\<close>
 
 lemma OUN_I [intro]: "[| a<i;  b \<in> B(a) |] ==> b: (\<Union>z<i. B(z))"
 by (unfold OUnion_def lt_def, blast)
@@ -191,7 +191,7 @@ apply (erule Ord_induct, assumption, blast)
 done
 
 
-subsection {*Quantification over a class*}
+subsection \<open>Quantification over a class\<close>
 
 definition
   "rall"     :: "[i=>o, i=>o] => o"  where
@@ -217,7 +217,7 @@ translations
   "EX x[M]. P"   == "CONST rex(M, %x. P)"
 
 
-subsubsection{*Relativized universal quantifier*}
+subsubsection\<open>Relativized universal quantifier\<close>
 
 lemma rallI [intro!]: "[| !!x. M(x) ==> P(x) |] ==> \<forall>x[M]. P(x)"
 by (simp add: rall_def)
@@ -243,7 +243,7 @@ lemma rall_cong [cong]:
 by (simp add: rall_def)
 
 
-subsubsection{*Relativized existential quantifier*}
+subsubsection\<open>Relativized existential quantifier\<close>
 
 lemma rexI [intro]: "[| P(x); M(x) |] ==> \<exists>x[M]. P(x)"
 by (simp add: rex_def, blast)
@@ -317,7 +317,7 @@ lemma rex_disj_distrib:
 by blast
 
 
-subsubsection{*One-point rule for bounded quantifiers*}
+subsubsection\<open>One-point rule for bounded quantifiers\<close>
 
 lemma rex_triv_one_point1 [simp]: "(\<exists>x[M]. x=a) <-> ( M(a))"
 by blast
@@ -338,7 +338,7 @@ lemma rall_one_point2 [simp]: "(\<forall>x[M]. a=x \<longrightarrow> P(x)) <-> (
 by blast
 
 
-subsubsection{*Sets as Classes*}
+subsubsection\<open>Sets as Classes\<close>
 
 definition
   setclass :: "[i,i] => o"       ("##_" [40] 40)  where
@@ -355,30 +355,30 @@ by auto
 
 
 ML
-{*
+\<open>
 val Ord_atomize =
   atomize ([(@{const_name oall}, @{thms ospec}), (@{const_name rall}, @{thms rspec})] @
     ZF_conn_pairs, ZF_mem_pairs);
-*}
-declaration {* fn _ =>
+\<close>
+declaration \<open>fn _ =>
   Simplifier.map_ss (Simplifier.set_mksimps (fn ctxt =>
     map mk_eq o Ord_atomize o Drule.gen_all (Variable.maxidx_of ctxt)))
-*}
+\<close>
 
-text {* Setting up the one-point-rule simproc *}
+text \<open>Setting up the one-point-rule simproc\<close>
 
-simproc_setup defined_rex ("\<exists>x[M]. P(x) & Q(x)") = {*
+simproc_setup defined_rex ("\<exists>x[M]. P(x) & Q(x)") = \<open>
   fn _ => Quantifier1.rearrange_bex
     (fn ctxt =>
       unfold_tac ctxt @{thms rex_def} THEN
       Quantifier1.prove_one_point_ex_tac ctxt)
-*}
+\<close>
 
-simproc_setup defined_rall ("\<forall>x[M]. P(x) \<longrightarrow> Q(x)") = {*
+simproc_setup defined_rall ("\<forall>x[M]. P(x) \<longrightarrow> Q(x)") = \<open>
   fn _ => Quantifier1.rearrange_ball
     (fn ctxt =>
       unfold_tac ctxt @{thms rall_def} THEN
       Quantifier1.prove_one_point_all_tac ctxt)
-*}
+\<close>
 
 end

@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-section {* First-Order Logic: the 'if' example *}
+section \<open>First-Order Logic: the 'if' example\<close>
 
 theory If imports FOL begin
 
@@ -28,7 +28,7 @@ apply (rule ifI)
 apply (rule ifI)
 oops
 
-text{*Trying again from the beginning in order to use @{text blast}*}
+text\<open>Trying again from the beginning in order to use @{text blast}\<close>
 declare ifI [intro!]
 declare ifE [elim!]
 
@@ -39,22 +39,22 @@ by blast
 lemma "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))"
 by blast
 
-text{*Trying again from the beginning in order to prove from the definitions*}
+text\<open>Trying again from the beginning in order to prove from the definitions\<close>
 lemma "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))"
 by (simp add: if_def, blast)
 
 
-text{*An invalid formula.  High-level rules permit a simpler diagnosis*}
+text\<open>An invalid formula.  High-level rules permit a simpler diagnosis\<close>
 lemma "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))"
 apply auto
-  -- {*The next step will fail unless subgoals remain*}
+  -- \<open>The next step will fail unless subgoals remain\<close>
 apply (tactic all_tac)
 oops
 
-text{*Trying again from the beginning in order to prove from the definitions*}
+text\<open>Trying again from the beginning in order to prove from the definitions\<close>
 lemma "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))"
 apply (simp add: if_def, auto) 
-  -- {*The next step will fail unless subgoals remain*}
+  -- \<open>The next step will fail unless subgoals remain\<close>
 apply (tactic all_tac)
 oops
 

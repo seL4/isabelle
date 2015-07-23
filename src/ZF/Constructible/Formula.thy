@@ -2,14 +2,14 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {* First-Order Formulas and the Definition of the Class L *}
+section \<open>First-Order Formulas and the Definition of the Class L\<close>
 
 theory Formula imports Main begin
 
-subsection{*Internalized formulas of FOL*}
+subsection\<open>Internalized formulas of FOL\<close>
 
-text{*De Bruijn representation.
-  Unbound variables get their denotations from an environment.*}
+text\<open>De Bruijn representation.
+  Unbound variables get their denotations from an environment.\<close>
 
 consts   formula :: i
 datatype
@@ -109,7 +109,7 @@ by simp
 
 declare satisfies.simps [simp del]
 
-subsection{*Dividing line between primitive and derived connectives*}
+subsection\<open>Dividing line between primitive and derived connectives\<close>
 
 lemma sats_Neg_iff [simp]:
   "env \<in> list(A)
@@ -142,7 +142,7 @@ lemma sats_Exists_iff [simp]:
 by (simp add: Exists_def)
 
 
-subsubsection{*Derived rules to help build up formulas*}
+subsubsection\<open>Derived rules to help build up formulas\<close>
 
 lemma mem_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; env \<in> list(A)|]
@@ -195,7 +195,7 @@ lemmas FOL_iff_sats =
         bex_iff_sats
 
 
-subsection{*Arity of a Formula: Maximum Free de Bruijn Index*}
+subsection\<open>Arity of a Formula: Maximum Free de Bruijn Index\<close>
 
 consts   arity :: "i=>i"
 primrec
@@ -249,7 +249,7 @@ apply simp
 done
 
 
-subsection{*Renaming Some de Bruijn Variables*}
+subsection\<open>Renaming Some de Bruijn Variables\<close>
 
 definition
   incr_var :: "[i,i]=>i" where
@@ -284,9 +284,9 @@ by (simp add: incr_var_def)
 lemma incr_bv_type [TC]: "p \<in> formula ==> incr_bv(p) \<in> nat -> formula"
 by (induct_tac p, simp_all)
 
-text{*Obviously, @{term DPow} is closed under complements and finite
+text\<open>Obviously, @{term DPow} is closed under complements and finite
 intersections and unions.  Needs an inductive lemma to allow two lists of
-parameters to be combined.*}
+parameters to be combined.\<close>
 
 lemma sats_incr_bv_iff [rule_format]:
   "[| p \<in> formula; env \<in> list(A); x \<in> A |]
@@ -325,11 +325,11 @@ apply (simp_all add: imp_disj not_lt_iff_le Un_least_lt_iff lt_Un_iff le_Un_iff
                      succ_Un_distrib [symmetric] incr_var_lt incr_var_le
                      Un_commute incr_var_lemma Arith.pred_def nat_imp_quasinat
             split: split_nat_case)
- txt{*the Forall case reduces to linear arithmetic*}
+ txt\<open>the Forall case reduces to linear arithmetic\<close>
  prefer 2
  apply clarify
  apply (blast dest: lt_trans1)
-txt{*left with the And case*}
+txt\<open>left with the And case\<close>
 apply safe
  apply (blast intro: incr_And_lemma lt_trans1)
 apply (subst incr_And_lemma)
@@ -338,7 +338,7 @@ apply (simp add: Un_commute)
 done
 
 
-subsection{*Renaming all but the First de Bruijn Variable*}
+subsection\<open>Renaming all but the First de Bruijn Variable\<close>
 
 definition
   incr_bv1 :: "i => i" where
@@ -389,9 +389,9 @@ done
 
 
 
-subsection{*Definable Powerset*}
+subsection\<open>Definable Powerset\<close>
 
-text{*The definable powerset operation: Kunen's definition VI 1.1, page 165.*}
+text\<open>The definable powerset operation: Kunen's definition VI 1.1, page 165.\<close>
 definition
   DPow :: "i => i" where
   "DPow(A) == {X \<in> Pow(A).
@@ -404,7 +404,7 @@ lemma DPowI:
    ==> {x\<in>A. sats(A, p, Cons(x,env))} \<in> DPow(A)"
 by (simp add: DPow_def, blast)
 
-text{*With this rule we can specify @{term p} later.*}
+text\<open>With this rule we can specify @{term p} later.\<close>
 lemma DPowI2 [rule_format]:
   "[|\<forall>x\<in>A. P(x) \<longleftrightarrow> sats(A, p, Cons(x,env));
      env \<in> list(A);  p \<in> formula;  arity(p) \<le> succ(length(env))|]
@@ -482,10 +482,10 @@ apply (erule Fin.induct)
 apply (blast intro: cons_in_DPow)
 done
 
-text{*@{term DPow} is not monotonic.  For example, let @{term A} be some
+text\<open>@{term DPow} is not monotonic.  For example, let @{term A} be some
 non-constructible set of natural numbers, and let @{term B} be @{term nat}.
 Then @{term "A<=B"} and obviously @{term "A \<in> DPow(A)"} but @{term "A \<notin>
-DPow(B)"}.*}
+DPow(B)"}.\<close>
 
 (*This may be true but the proof looks difficult, requiring relativization
 lemma DPow_insert: "DPow (cons(a,A)) = DPow(A) \<union> {cons(a,X) . X \<in> DPow(A)}"
@@ -503,17 +503,17 @@ apply (erule Finite_Pow_subset_Pow)
 done
 
 
-subsection{*Internalized Formulas for the Ordinals*}
+subsection\<open>Internalized Formulas for the Ordinals\<close>
 
-text{*The @{text sats} theorems below differ from the usual form in that they
+text\<open>The @{text sats} theorems below differ from the usual form in that they
 include an element of absoluteness.  That is, they relate internalized
 formulas to real concepts such as the subset relation, rather than to the
 relativized concepts defined in theory @{text Relative}.  This lets us prove
 the theorem as @{text Ords_in_DPow} without first having to instantiate the
 locale @{text M_trivial}.  Note that the present theory does not even take
-@{text Relative} as a parent.*}
+@{text Relative} as a parent.\<close>
 
-subsubsection{*The subset relation*}
+subsubsection\<open>The subset relation\<close>
 
 definition
   subset_fm :: "[i,i]=>i" where
@@ -534,7 +534,7 @@ apply (simp add: subset_fm_def Transset_def)
 apply (blast intro: nth_type)
 done
 
-subsubsection{*Transitive sets*}
+subsubsection\<open>Transitive sets\<close>
 
 definition
   transset_fm :: "i=>i" where
@@ -555,7 +555,7 @@ apply (simp add: transset_fm_def Transset_def)
 apply (blast intro: nth_type)
 done
 
-subsubsection{*Ordinals*}
+subsubsection\<open>Ordinals\<close>
 
 definition
   ordinal_fm :: "i=>i" where
@@ -577,8 +577,8 @@ apply (simp add: ordinal_fm_def Ord_def Transset_def)
 apply (blast intro: nth_type)
 done
 
-text{*The subset consisting of the ordinals is definable.  Essential lemma for
-@{text Ord_in_Lset}.  This result is the objective of the present subsection.*}
+text\<open>The subset consisting of the ordinals is definable.  Essential lemma for
+@{text Ord_in_Lset}.  This result is the objective of the present subsection.\<close>
 theorem Ords_in_DPow: "Transset(A) ==> {x \<in> A. Ord(x)} \<in> DPow(A)"
 apply (simp add: DPow_def Collect_subset)
 apply (rule_tac x=Nil in bexI)
@@ -587,17 +587,17 @@ apply (simp_all add: sats_ordinal_fm)
 done
 
 
-subsection{* Constant Lset: Levels of the Constructible Universe *}
+subsection\<open>Constant Lset: Levels of the Constructible Universe\<close>
 
 definition
   Lset :: "i=>i" where
   "Lset(i) == transrec(i, %x f. \<Union>y\<in>x. DPow(f`y))"
 
 definition
-  L :: "i=>o" where --{*Kunen's definition VI 1.5, page 167*}
+  L :: "i=>o" where --\<open>Kunen's definition VI 1.5, page 167\<close>
   "L(x) == \<exists>i. Ord(i) & x \<in> Lset(i)"
 
-text{*NOT SUITABLE FOR REWRITING -- RECURSIVE!*}
+text\<open>NOT SUITABLE FOR REWRITING -- RECURSIVE!\<close>
 lemma Lset: "Lset(i) = (\<Union>j\<in>i. DPow(Lset(j)))"
 by (subst Lset_def [THEN def_transrec], simp)
 
@@ -609,7 +609,7 @@ apply (insert Lset [of x])
 apply (blast intro: elim: equalityE)
 done
 
-subsubsection{* Transitivity *}
+subsubsection\<open>Transitivity\<close>
 
 lemma elem_subset_in_DPow: "[|X \<in> A; X \<subseteq> A|] ==> X \<in> DPow(A)"
 apply (simp add: Transset_def DPow_def)
@@ -629,7 +629,7 @@ apply (simp add: Transset_def)
 apply (blast intro: elem_subset_in_DPow dest: DPowD)
 done
 
-text{*Kunen's VI 1.6 (a)*}
+text\<open>Kunen's VI 1.6 (a)\<close>
 lemma Transset_Lset: "Transset(Lset(i))"
 apply (rule_tac a=i in eps_induct)
 apply (subst Lset)
@@ -641,9 +641,9 @@ apply (insert Transset_Lset)
 apply (simp add: Transset_def)
 done
 
-subsubsection{* Monotonicity *}
+subsubsection\<open>Monotonicity\<close>
 
-text{*Kunen's VI 1.6 (b)*}
+text\<open>Kunen's VI 1.6 (b)\<close>
 lemma Lset_mono [rule_format]:
      "\<forall>j. i<=j \<longrightarrow> Lset(i) \<subseteq> Lset(j)"
 proof (induct i rule: eps_induct, intro allI impI)
@@ -654,7 +654,7 @@ proof (induct i rule: eps_induct, intro allI impI)
     by (force simp add: Lset [of x] Lset [of j])
 qed
 
-text{*This version lets us remove the premise @{term "Ord(i)"} sometimes.*}
+text\<open>This version lets us remove the premise @{term "Ord(i)"} sometimes.\<close>
 lemma Lset_mono_mem [rule_format]:
      "\<forall>j. i \<in> j \<longrightarrow> Lset(i) \<subseteq> Lset(j)"
 proof (induct i rule: eps_induct, intro allI impI)
@@ -667,11 +667,11 @@ proof (induct i rule: eps_induct, intro allI impI)
 qed
 
 
-text{*Useful with Reflection to bump up the ordinal*}
+text\<open>Useful with Reflection to bump up the ordinal\<close>
 lemma subset_Lset_ltD: "[|A \<subseteq> Lset(i); i < j|] ==> A \<subseteq> Lset(j)"
 by (blast dest: ltD [THEN Lset_mono_mem])
 
-subsubsection{* 0, successor and limit equations for Lset *}
+subsubsection\<open>0, successor and limit equations for Lset\<close>
 
 lemma Lset_0 [simp]: "Lset(0) = 0"
 by (subst Lset, blast)
@@ -696,17 +696,17 @@ by (intro equalityI Lset_succ_subset1 Lset_succ_subset2)
 lemma Lset_Union [simp]: "Lset(\<Union>(X)) = (\<Union>y\<in>X. Lset(y))"
 apply (subst Lset)
 apply (rule equalityI)
- txt{*first inclusion*}
+ txt\<open>first inclusion\<close>
  apply (rule UN_least)
  apply (erule UnionE)
  apply (rule subset_trans)
   apply (erule_tac [2] UN_upper, subst Lset, erule UN_upper)
-txt{*opposite inclusion*}
+txt\<open>opposite inclusion\<close>
 apply (rule UN_least)
 apply (subst Lset, blast)
 done
 
-subsubsection{* Lset applied to Limit ordinals *}
+subsubsection\<open>Lset applied to Limit ordinals\<close>
 
 lemma Limit_Lset_eq:
     "Limit(i) ==> Lset(i) = (\<Union>y\<in>i. Lset(y))"
@@ -726,7 +726,7 @@ apply (rule Limit_Lset_eq [THEN equalityD1, THEN subsetD, THEN UN_E])
 apply (blast intro: ltI  Limit_is_Ord)
 done
 
-subsubsection{* Basic closure properties *}
+subsubsection\<open>Basic closure properties\<close>
 
 lemma zero_in_Lset: "y \<in> x ==> 0 \<in> Lset(x)"
 by (subst Lset, blast intro: empty_in_DPow)
@@ -738,22 +738,22 @@ apply (blast dest: DPowD)
 done
 
 
-subsection{*Constructible Ordinals: Kunen's VI 1.9 (b)*}
+subsection\<open>Constructible Ordinals: Kunen's VI 1.9 (b)\<close>
 
 lemma Ords_of_Lset_eq: "Ord(i) ==> {x\<in>Lset(i). Ord(x)} = i"
 apply (erule trans_induct3)
   apply (simp_all add: Lset_succ Limit_Lset_eq Limit_Union_eq)
-txt{*The successor case remains.*}
+txt\<open>The successor case remains.\<close>
 apply (rule equalityI)
-txt{*First inclusion*}
+txt\<open>First inclusion\<close>
  apply clarify
  apply (erule Ord_linear_lt, assumption)
    apply (blast dest: DPow_imp_subset ltD notE [OF notin_Lset])
   apply blast
  apply (blast dest: ltD)
-txt{*Opposite inclusion, @{term "succ(x) \<subseteq> DPow(Lset(x)) \<inter> ON"}*}
+txt\<open>Opposite inclusion, @{term "succ(x) \<subseteq> DPow(Lset(x)) \<inter> ON"}\<close>
 apply auto
-txt{*Key case: *}
+txt\<open>Key case:\<close>
   apply (erule subst, rule Ords_in_DPow [OF Transset_Lset])
  apply (blast intro: elem_subset_in_DPow dest: OrdmemD elim: equalityE)
 apply (blast intro: Ord_in_Ord)
@@ -772,7 +772,7 @@ done
 lemma Ord_in_L: "Ord(i) ==> L(i)"
 by (simp add: L_def, blast intro: Ord_in_Lset)
 
-subsubsection{* Unions *}
+subsubsection\<open>Unions\<close>
 
 lemma Union_in_Lset:
      "X \<in> Lset(i) ==> \<Union>(X) \<in> Lset(succ(i))"
@@ -780,7 +780,7 @@ apply (insert Transset_Lset)
 apply (rule LsetI [OF succI1])
 apply (simp add: Transset_def DPow_def)
 apply (intro conjI, blast)
-txt{*Now to create the formula @{term "\<exists>y. y \<in> X \<and> x \<in> y"} *}
+txt\<open>Now to create the formula @{term "\<exists>y. y \<in> X \<and> x \<in> y"}\<close>
 apply (rule_tac x="Cons(X,Nil)" in bexI)
  apply (rule_tac x="Exists(And(Member(0,2), Member(1,0)))" in bexI)
   apply typecheck
@@ -790,7 +790,7 @@ done
 theorem Union_in_L: "L(X) ==> L(\<Union>(X))"
 by (simp add: L_def, blast dest: Union_in_Lset)
 
-subsubsection{* Finite sets and ordered pairs *}
+subsubsection\<open>Finite sets and ordered pairs\<close>
 
 lemma singleton_in_Lset: "a \<in> Lset(i) ==> {a} \<in> Lset(succ(i))"
 by (simp add: Lset_succ singleton_in_DPow)
@@ -808,7 +808,7 @@ done
 lemmas Lset_UnI1 = Un_upper1 [THEN Lset_mono [THEN subsetD]]
 lemmas Lset_UnI2 = Un_upper2 [THEN Lset_mono [THEN subsetD]]
 
-text{*Hard work is finding a single @{term"j \<in> i"} such that @{term"{a,b} \<subseteq> Lset(j)"}*}
+text\<open>Hard work is finding a single @{term"j \<in> i"} such that @{term"{a,b} \<subseteq> Lset(j)"}\<close>
 lemma doubleton_in_LLimit:
     "[| a \<in> Lset(i);  b \<in> Lset(i);  Limit(i) |] ==> {a,b} \<in> Lset(i)"
 apply (erule Limit_LsetE, assumption)
@@ -825,19 +825,19 @@ done
 
 lemma Pair_in_LLimit:
     "[| a \<in> Lset(i);  b \<in> Lset(i);  Limit(i) |] ==> <a,b> \<in> Lset(i)"
-txt{*Infer that a, b occur at ordinals x,xa < i.*}
+txt\<open>Infer that a, b occur at ordinals x,xa < i.\<close>
 apply (erule Limit_LsetE, assumption)
 apply (erule Limit_LsetE, assumption)
-txt{*Infer that @{term"succ(succ(x \<union> xa)) < i"} *}
+txt\<open>Infer that @{term"succ(succ(x \<union> xa)) < i"}\<close>
 apply (blast intro: lt_Ord lt_LsetI [OF Pair_in_Lset]
                     Lset_UnI1 Lset_UnI2 Limit_has_succ Un_least_lt)
 done
 
 
 
-text{*The rank function for the constructible universe*}
+text\<open>The rank function for the constructible universe\<close>
 definition
-  lrank :: "i=>i" where --{*Kunen's definition VI 1.7*}
+  lrank :: "i=>i" where --\<open>Kunen's definition VI 1.7\<close>
   "lrank(x) == \<mu> i. x \<in> Lset(succ(i))"
 
 lemma L_I: "[|x \<in> Lset(i); Ord(i)|] ==> L(x)"
@@ -858,9 +858,9 @@ apply (simp_all add: Limit_Lset_eq)
 apply (blast intro: ltI Limit_is_Ord lt_trans)
 done
 
-text{*Kunen's VI 1.8.  The proof is much harder than the text would
+text\<open>Kunen's VI 1.8.  The proof is much harder than the text would
 suggest.  For a start, it needs the previous lemma, which is proved by
-induction.*}
+induction.\<close>
 lemma Lset_iff_lrank_lt: "Ord(i) ==> x \<in> Lset(i) \<longleftrightarrow> L(x) & lrank(x) < i"
 apply (simp add: L_def, auto)
  apply (blast intro: Lset_lrank_lt)
@@ -873,7 +873,7 @@ done
 lemma Lset_succ_lrank_iff [simp]: "x \<in> Lset(succ(lrank(x))) \<longleftrightarrow> L(x)"
 by (simp add: Lset_iff_lrank_lt)
 
-text{*Kunen's VI 1.9 (a)*}
+text\<open>Kunen's VI 1.9 (a)\<close>
 lemma lrank_of_Ord: "Ord(i) ==> lrank(i) = i"
 apply (unfold lrank_def)
 apply (rule Least_equality)
@@ -884,10 +884,10 @@ apply (blast intro!: le_imp_subset Lset_mono [THEN subsetD])
 done
 
 
-text{*This is lrank(lrank(a)) = lrank(a) *}
+text\<open>This is lrank(lrank(a)) = lrank(a)\<close>
 declare Ord_lrank [THEN lrank_of_Ord, simp]
 
-text{*Kunen's VI 1.10 *}
+text\<open>Kunen's VI 1.10\<close>
 lemma Lset_in_Lset_succ: "Lset(i) \<in> Lset(succ(i))"
 apply (simp add: Lset_succ DPow_def)
 apply (rule_tac x=Nil in bexI)
@@ -906,7 +906,7 @@ apply (subgoal_tac "Lset(succ(ia)) \<subseteq> Lset(i)")
 apply (blast intro!: le_imp_subset Lset_mono)
 done
 
-text{*Kunen's VI 1.11 *}
+text\<open>Kunen's VI 1.11\<close>
 lemma Lset_subset_Vset: "Ord(i) ==> Lset(i) \<subseteq> Vset(i)"
 apply (erule trans_induct)
 apply (subst Lset)
@@ -916,14 +916,14 @@ apply (rule subset_trans [OF DPow_subset_Pow])
 apply (rule Pow_mono, blast)
 done
 
-text{*Kunen's VI 1.12 *}
+text\<open>Kunen's VI 1.12\<close>
 lemma Lset_subset_Vset': "i \<in> nat ==> Lset(i) = Vset(i)"
 apply (erule nat_induct)
  apply (simp add: Vfrom_0)
 apply (simp add: Lset_succ Vset_succ Finite_Vset Finite_DPow_eq_Pow)
 done
 
-text{*Every set of constructible sets is included in some @{term Lset}*}
+text\<open>Every set of constructible sets is included in some @{term Lset}\<close>
 lemma subset_Lset:
      "(\<forall>x\<in>A. L(x)) ==> \<exists>i. Ord(i) & A \<subseteq> Lset(i)"
 by (rule_tac x = "\<Union>x\<in>A. succ(lrank(x))" in exI, force)
@@ -934,7 +934,7 @@ lemma subset_LsetE:
       ==> P"
 by (blast dest: subset_Lset)
 
-subsubsection{*For L to satisfy the Powerset axiom *}
+subsubsection\<open>For L to satisfy the Powerset axiom\<close>
 
 lemma LPow_env_typing:
     "[| y \<in> Lset(i); Ord(i); y \<subseteq> X |]
@@ -949,7 +949,7 @@ apply (rule LsetI [OF succI1])
 apply (simp add: DPow_def)
 apply (intro conjI, clarify)
  apply (rule_tac a=x in UN_I, simp+)
-txt{*Now to create the formula @{term "y \<subseteq> X"} *}
+txt\<open>Now to create the formula @{term "y \<subseteq> X"}\<close>
 apply (rule_tac x="Cons(X,Nil)" in bexI)
  apply (rule_tac x="subset_fm(0,1)" in bexI)
   apply typecheck
@@ -964,7 +964,7 @@ theorem LPow_in_L: "L(X) ==> L({y \<in> Pow(X). L(y)})"
 by (blast intro: L_I dest: L_D LPow_in_Lset)
 
 
-subsection{*Eliminating @{term arity} from the Definition of @{term Lset}*}
+subsection\<open>Eliminating @{term arity} from the Definition of @{term Lset}\<close>
 
 lemma nth_zero_eq_0: "n \<in> nat ==> nth(n,[0]) = 0"
 by (induct_tac n, auto)
@@ -995,7 +995,7 @@ apply (simp del: app_Cons add: app_Cons [symmetric]
 done
 
 
-text{*A simpler version of @{term DPow}: no arity check!*}
+text\<open>A simpler version of @{term DPow}: no arity check!\<close>
 definition
   DPow' :: "i => i" where
   "DPow'(A) == {X \<in> Pow(A).
@@ -1022,8 +1022,8 @@ apply (rule equalityI)
 apply (erule DPow'_subset_DPow)
 done
 
-text{*And thus we can relativize @{term Lset} without bothering with
-      @{term arity} and @{term length}*}
+text\<open>And thus we can relativize @{term Lset} without bothering with
+      @{term arity} and @{term length}\<close>
 lemma Lset_eq_transrec_DPow': "Lset(i) = transrec(i, %x f. \<Union>y\<in>x. DPow'(f`y))"
 apply (rule_tac a=i in eps_induct)
 apply (subst Lset)
@@ -1031,8 +1031,8 @@ apply (subst transrec)
 apply (simp only: DPow_eq_DPow' [OF Transset_Lset], simp)
 done
 
-text{*With this rule we can specify @{term p} later and don't worry about
-      arities at all!*}
+text\<open>With this rule we can specify @{term p} later and don't worry about
+      arities at all!\<close>
 lemma DPow_LsetI [rule_format]:
   "[|\<forall>x\<in>Lset(i). P(x) \<longleftrightarrow> sats(Lset(i), p, Cons(x,env));
      env \<in> list(Lset(i));  p \<in> formula|]

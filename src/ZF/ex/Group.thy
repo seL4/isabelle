@@ -1,14 +1,14 @@
 (*  Title:      ZF/ex/Group.thy *)
 
-section {* Groups *}
+section \<open>Groups\<close>
 
 theory Group imports Main begin
 
-text{*Based on work by Clemens Ballarin, Florian Kammueller, L C Paulson and
-Markus Wenzel.*}
+text\<open>Based on work by Clemens Ballarin, Florian Kammueller, L C Paulson and
+Markus Wenzel.\<close>
 
 
-subsection {* Monoids *}
+subsection \<open>Monoids\<close>
 
 (*First, we must simulate a record declaration:
 record monoid =
@@ -47,7 +47,7 @@ locale monoid = fixes G (structure)
       and l_one [simp]: "x \<in> carrier(G) \<Longrightarrow> \<one> \<cdot> x = x"
       and r_one [simp]: "x \<in> carrier(G) \<Longrightarrow> x \<cdot> \<one> = x"
 
-text{*Simulating the record*}
+text\<open>Simulating the record\<close>
 lemma carrier_eq [simp]: "carrier(<A,Z>) = A"
   by (simp add: carrier_def)
 
@@ -81,9 +81,9 @@ proof -
   finally show ?thesis .
 qed
 
-text {*
+text \<open>
   A group is a monoid all of whose elements are invertible.
-*}
+\<close>
 
 locale group = monoid +
   assumes inv_ex:
@@ -174,7 +174,7 @@ lemma (in group) r_inv:
   by simp
 
 
-subsection {* Cancellation Laws and Basic Properties *}
+subsection \<open>Cancellation Laws and Basic Properties\<close>
 
 lemma (in group) l_cancel [simp]:
   assumes "x \<in> carrier(G)" "y \<in> carrier(G)" "z \<in> carrier(G)"
@@ -226,7 +226,7 @@ lemma (in group) inv_one [simp]:
 lemma (in group) inv_inv [simp]: "x \<in> carrier(G) \<Longrightarrow> inv (inv x) = x"
   by (auto intro: inv_equality)
 
-text{*This proof is by cancellation*}
+text\<open>This proof is by cancellation\<close>
 lemma (in group) inv_mult_group:
   "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G)\<rbrakk> \<Longrightarrow> inv (x \<cdot> y) = inv y \<cdot> inv x"
 proof -
@@ -237,7 +237,7 @@ proof -
 qed
 
 
-subsection {* Substructures *}
+subsection \<open>Substructures\<close>
 
 locale subgroup = fixes H and G (structure)
   assumes subset: "H \<subseteq> carrier(G)"
@@ -272,24 +272,24 @@ proof -
   by (rule groupI) (auto intro: m_assoc l_inv mem_carrier)
 qed
 
-text {*
+text \<open>
   Since @{term H} is nonempty, it contains some element @{term x}.  Since
   it is closed under inverse, it contains @{text "inv x"}.  Since
   it is closed under product, it contains @{text "x \<cdot> inv x = \<one>"}.
-*}
+\<close>
 
-text {*
+text \<open>
   Since @{term H} is nonempty, it contains some element @{term x}.  Since
   it is closed under inverse, it contains @{text "inv x"}.  Since
   it is closed under product, it contains @{text "x \<cdot> inv x = \<one>"}.
-*}
+\<close>
 
 lemma (in group) one_in_subset:
   "\<lbrakk>H \<subseteq> carrier(G); H \<noteq> 0; \<forall>a \<in> H. inv a \<in> H; \<forall>a\<in>H. \<forall>b\<in>H. a \<cdot> b \<in> H\<rbrakk>
    \<Longrightarrow> \<one> \<in> H"
 by (force simp add: l_inv)
 
-text {* A characterization of subgroups: closed, non-empty subset. *}
+text \<open>A characterization of subgroups: closed, non-empty subset.\<close>
 
 declare monoid.one_closed [simp] group.inv_closed [simp]
   monoid.l_one [simp] monoid.r_one [simp] group.inv_inv [simp]
@@ -299,7 +299,7 @@ lemma subgroup_nonempty:
   by (blast dest: subgroup.one_closed)
 
 
-subsection {* Direct Products *}
+subsection \<open>Direct Products\<close>
 
 definition
   DirProdGroup :: "[i,i] => i"  (infixr "\<Otimes>" 80) where
@@ -341,7 +341,7 @@ lemma inv_DirProdGroup [simp]:
   apply (simp_all add: assms group.l_inv)
   done
 
-subsection {* Isomorphisms *}
+subsection \<open>Isomorphisms\<close>
 
 definition
   hom :: "[i,i] => i" where
@@ -367,7 +367,7 @@ lemma hom_is_fun:
   by (simp add: hom_def)
 
 
-subsection {* Isomorphisms *}
+subsection \<open>Isomorphisms\<close>
 
 definition
   iso :: "[i,i] => i"  (infixr "\<cong>" 60) where
@@ -411,8 +411,8 @@ proof -
     by (auto intro: lam_type simp add: iso_def hom_def inj_def surj_def bij_def)
 qed
 
-text{*Basis for homomorphism proofs: we assume two groups @{term G} and
-  @{term H}, with a homomorphism @{term h} between them*}
+text\<open>Basis for homomorphism proofs: we assume two groups @{term G} and
+  @{term H}, with a homomorphism @{term h} between them\<close>
 locale group_hom = G: group G + H: group H
   for G (structure) and H (structure) and h +
   assumes homh: "h \<in> hom(G,H)"
@@ -448,15 +448,15 @@ proof -
   with x show ?thesis by (simp del: inv)
 qed
 
-subsection {* Commutative Structures *}
+subsection \<open>Commutative Structures\<close>
 
-text {*
+text \<open>
   Naming convention: multiplicative structures that are commutative
   are called \emph{commutative}, additive structures are called
   \emph{Abelian}.
-*}
+\<close>
 
-subsection {* Definition *}
+subsection \<open>Definition\<close>
 
 locale comm_monoid = monoid +
   assumes m_comm: "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G)\<rbrakk> \<Longrightarrow> x \<cdot> y = y \<cdot> x"
@@ -499,7 +499,7 @@ proof (simp add: subgroup_def assms)
 qed
 
 
-subsection {* Bijections of a Set, Permutation Groups, Automorphism Groups *}
+subsection \<open>Bijections of a Set, Permutation Groups, Automorphism Groups\<close>
 
 definition
   BijGroup :: "i=>i" where
@@ -509,7 +509,7 @@ definition
      id(S), 0>"
 
 
-subsection {*Bijections Form a Group *}
+subsection \<open>Bijections Form a Group\<close>
 
 theorem group_BijGroup: "group(BijGroup(S))"
 apply (simp add: BijGroup_def)
@@ -520,7 +520,7 @@ apply (blast intro: left_comp_inverse bij_is_inj bij_converse_bij)
 done
 
 
-subsection{*Automorphisms Form a Group*}
+subsection\<open>Automorphisms Form a Group\<close>
 
 lemma Bij_Inv_mem: "\<lbrakk>f \<in> bij(S,S);  x \<in> S\<rbrakk> \<Longrightarrow> converse(f) ` x \<in> S"
 by (blast intro: apply_funtype bij_is_fun bij_converse_bij)
@@ -573,7 +573,7 @@ by (simp add: AutoGroup_def subgroup.is_group subgroup_auto group_BijGroup)
 
 
 
-subsection{*Cosets and Quotient Groups*}
+subsection\<open>Cosets and Quotient Groups\<close>
 
 definition
   r_coset  :: "[i,i,i] => i"  (infixl "#>\<index>" 60) where
@@ -603,7 +603,7 @@ notation
   normal  (infixl "\<lhd>" 60)
 
 
-subsection {*Basic Properties of Cosets*}
+subsection \<open>Basic Properties of Cosets\<close>
 
 lemma (in group) coset_mult_assoc:
      "\<lbrakk>M \<subseteq> carrier(G); g \<in> carrier(G); h \<in> carrier(G)\<rbrakk>
@@ -628,7 +628,7 @@ by (auto simp add: r_coset_def m_assoc [symmetric]
 
 lemma (in group) coset_join2:
      "\<lbrakk>x \<in> carrier(G);  subgroup(H,G);  x\<in>H\<rbrakk> \<Longrightarrow> H #> x = H"
-  --{*Alternative proof is to put @{term "x=\<one>"} in @{text repr_independence}.*}
+  --\<open>Alternative proof is to put @{term "x=\<one>"} in @{text repr_independence}.\<close>
 by (force simp add: subgroup.m_closed r_coset_def solve_equation)
 
 lemma (in group) r_coset_subset_G:
@@ -644,7 +644,7 @@ lemma (in group) rcosetsI:
 by (auto simp add: RCOSETS_def)
 
 
-text{*Really needed?*}
+text\<open>Really needed?\<close>
 lemma (in group) transpose_inv:
      "\<lbrakk>x \<cdot> y = z;  x \<in> carrier(G);  y \<in> carrier(G);  z \<in> carrier(G)\<rbrakk>
       \<Longrightarrow> (inv x) \<cdot> z = y"
@@ -652,7 +652,7 @@ by (force simp add: m_assoc [symmetric])
 
 
 
-subsection {* Normal subgroups *}
+subsection \<open>Normal subgroups\<close>
 
 lemma normal_imp_subgroup: "H \<lhd> G ==> subgroup(H,G)"
   by (simp add: normal_def subgroup_def)
@@ -678,7 +678,7 @@ apply simp
 apply (blast intro: inv_op_closed1)
 done
 
-text{*Alternative characterization of normal subgroups*}
+text\<open>Alternative characterization of normal subgroups\<close>
 lemma (in group) normal_inv_iff:
      "(N \<lhd> G) \<longleftrightarrow>
       (subgroup(N,G) & (\<forall>x \<in> carrier(G). \<forall>h \<in> N. x \<cdot> h \<cdot> (inv x) \<in> N))"
@@ -727,7 +727,7 @@ next
 qed
 
 
-subsection{*More Properties of Cosets*}
+subsection\<open>More Properties of Cosets\<close>
 
 lemma (in group) l_coset_subset_G:
      "\<lbrakk>H \<subseteq> carrier(G); x \<in> carrier(G)\<rbrakk> \<Longrightarrow> x <# H \<subseteq> carrier(G)"
@@ -788,7 +788,7 @@ apply (auto simp add: subgroup.one_closed subgroup.subset [THEN subsetD])
 done
 
 
-subsubsection {* Set of inverses of an @{text r_coset}. *}
+subsubsection \<open>Set of inverses of an @{text r_coset}.\<close>
 
 lemma (in normal) rcos_inv:
   assumes x:     "x \<in> carrier(G)"
@@ -817,7 +817,7 @@ qed
 
 
 
-subsubsection {*Theorems for @{text "<#>"} with @{text "#>"} or @{text "<#"}.*}
+subsubsection \<open>Theorems for @{text "<#>"} with @{text "#>"} or @{text "<#"}.\<close>
 
 lemma (in group) setmult_rcos_assoc:
      "\<lbrakk>H \<subseteq> carrier(G); K \<subseteq> carrier(G); x \<in> carrier(G)\<rbrakk>
@@ -852,12 +852,12 @@ lemma (in normal) rcos_sum:
 by (simp add: rcos_mult_step1 rcos_mult_step2 rcos_mult_step3)
 
 lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M = M"
-  -- {* generalizes @{text subgroup_mult_id} *}
+  -- \<open>generalizes @{text subgroup_mult_id}\<close>
   by (auto simp add: RCOSETS_def subset
         setmult_rcos_assoc subgroup_mult_id normal_axioms normal.axioms)
 
 
-subsubsection{*Two distinct right cosets are disjoint*}
+subsubsection\<open>Two distinct right cosets are disjoint\<close>
 
 definition
   r_congruent :: "[i,i] => i" ("rcong\<index> _" [60] 60) where
@@ -897,9 +897,9 @@ proof -
   qed
 qed
 
-text{*Equivalence classes of @{text rcong} correspond to left cosets.
+text\<open>Equivalence classes of @{text rcong} correspond to left cosets.
   Was there a mistake in the definitions? I'd have expected them to
-  correspond to right cosets.*}
+  correspond to right cosets.\<close>
 lemma (in subgroup) l_coset_eq_rcong:
   assumes "group(G)"
   assumes a: "a \<in> carrier(G)"
@@ -937,7 +937,7 @@ proof -
 qed
 
 
-subsection {*Order of a Group and Lagrange's Theorem*}
+subsection \<open>Order of a Group and Lagrange's Theorem\<close>
 
 definition
   order :: "i => i" where
@@ -972,8 +972,8 @@ apply (auto simp add: RCOSETS_def)
 apply (simp add: r_coset_subset_G [THEN subset_Finite])
 done
 
-text{*More general than the HOL version, which also requires @{term G} to
-      be finite.*}
+text\<open>More general than the HOL version, which also requires @{term G} to
+      be finite.\<close>
 lemma (in group) card_cosets_equal:
   assumes H:   "H \<subseteq> carrier(G)"
   shows "c \<in> rcosets H \<Longrightarrow> |c| = |H|"
@@ -1017,11 +1017,11 @@ apply (simp add: rcos_disjoint)
 done
 
 
-subsection {*Quotient Groups: Factorization of a Group*}
+subsection \<open>Quotient Groups: Factorization of a Group\<close>
 
 definition
   FactGroup :: "[i,i] => i" (infixl "Mod" 65) where
-    --{*Actually defined for groups rather than monoids*}
+    --\<open>Actually defined for groups rather than monoids\<close>
   "G Mod H ==
      <rcosets\<^bsub>G\<^esub> H, \<lambda><K1,K2> \<in> (rcosets\<^bsub>G\<^esub> H) \<times> (rcosets\<^bsub>G\<^esub> H). K1 <#>\<^bsub>G\<^esub> K2, H, 0>"
 
@@ -1071,21 +1071,21 @@ apply (rule group.inv_equality [OF factorgroup_is_group])
 apply (simp_all add: FactGroup_def setinv_closed rcosets_inv_mult_group_eq)
 done
 
-text{*The coset map is a homomorphism from @{term G} to the quotient group
-  @{term "G Mod H"}*}
+text\<open>The coset map is a homomorphism from @{term G} to the quotient group
+  @{term "G Mod H"}\<close>
 lemma (in normal) r_coset_hom_Mod:
   "(\<lambda>a \<in> carrier(G). H #> a) \<in> hom(G, G Mod H)"
 by (auto simp add: FactGroup_def RCOSETS_def hom_def rcos_sum intro: lam_type)
 
 
-subsection{*The First Isomorphism Theorem*}
+subsection\<open>The First Isomorphism Theorem\<close>
 
-text{*The quotient by the kernel of a homomorphism is isomorphic to the
-  range of that homomorphism.*}
+text\<open>The quotient by the kernel of a homomorphism is isomorphic to the
+  range of that homomorphism.\<close>
 
 definition
   kernel :: "[i,i,i] => i" where
-    --{*the kernel of a homomorphism*}
+    --\<open>the kernel of a homomorphism\<close>
   "kernel(G,H,h) == {x \<in> carrier(G). h ` x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel(G,H,h), G)"
@@ -1093,7 +1093,7 @@ apply (rule subgroup.intro)
 apply (auto simp add: kernel_def group.intro)
 done
 
-text{*The kernel of a homomorphism is a normal subgroup*}
+text\<open>The kernel of a homomorphism is a normal subgroup\<close>
 lemma (in group_hom) normal_kernel: "(kernel(G,H,h)) \<lhd> G"
 apply (simp add: group.normal_inv_iff subgroup_kernel group.intro)
 apply (simp add: kernel_def)
@@ -1161,7 +1161,7 @@ proof (simp add: hom_def FactGroup_contents_mem lam_type mult_FactGroup normal.F
 qed
 
 
-text{*Lemma for the following injectivity result*}
+text\<open>Lemma for the following injectivity result\<close>
 lemma (in group_hom) FactGroup_subset:
      "\<lbrakk>g \<in> carrier(G); g' \<in> carrier(G); h ` g = h ` g'\<rbrakk>
       \<Longrightarrow>  kernel(G,H,h) #> g \<subseteq> kernel(G,H,h) #> g'"
@@ -1201,8 +1201,8 @@ lemma (in group_hom) kernel_rcoset_subset:
 
 
 
-text{*If the homomorphism @{term h} is onto @{term H}, then so is the
-homomorphism from the quotient group*}
+text\<open>If the homomorphism @{term h} is onto @{term H}, then so is the
+homomorphism from the quotient group\<close>
 lemma (in group_hom) FactGroup_surj:
   assumes h: "h \<in> surj(carrier(G), carrier(H))"
   shows "(\<lambda>X\<in>carrier (G Mod kernel(G,H,h)). contents (h `` X))
@@ -1215,14 +1215,14 @@ proof (simp add: surj_def FactGroup_contents_mem lam_type, clarify)
   hence "(\<Union>x\<in>kernel(G,H,h) #> g. {h ` x}) = {y}"
     by (auto simp add: y kernel_def r_coset_def)
   with g show "\<exists>x\<in>carrier(G Mod kernel(G, H, h)). contents(h `` x) = y"
-        --{*The witness is @{term "kernel(G,H,h) #> g"}*}
+        --\<open>The witness is @{term "kernel(G,H,h) #> g"}\<close>
     by (force simp add: FactGroup_def RCOSETS_def
            image_eq_UN [OF hom_is_fun] kernel_rcoset_subset)
 qed
 
 
-text{*If @{term h} is a homomorphism from @{term G} onto @{term H}, then the
- quotient group @{term "G Mod (kernel(G,H,h))"} is isomorphic to @{term H}.*}
+text\<open>If @{term h} is a homomorphism from @{term G} onto @{term H}, then the
+ quotient group @{term "G Mod (kernel(G,H,h))"} is isomorphic to @{term H}.\<close>
 theorem (in group_hom) FactGroup_iso:
   "h \<in> surj(carrier(G), carrier(H))
    \<Longrightarrow> (\<lambda>X\<in>carrier (G Mod kernel(G,H,h)). contents (h``X)) \<in> (G Mod (kernel(G,H,h))) \<cong> H"

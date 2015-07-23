@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-section{*Equivalence Relations*}
+section\<open>Equivalence Relations\<close>
 
 theory EquivClass imports Trancl Perm begin
 
@@ -27,11 +27,11 @@ abbreviation
 abbreviation
   RESPECTS2 ::"[i=>i=>i, i] => o"  (infixr "respects2 " 80) where
   "f respects2 r == congruent2(r,r,f)"
-    --{*Abbreviation for the common case where the relations are identical*}
+    --\<open>Abbreviation for the common case where the relations are identical\<close>
 
 
-subsection{*Suppes, Theorem 70:
-    @{term r} is an equiv relation iff @{term "converse(r) O r = r"}*}
+subsection\<open>Suppes, Theorem 70:
+    @{term r} is an equiv relation iff @{term "converse(r) O r = r"}\<close>
 
 (** first half: equiv(A,r) ==> converse(r) O r = r **)
 
@@ -123,7 +123,7 @@ apply (safe intro!: equiv_class_eq, assumption)
 apply (unfold equiv_def trans_def sym_def, blast)
 done
 
-subsection{*Defining Unary Operations upon Equivalence Classes*}
+subsection\<open>Defining Unary Operations upon Equivalence Classes\<close>
 
 (** Could have a locale with the premises equiv(A,r)  and  congruent(r,b)
 **)
@@ -159,7 +159,7 @@ apply (simp add: UN_equiv_class [of A r b])
 done
 
 
-subsection{*Defining Binary Operations upon Equivalence Classes*}
+subsection\<open>Defining Binary Operations upon Equivalence Classes\<close>
 
 lemma congruent2_implies_congruent:
     "[| equiv(A,r1);  congruent2(r1,r2,b);  a \<in> A |] ==> congruent(r2,b(a))"

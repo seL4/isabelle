@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-section{*Cardinal Numbers Without the Axiom of Choice*}
+section\<open>Cardinal Numbers Without the Axiom of Choice\<close>
 
 theory Cardinal imports OrderType Finite Nat_ZF Sum begin
 
@@ -47,8 +47,8 @@ notation (HTML)
   Least     (binder "\<mu>" 10)
 
 
-subsection{*The Schroeder-Bernstein Theorem*}
-text{*See Davey and Priestly, page 106*}
+subsection\<open>The Schroeder-Bernstein Theorem\<close>
+text\<open>See Davey and Priestly, page 106\<close>
 
 (** Lemma: Banach's Decomposition Theorem **)
 
@@ -178,7 +178,7 @@ apply (blast intro: bij_disjoint_Un)
 done
 
 
-subsection{*lesspoll: contributions by Krzysztof Grabczewski *}
+subsection\<open>lesspoll: contributions by Krzysztof Grabczewski\<close>
 
 lemma lesspoll_not_refl: "~ (i \<prec> i)"
 by (simp add: lesspoll_def)
@@ -276,7 +276,7 @@ proof -
   thus ?thesis using P .
 qed
 
-text{*The proof is almost identical to the one above!*}
+text\<open>The proof is almost identical to the one above!\<close>
 lemma Least_le: 
   assumes P: "P(i)" and i: "Ord(i)" shows "(\<mu> x. P(x)) \<le> i"
 proof -
@@ -333,7 +333,7 @@ next
 qed
 
 
-subsection{*Basic Properties of Cardinals*}
+subsection\<open>Basic Properties of Cardinals\<close>
 
 (*Not needed for simplification, but helpful below*)
 lemma Least_cong: "(!!y. P(y) \<longleftrightarrow> Q(y)) ==> (\<mu> x. P(x)) = (\<mu> x. Q(x))"
@@ -410,7 +410,7 @@ apply (unfold cardinal_def)
 apply (rule Ord_Least)
 done
 
-text{*The cardinals are the initial ordinals.*}
+text\<open>The cardinals are the initial ordinals.\<close>
 lemma Card_iff_initial: "Card(K) \<longleftrightarrow> Ord(K) & (\<forall>j. j<K \<longrightarrow> ~ j \<approx> K)"
 proof -
   { fix j
@@ -449,10 +449,10 @@ lemma Card_cardinal [iff]: "Card(|A|)"
 proof (unfold cardinal_def)
   show "Card(\<mu> i. i \<approx> A)"
     proof (cases "\<exists>i. Ord (i) & i \<approx> A")
-      case False thus ?thesis           --{*degenerate case*}
+      case False thus ?thesis           --\<open>degenerate case\<close>
         by (simp add: Least_0 Card_0)
     next
-      case True                         --{*real case: @{term A} is isomorphic to some ordinal*}
+      case True                         --\<open>real case: @{term A} is isomorphic to some ordinal\<close>
       then obtain i where i: "Ord(i)" "i \<approx> A" by blast
       show ?thesis
         proof (rule CardI [OF Ord_Least], rule notI)
@@ -500,7 +500,7 @@ next
   thus ?thesis by simp
 qed
 
-text{*Since we have @{term"|succ(nat)| \<le> |nat|"}, the converse of @{text cardinal_mono} fails!*}
+text\<open>Since we have @{term"|succ(nat)| \<le> |nat|"}, the converse of @{text cardinal_mono} fails!\<close>
 lemma cardinal_lt_imp_lt: "[| |i| < |j|;  Ord(i);  Ord(j) |] ==> i < j"
 apply (rule Ord_linear2 [of i j], assumption+)
 apply (erule lt_trans2 [THEN lt_irrefl])
@@ -556,7 +556,7 @@ apply (auto simp add: lt_def)
 apply (blast intro: Ord_trans)
 done
 
-subsection{*The finite cardinals *}
+subsection\<open>The finite cardinals\<close>
 
 lemma cons_lepoll_consD:
  "[| cons(u,A) \<lesssim> cons(v,B);  u\<notin>A;  v\<notin>B |] ==> A \<lesssim> B"
@@ -591,12 +591,12 @@ proof (induct m arbitrary: n rule: nat_induct)
   case 0 thus ?case by (blast intro!: nat_0_le)
 next
   case (succ m)
-  show ?case  using `n \<in> nat`
+  show ?case  using \<open>n \<in> nat\<close>
     proof (cases rule: natE)
       case 0 thus ?thesis using succ
         by (simp add: lepoll_def inj_def)
     next
-      case (succ n') thus ?thesis using succ.hyps ` succ(m) \<lesssim> n`
+      case (succ n') thus ?thesis using succ.hyps \<open> succ(m) \<lesssim> n\<close>
         by (blast intro!: succ_leI dest!: succ_lepoll_succD)
     qed
 qed
@@ -682,7 +682,7 @@ apply (blast intro: well_ord_Memrel well_ord_cardinal_eqpoll [THEN eqpoll_sym]
 done
 
 
-subsection{*The first infinite cardinal: Omega, or nat *}
+subsection\<open>The first infinite cardinal: Omega, or nat\<close>
 
 (*This implies Kunen's Lemma 10.6*)
 lemma lt_not_lepoll:
@@ -697,7 +697,7 @@ proof -
   thus ?thesis by auto
 qed
 
-text{*A slightly weaker version of @{text nat_eqpoll_iff}*}
+text\<open>A slightly weaker version of @{text nat_eqpoll_iff}\<close>
 lemma Ord_nat_eqpoll_iff:
   assumes i: "Ord(i)" and n: "n \<in> nat" shows "i \<approx> n \<longleftrightarrow> i=n"
 using i nat_into_Ord [OF n]
@@ -712,7 +712,7 @@ next
   case gt
   hence  "~ i \<lesssim> n" using n  by (rule lt_not_lepoll)
   hence  "~ i \<approx> n" using n  by (blast intro: eqpoll_imp_lepoll)
-  moreover have "i \<noteq> n" using `n<i` by auto
+  moreover have "i \<noteq> n" using \<open>n<i\<close> by auto
   ultimately show ?thesis by blast
 qed
 
@@ -740,7 +740,7 @@ lemma n_lesspoll_nat: "n \<in> nat ==> n \<prec> nat"
   by (blast intro: Ord_nat Card_nat ltI lt_Card_imp_lesspoll)
 
 
-subsection{*Towards Cardinal Arithmetic *}
+subsection\<open>Towards Cardinal Arithmetic\<close>
 (** Congruence laws for successor, cardinal addition and multiplication **)
 
 (*Congruence law for  cons  under equipollence*)
@@ -817,12 +817,12 @@ apply (blast intro: inj_converse_fun [THEN apply_type])+
 done
 
 
-subsection{*Lemmas by Krzysztof Grabczewski*}
+subsection\<open>Lemmas by Krzysztof Grabczewski\<close>
 
 (*New proofs using cons_lepoll_cons. Could generalise from succ to cons.*)
 
-text{*If @{term A} has at most @{term"n+1"} elements and @{term"a \<in> A"}
-      then @{term"A-{a}"} has at most @{term n}.*}
+text\<open>If @{term A} has at most @{term"n+1"} elements and @{term"a \<in> A"}
+      then @{term"A-{a}"} has at most @{term n}.\<close>
 lemma Diff_sing_lepoll:
       "[| a \<in> A;  A \<lesssim> succ(n) |] ==> A - {a} \<lesssim> n"
 apply (unfold succ_def)
@@ -831,7 +831,7 @@ apply (rule_tac [3] mem_not_refl)
 apply (erule cons_Diff [THEN ssubst], safe)
 done
 
-text{*If @{term A} has at least @{term"n+1"} elements then @{term"A-{a}"} has at least @{term n}.*}
+text\<open>If @{term A} has at least @{term"n+1"} elements then @{term"A-{a}"} has at least @{term n}.\<close>
 lemma lepoll_Diff_sing:
   assumes A: "succ(n) \<lesssim> A" shows "n \<lesssim> A - {a}"
 proof -
@@ -877,7 +877,7 @@ apply auto
 done
 
 
-subsection {*Finite and infinite sets*}
+subsection \<open>Finite and infinite sets\<close>
 
 lemma eqpoll_imp_Finite_iff: "A \<approx> B ==> Finite(A) \<longleftrightarrow> Finite(B)"
 apply (unfold Finite_def)
@@ -1027,7 +1027,7 @@ by (blast intro!: Fin_into_Finite Fin_UnI
 lemma Finite_Un_iff [simp]: "Finite(A \<union> B) \<longleftrightarrow> (Finite(A) & Finite(B))"
 by (blast intro: subset_Finite Finite_Un)
 
-text{*The converse must hold too.*}
+text\<open>The converse must hold too.\<close>
 lemma Finite_Union: "[| \<forall>y\<in>X. Finite(y);  Finite(X) |] ==> Finite(\<Union>(X))"
 apply (simp add: Finite_Fin_iff)
 apply (rule Fin_UnionI)
@@ -1085,8 +1085,8 @@ apply (rule equalityI)
 apply (blast intro: elim: equalityCE)
 done
 
-text{*I don't know why, but if the premise is expressed using meta-connectives
-then  the simplifier cannot prove it automatically in conditional rewriting.*}
+text\<open>I don't know why, but if the premise is expressed using meta-connectives
+then  the simplifier cannot prove it automatically in conditional rewriting.\<close>
 lemma Finite_RepFun_iff:
      "(\<forall>x y. f(x)=f(y) \<longrightarrow> x=y) ==> Finite(RepFun(A,f)) \<longleftrightarrow> Finite(A)"
 by (blast intro: Finite_RepFun Finite_RepFun_iff_lemma [of _ f])
@@ -1119,7 +1119,7 @@ proof (induct n rule: nat_induct)
 next
   case (succ x)
   hence wfx: "\<And>Z. Z = 0 \<or> (\<exists>z\<in>Z. \<forall>y. z \<in> y \<and> z \<in> x \<and> y \<in> x \<and> z \<in> x \<longrightarrow> y \<notin> Z)"
-    by (simp add: wf_on_def wf_def)  --{*not easy to erase the duplicate @{term"z \<in> x"}!*}
+    by (simp add: wf_on_def wf_def)  --\<open>not easy to erase the duplicate @{term"z \<in> x"}!\<close>
   show ?case
     proof (rule wf_onI)
       fix Z u

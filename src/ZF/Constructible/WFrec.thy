@@ -2,12 +2,12 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section{*Relativized Well-Founded Recursion*}
+section\<open>Relativized Well-Founded Recursion\<close>
 
 theory WFrec imports Wellorderings begin
 
 
-subsection{*General Lemmas*}
+subsection\<open>General Lemmas\<close>
 
 (*Many of these might be useful in WF.thy*)
 
@@ -18,7 +18,7 @@ apply (frule apply_recfun)
 apply (simp add: function_apply_equality [OF _ is_recfun_imp_function])
 done
 
-text{*Expresses @{text is_recfun} as a recursion equation*}
+text\<open>Expresses @{text is_recfun} as a recursion equation\<close>
 lemma is_recfun_iff_equation:
      "is_recfun(r,a,H,f) \<longleftrightarrow>
            f \<in> r -`` {a} \<rightarrow> range(f) &
@@ -56,21 +56,21 @@ apply (rule lam_cong)
 apply (simp_all add: vimage_singleton_iff Int_lower2)  
 done
 
-text{*For @{text is_recfun} we need only pay attention to functions
-      whose domains are initial segments of @{term r}.*}
+text\<open>For @{text is_recfun} we need only pay attention to functions
+      whose domains are initial segments of @{term r}.\<close>
 lemma is_recfun_cong:
   "[| r = r'; a = a'; f = f'; 
       !!x g. [| <x,a'> \<in> r'; relation(g); domain(g) \<subseteq> r' -``{x} |] 
              ==> H(x,g) = H'(x,g) |]
    ==> is_recfun(r,a,H,f) \<longleftrightarrow> is_recfun(r',a',H',f')"
 apply (rule iffI)
-txt{*Messy: fast and blast don't work for some reason*}
+txt\<open>Messy: fast and blast don't work for some reason\<close>
 apply (erule is_recfun_cong_lemma, auto) 
 apply (erule is_recfun_cong_lemma)
 apply (blast intro: sym)+
 done
 
-subsection{*Reworking of the Recursion Theory Within @{term M}*}
+subsection\<open>Reworking of the Recursion Theory Within @{term M}\<close>
 
 lemma (in M_basic) is_recfun_separation':
     "[| f \<in> r -`` {a} \<rightarrow> range(f); g \<in> r -`` {b} \<rightarrow> range(g);
@@ -80,13 +80,13 @@ apply (insert is_recfun_separation [of r f g a b])
 apply (simp add: vimage_singleton_iff)
 done
 
-text{*Stated using @{term "trans(r)"} rather than
+text\<open>Stated using @{term "trans(r)"} rather than
       @{term "transitive_rel(M,A,r)"} because the latter rewrites to
       the former anyway, by @{text transitive_rel_abs}.
       As always, theorems should be expressed in simplified form.
       The last three M-premises are redundant because of @{term "M(r)"}, 
       but without them we'd have to undertake
-      more work to set up the induction formula.*}
+      more work to set up the induction formula.\<close>
 lemma (in M_basic) is_recfun_equal [rule_format]: 
     "[|is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  
        wellfounded(M,r);  trans(r);
@@ -96,9 +96,9 @@ apply (frule_tac f=f in is_recfun_type)
 apply (frule_tac f=g in is_recfun_type) 
 apply (simp add: is_recfun_def)
 apply (erule_tac a=x in wellfounded_induct, assumption+)
-txt{*Separation to justify the induction*}
+txt\<open>Separation to justify the induction\<close>
  apply (blast intro: is_recfun_separation') 
-txt{*Now the inductive argument itself*}
+txt\<open>Now the inductive argument itself\<close>
 apply clarify 
 apply (erule ssubst)+
 apply (simp (no_asm_simp) add: vimage_singleton_iff restrict_def)
@@ -130,7 +130,7 @@ apply (erule is_recfun_type)+
 apply (blast intro!: is_recfun_equal dest: transM) 
 done 
 
-text{*Tells us that @{text is_recfun} can (in principle) be relativized.*}
+text\<open>Tells us that @{text is_recfun} can (in principle) be relativized.\<close>
 lemma (in M_basic) is_recfun_relativize:
   "[| M(r); M(f); \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)) |] 
    ==> is_recfun(r,a,H,f) \<longleftrightarrow>
@@ -145,8 +145,8 @@ apply (safe intro!: equalityI)
  apply simp  
  apply blast
 apply (subgoal_tac "is_function(M,f)")
- txt{*We use @{term "is_function"} rather than @{term "function"} because
-      the subgoal's easier to prove with relativized quantifiers!*}
+ txt\<open>We use @{term "is_function"} rather than @{term "function"} because
+      the subgoal's easier to prove with relativized quantifiers!\<close>
  prefer 2 apply (simp add: is_function_def) 
 apply (frule pair_components_in_M, assumption) 
 apply (simp add: is_recfun_imp_function function_restrictI) 
@@ -180,14 +180,14 @@ lemma (in M_basic) restrict_Y_lemma:
        ==> restrict(Y, r -`` {x}) = f"
 apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. <y,z>:Y \<longleftrightarrow> <y,z>:f") 
  apply (simp (no_asm_simp) add: restrict_def) 
- apply (thin_tac "rall(M,P)" for P)+  --{*essential for efficiency*}
+ apply (thin_tac "rall(M,P)" for P)+  --\<open>essential for efficiency\<close>
  apply (frule is_recfun_type [THEN fun_is_rel], blast)
 apply (frule pair_components_in_M, assumption, clarify) 
 apply (rule iffI)
  apply (frule_tac y="<y,z>" in transM, assumption)
  apply (clarsimp simp add: vimage_singleton_iff is_recfun_type [THEN apply_iff]
                            apply_recfun is_recfun_cut) 
-txt{*Opposite inclusion: something in f, show in Y*}
+txt\<open>Opposite inclusion: something in f, show in Y\<close>
 apply (frule_tac y="<y,z>" in transM, assumption)  
 apply (simp add: vimage_singleton_iff) 
 apply (rule conjI) 
@@ -197,7 +197,7 @@ apply (simp_all add: is_recfun_restrict
                      apply_recfun is_recfun_type [THEN apply_iff]) 
 done
 
-text{*For typical applications of Replacement for recursive definitions*}
+text\<open>For typical applications of Replacement for recursive definitions\<close>
 lemma (in M_basic) univalent_is_recfun:
      "[|wellfounded(M,r); trans(r); M(r)|]
       ==> univalent (M, A, \<lambda>x p. 
@@ -207,8 +207,8 @@ apply (blast dest: is_recfun_functional)
 done
 
 
-text{*Proof of the inductive step for @{text exists_is_recfun}, since
-      we must prove two versions.*}
+text\<open>Proof of the inductive step for @{text exists_is_recfun}, since
+      we must prove two versions.\<close>
 lemma (in M_basic) exists_is_recfun_indstep:
     "[|\<forall>y. \<langle>y, a1\<rangle> \<in> r \<longrightarrow> (\<exists>f[M]. is_recfun(r, y, H, f)); 
        wellfounded(M,r); trans(r); M(r); M(a1);
@@ -218,30 +218,30 @@ lemma (in M_basic) exists_is_recfun_indstep:
       ==> \<exists>f[M]. is_recfun(r,a1,H,f)"
 apply (drule_tac A="r-``{a1}" in strong_replacementD)
   apply blast 
- txt{*Discharge the "univalent" obligation of Replacement*}
+ txt\<open>Discharge the "univalent" obligation of Replacement\<close>
  apply (simp add: univalent_is_recfun) 
-txt{*Show that the constructed object satisfies @{text is_recfun}*} 
+txt\<open>Show that the constructed object satisfies @{text is_recfun}\<close> 
 apply clarify 
 apply (rule_tac x=Y in rexI)  
-txt{*Unfold only the top-level occurrence of @{term is_recfun}*}
+txt\<open>Unfold only the top-level occurrence of @{term is_recfun}\<close>
 apply (simp (no_asm_simp) add: is_recfun_relativize [of concl: _ a1])
-txt{*The big iff-formula defining @{term Y} is now redundant*}
+txt\<open>The big iff-formula defining @{term Y} is now redundant\<close>
 apply safe 
  apply (simp add: vimage_singleton_iff restrict_Y_lemma [of r H _ a1]) 
-txt{*one more case*}
+txt\<open>one more case\<close>
 apply (simp (no_asm_simp) add: Bex_def vimage_singleton_iff)
 apply (drule_tac x1=x in spec [THEN mp], assumption, clarify) 
 apply (rename_tac f) 
 apply (rule_tac x=f in rexI) 
 apply (simp_all add: restrict_Y_lemma [of r H])
-txt{*FIXME: should not be needed!*}
+txt\<open>FIXME: should not be needed!\<close>
 apply (subst restrict_Y_lemma [of r H])
 apply (simp add: vimage_singleton_iff)+
 apply blast+
 done
 
-text{*Relativized version, when we have the (currently weaker) premise
-      @{term "wellfounded(M,r)"}*}
+text\<open>Relativized version, when we have the (currently weaker) premise
+      @{term "wellfounded(M,r)"}\<close>
 lemma (in M_basic) wellfounded_exists_is_recfun:
     "[|wellfounded(M,r);  trans(r);  
        separation(M, \<lambda>x. ~ (\<exists>f[M]. is_recfun(r, x, H, f)));
@@ -268,7 +268,7 @@ apply (rule exists_is_recfun_indstep)
 done
 
 
-subsection{*Relativization of the ZF Predicate @{term is_recfun}*}
+subsection\<open>Relativization of the ZF Predicate @{term is_recfun}\<close>
 
 definition
   M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o" where
@@ -312,7 +312,7 @@ lemma (in M_basic) is_wfrec_abs:
           (\<exists>g[M]. is_recfun(r,a,H,g) & z = H(a,g))"
 by (simp add: is_wfrec_def relation2_def is_recfun_abs)
 
-text{*Relating @{term wfrec_replacement} to native constructs*}
+text\<open>Relating @{term wfrec_replacement} to native constructs\<close>
 lemma (in M_basic) wfrec_replacement':
   "[|wfrec_replacement(M,MH,r);
      \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)); 

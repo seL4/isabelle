@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-section{*Booleans in Zermelo-Fraenkel Set Theory*}
+section\<open>Booleans in Zermelo-Fraenkel Set Theory\<close>
 
 theory Bool imports pair begin
 
@@ -15,7 +15,7 @@ abbreviation
   two  ("2") where
   "2 == succ(1)"
 
-text{*2 is equal to bool, but is used as a number rather than a type.*}
+text\<open>2 is equal to bool, but is used as a number rather than a type.\<close>
 
 definition "bool == {0,1}"
 
@@ -109,7 +109,7 @@ by (simp add: xor_def)
 lemmas bool_typechecks = bool_1I bool_0I cond_type not_type and_type
                          or_type xor_type
 
-subsection{*Laws About 'not' *}
+subsection\<open>Laws About 'not'\<close>
 
 lemma not_not [simp]: "a:bool ==> not(not(a)) = a"
 by (elim boolE, auto)
@@ -120,7 +120,7 @@ by (elim boolE, auto)
 lemma not_or [simp]: "a:bool ==> not(a or b) = not(a) and not(b)"
 by (elim boolE, auto)
 
-subsection{*Laws About 'and' *}
+subsection\<open>Laws About 'and'\<close>
 
 lemma and_absorb [simp]: "a: bool ==> a and a = a"
 by (elim boolE, auto)
@@ -135,7 +135,7 @@ lemma and_or_distrib: "[| a: bool; b:bool; c:bool |] ==>
        (a or b) and c  =  (a and c) or (b and c)"
 by (elim boolE, auto)
 
-subsection{*Laws About 'or' *}
+subsection\<open>Laws About 'or'\<close>
 
 lemma or_absorb [simp]: "a: bool ==> a or a = a"
 by (elim boolE, auto)

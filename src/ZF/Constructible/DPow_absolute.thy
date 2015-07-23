@@ -2,18 +2,18 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {*Absoluteness for the Definable Powerset Function*}
+section \<open>Absoluteness for the Definable Powerset Function\<close>
 
 
 theory DPow_absolute imports Satisfies_absolute begin
 
 
-subsection{*Preliminary Internalizations*}
+subsection\<open>Preliminary Internalizations\<close>
 
-subsubsection{*The Operator @{term is_formula_rec}*}
+subsubsection\<open>The Operator @{term is_formula_rec}\<close>
 
-text{*The three arguments of @{term p} are always 2, 1, 0.  It is buried
-   within 11 quantifiers!!*}
+text\<open>The three arguments of @{term p} are always 2, 1, 0.  It is buried
+   within 11 quantifiers!!\<close>
 
 (* is_formula_rec :: "[i=>o, [i,i,i]=>o, i, i] => o"
    "is_formula_rec(M,MH,p,z)  ==
@@ -77,7 +77,7 @@ apply (intro FOL_reflections function_reflections fun_plus_reflections
 done
 
 
-subsubsection{*The Operator @{term is_satisfies}*}
+subsubsection\<open>The Operator @{term is_satisfies}\<close>
 
 (* is_satisfies(M,A,p,z) == is_formula_rec (M, satisfies_MH(M,A), p, z) *)
 definition
@@ -109,7 +109,7 @@ apply (intro formula_rec_reflection satisfies_MH_reflection)
 done
 
 
-subsection {*Relativization of the Operator @{term DPow'}*}
+subsection \<open>Relativization of the Operator @{term DPow'}\<close>
 
 lemma DPow'_eq: 
   "DPow'(A) = {z . ep \<in> list(A) * formula, 
@@ -118,8 +118,8 @@ lemma DPow'_eq:
 by (simp add: DPow'_def, blast) 
 
 
-text{*Relativize the use of @{term sats} within @{term DPow'}
-(the comprehension).*}
+text\<open>Relativize the use of @{term sats} within @{term DPow'}
+(the comprehension).\<close>
 definition
   is_DPow_sats :: "[i=>o,i,i,i,i] => o" where
    "is_DPow_sats(M,A,env,p,x) ==
@@ -142,7 +142,7 @@ lemma (in M_satisfies) Collect_DPow_sats_abs:
 by (simp add: DPow_sats_abs transM [of _ A])
 
 
-subsubsection{*The Operator @{term is_DPow_sats}, Internalized*}
+subsubsection\<open>The Operator @{term is_DPow_sats}, Internalized\<close>
 
 (* is_DPow_sats(M,A,env,p,x) ==
       \<forall>n1[M]. \<forall>e[M]. \<forall>sp[M]. 
@@ -184,7 +184,7 @@ apply (intro FOL_reflections function_reflections extra_reflections
 done
 
 
-subsection{*A Locale for Relativizing the Operator @{term DPow'}*}
+subsection\<open>A Locale for Relativizing the Operator @{term DPow'}\<close>
 
 locale M_DPow = M_satisfies +
  assumes sep:
@@ -219,7 +219,7 @@ apply (simp add: DPow'_eq)
 apply (fast intro: rep' sep' univalent_pair_eq)  
 done
 
-text{*Relativization of the Operator @{term DPow'}*}
+text\<open>Relativization of the Operator @{term DPow'}\<close>
 definition 
   is_DPow' :: "[i=>o,i,i] => o" where
     "is_DPow'(M,A,Z) == 
@@ -238,9 +238,9 @@ apply (erule DPow'_closed)
 done
 
 
-subsection{*Instantiating the Locale @{text M_DPow}*}
+subsection\<open>Instantiating the Locale @{text M_DPow}\<close>
 
-subsubsection{*The Instance of Separation*}
+subsubsection\<open>The Instance of Separation\<close>
 
 lemma DPow_separation:
     "[| L(A); env \<in> list(A); p \<in> formula |]
@@ -253,7 +253,7 @@ done
 
 
 
-subsubsection{*The Instance of Replacement*}
+subsubsection\<open>The Instance of Replacement\<close>
 
 lemma DPow_replacement_Reflects:
  "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B &
@@ -287,7 +287,7 @@ apply (rule sep_rules mem_formula_iff_sats mem_list_iff_sats
 done
 
 
-subsubsection{*Actually Instantiating the Locale*}
+subsubsection\<open>Actually Instantiating the Locale\<close>
 
 lemma M_DPow_axioms_L: "M_DPow_axioms(L)"
   apply (rule M_DPow_axioms.intro)
@@ -304,10 +304,10 @@ lemmas DPow'_closed [intro, simp] = M_DPow.DPow'_closed [OF M_DPow_L]
   and DPow'_abs [intro, simp] = M_DPow.DPow'_abs [OF M_DPow_L]
 
 
-subsubsection{*The Operator @{term is_Collect}*}
+subsubsection\<open>The Operator @{term is_Collect}\<close>
 
-text{*The formula @{term is_P} has one free variable, 0, and it is
-enclosed within a single quantifier.*}
+text\<open>The formula @{term is_P} has one free variable, 0, and it is
+enclosed within a single quantifier.\<close>
 
 (* is_Collect :: "[i=>o,i,i=>o,i] => o"
     "is_Collect(M,A,P,z) == \<forall>x[M]. x \<in> z \<longleftrightarrow> x \<in> A & P(x)" *)
@@ -342,8 +342,8 @@ lemma Collect_iff_sats:
 by (simp add: sats_Collect_fm [OF is_P_iff_sats])
 
 
-text{*The second argument of @{term is_P} gives it direct access to @{term x},
-  which is essential for handling free variable references.*}
+text\<open>The second argument of @{term is_P} gives it direct access to @{term x},
+  which is essential for handling free variable references.\<close>
 theorem Collect_reflection:
   assumes is_P_reflection:
     "!!h f g. REFLECTS[\<lambda>x. is_P(L, f(x), g(x)),
@@ -355,10 +355,10 @@ apply (intro FOL_reflections is_P_reflection)
 done
 
 
-subsubsection{*The Operator @{term is_Replace}*}
+subsubsection\<open>The Operator @{term is_Replace}\<close>
 
-text{*BEWARE!  The formula @{term is_P} has free variables 0, 1
- and not the usual 1, 0!  It is enclosed within two quantifiers.*}
+text\<open>BEWARE!  The formula @{term is_P} has free variables 0, 1
+ and not the usual 1, 0!  It is enclosed within two quantifiers.\<close>
 
 (*  is_Replace :: "[i=>o,i,[i,i]=>o,i] => o"
     "is_Replace(M,A,P,z) == \<forall>u[M]. u \<in> z \<longleftrightarrow> (\<exists>x[M]. x\<in>A & P(x,u))" *)
@@ -395,8 +395,8 @@ lemma Replace_iff_sats:
 by (simp add: sats_Replace_fm [OF is_P_iff_sats])
 
 
-text{*The second argument of @{term is_P} gives it direct access to @{term x},
-  which is essential for handling free variable references.*}
+text\<open>The second argument of @{term is_P} gives it direct access to @{term x},
+  which is essential for handling free variable references.\<close>
 theorem Replace_reflection:
   assumes is_P_reflection:
     "!!h f g. REFLECTS[\<lambda>x. is_P(L, f(x), g(x), h(x)),
@@ -409,7 +409,7 @@ done
 
 
 
-subsubsection{*The Operator @{term is_DPow'}, Internalized*}
+subsubsection\<open>The Operator @{term is_DPow'}, Internalized\<close>
 
 (*  "is_DPow'(M,A,Z) == 
        \<forall>X[M]. X \<in> Z \<longleftrightarrow> 
@@ -454,7 +454,7 @@ apply (intro FOL_reflections function_reflections mem_formula_reflection
 done
 
 
-subsection{*A Locale for Relativizing the Operator @{term Lset}*}
+subsection\<open>A Locale for Relativizing the Operator @{term Lset}\<close>
 
 definition
   transrec_body :: "[i=>o,i,i,i,i] => o" where
@@ -506,13 +506,13 @@ apply (simp add: RepFun_DPow_apply_closed RepFun_DPow_abs
 done
 
 
-text{*Relativization of the Operator @{term Lset}*}
+text\<open>Relativization of the Operator @{term Lset}\<close>
 
 definition
   is_Lset :: "[i=>o, i, i] => o" where
-   --{*We can use the term language below because @{term is_Lset} will
+   --\<open>We can use the term language below because @{term is_Lset} will
        not have to be internalized: it isn't used in any instance of
-       separation.*}
+       separation.\<close>
    "is_Lset(M,a,z) == is_transrec(M, %x f u. u = (\<Union>y\<in>x. DPow'(f`y)), a, z)"
 
 lemma (in M_Lset) Lset_abs:
@@ -531,9 +531,9 @@ apply (simp_all add: relation2_def RepFun_DPow_apply_closed)
 done
 
 
-subsection{*Instantiating the Locale @{text M_Lset}*}
+subsection\<open>Instantiating the Locale @{text M_Lset}\<close>
 
-subsubsection{*The First Instance of Replacement*}
+subsubsection\<open>The First Instance of Replacement\<close>
 
 lemma strong_rep_Reflects:
  "REFLECTS [\<lambda>u. \<exists>v[L]. v \<in> B & (\<exists>gy[L].
@@ -553,7 +553,7 @@ apply (rule sep_rules DPow'_iff_sats | simp)+
 done
 
 
-subsubsection{*The Second Instance of Replacement*}
+subsubsection\<open>The Second Instance of Replacement\<close>
 
 lemma transrec_rep_Reflects:
  "REFLECTS [\<lambda>x. \<exists>v[L]. v \<in> B &
@@ -570,8 +570,8 @@ lemma transrec_rep_Reflects:
                       is_DPow'(##Lset(i),gy,z), r) & 
                       big_union(##Lset(i),r,u), mr, v, y))]" 
 apply (simp only: rex_setclass_is_bex [symmetric])
-  --{*Convert @{text "\<exists>y\<in>Lset(i)"} to @{text "\<exists>y[##Lset(i)]"} within the body
-       of the @{term is_wfrec} application. *}
+  --\<open>Convert @{text "\<exists>y\<in>Lset(i)"} to @{text "\<exists>y[##Lset(i)]"} within the body
+       of the @{term is_wfrec} application.\<close>
 apply (intro FOL_reflections function_reflections 
           is_wfrec_reflection Replace_reflection DPow'_reflection) 
 done
@@ -593,7 +593,7 @@ apply (rule sep_rules is_wfrec_iff_sats Replace_iff_sats DPow'_iff_sats |
 done
 
 
-subsubsection{*Actually Instantiating @{text M_Lset}*}
+subsubsection\<open>Actually Instantiating @{text M_Lset}\<close>
 
 lemma M_Lset_axioms_L: "M_Lset_axioms(L)"
   apply (rule M_Lset_axioms.intro)
@@ -606,12 +606,12 @@ theorem M_Lset_L: "PROP M_Lset(L)"
   apply (rule M_Lset_axioms_L) 
   done
 
-text{*Finally: the point of the whole theory!*}
+text\<open>Finally: the point of the whole theory!\<close>
 lemmas Lset_closed = M_Lset.Lset_closed [OF M_Lset_L]
    and Lset_abs = M_Lset.Lset_abs [OF M_Lset_L]
 
 
-subsection{*The Notion of Constructible Set*}
+subsection\<open>The Notion of Constructible Set\<close>
 
 definition
   constructible :: "[i=>o,i] => o" where

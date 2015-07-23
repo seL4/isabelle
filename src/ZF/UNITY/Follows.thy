@@ -5,7 +5,7 @@
 Theory ported from HOL.
 *)
 
-section{*The "Follows" relation of Charpentier and Sivilotte*}
+section\<open>The "Follows" relation of Charpentier and Sivilotte\<close>
 
 theory Follows imports SubstAx Increasing begin
 

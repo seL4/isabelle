@@ -57,12 +57,12 @@ translations
   "JN x. B"     == "CONST JOIN(CONST state,(%x. B))"
 
 
-subsection{*SKIP*}
+subsection\<open>SKIP\<close>
 
 lemma reachable_SKIP [simp]: "reachable(SKIP) = state"
 by (force elim: reachable.induct intro: reachable.intros)
 
-text{*Elimination programify from ok and Join*}
+text\<open>Elimination programify from ok and Join\<close>
 
 lemma ok_programify_left [iff]: "programify(F) ok G \<longleftrightarrow> F ok G"
 by (simp add: ok_def)
@@ -76,7 +76,7 @@ by (simp add: Join_def)
 lemma Join_programify_right [simp]: "F Join programify(G) = F Join G"
 by (simp add: Join_def)
 
-subsection{*SKIP and safety properties*}
+subsection\<open>SKIP and safety properties\<close>
 
 lemma SKIP_in_constrains_iff [iff]: "(SKIP \<in> A co B) \<longleftrightarrow> (A\<subseteq>B & st_set(A))"
 by (unfold constrains_def st_set_def, auto)
@@ -90,7 +90,7 @@ by (auto simp add: stable_def)
 lemma SKIP_in_Stable [iff]: "SKIP \<in> Stable(A)"
 by (unfold Stable_def, auto)
 
-subsection{*Join and JOIN types*}
+subsection\<open>Join and JOIN types\<close>
 
 lemma Join_in_program [iff,TC]: "F Join G \<in> program"
 by (unfold Join_def, auto)
@@ -98,7 +98,7 @@ by (unfold Join_def, auto)
 lemma JOIN_in_program [iff,TC]: "JOIN(I,F) \<in> program"
 by (unfold JOIN_def, auto)
 
-subsection{*Init, Acts, and AllowedActs of Join and JOIN*}
+subsection\<open>Init, Acts, and AllowedActs of Join and JOIN\<close>
 lemma Init_Join [simp]: "Init(F Join G) = Init(F) \<inter> Init(G)"
 by (simp add: Int_assoc Join_def)
 
@@ -110,7 +110,7 @@ lemma AllowedActs_Join [simp]: "AllowedActs(F Join G) =
 apply (simp add: Int_assoc cons_absorb Join_def)
 done
 
-subsection{*Join's algebraic laws*}
+subsection\<open>Join's algebraic laws\<close>
 
 lemma Join_commute: "F Join G = G Join F"
 by (simp add: Join_def Un_commute Int_commute)
@@ -123,7 +123,7 @@ done
 lemma Join_assoc: "(F Join G) Join H = F Join (G Join H)"
 by (simp add: Un_ac Join_def cons_absorb Int_assoc Int_Un_distrib2)
 
-subsection{*Needed below*}
+subsection\<open>Needed below\<close>
 lemma cons_id [simp]: "cons(id(state), Pow(state * state)) = Pow(state*state)"
 by auto
 
@@ -143,10 +143,10 @@ by (rule program_equalityI, auto)
 lemma Join_left_absorb: "F Join (F Join G) = F Join G"
 by (simp add: Join_assoc [symmetric])
 
-subsection{*Join is an AC-operator*}
+subsection\<open>Join is an AC-operator\<close>
 lemmas Join_ac = Join_assoc Join_left_absorb Join_commute Join_left_commute
 
-subsection{*Eliminating programify form JN and OK expressions*}
+subsection\<open>Eliminating programify form JN and OK expressions\<close>
 
 lemma OK_programify [iff]: "OK(I, %x. programify(F(x))) \<longleftrightarrow> OK(I, F)"
 by (simp add: OK_def)
@@ -155,7 +155,7 @@ lemma JN_programify [iff]: "JOIN(I, %x. programify(F(x))) = JOIN(I, F)"
 by (simp add: JOIN_def)
 
 
-subsection{*JN*}
+subsection\<open>JN\<close>
 
 lemma JN_empty [simp]: "JOIN(0, F) = SKIP"
 by (unfold JOIN_def, auto)
@@ -190,7 +190,7 @@ by (simp add: JOIN_def)
 
 
 
-subsection{*JN laws*}
+subsection\<open>JN laws\<close>
 lemma JN_absorb: "k \<in> I ==>F(k) Join (\<Squnion>i \<in> I. F(i)) = (\<Squnion>i \<in> I. F(i))"
 apply (subst JN_cons [symmetric])
 apply (auto simp add: cons_absorb)
@@ -214,13 +214,13 @@ done
 lemma JN_Join_miniscope: "(\<Squnion>i \<in> I. F(i) Join G) = ((\<Squnion>i \<in> I. F(i) Join G))"
 by (simp add: JN_Join_distrib JN_constant)
 
-text{*Used to prove guarantees_JN_I*}
+text\<open>Used to prove guarantees_JN_I\<close>
 lemma JN_Join_diff: "i \<in> I==>F(i) Join JOIN(I - {i}, F) = JOIN(I, F)"
 apply (rule program_equalityI)
 apply (auto elim!: not_emptyE)
 done
 
-subsection{*Safety: co, stable, FP*}
+subsection\<open>Safety: co, stable, FP\<close>
 
 
 (*Fails if I=0 because it collapses to SKIP \<in> A co B, i.e. to A\<subseteq>B.  So an
@@ -326,7 +326,7 @@ done
 lemma FP_JN: "i \<in> I ==> FP(\<Squnion>i \<in> I. F(i)) = (\<Inter>i \<in> I. FP (programify(F(i))))"
 by (auto simp add: FP_def Inter_def st_set_def JN_stable)
 
-subsection{*Progress: transient, ensures*}
+subsection\<open>Progress: transient, ensures\<close>
 
 lemma JN_transient:
      "i \<in> I ==>
@@ -412,7 +412,7 @@ apply (subst Join_commute)
 apply (blast intro: stable_Join_ensures1)
 done
 
-subsection{*The ok and OK relations*}
+subsection\<open>The ok and OK relations\<close>
 
 lemma ok_SKIP1 [iff]: "SKIP ok F"
 by (auto dest: Acts_type [THEN subsetD] simp add: ok_def)
@@ -469,7 +469,7 @@ apply (blast intro: ok_sym)
 done
 
 
-subsection{*Allowed*}
+subsection\<open>Allowed\<close>
 
 lemma Allowed_SKIP [simp]: "Allowed(SKIP) = program"
 by (auto dest: Acts_type [THEN subsetD] simp add: Allowed_def)
@@ -498,7 +498,7 @@ lemma OK_iff_Allowed:
 apply (auto simp add: OK_iff_ok ok_iff_Allowed)
 done
 
-subsection{*safety_prop, for reasoning about given instances of "ok"*}
+subsection\<open>safety_prop, for reasoning about given instances of "ok"\<close>
 
 lemma safety_prop_Acts_iff:
      "safety_prop(X) ==> (Acts(G) \<subseteq> cons(id(state), (\<Union>F \<in> X. Acts(F)))) \<longleftrightarrow> (programify(G) \<in> X)"

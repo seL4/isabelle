@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-section {* Theory of the natural numbers: Peano's axioms, primitive recursion *}
+section \<open>Theory of the natural numbers: Peano's axioms, primitive recursion\<close>
 
 theory Nat
 imports FOLP
@@ -38,7 +38,7 @@ definition add :: "[nat, nat] => nat"    (infixl "+" 60)
   where "m + n == rec(m, n, %x y. Suc(y))"
 
 
-subsection {* Proofs about the natural numbers *}
+subsection \<open>Proofs about the natural numbers\<close>
 
 schematic_lemma Suc_n_not_n: "?p : ~ (Suc(k) = k)"
 apply (rule_tac n = k in induct)
@@ -81,27 +81,27 @@ schematic_lemma Plus_cong: "[| p : a = x;  q: b = y |] ==> ?p : a + b = x + y"
 
 lemmas nat_congs = Suc_cong Plus_cong
 
-ML {*
+ML \<open>
   val add_ss =
     FOLP_ss addcongs @{thms nat_congs}
     |> fold (addrew @{context}) @{thms add_0 add_Suc}
-*}
+\<close>
 
 schematic_lemma add_assoc: "?p : (k+m)+n = k+(m+n)"
 apply (rule_tac n = k in induct)
-apply (tactic {* SIMP_TAC @{context} add_ss 1 *})
-apply (tactic {* ASM_SIMP_TAC @{context} add_ss 1 *})
+apply (tactic \<open>SIMP_TAC @{context} add_ss 1\<close>)
+apply (tactic \<open>ASM_SIMP_TAC @{context} add_ss 1\<close>)
 done
 
 schematic_lemma add_0_right: "?p : m+0 = m"
 apply (rule_tac n = m in induct)
-apply (tactic {* SIMP_TAC @{context} add_ss 1 *})
-apply (tactic {* ASM_SIMP_TAC @{context} add_ss 1 *})
+apply (tactic \<open>SIMP_TAC @{context} add_ss 1\<close>)
+apply (tactic \<open>ASM_SIMP_TAC @{context} add_ss 1\<close>)
 done
 
 schematic_lemma add_Suc_right: "?p : m+Suc(n) = Suc(m+n)"
 apply (rule_tac n = m in induct)
-apply (tactic {* ALLGOALS (ASM_SIMP_TAC @{context} add_ss) *})
+apply (tactic \<open>ALLGOALS (ASM_SIMP_TAC @{context} add_ss)\<close>)
 done
 
 (*mk_typed_congs appears not to work with FOLP's version of subst*)

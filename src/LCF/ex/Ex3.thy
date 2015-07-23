@@ -1,4 +1,4 @@
-section {* Addition with fixpoint of successor *}
+section \<open>Addition with fixpoint of successor\<close>
 
 theory Ex3
 imports "../LCF"

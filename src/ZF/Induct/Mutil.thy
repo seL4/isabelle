@@ -3,14 +3,14 @@
     Copyright   1996  University of Cambridge
 *)
 
-section {* The Mutilated Chess Board Problem, formalized inductively *}
+section \<open>The Mutilated Chess Board Problem, formalized inductively\<close>
 
 theory Mutil imports Main begin
 
-text {*
+text \<open>
   Originator is Max Black, according to J A Robinson.  Popularized as
   the Mutilated Checkerboard Problem by J McCarthy.
-*}
+\<close>
 
 consts
   domino :: i
@@ -36,7 +36,7 @@ definition
   "evnodd(A,b) == {z \<in> A. \<exists>i j. z = <i,j> \<and> (i #+ j) mod 2 = b}"
 
 
-subsection {* Basic properties of evnodd *}
+subsection \<open>Basic properties of evnodd\<close>
 
 lemma evnodd_iff: "<i,j>: evnodd(A,b) \<longleftrightarrow> <i,j>: A & (i#+j) mod 2 = b"
   by (unfold evnodd_def) blast
@@ -62,7 +62,7 @@ lemma evnodd_0 [simp]: "evnodd(0, b) = 0"
   by (simp add: evnodd_def)
 
 
-subsection {* Dominoes *}
+subsection \<open>Dominoes\<close>
 
 lemma domino_Finite: "d \<in> domino ==> Finite(d)"
   by (blast intro!: Finite_cons Finite_0 elim: domino.cases)
@@ -78,9 +78,9 @@ lemma domino_singleton:
   done
 
 
-subsection {* Tilings *}
+subsection \<open>Tilings\<close>
 
-text {* The union of two disjoint tilings is a tiling *}
+text \<open>The union of two disjoint tilings is a tiling\<close>
 
 lemma tiling_UnI:
     "t \<in> tiling(A) ==> u \<in> tiling(A) ==> t \<inter> u = 0 ==> t \<union> u \<in> tiling(A)"

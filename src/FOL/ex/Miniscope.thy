@@ -14,9 +14,9 @@ begin
 
 lemmas ccontr = FalseE [THEN classical]
 
-subsection {* Negation Normal Form *}
+subsection \<open>Negation Normal Form\<close>
 
-subsubsection {* de Morgan laws *}
+subsubsection \<open>de Morgan laws\<close>
 
 lemma demorgans:
   "~(P&Q) <-> ~P | ~Q"
@@ -38,7 +38,7 @@ lemma nnf_simps:
 
 (* BEWARE: rewrite rules for <-> can confuse the simplifier!! *)
 
-subsubsection {* Pushing in the existential quantifiers *}
+subsubsection \<open>Pushing in the existential quantifiers\<close>
 
 lemma ex_simps:
   "(EX x. P) <-> P"
@@ -50,7 +50,7 @@ lemma ex_simps:
   by blast+
 
 
-subsubsection {* Pushing in the universal quantifiers *}
+subsubsection \<open>Pushing in the universal quantifiers\<close>
 
 lemma all_simps:
   "(ALL x. P) <-> P"
@@ -63,10 +63,10 @@ lemma all_simps:
 
 lemmas mini_simps = demorgans nnf_simps ex_simps all_simps
 
-ML {*
+ML \<open>
 val mini_ss = simpset_of (@{context} addsimps @{thms mini_simps});
 fun mini_tac ctxt =
   resolve_tac ctxt @{thms ccontr} THEN' asm_full_simp_tac (put_simpset mini_ss ctxt);
-*}
+\<close>
 
 end

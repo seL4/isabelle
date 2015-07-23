@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Types in CCL are defined as sets of terms *}
+section \<open>Types in CCL are defined as sets of terms\<close>
 
 theory Type
 imports Term
@@ -45,12 +45,12 @@ translations
   "A * B"       => "CONST Sigma(A, \<lambda>_. B)"
   "{x: A. B}"   == "CONST Subtype(A, \<lambda>x. B)"
 
-print_translation {*
+print_translation \<open>
  [(@{const_syntax Pi},
     fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"})),
   (@{const_syntax Sigma},
     fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Sigma"}, @{syntax_const "_star"}))]
-*}
+\<close>
 
 defs
   Subtype_def: "{x:A. P(x)} == {x. x:A \<and> P(x)}"
@@ -82,7 +82,7 @@ lemma subsetXH: "A <= B \<longleftrightarrow> (ALL x. x:A \<longrightarrow> x:B)
   by blast
 
 
-subsection {* Exhaustion Rules *}
+subsection \<open>Exhaustion Rules\<close>
 
 lemma EmptyXH: "\<And>a. a : {} \<longleftrightarrow> False"
   and SubtypeXH: "\<And>a A P. a : {x:A. P(x)} \<longleftrightarrow> (a:A \<and> P(a))"
@@ -100,10 +100,10 @@ lemma LiftXH: "a : [A] \<longleftrightarrow> (a=bot | a:A)"
   and TexXH: "a : TEX X. B(X) \<longleftrightarrow> (EX X. a:B(X))"
   unfolding simp_type_defs by blast+
 
-ML {* ML_Thms.bind_thms ("case_rls", XH_to_Es @{thms XHs}) *}
+ML \<open>ML_Thms.bind_thms ("case_rls", XH_to_Es @{thms XHs})\<close>
 
 
-subsection {* Canonical Type Rules *}
+subsection \<open>Canonical Type Rules\<close>
 
 lemma oneT: "one : Unit"
   and trueT: "true : Bool"
@@ -117,13 +117,13 @@ lemma oneT: "one : Unit"
 lemmas canTs = oneT trueT falseT pairT lamT inlT inrT
 
 
-subsection {* Non-Canonical Type Rules *}
+subsection \<open>Non-Canonical Type Rules\<close>
 
 lemma lem: "\<lbrakk>a:B(u); u = v\<rbrakk> \<Longrightarrow> a : B(v)"
   by blast
 
 
-ML {*
+ML \<open>
 fun mk_ncanT_tac top_crls crls =
   SUBPROOF (fn {context = ctxt, prems = major :: prems, ...} =>
     resolve_tac ctxt ([major] RL top_crls) 1 THEN
@@ -132,11 +132,11 @@ fun mk_ncanT_tac top_crls crls =
     ALLGOALS (assume_tac ctxt ORELSE' resolve_tac ctxt (prems RL [@{thm lem}])
       ORELSE' eresolve_tac ctxt @{thms bspec}) THEN
     safe_tac (ctxt addSIs prems))
-*}
+\<close>
 
-method_setup ncanT = {*
+method_setup ncanT = \<open>
   Scan.succeed (SIMPLE_METHOD' o mk_ncanT_tac @{thms case_rls} @{thms case_rls})
-*}
+\<close>
 
 lemma ifT: "\<lbrakk>b:Bool; b=true \<Longrightarrow> t:A(true); b=false \<Longrightarrow> u:A(false)\<rbrakk> \<Longrightarrow> if b then t else u : A(b)"
   by ncanT
@@ -156,7 +156,7 @@ lemma whenT:
 lemmas ncanTs = ifT applyT splitT whenT
 
 
-subsection {* Subtypes *}
+subsection \<open>Subtypes\<close>
 
 lemma SubtypeD1: "a : Subtype(A, P) \<Longrightarrow> a : A"
   and SubtypeD2: "a : Subtype(A, P) \<Longrightarrow> P(a)"
@@ -169,7 +169,7 @@ lemma SubtypeE: "\<lbrakk>a : {x:A. P(x)}; \<lbrakk>a:A; P(a)\<rbrakk> \<Longrig
   by (simp add: SubtypeXH)
 
 
-subsection {* Monotonicity *}
+subsection \<open>Monotonicity\<close>
 
 lemma idM: "mono (\<lambda>X. X)"
   apply (rule monoI)
@@ -206,9 +206,9 @@ lemma PlusM: "\<lbrakk>mono(\<lambda>X. A(X)); mono(\<lambda>X. B(X))\<rbrakk> \
     dest!: monoD [THEN subsetD])
 
 
-subsection {* Recursive types *}
+subsection \<open>Recursive types\<close>
 
-subsubsection {* Conversion Rules for Fixed Points via monotonicity and Tarski *}
+subsubsection \<open>Conversion Rules for Fixed Points via monotonicity and Tarski\<close>
 
 lemma NatM: "mono(\<lambda>X. Unit+X)"
   apply (rule PlusM constM idM)+
@@ -245,7 +245,7 @@ lemma def_IListsB: "ILists(A) = {} + A * ILists(A)"
 lemmas ind_type_eqs = def_NatB def_ListB def_ListsB def_IListsB
 
 
-subsection {* Exhaustion Rules *}
+subsection \<open>Exhaustion Rules\<close>
 
 lemma NatXH: "a : Nat \<longleftrightarrow> (a=zero | (EX x:Nat. a=succ(x)))"
   and ListXH: "a : List(A) \<longleftrightarrow> (a=[] | (EX x:A. EX xs:List(A).a=x$xs))"
@@ -256,10 +256,10 @@ lemma NatXH: "a : Nat \<longleftrightarrow> (a=zero | (EX x:Nat. a=succ(x)))"
 
 lemmas iXHs = NatXH ListXH
 
-ML {* ML_Thms.bind_thms ("icase_rls", XH_to_Es @{thms iXHs}) *}
+ML \<open>ML_Thms.bind_thms ("icase_rls", XH_to_Es @{thms iXHs})\<close>
 
 
-subsection {* Type Rules *}
+subsection \<open>Type Rules\<close>
 
 lemma zeroT: "zero : Nat"
   and succT: "n:Nat \<Longrightarrow> succ(n) : Nat"
@@ -270,9 +270,9 @@ lemma zeroT: "zero : Nat"
 lemmas icanTs = zeroT succT nilT consT
 
 
-method_setup incanT = {*
+method_setup incanT = \<open>
   Scan.succeed (SIMPLE_METHOD' o mk_ncanT_tac @{thms icase_rls} @{thms case_rls})
-*}
+\<close>
 
 lemma ncaseT: "\<lbrakk>n:Nat; n=zero \<Longrightarrow> b:C(zero); \<And>x. \<lbrakk>x:Nat; n=succ(x)\<rbrakk> \<Longrightarrow> c(x):C(succ(x))\<rbrakk>
     \<Longrightarrow> ncase(n,b,c) : C(n)"
@@ -285,7 +285,7 @@ lemma lcaseT: "\<lbrakk>l:List(A); l = [] \<Longrightarrow> b:C([]); \<And>h t. 
 lemmas incanTs = ncaseT lcaseT
 
 
-subsection {* Induction Rules *}
+subsection \<open>Induction Rules\<close>
 
 lemmas ind_Ms = NatM ListM
 
@@ -304,7 +304,7 @@ lemma List_ind: "\<lbrakk>l:List(A); P([]); \<And>x xs. \<lbrakk>x:A; xs:List(A)
 lemmas inds = Nat_ind List_ind
 
 
-subsection {* Primitive Recursive Rules *}
+subsection \<open>Primitive Recursive Rules\<close>
 
 lemma nrecT: "\<lbrakk>n:Nat; b:C(zero); \<And>x g. \<lbrakk>x:Nat; g:C(x)\<rbrakk> \<Longrightarrow> c(x,g):C(succ(x))\<rbrakk>
     \<Longrightarrow> nrec(n,b,c) : C(n)"
@@ -317,7 +317,7 @@ lemma lrecT: "\<lbrakk>l:List(A); b:C([]); \<And>x xs g. \<lbrakk>x:A; xs:List(A
 lemmas precTs = nrecT lrecT
 
 
-subsection {* Theorem proving *}
+subsection \<open>Theorem proving\<close>
 
 lemma SgE2: "\<lbrakk><a,b> : Sigma(A,B); \<lbrakk>a:A; b:B(a)\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
   unfolding SgXH by blast
@@ -326,13 +326,13 @@ lemma SgE2: "\<lbrakk><a,b> : Sigma(A,B); \<lbrakk>a:A; b:B(a)\<rbrakk> \<Longri
 (*         - intro rules are type rules for canonical terms                *)
 (*         - elim rules are case rules (no non-canonical terms appear)     *)
 
-ML {* ML_Thms.bind_thms ("XHEs", XH_to_Es @{thms XHs}) *}
+ML \<open>ML_Thms.bind_thms ("XHEs", XH_to_Es @{thms XHs})\<close>
 
 lemmas [intro!] = SubtypeI canTs icanTs
   and [elim!] = SubtypeE XHEs
 
 
-subsection {* Infinite Data Types *}
+subsection \<open>Infinite Data Types\<close>
 
 lemma lfp_subset_gfp: "mono(f) \<Longrightarrow> lfp(f) <= gfp(f)"
   apply (rule lfp_lowerbound [THEN subset_trans])
@@ -364,8 +364,8 @@ lemma "letrec g x be zero$g(x) in g(bot) : Lists(Nat)"
   done
 
 
-subsection {* Lemmas and tactics for using the rule @{text
-  "coinduct3"} on @{text "[="} and @{text "="} *}
+subsection \<open>Lemmas and tactics for using the rule @{text
+  "coinduct3"} on @{text "[="} and @{text "="}\<close>
 
 lemma lfpI: "\<lbrakk>mono(f); a : f(lfp(f))\<rbrakk> \<Longrightarrow> a : lfp(f)"
   apply (erule lfp_Tarski [THEN ssubst])
@@ -379,12 +379,12 @@ lemma ssubst_pair: "\<lbrakk>a = a'; b = b'; <a',b'> : A\<rbrakk> \<Longrightarr
   by simp
 
 
-ML {*
+ML \<open>
   val coinduct3_tac = SUBPROOF (fn {context = ctxt, prems = mono :: prems, ...} =>
     fast_tac (ctxt addIs (mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}) :: prems) 1);
-*}
+\<close>
 
-method_setup coinduct3 = {* Scan.succeed (SIMPLE_METHOD' o coinduct3_tac) *}
+method_setup coinduct3 = \<open>Scan.succeed (SIMPLE_METHOD' o coinduct3_tac)\<close>
 
 lemma ci3_RI: "\<lbrakk>mono(Agen); a : R\<rbrakk> \<Longrightarrow> a : lfp(\<lambda>x. Agen(x) Un R Un A)"
   by coinduct3
@@ -396,21 +396,21 @@ lemma ci3_AgenI: "\<lbrakk>mono(Agen); a : Agen(lfp(\<lambda>x. Agen(x) Un R Un 
 lemma ci3_AI: "\<lbrakk>mono(Agen); a : A\<rbrakk> \<Longrightarrow> a : lfp(\<lambda>x. Agen(x) Un R Un A)"
   by coinduct3
 
-ML {*
+ML \<open>
 fun genIs_tac ctxt genXH gen_mono =
   resolve_tac ctxt [genXH RS @{thm iffD2}] THEN'
   simp_tac ctxt THEN'
   TRY o fast_tac
     (ctxt addIs [genXH RS @{thm iffD2}, gen_mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}])
-*}
+\<close>
 
-method_setup genIs = {*
+method_setup genIs = \<open>
   Attrib.thm -- Attrib.thm >>
     (fn (genXH, gen_mono) => fn ctxt => SIMPLE_METHOD' (genIs_tac ctxt genXH gen_mono))
-*}
+\<close>
 
 
-subsection {* POgen *}
+subsection \<open>POgen\<close>
 
 lemma PO_refl: "<a,a> : PO"
   by (rule po_refl [THEN PO_iff [THEN iffD1]])
@@ -433,7 +433,7 @@ lemma POgenIs:
     \<Longrightarrow> <h$t,h'$t'> : POgen(lfp(\<lambda>x. POgen(x) Un R Un PO))"
   unfolding data_defs by (genIs POgenXH POgen_mono)+
 
-ML {*
+ML \<open>
 fun POgen_tac ctxt (rla, rlb) i =
   SELECT_GOAL (safe_tac ctxt) i THEN
   resolve_tac ctxt [rlb RS (rla RS @{thm ssubst_pair})] i THEN
@@ -441,10 +441,10 @@ fun POgen_tac ctxt (rla, rlb) i =
       (@{thms POgenIs} @ [@{thm PO_refl} RS (@{thm POgen_mono} RS @{thm ci3_AI})] @
         (@{thms POgenIs} RL [@{thm POgen_mono} RS @{thm ci3_AgenI}]) @
         [@{thm POgen_mono} RS @{thm ci3_RI}]) i))
-*}
+\<close>
 
 
-subsection {* EQgen *}
+subsection \<open>EQgen\<close>
 
 lemma EQ_refl: "<a,a> : EQ"
   by (rule refl [THEN EQ_iff [THEN iffD1]])
@@ -467,7 +467,7 @@ lemma EQgenIs:
     \<Longrightarrow> <h$t,h'$t'> : EQgen(lfp(\<lambda>x. EQgen(x) Un R Un EQ))"
   unfolding data_defs by (genIs EQgenXH EQgen_mono)+
 
-ML {*
+ML \<open>
 fun EQgen_raw_tac ctxt i =
   (REPEAT (resolve_tac ctxt (@{thms EQgenIs} @
         [@{thm EQ_refl} RS (@{thm EQgen_mono} RS @{thm ci3_AI})] @
@@ -484,10 +484,10 @@ fun EQgen_tac ctxt rews i =
     resolve_tac ctxt ((rews @ [@{thm refl}]) RL ((rews @ [@{thm refl}]) RL [@{thm ssubst_pair}])) i THEN
     ALLGOALS (simp_tac ctxt) THEN
     ALLGOALS (EQgen_raw_tac ctxt)) i
-*}
+\<close>
 
-method_setup EQgen = {*
+method_setup EQgen = \<open>
   Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (EQgen_tac ctxt ths))
-*}
+\<close>
 
 end

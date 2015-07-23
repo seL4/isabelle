@@ -8,17 +8,17 @@ Do we EVER have rank(a) < rank(<a;b>) ?  Perhaps if the latter rank
 is not a limit ordinal?
 *)
 
-section{*Quine-Inspired Ordered Pairs and Disjoint Sums*}
+section\<open>Quine-Inspired Ordered Pairs and Disjoint Sums\<close>
 
 theory QPair imports Sum func begin
 
-text{*For non-well-founded data
+text\<open>For non-well-founded data
 structures in ZF.  Does not precisely follow Quine's construction.  Thanks
 to Thomas Forster for suggesting this approach!
 
 W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
 1966.
-*}
+\<close>
 
 definition
   QPair     :: "[i, i] => i"                      ("<(_;/ _)>")  where
@@ -70,7 +70,7 @@ definition
     "qcase(c,d)   == qsplit(%y z. cond(y, d(z), c(z)))"
 
 
-subsection{*Quine ordered pairing*}
+subsection\<open>Quine ordered pairing\<close>
 
 (** Lemmas for showing that <a;b> uniquely determines a and b **)
 
@@ -91,8 +91,8 @@ lemma QPair_inject2: "<a;b> = <c;d> ==> b=d"
 by blast
 
 
-subsubsection{*QSigma: Disjoint union of a family of sets
-     Generalizes Cartesian product*}
+subsubsection\<open>QSigma: Disjoint union of a family of sets
+     Generalizes Cartesian product\<close>
 
 lemma QSigmaI [intro!]: "[| a \<in> A;  b \<in> B(a) |] ==> <a;b> \<in> QSigma(A,B)"
 by (simp add: QSigma_def)
@@ -128,7 +128,7 @@ lemma QSigma_empty2 [simp]: "A <*> 0 = 0"
 by blast
 
 
-subsubsection{*Projections: qfst, qsnd*}
+subsubsection\<open>Projections: qfst, qsnd\<close>
 
 lemma qfst_conv [simp]: "qfst(<a;b>) = a"
 by (simp add: qfst_def)
@@ -146,7 +146,7 @@ lemma QPair_qfst_qsnd_eq: "a \<in> QSigma(A,B) ==> <qfst(a); qsnd(a)> = a"
 by auto
 
 
-subsubsection{*Eliminator: qsplit*}
+subsubsection\<open>Eliminator: qsplit\<close>
 
 (*A META-equality, so that it applies to higher types as well...*)
 lemma qsplit [simp]: "qsplit(%x y. c(x,y), <a;b>) == c(a,b)"
@@ -165,7 +165,7 @@ apply (simp add: qsplit_def, auto)
 done
 
 
-subsubsection{*qsplit for predicates: result type o*}
+subsubsection\<open>qsplit for predicates: result type o\<close>
 
 lemma qsplitI: "R(a,b) ==> qsplit(R, <a;b>)"
 by (simp add: qsplit_def)
@@ -181,7 +181,7 @@ lemma qsplitD: "qsplit(R,<a;b>) ==> R(a,b)"
 by (simp add: qsplit_def)
 
 
-subsubsection{*qconverse*}
+subsubsection\<open>qconverse\<close>
 
 lemma qconverseI [intro!]: "<a;b>:r ==> <b;a>:qconverse(r)"
 by (simp add: qconverse_def, blast)
@@ -208,7 +208,7 @@ lemma qconverse_empty: "qconverse(0) = 0"
 by blast
 
 
-subsection{*The Quine-inspired notion of disjoint sum*}
+subsection\<open>The Quine-inspired notion of disjoint sum\<close>
 
 lemmas qsum_defs = qsum_def QInl_def QInr_def qcase_def
 
@@ -274,7 +274,7 @@ apply (simp (no_asm) add: extension qsum_subset_iff)
 apply blast
 done
 
-subsubsection{*Eliminator -- qcase*}
+subsubsection\<open>Eliminator -- qcase\<close>
 
 lemma qcase_QInl [simp]: "qcase(c, d, QInl(a)) = c(a)"
 by (simp add: qsum_defs )
@@ -305,7 +305,7 @@ lemma Part_qsum_equality: "C \<subseteq> A <+> B ==> Part(C,QInl) \<union> Part(
 by blast
 
 
-subsubsection{*Monotonicity*}
+subsubsection\<open>Monotonicity\<close>
 
 lemma QPair_mono: "[| a<=c;  b<=d |] ==> <a;b> \<subseteq> <c;d>"
 by (simp add: QPair_def sum_mono)

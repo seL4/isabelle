@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section{*The Integers as Equivalence Classes Over Pairs of Natural Numbers*}
+section\<open>The Integers as Equivalence Classes Over Pairs of Natural Numbers\<close>
 
 theory Int_ZF imports EquivClass ArithSimp begin
 
@@ -17,11 +17,11 @@ definition
     "int == (nat*nat)//intrel"
 
 definition
-  int_of :: "i=>i" --{*coercion from nat to int*}    ("$# _" [80] 80)  where
+  int_of :: "i=>i" --\<open>coercion from nat to int\<close>    ("$# _" [80] 80)  where
     "$# m == intrel `` {<natify(m), 0>}"
 
 definition
-  intify :: "i=>i" --{*coercion from ANYTHING to int*}  where
+  intify :: "i=>i" --\<open>coercion from ANYTHING to int\<close>  where
     "intify(m) == if m \<in> int then m else $#0"
 
 definition
@@ -50,7 +50,7 @@ definition
 
 definition
   zmagnitude  ::      "i=>i"  where
-  --{*could be replaced by an absolute value function from int to int?*}
+  --\<open>could be replaced by an absolute value function from int to int?\<close>
     "zmagnitude(z) ==
      THE m. m\<in>nat & ((~ znegative(z) & z = $# m) |
                        (znegative(z) & $- z = $# m))"
@@ -93,7 +93,7 @@ definition
 
 notation (xsymbols)
   zmult  (infixl "$\<times>" 70) and
-  zle  (infixl "$\<le>" 50)  --{*less than or equals*}
+  zle  (infixl "$\<le>" 50)  --\<open>less than or equals\<close>
 
 notation (HTML output)
   zmult  (infixl "$\<times>" 70) and
@@ -102,7 +102,7 @@ notation (HTML output)
 
 declare quotientE [elim!]
 
-subsection{*Proving that @{term intrel} is an equivalence relation*}
+subsection\<open>Proving that @{term intrel} is an equivalence relation\<close>
 
 (** Natural deduction for intrel **)
 
@@ -164,8 +164,8 @@ lemma intify_ident [simp]: "n \<in> int ==> intify(n) = n"
 by (simp add: intify_def)
 
 
-subsection{*Collapsing rules: to remove @{term intify}
-            from arithmetic expressions*}
+subsection\<open>Collapsing rules: to remove @{term intify}
+            from arithmetic expressions\<close>
 
 lemma intify_idem [simp]: "intify(intify(x)) = intify(x)"
 by simp
@@ -215,7 +215,7 @@ lemma zle_intify2 [simp]:"x $<= intify(y) \<longleftrightarrow> x $<= y"
 by (simp add: zle_def)
 
 
-subsection{*@{term zminus}: unary negation on @{term int}*}
+subsection\<open>@{term zminus}: unary negation on @{term int}\<close>
 
 lemma zminus_congruent: "(%<x,y>. intrel``{<y,x>}) respects intrel"
 by (auto simp add: congruent_def add_ac)
@@ -266,7 +266,7 @@ lemma zminus_zminus: "z \<in> int ==> $- ($- z) = z"
 by simp
 
 
-subsection{*@{term znegative}: the test for negative integers*}
+subsection\<open>@{term znegative}: the test for negative integers\<close>
 
 lemma znegative: "[| x\<in>nat; y\<in>nat |] ==> znegative(intrel``{<x,y>}) \<longleftrightarrow> x<y"
 apply (cases "x<y")
@@ -286,7 +286,7 @@ lemma not_znegative_imp_zero: "~ znegative($- $# n) ==> natify(n)=0"
 by (simp add: znegative int_of_def zminus Ord_0_lt_iff [THEN iff_sym])
 
 
-subsection{*@{term nat_of}: Coercion of an Integer to a Natural Number*}
+subsection\<open>@{term nat_of}: Coercion of an Integer to a Natural Number\<close>
 
 lemma nat_of_intify [simp]: "nat_of(intify(z)) = nat_of(z)"
 by (simp add: nat_of_def)
@@ -310,7 +310,7 @@ by (simp add: raw_nat_of_def)
 lemma nat_of_type [iff,TC]: "nat_of(z) \<in> nat"
 by (simp add: nat_of_def raw_nat_of_type)
 
-subsection{*zmagnitude: magnitide of an integer, as a natural number*}
+subsection\<open>zmagnitude: magnitide of an integer, as a natural number\<close>
 
 lemma zmagnitude_int_of [simp]: "zmagnitude($# n) = natify(n)"
 by (auto simp add: zmagnitude_def int_of_eq)
@@ -380,9 +380,9 @@ apply (auto simp add: znegative nat_of_def raw_nat_of
 done
 
 
-subsection{*@{term zadd}: addition on int*}
+subsection\<open>@{term zadd}: addition on int\<close>
 
-text{*Congruence Property for Addition*}
+text\<open>Congruence Property for Addition\<close>
 lemma zadd_congruent2:
     "(%z1 z2. let <x1,y1>=z1; <x2,y2>=z2
                             in intrel``{<x1#+x2, y1#+y2>})
@@ -494,9 +494,9 @@ lemma zadd_int0_right: "z \<in> int ==> z $+ $#0 = z"
 by simp
 
 
-subsection{*@{term zmult}: Integer Multiplication*}
+subsection\<open>@{term zmult}: Integer Multiplication\<close>
 
-text{*Congruence property for multiplication*}
+text\<open>Congruence property for multiplication\<close>
 lemma zmult_congruent2:
     "(%p1 p2. split(%x1 y1. split(%x2 y2.
                     intrel``{<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}, p2), p1))
@@ -625,7 +625,7 @@ lemma zdiff_zadd_eq: "(x $- y) $+ z = (x $+ z) $- y"
 by (simp add: zdiff_def zadd_ac)
 
 
-subsection{*The "Less Than" Relation*}
+subsection\<open>The "Less Than" Relation\<close>
 
 (*"Less than" is a linear ordering*)
 lemma zless_linear_lemma:
@@ -729,7 +729,7 @@ apply (cut_tac zless_linear, blast)
 done
 
 
-subsection{*Less Than or Equals*}
+subsection\<open>Less Than or Equals\<close>
 
 lemma zle_refl: "z $<= z"
 by (simp add: zle_def)
@@ -779,7 +779,7 @@ lemma not_zle_iff_zless: "~ (z $<= w) \<longleftrightarrow> (w $< z)"
 by (simp add: not_zless_iff_zle [THEN iff_sym])
 
 
-subsection{*More subtraction laws (for @{text zcompare_rls})*}
+subsection\<open>More subtraction laws (for @{text zcompare_rls})\<close>
 
 lemma zdiff_zdiff_eq: "(x $- y) $- z = x $- (y $+ z)"
 by (simp add: zdiff_def zadd_ac)
@@ -815,9 +815,9 @@ done
 lemma zle_zdiff_iff: "(x $<= z$-y) \<longleftrightarrow> (x $+ y $<= z)"
 by (cut_tac zle_zdiff_iff_lemma [ OF intify_in_int intify_in_int], simp)
 
-text{*This list of rewrites simplifies (in)equalities by bringing subtractions
+text\<open>This list of rewrites simplifies (in)equalities by bringing subtractions
   to the top and then moving negative terms to the other side.
-  Use with @{text zadd_ac}*}
+  Use with @{text zadd_ac}\<close>
 lemmas zcompare_rls =
      zdiff_def [symmetric]
      zadd_zdiff_eq zdiff_zadd_eq zdiff_zdiff_eq zdiff_zdiff_eq2
@@ -825,8 +825,8 @@ lemmas zcompare_rls =
      zdiff_eq_iff eq_zdiff_iff
 
 
-subsection{*Monotonicity and Cancellation Results for Instantiation
-     of the CancelNumerals Simprocs*}
+subsection\<open>Monotonicity and Cancellation Results for Instantiation
+     of the CancelNumerals Simprocs\<close>
 
 lemma zadd_left_cancel:
      "[| w \<in> int; w': int |] ==> (z $+ w' = z $+ w) \<longleftrightarrow> (w' = w)"
@@ -886,7 +886,7 @@ lemma zadd_zless_mono: "[| w' $< w; z' $<= z |] ==> w' $+ z' $< w $+ z"
 by (erule zadd_zless_mono1 [THEN zless_zle_trans], simp)
 
 
-subsection{*Comparison laws*}
+subsection\<open>Comparison laws\<close>
 
 lemma zminus_zless_zminus [simp]: "($- x $< $- y) \<longleftrightarrow> (y $< x)"
 by (simp add: zless_def zdiff_def zadd_ac)
@@ -894,7 +894,7 @@ by (simp add: zless_def zdiff_def zadd_ac)
 lemma zminus_zle_zminus [simp]: "($- x $<= $- y) \<longleftrightarrow> (y $<= x)"
 by (simp add: not_zless_iff_zle [THEN iff_sym])
 
-subsubsection{*More inequality lemmas*}
+subsubsection\<open>More inequality lemmas\<close>
 
 lemma equation_zminus: "[| x \<in> int;  y \<in> int |] ==> (x = $- y) \<longleftrightarrow> (y = $- x)"
 by auto
@@ -913,7 +913,7 @@ apply auto
 done
 
 
-subsubsection{*The next several equations are permutative: watch out!*}
+subsubsection\<open>The next several equations are permutative: watch out!\<close>
 
 lemma zless_zminus: "(x $< $- y) \<longleftrightarrow> (y $< $- x)"
 by (simp add: zless_def zdiff_def zadd_ac)

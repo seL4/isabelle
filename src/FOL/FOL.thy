@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson and Markus Wenzel
 *)
 
-section {* Classical first-order logic *}
+section \<open>Classical first-order logic\<close>
 
 theory FOL
 imports IFOL
@@ -14,13 +14,13 @@ ML_file "~~/src/Provers/blast.ML"
 ML_file "~~/src/Provers/clasimp.ML"
 
 
-subsection {* The classical axiom *}
+subsection \<open>The classical axiom\<close>
 
 axiomatization where
   classical: "(~P ==> P) ==> P"
 
 
-subsection {* Lemmas and proof tools *}
+subsection \<open>Lemmas and proof tools\<close>
 
 lemma ccontr: "(\<not> P \<Longrightarrow> False) \<Longrightarrow> P"
   by (erule FalseE [THEN classical])
@@ -65,15 +65,15 @@ lemma case_split [case_names True False]:
   apply (erule r1)
   done
 
-ML {*
+ML \<open>
   fun case_tac ctxt a fixes =
     Rule_Insts.res_inst_tac ctxt [((("P", 0), Position.none), a)] fixes @{thm case_split}
-*}
+\<close>
 
-method_setup case_tac = {*
+method_setup case_tac = \<open>
   Args.goal_spec -- Scan.lift (Args.name_inner_syntax -- Parse.for_fixes) >>
     (fn (quant, (s, fixes)) => fn ctxt => SIMPLE_METHOD'' quant (case_tac ctxt s fixes))
-*} "case_tac emulation (dynamic instantiation!)"
+\<close> "case_tac emulation (dynamic instantiation!)"
 
 
 (*** Special elimination rules *)
@@ -163,9 +163,9 @@ lemma swap: "~ P ==> (~ R ==> P) ==> R"
   by (rule classical) iprover
 
 
-section {* Classical Reasoner *}
+section \<open>Classical Reasoner\<close>
 
-ML {*
+ML \<open>
 structure Cla = Classical
 (
   val imp_elim = @{thm imp_elim}
@@ -178,21 +178,21 @@ structure Cla = Classical
 
 structure Basic_Classical: BASIC_CLASSICAL = Cla;
 open Basic_Classical;
-*}
+\<close>
 
 (*Propositional rules*)
 lemmas [intro!] = refl TrueI conjI disjCI impI notI iffI
   and [elim!] = conjE disjE impCE FalseE iffCE
-ML {* val prop_cs = claset_of @{context} *}
+ML \<open>val prop_cs = claset_of @{context}\<close>
 
 (*Quantifier rules*)
 lemmas [intro!] = allI ex_ex1I
   and [intro] = exI
   and [elim!] = exE alt_ex1E
   and [elim] = allE
-ML {* val FOL_cs = claset_of @{context} *}
+ML \<open>val FOL_cs = claset_of @{context}\<close>
 
-ML {*
+ML \<open>
   structure Blast = Blast
   (
     structure Classical = Cla
@@ -204,7 +204,7 @@ ML {*
     val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
   );
   val blast_tac = Blast.blast_tac;
-*}
+\<close>
 
 
 lemma ex1_functional: "[| EX! z. P(a,z);  P(a,b);  P(a,c) |] ==> b = c"
@@ -320,10 +320,10 @@ lemmas cla_simps =
 
 ML_file "simpdata.ML"
 
-simproc_setup defined_Ex ("EX x. P(x)") = {* fn _ => Quantifier1.rearrange_ex *}
-simproc_setup defined_All ("ALL x. P(x)") = {* fn _ => Quantifier1.rearrange_all *}
+simproc_setup defined_Ex ("EX x. P(x)") = \<open>fn _ => Quantifier1.rearrange_ex\<close>
+simproc_setup defined_All ("ALL x. P(x)") = \<open>fn _ => Quantifier1.rearrange_all\<close>
 
-ML {*
+ML \<open>
 (*intuitionistic simprules only*)
 val IFOL_ss =
   put_simpset FOL_basic_ss @{context}
@@ -337,17 +337,17 @@ val FOL_ss =
   put_simpset IFOL_ss @{context}
   addsimps @{thms cla_simps cla_ex_simps cla_all_simps}
   |> simpset_of;
-*}
+\<close>
 
-setup {*
+setup \<open>
   map_theory_simpset (put_simpset FOL_ss) #>
   Simplifier.method_setup Splitter.split_modifiers
-*}
+\<close>
 
 ML_file "~~/src/Tools/eqsubst.ML"
 
 
-subsection {* Other simple lemmas *}
+subsection \<open>Other simple lemmas\<close>
 
 lemma [simp]: "((P-->R) <-> (Q-->R)) <-> ((P<->Q) | R)"
 by blast
@@ -380,9 +380,9 @@ lemma all_mono: "(!!x. P(x) --> Q(x)) ==> (ALL x. P(x)) --> (ALL x. Q(x))"
 by blast
 
 
-subsection {* Proof by cases and induction *}
+subsection \<open>Proof by cases and induction\<close>
 
-text {* Proper handling of non-atomic rule statements. *}
+text \<open>Proper handling of non-atomic rule statements.\<close>
 
 context
 begin
@@ -409,10 +409,10 @@ lemmas induct_rulify [symmetric] = induct_atomize
 lemmas induct_rulify_fallback =
   induct_forall_def induct_implies_def induct_equal_def induct_conj_def
 
-text {* Method setup. *}
+text \<open>Method setup.\<close>
 
 ML_file "~~/src/Tools/induct.ML"
-ML {*
+ML \<open>
   structure Induct = Induct
   (
     val cases_default = @{thm case_split}
@@ -423,7 +423,7 @@ ML {*
     fun dest_def _ = NONE
     fun trivial_tac _ _ = no_tac
   );
-*}
+\<close>
 
 declare case_split [cases type: o]
 

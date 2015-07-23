@@ -3,13 +3,13 @@
     Copyright   1991  University of Cambridge
 *)
 
-section {* First-Order Logic: propositional examples (classical version) *}
+section \<open>First-Order Logic: propositional examples (classical version)\<close>
 
 theory Propositional_Cla
 imports FOL
 begin
 
-text {* commutative laws of @{text "&"} and @{text "|"} *}
+text \<open>commutative laws of @{text "&"} and @{text "|"}\<close>
 
 lemma "P & Q  -->  Q & P"
   by (tactic "IntPr.fast_tac @{context} 1")
@@ -18,7 +18,7 @@ lemma "P | Q  -->  Q | P"
   by fast
 
 
-text {* associative laws of @{text "&"} and @{text "|"} *}
+text \<open>associative laws of @{text "&"} and @{text "|"}\<close>
 lemma "(P & Q) & R  -->  P & (Q & R)"
   by fast
 
@@ -26,7 +26,7 @@ lemma "(P | Q) | R  -->  P | (Q | R)"
   by fast
 
 
-text {* distributive laws of @{text "&"} and @{text "|"} *}
+text \<open>distributive laws of @{text "&"} and @{text "|"}\<close>
 lemma "(P & Q) | R  --> (P | R) & (Q | R)"
   by fast
 
@@ -40,7 +40,7 @@ lemma "(P & R) | (Q & R)  --> (P | Q) & R"
   by fast
 
 
-text {* Laws involving implication *}
+text \<open>Laws involving implication\<close>
 
 lemma "(P-->R) & (Q-->R) <-> (P|Q --> R)"
   by fast
@@ -58,18 +58,18 @@ lemma "(P --> Q & R) <-> (P-->Q)  &  (P-->R)"
   by fast
 
 
-text {* Propositions-as-types *}
+text \<open>Propositions-as-types\<close>
 
--- {* The combinator K *}
+-- \<open>The combinator K\<close>
 lemma "P --> (Q --> P)"
   by fast
 
--- {* The combinator S *}
+-- \<open>The combinator S\<close>
 lemma "(P-->Q-->R)  --> (P-->Q) --> (P-->R)"
   by fast
 
 
--- {* Converse is classical *}
+-- \<open>Converse is classical\<close>
 lemma "(P-->Q) | (P-->R)  -->  (P --> Q | R)"
   by fast
 
@@ -77,7 +77,7 @@ lemma "(P-->Q)  -->  (~Q --> ~P)"
   by fast
 
 
-text {* Schwichtenberg's examples (via T. Nipkow) *}
+text \<open>Schwichtenberg's examples (via T. Nipkow)\<close>
 
 lemma stab_imp: "(((Q-->R)-->R)-->Q) --> (((P-->Q)-->R)-->R)-->P-->Q"
   by fast

@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-section {* Classical First-Order Logic with Proofs *}
+section \<open>Classical First-Order Logic with Proofs\<close>
 
 theory FOLP
 imports IFOLP
@@ -56,8 +56,8 @@ schematic_lemma impCE:
     and r2: "!!y. y:Q ==> g(y):R"
   shows "?p : R"
   apply (rule excluded_middle [THEN disjE])
-   apply (tactic {* DEPTH_SOLVE (assume_tac @{context} 1 ORELSE
-       resolve_tac @{context} [@{thm r1}, @{thm r2}, @{thm major} RS @{thm mp}] 1) *})
+   apply (tactic \<open>DEPTH_SOLVE (assume_tac @{context} 1 ORELSE
+       resolve_tac @{context} [@{thm r1}, @{thm r2}, @{thm major} RS @{thm mp}] 1)\<close>)
   done
 
 (*Double negation law*)
@@ -80,10 +80,10 @@ schematic_lemma iffCE:
   apply (insert major)
   apply (unfold iff_def)
   apply (rule conjE)
-  apply (tactic {* DEPTH_SOLVE_1 (eresolve_tac @{context} @{thms impCE} 1 ORELSE
+  apply (tactic \<open>DEPTH_SOLVE_1 (eresolve_tac @{context} @{thms impCE} 1 ORELSE
       eresolve_tac @{context} [@{thm notE}, @{thm impE}] 1 THEN assume_tac @{context} 1 ORELSE
       assume_tac @{context} 1 ORELSE
-      resolve_tac @{context} [@{thm r1}, @{thm r2}] 1) *})+
+      resolve_tac @{context} [@{thm r1}, @{thm r2}] 1)\<close>)+
   done
 
 
@@ -101,7 +101,7 @@ schematic_lemma swap:
 ML_file "classical.ML"      (* Patched because matching won't instantiate proof *)
 ML_file "simp.ML"           (* Patched because matching won't instantiate proof *)
 
-ML {*
+ML \<open>
 structure Cla = Classical
 (
   val sizef = size_of_thm
@@ -128,14 +128,14 @@ val FOLP_cs =
 val FOLP_dup_cs =
   prop_cs addSIs [@{thm allI}] addIs [@{thm exCI}, @{thm ex1I}]
     addSEs [@{thm exE}, @{thm ex1E}] addEs [@{thm all_dupE}];
-*}
+\<close>
 
 schematic_lemma cla_rews:
   "?p1 : P | ~P"
   "?p2 : ~P | P"
   "?p3 : ~ ~ P <-> P"
   "?p4 : (~P --> P) <-> P"
-  apply (tactic {* ALLGOALS (Cla.fast_tac @{context} FOLP_cs) *})
+  apply (tactic \<open>ALLGOALS (Cla.fast_tac @{context} FOLP_cs)\<close>)
   done
 
 ML_file "simpdata.ML"

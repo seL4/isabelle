@@ -12,7 +12,7 @@ imports FoldSet Acc
 begin
 
 abbreviation (input)
-  -- {* Short cut for multiset space *}
+  -- \<open>Short cut for multiset space\<close>
   Mult :: "i=>i" where
   "Mult(A) == A -||> nat-{0}"
 
@@ -110,7 +110,7 @@ definition
   "M <#= N == (omultiset(M) & M = N) | M <# N"
 
 
-subsection{*Properties of the original "restrict" from ZF.thy*}
+subsection\<open>Properties of the original "restrict" from ZF.thy\<close>
 
 lemma funrestrict_subset: "[| f \<in> Pi(C,B);  A\<subseteq>C |] ==> funrestrict(f,A) \<subseteq> f"
 by (auto simp add: funrestrict_def lam_def intro: apply_Pair)
@@ -142,7 +142,7 @@ declare domain_of_fun [simp]
 declare domainE [rule del]
 
 
-text{* A useful simplification rule *}
+text\<open>A useful simplification rule\<close>
 lemma multiset_fun_iff:
      "(f \<in> A -> nat-{0}) \<longleftrightarrow> f \<in> A->nat&(\<forall>a \<in> A. f`a \<in> nat & 0 < f`a)"
 apply safe
@@ -177,7 +177,7 @@ lemma multiset_iff_Mult_mset_of: "multiset(M) \<longleftrightarrow> M \<in> Mult
 by (auto simp add: Mult_iff_multiset)
 
 
-text{*The @{term multiset} operator*}
+text\<open>The @{term multiset} operator\<close>
 
 (* the empty multiset is 0 *)
 
@@ -185,7 +185,7 @@ lemma multiset_0 [simp]: "multiset(0)"
 by (auto intro: FiniteFun.intros simp add: multiset_iff_Mult_mset_of)
 
 
-text{*The @{term mset_of} operator*}
+text\<open>The @{term mset_of} operator\<close>
 
 lemma multiset_set_of_Finite [simp]: "multiset(M) ==> Finite(mset_of(M))"
 by (simp add: multiset_def mset_of_def, auto)
@@ -522,7 +522,7 @@ apply (subgoal_tac "1 \<le> n")
 apply (drule add_diff_inverse2, auto)
 done
 
-text{*Specialized for use in the proof below.*}
+text\<open>Specialized for use in the proof below.\<close>
 lemma multiset_funrestict:
      "\<lbrakk>\<forall>a\<in>A. M ` a \<in> nat \<and> 0 < M ` a; Finite(A)\<rbrakk>
       \<Longrightarrow> multiset(funrestrict(M, A - {a}))"
@@ -714,7 +714,7 @@ lemma munion_eq_conv_exist:
 by (auto simp add: Mult_iff_multiset melem_diff_single munion_eq_conv_diff)
 
 
-subsection{*Multiset Orderings*}
+subsection\<open>Multiset Orderings\<close>
 
 (* multiset on a domain A are finite functions from A to nat-{0} *)
 
@@ -735,7 +735,7 @@ lemma multirel1_iff:
 by (auto simp add: multirel1_def Mult_iff_multiset Bex_def)
 
 
-text{*Monotonicity of @{term multirel1}*}
+text\<open>Monotonicity of @{term multirel1}\<close>
 
 lemma multirel1_mono1: "A\<subseteq>B ==> multirel1(A, r)\<subseteq>multirel1(B, r)"
 apply (auto simp add: multirel1_def)
@@ -762,7 +762,7 @@ apply (rule multirel1_mono1)
 apply (rule_tac [2] multirel1_mono2, auto)
 done
 
-subsection{* Toward the proof of well-foundedness of multirel1 *}
+subsection\<open>Toward the proof of well-foundedness of multirel1\<close>
 
 lemma not_less_0 [iff]: "<M,0> \<notin> multirel1(A, r)"
 by (auto simp add: multirel1_def Mult_iff_multiset)
@@ -1134,7 +1134,7 @@ apply (blast intro: munion_multirel_mono1 multirel_trans munion_multirel_mono2)
 done
 
 
-subsection{*Ordinal Multisets*}
+subsection\<open>Ordinal Multisets\<close>
 
 (* A \<subseteq> B ==>  field(Memrel(A)) \<subseteq> field(Memrel(B)) *)
 lemmas field_Memrel_mono = Memrel_mono [THEN field_mono]

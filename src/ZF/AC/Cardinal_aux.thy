@@ -45,7 +45,7 @@ proof (rule eqpollI)
     by (simp add: Inf_Card_is_InfCard Finite_cardinal_iff NFI i) 
   have "A \<union> B \<lesssim> A + B" by (rule Un_lepoll_sum)
   also have "... \<lesssim> A \<times> B"
-    by (rule lepoll_imp_sum_lepoll_prod [OF AB [THEN eqpoll_imp_lepoll] `2 \<lesssim> A`])
+    by (rule lepoll_imp_sum_lepoll_prod [OF AB [THEN eqpoll_imp_lepoll] \<open>2 \<lesssim> A\<close>])
   also have "... \<approx> i \<times> i"
     by (blast intro: prod_eqpoll_cong eqpoll_imp_lepoll A B) 
   also have "... \<approx> i"
@@ -172,11 +172,11 @@ apply (drule Un_least_lt, assumption)
 apply (drule eqpoll_imp_lepoll [THEN lepoll_trans],
        rule le_imp_lepoll, assumption)+
 apply (case_tac "Finite(x \<union> xa)")
-txt{*finite case*}
+txt\<open>finite case\<close>
  apply (drule Finite_Un [OF lepoll_Finite lepoll_Finite], assumption+)
  apply (drule subset_Un_Diff [THEN subset_imp_lepoll, THEN lepoll_Finite])
  apply (fast dest: eqpoll_sym [THEN eqpoll_imp_lepoll, THEN lepoll_Finite])
-txt{*infinite case*}
+txt\<open>infinite case\<close>
 apply (drule Un_lepoll_Inf_Ord, (assumption+))
 apply (blast intro: le_Ord2)
 apply (drule lesspoll_trans1

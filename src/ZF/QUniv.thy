@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section{*A Small Universe for Lazy Recursive Types*}
+section\<open>A Small Universe for Lazy Recursive Types\<close>
 
 theory QUniv imports Univ QPair begin
 
@@ -24,7 +24,7 @@ definition
    "quniv(A) == Pow(univ(eclose(A)))"
 
 
-subsection{*Properties involving Transset and Sum*}
+subsection\<open>Properties involving Transset and Sum\<close>
 
 lemma Transset_includes_summands:
      "[| Transset(C); A+B \<subseteq> C |] ==> A \<subseteq> C & B \<subseteq> C"
@@ -38,7 +38,7 @@ apply (simp add: sum_def Int_Un_distrib2)
 apply (blast dest: Transset_Pair_D)
 done
 
-subsection{*Introduction and Elimination Rules*}
+subsection\<open>Introduction and Elimination Rules\<close>
 
 lemma qunivI: "X \<subseteq> univ(eclose(A)) ==> X \<in> quniv(A)"
 by (simp add: quniv_def)
@@ -51,7 +51,7 @@ apply (unfold quniv_def)
 apply (erule eclose_mono [THEN univ_mono, THEN Pow_mono])
 done
 
-subsection{*Closure Properties*}
+subsection\<open>Closure Properties\<close>
 
 lemma univ_eclose_subset_quniv: "univ(eclose(A)) \<subseteq> quniv(A)"
 apply (simp add: quniv_def Transset_iff_Pow [symmetric])
@@ -89,7 +89,7 @@ lemma QPair_subset_univ:
     "[| a \<subseteq> univ(A);  b \<subseteq> univ(A) |] ==> <a;b> \<subseteq> univ(A)"
 by (simp add: QPair_def sum_subset_univ)
 
-subsection{*Quine Disjoint Sum*}
+subsection\<open>Quine Disjoint Sum\<close>
 
 lemma QInl_subset_univ: "a \<subseteq> univ(A) ==> QInl(a) \<subseteq> univ(A)"
 apply (unfold QInl_def)
@@ -107,7 +107,7 @@ apply (unfold QInr_def)
 apply (erule nat_1I [THEN naturals_subset_univ, THEN QPair_subset_univ])
 done
 
-subsection{*Closure for Quine-Inspired Products and Sums*}
+subsection\<open>Closure for Quine-Inspired Products and Sums\<close>
 
 (*Quine ordered pairs*)
 lemma QPair_in_quniv:
@@ -134,7 +134,7 @@ lemma quniv_QPair_iff: "<a;b> \<in> quniv(A) \<longleftrightarrow> a: quniv(A) &
 by (blast intro: QPair_in_quniv dest: quniv_QPair_D)
 
 
-subsection{*Quine Disjoint Sum*}
+subsection\<open>Quine Disjoint Sum\<close>
 
 lemma QInl_in_quniv: "a: quniv(A) ==> QInl(a) \<in> quniv(A)"
 by (simp add: QInl_def zero_in_quniv QPair_in_quniv)
@@ -148,7 +148,7 @@ by (blast intro: QInl_in_quniv QInr_in_quniv)
 lemmas qsum_subset_quniv = subset_trans [OF qsum_mono qsum_quniv]
 
 
-subsection{*The Natural Numbers*}
+subsection\<open>The Natural Numbers\<close>
 
 lemmas nat_subset_quniv =  subset_trans [OF nat_subset_univ univ_subset_quniv]
 
@@ -169,7 +169,7 @@ by (simp add: QPair_def sum_def Int_Un_distrib2 Un_mono
               product_Int_Vfrom_subset [THEN subset_trans]
               Sigma_mono [OF Int_lower1 subset_refl])
 
-subsection{*"Take-Lemma" Rules*}
+subsection\<open>"Take-Lemma" Rules\<close>
 
 (*for proving a=b by coinduction and c: quniv(A)*)
 

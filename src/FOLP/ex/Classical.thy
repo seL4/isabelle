@@ -288,7 +288,7 @@ schematic_lemma
 text "Problem 58  NOT PROVED AUTOMATICALLY"
 schematic_lemma "?p : (ALL x y. f(x)=g(y)) --> (ALL x y. f(f(x))=f(g(y)))"
   supply f_cong = subst_context [where t = f]
-  by (tactic {* fast_tac @{context} (FOLP_cs addSIs [@{thm f_cong}]) 1 *})
+  by (tactic \<open>fast_tac @{context} (FOLP_cs addSIs [@{thm f_cong}]) 1\<close>)
 
 text "Problem 59"
 schematic_lemma "?p : (ALL x. P(x) <-> ~P(f(x))) --> (EX x. P(x) & ~P(f(x)))"

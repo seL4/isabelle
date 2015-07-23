@@ -5,13 +5,13 @@
 Derives some inference rules, illustrating the use of definitions.
 *)
 
-section {* Examples for the manual ``Introduction to Isabelle'' *}
+section \<open>Examples for the manual ``Introduction to Isabelle''\<close>
 
 theory Intro
 imports FOLP
 begin
 
-subsubsection {* Some simple backward proofs *}
+subsubsection \<open>Some simple backward proofs\<close>
 
 schematic_lemma mythm: "?p : P|P --> P"
 apply (rule impI)
@@ -41,21 +41,21 @@ apply assumption
 done
 
 
-subsubsection {* Demonstration of @{text "fast"} *}
+subsubsection \<open>Demonstration of @{text "fast"}\<close>
 
 schematic_lemma "?p : (EX y. ALL x. J(y,x) <-> ~J(x,x))
         -->  ~ (ALL x. EX y. ALL z. J(z,y) <-> ~ J(z,x))"
-apply (tactic {* fast_tac @{context} FOLP_cs 1 *})
+apply (tactic \<open>fast_tac @{context} FOLP_cs 1\<close>)
 done
 
 
 schematic_lemma "?p : ALL x. P(x,f(x)) <->
         (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))"
-apply (tactic {* fast_tac @{context} FOLP_cs 1 *})
+apply (tactic \<open>fast_tac @{context} FOLP_cs 1\<close>)
 done
 
 
-subsubsection {* Derivation of conjunction elimination rule *}
+subsubsection \<open>Derivation of conjunction elimination rule\<close>
 
 schematic_lemma
   assumes major: "p : P&Q"
@@ -67,9 +67,9 @@ apply (rule major [THEN conjunct2])
 done
 
 
-subsection {* Derived rules involving definitions *}
+subsection \<open>Derived rules involving definitions\<close>
 
-text {* Derivation of negation introduction *}
+text \<open>Derivation of negation introduction\<close>
 
 schematic_lemma
   assumes "!!x. x : P ==> f(x) : False"
@@ -90,7 +90,7 @@ apply (rule major [unfolded not_def])
 apply (rule minor)
 done
 
-text {* Alternative proof of the result above *}
+text \<open>Alternative proof of the result above\<close>
 schematic_lemma
   assumes major: "p : ~P"
     and minor: "q : P"

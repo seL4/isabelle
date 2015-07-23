@@ -17,7 +17,7 @@ apply (rule sym)
 apply (fast intro: LeastI Ord_in_Ord) 
 done
 
-text{*Trivial in the presence of AC, but here we need a wellordering of X*}
+text\<open>Trivial in the presence of AC, but here we need a wellordering of X\<close>
 lemma image_Ord_lepoll: "[| f \<in> X->Y; Ord(X) |] ==> f``X \<lesssim> X"
 apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>x \<in> f``X. LEAST y. f`y = x" in exI)

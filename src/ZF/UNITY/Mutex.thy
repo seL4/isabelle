@@ -9,17 +9,17 @@ reduces to the usual ZF typechecking \<in> an ill-tyed expression will
 reduce to the empty set.
 *)
 
-section{*Mutual Exclusion*}
+section\<open>Mutual Exclusion\<close>
 
 theory Mutex
 imports SubstAx
 begin
 
-text{*Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
+text\<open>Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 
 Variables' types are introduced globally so that type verification reduces to
 the usual ZF typechecking: an ill-tyed expressions reduce to the empty set.
-*}
+\<close>
 
 abbreviation "p == Var([0])"
 abbreviation "m == Var([1])"
@@ -27,7 +27,7 @@ abbreviation "n == Var([0,0])"
 abbreviation "u == Var([0,1])"
 abbreviation "v == Var([1,0])"
 
-axiomatization where --{** Type declarations  **}
+axiomatization where --\<open>* Type declarations  *\<close>
   p_type:  "type_of(p)=bool & default_val(p)=0" and
   m_type:  "type_of(m)=int  & default_val(m)=#0" and
   n_type:  "type_of(n)=int  & default_val(n)=#0" and
@@ -126,7 +126,7 @@ declare p_value_type [TC] u_value_type [TC] v_value_type [TC]
 
 
 
-text{*Mutex is a program*}
+text\<open>Mutex is a program\<close>
 
 lemma Mutex_in_program [simp,TC]: "Mutex \<in> program"
 by (simp add: Mutex_def)

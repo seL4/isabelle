@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-section {* Greatest fixed points *}
+section \<open>Greatest fixed points\<close>
 
 theory Gfp
 imports Lfp
@@ -90,7 +90,7 @@ lemma coinduct3:
   done
 
 
-subsection {* Definition forms of @{text "gfp_Tarski"}, to control unfolding *}
+subsection \<open>Definition forms of @{text "gfp_Tarski"}, to control unfolding\<close>
 
 lemma def_gfp_Tarski: "\<lbrakk>h == gfp(f); mono(f)\<rbrakk> \<Longrightarrow> h = f(h)"
   apply unfold

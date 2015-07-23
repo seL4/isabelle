@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-section {* Theory of the natural numbers: Peano's axioms, primitive recursion *}
+section \<open>Theory of the natural numbers: Peano's axioms, primitive recursion\<close>
 
 theory Nat
 imports FOL
@@ -27,7 +27,7 @@ definition add :: "[nat, nat] => nat"  (infixl "+" 60)
   where "m + n == rec(m, n, %x y. Suc(y))"
 
 
-subsection {* Proofs about the natural numbers *}
+subsection \<open>Proofs about the natural numbers\<close>
 
 lemma Suc_n_not_n: "Suc(k) ~= k"
 apply (rule_tac n = k in induct)

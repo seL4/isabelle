@@ -3,7 +3,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-section{*Weak Safety Properties*}
+section\<open>Weak Safety Properties\<close>
 
 theory Constrains
 imports UNITY
@@ -457,7 +457,7 @@ lemmas Always_thin = thin_rl [of "F \<in> Always(A)"]
 named_theorems program "program definitions"
 
 ML
-{*
+\<open>
 (*Combines two invariance ASSUMPTIONS into one.  USEFUL??*)
 fun Always_Int_tac ctxt =
   dresolve_tac ctxt @{thms Always_Int_I} THEN'
@@ -494,14 +494,14 @@ fun always_tac ctxt i =
   resolve_tac ctxt @{thms AlwaysI} i THEN
   force_tac ctxt i
   THEN constrains_tac ctxt i;
-*}
+\<close>
 
-method_setup safety = {*
-  Scan.succeed (SIMPLE_METHOD' o constrains_tac) *}
+method_setup safety = \<open>
+  Scan.succeed (SIMPLE_METHOD' o constrains_tac)\<close>
   "for proving safety properties"
 
-method_setup always = {*
-  Scan.succeed (SIMPLE_METHOD' o always_tac) *}
+method_setup always = \<open>
+  Scan.succeed (SIMPLE_METHOD' o always_tac)\<close>
   "for proving invariants"
 
 end

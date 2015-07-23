@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-section{*Infinite-Branching Datatype Definitions*}
+section\<open>Infinite-Branching Datatype Definitions\<close>
 
 theory InfDatatype imports Datatype_ZF Univ Finite Cardinal_AC begin
 
@@ -70,7 +70,7 @@ lemma fun_in_Vcsucc:
        ==> f: Vfrom(A,csucc(K))"
 by (blast intro: fun_Vcsucc [THEN subsetD])
 
-text{*Remove @{text "\<subseteq>"} from the rule above*}
+text\<open>Remove @{text "\<subseteq>"} from the rule above\<close>
 lemmas fun_in_Vcsucc' = fun_in_Vcsucc [OF _ _ _ subsetI]
 
 (** Version where K itself is the index set **)

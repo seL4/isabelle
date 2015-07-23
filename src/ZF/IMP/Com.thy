@@ -2,12 +2,12 @@
     Author:     Heiko Loetzbeyer and Robert Sandner, TU München
 *)
 
-section {* Arithmetic expressions, boolean expressions, commands *}
+section \<open>Arithmetic expressions, boolean expressions, commands\<close>
 
 theory Com imports Main begin
 
 
-subsection {* Arithmetic expressions *}
+subsection \<open>Arithmetic expressions\<close>
 
 consts
   loc :: i
@@ -37,7 +37,7 @@ inductive
   type_intros aexp.intros apply_funtype
 
 
-subsection {* Boolean expressions *}
+subsection \<open>Boolean expressions\<close>
 
 consts bexp :: i
 
@@ -73,7 +73,7 @@ inductive
   type_elims   evala.dom_subset [THEN subsetD, elim_format]
 
 
-subsection {* Commands *}
+subsection \<open>Commands\<close>
 
 consts com :: i
 datatype com =
@@ -121,7 +121,7 @@ inductive
                evalb.dom_subset [THEN subsetD, elim_format]
 
 
-subsection {* Misc lemmas *}
+subsection \<open>Misc lemmas\<close>
 
 lemmas evala_1 [simp] = evala.dom_subset [THEN subsetD, THEN SigmaD1, THEN SigmaD1]
   and evala_2 [simp] = evala.dom_subset [THEN subsetD, THEN SigmaD1, THEN SigmaD2]

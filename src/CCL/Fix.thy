@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Tentative attempt at including fixed point induction; justified by Smith *}
+section \<open>Tentative attempt at including fixed point induction; justified by Smith\<close>
 
 theory Fix
 imports Type
@@ -18,7 +18,7 @@ axiomatization INCL :: "[i\<Rightarrow>o]\<Rightarrow>o" where
   INCL_subst: "INCL(P) \<Longrightarrow> INCL(\<lambda>x. P((g::i\<Rightarrow>i)(x)))"
 
 
-subsection {* Fixed Point Induction *}
+subsection \<open>Fixed Point Induction\<close>
 
 lemma fix_ind:
   assumes base: "P(bot)"
@@ -33,7 +33,7 @@ lemma fix_ind:
   done
 
 
-subsection {* Inclusive Predicates *}
+subsection \<open>Inclusive Predicates\<close>
 
 lemma inclXH: "INCL(P) \<longleftrightarrow> (ALL f. (ALL n:Nat. P(f ^ n ` bot)) \<longrightarrow> P(fix(f)))"
   by (simp add: INCL_def)
@@ -48,7 +48,7 @@ lemma inclE: "\<lbrakk>INCL(P); (ALL n:Nat. P(f^n`bot)) \<longrightarrow> P(fix(
   by (blast dest: inclD)
 
 
-subsection {* Lemmas for Inclusive Predicates *}
+subsection \<open>Lemmas for Inclusive Predicates\<close>
 
 lemma npo_INCL: "INCL(\<lambda>x. \<not> a(x) [= t)"
   apply (rule inclI)
@@ -77,7 +77,7 @@ lemma eq_INCL: "INCL(\<lambda>x. a(x) = (b(x)::'a::prog))"
   done
 
 
-subsection {* Derivation of Reachability Condition *}
+subsection \<open>Derivation of Reachability Condition\<close>
 
 (* Fixed points of idgen *)
 

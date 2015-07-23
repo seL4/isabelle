@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-section{*Lists in Zermelo-Fraenkel Set Theory*}
+section\<open>Lists in Zermelo-Fraenkel Set Theory\<close>
 
 theory List_ZF imports Datatype_ZF ArithSimp begin
 
@@ -98,8 +98,8 @@ definition
 
 definition
   nth :: "[i, i]=>i"  where
-  --{*returns the (n+1)th element of a list, or 0 if the
-   list is too short.*}
+  --\<open>returns the (n+1)th element of a list, or 0 if the
+   list is too short.\<close>
   "nth(n, as) == list_rec(\<lambda>n\<in>nat. 0,
                           %a l r. \<lambda>n\<in>nat. nat_case(a, %m. r`m, n), as) ` n"
 
@@ -610,7 +610,7 @@ apply (erule list.induct)
  apply clarify
  apply (erule list.cases)
  apply simp_all
-txt{*Inductive step*}
+txt\<open>Inductive step\<close>
 apply clarify
 apply (erule_tac a=ys in list.cases, simp_all)
 done
@@ -838,9 +838,9 @@ apply (induct_tac "l", safe, simp_all)
 apply (erule natE, simp_all)
 done
 
-subsection{*The function zip*}
+subsection\<open>The function zip\<close>
 
-text{*Crafty definition to eliminate a type argument*}
+text\<open>Crafty definition to eliminate a type argument\<close>
 
 consts
   zip_aux        :: "[i,i]=>i"
@@ -1227,7 +1227,7 @@ apply (erule list.induct)
 apply (simp_all add: sublist_Cons)
 done
 
-text{*Repetition of a List Element*}
+text\<open>Repetition of a List Element\<close>
 
 consts   repeat :: "[i,i]=>i"
 primrec

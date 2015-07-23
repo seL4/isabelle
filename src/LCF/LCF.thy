@@ -3,15 +3,15 @@
     Copyright   1992  University of Cambridge
 *)
 
-section {* LCF on top of First-Order Logic *}
+section \<open>LCF on top of First-Order Logic\<close>
 
 theory LCF
 imports "~~/src/FOL/FOL"
 begin
 
-text {* This theory is based on Lawrence Paulson's book Logic and Computation. *}
+text \<open>This theory is based on Lawrence Paulson's book Logic and Computation.\<close>
 
-subsection {* Natural Deduction Rules for LCF *}
+subsection \<open>Natural Deduction Rules for LCF\<close>
 
 class cpo = "term"
 default_sort cpo
@@ -245,7 +245,7 @@ lemmas [simp] =
   surj_pairing FST SND
 
 
-subsection {* Ordered pairs and products *}
+subsection \<open>Ordered pairs and products\<close>
 
 lemma expand_all_PROD: "(\<forall>p. P(p)) \<longleftrightarrow> (\<forall>x y. P(<x,y>))"
   apply (rule iffI)
@@ -293,7 +293,7 @@ lemma SND_STRICT [simp]: "SND(UU) = UU"
   done
 
 
-subsection {* Fixedpoint theory *}
+subsection \<open>Fixedpoint theory\<close>
 
 lemma adm_eq: "adm(\<lambda>x. t(x)=(u(x)::'a::cpo))"
   apply (unfold eq_def)
@@ -318,12 +318,12 @@ lemmas adm_lemmas =
   adm_not_free adm_eq adm_less adm_not_less
   adm_not_eq_tr adm_conj adm_disj adm_imp adm_all
 
-method_setup induct = {*
+method_setup induct = \<open>
   Scan.lift Args.name_inner_syntax >> (fn v => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       Rule_Insts.res_inst_tac ctxt [((("f", 0), Position.none), v)] [] @{thm induct} i THEN
       REPEAT (resolve_tac ctxt @{thms adm_lemmas} i)))
-*}
+\<close>
 
 lemma least_FIX: "f(p) = p \<Longrightarrow> FIX(f) << p"
   apply (induct f)
@@ -378,11 +378,11 @@ lemma induct2:
   apply (rule 3)
   done
 
-ML {*
+ML \<open>
 fun induct2_tac ctxt (f, g) i =
   Rule_Insts.res_inst_tac ctxt
     [((("f", 0), Position.none), f), ((("g", 0), Position.none), g)] [] @{thm induct2} i THEN
   REPEAT(resolve_tac ctxt @{thms adm_lemmas} i)
-*}
+\<close>
 
 end

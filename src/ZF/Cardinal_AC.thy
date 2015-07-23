@@ -5,18 +5,18 @@
 These results help justify infinite-branching datatypes
 *)
 
-section{*Cardinal Arithmetic Using AC*}
+section\<open>Cardinal Arithmetic Using AC\<close>
 
 theory Cardinal_AC imports CardinalArith Zorn begin
 
-subsection{*Strengthened Forms of Existing Theorems on Cardinals*}
+subsection\<open>Strengthened Forms of Existing Theorems on Cardinals\<close>
 
 lemma cardinal_eqpoll: "|A| \<approx> A"
 apply (rule AC_well_ord [THEN exE])
 apply (erule well_ord_cardinal_eqpoll)
 done
 
-text{*The theorem @{term "||A|| = |A|"} *}
+text\<open>The theorem @{term "||A|| = |A|"}\<close>
 lemmas cardinal_idem = cardinal_eqpoll [THEN cardinal_cong, simp]
 
 lemma cardinal_eqE: "|X| = |Y| ==> X \<approx> Y"
@@ -65,7 +65,7 @@ apply (erule well_ord_InfCard_square_eq, assumption)
 done
 
 
-subsection {*The relationship between cardinality and le-pollence*}
+subsection \<open>The relationship between cardinality and le-pollence\<close>
 
 lemma Card_le_imp_lepoll:
   assumes "|A| \<le> |B|" shows "A \<lesssim> B"
@@ -113,7 +113,7 @@ lemma cardinal_le_imp_lepoll: " i \<le> |A| ==> i \<lesssim> A"
   by (blast intro: lt_Ord Card_le_imp_lepoll Ord_cardinal_le le_trans)
 
 
-subsection{*Other Applications of AC*}
+subsection\<open>Other Applications of AC\<close>
 
 lemma surj_implies_inj:
   assumes f: "f \<in> surj(X,Y)" shows "\<exists>g. g \<in> inj(Y,X)"
@@ -129,7 +129,7 @@ proof -
     qed
 qed
 
-text{*Kunen's Lemma 10.20*}
+text\<open>Kunen's Lemma 10.20\<close>
 lemma surj_implies_cardinal_le: 
   assumes f: "f \<in> surj(X,Y)" shows "|Y| \<le> |X|"
 proof (rule lepoll_imp_Card_le)
@@ -138,7 +138,7 @@ proof (rule lepoll_imp_Card_le)
     by (auto simp add: lepoll_def)
 qed
 
-text{*Kunen's Lemma 10.21*}
+text\<open>Kunen's Lemma 10.21\<close>
 lemma cardinal_UN_le:
   assumes K: "InfCard(K)" 
   shows "(!!i. i\<in>K ==> |X(i)| \<le> K) ==> |\<Union>i\<in>K. X(i)| \<le> K"
@@ -171,14 +171,14 @@ proof (simp add: K InfCard_is_Card le_Card_iff)
   finally show "(\<Union>i\<in>K. X(i)) \<lesssim> K" .
 qed
 
-text{*The same again, using @{term csucc}*}
+text\<open>The same again, using @{term csucc}\<close>
 lemma cardinal_UN_lt_csucc:
      "[| InfCard(K);  \<And>i. i\<in>K \<Longrightarrow> |X(i)| < csucc(K) |]
       ==> |\<Union>i\<in>K. X(i)| < csucc(K)"
 by (simp add: Card_lt_csucc_iff cardinal_UN_le InfCard_is_Card Card_cardinal)
 
-text{*The same again, for a union of ordinals.  In use, j(i) is a bit like rank(i),
-  the least ordinal j such that i:Vfrom(A,j). *}
+text\<open>The same again, for a union of ordinals.  In use, j(i) is a bit like rank(i),
+  the least ordinal j such that i:Vfrom(A,j).\<close>
 lemma cardinal_UN_Ord_lt_csucc:
      "[| InfCard(K);  \<And>i. i\<in>K \<Longrightarrow> j(i) < csucc(K) |]
       ==> (\<Union>i\<in>K. j(i)) < csucc(K)"
@@ -189,11 +189,11 @@ apply (erule InfCard_is_Card [THEN Card_is_Ord, THEN Card_csucc])
 done
 
 
-subsection{*The Main Result for Infinite-Branching Datatypes*}
+subsection\<open>The Main Result for Infinite-Branching Datatypes\<close>
 
-text{*As above, but the index set need not be a cardinal. Work
+text\<open>As above, but the index set need not be a cardinal. Work
 backwards along the injection from @{term W} into @{term K}, given
-that @{term"W\<noteq>0"}.*}
+that @{term"W\<noteq>0"}.\<close>
 
 lemma inj_UN_subset:
   assumes f: "f \<in> inj(A,B)" and a: "a \<in> A"
@@ -222,7 +222,7 @@ proof -
   note lt_subset_trans [OF _ _ OU, trans]
   show ?thesis
     proof (cases "W=0")
-      case True  --{*solve the easy 0 case*}
+      case True  --\<open>solve the easy 0 case\<close>
       thus ?thesis by (simp add: CK Card_is_Ord Card_csucc Ord_0_lt_csucc)
     next
       case False

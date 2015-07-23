@@ -3,11 +3,11 @@
     Copyright   1993  University of Cambridge
 *)
 
-section{*Disjoint Sums*}
+section\<open>Disjoint Sums\<close>
 
 theory Sum imports Bool equalities begin
 
-text{*And the "Part" primitive for simultaneous recursive type definitions*}
+text\<open>And the "Part" primitive for simultaneous recursive type definitions\<close>
 
 definition sum :: "[i,i]=>i" (infixr "+" 65) where
      "A+B == {0}*A \<union> {1}*B"
@@ -25,7 +25,7 @@ definition "case" :: "[i=>i, i=>i, i]=>i" where
 definition Part :: "[i,i=>i] => i" where
      "Part(A,h) == {x \<in> A. \<exists>z. x = h(z)}"
 
-subsection{*Rules for the @{term Part} Primitive*}
+subsection\<open>Rules for the @{term Part} Primitive\<close>
 
 lemma Part_iff:
     "a \<in> Part(A,h) \<longleftrightarrow> a \<in> A & (\<exists>y. a=h(y))"
@@ -51,7 +51,7 @@ apply (rule Collect_subset)
 done
 
 
-subsection{*Rules for Disjoint Sums*}
+subsection\<open>Rules for Disjoint Sums\<close>
 
 lemmas sum_defs = sum_def Inl_def Inr_def case_def
 
@@ -125,7 +125,7 @@ lemma sum_eq_2_times: "A+A = 2*A"
 by (simp add: sum_def, blast)
 
 
-subsection{*The Eliminator: @{term case}*}
+subsection\<open>The Eliminator: @{term case}\<close>
 
 lemma case_Inl [simp]: "case(c, d, Inl(a)) = c(a)"
 by (simp add: sum_defs)
@@ -159,7 +159,7 @@ lemma case_case: "z \<in> A+B ==>
 by auto
 
 
-subsection{*More Rules for @{term "Part(A,h)"}*}
+subsection\<open>More Rules for @{term "Part(A,h)"}\<close>
 
 lemma Part_mono: "A<=B ==> Part(A,h)<=Part(B,h)"
 by blast

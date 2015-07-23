@@ -18,7 +18,7 @@ apply (rule conjunct1)
 apply assumption
 done
 
-text {*A form of conj-elimination*}
+text \<open>A form of conj-elimination\<close>
 lemma
   assumes "A & B"
     and "A ==> B ==> C"
@@ -99,7 +99,7 @@ apply (rule allI)
 apply (rule refl)?
 oops
 
-text {* Parallel lifting example. *}
+text \<open>Parallel lifting example.\<close>
 lemma "EX u. ALL x. EX v. ALL y. EX w. P(u,x,v,y,w)"
 apply (rule exI allI)
 apply (rule exI allI)
@@ -121,7 +121,7 @@ apply assumption
 apply assumption
 done
 
-text {* A bigger demonstration of quantifiers -- not in the paper. *}
+text \<open>A bigger demonstration of quantifiers -- not in the paper.\<close>
 lemma "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))"
 apply (rule impI)
 apply (rule allI)

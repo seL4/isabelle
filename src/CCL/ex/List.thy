@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Programs defined over lists *}
+section \<open>Programs defined over lists\<close>
 
 theory List
 imports Nat

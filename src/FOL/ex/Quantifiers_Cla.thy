@@ -3,7 +3,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-section {* First-Order Logic: quantifier examples (classical version) *}
+section \<open>First-Order Logic: quantifier examples (classical version)\<close>
 
 theory Quantifiers_Cla
 imports FOL
@@ -16,7 +16,7 @@ lemma "(EX x y. P(x,y)) --> (EX y x. P(x,y))"
   by fast
 
 
--- {* Converse is false *}
+-- \<open>Converse is false\<close>
 lemma "(ALL x. P(x)) | (ALL x. Q(x)) --> (ALL x. P(x) | Q(x))"
   by fast
 
@@ -28,19 +28,19 @@ lemma "(ALL x. P(x)-->Q)  <->  ((EX x. P(x)) --> Q)"
   by fast
 
 
-text {* Some harder ones *}
+text \<open>Some harder ones\<close>
 
 lemma "(EX x. P(x) | Q(x)) <-> (EX x. P(x)) | (EX x. Q(x))"
   by fast
 
--- {* Converse is false *}
+-- \<open>Converse is false\<close>
 lemma "(EX x. P(x)&Q(x)) --> (EX x. P(x))  &  (EX x. Q(x))"
   by fast
 
 
-text {* Basic test of quantifier reasoning *}
+text \<open>Basic test of quantifier reasoning\<close>
 
--- {* TRUE *}
+-- \<open>TRUE\<close>
 lemma "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))"
   by fast
 
@@ -48,7 +48,7 @@ lemma "(ALL x. Q(x))  -->  (EX x. Q(x))"
   by fast
 
 
-text {* The following should fail, as they are false! *}
+text \<open>The following should fail, as they are false!\<close>
 
 lemma "(ALL x. EX y. Q(x,y))  -->  (EX y. ALL x. Q(x,y))"
   apply fast?
@@ -67,12 +67,12 @@ schematic_lemma "(P(?a) --> (ALL x. Q(x))) --> (ALL x. P(x) --> Q(x))"
   oops
 
 
-text {* Back to things that are provable \dots *}
+text \<open>Back to things that are provable \dots\<close>
 
 lemma "(ALL x. P(x)-->Q(x)) & (EX x. P(x)) --> (EX x. Q(x))"
   by fast
 
--- {* An example of why exI should be delayed as long as possible *}
+-- \<open>An example of why exI should be delayed as long as possible\<close>
 lemma "(P --> (EX x. Q(x))) & P --> (EX x. Q(x))"
   by fast
 
@@ -83,9 +83,9 @@ lemma "(ALL x. Q(x))  -->  (EX x. Q(x))"
   by fast
 
 
-text {* Some slow ones *}
+text \<open>Some slow ones\<close>
 
--- {* Principia Mathematica *11.53 *}
+-- \<open>Principia Mathematica *11.53\<close>
 lemma "(ALL x y. P(x) --> Q(y)) <-> ((EX x. P(x)) --> (ALL y. Q(y)))"
   by fast
 

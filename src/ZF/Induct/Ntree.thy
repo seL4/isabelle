@@ -3,14 +3,14 @@
     Copyright   1994  University of Cambridge
 *)
 
-section {* Datatype definition n-ary branching trees *}
+section \<open>Datatype definition n-ary branching trees\<close>
 
 theory Ntree imports Main begin
 
-text {*
+text \<open>
   Demonstrates a simple use of function space in a datatype
   definition.  Based upon theory @{text Term}.
-*}
+\<close>
 
 consts
   ntree :: "i => i"
@@ -18,12 +18,12 @@ consts
   maptree2 :: "[i, i] => i"
 
 datatype "ntree(A)" = Branch ("a \<in> A", "h \<in> (\<Union>n \<in> nat. n -> ntree(A))")
-  monos UN_mono [OF subset_refl Pi_mono]  -- {* MUST have this form *}
+  monos UN_mono [OF subset_refl Pi_mono]  -- \<open>MUST have this form\<close>
   type_intros nat_fun_univ [THEN subsetD]
   type_elims UN_E
 
 datatype "maptree(A)" = Sons ("a \<in> A", "h \<in> maptree(A) -||> maptree(A)")
-  monos FiniteFun_mono1  -- {* Use monotonicity in BOTH args *}
+  monos FiniteFun_mono1  -- \<open>Use monotonicity in BOTH args\<close>
   type_intros FiniteFun_univ1 [THEN subsetD]
 
 datatype "maptree2(A, B)" = Sons2 ("a \<in> A", "h \<in> B -||> maptree2(A, B)")
@@ -40,9 +40,9 @@ definition
   "ntree_copy(z) == ntree_rec(\<lambda>x h r. Branch(x,r), z)"
 
 
-text {*
+text \<open>
   \medskip @{text ntree}
-*}
+\<close>
 
 lemma ntree_unfold: "ntree(A) = A \<times> (\<Union>n \<in> nat. n -> ntree(A))"
   by (blast intro: ntree.intros [unfolded ntree.con_defs]
@@ -53,7 +53,7 @@ lemma ntree_induct [consumes 1, case_names Branch, induct set: ntree]:
     and step: "!!x n h. [| x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  \<forall>i \<in> n. P(h`i)
       |] ==> P(Branch(x,h))"
   shows "P(t)"
-  -- {* A nicer induction rule than the standard one. *}
+  -- \<open>A nicer induction rule than the standard one.\<close>
   using t
   apply induct
   apply (erule UN_E)
@@ -69,7 +69,7 @@ lemma ntree_induct_eqn [consumes 1]:
     and step: "!!x n h. [| x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  f O h = g O h |] ==>
       f ` Branch(x,h) = g ` Branch(x,h)"
   shows "f`t=g`t"
-  -- {* Induction on @{term "ntree(A)"} to prove an equation *}
+  -- \<open>Induction on @{term "ntree(A)"} to prove an equation\<close>
   using t
   apply induct
   apply (assumption | rule step)+
@@ -79,10 +79,10 @@ lemma ntree_induct_eqn [consumes 1]:
   apply (simp add: comp_fun_apply)
   done
 
-text {*
+text \<open>
   \medskip Lemmas to justify using @{text Ntree} in other recursive
   type definitions.
-*}
+\<close>
 
 lemma ntree_mono: "A \<subseteq> B ==> ntree(A) \<subseteq> ntree(B)"
   apply (unfold ntree.defs)
@@ -92,7 +92,7 @@ lemma ntree_mono: "A \<subseteq> B ==> ntree(A) \<subseteq> ntree(B)"
   done
 
 lemma ntree_univ: "ntree(univ(A)) \<subseteq> univ(A)"
-  -- {* Easily provable by induction also *}
+  -- \<open>Easily provable by induction also\<close>
   apply (unfold ntree.defs ntree.con_defs)
   apply (rule lfp_lowerbound)
    apply (rule_tac [2] A_subset_univ [THEN univ_mono])
@@ -103,9 +103,9 @@ lemma ntree_subset_univ: "A \<subseteq> univ(B) ==> ntree(A) \<subseteq> univ(B)
   by (rule subset_trans [OF ntree_mono ntree_univ])
 
 
-text {*
+text \<open>
   \medskip @{text ntree} recursion.
-*}
+\<close>
 
 lemma ntree_rec_Branch:
     "function(h) ==>
@@ -124,9 +124,9 @@ lemma ntree_copy_is_ident: "z \<in> ntree(A) ==> ntree_copy(z) = z"
     (auto simp add: domain_of_fun Pi_Collect_iff fun_is_function)
 
 
-text {*
+text \<open>
   \medskip @{text maptree}
-*}
+\<close>
 
 lemma maptree_unfold: "maptree(A) = A \<times> (maptree(A) -||> maptree(A))"
   by (fast intro!: maptree.intros [unfolded maptree.con_defs]
@@ -138,7 +138,7 @@ lemma maptree_induct [consumes 1, induct set: maptree]:
                   \<forall>y \<in> field(h). P(y)
                |] ==> P(Sons(x,h))"
   shows "P(t)"
-  -- {* A nicer induction rule than the standard one. *}
+  -- \<open>A nicer induction rule than the standard one.\<close>
   using t
   apply induct
   apply (assumption | rule step)+
@@ -149,9 +149,9 @@ lemma maptree_induct [consumes 1, induct set: maptree]:
   done
 
 
-text {*
+text \<open>
   \medskip @{text maptree2}
-*}
+\<close>
 
 lemma maptree2_unfold: "maptree2(A, B) = A \<times> (B -||> maptree2(A, B))"
   by (fast intro!: maptree2.intros [unfolded maptree2.con_defs]

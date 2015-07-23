@@ -3,7 +3,7 @@
     Copyright   2001  University of Cambridge
 *)
 
-section{*Common declarations for Chandy and Charpentier's Allocator*}
+section\<open>Common declarations for Chandy and Charpentier's Allocator\<close>
 
 theory AllocBase imports Follows MultisetSum Guar begin
 
@@ -19,7 +19,7 @@ where
   NbT_pos: "NbT \<in> nat-{0}" and
   Nclients_pos: "Nclients \<in> nat-{0}"
   
-text{*This function merely sums the elements of a list*}
+text\<open>This function merely sums the elements of a list\<close>
 consts tokens :: "i =>i"
        item :: i (* Items to be merged/distributed *)
 primrec 
@@ -32,8 +32,8 @@ primrec
   "bag_of(Cons(x,xs)) = {#x#} +# bag_of(xs)"
 
 
-text{*Definitions needed in Client.thy.  We define a recursive predicate
-using 0 and 1 to code the truth values.*}
+text\<open>Definitions needed in Client.thy.  We define a recursive predicate
+using 0 and 1 to code the truth values.\<close>
 consts all_distinct0 :: "i=>i"
 primrec
   "all_distinct0(Nil) = 1"
@@ -45,14 +45,14 @@ definition
    "all_distinct(l) == all_distinct0(l)=1"
   
 definition  
-  state_of :: "i =>i" --{* coersion from anyting to state *}  where
+  state_of :: "i =>i" --\<open>coersion from anyting to state\<close>  where
    "state_of(s) == if s \<in> state then s else st0"
 
 definition
-  lift :: "i =>(i=>i)" --{* simplifies the expression of programs*}  where
+  lift :: "i =>(i=>i)" --\<open>simplifies the expression of programs\<close>  where
    "lift(x) == %s. s`x"
 
-text{* function to show that the set of variables is infinite *}
+text\<open>function to show that the set of variables is infinite\<close>
 consts
   nat_list_inj :: "i=>i"
   var_inj      :: "i=>i"
@@ -69,7 +69,7 @@ definition
   "nat_var_inj(n) == Var(nat_list_inj(n))"
 
 
-subsection{*Various simple lemmas*}
+subsection\<open>Various simple lemmas\<close>
 
 lemma Nclients_NbT_gt_0 [simp]: "0 < Nclients & 0 < NbT"
 apply (cut_tac Nclients_pos NbT_pos)
@@ -127,7 +127,7 @@ lemma tokens_append [simp]:
 apply (induct_tac "xs", auto)
 done
 
-subsection{*The function @{term bag_of}*}
+subsection\<open>The function @{term bag_of}\<close>
 
 lemma bag_of_type [simp,TC]: "l\<in>list(A) ==>bag_of(l)\<in>Mult(A)"
 apply (induct_tac "l")
@@ -168,7 +168,7 @@ lemma mono_bag_of [simp]:
 by (auto simp add:  mono1_def bag_of_type)
 
 
-subsection{*The function @{term msetsum}*}
+subsection\<open>The function @{term msetsum}\<close>
 
 lemmas nat_into_Fin = eqpoll_refl [THEN [2] Fin_lemma]
 
@@ -272,7 +272,7 @@ apply (unfold part_ord_def Lt_def irrefl_def trans_on_def)
 apply (auto intro: lt_trans)
 done
 
-subsubsection{*The function @{term all_distinct}*}
+subsubsection\<open>The function @{term all_distinct}\<close>
 
 lemma all_distinct_Nil [simp]: "all_distinct(Nil)"
 by (unfold all_distinct_def, auto)
@@ -284,7 +284,7 @@ apply (unfold all_distinct_def)
 apply (auto elim: list.cases)
 done
 
-subsubsection{*The function @{term state_of}*}
+subsubsection\<open>The function @{term state_of}\<close>
 
 lemma state_of_state: "s\<in>state ==> state_of(s)=s"
 by (unfold state_of_def, auto)

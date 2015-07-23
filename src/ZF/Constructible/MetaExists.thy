@@ -2,12 +2,12 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section{*The meta-existential quantifier*}
+section\<open>The meta-existential quantifier\<close>
 
 theory MetaExists imports Main begin
 
-text{*Allows quantification over any term having sort @{text logic}.  Used to
-quantify over classes.  Yields a proposition rather than a FOL formula.*}
+text\<open>Allows quantification over any term having sort @{text logic}.  Used to
+quantify over classes.  Yields a proposition rather than a FOL formula.\<close>
 
 definition
   ex :: "(('a::{}) => prop) => prop"  (binder "?? " 0) where

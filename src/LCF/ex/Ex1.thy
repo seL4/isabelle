@@ -1,4 +1,4 @@
-section {*  Section 10.4 *}
+section \<open>Section 10.4\<close>
 
 theory Ex1
 imports "../LCF"

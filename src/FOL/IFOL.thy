@@ -2,7 +2,7 @@
     Author:     Lawrence C Paulson and Markus Wenzel
 *)
 
-section {* Intuitionistic first-order logic *}
+section \<open>Intuitionistic first-order logic\<close>
 
 theory IFOL
 imports Pure
@@ -20,7 +20,7 @@ ML_file "~~/src/Tools/project_rule.ML"
 ML_file "~~/src/Tools/atomize_elim.ML"
 
 
-subsection {* Syntax and axiomatic basis *}
+subsection \<open>Syntax and axiomatic basis\<close>
 
 setup Pure_Thy.old_appl_syntax_setup
 
@@ -33,7 +33,7 @@ judgment
   Trueprop      :: "o => prop"                  ("(_)" 5)
 
 
-subsubsection {* Equality *}
+subsubsection \<open>Equality\<close>
 
 axiomatization
   eq :: "['a, 'a] => o"  (infixl "=" 50)
@@ -42,7 +42,7 @@ where
   subst:        "a=b \<Longrightarrow> P(a) \<Longrightarrow> P(b)"
 
 
-subsubsection {* Propositional logic *}
+subsubsection \<open>Propositional logic\<close>
 
 axiomatization
   False :: o and
@@ -64,7 +64,7 @@ where
   FalseE: "False ==> P"
 
 
-subsubsection {* Quantifiers *}
+subsubsection \<open>Quantifiers\<close>
 
 axiomatization
   All :: "('a => o) => o"  (binder "ALL " 10) and
@@ -76,7 +76,7 @@ where
   exE: "[| EX x. P(x);  !!x. P(x) ==> R |] ==> R"
 
 
-subsubsection {* Definitions *}
+subsubsection \<open>Definitions\<close>
 
 definition "True == False-->False"
 definition Not ("~ _" [40] 40) where not_def: "~P == P-->False"
@@ -85,12 +85,12 @@ definition iff  (infixr "<->" 25) where "P<->Q == (P-->Q) & (Q-->P)"
 definition Ex1 :: "('a => o) => o"  (binder "EX! " 10)
   where ex1_def: "EX! x. P(x) == EX x. P(x) & (ALL y. P(y) --> y=x)"
 
-axiomatization where  -- {* Reflection, admissible *}
+axiomatization where  -- \<open>Reflection, admissible\<close>
   eq_reflection: "(x=y) ==> (x==y)" and
   iff_reflection: "(P<->Q) ==> (P==Q)"
 
 
-subsubsection {* Additional notation *}
+subsubsection \<open>Additional notation\<close>
 
 abbreviation not_equal :: "['a, 'a] => o"  (infixl "~=" 50)
   where "x ~= y == ~ (x = y)"
@@ -120,7 +120,7 @@ notation (HTML output)
   Ex1  (binder "\<exists>!" 10)
 
 
-subsection {* Lemmas and proof tools *}
+subsection \<open>Lemmas and proof tools\<close>
 
 lemmas strip = impI allI
 
@@ -146,7 +146,7 @@ lemma impE:
   shows R
   apply (rule r)
   apply (rule major [THEN mp])
-  apply (rule `P`)
+  apply (rule \<open>P\<close>)
   done
 
 lemma allE:
@@ -186,7 +186,7 @@ lemma not_to_imp:
   shows Q
   apply (rule r)
   apply (rule impI)
-  apply (erule notE [OF `~P`])
+  apply (erule notE [OF \<open>~P\<close>])
   done
 
 (* For substitution into an assumption P, reduce Q to P-->Q, substitute into
@@ -207,10 +207,10 @@ lemma contrapos:
 (*** Modus Ponens Tactics ***)
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
-ML {*
+ML \<open>
   fun mp_tac ctxt i = eresolve_tac ctxt @{thms notE impE} i THEN assume_tac ctxt i
   fun eq_mp_tac ctxt i = eresolve_tac ctxt @{thms notE impE} i THEN eq_assume_tac i
-*}
+\<close>
 
 
 (*** If-and-only-if ***)
@@ -303,11 +303,11 @@ lemma ex1E:
 (*** <-> congruence rules for simplification ***)
 
 (*Use iffE on a premise.  For conj_cong, imp_cong, all_cong, ex_cong*)
-ML {*
+ML \<open>
   fun iff_tac ctxt prems i =
     resolve_tac ctxt (prems RL @{thms iffE}) i THEN
     REPEAT1 (eresolve_tac ctxt @{thms asm_rl mp} i)
-*}
+\<close>
 
 method_setup iff =
   \<open>Attrib.thms >> (fn prems => fn ctxt => SIMPLE_METHOD' (iff_tac ctxt prems))\<close>
@@ -558,20 +558,20 @@ lemma disj_imp_disj:
   apply (rule disjI2) apply assumption
   done
 
-ML {*
+ML \<open>
 structure Project_Rule = Project_Rule
 (
   val conjunct1 = @{thm conjunct1}
   val conjunct2 = @{thm conjunct2}
   val mp = @{thm mp}
 )
-*}
+\<close>
 
 ML_file "fologic.ML"
 
 lemma thin_refl: "[|x=x; PROP W|] ==> PROP W" .
 
-ML {*
+ML \<open>
 structure Hypsubst = Hypsubst
 (
   val dest_eq = FOLogic.dest_eq
@@ -586,14 +586,14 @@ structure Hypsubst = Hypsubst
   val thin_refl = @{thm thin_refl}
 );
 open Hypsubst;
-*}
+\<close>
 
 ML_file "intprover.ML"
 
 
-subsection {* Intuitionistic Reasoning *}
+subsection \<open>Intuitionistic Reasoning\<close>
 
-setup {* Intuitionistic.method_setup @{binding iprover} *}
+setup \<open>Intuitionistic.method_setup @{binding iprover}\<close>
 
 lemma impE':
   assumes 1: "P --> Q"
@@ -629,7 +629,7 @@ lemmas [Pure.elim!] = disjE iffE FalseE conjE exE
   and [Pure.elim 2] = allE notE' impE'
   and [Pure.intro] = exI disjI2 disjI1
 
-setup {* Context_Rules.addSWrapper (fn ctxt => fn tac => hyp_subst_tac ctxt ORELSE' tac) *}
+setup \<open>Context_Rules.addSWrapper (fn ctxt => fn tac => hyp_subst_tac ctxt ORELSE' tac)\<close>
 
 
 lemma iff_not_sym: "~ (Q <-> P) ==> ~ (P <-> Q)"
@@ -645,7 +645,7 @@ apply (erule sym)+
 done
 
 
-subsection {* Atomizing meta-level rules *}
+subsection \<open>Atomizing meta-level rules\<close>
 
 lemma atomize_all [atomize]: "(!!x. P(x)) == Trueprop (ALL x. P(x))"
 proof
@@ -668,7 +668,7 @@ qed
 lemma atomize_eq [atomize]: "(x == y) == Trueprop (x = y)"
 proof
   assume "x == y"
-  show "x = y" unfolding `x == y` by (rule refl)
+  show "x = y" unfolding \<open>x == y\<close> by (rule refl)
 next
   assume "x = y"
   then show "x == y" by (rule eq_reflection)
@@ -677,7 +677,7 @@ qed
 lemma atomize_iff [atomize]: "(A == B) == Trueprop (A <-> B)"
 proof
   assume "A == B"
-  show "A <-> B" unfolding `A == B` by (rule iff_refl)
+  show "A <-> B" unfolding \<open>A == B\<close> by (rule iff_refl)
 next
   assume "A <-> B"
   then show "A == B" by (rule iff_reflection)
@@ -704,7 +704,7 @@ lemmas [symmetric, rulify] = atomize_all atomize_imp
   and [symmetric, defn] = atomize_all atomize_imp atomize_eq atomize_iff
 
 
-subsection {* Atomizing elimination rules *}
+subsection \<open>Atomizing elimination rules\<close>
 
 lemma atomize_exL[atomize_elim]: "(!!x. P(x) ==> Q) == ((EX x. P(x)) ==> Q)"
   by rule iprover+
@@ -718,7 +718,7 @@ lemma atomize_disjL[atomize_elim]: "((A ==> C) ==> (B ==> C) ==> C) == ((A | B =
 lemma atomize_elimL[atomize_elim]: "(!!B. (A ==> B) ==> B) == Trueprop(A)" ..
 
 
-subsection {* Calculational rules *}
+subsection \<open>Calculational rules\<close>
 
 lemma forw_subst: "a = b ==> P(b) ==> P(a)"
   by (rule ssubst)
@@ -726,9 +726,9 @@ lemma forw_subst: "a = b ==> P(b) ==> P(a)"
 lemma back_subst: "P(a) ==> a = b ==> P(b)"
   by (rule subst)
 
-text {*
+text \<open>
   Note that this list of rules is in reverse order of priorities.
-*}
+\<close>
 
 lemmas basic_trans_rules [trans] =
   forw_subst
@@ -737,7 +737,7 @@ lemmas basic_trans_rules [trans] =
   mp
   trans
 
-subsection {* ``Let'' declarations *}
+subsection \<open>``Let'' declarations\<close>
 
 nonterminal letbinds and letbind
 
@@ -763,7 +763,7 @@ lemma LetI:
   done
 
 
-subsection {* Intuitionistic simplification rules *}
+subsection \<open>Intuitionistic simplification rules\<close>
 
 lemma conj_simps:
   "P & True <-> P"
@@ -830,7 +830,7 @@ lemma distrib_simps:
   by iprover+
 
 
-text {* Conversion into rewrite rules *}
+text \<open>Conversion into rewrite rules\<close>
 
 lemma P_iff_F: "~P ==> (P <-> False)" by iprover
 lemma iff_reflection_F: "~P ==> (P == False)" by (rule P_iff_F [THEN iff_reflection])
@@ -839,7 +839,7 @@ lemma P_iff_T: "P ==> (P <-> True)" by iprover
 lemma iff_reflection_T: "P ==> (P == True)" by (rule P_iff_T [THEN iff_reflection])
 
 
-text {* More rewrite rules *}
+text \<open>More rewrite rules\<close>
 
 lemma conj_commute: "P&Q <-> Q&P" by iprover
 lemma conj_left_commute: "P&(Q&R) <-> Q&(P&R)" by iprover

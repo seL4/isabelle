@@ -944,8 +944,8 @@ apply (blast intro: cpo_cf cont_cf comp_pres_cont projpair_rel
              dest: projpair_ep_cont)+
 done
 
-text{*Proof's very like the previous one.  Is there a pattern that
-      could be exploited?*}
+text\<open>Proof's very like the previous one.  Is there a pattern that
+      could be exploited?\<close>
 lemma projpair_unique_aux2:
     "[|cpo(D); cpo(E); projpair(D,E,e,p); projpair(D,E,e',p');
        rel(cf(E,D),p',p)|] ==> rel(cf(D,E),e,e')"
@@ -1295,7 +1295,7 @@ apply (rule subcpo_mkcpo)
 apply (simp add: Dinf_def [symmetric])
 apply (rule ballI)
 apply (simplesubst lub_iprod)
-  --{*Subst would rewrite the lhs. We want to change the rhs.*}
+  --\<open>Subst would rewrite the lhs. We want to change the rhs.\<close>
 apply (assumption | rule chain_Dinf emb_chain_cpo)+
 apply simp
 apply (subst Rp_cont [THEN cont_lub])
@@ -1736,7 +1736,7 @@ apply (rule_tac i = "succ (na) " and j = n in nat_linear_le)
    apply blast
   apply assumption
  apply (simplesubst eps_split_right_le)
-    --{*Subst would rewrite the lhs. We want to change the rhs.*}
+    --\<open>Subst would rewrite the lhs. We want to change the rhs.\<close>
        prefer 2 apply assumption
       apply simp
      apply (assumption | rule add_le_self nat_0I nat_succI)+

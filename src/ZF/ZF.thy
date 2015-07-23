@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section{*Zermelo-Fraenkel Set Theory*}
+section\<open>Zermelo-Fraenkel Set Theory\<close>
 
 theory ZF
 imports "~~/src/FOL/FOL"
@@ -15,27 +15,27 @@ typedecl i
 instance i :: "term" ..
 
 axiomatization
-  zero :: "i"  ("0")   --{*the empty set*}  and
-  Pow :: "i => i"  --{*power sets*}  and
-  Inf :: "i"  --{*infinite set*}
+  zero :: "i"  ("0")   --\<open>the empty set\<close>  and
+  Pow :: "i => i"  --\<open>power sets\<close>  and
+  Inf :: "i"  --\<open>infinite set\<close>
 
-text {*Bounded Quantifiers *}
+text \<open>Bounded Quantifiers\<close>
 consts
   Ball   :: "[i, i => o] => o"
   Bex   :: "[i, i => o] => o"
 
-text {*General Union and Intersection *}
+text \<open>General Union and Intersection\<close>
 axiomatization Union :: "i => i"
 consts Inter :: "i => i"
 
-text {*Variations on Replacement *}
+text \<open>Variations on Replacement\<close>
 axiomatization PrimReplace :: "[i, [i, i] => o] => i"
 consts
   Replace     :: "[i, [i, i] => o] => i"
   RepFun      :: "[i, i => i] => i"
   Collect     :: "[i, i => o] => i"
 
-text{*Definite descriptions -- via Replace over the set "1"*}
+text\<open>Definite descriptions -- via Replace over the set "1"\<close>
 consts
   The         :: "(i => o) => i"      (binder "THE " 10)
   If          :: "[o, i, i] => i"     ("(if (_)/ then (_)/ else (_))" [10] 10)
@@ -45,59 +45,59 @@ abbreviation (input)
   "if(P,a,b) == If(P,a,b)"
 
 
-text {*Finite Sets *}
+text \<open>Finite Sets\<close>
 consts
   Upair :: "[i, i] => i"
   cons  :: "[i, i] => i"
   succ  :: "i => i"
 
-text {*Ordered Pairing *}
+text \<open>Ordered Pairing\<close>
 consts
   Pair  :: "[i, i] => i"
   fst   :: "i => i"
   snd   :: "i => i"
-  split :: "[[i, i] => 'a, i] => 'a::{}"  --{*for pattern-matching*}
+  split :: "[[i, i] => 'a, i] => 'a::{}"  --\<open>for pattern-matching\<close>
 
-text {*Sigma and Pi Operators *}
+text \<open>Sigma and Pi Operators\<close>
 consts
   Sigma :: "[i, i => i] => i"
   Pi    :: "[i, i => i] => i"
 
-text {*Relations and Functions *}
+text \<open>Relations and Functions\<close>
 consts
   "domain"    :: "i => i"
   range       :: "i => i"
   field       :: "i => i"
   converse    :: "i => i"
-  relation    :: "i => o"        --{*recognizes sets of pairs*}
-  "function"  :: "i => o"        --{*recognizes functions; can have non-pairs*}
+  relation    :: "i => o"        --\<open>recognizes sets of pairs\<close>
+  "function"  :: "i => o"        --\<open>recognizes functions; can have non-pairs\<close>
   Lambda      :: "[i, i => i] => i"
   restrict    :: "[i, i] => i"
 
-text {*Infixes in order of decreasing precedence *}
+text \<open>Infixes in order of decreasing precedence\<close>
 consts
 
-  Image       :: "[i, i] => i"    (infixl "``" 90) --{*image*}
-  vimage      :: "[i, i] => i"    (infixl "-``" 90) --{*inverse image*}
-  "apply"     :: "[i, i] => i"    (infixl "`" 90) --{*function application*}
-  "Int"       :: "[i, i] => i"    (infixl "Int" 70) --{*binary intersection*}
-  "Un"        :: "[i, i] => i"    (infixl "Un" 65) --{*binary union*}
-  Diff        :: "[i, i] => i"    (infixl "-" 65) --{*set difference*}
-  Subset      :: "[i, i] => o"    (infixl "<=" 50) --{*subset relation*}
+  Image       :: "[i, i] => i"    (infixl "``" 90) --\<open>image\<close>
+  vimage      :: "[i, i] => i"    (infixl "-``" 90) --\<open>inverse image\<close>
+  "apply"     :: "[i, i] => i"    (infixl "`" 90) --\<open>function application\<close>
+  "Int"       :: "[i, i] => i"    (infixl "Int" 70) --\<open>binary intersection\<close>
+  "Un"        :: "[i, i] => i"    (infixl "Un" 65) --\<open>binary union\<close>
+  Diff        :: "[i, i] => i"    (infixl "-" 65) --\<open>set difference\<close>
+  Subset      :: "[i, i] => o"    (infixl "<=" 50) --\<open>subset relation\<close>
 
 axiomatization
-  mem         :: "[i, i] => o"    (infixl ":" 50) --{*membership relation*}
+  mem         :: "[i, i] => o"    (infixl ":" 50) --\<open>membership relation\<close>
 
 abbreviation
-  not_mem :: "[i, i] => o"  (infixl "~:" 50)  --{*negated membership relation*}
+  not_mem :: "[i, i] => o"  (infixl "~:" 50)  --\<open>negated membership relation\<close>
   where "x ~: y == ~ (x : y)"
 
 abbreviation
-  cart_prod :: "[i, i] => i"    (infixr "*" 80) --{*Cartesian product*}
+  cart_prod :: "[i, i] => i"    (infixr "*" 80) --\<open>Cartesian product\<close>
   where "A * B == Sigma(A, %_. B)"
 
 abbreviation
-  function_space :: "[i, i] => i"  (infixr "->" 60) --{*function space*}
+  function_space :: "[i, i] => i"  (infixr "->" 60) --\<open>function space\<close>
   where "A -> B == Pi(A, %_. B)"
 
 
@@ -290,14 +290,14 @@ defs
   restrict_def: "restrict(r,A) == {z \<in> r. \<exists>x\<in>A. \<exists>y. z = <x,y>}"
 
 
-subsection {* Substitution*}
+subsection \<open>Substitution\<close>
 
 (*Useful examples:  singletonI RS subst_elem,  subst_elem RSN (2,IntI) *)
 lemma subst_elem: "[| b\<in>A;  a=b |] ==> a\<in>A"
 by (erule ssubst, assumption)
 
 
-subsection{*Bounded universal quantifier*}
+subsection\<open>Bounded universal quantifier\<close>
 
 lemma ballI [intro!]: "[| !!x. x\<in>A ==> P(x) |] ==> \<forall>x\<in>A. P(x)"
 by (simp add: Ball_def)
@@ -336,7 +336,7 @@ lemmas [symmetric, rulify] = atomize_ball
   and [symmetric, defn] = atomize_ball
 
 
-subsection{*Bounded existential quantifier*}
+subsection\<open>Bounded existential quantifier\<close>
 
 lemma bexI [intro]: "[| P(x);  x: A |] ==> \<exists>x\<in>A. P(x)"
 by (simp add: Bex_def, blast)
@@ -363,7 +363,7 @@ by (simp add: Bex_def cong: conj_cong)
 
 
 
-subsection{*Rules for subsets*}
+subsection\<open>Rules for subsets\<close>
 
 lemma subsetI [intro!]:
     "(!!x. x\<in>A ==> x\<in>B) ==> A \<subseteq> B"
@@ -403,11 +403,11 @@ apply (unfold subset_def Ball_def)
 apply (rule iff_refl)
 done
 
-text{*For calculations*}
+text\<open>For calculations\<close>
 declare subsetD [trans] rev_subsetD [trans] subset_trans [trans]
 
 
-subsection{*Rules for equality*}
+subsection\<open>Rules for equality\<close>
 
 (*Anti-symmetry of the subset relation*)
 lemma equalityI [intro]: "[| A \<subseteq> B;  B \<subseteq> A |] ==> A = B"
@@ -432,7 +432,7 @@ lemma equality_iffD:
   by auto
 
 
-subsection{*Rules for Replace -- the derived form of replacement*}
+subsection\<open>Rules for Replace -- the derived form of replacement\<close>
 
 lemma Replace_iff:
     "b \<in> {y. x\<in>A, P(x,y)}  <->  (\<exists>x\<in>A. P(x,b) & (\<forall>y. P(x,y) \<longrightarrow> y=b))"
@@ -468,7 +468,7 @@ apply (simp add: Replace_iff)
 done
 
 
-subsection{*Rules for RepFun*}
+subsection\<open>Rules for RepFun\<close>
 
 lemma RepFunI: "a \<in> A ==> f(a) \<in> {f(x). x\<in>A}"
 by (simp add: RepFun_def Replace_iff, blast)
@@ -496,7 +496,7 @@ lemma triv_RepFun [simp]: "{x. x\<in>A} = A"
 by blast
 
 
-subsection{*Rules for Collect -- forming a subset by separation*}
+subsection\<open>Rules for Collect -- forming a subset by separation\<close>
 
 (*Separation is derivable from Replacement*)
 lemma separation [simp]: "a \<in> {x\<in>A. P(x)} <-> a\<in>A & P(a)"
@@ -520,7 +520,7 @@ lemma Collect_cong [cong]:
 by (simp add: Collect_def)
 
 
-subsection{*Rules for Unions*}
+subsection\<open>Rules for Unions\<close>
 
 declare Union_iff [simp]
 
@@ -532,7 +532,7 @@ lemma UnionE [elim!]: "[| A \<in> \<Union>(C);  !!B.[| A: B;  B: C |] ==> R |] =
 by (simp, blast)
 
 
-subsection{*Rules for Unions of families*}
+subsection\<open>Rules for Unions of families\<close>
 (* @{term"\<Union>x\<in>A. B(x)"} abbreviates @{term"\<Union>({B(x). x\<in>A})"} *)
 
 lemma UN_iff [simp]: "b \<in> (\<Union>x\<in>A. B(x)) <-> (\<exists>x\<in>A. b \<in> B(x))"
@@ -559,7 +559,7 @@ by simp
   the search space.*)
 
 
-subsection{*Rules for the empty set*}
+subsection\<open>Rules for the empty set\<close>
 
 (*The set @{term"{x\<in>0. False}"} is empty; by foundation it equals 0
   See Suppes, page 21.*)
@@ -589,7 +589,7 @@ lemma not_emptyE:  "[| A \<noteq> 0;  !!x. x\<in>A ==> R |] ==> R"
 by blast
 
 
-subsection{*Rules for Inter*}
+subsection\<open>Rules for Inter\<close>
 
 (*Not obviously useful for proving InterI, InterD, InterE*)
 lemma Inter_iff: "A \<in> \<Inter>(C) <-> (\<forall>x\<in>C. A: x) & C\<noteq>0"
@@ -611,7 +611,7 @@ lemma InterE [elim]:
 by (simp add: Inter_def, blast)
 
 
-subsection{*Rules for Intersections of families*}
+subsection\<open>Rules for Intersections of families\<close>
 
 (* @{term"\<Inter>x\<in>A. B(x)"} abbreviates @{term"\<Inter>({B(x). x\<in>A})"} *)
 
@@ -631,7 +631,7 @@ by simp
 (*No "Addcongs [INT_cong]" because @{term\<Inter>} is a combination of constants*)
 
 
-subsection{*Rules for Powersets*}
+subsection\<open>Rules for Powersets\<close>
 
 lemma PowI: "A \<subseteq> B ==> A \<in> Pow(B)"
 by (erule Pow_iff [THEN iffD2])
@@ -641,11 +641,11 @@ by (erule Pow_iff [THEN iffD1])
 
 declare Pow_iff [iff]
 
-lemmas Pow_bottom = empty_subsetI [THEN PowI]    --{* @{term"0 \<in> Pow(B)"} *}
-lemmas Pow_top = subset_refl [THEN PowI]         --{* @{term"A \<in> Pow(A)"} *}
+lemmas Pow_bottom = empty_subsetI [THEN PowI]    --\<open>@{term"0 \<in> Pow(B)"}\<close>
+lemmas Pow_top = subset_refl [THEN PowI]         --\<open>@{term"A \<in> Pow(A)"}\<close>
 
 
-subsection{*Cantor's Theorem: There is no surjection from a set to its powerset.*}
+subsection\<open>Cantor's Theorem: There is no surjection from a set to its powerset.\<close>
 
 (*The search is undirected.  Allowing redundant introduction rules may
   make it diverge.  Variable b represents ANY map, such as

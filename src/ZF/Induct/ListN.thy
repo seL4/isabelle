@@ -3,14 +3,14 @@
     Copyright   1994  University of Cambridge
 *)
 
-section {* Lists of n elements *}
+section \<open>Lists of n elements\<close>
 
 theory ListN imports Main begin
 
-text {*
+text \<open>
   Inductive definition of lists of @{text n} elements; see
   @{cite "paulin-tlca"}.
-*}
+\<close>
 
 consts listn :: "i=>i"
 inductive

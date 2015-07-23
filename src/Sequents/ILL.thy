@@ -35,17 +35,17 @@ syntax
   "_Context"  :: "two_seqe"   ("((_)/ :=: (_))" [6,6] 5)
   "_PromAux"  :: "three_seqe" ("promaux {_||_||_}")
 
-parse_translation {*
+parse_translation \<open>
   [(@{syntax_const "_Trueprop"}, K (single_tr @{const_syntax Trueprop})),
    (@{syntax_const "_Context"}, K (two_seq_tr @{const_syntax Context})),
    (@{syntax_const "_PromAux"}, K (three_seq_tr @{const_syntax PromAux}))]
-*}
+\<close>
 
-print_translation {*
+print_translation \<open>
   [(@{const_syntax Trueprop}, K (single_tr' @{syntax_const "_Trueprop"})),
    (@{const_syntax Context}, K (two_seq_tr' @{syntax_const "_Context"})),
    (@{const_syntax PromAux}, K (three_seq_tr' @{syntax_const "_PromAux"}))]
-*}
+\<close>
 
 defs
 
@@ -271,7 +271,7 @@ lemma a_not_a_rule: "$J1, !A -o 0, $J2 |- B \<Longrightarrow> $J1, !A -o (!A -o 
   apply best
   done
 
-ML {*
+ML \<open>
   val safe_pack =
     @{context}
     |> fold_rev Cla.add_safe @{thms conj_lemma ll_mp contrad1
@@ -283,13 +283,13 @@ ML {*
     Cla.put_pack safe_pack @{context}
     |> Cla.add_unsafe @{thm impr_contr_der}
     |> Cla.get_pack;
-*}
+\<close>
 
 method_setup best_safe =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack safe_pack ctxt))) *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack safe_pack ctxt)))\<close>
 
 method_setup best_power =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack power_pack ctxt))) *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack power_pack ctxt)))\<close>
 
 
 (* Some examples from Troelstra and van Dalen *)

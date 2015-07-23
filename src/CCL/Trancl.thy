@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Transitive closure of a relation *}
+section \<open>Transitive closure of a relation\<close>
 
 theory Trancl
 imports CCL
@@ -25,7 +25,7 @@ definition trancl :: "i set \<Rightarrow> i set"  ("(_^+)" [100] 100)
   where "r^+ == r O rtrancl(r)"
 
 
-subsection {* Natural deduction for @{text "trans(r)"} *}
+subsection \<open>Natural deduction for @{text "trans(r)"}\<close>
 
 lemma transI: "(\<And>x y z. \<lbrakk><x,y>:r; <y,z>:r\<rbrakk> \<Longrightarrow> <x,z>:r) \<Longrightarrow> trans(r)"
   unfolding trans_def by blast
@@ -34,7 +34,7 @@ lemma transD: "\<lbrakk>trans(r); <a,b>:r; <b,c>:r\<rbrakk> \<Longrightarrow> <a
   unfolding trans_def by blast
 
 
-subsection {* Identity relation *}
+subsection \<open>Identity relation\<close>
 
 lemma idI: "<a,a> : id"
   apply (unfold id_def)
@@ -50,7 +50,7 @@ lemma idE: "\<lbrakk>p: id;  \<And>x. p = <x,x> \<Longrightarrow> P\<rbrakk> \<L
   done
 
 
-subsection {* Composition of two relations *}
+subsection \<open>Composition of two relations\<close>
 
 lemma compI: "\<lbrakk><a,b>:s; <b,c>:r\<rbrakk> \<Longrightarrow> <a,c> : r O s"
   unfolding relcomp_def by blast
@@ -72,7 +72,7 @@ lemma comp_mono: "\<lbrakk>r'<=r; s'<=s\<rbrakk> \<Longrightarrow> (r' O s') <= 
   by blast
 
 
-subsection {* The relation rtrancl *}
+subsection \<open>The relation rtrancl\<close>
 
 lemma rtrancl_fun_mono: "mono(\<lambda>s. id Un (r O s))"
   apply (rule monoI)
@@ -102,7 +102,7 @@ lemma r_into_rtrancl: "<a,b> : r \<Longrightarrow> <a,b> : r^*"
   done
 
 
-subsection {* standard induction rule *}
+subsection \<open>standard induction rule\<close>
 
 lemma rtrancl_full_induct:
   "\<lbrakk><a,b> : r^*;
@@ -149,9 +149,9 @@ lemma rtranclE:
   done
 
 
-subsection {* The relation trancl *}
+subsection \<open>The relation trancl\<close>
 
-subsubsection {* Conversions between trancl and rtrancl *}
+subsubsection \<open>Conversions between trancl and rtrancl\<close>
 
 lemma trancl_into_rtrancl: "<a,b> : r^+ \<Longrightarrow> <a,b> : r^*"
   apply (unfold trancl_def)

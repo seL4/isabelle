@@ -3,16 +3,16 @@
     Copyright   1994  University of Cambridge
 *)
 
-section {* Sample datatype definitions *}
+section \<open>Sample datatype definitions\<close>
 
 theory Datatypes imports Main begin
 
-subsection {* A type with four constructors *}
+subsection \<open>A type with four constructors\<close>
 
-text {*
+text \<open>
   It has four contructors, of arities 0--3, and two parameters @{text
   A} and @{text B}.
-*}
+\<close>
 
 consts
   data :: "[i, i] => i"
@@ -27,10 +27,10 @@ lemma data_unfold: "data(A, B) = ({0} + A) + (A \<times> B + A \<times> B \<time
   by (fast intro!: data.intros [unfolded data.con_defs]
     elim: data.cases [unfolded data.con_defs])
 
-text {*
+text \<open>
   \medskip Lemmas to justify using @{term data} in other recursive
   type definitions.
-*}
+\<close>
 
 lemma data_mono: "[| A \<subseteq> C; B \<subseteq> D |] ==> data(A, B) \<subseteq> data(C, D)"
   apply (unfold data.defs)
@@ -51,12 +51,12 @@ lemma data_subset_univ:
   by (rule subset_trans [OF data_mono data_univ])
 
 
-subsection {* Example of a big enumeration type *}
+subsection \<open>Example of a big enumeration type\<close>
 
-text {*
+text \<open>
   Can go up to at least 100 constructors, but it takes nearly 7
   minutes \dots\ (back in 1994 that is).
-*}
+\<close>
 
 consts
   enum :: i

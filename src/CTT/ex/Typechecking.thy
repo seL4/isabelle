@@ -9,7 +9,7 @@ theory Typechecking
 imports "../CTT"
 begin
 
-subsection {* Single-step proofs: verifying that a type is well-formed *}
+subsection \<open>Single-step proofs: verifying that a type is well-formed\<close>
 
 schematic_lemma "?A type"
 apply (rule form_rls)
@@ -31,7 +31,7 @@ apply (rule form_rls)
 done
 
 
-subsection {* Multi-step proofs: Type inference *}
+subsection \<open>Multi-step proofs: Type inference\<close>
 
 lemma "PROD w:N. N + N type"
 apply form
@@ -67,7 +67,7 @@ done
 (*Proofs involving arbitrary types.
   For concreteness, every type variable left over is forced to be N*)
 method_setup N =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (TRYALL (resolve_tac ctxt @{thms NF}))) *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (TRYALL (resolve_tac ctxt @{thms NF})))\<close>
 
 schematic_lemma "lam w. <w,w> : ?A"
 apply typechk

@@ -3,11 +3,11 @@
     Copyright   1994  University of Cambridge
 *)
 
-section{*The Axiom of Choice*}
+section\<open>The Axiom of Choice\<close>
 
 theory AC imports Main_ZF begin
 
-text{*This definition comes from Halmos (1960), page 59.*}
+text\<open>This definition comes from Halmos (1960), page 59.\<close>
 axiomatization where
   AC: "[| a \<in> A;  !!x. x \<in> A ==> (\<exists>y. y \<in> B(x)) |] ==> \<exists>z. z \<in> Pi(A,B)"
 

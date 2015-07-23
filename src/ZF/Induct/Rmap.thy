@@ -3,7 +3,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-section {* An operator to ``map'' a relation over a list *}
+section \<open>An operator to ``map'' a relation over a list\<close>
 
 theory Rmap imports Main begin
 
@@ -52,10 +52,10 @@ lemma rmap_functional: "function(r) ==> function(rmap(r))"
    apply blast+
   done
 
-text {*
+text \<open>
   \medskip If @{text f} is a function then @{text "rmap(f)"} behaves
   as expected.
-*}
+\<close>
 
 lemma rmap_fun_type: "f \<in> A->B ==> rmap(f): list(A)->list(B)"
   by (simp add: Pi_iff rmap_rel_type rmap_functional rmap_total)

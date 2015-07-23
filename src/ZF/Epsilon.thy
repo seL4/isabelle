@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section{*Epsilon Induction and Recursion*}
+section\<open>Epsilon Induction and Recursion\<close>
 
 theory Epsilon imports Nat_ZF begin
 
@@ -37,7 +37,7 @@ definition
     "rec(k,a,b) == recursor(a,b,k)"
 
 
-subsection{*Basic Closure Properties*}
+subsection\<open>Basic Closure Properties\<close>
 
 lemma arg_subset_eclose: "A \<subseteq> eclose(A)"
 apply (unfold eclose_def)
@@ -80,7 +80,7 @@ lemma eps_induct:
 by (rule arg_in_eclose_sing [THEN eclose_induct], blast)
 
 
-subsection{*Leastness of @{term eclose}*}
+subsection\<open>Leastness of @{term eclose}\<close>
 
 (** eclose(A) is the least transitive set including A as a subset. **)
 
@@ -116,7 +116,7 @@ apply (erule equalityI [OF eclose_least arg_subset_eclose])
 apply (rule subset_refl)
 done
 
-text{*A transitive set either is empty or contains the empty set.*}
+text\<open>A transitive set either is empty or contains the empty set.\<close>
 lemma Transset_0_lemma [rule_format]: "Transset(A) ==> x\<in>A \<longrightarrow> 0\<in>A"
 apply (simp add: Transset_def)
 apply (rule_tac a=x in eps_induct, clarify)
@@ -128,7 +128,7 @@ lemma Transset_0_disj: "Transset(A) ==> A=0 | 0\<in>A"
 by (blast dest: Transset_0_lemma)
 
 
-subsection{*Epsilon Recursion*}
+subsection\<open>Epsilon Recursion\<close>
 
 (*Unused...*)
 lemma mem_eclose_trans: "[| A \<in> eclose(B);  B \<in> eclose(C) |] ==> A \<in> eclose(C)"
@@ -216,7 +216,7 @@ apply (blast intro!: minor
              dest: Ord_in_Ord [THEN eclose_sing_Ord, THEN subsetD])
 done
 
-subsection{*Rank*}
+subsection\<open>Rank\<close>
 
 (*NOT SUITABLE FOR REWRITING -- RECURSIVE!*)
 lemma rank: "rank(a) = (\<Union>y\<in>a. succ(rank(y)))"
@@ -319,7 +319,7 @@ apply (blast intro: lt_trans rank_lt rank_pair2)
 done
 
 
-subsection{*Corollaries of Leastness*}
+subsection\<open>Corollaries of Leastness\<close>
 
 lemma mem_eclose_subset: "A \<in> B ==> eclose(A)<=eclose(B)"
 apply (rule Transset_eclose [THEN eclose_least])

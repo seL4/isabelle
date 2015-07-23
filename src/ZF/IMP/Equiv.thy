@@ -2,7 +2,7 @@
     Author:     Heiko Loetzbeyer and Robert Sandner, TU München
 *)
 
-section {* Equivalence *}
+section \<open>Equivalence\<close>
 
 theory Equiv imports Denotation Com begin
 
@@ -38,14 +38,14 @@ declare bexp_iff [THEN iffD1, simp]
 lemma com1: "<c,sigma> -c-> sigma' ==> <sigma,sigma'> \<in> C(c)"
   apply (erule evalc.induct)
         apply (simp_all (no_asm_simp))
-     txt {* @{text assign} *}
+     txt \<open>@{text assign}\<close>
      apply (simp add: update_type)
-    txt {* @{text comp} *}
+    txt \<open>@{text comp}\<close>
     apply fast
-   txt {* @{text while} *}
+   txt \<open>@{text while}\<close>
    apply (erule Gamma_bnd_mono [THEN lfp_unfold, THEN ssubst, OF C_subset])
    apply (simp add: Gamma_def)
-  txt {* recursive case of @{text while} *}
+  txt \<open>recursive case of @{text while}\<close>
   apply (erule Gamma_bnd_mono [THEN lfp_unfold, THEN ssubst, OF C_subset])
   apply (auto simp add: Gamma_def)
   done
@@ -56,24 +56,24 @@ declare evalc.intros [intro]
 
 lemma com2 [rule_format]: "c \<in> com ==> \<forall>x \<in> C(c). <c,fst(x)> -c-> snd(x)"
   apply (erule com.induct)
-      txt {* @{text skip} *}
+      txt \<open>@{text skip}\<close>
       apply force
-     txt {* @{text assign} *}
+     txt \<open>@{text assign}\<close>
      apply force
-    txt {* @{text comp} *}
+    txt \<open>@{text comp}\<close>
     apply force
-   txt {* @{text while} *}
+   txt \<open>@{text while}\<close>
    apply safe
    apply simp_all
    apply (frule Gamma_bnd_mono [OF C_subset], erule Fixedpt.induct, assumption)
    apply (unfold Gamma_def)
    apply force
-  txt {* @{text "if"} *}
+  txt \<open>@{text "if"}\<close>
   apply auto
   done
 
 
-subsection {* Main theorem *}
+subsection \<open>Main theorem\<close>
 
 theorem com_equivalence:
     "c \<in> com ==> C(c) = {io \<in> (loc->nat) \<times> (loc->nat). <c,fst(io)> -c-> snd(io)}"

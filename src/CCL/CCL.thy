@@ -3,18 +3,18 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Classical Computational Logic for Untyped Lambda Calculus
-  with reduction to weak head-normal form *}
+section \<open>Classical Computational Logic for Untyped Lambda Calculus
+  with reduction to weak head-normal form\<close>
 
 theory CCL
 imports Gfp
 begin
 
-text {*
+text \<open>
   Based on FOL extended with set collection, a primitive higher-order
   logic.  HOL is too strong - descriptions prevent a type of programs
   being defined which contains only executable terms.
-*}
+\<close>
 
 class prog = "term"
 default_sort prog
@@ -150,7 +150,7 @@ definition Dvg :: "i \<Rightarrow> o"
 definition Trm :: "i \<Rightarrow> o"
   where "Trm(t) == \<not> Dvg(t)"
 
-text {*
+text \<open>
 Would be interesting to build a similar theory for a typed programming language:
     ie.     true :: bool,      fix :: ('a\<Rightarrow>'a)\<Rightarrow>'a  etc......
 
@@ -158,7 +158,7 @@ This is starting to look like LCF.
 What are the advantages of this approach?
         - less axiomatic
         - wfd induction / coinduction and fixed point induction available
-*}
+\<close>
 
 
 lemmas ccl_data_defs = apply_def fix_def
@@ -166,7 +166,7 @@ lemmas ccl_data_defs = apply_def fix_def
 declare po_refl [simp]
 
 
-subsection {* Congruence Rules *}
+subsection \<open>Congruence Rules\<close>
 
 (*similar to AP_THM in Gordon's HOL*)
 lemma fun_cong: "(f::'a\<Rightarrow>'b) = g \<Longrightarrow> f(x)=g(x)"
@@ -184,7 +184,7 @@ lemma abstractn: "(\<And>x. f(x) = g(x)) \<Longrightarrow> f = g"
 lemmas caseBs = caseBtrue caseBfalse caseBpair caseBlam caseBbot
 
 
-subsection {* Termination and Divergence *}
+subsection \<open>Termination and Divergence\<close>
 
 lemma Trm_iff: "Trm(t) \<longleftrightarrow> \<not> t = bot"
   by (simp add: Trm_def Dvg_def)
@@ -193,12 +193,12 @@ lemma Dvg_iff: "Dvg(t) \<longleftrightarrow> t = bot"
   by (simp add: Trm_def Dvg_def)
 
 
-subsection {* Constructors are injective *}
+subsection \<open>Constructors are injective\<close>
 
 lemma eq_lemma: "\<lbrakk>x=a; y=b; x=y\<rbrakk> \<Longrightarrow> a=b"
   by simp
 
-ML {*
+ML \<open>
   fun inj_rl_tac ctxt rews i =
     let
       fun mk_inj_lemmas r = [@{thm arg_cong}] RL [r RS (r RS @{thm eq_lemma})]
@@ -209,11 +209,11 @@ ML {*
         eresolve_tac ctxt inj_lemmas i ORELSE
         asm_simp_tac (ctxt addsimps rews) i))
     end;
-*}
+\<close>
 
-method_setup inj_rl = {*
+method_setup inj_rl = \<open>
   Attrib.thms >> (fn rews => fn ctxt => SIMPLE_METHOD' (inj_rl_tac ctxt rews))
-*}
+\<close>
 
 lemma ccl_injs:
   "<a,b> = <a',b'> \<longleftrightarrow> (a=a' \<and> b=b')"
@@ -225,12 +225,12 @@ lemma pair_inject: "<a,b> = <a',b'> \<Longrightarrow> (a = a' \<Longrightarrow> 
   by (simp add: ccl_injs)
 
 
-subsection {* Constructors are distinct *}
+subsection \<open>Constructors are distinct\<close>
 
 lemma lem: "t=t' \<Longrightarrow> case(t,b,c,d,e) = case(t',b,c,d,e)"
   by simp
 
-ML {*
+ML \<open>
 local
   fun pairs_of f x [] = []
     | pairs_of f x (y::ys) = (f x y) :: (f y x) :: (pairs_of f x ys)
@@ -259,9 +259,9 @@ in
   fun mk_lemmas rls = maps mk_lemma (mk_combs pair rls)
   fun mk_dstnct_rls thy xs = mk_combs (mk_thm_str thy) xs
 end
-*}
+\<close>
 
-ML {*
+ML \<open>
 val caseB_lemmas = mk_lemmas @{thms caseBs}
 
 val ccl_dstncts =
@@ -296,14 +296,14 @@ val XH_to_Es = map XH_to_E;
 ML_Thms.bind_thms ("ccl_rews", @{thms caseBs} @ @{thms ccl_injs} @ ccl_dstncts);
 ML_Thms.bind_thms ("ccl_dstnctsEs", ccl_dstncts RL [@{thm notE}]);
 ML_Thms.bind_thms ("ccl_injDs", XH_to_Ds @{thms ccl_injs});
-*}
+\<close>
 
 lemmas [simp] = ccl_rews
   and [elim!] = pair_inject ccl_dstnctsEs
   and [dest!] = ccl_injDs
 
 
-subsection {* Facts from gfp Definition of @{text "[="} and @{text "="} *}
+subsection \<open>Facts from gfp Definition of @{text "[="} and @{text "="}\<close>
 
 lemma XHlemma1: "\<lbrakk>A=B; a:B \<longleftrightarrow> P\<rbrakk> \<Longrightarrow> a:A \<longleftrightarrow> P"
   by simp
@@ -312,7 +312,7 @@ lemma XHlemma2: "(P(t,t') \<longleftrightarrow> Q) \<Longrightarrow> (<t,t'> : {
   by blast
 
 
-subsection {* Pre-Order *}
+subsection \<open>Pre-Order\<close>
 
 lemma POgen_mono: "mono(\<lambda>X. POgen(X))"
   apply (unfold POgen_def SIM_def)
@@ -422,7 +422,7 @@ lemma npo_rls1:
 lemmas npo_rls = npo_pair_lam npo_lam_pair npo_rls1
 
 
-subsection {* Coinduction for @{text "[="} *}
+subsection \<open>Coinduction for @{text "[="}\<close>
 
 lemma po_coinduct: "\<lbrakk><t,u> : R; R <= POgen(R)\<rbrakk> \<Longrightarrow> t [= u"
   apply (rule PO_def [THEN def_coinduct, THEN PO_iff [THEN iffD2]])
@@ -430,7 +430,7 @@ lemma po_coinduct: "\<lbrakk><t,u> : R; R <= POgen(R)\<rbrakk> \<Longrightarrow>
   done
 
 
-subsection {* Equality *}
+subsection \<open>Equality\<close>
 
 lemma EQgen_mono: "mono(\<lambda>X. EQgen(X))"
   apply (unfold EQgen_def SIM_def)
@@ -473,14 +473,14 @@ lemma eq_coinduct3:
   apply (rule EQgen_mono | assumption)+
   done
 
-method_setup eq_coinduct3 = {*
+method_setup eq_coinduct3 = \<open>
   Scan.lift Args.name_inner_syntax >> (fn s => fn ctxt =>
     SIMPLE_METHOD'
       (Rule_Insts.res_inst_tac ctxt [((("R", 0), Position.none), s)] [] @{thm eq_coinduct3}))
-*}
+\<close>
 
 
-subsection {* Untyped Case Analysis and Other Facts *}
+subsection \<open>Untyped Case Analysis and Other Facts\<close>
 
 lemma cond_eta: "(EX f. t=lam x. f(x)) \<Longrightarrow> t = lam x.(t ` x)"
   by (auto simp: apply_def)

@@ -3,7 +3,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-section {* Programs defined over the natural numbers *}
+section \<open>Programs defined over the natural numbers\<close>
 
 theory Nat
 imports "../Wfd"
@@ -96,7 +96,7 @@ lemma ltT: "\<lbrakk>a:Nat; b:Nat\<rbrakk> \<Longrightarrow> a #< b : Bool"
   done
 
 
-subsection {* Termination Conditions for Ackermann's Function *}
+subsection \<open>Termination Conditions for Ackermann's Function\<close>
 
 lemmas relI = NatPR_wf [THEN NatPR_wf [THEN lex_wf, THEN wfI]]
 

@@ -3,35 +3,35 @@
     Copyright   1992  University of Cambridge
 *)
 
-section{*Ordered Pairs*}
+section\<open>Ordered Pairs\<close>
 
 theory pair imports upair
 begin
 
 ML_file "simpdata.ML"
 
-setup {*
+setup \<open>
   map_theory_simpset
     (Simplifier.set_mksimps (fn ctxt =>
         map mk_eq o ZF_atomize o Drule.gen_all (Variable.maxidx_of ctxt))
       #> Simplifier.add_cong @{thm if_weak_cong})
-*}
+\<close>
 
-ML {* val ZF_ss = simpset_of @{context} *}
+ML \<open>val ZF_ss = simpset_of @{context}\<close>
 
-simproc_setup defined_Bex ("\<exists>x\<in>A. P(x) & Q(x)") = {*
+simproc_setup defined_Bex ("\<exists>x\<in>A. P(x) & Q(x)") = \<open>
   fn _ => Quantifier1.rearrange_bex
     (fn ctxt =>
       unfold_tac ctxt @{thms Bex_def} THEN
       Quantifier1.prove_one_point_ex_tac ctxt)
-*}
+\<close>
 
-simproc_setup defined_Ball ("\<forall>x\<in>A. P(x) \<longrightarrow> Q(x)") = {*
+simproc_setup defined_Ball ("\<forall>x\<in>A. P(x) \<longrightarrow> Q(x)") = \<open>
   fn _ => Quantifier1.rearrange_ball
     (fn ctxt =>
       unfold_tac ctxt @{thms Ball_def} THEN
       Quantifier1.prove_one_point_all_tac ctxt)
-*}
+\<close>
 
 
 (** Lemmas for showing that <a,b> uniquely determines a and b **)
@@ -78,9 +78,9 @@ proof (unfold Pair_def)
 qed
 
 
-subsection{*Sigma: Disjoint Union of a Family of Sets*}
+subsection\<open>Sigma: Disjoint Union of a Family of Sets\<close>
 
-text{*Generalizes Cartesian product*}
+text\<open>Generalizes Cartesian product\<close>
 
 lemma Sigma_iff [simp]: "<a,b>: Sigma(A,B) \<longleftrightarrow> a \<in> A & b \<in> B(a)"
 by (simp add: Sigma_def)
@@ -123,7 +123,7 @@ lemma Sigma_empty_iff: "A*B=0 \<longleftrightarrow> A=0 | B=0"
 by blast
 
 
-subsection{*Projections @{term fst} and @{term snd}*}
+subsection\<open>Projections @{term fst} and @{term snd}\<close>
 
 lemma fst_conv [simp]: "fst(<a,b>) = a"
 by (simp add: fst_def)
@@ -141,7 +141,7 @@ lemma Pair_fst_snd_eq: "a \<in> Sigma(A,B) ==> <fst(a),snd(a)> = a"
 by auto
 
 
-subsection{*The Eliminator, @{term split}*}
+subsection\<open>The Eliminator, @{term split}\<close>
 
 (*A META-equality, so that it applies to higher types as well...*)
 lemma split [simp]: "split(%x y. c(x,y), <a,b>) == c(a,b)"
@@ -159,7 +159,7 @@ lemma expand_split:
 by (auto simp add: split_def)
 
 
-subsection{*A version of @{term split} for Formulae: Result Type @{typ o}*}
+subsection\<open>A version of @{term split} for Formulae: Result Type @{typ o}\<close>
 
 lemma splitI: "R(a,b) ==> split(R, <a,b>)"
 by (simp add: split_def)
@@ -173,9 +173,9 @@ by (auto simp add: split_def)
 lemma splitD: "split(R,<a,b>) ==> R(a,b)"
 by (simp add: split_def)
 
-text {*
+text \<open>
   \bigskip Complex rules for Sigma.
-*}
+\<close>
 
 lemma split_paired_Bex_Sigma [simp]:
      "(\<exists>z \<in> Sigma(A,B). P(z)) \<longleftrightarrow> (\<exists>x \<in> A. \<exists>y \<in> B(x). P(<x,y>))"

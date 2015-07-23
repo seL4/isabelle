@@ -3,11 +3,11 @@
     Copyright   1994  University of Cambridge
 *)
 
-section {* Infinite branching datatype definitions *}
+section \<open>Infinite branching datatype definitions\<close>
 
 theory Brouwer imports Main_ZFC begin
 
-subsection {* The Brouwer ordinals *}
+subsection \<open>The Brouwer ordinals\<close>
 
 consts
   brouwer :: i
@@ -28,7 +28,7 @@ lemma brouwer_induct2 [consumes 1, case_names Zero Suc Lim]:
       "!!b. [| b \<in> brouwer;  P(b) |] ==> P(Suc(b))"
       "!!h. [| h \<in> nat -> brouwer;  \<forall>i \<in> nat. P(h`i) |] ==> P(Lim(h))"
   shows "P(b)"
-  -- {* A nicer induction rule than the standard one. *}
+  -- \<open>A nicer induction rule than the standard one.\<close>
   using b
   apply induct
     apply (rule cases(1))
@@ -39,13 +39,13 @@ lemma brouwer_induct2 [consumes 1, case_names Zero Suc Lim]:
   done
 
 
-subsection {* The Martin-Löf wellordering type *}
+subsection \<open>The Martin-Löf wellordering type\<close>
 
 consts
   Well :: "[i, i => i] => i"
 
 datatype \<subseteq> "Vfrom(A \<union> (\<Union>x \<in> A. B(x)), csucc(nat \<union> |\<Union>x \<in> A. B(x)|))"
-    -- {* The union with @{text nat} ensures that the cardinal is infinite. *}
+    -- \<open>The union with @{text nat} ensures that the cardinal is infinite.\<close>
   "Well(A, B)" = Sup ("a \<in> A", "f \<in> B(a) -> Well(A, B)")
   monos Pi_mono
   type_intros le_trans [OF UN_upper_cardinal le_nat_Un_cardinal] inf_datatype_intros
@@ -59,7 +59,7 @@ lemma Well_induct2 [consumes 1, case_names step]:
   assumes w: "w \<in> Well(A, B)"
     and step: "!!a f. [| a \<in> A;  f \<in> B(a) -> Well(A,B);  \<forall>y \<in> B(a). P(f`y) |] ==> P(Sup(a,f))"
   shows "P(w)"
-  -- {* A nicer induction rule than the standard one. *}
+  -- \<open>A nicer induction rule than the standard one.\<close>
   using w
   apply induct
   apply (assumption | rule step)+
@@ -68,8 +68,8 @@ lemma Well_induct2 [consumes 1, case_names step]:
   done
 
 lemma Well_bool_unfold: "Well(bool, \<lambda>x. x) = 1 + (1 -> Well(bool, \<lambda>x. x))"
-  -- {* In fact it's isomorphic to @{text nat}, but we need a recursion operator *}
-  -- {* for @{text Well} to prove this. *}
+  -- \<open>In fact it's isomorphic to @{text nat}, but we need a recursion operator\<close>
+  -- \<open>for @{text Well} to prove this.\<close>
   apply (rule Well_unfold [THEN trans])
   apply (simp add: Sigma_bool succ_def)
   done

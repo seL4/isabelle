@@ -2,11 +2,11 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {*Relativization and Absoluteness*}
+section \<open>Relativization and Absoluteness\<close>
 
 theory Relative imports Main begin
 
-subsection{* Relativized versions of standard set-theoretic concepts *}
+subsection\<open>Relativized versions of standard set-theoretic concepts\<close>
 
 definition
   empty :: "[i=>o,i] => o" where
@@ -123,10 +123,10 @@ definition
 
 definition
   is_range :: "[i=>o,i,i] => o" where
-    --{*the cleaner
+    --\<open>the cleaner
       @{term "\<exists>r'[M]. is_converse(M,r,r') & is_domain(M,r',z)"}
       unfortunately needs an instance of separation in order to prove
-        @{term "M(converse(r))"}.*}
+        @{term "M(converse(r))"}.\<close>
     "is_range(M,r,z) ==
         \<forall>y[M]. y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w)))"
 
@@ -200,32 +200,32 @@ definition
 
 definition
   ordinal :: "[i=>o,i] => o" where
-     --{*an ordinal is a transitive set of transitive sets*}
+     --\<open>an ordinal is a transitive set of transitive sets\<close>
     "ordinal(M,a) == transitive_set(M,a) & (\<forall>x[M]. x\<in>a \<longrightarrow> transitive_set(M,x))"
 
 definition
   limit_ordinal :: "[i=>o,i] => o" where
-    --{*a limit ordinal is a non-empty, successor-closed ordinal*}
+    --\<open>a limit ordinal is a non-empty, successor-closed ordinal\<close>
     "limit_ordinal(M,a) ==
         ordinal(M,a) & ~ empty(M,a) &
         (\<forall>x[M]. x\<in>a \<longrightarrow> (\<exists>y[M]. y\<in>a & successor(M,x,y)))"
 
 definition
   successor_ordinal :: "[i=>o,i] => o" where
-    --{*a successor ordinal is any ordinal that is neither empty nor limit*}
+    --\<open>a successor ordinal is any ordinal that is neither empty nor limit\<close>
     "successor_ordinal(M,a) ==
         ordinal(M,a) & ~ empty(M,a) & ~ limit_ordinal(M,a)"
 
 definition
   finite_ordinal :: "[i=>o,i] => o" where
-    --{*an ordinal is finite if neither it nor any of its elements are limit*}
+    --\<open>an ordinal is finite if neither it nor any of its elements are limit\<close>
     "finite_ordinal(M,a) ==
         ordinal(M,a) & ~ limit_ordinal(M,a) &
         (\<forall>x[M]. x\<in>a \<longrightarrow> ~ limit_ordinal(M,x))"
 
 definition
   omega :: "[i=>o,i] => o" where
-    --{*omega is a limit ordinal none of whose elements are limit*}
+    --\<open>omega is a limit ordinal none of whose elements are limit\<close>
     "omega(M,a) == limit_ordinal(M,a) & (\<forall>x[M]. x\<in>a \<longrightarrow> ~ limit_ordinal(M,x))"
 
 definition
@@ -245,7 +245,7 @@ definition
 
 definition
   Relation1 :: "[i=>o, i, [i,i]=>o, i=>i] => o" where
-    --{*as above, but typed*}
+    --\<open>as above, but typed\<close>
     "Relation1(M,A,is_f,f) ==
         \<forall>x[M]. \<forall>y[M]. x\<in>A \<longrightarrow> is_f(x,y) \<longleftrightarrow> y = f(x)"
 
@@ -275,7 +275,7 @@ definition
        \<forall>u[M]. \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. \<forall>a[M]. is_f(u,x,y,z,a) \<longleftrightarrow> a = f(u,x,y,z)"
 
 
-text{*Useful when absoluteness reasoning has replaced the predicates by terms*}
+text\<open>Useful when absoluteness reasoning has replaced the predicates by terms\<close>
 lemma triv_Relation1:
      "Relation1(M, A, \<lambda>x y. y = f(x), f)"
 by (simp add: Relation1_def)
@@ -285,7 +285,7 @@ lemma triv_Relation2:
 by (simp add: Relation2_def)
 
 
-subsection {*The relativized ZF axioms*}
+subsection \<open>The relativized ZF axioms\<close>
 
 definition
   extensionality :: "(i=>o) => o" where
@@ -294,10 +294,10 @@ definition
 
 definition
   separation :: "[i=>o, i=>o] => o" where
-    --{*The formula @{text P} should only involve parameters
+    --\<open>The formula @{text P} should only involve parameters
         belonging to @{text M} and all its quantifiers must be relativized
         to @{text M}.  We do not have separation as a scheme; every instance
-        that we need must be assumed (and later proved) separately.*}
+        that we need must be assumed (and later proved) separately.\<close>
     "separation(M,P) ==
         \<forall>z[M]. \<exists>y[M]. \<forall>x[M]. x \<in> y \<longleftrightarrow> x \<in> z & P(x)"
 
@@ -336,11 +336,11 @@ definition
         \<forall>x[M]. (\<exists>y[M]. y\<in>x) \<longrightarrow> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & z \<in> y))"
 
 
-subsection{*A trivial consistency proof for $V_\omega$ *}
+subsection\<open>A trivial consistency proof for $V_\omega$\<close>
 
-text{*We prove that $V_\omega$
+text\<open>We prove that $V_\omega$
       (or @{text univ} in Isabelle) satisfies some ZF axioms.
-     Kunen, Theorem IV 3.13, page 123.*}
+     Kunen, Theorem IV 3.13, page 123.\<close>
 
 lemma univ0_downwards_mem: "[| y \<in> x; x \<in> univ(0) |] ==> y \<in> univ(0)"
 apply (insert Transset_univ [OF Transset_0])
@@ -355,7 +355,7 @@ lemma univ0_Bex_abs [simp]:
      "A \<in> univ(0) ==> (\<exists>x\<in>A. x \<in> univ(0) & P(x)) \<longleftrightarrow> (\<exists>x\<in>A. P(x))"
 by (blast intro: univ0_downwards_mem)
 
-text{*Congruence rule for separation: can assume the variable is in @{text M}*}
+text\<open>Congruence rule for separation: can assume the variable is in @{text M}\<close>
 lemma separation_cong [cong]:
      "(!!x. M(x) ==> P(x) \<longleftrightarrow> P'(x))
       ==> separation(M, %x. P(x)) \<longleftrightarrow> separation(M, %x. P'(x))"
@@ -374,20 +374,20 @@ lemma univalent_conjI2 [intro,simp]:
      "univalent(M,A,Q) ==> univalent(M, A, \<lambda>x y. P(x,y) & Q(x,y))"
 by (simp add: univalent_def, blast)
 
-text{*Congruence rule for replacement*}
+text\<open>Congruence rule for replacement\<close>
 lemma strong_replacement_cong [cong]:
      "[| !!x y. [| M(x); M(y) |] ==> P(x,y) \<longleftrightarrow> P'(x,y) |]
       ==> strong_replacement(M, %x y. P(x,y)) \<longleftrightarrow>
           strong_replacement(M, %x y. P'(x,y))"
 by (simp add: strong_replacement_def)
 
-text{*The extensionality axiom*}
+text\<open>The extensionality axiom\<close>
 lemma "extensionality(\<lambda>x. x \<in> univ(0))"
 apply (simp add: extensionality_def)
 apply (blast intro: univ0_downwards_mem)
 done
 
-text{*The separation axiom requires some lemmas*}
+text\<open>The separation axiom requires some lemmas\<close>
 lemma Collect_in_Vfrom:
      "[| X \<in> Vfrom(A,j);  Transset(A) |] ==> Collect(X,P) \<in> Vfrom(A, succ(j))"
 apply (drule Transset_Vfrom)
@@ -412,13 +412,13 @@ apply (rule_tac x = "Collect(z,P)" in bexI)
 apply (blast intro: Collect_in_univ Transset_0)+
 done
 
-text{*Unordered pairing axiom*}
+text\<open>Unordered pairing axiom\<close>
 lemma "upair_ax(\<lambda>x. x \<in> univ(0))"
 apply (simp add: upair_ax_def upair_def)
 apply (blast intro: doubleton_in_univ)
 done
 
-text{*Union axiom*}
+text\<open>Union axiom\<close>
 lemma "Union_ax(\<lambda>x. x \<in> univ(0))"
 apply (simp add: Union_ax_def big_union_def, clarify)
 apply (rule_tac x="\<Union>x" in bexI)
@@ -426,7 +426,7 @@ apply (rule_tac x="\<Union>x" in bexI)
 apply (blast intro: Union_in_univ Transset_0)
 done
 
-text{*Powerset axiom*}
+text\<open>Powerset axiom\<close>
 
 lemma Pow_in_univ:
      "[| X \<in> univ(A);  Transset(A) |] ==> Pow(X) \<in> univ(A)"
@@ -440,7 +440,7 @@ apply (rule_tac x="Pow(x)" in bexI)
 apply (blast intro: Pow_in_univ Transset_0)
 done
 
-text{*Foundation axiom*}
+text\<open>Foundation axiom\<close>
 lemma "foundation_ax(\<lambda>x. x \<in> univ(0))"
 apply (simp add: foundation_ax_def, clarify)
 apply (cut_tac A=x in foundation)
@@ -450,12 +450,12 @@ done
 lemma "replacement(\<lambda>x. x \<in> univ(0), P)"
 apply (simp add: replacement_def, clarify)
 oops
-text{*no idea: maybe prove by induction on the rank of A?*}
+text\<open>no idea: maybe prove by induction on the rank of A?\<close>
 
-text{*Still missing: Replacement, Choice*}
+text\<open>Still missing: Replacement, Choice\<close>
 
-subsection{*Lemmas Needed to Reduce Some Set Constructions to Instances
-      of Separation*}
+subsection\<open>Lemmas Needed to Reduce Some Set Constructions to Instances
+      of Separation\<close>
 
 lemma image_iff_Collect: "r `` A = {y \<in> \<Union>(\<Union>(r)). \<exists>p\<in>r. \<exists>x\<in>A. p=<x,y>}"
 apply (rule equalityI, auto)
@@ -468,8 +468,8 @@ apply (rule equalityI, auto)
 apply (simp add: Pair_def, blast)
 done
 
-text{*These two lemmas lets us prove @{text domain_closed} and
-      @{text range_closed} without new instances of separation*}
+text\<open>These two lemmas lets us prove @{text domain_closed} and
+      @{text range_closed} without new instances of separation\<close>
 
 lemma domain_eq_vimage: "domain(r) = r -`` Union(Union(r))"
 apply (rule equalityI, auto)
@@ -498,7 +498,7 @@ lemma separationD:
 by (simp add: separation_def)
 
 
-text{*More constants, for order types*}
+text\<open>More constants, for order types\<close>
 
 definition
   order_isomorphism :: "[i=>o,i,i,i,i,i] => o" where
@@ -515,15 +515,15 @@ definition
         \<forall>y[M]. y \<in> B \<longleftrightarrow> (\<exists>p[M]. p\<in>r & y \<in> A & pair(M,y,x,p))"
 
 definition
-  membership :: "[i=>o,i,i] => o" where --{*membership relation*}
+  membership :: "[i=>o,i,i] => o" where --\<open>membership relation\<close>
     "membership(M,A,r) ==
         \<forall>p[M]. p \<in> r \<longleftrightarrow> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>A & x\<in>y & pair(M,x,y,p)))"
 
 
-subsection{*Introducing a Transitive Class Model*}
+subsection\<open>Introducing a Transitive Class Model\<close>
 
-text{*The class M is assumed to be transitive and to satisfy some
-      relativized ZF axioms*}
+text\<open>The class M is assumed to be transitive and to satisfy some
+      relativized ZF axioms\<close>
 locale M_trivial =
   fixes M
   assumes transM:           "[| y\<in>x; M(x) |] ==> M(y)"
@@ -534,8 +534,8 @@ locale M_trivial =
       and M_nat [iff]:      "M(nat)"           (*i.e. the axiom of infinity*)
 
 
-text{*Automatically discovers the proof using @{text transM}, @{text nat_0I}
-and @{text M_nat}.*}
+text\<open>Automatically discovers the proof using @{text transM}, @{text nat_0I}
+and @{text M_nat}.\<close>
 lemma (in M_trivial) nonempty [simp]: "M(0)"
 by (blast intro: transM)
 
@@ -552,16 +552,16 @@ lemma (in M_trivial) ball_iff_equiv:
                (\<forall>x\<in>A. P(x)) & (\<forall>x. P(x) \<longrightarrow> M(x) \<longrightarrow> x\<in>A)"
 by (blast intro: transM)
 
-text{*Simplifies proofs of equalities when there's an iff-equality
+text\<open>Simplifies proofs of equalities when there's an iff-equality
       available for rewriting, universally quantified over M.
       But it's not the only way to prove such equalities: its
-      premises @{term "M(A)"} and  @{term "M(B)"} can be too strong.*}
+      premises @{term "M(A)"} and  @{term "M(B)"} can be too strong.\<close>
 lemma (in M_trivial) M_equalityI:
      "[| !!x. M(x) ==> x\<in>A \<longleftrightarrow> x\<in>B; M(A); M(B) |] ==> A=B"
 by (blast intro!: equalityI dest: transM)
 
 
-subsubsection{*Trivial Absoluteness Proofs: Empty Set, Pairs, etc.*}
+subsubsection\<open>Trivial Absoluteness Proofs: Empty Set, Pairs, etc.\<close>
 
 lemma (in M_trivial) empty_abs [simp]:
      "M(z) ==> empty(M,z) \<longleftrightarrow> z=0"
@@ -615,7 +615,7 @@ apply (rule iffI)
 apply (blast dest: transM)
 done
 
-subsubsection{*Absoluteness for Unions and Intersections*}
+subsubsection\<open>Absoluteness for Unions and Intersections\<close>
 
 lemma (in M_trivial) union_abs [simp]:
      "[| M(a); M(b); M(z) |] ==> union(M,a,b,z) \<longleftrightarrow> z = a \<union> b"
@@ -667,7 +667,7 @@ apply (simp add: succ_def)
 apply (blast intro: transM)
 done
 
-subsubsection{*Absoluteness for Separation and Replacement*}
+subsubsection\<open>Absoluteness for Separation and Replacement\<close>
 
 lemma (in M_trivial) separation_closed [intro,simp]:
      "[| separation(M,P); M(A) |] ==> M(Collect(A,P))"
@@ -687,7 +687,7 @@ apply (simp add: is_Collect_def)
 apply (blast intro!: equalityI dest: transM)
 done
 
-text{*Probably the premise and conclusion are equivalent*}
+text\<open>Probably the premise and conclusion are equivalent\<close>
 lemma (in M_trivial) strong_replacementI [rule_format]:
     "[| \<forall>B[M]. separation(M, %u. \<exists>x[M]. x\<in>B & P(x,u)) |]
      ==> strong_replacement(M,P)"
@@ -698,7 +698,7 @@ apply (drule_tac z=Y in separationD, assumption, clarify)
 apply (rule_tac x=y in rexI, force, assumption)
 done
 
-subsubsection{*The Operator @{term is_Replace}*}
+subsubsection\<open>The Operator @{term is_Replace}\<close>
 
 
 lemma is_Replace_cong [cong]:
@@ -758,8 +758,8 @@ done
 lemma Replace_conj_eq: "{y . x \<in> A, x\<in>A & y=f(x)} = {y . x\<in>A, y=f(x)}"
 by simp
 
-text{*Better than @{text RepFun_closed} when having the formula @{term "x\<in>A"}
-      makes relativization easier.*}
+text\<open>Better than @{text RepFun_closed} when having the formula @{term "x\<in>A"}
+      makes relativization easier.\<close>
 lemma (in M_trivial) RepFun_closed2:
      "[| strong_replacement(M, \<lambda>x y. x\<in>A & y = f(x)); M(A); \<forall>x\<in>A. M(f(x)) |]
       ==> M(RepFun(A, %x. f(x)))"
@@ -768,7 +768,7 @@ apply (frule strong_replacement_closed, assumption)
 apply (auto dest: transM  simp add: Replace_conj_eq univalent_def)
 done
 
-subsubsection {*Absoluteness for @{term Lambda}*}
+subsubsection \<open>Absoluteness for @{term Lambda}\<close>
 
 definition
  is_lambda :: "[i=>o, i, [i,i]=>o, i] => o" where
@@ -781,7 +781,7 @@ lemma (in M_trivial) lam_closed:
       ==> M(\<lambda>x\<in>A. b(x))"
 by (simp add: lam_def, blast intro: RepFun_closed dest: transM)
 
-text{*Better than @{text lam_closed}: has the formula @{term "x\<in>A"}*}
+text\<open>Better than @{text lam_closed}: has the formula @{term "x\<in>A"}\<close>
 lemma (in M_trivial) lam_closed2:
   "[|strong_replacement(M, \<lambda>x y. x\<in>A & y = \<langle>x, b(x)\<rangle>);
      M(A); \<forall>m[M]. m\<in>A \<longrightarrow> M(b(m))|] ==> M(Lambda(A,b))"
@@ -816,22 +816,22 @@ apply (rule iffI)
  apply (blast intro!: equalityI dest: transM, blast)
 done
 
-text{*What about @{text Pow_abs}?  Powerset is NOT absolute!
-      This result is one direction of absoluteness.*}
+text\<open>What about @{text Pow_abs}?  Powerset is NOT absolute!
+      This result is one direction of absoluteness.\<close>
 
 lemma (in M_trivial) powerset_Pow:
      "powerset(M, x, Pow(x))"
 by (simp add: powerset_def)
 
-text{*But we can't prove that the powerset in @{text M} includes the
-      real powerset.*}
+text\<open>But we can't prove that the powerset in @{text M} includes the
+      real powerset.\<close>
 lemma (in M_trivial) powerset_imp_subset_Pow:
      "[| powerset(M,x,y); M(y) |] ==> y \<subseteq> Pow(x)"
 apply (simp add: powerset_def)
 apply (blast dest: transM)
 done
 
-subsubsection{*Absoluteness for the Natural Numbers*}
+subsubsection\<open>Absoluteness for the Natural Numbers\<close>
 
 lemma (in M_trivial) nat_into_M [intro]:
      "n \<in> nat ==> M(n)"
@@ -870,8 +870,8 @@ lemma is_nat_case_cong:
 by (simp add: is_nat_case_def)
 
 
-subsection{*Absoluteness for Ordinals*}
-text{*These results constitute Theorem IV 5.1 of Kunen (page 126).*}
+subsection\<open>Absoluteness for Ordinals\<close>
+text\<open>These results constitute Theorem IV 5.1 of Kunen (page 126).\<close>
 
 lemma (in M_trivial) lt_closed:
      "[| j<i; M(i) |] ==> M(j)"
@@ -936,7 +936,7 @@ lemma (in M_trivial) number3_abs [simp]:
      "M(a) ==> number3(M,a) \<longleftrightarrow> a = succ(succ(1))"
 by (simp add: number3_def)
 
-text{*Kunen continued to 20...*}
+text\<open>Kunen continued to 20...\<close>
 
 (*Could not get this to work.  The \<lambda>x\<in>nat is essential because everything
   but the recursion variable must stay unchanged.  But then the recursion
@@ -959,7 +959,7 @@ text{*Kunen continued to 20...*}
        "natnumber(M,0,x) == x=0"
 *)
 
-subsection{*Some instances of separation and strong replacement*}
+subsection\<open>Some instances of separation and strong replacement\<close>
 
 locale M_basic = M_trivial +
 assumes Inter_separation:
@@ -992,7 +992,7 @@ assumes Inter_separation:
                 pair(M,f,b,p) & pair(M,n,b,nb) & is_cons(M,nb,f,cnbf) &
                 upair(M,cnbf,cnbf,z))"
   and is_recfun_separation:
-     --{*for well-founded recursion: used to prove @{text is_recfun_equal}*}
+     --\<open>for well-founded recursion: used to prove @{text is_recfun_equal}\<close>
      "[| M(r); M(f); M(g); M(a); M(b) |]
      ==> separation(M,
             \<lambda>x. \<exists>xa[M]. \<exists>xb[M].
@@ -1022,7 +1022,7 @@ apply (simp add: Pair_def cartprod_def, safe)
 defer 1
   apply (simp add: powerset_def)
  apply blast
-txt{*Final, difficult case: the left-to-right direction of the theorem.*}
+txt\<open>Final, difficult case: the left-to-right direction of the theorem.\<close>
 apply (insert power_ax, simp add: power_ax_def)
 apply (frule_tac x="A \<union> B" and P="\<lambda>x. rex(M,Q(x))" for Q in rspec)
 apply (blast, clarify)
@@ -1042,8 +1042,8 @@ apply (intro rexI conjI, simp+)
 apply (insert cartprod_separation [of A B], simp)
 done
 
-text{*All the lemmas above are necessary because Powerset is not absolute.
-      I should have used Replacement instead!*}
+text\<open>All the lemmas above are necessary because Powerset is not absolute.
+      I should have used Replacement instead!\<close>
 lemma (in M_basic) cartprod_closed [intro,simp]:
      "[| M(A); M(B) |] ==> M(A*B)"
 by (frule cartprod_closed_lemma, assumption, force)
@@ -1073,7 +1073,7 @@ lemma (in M_trivial) Inr_abs [simp]:
 by (simp add: is_Inr_def Inr_def)
 
 
-subsubsection {*converse of a relation*}
+subsubsection \<open>converse of a relation\<close>
 
 lemma (in M_basic) M_converse_iff:
      "M(r) ==>
@@ -1103,7 +1103,7 @@ apply (rule M_equalityI)
 done
 
 
-subsubsection {*image, preimage, domain, range*}
+subsubsection \<open>image, preimage, domain, range\<close>
 
 lemma (in M_basic) image_closed [intro,simp]:
      "[| M(A); M(r) |] ==> M(r``A)"
@@ -1123,7 +1123,7 @@ lemma (in M_basic) vimage_closed [intro,simp]:
 by (simp add: vimage_def)
 
 
-subsubsection{*Domain, range and field*}
+subsubsection\<open>Domain, range and field\<close>
 
 lemma (in M_basic) domain_abs [simp]:
      "[| M(r); M(z) |] ==> is_domain(M,r,z) \<longleftrightarrow> z = domain(r)"
@@ -1156,7 +1156,7 @@ lemma (in M_basic) field_closed [intro,simp]:
 by (simp add: domain_closed range_closed Un_closed field_def)
 
 
-subsubsection{*Relations, functions and application*}
+subsubsection\<open>Relations, functions and application\<close>
 
 lemma (in M_basic) relation_abs [simp]:
      "M(r) ==> is_relation(M,r) \<longleftrightarrow> relation(r)"
@@ -1201,7 +1201,7 @@ lemma (in M_basic) bijection_abs [simp]:
 by (simp add: bijection_def bij_def)
 
 
-subsubsection{*Composition of relations*}
+subsubsection\<open>Composition of relations\<close>
 
 lemma (in M_basic) M_comp_iff:
      "[| M(r); M(s) |]
@@ -1224,17 +1224,17 @@ done
 lemma (in M_basic) composition_abs [simp]:
      "[| M(r); M(s); M(t) |] ==> composition(M,r,s,t) \<longleftrightarrow> t = r O s"
 apply safe
- txt{*Proving @{term "composition(M, r, s, r O s)"}*}
+ txt\<open>Proving @{term "composition(M, r, s, r O s)"}\<close>
  prefer 2
  apply (simp add: composition_def comp_def)
  apply (blast dest: transM)
-txt{*Opposite implication*}
+txt\<open>Opposite implication\<close>
 apply (rule M_equalityI)
   apply (simp add: composition_def comp_def)
   apply (blast del: allE dest: transM)+
 done
 
-text{*no longer needed*}
+text\<open>no longer needed\<close>
 lemma (in M_basic) restriction_is_function:
      "[| restriction(M,f,A,z); function(f); M(f); M(A); M(z) |]
       ==> function(z)"
@@ -1280,7 +1280,7 @@ lemma (in M_basic) Diff_closed [intro,simp]:
      "[|M(A); M(B)|] ==> M(A-B)"
 by (insert Diff_separation, simp add: Diff_def)
 
-subsubsection{*Some Facts About Separation Axioms*}
+subsubsection\<open>Some Facts About Separation Axioms\<close>
 
 lemma (in M_basic) separation_conj:
      "[|separation(M,P); separation(M,Q)|] ==> separation(M, \<lambda>z. P(z) & Q(z))"
@@ -1318,9 +1318,9 @@ lemma (in M_basic) separation_imp:
       ==> separation(M, \<lambda>z. P(z) \<longrightarrow> Q(z))"
 by (simp add: separation_neg separation_disj not_disj_iff_imp [symmetric])
 
-text{*This result is a hint of how little can be done without the Reflection
+text\<open>This result is a hint of how little can be done without the Reflection
   Theorem.  The quantifier has to be bounded by a set.  We also need another
-  instance of Separation!*}
+  instance of Separation!\<close>
 lemma (in M_basic) separation_rall:
      "[|M(Y); \<forall>y[M]. separation(M, \<lambda>x. P(x,y));
         \<forall>z[M]. strong_replacement(M, \<lambda>x y. y = {u \<in> z . P(u,x)})|]
@@ -1331,10 +1331,10 @@ apply (blast intro!: Inter_closed RepFun_closed dest: transM)
 done
 
 
-subsubsection{*Functions and function space*}
+subsubsection\<open>Functions and function space\<close>
 
-text{*The assumption @{term "M(A->B)"} is unusual, but essential: in
-all but trivial cases, A->B cannot be expected to belong to @{term M}.*}
+text\<open>The assumption @{term "M(A->B)"} is unusual, but essential: in
+all but trivial cases, A->B cannot be expected to belong to @{term M}.\<close>
 lemma (in M_basic) is_funspace_abs [simp]:
      "[|M(A); M(B); M(F); M(A->B)|] ==> is_funspace(M,A,B,F) \<longleftrightarrow> F = A->B"
 apply (simp add: is_funspace_def)
@@ -1358,9 +1358,9 @@ apply (insert funspace_succ_replacement [of n], simp)
 apply (force simp add: succ_fun_eq2 univalent_def)
 done
 
-text{*@{term M} contains all finite function spaces.  Needed to prove the
+text\<open>@{term M} contains all finite function spaces.  Needed to prove the
 absoluteness of transitive closure.  See the definition of
-@{text rtrancl_alt} in in @{text WF_absolute.thy}.*}
+@{text rtrancl_alt} in in @{text WF_absolute.thy}.\<close>
 lemma (in M_basic) finite_funspace_closed [intro,simp]:
      "[|n\<in>nat; M(B)|] ==> M(n->B)"
 apply (induct_tac n, simp)
@@ -1368,7 +1368,7 @@ apply (simp add: funspace_succ nat_into_M)
 done
 
 
-subsection{*Relativization and Absoluteness for Boolean Operators*}
+subsection\<open>Relativization and Absoluteness for Boolean Operators\<close>
 
 definition
   is_bool_of_o :: "[i=>o, o, i] => o" where
@@ -1424,16 +1424,16 @@ lemma (in M_trivial) not_closed [intro,simp]:
 by (simp add: Bool.not_def cond_def)
 
 
-subsection{*Relativization and Absoluteness for List Operators*}
+subsection\<open>Relativization and Absoluteness for List Operators\<close>
 
 definition
   is_Nil :: "[i=>o, i] => o" where
-     --{* because @{prop "[] \<equiv> Inl(0)"}*}
+     --\<open>because @{prop "[] \<equiv> Inl(0)"}\<close>
     "is_Nil(M,xs) == \<exists>zero[M]. empty(M,zero) & is_Inl(M,zero,xs)"
 
 definition
   is_Cons :: "[i=>o,i,i,i] => o" where
-     --{* because @{prop "Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)"}*}
+     --\<open>because @{prop "Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)"}\<close>
     "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)"
 
 
@@ -1461,13 +1461,13 @@ definition
 
 definition
   list_case' :: "[i, [i,i]=>i, i] => i" where
-    --{*A version of @{term list_case} that's always defined.*}
+    --\<open>A version of @{term list_case} that's always defined.\<close>
     "list_case'(a,b,xs) ==
        if quasilist(xs) then list_case(a,b,xs) else 0"
 
 definition
   is_list_case :: "[i=>o, i, [i,i,i]=>o, i, i] => o" where
-    --{*Returns 0 for non-lists*}
+    --\<open>Returns 0 for non-lists\<close>
     "is_list_case(M, a, is_b, xs, z) ==
        (is_Nil(M,xs) \<longrightarrow> z=a) &
        (\<forall>x[M]. \<forall>l[M]. is_Cons(M,x,l,xs) \<longrightarrow> is_b(x,l,z)) &
@@ -1475,18 +1475,18 @@ definition
 
 definition
   hd' :: "i => i" where
-    --{*A version of @{term hd} that's always defined.*}
+    --\<open>A version of @{term hd} that's always defined.\<close>
     "hd'(xs) == if quasilist(xs) then hd(xs) else 0"
 
 definition
   tl' :: "i => i" where
-    --{*A version of @{term tl} that's always defined.*}
+    --\<open>A version of @{term tl} that's always defined.\<close>
     "tl'(xs) == if quasilist(xs) then tl(xs) else 0"
 
 definition
   is_hd :: "[i=>o,i,i] => o" where
-     --{* @{term "hd([]) = 0"} no constraints if not a list.
-          Avoiding implication prevents the simplifier's looping.*}
+     --\<open>@{term "hd([]) = 0"} no constraints if not a list.
+          Avoiding implication prevents the simplifier's looping.\<close>
     "is_hd(M,xs,H) ==
        (is_Nil(M,xs) \<longrightarrow> empty(M,H)) &
        (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | H=x) &
@@ -1494,13 +1494,13 @@ definition
 
 definition
   is_tl :: "[i=>o,i,i] => o" where
-     --{* @{term "tl([]) = []"}; see comments about @{term is_hd}*}
+     --\<open>@{term "tl([]) = []"}; see comments about @{term is_hd}\<close>
     "is_tl(M,xs,T) ==
        (is_Nil(M,xs) \<longrightarrow> T=xs) &
        (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | T=l) &
        (is_quasilist(M,xs) | empty(M,T))"
 
-subsubsection{*@{term quasilist}: For Case-Splitting with @{term list_case'}*}
+subsubsection\<open>@{term quasilist}: For Case-Splitting with @{term list_case'}\<close>
 
 lemma [iff]: "quasilist(Nil)"
 by (simp add: quasilist_def)
@@ -1511,7 +1511,7 @@ by (simp add: quasilist_def)
 lemma list_imp_quasilist: "l \<in> list(A) ==> quasilist(l)"
 by (erule list.cases, simp_all)
 
-subsubsection{*@{term list_case'}, the Modified Version of @{term list_case}*}
+subsubsection\<open>@{term list_case'}, the Modified Version of @{term list_case}\<close>
 
 lemma list_case'_Nil [simp]: "list_case'(a,b,Nil) = a"
 by (simp add: list_case'_def quasilist_def)
@@ -1550,7 +1550,7 @@ apply (elim disjE exE)
 done
 
 
-subsubsection{*The Modified Operators @{term hd'} and @{term tl'}*}
+subsubsection\<open>The Modified Operators @{term hd'} and @{term tl'}\<close>
 
 lemma (in M_trivial) is_hd_Nil: "is_hd(M,[],Z) \<longleftrightarrow> empty(M,Z)"
 by (simp add: is_hd_def)

@@ -6,7 +6,7 @@ There may be printing problems if a seqent is in expanded normal form
 (eta-expanded, beta-contracted).
 *)
 
-section {* Classical First-Order Sequent Calculus *}
+section \<open>Classical First-Order Sequent Calculus\<close>
 
 theory LK0
 imports Sequents
@@ -34,8 +34,8 @@ consts
 syntax
  "_Trueprop"    :: "two_seqe" ("((_)/ |- (_))" [6,6] 5)
 
-parse_translation {* [(@{syntax_const "_Trueprop"}, K (two_seq_tr @{const_syntax Trueprop}))] *}
-print_translation {* [(@{const_syntax Trueprop}, K (two_seq_tr' @{syntax_const "_Trueprop"}))] *}
+parse_translation \<open>[(@{syntax_const "_Trueprop"}, K (two_seq_tr @{const_syntax Trueprop}))]\<close>
+print_translation \<open>[(@{const_syntax Trueprop}, K (two_seq_tr' @{syntax_const "_Trueprop"}))]\<close>
 
 abbreviation
   not_equal  (infixl "~=" 50) where
@@ -150,7 +150,7 @@ lemma exchR: "$H |- $E, Q, P, $F ==> $H |- $E, P, Q, $F"
 lemma exchL: "$H, Q, P, $G |- $E ==> $H, P, Q, $G |- $E"
   by (rule exchLS)
 
-ML {*
+ML \<open>
 (*Cut and thin, replacing the right-side formula*)
 fun cutR_tac ctxt s i =
   Rule_Insts.res_inst_tac ctxt [((("P", 0), Position.none), s)] [] @{thm cut} i THEN
@@ -160,7 +160,7 @@ fun cutR_tac ctxt s i =
 fun cutL_tac ctxt s i =
   Rule_Insts.res_inst_tac ctxt [((("P", 0), Position.none), s)] [] @{thm cut} i THEN
   resolve_tac ctxt @{thms thinL} (i + 1)
-*}
+\<close>
 
 
 (** If-and-only-if rules **)
@@ -220,36 +220,36 @@ lemmas [safe] =
   conjR conjL
   FalseL TrueR
   refl basic
-ML {* val prop_pack = Cla.get_pack @{context} *}
+ML \<open>val prop_pack = Cla.get_pack @{context}\<close>
 
 lemmas [safe] = exL allR
 lemmas [unsafe] = the_equality exR_thin allL_thin
-ML {* val LK_pack = Cla.get_pack @{context} *}
+ML \<open>val LK_pack = Cla.get_pack @{context}\<close>
 
-ML {*
+ML \<open>
   val LK_dup_pack =
     Cla.put_pack prop_pack @{context}
     |> fold_rev Cla.add_safe @{thms allR exL}
     |> fold_rev Cla.add_unsafe @{thms allL exR the_equality}
     |> Cla.get_pack;
-*}
+\<close>
 
 method_setup fast_prop =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.fast_tac (Cla.put_pack prop_pack ctxt))) *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.fast_tac (Cla.put_pack prop_pack ctxt)))\<close>
 
 method_setup fast_dup =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.fast_tac (Cla.put_pack LK_dup_pack ctxt))) *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.fast_tac (Cla.put_pack LK_dup_pack ctxt)))\<close>
 
 method_setup best_dup =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack LK_dup_pack ctxt))) *}
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack LK_dup_pack ctxt)))\<close>
 
-method_setup lem = {*
+method_setup lem = \<open>
   Attrib.thm >> (fn th => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       resolve_tac ctxt [@{thm thinR} RS @{thm cut}] i THEN
       REPEAT (resolve_tac ctxt @{thms thinL} i) THEN
       resolve_tac ctxt [th] i))
-*}
+\<close>
 
 
 lemma mp_R:

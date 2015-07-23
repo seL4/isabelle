@@ -23,7 +23,7 @@ axiomatization where
                ==> (P, $H |- $F) == (P', $H' |- $F')"
 
 
-subsection {* Rewrite rules *}
+subsection \<open>Rewrite rules\<close>
 
 lemma conj_simps:
   "|- P & True <-> P"
@@ -79,15 +79,15 @@ lemma quant_simps:
   by (fast add!: subst)+
 
 
-subsection {* Miniscoping: pushing quantifiers in *}
+subsection \<open>Miniscoping: pushing quantifiers in\<close>
 
-text {*
+text \<open>
   We do NOT distribute of ALL over &, or dually that of EX over |
   Baaz and Leitsch, On Skolemization and Proof Complexity (1994)
   show that this step can increase proof length!
-*}
+\<close>
 
-text {*existential miniscoping*}
+text \<open>existential miniscoping\<close>
 lemma ex_simps:
   "!!P Q. |- (EX x. P(x) & Q) <-> (EX x. P(x)) & Q"
   "!!P Q. |- (EX x. P & Q(x)) <-> P & (EX x. Q(x))"
@@ -97,7 +97,7 @@ lemma ex_simps:
   "!!P Q. |- (EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"
   by (fast add!: subst)+
 
-text {*universal miniscoping*}
+text \<open>universal miniscoping\<close>
 lemma all_simps:
   "!!P Q. |- (ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q"
   "!!P Q. |- (ALL x. P & Q(x)) <-> P & (ALL x. Q(x))"
@@ -107,7 +107,7 @@ lemma all_simps:
   "!!P Q. |- (ALL x. P | Q(x)) <-> P | (ALL x. Q(x))"
   by (fast add!: subst)+
 
-text {*These are NOT supplied by default!*}
+text \<open>These are NOT supplied by default!\<close>
 lemma distrib_simps:
   "|- P & (Q | R) <-> P&Q | P&R"
   "|- (Q | R) & P <-> Q&P | R&P"
@@ -138,7 +138,7 @@ lemma LK_extra_simps:
   by (fast add!: subst)+
 
 
-subsection {* Named rewrite rules *}
+subsection \<open>Named rewrite rules\<close>
 
 lemma conj_commute: "|- P&Q <-> Q&P"
   and conj_left_commute: "|- P&(Q&R) <-> Q&(P&R)"
@@ -177,11 +177,11 @@ lemma imp_cong:
   shows "|- (P-->Q) <-> (P'-->Q')"
   apply (lem p1)
   apply safe
-   apply (tactic {*
+   apply (tactic \<open>
      REPEAT (resolve_tac @{context} @{thms cut} 1 THEN
        DEPTH_SOLVE_1
          (resolve_tac @{context} [@{thm thinL}, @{thm thinR}, @{thm p2} COMP @{thm monotonic}] 1) THEN
-           Cla.safe_tac @{context} 1) *})
+           Cla.safe_tac @{context} 1)\<close>)
   done
 
 lemma conj_cong:
@@ -190,22 +190,22 @@ lemma conj_cong:
   shows "|- (P&Q) <-> (P'&Q')"
   apply (lem p1)
   apply safe
-   apply (tactic {*
+   apply (tactic \<open>
      REPEAT (resolve_tac @{context} @{thms cut} 1 THEN
        DEPTH_SOLVE_1
          (resolve_tac @{context} [@{thm thinL}, @{thm thinR}, @{thm p2} COMP @{thm monotonic}] 1) THEN
-           Cla.safe_tac @{context} 1) *})
+           Cla.safe_tac @{context} 1)\<close>)
   done
 
 lemma eq_sym_conv: "|- (x=y) <-> (y=x)"
   by (fast add!: subst)
 
 ML_file "simpdata.ML"
-setup {* map_theory_simpset (put_simpset LK_ss) *}
-setup {* Simplifier.method_setup [] *}
+setup \<open>map_theory_simpset (put_simpset LK_ss)\<close>
+setup \<open>Simplifier.method_setup []\<close>
 
 
-text {* To create substition rules *}
+text \<open>To create substition rules\<close>
 
 lemma eq_imp_subst: "|- a=b ==> $H, A(a), $G |- $E, A(b), $F"
   by simp

@@ -30,7 +30,7 @@ axiomatization where
    "[| $E |L> $E';  $F |L> $F';  $G |R> $G';
                $E', P, $F'|-         $G'|] ==> $E, <>P, $F |-          $G"
 
-ML {*
+ML \<open>
 structure T_Prover = Modal_ProverFun
 (
   val rewrite_rls = @{thms rewrite_rls}
@@ -40,9 +40,9 @@ structure T_Prover = Modal_ProverFun
   val aside_rls = [@{thm lstar0}, @{thm lstar1}, @{thm lstar2}, @{thm rstar0},
     @{thm rstar1}, @{thm rstar2}]
 )
-*}
+\<close>
 
-method_setup T_solve = {* Scan.succeed (fn ctxt => SIMPLE_METHOD (T_Prover.solve_tac ctxt 2)) *}
+method_setup T_solve = \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (T_Prover.solve_tac ctxt 2))\<close>
 
 
 (* Theorems of system T from Hughes and Cresswell and Hailpern, LNCS 129 *)

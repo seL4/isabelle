@@ -9,7 +9,7 @@ Observe the order of dependence:
     Ordered pairs and descriptions are defined using cons ("set notation")
 *)
 
-section{*Unordered Pairs*}
+section\<open>Unordered Pairs\<close>
 
 theory upair
 imports ZF
@@ -23,7 +23,7 @@ lemma atomize_ball [symmetric, rulify]:
 by (simp add: Ball_def atomize_all atomize_imp)
 
 
-subsection{*Unordered Pairs: constant @{term Upair}*}
+subsection\<open>Unordered Pairs: constant @{term Upair}\<close>
 
 lemma Upair_iff [simp]: "c \<in> Upair(a,b) \<longleftrightarrow> (c=a | c=b)"
 by (unfold Upair_def, blast)
@@ -37,7 +37,7 @@ by simp
 lemma UpairE: "[| a \<in> Upair(b,c);  a=b ==> P;  a=c ==> P |] ==> P"
 by (simp, blast)
 
-subsection{*Rules for Binary Union, Defined via @{term Upair}*}
+subsection\<open>Rules for Binary Union, Defined via @{term Upair}\<close>
 
 lemma Un_iff [simp]: "c \<in> A \<union> B \<longleftrightarrow> (c \<in> A | c \<in> B)"
 apply (simp add: Un_def)
@@ -63,7 +63,7 @@ by (simp, blast)
 lemma UnCI [intro!]: "(c \<notin> B ==> c \<in> A) ==> c \<in> A \<union> B"
 by (simp, blast)
 
-subsection{*Rules for Binary Intersection, Defined via @{term Upair}*}
+subsection\<open>Rules for Binary Intersection, Defined via @{term Upair}\<close>
 
 lemma Int_iff [simp]: "c \<in> A \<inter> B \<longleftrightarrow> (c \<in> A & c \<in> B)"
 apply (unfold Int_def)
@@ -83,7 +83,7 @@ lemma IntE [elim!]: "[| c \<in> A \<inter> B;  [| c \<in> A; c \<in> B |] ==> P 
 by simp
 
 
-subsection{*Rules for Set Difference, Defined via @{term Upair}*}
+subsection\<open>Rules for Set Difference, Defined via @{term Upair}\<close>
 
 lemma Diff_iff [simp]: "c \<in> A-B \<longleftrightarrow> (c \<in> A & c\<notin>B)"
 by (unfold Diff_def, blast)
@@ -101,7 +101,7 @@ lemma DiffE [elim!]: "[| c \<in> A - B;  [| c \<in> A; c\<notin>B |] ==> P |] ==
 by simp
 
 
-subsection{*Rules for @{term cons}*}
+subsection\<open>Rules for @{term cons}\<close>
 
 lemma cons_iff [simp]: "a \<in> cons(b,A) \<longleftrightarrow> (a=b | a \<in> A)"
 apply (unfold cons_def)
@@ -137,7 +137,7 @@ lemmas cons_neq_0 = cons_not_0 [THEN notE]
 declare cons_not_0 [THEN not_sym, simp]
 
 
-subsection{*Singletons*}
+subsection\<open>Singletons\<close>
 
 lemma singleton_iff: "a \<in> {b} \<longleftrightarrow> a=b"
 by simp
@@ -148,7 +148,7 @@ by (rule consI1)
 lemmas singletonE = singleton_iff [THEN iffD1, elim_format, elim!]
 
 
-subsection{*Descriptions*}
+subsection\<open>Descriptions\<close>
 
 lemma the_equality [intro]:
     "[| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a"
@@ -195,7 +195,7 @@ lemma the_eq_trivial2 [simp]: "(THE x. a = x) = a"
 by blast
 
 
-subsection{*Conditional Terms: @{text "if-then-else"}*}
+subsection\<open>Conditional Terms: @{text "if-then-else"}\<close>
 
 lemma if_true [simp]: "(if True then a else b) = a"
 by (unfold if_def, blast)
@@ -253,7 +253,7 @@ by simp
 lemmas if_splits = split_if split_if_asm
 
 
-subsection{*Consequences of Foundation*}
+subsection\<open>Consequences of Foundation\<close>
 
 (*was called mem_anti_sym*)
 lemma mem_asym: "[| a \<in> b;  ~P ==> b \<in> a |] ==> P"
@@ -281,7 +281,7 @@ by (blast elim!: mem_irrefl)
 lemma eq_imp_not_mem: "a=A ==> a \<notin> A"
 by (blast intro: elim: mem_irrefl)
 
-subsection{*Rules for Successor*}
+subsection\<open>Rules for Successor\<close>
 
 lemma succ_iff: "i \<in> succ(j) \<longleftrightarrow> i=j | i \<in> j"
 by (unfold succ_def, blast)
@@ -321,7 +321,7 @@ by (blast elim: mem_asym elim!: equalityE)
 lemmas succ_inject = succ_inject_iff [THEN iffD1, dest!]
 
 
-subsection{*Miniscoping of the Bounded Universal Quantifier*}
+subsection\<open>Miniscoping of the Bounded Universal Quantifier\<close>
 
 lemma ball_simps1:
      "(\<forall>x\<in>A. P(x) & Q)   \<longleftrightarrow> (\<forall>x\<in>A. P(x)) & (A=0 | Q)"
@@ -352,7 +352,7 @@ lemma ball_conj_distrib:
 by blast
 
 
-subsection{*Miniscoping of the Bounded Existential Quantifier*}
+subsection\<open>Miniscoping of the Bounded Existential Quantifier\<close>
 
 lemma bex_simps1:
      "(\<exists>x\<in>A. P(x) & Q) \<longleftrightarrow> ((\<exists>x\<in>A. P(x)) & Q)"
@@ -404,9 +404,9 @@ lemma ball_one_point2 [simp]: "(\<forall>x\<in>A. a=x \<longrightarrow> P(x)) \<
 by blast
 
 
-subsection{*Miniscoping of the Replacement Operator*}
+subsection\<open>Miniscoping of the Replacement Operator\<close>
 
-text{*These cover both @{term Replace} and @{term Collect}*}
+text\<open>These cover both @{term Replace} and @{term Collect}\<close>
 lemma Rep_simps [simp]:
      "{x. y \<in> 0, R(x,y)} = 0"
      "{x \<in> 0. P(x)} = 0"
@@ -417,7 +417,7 @@ lemma Rep_simps [simp]:
 by (simp_all, blast+)
 
 
-subsection{*Miniscoping of Unions*}
+subsection\<open>Miniscoping of Unions\<close>
 
 lemma UN_simps1:
      "(\<Union>x\<in>C. cons(a, B(x))) = (if C=0 then 0 else cons(a, \<Union>x\<in>C. B(x)))"
@@ -439,7 +439,7 @@ by blast+
 
 lemmas UN_simps [simp] = UN_simps1 UN_simps2
 
-text{*Opposite of miniscoping: pull the operator out*}
+text\<open>Opposite of miniscoping: pull the operator out\<close>
 
 lemma UN_extend_simps1:
      "(\<Union>x\<in>C. A(x)) \<union> B   = (if C=0 then B else (\<Union>x\<in>C. A(x) \<union> B))"
@@ -467,7 +467,7 @@ by blast
 lemmas UN_extend_simps = UN_extend_simps1 UN_extend_simps2 UN_UN_extend
 
 
-subsection{*Miniscoping of Intersections*}
+subsection\<open>Miniscoping of Intersections\<close>
 
 lemma INT_simps1:
      "(\<Inter>x\<in>C. A(x) \<inter> B) = (\<Inter>x\<in>C. A(x)) \<inter> B"
@@ -486,7 +486,7 @@ done
 
 lemmas INT_simps [simp] = INT_simps1 INT_simps2
 
-text{*Opposite of miniscoping: pull the operator out*}
+text\<open>Opposite of miniscoping: pull the operator out\<close>
 
 
 lemma INT_extend_simps1:
@@ -508,7 +508,7 @@ done
 lemmas INT_extend_simps = INT_extend_simps1 INT_extend_simps2
 
 
-subsection{*Other simprules*}
+subsection\<open>Other simprules\<close>
 
 
 (*** Miniscoping: pushing in big Unions, Intersections, quantifiers, etc. ***)

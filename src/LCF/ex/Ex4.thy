@@ -1,5 +1,5 @@
 
-section {* Prefixpoints *}
+section \<open>Prefixpoints\<close>
 
 theory Ex4
 imports "../LCF"

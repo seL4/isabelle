@@ -7,13 +7,13 @@ Results from the book "Set Theory: an Introduction to Independence Proofs"
 Additional definitions and lemmas for reflexive orders.
 *)
 
-section{*Partial and Total Orderings: Basic Definitions and Properties*}
+section\<open>Partial and Total Orderings: Basic Definitions and Properties\<close>
 
 theory Order imports WF Perm begin
 
-text {* We adopt the following convention: @{text ord} is used for
+text \<open>We adopt the following convention: @{text ord} is used for
   strict orders and @{text order} is used for their reflexive
-  counterparts. *}
+  counterparts.\<close>
 
 definition
   part_ord :: "[i,i]=>o"                (*Strict partial ordering*)  where
@@ -71,7 +71,7 @@ notation (xsymbols)
   ord_iso  ("(\<langle>_, _\<rangle> \<cong>/ \<langle>_, _\<rangle>)" 51)
 
 
-subsection{*Immediate Consequences of the Definitions*}
+subsection\<open>Immediate Consequences of the Definitions\<close>
 
 lemma part_ord_Imp_asym:
     "part_ord(A,r) ==> asym(r \<inter> A*A)"
@@ -131,7 +131,7 @@ lemma trans_pred_pred_eq:
 by (unfold trans_on_def pred_def, blast)
 
 
-subsection{*Restricting an Ordering's Domain*}
+subsection\<open>Restricting an Ordering's Domain\<close>
 
 (** The ordering's properties hold over all subsets of its domain
     [including initial segments of the form pred(A,x,r) **)
@@ -189,13 +189,13 @@ apply (simp add: tot_ord_Int_iff wf_on_Int_iff)
 done
 
 
-subsection{*Empty and Unit Domains*}
+subsection\<open>Empty and Unit Domains\<close>
 
 (*The empty relation is well-founded*)
 lemma wf_on_any_0: "wf[A](0)"
 by (simp add: wf_on_def wf_def, fast)
 
-subsubsection{*Relations over the Empty Set*}
+subsubsection\<open>Relations over the Empty Set\<close>
 
 lemma irrefl_0: "irrefl(0,r)"
 by (unfold irrefl_def, blast)
@@ -225,9 +225,9 @@ apply (simp add: tot_ord_0 wf_on_0)
 done
 
 
-subsubsection{*The Empty Relation Well-Orders the Unit Set*}
+subsubsection\<open>The Empty Relation Well-Orders the Unit Set\<close>
 
-text{*by Grabczewski*}
+text\<open>by Grabczewski\<close>
 
 lemma tot_ord_unit: "tot_ord({a},0)"
 by (simp add: irrefl_def trans_on_def part_ord_def linear_def tot_ord_def)
@@ -238,9 +238,9 @@ apply (simp add: tot_ord_unit wf_on_any_0)
 done
 
 
-subsection{*Order-Isomorphisms*}
+subsection\<open>Order-Isomorphisms\<close>
 
-text{*Suppes calls them "similarities"*}
+text\<open>Suppes calls them "similarities"\<close>
 
 (** Order-preserving (monotone) maps **)
 
@@ -372,7 +372,7 @@ apply (fast elim!: part_ord_ord_iso linear_ord_iso wf_on_ord_iso)
 done
 
 
-subsection{*Main results of Kunen, Chapter 1 section 6*}
+subsection\<open>Main results of Kunen, Chapter 1 section 6\<close>
 
 (*Inductive argument for Kunen's Lemma 6.1, etc.
   Simple proof from Halmos, page 72*)
@@ -486,7 +486,7 @@ apply (blast intro: ord_iso_is_bij bij_is_fun apply_funtype
                     well_ord_is_linear well_ord_ord_iso ord_iso_sym)
 done
 
-subsection{*Towards Kunen's Theorem 6.3: Linearity of the Similarity Relation*}
+subsection\<open>Towards Kunen's Theorem 6.3: Linearity of the Similarity Relation\<close>
 
 lemma ord_iso_map_subset: "ord_iso_map(A,r,B,s) \<subseteq> A*B"
 by (unfold ord_iso_map_def, blast)
@@ -594,7 +594,7 @@ apply (rule converse_ord_iso_map [THEN subst])
 apply (simp add: domain_ord_iso_map_cases)
 done
 
-text{*Kunen's Theorem 6.3: Fundamental Theorem for Well-Ordered Sets*}
+text\<open>Kunen's Theorem 6.3: Fundamental Theorem for Well-Ordered Sets\<close>
 theorem well_ord_trichotomy:
    "[| well_ord(A,r);  well_ord(B,s) |]
     ==> ord_iso_map(A,r,B,s) \<in> ord_iso(A, r, B, s) |
@@ -615,7 +615,7 @@ apply (unfold ord_iso_map_def, blast)
 done
 
 
-subsection{*Miscellaneous Results by Krzysztof Grabczewski*}
+subsection\<open>Miscellaneous Results by Krzysztof Grabczewski\<close>
 
 (** Properties of converse(r) **)
 
@@ -662,7 +662,7 @@ apply (erule theI)
 done
 
 
-subsection {* Lemmas for the Reflexive Orders *}
+subsection \<open>Lemmas for the Reflexive Orders\<close>
 
 lemma subset_vimage_vimage_iff:
   "[| Preorder(r); A \<subseteq> field(r); B \<subseteq> field(r) |] ==>

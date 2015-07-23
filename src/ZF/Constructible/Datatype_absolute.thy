@@ -2,12 +2,12 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {*Absoluteness Properties for Recursive Datatypes*}
+section \<open>Absoluteness Properties for Recursive Datatypes\<close>
 
 theory Datatype_absolute imports Formula WF_absolute begin
 
 
-subsection{*The lfp of a continuous function can be expressed as a union*}
+subsection\<open>The lfp of a continuous function can be expressed as a union\<close>
 
 definition
   directed :: "i=>o" where
@@ -78,7 +78,7 @@ by (blast del: subsetI
           intro: lfp_subset_Union Union_subset_lfp)
 
 
-subsubsection{*Some Standard Datatype Constructions Preserve Continuity*}
+subsubsection\<open>Some Standard Datatype Constructions Preserve Continuity\<close>
 
 lemma contin_imp_mono: "[|X\<subseteq>Y; contin(F)|] ==> F(X) \<subseteq> F(Y)"
 apply (simp add: contin_def) 
@@ -111,7 +111,7 @@ by (simp add: contin_def)
 
 
 
-subsection {*Absoluteness for "Iterates"*}
+subsection \<open>Absoluteness for "Iterates"\<close>
 
 definition
   iterates_MH :: "[i=>o, [i,i]=>o, i, i, i, i] => o" where
@@ -169,7 +169,7 @@ apply (simp add: wf_Memrel trans_Memrel relation_Memrel nat_into_M
 done
 
 
-subsection {*lists without univ*}
+subsection \<open>lists without univ\<close>
 
 lemmas datatype_univs = Inl_in_univ Inr_in_univ 
                         Pair_in_univ nat_into_univ A_into_univ 
@@ -184,7 +184,7 @@ done
 lemma list_fun_contin: "contin(\<lambda>X. {0} + A*X)"
 by (intro sum_contin prod_contin id_contin const_contin) 
 
-text{*Re-expresses lists using sum and product*}
+text\<open>Re-expresses lists using sum and product\<close>
 lemma list_eq_lfp2: "list(A) = lfp(univ(A), \<lambda>X. {0} + A*X)"
 apply (simp add: list_def) 
 apply (rule equalityI) 
@@ -193,7 +193,7 @@ apply (rule equalityI)
  apply (clarify, subst lfp_unfold [OF list_fun_bnd_mono])
  apply (simp add: Nil_def Cons_def)
  apply blast 
-txt{*Opposite inclusion*}
+txt\<open>Opposite inclusion\<close>
 apply (rule lfp_lowerbound) 
  prefer 2 apply (rule lfp_subset) 
 apply (clarify, subst lfp_unfold [OF list.bnd_mono]) 
@@ -202,7 +202,7 @@ apply (blast intro: datatype_univs
              dest: lfp_subset [THEN subsetD])
 done
 
-text{*Re-expresses lists using "iterates", no univ.*}
+text\<open>Re-expresses lists using "iterates", no univ.\<close>
 lemma list_eq_Union:
      "list(A) = (\<Union>n\<in>nat. (\<lambda>X. {0} + A*X) ^ n (0))"
 by (simp add: list_eq_lfp2 lfp_eq_Union list_fun_bnd_mono list_fun_contin)
@@ -219,7 +219,7 @@ lemma (in M_basic) list_functor_abs [simp]:
 by (simp add: is_list_functor_def singleton_0 nat_into_M)
 
 
-subsection {*formulas without univ*}
+subsection \<open>formulas without univ\<close>
 
 lemma formula_fun_bnd_mono:
      "bnd_mono(univ(0), \<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X))"
@@ -234,7 +234,7 @@ lemma formula_fun_contin:
 by (intro sum_contin prod_contin id_contin const_contin) 
 
 
-text{*Re-expresses formulas using sum and product*}
+text\<open>Re-expresses formulas using sum and product\<close>
 lemma formula_eq_lfp2:
     "formula = lfp(univ(0), \<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X))"
 apply (simp add: formula_def) 
@@ -244,7 +244,7 @@ apply (rule equalityI)
  apply (clarify, subst lfp_unfold [OF formula_fun_bnd_mono])
  apply (simp add: Member_def Equal_def Nand_def Forall_def)
  apply blast 
-txt{*Opposite inclusion*}
+txt\<open>Opposite inclusion\<close>
 apply (rule lfp_lowerbound) 
  prefer 2 apply (rule lfp_subset, clarify) 
 apply (subst lfp_unfold [OF formula.bnd_mono, simplified]) 
@@ -253,7 +253,7 @@ apply (elim sumE SigmaE, simp_all)
 apply (blast intro: datatype_univs dest: lfp_subset [THEN subsetD])+  
 done
 
-text{*Re-expresses formulas using "iterates", no univ.*}
+text\<open>Re-expresses formulas using "iterates", no univ.\<close>
 lemma formula_eq_Union:
      "formula = 
       (\<Union>n\<in>nat. (\<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X)) ^ n (0))"
@@ -277,7 +277,7 @@ lemma (in M_basic) formula_functor_abs [simp]:
 by (simp add: is_formula_functor_def) 
 
 
-subsection{*@{term M} Contains the List and Formula Datatypes*}
+subsection\<open>@{term M} Contains the List and Formula Datatypes\<close>
 
 definition
   list_N :: "[i,i] => i" where
@@ -290,8 +290,8 @@ lemma Cons_in_list_N [simp]:
      "Cons(a,l) \<in> list_N(A,succ(n)) \<longleftrightarrow> a\<in>A & l \<in> list_N(A,n)"
 by (simp add: list_N_def Cons_def) 
 
-text{*These two aren't simprules because they reveal the underlying
-list representation.*}
+text\<open>These two aren't simprules because they reveal the underlying
+list representation.\<close>
 lemma list_N_0: "list_N(A,0) = 0"
 by (simp add: list_N_def)
 
@@ -325,8 +325,8 @@ apply (simp add: not_lt_iff_le [symmetric])
 apply (blast intro: list_imp_list_N) 
 done
   
-text{*Express @{term list_rec} without using @{term rank} or @{term Vset},
-neither of which is absolute.*}
+text\<open>Express @{term list_rec} without using @{term rank} or @{term Vset},
+neither of which is absolute.\<close>
 lemma (in M_trivial) list_rec_eq:
   "l \<in> list(A) ==>
    list_rec(a,g,l) = 
@@ -356,7 +356,7 @@ definition
   is_list :: "[i=>o,i,i] => o" where
     "is_list(M,A,Z) == \<forall>l[M]. l \<in> Z \<longleftrightarrow> mem_list(M,A,l)"
 
-subsubsection{*Towards Absoluteness of @{term formula_rec}*}
+subsubsection\<open>Towards Absoluteness of @{term formula_rec}\<close>
 
 consts   depth :: "i=>i"
 primrec
@@ -389,8 +389,8 @@ lemma Forall_in_formula_N [simp]:
      "Forall(x) \<in> formula_N(succ(n)) \<longleftrightarrow> x \<in> formula_N(n)"
 by (simp add: formula_N_def Forall_def) 
 
-text{*These two aren't simprules because they reveal the underlying
-formula representation.*}
+text\<open>These two aren't simprules because they reveal the underlying
+formula representation.\<close>
 lemma formula_N_0: "formula_N(0) = 0"
 by (simp add: formula_N_def)
 
@@ -430,7 +430,7 @@ apply (blast intro: formula_imp_formula_N)
 done
 
 
-text{*This result and the next are unused.*}
+text\<open>This result and the next are unused.\<close>
 lemma formula_N_mono [rule_format]:
   "[| m \<in> nat; n \<in> nat |] ==> m\<le>n \<longrightarrow> formula_N(m) \<subseteq> formula_N(n)"
 apply (rule_tac m = m and n = n in diff_induct)
@@ -476,7 +476,7 @@ locale M_datatypes = M_trancl +
    "M(l) ==> iterates_replacement(M, %l t. is_tl(M,l,t), l)"
 
 
-subsubsection{*Absoluteness of the List Construction*}
+subsubsection\<open>Absoluteness of the List Construction\<close>
 
 lemma (in M_datatypes) list_replacement2':
   "M(A) ==> strong_replacement(M, \<lambda>n y. n\<in>nat & y = (\<lambda>X. {0} + A * X)^n (0))"
@@ -493,7 +493,7 @@ by  (simp add: RepFun_closed2 list_eq_Union
                list_replacement2' relation1_def
                iterates_closed [of "is_list_functor(M,A)"])
 
-text{*WARNING: use only with @{text "dest:"} or with variables fixed!*}
+text\<open>WARNING: use only with @{text "dest:"} or with variables fixed!\<close>
 lemmas (in M_datatypes) list_into_M = transM [OF _ list_closed]
 
 lemma (in M_datatypes) list_N_abs [simp]:
@@ -524,7 +524,7 @@ apply (simp add: is_list_def, safe)
 apply (rule M_equalityI, simp_all)
 done
 
-subsubsection{*Absoluteness of Formulas*}
+subsubsection\<open>Absoluteness of Formulas\<close>
 
 lemma (in M_datatypes) formula_replacement2':
   "strong_replacement(M, \<lambda>n y. n\<in>nat & y = (\<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X))^n (0))"
@@ -574,9 +574,9 @@ apply (rule M_equalityI, simp_all)
 done
 
 
-subsection{*Absoluteness for @{text \<epsilon>}-Closure: the @{term eclose} Operator*}
+subsection\<open>Absoluteness for @{text \<epsilon>}-Closure: the @{term eclose} Operator\<close>
 
-text{*Re-expresses eclose using "iterates"*}
+text\<open>Re-expresses eclose using "iterates"\<close>
 lemma eclose_eq_Union:
      "eclose(A) = (\<Union>n\<in>nat. Union^n (A))"
 apply (simp add: eclose_def)
@@ -645,9 +645,9 @@ apply (rule M_equalityI, simp_all)
 done
 
 
-subsection {*Absoluteness for @{term transrec}*}
+subsection \<open>Absoluteness for @{term transrec}\<close>
 
-text{* @{prop "transrec(a,H) \<equiv> wfrec(Memrel(eclose({a})), a, H)"} *}
+text\<open>@{prop "transrec(a,H) \<equiv> wfrec(Memrel(eclose({a})), a, H)"}\<close>
 
 definition
   is_transrec :: "[i=>o, [i,i,i]=>o, i, i] => o" where
@@ -663,9 +663,9 @@ definition
        upair(M,a,a,sa) & is_eclose(M,sa,esa) & membership(M,esa,mesa) &
        wfrec_replacement(M,MH,mesa)"
 
-text{*The condition @{term "Ord(i)"} lets us use the simpler
+text\<open>The condition @{term "Ord(i)"} lets us use the simpler
   @{text "trans_wfrec_abs"} rather than @{text "trans_wfrec_abs"},
-  which I haven't even proved yet. *}
+  which I haven't even proved yet.\<close>
 theorem (in M_eclose) transrec_abs:
   "[|transrec_replacement(M,MH,i);  relation2(M,MH,H);
      Ord(i);  M(i);  M(z);
@@ -684,7 +684,7 @@ by (simp add: trans_wfrec_closed transrec_replacement_def is_transrec_def
         transrec_def eclose_sing_Ord_eq wf_Memrel trans_Memrel relation_Memrel)
 
 
-text{*Helps to prove instances of @{term transrec_replacement}*}
+text\<open>Helps to prove instances of @{term transrec_replacement}\<close>
 lemma (in M_eclose) transrec_replacementI:
    "[|M(a);
       strong_replacement (M,
@@ -694,8 +694,8 @@ lemma (in M_eclose) transrec_replacementI:
 by (simp add: transrec_replacement_def wfrec_replacement_def)
 
 
-subsection{*Absoluteness for the List Operator @{term length}*}
-text{*But it is never used.*}
+subsection\<open>Absoluteness for the List Operator @{term length}\<close>
+text\<open>But it is never used.\<close>
 
 definition
   is_length :: "[i=>o,i,i,i] => o" where
@@ -714,13 +714,13 @@ apply (blast intro: list_imp_list_N nat_into_Ord list_N_imp_eq_length
              dest: list_N_imp_length_lt)
 done
 
-text{*Proof is trivial since @{term length} returns natural numbers.*}
+text\<open>Proof is trivial since @{term length} returns natural numbers.\<close>
 lemma (in M_trivial) length_closed [intro,simp]:
      "l \<in> list(A) ==> M(length(l))"
 by (simp add: nat_into_M)
 
 
-subsection {*Absoluteness for the List Operator @{term nth}*}
+subsection \<open>Absoluteness for the List Operator @{term nth}\<close>
 
 lemma nth_eq_hd_iterates_tl [rule_format]:
      "xs \<in> list(A) ==> \<forall>n \<in> nat. nth(n,xs) = hd' (tl'^n (xs))"
@@ -737,7 +737,7 @@ apply (induct_tac n, simp)
 apply (simp add: tl'_Cons tl'_closed)
 done
 
-text{*Immediate by type-checking*}
+text\<open>Immediate by type-checking\<close>
 lemma (in M_datatypes) nth_closed [intro,simp]:
      "[|xs \<in> list(A); n \<in> nat; M(A)|] ==> M(nth(n,xs))"
 apply (case_tac "n < length(xs)")
@@ -761,11 +761,11 @@ apply (simp add: is_nth_def nth_eq_hd_iterates_tl nat_into_M
 done
 
 
-subsection{*Relativization and Absoluteness for the @{term formula} Constructors*}
+subsection\<open>Relativization and Absoluteness for the @{term formula} Constructors\<close>
 
 definition
   is_Member :: "[i=>o,i,i,i] => o" where
-     --{* because @{term "Member(x,y) \<equiv> Inl(Inl(\<langle>x,y\<rangle>))"}*}
+     --\<open>because @{term "Member(x,y) \<equiv> Inl(Inl(\<langle>x,y\<rangle>))"}\<close>
     "is_Member(M,x,y,Z) ==
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inl(M,u,Z)"
 
@@ -779,7 +779,7 @@ by (simp add: Member_def)
 
 definition
   is_Equal :: "[i=>o,i,i,i] => o" where
-     --{* because @{term "Equal(x,y) \<equiv> Inl(Inr(\<langle>x,y\<rangle>))"}*}
+     --\<open>because @{term "Equal(x,y) \<equiv> Inl(Inr(\<langle>x,y\<rangle>))"}\<close>
     "is_Equal(M,x,y,Z) ==
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inr(M,p,u) & is_Inl(M,u,Z)"
 
@@ -792,7 +792,7 @@ by (simp add: Equal_def)
 
 definition
   is_Nand :: "[i=>o,i,i,i] => o" where
-     --{* because @{term "Nand(x,y) \<equiv> Inr(Inl(\<langle>x,y\<rangle>))"}*}
+     --\<open>because @{term "Nand(x,y) \<equiv> Inr(Inl(\<langle>x,y\<rangle>))"}\<close>
     "is_Nand(M,x,y,Z) ==
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inr(M,u,Z)"
 
@@ -805,7 +805,7 @@ by (simp add: Nand_def)
 
 definition
   is_Forall :: "[i=>o,i,i] => o" where
-     --{* because @{term "Forall(x) \<equiv> Inr(Inr(p))"}*}
+     --\<open>because @{term "Forall(x) \<equiv> Inr(Inr(p))"}\<close>
     "is_Forall(M,p,Z) == \<exists>u[M]. is_Inr(M,p,u) & is_Inr(M,u,Z)"
 
 lemma (in M_trivial) Forall_abs [simp]:
@@ -817,20 +817,20 @@ by (simp add: Forall_def)
 
 
 
-subsection {*Absoluteness for @{term formula_rec}*}
+subsection \<open>Absoluteness for @{term formula_rec}\<close>
 
 definition
   formula_rec_case :: "[[i,i]=>i, [i,i]=>i, [i,i,i,i]=>i, [i,i]=>i, i, i] => i" where
-    --{* the instance of @{term formula_case} in @{term formula_rec}*}
+    --\<open>the instance of @{term formula_case} in @{term formula_rec}\<close>
    "formula_rec_case(a,b,c,d,h) ==
         formula_case (a, b,
                 \<lambda>u v. c(u, v, h ` succ(depth(u)) ` u,
                               h ` succ(depth(v)) ` v),
                 \<lambda>u. d(u, h ` succ(depth(u)) ` u))"
 
-text{*Unfold @{term formula_rec} to @{term formula_rec_case}.
+text\<open>Unfold @{term formula_rec} to @{term formula_rec_case}.
      Express @{term formula_rec} without using @{term rank} or @{term Vset},
-neither of which is absolute.*}
+neither of which is absolute.\<close>
 lemma (in M_trivial) formula_rec_eq:
   "p \<in> formula ==>
    formula_rec(a,b,c,d,p) =
@@ -838,20 +838,20 @@ lemma (in M_trivial) formula_rec_eq:
              \<lambda>x h. Lambda (formula, formula_rec_case(a,b,c,d,h))) ` p"
 apply (simp add: formula_rec_case_def)
 apply (induct_tac p)
-   txt{*Base case for @{term Member}*}
+   txt\<open>Base case for @{term Member}\<close>
    apply (subst transrec, simp add: formula.intros)
-  txt{*Base case for @{term Equal}*}
+  txt\<open>Base case for @{term Equal}\<close>
   apply (subst transrec, simp add: formula.intros)
- txt{*Inductive step for @{term Nand}*}
+ txt\<open>Inductive step for @{term Nand}\<close>
  apply (subst transrec)
  apply (simp add: succ_Un_distrib formula.intros)
-txt{*Inductive step for @{term Forall}*}
+txt\<open>Inductive step for @{term Forall}\<close>
 apply (subst transrec)
 apply (simp add: formula_imp_formula_N formula.intros)
 done
 
 
-subsubsection{*Absoluteness for the Formula Operator @{term depth}*}
+subsubsection\<open>Absoluteness for the Formula Operator @{term depth}\<close>
 
 definition
   is_depth :: "[i=>o,i,i] => o" where
@@ -870,18 +870,18 @@ apply (blast intro: formula_imp_formula_N nat_into_Ord formula_N_imp_eq_depth
              dest: formula_N_imp_depth_lt)
 done
 
-text{*Proof is trivial since @{term depth} returns natural numbers.*}
+text\<open>Proof is trivial since @{term depth} returns natural numbers.\<close>
 lemma (in M_trivial) depth_closed [intro,simp]:
      "p \<in> formula ==> M(depth(p))"
 by (simp add: nat_into_M)
 
 
-subsubsection{*@{term is_formula_case}: relativization of @{term formula_case}*}
+subsubsection\<open>@{term is_formula_case}: relativization of @{term formula_case}\<close>
 
 definition
  is_formula_case ::
     "[i=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i]=>o, i, i] => o" where
-  --{*no constraint on non-formulas*}
+  --\<open>no constraint on non-formulas\<close>
   "is_formula_case(M, is_a, is_b, is_c, is_d, p, z) ==
       (\<forall>x[M]. \<forall>y[M]. finite_ordinal(M,x) \<longrightarrow> finite_ordinal(M,y) \<longrightarrow>
                       is_Member(M,x,y,p) \<longrightarrow> is_a(x,y,z)) &
@@ -911,18 +911,18 @@ lemma (in M_datatypes) formula_case_closed [intro,simp]:
 by (erule formula.cases, simp_all)
 
 
-subsubsection {*Absoluteness for @{term formula_rec}: Final Results*}
+subsubsection \<open>Absoluteness for @{term formula_rec}: Final Results\<close>
 
 definition
   is_formula_rec :: "[i=>o, [i,i,i]=>o, i, i] => o" where
-    --{* predicate to relativize the functional @{term formula_rec}*}
+    --\<open>predicate to relativize the functional @{term formula_rec}\<close>
    "is_formula_rec(M,MH,p,z)  ==
       \<exists>dp[M]. \<exists>i[M]. \<exists>f[M]. finite_ordinal(M,dp) & is_depth(M,p,dp) &
              successor(M,dp,i) & fun_apply(M,f,p,z) & is_transrec(M,MH,i,f)"
 
 
-text{*Sufficient conditions to relativize the instance of @{term formula_case}
-      in @{term formula_rec}*}
+text\<open>Sufficient conditions to relativize the instance of @{term formula_case}
+      in @{term formula_rec}\<close>
 lemma (in M_datatypes) Relation1_formula_rec_case:
      "[|Relation2(M, nat, nat, is_a, a);
         Relation2(M, nat, nat, is_b, b);
@@ -939,9 +939,9 @@ apply (simp add: formula_case_abs)
 done
 
 
-text{*This locale packages the premises of the following theorems,
+text\<open>This locale packages the premises of the following theorems,
       which is the normal purpose of locales.  It doesn't accumulate
-      constraints on the class @{term M}, as in most of this deveopment.*}
+      constraints on the class @{term M}, as in most of this deveopment.\<close>
 locale Formula_Rec = M_eclose +
   fixes a and is_a and b and is_b and c and is_c and d and is_d and MH
   defines
@@ -995,7 +995,7 @@ lemma (in Formula_Rec) fr_transrec_closed:
 by (simp add: transrec_closed [OF fr_replace MH_rel2]
               nat_into_M formula_rec_lam_closed)
 
-text{*The main two results: @{term formula_rec} is absolute for @{term M}.*}
+text\<open>The main two results: @{term formula_rec} is absolute for @{term M}.\<close>
 theorem (in Formula_Rec) formula_rec_closed:
     "p \<in> formula ==> M(formula_rec(a,b,c,d,p))"
 by (simp add: formula_rec_eq fr_transrec_closed

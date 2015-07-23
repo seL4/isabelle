@@ -5,13 +5,13 @@
 Derives some inference rules, illustrating the use of definitions.
 *)
 
-section {* Examples for the manual ``Introduction to Isabelle'' *}
+section \<open>Examples for the manual ``Introduction to Isabelle''\<close>
 
 theory Intro
 imports FOL
 begin
 
-subsubsection {* Some simple backward proofs *}
+subsubsection \<open>Some simple backward proofs\<close>
 
 lemma mythm: "P|P --> P"
 apply (rule impI)
@@ -41,7 +41,7 @@ apply assumption
 done
 
 
-subsubsection {* Demonstration of @{text "fast"} *}
+subsubsection \<open>Demonstration of @{text "fast"}\<close>
 
 lemma "(EX y. ALL x. J(y,x) <-> ~J(x,x))
         -->  ~ (ALL x. EX y. ALL z. J(z,y) <-> ~ J(z,x))"
@@ -55,7 +55,7 @@ apply fast
 done
 
 
-subsubsection {* Derivation of conjunction elimination rule *}
+subsubsection \<open>Derivation of conjunction elimination rule\<close>
 
 lemma
   assumes major: "P&Q"
@@ -67,9 +67,9 @@ apply (rule major [THEN conjunct2])
 done
 
 
-subsection {* Derived rules involving definitions *}
+subsection \<open>Derived rules involving definitions\<close>
 
-text {* Derivation of negation introduction *}
+text \<open>Derivation of negation introduction\<close>
 
 lemma
   assumes "P ==> False"
@@ -90,7 +90,7 @@ apply (rule major [unfolded not_def])
 apply (rule minor)
 done
 
-text {* Alternative proof of the result above *}
+text \<open>Alternative proof of the result above\<close>
 lemma
   assumes major: "~P"
     and minor: P

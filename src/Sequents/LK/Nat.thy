@@ -3,7 +3,7 @@
     Copyright   1999  University of Cambridge
 *)
 
-section {* Theory of the natural numbers: Peano's axioms, primitive recursion *}
+section \<open>Theory of the natural numbers: Peano's axioms, primitive recursion\<close>
 
 theory Nat
 imports "../LK"

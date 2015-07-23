@@ -3,15 +3,15 @@
     Copyright   1998  University of Cambridge
 *)
 
-section{*Progress under Weak Fairness*}
+section\<open>Progress under Weak Fairness\<close>
 
 theory WFair
 imports UNITY Main_ZFC
 begin
 
-text{*This theory defines the operators transient, ensures and leadsTo,
+text\<open>This theory defines the operators transient, ensures and leadsTo,
 assuming weak fairness. From Misra, "A Logic for Concurrent Programming",
-1994.*}
+1994.\<close>
 
 definition
   (* This definition specifies weak fairness.  The rest of the theory
@@ -286,7 +286,7 @@ done
 lemma leadsTo_Union_distrib: "(F \<in> \<Union>(S) leadsTo B) \<longleftrightarrow>  (\<forall>A \<in> S. F \<in> A leadsTo B) & F \<in> program & st_set(B)"
 by (blast dest: leadsToD2 intro: leadsTo_Union leadsTo_weaken_L)
 
-text{*Set difference: maybe combine with @{text leadsTo_weaken_L}??*}
+text\<open>Set difference: maybe combine with @{text leadsTo_weaken_L}??\<close>
 lemma leadsTo_Diff:
      "[| F: (A-B) leadsTo C; F \<in> B leadsTo C; st_set(C) |]
       ==> F \<in> A leadsTo C"
@@ -387,9 +387,9 @@ lemma leadsTo_induct_pre_aux:
       !!A B. [| F \<in> A ensures B;  P(B); st_set(A); st_set(B) |] ==> P(A);
       !!S. [| \<forall>A \<in> S. P(A); \<forall>A \<in> S. st_set(A) |] ==> P(\<Union>(S))
    |] ==> P(za)"
-txt{*by induction on this formula*}
+txt\<open>by induction on this formula\<close>
 apply (subgoal_tac "P (zb) \<longrightarrow> P (za) ")
-txt{*now solve first subgoal: this formula is sufficient*}
+txt\<open>now solve first subgoal: this formula is sufficient\<close>
 apply (blast intro: leadsTo_refl)
 apply (erule leadsTo_induct)
 apply (blast+)
@@ -421,9 +421,9 @@ apply blast
 done
 declare leadsTo_empty [simp]
 
-subsection{*PSP: Progress-Safety-Progress*}
+subsection\<open>PSP: Progress-Safety-Progress\<close>
 
-text{*Special case of PSP: Misra's "stable conjunction"*}
+text\<open>Special case of PSP: Misra's "stable conjunction"\<close>
 
 lemma psp_stable:
    "[| F \<in> A leadsTo A'; F \<in> stable(B) |] ==> F:(A \<inter> B) leadsTo (A' \<inter> B)"
@@ -456,9 +456,9 @@ apply (subgoal_tac "F \<in> program & st_set (A) & st_set (A') & st_set (B) ")
 prefer 2 apply (blast dest!: constrainsD2 leadsToD2)
 apply (erule leadsTo_induct)
 prefer 3 apply (blast intro: leadsTo_Union_Int)
- txt{*Basis case*}
+ txt\<open>Basis case\<close>
  apply (blast intro: psp_ensures leadsTo_Basis)
-txt{*Transitivity case has a delicate argument involving "cancellation"*}
+txt\<open>Transitivity case has a delicate argument involving "cancellation"\<close>
 apply (rule leadsTo_Un_duplicate2)
 apply (erule leadsTo_cancel_Diff1)
 apply (simp add: Int_Diff Diff_triv)
@@ -481,7 +481,7 @@ apply (blast intro: leadsTo_weaken)
 done
 
 
-subsection{*Proving the induction rules*}
+subsection\<open>Proving the induction rules\<close>
 
 (** The most general rule \<in> r is any wf relation; f is any variant function **)
 lemma leadsTo_wf_induct_aux: "[| wf(r);
@@ -600,13 +600,13 @@ lemma leadsTo_123: "F \<in> A leadsTo A'
       ==> \<exists>B \<in> Pow(state). A<=B & F \<in> B leadsTo A' & F \<in> (B-A') co (B \<union> A')"
 apply (frule leadsToD2)
 apply (erule leadsTo_induct)
-  txt{*Basis*}
+  txt\<open>Basis\<close>
   apply (blast dest: ensuresD constrainsD2 st_setD)
- txt{*Trans*}
+ txt\<open>Trans\<close>
  apply clarify
  apply (rule_tac x = "Ba \<union> Bb" in bexI)
  apply (blast intro: leadsTo_123_aux leadsTo_Un_Un leadsTo_cancel1 leadsTo_Un_duplicate, blast)
-txt{*Union*}
+txt\<open>Union\<close>
 apply (clarify dest!: ball_conj_distrib [THEN iffD1])
 apply (subgoal_tac "\<exists>y. y \<in> Pi (S, %A. {Ba \<in> Pow (state) . A<=Ba & F \<in> Ba leadsTo B & F \<in> Ba - B co Ba \<union> B}) ")
 defer 1
@@ -631,7 +631,7 @@ apply (simp add: wlt_increasing [THEN subset_Un_iff2 [THEN iffD1]])
 done
 
 
-subsection{*Completion: Binary and General Finite versions*}
+subsection\<open>Completion: Binary and General Finite versions\<close>
 
 lemma completion_aux: "[| W = wlt(F, (B' \<union> C));
        F \<in> A leadsTo (A' \<union> C);  F \<in> A' co (A' \<union> C);
@@ -657,7 +657,7 @@ apply (force simp add: st_set_def)
 apply (subgoal_tac "A \<inter> B \<subseteq> A \<inter> W")
 prefer 2 apply (blast dest!: leadsTo_subset intro!: subset_refl [THEN Int_mono])
 apply (blast intro: leadsTo_Trans subset_imp_leadsTo)
-txt{*last subgoal*}
+txt\<open>last subgoal\<close>
 apply (rule_tac leadsTo_Un_duplicate2)
 apply (rule_tac leadsTo_Un_Un)
  prefer 2 apply (blast intro: leadsTo_refl)

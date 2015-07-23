@@ -3,7 +3,7 @@
     Copyright   1992  University of Cambridge
 *)
 
-section{*Relations: Their General Properties and Transitive Closure*}
+section\<open>Relations: Their General Properties and Transitive Closure\<close>
 
 theory Trancl imports Fixedpt Perm begin
 
@@ -49,9 +49,9 @@ definition
     "equiv(A,r) == r \<subseteq> A*A & refl(A,r) & sym(r) & trans(r)"
 
 
-subsection{*General properties of relations*}
+subsection\<open>General properties of relations\<close>
 
-subsubsection{*irreflexivity*}
+subsubsection\<open>irreflexivity\<close>
 
 lemma irreflI:
     "[| !!x. x \<in> A ==> <x,x> \<notin> r |] ==> irrefl(A,r)"
@@ -60,7 +60,7 @@ by (simp add: irrefl_def)
 lemma irreflE: "[| irrefl(A,r);  x \<in> A |] ==>  <x,x> \<notin> r"
 by (simp add: irrefl_def)
 
-subsubsection{*symmetry*}
+subsubsection\<open>symmetry\<close>
 
 lemma symI:
      "[| !!x y.<x,y>: r ==> <y,x>: r |] ==> sym(r)"
@@ -69,7 +69,7 @@ by (unfold sym_def, blast)
 lemma symE: "[| sym(r); <x,y>: r |]  ==>  <y,x>: r"
 by (unfold sym_def, blast)
 
-subsubsection{*antisymmetry*}
+subsubsection\<open>antisymmetry\<close>
 
 lemma antisymI:
      "[| !!x y.[| <x,y>: r;  <y,x>: r |] ==> x=y |] ==> antisym(r)"
@@ -78,7 +78,7 @@ by (simp add: antisym_def, blast)
 lemma antisymE: "[| antisym(r); <x,y>: r;  <y,x>: r |]  ==>  x=y"
 by (simp add: antisym_def, blast)
 
-subsubsection{*transitivity*}
+subsubsection\<open>transitivity\<close>
 
 lemma transD: "[| trans(r);  <a,b>:r;  <b,c>:r |] ==> <a,c>:r"
 by (unfold trans_def, blast)
@@ -94,7 +94,7 @@ lemma trans_on_imp_trans: "[|trans[A](r); r \<subseteq> A*A|] ==> trans(r)"
 by (simp add: trans_on_def trans_def, blast)
 
 
-subsection{*Transitive closure of a relation*}
+subsection\<open>Transitive closure of a relation\<close>
 
 lemma rtrancl_bnd_mono:
      "bnd_mono(field(r)*field(r), %s. id(field(r)) \<union> (r O s))"
@@ -297,7 +297,7 @@ apply (rule equalityI, auto)
  prefer 2
  apply (frule rtrancl_type [THEN subsetD])
  apply (blast intro: r_into_rtrancl )
-txt{*converse direction*}
+txt\<open>converse direction\<close>
 apply (frule rtrancl_type [THEN subsetD], clarify)
 apply (erule rtrancl_induct)
 apply (simp add: rtrancl_refl rtrancl_field)

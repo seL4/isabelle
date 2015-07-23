@@ -2,11 +2,11 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
-section {* The ZF Axioms (Except Separation) in L *}
+section \<open>The ZF Axioms (Except Separation) in L\<close>
 
 theory L_axioms imports Formula Relative Reflection MetaExists begin
 
-text {* The class L satisfies the premises of locale @{text M_trivial} *}
+text \<open>The class L satisfies the premises of locale @{text M_trivial}\<close>
 
 lemma transL: "[| y\<in>x; L(x) |] ==> L(y)"
 apply (insert Transset_Lset)
@@ -38,7 +38,7 @@ apply (simp_all add: LPow_in_L, auto)
 apply (blast intro: transL)
 done
 
-text{*We don't actually need @{term L} to satisfy the foundation axiom.*}
+text\<open>We don't actually need @{term L} to satisfy the foundation axiom.\<close>
 theorem foundation_ax: "foundation_ax(L)"
 apply (simp add: foundation_ax_def)
 apply (rule rallI) 
@@ -46,7 +46,7 @@ apply (cut_tac A=x in foundation)
 apply (blast intro: transL)
 done
 
-subsection{*For L to satisfy Replacement *}
+subsection\<open>For L to satisfy Replacement\<close>
 
 (*Can't move these to Formula unless the definition of univalent is moved
 there too!*)
@@ -78,8 +78,8 @@ apply (rule_tac x=Y in rexI)
 apply (simp_all add: Replace_iff univalent_def, blast)
 done
 
-subsection{*Instantiating the locale @{text M_trivial}*}
-text{*No instances of Separation yet.*}
+subsection\<open>Instantiating the locale @{text M_trivial}\<close>
+text\<open>No instances of Separation yet.\<close>
 
 lemma Lset_mono_le: "mono_le_subset(Lset)"
 by (simp add: mono_le_subset_def le_imp_subset Lset_mono)
@@ -110,9 +110,9 @@ declare rex_abs [simp]
 ...and dozens of similar ones.
 *)
 
-subsection{*Instantiation of the locale @{text reflection}*}
+subsection\<open>Instantiation of the locale @{text reflection}\<close>
 
-text{*instances of locale constants*}
+text\<open>instances of locale constants\<close>
 
 definition
   L_F0 :: "[i=>o,i] => i" where
@@ -127,8 +127,8 @@ definition
     "L_ClEx(P) == \<lambda>a. Limit(a) \<and> normalize(L_FF(P),a) = a"
 
 
-text{*We must use the meta-existential quantifier; otherwise the reflection
-      terms become enormous!*}
+text\<open>We must use the meta-existential quantifier; otherwise the reflection
+      terms become enormous!\<close>
 definition
   L_Reflects :: "[i=>o,[i,i]=>o] => prop"  ("(3REFLECTS/ [_,/ _])") where
     "REFLECTS[P,Q] == (??Cl. Closed_Unbounded(Cl) &
@@ -223,8 +223,8 @@ apply (unfold rall_def)
 apply (intro Imp_reflection All_reflection, assumption)
 done
 
-text{*This version handles an alternative form of the bounded quantifier
-      in the second argument of @{text REFLECTS}.*}
+text\<open>This version handles an alternative form of the bounded quantifier
+      in the second argument of @{text REFLECTS}.\<close>
 theorem Rex_reflection':
      "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
       ==> REFLECTS[\<lambda>x. \<exists>z[L]. P(x,z), \<lambda>a x. \<exists>z[##Lset(a)]. Q(a,x,z)]"
@@ -232,7 +232,7 @@ apply (unfold setclass_def rex_def)
 apply (erule Rex_reflection [unfolded rex_def Bex_def]) 
 done
 
-text{*As above.*}
+text\<open>As above.\<close>
 theorem Rall_reflection':
      "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
       ==> REFLECTS[\<lambda>x. \<forall>z[L]. P(x,z), \<lambda>a x. \<forall>z[##Lset(a)]. Q(a,x,z)]"
@@ -263,9 +263,9 @@ lemma Collect_mem_eq: "{x\<in>A. x\<in>B} = A \<inter> B"
 by blast
 
 
-subsection{*Internalized Formulas for some Set-Theoretic Concepts*}
+subsection\<open>Internalized Formulas for some Set-Theoretic Concepts\<close>
 
-subsubsection{*Some numbers to help write de Bruijn indices*}
+subsubsection\<open>Some numbers to help write de Bruijn indices\<close>
 
 abbreviation
   digit3 :: i   ("3") where "3 == succ(2)"
@@ -289,7 +289,7 @@ abbreviation
   digit9 :: i   ("9") where "9 == succ(8)"
 
 
-subsubsection{*The Empty Set, Internalized*}
+subsubsection\<open>The Empty Set, Internalized\<close>
 
 definition
   empty_fm :: "i=>i" where
@@ -317,7 +317,7 @@ apply (simp only: empty_def)
 apply (intro FOL_reflections)
 done
 
-text{*Not used.  But maybe useful?*}
+text\<open>Not used.  But maybe useful?\<close>
 lemma Transset_sats_empty_fm_eq_0:
    "[| n \<in> nat; env \<in> list(A); Transset(A)|]
     ==> sats(A, empty_fm(n), env) \<longleftrightarrow> nth(n,env) = 0"
@@ -328,7 +328,7 @@ apply (simp_all add: not_lt_iff_le nth_eq_0)
 done
 
 
-subsubsection{*Unordered Pairs, Internalized*}
+subsubsection\<open>Unordered Pairs, Internalized\<close>
 
 definition
   upair_fm :: "[i,i,i]=>i" where
@@ -354,7 +354,7 @@ lemma upair_iff_sats:
        ==> upair(##A, x, y, z) \<longleftrightarrow> sats(A, upair_fm(i,j,k), env)"
 by (simp add: sats_upair_fm)
 
-text{*Useful? At least it refers to "real" unordered pairs*}
+text\<open>Useful? At least it refers to "real" unordered pairs\<close>
 lemma sats_upair_fm2 [simp]:
    "[| x \<in> nat; y \<in> nat; z < length(env); env \<in> list(A); Transset(A)|]
     ==> sats(A, upair_fm(x,y,z), env) \<longleftrightarrow>
@@ -371,7 +371,7 @@ apply (simp add: upair_def)
 apply (intro FOL_reflections)
 done
 
-subsubsection{*Ordered pairs, Internalized*}
+subsubsection\<open>Ordered pairs, Internalized\<close>
 
 definition
   pair_fm :: "[i,i,i]=>i" where
@@ -404,7 +404,7 @@ apply (intro FOL_reflections upair_reflection)
 done
 
 
-subsubsection{*Binary Unions, Internalized*}
+subsubsection\<open>Binary Unions, Internalized\<close>
 
 definition
   union_fm :: "[i,i,i]=>i" where
@@ -436,7 +436,7 @@ apply (intro FOL_reflections)
 done
 
 
-subsubsection{*Set ``Cons,'' Internalized*}
+subsubsection\<open>Set ``Cons,'' Internalized\<close>
 
 definition
   cons_fm :: "[i,i,i]=>i" where
@@ -469,7 +469,7 @@ apply (intro FOL_reflections upair_reflection union_reflection)
 done
 
 
-subsubsection{*Successor Function, Internalized*}
+subsubsection\<open>Successor Function, Internalized\<close>
 
 definition
   succ_fm :: "[i,i]=>i" where
@@ -499,7 +499,7 @@ apply (intro cons_reflection)
 done
 
 
-subsubsection{*The Number 1, Internalized*}
+subsubsection\<open>The Number 1, Internalized\<close>
 
 (* "number1(M,a) == (\<exists>x[M]. empty(M,x) & successor(M,x,a))" *)
 definition
@@ -529,7 +529,7 @@ apply (intro FOL_reflections empty_reflection successor_reflection)
 done
 
 
-subsubsection{*Big Union, Internalized*}
+subsubsection\<open>Big Union, Internalized\<close>
 
 (*  "big_union(M,A,z) == \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>y[M]. y\<in>A & x \<in> y)" *)
 definition
@@ -562,13 +562,13 @@ apply (intro FOL_reflections)
 done
 
 
-subsubsection{*Variants of Satisfaction Definitions for Ordinals, etc.*}
+subsubsection\<open>Variants of Satisfaction Definitions for Ordinals, etc.\<close>
 
-text{*The @{text sats} theorems below are standard versions of the ones proved
+text\<open>The @{text sats} theorems below are standard versions of the ones proved
 in theory @{text Formula}.  They relate elements of type @{term formula} to
 relativized concepts such as @{term subset} or @{term ordinal} rather than to
 real concepts such as @{term Ord}.  Now that we have instantiated the locale
-@{text M_trivial}, we no longer require the earlier versions.*}
+@{text M_trivial}, we no longer require the earlier versions.\<close>
 
 lemma sats_subset_fm':
    "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
@@ -611,7 +611,7 @@ apply (intro FOL_reflections transitive_set_reflection)
 done
 
 
-subsubsection{*Membership Relation, Internalized*}
+subsubsection\<open>Membership Relation, Internalized\<close>
 
 definition
   Memrel_fm :: "[i,i]=>i" where
@@ -645,7 +645,7 @@ apply (simp only: membership_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
-subsubsection{*Predecessor Set, Internalized*}
+subsubsection\<open>Predecessor Set, Internalized\<close>
 
 definition
   pred_set_fm :: "[i,i,i,i]=>i" where
@@ -682,7 +682,7 @@ done
 
 
 
-subsubsection{*Domain of a Relation, Internalized*}
+subsubsection\<open>Domain of a Relation, Internalized\<close>
 
 (* "is_domain(M,r,z) ==
         \<forall>x[M]. (x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w))))" *)
@@ -717,7 +717,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*Range of a Relation, Internalized*}
+subsubsection\<open>Range of a Relation, Internalized\<close>
 
 (* "is_range(M,r,z) ==
         \<forall>y[M]. (y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w))))" *)
@@ -752,7 +752,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*Field of a Relation, Internalized*}
+subsubsection\<open>Field of a Relation, Internalized\<close>
 
 (* "is_field(M,r,z) ==
         \<exists>dr[M]. is_domain(M,r,dr) &
@@ -789,7 +789,7 @@ apply (intro FOL_reflections domain_reflection range_reflection
 done
 
 
-subsubsection{*Image under a Relation, Internalized*}
+subsubsection\<open>Image under a Relation, Internalized\<close>
 
 (* "image(M,r,A,z) ==
         \<forall>y[M]. (y \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,w))))" *)
@@ -825,7 +825,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*Pre-Image under a Relation, Internalized*}
+subsubsection\<open>Pre-Image under a Relation, Internalized\<close>
 
 (* "pre_image(M,r,A,z) ==
         \<forall>x[M]. x \<in> z \<longleftrightarrow> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. y\<in>A & pair(M,x,y,w)))" *)
@@ -861,7 +861,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*Function Application, Internalized*}
+subsubsection\<open>Function Application, Internalized\<close>
 
 (* "fun_apply(M,f,x,y) ==
         (\<exists>xs[M]. \<exists>fxs[M].
@@ -898,7 +898,7 @@ apply (intro FOL_reflections upair_reflection image_reflection
 done
 
 
-subsubsection{*The Concept of Relation, Internalized*}
+subsubsection\<open>The Concept of Relation, Internalized\<close>
 
 (* "is_relation(M,r) ==
         (\<forall>z[M]. z\<in>r \<longrightarrow> (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,z)))" *)
@@ -930,7 +930,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*The Concept of Function, Internalized*}
+subsubsection\<open>The Concept of Function, Internalized\<close>
 
 (* "is_function(M,r) ==
         \<forall>x[M]. \<forall>y[M]. \<forall>y'[M]. \<forall>p[M]. \<forall>p'[M].
@@ -967,7 +967,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*Typed Functions, Internalized*}
+subsubsection\<open>Typed Functions, Internalized\<close>
 
 (* "typed_function(M,A,B,r) ==
         is_function(M,r) & is_relation(M,r) & is_domain(M,r,A) &
@@ -1026,7 +1026,7 @@ apply (intro FOL_reflections function_reflections)
 done
 
 
-subsubsection{*Composition of Relations, Internalized*}
+subsubsection\<open>Composition of Relations, Internalized\<close>
 
 (* "composition(M,r,s,t) ==
         \<forall>p[M]. p \<in> t \<longleftrightarrow>
@@ -1067,7 +1067,7 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
-subsubsection{*Injections, Internalized*}
+subsubsection\<open>Injections, Internalized\<close>
 
 (* "injection(M,A,B,f) ==
         typed_function(M,A,B,f) &
@@ -1108,7 +1108,7 @@ apply (intro FOL_reflections function_reflections typed_function_reflection)
 done
 
 
-subsubsection{*Surjections, Internalized*}
+subsubsection\<open>Surjections, Internalized\<close>
 
 (*  surjection :: "[i=>o,i,i,i] => o"
     "surjection(M,A,B,f) ==
@@ -1147,7 +1147,7 @@ done
 
 
 
-subsubsection{*Bijections, Internalized*}
+subsubsection\<open>Bijections, Internalized\<close>
 
 (*   bijection :: "[i=>o,i,i,i] => o"
     "bijection(M,A,B,f) == injection(M,A,B,f) & surjection(M,A,B,f)" *)
@@ -1179,7 +1179,7 @@ apply (intro And_reflection injection_reflection surjection_reflection)
 done
 
 
-subsubsection{*Restriction of a Relation, Internalized*}
+subsubsection\<open>Restriction of a Relation, Internalized\<close>
 
 
 (* "restriction(M,r,A,z) ==
@@ -1215,7 +1215,7 @@ apply (simp only: restriction_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
-subsubsection{*Order-Isomorphisms, Internalized*}
+subsubsection\<open>Order-Isomorphisms, Internalized\<close>
 
 (*  order_isomorphism :: "[i=>o,i,i,i,i,i] => o"
    "order_isomorphism(M,A,r,B,s,f) ==
@@ -1266,9 +1266,9 @@ apply (simp only: order_isomorphism_def)
 apply (intro FOL_reflections function_reflections bijection_reflection)
 done
 
-subsubsection{*Limit Ordinals, Internalized*}
+subsubsection\<open>Limit Ordinals, Internalized\<close>
 
-text{*A limit ordinal is a non-empty, successor-closed ordinal*}
+text\<open>A limit ordinal is a non-empty, successor-closed ordinal\<close>
 
 (* "limit_ordinal(M,a) ==
         ordinal(M,a) & ~ empty(M,a) &
@@ -1306,7 +1306,7 @@ apply (intro FOL_reflections ordinal_reflection
              empty_reflection successor_reflection)
 done
 
-subsubsection{*Finite Ordinals: The Predicate ``Is A Natural Number''*}
+subsubsection\<open>Finite Ordinals: The Predicate ``Is A Natural Number''\<close>
 
 (*     "finite_ordinal(M,a) == 
         ordinal(M,a) & ~ limit_ordinal(M,a) & 
@@ -1342,7 +1342,7 @@ apply (intro FOL_reflections ordinal_reflection limit_ordinal_reflection)
 done
 
 
-subsubsection{*Omega: The Set of Natural Numbers*}
+subsubsection\<open>Omega: The Set of Natural Numbers\<close>
 
 (* omega(M,a) == limit_ordinal(M,a) & (\<forall>x[M]. x\<in>a \<longrightarrow> ~ limit_ordinal(M,x)) *)
 definition

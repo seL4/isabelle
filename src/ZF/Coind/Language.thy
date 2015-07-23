@@ -6,7 +6,7 @@
 theory Language imports Main begin
 
 
-text{*these really can't be definitions without losing the abstraction*}
+text\<open>these really can't be definitions without losing the abstraction\<close>
 
 axiomatization
   Const :: i  and               (* Abstract type of constants *)

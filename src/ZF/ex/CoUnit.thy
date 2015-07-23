@@ -3,11 +3,11 @@
     Copyright   1994  University of Cambridge
 *)
 
-section {* Trivial codatatype definitions, one of which goes wrong! *}
+section \<open>Trivial codatatype definitions, one of which goes wrong!\<close>
 
 theory CoUnit imports Main begin
 
-text {*
+text \<open>
   See discussion in: L C Paulson.  A Concrete Final Coalgebra Theorem
   for ZF Set Theory.  Report 334, Cambridge University Computer
   Laboratory.  1994.
@@ -17,7 +17,7 @@ text {*
   This degenerate definition does not work well because the one
   constructor's definition is trivial!  The same thing occurs with
   Aczel's Special Final Coalgebra Theorem.
-*}
+\<close>
 
 consts
   counit :: i
@@ -25,14 +25,14 @@ codatatype
   "counit" = Con ("x \<in> counit")
 
 inductive_cases ConE: "Con(x) \<in> counit"
-  -- {* USELESS because folding on @{term "Con(xa) == xa"} fails. *}
+  -- \<open>USELESS because folding on @{term "Con(xa) == xa"} fails.\<close>
 
 lemma Con_iff: "Con(x) = Con(y) \<longleftrightarrow> x = y"
-  -- {* Proving freeness results. *}
+  -- \<open>Proving freeness results.\<close>
   by (auto elim!: counit.free_elims)
 
 lemma counit_eq_univ: "counit = quniv(0)"
-  -- {* Should be a singleton, not everything! *}
+  -- \<open>Should be a singleton, not everything!\<close>
   apply (rule counit.dom_subset [THEN equalityI])
   apply (rule subsetI)
   apply (erule counit.coinduct)
@@ -42,10 +42,10 @@ lemma counit_eq_univ: "counit = quniv(0)"
   done
 
 
-text {*
+text \<open>
   \medskip A similar example, but the constructor is non-degenerate
   and it works!  The resulting set is a singleton.
-*}
+\<close>
 
 consts
   counit2 :: i
@@ -56,7 +56,7 @@ codatatype
 inductive_cases Con2E: "Con2(x, y) \<in> counit2"
 
 lemma Con2_iff: "Con2(x, y) = Con2(x', y') \<longleftrightarrow> x = x' & y = y'"
-  -- {* Proving freeness results. *}
+  -- \<open>Proving freeness results.\<close>
   by (fast elim!: counit2.free_elims)
 
 lemma Con2_bnd_mono: "bnd_mono(univ(0), %x. Con2(x, x))"
@@ -74,15 +74,15 @@ lemma lfp_Con2_in_counit2: "lfp(univ(0), %x. Con2(x,x)) \<in> counit2"
 
 lemma counit2_Int_Vset_subset [rule_format]:
   "Ord(i) ==> \<forall>x y. x \<in> counit2 \<longrightarrow> y \<in> counit2 \<longrightarrow> x \<inter> Vset(i) \<subseteq> y"
-  -- {* Lemma for proving finality. *}
+  -- \<open>Lemma for proving finality.\<close>
   apply (erule trans_induct)
   apply (tactic "safe_tac (put_claset subset_cs @{context})")
   apply (erule counit2.cases)
   apply (erule counit2.cases)
   apply (unfold counit2.con_defs)
-  apply (tactic {* fast_tac (put_claset subset_cs @{context}
+  apply (tactic \<open>fast_tac (put_claset subset_cs @{context}
     addSIs [@{thm QPair_Int_Vset_subset_UN} RS @{thm subset_trans}, @{thm QPair_mono}]
-    addSEs [@{thm Ord_in_Ord}, @{thm Pair_inject}]) 1 *})
+    addSEs [@{thm Ord_in_Ord}, @{thm Pair_inject}]) 1\<close>)
   done
 
 lemma counit2_implies_equal: "[| x \<in> counit2;  y \<in> counit2 |] ==> x = y"
