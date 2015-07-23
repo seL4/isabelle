@@ -296,15 +296,9 @@ definition
 
 syntax
   "_finprod" :: "index => idt => 'a set => 'b => 'b"
-      ("(3\<Otimes>__:_. _)" [1000, 0, 51, 10] 10)
-syntax (xsymbols)
-  "_finprod" :: "index => idt => 'a set => 'b => 'b"
-      ("(3\<Otimes>__\<in>_. _)" [1000, 0, 51, 10] 10)
-syntax (HTML output)
-  "_finprod" :: "index => idt => 'a set => 'b => 'b"
       ("(3\<Otimes>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
-  "\<Otimes>\<index>i:A. b" == "CONST finprod \<struct>\<index> (%i. b) A"
+  "\<Otimes>\<index>i\<in>A. b" \<rightleftharpoons> "CONST finprod \<struct>\<index> (%i. b) A"
   -- {* Beware of argument permutation! *}
 
 lemma (in comm_monoid) finprod_empty [simp]: 
@@ -338,8 +332,7 @@ lemma finprod_insert [simp]:
   apply (auto simp add: finprod_def)
   done
 
-lemma finprod_one [simp]:
-  "(\<Otimes>i:A. \<one>) = \<one>"
+lemma finprod_one [simp]: "(\<Otimes>i\<in>A. \<one>) = \<one>"
 proof (induct A rule: infinite_finite_induct)
   case empty show ?case by simp
 next

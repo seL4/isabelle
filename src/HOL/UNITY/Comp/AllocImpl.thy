@@ -258,21 +258,21 @@ by (auto simp add: Merge_Allowed ok_iff_Allowed)
 
 lemma Merge_Always_Out_eq_iOut:
      "[| G \<in> preserves merge.Out; G \<in> preserves merge.iOut; M \<in> Allowed G |]
-      ==> M Join G \<in> Always {s. length (merge.Out s) = length (merge.iOut s)}"
+      ==> M \<squnion> G \<in> Always {s. length (merge.Out s) = length (merge.iOut s)}"
 apply (cut_tac Merge_spec)
 apply (force dest: guaranteesD simp add: merge_spec_def merge_eqOut_def)
 done
 
 lemma Merge_Bounded:
      "[| G \<in> preserves merge.iOut; G \<in> preserves merge.Out; M \<in> Allowed G |]
-      ==> M Join G \<in> Always {s. \<forall>elt \<in> set (merge.iOut s). elt < Nclients}"
+      ==> M \<squnion> G \<in> Always {s. \<forall>elt \<in> set (merge.iOut s). elt < Nclients}"
 apply (cut_tac Merge_spec)
 apply (force dest: guaranteesD simp add: merge_spec_def merge_bounded_def)
 done
 
 lemma Merge_Bag_Follows_lemma:
      "[| G \<in> preserves merge.iOut; G \<in> preserves merge.Out; M \<in> Allowed G |]
-  ==> M Join G \<in> Always
+  ==> M \<squnion> G \<in> Always
           {s. (\<Sum>i \<in> lessThan Nclients. bag_of (sublist (merge.Out s)
                                   {k. k < length (iOut s) & iOut s ! k = i})) =
               (bag_of o merge.Out) s}"
@@ -325,8 +325,8 @@ done
 
 lemma Distr_Bag_Follows_lemma:
      "[| G \<in> preserves distr.Out;
-         D Join G \<in> Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients} |]
-  ==> D Join G \<in> Always
+         D \<squnion> G \<in> Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients} |]
+  ==> D \<squnion> G \<in> Always
           {s. (\<Sum>i \<in> lessThan Nclients. bag_of (sublist (distr.In s)
                                   {k. k < length (iIn s) & iIn s ! k = i})) =
               bag_of (sublist (distr.In s) (lessThan (length (iIn s))))}"

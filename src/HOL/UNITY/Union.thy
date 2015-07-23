@@ -26,34 +26,25 @@ definition
                              \<Inter>i \<in> I. AllowedActs (F i))"
 
 definition
-  Join :: "['a program, 'a program] => 'a program"      (infixl "Join" 65)
-  where "F Join G = mk_program (Init F \<inter> Init G, Acts F \<union> Acts G,
+  Join :: "['a program, 'a program] => 'a program"      (infixl "\<squnion>" 65)
+  where "F \<squnion> G = mk_program (Init F \<inter> Init G, Acts F \<union> Acts G,
                              AllowedActs F \<inter> AllowedActs G)"
 
-definition
-  SKIP :: "'a program"
-  where "SKIP = mk_program (UNIV, {}, UNIV)"
+definition SKIP :: "'a program"  ("\<bottom>")
+  where "\<bottom> = mk_program (UNIV, {}, UNIV)"
 
   (*Characterizes safety properties.  Used with specifying Allowed*)
 definition
   safety_prop :: "'a program set => bool"
   where "safety_prop X <-> SKIP: X & (\<forall>G. Acts G \<subseteq> UNION X Acts --> G \<in> X)"
 
-notation (xsymbols)
-  SKIP  ("\<bottom>") and
-  Join  (infixl "\<squnion>" 65)
-
 syntax
-  "_JOIN1"     :: "[pttrns, 'b set] => 'b set"         ("(3JN _./ _)" 10)
-  "_JOIN"      :: "[pttrn, 'a set, 'b set] => 'b set"  ("(3JN _:_./ _)" 10)
-syntax (xsymbols)
   "_JOIN1" :: "[pttrns, 'b set] => 'b set"              ("(3\<Squnion>_./ _)" 10)
   "_JOIN"  :: "[pttrn, 'a set, 'b set] => 'b set"       ("(3\<Squnion>_\<in>_./ _)" 10)
-
 translations
-  "JN x: A. B" == "CONST JOIN A (%x. B)"
-  "JN x y. B" == "JN x. JN y. B"
-  "JN x. B" == "CONST JOIN (CONST UNIV) (%x. B)"
+  "\<Squnion>x \<in> A. B" == "CONST JOIN A (\<lambda>x. B)"
+  "\<Squnion>x y. B" == "\<Squnion>x. \<Squnion>y. B"
+  "\<Squnion>x. B" == "CONST JOIN (CONST UNIV) (\<lambda>x. B)"
 
 
 subsection{*SKIP*}

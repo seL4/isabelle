@@ -8,16 +8,15 @@ begin
 
 (**********************************************************************)
 
-definition comb :: "['a \<Rightarrow> 'b list \<times> 'c, 'c \<Rightarrow> 'b list \<times> 'd, 'a] \<Rightarrow> 'b list \<times> 'd" where 
+definition comb :: "['a \<Rightarrow> 'b list \<times> 'c, 'c \<Rightarrow> 'b list \<times> 'd, 'a] \<Rightarrow> 'b list \<times> 'd"
+  (infixr "\<box>" 55)
+where 
   "comb == (\<lambda> f1 f2 x0. let (xs1, x1) = f1 x0; 
                             (xs2, x2) = f2 x1 
                         in  (xs1 @ xs2, x2))"
 
 definition comb_nil :: "'a \<Rightarrow> 'b list \<times> 'a" where
   "comb_nil a == ([], a)"
-
-notation (xsymbols)
-  comb  (infixr "\<box>" 55)
 
 lemma comb_nil_left [simp]: "comb_nil \<box> f = f"
   by (simp add: comb_def comb_nil_def split_beta)

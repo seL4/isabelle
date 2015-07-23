@@ -31,7 +31,7 @@ by (simp add: PLam_def)
 lemma PLam_SKIP [simp]: "(plam i : I. SKIP) = SKIP"
 by (simp add: PLam_def JN_constant)
 
-lemma PLam_insert: "PLam (insert i I) F = (lift i (F i)) Join (PLam I F)"
+lemma PLam_insert: "PLam (insert i I) F = (lift i (F i)) \<squnion> (PLam I F)"
 by (unfold PLam_def, auto)
 
 lemma PLam_component_iff: "((PLam I F) \<le> H) = (\<forall>i \<in> I. lift i (F i) \<le> H)"
@@ -184,7 +184,7 @@ by (simp add: PLam_def lift_def rename_preserves)
     lemma reachable_lift_Join_PLam [rule_format]:
       "[| i \<notin> I;  A \<in> reachable (F i) |]
        ==> \<forall>f. f \<in> reachable (PLam I F)
-                  --> f(i:=A) \<in> reachable (lift i (F i) Join PLam I F)"
+                  --> f(i:=A) \<in> reachable (lift i (F i) \<squnion> PLam I F)"
     apply (erule reachable.induct)
     apply (ALLGOALS Clarify_tac)
     apply (erule reachable.induct)

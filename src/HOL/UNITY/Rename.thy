@@ -170,7 +170,7 @@ lemma rename_SKIP [simp]: "bij h ==> rename h SKIP = SKIP"
 by (simp add: rename_def Extend.extend_SKIP)
 
 lemma rename_Join [simp]: 
-     "bij h ==> rename h (F Join G) = rename h F Join rename h G"
+     "bij h ==> rename h (F \<squnion> G) = rename h F \<squnion> rename h G"
 by (simp add: rename_def Extend.extend_Join)
 
 lemma rename_JN [simp]:

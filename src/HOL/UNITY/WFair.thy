@@ -67,8 +67,7 @@ definition wlt :: "['a program, 'a set] => 'a set" where
      --{*predicate transformer: the largest set that leads to @{term B}*}
     "wlt F B == Union {A. F \<in> A leadsTo B}"
 
-notation (xsymbols)
-  leadsTo  (infixl "\<longmapsto>" 60)
+notation leadsTo  (infixl "\<longmapsto>" 60)
 
 
 subsection{*transient*}

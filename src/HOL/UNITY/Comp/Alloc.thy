@@ -247,7 +247,7 @@ axiomatization Network :: "'a systemState program"
   where Network: "Network : network_spec"
 
 definition System  :: "'a systemState program"
-  where "System = rename sysOfAlloc Alloc Join Network Join
+  where "System = rename sysOfAlloc Alloc \<squnion> Network \<squnion>
                  (rename sysOfClient
                   (plam x: lessThan Nclients. rename client_map Client))"
 
@@ -268,9 +268,9 @@ locale System =
   defines
     System_def
       "System == rename sysOfAlloc Alloc
-                 Join
+                 \<squnion>
                  Network
-                 Join
+                 \<squnion>
                  (rename sysOfClient
                   (plam x: lessThan Nclients. rename client_map Client))"
 **)
@@ -631,20 +631,20 @@ declare
 
 subsection{*Components Lemmas [MUST BE AUTOMATED]*}
 
-lemma Network_component_System: "Network Join
+lemma Network_component_System: "Network \<squnion>
       ((rename sysOfClient
-        (plam x: (lessThan Nclients). rename client_map Client)) Join
+        (plam x: (lessThan Nclients). rename client_map Client)) \<squnion>
        rename sysOfAlloc Alloc)
       = System"
   by (simp add: System_def Join_ac)
 
 lemma Client_component_System: "(rename sysOfClient
-       (plam x: (lessThan Nclients). rename client_map Client)) Join
-      (Network Join rename sysOfAlloc Alloc)  =  System"
+       (plam x: (lessThan Nclients). rename client_map Client)) \<squnion>
+      (Network \<squnion> rename sysOfAlloc Alloc)  =  System"
   by (simp add: System_def Join_ac)
 
-lemma Alloc_component_System: "rename sysOfAlloc Alloc Join
-       ((rename sysOfClient (plam x: (lessThan Nclients). rename client_map Client)) Join
+lemma Alloc_component_System: "rename sysOfAlloc Alloc \<squnion>
+       ((rename sysOfClient (plam x: (lessThan Nclients). rename client_map Client)) \<squnion>
         Network)  =  System"
   by (simp add: System_def Join_ac)
 

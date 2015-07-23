@@ -36,15 +36,9 @@ definition
 
 syntax
   "_finsum" :: "index => idt => 'a set => 'b => 'b"
-      ("(3\<Oplus>__:_. _)" [1000, 0, 51, 10] 10)
-syntax (xsymbols)
-  "_finsum" :: "index => idt => 'a set => 'b => 'b"
-      ("(3\<Oplus>__\<in>_. _)" [1000, 0, 51, 10] 10)
-syntax (HTML output)
-  "_finsum" :: "index => idt => 'a set => 'b => 'b"
       ("(3\<Oplus>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
-  "\<Oplus>\<index>i:A. b" == "CONST finsum \<struct>\<index> (%i. b) A"
+  "\<Oplus>\<index>i\<in>A. b" \<rightleftharpoons> "CONST finsum \<struct>\<index> (%i. b) A"
   -- {* Beware of argument permutation! *}
 
 

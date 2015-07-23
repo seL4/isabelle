@@ -65,7 +65,7 @@ definition Safety :: "state set"
      the vertex 'UNIV' is finite by assumption *)
   
 definition system :: "state program"
-  where "system = (JN i. Component i)"
+  where "system = (\<Squnion>i. Component i)"
 
 
 declare highest_def [simp] lowest_def [simp]

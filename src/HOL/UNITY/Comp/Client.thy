@@ -98,7 +98,7 @@ text{*Safety property 2: the client never requests too many tokens.
       simultaneously. *}
 lemma ask_bounded_lemma:
      "Client ok G   
-      ==> Client Join G \<in>   
+      ==> Client \<squnion> G \<in>   
               Always ({s. tok s \<le> NbT}  Int   
                       {s. \<forall>elt \<in> set (ask s). elt \<le> NbT})"
 apply auto
@@ -125,13 +125,13 @@ lemma stable_rel_le_giv: "Client \<in> stable {s. rel s \<le> giv s}"
 by (simp add: Client_def, safety, auto)
 
 lemma Join_Stable_rel_le_giv:
-     "[| Client Join G \<in> Increasing giv;  G \<in> preserves rel |]  
-      ==> Client Join G \<in> Stable {s. rel s \<le> giv s}"
+     "[| Client \<squnion> G \<in> Increasing giv;  G \<in> preserves rel |]  
+      ==> Client \<squnion> G \<in> Stable {s. rel s \<le> giv s}"
 by (rule stable_rel_le_giv [THEN Increasing_preserves_Stable], auto)
 
 lemma Join_Always_rel_le_giv:
-     "[| Client Join G \<in> Increasing giv;  G \<in> preserves rel |]  
-      ==> Client Join G \<in> Always {s. rel s \<le> giv s}"
+     "[| Client \<squnion> G \<in> Increasing giv;  G \<in> preserves rel |]  
+      ==> Client \<squnion> G \<in> Always {s. rel s \<le> giv s}"
 by (force intro: AlwaysI Join_Stable_rel_le_giv)
 
 lemma transient_lemma:
@@ -146,8 +146,8 @@ done
 
 
 lemma induct_lemma:
-     "[| Client Join G \<in> Increasing giv;  Client ok G |]  
-  ==> Client Join G \<in> {s. rel s = k & k<h & h \<le> giv s & h pfixGe ask s}   
+     "[| Client \<squnion> G \<in> Increasing giv;  Client ok G |]  
+  ==> Client \<squnion> G \<in> {s. rel s = k & k<h & h \<le> giv s & h pfixGe ask s}   
                       LeadsTo {s. k < rel s & rel s \<le> giv s &  
                                   h \<le> giv s & h pfixGe ask s}"
 apply (rule single_LeadsTo_I)
@@ -165,8 +165,8 @@ done
 
 
 lemma rel_progress_lemma:
-     "[| Client Join G \<in> Increasing giv;  Client ok G |]  
-  ==> Client Join G \<in> {s. rel s < h & h \<le> giv s & h pfixGe ask s}   
+     "[| Client \<squnion> G \<in> Increasing giv;  Client ok G |]  
+  ==> Client \<squnion> G \<in> {s. rel s < h & h \<le> giv s & h pfixGe ask s}   
                       LeadsTo {s. h \<le> rel s}"
 apply (rule_tac f = "%s. size h - size (rel s) " in LessThan_induct)
 apply (auto simp add: vimage_def)
@@ -179,8 +179,8 @@ done
 
 
 lemma client_progress_lemma:
-     "[| Client Join G \<in> Increasing giv;  Client ok G |]  
-      ==> Client Join G \<in> {s. h \<le> giv s & h pfixGe ask s}   
+     "[| Client \<squnion> G \<in> Increasing giv;  Client ok G |]  
+      ==> Client \<squnion> G \<in> {s. h \<le> giv s & h pfixGe ask s}   
                           LeadsTo {s. h \<le> rel s}"
 apply (rule Join_Always_rel_le_giv [THEN Always_LeadsToI], simp_all) 
 apply (rule LeadsTo_Un [THEN LeadsTo_weaken_L])

@@ -15,8 +15,7 @@ definition Ensures :: "['a set, 'a set] => 'a program set" (infixl "Ensures" 60)
 definition LeadsTo :: "['a set, 'a set] => 'a program set" (infixl "LeadsTo" 60) where
     "A LeadsTo B == {F. F \<in> (reachable F \<inter> A) leadsTo B}"
 
-notation (xsymbols)
-  LeadsTo  (infixl " \<longmapsto>w " 60)
+notation LeadsTo  (infixl "\<longmapsto>w" 60)
 
 
 text{*Resembles the previous definition of LeadsTo*}

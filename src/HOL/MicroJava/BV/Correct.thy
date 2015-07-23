@@ -42,7 +42,7 @@ primrec correct_frames  :: "[jvm_prog,aheap,prog_type,ty,sig,frame list] \<Right
      correct_frames G hp phi rT sig frs))))"
 
 definition correct_state :: "[jvm_prog,prog_type,jvm_state] \<Rightarrow> bool"
-                  ("_,_ |-JVM _ [ok]"  [51,51] 50) where
+                  ("_,_ \<turnstile>JVM _ \<surd>"  [51,51] 50) where
 "correct_state G phi == \<lambda>(xp,hp,frs).
    case xp of
      None \<Rightarrow> (case frs of
@@ -57,10 +57,6 @@ definition correct_state :: "[jvm_prog,prog_type,jvm_state] \<Rightarrow> bool"
        correct_frame G hp s maxl ins f \<and> 
              correct_frames G hp phi rT sig fs))
    | Some x \<Rightarrow> frs = []" 
-
-
-notation (xsymbols)
- correct_state  ("_,_ \<turnstile>JVM _ \<surd>"  [51,51] 50)
 
 
 lemma sup_ty_opt_OK:

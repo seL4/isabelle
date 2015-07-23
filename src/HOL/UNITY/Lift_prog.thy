@@ -178,7 +178,7 @@ by (simp add: lift_def)
 lemma lift_SKIP [simp]: "lift i SKIP = SKIP"
 by (simp add: lift_def)
 
-lemma lift_Join [simp]: "lift i (F Join G) = lift i F Join lift i G"
+lemma lift_Join [simp]: "lift i (F \<squnion> G) = lift i F \<squnion> lift i G"
 by (simp add: lift_def)
 
 lemma lift_JN [simp]: "lift j (JOIN I F) = (\<Squnion>i \<in> I. lift j (F i))"
