@@ -1642,10 +1642,11 @@ lemma measure_cases[cases type: measure]:
   obtains (measure) \<Omega> A \<mu> where "x = Abs_measure (\<Omega>, A, \<mu>)" "\<forall>a\<in>-A. \<mu> a = 0" "measure_space \<Omega> A \<mu>"
   by atomize_elim (cases x, auto)
 
-lemma sets_eq_imp_space_eq:
-  "sets M = sets M' \<Longrightarrow> space M = space M'"
-  using sets.top[of M] sets.top[of M'] sets.space_closed[of M] sets.space_closed[of M']
-  by blast
+lemma sets_le_imp_space_le: "sets A \<subseteq> sets B \<Longrightarrow> space A \<subseteq> space B"
+  by (auto dest: sets.sets_into_space)
+
+lemma sets_eq_imp_space_eq: "sets M = sets M' \<Longrightarrow> space M = space M'"
+  by (auto intro!: antisym sets_le_imp_space_le)
 
 lemma emeasure_notin_sets: "A \<notin> sets M \<Longrightarrow> emeasure M A = 0"
   by (cases M) (auto simp: sets_def emeasure_def Abs_measure_inverse measure_space_def)

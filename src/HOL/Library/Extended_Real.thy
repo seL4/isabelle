@@ -3182,6 +3182,77 @@ proof-
 qed
 
 
+lemma SUP_ereal_add_directed:
+  fixes f g :: "'a \<Rightarrow> ereal"
+  assumes nonneg: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i" "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> g i"
+  assumes directed: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. f i + g j \<le> f k + g k"
+  shows "(SUP i:I. f i + g i) = (SUP i:I. f i) + (SUP i:I. g i)"
+proof cases
+  assume "I = {}" then show ?thesis
+    by (simp add: bot_ereal_def)
+next
+  assume "I \<noteq> {}"
+  show ?thesis
+  proof (rule antisym)
+    show "(SUP i:I. f i + g i) \<le> (SUP i:I. f i) + (SUP i:I. g i)"
+      by (rule SUP_least; intro ereal_add_mono SUP_upper)
+  next
+    have "bot < (SUP i:I. g i)"
+      using \<open>I \<noteq> {}\<close> nonneg(2) by (auto simp: bot_ereal_def less_SUP_iff)
+    then have "(SUP i:I. f i) + (SUP i:I. g i) = (SUP i:I. f i + (SUP i:I. g i))"
+      by (intro SUP_ereal_add_left[symmetric] \<open>I \<noteq> {}\<close>) auto
+    also have "\<dots> = (SUP i:I. (SUP j:I. f i + g j))"
+      using nonneg(1) by (intro SUP_cong refl SUP_ereal_add_right[symmetric] \<open>I \<noteq> {}\<close>) auto
+    also have "\<dots> \<le> (SUP i:I. f i + g i)"
+      using directed by (intro SUP_least) (blast intro: SUP_upper2)
+    finally show "(SUP i:I. f i) + (SUP i:I. g i) \<le> (SUP i:I. f i + g i)" .
+  qed
+qed
+
+lemma SUP_ereal_setsum_directed:
+  fixes f g :: "'a \<Rightarrow> 'b \<Rightarrow> ereal"
+  assumes "I \<noteq> {}"
+  assumes directed: "\<And>N i j. N \<subseteq> A \<Longrightarrow> i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. \<forall>n\<in>N. f n i \<le> f n k \<and> f n j \<le> f n k"
+  assumes nonneg: "\<And>n i. i \<in> I \<Longrightarrow> n \<in> A \<Longrightarrow> 0 \<le> f n i"
+  shows "(SUP i:I. \<Sum>n\<in>A. f n i) = (\<Sum>n\<in>A. SUP i:I. f n i)"
+proof -
+  have "N \<subseteq> A \<Longrightarrow> (SUP i:I. \<Sum>n\<in>N. f n i) = (\<Sum>n\<in>N. SUP i:I. f n i)" for N
+  proof (induction N rule: infinite_finite_induct)
+    case (insert n N)
+    moreover have "(SUP i:I. f n i + (\<Sum>l\<in>N. f l i)) = (SUP i:I. f n i) + (SUP i:I. \<Sum>l\<in>N. f l i)"
+    proof (rule SUP_ereal_add_directed)
+      fix i assume "i \<in> I" then show "0 \<le> f n i" "0 \<le> (\<Sum>l\<in>N. f l i)"
+        using insert by (auto intro!: setsum_nonneg nonneg)
+    next
+      fix i j assume "i \<in> I" "j \<in> I"
+      from directed[OF \<open>insert n N \<subseteq> A\<close> this] guess k ..
+      then show "\<exists>k\<in>I. f n i + (\<Sum>l\<in>N. f l j) \<le> f n k + (\<Sum>l\<in>N. f l k)" 
+        by (intro bexI[of _ k]) (auto intro!: ereal_add_mono setsum_mono)
+    qed
+    ultimately show ?case
+      by simp
+  qed (simp_all add: SUP_constant \<open>I \<noteq> {}\<close>)
+  from this[of A] show ?thesis by simp
+qed
+
+lemma suminf_SUP_eq_directed:
+  fixes f :: "_ \<Rightarrow> nat \<Rightarrow> ereal"
+  assumes "I \<noteq> {}"
+  assumes directed: "\<And>N i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> finite N \<Longrightarrow> \<exists>k\<in>I. \<forall>n\<in>N. f i n \<le> f k n \<and> f j n \<le> f k n"
+  assumes nonneg: "\<And>n i. 0 \<le> f n i"
+  shows "(\<Sum>i. SUP n:I. f n i) = (SUP n:I. \<Sum>i. f n i)"
+proof (subst (1 2) suminf_ereal_eq_SUP)
+  show "\<And>n i. 0 \<le> f n i" "\<And>i. 0 \<le> (SUP n:I. f n i)"
+    using \<open>I \<noteq> {}\<close> nonneg by (auto intro: SUP_upper2)
+  show "(SUP n. \<Sum>i<n. SUP n:I. f n i) = (SUP n:I. SUP j. \<Sum>i<j. f n i)"
+    apply (subst SUP_commute)
+    apply (subst SUP_ereal_setsum_directed)
+    apply (auto intro!: assms simp: finite_subset)
+    done
+qed
+
+subsection \<open>More Limits\<close>
+
 lemma convergent_limsup_cl:
   fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
   shows "convergent X \<Longrightarrow> limsup X = lim X"

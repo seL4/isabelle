@@ -2053,5 +2053,174 @@ lemma emeasure_null_measure[simp]: "emeasure (null_measure M) X = 0"
 lemma measure_null_measure[simp]: "measure (null_measure M) X = 0"
   by (simp add: measure_def)
 
+subsection \<open>Measures form a chain-complete partial order\<close>
+
+instantiation measure :: (type) order_bot
+begin
+
+definition bot_measure :: "'a measure" where
+  "bot_measure = sigma {} {{}}"
+
+lemma space_bot[simp]: "space bot = {}"
+  unfolding bot_measure_def by (rule space_measure_of) auto
+
+lemma sets_bot[simp]: "sets bot = {{}}"
+  unfolding bot_measure_def by (subst sets_measure_of) auto
+
+lemma emeasure_bot[simp]: "emeasure bot = (\<lambda>x. 0)"
+  unfolding bot_measure_def by (rule emeasure_sigma)
+
+inductive less_eq_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bool" where
+  "sets N = sets M \<Longrightarrow> (\<And>A. A \<in> sets M \<Longrightarrow> emeasure M A \<le> emeasure N A) \<Longrightarrow> less_eq_measure M N"
+| "less_eq_measure bot N"
+
+definition less_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bool" where
+  "less_measure M N \<longleftrightarrow> (M \<le> N \<and> \<not> N \<le> M)"
+
+instance
+proof (standard, goals)
+  case 1 then show ?case
+    unfolding less_measure_def ..
+next
+  case (2 M) then show ?case
+    by (intro less_eq_measure.intros) auto
+next
+  case (3 M N L) then show ?case
+    apply (safe elim!: less_eq_measure.cases)
+    apply (simp_all add: less_eq_measure.intros)
+    apply (rule less_eq_measure.intros)
+    apply simp
+    apply (blast intro: order_trans) []
+    unfolding less_eq_measure.simps
+    apply (rule disjI2)
+    apply simp
+    apply (rule measure_eqI)
+    apply (auto intro!: antisym)
+    done
+next
+  case (4 M N) then show ?case
+    apply (safe elim!: less_eq_measure.cases intro!: measure_eqI)
+    apply simp
+    apply simp
+    apply (blast intro: antisym)
+    apply (simp)
+    apply (blast intro: antisym)
+    apply simp
+    done
+qed (rule less_eq_measure.intros)
 end
 
+lemma le_emeasureD: "M \<le> N \<Longrightarrow> emeasure M A \<le> emeasure N A"
+  by (cases "A \<in> sets M") (auto elim!: less_eq_measure.cases simp: emeasure_notin_sets)
+
+lemma le_sets: "N \<le> M \<Longrightarrow> sets N \<le> sets M"
+  unfolding less_eq_measure.simps by auto
+
+instantiation measure :: (type) ccpo
+begin
+
+definition Sup_measure :: "'a measure set \<Rightarrow> 'a measure" where
+  "Sup_measure A = measure_of (SUP a:A. space a) (SUP a:A. sets a) (SUP a:A. emeasure a)"
+
+lemma
+  assumes A: "Complete_Partial_Order.chain op \<le> A" and a: "a \<noteq> bot" "a \<in> A"
+  shows space_Sup: "space (Sup A) = space a"
+    and sets_Sup: "sets (Sup A) = sets a"
+proof -
+  have sets: "(SUP a:A. sets a) = sets a"
+  proof (intro antisym SUP_least)
+    fix a' show "a' \<in> A \<Longrightarrow> sets a' \<subseteq> sets a" 
+      using a chainD[OF A, of a a'] by (auto elim!: less_eq_measure.cases)
+  qed (insert \<open>a\<in>A\<close>, auto)
+  have space: "(SUP a:A. space a) = space a"
+  proof (intro antisym SUP_least)
+    fix a' show "a' \<in> A \<Longrightarrow> space a' \<subseteq> space a" 
+      using a chainD[OF A, of a a'] by (intro sets_le_imp_space_le) (auto elim!: less_eq_measure.cases)
+  qed (insert \<open>a\<in>A\<close>, auto)
+  show "space (Sup A) = space a"
+    unfolding Sup_measure_def sets space sets.space_measure_of_eq ..
+  show "sets (Sup A) = sets a"
+    unfolding Sup_measure_def sets space sets.sets_measure_of_eq ..
+qed
+
+lemma emeasure_Sup:
+  assumes A: "Complete_Partial_Order.chain op \<le> A" "A \<noteq> {}"
+  assumes "X \<in> sets (Sup A)"
+  shows "emeasure (Sup A) X = (SUP a:A. emeasure a) X"
+proof (rule emeasure_measure_of[OF Sup_measure_def])
+  show "countably_additive (sets (Sup A)) (SUP a:A. emeasure a)"
+    unfolding countably_additive_def
+  proof safe
+    fix F :: "nat \<Rightarrow> 'a set" assume F: "range F \<subseteq> sets (Sup A)" "disjoint_family F"
+    show "(\<Sum>i. (SUP a:A. emeasure a) (F i)) = SUPREMUM A emeasure (UNION UNIV F)"
+      unfolding SUP_apply
+    proof (subst suminf_SUP_eq_directed)
+      fix N i j assume "i \<in> A" "j \<in> A"
+      with A(1)
+      show "\<exists>k\<in>A. \<forall>n\<in>N. emeasure i (F n) \<le> emeasure k (F n) \<and> emeasure j (F n) \<le> emeasure k (F n)"
+        by (blast elim: chainE dest: le_emeasureD)
+    next
+      show "(SUP n:A. \<Sum>i. emeasure n (F i)) = (SUP y:A. emeasure y (UNION UNIV F))"
+      proof (intro SUP_cong refl)
+        fix a assume "a \<in> A" then show "(\<Sum>i. emeasure a (F i)) = emeasure a (UNION UNIV F)"
+          using sets_Sup[OF A(1), of a] F by (cases "a = bot") (auto simp: suminf_emeasure)
+      qed
+    qed (insert F \<open>A \<noteq> {}\<close>, auto simp: suminf_emeasure intro!: SUP_cong)
+  qed
+qed (insert \<open>A \<noteq> {}\<close> \<open>X \<in> sets (Sup A)\<close>, auto simp: positive_def dest: sets.sets_into_space intro: SUP_upper2)
+
+instance
+proof
+  fix A and x :: "'a measure" assume A: "Complete_Partial_Order.chain op \<le> A" and x: "x \<in> A"
+  show "x \<le> Sup A"
+  proof cases
+    assume "x \<noteq> bot"
+    show ?thesis
+    proof
+      show "sets (Sup A) = sets x"
+        using A \<open>x \<noteq> bot\<close> x by (rule sets_Sup)
+      with x show "\<And>a. a \<in> sets x \<Longrightarrow> emeasure x a \<le> emeasure (Sup A) a"
+        by (subst emeasure_Sup[OF A]) (auto intro: SUP_upper)
+    qed
+  qed simp
+next
+  fix A and x :: "'a measure" assume A: "Complete_Partial_Order.chain op \<le> A" and x: "\<And>z. z \<in> A \<Longrightarrow> z \<le> x"
+  consider "A = {}" | "A = {bot}" | x where "x\<in>A" "x \<noteq> bot"
+    by blast
+  then show "Sup A \<le> x"
+  proof cases
+    assume "A = {}"
+    moreover have "Sup ({}::'a measure set) = bot"
+      by (auto simp add: Sup_measure_def sigma_sets_empty_eq intro!: measure_eqI)
+    ultimately show ?thesis
+      by simp
+  next
+    assume "A = {bot}"
+    moreover have "Sup ({bot}::'a measure set) = bot"
+      by (auto simp add: Sup_measure_def sigma_sets_empty_eq intro!: measure_eqI)
+     ultimately show ?thesis
+      by simp
+  next
+    fix a assume "a \<in> A" "a \<noteq> bot"
+    then have "a \<le> x" "x \<noteq> bot" "a \<noteq> bot"
+      using x[OF \<open>a \<in> A\<close>] by (auto simp: bot_unique)
+    then have "sets x = sets a"
+      by (auto elim: less_eq_measure.cases)
+
+    show "Sup A \<le> x"
+    proof (rule less_eq_measure.intros)
+      show "sets x = sets (Sup A)"
+        by (subst sets_Sup[OF A \<open>a \<noteq> bot\<close> \<open>a \<in> A\<close>]) fact
+    next
+      fix X assume "X \<in> sets (Sup A)"
+      then have "emeasure (Sup A) X \<le> (SUP a:A. emeasure a X)"
+        using \<open>a\<in>A\<close> by (subst emeasure_Sup[OF A _]) auto
+      also have "\<dots> \<le> emeasure x X"
+        by (intro SUP_least le_emeasureD x)
+      finally show "emeasure (Sup A) X \<le> emeasure x X" .
+    qed
+  qed
+qed
+end
+
+end
