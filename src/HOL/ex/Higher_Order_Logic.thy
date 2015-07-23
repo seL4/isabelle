@@ -4,7 +4,9 @@
 
 section \<open>Foundations of HOL\<close>
 
-theory Higher_Order_Logic imports Pure begin
+theory Higher_Order_Logic
+imports Pure
+begin
 
 text \<open>
   The following theory development demonstrates Higher-Order Logic
@@ -28,8 +30,7 @@ instance "fun" :: (type, type) type ..
 
 subsubsection \<open>Basic logical connectives\<close>
 
-judgment
-  Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
+judgment Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
 
 axiomatization
   imp :: "o \<Rightarrow> o \<Rightarrow> o"    (infixr "\<longrightarrow>" 25) and
@@ -115,9 +116,8 @@ qed
 
 theorem notE [elim]: "\<not> A \<Longrightarrow> A \<Longrightarrow> B"
 proof (unfold not_def)
-  assume "A \<longrightarrow> \<bottom>"
-  also assume A
-  finally have \<bottom> ..
+  assume "A \<longrightarrow> \<bottom>" and A
+  then have \<bottom> ..
   then show B ..
 qed
 
@@ -202,11 +202,13 @@ proof (unfold disj_def)
   from c have "(A \<longrightarrow> C) \<longrightarrow> (B \<longrightarrow> C) \<longrightarrow> C" ..
   also have "A \<longrightarrow> C"
   proof
-    assume A then show C by (rule r1)
+    assume A
+    then show C by (rule r1)
   qed
   also have "B \<longrightarrow> C"
   proof
-    assume B then show C by (rule r2)
+    assume B
+    then show C by (rule r2)
   qed
   finally show C .
 qed
@@ -248,8 +250,7 @@ subsection \<open>Classical logic\<close>
 locale classical =
   assumes classical: "(\<not> A \<Longrightarrow> A) \<Longrightarrow> A"
 
-theorem (in classical)
-  Peirce's_Law: "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
+theorem (in classical) Peirce's_Law: "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
 proof
   assume a: "(A \<longrightarrow> B) \<longrightarrow> A"
   show A
@@ -264,8 +265,7 @@ proof
   qed
 qed
 
-theorem (in classical)
-  double_negation: "\<not> \<not> A \<Longrightarrow> A"
+theorem (in classical) double_negation: "\<not> \<not> A \<Longrightarrow> A"
 proof -
   assume "\<not> \<not> A"
   show A
@@ -275,8 +275,7 @@ proof -
   qed
 qed
 
-theorem (in classical)
-  tertium_non_datur: "A \<or> \<not> A"
+theorem (in classical) tertium_non_datur: "A \<or> \<not> A"
 proof (rule double_negation)
   show "\<not> \<not> (A \<or> \<not> A)"
   proof
@@ -291,8 +290,7 @@ proof (rule double_negation)
   qed
 qed
 
-theorem (in classical)
-  classical_cases: "(A \<Longrightarrow> C) \<Longrightarrow> (\<not> A \<Longrightarrow> C) \<Longrightarrow> C"
+theorem (in classical) classical_cases: "(A \<Longrightarrow> C) \<Longrightarrow> (\<not> A \<Longrightarrow> C) \<Longrightarrow> C"
 proof -
   assume r1: "A \<Longrightarrow> C" and r2: "\<not> A \<Longrightarrow> C"
   from tertium_non_datur show C

@@ -51,17 +51,14 @@ proof
   from `A \<and> B` show B by (rule conjD2)
 qed
 
-definition
-  true :: o  ("\<top>") where
-  "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
+definition true :: o  ("\<top>")
+  where "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
 
-definition
-  not :: "o \<Rightarrow> o"  ("\<not> _" [40] 40) where
-  "\<not> A \<equiv> A \<longrightarrow> \<bottom>"
+definition not :: "o \<Rightarrow> o"  ("\<not> _" [40] 40)
+  where "\<not> A \<equiv> A \<longrightarrow> \<bottom>"
 
-definition
-  iff :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longleftrightarrow>" 25) where
-  "A \<longleftrightarrow> B \<equiv> (A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
+definition iff :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longleftrightarrow>" 25)
+  where "A \<longleftrightarrow> B \<equiv> (A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
 
 
 theorem trueI [intro]: \<top>
@@ -78,7 +75,8 @@ qed
 theorem notE [elim]: "\<not> A \<Longrightarrow> A \<Longrightarrow> B"
 proof (unfold not_def)
   assume "A \<longrightarrow> \<bottom>" and A
-  then have \<bottom> .. then show B ..
+  then have \<bottom> ..
+  then show B ..
 qed
 
 theorem iffI [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<longleftrightarrow> B"
