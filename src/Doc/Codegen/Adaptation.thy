@@ -70,7 +70,7 @@ text \<open>
   Figure \ref{fig:adaptation} illustrates what \qt{adaptation} is
   conceptually supposed to be:
 
-  \begin{figure}[here]
+  \begin{figure}[h]
     \begin{tikzpicture}[scale = 0.5]
       \tikzstyle water=[color = blue, thick]
       \tikzstyle ice=[color = black, very thick, cap = round, join = round, fill = white]
