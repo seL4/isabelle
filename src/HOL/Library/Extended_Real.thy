@@ -1909,6 +1909,9 @@ lemma Sup_eq_PInfty:
   shows "\<infinity> \<in> S \<Longrightarrow> Sup S = \<infinity>"
   unfolding top_ereal_def[symmetric] by auto
 
+lemma not_MInfty_nonneg[simp]: "0 \<le> (x::ereal) \<Longrightarrow> x \<noteq> - \<infinity>"
+  by auto
+
 lemma Sup_ereal_close:
   fixes e :: ereal
   assumes "0 < e"
@@ -2803,9 +2806,6 @@ next
   qed
 qed
 
-lemma not_MInfty_nonneg[simp]: "0 \<le> (x::ereal) \<Longrightarrow> x \<noteq> - \<infinity>"
-  by auto
-
 lemma sup_continuous_add[order_continuous_intros]:
   fixes f g :: "'a::complete_lattice \<Rightarrow> ereal"
   assumes nn: "\<And>x. 0 \<le> f x" "\<And>x. 0 \<le> g x" and cont: "sup_continuous f" "sup_continuous g"
@@ -2831,6 +2831,747 @@ lemma sup_continuous_ereal_of_enat[order_continuous_intros]:
   assumes f: "sup_continuous f" shows "sup_continuous (\<lambda>x. ereal_of_enat (f x))"
   by (rule sup_continuous_compose[OF _ f])
      (auto simp: sup_continuous_def ereal_of_enat_SUP)
+
+subsubsection \<open>Sums\<close>
+
+lemma sums_ereal_positive:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes "\<And>i. 0 \<le> f i"
+  shows "f sums (SUP n. \<Sum>i<n. f i)"
+proof -
+  have "incseq (\<lambda>i. \<Sum>j=0..<i. f j)"
+    using ereal_add_mono[OF _ assms]
+    by (auto intro!: incseq_SucI)
+  from LIMSEQ_SUP[OF this]
+  show ?thesis unfolding sums_def
+    by (simp add: atLeast0LessThan)
+qed
+
+lemma summable_ereal_pos:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes "\<And>i. 0 \<le> f i"
+  shows "summable f"
+  using sums_ereal_positive[of f, OF assms]
+  unfolding summable_def
+  by auto
+
+lemma sums_ereal: "(\<lambda>x. ereal (f x)) sums ereal x \<longleftrightarrow> f sums x"
+  unfolding sums_def by simp
+
+lemma suminf_ereal_eq_SUP:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes "\<And>i. 0 \<le> f i"
+  shows "(\<Sum>x. f x) = (SUP n. \<Sum>i<n. f i)"
+  using sums_ereal_positive[of f, OF assms, THEN sums_unique]
+  by simp
+
+lemma suminf_bound:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes "\<forall>N. (\<Sum>n<N. f n) \<le> x"
+    and pos: "\<And>n. 0 \<le> f n"
+  shows "suminf f \<le> x"
+proof (rule Lim_bounded_ereal)
+  have "summable f" using pos[THEN summable_ereal_pos] .
+  then show "(\<lambda>N. \<Sum>n<N. f n) ----> suminf f"
+    by (auto dest!: summable_sums simp: sums_def atLeast0LessThan)
+  show "\<forall>n\<ge>0. setsum f {..<n} \<le> x"
+    using assms by auto
+qed
+
+lemma suminf_bound_add:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes "\<forall>N. (\<Sum>n<N. f n) + y \<le> x"
+    and pos: "\<And>n. 0 \<le> f n"
+    and "y \<noteq> -\<infinity>"
+  shows "suminf f + y \<le> x"
+proof (cases y)
+  case (real r)
+  then have "\<forall>N. (\<Sum>n<N. f n) \<le> x - y"
+    using assms by (simp add: ereal_le_minus)
+  then have "(\<Sum> n. f n) \<le> x - y"
+    using pos by (rule suminf_bound)
+  then show "(\<Sum> n. f n) + y \<le> x"
+    using assms real by (simp add: ereal_le_minus)
+qed (insert assms, auto)
+
+lemma suminf_upper:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes "\<And>n. 0 \<le> f n"
+  shows "(\<Sum>n<N. f n) \<le> (\<Sum>n. f n)"
+  unfolding suminf_ereal_eq_SUP [OF assms]
+  by (auto intro: complete_lattice_class.SUP_upper)
+
+lemma suminf_0_le:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes "\<And>n. 0 \<le> f n"
+  shows "0 \<le> (\<Sum>n. f n)"
+  using suminf_upper[of f 0, OF assms]
+  by simp
+
+lemma suminf_le_pos:
+  fixes f g :: "nat \<Rightarrow> ereal"
+  assumes "\<And>N. f N \<le> g N"
+    and "\<And>N. 0 \<le> f N"
+  shows "suminf f \<le> suminf g"
+proof (safe intro!: suminf_bound)
+  fix n
+  {
+    fix N
+    have "0 \<le> g N"
+      using assms(2,1)[of N] by auto
+  }
+  have "setsum f {..<n} \<le> setsum g {..<n}"
+    using assms by (auto intro: setsum_mono)
+  also have "\<dots> \<le> suminf g"
+    using \<open>\<And>N. 0 \<le> g N\<close>
+    by (rule suminf_upper)
+  finally show "setsum f {..<n} \<le> suminf g" .
+qed (rule assms(2))
+
+lemma suminf_half_series_ereal: "(\<Sum>n. (1/2 :: ereal) ^ Suc n) = 1"
+  using sums_ereal[THEN iffD2, OF power_half_series, THEN sums_unique, symmetric]
+  by (simp add: one_ereal_def)
+
+lemma suminf_add_ereal:
+  fixes f g :: "nat \<Rightarrow> ereal"
+  assumes "\<And>i. 0 \<le> f i"
+    and "\<And>i. 0 \<le> g i"
+  shows "(\<Sum>i. f i + g i) = suminf f + suminf g"
+  apply (subst (1 2 3) suminf_ereal_eq_SUP)
+  unfolding setsum.distrib
+  apply (intro assms ereal_add_nonneg_nonneg SUP_ereal_add_pos incseq_setsumI setsum_nonneg ballI)+
+  done
+
+lemma suminf_cmult_ereal:
+  fixes f g :: "nat \<Rightarrow> ereal"
+  assumes "\<And>i. 0 \<le> f i"
+    and "0 \<le> a"
+  shows "(\<Sum>i. a * f i) = a * suminf f"
+  by (auto simp: setsum_ereal_right_distrib[symmetric] assms
+       ereal_zero_le_0_iff setsum_nonneg suminf_ereal_eq_SUP
+       intro!: SUP_ereal_mult_left)
+
+lemma suminf_PInfty:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes "\<And>i. 0 \<le> f i"
+    and "suminf f \<noteq> \<infinity>"
+  shows "f i \<noteq> \<infinity>"
+proof -
+  from suminf_upper[of f "Suc i", OF assms(1)] assms(2)
+  have "(\<Sum>i<Suc i. f i) \<noteq> \<infinity>"
+    by auto
+  then show ?thesis
+    unfolding setsum_Pinfty by simp
+qed
+
+lemma suminf_PInfty_fun:
+  assumes "\<And>i. 0 \<le> f i"
+    and "suminf f \<noteq> \<infinity>"
+  shows "\<exists>f'. f = (\<lambda>x. ereal (f' x))"
+proof -
+  have "\<forall>i. \<exists>r. f i = ereal r"
+  proof
+    fix i
+    show "\<exists>r. f i = ereal r"
+      using suminf_PInfty[OF assms] assms(1)[of i]
+      by (cases "f i") auto
+  qed
+  from choice[OF this] show ?thesis
+    by auto
+qed
+
+lemma summable_ereal:
+  assumes "\<And>i. 0 \<le> f i"
+    and "(\<Sum>i. ereal (f i)) \<noteq> \<infinity>"
+  shows "summable f"
+proof -
+  have "0 \<le> (\<Sum>i. ereal (f i))"
+    using assms by (intro suminf_0_le) auto
+  with assms obtain r where r: "(\<Sum>i. ereal (f i)) = ereal r"
+    by (cases "\<Sum>i. ereal (f i)") auto
+  from summable_ereal_pos[of "\<lambda>x. ereal (f x)"]
+  have "summable (\<lambda>x. ereal (f x))"
+    using assms by auto
+  from summable_sums[OF this]
+  have "(\<lambda>x. ereal (f x)) sums (\<Sum>x. ereal (f x))"
+    by auto
+  then show "summable f"
+    unfolding r sums_ereal summable_def ..
+qed
+
+lemma suminf_ereal:
+  assumes "\<And>i. 0 \<le> f i"
+    and "(\<Sum>i. ereal (f i)) \<noteq> \<infinity>"
+  shows "(\<Sum>i. ereal (f i)) = ereal (suminf f)"
+proof (rule sums_unique[symmetric])
+  from summable_ereal[OF assms]
+  show "(\<lambda>x. ereal (f x)) sums (ereal (suminf f))"
+    unfolding sums_ereal
+    using assms
+    by (intro summable_sums summable_ereal)
+qed
+
+lemma suminf_ereal_minus:
+  fixes f g :: "nat \<Rightarrow> ereal"
+  assumes ord: "\<And>i. g i \<le> f i" "\<And>i. 0 \<le> g i"
+    and fin: "suminf f \<noteq> \<infinity>" "suminf g \<noteq> \<infinity>"
+  shows "(\<Sum>i. f i - g i) = suminf f - suminf g"
+proof -
+  {
+    fix i
+    have "0 \<le> f i"
+      using ord[of i] by auto
+  }
+  moreover
+  from suminf_PInfty_fun[OF \<open>\<And>i. 0 \<le> f i\<close> fin(1)] obtain f' where [simp]: "f = (\<lambda>x. ereal (f' x))" ..
+  from suminf_PInfty_fun[OF \<open>\<And>i. 0 \<le> g i\<close> fin(2)] obtain g' where [simp]: "g = (\<lambda>x. ereal (g' x))" ..
+  {
+    fix i
+    have "0 \<le> f i - g i"
+      using ord[of i] by (auto simp: ereal_le_minus_iff)
+  }
+  moreover
+  have "suminf (\<lambda>i. f i - g i) \<le> suminf f"
+    using assms by (auto intro!: suminf_le_pos simp: field_simps)
+  then have "suminf (\<lambda>i. f i - g i) \<noteq> \<infinity>"
+    using fin by auto
+  ultimately show ?thesis
+    using assms \<open>\<And>i. 0 \<le> f i\<close>
+    apply simp
+    apply (subst (1 2 3) suminf_ereal)
+    apply (auto intro!: suminf_diff[symmetric] summable_ereal)
+    done
+qed
+
+lemma suminf_ereal_PInf [simp]: "(\<Sum>x. \<infinity>::ereal) = \<infinity>"
+proof -
+  have "(\<Sum>i<Suc 0. \<infinity>) \<le> (\<Sum>x. \<infinity>::ereal)"
+    by (rule suminf_upper) auto
+  then show ?thesis
+    by simp
+qed
+
+lemma summable_real_of_ereal:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes f: "\<And>i. 0 \<le> f i"
+    and fin: "(\<Sum>i. f i) \<noteq> \<infinity>"
+  shows "summable (\<lambda>i. real (f i))"
+proof (rule summable_def[THEN iffD2])
+  have "0 \<le> (\<Sum>i. f i)"
+    using assms by (auto intro: suminf_0_le)
+  with fin obtain r where r: "ereal r = (\<Sum>i. f i)"
+    by (cases "(\<Sum>i. f i)") auto
+  {
+    fix i
+    have "f i \<noteq> \<infinity>"
+      using f by (intro suminf_PInfty[OF _ fin]) auto
+    then have "\<bar>f i\<bar> \<noteq> \<infinity>"
+      using f[of i] by auto
+  }
+  note fin = this
+  have "(\<lambda>i. ereal (real (f i))) sums (\<Sum>i. ereal (real (f i)))"
+    using f
+    by (auto intro!: summable_ereal_pos simp: ereal_le_real_iff zero_ereal_def)
+  also have "\<dots> = ereal r"
+    using fin r by (auto simp: ereal_real)
+  finally show "\<exists>r. (\<lambda>i. real (f i)) sums r"
+    by (auto simp: sums_ereal)
+qed
+
+lemma suminf_SUP_eq:
+  fixes f :: "nat \<Rightarrow> nat \<Rightarrow> ereal"
+  assumes "\<And>i. incseq (\<lambda>n. f n i)"
+    and "\<And>n i. 0 \<le> f n i"
+  shows "(\<Sum>i. SUP n. f n i) = (SUP n. \<Sum>i. f n i)"
+proof -
+  {
+    fix n :: nat
+    have "(\<Sum>i<n. SUP k. f k i) = (SUP k. \<Sum>i<n. f k i)"
+      using assms
+      by (auto intro!: SUP_ereal_setsum [symmetric])
+  }
+  note * = this
+  show ?thesis
+    using assms
+    apply (subst (1 2) suminf_ereal_eq_SUP)
+    unfolding *
+    apply (auto intro!: SUP_upper2)
+    apply (subst SUP_commute)
+    apply rule
+    done
+qed
+
+lemma suminf_setsum_ereal:
+  fixes f :: "_ \<Rightarrow> _ \<Rightarrow> ereal"
+  assumes nonneg: "\<And>i a. a \<in> A \<Longrightarrow> 0 \<le> f i a"
+  shows "(\<Sum>i. \<Sum>a\<in>A. f i a) = (\<Sum>a\<in>A. \<Sum>i. f i a)"
+proof (cases "finite A")
+  case True
+  then show ?thesis
+    using nonneg
+    by induct (simp_all add: suminf_add_ereal setsum_nonneg)
+next
+  case False
+  then show ?thesis by simp
+qed
+
+lemma suminf_ereal_eq_0:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes nneg: "\<And>i. 0 \<le> f i"
+  shows "(\<Sum>i. f i) = 0 \<longleftrightarrow> (\<forall>i. f i = 0)"
+proof
+  assume "(\<Sum>i. f i) = 0"
+  {
+    fix i
+    assume "f i \<noteq> 0"
+    with nneg have "0 < f i"
+      by (auto simp: less_le)
+    also have "f i = (\<Sum>j. if j = i then f i else 0)"
+      by (subst suminf_finite[where N="{i}"]) auto
+    also have "\<dots> \<le> (\<Sum>i. f i)"
+      using nneg
+      by (auto intro!: suminf_le_pos)
+    finally have False
+      using \<open>(\<Sum>i. f i) = 0\<close> by auto
+  }
+  then show "\<forall>i. f i = 0"
+    by auto
+qed simp
+
+lemma suminf_ereal_offset_le:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes f: "\<And>i. 0 \<le> f i"
+  shows "(\<Sum>i. f (i + k)) \<le> suminf f"
+proof -
+  have "(\<lambda>n. \<Sum>i<n. f (i + k)) ----> (\<Sum>i. f (i + k))"
+    using summable_sums[OF summable_ereal_pos] by (simp add: sums_def atLeast0LessThan f)
+  moreover have "(\<lambda>n. \<Sum>i<n. f i) ----> (\<Sum>i. f i)"
+    using summable_sums[OF summable_ereal_pos] by (simp add: sums_def atLeast0LessThan f)
+  then have "(\<lambda>n. \<Sum>i<n + k. f i) ----> (\<Sum>i. f i)"
+    by (rule LIMSEQ_ignore_initial_segment)
+  ultimately show ?thesis
+  proof (rule LIMSEQ_le, safe intro!: exI[of _ k])
+    fix n assume "k \<le> n"
+    have "(\<Sum>i<n. f (i + k)) = (\<Sum>i<n. (f \<circ> (\<lambda>i. i + k)) i)"
+      by simp
+    also have "\<dots> = (\<Sum>i\<in>(\<lambda>i. i + k) ` {..<n}. f i)"
+      by (subst setsum.reindex) auto
+    also have "\<dots> \<le> setsum f {..<n + k}"
+      by (intro setsum_mono3) (auto simp: f)
+    finally show "(\<Sum>i<n. f (i + k)) \<le> setsum f {..<n + k}" .
+  qed
+qed
+
+lemma sums_suminf_ereal: "f sums x \<Longrightarrow> (\<Sum>i. ereal (f i)) = ereal x"
+  by (metis sums_ereal sums_unique)
+
+lemma suminf_ereal': "summable f \<Longrightarrow> (\<Sum>i. ereal (f i)) = ereal (\<Sum>i. f i)"
+  by (metis sums_ereal sums_unique summable_def)
+
+lemma suminf_ereal_finite: "summable f \<Longrightarrow> (\<Sum>i. ereal (f i)) \<noteq> \<infinity>"
+  by (auto simp: sums_ereal[symmetric] summable_def sums_unique[symmetric])
+
+lemma suminf_ereal_finite_neg:
+  assumes "summable f"
+  shows "(\<Sum>x. ereal (f x)) \<noteq> -\<infinity>"
+proof-
+  from assms obtain x where "f sums x" by blast
+  hence "(\<lambda>x. ereal (f x)) sums ereal x" by (simp add: sums_ereal)
+  from sums_unique[OF this] have "(\<Sum>x. ereal (f x)) = ereal x" ..
+  thus "(\<Sum>x. ereal (f x)) \<noteq> -\<infinity>" by simp_all
+qed
+
+
+lemma convergent_limsup_cl:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
+  shows "convergent X \<Longrightarrow> limsup X = lim X"
+  by (auto simp: convergent_def limI lim_imp_Limsup)
+
+lemma lim_increasing_cl:
+  assumes "\<And>n m. n \<ge> m \<Longrightarrow> f n \<ge> f m"
+  obtains l where "f ----> (l::'a::{complete_linorder,linorder_topology})"
+proof
+  show "f ----> (SUP n. f n)"
+    using assms
+    by (intro increasing_tendsto)
+       (auto simp: SUP_upper eventually_sequentially less_SUP_iff intro: less_le_trans)
+qed
+
+lemma lim_decreasing_cl:
+  assumes "\<And>n m. n \<ge> m \<Longrightarrow> f n \<le> f m"
+  obtains l where "f ----> (l::'a::{complete_linorder,linorder_topology})"
+proof
+  show "f ----> (INF n. f n)"
+    using assms
+    by (intro decreasing_tendsto)
+       (auto simp: INF_lower eventually_sequentially INF_less_iff intro: le_less_trans)
+qed
+
+lemma compact_complete_linorder:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
+  shows "\<exists>l r. subseq r \<and> (X \<circ> r) ----> l"
+proof -
+  obtain r where "subseq r" and mono: "monoseq (X \<circ> r)"
+    using seq_monosub[of X]
+    unfolding comp_def
+    by auto
+  then have "(\<forall>n m. m \<le> n \<longrightarrow> (X \<circ> r) m \<le> (X \<circ> r) n) \<or> (\<forall>n m. m \<le> n \<longrightarrow> (X \<circ> r) n \<le> (X \<circ> r) m)"
+    by (auto simp add: monoseq_def)
+  then obtain l where "(X \<circ> r) ----> l"
+     using lim_increasing_cl[of "X \<circ> r"] lim_decreasing_cl[of "X \<circ> r"]
+     by auto
+  then show ?thesis
+    using \<open>subseq r\<close> by auto
+qed
+
+lemma ereal_dense3:
+  fixes x y :: ereal
+  shows "x < y \<Longrightarrow> \<exists>r::rat. x < real_of_rat r \<and> real_of_rat r < y"
+proof (cases x y rule: ereal2_cases, simp_all)
+  fix r q :: real
+  assume "r < q"
+  from Rats_dense_in_real[OF this] show "\<exists>x. r < real_of_rat x \<and> real_of_rat x < q"
+    by (fastforce simp: Rats_def)
+next
+  fix r :: real
+  show "\<exists>x. r < real_of_rat x" "\<exists>x. real_of_rat x < r"
+    using gt_ex[of r] lt_ex[of r] Rats_dense_in_real
+    by (auto simp: Rats_def)
+qed
+
+lemma continuous_within_ereal[intro, simp]: "x \<in> A \<Longrightarrow> continuous (at x within A) ereal"
+  using continuous_on_eq_continuous_within[of A ereal]
+  by (auto intro: continuous_on_ereal continuous_on_id)
+
+lemma ereal_open_uminus:
+  fixes S :: "ereal set"
+  assumes "open S"
+  shows "open (uminus ` S)"
+  using \<open>open S\<close>[unfolded open_generated_order]
+proof induct
+  have "range uminus = (UNIV :: ereal set)"
+    by (auto simp: image_iff ereal_uminus_eq_reorder)
+  then show "open (range uminus :: ereal set)"
+    by simp
+qed (auto simp add: image_Union image_Int)
+
+lemma ereal_uminus_complement:
+  fixes S :: "ereal set"
+  shows "uminus ` (- S) = - uminus ` S"
+  by (auto intro!: bij_image_Compl_eq surjI[of _ uminus] simp: bij_betw_def)
+
+lemma ereal_closed_uminus:
+  fixes S :: "ereal set"
+  assumes "closed S"
+  shows "closed (uminus ` S)"
+  using assms
+  unfolding closed_def ereal_uminus_complement[symmetric]
+  by (rule ereal_open_uminus)
+
+lemma ereal_open_affinity_pos:
+  fixes S :: "ereal set"
+  assumes "open S"
+    and m: "m \<noteq> \<infinity>" "0 < m"
+    and t: "\<bar>t\<bar> \<noteq> \<infinity>"
+  shows "open ((\<lambda>x. m * x + t) ` S)"
+proof -
+  have "open ((\<lambda>x. inverse m * (x + -t)) -` S)"
+    using m t
+    apply (intro open_vimage \<open>open S\<close>)
+    apply (intro continuous_at_imp_continuous_on ballI tendsto_cmult_ereal continuous_at[THEN iffD2]
+                 tendsto_ident_at tendsto_add_left_ereal)
+    apply auto
+    done
+  also have "(\<lambda>x. inverse m * (x + -t)) -` S = (\<lambda>x. (x - t) / m) -` S"
+    using m t by (auto simp: divide_ereal_def mult.commute uminus_ereal.simps[symmetric] minus_ereal_def
+                       simp del: uminus_ereal.simps)
+  also have "(\<lambda>x. (x - t) / m) -` S = (\<lambda>x. m * x + t) ` S"
+    using m t
+    by (simp add: set_eq_iff image_iff)
+       (metis abs_ereal_less0 abs_ereal_uminus ereal_divide_eq ereal_eq_minus ereal_minus(7,8)
+              ereal_minus_less_minus ereal_mult_eq_PInfty ereal_uminus_uminus ereal_zero_mult)
+  finally show ?thesis .
+qed
+
+lemma ereal_open_affinity:
+  fixes S :: "ereal set"
+  assumes "open S"
+    and m: "\<bar>m\<bar> \<noteq> \<infinity>" "m \<noteq> 0"
+    and t: "\<bar>t\<bar> \<noteq> \<infinity>"
+  shows "open ((\<lambda>x. m * x + t) ` S)"
+proof cases
+  assume "0 < m"
+  then show ?thesis
+    using ereal_open_affinity_pos[OF \<open>open S\<close> _ _ t, of m] m
+    by auto
+next
+  assume "\<not> 0 < m" then
+  have "0 < -m"
+    using \<open>m \<noteq> 0\<close>
+    by (cases m) auto
+  then have m: "-m \<noteq> \<infinity>" "0 < -m"
+    using \<open>\<bar>m\<bar> \<noteq> \<infinity>\<close>
+    by (auto simp: ereal_uminus_eq_reorder)
+  from ereal_open_affinity_pos[OF ereal_open_uminus[OF \<open>open S\<close>] m t] show ?thesis
+    unfolding image_image by simp
+qed
+
+lemma open_uminus_iff:
+  fixes S :: "ereal set"
+  shows "open (uminus ` S) \<longleftrightarrow> open S"
+  using ereal_open_uminus[of S] ereal_open_uminus[of "uminus ` S"]
+  by auto
+
+lemma ereal_Liminf_uminus:
+  fixes f :: "'a \<Rightarrow> ereal"
+  shows "Liminf net (\<lambda>x. - (f x)) = - Limsup net f"
+  using ereal_Limsup_uminus[of _ "(\<lambda>x. - (f x))"] by auto
+
+lemma Liminf_PInfty:
+  fixes f :: "'a \<Rightarrow> ereal"
+  assumes "\<not> trivial_limit net"
+  shows "(f ---> \<infinity>) net \<longleftrightarrow> Liminf net f = \<infinity>"
+  unfolding tendsto_iff_Liminf_eq_Limsup[OF assms]
+  using Liminf_le_Limsup[OF assms, of f]
+  by auto
+
+lemma Limsup_MInfty:
+  fixes f :: "'a \<Rightarrow> ereal"
+  assumes "\<not> trivial_limit net"
+  shows "(f ---> -\<infinity>) net \<longleftrightarrow> Limsup net f = -\<infinity>"
+  unfolding tendsto_iff_Liminf_eq_Limsup[OF assms]
+  using Liminf_le_Limsup[OF assms, of f]
+  by auto
+
+lemma convergent_ereal:
+  fixes X :: "nat \<Rightarrow> 'a :: {complete_linorder,linorder_topology}"
+  shows "convergent X \<longleftrightarrow> limsup X = liminf X"
+  using tendsto_iff_Liminf_eq_Limsup[of sequentially]
+  by (auto simp: convergent_def)
+
+lemma limsup_le_liminf_real:
+  fixes X :: "nat \<Rightarrow> real" and L :: real
+  assumes 1: "limsup X \<le> L" and 2: "L \<le> liminf X"
+  shows "X ----> L"
+proof -
+  from 1 2 have "limsup X \<le> liminf X" by auto
+  hence 3: "limsup X = liminf X"  
+    apply (subst eq_iff, rule conjI)
+    by (rule Liminf_le_Limsup, auto)
+  hence 4: "convergent (\<lambda>n. ereal (X n))"
+    by (subst convergent_ereal)
+  hence "limsup X = lim (\<lambda>n. ereal(X n))"
+    by (rule convergent_limsup_cl)
+  also from 1 2 3 have "limsup X = L" by auto
+  finally have "lim (\<lambda>n. ereal(X n)) = L" ..
+  hence "(\<lambda>n. ereal (X n)) ----> L"
+    apply (elim subst)
+    by (subst convergent_LIMSEQ_iff [symmetric], rule 4) 
+  thus ?thesis by simp
+qed
+
+lemma liminf_PInfty:
+  fixes X :: "nat \<Rightarrow> ereal"
+  shows "X ----> \<infinity> \<longleftrightarrow> liminf X = \<infinity>"
+  by (metis Liminf_PInfty trivial_limit_sequentially)
+
+lemma limsup_MInfty:
+  fixes X :: "nat \<Rightarrow> ereal"
+  shows "X ----> -\<infinity> \<longleftrightarrow> limsup X = -\<infinity>"
+  by (metis Limsup_MInfty trivial_limit_sequentially)
+
+lemma ereal_lim_mono:
+  fixes X Y :: "nat \<Rightarrow> 'a::linorder_topology"
+  assumes "\<And>n. N \<le> n \<Longrightarrow> X n \<le> Y n"
+    and "X ----> x"
+    and "Y ----> y"
+  shows "x \<le> y"
+  using assms(1) by (intro LIMSEQ_le[OF assms(2,3)]) auto
+
+lemma incseq_le_ereal:
+  fixes X :: "nat \<Rightarrow> 'a::linorder_topology"
+  assumes inc: "incseq X"
+    and lim: "X ----> L"
+  shows "X N \<le> L"
+  using inc
+  by (intro ereal_lim_mono[of N, OF _ tendsto_const lim]) (simp add: incseq_def)
+
+lemma decseq_ge_ereal:
+  assumes dec: "decseq X"
+    and lim: "X ----> (L::'a::linorder_topology)"
+  shows "X N \<ge> L"
+  using dec by (intro ereal_lim_mono[of N, OF _ lim tendsto_const]) (simp add: decseq_def)
+
+lemma bounded_abs:
+  fixes a :: real
+  assumes "a \<le> x"
+    and "x \<le> b"
+  shows "abs x \<le> max (abs a) (abs b)"
+  by (metis abs_less_iff assms leI le_max_iff_disj
+    less_eq_real_def less_le_not_le less_minus_iff minus_minus)
+
+lemma ereal_Sup_lim:
+  fixes a :: "'a::{complete_linorder,linorder_topology}"
+  assumes "\<And>n. b n \<in> s"
+    and "b ----> a"
+  shows "a \<le> Sup s"
+  by (metis Lim_bounded_ereal assms complete_lattice_class.Sup_upper)
+
+lemma ereal_Inf_lim:
+  fixes a :: "'a::{complete_linorder,linorder_topology}"
+  assumes "\<And>n. b n \<in> s"
+    and "b ----> a"
+  shows "Inf s \<le> a"
+  by (metis Lim_bounded2_ereal assms complete_lattice_class.Inf_lower)
+
+lemma SUP_Lim_ereal:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
+  assumes inc: "incseq X"
+    and l: "X ----> l"
+  shows "(SUP n. X n) = l"
+  using LIMSEQ_SUP[OF inc] tendsto_unique[OF trivial_limit_sequentially l]
+  by simp
+
+lemma INF_Lim_ereal:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
+  assumes dec: "decseq X"
+    and l: "X ----> l"
+  shows "(INF n. X n) = l"
+  using LIMSEQ_INF[OF dec] tendsto_unique[OF trivial_limit_sequentially l]
+  by simp
+
+lemma SUP_eq_LIMSEQ:
+  assumes "mono f"
+  shows "(SUP n. ereal (f n)) = ereal x \<longleftrightarrow> f ----> x"
+proof
+  have inc: "incseq (\<lambda>i. ereal (f i))"
+    using \<open>mono f\<close> unfolding mono_def incseq_def by auto
+  {
+    assume "f ----> x"
+    then have "(\<lambda>i. ereal (f i)) ----> ereal x"
+      by auto
+    from SUP_Lim_ereal[OF inc this] show "(SUP n. ereal (f n)) = ereal x" .
+  next
+    assume "(SUP n. ereal (f n)) = ereal x"
+    with LIMSEQ_SUP[OF inc] show "f ----> x" by auto
+  }
+qed
+
+lemma liminf_ereal_cminus:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes "c \<noteq> -\<infinity>"
+  shows "liminf (\<lambda>x. c - f x) = c - limsup f"
+proof (cases c)
+  case PInf
+  then show ?thesis
+    by (simp add: Liminf_const)
+next
+  case (real r)
+  then show ?thesis
+    unfolding liminf_SUP_INF limsup_INF_SUP
+    apply (subst INF_ereal_minus_right)
+    apply auto
+    apply (subst SUP_ereal_minus_right)
+    apply auto
+    done
+qed (insert \<open>c \<noteq> -\<infinity>\<close>, simp)
+
+
+subsubsection \<open>Continuity\<close>
+
+lemma continuous_at_of_ereal:
+  "\<bar>x0 :: ereal\<bar> \<noteq> \<infinity> \<Longrightarrow> continuous (at x0) real"
+  unfolding continuous_at
+  by (rule lim_real_of_ereal) (simp add: ereal_real)
+
+lemma nhds_ereal: "nhds (ereal r) = filtermap ereal (nhds r)"
+  by (simp add: filtermap_nhds_open_map open_ereal continuous_at_of_ereal)
+
+lemma at_ereal: "at (ereal r) = filtermap ereal (at r)"
+  by (simp add: filter_eq_iff eventually_at_filter nhds_ereal eventually_filtermap)
+
+lemma at_left_ereal: "at_left (ereal r) = filtermap ereal (at_left r)"
+  by (simp add: filter_eq_iff eventually_at_filter nhds_ereal eventually_filtermap)
+
+lemma at_right_ereal: "at_right (ereal r) = filtermap ereal (at_right r)"
+  by (simp add: filter_eq_iff eventually_at_filter nhds_ereal eventually_filtermap)
+
+lemma
+  shows at_left_PInf: "at_left \<infinity> = filtermap ereal at_top"
+    and at_right_MInf: "at_right (-\<infinity>) = filtermap ereal at_bot"
+  unfolding filter_eq_iff eventually_filtermap eventually_at_top_dense eventually_at_bot_dense
+    eventually_at_left[OF ereal_less(5)] eventually_at_right[OF ereal_less(6)]
+  by (auto simp add: ereal_all_split ereal_ex_split)
+
+lemma ereal_tendsto_simps1:
+  "((f \<circ> real) ---> y) (at_left (ereal x)) \<longleftrightarrow> (f ---> y) (at_left x)"
+  "((f \<circ> real) ---> y) (at_right (ereal x)) \<longleftrightarrow> (f ---> y) (at_right x)"
+  "((f \<circ> real) ---> y) (at_left (\<infinity>::ereal)) \<longleftrightarrow> (f ---> y) at_top"
+  "((f \<circ> real) ---> y) (at_right (-\<infinity>::ereal)) \<longleftrightarrow> (f ---> y) at_bot"
+  unfolding tendsto_compose_filtermap at_left_ereal at_right_ereal at_left_PInf at_right_MInf
+  by (auto simp: filtermap_filtermap filtermap_ident)
+
+lemma ereal_tendsto_simps2:
+  "((ereal \<circ> f) ---> ereal a) F \<longleftrightarrow> (f ---> a) F"
+  "((ereal \<circ> f) ---> \<infinity>) F \<longleftrightarrow> (LIM x F. f x :> at_top)"
+  "((ereal \<circ> f) ---> -\<infinity>) F \<longleftrightarrow> (LIM x F. f x :> at_bot)"
+  unfolding tendsto_PInfty filterlim_at_top_dense tendsto_MInfty filterlim_at_bot_dense
+  using lim_ereal by (simp_all add: comp_def)
+
+lemmas ereal_tendsto_simps = ereal_tendsto_simps1 ereal_tendsto_simps2
+
+lemma continuous_at_iff_ereal:
+  fixes f :: "'a::t2_space \<Rightarrow> real"
+  shows "continuous (at x0 within s) f \<longleftrightarrow> continuous (at x0 within s) (ereal \<circ> f)"
+  unfolding continuous_within comp_def lim_ereal ..
+
+lemma continuous_on_iff_ereal:
+  fixes f :: "'a::t2_space => real"
+  assumes "open A"
+  shows "continuous_on A f \<longleftrightarrow> continuous_on A (ereal \<circ> f)"
+  unfolding continuous_on_def comp_def lim_ereal ..
+
+lemma continuous_on_real: "continuous_on (UNIV - {\<infinity>, -\<infinity>::ereal}) real"
+  using continuous_at_of_ereal continuous_on_eq_continuous_at open_image_ereal
+  by auto
+
+lemma continuous_on_iff_real:
+  fixes f :: "'a::t2_space \<Rightarrow> ereal"
+  assumes *: "\<And>x. x \<in> A \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
+  shows "continuous_on A f \<longleftrightarrow> continuous_on A (real \<circ> f)"
+proof -
+  have "f ` A \<subseteq> UNIV - {\<infinity>, -\<infinity>}"
+    using assms by force
+  then have *: "continuous_on (f ` A) real"
+    using continuous_on_real by (simp add: continuous_on_subset)
+  have **: "continuous_on ((real \<circ> f) ` A) ereal"
+    by (intro continuous_on_ereal continuous_on_id)
+  {
+    assume "continuous_on A f"
+    then have "continuous_on A (real \<circ> f)"
+      apply (subst continuous_on_compose)
+      using *
+      apply auto
+      done
+  }
+  moreover
+  {
+    assume "continuous_on A (real \<circ> f)"
+    then have "continuous_on A (ereal \<circ> (real \<circ> f))"
+      apply (subst continuous_on_compose)
+      using **
+      apply auto
+      done
+    then have "continuous_on A f"
+      apply (subst continuous_on_cong[of _ A _ "ereal \<circ> (real \<circ> f)"])
+      using assms ereal_real
+      apply auto
+      done
+  }
+  ultimately show ?thesis
+    by auto
+qed
+
 
 subsubsection \<open>Tests for code generator\<close>
 

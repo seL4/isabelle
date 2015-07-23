@@ -1111,7 +1111,7 @@ subsection "Borel space on the extended reals"
 
 lemma borel_measurable_ereal[measurable (raw)]:
   assumes f: "f \<in> borel_measurable M" shows "(\<lambda>x. ereal (f x)) \<in> borel_measurable M"
-  using continuous_on_ereal f by (rule borel_measurable_continuous_on)
+  using continuous_on_ereal f by (rule borel_measurable_continuous_on) (rule continuous_on_id)
 
 lemma borel_measurable_real_of_ereal[measurable (raw)]:
   fixes f :: "'a \<Rightarrow> ereal" 
