@@ -18,7 +18,6 @@ sig
   val resolve_tac: Proof.context -> thm list -> int -> tactic
   val eresolve0_tac: thm list -> int -> tactic
   val eresolve_tac: Proof.context -> thm list -> int -> tactic
-  val forward0_tac: thm list -> int -> tactic
   val forward_tac: Proof.context -> thm list -> int -> tactic
   val dresolve0_tac: thm list -> int -> tactic
   val dresolve_tac: Proof.context -> thm list -> int -> tactic
@@ -26,7 +25,6 @@ sig
   val rtac: thm -> int -> tactic
   val dtac: thm -> int -> tactic
   val etac: thm -> int -> tactic
-  val ftac: thm -> int -> tactic
   val ares_tac: Proof.context -> thm list -> int -> tactic
   val solve_tac: Proof.context -> thm list -> int -> tactic
   val bimatch_tac: Proof.context -> (bool * thm) list -> int -> tactic
@@ -131,7 +129,6 @@ fun eresolve0_tac rules = biresolve0_tac (map (pair true) rules);
 fun eresolve_tac ctxt rules = biresolve_tac ctxt (map (pair true) rules);
 
 (*Forward reasoning using destruction rules.*)
-fun forward0_tac rls = resolve0_tac (map make_elim rls) THEN' atac;
 fun forward_tac ctxt rls = resolve_tac ctxt (map make_elim rls) THEN' atac;
 
 (*Like forward_tac, but deletes the assumption after use.*)
@@ -142,7 +139,6 @@ fun dresolve_tac ctxt rls = eresolve_tac ctxt (map make_elim rls);
 fun rtac rl =  resolve0_tac [rl];
 fun dtac rl = dresolve0_tac [rl];
 fun etac rl = eresolve0_tac [rl];
-fun ftac rl =  forward0_tac [rl];
 
 (*Use an assumption or some rules*)
 fun ares_tac ctxt rules = assume_tac ctxt ORELSE' resolve_tac ctxt rules;
