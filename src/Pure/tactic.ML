@@ -129,7 +129,7 @@ fun eresolve0_tac rules = biresolve0_tac (map (pair true) rules);
 fun eresolve_tac ctxt rules = biresolve_tac ctxt (map (pair true) rules);
 
 (*Forward reasoning using destruction rules.*)
-fun forward_tac ctxt rls = resolve_tac ctxt (map make_elim rls) THEN' atac;
+fun forward_tac ctxt rls = resolve_tac ctxt (map make_elim rls) THEN' assume_tac ctxt;
 
 (*Like forward_tac, but deletes the assumption after use.*)
 fun dresolve0_tac rls = eresolve0_tac (map make_elim rls);
