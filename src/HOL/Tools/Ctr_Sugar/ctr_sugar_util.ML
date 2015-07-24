@@ -57,7 +57,6 @@ sig
   val rtac: Proof.context -> thm -> int -> tactic
   val etac: Proof.context -> thm -> int -> tactic
   val dtac: Proof.context -> thm -> int -> tactic
-  val ftac: Proof.context -> thm -> int -> tactic
 
   val list_all_free: term list -> term -> term
   val list_exists_free: term list -> term -> term
@@ -281,6 +280,5 @@ fun CONJ_WRAP' gen_tac = CONJ_WRAP_GEN' (resolve0_tac [conjI]) gen_tac;
 fun rtac ctxt thm = resolve_tac ctxt [thm];
 fun etac ctxt thm = eresolve_tac ctxt [thm];
 fun dtac ctxt thm = dresolve_tac ctxt [thm];
-fun ftac ctxt thm = forward_tac ctxt [thm];
 
 end;

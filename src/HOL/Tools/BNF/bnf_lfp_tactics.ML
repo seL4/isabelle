@@ -340,7 +340,8 @@ fun mk_mor_select_tac ctxt mor_def mor_cong mor_comp mor_incl_min_alg alg_def al
       CONJ_WRAP' (fn thm => EVERY' [rtac ctxt ballI, rtac ctxt thm]) str_init_defs;
     fun alg_epi_tac ((alg_set, str_init_def), set_map) =
       EVERY' [rtac ctxt ballI, REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE], rtac ctxt CollectI,
-        rtac ctxt ballI, ftac ctxt (alg_select RS bspec), rtac ctxt (str_init_def RS @{thm ssubst_mem}),
+        rtac ctxt ballI, forward_tac ctxt [alg_select RS bspec],
+        rtac ctxt (str_init_def RS @{thm ssubst_mem}),
         etac ctxt alg_set, REPEAT_DETERM o EVERY' [rtac ctxt ord_eq_le_trans, resolve_tac ctxt set_map,
           rtac ctxt subset_trans, etac ctxt @{thm image_mono}, rtac ctxt @{thm image_Collect_subsetI}, etac ctxt bspec,
           assume_tac ctxt]];

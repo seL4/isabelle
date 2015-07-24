@@ -212,7 +212,7 @@ fun mk_mor_col_tac ctxt m n cts j rec_0s rec_Sucs morEs set_map0ss coalg_setss =
               EVERY' [rtac ctxt sym, rtac ctxt trans, rtac ctxt (refl RSN (2, @{thm SUP_cong})),
                 etac ctxt (morE RS sym RS arg_cong RS trans), assume_tac ctxt, rtac ctxt set_map0,
                 rtac ctxt (@{thm UN_simps(10)} RS trans), rtac ctxt (refl RS @{thm SUP_cong}),
-                ftac ctxt coalg_set, assume_tac ctxt, dtac ctxt set_mp, assume_tac ctxt,
+                forward_tac ctxt [coalg_set], assume_tac ctxt, dtac ctxt set_mp, assume_tac ctxt,
                 rtac ctxt mp, rtac ctxt (mk_conjunctN n i),
                 REPEAT_DETERM o etac ctxt allE, assume_tac ctxt, assume_tac ctxt])
             (rev ((1 upto n) ~~ (active_set_map0s ~~ coalg_sets)))])
@@ -418,7 +418,7 @@ fun mk_length_Lev_tac ctxt cts Lev_0s Lev_Sucs =
   end;
 
 fun mk_length_Lev'_tac ctxt length_Lev =
-  EVERY' [ftac ctxt length_Lev, etac ctxt ssubst, assume_tac ctxt] 1;
+  EVERY' [forward_tac ctxt [length_Lev], etac ctxt ssubst, assume_tac ctxt] 1;
 
 fun mk_rv_last_tac ctxt cTs cts rv_Nils rv_Conss =
   let
@@ -720,7 +720,7 @@ fun mk_raw_coind_tac ctxt bis_def bis_cong bis_O bis_converse bis_Gr tcoalg coal
   let
     val n = length Rep_injects;
   in
-    EVERY' [rtac ctxt rev_mp, ftac ctxt (bis_def RS iffD1),
+    EVERY' [rtac ctxt rev_mp, forward_tac ctxt [bis_def RS iffD1],
       REPEAT_DETERM o etac ctxt conjE, rtac ctxt bis_cong, rtac ctxt bis_O, rtac ctxt bis_converse,
       rtac ctxt bis_Gr, rtac ctxt tcoalg, rtac ctxt mor_Rep, rtac ctxt bis_O, assume_tac ctxt,
       rtac ctxt bis_Gr, rtac ctxt tcoalg,
