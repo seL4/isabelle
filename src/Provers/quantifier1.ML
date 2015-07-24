@@ -144,7 +144,7 @@ in
     ALLGOALS
       (EVERY' [eresolve_tac ctxt [Data.exE], REPEAT_DETERM o eresolve_tac ctxt [Data.conjE],
         resolve_tac ctxt [Data.exI],
-        DEPTH_SOLVE_1 o ares_tac [Data.conjI]])
+        DEPTH_SOLVE_1 o ares_tac ctxt [Data.conjI]])
 end;
 
 (* Proves (! x0..xn. (... & x0 = t & ...) --> P x0) =
@@ -157,7 +157,7 @@ local
         REPEAT o resolve_tac ctxt [Data.impI],
         eresolve_tac ctxt [Data.mp],
         REPEAT o eresolve_tac ctxt [Data.conjE],
-        REPEAT o ares_tac [Data.conjI]]);
+        REPEAT o ares_tac ctxt [Data.conjI]]);
   val allcomm = Data.all_comm RS Data.iff_trans;
 in
   fun prove_one_point_all_tac ctxt =

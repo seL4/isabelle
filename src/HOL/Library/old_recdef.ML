@@ -2550,7 +2550,7 @@ fun termination_goals rules =
  *--------------------------------------------------------------------------*)
 fun std_postprocessor ctxt strict wfs =
   Prim.postprocess ctxt strict
-   {wf_tac = REPEAT (ares_tac wfs 1),
+   {wf_tac = REPEAT (ares_tac ctxt wfs 1),
     terminator =
       asm_simp_tac ctxt 1
       THEN TRY (Arith_Data.arith_tac ctxt 1 ORELSE

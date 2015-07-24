@@ -189,7 +189,7 @@ let
     Goal.prove_global thy1 [] [] (FOLogic.mk_Trueprop (Fp.bnd_mono $ dom_sum $ fp_abs))
       (fn {context = ctxt, ...} => EVERY
         [resolve_tac ctxt [@{thm Collect_subset} RS @{thm bnd_monoI}] 1,
-         REPEAT (ares_tac (@{thms basic_monos} @ monos) 1)]);
+         REPEAT (ares_tac ctxt (@{thms basic_monos} @ monos) 1)]);
 
   val dom_subset = Drule.export_without_context (big_rec_def RS Fp.subs);
 
@@ -306,9 +306,9 @@ let
 
      (*Minimizes backtracking by delivering the correct premise to each goal.
        Intro rules with extra Vars in premises still cause some backtracking *)
-     fun ind_tac [] 0 = all_tac
-       | ind_tac(prem::prems) i =
-             DEPTH_SOLVE_1 (ares_tac [prem, @{thm refl}] i) THEN ind_tac prems (i-1);
+     fun ind_tac _ [] 0 = all_tac
+       | ind_tac ctxt (prem::prems) i =
+             DEPTH_SOLVE_1 (ares_tac ctxt [prem, @{thm refl}] i) THEN ind_tac ctxt prems (i-1);
 
      val pred = Free(pred_name, Ind_Syntax.iT --> FOLogic.oT);
 
@@ -349,7 +349,7 @@ let
               some premise involves disjunction.*)
             REPEAT (FIRSTGOAL (eresolve_tac ctxt [@{thm CollectE}, @{thm exE}, @{thm conjE}]
                                ORELSE' (bound_hyp_subst_tac ctxt))),
-            ind_tac (rev (map (rewrite_rule ctxt part_rec_defs) prems)) (length prems)]);
+            ind_tac ctxt (rev (map (rewrite_rule ctxt part_rec_defs) prems)) (length prems)]);
 
      val dummy =
       if ! Ind_Syntax.trace then
@@ -474,7 +474,7 @@ let
                    REPEAT (resolve_tac ctxt @{thms impI} 1)  THEN
                    resolve_tac ctxt [rewrite_rule ctxt all_defs prem] 1  THEN
                    (*prem must not be REPEATed below: could loop!*)
-                   DEPTH_SOLVE (FIRSTGOAL (ares_tac [@{thm impI}] ORELSE'
+                   DEPTH_SOLVE (FIRSTGOAL (ares_tac ctxt [@{thm impI}] ORELSE'
                                            eresolve_tac ctxt (@{thm conjE} :: @{thm mp} :: cmonos))))
                ) i)
             THEN mutual_ind_tac ctxt prems (i-1);

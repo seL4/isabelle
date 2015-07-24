@@ -276,7 +276,7 @@ defs
 (* ############################################################ *)
 
 ML {*
-val infsys_mono_tac = REPEAT (ares_tac (@{thms basic_monos} @ [allI, impI]) 1)
+fun infsys_mono_tac ctxt = REPEAT (ares_tac ctxt (@{thms basic_monos} @ [allI, impI]) 1)
 *}
 
 lemma infsys_p1: "P a b ==> P (fst (a,b)) (snd (a,b))"
@@ -395,7 +395,7 @@ lemmas v_injs = v_const_inj v_clos_inj
 
 lemma eval_fun_mono: "mono(eval_fun)"
 unfolding mono_def eval_fun_def
-apply (tactic infsys_mono_tac)
+apply (tactic "infsys_mono_tac @{context}")
 done
 
 (* Introduction rules *)
@@ -519,7 +519,7 @@ done
 
 lemma elab_fun_mono: "mono(elab_fun)"
 unfolding mono_def elab_fun_def
-apply (tactic infsys_mono_tac)
+apply (tactic "infsys_mono_tac @{context}")
 done
 
 (* Introduction rules *)
@@ -747,7 +747,7 @@ done
 
 lemma mono_hasty_fun: "mono(hasty_fun)"
 unfolding mono_def hasty_fun_def
-apply (tactic infsys_mono_tac)
+apply (tactic "infsys_mono_tac @{context}")
 apply blast
 done
 

@@ -36,7 +36,7 @@ sig
   val delrews   : simpset * thm list -> simpset
   val dest_ss   : simpset -> thm list * thm list
   val print_ss  : Proof.context -> simpset -> unit
-  val setauto   : simpset * (int -> tactic) -> simpset
+  val setauto   : simpset * (Proof.context -> int -> tactic) -> simpset
   val ASM_SIMP_CASE_TAC : Proof.context -> simpset -> int -> tactic
   val ASM_SIMP_TAC      : Proof.context -> simpset -> int -> tactic
   val CASE_TAC          : Proof.context -> simpset -> int -> tactic
@@ -235,14 +235,14 @@ val trans_norms = map mk_trans normE_thms;
 (* SIMPSET *)
 
 datatype simpset =
-        SS of {auto_tac: int -> tactic,
+        SS of {auto_tac: Proof.context -> int -> tactic,
                congs: thm list,
                cong_net: thm Net.net,
                mk_simps: Proof.context -> thm -> thm list,
                simps: (thm * thm list) list,
                simp_net: thm Net.net}
 
-val empty_ss = SS{auto_tac= K no_tac, congs=[], cong_net=Net.empty,
+val empty_ss = SS{auto_tac= K (K no_tac), congs=[], cong_net=Net.empty,
                   mk_simps = fn ctxt => normed_rews ctxt [], simps=[], simp_net=Net.empty};
 
 (** Insertion of congruences and rewrites **)
@@ -446,7 +446,7 @@ fun rew(seq,thm,ss,anet,ats,cs, more) = case Seq.pull seq of
             else (ss,thm,anet,ats,cs);
 
 fun try_true(thm,ss,anet,ats,cs) =
-    case Seq.pull(auto_tac i thm) of
+    case Seq.pull(auto_tac ctxt i thm) of
       SOME(thm',_) => (ss,thm',anet,ats,cs)
     | NONE => let val (ss0,thm0,anet0,ats0,seq,more)::cs0 = cs
               in if !tracing
@@ -486,7 +486,7 @@ in fn i =>
     (fn thm =>
      if i <= 0 orelse Thm.nprems_of thm < i then Seq.empty
      else Seq.single(execute ctxt (ss,fl,auto_tac,cong_tac,simp_net,i,thm)))
-    THEN TRY(auto_tac i)
+    THEN TRY(auto_tac ctxt i)
 end;
 
 fun SIMP_TAC ctxt = EXEC_TAC ctxt ([MK_EQ,SIMP_LHS,REFL,STOP],false);

@@ -76,7 +76,7 @@ val IFOLP_rews =
 
 open FOLP_Simp;
 
-val auto_ss = empty_ss setauto ares_tac [@{thm TrueI}];
+val auto_ss = empty_ss setauto (fn ctxt => ares_tac ctxt @{thms TrueI});
 
 val IFOLP_ss = auto_ss addcongs FOLP_congs |> fold (addrew @{context}) IFOLP_rews;
 

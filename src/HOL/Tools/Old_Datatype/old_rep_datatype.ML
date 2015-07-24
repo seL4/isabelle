@@ -178,7 +178,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
             (EVERY
               [DETERM tac,
                 REPEAT (eresolve_tac ctxt @{thms ex1E} 1), resolve_tac ctxt @{thms ex1I} 1,
-                DEPTH_SOLVE_1 (ares_tac [intr] 1),
+                DEPTH_SOLVE_1 (ares_tac ctxt [intr] 1),
                 REPEAT_DETERM_N k (eresolve_tac ctxt [thin_rl] 1 THEN rotate_tac 1 1),
                 eresolve_tac ctxt [elim] 1,
                 REPEAT_DETERM_N j distinct_tac,

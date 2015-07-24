@@ -456,7 +456,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
                   Object_Logic.atomize_prems_tac ctxt) 1,
                 rewrite_goals_tac ctxt rewrites,
                 REPEAT ((resolve_tac ctxt rep_intrs THEN_ALL_NEW
-                  ((REPEAT o eresolve_tac ctxt [allE]) THEN' ares_tac elem_thms)) 1)]);
+                  ((REPEAT o eresolve_tac ctxt [allE]) THEN' ares_tac ctxt elem_thms)) 1)]);
 
       in (inj_thms'' @ inj_thms, elem_thms @ Old_Datatype_Aux.split_conj_thm elem_thm) end;
 
@@ -573,7 +573,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
              dresolve_tac ctxt @{thms box_equals} 1,
              REPEAT (resolve_tac ctxt rep_thms 1),
              REPEAT (eresolve_tac ctxt inj_thms 1),
-             REPEAT (ares_tac [conjI] 1 ORELSE (EVERY [REPEAT (resolve_tac ctxt @{thms ext} 1),
+             REPEAT (ares_tac ctxt [conjI] 1 ORELSE (EVERY [REPEAT (resolve_tac ctxt @{thms ext} 1),
                REPEAT (eresolve_tac ctxt (make_elim fun_cong :: inj_thms) 1),
                assume_tac ctxt 1]))])
       end;
@@ -652,7 +652,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
              [REPEAT (eresolve_tac ctxt Abs_inverse_thms 1),
               simp_tac (put_simpset HOL_basic_ss ctxt
                 addsimps (Thm.symmetric r :: Rep_inverse_thms')) 1,
-              DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE eresolve_tac ctxt [allE] 1)]))
+              DEPTH_SOLVE_1 (ares_tac ctxt [prem] 1 ORELSE eresolve_tac ctxt [allE] 1)]))
                   (prems ~~ (constr_defs @ map mk_meta_eq iso_char_thms)))]);
 
     val ([(_, [dt_induct'])], thy7) =

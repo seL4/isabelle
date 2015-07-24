@@ -27,7 +27,7 @@ sig
   val dtac: thm -> int -> tactic
   val etac: thm -> int -> tactic
   val ftac: thm -> int -> tactic
-  val ares_tac: thm list -> int -> tactic
+  val ares_tac: Proof.context -> thm list -> int -> tactic
   val solve_tac: Proof.context -> thm list -> int -> tactic
   val bimatch_tac: Proof.context -> (bool * thm) list -> int -> tactic
   val match_tac: Proof.context -> thm list -> int -> tactic
@@ -144,8 +144,8 @@ fun dtac rl = dresolve0_tac [rl];
 fun etac rl = eresolve0_tac [rl];
 fun ftac rl =  forward0_tac [rl];
 
-(*Use an assumption or some rules ... A popular combination!*)
-fun ares_tac rules = atac  ORELSE'  resolve0_tac rules;
+(*Use an assumption or some rules*)
+fun ares_tac ctxt rules = assume_tac ctxt ORELSE' resolve_tac ctxt rules;
 
 fun solve_tac ctxt rules = resolve_tac ctxt rules THEN_ALL_NEW assume_tac ctxt;
 

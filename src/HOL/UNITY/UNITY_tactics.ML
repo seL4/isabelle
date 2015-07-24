@@ -41,7 +41,7 @@ fun ensures_tac ctxt sact =
      [REPEAT (Always_Int_tac ctxt 1),
       eresolve_tac ctxt @{thms Always_LeadsTo_Basis} 1
           ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
-          REPEAT (ares_tac [@{thm LeadsTo_Basis}, @{thm leadsTo_Basis},
+          REPEAT (ares_tac ctxt [@{thm LeadsTo_Basis}, @{thm leadsTo_Basis},
                             @{thm EnsuresI}, @{thm ensuresI}] 1),
       (*now there are two subgoals: co & transient*)
       simp_tac (ctxt addsimps [@{thm mk_total_program_def}]) 2,
