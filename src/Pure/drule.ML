@@ -769,14 +769,13 @@ fun infer_instantiate _ [] th = th
                   val t = Var (xi, T);
                   val u = Thm.term_of cu;
                 in
-                  raise TYPE ("Ill-typed instantiation:\nType\n" ^
-                    Syntax.string_of_typ ctxt (Envir.norm_type tyenv T) ^
-                    "\nof variable " ^
+                  raise THM ("infer_instantiate: type " ^
+                    Syntax.string_of_typ ctxt (Envir.norm_type tyenv T) ^ " of variable " ^
                     Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) t) ^
-                    "\ncannot be unified with type\n" ^
-                    Syntax.string_of_typ ctxt (Envir.norm_type tyenv U) ^ "\nof term " ^
+                    "\ncannot be unified with type " ^
+                    Syntax.string_of_typ ctxt (Envir.norm_type tyenv U) ^ " of term " ^
                     Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) u),
-                    [T, U], [t, u])
+                    0, [th])
                 end;
           in (((xi, T), cu), (tyenv', maxidx')) end;
 
