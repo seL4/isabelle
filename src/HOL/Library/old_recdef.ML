@@ -175,8 +175,7 @@ sig
   val PROVE_HYP: thm -> thm -> thm
 
   val CHOOSE: Proof.context -> cterm * thm -> thm -> thm
-  val EXISTS: cterm * cterm -> thm -> thm
-  val EXISTL: cterm list -> thm -> thm
+  val EXISTS: Proof.context -> cterm * cterm -> thm -> thm
   val IT_EXISTS: Proof.context -> (cterm * cterm) list -> thm -> thm
 
   val EVEN_ORS: thm list -> thm list
@@ -1199,29 +1198,11 @@ fun CHOOSE ctxt (fvar, exth) fact =
       handle THM (msg, _, _) => raise RULES_ERR "CHOOSE" msg
   end;
 
-local
-  val prop = Thm.prop_of exI
-  val [P, x] = map (Thm.cterm_of @{context}) (Misc_Legacy.term_vars prop)
-in
-fun EXISTS (template,witness) thm =
+fun EXISTS ctxt (template,witness) thm =
   let val abstr = #2 (Dcterm.dest_comb template) in
-    thm RS (cterm_instantiate [(P, abstr), (x, witness)] exI)
+    thm RS (infer_instantiate ctxt [(("P", 0), abstr), (("x", 0), witness)] exI)
       handle THM (msg, _, _) => raise RULES_ERR "EXISTS" msg
-  end
-end;
-
-(*----------------------------------------------------------------------------
- *
- *         A |- M
- *   -------------------   [v_1,...,v_n]
- *    A |- ?v1...v_n. M
- *
- *---------------------------------------------------------------------------*)
-
-fun EXISTL vlist th =
-  fold_rev (fn v => fn thm => EXISTS(Dcterm.mk_exists(v,cconcl thm), v) thm)
-           vlist th;
-
+  end;
 
 (*----------------------------------------------------------------------------
  *
@@ -1238,7 +1219,7 @@ fun IT_EXISTS ctxt blist th =
     fun ex v M = Thm.cterm_of ctxt (USyntax.mk_exists{Bvar=v,Body = M})
   in
     fold_rev (fn (b as (r1,r2)) => fn thm =>
-        EXISTS(ex r2 (subst_free [b]
+        EXISTS ctxt (ex r2 (subst_free [b]
                    (HOLogic.dest_Trueprop(Thm.prop_of thm))), Thm.cterm_of ctxt r1)
               thm)
        blist' th
@@ -1453,13 +1434,7 @@ fun VSTRUCT_ELIM ctxt tych a vstr th =
 
 fun PGEN ctxt tych a vstr th =
   let val a1 = tych a
-      val vstr1 = tych vstr
-  in
-  Thm.forall_intr a1
-     (if (is_Free vstr)
-      then cterm_instantiate [(vstr1,a1)] th
-      else VSTRUCT_ELIM ctxt tych a vstr th)
-  end;
+  in Thm.forall_intr a1 (VSTRUCT_ELIM ctxt tych a vstr th) end;
 
 
 (*---------------------------------------------------------------------------
@@ -2243,7 +2218,7 @@ fun complete_cases ctxt =
      val a = Free (aname, T)
      val v = Free (vname, T)
      val a_eq_v = HOLogic.mk_eq(a,v)
-     val ex_th0 = Rules.EXISTS (tych (USyntax.mk_exists{Bvar=v,Body=a_eq_v}), tych a)
+     val ex_th0 = Rules.EXISTS ctxt (tych (USyntax.mk_exists{Bvar=v,Body=a_eq_v}), tych a)
                            (Rules.REFL (tych a))
      val th0 = Rules.ASSUME (tych a_eq_v)
      val rows = map (fn x => ([x], (th0,[]))) pats

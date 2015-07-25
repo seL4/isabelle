@@ -24,9 +24,9 @@ fun mk_patvar i T = Free ("_pv" ^ (string_of_int i), T)
 fun inst_free var inst = Thm.forall_elim inst o Thm.forall_intr var
 
 fun inst_case_thm ctxt x P thm =
-  let val [Pv, xv] = Term.add_vars (Thm.prop_of thm) []
+  let val [P_name, x_name] = Term.add_var_names (Thm.prop_of thm) []
   in
-    thm |> cterm_instantiate (map (apply2 (Thm.cterm_of ctxt)) [(Var xv, x), (Var Pv, P)])
+    thm |> infer_instantiate ctxt [(x_name, Thm.cterm_of ctxt x), (P_name, Thm.cterm_of ctxt P)]
   end
 
 fun invent_vars constr i =

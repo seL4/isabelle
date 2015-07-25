@@ -94,10 +94,6 @@ fun is_quasi_lambda_free (Const (@{const_name Meson.skolem}, _) $ _) = true
   | is_quasi_lambda_free (Abs _) = false
   | is_quasi_lambda_free _ = true
 
-val [f_B,g_B] = map (Thm.cterm_of @{context}) (Misc_Legacy.term_vars (Thm.prop_of @{thm abs_B}));
-val [g_C,f_C] = map (Thm.cterm_of @{context}) (Misc_Legacy.term_vars (Thm.prop_of @{thm abs_C}));
-val [f_S,g_S] = map (Thm.cterm_of @{context}) (Misc_Legacy.term_vars (Thm.prop_of @{thm abs_S}));
-
 (* FIXME: Requires more use of cterm constructors. *)
 fun abstract ctxt ct =
   let
@@ -118,7 +114,8 @@ fun abstract ctxt ct =
                if Term.is_dependent rand then (*S*)
                  let val crator = Thm.cterm_of ctxt (Abs (x, xT, rator))
                      val crand = Thm.cterm_of ctxt (Abs (x, xT, rand))
-                     val abs_S' = cterm_instantiate [(f_S,crator),(g_S,crand)] @{thm abs_S}
+                     val abs_S' =
+                      infer_instantiate ctxt [(("f", 0), crator), (("g", 0), crand)] @{thm abs_S}
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_S')
                  in
                    Thm.transitive abs_S' (Conv.binop_conv (abstract ctxt) rhs)
@@ -126,7 +123,8 @@ fun abstract ctxt ct =
                else (*C*)
                  let val crator = Thm.cterm_of ctxt (Abs (x, xT, rator))
                      val abs_C' =
-                      cterm_instantiate [(f_C, crator), (g_C, Thm.cterm_of ctxt rand)] @{thm abs_C}
+                      infer_instantiate ctxt [(("f", 0), crator), (("b", 0), Thm.cterm_of ctxt rand)]
+                        @{thm abs_C}
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_C')
                  in
                    Thm.transitive abs_C' (Conv.fun_conv (Conv.arg_conv (abstract ctxt)) rhs)
@@ -136,7 +134,8 @@ fun abstract ctxt ct =
                else (*B*)
                  let val crand = Thm.cterm_of ctxt (Abs (x, xT, rand))
                      val crator = Thm.cterm_of ctxt rator
-                     val abs_B' = cterm_instantiate [(f_B,crator),(g_B,crand)] @{thm abs_B}
+                     val abs_B' =
+                      infer_instantiate ctxt [(("a", 0), crator), (("g", 0), crand)] @{thm abs_B}
                      val (_,rhs) = Thm.dest_equals (Thm.cprop_of abs_B')
                  in Thm.transitive abs_B' (Conv.arg_conv (abstract ctxt) rhs) end
             else makeK ()

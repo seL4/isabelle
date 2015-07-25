@@ -223,12 +223,11 @@ fun mk_to_pred_eq ctxt p fs optfs' T thm =
           let
             val U = HOLogic.dest_setT (body_type T);
             val Ts = HOLogic.strip_ptupleT fs' U;
-            (* FIXME: should cterm_instantiate increment indexes? *)
             val arg_cong' = Thm.incr_indexes (Thm.maxidx_of thm + 1) arg_cong;
-            val (arg_cong_f, _) = arg_cong' |> Thm.cprop_of |> Drule.strip_imp_concl |>
-              Thm.dest_comb |> snd |> Drule.strip_comb |> snd |> hd |> Thm.dest_comb
+            val (Var (arg_cong_f, _), _) = arg_cong' |> Thm.concl_of |>
+              dest_comb |> snd |> strip_comb |> snd |> hd |> dest_comb;
           in
-            thm' RS (Drule.cterm_instantiate [(arg_cong_f,
+            thm' RS (infer_instantiate ctxt [(arg_cong_f,
               Thm.cterm_of ctxt (Abs ("P", Ts ---> HOLogic.boolT,
                 HOLogic.Collect_const U $ HOLogic.mk_psplits fs' U
                   HOLogic.boolT (Bound 0))))] arg_cong' RS sym)

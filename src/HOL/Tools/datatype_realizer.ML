@@ -105,15 +105,17 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
         (map (fn ((((i, _), T), U), tname) =>
           make_pred i U T (mk_proj i is r) (Free (tname, T)))
             (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
-    val inst = map (apply2 (Thm.cterm_of ctxt)) (map head_of (HOLogic.dest_conj
-      (HOLogic.dest_Trueprop (Thm.concl_of induct))) ~~ ps);
+    val inst =
+      map (#1 o dest_Var o head_of)
+        (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induct))) ~~
+      map (Thm.cterm_of ctxt) ps;
 
     val thm =
       Goal.prove_internal ctxt (map (Thm.cterm_of ctxt) prems) (Thm.cterm_of ctxt concl)
         (fn prems =>
            EVERY [
             rewrite_goals_tac ctxt (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
-            resolve_tac ctxt [cterm_instantiate inst induct] 1,
+            resolve_tac ctxt [infer_instantiate ctxt inst induct] 1,
             ALLGOALS (Object_Logic.atomize_prems_tac ctxt),
             rewrite_goals_tac ctxt (@{thm o_def} :: map mk_meta_eq rec_rewrites),
             REPEAT ((resolve_tac ctxt prems THEN_ALL_NEW (fn i =>
@@ -190,7 +192,7 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
           (HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $ list_comb (r, rs @ [y']))))
         (fn prems =>
            EVERY [
-            resolve_tac ctxt [cterm_instantiate [apply2 (Thm.cterm_of ctxt) (y, y')] exhaust] 1,
+            resolve_tac ctxt [infer_instantiate ctxt [(#1 (dest_Var y), Thm.cterm_of ctxt y')] exhaust] 1,
             ALLGOALS (EVERY'
               [asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps case_rewrites),
                resolve_tac ctxt prems, asm_simp_tac (put_simpset HOL_basic_ss ctxt)])])

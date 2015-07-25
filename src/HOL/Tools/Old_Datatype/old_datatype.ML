@@ -248,10 +248,11 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
     fun dt_constr_defs (((((_, (_, _, constrs)), tname), typedef: Typedef.info), T), constr_syntax)
         (thy, defs, eqns, rep_congs, dist_lemmas) =
       let
+        val ctxt = Proof_Context.init_global thy;
         val _ $ (_ $ (cong_f $ _) $ _) = Thm.concl_of arg_cong;
-        val rep_const = Thm.global_cterm_of thy (Const (#Rep_name (#1 typedef), T --> Univ_elT));
-        val cong' = cterm_instantiate [(Thm.global_cterm_of thy cong_f, rep_const)] arg_cong;
-        val dist = cterm_instantiate [(Thm.global_cterm_of thy distinct_f, rep_const)] distinct_lemma;
+        val rep_const = Thm.cterm_of ctxt (Const (#Rep_name (#1 typedef), T --> Univ_elT));
+        val cong' = infer_instantiate ctxt [(#1 (dest_Var cong_f), rep_const)] arg_cong;
+        val dist = infer_instantiate ctxt [(#1 (dest_Var distinct_f), rep_const)] distinct_lemma;
         val (thy', defs', eqns', _) =
           fold (make_constr_def typedef T (length constrs))
             (constrs ~~ constr_syntax) (Sign.add_path tname thy, defs, [], 1);
@@ -635,8 +636,6 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
     val frees =
       if length Ps = 1 then [Free ("P", snd (dest_Var (hd Ps)))]
       else map (Free o apfst fst o dest_Var) Ps;
-    val indrule_lemma' =
-      cterm_instantiate (map (Thm.global_cterm_of thy6) Ps ~~ map (Thm.global_cterm_of thy6) frees) indrule_lemma;
 
     val dt_induct_prop = Old_Datatype_Prop.make_ind descr;
     val dt_induct =
@@ -644,16 +643,22 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
       (Logic.strip_imp_prems dt_induct_prop)
       (Logic.strip_imp_concl dt_induct_prop)
       (fn {context = ctxt, prems, ...} =>
-        EVERY
-          [resolve_tac ctxt [indrule_lemma'] 1,
-           (Old_Datatype_Aux.ind_tac ctxt rep_induct [] THEN_ALL_NEW
-              Object_Logic.atomize_prems_tac ctxt) 1,
-           EVERY (map (fn (prem, r) => (EVERY
-             [REPEAT (eresolve_tac ctxt Abs_inverse_thms 1),
-              simp_tac (put_simpset HOL_basic_ss ctxt
-                addsimps (Thm.symmetric r :: Rep_inverse_thms')) 1,
-              DEPTH_SOLVE_1 (ares_tac ctxt [prem] 1 ORELSE eresolve_tac ctxt [allE] 1)]))
-                  (prems ~~ (constr_defs @ map mk_meta_eq iso_char_thms)))]);
+        let
+          val indrule_lemma' =
+            infer_instantiate ctxt
+              (map (#1 o dest_Var) Ps ~~ map (Thm.cterm_of ctxt) frees) indrule_lemma;
+        in
+          EVERY
+            [resolve_tac ctxt [indrule_lemma'] 1,
+             (Old_Datatype_Aux.ind_tac ctxt rep_induct [] THEN_ALL_NEW
+                Object_Logic.atomize_prems_tac ctxt) 1,
+             EVERY (map (fn (prem, r) => (EVERY
+               [REPEAT (eresolve_tac ctxt Abs_inverse_thms 1),
+                simp_tac (put_simpset HOL_basic_ss ctxt
+                  addsimps (Thm.symmetric r :: Rep_inverse_thms')) 1,
+                DEPTH_SOLVE_1 (ares_tac ctxt [prem] 1 ORELSE eresolve_tac ctxt [allE] 1)]))
+                    (prems ~~ (constr_defs @ map mk_meta_eq iso_char_thms)))]
+        end);
 
     val ([(_, [dt_induct'])], thy7) =
       thy6

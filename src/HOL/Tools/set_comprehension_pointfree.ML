@@ -495,9 +495,9 @@ fun base_simproc ctxt redex =
 fun instantiate_arg_cong ctxt pred =
   let
     val arg_cong = Thm.incr_indexes (maxidx_of_term pred + 1) @{thm arg_cong}
-    val f $ _ = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.concl_of arg_cong)))
+    val (Var (f, _) $ _, _) = HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.concl_of arg_cong))
   in
-    cterm_instantiate [(Thm.cterm_of ctxt f, Thm.cterm_of ctxt pred)] arg_cong
+    infer_instantiate ctxt [(f, Thm.cterm_of ctxt pred)] arg_cong
   end;
 
 fun simproc ctxt redex =

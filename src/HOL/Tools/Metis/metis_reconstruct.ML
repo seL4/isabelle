@@ -650,7 +650,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                  |> sort (cluster_ord
                           o apply2 (Meson_Clausify.cluster_of_zapped_var_name
                                       o fst o fst))
-                 |> map (Meson.term_pair_of #> apply2 (Envir.subst_term_types tyenv))
+                 |> map (fn (xi, (T, t)) => apply2 (Envir.subst_term_types tyenv) (Var (xi, T), t))
           val tysubst = tyenv |> Vartab.dest
         in (tysubst, tsubst) end
 

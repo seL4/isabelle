@@ -10,7 +10,6 @@ signature MESON =
 sig
   val trace : bool Config.T
   val max_clauses : int Config.T
-  val term_pair_of: indexname * (typ * 'a) -> term * 'a
   val first_order_resolve : Proof.context -> thm -> thm -> thm
   val size_of_subgoals: thm -> int
   val has_too_many_clauses: Proof.context -> term -> bool
@@ -95,8 +94,6 @@ val disj_FalseD2 = @{thm disj_FalseD2};
 
 (** First-order Resolution **)
 
-fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t);
-
 (*FIXME: currently does not "rename variables apart"*)
 fun first_order_resolve ctxt thA thB =
   (case
@@ -107,8 +104,8 @@ fun first_order_resolve ctxt thA thB =
           val tenv =
             Pattern.first_order_match thy (tmB, tmA)
                                           (Vartab.empty, Vartab.empty) |> snd
-          val ct_pairs = map (apply2 (Thm.cterm_of ctxt) o term_pair_of) (Vartab.dest tenv)
-      in  thA RS (cterm_instantiate ct_pairs thB)  end) () of
+          val insts = Vartab.fold (fn (xi, (_, t)) => cons (xi, Thm.cterm_of ctxt t)) tenv [];
+      in  thA RS (infer_instantiate ctxt insts thB) end) () of
     SOME th => th
   | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
 
@@ -616,10 +613,6 @@ fun get_F_pattern T t u =
   handle NO_F_PATTERN () => NONE
 
 val ext_cong_neq = @{thm ext_cong_neq}
-val F_ext_cong_neq =
-  Term.add_vars (Thm.prop_of @{thm ext_cong_neq}) []
-  |> filter (fn ((s, _), _) => s = "F")
-  |> the_single |> Var
 
 (* Strengthens "f g ~= f h" to "f g ~= f h & (EX x. g x ~= h x)". *)
 fun cong_extensionalize_thm ctxt th =
@@ -628,11 +621,8 @@ fun cong_extensionalize_thm ctxt th =
         $ (Const (@{const_name HOL.eq}, Type (_, [T, _]))
            $ (t as _ $ _) $ (u as _ $ _))) =>
     (case get_F_pattern T t u of
-       SOME p =>
-       let val inst = [apply2 (Thm.cterm_of ctxt) (F_ext_cong_neq, p)] in
-         th RS cterm_instantiate inst ext_cong_neq
-       end
-     | NONE => th)
+      SOME p => th RS infer_instantiate ctxt [(("F", 0), Thm.cterm_of ctxt p)] ext_cong_neq
+    | NONE => th)
   | _ => th)
 
 (* Removes the lambdas from an equation of the form "t = (%x1 ... xn. u)". It

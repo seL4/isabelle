@@ -141,9 +141,8 @@ fun flatten_intros constname intros thy =
     (intros'', (local_defs, thy'))
   end
 
-fun introrulify thy ths = 
+fun introrulify ctxt ths = 
   let
-    val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
     val ((_, ths'), ctxt') = Variable.import true ths ctxt
     fun introrulify' th =
       let
@@ -158,8 +157,8 @@ fun introrulify thy ths =
           in
             (ps, Logic.list_implies (prems, HOLogic.mk_Trueprop lhs))
           end
-        val x =
-          (Thm.cterm_of ctxt' o the_single o snd o strip_comb o HOLogic.dest_Trueprop o fst o
+        val Var (x, _) =
+          (the_single o snd o strip_comb o HOLogic.dest_Trueprop o fst o
             Logic.dest_implies o Thm.prop_of) @{thm exI}
         fun prove_introrule (index, (ps, introrule)) =
           let
@@ -167,7 +166,7 @@ fun introrulify thy ths =
               THEN Inductive.select_disj_tac ctxt' (length disjuncts) (index + 1) 1
               THEN (EVERY (map (fn y =>
                 resolve_tac ctxt'
-                  [Drule.cterm_instantiate [(x, Thm.cterm_of ctxt' (Free y))] @{thm exI}] 1) ps))
+                  [infer_instantiate ctxt' [(x, Thm.cterm_of ctxt' (Free y))] @{thm exI}] 1) ps))
               THEN REPEAT_DETERM (resolve_tac ctxt' @{thms conjI} 1 THEN assume_tac ctxt' 1)
               THEN TRY (assume_tac ctxt' 1)
           in
@@ -205,7 +204,7 @@ fun preprocess options (constname, specs) thy =
       val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
       val intros =
         if forall is_pred_equation specs then 
-          map (split_conjuncts_in_assms ctxt) (introrulify thy (map (rewrite ctxt) specs))
+          map (split_conjuncts_in_assms ctxt) (introrulify ctxt (map (rewrite ctxt) specs))
         else if forall (is_intro constname) specs then
           map (rewrite_intros ctxt) specs
         else

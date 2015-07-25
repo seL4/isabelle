@@ -201,7 +201,7 @@ fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
   
         in (* 4: proof reconstruction *)
           st |>
-          (PRIMITIVE (cterm_instantiate [apply2 (Thm.cterm_of ctxt) (rel, relation)])
+          (PRIMITIVE (infer_instantiate ctxt [(#1 (dest_Var rel), Thm.cterm_of ctxt relation)])
             THEN (REPEAT (resolve_tac ctxt @{thms wf_mlex} 1))
             THEN (resolve_tac ctxt @{thms wf_empty} 1)
             THEN EVERY (map (prove_row_tac ctxt) clean_table))

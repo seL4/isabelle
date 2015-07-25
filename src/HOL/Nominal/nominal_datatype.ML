@@ -788,8 +788,8 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
           (Const (Sign.intern_const thy ("Rep_" ^ tname), T --> T'));
         val dist =
           Drule.export_without_context
-            (cterm_instantiate
-              [(Thm.global_cterm_of thy distinct_f, rep_const)] Old_Datatype.distinct_lemma);
+            (infer_instantiate (Proof_Context.init_global thy)
+              [(#1 (dest_Var distinct_f), rep_const)] Old_Datatype.distinct_lemma);
         val (thy', defs', eqns') = fold (make_constr_def tname T T')
           (constrs ~~ constrs' ~~ constr_syntax) (Sign.add_path tname thy, defs, [])
       in
@@ -1058,24 +1058,27 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of indrule_lemma)));
     val frees = if length Ps = 1 then [Free ("P", snd (dest_Var (hd Ps)))] else
       map (Free o apfst fst o dest_Var) Ps;
-    val indrule_lemma' = cterm_instantiate
-      (map (Thm.global_cterm_of thy8) Ps ~~ map (Thm.global_cterm_of thy8) frees) indrule_lemma;
 
     val Abs_inverse_thms' = map (fn r => r RS subst) Abs_inverse_thms;
 
     val dt_induct_prop = Old_Datatype_Prop.make_ind descr';
     val dt_induct = Goal.prove_global_future thy8 []
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
-      (fn {prems, context = ctxt} => EVERY
-        [resolve_tac ctxt [indrule_lemma'] 1,
-         (Old_Datatype_Aux.ind_tac ctxt rep_induct [] THEN_ALL_NEW
-           Object_Logic.atomize_prems_tac ctxt) 1,
-         EVERY (map (fn (prem, r) => (EVERY
-           [REPEAT (eresolve_tac ctxt Abs_inverse_thms' 1),
-            simp_tac (put_simpset HOL_basic_ss ctxt addsimps [Thm.symmetric r]) 1,
-            DEPTH_SOLVE_1
-              (assume_tac ctxt 1 ORELSE resolve_tac ctxt [prem] 1 ORELSE eresolve_tac ctxt [allE] 1)]))
-                (prems ~~ constr_defs))]);
+      (fn {prems, context = ctxt} =>
+        let
+          val indrule_lemma' = infer_instantiate ctxt
+            (map (#1 o dest_Var) Ps ~~ map (Thm.cterm_of ctxt) frees) indrule_lemma;
+        in
+          EVERY [resolve_tac ctxt [indrule_lemma'] 1,
+           (Old_Datatype_Aux.ind_tac ctxt rep_induct [] THEN_ALL_NEW
+             Object_Logic.atomize_prems_tac ctxt) 1,
+           EVERY (map (fn (prem, r) => (EVERY
+             [REPEAT (eresolve_tac ctxt Abs_inverse_thms' 1),
+              simp_tac (put_simpset HOL_basic_ss ctxt addsimps [Thm.symmetric r]) 1,
+              DEPTH_SOLVE_1
+                (assume_tac ctxt 1 ORELSE resolve_tac ctxt [prem] 1 ORELSE eresolve_tac ctxt [allE] 1)]))
+                  (prems ~~ constr_defs))]
+        end);
 
     val case_names_induct = Old_Datatype_Data.mk_case_names_induct descr'';
 

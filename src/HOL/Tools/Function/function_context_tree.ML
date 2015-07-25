@@ -119,10 +119,10 @@ fun find_cong_rule ctxt fvar h ((r,dep)::rs) t =
         val subst = Pattern.match thy (c, tt') (Vartab.empty, Vartab.empty)
         val branches = map (mk_branch ctxt o Envir.beta_norm o Envir.subst_term subst) subs
         val inst =
-          map (fn v => apply2 (Thm.cterm_of ctxt) (Var v, Envir.subst_term subst (Var v)))
+          map (fn v => (#1 v, Thm.cterm_of ctxt (Envir.subst_term subst (Var v))))
             (Term.add_vars c [])
       in
-        (cterm_instantiate inst r, dep, branches)
+        (infer_instantiate ctxt inst r, dep, branches)
       end handle Pattern.MATCH => find_cong_rule ctxt fvar h rs t)
   | find_cong_rule _ _ _ [] _ = raise General.Fail "No cong rule found!"
 

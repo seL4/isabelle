@@ -147,8 +147,8 @@ fun ind_tac ctxt indrule indnames = CSUBGOAL (fn (cgoal, i) =>
       (ts ~~ ts') |> map_filter (fn (t, u) =>
         (case abstr (getP u) of
           NONE => NONE
-        | SOME u' => SOME (apply2 (Thm.cterm_of ctxt) (t |> getP |> snd |> head_of, u'))));
-    val indrule' = cterm_instantiate insts indrule;
+        | SOME u' => SOME (t |> getP |> snd |> head_of |> dest_Var |> #1, Thm.cterm_of ctxt u')));
+    val indrule' = infer_instantiate ctxt insts indrule;
   in resolve_tac ctxt [indrule'] i end);
 
 
@@ -163,9 +163,9 @@ fun exh_tac ctxt exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
     val prem' = hd (Thm.prems_of exhaustion);
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
     val exhaustion' =
-      cterm_instantiate
-        [apply2 (Thm.cterm_of ctxt)
-          (head_of lhs, fold_rev (fn (_, T) => fn t => Abs ("z", T, t)) params (Bound 0))]
+      infer_instantiate ctxt
+        [(#1 (dest_Var (head_of lhs)),
+          Thm.cterm_of ctxt (fold_rev (fn (_, T) => fn t => Abs ("z", T, t)) params (Bound 0)))]
         exhaustion;
   in compose_tac ctxt (false, exhaustion', Thm.nprems_of exhaustion) i end);
 

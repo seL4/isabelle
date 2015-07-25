@@ -1190,15 +1190,6 @@ in proc end;
 
 simproc_setup let_simp ("Let x f") = \<open>
 let
-  val (f_Let_unfold, x_Let_unfold) =
-    let val [(_ $ (f $ x) $ _)] = Thm.prems_of @{thm Let_unfold}
-    in apply2 (Thm.cterm_of @{context}) (f, x) end
-  val (f_Let_folded, x_Let_folded) =
-    let val [(_ $ (f $ x) $ _)] = Thm.prems_of @{thm Let_folded}
-    in apply2 (Thm.cterm_of @{context}) (f, x) end;
-  val g_Let_folded =
-    let val [(_ $ _ $ (g $ _))] = Thm.prems_of @{thm Let_folded}
-    in Thm.cterm_of @{context} g end;
   fun count_loose (Bound i) k = if i >= k then 1 else 0
     | count_loose (s $ t) k = count_loose s k + count_loose t k
     | count_loose (Abs (_, _, t)) k = count_loose  t (k + 1)
@@ -1234,7 +1225,7 @@ in
                 if g aconv g' then
                   let
                     val rl =
-                      cterm_instantiate [(f_Let_unfold, cf), (x_Let_unfold, cx)] @{thm Let_unfold};
+                      infer_instantiate ctxt [(("f", 0), cf), (("x", 0), cx)] @{thm Let_unfold};
                   in SOME (rl OF [fx_g]) end
                 else if (Envir.beta_eta_contract f) aconv (Envir.beta_eta_contract abs_g')
                 then NONE (*avoid identity conversion*)
@@ -1243,10 +1234,10 @@ in
                     val g'x = abs_g' $ x;
                     val g_g'x = Thm.symmetric (Thm.beta_conversion false (Thm.cterm_of ctxt g'x));
                     val rl =
-                      @{thm Let_folded} |> cterm_instantiate
-                        [(f_Let_folded, Thm.cterm_of ctxt f),
-                         (x_Let_folded, cx),
-                         (g_Let_folded, Thm.cterm_of ctxt abs_g')];
+                      @{thm Let_folded} |> infer_instantiate ctxt
+                        [(("f", 0), Thm.cterm_of ctxt f),
+                         (("x", 0), cx),
+                         (("g", 0), Thm.cterm_of ctxt abs_g')];
                   in SOME (rl OF [Thm.transitive fx_g g_g'x]) end
               end
           | _ => NONE)

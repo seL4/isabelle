@@ -317,9 +317,10 @@ fun inst_lift ctxt Ts t (T, U, pos) state i =
     val (cntxt, u) = mk_cntxt t pos (T --> U);
     val trlift' = Thm.lift_rule (Thm.cprem_of state i)
       (Thm.rename_boundvars abs_lift u trlift);
-    val (P, _) = strip_comb (fst (Logic.dest_equals
-      (Logic.strip_assums_concl (Thm.prop_of trlift'))));
-  in cterm_instantiate [apply2 (Thm.cterm_of ctxt) (P, abss Ts cntxt)] trlift' end;
+    val (Var (P, _), _) =
+      strip_comb (fst (Logic.dest_equals
+        (Logic.strip_assums_concl (Thm.prop_of trlift'))));
+  in infer_instantiate ctxt [(P, Thm.cterm_of ctxt (abss Ts cntxt))] trlift' end;
 
 
 (*************************************************************
@@ -338,10 +339,11 @@ fun inst_lift ctxt Ts t (T, U, pos) state i =
 fun inst_split ctxt Ts t tt thm TB state i =
   let
     val thm' = Thm.lift_rule (Thm.cprem_of state i) thm;
-    val (P, _) = strip_comb (fst (Logic.dest_equals
-      (Logic.strip_assums_concl (Thm.prop_of thm'))));
+    val (Var (P, _), _) =
+      strip_comb (fst (Logic.dest_equals
+        (Logic.strip_assums_concl (Thm.prop_of thm'))));
     val cntxt = mk_cntxt_splitthm t tt TB;
-  in cterm_instantiate [apply2 (Thm.cterm_of ctxt) (P, abss Ts cntxt)] thm' end;
+  in infer_instantiate ctxt [(P, Thm.cterm_of ctxt (abss Ts cntxt))] thm' end;
 
 
 (*****************************************************************************
