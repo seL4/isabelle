@@ -761,9 +761,11 @@ fun infer_instantiate _ [] th = th
           let
             val T = var_type xi;
             val U = Thm.typ_of_cterm cu;
-            val (tyenv', maxidx') =
-              Sign.typ_unify thy (T, U)
-                (tyenv, maxidx |> Integer.max (#2 xi) |> Integer.max (Thm.maxidx_of_cterm cu))
+            val maxidx' = maxidx
+              |> Integer.max (#2 xi)
+              |> Term.maxidx_typ T
+              |> Integer.max (Thm.maxidx_of_cterm cu);
+            val (tyenv', maxidx'') = Sign.typ_unify thy (T, U) (tyenv, maxidx')
               handle Type.TUNIFY =>
                 let
                   val t = Var (xi, T);
@@ -777,7 +779,7 @@ fun infer_instantiate _ [] th = th
                     Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) u),
                     0, [th])
                 end;
-          in (((xi, T), cu), (tyenv', maxidx')) end;
+          in (((xi, T), cu), (tyenv', maxidx'')) end;
 
         val (args', (tyenv, _)) = fold_map infer args (Vartab.empty, 0);
         val instT =
