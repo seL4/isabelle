@@ -132,18 +132,17 @@ in
       
       fun make_inst var ctxt = 
         let 
-          val typ = (snd o relation_types o snd o dest_Var) var
+          val typ = snd (relation_types (#2 (dest_Var var)))
           val sort = Type.sort_of_atyp typ
           val (fresh_var, ctxt') = yield_singleton Variable.invent_types sort ctxt
-        in
-          (apply2 (Thm.cterm_of ctxt') (var, HOLogic.eq_const (TFree fresh_var)), ctxt')
-        end
+          val inst = (#1 (dest_Var var), Thm.cterm_of ctxt' (HOLogic.eq_const (TFree fresh_var)))
+        in (inst, ctxt') end
       
       val orig_lthy = lthy
       val (args_inst, lthy) = fold_map make_inst args lthy
       val pcr_cr_eq = 
         pcr_rel_def
-        |> Drule.cterm_instantiate args_inst    
+        |> infer_instantiate lthy args_inst
         |> Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv 
           (Transfer.bottom_rewr_conv (Transfer.get_relator_eq lthy))))
   in
@@ -403,9 +402,9 @@ in
          @{thm id_transfer}
         |> Thm.incr_indexes (Term.maxidx_of_term parametrized_relator + 1)
         |> Conv.fconv_rule(HOLogic.Trueprop_conv (Conv.arg_conv id_unfold then_conv Conv.arg1_conv id_unfold))
-      val var = Var (hd (Term.add_vars (Thm.prop_of id_transfer) []))
-      val inst = [(Thm.cterm_of lthy var, Thm.cterm_of lthy parametrized_relator)]
-      val id_par_thm = Drule.cterm_instantiate inst id_transfer
+      val var = hd (Term.add_vars (Thm.prop_of id_transfer) [])
+      val inst = [(#1 var, Thm.cterm_of lthy parametrized_relator)]
+      val id_par_thm = infer_instantiate lthy inst id_transfer
     in
       Lifting_Def.generate_parametric_transfer_rule lthy id_transfer_rule id_par_thm
     end

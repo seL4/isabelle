@@ -783,7 +783,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val car_inits = map (mk_min_alg str_inits) ks;
 
-    val alg_init_thm = cterm_instantiate_pos (map (SOME o Thm.cterm_of lthy) str_inits) alg_min_alg_thm;
+    val alg_init_thm =
+      infer_instantiate' lthy (map (SOME o Thm.cterm_of lthy) str_inits) alg_min_alg_thm;
 
     val alg_select_thm = Goal.prove_sorry lthy [] []
       (HOLogic.mk_Trueprop (mk_Ball II

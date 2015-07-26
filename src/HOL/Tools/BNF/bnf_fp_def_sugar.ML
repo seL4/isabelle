@@ -473,13 +473,12 @@ fun flat_corec_preds_predsss_gettersss [] [qss] [gss] = flat_corec_predss_getter
 fun mk_flip (x, Type (_, [T1, Type (_, [T2, T3])])) =
   Abs ("x", T1, Abs ("y", T2, Var (x, T2 --> T1 --> T3) $ Bound 0 $ Bound 1));
 
-fun flip_rels lthy n thm =
+fun flip_rels ctxt n thm =
   let
     val Rs = Term.add_vars (Thm.prop_of thm) [];
     val Rs' = rev (drop (length Rs - n) Rs);
-    val cRs = map (fn f => (Thm.cterm_of lthy (Var f), Thm.cterm_of lthy (mk_flip f))) Rs';
   in
-    Drule.cterm_instantiate cRs thm
+    infer_instantiate ctxt (map (fn f => (fst f, Thm.cterm_of ctxt (mk_flip f))) Rs') thm
   end;
 
 fun mk_ctor_or_dtor get_T Ts t =
@@ -599,7 +598,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
           Drule.dummy_thm
         else
           let val ctor' = mk_ctor Bs ctor in
-            cterm_instantiate_pos [NONE, NONE, SOME (Thm.cterm_of lthy ctor')] arg_cong
+            infer_instantiate' lthy [NONE, NONE, SOME (Thm.cterm_of lthy ctor')] arg_cong
           end;
 
       fun mk_cIn ctor k xs =
@@ -616,7 +615,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
         fold_thms lthy [ctr_def']
           (unfold_thms lthy (o_apply :: pre_map_def ::
                (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_map @ abs_inverses)
-             (cterm_instantiate_pos (map (SOME o Thm.cterm_of lthy) fs @ [SOME cxIn])
+             (infer_instantiate' lthy (map (SOME o Thm.cterm_of lthy) fs @ [SOME cxIn])
                 (if fp = Least_FP then fp_map_thm
                  else fp_map_thm RS ctor_cong RS (ctor_dtor RS sym RS trans))))
         |> singleton (Proof_Context.export names_lthy lthy);
@@ -626,7 +625,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
           (unfold_thms lthy (pre_set_defs @ fp_nesting_set_maps @ live_nesting_set_maps @
                (if fp = Least_FP then [] else [dtor_ctor]) @ basic_sumprod_thms_set @
                @{thms UN_Un sup_assoc[THEN sym]} @ abs_inverses)
-             (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
+             (infer_instantiate' lthy [SOME cxIn] fp_set_thm))
         |> singleton (Proof_Context.export names_lthy lthy);
 
       fun mk_set0_thms fp_set_thm = map2 (mk_set0_thm fp_set_thm) ctr_defs' cxIns;
@@ -644,7 +643,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
           (unfold_thms lthy (pre_rel_def :: abs_inverses @
                (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_rel @
                @{thms vimage2p_def sum.inject sum.distinct(1)[THEN eq_False[THEN iffD2]]})
-             (cterm_instantiate_pos (map (SOME o Thm.cterm_of lthy) Rs @ [SOME cxIn, SOME cyIn])
+             (infer_instantiate' lthy (map (SOME o Thm.cterm_of lthy) Rs @ [SOME cxIn, SOME cyIn])
                 fp_rel_thm))
         |> postproc
         |> singleton (Proof_Context.export names_lthy lthy);

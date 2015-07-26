@@ -183,19 +183,17 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
         val param_rel = (snd o dest_comb o fst o dest_comb) tm;
         val free_vars = Term.add_vars param_rel [];
         
-        fun make_subst (var as (_, typ)) subst = 
+        fun make_subst (xi, typ) subst = 
           let
             val [rty, rty'] = binder_types typ
           in
-            if (Term.is_TVar rty andalso is_Type rty') then
-              (Var var, HOLogic.eq_const rty')::subst
+            if Term.is_TVar rty andalso is_Type rty' then
+              (xi, Thm.cterm_of ctxt (HOLogic.eq_const rty')) :: subst
             else
               subst
           end;
-        
-        val subst = fold make_subst free_vars [];
-        val csubst = map (apply2 (Thm.cterm_of ctxt)) subst;
-        val inst_thm = Drule.cterm_instantiate csubst thm;
+
+        val inst_thm = infer_instantiate ctxt (fold make_subst free_vars []) thm;
       in
         Conv.fconv_rule 
           ((Conv.concl_conv (Thm.nprems_of inst_thm) o
@@ -212,10 +210,9 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
         val fun2 = Thm.cterm_of ctxt (strip_args 2 t2)
         val args2 = map (Thm.cterm_of ctxt) (get_args 1 t2)
         val relcomppI = Drule.incr_indexes2 ant1 ant2 @{thm relcomppI}
-        val vars = (rev (Term.add_vars (Thm.prop_of relcomppI) []))
-        val subst = map (apfst (Thm.cterm_of ctxt o Var)) (vars ~~ ([fun1] @ args1 @ [fun2] @ args2))
+        val vars = map #1 (rev (Term.add_vars (Thm.prop_of relcomppI) []))
       in
-        Drule.cterm_instantiate subst relcomppI
+        infer_instantiate ctxt (vars ~~ ([fun1] @ args1 @ [fun2] @ args2)) relcomppI
       end
 
     fun zip_transfer_rules ctxt thm =

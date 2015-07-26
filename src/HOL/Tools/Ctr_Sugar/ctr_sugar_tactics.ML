@@ -99,7 +99,7 @@ fun mk_collapse_tac ctxt m discD sels =
 
 fun mk_disc_eq_case_tac ctxt ct exhaust discs distincts cases =
   HEADGOAL Goal.conjunction_tac THEN
-  ALLGOALS (rtac ctxt (cterm_instantiate_pos [SOME ct] exhaust) THEN_ALL_NEW
+  ALLGOALS (rtac ctxt (infer_instantiate' ctxt [SOME ct] exhaust) THEN_ALL_NEW
     (hyp_subst_tac ctxt THEN'
      SELECT_GOAL (unfold_thms_tac ctxt (@{thms not_True_eq_False not_False_eq_True} @ cases @
        ((refl :: discs @ distincts) RL [eqTrueI, eqFalseI]))) THEN'
@@ -161,7 +161,7 @@ fun mk_case_tac ctxt n k case_def injects distinctss =
   end;
 
 fun mk_case_distrib_tac ctxt ct exhaust cases =
-  HEADGOAL (rtac ctxt (cterm_instantiate_pos [SOME ct] exhaust)) THEN
+  HEADGOAL (rtac ctxt (infer_instantiate' ctxt [SOME ct] exhaust)) THEN
   ALLGOALS (hyp_subst_tac ctxt THEN' SELECT_GOAL (unfold_thms_tac ctxt cases) THEN' rtac ctxt refl);
 
 fun mk_case_cong_tac ctxt uexhaust cases =

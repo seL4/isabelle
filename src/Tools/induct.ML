@@ -390,14 +390,12 @@ fun align_right msg xs ys =
 
 fun prep_inst ctxt align tune (tm, ts) =
   let
-    fun prep_var (x, SOME t) =
+    fun prep_var (Var (x, xT), SOME t) =
           let
-            val cx = Thm.cterm_of ctxt x;
-            val xT = Thm.typ_of_cterm cx;
             val ct = Thm.cterm_of ctxt (tune t);
             val tT = Thm.typ_of_cterm ct;
           in
-            if Type.could_unify (tT, xT) then SOME (cx, ct)
+            if Type.could_unify (tT, xT) then SOME (x, ct)
             else error (Pretty.string_of (Pretty.block
              [Pretty.str "Ill-typed instantiation:", Pretty.fbrk,
               Syntax.pretty_term ctxt (Thm.term_of ct), Pretty.str " ::", Pretty.brk 1,
@@ -478,7 +476,7 @@ fun cases_tac ctxt simp insts opt_rule facts =
        else
          (align_left "Rule has fewer premises than arguments given" (Thm.prems_of r) insts
            |> maps (prep_inst ctxt align_left I)
-           |> Drule.cterm_instantiate) r)
+           |> infer_instantiate ctxt) r)
       |> simp ? mark_constraints (Rule_Cases.get_constraints r) ctxt
       |> pair (Rule_Cases.get r);
 
@@ -557,7 +555,7 @@ fun rulify_tac ctxt =
 (* prepare rule *)
 
 fun rule_instance ctxt inst rule =
-  Drule.cterm_instantiate (prep_inst ctxt align_left I (Thm.prop_of rule, inst)) rule;
+  infer_instantiate ctxt (prep_inst ctxt align_left I (Thm.prop_of rule, inst)) rule;
 
 fun internalize ctxt k th =
   th |> Thm.permute_prems 0 k
@@ -658,10 +656,9 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
       |> Thm.lift_rule (Thm.cterm_of ctxt prfx)
       |> `(Thm.prop_of #> Logic.strip_assums_concl)
       |-> (fn pred $ arg =>
-        Drule.cterm_instantiate
-          (map (apply2 (Thm.cterm_of ctxt))
-            [(Term.head_of pred, Logic.rlist_abs (xs, body)),
-             (Term.head_of arg, Logic.rlist_abs (xs, v))]));
+        infer_instantiate ctxt
+          [(#1 (dest_Var (head_of pred)), Thm.cterm_of ctxt (Logic.rlist_abs (xs, body))),
+           (#1 (dest_Var (head_of arg)), Thm.cterm_of ctxt (Logic.rlist_abs (xs, v)))]);
 
     fun goal_concl k xs (Const (@{const_name Pure.all}, _) $ Abs (a, T, B)) =
           goal_concl k ((a, T) :: xs) B
@@ -745,7 +742,7 @@ fun gen_induct_tac mod_cases ctxt simp def_insts arbitrary taking opt_rule facts
          else (align_left "Rule has fewer conclusions than arguments given"
             (map Logic.strip_imp_concl (Logic.dest_conjunctions (Thm.concl_of r))) insts
           |> maps (prep_inst ctxt align_right (atomize_term ctxt))
-          |> Drule.cterm_instantiate) r |> pair (Rule_Cases.get r))
+          |> infer_instantiate ctxt) r |> pair (Rule_Cases.get r))
         |> mod_cases
         |> (fn ((cases, consumes), th) => (((cases, concls), consumes), th));
 
@@ -828,7 +825,8 @@ fun coinduct_tac ctxt inst taking opt_rule facts = SUBGOAL_CASES (fn (goal, i) =
   let
     fun inst_rule r =
       if null inst then `Rule_Cases.get r
-      else Drule.cterm_instantiate (prep_inst ctxt align_right I (main_prop_of r, inst)) r
+      else
+        infer_instantiate ctxt (prep_inst ctxt align_right I (main_prop_of r, inst)) r
         |> pair (Rule_Cases.get r);
   in
     fn st =>

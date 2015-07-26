@@ -639,11 +639,11 @@ fun mk_simp_eq ctxt prop =
       | _ => error
         ("equations matching pattern " ^ Syntax.string_of_term ctxt prop ^ " is not unique"));
     val inst =
-      map (fn v => apply2 (Thm.cterm_of ctxt') (Var v, Envir.subst_term subst (Var v)))
+      map (fn v => (fst v, Thm.cterm_of ctxt' (Envir.subst_term subst (Var v))))
         (Term.add_vars (lhs_of eq) []);
   in
-    Drule.cterm_instantiate inst eq
-    |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv (Simplifier.full_rewrite ctxt)))
+    infer_instantiate ctxt' inst eq
+    |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv (Simplifier.full_rewrite ctxt')))
     |> singleton (Variable.export ctxt' ctxt)
   end
 

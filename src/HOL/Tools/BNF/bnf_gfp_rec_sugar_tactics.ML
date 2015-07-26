@@ -43,13 +43,9 @@ fun exhaust_inst_as_projs ctxt frees thm =
   let
     val num_frees = length frees;
     val fs = Term.add_vars (Thm.prop_of thm) [] |> filter (can dest_funT o snd);
-    fun find s = find_index (curry (op =) s) frees;
-    fun mk_cfp (f as ((s, _), T)) =
-      (Thm.cterm_of ctxt (Var f), Thm.cterm_of ctxt (mk_proj T num_frees (find s)));
-    val cfps = map mk_cfp fs;
-  in
-    Drule.cterm_instantiate cfps thm
-  end;
+    fun find x = find_index (curry (op =) x) frees;
+    fun mk_inst ((x, i), T) = ((x, i), Thm.cterm_of ctxt (mk_proj T num_frees (find x)));
+  in infer_instantiate ctxt (map mk_inst fs) thm end;
 
 val exhaust_inst_as_projs_tac = PRIMITIVE oo exhaust_inst_as_projs;
 

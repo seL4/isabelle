@@ -376,7 +376,7 @@ fun mk_init_unique_mor_tac ctxt cts m
       REPEAT_DETERM_N n o rtac ctxt @{thm Collect_restrict}, rtac ctxt CollectI,
       REPEAT_DETERM_N (m + n) o (TRY o rtac ctxt conjI THEN' assume_tac ctxt)];
     fun cong_tac ct map_cong0 = EVERY'
-      [rtac ctxt (map_cong0 RS cterm_instantiate_pos [NONE, NONE, SOME ct] arg_cong),
+      [rtac ctxt (map_cong0 RS infer_instantiate' ctxt [NONE, NONE, SOME ct] arg_cong),
       REPEAT_DETERM_N m o rtac ctxt refl,
       REPEAT_DETERM_N n o (etac ctxt @{thm prop_restrict} THEN' assume_tac ctxt)];
 
@@ -434,7 +434,7 @@ fun mk_mor_Abs_tac ctxt cts defs Abs_inverses map_comp_ids map_congLs =
     CONJ_WRAP' (K (rtac ctxt ballI THEN' rtac ctxt UNIV_I)) Abs_inverses,
     CONJ_WRAP' (fn (ct, thm) =>
       EVERY' [rtac ctxt ballI, REPEAT_DETERM o eresolve_tac ctxt [CollectE, conjE],
-        rtac ctxt (thm RS (cterm_instantiate_pos [NONE, NONE, SOME ct] arg_cong) RS sym),
+        rtac ctxt (thm RS (infer_instantiate' ctxt [NONE, NONE, SOME ct] arg_cong) RS sym),
         EVERY' (map (fn Abs_inverse =>
           EVERY' [rtac ctxt (o_apply RS trans RS ballI), etac ctxt (set_mp RS Abs_inverse),
             assume_tac ctxt])
@@ -559,7 +559,7 @@ fun mk_set_nat_tac ctxt m induct_tac set_mapss ctor_maps csets ctor_sets i =
 
     fun mk_set_nat cset ctor_map ctor_set set_nats =
       EVERY' [rtac ctxt trans, rtac ctxt @{thm image_cong}, rtac ctxt ctor_set, rtac ctxt refl, rtac ctxt sym,
-        rtac ctxt (trans OF [ctor_map RS cterm_instantiate_pos [NONE, NONE, SOME cset] arg_cong,
+        rtac ctxt (trans OF [ctor_map RS infer_instantiate' ctxt [NONE, NONE, SOME cset] arg_cong,
           ctor_set RS trans]),
         rtac ctxt sym, EVERY' (map (rtac ctxt) [trans, @{thm image_Un}, Un_cong]),
         rtac ctxt sym, rtac ctxt (nth set_nats (i - 1)),

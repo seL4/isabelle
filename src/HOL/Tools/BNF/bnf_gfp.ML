@@ -2223,9 +2223,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
           fun mk_helper_coind_thms fst concl cts =
             Goal.prove_sorry lthy [] [] (Logic.list_implies (helper_prems, concl))
-              (fn {context = ctxt, prems = _} => mk_rel_coinduct_coind_tac ctxt fst m
-                (cterm_instantiate_pos cts dtor_coinduct_thm) ks map_comps map_cong0s
-                map_arg_cong_thms set_mapss dtor_unfold_thms dtor_Jmap_thms in_rels)
+              (fn {context = ctxt, prems = _} =>
+                mk_rel_coinduct_coind_tac ctxt fst m
+                  (infer_instantiate' ctxt cts dtor_coinduct_thm) ks map_comps map_cong0s
+                  map_arg_cong_thms set_mapss dtor_unfold_thms dtor_Jmap_thms in_rels)
             |> Thm.close_derivation
             |> split_conj_thm
             |> Proof_Context.export names_lthy lthy;
@@ -2261,8 +2262,9 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           val helper_ind_thmss = if m = 0 then replicate n [] else
             @{map 4} (fn concl => fn j => fn set_induct => fn cts =>
               Goal.prove_sorry lthy [] [] (Logic.list_implies (helper_prems, concl))
-                (fn {context = ctxt, prems = _} => mk_rel_coinduct_ind_tac ctxt m ks
-                  dtor_unfold_thms set_mapss j (cterm_instantiate_pos cts set_induct))
+                (fn {context = ctxt, prems = _} =>
+                  mk_rel_coinduct_ind_tac ctxt m ks
+                    dtor_unfold_thms set_mapss j (infer_instantiate' ctxt cts set_induct))
               |> Thm.close_derivation
               |> split_conj_thm
               |> Proof_Context.export names_lthy lthy)

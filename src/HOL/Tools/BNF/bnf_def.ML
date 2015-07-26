@@ -1368,7 +1368,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           let
             val rel_conversep_thm = Lazy.force rel_conversep;
             val cts = map (SOME o Thm.cterm_of lthy) Rs;
-            val rel_conversep_thm' = cterm_instantiate_pos cts rel_conversep_thm;
+            val rel_conversep_thm' = infer_instantiate' lthy cts rel_conversep_thm;
           in
             unfold_thms lthy @{thms conversep_iff} (rel_conversep_thm' RS @{thm predicate2_eqD})
             |> singleton (Proof_Context.export names_lthy pre_names_lthy)

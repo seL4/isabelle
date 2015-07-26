@@ -299,9 +299,11 @@ fun wf_union_tac ctxt st = SUBGOAL (fn _ =>
           THEN' (blast_tac ctxt)))    (* Solve rest of context... not very elegant *)
       ) i
   in
-    (PRIMITIVE (Drule.cterm_instantiate [apply2 (Thm.cterm_of ctxt) (rel, relation)])
-     THEN ALLGOALS (fn i => if i = 1 then all_tac else solve_membership_tac i)
-     THEN rewrite_goal_tac ctxt Un_aci_simps 1)  (* eliminate duplicates *)
+    if is_Var rel then
+      PRIMITIVE (infer_instantiate ctxt [(#1 (dest_Var rel), Thm.cterm_of ctxt relation)])
+        THEN ALLGOALS (fn i => if i = 1 then all_tac else solve_membership_tac i)
+        THEN rewrite_goal_tac ctxt Un_aci_simps 1  (* eliminate duplicates *)
+    else no_tac
   end) 1 st
 
 end

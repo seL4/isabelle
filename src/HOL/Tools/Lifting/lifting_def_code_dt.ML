@@ -217,9 +217,9 @@ fun lift qty (quot_thm, (lthy, rel_eq_onps)) =
       (quot_thm, (lthy, rel_eq_onps))
   end;
 
-fun case_tac rule ctxt i st =
-  (Subgoal.FOCUS_PARAMS (fn {params, ...} => HEADGOAL(rtac ctxt
-    (Ctr_Sugar_Util.cterm_instantiate_pos [SOME (params |> hd |> snd)] rule))) ctxt i st);
+fun case_tac rule =
+  Subgoal.FOCUS_PARAMS (fn {context = ctxt, params, ...} =>
+    HEADGOAL (rtac ctxt (infer_instantiate' ctxt [SOME (snd (hd params))] rule)));
 
 fun bundle_name_of_bundle_binding binding phi context  =
   Name_Space.full_name (Name_Space.naming_of context) (Morphism.binding phi binding);

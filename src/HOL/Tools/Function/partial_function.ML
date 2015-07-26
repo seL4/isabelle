@@ -107,17 +107,6 @@ fun mono_tac ctxt =
 
 (*** Auxiliary functions ***)
 
-(*positional instantiation with computed type substitution.
-  internal version of  attribute "[of s t u]".*)
-fun cterm_instantiate' cts thm =
-  let
-    val thy = Thm.theory_of_thm thm;
-    val vs = rev (Term.add_vars (Thm.prop_of thm) [])
-      |> map (Thm.global_cterm_of thy o Var);
-  in
-    cterm_instantiate (zip_options vs cts) thm
-  end;
-
 (*Returns t $ u, but instantiates the type of t to make the
 application type correct*)
 fun apply_inst ctxt t u =
@@ -168,13 +157,13 @@ val curry_K_ss =
   curry induction predicate *)
 fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rule =
   let
-    val cert = Thm.cterm_of ctxt
     val ([P], ctxt') = Variable.variant_fixes ["P"] ctxt
     val P_inst = Abs ("f", fT_uc, Free (P, fT --> HOLogic.boolT) $ (curry $ Bound 0))
   in 
     (* FIXME ctxt vs. ctxt' (!?) *)
     rule
-    |> cterm_instantiate' [SOME (cert uncurry), NONE, SOME (cert curry), NONE, SOME (cert P_inst)]
+    |> infer_instantiate' ctxt
+      ((map o Option.map) (Thm.cterm_of ctxt) [SOME uncurry, NONE, SOME curry, NONE, SOME P_inst])
     |> Tactic.rule_by_tactic ctxt
       (Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt) 3 (* discharge U (C f) = f *)
        THEN Simplifier.simp_tac (put_simpset curry_K_ss ctxt) 4 (* simplify bot case *)
@@ -235,7 +224,6 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val ((f_binding, fT), mixfix) = the_single fixes;
     val fname = Binding.name_of f_binding;
 
-    val cert = Thm.cterm_of lthy;
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop plain_eqn);
     val (head, args) = strip_comb lhs;
     val argnames = map (fst o dest_Free) args;
@@ -258,9 +246,9 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
       |> HOLogic.mk_Trueprop
       |> Logic.all x_uc;
 
-    val mono_thm = Goal.prove_internal lthy [] (cert mono_goal)
+    val mono_thm = Goal.prove_internal lthy [] (Thm.cterm_of lthy mono_goal)
         (K (mono_tac lthy 1))
-    val inst_mono_thm = Thm.forall_elim (cert x_uc) mono_thm
+    val inst_mono_thm = Thm.forall_elim (Thm.cterm_of lthy x_uc) mono_thm
 
     val f_def_rhs = curry_n arity (apply_inst lthy fixp F_uc);
     val f_def_binding = Binding.concealed (Binding.name (Thm.def_name fname));
@@ -272,7 +260,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
       |> HOLogic.mk_Trueprop;
 
     val unfold =
-      (cterm_instantiate' (map (SOME o cert) [uncurry, F, curry]) fixp_eq
+      (infer_instantiate' lthy' (map (SOME o Thm.cterm_of lthy') [uncurry, F, curry]) fixp_eq
         OF [inst_mono_thm, f_def])
       |> Tactic.rule_by_tactic lthy' (Simplifier.simp_tac (put_simpset curry_uncurry_ss lthy') 1);
 
@@ -281,10 +269,12 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
       |> Drule.rename_bvars' (map SOME (fname :: fname :: argnames));
 
     val mk_raw_induct =
-      cterm_instantiate' [SOME (cert uncurry), NONE, SOME (cert curry)]
+      infer_instantiate' args_ctxt
+        ((map o Option.map) (Thm.cterm_of args_ctxt) [SOME uncurry, NONE, SOME curry])
       #> mk_curried_induct args args_ctxt
       #> singleton (Variable.export args_ctxt lthy')
-      #> (fn thm => cterm_instantiate' [SOME (cert F)] thm OF [inst_mono_thm, f_def])
+      #> (fn thm => infer_instantiate' lthy'
+          [SOME (Thm.cterm_of lthy' F)] thm OF [inst_mono_thm, f_def])
       #> Drule.rename_bvars' (map SOME (fname :: argnames @ argnames))
 
     val raw_induct = Option.map mk_raw_induct fixp_induct_user

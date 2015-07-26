@@ -23,11 +23,11 @@ fun cong_tac ctxt cong = CSUBGOAL (fn (cgoal, i) =>
           val _ $ (_ $ (f' $ x') $ (g' $ y')) = Logic.strip_assums_concl (Thm.prop_of cong');
           val ps = Logic.strip_params (Thm.concl_of cong');
           val insts =
-            [(f', f), (g', g), (x', x), (y', y)]
-            |> map (fn (t, u) => apply2 (Thm.cterm_of ctxt) (Term.head_of t, fold_rev Term.abs ps u));
+            [(f', f), (g', g), (x', x), (y', y)] |> map (fn (t, u) =>
+              (#1 (dest_Var (head_of t)), Thm.cterm_of ctxt (fold_rev Term.abs ps u)));
         in
           fn st =>
-            compose_tac ctxt (false, Drule.cterm_instantiate insts cong', 2) i st
+            compose_tac ctxt (false, infer_instantiate ctxt insts cong', 2) i st
               handle THM _ => no_tac st
         end
     | _ => no_tac)
