@@ -90,11 +90,11 @@ fun decomp t = Option.map (fn (x, y, rel, r) =>
   (Envir.beta_eta_contract x, Envir.beta_eta_contract y,
    Envir.beta_eta_contract rel, r)) (Cls.decomp t);
 
-fun prove thy r asms =
+fun prove ctxt r asms =
   let
     fun inst thm =
-      let val SOME (_, _, r', _) = decomp (Thm.concl_of thm)
-      in Drule.cterm_instantiate [(Thm.global_cterm_of thy r', Thm.global_cterm_of thy r)] thm end;
+      let val SOME (_, _, Var (r', _), _) = decomp (Thm.concl_of thm)
+      in infer_instantiate ctxt [(r', Thm.cterm_of ctxt r)] thm end;
     fun pr (Asm i) = nth asms i
       | pr (Thm (prfs, thm)) = map pr prfs MRS inst thm;
   in pr end;
@@ -533,7 +533,6 @@ end;
 
 fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = Proof_Context.theory_of ctxt;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
   val (rel, _, prf) = mkconcl_trancl C;
@@ -544,15 +543,14 @@ fun trancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   Subgoal.FOCUS (fn {context = ctxt', prems, concl, ...} =>
     let
       val SOME (_, _, rel', _) = decomp (Thm.term_of concl);
-      val thms = map (prove thy rel' prems) prfs
-    in resolve_tac ctxt' [prove thy rel' thms prf] 1 end) ctxt n st
+      val thms = map (prove ctxt' rel' prems) prfs
+    in resolve_tac ctxt' [prove ctxt' rel' thms prf] 1 end) ctxt n st
  end
  handle Cannot => Seq.empty);
 
 
 fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = Proof_Context.theory_of ctxt;
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
   val (rel, _, prf) = mkconcl_rtrancl C;
@@ -563,8 +561,8 @@ fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
   Subgoal.FOCUS (fn {context = ctxt', prems, concl, ...} =>
     let
       val SOME (_, _, rel', _) = decomp (Thm.term_of concl);
-      val thms = map (prove thy rel' prems) prfs
-    in resolve_tac ctxt' [prove thy rel' thms prf] 1 end) ctxt n st
+      val thms = map (prove ctxt' rel' prems) prfs
+    in resolve_tac ctxt' [prove ctxt' rel' thms prf] 1 end) ctxt n st
  end
  handle Cannot => Seq.empty | General.Subscript => Seq.empty);
 
