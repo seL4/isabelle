@@ -40,8 +40,8 @@ val perm_boolI = @{thm perm_boolI};
 val (_, [perm_boolI_pi, _]) = Drule.strip_comb (snd (Thm.dest_comb
   (Drule.strip_imp_concl (Thm.cprop_of perm_boolI))));
 
-fun mk_perm_bool pi th = th RS Drule.cterm_instantiate
-  [(perm_boolI_pi, pi)] perm_boolI;
+fun mk_perm_bool ctxt pi th =
+  th RS infer_instantiate ctxt [(#1 (dest_Var (Thm.term_of perm_boolI_pi)), pi)] perm_boolI;
 
 fun mk_perm_bool_simproc names =
   Simplifier.simproc_global_i @{theory} "perm_bool" [@{term "perm pi x"}] (fn ctxt =>
@@ -402,7 +402,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
                    Simplifier.simplify (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]
                        addsimprocs [NominalDatatype.perm_simproc])
                      (Simplifier.simplify (put_simpset eqvt_ss ctxt')
-                       (fold_rev (mk_perm_bool o Thm.global_cterm_of thy)
+                       (fold_rev (mk_perm_bool ctxt' o Thm.cterm_of ctxt')
                          (pis' @ pis) th));
                  val gprems2 = map (fn (th, t) =>
                    if null (preds_of ps t) then mk_pi th

@@ -305,8 +305,9 @@ fun finite_guess_tac_i tactical ctxt i st =
             val supports_rule' = Thm.lift_rule goal supports_rule;
             val _ $ (_ $ S $ _) =
               Logic.strip_assums_concl (hd (Thm.prems_of supports_rule'));
-            val supports_rule'' = Drule.cterm_instantiate
-              [apply2 (Thm.cterm_of ctxt) (head_of S, s')] supports_rule'
+            val supports_rule'' =
+              infer_instantiate ctxt
+                [(#1 (dest_Var (head_of S)), Thm.cterm_of ctxt s')] supports_rule';
             val fin_supp = Proof_Context.get_thms ctxt "fin_supp"
             val ctxt' = ctxt addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
           in
@@ -348,8 +349,9 @@ fun fresh_guess_tac_i tactical ctxt i st =
             val supports_fresh_rule' = Thm.lift_rule goal supports_fresh_rule;
             val _ $ (_ $ S $ _) =
               Logic.strip_assums_concl (hd (Thm.prems_of supports_fresh_rule'));
-            val supports_fresh_rule'' = Drule.cterm_instantiate
-              [apply2 (Thm.cterm_of ctxt) (head_of S, s')] supports_fresh_rule'
+            val supports_fresh_rule'' =
+              infer_instantiate ctxt
+                [(#1 (dest_Var (head_of S)), Thm.cterm_of ctxt s')] supports_fresh_rule';
           in
             (tactical ctxt ("guessing of the right set that supports the goal", 
                       (EVERY [compose_tac ctxt (false, supports_fresh_rule'', 3) i,

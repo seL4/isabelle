@@ -36,8 +36,8 @@ val perm_boolI = @{thm perm_boolI};
 val (_, [perm_boolI_pi, _]) = Drule.strip_comb (snd (Thm.dest_comb
   (Drule.strip_imp_concl (Thm.cprop_of perm_boolI))));
 
-fun mk_perm_bool pi th = th RS Drule.cterm_instantiate
-  [(perm_boolI_pi, pi)] perm_boolI;
+fun mk_perm_bool ctxt pi th =
+  th RS infer_instantiate ctxt [(#1 (dest_Var (Thm.term_of perm_boolI_pi)), pi)] perm_boolI;
 
 fun mk_perm_bool_simproc names =
   Simplifier.simproc_global_i @{theory} "perm_bool" [@{term "perm pi x"}] (fn ctxt =>
@@ -348,7 +348,7 @@ fun prove_strong_ind s avoids ctxt =
                    Simplifier.simplify (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]
                        addsimprocs [NominalDatatype.perm_simproc])
                      (Simplifier.simplify (put_simpset eqvt_ss ctxt')
-                       (fold_rev (mk_perm_bool o Thm.global_cterm_of thy)
+                       (fold_rev (mk_perm_bool ctxt' o Thm.cterm_of ctxt')
                          (rev pis' @ pis) th));
                  val (gprems1, gprems2) = split_list
                    (map (fn (th, t) =>
@@ -509,7 +509,7 @@ fun prove_strong_ind s avoids ctxt =
                   val freshs2' = NominalDatatype.mk_not_sym freshs2;
                   val pis = map (NominalDatatype.perm_of_pair)
                     ((freshs1 ~~ map fst qs) @ (params' ~~ freshs1));
-                  val mk_pis = fold_rev mk_perm_bool (map (Thm.global_cterm_of thy) pis);
+                  val mk_pis = fold_rev (mk_perm_bool ctxt3) (map (Thm.cterm_of ctxt3) pis);
                   val obj = Thm.global_cterm_of thy (foldr1 HOLogic.mk_conj (map (map_aterms
                      (fn x as Free _ =>
                            if member (op =) args x then x
@@ -634,9 +634,9 @@ fun prove_eqvt s xatoms ctxt =  (* FIXME ctxt should be called lthy *)
             val prems' = map (fn th => the_default th (map_thm ctxt''
               (split_conj (K I) names) (eresolve_tac ctxt'' [conjunct2] 1) monos NONE th)) prems;
             val prems'' = map (fn th => Simplifier.simplify eqvt_simpset
-              (mk_perm_bool (Thm.global_cterm_of thy pi) th)) prems';
-            val intr' = Drule.cterm_instantiate (map (Thm.global_cterm_of thy) vs ~~
-               map (Thm.global_cterm_of thy o NominalDatatype.mk_perm [] pi o Thm.term_of o #2) params)
+              (mk_perm_bool ctxt'' (Thm.cterm_of ctxt'' pi) th)) prems';
+            val intr' = infer_instantiate ctxt'' (map (#1 o dest_Var) vs ~~
+               map (Thm.cterm_of ctxt'' o NominalDatatype.mk_perm [] pi o Thm.term_of o #2) params)
                intr
           in (resolve_tac ctxt'' [intr'] THEN_ALL_NEW (TRY o resolve_tac ctxt'' prems'')) 1
           end) ctxt' 1 st

@@ -54,9 +54,9 @@ fun inst_mutual_rule ctxt insts avoiding rules =
       end;
      val substs =
        map2 subst insts concls |> flat |> distinct (op =)
-       |> map (apply2 (Thm.cterm_of ctxt));
+       |> map (fn (t, u) => (#1 (dest_Var t), Thm.cterm_of ctxt u));
   in 
-    (((cases, nconcls), consumes), Drule.cterm_instantiate substs joined_rule) 
+    (((cases, nconcls), consumes), infer_instantiate ctxt substs joined_rule) 
   end;
 
 fun rename_params_rule internal xs rule =

@@ -1640,7 +1640,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                     HOLogic.mk_Trueprop (fresh_const aT T $ a $ x)] @
                  freshs))
               (HOLogic.mk_Trueprop (fresh_const aT U $ a $ y))
-              (fn {prems, context} =>
+              (fn {prems, context = ctxt} =>
                  let
                    val (finite_prems, rec_prem :: unique_prem ::
                      fresh_prems) = chop (length finite_prems) prems;
@@ -1649,28 +1649,28 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                    val _ $ (_ $ (_ $ S $ _)) $ _ = Thm.prop_of supports_fresh;
                    val tuple = foldr1 HOLogic.mk_prod (x :: rec_fns')
                  in EVERY
-                   [resolve_tac context [Drule.cterm_instantiate
-                      [(Thm.global_cterm_of thy11 S,
-                        Thm.global_cterm_of thy11 (Const (@{const_name Nominal.supp},
+                   [resolve_tac ctxt [infer_instantiate ctxt
+                      [(#1 (dest_Var S),
+                        Thm.cterm_of ctxt (Const (@{const_name Nominal.supp},
                           fastype_of tuple --> HOLogic.mk_setT aT) $ tuple))]
                       supports_fresh] 1,
-                    simp_tac (put_simpset HOL_basic_ss context addsimps
+                    simp_tac (put_simpset HOL_basic_ss ctxt addsimps
                       [supports_def, Thm.symmetric fresh_def, fresh_prod]) 1,
-                    REPEAT_DETERM (resolve_tac context [allI, impI] 1),
-                    REPEAT_DETERM (eresolve_tac context [conjE] 1),
-                    resolve_tac context [unique] 1,
-                    SUBPROOF (fn {context = ctxt, prems = prems', params = [(_, a), (_, b)], ...} =>
+                    REPEAT_DETERM (resolve_tac ctxt [allI, impI] 1),
+                    REPEAT_DETERM (eresolve_tac ctxt [conjE] 1),
+                    resolve_tac ctxt [unique] 1,
+                    SUBPROOF (fn {context = ctxt', prems = prems', params = [(_, a), (_, b)], ...} =>
                       EVERY [cut_facts_tac [rec_prem] 1,
-                       resolve_tac ctxt [Thm.instantiate ([],
+                       resolve_tac ctxt' [Thm.instantiate ([],
                          [((("pi", 0), mk_permT aT),
-                           Thm.global_cterm_of thy11
+                           Thm.cterm_of ctxt'
                             (perm_of_pair (Thm.term_of a, Thm.term_of b)))]) eqvt_th] 1,
-                       asm_simp_tac (put_simpset HOL_ss context addsimps
-                         (prems' @ perm_swap @ perm_fresh_fresh)) 1]) context 1,
-                    resolve_tac context [rec_prem] 1,
-                    simp_tac (put_simpset HOL_ss context addsimps (fs_name ::
+                       asm_simp_tac (put_simpset HOL_ss ctxt' addsimps
+                         (prems' @ perm_swap @ perm_fresh_fresh)) 1]) ctxt 1,
+                    resolve_tac ctxt [rec_prem] 1,
+                    simp_tac (put_simpset HOL_ss ctxt addsimps (fs_name ::
                       supp_prod :: finite_Un :: finite_prems)) 1,
-                    simp_tac (put_simpset HOL_ss context addsimps (Thm.symmetric fresh_def ::
+                    simp_tac (put_simpset HOL_ss ctxt addsimps (Thm.symmetric fresh_def ::
                       fresh_prod :: fresh_prems)) 1]
                  end))
           end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ eqvt_ths)
@@ -1690,16 +1690,17 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
           Abs ("y", U, R $ Free x $ Bound 0))
       (rec_unique_frees ~~ rec_result_Ts ~~ rec_sets);
 
-    val induct_aux_rec = Drule.cterm_instantiate
-      (map (apply2 (Thm.global_cterm_of thy11) o apsnd (augment_sort thy11 fs_cp_sort))
-         (map (fn (aT, f) => (Logic.varify_global f, Abs ("z", HOLogic.unitT,
+    val induct_aux_rec =
+      infer_instantiate (Proof_Context.init_global thy11)
+      (map (apsnd (Thm.global_cterm_of thy11 o augment_sort thy11 fs_cp_sort))
+         (map (fn (aT, f) => (#1 (dest_Var (Logic.varify_global f)), Abs ("z", HOLogic.unitT,
             Const (@{const_name Nominal.supp}, fun_tupleT --> HOLogic.mk_setT aT) $ fun_tuple)))
               fresh_fs @
           map (fn (((P, T), (x, U)), Q) =>
-           (Var ((P, 0), Logic.varifyT_global (fsT' --> T --> HOLogic.boolT)),
+           ((P, 0),
             Abs ("z", HOLogic.unitT, absfree (x, U) Q)))
               (pnames ~~ recTs ~~ rec_unique_frees ~~ rec_unique_concls) @
-          map (fn (s, T) => (Var ((s, 0), Logic.varifyT_global T), Free (s, T)))
+          map (fn (s, T) => ((s, 0), Free (s, T)))
             rec_unique_frees)) induct_aux;
 
     fun obtain_fresh_name vs ths rec_fin_supp T (freshs1, freshs2, ctxt) =
