@@ -259,10 +259,8 @@ fun dest_internal_fact t =
 fun inst_thm ctxt env ts params thm =
   let
     val ts' = map (Envir.norm_term env) ts;
-    val insts = map (Thm.cterm_of ctxt) ts' ~~ map (Thm.cterm_of ctxt) params;
-  in
-    Drule.cterm_instantiate insts thm
-  end;
+    val insts = map (#1 o dest_Var) ts' ~~ map (Thm.cterm_of ctxt) params;
+  in infer_instantiate ctxt insts thm end;
 
 fun do_inst fact_insts' env text ctxt =
   let

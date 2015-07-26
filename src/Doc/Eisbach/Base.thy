@@ -28,10 +28,10 @@ fun get_split_rule ctxt target =
 
     val datatype_var =
       (case find_first (fn (_, T') => is_datatype T') vars of
-        SOME var => Thm.cterm_of ctxt (Term.Var var)
+        SOME (xi, _) => xi
       | NONE => error ("Couldn't find datatype in thm: " ^ datatype_name));
   in
-    SOME (Drule.cterm_instantiate [(datatype_var, Thm.cterm_of ctxt (List.last args))] split)
+    SOME (infer_instantiate ctxt [(datatype_var, Thm.cterm_of ctxt (List.last args))] split)
   end
   handle TERM _ => NONE;
 \<close>

@@ -6,7 +6,7 @@ Eisbach-aware variants of the "where" and "of" attributes.
 Alternate syntax for rule_insts.ML participates in token closures by
 examining the behaviour of Rule_Insts.where_rule and instantiating token
 values accordingly. Instantiations in re-interpretation are done with
-Drule.cterm_instantiate.
+infer_instantiate.
 *)
 
 structure Eisbach_Rule_Insts: sig end =
@@ -57,13 +57,13 @@ fun instantiate_xis ctxt insts thm =
         SOME S => (((xi, S), Thm.ctyp_of ctxt (Logic.dest_type t)) :: Ts, ts)
       | NONE =>
           (case AList.lookup (op =) tvars xi of
-            SOME T => (Ts, (Thm.cterm_of ctxt (Var (xi, T)), Thm.cterm_of ctxt t) :: ts)
+            SOME _ => (Ts, (xi, Thm.cterm_of ctxt t) :: ts)
           | NONE => error "indexname not found in thm"));
 
-    val (cTinsts, cinsts) = fold add_inst insts ([], []);
+    val (instT, inst) = fold add_inst insts ([], []);
   in
-    (Thm.instantiate (cTinsts, []) thm
-    |> Drule.cterm_instantiate cinsts
+    (Thm.instantiate (instT, []) thm
+    |> infer_instantiate ctxt inst
     COMP_INCR asm_rl)
     |> Thm.adjust_maxidx_thm ~1
     |> restore_tags thm
