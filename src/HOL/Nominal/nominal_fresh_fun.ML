@@ -22,8 +22,8 @@ fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
       (head_of (Logic.incr_indexes ([], Ts, j) t),
        fold_rev Term.abs ps u)) tinst;
     val th' = instf
-      (map (apply2 (Thm.ctyp_of ctxt)) tyinst')
-      (map (apply2 (Thm.cterm_of ctxt)) tinst')
+      (map (apsnd (Thm.ctyp_of ctxt)) tyinst')
+      (map (apsnd (Thm.cterm_of ctxt)) tinst')
       (Thm.lift_rule cgoal th)
   in
     compose_tac ctxt (elim, th', Thm.nprems_of th) i st
@@ -33,11 +33,12 @@ fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
 fun res_inst_tac_term ctxt =
   gen_res_inst_tac_term ctxt (fn instT => fn inst =>
     Thm.instantiate
-     (map (apfst (dest_TVar o Thm.typ_of)) instT,
-      map (apfst (dest_Var o Thm.term_of)) inst));
+     (map (apfst dest_TVar) instT,
+      map (apfst dest_Var) inst));
 
 fun res_inst_tac_term' ctxt =
-  gen_res_inst_tac_term ctxt (K Drule.cterm_instantiate) [];
+  gen_res_inst_tac_term ctxt
+    (fn _ => fn inst => infer_instantiate ctxt (map (apfst (#1 o dest_Var)) inst)) [];
 
 fun cut_inst_tac_term' ctxt tinst th =
   res_inst_tac_term' ctxt tinst false (Rule_Insts.make_elim_preserve ctxt th);

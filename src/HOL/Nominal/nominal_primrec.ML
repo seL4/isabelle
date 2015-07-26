@@ -281,7 +281,6 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
     val qualify = Binding.qualify false
       (space_implode "_" (map (Long_Name.base_name o #1) defs));
     val names_atts' = map (apfst qualify) names_atts;
-    val cert = Thm.cterm_of lthy';
 
     fun mk_idx eq =
       let
@@ -305,16 +304,16 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
         (fold_rev (Term.add_vars o Logic.strip_assums_concl)
            (Thm.prems_of (hd rec_rewrites)) []));
     val cfs = defs' |> hd |> snd |> strip_comb |> snd |>
-      curry (List.take o swap) (length fvars) |> map cert;
+      curry (List.take o swap) (length fvars) |> map (Thm.cterm_of lthy');
     val invs' = (case invs of
         NONE => map (fn (i, _) =>
           Abs ("x", fastype_of (snd (nth defs' i)), @{term True})) descr
       | SOME invs' => map (prep_term lthy') invs');
-    val inst = (map cert fvars ~~ cfs) @
-      (map (cert o Var) pvars ~~ map cert invs') @
+    val inst = (map (#1 o dest_Var) fvars ~~ cfs) @
+      (map #1 pvars ~~ map (Thm.cterm_of lthy') invs') @
       (case ctxtvars of
-         [ctxtvar] => [(cert (Var ctxtvar),
-           cert (the_default HOLogic.unit (Option.map (prep_term lthy') fctxt)))]
+         [ctxtvar] => [(#1 ctxtvar,
+           Thm.cterm_of lthy' (the_default HOLogic.unit (Option.map (prep_term lthy') fctxt)))]
        | _ => []);
     val rec_rewrites' = map (fn eq =>
       let
@@ -324,24 +323,24 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
           HOLogic.dest_eq |> fst |> strip_comb |> snd |> List.last |>
           strip_comb |> snd
       in (cargs, Logic.strip_imp_prems eq,
-        Drule.cterm_instantiate (inst @
-          (map cert cargs' ~~ map (cert o Free) cargs)) th)
+        infer_instantiate lthy' (inst @
+          (map (#1 o dest_Var) cargs' ~~ map (Thm.cterm_of lthy' o Free) cargs)) th)
       end) eqns';
 
     val prems = foldr1 (common_prefix op aconv) (map (Thm.prems_of o #3) rec_rewrites');
-    val cprems = map cert prems;
+    val cprems = map (Thm.cterm_of lthy') prems;
     val asms = map Thm.assume cprems;
     val premss = map (fn (cargs, eprems, eqn) =>
       map (fn t => fold_rev (Logic.all o Free) cargs (Logic.list_implies (eprems, t)))
         (List.drop (Thm.prems_of eqn, length prems))) rec_rewrites';
-    val cpremss = map (map cert) premss;
+    val cpremss = map (map (Thm.cterm_of lthy')) premss;
     val asmss = map (map Thm.assume) cpremss;
 
     fun mk_eqn ((cargs, eprems, eqn), asms') =
       let
-        val ceprems = map cert eprems;
+        val ceprems = map (Thm.cterm_of lthy') eprems;
         val asms'' = map Thm.assume ceprems;
-        val ccargs = map (cert o Free) cargs;
+        val ccargs = map (Thm.cterm_of lthy' o Free) cargs;
         val asms''' = map (fn th => implies_elim_list
           (forall_elim_list ccargs th) asms'') asms'
       in
@@ -410,4 +409,3 @@ val _ =
         primrec_cmd invs fctxt fixes params specs));
 
 end;
-
