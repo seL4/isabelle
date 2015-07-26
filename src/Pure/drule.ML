@@ -753,40 +753,38 @@ fun infer_instantiate _ [] th = th
           raise THM ("infer_instantiate: inconsistent types for variables " ^
             commas_quote (map (Syntax.string_of_term (Config.put show_types true ctxt) o Var) dups),
             0, [th]);
-        fun var_type xi =
+
+        fun infer (xi, cu) (inst, tyenv, maxidx) =
           (case AList.lookup (op =) vars xi of
-            SOME T => T
-          | NONE => raise THM ("infer_instantiate: no variable " ^ string_of_indexname xi, 0, [th]));
+            NONE => (inst, tyenv, maxidx)
+          | SOME T =>
+              let
+                val U = Thm.typ_of_cterm cu;
+                val maxidx' = maxidx
+                  |> Integer.max (#2 xi)
+                  |> Term.maxidx_typ T
+                  |> Integer.max (Thm.maxidx_of_cterm cu);
+                val (tyenv', maxidx'') = Sign.typ_unify thy (T, U) (tyenv, maxidx')
+                  handle Type.TUNIFY =>
+                    let
+                      val t = Var (xi, T);
+                      val u = Thm.term_of cu;
+                    in
+                      raise THM ("infer_instantiate: type " ^
+                        Syntax.string_of_typ ctxt (Envir.norm_type tyenv T) ^ " of variable " ^
+                        Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) t) ^
+                        "\ncannot be unified with type " ^
+                        Syntax.string_of_typ ctxt (Envir.norm_type tyenv U) ^ " of term " ^
+                        Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) u),
+                        0, [th])
+                    end;
+              in (((xi, T), cu) :: inst, tyenv', maxidx'') end);
 
-        fun infer (xi, cu) (tyenv, maxidx) =
-          let
-            val T = var_type xi;
-            val U = Thm.typ_of_cterm cu;
-            val maxidx' = maxidx
-              |> Integer.max (#2 xi)
-              |> Term.maxidx_typ T
-              |> Integer.max (Thm.maxidx_of_cterm cu);
-            val (tyenv', maxidx'') = Sign.typ_unify thy (T, U) (tyenv, maxidx')
-              handle Type.TUNIFY =>
-                let
-                  val t = Var (xi, T);
-                  val u = Thm.term_of cu;
-                in
-                  raise THM ("infer_instantiate: type " ^
-                    Syntax.string_of_typ ctxt (Envir.norm_type tyenv T) ^ " of variable " ^
-                    Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) t) ^
-                    "\ncannot be unified with type " ^
-                    Syntax.string_of_typ ctxt (Envir.norm_type tyenv U) ^ " of term " ^
-                    Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) u),
-                    0, [th])
-                end;
-          in (((xi, T), cu), (tyenv', maxidx'')) end;
-
-        val (args', (tyenv, _)) = fold_map infer args (Vartab.empty, 0);
+        val (inst0, tyenv, _) = fold infer args ([], Vartab.empty, 0);
         val instT =
           Vartab.fold (fn (xi, (S, T)) =>
             cons ((xi, S), Thm.ctyp_of ctxt (Envir.norm_type tyenv T))) tyenv [];
-        val inst = args' |> map (fn ((xi, T), cu) =>
+        val inst = inst0 |> map (fn ((xi, T), cu) =>
           ((xi, Envir.norm_type tyenv T),
             Thm.instantiate_cterm (instT, []) (Thm.transfer_cterm thy cu)));
       in instantiate_normalize (instT, inst) th end
