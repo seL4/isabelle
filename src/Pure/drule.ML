@@ -788,7 +788,10 @@ fun infer_instantiate _ [] th = th
         val inst = args' |> map (fn ((xi, T), cu) =>
           ((xi, Envir.norm_type tyenv T),
             Thm.instantiate_cterm (instT, []) (Thm.transfer_cterm thy cu)));
-      in instantiate_normalize (instT, inst) th end;
+      in instantiate_normalize (instT, inst) th end
+      handle CTERM (msg, _) => raise THM (msg, 0, [th])
+        | TERM (msg, _) => raise THM (msg, 0, [th])
+        | TYPE (msg, _, _) => raise THM (msg, 0, [th]);
 
 (*Left-to-right replacements: tpairs = [..., (vi, ti), ...].
   Instantiates distinct Vars by terms, inferring type instantiations.*)
