@@ -44,8 +44,8 @@ sig
   val SIMP_THM          : Proof.context -> simpset -> thm -> thm
   val SIMP_TAC          : Proof.context -> simpset -> int -> tactic
   val SIMP_CASE_TAC     : Proof.context -> simpset -> int -> tactic
-  val mk_congs          : theory -> string list -> thm list
-  val mk_typed_congs    : theory -> (string * string) list -> thm list
+  val mk_congs          : Proof.context -> string list -> thm list
+  val mk_typed_congs    : Proof.context -> (string * string) list -> thm list
 (* temporarily disabled:
   val extract_free_congs        : unit -> thm list
 *)
@@ -530,30 +530,30 @@ let fun xn_list(x,n) =
     val rhs = list_comb(f,xn_list("X",i-1) @ [Bound 0] @ yik)
 in Abs("", T, Const(eq,[fT,fT]--->eqT) $ lhs $ rhs) end;
 
-fun find_subst sg T =
+fun find_subst ctxt T =
 let fun find (thm::thms) =
         let val (Const(_,cT), va, vb) = dest_red(hd(Thm.prems_of thm));
             val [P] = subtract (op =) [va, vb] (Misc_Legacy.add_term_vars (Thm.concl_of thm, []));
             val eqT::_ = binder_types cT
-        in if Sign.typ_instance sg (T,eqT) then SOME(thm,va,vb,P)
+        in if Sign.typ_instance (Proof_Context.theory_of ctxt) (T,eqT) then SOME(thm,va,vb,P)
            else find thms
         end
       | find [] = NONE
 in find subst_thms end;
 
-fun mk_cong sg (f,aTs,rT) (refl,eq) =
+fun mk_cong ctxt (f,aTs,rT) (refl,eq) =
 let val k = length aTs;
     fun ri((subst,va as Var(_,Ta),vb as Var(_,Tb),P),i,si,T,yik) =
-        let val ca = Thm.global_cterm_of sg va
-            and cx = Thm.global_cterm_of sg (eta_Var(("X"^si,0),T))
-            val cb = Thm.global_cterm_of sg vb
-            and cy = Thm.global_cterm_of sg (eta_Var(("Y"^si,0),T))
-            val cP = Thm.global_cterm_of sg P
-            and cp = Thm.global_cterm_of sg (Pinst(f,rT,eq,k,i,T,yik,aTs))
+        let val ca = Thm.cterm_of ctxt va
+            and cx = Thm.cterm_of ctxt (eta_Var(("X"^si,0),T))
+            val cb = Thm.cterm_of ctxt vb
+            and cy = Thm.cterm_of ctxt (eta_Var(("Y"^si,0),T))
+            val cP = Thm.cterm_of ctxt P
+            and cp = Thm.cterm_of ctxt (Pinst(f,rT,eq,k,i,T,yik,aTs))
         in cterm_instantiate [(ca,cx),(cb,cy),(cP,cp)] subst end;
     fun mk(c,T::Ts,i,yik) =
         let val si = radixstring(26,"a",i)
-        in case find_subst sg T of
+        in case find_subst ctxt T of
              NONE => mk(c,Ts,i-1,eta_Var(("X"^si,0),T)::yik)
            | SOME s => let val c' = c RSN (2,ri(s,i,si,T,yik))
                        in mk(c',Ts,i-1,eta_Var(("Y"^si,0),T)::yik) end
@@ -561,35 +561,35 @@ let val k = length aTs;
       | mk(c,[],_,_) = c;
 in mk(refl,rev aTs,k-1,[]) end;
 
-fun mk_cong_type sg (f,T) =
+fun mk_cong_type ctxt (f,T) =
 let val (aTs,rT) = strip_type T;
     fun find_refl(r::rs) =
         let val (Const(eq,eqT),_,_) = dest_red(Thm.concl_of r)
-        in if Sign.typ_instance sg (rT, hd(binder_types eqT))
+        in if Sign.typ_instance (Proof_Context.theory_of ctxt) (rT, hd(binder_types eqT))
            then SOME(r,(eq,body_type eqT)) else find_refl rs
         end
       | find_refl([]) = NONE;
 in case find_refl refl_thms of
-     NONE => []  |  SOME(refl) => [mk_cong sg (f,aTs,rT) refl]
+     NONE => []  |  SOME(refl) => [mk_cong ctxt (f,aTs,rT) refl]
 end;
 
-fun mk_cong_thy thy f =
-let val T = case Sign.const_type thy f of
+fun mk_congs' ctxt f =
+let val T = case Sign.const_type (Proof_Context.theory_of ctxt) f of
                 NONE => error(f^" not declared") | SOME(T) => T;
     val T' = Logic.incr_tvar 9 T;
-in mk_cong_type thy (Const(f,T'),T') end;
+in mk_cong_type ctxt (Const(f,T'),T') end;
 
-fun mk_congs thy = maps (mk_cong_thy thy);
+val mk_congs = maps o mk_congs';
 
-fun mk_typed_congs thy =
+fun mk_typed_congs ctxt =
 let
   fun readfT(f,s) =
     let
-      val T = Logic.incr_tvar 9 (Syntax.read_typ_global thy s);
-      val t = case Sign.const_type thy f of
+      val T = Logic.incr_tvar 9 (Syntax.read_typ ctxt s);
+      val t = case Sign.const_type (Proof_Context.theory_of ctxt) f of
                   SOME(_) => Const(f,T) | NONE => Free(f,T)
     in (t,T) end
-in maps (mk_cong_type thy o readfT) end;
+in maps (mk_cong_type ctxt o readfT) end;
 
 end;
 end;
