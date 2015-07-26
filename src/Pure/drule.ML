@@ -23,6 +23,9 @@ sig
   val instantiate_normalize: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
     thm -> thm
   val infer_instantiate: Proof.context -> (indexname * cterm) list -> thm -> thm
+  val cterm_instantiate: (cterm * cterm) list -> thm -> thm
+  val instantiate': ctyp option list -> cterm option list -> thm -> thm
+  val infer_instantiate': Proof.context -> cterm option list -> thm -> thm
   val zero_var_indexes_list: thm list -> thm list
   val zero_var_indexes: thm -> thm
   val implies_intr_hyps: thm -> thm
@@ -37,7 +40,6 @@ sig
   val COMP: thm * thm -> thm
   val INCR_COMP: thm * thm -> thm
   val COMP_INCR: thm * thm -> thm
-  val cterm_instantiate: (cterm * cterm) list -> thm -> thm
   val size_of_thm: thm -> int
   val reflexive_thm: thm
   val symmetric_thm: thm
@@ -47,7 +49,6 @@ sig
   val cut_rl: thm
   val revcut_rl: thm
   val thin_rl: thm
-  val instantiate': ctyp option list -> cterm option list -> thm -> thm
 end;
 
 signature DRULE =
@@ -842,14 +843,18 @@ fun instantiate' cTs cts thm =
         err "more instantiations than variables in thm";
 
     val thm' =
-      if forall is_none cTs then thm
-      else
-        Thm.instantiate ((zip_vars (rev (Thm.fold_terms Term.add_tvars thm [])) cTs), []) thm;
+      Thm.instantiate ((zip_vars (rev (Thm.fold_terms Term.add_tvars thm [])) cTs), []) thm;
     val thm'' =
-      if forall is_none cts then thm'
-      else
-        Thm.instantiate ([], zip_vars (rev (Thm.fold_terms Term.add_vars thm' [])) cts) thm';
-    in thm'' end;
+      Thm.instantiate ([], zip_vars (rev (Thm.fold_terms Term.add_vars thm' [])) cts) thm';
+  in thm'' end;
+
+fun infer_instantiate' ctxt args th =
+  let
+    val vars = rev (Term.add_var_names (Thm.full_prop_of th) []);
+    val args' = zip_options vars args
+      handle ListPair.UnequalLengths =>
+        raise THM ("infer_instantiate': more instantiations than variables in thm", 0, [th]);
+  in infer_instantiate ctxt args' th end;
 
 
 
