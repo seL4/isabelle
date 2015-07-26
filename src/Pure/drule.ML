@@ -22,6 +22,7 @@ sig
   val implies_intr_list: cterm list -> thm -> thm
   val instantiate_normalize: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
     thm -> thm
+  val infer_instantiate_vars: Proof.context -> ((indexname * typ) * cterm) list -> thm -> thm
   val infer_instantiate: Proof.context -> (indexname * cterm) list -> thm -> thm
   val cterm_instantiate: (cterm * cterm) list -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
@@ -742,55 +743,58 @@ fun instantiate_normalize instpair th =
   Thm.adjust_maxidx_thm ~1 (Thm.instantiate instpair th COMP_INCR asm_rl);
 
 (*instantiation with type-inference for variables*)
-fun infer_instantiate _ [] th = th
-  | infer_instantiate ctxt args th =
+fun infer_instantiate_vars _ [] th = th
+  | infer_instantiate_vars ctxt args th =
       let
         val thy = Proof_Context.theory_of ctxt;
 
-        val vars = Term.add_vars (Thm.full_prop_of th) [];
-        val dups = duplicates (eq_fst op =) vars;
-        val _ = null dups orelse
-          raise THM ("infer_instantiate: inconsistent types for variables " ^
-            commas_quote (map (Syntax.string_of_term (Config.put show_types true ctxt) o Var) dups),
-            0, [th]);
+        fun infer ((xi, T), cu) (tyenv, maxidx) =
+          let
+            val U = Thm.typ_of_cterm cu;
+            val maxidx' = maxidx
+              |> Integer.max (#2 xi)
+              |> Term.maxidx_typ T
+              |> Integer.max (Thm.maxidx_of_cterm cu);
+            val (tyenv', maxidx'') = Sign.typ_unify thy (T, U) (tyenv, maxidx')
+              handle Type.TUNIFY =>
+                let
+                  val t = Var (xi, T);
+                  val u = Thm.term_of cu;
+                in
+                  raise THM ("infer_instantiate: type " ^
+                    Syntax.string_of_typ ctxt (Envir.norm_type tyenv T) ^ " of variable " ^
+                    Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) t) ^
+                    "\ncannot be unified with type " ^
+                    Syntax.string_of_typ ctxt (Envir.norm_type tyenv U) ^ " of term " ^
+                    Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) u),
+                    0, [th])
+                end;
+          in (tyenv', maxidx'') end;
 
-        fun infer (xi, cu) (inst, tyenv, maxidx) =
-          (case AList.lookup (op =) vars xi of
-            NONE => (inst, tyenv, maxidx)
-          | SOME T =>
-              let
-                val U = Thm.typ_of_cterm cu;
-                val maxidx' = maxidx
-                  |> Integer.max (#2 xi)
-                  |> Term.maxidx_typ T
-                  |> Integer.max (Thm.maxidx_of_cterm cu);
-                val (tyenv', maxidx'') = Sign.typ_unify thy (T, U) (tyenv, maxidx')
-                  handle Type.TUNIFY =>
-                    let
-                      val t = Var (xi, T);
-                      val u = Thm.term_of cu;
-                    in
-                      raise THM ("infer_instantiate: type " ^
-                        Syntax.string_of_typ ctxt (Envir.norm_type tyenv T) ^ " of variable " ^
-                        Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) t) ^
-                        "\ncannot be unified with type " ^
-                        Syntax.string_of_typ ctxt (Envir.norm_type tyenv U) ^ " of term " ^
-                        Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) u),
-                        0, [th])
-                    end;
-              in (((xi, T), cu) :: inst, tyenv', maxidx'') end);
-
-        val (inst0, tyenv, _) = fold infer args ([], Vartab.empty, 0);
+        val (tyenv, _) = fold infer args (Vartab.empty, 0);
         val instT =
           Vartab.fold (fn (xi, (S, T)) =>
             cons ((xi, S), Thm.ctyp_of ctxt (Envir.norm_type tyenv T))) tyenv [];
-        val inst = inst0 |> map (fn ((xi, T), cu) =>
+        val inst = args |> map (fn ((xi, T), cu) =>
           ((xi, Envir.norm_type tyenv T),
             Thm.instantiate_cterm (instT, []) (Thm.transfer_cterm thy cu)));
       in instantiate_normalize (instT, inst) th end
       handle CTERM (msg, _) => raise THM (msg, 0, [th])
         | TERM (msg, _) => raise THM (msg, 0, [th])
         | TYPE (msg, _, _) => raise THM (msg, 0, [th]);
+
+fun infer_instantiate _ [] th = th
+  | infer_instantiate ctxt args th =
+      let
+        val vars = Term.add_vars (Thm.full_prop_of th) [];
+        val dups = duplicates (eq_fst op =) vars;
+        val _ = null dups orelse
+          raise THM ("infer_instantiate: inconsistent types for variables " ^
+            commas_quote (map (Syntax.string_of_term (Config.put show_types true ctxt) o Var) dups),
+            0, [th]);
+        val args' = args |> map_filter (fn (xi, cu) =>
+          AList.lookup (op =) vars xi |> Option.map (fn T => ((xi, T), cu)));
+      in infer_instantiate_vars ctxt args' th end;
 
 (*Left-to-right replacements: tpairs = [..., (vi, ti), ...].
   Instantiates distinct Vars by terms, inferring type instantiations.*)
@@ -848,11 +852,11 @@ fun instantiate' cTs cts thm =
 
 fun infer_instantiate' ctxt args th =
   let
-    val vars = rev (Term.add_var_names (Thm.full_prop_of th) []);
+    val vars = rev (Term.add_vars (Thm.full_prop_of th) []);
     val args' = zip_options vars args
       handle ListPair.UnequalLengths =>
         raise THM ("infer_instantiate': more instantiations than variables in thm", 0, [th]);
-  in infer_instantiate ctxt args' th end;
+  in infer_instantiate_vars ctxt args' th end;
 
 
 
