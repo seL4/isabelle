@@ -63,7 +63,6 @@ sig
 
   val fo_match: Proof.context -> term -> term -> Type.tyenv * Envir.tenv
 
-  val cterm_instantiate_pos: cterm option list -> thm -> thm
   val unfold_thms: Proof.context -> thm list -> thm -> thm
 
   val name_noted_thms: string -> string -> (string * thm list) list -> (string * thm list) list
@@ -212,22 +211,8 @@ val list_all_free = list_quant_free HOLogic.all_const;
 val list_exists_free = list_quant_free HOLogic.exists_const;
 
 fun fo_match ctxt t pat =
-  let val thy = Proof_Context.theory_of ctxt in
-    Pattern.first_order_match thy (pat, t) (Vartab.empty, Vartab.empty)
-  end;
-
-fun cterm_instantiate_pos cts thm =
-  let
-    val thy = Thm.theory_of_thm thm;
-    val vars = Term.add_vars (Thm.prop_of thm) [];
-    val vars' = rev (drop (length vars - length cts) vars);
-    val ps =
-      map_filter
-        (fn (_, NONE) => NONE
-          | (var, SOME ct) => SOME (Thm.global_cterm_of thy (Var var), ct)) (vars' ~~ cts);
-  in
-    Drule.cterm_instantiate ps thm
-  end;
+  let val thy = Proof_Context.theory_of ctxt
+  in Pattern.first_order_match thy (pat, t) (Vartab.empty, Vartab.empty) end;
 
 fun unfold_thms ctxt thms = Local_Defs.unfold ctxt (distinct Thm.eq_thm_prop thms);
 
