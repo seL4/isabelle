@@ -543,14 +543,12 @@ in find subst_thms end;
 
 fun mk_cong ctxt (f,aTs,rT) (refl,eq) =
 let val k = length aTs;
-    fun ri((subst,va as Var(_,Ta),vb as Var(_,Tb),P),i,si,T,yik) =
-        let val ca = Thm.cterm_of ctxt va
-            and cx = Thm.cterm_of ctxt (eta_Var(("X"^si,0),T))
+    fun ri((subst,va as Var(a,Ta),vb as Var(b,Tb), Var (P, _)),i,si,T,yik) =
+        let val cx = Thm.cterm_of ctxt (eta_Var(("X"^si,0),T))
             val cb = Thm.cterm_of ctxt vb
-            and cy = Thm.cterm_of ctxt (eta_Var(("Y"^si,0),T))
-            val cP = Thm.cterm_of ctxt P
-            and cp = Thm.cterm_of ctxt (Pinst(f,rT,eq,k,i,T,yik,aTs))
-        in cterm_instantiate [(ca,cx),(cb,cy),(cP,cp)] subst end;
+            val cy = Thm.cterm_of ctxt (eta_Var(("Y"^si,0),T))
+            val cp = Thm.cterm_of ctxt (Pinst(f,rT,eq,k,i,T,yik,aTs))
+        in infer_instantiate ctxt [(a,cx),(b,cy),(P,cp)] subst end;
     fun mk(c,T::Ts,i,yik) =
         let val si = radixstring(26,"a",i)
         in case find_subst ctxt T of
