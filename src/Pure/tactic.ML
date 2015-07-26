@@ -21,10 +21,6 @@ sig
   val forward_tac: Proof.context -> thm list -> int -> tactic
   val dresolve0_tac: thm list -> int -> tactic
   val dresolve_tac: Proof.context -> thm list -> int -> tactic
-  val atac: int -> tactic
-  val rtac: thm -> int -> tactic
-  val dtac: thm -> int -> tactic
-  val etac: thm -> int -> tactic
   val ares_tac: Proof.context -> thm list -> int -> tactic
   val solve_tac: Proof.context -> thm list -> int -> tactic
   val bimatch_tac: Proof.context -> (bool * thm) list -> int -> tactic
@@ -99,7 +95,6 @@ fun rule_by_tactic ctxt tac rl =
 
 (*Solve subgoal i by assumption*)
 fun assume_tac ctxt i = PRIMSEQ (Thm.assumption (SOME ctxt) i);
-fun atac i = PRIMSEQ (Thm.assumption NONE i);
 
 (*Solve subgoal i by assumption, using no unification*)
 fun eq_assume_tac i = PRIMITIVE (Thm.eq_assumption i);
@@ -134,11 +129,6 @@ fun forward_tac ctxt rls = resolve_tac ctxt (map make_elim rls) THEN' assume_tac
 (*Like forward_tac, but deletes the assumption after use.*)
 fun dresolve0_tac rls = eresolve0_tac (map make_elim rls);
 fun dresolve_tac ctxt rls = eresolve_tac ctxt (map make_elim rls);
-
-(*Shorthand versions: for resolution with a single theorem*)
-fun rtac rl =  resolve0_tac [rl];
-fun dtac rl = dresolve0_tac [rl];
-fun etac rl = eresolve0_tac [rl];
 
 (*Use an assumption or some rules*)
 fun ares_tac ctxt rules = assume_tac ctxt ORELSE' resolve_tac ctxt rules;

@@ -244,7 +244,11 @@ not available during instantiation.
 command. Minor INCOMPATIBILITY, use 'function' instead.
 
 
-** ML **
+*** ML ***
+
+* Old tactic shorthands atac, rtac, etac, dtac, ftac have been
+discontinued. INCOMPATIBILITY, use regular assume_tac, resolve_tac etc.
+instead (with proper context).
 
 * Thm.instantiate (and derivatives) no longer require the LHS of the
 instantiation to be certified: plain variables are given directly.
