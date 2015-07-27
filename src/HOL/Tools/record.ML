@@ -60,7 +60,6 @@ sig
   val mk_cons_tuple: term * term -> term
   val dest_cons_tuple: term -> term * term
   val iso_tuple_intros_tac: Proof.context -> int -> tactic
-  val named_cterm_instantiate: (string * cterm) list -> thm -> thm
 end;
 
 structure Iso_Tuple_Support: ISO_TUPLE_SUPPORT =
@@ -72,17 +71,6 @@ val iso_tuple_intro = @{thm isomorphic_tuple_intro};
 val iso_tuple_intros = Tactic.build_net @{thms isomorphic_tuple.intros};
 
 val tuple_iso_tuple = (@{const_name Record.tuple_iso_tuple}, @{thm tuple_iso_tuple});
-
-fun named_cterm_instantiate values thm =  (* FIXME eliminate *)
-  let
-    fun match name ((name', _), _) = name = name';
-    fun getvar name =
-      (case find_first (match name) (Term.add_vars (Thm.prop_of thm) []) of
-        SOME var => Thm.global_cterm_of (Thm.theory_of_thm thm) (Var var)
-      | NONE => raise THM ("named_cterm_instantiate: " ^ name, 0, [thm]));
-  in
-    cterm_instantiate (map (apfst getvar) values) thm
-  end;
 
 structure Iso_Tuple_Thms = Theory_Data
 (
@@ -137,11 +125,14 @@ fun add_iso_tuple_type (b, alphas) (leftT, rightT) thy =
       thy
       |> do_typedef b repT alphas
       ||> Sign.add_path (Binding.name_of b); (*FIXME proper prefixing instead*)
+    val typ_ctxt = Proof_Context.init_global typ_thy;
 
     (*construct a type and body for the isomorphism constant by
       instantiating the theorem to which the definition will be applied*)
     val intro_inst =
-      rep_inject RS named_cterm_instantiate [("abst", Thm.global_cterm_of typ_thy absC)] iso_tuple_intro;
+      rep_inject RS
+        infer_instantiate typ_ctxt
+          [(("abst", 0), Thm.cterm_of typ_ctxt absC)] iso_tuple_intro;
     val (_, body) = Logic.dest_equals (List.last (Thm.prems_of intro_inst));
     val isomT = fastype_of body;
     val isom_binding = Binding.suffix_name isoN b;
@@ -949,8 +940,10 @@ fun mk_comp_id f =
 fun get_upd_funs (upd $ _ $ t) = upd :: get_upd_funs t
   | get_upd_funs _ = [];
 
-fun get_accupd_simps thy term defset =
+fun get_accupd_simps ctxt term defset =
   let
+    val thy = Proof_Context.theory_of ctxt;
+
     val (acc, [body]) = strip_comb term;
     val upd_funs = sort_distinct Term_Ord.fast_term_ord (get_upd_funs body);
     fun get_simp upd =
@@ -964,11 +957,11 @@ fun get_accupd_simps thy term defset =
           else mk_comp_id acc;
         val prop = lhs === rhs;
         val othm =
-          Goal.prove (Proof_Context.init_global thy) [] [] prop
-            (fn {context = ctxt, ...} =>
-              simp_tac (put_simpset defset ctxt) 1 THEN
-              REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1) THEN
-              TRY (simp_tac (put_simpset HOL_ss ctxt addsimps @{thms id_apply id_o o_id}) 1));
+          Goal.prove ctxt [] [] prop
+            (fn {context = ctxt', ...} =>
+              simp_tac (put_simpset defset ctxt') 1 THEN
+              REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt' 1) THEN
+              TRY (simp_tac (put_simpset HOL_ss ctxt' addsimps @{thms id_apply id_o o_id}) 1));
         val dest =
           if is_sel_upd_pair thy acc upd
           then @{thm o_eq_dest}
@@ -976,7 +969,7 @@ fun get_accupd_simps thy term defset =
       in Drule.export_without_context (othm RS dest) end;
   in map get_simp upd_funs end;
 
-fun get_updupd_simp thy defset u u' comp =
+fun get_updupd_simp ctxt defset u u' comp =
   let
     (* FIXME fresh "f" (!?) *)
     val f = Free ("f", domain_type (fastype_of u));
@@ -988,19 +981,19 @@ fun get_updupd_simp thy defset u u' comp =
       else HOLogic.mk_comp (u' $ f', u $ f);
     val prop = lhs === rhs;
     val othm =
-      Goal.prove (Proof_Context.init_global thy) [] [] prop
-        (fn {context = ctxt, ...} =>
-          simp_tac (put_simpset defset ctxt) 1 THEN
-          REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1) THEN
-          TRY (simp_tac (put_simpset HOL_ss ctxt addsimps @{thms id_apply}) 1));
+      Goal.prove ctxt [] [] prop
+        (fn {context = ctxt', ...} =>
+          simp_tac (put_simpset defset ctxt') 1 THEN
+          REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt' 1) THEN
+          TRY (simp_tac (put_simpset HOL_ss ctxt' addsimps @{thms id_apply}) 1));
     val dest = if comp then @{thm o_eq_dest_lhs} else @{thm o_eq_dest};
   in Drule.export_without_context (othm RS dest) end;
 
-fun get_updupd_simps thy term defset =
+fun get_updupd_simps ctxt term defset =
   let
     val upd_funs = get_upd_funs term;
     val cname = fst o dest_Const;
-    fun getswap u u' = get_updupd_simp thy defset u u' (cname u = cname u');
+    fun getswap u u' = get_updupd_simp ctxt defset u u' (cname u = cname u');
     fun build_swaps_to_eq _ [] swaps = swaps
       | build_swaps_to_eq upd (u :: us) swaps =
           let
@@ -1019,20 +1012,20 @@ fun get_updupd_simps thy term defset =
           else swaps_needed us (u :: prev) (Symtab.insert (K true) (cname u, ()) seen) swaps;
   in swaps_needed upd_funs [] Symtab.empty Symreltab.empty end;
 
-val named_cterm_instantiate = Iso_Tuple_Support.named_cterm_instantiate;
-
 fun prove_unfold_defs thy ex_simps ex_simprs prop =
   let
+    val ctxt = Proof_Context.init_global thy;
+
     val defset = get_sel_upd_defs thy;
     val prop' = Envir.beta_eta_contract prop;
     val (lhs, _) = Logic.dest_equals (Logic.strip_assums_concl prop');
     val (_, args) = strip_comb lhs;
-    val simps = (if length args = 1 then get_accupd_simps else get_updupd_simps) thy lhs defset;
+    val simps = (if length args = 1 then get_accupd_simps else get_updupd_simps) ctxt lhs defset;
   in
-    Goal.prove (Proof_Context.init_global thy) [] [] prop'
-      (fn {context = ctxt, ...} =>
-        simp_tac (put_simpset HOL_basic_ss ctxt addsimps (simps @ @{thms K_record_comp})) 1 THEN
-        TRY (simp_tac (put_simpset HOL_basic_ss ctxt addsimps ex_simps addsimprocs ex_simprs) 1))
+    Goal.prove ctxt [] [] prop'
+      (fn {context = ctxt', ...} =>
+        simp_tac (put_simpset HOL_basic_ss ctxt' addsimps (simps @ @{thms K_record_comp})) 1 THEN
+        TRY (simp_tac (put_simpset HOL_basic_ss ctxt' addsimps ex_simps addsimprocs ex_simprs) 1))
   end;
 
 
@@ -1120,14 +1113,18 @@ val simproc =
 
 fun get_upd_acc_cong_thm upd acc thy ss =
   let
-    val insts = [("upd", Thm.global_cterm_of thy upd), ("ac", Thm.global_cterm_of thy acc)];
-    val prop = Thm.concl_of (named_cterm_instantiate insts updacc_cong_triv);
+    val ctxt = Proof_Context.init_global thy;
+    val prop =
+      infer_instantiate ctxt
+        [(("upd", 0), Thm.cterm_of ctxt upd), (("ac", 0), Thm.cterm_of ctxt acc)]
+        updacc_cong_triv
+      |> Thm.concl_of;
   in
-    Goal.prove (Proof_Context.init_global thy) [] [] prop
-      (fn {context = ctxt, ...} =>
-        simp_tac (put_simpset ss ctxt) 1 THEN
-        REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt 1) THEN
-        TRY (resolve_tac ctxt [updacc_cong_idI] 1))
+    Goal.prove ctxt [] [] prop
+      (fn {context = ctxt', ...} =>
+        simp_tac (put_simpset ss ctxt') 1 THEN
+        REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt' 1) THEN
+        TRY (resolve_tac ctxt' [updacc_cong_idI] 1))
   end;
 
 
@@ -1374,10 +1371,8 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
 
     fun mk_split_free_tac free induct_thm i =
       let
-        val cfree = Thm.cterm_of ctxt free;
-        val _$ (_ $ r) = Thm.concl_of induct_thm;
-        val crec = Thm.cterm_of ctxt r;
-        val thm = cterm_instantiate [(crec, cfree)] induct_thm;
+        val _ $ (_ $ Var (r, _)) = Thm.concl_of induct_thm;
+        val thm = infer_instantiate ctxt [(r, Thm.cterm_of ctxt free)] induct_thm;
       in
         simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms induct_atomize}) i THEN
         resolve_tac ctxt [thm] i THEN
@@ -1471,16 +1466,20 @@ fun try_param_tac ctxt s rule = CSUBGOAL (fn (cgoal, i) =>
           (hd (rev (Logic.strip_assums_hyp (hd (Thm.prems_of rule')))))))), true)
       | [x] => (head_of x, false));
     val rule'' =
-      cterm_instantiate
-        (map (apply2 (Thm.cterm_of ctxt))
+      infer_instantiate ctxt
+        (map (apsnd (Thm.cterm_of ctxt))
           (case rev params of
             [] =>
               (case AList.lookup (op =) (Term.add_frees g []) s of
                 NONE => error "try_param_tac: no such variable"
-              | SOME T => [(P, if ca then concl else lambda (Free (s, T)) concl), (x, Free (s, T))])
+              | SOME T =>
+                  [(#1 (dest_Var P), if ca then concl else lambda (Free (s, T)) concl),
+                   (#1 (dest_Var x), Free (s, T))])
           | (_, T) :: _ =>
-              [(P, fold_rev Term.abs params (if ca then concl else incr_boundvars 1 (Abs (s, T, concl)))),
-                (x, fold_rev Term.abs params (Bound 0))])) rule';
+              [(#1 (dest_Var P),
+                fold_rev Term.abs params
+                  (if ca then concl else incr_boundvars 1 (Abs (s, T, concl)))),
+               (#1 (dest_Var x), fold_rev Term.abs params (Bound 0))])) rule';
   in compose_tac ctxt (false, rule'', Thm.nprems_of rule) i end);
 
 
@@ -1605,8 +1604,8 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       (roughly) the definition of the accessor.*)
     val surject = timeit_msg ctxt "record extension surjective proof:" (fn () =>
       let
-        val cterm_ext = Thm.cterm_of defs_ctxt ext;
-        val start = named_cterm_instantiate [("y", cterm_ext)] surject_assist_idE;
+        val start =
+          infer_instantiate defs_ctxt [(("y", 0), Thm.cterm_of defs_ctxt ext)] surject_assist_idE;
         val tactic1 =
           simp_tac (put_simpset HOL_basic_ss defs_ctxt addsimps [ext_def]) 1 THEN
           REPEAT_ALL_NEW (Iso_Tuple_Support.iso_tuple_intros_tac defs_ctxt) 1;
@@ -1793,13 +1792,13 @@ fun add_ctr_sugar ctr exhaust inject sel_thms =
 
 (* definition *)
 
-fun definition (alphas, binding) parent (parents: parent_info list) raw_fields thy =
+fun definition (alphas, binding) parent (parents: parent_info list) raw_fields thy0 =
   let
-    val ctxt = Proof_Context.init_global thy;
+    val ctxt0 = Proof_Context.init_global thy0;
 
     val prefix = Binding.name_of binding;
-    val name = Sign.full_name thy binding;
-    val full = Sign.full_name_path thy prefix;
+    val name = Sign.full_name thy0 binding;
+    val full = Sign.full_name_path thy0 prefix;
 
     val bfields = map (fn (x, T, _) => (x, T)) raw_fields;
     val field_syntax = map #3 raw_fields;
@@ -1850,12 +1849,12 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val ((ext, (ext_tyco, vs),
         extT, ext_induct, ext_inject, ext_surjective, ext_split, ext_def), ext_thy) =
-      thy
+      thy0
       |> Sign.qualified_path false binding
       |> extension_definition extension_name fields alphas_ext zeta moreT more vars;
     val ext_ctxt = Proof_Context.init_global ext_thy;
 
-    val _ = timing_msg ctxt "record preparing definitions";
+    val _ = timing_msg ext_ctxt "record preparing definitions";
     val Type extension_scheme = extT;
     val extension_name = unsuffix ext_typeN (fst extension_scheme);
     val extension = let val (n, Ts) = extension_scheme in (n, subst_last HOLogic.unitT Ts) end;
@@ -1935,7 +1934,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       pair, from which we can derive the bodies of our selector and
       updator and their convs.*)
     val (accessor_thms, updator_thms, upd_acc_cong_assists) =
-      timeit_msg ctxt "record getting tree access/updates:" (fn () =>
+      timeit_msg ext_ctxt "record getting tree access/updates:" (fn () =>
         let
           val r_rec0_Vars =
             let
@@ -1944,10 +1943,11 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
               fun to_Var (Free (c, T)) = Var ((c, 1), T);
             in mk_rec (map to_Var all_vars_more) 0 end;
 
-          val cterm_rec = Thm.cterm_of ext_ctxt r_rec0;
-          val cterm_vrs = Thm.cterm_of ext_ctxt r_rec0_Vars;
-          val insts = [("v", cterm_rec), ("v'", cterm_vrs)];
-          val init_thm = named_cterm_instantiate insts updacc_eq_triv;
+          val init_thm =
+            infer_instantiate ext_ctxt
+              [(("v", 0), Thm.cterm_of ext_ctxt r_rec0),
+               (("v'", 0), Thm.cterm_of ext_ctxt r_rec0_Vars)]
+              updacc_eq_triv;
           val terminal =
             resolve_tac ext_ctxt [updacc_eq_idI] 1 THEN resolve_tac ext_ctxt [refl] 1;
           val tactic =
@@ -2004,11 +2004,11 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     (* 2st stage: defs_thy *)
 
     val (((sel_defs, upd_defs), derived_defs), defs_thy) =
-      timeit_msg ctxt "record trfuns/tyabbrs/selectors/updates/make/fields/extend/truncate defs:"
+      timeit_msg ext_ctxt "record trfuns/tyabbrs/selectors/updates/make/fields/extend/truncate defs:"
         (fn () =>
           ext_thy
           |> Sign.print_translation print_translation
-          |> Sign.restore_naming thy
+          |> Sign.restore_naming thy0
           |> Typedecl.abbrev_global (binding, map #1 alphas, NoSyn) recT0 |> snd
           |> Typedecl.abbrev_global
             (Binding.suffix_name schemeN binding, map #1 (alphas @ [zeta]), NoSyn) rec_schemeT0
@@ -2029,7 +2029,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     val defs_ctxt = Proof_Context.init_global defs_thy;
 
     (* prepare propositions *)
-    val _ = timing_msg ctxt "record preparing propositions";
+    val _ = timing_msg defs_ctxt "record preparing propositions";
     val P = Free (singleton (Name.variant_list all_variants) "P", rec_schemeT0 --> HOLogic.boolT);
     val C = Free (singleton (Name.variant_list all_variants) "C", HOLogic.boolT);
     val P_unit = Free (singleton (Name.variant_list all_variants) "P", recT0 --> HOLogic.boolT);
@@ -2099,14 +2099,14 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms);
 
     val (sel_convs, upd_convs) =
-      timeit_msg ctxt "record sel_convs/upd_convs proof:" (fn () =>
+      timeit_msg defs_ctxt "record sel_convs/upd_convs proof:" (fn () =>
         grouped 10 Par_List.map (fn prop =>
             Goal.prove_sorry_global defs_thy [] [] prop
               (fn _ => ALLGOALS (asm_full_simp_tac sel_upd_ctxt)))
           (sel_conv_props @ upd_conv_props))
       |> chop (length sel_conv_props);
 
-    val (fold_congs, unfold_congs) = timeit_msg ctxt "record upd fold/unfold congs:" (fn () =>
+    val (fold_congs, unfold_congs) = timeit_msg defs_ctxt "record upd fold/unfold congs:" (fn () =>
       let
         val symdefs = map Thm.symmetric (sel_defs @ upd_defs);
         val fold_ctxt = put_simpset HOL_basic_ss defs_ctxt addsimps symdefs;
@@ -2115,7 +2115,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val parent_induct = Option.map #induct_scheme (try List.last parents);
 
-    val induct_scheme = timeit_msg ctxt "record induct_scheme proof:" (fn () =>
+    val induct_scheme = timeit_msg defs_ctxt "record induct_scheme proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] induct_scheme_prop
         (fn {context = ctxt, ...} =>
           EVERY
@@ -2123,14 +2123,14 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
             try_param_tac ctxt rN ext_induct 1,
             asm_simp_tac (put_simpset HOL_basic_ss ctxt) 1]));
 
-    val induct = timeit_msg ctxt "record induct proof:" (fn () =>
+    val induct = timeit_msg defs_ctxt "record induct proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [#1 induct_prop] (#2 induct_prop)
         (fn {context = ctxt, prems, ...} =>
           try_param_tac ctxt rN induct_scheme 1
           THEN try_param_tac ctxt "more" @{thm unit.induct} 1
           THEN resolve_tac ctxt prems 1));
 
-    val surjective = timeit_msg ctxt "record surjective proof:" (fn () =>
+    val surjective = timeit_msg defs_ctxt "record surjective proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] surjective_prop
         (fn {context = ctxt, ...} =>
           EVERY
@@ -2142,20 +2142,20 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
                   simp_tac (put_simpset (get_sel_upd_defs defs_thy) ctxt
                     addsimps (sel_defs @ @{thms o_assoc id_apply id_o o_id})) 1))]));
 
-    val cases_scheme = timeit_msg ctxt "record cases_scheme proof:" (fn () =>
+    val cases_scheme = timeit_msg defs_ctxt "record cases_scheme proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [#1 cases_scheme_prop] (#2 cases_scheme_prop)
         (fn {context = ctxt, prems, ...} =>
           resolve_tac ctxt prems 1 THEN
           resolve_tac ctxt [surjective] 1));
 
-    val cases = timeit_msg ctxt "record cases proof:" (fn () =>
+    val cases = timeit_msg defs_ctxt "record cases proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] cases_prop
         (fn {context = ctxt, ...} =>
           try_param_tac ctxt rN cases_scheme 1 THEN
           ALLGOALS (asm_full_simp_tac
             (put_simpset HOL_basic_ss ctxt addsimps @{thms unit_all_eq1}))));
 
-    val split_meta = timeit_msg ctxt "record split_meta proof:" (fn () =>
+    val split_meta = timeit_msg defs_ctxt "record split_meta proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_meta_prop
         (fn {context = ctxt', ...} =>
           EVERY1
@@ -2164,14 +2164,14 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
             resolve_tac ctxt' [@{thm prop_subst} OF [surjective]],
             REPEAT o eresolve_tac ctxt' @{thms meta_allE}, assume_tac ctxt']));
 
-    val split_object = timeit_msg ctxt "record split_object proof:" (fn () =>
+    val split_object = timeit_msg defs_ctxt "record split_object proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_object_prop
         (fn {context = ctxt, ...} =>
           resolve_tac ctxt [@{lemma "Trueprop A \<equiv> Trueprop B \<Longrightarrow> A = B" by (rule iffI) unfold}] 1 THEN
           rewrite_goals_tac ctxt @{thms atomize_all [symmetric]} THEN
           resolve_tac ctxt [split_meta] 1));
 
-    val split_ex = timeit_msg ctxt "record split_ex proof:" (fn () =>
+    val split_ex = timeit_msg defs_ctxt "record split_ex proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_ex_prop
         (fn {context = ctxt, ...} =>
           simp_tac
@@ -2180,7 +2180,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
                 @{thms not_not Not_eq_iff})) 1 THEN
           resolve_tac ctxt [split_object] 1));
 
-    val equality = timeit_msg ctxt "record equality proof:" (fn () =>
+    val equality = timeit_msg defs_ctxt "record equality proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] equality_prop
         (fn {context = ctxt, ...} =>
           asm_full_simp_tac (put_simpset record_ss ctxt addsimps (split_meta :: sel_convs)) 1));
@@ -2237,7 +2237,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       |> add_fieldext (extension_name, snd extension) names
       |> add_code ext_tyco vs extT ext simps' ext_inject
       |> add_ctr_sugar (Const ext) cases_scheme' ext_inject sel_convs'
-      |> Sign.restore_naming thy;
+      |> Sign.restore_naming thy0;
 
   in final_thy end;
 
