@@ -638,14 +638,15 @@ fun mk_desymbolization pre post mk vs =
 fun desymbolize_tvars thy thms =
   let
     val tvs = fold (Term.add_tvars o Thm.prop_of) thms [];
-    val tvar_subst = mk_desymbolization (unprefix "'") (prefix "'") TVar tvs;
-  in map (Thm.global_certify_instantiate thy (tvar_subst, [])) thms end;
+    val instT =
+      mk_desymbolization (unprefix "'") (prefix "'") (Thm.global_ctyp_of thy o TVar) tvs;
+  in map (Thm.instantiate (instT, [])) thms end;
 
 fun desymbolize_vars thy thm =
   let
     val vs = Term.add_vars (Thm.prop_of thm) [];
-    val var_subst = mk_desymbolization I I Var vs;
-  in Thm.global_certify_instantiate thy ([], var_subst) thm end;
+    val inst = mk_desymbolization I I (Thm.global_cterm_of thy o Var) vs;
+  in Thm.instantiate ([], inst) thm end;
 
 fun canonize_thms thy = desymbolize_tvars thy #> same_arity thy #> map (desymbolize_vars thy);
 
@@ -700,13 +701,13 @@ fun constrain_thm thy vs sorts thm =
     val mapping = map2 (fn (v, sort) => fn sort' =>
       (v, Sorts.inter_sort (Sign.classes_of thy) (sort, sort'))) vs sorts;
     val inst = map2 (fn (v, sort) => fn (_, sort') =>
-      (((v, 0), sort), TFree (v, sort'))) vs mapping;
+      (((v, 0), sort), Thm.global_ctyp_of thy (TFree (v, sort')))) vs mapping;
     val subst = (map_types o map_type_tfree)
       (fn (v, _) => TFree (v, the (AList.lookup (op =) mapping v)));
   in
     thm
     |> Thm.varifyT_global
-    |> Thm.global_certify_instantiate thy (inst, [])
+    |> Thm.instantiate (inst, [])
     |> pair subst
   end;
 
@@ -771,7 +772,7 @@ fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
         val sorts = map_transpose inter_sorts vss;
         val vts = Name.invent_names Name.context Name.aT sorts;
         val thms' =
-          map2 (fn vs => Thm.certify_instantiate ctxt (vs ~~ map TFree vts, [])) vss thms;
+          map2 (fn vs => Thm.instantiate (vs ~~ map (Thm.ctyp_of ctxt o TFree) vts, [])) vss thms;
         val head_thm = Thm.symmetric (Thm.assume (build_head thy (head_eqn (hd thms'))));
         fun head_conv ct = if can Thm.dest_comb ct
           then Conv.fun_conv head_conv ct

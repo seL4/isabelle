@@ -693,10 +693,11 @@ fun transferred ctxt extra_rules thm =
     val err_msg = "Transfer failed to convert goal to an object-logic formula"
     val pre_simps = @{thms transfer_forall_eq transfer_implies_eq}
     val thm1 = Drule.forall_intr_vars thm
-    val instT = rev (Term.add_tvars (Thm.full_prop_of thm1) [])
-                |> map (fn v as ((a, _), S) => (v, TFree (a, S)))
+    val instT =
+      rev (Term.add_tvars (Thm.full_prop_of thm1) [])
+      |> map (fn v as ((a, _), S) => (v, Thm.ctyp_of ctxt (TFree (a, S))))
     val thm2 = thm1
-      |> Thm.certify_instantiate ctxt (instT, [])
+      |> Thm.instantiate (instT, [])
       |> Raw_Simplifier.rewrite_rule ctxt pre_simps
     val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
     val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)
@@ -709,7 +710,7 @@ fun transferred ctxt extra_rules thm =
             THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
     val thm3 = Goal.prove_internal ctxt' [] @{cpat "Trueprop ?P"} (K tac)
-    val tnames = map (fst o dest_TFree o snd) instT
+    val tnames = map (fst o dest_TFree o Thm.typ_of o snd) instT
   in
     thm3
       |> Raw_Simplifier.rewrite_rule ctxt' post_simps
@@ -729,10 +730,11 @@ fun untransferred ctxt extra_rules thm =
     val err_msg = "Transfer failed to convert goal to an object-logic formula"
     val pre_simps = @{thms transfer_forall_eq transfer_implies_eq}
     val thm1 = Drule.forall_intr_vars thm
-    val instT = rev (Term.add_tvars (Thm.full_prop_of thm1) [])
-                |> map (fn v as ((a, _), S) => (v, TFree (a, S)))
+    val instT =
+      rev (Term.add_tvars (Thm.full_prop_of thm1) [])
+      |> map (fn v as ((a, _), S) => (v, Thm.ctyp_of ctxt (TFree (a, S))))
     val thm2 = thm1
-      |> Thm.certify_instantiate ctxt (instT, [])
+      |> Thm.instantiate (instT, [])
       |> Raw_Simplifier.rewrite_rule ctxt pre_simps
     val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
     val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)
@@ -745,7 +747,7 @@ fun untransferred ctxt extra_rules thm =
             THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
     val thm3 = Goal.prove_internal ctxt' [] @{cpat "Trueprop ?P"} (K tac)
-    val tnames = map (fst o dest_TFree o snd) instT
+    val tnames = map (fst o dest_TFree o Thm.typ_of o snd) instT
   in
     thm3
       |> Raw_Simplifier.rewrite_rule ctxt' post_simps

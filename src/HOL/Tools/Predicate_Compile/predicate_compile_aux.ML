@@ -947,9 +947,11 @@ fun instantiated_case_rewrite thy Tcon =
     val U = TFree ("'u", @{sort type})
     val y = Free (yname, U)
     val f' = absdummy (U --> T') (Bound 0 $ y)
-    val th' = Thm.certify_instantiate ctxt'
-      ([(dest_TVar uninst_T, U --> T'), (dest_TVar uninst_T', T')],
-       [((fst (dest_Var f), (U --> T') --> T'), f')]) th
+    val th' =
+      Thm.instantiate
+        ([(dest_TVar uninst_T, Thm.ctyp_of ctxt' (U --> T')),
+          (dest_TVar uninst_T', Thm.ctyp_of ctxt' T')],
+         [((fst (dest_Var f), (U --> T') --> T'), Thm.cterm_of ctxt' f')]) th
     val [th'] = Variable.export (Variable.declare_thm th' ctxt') ctxt [th']
   in
     th'
@@ -1075,10 +1077,10 @@ fun import_intros inp_pred [] ctxt =
             val subst = Sign.typ_match thy (fastype_of pred', fastype_of pred) Vartab.empty
               handle Type.TYPE_MATCH =>
                 error ("Type mismatch of predicate " ^ fst (dest_Const pred) ^
-                  " (trying to match " ^ Syntax.string_of_typ ctxt (fastype_of pred') ^
-                  " and " ^ Syntax.string_of_typ ctxt (fastype_of pred) ^ ")" ^
-                  " in " ^ Display.string_of_thm ctxt th)
-          in map (fn (indexname, (s, T)) => ((indexname, s), T)) (Vartab.dest subst) end
+                  " (trying to match " ^ Syntax.string_of_typ ctxt' (fastype_of pred') ^
+                  " and " ^ Syntax.string_of_typ ctxt' (fastype_of pred) ^ ")" ^
+                  " in " ^ Display.string_of_thm ctxt' th)
+          in map (fn (xi, (S, T)) => ((xi, S), T)) (Vartab.dest subst) end
         fun instantiate_typ th =
           let
             val (pred', _) = strip_intro_concl th
@@ -1086,13 +1088,13 @@ fun import_intros inp_pred [] ctxt =
               if not (fst (dest_Const pred) = fst (dest_Const pred')) then
                 raise Fail "Trying to instantiate another predicate"
               else ()
-          in Thm.certify_instantiate ctxt' (subst_of (pred', pred), []) th end
+          in Thm.instantiate (map (apsnd (Thm.ctyp_of ctxt')) (subst_of (pred', pred)), []) th end
         fun instantiate_ho_args th =
           let
             val (_, args') =
               (strip_comb o HOLogic.dest_Trueprop o Logic.strip_imp_concl o Thm.prop_of) th
             val ho_args' = map dest_Var (ho_args_of_typ T args')
-          in Thm.certify_instantiate ctxt' ([], ho_args' ~~ ho_args) th end
+          in Thm.instantiate ([], ho_args' ~~ map (Thm.cterm_of ctxt') ho_args) th end
         val outp_pred =
           Term_Subst.instantiate (subst_of (inp_pred, pred), []) inp_pred
         val ((_, ths'), ctxt1) =

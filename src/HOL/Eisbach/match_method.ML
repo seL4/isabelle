@@ -504,7 +504,7 @@ fun focus_concl ctxt i bindings goal =
       Subgoal.focus_params ctxt i bindings goal;
 
     val (inst, ctxt'') = Variable.import_inst true [Thm.term_of concl] ctxt';
-    val (_, schematic_terms) = Thm.certify_inst ctxt'' inst;
+    val schematic_terms = map (apsnd (Thm.cterm_of ctxt'')) (#2 inst);
 
     val goal'' = Thm.instantiate ([], schematic_terms) goal';
     val concl' = Thm.instantiate_cterm ([], schematic_terms) concl;

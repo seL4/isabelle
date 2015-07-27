@@ -55,7 +55,7 @@ fun gen_focus (do_prems, do_concl) ctxt i bindings raw_st =
     val text = asms @ (if do_concl then [concl] else []);
 
     val (inst, ctxt3) = Variable.import_inst true (map Thm.term_of text) ctxt2;
-    val (_, schematic_terms) = Thm.certify_inst ctxt3 inst;
+    val schematic_terms = map (apsnd (Thm.cterm_of ctxt3)) (#2 inst);
 
     val schematics = (schematic_types, schematic_terms);
     val asms' = map (Thm.instantiate_cterm schematics) asms;

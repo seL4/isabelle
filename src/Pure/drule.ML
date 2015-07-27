@@ -206,10 +206,10 @@ fun lift_all ctxt raw_goal raw_th =
     val Ts = map Term.fastype_of ps;
     val inst =
       Thm.fold_terms Term.add_vars th []
-      |> map (fn (xi, T) => ((xi, T), Term.list_comb (Var (xi, Ts ---> T), ps)));
+      |> map (fn (xi, T) => ((xi, T), Thm.cterm_of ctxt (Term.list_comb (Var (xi, Ts ---> T), ps))));
   in
     th
-    |> Thm.certify_instantiate ctxt ([], inst)
+    |> Thm.instantiate ([], inst)
     |> fold_rev (Thm.forall_intr o Thm.cterm_of ctxt) ps
   end;
 
@@ -230,8 +230,11 @@ fun zero_var_indexes_list [] = []
   | zero_var_indexes_list ths =
       let
         val thy = Theory.merge_list (map Thm.theory_of_thm ths);
-        val insts = Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths);
-      in map (Thm.adjust_maxidx_thm ~1 o Thm.global_certify_instantiate thy insts) ths end;
+        val (instT, inst) = Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths);
+        val insts' =
+         (map (apsnd (Thm.global_ctyp_of thy)) instT,
+          map (apsnd (Thm.global_cterm_of thy)) inst);
+      in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate insts') ths end;
 
 val zero_var_indexes = singleton zero_var_indexes_list;
 
