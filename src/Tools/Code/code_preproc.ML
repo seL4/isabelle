@@ -168,17 +168,19 @@ end;
 fun normalized_tfrees_sandwich ctxt ct =
   let
     val t = Thm.term_of ct;
-    val vs_original = fold_term_types (K (fold_atyps (insert (eq_fst op =)
-      o dest_TFree))) t [];
+    val vs_original =
+      fold_term_types (K (fold_atyps (insert (eq_fst op =) o dest_TFree))) t [];
     val vs_normalized = Name.invent_names Name.context Name.aT (map snd vs_original);
-    val normalize = map_type_tfree (TFree o the o AList.lookup (op =) (vs_original ~~ vs_normalized));
+    val normalize =
+      map_type_tfree (TFree o the o AList.lookup (op =) (vs_original ~~ vs_normalized));
     val normalization =
-      map2 (fn (v, sort) => fn (v', _) => (((v', 0), sort), TFree (v, sort))) vs_original vs_normalized;
+      map2 (fn (v, sort) => fn (v', _) => (((v', 0), sort), Thm.ctyp_of ctxt (TFree (v, sort))))
+        vs_original vs_normalized;
   in
     if eq_list (eq_fst (op =)) (vs_normalized, vs_original)
     then (I, ct)
     else
-     (Thm.certify_instantiate ctxt (normalization, []) o Thm.varifyT_global,
+     (Thm.instantiate (normalization, []) o Thm.varifyT_global,
       Thm.cterm_of ctxt (map_types normalize t))
   end;
 

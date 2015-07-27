@@ -61,16 +61,6 @@ sig
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
-  val global_certify_inst: theory ->
-    ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
-    ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
-  val global_certify_instantiate: theory ->
-    ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> thm -> thm
-  val certify_inst: Proof.context ->
-    ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
-    ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
-  val certify_instantiate: Proof.context ->
-    ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> thm -> thm
   val forall_intr_frees: thm -> thm
   val unvarify_global: thm -> thm
   val close_derivation: thm -> thm
@@ -375,23 +365,6 @@ fun instantiate' cTs cts thm =
   in thm'' end;
 
 
-(* certify_instantiate *)
-
-fun global_certify_inst thy (instT, inst) =
- (map (apsnd (Thm.global_ctyp_of thy)) instT,
-  map (apsnd (Thm.global_cterm_of thy)) inst);
-
-fun global_certify_instantiate thy insts th =
-  Thm.instantiate (global_certify_inst thy insts) th;
-
-fun certify_inst ctxt (instT, inst) =
- (map (apsnd (Thm.ctyp_of ctxt)) instT,
-  map (apsnd (Thm.cterm_of ctxt)) inst);
-
-fun certify_instantiate ctxt insts th =
-  Thm.instantiate (certify_inst ctxt insts) th;
-
-
 (* forall_intr_frees: generalization over all suitable Free variables *)
 
 fun forall_intr_frees th =
@@ -417,8 +390,8 @@ fun unvarify_global th =
     val instT = rev (Term.add_tvars prop []) |> map (fn v as ((a, _), S) => (v, TFree (a, S)));
     val inst = rev (Term.add_vars prop []) |> map (fn ((a, i), T) =>
       let val T' = Term_Subst.instantiateT instT T
-      in (((a, i), T'), Free ((a, T'))) end);
-  in global_certify_instantiate thy (instT, inst) th end;
+      in (((a, i), T'), Thm.global_cterm_of thy (Free ((a, T')))) end);
+  in Thm.instantiate (map (apsnd (Thm.global_ctyp_of thy)) instT, inst) th end;
 
 
 (* close_derivation *)

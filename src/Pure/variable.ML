@@ -600,8 +600,8 @@ fun import_terms is_open ts ctxt =
 fun importT ths ctxt =
   let
     val (instT, ctxt') = importT_inst (map Thm.full_prop_of ths) ctxt;
-    val insts' as (instT', _) = Thm.certify_inst ctxt' (instT, []);
-    val ths' = map (Thm.instantiate insts') ths;
+    val instT' = map (apsnd (Thm.ctyp_of ctxt')) instT;
+    val ths' = map (Thm.instantiate (instT', [])) ths;
   in ((instT', ths'), ctxt') end;
 
 fun import_prf is_open prf ctxt =
@@ -612,8 +612,10 @@ fun import_prf is_open prf ctxt =
 
 fun import is_open ths ctxt =
   let
-    val (insts, ctxt') = import_inst is_open (map Thm.full_prop_of ths) ctxt;
-    val insts' = Thm.certify_inst ctxt' insts;
+    val ((instT, inst), ctxt') = import_inst is_open (map Thm.full_prop_of ths) ctxt;
+    val insts' =
+     (map (apsnd (Thm.ctyp_of ctxt')) instT,
+      map (apsnd (Thm.cterm_of ctxt')) inst);
     val ths' = map (Thm.instantiate insts') ths;
   in ((insts', ths'), ctxt') end;
 
