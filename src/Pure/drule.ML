@@ -22,7 +22,7 @@ sig
   val implies_intr_list: cterm list -> thm -> thm
   val instantiate_normalize: ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list ->
     thm -> thm
-  val infer_instantiate_vars: Proof.context -> ((indexname * typ) * cterm) list -> thm -> thm
+  val infer_instantiate_types: Proof.context -> ((indexname * typ) * cterm) list -> thm -> thm
   val infer_instantiate: Proof.context -> (indexname * cterm) list -> thm -> thm
   val cterm_instantiate: (cterm * cterm) list -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
@@ -743,8 +743,8 @@ fun instantiate_normalize instpair th =
   Thm.adjust_maxidx_thm ~1 (Thm.instantiate instpair th COMP_INCR asm_rl);
 
 (*instantiation with type-inference for variables*)
-fun infer_instantiate_vars _ [] th = th
-  | infer_instantiate_vars ctxt args th =
+fun infer_instantiate_types _ [] th = th
+  | infer_instantiate_types ctxt args th =
       let
         val thy = Proof_Context.theory_of ctxt;
 
@@ -761,7 +761,7 @@ fun infer_instantiate_vars _ [] th = th
                   val t = Var (xi, T);
                   val u = Thm.term_of cu;
                 in
-                  raise THM ("infer_instantiate: type " ^
+                  raise THM ("infer_instantiate_types: type " ^
                     Syntax.string_of_typ ctxt (Envir.norm_type tyenv T) ^ " of variable " ^
                     Syntax.string_of_term ctxt (Term.map_types (Envir.norm_type tyenv) t) ^
                     "\ncannot be unified with type " ^
@@ -794,7 +794,7 @@ fun infer_instantiate _ [] th = th
             0, [th]);
         val args' = args |> map_filter (fn (xi, cu) =>
           AList.lookup (op =) vars xi |> Option.map (fn T => ((xi, T), cu)));
-      in infer_instantiate_vars ctxt args' th end;
+      in infer_instantiate_types ctxt args' th end;
 
 (*Left-to-right replacements: tpairs = [..., (vi, ti), ...].
   Instantiates distinct Vars by terms, inferring type instantiations.*)
@@ -856,7 +856,7 @@ fun infer_instantiate' ctxt args th =
     val args' = zip_options vars args
       handle ListPair.UnequalLengths =>
         raise THM ("infer_instantiate': more instantiations than variables in thm", 0, [th]);
-  in infer_instantiate_vars ctxt args' th end;
+  in infer_instantiate_types ctxt args' th end;
 
 
 

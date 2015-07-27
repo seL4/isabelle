@@ -106,7 +106,7 @@ fun inst_excluded_middle ctxt i_atom =
     val th = EXCLUDED_MIDDLE
     val [vx] = Term.add_vars (Thm.prop_of th) []
   in
-    infer_instantiate_vars ctxt [(vx, Thm.cterm_of ctxt i_atom)] th
+    infer_instantiate_types ctxt [(vx, Thm.cterm_of ctxt i_atom)] th
   end
 
 fun assume_inference ctxt type_enc concealed sym_tab atom =
@@ -162,7 +162,7 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
           Syntax.string_of_term ctxt (Thm.term_of x) ^ " |-> " ^
           Syntax.string_of_term ctxt (Thm.term_of y)))))
   in
-    infer_instantiate_vars ctxt (map (apfst (dest_Var o Thm.term_of)) substs') i_th
+    infer_instantiate_types ctxt (map (apfst (dest_Var o Thm.term_of)) substs') i_th
   end
   handle THM (msg, _, _) => raise METIS_RECONSTRUCT ("inst_inference", msg)
        | ERROR msg => raise METIS_RECONSTRUCT ("inst_inference", msg)
@@ -308,7 +308,7 @@ fun refl_inference ctxt type_enc concealed sym_tab t =
     val i_t = singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) t
     val _ = trace_msg ctxt (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
     val c_t = cterm_incr_types ctxt refl_idx i_t
-  in infer_instantiate_vars ctxt [(dest_Var (Thm.term_of refl_x), c_t)] REFL_THM end
+  in infer_instantiate_types ctxt [(dest_Var (Thm.term_of refl_x), c_t)] REFL_THM end
 
 (* INFERENCE RULE: EQUALITY *)
 
@@ -374,7 +374,7 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
         map (apply2 (Thm.cterm_of ctxt))
           (ListPair.zip (Misc_Legacy.term_vars (Thm.prop_of subst'), [tm_abs, tm_subst, i_tm]))
   in
-    infer_instantiate_vars ctxt (map (apfst (dest_Var o Thm.term_of)) eq_terms) subst'
+    infer_instantiate_types ctxt (map (apfst (dest_Var o Thm.term_of)) eq_terms) subst'
   end
 
 val factor = Seq.hd o distinct_subgoals_tac
@@ -520,7 +520,7 @@ fun unify_first_prem_with_concl ctxt i th =
       [] |> try (unify_terms (prem, concl) #> map (apply2 (Thm.cterm_of ctxt)))
          |> the_default [] (* FIXME *)
   in
-    infer_instantiate_vars ctxt (map (apfst (dest_Var o Thm.term_of)) t_inst) th
+    infer_instantiate_types ctxt (map (apfst (dest_Var o Thm.term_of)) t_inst) th
   end
 
 val copy_prem = @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast}
