@@ -278,7 +278,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
          THEN (resolve_tac ctxt @{thms reduction_pair_lemma} 1)
          THEN (resolve_tac ctxt @{thms rp_inv_image_rp} 1)
          THEN (resolve_tac ctxt [order_rpair ms_rp label] 1)
-         THEN PRIMITIVE (instantiate' [] [SOME level_mapping])
+         THEN PRIMITIVE (Thm.instantiate' [] [SOME level_mapping])
          THEN unfold_tac ctxt @{thms rp_inv_image_def}
          THEN Local_Defs.unfold_tac ctxt @{thms split_conv fst_conv snd_conv}
          THEN REPEAT (SOMEGOAL (resolve_tac ctxt [@{thm Un_least}, @{thm empty_subsetI}]))

@@ -1975,7 +1975,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           in
             @{map 6} (fn set_minimal => fn set_set_inclss => fn jsets => fn y => fn y' => fn phis =>
               ((set_minimal
-                |> Drule.instantiate' cTs (mk_induct_tinst phis jsets y y')
+                |> Thm.instantiate' cTs (mk_induct_tinst phis jsets y y')
                 |> unfold_thms lthy incls) OF
                 (replicate n ballI @
                   maps (map (fn thm => thm RS @{thm subset_CollectI})) set_set_inclss))
@@ -2107,7 +2107,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             val cphis = @{map 9} mk_cphi
               Jsetss_by_bnf Jzs' Jzs fs_Jmaps fs_copy_Jmaps Jys' Jys Jys'_copy Jys_copy;
 
-            val coinduct = Drule.instantiate' cTs (map SOME cphis) dtor_coinduct_thm;
+            val coinduct = Thm.instantiate' cTs (map SOME cphis) dtor_coinduct_thm;
 
             val goal =
               HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj

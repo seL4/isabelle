@@ -1581,7 +1581,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               (@{map 4} (mk_cphi f) fs_Imaps Izs sets sets')) fs Isetss_by_range Isetss_by_range';
 
             val inducts = map (fn cphis =>
-              Drule.instantiate' cTs (map SOME cphis @ cxs) ctor_induct_thm) cphiss;
+              Thm.instantiate' cTs (map SOME cphis @ cxs) ctor_induct_thm) cphiss;
 
             val goals =
               @{map 3} (fn f => fn sets => fn sets' =>
@@ -1610,7 +1610,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             val cphiss = map (map2 mk_cphi Izs) Isetss_by_range;
 
             val inducts = map (fn cphis =>
-              Drule.instantiate' cTs (map SOME cphis @ cxs) ctor_induct_thm) cphiss;
+              Thm.instantiate' cTs (map SOME cphis @ cxs) ctor_induct_thm) cphiss;
 
             val goals =
               map (fn sets =>
@@ -1645,7 +1645,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
             val cphis = @{map 4} mk_cphi Isetss_by_bnf Izs fs_Imaps fs_copy_Imaps;
 
-            val induct = Drule.instantiate' cTs (map SOME cphis @ cxs) ctor_induct_thm;
+            val induct = Thm.instantiate' cTs (map SOME cphis @ cxs) ctor_induct_thm;
 
             val goal =
               HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
@@ -1706,7 +1706,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             val cxs = map (SOME o Thm.cterm_of lthy) (splice Izs1 Izs2);
             fun mk_cphi z1 z2 goal = SOME (Thm.cterm_of lthy (Term.absfree z1 (Term.absfree z2 goal)));
             val cphis = @{map 3} mk_cphi Izs1' Izs2' goals;
-            val induct = Drule.instantiate' cTs (cphis @ cxs) ctor_induct2_thm;
+            val induct = Thm.instantiate' cTs (cphis @ cxs) ctor_induct2_thm;
 
             val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj goals);
           in

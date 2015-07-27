@@ -77,7 +77,7 @@ fun remove_suc ctxt thms =
         val thm' =
           Thm.implies_elim
            (Conv.fconv_rule (Thm.beta_conversion true)
-             (Drule.instantiate'
+             (Thm.instantiate'
                [SOME (Thm.ctyp_of_cterm ct)] [SOME (Thm.lambda cv ct),
                  SOME (Thm.lambda cv' (rhs_of thm)), NONE, SOME cv']
                Suc_if_eq)) (Thm.forall_intr cv' thm)

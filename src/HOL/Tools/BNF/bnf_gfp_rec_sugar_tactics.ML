@@ -157,7 +157,7 @@ fun inst_split_eq ctxt split =
     let
       val s = Name.uu;
       val eq = Abs (Name.uu, T, HOLogic.mk_eq (Free (s, T), Bound 0));
-      val split' = Drule.instantiate' [] [SOME (Thm.cterm_of ctxt eq)] split;
+      val split' = Thm.instantiate' [] [SOME (Thm.cterm_of ctxt eq)] split;
     in
       Thm.generalize ([], [s]) (Thm.maxidx_of split' + 1) split'
     end

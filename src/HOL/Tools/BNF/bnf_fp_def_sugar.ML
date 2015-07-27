@@ -1838,7 +1838,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
 
         val goalss = @{map 6} (map2 oooo mk_goal) cs cpss gcorecs ns kss discss;
 
-        fun mk_case_split' cp = Drule.instantiate' [] [SOME (Thm.cterm_of lthy cp)] @{thm case_split};
+        fun mk_case_split' cp = Thm.instantiate' [] [SOME (Thm.cterm_of lthy cp)] @{thm case_split};
 
         val case_splitss' = map (map mk_case_split') cpss;
 
@@ -1864,7 +1864,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
       let
         val (domT, ranT) = dest_funT (fastype_of sel);
         val arg_cong' =
-          Drule.instantiate' (map (SOME o Thm.ctyp_of lthy) [domT, ranT])
+          Thm.instantiate' (map (SOME o Thm.ctyp_of lthy) [domT, ranT])
             [NONE, NONE, SOME (Thm.cterm_of lthy sel)] arg_cong
           |> Thm.varifyT_global;
         val sel_thm' = sel_thm RSN (2, trans);

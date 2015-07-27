@@ -248,7 +248,7 @@ fun rewrite_by_tree ctxt h ih x tr =
           val iha = import_thm ctxt (fix, h_as) ha (* (a', h a') : G *)
             |> Conv.fconv_rule (Conv.arg_conv (Conv.comb_conv (Conv.arg_conv (K inner))))
                                                     (* (a, h a) : G   *)
-          val inst_ih = instantiate' [] [SOME (Thm.cterm_of ctxt arg)] ih
+          val inst_ih = Thm.instantiate' [] [SOME (Thm.cterm_of ctxt arg)] ih
           val eq = Thm.implies_elim (Thm.implies_elim inst_ih lRi) iha (* h a = f a *)
 
           val h_a'_eq_h_a = Thm.combination (Thm.reflexive (Thm.cterm_of ctxt h)) inner

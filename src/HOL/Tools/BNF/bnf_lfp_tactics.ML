@@ -222,7 +222,7 @@ fun mk_min_algs_card_of_tac ctxt cT ct m worel min_algs in_bds bd_Card_order bd_
   suc_Card_order suc_Cinfinite suc_Cnotzero suc_Asuc Asuc_Cinfinite =
   let
     val induct = worel RS
-      Drule.instantiate' [SOME cT] [NONE, SOME ct] @{thm well_order_induct_imp};
+      Thm.instantiate' [SOME cT] [NONE, SOME ct] @{thm well_order_induct_imp};
     val src = 1 upto m + 1;
     val dest = (m + 1) :: (1 upto m);
     val absorbAs_tac = if m = 0 then K (all_tac)
@@ -268,7 +268,7 @@ fun mk_min_algs_card_of_tac ctxt cT ct m worel min_algs in_bds bd_Card_order bd_
 fun mk_min_algs_least_tac ctxt cT ct worel min_algs alg_sets =
   let
     val induct = worel RS
-      Drule.instantiate' [SOME cT] [NONE, SOME ct] @{thm well_order_induct_imp};
+      Thm.instantiate' [SOME cT] [NONE, SOME ct] @{thm well_order_induct_imp};
 
     val minG_tac =
       EVERY' [rtac ctxt @{thm UN_least}, etac ctxt allE, dtac ctxt mp, etac ctxt @{thm underS_E},
@@ -444,7 +444,7 @@ fun mk_mor_Abs_tac ctxt cts defs Abs_inverses map_comp_ids map_congLs =
 fun mk_mor_fold_tac ctxt cT ct fold_defs ex_mor mor =
   (EVERY' (map (stac ctxt) fold_defs) THEN' EVERY' [rtac ctxt rev_mp, rtac ctxt ex_mor, rtac ctxt impI] THEN'
   REPEAT_DETERM_N (length fold_defs) o etac ctxt exE THEN'
-  rtac ctxt (Drule.instantiate' [SOME cT] [SOME ct] @{thm someI}) THEN' etac ctxt mor) 1;
+  rtac ctxt (Thm.instantiate' [SOME cT] [SOME ct] @{thm someI}) THEN' etac ctxt mor) 1;
 
 fun mk_fold_unique_mor_tac ctxt type_defs init_unique_mors Reps mor_comp mor_Abs mor_fold =
   let
@@ -515,7 +515,7 @@ fun mk_ctor_induct2_tac ctxt cTs cts ctor_induct weak_ctor_inducts =
             assume_tac ctxt],
         assume_tac ctxt];
   in
-    EVERY' [rtac ctxt rev_mp, rtac ctxt (Drule.instantiate' cTs cts ctor_induct),
+    EVERY' [rtac ctxt rev_mp, rtac ctxt (Thm.instantiate' cTs cts ctor_induct),
       EVERY' (map2 mk_inner_induct_tac weak_ctor_inducts ks), rtac ctxt impI,
       REPEAT_DETERM o eresolve_tac ctxt [conjE, allE],
       CONJ_WRAP' (K (assume_tac ctxt)) ks] 1

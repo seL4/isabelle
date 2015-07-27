@@ -27,7 +27,7 @@ val lhss0 = [@{cpat "0::?'a::ring"}];
 fun proc0 phi ctxt ct =
   let val T = Thm.ctyp_of_cterm ct
   in if Thm.typ_of T = @{typ int} then NONE else
-     SOME (instantiate' [SOME T] [] zeroth)
+     SOME (Thm.instantiate' [SOME T] [] zeroth)
   end;
 
 val zero_to_of_int_zero_simproc =
@@ -41,7 +41,7 @@ val lhss1 = [@{cpat "1::?'a::ring_1"}];
 fun proc1 phi ctxt ct =
   let val T = Thm.ctyp_of_cterm ct
   in if Thm.typ_of T = @{typ int} then NONE else
-     SOME (instantiate' [SOME T] [] oneth)
+     SOME (Thm.instantiate' [SOME T] [] oneth)
   end;
 
 val one_to_of_int_one_simproc =

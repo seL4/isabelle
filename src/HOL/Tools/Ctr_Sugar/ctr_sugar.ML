@@ -690,7 +690,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
             (map Logic.varifyT_global As ~~ As);
 
         fun inst_thm t thm =
-          Drule.instantiate' [] [SOME (Thm.cterm_of lthy t)]
+          Thm.instantiate' [] [SOME (Thm.cterm_of lthy t)]
             (Thm.instantiate (rho_As, []) (Drule.zero_var_indexes thm));
 
         val uexhaust_thm = inst_thm u exhaust_thm;

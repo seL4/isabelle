@@ -110,7 +110,7 @@ fun perm_simproc' ctxt (Const (@{const_name Nominal.perm}, T) $ t $ (u as Const 
             val dj_cp' = [cp, dj] MRS dj_cp;
             val cert = SOME o Thm.cterm_of ctxt
           in
-            SOME (mk_meta_eq (Drule.instantiate' [SOME (Thm.ctyp_of ctxt S)]
+            SOME (mk_meta_eq (Thm.instantiate' [SOME (Thm.ctyp_of ctxt S)]
               [cert t, cert r, cert s] dj_cp'))
           end
         else NONE
@@ -1282,7 +1282,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
             _ $ (_ $ (Const (_, Type (_, [U, _])) $ _ $ _)) $ _ => U = T
           | _ => false)) perm_fresh_fresh
       in
-        Drule.instantiate' []
+        Thm.instantiate' []
           [SOME (Thm.global_cterm_of thy a), NONE, SOME (Thm.global_cterm_of thy b)] th
       end;
 

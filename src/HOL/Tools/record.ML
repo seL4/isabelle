@@ -85,7 +85,7 @@ fun get_typedef_info tyco vs
   let
     val exists_thm =
       UNIV_I
-      |> Drule.instantiate' [SOME (Thm.global_ctyp_of thy (Logic.varifyT_global rep_type))] [];
+      |> Thm.instantiate' [SOME (Thm.global_ctyp_of thy (Logic.varifyT_global rep_type))] [];
     val proj_constr = Abs_inverse OF [exists_thm];
     val absT = Type (tyco, map TFree vs);
   in

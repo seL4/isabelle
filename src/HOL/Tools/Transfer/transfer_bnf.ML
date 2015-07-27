@@ -359,7 +359,7 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
         val kill_True = Local_Defs.unfold lthy [@{thm HOL.simp_thms(21)}]
       in
         thm
-        |> Drule.instantiate' cTs cts
+        |> Thm.instantiate' cTs cts
         |> Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg_conv
           (Raw_Simplifier.rewrite lthy false @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})))
         |> Local_Defs.unfold lthy eq_onps

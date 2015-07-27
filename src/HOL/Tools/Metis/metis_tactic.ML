@@ -50,7 +50,7 @@ fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
     let
       val ct = Thm.cterm_of ctxt t
       val cT = Thm.ctyp_of_cterm ct
-    in refl |> Drule.instantiate' [SOME cT] [SOME ct] end
+    in refl |> Thm.instantiate' [SOME cT] [SOME ct] end
   | Const (@{const_name disj}, _) $ t1 $ t2 =>
     (if can HOLogic.dest_not t1 then t2 else t1)
     |> HOLogic.mk_Trueprop |> Thm.cterm_of ctxt |> Thm.trivial

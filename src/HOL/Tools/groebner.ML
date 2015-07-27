@@ -413,7 +413,7 @@ val initial_ss =
 fun initial_conv ctxt =
   Simplifier.rewrite (put_simpset initial_ss ctxt);
 
-val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
+val specl = fold_rev (fn x => fn th => Thm.instantiate' [] [SOME x] (th RS spec));
 
 val cTrp = @{cterm "Trueprop"};
 val cConj = @{cterm HOL.conj};
@@ -435,7 +435,7 @@ val eq_commute = mk_meta_eq @{thm eq_commute};
 
 fun sym_conv eq =
  let val (l,r) = Thm.dest_binop eq
- in instantiate' [SOME (Thm.ctyp_of_cterm l)] [SOME l, SOME r] eq_commute
+ in Thm.instantiate' [SOME (Thm.ctyp_of_cterm l)] [SOME l, SOME r] eq_commute
  end;
 
   (* FIXME : copied from cqe.ML -- complex QE*)
@@ -471,14 +471,14 @@ fun conj_ac_rule eq =
   fun tabr c = the (Termtab.lookup ctabr (Thm.term_of c))
   val thl  = prove_conj tabl (conjuncts r) |> implies_intr_hyps
   val thr  = prove_conj tabr (conjuncts l) |> implies_intr_hyps
-  val eqI = instantiate' [] [SOME l, SOME r] @{thm iffI}
+  val eqI = Thm.instantiate' [] [SOME l, SOME r] @{thm iffI}
  in Thm.implies_elim (Thm.implies_elim eqI thl) thr |> mk_meta_eq end;
 
  (* END FIXME.*)
 
    (* Conversion for the equivalence of existential statements where
       EX quantifiers are rearranged differently *)
- fun ext T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat Ex}
+ fun ext T = Drule.cterm_rule (Thm.instantiate' [SOME T] []) @{cpat Ex}
  fun mk_ex v t = Thm.apply (ext (Thm.ctyp_of_cterm v)) (Thm.lambda v t)
 
 fun choose v th th' = case Thm.concl_of th of
@@ -487,7 +487,7 @@ fun choose v th th' = case Thm.concl_of th of
     val p = (funpow 2 Thm.dest_arg o Thm.cprop_of) th
     val T = (hd o Thm.dest_ctyp o Thm.ctyp_of_cterm) p
     val th0 = Conv.fconv_rule (Thm.beta_conversion true)
-        (instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o Thm.cprop_of) th'] exE)
+        (Thm.instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o Thm.cprop_of) th'] exE)
     val pv = (Thm.rhs_of o Thm.beta_conversion true)
           (Thm.apply @{cterm Trueprop} (Thm.apply p v))
     val th1 = Thm.forall_intr v (Thm.implies_intr pv th')
@@ -504,7 +504,7 @@ fun simple_choose v th =
    val p = Thm.lambda v (Thm.dest_arg (Thm.cprop_of th))
   in Thm.implies_elim
     (Conv.fconv_rule (Thm.beta_conversion true)
-      (instantiate' [SOME (Thm.ctyp_of_cterm v)] [SOME p, SOME v] @{thm exI}))
+      (Thm.instantiate' [SOME (Thm.ctyp_of_cterm v)] [SOME p, SOME v] @{thm exI}))
       th
   end
  fun ex_eq_conv t =
@@ -517,7 +517,7 @@ fun simple_choose v th =
    val th2 = implies_intr_hyps (fold simple_choose vs (fold mkexi vs' th))
    val p = (Thm.dest_arg o Thm.dest_arg1 o Thm.cprop_of) th1
    val q = (Thm.dest_arg o Thm.dest_arg o Thm.cprop_of) th1
-  in Thm.implies_elim (Thm.implies_elim (instantiate' [] [SOME p, SOME q] iffI) th1) th2
+  in Thm.implies_elim (Thm.implies_elim (Thm.instantiate' [] [SOME p, SOME q] iffI) th1) th2
      |> mk_meta_eq
   end;
 
@@ -739,7 +739,7 @@ fun ring ctxt tm =
  let
   fun mk_forall x p =
     Thm.apply
-      (Drule.cterm_rule (instantiate' [SOME (Thm.ctyp_of_cterm x)] [])
+      (Drule.cterm_rule (Thm.instantiate' [SOME (Thm.ctyp_of_cterm x)] [])
         @{cpat "All:: (?'a => bool) => _"}) (Thm.lambda x p)
   val avs = Thm.add_cterm_frees tm []
   val P' = fold mk_forall avs tm
@@ -775,7 +775,7 @@ fun ideal tms tm ord =
 fun poly_eq_conv t =
  let val (a,b) = Thm.dest_binop t
  in Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv ring_normalize_conv))
-     (instantiate' [] [SOME a, SOME b] idl_sub)
+     (Thm.instantiate' [] [SOME a, SOME b] idl_sub)
  end
  val poly_eq_simproc =
   let
@@ -810,7 +810,7 @@ fun poly_eq_conv t =
    | NONE => (the (find_first
           (fn v => is_defined v (Thm.dest_arg1 (Thm.rhs_of th'))) vars) ,th)
    val th2 = Thm.transitive th1
-        (instantiate' []  [(SOME o Thm.dest_arg1 o Thm.rhs_of) th1, SOME v]
+        (Thm.instantiate' []  [(SOME o Thm.dest_arg1 o Thm.rhs_of) th1, SOME v]
           idl_add0)
    in Conv.fconv_rule(funpow 2 Conv.arg_conv ring_normalize_conv) th2
    end
@@ -946,7 +946,7 @@ local
  | _=> raise CTERM ("ideal_tac - lhs",[t])
  fun exitac _ NONE = no_tac
    | exitac ctxt (SOME y) =
-      resolve_tac ctxt [instantiate' [SOME (Thm.ctyp_of_cterm y)] [NONE,SOME y] exI] 1
+      resolve_tac ctxt [Thm.instantiate' [SOME (Thm.ctyp_of_cterm y)] [NONE,SOME y] exI] 1
 
  val claset = claset_of @{context}
 in

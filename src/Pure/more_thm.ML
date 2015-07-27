@@ -60,6 +60,7 @@ sig
   val elim_implies: thm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
+  val instantiate': ctyp option list -> cterm option list -> thm -> thm
   val global_certify_inst: theory ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
     ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
@@ -352,6 +353,26 @@ fun forall_elim_var i th =
       | _ => raise THM ("forall_elim_vars", i, [th])) i th;
 
 end;
+
+
+(* instantiate by left-to-right occurrence of variables *)
+
+fun instantiate' cTs cts thm =
+  let
+    fun err msg =
+      raise TYPE ("instantiate': " ^ msg,
+        map_filter (Option.map Thm.typ_of) cTs,
+        map_filter (Option.map Thm.term_of) cts);
+
+    fun zip_vars xs ys =
+      zip_options xs ys handle ListPair.UnequalLengths =>
+        err "more instantiations than variables in thm";
+
+    val thm' =
+      Thm.instantiate ((zip_vars (rev (Thm.fold_terms Term.add_tvars thm [])) cTs), []) thm;
+    val thm'' =
+      Thm.instantiate ([], zip_vars (rev (Thm.fold_terms Term.add_vars thm' [])) cts) thm';
+  in thm'' end;
 
 
 (* certify_instantiate *)

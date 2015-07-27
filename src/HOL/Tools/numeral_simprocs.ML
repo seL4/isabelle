@@ -610,7 +610,7 @@ local
     val _ = map (HOLogic.dest_number o Thm.term_of) [x,y,z,w]
     val T = Thm.ctyp_of_cterm x
     val [y_nz, z_nz] = map (prove_nz ctxt T) [y, z]
-    val th = instantiate' [SOME T] (map SOME [y,z,x,w]) add_frac_eq
+    val th = Thm.instantiate' [SOME T] (map SOME [y,z,x,w]) add_frac_eq
   in SOME (Thm.implies_elim (Thm.implies_elim th y_nz) z_nz)
   end
   handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
@@ -624,13 +624,13 @@ local
         let val (x,y) = Thm.dest_binop l val z = r
             val _ = map (HOLogic.dest_number o Thm.term_of) [x,y,z]
             val ynz = prove_nz ctxt T y
-        in SOME (Thm.implies_elim (instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
+        in SOME (Thm.implies_elim (Thm.instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
         end
      | (_, Const (@{const_name Rings.divide},_)$_$_) =>
         let val (x,y) = Thm.dest_binop r val z = l
             val _ = map (HOLogic.dest_number o Thm.term_of) [x,y,z]
             val ynz = prove_nz ctxt T y
-        in SOME (Thm.implies_elim (instantiate' [SOME T] (map SOME [y,z,x]) add_num_frac) ynz)
+        in SOME (Thm.implies_elim (Thm.instantiate' [SOME T] (map SOME [y,z,x]) add_num_frac) ynz)
         end
      | _ => NONE)
   end
@@ -648,42 +648,42 @@ local
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = Thm.ctyp_of_cterm c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_less_eq"}
+        val th = Thm.instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_less_eq"}
       in SOME (mk_meta_eq th) end
   | Const(@{const_name Orderings.less_eq},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = Thm.ctyp_of_cterm c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_le_eq"}
+        val th = Thm.instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_le_eq"}
       in SOME (mk_meta_eq th) end
   | Const(@{const_name HOL.eq},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = Thm.ctyp_of_cterm c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_eq_eq"}
+        val th = Thm.instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_eq_eq"}
       in SOME (mk_meta_eq th) end
   | Const(@{const_name Orderings.less},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = Thm.ctyp_of_cterm c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "less_divide_eq"}
+        val th = Thm.instantiate' [SOME T] (map SOME [a,b,c]) @{thm "less_divide_eq"}
       in SOME (mk_meta_eq th) end
   | Const(@{const_name Orderings.less_eq},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = Thm.ctyp_of_cterm c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "le_divide_eq"}
+        val th = Thm.instantiate' [SOME T] (map SOME [a,b,c]) @{thm "le_divide_eq"}
       in SOME (mk_meta_eq th) end
   | Const(@{const_name HOL.eq},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]
         val T = Thm.ctyp_of_cterm c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "eq_divide_eq"}
+        val th = Thm.instantiate' [SOME T] (map SOME [a,b,c]) @{thm "eq_divide_eq"}
       in SOME (mk_meta_eq th) end
   | _ => NONE)
   handle TERM _ => NONE | CTERM _ => NONE | THM _ => NONE

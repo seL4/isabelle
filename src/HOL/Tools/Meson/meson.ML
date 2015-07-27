@@ -173,7 +173,7 @@ fun quant_resolve_tac ctxt th i st =
     let
       val cc = Thm.cterm_of ctxt c
       val ct = Thm.dest_arg (Thm.cprop_of th)
-    in resolve_tac ctxt [th] i (Drule.instantiate' [] [SOME (Thm.lambda cc ct)] st) end
+    in resolve_tac ctxt [th] i (Thm.instantiate' [] [SOME (Thm.lambda cc ct)] st) end
   | _ => resolve_tac ctxt [th] i st
 
 (*Permits forward proof from rules that discharge assumptions. The supplied proof state st,

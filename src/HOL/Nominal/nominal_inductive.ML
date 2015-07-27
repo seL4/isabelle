@@ -203,7 +203,7 @@ fun prove_strong_ind s avoids ctxt =
     val ([fs_ctxt_name], ctxt'') = Variable.variant_fixes ["z"] ctxt';
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
 
-    val inductive_forall_def' = Drule.instantiate'
+    val inductive_forall_def' = Thm.instantiate'
       [SOME (Thm.global_ctyp_of thy fsT)] [] inductive_forall_def;
 
     fun lift_pred' t (Free (s, T)) ts =
@@ -488,7 +488,7 @@ fun prove_strong_ind s avoids ctxt =
                          let
                            val (cf, ct) =
                              Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th));
-                           val arg_cong' = Drule.instantiate'
+                           val arg_cong' = Thm.instantiate'
                              [SOME (Thm.ctyp_of_cterm ct)]
                              [NONE, SOME ct, SOME cf] (arg_cong RS iffD2);
                            val inst = Thm.first_order_match (ct,

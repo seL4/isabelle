@@ -227,7 +227,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
     val ([fs_ctxt_name], ctxt'') = Variable.variant_fixes ["z"] ctxt';
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
 
-    val inductive_forall_def' = Drule.instantiate'
+    val inductive_forall_def' = Thm.instantiate'
       [SOME (Thm.global_ctyp_of thy fsT)] [] inductive_forall_def;
 
     fun lift_pred' t (Free (s, T)) ts =
@@ -316,7 +316,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         val {at_inst, ...} = NominalAtoms.the_atom_info thy atom;
         val fs_atom = Global_Theory.get_thm thy
           ("fs_" ^ Long_Name.base_name atom ^ "1");
-        val avoid_th = Drule.instantiate'
+        val avoid_th = Thm.instantiate'
           [SOME (Thm.global_ctyp_of thy (fastype_of p))] [SOME (Thm.global_cterm_of thy p)]
           ([at_inst, fin, fs_atom] MRS @{thm at_set_avoiding});
         val (([(_, cx)], th1 :: th2 :: ths), ctxt') = Obtain.result

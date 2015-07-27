@@ -317,7 +317,7 @@ fun find_cterm p t =
   | _ => raise CTERM ("find_cterm",[t]);
 
     (* Some conversions-related stuff which has been forbidden entrance into Pure/conv.ML*)
-fun instantiate_cterm' ty tms = Drule.cterm_rule (Drule.instantiate' ty tms)
+fun instantiate_cterm' ty tms = Drule.cterm_rule (Thm.instantiate' ty tms)
 fun is_comb t = (case Thm.term_of t of _ $ _ => true | _ => false);
 
 fun is_binop ct ct' = ct aconvc (Thm.dest_fun (Thm.dest_fun ct'))
@@ -396,9 +396,9 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun add_rule th th' = fconv_rule (arg_conv (oprconv poly_add_conv))
          (match_mp_rule pth_add [th, th'])
     fun emul_rule ct th = fconv_rule (arg_conv (oprconv poly_mul_conv))
-       (instantiate' [] [SOME ct] (th RS pth_emul))
+       (Thm.instantiate' [] [SOME ct] (th RS pth_emul))
     fun square_rule t = fconv_rule (arg_conv (oprconv poly_conv))
-       (instantiate' [] [SOME t] pth_square)
+       (Thm.instantiate' [] [SOME t] pth_square)
 
     fun hol_of_positivstellensatz(eqs,les,lts) proof =
       let
@@ -444,7 +444,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
           if c aconvc (concl th2) then ()
           else error "disj_cases : conclusions not alpha convertible"
       in Thm.implies_elim (Thm.implies_elim
-          (Thm.implies_elim (instantiate' [] (map SOME [p,q,c]) @{thm disjE}) th)
+          (Thm.implies_elim (Thm.instantiate' [] (map SOME [p,q,c]) @{thm disjE}) th)
           (Thm.implies_intr (Thm.apply @{cterm Trueprop} p) th1))
         (Thm.implies_intr (Thm.apply @{cterm Trueprop} q) th2)
       end
@@ -518,9 +518,9 @@ fun gen_gen_real_arith ctxt (mk_numeric,
         (instantiate_cterm' [SOME (Thm.ctyp_of_cterm x)] [] @{cpat "All :: (?'a => bool) => _" })
         (Thm.abstract_rule (name_of x) x th)
 
-    val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
+    val specl = fold_rev (fn x => fn th => Thm.instantiate' [] [SOME x] (th RS spec));
 
-    fun ext T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat Ex}
+    fun ext T = Drule.cterm_rule (Thm.instantiate' [SOME T] []) @{cpat Ex}
     fun mk_ex v t = Thm.apply (ext (Thm.ctyp_of_cterm v)) (Thm.lambda v t)
 
     fun choose v th th' =
@@ -530,7 +530,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
           val p = (funpow 2 Thm.dest_arg o Thm.cprop_of) th
           val T = (hd o Thm.dest_ctyp o Thm.ctyp_of_cterm) p
           val th0 = fconv_rule (Thm.beta_conversion true)
-            (instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o Thm.cprop_of) th'] exE)
+            (Thm.instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o Thm.cprop_of) th'] exE)
           val pv = (Thm.rhs_of o Thm.beta_conversion true)
             (Thm.apply @{cterm Trueprop} (Thm.apply p v))
           val th1 = Thm.forall_intr v (Thm.implies_intr pv th')
@@ -579,7 +579,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
                 (prove_hyp (Thm.equal_elim th1 (Thm.assume (Thm.apply @{cterm Trueprop} bod))) th2)
           in (Drule.implies_intr_hyps (prove_hyp (Thm.equal_elim th0 (Thm.assume nct)) th3), certs)
           end
-      in (Thm.implies_elim (instantiate' [] [SOME ct] pth_final) th, certificates)
+      in (Thm.implies_elim (Thm.instantiate' [] [SOME ct] pth_final) th, certificates)
       end
   in f
   end;
@@ -710,7 +710,7 @@ fun real_linear_prover translator (eq,le,lt) =
                 (eq_pols @ le_pols @ lt_pols) [])
     val le_pols' = le_pols @ map (fn v => FuncUtil.Ctermfunc.onefunc (v,Rat.one)) aliens
     val (_,proof) = linear_prover (eq_pols,le_pols',lt_pols)
-    val le' = le @ map (fn a => instantiate' [] [SOME (Thm.dest_arg a)] @{thm real_of_nat_ge_zero}) aliens
+    val le' = le @ map (fn a => Thm.instantiate' [] [SOME (Thm.dest_arg a)] @{thm real_of_nat_ge_zero}) aliens
   in ((translator (eq,le',lt) proof), Trivial)
   end
 end;
@@ -725,9 +725,9 @@ local
 
   val absmaxmin_elim_conv2 =
     let
-      val pth_abs = instantiate' [SOME @{ctyp real}] [] abs_split'
-      val pth_max = instantiate' [SOME @{ctyp real}] [] max_split
-      val pth_min = instantiate' [SOME @{ctyp real}] [] min_split
+      val pth_abs = Thm.instantiate' [SOME @{ctyp real}] [] abs_split'
+      val pth_max = Thm.instantiate' [SOME @{ctyp real}] [] max_split
+      val pth_min = Thm.instantiate' [SOME @{ctyp real}] [] min_split
       val abs_tm = @{cterm "abs :: real => _"}
       val p_v = (("P", 0), @{typ "real \<Rightarrow> bool"})
       val x_v = (("x", 0), @{typ real})

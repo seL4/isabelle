@@ -84,17 +84,17 @@ val perhaps_number = try dest_number;
 val is_number = can dest_number;
 
 val [miconj, midisj, mieq, mineq, milt, mile, migt, mige, midvd, mindvd, miP] =
-    map(instantiate' [SOME @{ctyp "int"}] []) @{thms "minf"};
+    map (Thm.instantiate' [SOME @{ctyp "int"}] []) @{thms "minf"};
 
 val [infDconj, infDdisj, infDdvd,infDndvd,infDP] =
-    map(instantiate' [SOME @{ctyp "int"}] []) @{thms "inf_period"};
+    map (Thm.instantiate' [SOME @{ctyp "int"}] []) @{thms "inf_period"};
 
 val [piconj, pidisj, pieq,pineq,pilt,pile,pigt,pige,pidvd,pindvd,piP] =
-    map (instantiate' [SOME @{ctyp "int"}] []) @{thms "pinf"};
+    map (Thm.instantiate' [SOME @{ctyp "int"}] []) @{thms "pinf"};
 
-val [miP, piP] = map (instantiate' [SOME @{ctyp "bool"}] []) [miP, piP];
+val [miP, piP] = map (Thm.instantiate' [SOME @{ctyp "bool"}] []) [miP, piP];
 
-val infDP = instantiate' (map SOME [@{ctyp "int"}, @{ctyp "bool"}]) [] infDP;
+val infDP = Thm.instantiate' (map SOME [@{ctyp "int"}, @{ctyp "bool"}]) [] infDP;
 
 val [[asetconj, asetdisj, aseteq, asetneq, asetlt, asetle,
       asetgt, asetge, asetdvd, asetndvd,asetP],
@@ -103,7 +103,7 @@ val [[asetconj, asetdisj, aseteq, asetneq, asetlt, asetle,
 
 val [cpmi, cppi] = [@{thm "cpmi"}, @{thm "cppi"}];
 
-val unity_coeff_ex = instantiate' [SOME @{ctyp "int"}] [] @{thm "unity_coeff_ex"};
+val unity_coeff_ex = Thm.instantiate' [SOME @{ctyp "int"}] [] @{thm "unity_coeff_ex"};
 
 val [zdvd_mono,simp_from_to,all_not_ex] =
      [@{thm "zdvd_mono"}, @{thm "simp_from_to"}, @{thm "all_not_ex"}];
@@ -166,9 +166,9 @@ fun myfwd (th1, th2, th3) p q
   in (mi_th, set_th, infD_th)
   end;
 
-val inst' = fn cts => instantiate' [] (map SOME cts);
-val infDTrue = instantiate' [] [SOME true_tm] infDP;
-val infDFalse = instantiate' [] [SOME false_tm] infDP;
+val inst' = fn cts => Thm.instantiate' [] (map SOME cts);
+val infDTrue = Thm.instantiate' [] [SOME true_tm] infDP;
+val infDFalse = Thm.instantiate' [] [SOME false_tm] infDP;
 
 val cadd =  @{cterm "op + :: int => _"}
 val cmulC =  @{cterm "op * :: int => _"}
@@ -483,16 +483,16 @@ let
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
     (* A and B set *)
    local
-     val insI1 = instantiate' [SOME @{ctyp "int"}] [] @{thm "insertI1"}
-     val insI2 = instantiate' [SOME @{ctyp "int"}] [] @{thm "insertI2"}
+     val insI1 = Thm.instantiate' [SOME @{ctyp "int"}] [] @{thm "insertI1"}
+     val insI2 = Thm.instantiate' [SOME @{ctyp "int"}] [] @{thm "insertI2"}
    in
     fun provein x S =
      case Thm.term_of S of
         Const(@{const_name Orderings.bot}, _) => error "Unexpected error in Cooper, please email Amine Chaieb"
       | Const(@{const_name insert}, _) $ y $ _ =>
          let val (cy,S') = Thm.dest_binop S
-         in if Thm.term_of x aconv y then instantiate' [] [SOME x, SOME S'] insI1
-         else Thm.implies_elim (instantiate' [] [SOME x, SOME S', SOME cy] insI2)
+         in if Thm.term_of x aconv y then Thm.instantiate' [] [SOME x, SOME S'] insI1
+         else Thm.implies_elim (Thm.instantiate' [] [SOME x, SOME S', SOME cy] insI2)
                            (provein x S')
          end
    end
@@ -519,7 +519,7 @@ let
   let
    val sths = map (fn (tl,t0) =>
                       if tl = Thm.term_of t0
-                      then instantiate' [SOME @{ctyp "int"}] [SOME t0] refl
+                      then Thm.instantiate' [SOME @{ctyp "int"}] [SOME t0] refl
                       else provelin ctxt ((HOLogic.eq_const iT)$tl$(Thm.term_of t0)
                                  |> HOLogic.mk_Trueprop))
                    (sl ~~ s0)
@@ -527,7 +527,7 @@ let
    val S = mkISet csl
    val inStab = fold (fn ct => fn tab => Termtab.update (Thm.term_of ct, provein ct S) tab)
                     csl Termtab.empty
-   val eqelem_th = instantiate' [SOME @{ctyp "int"}] [NONE,NONE, SOME S] eqelem_imp_imp
+   val eqelem_th = Thm.instantiate' [SOME @{ctyp "int"}] [NONE,NONE, SOME S] eqelem_imp_imp
    val inS =
      let
       val tab = fold Termtab.update
@@ -536,7 +536,7 @@ let
                     val th =
                       if s aconvc t
                       then the (Termtab.lookup inStab (Thm.term_of s))
-                      else FWD (instantiate' [] [SOME s, SOME t] eqelem_th)
+                      else FWD (Thm.instantiate' [] [SOME s, SOME t] eqelem_th)
                         [eq, the (Termtab.lookup inStab (Thm.term_of s))]
                  in (Thm.term_of t, th) end) sths) Termtab.empty
         in
@@ -801,7 +801,7 @@ end;
 
 fun generalize_tac f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
  let 
-   fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "Pure.all"}
+   fun all T = Drule.cterm_rule (Thm.instantiate' [SOME T] []) @{cpat "Pure.all"}
    fun gen x t = Thm.apply (all (Thm.ctyp_of_cterm x)) (Thm.lambda x t)
    val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (Thm.term_of a, Thm.term_of b)) (f p)
    val p' = fold_rev gen ts p
