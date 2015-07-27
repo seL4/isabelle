@@ -246,6 +246,18 @@ command. Minor INCOMPATIBILITY, use 'function' instead.
 
 *** ML ***
 
+* Instantiation rules have been re-organized as follows:
+
+  Thm.instantiate  (*low-level instantiation with named arguments*)
+  Thm.instantiate' (*version with positional arguments*)
+
+  Drule.infer_instantiate  (*instantiation with type inference*)
+  Drule.infer_instantiate'  (*version with positional arguments*)
+
+The LHS only requires variable specifications, instead of full terms.
+Old cterm_instantiate is superseded by infer_instantiate.
+INCOMPATIBILITY, need to re-adjust some ML names and types accordingly.
+
 * Old tactic shorthands atac, rtac, etac, dtac, ftac have been
 discontinued. INCOMPATIBILITY, use regular assume_tac, resolve_tac etc.
 instead (with proper context).
