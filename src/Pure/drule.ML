@@ -743,12 +743,15 @@ fun instantiate_normalize instpair th =
 
 (*instantiation with type-inference for variables*)
 fun infer_instantiate_types _ [] th = th
-  | infer_instantiate_types ctxt args th =
+  | infer_instantiate_types ctxt args raw_th =
       let
         val thy = Proof_Context.theory_of ctxt;
+        val th = Thm.transfer thy raw_th;
 
         fun infer ((xi, T), cu) (tyenv, maxidx) =
           let
+            val _ = Thm.ctyp_of ctxt T;
+            val _ = Thm.transfer_cterm thy cu;
             val U = Thm.typ_of_cterm cu;
             val maxidx' = maxidx
               |> Integer.max (#2 xi)
@@ -778,9 +781,9 @@ fun infer_instantiate_types _ [] th = th
           ((xi, Envir.norm_type tyenv T),
             Thm.instantiate_cterm (instT, []) (Thm.transfer_cterm thy cu)));
       in instantiate_normalize (instT, inst) th end
-      handle CTERM (msg, _) => raise THM (msg, 0, [th])
-        | TERM (msg, _) => raise THM (msg, 0, [th])
-        | TYPE (msg, _, _) => raise THM (msg, 0, [th]);
+      handle CTERM (msg, _) => raise THM (msg, 0, [raw_th])
+        | TERM (msg, _) => raise THM (msg, 0, [raw_th])
+        | TYPE (msg, _, _) => raise THM (msg, 0, [raw_th]);
 
 fun infer_instantiate _ [] th = th
   | infer_instantiate ctxt args th =
