@@ -139,6 +139,7 @@ sig
   val add_assms_cmd: Assumption.export ->
     (Thm.binding * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
+  val dest_cases: Proof.context -> (string * (Rule_Cases.T * {legacy: bool})) list
   val update_cases: (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
   val update_cases_legacy: (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
   val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
