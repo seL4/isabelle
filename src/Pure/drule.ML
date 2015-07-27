@@ -24,7 +24,6 @@ sig
     thm -> thm
   val infer_instantiate_types: Proof.context -> ((indexname * typ) * cterm) list -> thm -> thm
   val infer_instantiate: Proof.context -> (indexname * cterm) list -> thm -> thm
-  val cterm_instantiate: (cterm * cterm) list -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
   val infer_instantiate': Proof.context -> cterm option list -> thm -> thm
   val zero_var_indexes_list: thm list -> thm list
@@ -795,40 +794,6 @@ fun infer_instantiate _ [] th = th
         val args' = args |> map_filter (fn (xi, cu) =>
           AList.lookup (op =) vars xi |> Option.map (fn T => ((xi, T), cu)));
       in infer_instantiate_types ctxt args' th end;
-
-(*Left-to-right replacements: tpairs = [..., (vi, ti), ...].
-  Instantiates distinct Vars by terms, inferring type instantiations.*)
-local
-  fun add_types (ct, cu) (thy, tye, maxidx) =
-    let
-      val t = Thm.term_of ct and T = Thm.typ_of_cterm ct;
-      val u = Thm.term_of cu and U = Thm.typ_of_cterm cu;
-      val maxi = Int.max (maxidx, Int.max (apply2 Thm.maxidx_of_cterm (ct, cu)));
-      val thy' = Theory.merge (thy, Theory.merge (apply2 Thm.theory_of_cterm (ct, cu)));
-      val (tye', maxi') = Sign.typ_unify thy' (T, U) (tye, maxi)
-        handle Type.TUNIFY => raise TYPE ("Ill-typed instantiation:\nType\n" ^
-          Syntax.string_of_typ_global thy' (Envir.norm_type tye T) ^
-          "\nof variable " ^
-          Syntax.string_of_term_global thy' (Term.map_types (Envir.norm_type tye) t) ^
-          "\ncannot be unified with type\n" ^
-          Syntax.string_of_typ_global thy' (Envir.norm_type tye U) ^ "\nof term " ^
-          Syntax.string_of_term_global thy' (Term.map_types (Envir.norm_type tye) u),
-          [T, U], [t, u]);
-    in (thy', tye', maxi') end;
-in
-
-fun cterm_instantiate [] th = th
-  | cterm_instantiate ctpairs th =
-      let
-        val (thy, tye, _) = fold_rev add_types ctpairs (Thm.theory_of_thm th, Vartab.empty, 0);
-        val instT =
-          Vartab.fold (fn (xi, (S, T)) =>
-            cons ((xi, S), Thm.global_ctyp_of thy (Envir.norm_type tye T))) tye [];
-        val inst = map (apply2 (Thm.instantiate_cterm (instT, []))) ctpairs;
-      in instantiate_normalize (instT, map (apfst (Thm.term_of #> dest_Var)) inst) th end
-      handle TERM (msg, _) => raise THM (msg, 0, [th])
-        | TYPE (msg, _, _) => raise THM (msg, 0, [th]);
-end;
 
 
 (* instantiate by left-to-right occurrence of variables *)
