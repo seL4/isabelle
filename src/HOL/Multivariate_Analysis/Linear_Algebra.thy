@@ -255,7 +255,7 @@ lemma linear_0: "linear f \<Longrightarrow> f 0 = 0"
   done
 
 lemma linear_cmul: "linear f \<Longrightarrow> f (c *\<^sub>R x) = c *\<^sub>R f x"
-  by (simp add: linear_iff)
+  by (rule linear.scaleR)
 
 lemma linear_neg: "linear f \<Longrightarrow> f (- x) = - f x"
   using linear_cmul [where c="-1"] by simp
@@ -2691,6 +2691,11 @@ proof -
     done
   with h(1) show ?thesis by blast
 qed
+
+lemma inj_linear_imp_inv_linear:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
+  assumes "linear f" "inj f" shows "linear (inv f)"
+using assms inj_iff left_inverse_linear by blast
 
 
 subsection \<open>Infinity norm\<close>

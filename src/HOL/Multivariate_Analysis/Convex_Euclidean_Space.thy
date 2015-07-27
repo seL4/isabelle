@@ -1387,7 +1387,7 @@ proof (rule ccontr)
     by auto
 qed
 
-lemma convex_ball:
+lemma convex_ball [iff]:
   fixes x :: "'a::real_normed_vector"
   shows "convex (ball x e)"
 proof (auto simp add: convex_def)
@@ -1404,7 +1404,7 @@ proof (auto simp add: convex_def)
     using convex_bound_lt[OF yz uv] by auto
 qed
 
-lemma convex_cball:
+lemma convex_cball [iff]:
   fixes x :: "'a::real_normed_vector"
   shows "convex (cball x e)"
 proof -
@@ -3239,6 +3239,9 @@ lemma rel_interior_open:
   shows "rel_interior S = S"
   by (metis assms interior_eq interior_subset_rel_interior rel_interior_subset set_eq_subset)
 
+lemma interior_ball [simp]: "interior (ball x e) = ball x e"
+  by (simp add: interior_open)
+
 lemma interior_rel_interior_gen:
   fixes S :: "'n::euclidean_space set"
   shows "interior S = (if aff_dim S = int(DIM('n)) then rel_interior S else {})"
@@ -3551,7 +3554,7 @@ proof -
       using mem_rel_interior[of "a+x" "((\<lambda>x. a + x) ` S)"] by auto
   }
   then show ?thesis by auto
-qed
+qed                   
 
 lemma rel_interior_translation:
   fixes a :: "'n::euclidean_space"
@@ -9317,8 +9320,8 @@ proof -
     done
 qed
 
-subsection \<open>Coplanarity, and collinearity in terms of affine hull\<close>
 
+subsection \<open>Coplanarity, and collinearity in terms of affine hull\<close>
 
 definition coplanar  where
    "coplanar s \<equiv> \<exists>u v w. s \<subseteq> affine hull {u,v,w}"
@@ -9425,26 +9428,46 @@ proof -
     by auto (meson assms(1) coplanar_def)
 qed
 
-(*?  Still not ported
-lemma COPLANAR_TRANSLATION_EQ: "coplanar((\<lambda>x. a + x) ` s) \<longleftrightarrow> coplanar s"
-  apply (simp add: coplanar_def)
-  apply (simp add: Set.image_subset_iff_subset_vimage)
-  apply (auto simp:)
-  apply (rule_tac x="u-a" in exI)
-  apply (rule_tac x="v-a" in exI)
-  apply (rule_tac x="w-a" in exI)
-  apply (auto simp:)
-  apply (drule_tac c="x+a" in subsetD)
-  apply (simp add: affine_alt)
+lemma coplanar_translation_imp: "coplanar s \<Longrightarrow> coplanar ((\<lambda>x. a + x) ` s)"
+  unfolding coplanar_def
+  apply clarify
+  apply (rule_tac x="u+a" in exI)
+  apply (rule_tac x="v+a" in exI)
+  apply (rule_tac x="w+a" in exI)
+  using affine_hull_translation [of a "{u,v,w}" for u v w]
+  apply (force simp: add.commute)
+  done
 
-lemma COPLANAR_TRANSLATION:
-  !a:real^N s. coplanar s ==> coplanar(IMAGE (\x. a + x) s)"
-  REWRITE_TAC[COPLANAR_TRANSLATION_EQ]);;
+lemma coplanar_translation_eq: "coplanar((\<lambda>x. a + x) ` s) \<longleftrightarrow> coplanar s"
+    by (metis (no_types) coplanar_translation_imp translation_galois)
 
 lemma coplanar_linear_image_eq:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "inj f" shows "coplanar(f ` s) = coplanar s"
-  MATCH_ACCEPT_TAC(LINEAR_INVARIANT_RULE COPLANAR_LINEAR_IMAGE));;
+proof 
+  assume "coplanar s"
+  then show "coplanar (f ` s)"
+    unfolding coplanar_def
+    using affine_hull_linear_image [of f "{u,v,w}" for u v w]  assms
+    by (meson coplanar_def coplanar_linear_image)
+next
+  obtain g where g: "linear g" "g \<circ> f = id"
+    using linear_injective_left_inverse [OF assms]
+    by blast
+  assume "coplanar (f ` s)"
+  then obtain u v w where "f ` s \<subseteq> affine hull {u, v, w}"
+    by (auto simp: coplanar_def)
+  then have "g ` f ` s \<subseteq> g ` (affine hull {u, v, w})"
+    by blast
+  then have "s \<subseteq> g ` (affine hull {u, v, w})"
+    using g by (simp add: Fun.image_comp)
+  then show "coplanar s"
+    unfolding coplanar_def
+    using affine_hull_linear_image [of g "{u,v,w}" for u v w]  `linear g` linear_conv_bounded_linear 
+    by fastforce
+qed
+(*The HOL Light proof is simply
+    MATCH_ACCEPT_TAC(LINEAR_INVARIANT_RULE COPLANAR_LINEAR_IMAGE));;
 *)
 
 lemma coplanar_subset: "\<lbrakk>coplanar t; s \<subseteq> t\<rbrakk> \<Longrightarrow> coplanar s"

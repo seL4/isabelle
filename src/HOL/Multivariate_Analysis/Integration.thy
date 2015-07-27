@@ -6803,22 +6803,13 @@ qed
 lemma has_integral_affinity:
   fixes a :: "'a::euclidean_space"
   assumes "(f has_integral i) (cbox a b)"
-    and "m \<noteq> 0"
+      and "m \<noteq> 0"
   shows "((\<lambda>x. f(m *\<^sub>R x + c)) has_integral ((1 / (abs(m) ^ DIM('a))) *\<^sub>R i)) ((\<lambda>x. (1 / m) *\<^sub>R x + -((1 / m) *\<^sub>R c)) ` cbox a b)"
   apply (rule has_integral_twiddle)
-  apply safe
-  apply (rule zero_less_power)
-  unfolding euclidean_eq_iff[where 'a='a]
-  unfolding scaleR_right_distrib inner_simps scaleR_scaleR
-  defer
-  apply (insert assms(2))
-  apply (simp add: field_simps)
-  apply (insert assms(2))
-  apply (simp add: field_simps)
-  apply (rule continuous_intros)+
-  apply (rule interval_image_affinity_interval)+
-  apply (rule content_image_affinity_cbox)
   using assms
+  apply (safe intro!: interval_image_affinity_interval content_image_affinity_cbox)
+  apply (rule zero_less_power)
+  unfolding scaleR_right_distrib  
   apply auto
   done
 
@@ -6833,6 +6824,7 @@ lemma integrable_affinity:
   apply auto
   done
 
+lemmas has_integral_affinity01 = has_integral_affinity [of _ _ 0 "1::real", simplified]
 
 subsection \<open>Special case of stretching coordinate axes separately.\<close>
 

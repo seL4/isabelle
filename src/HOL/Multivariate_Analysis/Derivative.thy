@@ -2315,4 +2315,9 @@ lemma vector_diff_chain_within:
 lemma vector_derivative_const_at [simp]: "vector_derivative (\<lambda>x. c) (at a) = 0"
   by (simp add: vector_derivative_at)
 
+lemma vector_derivative_at_within_ivl:
+  "(f has_vector_derivative f') (at x) \<Longrightarrow>
+    a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> a<b \<Longrightarrow> vector_derivative f (at x within {a..b}) = f'"
+using has_vector_derivative_at_within vector_derivative_within_closed_interval by fastforce
+
 end

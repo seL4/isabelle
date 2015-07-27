@@ -228,6 +228,29 @@ apply (case_tac "x = 0", simp)
 apply (erule (1) nonzero_inverse_scaleR_distrib)
 done
 
+lemma real_vector_affinity_eq:
+  fixes x :: "'a :: real_vector"
+  assumes m0: "m \<noteq> 0"
+  shows "m *\<^sub>R x + c = y \<longleftrightarrow> x = inverse m *\<^sub>R y - (inverse m *\<^sub>R c)"
+proof
+  assume h: "m *\<^sub>R x + c = y"
+  hence "m *\<^sub>R x = y - c" by (simp add: field_simps)
+  hence "inverse m *\<^sub>R (m *\<^sub>R x) = inverse m *\<^sub>R (y - c)" by simp
+  then show "x = inverse m *\<^sub>R y - (inverse m *\<^sub>R c)"
+    using m0
+  by (simp add: real_vector.scale_right_diff_distrib)
+next
+  assume h: "x = inverse m *\<^sub>R y - (inverse m *\<^sub>R c)"
+  show "m *\<^sub>R x + c = y" unfolding h
+    using m0  by (simp add: real_vector.scale_right_diff_distrib)
+qed
+
+lemma real_vector_eq_affinity:
+  fixes x :: "'a :: real_vector"
+  shows "m \<noteq> 0 ==> (y = m *\<^sub>R x + c \<longleftrightarrow> inverse m *\<^sub>R y - (inverse m *\<^sub>R c) = x)"
+  using real_vector_affinity_eq[where m=m and x=x and y=y and c=c]
+  by metis
+
 
 subsection \<open>Embedding of the Reals into any @{text real_algebra_1}:
 @{term of_real}\<close>
@@ -763,6 +786,18 @@ proof -
   finally show ?thesis .
 qed
 
+lemma norm_diff_triangle_le:
+  fixes x y z :: "'a::real_normed_vector"
+  assumes "norm (x - y) \<le> e1"  "norm (y - z) \<le> e2"
+    shows "norm (x - z) \<le> e1 + e2"
+  using norm_diff_triangle_ineq [of x y y z] assms by simp
+
+lemma norm_diff_triangle_less:
+  fixes x y z :: "'a::real_normed_vector"
+  assumes "norm (x - y) < e1"  "norm (y - z) < e2"
+    shows "norm (x - z) < e1 + e2"
+  using norm_diff_triangle_ineq [of x y y z] assms by simp
+
 lemma norm_triangle_mono:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>norm a \<le> r; norm b \<le> s\<rbrakk> \<Longrightarrow> norm (a + b) \<le> r + s"
@@ -1123,6 +1158,11 @@ done
 
 end
 
+lemma dist_of_real [simp]:
+  fixes a :: "'a::real_normed_div_algebra"
+  shows "dist (of_real x :: 'a) (of_real y) = dist x y"
+by (metis dist_norm norm_of_real of_real_diff real_norm_def)
+
 declare [[code abort: "open :: real set \<Rightarrow> bool"]]
 
 instance real :: linorder_topology
@@ -1248,6 +1288,10 @@ subsection \<open>Bounded Linear and Bilinear Operators\<close>
 
 locale linear = additive f for f :: "'a::real_vector \<Rightarrow> 'b::real_vector" +
   assumes scaleR: "f (scaleR r x) = scaleR r (f x)"
+
+lemma linear_imp_scaleR:
+  assumes "linear D" obtains d where "D = (\<lambda>x. x *\<^sub>R d)"
+  by (metis assms linear.scaleR mult.commute mult.left_neutral real_scaleR_def)
 
 lemma linearI:
   assumes "\<And>x y. f (x + y) = f x + f y"
@@ -1503,6 +1547,11 @@ proof -
     by (auto intro: exI[of _ "f 1"] bounded_linear_mult_left)
 qed
 
+lemma bij_linear_imp_inv_linear:
+  assumes "linear f" "bij f" shows "linear (inv f)"
+  using assms unfolding linear_def linear_axioms_def additive_def
+  by (auto simp: bij_is_surj bij_is_inj surj_f_inv_f intro!:  Hilbert_Choice.inv_f_eq)
+    
 instance real_normed_algebra_1 \<subseteq> perfect_space
 proof
   fix x::'a
