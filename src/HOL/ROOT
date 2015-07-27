@@ -188,6 +188,7 @@ session "HOL-Number_Theory" in Number_Theory = HOL +
     Gauss
     Number_Theory
     Euclidean_Algorithm
+    Factorial_Ring
   document_files
     "root.tex"
 

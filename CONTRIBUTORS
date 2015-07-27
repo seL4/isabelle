@@ -18,6 +18,9 @@ Contributions to this Isabelle version
   (semi)domains like units, associated elements and normalization
   wrt. units.
 
+* Summer 2015: Florian Haftmann, TUM
+  Fundamentals of abstract type class for factorial rings.
+
 
 Contributions to Isabelle2015
 -----------------------------

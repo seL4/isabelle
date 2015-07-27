@@ -1140,6 +1140,36 @@ lemma sorted_list_of_mset_set [simp]:
 by (cases "finite A") (induct A rule: finite_induct, simp_all add: ac_simps)
 
 
+subsection \<open>Replicate operation\<close>
+
+definition replicate_mset :: "nat \<Rightarrow> 'a \<Rightarrow> 'a multiset" where
+  "replicate_mset n x = ((op + {#x#}) ^^ n) {#}"
+
+lemma replicate_mset_0[simp]: "replicate_mset 0 x = {#}"
+  unfolding replicate_mset_def by simp
+
+lemma replicate_mset_Suc[simp]: "replicate_mset (Suc n) x = replicate_mset n x + {#x#}"
+  unfolding replicate_mset_def by (induct n) (auto intro: add.commute)
+
+lemma in_replicate_mset[simp]: "x \<in># replicate_mset n y \<longleftrightarrow> n > 0 \<and> x = y"
+  unfolding replicate_mset_def by (induct n) simp_all
+
+lemma count_replicate_mset[simp]: "count (replicate_mset n x) y = (if y = x then n else 0)"
+  unfolding replicate_mset_def by (induct n) simp_all
+
+lemma set_mset_replicate_mset_subset[simp]: "set_mset (replicate_mset n x) = (if n = 0 then {} else {x})"
+  by (auto split: if_splits)
+
+lemma size_replicate_mset[simp]: "size (replicate_mset n M) = n"
+  by (induct n, simp_all)
+
+lemma count_le_replicate_mset_le: "n \<le> count M x \<longleftrightarrow> replicate_mset n x \<le># M"
+  by (auto simp add: assms mset_less_eqI) (metis count_replicate_mset subseteq_mset_def)
+
+lemma filter_eq_replicate_mset: "{#y \<in># D. y = x#} = replicate_mset (count D x) x"
+  by (induct D) simp_all
+
+
 subsection \<open>Big operators\<close>
 
 no_notation times (infixl "*" 70)
@@ -1194,6 +1224,10 @@ proof -
   show "comm_monoid_mset plus 0" ..
   from msetsum_def show "comm_monoid_mset.F plus 0 = msetsum" ..
 qed
+
+lemma (in semiring_1) msetsum_replicate_mset [simp]:
+  "msetsum (replicate_mset n a) = of_nat n * a"
+  by (induct n) (simp_all add: algebra_simps)
 
 lemma setsum_unfold_msetsum:
   "setsum f A = msetsum (image_mset f (mset_set A))"
@@ -1267,6 +1301,10 @@ lemma msetprod_Un:
   "msetprod (A + B) = msetprod A * msetprod B"
   by (fact msetprod.union)
 
+lemma msetprod_replicate_mset [simp]:
+  "msetprod (replicate_mset n a) = a ^ n"
+  by (induct n) (simp_all add: ac_simps)
+
 lemma setprod_unfold_msetprod:
   "setprod f A = msetprod (image_mset f (mset_set A))"
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
@@ -1300,37 +1338,6 @@ proof -
   then obtain B where "A = B + {#x#}" ..
   then show ?thesis by simp
 qed
-
-
-subsection \<open>Replicate operation\<close>
-
-definition replicate_mset :: "nat \<Rightarrow> 'a \<Rightarrow> 'a multiset" where
-  "replicate_mset n x = ((op + {#x#}) ^^ n) {#}"
-
-lemma replicate_mset_0[simp]: "replicate_mset 0 x = {#}"
-  unfolding replicate_mset_def by simp
-
-lemma replicate_mset_Suc[simp]: "replicate_mset (Suc n) x = replicate_mset n x + {#x#}"
-  unfolding replicate_mset_def by (induct n) (auto intro: add.commute)
-
-lemma in_replicate_mset[simp]: "x \<in># replicate_mset n y \<longleftrightarrow> n > 0 \<and> x = y"
-  unfolding replicate_mset_def by (induct n) simp_all
-
-lemma count_replicate_mset[simp]: "count (replicate_mset n x) y = (if y = x then n else 0)"
-  unfolding replicate_mset_def by (induct n) simp_all
-
-lemma set_mset_replicate_mset_subset[simp]: "set_mset (replicate_mset n x) = (if n = 0 then {} else {x})"
-  by (auto split: if_splits)
-
-lemma size_replicate_mset[simp]: "size (replicate_mset n M) = n"
-  by (induct n, simp_all)
-
-lemma count_le_replicate_mset_le: "n \<le> count M x \<longleftrightarrow> replicate_mset n x \<le># M"
-  by (auto simp add: assms mset_less_eqI) (metis count_replicate_mset subseteq_mset_def)
-
-
-lemma filter_eq_replicate_mset: "{#y \<in># D. y = x#} = replicate_mset (count D x) x"
-  by (induct D) simp_all
 
 
 subsection \<open>Alternative representations\<close>

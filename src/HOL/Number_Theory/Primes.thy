@@ -35,7 +35,7 @@ declare [[coercion int]]
 declare [[coercion_enabled]]
 
 definition prime :: "nat \<Rightarrow> bool"
-  where "prime p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
+  where "prime p = (1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> m = 1 \<or> m = p))"
 
 lemmas prime_nat_def = prime_def
 
