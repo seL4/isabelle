@@ -142,7 +142,7 @@ val field_funs =
       let val (a, b) = Rat.quotient_of_rat x
       in if b = 1 then Numeral.mk_cnumber cT a
         else Thm.apply
-             (Thm.apply (Drule.cterm_rule (instantiate' [SOME cT] []) @{cpat "op /"})
+             (Thm.apply (Drule.cterm_rule (Thm.instantiate' [SOME cT] []) @{cpat "op /"})
                          (Numeral.mk_cnumber cT a))
              (Numeral.mk_cnumber cT b)
       end

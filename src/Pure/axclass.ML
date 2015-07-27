@@ -191,7 +191,7 @@ fun complete_classrels thy =
               thy2
               |> update_classrel ((c1, c2),
                 (the_classrel thy2 (c1, c) RS the_classrel thy2 (c, c2))
-                |> Drule.instantiate' [SOME (Thm.global_ctyp_of thy2 (TVar ((Name.aT, 0), [])))] []
+                |> Thm.instantiate' [SOME (Thm.global_ctyp_of thy2 (TVar ((Name.aT, 0), [])))] []
                 |> Thm.close_derivation));
 
         val proven = is_classrel thy1;
@@ -234,7 +234,7 @@ fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, aritie
       let
         val th1 =
           (th RS the_classrel thy (c, c1))
-          |> Drule.instantiate' std_vars []
+          |> Thm.instantiate' std_vars []
           |> Thm.close_derivation;
       in ((th1, thy_name), c1) end);
 
@@ -396,7 +396,7 @@ fun add_classrel raw_th thy =
     val (th', thy') = Global_Theory.store_thm (binding, th) thy;
     val th'' = th'
       |> Thm.unconstrainT
-      |> Drule.instantiate' [SOME (Thm.global_ctyp_of thy' (TVar ((Name.aT, 0), [])))] [];
+      |> Thm.instantiate' [SOME (Thm.global_ctyp_of thy' (TVar ((Name.aT, 0), [])))] [];
   in
     thy'
     |> Sign.primitive_classrel (c1, c2)
@@ -426,7 +426,7 @@ fun add_arity raw_th thy =
       |> (map o apsnd o map_atyps) (K T);
     val th'' = th'
       |> Thm.unconstrainT
-      |> Drule.instantiate' std_vars [];
+      |> Thm.instantiate' std_vars [];
   in
     thy'
     |> fold (#2 oo declare_overloaded) missing_params

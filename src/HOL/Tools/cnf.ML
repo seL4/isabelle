@@ -165,7 +165,7 @@ fun clause2raw_thm ctxt clause =
 (* ------------------------------------------------------------------------- *)
 
 fun inst_thm thy ts thm =
-  instantiate' [] (map (SOME o Thm.global_cterm_of thy) ts) thm;
+  Thm.instantiate' [] (map (SOME o Thm.global_cterm_of thy) ts) thm;
 
 (* ------------------------------------------------------------------------- *)
 (*                         Naive CNF transformation                          *)

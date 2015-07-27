@@ -142,7 +142,7 @@ fun mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor sumEN' =
 fun mk_ctor_iff_dtor_tac ctxt cTs cctor cdtor ctor_dtor dtor_ctor =
   HEADGOAL (rtac ctxt iffI THEN'
     EVERY' (@{map 3} (fn cTs => fn cx => fn th =>
-      dtac ctxt (Drule.instantiate' cTs [NONE, NONE, SOME cx] arg_cong) THEN'
+      dtac ctxt (Thm.instantiate' cTs [NONE, NONE, SOME cx] arg_cong) THEN'
       SELECT_GOAL (unfold_thms_tac ctxt [th]) THEN'
       assume_tac ctxt) [rev cTs, cTs] [cdtor, cctor] [dtor_ctor, ctor_dtor]));
 

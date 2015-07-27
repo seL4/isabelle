@@ -182,7 +182,7 @@ ML \<open>
         val vars = rev (Term.add_vars (Thm.prop_of induct_thm) [])
         val insts = vars |> map (fn (_, T) => try (Thm.cterm_of ctxt)
           (Const (@{const_name Countable.finite_item}, T)))
-        val induct_thm' = Drule.instantiate' [] insts induct_thm
+        val induct_thm' = Thm.instantiate' [] insts induct_thm
         val rules = @{thms finite_item.intros}
       in
         SOLVED' (fn i => EVERY

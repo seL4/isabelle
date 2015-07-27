@@ -69,7 +69,7 @@ fun mk_term_of_eq thy ty (c, (_, tys)) =
     val cty = Thm.global_ctyp_of thy ty;
   in
     @{thm term_of_anything}
-    |> Drule.instantiate' [SOME cty] [SOME arg, SOME rhs]
+    |> Thm.instantiate' [SOME cty] [SOME arg, SOME rhs]
     |> Thm.varifyT_global
   end;
 
@@ -106,7 +106,7 @@ fun mk_abs_term_of_eq thy ty abs ty_rep proj =
     val cty = Thm.global_ctyp_of thy ty;
   in
     @{thm term_of_anything}
-    |> Drule.instantiate' [SOME cty] [SOME (Thm.global_cterm_of thy arg), SOME rhs]
+    |> Thm.instantiate' [SOME cty] [SOME (Thm.global_cterm_of thy arg), SOME rhs]
     |> Thm.varifyT_global
   end;
 

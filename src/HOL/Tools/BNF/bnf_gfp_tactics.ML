@@ -175,7 +175,7 @@ fun mk_set_Jset_incl_Jset_tac ctxt n rec_Suc i =
     rec_Suc, UnI2, mk_UnIN n i] @ [etac ctxt @{thm UN_I}, assume_tac ctxt]) 1;
 
 fun mk_col_minimal_tac ctxt m cts rec_0s rec_Sucs =
-  EVERY' [rtac ctxt (Drule.instantiate' [] cts nat_induct),
+  EVERY' [rtac ctxt (Thm.instantiate' [] cts nat_induct),
     REPEAT_DETERM o rtac ctxt allI,
     CONJ_WRAP' (fn thm => EVERY'
       [rtac ctxt ord_eq_le_trans, rtac ctxt thm, rtac ctxt @{thm empty_subsetI}]) rec_0s,
@@ -195,7 +195,7 @@ fun mk_Jset_minimal_tac ctxt n col_minimal =
     REPEAT_DETERM o eresolve_tac ctxt [allE, conjE], assume_tac ctxt])) (1 upto n)) 1
 
 fun mk_mor_col_tac ctxt m n cts j rec_0s rec_Sucs morEs set_map0ss coalg_setss =
-  EVERY' [rtac ctxt (Drule.instantiate' [] cts nat_induct),
+  EVERY' [rtac ctxt (Thm.instantiate' [] cts nat_induct),
     REPEAT_DETERM o rtac ctxt allI,
     CONJ_WRAP' (fn thm => EVERY' (map (rtac ctxt) [impI, thm RS trans, thm RS sym])) rec_0s,
     REPEAT_DETERM o rtac ctxt allI,
@@ -400,7 +400,7 @@ fun mk_length_Lev_tac ctxt cts Lev_0s Lev_Sucs =
     val n = length Lev_0s;
     val ks = n downto 1;
   in
-    EVERY' [rtac ctxt (Drule.instantiate' [] cts nat_induct),
+    EVERY' [rtac ctxt (Thm.instantiate' [] cts nat_induct),
       REPEAT_DETERM o rtac ctxt allI,
       CONJ_WRAP' (fn Lev_0 =>
         EVERY' [rtac ctxt impI, dtac ctxt (Lev_0 RS equalityD1 RS set_mp),
@@ -425,7 +425,7 @@ fun mk_rv_last_tac ctxt cTs cts rv_Nils rv_Conss =
     val n = length rv_Nils;
     val ks = 1 upto n;
   in
-    EVERY' [rtac ctxt (Drule.instantiate' cTs cts @{thm list.induct}),
+    EVERY' [rtac ctxt (Thm.instantiate' cTs cts @{thm list.induct}),
       REPEAT_DETERM o rtac ctxt allI,
       CONJ_WRAP' (fn rv_Cons =>
         CONJ_WRAP' (fn (i, rv_Nil) => (EVERY' [rtac ctxt exI,
@@ -450,7 +450,7 @@ fun mk_set_Lev_tac ctxt cts Lev_0s Lev_Sucs rv_Nils rv_Conss from_to_sbdss =
     val n = length Lev_0s;
     val ks = 1 upto n;
   in
-    EVERY' [rtac ctxt (Drule.instantiate' [] cts nat_induct),
+    EVERY' [rtac ctxt (Thm.instantiate' [] cts nat_induct),
       REPEAT_DETERM o rtac ctxt allI,
       CONJ_WRAP' (fn ((i, (Lev_0, Lev_Suc)), rv_Nil) =>
         EVERY' [rtac ctxt impI, dtac ctxt (Lev_0 RS equalityD1 RS set_mp),
@@ -496,7 +496,7 @@ fun mk_set_image_Lev_tac ctxt cts Lev_0s Lev_Sucs rv_Nils rv_Conss from_to_sbdss
     val n = length Lev_0s;
     val ks = 1 upto n;
   in
-    EVERY' [rtac ctxt (Drule.instantiate' [] cts nat_induct),
+    EVERY' [rtac ctxt (Thm.instantiate' [] cts nat_induct),
       REPEAT_DETERM o rtac ctxt allI,
       CONJ_WRAP' (fn ((i, (Lev_0, Lev_Suc)), rv_Nil) =>
         EVERY' [rtac ctxt impI, dtac ctxt (Lev_0 RS equalityD1 RS set_mp),
@@ -867,7 +867,7 @@ fun mk_col_natural_tac ctxt cts rec_0s rec_Sucs dtor_maps set_map0ss =
   let
     val n = length dtor_maps;
   in
-    EVERY' [rtac ctxt (Drule.instantiate' [] cts nat_induct),
+    EVERY' [rtac ctxt (Thm.instantiate' [] cts nat_induct),
       REPEAT_DETERM o rtac ctxt allI, SELECT_GOAL (unfold_thms_tac ctxt rec_0s),
       CONJ_WRAP' (K (rtac ctxt @{thm image_empty})) rec_0s,
       REPEAT_DETERM o rtac ctxt allI,
@@ -889,7 +889,7 @@ fun mk_col_bd_tac ctxt m j cts rec_0s rec_Sucs sbd_Card_order sbd_Cinfinite set_
   let
     val n = length rec_0s;
   in
-    EVERY' [rtac ctxt (Drule.instantiate' [] cts nat_induct),
+    EVERY' [rtac ctxt (Thm.instantiate' [] cts nat_induct),
       REPEAT_DETERM o rtac ctxt allI,
       CONJ_WRAP' (fn rec_0 => EVERY' (map (rtac ctxt) [ordIso_ordLeq_trans,
         @{thm card_of_ordIso_subst}, rec_0, @{thm Card_order_empty}, sbd_Card_order])) rec_0s,

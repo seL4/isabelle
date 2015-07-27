@@ -138,7 +138,7 @@ fun process_spec cos alt_props thy =
           let
             val cv = Thm.global_cterm_of thy v
             val cT = Thm.ctyp_of_cterm cv
-            val spec' = instantiate' [SOME cT] [NONE, SOME cv] spec
+            val spec' = Thm.instantiate' [SOME cT] [NONE, SOME cv] spec
           in thm RS spec' end
         fun remove_alls frees (thm, thy) = (fold (inst_all thy) frees thm, thy)
         fun process_single ((name, atts), rew_imp, frees) args =

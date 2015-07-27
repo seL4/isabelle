@@ -1251,7 +1251,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                     map Bound (live - 1 downto 0)) $ Bound live));
                 val cts = [NONE, SOME (Thm.cterm_of lthy tinst)];
               in
-                Drule.instantiate' cTs cts @{thm surj_imp_ordLeq}
+                Thm.instantiate' cTs cts @{thm surj_imp_ordLeq}
               end);
             val bd = mk_cexp
               (if live = 0 then ctwo

@@ -374,7 +374,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
           |> Thm.cterm_of ctxt''
       in
         indthm
-        |> Drule.instantiate' [] [SOME inst]
+        |> Thm.instantiate' [] [SOME inst]
         |> simplify (put_simpset Sum_Tree.sumcase_split_ss ctxt'')
         |> Conv.fconv_rule (ind_rulify ctxt'')
       end

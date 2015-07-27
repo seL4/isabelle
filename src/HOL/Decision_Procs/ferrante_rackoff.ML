@@ -87,23 +87,23 @@ let
    val q = Thm.rhs_of nth
    val qx = Thm.rhs_of nthx
    val enth = Drule.arg_cong_rule ce nthx
-   val [th0,th1] = map (instantiate' [SOME cT] []) @{thms "finite.intros"}
+   val [th0,th1] = map (Thm.instantiate' [SOME cT] []) @{thms "finite.intros"}
    fun ins x th =
-      Thm.implies_elim (instantiate' [] [(SOME o Thm.dest_arg o Thm.dest_arg)
+      Thm.implies_elim (Thm.instantiate' [] [(SOME o Thm.dest_arg o Thm.dest_arg)
                                        (Thm.cprop_of th), SOME x] th1) th
    val fU = fold ins u th0
    val cU = funpow 2 Thm.dest_arg (Thm.cprop_of fU)
    local
-     val insI1 = instantiate' [SOME cT] [] @{thm "insertI1"}
-     val insI2 = instantiate' [SOME cT] [] @{thm "insertI2"}
+     val insI1 = Thm.instantiate' [SOME cT] [] @{thm "insertI1"}
+     val insI2 = Thm.instantiate' [SOME cT] [] @{thm "insertI2"}
    in
     fun provein x S =
      case Thm.term_of S of
         Const(@{const_name Orderings.bot}, _) => raise CTERM ("provein : not a member!", [S])
       | Const(@{const_name insert}, _) $ y $_ =>
          let val (cy,S') = Thm.dest_binop S
-         in if Thm.term_of x aconv y then instantiate' [] [SOME x, SOME S'] insI1
-         else Thm.implies_elim (instantiate' [] [SOME x, SOME S', SOME cy] insI2)
+         in if Thm.term_of x aconv y then Thm.instantiate' [] [SOME x, SOME S'] insI1
+         else Thm.implies_elim (Thm.instantiate' [] [SOME x, SOME S', SOME cy] insI2)
                            (provein x S')
          end
    end
@@ -141,11 +141,11 @@ let
                       else if c = NEq then (Thm.dest_arg o Thm.dest_arg)
                       else raise Fail "decomp_mpinf: Impossible case!!") fm
              val [mi_th, pi_th, nmi_th, npi_th, ld_th] =
-               if c = Nox then map (instantiate' [] [SOME fm])
+               if c = Nox then map (Thm.instantiate' [] [SOME fm])
                                     [minf_P, pinf_P, nmi_P, npi_P, ld_P]
                else
                 let val [mi_th,pi_th,nmi_th,npi_th,ld_th] =
-                 map (instantiate' [] [SOME t])
+                 map (Thm.instantiate' [] [SOME t])
                  (case c of Lt => [minf_lt, pinf_lt, nmi_lt, npi_lt, ld_lt]
                           | Le => [minf_le, pinf_le, nmi_le, npi_le, ld_le]
                           | Gt => [minf_gt, pinf_gt, nmi_gt, npi_gt, ld_gt]
@@ -160,7 +160,7 @@ let
    val (minf_th, pinf_th, nmi_th, npi_th, ld_th) = divide_and_conquer decomp_mpinf q
    val qe_th = Drule.implies_elim_list
                   ((fconv_rule (Thm.beta_conversion true))
-                   (instantiate' [] (map SOME [cU, qx, get_p1 minf_th, get_p1 pinf_th])
+                   (Thm.instantiate' [] (map SOME [cU, qx, get_p1 minf_th, get_p1 pinf_th])
                         qe))
                   [fU, ld_th, nmi_th, npi_th, minf_th, pinf_th]
     val bex_conv =

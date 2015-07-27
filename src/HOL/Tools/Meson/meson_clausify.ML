@@ -102,13 +102,13 @@ fun abstract ctxt ct =
       val cxT = Thm.ctyp_of ctxt xT
       val cbodyT = Thm.ctyp_of ctxt bodyT
       fun makeK () =
-        instantiate' [SOME cxT, SOME cbodyT] [SOME (Thm.cterm_of ctxt body)] @{thm abs_K}
+        Thm.instantiate' [SOME cxT, SOME cbodyT] [SOME (Thm.cterm_of ctxt body)] @{thm abs_K}
   in
       case body of
           Const _ => makeK()
         | Free _ => makeK()
         | Var _ => makeK()  (*though Var isn't expected*)
-        | Bound 0 => instantiate' [SOME cxT] [] @{thm abs_I} (*identity: I*)
+        | Bound 0 => Thm.instantiate' [SOME cxT] [] @{thm abs_I} (*identity: I*)
         | rator$rand =>
             if Term.is_dependent rator then (*C or S*)
                if Term.is_dependent rand then (*S*)

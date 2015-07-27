@@ -1047,7 +1047,7 @@ fun elim_one_denom_tac ctxt = CSUBGOAL (fn (P, i) =>
           ctxt addsimps @{thms field_simps}
           addsimps [@{thm nonzero_power_divide}, @{thm power_divide}]
         val th =
-          instantiate' [] [SOME d, SOME (Thm.dest_arg P)]
+          Thm.instantiate' [] [SOME d, SOME (Thm.dest_arg P)]
             (if ord then @{lemma "(d=0 --> P) & (d>0 --> P) & (d<(0::real) --> P) ==> P" by auto}
              else @{lemma "(d=0 --> P) & (d ~= (0::real) --> P) ==> P" by blast})
       in resolve_tac ctxt [th] i THEN Simplifier.asm_full_simp_tac simp_ctxt i end));

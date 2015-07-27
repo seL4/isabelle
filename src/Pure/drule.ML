@@ -24,7 +24,6 @@ sig
     thm -> thm
   val infer_instantiate_types: Proof.context -> ((indexname * typ) * cterm) list -> thm -> thm
   val infer_instantiate: Proof.context -> (indexname * cterm) list -> thm -> thm
-  val instantiate': ctyp option list -> cterm option list -> thm -> thm
   val infer_instantiate': Proof.context -> cterm option list -> thm -> thm
   val zero_var_indexes_list: thm list -> thm list
   val zero_var_indexes: thm -> thm
@@ -797,26 +796,6 @@ fun infer_instantiate _ [] th = th
         val args' = args |> map_filter (fn (xi, cu) =>
           AList.lookup (op =) vars xi |> Option.map (fn T => ((xi, T), cu)));
       in infer_instantiate_types ctxt args' th end;
-
-
-(* instantiate by left-to-right occurrence of variables *)
-
-fun instantiate' cTs cts thm =
-  let
-    fun err msg =
-      raise TYPE ("instantiate': " ^ msg,
-        map_filter (Option.map Thm.typ_of) cTs,
-        map_filter (Option.map Thm.term_of) cts);
-
-    fun zip_vars xs ys =
-      zip_options xs ys handle ListPair.UnequalLengths =>
-        err "more instantiations than variables in thm";
-
-    val thm' =
-      Thm.instantiate ((zip_vars (rev (Thm.fold_terms Term.add_tvars thm [])) cTs), []) thm;
-    val thm'' =
-      Thm.instantiate ([], zip_vars (rev (Thm.fold_terms Term.add_vars thm' [])) cts) thm';
-  in thm'' end;
 
 fun infer_instantiate' ctxt args th =
   let

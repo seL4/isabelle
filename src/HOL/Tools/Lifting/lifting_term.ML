@@ -409,7 +409,7 @@ fun prove_param_quot_thm ctxt ty =
       then 
         let 
           val instantiated_id_quot_thm =
-            instantiate' [SOME (Thm.ctyp_of ctxt ty)] [] @{thm identity_quotient}
+            Thm.instantiate' [SOME (Thm.ctyp_of ctxt ty)] [] @{thm identity_quotient}
         in
           (instantiated_id_quot_thm, (table, ctxt)) 
         end

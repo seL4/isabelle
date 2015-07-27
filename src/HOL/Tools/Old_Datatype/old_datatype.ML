@@ -397,7 +397,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
     (* prove  inj Rep_dt_i  and  Rep_dt_i x : rep_set_dt_i *)
 
     val fun_congs =
-      map (fn T => make_elim (Drule.instantiate' [SOME (Thm.global_ctyp_of thy5 T)] [] fun_cong)) branchTs;
+      map (fn T => make_elim (Thm.instantiate' [SOME (Thm.global_ctyp_of thy5 T)] [] fun_cong)) branchTs;
 
     fun prove_iso_thms ds (inj_thms, elem_thms) =
       let

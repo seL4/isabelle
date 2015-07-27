@@ -371,7 +371,7 @@ fun mk_uniqueness_case ctxt
 
     val exactly_one =
       @{thm ex1I}
-      |> instantiate'
+      |> Thm.instantiate'
           [SOME (Thm.ctyp_of ctxt ranT)]
           [SOME P2, SOME (Thm.cterm_of ctxt rhsC)]
       |> curry (op COMP) existence
@@ -407,7 +407,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
     val ihyp_thm = Thm.assume ihyp |> Thm.forall_elim_vars 0
     val ih_intro = ihyp_thm RS (f_def RS ex1_implies_ex)
     val ih_elim = ihyp_thm RS (f_def RS ex1_implies_un)
-      |> instantiate' [] [NONE, SOME (Thm.cterm_of ctxt h)]
+      |> Thm.instantiate' [] [NONE, SOME (Thm.cterm_of ctxt h)]
 
     val _ = trace_msg (K "Proving Replacement lemmas...")
     val repLemmas = map (mk_replacement_lemma ctxt h ih_elim) clauses
@@ -694,7 +694,7 @@ fun mk_partial_induct_rule ctxt globals R complete_thm clauses =
       |> Thm.forall_elim (Thm.cterm_of ctxt acc_R)
       |> assume_tac ctxt 1 |> Seq.hd
       |> (curry op COMP) (acc_downward
-        |> (instantiate' [SOME (Thm.ctyp_of ctxt domT)] (map (SOME o Thm.cterm_of ctxt) [R, x, z]))
+        |> (Thm.instantiate' [SOME (Thm.ctyp_of ctxt domT)] (map (SOME o Thm.cterm_of ctxt) [R, x, z]))
         |> Thm.forall_intr (Thm.cterm_of ctxt z)
         |> Thm.forall_intr (Thm.cterm_of ctxt x))
       |> Thm.forall_intr (Thm.cterm_of ctxt a)

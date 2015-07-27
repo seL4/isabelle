@@ -197,13 +197,13 @@ fun perm_compose_simproc' ctxt redex =
     in
       if pi1 <> pi2 then  (* only apply the composition rule in this case *)
         if T = U then    
-          SOME (Drule.instantiate'
+          SOME (Thm.instantiate'
             [SOME (Thm.global_ctyp_of thy (fastype_of t))]
             [SOME (Thm.global_cterm_of thy pi1), SOME (Thm.global_cterm_of thy pi2), SOME (Thm.global_cterm_of thy t)]
             (mk_meta_eq ([Global_Theory.get_thm thy ("pt_"^tname'^"_inst"),
              Global_Theory.get_thm thy ("at_"^tname'^"_inst")] MRS pt_perm_compose_aux)))
         else
-          SOME (Drule.instantiate'
+          SOME (Thm.instantiate'
             [SOME (Thm.global_ctyp_of thy (fastype_of t))]
             [SOME (Thm.global_cterm_of thy pi1), SOME (Thm.global_cterm_of thy pi2), SOME (Thm.global_cterm_of thy t)]
             (mk_meta_eq (Global_Theory.get_thm thy ("cp_"^tname'^"_"^uname'^"_inst") RS 

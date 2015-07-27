@@ -218,7 +218,7 @@ fun dest_funcT cT =
 fun Rel_conv ct =
   let val (cT, cT') = dest_funcT (Thm.ctyp_of_cterm ct)
       val (cU, _) = dest_funcT cT'
-  in Drule.instantiate' [SOME cT, SOME cU] [SOME ct] Rel_rule end
+  in Thm.instantiate' [SOME cT, SOME cU] [SOME ct] Rel_rule end
 
 (* Conversion to preprocess a transfer rule *)
 fun safe_Rel_conv ct =
@@ -463,7 +463,7 @@ fun transfer_rule_of_terms (prj : typ * typ -> typ) ctxt tab t u =
             val (a2, (b2, _)) = apsnd dest_funcT (dest_funcT (Thm.ctyp_of_cterm r2))
             val tinsts = [SOME a1, SOME b1, SOME a2, SOME b2]
             val insts = [SOME (Thm.dest_arg r1), SOME (Thm.dest_arg r2)]
-            val rule = Drule.instantiate' tinsts insts @{thm Rel_abs}
+            val rule = Thm.instantiate' tinsts insts @{thm Rel_abs}
             val thm2 = Thm.forall_intr x (Thm.forall_intr y (Thm.implies_intr cprop thm1))
           in
             (thm2 COMP rule, hyps)

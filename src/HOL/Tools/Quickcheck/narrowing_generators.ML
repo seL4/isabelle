@@ -80,7 +80,7 @@ fun mk_partial_term_of_eq thy ty (i, (c, (_, tys))) =
     val cty = Thm.global_ctyp_of thy ty;
   in
     @{thm partial_term_of_anything}
-    |> Drule.instantiate' [SOME cty] insts
+    |> Thm.instantiate' [SOME cty] insts
     |> Thm.varifyT_global
   end
 
@@ -99,7 +99,7 @@ fun add_partial_term_of_code tyco raw_vs raw_cs thy =
           @{term "Code_Evaluation.Free (STR ''_'')"} $ HOLogic.mk_typerep ty];
     val var_eq =
       @{thm partial_term_of_anything}
-      |> Drule.instantiate' [SOME (Thm.global_ctyp_of thy ty)] var_insts
+      |> Thm.instantiate' [SOME (Thm.global_ctyp_of thy ty)] var_insts
       |> Thm.varifyT_global
     val eqs = var_eq :: map_index (mk_partial_term_of_eq thy ty) cs;
  in

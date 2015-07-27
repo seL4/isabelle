@@ -21,10 +21,10 @@ val dest_set =
 
 fun prove_finite cT u =
   let
-    val [th0, th1] = map (instantiate' [SOME cT] []) @{thms finite.intros}
+    val [th0, th1] = map (Thm.instantiate' [SOME cT] []) @{thms finite.intros}
     fun ins x th =
       Thm.implies_elim
-        (instantiate' [] [(SOME o Thm.dest_arg o Thm.dest_arg) (Thm.cprop_of th), SOME x] th1) th
+        (Thm.instantiate' [] [(SOME o Thm.dest_arg o Thm.dest_arg) (Thm.cprop_of th), SOME x] th1) th
   in fold ins u th0 end;
 
 fun simp_rule ctxt =
@@ -39,7 +39,7 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
         val p = Thm.dest_arg ep
         val ths =
           simplify (put_simpset HOL_basic_ss ctxt addsimps gather)
-            (instantiate' [] [SOME p] stupid)
+            (Thm.instantiate' [] [SOME p] stupid)
         val (L, U) =
           let val (_, q) = Thm.dest_abs NONE (Thm.dest_arg (Thm.rhs_of ths))
           in (Thm.dest_arg1 q |> Thm.dest_arg1, Thm.dest_arg q |> Thm.dest_arg1) end
@@ -47,7 +47,7 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
           let
             val (a, A) = Thm.dest_comb S |>> Thm.dest_arg
             val cT = Thm.ctyp_of_cterm a
-            val ne = instantiate' [SOME cT] [SOME a, SOME A] @{thm insert_not_empty}
+            val ne = Thm.instantiate' [SOME cT] [SOME a, SOME A] @{thm insert_not_empty}
             val f = prove_finite cT (dest_set S)
          in (ne, f) end
 
@@ -114,7 +114,7 @@ fun conj_aci_rule eq =
     val rr = Thm.dest_arg r
     val thl  = prove_conj tabl (conjuncts rr) |> Drule.implies_intr_hyps
     val thr  = prove_conj tabr (conjuncts ll) |> Drule.implies_intr_hyps
-    val eqI = instantiate' [] [SOME ll, SOME rr] @{thm iffI}
+    val eqI = Thm.instantiate' [] [SOME ll, SOME rr] @{thm iffI}
   in Thm.implies_elim (Thm.implies_elim eqI thl) thr |> mk_meta_eq end;
 
 fun contains x ct =
@@ -230,7 +230,7 @@ fun dlo_conv ctxt tm =
 
 fun generalize_tac f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
   let
-    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "Pure.all"}
+    fun all T = Drule.cterm_rule (Thm.instantiate' [SOME T] []) @{cpat "Pure.all"}
     fun gen x t = Thm.apply (all (Thm.ctyp_of_cterm x)) (Thm.lambda x t)
     val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (Thm.term_of a, Thm.term_of b)) (f p)
     val p' = fold_rev gen ts p

@@ -99,7 +99,7 @@ fun calculate_inst ctxt ball_bex_thm redex R1 R2 =
     val ty_inst = map (SOME o Thm.ctyp_of ctxt) [domain_type (fastype_of R2)]
     val trm_inst = map (SOME o Thm.cterm_of ctxt) [R2, R1]
   in
-    (case try (Drule.instantiate' ty_inst trm_inst) ball_bex_thm of
+    (case try (Thm.instantiate' ty_inst trm_inst) ball_bex_thm of
       NONE => NONE
     | SOME thm' =>
         (case try (get_match_inst thy (get_lhs thm')) redex of
@@ -198,7 +198,7 @@ fun quot_true_simple_conv ctxt fnctn ctrm =
         val cfx = Thm.cterm_of ctxt fx;
         val cxt = Thm.ctyp_of ctxt (fastype_of x);
         val cfxt = Thm.ctyp_of ctxt (fastype_of fx);
-        val thm = Drule.instantiate' [SOME cxt, SOME cfxt] [SOME cx, SOME cfx] @{thm QT_imp}
+        val thm = Thm.instantiate' [SOME cxt, SOME cfxt] [SOME cx, SOME cfx] @{thm QT_imp}
       in
         Conv.rewr_conv thm ctrm
       end)
@@ -247,7 +247,7 @@ val apply_rsp_tac =
               val ty_f = range_type (fastype_of f)
               val ty_inst = map (SOME o Thm.ctyp_of ctxt) [ty_x, ty_b, ty_f]
               val t_inst = map (SOME o Thm.cterm_of ctxt) [R2, f, g, x, y];
-              val inst_thm = Drule.instantiate' ty_inst
+              val inst_thm = Thm.instantiate' ty_inst
                 ([NONE, NONE, NONE] @ t_inst) @{thm apply_rspQ3}
             in
               (resolve_tac ctxt [inst_thm] THEN' SOLVED' (quotient_tac ctxt)) 1
@@ -264,7 +264,7 @@ fun equals_rsp_tac R ctxt =
       let
         val ty = domain_type (fastype_of R)
       in
-        case try (Drule.instantiate' [SOME (Thm.ctyp_of ctxt ty)]
+        case try (Thm.instantiate' [SOME (Thm.ctyp_of ctxt ty)]
             [SOME (Thm.cterm_of ctxt R)]) @{thm equals_rsp} of
           SOME thm => resolve_tac ctxt [thm] THEN' quotient_tac ctxt
         | NONE => K no_tac
@@ -281,7 +281,7 @@ fun rep_abs_rsp_tac ctxt =
         in
           case try (map (SOME o Thm.cterm_of ctxt)) [rel, abs, rep] of
             SOME t_inst =>
-              (case try (Drule.instantiate' ty_inst t_inst) @{thm rep_abs_rsp} of
+              (case try (Thm.instantiate' ty_inst t_inst) @{thm rep_abs_rsp} of
                 SOME inst_thm => (resolve_tac ctxt [inst_thm] THEN' quotient_tac ctxt) i
               | NONE => no_tac)
           | NONE => no_tac
@@ -468,7 +468,7 @@ fun lambda_prs_simple_conv ctxt ctrm =
         val (ty_c, ty_d) = dest_funT (fastype_of a2)
         val tyinst = map (SOME o Thm.ctyp_of ctxt) [ty_a, ty_b, ty_c, ty_d]
         val tinst = [NONE, NONE, SOME (Thm.cterm_of ctxt r1), NONE, SOME (Thm.cterm_of ctxt a2)]
-        val thm1 = Drule.instantiate' tyinst tinst @{thm lambda_prs[THEN eq_reflection]}
+        val thm1 = Thm.instantiate' tyinst tinst @{thm lambda_prs[THEN eq_reflection]}
         val thm2 = solve_quotient_assm ctxt (solve_quotient_assm ctxt thm1)
         val thm3 = rewrite_rule ctxt @{thms id_apply[THEN eq_reflection]} thm2
         val (insp, inst) =
@@ -529,7 +529,7 @@ fun clean_tac ctxt =
 (* Tactic for Generalising Free Variables in a Goal *)
 
 fun inst_spec ctrm =
-  Drule.instantiate' [SOME (Thm.ctyp_of_cterm ctrm)] [NONE, SOME ctrm] @{thm spec}
+  Thm.instantiate' [SOME (Thm.ctyp_of_cterm ctrm)] [NONE, SOME ctrm] @{thm spec}
 
 fun inst_spec_tac ctxt ctrms =
   EVERY' (map (dresolve_tac ctxt o single o inst_spec) ctrms)
@@ -602,7 +602,7 @@ fun procedure_inst ctxt rtrm qtrm =
     val inj_goal = Quotient_Term.inj_repabs_trm_chk ctxt (reg_goal, qtrm')
       handle Quotient_Term.LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
   in
-    Drule.instantiate' []
+    Thm.instantiate' []
       [SOME (Thm.cterm_of ctxt rtrm'),
        SOME (Thm.cterm_of ctxt reg_goal),
        NONE,
@@ -661,7 +661,7 @@ fun partiality_procedure_inst ctxt rtrm qtrm =
     val inj_goal = Quotient_Term.inj_repabs_trm_chk ctxt (reg_goal, qtrm')
       handle Quotient_Term.LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
   in
-    Drule.instantiate' []
+    Thm.instantiate' []
       [SOME (Thm.cterm_of ctxt reg_goal),
        NONE,
        SOME (Thm.cterm_of ctxt inj_goal)] partiality_procedure_thm

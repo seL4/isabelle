@@ -42,7 +42,7 @@ fun strong_ind_simproc tab =
     let
       fun close p t f =
         let val vs = Term.add_vars t []
-        in Drule.instantiate' [] (rev (map (SOME o Thm.cterm_of ctxt o Var) vs))
+        in Thm.instantiate' [] (rev (map (SOME o Thm.cterm_of ctxt o Var) vs))
           (p (fold (Logic.all o Var) vs t) f)
         end;
       fun mkop @{const_name HOL.conj} T x =
