@@ -367,9 +367,12 @@ fun forall_intr_frees th =
     val thy = Thm.theory_of_thm th;
     val {prop, hyps, tpairs, ...} = Thm.rep_thm th;
     val fixed = fold Term.add_frees (Thm.terms_of_tpairs tpairs @ hyps) [];
-    val frees = Term.fold_aterms (fn Free v =>
-      if member (op =) fixed v then I else insert (op =) v | _ => I) prop [];
-  in fold (Thm.forall_intr o Thm.global_cterm_of thy o Free) frees th end;
+    val frees =
+      Thm.fold_atomic_cterms (fn a =>
+        (case Thm.term_of a of
+          Free v => not (member (op =) fixed v) ? insert (op aconvc) a
+        | _ => I)) th [];
+  in fold Thm.forall_intr frees th end;
 
 
 (* unvarify_global: global schematic variables *)
