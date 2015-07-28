@@ -501,7 +501,7 @@ fun conclude_goal ctxt goal propss =
       (Goal.conclude (if length (flat propss) > 1 then Thm.close_derivation goal else goal)
         handle THM _ => err_lost ())
       |> Drule.flexflex_unique (SOME ctxt)
-      |> Thm.check_shyps (Variable.sorts_of ctxt)
+      |> Thm.check_shyps ctxt (Variable.sorts_of ctxt)
       |> Thm.check_hyps (Context.Proof ctxt);
 
     val goal_propss = filter_out null propss;
