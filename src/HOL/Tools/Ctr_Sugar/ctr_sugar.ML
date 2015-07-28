@@ -800,7 +800,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
               fun make_sel_thm xs' case_thm sel_def =
                 zero_var_indexes
-                  (Drule.gen_all (Variable.maxidx_of lthy)
+                  (Variable.gen_all lthy
                     (Drule.rename_bvars'
                       (map (SOME o fst) xs')
                       (Drule.forall_intr_vars (case_thm RS (sel_def RS trans)))));

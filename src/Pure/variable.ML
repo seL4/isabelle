@@ -59,6 +59,7 @@ sig
   val fix_dummy_patterns: term -> Proof.context -> term * Proof.context
   val variant_fixes: string list -> Proof.context -> string list * Proof.context
   val dest_fixes: Proof.context -> (string * string) list
+  val gen_all: Proof.context -> thm -> thm
   val export_terms: Proof.context -> Proof.context -> term list -> term list
   val exportT_terms: Proof.context -> Proof.context -> term list -> term list
   val exportT: Proof.context -> Proof.context -> thm list -> thm list
@@ -496,6 +497,8 @@ fun fix_dummy_patterns (Const ("Pure.dummy_pattern", T)) ctxt =
 
 
 (** export -- generalize type/term variables (beware of closure sizes) **)
+
+fun gen_all ctxt = Drule.gen_all (Proof_Context.theory_of ctxt) (maxidx_of ctxt);
 
 fun export_inst inner outer =
   let

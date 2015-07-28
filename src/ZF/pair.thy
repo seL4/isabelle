@@ -12,8 +12,7 @@ ML_file "simpdata.ML"
 
 setup \<open>
   map_theory_simpset
-    (Simplifier.set_mksimps (fn ctxt =>
-        map mk_eq o ZF_atomize o Drule.gen_all (Variable.maxidx_of ctxt))
+    (Simplifier.set_mksimps (fn ctxt => map mk_eq o ZF_atomize o Variable.gen_all ctxt)
       #> Simplifier.add_cong @{thm if_weak_cong})
 \<close>
 

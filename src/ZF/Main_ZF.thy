@@ -72,7 +72,7 @@ by (rule transrec3_def [THEN def_transrec, THEN trans], force)
 
 declaration \<open>fn _ =>
   Simplifier.map_ss (Simplifier.set_mksimps (fn ctxt =>
-    map mk_eq o Ord_atomize o Drule.gen_all (Variable.maxidx_of ctxt)))
+    map mk_eq o Ord_atomize o Variable.gen_all ctxt))
 \<close>
 
 end

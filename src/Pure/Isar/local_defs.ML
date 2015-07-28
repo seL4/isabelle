@@ -131,6 +131,8 @@ fun fixed_abbrev ((x, mx), rhs) ctxt =
 *)
 fun export inner outer =    (*beware of closure sizes*)
   let
+    val thy = Proof_Context.theory_of inner;
+    val maxidx0 = Variable.maxidx_of outer;
     val exp = Assumption.export false inner outer;
     val exp_term = Assumption.export_term inner outer;
     val asms = Assumption.local_assms_of inner outer;
@@ -149,7 +151,7 @@ fun export inner outer =    (*beware of closure sizes*)
                     NONE => (asm, false)
                   | SOME u =>
                       if t aconv u then (asm, false)
-                      else (Drule.abs_def (Drule.gen_all (Variable.maxidx_of outer) asm), true))
+                      else (Drule.abs_def (Drule.gen_all thy maxidx0 asm), true))
                 end)));
       in (apply2 (map #1) (List.partition #2 defs_asms), th') end
   end;
