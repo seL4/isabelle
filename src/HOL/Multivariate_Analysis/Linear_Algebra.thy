@@ -1203,7 +1203,7 @@ next
     show ?lhs
       using i False
       apply (auto simp add: dependent_def)
-      by (metis in_span_insert insert_Diff insert_Diff_if insert_iff)
+      by (metis in_span_insert insert_Diff_if insert_Diff_single insert_absorb)
   qed
 qed
 

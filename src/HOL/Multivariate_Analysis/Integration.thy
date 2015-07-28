@@ -10,17 +10,18 @@ imports
   "~~/src/HOL/Library/Indicator_Function"
 begin
 
-lemma cSup_abs_le: (* TODO: is this really needed? *)
+lemma cSup_abs_le: (* TODO: move to Conditionally_Complete_Lattices.thy? *)
   fixes S :: "real set"
-  shows "S \<noteq> {} \<Longrightarrow> (\<forall>x\<in>S. \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Sup S\<bar> \<le> a"
+  shows "S \<noteq> {} \<Longrightarrow> (\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Sup S\<bar> \<le> a"
   by (auto simp add: abs_le_interval_iff intro: cSup_least) (metis cSup_upper2 bdd_aboveI)
 
-lemma cInf_abs_ge: (* TODO: is this really needed? *)
+lemma cInf_abs_ge: 
   fixes S :: "real set"
-  shows "S \<noteq> {} \<Longrightarrow> (\<forall>x\<in>S. \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Inf S\<bar> \<le> a"
-  by (simp add: Inf_real_def) (insert cSup_abs_le [of "uminus ` S"], auto)
+  shows "S \<noteq> {} \<Longrightarrow> (\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Inf S\<bar> \<le> a"
+  using cSup_abs_le [of "uminus ` S"]
+  by (fastforce simp add: Inf_real_def)
 
-lemma cSup_asclose: (* TODO: is this really needed? *)
+lemma cSup_asclose:
   fixes S :: "real set"
   assumes S: "S \<noteq> {}"
     and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e"
@@ -34,7 +35,7 @@ proof -
     unfolding th by (auto intro!: cSup_upper2 cSup_least)
 qed
 
-lemma cInf_asclose: (* TODO: is this really needed? *)
+lemma cInf_asclose:
   fixes S :: "real set"
   assumes S: "S \<noteq> {}"
     and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e"
@@ -4931,11 +4932,10 @@ proof -
     from p(4)[unfolded xk, OF insertI1] guess u v by (elim exE) note uv=this
 
     have "finite {k. \<exists>x. (x, k) \<in> p}"
-      apply (rule finite_subset[of _ "snd ` p"],rule)
-      unfolding subset_eq image_iff mem_Collect_eq
-      apply (erule exE)
-      apply (rule_tac x="(xa,x)" in bexI)
+      apply (rule finite_subset[of _ "snd ` p"])
       using p
+      apply safe
+      apply (metis image_iff snd_conv)
       apply auto
       done
     then have int: "interior (cbox u v) \<inter> interior (\<Union>{k. \<exists>x. (x, k) \<in> p}) = {}"
@@ -4978,7 +4978,7 @@ proof -
         apply rule
         apply rule
         apply (erule insertE)
-        defer
+        apply (simp add: uv xk)
         apply (rule UnI2)
         apply (drule q1(3)[rule_format])
         unfolding xk uv
@@ -5002,7 +5002,7 @@ proof -
         apply rule
         apply (erule insertE)
         apply (rule UnI2)
-        defer
+        apply (simp add: False uv xk)
         apply (drule q1(3)[rule_format])
         using False
         unfolding xk uv
@@ -11771,7 +11771,9 @@ proof -
         prefer 5 unfolding real_norm_def
         apply rule
         apply (rule cSup_abs_le)
-        prefer 5
+        using assms
+        apply (force simp add: )
+        prefer 4
         apply rule
         apply (rule_tac g=h in absolutely_integrable_integrable_bound)
         using assms
