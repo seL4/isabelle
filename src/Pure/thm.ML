@@ -69,6 +69,7 @@ sig
     tpairs: (cterm * cterm) list,
     prop: cterm}
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_atomic_cterms: (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
   val theory_of_thm: thm -> theory
@@ -365,6 +366,15 @@ fun crep_thm (Thm (_, {thy, tags, maxidx, shyps, hyps, tpairs, prop})) =
 
 fun fold_terms f (Thm (_, {tpairs, prop, hyps, ...})) =
   fold (fn (t, u) => f t #> f u) tpairs #> f prop #> fold f hyps;
+
+fun fold_atomic_cterms f (th as Thm (_, {thy, maxidx, shyps, ...})) =
+  let fun cterm t T = Cterm {thy = thy, t = t, T = T, maxidx = maxidx, sorts = shyps} in
+    (fold_terms o fold_aterms)
+      (fn t as Const (_, T) => f (cterm t T)
+        | t as Free (_, T) => f (cterm t T)
+        | t as Var (_, T) => f (cterm t T)
+        | _ => I) th
+  end;
 
 fun terms_of_tpairs tpairs = fold_rev (fn (t, u) => cons t o cons u) tpairs [];
 

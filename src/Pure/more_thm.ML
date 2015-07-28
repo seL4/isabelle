@@ -21,7 +21,8 @@ sig
   structure Ctermtab: TABLE
   structure Thmtab: TABLE
   val aconvc: cterm * cterm -> bool
-  val add_cterm_frees: cterm -> cterm list -> cterm list
+  val add_frees: thm -> cterm list -> cterm list
+  val add_vars: thm -> cterm list -> cterm list
   val all_name: string * cterm -> cterm -> cterm
   val all: cterm -> cterm -> cterm
   val mk_binop: cterm -> cterm -> cterm -> cterm
@@ -39,10 +40,10 @@ sig
   val eq_thm: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
   val eq_thm_strict: thm * thm -> bool
-  val equiv_thm: thm * thm -> bool
+  val equiv_thm: theory -> thm * thm -> bool
   val class_triv: theory -> class -> thm
   val of_sort: ctyp * sort -> thm list
-  val check_shyps: sort list -> thm -> thm
+  val check_shyps: Proof.context -> sort list -> thm -> thm
   val is_dummy: thm -> bool
   val plain_prop_of: thm -> term
   val add_thm: thm -> thm list -> thm list
@@ -62,7 +63,8 @@ sig
   val forall_elim_vars: int -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
   val forall_intr_frees: thm -> thm
-  val unvarify_global: thm -> thm
+  val unvarify_global: theory -> thm -> thm
+  val unvarify_axiom: theory -> string -> thm
   val close_derivation: thm -> thm
   val rename_params_rule: string list * int -> thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
@@ -112,13 +114,8 @@ struct
 
 val op aconvc = op aconv o apply2 Thm.term_of;
 
-fun add_cterm_frees ct =
-  let
-    val thy = Thm.theory_of_cterm ct;
-    val t = Thm.term_of ct;
-  in
-    Term.fold_aterms (fn v as Free _ => insert (op aconvc) (Thm.global_cterm_of thy v) | _ => I) t
-  end;
+val add_frees = Thm.fold_atomic_cterms (fn a => is_Free (Thm.term_of a) ? insert (op aconvc) a);
+val add_vars = Thm.fold_atomic_cterms (fn a => is_Var (Thm.term_of a) ? insert (op aconvc) a);
 
 
 (* cterm constructors and destructors *)
@@ -209,8 +206,8 @@ fun eq_thm_strict ths =
 
 (* pattern equivalence *)
 
-fun equiv_thm ths =
-  Pattern.equiv (Theory.merge (apply2 Thm.theory_of_thm ths)) (apply2 Thm.full_prop_of ths);
+fun equiv_thm thy ths =
+  Pattern.equiv thy (apply2 (Thm.full_prop_of o Thm.transfer thy) ths);
 
 
 (* type classes and sorts *)
@@ -220,15 +217,14 @@ fun class_triv thy c =
 
 fun of_sort (T, S) = map (fn c => Thm.of_class (T, c)) S;
 
-fun check_shyps sorts raw_th =
+fun check_shyps ctxt sorts raw_th =
   let
     val th = Thm.strip_shyps raw_th;
-    val prt_sort = Syntax.pretty_sort_global (Thm.theory_of_thm th);
     val pending = Sorts.subtract sorts (Thm.extra_shyps th);
   in
     if null pending then th
     else error (Pretty.string_of (Pretty.block (Pretty.str "Pending sort hypotheses:" ::
-      Pretty.brk 1 :: Pretty.commas (map prt_sort pending))))
+      Pretty.brk 1 :: Pretty.commas (map (Syntax.pretty_sort ctxt) pending))))
   end;
 
 
@@ -369,20 +365,20 @@ fun instantiate' cTs cts thm =
 
 fun forall_intr_frees th =
   let
-    val thy = Thm.theory_of_thm th;
     val {prop, hyps, tpairs, ...} = Thm.rep_thm th;
     val fixed = fold Term.add_frees (Thm.terms_of_tpairs tpairs @ hyps) [];
-    val frees = Term.fold_aterms (fn Free v =>
-      if member (op =) fixed v then I else insert (op =) v | _ => I) prop [];
-  in fold (Thm.forall_intr o Thm.global_cterm_of thy o Free) frees th end;
+    val frees =
+      Thm.fold_atomic_cterms (fn a =>
+        (case Thm.term_of a of
+          Free v => not (member (op =) fixed v) ? insert (op aconvc) a
+        | _ => I)) th [];
+  in fold Thm.forall_intr frees th end;
 
 
 (* unvarify_global: global schematic variables *)
 
-fun unvarify_global th =
+fun unvarify_global thy th =
   let
-    val thy = Thm.theory_of_thm th;
-
     val prop = Thm.full_prop_of th;
     val _ = map Logic.unvarify_global (prop :: Thm.hyps_of th)
       handle TERM (msg, _) => raise THM (msg, 0, [th]);
@@ -392,6 +388,8 @@ fun unvarify_global th =
       let val T' = Term_Subst.instantiateT instT T
       in (((a, i), T'), Thm.global_cterm_of thy (Free ((a, T')))) end);
   in Thm.instantiate (map (apsnd (Thm.global_ctyp_of thy)) instT, inst) th end;
+
+fun unvarify_axiom thy = unvarify_global thy o Thm.axiom thy;
 
 
 (* close_derivation *)
@@ -462,7 +460,7 @@ fun add_axiom ctxt (b, prop) thy =
     val axm' = Thm.axiom thy' axm_name;
     val thm =
       Thm.instantiate (recover, []) axm'
-      |> unvarify_global
+      |> unvarify_global thy'
       |> fold elim_implies of_sorts;
   in ((axm_name, thm), thy') end;
 
@@ -479,7 +477,7 @@ fun add_def ctxt unchecked overloaded (b, prop) thy =
     val axm' = Thm.axiom thy' axm_name;
     val thm =
       Thm.instantiate (recover, []) axm'
-      |> unvarify_global
+      |> unvarify_global thy'
       |> fold_rev Thm.implies_intr prems;
   in ((axm_name, thm), thy') end;
 

@@ -178,7 +178,7 @@ fun process_spec cos alt_props thy =
           else ()
       in
         arg
-        |> apsnd Thm.unvarify_global
+        |> apsnd (Thm.unvarify_global thy)
         |> process_all (zip3 alt_names rew_imps frees)
       end
 

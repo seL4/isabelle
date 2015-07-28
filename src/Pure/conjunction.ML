@@ -76,8 +76,7 @@ val ABC = read_prop "A ==> B ==> C";
 val A_B = read_prop "A &&& B";
 
 val conjunction_def =
-  Thm.unvarify_global
-    (Thm.axiom (Context.the_theory (Context.the_thread_data ())) "Pure.conjunction_def");
+  Thm.unvarify_axiom (Context.the_theory (Context.the_thread_data ())) "Pure.conjunction_def";
 
 fun conjunctionD which =
   Drule.implies_intr_list [A, B] (Thm.assume (which (A, B))) COMP
@@ -138,8 +137,13 @@ fun elim_balanced 0 _ = []
 
 local
 
-fun conjs thy n =
-  let val As = map (fn A => Thm.global_cterm_of thy (Free (A, propT))) (Name.invent Name.context "A" n)
+val bootstrap_thy = Context.theory_of (Context.the_thread_data ());
+
+fun conjs n =
+  let
+    val As =
+      map (fn A => Thm.global_cterm_of bootstrap_thy (Free (A, propT)))
+        (Name.invent Name.context "A" n);
   in (As, mk_conjunction_balanced As) end;
 
 val B = read_prop "B";
@@ -159,8 +163,7 @@ fun curry_balanced n th =
   if n < 2 then th
   else
     let
-      val thy = Thm.theory_of_thm th;
-      val (As, C) = conjs thy n;
+      val (As, C) = conjs n;
       val D = Drule.mk_implies (C, B);
     in
       comp_rule th
@@ -177,8 +180,7 @@ fun uncurry_balanced n th =
   if n < 2 then th
   else
     let
-      val thy = Thm.theory_of_thm th;
-      val (As, C) = conjs thy n;
+      val (As, C) = conjs n;
       val D = Drule.list_implies (As, B);
     in
       comp_rule th

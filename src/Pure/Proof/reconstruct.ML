@@ -10,7 +10,7 @@ sig
   val reconstruct_proof : theory -> term -> Proofterm.proof -> Proofterm.proof
   val prop_of' : term list -> Proofterm.proof -> term
   val prop_of : Proofterm.proof -> term
-  val proof_of : thm -> Proofterm.proof
+  val proof_of : theory -> thm -> Proofterm.proof
   val expand_proof : theory -> (string * term option) list ->
     Proofterm.proof -> Proofterm.proof
 end;
@@ -324,8 +324,9 @@ fun prop_of0 Hs (PBound i) = nth Hs i
 val prop_of' = Envir.beta_eta_contract oo prop_of0;
 val prop_of = prop_of' [];
 
-fun proof_of thm =
-  reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
+fun proof_of thy raw_thm =
+  let val thm = Thm.transfer thy raw_thm
+  in reconstruct_proof thy (Thm.prop_of thm) (Thm.proof_of thm) end;
 
 
 

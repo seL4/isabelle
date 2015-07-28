@@ -203,7 +203,7 @@ fun rulify_tac ctxt = rewrite_goal_tac ctxt (get_rulify ctxt);
 
 fun gen_rulify full ctxt =
   Conv.fconv_rule (Raw_Simplifier.rewrite ctxt full (get_rulify ctxt))
-  #> Drule.gen_all (Variable.maxidx_of ctxt)
+  #> Variable.gen_all ctxt
   #> Thm.strip_shyps
   #> Drule.zero_var_indexes;
 

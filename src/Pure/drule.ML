@@ -16,7 +16,6 @@ sig
   val forall_intr_list: cterm list -> thm -> thm
   val forall_intr_vars: thm -> thm
   val forall_elim_list: cterm list -> thm -> thm
-  val gen_all: int -> thm -> thm
   val lift_all: Proof.context -> cterm -> thm -> thm
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
@@ -53,6 +52,7 @@ end;
 signature DRULE =
 sig
   include BASIC_DRULE
+  val outer_params: term -> (string * typ) list
   val generalize: string list * string list -> thm -> thm
   val list_comb: cterm * cterm list -> cterm
   val strip_comb: cterm -> cterm * cterm list
@@ -91,6 +91,8 @@ sig
   val mk_term: cterm -> thm
   val dest_term: thm -> cterm
   val cterm_rule: (thm -> thm) -> cterm -> cterm
+  val cterm_add_frees: cterm -> cterm list -> cterm list
+  val cterm_add_vars: cterm -> cterm list -> cterm list
   val dummy_thm: thm
   val is_sort_constraint: term -> bool
   val sort_constraintI: thm
@@ -174,23 +176,11 @@ fun beta_conv x y =
 val forall_intr_list = fold_rev Thm.forall_intr;
 
 (*Generalization over Vars -- canonical order*)
-fun forall_intr_vars th =
-  fold Thm.forall_intr
-    (map (Thm.global_cterm_of (Thm.theory_of_thm th) o Var) (Thm.fold_terms Term.add_vars th [])) th;
+fun forall_intr_vars th = fold Thm.forall_intr (Thm.add_vars th []) th;
 
 fun outer_params t =
   let val vs = Term.strip_all_vars t
   in Name.variant_list [] (map (Name.clean o #1) vs) ~~ map #2 vs end;
-
-(*generalize outermost parameters*)
-fun gen_all maxidx0 th =
-  let
-    val thy = Thm.theory_of_thm th;
-    val maxidx = Thm.maxidx_thm th maxidx0;
-    val prop = Thm.prop_of th;
-    fun elim (x, T) =
-      Thm.forall_elim (Thm.global_cterm_of thy (Var ((x, maxidx + 1), T)));
-  in fold elim (outer_params prop) th end;
 
 (*lift vars wrt. outermost goal parameters
   -- reverses the effect of gen_all modulo higher-order unification*)
@@ -576,7 +566,7 @@ val remdups_rl =
 
 local
   val A = certify (Free ("A", propT));
-  val axiom = Thm.unvarify_global o Thm.axiom (Context.the_theory (Context.the_thread_data ()));
+  val axiom = Thm.unvarify_axiom (Context.the_theory (Context.the_thread_data ()));
   val prop_def = axiom "Pure.prop_def";
   val term_def = axiom "Pure.term_def";
   val sort_constraint_def = axiom "Pure.sort_constraint_def";
@@ -631,6 +621,9 @@ fun dest_term th =
 
 fun cterm_rule f = dest_term o f o mk_term;
 
+val cterm_add_frees = Thm.add_frees o mk_term;
+val cterm_add_vars = Thm.add_vars o mk_term;
+
 val dummy_thm = mk_term (certify Term.dummy_prop);
 
 
@@ -647,7 +640,7 @@ val sort_constraint_eq =
   store_standard_thm (Binding.concealed (Binding.make ("sort_constraint_eq", @{here})))
     (Thm.equal_intr
       (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA)
-        (Thm.unvarify_global sort_constraintI)))
+        (Thm.unvarify_global (Context.the_theory (Context.the_thread_data ())) sort_constraintI)))
       (implies_intr_list [A, C] (Thm.assume A)));
 
 end;

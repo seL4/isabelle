@@ -112,8 +112,7 @@ fun mk_atomize ctxt pairs =
       end;
   in atoms end;
 
-fun mksimps pairs ctxt =
-  map_filter (try mk_eq) o mk_atomize ctxt pairs o Drule.gen_all (Variable.maxidx_of ctxt);
+fun mksimps pairs ctxt = map_filter (try mk_eq) o mk_atomize ctxt pairs o Variable.gen_all ctxt;
 
 fun unsafe_solver_tac ctxt =
   let

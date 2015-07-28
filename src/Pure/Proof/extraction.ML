@@ -769,9 +769,9 @@ fun extract thm_vss thy =
 
       | extr d vs ts Ts hs _ defs = error "extr: bad proof";
 
-    fun prep_thm vs thm =
+    fun prep_thm vs raw_thm =
       let
-        val thy = Thm.theory_of_thm thm;
+        val thm = Thm.transfer thy raw_thm;
         val prop = Thm.prop_of thm;
         val prf = Thm.proof_of thm;
         val name = Thm.derivation_name thm;

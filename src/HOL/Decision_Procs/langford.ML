@@ -191,7 +191,7 @@ fun raw_dlo_conv ctxt dlo_ss ({qe_bnds, qe_nolb, qe_noub, gst, gs, ...}: Langfor
   in
     fn p =>
       Qelim.gen_qelim_conv pcv pcv dnfex_conv cons
-        (Thm.add_cterm_frees p []) (K Thm.reflexive) (K Thm.reflexive)
+        (Drule.cterm_add_frees p []) (K Thm.reflexive) (K Thm.reflexive)
         (K (basic_dloqe ctxt gst qe_bnds qe_nolb qe_noub gs)) p
   end;
 

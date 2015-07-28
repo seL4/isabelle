@@ -147,6 +147,7 @@ FAILED"; classical_rule will strengthen this to
 fun classical_rule ctxt rule =
   if is_some (Object_Logic.elim_concl ctxt rule) then
     let
+      val thy = Proof_Context.theory_of ctxt;
       val rule' = rule RS Data.classical;
       val concl' = Thm.concl_of rule';
       fun redundant_hyp goal =
@@ -161,7 +162,7 @@ fun classical_rule ctxt rule =
           else all_tac))
         |> Seq.hd
         |> Drule.zero_var_indexes;
-    in if Thm.equiv_thm (rule, rule'') then rule else rule'' end
+    in if Thm.equiv_thm thy (rule, rule'') then rule else rule'' end
   else rule;
 
 (*flatten nested meta connectives in prems*)

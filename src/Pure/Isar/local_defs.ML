@@ -129,30 +129,23 @@ fun fixed_abbrev ((x, mx), rhs) ctxt =
   --------------
        B as
 *)
-fun export inner outer =    (*beware of closure sizes*)
+fun export inner outer th =
   let
-    val exp = Assumption.export false inner outer;
-    val exp_term = Assumption.export_term inner outer;
-    val asms = Assumption.local_assms_of inner outer;
-  in
-    fn th =>
-      let
-        val th' = exp th;
-        val defs_asms = asms
-          |> filter_out (Drule.is_sort_constraint o Thm.term_of)
-          |> map (Thm.assume #> (fn asm =>
-            (case try (head_of_def o Thm.prop_of) asm of
-              NONE => (asm, false)
-            | SOME x =>
-                let val t = Free x in
-                  (case try exp_term t of
-                    NONE => (asm, false)
-                  | SOME u =>
-                      if t aconv u then (asm, false)
-                      else (Drule.abs_def (Drule.gen_all (Variable.maxidx_of outer) asm), true))
-                end)));
-      in (apply2 (map #1) (List.partition #2 defs_asms), th') end
-  end;
+    val defs_asms =
+      Assumption.local_assms_of inner outer
+      |> filter_out (Drule.is_sort_constraint o Thm.term_of)
+      |> map (Thm.assume #> (fn asm =>
+        (case try (head_of_def o Thm.prop_of) asm of
+          NONE => (asm, false)
+        | SOME x =>
+            let val t = Free x in
+              (case try (Assumption.export_term inner outer) t of
+                NONE => (asm, false)
+              | SOME u =>
+                  if t aconv u then (asm, false)
+                  else (Drule.abs_def (Variable.gen_all outer asm), true))
+            end)));
+  in (apply2 (map #1) (List.partition #2 defs_asms), Assumption.export false inner outer th) end;
 
 (*
   [xs, xs == as]

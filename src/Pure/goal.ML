@@ -214,7 +214,7 @@ fun prove_common ctxt fork_pri xs asms props tac =
             val res =
               (finish ctxt' st
                 |> Drule.flexflex_unique (SOME ctxt')
-                |> Thm.check_shyps sorts
+                |> Thm.check_shyps ctxt' sorts
                 |> Thm.check_hyps (Context.Proof ctxt'))
               handle THM (msg, _, _) => err msg | ERROR msg => err msg;
           in

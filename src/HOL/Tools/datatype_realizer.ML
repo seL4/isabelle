@@ -147,7 +147,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
             | _ => AbsP ("H", SOME p, prf)))
           (rec_fns ~~ Thm.prems_of thm)
           (Proofterm.proof_combP
-            (Reconstruct.proof_of thm', map PBound (length prems - 1 downto 0))));
+            (Reconstruct.proof_of thy' thm', map PBound (length prems - 1 downto 0))));
 
     val r' =
       if null is then r
@@ -212,10 +212,10 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
               (AbsP ("H", SOME (Logic.varify_global p), prf)))
           (prems ~~ rs)
           (Proofterm.proof_combP
-            (Reconstruct.proof_of thm', map PBound (length prems - 1 downto 0))));
+            (Reconstruct.proof_of thy' thm', map PBound (length prems - 1 downto 0))));
     val prf' =
       Extraction.abs_corr_shyps thy' exhaust []
-        (map Var (Term.add_vars (Thm.prop_of exhaust) [])) (Reconstruct.proof_of exhaust);
+        (map Var (Term.add_vars (Thm.prop_of exhaust) [])) (Reconstruct.proof_of thy' exhaust);
     val r' =
       Logic.varify_global (Abs ("y", T,
         (fold_rev (Term.abs o dest_Free) rs
