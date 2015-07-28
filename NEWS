@@ -240,6 +240,9 @@ not available during instantiation.
     less_eq_multiset_def
     INCOMPATIBILITY
 
+* Multivariate_Analysis/Cauchy_Integral_Thm: Complex path integrals and Cauchy's integral theorem,
+    ported from HOL Light
+
 * Theory Library/Old_Recdef: discontinued obsolete 'defer_recdef'
 command. Minor INCOMPATIBILITY, use 'function' instead.
 

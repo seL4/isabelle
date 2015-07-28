@@ -809,7 +809,7 @@ lemma atLeastLessThan_nat_numeral:  --\<open>Evaluation for specific numerals\<c
 
 subsubsection \<open>Image\<close>
 
-lemma image_add_atLeastAtMost:
+lemma image_add_atLeastAtMost [simp]:
   fixes k ::"'a::linordered_semidom"
   shows "(\<lambda>n. n+k) ` {i..j} = {i+k..j+k}" (is "?A = ?B")
 proof
@@ -832,6 +832,44 @@ next
     ultimately show "n : ?A" by blast
   qed
 qed
+
+lemma image_diff_atLeastAtMost [simp]:
+  fixes d::"'a::linordered_idom" shows "(op - d ` {a..b}) = {d-b..d-a}"
+  apply auto
+  apply (rule_tac x="d-x" in rev_image_eqI, auto)
+  done
+
+lemma image_mult_atLeastAtMost [simp]:
+  fixes d::"'a::linordered_field"
+  assumes "d>0" shows "(op * d ` {a..b}) = {d*a..d*b}"
+  using assms
+  by (auto simp: field_simps mult_le_cancel_right intro: rev_image_eqI [where x="x/d" for x])
+
+lemma image_affinity_atLeastAtMost:
+  fixes c :: "'a::linordered_field"
+  shows "((\<lambda>x. m*x + c) ` {a..b}) = (if {a..b}={} then {}
+            else if 0 \<le> m then {m*a + c .. m *b + c}
+            else {m*b + c .. m*a + c})"
+  apply (case_tac "m=0", auto simp: mult_le_cancel_left)
+  apply (rule_tac x="inverse m*(x-c)" in rev_image_eqI, auto simp: field_simps)
+  apply (rule_tac x="inverse m*(x-c)" in rev_image_eqI, auto simp: field_simps)
+  done
+
+lemma image_affinity_atLeastAtMost_diff:
+  fixes c :: "'a::linordered_field"
+  shows "((\<lambda>x. m*x - c) ` {a..b}) = (if {a..b}={} then {}
+            else if 0 \<le> m then {m*a - c .. m*b - c}
+            else {m*b - c .. m*a - c})"
+  using image_affinity_atLeastAtMost [of m "-c" a b]
+  by simp
+
+lemma image_affinity_atLeastAtMost_div_diff:
+  fixes c :: "'a::linordered_field"
+  shows "((\<lambda>x. x/m - c) ` {a..b}) = (if {a..b}={} then {}
+            else if 0 \<le> m then {a/m - c .. b/m - c}
+            else {b/m - c .. a/m - c})"
+  using image_affinity_atLeastAtMost_diff [of "inverse m" c a b]
+  by (simp add: field_class.field_divide_inverse algebra_simps)
 
 lemma image_add_atLeastLessThan:
   "(%n::nat. n+k) ` {i..<j} = {i+k..<j+k}" (is "?A = ?B")

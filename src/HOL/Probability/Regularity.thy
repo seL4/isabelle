@@ -192,7 +192,7 @@ proof -
     also have "\<dots> \<le> (\<Sum>n. ereal (e*2 powr - real (Suc n)))"
       using B_compl_le by (intro suminf_le_pos) (simp_all add: measure_nonneg emeasure_eq_measure)
     also have "\<dots> \<le> (\<Sum>n. ereal (e * (1 / 2) ^ Suc n))"
-      by (simp add: powr_minus inverse_eq_divide powr_realpow field_simps power_divide)
+      by (simp add: Transcendental.powr_minus powr_realpow field_simps)
     also have "\<dots> = (\<Sum>n. ereal e * ((1 / 2) ^ Suc n))"
       unfolding times_ereal.simps[symmetric] ereal_power[symmetric] one_ereal_def numeral_eq_ereal
       by simp

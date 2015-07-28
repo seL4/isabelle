@@ -1448,15 +1448,15 @@ lemma powr_nat:
   fixes n::nat and z::complex shows "z powr n = (if z = 0 then 0 else z^n)"
   by (simp add: exp_of_nat_mult powr_def)
 
-lemma powr_add:
+lemma powr_add_complex:
   fixes w::complex shows "w powr (z1 + z2) = w powr z1 * w powr z2"
   by (simp add: powr_def algebra_simps exp_add)
 
-lemma powr_minus:
+lemma powr_minus_complex:
   fixes w::complex shows  "w powr (-z) = inverse(w powr z)"
   by (simp add: powr_def exp_minus)
 
-lemma powr_diff:
+lemma powr_diff_complex:
   fixes w::complex shows  "w powr (z1 - z2) = w powr z1 / w powr z2"
   by (simp add: powr_def algebra_simps exp_diff)
 

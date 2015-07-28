@@ -3554,7 +3554,7 @@ proof -
       using mem_rel_interior[of "a+x" "((\<lambda>x. a + x) ` S)"] by auto
   }
   then show ?thesis by auto
-qed                   
+qed
 
 lemma rel_interior_translation:
   fixes a :: "'n::euclidean_space"
@@ -6317,7 +6317,7 @@ lemma convex_contains_segment:
 
 lemma closed_segment_subset_convex_hull:
     "\<lbrakk>x \<in> convex hull s; y \<in> convex hull s\<rbrakk> \<Longrightarrow> closed_segment x y \<subseteq> convex hull s"
-  using convex_contains_segment by blast  
+  using convex_contains_segment by blast
 
 lemma convex_imp_starlike:
   "convex s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> starlike s"
@@ -6395,6 +6395,10 @@ proof -
   thus ?thesis
     by (auto simp: closed_segment_commute)
 qed
+
+lemma closed_segment_real_eq:
+  fixes u::real shows "closed_segment u v = (\<lambda>x. (v - u) * x + u) ` {0..1}"
+  by (simp add: add.commute [of u] image_affinity_atLeastAtMost [where c=u] closed_segment_eq_real_ivl)
 
 lemma between_mem_segment: "between (a,b) x \<longleftrightarrow> x \<in> closed_segment a b"
   unfolding between_def by auto
@@ -8941,25 +8945,25 @@ lemma affine_independent_convex_affine_hull:
 proof -
   have fin: "finite s" "finite t" using assms aff_independent_finite finite_subset by auto
     { fix u v x
-      assume uv: "setsum u t = 1" "\<forall>x\<in>s. 0 \<le> v x" "setsum v s = 1" 
+      assume uv: "setsum u t = 1" "\<forall>x\<in>s. 0 \<le> v x" "setsum v s = 1"
                  "(\<Sum>x\<in>s. v x *\<^sub>R x) = (\<Sum>v\<in>t. u v *\<^sub>R v)" "x \<in> t"
       then have s: "s = (s - t) \<union> t" --\<open>split into separate cases\<close>
         using assms by auto
       have [simp]: "(\<Sum>x\<in>t. v x *\<^sub>R x) + (\<Sum>x\<in>s - t. v x *\<^sub>R x) = (\<Sum>x\<in>t. u x *\<^sub>R x)"
                    "setsum v t + setsum v (s - t) = 1"
         using uv fin s
-        by (auto simp: setsum.union_disjoint [symmetric] Un_commute)        
-      have "(\<Sum>x\<in>s. if x \<in> t then v x - u x else v x) = 0" 
+        by (auto simp: setsum.union_disjoint [symmetric] Un_commute)
+      have "(\<Sum>x\<in>s. if x \<in> t then v x - u x else v x) = 0"
            "(\<Sum>x\<in>s. (if x \<in> t then v x - u x else v x) *\<^sub>R x) = 0"
         using uv fin
         by (subst s, subst setsum.union_disjoint, auto simp: algebra_simps setsum_subtractf)+
     } note [simp] = this
-  have "convex hull t \<subseteq> affine hull t" 
+  have "convex hull t \<subseteq> affine hull t"
     using convex_hull_subset_affine_hull by blast
   moreover have "convex hull t \<subseteq> convex hull s"
     using assms hull_mono by blast
   moreover have "affine hull t \<inter> convex hull s \<subseteq> convex hull t"
-    using assms 
+    using assms
     apply (simp add: convex_hull_finite affine_hull_finite fin affine_dependent_explicit)
     apply (drule_tac x=s in spec)
     apply (auto simp: fin)
@@ -8972,7 +8976,7 @@ proof -
     by blast
 qed
 
-lemma affine_independent_span_eq: 
+lemma affine_independent_span_eq:
   fixes s :: "'a::euclidean_space set"
   assumes "~affine_dependent s" "card s = Suc (DIM ('a))"
     shows "affine hull s = UNIV"
@@ -8983,7 +8987,7 @@ next
   case False
     then obtain a t where t: "a \<notin> t" "s = insert a t"
       by blast
-    then have fin: "finite t" using assms 
+    then have fin: "finite t" using assms
       by (metis finite_insert aff_independent_finite)
     show ?thesis
     using assms t fin
@@ -8997,7 +9001,7 @@ next
       done
 qed
 
-lemma affine_independent_span_gt: 
+lemma affine_independent_span_gt:
   fixes s :: "'a::euclidean_space set"
   assumes ind: "~ affine_dependent s" and dim: "DIM ('a) < card s"
     shows "affine hull s = UNIV"
@@ -9008,7 +9012,7 @@ lemma affine_independent_span_gt:
   apply (metis add_2_eq_Suc' not_less_eq_eq affine_dependent_biggerset aff_independent_finite)
   done
 
-lemma empty_interior_affine_hull: 
+lemma empty_interior_affine_hull:
   fixes s :: "'a::euclidean_space set"
   assumes "finite s" and dim: "card s \<le> DIM ('a)"
     shows "interior(affine hull s) = {}"
@@ -9020,33 +9024,33 @@ lemma empty_interior_affine_hull:
   apply (metis Suc_le_lessD not_less order_trans card_image_le finite_imageI dim_le_card)
   done
 
-lemma empty_interior_convex_hull: 
+lemma empty_interior_convex_hull:
   fixes s :: "'a::euclidean_space set"
   assumes "finite s" and dim: "card s \<le> DIM ('a)"
     shows "interior(convex hull s) = {}"
-  by (metis Diff_empty Diff_eq_empty_iff convex_hull_subset_affine_hull 
+  by (metis Diff_empty Diff_eq_empty_iff convex_hull_subset_affine_hull
             interior_mono empty_interior_affine_hull [OF assms])
 
 lemma explicit_subset_rel_interior_convex_hull:
   fixes s :: "'a::euclidean_space set"
-  shows "finite s 
+  shows "finite s
          \<Longrightarrow> {y. \<exists>u. (\<forall>x \<in> s. 0 < u x \<and> u x < 1) \<and> setsum u s = 1 \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y}
              \<subseteq> rel_interior (convex hull s)"
   by (force simp add:  rel_interior_convex_hull_union [where S="\<lambda>x. {x}" and I=s, simplified])
 
-lemma explicit_subset_rel_interior_convex_hull_minimal: 
+lemma explicit_subset_rel_interior_convex_hull_minimal:
   fixes s :: "'a::euclidean_space set"
-  shows "finite s 
+  shows "finite s
          \<Longrightarrow> {y. \<exists>u. (\<forall>x \<in> s. 0 < u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y}
              \<subseteq> rel_interior (convex hull s)"
   by (force simp add:  rel_interior_convex_hull_union [where S="\<lambda>x. {x}" and I=s, simplified])
 
-lemma rel_interior_convex_hull_explicit: 
+lemma rel_interior_convex_hull_explicit:
   fixes s :: "'a::euclidean_space set"
   assumes "~ affine_dependent s"
   shows "rel_interior(convex hull s) =
          {y. \<exists>u. (\<forall>x \<in> s. 0 < u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y}"
-         (is "?lhs = ?rhs")  
+         (is "?lhs = ?rhs")
 proof
   show "?rhs \<le> ?lhs"
     by (simp add: aff_independent_finite explicit_subset_rel_interior_convex_hull_minimal assms)
@@ -9063,7 +9067,7 @@ next
       assume ab: "a \<in> s" "b \<in> s" "a \<noteq> b"
       then have s: "s = (s - {a,b}) \<union> {a,b}" --\<open>split into separate cases\<close>
         by auto
-      have "(\<Sum>x\<in>s. if x = a then - d else if x = b then d else 0) = 0" 
+      have "(\<Sum>x\<in>s. if x = a then - d else if x = b then d else 0) = 0"
            "(\<Sum>x\<in>s. (if x = a then - d else if x = b then d else 0) *\<^sub>R x) = d *\<^sub>R b - d *\<^sub>R a"
         using ab fs
         by (subst s, subst setsum.union_disjoint, auto)+
@@ -9073,7 +9077,7 @@ next
       { fix u T a
         assume ua: "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = 1" "\<not> 0 < u a" "a \<in> s"
            and yT: "y = (\<Sum>x\<in>s. u x *\<^sub>R x)" "y \<in> T" "open T"
-           and sb: "T \<inter> affine hull s \<subseteq> {w. \<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>x\<in>s. u x *\<^sub>R x) = w}" 
+           and sb: "T \<inter> affine hull s \<subseteq> {w. \<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>x\<in>s. u x *\<^sub>R x) = w}"
         have ua0: "u a = 0"
           using ua by auto
         obtain b where b: "b\<in>s" "a \<noteq> b"
@@ -9088,13 +9092,13 @@ next
           using ua b by (auto simp: hull_inc intro: mem_affine_3_minus2)
         then have "y - d *\<^sub>R (a - b) \<in> T \<inter> affine hull s"
           using d e yT by auto
-        then obtain v where "\<forall>x\<in>s. 0 \<le> v x" 
-                            "setsum v s = 1" 
+        then obtain v where "\<forall>x\<in>s. 0 \<le> v x"
+                            "setsum v s = 1"
                             "(\<Sum>x\<in>s. v x *\<^sub>R x) = (\<Sum>x\<in>s. u x *\<^sub>R x) - d *\<^sub>R (a - b)"
           using subsetD [OF sb] yT
           by auto
         then have False
-          using assms 
+          using assms
           apply (simp add: affine_dependent_explicit_finite fs)
           apply (drule_tac x="\<lambda>x. (v x - u x) - (if x = a then -d else if x = b then d else 0)" in spec)
           using ua b d
@@ -9146,14 +9150,14 @@ proof -
       case False
       then show thesis
       by (blast intro: that)
-    qed        
+    qed
     have "u a + u b \<le> setsum u {a,b}"
       using a b by simp
     also have "... \<le> setsum u s"
       apply (rule Groups_Big.setsum_mono2)
       using a b u
       apply (auto simp: less_imp_le aff_independent_finite assms)
-      done      
+      done
     finally have "u a < 1"
       using \<open>b \<in> s\<close> u by fastforce
   } note [simp] = this
@@ -9200,7 +9204,7 @@ lemma frontier_convex_hull_explicit:
   fixes s :: "'a::euclidean_space set"
   assumes "~ affine_dependent s"
   shows "frontier(convex hull s) =
-         {y. \<exists>u. (\<forall>x \<in> s. 0 \<le> u x) \<and> (DIM ('a) < card s \<longrightarrow> (\<exists>x \<in> s. u x = 0)) \<and> 
+         {y. \<exists>u. (\<forall>x \<in> s. 0 \<le> u x) \<and> (DIM ('a) < card s \<longrightarrow> (\<exists>x \<in> s. u x = 0)) \<and>
              setsum u s = 1 \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y}"
 proof -
   have fs: "finite s"
@@ -9209,7 +9213,7 @@ proof -
   proof (cases "DIM ('a) < card s")
     case True
     with assms fs show ?thesis
-      by (simp add: rel_frontier_def frontier_def rel_frontier_convex_hull_explicit [symmetric] 
+      by (simp add: rel_frontier_def frontier_def rel_frontier_convex_hull_explicit [symmetric]
                     interior_convex_hull_explicit_minimal rel_interior_convex_hull_explicit)
   next
     case False
@@ -9239,7 +9243,7 @@ proof -
     apply (rule_tac x=u in exI)
     apply (simp add: Groups_Big.setsum_diff1 fs)
     done }
-  moreover 
+  moreover
   { fix a u
     have "a \<in> s \<Longrightarrow> \<forall>x\<in>s - {a}. 0 \<le> u x \<Longrightarrow> setsum u (s - {a}) = 1 \<Longrightarrow>
             \<exists>v. (\<forall>x\<in>s. 0 \<le> v x) \<and>
@@ -9257,17 +9261,17 @@ qed
 lemma frontier_convex_hull_eq_rel_frontier:
   fixes s :: "'a::euclidean_space set"
   assumes "~ affine_dependent s"
-  shows "frontier(convex hull s) = 
+  shows "frontier(convex hull s) =
            (if card s \<le> DIM ('a) then convex hull s else rel_frontier(convex hull s))"
-  using assms 
-  unfolding rel_frontier_def frontier_def 
-  by (simp add: affine_independent_span_gt rel_interior_interior  
+  using assms
+  unfolding rel_frontier_def frontier_def
+  by (simp add: affine_independent_span_gt rel_interior_interior
                 finite_imp_compact empty_interior_convex_hull aff_independent_finite)
 
 lemma frontier_convex_hull_cases:
   fixes s :: "'a::euclidean_space set"
   assumes "~ affine_dependent s"
-  shows "frontier(convex hull s) = 
+  shows "frontier(convex hull s) =
            (if card s \<le> DIM ('a) then convex hull s else \<Union>{convex hull (s - {x}) |x. x \<in> s})"
 by (simp add: assms frontier_convex_hull_eq_rel_frontier rel_frontier_convex_hull_cases)
 
@@ -9276,13 +9280,13 @@ lemma in_frontier_convex_hull:
   assumes "finite s" "card s \<le> Suc (DIM ('a))" "x \<in> s"
   shows   "x \<in> frontier(convex hull s)"
 proof (cases "affine_dependent s")
-  case True 
+  case True
   with assms show ?thesis
     apply (auto simp: affine_dependent_def frontier_def finite_imp_compact hull_inc)
     by (metis card.insert_remove convex_hull_subset_affine_hull empty_interior_affine_hull finite_Diff hull_redundant insert_Diff insert_Diff_single insert_not_empty interior_mono not_less_eq_eq subset_empty)
 next
-  case False 
-  { assume "card s = Suc (card Basis)" 
+  case False
+  { assume "card s = Suc (card Basis)"
     then have cs: "Suc 0 < card s"
       by (simp add: DIM_positive)
     with subset_singletonD have "\<exists>y \<in> s. y \<noteq> x"
@@ -9444,7 +9448,7 @@ lemma coplanar_translation_eq: "coplanar((\<lambda>x. a + x) ` s) \<longleftrigh
 lemma coplanar_linear_image_eq:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "inj f" shows "coplanar(f ` s) = coplanar s"
-proof 
+proof
   assume "coplanar s"
   then show "coplanar (f ` s)"
     unfolding coplanar_def
@@ -9463,7 +9467,7 @@ next
     using g by (simp add: Fun.image_comp)
   then show "coplanar s"
     unfolding coplanar_def
-    using affine_hull_linear_image [of g "{u,v,w}" for u v w]  `linear g` linear_conv_bounded_linear 
+    using affine_hull_linear_image [of g "{u,v,w}" for u v w]  `linear g` linear_conv_bounded_linear
     by fastforce
 qed
 (*The HOL Light proof is simply
