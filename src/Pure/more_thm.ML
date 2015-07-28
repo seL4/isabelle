@@ -39,7 +39,7 @@ sig
   val eq_thm: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
   val eq_thm_strict: thm * thm -> bool
-  val equiv_thm: thm * thm -> bool
+  val equiv_thm: theory -> thm * thm -> bool
   val class_triv: theory -> class -> thm
   val of_sort: ctyp * sort -> thm list
   val check_shyps: sort list -> thm -> thm
@@ -209,8 +209,8 @@ fun eq_thm_strict ths =
 
 (* pattern equivalence *)
 
-fun equiv_thm ths =
-  Pattern.equiv (Theory.merge (apply2 Thm.theory_of_thm ths)) (apply2 Thm.full_prop_of ths);
+fun equiv_thm thy ths =
+  Pattern.equiv thy (apply2 (Thm.full_prop_of o Thm.transfer thy) ths);
 
 
 (* type classes and sorts *)
