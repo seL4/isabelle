@@ -35,12 +35,13 @@ fun find_max_subsets [] = []
 
 fun find_unused_assms ctxt thy_name =
   let
+    val thy = Proof_Context.theory_of ctxt
     val ctxt' = ctxt
        |> Config.put Quickcheck.abort_potential true
        |> Config.put Quickcheck.quiet true
     val all_thms =
       filter (fn (s, _) => length (Long_Name.explode s) = 2)  (* FIXME !? *)
-        (thms_of (Proof_Context.theory_of ctxt) thy_name)
+        (thms_of thy thy_name)
     fun check_single conjecture =
       (case try (Quickcheck.test_terms ctxt' (true, true) []) [(conjecture, [])] of
         SOME (SOME _) => false
@@ -53,7 +54,7 @@ fun find_unused_assms ctxt thy_name =
             if member (op =) S x then I
             else insert (eq_set (op =)) (insert (op =) x S)) X) Ss []
     fun check (s, th) =
-      (case Logic.strip_horn (Thm.prop_of (Thm.unvarify_global th)) of
+      (case Logic.strip_horn (Thm.prop_of (Thm.unvarify_global thy th)) of
         ([], _) => (s, NONE)
       | (ts, t) =>
           let

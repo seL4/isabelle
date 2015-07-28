@@ -27,7 +27,7 @@ fun mk_case_certificate thy raw_thms =
   let
     val thms as thm1 :: _ = raw_thms
       |> Conjunction.intr_balanced
-      |> Thm.unvarify_global
+      |> Thm.unvarify_global thy
       |> Conjunction.elim_balanced (length raw_thms)
       |> map Simpdata.mk_meta_eq
       |> map Drule.zero_var_indexes;
@@ -53,7 +53,7 @@ fun mk_free_ctr_equations fcT ctrs inject_thms distinct_thms thy =
     fun true_eq tu = HOLogic.mk_eq (mk_fcT_eq tu, @{term True});
     fun false_eq tu = HOLogic.mk_eq (mk_fcT_eq tu, @{term False});
 
-    val monomorphic_prop_of = Thm.prop_of o Thm.unvarify_global o Drule.zero_var_indexes;
+    val monomorphic_prop_of = Thm.prop_of o Thm.unvarify_global thy o Drule.zero_var_indexes;
 
     fun massage_inject (tp $ (eqv $ (_ $ t $ u) $ rhs)) = tp $ (eqv $ mk_fcT_eq (t, u) $ rhs);
     fun massage_distinct (tp $ (_ $ (_ $ t $ u))) = [tp $ false_eq (t, u), tp $ false_eq (u, t)];

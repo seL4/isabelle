@@ -2625,7 +2625,8 @@ val spec'=
 
 fun simplify_defn ctxt strict congs wfs pats def0 =
   let
-    val def = Thm.unvarify_global def0 RS meta_eq_to_obj_eq
+    val thy = Proof_Context.theory_of ctxt;
+    val def = Thm.unvarify_global thy def0 RS meta_eq_to_obj_eq
     val {rules, rows, TCs, full_pats_TCs} = Prim.post_definition ctxt congs (def, pats)
     val {lhs=f,rhs} = USyntax.dest_eq (concl def)
     val (_,[R,_]) = USyntax.strip_comb rhs

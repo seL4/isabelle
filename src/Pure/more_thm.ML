@@ -63,7 +63,8 @@ sig
   val forall_elim_vars: int -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
   val forall_intr_frees: thm -> thm
-  val unvarify_global: thm -> thm
+  val unvarify_global: theory -> thm -> thm
+  val unvarify_axiom: theory -> string -> thm
   val close_derivation: thm -> thm
   val rename_params_rule: string list * int -> thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
@@ -376,10 +377,8 @@ fun forall_intr_frees th =
 
 (* unvarify_global: global schematic variables *)
 
-fun unvarify_global th =
+fun unvarify_global thy th =
   let
-    val thy = Thm.theory_of_thm th;
-
     val prop = Thm.full_prop_of th;
     val _ = map Logic.unvarify_global (prop :: Thm.hyps_of th)
       handle TERM (msg, _) => raise THM (msg, 0, [th]);
@@ -389,6 +388,8 @@ fun unvarify_global th =
       let val T' = Term_Subst.instantiateT instT T
       in (((a, i), T'), Thm.global_cterm_of thy (Free ((a, T')))) end);
   in Thm.instantiate (map (apsnd (Thm.global_ctyp_of thy)) instT, inst) th end;
+
+fun unvarify_axiom thy = unvarify_global thy o Thm.axiom thy;
 
 
 (* close_derivation *)
@@ -459,7 +460,7 @@ fun add_axiom ctxt (b, prop) thy =
     val axm' = Thm.axiom thy' axm_name;
     val thm =
       Thm.instantiate (recover, []) axm'
-      |> unvarify_global
+      |> unvarify_global thy'
       |> fold elim_implies of_sorts;
   in ((axm_name, thm), thy') end;
 
@@ -476,7 +477,7 @@ fun add_def ctxt unchecked overloaded (b, prop) thy =
     val axm' = Thm.axiom thy' axm_name;
     val thm =
       Thm.instantiate (recover, []) axm'
-      |> unvarify_global
+      |> unvarify_global thy'
       |> fold_rev Thm.implies_intr prems;
   in ((axm_name, thm), thy') end;
 
