@@ -35,9 +35,4 @@ by (induction t) (auto simp: ac_simps)
 lemma map_mirror: "mset_tree (mirror t) = mset_tree t"
 by (induction t) (simp_all add: ac_simps)
 
-lemma del_rightmost_mset_tree:
-  "\<lbrakk> del_rightmost t = (t',x);  t \<noteq> \<langle>\<rangle> \<rbrakk> \<Longrightarrow> mset_tree t = {#x#} + mset_tree t'"
-apply(induction t arbitrary: t' rule: del_rightmost.induct)
-by (auto split: prod.splits) (auto simp: ac_simps)
-
 end
