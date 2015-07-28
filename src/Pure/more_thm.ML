@@ -21,7 +21,8 @@ sig
   structure Ctermtab: TABLE
   structure Thmtab: TABLE
   val aconvc: cterm * cterm -> bool
-  val add_cterm_frees: cterm -> cterm list -> cterm list
+  val add_frees: thm -> cterm list -> cterm list
+  val add_vars: thm -> cterm list -> cterm list
   val all_name: string * cterm -> cterm -> cterm
   val all: cterm -> cterm -> cterm
   val mk_binop: cterm -> cterm -> cterm -> cterm
@@ -112,13 +113,8 @@ struct
 
 val op aconvc = op aconv o apply2 Thm.term_of;
 
-fun add_cterm_frees ct =
-  let
-    val thy = Thm.theory_of_cterm ct;
-    val t = Thm.term_of ct;
-  in
-    Term.fold_aterms (fn v as Free _ => insert (op aconvc) (Thm.global_cterm_of thy v) | _ => I) t
-  end;
+val add_frees = Thm.fold_atomic_cterms (fn a => is_Free (Thm.term_of a) ? insert (op aconvc) a);
+val add_vars = Thm.fold_atomic_cterms (fn a => is_Var (Thm.term_of a) ? insert (op aconvc) a);
 
 
 (* cterm constructors and destructors *)

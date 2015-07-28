@@ -532,7 +532,7 @@ fun simple_choose v th =
  fun simp_ex_conv ctxt =
    Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms(39)})
 
-fun frees t = Thm.add_cterm_frees t [];
+fun frees t = Drule.cterm_add_frees t [];
 fun free_in v t = member op aconvc (frees t) v;
 
 val vsubst = let
@@ -741,7 +741,7 @@ fun ring ctxt tm =
     Thm.apply
       (Drule.cterm_rule (Thm.instantiate' [SOME (Thm.ctyp_of_cterm x)] [])
         @{cpat "All:: (?'a => bool) => _"}) (Thm.lambda x p)
-  val avs = Thm.add_cterm_frees tm []
+  val avs = Drule.cterm_add_frees tm []
   val P' = fold mk_forall avs tm
   val th1 = initial_conv ctxt (mk_neg P')
   val (evs,bod) = strip_exists(concl th1) in
@@ -797,7 +797,7 @@ fun poly_eq_conv t =
    val mons = striplist(dest_binary ring_add_tm) t
   in member (op aconvc) mons v andalso
     forall (fn m => v aconvc m
-          orelse not(member (op aconvc) (Thm.add_cterm_frees m []) v)) mons
+          orelse not(member (op aconvc) (Drule.cterm_add_frees m []) v)) mons
   end
 
   fun isolate_variable vars tm =

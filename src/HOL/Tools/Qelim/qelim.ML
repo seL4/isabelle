@@ -65,7 +65,7 @@ in
 
 fun standard_qelim_conv ctxt atcv ncv qcv p =
   let val pcv = pcv ctxt
-  in gen_qelim_conv pcv pcv pcv cons (Thm.add_cterm_frees p []) atcv ncv qcv p end
+  in gen_qelim_conv pcv pcv pcv cons (Drule.cterm_add_frees p []) atcv ncv qcv p end
 
 end;
 

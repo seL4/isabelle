@@ -91,6 +91,8 @@ sig
   val mk_term: cterm -> thm
   val dest_term: thm -> cterm
   val cterm_rule: (thm -> thm) -> cterm -> cterm
+  val cterm_add_frees: cterm -> cterm list -> cterm list
+  val cterm_add_vars: cterm -> cterm list -> cterm list
   val dummy_thm: thm
   val is_sort_constraint: term -> bool
   val sort_constraintI: thm
@@ -174,9 +176,7 @@ fun beta_conv x y =
 val forall_intr_list = fold_rev Thm.forall_intr;
 
 (*Generalization over Vars -- canonical order*)
-fun forall_intr_vars th =
-  fold Thm.forall_intr
-    (map (Thm.global_cterm_of (Thm.theory_of_thm th) o Var) (Thm.fold_terms Term.add_vars th [])) th;
+fun forall_intr_vars th = fold Thm.forall_intr (Thm.add_vars th []) th;
 
 fun outer_params t =
   let val vs = Term.strip_all_vars t
@@ -630,6 +630,9 @@ fun dest_term th =
   end;
 
 fun cterm_rule f = dest_term o f o mk_term;
+
+val cterm_add_frees = Thm.add_frees o mk_term;
+val cterm_add_vars = Thm.add_vars o mk_term;
 
 val dummy_thm = mk_term (certify Term.dummy_prop);
 
