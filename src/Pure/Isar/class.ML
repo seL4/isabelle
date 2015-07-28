@@ -748,7 +748,7 @@ fun instance_arity_cmd raw_arities thy =
 
 fun intro_classes_tac ctxt facts st =
   let
-    val thy = Thm.theory_of_thm st;
+    val thy = Proof_Context.theory_of ctxt;
     val classes = Sign.all_classes thy;
     val class_trivs = map (Thm.class_triv thy) classes;
     val class_intros = map_filter (try (#intro o Axclass.get_info thy)) classes;
