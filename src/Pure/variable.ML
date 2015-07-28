@@ -498,7 +498,11 @@ fun fix_dummy_patterns (Const ("Pure.dummy_pattern", T)) ctxt =
 
 (** export -- generalize type/term variables (beware of closure sizes) **)
 
-fun gen_all ctxt = Drule.gen_all (Proof_Context.theory_of ctxt) (maxidx_of ctxt);
+fun gen_all ctxt th =
+  let
+    val i = Thm.maxidx_thm th (maxidx_of ctxt) + 1;
+    fun gen (x, T) = Thm.forall_elim (Thm.cterm_of ctxt (Var ((x, i), T)));
+  in fold gen (Drule.outer_params (Thm.prop_of th)) th end;
 
 fun export_inst inner outer =
   let

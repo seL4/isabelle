@@ -16,7 +16,6 @@ sig
   val forall_intr_list: cterm list -> thm -> thm
   val forall_intr_vars: thm -> thm
   val forall_elim_list: cterm list -> thm -> thm
-  val gen_all: theory -> int -> thm -> thm
   val lift_all: Proof.context -> cterm -> thm -> thm
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
@@ -53,6 +52,7 @@ end;
 signature DRULE =
 sig
   include BASIC_DRULE
+  val outer_params: term -> (string * typ) list
   val generalize: string list * string list -> thm -> thm
   val list_comb: cterm * cterm list -> cterm
   val strip_comb: cterm -> cterm * cterm list
@@ -181,15 +181,6 @@ fun forall_intr_vars th = fold Thm.forall_intr (Thm.add_vars th []) th;
 fun outer_params t =
   let val vs = Term.strip_all_vars t
   in Name.variant_list [] (map (Name.clean o #1) vs) ~~ map #2 vs end;
-
-(*generalize outermost parameters*)
-fun gen_all thy maxidx0 th =
-  let
-    val maxidx = Thm.maxidx_thm th maxidx0;
-    val prop = Thm.prop_of th;
-    fun elim (x, T) =
-      Thm.forall_elim (Thm.global_cterm_of thy (Var ((x, maxidx + 1), T)));
-  in fold elim (outer_params prop) th end;
 
 (*lift vars wrt. outermost goal parameters
   -- reverses the effect of gen_all modulo higher-order unification*)
