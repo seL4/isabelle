@@ -364,7 +364,6 @@ fun instantiate' cTs cts thm =
 
 fun forall_intr_frees th =
   let
-    val thy = Thm.theory_of_thm th;
     val {prop, hyps, tpairs, ...} = Thm.rep_thm th;
     val fixed = fold Term.add_frees (Thm.terms_of_tpairs tpairs @ hyps) [];
     val frees =
