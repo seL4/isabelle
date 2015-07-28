@@ -6,6 +6,7 @@ imports
   Ordered_Euclidean_Space
   Complex_Analysis_Basics
   Bounded_Continuous_Function
+  Uniform_Limit
 begin
 
 end
