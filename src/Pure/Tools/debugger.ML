@@ -4,8 +4,20 @@
 Interactive debugger for Isabelle/ML.
 *)
 
-structure Debugger: sig end =
+signature DEBUGGER =
+sig
+  val output: string -> unit
+end;
+
+structure Debugger: DEBUGGER =
 struct
+
+(* messages *)
+
+fun output msg =
+  Output.protocol_message
+    (Markup.debugger_output (Simple_Thread.the_name ()) (serial ())) [msg];
+
 
 (* global state *)
 
@@ -79,7 +91,7 @@ fun debugger cond =
   then ()
   else
     with_debugging (fn () =>
-      (case Simple_Thread.name () of
+      (case Simple_Thread.get_name () of
         NONE => ()
       | SOME name => debug_loop name));
 

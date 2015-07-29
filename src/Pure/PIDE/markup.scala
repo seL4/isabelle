@@ -493,6 +493,20 @@ object Markup
   val PRINT_OPERATIONS = "print_operations"
 
 
+  /* debugger output */
+
+  val DEBUGGER_OUTPUT = "debugger_output"
+  object Debugger_Output
+  {
+    def unapply(props: Properties.T): Option[(String, Long)] =
+      props match {
+        case List((FUNCTION, DEBUGGER_OUTPUT), (NAME, name), (SERIAL, Properties.Value.Long(i))) =>
+          Some((name, i))
+        case _ => None
+      }
+  }
+
+
   /* simplifier trace */
 
   val SIMP_TRACE_PANEL = "simp_trace_panel"

@@ -34,12 +34,24 @@ object Debugger
 
   class Handler extends Session.Protocol_Handler
   {
+    private def debugger_output(prover: Prover, msg: Prover.Protocol_Output): Boolean =
+    {
+      msg.properties match {
+        case Markup.Debugger_Output(name, serial) =>
+          // FIXME
+          Output.writeln("debugger_output " + name + " " + serial + "\n" + msg.text)
+          true
+        case _ => false
+      }
+    }
+
     override def stop(prover: Prover)
     {
       manager.shutdown()
     }
 
-    val functions = Map.empty[String, (Prover, Prover.Protocol_Output) => Boolean]  // FIXME
+    val functions =
+      Map(Markup.DEBUGGER_OUTPUT -> debugger_output _)
   }
 
 

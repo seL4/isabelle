@@ -7,7 +7,8 @@ Simplified thread operations.
 signature SIMPLE_THREAD =
 sig
   val is_self: Thread.thread -> bool
-  val name: unit -> string option
+  val get_name: unit -> string option
+  val the_name: unit -> string
   type params = {name: string, stack_limit: int option, interrupts: bool}
   val attributes: params -> Thread.threadAttribute list
   val fork: params -> (unit -> unit) -> Thread.thread
@@ -30,8 +31,15 @@ local
   val count = Counter.make ();
 in
 
-fun name () = Thread.getLocal tag;
-fun set_name base = Thread.setLocal (tag, base ^ "/" ^ string_of_int (count ()));
+fun get_name () = Thread.getLocal tag;
+
+fun the_name () =
+  (case get_name () of
+    NONE => raise Fail "Unknown thread name"
+  | SOME name => name);
+
+fun set_name base =
+  Thread.setLocal (tag, base ^ "/" ^ string_of_int (count ()));
 
 end;
 
