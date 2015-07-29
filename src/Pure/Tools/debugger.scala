@@ -48,9 +48,9 @@ object Debugger
   def init(session: Session): Unit =
     session.protocol_command("Debugger.init")
 
-  def cancel(session: Session, id: String): Unit =
-    session.protocol_command("Debugger.cancel", id)
+  def cancel(session: Session, name: String): Unit =
+    session.protocol_command("Debugger.cancel", name)
 
-  def input(session: Session, id: String, msg: String*): Unit =
-    session.protocol_command("Debugger.input", (id :: msg.toList):_*)
+  def input(session: Session, name: String, msg: String*): Unit =
+    session.protocol_command("Debugger.input", (name :: msg.toList):_*)
 }

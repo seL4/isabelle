@@ -7,7 +7,7 @@ Simplified thread operations.
 signature SIMPLE_THREAD =
 sig
   val is_self: Thread.thread -> bool
-  val identification: unit -> string option
+  val name: unit -> string option
   type params = {name: string, stack_limit: int option, interrupts: bool}
   val attributes: params -> Thread.threadAttribute list
   val fork: params -> (unit -> unit) -> Thread.thread
@@ -23,17 +23,15 @@ struct
 fun is_self thread = Thread.equal (Thread.self (), thread);
 
 
-(* identification *)
+(* unique name *)
 
 local
   val tag = Universal.tag () : string Universal.tag;
   val count = Counter.make ();
 in
 
-fun identification () = Thread.getLocal tag;
-
-fun set_identification name =
-  Thread.setLocal (tag, name ^ ":" ^ string_of_int (count ()));
+fun name () = Thread.getLocal tag;
+fun set_name base = Thread.setLocal (tag, base ^ "/" ^ string_of_int (count ()));
 
 end;
 
@@ -49,7 +47,7 @@ fun attributes ({stack_limit, interrupts, ...}: params) =
 fun fork (params: params) body =
   Thread.fork (fn () =>
     print_exception_trace General.exnMessage tracing (fn () =>
-      (set_identification (#name params); body ())
+      (set_name (#name params); body ())
         handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn),
     attributes params);
 
