@@ -9,6 +9,19 @@ package isabelle
 
 object Debugger
 {
+  /* global state */
+
+  case class State(
+    output: Map[String, Command.Results] = Map.empty)  // thread name ~> output messages
+  {
+    def add_output(name: String, entry: Command.Results.Entry): State =
+      copy(output = output + (name -> (output.getOrElse(name, Command.Results.empty) + entry)))
+  }
+
+  private val global_state = Synchronized(State())
+  def current_state(): State = global_state.value
+
+
   /* GUI interaction */
 
   case object Event
@@ -37,10 +50,17 @@ object Debugger
     private def debugger_output(prover: Prover, msg: Prover.Protocol_Output): Boolean =
     {
       msg.properties match {
-        case Markup.Debugger_Output(name, serial) =>
-          // FIXME
-          Output.writeln("debugger_output " + name + " " + serial + "\n" + msg.text)
-          true
+        case Markup.Debugger_Output(name) =>
+          val msg_body =
+            prover.xml_cache.body(
+              YXML.parse_body_failsafe(UTF8.decode_permissive(msg.bytes)))
+          msg_body match {
+            case List(XML.Elem(Markup(name, props @ Markup.Serial(i)), body)) =>
+              val message = XML.Elem(Markup(Markup.message(name), props), body)
+              global_state.change(_.add_output(name, i -> message))
+              true
+            case _ => false
+          }
         case _ => false
       }
     }

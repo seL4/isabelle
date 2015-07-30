@@ -6,7 +6,9 @@ Interactive debugger for Isabelle/ML.
 
 signature DEBUGGER =
 sig
-  val output: string -> unit
+  val writeln_message: string -> unit
+  val warning_message: string -> unit
+  val error_message: string -> unit
 end;
 
 structure Debugger: DEBUGGER =
@@ -14,9 +16,14 @@ struct
 
 (* messages *)
 
-fun output msg =
+fun output_message kind msg =
   Output.protocol_message
-    (Markup.debugger_output (Simple_Thread.the_name ()) (serial ())) [msg];
+    (Markup.debugger_output (Simple_Thread.the_name ()))
+    [Markup.markup (kind, Markup.serial_properties (serial ())) msg];
+
+val writeln_message = output_message Markup.writelnN;
+val warning_message = output_message Markup.warningN;
+val error_message = output_message Markup.errorN;
 
 
 (* global state *)

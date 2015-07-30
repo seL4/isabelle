@@ -498,10 +498,9 @@ object Markup
   val DEBUGGER_OUTPUT = "debugger_output"
   object Debugger_Output
   {
-    def unapply(props: Properties.T): Option[(String, Long)] =
+    def unapply(props: Properties.T): Option[String] =
       props match {
-        case List((FUNCTION, DEBUGGER_OUTPUT), (NAME, name), (SERIAL, Properties.Value.Long(i))) =>
-          Some((name, i))
+        case List((FUNCTION, DEBUGGER_OUTPUT), (NAME, name)) => Some(name)
         case _ => None
       }
   }
