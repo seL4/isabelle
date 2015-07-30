@@ -59,7 +59,7 @@ object Bytes
 final class Bytes private(
   protected val bytes: Array[Byte],
   protected val offset: Int,
-  val length: Int)
+  val length: Int) extends CharSequence
 {
   /* equality */
 
@@ -105,6 +105,19 @@ final class Bytes private(
       System.arraycopy(other.bytes, other.offset, new_bytes, length, other.length)
       new Bytes(new_bytes, 0, new_bytes.length)
     }
+
+
+  /* CharSequence operations */
+
+  def charAt(i: Int): Char =
+    if (0 <= i && i < length) (bytes(offset + i).asInstanceOf[Int] & 0xFF).asInstanceOf[Char]
+    else throw new IndexOutOfBoundsException
+
+  def subSequence(i: Int, j: Int): Bytes =
+  {
+    if (0 <= i && i <= j && j <= length) new Bytes(bytes, offset + i, j - i)
+    else throw new IndexOutOfBoundsException
+  }
 
 
   /* write */
