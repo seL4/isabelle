@@ -36,8 +36,7 @@ object PIDE
   @volatile var startup_notified = false
 
   @volatile var plugin: Plugin = null
-  @volatile var session: Session =
-    new Session(new JEdit_Resources(Set.empty, Map.empty, Outer_Syntax.empty))
+  @volatile var session: Session = new Session(JEdit_Resources.empty)
 
   def options_changed() { plugin.options_changed() }
   def deps_changed() { plugin.deps_changed() }

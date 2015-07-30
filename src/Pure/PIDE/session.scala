@@ -203,7 +203,7 @@ class Session(val resources: Resources)
   val syslog_messages = new Session.Outlet[Prover.Output](dispatcher)
   val raw_output_messages = new Session.Outlet[Prover.Output](dispatcher)
   val trace_events = new Session.Outlet[Simplifier_Trace.Event.type](dispatcher)
-  val debugger_events = new Session.Outlet[Debugger.Event.type](dispatcher)
+  val debugger_updates = new Session.Outlet[Debugger.Update](dispatcher)
 
   val all_messages = new Session.Outlet[Prover.Message](dispatcher)  // potential bottle-neck!
 

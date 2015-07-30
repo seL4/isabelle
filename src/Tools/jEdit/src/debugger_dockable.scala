@@ -10,7 +10,10 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.BorderLayout
-import java.awt.event.{ComponentEvent, ComponentAdapter}
+import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
+
+import scala.swing.{Button, Label, Component}
+import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.View
 
@@ -26,6 +29,48 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private var current_output: List[XML.Tree] = Nil
 
 
+  /* common GUI components */
+
+  private val context_label = new Label("Context:") { tooltip = "Isabelle/ML context (optional)" }
+  private val context_field =
+    new Completion_Popup.History_Text_Field("isabelle-debugger-context")
+    {
+      setColumns(20)
+      setToolTipText(context_label.tooltip)
+      setFont(GUI.imitate_font(getFont, Font_Info.main_family(), 1.2))
+    }
+
+  private val expression_label = new Label("ML:") { tooltip = "Isabelle/ML expression" }
+  private val expression_field =
+    new Completion_Popup.History_Text_Field("isabelle-debugger-expression")
+    {
+      override def processKeyEvent(evt: KeyEvent)
+      {
+        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER)
+          eval_expression()
+        super.processKeyEvent(evt)
+      }
+      { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
+      setColumns(40)
+      setToolTipText(expression_label.tooltip)
+      setFont(GUI.imitate_font(getFont, Font_Info.main_family(), 1.2))
+    }
+
+  private val eval_button = new Button("<html><b>Eval</b></html>") {
+      tooltip = "Evaluate Isabelle/ML expression within optional context"
+      reactions += { case ButtonClicked(_) => eval_expression() }
+    }
+
+  private def eval_expression()
+  {
+    // FIXME
+    Output.writeln("eval context = " + quote(context_field.getText) + " expression = " +
+      quote(expression_field.getText))
+  }
+
+  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+
+
   /* pretty text area */
 
   val pretty_text_area = new Pretty_Text_Area(view)
@@ -33,8 +78,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   override def detach_operation = pretty_text_area.detach_operation
 
-
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private def handle_resize()
   {
@@ -49,7 +92,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     GUI_Thread.require {}
 
     val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
-    val new_output = List(XML.Text("FIXME"))
+    val new_output =  // FIXME select by thread name
+      (for ((_, results) <- Debugger.current_state.output; (_, tree) <- results.iterator)
+        yield tree).toList
 
     if (new_output != current_output)
       pretty_text_area.update(new_snapshot, Command.Results.empty, Pretty.separate(new_output))
@@ -64,23 +109,25 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
+        Debugger.init(PIDE.session)
         GUI_Thread.later { handle_resize() }
 
-      case Debugger.Event =>
+      case _: Debugger.Update =>
         GUI_Thread.later { handle_update() }
     }
 
   override def init()
   {
     PIDE.session.global_options += main
-    PIDE.session.debugger_events += main
+    PIDE.session.debugger_updates += main
+    Debugger.init(PIDE.session)
     handle_update()
   }
 
   override def exit()
   {
     PIDE.session.global_options -= main
-    PIDE.session.debugger_events -= main
+    PIDE.session.debugger_updates -= main
     delay_resize.revoke()
   }
 
@@ -100,6 +147,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
+      context_label, Component.wrap(context_field),
+      expression_label, Component.wrap(expression_field), eval_button,
       pretty_text_area.search_label, pretty_text_area.search_field, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }

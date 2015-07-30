@@ -16,8 +16,9 @@ import java.io.{File => JFile}
 object Resources
 {
   def thy_path(path: Path): Path = path.ext("thy")
-}
 
+  val empty: Resources = new Resources(Set.empty, Map.empty, Outer_Syntax.empty)
+}
 
 class Resources(
   val loaded_theories: Set[String],

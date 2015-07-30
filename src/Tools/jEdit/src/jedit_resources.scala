@@ -21,6 +21,12 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 
+object JEdit_Resources
+{
+  val empty: JEdit_Resources =
+    new JEdit_Resources(Set.empty, Map.empty, Outer_Syntax.empty)
+}
+
 class JEdit_Resources(
     loaded_theories: Set[String],
     known_theories: Map[String, Document.Node.Name],
@@ -119,4 +125,3 @@ class JEdit_Resources(
     if (change.deps_changed && PIDE.options.bool("jedit_auto_load")) PIDE.deps_changed()
   }
 }
-

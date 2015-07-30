@@ -485,12 +485,25 @@ object Markup
   {
     def unapply(props: Properties.T): Option[String] =
       props match {
-        case List((FUNCTION, BUILD_THEORIES_RESULT), ("id", id)) => Some(id)
+        case List((FUNCTION, BUILD_THEORIES_RESULT), (ID, id)) => Some(id)
         case _ => None
       }
   }
 
   val PRINT_OPERATIONS = "print_operations"
+
+
+  /* debugger output */
+
+  val DEBUGGER_OUTPUT = "debugger_output"
+  object Debugger_Output
+  {
+    def unapply(props: Properties.T): Option[String] =
+      props match {
+        case List((FUNCTION, DEBUGGER_OUTPUT), (NAME, name)) => Some(name)
+        case _ => None
+      }
+  }
 
 
   /* simplifier trace */
