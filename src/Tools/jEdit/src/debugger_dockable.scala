@@ -109,23 +109,25 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
+        Debugger.init(PIDE.session)
         GUI_Thread.later { handle_resize() }
 
-      case Debugger.Event =>
+      case _: Debugger.Update =>
         GUI_Thread.later { handle_update() }
     }
 
   override def init()
   {
     PIDE.session.global_options += main
-    PIDE.session.debugger_events += main
+    PIDE.session.debugger_updates += main
+    Debugger.init(PIDE.session)
     handle_update()
   }
 
   override def exit()
   {
     PIDE.session.global_options -= main
-    PIDE.session.debugger_events -= main
+    PIDE.session.debugger_updates -= main
     delay_resize.revoke()
   }
 
