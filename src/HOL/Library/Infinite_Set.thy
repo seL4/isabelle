@@ -62,6 +62,16 @@ proof
   with S show False by simp
 qed
 
+lemma infinite_coinduct [consumes 1, case_names infinite]:
+  assumes "X A"
+  and step: "\<And>A. X A \<Longrightarrow> \<exists>x\<in>A. X (A - {x}) \<or> infinite (A - {x})"
+  shows "infinite A"
+proof
+  assume "finite A"
+  then show False using \<open>X A\<close>
+    by(induction rule: finite_psubset_induct)(meson Diff_subset card_Diff1_less card_psubset finite_Diff step)
+qed    
+
 text \<open>
   As a concrete example, we prove that the set of natural numbers is
   infinite.
