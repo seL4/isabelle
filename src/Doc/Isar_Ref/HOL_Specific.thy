@@ -2078,8 +2078,10 @@ section \<open>Coercive subtyping\<close>
 text \<open>
   \begin{matharray}{rcl}
     @{attribute_def (HOL) coercion} & : & @{text attribute} \\
+    @{attribute_def (HOL) coercion_delete} & : & @{text attribute} \\
     @{attribute_def (HOL) coercion_enabled} & : & @{text attribute} \\
     @{attribute_def (HOL) coercion_map} & : & @{text attribute} \\
+    @{attribute_def (HOL) coercion_args} & : & @{text attribute} \\
   \end{matharray}
 
   Coercive subtyping allows the user to omit explicit type
@@ -2088,9 +2090,13 @@ text \<open>
   @{cite "traytel-berghofer-nipkow-2011"} for details.
 
   @{rail \<open>
-    @@{attribute (HOL) coercion} (@{syntax term})?
+    @@{attribute (HOL) coercion} (@{syntax term})
     ;
-    @@{attribute (HOL) coercion_map} (@{syntax term})?
+    @@{attribute (HOL) coercion_delete} (@{syntax term})
+    ;
+    @@{attribute (HOL) coercion_map} (@{syntax term})
+    ;
+    @@{attribute (HOL) coercion_args} (@{syntax const}) (('+' | '0' | '-')+)
   \<close>}
 
   \begin{description}
@@ -2101,6 +2107,10 @@ text \<open>
   composed by the inference algorithm if needed.  Note that the type
   inference algorithm is complete only if the registered coercions
   form a lattice.
+
+  \item @{attribute (HOL) "coercion_delete"}~@{text "f"} deletes a
+  preceding declaration (using @{attribute (HOL) "coercion"}) of the
+  function @{text "f :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2"} as a coercion.
 
   \item @{attribute (HOL) "coercion_map"}~@{text "map"} registers a
   new map function to lift coercions through type constructors. The
@@ -2115,6 +2125,21 @@ text \<open>
   @{text "\<alpha>\<^sub>i \<Rightarrow> \<beta>\<^sub>i"} or @{text "\<beta>\<^sub>i \<Rightarrow> \<alpha>\<^sub>i"}.  Registering a map function
   overwrites any existing map function for this particular type
   constructor.
+
+  \item @{attribute (HOL) "coercion_args"} can be used to disallow
+  coercions to be inserted in certain positions in a term. For example,
+  given the constant @{text "c :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2 \<Rightarrow> \<sigma>\<^sub>3 \<Rightarrow> \<sigma>\<^sub>4"} and the list
+  of policies @{text "- + 0"} as arguments, coercions will not be
+  inserted in the first argument of @{text "c"} (policy @{text "-"});
+  they may be inserted in the second argument (policy @{text "+"})
+  even if the constant @{text "c"} itself is in a position where
+  coercions are disallowed; the third argument inherits the allowance
+  of coercsion insertion from the position of the constant @{text "c"}
+  (policy @{text "0"}). The standard usage of policies is the definition
+  of syntatic constructs (usually extralogical, i.e., processed and
+  stripped during type inference), that should not be destroyed by the
+  insertion of coercions (see, for example, the setup for the case syntax
+  in @{theory Ctr_Sugar}). 
 
   \item @{attribute (HOL) "coercion_enabled"} enables the coercion
   inference algorithm.
