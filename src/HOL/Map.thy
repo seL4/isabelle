@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow, based on a theory by David von Oheimb
     Copyright   1997-2003 TU Muenchen
 
-The datatype of `maps' (written ~=>); strongly resembles maps in VDM.
+The datatype of "maps"; strongly resembles maps in VDM.
 *)
 
 section \<open>Maps\<close>
@@ -11,43 +11,43 @@ theory Map
 imports List
 begin
 
-type_synonym ('a,'b) "map" = "'a => 'b option" (infixr "~=>" 0)
+type_synonym ('a, 'b) "map" = "'a => 'b option" (infixr "~=>" 0)
 
 type_notation (xsymbols)
   "map" (infixr "\<rightharpoonup>" 0)
 
 abbreviation
-  empty :: "'a ~=> 'b" where
+  empty :: "'a \<rightharpoonup> 'b" where
   "empty == %x. None"
 
 definition
-  map_comp :: "('b ~=> 'c) => ('a ~=> 'b) => ('a ~=> 'c)"  (infixl "o'_m" 55) where
+  map_comp :: "('b \<rightharpoonup> 'c) => ('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> 'c)"  (infixl "o'_m" 55) where
   "f o_m g = (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
 
 notation (xsymbols)
   map_comp  (infixl "\<circ>\<^sub>m" 55)
 
 definition
-  map_add :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)"  (infixl "++" 100) where
+  map_add :: "('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> 'b)"  (infixl "++" 100) where
   "m1 ++ m2 = (\<lambda>x. case m2 x of None => m1 x | Some y => Some y)"
 
 definition
-  restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)"  (infixl "|`"  110) where
+  restrict_map :: "('a \<rightharpoonup> 'b) => 'a set => ('a \<rightharpoonup> 'b)"  (infixl "|`"  110) where
   "m|`A = (\<lambda>x. if x : A then m x else None)"
 
 notation (latex output)
   restrict_map  ("_\<restriction>\<^bsub>_\<^esub>" [111,110] 110)
 
 definition
-  dom :: "('a ~=> 'b) => 'a set" where
+  dom :: "('a \<rightharpoonup> 'b) => 'a set" where
   "dom m = {a. m a ~= None}"
 
 definition
-  ran :: "('a ~=> 'b) => 'b set" where
+  ran :: "('a \<rightharpoonup> 'b) => 'b set" where
   "ran m = {b. EX a. m a = Some b}"
 
 definition
-  map_le :: "('a ~=> 'b) => ('a ~=> 'b) => bool"  (infix "\<subseteq>\<^sub>m" 50) where
+  map_le :: "('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> 'b) => bool"  (infix "\<subseteq>\<^sub>m" 50) where
   "(m\<^sub>1 \<subseteq>\<^sub>m m\<^sub>2) = (\<forall>a \<in> dom m\<^sub>1. m\<^sub>1 a = m\<^sub>2 a)"
 
 nonterminal maplets and maplet
@@ -57,8 +57,8 @@ syntax
   "_maplets" :: "['a, 'a] => maplet"             ("_ /[|->]/ _")
   ""         :: "maplet => maplets"             ("_")
   "_Maplets" :: "[maplet, maplets] => maplets" ("_,/ _")
-  "_MapUpd"  :: "['a ~=> 'b, maplets] => 'a ~=> 'b" ("_/'(_')" [900,0]900)
-  "_Map"     :: "maplets => 'a ~=> 'b"            ("(1[_])")
+  "_MapUpd"  :: "['a \<rightharpoonup> 'b, maplets] => 'a \<rightharpoonup> 'b" ("_/'(_')" [900,0]900)
+  "_Map"     :: "maplets => 'a \<rightharpoonup> 'b"            ("(1[_])")
 
 syntax (xsymbols)
   "_maplet"  :: "['a, 'a] => maplet"             ("_ /\<mapsto>/ _")
@@ -97,10 +97,10 @@ by (rule ext) simp
 
 subsection \<open>@{term [source] map_upd}\<close>
 
-lemma map_upd_triv: "t k = Some x ==> t(k|->x) = t"
+lemma map_upd_triv: "t k = Some x ==> t(k\<mapsto>x) = t"
 by (rule ext) simp
 
-lemma map_upd_nonempty [simp]: "t(k|->x) ~= empty"
+lemma map_upd_nonempty [simp]: "t(k\<mapsto>x) ~= empty"
 proof
   assume "t(k \<mapsto> x) = empty"
   then have "(t(k \<mapsto> x)) k = None" by simp
@@ -116,13 +116,13 @@ proof -
 qed
 
 lemma map_upd_Some_unfold:
-  "((m(a|->b)) x = Some y) = (x = a \<and> b = y \<or> x \<noteq> a \<and> m x = Some y)"
+  "((m(a\<mapsto>b)) x = Some y) = (x = a \<and> b = y \<or> x \<noteq> a \<and> m x = Some y)"
 by auto
 
 lemma image_map_upd [simp]: "x \<notin> A \<Longrightarrow> m(x \<mapsto> y) ` A = m ` A"
 by auto
 
-lemma finite_range_updI: "finite (range f) ==> finite (range (f(a|->b)))"
+lemma finite_range_updI: "finite (range f) ==> finite (range (f(a\<mapsto>b)))"
 unfolding image_def
 apply (simp (no_asm_use) add:full_SetCompr_eq)
 apply (rule finite_subset)
@@ -260,7 +260,7 @@ lemma map_option_o_empty [simp]: "map_option f o empty = empty"
 by (rule ext) simp
 
 lemma map_option_o_map_upd [simp]:
-  "map_option f o m(a|->b) = (map_option f o m)(a|->f b)"
+  "map_option f o m(a\<mapsto>b) = (map_option f o m)(a\<mapsto>f b)"
 by (rule ext) simp
 
 
@@ -310,7 +310,7 @@ by (subst map_add_Some_iff) fast
 lemma map_add_None [iff]: "((m ++ n) k = None) = (n k = None & m k = None)"
 by (simp add: map_add_def split: option.split)
 
-lemma map_add_upd[simp]: "f ++ g(x|->y) = (f ++ g)(x|->y)"
+lemma map_add_upd[simp]: "f ++ g(x\<mapsto>y) = (f ++ g)(x\<mapsto>y)"
 by (rule ext) (simp add: map_add_def)
 
 lemma map_add_upds[simp]: "m1 ++ (m2(xs[\<mapsto>]ys)) = (m1++m2)(xs[\<mapsto>]ys)"
@@ -407,13 +407,13 @@ lemma restrict_complement_singleton_eq:
 
 subsection \<open>@{term [source] map_upds}\<close>
 
-lemma map_upds_Nil1 [simp]: "m([] [|->] bs) = m"
+lemma map_upds_Nil1 [simp]: "m([] [\<mapsto>] bs) = m"
 by (simp add: map_upds_def)
 
-lemma map_upds_Nil2 [simp]: "m(as [|->] []) = m"
+lemma map_upds_Nil2 [simp]: "m(as [\<mapsto>] []) = m"
 by (simp add:map_upds_def)
 
-lemma map_upds_Cons [simp]: "m(a#as [|->] b#bs) = (m(a|->b))(as[|->]bs)"
+lemma map_upds_Cons [simp]: "m(a#as [\<mapsto>] b#bs) = (m(a\<mapsto>b))(as[\<mapsto>]bs)"
 by (simp add:map_upds_def)
 
 lemma map_upds_append1 [simp]: "\<And>ys m. size xs < size ys \<Longrightarrow>
@@ -435,9 +435,9 @@ apply (simp split: nat.split)
 done
 
 lemma map_upd_upds_conv_if:
-  "(f(x|->y))(xs [|->] ys) =
-   (if x : set(take (length ys) xs) then f(xs [|->] ys)
-                                    else (f(xs [|->] ys))(x|->y))"
+  "(f(x\<mapsto>y))(xs [\<mapsto>] ys) =
+   (if x : set(take (length ys) xs) then f(xs [\<mapsto>] ys)
+                                    else (f(xs [\<mapsto>] ys))(x\<mapsto>y))"
 apply (induct xs arbitrary: x y ys f)
  apply simp
 apply (case_tac ys)
@@ -445,11 +445,11 @@ apply (case_tac ys)
 done
 
 lemma map_upds_twist [simp]:
-  "a ~: set as ==> m(a|->b)(as[|->]bs) = m(as[|->]bs)(a|->b)"
+  "a ~: set as ==> m(a\<mapsto>b)(as[\<mapsto>]bs) = m(as[\<mapsto>]bs)(a\<mapsto>b)"
 using set_take_subset by (fastforce simp add: map_upd_upds_conv_if)
 
 lemma map_upds_apply_nontin [simp]:
-  "x ~: set xs ==> (f(xs[|->]ys)) x = f x"
+  "x ~: set xs ==> (f(xs[\<mapsto>]ys)) x = f x"
 apply (induct xs arbitrary: ys)
  apply simp
 apply (case_tac ys)
@@ -522,7 +522,7 @@ lemma finite_dom_map_of: "finite (dom (map_of l))"
 by (induct l) (auto simp add: dom_def insert_Collect [symmetric])
 
 lemma dom_map_upds [simp]:
-  "dom(m(xs[|->]ys)) = set(take (length ys) xs) Un dom m"
+  "dom(m(xs[\<mapsto>]ys)) = set(take (length ys) xs) Un dom m"
 apply (induct xs arbitrary: m ys)
  apply simp
 apply (case_tac ys)
@@ -621,7 +621,7 @@ by(auto simp: ran_def)
 lemma ran_empty [simp]: "ran empty = {}"
 by(auto simp: ran_def)
 
-lemma ran_map_upd [simp]: "m a = None ==> ran(m(a|->b)) = insert b (ran m)"
+lemma ran_map_upd [simp]: "m a = None ==> ran(m(a\<mapsto>b)) = insert b (ran m)"
 unfolding ran_def
 apply auto
 apply (subgoal_tac "aa ~= a")
@@ -659,7 +659,7 @@ lemma map_le_imp_upd_le [simp]: "m1 \<subseteq>\<^sub>m m2 \<Longrightarrow> m1(
 by (force simp add: map_le_def)
 
 lemma map_le_upds [simp]:
-  "f \<subseteq>\<^sub>m g ==> f(as [|->] bs) \<subseteq>\<^sub>m g(as [|->] bs)"
+  "f \<subseteq>\<^sub>m g ==> f(as [\<mapsto>] bs) \<subseteq>\<^sub>m g(as [\<mapsto>] bs)"
 apply (induct as arbitrary: f g bs)
  apply simp
 apply (case_tac bs)
