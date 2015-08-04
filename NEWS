@@ -172,6 +172,9 @@ INCOMPATIBILITY in exotic situations.
 
 *** HOL ***
 
+* Theory Map: lemma map_of_is_SomeD was a clone of map_of_SomeD and has
+been removed. INCOMPATIBILITY.
+
 * Quickcheck setup for finite sets.
 
 * Discontinued simp_legacy_precond. Potential INCOMPATIBILITY.

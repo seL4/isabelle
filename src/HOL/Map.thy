@@ -137,12 +137,6 @@ lemma map_of_eq_None_iff:
   "(map_of xys x = None) = (x \<notin> fst ` (set xys))"
 by (induct xys) simp_all
 
-lemma map_of_is_SomeD: "map_of xys x = Some y \<Longrightarrow> (x,y) \<in> set xys"
-apply (induct xys)
- apply simp
-apply (clarsimp split: if_splits)
-done
-
 lemma map_of_eq_Some_iff [simp]:
   "distinct(map fst xys) \<Longrightarrow> (map_of xys x = Some y) = ((x,y) \<in> set xys)"
 apply (induct xys)
@@ -229,7 +223,7 @@ apply auto
 done
 
 lemma map_of_SomeD: "map_of xs k = Some y \<Longrightarrow> (k, y) \<in> set xs"
-by (induct xs) (simp, atomize (full), auto)
+  by (induct xs) (auto split: if_splits)
 
 lemma map_of_mapk_SomeI:
   "inj f \<Longrightarrow> map_of t k = Some x \<Longrightarrow>
