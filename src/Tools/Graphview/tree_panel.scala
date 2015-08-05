@@ -152,12 +152,13 @@ class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends Bor
   {
     val new_nodes = graphview.visible_graph.topological_order
     if (new_nodes != nodes) {
+      tree.clearSelection
+
       nodes = new_nodes
 
       root.removeAllChildren
       for (node <- nodes) root.add(new DefaultMutableTreeNode(node))
 
-      tree.clearSelection
       for (i <- 0 until tree.getRowCount) tree.expandRow(i)
       tree.revalidate()
     }
