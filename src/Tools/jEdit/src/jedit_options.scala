@@ -36,7 +36,6 @@ object JEdit_Options
     reactions += { case ButtonClicked(_) => update(selected) }
 
     def stored: Boolean = PIDE.options.bool(name)
-    def load() { selected = stored }
     def update(b: Boolean): Unit =
       GUI_Thread.require {
         if (selected != b) selected = b
@@ -45,6 +44,8 @@ object JEdit_Options
           PIDE.session.update_options(PIDE.options.value)
         }
       }
+    def load() { selected = stored }
+    load()
   }
 }
 
