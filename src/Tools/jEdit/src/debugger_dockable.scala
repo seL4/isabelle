@@ -94,7 +94,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
     val new_output =  // FIXME select by thread name
       (for ((_, results) <- Debugger.current_state.output; (_, tree) <- results.iterator)
-        yield tree).toList
+        yield tree).toList ::: List(XML.Text(Debugger.current_state.threads.toString))
 
     if (new_output != current_output)
       pretty_text_area.update(new_snapshot, Command.Results.empty, Pretty.separate(new_output))

@@ -191,6 +191,7 @@ sig
   val build_theories_result: string -> Properties.T
   val print_operationsN: string
   val print_operations: Properties.T
+  val debugger_state: string -> Properties.T
   val debugger_output: string -> Properties.T
   val simp_trace_panelN: string
   val simp_trace_logN: string
@@ -614,6 +615,7 @@ val print_operations = [(functionN, print_operationsN)];
 
 (* debugger *)
 
+fun debugger_state name = [(functionN, "debugger_state"), (nameN, name)];
 fun debugger_output name = [(functionN, "debugger_output"), (nameN, name)];
 
 

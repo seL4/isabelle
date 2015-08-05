@@ -40,27 +40,27 @@ fun map_state f (State {threads, input}) = make_state (f (threads, input));
 
 val global_state = Synchronized.var "Debugger.state" init_state;
 
-fun cancel name =
+fun cancel thread_name =
   Synchronized.change global_state (tap (fn State {threads, ...} =>
-    (case Symtab.lookup threads name of
+    (case Symtab.lookup threads thread_name of
       NONE => ()
     | SOME thread => Simple_Thread.interrupt_unsynchronized thread)));
 
-fun input name msg =
+fun input thread_name msg =
   Synchronized.change global_state (map_state (fn (threads, input) =>
-    let val input' = Symtab.map_default (name, Queue.empty) (Queue.enqueue msg) input;
+    let val input' = Symtab.map_default (thread_name, Queue.empty) (Queue.enqueue msg) input;
     in (threads, input') end));
 
-fun get_input name =
+fun get_input thread_name =
   Synchronized.guarded_access global_state (fn State {threads, input} =>
-    (case Symtab.lookup input name of
+    (case Symtab.lookup input thread_name of
       NONE => NONE
     | SOME queue =>
         let
           val (msg, queue') = Queue.dequeue queue;
           val input' =
-            if Queue.is_empty queue' then Symtab.delete_safe name input
-            else Symtab.update (name, queue') input;
+            if Queue.is_empty queue' then Symtab.delete_safe thread_name input
+            else Symtab.update (thread_name, queue') input;
         in SOME (msg, make_state (threads, input')) end));
 
 
@@ -84,13 +84,23 @@ val _ = Session.protocol_handler "isabelle.Debugger$Handler";
 
 (* main entry point *)
 
-fun debug_loop name =
-  (case get_input name of
+fun debugger_state thread_name =
+  Output.protocol_message (Markup.debugger_state thread_name)
+   [get_data ()
+    |> map (fn st =>
+      (Position.properties_of (Exn_Properties.position_of (ML_Debugger.debug_location st)),
+       ML_Debugger.debug_function st))
+    |> let open XML.Encode in list (pair properties string) end
+    |> YXML.string_of_body];
+
+fun debugger_loop thread_name =
+  (debugger_state thread_name;
+   case get_input thread_name of
     ["continue"] => ()
   | bad =>
      (Output.system_message
         ("Debugger: bad input " ^ ML_Syntax.print_list ML_Syntax.print_string bad);
-      debug_loop name));
+      debugger_loop thread_name));
 
 fun debugger cond =
   if debugging () orelse not (cond ()) orelse
@@ -100,7 +110,7 @@ fun debugger cond =
     with_debugging (fn () =>
       (case Simple_Thread.get_name () of
         NONE => ()
-      | SOME name => debug_loop name));
+      | SOME thread_name => debugger_loop thread_name));
 
 fun init () =
   ML_Debugger.on_breakpoint
@@ -116,10 +126,10 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.cancel"
-    (fn [name] => cancel name);
+    (fn [thread_name] => cancel thread_name);
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.input"
-    (fn name :: msg => input name msg);
+    (fn thread_name :: msg => input thread_name msg);
 
 end;
