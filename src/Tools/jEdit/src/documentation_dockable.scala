@@ -9,9 +9,9 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Dimension, GridLayout}
+import java.awt.Dimension
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
-import javax.swing.{JTree, JScrollPane, JComponent}
+import javax.swing.{JTree, JScrollPane}
 import javax.swing.tree.{DefaultMutableTreeNode, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
@@ -47,10 +47,9 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
 
   private val tree = new JTree(root)
   tree.setRowHeight(0)
+  tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
 
   override def focusOnDefaultComponent { tree.requestFocusInWindow }
-
-  tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
 
   private def action(node: DefaultMutableTreeNode)
   {
