@@ -14,6 +14,7 @@ import javax.swing.{InputVerifier, JComponent, UIManager}
 import javax.swing.text.JTextComponent
 
 import scala.swing.{Component, CheckBox, TextArea}
+import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.gui.ColorWellButton
 
@@ -28,6 +29,23 @@ trait Option_Component extends Component
 object JEdit_Options
 {
   val RENDERING_SECTION = "Rendering of Document Content"
+
+  class Check_Box(name: String, label: String, description: String) extends CheckBox(label)
+  {
+    tooltip = description
+    reactions += { case ButtonClicked(_) => update(selected) }
+
+    def stored: Boolean = PIDE.options.bool(name)
+    def load() { selected = stored }
+    def update(b: Boolean): Unit =
+      GUI_Thread.require {
+        if (selected != b) selected = b
+        if (stored != b) {
+          PIDE.options.bool(name) = b
+          PIDE.session.update_options(PIDE.options.value)
+        }
+      }
+  }
 }
 
 class JEdit_Options extends Options_Variable

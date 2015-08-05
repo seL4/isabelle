@@ -111,7 +111,7 @@ public option ML_debugger_stepping : bool = false
   -- "ML debugger in single-step mode"
 
 public option ML_statistics : bool = true
-  -- "ML runtime system statistics"
+  -- "ML run-time system statistics"
 
 
 section "Editor Reactivity"

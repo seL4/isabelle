@@ -201,24 +201,8 @@ object Isabelle
 
   /* ML statistics */
 
-  private val ML_STATISTICS = "ML_statistics"
-
-  def ml_statistics: Boolean = PIDE.options.bool(ML_STATISTICS)
-  def ml_statistics_=(b: Boolean): Unit =
-    GUI_Thread.require {
-      if (ml_statistics != b) {
-        PIDE.options.bool(ML_STATISTICS) = b
-        PIDE.session.update_options(PIDE.options.value)
-      }
-    }
-
-  class ML_Stats extends CheckBox("ML statistics")
-  {
-    tooltip = "Enable ML runtime system statistics"
-    reactions += { case ButtonClicked(_) => ml_statistics = selected }
-    def load() { selected = ml_statistics }
-    load()
-  }
+  class ML_Stats extends
+    JEdit_Options.Check_Box("ML_statistics", "ML statistics", "Enable ML runtime system statistics")
 
 
   /* required document nodes */
