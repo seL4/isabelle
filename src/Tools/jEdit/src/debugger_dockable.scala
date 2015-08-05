@@ -12,7 +12,7 @@ import isabelle._
 import java.awt.{BorderLayout, Dimension}
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, MouseEvent, MouseAdapter}
 import javax.swing.{JTree, JScrollPane}
-import javax.swing.tree.{DefaultMutableTreeNode, TreeSelectionModel}
+import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
 import scala.swing.{Button, Label, Component, SplitPane, Orientation}
@@ -80,9 +80,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     current_snapshot = new_snapshot
     current_threads = new_threads
     current_output = new_output
-
-    revalidate()
-    repaint()
   }
 
 
@@ -97,11 +94,13 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private def update_tree(entries: List[Debugger_Dockable.Tree_Entry])
   {
     tree.clearSelection
+    val tree_model = tree.getModel.asInstanceOf[DefaultTreeModel]
 
     root.removeAllChildren
     val entry_nodes = entries.map(entry => new DefaultMutableTreeNode(entry))
     for (node <- entry_nodes) root.add(node)
 
+    tree_model.reload(root)
     for (i <- 0 until tree.getRowCount) tree.expandRow(i)
 
     for ((entry, node) <- entries zip entry_nodes) {
@@ -110,6 +109,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         node.add(sub_node)
       }
     }
+    tree_model.reload(root)
 
     tree.revalidate()
   }
