@@ -120,7 +120,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   }
 
   private val tree_view = new JScrollPane(tree)
-  tree_view.setMinimumSize(new Dimension(100, 50))
+  tree_view.setMinimumSize(new Dimension(200, 50))
 
   set_content(tree_view)
 }
