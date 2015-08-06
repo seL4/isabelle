@@ -9,6 +9,7 @@ sig
   val is_visible_generic: Context.generic -> bool
   val is_visible: Proof.context -> bool
   val is_visible_global: theory -> bool
+  val set_visible_generic: bool -> Context.generic -> Context.generic
   val set_visible: bool -> Proof.context -> Proof.context
   val set_visible_global: bool -> theory -> theory
   val is_really_visible: Proof.context -> bool
@@ -40,6 +41,7 @@ val is_visible_generic = the_default true o snd o Data.get;
 val is_visible = is_visible_generic o Context.Proof;
 val is_visible_global = is_visible_generic o Context.Theory;
 
+val set_visible_generic = Data.map o apsnd o K o SOME;
 val set_visible = Context.proof_map o Data.map o apsnd o K o SOME;
 val set_visible_global = Context.theory_map o Data.map o apsnd o K o SOME;
 

@@ -12,6 +12,7 @@ sig
   val add_breakpoint: serial * (bool Unsynchronized.ref * Position.T) ->
     Context.generic -> Context.generic
   val get_breakpoint: Context.generic -> serial -> (bool Unsynchronized.ref * Position.T) option
+  val add_name_space: {SML: bool} -> ML_Name_Space.T -> Context.generic -> Context.generic
   val name_space: {SML: bool, exchange: bool} -> ML_Name_Space.T
   val local_context: use_context
   val local_name_space: ML_Name_Space.T
@@ -90,6 +91,22 @@ val get_breakpoint = Inttab.lookup o #breakpoints o Env.get;
 
 
 (* name space *)
+
+fun add_name_space {SML} (space: ML_Name_Space.T) =
+  Env.map (fn {bootstrap, tables, sml_tables, breakpoints} =>
+    let
+      val (tables', sml_tables') =
+        (tables, sml_tables) |> (if SML then apsnd else apfst)
+          (fn (val1, type1, fixity1, structure1, signature1, functor1) =>
+            let
+              val val2 = fold Symtab.update (#allVal space ()) val1;
+              val type2 = fold Symtab.update (#allType space ()) type1;
+              val fixity2 = fold Symtab.update (#allFix space ()) fixity1;
+              val structure2 = fold Symtab.update (#allStruct space ()) structure1;
+              val signature2 = fold Symtab.update (#allSig space ()) signature1;
+              val functor2 = fold Symtab.update (#allFunct space ()) functor1;
+            in (val2, type2, fixity2, structure2, signature2, functor2) end);
+    in make_data (bootstrap, tables', sml_tables', breakpoints) end);
 
 fun name_space {SML, exchange} : ML_Name_Space.T =
   let

@@ -85,12 +85,37 @@ fun with_debugging e =
 
 end;
 
+fun the_debug_state thread_name index =
+  (case get_debugging () of
+    [] => error ("Missing debugger information for thread " ^ quote thread_name)
+  | states =>
+      if index < 0 orelse index >= length states then
+        error ("Bad debugger stack index " ^ signed_string_of_int index ^ " for thread " ^
+          quote thread_name)
+      else nth states index);
+
+
 
 (* eval ML *)
 
-fun eval thread_name index SML context expression =  (* FIXME *)
-  writeln_message ("SML = " ^ Markup.print_bool SML ^
-    "\ncontext = " ^ context ^ "\nexpression = " ^ expression);
+fun eval thread_name index SML txt1 txt2 =
+  let
+    fun evaluate verbose =
+      ML_Context.eval
+        {SML = SML, exchange = false, redirect = false, verbose = verbose,
+          writeln = writeln_message, warning = warning_message}
+        Position.none;
+
+    val debug_state = the_debug_state thread_name index;
+    val context1 = ML_Context.the_generic_context ()
+      |> Context_Position.set_visible_generic false
+      |> ML_Env.add_name_space {SML = SML} (ML_Debugger.debug_name_space debug_state);
+    val (toks1, toks2) = apply2 (ML_Lex.read_source SML o Input.string) (txt1, txt2);
+  in
+    if null (filter_out (fn Antiquote.Text tok => ML_Lex.is_improper tok | _ => false) toks1)
+    then Context.setmp_thread_data (SOME context1) (fn () => evaluate true toks2) ()
+    else error "FIXME"
+  end;
 
 
 (* debugger entry point *)

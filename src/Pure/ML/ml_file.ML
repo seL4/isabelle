@@ -14,7 +14,9 @@ val _ =
           val [{src_path, lines, digest, pos}] = files (Context.theory_of gthy);
           val provide = Resources.provide (src_path, digest);
           val source = Input.source true (cat_lines lines) (pos, pos);
-          val flags = {SML = false, exchange = false, redirect = true, verbose = true};
+          val flags =
+            {SML = false, exchange = false, redirect = true, verbose = true,
+              writeln = writeln, warning = warning};
         in
           gthy
           |> ML_Context.exec (fn () => ML_Context.eval_source flags source)

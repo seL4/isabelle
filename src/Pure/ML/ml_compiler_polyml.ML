@@ -145,15 +145,15 @@ fun eval (flags: flags) pos toks =
 
     val writeln_buffer = Unsynchronized.ref Buffer.empty;
     fun write s = Unsynchronized.change writeln_buffer (Buffer.add s);
-    fun output_writeln () = writeln (trim_line (Buffer.content (! writeln_buffer)));
+    fun output_writeln () = #writeln flags (trim_line (Buffer.content (! writeln_buffer)));
 
     val warnings = Unsynchronized.ref ([]: string list);
     fun warn msg = Unsynchronized.change warnings (cons msg);
-    fun output_warnings () = List.app warning (rev (! warnings));
+    fun output_warnings () = List.app (#warning flags) (rev (! warnings));
 
     val error_buffer = Unsynchronized.ref Buffer.empty;
     fun err msg = Unsynchronized.change error_buffer (Buffer.add msg #> Buffer.add "\n");
-    fun flush_error () = writeln (Buffer.content (! error_buffer));
+    fun flush_error () = #writeln flags (Buffer.content (! error_buffer));
     fun raise_error msg = error (Buffer.content (Buffer.add msg (! error_buffer)));
 
     fun message {message = msg, hard, location = loc, context = _} =
