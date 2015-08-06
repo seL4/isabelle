@@ -912,12 +912,6 @@ qed
 
 subsection \<open>Code generator tweak\<close>
 
-lemma power_power_power [code]:
-  "power = power.power (1::'a::{power}) (op *)"
-  unfolding power_def power.power_def ..
-
-declare power.power.simps [code]
-
 code_identifier
   code_module Power \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
