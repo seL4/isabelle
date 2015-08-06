@@ -26,11 +26,11 @@ locale boolean =
   assumes disj_cancel_right [simp]: "x \<squnion> \<sim> x = \<one>"
 begin
 
-sublocale conj!: abel_semigroup conj proof
-qed (fact conj_assoc conj_commute)+
+sublocale conj!: abel_semigroup conj
+  by standard (fact conj_assoc conj_commute)+
 
-sublocale disj!: abel_semigroup disj proof
-qed (fact disj_assoc disj_commute)+
+sublocale disj!: abel_semigroup disj
+  by standard (fact disj_assoc disj_commute)+
 
 lemmas conj_left_commute = conj.left_commute
 
@@ -52,6 +52,7 @@ apply (rule conj_one_right)
 apply (rule disj_cancel_right)
 apply (rule conj_cancel_right)
 done
+
 
 subsection \<open>Complement\<close>
 
@@ -80,6 +81,7 @@ qed
 
 lemma compl_eq_compl_iff [simp]: "(\<sim> x = \<sim> y) = (x = y)"
 by (rule inj_eq [OF inj_on_inverseI], rule double_compl)
+
 
 subsection \<open>Conjunction\<close>
 
@@ -118,11 +120,12 @@ lemma conj_left_absorb [simp]: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
 by (simp only: conj_assoc [symmetric] conj_absorb)
 
 lemma conj_disj_distrib2:
-  "(y \<squnion> z) \<sqinter> x = (y \<sqinter> x) \<squnion> (z \<sqinter> x)" 
+  "(y \<squnion> z) \<sqinter> x = (y \<sqinter> x) \<squnion> (z \<sqinter> x)"
 by (simp only: conj_commute conj_disj_distrib)
 
 lemmas conj_disj_distribs =
    conj_disj_distrib conj_disj_distrib2
+
 
 subsection \<open>Disjunction\<close>
 
@@ -154,6 +157,7 @@ by (rule boolean.conj_disj_distrib2 [OF dual])
 lemmas disj_conj_distribs =
    disj_conj_distrib disj_conj_distrib2
 
+
 subsection \<open>De Morgan's Laws\<close>
 
 lemma de_Morgan_conj [simp]: "\<sim> (x \<sqinter> y) = \<sim> x \<squnion> \<sim> y"
@@ -178,14 +182,16 @@ by (rule boolean.de_Morgan_conj [OF dual])
 
 end
 
+
 subsection \<open>Symmetric Difference\<close>
 
 locale boolean_xor = boolean +
-  fixes xor :: "'a => 'a => 'a"  (infixr "\<oplus>" 65)
+  fixes xor :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixr "\<oplus>" 65)
   assumes xor_def: "x \<oplus> y = (x \<sqinter> \<sim> y) \<squnion> (\<sim> x \<sqinter> y)"
 begin
 
-sublocale xor!: abel_semigroup xor proof
+sublocale xor!: abel_semigroup xor
+proof
   fix x y z :: 'a
   let ?t = "(x \<sqinter> y \<sqinter> z) \<squnion> (x \<sqinter> \<sim> y \<sqinter> \<sim> z) \<squnion>
             (\<sim> x \<sqinter> y \<sqinter> \<sim> z) \<squnion> (\<sim> x \<sqinter> \<sim> y \<sqinter> z)"
@@ -262,8 +268,7 @@ proof -
         conj_disj_distribs conj_ac disj_ac)
 qed
 
-lemma conj_xor_distrib2:
-  "(y \<oplus> z) \<sqinter> x = (y \<sqinter> x) \<oplus> (z \<sqinter> x)"
+lemma conj_xor_distrib2: "(y \<oplus> z) \<sqinter> x = (y \<sqinter> x) \<oplus> (z \<sqinter> x)"
 proof -
   have "x \<sqinter> (y \<oplus> z) = (x \<sqinter> y) \<oplus> (x \<sqinter> z)"
     by (rule conj_xor_distrib)
@@ -271,8 +276,7 @@ proof -
     by (simp only: conj_commute)
 qed
 
-lemmas conj_xor_distribs =
-   conj_xor_distrib conj_xor_distrib2
+lemmas conj_xor_distribs = conj_xor_distrib conj_xor_distrib2
 
 end
 
