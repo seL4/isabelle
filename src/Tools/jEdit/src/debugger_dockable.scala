@@ -70,7 +70,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     val new_threads = new_state.threads
     val new_output =
     {
-      val thread_selection = tree_selection().map(_._1)
+      val thread_selection = tree_selection().map(sel => sel._1.thread_name)
       (for {
         (thread_name, results) <- new_state.output
         if thread_selection.isEmpty || thread_selection.get == thread_name
@@ -102,15 +102,15 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   tree.setRowHeight(0)
   tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
 
-  def tree_selection(): Option[(String, Option[Int])] =
+  def tree_selection(): Option[(Debugger_Dockable.Thread_Entry, Option[Int])] =
     tree.getSelectionPath match {
       case null => None
       case path =>
         path.getPath.toList.map(n => n.asInstanceOf[DefaultMutableTreeNode].getUserObject) match {
           case List(_, t: Debugger_Dockable.Thread_Entry) =>
-            Some((t.thread_name, None))
+            Some((t, None))
           case List(_, t: Debugger_Dockable.Thread_Entry, s: Debugger_Dockable.Stack_Entry) =>
-            Some((t.thread_name, Some(s.index)))
+            Some((t, Some(s.index)))
           case _ => None
         }
     }
@@ -201,6 +201,28 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       quote(expression_field.getText))
   }
 
+  private val continue_button = new Button("Continue") {
+      tooltip = "Continue program on current thread, until next breakpoint"
+      reactions += {
+        case ButtonClicked(_) =>
+          tree_selection() match {
+            case Some((t, _)) => Debugger.continue(t.thread_name)
+            case _ =>
+          }
+      }
+    }
+
+  private val cancel_button = new Button("Cancel") {
+      tooltip = "Interrupt program on current thread"
+      reactions += {
+        case ButtonClicked(_) =>
+          tree_selection() match {
+            case Some((t, _)) => Debugger.cancel(t.thread_name)
+            case _ =>
+          }
+      }
+    }
+
   private val debugger_active =
     new JEdit_Options.Check_Box("ML_debugger_active", "Active", "Enable debugger at run-time")
 
@@ -213,6 +235,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
       context_label, Component.wrap(context_field),
       expression_label, Component.wrap(expression_field), eval_button,
+      continue_button, cancel_button,
       pretty_text_area.search_label, pretty_text_area.search_field,
       debugger_stepping, debugger_active, zoom)
   add(controls.peer, BorderLayout.NORTH)

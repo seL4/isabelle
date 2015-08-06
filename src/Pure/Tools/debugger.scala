@@ -119,9 +119,11 @@ object Debugger
     current_state().session.protocol_command("Debugger.init")
   }
 
-  def cancel(name: String): Unit =
-    current_state().session.protocol_command("Debugger.cancel", name)
+  def cancel(thread_name: String): Unit =
+    current_state().session.protocol_command("Debugger.cancel", thread_name)
 
-  def input(name: String, msg: String*): Unit =
-    current_state().session.protocol_command("Debugger.input", (name :: msg.toList):_*)
+  def input(thread_name: String, msg: String*): Unit =
+    current_state().session.protocol_command("Debugger.input", (thread_name :: msg.toList):_*)
+
+  def continue(thread_name: String): Unit = input(thread_name, "continue")
 }
