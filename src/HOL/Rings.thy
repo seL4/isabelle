@@ -633,6 +633,20 @@ lemma divide_1 [simp]:
   "a div 1 = a"
   using nonzero_mult_divide_cancel_left [of 1 a] by simp
 
+end
+
+class idom_divide = idom + semidom_divide
+
+class algebraic_semidom = semidom_divide
+begin
+
+text \<open>
+  Class @{class algebraic_semidom} enriches a integral domain
+  by notions from algebra, like units in a ring.
+  It is a separate class to avoid spoiling fields with notions
+  which are degenerated there.
+\<close>
+
 lemma dvd_times_left_cancel_iff [simp]:
   assumes "a \<noteq> 0"
   shows "a * b dvd a * c \<longleftrightarrow> b dvd c" (is "?P \<longleftrightarrow> ?Q")
@@ -667,19 +681,60 @@ proof -
   with \<open>c \<noteq> 0\<close> show ?thesis by (simp add: mult.commute [of a])
 qed
 
-end
+lemma div_dvd_div [simp]:
+  assumes "a dvd b" and "a dvd c"
+  shows "b div a dvd c div a \<longleftrightarrow> b dvd c"
+proof (cases "a = 0")
+  case True with assms show ?thesis by simp
+next
+  case False
+  moreover from assms obtain k l where "b = a * k" and "c = a * l"
+    by (auto elim!: dvdE)
+  ultimately show ?thesis by simp
+qed
 
-class idom_divide = idom + semidom_divide
+lemma div_add [simp]:
+  assumes "c dvd a" and "c dvd b"
+  shows "(a + b) div c = a div c + b div c"
+proof (cases "c = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  moreover from assms obtain k l where "a = c * k" and "b = c * l"
+    by (auto elim!: dvdE)
+  moreover have "c * k + c * l = c * (k + l)"
+    by (simp add: algebra_simps)
+  ultimately show ?thesis
+    by simp
+qed
 
-class algebraic_semidom = semidom_divide
-begin
+lemma div_mult_div_if_dvd:
+  assumes "b dvd a" and "d dvd c"
+  shows "(a div b) * (c div d) = (a * c) div (b * d)"
+proof (cases "b = 0 \<or> c = 0")
+  case True with assms show ?thesis by auto
+next
+  case False
+  moreover from assms obtain k l where "a = b * k" and "c = d * l"
+    by (auto elim!: dvdE)
+  moreover have "b * k * (d * l) div (b * d) = (b * d) * (k * l) div (b * d)"
+    by (simp add: ac_simps)
+  ultimately show ?thesis by simp
+qed
 
-text \<open>
-  Class @{class algebraic_semidom} enriches a integral domain
-  by notions from algebra, like units in a ring.
-  It is a separate class to avoid spoiling fields with notions
-  which are degenerated there.
-\<close>
+lemma dvd_div_eq_mult:
+  assumes "a \<noteq> 0" and "a dvd b"
+  shows "b div a = c \<longleftrightarrow> b = c * a"
+proof
+  assume "b = c * a"
+  then show "b div a = c" by (simp add: assms)
+next
+  assume "b div a = c"
+  then have "b div a * a = c * a" by simp
+  moreover from \<open>a \<noteq> 0\<close> \<open>a dvd b\<close> have "b div a * a = b"
+    by (auto elim!: dvdE simp add: ac_simps)
+  ultimately show "b = c * a" by simp
+qed
 
 lemma dvd_div_mult_self [simp]:
   "a dvd b \<Longrightarrow> b div a * a = b"
@@ -714,6 +769,22 @@ using assms proof
   assume "a = b * c * k"
   then show ?thesis
     by (cases "b = 0 \<or> c = 0") (auto, simp add: ac_simps)
+qed
+
+lemma dvd_div_div_eq_mult:
+  assumes "a \<noteq> 0" "c \<noteq> 0" and "a dvd b" "c dvd d"
+  shows "b div a = d div c \<longleftrightarrow> b * c = a * d" (is "?P \<longleftrightarrow> ?Q")
+proof -
+  from assms have "a * c \<noteq> 0" by simp
+  then have "?P \<longleftrightarrow> b div a * (a * c) = d div c * (a * c)"
+    by simp
+  also have "\<dots> \<longleftrightarrow> (a * (b div a)) * c = (c * (d div c)) * a"
+    by (simp add: ac_simps)
+  also have "\<dots> \<longleftrightarrow> (a * b div a) * c = (c * d div c) * a"
+    using assms by (simp add: div_mult_swap)
+  also have "\<dots> \<longleftrightarrow> ?Q"
+    using assms by (simp add: ac_simps)
+  finally show ?thesis .
 qed
 
 

@@ -377,19 +377,20 @@ lemma hcpow_minus:
 by transfer simp
 
 lemma hcpow_mult:
-  "!!r s n. ((r::hcomplex) * s) pow n = (r pow n) * (s pow n)"
+  "((r::hcomplex) * s) pow n = (r pow n) * (s pow n)"
   by (fact hyperpow_mult)
 
 lemma hcpow_zero2 [simp]:
-  "\<And>n. 0 pow (hSuc n) = (0::'a::{power,semiring_0} star)"
-by transfer (rule power_0_Suc)
+  "\<And>n. 0 pow (hSuc n) = (0::'a::semiring_1 star)"
+  by transfer (rule power_0_Suc)
 
 lemma hcpow_not_zero [simp,intro]:
   "!!r n. r \<noteq> 0 ==> r pow n \<noteq> (0::hcomplex)"
-by (rule hyperpow_not_zero)
+  by (fact hyperpow_not_zero)
 
-lemma hcpow_zero_zero: "r pow n = (0::hcomplex) ==> r = 0"
-by (blast intro: ccontr dest: hcpow_not_zero)
+lemma hcpow_zero_zero:
+  "r pow n = (0::hcomplex) ==> r = 0"
+  by (blast intro: ccontr dest: hcpow_not_zero)
 
 subsection{*The Function @{term hsgn}*}
 

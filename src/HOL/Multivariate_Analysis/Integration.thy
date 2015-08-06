@@ -5257,7 +5257,7 @@ next
       also have "\<dots> < e * inverse 2 * 2"
         unfolding divide_inverse setsum_right_distrib[symmetric]
         apply (rule mult_strict_left_mono)
-        unfolding power_inverse lessThan_Suc_atMost[symmetric]
+        unfolding power_inverse [symmetric] lessThan_Suc_atMost[symmetric]
         apply (subst geometric_sum)
         using goal1
         apply auto
@@ -9892,7 +9892,7 @@ next
             show "(\<Sum>i = 0..s. e / 2 ^ (i + 2)) < e / 2"
               unfolding power_add divide_inverse inverse_mult_distrib
               unfolding setsum_right_distrib[symmetric] setsum_left_distrib[symmetric]
-              unfolding power_inverse sum_gp
+              unfolding power_inverse [symmetric] sum_gp
               apply(rule mult_strict_left_mono[OF _ e])
               unfolding power2_eq_square
               apply auto

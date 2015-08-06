@@ -30,13 +30,17 @@ proof
     using div_mult_self1 [of b 0 a] by (simp add: ac_simps)
 qed simp
 
-lemma power_not_zero: -- \<open>FIXME cf. @{text field_power_not_zero}\<close>
-  "a \<noteq> 0 \<Longrightarrow> a ^ n \<noteq> 0"
-  by (induct n) (simp_all add: no_zero_divisors)
+lemma div_by_1:
+  "a div 1 = a"
+  by (fact divide_1)
 
-lemma semiring_div_power_eq_0_iff: -- \<open>FIXME cf. @{text power_eq_0_iff}, @{text power_eq_0_nat_iff}\<close>
-  "n \<noteq> 0 \<Longrightarrow> a ^ n = 0 \<longleftrightarrow> a = 0"
-  using power_not_zero [of a n] by (auto simp add: zero_power)
+lemma div_mult_self1_is_id:
+  "b \<noteq> 0 \<Longrightarrow> b * a div b = a"
+  by (fact nonzero_mult_divide_cancel_left)
+
+lemma div_mult_self2_is_id:
+  "b \<noteq> 0 \<Longrightarrow> a * b div b = a"
+  by (fact nonzero_mult_divide_cancel_right)
 
 text \<open>@{const divide} and @{const mod}\<close>
 
@@ -104,31 +108,24 @@ lemma mod_mult_self4 [simp]:
   "(b * c + a) mod b = a mod b"
   by (simp add: add.commute)
 
-lemma div_mult_self1_is_id:
-  "b \<noteq> 0 \<Longrightarrow> b * a div b = a"
-  by (fact nonzero_mult_divide_cancel_left)
-
-lemma div_mult_self2_is_id:
-  "b \<noteq> 0 \<Longrightarrow> a * b div b = a"
-  by (fact nonzero_mult_divide_cancel_right)
-
-lemma mod_mult_self1_is_0 [simp]: "b * a mod b = 0"
+lemma mod_mult_self1_is_0 [simp]:
+  "b * a mod b = 0"
   using mod_mult_self2 [of 0 b a] by simp
 
-lemma mod_mult_self2_is_0 [simp]: "a * b mod b = 0"
+lemma mod_mult_self2_is_0 [simp]:
+  "a * b mod b = 0"
   using mod_mult_self1 [of 0 a b] by simp
 
-lemma div_by_1: "a div 1 = a"
-  by (fact divide_1)
-
-lemma mod_by_1 [simp]: "a mod 1 = 0"
+lemma mod_by_1 [simp]:
+  "a mod 1 = 0"
 proof -
   from mod_div_equality [of a one] div_by_1 have "a + a mod 1 = a" by simp
   then have "a + a mod 1 = a + 0" by simp
   then show ?thesis by (rule add_left_imp_eq)
 qed
 
-lemma mod_self [simp]: "a mod a = 0"
+lemma mod_self [simp]:
+  "a mod a = 0"
   using mod_mult_self2_is_0 [of 1] by simp
 
 lemma div_add_self1 [simp]:
@@ -181,7 +178,7 @@ next
   then show "b dvd a" ..
 qed
 
-lemma dvd_eq_mod_eq_0 [code]:
+lemma dvd_eq_mod_eq_0 [nitpick_unfold, code]:
   "a dvd b \<longleftrightarrow> b mod a = 0"
   by (simp add: mod_eq_0_iff_dvd)
 
@@ -212,17 +209,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma div_dvd_div [simp]:
-  assumes "a dvd b" and "a dvd c"
-  shows "b div a dvd c div a \<longleftrightarrow> b dvd c"
-using assms apply (cases "a = 0")
-apply auto
-apply (unfold dvd_def)
-apply auto
- apply(blast intro:mult.assoc[symmetric])
-apply(fastforce simp add: mult.assoc)
-done
-
 lemma dvd_mod_imp_dvd:
   assumes "k dvd m mod n" and "k dvd n"
   shows "k dvd m"
@@ -234,7 +220,8 @@ qed
 
 text \<open>Addition respects modular equivalence.\<close>
 
-lemma mod_add_left_eq: "(a + b) mod c = (a mod c + b) mod c"
+lemma mod_add_left_eq: -- \<open>FIXME reorient\<close>
+  "(a + b) mod c = (a mod c + b) mod c"
 proof -
   have "(a + b) mod c = (a div c * c + a mod c + b) mod c"
     by (simp only: mod_div_equality)
@@ -245,7 +232,8 @@ proof -
   finally show ?thesis .
 qed
 
-lemma mod_add_right_eq: "(a + b) mod c = (a + b mod c) mod c"
+lemma mod_add_right_eq: -- \<open>FIXME reorient\<close>
+  "(a + b) mod c = (a + b mod c) mod c"
 proof -
   have "(a + b) mod c = (a + (b div c * c + b mod c)) mod c"
     by (simp only: mod_div_equality)
@@ -256,7 +244,8 @@ proof -
   finally show ?thesis .
 qed
 
-lemma mod_add_eq: "(a + b) mod c = (a mod c + b mod c) mod c"
+lemma mod_add_eq: -- \<open>FIXME reorient\<close>
+  "(a + b) mod c = (a mod c + b mod c) mod c"
 by (rule trans [OF mod_add_left_eq mod_add_right_eq])
 
 lemma mod_add_cong:
@@ -270,13 +259,10 @@ proof -
     by (simp only: mod_add_eq [symmetric])
 qed
 
-lemma div_add [simp]: "z dvd x \<Longrightarrow> z dvd y
-  \<Longrightarrow> (x + y) div z = x div z + y div z"
-by (cases "z = 0", simp, unfold dvd_def, auto simp add: algebra_simps)
-
 text \<open>Multiplication respects modular equivalence.\<close>
 
-lemma mod_mult_left_eq: "(a * b) mod c = ((a mod c) * b) mod c"
+lemma mod_mult_left_eq: -- \<open>FIXME reorient\<close>
+  "(a * b) mod c = ((a mod c) * b) mod c"
 proof -
   have "(a * b) mod c = ((a div c * c + a mod c) * b) mod c"
     by (simp only: mod_div_equality)
@@ -287,7 +273,8 @@ proof -
   finally show ?thesis .
 qed
 
-lemma mod_mult_right_eq: "(a * b) mod c = (a * (b mod c)) mod c"
+lemma mod_mult_right_eq: -- \<open>FIXME reorient\<close>
+  "(a * b) mod c = (a * (b mod c)) mod c"
 proof -
   have "(a * b) mod c = (a * (b div c * c + b mod c)) mod c"
     by (simp only: mod_div_equality)
@@ -298,7 +285,8 @@ proof -
   finally show ?thesis .
 qed
 
-lemma mod_mult_eq: "(a * b) mod c = ((a mod c) * (b mod c)) mod c"
+lemma mod_mult_eq: -- \<open>FIXME reorient\<close>
+  "(a * b) mod c = ((a mod c) * (b mod c)) mod c"
 by (rule trans [OF mod_mult_left_eq mod_mult_right_eq])
 
 lemma mod_mult_cong:
@@ -314,7 +302,7 @@ qed
 
 text \<open>Exponentiation respects modular equivalence.\<close>
 
-lemma power_mod: "(a mod b)^n mod b = a^n mod b"
+lemma power_mod: "(a mod b) ^ n mod b = a ^ n mod b"
 apply (induct n, simp_all)
 apply (rule mod_mult_right_eq [THEN trans])
 apply (simp (no_asm_simp))
@@ -337,15 +325,6 @@ proof -
     by (simp only: mod_div_equality)
   finally show ?thesis .
 qed
-
-lemma div_mult_div_if_dvd:
-  "y dvd x \<Longrightarrow> z dvd w \<Longrightarrow> (x div y) * (w div z) = (x * w) div (y * z)"
-  apply (cases "y = 0", simp)
-  apply (cases "z = 0", simp)
-  apply (auto elim!: dvdE simp add: algebra_simps)
-  apply (subst mult.assoc [symmetric])
-  apply (simp add: no_zero_divisors)
-  done
 
 lemma div_mult_mult2 [simp]:
   "c \<noteq> 0 \<Longrightarrow> (a * c) div (b * c) = a div b"
@@ -383,31 +362,6 @@ lemma dvd_mod: "k dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd (m mod
 
 lemma dvd_mod_iff: "k dvd n \<Longrightarrow> k dvd (m mod n) \<longleftrightarrow> k dvd m"
 by (blast intro: dvd_mod_imp_dvd dvd_mod)
-
-lemma div_power:
-  "y dvd x \<Longrightarrow> (x div y) ^ n = x ^ n div y ^ n"
-apply (induct n)
- apply simp
-apply(simp add: div_mult_div_if_dvd dvd_power_same)
-done
-
-lemma dvd_div_eq_mult:
-  assumes "a \<noteq> 0" and "a dvd b"
-  shows "b div a = c \<longleftrightarrow> b = c * a"
-proof
-  assume "b = c * a"
-  then show "b div a = c" by (simp add: assms)
-next
-  assume "b div a = c"
-  then have "b div a * a = c * a" by simp
-  moreover from \<open>a dvd b\<close> have "b div a * a = b" by simp
-  ultimately show "b = c * a" by simp
-qed
-
-lemma dvd_div_div_eq_mult:
-  assumes "a \<noteq> 0" "c \<noteq> 0" and "a dvd b" "c dvd d"
-  shows "b div a = d div c \<longleftrightarrow> b * c = a * d"
-  using assms by (auto simp add: mult.commute [of _ a] dvd_div_eq_mult div_mult_swap intro: sym)
 
 end
 
@@ -477,10 +431,9 @@ apply (subgoal_tac "y * k = -y * -k")
 apply simp
 done
 
-lemma div_diff[simp]:
-  "\<lbrakk> z dvd x; z dvd y\<rbrakk> \<Longrightarrow> (x - y) div z = x div z - y div z"
-using div_add[where y = "- z" for z]
-by (simp add: dvd_neg_div)
+lemma div_diff [simp]:
+  "z dvd x \<Longrightarrow> z dvd y \<Longrightarrow> (x - y) div z = x div z - y div z"
+  using div_add [of _ _ "- y"] by (simp add: dvd_neg_div)
 
 lemma div_minus_minus [simp]: "(-a) div (-b) = a div b"
   using div_mult_mult1 [of "- 1" a b]
@@ -670,7 +623,7 @@ proof -
     by (simp add: w_def div_mult2_eq mult_div_cancel ac_simps)
   with \<open>w = 1\<close> have div: "2 * (a div (2 * b)) = a div b - 1" by simp
   then show ?P and ?Q
-    by (simp_all add: div mod add_implies_diff [symmetric] le_add_diff_inverse2)
+    by (simp_all add: div mod add_implies_diff [symmetric])
 qed
 
 lemma divmod_digit_0:
@@ -701,11 +654,11 @@ definition divmod :: "num \<Rightarrow> num \<Rightarrow> 'a \<times> 'a"
 where
   "divmod m n = (numeral m div numeral n, numeral m mod numeral n)"
 
-lemma fst_divmod [simp]:
+lemma fst_divmod:
   "fst (divmod m n) = numeral m div numeral n"
   by (simp add: divmod_def)
 
-lemma snd_divmod [simp]:
+lemma snd_divmod:
   "snd (divmod m n) = numeral m mod numeral n"
   by (simp add: divmod_def)
 
@@ -722,15 +675,10 @@ text \<open>
   and evaluate accordingly.
 \<close>
 
-lemma divmod_step_eq [code]:
+lemma divmod_step_eq [code, simp]:
   "divmod_step l (q, r) = (if numeral l \<le> r
     then (2 * q + 1, r - numeral l) else (2 * q, r))"
   by (simp add: divmod_step_def)
-
-lemma divmod_step_simps [simp]:
-  "r < numeral l \<Longrightarrow> divmod_step l (q, r) = (2 * q, r)"
-  "numeral l \<le> r \<Longrightarrow> divmod_step l (q, r) = (2 * q + 1, r - numeral l)"
-  by (auto simp add: divmod_step_eq not_le)
 
 text \<open>
   This is a formulation of school-method division.
@@ -740,13 +688,13 @@ text \<open>
   opposite direction.
 \<close>
 
-lemma divmod_divmod_step [code]:
+lemma divmod_divmod_step:
   "divmod m n = (if m < n then (0, numeral m)
     else divmod_step n (divmod m (Num.Bit0 n)))"
 proof (cases "m < n")
   case True then have "numeral m < numeral n" by simp
   then show ?thesis
-    by (simp add: prod_eq_iff div_less mod_less)
+    by (simp add: prod_eq_iff div_less mod_less fst_divmod snd_divmod)
 next
   case False
   have "divmod m n =
@@ -754,10 +702,10 @@ next
       numeral m mod (2 * numeral n))"
   proof (cases "numeral n \<le> numeral m mod (2 * numeral n)")
     case True
-    with divmod_step_simps
+    with divmod_step_eq
       have "divmod_step n (numeral m div (2 * numeral n), numeral m mod (2 * numeral n)) =
         (2 * (numeral m div (2 * numeral n)) + 1, numeral m mod (2 * numeral n) - numeral n)"
-        by blast
+        by simp
     moreover from True divmod_digit_1 [of "numeral m" "numeral n"]
       have "2 * (numeral m div (2 * numeral n)) + 1 = numeral m div numeral n"
       and "numeral m mod (2 * numeral n) - numeral n = numeral m mod numeral n"
@@ -766,10 +714,10 @@ next
   next
     case False then have *: "numeral m mod (2 * numeral n) < numeral n"
       by (simp add: not_le)
-    with divmod_step_simps
+    with divmod_step_eq
       have "divmod_step n (numeral m div (2 * numeral n), numeral m mod (2 * numeral n)) =
         (2 * (numeral m div (2 * numeral n)), numeral m mod (2 * numeral n))"
-        by blast
+        by auto
     moreover from * divmod_digit_0 [of "numeral n" "numeral m"]
       have "2 * (numeral m div (2 * numeral n)) = numeral m div numeral n"
       and "numeral m mod (2 * numeral n) = numeral m mod numeral n"
@@ -785,10 +733,17 @@ next
   with False show ?thesis by simp
 qed
 
-lemma divmod_eq [simp]:
-  "m < n \<Longrightarrow> divmod m n = (0, numeral m)"
-  "n \<le> m \<Longrightarrow> divmod m n = divmod_step n (divmod m (Num.Bit0 n))"
-  by (auto simp add: divmod_divmod_step [of m n])
+text \<open>The division rewrite proper – first, trivial results involving @{text 1}\<close>
+
+lemma divmod_trivial [simp, code]:
+  "divmod Num.One Num.One = (numeral Num.One, 0)"
+  "divmod (Num.Bit0 m) Num.One = (numeral (Num.Bit0 m), 0)"
+  "divmod (Num.Bit1 m) Num.One = (numeral (Num.Bit1 m), 0)"
+  "divmod num.One (num.Bit0 n) = (0, Numeral1)"
+  "divmod num.One (num.Bit1 n) = (0, Numeral1)"
+  using divmod_divmod_step [of "Num.One"] by (simp_all add: divmod_def)
+
+text \<open>Division by an even number is a right-shift\<close>
 
 lemma divmod_cancel [simp, code]:
   "divmod (Num.Bit0 m) (Num.Bit0 n) = (case divmod m n of (q, r) \<Rightarrow> (q, 2 * r))" (is ?P)
@@ -799,9 +754,25 @@ proof -
     by (simp_all only: numeral_mult numeral.simps distrib) simp_all
   have "1 div 2 = 0" "1 mod 2 = 1" by (auto intro: div_less mod_less)
   then show ?P and ?Q
-    by (simp_all add: prod_eq_iff split_def * [of m] * [of n] mod_mult_mult1
-      div_mult2_eq [of _ _ 2] mod_mult2_eq [of _ _ 2] add.commute del: numeral_times_numeral)
+    by (simp_all add: fst_divmod snd_divmod prod_eq_iff split_def * [of m] * [of n] mod_mult_mult1
+      div_mult2_eq [of _ _ 2] mod_mult2_eq [of _ _ 2]
+      add.commute del: numeral_times_numeral)
 qed
+
+text \<open>The really hard work\<close>
+
+lemma divmod_steps [simp, code]:
+  "divmod (num.Bit0 m) (num.Bit1 n) =
+      (if m \<le> n then (0, numeral (num.Bit0 m))
+       else divmod_step (num.Bit1 n)
+             (divmod (num.Bit0 m)
+               (num.Bit0 (num.Bit1 n))))"
+  "divmod (num.Bit1 m) (num.Bit1 n) =
+      (if m < n then (0, numeral (num.Bit1 m))
+       else divmod_step (num.Bit1 n)
+             (divmod (num.Bit1 m)
+               (num.Bit0 (num.Bit1 n))))"
+  by (simp_all add: divmod_divmod_step)
 
 text \<open>Special case: divisibility\<close>
 
@@ -817,6 +788,24 @@ lemma dvd_numeral_simp [simp]:
   "numeral m dvd numeral n \<longleftrightarrow> divides_aux (divmod n m)"
   by (simp add: divmod_def mod_eq_0_iff_dvd)
 
+text \<open>Generic computation of quotient and remainder\<close>  
+
+lemma numeral_div_numeral [simp]: 
+  "numeral k div numeral l = fst (divmod k l)"
+  by (simp add: fst_divmod)
+
+lemma numeral_mod_numeral [simp]: 
+  "numeral k mod numeral l = snd (divmod k l)"
+  by (simp add: snd_divmod)
+
+lemma one_div_numeral [simp]:
+  "1 div numeral n = fst (divmod num.One n)"
+  by (simp add: fst_divmod)
+
+lemma one_mod_numeral [simp]:
+  "1 mod numeral n = snd (divmod num.One n)"
+  by (simp add: snd_divmod)
+  
 end
 
 
@@ -1579,10 +1568,6 @@ proof -
   then show ?thesis
     by simp
 qed
-
-lemma odd_Suc_minus_one [simp]:
-  "odd n \<Longrightarrow> Suc (n - Suc 0) = n"
-  by (auto elim: oddE)
 
 lemma parity_induct [case_names zero even odd]:
   assumes zero: "P 0"
@@ -2789,15 +2774,15 @@ text \<open>
 
 lemma div_nat_numeral [simp]:
   "(numeral v :: nat) div numeral v' = nat (numeral v div numeral v')"
-  by (simp add: nat_div_distrib)
+  by (subst nat_div_distrib) simp_all
 
 lemma one_div_nat_numeral [simp]:
   "Suc 0 div numeral v' = nat (1 div numeral v')"
-  by (subst nat_div_distrib, simp_all)
+  by (subst nat_div_distrib) simp_all
 
 lemma mod_nat_numeral [simp]:
   "(numeral v :: nat) mod numeral v' = nat (numeral v mod numeral v')"
-  by (simp add: nat_mod_distrib)
+  by (subst nat_mod_distrib) simp_all
 
 lemma one_mod_nat_numeral [simp]:
   "Suc 0 mod numeral v' = nat (1 mod numeral v')"

@@ -195,6 +195,10 @@ lemma even_add_abs_iff [simp]:
   shows "2 dvd (k + \<bar>l\<bar>) \<longleftrightarrow> 2 dvd (k + l)"
   using even_abs_add_iff [of l k] by (simp add: ac_simps)
 
+lemma odd_Suc_minus_one [simp]:
+  "odd n \<Longrightarrow> Suc (n - Suc 0) = n"
+  by (auto elim: oddE)
+
 instance int :: ring_parity
 proof
   show "\<not> 2 dvd (1 :: int)" by (simp add: dvd_int_unfold_dvd_nat)

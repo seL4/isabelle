@@ -160,7 +160,7 @@ proof -
   } note ** = this
   show ?thesis using *
     apply (rule summable_LIMSEQ_zero [OF summable_ratio_test, where N1="nat N"])
-    apply (simp add: N0 norm_mult nat_le_iff field_simps power_Suc ** 
+    apply (simp add: N0 norm_mult field_simps ** 
                 del: of_nat_Suc real_of_int_add)
     done
 qed
@@ -737,7 +737,7 @@ next
     by simp
   then have "summable (\<lambda>n. (of_nat (Suc n) * c(Suc n)) * x ^ n)"
     using False summable_mult2 [of "\<lambda>n. (of_nat (Suc n) * c(Suc n) * x ^ n) * x" "inverse x"]
-    by (simp add: mult.assoc) (auto simp: power_Suc mult_ac)
+    by (simp add: mult.assoc) (auto simp: ac_simps)
   then show ?thesis 
     by (simp add: diffs_def)
 qed
@@ -1289,7 +1289,7 @@ lemma exp_diff:
 lemma exp_of_nat_mult:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "exp(of_nat n * x) = exp(x) ^ n"
-    by (induct n) (auto simp add: power_Suc distrib_left exp_add mult.commute)
+    by (induct n) (auto simp add: distrib_left exp_add mult.commute)
 
 corollary exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
   by (simp add: exp_of_nat_mult real_of_nat_def)
@@ -1668,7 +1668,7 @@ proof -
     hence "inverse (fact (n + 2)) \<le> inverse ((2::real) * 2 ^ n)"
       by (rule le_imp_inverse_le) simp
     hence "inverse (fact (n + 2)) \<le> 1/(2::real) * (1/2)^n"
-      by (simp add: power_inverse)
+      by (simp add: power_inverse [symmetric])
     hence "inverse (fact (n + 2)) * (x^n * x\<^sup>2) \<le> 1/2 * (1/2)^n * (1 * x\<^sup>2)"
       by (rule mult_mono)
         (rule mult_mono, simp_all add: power_le_one a b)
@@ -2309,9 +2309,7 @@ lemma
   by (auto simp add: floor_eq_iff powr_le_iff less_powr_iff)
 
 lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
-  apply (induct n)
-  apply simp
-  by (simp add: add.commute power.simps(2) powr_add real_of_nat_Suc)
+  by (induct n) (simp_all add: ac_simps powr_add real_of_nat_Suc)
 
 lemma powr_realpow_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
   unfolding real_of_nat_numeral [symmetric] by (rule powr_realpow)
@@ -3150,7 +3148,7 @@ proof -
         by (simp add: inverse_eq_divide less_divide_eq)
     } 
     then show ?thesis
-      by (force intro!: sumr_pos_lt_pair [OF sm] simp add: power_Suc divide_inverse algebra_simps)
+      by (force intro!: sumr_pos_lt_pair [OF sm] simp add: divide_inverse algebra_simps)
   qed
   ultimately have "0 < (\<Sum>n. - ((- 1::real) ^ n * 2 ^ (2 * n) / (fact (2 * n))))"
     by (rule order_less_trans)
@@ -4403,9 +4401,7 @@ lemma tan_sec:
   shows "cos x \<noteq> 0 \<Longrightarrow> 1 + (tan x)\<^sup>2 = (inverse (cos x))\<^sup>2"
   apply (rule power_inverse [THEN subst])
   apply (rule_tac c1 = "(cos x)\<^sup>2" in mult_right_cancel [THEN iffD1])
-  apply (auto dest: field_power_not_zero
-          simp add: power_mult_distrib distrib_right power_divide tan_def
-                    mult.assoc power_inverse [symmetric])
+  apply (auto simp add: tan_def field_simps)
   done
 
 lemma arctan_less_iff: "arctan x < arctan y \<longleftrightarrow> x < y"
@@ -4524,7 +4520,8 @@ lemma DERIV_arctan: "DERIV arctan x :> inverse (1 + x\<^sup>2)"
   apply (rule DERIV_inverse_function [where f=tan and a="x - 1" and b="x + 1"])
   apply (rule DERIV_cong [OF DERIV_tan])
   apply (rule cos_arctan_not_zero)
-  apply (simp add: arctan power_inverse tan_sec [symmetric])
+  apply (simp_all add: add_pos_nonneg arctan isCont_arctan)
+  apply (simp add: arctan power_inverse [symmetric] tan_sec [symmetric])
   apply (subgoal_tac "0 < 1 + x\<^sup>2", simp)
   apply (simp_all add: add_pos_nonneg arctan isCont_arctan)
   done
@@ -5426,7 +5423,7 @@ next
       unfolding Set_Interval.setsum_atMost_Suc_shift
       by simp
     also have "... = w * (\<Sum>i\<le>n. c (Suc i) * w^i)"
-      by (simp add: power_Suc mult_ac setsum_right_distrib del: setsum_atMost_Suc)
+      by (simp add: setsum_right_distrib ac_simps)
     finally have "(\<Sum>i\<le>Suc n. c i * w^i) = w * (\<Sum>i\<le>n. c (Suc i) * w^i)" .
   }
   then have wnz: "\<And>w. w \<noteq> 0 \<Longrightarrow> (\<Sum>i\<le>n. c (Suc i) * w^i) = 0"

@@ -9,6 +9,19 @@ theory Power
 imports Num Equiv_Relations
 begin
 
+context linordered_ring (* TODO: move *)
+begin
+
+lemma sum_squares_ge_zero:
+  "0 \<le> x * x + y * y"
+  by (intro add_nonneg_nonneg zero_le_square)
+
+lemma not_sum_squares_lt_zero:
+  "\<not> x * x + y * y < 0"
+  by (simp add: not_less sum_squares_ge_zero)
+
+end
+
 subsection \<open>Powers for Arbitrary Monoids\<close>
 
 class power = one + times
@@ -186,6 +199,15 @@ lemma zero_power2: "0\<^sup>2 = 0" (* delete? *)
 lemma one_power2: "1\<^sup>2 = 1" (* delete? *)
   by (rule power_one)
 
+lemma power_0_Suc [simp]:
+  "0 ^ Suc n = 0"
+  by simp
+
+text\<open>It looks plausible as a simprule, but its effect can be strange.\<close>
+lemma power_0_left:
+  "0 ^ n = (if n = 0 then 1 else 0)"
+  by (cases n) simp_all
+
 end
 
 context comm_semiring_1
@@ -229,6 +251,32 @@ qed
 
 end
 
+class semiring_1_no_zero_divisors = semiring_1 + semiring_no_zero_divisors
+begin
+
+subclass power .
+
+lemma power_eq_0_iff [simp]:
+  "a ^ n = 0 \<longleftrightarrow> a = 0 \<and> n > 0"
+  by (induct n) auto
+
+lemma power_not_zero:
+  "a \<noteq> 0 \<Longrightarrow> a ^ n \<noteq> 0"
+  by (induct n) auto
+
+lemma zero_eq_power2 [simp]:
+  "a\<^sup>2 = 0 \<longleftrightarrow> a = 0"
+  unfolding power2_eq_square by simp
+
+end
+
+context semidom
+begin
+
+subclass semiring_1_no_zero_divisors ..
+
+end
+
 context ring_1
 begin
 
@@ -252,7 +300,7 @@ lemma power_minus_Bit1:
 
 lemma power2_minus [simp]:
   "(- a)\<^sup>2 = a\<^sup>2"
-  by (rule power_minus_Bit0)
+  by (fact power_minus_Bit0)
 
 lemma power_minus1_even [simp]:
   "(- 1) ^ (2*n) = 1"
@@ -272,29 +320,14 @@ lemma power_minus_even [simp]:
 
 end
 
-lemma power_eq_0_nat_iff [simp]:
-  fixes m n :: nat
-  shows "m ^ n = 0 \<longleftrightarrow> m = 0 \<and> n > 0"
-  by (induct n) auto
-
 context ring_1_no_zero_divisors
 begin
 
-lemma power_eq_0_iff [simp]:
-  "a ^ n = 0 \<longleftrightarrow> a = 0 \<and> n > 0"
-  by (induct n) auto
-
-lemma field_power_not_zero:
-  "a \<noteq> 0 \<Longrightarrow> a ^ n \<noteq> 0"
-  by (induct n) auto
-
-lemma zero_eq_power2 [simp]:
-  "a\<^sup>2 = 0 \<longleftrightarrow> a = 0"
-  unfolding power2_eq_square by simp
+subclass semiring_1_no_zero_divisors .. 
 
 lemma power2_eq_1_iff:
   "a\<^sup>2 = 1 \<longleftrightarrow> a = 1 \<or> a = - 1"
-  unfolding power2_eq_square by (rule square_eq_1_iff)
+  using square_eq_1_iff [of a] by (simp add: power2_eq_square)
 
 end
 
@@ -303,6 +336,16 @@ begin
 
 lemma power2_eq_iff: "x\<^sup>2 = y\<^sup>2 \<longleftrightarrow> x = y \<or> x = - y"
   unfolding power2_eq_square by (rule square_eq_iff)
+
+end
+
+context algebraic_semidom
+begin
+
+lemma div_power:
+  assumes "b dvd a"
+  shows "(a div b) ^ n = a ^ n div b ^ n"
+  using assms by (induct n) (simp_all add: div_mult_div_if_dvd dvd_power_same)
 
 end
 
@@ -322,40 +365,41 @@ end
 context division_ring
 begin
 
-text \<open>FIXME reorient or rename to @{text nonzero_inverse_power}\<close>
-lemma nonzero_power_inverse:
-  "a \<noteq> 0 \<Longrightarrow> inverse (a ^ n) = (inverse a) ^ n"
-  by (induct n)
-    (simp_all add: nonzero_inverse_mult_distrib power_commutes field_power_not_zero)
+text\<open>Perhaps these should be simprules.\<close>
+lemma power_inverse [field_simps, divide_simps]:
+  "inverse a ^ n = inverse (a ^ n)"
+proof (cases "a = 0")
+  case True then show ?thesis by (simp add: power_0_left)
+next
+  case False then have "inverse (a ^ n) = inverse a ^ n"
+    by (induct n) (simp_all add: nonzero_inverse_mult_distrib power_commutes)
+  then show ?thesis by simp
+qed
 
-end
+lemma power_one_over [field_simps, divide_simps]:
+  "(1 / a) ^ n = 1 / a ^ n"
+  using power_inverse [of a] by (simp add: divide_inverse)
+
+end  
 
 context field
 begin
 
-lemma nonzero_power_divide:
-  "b \<noteq> 0 \<Longrightarrow> (a / b) ^ n = a ^ n / b ^ n"
-  by (simp add: divide_inverse power_mult_distrib nonzero_power_inverse)
+lemma power_diff:
+  assumes nz: "a \<noteq> 0"
+  shows "n \<le> m \<Longrightarrow> a ^ (m - n) = a ^ m / a ^ n"
+  by (induct m n rule: diff_induct) (simp_all add: nz power_not_zero)
 
-declare nonzero_power_divide [where b = "numeral w" for w, simp]
+lemma power_divide [field_simps, divide_simps]:
+  "(a / b) ^ n = a ^ n / b ^ n"
+  by (induct n) simp_all
+
+declare power_divide [where b = "numeral w" for w, simp]
 
 end
 
 
 subsection \<open>Exponentiation on ordered types\<close>
-
-context linordered_ring (* TODO: move *)
-begin
-
-lemma sum_squares_ge_zero:
-  "0 \<le> x * x + y * y"
-  by (intro add_nonneg_nonneg zero_le_square)
-
-lemma not_sum_squares_lt_zero:
-  "\<not> x * x + y * y < 0"
-  by (simp add: not_less sum_squares_ge_zero)
-
-end
 
 context linordered_semidom
 begin
@@ -702,12 +746,12 @@ end
 
 subsection \<open>Miscellaneous rules\<close>
 
-lemma self_le_power:
-  fixes x::"'a::linordered_semidom" 
-  shows "1 \<le> x \<Longrightarrow> 0 < n \<Longrightarrow> x \<le> x ^ n"
-  using power_increasing[of 1 n x] power_one_right[of x] by auto
+lemma (in linordered_semidom) self_le_power:
+  "1 \<le> a \<Longrightarrow> 0 < n \<Longrightarrow> a \<le> a ^ n"
+  using power_increasing [of 1 n a] power_one_right [of a] by auto
 
-lemma power_eq_if: "p ^ m = (if m=0 then 1 else p * (p ^ (m - 1)))"
+lemma (in power) power_eq_if:
+  "p ^ m = (if m=0 then 1 else p * (p ^ (m - 1)))"
   unfolding One_nat_def by (cases m) simp_all
 
 lemma (in comm_semiring_1) power2_sum:
@@ -718,40 +762,6 @@ lemma (in comm_ring_1) power2_diff:
   "(x - y)\<^sup>2 = x\<^sup>2 + y\<^sup>2 - 2 * x * y"
   by (simp add: algebra_simps power2_eq_square mult_2_right)
 
-lemma power_0_Suc [simp]:
-  "(0::'a::{power, semiring_0}) ^ Suc n = 0"
-  by simp
-
-text\<open>It looks plausible as a simprule, but its effect can be strange.\<close>
-lemma power_0_left:
-  "0 ^ n = (if n = 0 then 1 else (0::'a::{power, semiring_0}))"
-  by (induct n) simp_all
-
-lemma (in field) power_diff:
-  assumes nz: "a \<noteq> 0"
-  shows "n \<le> m \<Longrightarrow> a ^ (m - n) = a ^ m / a ^ n"
-  by (induct m n rule: diff_induct) (simp_all add: nz field_power_not_zero)
-
-text\<open>Perhaps these should be simprules.\<close>
-lemma power_inverse:
-  fixes a :: "'a::division_ring"
-  shows "inverse (a ^ n) = inverse a ^ n"
-apply (cases "a = 0")
-apply (simp add: power_0_left)
-apply (simp add: nonzero_power_inverse)
-done (* TODO: reorient or rename to inverse_power *)
-
-lemma power_one_over:
-  "1 / (a::'a::{field, power}) ^ n =  (1 / a) ^ n"
-  by (simp add: divide_inverse) (rule power_inverse)
-
-lemma power_divide [field_simps, divide_simps]:
-  "(a / b) ^ n = (a::'a::field) ^ n / b ^ n"
-apply (cases "b = 0")
-apply (simp add: power_0_left)
-apply (rule nonzero_power_divide)
-apply assumption
-done
 
 text \<open>Simprules for comparisons where common factors can be cancelled.\<close>
 
@@ -820,7 +830,7 @@ next
     assume "\<not> m \<le> n"
     then have "n < m" by simp
     with assms Suc show False
-      by (auto simp add: algebra_simps) (simp add: power2_eq_square)
+      by (simp add: power2_eq_square)
   qed
 qed
 
@@ -916,4 +926,3 @@ code_identifier
   code_module Power \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
-

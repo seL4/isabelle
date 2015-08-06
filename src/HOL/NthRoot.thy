@@ -112,7 +112,7 @@ proof (clarsimp split: split_root)
   have x: "\<And>a b :: real. (0 < b \<and> a < 0) \<Longrightarrow> \<not> a > b" by auto
   fix a b :: real assume "0 < n" "sgn a * \<bar>a\<bar> ^ n < sgn b * \<bar>b\<bar> ^ n" then show "a < b"
     using power_less_imp_less_base[of a n b]  power_less_imp_less_base[of "-b" n "-a"]
-    by (simp add: sgn_real_def power_less_zero_eq x[of "a ^ n" "- ((- b) ^ n)"] split: split_if_asm)
+    by (simp add: sgn_real_def x [of "a ^ n" "- ((- b) ^ n)"] split: split_if_asm)
 qed
 
 lemma real_root_gt_zero: "\<lbrakk>0 < n; 0 < x\<rbrakk> \<Longrightarrow> 0 < root n x"
@@ -130,7 +130,7 @@ lemma real_root_pow_pos2 [simp]: (* TODO: rename *)
 by (auto simp add: order_le_less real_root_pow_pos)
 
 lemma sgn_root: "0 < n \<Longrightarrow> sgn (root n x) = sgn x"
-  by (auto split: split_root simp: sgn_real_def power_less_zero_eq)
+  by (auto split: split_root simp: sgn_real_def)
 
 lemma odd_real_root_pow: "odd n \<Longrightarrow> root n x ^ n = x"
   using sgn_power_root[of n x] by (simp add: odd_pos sgn_real_def split: split_if_asm)
@@ -496,7 +496,7 @@ apply (rule real_sqrt_abs)
 done
 
 lemma real_inv_sqrt_pow2: "0 < x ==> (inverse (sqrt x))\<^sup>2 = inverse x"
-by (simp add: power_inverse [symmetric])
+by (simp add: power_inverse)
 
 lemma real_sqrt_eq_zero_cancel: "[| 0 \<le> x; sqrt(x) = 0|] ==> x = 0"
 by simp
@@ -525,7 +525,7 @@ lemma real_div_sqrt: "0 \<le> x \<Longrightarrow> x / sqrt x = sqrt x"
   apply (cases "x = 0")
   apply simp_all
   using sqrt_divide_self_eq[of x]
-  apply (simp add: inverse_eq_divide field_simps)
+  apply (simp add: field_simps)
   done
 
 lemma real_divide_square_eq [simp]: "(((r::real) * a) / (r * r)) = a / r"

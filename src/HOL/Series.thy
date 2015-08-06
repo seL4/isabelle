@@ -550,7 +550,7 @@ next
   fix n
   show "norm (norm (a n) * r ^ n) \<le> M * (r / r0) ^ n"
     using r r0 M [of n]
-    apply (auto simp add: abs_mult field_simps power_divide)
+    apply (auto simp add: abs_mult field_simps)
     apply (cases "r=0", simp)
     apply (cases n, auto)
     done

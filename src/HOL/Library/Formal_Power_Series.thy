@@ -240,6 +240,8 @@ qed
 
 instance fps :: (semiring_0_cancel) semiring_0_cancel ..
 
+instance fps :: (semiring_1) semiring_1 ..
+
 
 subsection \<open>Selection of the nth power of the implicit variable in the infinite sum\<close>
 
@@ -372,8 +374,9 @@ lemma numeral_fps_const: "numeral k = fps_const (numeral k)"
   by (induct k) (simp_all only: numeral.simps fps_const_1_eq_1
     fps_const_add [symmetric])
 
-lemma neg_numeral_fps_const: "- numeral k = fps_const (- numeral k)"
-  by (simp only: numeral_fps_const fps_const_neg)
+lemma neg_numeral_fps_const:
+  "(- numeral k :: 'a :: ring_1 fps) = fps_const (- numeral k)"
+  by (simp add: numeral_fps_const)
 
 
 subsection \<open>The eXtractor series X\<close>
@@ -556,7 +559,7 @@ proof -
     unfolding exp_zero exp_add exp_real_of_nat_mult exp_ln [OF xp] exp_ln [OF yp]
     by simp
   then have "x > (1 / y)^k" using yp
-    by (simp add: field_simps nonzero_power_divide)
+    by (simp add: field_simps)
   then show ?thesis
     using kp by blast
 qed
@@ -2201,7 +2204,7 @@ proof
     from a0 b0 have ab0[simp]: "(a/b)$0 = a$0 / b$0"
       by (simp add: fps_divide_def fps_mult_nth divide_inverse fps_inverse_def)
     have th0: "r k ((a/b)$0) ^ k = (a/b)$0"
-      by (simp add: \<open>?lhs\<close> nonzero_power_divide[OF rb0'] ra0 rb0)
+      by (simp add: \<open>?lhs\<close> power_divide ra0 rb0)
     from a0 b0 ra0' rb0' kp \<open>?lhs\<close>
     have th1: "r k ((a / b) $ 0) = (fps_radical r k a / fps_radical r k b) $ 0"
       by (simp add: fps_divide_def fps_mult_nth fps_inverse_def divide_inverse)
@@ -2407,7 +2410,7 @@ lemma fps_compose_1[simp]: "1 oo a = 1"
 lemma fps_compose_0[simp]: "0 oo a = 0"
   by (simp add: fps_eq_iff fps_compose_nth)
 
-lemma fps_compose_0_right[simp]: "a oo 0 = fps_const (a$0)"
+lemma fps_compose_0_right[simp]: "a oo 0 = fps_const (a $ 0)"
   by (auto simp add: fps_eq_iff fps_compose_nth power_0_left setsum.neutral)
 
 lemma fps_compose_add_distrib: "(a + b) oo c = (a oo c) + (b oo c)"

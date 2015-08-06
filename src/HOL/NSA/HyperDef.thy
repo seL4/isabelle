@@ -441,12 +441,12 @@ by transfer simp
 
 lemma hyperpow_not_zero:
   "\<And>r n. r \<noteq> (0::'a::{field} star) ==> r pow n \<noteq> 0"
-by transfer (rule field_power_not_zero)
+by transfer (rule power_not_zero)
 
 lemma hyperpow_inverse:
   "\<And>r n. r \<noteq> (0::'a::field star)
    \<Longrightarrow> inverse (r pow n) = (inverse r) pow n"
-by transfer (rule power_inverse)
+by transfer (rule power_inverse [symmetric])
 
 lemma hyperpow_hrabs:
   "\<And>r n. abs (r::'a::{linordered_idom} star) pow n = abs (r pow n)"

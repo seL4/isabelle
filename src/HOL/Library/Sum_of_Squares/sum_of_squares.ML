@@ -1045,7 +1045,7 @@ fun elim_one_denom_tac ctxt = CSUBGOAL (fn (P, i) =>
       let
         val simp_ctxt =
           ctxt addsimps @{thms field_simps}
-          addsimps [@{thm nonzero_power_divide}, @{thm power_divide}]
+          addsimps [@{thm power_divide}]
         val th =
           Thm.instantiate' [] [SOME d, SOME (Thm.dest_arg P)]
             (if ord then @{lemma "(d=0 --> P) & (d>0 --> P) & (d<(0::real) --> P) ==> P" by auto}

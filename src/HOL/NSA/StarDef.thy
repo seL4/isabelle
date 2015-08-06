@@ -688,7 +688,7 @@ definition
   star_inf_def [transfer_unfold]: "inf \<equiv> *f2* inf"
 
 instance
-  by default (transfer, auto)+
+  by (standard; transfer) auto
 
 end
 
@@ -699,14 +699,14 @@ definition
   star_sup_def [transfer_unfold]: "sup \<equiv> *f2* sup"
 
 instance
-  by default (transfer, auto)+
+  by (standard; transfer) auto
 
 end
 
 instance star :: (lattice) lattice ..
 
 instance star :: (distrib_lattice) distrib_lattice
-  by default (transfer, auto simp add: sup_inf_distrib1)
+  by (standard; transfer) (auto simp add: sup_inf_distrib1)
 
 lemma Standard_inf [simp]:
   "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> inf x y \<in> Standard"
@@ -774,6 +774,8 @@ apply (intro_classes)
 apply (transfer, rule mult_1_left)
 apply (transfer, rule mult_1_right)
 done
+
+instance star :: (power) power ..
 
 instance star :: (comm_monoid_mult) comm_monoid_mult
 by (intro_classes, transfer, rule mult_1)
@@ -843,6 +845,8 @@ instance star :: (comm_semiring_1_cancel) comm_semiring_1_cancel
 instance star :: (semiring_no_zero_divisors) semiring_no_zero_divisors
   by (intro_classes; transfer) (fact no_zero_divisors)
 
+instance star :: (semiring_1_no_zero_divisors) semiring_1_no_zero_divisors ..
+  
 instance star :: (semiring_no_zero_divisors_cancel) semiring_no_zero_divisors_cancel
   by (intro_classes; transfer) simp_all
 

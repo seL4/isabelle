@@ -175,7 +175,7 @@ proof -
   next
     show "\<not> [:- a, 1:] ^ Suc n' dvd pderiv ([:- a, 1:] ^ Suc n' * q)"
      apply (subst lemma_order_pderiv1)
-     by (metis * nd dvd_mult_cancel_right field_power_not_zero pCons_eq_0_iff power_Suc zero_neq_one)
+     by (metis * nd dvd_mult_cancel_right power_not_zero pCons_eq_0_iff power_Suc zero_neq_one)
   qed
   then show ?thesis
     by (metis \<open>n = Suc n'\<close> pe)
