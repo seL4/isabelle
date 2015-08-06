@@ -16,6 +16,8 @@ struct
 
 (* messages *)
 
+val _ = Session.protocol_handler "isabelle.Debugger$Handler";
+
 fun output_message kind msg =
   Output.protocol_message
     (Markup.debugger_output (Simple_Thread.the_name ()))
@@ -24,6 +26,11 @@ fun output_message kind msg =
 val writeln_message = output_message Markup.writelnN;
 val warning_message = output_message Markup.warningN;
 val error_message = output_message Markup.errorN;
+
+fun error_wrapper e = e ()
+  handle exn =>
+    if Exn.is_interrupt exn then reraise exn
+    else error_message (Runtime.exn_message exn);
 
 
 (* global state *)
@@ -64,29 +71,32 @@ fun get_input thread_name =
         in SOME (msg, make_state (threads, input')) end));
 
 
-(* thread data *)
+(* thread state *)
 
-local val tag = Universal.tag () : ML_Debugger.state list Universal.tag in
+local
+  val tag = Universal.tag () : ML_Debugger.state list Universal.tag;
+in
 
-fun get_data () = the_default [] (Thread.getLocal tag);
-fun setmp_data data f x = setmp_thread_data tag (get_data ()) data f x;
+fun get_debugging () = the_default [] (Thread.getLocal tag);
+val is_debugging = not o null o get_debugging;
+
+fun with_debugging e =
+  setmp_thread_data tag (get_debugging ()) (ML_Debugger.state (Thread.self ())) e ();
 
 end;
 
-val debugging = not o null o get_data;
-fun with_debugging e = setmp_data (ML_Debugger.state (Thread.self ())) e ();
 
+(* eval ML *)
 
-(* protocol messages *)
-
-val _ = Session.protocol_handler "isabelle.Debugger$Handler";
+fun eval opt_index SML context expression =  (* FIXME *)
+  writeln_message ("context = " ^ context ^ "\nexpression = " ^ expression);
 
 
 (* main entry point *)
 
 fun debugger_state thread_name =
   Output.protocol_message (Markup.debugger_state thread_name)
-   [get_data ()
+   [get_debugging ()
     |> map (fn st =>
       (Position.properties_of (Exn_Properties.position_of (ML_Debugger.debug_location st)),
        ML_Debugger.debug_function st))
@@ -94,23 +104,28 @@ fun debugger_state thread_name =
     |> YXML.string_of_body];
 
 fun debugger_loop thread_name =
-  (debugger_state thread_name;
-   case get_input thread_name of
-    ["continue"] => ()
-  | bad =>
-     (Output.system_message
-        ("Debugger: bad input " ^ ML_Syntax.print_list ML_Syntax.print_string bad);
-      debugger_loop thread_name));
+  let
+    fun loop () =
+      (debugger_state thread_name;
+       case get_input thread_name of
+        ["continue"] => ()
+      | ["eval", index, language, context, expression] =>
+          (error_wrapper (fn () =>
+            eval (try Markup.parse_int index) (language = "SML") context expression); loop ())
+      | bad =>
+         (Output.system_message
+            ("Debugger: bad input " ^ ML_Syntax.print_list ML_Syntax.print_string bad);
+          loop ()));
+  in with_debugging loop; debugger_state thread_name end;
 
 fun debugger cond =
-  if debugging () orelse not (cond ()) orelse
+  if is_debugging () orelse not (cond ()) orelse
     not (Options.default_bool @{system_option ML_debugger_active})
   then ()
   else
-    with_debugging (fn () =>
-      (case Simple_Thread.get_name () of
-        NONE => ()
-      | SOME thread_name => debugger_loop thread_name));
+    (case Simple_Thread.get_name () of
+      NONE => ()
+    | SOME thread_name => debugger_loop thread_name);
 
 fun init () =
   ML_Debugger.on_breakpoint

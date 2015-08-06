@@ -126,4 +126,11 @@ object Debugger
     current_state().session.protocol_command("Debugger.input", (thread_name :: msg.toList):_*)
 
   def continue(thread_name: String): Unit = input(thread_name, "continue")
+
+  def eval(thread_name: String, opt_index: Option[Int],
+      language: String, context: String, expression: String): Unit =
+  {
+    val index = opt_index.map(_.toString).getOrElse("")
+    input(thread_name, "eval", index, language, context, expression)
+  }
 }

@@ -196,9 +196,13 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def eval_expression()
   {
-    // FIXME
-    Output.writeln("eval context = " + quote(context_field.getText) + " expression = " +
-      quote(expression_field.getText))
+    tree_selection() match {
+      case Some((t, opt_index)) =>
+        Debugger.eval(t.thread_name, opt_index, "ML",
+          Symbol.decode(context_field.getText),
+          Symbol.decode(expression_field.getText))
+      case _ =>
+    }
   }
 
   private val continue_button = new Button("Continue") {
