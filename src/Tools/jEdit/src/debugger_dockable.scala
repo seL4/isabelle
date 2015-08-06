@@ -15,7 +15,7 @@ import javax.swing.{JTree, JScrollPane}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
-import scala.swing.{Button, Label, Component, SplitPane, Orientation}
+import scala.swing.{Button, Label, Component, SplitPane, Orientation, CheckBox}
 import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.View
@@ -188,6 +188,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       setFont(GUI.imitate_font(getFont, Font_Info.main_family(), 1.2))
     }
 
+  private val sml_button = new CheckBox("SML") {
+    tooltip = "Official Standard ML instead of Isabelle/ML"
+    selected = false
+  }
+
   private val eval_button = new Button("<html><b>Eval</b></html>") {
       tooltip = "Evaluate Isabelle/ML expression within optional context"
       reactions += { case ButtonClicked(_) => eval_expression() }
@@ -197,10 +202,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private def eval_expression()
   {
     tree_selection() match {
-      case Some((t, opt_index)) =>
-        Debugger.eval(t.thread_name, opt_index, "ML",
-          Symbol.decode(context_field.getText),
-          Symbol.decode(expression_field.getText))
+      case Some((t, opt_index)) if t.debug_states.nonEmpty =>
+        Debugger.eval(t.thread_name, opt_index getOrElse 0,
+          sml_button.selected, context_field.getText, expression_field.getText)
       case _ =>
     }
   }
@@ -238,8 +242,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
       context_label, Component.wrap(context_field),
-      expression_label, Component.wrap(expression_field), eval_button,
-      continue_button, cancel_button,
+      expression_label, Component.wrap(expression_field),
+      sml_button, eval_button, continue_button, cancel_button,
       pretty_text_area.search_label, pretty_text_area.search_field,
       debugger_stepping, debugger_active, zoom)
   add(controls.peer, BorderLayout.NORTH)

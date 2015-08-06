@@ -127,10 +127,9 @@ object Debugger
 
   def continue(thread_name: String): Unit = input(thread_name, "continue")
 
-  def eval(thread_name: String, opt_index: Option[Int],
-      language: String, context: String, expression: String): Unit =
+  def eval(thread_name: String, index: Int, SML: Boolean, context: String, expression: String): Unit =
   {
-    val index = opt_index.map(_.toString).getOrElse("")
-    input(thread_name, "eval", index, language, context, expression)
+    input(thread_name, "eval",
+      index.toString, SML.toString, Symbol.decode(context), Symbol.decode(expression))
   }
 }

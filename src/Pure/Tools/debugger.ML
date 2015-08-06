@@ -88,11 +88,14 @@ end;
 
 (* eval ML *)
 
-fun eval opt_index SML context expression =  (* FIXME *)
-  writeln_message ("context = " ^ context ^ "\nexpression = " ^ expression);
+fun eval thread_name index SML context expression =  (* FIXME *)
+  writeln_message ("SML = " ^ Markup.print_bool SML ^
+    "\ncontext = " ^ context ^ "\nexpression = " ^ expression);
 
 
-(* main entry point *)
+(* debugger entry point *)
+
+local
 
 fun debugger_state thread_name =
   Output.protocol_message (Markup.debugger_state thread_name)
@@ -103,19 +106,20 @@ fun debugger_state thread_name =
     |> let open XML.Encode in list (pair properties string) end
     |> YXML.string_of_body];
 
+fun debugger_command thread_name =
+  (case get_input thread_name of
+    ["continue"] => false
+  | ["eval", index, SML, txt1, txt2] =>
+     (error_wrapper (fn () =>
+        eval thread_name (Markup.parse_int index) (Markup.parse_bool SML) txt1 txt2); true)
+  | bad =>
+     (Output.system_message
+        ("Debugger: bad input " ^ ML_Syntax.print_list ML_Syntax.print_string bad); true));
+
 fun debugger_loop thread_name =
   let
     fun loop () =
-      (debugger_state thread_name;
-       case get_input thread_name of
-        ["continue"] => ()
-      | ["eval", index, language, context, expression] =>
-          (error_wrapper (fn () =>
-            eval (try Markup.parse_int index) (language = "SML") context expression); loop ())
-      | bad =>
-         (Output.system_message
-            ("Debugger: bad input " ^ ML_Syntax.print_list ML_Syntax.print_string bad);
-          loop ()));
+      (debugger_state thread_name; if debugger_command thread_name then loop () else ());
   in with_debugging loop; debugger_state thread_name end;
 
 fun debugger cond =
@@ -127,10 +131,14 @@ fun debugger cond =
       NONE => ()
     | SOME thread_name => debugger_loop thread_name);
 
+in
+
 fun init () =
   ML_Debugger.on_breakpoint
     (SOME (fn (_, b) =>
       debugger (fn () => ! b orelse Options.default_bool @{system_option ML_debugger_stepping})));
+
+end;
 
 
 (* protocol commands *)
