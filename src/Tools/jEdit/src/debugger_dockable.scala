@@ -117,9 +117,10 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   def thread_selection(): Option[String] = tree_selection().map(sel => sel._1.thread_name)
 
-
   private def update_tree(thread_entries: List[Debugger_Dockable.Thread_Entry])
   {
+    val old_thread_selection = thread_selection()
+
     tree.clearSelection
     root.removeAllChildren
 
@@ -134,7 +135,17 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
     tree.getModel.asInstanceOf[DefaultTreeModel].reload(root)
+
+    old_thread_selection match {
+      case Some(thread_name) if thread_entries.exists(t => t.thread_name == thread_name) =>
+        val i =
+          (for (t <- thread_entries.iterator.takeWhile(t => t.thread_name != thread_name))
+            yield 1 + t.debug_states.length).sum
+        tree.addSelectionRow(i + 1)
+      case _ =>
+    }
     for (i <- 0 until tree.getRowCount) tree.expandRow(i)
+
     tree.revalidate()
   }
 
