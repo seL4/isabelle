@@ -6,17 +6,16 @@ ML debugger interface.
 
 signature ML_DEBUGGER =
 sig
-  type location
-  val on_entry: (string * location -> unit) option -> unit
-  val on_exit: (string * location -> unit) option -> unit
-  val on_exit_exception: (string * location -> exn -> unit) option -> unit
-  val on_breakpoint: (location * bool Unsynchronized.ref -> unit) option -> unit
+  val on_entry: (string * 'a -> unit) option -> unit
+  val on_exit: (string * 'a -> unit) option -> unit
+  val on_exit_exception: (string * 'a -> exn -> unit) option -> unit
+  val on_breakpoint: ('a * bool Unsynchronized.ref -> unit) option -> unit
   type state
   val state: Thread.thread -> state list
   val debug_function: state -> string
   val debug_function_arg: state -> ML_Name_Space.valueVal
   val debug_function_result: state -> ML_Name_Space.valueVal
-  val debug_location: state -> location
+  val debug_location: state -> 'a
   val debug_name_space: state -> ML_Name_Space.T
 end;
 

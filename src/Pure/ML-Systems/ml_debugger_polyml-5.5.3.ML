@@ -4,6 +4,22 @@
 ML debugger interface -- Poly/ML 5.5.3, or later.
 *)
 
+signature ML_DEBUGGER =
+sig
+  type location
+  val on_entry: (string * location -> unit) option -> unit
+  val on_exit: (string * location -> unit) option -> unit
+  val on_exit_exception: (string * location -> exn -> unit) option -> unit
+  val on_breakpoint: (location * bool Unsynchronized.ref -> unit) option -> unit
+  type state
+  val state: Thread.thread -> state list
+  val debug_function: state -> string
+  val debug_function_arg: state -> ML_Name_Space.valueVal
+  val debug_function_result: state -> ML_Name_Space.valueVal
+  val debug_location: state -> location
+  val debug_name_space: state -> ML_Name_Space.T
+end;
+
 structure ML_Debugger: ML_DEBUGGER =
 struct
 
