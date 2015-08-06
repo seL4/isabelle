@@ -70,10 +70,10 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     val new_threads = new_state.threads
     val new_output =
     {
-      val thread_selection = tree_selection().map(sel => sel._1.thread_name)
+      val current_thread_selection = thread_selection()
       (for {
         (thread_name, results) <- new_state.output
-        if thread_selection.isEmpty || thread_selection.get == thread_name
+        if current_thread_selection.isEmpty || current_thread_selection.get == thread_name
         (_, tree) <- results.iterator
       } yield tree).toList
     }
@@ -115,26 +115,26 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         }
     }
 
+  def thread_selection(): Option[String] = tree_selection().map(sel => sel._1.thread_name)
+
+
   private def update_tree(thread_entries: List[Debugger_Dockable.Thread_Entry])
   {
     tree.clearSelection
-    val tree_model = tree.getModel.asInstanceOf[DefaultTreeModel]
-
     root.removeAllChildren
-    val thread_nodes = thread_entries.map(e => new DefaultMutableTreeNode(e))
-    thread_nodes.foreach(root.add(_))
 
-    tree_model.reload(root)
-    for (i <- 0 until tree.getRowCount) tree.expandRow(i)
-
-    for ((thread_entry, thread_node) <- thread_entries zip thread_nodes) {
+    for (thread_entry <- thread_entries) {
+      val thread_node = new DefaultMutableTreeNode(thread_entry)
       for ((debug_state, i) <- thread_entry.debug_states.zipWithIndex) {
-        val sub_node = new DefaultMutableTreeNode(Debugger_Dockable.Stack_Entry(debug_state, i))
-        thread_node.add(sub_node)
+        val stack_node =
+          new DefaultMutableTreeNode(Debugger_Dockable.Stack_Entry(debug_state, i))
+        thread_node.add(stack_node)
       }
+      root.add(thread_node)
     }
-    tree_model.reload(root)
 
+    tree.getModel.asInstanceOf[DefaultTreeModel].reload(root)
+    for (i <- 0 until tree.getRowCount) tree.expandRow(i)
     tree.revalidate()
   }
 
