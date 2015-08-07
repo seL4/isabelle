@@ -70,7 +70,8 @@ object Debugger
     {
       msg.properties match {
         case Markup.Debugger_State(thread_name) =>
-          val msg_body = YXML.parse_body_failsafe(UTF8.decode_permissive(msg.bytes))
+          val msg_body =
+            YXML.parse_body_failsafe(Symbol.decode(UTF8.decode_permissive(msg.bytes)))
           val debug_states =
           {
             import XML.Decode._
@@ -91,7 +92,7 @@ object Debugger
         case Markup.Debugger_Output(thread_name) =>
           val msg_body =
             prover.xml_cache.body(
-              YXML.parse_body_failsafe(UTF8.decode_permissive(msg.bytes)))
+              YXML.parse_body_failsafe(Symbol.decode(UTF8.decode_permissive(msg.bytes))))
           msg_body match {
             case List(XML.Elem(Markup(name, props @ Markup.Serial(i)), body)) =>
               val message = XML.Elem(Markup(Markup.message(name), props), body)
@@ -130,6 +131,6 @@ object Debugger
   def eval(thread_name: String, index: Int, SML: Boolean, context: String, expression: String): Unit =
   {
     input(thread_name, "eval",
-      index.toString, SML.toString, Symbol.decode(context), Symbol.decode(expression))
+      index.toString, SML.toString, Symbol.encode(context), Symbol.encode(expression))
   }
 }
