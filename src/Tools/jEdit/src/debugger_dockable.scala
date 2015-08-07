@@ -174,7 +174,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* controls */
 
-  private val context_label = new Label("Context:") { tooltip = "Isabelle/ML context (optional)" }
+  private val context_label = new Label("Context:") {
+    tooltip = "Isabelle/ML context: type theory, Proof.context, Context.generic"
+  }
   private val context_field =
     new Completion_Popup.History_Text_Field("isabelle-debugger-context")
     {
@@ -183,7 +185,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       setFont(GUI.imitate_font(getFont, Font_Info.main_family(), 1.2))
     }
 
-  private val expression_label = new Label("ML:") { tooltip = "Isabelle/ML expression" }
+  private val expression_label = new Label("ML:") {
+    tooltip = "Isabelle/ML or Standard ML expression"
+  }
   private val expression_field =
     new Completion_Popup.History_Text_Field("isabelle-debugger-expression")
     {
@@ -205,7 +209,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private val eval_button = new Button("<html><b>Eval</b></html>") {
-      tooltip = "Evaluate Isabelle/ML expression within optional context"
+      tooltip = "Evaluate ML expression within optional context"
       reactions += { case ButtonClicked(_) => eval_expression() }
     }
   override def focusOnDefaultComponent { eval_button.requestFocus }

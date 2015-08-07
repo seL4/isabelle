@@ -98,24 +98,48 @@ fun the_debug_state thread_name index =
 
 (* eval ML *)
 
+local
+
+val context_attempts =
+  map ML_Lex.read
+   ["Context.set_thread_data (SOME (Context.Theory ML_context))",
+    "Context.set_thread_data (SOME (Context.Proof ML_context))",
+    "Context.set_thread_data (SOME ML_context)"];
+
+fun evaluate {SML, verbose} =
+  ML_Context.eval
+    {SML = SML, exchange = false, redirect = false, verbose = verbose,
+      writeln = writeln_message, warning = warning_message}
+    Position.none;
+
+in
+
 fun eval thread_name index SML txt1 txt2 =
   let
-    fun evaluate verbose =
-      ML_Context.eval
-        {SML = SML, exchange = false, redirect = false, verbose = verbose,
-          writeln = writeln_message, warning = warning_message}
-        Position.none;
+    val (toks1, toks2) = apply2 (ML_Lex.read_source SML o Input.string) (txt1, txt2);
 
-    val debug_state = the_debug_state thread_name index;
+    val evaluate_verbose = evaluate {SML = SML, verbose = true};
     val context1 = ML_Context.the_generic_context ()
       |> Context_Position.set_visible_generic false
-      |> ML_Env.add_name_space {SML = SML} (ML_Debugger.debug_name_space debug_state);
-    val (toks1, toks2) = apply2 (ML_Lex.read_source SML o Input.string) (txt1, txt2);
-  in
-    if null (filter_out (fn Antiquote.Text tok => ML_Lex.is_improper tok | _ => false) toks1)
-    then Context.setmp_thread_data (SOME context1) (fn () => evaluate true toks2) ()
-    else error "FIXME"
-  end;
+      |> ML_Env.add_name_space {SML = SML}
+          (ML_Debugger.debug_name_space (the_debug_state thread_name index));
+    val context2 =
+      if SML orelse forall (fn Antiquote.Text tok => ML_Lex.is_improper tok | _ => false) toks1
+      then context1
+      else
+        let
+          val context' = context1
+            |> ML_Context.exec (fn () => evaluate_verbose (ML_Lex.read "val ML_context = " @ toks1));
+          fun try_exec toks =
+            try (ML_Context.exec (fn () => evaluate {SML = false, verbose = false} toks)) context';
+        in
+          (case get_first try_exec context_attempts of
+            SOME context2 => context2
+          | NONE => error "Malformed context: expected type theory, Proof.context, Context.generic")
+        end;
+  in Context.setmp_thread_data (SOME context2) evaluate_verbose toks2 end;
+
+end;
 
 
 (* debugger entry point *)
