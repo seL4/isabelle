@@ -73,6 +73,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   /* controls */
 
   private def clicked {
+    provers.addCurrentToHistory()
     PIDE.options.string("sledgehammer_provers") = provers.getText
     sledgehammer.apply_query(
       List(provers.getText, isar_proofs.selected.toString, try0.selected.toString))

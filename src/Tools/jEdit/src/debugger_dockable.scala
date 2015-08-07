@@ -212,6 +212,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def eval_expression()
   {
+    context_field.addCurrentToHistory()
+    expression_field.addCurrentToHistory()
     tree_selection() match {
       case Some((t, opt_index)) if t.debug_states.nonEmpty =>
         Debugger.eval(t.thread_name, opt_index getOrElse 0,

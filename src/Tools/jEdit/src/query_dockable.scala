@@ -37,7 +37,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
-  private def make_query(property: String, tooltip: String, apply_query: () => Unit): JTextField =
+  private def make_query(property: String, tooltip: String, apply_query: () => Unit)
+      : Completion_Popup.History_Text_Field =
     new Completion_Popup.History_Text_Field(property)
     {
       override def processKeyEvent(evt: KeyEvent)
@@ -83,6 +84,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     private def apply_query()
     {
+      query.addCurrentToHistory()
       query_operation.apply_query(List(limit.text, allow_dups.selected.toString, query.getText))
     }
 
@@ -148,6 +150,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     private def apply_query()
     {
+      query.addCurrentToHistory()
       query_operation.apply_query(List(query.getText))
     }
 
