@@ -19,9 +19,11 @@ struct
 val _ = Session.protocol_handler "isabelle.Debugger$Handler";
 
 fun output_message kind msg =
-  Output.protocol_message
-    (Markup.debugger_output (Simple_Thread.the_name ()))
-    [Markup.markup (kind, Markup.serial_properties (serial ())) msg];
+  if msg = "" then ()
+  else
+    Output.protocol_message
+      (Markup.debugger_output (Simple_Thread.the_name ()))
+      [Markup.markup (kind, Markup.serial_properties (serial ())) msg];
 
 val writeln_message = output_message Markup.writelnN;
 val warning_message = output_message Markup.warningN;
