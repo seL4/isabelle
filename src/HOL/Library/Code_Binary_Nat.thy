@@ -137,7 +137,7 @@ lemma divmod_nat_code [code]:
   "divmod_nat (nat_of_num k) (nat_of_num l) = divmod k l"
   "divmod_nat m 0 = (0, m)"
   "divmod_nat 0 n = (0, 0)"
-  by (simp_all add: prod_eq_iff nat_of_num_numeral del: div_nat_numeral mod_nat_numeral)
+  by (simp_all add: prod_eq_iff nat_of_num_numeral)
 
 
 subsection \<open>Conversions\<close>

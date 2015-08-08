@@ -729,39 +729,39 @@ subsection {* Integer numeral div/mod simprocs *}
 
 notepad begin
   have "(10::int) div 3 = 3"
-    by (tactic {* test @{context} [@{simproc binary_int_div}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "(10::int) mod 3 = 1"
-    by (tactic {* test @{context} [@{simproc binary_int_mod}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "(10::int) div -3 = -4"
-    by (tactic {* test @{context} [@{simproc binary_int_div}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "(10::int) mod -3 = -2"
-    by (tactic {* test @{context} [@{simproc binary_int_mod}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "(-10::int) div 3 = -4"
-    by (tactic {* test @{context} [@{simproc binary_int_div}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "(-10::int) mod 3 = 2"
-    by (tactic {* test @{context} [@{simproc binary_int_mod}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "(-10::int) div -3 = 3"
-    by (tactic {* test @{context} [@{simproc binary_int_div}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "(-10::int) mod -3 = -1"
-    by (tactic {* test @{context} [@{simproc binary_int_mod}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "(8452::int) mod 3 = 1"
-    by (tactic {* test @{context} [@{simproc binary_int_mod}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "(59485::int) div 434 = 137"
-    by (tactic {* test @{context} [@{simproc binary_int_div}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "(1000006::int) mod 10 = 6"
-    by (tactic {* test @{context} [@{simproc binary_int_mod}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "10000000 div 2 = (5000000::int)"
-    by (tactic {* test @{context} [@{simproc binary_int_div}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "10000001 mod 2 = (1::int)"
-    by (tactic {* test @{context} [@{simproc binary_int_mod}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "10000055 div 32 = (312501::int)"
-    by (tactic {* test @{context} [@{simproc binary_int_div}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "10000055 mod 32 = (23::int)"
-    by (tactic {* test @{context} [@{simproc binary_int_mod}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "100094 div 144 = (695::int)"
-    by (tactic {* test @{context} [@{simproc binary_int_div}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
   have "100094 mod 144 = (14::int)"
-    by (tactic {* test @{context} [@{simproc binary_int_mod}] *})
+    by (tactic {* test @{context} [@{simproc numeral_divmod}] *})
 end
 
 end

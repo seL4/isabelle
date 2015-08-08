@@ -512,9 +512,9 @@ lemma integer_of_int_code [code]:
   "integer_of_int k = (if k < 0 then - (integer_of_int (- k))
      else if k = 0 then 0
      else let
-       (l, j) = divmod_int k 2;
-       l' = 2 * integer_of_int l
-     in if j = 0 then l' else l' + 1)"
+       l = 2 * integer_of_int (k div 2);
+       j = k mod 2
+     in if j = 0 then l else l + 1)"
   by (auto simp add: split_def Let_def integer_eq_iff zmult_div_cancel)
 
 hide_const (open) Pos Neg sub dup divmod_abs

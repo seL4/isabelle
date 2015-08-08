@@ -46,20 +46,16 @@ lemmas zpowerarith = zpower_numeral_even zpower_numeral_odd zpower_Pls int_pow_1
 
 (* div, mod *)
 
-lemma adjust: "adjust b (q, r) = (if 0 \<le> r - b then (2 * q + 1, r - b) else (2 * q, r))"
-  by (auto simp only: adjust_def)
-
-lemma divmod: "divmod_int a b = (if 0\<le>a then
-                  if 0\<le>b then posDivAlg a b
-                  else if a=0 then (0, 0)
-                       else apsnd uminus (negDivAlg (-a) (-b))
-               else 
-                  if 0<b then negDivAlg a b
-                  else apsnd uminus (posDivAlg (-a) (-b)))"
-  by (auto simp only: divmod_int_def)
-
-lemmas compute_div_mod = div_int_def mod_int_def divmod adjust apsnd_def map_prod_def posDivAlg.simps negDivAlg.simps
-
+lemmas compute_div_mod = div_0 mod_0 div_by_0 mod_by_0 div_by_1 mod_by_1
+  one_div_numeral one_mod_numeral minus_one_div_numeral minus_one_mod_numeral
+  one_div_minus_numeral one_mod_minus_numeral
+  numeral_div_numeral numeral_mod_numeral minus_numeral_div_numeral minus_numeral_mod_numeral
+  numeral_div_minus_numeral numeral_mod_minus_numeral
+  div_minus_minus mod_minus_minus adjust_div_eq of_bool_eq one_neq_zero
+  numeral_neq_zero neg_equal_0_iff_equal arith_simps arith_special divmod_trivial
+  divmod_steps divmod_cancel divmod_step_eq fst_conv snd_conv numeral_One
+  case_prod_beta rel_simps adjust_mod_def div_minus1_right mod_minus1_right
+  minus_minus numeral_times_numeral mult_zero_right mult_1_right
 
 
 (* collecting all the theorems *)

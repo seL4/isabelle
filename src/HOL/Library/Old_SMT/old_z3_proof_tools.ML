@@ -341,7 +341,7 @@ local
       addsimps @{thms array_rules}
       addsimps @{thms term_true_def} addsimps @{thms term_false_def}
       addsimps @{thms z3div_def} addsimps @{thms z3mod_def}
-      addsimprocs [@{simproc binary_int_div}, @{simproc binary_int_mod}]
+      addsimprocs [@{simproc numeral_divmod}]
       addsimprocs [
         Simplifier.simproc_global @{theory} "fast_int_arith" [
           "(m::int) < n", "(m::int) <= n", "(m::int) = n"] Lin_Arith.simproc,

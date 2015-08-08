@@ -1247,7 +1247,6 @@ lift_definition rapprox_posrat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rig
   simp
 
 context
-  notes divmod_int_mod_div[simp]
 begin
 
 qualified lemma compute_rapprox_posrat[code]:
@@ -1255,8 +1254,9 @@ qualified lemma compute_rapprox_posrat[code]:
   defines "l \<equiv> rat_precision prec x y"
   shows "rapprox_posrat prec x y = (let
      l = l ;
-     X = if 0 \<le> l then (x * 2^nat l, y) else (x, y * 2^nat(-l)) ;
-     (d, m) = divmod_int (fst X) (snd X)
+     (r, s) = if 0 \<le> l then (x * 2^nat l, y) else (x, y * 2^nat(-l)) ;
+     d = r div s ;
+     m = r mod s
    in normfloat (Float (d + (if m = 0 \<or> y = 0 then 0 else 1)) (- l)))"
 proof (cases "y = 0")
   assume "y = 0"

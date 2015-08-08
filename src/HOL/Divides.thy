@@ -543,7 +543,7 @@ lemma even_two_times_div_two:
 lemma odd_two_times_div_two_succ [simp]:
   "odd a \<Longrightarrow> 2 * (a div 2) + 1 = a"
   using mod_div_equality2 [of 2 a] by (simp add: even_iff_mod_2_eq_zero)
-
+ 
 end
 
 
@@ -1374,7 +1374,7 @@ next
   qed
 qed
 
-theorem mod_div_equality': "(m::nat) mod n = m - (m div n) * n"
+theorem mod_div_equality' [nitpick_unfold]: "(m::nat) mod n = m - (m div n) * n"
   using mod_div_equality [of m n] by arith
 
 lemma div_mod_equality': "(m::nat) div n * n = m - m mod n"
@@ -1520,6 +1520,11 @@ done
 
 declare Suc_times_mod_eq [of "numeral w", simp] for w
 
+lemma mod_greater_zero_iff_not_dvd:
+  fixes m n :: nat
+  shows "m mod n > 0 \<longleftrightarrow> \<not> n dvd m"
+  by (simp add: dvd_eq_mod_eq_0)
+
 lemma Suc_div_le_mono [simp]: "n div k \<le> (Suc n) div k"
 by (simp add: div_le_mono)
 
@@ -1595,111 +1600,25 @@ proof (induct n rule: less_induct)
   qed
 qed
 
+lemma Suc_0_div_numeral [simp]:
+  fixes k l :: num
+  shows "Suc 0 div numeral k = fst (divmod Num.One k)"
+  by (simp_all add: fst_divmod)
+
+lemma Suc_0_mod_numeral [simp]:
+  fixes k l :: num
+  shows "Suc 0 mod numeral k = snd (divmod Num.One k)"
+  by (simp_all add: snd_divmod)
+
 
 subsection \<open>Division on @{typ int}\<close>
 
-definition divmod_int_rel :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool" where
-    --\<open>definition of quotient and remainder\<close>
-  "divmod_int_rel a b = (\<lambda>(q, r). a = b * q + r \<and>
+definition divmod_int_rel :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool" -- \<open>definition of quotient and remainder\<close>
+  where "divmod_int_rel a b = (\<lambda>(q, r). a = b * q + r \<and>
     (if 0 < b then 0 \<le> r \<and> r < b else if b < 0 then b < r \<and> r \<le> 0 else q = 0))"
 
-text \<open>
-  The following algorithmic devlopment actually echos what has already
-  been developed in class @{class semiring_numeral_div}.  In the long
-  run it seems better to derive division on @{typ int} just from
-  division on @{typ nat} and instantiate @{class semiring_numeral_div}
-  accordingly.
-\<close>
-
-definition adjust :: "int \<Rightarrow> int \<times> int \<Rightarrow> int \<times> int" where
-    --\<open>for the division algorithm\<close>
-    "adjust b = (\<lambda>(q, r). if 0 \<le> r - b then (2 * q + 1, r - b)
-                         else (2 * q, r))"
-
-text\<open>algorithm for the case @{text "a\<ge>0, b>0"}\<close>
-function posDivAlg :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
-  "posDivAlg a b = (if a < b \<or>  b \<le> 0 then (0, a)
-     else adjust b (posDivAlg a (2 * b)))"
-by auto
-termination by (relation "measure (\<lambda>(a, b). nat (a - b + 1))")
-  (auto simp add: mult_2)
-
-text\<open>algorithm for the case @{text "a<0, b>0"}\<close>
-function negDivAlg :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
-  "negDivAlg a b = (if 0 \<le>a + b \<or> b \<le> 0  then (-1, a + b)
-     else adjust b (negDivAlg a (2 * b)))"
-by auto
-termination by (relation "measure (\<lambda>(a, b). nat (- a - b))")
-  (auto simp add: mult_2)
-
-text\<open>algorithm for the general case @{term "b\<noteq>0"}\<close>
-
-definition divmod_int :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
-    --\<open>The full division algorithm considers all possible signs for a, b
-       including the special case @{text "a=0, b<0"} because
-       @{term negDivAlg} requires @{term "a<0"}.\<close>
-  "divmod_int a b = (if 0 \<le> a then if 0 \<le> b then posDivAlg a b
-                  else if a = 0 then (0, 0)
-                       else apsnd uminus (negDivAlg (-a) (-b))
-               else
-                  if 0 < b then negDivAlg a b
-                  else apsnd uminus (posDivAlg (-a) (-b)))"
-
-instantiation int :: ring_div
-begin
-
-definition divide_int where
-  div_int_def: "a div b = fst (divmod_int a b)"
-
-definition mod_int where
-  "a mod b = snd (divmod_int a b)"
-
-lemma fst_divmod_int [simp]:
-  "fst (divmod_int a b) = a div b"
-  by (simp add: div_int_def)
-
-lemma snd_divmod_int [simp]:
-  "snd (divmod_int a b) = a mod b"
-  by (simp add: mod_int_def)
-
-lemma divmod_int_mod_div:
-  "divmod_int p q = (p div q, p mod q)"
-  by (simp add: prod_eq_iff)
-
-text\<open>
-Here is the division algorithm in ML:
-
-\begin{verbatim}
-    fun posDivAlg (a,b) =
-      if a<b then (0,a)
-      else let val (q,r) = posDivAlg(a, 2*b)
-               in  if 0\<le>r-b then (2*q+1, r-b) else (2*q, r)
-           end
-
-    fun negDivAlg (a,b) =
-      if 0\<le>a+b then (~1,a+b)
-      else let val (q,r) = negDivAlg(a, 2*b)
-               in  if 0\<le>r-b then (2*q+1, r-b) else (2*q, r)
-           end;
-
-    fun negateSnd (q,r:int) = (q,~r);
-
-    fun divmod (a,b) = if 0\<le>a then
-                          if b>0 then posDivAlg (a,b)
-                           else if a=0 then (0,0)
-                                else negateSnd (negDivAlg (~a,~b))
-                       else
-                          if 0<b then negDivAlg (a,b)
-                          else        negateSnd (posDivAlg (~a,~b));
-\end{verbatim}
-\<close>
-
-
-subsubsection \<open>Uniqueness and Monotonicity of Quotients and Remainders\<close>
-
 lemma unique_quotient_lemma:
-     "[| b*q' + r'  \<le> b*q + r;  0 \<le> r';  r' < b;  r < b |]
-      ==> q' \<le> (q::int)"
+  "b * q' + r' \<le> b * q + r \<Longrightarrow> 0 \<le> r' \<Longrightarrow> r' < b \<Longrightarrow> r < b \<Longrightarrow> q' \<le> (q::int)"
 apply (subgoal_tac "r' + b * (q'-q) \<le> r")
  prefer 2 apply (simp add: right_diff_distrib)
 apply (subgoal_tac "0 < b * (1 + q - q') ")
@@ -1711,145 +1630,83 @@ apply (simp add: mult_less_cancel_left)
 done
 
 lemma unique_quotient_lemma_neg:
-     "[| b*q' + r' \<le> b*q + r;  r \<le> 0;  b < r;  b < r' |]
-      ==> q \<le> (q'::int)"
-by (rule_tac b = "-b" and r = "-r'" and r' = "-r" in unique_quotient_lemma,
-    auto)
+  "b * q' + r' \<le> b*q + r \<Longrightarrow> r \<le> 0 \<Longrightarrow> b < r \<Longrightarrow> b < r' \<Longrightarrow> q \<le> (q'::int)"
+  by (rule_tac b = "-b" and r = "-r'" and r' = "-r" in unique_quotient_lemma) auto
 
 lemma unique_quotient:
-     "[| divmod_int_rel a b (q, r); divmod_int_rel a b (q', r') |]
-      ==> q = q'"
+  "divmod_int_rel a b (q, r) \<Longrightarrow> divmod_int_rel a b (q', r') \<Longrightarrow> q = q'"
 apply (simp add: divmod_int_rel_def linorder_neq_iff split: split_if_asm)
 apply (blast intro: order_antisym
              dest: order_eq_refl [THEN unique_quotient_lemma]
              order_eq_refl [THEN unique_quotient_lemma_neg] sym)+
 done
 
-
 lemma unique_remainder:
-     "[| divmod_int_rel a b (q, r); divmod_int_rel a b (q', r') |]
-      ==> r = r'"
+  "divmod_int_rel a b (q, r) \<Longrightarrow> divmod_int_rel a b (q', r') \<Longrightarrow> r = r'"
 apply (subgoal_tac "q = q'")
  apply (simp add: divmod_int_rel_def)
 apply (blast intro: unique_quotient)
 done
 
+instantiation int :: Divides.div
+begin
 
-subsubsection \<open>Correctness of @{term posDivAlg}, the Algorithm for Non-Negative Dividends\<close>
+definition divide_int
+  where "k div l = (if l = 0 \<or> k = 0 then 0
+    else if k > 0 \<and> l > 0 \<or> k < 0 \<and> l < 0
+      then int (nat \<bar>k\<bar> div nat \<bar>l\<bar>)
+      else
+        if l dvd k then - int (nat \<bar>k\<bar> div nat \<bar>l\<bar>)
+        else - int (Suc (nat \<bar>k\<bar> div nat \<bar>l\<bar>)))"
 
-text\<open>And positive divisors\<close>
+definition mod_int
+  where "k mod l = (if l = 0 then k else if l dvd k then 0
+    else if k > 0 \<and> l > 0 \<or> k < 0 \<and> l < 0
+      then sgn l * int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>)
+      else sgn l * (\<bar>l\<bar> - int (nat \<bar>k\<bar> mod nat \<bar>l\<bar>)))"
 
-lemma adjust_eq [simp]:
-     "adjust b (q, r) =
-      (let diff = r - b in
-        if 0 \<le> diff then (2 * q + 1, diff)
-                     else (2*q, r))"
-  by (simp add: Let_def adjust_def)
+instance ..      
 
-declare posDivAlg.simps [simp del]
+end
 
-text\<open>use with a simproc to avoid repeatedly proving the premise\<close>
-lemma posDivAlg_eqn:
-     "0 < b ==>
-      posDivAlg a b = (if a<b then (0,a) else adjust b (posDivAlg a (2*b)))"
-by (rule posDivAlg.simps [THEN trans], simp)
-
-text\<open>Correctness of @{term posDivAlg}: it computes quotients correctly\<close>
-theorem posDivAlg_correct:
-  assumes "0 \<le> a" and "0 < b"
-  shows "divmod_int_rel a b (posDivAlg a b)"
-  using assms
-  apply (induct a b rule: posDivAlg.induct)
-  apply auto
-  apply (simp add: divmod_int_rel_def)
-  apply (subst posDivAlg_eqn, simp add: distrib_left)
-  apply (case_tac "a < b")
-  apply simp_all
-  apply (erule splitE)
-  apply (auto simp add: distrib_left Let_def ac_simps mult_2_right)
+lemma divmod_int_rel:
+  "divmod_int_rel k l (k div l, k mod l)"
+  apply (cases k rule: int_cases3)
+  apply (simp add: mod_greater_zero_iff_not_dvd not_le divmod_int_rel_def divide_int_def mod_int_def algebra_simps int_dvd_iff of_nat_mult [symmetric])
+  apply (cases l rule: int_cases3)
+  apply (simp add: mod_greater_zero_iff_not_dvd not_le divmod_int_rel_def divide_int_def mod_int_def algebra_simps int_dvd_iff of_nat_mult [symmetric])
+  apply (simp add: mod_greater_zero_iff_not_dvd not_le divmod_int_rel_def divide_int_def mod_int_def algebra_simps int_dvd_iff of_nat_mult [symmetric])
+  apply (simp add: of_nat_add [symmetric])
+  apply (simp add: mod_greater_zero_iff_not_dvd not_le divmod_int_rel_def divide_int_def mod_int_def algebra_simps int_dvd_iff of_nat_mult [symmetric])
+  apply (simp add: of_nat_add [symmetric])
+  apply (cases l rule: int_cases3)
+  apply (simp_all add: mod_greater_zero_iff_not_dvd not_le divmod_int_rel_def divide_int_def mod_int_def algebra_simps int_dvd_iff of_nat_mult [symmetric])
+  apply (simp_all add: of_nat_add [symmetric])
   done
 
+instantiation int :: ring_div
+begin
 
-subsubsection \<open>Correctness of @{term negDivAlg}, the Algorithm for Negative Dividends\<close>
-
-text\<open>And positive divisors\<close>
-
-declare negDivAlg.simps [simp del]
-
-text\<open>use with a simproc to avoid repeatedly proving the premise\<close>
-lemma negDivAlg_eqn:
-     "0 < b ==>
-      negDivAlg a b =
-       (if 0\<le>a+b then (-1,a+b) else adjust b (negDivAlg a (2*b)))"
-by (rule negDivAlg.simps [THEN trans], simp)
-
-(*Correctness of negDivAlg: it computes quotients correctly
-  It doesn't work if a=0 because the 0/b equals 0, not -1*)
-lemma negDivAlg_correct:
-  assumes "a < 0" and "b > 0"
-  shows "divmod_int_rel a b (negDivAlg a b)"
-  using assms
-  apply (induct a b rule: negDivAlg.induct)
-  apply (auto simp add: linorder_not_le)
-  apply (simp add: divmod_int_rel_def)
-  apply (subst negDivAlg_eqn, assumption)
-  apply (case_tac "a + b < (0\<Colon>int)")
-  apply simp_all
-  apply (erule splitE)
-  apply (auto simp add: distrib_left Let_def ac_simps mult_2_right)
-  done
-
-
-subsubsection \<open>Existence Shown by Proving the Division Algorithm to be Correct\<close>
-
-(*the case a=0*)
-lemma divmod_int_rel_0: "divmod_int_rel 0 b (0, 0)"
-by (auto simp add: divmod_int_rel_def linorder_neq_iff)
-
-lemma posDivAlg_0 [simp]: "posDivAlg 0 b = (0, 0)"
-by (subst posDivAlg.simps, auto)
-
-lemma posDivAlg_0_right [simp]: "posDivAlg a 0 = (0, a)"
-by (subst posDivAlg.simps, auto)
-
-lemma negDivAlg_minus1 [simp]: "negDivAlg (- 1) b = (- 1, b - 1)"
-by (subst negDivAlg.simps, auto)
-
-lemma divmod_int_rel_neg: "divmod_int_rel (-a) (-b) qr ==> divmod_int_rel a b (apsnd uminus qr)"
-by (auto simp add: divmod_int_rel_def)
-
-lemma divmod_int_correct: "divmod_int_rel a b (divmod_int a b)"
-apply (cases "b = 0", simp add: divmod_int_def divmod_int_rel_def)
-by (force simp add: linorder_neq_iff divmod_int_rel_0 divmod_int_def divmod_int_rel_neg
-                    posDivAlg_correct negDivAlg_correct)
+subsubsection \<open>Uniqueness and Monotonicity of Quotients and Remainders\<close>
 
 lemma divmod_int_unique:
-  assumes "divmod_int_rel a b qr"
-  shows "divmod_int a b = qr"
-  using assms divmod_int_correct [of a b]
-  using unique_quotient [of a b] unique_remainder [of a b]
-  by (metis pair_collapse)
-
-lemma divmod_int_rel_div_mod: "divmod_int_rel a b (a div b, a mod b)"
-  using divmod_int_correct by (simp add: divmod_int_mod_div)
-
-lemma div_int_unique: "divmod_int_rel a b (q, r) \<Longrightarrow> a div b = q"
-  by (simp add: divmod_int_rel_div_mod [THEN unique_quotient])
-
-lemma mod_int_unique: "divmod_int_rel a b (q, r) \<Longrightarrow> a mod b = r"
-  by (simp add: divmod_int_rel_div_mod [THEN unique_remainder])
-
+  assumes "divmod_int_rel k l (q, r)"
+  shows div_int_unique: "k div l = q" and mod_int_unique: "k mod l = r"
+  using assms divmod_int_rel [of k l]
+  using unique_quotient [of k l] unique_remainder [of k l]
+  by auto
+  
 instance
 proof
   fix a b :: int
   show "a div b * b + a mod b = a"
-    using divmod_int_rel_div_mod [of a b]
+    using divmod_int_rel [of a b]
     unfolding divmod_int_rel_def by (simp add: mult.commute)
 next
   fix a b c :: int
   assume "b \<noteq> 0"
   hence "divmod_int_rel (a + c * b) b (c + a div b, a mod b)"
-    using divmod_int_rel_div_mod [of a b]
+    using divmod_int_rel [of a b]
     unfolding divmod_int_rel_def by (auto simp: algebra_simps)
   thus "(a + c * b) div b = c + a div b"
     by (rule div_int_unique)
@@ -1863,7 +1720,7 @@ next
       mult_less_0_iff zero_less_mult_iff mult_strict_right_mono
       mult_strict_right_mono_neg zero_le_mult_iff mult_le_0_iff)
   hence "divmod_int_rel (c * a) (c * b) (a div b, c * (a mod b))"
-    using divmod_int_rel_div_mod [of a b] .
+    using divmod_int_rel [of a b] .
   thus "(c * a) div (c * b) = a div b"
     by (rule div_int_unique)
 next
@@ -1906,6 +1763,12 @@ text\<open>Basic laws about division and remainder\<close>
 lemma zmod_zdiv_equality: "(a::int) = b * (a div b) + (a mod b)"
   by (fact mod_div_equality2 [symmetric])
 
+lemma zdiv_int: "int (a div b) = int a div int b"
+  by (simp add: divide_int_def)
+
+lemma zmod_int: "int (a mod b) = int a mod int b"
+  by (simp add: mod_int_def int_dvd_iff)
+  
 text \<open>Tool setup\<close>
 
 ML \<open>
@@ -1927,14 +1790,14 @@ structure Cancel_Div_Mod_Int = Cancel_Div_Mod
 simproc_setup cancel_div_mod_int ("(k::int) + l") = \<open>K Cancel_Div_Mod_Int.proc\<close>
 
 lemma pos_mod_conj: "(0::int) < b \<Longrightarrow> 0 \<le> a mod b \<and> a mod b < b"
-  using divmod_int_correct [of a b]
+  using divmod_int_rel [of a b]
   by (auto simp add: divmod_int_rel_def prod_eq_iff)
 
 lemmas pos_mod_sign [simp] = pos_mod_conj [THEN conjunct1]
    and pos_mod_bound [simp] = pos_mod_conj [THEN conjunct2]
 
 lemma neg_mod_conj: "b < (0::int) \<Longrightarrow> a mod b \<le> 0 \<and> b < a mod b"
-  using divmod_int_correct [of a b]
+  using divmod_int_rel [of a b]
   by (auto simp add: divmod_int_rel_def prod_eq_iff)
 
 lemmas neg_mod_sign [simp] = neg_mod_conj [THEN conjunct1]
@@ -1991,12 +1854,12 @@ lemma zdiv_zminus1_eq_if:
      "b \<noteq> (0::int)
       ==> (-a) div b =
           (if a mod b = 0 then - (a div b) else  - (a div b) - 1)"
-by (blast intro: divmod_int_rel_div_mod [THEN zminus1_lemma, THEN div_int_unique])
+by (blast intro: divmod_int_rel [THEN zminus1_lemma, THEN div_int_unique])
 
 lemma zmod_zminus1_eq_if:
      "(-a::int) mod b = (if a mod b = 0 then 0 else  b - (a mod b))"
 apply (case_tac "b = 0", simp)
-apply (blast intro: divmod_int_rel_div_mod [THEN zminus1_lemma, THEN mod_int_unique])
+apply (blast intro: divmod_int_rel [THEN zminus1_lemma, THEN mod_int_unique])
 done
 
 lemma zmod_zminus1_not_zero:
@@ -2018,149 +1881,6 @@ lemma zmod_zminus2_not_zero:
   fixes k l :: int
   shows "k mod - l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
   unfolding zmod_zminus2_eq_if by auto
-
-
-subsubsection \<open>Computation of Division and Remainder\<close>
-
-lemma div_eq_minus1: "(0::int) < b ==> -1 div b = -1"
-by (simp add: div_int_def divmod_int_def)
-
-lemma zmod_minus1: "(0::int) < b ==> -1 mod b = b - 1"
-by (simp add: mod_int_def divmod_int_def)
-
-text\<open>a positive, b positive\<close>
-
-lemma div_pos_pos: "[| 0 < a;  0 \<le> b |] ==> a div b = fst (posDivAlg a b)"
-by (simp add: div_int_def divmod_int_def)
-
-lemma mod_pos_pos: "[| 0 < a;  0 \<le> b |] ==> a mod b = snd (posDivAlg a b)"
-by (simp add: mod_int_def divmod_int_def)
-
-text\<open>a negative, b positive\<close>
-
-lemma div_neg_pos: "[| a < 0;  0 < b |] ==> a div b = fst (negDivAlg a b)"
-by (simp add: div_int_def divmod_int_def)
-
-lemma mod_neg_pos: "[| a < 0;  0 < b |] ==> a mod b = snd (negDivAlg a b)"
-by (simp add: mod_int_def divmod_int_def)
-
-text\<open>a positive, b negative\<close>
-
-lemma div_pos_neg:
-     "[| 0 < a;  b < 0 |] ==> a div b = fst (apsnd uminus (negDivAlg (-a) (-b)))"
-by (simp add: div_int_def divmod_int_def)
-
-lemma mod_pos_neg:
-     "[| 0 < a;  b < 0 |] ==> a mod b = snd (apsnd uminus (negDivAlg (-a) (-b)))"
-by (simp add: mod_int_def divmod_int_def)
-
-text\<open>a negative, b negative\<close>
-
-lemma div_neg_neg:
-     "[| a < 0;  b \<le> 0 |] ==> a div b = fst (apsnd uminus (posDivAlg (-a) (-b)))"
-by (simp add: div_int_def divmod_int_def)
-
-lemma mod_neg_neg:
-     "[| a < 0;  b \<le> 0 |] ==> a mod b = snd (apsnd uminus (posDivAlg (-a) (-b)))"
-by (simp add: mod_int_def divmod_int_def)
-
-text \<open>Simplify expresions in which div and mod combine numerical constants\<close>
-
-lemma int_div_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a div b = q"
-  by (rule div_int_unique [of a b q r]) (simp add: divmod_int_rel_def)
-
-lemma int_div_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> \<Longrightarrow> a div b = q"
-  by (rule div_int_unique [of a b q r],
-    simp add: divmod_int_rel_def)
-
-lemma int_mod_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a mod b = r"
-  by (rule mod_int_unique [of a b q r],
-    simp add: divmod_int_rel_def)
-
-lemma int_mod_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> \<Longrightarrow> a mod b = r"
-  by (rule mod_int_unique [of a b q r],
-    simp add: divmod_int_rel_def)
-
-text \<open>
-  numeral simprocs -- high chance that these can be replaced
-  by divmod algorithm from @{class semiring_numeral_div}
-\<close>
-
-ML \<open>
-local
-  val mk_number = HOLogic.mk_number HOLogic.intT
-  val plus = @{term "plus :: int \<Rightarrow> int \<Rightarrow> int"}
-  val times = @{term "times :: int \<Rightarrow> int \<Rightarrow> int"}
-  val zero = @{term "0 :: int"}
-  val less = @{term "op < :: int \<Rightarrow> int \<Rightarrow> bool"}
-  val le = @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"}
-  val simps = @{thms arith_simps} @ @{thms rel_simps} @ [@{thm numeral_1_eq_1 [symmetric]}]
-  fun prove ctxt goal = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop goal)
-    (K (ALLGOALS (full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simps))));
-  fun binary_proc proc ctxt ct =
-    (case Thm.term_of ct of
-      _ $ t $ u =>
-      (case try (apply2 (`(snd o HOLogic.dest_number))) (t, u) of
-        SOME args => proc ctxt args
-      | NONE => NONE)
-    | _ => NONE);
-in
-  fun divmod_proc posrule negrule =
-    binary_proc (fn ctxt => fn ((a, t), (b, u)) =>
-      if b = 0 then NONE
-      else
-        let
-          val (q, r) = apply2 mk_number (Integer.div_mod a b)
-          val goal1 = HOLogic.mk_eq (t, plus $ (times $ u $ q) $ r)
-          val (goal2, goal3, rule) =
-            if b > 0
-            then (le $ zero $ r, less $ r $ u, posrule RS eq_reflection)
-            else (le $ r $ zero, less $ u $ r, negrule RS eq_reflection)
-        in SOME (rule OF map (prove ctxt) [goal1, goal2, goal3]) end)
-end
-\<close>
-
-simproc_setup binary_int_div
-  ("numeral m div numeral n :: int" |
-   "numeral m div - numeral n :: int" |
-   "- numeral m div numeral n :: int" |
-   "- numeral m div - numeral n :: int") =
-  \<open>K (divmod_proc @{thm int_div_pos_eq} @{thm int_div_neg_eq})\<close>
-
-simproc_setup binary_int_mod
-  ("numeral m mod numeral n :: int" |
-   "numeral m mod - numeral n :: int" |
-   "- numeral m mod numeral n :: int" |
-   "- numeral m mod - numeral n :: int") =
-  \<open>K (divmod_proc @{thm int_mod_pos_eq} @{thm int_mod_neg_eq})\<close>
-
-lemmas posDivAlg_eqn_numeral [simp] =
-    posDivAlg_eqn [of "numeral v" "numeral w", OF zero_less_numeral] for v w
-
-lemmas negDivAlg_eqn_numeral [simp] =
-    negDivAlg_eqn [of "numeral v" "- numeral w", OF zero_less_numeral] for v w
-
-
-text \<open>Special-case simplification: @{text "\<plusminus>1 div z"} and @{text "\<plusminus>1 mod z"}\<close>
-
-lemma [simp]:
-  shows div_one_bit0: "1 div numeral (Num.Bit0 v) = (0 :: int)"
-    and mod_one_bit0: "1 mod numeral (Num.Bit0 v) = (1 :: int)"
-    and div_one_bit1: "1 div numeral (Num.Bit1 v) = (0 :: int)"
-    and mod_one_bit1: "1 mod numeral (Num.Bit1 v) = (1 :: int)"
-    and div_one_neg_numeral: "1 div - numeral v = (- 1 :: int)"
-    and mod_one_neg_numeral: "1 mod - numeral v = (1 :: int) - numeral v"
-  by (simp_all del: arith_special
-    add: div_pos_pos mod_pos_pos div_pos_neg mod_pos_neg posDivAlg_eqn)
-
-lemma [simp]:
-  shows div_neg_one_numeral: "- 1 div numeral v = (- 1 :: int)"
-    and mod_neg_one_numeral: "- 1 mod numeral v = numeral v - (1 :: int)"
-    and div_neg_one_neg_bit0: "- 1 div - numeral (Num.Bit0 v) = (0 :: int)"
-    and mod_neg_one_neb_bit0: "- 1 mod - numeral (Num.Bit0 v) = (- 1 :: int)"
-    and div_neg_one_neg_bit1: "- 1 div - numeral (Num.Bit1 v) = (0 :: int)"
-    and mod_neg_one_neb_bit1: "- 1 mod - numeral (Num.Bit1 v) = (- 1 :: int)"
-  by (simp_all add: div_eq_minus1 zmod_minus1)
 
 
 subsubsection \<open>Monotonicity in the First Argument (Dividend)\<close>
@@ -2255,7 +1975,7 @@ by (auto simp add: split_ifs divmod_int_rel_def linorder_neq_iff distrib_left ac
 
 lemma zdiv_zmult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::int)"
 apply (case_tac "c = 0", simp)
-apply (blast intro: divmod_int_rel_div_mod [THEN zmult1_lemma, THEN div_int_unique])
+apply (blast intro: divmod_int_rel [THEN zmult1_lemma, THEN div_int_unique])
 done
 
 text\<open>proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c)\<close>
@@ -2269,35 +1989,8 @@ by (force simp add: split_ifs divmod_int_rel_def linorder_neq_iff distrib_left)
 lemma zdiv_zadd1_eq:
      "(a+b) div (c::int) = a div c + b div c + ((a mod c + b mod c) div c)"
 apply (case_tac "c = 0", simp)
-apply (blast intro: zadd1_lemma [OF divmod_int_rel_div_mod divmod_int_rel_div_mod] div_int_unique)
+apply (blast intro: zadd1_lemma [OF divmod_int_rel divmod_int_rel] div_int_unique)
 done
-
-lemma posDivAlg_div_mod:
-  assumes "k \<ge> 0"
-  and "l \<ge> 0"
-  shows "posDivAlg k l = (k div l, k mod l)"
-proof (cases "l = 0")
-  case True then show ?thesis by (simp add: posDivAlg.simps)
-next
-  case False with assms posDivAlg_correct
-    have "divmod_int_rel k l (fst (posDivAlg k l), snd (posDivAlg k l))"
-    by simp
-  from div_int_unique [OF this] mod_int_unique [OF this]
-  show ?thesis by simp
-qed
-
-lemma negDivAlg_div_mod:
-  assumes "k < 0"
-  and "l > 0"
-  shows "negDivAlg k l = (k div l, k mod l)"
-proof -
-  from assms have "l \<noteq> 0" by simp
-  from assms negDivAlg_correct
-    have "divmod_int_rel k l (fst (negDivAlg k l), snd (negDivAlg k l))"
-    by simp
-  from div_int_unique [OF this] mod_int_unique [OF this]
-  show ?thesis by simp
-qed
 
 lemma zmod_eq_0_iff: "(m mod d = 0) = (EX q::int. m = d*q)"
 by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
@@ -2305,7 +1998,7 @@ by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
 (* REVISIT: should this be generalized to all semiring_div types? *)
 lemmas zmod_eq_0D [dest!] = zmod_eq_0_iff [THEN iffD1]
 
-lemma zmod_zdiv_equality':
+lemma zmod_zdiv_equality' [nitpick_unfold]:
   "(m\<Colon>int) mod n = m - (m div n) * n"
   using mod_div_equality [of m n] by arith
 
@@ -2363,14 +2056,14 @@ lemma zdiv_zmult2_eq:
   fixes a b c :: int
   shows "0 \<le> c \<Longrightarrow> a div (b * c) = (a div b) div c"
 apply (case_tac "b = 0", simp)
-apply (force simp add: le_less divmod_int_rel_div_mod [THEN zmult2_lemma, THEN div_int_unique])
+apply (force simp add: le_less divmod_int_rel [THEN zmult2_lemma, THEN div_int_unique])
 done
 
 lemma zmod_zmult2_eq:
   fixes a b c :: int
   shows "0 \<le> c \<Longrightarrow> a mod (b * c) = b * (a div b mod c) + a mod b"
 apply (case_tac "b = 0", simp)
-apply (force simp add: le_less divmod_int_rel_div_mod [THEN zmult2_lemma, THEN mod_int_unique])
+apply (force simp add: le_less divmod_int_rel [THEN zmult2_lemma, THEN mod_int_unique])
 done
 
 lemma div_pos_geq:
@@ -2474,12 +2167,12 @@ lemma neg_divmod_int_rel_mult_2:
 text\<open>computing div by shifting\<close>
 
 lemma pos_zdiv_mult_2: "(0::int) \<le> a ==> (1 + 2*b) div (2*a) = b div a"
-  using pos_divmod_int_rel_mult_2 [OF _ divmod_int_rel_div_mod]
+  using pos_divmod_int_rel_mult_2 [OF _ divmod_int_rel]
   by (rule div_int_unique)
 
 lemma neg_zdiv_mult_2:
   assumes A: "a \<le> (0::int)" shows "(1 + 2*b) div (2*a) = (b+1) div a"
-  using neg_divmod_int_rel_mult_2 [OF A divmod_int_rel_div_mod]
+  using neg_divmod_int_rel_mult_2 [OF A divmod_int_rel]
   by (rule div_int_unique)
 
 (* FIXME: add rules for negative numerals *)
@@ -2500,14 +2193,14 @@ lemma pos_zmod_mult_2:
   fixes a b :: int
   assumes "0 \<le> a"
   shows "(1 + 2 * b) mod (2 * a) = 1 + 2 * (b mod a)"
-  using pos_divmod_int_rel_mult_2 [OF assms divmod_int_rel_div_mod]
+  using pos_divmod_int_rel_mult_2 [OF assms divmod_int_rel]
   by (rule mod_int_unique)
 
 lemma neg_zmod_mult_2:
   fixes a b :: int
   assumes "a \<le> 0"
   shows "(1 + 2 * b) mod (2 * a) = 2 * ((b + 1) mod a) - 1"
-  using neg_divmod_int_rel_mult_2 [OF assms divmod_int_rel_div_mod]
+  using neg_divmod_int_rel_mult_2 [OF assms divmod_int_rel]
   by (rule mod_int_unique)
 
 (* FIXME: add rules for negative numerals *)
@@ -2538,6 +2231,12 @@ qed
 
 subsubsection \<open>Quotients of Signs\<close>
 
+lemma div_eq_minus1: "(0::int) < b ==> -1 div b = -1"
+by (simp add: divide_int_def)
+
+lemma zmod_minus1: "(0::int) < b ==> -1 mod b = b - 1"
+by (simp add: mod_int_def)
+
 lemma div_neg_pos_less0: "[| a < (0::int);  0 < b |] ==> a div b < 0"
 apply (subgoal_tac "a div b \<le> -1", force)
 apply (rule order_trans)
@@ -2563,6 +2262,11 @@ apply (simp (no_asm_use) add: linorder_not_less [symmetric])
 apply (blast intro: div_neg_pos_less0)
 done
 
+lemma pos_imp_zdiv_pos_iff:
+  "0<k \<Longrightarrow> 0 < (i::int) div k \<longleftrightarrow> k \<le> i"
+using pos_imp_zdiv_nonneg_iff[of k i] zdiv_eq_0_iff[of i k]
+by arith
+
 lemma neg_imp_zdiv_nonneg_iff:
   "b < (0::int) ==> (0 \<le> a div b) = (a \<le> (0::int))"
 apply (subst div_minus_minus [symmetric])
@@ -2572,11 +2276,6 @@ done
 (*But not (a div b \<le> 0 iff a\<le>0); consider a=1, b=2 when a div b = 0.*)
 lemma pos_imp_zdiv_neg_iff: "(0::int) < b ==> (a div b < 0) = (a < 0)"
 by (simp add: linorder_not_le [symmetric] pos_imp_zdiv_nonneg_iff)
-
-lemma pos_imp_zdiv_pos_iff:
-  "0<k \<Longrightarrow> 0 < (i::int) div k \<longleftrightarrow> k \<le> i"
-using pos_imp_zdiv_nonneg_iff[of k i] zdiv_eq_0_iff[of i k]
-by arith
 
 (*Again the law fails for \<le>: consider a = -1, b = -2 when a div b = 0*)
 lemma neg_imp_zdiv_neg_iff: "b < (0::int) ==> (a div b < 0) = (0 < a)"
@@ -2597,40 +2296,104 @@ apply (rule split_zmod[THEN iffD2])
 apply(fastforce dest: q_pos_lemma intro: split_mult_pos_le)
 done
 
+lemma zmult_div_cancel:
+  "(n::int) * (m div n) = m - (m mod n)"
+  using zmod_zdiv_equality [where a="m" and b="n"]
+  by (simp add: algebra_simps) (* FIXME: generalize *)
 
-subsubsection \<open>The Divides Relation\<close>
 
-lemma dvd_eq_mod_eq_0_numeral:
-  "numeral x dvd (numeral y :: 'a) \<longleftrightarrow> numeral y mod numeral x = (0 :: 'a::semiring_div)"
-  by (fact dvd_eq_mod_eq_0)
+subsubsection \<open>Computation of Division and Remainder\<close>
+
+instance int :: semiring_numeral_div
+  by intro_classes (auto intro: zmod_le_nonneg_dividend
+    simp add:
+    zmult_div_cancel
+    pos_imp_zdiv_pos_iff div_pos_pos_trivial mod_pos_pos_trivial
+    zmod_zmult2_eq zdiv_zmult2_eq)
+
+definition adjust_div :: "int \<times> int \<Rightarrow> int"
+where
+  "adjust_div qr = (let (q, r) = qr in q + of_bool (r \<noteq> 0))"
+
+lemma adjust_div_eq [simp, code]:
+  "adjust_div (q, r) = q + of_bool (r \<noteq> 0)"
+  by (simp add: adjust_div_def)
+
+definition adjust_mod :: "int \<Rightarrow> int \<Rightarrow> int"
+where
+  [simp]: "adjust_mod l r = (if r = 0 then 0 else l - r)"
+
+lemma minus_numeral_div_numeral [simp]:
+  "- numeral m div numeral n = - (adjust_div (divmod m n) :: int)"
+proof -
+  have "int (fst (divmod m n)) = fst (divmod m n)"
+    by (simp only: fst_divmod divide_int_def) auto
+  then show ?thesis
+    by (auto simp add: split_def Let_def adjust_div_def divides_aux_def divide_int_def)
+qed
+
+lemma minus_numeral_mod_numeral [simp]:
+  "- numeral m mod numeral n = adjust_mod (numeral n) (snd (divmod m n) :: int)"
+proof -
+  have "int (snd (divmod m n)) = snd (divmod m n)" if "snd (divmod m n) \<noteq> (0::int)"
+    using that by (simp only: snd_divmod mod_int_def) auto
+  then show ?thesis
+    by (auto simp add: split_def Let_def adjust_div_def divides_aux_def mod_int_def)
+qed
+
+lemma numeral_div_minus_numeral [simp]:
+  "numeral m div - numeral n = - (adjust_div (divmod m n) :: int)"
+proof -
+  have "int (fst (divmod m n)) = fst (divmod m n)"
+    by (simp only: fst_divmod divide_int_def) auto
+  then show ?thesis
+    by (auto simp add: split_def Let_def adjust_div_def divides_aux_def divide_int_def)
+qed
+  
+lemma numeral_mod_minus_numeral [simp]:
+  "numeral m mod - numeral n = - adjust_mod (numeral n) (snd (divmod m n) :: int)"
+proof -
+  have "int (snd (divmod m n)) = snd (divmod m n)" if "snd (divmod m n) \<noteq> (0::int)"
+    using that by (simp only: snd_divmod mod_int_def) auto
+  then show ?thesis
+    by (auto simp add: split_def Let_def adjust_div_def divides_aux_def mod_int_def)
+qed
+
+lemma minus_one_div_numeral [simp]:
+  "- 1 div numeral n = - (adjust_div (divmod Num.One n) :: int)"
+  using minus_numeral_div_numeral [of Num.One n] by simp  
+
+lemma minus_one_mod_numeral [simp]:
+  "- 1 mod numeral n = adjust_mod (numeral n) (snd (divmod Num.One n) :: int)"
+  using minus_numeral_mod_numeral [of Num.One n] by simp
+
+lemma one_div_minus_numeral [simp]:
+  "1 div - numeral n = - (adjust_div (divmod Num.One n) :: int)"
+  using numeral_div_minus_numeral [of Num.One n] by simp
+  
+lemma one_mod_minus_numeral [simp]:
+  "1 mod - numeral n = - adjust_mod (numeral n) (snd (divmod Num.One n) :: int)"
+  using numeral_mod_minus_numeral [of Num.One n] by simp
 
 
 subsubsection \<open>Further properties\<close>
 
-lemma zmult_div_cancel: "(n::int) * (m div n) = m - (m mod n)"
-  using zmod_zdiv_equality[where a="m" and b="n"]
-  by (simp add: algebra_simps) (* FIXME: generalize *)
+text \<open>Simplify expresions in which div and mod combine numerical constants\<close>
 
-instance int :: semiring_numeral_div
-  by intro_classes (auto intro: zmod_le_nonneg_dividend
-    simp add: zmult_div_cancel
-    pos_imp_zdiv_pos_iff div_pos_pos_trivial mod_pos_pos_trivial
-    zmod_zmult2_eq zdiv_zmult2_eq)
+lemma int_div_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a div b = q"
+  by (rule div_int_unique [of a b q r]) (simp add: divmod_int_rel_def)
 
-lemma zdiv_int: "int (a div b) = (int a) div (int b)"
-apply (subst split_div, auto)
-apply (subst split_zdiv, auto)
-apply (rule_tac a="int (b * i) + int j" and b="int b" and r="int j" and r'=ja in unique_quotient)
-apply (auto simp add: divmod_int_rel_def of_nat_mult)
-done
+lemma int_div_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> \<Longrightarrow> a div b = q"
+  by (rule div_int_unique [of a b q r],
+    simp add: divmod_int_rel_def)
 
-lemma zmod_int: "int (a mod b) = (int a) mod (int b)"
-apply (subst split_mod, auto)
-apply (subst split_zmod, auto)
-apply (rule_tac a="int (b * i) + int j" and b="int b" and q="int i" and q'=ia
-       in unique_remainder)
-apply (auto simp add: divmod_int_rel_def of_nat_mult)
-done
+lemma int_mod_pos_eq: "\<lbrakk>(a::int) = b * q + r; 0 \<le> r; r < b\<rbrakk> \<Longrightarrow> a mod b = r"
+  by (rule mod_int_unique [of a b q r],
+    simp add: divmod_int_rel_def)
+
+lemma int_mod_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> \<Longrightarrow> a mod b = r"
+  by (rule mod_int_unique [of a b q r],
+    simp add: divmod_int_rel_def)
 
 lemma abs_div: "(y::int) dvd x \<Longrightarrow> abs (x div y) = abs x div abs y"
 by (unfold dvd_def, cases "y=0", auto simp add: abs_mult)
@@ -2766,88 +2529,92 @@ next
   thus  ?lhs by simp
 qed
 
+subsubsection \<open>Dedicated simproc for calculation\<close>
+
 text \<open>
-  This re-embedding of natural division on integers goes back to the
-  time when numerals had been signed numerals.  It should
-  now be replaced by the algorithm developed in @{class semiring_numeral_div}.
+  There is space for improvement here: the calculation itself
+  could be carried outside the logic, and a generic simproc
+  (simplifier setup) for generic calculation would be helpful. 
 \<close>
 
-lemma div_nat_numeral [simp]:
-  "(numeral v :: nat) div numeral v' = nat (numeral v div numeral v')"
-  by (subst nat_div_distrib) simp_all
-
-lemma one_div_nat_numeral [simp]:
-  "Suc 0 div numeral v' = nat (1 div numeral v')"
-  by (subst nat_div_distrib) simp_all
-
-lemma mod_nat_numeral [simp]:
-  "(numeral v :: nat) mod numeral v' = nat (numeral v mod numeral v')"
-  by (subst nat_mod_distrib) simp_all
-
-lemma one_mod_nat_numeral [simp]:
-  "Suc 0 mod numeral v' = nat (1 mod numeral v')"
-  by (subst nat_mod_distrib) simp_all
-
-
-subsubsection \<open>Tools setup\<close>
-
-text \<open>Nitpick\<close>
-
-lemmas [nitpick_unfold] = dvd_eq_mod_eq_0 mod_div_equality' zmod_zdiv_equality'
+simproc_setup numeral_divmod
+  ("0 div 0 :: 'a :: semiring_numeral_div" | "0 mod 0 :: 'a :: semiring_numeral_div" |
+   "0 div 1 :: 'a :: semiring_numeral_div" | "0 mod 1 :: 'a :: semiring_numeral_div" |
+   "0 div - 1 :: int" | "0 mod - 1 :: int" |
+   "0 div numeral b :: 'a :: semiring_numeral_div" | "0 mod numeral b :: 'a :: semiring_numeral_div" |
+   "0 div - numeral b :: int" | "0 mod - numeral b :: int" |
+   "1 div 0 :: 'a :: semiring_numeral_div" | "1 mod 0 :: 'a :: semiring_numeral_div" |
+   "1 div 1 :: 'a :: semiring_numeral_div" | "1 mod 1 :: 'a :: semiring_numeral_div" |
+   "1 div - 1 :: int" | "1 mod - 1 :: int" |
+   "1 div numeral b :: 'a :: semiring_numeral_div" | "1 mod numeral b :: 'a :: semiring_numeral_div" |
+   "1 div - numeral b :: int" |"1 mod - numeral b :: int" |
+   "- 1 div 0 :: int" | "- 1 mod 0 :: int" | "- 1 div 1 :: int" | "- 1 mod 1 :: int" |
+   "- 1 div - 1 :: int" | "- 1 mod - 1 :: int" | "- 1 div numeral b :: int" | "- 1 mod numeral b :: int" |
+   "- 1 div - numeral b :: int" | "- 1 mod - numeral b :: int" |
+   "numeral a div 0 :: 'a :: semiring_numeral_div" | "numeral a mod 0 :: 'a :: semiring_numeral_div" |
+   "numeral a div 1 :: 'a :: semiring_numeral_div" | "numeral a mod 1 :: 'a :: semiring_numeral_div" |
+   "numeral a div - 1 :: int" | "numeral a mod - 1 :: int" |
+   "numeral a div numeral b :: 'a :: semiring_numeral_div" | "numeral a mod numeral b :: 'a :: semiring_numeral_div" |
+   "numeral a div - numeral b :: int" | "numeral a mod - numeral b :: int" |
+   "- numeral a div 0 :: int" | "- numeral a mod 0 :: int" |
+   "- numeral a div 1 :: int" | "- numeral a mod 1 :: int" |
+   "- numeral a div - 1 :: int" | "- numeral a mod - 1 :: int" |
+   "- numeral a div numeral b :: int" | "- numeral a mod numeral b :: int" |
+   "- numeral a div - numeral b :: int" | "- numeral a mod - numeral b :: int") =
+\<open> let
+    val if_cong = the (Code.get_case_cong @{theory} @{const_name If});
+    fun successful_rewrite ctxt ct =
+      let
+        val thm = Simplifier.rewrite ctxt ct
+      in if Thm.is_reflexive thm then NONE else SOME thm end;
+  in fn phi =>
+    let
+      val simps = Morphism.fact phi (@{thms div_0 mod_0 div_by_0 mod_by_0 div_by_1 mod_by_1
+        one_div_numeral one_mod_numeral minus_one_div_numeral minus_one_mod_numeral
+        one_div_minus_numeral one_mod_minus_numeral
+        numeral_div_numeral numeral_mod_numeral minus_numeral_div_numeral minus_numeral_mod_numeral
+        numeral_div_minus_numeral numeral_mod_minus_numeral
+        div_minus_minus mod_minus_minus adjust_div_eq of_bool_eq one_neq_zero
+        numeral_neq_zero neg_equal_0_iff_equal arith_simps arith_special divmod_trivial
+        divmod_cancel divmod_steps divmod_step_eq fst_conv snd_conv numeral_One
+        case_prod_beta rel_simps adjust_mod_def div_minus1_right mod_minus1_right
+        minus_minus numeral_times_numeral mult_zero_right mult_1_right}
+        @ [@{lemma "0 = 0 \<longleftrightarrow> True" by simp}]);
+      fun prepare_simpset ctxt = HOL_ss |> Simplifier.simpset_map ctxt
+        (Simplifier.add_cong if_cong #> fold Simplifier.add_simp simps)
+    in fn ctxt => successful_rewrite (Simplifier.put_simpset (prepare_simpset ctxt) ctxt) end
+  end;
+\<close>
 
 
 subsubsection \<open>Code generation\<close>
 
-definition divmod_abs :: "int \<Rightarrow> int \<Rightarrow> int \<times> int"
-where
-  "divmod_abs k l = (\<bar>k\<bar> div \<bar>l\<bar>, \<bar>k\<bar> mod \<bar>l\<bar>)"
-
-lemma fst_divmod_abs [simp]:
-  "fst (divmod_abs k l) = \<bar>k\<bar> div \<bar>l\<bar>"
-  by (simp add: divmod_abs_def)
-
-lemma snd_divmod_abs [simp]:
-  "snd (divmod_abs k l) = \<bar>k\<bar> mod \<bar>l\<bar>"
-  by (simp add: divmod_abs_def)
-
-lemma divmod_abs_code [code]:
-  "divmod_abs (Int.Pos k) (Int.Pos l) = divmod k l"
-  "divmod_abs (Int.Neg k) (Int.Neg l) = divmod k l"
-  "divmod_abs (Int.Neg k) (Int.Pos l) = divmod k l"
-  "divmod_abs (Int.Pos k) (Int.Neg l) = divmod k l"
-  "divmod_abs j 0 = (0, \<bar>j\<bar>)"
-  "divmod_abs 0 j = (0, 0)"
-  by (simp_all add: prod_eq_iff)
-
-lemma divmod_int_divmod_abs:
-  "divmod_int k l = (if k = 0 then (0, 0) else if l = 0 then (0, k) else
-  apsnd ((op *) (sgn l)) (if 0 < l \<and> 0 \<le> k \<or> l < 0 \<and> k < 0
-    then divmod_abs k l
-    else (let (r, s) = divmod_abs k l in
-       if s = 0 then (- r, 0) else (- r - 1, \<bar>l\<bar> - s))))"
-proof -
-  have aux: "\<And>q::int. - k = l * q \<longleftrightarrow> k = l * - q" by auto
-  show ?thesis
-    by (simp add: prod_eq_iff split_def Let_def)
-      (auto simp add: aux not_less not_le zdiv_zminus1_eq_if
-      zmod_zminus1_eq_if zdiv_zminus2_eq_if zmod_zminus2_eq_if)
-qed
-
-lemma divmod_int_code [code]:
-  "divmod_int k l = (if k = 0 then (0, 0) else if l = 0 then (0, k) else
-  apsnd ((op *) (sgn l)) (if sgn k = sgn l
-    then divmod_abs k l
-    else (let (r, s) = divmod_abs k l in
-      if s = 0 then (- r, 0) else (- r - 1, \<bar>l\<bar> - s))))"
-proof -
-  have "k \<noteq> 0 \<Longrightarrow> l \<noteq> 0 \<Longrightarrow> 0 < l \<and> 0 \<le> k \<or> l < 0 \<and> k < 0 \<longleftrightarrow> sgn k = sgn l"
-    by (auto simp add: not_less sgn_if)
-  then show ?thesis by (simp add: divmod_int_divmod_abs)
-qed
-
-hide_const (open) divmod_abs
+lemma [code]:
+  fixes k :: int
+  shows 
+    "k div 0 = 0"
+    "k mod 0 = k"
+    "0 div k = 0"
+    "0 mod k = 0"
+    "k div Int.Pos Num.One = k"
+    "k mod Int.Pos Num.One = 0"
+    "k div Int.Neg Num.One = - k"
+    "k mod Int.Neg Num.One = 0"
+    "Int.Pos m div Int.Pos n = (fst (divmod m n) :: int)"
+    "Int.Pos m mod Int.Pos n = (snd (divmod m n) :: int)"
+    "Int.Neg m div Int.Pos n = - (adjust_div (divmod m n) :: int)"
+    "Int.Neg m mod Int.Pos n = adjust_mod (Int.Pos n) (snd (divmod m n) :: int)"
+    "Int.Pos m div Int.Neg n = - (adjust_div (divmod m n) :: int)"
+    "Int.Pos m mod Int.Neg n = - adjust_mod (Int.Pos n) (snd (divmod m n) :: int)"
+    "Int.Neg m div Int.Neg n = (fst (divmod m n) :: int)"
+    "Int.Neg m mod Int.Neg n = - (snd (divmod m n) :: int)"
+  by simp_all
 
 code_identifier
   code_module Divides \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
+
+lemma dvd_eq_mod_eq_0_numeral:
+  "numeral x dvd (numeral y :: 'a) \<longleftrightarrow> numeral y mod numeral x = (0 :: 'a::semiring_div)"
+  by (fact dvd_eq_mod_eq_0)
 
 end

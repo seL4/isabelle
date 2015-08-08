@@ -71,11 +71,6 @@ lemma [code]:
   by simp
 
 lemma [code]:
-  "Divides.divmod_abs k l = map_prod int_of_integer int_of_integer
-    (Code_Numeral.divmod_abs (of_int k) (of_int l))"
-  by (simp add: prod_eq_iff)
-
-lemma [code]:
   "k div l = int_of_integer (of_int k div of_int l)"
   by simp
 
@@ -100,14 +95,13 @@ lemma (in ring_1) of_int_code_if:
   "of_int k = (if k = 0 then 0
      else if k < 0 then - of_int (- k)
      else let
-       (l, j) = divmod_int k 2;
-       l' = 2 * of_int l
-     in if j = 0 then l' else l' + 1)"
+       l = 2 * of_int (k div 2);
+       j = k mod 2
+     in if j = 0 then l else l + 1)"
 proof -
   from mod_div_equality have *: "of_int k = of_int (k div 2 * 2 + k mod 2)" by simp
   show ?thesis
-    by (simp add: Let_def divmod_int_mod_div of_int_add [symmetric])
-      (simp add: * mult.commute)
+    by (simp add: Let_def of_int_add [symmetric]) (simp add: * mult.commute)
 qed
 
 declare of_int_code_if [code]
@@ -121,4 +115,3 @@ code_identifier
     (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
-

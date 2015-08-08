@@ -515,6 +515,25 @@ apply auto
 apply (blast dest: nat_0_le [THEN sym])
 done
 
+lemma int_cases3 [case_names zero pos neg]:
+  fixes k :: int
+  assumes "k = 0 \<Longrightarrow> P" and "\<And>n. k = int n \<Longrightarrow> n > 0 \<Longrightarrow> P"
+    and "\<And>n. k = - int n \<Longrightarrow> n > 0 \<Longrightarrow> P" 
+  shows "P"
+proof (cases k "0::int" rule: linorder_cases)
+  case equal with assms(1) show P by simp
+next
+  case greater
+  then have "nat k > 0" by simp
+  moreover from this have "k = int (nat k)" by auto
+  ultimately show P using assms(2) by blast
+next
+  case less
+  then have "nat (- k) > 0" by simp
+  moreover from this have "k = - int (nat (- k))" by auto
+  ultimately show P using assms(3) by blast
+qed
+
 theorem int_of_nat_induct [case_names nonneg neg, induct type: int]:
      "[|!! n. P (int n);  !!n. P (- (int (Suc n))) |] ==> P z"
   by (cases z) auto

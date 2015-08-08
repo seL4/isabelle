@@ -188,6 +188,11 @@ been removed. INCOMPATIBILITY.
 * Nitpick:
   - Removed "check_potential" and "check_genuine" options.
 
+* Division on integers is bootstrapped directly from division on
+naturals and uses generic numeral algorithm for computations.
+Slight INCOMPATIBILITY, simproc numeral_divmod replaces and generalizes
+former simprocs binary_int_div and binary_int_mod
+
 * Tightened specification of class semiring_no_zero_divisors.  Slight
 INCOMPATIBILITY.
 
