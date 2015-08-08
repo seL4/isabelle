@@ -14,7 +14,9 @@ end;
 structure Debugger: DEBUGGER =
 struct
 
-(* messages *)
+(** global state **)
+
+(* output messages *)
 
 val _ = Session.protocol_handler "isabelle.Debugger$Handler";
 
@@ -35,7 +37,7 @@ fun error_wrapper e = e ()
     else error_message (Runtime.exn_message exn);
 
 
-(* global state *)
+(* thread names and input *)
 
 datatype state =
   State of {
@@ -73,7 +75,10 @@ fun get_input thread_name =
         in SOME (msg, make_state (threads, input')) end));
 
 
-(* thread state *)
+
+(** thread state **)
+
+(* stack frame during debugging *)
 
 local
   val tag = Universal.tag () : ML_Debugger.state list Universal.tag;
@@ -97,8 +102,32 @@ fun the_debug_state thread_name index =
       else nth states index);
 
 
+(* flags for single-stepping *)
 
-(* eval ML *)
+datatype stepping = Stepping of bool * int;  (*stepping enabled, stack depth limit*)
+
+local
+  val tag = Universal.tag () : stepping Universal.tag;
+in
+
+fun get_stepping () = the_default (Stepping (false, ~1)) (Thread.getLocal tag);
+fun put_stepping stepping = Thread.setLocal (tag, Stepping stepping);
+
+end;
+
+fun is_stepping () =
+  let
+    val stack = ML_Debugger.state (Thread.self ());
+    val Stepping (stepping, depth) = get_stepping ();
+  in stepping andalso (depth < 0 orelse length stack <= depth) end;
+
+fun step_stepping () = put_stepping (true, ~1);
+fun step_over_stepping () = put_stepping (true, length (get_debugging ()));
+fun step_out_stepping () = put_stepping (true, length (get_debugging ()) - 1);
+fun continue_stepping () = put_stepping (false, ~1);
+
+
+(** eval ML **)
 
 local
 
@@ -144,7 +173,8 @@ fun eval thread_name index SML txt1 txt2 =
 end;
 
 
-(* debugger entry point *)
+
+(** debugger entry point **)
 
 local
 
@@ -159,7 +189,10 @@ fun debugger_state thread_name =
 
 fun debugger_command thread_name =
   (case get_input thread_name of
-    ["continue"] => false
+    ["step"] => (step_stepping (); false)
+  | ["step_over"] => (step_over_stepping (); false)
+  | ["step_out"] => (step_out_stepping (); false)
+  | ["continue"] => (continue_stepping (); false)
   | ["eval", index, SML, txt1, txt2] =>
      (error_wrapper (fn () =>
         eval thread_name (Markup.parse_int index) (Markup.parse_bool SML) txt1 txt2); true)
@@ -173,26 +206,26 @@ fun debugger_loop thread_name =
       (debugger_state thread_name; if debugger_command thread_name then loop () else ());
   in with_debugging loop; debugger_state thread_name end;
 
-fun debugger cond =
-  if is_debugging () orelse not (cond ()) orelse
-    not (Options.default_bool @{system_option ML_debugger_active})
-  then ()
-  else
-    (case Simple_Thread.get_name () of
-      NONE => ()
-    | SOME thread_name => debugger_loop thread_name);
-
 in
 
 fun init () =
   ML_Debugger.on_breakpoint
-    (SOME (fn (_, b) =>
-      debugger (fn () => ! b orelse Options.default_bool @{system_option ML_debugger_stepping})));
+    (SOME (fn (_, break) =>
+      if not (is_debugging ()) andalso
+        (! break orelse Options.default_bool @{system_option ML_debugger_stepping} orelse
+          is_stepping ()) andalso
+        Options.default_bool @{system_option ML_debugger_active}
+      then
+        (case Simple_Thread.get_name () of
+          SOME thread_name => debugger_loop thread_name
+        | NONE => ())
+      else ()));
 
 end;
 
 
-(* protocol commands *)
+
+(** protocol commands **)
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.init"

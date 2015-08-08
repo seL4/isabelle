@@ -126,6 +126,9 @@ object Debugger
   def input(thread_name: String, msg: String*): Unit =
     current_state().session.protocol_command("Debugger.input", (thread_name :: msg.toList):_*)
 
+  def step(thread_name: String): Unit = input(thread_name, "step")
+  def step_over(thread_name: String): Unit = input(thread_name, "step_over")
+  def step_out(thread_name: String): Unit = input(thread_name, "step_out")
   def continue(thread_name: String): Unit = input(thread_name, "continue")
 
   def eval(thread_name: String, index: Int, SML: Boolean, context: String, expression: String): Unit =
