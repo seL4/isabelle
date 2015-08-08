@@ -226,27 +226,30 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
+  private val step_button = new Button("Step") {
+    tooltip = "Single-step in depth-first order"
+    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step(_)) }
+  }
+
+  private val step_over_button = new Button("Step over") {
+    tooltip = "Single-step within this function"
+    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step_over(_)) }
+  }
+
+  private val step_out_button = new Button("Step out") {
+    tooltip = "Single-step outside this function"
+    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step_out(_)) }
+  }
+
   private val continue_button = new Button("Continue") {
-      tooltip = "Continue program on current thread, until next breakpoint"
-      reactions += {
-        case ButtonClicked(_) =>
-          tree_selection() match {
-            case Some((t, _)) => Debugger.continue(t.thread_name)
-            case _ =>
-          }
-      }
-    }
+    tooltip = "Continue program on current thread, until next breakpoint"
+    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.continue(_)) }
+  }
 
   private val cancel_button = new Button("Cancel") {
-      tooltip = "Interrupt program on current thread"
-      reactions += {
-        case ButtonClicked(_) =>
-          tree_selection() match {
-            case Some((t, _)) => Debugger.cancel(t.thread_name)
-            case _ =>
-          }
-      }
-    }
+    tooltip = "Interrupt program on current thread"
+    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.cancel(_)) }
+  }
 
   private val debugger_active =
     new JEdit_Options.Check_Box("ML_debugger_active", "Active", "Enable debugger at run-time")
@@ -258,9 +261,10 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
+      step_button, step_over_button, step_out_button, continue_button, cancel_button,
       context_label, Component.wrap(context_field),
       expression_label, Component.wrap(expression_field),
-      sml_button, eval_button, continue_button, cancel_button,
+      sml_button, eval_button,
       pretty_text_area.search_label, pretty_text_area.search_field,
       debugger_stepping, debugger_active, zoom)
   add(controls.peer, BorderLayout.NORTH)
