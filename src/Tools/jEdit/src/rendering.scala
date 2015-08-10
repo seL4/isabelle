@@ -343,13 +343,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* breakpoints */
 
-  def breakpoints(range: Text.Range): List[Long] =
-    snapshot.select(range, Rendering.breakpoint_elements, _ =>
-      {
-        case Text.Info(_, XML.Elem(Markup(Markup.ML_BREAKPOINT, Markup.Serial(serial)), _)) =>
-          Some(serial)
-        case _ => None
-      }).map(_.info)
+  def breakpoint(range: Text.Range): Option[(Command, Long)] =
+    if (snapshot.is_outdated) None
+    else
+      snapshot.select(range, Rendering.breakpoint_elements, command_states =>
+        {
+          case Text.Info(_, XML.Elem(Markup(Markup.ML_BREAKPOINT, Markup.Serial(serial)), _)) =>
+            command_states match {
+              case st :: _ => Some((st.command, serial))
+              case _ => None
+            }
+          case _ => None
+        }).headOption.map(_.info)
 
 
   /* command status overview */

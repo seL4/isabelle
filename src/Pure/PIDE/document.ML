@@ -21,6 +21,7 @@ sig
   type blob_digest = (string * string option) Exn.result
   val define_command: Document_ID.command -> string -> blob_digest list -> int ->
     ((int * int) * string) list -> state -> state
+  val command_exec: state -> string -> Document_ID.command -> Command.exec option
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
   val update: Document_ID.version -> Document_ID.version -> edit list -> state ->
@@ -405,6 +406,12 @@ fun the_command (State {commands, ...}) command_id =
   | SOME command => command);
 
 val the_command_name = #1 oo the_command;
+
+fun command_exec state node_name command_id =
+  let
+    val State {execution = {version_id, ...}, ...} = state;
+    val node = get_node (nodes_of (the_version state version_id)) node_name;
+  in the_entry node command_id end;
 
 end;
 

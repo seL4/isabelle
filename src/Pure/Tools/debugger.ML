@@ -234,12 +234,29 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.breakpoint"
-    (fn [serial_string, b_string] =>
+    (fn [node_name, id0, breakpoint0, breakpoint_state0] =>
       let
-        val serial = Markup.parse_int serial_string;
-        val b = Markup.parse_bool b_string;
-        (* FIXME *)
-      in () end);
+        val id = Markup.parse_int id0;
+        val breakpoint = Markup.parse_int breakpoint0;
+        val breakpoint_state = Markup.parse_bool breakpoint_state0;
+
+        fun err () = error ("Bad exec for command " ^ Markup.print_int id);
+      in
+        (case Document.command_exec (Document.state ()) node_name id of
+          SOME (eval, _) =>
+            if Command.eval_finished eval then
+              let
+                val st = Command.eval_result_state eval;
+                val ctxt = Toplevel.presentation_context_of st
+                  handle Toplevel.UNDEF => err ();
+              in
+                (case ML_Env.get_breakpoint (Context.Proof ctxt) breakpoint of
+                  SOME (b, _) => b := breakpoint_state
+                | NONE => err ())
+              end
+            else err ()
+        | NONE => err ())
+      end);
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.cancel"

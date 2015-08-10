@@ -29,12 +29,12 @@ object Debugger
     def inc_active: State = copy(active = active + 1)
     def dec_active: State = copy(active = active - 1)
 
-    def toggle_breakpoint(serial: Long): (Boolean, State) =
+    def toggle_breakpoint(breakpoint: Long): (Boolean, State) =
     {
       val active_breakpoints1 =
-        if (active_breakpoints(serial)) active_breakpoints - serial
-      else active_breakpoints + serial
-      (active_breakpoints1(serial), copy(active_breakpoints = active_breakpoints1))
+        if (active_breakpoints(breakpoint)) active_breakpoints - breakpoint
+      else active_breakpoints + breakpoint
+      (active_breakpoints1(breakpoint), copy(active_breakpoints = active_breakpoints1))
     }
 
     def set_focus(new_focus: Option[Position.T]): State =
@@ -141,19 +141,23 @@ object Debugger
   def inc_active(): Unit = global_state.change(_.inc_active)
   def dec_active(): Unit = global_state.change(_.dec_active)
 
-  def breakpoint_active(serial: Long): Option[Boolean] =
+  def breakpoint_active(breakpoint: Long): Option[Boolean] =
   {
     val state = current_state()
-    if (state.active > 0) Some(state.active_breakpoints(serial)) else None
+    if (state.active > 0) Some(state.active_breakpoints(breakpoint)) else None
   }
 
-  def toggle_breakpoint(serial: Long)
+  def toggle_breakpoint(command: Command, breakpoint: Long)
   {
     global_state.change(state =>
     {
-      val (b, state1) = state.toggle_breakpoint(serial)
+      val (breakpoint_state, state1) = state.toggle_breakpoint(breakpoint)
       state1.session.protocol_command(
-        "Debugger.breakpoint", Properties.Value.Long(serial), Properties.Value.Boolean(b))
+        "Debugger.breakpoint",
+        Symbol.encode(command.node_name.node),
+        Document_ID(command.id),
+        Properties.Value.Long(breakpoint),
+        Properties.Value.Boolean(breakpoint_state))
       state1
     })
   }

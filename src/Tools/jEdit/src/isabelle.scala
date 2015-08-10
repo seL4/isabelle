@@ -350,8 +350,9 @@ object Isabelle
 
   def toggle_breakpoint(text_area: JEditTextArea)
   {
-    for (breakpoint <- Debugger_Dockable.get_breakpoint(text_area, text_area.getCaretPosition))
-      Debugger_Dockable.toggle_breakpoint(breakpoint)
+    for {
+      (command, serial) <- Debugger_Dockable.get_breakpoint(text_area, text_area.getCaretPosition)
+    } Debugger_Dockable.toggle_breakpoint(command, serial)
   }
 
 

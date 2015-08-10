@@ -41,15 +41,15 @@ object Debugger_Dockable
 
   /* breakpoints */
 
-  def toggle_breakpoint(serial: Long)
+  def toggle_breakpoint(command: Command, breakpoint: Long)
   {
     GUI_Thread.require {}
 
-    Debugger.toggle_breakpoint(serial)
+    Debugger.toggle_breakpoint(command, breakpoint)
     jEdit.propertiesChanged()
   }
 
-  def get_breakpoint(text_area: JEditTextArea, offset: Text.Offset): Option[Long] =
+  def get_breakpoint(text_area: JEditTextArea, offset: Text.Offset): Option[(Command, Long)] =
   {
     GUI_Thread.require {}
 
@@ -57,7 +57,7 @@ object Debugger_Dockable
       case Some(doc_view) =>
         val rendering = doc_view.get_rendering()
         val range = JEdit_Lib.point_range(text_area.getBuffer, offset)
-        rendering.breakpoints(range).headOption
+        rendering.breakpoint(range)
       case None => None
     }
   }
