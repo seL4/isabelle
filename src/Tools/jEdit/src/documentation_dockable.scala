@@ -13,7 +13,6 @@ import java.awt.Dimension
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.{JTree, JScrollPane}
 import javax.swing.tree.{DefaultMutableTreeNode, TreeSelectionModel}
-import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
 import org.gjt.sp.jedit.{View, OperatingSystem}
 
