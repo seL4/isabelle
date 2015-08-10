@@ -314,8 +314,8 @@ trait Protocol
       val encode_blob: T[Command.Blob] =
         variant(List(
           { case Exn.Res((a, b)) =>
-              (Nil, pair(string, option(string))((a.node, b.map(p => p._1.toString)))) },
-          { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
+              (Nil, pair(Encode.string, option(string))((a.node, b.map(p => p._1.toString)))) },
+          { case Exn.Exn(e) => (Nil, Encode.string(Exn.message(e))) }))
 
       YXML.string_of_body(pair(list(encode_blob), int)(command.blobs, command.blobs_index))
     }
@@ -372,7 +372,7 @@ trait Protocol
       def encode_edits: T[List[Document.Edit_Command]] = list((node_edit: Document.Edit_Command) =>
       {
         val (name, edit) = node_edit
-        pair(string, encode_edit(name))(name.node, edit)
+        pair(Encode.string, encode_edit(name))(name.node, edit)
       })
       YXML.string_of_body(encode_edits(edits)) }
     protocol_command("Document.update", Document_ID(old_id), Document_ID(new_id), edits_yxml)
