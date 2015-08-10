@@ -12,11 +12,12 @@ import isabelle._
 import java.awt.{BorderLayout, Dimension}
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, MouseEvent, MouseAdapter,
   FocusAdapter, FocusEvent}
-import javax.swing.{JTree, JScrollPane, JMenuItem}
+import javax.swing.{JTree, JMenuItem}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
-import scala.swing.{Button, Label, Component, SplitPane, Orientation, CheckBox}
+import scala.swing.{Button, Label, Component, ScrollPane, SplitPane, Orientation,
+  CheckBox, BorderPanel}
 import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View}
@@ -216,8 +217,10 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   })
 
-  val tree_view = new JScrollPane(tree)
-  tree_view.setMinimumSize(new Dimension(200, 50))
+  private val tree_pane = new ScrollPane(Component.wrap(tree))
+  tree_pane.horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
+  tree_pane.verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
+  tree_pane.minimumSize = new Dimension(200, 100)
 
 
   /* controls */
@@ -337,7 +340,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   val main_panel = new SplitPane(Orientation.Vertical) {
     oneTouchExpandable = true
-    leftComponent = Component.wrap(tree_view)
+    leftComponent = tree_pane
     rightComponent = Component.wrap(pretty_text_area)
   }
   set_content(main_panel)
