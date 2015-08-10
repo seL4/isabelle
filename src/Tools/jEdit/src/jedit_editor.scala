@@ -271,4 +271,24 @@ class JEdit_Editor extends Editor[View]
       case None => None
     }
   }
+
+  def hyperlink_position(snapshot: Document.Snapshot, pos: Position.T): Option[Hyperlink] =
+    pos match {
+      case Position.Line_File(line, name) =>
+        val offset = Position.Offset.unapply(pos) getOrElse 0
+        hyperlink_source_file(name, line, offset)
+      case Position.Id_Offset0(id, offset) =>
+        hyperlink_command_id(snapshot, id, offset)
+      case _ => None
+    }
+
+  def hyperlink_def_position(snapshot: Document.Snapshot, pos: Position.T): Option[Hyperlink] =
+    pos match {
+      case Position.Def_Line_File(line, name) =>
+        val offset = Position.Def_Offset.unapply(pos) getOrElse 0
+        hyperlink_source_file(name, line, offset)
+      case Position.Def_Id_Offset0(id, offset) =>
+        hyperlink_command_id(snapshot, id, offset)
+      case _ => None
+    }
 }

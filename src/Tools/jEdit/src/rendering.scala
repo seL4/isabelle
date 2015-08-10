@@ -398,27 +398,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             { case (Markup.KIND, Markup.ML_OPEN) => true
               case (Markup.KIND, Markup.ML_STRUCTURE) => true
               case _ => false }) =>
-            val opt_link =
-              props match {
-                case Position.Def_Line_File(line, name) =>
-                  val offset = Position.Def_Offset.unapply(props) getOrElse 0
-                  PIDE.editor.hyperlink_source_file(name, line, offset)
-                case Position.Def_Id_Offset0(id, offset) =>
-                  PIDE.editor.hyperlink_command_id(snapshot, id, offset)
-                case _ => None
-              }
+            val opt_link = PIDE.editor.hyperlink_def_position(snapshot, props)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
-            val opt_link =
-              props match {
-                case Position.Line_File(line, name) =>
-                  val offset = Position.Offset.unapply(props) getOrElse 0
-                  PIDE.editor.hyperlink_source_file(name, line, offset)
-                case Position.Id_Offset0(id, offset) =>
-                  PIDE.editor.hyperlink_command_id(snapshot, id, offset)
-                case _ => None
-              }
+            val opt_link = PIDE.editor.hyperlink_position(snapshot, props)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
