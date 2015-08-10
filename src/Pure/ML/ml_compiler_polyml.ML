@@ -153,8 +153,8 @@ fun eval (flags: flags) pos toks =
 
     val error_buffer = Unsynchronized.ref Buffer.empty;
     fun err msg = Unsynchronized.change error_buffer (Buffer.add msg #> Buffer.add "\n");
-    fun flush_error () = #writeln flags (Buffer.content (! error_buffer));
-    fun raise_error msg = error (Buffer.content (Buffer.add msg (! error_buffer)));
+    fun flush_error () = #writeln flags (trim_line (Buffer.content (! error_buffer)));
+    fun raise_error msg = error (trim_line (Buffer.content (Buffer.add msg (! error_buffer))));
 
     fun message {message = msg, hard, location = loc, context = _} =
       let
