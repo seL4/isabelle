@@ -168,7 +168,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def update_tree(thread_entries: List[Debugger_Dockable.Thread_Entry])
   {
-    val old_thread_selection = thread_selection()
+    val old_thread_selection =
+      thread_selection() orElse
+      thread_entries.collectFirst { case t if t.debug_states.nonEmpty => t.thread_name }
 
     tree.clearSelection
     root.removeAllChildren
