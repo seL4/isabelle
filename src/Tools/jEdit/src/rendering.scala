@@ -202,7 +202,7 @@ object Rendering
       Markup.STATE_MESSAGE + Markup.INFORMATION_MESSAGE +
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
       Markup.LEGACY_MESSAGE + Markup.ERROR_MESSAGE +
-      Markup.BAD + Markup.INTENSIFY ++ active_elements
+      Markup.BAD + Markup.INTENSIFY + Markup.ML_BREAKPOINT ++ active_elements
 
   private val foreground_elements =
     Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
@@ -247,6 +247,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val spell_checker_color = color_value("spell_checker_color")
   val bad_color = color_value("bad_color")
   val intensify_color = color_value("intensify_color")
+  val breakpoint_color = color_value("breakpoint_color")
+  val breakpoint_active_color = color_value("breakpoint_active_color")
   val quoted_color = color_value("quoted_color")
   val antiquoted_color = color_value("antiquoted_color")
   val antiquote_color = color_value("antiquote_color")
@@ -655,6 +657,10 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                   Some((Nil, Some(bad_color)))
                 case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                   Some((Nil, Some(intensify_color)))
+                case (_, Text.Info(_,
+                    XML.Elem(Markup(Markup.ML_BREAKPOINT, Markup.Serial(serial)), _))) =>
+                  Debugger.breakpoint_active(serial).map(active =>
+                    (Nil, Some(if (active) breakpoint_active_color else breakpoint_color)))
                 case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
                   command_states.collectFirst(
                     { case st if st.results.defined(serial) => st.results.get(serial).get }) match

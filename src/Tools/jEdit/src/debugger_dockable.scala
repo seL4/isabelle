@@ -325,7 +325,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options += main
     PIDE.session.debugger_updates += main
     Debugger.init(PIDE.session)
+    Debugger.inc_active()
     handle_update()
+    jEdit.propertiesChanged()
   }
 
   override def exit()
@@ -334,6 +336,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.debugger_updates -= main
     delay_resize.revoke()
     update_focus(None)
+    Debugger.dec_active()
+    jEdit.propertiesChanged()
   }
 
 

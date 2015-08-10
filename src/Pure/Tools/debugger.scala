@@ -17,12 +17,25 @@ object Debugger
 
   sealed case class State(
     session: Session = new Session(Resources.empty),
+    active: Int = 0,
+    active_breakpoints: Set[Long] = Set.empty,
     focus: Option[Position.T] = None,  // position of active GUI component
     threads: Map[String, List[Debug_State]] = Map.empty,  // thread name ~> stack of debug states
     output: Map[String, Command.Results] = Map.empty)  // thread name ~> output messages
   {
     def set_session(new_session: Session): State =
       copy(session = new_session)
+
+    def inc_active: State = copy(active = active + 1)
+    def dec_active: State = copy(active = active - 1)
+
+    def toggle_breakpoint(serial: Long): State =
+    {
+      val active_breakpoints1 =
+        if (active_breakpoints(serial)) active_breakpoints - serial
+      else active_breakpoints + serial
+      copy(active_breakpoints = active_breakpoints1)
+    }
 
     def set_focus(new_focus: Option[Position.T]): State =
       copy(focus = new_focus)
@@ -123,6 +136,19 @@ object Debugger
     global_state.change(_.set_session(session))
     current_state().session.protocol_command("Debugger.init")
   }
+
+  def is_active(): Boolean = current_state().active > 0
+  def inc_active(): Unit = global_state.change(_.inc_active)
+  def dec_active(): Unit = global_state.change(_.dec_active)
+
+  def breakpoint_active(serial: Long): Option[Boolean] =
+  {
+    val state = current_state()
+    if (state.active > 0) Some(state.active_breakpoints(serial)) else None
+  }
+
+  def toggle_breakpoint(serial: Long): Unit =
+    global_state.change(_.toggle_breakpoint(serial))
 
   def focus(new_focus: Option[Position.T]): Boolean =
     global_state.change_result(state => (state.focus != new_focus, state.set_focus(new_focus)))
