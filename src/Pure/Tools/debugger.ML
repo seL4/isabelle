@@ -202,10 +202,13 @@ fun debugger_command thread_name =
         ("Debugger: bad input " ^ ML_Syntax.print_list ML_Syntax.print_string bad); true));
 
 fun debugger_loop thread_name =
-  let
-    fun loop () =
-      (debugger_state thread_name; if debugger_command thread_name then loop () else ());
-  in with_debugging loop; debugger_state thread_name end;
+  uninterruptible (fn restore_attributes => fn () =>
+    let
+      fun loop () =
+        (debugger_state thread_name; if debugger_command thread_name then loop () else ());
+      val result = Exn.capture (restore_attributes with_debugging) loop;
+      val _ = debugger_state thread_name;
+    in Exn.release result end) ();
 
 in
 
