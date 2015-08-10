@@ -17,11 +17,15 @@ object Debugger
 
   sealed case class State(
     session: Session = new Session(Resources.empty),
+    focus: Option[Position.T] = None,  // position of active GUI component
     threads: Map[String, List[Debug_State]] = Map.empty,  // thread name ~> stack of debug states
     output: Map[String, Command.Results] = Map.empty)  // thread name ~> output messages
   {
     def set_session(new_session: Session): State =
       copy(session = new_session)
+
+    def set_focus(new_focus: Option[Position.T]): State =
+      copy(focus = new_focus)
 
     def get_thread(thread_name: String): List[Debug_State] =
       threads.getOrElse(thread_name, Nil)
@@ -119,6 +123,9 @@ object Debugger
     global_state.change(_.set_session(session))
     current_state().session.protocol_command("Debugger.init")
   }
+
+  def focus(new_focus: Option[Position.T]): Boolean =
+    global_state.change_result(state => (state.focus != new_focus, state.set_focus(new_focus)))
 
   def cancel(thread_name: String): Unit =
     current_state().session.protocol_command("Debugger.cancel", thread_name)

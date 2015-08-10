@@ -10,7 +10,8 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{BorderLayout, Dimension}
-import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, MouseEvent, MouseAdapter}
+import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, MouseEvent, MouseAdapter,
+  FocusAdapter, FocusEvent}
 import javax.swing.{JTree, JScrollPane}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
@@ -18,7 +19,7 @@ import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 import scala.swing.{Button, Label, Component, SplitPane, Orientation, CheckBox}
 import scala.swing.event.ButtonClicked
 
-import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.{jEdit, View}
 
 
 object Debugger_Dockable
@@ -117,6 +118,14 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   def thread_selection(): Option[String] = tree_selection().map(sel => sel._1.thread_name)
 
+  def focus_selection(): Option[Position.T] =
+    tree_selection() match {
+      case Some((t, opt_index)) =>
+        val i = opt_index getOrElse 0
+        if (i < t.debug_states.length) Some(t.debug_states(i).pos) else None
+      case _ => None
+    }
+
   private def update_tree(thread_entries: List[Debugger_Dockable.Thread_Entry])
   {
     val old_thread_selection = thread_selection()
@@ -149,10 +158,10 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     tree.revalidate()
   }
 
-  private def action(node: DefaultMutableTreeNode)
-  {
-    handle_update()
-  }
+  tree.addTreeSelectionListener(
+    new TreeSelectionListener {
+      override def valueChanged(e: TreeSelectionEvent) { update_focus(focus_selection()) }
+    })
 
   tree.addMouseListener(new MouseAdapter {
     override def mouseClicked(e: MouseEvent)
@@ -161,7 +170,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       if (click != null && e.getClickCount == 1) {
         (click.getLastPathComponent, tree.getLastSelectedPathComponent) match {
           case (node: DefaultMutableTreeNode, node1: DefaultMutableTreeNode) if node == node1 =>
-            action(node)
+            handle_update()
           case _ =>
         }
       }
@@ -212,7 +221,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       tooltip = "Evaluate ML expression within optional context"
       reactions += { case ButtonClicked(_) => eval_expression() }
     }
-  override def focusOnDefaultComponent { eval_button.requestFocus }
 
   private def eval_expression()
   {
@@ -270,6 +278,22 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   add(controls.peer, BorderLayout.NORTH)
 
 
+  /* focus */
+
+  override def focusOnDefaultComponent { eval_button.requestFocus }
+
+  addFocusListener(new FocusAdapter {
+    override def focusGained(e: FocusEvent) { update_focus(focus_selection()) }
+    override def focusLost(e: FocusEvent) { update_focus(None) }
+  })
+
+  private def update_focus(focus: Option[Position.T])
+  {
+    if (Debugger.focus(focus) && focus.isDefined)
+      PIDE.editor.hyperlink_position(current_snapshot, focus.get).foreach(_.follow(view))
+  }
+
+
   /* main panel */
 
   val main_panel = new SplitPane(Orientation.Vertical) {
@@ -309,6 +333,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options -= main
     PIDE.session.debugger_updates -= main
     delay_resize.revoke()
+    update_focus(None)
   }
 
 
