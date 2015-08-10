@@ -213,8 +213,7 @@ fun init () =
   ML_Debugger.on_breakpoint
     (SOME (fn (_, break) =>
       if not (is_debugging ()) andalso
-        (! break orelse Options.default_bool @{system_option ML_debugger_stepping} orelse
-          is_stepping ()) andalso
+        (! break orelse is_stepping ()) andalso
         Options.default_bool @{system_option ML_debugger_active}
       then
         (case Simple_Thread.get_name () of

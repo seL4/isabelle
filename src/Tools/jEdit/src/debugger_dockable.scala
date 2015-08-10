@@ -304,9 +304,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val debugger_active =
     new JEdit_Options.Check_Box("ML_debugger_active", "Active", "Enable debugger at run-time")
 
-  private val debugger_stepping =
-    new JEdit_Options.Check_Box("ML_debugger_stepping", "Stepping", "Enable single-step mode")
-
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private val controls =
@@ -316,7 +313,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       expression_label, Component.wrap(expression_field),
       sml_button, eval_button,
       pretty_text_area.search_label, pretty_text_area.search_field,
-      debugger_stepping, debugger_active, zoom)
+      debugger_active, zoom)
   add(controls.peer, BorderLayout.NORTH)
 
 
@@ -354,7 +351,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         Debugger.init(PIDE.session)
         GUI_Thread.later {
           debugger_active.load()
-          debugger_stepping.load()
           handle_resize()
         }
 
