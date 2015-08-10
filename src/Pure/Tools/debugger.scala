@@ -141,11 +141,14 @@ object Debugger
   def inc_active(): Unit = global_state.change(_.inc_active)
   def dec_active(): Unit = global_state.change(_.dec_active)
 
-  def breakpoint_active(breakpoint: Long): Option[Boolean] =
+  def active_breakpoint_state(breakpoint: Long): Option[Boolean] =
   {
     val state = current_state()
     if (state.active > 0) Some(state.active_breakpoints(breakpoint)) else None
   }
+
+  def breakpoint_state(breakpoint: Long): Boolean =
+    current_state().active_breakpoints(breakpoint)
 
   def toggle_breakpoint(command: Command, breakpoint: Long)
   {

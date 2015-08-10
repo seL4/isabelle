@@ -264,7 +264,6 @@ object Markup
   val ML_TYPING = "ML_typing"
 
   val ML_BREAKPOINT = "ML_breakpoint"
-  val ML_Breakpoint = new Markup_Long(ML_BREAKPOINT, SERIAL)
 
 
   /* outer syntax */

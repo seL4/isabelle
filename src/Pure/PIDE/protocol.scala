@@ -238,6 +238,18 @@ object Protocol
     !(is_result(msg) || is_tracing(msg) || is_state(msg))
 
 
+  /* breakpoints */
+
+  object ML_Breakpoint
+  {
+    def unapply(tree: XML.Tree): Option[Long] =
+    tree match {
+      case XML.Elem(Markup(Markup.ML_BREAKPOINT, Markup.Serial(breakpoint)), _) => Some(breakpoint)
+      case _ => None
+    }
+  }
+
+
   /* dialogs */
 
   object Dialog_Args

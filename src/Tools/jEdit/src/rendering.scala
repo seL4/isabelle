@@ -155,7 +155,7 @@ object Rendering
     Markup.Elements(Markup.EXPRESSION, Markup.CITATION, Markup.LANGUAGE, Markup.ML_TYPING,
       Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
       Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
-      Markup.VAR, Markup.TFREE, Markup.TVAR)
+      Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_BREAKPOINT)
 
   private val hyperlink_elements =
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION, Markup.URL)
@@ -182,7 +182,7 @@ object Rendering
 
   private val tooltip_elements =
     Markup.Elements(Markup.LANGUAGE, Markup.TIMING, Markup.ENTITY, Markup.SORTING,
-      Markup.TYPING, Markup.ML_TYPING, Markup.PATH, Markup.URL) ++
+      Markup.TYPING, Markup.ML_TYPING, Markup.ML_BREAKPOINT, Markup.PATH, Markup.URL) ++
     Markup.Elements(tooltip_descriptions.keySet)
 
   private val gutter_elements =
@@ -348,9 +348,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     else
       snapshot.select(range, Rendering.breakpoint_elements, command_states =>
         {
-          case Text.Info(_, XML.Elem(Markup(Markup.ML_BREAKPOINT, Markup.Serial(serial)), _)) =>
+          case Text.Info(_, Protocol.ML_Breakpoint(breakpoint)) =>
             command_states match {
-              case st :: _ => Some((st.command, serial))
+              case st :: _ => Some((st.command, breakpoint))
               case _ => None
             }
           case _ => None
@@ -539,6 +539,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(add(prev, r, (true, pretty_typing("::", body))))
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             Some(add(prev, r, (false, pretty_typing("ML:", body))))
+          case (prev, Text.Info(r, Protocol.ML_Breakpoint(breakpoint))) =>
+            val text =
+              if (Debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
+              else "breakpoint (disabled)"
+            Some(add(prev, r, (true, XML.Text(text))))
           case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _, _, _), _))) =>
             Some(add(prev, r, (true, XML.Text("language: " + language))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _))) =>
@@ -675,9 +680,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                   Some((Nil, Some(bad_color)))
                 case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                   Some((Nil, Some(intensify_color)))
-                case (_, Text.Info(_,
-                    XML.Elem(Markup(Markup.ML_BREAKPOINT, Markup.Serial(serial)), _))) =>
-                  Debugger.breakpoint_active(serial).map(active =>
+                case (_, Text.Info(_, Protocol.ML_Breakpoint(breakpoint))) =>
+                  Debugger.active_breakpoint_state(breakpoint).map(active =>
                     (Nil, Some(if (active) breakpoint_active_color else breakpoint_color)))
                 case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
                   command_states.collectFirst(
