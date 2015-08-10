@@ -346,6 +346,15 @@ object Isabelle
   }
 
 
+  /* debugger */
+
+  def toggle_breakpoint(text_area: JEditTextArea)
+  {
+    for (breakpoint <- Debugger_Dockable.get_breakpoint(text_area, text_area.getCaretPosition))
+      Debugger_Dockable.toggle_breakpoint(breakpoint)
+  }
+
+
   /* plugin options */
 
   def plugin_options(frame: Frame)

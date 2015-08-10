@@ -233,6 +233,15 @@ val _ =
     (fn [] => init ());
 
 val _ =
+  Isabelle_Process.protocol_command "Debugger.breakpoint"
+    (fn [serial_string, b_string] =>
+      let
+        val serial = Markup.parse_int serial_string;
+        val b = Markup.parse_bool b_string;
+        (* FIXME *)
+      in () end);
+
+val _ =
   Isabelle_Process.protocol_command "Debugger.cancel"
     (fn [thread_name] => cancel thread_name);
 

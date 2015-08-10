@@ -226,6 +226,7 @@ isabelle.reset-node-required.label=Reset node required
 isabelle.reset-words.label=Reset non-permanent words
 isabelle.set-continuous-checking.label=Set continuous checking
 isabelle.set-node-required.label=Set node required
+isabelle.toggle-breakpoint.label=Toggle Breakpoint
 isabelle.toggle-continuous-checking.label=Toggle continuous checking
 isabelle.toggle-continuous-checking.shortcut=C+e ENTER
 isabelle.toggle-node-required.label=Toggle node required

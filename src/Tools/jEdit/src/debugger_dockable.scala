@@ -12,7 +12,7 @@ import isabelle._
 import java.awt.{BorderLayout, Dimension}
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, MouseEvent, MouseAdapter,
   FocusAdapter, FocusEvent}
-import javax.swing.{JTree, JScrollPane}
+import javax.swing.{JTree, JScrollPane, JMenuItem}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
@@ -20,10 +20,14 @@ import scala.swing.{Button, Label, Component, SplitPane, Orientation, CheckBox}
 import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.{jEdit, View}
+import org.gjt.sp.jedit.menu.EnhancedMenuItem
+import org.gjt.sp.jedit.textarea.JEditTextArea
 
 
 object Debugger_Dockable
 {
+  /* state entries */
+
   sealed case class Thread_Entry(thread_name: String, debug_states: List[Debugger.Debug_State])
   {
     override def toString: String = thread_name
@@ -33,6 +37,41 @@ object Debugger_Dockable
   {
     override def toString: String = debug_state.function
   }
+
+
+  /* breakpoints */
+
+  def toggle_breakpoint(serial: Long)
+  {
+    GUI_Thread.require {}
+
+    Debugger.toggle_breakpoint(serial)
+    jEdit.propertiesChanged()
+  }
+
+  def get_breakpoint(text_area: JEditTextArea, offset: Text.Offset): Option[Long] =
+  {
+    GUI_Thread.require {}
+
+    PIDE.document_view(text_area) match {
+      case Some(doc_view) =>
+        val rendering = doc_view.get_rendering()
+        val range = JEdit_Lib.point_range(text_area.getBuffer, offset)
+        rendering.breakpoints(range).headOption
+      case None => None
+    }
+  }
+
+
+  /* context menu */
+
+  def context_menu(text_area: JEditTextArea, offset: Text.Offset): List[JMenuItem] =
+    if (get_breakpoint(text_area, offset).isDefined) {
+      val context = jEdit.getActionContext()
+      val name = "isabelle.toggle-breakpoint"
+      List(new EnhancedMenuItem(context.getAction(name).getLabel, name, context))
+    }
+    else Nil
 }
 
 class Debugger_Dockable(view: View, position: String) extends Dockable(view, position)

@@ -149,6 +149,8 @@ object Rendering
 
   private val citation_elements = Markup.Elements(Markup.CITATION)
 
+  private val breakpoint_elements = Markup.Elements(Markup.ML_BREAKPOINT)
+
   private val highlight_elements =
     Markup.Elements(Markup.EXPRESSION, Markup.CITATION, Markup.LANGUAGE, Markup.ML_TYPING,
       Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
@@ -337,6 +339,17 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       {
         case info => Some(snapshot.convert(info.range))
       }).headOption.map(_.info)
+
+
+  /* breakpoints */
+
+  def breakpoints(range: Text.Range): List[Long] =
+    snapshot.select(range, Rendering.breakpoint_elements, _ =>
+      {
+        case Text.Info(_, XML.Elem(Markup(Markup.ML_BREAKPOINT, Markup.Serial(serial)), _)) =>
+          Some(serial)
+        case _ => None
+      }).map(_.info)
 
 
   /* command status overview */

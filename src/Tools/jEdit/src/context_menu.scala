@@ -27,7 +27,9 @@ class Context_Menu extends DynamicContextMenuService
     val items1 =
       if (evt != null && evt.getSource == text_area.getPainter) {
         val offset = text_area.xyToOffset(evt.getX, evt.getY)
-        if (offset >= 0) Spell_Checker.context_menu(text_area, offset)
+        if (offset >= 0)
+          Spell_Checker.context_menu(text_area, offset) :::
+          Debugger_Dockable.context_menu(text_area, offset)
         else Nil
       }
       else Nil
@@ -38,4 +40,3 @@ class Context_Menu extends DynamicContextMenuService
     if (items.isEmpty) null else items.toArray
   }
 }
-

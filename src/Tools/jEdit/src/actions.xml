@@ -122,6 +122,11 @@
 	    isabelle.jedit.Isabelle.reset_dictionary();
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.toggle-breakpoint">
+	  <CODE>
+	    isabelle.jedit.Isabelle.toggle_breakpoint(textArea);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.options">
 	  <CODE>
 	    isabelle.jedit.Isabelle.plugin_options(view);

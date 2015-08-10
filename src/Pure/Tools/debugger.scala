@@ -29,12 +29,12 @@ object Debugger
     def inc_active: State = copy(active = active + 1)
     def dec_active: State = copy(active = active - 1)
 
-    def toggle_breakpoint(serial: Long): State =
+    def toggle_breakpoint(serial: Long): (Boolean, State) =
     {
       val active_breakpoints1 =
         if (active_breakpoints(serial)) active_breakpoints - serial
       else active_breakpoints + serial
-      copy(active_breakpoints = active_breakpoints1)
+      (active_breakpoints1(serial), copy(active_breakpoints = active_breakpoints1))
     }
 
     def set_focus(new_focus: Option[Position.T]): State =
@@ -147,8 +147,16 @@ object Debugger
     if (state.active > 0) Some(state.active_breakpoints(serial)) else None
   }
 
-  def toggle_breakpoint(serial: Long): Unit =
-    global_state.change(_.toggle_breakpoint(serial))
+  def toggle_breakpoint(serial: Long)
+  {
+    global_state.change(state =>
+    {
+      val (b, state1) = state.toggle_breakpoint(serial)
+      state1.session.protocol_command(
+        "Debugger.breakpoint", Properties.Value.Long(serial), Properties.Value.Boolean(b))
+      state1
+    })
+  }
 
   def focus(new_focus: Option[Position.T]): Boolean =
     global_state.change_result(state => (state.focus != new_focus, state.set_focus(new_focus)))
