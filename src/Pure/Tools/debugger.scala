@@ -187,9 +187,12 @@ object Debugger
   def step_out(thread_name: String): Unit = input(thread_name, "step_out")
   def continue(thread_name: String): Unit = input(thread_name, "continue")
 
-  def eval(thread_name: String, index: Int, SML: Boolean, context: String, expression: String): Unit =
+  def eval(thread_name: String, index: Int, SML: Boolean, context: String, expression: String)
   {
-    input(thread_name, "eval",
-      index.toString, SML.toString, Symbol.encode(context), Symbol.encode(expression))
+    global_state.change(state => {
+      input(thread_name, "eval",
+        index.toString, SML.toString, Symbol.encode(context), Symbol.encode(expression))
+      state.clear_output(thread_name)
+    })
   }
 }
