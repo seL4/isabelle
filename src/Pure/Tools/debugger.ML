@@ -165,7 +165,7 @@ fun eval thread_name index SML txt1 txt2 =
   let
     val (toks1, toks2) = apply2 (ML_Lex.read_source SML o Input.string) (txt1, txt2);
     val context = eval_context thread_name index SML toks1;
-  in Context.setmp_thread_data (SOME context) evaluate {SML = SML, verbose = true} toks2 end;
+  in Context.setmp_thread_data (SOME context) (evaluate {SML = SML, verbose = true}) toks2 end;
 
 fun print_vals thread_name index SML txt =
   let
