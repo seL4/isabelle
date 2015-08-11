@@ -582,7 +582,9 @@ in
 
 fun transition int tr st =
   let
-    val (st', opt_err) = app int tr st;
+    val (st', opt_err) =
+      Context.setmp_thread_data (try (Context.Proof o presentation_context_of) st)
+        (fn () => app int tr st) ();
     val opt_err' = opt_err |> Option.map
       (fn Runtime.EXCURSION_FAIL exn_info => exn_info
         | exn => (Runtime.exn_context (try context_of st) exn, at_command tr));
