@@ -27,6 +27,7 @@ abstract class Editor[Context]
     def follow(context: Context): Unit
   }
   def hyperlink_command(
-    snapshot: Document.Snapshot, command: Command, offset: Symbol.Offset = 0): Option[Hyperlink]
+    focus: Boolean, snapshot: Document.Snapshot, command: Command, offset: Symbol.Offset = 0)
+      : Option[Hyperlink]
 }
 

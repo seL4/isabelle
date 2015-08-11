@@ -133,13 +133,13 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
-  def goto_buffer(view: View, buffer: Buffer, offset: Text.Offset)
+  def goto_buffer(focus: Boolean, view: View, buffer: Buffer, offset: Text.Offset)
   {
     GUI_Thread.require {}
 
     push_position(view)
 
-    view.goToBuffer(buffer)
+    if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
     try { view.getTextArea.moveCaretPosition(offset) }
     catch {
       case _: ArrayIndexOutOfBoundsException =>
@@ -147,7 +147,7 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
-  def goto_file(view: View, name: String, line: Int = 0, column: Int = 0)
+  def goto_file(focus: Boolean, view: View, name: String, line: Int = 0, column: Int = 0)
   {
     GUI_Thread.require {}
 
@@ -155,7 +155,7 @@ class JEdit_Editor extends Editor[View]
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
-        view.goToBuffer(buffer)
+        if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
         val text_area = view.getTextArea
 
         try {
@@ -197,21 +197,21 @@ class JEdit_Editor extends Editor[View]
       override def toString: String = "URL " + quote(name)
     }
 
-  def hyperlink_buffer(buffer: Buffer, offset: Text.Offset): Hyperlink =
+  def hyperlink_buffer(focus: Boolean, buffer: Buffer, offset: Text.Offset): Hyperlink =
     new Hyperlink {
       val external = false
-      def follow(view: View): Unit = goto_buffer(view, buffer, offset)
+      def follow(view: View): Unit = goto_buffer(focus, view, buffer, offset)
       override def toString: String = "buffer " + quote(JEdit_Lib.buffer_name(buffer))
     }
 
-  def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
+  def hyperlink_file(focus: Boolean, name: String, line: Int = 0, column: Int = 0): Hyperlink =
     new Hyperlink {
       val external = false
-      def follow(view: View): Unit = goto_file(view, name, line, column)
+      def follow(view: View): Unit = goto_file(focus, view, name, line, column)
       override def toString: String = "file " + quote(name)
     }
 
-  def hyperlink_source_file(source_name: String, line: Int, offset: Symbol.Offset)
+  def hyperlink_source_file(focus: Boolean, source_name: String, line: Int, offset: Symbol.Offset)
     : Option[Hyperlink] =
   {
     val opt_name =
@@ -235,15 +235,16 @@ class JEdit_Editor extends Editor[View]
                     zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(
                       Symbol.advance_line_column)
               }
-            Some(hyperlink_file(name, line, column))
-          case _ => Some(hyperlink_file(name, line))
+            Some(hyperlink_file(focus, name, line, column))
+          case _ => Some(hyperlink_file(focus, name, line))
         }
       case None => None
     }
   }
 
   override def hyperlink_command(
-    snapshot: Document.Snapshot, command: Command, offset: Symbol.Offset = 0): Option[Hyperlink] =
+    focus: Boolean, snapshot: Document.Snapshot, command: Command, offset: Symbol.Offset = 0)
+      : Option[Hyperlink] =
   {
     if (snapshot.is_outdated) None
     else {
@@ -256,39 +257,40 @@ class JEdit_Editor extends Editor[View]
               (if (offset == 0) Iterator.empty
                else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
           val (line, column) = ((1, 1) /: sources_iterator)(Symbol.advance_line_column)
-          Some(hyperlink_file(file_name, line, column))
+          Some(hyperlink_file(focus, file_name, line, column))
       }
     }
   }
 
   def hyperlink_command_id(
-    snapshot: Document.Snapshot,
-    id: Document_ID.Generic,
-    offset: Symbol.Offset = 0): Option[Hyperlink] =
+    focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
+      : Option[Hyperlink] =
   {
     snapshot.state.find_command(snapshot.version, id) match {
-      case Some((node, command)) => hyperlink_command(snapshot, command, offset)
+      case Some((node, command)) => hyperlink_command(focus, snapshot, command, offset)
       case None => None
     }
   }
 
-  def hyperlink_position(snapshot: Document.Snapshot, pos: Position.T): Option[Hyperlink] =
+  def hyperlink_position(focus: Boolean, snapshot: Document.Snapshot, pos: Position.T)
+      : Option[Hyperlink] =
     pos match {
       case Position.Line_File(line, name) =>
         val offset = Position.Offset.unapply(pos) getOrElse 0
-        hyperlink_source_file(name, line, offset)
+        hyperlink_source_file(focus, name, line, offset)
       case Position.Id_Offset0(id, offset) =>
-        hyperlink_command_id(snapshot, id, offset)
+        hyperlink_command_id(focus, snapshot, id, offset)
       case _ => None
     }
 
-  def hyperlink_def_position(snapshot: Document.Snapshot, pos: Position.T): Option[Hyperlink] =
+  def hyperlink_def_position(focus: Boolean, snapshot: Document.Snapshot, pos: Position.T)
+      : Option[Hyperlink] =
     pos match {
       case Position.Def_Line_File(line, name) =>
         val offset = Position.Def_Offset.unapply(pos) getOrElse 0
-        hyperlink_source_file(name, line, offset)
+        hyperlink_source_file(focus, name, line, offset)
       case Position.Def_Id_Offset0(id, offset) =>
-        hyperlink_command_id(snapshot, id, offset)
+        hyperlink_command_id(focus, snapshot, id, offset)
       case _ => None
     }
 }

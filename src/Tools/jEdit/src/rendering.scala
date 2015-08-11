@@ -406,7 +406,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       range, Vector.empty, Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
-            val link = PIDE.editor.hyperlink_file(jedit_file(name))
+            val link = PIDE.editor.hyperlink_file(true, jedit_file(name))
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Url(name), _))) =>
@@ -418,18 +418,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             { case (Markup.KIND, Markup.ML_OPEN) => true
               case (Markup.KIND, Markup.ML_STRUCTURE) => true
               case _ => false }) =>
-            val opt_link = PIDE.editor.hyperlink_def_position(snapshot, props)
+            val opt_link = PIDE.editor.hyperlink_def_position(true, snapshot, props)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
-            val opt_link = PIDE.editor.hyperlink_position(snapshot, props)
+            val opt_link = PIDE.editor.hyperlink_position(true, snapshot, props)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Citation(name), _))) =>
             val opt_link =
               Bibtex_JEdit.entries_iterator.collectFirst(
                 { case (a, buffer, offset) if a == name =>
-                    PIDE.editor.hyperlink_buffer(buffer, offset) })
+                    PIDE.editor.hyperlink_buffer(true, buffer, offset) })
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case _ => None

@@ -48,7 +48,7 @@ object Active
               case XML.Elem(Markup(Markup.SIMP_TRACE_PANEL, props), _) =>
                 val link =
                   props match {
-                    case Position.Id(id) => PIDE.editor.hyperlink_command_id(snapshot, id)
+                    case Position.Id(id) => PIDE.editor.hyperlink_command_id(true, snapshot, id)
                     case _ => None
                   }
                 GUI_Thread.later {
