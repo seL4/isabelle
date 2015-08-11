@@ -62,6 +62,13 @@ fun input thread_name msg =
     let val input' = Symtab.map_default (thread_name, Queue.empty) (Queue.enqueue msg) input;
     in (threads, input') end));
 
+fun register_thread thread_name =
+  Synchronized.change global_state (map_state (fn (threads, input) =>
+    let
+      val threads' = Symtab.update_new (thread_name, Thread.self ()) threads
+        handle Symtab.DUP _ => threads;
+    in (threads', input) end));
+
 fun get_input thread_name =
   Synchronized.guarded_access global_state (fn State {threads, input} =>
     (case Symtab.lookup input thread_name of
@@ -215,12 +222,11 @@ in
 fun init () =
   ML_Debugger.on_breakpoint
     (SOME (fn (_, break) =>
-      if not (is_debugging ()) andalso
-        (! break orelse is_stepping ()) andalso
+      if not (is_debugging ()) andalso (! break orelse is_stepping ()) andalso
         Options.default_bool @{system_option ML_debugger_active}
       then
         (case Simple_Thread.get_name () of
-          SOME thread_name => debugger_loop thread_name
+          SOME thread_name => (register_thread thread_name; debugger_loop thread_name)
         | NONE => ())
       else ()));
 
