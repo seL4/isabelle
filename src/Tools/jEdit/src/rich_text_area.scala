@@ -146,12 +146,16 @@ class Rich_Text_Area(
   // owned by GUI thread
 
   private val highlight_area =
-    new Active_Area[Color]((r: Rendering) => r.highlight _, None)
+    new Active_Area[Color](
+      (rendering: Rendering) => rendering.highlight _, None)
+
   private val hyperlink_area =
     new Active_Area[PIDE.editor.Hyperlink](
-      (r: Rendering) => r.hyperlink _, Some(Cursor.HAND_CURSOR))
+      (rendering: Rendering) => rendering.hyperlink _, Some(Cursor.HAND_CURSOR))
+
   private val active_area =
-    new Active_Area[XML.Elem]((r: Rendering) => r.active _, Some(Cursor.DEFAULT_CURSOR))
+    new Active_Area[XML.Elem](
+      (rendering: Rendering) => rendering.active _, Some(Cursor.DEFAULT_CURSOR))
 
   private val active_areas =
     List((highlight_area, true), (hyperlink_area, true), (active_area, false))
