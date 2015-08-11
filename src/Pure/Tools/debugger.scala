@@ -55,27 +55,25 @@ object Debugger
 
     def clear_output(thread_name: String): State =
       copy(output = output - thread_name)
-
-    def purge(thread_name: String): State =
-      if (get_thread(thread_name).isEmpty)
-        copy(threads = threads - thread_name, output = output - thread_name)
-      else this
   }
 
   private val global_state = Synchronized(State())
 
 
-  /* protocol handler */
+  /* update events */
 
   case object Update
 
+  private val delay_update =
+    Simple_Thread.delay_first(global_state.value.session.output_delay) {
+      global_state.value.session.debugger_updates.post(Update)
+    }
+
+
+  /* protocol handler */
+
   class Handler extends Session.Protocol_Handler
   {
-    private val delay_update =
-      Simple_Thread.delay_first(global_state.value.session.output_delay) {
-        global_state.value.session.debugger_updates.post(Update)
-      }
-
     private def debugger_state(prover: Prover, msg: Prover.Protocol_Output): Boolean =
     {
       msg.properties match {
@@ -189,6 +187,7 @@ object Debugger
   def clear_output(thread_name: String)
   {
     global_state.change(_.clear_output(thread_name))
+    delay_update.invoke()
   }
 
   def eval(thread_name: String, index: Int, SML: Boolean, context: String, expression: String)
@@ -198,6 +197,7 @@ object Debugger
         index.toString, SML.toString, Symbol.encode(context), Symbol.encode(expression))
       state.clear_output(thread_name)
     })
+    delay_update.invoke()
   }
 
   def print_vals(thread_name: String, index: Int, SML: Boolean, context: String)
@@ -206,5 +206,6 @@ object Debugger
       input(thread_name, "print_vals", index.toString, SML.toString, Symbol.encode(context))
       state.clear_output(thread_name)
     })
+    delay_update.invoke()
   }
 }
