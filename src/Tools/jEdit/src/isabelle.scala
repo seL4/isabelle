@@ -348,12 +348,12 @@ object Isabelle
 
   /* debugger */
 
-  def toggle_breakpoint(text_area: JEditTextArea)
-  {
-    for {
-      (command, serial) <- Debugger_Dockable.get_breakpoint(text_area, text_area.getCaretPosition)
-    } Debugger_Dockable.toggle_breakpoint(command, serial)
-  }
+  def toggle_breakpoint(text_area: JEditTextArea): Unit =
+    if (Debugger.is_active()) {
+      for {
+        (command, serial) <- Debugger_Dockable.get_breakpoint(text_area, text_area.getCaretPosition)
+      } Debugger_Dockable.toggle_breakpoint(command, serial)
+    }
 
 
   /* plugin options */

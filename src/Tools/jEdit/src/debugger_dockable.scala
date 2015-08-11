@@ -67,7 +67,7 @@ object Debugger_Dockable
   /* context menu */
 
   def context_menu(text_area: JEditTextArea, offset: Text.Offset): List[JMenuItem] =
-    if (get_breakpoint(text_area, offset).isDefined) {
+    if (Debugger.is_active() && get_breakpoint(text_area, offset).isDefined) {
       val context = jEdit.getActionContext()
       val name = "isabelle.toggle-breakpoint"
       List(new EnhancedMenuItem(context.getAction(name).getLabel, name, context))
