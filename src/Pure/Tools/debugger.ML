@@ -40,23 +40,30 @@ fun error_wrapper e = e ()
 (* thread input *)
 
 val thread_input =
-  Synchronized.var "Debugger.state" (Symtab.empty: string list Queue.T Symtab.table);
+  Synchronized.var "Debugger.state" (NONE: string list Queue.T Symtab.table option);
+
+fun init_input () = Synchronized.change thread_input (K (SOME Symtab.empty));
+fun exit_input () = Synchronized.change thread_input (K NONE);
 
 fun input thread_name msg =
-  Synchronized.change thread_input
-    (Symtab.map_default (thread_name, Queue.empty) (Queue.enqueue msg));
+  if null msg then error "Empty input"
+  else
+    Synchronized.change thread_input
+      (Option.map (Symtab.map_default (thread_name, Queue.empty) (Queue.enqueue msg)));
 
 fun get_input thread_name =
-  Synchronized.guarded_access thread_input (fn input =>
-    (case Symtab.lookup input thread_name of
-      NONE => NONE
-    | SOME queue =>
-        let
-          val (msg, queue') = Queue.dequeue queue;
-          val input' =
-            if Queue.is_empty queue' then Symtab.delete_safe thread_name input
-            else Symtab.update (thread_name, queue') input;
-        in SOME (msg, input') end));
+  Synchronized.guarded_access thread_input
+    (fn NONE => SOME ([], NONE)
+      | SOME input =>
+          (case Symtab.lookup input thread_name of
+            NONE => NONE
+          | SOME queue =>
+              let
+                val (msg, queue') = Queue.dequeue queue;
+                val input' =
+                  if Queue.is_empty queue' then Symtab.delete_safe thread_name input
+                  else Symtab.update (thread_name, queue') input;
+              in SOME (msg, SOME input') end));
 
 
 
@@ -105,10 +112,10 @@ fun is_stepping () =
     val Stepping (stepping, depth) = get_stepping ();
   in stepping andalso (depth < 0 orelse length stack <= depth) end;
 
+fun continue_stepping () = put_stepping (false, ~1);
 fun step_stepping () = put_stepping (true, ~1);
 fun step_over_stepping () = put_stepping (true, length (get_debugging ()));
 fun step_out_stepping () = put_stepping (true, length (get_debugging ()) - 1);
-fun continue_stepping () = put_stepping (false, ~1);
 
 
 (** eval ML **)
@@ -159,7 +166,7 @@ end;
 
 
 
-(** debugger entry point **)
+(** debugger loop **)
 
 local
 
@@ -174,10 +181,11 @@ fun debugger_state thread_name =
 
 fun debugger_command thread_name =
   (case get_input thread_name of
-    ["step"] => (step_stepping (); false)
+    [] => (continue_stepping (); false)
+  | ["continue"] => (continue_stepping (); false)
+  | ["step"] => (step_stepping (); false)
   | ["step_over"] => (step_over_stepping (); false)
   | ["step_out"] => (step_out_stepping (); false)
-  | ["continue"] => (continue_stepping (); false)
   | ["eval", index, SML, txt1, txt2] =>
      (error_wrapper (fn () =>
         eval thread_name (Markup.parse_int index) (Markup.parse_bool SML) txt1 txt2); true)
@@ -205,17 +213,18 @@ end;
 val _ =
   Isabelle_Process.protocol_command "Debugger.init"
     (fn [] =>
+     (init_input ();
       ML_Debugger.on_breakpoint
         (SOME (fn (_, break) =>
           if not (is_debugging ()) andalso (! break orelse is_stepping ()) then
             (case Simple_Thread.get_name () of
               SOME thread_name => debugger_loop thread_name
             | NONE => ())
-          else ())));
+          else ()))));
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.exit"
-    (fn [] => ML_Debugger.on_breakpoint NONE);
+    (fn [] => (ML_Debugger.on_breakpoint NONE; exit_input ()));
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.breakpoint"
