@@ -37,40 +37,17 @@ fun error_wrapper e = e ()
     else error_message (Runtime.exn_message exn);
 
 
-(* thread names and input *)
+(* thread input *)
 
-datatype state =
-  State of {
-    threads: Thread.thread Symtab.table,  (*thread name ~> thread*)
-    input: string list Queue.T Symtab.table  (*thread name ~> input queue*)
-  };
-
-fun make_state (threads, input) = State {threads = threads, input = input};
-val init_state = make_state (Symtab.empty, Symtab.empty);
-fun map_state f (State {threads, input}) = make_state (f (threads, input));
-
-val global_state = Synchronized.var "Debugger.state" init_state;
-
-fun cancel thread_name =
-  Synchronized.change global_state (tap (fn State {threads, ...} =>
-    (case Symtab.lookup threads thread_name of
-      NONE => ()
-    | SOME thread => Simple_Thread.interrupt_unsynchronized thread)));
+val thread_input =
+  Synchronized.var "Debugger.state" (Symtab.empty: string list Queue.T Symtab.table);
 
 fun input thread_name msg =
-  Synchronized.change global_state (map_state (fn (threads, input) =>
-    let val input' = Symtab.map_default (thread_name, Queue.empty) (Queue.enqueue msg) input;
-    in (threads, input') end));
-
-fun register_thread thread_name =
-  Synchronized.change global_state (map_state (fn (threads, input) =>
-    let
-      val threads' = Symtab.update_new (thread_name, Thread.self ()) threads
-        handle Symtab.DUP _ => threads;
-    in (threads', input) end));
+  Synchronized.change thread_input
+    (Symtab.map_default (thread_name, Queue.empty) (Queue.enqueue msg));
 
 fun get_input thread_name =
-  Synchronized.guarded_access global_state (fn State {threads, input} =>
+  Synchronized.guarded_access thread_input (fn input =>
     (case Symtab.lookup input thread_name of
       NONE => NONE
     | SOME queue =>
@@ -79,7 +56,7 @@ fun get_input thread_name =
           val input' =
             if Queue.is_empty queue' then Symtab.delete_safe thread_name input
             else Symtab.update (thread_name, queue') input;
-        in SOME (msg, make_state (threads, input')) end));
+        in SOME (msg, input') end));
 
 
 
@@ -226,7 +203,7 @@ fun init () =
         Options.default_bool @{system_option ML_debugger_active}
       then
         (case Simple_Thread.get_name () of
-          SOME thread_name => (register_thread thread_name; debugger_loop thread_name)
+          SOME thread_name => debugger_loop thread_name
         | NONE => ())
       else ()));
 
@@ -265,10 +242,6 @@ val _ =
             else err ()
         | NONE => err ())
       end);
-
-val _ =
-  Isabelle_Process.protocol_command "Debugger.cancel"
-    (fn [thread_name] => cancel thread_name);
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.input"

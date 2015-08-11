@@ -168,9 +168,6 @@ object Debugger
   def focus(new_focus: Option[Position.T]): Boolean =
     global_state.change_result(state => (state.focus != new_focus, state.set_focus(new_focus)))
 
-  def cancel(thread_name: String): Unit =
-    current_state().session.protocol_command("Debugger.cancel", thread_name)
-
   def input(thread_name: String, msg: String*): Unit =
     current_state().session.protocol_command("Debugger.input", (thread_name :: msg.toList):_*)
 

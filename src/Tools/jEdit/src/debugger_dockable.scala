@@ -298,11 +298,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.continue(_)) }
   }
 
-  private val cancel_button = new Button("Cancel") {
-    tooltip = "Interrupt program on current thread"
-    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.cancel(_)) }
-  }
-
   private val debugger_active =
     new JEdit_Options.Check_Box("ML_debugger_active", "Active", "Enable debugger at run-time")
 
@@ -310,7 +305,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-      step_button, step_over_button, step_out_button, continue_button, cancel_button,
+      step_button, step_over_button, step_out_button, continue_button,
       context_label, Component.wrap(context_field),
       expression_label, Component.wrap(expression_field),
       sml_button, eval_button,
