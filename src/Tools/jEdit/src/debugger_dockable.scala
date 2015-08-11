@@ -158,12 +158,18 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   def thread_selection(): Option[String] = tree_selection().map(sel => sel._1.thread_name)
 
-  def focus_selection(): Option[Position.T] =
+  def index_selection(): Option[(Debugger_Dockable.Thread_Entry, Int)] =
     tree_selection() match {
       case Some((t, opt_index)) =>
         val i = opt_index getOrElse 0
-        if (i < t.debug_states.length) Some(t.debug_states(i).pos) else None
+        if (i < t.debug_states.length) Some((t, i)) else None
       case _ => None
+    }
+
+  def focus_selection(): Option[Position.T] =
+    index_selection() match {
+      case Some((t, i)) => Some(t.debug_states(i).pos)
+      case None => None
     }
 
   private def update_tree(thread_entries: List[Debugger_Dockable.Thread_Entry])
@@ -212,7 +218,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       if (click != null && e.getClickCount == 1) {
         (click.getLastPathComponent, tree.getLastSelectedPathComponent) match {
           case (node: DefaultMutableTreeNode, node1: DefaultMutableTreeNode) if node == node1 =>
-            handle_update()
+            index_selection() match {
+              case Some((t, i)) =>
+                Debugger.print_vals(t.thread_name, i, sml_button.selected, context_field.getText)
+              case None =>
+            }
           case _ =>
         }
       }

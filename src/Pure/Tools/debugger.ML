@@ -134,25 +134,22 @@ fun evaluate {SML, verbose} =
       writeln = writeln_message, warning = warning_message}
     Position.none;
 
-in
-
-fun eval thread_name index SML txt1 txt2 =
+fun eval_context thread_name index SML toks =
   let
-    val (toks1, toks2) = apply2 (ML_Lex.read_source SML o Input.string) (txt1, txt2);
-
-    val evaluate_verbose = evaluate {SML = SML, verbose = true};
-    val context1 = ML_Context.the_generic_context ()
+    val context1 =
+      ML_Context.the_generic_context ()
       |> Context_Position.set_visible_generic false
       |> Config.put_generic ML_Options.debugger false
       |> ML_Env.add_name_space {SML = SML}
           (ML_Debugger.debug_name_space (the_debug_state thread_name index));
     val context2 =
-      if SML orelse forall (fn Antiquote.Text tok => ML_Lex.is_improper tok | _ => false) toks1
+      if SML orelse forall (fn Antiquote.Text tok => ML_Lex.is_improper tok | _ => false) toks
       then context1
       else
         let
           val context' = context1
-            |> ML_Context.exec (fn () => evaluate_verbose (ML_Lex.read "val ML_context = " @ toks1));
+            |> ML_Context.exec (fn () =>
+                evaluate {SML = SML, verbose = true} (ML_Lex.read "val ML_context = " @ toks));
           fun try_exec toks =
             try (ML_Context.exec (fn () => evaluate {SML = false, verbose = false} toks)) context';
         in
@@ -160,7 +157,28 @@ fun eval thread_name index SML txt1 txt2 =
             SOME context2 => context2
           | NONE => error "Malformed context: expected type theory, Proof.context, Context.generic")
         end;
-  in Context.setmp_thread_data (SOME context2) evaluate_verbose toks2 end;
+  in context2 end;
+
+in
+
+fun eval thread_name index SML txt1 txt2 =
+  let
+    val (toks1, toks2) = apply2 (ML_Lex.read_source SML o Input.string) (txt1, txt2);
+    val context = eval_context thread_name index SML toks1;
+  in Context.setmp_thread_data (SOME context) evaluate {SML = SML, verbose = true} toks2 end;
+
+fun print_vals thread_name index SML txt =
+  let
+    val context = eval_context thread_name index SML (ML_Lex.read_source SML (Input.string txt));
+    val space = ML_Debugger.debug_name_space (the_debug_state thread_name index);
+
+    fun print x =
+      Pretty.from_ML (ML_Name_Space.display_val (x, ML_Options.get_print_depth (), space));
+    fun print_all () =
+      #allVal (ML_Debugger.debug_name_space (the_debug_state thread_name index)) ()
+      |> sort_wrt #1 |> map (Pretty.item o single o print o #2)
+      |> Pretty.chunks |> Pretty.string_of |> writeln_message;
+  in Context.setmp_thread_data (SOME context) print_all () end;
 
 end;
 
@@ -189,6 +207,9 @@ fun debugger_command thread_name =
   | ["eval", index, SML, txt1, txt2] =>
      (error_wrapper (fn () =>
         eval thread_name (Markup.parse_int index) (Markup.parse_bool SML) txt1 txt2); true)
+  | ["print_vals", index, SML, txt] =>
+     (error_wrapper (fn () =>
+        print_vals thread_name (Markup.parse_int index) (Markup.parse_bool SML) txt); true)
   | bad =>
      (Output.system_message
         ("Debugger: bad input " ^ ML_Syntax.print_list ML_Syntax.print_string bad); true));

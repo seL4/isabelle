@@ -195,4 +195,12 @@ object Debugger
       state.clear_output(thread_name)
     })
   }
+
+  def print_vals(thread_name: String, index: Int, SML: Boolean, context: String)
+  {
+    global_state.change(state => {
+      input(thread_name, "print_vals", index.toString, SML.toString, Symbol.encode(context))
+      state.clear_output(thread_name)
+    })
+  }
 }

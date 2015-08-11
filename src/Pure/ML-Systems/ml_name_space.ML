@@ -63,4 +63,6 @@ val initial_functor : (string * functorVal) list = [];
 
 fun forget_global_structure (_: string) = ();
 
+fun display_val (_, _: int, _: T) = ML_Pretty.String ("?", 1);
+
 end;
