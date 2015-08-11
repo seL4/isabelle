@@ -26,8 +26,9 @@ object Debugger
     def set_session(new_session: Session): State =
       copy(session = new_session)
 
-    def inc_active: (Boolean, State) = (active == 0, copy(active = active + 1))
-    def dec_active: (Boolean, State) = (active == 1, copy(active = active - 1))
+    def is_active: Boolean = active > 0
+    def inc_active: State = copy(active = active + 1)
+    def dec_active: State = copy(active = active - 1)
 
     def toggle_breakpoint(breakpoint: Long): (Boolean, State) =
     {
@@ -62,7 +63,6 @@ object Debugger
   }
 
   private val global_state = Synchronized(State())
-  def current_state(): State = global_state.value
 
 
   /* protocol handler */
@@ -73,8 +73,8 @@ object Debugger
   {
     private var updated = Set.empty[String]
     private val delay_update =
-      Simple_Thread.delay_first(current_state().session.output_delay) {
-        current_state().session.debugger_updates.post(Update(updated))
+      Simple_Thread.delay_first(global_state.value.session.output_delay) {
+        global_state.value.session.debugger_updates.post(Update(updated))
         updated = Set.empty
       }
     private def update(name: String)
@@ -134,32 +134,34 @@ object Debugger
   def set_session(session: Session): Unit =
     global_state.change(_.set_session(session))
 
-  def is_active(): Boolean = current_state().active > 0
+  def is_active(): Boolean = global_state.value.is_active
 
   def inc_active(): Unit =
     global_state.change(state =>
     {
-      val (init, state1) = state.inc_active
-      if (init) state1.session.protocol_command("Debugger.init")
+      val state1 = state.inc_active
+      if (!state.is_active && state1.is_active)
+        state1.session.protocol_command("Debugger.init")
       state1
     })
 
   def dec_active(): Unit =
     global_state.change(state =>
     {
-      val (exit, state1) = state.dec_active
-      if (exit) state1.session.protocol_command("Debugger.exit")
+      val state1 = state.dec_active
+      if (state.is_active && !state1.is_active)
+        state1.session.protocol_command("Debugger.exit")
       state1
     })
 
   def active_breakpoint_state(breakpoint: Long): Option[Boolean] =
   {
-    val state = current_state()
+    val state = global_state.value
     if (state.active > 0) Some(state.active_breakpoints(breakpoint)) else None
   }
 
   def breakpoint_state(breakpoint: Long): Boolean =
-    current_state().active_breakpoints(breakpoint)
+    global_state.value.active_breakpoints(breakpoint)
 
   def toggle_breakpoint(command: Command, breakpoint: Long)
   {
@@ -179,8 +181,12 @@ object Debugger
   def focus(new_focus: Option[Position.T]): Boolean =
     global_state.change_result(state => (state.focus != new_focus, state.set_focus(new_focus)))
 
+  def threads(): Map[String, List[Debug_State]] = global_state.value.threads
+
+  def output(): Map[String, Command.Results] = global_state.value.output
+
   def input(thread_name: String, msg: String*): Unit =
-    current_state().session.protocol_command("Debugger.input", (thread_name :: msg.toList):_*)
+    global_state.value.session.protocol_command("Debugger.input", (thread_name :: msg.toList):_*)
 
   def step(thread_name: String): Unit = input(thread_name, "step")
   def step_over(thread_name: String): Unit = input(thread_name, "step_over")

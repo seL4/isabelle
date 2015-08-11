@@ -105,15 +105,14 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   {
     GUI_Thread.require {}
 
-    val new_state = Debugger.current_state()
-
     val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
-    val new_threads = new_state.threads
+    val new_threads = Debugger.threads()
     val new_output =
     {
+      val output = Debugger.output()
       val current_thread_selection = thread_selection()
       (for {
-        (thread_name, results) <- new_state.output
+        (thread_name, results) <- output
         if current_thread_selection.isEmpty || current_thread_selection.get == thread_name
         (_, tree) <- results.iterator
       } yield tree).toList
