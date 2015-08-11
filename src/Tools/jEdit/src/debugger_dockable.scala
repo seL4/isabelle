@@ -230,6 +230,26 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* controls */
 
+  private val continue_button = new Button("Continue") {
+    tooltip = "Continue program on current thread, until next breakpoint"
+    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.continue(_)) }
+  }
+
+  private val step_button = new Button("Step") {
+    tooltip = "Single-step in depth-first order"
+    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step(_)) }
+  }
+
+  private val step_over_button = new Button("Step over") {
+    tooltip = "Single-step within this function"
+    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step_over(_)) }
+  }
+
+  private val step_out_button = new Button("Step out") {
+    tooltip = "Single-step outside this function"
+    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step_out(_)) }
+  }
+
   private val context_label = new Label("Context:") {
     tooltip = "Isabelle/ML context: type theory, Proof.context, Context.generic"
   }
@@ -259,11 +279,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       setFont(GUI.imitate_font(getFont, Font_Info.main_family(), 1.2))
     }
 
-  private val sml_button = new CheckBox("SML") {
-    tooltip = "Official Standard ML instead of Isabelle/ML"
-    selected = false
-  }
-
   private val eval_button = new Button("<html><b>Eval</b></html>") {
       tooltip = "Evaluate ML expression within optional context"
       reactions += { case ButtonClicked(_) => eval_expression() }
@@ -281,24 +296,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
-  private val continue_button = new Button("Continue") {
-    tooltip = "Continue program on current thread, until next breakpoint"
-    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.continue(_)) }
-  }
-
-  private val step_button = new Button("Step") {
-    tooltip = "Single-step in depth-first order"
-    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step(_)) }
-  }
-
-  private val step_over_button = new Button("Step over") {
-    tooltip = "Single-step within this function"
-    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step_over(_)) }
-  }
-
-  private val step_out_button = new Button("Step out") {
-    tooltip = "Single-step outside this function"
-    reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.step_out(_)) }
+  private val sml_button = new CheckBox("SML") {
+    tooltip = "Official Standard ML instead of Isabelle/ML"
+    selected = false
   }
 
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
@@ -307,7 +307,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
       continue_button, step_button, step_over_button, step_out_button,
       context_label, Component.wrap(context_field),
-      expression_label, Component.wrap(expression_field), sml_button, eval_button,
+      expression_label, Component.wrap(expression_field), eval_button, sml_button,
       pretty_text_area.search_label, pretty_text_area.search_field, zoom)
   add(controls.peer, BorderLayout.NORTH)
 
