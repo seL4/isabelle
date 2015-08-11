@@ -298,19 +298,14 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.continue(_)) }
   }
 
-  private val debugger_active =
-    new JEdit_Options.Check_Box("ML_debugger_active", "Active", "Enable debugger at run-time")
-
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
       step_button, step_over_button, step_out_button, continue_button,
       context_label, Component.wrap(context_field),
-      expression_label, Component.wrap(expression_field),
-      sml_button, eval_button,
-      pretty_text_area.search_label, pretty_text_area.search_field,
-      debugger_active, zoom)
+      expression_label, Component.wrap(expression_field), sml_button, eval_button,
+      pretty_text_area.search_label, pretty_text_area.search_field, zoom)
   add(controls.peer, BorderLayout.NORTH)
 
 
@@ -345,11 +340,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
-        Debugger.init(PIDE.session)
-        GUI_Thread.later {
-          debugger_active.load()
-          handle_resize()
-        }
+        Debugger.set_session(PIDE.session)
+        GUI_Thread.later { handle_resize() }
 
       case _: Debugger.Update =>
         GUI_Thread.later { handle_update() }
@@ -359,7 +351,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   {
     PIDE.session.global_options += main
     PIDE.session.debugger_updates += main
-    Debugger.init(PIDE.session)
+    Debugger.set_session(PIDE.session)
     Debugger.inc_active()
     handle_update()
     jEdit.propertiesChanged()

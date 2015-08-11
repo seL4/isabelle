@@ -104,9 +104,6 @@ public option ML_exception_trace : bool = false
 public option ML_debugger : bool = false
   -- "ML debugger instrumentation for newly compiled code"
 
-public option ML_debugger_active : bool = true
-  -- "ML debugger active at run-time, for code compiled with debugger instrumentation"
-
 public option ML_statistics : bool = true
   -- "ML run-time system statistics"
 

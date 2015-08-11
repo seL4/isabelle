@@ -185,6 +185,8 @@ fun debugger_command thread_name =
      (Output.system_message
         ("Debugger: bad input " ^ ML_Syntax.print_list ML_Syntax.print_string bad); true));
 
+in
+
 fun debugger_loop thread_name =
   uninterruptible (fn restore_attributes => fn () =>
     let
@@ -194,19 +196,6 @@ fun debugger_loop thread_name =
       val _ = debugger_state thread_name;
     in Exn.release result end) ();
 
-in
-
-fun init () =
-  ML_Debugger.on_breakpoint
-    (SOME (fn (_, break) =>
-      if not (is_debugging ()) andalso (! break orelse is_stepping ()) andalso
-        Options.default_bool @{system_option ML_debugger_active}
-      then
-        (case Simple_Thread.get_name () of
-          SOME thread_name => debugger_loop thread_name
-        | NONE => ())
-      else ()));
-
 end;
 
 
@@ -215,7 +204,18 @@ end;
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.init"
-    (fn [] => init ());
+    (fn [] =>
+      ML_Debugger.on_breakpoint
+        (SOME (fn (_, break) =>
+          if not (is_debugging ()) andalso (! break orelse is_stepping ()) then
+            (case Simple_Thread.get_name () of
+              SOME thread_name => debugger_loop thread_name
+            | NONE => ())
+          else ())));
+
+val _ =
+  Isabelle_Process.protocol_command "Debugger.exit"
+    (fn [] => ML_Debugger.on_breakpoint NONE);
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.breakpoint"

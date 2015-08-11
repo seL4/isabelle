@@ -26,8 +26,8 @@ object Debugger
     def set_session(new_session: Session): State =
       copy(session = new_session)
 
-    def inc_active: State = copy(active = active + 1)
-    def dec_active: State = copy(active = active - 1)
+    def inc_active: (Boolean, State) = (active == 0, copy(active = active + 1))
+    def dec_active: (Boolean, State) = (active == 1, copy(active = active - 1))
 
     def toggle_breakpoint(breakpoint: Long): (Boolean, State) =
     {
@@ -131,15 +131,26 @@ object Debugger
 
   /* protocol commands */
 
-  def init(session: Session)
-  {
+  def set_session(session: Session): Unit =
     global_state.change(_.set_session(session))
-    current_state().session.protocol_command("Debugger.init")
-  }
 
   def is_active(): Boolean = current_state().active > 0
-  def inc_active(): Unit = global_state.change(_.inc_active)
-  def dec_active(): Unit = global_state.change(_.dec_active)
+
+  def inc_active(): Unit =
+    global_state.change(state =>
+    {
+      val (init, state1) = state.inc_active
+      if (init) state1.session.protocol_command("Debugger.init")
+      state1
+    })
+
+  def dec_active(): Unit =
+    global_state.change(state =>
+    {
+      val (exit, state1) = state.dec_active
+      if (exit) state1.session.protocol_command("Debugger.exit")
+      state1
+    })
 
   def active_breakpoint_state(breakpoint: Long): Option[Boolean] =
   {
