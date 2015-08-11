@@ -26,7 +26,7 @@ object Debugger
     def set_session(new_session: Session): State =
       copy(session = new_session)
 
-    def is_active: Boolean = active > 0
+    def is_active: Boolean = active > 0 && session.is_ready
     def inc_active: State = copy(active = active + 1)
     def dec_active: State = copy(active = active - 1)
 
@@ -123,12 +123,20 @@ object Debugger
 
   /* protocol commands */
 
-  def set_session(session: Session): Unit =
-    global_state.change(_.set_session(session))
-
   def is_active(): Boolean = global_state.value.is_active
 
-  def inc_active(): Unit =
+  def init_session(session: Session)
+  {
+    global_state.change(state =>
+    {
+      val state1 = state.set_session(session)
+      if (!state.session.is_ready && state1.session.is_ready && state1.is_active)
+        state1.session.protocol_command("Debugger.init")
+      state1
+    })
+  }
+
+  def init(): Unit =
     global_state.change(state =>
     {
       val state1 = state.inc_active
@@ -137,7 +145,7 @@ object Debugger
       state1
     })
 
-  def dec_active(): Unit =
+  def exit(): Unit =
     global_state.change(state =>
     {
       val state1 = state.dec_active
