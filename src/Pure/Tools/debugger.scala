@@ -45,7 +45,8 @@ object Debugger
       threads.getOrElse(thread_name, Nil)
 
     def update_thread(thread_name: String, debug_states: List[Debug_State]): State =
-      copy(threads = threads + (thread_name -> debug_states))
+      if (debug_states.isEmpty) copy(threads = threads - thread_name)
+      else copy(threads = threads + (thread_name -> debug_states))
 
     def get_output(thread_name: String): Command.Results =
       output.getOrElse(thread_name, Command.Results.empty)
