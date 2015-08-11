@@ -90,7 +90,7 @@ fun report_parse_tree redirect depth space parse_tree =
       | breakpoints loc pt =
           (case ML_Parse_Tree.breakpoint pt of
             SOME b =>
-              let val pos = Exn_Properties.position_of loc in
+              let val pos = Position.reset_range (Exn_Properties.position_of loc) in
                 if is_reported pos then
                   let val id = serial ();
                   in cons ((pos, Markup.ML_breakpoint id), (id, (b, pos))) end
