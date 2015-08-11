@@ -159,7 +159,7 @@ class Tree_Panel(val graphview: Graphview, graph_panel: Graph_Panel) extends Bor
       root.removeAllChildren
       for (node <- nodes) root.add(new DefaultMutableTreeNode(node))
 
-      for (i <- 0 until tree.getRowCount) tree.expandRow(i)
+      tree.expandRow(0)
       tree.revalidate()
     }
     revalidate()
