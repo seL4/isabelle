@@ -352,7 +352,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         Debugger.set_session(PIDE.session)
         GUI_Thread.later { handle_resize() }
 
-      case _: Debugger.Update =>
+      case Debugger.Update =>
         GUI_Thread.later { handle_update() }
     }
 

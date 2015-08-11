@@ -67,21 +67,14 @@ object Debugger
 
   /* protocol handler */
 
-  sealed case class Update(thread_names: Set[String])
+  case object Update
 
   class Handler extends Session.Protocol_Handler
   {
-    private var updated = Set.empty[String]
     private val delay_update =
       Simple_Thread.delay_first(global_state.value.session.output_delay) {
-        global_state.value.session.debugger_updates.post(Update(updated))
-        updated = Set.empty
+        global_state.value.session.debugger_updates.post(Update)
       }
-    private def update(name: String)
-    {
-      updated += name
-      delay_update.invoke()
-    }
 
     private def debugger_state(prover: Prover, msg: Prover.Protocol_Output): Boolean =
     {
@@ -97,7 +90,7 @@ object Debugger
             })
           }
           global_state.change(_.update_thread(thread_name, debug_states))
-          update(thread_name)
+          delay_update.invoke()
           true
         case _ => false
       }
@@ -114,7 +107,7 @@ object Debugger
             case List(XML.Elem(Markup(name, props @ Markup.Serial(i)), body)) =>
               val message = XML.Elem(Markup(Markup.message(name), props), body)
               global_state.change(_.add_output(thread_name, i -> message))
-              update(thread_name)
+              delay_update.invoke()
               true
             case _ => false
           }
