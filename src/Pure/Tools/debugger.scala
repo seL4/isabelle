@@ -186,6 +186,11 @@ object Debugger
   def step_over(thread_name: String): Unit = input(thread_name, "step_over")
   def step_out(thread_name: String): Unit = input(thread_name, "step_out")
 
+  def clear_output(thread_name: String)
+  {
+    global_state.change(_.clear_output(thread_name))
+  }
+
   def eval(thread_name: String, index: Int, SML: Boolean, context: String, expression: String)
   {
     global_state.change(state => {

@@ -10,8 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{BorderLayout, Dimension}
-import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, MouseEvent, MouseAdapter,
-  FocusAdapter, FocusEvent}
+import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, FocusAdapter, FocusEvent}
 import javax.swing.{JTree, JMenuItem}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
@@ -157,18 +156,12 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   def thread_selection(): Option[String] = tree_selection().map(sel => sel._1.thread_name)
 
-  def index_selection(): Option[(Debugger_Dockable.Thread_Entry, Int)] =
+  def focus_selection(): Option[Position.T] =
     tree_selection() match {
       case Some((t, opt_index)) =>
         val i = opt_index getOrElse 0
-        if (i < t.debug_states.length) Some((t, i)) else None
+        if (i < t.debug_states.length) Some(t.debug_states(i).pos) else None
       case _ => None
-    }
-
-  def focus_selection(): Option[Position.T] =
-    index_selection() match {
-      case Some((t, i)) => Some(t.debug_states(i).pos)
-      case None => None
     }
 
   private def update_tree(thread_entries: List[Debugger_Dockable.Thread_Entry])
@@ -205,28 +198,24 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     tree.revalidate()
   }
 
+  def update_vals()
+  {
+    tree_selection() match {
+      case Some((t, None)) =>
+        Debugger.clear_output(t.thread_name)
+      case Some((t, Some(i))) if i < t.debug_states.length =>
+        Debugger.print_vals(t.thread_name, i, sml_button.selected, context_field.getText)
+      case _ =>
+    }
+  }
+
   tree.addTreeSelectionListener(
     new TreeSelectionListener {
-      override def valueChanged(e: TreeSelectionEvent) { update_focus(focus_selection()) }
-    })
-
-  tree.addMouseListener(new MouseAdapter {
-    override def mouseClicked(e: MouseEvent)
-    {
-      val click = tree.getPathForLocation(e.getX, e.getY)
-      if (click != null && e.getClickCount == 1) {
-        (click.getLastPathComponent, tree.getLastSelectedPathComponent) match {
-          case (node: DefaultMutableTreeNode, node1: DefaultMutableTreeNode) if node == node1 =>
-            index_selection() match {
-              case Some((t, i)) =>
-                Debugger.print_vals(t.thread_name, i, sml_button.selected, context_field.getText)
-              case None =>
-            }
-          case _ =>
-        }
+      override def valueChanged(e: TreeSelectionEvent) {
+        update_focus(focus_selection())
+        update_vals()
       }
-    }
-  })
+    })
 
   private val tree_pane = new ScrollPane(Component.wrap(tree))
   tree_pane.horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
