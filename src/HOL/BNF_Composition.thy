@@ -10,7 +10,13 @@ section \<open>Composition of Bounded Natural Functors\<close>
 
 theory BNF_Composition
 imports BNF_Def
+keywords
+  "copy_bnf" :: thy_decl and
+  "lift_bnf" :: thy_goal
 begin
+
+lemma ssubst_mem: "\<lbrakk>t = s; s \<in> X\<rbrakk> \<Longrightarrow> t \<in> X"
+  by simp
 
 lemma empty_natural: "(\<lambda>_. {}) o f = image g o (\<lambda>_. {})"
   by (rule ext) simp
@@ -168,6 +174,7 @@ lemma type_definition_id_bnf_UNIV: "type_definition id_bnf id_bnf UNIV"
 
 ML_file "Tools/BNF/bnf_comp_tactics.ML"
 ML_file "Tools/BNF/bnf_comp.ML"
+ML_file "Tools/BNF/bnf_lift.ML"
 
 hide_fact
   DEADID.inj_map DEADID.inj_map_strong DEADID.map_comp DEADID.map_cong DEADID.map_cong0

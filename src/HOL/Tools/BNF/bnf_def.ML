@@ -104,6 +104,7 @@ sig
     'a list
 
   val mk_witness: int list * term -> thm list -> nonemptiness_witness
+  val mk_wit_goals: term list -> term list -> term list -> int list * term -> term list
   val minimize_wits: (''a list * 'b) list -> (''a list * 'b) list
   val wits_of_bnf: bnf -> nonemptiness_witness list
 
@@ -759,6 +760,22 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
     |>> (fn [] => bnf | noted => morph_bnf (substitute_noted_thm noted) bnf)
   end;
 
+fun mk_wit_goals zs bs sets (I, wit) =
+  let
+    val xs = map (nth bs) I;
+    fun wit_goal i =
+      let
+        val z = nth zs i;
+        val set_wit = nth sets i $ Term.list_comb (wit, xs);
+        val concl = HOLogic.mk_Trueprop
+          (if member (op =) I i then HOLogic.mk_eq (z, nth bs i) else @{term False});
+      in
+        fold_rev Logic.all (z :: xs) (Logic.mk_implies (mk_Trueprop_mem (z, set_wit), concl))
+      end;
+  in
+    map wit_goal (0 upto length sets - 1)
+  end;
+
 
 (* Define new BNFs *)
 
@@ -1117,22 +1134,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
     val goals = zip_axioms map_id0_goal map_comp0_goal map_cong0_goal set_map0s_goal
       card_order_bd_goal cinfinite_bd_goal set_bds_goal le_rel_OO_goal rel_OO_Grp_goal;
 
-    fun mk_wit_goals (I, wit) =
-      let
-        val xs = map (nth bs) I;
-        fun wit_goal i =
-          let
-            val z = nth zs i;
-            val set_wit = nth bnf_sets_As i $ Term.list_comb (wit, xs);
-            val concl = HOLogic.mk_Trueprop
-              (if member (op =) I i then HOLogic.mk_eq (z, nth bs i) else @{term False});
-          in
-            fold_rev Logic.all (z :: xs) (Logic.mk_implies (mk_Trueprop_mem (z, set_wit), concl))
-          end;
-      in
-        map wit_goal (0 upto live - 1)
-      end;
-
+    val mk_wit_goals = mk_wit_goals bs zs bnf_sets_As;
     fun triv_wit_tac ctxt = mk_trivial_wit_tac ctxt bnf_wit_defs;
 
     val wit_goalss =

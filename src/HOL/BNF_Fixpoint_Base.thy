@@ -55,9 +55,6 @@ next
   thus "EX a. b = f a" by blast
 qed
 
-lemma ssubst_mem: "\<lbrakk>t = s; s \<in> X\<rbrakk> \<Longrightarrow> t \<in> X"
-  by simp
-
 lemma case_sum_step:
   "case_sum (case_sum f' g') g (Inl p) = case_sum f' g' p"
   "case_sum f (case_sum f' g') (Inr p) = case_sum f' g' p"
