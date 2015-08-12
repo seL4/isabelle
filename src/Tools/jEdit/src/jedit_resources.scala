@@ -122,7 +122,7 @@ class JEdit_Resources(
           if changed(model.node_name)
         } model.syntax_changed()
       }
-    if (PIDE.options.bool("jedit_auto_load") && change.deps_changed ||
+    if (change.deps_changed ||
         PIDE.options.bool("jedit_auto_resolve") && change.version.nodes.undefined_blobs.nonEmpty)
       PIDE.deps_changed()
   }
