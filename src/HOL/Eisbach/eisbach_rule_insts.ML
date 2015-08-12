@@ -14,10 +14,20 @@ struct
 
 fun restore_tags thm = Thm.map_tags (K (Thm.get_tags thm));
 
+val mk_term_type_internal = Logic.protect o Logic.mk_term o Logic.mk_type;
+
+fun term_type_cases f g t = 
+  (case (try (Logic.dest_type o Logic.dest_term o Logic.unprotect) t) of
+    SOME T => f T
+  | NONE => 
+    (case (try Logic.dest_term t) of
+      SOME t => g t
+    | NONE => raise Fail "Lost encoded instantiation"))
+
 fun add_thm_insts ctxt thm =
   let
     val tyvars = Thm.fold_terms Term.add_tvars thm [];
-    val tyvars' = tyvars |> map (Logic.mk_term o Logic.mk_type o TVar);
+    val tyvars' = tyvars |> map (mk_term_type_internal o TVar);
 
     val tvars = Thm.fold_terms Term.add_vars thm [];
     val tvars' = tvars  |> map (Logic.mk_term o Var);
@@ -36,11 +46,8 @@ fun get_thm_insts thm =
       |> Drule.dest_term
       |> Thm.term_of
       |> Logic.dest_conjunction_list
-      |> map Logic.dest_term
       |> (fn f => fold (fn t => fn (tys, ts) =>
-          (case try Logic.dest_type t of
-            SOME T => (T :: tys, ts)
-          | NONE => (tys, t :: ts))) f ([], []))
+          term_type_cases (fn T => (T :: tys, ts)) (fn t => (tys, t :: ts)) t) f ([], []))
       ||> rev
       |>> rev;
   in
