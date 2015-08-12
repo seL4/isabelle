@@ -21,6 +21,10 @@ Contributions to this Isabelle version
 * Summer 2015: Florian Haftmann, TUM
   Fundamentals of abstract type class for factorial rings.
 
+* Summer 2015: Julian Biendarra, TUM and Dmitriy Traytel, ETH Zurich
+  Command to lift a BNF structure on the raw type to the abstract type
+  for typedefs.
+
 
 Contributions to Isabelle2015
 -----------------------------

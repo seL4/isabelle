@@ -2771,6 +2771,65 @@ necessary. See \verb|~~/src/HOL/Basic_BNFs.thy|,
 for further examples of BNF registration, some of which feature custom
 witnesses.
 
+For many typedefs (in particular for type copies) lifting the BNF structure
+from the raw type to the abstract type can be done uniformly. This is the task
+of the @{command lift_bnf} command. Using @{command lift_bnf} the above
+registration of @{typ "('d, 'a) fn"} as a BNF becomes much shorter.
+*}
+
+    (*<*) context early begin (*>*)
+    lift_bnf (*<*)(no_warn_wits)(*>*) ('d, 'a) fn by auto
+    (*<*) end (*>*)
+
+text {*
+Indeed, for type copies the proof obligations are so simple that they can be
+discharged automatically, yielding another command @{command copy_bnf} which
+does not issue proof obligations.
+*}
+
+    (*<*) context late begin (*>*)
+    copy_bnf ('d, 'a) fn
+    (*<*) end (*>*)
+
+text {*
+Since records (or rather record schemes) are particular type copies,
+the @{command copy_bnf} can be used to register records as BNFs.
+*}
+
+    record 'a point =
+      xval :: 'a
+      yval :: 'a
+    
+    copy_bnf ('a, 'z) point_ext
+
+text {*
+The proof obligations handed over to the user by @{command lift_bnf} in
+the general case are simpler than the acual BNF properties (in particular,
+no cardinality reasoning is required). They are best illustrated on an
+example. Suppose we define the type of nonempty lists.
+*}
+
+    typedef 'a nonempty_list = "{xs :: 'a list. xs \<noteq> []}" by auto
+
+text {*
+Then, @{command lift_bnf} requires us to prove that the set of nonempty lists
+is closed under the map function and the zip function (where the latter only
+occurs implicitly in the goal, in form of the variable
+@{term "zs :: ('a \<times> 'b) list"}).
+*}
+
+    lift_bnf (*<*)(no_warn_wits)(*>*) 'a nonempty_list
+    proof -
+      fix f and xs :: "'a list"
+      assume "xs \<in> {xs. xs \<noteq> []}"
+      then show "map f xs \<in> {xs. xs \<noteq> []}" by (cases xs(*<*)rule: list.exhaust(*>*)) auto
+    next
+      fix zs :: "('a \<times> 'b) list"
+      assume "map fst zs \<in> {xs. xs \<noteq> []}" "map snd zs \<in> {xs. xs \<noteq> []}"
+      then show "zs \<in> {xs. xs \<noteq> []}" by (cases zs(*<*)rule: list.exhaust(*>*)) auto
+    qed
+
+text {*
 The next example declares a BNF axiomatically. This can be convenient for
 reasoning abstractly about an arbitrary BNF. The @{command bnf_axiomatization}
 command below introduces a type @{text "('a, 'b, 'c) F"}, three set constants,
@@ -2825,6 +2884,48 @@ The @{syntax plugins} option indicates which plugins should be enabled
 %%% TODO: elaborate on proof obligations
 *}
 
+subsubsection {* \keyw{lift_bnf} and \keyw{copy_bnf}
+  \label{sssec:lift-bnf} *}
+
+text {*
+\begin{matharray}{rcl}
+  @{command_def "lift_bnf"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+  @{command_def "copy_bnf"} & : & @{text "local_theory \<rightarrow> local_theory"}
+\end{matharray}
+
+@{rail \<open>
+  @@{command lift_bnf} target? lb_options? \<newline>
+    @{syntax tyargs} name wit_terms?  \<newline>
+    ('via' @{syntax thmref})? @{syntax map_rel}?
+  ;
+  @{syntax_def lb_options}: '(' ((@{syntax plugins} | 'no_warn_wits') + ',') ')'
+  ;
+  @{syntax_def wit_terms}: '[' 'wits' ':' terms ']'
+  ;
+  @@{command copy_bnf} target? ('(' @{syntax plugins} ')')? \<newline>
+    @{syntax tyargs} name ('via' @{syntax thmref})? @{syntax map_rel}?
+\<close>}
+\medskip
+
+\noindent
+The @{command lift_bnf} command registers an existing type (abstract type),
+defined as a subtype of a BNF (raw type) using the @{command typedef} command,
+as a BNF. To do so, it lifts the BNF structure on the raw type to the abstract
+type following a @{term type_definition} theorem (the theorem is usually inferred
+from the type, but can also be explicitly supplied by the user using the
+@{text via} slot). In addition, custom names for map, set functions, and the relator,
+as well as nonemptiness witnesses can be specified; otherwise, default versions are used.
+Nonemptiness witnesses are not lifted from the raw type's BNF (this would be
+inherently incomplete), but must be given as terms (on the raw type) and proved
+to be witnesses. The command warns aggresively about witness types that a present
+in the raw type's BNF but not supplied by the user. The warning can be turned off
+by passing the @{text no_warn_wits} option.
+
+The @{command copy_bnf} command, performes the same lifting for type copies
+(@{command typedef}s with @{term UNIV} as the representing set) without bothering
+the user with trivial proof obligations. (Here, all nonemptiness witnesses from the raw
+type's BNF can also be lifted without problems.)
+*}
 
 subsubsection {* \keyw{bnf_axiomatization}
   \label{sssec:bnf-axiomatization} *}

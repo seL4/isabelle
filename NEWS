@@ -188,6 +188,9 @@ been removed. INCOMPATIBILITY.
 * Nitpick:
   - Removed "check_potential" and "check_genuine" options.
 
+* New command lift_bnf for lifting a BNF structure to a type defined
+  using typedef
+
 * Division on integers is bootstrapped directly from division on
 naturals and uses generic numeral algorithm for computations.
 Slight INCOMPATIBILITY, simproc numeral_divmod replaces and generalizes
