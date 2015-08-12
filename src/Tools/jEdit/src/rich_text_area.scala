@@ -463,16 +463,6 @@ class Rich_Text_Area(
           if (line != -1) {
             val line_range = Text.Range(start(i), end(i) min buffer.getLength)
 
-            // bullet bar
-            for {
-              Text.Info(range, color) <- rendering.bullet(line_range)
-              r <- JEdit_Lib.gfx_range(text_area, range)
-            } {
-              gfx.setColor(color)
-              gfx.fillRect(r.x + bullet_x, y + i * line_height + bullet_y,
-                r.length - bullet_w, line_height - bullet_h)
-            }
-
             // text chunks
             val screen_line = first_line + i
             val chunks = text_area.getChunksOfScreenLine(screen_line)
@@ -485,6 +475,16 @@ class Rich_Text_Area(
                 orig_text_painter.paintValidLine(gfx,
                   screen_line, line, start(i), end(i), y + line_height * i)
               } finally { gfx.setClip(clip) }
+            }
+
+            // bullet bar
+            for {
+              Text.Info(range, color) <- rendering.bullet(line_range)
+              r <- JEdit_Lib.gfx_range(text_area, range)
+            } {
+              gfx.setColor(color)
+              gfx.fillRect(r.x + bullet_x, y + i * line_height + bullet_y,
+                r.length - bullet_w, line_height - bullet_h)
             }
           }
           y0 += line_height
