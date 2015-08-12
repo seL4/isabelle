@@ -157,7 +157,7 @@ object Debugger
   def active_breakpoint_state(breakpoint: Long): Option[Boolean] =
   {
     val state = global_state.value
-    if (state.active > 0) Some(state.active_breakpoints(breakpoint)) else None
+    if (state.is_active) Some(state.active_breakpoints(breakpoint)) else None
   }
 
   def breakpoint_state(breakpoint: Long): Boolean =
