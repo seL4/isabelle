@@ -262,6 +262,7 @@ class Plugin extends EBPlugin
         }
 
       case Session.Ready =>
+        Debugger.init_session(PIDE.session)
         PIDE.session.update_options(PIDE.options.value)
         PIDE.init_models()
 

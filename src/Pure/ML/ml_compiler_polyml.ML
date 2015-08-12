@@ -12,6 +12,17 @@ open ML_Compiler;
 
 (* parse trees *)
 
+fun breakpoint_position loc =
+  let val pos = Position.reset_range (Exn_Properties.position_of loc) in
+    (case Position.offset_of pos of
+      NONE => pos
+    | SOME 1 => pos
+    | SOME j =>
+        Position.properties_of pos
+        |> Properties.put (Markup.offsetN, Markup.print_int (j - 1))
+        |> Position.of_properties)
+  end;
+
 fun report_parse_tree redirect depth space parse_tree =
   let
     val is_visible =
@@ -90,7 +101,7 @@ fun report_parse_tree redirect depth space parse_tree =
       | breakpoints loc pt =
           (case ML_Parse_Tree.breakpoint pt of
             SOME b =>
-              let val pos = Position.reset_range (Exn_Properties.position_of loc) in
+              let val pos = breakpoint_position loc in
                 if is_reported pos then
                   let val id = serial ();
                   in cons ((pos, Markup.ML_breakpoint id), (id, (b, pos))) end

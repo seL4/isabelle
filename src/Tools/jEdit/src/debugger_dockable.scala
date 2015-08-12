@@ -343,7 +343,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
-        Debugger.set_session(PIDE.session)
         GUI_Thread.later { handle_resize() }
 
       case Debugger.Update =>
@@ -354,8 +353,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   {
     PIDE.session.global_options += main
     PIDE.session.debugger_updates += main
-    Debugger.set_session(PIDE.session)
-    Debugger.inc_active()
+    Debugger.init()
     handle_update()
     jEdit.propertiesChanged()
   }
@@ -366,7 +364,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.debugger_updates -= main
     delay_resize.revoke()
     update_focus(None)
-    Debugger.dec_active()
+    Debugger.exit()
     jEdit.propertiesChanged()
   }
 

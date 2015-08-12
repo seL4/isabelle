@@ -85,7 +85,15 @@ use "PIDE/document_id.ML";
 use "General/change_table.ML";
 use "General/graph.ML";
 
+
+(* fundamental structures *)
+
+use "name.ML";
+use "term.ML";
+use "context.ML";
+use "context_position.ML";
 use "System/options.ML";
+use "config.ML";
 
 
 (* concurrency within the ML runtime *)
@@ -130,15 +138,6 @@ use "Concurrent/mailbox.ML";
 use "Concurrent/cache.ML";
 
 use "PIDE/active.ML";
-
-
-(* fundamental structures *)
-
-use "name.ML";
-use "term.ML";
-use "context.ML";
-use "context_position.ML";
-use "config.ML";
 
 
 (* inner syntax *)

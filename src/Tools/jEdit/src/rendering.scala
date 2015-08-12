@@ -204,14 +204,14 @@ object Rendering
       Markup.STATE_MESSAGE + Markup.INFORMATION_MESSAGE +
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
       Markup.LEGACY_MESSAGE + Markup.ERROR_MESSAGE +
-      Markup.BAD + Markup.INTENSIFY + Markup.ML_BREAKPOINT ++ active_elements
+      Markup.BAD + Markup.INTENSIFY ++ active_elements
 
   private val foreground_elements =
     Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.ANTIQUOTED)
 
   private val bullet_elements =
-    Markup.Elements(Markup.BULLET)
+    Markup.Elements(Markup.BULLET, Markup.ML_BREAKPOINT)
 
   private val fold_depth_elements =
     Markup.Elements(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
@@ -249,8 +249,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val spell_checker_color = color_value("spell_checker_color")
   val bad_color = color_value("bad_color")
   val intensify_color = color_value("intensify_color")
-  val breakpoint_color = color_value("breakpoint_color")
-  val breakpoint_active_color = color_value("breakpoint_active_color")
+  val breakpoint_disabled_color = color_value("breakpoint_disabled_color")
+  val breakpoint_enabled_color = color_value("breakpoint_enabled_color")
   val quoted_color = color_value("quoted_color")
   val antiquoted_color = color_value("antiquoted_color")
   val antiquote_color = color_value("antiquote_color")
@@ -680,9 +680,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                   Some((Nil, Some(bad_color)))
                 case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                   Some((Nil, Some(intensify_color)))
-                case (_, Text.Info(_, Protocol.ML_Breakpoint(breakpoint))) =>
-                  Debugger.active_breakpoint_state(breakpoint).map(active =>
-                    (Nil, Some(if (active) breakpoint_active_color else breakpoint_color)))
                 case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
                   command_states.collectFirst(
                     { case st if st.results.defined(serial) => st.results.get(serial).get }) match
@@ -774,7 +771,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* virtual bullets */
 
   def bullet(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select(range, Rendering.bullet_elements, _ => _ => Some(bullet_color))
+    snapshot.select(range, Rendering.bullet_elements, _ =>
+      {
+        case Text.Info(_, Protocol.ML_Breakpoint(breakpoint)) =>
+          Debugger.active_breakpoint_state(breakpoint).map(b =>
+            if (b) breakpoint_enabled_color else breakpoint_disabled_color)
+        case _ => Some(bullet_color)
+      })
 
 
   /* text folds */

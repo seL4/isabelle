@@ -429,12 +429,14 @@ fun future_job group atts (e: unit -> 'a) =
   let
     val result = Single_Assignment.var "future" : 'a result;
     val pos = Position.thread_data ();
+    val context = Context.thread_data ();
     fun job ok =
       let
         val res =
           if ok then
             Exn.capture (fn () =>
-              Multithreading.with_attributes atts (fn _ => Position.setmp_thread_data pos e ())) ()
+              Multithreading.with_attributes atts (fn _ =>
+                (Position.setmp_thread_data pos o Context.setmp_thread_data context) e ())) ()
           else Exn.interrupt_exn;
       in assign_result group result (identify_result pos res) end;
   in (result, job) end;
