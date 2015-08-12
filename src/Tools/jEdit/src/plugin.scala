@@ -217,8 +217,19 @@ class Plugin extends EBPlugin
               } yield (model.node_name, Position.none)
 
             val thy_info = new Thy_Info(PIDE.resources)
-            val files = thy_info.dependencies("", thys).deps.map(_.name.node).
-              filter(file => !loaded_buffer(file) && PIDE.resources.check_file(file))
+            val thy_files = thy_info.dependencies("", thys).deps.map(_.name.node)
+
+            val aux_files =
+              if (PIDE.options.bool("jedit_auto_resolve")) {
+                val snapshot = PIDE.snapshot(view)
+                if (snapshot.is_outdated) Nil
+                else snapshot.version.nodes.undefined_blobs.map(_.node)
+              }
+              else Nil
+
+            val files =
+              (thy_files ::: aux_files).filter(file =>
+                !loaded_buffer(file) && PIDE.resources.check_file(file))
 
             if (files.nonEmpty) {
               if (PIDE.options.bool("jedit_auto_load")) {
