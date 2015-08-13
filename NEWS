@@ -188,8 +188,8 @@ been removed. INCOMPATIBILITY.
 * Nitpick:
   - Removed "check_potential" and "check_genuine" options.
 
-* New command lift_bnf for lifting a BNF structure to a type defined
-  using typedef
+* New commands lift_bnf and copy_bnf for lifting (copying) a BNF structure
+  on the raw type to an abstract type defined using typedef.
 
 * Division on integers is bootstrapped directly from division on
 naturals and uses generic numeral algorithm for computations.
