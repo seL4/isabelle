@@ -4,7 +4,6 @@
 Various tests for the proof reconstruction module.
 
 NOTE
-  - Makes use of the PolyML structure.
   - looks for THF proofs in the path indicated by $THF_PROOFS
   - these proofs are generated using LEO-II with the following
     configuration choices: -po 1 -nux -nuc --expand_extuni
@@ -39,13 +38,7 @@ declare [[
   tptp_max_term_size = 0
 ]]
 
-ML {*
-  if test_all @{context} then ()
-  else
-    (Options.default_put_bool @{system_option ML_exception_trace} true;
-     default_print_depth 200;  (* FIXME proper ML_print_depth within context!? *)
-     PolyML.Compiler.maxInlineSize := 0)
-*}
+declare [[ML_exception_trace, ML_print_depth = 200]]
 
 
 section "Importing proofs"
