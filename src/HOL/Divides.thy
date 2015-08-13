@@ -2311,15 +2311,18 @@ instance int :: semiring_numeral_div
     pos_imp_zdiv_pos_iff div_pos_pos_trivial mod_pos_pos_trivial
     zmod_zmult2_eq zdiv_zmult2_eq)
 
-definition adjust_div :: "int \<times> int \<Rightarrow> int"
+context
+begin
+  
+qualified definition adjust_div :: "int \<times> int \<Rightarrow> int"
 where
   "adjust_div qr = (let (q, r) = qr in q + of_bool (r \<noteq> 0))"
 
-lemma adjust_div_eq [simp, code]:
+qualified lemma adjust_div_eq [simp, code]:
   "adjust_div (q, r) = q + of_bool (r \<noteq> 0)"
   by (simp add: adjust_div_def)
 
-definition adjust_mod :: "int \<Rightarrow> int \<Rightarrow> int"
+qualified definition adjust_mod :: "int \<Rightarrow> int \<Rightarrow> int"
 where
   [simp]: "adjust_mod l r = (if r = 0 then 0 else l - r)"
 
@@ -2374,6 +2377,8 @@ lemma one_div_minus_numeral [simp]:
 lemma one_mod_minus_numeral [simp]:
   "1 mod - numeral n = - adjust_mod (numeral n) (snd (divmod Num.One n) :: int)"
   using numeral_mod_minus_numeral [of Num.One n] by simp
+
+end
 
 
 subsubsection \<open>Further properties\<close>
@@ -2574,10 +2579,10 @@ simproc_setup numeral_divmod
         one_div_minus_numeral one_mod_minus_numeral
         numeral_div_numeral numeral_mod_numeral minus_numeral_div_numeral minus_numeral_mod_numeral
         numeral_div_minus_numeral numeral_mod_minus_numeral
-        div_minus_minus mod_minus_minus adjust_div_eq of_bool_eq one_neq_zero
+        div_minus_minus mod_minus_minus Divides.adjust_div_eq of_bool_eq one_neq_zero
         numeral_neq_zero neg_equal_0_iff_equal arith_simps arith_special divmod_trivial
         divmod_cancel divmod_steps divmod_step_eq fst_conv snd_conv numeral_One
-        case_prod_beta rel_simps adjust_mod_def div_minus1_right mod_minus1_right
+        case_prod_beta rel_simps Divides.adjust_mod_def div_minus1_right mod_minus1_right
         minus_minus numeral_times_numeral mult_zero_right mult_1_right}
         @ [@{lemma "0 = 0 \<longleftrightarrow> True" by simp}]);
       fun prepare_simpset ctxt = HOL_ss |> Simplifier.simpset_map ctxt
@@ -2602,10 +2607,10 @@ lemma [code]:
     "k mod Int.Neg Num.One = 0"
     "Int.Pos m div Int.Pos n = (fst (divmod m n) :: int)"
     "Int.Pos m mod Int.Pos n = (snd (divmod m n) :: int)"
-    "Int.Neg m div Int.Pos n = - (adjust_div (divmod m n) :: int)"
-    "Int.Neg m mod Int.Pos n = adjust_mod (Int.Pos n) (snd (divmod m n) :: int)"
-    "Int.Pos m div Int.Neg n = - (adjust_div (divmod m n) :: int)"
-    "Int.Pos m mod Int.Neg n = - adjust_mod (Int.Pos n) (snd (divmod m n) :: int)"
+    "Int.Neg m div Int.Pos n = - (Divides.adjust_div (divmod m n) :: int)"
+    "Int.Neg m mod Int.Pos n = Divides.adjust_mod (Int.Pos n) (snd (divmod m n) :: int)"
+    "Int.Pos m div Int.Neg n = - (Divides.adjust_div (divmod m n) :: int)"
+    "Int.Pos m mod Int.Neg n = - Divides.adjust_mod (Int.Pos n) (snd (divmod m n) :: int)"
     "Int.Neg m div Int.Neg n = (fst (divmod m n) :: int)"
     "Int.Neg m mod Int.Neg n = - (snd (divmod m n) :: int)"
   by simp_all
