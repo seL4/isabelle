@@ -201,7 +201,7 @@ fun dest_static verbose prev_facts facts =
     if exists (fn prev => defined prev name) prev_facts orelse
       not verbose andalso is_concealed facts name then I
     else cons (name, ths)) facts []
-  |> sort_wrt #1;
+  |> sort_by #1;
 
 
 (* indexed props *)

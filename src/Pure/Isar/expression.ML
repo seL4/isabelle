@@ -673,7 +673,7 @@ fun def_pred binding parms defs ts norm_ts thy =
     val Ts = map #2 xs;
     val extraTs =
       (subtract (op =) (fold Term.add_tfreesT Ts []) (Term.add_tfrees body []))
-      |> Library.sort_wrt #1 |> map TFree;
+      |> sort_by #1 |> map TFree;
     val predT = map Term.itselfT extraTs ---> Ts ---> bodyT;
 
     val args = map Logic.mk_type extraTs @ map Free xs;
@@ -794,7 +794,7 @@ fun gen_add_locale prep_decl
       if null extraTs then ()
       else warning ("Additional type variable(s) in locale specification " ^
           Binding.print binding ^ ": " ^
-          commas (map (Syntax.string_of_typ ctxt' o TFree) (sort_wrt #1 extraTs)));
+          commas (map (Syntax.string_of_typ ctxt' o TFree) (sort_by #1 extraTs)));
 
     val predicate_binding =
       if Binding.is_empty raw_predicate_binding then binding

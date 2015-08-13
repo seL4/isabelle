@@ -625,7 +625,7 @@ fun print_case_translations ctxt =
               Pretty.commas (map pretty_term ctrs))];
       in (xname, prt) end;
   in
-    Pretty.big_list "case translations:" (map #2 (sort_wrt #1 (map pretty_data cases)))
+    Pretty.big_list "case translations:" (map #2 (sort_by #1 (map pretty_data cases)))
     |> Pretty.writeln
   end;
 

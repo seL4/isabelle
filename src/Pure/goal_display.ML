@@ -58,7 +58,7 @@ val add_varsT = Term.fold_atyps
     | _ => I);
 
 fun sort_idxs vs = map (apsnd (sort (prod_ord string_ord int_ord))) vs;
-fun sort_cnsts cs = map (apsnd (sort_wrt fst)) cs;
+fun sort_cnsts cs = map (apsnd (sort_by fst)) cs;
 
 fun consts_of t = sort_cnsts (add_consts t []);
 fun vars_of t = sort_idxs (add_vars t []);

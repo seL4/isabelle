@@ -2386,7 +2386,7 @@ fun lines_of_sym_decls ctxt mono type_enc (s, decls) =
 
 fun lines_of_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
   let
-    val syms = sym_decl_tab |> Symtab.dest |> sort_wrt fst
+    val syms = sym_decl_tab |> Symtab.dest |> sort_by fst
     val mono_lines = lines_of_mono_types ctxt mono type_enc mono_Ts
     val decl_lines = maps (lines_of_sym_decls ctxt mono type_enc) syms
   in mono_lines @ decl_lines end

@@ -359,7 +359,7 @@ fun run_atp mode name
       (case outcome of
         NONE =>
         let
-          val used_facts = sort_wrt fst (used_facts_in_atp_proof ctxt (map fst used_from) atp_proof)
+          val used_facts = sort_by fst (used_facts_in_atp_proof ctxt (map fst used_from) atp_proof)
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
           val preferred_methss =
             (Metis_Method (NONE, NONE),

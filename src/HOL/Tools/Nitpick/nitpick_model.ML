@@ -472,7 +472,7 @@ and reconstruct_term maybe_opt unfold pool
       |> sort (nice_term_ord o apply2 fst)
       |> (case T of
             Type (@{type_name set}, _) =>
-            sort_wrt (truth_const_sort_key o snd)
+            sort_by (truth_const_sort_key o snd)
             #> make_set maybe_opt T'
           | _ =>
             make_plain_fun maybe_opt T1 T2
@@ -998,7 +998,7 @@ fun reconstruct_hol_model {show_types, show_skolems, show_consts}
       if show andalso not (null names) then
         Pretty.str (title ^ plural_s_for_list names ^ ":")
         :: map (Pretty.indent indent_size o pretty_for_assign)
-               (sort_wrt (original_name o nickname_of) names)
+               (sort_by (original_name o nickname_of) names)
       else
         []
     fun free_name_for_term keep_all (x as (s, T)) =

@@ -192,7 +192,7 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
     val used_facts =
       (case fact_ids of
         NONE => map fst used_from
-      | SOME ids => sort_wrt fst (map (fst o snd) ids))
+      | SOME ids => sort_by fst (map (fst o snd) ids))
     val outcome = Option.map failure_of_smt_failure outcome
 
     val (preferred_methss, message) =

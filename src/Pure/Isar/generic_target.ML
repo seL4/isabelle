@@ -102,7 +102,7 @@ fun check_mixfix ctxt (b, extra_tfrees) mx =
    (if Context_Position.is_visible ctxt then
       warning
         ("Additional type variable(s) in specification of " ^ Binding.print b ^ ": " ^
-          commas (map (Syntax.string_of_typ ctxt o TFree) (sort_wrt #1 extra_tfrees)) ^
+          commas (map (Syntax.string_of_typ ctxt o TFree) (sort_by #1 extra_tfrees)) ^
           (if mx = NoSyn then ""
            else "\nDropping mixfix syntax " ^ Pretty.string_of (Mixfix.pretty_mixfix mx)))
     else (); NoSyn);

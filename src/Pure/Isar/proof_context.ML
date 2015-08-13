@@ -1323,7 +1323,7 @@ fun pretty_local_facts verbose ctxt =
     if null local_facts then []
     else
       [Pretty.big_list "local facts:"
-        (map #1 (sort_wrt (#1 o #2) (map (`(pretty_fact ctxt)) local_facts)))]
+        (map #1 (sort_by (#1 o #2) (map (`(pretty_fact ctxt)) local_facts)))]
   end;
 
 fun print_local_facts verbose ctxt =

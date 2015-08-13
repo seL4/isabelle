@@ -253,7 +253,7 @@ fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
     in
       (case used_facts of
         SOME used_facts =>
-        {outcome = NONE, used_facts = sort_wrt fst used_facts, used_from = used_from,
+        {outcome = NONE, used_facts = sort_by fst used_facts, used_from = used_from,
          preferred_methss = preferred_methss, run_time = run_time, message = message}
       | NONE => result)
     end

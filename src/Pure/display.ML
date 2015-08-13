@@ -135,7 +135,7 @@ fun pretty_full_theory verbose thy =
 
     fun pretty_reduct (lhs, rhs) = Pretty.block
       ([prt_const' lhs, Pretty.str "  ->", Pretty.brk 2] @
-        Pretty.commas (map prt_const' (sort_wrt #1 rhs)));
+        Pretty.commas (map prt_const' (sort_by #1 rhs)));
 
     fun pretty_restrict (const, name) =
       Pretty.block ([prt_const' const, Pretty.brk 2, Pretty.str ("(from " ^ quote name ^ ")")]);
@@ -171,10 +171,10 @@ fun pretty_full_theory verbose thy =
     val (reds0, (reds1, reds2)) = filter_out (prune_const o fst o fst) reducts
       |> map (fn (lhs, rhs) =>
         (apfst extern_const lhs, map (apfst extern_const) (filter_out (prune_const o fst) rhs)))
-      |> sort_wrt (#1 o #1)
+      |> sort_by (#1 o #1)
       |> List.partition (null o #2)
       ||> List.partition (Defs.plain_args o #2 o #1);
-    val rests = restricts |> map (apfst (apfst extern_const)) |> sort_wrt (#1 o #1);
+    val rests = restricts |> map (apfst (apfst extern_const)) |> sort_by (#1 o #1);
   in
     [Pretty.strs ("names:" :: Context.display_names thy)] @
     [Pretty.big_list "classes:" (map pretty_classrel clsses),

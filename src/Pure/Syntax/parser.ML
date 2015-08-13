@@ -429,7 +429,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
             map prod_of_chain (these (AList.lookup (op =) chains tag));
       in map (pretty_prod name) nt_prods end;
 
-  in maps pretty_nt (sort_wrt fst (Symtab.dest tags)) end;
+  in maps pretty_nt (sort_by fst (Symtab.dest tags)) end;
 
 
 
