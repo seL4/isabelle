@@ -2,9 +2,6 @@
     Author:     Nik Sultana, Cambridge University Computer Laboratory
 
 Unit tests for proof reconstruction module.
-
-NOTE
-  - Makes use of the PolyML structure.
 *)
 
 theory TPTP_Proof_Reconstruction_Test_Units
@@ -12,15 +9,8 @@ imports TPTP_Test TPTP_Proof_Reconstruction
 begin
 
 declare [[ML_exception_trace, ML_print_depth = 200]]
-ML {*
-PolyML.Compiler.maxInlineSize := 0;
-(* FIXME doesn't work with Isabelle?
-   PolyML.Compiler.debug := true *)
-*}
 
-declare [[
-  tptp_trace_reconstruction = true
-]]
+declare [[tptp_trace_reconstruction = true]]
 
 lemma "! (X1 :: bool) (X2 :: bool) (X3 :: bool) (X4 :: bool) (X5 :: bool). P \<Longrightarrow> ! (X1 :: bool) (X3 :: bool) (X5 :: bool). P"
 apply (tactic {*canonicalise_qtfr_order @{context} 1*})
@@ -941,7 +931,7 @@ ML {*
 fun biggest_hyp_first_tac i = fn st =>
   let
     val results = TERMFUN biggest_hypothesis (SOME i) st
-val _ = tracing ("result=" ^ PolyML.makestring results)
+val _ = tracing ("result=" ^ @{make_string} results)
   in
     if null results then no_tac st
     else

@@ -70,7 +70,7 @@ fun dest_alls (Const (@{const_name Pure.all}, _) $ Abs (abs as (_, T, _))) =
 
 val reorder_foralls =
   dest_alls
-  #>> sort_wrt fst
+  #>> sort_by fst
   #-> fold_rev (Logic.all o Free);
 
 fun atp_proof_of_z3_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids

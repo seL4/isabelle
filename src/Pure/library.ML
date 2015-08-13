@@ -193,7 +193,7 @@ sig
   val sort: ('a * 'a -> order) -> 'a list -> 'a list
   val sort_distinct: ('a * 'a -> order) -> 'a list -> 'a list
   val sort_strings: string list -> string list
-  val sort_wrt: ('a -> string) -> 'a list -> 'a list
+  val sort_by: ('a -> string) -> 'a list -> 'a list
   val tag_list: int -> 'a list -> (int * 'a) list
   val untag_list: (int * 'a) list -> 'a list
   val order_list: (int * 'a) list -> 'a list
@@ -955,7 +955,7 @@ fun sort ord = mergesort false ord;
 fun sort_distinct ord = mergesort true ord;
 
 val sort_strings = sort string_ord;
-fun sort_wrt key xs = sort (string_ord o apply2 key) xs;
+fun sort_by key xs = sort (string_ord o apply2 key) xs;
 
 
 (* items tagged by integer index *)

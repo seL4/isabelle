@@ -602,7 +602,7 @@ fun extern_entries verbose ctxt space entries =
   fold (fn (name, x) =>
     (verbose orelse not (is_concealed space name)) ?
       cons ((name, extern ctxt space name), x)) entries []
-  |> Library.sort_wrt (#2 o #1);
+  |> sort_by (#2 o #1);
 
 fun markup_entries verbose ctxt space entries =
   extern_entries verbose ctxt space entries

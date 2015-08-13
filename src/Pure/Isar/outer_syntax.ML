@@ -86,7 +86,7 @@ structure Data = Theory_Data
 );
 
 val get_commands = Data.get;
-val dest_commands = get_commands #> Symtab.dest #> sort_wrt #1;
+val dest_commands = get_commands #> Symtab.dest #> sort_by #1;
 val lookup_commands = Symtab.lookup o get_commands;
 
 fun help thy pats =

@@ -1156,7 +1156,7 @@ fun refute_term ctxt params assm_ts t =
       error "Term to be refuted contains schematic type variables"
 
     (* existential closure over schematic variables *)
-    val vars = sort_wrt (fst o fst) (Term.add_vars t [])
+    val vars = sort_by (fst o fst) (Term.add_vars t [])
     (* Term.term *)
     val ex_closure = fold (fn ((x, i), T) => fn t' =>
       HOLogic.exists_const T $

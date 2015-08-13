@@ -1625,7 +1625,7 @@ fun print_bnfs ctxt =
             Pretty.quote (Syntax.pretty_term ctxt bd)]]);
   in
     Pretty.big_list "Registered bounded natural functors:"
-      (map pretty_bnf (sort_wrt fst (Symtab.dest (Data.get (Context.Proof ctxt)))))
+      (map pretty_bnf (sort_by fst (Symtab.dest (Data.get (Context.Proof ctxt)))))
     |> Pretty.writeln
   end;
 

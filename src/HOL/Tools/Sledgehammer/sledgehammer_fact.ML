@@ -296,7 +296,7 @@ fun close_form t =
          $ Abs (s', T, abstract_over (Var ((s, i), T), t')),
          s' :: taken)
       end)
-    (Term.add_vars t [] |> sort_wrt (fst o fst))
+    (Term.add_vars t [] |> sort_by (fst o fst))
   |> fst
 
 fun backquote_term ctxt = close_form #> hackish_string_of_term ctxt #> backquote
