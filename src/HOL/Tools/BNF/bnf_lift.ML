@@ -299,6 +299,8 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
             tactics wit_tac NONE map_b rel_b set_bs
             ((((((Binding.empty, AbsT), map_G), sets_G), bd_G), wits_G), SOME rel_G)
             lthy;
+
+          val bnf = morph_bnf_defs (Morphism.thm_morphism "BNF" (unfold_thms lthy defs)) bnf;
         in
           lthy |> BNF_Def.register_bnf plugins AbsT_name bnf
         end
