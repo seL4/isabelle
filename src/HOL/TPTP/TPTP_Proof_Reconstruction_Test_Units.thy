@@ -941,7 +941,7 @@ ML {*
 fun biggest_hyp_first_tac i = fn st =>
   let
     val results = TERMFUN biggest_hypothesis (SOME i) st
-val _ = tracing ("result=" ^ PolyML.makestring results)
+val _ = tracing ("result=" ^ @{make_string} results)
   in
     if null results then no_tac st
     else

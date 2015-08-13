@@ -88,7 +88,7 @@ fun display_nicely ctxt (fms : TPTP_Reconstruct.formula_meaning list) =
          Pretty.str (
           if is_none (#source_inf_opt data) then ""
           else ("\n\tannotation: " ^
-           PolyML.makestring (the (#source_inf_opt data : TPTP_Proof.source_info option))))])
+           @{make_string} (the (#source_inf_opt data : TPTP_Proof.source_info option))))])
     ) (rev fms);
 
 (*FIXME hack for testing*)
@@ -132,7 +132,7 @@ fun step_range_tester f_x f_exn ctxt prob_name from until =
 val step_range_tester_tracing =
   step_range_tester
    (fn x => tracing ("@step " ^ Int.toString x))
-   (fn e => tracing ("!!" ^ PolyML.makestring e))
+   (fn e => tracing ("!!" ^ @{make_string} e))
 *}
 
 ML {*
@@ -258,7 +258,7 @@ fun step_by_step_tacs ctxt verbose (thm_tacs : (thm * tactic) list) : tactic =
       val thms_to_traceprint =
         map (fn thm => fn st =>
               (*FIXME uses makestring*)
-              print_tac ctxt (PolyML.makestring thm) st)
+              print_tac ctxt (@{make_string} thm) st)
 
     in
       if verbose then
@@ -345,7 +345,7 @@ else
   |> hd
   |> map #1
   |> TPTP_Reconstruct_Library.enumerate 0
-  |> List.app (PolyML.makestring #> writeln)
+  |> List.app (@{make_string} #> writeln)
   *}
 
 ML {*
@@ -607,7 +607,7 @@ fun test_partial_reconstruction thy prob_file =
 interpret_leo2_inference (* auto_based_reconstruction_tac *) (* oracle_based_reconstruction_tac *) prob_name (the ctxt'))
       else NONE
 
-(* val _ = tracing ("tt=" ^ PolyML.makestring the_tactics) *)
+(* val _ = tracing ("tt=" ^ @{make_string} the_tactics) *)
 
     val skeleton =
       if is_some thy' then
@@ -644,9 +644,9 @@ ML {*
       TimeLimit.timeLimit (Time.fromSeconds (if timeout = 0 then 60 else timeout))
        (test_partial_reconstruction thy
         #> light_output ? erase_inference_fmlas
-        #> PolyML.makestring (* FIXME *)
-        #> (fn s => report (Proof_Context.init_global thy) (PolyML.makestring file ^ " === " ^ s ^
-             " t=" ^ (Timer.checkRealTimer timer |> Time.toMilliseconds |> PolyML.makestring))))
+        #> @{make_string} (* FIXME *)
+        #> (fn s => report (Proof_Context.init_global thy) (@{make_string} file ^ " === " ^ s ^
+             " t=" ^ (Timer.checkRealTimer timer |> Time.toMilliseconds |> @{make_string}))))
        file
     end
 *}
@@ -675,7 +675,7 @@ ML {*
           (TPTP_Reconstruct.reconstruct ctxt (fn prob_name =>
             TPTP_Reconstruct.naive_reconstruct_tac ctxt interpret_leo2_inference prob_name (* oracle_based_reconstruction_tac *))) prob_name )
        |> (fn s => report ctxt (Path.print file ^ " === " ^ Bool.toString s ^
-             " t=" ^ (Timer.checkRealTimer timer |> Time.toMilliseconds |> PolyML.makestring))))
+             " t=" ^ (Timer.checkRealTimer timer |> Time.toMilliseconds |> @{make_string}))))
        prob_name
     end
 *}
