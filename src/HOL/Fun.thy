@@ -94,6 +94,14 @@ by(auto simp add: Set.bind_def)
 lemma bind_image: "Set.bind (f ` A) g = Set.bind A (g \<circ> f)"
 by(auto simp add: Set.bind_def)
 
+lemma (in group_add) minus_comp_minus [simp]:
+  "uminus \<circ> uminus = id"
+  by (simp add: fun_eq_iff)
+
+lemma (in boolean_algebra) minus_comp_minus [simp]:
+  "uminus \<circ> uminus = id"
+  by (simp add: fun_eq_iff)
+
 code_printing
   constant comp \<rightharpoonup> (SML) infixl 5 "o" and (Haskell) infixr 9 "."
 
