@@ -262,6 +262,12 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val context_field =
     new Completion_Popup.History_Text_Field("isabelle-debugger-context")
     {
+      override def processKeyEvent(evt: KeyEvent)
+      {
+        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER)
+          eval_expression()
+        super.processKeyEvent(evt)
+      }
       setColumns(20)
       setToolTipText(context_label.tooltip)
       setFont(GUI.imitate_font(getFont, Font_Info.main_family(), 1.2))
