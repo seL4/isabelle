@@ -7,11 +7,11 @@ Printing of theorems, goals, results etc.
 signature PROOF_DISPLAY =
 sig
   val pp_context: Proof.context -> Pretty.T
-  val pp_thm: thm -> Pretty.T
-  val pp_typ: theory -> typ -> Pretty.T
-  val pp_term: theory -> term -> Pretty.T
-  val pp_ctyp: ctyp -> Pretty.T
-  val pp_cterm: cterm -> Pretty.T
+  val pp_thm: (unit -> theory) -> thm -> Pretty.T
+  val pp_typ: (unit -> theory) -> typ -> Pretty.T
+  val pp_term: (unit -> theory) -> term -> Pretty.T
+  val pp_ctyp: (unit -> theory) -> ctyp -> Pretty.T
+  val pp_cterm: (unit -> theory) -> cterm -> Pretty.T
   val pretty_theorems_diff: bool -> theory list -> theory -> Pretty.T list
   val pretty_theorems: bool -> theory -> Pretty.T list
   val pretty_full_theory: bool -> theory -> Pretty.T
@@ -38,24 +38,23 @@ fun pp_context ctxt =
     Pretty.quote (Pretty.big_list "proof context:" (Proof_Context.pretty_context ctxt))
   else Pretty.str "<context>");
 
-fun default_context thy0 =
+fun default_context mk_thy =
   (case Context.thread_data () of
     SOME (Context.Proof ctxt) => ctxt
   | SOME (Context.Theory thy) =>
       (case try Syntax.init_pretty_global thy of
         SOME ctxt => ctxt
-      | NONE => Syntax.init_pretty_global thy0)
-  | NONE => Syntax.init_pretty_global thy0);
+      | NONE => Syntax.init_pretty_global (mk_thy ()))
+  | NONE => Syntax.init_pretty_global (mk_thy ()));
 
-fun pp_thm th =
-  let val ctxt = default_context (Thm.theory_of_thm th);
-  in Display.pretty_thm_raw ctxt {quote = true, show_hyps = false} th end;
+fun pp_thm mk_thy th =
+  Display.pretty_thm_raw (default_context mk_thy) {quote = true, show_hyps = false} th;
 
-fun pp_typ thy T = Pretty.quote (Syntax.pretty_typ (default_context thy) T);
-fun pp_term thy t = Pretty.quote (Syntax.pretty_term (default_context thy) t);
+fun pp_typ mk_thy T = Pretty.quote (Syntax.pretty_typ (default_context mk_thy) T);
+fun pp_term mk_thy t = Pretty.quote (Syntax.pretty_term (default_context mk_thy) t);
 
-fun pp_ctyp cT = pp_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
-fun pp_cterm ct = pp_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
+fun pp_ctyp mk_thy cT = pp_typ mk_thy (Thm.typ_of cT);
+fun pp_cterm mk_thy ct = pp_term mk_thy (Thm.term_of ct);
 
 
 (* theorems and theory *)

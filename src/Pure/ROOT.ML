@@ -344,9 +344,10 @@ toplevel_pp ["Task_Queue", "task"] "Pretty.str o Task_Queue.str_of_task";
 toplevel_pp ["Task_Queue", "group"] "Pretty.str o Task_Queue.str_of_group";
 toplevel_pp ["Position", "T"] "Pretty.position";
 toplevel_pp ["Binding", "binding"] "Binding.pp";
-toplevel_pp ["Thm", "thm"] "Proof_Display.pp_thm";
-toplevel_pp ["Thm", "cterm"] "Proof_Display.pp_cterm";
-toplevel_pp ["Thm", "ctyp"] "Proof_Display.pp_ctyp";
+toplevel_pp ["Thm", "thm"] "Proof_Display.pp_thm Thy_Info.pure_theory";
+toplevel_pp ["Thm", "cterm"] "Proof_Display.pp_cterm Thy_Info.pure_theory";
+toplevel_pp ["Thm", "ctyp"] "Proof_Display.pp_ctyp Thy_Info.pure_theory";
+toplevel_pp ["typ"] "Proof_Display.pp_typ Thy_Info.pure_theory";
 toplevel_pp ["Context", "theory"] "Context.pretty_thy";
 toplevel_pp ["Context", "Proof", "context"] "Proof_Display.pp_context";
 toplevel_pp ["Ast", "ast"] "Ast.pretty_ast";
@@ -364,9 +365,7 @@ if ML_System.is_polyml then use "ML/install_pp_polyml.ML" else ();
 use "ML/ml_file.ML";
 Runtime.toplevel_program (fn () => Thy_Info.use_thy ("Pure", Position.none));
 Context.set_thread_data NONE;
-structure Pure = struct val thy = Thy_Info.get_theory "Pure" end;
-
-toplevel_pp ["typ"] "Proof_Display.pp_typ Pure.thy";
+structure Pure = struct val thy = Thy_Info.pure_theory () end;
 
 
 (* ML toplevel commands *)
