@@ -130,6 +130,7 @@ fun step_over () = put_stepping (true, length (get_debugging ()));
 fun step_out () = put_stepping (true, length (get_debugging ()) - 1);
 
 
+
 (** eval ML **)
 
 local
@@ -146,20 +147,23 @@ fun evaluate {SML, verbose} =
       writeln = writeln_message, warning = warning_message}
     Position.none;
 
+fun eval_setup thread_name index SML context =
+  context
+  |> Context_Position.set_visible_generic false
+  |> Config.put_generic ML_Options.debugger false
+  |> ML_Env.add_name_space {SML = SML}
+      (ML_Debugger.debug_name_space (the_debug_state thread_name index));
+
 fun eval_context thread_name index SML toks =
   let
+    val context = ML_Context.the_generic_context ();
     val context1 =
-      ML_Context.the_generic_context ()
-      |> Context_Position.set_visible_generic false
-      |> Config.put_generic ML_Options.debugger false
-      |> ML_Env.add_name_space {SML = SML}
-          (ML_Debugger.debug_name_space (the_debug_state thread_name index));
-    val context2 =
       if SML orelse forall (fn Antiquote.Text tok => ML_Lex.is_improper tok | _ => false) toks
-      then context1
+      then context
       else
         let
-          val context' = context1
+          val context' = context
+            |> eval_setup thread_name index SML
             |> ML_Context.exec (fn () =>
                 evaluate {SML = SML, verbose = true} (ML_Lex.read "val ML_context = " @ toks));
           fun try_exec toks =
@@ -169,7 +173,7 @@ fun eval_context thread_name index SML toks =
             SOME context2 => context2
           | NONE => error "Malformed context: expected type theory, Proof.context, Context.generic")
         end;
-  in context2 end;
+  in context1 |> eval_setup thread_name index SML end;
 
 in
 
@@ -181,7 +185,8 @@ fun eval thread_name index SML txt1 txt2 =
 
 fun print_vals thread_name index SML txt =
   let
-    val context = eval_context thread_name index SML (ML_Lex.read_source SML (Input.string txt));
+    val toks = ML_Lex.read_source SML (Input.string txt)
+    val context = eval_context thread_name index SML toks;
     val space = ML_Debugger.debug_name_space (the_debug_state thread_name index);
 
     fun print x =
