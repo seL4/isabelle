@@ -66,6 +66,18 @@ fun get_input thread_name =
               in SOME (msg, SOME input') end));
 
 
+(* global break *)
+
+local
+  val break = Synchronized.var "Debugger.break" false;
+in
+
+fun is_break () = Synchronized.value break;
+fun set_break b = Synchronized.change break (K b);
+
+end;
+
+
 
 (** thread state **)
 
@@ -237,7 +249,8 @@ val _ =
      (init_input ();
       ML_Debugger.on_breakpoint
         (SOME (fn (_, break) =>
-          if not (is_debugging ()) andalso (! break orelse is_stepping ()) then
+          if not (is_debugging ()) andalso (! break orelse is_break () orelse is_stepping ())
+          then
             (case Simple_Thread.get_name () of
               SOME thread_name => debugger_loop thread_name
             | NONE => ())
@@ -246,6 +259,10 @@ val _ =
 val _ =
   Isabelle_Process.protocol_command "Debugger.exit"
     (fn [] => (ML_Debugger.on_breakpoint NONE; exit_input ()));
+
+val _ =
+  Isabelle_Process.protocol_command "Debugger.break"
+    (fn [b] => set_break (Markup.parse_bool b));
 
 val _ =
   Isabelle_Process.protocol_command "Debugger.breakpoint"

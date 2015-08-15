@@ -230,6 +230,12 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* controls */
 
+  private val break_button = new CheckBox("Break") {
+    tooltip = "Break running threads at next possible breakpoint"
+    selected = Debugger.is_break()
+    reactions += { case ButtonClicked(_) => Debugger.set_break(selected) }
+  }
+
   private val continue_button = new Button("Continue") {
     tooltip = "Continue program on current thread, until next breakpoint"
     reactions += { case ButtonClicked(_) => thread_selection().map(Debugger.continue(_)) }
@@ -305,7 +311,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-      continue_button, step_button, step_over_button, step_out_button,
+      break_button, continue_button, step_button, step_over_button, step_out_button,
       context_label, Component.wrap(context_field),
       expression_label, Component.wrap(expression_field), eval_button, sml_button,
       pretty_text_area.search_label, pretty_text_area.search_field, zoom)
@@ -346,7 +352,10 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         GUI_Thread.later { handle_resize() }
 
       case Debugger.Update =>
-        GUI_Thread.later { handle_update() }
+        GUI_Thread.later {
+          break_button.selected = Debugger.is_break()
+          handle_update()
+        }
     }
 
   override def init()

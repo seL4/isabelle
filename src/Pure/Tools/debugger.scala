@@ -16,15 +16,18 @@ object Debugger
     function: String)
 
   sealed case class State(
-    session: Session = new Session(Resources.empty),
-    active: Int = 0,
-    active_breakpoints: Set[Long] = Set.empty,
+    session: Session = new Session(Resources.empty),  // implicit session
+    active: Int = 0,  // active views
+    break: Boolean = false,  // break at next possible breakpoint
+    active_breakpoints: Set[Long] = Set.empty,  // explicit breakpoint state
     focus: Option[Position.T] = None,  // position of active GUI component
     threads: Map[String, List[Debug_State]] = Map.empty,  // thread name ~> stack of debug states
     output: Map[String, Command.Results] = Map.empty)  // thread name ~> output messages
   {
     def set_session(new_session: Session): State =
       copy(session = new_session)
+
+    def set_break(b: Boolean): State = copy(break = b)
 
     def is_active: Boolean = active > 0 && session.is_ready
     def inc_active: State = copy(active = active + 1)
@@ -153,6 +156,17 @@ object Debugger
         state1.session.protocol_command("Debugger.exit")
       state1
     })
+
+  def is_break(): Boolean = global_state.value.break
+  def set_break(b: Boolean)
+  {
+    global_state.change(state => {
+      val state1 = state.set_break(b)
+      state1.session.protocol_command("Debugger.break", b.toString)
+      state1
+    })
+    delay_update.invoke()
+  }
 
   def active_breakpoint_state(breakpoint: Long): Option[Boolean] =
   {
