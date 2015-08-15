@@ -21,13 +21,11 @@ signature THM =
 sig
   include BASIC_THM
   (*certified types*)
-  val theory_of_ctyp: ctyp -> theory
   val typ_of: ctyp -> typ
   val global_ctyp_of: theory -> typ -> ctyp
   val ctyp_of: Proof.context -> typ -> ctyp
   val dest_ctyp: ctyp -> ctyp list
   (*certified terms*)
-  val theory_of_cterm: cterm -> theory
   val term_of: cterm -> term
   val typ_of_cterm: cterm -> typ
   val ctyp_of_cterm: cterm -> ctyp
@@ -159,7 +157,6 @@ struct
 abstype ctyp = Ctyp of {thy: theory, T: typ, maxidx: int, sorts: sort Ord_List.T}
 with
 
-fun theory_of_ctyp (Ctyp {thy, ...}) = thy;
 fun typ_of (Ctyp {T, ...}) = T;
 
 fun global_ctyp_of thy raw_T =
@@ -185,7 +182,6 @@ with
 
 exception CTERM of string * cterm list;
 
-fun theory_of_cterm (Cterm {thy, ...}) = thy;
 fun term_of (Cterm {t, ...}) = t;
 
 fun typ_of_cterm (Cterm {T, ...}) = T;
