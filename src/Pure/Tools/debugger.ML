@@ -112,10 +112,10 @@ fun is_stepping () =
     val Stepping (stepping, depth) = get_stepping ();
   in stepping andalso (depth < 0 orelse length stack <= depth) end;
 
-fun continue_stepping () = put_stepping (false, ~1);
-fun step_stepping () = put_stepping (true, ~1);
-fun step_over_stepping () = put_stepping (true, length (get_debugging ()));
-fun step_out_stepping () = put_stepping (true, length (get_debugging ()) - 1);
+fun continue () = put_stepping (false, ~1);
+fun step () = put_stepping (true, ~1);
+fun step_over () = put_stepping (true, length (get_debugging ()));
+fun step_out () = put_stepping (true, length (get_debugging ()) - 1);
 
 
 (** eval ML **)
@@ -199,11 +199,11 @@ fun debugger_state thread_name =
 
 fun debugger_command thread_name =
   (case get_input thread_name of
-    [] => (continue_stepping (); false)
-  | ["continue"] => (continue_stepping (); false)
-  | ["step"] => (step_stepping (); false)
-  | ["step_over"] => (step_over_stepping (); false)
-  | ["step_out"] => (step_out_stepping (); false)
+    [] => (continue (); false)
+  | ["continue"] => (continue (); false)
+  | ["step"] => (step (); false)
+  | ["step_over"] => (step_over (); false)
+  | ["step_out"] => (step_out (); false)
   | ["eval", index, SML, txt1, txt2] =>
      (error_wrapper (fn () =>
         eval thread_name (Markup.parse_int index) (Markup.parse_bool SML) txt1 txt2); true)
