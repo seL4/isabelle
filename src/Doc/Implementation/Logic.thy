@@ -643,7 +643,7 @@ text %mlref \<open>
   @{index_ML Thm.cterm_of: "Proof.context -> term -> cterm"} \\
   @{index_ML Thm.apply: "cterm -> cterm -> cterm"} \\
   @{index_ML Thm.lambda: "cterm -> cterm -> cterm"} \\
-  @{index_ML Thm.all: "cterm -> cterm -> cterm"} \\
+  @{index_ML Thm.all: "Proof.context -> cterm -> cterm -> cterm"} \\
   @{index_ML Drule.mk_implies: "cterm * cterm -> cterm"} \\
   \end{mldecls}
   \begin{mldecls}

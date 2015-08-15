@@ -23,8 +23,8 @@ sig
   val aconvc: cterm * cterm -> bool
   val add_frees: thm -> cterm list -> cterm list
   val add_vars: thm -> cterm list -> cterm list
-  val all_name: string * cterm -> cterm -> cterm
-  val all: cterm -> cterm -> cterm
+  val all_name: Proof.context -> string * cterm -> cterm -> cterm
+  val all: Proof.context -> cterm -> cterm -> cterm
   val mk_binop: cterm -> cterm -> cterm -> cterm
   val dest_binop: cterm -> cterm * cterm
   val dest_implies: cterm -> cterm * cterm
@@ -120,16 +120,13 @@ val add_vars = Thm.fold_atomic_cterms (fn a => is_Var (Thm.term_of a) ? insert (
 
 (* cterm constructors and destructors *)
 
-fun all_name (x, t) A =
+fun all_name ctxt (x, t) A =
   let
-    val thy = Thm.theory_of_cterm t;
     val T = Thm.typ_of_cterm t;
-  in
-    Thm.apply (Thm.global_cterm_of thy (Const ("Pure.all", (T --> propT) --> propT)))
-      (Thm.lambda_name (x, t) A)
-  end;
+    val all_const = Thm.cterm_of ctxt (Const ("Pure.all", (T --> propT) --> propT));
+  in Thm.apply all_const (Thm.lambda_name (x, t) A) end;
 
-fun all t A = all_name ("", t) A;
+fun all ctxt t A = all_name ctxt ("", t) A;
 
 fun mk_binop c a b = Thm.apply (Thm.apply c a) b;
 fun dest_binop ct = (Thm.dest_arg1 ct, Thm.dest_arg ct);

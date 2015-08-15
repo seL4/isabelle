@@ -114,9 +114,9 @@ fun lift_import idx params th ctxt =
           :
           C
 *)
-fun lift_subgoals params asms th =
+fun lift_subgoals ctxt params asms th =
   let
-    fun lift ct = fold_rev Thm.all_name params (Drule.list_implies (asms, ct));
+    fun lift ct = fold_rev (Thm.all_name ctxt) params (Drule.list_implies (asms, ct));
     val unlift =
       fold (Thm.elim_implies o Thm.assume) asms o
       Drule.forall_elim_list (map #2 params) o Thm.assume;
@@ -129,7 +129,7 @@ fun retrofit ctxt1 ctxt0 params asms i st1 st0 =
     val idx = Thm.maxidx_of st0 + 1;
     val ps = map #2 params;
     val ((subgoal_inst, st2), ctxt2) = lift_import idx ps st1 ctxt1;
-    val (subgoals, st3) = lift_subgoals params asms st2;
+    val (subgoals, st3) = lift_subgoals ctxt2 params asms st2;
     val result = st3
       |> Goal.conclude
       |> Drule.implies_intr_list asms
