@@ -49,6 +49,13 @@ class JEdit_Editor extends Editor[View]
 
   def invoke(): Unit = delay_flush.invoke()
 
+  def stable_tip_version(): Option[Document.Version] =
+    GUI_Thread.require {
+      if (removed_nodes.isEmpty && PIDE.document_models().forall(_.is_stable))
+        session.current_state().stable_tip_version
+      else None
+    }
+
 
   /* current situation */
 

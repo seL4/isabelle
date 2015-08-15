@@ -632,8 +632,8 @@ object Document
 
     def recent_finished: Change = history.undo_list.find(_.is_finished) getOrElse fail
     def recent_stable: Change = history.undo_list.find(is_stable) getOrElse fail
-    def tip_stable: Boolean = is_stable(history.tip)
-    def tip_version: Version = history.tip.version.get_finished
+    def stable_tip_version: Option[Version] =
+      if (is_stable(history.tip)) Some(history.tip.version.get_finished) else None
 
     def continue_history(
       previous: Future[Version],

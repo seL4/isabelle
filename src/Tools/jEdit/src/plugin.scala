@@ -221,9 +221,10 @@ class Plugin extends EBPlugin
 
             val aux_files =
               if (PIDE.options.bool("jedit_auto_resolve")) {
-                val snapshot = PIDE.snapshot(view)
-                if (snapshot.is_outdated) Nil
-                else snapshot.version.nodes.undefined_blobs.map(_.node)
+                PIDE.editor.stable_tip_version() match {
+                  case Some(version) => version.nodes.undefined_blobs.map(_.node)
+                  case None => Nil
+                }
               }
               else Nil
 

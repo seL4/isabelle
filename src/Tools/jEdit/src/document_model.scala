@@ -264,6 +264,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     }
   }
 
+  def is_stable(): Boolean = !pending_edits.is_pending();
+
   def snapshot(): Document.Snapshot =
     session.snapshot(node_name, pending_edits.snapshot())
 
