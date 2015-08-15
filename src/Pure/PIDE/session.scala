@@ -238,7 +238,7 @@ class Session(val resources: Resources)
   def current_state(): Document.State = global_state.value
 
   def recent_syntax(name: Document.Node.Name): Prover.Syntax =
-    current_state().recent_finished.version.get_finished.nodes(name).syntax getOrElse
+    global_state.value.recent_finished.version.get_finished.nodes(name).syntax getOrElse
     resources.base_syntax
 
 
