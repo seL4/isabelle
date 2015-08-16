@@ -324,8 +324,8 @@ fun addSI w opt_context th
     in
       CS
        {safeIs = Item_Net.update th safeIs,
-        safe0_netpair = insert (nI,nE) (safe0_rls, []) safe0_netpair,
-        safep_netpair = insert (nI,nE) (safep_rls, []) safep_netpair,
+        safe0_netpair = insert (nI, nE) (safe0_rls, []) safe0_netpair,
+        safep_netpair = insert (nI, nE) (safep_rls, []) safep_netpair,
         safeEs = safeEs,
         unsafeIs = unsafeIs,
         unsafeEs = unsafeEs,
@@ -333,7 +333,7 @@ fun addSI w opt_context th
         uwrappers = uwrappers,
         unsafe_netpair = unsafe_netpair,
         dup_netpair = dup_netpair,
-        extra_netpair = insert' (the_default 0 w) (nI,nE) ([th], []) extra_netpair}
+        extra_netpair = insert' (the_default 0 w) (nI, nE) ([th], []) extra_netpair}
     end;
 
 fun addSE w opt_context th
@@ -353,8 +353,8 @@ fun addSE w opt_context th
     in
       CS
        {safeEs = Item_Net.update th safeEs,
-        safe0_netpair = insert (nI,nE) ([], safe0_rls) safe0_netpair,
-        safep_netpair = insert (nI,nE) ([], safep_rls) safep_netpair,
+        safe0_netpair = insert (nI, nE) ([], safe0_rls) safe0_netpair,
+        safep_netpair = insert (nI, nE) ([], safep_rls) safep_netpair,
         safeIs = safeIs,
         unsafeIs = unsafeIs,
         unsafeEs = unsafeEs,
@@ -362,7 +362,7 @@ fun addSE w opt_context th
         uwrappers = uwrappers,
         unsafe_netpair = unsafe_netpair,
         dup_netpair = dup_netpair,
-        extra_netpair = insert' (the_default 0 w) (nI,nE) ([], [th]) extra_netpair}
+        extra_netpair = insert' (the_default 0 w) (nI, nE) ([], [th]) extra_netpair}
     end;
 
 fun addSD w opt_context th = addSE w opt_context (make_elim opt_context th);
