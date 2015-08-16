@@ -28,10 +28,13 @@ signature CONTEXT =
 sig
   include BASIC_CONTEXT
   (*theory context*)
+  type theory_id
+  val theory_id: theory -> theory_id
   val timing: bool Unsynchronized.ref
   type pretty
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
+  val theory_name_id: theory_id -> string
   val theory_name: theory -> string
   val PureN: string
   val display_names: theory -> string list
@@ -41,7 +44,11 @@ sig
   val str_of_thy: theory -> string
   val get_theory: theory -> string -> theory
   val this_theory: theory -> string -> theory
+  val eq_thy_id: theory_id * theory_id -> bool
   val eq_thy: theory * theory -> bool
+  val proper_subthy_id: theory_id * theory_id -> bool
+  val proper_subthy: theory * theory -> bool
+  val subthy_id: theory_id * theory_id -> bool
   val subthy: theory * theory -> bool
   val merge: theory * theory -> theory
   val finish_thy: theory -> theory
@@ -153,36 +160,46 @@ end;
 
 (** datatype theory **)
 
-datatype theory =
-  Theory of
+datatype theory_id =
+  Theory_Id of
    (*identity*)
    {id: serial,                   (*identifier*)
     ids: Inttab.set} *            (*cumulative identifiers -- symbolic body content*)
-   (*data*)
-   Any.T Datatab.table *          (*body content*)
-   (*ancestry*)
-   {parents: theory list,         (*immediate predecessors*)
-    ancestors: theory list} *     (*all predecessors -- canonical reverse order*)
    (*history*)
    {name: string,                 (*official theory name*)
     stage: int};                  (*counter for anonymous updates*)
 
+datatype theory =
+  Theory of
+   theory_id *
+   (*ancestry*)
+   {parents: theory list,         (*immediate predecessors*)
+    ancestors: theory list} *     (*all predecessors -- canonical reverse order*)
+   (*data*)
+   Any.T Datatab.table;           (*body content*)
+
 exception THEORY of string * theory list;
 
+fun rep_theory_id (Theory_Id args) = args;
 fun rep_theory (Theory args) = args;
 
-val identity_of = #1 o rep_theory;
-val data_of = #2 o rep_theory;
-val ancestry_of = #3 o rep_theory;
-val history_of = #4 o rep_theory;
+val theory_id = #1 o rep_theory;
+
+val identity_of_id = #1 o rep_theory_id;
+val identity_of = identity_of_id o theory_id;
+val history_of_id = #2 o rep_theory_id;
+val history_of = history_of_id o theory_id;
+val ancestry_of = #2 o rep_theory;
+val data_of = #3 o rep_theory;
 
 fun make_identity id ids = {id = id, ids = ids};
-fun make_ancestry parents ancestors = {parents = parents, ancestors = ancestors};
 fun make_history name stage = {name = name, stage = stage};
+fun make_ancestry parents ancestors = {parents = parents, ancestors = ancestors};
 
+val theory_name_id = #name o history_of_id;
+val theory_name = #name o history_of;
 val parents_of = #parents o ancestry_of;
 val ancestors_of = #ancestors o ancestry_of;
-val theory_name = #name o history_of;
 
 
 (* names *)
@@ -229,8 +246,8 @@ fun this_theory thy name =
 fun insert_id id ids = Inttab.update (id, ()) ids;
 
 fun merge_ids
-    (Theory ({id = id1, ids = ids1, ...}, _, _, _))
-    (Theory ({id = id2, ids = ids2, ...}, _, _, _)) =
+    (Theory (Theory_Id ({id = id1, ids = ids1, ...}, _), _, _))
+    (Theory (Theory_Id ({id = id2, ids = ids2, ...}, _), _, _)) =
   Inttab.merge (K true) (ids1, ids2)
   |> insert_id id1
   |> insert_id id2;
@@ -238,12 +255,14 @@ fun merge_ids
 
 (* equality and inclusion *)
 
+val eq_thy_id = op = o apply2 (#id o identity_of_id);
 val eq_thy = op = o apply2 (#id o identity_of);
 
-fun proper_subthy (Theory ({id, ...}, _, _, _), Theory ({ids, ...}, _, _, _)) =
-  Inttab.defined ids id;
+fun proper_subthy_id (Theory_Id ({id, ...}, _), Theory_Id ({ids, ...}, _)) = Inttab.defined ids id;
+val proper_subthy = proper_subthy_id o apply2 theory_id;
 
-fun subthy thys = eq_thy thys orelse proper_subthy thys;
+fun subthy_id p = eq_thy_id p orelse proper_subthy_id p;
+val subthy = subthy_id o apply2 theory_id;
 
 
 (* consistent ancestors *)
@@ -276,25 +295,25 @@ fun merge (thy1, thy2) =
 
 (* primitives *)
 
-fun create_thy ids data ancestry history =
-  Theory (make_identity (serial ()) ids, data, ancestry, history);
+fun create_thy ids history ancestry data =
+  Theory (Theory_Id (make_identity (serial ()) ids, history), ancestry, data);
 
 val pre_pure_thy =
-  create_thy Inttab.empty Datatab.empty (make_ancestry [] []) (make_history PureN 0);
+  create_thy Inttab.empty (make_history PureN 0) (make_ancestry [] []) Datatab.empty;
 
 local
 
 fun change_thy finish f thy =
   let
-    val Theory ({id, ids}, data, ancestry, {name, stage}) = thy;
-    val (data', ancestry') =
+    val Theory (Theory_Id ({id, ids}, {name, stage}), ancestry, data) = thy;
+    val (ancestry', data') =
       if stage = finished then
-        (extend_data data, make_ancestry [thy] (extend_ancestors thy (ancestors_of thy)))
-      else (data, ancestry);
+        (make_ancestry [thy] (extend_ancestors thy (ancestors_of thy)), extend_data data)
+      else (ancestry, data);
     val history' = {name = name, stage = if finish then finished else stage + 1};
     val ids' = insert_id id ids;
     val data'' = f data';
-  in create_thy ids' data'' ancestry' history' end;
+  in create_thy ids' history' ancestry' data'' end;
 
 in
 
@@ -310,10 +329,10 @@ end;
 fun merge_thys pp (thy1, thy2) =
   let
     val ids = merge_ids thy1 thy2;
-    val data = merge_data (pp thy1) (data_of thy1, data_of thy2);
-    val ancestry = make_ancestry [] [];
     val history = make_history "" 0;
-  in create_thy ids data ancestry history end;
+    val ancestry = make_ancestry [] [];
+    val data = merge_data (pp thy1) (data_of thy1, data_of thy2);
+  in create_thy ids history ancestry data end;
 
 fun maximal_thys thys =
   thys |> filter_out (fn thy => exists (fn thy' => proper_subthy (thy, thy')) thys);
@@ -327,15 +346,15 @@ fun begin_thy pp name imports =
         Library.foldl merge_ancestors ([], map ancestors_of parents)
         |> fold extend_ancestors parents;
 
-      val Theory ({ids, ...}, data, _, _) =
+      val Theory (Theory_Id ({ids, ...}, _), _, data) =
         (case parents of
           [] => error "Missing theory imports"
         | [thy] => extend_thy thy
         | thy :: thys => Library.foldl (merge_thys pp) (thy, thys));
 
-      val ancestry = make_ancestry parents ancestors;
       val history = make_history name 0;
-    in create_thy ids data ancestry history end;
+      val ancestry = make_ancestry parents ancestors;
+    in create_thy ids history ancestry data end;
 
 
 (* theory data *)
