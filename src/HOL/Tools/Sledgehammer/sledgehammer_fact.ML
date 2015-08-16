@@ -311,10 +311,11 @@ fun clasimpset_rule_table_of ctxt =
       let
         fun add stature th = Termtab.update (normalize_vars (Thm.prop_of th), stature)
 
-        val {safeIs, (* safeEs, *) hazIs, (* hazEs, *) ...} = ctxt |> claset_of |> Classical.rep_cs
-        val intros = Item_Net.content safeIs @ Item_Net.content hazIs
+        val {safeIs, (* safeEs, *) unsafeIs, (* unsafeEs, *) ...} =
+          ctxt |> claset_of |> Classical.rep_cs
+        val intros = Item_Net.content safeIs @ Item_Net.content unsafeIs
 (* Add once it is used:
-        val elims = Item_Net.content safeEs @ Item_Net.content hazEs
+        val elims = Item_Net.content safeEs @ Item_Net.content unsafeEs
           |> map Classical.classical_rule
 *)
         val specs = Spec_Rules.get ctxt

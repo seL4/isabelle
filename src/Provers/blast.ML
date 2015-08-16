@@ -29,7 +29,7 @@ Known problems:
         the formulae get into the wrong order (see WRONG below).
 
   With substition for equalities (hyp_subst_tac):
-        When substitution affects a haz formula or literal, it is moved
+        When substitution affects an unsage formula or literal, it is moved
         back to the list of safe formulae.
         But there's no way of putting it in the right place.  A "moved" or
         "no DETERM" flag would prevent proofs failing here.
@@ -93,7 +93,7 @@ datatype term =
 (*Pending formulae carry md (may duplicate) flags*)
 type branch =
     {pairs: ((term*bool) list * (*safe formulae on this level*)
-               (term*bool) list) list,  (*haz formulae  on this level*)
+               (term*bool) list) list,  (*unsafe formulae on this level*)
      lits:   term list,                 (*literals: irreducible formulae*)
      vars:   term option Unsynchronized.ref list,  (*variables occurring in branch*)
      lim:    int};                      (*resource limit*)
@@ -531,7 +531,7 @@ fun convertIntrRule state vars t =
 (*Tableau rule from introduction rule.
   Flag "upd" says that the inference updated the branch.
   Flag "dup" requests duplication of the affected formula.
-  Since haz rules are now delayed, "dup" is always FALSE for
+  Since unsafe rules are now delayed, "dup" is always FALSE for
   introduction rules.*)
 fun fromIntrRule (state as State {ctxt, ...}) vars rl =
   let val thy = Proof_Context.theory_of ctxt
@@ -623,7 +623,7 @@ fun negOfGoal2 (G,md) = (negOfGoal G, md);
 (*Converts all Goals to Nots in the safe parts of a branch.  They could
   have been moved there from the literals list after substitution (equalSubst).
   There can be at most one--this function could be made more efficient.*)
-fun negOfGoals pairs = map (fn (Gs,haz) => (map negOfGoal2 Gs, haz)) pairs;
+fun negOfGoals pairs = map (fn (Gs, unsafe) => (map negOfGoal2 Gs, unsafe)) pairs;
 
 (*Tactic.  Convert *Goal* to negated assumption in FIRST position*)
 fun negOfGoal_tac ctxt i =
@@ -922,18 +922,18 @@ fun prove (state, start, brs, cont) =
  let val State {ctxt, ntrail, nclosed, ntried, ...} = state;
      val trace = Config.get ctxt trace;
      val stats = Config.get ctxt stats;
-     val {safe0_netpair, safep_netpair, haz_netpair, ...} =
+     val {safe0_netpair, safep_netpair, unsafe_netpair, ...} =
        Classical.rep_cs (Classical.claset_of ctxt);
-     val safeList = [safe0_netpair, safep_netpair]
-     and hazList  = [haz_netpair]
+     val safeList = [safe0_netpair, safep_netpair];
+     val unsafeList = [unsafe_netpair];
      fun prv (tacs, trs, choices, []) =
                 (printStats state (trace orelse stats, start, tacs);
                  cont (tacs, trs, choices))   (*all branches closed!*)
        | prv (tacs, trs, choices,
-              brs0 as {pairs = ((G,md)::br, haz)::pairs,
+              brs0 as {pairs = ((G,md)::br, unsafe)::pairs,
                        lits, vars, lim} :: brs) =
              (*apply a safe rule only (possibly allowing instantiation);
-               defer any haz formulae*)
+               defer any unsafe formulae*)
           let exception PRV (*backtrack to precisely this recursion!*)
               val ntrl = !ntrail
               val nbrs = length brs0
@@ -945,12 +945,12 @@ fun prove (state, start, brs, cont) =
                   map (fn prem =>
                        if (exists isGoal prem)
                        then {pairs = ((joinMd md prem, []) ::
-                                      negOfGoals ((br, haz)::pairs)),
+                                      negOfGoals ((br, unsafe)::pairs)),
                              lits  = map negOfGoal lits,
                              vars  = vars',
                              lim   = lim'}
                        else {pairs = ((joinMd md prem, []) ::
-                                      (br, haz) :: pairs),
+                                      (br, unsafe) :: pairs),
                              lits = lits,
                              vars = vars',
                              lim  = lim'})
@@ -1014,11 +1014,11 @@ fun prove (state, start, brs, cont) =
                                       [this handler is pruned if possible!]*)
                                  (clearTo state ntrl;  closeF Ls)
                             end
-              (*Try to unify a queued formula (safe or haz) with head goal*)
+              (*Try to unify a queued formula (safe or unsafe) with head goal*)
               fun closeFl [] = raise CLOSEF
-                | closeFl ((br, haz)::pairs) =
+                | closeFl ((br, unsafe)::pairs) =
                     closeF (map fst br)
-                      handle CLOSEF => closeF (map fst haz)
+                      handle CLOSEF => closeF (map fst unsafe)
                         handle CLOSEF => closeFl pairs
           in
              trace_prover state brs0;
@@ -1027,49 +1027,49 @@ fun prove (state, start, brs, cont) =
              prv (Data.hyp_subst_tac ctxt trace :: tacs,
                   brs0::trs,  choices,
                   equalSubst ctxt
-                    (G, {pairs = (br,haz)::pairs,
+                    (G, {pairs = (br,unsafe)::pairs,
                          lits  = lits, vars  = vars, lim   = lim})
                     :: brs)
              handle DEST_EQ =>   closeF lits
-              handle CLOSEF =>   closeFl ((br,haz)::pairs)
+              handle CLOSEF =>   closeFl ((br,unsafe)::pairs)
                 handle CLOSEF => deeper rules
                   handle NEWBRANCHES =>
-                   (case netMkRules state G vars hazList of
-                       [] => (*there are no plausible haz rules*)
+                   (case netMkRules state G vars unsafeList of
+                       [] => (*there are no plausible unsafe rules*)
                              (cond_tracing trace (fn () => "moving formula to literals");
                               prv (tacs, brs0::trs, choices,
-                                   {pairs = (br,haz)::pairs,
+                                   {pairs = (br,unsafe)::pairs,
                                     lits  = addLit(G,lits),
                                     vars  = vars,
                                     lim   = lim}  :: brs))
-                    | _ => (*G admits some haz rules: try later*)
-                           (cond_tracing trace (fn () => "moving formula to haz list");
+                    | _ => (*G admits some unsafe rules: try later*)
+                           (cond_tracing trace (fn () => "moving formula to unsafe list");
                             prv (if isGoal G then negOfGoal_tac ctxt :: tacs
                                              else tacs,
                                  brs0::trs,
                                  choices,
-                                 {pairs = (br, haz@[(negOfGoal G, md)])::pairs,
+                                 {pairs = (br, unsafe@[(negOfGoal G, md)])::pairs,
                                   lits  = lits,
                                   vars  = vars,
                                   lim   = lim}  :: brs)))
           end
        | prv (tacs, trs, choices,
-              {pairs = ([],haz)::(Gs,haz')::pairs, lits, vars, lim} :: brs) =
-             (*no more "safe" formulae: transfer haz down a level*)
+              {pairs = ([],unsafe)::(Gs,unsafe')::pairs, lits, vars, lim} :: brs) =
+             (*no more "safe" formulae: transfer unsafe down a level*)
            prv (tacs, trs, choices,
-                {pairs = (Gs,haz@haz')::pairs,
+                {pairs = (Gs,unsafe@unsafe')::pairs,
                  lits  = lits,
                  vars  = vars,
                  lim    = lim} :: brs)
        | prv (tacs, trs, choices,
               brs0 as {pairs = [([], (H,md)::Hs)],
                        lits, vars, lim} :: brs) =
-             (*no safe steps possible at any level: apply a haz rule*)
+             (*no safe steps possible at any level: apply a unsafe rule*)
           let exception PRV (*backtrack to precisely this recursion!*)
               val H = norm H
               val ntrl = !ntrail
-              val rules = netMkRules state H vars hazList
-              (*new premises of haz rules may NOT be duplicated*)
+              val rules = netMkRules state H vars unsafeList
+              (*new premises of unsafe rules may NOT be duplicated*)
               fun newPrem (vars,P,dup,lim') prem =
                   let val Gs' = map (fn Q => (Q,false)) prem
                       and Hs' = if dup then Hs @ [(negOfGoal H, md)] else Hs
@@ -1078,7 +1078,7 @@ fun prove (state, start, brs, cont) =
                                   else lits
                   in  {pairs = if exists (match P) prem then [(Gs',Hs')]
                                (*Recursive in this premise.  Don't make new
-                                 "stack frame".  New haz premises will end up
+                                 "stack frame".  New unsafe premises will end up
                                  at the BACK of the queue, preventing
                                  exclusion of others*)
                             else [(Gs',[]), ([],Hs')],

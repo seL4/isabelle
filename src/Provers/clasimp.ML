@@ -90,7 +90,7 @@ val iff_add =
   Thm.declaration_attribute (fn th =>
     Thm.attribute_declaration (add_iff
       (Classical.safe_elim NONE, Classical.safe_intro NONE)
-      (Classical.haz_elim NONE, Classical.haz_intro NONE)) th
+      (Classical.unsafe_elim NONE, Classical.unsafe_intro NONE)) th
     #> Thm.attribute_declaration Simplifier.simp_add th);
 
 val iff_add' =
@@ -122,7 +122,7 @@ local
 
 fun slow_step_tac' ctxt =
   Classical.appWrappers ctxt
-    (Classical.instp_step_tac ctxt APPEND' Classical.haz_step_tac ctxt);
+    (Classical.instp_step_tac ctxt APPEND' Classical.unsafe_step_tac ctxt);
 
 in
 
