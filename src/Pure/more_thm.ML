@@ -195,7 +195,7 @@ val eq_thm_prop = op aconv o apply2 Thm.full_prop_of;
 fun eq_thm_strict ths =
   eq_thm ths andalso
     let val (rep1, rep2) = apply2 Thm.rep_thm ths in
-      Theory.eq_thy (#thy rep1, #thy rep2) andalso
+      Context.eq_thy (#thy rep1, #thy rep2) andalso
       #maxidx rep1 = #maxidx rep2 andalso
       #tags rep1 = #tags rep2
     end;

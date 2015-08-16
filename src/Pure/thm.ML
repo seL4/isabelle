@@ -71,6 +71,7 @@ sig
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
   val theory_of_thm: thm -> theory
+  val theory_id_of_thm: thm -> Context.theory_id
   val theory_name_of_thm: thm -> string
   val maxidx_of: thm -> int
   val maxidx_thm: thm -> int -> int
@@ -206,10 +207,10 @@ fun transfer_cterm thy' ct =
   let
     val Cterm {thy, t, T, maxidx, sorts} = ct;
     val _ =
-      Theory.subthy (thy, thy') orelse
+      Context.subthy (thy, thy') orelse
         raise CTERM ("transfer_cterm: not a super theory", [ct]);
   in
-    if Theory.eq_thy (thy, thy') then ct
+    if Context.eq_thy (thy, thy') then ct
     else Cterm {thy = thy', t = t, T = T, maxidx = maxidx, sorts = sorts}
   end;
 
@@ -400,7 +401,9 @@ fun merge_thys2 (Thm (_, {thy = thy1, ...})) (Thm (_, {thy = thy2, ...})) =
 (* basic components *)
 
 val theory_of_thm = #thy o rep_thm;
-val theory_name_of_thm = Context.theory_name o #thy o rep_thm;
+val theory_id_of_thm = Context.theory_id o #thy o rep_thm;
+val theory_name_of_thm = Context.theory_id_name o theory_id_of_thm;
+
 val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
 val hyps_of = #hyps o rep_thm;
@@ -429,9 +432,9 @@ fun cprem_of (th as Thm (_, {thy, maxidx, shyps, prop, ...})) i =
 fun transfer thy' thm =
   let
     val Thm (der, {thy, tags, maxidx, shyps, hyps, tpairs, prop}) = thm;
-    val _ = Theory.subthy (thy, thy') orelse raise THM ("transfer: not a super theory", 0, [thm]);
+    val _ = Context.subthy (thy, thy') orelse raise THM ("transfer: not a super theory", 0, [thm]);
   in
-    if Theory.eq_thy (thy, thy') then thm
+    if Context.eq_thy (thy, thy') then thm
     else
       Thm (der,
        {thy = thy',
@@ -452,7 +455,7 @@ fun renamed_prop prop' (Thm (der, {thy, tags, maxidx, shyps, hyps, tpairs, prop}
 
 fun make_context NONE thy = Context.Theory thy
   | make_context (SOME ctxt) thy =
-      if Theory.subthy (thy, Proof_Context.theory_of ctxt) then Context.Proof ctxt
+      if Context.subthy (thy, Proof_Context.theory_of ctxt) then Context.Proof ctxt
       else raise THEORY ("Bad context", [thy, Proof_Context.theory_of ctxt]);
 
 (*explicit weakening: maps |- B to A |- B*)
@@ -572,7 +575,7 @@ fun future_result i orig_thy orig_shyps orig_prop thm =
     fun err msg = raise THM ("future_result: " ^ msg, 0, [thm]);
     val Thm (Deriv {promises, ...}, {thy, shyps, hyps, tpairs, prop, ...}) = thm;
 
-    val _ = Theory.eq_thy (thy, orig_thy) orelse err "bad theory";
+    val _ = Context.eq_thy (thy, orig_thy) orelse err "bad theory";
     val _ = prop aconv orig_prop orelse err "bad prop";
     val _ = null tpairs orelse err "bad tpairs";
     val _ = null hyps orelse err "bad hyps";

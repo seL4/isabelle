@@ -121,8 +121,8 @@ text \<open>A \emph{theory} is a data container with explicit name and
 text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type theory} \\
-  @{index_ML Theory.eq_thy: "theory * theory -> bool"} \\
-  @{index_ML Theory.subthy: "theory * theory -> bool"} \\
+  @{index_ML Context.eq_thy: "theory * theory -> bool"} \\
+  @{index_ML Context.subthy: "theory * theory -> bool"} \\
   @{index_ML Theory.merge: "theory * theory -> theory"} \\
   @{index_ML Theory.begin_theory: "string * Position.T -> theory list -> theory"} \\
   @{index_ML Theory.parents_of: "theory -> theory list"} \\
@@ -133,10 +133,10 @@ text %mlref \<open>
 
   \item Type @{ML_type theory} represents theory contexts.
 
-  \item @{ML "Theory.eq_thy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} check strict
+  \item @{ML "Context.eq_thy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} check strict
   identity of two theories.
 
-  \item @{ML "Theory.subthy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} compares theories
+  \item @{ML "Context.subthy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} compares theories
   according to the intrinsic graph structure of the construction.
   This sub-theory relation is a nominal approximation of inclusion
   (@{text "\<subseteq>"}) of the corresponding content (according to the

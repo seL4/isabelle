@@ -220,7 +220,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
 (* FIXME: reintroduce code before new release:
 
     val nitpick_thy = Thy_Info.get_theory "Nitpick"
-    val _ = Theory.subthy (nitpick_thy, thy) orelse
+    val _ = Context.subthy (nitpick_thy, thy) orelse
             error "You must import the theory \"Nitpick\" to use Nitpick"
 *)
     val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,

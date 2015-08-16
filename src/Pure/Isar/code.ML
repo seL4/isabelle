@@ -339,7 +339,7 @@ fun change_yield_data (kind, mk, dest) theory f =
     val dataref = (snd o Code_Data.get) theory;
     val (datatab, thy) = case Synchronized.value dataref
      of SOME (datatab, thy) =>
-        if Theory.eq_thy (theory, thy)
+        if Context.eq_thy (theory, thy)
           then (datatab, thy)
           else (Datatab.empty, theory)
       | NONE => (Datatab.empty, theory)

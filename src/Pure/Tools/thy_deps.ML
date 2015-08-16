@@ -22,7 +22,7 @@ fun gen_thy_deps _ ctxt (NONE, NONE) =
   | gen_thy_deps prep_thy ctxt bounds =
       let
         val (upper, lower) = apply2 ((Option.map o map) (prep_thy ctxt)) bounds;
-        val rel = Theory.subthy o swap;
+        val rel = Context.subthy o swap;
         val pred =
           (case upper of
             SOME Bs => (fn thy => exists (fn B => rel (thy, B)) Bs)
@@ -38,7 +38,7 @@ fun gen_thy_deps _ ctxt (NONE, NONE) =
 val thy_deps =
   gen_thy_deps (fn ctxt => fn thy =>
     let val thy0 = Proof_Context.theory_of ctxt
-    in if Theory.subthy (thy, thy0) then thy else raise THEORY ("Bad theory", [thy, thy0]) end);
+    in if Context.subthy (thy, thy0) then thy else raise THEORY ("Bad theory", [thy, thy0]) end);
 
 val thy_deps_cmd = Graph_Display.display_graph oo gen_thy_deps Theory.check;
 

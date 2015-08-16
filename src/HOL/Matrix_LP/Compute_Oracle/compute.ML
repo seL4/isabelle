@@ -607,7 +607,7 @@ let
     val thy = theory_of computer
     val _ = check_compatible computer th
     val _ =
-      Theory.subthy (theory_of_theorem th, thy) orelse raise Compute "modus_ponens: bad theory"
+      Context.subthy (theory_of_theorem th, thy) orelse raise Compute "modus_ponens: bad theory"
     val th' = make_theorem computer (Thm.transfer thy raw_th') []
     val varsubst = varsubst_of_theorem th
     fun run vars_allowed t =

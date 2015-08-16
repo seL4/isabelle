@@ -6,8 +6,6 @@ Logical theory content: axioms, definitions, and begin/end wrappers.
 
 signature THEORY =
 sig
-  val eq_thy: theory * theory -> bool
-  val subthy: theory * theory -> bool
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
   val nodes_of: theory -> theory list
@@ -39,9 +37,6 @@ struct
 
 
 (** theory context operations **)
-
-val eq_thy = Context.eq_thy;
-val subthy = Context.subthy;
 
 val parents_of = Context.parents_of;
 val ancestors_of = Context.ancestors_of;

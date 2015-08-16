@@ -1358,13 +1358,14 @@ fun all_defs_of thy subst =
 (* Ideally we would check against "Complex_Main", not "Hilbert_Choice", but any
    theory will do as long as it contains all the "axioms" and "axiomatization"
    commands. *)
-fun is_built_in_theory thy = Theory.subthy (thy, @{theory Hilbert_Choice})
+fun is_built_in_theory thy_id =
+  Context.subthy_id (thy_id, Context.theory_id @{theory Hilbert_Choice})
 
 fun all_nondefs_of ctxt subst =
   ctxt |> Spec_Rules.get
        |> filter (curry (op =) Spec_Rules.Unknown o fst)
        |> maps (snd o snd)
-       |> filter_out (is_built_in_theory o Thm.theory_of_thm)
+       |> filter_out (is_built_in_theory o Thm.theory_id_of_thm)
        |> map (subst_atomic subst o Thm.prop_of)
 
 fun arity_of_built_in_const (s, T) =

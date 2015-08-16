@@ -768,30 +768,39 @@ fun type_feature_of s = "t" ^ s
 fun class_feature_of s = "s" ^ s
 val local_feature = "local"
 
-fun crude_theory_ord p =
-  if Theory.subthy p then
-    if Theory.eq_thy p then EQUAL else LESS
-  else if Theory.subthy (swap p) then
-    GREATER
-  else
-    (case int_ord (apply2 (length o Theory.ancestors_of) p) of
-      EQUAL => string_ord (apply2 Context.theory_name p)
-    | order => order)
-
-fun crude_thm_ord ctxt p =
-  (case crude_theory_ord (apply2 Thm.theory_of_thm p) of
-    EQUAL =>
-    (* The hack below is necessary because of odd dependencies that are not reflected in the theory
-       comparison. *)
-    let val q = apply2 (nickname_of_thm ctxt) p in
-      (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
-      (case bool_ord (apply2 (String.isSuffix "_def") (swap q)) of
-        EQUAL => string_ord q
+fun crude_thm_ord ctxt =
+  let
+    val ancestor_lengths =
+      fold (fn thy => Symtab.update (Context.theory_name thy, length (Context.ancestors_of thy)))
+        (Theory.nodes_of (Proof_Context.theory_of ctxt)) Symtab.empty
+    val ancestor_length = Symtab.lookup ancestor_lengths o Context.theory_id_name
+    fun crude_theory_ord p =
+      if Context.eq_thy_id p then EQUAL
+      else if Context.proper_subthy_id p then LESS
+      else if Context.proper_subthy_id (swap p) then GREATER
+      else
+        (case apply2 ancestor_length p of
+          (SOME m, SOME n) =>
+            (case int_ord (m, n) of
+              EQUAL => string_ord (apply2 Context.theory_id_name p)
+            | ord => ord)
+        | _ => string_ord (apply2 Context.theory_id_name p))
+  in
+    fn p =>
+      (case crude_theory_ord (apply2 Thm.theory_id_of_thm p) of
+        EQUAL =>
+        (* The hack below is necessary because of odd dependencies that are not reflected in the theory
+           comparison. *)
+        let val q = apply2 (nickname_of_thm ctxt) p in
+          (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
+          (case bool_ord (apply2 (String.isSuffix "_def") (swap q)) of
+            EQUAL => string_ord q
+          | ord => ord)
+        end
       | ord => ord)
-    end
-  | ord => ord)
+  end;
 
-val thm_less_eq = Theory.subthy o apply2 Thm.theory_of_thm
+val thm_less_eq = Context.subthy_id o apply2 Thm.theory_id_of_thm
 fun thm_less p = thm_less_eq p andalso not (thm_less_eq (swap p))
 
 val freezeT = Type.legacy_freeze_type
@@ -1110,12 +1119,11 @@ fun maximal_wrt_graph G keys =
     find_maxes Symtab.empty ([], Graph.maximals G)
   end
 
-fun strict_subthy thyp = Theory.subthy thyp andalso not (Theory.subthy (swap thyp))
-
 fun maximal_wrt_access_graph _ _ [] = []
   | maximal_wrt_access_graph ctxt access_G ((fact as (_, th)) :: facts) =
-    let val thy = Thm.theory_of_thm th in
-      fact :: filter_out (fn (_, th') => strict_subthy (Thm.theory_of_thm th', thy)) facts
+    let val thy_id = Thm.theory_id_of_thm th in
+      fact :: filter_out (fn (_, th') =>
+        Context.proper_subthy_id (Thm.theory_id_of_thm th', thy_id)) facts
       |> map (nickname_of_thm ctxt o snd)
       |> maximal_wrt_graph access_G
     end

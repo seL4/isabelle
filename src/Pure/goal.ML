@@ -209,7 +209,7 @@ fun prove_common ctxt fork_pri xs asms props tac =
       | SOME st =>
           let
             val _ =
-              Theory.subthy (Thm.theory_of_thm st, thy) orelse
+              Context.subthy_id (Thm.theory_id_of_thm st, Context.theory_id thy) orelse
                 err "Bad background theory of goal state";
             val res =
               (finish ctxt' st
