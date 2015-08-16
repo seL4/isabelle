@@ -14,6 +14,7 @@ sig
   val retrieve: 'a T -> term -> 'a list
   val retrieve_matching: 'a T -> term -> 'a list
   val member: 'a T -> 'a -> bool
+  val lookup: 'a T -> 'a -> 'a list
   val merge: 'a T * 'a T -> 'a T
   val remove: 'a -> 'a T -> 'a T
   val update: 'a -> 'a T -> 'a T
@@ -49,6 +50,12 @@ fun member (Items {eq, index, content, net, ...}) x =
   (case index x of
     [] => Library.member eq content x
   | t :: _ => exists (fn (_, y) => eq (x, y)) (Net.unify_term net t));
+
+fun lookup (Items {eq, index, content, net, ...}) x =
+  (case index x of
+    [] => content
+  | t :: _ => map #2 (Net.unify_term net t))
+  |> filter (fn y => eq (x, y));
 
 fun cons x (Items {eq, index, content, next, net}) =
   mk_items eq index (x :: content) (next - 1)
