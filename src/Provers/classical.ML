@@ -109,7 +109,7 @@ sig
     safep_netpair: netpair,
     haz_netpair: netpair,
     dup_netpair: netpair,
-    xtra_netpair: Context_Rules.netpair}
+    extra_netpair: Context_Rules.netpair}
   val get_cs: Context.generic -> claset
   val map_cs: (claset -> claset) -> Context.generic -> Context.generic
   val safe_dest: int option -> attribute
@@ -224,7 +224,7 @@ datatype claset =
     safep_netpair  : netpair,                 (*nets for >0 subgoals*)
     haz_netpair    : netpair,                 (*nets for unsafe rules*)
     dup_netpair    : netpair,                 (*nets for duplication*)
-    xtra_netpair   : Context_Rules.netpair};  (*nets for extra rules*)
+    extra_netpair  : Context_Rules.netpair};  (*nets for extra rules*)
 
 val empty_netpair = (Net.empty, Net.empty);
 
@@ -240,7 +240,7 @@ val empty_cs =
     safep_netpair = empty_netpair,
     haz_netpair = empty_netpair,
     dup_netpair = empty_netpair,
-    xtra_netpair = empty_netpair};
+    extra_netpair = empty_netpair};
 
 fun rep_cs (CS args) = args;
 
@@ -310,7 +310,7 @@ fun warn_claset opt_context th (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
 
 fun addSI w opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, extra_netpair}) =
   if warn_rules opt_context "Ignoring duplicate safe introduction (intro!)\n" safeIs th then cs
   else
     let
@@ -333,12 +333,12 @@ fun addSI w opt_context th
         uwrappers = uwrappers,
         haz_netpair = haz_netpair,
         dup_netpair = dup_netpair,
-        xtra_netpair = insert' (the_default 0 w) (nI,nE) ([th], []) xtra_netpair}
+        extra_netpair = insert' (the_default 0 w) (nI,nE) ([th], []) extra_netpair}
     end;
 
 fun addSE w opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, extra_netpair}) =
   if warn_rules opt_context "Ignoring duplicate safe elimination (elim!)\n" safeEs th then cs
   else if has_fewer_prems 1 th then bad_thm opt_context "Ill-formed elimination rule" th
   else
@@ -362,7 +362,7 @@ fun addSE w opt_context th
         uwrappers = uwrappers,
         haz_netpair = haz_netpair,
         dup_netpair = dup_netpair,
-        xtra_netpair = insert' (the_default 0 w) (nI,nE) ([], [th]) xtra_netpair}
+        extra_netpair = insert' (the_default 0 w) (nI,nE) ([], [th]) extra_netpair}
     end;
 
 fun addSD w opt_context th = addSE w opt_context (make_elim opt_context th);
@@ -372,7 +372,7 @@ fun addSD w opt_context th = addSE w opt_context (make_elim opt_context th);
 
 fun addI w opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, extra_netpair}) =
   if warn_rules opt_context "Ignoring duplicate introduction (intro)\n" hazIs th then cs
   else
     let
@@ -393,14 +393,14 @@ fun addI w opt_context th
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        xtra_netpair = insert' (the_default 1 w) (nI, nE) ([th], []) xtra_netpair}
+        extra_netpair = insert' (the_default 1 w) (nI, nE) ([th], []) extra_netpair}
     end
     handle THM ("RSN: no unifiers", _, _) => (*from dup_intr*)  (* FIXME !? *)
       bad_thm opt_context "Ill-formed introduction rule" th;
 
 fun addE w opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, extra_netpair}) =
   if warn_rules opt_context "Ignoring duplicate elimination (elim)\n" hazEs th then cs
   else if has_fewer_prems 1 th then bad_thm opt_context "Ill-formed elimination rule" th
   else
@@ -422,7 +422,7 @@ fun addE w opt_context th
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        xtra_netpair = insert' (the_default 1 w) (nI, nE) ([], [th]) xtra_netpair}
+        extra_netpair = insert' (the_default 1 w) (nI, nE) ([], [th]) extra_netpair}
     end;
 
 fun addD w opt_context th = addE w opt_context (make_elim opt_context th);
@@ -436,7 +436,7 @@ fun addD w opt_context th = addE w opt_context (make_elim opt_context th);
 
 fun delSI opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member safeIs th then
     let
       val ctxt = default_context opt_context th;
@@ -454,13 +454,13 @@ fun delSI opt_context th
         uwrappers = uwrappers,
         haz_netpair = haz_netpair,
         dup_netpair = dup_netpair,
-        xtra_netpair = delete' ([th], []) xtra_netpair}
+        extra_netpair = delete' ([th], []) extra_netpair}
     end
   else cs;
 
 fun delSE opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member safeEs th then
     let
       val ctxt = default_context opt_context th;
@@ -478,13 +478,13 @@ fun delSE opt_context th
         uwrappers = uwrappers,
         haz_netpair = haz_netpair,
         dup_netpair = dup_netpair,
-        xtra_netpair = delete' ([], [th]) xtra_netpair}
+        extra_netpair = delete' ([], [th]) extra_netpair}
     end
   else cs;
 
 fun delI opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member hazIs th then
     let
       val ctxt = default_context opt_context th;
@@ -501,7 +501,7 @@ fun delI opt_context th
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        xtra_netpair = delete' ([th], []) xtra_netpair}
+        extra_netpair = delete' ([th], []) extra_netpair}
     end
   else cs
   handle THM ("RSN: no unifiers", _, _) => (*from dup_intr*)  (* FIXME !? *)
@@ -509,7 +509,7 @@ fun delI opt_context th
 
 fun delE opt_context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+      safe0_netpair, safep_netpair, haz_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member hazEs th then
     let
       val ctxt = default_context opt_context th;
@@ -526,7 +526,7 @@ fun delE opt_context th
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        xtra_netpair = delete' ([], [th]) xtra_netpair}
+        extra_netpair = delete' ([], [th]) extra_netpair}
     end
   else cs;
 
@@ -537,10 +537,13 @@ fun delrule opt_context th (cs as CS {safeIs, safeEs, hazIs, hazEs, ...}) =
       Item_Net.member hazIs th orelse Item_Net.member hazEs th orelse
       Item_Net.member safeEs th' orelse Item_Net.member hazEs th'
     then
-      delSI opt_context th
-        (delSE opt_context th
-          (delI opt_context th
-            (delE opt_context th (delSE opt_context th' (delE opt_context th' cs)))))
+      cs
+      |> delE opt_context th'
+      |> delSE opt_context th'
+      |> delE opt_context th
+      |> delI opt_context th
+      |> delSE opt_context th
+      |> delSI opt_context th
     else (warn_thm opt_context "Undeclared classical rule\n" th; cs)
   end;
 
@@ -552,19 +555,19 @@ fun delrule opt_context th (cs as CS {safeIs, safeEs, hazIs, hazEs, ...}) =
 
 fun map_swrappers f
   (CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
-    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, extra_netpair}) =
   CS {safeIs = safeIs, safeEs = safeEs, hazIs = hazIs, hazEs = hazEs,
     swrappers = f swrappers, uwrappers = uwrappers,
     safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
-    haz_netpair = haz_netpair, dup_netpair = dup_netpair, xtra_netpair = xtra_netpair};
+    haz_netpair = haz_netpair, dup_netpair = dup_netpair, extra_netpair = extra_netpair};
 
 fun map_uwrappers f
   (CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
-    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
+    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, extra_netpair}) =
   CS {safeIs = safeIs, safeEs = safeEs, hazIs = hazIs, hazEs = hazEs,
     swrappers = swrappers, uwrappers = f uwrappers,
     safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
-    haz_netpair = haz_netpair, dup_netpair = dup_netpair, xtra_netpair = xtra_netpair};
+    haz_netpair = haz_netpair, dup_netpair = dup_netpair, extra_netpair = extra_netpair};
 
 
 (* merge_cs *)
@@ -902,8 +905,8 @@ local
 fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
   let
     val [rules1, rules2, rules4] = Context_Rules.find_rules false facts goal ctxt;
-    val {xtra_netpair, ...} = rep_claset_of ctxt;
-    val rules3 = Context_Rules.find_rules_netpair true facts goal xtra_netpair;
+    val {extra_netpair, ...} = rep_claset_of ctxt;
+    val rules3 = Context_Rules.find_rules_netpair true facts goal extra_netpair;
     val rules = rules1 @ rules2 @ rules3 @ rules4;
     val ruleq = Drule.multi_resolves (SOME ctxt) facts rules;
     val _ = Method.trace ctxt rules;
