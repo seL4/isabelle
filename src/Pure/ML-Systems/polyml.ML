@@ -4,9 +4,23 @@
 Compatibility wrapper for Poly/ML.
 *)
 
-val ml_initial_val =
-  List.filter (fn (a, _) => a <> "use" andalso a <> "exit" andalso a <> "commit")
-    (#allVal PolyML.globalNameSpace ());
+(* initial ML name space *)
+
+structure ML_Name_Space =
+struct
+  open PolyML.NameSpace;
+  type T = PolyML.NameSpace.nameSpace;
+  val global = PolyML.globalNameSpace;
+  val initial_val =
+    List.filter (fn (a, _) => a <> "use" andalso a <> "exit" andalso a <> "commit")
+      (#allVal global ());
+  val initial_type = #allType global ();
+  val initial_fixity = #allFix global ();
+  val initial_structure = #allStruct global ();
+  val initial_signature = #allSig global ();
+  val initial_functor = #allFunct global ();
+  val forget_global_structure = PolyML.Compiler.forgetStructure;
+end;
 
 
 (* ML system operations *)
@@ -159,16 +173,7 @@ fun ml_pretty (ML_Pretty.Break (false, wd)) = PolyML.PrettyBreak (wd, 0)
 
 structure ML_Name_Space =
 struct
-  open PolyML.NameSpace;
-  type T = PolyML.NameSpace.nameSpace;
-  val global = PolyML.globalNameSpace;
-  val initial_val = ml_initial_val;
-  val initial_type = #allType global ();
-  val initial_fixity = #allFix global ();
-  val initial_structure = #allStruct global ();
-  val initial_signature = #allSig global ();
-  val initial_functor = #allFunct global ();
-  val forget_global_structure = PolyML.Compiler.forgetStructure;
+  open ML_Name_Space;
   val display_val = pretty_ml o PolyML.NameSpace.displayVal;
 end;
 
