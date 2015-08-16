@@ -219,12 +219,16 @@ fun implies_elim_list impth ths = fold Thm.elim_implies ths impth;
 fun zero_var_indexes_list [] = []
   | zero_var_indexes_list ths =
       let
-        val thy = Theory.merge_list (map Thm.theory_of_thm ths);
         val (instT, inst) = Term_Subst.zero_var_indexes_inst (map Thm.full_prop_of ths);
-        val insts' =
-         (map (apsnd (Thm.global_ctyp_of thy)) instT,
-          map (apsnd (Thm.global_cterm_of thy)) inst);
-      in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate insts') ths end;
+
+        val tvars = fold Thm.add_tvars ths [];
+        fun the_tvar v = the (find_first (fn cT => v = dest_TVar (Thm.typ_of cT)) tvars);
+        val instT' = map (fn (v, TVar (b, _)) => (v, Thm.rename_tvar b (the_tvar v))) instT;
+
+        val vars = fold (Thm.add_vars o Thm.instantiate (instT', [])) ths [];
+        fun the_var v = the (find_first (fn ct => v = dest_Var (Thm.term_of ct)) vars);
+        val inst' = map (fn (v, Var (b, _)) => (v, Thm.var (b, Thm.ctyp_of_cterm (the_var v)))) inst;
+      in map (Thm.adjust_maxidx_thm ~1 o Thm.instantiate (instT', inst')) ths end;
 
 val zero_var_indexes = singleton zero_var_indexes_list;
 

@@ -40,6 +40,7 @@ sig
   val dest_fun2: cterm -> cterm
   val dest_arg1: cterm -> cterm
   val dest_abs: string option -> cterm -> cterm * cterm
+  val rename_tvar: indexname -> ctyp -> ctyp
   val var: indexname * ctyp -> cterm
   val apply: cterm -> cterm -> cterm
   val lambda_name: string * cterm -> cterm -> cterm
@@ -60,6 +61,7 @@ sig
     tpairs: (term * term) list,
     prop: term}
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_atomic_ctyps: (ctyp -> 'a -> 'a) -> thm -> 'a -> 'a
   val fold_atomic_cterms: (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
@@ -255,6 +257,16 @@ fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy, maxidx,
 
 (* constructors *)
 
+fun rename_tvar (a, i) (Ctyp {thy, T, maxidx, sorts}) =
+  let
+    val S =
+      (case T of
+        TFree (_, S) => S
+      | TVar (_, S) => S
+      | _ => raise TYPE ("rename_tvar: no variable", [T], []));
+    val _ = if i < 0 then raise TYPE ("rename_tvar: bad index", [TVar ((a, i), S)], []) else ();
+  in Ctyp {thy = thy, T = TVar ((a, i), S), maxidx = Int.max (i, maxidx), sorts = sorts} end;
+
 fun var ((x, i), Ctyp {thy, T, maxidx, sorts}) =
   if i < 0 then raise TERM ("var: bad index", [Var ((x, i), T)])
   else Cterm {thy = thy, t = Var ((x, i), T), T = T, maxidx = Int.max (i, maxidx), sorts = sorts};
@@ -353,6 +365,10 @@ fun rep_thm (Thm (_, args)) = args;
 
 fun fold_terms f (Thm (_, {tpairs, prop, hyps, ...})) =
   fold (fn (t, u) => f t #> f u) tpairs #> f prop #> fold f hyps;
+
+fun fold_atomic_ctyps f (th as Thm (_, {thy, maxidx, shyps, ...})) =
+  let fun ctyp T = Ctyp {thy = thy, T = T, maxidx = maxidx, sorts = shyps}
+  in (fold_terms o fold_types o fold_atyps) (f o ctyp) th end;
 
 fun fold_atomic_cterms f (th as Thm (_, {thy, maxidx, shyps, ...})) =
   let fun cterm t T = Cterm {thy = thy, t = t, T = T, maxidx = maxidx, sorts = shyps} in

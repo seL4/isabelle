@@ -20,7 +20,9 @@ sig
   include THM
   structure Ctermtab: TABLE
   structure Thmtab: TABLE
+  val eq_ctyp: ctyp * ctyp -> bool
   val aconvc: cterm * cterm -> bool
+  val add_tvars: thm -> ctyp list -> ctyp list
   val add_frees: thm -> cterm list -> cterm list
   val add_vars: thm -> cterm list -> cterm list
   val all_name: Proof.context -> string * cterm -> cterm -> cterm
@@ -110,10 +112,12 @@ struct
 
 (** basic operations **)
 
-(* collecting cterms *)
+(* collecting ctyps and cterms *)
 
+val eq_ctyp = op = o apply2 Thm.typ_of;
 val op aconvc = op aconv o apply2 Thm.term_of;
 
+val add_tvars = Thm.fold_atomic_ctyps (fn a => is_TVar (Thm.typ_of a) ? insert eq_ctyp a);
 val add_frees = Thm.fold_atomic_cterms (fn a => is_Free (Thm.term_of a) ? insert (op aconvc) a);
 val add_vars = Thm.fold_atomic_cterms (fn a => is_Var (Thm.term_of a) ? insert (op aconvc) a);
 
