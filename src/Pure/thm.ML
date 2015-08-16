@@ -40,6 +40,7 @@ sig
   val dest_fun2: cterm -> cterm
   val dest_arg1: cterm -> cterm
   val dest_abs: string option -> cterm -> cterm * cterm
+  val var: indexname * ctyp -> cterm
   val apply: cterm -> cterm -> cterm
   val lambda_name: string * cterm -> cterm -> cterm
   val lambda: cterm -> cterm -> cterm
@@ -253,6 +254,10 @@ fun dest_abs a (Cterm {t = Abs (x, T, t), T = Type ("fun", [_, U]), thy, maxidx,
 
 
 (* constructors *)
+
+fun var ((x, i), Ctyp {thy, T, maxidx, sorts}) =
+  if i < 0 then raise TERM ("var: bad index", [Var ((x, i), T)])
+  else Cterm {thy = thy, t = Var ((x, i), T), T = T, maxidx = Int.max (i, maxidx), sorts = sorts};
 
 fun apply
   (cf as Cterm {t = f, T = Type ("fun", [dty, rty]), maxidx = maxidx1, sorts = sorts1, ...})

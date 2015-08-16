@@ -314,28 +314,39 @@ fun elim_implies thA thAB = Thm.implies_elim thAB thA;
 
 local
 
-fun forall_elim_vars_aux vars i th =
+fun dest_all ct =
+  (case Thm.term_of ct of
+    Const ("Pure.all", _) $ Abs (a, _, _) =>
+      let val (x, ct') = Thm.dest_abs NONE (Thm.dest_arg ct)
+      in SOME ((a, Thm.ctyp_of_cterm x), ct') end
+  | _ => NONE);
+
+fun dest_all_list ct =
+  (case dest_all ct of
+    NONE => []
+  | SOME (v, ct') => v :: dest_all_list ct');
+
+fun forall_elim_vars_list vars i th =
   let
-    val thy = Thm.theory_of_thm th;
     val used =
       (Thm.fold_terms o Term.fold_aterms)
         (fn Var ((x, j), _) => if i = j then insert (op =) x else I | _ => I) th [];
-    val cvars = (Name.variant_list used (map #1 vars), vars)
-      |> ListPair.map (fn (x, (_, T)) => Thm.global_cterm_of thy (Var ((x, i), T)));
-  in fold Thm.forall_elim cvars th end;
+    val vars' = (Name.variant_list used (map #1 vars), vars)
+      |> ListPair.map (fn (x, (_, T)) => Thm.var ((x, i), T));
+  in fold Thm.forall_elim vars' th end;
 
 in
 
 fun forall_elim_vars i th =
-  forall_elim_vars_aux (Term.strip_all_vars (Thm.prop_of th)) i th;
+  forall_elim_vars_list (dest_all_list (Thm.cprop_of th)) i th;
 
 fun forall_elim_var i th =
   let
     val vars =
-      (case Thm.prop_of th of
-        Const ("Pure.all", _) $ Abs (a, T, _) => [(a, T)]
-      | _ => raise THM ("forall_elim_vars", i, [th]));
-  in forall_elim_vars_aux vars i th end;
+      (case dest_all (Thm.cprop_of th) of
+        SOME (v, _) => [v]
+      | NONE => raise THM ("forall_elim_var", i, [th]));
+  in forall_elim_vars_list vars i th end;
 
 end;
 
