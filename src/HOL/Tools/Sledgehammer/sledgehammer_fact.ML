@@ -313,7 +313,7 @@ fun clasimpset_rule_table_of ctxt =
 
         val {safeIs, (* safeEs, *) unsafeIs, (* unsafeEs, *) ...} =
           ctxt |> claset_of |> Classical.rep_cs
-        val intros = Item_Net.content safeIs @ Item_Net.content unsafeIs
+        val intros = map #1 (Item_Net.content safeIs @ Item_Net.content unsafeIs)
 (* Add once it is used:
         val elims = Item_Net.content safeEs @ Item_Net.content unsafeEs
           |> map Classical.classical_rule
