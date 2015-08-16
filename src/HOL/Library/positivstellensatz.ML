@@ -540,7 +540,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun simple_choose v th =
       choose v
         (Thm.assume
-          ((Thm.apply @{cterm Trueprop} o mk_ex v) ((Thm.dest_arg o hd o #hyps o Thm.crep_thm) th))) th
+          ((Thm.apply @{cterm Trueprop} o mk_ex v) (Thm.dest_arg (hd (Thm.chyps_of th))))) th
 
     val strip_forall =
       let

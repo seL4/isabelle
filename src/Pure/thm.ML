@@ -58,14 +58,6 @@ sig
     hyps: term Ord_List.T,
     tpairs: (term * term) list,
     prop: term}
-  val crep_thm: thm ->
-   {thy: theory,
-    tags: Properties.T,
-    maxidx: int,
-    shyps: sort Ord_List.T,
-    hyps: cterm Ord_List.T,
-    tpairs: (cterm * cterm) list,
-    prop: cterm}
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val fold_atomic_cterms: (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
   val terms_of_tpairs: (term * term) list -> term list
@@ -85,6 +77,7 @@ sig
   val major_prem_of: thm -> term
   val cprop_of: thm -> cterm
   val cprem_of: thm -> int -> cterm
+  val chyps_of: thm -> cterm list
   val transfer: theory -> thm -> thm
   val renamed_prop: term -> thm -> thm
   val weaken: cterm -> thm -> thm
@@ -353,14 +346,6 @@ exception THM of string * int * thm list;
 
 fun rep_thm (Thm (_, args)) = args;
 
-fun crep_thm (Thm (_, {thy, tags, maxidx, shyps, hyps, tpairs, prop})) =
-  let fun cterm max t = Cterm {thy = thy, t = t, T = propT, maxidx = max, sorts = shyps} in
-   {thy = thy, tags = tags, maxidx = maxidx, shyps = shyps,
-    hyps = map (cterm ~1) hyps,
-    tpairs = map (apply2 (cterm maxidx)) tpairs,
-    prop = cterm maxidx prop}
-  end;
-
 fun fold_terms f (Thm (_, {tpairs, prop, hyps, ...})) =
   fold (fn (t, u) => f t #> f u) tpairs #> f prop #> fold f hyps;
 
@@ -420,13 +405,15 @@ fun major_prem_of th =
     prem :: _ => Logic.strip_assums_concl prem
   | [] => raise THM ("major_prem_of: rule with no premises", 0, [th]));
 
-(*the statement of any thm is a cterm*)
 fun cprop_of (Thm (_, {thy, maxidx, shyps, prop, ...})) =
   Cterm {thy = thy, maxidx = maxidx, T = propT, t = prop, sorts = shyps};
 
 fun cprem_of (th as Thm (_, {thy, maxidx, shyps, prop, ...})) i =
   Cterm {thy = thy, maxidx = maxidx, T = propT, sorts = shyps,
     t = Logic.nth_prem (i, prop) handle TERM _ => raise THM ("cprem_of", i, [th])};
+
+fun chyps_of (Thm (_, {thy, shyps, hyps, ...})) =
+  map (fn t => Cterm {thy = thy, maxidx = ~1, T = propT, sorts = shyps, t = t}) hyps;
 
 (*explicit transfer to a super theory*)
 fun transfer thy' thm =

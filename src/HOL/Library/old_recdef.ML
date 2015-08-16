@@ -914,8 +914,8 @@ struct
 fun RULES_ERR func mesg = Utils.ERR {module = "Rules", func = func, mesg = mesg};
 
 
-fun cconcl thm = Dcterm.drop_prop (#prop (Thm.crep_thm thm));
-fun chyps thm = map Dcterm.drop_prop (#hyps (Thm.crep_thm thm));
+fun cconcl thm = Dcterm.drop_prop (Thm.cprop_of thm);
+fun chyps thm = map Dcterm.drop_prop (Thm.chyps_of thm);
 
 fun dest_thm thm =
   let val {prop,hyps,...} = Thm.rep_thm thm
@@ -971,7 +971,7 @@ fun MP th1 th2 = th2 RS (th1 RS mp)
 fun DISCH tm thm = Thm.implies_intr (Dcterm.mk_prop tm) thm COMP impI
   handle THM (msg, _, _) => raise RULES_ERR "DISCH" msg;
 
-fun DISCH_ALL thm = fold_rev DISCH (#hyps (Thm.crep_thm thm)) thm;
+fun DISCH_ALL thm = fold_rev DISCH (Thm.chyps_of thm) thm;
 
 
 fun FILTER_DISCH_ALL P thm =

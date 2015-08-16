@@ -37,7 +37,7 @@ lemma problem_25:
     val horns25 = Meson.make_horns clauses25;     (*16 Horn clauses*)
     val go25 :: _ = Meson.gocls clauses25;
 
-    val ctxt' = fold Thm.declare_hyps (maps (#hyps o Thm.crep_thm) (go25 :: horns25)) ctxt;
+    val ctxt' = fold Thm.declare_hyps (maps Thm.chyps_of (go25 :: horns25)) ctxt;
     Goal.prove ctxt' [] [] @{prop False} (fn _ =>
       resolve_tac ctxt' [go25] 1 THEN
       Meson.depth_prolog_tac ctxt' horns25);
@@ -63,7 +63,7 @@ lemma problem_26:
     val _ = @{assert} (length horns26 = 24);
     val go26 :: _ = Meson.gocls clauses26;
 
-    val ctxt' = fold Thm.declare_hyps (maps (#hyps o Thm.crep_thm) (go26 :: horns26)) ctxt;
+    val ctxt' = fold Thm.declare_hyps (maps Thm.chyps_of (go26 :: horns26)) ctxt;
     Goal.prove ctxt' [] [] @{prop False} (fn _ =>
       resolve_tac ctxt' [go26] 1 THEN
       Meson.depth_prolog_tac ctxt' horns26);  (*7 ms*)
@@ -90,7 +90,7 @@ lemma problem_43:  -- "NOW PROVED AUTOMATICALLY!!"  (*16 Horn clauses*)
     val _ = @{assert} (length horns43 = 16);
     val go43 :: _ = Meson.gocls clauses43;
 
-    val ctxt' = fold Thm.declare_hyps (maps (#hyps o Thm.crep_thm) (go43 :: horns43)) ctxt;
+    val ctxt' = fold Thm.declare_hyps (maps Thm.chyps_of (go43 :: horns43)) ctxt;
     Goal.prove ctxt' [] [] @{prop False} (fn _ =>
       resolve_tac ctxt' [go43] 1 THEN
       Meson.best_prolog_tac ctxt' Meson.size_of_subgoals horns43);   (*7ms*)

@@ -694,7 +694,7 @@ local
     Old_Z3_Proof_Tools.with_conv unfold_conv Old_Z3_Proof_Literals.prove_conj_disj_eq
 
   fun declare_hyps ctxt thm =
-    (thm, snd (Assumption.add_assumes (#hyps (Thm.crep_thm thm)) ctxt))
+    (thm, snd (Assumption.add_assumes (Thm.chyps_of thm) ctxt))
 in
 
 val abstraction_depth = 3

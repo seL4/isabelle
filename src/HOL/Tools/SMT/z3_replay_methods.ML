@@ -522,7 +522,7 @@ and lookup_intro_hyps tab t f (cx as (thm, terms)) =
 
 fun lemma ctxt (thms as [thm]) t =
     (let
-       val tab = Termtab.make (map (`Thm.term_of) (#hyps (Thm.crep_thm thm)))
+       val tab = Termtab.make (map (`Thm.term_of) (Thm.chyps_of thm))
        val (thm', terms) = intro_hyps tab (dest_prop t) (thm, [])
      in
        prove_abstract ctxt [thm'] t prop_tac (

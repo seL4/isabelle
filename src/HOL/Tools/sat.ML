@@ -226,7 +226,7 @@ fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
             val _ = cond_tracing ctxt (fn () => "Using original clause #" ^ string_of_int id)
             val raw = CNF.clause2raw_thm ctxt thm
             val hyps = sort (lit_ord o apply2 fst) (map_filter (fn chyp =>
-              Option.map (rpair chyp) (index_of_literal chyp)) (#hyps (Thm.crep_thm raw)))
+              Option.map (rpair chyp) (index_of_literal chyp)) (Thm.chyps_of raw))
             val clause = (raw, hyps)
             val _ = Array.update (clauses, id, RAW_CLAUSE clause)
           in

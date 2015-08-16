@@ -54,7 +54,7 @@ fun eliminate ctxt rule xs As thm =
       error "Conclusion in obtained context must be object-logic judgment";
 
     val ((_, [thm']), ctxt') = Variable.import true [thm] ctxt;
-    val prems = Drule.strip_imp_prems (#prop (Thm.crep_thm thm'));
+    val prems = Drule.strip_imp_prems (Thm.cprop_of thm');
   in
     ((Drule.implies_elim_list thm' (map Thm.assume prems)
         |> Drule.implies_intr_list (map (Drule.norm_hhf_cterm ctxt') As)

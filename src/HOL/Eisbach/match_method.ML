@@ -400,7 +400,7 @@ fun hyp_from_premid ctxt (ident, prem) =
   let
     val ident = Thm.cterm_of ctxt (HOLogic.mk_number @{typ nat} ident |> Logic.mk_term);
     val hyp =
-      (case #hyps (Thm.crep_thm prem) of
+      (case Thm.chyps_of prem of
         [hyp] => hyp
       | _ => error "Prem should have exactly one hyp");  (* FIXME error vs. raise Fail !? *)
     val ct = Drule.mk_term (hyp) |> Thm.cprop_of;
@@ -455,7 +455,7 @@ fun solve_term ct = Thm.trivial ct OF [Drule.termI];
 
 fun get_thinned_prems goal =
   let
-    val chyps = Thm.crep_thm goal |> #hyps;
+    val chyps = Thm.chyps_of goal;
 
     fun prem_from_hyp hyp goal =
     let
@@ -735,7 +735,7 @@ fun real_match using ctxt fixes m text pats goal =
                     (focus_prems inner_ctxt |> snd |> Item_Net.content)
                     (focus_prems focus_ctxt |> snd |> Item_Net.content))
                     |> map (fn (id, thm) =>
-                        #hyps (Thm.crep_thm thm)
+                        Thm.chyps_of thm
                         |> (fn [chyp] => (id, (SOME chyp, NONE))
                              | _ => error "Prem should have only one hyp")));
 

@@ -686,7 +686,7 @@ fun build_head thy (c, ty) =
 
 fun get_head thy cert_thm =
   let
-    val [head] = (#hyps o Thm.crep_thm) cert_thm;
+    val [head] = Thm.chyps_of cert_thm;
     val (_, Const (c, ty)) = (Logic.dest_equals o Thm.term_of) head;
   in (typscheme thy (c, ty), head) end;
 

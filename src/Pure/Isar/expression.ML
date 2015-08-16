@@ -702,7 +702,7 @@ fun def_pred binding parms defs ts norm_ts thy =
       |> Conjunction.elim_balanced (length ts);
 
     val (_, axioms_ctxt) = defs_ctxt
-      |> Assumption.add_assumes (maps (#hyps o Thm.crep_thm) (defs @ conjuncts));
+      |> Assumption.add_assumes (maps Thm.chyps_of (defs @ conjuncts));
     val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
       Element.prove_witness axioms_ctxt t
        (rewrite_goals_tac axioms_ctxt defs THEN compose_tac axioms_ctxt (false, ax, 0) 1));

@@ -433,7 +433,7 @@ fun resynchronize ctxt fol_th th =
         val (prems0, concl) = th |> Thm.prop_of |> Logic.strip_horn
         val prems = prems0 |> map normalize_literal |> distinct Term.aconv_untyped
         val goal = Logic.list_implies (prems, concl)
-        val ctxt' = fold Thm.declare_hyps (#hyps (Thm.crep_thm th)) ctxt
+        val ctxt' = fold Thm.declare_hyps (Thm.chyps_of th) ctxt
         val tac =
           cut_tac th 1 THEN
           rewrite_goals_tac ctxt' meta_not_not THEN
@@ -727,7 +727,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
                        cat_lines (map string_of_subst_info substs))
 *)
-      val ctxt' = fold Thm.declare_hyps (#hyps (Thm.crep_thm prems_imp_false)) ctxt
+      val ctxt' = fold Thm.declare_hyps (Thm.chyps_of prems_imp_false) ctxt
 
       fun cut_and_ex_tac axiom =
         cut_tac axiom 1 THEN TRY (REPEAT_ALL_NEW (eresolve_tac ctxt' @{thms exE}) 1)

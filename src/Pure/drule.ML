@@ -233,8 +233,7 @@ val zero_var_indexes = singleton zero_var_indexes_list;
     Frees, or outer quantifiers; all generality expressed by Vars of index 0.**)
 
 (*Discharge all hypotheses.*)
-fun implies_intr_hyps th =
-  fold Thm.implies_intr (#hyps (Thm.crep_thm th)) th;
+fun implies_intr_hyps th = fold Thm.implies_intr (Thm.chyps_of th) th;
 
 (*Squash a theorem's flexflex constraints provided it can be done uniquely.
   This step can lose information.*)

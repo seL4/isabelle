@@ -496,7 +496,7 @@ fun choose v th th' = case Thm.concl_of th of
 
 fun simple_choose v th =
    choose v (Thm.assume ((Thm.apply @{cterm Trueprop} o mk_ex v)
-    ((Thm.dest_arg o hd o #hyps o Thm.crep_thm) th))) th
+    (Thm.dest_arg (hd (Thm.chyps_of th))))) th
 
 
  fun mkexi v th =

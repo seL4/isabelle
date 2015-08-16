@@ -359,7 +359,7 @@ fun instantiate_frees thy subst =
   Drule.forall_elim_list (map (Thm.global_cterm_of thy o snd) subst);
 
 fun hyps_rule rule th =
-  let val {hyps, ...} = Thm.crep_thm th in
+  let val hyps = Thm.chyps_of th in
     Drule.implies_elim_list
       (rule (Drule.implies_intr_list hyps th))
       (map (Thm.assume o Drule.cterm_rule rule) hyps)
@@ -452,7 +452,7 @@ fun satisfy_thm witns thm =
   thm |> fold (fn hyp =>
     (case find_first (fn Witness (t, _) => Thm.term_of hyp aconv t) witns of
       NONE => I
-    | SOME w => Thm.implies_intr hyp #> compose_witness w)) (#hyps (Thm.crep_thm thm));
+    | SOME w => Thm.implies_intr hyp #> compose_witness w)) (Thm.chyps_of thm);
 
 val satisfy_morphism = Morphism.thm_morphism "Element.satisfy" o satisfy_thm;
 
