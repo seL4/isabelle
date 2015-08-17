@@ -82,7 +82,7 @@ fun print_exception_trace (_: exn -> string) (_: string -> unit) f = f ();
 
 (* ML command execution *)
 
-fun use_text ({tune_source, print, error, ...}: use_context) (line, name) verbose txt =
+fun use_text ({tune_source, print, error, ...}: use_context) (line, file) verbose txt =
   let
     val ref out_orig = Control.Print.out;
 
@@ -93,19 +93,19 @@ fun use_text ({tune_source, print, error, ...}: use_context) (line, name) verbos
       in String.substring (str, 0, Int.max (0, size str - 1)) end;
   in
     Control.Print.out := out;
-    Backend.Interact.useStream (TextIO.openString (tune_source (ml_positions line name txt)))
+    Backend.Interact.useStream (TextIO.openString (tune_source (ml_positions line file txt)))
       handle exn =>
         (Control.Print.out := out_orig;
-          error ((if name = "" then "" else "Error in " ^ name ^ "\n") ^ output ()); raise exn);
+          error ((if file = "" then "" else "Error in " ^ file ^ "\n") ^ output ()); raise exn);
     Control.Print.out := out_orig;
     if verbose then print (output ()) else ()
   end;
 
-fun use_file context verbose name =
+fun use_file context verbose file =
   let
-    val instream = TextIO.openIn name;
+    val instream = TextIO.openIn file;
     val txt = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
-  in use_text context (1, name) verbose txt end;
+  in use_text context (1, file) verbose txt end;
 
 
 (* toplevel pretty printing *)
