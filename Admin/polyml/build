@@ -64,7 +64,7 @@ case "$TARGET" in
     OPTIONS=()
     ;;
   x86-windows)
-    OPTIONS=()
+    OPTIONS=(--host=i686-w32-mingw32)
     ;;
   x86_64-windows)
     OPTIONS=()
@@ -90,6 +90,12 @@ mv "$SOURCE/$TARGET/lib/"* "$TARGET/"
 rmdir "$SOURCE/$TARGET/bin" "$SOURCE/$TARGET/lib"
 rm -rf "$SOURCE/$TARGET/share"
 
-if [ "$TARGET" = x86-cygwin ]; then
-  peflags -x8192000 -z500 "$TARGET/poly.exe"
-fi
+case "$TARGET" in
+  x86-cygwin)
+    peflags -x8192000 -z500 "$TARGET/poly.exe"
+    ;;
+  x86-windows)
+    cp /mingw32/bin/libgcc_s_dw2-1.dll "$TARGET/."
+    cp /mingw32/bin/libstdc++-6.dll "$TARGET/."
+    ;;
+esac
