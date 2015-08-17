@@ -115,9 +115,9 @@ use "Concurrent/single_assignment.ML";
 if Multithreading.available then ()
 else use "Concurrent/single_assignment_sequential.ML";
 
-if Multithreading.available
-then use "Concurrent/bash.ML"
-else use "Concurrent/bash_sequential.ML";
+if not Multithreading.available then use "Concurrent/bash_sequential.ML"
+else if ML_System.platform_is_windows then use "Concurrent/bash_windows.ML"
+else use "Concurrent/bash.ML";
 
 use "Concurrent/par_exn.ML";
 use "Concurrent/task_queue.ML";

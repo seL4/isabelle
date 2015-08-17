@@ -42,10 +42,17 @@ librarypath "$ML_HOME"
 
 if [ -z "$INFILE" ]; then
   INIT=""
-  EXIT="fun exit rc = Posix.Process.exit (Word8.fromInt rc);"
+  case "$ML_PLATFORM" in
+    *-windows)
+      EXIT="fun exit 0 = OS.Process.exit OS.Process.success | exit 1 = OS.Process.exit OS.Process.failure | exit rc = OS.Process.exit (RunCall.unsafeCast (Word8.fromInt rc));"
+      ;;
+    *)
+      EXIT="fun exit rc = Posix.Process.exit (Word8.fromInt rc);"
+      ;;
+  esac
 else
   check_file "$INFILE"
-  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$INFILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $INFILE\\n\"); Posix.Process.exit 0w1));"
+  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$INFILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $INFILE\\n\"); OS.Process.exit OS.Process.success));"
   EXIT=""
 fi
 
@@ -53,7 +60,7 @@ if [ -z "$OUTFILE" ]; then
   MLEXIT=""
 else
   if [ -z "$INFILE" ]; then
-    MLEXIT="(PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.SaveState.saveState \"$OUTFILE\"; true) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $OUTFILE\\n\"); Posix.Process.exit 0w1);"
+    MLEXIT="(PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.SaveState.saveState \"$OUTFILE\"; true) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $OUTFILE\\n\"); OS.Process.exit OS.Process.success);"
   else
     MLEXIT="Session.save \"$OUTFILE\";"
   fi

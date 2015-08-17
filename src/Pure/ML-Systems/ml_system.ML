@@ -11,6 +11,7 @@ sig
   val is_smlnj: bool
   val platform: string
   val platform_is_cygwin: bool
+  val platform_is_windows: bool
   val share_common_data: unit -> unit
   val save_state: string -> unit
 end;
@@ -24,6 +25,7 @@ val is_smlnj = String.isPrefix "smlnj" name;
 
 val SOME platform = OS.Process.getEnv "ML_PLATFORM";
 val platform_is_cygwin = String.isSuffix "cygwin" platform;
+val platform_is_windows = String.isSuffix "windows" platform;
 
 fun share_common_data () = ();
 fun save_state _ = raise Fail "Cannot save state -- undefined operation";
