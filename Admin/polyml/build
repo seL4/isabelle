@@ -65,6 +65,7 @@ case "$TARGET" in
     ;;
   x86-windows)
     OPTIONS=(--host=i686-w32-mingw32)
+    PATH="/mingw32/bin:$PATH"
     ;;
   x86_64-windows)
     OPTIONS=()
@@ -95,7 +96,9 @@ case "$TARGET" in
     peflags -x8192000 -z500 "$TARGET/poly.exe"
     ;;
   x86-windows)
-    cp /mingw32/bin/libgcc_s_dw2-1.dll "$TARGET/."
-    cp /mingw32/bin/libstdc++-6.dll "$TARGET/."
+    cp /mingw32/bin/libgcc_s_dw2-1.dll \
+      /mingw32/bin/libwinpthread-1.dll \
+      /mingw32/bin/libstdc++-6.dll \
+      "$TARGET/."
     ;;
 esac
