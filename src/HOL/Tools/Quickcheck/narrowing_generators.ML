@@ -205,7 +205,9 @@ val pnf_narrowing_engine =
   File.read @{path "~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs"}
 
 fun exec verbose code =
-  ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") verbose code)
+  ML_Context.exec (fn () =>
+    Secure.use_text ML_Env.local_context
+      {line = 0, file = "generated code", verbose = verbose, debug = false} code)
 
 fun with_overlord_dir name f =
   let

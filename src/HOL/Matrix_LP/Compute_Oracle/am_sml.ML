@@ -485,7 +485,8 @@ fun get_guid () =
 
 fun writeTextFile name s = File.write (Path.explode name) s
 
-fun use_source src = use_text ML_Env.local_context (1, "") false src
+fun use_source src =
+  use_text ML_Env.local_context {line = 1, file = "", verbose = false, debug = false} src
     
 fun compile rules = 
     let

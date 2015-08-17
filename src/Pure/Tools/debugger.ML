@@ -144,13 +144,12 @@ val context_attempts =
 fun evaluate {SML, verbose} =
   ML_Context.eval
     {SML = SML, exchange = false, redirect = false, verbose = verbose,
-      writeln = writeln_message, warning = warning_message}
+      debug = SOME false, writeln = writeln_message, warning = warning_message}
     Position.none;
 
 fun eval_setup thread_name index SML context =
   context
   |> Context_Position.set_visible_generic false
-  |> Config.put_generic ML_Options.debugger false
   |> ML_Env.add_name_space {SML = SML}
       (ML_Debugger.debug_name_space (the_debug_state thread_name index));
 

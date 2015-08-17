@@ -82,7 +82,8 @@ fun print_exception_trace (_: exn -> string) (_: string -> unit) f = f ();
 
 (* ML command execution *)
 
-fun use_text ({tune_source, print, error, ...}: use_context) (line, file) verbose txt =
+fun use_text ({tune_source, print, error, ...}: use_context)
+    {line, file, verbose, debug = _: bool} text =
   let
     val ref out_orig = Control.Print.out;
 
@@ -93,7 +94,7 @@ fun use_text ({tune_source, print, error, ...}: use_context) (line, file) verbos
       in String.substring (str, 0, Int.max (0, size str - 1)) end;
   in
     Control.Print.out := out;
-    Backend.Interact.useStream (TextIO.openString (tune_source (ml_positions line file txt)))
+    Backend.Interact.useStream (TextIO.openString (tune_source (ml_positions line file text)))
       handle exn =>
         (Control.Print.out := out_orig;
           error ((if file = "" then "" else "Error in " ^ file ^ "\n") ^ output ()); raise exn);
@@ -101,11 +102,11 @@ fun use_text ({tune_source, print, error, ...}: use_context) (line, file) verbos
     if verbose then print (output ()) else ()
   end;
 
-fun use_file context verbose file =
+fun use_file context {verbose, debug} file =
   let
     val instream = TextIO.openIn file;
-    val txt = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
-  in use_text context (1, file) verbose txt end;
+    val text = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
+  in use_text context {line = 1, file = file, verbose = verbose, debug = debug} text end;
 
 
 (* toplevel pretty printing *)
@@ -123,7 +124,7 @@ fun ml_pprint pps =
   in pprint end;
 
 fun toplevel_pp context path pp =
-  use_text context (1, "pp") false
+  use_text context {line = 1, file = "pp", verbose = false, debug = false}
     ("CompilerPPTable.install_pp [" ^ String.concatWith "," (map (fn s => "\"" ^ s ^ "\"")  path) ^
       "] (fn pps => ml_pprint pps o Pretty.to_ML o (" ^ pp ^ "))");
 

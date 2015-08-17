@@ -12,11 +12,11 @@ fun drop_newline s =
 in
 
 fun use_text ({tune_source, name_space, str_of_pos, print, error, ...}: use_context)
-    (line, file) verbose txt =
+    {line, file, verbose, debug} text =
   let
     val current_line = Unsynchronized.ref line;
     val in_buffer =
-      Unsynchronized.ref (String.explode (tune_source (ml_positions line file txt)));
+      Unsynchronized.ref (String.explode (tune_source (ml_positions line file text)));
     val out_buffer = Unsynchronized.ref ([]: string list);
     fun output () = drop_newline (implode (rev (! out_buffer)));
 
@@ -38,7 +38,8 @@ fun use_text ({tune_source, name_space, str_of_pos, print, error, ...}: use_cont
       PolyML.Compiler.CPErrorMessageProc put_message,
       PolyML.Compiler.CPLineNo (fn () => ! current_line),
       PolyML.Compiler.CPFileName file,
-      PolyML.Compiler.CPPrintInAlphabeticalOrder false];
+      PolyML.Compiler.CPPrintInAlphabeticalOrder false] @
+      ML_Compiler_Parameters.debug debug;
     val _ =
       (while not (List.null (! in_buffer)) do
         PolyML.compiler (get, parameters) ())
@@ -49,10 +50,10 @@ fun use_text ({tune_source, name_space, str_of_pos, print, error, ...}: use_cont
           error (output ()); reraise exn);
   in if verbose then print (output ()) else () end;
 
-fun use_file context verbose file =
+fun use_file context {verbose, debug} file =
   let
     val instream = TextIO.openIn file;
-    val txt = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
-  in use_text context (1, file) verbose txt end;
+    val text = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
+  in use_text context {line = 1, file = file, verbose = verbose, debug = debug} text end;
 
 end;

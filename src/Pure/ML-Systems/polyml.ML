@@ -177,6 +177,10 @@ struct
   val display_val = pretty_ml o PolyML.NameSpace.displayVal;
 end;
 
+use "ML-Systems/ml_compiler_parameters.ML";
+if ML_System.name = "polyml-5.5.3"
+then use "ML-Systems/ml_compiler_parameters_polyml-5.5.3.ML" else ();
+
 use "ML-Systems/use_context.ML";
 use "ML-Systems/ml_positions.ML";
 use "ML-Systems/compiler_polyml.ML";
@@ -191,12 +195,8 @@ use "ML-Systems/ml_parse_tree.ML";
 if ML_System.name = "polyml-5.5.3"
 then use "ML-Systems/ml_parse_tree_polyml-5.5.3.ML" else ();
 
-use "ML-Systems/ml_compiler_parameters.ML";
-if ML_System.name = "polyml-5.5.3"
-then use "ML-Systems/ml_compiler_parameters_polyml-5.5.3.ML" else ();
-
 fun toplevel_pp context (_: string list) pp =
-  use_text context (1, "pp") false
+  use_text context {line = 1, file = "pp", verbose = false, debug = false}
     ("PolyML.addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
 
 fun ml_make_string struct_name =

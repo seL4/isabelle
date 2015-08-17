@@ -225,6 +225,11 @@ fun eval (flags: flags) pos toks =
 
     (* compiler invocation *)
 
+    val debug =
+      (case #debug flags of
+        SOME debug => debug
+      | NONE => ML_Options.debugger_enabled opt_context);
+
     val parameters =
      [PolyML.Compiler.CPOutStream write,
       PolyML.Compiler.CPNameSpace space,
@@ -235,7 +240,8 @@ fun eval (flags: flags) pos toks =
       PolyML.Compiler.CPPrintDepth ML_Options.get_print_depth,
       PolyML.Compiler.CPCompilerResultFun result_fun,
       PolyML.Compiler.CPPrintInAlphabeticalOrder false] @
-     ML_Compiler_Parameters.debug (ML_Options.debugger_enabled opt_context);
+     ML_Compiler_Parameters.debug debug;
+
     val _ =
       (while not (List.null (! input_buffer)) do
         PolyML.compiler (get, parameters) ())
@@ -257,4 +263,3 @@ fun eval (flags: flags) pos toks =
   end;
 
 end;
-

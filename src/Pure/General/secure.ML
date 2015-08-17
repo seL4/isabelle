@@ -10,8 +10,9 @@ sig
   val is_secure: unit -> bool
   val deny_secure: string -> unit
   val secure_mltext: unit -> unit
-  val use_text: use_context -> int * string -> bool -> string -> unit
-  val use_file: use_context -> bool -> string -> unit
+  val use_text: use_context ->
+    {line: int, file: string, verbose: bool, debug: bool} -> string -> unit
+  val use_file: use_context -> {verbose: bool, debug: bool} -> string -> unit
   val toplevel_pp: string list -> string -> unit
 end;
 
@@ -37,10 +38,9 @@ val raw_use_text = use_text;
 val raw_use_file = use_file;
 val raw_toplevel_pp = toplevel_pp;
 
-fun use_text context pos verbose txt = (secure_mltext (); raw_use_text context pos verbose txt);
-fun use_file context verbose name = (secure_mltext (); raw_use_file context verbose name);
+fun use_text context flags (text: string) = (secure_mltext (); raw_use_text context flags text);
+fun use_file context flags (file: string) = (secure_mltext (); raw_use_file context flags file);
 
 fun toplevel_pp path pp = (secure_mltext (); raw_toplevel_pp ML_Parse.global_context path pp);
 
 end;
-

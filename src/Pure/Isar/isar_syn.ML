@@ -209,9 +209,9 @@ val _ =
         let
           val ([{lines, pos, ...}], thy') = files thy;
           val source = Input.source true (cat_lines lines) (pos, pos);
-          val flags =
+          val flags: ML_Compiler.flags =
             {SML = true, exchange = false, redirect = true, verbose = true,
-              writeln = writeln, warning = warning};
+              debug = NONE, writeln = writeln, warning = warning};
         in
           thy' |> Context.theory_map
             (ML_Context.exec (fn () => ML_Context.eval_source flags source))
@@ -221,9 +221,9 @@ val _ =
   Outer_Syntax.command @{command_keyword SML_export} "evaluate SML within Isabelle/ML environment"
     (Parse.ML_source >> (fn source =>
       let
-        val flags =
+        val flags: ML_Compiler.flags =
           {SML = true, exchange = true, redirect = false, verbose = true,
-            writeln = writeln, warning = warning};
+            debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.theory
           (Context.theory_map (ML_Context.exec (fn () => ML_Context.eval_source flags source)))
@@ -233,9 +233,9 @@ val _ =
   Outer_Syntax.command @{command_keyword SML_import} "evaluate Isabelle/ML within SML environment"
     (Parse.ML_source >> (fn source =>
       let
-        val flags =
+        val flags: ML_Compiler.flags =
           {SML = false, exchange = true, redirect = false, verbose = true,
-            writeln = writeln, warning = warning};
+            debug = NONE, writeln = writeln, warning = warning};
       in
         Toplevel.generic_theory
           (ML_Context.exec (fn () => ML_Context.eval_source flags source) #>
