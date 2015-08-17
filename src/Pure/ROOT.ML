@@ -41,23 +41,24 @@ use "General/secure.ML";
 val use_text = Secure.use_text;
 val use_file = Secure.use_file;
 
-fun use_fns default_debug_option =
-  let
-    fun use_ debug_option file =
-      let
-        val debug =
-          (case debug_option of
-            SOME debug => debug
-          | NONE => default_debug_option ());
-      in
-        Position.setmp_thread_data (Position.file_only file)
-          (fn () =>
-            Secure.use_file ML_Parse.global_context {verbose = true, debug = debug} file
-              handle ERROR msg => (writeln msg; error "ML error")) ()
-      end;
-  in {use = use_ NONE, use_debug = use_ (SOME true), use_no_debug = use_ (SOME false)} end;
-
-val {use, use_debug, use_no_debug} = use_fns (K false);
+local
+  fun use_ debug_option file =
+    let
+      val debug =
+        (case debug_option of
+          SOME debug => debug
+        | NONE => getenv "ISABELLE_ML_DEBUGGER" = "true");
+    in
+      Position.setmp_thread_data (Position.file_only file)
+        (fn () =>
+          Secure.use_file ML_Parse.global_context {verbose = true, debug = debug} file
+            handle ERROR msg => (writeln msg; error "ML error")) ()
+    end;
+in
+  val use = use_ NONE;
+  val use_debug = use_ (SOME true);
+  val use_no_debug = use_ (SOME false);
+end;
 
 val toplevel_pp = Secure.toplevel_pp;
 
@@ -106,8 +107,6 @@ use "context.ML";
 use "context_position.ML";
 use "System/options.ML";
 use "config.ML";
-
-val {use, use_debug, use_no_debug} = use_fns (fn () => Options.default_bool "ML_debugger");
 
 
 (* concurrency within the ML runtime *)
@@ -218,10 +217,6 @@ use "display.ML";
 use "ML/ml_syntax.ML";
 use "ML/ml_env.ML";
 use "ML/ml_options.ML";
-
-val {use, use_debug, use_no_debug} =
-  use_fns (fn () => ML_Options.debugger_enabled (Context.thread_data ()));
-
 use "ML/exn_output.ML";
 if ML_System.is_polyml then use "ML/exn_output_polyml.ML" else ();
 use "ML/ml_options.ML";
@@ -265,13 +260,13 @@ use "ML/ml_antiquotation.ML";
 local
   fun use_ debug file =
     let
-      val flags =
+      val flags: ML_Compiler.flags =
         {SML = false, exchange = false, redirect = false, verbose = true,
           debug = debug, writeln = writeln, warning = warning};
     in
-      ML_Context.eval_file (ML_Compiler.verbose true ML_Compiler.flags) (Path.explode file)
+      ML_Context.eval_file flags (Path.explode file)
         handle ERROR msg => (writeln msg; error "ML error")
-    end
+    end;
 in
   val use = use_ NONE;
   val use_debug = use_ (SOME true);

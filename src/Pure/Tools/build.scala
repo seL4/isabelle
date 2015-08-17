@@ -590,10 +590,15 @@ object Build
                 (info.chapter, (name, theories)))))))))))
         }))
 
-    private val env =
+    private val env0 =
       Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> Isabelle_System.standard_path(output),
         (if (is_pure(name)) "ISABELLE_PROCESS_OPTIONS" else "ARGS_FILE") ->
           Isabelle_System.posix_path(args_file))
+
+    private val env =
+      if (is_pure(name))
+        env0 + ("ISABELLE_ML_DEBUGGER" -> info.options.bool("ML_debugger").toString)
+      else env0
 
     private val script =
       if (is_pure(name)) {
