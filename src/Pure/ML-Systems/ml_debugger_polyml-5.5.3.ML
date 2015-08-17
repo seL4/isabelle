@@ -6,6 +6,10 @@ ML debugger interface -- for Poly/ML 5.5.3, or later.
 
 signature ML_DEBUGGER =
 sig
+  type exn_id
+  val exn_id: exn -> exn_id
+  val print_exn_id: exn_id -> string
+  val eq_exn_id: exn_id * exn_id -> bool
   type location
   val on_entry: (string * location -> unit) option -> unit
   val on_exit: (string * location -> unit) option -> unit
@@ -22,6 +26,25 @@ end;
 
 structure ML_Debugger: ML_DEBUGGER =
 struct
+
+(* exceptions *)
+
+abstype exn_id = Exn_Id of string * int Unsynchronized.ref
+with
+
+fun exn_id exn =
+  Exn_Id (General.exnName exn, RunCall.run_call2 RuntimeCalls.POLY_SYS_load_word (exn, 0));
+
+fun print_exn_id (Exn_Id (name, _)) = name;
+fun eq_exn_id (Exn_Id (_, id1), Exn_Id (_, id2)) = PolyML.pointerEq (id1, id2);
+
+end;
+
+val _ =
+  PolyML.addPrettyPrinter (fn _ => fn _ => fn exn_id =>
+    let val s = print_exn_id exn_id
+    in ml_pretty (ML_Pretty.String (s, size s)) end);
+
 
 (* hooks *)
 

@@ -206,5 +206,6 @@ fun ml_make_string struct_name =
 
 (* ML debugger *)
 
-use "ML-Systems/ml_debugger.ML";
-if ML_System.name = "polyml-5.5.3" then use "ML-Systems/ml_debugger_polyml-5.5.3.ML" else ();
+if ML_System.name = "polyml-5.5.3"
+then use "ML-Systems/ml_debugger_polyml-5.5.3.ML"
+else use "ML-Systems/ml_debugger.ML";
