@@ -21,7 +21,7 @@ theory Pure
     "definition" "abbreviation" "type_notation" "no_type_notation" "notation"
     "no_notation" "axiomatization" "theorems" "lemmas" "declare"
     "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
-  and "SML_file" :: thy_load % "ML"
+  and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"
   and "SML_import" "SML_export" :: thy_decl % "ML"
   and "ML" :: thy_decl % "ML"
   and "ML_prf" :: prf_decl % "proof"  (* FIXME % "ML" ?? *)

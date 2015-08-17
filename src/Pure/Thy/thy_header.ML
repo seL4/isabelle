@@ -78,7 +78,9 @@ val bootstrap_keywords =
      ((txtN, @{here}), SOME ((Keyword.document_body, []), [])),
      ((text_rawN, @{here}), SOME ((Keyword.document_raw, []), [])),
      ((theoryN, @{here}), SOME ((Keyword.thy_begin, []), ["theory"])),
-     (("ML_file", @{here}), SOME ((Keyword.thy_load, []), ["ML"]))];
+     (("ML_file", @{here}), SOME ((Keyword.thy_load, []), ["ML"])),
+     (("ML_file_debug", @{here}), SOME ((Keyword.thy_load, []), ["ML"])),
+     (("ML_file_no_debug", @{here}), SOME ((Keyword.thy_load, []), ["ML"]))];
 
 
 (* theory data *)

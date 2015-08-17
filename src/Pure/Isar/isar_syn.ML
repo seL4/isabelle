@@ -203,19 +203,31 @@ end;
 
 (* use ML text *)
 
+fun SML_file_cmd debug files = Toplevel.theory (fn thy =>
+  let
+    val ([{lines, pos, ...}: Token.file], thy') = files thy;
+    val source = Input.source true (cat_lines lines) (pos, pos);
+    val flags: ML_Compiler.flags =
+      {SML = true, exchange = false, redirect = true, verbose = true,
+        debug = debug, writeln = writeln, warning = warning};
+  in
+    thy' |> Context.theory_map
+      (ML_Context.exec (fn () => ML_Context.eval_source flags source))
+  end);
+
 val _ =
   Outer_Syntax.command @{command_keyword SML_file} "read and evaluate Standard ML file"
-    (Resources.provide_parse_files "SML_file" >> (fn files => Toplevel.theory (fn thy =>
-        let
-          val ([{lines, pos, ...}], thy') = files thy;
-          val source = Input.source true (cat_lines lines) (pos, pos);
-          val flags: ML_Compiler.flags =
-            {SML = true, exchange = false, redirect = true, verbose = true,
-              debug = NONE, writeln = writeln, warning = warning};
-        in
-          thy' |> Context.theory_map
-            (ML_Context.exec (fn () => ML_Context.eval_source flags source))
-        end)));
+    (Resources.provide_parse_files "SML_file" >> SML_file_cmd NONE);
+
+val _ =
+  Outer_Syntax.command @{command_keyword SML_file_debug}
+    "read and evaluate Standard ML file (with debugger information)"
+    (Resources.provide_parse_files "SML_file_debug" >> SML_file_cmd (SOME true));
+
+val _ =
+  Outer_Syntax.command @{command_keyword SML_file_no_debug}
+    "read and evaluate Standard ML file (no debugger information)"
+    (Resources.provide_parse_files "SML_file_no_debug" >> SML_file_cmd (SOME false));
 
 val _ =
   Outer_Syntax.command @{command_keyword SML_export} "evaluate SML within Isabelle/ML environment"
