@@ -74,14 +74,3 @@ struct
   val openOut = openOut o ml_platform_path;
   val openAppend = openAppend o ml_platform_path;
 end;
-
-structure PolyML =
-struct
-  open PolyML
-  structure SaveState =
-  struct
-    open SaveState;
-    val loadState = loadState o ml_platform_path;
-    val saveState = saveState o ml_platform_path;
-  end;
-end;

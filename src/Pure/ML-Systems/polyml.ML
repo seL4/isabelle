@@ -38,12 +38,9 @@ if ML_System.platform_is_windows then use "ML-Systems/windows_polyml.ML" else ()
 
 structure ML_System =
 struct
-
-open ML_System;
-
-fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
-val save_state = PolyML.SaveState.saveState;
-
+  open ML_System;
+  fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
+  val save_state = PolyML.SaveState.saveState o ml_platform_path;
 end;
 
 
