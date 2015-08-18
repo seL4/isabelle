@@ -52,7 +52,15 @@ if [ -z "$INFILE" ]; then
   esac
 else
   check_file "$INFILE"
-  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$INFILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $INFILE\\n\"); OS.Process.exit OS.Process.success));"
+  case "$ML_PLATFORM" in
+    *-windows)
+      PLATFORM_INFILE="$(jvmpath -m "$INFILE")"
+      ;;
+    *)
+      PLATFORM_INFILE="$INFILE"
+      ;;
+  esac
+  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$PLATFORM_INFILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $INFILE\\n\"); OS.Process.exit OS.Process.success));"
   EXIT=""
 fi
 
