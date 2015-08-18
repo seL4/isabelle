@@ -75,13 +75,6 @@ struct
   val openAppend = openAppend o OS.windows;
 end;
 
-structure CInterfaces =
-struct
-  open CInterface;
-  val get_sym_windows = get_sym;
-  val get_sym = get_sym_windows o OS.windows;
-end;
-
 structure PolyML =
 struct
   open PolyML
@@ -92,3 +85,5 @@ struct
     val saveState = saveState o OS.windows;
   end;
 end;
+
+val ml_platform_path = OS.windows;

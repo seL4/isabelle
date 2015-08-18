@@ -168,6 +168,8 @@ use "ML-Systems/ml_debugger.ML";
 
 (* ML system operations *)
 
+fun ml_platform_path (s: string) = s;
+
 use "ML-Systems/ml_system.ML";
 
 structure ML_System =
