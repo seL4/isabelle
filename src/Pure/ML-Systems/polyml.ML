@@ -32,6 +32,8 @@ then use "ML-Systems/share_common_data_polyml-5.3.0.ML"
 else ();
 
 fun ml_platform_path (s: string) = s;
+fun ml_standard_path (s: string) = s;
+
 if ML_System.platform_is_windows then use "ML-Systems/windows_polyml.ML" else ();
 
 structure ML_System =
