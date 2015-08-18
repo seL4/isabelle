@@ -41,14 +41,17 @@ fun bash s =
 
 fun isabelle_tool name args =
   (case space_explode ":" (getenv "ISABELLE_TOOLS") |> get_first (fn dir =>
-      let val path = File.platform_path (Path.append (Path.explode dir) (Path.basic name)) in
-        if can OS.FileSys.modTime path andalso
-          not (OS.FileSys.isDir path) andalso
-          OS.FileSys.access (path, [OS.FileSys.A_READ, OS.FileSys.A_EXEC])
+      let
+        val path = Path.append (Path.explode dir) (Path.basic name);
+        val platform_path = File.platform_path path;
+      in
+        if can OS.FileSys.modTime platform_path andalso
+          not (OS.FileSys.isDir platform_path) andalso
+          OS.FileSys.access (platform_path, [OS.FileSys.A_READ, OS.FileSys.A_EXEC])
         then SOME path
         else NONE
       end handle OS.SysErr _ => NONE) of
-    SOME path => bash (File.shell_quote path ^ " " ^ args)
+    SOME path => bash (File.shell_path path ^ " " ^ args)
   | NONE => (warning ("Unknown Isabelle tool: " ^ name); 2));
 
 fun system_command cmd =

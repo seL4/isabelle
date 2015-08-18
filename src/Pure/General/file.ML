@@ -6,6 +6,7 @@ File system operations.
 
 signature FILE =
 sig
+  val standard_path: Path.T -> string
   val platform_path: Path.T -> string
   val shell_quote: string -> string
   val shell_path: Path.T -> string
@@ -42,15 +43,16 @@ struct
 
 (* system path representations *)
 
-val platform_path = Path.implode o Path.expand;
+val standard_path = Path.implode o Path.expand;
+val platform_path = ml_platform_path o standard_path;
 
 val shell_quote = enclose "'" "'";
-val shell_path = shell_quote o platform_path;
+val shell_path = shell_quote o standard_path;
 
 
 (* current working directory *)
 
-val cd = cd o platform_path;
+val cd = cd o standard_path;
 val pwd = Path.explode o pwd;
 
 
