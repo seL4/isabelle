@@ -653,7 +653,7 @@ fun extract_node line =
 
 fun load_state ctxt (time_state as (memory_time, _)) =
   let val path = state_file () in
-    (case try OS.FileSys.modTime (Path.implode path) of
+    (case try OS.FileSys.modTime (File.platform_path path) of
       NONE => time_state
     | SOME disk_time =>
       if Time.>= (memory_time, disk_time) then
@@ -699,7 +699,7 @@ fun save_state _ (time_state as (_, {dirty_facts = SOME [], ...})) = time_state
 
       val path = state_file ()
       val dirty_facts' =
-        (case try OS.FileSys.modTime (Path.implode path) of
+        (case try OS.FileSys.modTime (File.platform_path path) of
           NONE => NONE
         | SOME disk_time => if Time.<= (disk_time, memory_time) then dirty_facts else NONE)
       val (banner, entries) =
