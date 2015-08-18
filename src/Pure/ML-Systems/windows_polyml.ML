@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML-Systems/ml_platform_path_polyml.ML
+(*  Title:      Pure/ML-Systems/windows_polyml.ML
     Author:     Makarius
 
 Poly/ML support for native Windows (MinGW).
