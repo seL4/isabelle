@@ -175,7 +175,7 @@ lemma arc_simple_path: "arc g \<longleftrightarrow> simple_path g \<and> pathfin
 lemma simple_path_eq_arc: "pathfinish g \<noteq> pathstart g \<Longrightarrow> (simple_path g = arc g)"
   by (simp add: arc_simple_path)
 
-lemma path_image_nonempty: "path_image g \<noteq> {}"
+lemma path_image_nonempty [simp]: "path_image g \<noteq> {}"
   unfolding path_image_def image_is_empty box_eq_empty
   by auto
 

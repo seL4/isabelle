@@ -670,7 +670,7 @@ lemma le_sequentially:
   "F \<le> sequentially \<longleftrightarrow> (\<forall>N. eventually (\<lambda>n. N \<le> n) F)"
   by (simp add: at_top_def le_INF_iff le_principal)
 
-lemma eventually_sequentiallyI:
+lemma eventually_sequentiallyI [intro?]:
   assumes "\<And>x. c \<le> x \<Longrightarrow> P x"
   shows "eventually P sequentially"
 using assms by (auto simp: eventually_sequentially)

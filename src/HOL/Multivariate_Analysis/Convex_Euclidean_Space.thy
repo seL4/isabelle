@@ -1226,7 +1226,7 @@ next
   then have "0 \<in> closure S \<and> (\<forall>c. c > 0 \<longrightarrow> op *\<^sub>R c ` closure S = closure S)"
     using closure_subset by (auto simp add: closure_scaleR)
   then show ?thesis
-    using cone_iff[of "closure S"] by auto
+    using False cone_iff[of "closure S"] by auto
 qed
 
 
@@ -9544,5 +9544,217 @@ apply (rename_tac uu x y z)
 apply (rule_tac x="\<lambda>r. (if r=a then x else if r=b then y else if r=c then z else 0)" in exI)
 apply simp
 done
+
+subsection\<open>The infimum of the distance between two sets\<close>
+
+definition setdist :: "'a::metric_space set \<Rightarrow> 'a set \<Rightarrow> real" where
+  "setdist s t \<equiv>
+       (if s = {} \<or> t = {} then 0
+        else Inf {dist x y| x y. x \<in> s \<and> y \<in> t})"
+
+lemma setdist_empty1 [simp]: "setdist {} t = 0"
+  by (simp add: setdist_def)
+
+lemma setdist_empty2 [simp]: "setdist t {} = 0"
+  by (simp add: setdist_def)
+
+lemma setdist_pos_le: "0 \<le> setdist s t"
+  by (auto simp: setdist_def ex_in_conv [symmetric] intro: cInf_greatest)
+
+lemma le_setdistI:
+  assumes "s \<noteq> {}" "t \<noteq> {}" "\<And>x y. \<lbrakk>x \<in> s; y \<in> t\<rbrakk> \<Longrightarrow> d \<le> dist x y"
+    shows "d \<le> setdist s t"
+  using assms
+  by (auto simp: setdist_def Set.ex_in_conv [symmetric] intro: cInf_greatest)
+
+lemma setdist_le_dist: "\<lbrakk>x \<in> s; y \<in> t\<rbrakk> \<Longrightarrow> setdist s t \<le> dist x y"
+  unfolding setdist_def
+  by (auto intro!: bdd_belowI [where m=0] cInf_lower)
+
+lemma le_setdist_iff: 
+        "d \<le> setdist s t \<longleftrightarrow>
+        (\<forall>x \<in> s. \<forall>y \<in> t. d \<le> dist x y) \<and> (s = {} \<or> t = {} \<longrightarrow> d \<le> 0)"
+  apply (cases "s = {} \<or> t = {}")
+  apply (force simp add: setdist_def)
+  apply (intro iffI conjI)
+  using setdist_le_dist apply fastforce
+  apply (auto simp: intro: le_setdistI)
+  done
+
+lemma setdist_ltE: 
+  assumes "setdist s t < b" "s \<noteq> {}" "t \<noteq> {}"
+    obtains x y where "x \<in> s" "y \<in> t" "dist x y < b"
+using assms
+by (auto simp: not_le [symmetric] le_setdist_iff)
+
+lemma setdist_refl: "setdist s s = 0"
+  apply (cases "s = {}")
+  apply (force simp add: setdist_def)
+  apply (rule antisym [OF _ setdist_pos_le])
+  apply (metis all_not_in_conv dist_self setdist_le_dist)
+  done
+
+lemma setdist_sym: "setdist s t = setdist t s"
+  by (force simp: setdist_def dist_commute intro!: arg_cong [where f=Inf])
+
+lemma setdist_triangle: "setdist s t \<le> setdist s {a} + setdist {a} t"
+proof (cases "s = {} \<or> t = {}")
+  case True then show ?thesis
+    using setdist_pos_le by fastforce
+next
+  case False
+  have "\<And>x. x \<in> s \<Longrightarrow> setdist s t - dist x a \<le> setdist {a} t" 
+    apply (rule le_setdistI, blast)
+    using False apply (fastforce intro: le_setdistI)
+    apply (simp add: algebra_simps)
+    apply (metis dist_commute dist_triangle_alt order_trans [OF setdist_le_dist])
+    done
+  then have "setdist s t - setdist {a} t \<le> setdist s {a}"
+    using False by (fastforce intro: le_setdistI)
+  then show ?thesis
+    by (simp add: algebra_simps)
+qed
+
+lemma setdist_singletons [simp]: "setdist {x} {y} = dist x y"
+  by (simp add: setdist_def)
+
+lemma setdist_Lipschitz: "abs(setdist {x} s - setdist {y} s) \<le> dist x y"
+  apply (subst setdist_singletons [symmetric])
+  by (metis abs_diff_le_iff diff_le_eq setdist_triangle setdist_sym)
+
+lemma continuous_at_setdist: "continuous (at x) (\<lambda>y. (setdist {y} s))"
+  by (force simp: continuous_at_eps_delta dist_real_def intro: le_less_trans [OF setdist_Lipschitz])
+
+lemma continuous_on_setdist: "continuous_on t (\<lambda>y. (setdist {y} s))"
+  by (metis continuous_at_setdist continuous_at_imp_continuous_on)
+
+lemma uniformly_continuous_on_setdist: "uniformly_continuous_on t (\<lambda>y. (setdist {y} s))"
+  by (force simp: uniformly_continuous_on_def dist_real_def intro: le_less_trans [OF setdist_Lipschitz])
+
+lemma setdist_subset_right: "\<lbrakk>t \<noteq> {}; t \<subseteq> u\<rbrakk> \<Longrightarrow> setdist s u \<le> setdist s t"
+  apply (cases "s = {} \<or> u = {}", force)
+  apply (auto simp: setdist_def intro!: bdd_belowI [where m=0] cInf_superset_mono)
+  done
+
+lemma setdist_subset_left: "\<lbrakk>s \<noteq> {}; s \<subseteq> t\<rbrakk> \<Longrightarrow> setdist t u \<le> setdist s u"
+  by (metis setdist_subset_right setdist_sym)
+
+lemma setdist_closure_1 [simp]: "setdist (closure s) t = setdist s t"
+proof (cases "s = {} \<or> t = {}")
+  case True then show ?thesis by force
+next
+  case False
+  { fix y
+    assume "y \<in> t"
+    have "continuous_on (closure s) (\<lambda>a. dist a y)"
+      by (auto simp: continuous_intros dist_norm)
+    then have *: "\<And>x. x \<in> closure s \<Longrightarrow> setdist s t \<le> dist x y"
+      apply (rule continuous_ge_on_closure)
+      apply assumption
+      apply (blast intro: setdist_le_dist `y \<in> t` )
+      done
+  } note * = this
+  show ?thesis
+    apply (rule antisym)
+     using False closure_subset apply (blast intro: setdist_subset_left)
+    using False *
+    apply (force simp add: closure_eq_empty intro!: le_setdistI)
+    done
+qed
+
+lemma setdist_closure_2 [simp]: "setdist t (closure s) = setdist t s"
+by (metis setdist_closure_1 setdist_sym)
+
+lemma setdist_compact_closed:
+  fixes s :: "'a::euclidean_space set"
+  assumes s: "compact s" and t: "closed t"
+      and "s \<noteq> {}" "t \<noteq> {}"
+    shows "\<exists>x \<in> s. \<exists>y \<in> t. dist x y = setdist s t"
+proof -
+  have "{x - y |x y. x \<in> s \<and> y \<in> t} \<noteq> {}"
+    using assms by blast
+  then
+  have "\<exists>x \<in> s. \<exists>y \<in> t. dist x y \<le> setdist s t"
+    using  distance_attains_inf [where a=0, OF compact_closed_differences [OF s t]] assms
+    apply (clarsimp simp: dist_norm le_setdist_iff, blast)
+    done
+  then show ?thesis
+    by (blast intro!: antisym [OF _ setdist_le_dist] )
+qed
+
+lemma setdist_closed_compact:
+  fixes s :: "'a::euclidean_space set"
+  assumes s: "closed s" and t: "compact t"
+      and "s \<noteq> {}" "t \<noteq> {}"
+    shows "\<exists>x \<in> s. \<exists>y \<in> t. dist x y = setdist s t"
+  using setdist_compact_closed [OF t s `t \<noteq> {}` `s \<noteq> {}`]
+  by (metis dist_commute setdist_sym)
+
+lemma setdist_eq_0I: "\<lbrakk>x \<in> s; x \<in> t\<rbrakk> \<Longrightarrow> setdist s t = 0"
+  by (metis antisym dist_self setdist_le_dist setdist_pos_le)
+
+lemma setdist_eq_0_compact_closed:
+  fixes s :: "'a::euclidean_space set"
+  assumes s: "compact s" and t: "closed t"
+    shows "setdist s t = 0 \<longleftrightarrow> s = {} \<or> t = {} \<or> s \<inter> t \<noteq> {}"
+  apply (cases "s = {} \<or> t = {}", force)
+  using setdist_compact_closed [OF s t]  
+  apply (force intro: setdist_eq_0I )
+  done
+
+corollary setdist_gt_0_compact_closed:
+  fixes s :: "'a::euclidean_space set"
+  assumes s: "compact s" and t: "closed t"
+    shows "setdist s t > 0 \<longleftrightarrow> (s \<noteq> {} \<and> t \<noteq> {} \<and> s \<inter> t = {})"
+  using setdist_pos_le [of s t] setdist_eq_0_compact_closed [OF assms]
+  by linarith
+
+lemma setdist_eq_0_closed_compact:
+  fixes s :: "'a::euclidean_space set"
+  assumes s: "closed s" and t: "compact t"
+    shows "setdist s t = 0 \<longleftrightarrow> s = {} \<or> t = {} \<or> s \<inter> t \<noteq> {}"
+  using setdist_eq_0_compact_closed [OF t s]
+  by (metis Int_commute setdist_sym)
+
+lemma setdist_eq_0_bounded:
+  fixes s :: "'a::euclidean_space set"
+  assumes "bounded s \<or> bounded t"
+    shows "setdist s t = 0 \<longleftrightarrow> s = {} \<or> t = {} \<or> closure s \<inter> closure t \<noteq> {}"
+  apply (cases "s = {} \<or> t = {}", force)
+  using setdist_eq_0_compact_closed [of "closure s" "closure t"] 
+        setdist_eq_0_closed_compact [of "closure s" "closure t"] assms 
+  apply (force simp add:  bounded_closure compact_eq_bounded_closed)
+  done
+
+lemma setdist_unique: 
+  "\<lbrakk>a \<in> s; b \<in> t; \<And>x y. x \<in> s \<and> y \<in> t ==> dist a b \<le> dist x y\<rbrakk>
+   \<Longrightarrow> setdist s t = dist a b"
+  by (force simp add: setdist_le_dist le_setdist_iff intro: antisym)
+
+lemma setdist_closest_point: 
+    "\<lbrakk>closed s; s \<noteq> {}\<rbrakk> \<Longrightarrow> setdist {a} s = dist a (closest_point s a)"
+  apply (rule setdist_unique)
+  using closest_point_le
+  apply (auto simp: closest_point_in_set)
+  done
+
+lemma setdist_eq_0_sing_1 [simp]: 
+  fixes s :: "'a::euclidean_space set"
+  shows "setdist {x} s = 0 \<longleftrightarrow> s = {} \<or> x \<in> closure s"
+by (auto simp: setdist_eq_0_bounded)
+
+lemma setdist_eq_0_sing_2 [simp]: 
+  fixes s :: "'a::euclidean_space set"
+  shows "setdist s {x} = 0 \<longleftrightarrow> s = {} \<or> x \<in> closure s"
+by (auto simp: setdist_eq_0_bounded)
+
+lemma setdist_sing_in_set:
+  fixes s :: "'a::euclidean_space set"
+  shows "x \<in> s \<Longrightarrow> setdist {x} s = 0"
+using closure_subset by force
+
+lemma setdist_le_sing: "x \<in> s ==> setdist s t \<le> setdist {x} t"
+  using setdist_subset_left by auto
+
 
 end

@@ -562,25 +562,45 @@ lemma real_arch_inv: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0
   using reals_Archimedean[of e] less_trans[of 0 "1 / real n" e for n::nat]
   by (auto simp add: field_simps cong: conj_cong)
 
-lemma real_pow_lbound: "0 \<le> x \<Longrightarrow> 1 + real n * x \<le> (1 + x) ^ n"
+text{*Bernoulli's inequality*}
+lemma Bernoulli_inequality:
+  fixes x :: real
+  assumes "-1 \<le> x"
+    shows "1 + n * x \<le> (1 + x) ^ n"
 proof (induct n)
   case 0
   then show ?case by simp
 next
   case (Suc n)
-  then have h: "1 + real n * x \<le> (1 + x) ^ n"
+  have "1 + Suc n * x \<le> 1 + (Suc n)*x + n * x^2"
+    by (simp add: algebra_simps)
+  also have "... = (1 + x) * (1 + n*x)"
+    by (auto simp: power2_eq_square algebra_simps  real_of_nat_Suc)
+  also have "... \<le> (1 + x) ^ Suc n"
+    using Suc.hyps assms mult_left_mono by fastforce
+  finally show ?case .
+qed
+
+lemma Bernoulli_inequality_even:
+  fixes x :: real
+  assumes "even n"
+    shows "1 + n * x \<le> (1 + x) ^ n"
+proof (cases "-1 \<le> x \<or> n=0")
+  case True
+  then show ?thesis
+    by (auto simp: Bernoulli_inequality)
+next
+  case False
+  then have "real n \<ge> 1"
     by simp
-  from h have p: "1 \<le> (1 + x) ^ n"
-    using Suc.prems by simp
-  from h have "1 + real n * x + x \<le> (1 + x) ^ n + x"
-    by simp
-  also have "\<dots> \<le> (1 + x) ^ Suc n"
-    apply (subst diff_le_0_iff_le[symmetric])
-    using mult_left_mono[OF p Suc.prems]
-    apply (simp add: field_simps)
-    done
-  finally show ?case
-    by (simp add: real_of_nat_Suc field_simps)
+  with False have "n * x \<le> -1"
+    by (metis linear minus_zero mult.commute mult.left_neutral mult_left_mono_neg neg_le_iff_le order_trans zero_le_one)
+  then have "1 + n * x \<le> 0"
+    by auto
+  also have "... \<le> (1 + x) ^ n"
+    using assms
+    using zero_le_even_power by blast
+  finally show ?thesis .
 qed
 
 lemma real_arch_pow:
@@ -592,8 +612,8 @@ proof -
     by arith
   from reals_Archimedean3[OF x0, rule_format, of y]
   obtain n :: nat where n: "y < real n * (x - 1)" by metis
-  from x0 have x00: "x- 1 \<ge> 0" by arith
-  from real_pow_lbound[OF x00, of n] n
+  from x0 have x00: "x- 1 \<ge> -1" by arith
+  from Bernoulli_inequality[OF x00, of n] n
   have "y < x^n" by auto
   then show ?thesis by metis
 qed
@@ -1417,7 +1437,7 @@ proof -
   also have "(\<Sum>x\<in>P. \<Sum>b\<in>Basis. \<bar>f x \<bullet> b\<bar>) = (\<Sum>b\<in>Basis. \<Sum>x\<in>P. \<bar>f x \<bullet> b\<bar>)"
     by (rule setsum.commute)
   also have "\<dots> \<le> of_nat (card (Basis :: 'n set)) * (2 * e)"
-  proof (rule setsum_bounded)
+  proof (rule setsum_bounded_above)
     fix i :: 'n
     assume i: "i \<in> Basis"
     have "norm (\<Sum>x\<in>P. \<bar>f x \<bullet> i\<bar>) \<le>
@@ -2828,7 +2848,7 @@ proof -
     unfolding real_of_nat_def
     apply (subst euclidean_inner)
     apply (subst power2_abs[symmetric])
-    apply (rule order_trans[OF setsum_bounded[where K="\<bar>infnorm x\<bar>\<^sup>2"]])
+    apply (rule order_trans[OF setsum_bounded_above[where K="\<bar>infnorm x\<bar>\<^sup>2"]])
     apply (auto simp add: power2_eq_square[symmetric])
     apply (subst power2_abs[symmetric])
     apply (rule power_mono)

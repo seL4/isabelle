@@ -92,6 +92,18 @@ proof safe
     by (auto intro!: exI[of _ "\<Sum>i\<in>Basis. f i *\<^sub>R i"])
 qed auto
 
+lemma (in euclidean_space) euclidean_representation_setsum_fun: 
+    "(\<lambda>x. \<Sum>b\<in>Basis. inner (f x) b *\<^sub>R b) = f"
+  by (rule ext) (simp add: euclidean_representation_setsum)
+
+lemma euclidean_isCont:
+  assumes "\<And>b. b \<in> Basis \<Longrightarrow> isCont (\<lambda>x. (inner (f x) b) *\<^sub>R b) x"
+    shows "isCont f x"
+  apply (subst euclidean_representation_setsum_fun [symmetric])
+  apply (rule isCont_setsum)
+  apply (blast intro: assms)
+  done
+
 lemma DIM_positive: "0 < DIM('a::euclidean_space)"
   by (simp add: card_gt_0_iff)
 

@@ -70,13 +70,6 @@ lemma setL2_left_distrib:
   apply (simp add: real_sqrt_mult setsum_nonneg)
   done
 
-lemma setsum_nonneg_eq_0_iff:
-  fixes f :: "'a \<Rightarrow> 'b::ordered_ab_group_add"
-  shows "\<lbrakk>finite A; \<forall>x\<in>A. 0 \<le> f x\<rbrakk> \<Longrightarrow> setsum f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
-  apply (induct set: finite, simp)
-  apply (simp add: add_nonneg_eq_0_iff setsum_nonneg)
-  done
-
 lemma setL2_eq_0_iff: "finite A \<Longrightarrow> setL2 f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
   unfolding setL2_def
   by (simp add: setsum_nonneg setsum_nonneg_eq_0_iff)

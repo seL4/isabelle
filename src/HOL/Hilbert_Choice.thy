@@ -49,12 +49,16 @@ done
 text\<open>Easier to apply than @{text someI} because the conclusion has only one
 occurrence of @{term P}.\<close>
 lemma someI2: "[| P a;  !!x. P x ==> Q x |] ==> Q (SOME x. P x)"
-by (blast intro: someI)
+  by (blast intro: someI)
 
 text\<open>Easier to apply than @{text someI2} if the witness comes from an
 existential formula\<close>
+
 lemma someI2_ex: "[| \<exists>a. P a; !!x. P x ==> Q x |] ==> Q (SOME x. P x)"
-by (blast intro: someI2)
+  by (blast intro: someI2)
+
+lemma someI2_bex: "[| \<exists>a\<in>A. P a; !!x. x \<in> A \<and> P x ==> Q x |] ==> Q (SOME x. x \<in> A \<and> P x)"
+  by (blast intro: someI2)
 
 lemma some_equality [intro]:
      "[| P a;  !!x. P x ==> x=a |] ==> (SOME x. P x) = a"
@@ -102,7 +106,7 @@ lemma bchoice_iff': "(\<forall>x\<in>S. P x \<longrightarrow> (\<exists>y. Q x y
 by (fast elim: someI)
 
 lemma dependent_nat_choice:
-  assumes  1: "\<exists>x. P 0 x" and 
+  assumes  1: "\<exists>x. P 0 x" and
            2: "\<And>x n. P n x \<Longrightarrow> \<exists>y. P (Suc n) y \<and> Q n x y"
   shows "\<exists>f. \<forall>n. P n (f n) \<and> Q n (f n) (f (Suc n))"
 proof (intro exI allI conjI)
@@ -263,7 +267,7 @@ apply (force simp add: bij_is_inj)
 apply (blast intro: bij_is_surj [THEN surj_f_inv_f, symmetric])
 done
 
-lemma bij_vimage_eq_inv_image: "bij f ==> f -` A = inv f ` A" 
+lemma bij_vimage_eq_inv_image: "bij f ==> f -` A = inv f ` A"
 apply (auto simp add: bij_is_surj [THEN surj_f_inv_f])
 apply (blast intro: bij_is_inj [THEN inv_into_f_f, symmetric])
 done
@@ -312,7 +316,7 @@ proof -
     unfolding pick_def by (subst (asm) finite.simps) (auto simp add: ex_in_conv intro: someI_ex)
   ultimately have "range pick \<subseteq> S" by auto
   moreover
-  { fix n m                 
+  { fix n m
     have "pick n \<notin> Sseq (n + Suc m)" by (induct m) (auto simp add: Sseq_def pick_def)
     with * have "pick n \<noteq> pick (n + Suc m)" by auto
   }

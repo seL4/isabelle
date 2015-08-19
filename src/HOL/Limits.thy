@@ -1945,6 +1945,20 @@ proof -
     by auto
 qed
 
+lemma open_Collect_positive:
+ fixes f :: "'a::t2_space \<Rightarrow> real"
+ assumes f: "continuous_on s f"
+ shows "\<exists>A. open A \<and> A \<inter> s = {x\<in>s. 0 < f x}"
+ using continuous_on_open_invariant[THEN iffD1, OF f, rule_format, of "{0 <..}"]
+ by (auto simp: Int_def field_simps)
+
+lemma open_Collect_less_Int:
+ fixes f g :: "'a::t2_space \<Rightarrow> real"
+ assumes f: "continuous_on s f" and g: "continuous_on s g"
+ shows "\<exists>A. open A \<and> A \<inter> s = {x\<in>s. f x < g x}"
+ using open_Collect_positive[OF continuous_on_diff[OF g f]] by (simp add: field_simps)
+
+
 subsection \<open>Boundedness of continuous functions\<close>
 
 text\<open>By bisection, function continuous on closed interval is bounded above\<close>

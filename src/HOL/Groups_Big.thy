@@ -807,20 +807,10 @@ next
   case False thus ?thesis by simp
 qed
 
-lemma setsum_abs_ge_zero[iff]: 
+lemma setsum_abs_ge_zero[iff]:
   fixes f :: "'a => ('b::ordered_ab_group_add_abs)"
   shows "0 \<le> setsum (%i. abs(f i)) A"
-proof (cases "finite A")
-  case True
-  thus ?thesis
-  proof induct
-    case empty thus ?case by simp
-  next
-    case (insert x A) thus ?case by auto
-  qed
-next
-  case False thus ?thesis by simp
-qed
+  by (simp add: setsum_nonneg)
 
 lemma abs_setsum_abs[simp]: 
   fixes f :: "'a => ('b::ordered_ab_group_add_abs)"
@@ -931,6 +921,19 @@ lemma (in comm_semiring_1) dvd_setsum:
   "(\<And>a. a \<in> A \<Longrightarrow> d dvd f a) \<Longrightarrow> d dvd setsum f A"
   by (induct A rule: infinite_finite_induct) simp_all
 
+lemma setsum_pos2:
+    assumes "finite I" "i \<in> I" "0 < f i" "(\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i)"
+      shows "(0::'a::{ordered_ab_group_add,comm_monoid_add}) < setsum f I"
+proof -
+  have "0 \<le> setsum f (I-{i})"
+    using assms by (simp add: setsum_nonneg)
+  also have "... < setsum f (I-{i}) + f i"
+    using assms by auto
+  also have "... = setsum f I"
+    using assms by (simp add: setsum.remove)
+  finally show ?thesis .
+qed
+
 
 subsubsection \<open>Cardinality as special case of @{const setsum}\<close>
 
@@ -957,12 +960,29 @@ lemma setsum_Suc: "setsum (\<lambda>x. Suc(f x)) A = setsum f A + card A"
   using setsum.distrib[of f "\<lambda>_. 1" A] 
   by simp
 
-lemma setsum_bounded:
+lemma setsum_bounded_above:
   assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> (K::'a::{semiring_1, ordered_ab_semigroup_add})"
   shows "setsum f A \<le> of_nat (card A) * K"
 proof (cases "finite A")
   case True
   thus ?thesis using le setsum_mono[where K=A and g = "%x. K"] by simp
+next
+  case False thus ?thesis by simp
+qed
+
+lemma setsum_bounded_above_strict:
+  assumes "\<And>i. i\<in>A \<Longrightarrow> f i < (K::'a::{ordered_cancel_ab_semigroup_add,semiring_1})"
+          "card A > 0"
+  shows "setsum f A < of_nat (card A) * K"
+using assms setsum_strict_mono[where A=A and g = "%x. K"]
+by (simp add: card_gt_0_iff)
+
+lemma setsum_bounded_below:
+  assumes le: "\<And>i. i\<in>A \<Longrightarrow> (K::'a::{semiring_1, ordered_ab_semigroup_add}) \<le> f i"
+  shows "of_nat (card A) * K \<le> setsum f A"
+proof (cases "finite A")
+  case True
+  thus ?thesis using le setsum_mono[where K=A and f = "%x. K"] by simp
 next
   case False thus ?thesis by simp
 qed
@@ -1210,6 +1230,15 @@ lemma (in linordered_semidom) setprod_mono:
   using assms by (induct A rule: infinite_finite_induct)
     (auto intro!: setprod_nonneg mult_mono)
 
+lemma (in linordered_semidom) setprod_mono_strict:
+    assumes"finite A" "\<forall>i\<in>A. 0 \<le> f i \<and> f i < g i" "A \<noteq> {}"
+    shows "setprod f A < setprod g A"
+using assms 
+apply (induct A rule: finite_induct)
+apply (simp add: )
+apply (force intro: mult_strict_mono' setprod_nonneg)
+done
+
 lemma (in linordered_field) abs_setprod:
   "\<bar>setprod f A\<bar> = (\<Prod>x\<in>A. \<bar>f x\<bar>)"
   by (induct A rule: infinite_finite_induct) (simp_all add: abs_mult)
@@ -1218,12 +1247,15 @@ lemma setprod_eq_1_iff [simp]:
   "finite A \<Longrightarrow> setprod f A = 1 \<longleftrightarrow> (\<forall>a\<in>A. f a = (1::nat))"
   by (induct A rule: finite_induct) simp_all
 
-lemma setprod_pos_nat:
-  "finite A \<Longrightarrow> (\<forall>a\<in>A. f a > (0::nat)) \<Longrightarrow> setprod f A > 0"
-  using setprod_zero_iff by (simp del: neq0_conv add: neq0_conv [symmetric])
-
 lemma setprod_pos_nat_iff [simp]:
   "finite A \<Longrightarrow> setprod f A > 0 \<longleftrightarrow> (\<forall>a\<in>A. f a > (0::nat))"
   using setprod_zero_iff by (simp del:neq0_conv add:neq0_conv [symmetric])
+
+lemma setsum_nonneg_eq_0_iff:
+  fixes f :: "'a \<Rightarrow> 'b::ordered_ab_group_add"
+  shows "\<lbrakk>finite A; \<forall>x\<in>A. 0 \<le> f x\<rbrakk> \<Longrightarrow> setsum f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
+  apply (induct set: finite, simp)
+  apply (simp add: add_nonneg_eq_0_iff setsum_nonneg)
+  done
 
 end

@@ -1602,7 +1602,7 @@ lemma closure_UNIV [simp]: "closure UNIV = UNIV"
 lemma closure_union [simp]: "closure (S \<union> T) = closure S \<union> closure T"
   unfolding closure_interior by simp
 
-lemma closure_eq_empty: "closure S = {} \<longleftrightarrow> S = {}"
+lemma closure_eq_empty [iff]: "closure S = {} \<longleftrightarrow> S = {}"
   using closure_empty closure_subset[of S]
   by blast
 
@@ -1826,7 +1826,7 @@ lemma Lim_Un_univ:
 
 text\<open>Interrelations between restricted and unrestricted limits.\<close>
 
-lemma Lim_at_imp_Lim_at_within: 
+lemma Lim_at_imp_Lim_at_within:
   "(f ---> l) (at x) \<Longrightarrow> (f ---> l) (at x within S)"
   by (metis order_refl filterlim_mono subset_UNIV at_le)
 
@@ -2831,12 +2831,12 @@ lemma bounded_imp_bdd_below: "bounded S \<Longrightarrow> bdd_below (S :: real s
      (metis abs_le_D1 add.commute diff_le_eq)
 
 lemma bounded_inner_imp_bdd_above:
-  assumes "bounded s" 
+  assumes "bounded s"
     shows "bdd_above ((\<lambda>x. x \<bullet> a) ` s)"
 by (simp add: assms bounded_imp_bdd_above bounded_linear_image bounded_linear_inner_left)
 
 lemma bounded_inner_imp_bdd_below:
-  assumes "bounded s" 
+  assumes "bounded s"
     shows "bdd_below ((\<lambda>x. x \<bullet> a) ` s)"
 by (simp add: assms bounded_imp_bdd_below bounded_linear_image bounded_linear_inner_left)
 
@@ -4635,6 +4635,12 @@ definition uniformly_continuous_on :: "'a set \<Rightarrow> ('a::metric_space \<
 
 text\<open>Some simple consequential lemmas.\<close>
 
+lemma uniformly_continuous_onE:
+  assumes "uniformly_continuous_on s f" "0 < e"
+  obtains d where "d>0" "\<And>x x'. \<lbrakk>x\<in>s; x'\<in>s; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+using assms
+by (auto simp: uniformly_continuous_on_def)
+
 lemma uniformly_continuous_imp_continuous:
   "uniformly_continuous_on s f \<Longrightarrow> continuous_on s f"
   unfolding uniformly_continuous_on_def continuous_on_iff by blast
@@ -6166,6 +6172,19 @@ proof -
   finally show ?thesis .
 qed
 
+lemma continuous_on_closed_Collect_le:
+  fixes f g :: "'a::t2_space \<Rightarrow> real"
+  assumes f: "continuous_on s f" and g: "continuous_on s g" and s: "closed s"
+  shows "closed {x \<in> s. f x \<le> g x}"
+proof -
+  have "closed ((\<lambda>x. g x - f x) -` {0..} \<inter> s)"
+    using closed_real_atLeast continuous_on_diff [OF g f]
+    by (simp add: continuous_on_closed_vimage [OF s])
+  also have "((\<lambda>x. g x - f x) -` {0..} \<inter> s) = {x\<in>s. f x \<le> g x}"
+    by auto
+  finally show ?thesis .
+qed
+
 lemma continuous_at_inner: "continuous (at x) (inner a)"
   unfolding continuous_at by (intro tendsto_intros)
 
@@ -6193,6 +6212,25 @@ lemma closed_interval_right:
   fixes a :: "'a::euclidean_space"
   shows "closed {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i}"
   by (simp add: Collect_ball_eq closed_INT closed_Collect_le)
+
+lemma continuous_le_on_closure:
+  fixes a::real
+  assumes f: "continuous_on (closure s) f"
+      and x: "x \<in> closure(s)"
+      and xlo: "\<And>x. x \<in> s ==> f(x) \<le> a"
+    shows "f(x) \<le> a"
+    using image_closure_subset [OF f] 
+  using image_closure_subset [OF f] closed_halfspace_le [of "1::real" a] assms
+  by force
+
+lemma continuous_ge_on_closure:
+  fixes a::real
+  assumes f: "continuous_on (closure s) f"
+      and x: "x \<in> closure(s)"
+      and xlo: "\<And>x. x \<in> s ==> f(x) \<ge> a"
+    shows "f(x) \<ge> a"
+  using image_closure_subset [OF f] closed_halfspace_ge [of a "1::real"] assms
+  by force
 
 text \<open>Openness of halfspaces.\<close>
 
@@ -7320,7 +7358,7 @@ lemma real_eq_affinity:
 
 subsection \<open>Banach fixed point theorem (not really topological...)\<close>
 
-lemma banach_fix:
+theorem banach_fix:
   assumes s: "complete s" "s \<noteq> {}"
     and c: "0 \<le> c" "c < 1"
     and f: "(f ` s) \<subseteq> s"
@@ -7501,7 +7539,7 @@ qed
 
 subsection \<open>Edelstein fixed point theorem\<close>
 
-lemma edelstein_fix:
+theorem edelstein_fix:
   fixes s :: "'a::metric_space set"
   assumes s: "compact s" "s \<noteq> {}"
     and gs: "(g ` s) \<subseteq> s"
