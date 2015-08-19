@@ -725,7 +725,7 @@ lemma gcd_eq_nat:
   (is "_ = ?z")
 proof -
   have [arith]: "?z > 0"
-    by (rule setprod_pos_nat) auto
+    by auto
   have aux: "\<And>p. prime p \<Longrightarrow> multiplicity p ?z = min (multiplicity p x) (multiplicity p y)"
     apply (subst multiplicity_prod_prime_powers_nat)
     apply auto
@@ -759,7 +759,7 @@ lemma lcm_eq_nat:
   (is "_ = ?z")
 proof -
   have [arith]: "?z > 0"
-    by (rule setprod_pos_nat, auto)
+    by auto
   have aux: "\<And>p. prime p \<Longrightarrow> multiplicity p ?z = max (multiplicity p x) (multiplicity p y)"
     apply (subst multiplicity_prod_prime_powers_nat)
     apply auto
