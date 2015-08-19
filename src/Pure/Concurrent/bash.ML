@@ -1,7 +1,7 @@
 (*  Title:      Pure/Concurrent/bash.ML
     Author:     Makarius
 
-GNU bash processes, with propagation of interrupts.
+GNU bash processes, with propagation of interrupts -- POSIX version.
 *)
 
 signature BASH =
@@ -67,18 +67,15 @@ val process = uninterruptible (fn restore_attributes => fn script =>
     fun terminate NONE = ()
       | terminate (SOME pid) =
           let
-            val sig_test = Posix.Signal.fromWord 0w0;
-
-            fun kill_group pid s =
+            fun kill s =
               (Posix.Process.kill
                 (Posix.Process.K_GROUP (Posix.Process.wordToPid (LargeWord.fromInt pid)), s); true)
               handle OS.SysErr _ => false;
 
-            fun kill s = (kill_group pid s; kill_group pid sig_test);
-
             fun multi_kill count s =
               count = 0 orelse
-                kill s andalso (OS.Process.sleep (seconds 0.1); multi_kill (count - 1) s);
+                (kill s; kill (Posix.Signal.fromWord 0w0)) andalso
+                (OS.Process.sleep (seconds 0.1); multi_kill (count - 1) s);
             val _ =
               multi_kill 10 Posix.Signal.int andalso
               multi_kill 10 Posix.Signal.term andalso
