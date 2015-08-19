@@ -167,7 +167,11 @@ fun run_atp mode name
         SOME var =>
         let
           val pref = getenv var ^ "/"
-          val paths = map (Path.explode o prefix pref) (snd exec)
+          val paths =
+            map (Path.explode o prefix pref)
+              (if ML_System.platform_is_windows then
+                map (suffix ".exe") (snd exec) @ snd exec
+               else snd exec);
         in
           (case find_first File.exists paths of
             SOME path => path
