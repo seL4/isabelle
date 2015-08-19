@@ -1,0 +1,29 @@
+MinGW for native Windows support
+================================
+
+- always "Run as administrator ..."
+
+- http://sourceforge.net/projects/msys2
+
+  target c:\msys32 or c:\msys64
+
+- http://sourceforge.net/projects/mingw-w64
+
+  mingw-w64-install.exe
+
+  i686-4.9.3-win32-dwarf-rt_v4-rev0
+
+  target c:\msys32 or c:\msys64
+
+- within msys shell:
+
+    pacman --needed -Sy bash pacman pacman-mirrors msys2-runtime
+
+  after restart of msys shell:
+
+    pacman -Su
+    pacman -S make diffutils texinfo gmp-devel mingw-w64-i686-gmp
+
+- build (as regular user) e.g. on vmbroy9
+
+  isabelle/repos/Admin/polyml/build polyml-git x86-windows --build=i686-pc-msys --with-gmp

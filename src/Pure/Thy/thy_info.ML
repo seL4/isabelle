@@ -291,7 +291,8 @@ and require_thy document last_timing initiators dir (str, require_pos) tasks =
     val name = Path.implode (Path.base path);
     val node_name = File.full_path dir (Resources.thy_path path);
     fun check_entry (Task (node_name', _, _)) =
-          if node_name = node_name' then ()
+          if op = (apply2 File.platform_path (node_name, node_name'))
+          then ()
           else
             error ("Incoherent imports for theory " ^ quote name ^
               Position.here require_pos ^ ":\n" ^
