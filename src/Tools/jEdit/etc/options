@@ -9,7 +9,7 @@ public option jedit_print_mode : string = ""
 public option jedit_auto_load : bool = false
   -- "load all required files automatically to resolve theory imports"
 
-public option jedit_auto_resolve : bool = true
+public option jedit_auto_resolve : bool = false
   -- "automatically resolve auxiliary files within the editor"
 
 public option jedit_reset_font_size : int = 18
