@@ -9,8 +9,7 @@ package isabelle
 
 
 import java.util.regex.Pattern
-import java.io.{File => JFile, BufferedReader, InputStreamReader,
-  BufferedWriter, OutputStreamWriter, IOException}
+import java.io.{File => JFile, IOException}
 import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult}
 import java.nio.file.attribute.BasicFileAttributes
 import java.net.{URL, URLDecoder, MalformedURLException}
@@ -294,75 +293,6 @@ object Isabelle_System
     execute_env(null, null, redirect, args: _*)
 
 
-  /* managed process */
-
-  class Managed_Process(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*)
-  {
-    private val params =
-      List(File.standard_path(Path.explode("~~/lib/scripts/process")), "group", "-", "no_script")
-    private val proc = execute_env(cwd, env, redirect, (params ::: args.toList):_*)
-
-
-    // channels
-
-    val stdin: BufferedWriter =
-      new BufferedWriter(new OutputStreamWriter(proc.getOutputStream, UTF8.charset))
-
-    val stdout: BufferedReader =
-      new BufferedReader(new InputStreamReader(proc.getInputStream, UTF8.charset))
-
-    val stderr: BufferedReader =
-      new BufferedReader(new InputStreamReader(proc.getErrorStream, UTF8.charset))
-
-
-    // signals
-
-    private val pid = stdout.readLine
-
-    private def kill_cmd(signal: String): Int =
-      execute(true, "/usr/bin/env", "bash", "-c", "kill -" + signal + " -" + pid).waitFor
-
-    private def kill(signal: String): Boolean =
-      Exn.Interrupt.postpone { kill_cmd(signal); kill_cmd("0") == 0 } getOrElse true
-
-    private def multi_kill(signal: String): Boolean =
-    {
-      var running = true
-      var count = 10
-      while (running && count > 0) {
-        if (kill(signal)) {
-          Exn.Interrupt.postpone {
-            Thread.sleep(100)
-            count -= 1
-          }
-        }
-        else running = false
-      }
-      running
-    }
-
-    def interrupt() { multi_kill("INT") }
-    def terminate() { multi_kill("INT") && multi_kill("TERM") && kill("KILL"); proc.destroy }
-
-
-    // JVM shutdown hook
-
-    private val shutdown_hook = new Thread { override def run = terminate() }
-
-    try { Runtime.getRuntime.addShutdownHook(shutdown_hook) }
-    catch { case _: IllegalStateException => }
-
-    private def cleanup() =
-      try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
-      catch { case _: IllegalStateException => }
-
-
-    /* result */
-
-    def join: Int = { val rc = proc.waitFor; cleanup(); rc }
-  }
-
-
   /* tmp files */
 
   private def isabelle_tmp_prefix(): JFile =
@@ -430,20 +360,7 @@ object Isabelle_System
 
   /* bash */
 
-  final case class Bash_Result(out_lines: List[String], err_lines: List[String], rc: Int)
-  {
-    def out: String = cat_lines(out_lines)
-    def err: String = cat_lines(err_lines)
-    def add_err(s: String): Bash_Result = copy(err_lines = err_lines ::: List(s))
-    def set_rc(i: Int): Bash_Result = copy(rc = i)
-
-    def check_error: Bash_Result =
-      if (rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
-      else if (rc != 0) error(err)
-      else this
-  }
-
-  private class Limited_Progress(proc: Managed_Process, progress_limit: Option[Long])
+  private class Limited_Progress(proc: Bash.Process, progress_limit: Option[Long])
   {
     private var count = 0L
     def apply(progress: String => Unit)(line: String): Unit = synchronized {
@@ -460,11 +377,11 @@ object Isabelle_System
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
     progress_limit: Option[Long] = None,
-    strict: Boolean = true): Bash_Result =
+    strict: Boolean = true): Bash.Result =
   {
     with_tmp_file("isabelle_script") { script_file =>
       File.write(script_file, script)
-      val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file))
+      val proc = Bash.process(cwd, env, false, "bash", posix_path(script_file))
       proc.stdin.close
 
       val limited = new Limited_Progress(proc, progress_limit)
@@ -482,11 +399,11 @@ object Isabelle_System
         catch { case Exn.Interrupt() => proc.terminate; Exn.Interrupt.return_code }
       if (strict && rc == Exn.Interrupt.return_code) throw Exn.Interrupt()
 
-      Bash_Result(stdout.join, stderr.join, rc)
+      Bash.Result(stdout.join, stderr.join, rc)
     }
   }
 
-  def bash(script: String): Bash_Result = bash_env(null, null, script)
+  def bash(script: String): Bash.Result = bash_env(null, null, script)
 
 
   /* system tools */
@@ -514,7 +431,7 @@ object Isabelle_System
   def pdf_viewer(arg: Path): Unit =
     bash("exec \"$PDF_VIEWER\" '" + File.standard_path(arg) + "' >/dev/null 2>/dev/null &")
 
-  def hg(cmd_line: String, cwd: Path = Path.current): Bash_Result =
+  def hg(cmd_line: String, cwd: Path = Path.current): Bash.Result =
     bash("cd " + File.shell_path(cwd) + " && \"${HG:-hg}\" " + cmd_line)
 
 

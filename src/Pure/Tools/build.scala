@@ -653,7 +653,7 @@ object Build
       else None
     }
 
-    def join: Isabelle_System.Bash_Result =
+    def join: Bash.Result =
     {
       val res = result.join
 

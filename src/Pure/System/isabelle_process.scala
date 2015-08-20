@@ -19,9 +19,7 @@ object Isabelle_Process
         val cmdline =
           Isabelle_System.getenv_strict("ISABELLE_PROCESS") ::
             (system_channel.prover_args ::: prover_args)
-        val process =
-          new Isabelle_System.Managed_Process(null, null, false, cmdline: _*) with
-            Prover.System_Process
+        val process = Bash.process(null, null, false, cmdline: _*)
         process.stdin.close
         process
       }
