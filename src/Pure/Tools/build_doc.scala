@@ -50,7 +50,7 @@ object Build_Doc
             Build.build(
               options.bool.update("browser_info", false).
                 string.update("document", "pdf").
-                string.update("document_output", Isabelle_System.posix_path(output)),
+                string.update("document_output", File.standard_path(output)),
               progress, clean_build = true, max_jobs = max_jobs, system_mode = system_mode,
               sessions = sessions)
           if (rc2 == 0) {

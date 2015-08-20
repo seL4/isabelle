@@ -228,8 +228,8 @@ object Main
       val upd =
         if (Platform.is_windows)
           List(
-            "ISABELLE_HOME" -> Isabelle_System.jvm_path(isabelle_home),
-            "ISABELLE_HOME_USER" -> Isabelle_System.jvm_path(isabelle_home_user),
+            "ISABELLE_HOME" -> File.platform_path(isabelle_home),
+            "ISABELLE_HOME_USER" -> File.platform_path(isabelle_home_user),
             "INI_DIR" -> "")
         else
           List(

@@ -10,21 +10,85 @@ package isabelle
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   OutputStream, InputStream, FileInputStream, BufferedInputStream, BufferedReader,
   InputStreamReader, File => JFile, IOException}
+import java.net.{URL, URLDecoder, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
+import java.util.regex.Pattern
 
 import scala.collection.mutable
+import scala.util.matching.Regex
 
 
 object File
 {
-  /* system path representations */
+  /* standard path (Cygwin or Posix) */
 
   def standard_path(path: Path): String = path.expand.implode
 
-  def platform_path(path: Path): String = Isabelle_System.jvm_path(standard_path(path))
+  def standard_path(platform_path: String): String =
+    if (Platform.is_windows) {
+      val Platform_Root = new Regex("(?i)" +
+        Pattern.quote(Isabelle_System.get_cygwin_root()) + """(?:\\+|\z)(.*)""")
+      val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
+
+      platform_path.replace('/', '\\') match {
+        case Platform_Root(rest) => "/" + rest.replace('\\', '/')
+        case Drive(letter, rest) =>
+          "/cygdrive/" + Word.lowercase(letter) +
+            (if (rest == "") "" else "/" + rest.replace('\\', '/'))
+        case path => path.replace('\\', '/')
+      }
+    }
+    else platform_path
+
+  def standard_path(file: JFile): String = standard_path(file.getPath)
+
+  def standard_url(name: String): String =
+    try {
+      val url = new URL(name)
+      if (url.getProtocol == "file")
+        standard_path(URLDecoder.decode(url.getPath, UTF8.charset_name))
+      else name
+    }
+    catch { case _: MalformedURLException => standard_path(name) }
+
+
+  /* platform path (Windows or Posix) */
+
+  private val Cygdrive = new Regex("/cygdrive/([a-zA-Z])($|/.*)")
+  private val Named_Root = new Regex("//+([^/]*)(.*)")
+
+  def platform_path(standard_path: String): String =
+    if (Platform.is_windows) {
+      val result_path = new StringBuilder
+      val rest =
+        standard_path match {
+          case Cygdrive(drive, rest) =>
+            result_path ++= (Word.uppercase(drive) + ":" + JFile.separator)
+            rest
+          case Named_Root(root, rest) =>
+            result_path ++= JFile.separator
+            result_path ++= JFile.separator
+            result_path ++= root
+            rest
+          case path if path.startsWith("/") =>
+            result_path ++= Isabelle_System.get_cygwin_root()
+            path
+          case path => path
+        }
+      for (p <- space_explode('/', rest) if p != "") {
+        val len = result_path.length
+        if (len > 0 && result_path(len - 1) != JFile.separatorChar)
+          result_path += JFile.separatorChar
+        result_path ++= p
+      }
+      result_path.toString
+    }
+    else standard_path
+
+  def platform_path(path: Path): String = platform_path(standard_path(path))
   def platform_file(path: Path): JFile = new JFile(platform_path(path))
 
-  def platform_file_url(raw_path: Path): String =
+  def platform_url(raw_path: Path): String =
   {
     val path = raw_path.expand
     require(path.is_absolute)
@@ -34,8 +98,11 @@ object File
     else "file:///" + s.replace('\\', '/')
   }
 
+
+  /* shell path (bash) */
+
   def shell_path(path: Path): String = "'" + standard_path(path) + "'"
-  def shell_path(file: JFile): String = "'" + Isabelle_System.posix_path(file) + "'"
+  def shell_path(file: JFile): String = "'" + standard_path(file) + "'"
 
 
   /* directory content */
@@ -172,4 +239,3 @@ object File
 
   def copy(path1: Path, path2: Path): Unit = copy(path1.file, path2.file)
 }
-

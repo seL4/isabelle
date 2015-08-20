@@ -34,7 +34,7 @@ object Active
                   val graph_file = Isabelle_System.tmp_file("graph")
                   File.write(graph_file, XML.content(body))
                   Isabelle_System.bash_env(null,
-                    Map("GRAPH_FILE" -> Isabelle_System.posix_path(graph_file)),
+                    Map("GRAPH_FILE" -> File.standard_path(graph_file)),
                     "\"$ISABELLE_TOOL\" browser -c \"$GRAPH_FILE\" &")
                 }
 

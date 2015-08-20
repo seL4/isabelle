@@ -8,13 +8,9 @@ optional init operation.
 package isabelle
 
 
-import java.util.regex.Pattern
 import java.io.{File => JFile, IOException}
 import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult}
 import java.nio.file.attribute.BasicFileAttributes
-import java.net.{URL, URLDecoder, MalformedURLException}
-
-import scala.util.matching.Regex
 
 
 object Isabelle_System
@@ -91,7 +87,7 @@ object Isabelle_System
 
         default(
           default(
-            default(sys.env + ("ISABELLE_JDK_HOME" -> posix_path(jdk_home())),
+            default(sys.env + ("ISABELLE_JDK_HOME" -> File.standard_path(jdk_home())),
               "TEMP_WINDOWS" -> temp_windows),
             "HOME" -> user_home),
           "ISABELLE_APP" -> "true")
@@ -153,70 +149,6 @@ object Isabelle_System
 
 
   /** file-system operations **/
-
-  /* jvm_path */
-
-  private val Cygdrive = new Regex("/cygdrive/([a-zA-Z])($|/.*)")
-  private val Named_Root = new Regex("//+([^/]*)(.*)")
-
-  def jvm_path(posix_path: String): String =
-    if (Platform.is_windows) {
-      val result_path = new StringBuilder
-      val rest =
-        posix_path match {
-          case Cygdrive(drive, rest) =>
-            result_path ++= (Word.uppercase(drive) + ":" + JFile.separator)
-            rest
-          case Named_Root(root, rest) =>
-            result_path ++= JFile.separator
-            result_path ++= JFile.separator
-            result_path ++= root
-            rest
-          case path if path.startsWith("/") =>
-            result_path ++= get_cygwin_root()
-            path
-          case path => path
-        }
-      for (p <- space_explode('/', rest) if p != "") {
-        val len = result_path.length
-        if (len > 0 && result_path(len - 1) != JFile.separatorChar)
-          result_path += JFile.separatorChar
-        result_path ++= p
-      }
-      result_path.toString
-    }
-    else posix_path
-
-
-  /* posix_path */
-
-  def posix_path(jvm_path: String): String =
-    if (Platform.is_windows) {
-      val Platform_Root = new Regex("(?i)" +
-        Pattern.quote(get_cygwin_root()) + """(?:\\+|\z)(.*)""")
-      val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
-
-      jvm_path.replace('/', '\\') match {
-        case Platform_Root(rest) => "/" + rest.replace('\\', '/')
-        case Drive(letter, rest) =>
-          "/cygdrive/" + Word.lowercase(letter) +
-            (if (rest == "") "" else "/" + rest.replace('\\', '/'))
-        case path => path.replace('\\', '/')
-      }
-    }
-    else jvm_path
-
-  def posix_path(file: JFile): String = posix_path(file.getPath)
-
-  def posix_path_url(name: String): String =
-    try {
-      val url = new URL(name)
-      if (url.getProtocol == "file")
-        posix_path(URLDecoder.decode(url.getPath, UTF8.charset_name))
-      else name
-    }
-    catch { case _: MalformedURLException => posix_path(name) }
-
 
   /* source files of Isabelle/ML bootstrap */
 
@@ -381,7 +313,7 @@ object Isabelle_System
   {
     with_tmp_file("isabelle_script") { script_file =>
       File.write(script_file, script)
-      val proc = Bash.process(cwd, env, false, "bash", posix_path(script_file))
+      val proc = Bash.process(cwd, env, false, "bash", File.standard_path(script_file))
       proc.stdin.close
 
       val limited = new Limited_Progress(proc, progress_limit)

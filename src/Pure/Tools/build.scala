@@ -586,14 +586,14 @@ object Build
                 pair(list(pair(Path.encode, Path.encode)), pair(string, pair(string,
                 pair(string, pair(string, list(pair(Options.encode, list(Path.encode)))))))))))))(
               (command_timings, (do_output, (info.options, (verbose, (browser_info,
-                (info.document_files, (Isabelle_System.posix_path(graph_file), (parent,
+                (info.document_files, (File.standard_path(graph_file), (parent,
                 (info.chapter, (name, theories)))))))))))
         }))
 
     private val env =
       Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> File.standard_path(output),
         (if (is_pure(name)) "ISABELLE_PROCESS_OPTIONS" else "ARGS_FILE") ->
-          Isabelle_System.posix_path(args_file))
+          File.standard_path(args_file))
 
     private val script =
       if (is_pure(name)) {
