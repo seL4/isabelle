@@ -34,7 +34,7 @@ else ();
 fun ml_platform_path (s: string) = s;
 fun ml_standard_path (s: string) = s;
 
-if ML_System.platform_is_windows then use "ML-Systems/windows_polyml.ML" else ();
+if ML_System.platform_is_windows then use "ML-Systems/windows_path.ML" else ();
 
 structure ML_System =
 struct

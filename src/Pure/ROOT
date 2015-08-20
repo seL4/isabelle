@@ -34,7 +34,7 @@ session RAW =
     "ML-Systems/universal.ML"
     "ML-Systems/unsynchronized.ML"
     "ML-Systems/use_context.ML"
-    "ML-Systems/windows_polyml.ML"
+    "ML-Systems/windows_path.ML"
 
 session Pure =
   global_theories Pure
@@ -70,7 +70,7 @@ session Pure =
     "ML-Systems/universal.ML"
     "ML-Systems/unsynchronized.ML"
     "ML-Systems/use_context.ML"
-    "ML-Systems/windows_polyml.ML"
+    "ML-Systems/windows_path.ML"
 
     "Concurrent/bash.ML"
     "Concurrent/bash_sequential.ML"

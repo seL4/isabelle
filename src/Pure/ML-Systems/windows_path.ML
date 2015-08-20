@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML-Systems/windows_polyml.ML
+(*  Title:      Pure/ML-Systems/windows_path.ML
     Author:     Makarius
 
-Poly/ML support for native Windows (MinGW).
+Windows file-system paths.
 *)
 
 fun ml_platform_path path =
