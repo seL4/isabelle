@@ -1,15 +1,4 @@
 #!/bin/dash
 
 export PATH=/bin
-
-FILE_LIST="$(mktemp)"
-
-for DIR in contrib/polyml*
-do
-  find "$DIR" -name "*.dll" >> "$FILE_LIST"
-done
-
-dash /bin/rebaseall -T "$FILE_LIST"
-
-rm -f "$FILE_LIST"
-
+dash /bin/rebaseall
