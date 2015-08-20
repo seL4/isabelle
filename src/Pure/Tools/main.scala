@@ -102,11 +102,11 @@ object Main
             Isabelle_System.getenv_strict("JEDIT_OPTIONS").split(" +")
 
           val jedit_settings =
-            Array("-settings=" + Isabelle_System.platform_path(Path.explode("$JEDIT_SETTINGS")))
+            Array("-settings=" + File.platform_path(Path.explode("$JEDIT_SETTINGS")))
 
           val more_args =
             if (args.isEmpty)
-              Array(Isabelle_System.platform_path(Path.explode("$USER_HOME/Scratch.thy")))
+              Array(File.platform_path(Path.explode("$USER_HOME/Scratch.thy")))
             else args
 
 
@@ -114,11 +114,8 @@ object Main
 
           update_environment()
 
-          System.setProperty("jedit.home",
-            Isabelle_System.platform_path(Path.explode("$JEDIT_HOME/dist")))
-
-          System.setProperty("scala.home",
-            Isabelle_System.platform_path(Path.explode("$SCALA_HOME")))
+          System.setProperty("jedit.home", File.platform_path(Path.explode("$JEDIT_HOME/dist")))
+          System.setProperty("scala.home", File.platform_path(Path.explode("$SCALA_HOME")))
 
           val jedit =
             Class.forName("org.gjt.sp.jedit.jEdit", true, ClassLoader.getSystemClassLoader)

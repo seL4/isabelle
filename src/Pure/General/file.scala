@@ -17,6 +17,27 @@ import scala.collection.mutable
 
 object File
 {
+  /* system path representations */
+
+  def standard_path(path: Path): String = path.expand.implode
+
+  def platform_path(path: Path): String = Isabelle_System.jvm_path(standard_path(path))
+  def platform_file(path: Path): JFile = new JFile(platform_path(path))
+
+  def platform_file_url(raw_path: Path): String =
+  {
+    val path = raw_path.expand
+    require(path.is_absolute)
+    val s = platform_path(path).replaceAll(" ", "%20")
+    if (!Platform.is_windows) "file://" + s
+    else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
+    else "file:///" + s.replace('\\', '/')
+  }
+
+  def shell_path(path: Path): String = "'" + standard_path(path) + "'"
+  def shell_path(file: JFile): String = "'" + Isabelle_System.posix_path(file) + "'"
+
+
   /* directory content */
 
   def read_dir(dir: Path): List[String] =

@@ -56,14 +56,14 @@ class JEdit_Resources(
   {
     val path = source_path.expand
     if (dir == "" || path.is_absolute)
-      MiscUtilities.resolveSymlinks(Isabelle_System.platform_path(path))
+      MiscUtilities.resolveSymlinks(File.platform_path(path))
     else if (path.is_current) dir
     else {
       val vfs = VFSManager.getVFSForPath(dir)
       if (vfs.isInstanceOf[FileVFS])
         MiscUtilities.resolveSymlinks(
-          vfs.constructPath(dir, Isabelle_System.platform_path(path)))
-      else vfs.constructPath(dir, Isabelle_System.standard_path(path))
+          vfs.constructPath(dir, File.platform_path(path)))
+      else vfs.constructPath(dir, File.standard_path(path))
     }
   }
 

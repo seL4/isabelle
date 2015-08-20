@@ -54,10 +54,10 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   {
     node.getUserObject match {
       case Text_File(_, path) =>
-        PIDE.editor.goto_file(true, view, Isabelle_System.platform_path(path))
+        PIDE.editor.goto_file(true, view, File.platform_path(path))
       case Documentation(_, _, path) =>
         if (path.is_file)
-          PIDE.editor.goto_file(true, view, Isabelle_System.platform_path(path))
+          PIDE.editor.goto_file(true, view, File.platform_path(path))
         else {
           Future.fork {
             try { Doc.view(path) }

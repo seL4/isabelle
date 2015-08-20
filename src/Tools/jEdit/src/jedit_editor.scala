@@ -225,7 +225,7 @@ class JEdit_Editor extends Editor[View]
       if (Path.is_wellformed(source_name)) {
         if (Path.is_valid(source_name)) {
           val path = Path.explode(source_name)
-          Some(Isabelle_System.platform_path(Isabelle_System.source_file(path) getOrElse path))
+          Some(File.platform_path(Isabelle_System.source_file(path) getOrElse path))
         }
         else None
       }

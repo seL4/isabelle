@@ -219,27 +219,6 @@ object Isabelle_System
     catch { case _: MalformedURLException => posix_path(name) }
 
 
-  /* misc path specifications */
-
-  def standard_path(path: Path): String = path.expand.implode
-
-  def platform_path(path: Path): String = jvm_path(standard_path(path))
-  def platform_file(path: Path): JFile = new JFile(platform_path(path))
-
-  def platform_file_url(raw_path: Path): String =
-  {
-    val path = raw_path.expand
-    require(path.is_absolute)
-    val s = platform_path(path).replaceAll(" ", "%20")
-    if (!Platform.is_windows) "file://" + s
-    else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
-    else "file:///" + s.replace('\\', '/')
-  }
-
-  def shell_path(path: Path): String = "'" + standard_path(path) + "'"
-  def shell_path(file: JFile): String = "'" + posix_path(file) + "'"
-
-
   /* source files of Isabelle/ML bootstrap */
 
   def source_file(path: Path): Option[Path] =
@@ -259,8 +238,8 @@ object Isabelle_System
 
   def mkdirs(path: Path): Unit =
     if (!path.is_dir) {
-      bash("perl -e \"use File::Path make_path; make_path(" + shell_path(path) + ");\"")
-      if (!path.is_dir) error("Failed to create directory: " + quote(platform_path(path)))
+      bash("perl -e \"use File::Path make_path; make_path(" + File.shell_path(path) + ");\"")
+      if (!path.is_dir) error("Failed to create directory: " + quote(File.platform_path(path)))
     }
 
 
@@ -320,7 +299,7 @@ object Isabelle_System
   class Managed_Process(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*)
   {
     private val params =
-      List(standard_path(Path.explode("~~/lib/scripts/process")), "group", "-", "no_script")
+      List(File.standard_path(Path.explode("~~/lib/scripts/process")), "group", "-", "no_script")
     private val proc = execute_env(cwd, env, redirect, (params ::: args.toList):_*)
 
 
@@ -390,7 +369,7 @@ object Isabelle_System
   {
     val path = Path.explode("$ISABELLE_TMP_PREFIX")
     path.file.mkdirs  // low-level mkdirs
-    platform_file(path)
+    File.platform_file(path)
   }
 
   def tmp_file[A](name: String, ext: String = ""): JFile =
@@ -523,7 +502,7 @@ object Isabelle_System
       catch { case _: SecurityException => false }
     } match {
       case Some(dir) =>
-        val file = standard_path(dir + Path.basic(name))
+        val file = File.standard_path(dir + Path.basic(name))
         process_output(execute(true, (List(file) ::: args.toList): _*))
       case None => ("Unknown Isabelle tool: " + name, 2)
     }
@@ -533,10 +512,10 @@ object Isabelle_System
     bash("exec \"$ISABELLE_OPEN\" '" + arg + "' >/dev/null 2>/dev/null &")
 
   def pdf_viewer(arg: Path): Unit =
-    bash("exec \"$PDF_VIEWER\" '" + standard_path(arg) + "' >/dev/null 2>/dev/null &")
+    bash("exec \"$PDF_VIEWER\" '" + File.standard_path(arg) + "' >/dev/null 2>/dev/null &")
 
   def hg(cmd_line: String, cwd: Path = Path.current): Bash_Result =
-    bash("cd " + shell_path(cwd) + " && \"${HG:-hg}\" " + cmd_line)
+    bash("cd " + File.shell_path(cwd) + " && \"${HG:-hg}\" " + cmd_line)
 
 
   /** Isabelle resources **/
