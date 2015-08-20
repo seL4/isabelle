@@ -65,7 +65,7 @@ in
   fun parse_file' lookahead file_name =
     parse_expression
      file_name
-     (File.open_input TextIO.inputAll (Path.explode file_name))
+     (File.read (Path.explode file_name))
 end
 
 val parse_file = parse_file' LOOKAHEAD

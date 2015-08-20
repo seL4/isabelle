@@ -36,7 +36,7 @@ fun inputN (System_Channel (in_stream, _)) n =
   else Byte.bytesToString (BinIO.inputN (in_stream, n));
 
 fun output (System_Channel (_, out_stream)) s =
-  BinIO.output (out_stream, Byte.stringToBytes s);
+  File.output out_stream s;
 
 fun flush (System_Channel (_, out_stream)) =
   BinIO.flushOut out_stream;
@@ -48,4 +48,3 @@ fun rendezvous name =
   in System_Channel (in_stream, out_stream) end;
 
 end;
-

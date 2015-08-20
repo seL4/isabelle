@@ -44,7 +44,7 @@ sig
   val output_markup: Markup.T -> Output.output * Output.output
   val string_of: tree -> string
   val pretty: int -> tree -> Pretty.T
-  val output: tree -> TextIO.outstream -> unit
+  val output: tree -> BinIO.outstream -> unit
   val parse_comments: string list -> unit * string list
   val parse_string : string -> string option
   val parse_element: string list -> tree * string list
