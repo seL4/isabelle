@@ -3,9 +3,9 @@
 POLYML_HOME="$COMPONENT"
 
 
-# basic settings
+# simple settings (example)
 
-#ML_SYSTEM=polyml-5.5.2
+#ML_SYSTEM=polyml-5.5.3
 #ML_PLATFORM="$ISABELLE_PLATFORM32"
 #ML_HOME="$POLYML_HOME/$ML_PLATFORM"
 #ML_OPTIONS="-H 500"
@@ -14,7 +14,7 @@ POLYML_HOME="$COMPONENT"
 
 # smart settings
 
-ML_SYSTEM=polyml-5.5.2
+ML_SYSTEM=polyml-5.5.3
 
 case "$ISABELLE_PLATFORM" in
   *-linux)
@@ -30,6 +30,9 @@ case "$ISABELLE_PLATFORM" in
         ML_PLATFORM_FALLBACK="true"
       fi
     fi
+    ;;
+  x86-cygwin)
+    ML_PLATFORM="x86-windows"
     ;;
   *)
     ML_PLATFORM="$ISABELLE_PLATFORM32"
@@ -47,4 +50,3 @@ esac
 
 ML_HOME="$POLYML_HOME/$ML_PLATFORM"
 ML_SOURCES="$POLYML_HOME/src"
-

@@ -286,6 +286,12 @@ tools, but can also cause INCOMPATIBILITY for tools that don't observe
 the proof context discipline.
 
 
+*** System ***
+
+* Poly/ML 5.5.3 runs natively on x86-windows, with somewhat larger heap
+space than former x86-cygwin.
+
+
 
 New in Isabelle2015 (May 2015)
 ------------------------------
