@@ -12,7 +12,7 @@ New in this Isabelle version
 * Improved scheduling for urgent print tasks (e.g. command state output,
 interactive queries) wrt. long-running background tasks.
 
-* IDE support the the source-level debugger of Poly/ML, to work with
+* IDE support for the source-level debugger of Poly/ML, to work with
 Isabelle/ML and official Standard ML. Configuration option "ML_debugger"
 and commands 'ML_file_debug', 'ML_file_no_debug', 'SML_file_debug',
 'SML_file_no_debug' control compilation of sources with debugging
