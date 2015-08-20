@@ -18,9 +18,7 @@ fun hex_string arr i =
   in (op ^) (apply2 hex_digit (Integer.div_mod (Char.ord c) 16)) end
 
 val lib_path =
-  ("$ML_HOME/" ^
-    (if ML_System.platform_is_cygwin orelse ML_System.platform_is_windows
-     then "sha1.dll" else "libsha1.so"))
+  ("$ML_HOME/" ^ (if ML_System.platform_is_windows then "sha1.dll" else "libsha1.so"))
   |> Path.explode;
 
 val STRING_INPUT_BYTES =
