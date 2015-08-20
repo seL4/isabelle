@@ -7,6 +7,7 @@ imports
   Complex_Analysis_Basics
   Bounded_Continuous_Function
   Uniform_Limit
+  Weierstrass
 begin
 
 end
