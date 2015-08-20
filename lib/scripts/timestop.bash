@@ -34,10 +34,12 @@ function show_times ()
     [ "$KIND" = 2 ] && KIND_NAME="cpu time"
     local RESULT="${HOURS}:${MINUTES}:${SECS} ${KIND_NAME}"
 
-    if [ -z "$TIMES_REPORT" ]; then
-      TIMES_REPORT="$RESULT"
-    else
-      TIMES_REPORT="$TIMES_REPORT, $RESULT"
+    if [ ${KIND} -eq 1 -o ${TIME} -ge 5 ]; then
+      if [ -z "$TIMES_REPORT" ]; then
+        TIMES_REPORT="$RESULT"
+      else
+        TIMES_REPORT="$TIMES_REPORT, $RESULT"
+      fi
     fi
   done
   if let "$TIME1 >= 5 && $TIME2 >= 5"
