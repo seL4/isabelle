@@ -50,7 +50,10 @@ object Main
               dirs = dirs, system_mode = system_mode, sessions = List(session)) == 0)
             system_dialog.return_code(0)
           else {
-            system_dialog.title("Isabelle build (" + Isabelle_System.getenv("ML_IDENTIFIER") + ")")
+            system_dialog.title("Isabelle build (" +
+              Isabelle_System.getenv("ML_IDENTIFIER") + " / " +
+              "jdk-" + Platform.jvm_version + "-" +
+              Isabelle_System.getenv("ISABELLE_JAVA_PLATFORM") + ")")
             system_dialog.echo("Build started for Isabelle/" + session + " ...")
 
             val (out, rc) =
