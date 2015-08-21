@@ -19,13 +19,13 @@
 {CLASSPATH}
   </classPath>
   <jre>
-    <path>%EXEDIR%\contrib\jdk\x86-windows\jre</path>
-    <bundledJre64Bit>false</bundledJre64Bit>
+    <path>%EXEDIR%\contrib\jdk\{PLATFORM}\jre</path>
+    <bundledJre64Bit>{PLATFORM_IS_64}</bundledJre64Bit>
     <bundledJreAsFallback>false</bundledJreAsFallback>
     <minVersion></minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
-    <runtimeBits>64/32</runtimeBits>
+    <runtimeBits>{PLATFORM_BITS}</runtimeBits>
     <opt>-Disabelle.home=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\\contrib\\cygwin&quot;</opt>
   </jre>
   <splash>

@@ -115,7 +115,7 @@ DISTBASE="$BASE_DIR/dist-${DISTNAME}"
 
 # make bundles
 
-for PLATFORM_FAMILY in linux windows macos
+for PLATFORM_FAMILY in linux windows windows64 macos
 do
 
 echo
@@ -141,6 +141,7 @@ cat > "$DISTBASE/index.html" <<EOF
 <ul>
 <li><a href="${DISTNAME}_linux.tar.gz">Linux</a></li>
 <li><a href="${DISTNAME}.exe">Windows</a></li>
+<li><a href="${DISTNAME}-win64.exe">Windows (64bit)</a></li>
 <li><a href="${DISTNAME}.dmg">Mac OS X</a></li>
 </ul>
 </body>
