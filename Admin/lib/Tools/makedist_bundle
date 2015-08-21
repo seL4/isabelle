@@ -12,7 +12,7 @@ function usage()
   echo "Usage: isabelle $PRG ARCHIVE PLATFORM_FAMILY"
   echo
   echo "  Re-package Isabelle source distribution with add-on components"
-  echo "  and post-hoc patches for platform family linux, macos, windows."
+  echo "  and post-hoc patches for platform family linux, windows, macos."
   echo
   echo "  Add-on components are that of the running Isabelle version!"
   echo
@@ -212,8 +212,8 @@ case "$PLATFORM_FAMILY" in
       "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
     ;;
   windows)
-    purge_contrib '-name "x86*-linux" -o -name "x86*-darwin"'
-    purge_jdk "x86-cygwin"
+    purge_contrib '-name x86_64-windows -o -name "x86*-linux" -o -name "x86*-darwin"'
+    purge_jdk "x86-windows"
     mv "$ISABELLE_TARGET/contrib/windows_app" "$TMP/."
 
     perl -pi \
@@ -222,7 +222,7 @@ case "$PLATFORM_FAMILY" in
       "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
 
     (
-      echo -e "# Java runtime options"
+      echo -e "# Java runtime options\r"
       declare -a JAVA_ARGS=()
       eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS)"
       for ARG in "${JAVA_ARGS[@]}"
@@ -240,7 +240,7 @@ case "$PLATFORM_FAMILY" in
         for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
         do
           ENTRY=$(echo "$ENTRY" | perl -p -e 's,/,\\\\,g;')
-          echo "    <cp>$ENTRY</cp>"
+          echo "    <cp>%EXEDIR%\\\\$ENTRY</cp>"
         done
       ) > exe_classpath
       EXE_CLASSPATH="$(cat exe_classpath)"
