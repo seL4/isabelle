@@ -300,6 +300,9 @@ the proof context discipline.
 * Poly/ML 5.5.3 runs natively on x86-windows, with somewhat larger heap
 space than former x86-cygwin.
 
+* Java runtime environment for x86_64-windows allows to use larger heap
+space.
+
 
 
 New in Isabelle2015 (May 2015)
