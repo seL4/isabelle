@@ -139,7 +139,7 @@ cat > "$DISTBASE/index.html" <<EOF
 <body>
 <h1>${DISTNAME}</h1>
 <ul>
-<li><a href="${DISTNAME}_linux.tar.gz">Linux</a></li>
+<li><a href="${DISTNAME}_app.tar.gz">Linux</a></li>
 <li><a href="${DISTNAME}.exe">Windows</a></li>
 <li><a href="${DISTNAME}-win64.exe">Windows (64bit)</a></li>
 <li><a href="${DISTNAME}.dmg">Mac OS X</a></li>
