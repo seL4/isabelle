@@ -50,7 +50,10 @@ object Main
               dirs = dirs, system_mode = system_mode, sessions = List(session)) == 0)
             system_dialog.return_code(0)
           else {
-            system_dialog.title("Isabelle build (" + Isabelle_System.getenv("ML_IDENTIFIER") + ")")
+            system_dialog.title("Isabelle build (" +
+              Isabelle_System.getenv("ML_IDENTIFIER") + " / " +
+              "jdk-" + Platform.jvm_version + "_" +
+              Isabelle_System.getenv("ISABELLE_JAVA_PLATFORM") + ")")
             system_dialog.echo("Build started for Isabelle/" + session + " ...")
 
             val (out, rc) =
@@ -225,23 +228,11 @@ object Main
     {
       val isabelle_home = Isabelle_System.getenv("ISABELLE_HOME")
       val isabelle_home_user = Isabelle_System.getenv("ISABELLE_HOME_USER")
-      val upd =
-        if (Platform.is_windows)
-          List(
-            "ISABELLE_HOME" -> File.platform_path(isabelle_home),
-            "ISABELLE_HOME_USER" -> File.platform_path(isabelle_home_user),
-            "INI_DIR" -> "")
-        else
-          List(
-            "ISABELLE_HOME" -> isabelle_home,
-            "ISABELLE_HOME_USER" -> isabelle_home_user)
 
       (env0: Any) => {
         val env = env0.asInstanceOf[java.util.Map[String, String]]
-        upd.foreach {
-          case (x, "") => env.remove(x)
-          case (x, y) => env.put(x, y)
-        }
+        env.put("ISABELLE_HOME", File.platform_path(isabelle_home))
+        env.put("ISABELLE_HOME_USER", File.platform_path(isabelle_home_user))
       }
     }
 

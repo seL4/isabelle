@@ -53,8 +53,17 @@ object Platform
   }
 
 
+  /* JVM version */
+
+  private val Version = new Regex("""1\.(\d+)\.0_(\d+)""")
+  lazy val jvm_version =
+    System.getProperty("java.version") match {
+      case Version(a, b) => a + "u" + b
+      case a => a
+    }
+
+
   /* JVM name */
 
   val jvm_name: String = System.getProperty("java.vm.name", "")
 }
-

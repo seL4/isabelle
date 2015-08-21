@@ -7,7 +7,7 @@ Dialog for system processes, with optional output window.
 package isabelle
 
 
-import java.awt.{GraphicsEnvironment, Point, Font}
+import java.awt.{GraphicsEnvironment, Point}
 import javax.swing.WindowConstants
 import java.io.{File => JFile, BufferedReader, InputStreamReader}
 
@@ -82,6 +82,7 @@ class System_Dialog extends Build.Progress
       columns = 65
       rows = 24
     }
+    if (GUI.is_windows_laf) text.font = (new Label).font
 
     val scroll_text = new ScrollPane(text)
 

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontWrapJar>true</dontWrapJar>
+  <headerType>gui</headerType>
+  <jar></jar>
+  <outfile>{OUTFILE}</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir></chdir>
+  <priority>normal</priority>
+  <downloadUrl></downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <manifest></manifest>
+  <icon>{ICON}</icon>
+  <classPath>
+    <mainClass>isabelle.Main</mainClass>
+{CLASSPATH}
+  </classPath>
+  <jre>
+    <path>%EXEDIR%\contrib\jdk\{PLATFORM}\jre</path>
+    <bundledJre64Bit>{PLATFORM_IS_64}</bundledJre64Bit>
+    <bundledJreAsFallback>false</bundledJreAsFallback>
+    <minVersion></minVersion>
+    <maxVersion></maxVersion>
+    <jdkPreference>jdkOnly</jdkPreference>
+    <runtimeBits>{PLATFORM_BITS}</runtimeBits>
+    <opt>-Disabelle.home=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\\contrib\\cygwin&quot;</opt>
+  </jre>
+  <splash>
+    <file>{SPLASH}</file>
+    <waitForWindow>true</waitForWindow>
+  </splash>
+</launch4jConfig>

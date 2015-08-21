@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+THIS="$(cd "$(dirname "$0")"; pwd)"
+
+
 ## diagnostics
 
 function fail()
@@ -11,13 +14,14 @@ function fail()
 
 ## parameters
 
-VERSION="8u51"
-FULL_VERSION="1.8.0_51"
+VERSION="8u60"
+FULL_VERSION="1.8.0_60"
 
 ARCHIVE_LINUX32="jdk-${VERSION}-linux-i586.tar.gz"
 ARCHIVE_LINUX64="jdk-${VERSION}-linux-x64.tar.gz"
+ARCHIVE_WINDOWS32="jdk${FULL_VERSION}-w32.tar.gz"
+ARCHIVE_WINDOWS64="jdk${FULL_VERSION}-w64.tar.gz"
 ARCHIVE_DARWIN="jdk${FULL_VERSION}.jdk.tar.gz"
-ARCHIVE_WINDOWS="jdk${FULL_VERSION}.tar.gz"
 
 
 ## main
@@ -35,7 +39,7 @@ See http://www.oracle.com/technetwork/java/javase/downloads/index.html
 for the original downloads, which are covered by the Oracle Binary
 Code License Agreement for Java SE.
 
-Linux, Windows Mac OS X, work uniformly, depending on certain
+Linux, Windows, Mac OS X all work uniformly, depending on certain
 platform-specific subdirectories.
 EOF
 
@@ -43,21 +47,7 @@ EOF
 # settings
 
 mkdir "$DIR/etc"
-cat >> "$DIR/etc/settings" << EOF
-# -*- shell-script -*- :mode=shellscript:
-
-case "\${ISABELLE_PLATFORM64:-\$ISABELLE_PLATFORM32}" in
-  x86-darwin)
-    echo "### Java unavailable on 32bit Macintosh!" >&2
-    ;;
-  x86_64-darwin)
-    ISABELLE_JDK_HOME="\$COMPONENT/\$ISABELLE_PLATFORM64/Contents/Home"
-    ;;
-  *)
-    ISABELLE_JDK_HOME="\$COMPONENT/\${ISABELLE_PLATFORM64:-\$ISABELLE_PLATFORM32}"
-    ;;
-esac
-EOF
+cp "$THIS/settings" "$DIR/etc/settings"
 
 
 # content
@@ -67,16 +57,17 @@ if [ -x /usr/bin/gnutar ]; then
   function tar() { /usr/bin/gnutar "$@"; }
 fi
 
-mkdir "$DIR/x86-linux" "$DIR/x86_64-linux" "$DIR/x86_64-darwin" "$DIR/x86-cygwin"
+mkdir "$DIR/x86-linux" "$DIR/x86_64-linux" "$DIR/x86-windows" "$DIR/x86_64-windows" "$DIR/x86_64-darwin"
 
 tar -C "$DIR/x86-linux" -xf "$ARCHIVE_LINUX32"
 tar -C "$DIR/x86_64-linux" -xf "$ARCHIVE_LINUX64"
+tar -C "$DIR/x86-windows" -xf "$ARCHIVE_WINDOWS32"
+tar -C "$DIR/x86_64-windows" -xf "$ARCHIVE_WINDOWS64"
 tar -C "$DIR/x86_64-darwin" -xf "$ARCHIVE_DARWIN"
-tar -C "$DIR/x86-cygwin" -xf "$ARCHIVE_WINDOWS"
 
 (
   cd "$DIR"
-  for PLATFORM in x86-linux x86_64-linux x86-cygwin
+  for PLATFORM in x86-linux x86_64-linux x86-windows x86_64-windows
   do
     mv "$PLATFORM/jdk${FULL_VERSION}"/* "$PLATFORM"/.
     rmdir "$PLATFORM/jdk${FULL_VERSION}"
@@ -99,8 +90,9 @@ echo "Sharing ..."
   do
     for OTHER in \
       "../x86_64-linux/$FILE" \
-      "../x86_64-darwin/Contents/Home/$FILE" \
-      "../x86-cygwin/$FILE"
+      "../x86-windows/$FILE" \
+      "../x86_64-windows/$FILE" \
+      "../x86_64-darwin/Contents/Home/$FILE"
     do
       if cmp -s "$FILE" "$OTHER"
       then

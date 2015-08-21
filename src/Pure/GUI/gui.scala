@@ -44,6 +44,10 @@ object GUI
     Platform.is_macos &&
     UIManager.getSystemLookAndFeelClassName() == UIManager.getLookAndFeel.getClass.getName
 
+  def is_windows_laf(): Boolean =
+    Platform.is_windows &&
+    UIManager.getSystemLookAndFeelClassName() == UIManager.getLookAndFeel.getClass.getName
+
 
   /* plain focus traversal, notably for text fields */
 
