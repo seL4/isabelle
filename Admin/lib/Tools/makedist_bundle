@@ -222,33 +222,46 @@ case "$PLATFORM_FAMILY" in
       "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
 
     (
-      cat "$ISABELLE_HOME/Admin/Windows/WinRun4J/Isabelle.ini"
-
+      echo -e "# Java runtime options"
       declare -a JAVA_ARGS=()
       eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS)"
-      A=2
       for ARG in "${JAVA_ARGS[@]}"
       do
-        echo -e "vmarg.$A=$ARG\r"
-        A=$[ $A + 1 ]
+        echo -e "$ARG\r"
       done
+    ) > "$ISABELLE_TARGET/${ISABELLE_NAME}.l4j.ini"
 
-      A=1
-      for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
-      do
-        ENTRY=$(echo "$ENTRY" | perl -p -e 's,/,\\\\,g;')
-        echo -e "classpath.$A=$ENTRY\r"
-        A=$[ $A + 1 ]
-      done
-    ) > "$ISABELLE_TARGET/${ISABELLE_NAME}.ini"
+    (
+      cd "$TMP"
 
-    cp "$TMP/windows_app/Isabelle.exe" "$ISABELLE_TARGET/${ISABELLE_NAME}.exe"
-    cp "$ISABELLE_HOME/Admin/Windows/WinRun4J/manifest.xml" "$ISABELLE_TARGET/${ISABELLE_NAME}.exe.manifest"
-    cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" \
-      "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Terminal.bat" "$ISABELLE_TARGET"
+      APP_TEMPLATE="$ISABELLE_HOME/Admin/Windows/launch4j"
+
+      (
+        for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
+        do
+          ENTRY=$(echo "$ENTRY" | perl -p -e 's,/,\\\\,g;')
+          echo "    <cp>$ENTRY</cp>"
+        done
+      ) > exe_classpath
+      EXE_CLASSPATH="$(cat exe_classpath)"
+
+      perl -p \
+        -e "s,{OUTFILE},$ISABELLE_TARGET/${ISABELLE_NAME}.exe,g;" \
+        -e "s,{ICON},$APP_TEMPLATE/isabelle_transparent.ico,g;" \
+        -e "s,{SPLASH},$APP_TEMPLATE/isabelle.bmp,g;" \
+        -e "s,{CLASSPATH},$EXE_CLASSPATH,g;" \
+        "$APP_TEMPLATE/isabelle.xml" > isabelle.xml
+
+      "windows_app/launch4j-${ISABELLE_PLATFORM_FAMILY}/launch4j" isabelle.xml
+
+      cp "$APP_TEMPLATE/manifest.xml" "$ISABELLE_TARGET/${ISABELLE_NAME}.exe.manifest"
+    )
 
     (
       cd "$ISABELLE_TARGET"
+
+      cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" \
+        "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Terminal.bat" .
 
       for NAME in postinstall rebaseall
       do

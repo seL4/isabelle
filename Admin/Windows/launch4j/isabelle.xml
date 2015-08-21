@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontWrapJar>true</dontWrapJar>
+  <headerType>gui</headerType>
+  <jar></jar>
+  <outfile>{OUTFILE}</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir></chdir>
+  <priority>normal</priority>
+  <downloadUrl></downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>true</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <manifest></manifest>
+  <icon>{ICON}</icon>
+  <classPath>
+    <mainClass>isabelle.Main</mainClass>
+{CLASSPATH}
+  </classPath>
+  <jre>
+    <path>%EXEDIR%\contrib\jdk\x86-cygwin\jre</path>
+    <bundledJre64Bit>false</bundledJre64Bit>
+    <bundledJreAsFallback>false</bundledJreAsFallback>
+    <minVersion></minVersion>
+    <maxVersion></maxVersion>
+    <jdkPreference>jdkOnly</jdkPreference>
+    <runtimeBits>64/32</runtimeBits>
+    <initialHeapSize>128</initialHeapSize>
+    <initialHeapPercent>20</initialHeapPercent>
+    <maxHeapSize>1024</maxHeapSize>
+    <maxHeapPercent>50</maxHeapPercent>
+    <opt>-Disabelle.home=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\\contrib\\cygwin&quot;</opt>
+  </jre>
+  <splash>
+    <file>{SPLASH}</file>
+    <waitForWindow>false</waitForWindow>
+    <timeout>10</timeout>
+    <timeoutErr>false</timeoutErr>
+  </splash>
+</launch4jConfig>
