@@ -52,7 +52,7 @@ object Main
           else {
             system_dialog.title("Isabelle build (" +
               Isabelle_System.getenv("ML_IDENTIFIER") + " / " +
-              "jdk-" + Platform.jvm_version + "-" +
+              "jdk-" + Platform.jvm_version + "_" +
               Isabelle_System.getenv("ISABELLE_JAVA_PLATFORM") + ")")
             system_dialog.echo("Build started for Isabelle/" + session + " ...")
 
