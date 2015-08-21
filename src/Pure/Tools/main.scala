@@ -225,23 +225,11 @@ object Main
     {
       val isabelle_home = Isabelle_System.getenv("ISABELLE_HOME")
       val isabelle_home_user = Isabelle_System.getenv("ISABELLE_HOME_USER")
-      val upd =
-        if (Platform.is_windows)
-          List(
-            "ISABELLE_HOME" -> File.platform_path(isabelle_home),
-            "ISABELLE_HOME_USER" -> File.platform_path(isabelle_home_user),
-            "INI_DIR" -> "")
-        else
-          List(
-            "ISABELLE_HOME" -> isabelle_home,
-            "ISABELLE_HOME_USER" -> isabelle_home_user)
 
       (env0: Any) => {
         val env = env0.asInstanceOf[java.util.Map[String, String]]
-        upd.foreach {
-          case (x, "") => env.remove(x)
-          case (x, y) => env.put(x, y)
-        }
+        env.put("ISABELLE_HOME", File.platform_path(isabelle_home))
+        env.put("ISABELLE_HOME_USER", File.platform_path(isabelle_home_user))
       }
     }
 
