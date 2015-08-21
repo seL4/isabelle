@@ -470,12 +470,13 @@ fun dest_case ctxt d used t =
     (SOME cname, ts as _ :: _) =>
       let
         val (fs, x) = split_last ts;
-        fun strip_abs i Us t =
+        fun strip_abs i t =
           let
             val zs = strip_abs_vars t;
             val j = length zs;
             val (xs, ys) =
-              if j < i then (zs @ map (pair "x") (drop j Us), [])
+              if j < i then (zs @
+                map (pair "x") (drop j (take i (binder_types (fastype_of t)))), [])
               else chop i zs;
             val u = fold_rev Term.abs ys (strip_abs_body t);
             val xs' = map Free
@@ -501,7 +502,7 @@ fun dest_case ctxt d used t =
                   let
                     val Us = binder_types U;
                     val k = length Us;
-                    val p as (xs, _) = strip_abs k Us t;
+                    val p as (xs, _) = strip_abs k t;
                   in
                     (Const (s, map fastype_of xs ---> fastype_of x), p, is_dependent k t)
                   end) (constructors ~~ fs);
