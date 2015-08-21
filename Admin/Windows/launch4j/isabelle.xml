@@ -30,8 +30,6 @@
   </jre>
   <splash>
     <file>{SPLASH}</file>
-    <waitForWindow>false</waitForWindow>
-    <timeout>10</timeout>
-    <timeoutErr>false</timeoutErr>
+    <waitForWindow>true</waitForWindow>
   </splash>
 </launch4jConfig>
