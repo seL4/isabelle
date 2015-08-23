@@ -192,8 +192,11 @@ object Debugger
     })
   }
 
-  def set_focus(focus: Option[Position.T]): Unit =
+  def set_focus(focus: Option[Position.T])
+  {
     global_state.change(_.set_focus(focus))
+    delay_update.invoke()
+  }
 
   def threads(): Map[String, List[Debug_State]] = global_state.value.threads
 
