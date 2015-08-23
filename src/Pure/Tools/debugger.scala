@@ -192,8 +192,8 @@ object Debugger
     })
   }
 
-  def focus(new_focus: Option[Position.T]): Boolean =
-    global_state.change_result(state => (state.focus != new_focus, state.set_focus(new_focus)))
+  def set_focus(focus: Option[Position.T]): Unit =
+    global_state.change(_.set_focus(focus))
 
   def threads(): Map[String, List[Debug_State]] = global_state.value.threads
 

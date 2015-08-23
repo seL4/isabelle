@@ -10,7 +10,8 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{BorderLayout, Dimension}
-import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, FocusAdapter, FocusEvent}
+import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, FocusAdapter, FocusEvent,
+  MouseEvent, MouseAdapter}
 import javax.swing.{JTree, JMenuItem}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
@@ -221,6 +222,15 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         update_vals()
       }
     })
+  tree.addMouseListener(
+    new MouseAdapter {
+      override def mouseClicked(e: MouseEvent)
+      {
+        val click = tree.getPathForLocation(e.getX, e.getY)
+        if (click != null && e.getClickCount == 1)
+          update_focus(focus_selection())
+      }
+    })
 
   private val tree_pane = new ScrollPane(Component.wrap(tree))
   tree_pane.horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
@@ -335,7 +345,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def update_focus(focus: Option[Position.T])
   {
-    if (Debugger.focus(focus) && focus.isDefined)
+    Debugger.set_focus(focus)
+    if (focus.isDefined)
       PIDE.editor.hyperlink_position(false, current_snapshot, focus.get).foreach(_.follow(view))
   }
 
