@@ -349,11 +349,13 @@ class Rich_Text_Area(
   private def caret_enabled: Boolean =
     caret_visible && (!text_area.hasFocus || text_area.isCaretVisible)
 
-  private def caret_color(rendering: Rendering): Color =
+  private def caret_color(rendering: Rendering, offset: Text.Offset): Color =
   {
-    if (text_area.isCaretVisible)
-      text_area.getPainter.getCaretColor
-    else rendering.caret_invisible_color
+    if (text_area.isCaretVisible) text_area.getPainter.getCaretColor
+    else
+      if (Debugger.focus().exists(PIDE.editor.is_hyperlink_position(rendering.snapshot, offset, _)))
+        rendering.caret_debugger_color
+      else rendering.caret_invisible_color
   }
 
   private def paint_chunk_list(rendering: Rendering,
@@ -416,7 +418,7 @@ class Rich_Text_Area(
 
               val astr = new AttributedString(s2)
               astr.addAttribute(TextAttribute.FONT, chunk_font)
-              astr.addAttribute(TextAttribute.FOREGROUND, caret_color(rendering))
+              astr.addAttribute(TextAttribute.FOREGROUND, caret_color(rendering, r.start))
               astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON)
               gfx.drawString(astr.getIterator, x1 + string_width(s1), y)
 
@@ -604,7 +606,7 @@ class Rich_Text_Area(
 
             val astr = new AttributedString(" ")
             astr.addAttribute(TextAttribute.FONT, painter.getFont)
-            astr.addAttribute(TextAttribute.FOREGROUND, caret_color(rendering))
+            astr.addAttribute(TextAttribute.FOREGROUND, caret_color(rendering, caret))
             astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON)
 
             val clip = gfx.getClip

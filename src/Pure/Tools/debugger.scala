@@ -222,6 +222,8 @@ object Debugger
     })
   }
 
+  def focus(): Option[Position.T] = global_state.value.focus
+
   def set_focus(focus: Option[Position.T])
   {
     global_state.change(_.set_focus(focus))

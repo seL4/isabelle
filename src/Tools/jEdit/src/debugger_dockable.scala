@@ -328,6 +328,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     Debugger.set_focus(focus)
     if (focus.isDefined)
       PIDE.editor.hyperlink_position(false, current_snapshot, focus.get).foreach(_.follow(view))
+    view.getTextArea.repaint()
   }
 
 

@@ -279,6 +279,23 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
+  def is_hyperlink_position(snapshot: Document.Snapshot,
+    text_offset: Text.Offset, pos: Position.T): Boolean =
+  {
+    pos match {
+      case Position.Id_Offset0(id, offset) if offset > 0 =>
+        snapshot.state.find_command(snapshot.version, id) match {
+          case Some((node, command)) if snapshot.version.nodes(command.node_name) eq node =>
+            node.command_start(command) match {
+              case Some(start) => text_offset == start + command.chunk.decode(offset)
+              case None => false
+            }
+          case _ => false
+        }
+      case _ => false
+    }
+  }
+
   def hyperlink_position(focus: Boolean, snapshot: Document.Snapshot, pos: Position.T)
       : Option[Hyperlink] =
     pos match {
