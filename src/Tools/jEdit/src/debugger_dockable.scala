@@ -167,11 +167,19 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def update_tree(thread_entries: List[Debugger_Dockable.Thread_Entry])
   {
-    val new_thread_selection =
-      thread_selection() match {
-        case Some(thread_name) if thread_entries.exists(t => t.thread_name == thread_name) =>
-          Some(thread_name)
-        case _ => thread_entries.headOption.map(_.thread_name)
+    val new_tree_selection: Option[(String, Int)] =
+      tree_selection() match {
+        case Some((t, opt_index))
+        if thread_entries.exists(t1 =>
+          t.thread_name == t1.thread_name &&
+          (opt_index.isEmpty || opt_index.get < t1.debug_states.length)) =>
+            val j = opt_index match { case None => 0 case Some(i) => i + 1 }
+            Some((t.thread_name, j))
+        case _ =>
+          thread_entries match {
+            case t :: _ => Some((t.thread_name, 0))
+            case Nil => None
+          }
       }
 
     tree.clearSelection
@@ -192,12 +200,12 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     tree.expandRow(0)
     for (i <- Range.inclusive(tree.getRowCount - 1, 1, -1)) tree.expandRow(i)
 
-    new_thread_selection match {
-      case Some(thread_name) =>
+    new_tree_selection match {
+      case Some((thread_name, j)) =>
         val i =
           (for (t <- thread_entries.iterator.takeWhile(t => t.thread_name != thread_name))
             yield 1 + t.debug_states.length).sum
-        tree.addSelectionRow(i + 1)
+        tree.addSelectionRow(i + j + 1)
       case None =>
     }
 
