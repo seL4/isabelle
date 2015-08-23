@@ -9,11 +9,41 @@ package isabelle
 
 object Debugger
 {
-  /* global state */
+  /* context */
 
   sealed case class Debug_State(
     pos: Position.T,
     function: String)
+
+  sealed case class Context(thread_name: String, debug_states: List[Debug_State], index: Int = 0)
+  {
+    def size: Int = debug_states.length + 1
+    def reset: Context = copy(index = 0)
+    def select(i: Int) = copy(index = i + 1)
+
+    def thread_state: Option[Debug_State] = debug_states.headOption
+
+    def stack_state: Option[Debug_State] =
+      if (1 <= index && index <= debug_states.length)
+        Some(debug_states(index - 1))
+      else None
+
+    def debug_state_index: Option[Int] =
+      if (stack_state.isDefined) Some(index - 1)
+      else if (debug_states.nonEmpty) Some(0)
+      else None
+
+    def debug_state: Option[Debug_State] = stack_state orElse thread_state
+
+    override def toString: String =
+      stack_state match {
+        case None => thread_name
+        case Some(d) => d.function
+      }
+  }
+
+
+  /* global state */
 
   sealed case class State(
     session: Session = new Session(Resources.empty),  // implicit session
@@ -216,21 +246,24 @@ object Debugger
     delay_update.invoke()
   }
 
-  def eval(thread_name: String, index: Int, SML: Boolean, context: String, expression: String)
+  def eval(c: Context, SML: Boolean, context: String, expression: String)
   {
     global_state.change(state => {
-      input(thread_name, "eval",
-        index.toString, SML.toString, Symbol.encode(context), Symbol.encode(expression))
-      state.clear_output(thread_name)
+      input(c.thread_name, "eval", c.debug_state_index.getOrElse(0).toString,
+        SML.toString, Symbol.encode(context), Symbol.encode(expression))
+      state.clear_output(c.thread_name)
     })
     delay_update.invoke()
   }
 
-  def print_vals(thread_name: String, index: Int, SML: Boolean, context: String)
+  def print_vals(c: Context, SML: Boolean, context: String)
   {
+    require(c.debug_state_index.isDefined)
+
     global_state.change(state => {
-      input(thread_name, "print_vals", index.toString, SML.toString, Symbol.encode(context))
-      state.clear_output(thread_name)
+      input(c.thread_name, "print_vals", c.debug_state_index.getOrElse(0).toString,
+        SML.toString, Symbol.encode(context))
+      state.clear_output(c.thread_name)
     })
     delay_update.invoke()
   }

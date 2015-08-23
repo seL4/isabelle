@@ -27,19 +27,6 @@ import org.gjt.sp.jedit.textarea.JEditTextArea
 
 object Debugger_Dockable
 {
-  /* state entries */
-
-  sealed case class Thread_Entry(thread_name: String, debug_states: List[Debugger.Debug_State])
-  {
-    override def toString: String = thread_name
-  }
-
-  sealed case class Stack_Entry(debug_state: Debugger.Debug_State, index: Int)
-  {
-    override def toString: String = debug_state.function
-  }
-
-
   /* breakpoints */
 
   def toggle_breakpoint(command: Command, breakpoint: Long)
@@ -119,10 +106,10 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
     if (new_threads != current_threads) {
-      val thread_entries =
+      val threads =
         (for ((a, b) <- new_threads.iterator)
-          yield Debugger_Dockable.Thread_Entry(a, b)).toList.sortBy(_.thread_name)
-      update_tree(thread_entries)
+          yield Debugger.Context(a, b)).toList.sortBy(_.thread_name)
+      update_tree(threads)
     }
 
     if (new_output != current_output)
@@ -142,56 +129,42 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   tree.setRowHeight(0)
   tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
 
-  def tree_selection(): Option[(Debugger_Dockable.Thread_Entry, Option[Int])] =
-    tree.getSelectionPath match {
-      case null => None
-      case path =>
-        path.getPath.toList.map(n => n.asInstanceOf[DefaultMutableTreeNode].getUserObject) match {
-          case List(_, t: Debugger_Dockable.Thread_Entry) =>
-            Some((t, None))
-          case List(_, t: Debugger_Dockable.Thread_Entry, s: Debugger_Dockable.Stack_Entry) =>
-            Some((t, Some(s.index)))
+  def tree_selection(): Option[Debugger.Context] =
+    tree.getLastSelectedPathComponent match {
+      case node: DefaultMutableTreeNode =>
+        node.getUserObject match {
+          case c: Debugger.Context => Some(c)
           case _ => None
         }
-    }
-
-  def thread_selection(): Option[String] = tree_selection().map(sel => sel._1.thread_name)
-
-  def focus_selection(): Option[Position.T] =
-    tree_selection() match {
-      case Some((t, opt_index)) =>
-        val i = opt_index getOrElse 0
-        if (i < t.debug_states.length) Some(t.debug_states(i).pos) else None
       case _ => None
     }
 
-  private def update_tree(thread_entries: List[Debugger_Dockable.Thread_Entry])
+  def thread_selection(): Option[String] = tree_selection().map(_.thread_name)
+
+  def focus_selection(): Option[Position.T] =
+    for {
+      c <- tree_selection()
+      d <- c.debug_state
+    } yield d.pos
+
+  private def update_tree(threads: List[Debugger.Context])
   {
-    val new_tree_selection: Option[(String, Int)] =
+    require(threads.forall(_.index == 0))
+
+    val new_tree_selection =
       tree_selection() match {
-        case Some((t, opt_index))
-        if thread_entries.exists(t1 =>
-          t.thread_name == t1.thread_name &&
-          (opt_index.isEmpty || opt_index.get < t1.debug_states.length)) =>
-            val j = opt_index match { case None => 0 case Some(i) => i + 1 }
-            Some((t.thread_name, j))
-        case _ =>
-          thread_entries match {
-            case t :: _ => Some((t.thread_name, 0))
-            case Nil => None
-          }
+        case Some(c) if threads.contains(c) => Some(c)
+        case Some(c) if threads.exists(t => c.thread_name == t.thread_name) => Some(c.reset)
+        case _ => threads.headOption
       }
 
     tree.clearSelection
     root.removeAllChildren
 
-    for (thread_entry <- thread_entries) {
-      val thread_node = new DefaultMutableTreeNode(thread_entry)
-      for ((debug_state, i) <- thread_entry.debug_states.zipWithIndex) {
-        val stack_node =
-          new DefaultMutableTreeNode(Debugger_Dockable.Stack_Entry(debug_state, i))
-        thread_node.add(stack_node)
-      }
+    for (thread <- threads) {
+      val thread_node = new DefaultMutableTreeNode(thread)
+      for ((debug_state, i) <- thread.debug_states.zipWithIndex)
+        thread_node.add(new DefaultMutableTreeNode(thread.select(i)))
       root.add(thread_node)
     }
 
@@ -201,11 +174,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     for (i <- Range.inclusive(tree.getRowCount - 1, 1, -1)) tree.expandRow(i)
 
     new_tree_selection match {
-      case Some((thread_name, j)) =>
+      case Some(c) =>
         val i =
-          (for (t <- thread_entries.iterator.takeWhile(t => t.thread_name != thread_name))
-            yield 1 + t.debug_states.length).sum
-        tree.addSelectionRow(i + j + 1)
+          (for (t <- threads.iterator.takeWhile(t => c.thread_name != t.thread_name))
+            yield t.size).sum
+        tree.addSelectionRow(i + c.index + 1)
       case None =>
     }
 
@@ -215,11 +188,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   def update_vals()
   {
     tree_selection() match {
-      case Some((t, None)) =>
-        Debugger.clear_output(t.thread_name)
-      case Some((t, Some(i))) if i < t.debug_states.length =>
-        Debugger.print_vals(t.thread_name, i, sml_button.selected, context_field.getText)
-      case _ =>
+      case Some(c) if c.stack_state.isDefined =>
+        Debugger.print_vals(c, sml_button.selected, context_field.getText)
+      case Some(c) =>
+        Debugger.clear_output(c.thread_name)
+      case None =>
     }
   }
 
@@ -319,9 +292,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     context_field.addCurrentToHistory()
     expression_field.addCurrentToHistory()
     tree_selection() match {
-      case Some((t, opt_index)) if t.debug_states.nonEmpty =>
-        Debugger.eval(t.thread_name, opt_index getOrElse 0,
-          sml_button.selected, context_field.getText, expression_field.getText)
+      case Some(c) if c.debug_state_index.isDefined =>
+        Debugger.eval(c, sml_button.selected, context_field.getText, expression_field.getText)
       case _ =>
     }
   }
