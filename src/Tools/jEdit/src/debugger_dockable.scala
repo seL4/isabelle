@@ -16,6 +16,7 @@ import javax.swing.{JTree, JMenuItem}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
+import scala.collection.immutable.SortedMap
 import scala.swing.{Button, Label, Component, ScrollPane, SplitPane, Orientation,
   CheckBox, BorderPanel}
 import scala.swing.event.ButtonClicked
@@ -70,7 +71,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   /* component state -- owned by GUI thread */
 
   private var current_snapshot = Document.Snapshot.init
-  private var current_threads: Map[String, List[Debugger.Debug_State]] = Map.empty
+  private var current_threads: Debugger.Threads = SortedMap.empty
   private var current_output: List[XML.Tree] = Nil
 
 
@@ -108,7 +109,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     if (new_threads != current_threads) {
       val threads =
         (for ((a, b) <- new_threads.iterator)
-          yield Debugger.Context(a, b)).toList.sortBy(_.thread_name)
+          yield Debugger.Context(a, b)).toList
       update_tree(threads)
     }
 

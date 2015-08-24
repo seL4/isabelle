@@ -7,6 +7,9 @@ Interactive debugger for Isabelle/ML.
 package isabelle
 
 
+import scala.collection.immutable.SortedMap
+
+
 object Debugger
 {
   /* context */
@@ -46,12 +49,14 @@ object Debugger
 
   /* global state */
 
+  type Threads = SortedMap[String, List[Debug_State]]
+
   sealed case class State(
     session: Session = new Session(Resources.empty),  // implicit session
     active: Int = 0,  // active views
     break: Boolean = false,  // break at next possible breakpoint
     active_breakpoints: Set[Long] = Set.empty,  // explicit breakpoint state
-    threads: Map[String, List[Debug_State]] = Map.empty,  // thread name ~> stack of debug states
+    threads: Threads = SortedMap.empty,  // thread name ~> stack of debug states
     focus: Map[String, Context] = Map.empty,  // thread name ~> focus
     output: Map[String, Command.Results] = Map.empty)  // thread name ~> output messages
   {
@@ -222,7 +227,7 @@ object Debugger
     })
   }
 
-  def threads(): Map[String, List[Debug_State]] = global_state.value.threads
+  def threads(): Threads = global_state.value.threads
 
   def focus(): List[Context] = global_state.value.focus.toList.map(_._2)
   def set_focus(c: Context)
