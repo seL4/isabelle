@@ -94,24 +94,10 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     GUI_Thread.require {}
 
     val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
-    val new_threads = Debugger.threads()
-    val new_output =
-    {
-      val output = Debugger.output()
-      val current_thread_selection = thread_selection()
-      (for {
-        (thread_name, results) <- output
-        if current_thread_selection.isEmpty || current_thread_selection.get == thread_name
-        (_, tree) <- results.iterator
-      } yield tree).toList
-    }
+    val (new_threads, new_output) = Debugger.status(tree_selection())
 
-    if (new_threads != current_threads) {
-      val threads =
-        (for ((a, b) <- new_threads.iterator)
-          yield Debugger.Context(a, b)).toList
-      update_tree(threads)
-    }
+    if (new_threads != current_threads)
+      update_tree(new_threads)
 
     if (new_output != current_output)
       pretty_text_area.update(new_snapshot, Command.Results.empty, Pretty.separate(new_output))
@@ -142,21 +128,24 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   def thread_selection(): Option[String] = tree_selection().map(_.thread_name)
 
-  private def update_tree(threads: List[Debugger.Context])
+  private def update_tree(threads: Debugger.Threads)
   {
-    require(threads.forall(_.index == 0))
+    val thread_contexts =
+      (for ((a, b) <- threads.iterator)
+        yield Debugger.Context(a, b)).toList
 
     val new_tree_selection =
       tree_selection() match {
-        case Some(c) if threads.contains(c) => Some(c)
-        case Some(c) if threads.exists(t => c.thread_name == t.thread_name) => Some(c.reset)
-        case _ => threads.headOption
+        case Some(c) if thread_contexts.contains(c) => Some(c)
+        case Some(c) if thread_contexts.exists(t => c.thread_name == t.thread_name) =>
+          Some(c.reset)
+        case _ => thread_contexts.headOption
       }
 
     tree.clearSelection
     root.removeAllChildren
 
-    for (thread <- threads) {
+    for (thread <- thread_contexts) {
       val thread_node = new DefaultMutableTreeNode(thread)
       for ((debug_state, i) <- thread.debug_states.zipWithIndex)
         thread_node.add(new DefaultMutableTreeNode(thread.select(i)))
@@ -171,7 +160,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     new_tree_selection match {
       case Some(c) =>
         val i =
-          (for (t <- threads.iterator.takeWhile(t => c.thread_name != t.thread_name))
+          (for (t <- thread_contexts.iterator.takeWhile(t => c.thread_name != t.thread_name))
             yield t.size).sum
         tree.addSelectionRow(i + c.index + 1)
       case None =>

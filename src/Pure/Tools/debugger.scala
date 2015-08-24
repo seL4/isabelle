@@ -227,7 +227,21 @@ object Debugger
     })
   }
 
-  def threads(): Threads = global_state.value.threads
+  def status(focus: Option[Context]): (Threads, List[XML.Tree]) =
+  {
+    val state = global_state.value
+    val output =
+      focus match {
+        case None => Nil
+        case Some(c) =>
+          (for {
+            (thread_name, results) <- state.output
+            if thread_name == c.thread_name
+            (_, tree) <- results.iterator
+          } yield tree).toList
+      }
+    (state.threads, output)
+  }
 
   def focus(): List[Context] = global_state.value.focus.toList.map(_._2)
   def set_focus(c: Context)
@@ -235,8 +249,6 @@ object Debugger
     global_state.change(_.set_focus(c))
     delay_update.invoke()
   }
-
-  def output(): Map[String, Command.Results] = global_state.value.output
 
   def input(thread_name: String, msg: String*): Unit =
     global_state.value.session.protocol_command("Debugger.input", (thread_name :: msg.toList):_*)
