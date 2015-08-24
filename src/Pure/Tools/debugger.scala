@@ -81,8 +81,18 @@ object Debugger
       threads.getOrElse(thread_name, Nil)
 
     def update_thread(thread_name: String, debug_states: List[Debug_State]): State =
-      if (debug_states.isEmpty) copy(threads = threads - thread_name, focus = focus - thread_name)
-      else copy(threads = threads + (thread_name -> debug_states))
+    {
+      val threads1 =
+        if (debug_states.nonEmpty) threads + (thread_name -> debug_states)
+        else threads - thread_name
+      val focus1 =
+        focus.get(thread_name) match {
+          case Some(c) if debug_states.nonEmpty =>
+            focus + (thread_name -> Context(thread_name, debug_states))
+          case _ => focus - thread_name
+        }
+      copy(threads = threads1, focus = focus1)
+    }
 
     def set_focus(c: Context): State = copy(focus = focus + (c.thread_name -> c))
 
