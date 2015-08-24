@@ -16,6 +16,7 @@ import javax.swing.{JTree, JMenuItem}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
+import scala.collection.immutable.SortedMap
 import scala.swing.{Button, Label, Component, ScrollPane, SplitPane, Orientation,
   CheckBox, BorderPanel}
 import scala.swing.event.ButtonClicked
@@ -70,7 +71,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   /* component state -- owned by GUI thread */
 
   private var current_snapshot = Document.Snapshot.init
-  private var current_threads: Map[String, List[Debugger.Debug_State]] = Map.empty
+  private var current_threads: Debugger.Threads = SortedMap.empty
   private var current_output: List[XML.Tree] = Nil
 
 
@@ -93,24 +94,10 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     GUI_Thread.require {}
 
     val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
-    val new_threads = Debugger.threads()
-    val new_output =
-    {
-      val output = Debugger.output()
-      val current_thread_selection = thread_selection()
-      (for {
-        (thread_name, results) <- output
-        if current_thread_selection.isEmpty || current_thread_selection.get == thread_name
-        (_, tree) <- results.iterator
-      } yield tree).toList
-    }
+    val (new_threads, new_output) = Debugger.status(tree_selection())
 
-    if (new_threads != current_threads) {
-      val threads =
-        (for ((a, b) <- new_threads.iterator)
-          yield Debugger.Context(a, b)).toList.sortBy(_.thread_name)
-      update_tree(threads)
-    }
+    if (new_threads != current_threads)
+      update_tree(new_threads)
 
     if (new_output != current_output)
       pretty_text_area.update(new_snapshot, Command.Results.empty, Pretty.separate(new_output))
@@ -141,27 +128,24 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   def thread_selection(): Option[String] = tree_selection().map(_.thread_name)
 
-  def focus_selection(): Option[Position.T] =
-    for {
-      c <- tree_selection()
-      d <- c.debug_state
-    } yield d.pos
-
-  private def update_tree(threads: List[Debugger.Context])
+  private def update_tree(threads: Debugger.Threads)
   {
-    require(threads.forall(_.index == 0))
+    val thread_contexts =
+      (for ((a, b) <- threads.iterator)
+        yield Debugger.Context(a, b)).toList
 
     val new_tree_selection =
       tree_selection() match {
-        case Some(c) if threads.contains(c) => Some(c)
-        case Some(c) if threads.exists(t => c.thread_name == t.thread_name) => Some(c.reset)
-        case _ => threads.headOption
+        case Some(c) if thread_contexts.contains(c) => Some(c)
+        case Some(c) if thread_contexts.exists(t => c.thread_name == t.thread_name) =>
+          Some(c.reset)
+        case _ => thread_contexts.headOption
       }
 
     tree.clearSelection
     root.removeAllChildren
 
-    for (thread <- threads) {
+    for (thread <- thread_contexts) {
       val thread_node = new DefaultMutableTreeNode(thread)
       for ((debug_state, i) <- thread.debug_states.zipWithIndex)
         thread_node.add(new DefaultMutableTreeNode(thread.select(i)))
@@ -176,7 +160,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     new_tree_selection match {
       case Some(c) =>
         val i =
-          (for (t <- threads.iterator.takeWhile(t => c.thread_name != t.thread_name))
+          (for (t <- thread_contexts.iterator.takeWhile(t => c.thread_name != t.thread_name))
             yield t.size).sum
         tree.addSelectionRow(i + c.index + 1)
       case None =>
@@ -199,7 +183,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   tree.addTreeSelectionListener(
     new TreeSelectionListener {
       override def valueChanged(e: TreeSelectionEvent) {
-        update_focus(focus_selection())
+        update_focus()
         update_vals()
       }
     })
@@ -209,7 +193,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       {
         val click = tree.getPathForLocation(e.getX, e.getY)
         if (click != null && e.getClickCount == 1)
-          update_focus(focus_selection())
+          update_focus()
       }
     })
 
@@ -292,7 +276,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     context_field.addCurrentToHistory()
     expression_field.addCurrentToHistory()
     tree_selection() match {
-      case Some(c) if c.debug_state_index.isDefined =>
+      case Some(c) if c.debug_index.isDefined =>
         Debugger.eval(c, sml_button.selected, context_field.getText, expression_field.getText)
       case _ =>
     }
@@ -319,16 +303,19 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   override def focusOnDefaultComponent { eval_button.requestFocus }
 
   addFocusListener(new FocusAdapter {
-    override def focusGained(e: FocusEvent) { update_focus(focus_selection()) }
-    override def focusLost(e: FocusEvent) { update_focus(None) }
+    override def focusGained(e: FocusEvent) { update_focus() }
   })
 
-  private def update_focus(focus: Option[Position.T])
+  private def update_focus()
   {
-    Debugger.set_focus(focus)
-    if (focus.isDefined)
-      PIDE.editor.hyperlink_position(false, current_snapshot, focus.get).foreach(_.follow(view))
-    view.getTextArea.repaint()
+    for (c <- tree_selection()) {
+      Debugger.set_focus(c)
+      for {
+        pos <- c.debug_position
+        link <- PIDE.editor.hyperlink_position(false, current_snapshot, pos)
+      } link.follow(view)
+    }
+    JEdit_Lib.jedit_text_areas(view.getBuffer).foreach(_.repaint())
   }
 
 
@@ -370,7 +357,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options -= main
     PIDE.session.debugger_updates -= main
     delay_resize.revoke()
-    update_focus(None)
     Debugger.exit()
     jEdit.propertiesChanged()
   }

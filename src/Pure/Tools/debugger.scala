@@ -7,6 +7,9 @@ Interactive debugger for Isabelle/ML.
 package isabelle
 
 
+import scala.collection.immutable.SortedMap
+
+
 object Debugger
 {
   /* context */
@@ -28,12 +31,13 @@ object Debugger
         Some(debug_states(index - 1))
       else None
 
-    def debug_state_index: Option[Int] =
+    def debug_index: Option[Int] =
       if (stack_state.isDefined) Some(index - 1)
       else if (debug_states.nonEmpty) Some(0)
       else None
 
     def debug_state: Option[Debug_State] = stack_state orElse thread_state
+    def debug_position: Option[Position.T] = debug_state.map(_.pos)
 
     override def toString: String =
       stack_state match {
@@ -45,13 +49,15 @@ object Debugger
 
   /* global state */
 
+  type Threads = SortedMap[String, List[Debug_State]]
+
   sealed case class State(
     session: Session = new Session(Resources.empty),  // implicit session
     active: Int = 0,  // active views
     break: Boolean = false,  // break at next possible breakpoint
     active_breakpoints: Set[Long] = Set.empty,  // explicit breakpoint state
-    focus: Option[Position.T] = None,  // position of active GUI component
-    threads: Map[String, List[Debug_State]] = Map.empty,  // thread name ~> stack of debug states
+    threads: Threads = SortedMap.empty,  // thread name ~> stack of debug states
+    focus: Map[String, Context] = Map.empty,  // thread name ~> focus
     output: Map[String, Command.Results] = Map.empty)  // thread name ~> output messages
   {
     def set_session(new_session: Session): State =
@@ -71,15 +77,24 @@ object Debugger
       (active_breakpoints1(breakpoint), copy(active_breakpoints = active_breakpoints1))
     }
 
-    def set_focus(new_focus: Option[Position.T]): State =
-      copy(focus = new_focus)
-
     def get_thread(thread_name: String): List[Debug_State] =
       threads.getOrElse(thread_name, Nil)
 
     def update_thread(thread_name: String, debug_states: List[Debug_State]): State =
-      if (debug_states.isEmpty) copy(threads = threads - thread_name)
-      else copy(threads = threads + (thread_name -> debug_states))
+    {
+      val threads1 =
+        if (debug_states.nonEmpty) threads + (thread_name -> debug_states)
+        else threads - thread_name
+      val focus1 =
+        focus.get(thread_name) match {
+          case Some(c) if debug_states.nonEmpty =>
+            focus + (thread_name -> Context(thread_name, debug_states))
+          case _ => focus - thread_name
+        }
+      copy(threads = threads1, focus = focus1)
+    }
+
+    def set_focus(c: Context): State = copy(focus = focus + (c.thread_name -> c))
 
     def get_output(thread_name: String): Command.Results =
       output.getOrElse(thread_name, Command.Results.empty)
@@ -222,17 +237,28 @@ object Debugger
     })
   }
 
-  def focus(): Option[Position.T] = global_state.value.focus
-
-  def set_focus(focus: Option[Position.T])
+  def status(focus: Option[Context]): (Threads, List[XML.Tree]) =
   {
-    global_state.change(_.set_focus(focus))
-    delay_update.invoke()
+    val state = global_state.value
+    val output =
+      focus match {
+        case None => Nil
+        case Some(c) =>
+          (for {
+            (thread_name, results) <- state.output
+            if thread_name == c.thread_name
+            (_, tree) <- results.iterator
+          } yield tree).toList
+      }
+    (state.threads, output)
   }
 
-  def threads(): Map[String, List[Debug_State]] = global_state.value.threads
-
-  def output(): Map[String, Command.Results] = global_state.value.output
+  def focus(): List[Context] = global_state.value.focus.toList.map(_._2)
+  def set_focus(c: Context)
+  {
+    global_state.change(_.set_focus(c))
+    delay_update.invoke()
+  }
 
   def input(thread_name: String, msg: String*): Unit =
     global_state.value.session.protocol_command("Debugger.input", (thread_name :: msg.toList):_*)
@@ -251,7 +277,7 @@ object Debugger
   def eval(c: Context, SML: Boolean, context: String, expression: String)
   {
     global_state.change(state => {
-      input(c.thread_name, "eval", c.debug_state_index.getOrElse(0).toString,
+      input(c.thread_name, "eval", c.debug_index.getOrElse(0).toString,
         SML.toString, Symbol.encode(context), Symbol.encode(expression))
       state.clear_output(c.thread_name)
     })
@@ -260,10 +286,10 @@ object Debugger
 
   def print_vals(c: Context, SML: Boolean, context: String)
   {
-    require(c.debug_state_index.isDefined)
+    require(c.debug_index.isDefined)
 
     global_state.change(state => {
-      input(c.thread_name, "print_vals", c.debug_state_index.getOrElse(0).toString,
+      input(c.thread_name, "print_vals", c.debug_index.getOrElse(0).toString,
         SML.toString, Symbol.encode(context))
       state.clear_output(c.thread_name)
     })
