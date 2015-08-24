@@ -352,10 +352,16 @@ class Rich_Text_Area(
   private def caret_color(rendering: Rendering, offset: Text.Offset): Color =
   {
     if (text_area.isCaretVisible) text_area.getPainter.getCaretColor
-    else
-      if (Debugger.focus().exists(PIDE.editor.is_hyperlink_position(rendering.snapshot, offset, _)))
+    else {
+      val debug_positions =
+        for {
+          c <- Debugger.focus()
+          pos <- c.debug_position
+        } yield pos
+      if (debug_positions.exists(PIDE.editor.is_hyperlink_position(rendering.snapshot, offset, _)))
         rendering.caret_debugger_color
       else rendering.caret_invisible_color
+    }
   }
 
   private def paint_chunk_list(rendering: Rendering,

@@ -141,12 +141,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   def thread_selection(): Option[String] = tree_selection().map(_.thread_name)
 
-  def focus_selection(): Option[Position.T] =
-    for {
-      c <- tree_selection()
-      d <- c.debug_state
-    } yield d.pos
-
   private def update_tree(threads: List[Debugger.Context])
   {
     require(threads.forall(_.index == 0))
@@ -199,7 +193,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   tree.addTreeSelectionListener(
     new TreeSelectionListener {
       override def valueChanged(e: TreeSelectionEvent) {
-        update_focus(focus_selection())
+        update_focus()
         update_vals()
       }
     })
@@ -209,7 +203,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       {
         val click = tree.getPathForLocation(e.getX, e.getY)
         if (click != null && e.getClickCount == 1)
-          update_focus(focus_selection())
+          update_focus()
       }
     })
 
@@ -292,7 +286,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     context_field.addCurrentToHistory()
     expression_field.addCurrentToHistory()
     tree_selection() match {
-      case Some(c) if c.debug_state_index.isDefined =>
+      case Some(c) if c.debug_index.isDefined =>
         Debugger.eval(c, sml_button.selected, context_field.getText, expression_field.getText)
       case _ =>
     }
@@ -319,16 +313,21 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   override def focusOnDefaultComponent { eval_button.requestFocus }
 
   addFocusListener(new FocusAdapter {
-    override def focusGained(e: FocusEvent) { update_focus(focus_selection()) }
-    override def focusLost(e: FocusEvent) { update_focus(None) }
+    override def focusGained(e: FocusEvent) { update_focus() }
   })
 
-  private def update_focus(focus: Option[Position.T])
+  private def update_focus()
   {
-    Debugger.set_focus(focus)
-    if (focus.isDefined)
-      PIDE.editor.hyperlink_position(false, current_snapshot, focus.get).foreach(_.follow(view))
-    view.getTextArea.repaint()
+    for (c <- tree_selection()) {
+      Debugger.set_focus(c)
+      for {
+        pos <- c.debug_position
+        link <- PIDE.editor.hyperlink_position(false, current_snapshot, pos)
+      } {
+        link.follow(view)
+        view.getTextArea.repaint()
+      }
+    }
   }
 
 
@@ -370,7 +369,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options -= main
     PIDE.session.debugger_updates -= main
     delay_resize.revoke()
-    update_focus(None)
     Debugger.exit()
     jEdit.propertiesChanged()
   }
