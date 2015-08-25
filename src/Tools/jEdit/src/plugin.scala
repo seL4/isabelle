@@ -222,7 +222,7 @@ class Plugin extends EBPlugin
             val aux_files =
               if (PIDE.options.bool("jedit_auto_resolve")) {
                 PIDE.editor.stable_tip_version() match {
-                  case Some(version) => version.nodes.undefined_blobs.map(_.node)
+                  case Some(version) => PIDE.resources.undefined_blobs(version.nodes).map(_.node)
                   case None => Nil
                 }
               }

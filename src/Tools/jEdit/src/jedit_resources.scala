@@ -111,6 +111,9 @@ class JEdit_Resources(
 
   /* theory text edits */
 
+  def undefined_blobs(nodes: Document.Nodes): List[Document.Node.Name] =
+    nodes.undefined_blobs(node => !loaded_theories(node.theory))
+
   override def commit(change: Session.Change)
   {
     if (change.syntax_changed.nonEmpty)
@@ -123,7 +126,7 @@ class JEdit_Resources(
         } model.syntax_changed()
       }
     if (change.deps_changed ||
-        PIDE.options.bool("jedit_auto_resolve") && change.version.nodes.undefined_blobs.nonEmpty)
+        PIDE.options.bool("jedit_auto_resolve") && undefined_blobs(change.version.nodes).nonEmpty)
       PIDE.deps_changed()
   }
 }
