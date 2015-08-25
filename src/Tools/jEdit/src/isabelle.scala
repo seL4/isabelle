@@ -19,7 +19,7 @@ import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, StructureMatcher}
 import org.gjt.sp.jedit.syntax.TokenMarker
 import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
-import org.gjt.sp.jedit.options.PluginOptions
+import org.jedit.options.CombinedOptions
 
 
 object Isabelle
@@ -361,7 +361,7 @@ object Isabelle
   def plugin_options(frame: Frame)
   {
     GUI_Thread.require {}
-    new org.gjt.sp.jedit.options.PluginOptions(frame, "plugin.isabelle.jedit.Plugin")
+    jEdit.setProperty("Plugin Options.last", "isabelle-general")
+    new CombinedOptions(frame, 1)
   }
 }
-

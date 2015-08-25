@@ -14,7 +14,6 @@ import javax.swing.JOptionPane
 import scala.swing.{ListView, ScrollPane}
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug, PerspectiveManager}
-import org.jedit.options.CombinedOptions
 import org.gjt.sp.jedit.gui.AboutDialog
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.buffer.JEditBuffer
