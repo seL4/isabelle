@@ -1124,8 +1124,8 @@ Extend Exercise~\ref{exe:cfg} with a function that checks if some
 \mbox{@{text "alpha list"}} is a balanced
 string of parentheses. More precisely, define a recursive function
 @{text "balanced :: nat \<Rightarrow> alpha list \<Rightarrow> bool"} such that @{term"balanced n w"}
-is true iff (informally) @{text"a\<^sup>n @ w \<in> S"}. Formally, prove
-@{prop "balanced n w \<longleftrightarrow> replicate n a @ w \<in> S"} where
+is true iff (informally) @{text"S (a\<^sup>n @ w)"}. Formally, prove
+@{prop "balanced n w \<longleftrightarrow> S (replicate n a)"} where
 @{const replicate} @{text"::"} @{typ"nat \<Rightarrow> 'a \<Rightarrow> 'a list"} is predefined
 and @{term"replicate n x"} yields the list @{text"[x, \<dots>, x]"} of length @{text n}.
 \end{exercise}
