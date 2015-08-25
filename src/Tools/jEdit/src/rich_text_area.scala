@@ -12,7 +12,7 @@ import isabelle._
 
 import java.awt.{Graphics2D, Shape, Color, Point, Toolkit, Cursor, MouseInfo}
 import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
-  FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
+  FocusAdapter, FocusEvent, WindowEvent, WindowAdapter, InputEvent}
 import java.awt.font.TextAttribute
 import javax.swing.SwingUtilities
 import java.text.AttributedString
@@ -21,7 +21,7 @@ import java.util.ArrayList
 import scala.util.matching.Regex
 
 import org.gjt.sp.util.Log
-import org.gjt.sp.jedit.{OperatingSystem, Debug, View}
+import org.gjt.sp.jedit.{OperatingSystem, Debug, View, Registers}
 import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
 import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea}
 
@@ -224,6 +224,11 @@ class Rich_Text_Area(
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseDragged(evt: MouseEvent) {
       robust_body(()) {
+        val sel = text_area.getSelectionAtOffset(text_area.getCaretPosition())
+        if (sel != null && (evt.getModifiers() & InputEvent.BUTTON1_MASK) != 0) {
+          Registers.setRegister('%',text_area.getSelectedText(sel));
+        }
+
         active_reset()
         Completion_Popup.Text_Area.dismissed(text_area)
         Pretty_Tooltip.dismiss_descendant(text_area.getPainter)
