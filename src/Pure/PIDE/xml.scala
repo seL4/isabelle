@@ -28,8 +28,8 @@ object XML
   }
   case class Text(content: String) extends Tree
 
-  def elem(name: String, body: List[Tree]) = Elem(Markup(name, Nil), body)
-  def elem(name: String) = Elem(Markup(name, Nil), Nil)
+  def elem(name: String, body: List[Tree]) = XML.Elem(Markup(name, Nil), body)
+  def elem(name: String) = XML.Elem(Markup(name, Nil), Nil)
 
   type Body = List[Tree]
 
@@ -43,14 +43,14 @@ object XML
   object Wrapped_Elem
   {
     def apply(markup: Markup, body1: Body, body2: Body): XML.Elem =
-      Elem(Markup(XML_ELEM, (XML_NAME, markup.name) :: markup.properties),
-        Elem(Markup(XML_BODY, Nil), body1) :: body2)
+      XML.Elem(Markup(XML_ELEM, (XML_NAME, markup.name) :: markup.properties),
+        XML.Elem(Markup(XML_BODY, Nil), body1) :: body2)
 
     def unapply(tree: Tree): Option[(Markup, Body, Body)] =
       tree match {
         case
-          Elem(Markup(XML_ELEM, (XML_NAME, name) :: props),
-            Elem(Markup(XML_BODY, Nil), body1) :: body2) =>
+          XML.Elem(Markup(XML_ELEM, (XML_NAME, name) :: props),
+            XML.Elem(Markup(XML_BODY, Nil), body1) :: body2) =>
           Some(Markup(name, props), body1, body2)
         case _ => None
       }
@@ -63,9 +63,9 @@ object XML
   {
     def traverse(x: A, t: Tree): A =
       t match {
-        case Wrapped_Elem(_, _, ts) => (x /: ts)(traverse)
-        case Elem(_, ts) => (x /: ts)(traverse)
-        case Text(s) => op(x, s)
+        case XML.Wrapped_Elem(_, _, ts) => (x /: ts)(traverse)
+        case XML.Elem(_, ts) => (x /: ts)(traverse)
+        case XML.Text(s) => op(x, s)
       }
     (a /: body)(traverse)
   }
@@ -109,13 +109,13 @@ object XML
     def elem(markup: Markup) { s ++= markup.name; markup.properties.foreach(attrib) }
     def tree(t: Tree): Unit =
       t match {
-        case Elem(markup, Nil) =>
+        case XML.Elem(markup, Nil) =>
           s ++= "<"; elem(markup); s ++= "/>"
-        case Elem(markup, ts) =>
+        case XML.Elem(markup, ts) =>
           s ++= "<"; elem(markup); s ++= ">"
           ts.foreach(tree)
           s ++= "</"; s ++= markup.name; s ++= ">"
-        case Text(txt) => text(txt)
+        case XML.Text(txt) => text(txt)
       }
     body.foreach(tree)
     s.toString
