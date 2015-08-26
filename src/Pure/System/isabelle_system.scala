@@ -290,6 +290,18 @@ object Isabelle_System
   }
 
 
+  /* kill */
+
+  def kill(signal: String, group_pid: String): (String, Int) =
+  {
+    val bash =
+      if (Platform.is_windows) List(get_cygwin_root() + "\\bin\\bash.exe")
+      else List("/usr/bin/env", "bash")
+    val cmdline = bash ::: List("-c", "kill -" + signal + " -" + group_pid)
+    process_output(raw_execute(null, null, true, cmdline: _*))
+  }
+
+
   /* bash */
 
   private class Limited_Progress(proc: Bash.Process, progress_limit: Option[Long])

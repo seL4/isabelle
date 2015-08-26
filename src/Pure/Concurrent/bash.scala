@@ -60,12 +60,10 @@ object Bash
 
     private val pid = stdout.readLine
 
-    private def kill_cmd(signal: String): Int =
-      Isabelle_System.execute(true, "/usr/bin/env", "bash", "-c", "kill -" + signal + " -" + pid)
-        .waitFor
-
     private def kill(signal: String): Boolean =
-      Exn.Interrupt.postpone { kill_cmd(signal); kill_cmd("0") == 0 } getOrElse true
+      Exn.Interrupt.postpone {
+        Isabelle_System.kill(signal, pid)
+        Isabelle_System.kill("0", pid)._2 == 0 } getOrElse true
 
     private def multi_kill(signal: String): Boolean =
     {
