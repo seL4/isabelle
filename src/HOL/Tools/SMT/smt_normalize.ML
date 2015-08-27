@@ -68,6 +68,7 @@ fun atomize_conv ctxt ct =
   | Const (@{const_name Pure.all}, _) $ Abs _ =>
       Conv.binder_conv (atomize_conv o snd) ctxt then_conv Conv.rewr_conv @{thm atomize_all}
   | _ => Conv.all_conv) ct
+  handle CTERM _ => Conv.all_conv ct
 
 val setup_atomize =
   fold SMT_Builtin.add_builtin_fun_ext'' [@{const_name Pure.imp}, @{const_name Pure.eq},

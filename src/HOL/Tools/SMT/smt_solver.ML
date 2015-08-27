@@ -257,7 +257,7 @@ fun smt_filter ctxt0 goal xfacts i time_limit =
     val cprop =
       (case try negate (Thm.rhs_of (SMT_Normalize.atomize_conv ctxt concl)) of
         SOME ct => ct
-      | NONE => raise SMT_Failure.SMT (SMT_Failure.Other_Failure "goal is not a HOL term"))
+      | NONE => raise SMT_Failure.SMT (SMT_Failure.Other_Failure "cannot atomize goal"))
 
     val conjecture = Thm.assume cprop
     val facts = map snd xfacts
