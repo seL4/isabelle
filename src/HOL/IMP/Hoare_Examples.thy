@@ -60,12 +60,12 @@ apply(rule Seq)
    apply(rule Assign)
   apply(rule Assign')
   apply simp
- apply(simp)
+ apply simp
 apply(rule Assign')
 apply simp
 done
 
-text{* The proof is intentionally an apply skript because it merely composes
+text{* The proof is intentionally an apply script because it merely composes
 the rules of Hoare logic. Of course, in a few places side conditions have to
 be proved. But since those proofs are 1-liners, a structured proof is
 overkill. In fact, we shall learn later that the application of the Hoare
