@@ -1169,6 +1169,10 @@ lemma count_le_replicate_mset_le: "n \<le> count M x \<longleftrightarrow> repli
 lemma filter_eq_replicate_mset: "{#y \<in># D. y = x#} = replicate_mset (count D x) x"
   by (induct D) simp_all
 
+lemma replicate_count_mset_eq_filter_eq:
+  "replicate (count (mset xs) k) k = filter (HOL.eq k) xs"
+  by (induct xs) auto
+
 
 subsection \<open>Big operators\<close>
 
@@ -1395,6 +1399,43 @@ proof (rule properties_for_sort_key)
   then show "k \<in> set ys \<Longrightarrow> filter (\<lambda>y. k = y) ys = filter (\<lambda>x. k = x) xs" for k
     by (simp add: replicate_length_filter)
 qed
+
+lemma sort_key_inj_key_eq:
+  assumes mset_equal: "mset xs = mset ys"
+    and "inj_on f (set xs)"
+    and "sorted (map f ys)"
+  shows "sort_key f xs = ys"
+proof (rule properties_for_sort_key)
+  from mset_equal
+  show "mset ys = mset xs" by simp
+  from `sorted (map f ys)`
+  show "sorted (map f ys)" .
+  show "[x\<leftarrow>ys . f k = f x] = [x\<leftarrow>xs . f k = f x]" if "k \<in> set ys" for k
+  proof -
+    from mset_equal
+    have set_equal: "set xs = set ys" by (rule mset_eq_setD)
+    with that have "insert k (set ys) = set ys" by auto
+    with `inj_on f (set xs)` have inj: "inj_on f (insert k (set ys))"
+      by (simp add: set_equal)
+    from inj have "[x\<leftarrow>ys . f k = f x] = filter (HOL.eq k) ys"
+      by (auto intro!: inj_on_filter_key_eq)
+    also have "\<dots> = replicate (count (mset ys) k) k"
+      by (simp add: replicate_count_mset_eq_filter_eq)
+    also have "\<dots> = replicate (count (mset xs) k) k"
+      using mset_equal by simp
+    also have "\<dots> = filter (HOL.eq k) xs"
+      by (simp add: replicate_count_mset_eq_filter_eq)
+    also have "\<dots> = [x\<leftarrow>xs . f k = f x]"
+      using inj by (auto intro!: inj_on_filter_key_eq [symmetric] simp add: set_equal)
+    finally show ?thesis .
+  qed
+qed
+
+lemma sort_key_eq_sort_key:
+  assumes "mset xs = mset ys"
+    and "inj_on f (set xs)"
+  shows "sort_key f xs = sort_key f ys"
+  by (rule sort_key_inj_key_eq) (simp_all add: assms)
 
 lemma sort_key_by_quicksort:
   "sort_key f xs = sort_key f [x\<leftarrow>xs. f x < f (xs ! (length xs div 2))]

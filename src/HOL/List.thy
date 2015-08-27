@@ -1555,6 +1555,11 @@ lemma Cons_eq_filter_iff:
   (\<exists>us vs. ys = us @ x # vs \<and> (\<forall>u\<in>set us. \<not> P u) \<and> P x \<and> xs = filter P vs)"
 by(auto dest:Cons_eq_filterD)
 
+lemma inj_on_filter_key_eq:
+  assumes "inj_on f (insert y (set xs))"
+  shows "[x\<leftarrow>xs . f y = f x] = filter (HOL.eq y) xs"
+  using assms by (induct xs) auto
+
 lemma filter_cong[fundef_cong]:
   "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> P x = Q x) \<Longrightarrow> filter P xs = filter Q ys"
 apply simp
