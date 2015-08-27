@@ -192,6 +192,7 @@ been removed. INCOMPATIBILITY.
   - Proof reconstruction has been improved, to minimize the incidence of
     cases where Sledgehammer gives a proof that does not work.
   - Auto Sledgehammer now minimizes and preplays the results.
+  - Handle Vampire 4.0 proof output without raising exception.
 
 * Nitpick:
   - Removed "check_potential" and "check_genuine" options.

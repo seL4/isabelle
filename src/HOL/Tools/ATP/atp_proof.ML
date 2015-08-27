@@ -404,7 +404,7 @@ and parse_formula x =
 and parse_quantified_formula x =
   (($$ tptp_forall >> K AForall || $$ tptp_exists >> K AExists)
    --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_literal
-   >> (fn ((q, ts), phi) => AQuant (q, map (fn ATerm ((s, []), _) => (s, NONE)) ts, phi))) x
+   >> (fn ((q, ts), phi) => AQuant (q, map (fn ATerm ((s, _), _) => (s, NONE)) ts, phi))) x
 
 val parse_tstp_extra_arguments =
   Scan.optional ($$ "," |-- parse_source --| Scan.option ($$ "," |-- skip_term)) dummy_inference
