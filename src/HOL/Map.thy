@@ -227,14 +227,14 @@ lemma map_of_SomeD: "map_of xs k = Some y \<Longrightarrow> (k, y) \<in> set xs"
 
 lemma map_of_mapk_SomeI:
   "inj f \<Longrightarrow> map_of t k = Some x \<Longrightarrow>
-   map_of (map (split (\<lambda>k. Pair (f k))) t) (f k) = Some x"
+   map_of (map (case_prod (\<lambda>k. Pair (f k))) t) (f k) = Some x"
 by (induct t) (auto simp: inj_eq)
 
 lemma weak_map_of_SomeI: "(k, x) \<in> set l \<Longrightarrow> \<exists>x. map_of l k = Some x"
 by (induct l) auto
 
 lemma map_of_filter_in:
-  "map_of xs k = Some z \<Longrightarrow> P k z \<Longrightarrow> map_of (filter (split P) xs) k = Some z"
+  "map_of xs k = Some z \<Longrightarrow> P k z \<Longrightarrow> map_of (filter (case_prod P) xs) k = Some z"
 by (induct xs) auto
 
 lemma map_of_map:

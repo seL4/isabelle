@@ -5,7 +5,7 @@
 section {* The transmission channel -- finite version *}
 
 theory Abschannel_finite
-imports Abschannel IOA Action Lemmas
+imports Abschannel "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action Lemmas
 begin
 
 primrec reverse :: "'a list => 'a list"

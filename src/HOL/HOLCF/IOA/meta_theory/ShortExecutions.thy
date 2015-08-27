@@ -227,7 +227,7 @@ apply (rule_tac x = "filter_act$ (Cut (%a. fst a:ext A) (snd ex))" in exI)
 apply (simp add: executions_def)
 apply (tactic {* pair_tac @{context} "ex" 1 *})
 apply auto
-apply (rule_tac x = " (x,Cut (%a. fst a:ext A) y) " in exI)
+apply (rule_tac x = " (x1,Cut (%a. fst a:ext A) x2) " in exI)
 apply (simp (no_asm_simp))
 
 (* Subgoal 1: Lemma:  propagation of execution through Cut *)
@@ -237,7 +237,7 @@ apply (simp add: execThruCut)
 (* Subgoal 2:  Lemma:  Filter P s = Filter P (Cut P s) *)
 
 apply (simp (no_asm) add: filter_act_def)
-apply (subgoal_tac "Map fst$ (Cut (%a. fst a: ext A) y) = Cut (%a. a:ext A) (Map fst$y) ")
+apply (subgoal_tac "Map fst$ (Cut (%a. fst a: ext A) x2) = Cut (%a. a:ext A) (Map fst$x2) ")
 
 apply (rule_tac [2] MapCut [unfolded o_def])
 apply (simp add: FilterCut [symmetric])
@@ -245,7 +245,7 @@ apply (simp add: FilterCut [symmetric])
 (* Subgoal 3: Lemma: Cut idempotent  *)
 
 apply (simp (no_asm) add: LastActExtsch_def filter_act_def)
-apply (subgoal_tac "Map fst$ (Cut (%a. fst a: ext A) y) = Cut (%a. a:ext A) (Map fst$y) ")
+apply (subgoal_tac "Map fst$ (Cut (%a. fst a: ext A) x2) = Cut (%a. a:ext A) (Map fst$x2) ")
 apply (rule_tac [2] MapCut [unfolded o_def])
 apply (simp add: Cut_idemp)
 done

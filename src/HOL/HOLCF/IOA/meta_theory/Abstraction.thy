@@ -364,7 +364,7 @@ apply blast
 (* main case *)
 apply clarify
 apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
 (* UU case *)
 apply (simp add: nil_is_Conc)
 (* nil case *)
@@ -431,7 +431,7 @@ apply (unfold temp_strengthening_def state_strengthening_def
   temp_sat_def satisfies_def Init_def unlift_def)
 apply auto
 apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 done
 
@@ -441,7 +441,7 @@ subsubsection {* Next *}
 lemma TL_ex2seq_UU:
 "(TL$(ex2seq (cex_abs h ex))=UU) = (TL$(ex2seq ex)=UU)"
 apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
@@ -450,7 +450,7 @@ done
 lemma TL_ex2seq_nil:
 "(TL$(ex2seq (cex_abs h ex))=nil) = (TL$(ex2seq ex)=nil)"
 apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
@@ -474,7 +474,7 @@ done
 
 lemma TLex2seq: "[| (snd ex)~=UU ; (snd ex)~=nil |] ==> (? ex'. TL$(ex2seq ex) = ex2seq ex')"
 apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 apply auto
 done
@@ -482,7 +482,7 @@ done
 
 lemma ex2seqnilTL: "(TL$(ex2seq ex)~=nil) = ((snd ex)~=nil & (snd ex)~=UU)"
 apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
@@ -517,7 +517,7 @@ apply (simp add: temp_weakening_def2 state_weakening_def2
   temp_sat_def satisfies_def Init_def unlift_def)
 apply auto
 apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 done
 

@@ -82,7 +82,7 @@ lemma wpull_cong:
   "\<lbrakk>A' = A; B1' = B1; B2' = B2; wpull A B1 B2 f1 f2 p1 p2\<rbrakk> \<Longrightarrow> wpull A' B1' B2' f1 f2 p1 p2"
   by simp
 
-lemma Grp_fst_snd: "(Grp (Collect (split R)) fst)^--1 OO Grp (Collect (split R)) snd = R"
+lemma Grp_fst_snd: "(Grp (Collect (case_prod R)) fst)^--1 OO Grp (Collect (case_prod R)) snd = R"
   unfolding Grp_def fun_eq_iff relcompp.simps by auto
 
 lemma OO_Grp_cong: "A = B \<Longrightarrow> (Grp A f)^--1 OO Grp A g = (Grp B f)^--1 OO Grp B g"

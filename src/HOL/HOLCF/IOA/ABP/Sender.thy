@@ -5,7 +5,7 @@
 section {* The implementation: sender *}
 
 theory Sender
-imports IOA Action Lemmas
+imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action Lemmas
 begin
 
 type_synonym

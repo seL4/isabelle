@@ -128,9 +128,9 @@ syntax
 ML_file "Tools/string_syntax.ML"
 
 lemma UNIV_char:
-  "UNIV = image (split Char) (UNIV \<times> UNIV)"
+  "UNIV = image (case_prod Char) (UNIV \<times> UNIV)"
 proof (rule UNIV_eq_I)
-  fix x show "x \<in> image (split Char) (UNIV \<times> UNIV)" by (cases x) auto
+  fix x show "x \<in> image (case_prod Char) (UNIV \<times> UNIV)" by (cases x) auto
 qed
 
 lemma size_char [code, simp]:
@@ -218,7 +218,7 @@ definition
   "Enum.enum_ex P \<longleftrightarrow> list_ex P (Enum.enum :: char list)"
 
 lemma enum_char_product_enum_nibble:
-  "(Enum.enum :: char list) = map (split Char) (List.product Enum.enum Enum.enum)"
+  "(Enum.enum :: char list) = map (case_prod Char) (List.product Enum.enum Enum.enum)"
   by (simp add: enum_char_def enum_nibble_def)
 
 instance proof

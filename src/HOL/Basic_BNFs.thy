@@ -83,8 +83,8 @@ next
 next
   fix R S
   show "rel_sum R S =
-        (Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (map_sum fst fst))\<inverse>\<inverse> OO
-        Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (map_sum snd snd)"
+        (Grp {x. setl x \<subseteq> Collect (case_prod R) \<and> setr x \<subseteq> Collect (case_prod S)} (map_sum fst fst))\<inverse>\<inverse> OO
+        Grp {x. setl x \<subseteq> Collect (case_prod R) \<and> setr x \<subseteq> Collect (case_prod S)} (map_sum snd snd)"
   unfolding sum_set_defs Grp_def relcompp.simps conversep.simps fun_eq_iff
   by (fastforce elim: rel_sum.cases split: sum.splits)
 qed (auto simp: sum_set_defs)
@@ -153,8 +153,8 @@ next
 next
   fix R S
   show "rel_prod R S =
-        (Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_prod fst fst))\<inverse>\<inverse> OO
-        Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_prod snd snd)"
+        (Grp {x. {fst x} \<subseteq> Collect (case_prod R) \<and> {snd x} \<subseteq> Collect (case_prod S)} (map_prod fst fst))\<inverse>\<inverse> OO
+        Grp {x. {fst x} \<subseteq> Collect (case_prod R) \<and> {snd x} \<subseteq> Collect (case_prod S)} (map_prod snd snd)"
   unfolding prod_set_defs rel_prod_apply Grp_def relcompp.simps conversep.simps fun_eq_iff
   by auto
 qed
@@ -197,8 +197,8 @@ next
 next
   fix R
   show "rel_fun op = R =
-        (Grp {x. range x \<subseteq> Collect (split R)} (op \<circ> fst))\<inverse>\<inverse> OO
-         Grp {x. range x \<subseteq> Collect (split R)} (op \<circ> snd)"
+        (Grp {x. range x \<subseteq> Collect (case_prod R)} (op \<circ> fst))\<inverse>\<inverse> OO
+         Grp {x. range x \<subseteq> Collect (case_prod R)} (op \<circ> snd)"
   unfolding rel_fun_def Grp_def fun_eq_iff relcompp.simps conversep.simps subset_iff image_iff
     comp_apply mem_Collect_eq split_beta bex_UNIV
   proof (safe, unfold fun_eq_iff[symmetric])

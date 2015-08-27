@@ -185,8 +185,7 @@ apply (tactic {* pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}] 1 *})
 apply (auto simp add: mk_traceConc)
 apply (frule reachable.reachable_n)
 apply assumption
-apply (erule_tac x = "y" in allE)
-apply (simp add: move_subprop4 split add: split_if)
+apply (auto simp add: move_subprop4 split add: split_if) 
 done
 
 declare split_if [split]
@@ -232,7 +231,7 @@ apply simp
 apply (tactic {* pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}] 1 *})
 (* main case *)
 apply auto
-apply (rule_tac t = "f y" in lemma_2_1)
+apply (rule_tac t = "f x2" in lemma_2_1)
 
 (* Finite *)
 apply (erule move_subprop2)
@@ -246,7 +245,7 @@ apply (rule conjI)
 
 (* Induction hypothesis  *)
 (* reachable_n looping, therefore apply it manually *)
-apply (erule_tac x = "y" in allE)
+apply (erule_tac x = "x2" in allE)
 apply simp
 apply (frule reachable.reachable_n)
 apply assumption

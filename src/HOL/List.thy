@@ -2664,7 +2664,7 @@ lemma list_all2_all_nthI [intro?]:
 by (simp add: list_all2_conv_all_nth)
 
 lemma list_all2I:
-  "\<forall>x \<in> set (zip a b). split P x \<Longrightarrow> length a = length b \<Longrightarrow> list_all2 P a b"
+  "\<forall>x \<in> set (zip a b). case_prod P x \<Longrightarrow> length a = length b \<Longrightarrow> list_all2 P a b"
 by (simp add: list_all2_iff)
 
 lemma list_all2_nthD:

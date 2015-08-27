@@ -516,11 +516,10 @@ proof (simp add: countably_subadditive_def, safe)
       finally show ?thesis .
     qed
     def C \<equiv> "(split BB) o prod_decode"
-    have C: "!!n. C n \<in> M"
-      apply (rule_tac p="prod_decode n" in PairE)
-      apply (simp add: C_def)
-      apply (metis BB subsetD rangeI)
-      done
+    from BB have "\<And>i j. BB i j \<in> M"
+      by (rule range_subsetD)
+    then have C: "\<And>n. C n \<in> M"
+      by (simp add: C_def split_def)
     have sbC: "(\<Union>i. A i) \<subseteq> (\<Union>i. C i)"
     proof (auto simp add: C_def)
       fix x i

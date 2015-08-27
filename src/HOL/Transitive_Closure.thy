@@ -169,8 +169,9 @@ lemma rtranclE [cases set: rtrancl]:
 
 lemma rtrancl_Int_subset: "[| Id \<subseteq> s; (r^* \<inter> s) O r \<subseteq> s|] ==> r^* \<subseteq> s"
   apply (rule subsetI)
-  apply (rule_tac p="x" in PairE, clarify)
-  apply (erule rtrancl_induct, auto) 
+  apply auto
+  apply (erule rtrancl_induct)
+  apply auto
   done
 
 lemma converse_rtranclp_into_rtranclp:
@@ -409,10 +410,9 @@ lemma tranclE [cases set: trancl]:
 
 lemma trancl_Int_subset: "[| r \<subseteq> s; (r^+ \<inter> s) O r \<subseteq> s|] ==> r^+ \<subseteq> s"
   apply (rule subsetI)
-  apply (rule_tac p = x in PairE)
-  apply clarify
+  apply auto
   apply (erule trancl_induct)
-   apply auto
+  apply auto
   done
 
 lemma trancl_unfold: "r^+ = r Un r^+ O r"

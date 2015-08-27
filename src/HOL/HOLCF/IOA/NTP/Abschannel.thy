@@ -5,7 +5,7 @@
 section {* The (faulty) transmission channel (both directions) *}
 
 theory Abschannel
-imports IOA Action
+imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action
 begin
 
 datatype 'a abs_action = S 'a | R 'a

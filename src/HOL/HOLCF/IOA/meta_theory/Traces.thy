@@ -396,7 +396,7 @@ subsection "executions are prefix closed"
 lemma execfrag_prefixclosed: "!x s. is_exec_frag A (s,x) & y<<x  --> is_exec_frag A (s,y)"
 apply (tactic {* pair_induct_tac @{context} "y" [@{thm is_exec_frag_def}] 1 *})
 apply (intro strip)
-apply (tactic {* Seq_case_simp_tac @{context} "xa" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 apply auto
 done

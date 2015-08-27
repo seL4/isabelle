@@ -143,7 +143,7 @@ lemmas [fundef_cong] =
 
 lemma split_cong [fundef_cong]:
   "(\<And>x y. (x, y) = q \<Longrightarrow> f x y = g x y) \<Longrightarrow> p = q
-    \<Longrightarrow> split f p = split g q"
+    \<Longrightarrow> case_prod f p = case_prod g q"
   by (auto simp: split_def)
 
 lemma comp_cong [fundef_cong]:

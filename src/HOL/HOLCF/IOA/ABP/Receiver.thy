@@ -5,7 +5,7 @@
 section {* The implementation: receiver *}
 
 theory Receiver
-imports IOA Action Lemmas
+imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action Lemmas
 begin
 
 type_synonym

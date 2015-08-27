@@ -152,7 +152,7 @@ declare ex2seq_UU [simp] ex2seq_nil [simp] ex2seq_cons [simp]
 
 lemma ex2seq_nUUnnil: "ex2seq exec ~= UU & ex2seq exec ~= nil"
 apply (tactic {* pair_tac @{context} "exec" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 done
 
@@ -173,14 +173,14 @@ apply (simp split add: split_if)
 (* TL = UU *)
 apply (rule conjI)
 apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 (* TL = nil *)
 apply (rule conjI)
 apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_tac @{context} "y" 1 *})
+apply (tactic {* Seq_case_tac @{context} "x2" 1 *})
 apply (simp add: unlift_def)
 apply fast
 apply (simp add: unlift_def)
@@ -193,7 +193,7 @@ apply (tactic {* pair_tac @{context} "a" 1 *})
 apply (simp add: unlift_def)
 
 apply (tactic {* pair_tac @{context} "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x2" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})

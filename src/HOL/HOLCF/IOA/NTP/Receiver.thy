@@ -5,7 +5,7 @@
 section {* The implementation: receiver *}
 
 theory Receiver
-imports IOA Action
+imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action
 begin
 
 type_synonym

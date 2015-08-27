@@ -5,7 +5,7 @@
 section {* The environment *}
 
 theory Env
-imports IOA Action
+imports "~~/src/HOL/HOLCF/IOA/meta_theory/IOA" Action
 begin
 
 type_synonym

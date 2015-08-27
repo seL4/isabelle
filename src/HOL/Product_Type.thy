@@ -284,9 +284,6 @@ declare prod.case_cong_weak [cong del]
 
 subsubsection \<open>Tuple syntax\<close>
 
-abbreviation (input) split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
-  "split \<equiv> case_prod"
-
 text \<open>
   Patterns -- extends pre-defined type @{typ pttrn} used in
   abstractions.
@@ -310,6 +307,11 @@ translations
   "%(x, y, zs). b" == "CONST case_prod (%x (y, zs). b)"
   "%(x, y). b" == "CONST case_prod (%x y. b)"
   "_abs (CONST Pair x y) t" => "%(x, y). t"
+
+
+
+
+
   -- \<open>The last rule accommodates tuples in `case C ... (x,y) ... => ...'
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn\<close>
 
@@ -435,13 +437,13 @@ lemma prod_eq_iff: "s = t \<longleftrightarrow> fst s = fst t \<and> snd s = snd
 lemma prod_eqI [intro?]: "fst p = fst q \<Longrightarrow> snd p = snd q \<Longrightarrow> p = q"
   by (simp add: prod_eq_iff)
 
-lemma split_conv [simp, code]: "split f (a, b) = f a b"
+lemma split_conv [simp, code]: "case_prod f (a, b) = f a b"
   by (fact prod.case)
 
-lemma splitI: "f a b \<Longrightarrow> split f (a, b)"
+lemma splitI: "f a b \<Longrightarrow> case_prod f (a, b)"
   by (rule split_conv [THEN iffD2])
 
-lemma splitD: "split f (a, b) \<Longrightarrow> f a b"
+lemma splitD: "case_prod f (a, b) \<Longrightarrow> f a b"
   by (rule split_conv [THEN iffD1])
 
 lemma split_Pair [simp]: "(\<lambda>(x, y). (x, y)) = id"
@@ -451,13 +453,13 @@ lemma split_eta: "(\<lambda>(x, y). f (x, y)) = f"
   -- \<open>Subsumes the old @{text split_Pair} when @{term f} is the identity function.\<close>
   by (simp add: fun_eq_iff split: prod.split)
 
-lemma split_comp: "split (f \<circ> g) x = f (g (fst x)) (snd x)"
+lemma split_comp: "case_prod (f \<circ> g) x = f (g (fst x)) (snd x)"
   by (cases x) simp
 
-lemma split_twice: "split f (split g p) = split (\<lambda>x y. split f (g x y)) p"
-  by (cases p) simp
+lemma split_twice: "case_prod f (case_prod g p) = case_prod (\<lambda>x y. case_prod f (g x y)) p"
+  by (fact prod.case_distrib)
 
-lemma The_split: "The (split P) = (THE xy. P (fst xy) (snd xy))"
+lemma The_split: "The (case_prod P) = (THE xy. P (fst xy) (snd xy))"
   by (simp add: case_prod_unfold)
 
 lemmas split_weak_cong = prod.case_cong_weak
@@ -602,31 +604,31 @@ text \<open>
 lemmas split_split_asm [no_atp] = prod.split_asm
 
 text \<open>
-  \medskip @{term split} used as a logical connective or set former.
+  \medskip @{const case_prod} used as a logical connective or set former.
 
   \medskip These rules are for use with @{text blast}; could instead
   call @{text simp} using @{thm [source] prod.split} as rewrite.\<close>
 
-lemma splitI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> split c p"
+lemma splitI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> case_prod c p"
   apply (simp only: split_tupled_all)
   apply (simp (no_asm_simp))
   done
 
-lemma splitI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> split c p x"
+lemma splitI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> case_prod c p x"
   apply (simp only: split_tupled_all)
   apply (simp (no_asm_simp))
   done
 
-lemma splitE: "split c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
+lemma splitE: "case_prod c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
   by (induct p) auto
 
-lemma splitE': "split c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
+lemma splitE': "case_prod c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
   by (induct p) auto
 
 lemma splitE2:
-  "[| Q (split P z);  !!x y. [|z = (x, y); Q (P x y)|] ==> R |] ==> R"
+  "[| Q (case_prod P z);  !!x y. [|z = (x, y); Q (P x y)|] ==> R |] ==> R"
 proof -
-  assume q: "Q (split P z)"
+  assume q: "Q (case_prod P z)"
   assume r: "!!x y. [|z = (x, y); Q (P x y)|] ==> R"
   show R
     apply (rule r surjective_pairing)+
@@ -634,17 +636,17 @@ proof -
     done
 qed
 
-lemma splitD': "split R (a,b) c ==> R a b c"
+lemma splitD': "case_prod R (a,b) c ==> R a b c"
   by simp
 
-lemma mem_splitI: "z: c a b ==> z: split c (a, b)"
+lemma mem_splitI: "z: c a b ==> z: case_prod c (a, b)"
   by simp
 
-lemma mem_splitI2: "!!p. [| !!a b. p = (a, b) ==> z: c a b |] ==> z: split c p"
+lemma mem_splitI2: "!!p. [| !!a b. p = (a, b) ==> z: c a b |] ==> z: case_prod c p"
 by (simp only: split_tupled_all, simp)
 
 lemma mem_splitE:
-  assumes "z \<in> split c p"
+  assumes "z \<in> case_prod c p"
   obtains x y where "p = (x, y)" and "z \<in> c x y"
   using assms by (rule splitE2)
 
@@ -672,10 +674,10 @@ setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_conv_tac", sp
 lemma split_eta_SetCompr [simp, no_atp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
   by (rule ext) fast
 
-lemma split_eta_SetCompr2 [simp, no_atp]: "(%u. EX x y. u = (x, y) & P x y) = split P"
+lemma split_eta_SetCompr2 [simp, no_atp]: "(%u. EX x y. u = (x, y) & P x y) = case_prod P"
   by (rule ext) fast
 
-lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & split Q ab)"
+lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & case_prod Q ab)"
   -- \<open>Allows simplifications of nested splits in case of independent predicates.\<close>
   by (rule ext) blast
 
@@ -685,7 +687,7 @@ lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & split Q ab)"
 *)
 lemma split_comp_eq: 
   fixes f :: "'a => 'b => 'c" and g :: "'d => 'a"
-  shows "(%u. f (g (fst u)) (snd u)) = (split (%x. f (g x)))"
+  shows "(%u. f (g (fst u)) (snd u)) = (case_prod (%x. f (g x)))"
   by (rule ext) auto
 
 lemma pair_imageI [intro]: "(a, b) : A ==> f a b : (%(a, b). f a b) ` A"
@@ -773,12 +775,8 @@ lemma prod_induct7 [case_names fields, induct type]:
     "(!!a b c d e f g. P (a, b, c, d, e, f, g)) ==> P x"
   by (cases x) blast
 
-lemma split_def:
-  "split = (\<lambda>c p. c (fst p) (snd p))"
-  by (fact case_prod_unfold)
-
 definition internal_split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
-  "internal_split == split"
+  "internal_split == case_prod"
 
 lemma internal_split_conv: "internal_split c (a, b) = c a b"
   by (simp only: internal_split_def split_conv)
@@ -805,11 +803,11 @@ lemma curryD [dest!]: "curry f a b \<Longrightarrow> f (a, b)"
 lemma curryE: "curry f a b \<Longrightarrow> (f (a, b) \<Longrightarrow> Q) \<Longrightarrow> Q"
   by (simp add: curry_def)
 
-lemma curry_split [simp]: "curry (split f) = f"
-  by (simp add: curry_def split_def)
+lemma curry_split [simp]: "curry (case_prod f) = f"
+  by (simp add: curry_def case_prod_unfold)
 
-lemma split_curry [simp]: "split (curry f) = f"
-  by (simp add: curry_def split_def)
+lemma split_curry [simp]: "case_prod (curry f) = f"
+  by (simp add: curry_def case_prod_unfold)
 
 lemma curry_K: "curry (\<lambda>x. c) = (\<lambda>x y. c)"
 by(simp add: fun_eq_iff)
@@ -1120,11 +1118,11 @@ lemma Times_eq_cancel2: "x:C ==> (A <*> C = B <*> C) = (A = B)"
   by (blast elim: equalityE)
 
 lemma SetCompr_Sigma_eq:
-    "Collect (split (%x y. P x & Q x y)) = (SIGMA x:Collect P. Collect (Q x))"
+  "Collect (case_prod (%x y. P x & Q x y)) = (SIGMA x:Collect P. Collect (Q x))"
   by blast
 
 lemma Collect_split [simp]: "{(a,b). P a & Q b} = Collect P <*> Collect Q"
-  by blast
+  by (fact SetCompr_Sigma_eq)
 
 lemma UN_Times_distrib:
   "(UN (a,b):(A <*> B). E a <*> F b) = (UNION A E) <*> (UNION B F)"
@@ -1357,16 +1355,17 @@ ML_file "Tools/inductive_set.ML"
 
 subsection \<open>Legacy theorem bindings and duplicates\<close>
 
-lemma PairE:
-  obtains x y where "p = (x, y)"
-  by (fact prod.exhaust)
+abbreviation (input) split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
+  "split \<equiv> case_prod"
 
+lemmas PairE = prod.exhaust
 lemmas Pair_eq = prod.inject
 lemmas fst_conv = prod.sel(1)
 lemmas snd_conv = prod.sel(2)
 lemmas pair_collapse = prod.collapse
 lemmas split = split_conv
 lemmas Pair_fst_snd_eq = prod_eq_iff
+lemmas split_def = case_prod_unfold
 
 hide_const (open) prod
 

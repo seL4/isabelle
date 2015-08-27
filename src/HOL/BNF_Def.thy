@@ -15,7 +15,7 @@ keywords
   "bnf" :: thy_goal
 begin
 
-lemma Collect_splitD: "x \<in> Collect (split A) \<Longrightarrow> A (fst x) (snd x)"
+lemma Collect_splitD: "x \<in> Collect (case_prod A) \<Longrightarrow> A (fst x) (snd x)"
   by auto
 
 inductive
@@ -98,7 +98,7 @@ lemma snd_convol: "snd \<circ> \<langle>f, g\<rangle> = g"
   unfolding convol_def by simp
 
 lemma convol_mem_GrpI:
-  "x \<in> A \<Longrightarrow> \<langle>id, g\<rangle> x \<in> (Collect (split (Grp A g)))"
+  "x \<in> A \<Longrightarrow> \<langle>id, g\<rangle> x \<in> (Collect (case_prod (Grp A g)))"
   unfolding convol_def Grp_def by auto
 
 definition csquare where
@@ -131,10 +131,10 @@ lemma GrpI: "\<lbrakk>f x = y; x \<in> A\<rbrakk> \<Longrightarrow> Grp A f x y"
 lemma GrpE: "Grp A f x y \<Longrightarrow> (\<lbrakk>f x = y; x \<in> A\<rbrakk> \<Longrightarrow> R) \<Longrightarrow> R"
   unfolding Grp_def by auto
 
-lemma Collect_split_Grp_eqD: "z \<in> Collect (split (Grp A f)) \<Longrightarrow> (f \<circ> fst) z = snd z"
+lemma Collect_split_Grp_eqD: "z \<in> Collect (case_prod (Grp A f)) \<Longrightarrow> (f \<circ> fst) z = snd z"
   unfolding Grp_def comp_def by auto
 
-lemma Collect_split_Grp_inD: "z \<in> Collect (split (Grp A f)) \<Longrightarrow> fst z \<in> A"
+lemma Collect_split_Grp_inD: "z \<in> Collect (case_prod (Grp A f)) \<Longrightarrow> fst z \<in> A"
   unfolding Grp_def comp_def by auto
 
 definition "pick_middlep P Q a c = (SOME b. P a b \<and> Q b c)"
@@ -149,7 +149,7 @@ definition fstOp where
 definition sndOp where
   "sndOp P Q ac = (pick_middlep P Q (fst ac) (snd ac), (snd ac))"
 
-lemma fstOp_in: "ac \<in> Collect (split (P OO Q)) \<Longrightarrow> fstOp P Q ac \<in> Collect (split P)"
+lemma fstOp_in: "ac \<in> Collect (case_prod (P OO Q)) \<Longrightarrow> fstOp P Q ac \<in> Collect (case_prod P)"
   unfolding fstOp_def mem_Collect_eq
   by (subst (asm) surjective_pairing, unfold prod.case) (erule pick_middlep[THEN conjunct1])
 
@@ -159,7 +159,7 @@ lemma fst_fstOp: "fst bc = (fst \<circ> fstOp P Q) bc"
 lemma snd_sndOp: "snd bc = (snd \<circ> sndOp P Q) bc"
   unfolding comp_def sndOp_def by simp
 
-lemma sndOp_in: "ac \<in> Collect (split (P OO Q)) \<Longrightarrow> sndOp P Q ac \<in> Collect (split Q)"
+lemma sndOp_in: "ac \<in> Collect (case_prod (P OO Q)) \<Longrightarrow> sndOp P Q ac \<in> Collect (case_prod Q)"
   unfolding sndOp_def mem_Collect_eq
   by (subst (asm) surjective_pairing, unfold prod.case) (erule pick_middlep[THEN conjunct2])
 
@@ -173,15 +173,15 @@ lemma snd_fst_flip: "snd xy = (fst \<circ> (%(x, y). (y, x))) xy"
 lemma fst_snd_flip: "fst xy = (snd \<circ> (%(x, y). (y, x))) xy"
   by (simp split: prod.split)
 
-lemma flip_pred: "A \<subseteq> Collect (split (R ^--1)) \<Longrightarrow> (%(x, y). (y, x)) ` A \<subseteq> Collect (split R)"
+lemma flip_pred: "A \<subseteq> Collect (case_prod (R ^--1)) \<Longrightarrow> (%(x, y). (y, x)) ` A \<subseteq> Collect (case_prod R)"
   by auto
 
-lemma Collect_split_mono: "A \<le> B \<Longrightarrow> Collect (split A) \<subseteq> Collect (split B)"
+lemma Collect_split_mono: "A \<le> B \<Longrightarrow> Collect (case_prod A) \<subseteq> Collect (case_prod B)"
   by auto
 
 lemma Collect_split_mono_strong: 
-  "\<lbrakk>X = fst ` A; Y = snd ` A; \<forall>a\<in>X. \<forall>b \<in> Y. P a b \<longrightarrow> Q a b; A \<subseteq> Collect (split P)\<rbrakk> \<Longrightarrow>
-   A \<subseteq> Collect (split Q)"
+  "\<lbrakk>X = fst ` A; Y = snd ` A; \<forall>a\<in>X. \<forall>b \<in> Y. P a b \<longrightarrow> Q a b; A \<subseteq> Collect (case_prod P)\<rbrakk> \<Longrightarrow>
+   A \<subseteq> Collect (case_prod Q)"
   by fastforce
 
 
@@ -216,7 +216,7 @@ lemma vimage2pI: "R (f x) (g y) \<Longrightarrow> vimage2p f g R x y"
 lemma rel_fun_iff_leq_vimage2p: "(rel_fun R S) f g = (R \<le> vimage2p f g S)"
   unfolding rel_fun_def vimage2p_def by auto
 
-lemma convol_image_vimage2p: "\<langle>f \<circ> fst, g \<circ> snd\<rangle> ` Collect (split (vimage2p f g R)) \<subseteq> Collect (split R)"
+lemma convol_image_vimage2p: "\<langle>f \<circ> fst, g \<circ> snd\<rangle> ` Collect (case_prod (vimage2p f g R)) \<subseteq> Collect (case_prod R)"
   unfolding vimage2p_def convol_def by auto
 
 lemma vimage2p_Grp: "vimage2p f g P = Grp UNIV f OO P OO (Grp UNIV g)\<inverse>\<inverse>"
