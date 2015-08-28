@@ -52,27 +52,28 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
     val show_hyps = Config.get ctxt show_hyps;
 
     val th = Thm.strip_shyps raw_th;
-    val {hyps, tpairs, prop, ...} = Thm.rep_thm th;
-    val hyps' = if show_hyps then hyps else Thm.undeclared_hyps (Context.Proof ctxt) th;
+
+    val hyps = if show_hyps then Thm.hyps_of th else Thm.undeclared_hyps (Context.Proof ctxt) th;
     val extra_shyps = Thm.extra_shyps th;
     val tags = Thm.get_tags th;
+    val tpairs = Thm.tpairs_of th;
 
     val q = if quote then Pretty.quote else I;
     val prt_term = q o Syntax.pretty_term ctxt;
 
 
-    val hlen = length extra_shyps + length hyps' + length tpairs;
+    val hlen = length extra_shyps + length hyps + length tpairs;
     val hsymbs =
       if hlen = 0 then []
       else if show_hyps orelse show_hyps' then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map (q o Goal_Display.pretty_flexpair ctxt) tpairs @ map prt_term hyps' @
+          (map (q o Goal_Display.pretty_flexpair ctxt) tpairs @ map prt_term hyps @
            map (Syntax.pretty_sort ctxt) extra_shyps)]
       else [Pretty.brk 2, Pretty.str ("[" ^ replicate_string hlen "." ^ "]")];
     val tsymbs =
       if null tags orelse not show_tags then []
       else [Pretty.brk 1, pretty_tags tags];
-  in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
+  in Pretty.block (prt_term (Thm.prop_of th) :: (hsymbs @ tsymbs)) end;
 
 fun pretty_thm ctxt = pretty_thm_raw ctxt {quote = false, show_hyps = true};
 fun pretty_thm_item ctxt th = Pretty.item [pretty_thm ctxt th];

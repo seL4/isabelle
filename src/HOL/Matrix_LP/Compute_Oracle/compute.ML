@@ -191,12 +191,8 @@ fun ref_of (Computer r) = r
 datatype cthm = ComputeThm of term list * sort list * term
 
 fun thm2cthm th = 
-    let
-        val {hyps, prop, tpairs, shyps, ...} = Thm.rep_thm th
-        val _ = if not (null tpairs) then raise Make "theorems may not contain tpairs" else ()
-    in
-        ComputeThm (hyps, shyps, prop)
-    end
+    (if not (null (Thm.tpairs_of th)) then raise Make "theorems may not contain tpairs" else ();
+     ComputeThm (Thm.hyps_of th, Thm.shyps_of th, Thm.prop_of th))
 
 fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
     let

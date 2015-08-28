@@ -364,7 +364,7 @@ fun abs_corr_shyps thy thm vs xs prf =
   let
     val S = Sign.defaultS thy;
     val ((atyp_map, constraints, _), prop') =
-      Logic.unconstrainT (#shyps (Thm.rep_thm thm)) (Thm.prop_of thm);
+      Logic.unconstrainT (Thm.shyps_of thm) (Thm.prop_of thm);
     val atyps = fold_types (fold_atyps (insert (op =))) (Thm.prop_of thm) [];
     val Ts = map_filter (fn ((v, i), _) => if member (op =) vs v then
         SOME (TVar (("'" ^ v, i), [])) else NONE)

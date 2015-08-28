@@ -14,8 +14,9 @@ subsection {* Export and re-import of global proof terms *}
 ML {*
   fun export_proof thy thm =
     let
-      val {prop, hyps, shyps, ...} = Thm.rep_thm thm;
-      val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop));
+      val (_, prop) =
+        Logic.unconstrainT (Thm.shyps_of thm)
+          (Logic.list_implies (Thm.hyps_of thm, Thm.prop_of thm));
       val prf =
         Proofterm.proof_of (Proofterm.strip_thm (Thm.proof_body_of thm)) |>
         Reconstruct.reconstruct_proof thy prop |>

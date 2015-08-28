@@ -70,6 +70,7 @@ sig
   val theory_name_of_thm: thm -> string
   val maxidx_of: thm -> int
   val maxidx_thm: thm -> int -> int
+  val shyps_of: thm -> sort Ord_List.T
   val hyps_of: thm -> term list
   val prop_of: thm -> term
   val tpairs_of: thm -> (term * term) list
@@ -412,6 +413,7 @@ val theory_name_of_thm = Context.theory_id_name o theory_id_of_thm;
 
 val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
+val shyps_of = #shyps o rep_thm;
 val hyps_of = #hyps o rep_thm;
 val prop_of = #prop o rep_thm;
 val tpairs_of = #tpairs o rep_thm;

@@ -114,7 +114,7 @@ fun pretty_goals ctxt0 state =
     val pretty_varsT = pretty_list "type variables:" prt_varsT o varsT_of;
 
 
-    val {prop, tpairs, ...} = Thm.rep_thm state;
+    val prop = Thm.prop_of state;
     val (As, B) = Logic.strip_horn prop;
     val ngoals = length As;
   in
@@ -124,7 +124,7 @@ fun pretty_goals ctxt0 state =
         pretty_subgoals (take goals_limit As) @
         [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
       else pretty_subgoals As) @
-    pretty_ffpairs tpairs @
+    pretty_ffpairs (Thm.tpairs_of state) @
     (if show_consts then pretty_consts prop else []) @
     (if show_types then pretty_vars prop else []) @
     (if show_sorts0 then pretty_varsT prop else [])
