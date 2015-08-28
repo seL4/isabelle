@@ -370,7 +370,7 @@ then
     windows)
       (
         if [ "$PLATFORM_FAMILY" = windows ]; then
-          PLATFORM_SUFFIX=""
+          PLATFORM_SUFFIX="-win32"
         else
           PLATFORM_SUFFIX="-win64"
         fi
