@@ -155,8 +155,8 @@ fun find_irules w goal = may_unify w (Logic.strip_assums_concl goal);
 fun find_rules_netpair weighted facts goal (inet, enet) =
   find_erules weighted facts enet @ find_irules weighted goal inet;
 
-fun find_rules weighted facts goals =
-  map (find_rules_netpair weighted facts goals) o netpairs;
+fun find_rules weighted facts goal =
+  map (find_rules_netpair weighted facts goal) o netpairs;
 
 
 (* wrappers *)
