@@ -80,13 +80,9 @@ text \<open>A \emph{theory} is a data container with explicit name and
   ancestor theories.  To this end, the system maintains a set of
   symbolic ``identification stamps'' within each theory.
 
-  The @{text "merge"} operation produces the least upper bound of two
-  theories, which actually degenerates into absorption of one theory
-  into the other (according to the nominal sub-theory relation).
-
-  The @{text "begin"} operation starts a new theory by importing
-  several parent theories and entering a special mode of nameless
-  incremental updates, until the final @{text "end"} operation is
+  The @{text "begin"} operation starts a new theory by importing several
+  parent theories (with merged contents) and entering a special mode of
+  nameless incremental updates, until the final @{text "end"} operation is
   performed.
 
   \medskip The example in \figref{fig:ex-theory} below shows a theory
@@ -123,7 +119,6 @@ text %mlref \<open>
   @{index_ML_type theory} \\
   @{index_ML Context.eq_thy: "theory * theory -> bool"} \\
   @{index_ML Context.subthy: "theory * theory -> bool"} \\
-  @{index_ML Theory.merge: "theory * theory -> theory"} \\
   @{index_ML Theory.begin_theory: "string * Position.T -> theory list -> theory"} \\
   @{index_ML Theory.parents_of: "theory -> theory list"} \\
   @{index_ML Theory.ancestors_of: "theory -> theory list"} \\
@@ -141,10 +136,6 @@ text %mlref \<open>
   This sub-theory relation is a nominal approximation of inclusion
   (@{text "\<subseteq>"}) of the corresponding content (according to the
   semantics of the ML modules that implement the data).
-
-  \item @{ML "Theory.merge"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} absorbs one theory
-  into the other.  This version of ad-hoc theory merge fails for
-  unrelated theories!
 
   \item @{ML "Theory.begin_theory"}~@{text "name parents"} constructs
   a new theory based on the given parents.  This ML function is
