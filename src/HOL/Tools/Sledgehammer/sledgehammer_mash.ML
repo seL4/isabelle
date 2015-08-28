@@ -138,20 +138,18 @@ datatype mash_algorithm =
 | MaSh_NB_Ext
 | MaSh_kNN_Ext
 
-(* TODO: eliminate "MASH" environment variable after Isabelle2014 release *)
 fun mash_algorithm () =
-  let val flag1 = Options.default_string @{system_option MaSh} in
-    (case if flag1 <> "none" (* default *) then flag1 else getenv "MASH" of
-      "yes" => SOME MaSh_NB_kNN
-    | "sml" => SOME MaSh_NB_kNN
-    | "nb" => SOME MaSh_NB
-    | "knn" => SOME MaSh_kNN
-    | "nb_knn" => SOME MaSh_NB_kNN
-    | "nb_ext" => SOME MaSh_NB_Ext
-    | "knn_ext" => SOME MaSh_kNN_Ext
-    | "" => NONE
-    | algorithm => (warning ("Unknown MaSh algorithm: " ^ quote algorithm ^ "."); NONE))
-  end
+  (case Options.default_string @{system_option MaSh} of
+    "yes" => SOME MaSh_NB_kNN
+  | "sml" => SOME MaSh_NB_kNN
+  | "nb" => SOME MaSh_NB
+  | "knn" => SOME MaSh_kNN
+  | "nb_knn" => SOME MaSh_NB_kNN
+  | "nb_ext" => SOME MaSh_NB_Ext
+  | "knn_ext" => SOME MaSh_kNN_Ext
+  | "none" => NONE
+  | "" => NONE
+  | algorithm => (warning ("Unknown MaSh algorithm: " ^ quote algorithm ^ "."); NONE))
 
 val is_mash_enabled = is_some o mash_algorithm
 val the_mash_algorithm = the_default MaSh_NB_kNN o mash_algorithm

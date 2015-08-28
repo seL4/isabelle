@@ -193,6 +193,8 @@ been removed. INCOMPATIBILITY.
     cases where Sledgehammer gives a proof that does not work.
   - Auto Sledgehammer now minimizes and preplays the results.
   - Handle Vampire 4.0 proof output without raising exception.
+  - Eliminated "MASH" environment variable. Use the "MaSh" option in
+    Isabelle/jEdit instead. INCOMPATIBILITY.
 
 * Nitpick:
   - Removed "check_potential" and "check_genuine" options.

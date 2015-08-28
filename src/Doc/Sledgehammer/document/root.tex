@@ -370,7 +370,7 @@ send them to the author at \authoremail.
 
 Sledgehammer heuristically selects a few hundred relevant lemmas from the
 currently loaded libraries. The component that performs this selection is
-called \emph{relevance filter}.
+called \emph{relevance filter} (\S\ref{relevance-filter}).
 
 \begin{enum}
 \item[\labelitemi]
@@ -390,12 +390,9 @@ An alternative to MePo is \emph{MaSh} (\underline{Ma}chine Learner for
 \underline{S}ledge\underline{h}ammer). It applies machine learning to the
 problem of finding relevant facts.
 
-\item[\labelitemi] The \emph{MeSh} filter combines MePo and MaSh.
+\item[\labelitemi] The \emph{MeSh} filter combines MePo and MaSh. This is
+the default.
 \end{enum}
-
-The default is either MePo or MeSh, depending on whether the environment
-variable \texttt{MASH} is set and what class of provers the target prover
-belongs to (\S\ref{relevance-filter}).
 
 The number of facts included in a problem varies from prover to prover, since
 some provers get overwhelmed more easily than others. You can show the number of
@@ -1018,10 +1015,7 @@ In addition, the special value \textit{none} is used to disable machine learning
 default (cf.\ \textit{smart} below).
 
 The default algorithm is \textit{nb\_knn}. The algorithm can be selected by
-setting \texttt{MASH}---either in the environment in which Isabelle is launched,
-in your
-\texttt{\$ISABELLE\_\allowbreak HOME\_\allowbreak USER/\allowbreak etc/\allowbreak settings}
-file, or via the ``MaSh'' option under ``Plugins > Plugin Options > Isabelle >
+setting the ``MaSh'' option under ``Plugins > Plugin Options > Isabelle >
 General'' in Isabelle/jEdit. Persistent data for both algorithms is stored in
 the directory \texttt{\$ISABELLE\_\allowbreak HOME\_\allowbreak USER/\allowbreak
 mash}.
