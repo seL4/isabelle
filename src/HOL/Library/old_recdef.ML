@@ -918,9 +918,8 @@ fun cconcl thm = Dcterm.drop_prop (Thm.cprop_of thm);
 fun chyps thm = map Dcterm.drop_prop (Thm.chyps_of thm);
 
 fun dest_thm thm =
-  let val {prop,hyps,...} = Thm.rep_thm thm
-  in (map HOLogic.dest_Trueprop hyps, HOLogic.dest_Trueprop prop) end
-  handle TERM _ => raise RULES_ERR "dest_thm" "missing Trueprop";
+  (map HOLogic.dest_Trueprop (Thm.hyps_of thm), HOLogic.dest_Trueprop (Thm.prop_of thm))
+    handle TERM _ => raise RULES_ERR "dest_thm" "missing Trueprop";
 
 
 (* Inference rules *)
@@ -1224,19 +1223,6 @@ fun IT_EXISTS ctxt blist th =
               thm)
        blist' th
   end;
-
-(*---------------------------------------------------------------------------
- *  Faster version, that fails for some as yet unknown reason
- * fun IT_EXISTS blist th =
- *    let val {thy,...} = rep_thm th
- *        val tych = cterm_of thy
- *        fun detype (x,y) = ((#t o rep_cterm) x, (#t o rep_cterm) y)
- *   in
- *  fold (fn (b as (r1,r2), thm) =>
- *  EXISTS(D.mk_exists(r2, tych(subst_free[detype b](#t(rep_cterm(cconcl thm))))),
- *           r1) thm)  blist th
- *   end;
- *---------------------------------------------------------------------------*)
 
 (*----------------------------------------------------------------------------
  *        Rewriting
