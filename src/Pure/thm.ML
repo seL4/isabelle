@@ -52,14 +52,6 @@ sig
   val first_order_match: cterm * cterm ->
     ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
   (*theorems*)
-  val rep_thm: thm ->
-   {thy: theory,
-    tags: Properties.T,
-    maxidx: int,
-    shyps: sort Ord_List.T,
-    hyps: term Ord_List.T,
-    tpairs: (term * term) list,
-    prop: term}
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
   val fold_atomic_ctyps: (ctyp -> 'a -> 'a) -> thm -> 'a -> 'a
   val fold_atomic_cterms: (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
