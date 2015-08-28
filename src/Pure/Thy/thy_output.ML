@@ -24,6 +24,7 @@ sig
   val boolean: string -> bool
   val integer: string -> int
   val eval_antiq: Toplevel.state -> Antiquote.antiq -> string
+  val report_text: Input.source -> unit
   val check_text: Input.source -> Toplevel.state -> unit
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
   val pretty_text: Proof.context -> string -> Pretty.T
@@ -194,8 +195,11 @@ fun eval_antiquote state source =
     val _ = Position.reports (maps words ants);
   in implode (map expand ants) end;
 
+fun report_text source =
+  Position.report (Input.pos_of source) (Markup.language_document (Input.is_delimited source));
+
 fun check_text source state =
- (Position.report (Input.pos_of source) (Markup.language_document (Input.is_delimited source));
+ (report_text source;
   if Toplevel.is_skipped_proof state then ()
   else ignore (eval_antiquote state source));
 
