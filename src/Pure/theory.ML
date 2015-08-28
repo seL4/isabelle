@@ -9,8 +9,6 @@ sig
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
   val nodes_of: theory -> theory list
-  val merge: theory * theory -> theory
-  val merge_list: theory list -> theory
   val setup: (theory -> theory) -> unit
   val local_setup: (Proof.context -> Proof.context) -> unit
   val get_markup: theory -> Markup.T
@@ -41,11 +39,6 @@ struct
 val parents_of = Context.parents_of;
 val ancestors_of = Context.ancestors_of;
 fun nodes_of thy = thy :: ancestors_of thy;
-
-val merge = Context.merge;
-
-fun merge_list [] = raise THEORY ("Empty merge of theories", [])
-  | merge_list (thy :: thys) = Library.foldl merge (thy, thys);
 
 fun setup f = Context.>> (Context.map_theory f);
 fun local_setup f = Context.>> (Context.map_proof f);

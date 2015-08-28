@@ -37,6 +37,7 @@ sig
   val theory_id_name: theory_id -> string
   val theory_name: theory -> string
   val PureN: string
+  val display_name: theory_id -> string
   val display_names: theory -> string list
   val pretty_thy: theory -> Pretty.T
   val string_of_thy: theory -> string
@@ -50,11 +51,16 @@ sig
   val proper_subthy: theory * theory -> bool
   val subthy_id: theory_id * theory_id -> bool
   val subthy: theory * theory -> bool
-  val merge: theory * theory -> theory
   val finish_thy: theory -> theory
   val begin_thy: (theory -> pretty) -> string -> theory list -> theory
   (*proof context*)
   val raw_transfer: theory -> Proof.context -> Proof.context
+  (*certificate*)
+  datatype certificate = Certificate of theory | Certificate_Id of theory_id
+  val certificate_theory: certificate -> theory
+  val certificate_theory_id: certificate -> theory_id
+  val eq_certificate: certificate * certificate -> bool
+  val join_certificate: certificate * certificate -> certificate
   (*generic context*)
   datatype generic = Theory of theory | Proof of Proof.context
   val cases: (theory -> 'a) -> (Proof.context -> 'a) -> generic -> 'a
@@ -207,14 +213,15 @@ val ancestors_of = #ancestors o ancestry_of;
 val PureN = "Pure";
 val finished = ~1;
 
+fun display_name thy_id =
+  let val {name, stage} = history_of_id thy_id
+  in if stage = finished then name else name ^ ":" ^ string_of_int stage end;
+
 fun display_names thy =
   let
-    val {name, stage} = history_of thy;
-    val name' =
-      if stage = finished then name
-      else name ^ ":" ^ string_of_int stage;
+    val name = display_name (theory_id thy);
     val ancestor_names = map theory_name (ancestors_of thy);
-  in rev (name' :: ancestor_names) end;
+  in rev (name :: ancestor_names) end;
 
 val pretty_thy = Pretty.str_list "{" "}" o display_names;
 val string_of_thy = Pretty.string_of o pretty_thy;
@@ -280,16 +287,6 @@ fun extend_ancestors thy thys =
 val merge_ancestors = merge eq_thy_consistent;
 
 
-(* trivial merge *)
-
-fun merge (thy1, thy2) =
-  if eq_thy (thy1, thy2) then thy1
-  else if proper_subthy (thy2, thy1) then thy1
-  else if proper_subthy (thy1, thy2) then thy2
-  else error (cat_lines ["Attempt to perform non-trivial merge of theories:",
-    str_of_thy thy1, str_of_thy thy2]);
-
-
 
 (** build theories **)
 
@@ -326,6 +323,8 @@ end;
 
 (* named theory nodes *)
 
+local
+
 fun merge_thys pp (thy1, thy2) =
   let
     val ids = merge_ids thy1 thy2;
@@ -336,6 +335,8 @@ fun merge_thys pp (thy1, thy2) =
 
 fun maximal_thys thys =
   thys |> filter_out (fn thy => exists (fn thy' => proper_subthy (thy, thy')) thys);
+
+in
 
 fun begin_thy pp name imports =
   if name = "" then error ("Bad theory name: " ^ quote name)
@@ -355,6 +356,8 @@ fun begin_thy pp name imports =
       val history = make_history name 0;
       val ancestry = make_ancestry parents ancestors;
     in create_thy ids history ancestry data end;
+
+end;
 
 
 (* theory data *)
@@ -439,6 +442,33 @@ fun put k mk x (Proof.Context (data, thy)) =
 end;
 
 end;
+
+
+
+(*** theory certificate ***)
+
+datatype certificate = Certificate of theory | Certificate_Id of theory_id;
+
+fun certificate_theory (Certificate thy) = thy
+  | certificate_theory (Certificate_Id thy_id) =
+      raise Fail ("No content for theory certificate " ^ quote (display_name thy_id));
+
+fun certificate_theory_id (Certificate thy) = theory_id thy
+  | certificate_theory_id (Certificate_Id thy_id) = thy_id;
+
+fun eq_certificate (Certificate thy1, Certificate thy2) = eq_thy (thy1, thy2)
+  | eq_certificate (Certificate_Id thy_id1, Certificate_Id thy_id2) = eq_thy_id (thy_id1, thy_id2)
+  | eq_certificate _ = false;
+
+fun join_certificate (cert1, cert2) =
+  let val (thy_id1, thy_id2) = apply2 certificate_theory_id (cert1, cert2) in
+    if eq_thy_id (thy_id1, thy_id2) then (case cert1 of Certificate _ => cert1 | _ => cert2)
+    else if proper_subthy_id (thy_id2, thy_id1) then cert1
+    else if proper_subthy_id (thy_id1, thy_id2) then cert2
+    else
+      raise Fail ("Cannot join unrelated theory certificates " ^
+        quote (display_name thy_id1) ^ " and " ^ quote (display_name thy_id2))
+  end;
 
 
 
@@ -645,4 +675,3 @@ end;
 
 (*hide private interface*)
 structure Context: CONTEXT = Context;
-
