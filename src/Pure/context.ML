@@ -466,7 +466,7 @@ fun join_certificate (cert1, cert2) =
     else if proper_subthy_id (thy_id2, thy_id1) then cert1
     else if proper_subthy_id (thy_id1, thy_id2) then cert2
     else
-      raise Fail ("Cannot join unrelated theory certificates " ^
+      error ("Cannot join unrelated theory certificates " ^
         quote (display_name thy_id1) ^ " and " ^ quote (display_name thy_id2))
   end;
 

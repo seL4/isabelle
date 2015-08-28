@@ -15,6 +15,7 @@ sig
   type thm
   type conv = cterm -> thm
   exception THM of string * int * thm list
+  exception THM_CONTEXT of string * thm list * Proof.context option
 end;
 
 signature THM =
@@ -356,6 +357,7 @@ type conv = cterm -> thm;
 
 (*errors involving theorems*)
 exception THM of string * int * thm list;
+exception THM_CONTEXT of string * thm list * Proof.context option;
 
 fun rep_thm (Thm (_, args)) = args;
 
@@ -403,7 +405,8 @@ val cert_of = #cert o rep_thm;
 val theory_id_of_thm = Context.certificate_theory_id o cert_of;
 val theory_name_of_thm = Context.theory_id_name o theory_id_of_thm;
 fun theory_of_thm th =
-  Context.certificate_theory (cert_of th) handle Fail msg => raise THM (msg, 0, [th]);
+  Context.certificate_theory (cert_of th)
+    handle ERROR msg => raise THM_CONTEXT (msg, [th], NONE);
 
 val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
@@ -462,14 +465,14 @@ fun renamed_prop prop' (Thm (der, {cert, tags, maxidx, shyps, hyps, tpairs, prop
 
 fun make_context ths NONE cert =
       (Context.Theory (Context.certificate_theory cert)
-        handle Fail msg => raise THM (msg, 0, ths))
-  | make_context _ (SOME ctxt) cert =
+        handle ERROR msg => raise THM_CONTEXT (msg, ths, NONE))
+  | make_context ths (SOME ctxt) cert =
       let
         val thy_id = Context.certificate_theory_id cert;
         val thy_id' = Context.theory_id (Proof_Context.theory_of ctxt);
       in
         if Context.subthy_id (thy_id, thy_id') then Context.Proof ctxt
-        else raise THEORY ("Bad context", [Proof_Context.theory_of ctxt])
+        else raise THM_CONTEXT ("Bad context", ths, SOME ctxt)
       end;
 
 (*explicit weakening: maps |- B to A |- B*)
