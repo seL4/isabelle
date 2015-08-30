@@ -34,6 +34,7 @@ sig
   val maxidx_of_cterm: cterm -> int
   val global_cterm_of: theory -> term -> cterm
   val cterm_of: Proof.context -> term -> cterm
+  val trim_context_cterm: cterm -> cterm
   val transfer_cterm: theory -> cterm -> cterm
   val renamed_term: term -> cterm -> cterm
   val dest_comb: cterm -> cterm * cterm
@@ -76,6 +77,7 @@ sig
   val cprop_of: thm -> cterm
   val cprem_of: thm -> int -> cterm
   val chyps_of: thm -> cterm list
+  val trim_context: thm -> thm
   val transfer: theory -> thm -> thm
   val renamed_prop: term -> thm -> thm
   val weaken: cterm -> thm -> thm
@@ -195,6 +197,13 @@ val cterm_of = global_cterm_of o Proof_Context.theory_of;
 
 fun join_certificate0 (Cterm {cert = cert1, ...}, Cterm {cert = cert2, ...}) =
   Context.join_certificate (cert1, cert2);
+
+fun trim_context_cterm ct =
+  (case ct of
+    Cterm {cert = Context.Certificate_Id _, ...} => ct
+  | Cterm {cert = Context.Certificate thy, t, T, maxidx, sorts} =>
+      Cterm {cert = Context.Certificate_Id (Context.theory_id thy),
+        t = t, T = T, maxidx = maxidx, sorts = sorts});
 
 fun transfer_cterm thy' ct =
   let
@@ -437,7 +446,14 @@ fun cprem_of (th as Thm (_, {cert, maxidx, shyps, prop, ...})) i =
 fun chyps_of (Thm (_, {cert, shyps, hyps, ...})) =
   map (fn t => Cterm {cert = cert, maxidx = ~1, T = propT, sorts = shyps, t = t}) hyps;
 
-(*explicit transfer to a super theory*)
+fun trim_context th =
+  (case th of
+    Thm (_, {cert = Context.Certificate_Id _, ...}) => th
+  | Thm (der, {cert = Context.Certificate thy, tags, maxidx, shyps, hyps, tpairs, prop}) =>
+      Thm (der,
+       {cert = Context.Certificate_Id (Context.theory_id thy),
+        tags = tags, maxidx = maxidx, shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop}));
+
 fun transfer thy' thm =
   let
     val Thm (der, {cert, tags, maxidx, shyps, hyps, tpairs, prop}) = thm;
