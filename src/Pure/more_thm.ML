@@ -583,8 +583,11 @@ structure Proofs = Theory_Data
   fun merge _ = empty;
 );
 
-fun register_proofs more_thms = Proofs.map (fn thms => fold cons more_thms thms);
-val join_theory_proofs = Thm.join_proofs o rev o Proofs.get;
+fun register_proofs more_thms =
+  Proofs.map (fold (cons o Thm.trim_context) more_thms);
+
+fun join_theory_proofs thy =
+  Thm.join_proofs (map (Thm.transfer thy) (rev (Proofs.get thy)));
 
 
 open Thm;
@@ -593,4 +596,3 @@ end;
 
 structure Basic_Thm: BASIC_THM = Thm;
 open Basic_Thm;
-
