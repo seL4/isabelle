@@ -915,9 +915,9 @@ local
 
 fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
   let
-    val [rules1, rules2, rules4] = Context_Rules.find_rules false facts goal ctxt;
+    val [rules1, rules2, rules4] = Context_Rules.find_rules ctxt false facts goal;
     val {extra_netpair, ...} = rep_claset_of ctxt;
-    val rules3 = Context_Rules.find_rules_netpair true facts goal extra_netpair;
+    val rules3 = Context_Rules.find_rules_netpair ctxt true facts goal extra_netpair;
     val rules = rules1 @ rules2 @ rules3 @ rules4;
     val ruleq = Drule.multi_resolves (SOME ctxt) facts rules;
     val _ = Method.trace ctxt rules;

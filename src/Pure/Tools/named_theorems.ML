@@ -50,10 +50,12 @@ fun map_entry name f context =
 
 fun member ctxt = Item_Net.member o the_entry (Context.Proof ctxt);
 
-fun content context = rev o Item_Net.content o the_entry context;
+fun content context =
+  rev o map (Thm.transfer (Context.theory_of context)) o Item_Net.content o the_entry context;
+
 val get = content o Context.Proof;
 
-fun add_thm name = map_entry name o Item_Net.update;
+fun add_thm name th = map_entry name (Item_Net.update (Thm.trim_context th));
 fun del_thm name = map_entry name o Item_Net.remove;
 
 val add = Thm.declaration_attribute o add_thm;
