@@ -228,11 +228,12 @@ fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props 
 
 fun add_static context {strict, index} (b, ths) (Facts {facts, props}) =
   let
+    val ths' = map Thm.trim_context ths;
     val (name, facts') =
       if Binding.is_empty b then ("", facts)
-      else Name_Space.define context strict (b, Static ths) facts;
+      else Name_Space.define context strict (b, Static ths') facts;
     val props' = props
-      |> index ? fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, th)) ths;
+      |> index ? fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, th)) ths';
   in (name, make_facts facts' props') end;
 
 

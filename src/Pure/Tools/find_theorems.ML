@@ -380,12 +380,15 @@ end;
 
 fun all_facts_of ctxt =
   let
+    val thy = Proof_Context.theory_of ctxt;
+    val transfer = Global_Theory.transfer_theories thy;
     val local_facts = Proof_Context.facts_of ctxt;
-    val global_facts = Global_Theory.facts_of (Proof_Context.theory_of ctxt);
+    val global_facts = Global_Theory.facts_of thy;
   in
-    maps Facts.selections
-     (Facts.dest_static false [global_facts] local_facts @
-      Facts.dest_static false [] global_facts)
+   (Facts.dest_static false [global_facts] local_facts @
+     Facts.dest_static false [] global_facts)
+   |> maps Facts.selections
+   |> map (apsnd transfer)
   end;
 
 fun filter_theorems ctxt theorems query =

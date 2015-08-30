@@ -460,6 +460,7 @@ fun is_useful_unnamed_local_fact ctxt =
 fun all_facts ctxt generous ho_atp keywords add_ths chained css =
   let
     val thy = Proof_Context.theory_of ctxt
+    val transfer = Global_Theory.transfer_theories thy;
     val global_facts = Global_Theory.facts_of thy
     val is_too_complex =
       if generous orelse fact_count global_facts >= max_facts_for_complex_check then K false
@@ -493,35 +494,37 @@ fun all_facts ctxt generous ho_atp keywords add_ths chained css =
                 NONE => false
               | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths'))
           in
-            snd (fold_rev (fn th => fn (j, accum) =>
-              (j - 1,
-               if not (member Thm.eq_thm_prop add_ths th) andalso
-                  (is_likely_tautology_too_meta_or_too_technical th orelse
-                   is_too_complex (Thm.prop_of th)) then
-                 accum
-               else
-                 let
-                   fun get_name () =
-                     if name0 = "" orelse name0 = local_thisN then
-                       backquote_thm ctxt th
-                     else
-                       let val short_name = Facts.extern ctxt facts name0 in
-                         if check_thms short_name then
-                           short_name
-                         else
-                           let val long_name = Name_Space.extern ctxt full_space name0 in
-                             if check_thms long_name then
-                               long_name
-                             else
-                               name0
-                           end
-                       end
-                       |> make_name keywords multi j
-                   val stature = stature_of_thm global assms chained css name0 th
-                   val new = ((get_name, stature), th)
-                 in
-                   (if multi then apsnd else apfst) (cons new) accum
-                 end)) ths (n, accum))
+            snd (fold_rev (fn th0 => fn (j, accum) =>
+              let val th = transfer th0 in
+                (j - 1,
+                 if not (member Thm.eq_thm_prop add_ths th) andalso
+                    (is_likely_tautology_too_meta_or_too_technical th orelse
+                     is_too_complex (Thm.prop_of th)) then
+                   accum
+                 else
+                   let
+                     fun get_name () =
+                       if name0 = "" orelse name0 = local_thisN then
+                         backquote_thm ctxt th
+                       else
+                         let val short_name = Facts.extern ctxt facts name0 in
+                           if check_thms short_name then
+                             short_name
+                           else
+                             let val long_name = Name_Space.extern ctxt full_space name0 in
+                               if check_thms long_name then
+                                 long_name
+                               else
+                                 name0
+                             end
+                         end
+                         |> make_name keywords multi j
+                     val stature = stature_of_thm global assms chained css name0 th
+                     val new = ((get_name, stature), th)
+                   in
+                     (if multi then apsnd else apfst) (cons new) accum
+                   end)
+              end) ths (n, accum))
           end)
   in
     (* The single-theorem names go before the multiple-theorem ones (e.g., "xxx" vs. "xxx(3)"), so

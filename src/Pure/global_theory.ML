@@ -14,6 +14,7 @@ sig
   val hide_fact: bool -> string -> theory -> theory
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
+  val transfer_theories: theory -> thm -> thm
   val all_thms_of: theory -> bool -> (string * thm) list
   val map_facts: ('a -> 'b) -> ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
   val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
@@ -77,12 +78,22 @@ fun get_thms thy xname =
 fun get_thm thy xname =
   Facts.the_single (xname, Position.none) (get_thms thy xname);
 
+fun transfer_theories thy =
+  let
+    val theories =
+      fold (fn thy' => Symtab.update (Context.theory_name thy', thy'))
+        (Theory.nodes_of thy) Symtab.empty;
+    fun transfer th =
+      Thm.transfer (the_default thy (Symtab.lookup theories (Thm.theory_name_of_thm th))) th;
+  in transfer end;
+
 fun all_thms_of thy verbose =
   let
+    val transfer = transfer_theories thy;
     val facts = facts_of thy;
     fun add (name, ths) =
       if not verbose andalso Facts.is_concealed facts name then I
-      else append (map (`(Thm.get_name_hint)) ths);
+      else append (map (`(Thm.get_name_hint) o transfer) ths);
   in Facts.fold_static add facts [] end;
 
 
