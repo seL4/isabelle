@@ -193,7 +193,10 @@ val swapped = Thm.rule_attribute (fn _ => fn th => th RSN (2, Data.swap));
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)
 fun swap_res_tac ctxt rls =
-  let fun addrl rl brls = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls in
+  let
+    val transfer = Thm.transfer (Proof_Context.theory_of ctxt);
+    fun addrl rl brls = (false, transfer rl) :: (true, transfer rl RSN (2, Data.swap)) :: brls;
+  in
     assume_tac ctxt ORELSE'
     contr_tac ctxt ORELSE'
     biresolve_tac ctxt (fold_rev addrl rls [])
@@ -401,11 +404,16 @@ fun add_unsafe_elim w r
         extra_netpair = insert' (the_default 1 w) (nI, nE) ([], [th]) extra_netpair}
     end;
 
+fun trim_context (th, (th1, ths1), (th2, ths2)) =
+  (Thm.trim_context th,
+    (Thm.trim_context th1, map Thm.trim_context ths1),
+    (Thm.trim_context th2, map Thm.trim_context ths2));
+
 fun addSI w ctxt th (cs as CS {safeIs, ...}) =
   let
     val th' = flat_rule ctxt th;
     val rl = (th', swapify [th']);
-    val r = (th, rl, rl);
+    val r = trim_context (th, rl, rl);
     val _ =
       warn_rules ctxt "Ignoring duplicate safe introduction (intro!)\n" safeIs r orelse
       warn_claset ctxt r cs;
@@ -416,7 +424,7 @@ fun addSE w ctxt th (cs as CS {safeEs, ...}) =
     val _ = has_fewer_prems 1 th andalso bad_thm ctxt "Ill-formed elimination rule" th;
     val th' = classical_rule ctxt (flat_rule ctxt th);
     val rl = (th', []);
-    val r = (th, rl, rl);
+    val r = trim_context (th, rl, rl);
     val _ =
       warn_rules ctxt "Ignoring duplicate safe elimination (elim!)\n" safeEs r orelse
       warn_claset ctxt r cs;
@@ -428,7 +436,7 @@ fun addI w ctxt th (cs as CS {unsafeIs, ...}) =
   let
     val th' = flat_rule ctxt th;
     val dup_th' = dup_intr th' handle THM _ => bad_thm ctxt "Ill-formed introduction rule" th;
-    val r = (th, (th', swapify [th']), (dup_th', swapify [dup_th']));
+    val r = trim_context (th, (th', swapify [th']), (dup_th', swapify [dup_th']));
     val _ =
       warn_rules ctxt "Ignoring duplicate introduction (intro)\n" unsafeIs r orelse
       warn_claset ctxt r cs;
@@ -439,7 +447,7 @@ fun addE w ctxt th (cs as CS {unsafeEs, ...}) =
     val _ = has_fewer_prems 1 th andalso bad_thm ctxt "Ill-formed elimination rule" th;
     val th' = classical_rule ctxt (flat_rule ctxt th);
     val dup_th' = dup_elim ctxt th' handle THM _ => bad_thm ctxt "Ill-formed elimination rule" th;
-    val r = (th, (th', []), (dup_th', []));
+    val r = trim_context (th, (th', []), (dup_th', []));
     val _ =
       warn_rules ctxt "Ignoring duplicate elimination (elim)\n" unsafeEs r orelse
       warn_claset ctxt r cs;

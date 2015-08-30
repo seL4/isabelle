@@ -497,24 +497,25 @@ fun rmtac ctxt upd rl =
 (*Tableau rule from elimination rule.
   Flag "upd" says that the inference updated the branch.
   Flag "dup" requests duplication of the affected formula.*)
-fun fromRule (state as State {ctxt, ...}) vars rl =
-  let val thy = Proof_Context.theory_of ctxt
-      val trl = rl |> Thm.prop_of |> fromTerm thy |> convertRule state vars
-      fun tac (upd, dup,rot) i =
-        emtac ctxt upd (if dup then rev_dup_elim ctxt rl else rl) i
-        THEN
-        rot_subgoals_tac (rot, #2 trl) i
-  in Option.SOME (trl, tac) end
+fun fromRule (state as State {ctxt, ...}) vars rl0 =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val rl = Thm.transfer thy rl0
+    val trl = rl |> Thm.prop_of |> fromTerm thy |> convertRule state vars
+    fun tac (upd, dup,rot) i =
+      emtac ctxt upd (if dup then rev_dup_elim ctxt rl else rl) i THEN
+      rot_subgoals_tac (rot, #2 trl) i
+  in SOME (trl, tac) end
   handle
     ElimBadPrem => (*reject: prems don't preserve conclusion*)
       (if Context_Position.is_visible ctxt then
-        warning ("Ignoring weak elimination rule\n" ^ Display.string_of_thm ctxt rl)
+        warning ("Ignoring weak elimination rule\n" ^ Display.string_of_thm ctxt rl0)
        else ();
        Option.NONE)
   | ElimBadConcl => (*ignore: conclusion is not just a variable*)
       (cond_tracing (Config.get ctxt trace)
         (fn () => "Ignoring ill-formed elimination rule:\n" ^
-          "conclusion should be a variable\n" ^ Display.string_of_thm ctxt rl);
+          "conclusion should be a variable\n" ^ Display.string_of_thm ctxt rl0);
        Option.NONE);
 
 
@@ -533,13 +534,14 @@ fun convertIntrRule state vars t =
   Flag "dup" requests duplication of the affected formula.
   Since unsafe rules are now delayed, "dup" is always FALSE for
   introduction rules.*)
-fun fromIntrRule (state as State {ctxt, ...}) vars rl =
-  let val thy = Proof_Context.theory_of ctxt
-      val trl = rl |> Thm.prop_of |> fromTerm thy |> convertIntrRule state vars
-      fun tac (upd,dup,rot) i =
-         rmtac ctxt upd (if dup then Classical.dup_intr rl else rl) i
-         THEN
-         rot_subgoals_tac (rot, #2 trl) i
+fun fromIntrRule (state as State {ctxt, ...}) vars rl0 =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val rl = Thm.transfer thy rl0
+    val trl = rl |> Thm.prop_of |> fromTerm thy |> convertIntrRule state vars
+    fun tac (upd,dup,rot) i =
+      rmtac ctxt upd (if dup then Classical.dup_intr rl else rl) i THEN
+      rot_subgoals_tac (rot, #2 trl) i
   in (trl, tac) end;
 
 
