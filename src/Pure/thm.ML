@@ -12,10 +12,11 @@ sig
   type ctyp
   type cterm
   exception CTERM of string * cterm list
+  exception CTERM_CONTEXT of string * cterm list * Context.generic option
   type thm
   type conv = cterm -> thm
   exception THM of string * int * thm list
-  exception THM_CONTEXT of string * thm list * Proof.context option
+  exception THM_CONTEXT of string * thm list * Context.generic option
 end;
 
 signature THM =
@@ -173,6 +174,7 @@ abstype cterm =
 with
 
 exception CTERM of string * cterm list;
+exception CTERM_CONTEXT of string * cterm list * Context.generic option;
 
 fun term_of (Cterm {t, ...}) = t;
 
@@ -199,7 +201,7 @@ fun transfer_cterm thy' ct =
     val Cterm {cert, t, T, maxidx, sorts} = ct;
     val _ =
       Context.subthy_id (Context.certificate_theory_id cert, Context.theory_id thy') orelse
-        raise CTERM ("transfer_cterm: not a super theory", [ct]);
+        raise CTERM_CONTEXT ("transfer_cterm: not a super theory", [ct], SOME (Context.Theory thy'));
     val cert' = Context.join_certificate (Context.Certificate thy', cert);
   in
     if Context.eq_certificate (cert, cert') then ct
@@ -357,7 +359,7 @@ type conv = cterm -> thm;
 
 (*errors involving theorems*)
 exception THM of string * int * thm list;
-exception THM_CONTEXT of string * thm list * Proof.context option;
+exception THM_CONTEXT of string * thm list * Context.generic option;
 
 fun rep_thm (Thm (_, args)) = args;
 
@@ -441,7 +443,7 @@ fun transfer thy' thm =
     val Thm (der, {cert, tags, maxidx, shyps, hyps, tpairs, prop}) = thm;
     val _ =
       Context.subthy_id (Context.certificate_theory_id cert, Context.theory_id thy') orelse
-        raise THM ("transfer: not a super theory", 0, [thm]);
+        raise THM_CONTEXT ("transfer: not a super theory", [thm], SOME (Context.Theory thy'));
     val cert' = Context.join_certificate (Context.Certificate thy', cert);
   in
     if Context.eq_certificate (cert, cert') then thm
@@ -472,7 +474,7 @@ fun make_context ths NONE cert =
         val thy_id' = Context.theory_id (Proof_Context.theory_of ctxt);
       in
         if Context.subthy_id (thy_id, thy_id') then Context.Proof ctxt
-        else raise THM_CONTEXT ("Bad context", ths, SOME ctxt)
+        else raise THM_CONTEXT ("Bad context", ths, SOME (Context.Proof ctxt))
       end;
 
 (*explicit weakening: maps |- B to A |- B*)
