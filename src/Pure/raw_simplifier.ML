@@ -151,6 +151,10 @@ type rrule =
   fo: bool,         (*use first-order matching*)
   perm: bool};      (*the rewrite rule is permutative*)
 
+fun trim_context_rrule ({thm, name, lhs, elhs, extra, fo, perm}: rrule) =
+  {thm = Thm.trim_context thm, name = name, lhs = lhs, elhs = Thm.trim_context_cterm elhs,
+    extra = extra, fo = fo, perm = perm};
+
 (*
 Remarks:
   - elhs is used for matching,
@@ -470,7 +474,7 @@ fun insert_rrule (rrule as {thm, name, ...}) ctxt =
   ctxt |> map_simpset1 (fn (rules, prems, depth) =>
     let
       val rrule2 as {elhs, ...} = mk_rrule2 rrule;
-      val rules' = Net.insert_term eq_rrule (Thm.term_of elhs, rrule2) rules;
+      val rules' = Net.insert_term eq_rrule (Thm.term_of elhs, trim_context_rrule rrule2) rules;
     in (rules', prems, depth) end)
   handle Net.INSERT =>
     (cond_warning ctxt (fn () => print_thm ctxt "Ignoring duplicate rewrite rule:" ("", thm));
@@ -917,17 +921,21 @@ fun cond_skel (args as (_, (lhs, rhs))) =
 
 fun rewritec (prover, maxt) ctxt t =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val Simpset ({rules, ...}, {congs, procs, termless, ...}) = simpset_of ctxt;
     val eta_thm = Thm.eta_conversion t;
     val eta_t' = Thm.rhs_of eta_thm;
     val eta_t = Thm.term_of eta_t';
     fun rew rrule =
       let
-        val {thm, name, lhs, elhs, extra, fo, perm} = rrule
+        val {thm = thm0, name, lhs, elhs = elhs0, extra, fo, perm} = rrule;
+        val thm = Thm.transfer thy thm0;
+        val elhs = Thm.transfer_cterm thy elhs0;
         val prop = Thm.prop_of thm;
         val (rthm, elhs') =
           if maxt = ~1 orelse not extra then (thm, elhs)
           else (Thm.incr_indexes (maxt + 1) thm, Thm.incr_indexes_cterm (maxt + 1) elhs);
+
         val insts =
           if fo then Thm.first_order_match (elhs', eta_t')
           else Thm.match (elhs', eta_t');
