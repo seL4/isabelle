@@ -51,7 +51,7 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
     val show_tags = Config.get ctxt show_tags;
     val show_hyps = Config.get ctxt show_hyps;
 
-    val th = Thm.strip_shyps raw_th handle THM_CONTEXT _ => raw_th;
+    val th = Thm.strip_shyps raw_th handle Thm.CONTEXT _ => raw_th;
 
     val hyps = if show_hyps then Thm.hyps_of th else Thm.undeclared_hyps (Context.Proof ctxt) th;
     val extra_shyps = Thm.extra_shyps th;

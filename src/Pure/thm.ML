@@ -12,11 +12,9 @@ sig
   type ctyp
   type cterm
   exception CTERM of string * cterm list
-  exception CTERM_CONTEXT of string * cterm list * Context.generic option
   type thm
   type conv = cterm -> thm
   exception THM of string * int * thm list
-  exception THM_CONTEXT of string * thm list * Context.generic option
 end;
 
 signature THM =
@@ -34,8 +32,6 @@ sig
   val maxidx_of_cterm: cterm -> int
   val global_cterm_of: theory -> term -> cterm
   val cterm_of: Proof.context -> term -> cterm
-  val trim_context_cterm: cterm -> cterm
-  val transfer_cterm: theory -> cterm -> cterm
   val renamed_term: term -> cterm -> cterm
   val dest_comb: cterm -> cterm * cterm
   val dest_fun: cterm -> cterm
@@ -60,7 +56,6 @@ sig
   val fold_atomic_cterms: (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
-  val theory_of_thm: thm -> theory
   val theory_id_of_thm: thm -> Context.theory_id
   val theory_name_of_thm: thm -> string
   val maxidx_of: thm -> int
@@ -77,7 +72,12 @@ sig
   val cprop_of: thm -> cterm
   val cprem_of: thm -> int -> cterm
   val chyps_of: thm -> cterm list
+  exception CONTEXT of string * ctyp list * cterm list * thm list * Context.generic option
+  val theory_of_cterm: cterm -> theory
+  val theory_of_thm: thm -> theory
+  val trim_context_cterm: cterm -> cterm
   val trim_context: thm -> thm
+  val transfer_cterm: theory -> cterm -> cterm
   val transfer: theory -> thm -> thm
   val renamed_prop: term -> thm -> thm
   val weaken: cterm -> thm -> thm
@@ -176,7 +176,6 @@ abstype cterm =
 with
 
 exception CTERM of string * cterm list;
-exception CTERM_CONTEXT of string * cterm list * Context.generic option;
 
 fun term_of (Cterm {t, ...}) = t;
 
@@ -197,29 +196,6 @@ val cterm_of = global_cterm_of o Proof_Context.theory_of;
 
 fun join_certificate0 (Cterm {cert = cert1, ...}, Cterm {cert = cert2, ...}) =
   Context.join_certificate (cert1, cert2);
-
-fun theory_of_cterm (ct as Cterm {cert, ...}) =
-  Context.certificate_theory cert
-    handle ERROR msg => raise CTERM_CONTEXT (msg, [ct], NONE);
-
-fun trim_context_cterm ct =
-  (case ct of
-    Cterm {cert = Context.Certificate_Id _, ...} => ct
-  | Cterm {cert = Context.Certificate thy, t, T, maxidx, sorts} =>
-      Cterm {cert = Context.Certificate_Id (Context.theory_id thy),
-        t = t, T = T, maxidx = maxidx, sorts = sorts});
-
-fun transfer_cterm thy' ct =
-  let
-    val Cterm {cert, t, T, maxidx, sorts} = ct;
-    val _ =
-      Context.subthy_id (Context.certificate_theory_id cert, Context.theory_id thy') orelse
-        raise CTERM_CONTEXT ("transfer_cterm: not a super theory", [ct], SOME (Context.Theory thy'));
-    val cert' = Context.join_certificate (Context.Certificate thy', cert);
-  in
-    if Context.eq_certificate (cert, cert') then ct
-    else Cterm {cert = cert', t = t, T = T, maxidx = maxidx, sorts = sorts}
-  end;
 
 fun renamed_term t' (Cterm {cert, t, T, maxidx, sorts}) =
   if t aconv t' then Cterm {cert = cert, t = t', T = T, maxidx = maxidx, sorts = sorts}
@@ -323,35 +299,6 @@ fun incr_indexes_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
     T = Logic.incr_tvar i T, maxidx = maxidx + i, sorts = sorts};
 
 
-(* matching *)
-
-local
-
-fun gen_match match
-    (ct1 as Cterm {t = t1, sorts = sorts1, ...},
-     ct2 as Cterm {t = t2, sorts = sorts2, maxidx = maxidx2, ...}) =
-  let
-    val cert = join_certificate0 (ct1, ct2);
-    val thy = Context.certificate_theory cert
-      handle ERROR msg => raise CTERM_CONTEXT (msg, [ct1, ct2], NONE);
-    val (Tinsts, tinsts) = match thy (t1, t2) (Vartab.empty, Vartab.empty);
-    val sorts = Sorts.union sorts1 sorts2;
-    fun mk_cTinst ((a, i), (S, T)) =
-      (((a, i), S), Ctyp {T = T, cert = cert, maxidx = maxidx2, sorts = sorts});
-    fun mk_ctinst ((x, i), (U, t)) =
-      let val T = Envir.subst_type Tinsts U in
-        (((x, i), T), Cterm {t = t, T = T, cert = cert, maxidx = maxidx2, sorts = sorts})
-      end;
-  in (Vartab.fold (cons o mk_cTinst) Tinsts [], Vartab.fold (cons o mk_ctinst) tinsts []) end;
-
-in
-
-val match = gen_match Pattern.match;
-val first_order_match = gen_match Pattern.first_order_match;
-
-end;
-
-
 
 (*** Derivations and Theorems ***)
 
@@ -373,7 +320,6 @@ type conv = cterm -> thm;
 
 (*errors involving theorems*)
 exception THM of string * int * thm list;
-exception THM_CONTEXT of string * thm list * Context.generic option;
 
 fun rep_thm (Thm (_, args)) = args;
 
@@ -421,10 +367,6 @@ val cert_of = #cert o rep_thm;
 val theory_id_of_thm = Context.certificate_theory_id o cert_of;
 val theory_name_of_thm = Context.theory_id_name o theory_id_of_thm;
 
-fun theory_of_thm th =
-  Context.certificate_theory (cert_of th)
-    handle ERROR msg => raise THM_CONTEXT (msg, [th], NONE);
-
 val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
 val shyps_of = #shyps o rep_thm;
@@ -452,6 +394,26 @@ fun cprem_of (th as Thm (_, {cert, maxidx, shyps, prop, ...})) i =
 fun chyps_of (Thm (_, {cert, shyps, hyps, ...})) =
   map (fn t => Cterm {cert = cert, maxidx = ~1, T = propT, sorts = shyps, t = t}) hyps;
 
+
+(* implicit theory context *)
+
+exception CONTEXT of string * ctyp list * cterm list * thm list * Context.generic option;
+
+fun theory_of_cterm (ct as Cterm {cert, ...}) =
+  Context.certificate_theory cert
+    handle ERROR msg => raise CONTEXT (msg, [], [ct], [], NONE);
+
+fun theory_of_thm th =
+  Context.certificate_theory (cert_of th)
+    handle ERROR msg => raise CONTEXT (msg, [], [], [th], NONE);
+
+fun trim_context_cterm ct =
+  (case ct of
+    Cterm {cert = Context.Certificate_Id _, ...} => ct
+  | Cterm {cert = Context.Certificate thy, t, T, maxidx, sorts} =>
+      Cterm {cert = Context.Certificate_Id (Context.theory_id thy),
+        t = t, T = T, maxidx = maxidx, sorts = sorts});
+
 fun trim_context th =
   (case th of
     Thm (_, {cert = Context.Certificate_Id _, ...}) => th
@@ -460,15 +422,29 @@ fun trim_context th =
        {cert = Context.Certificate_Id (Context.theory_id thy),
         tags = tags, maxidx = maxidx, shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop}));
 
-fun transfer thy' thm =
+fun transfer_cterm thy' ct =
   let
-    val Thm (der, {cert, tags, maxidx, shyps, hyps, tpairs, prop}) = thm;
+    val Cterm {cert, t, T, maxidx, sorts} = ct;
     val _ =
       Context.subthy_id (Context.certificate_theory_id cert, Context.theory_id thy') orelse
-        raise THM_CONTEXT ("transfer: not a super theory", [thm], SOME (Context.Theory thy'));
+        raise CONTEXT ("Cannot transfer: not a super theory", [], [ct], [],
+          SOME (Context.Theory thy'));
     val cert' = Context.join_certificate (Context.Certificate thy', cert);
   in
-    if Context.eq_certificate (cert, cert') then thm
+    if Context.eq_certificate (cert, cert') then ct
+    else Cterm {cert = cert', t = t, T = T, maxidx = maxidx, sorts = sorts}
+  end;
+
+fun transfer thy' th =
+  let
+    val Thm (der, {cert, tags, maxidx, shyps, hyps, tpairs, prop}) = th;
+    val _ =
+      Context.subthy_id (Context.certificate_theory_id cert, Context.theory_id thy') orelse
+        raise CONTEXT ("Cannot transfer: not a super theory", [], [], [th],
+          SOME (Context.Theory thy'));
+    val cert' = Context.join_certificate (Context.Certificate thy', cert);
+  in
+    if Context.eq_certificate (cert, cert') then th
     else
       Thm (der,
        {cert = cert',
@@ -480,6 +456,36 @@ fun transfer thy' thm =
         prop = prop})
   end;
 
+
+(* matching *)
+
+local
+
+fun gen_match match
+    (ct1 as Cterm {t = t1, sorts = sorts1, ...},
+     ct2 as Cterm {t = t2, sorts = sorts2, maxidx = maxidx2, ...}) =
+  let
+    val cert = join_certificate0 (ct1, ct2);
+    val thy = Context.certificate_theory cert
+      handle ERROR msg => raise CONTEXT (msg, [], [ct1, ct2], [], NONE);
+    val (Tinsts, tinsts) = match thy (t1, t2) (Vartab.empty, Vartab.empty);
+    val sorts = Sorts.union sorts1 sorts2;
+    fun mk_cTinst ((a, i), (S, T)) =
+      (((a, i), S), Ctyp {T = T, cert = cert, maxidx = maxidx2, sorts = sorts});
+    fun mk_ctinst ((x, i), (U, t)) =
+      let val T = Envir.subst_type Tinsts U in
+        (((x, i), T), Cterm {t = t, T = T, cert = cert, maxidx = maxidx2, sorts = sorts})
+      end;
+  in (Vartab.fold (cons o mk_cTinst) Tinsts [], Vartab.fold (cons o mk_ctinst) tinsts []) end;
+
+in
+
+val match = gen_match Pattern.match;
+val first_order_match = gen_match Pattern.first_order_match;
+
+end;
+
+
 (*implicit alpha-conversion*)
 fun renamed_prop prop' (Thm (der, {cert, tags, maxidx, shyps, hyps, tpairs, prop})) =
   if prop aconv prop' then
@@ -489,14 +495,14 @@ fun renamed_prop prop' (Thm (der, {cert, tags, maxidx, shyps, hyps, tpairs, prop
 
 fun make_context ths NONE cert =
       (Context.Theory (Context.certificate_theory cert)
-        handle ERROR msg => raise THM_CONTEXT (msg, ths, NONE))
+        handle ERROR msg => raise CONTEXT (msg, [], [], ths, NONE))
   | make_context ths (SOME ctxt) cert =
       let
         val thy_id = Context.certificate_theory_id cert;
         val thy_id' = Context.theory_id (Proof_Context.theory_of ctxt);
       in
         if Context.subthy_id (thy_id, thy_id') then Context.Proof ctxt
-        else raise THM_CONTEXT ("Bad context", ths, SOME (Context.Proof ctxt))
+        else raise CONTEXT ("Bad context", [], [], ths, SOME (Context.Proof ctxt))
       end;
 
 (*explicit weakening: maps |- B to A |- B*)
@@ -1171,7 +1177,8 @@ fun add_instT (v as (_, S), cU) (cert, sorts) =
   let
     val Ctyp {T = U, cert = cert2, sorts = sorts_U, maxidx = maxidx_U, ...} = cU;
     val cert' = Context.join_certificate (cert, cert2);
-    val thy' = Context.certificate_theory cert';
+    val thy' = Context.certificate_theory cert'
+      handle ERROR msg => raise CONTEXT (msg, [cU], [], [], NONE);
     val sorts' = Sorts.union sorts_U sorts;
   in
     if Sign.of_sort thy' (U, S) then ((v, (U, maxidx_U)), (cert', sorts'))
@@ -1188,7 +1195,9 @@ fun instantiate ([], []) th = th
       let
         val Thm (der, {cert, hyps, shyps, tpairs, prop, ...}) = th;
         val (inst', (instT', (cert', shyps'))) =
-          (cert, shyps) |> fold_map add_inst inst ||> fold_map add_instT instT;
+          (cert, shyps) |> fold_map add_inst inst ||> fold_map add_instT instT
+            handle CONTEXT (msg, cTs, cts, ths, NONE) =>
+              raise CONTEXT (msg, cTs, cts, th :: ths, NONE);
         val subst = Term_Subst.instantiate_maxidx (instT', inst');
         val (prop', maxidx1) = subst prop ~1;
         val (tpairs', maxidx') =
@@ -1245,7 +1254,8 @@ fun trivial (Cterm {cert, t = A, T, maxidx, sorts}) =
 fun of_class (cT, raw_c) =
   let
     val Ctyp {cert, T, ...} = cT;
-    val thy = Context.certificate_theory cert;
+    val thy = Context.certificate_theory cert
+      handle ERROR msg => raise CONTEXT (msg, [cT], [], [], NONE);
     val c = Sign.certify_class thy raw_c;
     val Cterm {t = prop, maxidx, sorts, ...} = global_cterm_of thy (Logic.mk_of_class (T, c));
   in
