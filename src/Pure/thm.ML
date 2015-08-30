@@ -1196,8 +1196,8 @@ fun instantiate ([], []) th = th
         val Thm (der, {cert, hyps, shyps, tpairs, prop, ...}) = th;
         val (inst', (instT', (cert', shyps'))) =
           (cert, shyps) |> fold_map add_inst inst ||> fold_map add_instT instT
-            handle CONTEXT (msg, cTs, cts, ths, NONE) =>
-              raise CONTEXT (msg, cTs, cts, th :: ths, NONE);
+            handle CONTEXT (msg, cTs, cts, ths, context) =>
+              raise CONTEXT (msg, cTs, cts, th :: ths, context);
         val subst = Term_Subst.instantiate_maxidx (instT', inst');
         val (prop', maxidx1) = subst prop ~1;
         val (tpairs', maxidx') =
