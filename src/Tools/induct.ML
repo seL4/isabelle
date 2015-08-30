@@ -203,8 +203,6 @@ fun init_rules index : rules =
 fun filter_rules (rs: rules) th =
   filter (fn (_, th') => Thm.eq_thm_prop (th, th')) (Item_Net.content rs);
 
-fun lookup_rule (rs: rules) = AList.lookup (op =) (Item_Net.content rs);
-
 fun pretty_rules ctxt kind rs =
   let val thms = map snd (Item_Net.content rs)
   in Pretty.big_list kind (map (Display.pretty_thm_item ctxt) thms) end;
@@ -261,16 +259,24 @@ val _ =
 
 (* access rules *)
 
-val lookup_casesT = lookup_rule o #1 o #1 o get_local;
-val lookup_casesP = lookup_rule o #2 o #1 o get_local;
-val lookup_inductT = lookup_rule o #1 o #2 o get_local;
-val lookup_inductP = lookup_rule o #2 o #2 o get_local;
-val lookup_coinductT = lookup_rule o #1 o #3 o get_local;
-val lookup_coinductP = lookup_rule o #2 o #3 o get_local;
+local
 
+fun lookup_rule which ctxt =
+  AList.lookup (op =) (Item_Net.content (which (get_local ctxt)))
+  #> Option.map (Thm.transfer (Proof_Context.theory_of ctxt));
 
 fun find_rules which how ctxt x =
-  map snd (Item_Net.retrieve (which (get_local ctxt)) (how x));
+  Item_Net.retrieve (which (get_local ctxt)) (how x)
+  |> map (Thm.transfer (Proof_Context.theory_of ctxt) o snd);
+
+in
+
+val lookup_casesT = lookup_rule (#1 o #1);
+val lookup_casesP = lookup_rule (#2 o #1);
+val lookup_inductT = lookup_rule (#1 o #2);
+val lookup_inductP = lookup_rule (#2 o #2);
+val lookup_coinductT = lookup_rule (#1 o #3);
+val lookup_coinductP = lookup_rule (#2 o #3);
 
 val find_casesT = find_rules (#1 o #1) Net.encode_type;
 val find_casesP = find_rules (#2 o #1) I;
@@ -278,6 +284,8 @@ val find_inductT = find_rules (#1 o #2) Net.encode_type;
 val find_inductP = find_rules (#2 o #2) I;
 val find_coinductT = find_rules (#1 o #3) Net.encode_type;
 val find_coinductP = find_rules (#2 o #3) I;
+
+end;
 
 
 
@@ -289,7 +297,7 @@ fun mk_att f g name =
   Thm.mixed_attribute (fn (context, thm) =>
     let
       val thm' = g thm;
-      val context' = Data.map (f (name, thm')) context;
+      val context' = Data.map (f (name, Thm.trim_context thm')) context;
     in (context', thm') end);
 
 fun del_att which =
