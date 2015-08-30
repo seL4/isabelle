@@ -198,6 +198,10 @@ val cterm_of = global_cterm_of o Proof_Context.theory_of;
 fun join_certificate0 (Cterm {cert = cert1, ...}, Cterm {cert = cert2, ...}) =
   Context.join_certificate (cert1, cert2);
 
+fun theory_of_cterm (ct as Cterm {cert, ...}) =
+  Context.certificate_theory cert
+    handle ERROR msg => raise CTERM_CONTEXT (msg, [ct], NONE);
+
 fun trim_context_cterm ct =
   (case ct of
     Cterm {cert = Context.Certificate_Id _, ...} => ct
@@ -328,7 +332,8 @@ fun gen_match match
      ct2 as Cterm {t = t2, sorts = sorts2, maxidx = maxidx2, ...}) =
   let
     val cert = join_certificate0 (ct1, ct2);
-    val thy = Context.certificate_theory cert;
+    val thy = Context.certificate_theory cert
+      handle ERROR msg => raise CTERM_CONTEXT (msg, [ct1, ct2], NONE);
     val (Tinsts, tinsts) = match thy (t1, t2) (Vartab.empty, Vartab.empty);
     val sorts = Sorts.union sorts1 sorts2;
     fun mk_cTinst ((a, i), (S, T)) =
@@ -415,6 +420,7 @@ fun join_certificate2 (Thm (_, {cert = cert1, ...}), Thm (_, {cert = cert2, ...}
 val cert_of = #cert o rep_thm;
 val theory_id_of_thm = Context.certificate_theory_id o cert_of;
 val theory_name_of_thm = Context.theory_id_name o theory_id_of_thm;
+
 fun theory_of_thm th =
   Context.certificate_theory (cert_of th)
     handle ERROR msg => raise THM_CONTEXT (msg, [th], NONE);
@@ -517,7 +523,7 @@ fun weaken raw_ct th =
 fun weaken_sorts raw_sorts ct =
   let
     val Cterm {cert, t, T, maxidx, sorts} = ct;
-    val thy = Context.certificate_theory cert;
+    val thy = theory_of_cterm ct;
     val more_sorts = Sorts.make (map (Sign.certify_sort thy) raw_sorts);
     val sorts' = Sorts.union sorts more_sorts;
   in Cterm {cert = cert, t = t, T = T, maxidx = maxidx, sorts = sorts'} end;
@@ -625,7 +631,7 @@ fun future future_thm ct =
     val Cterm {cert = cert, t = prop, T, maxidx, sorts} = ct;
     val _ = T <> propT andalso raise CTERM ("future: prop expected", [ct]);
 
-    val thy = Context.certificate_theory cert;
+    val thy = theory_of_cterm ct;
     val i = serial ();
     val future = future_thm |> Future.map (future_result i cert sorts prop);
   in

@@ -451,7 +451,7 @@ datatype certificate = Certificate of theory | Certificate_Id of theory_id;
 
 fun certificate_theory (Certificate thy) = thy
   | certificate_theory (Certificate_Id thy_id) =
-      raise Fail ("No content for theory certificate " ^ quote (display_name thy_id));
+      error ("No content for theory certificate " ^ quote (display_name thy_id));
 
 fun certificate_theory_id (Certificate thy) = theory_id thy
   | certificate_theory_id (Certificate_Id thy_id) = thy_id;
