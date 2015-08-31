@@ -860,7 +860,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
           let
             val Ts = arg_types_of (length params) c;
             val xs =
-              map Free (Variable.variant_frees lthy intr_ts (mk_names "x" (length Ts) ~~ Ts));
+              map Free (Variable.variant_frees lthy' intr_ts (mk_names "x" (length Ts) ~~ Ts));
           in
             (name_mx, (apfst Binding.concealed Attrib.empty_binding, fold_rev lambda (params @ xs)
               (list_comb (rec_const, params @ make_bool_args' bs i @
@@ -870,14 +870,15 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
       |> fold_map Local_Theory.define specs;
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
 
-    val (_, lthy''') = Variable.add_fixes (map (fst o dest_Free) params) lthy'';
-    val mono = prove_mono quiet_mode skip_mono predT fp_fun monos lthy''';
-    val (_, lthy'''') =
-      Local_Theory.note (apfst Binding.concealed Attrib.empty_binding,
-        Proof_Context.export lthy''' lthy'' [mono]) lthy'';
-
-  in (lthy'''', lthy''', rec_name, mono, fp_def', map (#2 o #2) consts_defs,
-    list_comb (rec_const, params), preds, argTs, bs, xs)
+    val (_, ctxt'') = Variable.add_fixes (map (fst o dest_Free) params) lthy'';
+    val mono = prove_mono quiet_mode skip_mono predT fp_fun monos ctxt'';
+    val (_, lthy''') = lthy''
+      |> Local_Theory.note (apfst Binding.concealed Attrib.empty_binding,
+        Proof_Context.export ctxt'' lthy'' [mono]);
+  in
+    (lthy''', Proof_Context.transfer (Proof_Context.theory_of lthy''') ctxt'',
+      rec_name, mono, fp_def', map (#2 o #2) consts_defs,
+      list_comb (rec_const, params), preds, argTs, bs, xs)
   end;
 
 fun declare_rules rec_binding coind no_ind cnames
