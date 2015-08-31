@@ -181,6 +181,14 @@ INCOMPATIBILITY in exotic situations.
 
 *** HOL ***
 
+* Some old and rarely used ASCII replacement syntax has been removed.
+INCOMPATIBILITY, standard syntax with symbols should be used instead.
+The subsequent commands help to reproduce the old forms, e.g. to
+simplify porting old theories:
+
+  type_notation Map.map  (infixr "~=>" 0)
+  notation Map.map_comp  (infixl "o'_m" 55)
+
 * Theory Map: lemma map_of_is_SomeD was a clone of map_of_SomeD and has
 been removed. INCOMPATIBILITY.
 

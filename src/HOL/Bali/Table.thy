@@ -361,7 +361,7 @@ by (simp (no_asm))
 
 
 (*###TO Map?*)
-primrec atleast_free :: "('a ~=> 'b) => nat => bool"
+primrec atleast_free :: "('a \<rightharpoonup> 'b) => nat => bool"
 where
   "atleast_free m 0 = True"
 | atleast_free_Suc: "atleast_free m (Suc n) = (\<exists>a. m a = None & (!b. atleast_free (m(a|->b)) n))"

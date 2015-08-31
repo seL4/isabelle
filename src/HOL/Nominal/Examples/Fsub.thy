@@ -17,7 +17,7 @@ text{* Authors: Christian Urban,
 section {* Types for Names, Nominal Datatype Declaration for Types and Terms *}
 
 no_syntax
-  "_Map" :: "maplets => 'a ~=> 'b"  ("(1[_])")
+  "_Map" :: "maplets => 'a \<rightharpoonup> 'b"  ("(1[_])")
 
 text {* The main point of this solution is to use names everywhere (be they bound, 
   binding or free). In System \FSUB{} there are two kinds of names corresponding to 

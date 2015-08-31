@@ -11,21 +11,15 @@ theory Map
 imports List
 begin
 
-type_synonym ('a, 'b) "map" = "'a \<Rightarrow> 'b option" (infixr "~=>" 0)
-
-type_notation (xsymbols)
-  "map" (infixr "\<rightharpoonup>" 0)
+type_synonym ('a, 'b) "map" = "'a \<Rightarrow> 'b option" (infixr "\<rightharpoonup>" 0)
 
 abbreviation
   empty :: "'a \<rightharpoonup> 'b" where
   "empty \<equiv> \<lambda>x. None"
 
 definition
-  map_comp :: "('b \<rightharpoonup> 'c) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c)"  (infixl "o'_m" 55) where
-  "f o_m g = (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
-
-notation (xsymbols)
-  map_comp  (infixl "\<circ>\<^sub>m" 55)
+  map_comp :: "('b \<rightharpoonup> 'c) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c)"  (infixl "\<circ>\<^sub>m" 55) where
+  "f \<circ>\<^sub>m g = (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
 
 definition
   map_add :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)"  (infixl "++" 100) where

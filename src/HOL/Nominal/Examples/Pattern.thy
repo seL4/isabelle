@@ -5,7 +5,7 @@ imports "../Nominal"
 begin
 
 no_syntax
-  "_Map" :: "maplets => 'a ~=> 'b"  ("(1[_])")
+  "_Map" :: "maplets => 'a \<rightharpoonup> 'b"  ("(1[_])")
 
 atom_decl name
 

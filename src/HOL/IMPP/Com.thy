@@ -43,7 +43,7 @@ datatype com
 
 consts bodies :: "(pname  *  com) list"(* finitely many procedure definitions *)
 definition
-  body :: " pname ~=> com" where
+  body :: " pname \<rightharpoonup> com" where
   "body = map_of bodies"
 
 
