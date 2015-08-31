@@ -118,7 +118,11 @@ lemma rel_option_iff:
     | _ \<Rightarrow> False)"
   by (auto split: prod.split option.split)
 
-definition is_none :: "'a option \<Rightarrow> bool"
+
+context
+begin
+
+qualified definition is_none :: "'a option \<Rightarrow> bool"
   where [code_post]: "is_none x \<longleftrightarrow> x = None"
 
 lemma is_none_simps [simp]:
@@ -148,7 +152,7 @@ lemma the_map_option: "\<not> is_none x \<Longrightarrow> the (map_option f x) =
   by (auto simp add: is_none_def)
 
 
-primrec bind :: "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option"
+qualified primrec bind :: "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option"
 where
   bind_lzero: "bind None f = None"
 | bind_lunit: "bind (Some x) f = f x"
@@ -165,7 +169,7 @@ lemma bind_assoc[simp]: "bind (bind x f) g = bind x (\<lambda>y. bind (f y) g)"
 lemma bind_rzero[simp]: "bind x (\<lambda>x. None) = None"
   by (cases x) auto
 
-lemma bind_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> bind x f = bind y g"
+qualified lemma bind_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> bind x f = bind y g"
   by (cases x) auto
 
 lemma bind_split: "P (bind m f) \<longleftrightarrow> (m = None \<longrightarrow> P None) \<and> (\<forall>v. m = Some v \<longrightarrow> P (f v))"
@@ -192,10 +196,16 @@ lemma bind_option_cong_simp:
 
 lemma bind_option_cong_code: "x = y \<Longrightarrow> bind x f = bind y f"
   by simp
+
+end
+
 setup \<open>Code_Simp.map_ss (Simplifier.add_cong @{thm bind_option_cong_code})\<close>
 
 
-definition these :: "'a option set \<Rightarrow> 'a set"
+context
+begin
+
+qualified definition these :: "'a option set \<Rightarrow> 'a set"
   where "these A = the ` {x \<in> A. x \<noteq> None}"
 
 lemma these_empty [simp]: "these {} = {}"
@@ -233,8 +243,7 @@ lemma these_empty_eq: "these B = {} \<longleftrightarrow> B = {} \<or> B = {None
 lemma these_not_empty_eq: "these B \<noteq> {} \<longleftrightarrow> B \<noteq> {} \<and> B \<noteq> {None}"
   by (auto simp add: these_empty_eq)
 
-hide_const (open) bind these
-hide_fact (open) bind_cong
+end
 
 
 subsection \<open>Transfer rules for the Transfer package\<close>
@@ -251,7 +260,7 @@ lemma option_bind_transfer [transfer_rule]:
 
 lemma pred_option_parametric [transfer_rule]:
   "((A ===> op =) ===> rel_option A ===> op =) pred_option pred_option"
-  by (rule rel_funI)+ (auto simp add: rel_option_unfold is_none_def dest: rel_funD)
+  by (rule rel_funI)+ (auto simp add: rel_option_unfold Option.is_none_def dest: rel_funD)
 
 end
 
@@ -269,11 +278,9 @@ instance option :: (finite) finite
 subsubsection \<open>Code generator setup\<close>
 
 lemma equal_None_code_unfold [code_unfold]:
-  "HOL.equal x None \<longleftrightarrow> is_none x"
-  "HOL.equal None = is_none"
-  by (auto simp add: equal is_none_def)
-
-hide_const (open) is_none
+  "HOL.equal x None \<longleftrightarrow> Option.is_none x"
+  "HOL.equal None = Option.is_none"
+  by (auto simp add: equal Option.is_none_def)
 
 code_printing
   type_constructor option \<rightharpoonup>

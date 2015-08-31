@@ -1608,14 +1608,14 @@ next
               (\<Union>g \<in> fg ` Field t - {rs.const}. rs.SUPP g)"
       unfolding support_def by auto
     from * have "\<forall>g \<in> fg ` Field t. finite (rs.SUPP g)" "finite (rst.SUPP fg)"
-      unfolding rs.Field_oexp FinFunc_def Func_def fin_support_def these_def by force+
+      unfolding rs.Field_oexp FinFunc_def Func_def fin_support_def Option.these_def by force+
     moreover hence "finite (fg ` Field t - {rs.const})" using *
       unfolding support_def rs.zero_oexp[OF Field] FinFunc_def Func_def
-      by (elim finite_surj[of _ _ fg]) (fastforce simp: image_iff these_def)
+      by (elim finite_surj[of _ _ fg]) (fastforce simp: image_iff Option.these_def)
     ultimately have "finite ((\<Union>g \<in> fg ` Field t. rs.SUPP g) \<times> rst.SUPP fg)"
       by (subst **) (auto intro!: finite_cartesian_product)
     with * show "?g \<in> FinFunc r (s *o t)"
-      unfolding Field_oprod rs.Field_oexp FinFunc_def Func_def fin_support_def these_def
+      unfolding Field_oprod rs.Field_oexp FinFunc_def Func_def fin_support_def Option.these_def
         support_def rs.zero_oexp[OF Field] by (auto elim!: finite_subset[rotated])
   qed
 qed

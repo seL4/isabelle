@@ -40,12 +40,12 @@ lemma delete_parametric:
 
 lemma is_none_parametric [transfer_rule]:
   "(rel_option A ===> HOL.eq) Option.is_none Option.is_none"
-  by (auto simp add: is_none_def rel_fun_def rel_option_iff split: option.split)
+  by (auto simp add: Option.is_none_def rel_fun_def rel_option_iff split: option.split)
 
 lemma dom_parametric:
   assumes [transfer_rule]: "bi_total A"
   shows "((A ===> rel_option B) ===> rel_set A) dom dom" 
-  unfolding dom_def [abs_def] is_none_def [symmetric] by transfer_prover
+  unfolding dom_def [abs_def] Option.is_none_def [symmetric] by transfer_prover
 
 lemma map_of_parametric [transfer_rule]:
   assumes [transfer_rule]: "bi_unique R1"
@@ -223,7 +223,7 @@ lemma lookup_empty:
 
 lemma keys_is_none_rep [code_unfold]:
   "k \<in> keys m \<longleftrightarrow> \<not> (Option.is_none (lookup m k))"
-  by transfer (auto simp add: is_none_def)
+  by transfer (auto simp add: Option.is_none_def)
 
 lemma update_update:
   "update k v (update k w m) = update k v m"
