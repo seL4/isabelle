@@ -35,6 +35,7 @@ sig
   val fact_morphism: string -> (thm list -> thm list) -> morphism
   val thm_morphism: string -> (thm -> thm) -> morphism
   val transfer_morphism: theory -> morphism
+  val trim_context_morphism: morphism
   val identity: morphism
   val compose: morphism -> morphism -> morphism
   val transform: morphism -> (morphism -> 'a) -> morphism -> 'a
@@ -91,6 +92,7 @@ fun term_morphism a term = morphism a {binding = [], typ = [], term = [term], fa
 fun fact_morphism a fact = morphism a {binding = [], typ = [], term = [], fact = [fact]};
 fun thm_morphism a thm = morphism a {binding = [], typ = [], term = [], fact = [map thm]};
 val transfer_morphism = thm_morphism "transfer" o Thm.transfer;
+val trim_context_morphism = thm_morphism "trim_context" Thm.trim_context;
 
 val identity = morphism "" {binding = [], typ = [], term = [], fact = []};
 
