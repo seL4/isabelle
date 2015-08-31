@@ -451,7 +451,7 @@ datatype certificate = Certificate of theory | Certificate_Id of theory_id;
 
 fun certificate_theory (Certificate thy) = thy
   | certificate_theory (Certificate_Id thy_id) =
-      error ("No content for theory certificate " ^ quote (display_name thy_id));
+      error ("No content for theory certificate " ^ display_name thy_id);
 
 fun certificate_theory_id (Certificate thy) = theory_id thy
   | certificate_theory_id (Certificate_Id thy_id) = thy_id;
@@ -467,7 +467,7 @@ fun join_certificate (cert1, cert2) =
     else if proper_subthy_id (thy_id1, thy_id2) then cert2
     else
       error ("Cannot join unrelated theory certificates " ^
-        quote (display_name thy_id1) ^ " and " ^ quote (display_name thy_id2))
+        display_name thy_id1 ^ " and " ^ display_name thy_id2)
   end;
 
 
