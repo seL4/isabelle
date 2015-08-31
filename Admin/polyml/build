@@ -64,11 +64,12 @@ case "$TARGET" in
     OPTIONS=()
     ;;
   x86-windows)
-    OPTIONS=(--host=i686-w32-mingw32 CPPFLAGS='-I/mingw32/include')  # --build=i686-pc-msys --with-gmp
+    OPTIONS=(--host=i686-w32-mingw32 CPPFLAGS='-I/mingw32/include')
     PATH="/mingw32/bin:$PATH"
     ;;
   x86_64-windows)
-    OPTIONS=()
+    OPTIONS=(--host=x86_64-w64-mingw32 CPPFLAGS='-I/mingw64/include')
+    PATH="/mingw64/bin:$PATH"
     ;;
   *)
     fail "Bad platform identifier: \"$TARGET\""
@@ -99,6 +100,12 @@ case "$TARGET" in
     for X in libgcc_s_dw2-1.dll libgmp-10.dll libstdc++-6.dll
     do
       cp "/mingw32/bin/$X" "$TARGET/."
+    done
+    ;;
+  x86_64-windows)
+    for X in libgcc_s_seh-1.dll libgmp-10.dll libstdc++-6.dll
+    do
+      cp "/mingw64/bin/$X" "$TARGET/."
     done
     ;;
 esac
