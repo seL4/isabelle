@@ -1381,13 +1381,15 @@ fun fold_goals_tac ctxt defs = EVERY (map (rewrite_goals_tac ctxt) (rev_defs def
 
 local
 
-fun gen_norm_hhf ss ctxt th =
-  (if Drule.is_norm_hhf (Thm.prop_of th) then th
-   else
-    Conv.fconv_rule
-      (rewrite_cterm (true, false, false) (K (K NONE)) (put_simpset ss ctxt)) th)
-  |> Thm.adjust_maxidx_thm ~1
-  |> Variable.gen_all ctxt;
+fun gen_norm_hhf ss ctxt =
+  Thm.transfer (Proof_Context.theory_of ctxt) #>
+  (fn th =>
+    if Drule.is_norm_hhf (Thm.prop_of th) then th
+    else
+      Conv.fconv_rule
+        (rewrite_cterm (true, false, false) (K (K NONE)) (put_simpset ss ctxt)) th) #>
+  Thm.adjust_maxidx_thm ~1 #>
+  Variable.gen_all ctxt;
 
 val hhf_ss =
   simpset_of (empty_simpset (Context.proof_of (Context.the_thread_data ()))
