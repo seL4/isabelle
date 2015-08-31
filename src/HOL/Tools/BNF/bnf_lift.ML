@@ -6,9 +6,11 @@
 Lifting of BNFs through typedefs.
 *)
 
-signature BNF_LIFT = sig
-  datatype lift_bnf_option = Plugins_Option of Proof.context -> Plugin_Name.filter | No_Warn_Wits
-
+signature BNF_LIFT =
+sig
+  datatype lift_bnf_option =
+    Plugins_Option of Proof.context -> Plugin_Name.filter
+  | No_Warn_Wits
   val copy_bnf:
     (((lift_bnf_option list * (binding option * (string * sort option)) list) *
       string) * thm option) * (binding * binding) ->
@@ -26,16 +28,22 @@ signature BNF_LIFT = sig
      ((((lift_bnf_option list * (binding option * (string * string option)) list) *
        string) * string list) * (Facts.ref * Token.src list) option) * (binding * binding) ->
        local_theory -> Proof.state
-  end
+end
 
-structure BNF_Lift : BNF_LIFT = struct
+structure BNF_Lift : BNF_LIFT =
+struct
 
 open Ctr_Sugar_Tactics
 open BNF_Util
 open BNF_Comp
 open BNF_Def
 
-datatype lift_bnf_option = Plugins_Option of Proof.context -> Plugin_Name.filter | No_Warn_Wits
+
+(* typedef_bnf *)
+
+datatype lift_bnf_option =
+  Plugins_Option of Proof.context -> Plugin_Name.filter
+| No_Warn_Wits;
 
 fun typedef_bnf thm wits specs map_b rel_b opts lthy =
   let
@@ -53,7 +61,7 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
     val AbsT_name = fst (dest_Type AbsT);
     val tvs = AbsT |> dest_Type |> snd |> map (fst o dest_TVar);
     val alpha0s = map (TFree o snd) specs;
-    
+
     (* instantiate the new type variables newtvs to oldtvs *)
     val subst = subst_TVars (tvs ~~ alpha0s);
     val typ_subst = typ_subst_TVars (tvs ~~ alpha0s);
@@ -77,7 +85,7 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
     val set_bs = map (fn T => find_index (fn U => T = U) alpha0s) alphas
       |> map (the_default Binding.empty o fst o nth specs);
 
-    val _ = case alphas of [] => error "No live variables." | alphas => alphas;
+    val _ = (case alphas of [] => error "No live variables" | _ => ());
 
     val defs = #map_unfolds unfolds @ flat (#set_unfoldss unfolds) @ #rel_unfolds unfolds;
 
@@ -139,15 +147,14 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
     val Iwits = the_default wits_F (Option.map (map (`(map (fn T =>
       find_index (fn U => T = U) alphas) o fst o strip_type o fastype_of))) wits);
     val wit_closed_Fs =
-      map (fn (I, wit_F) =>
+      Iwits |> map (fn (I, wit_F) =>
         let
           val vars = map (nth var_as) I;
           val wit_a = list_comb (wit_F, vars);
         in
           Library.foldr (Library.uncurry Logic.all) (vars,
             HOLogic.mk_mem (wit_a, aF_set) |> HOLogic.mk_Trueprop)
-        end)
-      Iwits;
+        end);
 
     val mk_wit_goals = mk_wit_goals var_as var_bs
       (mk_sets_of_bnf (replicate lives deads)  (replicate lives alphas) bnf);
@@ -156,158 +163,165 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
       (case wits of NONE => [] | _ => maps mk_wit_goals Iwits);
 
     val lost_wits = filter_out (fn (J, _) => exists (fn (I, _) => I = J) Iwits) wits_F;
-    val _ = if null lost_wits orelse no_warn_wits then () else
-      lost_wits
-      |> map (Syntax.pretty_typ lthy o fastype_of o snd)
-      |> Pretty.big_list
-        "The following types of nonemptiness witnesses of the raw type's BNF were lost:"
-      |> (fn pt => Pretty.chunks [pt,
-        Pretty.para "You can specify a liftable witness (e.g., a term of one of the above types\
-          \ that satisfies the typedef's invariant)\
-          \ using the annotation [wits: <term>]."])
-      |> Pretty.string_of
-      |> warning;
+    val _ =
+      if null lost_wits orelse no_warn_wits then ()
+      else
+        lost_wits
+        |> map (Syntax.pretty_typ lthy o fastype_of o snd)
+        |> Pretty.big_list
+          "The following types of nonemptiness witnesses of the raw type's BNF were lost:"
+        |> (fn pt => Pretty.chunks [pt,
+          Pretty.para "You can specify a liftable witness (e.g., a term of one of the above types\
+            \ that satisfies the typedef's invariant)\
+            \ using the annotation [wits: <term>]."])
+        |> Pretty.string_of
+        |> warning;
 
     fun after_qed ([map_closed_thm] :: [zip_closed_thm] :: wit_thmss) lthy =
-        let
-          val (wit_closed_thms, wit_thms) =
-            (case wits of
-              NONE => (map the_single wit_thmss, wit_thms_of_bnf bnf)
-            | _ => chop (length wit_closed_Fs) (map the_single wit_thmss))
+          let
+            val (wit_closed_thms, wit_thms) =
+              (case wits of
+                NONE => (map the_single wit_thmss, wit_thms_of_bnf bnf)
+              | _ => chop (length wit_closed_Fs) (map the_single wit_thmss))
 
-          (*  construct map set bd rel wit *)
-          (* val map_G = @{term "\<lambda>f. Abs_G o map_F f o Rep_G"}; *)
-          val Abs_Gb = subst_b Abs_G;
-          val map_G = Library.foldr (uncurry HOLogic.tupled_lambda)
-            (var_fs, HOLogic.mk_comp (HOLogic.mk_comp (Abs_Gb, map_f),
-            Rep_G));
+            (*  construct map set bd rel wit *)
+            (* val map_G = @{term "\<lambda>f. Abs_G o map_F f o Rep_G"}; *)
+            val Abs_Gb = subst_b Abs_G;
+            val map_G = Library.foldr (uncurry HOLogic.tupled_lambda)
+              (var_fs, HOLogic.mk_comp (HOLogic.mk_comp (Abs_Gb, map_f),
+              Rep_G));
 
-          (* val sets_G = [@{term "set_F o Rep_G"}]; *)
-          val sets_F = mk_sets_of_bnf (replicate lives deads) (replicate lives alphas) bnf;
-          val sets_G = map (fn set_F => HOLogic.mk_comp (set_F, Rep_G)) sets_F;
+            (* val sets_G = [@{term "set_F o Rep_G"}]; *)
+            val sets_F = mk_sets_of_bnf (replicate lives deads) (replicate lives alphas) bnf;
+            val sets_G = map (fn set_F => HOLogic.mk_comp (set_F, Rep_G)) sets_F;
 
-          (* val bd_G = @{term "bd_F"}; *)
-          val bd_F = mk_bd_of_bnf deads alphas bnf;
-          val bd_G = bd_F;
+            (* val bd_G = @{term "bd_F"}; *)
+            val bd_F = mk_bd_of_bnf deads alphas bnf;
+            val bd_G = bd_F;
 
-          (* val rel_G = @{term "\<lambda>R. BNF_Def.vimage2p Rep_G Rep_G (rel_F R)"}; *)
-          val rel_F = mk_rel_of_bnf deads alphas betas bnf;
-          val (typ_Rs, _) = fastype_of rel_F |> strip_typeN lives;
+            (* val rel_G = @{term "\<lambda>R. BNF_Def.vimage2p Rep_G Rep_G (rel_F R)"}; *)
+            val rel_F = mk_rel_of_bnf deads alphas betas bnf;
+            val (typ_Rs, _) = fastype_of rel_F |> strip_typeN lives;
 
-          val (var_Rs, names_lthy) = mk_Frees "R" typ_Rs lthy;
-          val Rep_Gb = subst_b Rep_G;
-          val rel_G = fold_rev absfree (map dest_Free var_Rs)
-            (mk_vimage2p Rep_G Rep_Gb $ list_comb (rel_F, var_Rs));
+            val (var_Rs, names_lthy) = mk_Frees "R" typ_Rs lthy;
+            val Rep_Gb = subst_b Rep_G;
+            val rel_G = fold_rev absfree (map dest_Free var_Rs)
+              (mk_vimage2p Rep_G Rep_Gb $ list_comb (rel_F, var_Rs));
 
-          (* val wits_G = [@{term "Abs_G o wit_F"}]; *)
-          val (var_as, _) = mk_Frees "a" alphas names_lthy;
-          val wits_G =
-            map (fn (I, wit_F) =>
-              let
-                val vs = map (nth var_as) I;
-              in fold_rev absfree (map dest_Free vs) (Abs_G $ (list_comb (wit_F, vs))) end)
-            Iwits;
+            (* val wits_G = [@{term "Abs_G o wit_F"}]; *)
+            val (var_as, _) = mk_Frees "a" alphas names_lthy;
+            val wits_G =
+              map (fn (I, wit_F) =>
+                let
+                  val vs = map (nth var_as) I;
+                in fold_rev absfree (map dest_Free vs) (Abs_G $ (list_comb (wit_F, vs))) end)
+              Iwits;
 
-          (* tactics *)
-          val Rep_thm = thm RS @{thm type_definition.Rep};
-          val Abs_inverse_thm = thm RS @{thm type_definition.Abs_inverse};
-          val Abs_inject_thm = thm RS @{thm type_definition.Abs_inject};
-          val Rep_cases_thm = thm RS @{thm type_definition.Rep_cases};
-          val Rep_inverse_thm = thm RS @{thm type_definition.Rep_inverse};
+            (* tactics *)
+            val Rep_thm = thm RS @{thm type_definition.Rep};
+            val Abs_inverse_thm = thm RS @{thm type_definition.Abs_inverse};
+            val Abs_inject_thm = thm RS @{thm type_definition.Abs_inject};
+            val Rep_cases_thm = thm RS @{thm type_definition.Rep_cases};
+            val Rep_inverse_thm = thm RS @{thm type_definition.Rep_inverse};
 
-          fun map_id0_tac ctxt =
-            HEADGOAL (EVERY' [rtac ctxt ext,
-              SELECT_GOAL (unfold_thms_tac ctxt [map_id0_of_bnf bnf, id_apply, o_apply,
-                Rep_inverse_thm]),
-              rtac ctxt refl]);
-
-          fun map_comp0_tac ctxt =
-            HEADGOAL (EVERY' [rtac ctxt ext,
-              SELECT_GOAL (unfold_thms_tac ctxt [map_comp0_of_bnf bnf, o_apply,
-                Rep_thm RS (map_closed_thm RS Abs_inverse_thm)]),
-              rtac ctxt refl]);
-
-          fun map_cong0_tac ctxt =
-            HEADGOAL (EVERY' ([SELECT_GOAL (unfold_thms_tac ctxt [o_apply]),
-              rtac ctxt (([Rep_thm RS map_closed_thm, Rep_thm RS map_closed_thm] MRS
-                Abs_inject_thm) RS iffD2),
-              rtac ctxt (map_cong0_of_bnf bnf)] @ replicate lives (Goal.assume_rule_tac ctxt)));
-
-          val set_map0s_tac =
-            map (fn set_map => fn ctxt =>
+            fun map_id0_tac ctxt =
               HEADGOAL (EVERY' [rtac ctxt ext,
-                SELECT_GOAL (unfold_thms_tac ctxt [set_map, o_apply,
+                SELECT_GOAL (unfold_thms_tac ctxt [map_id0_of_bnf bnf, id_apply, o_apply,
+                  Rep_inverse_thm]),
+                rtac ctxt refl]);
+
+            fun map_comp0_tac ctxt =
+              HEADGOAL (EVERY' [rtac ctxt ext,
+                SELECT_GOAL (unfold_thms_tac ctxt [map_comp0_of_bnf bnf, o_apply,
                   Rep_thm RS (map_closed_thm RS Abs_inverse_thm)]),
-                rtac ctxt refl]))
-           (set_map_of_bnf bnf);
+                rtac ctxt refl]);
 
-          fun card_order_bd_tac ctxt = HEADGOAL (rtac ctxt (bd_card_order_of_bnf bnf));
+            fun map_cong0_tac ctxt =
+              HEADGOAL (EVERY' ([SELECT_GOAL (unfold_thms_tac ctxt [o_apply]),
+                rtac ctxt (([Rep_thm RS map_closed_thm, Rep_thm RS map_closed_thm] MRS
+                  Abs_inject_thm) RS iffD2),
+                rtac ctxt (map_cong0_of_bnf bnf)] @ replicate lives (Goal.assume_rule_tac ctxt)));
 
-          fun cinfinite_bd_tac ctxt = HEADGOAL (rtac ctxt (bd_cinfinite_of_bnf bnf));
+            val set_map0s_tac =
+              map (fn set_map => fn ctxt =>
+                HEADGOAL (EVERY' [rtac ctxt ext,
+                  SELECT_GOAL (unfold_thms_tac ctxt [set_map, o_apply,
+                    Rep_thm RS (map_closed_thm RS Abs_inverse_thm)]),
+                  rtac ctxt refl]))
+             (set_map_of_bnf bnf);
 
-          val set_bds_tac =
-            map (fn set_bd => fn ctxt =>
-              HEADGOAL (EVERY' [SELECT_GOAL (unfold_thms_tac ctxt [o_apply]), rtac ctxt set_bd]))
-            (set_bd_of_bnf bnf);
+            fun card_order_bd_tac ctxt = HEADGOAL (rtac ctxt (bd_card_order_of_bnf bnf));
 
-          fun le_rel_OO_tac ctxt = 
-            HEADGOAL (EVERY' [rtac ctxt @{thm vimage2p_relcompp_mono},
-              rtac ctxt ((rel_OO_of_bnf bnf RS sym) RS @{thm ord_eq_le_trans}),
-              rtac ctxt @{thm order_refl}]);
+            fun cinfinite_bd_tac ctxt = HEADGOAL (rtac ctxt (bd_cinfinite_of_bnf bnf));
 
-          fun rel_OO_Grp_tac ctxt =
-            HEADGOAL (EVERY' ([SELECT_GOAL (REPEAT_DETERM (HEADGOAL (rtac ctxt ext))),
-              SELECT_GOAL (unfold_thms_tac ctxt [@{thm OO_Grp_alt}, mem_Collect_eq,
-                o_apply, @{thm vimage2p_def}, in_rel_of_bnf bnf, Bex_def, mem_Collect_eq]),
-              rtac ctxt iffI,
-              SELECT_GOAL (REPEAT_DETERM (HEADGOAL (eresolve0_tac [exE,conjE]))),
-              rtac ctxt (zip_closed_thm OF (replicate 2 (Rep_thm RSN (2, @{thm ssubst_mem}))) RS
-                Rep_cases_thm),
-              assume_tac ctxt,
-              assume_tac ctxt,
-              hyp_subst_tac ctxt,
-              SELECT_GOAL (REPEAT_DETERM (HEADGOAL (rtac ctxt exI))),
-              rtac ctxt conjI] @ 
-              replicate (lives - 1) (rtac ctxt conjI THEN' assume_tac ctxt) @
-              [assume_tac ctxt,
-              SELECT_GOAL (REPEAT_DETERM (HEADGOAL (rtac ctxt conjI))),
-              REPEAT_DETERM_N 2 o
-                etac ctxt (trans OF [iffD2 OF [Abs_inject_thm OF
-                  [map_closed_thm OF [Rep_thm], Rep_thm]], Rep_inverse_thm]),
-              SELECT_GOAL (REPEAT_DETERM (HEADGOAL (eresolve0_tac [exE,conjE]))),
-              rtac ctxt exI,
-              rtac ctxt conjI] @ 
-              replicate (lives - 1) (rtac ctxt conjI THEN' assume_tac ctxt) @
-              [assume_tac ctxt,
-              rtac ctxt conjI,
-              REPEAT_DETERM_N 2 o EVERY'
-                [rtac ctxt (iffD1 OF [Abs_inject_thm OF [map_closed_thm OF [Rep_thm], Rep_thm]]),
-                etac ctxt (Rep_inverse_thm RS sym RSN (2, trans))]]));
+            val set_bds_tac =
+              map (fn set_bd => fn ctxt =>
+                HEADGOAL (EVERY' [SELECT_GOAL (unfold_thms_tac ctxt [o_apply]), rtac ctxt set_bd]))
+              (set_bd_of_bnf bnf);
 
-          fun wit_tac ctxt =
-            HEADGOAL (EVERY'
-              (map (fn thm => (EVERY'
-                [SELECT_GOAL (unfold_thms_tac ctxt (o_apply ::
-                  (wit_closed_thms RL [Abs_inverse_thm]))),
-                dtac ctxt thm, assume_tac ctxt]))
-              wit_thms));
+            fun le_rel_OO_tac ctxt =
+              HEADGOAL (EVERY' [rtac ctxt @{thm vimage2p_relcompp_mono},
+                rtac ctxt ((rel_OO_of_bnf bnf RS sym) RS @{thm ord_eq_le_trans}),
+                rtac ctxt @{thm order_refl}]);
 
-          val tactics = [map_id0_tac, map_comp0_tac, map_cong0_tac] @ set_map0s_tac @
-            [card_order_bd_tac, cinfinite_bd_tac] @ set_bds_tac @ [le_rel_OO_tac, rel_OO_Grp_tac];
+            fun rel_OO_Grp_tac ctxt =
+              HEADGOAL (EVERY' ([SELECT_GOAL (REPEAT_DETERM (HEADGOAL (rtac ctxt ext))),
+                SELECT_GOAL (unfold_thms_tac ctxt [@{thm OO_Grp_alt}, mem_Collect_eq,
+                  o_apply, @{thm vimage2p_def}, in_rel_of_bnf bnf, Bex_def, mem_Collect_eq]),
+                rtac ctxt iffI,
+                SELECT_GOAL (REPEAT_DETERM (HEADGOAL (eresolve0_tac [exE,conjE]))),
+                rtac ctxt (zip_closed_thm OF (replicate 2 (Rep_thm RSN (2, @{thm ssubst_mem}))) RS
+                  Rep_cases_thm),
+                assume_tac ctxt,
+                assume_tac ctxt,
+                hyp_subst_tac ctxt,
+                SELECT_GOAL (REPEAT_DETERM (HEADGOAL (rtac ctxt exI))),
+                rtac ctxt conjI] @
+                replicate (lives - 1) (rtac ctxt conjI THEN' assume_tac ctxt) @
+                [assume_tac ctxt,
+                SELECT_GOAL (REPEAT_DETERM (HEADGOAL (rtac ctxt conjI))),
+                REPEAT_DETERM_N 2 o
+                  etac ctxt (trans OF [iffD2 OF [Abs_inject_thm OF
+                    [map_closed_thm OF [Rep_thm], Rep_thm]], Rep_inverse_thm]),
+                SELECT_GOAL (REPEAT_DETERM (HEADGOAL (eresolve0_tac [exE,conjE]))),
+                rtac ctxt exI,
+                rtac ctxt conjI] @
+                replicate (lives - 1) (rtac ctxt conjI THEN' assume_tac ctxt) @
+                [assume_tac ctxt,
+                rtac ctxt conjI,
+                REPEAT_DETERM_N 2 o EVERY'
+                  [rtac ctxt (iffD1 OF [Abs_inject_thm OF [map_closed_thm OF [Rep_thm], Rep_thm]]),
+                  etac ctxt (Rep_inverse_thm RS sym RSN (2, trans))]]));
 
-          val (bnf, lthy) = bnf_def Dont_Inline (user_policy Note_Some) false I
-            tactics wit_tac NONE map_b rel_b set_bs
-            ((((((Binding.empty, AbsT), map_G), sets_G), bd_G), wits_G), SOME rel_G)
-            lthy;
+            fun wit_tac ctxt =
+              HEADGOAL (EVERY'
+                (map (fn thm => (EVERY'
+                  [SELECT_GOAL (unfold_thms_tac ctxt (o_apply ::
+                    (wit_closed_thms RL [Abs_inverse_thm]))),
+                  dtac ctxt thm, assume_tac ctxt]))
+                wit_thms));
 
-          val bnf = morph_bnf_defs (Morphism.thm_morphism "BNF" (unfold_thms lthy defs)) bnf;
-        in
-          lthy |> BNF_Def.register_bnf plugins AbsT_name bnf
-        end
-      | after_qed _ _ = error "should not happen";
+            val tactics = [map_id0_tac, map_comp0_tac, map_cong0_tac] @ set_map0s_tac @
+              [card_order_bd_tac, cinfinite_bd_tac] @ set_bds_tac @ [le_rel_OO_tac, rel_OO_Grp_tac];
+
+            val (bnf, lthy) = bnf_def Dont_Inline (user_policy Note_Some) false I
+              tactics wit_tac NONE map_b rel_b set_bs
+              ((((((Binding.empty, AbsT), map_G), sets_G), bd_G), wits_G), SOME rel_G)
+              lthy;
+
+            val bnf = morph_bnf_defs (Morphism.thm_morphism "BNF" (unfold_thms lthy defs)) bnf;
+          in
+            lthy |> BNF_Def.register_bnf plugins AbsT_name bnf
+          end
+      | after_qed _ _ = raise Match;
   in
     (goals, after_qed, defs, lthy)
   end;
+
+
+(* main commands *)
+
+local
 
 fun prepare_common prepare_name prepare_sort prepare_term prepare_thm
     (((((plugins, raw_specs), raw_Tname), raw_wits), xthm_opt), (map_b, rel_b)) lthy =
@@ -317,16 +331,14 @@ fun prepare_common prepare_name prepare_sort prepare_term prepare_thm
       (case xthm_opt of
         SOME xthm => prepare_thm lthy xthm
       | NONE => Typedef.get_info lthy Tname |> hd |> snd |> #type_definition);
-    val wits = Option.map (map (prepare_term lthy)) raw_wits;
-    val specs = map (apsnd (apsnd
-      (the_default @{sort type} o Option.map (prepare_sort lthy)))) raw_specs;
+    val wits = (Option.map o map) (prepare_term lthy) raw_wits;
+    val specs =
+      map (apsnd (apsnd (the_default @{sort type} o Option.map (prepare_sort lthy)))) raw_specs;
 
-    (* analyze theorem here*)
-    fun is_typedef (t as (Const ("Typedef.type_definition", _) $ _ $ _ $ _)) = t
-      | is_typedef t = raise TERM("not a typedef",[t]);
-
-    val _ = (HOLogic.dest_Trueprop o Thm.prop_of) input_thm |> is_typedef
-      handle TERM _ => error "Unsupported type of a theorem. Only type_definition is supported.";
+    val _ =
+      (case HOLogic.dest_Trueprop (Thm.prop_of input_thm) of
+        Const (@{const_name type_definition}, _) $ _ $ _ $ _ => ()
+      | _ => error "Unsupported type of a theorem: only type_definition is supported");
   in
     typedef_bnf input_thm wits specs map_b rel_b plugins lthy
   end;
@@ -341,23 +353,37 @@ fun prepare_lift_bnf prepare_name prepare_sort prepare_term prepare_thm =
     |> Seq.hd) oo
   prepare_common prepare_name prepare_sort prepare_term prepare_thm o apfst (apfst (apsnd SOME));
 
-val lift_bnf_cmd = prepare_lift_bnf
-  (fst o dest_Type oo Proof_Context.read_type_name {proper = true, strict = false})
-  Syntax.read_sort Syntax.read_term (singleton o Attrib.eval_thms);
-
 fun prepare_solve prepare_name prepare_typ prepare_sort prepare_thm tacs =
   (fn (goals, after_qed, _, lthy) =>
     lthy
     |> after_qed (map2 (single oo Goal.prove lthy [] []) goals (tacs (length goals)))) oo
   prepare_common prepare_name prepare_typ prepare_sort prepare_thm o apfst (apfst (rpair NONE));
 
+in
+
+val lift_bnf_cmd =
+  prepare_lift_bnf
+    (fst o dest_Type oo Proof_Context.read_type_name {proper = true, strict = false})
+    Syntax.read_sort Syntax.read_term (singleton o Attrib.eval_thms);
+
 fun lift_bnf args tacs = prepare_solve (K I) (K I) (K I) (K I) (K tacs) args;
-val copy_bnf = prepare_solve (K I) (K I) (K I) (K I)
-  (fn n => replicate n (fn {context = ctxt, prems = _} => rtac ctxt UNIV_I 1));
-val copy_bnf_cmd = prepare_solve
-  (fst o dest_Type oo Proof_Context.read_type_name {proper = true, strict = false})
-  Syntax.read_sort Syntax.read_term (singleton o Attrib.eval_thms)
-  (fn n => replicate n (fn {context = ctxt, prems = _} => rtac ctxt UNIV_I 1));
+
+val copy_bnf =
+  prepare_solve (K I) (K I) (K I) (K I)
+    (fn n => replicate n (fn {context = ctxt, prems = _} => rtac ctxt UNIV_I 1));
+
+val copy_bnf_cmd =
+  prepare_solve
+    (fst o dest_Type oo Proof_Context.read_type_name {proper = true, strict = false})
+    Syntax.read_sort Syntax.read_term (singleton o Attrib.eval_thms)
+    (fn n => replicate n (fn {context = ctxt, prems = _} => rtac ctxt UNIV_I 1));
+
+end;
+
+
+(* outer syntax *)
+
+local
 
 val parse_wits =
   @{keyword "["} |-- (Parse.name --| @{keyword ":"} -- Scan.repeat Parse.term >>
@@ -378,6 +404,8 @@ val parse_plugins =
 
 val parse_typedef_thm = Scan.option (Parse.reserved "via" |-- Parse.xthm);
 
+in
+
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword lift_bnf}
     "register a subtype of a bounded natural functor (BNF) as a BNF"
@@ -390,4 +418,6 @@ val _ =
     ((parse_plugins -- parse_type_args_named_constrained -- Parse.type_const --
       parse_typedef_thm -- parse_map_rel_bindings) >> copy_bnf_cmd);
 
-end
+end;
+
+end;
