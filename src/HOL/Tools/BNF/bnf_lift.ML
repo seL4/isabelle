@@ -47,15 +47,14 @@ datatype lift_bnf_option =
 
 fun typedef_bnf thm wits specs map_b rel_b opts lthy =
   let
-    val plugins = get_first (fn Plugins_Option f => SOME (f lthy) | _ => NONE) (rev opts)
+    val plugins =
+      get_first (fn Plugins_Option f => SOME (f lthy) | _ => NONE) (rev opts)
       |> the_default Plugin_Name.default_filter;
     val no_warn_wits = exists (fn No_Warn_Wits => true | _ => false) opts;
 
     (* extract Rep Abs F RepT AbsT *)
-    val (_, [Rep_G, Abs_G, F]) = Thm.prop_of thm
-      |> HOLogic.dest_Trueprop
-      |> Term.strip_comb;
-    val typ_Abs_G = fastype_of Abs_G |> dest_funT;
+    val (_, [Rep_G, Abs_G, F]) = Term.strip_comb (HOLogic.dest_Trueprop (Thm.prop_of thm));
+    val typ_Abs_G = dest_funT (fastype_of Abs_G);
     val RepT = fst typ_Abs_G; (* F *)
     val AbsT = snd typ_Abs_G; (* G *)
     val AbsT_name = fst (dest_Type AbsT);
@@ -72,8 +71,9 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
     val RepT = typ_subst RepT;
     val AbsT = typ_subst AbsT;
 
-    fun flatten_tyargs Ass = map dest_TFree alpha0s |>
-      filter (fn T => exists (fn Ts => member (op =) Ts T) Ass);
+    fun flatten_tyargs Ass =
+      map dest_TFree alpha0s
+      |> filter (fn T => exists (fn Ts => member (op =) Ts T) Ass);
 
     val Ds0 = filter (is_none o fst) specs |> map snd;
 
@@ -82,7 +82,8 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
       bnf_of_typ Dont_Inline (Binding.qualify true AbsT_name) flatten_tyargs []
         Ds0 RepT ((empty_comp_cache, empty_unfolds), lthy);
 
-    val set_bs = map (fn T => find_index (fn U => T = U) alpha0s) alphas
+    val set_bs =
+      map (fn T => find_index (fn U => T = U) alpha0s) alphas
       |> map (the_default Binding.empty o fst o nth specs);
 
     val _ = (case alphas of [] => error "No live variables" | _ => ());
@@ -121,11 +122,11 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
     (* val map_closed_F = @{term "\<And>f x. x \<in> F \<Longrightarrow> map_F f x \<in> F"}; *)
     val (var_fs, names_lthy) = mk_Frees "f" typ_fs names_lthy;
     val (var_x, names_lthy) = mk_Frees "x" [typ_aF] names_lthy |>> the_single;
-    val mem_x = HOLogic.mk_mem (var_x, aF_set) |> HOLogic.mk_Trueprop;
+    val mem_x = HOLogic.mk_Trueprop (HOLogic.mk_mem (var_x, aF_set));
     val map_f = list_comb (map_F, var_fs);
-    val mem_map = HOLogic.mk_mem (map_f $ var_x, bF_set) |> HOLogic.mk_Trueprop;
+    val mem_map = HOLogic.mk_Trueprop (HOLogic.mk_mem (map_f $ var_x, bF_set));
     val imp_map = Logic.mk_implies (mem_x, mem_map);
-    val map_closed_F = Library.foldr (Library.uncurry Logic.all) (var_fs, Logic.all var_x imp_map);
+    val map_closed_F = fold_rev Logic.all var_fs (Logic.all var_x imp_map);
 
     (* val zip_closed_F = @{term "\<And>z. map_F fst z \<in> F \<Longrightarrow> map_F snd z \<in> F \<Longrightarrow> z \<in> F"}; *)
     val (var_zs, names_lthy) = mk_Frees "z" [typ_pair] names_lthy;
@@ -134,10 +135,10 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
     val fsts = map (fst o Term.strip_comb o HOLogic.mk_fst) pairs;
     val snds = map (fst o Term.strip_comb o HOLogic.mk_snd) pairs;
     val map_fst = list_comb (list_comb (map_F_fst, fsts), var_zs);
-    val mem_map_fst = HOLogic.mk_mem (map_fst, aF_set) |> HOLogic.mk_Trueprop;
+    val mem_map_fst = HOLogic.mk_Trueprop (HOLogic.mk_mem (map_fst, aF_set));
     val map_snd = list_comb (list_comb (map_F_snd, snds), var_zs);
-    val mem_map_snd = HOLogic.mk_mem (map_snd, aF_set') |> HOLogic.mk_Trueprop;
-    val mem_z = HOLogic.mk_mem (var_z, pairF_set) |> HOLogic.mk_Trueprop;
+    val mem_map_snd = HOLogic.mk_Trueprop (HOLogic.mk_mem (map_snd, aF_set'));
+    val mem_z = HOLogic.mk_Trueprop (HOLogic.mk_mem (var_z, pairF_set));
     val imp_zip = Logic.mk_implies (mem_map_fst, Logic.mk_implies (mem_map_snd, mem_z));
     val zip_closed_F = Logic.all var_z imp_zip;
 
@@ -151,10 +152,7 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
         let
           val vars = map (nth var_as) I;
           val wit_a = list_comb (wit_F, vars);
-        in
-          Library.foldr (Library.uncurry Logic.all) (vars,
-            HOLogic.mk_mem (wit_a, aF_set) |> HOLogic.mk_Trueprop)
-        end);
+        in fold_rev Logic.all vars (HOLogic.mk_Trueprop (HOLogic.mk_mem (wit_a, aF_set))) end);
 
     val mk_wit_goals = mk_wit_goals var_as var_bs
       (mk_sets_of_bnf (replicate lives deads)  (replicate lives alphas) bnf);
@@ -187,9 +185,9 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
             (*  construct map set bd rel wit *)
             (* val map_G = @{term "\<lambda>f. Abs_G o map_F f o Rep_G"}; *)
             val Abs_Gb = subst_b Abs_G;
-            val map_G = Library.foldr (uncurry HOLogic.tupled_lambda)
-              (var_fs, HOLogic.mk_comp (HOLogic.mk_comp (Abs_Gb, map_f),
-              Rep_G));
+            val map_G =
+              fold_rev HOLogic.tupled_lambda var_fs
+                (HOLogic.mk_comp (HOLogic.mk_comp (Abs_Gb, map_f), Rep_G));
 
             (* val sets_G = [@{term "set_F o Rep_G"}]; *)
             val sets_F = mk_sets_of_bnf (replicate lives deads) (replicate lives alphas) bnf;
@@ -201,7 +199,7 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
 
             (* val rel_G = @{term "\<lambda>R. BNF_Def.vimage2p Rep_G Rep_G (rel_F R)"}; *)
             val rel_F = mk_rel_of_bnf deads alphas betas bnf;
-            val (typ_Rs, _) = fastype_of rel_F |> strip_typeN lives;
+            val (typ_Rs, _) = strip_typeN lives (fastype_of rel_F);
 
             val (var_Rs, names_lthy) = mk_Frees "R" typ_Rs lthy;
             val Rep_Gb = subst_b Rep_G;
