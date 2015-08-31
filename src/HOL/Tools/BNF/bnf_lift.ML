@@ -49,7 +49,7 @@ fun typedef_bnf thm wits specs map_b rel_b opts lthy =
   let
     val plugins = get_first (fn Plugins_Option f => SOME (f lthy) | _ => NONE) (rev opts)
       |> the_default Plugin_Name.default_filter;
-    val no_warn_wits = exists (can (fn Sequential_Option => ())) opts;
+    val no_warn_wits = exists (fn No_Warn_Wits => true | _ => false) opts;
 
     (* extract Rep Abs F RepT AbsT *)
     val (_, [Rep_G, Abs_G, F]) = Thm.prop_of thm
