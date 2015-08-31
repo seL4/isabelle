@@ -3759,7 +3759,7 @@ lemma cos_one_sin_zero:
   using sin_cos_squared_add [of x, unfolded assms]
   by simp
 
-lemma sin_times_pi_eq_0: "sin(x * pi) = 0 \<longleftrightarrow> x \<in> Ints"
+lemma sin_times_pi_eq_0: "sin(x * pi) = 0 \<longleftrightarrow> x \<in> \<int>"
   by (simp add: sin_zero_iff_int2) (metis Ints_cases Ints_real_of_int real_of_int_def)
 
 lemma cos_one_2pi: 
@@ -3875,10 +3875,10 @@ lemma cos_60: "cos (pi / 3) = 1 / 2"
 lemma sin_30: "sin (pi / 6) = 1 / 2"
   by (simp add: sin_cos_eq cos_60)
 
-lemma cos_integer_2pi: "n \<in> Ints \<Longrightarrow> cos(2*pi * n) = 1"
+lemma cos_integer_2pi: "n \<in> \<int> \<Longrightarrow> cos(2*pi * n) = 1"
   by (metis Ints_cases cos_one_2pi_int mult.assoc mult.commute real_of_int_def)
 
-lemma sin_integer_2pi: "n \<in> Ints \<Longrightarrow> sin(2*pi * n) = 0"
+lemma sin_integer_2pi: "n \<in> \<int> \<Longrightarrow> sin(2*pi * n) = 0"
   by (metis sin_two_pi Ints_mult mult.assoc mult.commute sin_times_pi_eq_0)
 
 lemma cos_int_2npi [simp]: "cos (2 * real (n::int) * pi) = 1"

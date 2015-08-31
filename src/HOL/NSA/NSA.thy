@@ -33,7 +33,7 @@ definition
 definition
   st        :: "hypreal => hypreal" where
     --{*the standard part of a hyperreal*}
-  "st = (%x. @r. x \<in> HFinite & r \<in> Reals & r @= x)"
+  "st = (%x. @r. x \<in> HFinite & r \<in> \<real> & r @= x)"
 
 definition
   monad     :: "'a::real_normed_vector star => 'a star set" where
@@ -49,7 +49,7 @@ notation (xsymbols)
 notation (HTML output)
   approx  (infixl "\<approx>" 50)
 
-lemma SReal_def: "Reals == {x. \<exists>r. x = hypreal_of_real r}"
+lemma SReal_def: "\<real> == {x. \<exists>r. x = hypreal_of_real r}"
 by (simp add: Reals_def image_def)
 
 subsection {* Nonstandard Extension of the Norm Function *}
@@ -176,54 +176,54 @@ done
 
 subsection{*Closure Laws for the Standard Reals*}
 
-lemma Reals_minus_iff [simp]: "(-x \<in> Reals) = (x \<in> Reals)"
+lemma Reals_minus_iff [simp]: "(-x \<in> \<real>) = (x \<in> \<real>)"
 apply auto
 apply (drule Reals_minus, auto)
 done
 
-lemma Reals_add_cancel: "\<lbrakk>x + y \<in> Reals; y \<in> Reals\<rbrakk> \<Longrightarrow> x \<in> Reals"
+lemma Reals_add_cancel: "\<lbrakk>x + y \<in> \<real>; y \<in> \<real>\<rbrakk> \<Longrightarrow> x \<in> \<real>"
 by (drule (1) Reals_diff, simp)
 
-lemma SReal_hrabs: "(x::hypreal) \<in> Reals ==> abs x \<in> Reals"
+lemma SReal_hrabs: "(x::hypreal) \<in> \<real> ==> abs x \<in> \<real>"
 by (simp add: Reals_eq_Standard)
 
-lemma SReal_hypreal_of_real [simp]: "hypreal_of_real x \<in> Reals"
+lemma SReal_hypreal_of_real [simp]: "hypreal_of_real x \<in> \<real>"
 by (simp add: Reals_eq_Standard)
 
-lemma SReal_divide_numeral: "r \<in> Reals ==> r/(numeral w::hypreal) \<in> Reals"
+lemma SReal_divide_numeral: "r \<in> \<real> ==> r/(numeral w::hypreal) \<in> \<real>"
 by simp
 
 text{*epsilon is not in Reals because it is an infinitesimal*}
-lemma SReal_epsilon_not_mem: "epsilon \<notin> Reals"
+lemma SReal_epsilon_not_mem: "epsilon \<notin> \<real>"
 apply (simp add: SReal_def)
 apply (auto simp add: hypreal_of_real_not_eq_epsilon [THEN not_sym])
 done
 
-lemma SReal_omega_not_mem: "omega \<notin> Reals"
+lemma SReal_omega_not_mem: "omega \<notin> \<real>"
 apply (simp add: SReal_def)
 apply (auto simp add: hypreal_of_real_not_eq_omega [THEN not_sym])
 done
 
-lemma SReal_UNIV_real: "{x. hypreal_of_real x \<in> Reals} = (UNIV::real set)"
+lemma SReal_UNIV_real: "{x. hypreal_of_real x \<in> \<real>} = (UNIV::real set)"
 by simp
 
-lemma SReal_iff: "(x \<in> Reals) = (\<exists>y. x = hypreal_of_real y)"
+lemma SReal_iff: "(x \<in> \<real>) = (\<exists>y. x = hypreal_of_real y)"
 by (simp add: SReal_def)
 
-lemma hypreal_of_real_image: "hypreal_of_real `(UNIV::real set) = Reals"
+lemma hypreal_of_real_image: "hypreal_of_real `(UNIV::real set) = \<real>"
 by (simp add: Reals_eq_Standard Standard_def)
 
-lemma inv_hypreal_of_real_image: "inv hypreal_of_real ` Reals = UNIV"
+lemma inv_hypreal_of_real_image: "inv hypreal_of_real ` \<real> = UNIV"
 apply (auto simp add: SReal_def)
 apply (rule inj_star_of [THEN inv_f_f, THEN subst], blast)
 done
 
 lemma SReal_hypreal_of_real_image:
-      "[| \<exists>x. x: P; P \<subseteq> Reals |] ==> \<exists>Q. P = hypreal_of_real ` Q"
+      "[| \<exists>x. x: P; P \<subseteq> \<real> |] ==> \<exists>Q. P = hypreal_of_real ` Q"
 by (simp add: SReal_def image_def, blast)
 
 lemma SReal_dense:
-     "[| (x::hypreal) \<in> Reals; y \<in> Reals;  x<y |] ==> \<exists>r \<in> Reals. x<r & r<y"
+     "[| (x::hypreal) \<in> \<real>; y \<in> \<real>;  x<y |] ==> \<exists>r \<in> Reals. x<r & r<y"
 apply (auto simp add: SReal_def)
 apply (drule dense, auto)
 done
@@ -231,12 +231,12 @@ done
 text{*Completeness of Reals, but both lemmas are unused.*}
 
 lemma SReal_sup_lemma:
-     "P \<subseteq> Reals ==> ((\<exists>x \<in> P. y < x) =
+     "P \<subseteq> \<real> ==> ((\<exists>x \<in> P. y < x) =
       (\<exists>X. hypreal_of_real X \<in> P & y < hypreal_of_real X))"
 by (blast dest!: SReal_iff [THEN iffD1])
 
 lemma SReal_sup_lemma2:
-     "[| P \<subseteq> Reals; \<exists>x. x \<in> P; \<exists>y \<in> Reals. \<forall>x \<in> P. x < y |]
+     "[| P \<subseteq> \<real>; \<exists>x. x \<in> P; \<exists>y \<in> Reals. \<forall>x \<in> P. x < y |]
       ==> (\<exists>X. X \<in> {w. hypreal_of_real w \<in> P}) &
           (\<exists>Y. \<forall>X \<in> {w. hypreal_of_real w \<in> P}. X < Y)"
 apply (rule conjI)
@@ -277,7 +277,7 @@ apply (transfer, simp)
 apply (blast intro: Reals_add SReal_hypreal_of_real Reals_1)
 done
 
-lemma SReal_subset_HFinite: "(Reals::hypreal set) \<subseteq> HFinite"
+lemma SReal_subset_HFinite: "(\<real>::hypreal set) \<subseteq> HFinite"
 by (auto simp add: SReal_def)
 
 lemma HFiniteD: "x \<in> HFinite ==> \<exists>t \<in> Reals. hnorm x < t"
@@ -850,29 +850,29 @@ lemma approx_mult_star_of:
 by (blast intro!: approx_mult_HFinite approx_star_of_HFinite HFinite_star_of)
 
 lemma approx_SReal_mult_cancel_zero:
-     "[| (a::hypreal) \<in> Reals; a \<noteq> 0; a*x @= 0 |] ==> x @= 0"
+     "[| (a::hypreal) \<in> \<real>; a \<noteq> 0; a*x @= 0 |] ==> x @= 0"
 apply (drule Reals_inverse [THEN SReal_subset_HFinite [THEN subsetD]])
 apply (auto dest: approx_mult2 simp add: mult.assoc [symmetric])
 done
 
-lemma approx_mult_SReal1: "[| (a::hypreal) \<in> Reals; x @= 0 |] ==> x*a @= 0"
+lemma approx_mult_SReal1: "[| (a::hypreal) \<in> \<real>; x @= 0 |] ==> x*a @= 0"
 by (auto dest: SReal_subset_HFinite [THEN subsetD] approx_mult1)
 
-lemma approx_mult_SReal2: "[| (a::hypreal) \<in> Reals; x @= 0 |] ==> a*x @= 0"
+lemma approx_mult_SReal2: "[| (a::hypreal) \<in> \<real>; x @= 0 |] ==> a*x @= 0"
 by (auto dest: SReal_subset_HFinite [THEN subsetD] approx_mult2)
 
 lemma approx_mult_SReal_zero_cancel_iff [simp]:
-     "[|(a::hypreal) \<in> Reals; a \<noteq> 0 |] ==> (a*x @= 0) = (x @= 0)"
+     "[|(a::hypreal) \<in> \<real>; a \<noteq> 0 |] ==> (a*x @= 0) = (x @= 0)"
 by (blast intro: approx_SReal_mult_cancel_zero approx_mult_SReal2)
 
 lemma approx_SReal_mult_cancel:
-     "[| (a::hypreal) \<in> Reals; a \<noteq> 0; a* w @= a*z |] ==> w @= z"
+     "[| (a::hypreal) \<in> \<real>; a \<noteq> 0; a* w @= a*z |] ==> w @= z"
 apply (drule Reals_inverse [THEN SReal_subset_HFinite [THEN subsetD]])
 apply (auto dest: approx_mult2 simp add: mult.assoc [symmetric])
 done
 
 lemma approx_SReal_mult_cancel_iff1 [simp]:
-     "[| (a::hypreal) \<in> Reals; a \<noteq> 0|] ==> (a* w @= a*z) = (w @= z)"
+     "[| (a::hypreal) \<in> \<real>; a \<noteq> 0|] ==> (a* w @= a*z) = (w @= z)"
 by (auto intro!: approx_mult2 SReal_subset_HFinite [THEN subsetD]
          intro: approx_SReal_mult_cancel)
 
@@ -907,7 +907,7 @@ qed
 subsection{* Zero is the Only Infinitesimal that is also a Real*}
 
 lemma Infinitesimal_less_SReal:
-     "[| (x::hypreal) \<in> Reals; y \<in> Infinitesimal; 0 < x |] ==> y < x"
+     "[| (x::hypreal) \<in> \<real>; y \<in> Infinitesimal; 0 < x |] ==> y < x"
 apply (simp add: Infinitesimal_def)
 apply (rule abs_ge_self [THEN order_le_less_trans], auto)
 done
@@ -917,29 +917,29 @@ lemma Infinitesimal_less_SReal2:
 by (blast intro: Infinitesimal_less_SReal)
 
 lemma SReal_not_Infinitesimal:
-     "[| 0 < y;  (y::hypreal) \<in> Reals|] ==> y \<notin> Infinitesimal"
+     "[| 0 < y;  (y::hypreal) \<in> \<real>|] ==> y \<notin> Infinitesimal"
 apply (simp add: Infinitesimal_def)
 apply (auto simp add: abs_if)
 done
 
 lemma SReal_minus_not_Infinitesimal:
-     "[| y < 0;  (y::hypreal) \<in> Reals |] ==> y \<notin> Infinitesimal"
+     "[| y < 0;  (y::hypreal) \<in> \<real> |] ==> y \<notin> Infinitesimal"
 apply (subst Infinitesimal_minus_iff [symmetric])
 apply (rule SReal_not_Infinitesimal, auto)
 done
 
-lemma SReal_Int_Infinitesimal_zero: "Reals Int Infinitesimal = {0::hypreal}"
+lemma SReal_Int_Infinitesimal_zero: "\<real> Int Infinitesimal = {0::hypreal}"
 apply auto
 apply (cut_tac x = x and y = 0 in linorder_less_linear)
 apply (blast dest: SReal_not_Infinitesimal SReal_minus_not_Infinitesimal)
 done
 
 lemma SReal_Infinitesimal_zero:
-  "[| (x::hypreal) \<in> Reals; x \<in> Infinitesimal|] ==> x = 0"
+  "[| (x::hypreal) \<in> \<real>; x \<in> Infinitesimal|] ==> x = 0"
 by (cut_tac SReal_Int_Infinitesimal_zero, blast)
 
 lemma SReal_HFinite_diff_Infinitesimal:
-     "[| (x::hypreal) \<in> Reals; x \<noteq> 0 |] ==> x \<in> HFinite - Infinitesimal"
+     "[| (x::hypreal) \<in> \<real>; x \<noteq> 0 |] ==> x \<in> HFinite - Infinitesimal"
 by (auto dest: SReal_Infinitesimal_zero SReal_subset_HFinite [THEN subsetD])
 
 lemma hypreal_of_real_HFinite_diff_Infinitesimal:
@@ -971,7 +971,7 @@ apply simp
 done
 
 lemma approx_SReal_not_zero:
-  "[| (y::hypreal) \<in> Reals; x @= y; y\<noteq> 0 |] ==> x \<noteq> 0"
+  "[| (y::hypreal) \<in> \<real>; x @= y; y\<noteq> 0 |] ==> x \<noteq> 0"
 apply (cut_tac x = 0 and y = y in linorder_less_linear, simp)
 apply (blast dest: approx_sym [THEN mem_infmal_iff [THEN iffD2]] SReal_not_Infinitesimal SReal_minus_not_Infinitesimal)
 done
@@ -996,7 +996,7 @@ apply (simp add: divide_inverse mult.assoc)
 done
 
 lemma Infinitesimal_SReal_divide:
-  "[| (x::hypreal) \<in> Infinitesimal; y \<in> Reals |] ==> x/y \<in> Infinitesimal"
+  "[| (x::hypreal) \<in> Infinitesimal; y \<in> \<real> |] ==> x/y \<in> Infinitesimal"
 apply (simp add: divide_inverse)
 apply (auto intro!: Infinitesimal_HFinite_mult
             dest!: Reals_inverse [THEN SReal_subset_HFinite [THEN subsetD]])
@@ -1018,7 +1018,7 @@ apply simp
 done
 
 lemma SReal_approx_iff:
-  "[|(x::hypreal) \<in> Reals; y \<in> Reals|] ==> (x @= y) = (x = y)"
+  "[|(x::hypreal) \<in> \<real>; y \<in> \<real>|] ==> (x @= y) = (x = y)"
 apply auto
 apply (simp add: approx_def)
 apply (drule (1) Reals_diff)
@@ -1060,7 +1060,7 @@ lemma star_of_approx_one_iff [simp]: "(star_of k @= 1) = (k = 1)"
 by (simp_all add: star_of_approx_iff [symmetric])
 
 lemma approx_unique_real:
-     "[| (r::hypreal) \<in> Reals; s \<in> Reals; r @= x; s @= x|] ==> r = s"
+     "[| (r::hypreal) \<in> \<real>; s \<in> \<real>; r @= x; s @= x|] ==> r = s"
 by (blast intro: SReal_approx_iff [THEN iffD1] approx_trans2)
 
 
@@ -1069,12 +1069,12 @@ subsection{* Existence of Unique Real Infinitely Close*}
 subsubsection{*Lifting of the Ub and Lub Properties*}
 
 lemma hypreal_of_real_isUb_iff:
-      "(isUb (Reals) (hypreal_of_real ` Q) (hypreal_of_real Y)) =
+      "(isUb \<real> (hypreal_of_real ` Q) (hypreal_of_real Y)) =
        (isUb (UNIV :: real set) Q Y)"
 by (simp add: isUb_def setle_def)
 
 lemma hypreal_of_real_isLub1:
-     "isLub Reals (hypreal_of_real ` Q) (hypreal_of_real Y)
+     "isLub \<real> (hypreal_of_real ` Q) (hypreal_of_real Y)
       ==> isLub (UNIV :: real set) Q Y"
 apply (simp add: isLub_def leastP_def)
 apply (auto intro: hypreal_of_real_isUb_iff [THEN iffD2]
@@ -1083,30 +1083,30 @@ done
 
 lemma hypreal_of_real_isLub2:
       "isLub (UNIV :: real set) Q Y
-       ==> isLub Reals (hypreal_of_real ` Q) (hypreal_of_real Y)"
+       ==> isLub \<real> (hypreal_of_real ` Q) (hypreal_of_real Y)"
 apply (auto simp add: isLub_def leastP_def hypreal_of_real_isUb_iff setge_def)
 by (metis SReal_iff hypreal_of_real_isUb_iff isUbD2a star_of_le)
 
 lemma hypreal_of_real_isLub_iff:
-     "(isLub Reals (hypreal_of_real ` Q) (hypreal_of_real Y)) =
+     "(isLub \<real> (hypreal_of_real ` Q) (hypreal_of_real Y)) =
       (isLub (UNIV :: real set) Q Y)"
 by (blast intro: hypreal_of_real_isLub1 hypreal_of_real_isLub2)
 
 lemma lemma_isUb_hypreal_of_real:
-     "isUb Reals P Y ==> \<exists>Yo. isUb Reals P (hypreal_of_real Yo)"
+     "isUb \<real> P Y ==> \<exists>Yo. isUb \<real> P (hypreal_of_real Yo)"
 by (auto simp add: SReal_iff isUb_def)
 
 lemma lemma_isLub_hypreal_of_real:
-     "isLub Reals P Y ==> \<exists>Yo. isLub Reals P (hypreal_of_real Yo)"
+     "isLub \<real> P Y ==> \<exists>Yo. isLub \<real> P (hypreal_of_real Yo)"
 by (auto simp add: isLub_def leastP_def isUb_def SReal_iff)
 
 lemma lemma_isLub_hypreal_of_real2:
-     "\<exists>Yo. isLub Reals P (hypreal_of_real Yo) ==> \<exists>Y. isLub Reals P Y"
+     "\<exists>Yo. isLub \<real> P (hypreal_of_real Yo) ==> \<exists>Y. isLub \<real> P Y"
 by (auto simp add: isLub_def leastP_def isUb_def)
 
 lemma SReal_complete:
-     "[| P \<subseteq> Reals;  \<exists>x. x \<in> P;  \<exists>Y. isUb Reals P Y |]
-      ==> \<exists>t::hypreal. isLub Reals P t"
+     "[| P \<subseteq> \<real>;  \<exists>x. x \<in> P;  \<exists>Y. isUb \<real> P Y |]
+      ==> \<exists>t::hypreal. isLub \<real> P t"
 apply (frule SReal_hypreal_of_real_image)
 apply (auto, drule lemma_isUb_hypreal_of_real)
 apply (auto intro!: reals_complete lemma_isLub_hypreal_of_real2
@@ -1116,14 +1116,14 @@ done
 (* lemma about lubs *)
 
 lemma lemma_st_part_ub:
-     "(x::hypreal) \<in> HFinite ==> \<exists>u. isUb Reals {s. s \<in> Reals & s < x} u"
+     "(x::hypreal) \<in> HFinite ==> \<exists>u. isUb \<real> {s. s \<in> \<real> & s < x} u"
 apply (drule HFiniteD, safe)
 apply (rule exI, rule isUbI)
 apply (auto intro: setleI isUbI simp add: abs_less_iff)
 done
 
 lemma lemma_st_part_nonempty:
-  "(x::hypreal) \<in> HFinite ==> \<exists>y. y \<in> {s. s \<in> Reals & s < x}"
+  "(x::hypreal) \<in> HFinite ==> \<exists>y. y \<in> {s. s \<in> \<real> & s < x}"
 apply (drule HFiniteD, safe)
 apply (drule Reals_minus)
 apply (rule_tac x = "-t" in exI)
@@ -1131,12 +1131,12 @@ apply (auto simp add: abs_less_iff)
 done
 
 lemma lemma_st_part_lub:
-     "(x::hypreal) \<in> HFinite ==> \<exists>t. isLub Reals {s. s \<in> Reals & s < x} t"
+     "(x::hypreal) \<in> HFinite ==> \<exists>t. isLub \<real> {s. s \<in> \<real> & s < x} t"
 by (blast intro!: SReal_complete lemma_st_part_ub lemma_st_part_nonempty Collect_restrict)
 
 lemma lemma_st_part_le1:
-     "[| (x::hypreal) \<in> HFinite;  isLub Reals {s. s \<in> Reals & s < x} t;
-         r \<in> Reals;  0 < r |] ==> x \<le> t + r"
+     "[| (x::hypreal) \<in> HFinite;  isLub \<real> {s. s \<in> \<real> & s < x} t;
+         r \<in> \<real>;  0 < r |] ==> x \<le> t + r"
 apply (frule isLubD1a)
 apply (rule ccontr, drule linorder_not_le [THEN iffD2])
 apply (drule (1) Reals_add)
@@ -1156,8 +1156,8 @@ apply (blast intro: hypreal_setle_less_trans)
 done
 
 lemma lemma_st_part_gt_ub:
-     "[| (x::hypreal) \<in> HFinite; x < y; y \<in> Reals |]
-      ==> isUb Reals {s. s \<in> Reals & s < x} y"
+     "[| (x::hypreal) \<in> HFinite; x < y; y \<in> \<real> |]
+      ==> isUb \<real> {s. s \<in> \<real> & s < x} y"
 by (auto dest: order_less_trans intro: order_less_imp_le intro!: isUbI setleI)
 
 lemma lemma_minus_le_zero: "t \<le> t + -r ==> r \<le> (0::hypreal)"
@@ -1167,8 +1167,8 @@ done
 
 lemma lemma_st_part_le2:
      "[| (x::hypreal) \<in> HFinite;
-         isLub Reals {s. s \<in> Reals & s < x} t;
-         r \<in> Reals; 0 < r |]
+         isLub \<real> {s. s \<in> \<real> & s < x} t;
+         r \<in> \<real>; 0 < r |]
       ==> t + -r \<le> x"
 apply (frule isLubD1a)
 apply (rule ccontr, drule linorder_not_le [THEN iffD1])
@@ -1181,8 +1181,8 @@ done
 
 lemma lemma_st_part1a:
      "[| (x::hypreal) \<in> HFinite;
-         isLub Reals {s. s \<in> Reals & s < x} t;
-         r \<in> Reals; 0 < r |]
+         isLub \<real> {s. s \<in> \<real> & s < x} t;
+         r \<in> \<real>; 0 < r |]
       ==> x + -t \<le> r"
 apply (subgoal_tac "x \<le> t+r")
 apply (auto intro: lemma_st_part_le1)
@@ -1190,8 +1190,8 @@ done
 
 lemma lemma_st_part2a:
      "[| (x::hypreal) \<in> HFinite;
-         isLub Reals {s. s \<in> Reals & s < x} t;
-         r \<in> Reals;  0 < r |]
+         isLub \<real> {s. s \<in> \<real> & s < x} t;
+         r \<in> \<real>;  0 < r |]
       ==> -(x + -t) \<le> r"
 apply (subgoal_tac "(t + -r \<le> x)")
 apply simp
@@ -1200,11 +1200,11 @@ apply auto
 done
 
 lemma lemma_SReal_ub:
-     "(x::hypreal) \<in> Reals ==> isUb Reals {s. s \<in> Reals & s < x} x"
+     "(x::hypreal) \<in> \<real> ==> isUb \<real> {s. s \<in> \<real> & s < x} x"
 by (auto intro: isUbI setleI order_less_imp_le)
 
 lemma lemma_SReal_lub:
-     "(x::hypreal) \<in> Reals ==> isLub Reals {s. s \<in> Reals & s < x} x"
+     "(x::hypreal) \<in> \<real> ==> isLub \<real> {s. s \<in> \<real> & s < x} x"
 apply (auto intro!: isLubI2 lemma_SReal_ub setgeI)
 apply (frule isUbD2a)
 apply (rule_tac x = x and y = y in linorder_cases)
@@ -1216,8 +1216,8 @@ done
 
 lemma lemma_st_part_not_eq1:
      "[| (x::hypreal) \<in> HFinite;
-         isLub Reals {s. s \<in> Reals & s < x} t;
-         r \<in> Reals; 0 < r |]
+         isLub \<real> {s. s \<in> \<real> & s < x} t;
+         r \<in> \<real>; 0 < r |]
       ==> x + -t \<noteq> r"
 apply auto
 apply (frule isLubD1a [THEN Reals_minus])
@@ -1228,8 +1228,8 @@ done
 
 lemma lemma_st_part_not_eq2:
      "[| (x::hypreal) \<in> HFinite;
-         isLub Reals {s. s \<in> Reals & s < x} t;
-         r \<in> Reals; 0 < r |]
+         isLub \<real> {s. s \<in> \<real> & s < x} t;
+         r \<in> \<real>; 0 < r |]
       ==> -(x + -t) \<noteq> r"
 apply (auto)
 apply (frule isLubD1a)
@@ -1240,8 +1240,8 @@ done
 
 lemma lemma_st_part_major:
      "[| (x::hypreal) \<in> HFinite;
-         isLub Reals {s. s \<in> Reals & s < x} t;
-         r \<in> Reals; 0 < r |]
+         isLub \<real> {s. s \<in> \<real> & s < x} t;
+         r \<in> \<real>; 0 < r |]
       ==> abs (x - t) < r"
 apply (frule lemma_st_part1a)
 apply (frule_tac [4] lemma_st_part2a, auto)
@@ -1250,7 +1250,7 @@ apply (auto dest: lemma_st_part_not_eq1 lemma_st_part_not_eq2 simp add: abs_less
 done
 
 lemma lemma_st_part_major2:
-     "[| (x::hypreal) \<in> HFinite; isLub Reals {s. s \<in> Reals & s < x} t |]
+     "[| (x::hypreal) \<in> HFinite; isLub \<real> {s. s \<in> \<real> & s < x} t |]
       ==> \<forall>r \<in> Reals. 0 < r --> abs (x - t) < r"
 by (blast dest!: lemma_st_part_major)
 
@@ -1271,7 +1271,7 @@ apply (drule lemma_st_part_Ex, auto)
 done
 
 text{*There is a unique real infinitely close*}
-lemma st_part_Ex1: "x \<in> HFinite ==> EX! t::hypreal. t \<in> Reals & x @= t"
+lemma st_part_Ex1: "x \<in> HFinite ==> EX! t::hypreal. t \<in> \<real> & x @= t"
 apply (drule st_part_Ex, safe)
 apply (drule_tac [2] approx_sym, drule_tac [2] approx_sym, drule_tac [2] approx_sym)
 apply (auto intro!: approx_unique_real)
@@ -1471,7 +1471,7 @@ apply (auto simp add: mult.assoc [symmetric] HFinite_HInfinite_iff)
 done
 
 lemma HInfinite_gt_SReal:
-  "[| (x::hypreal) \<in> HInfinite; 0 < x; y \<in> Reals |] ==> y < x"
+  "[| (x::hypreal) \<in> HInfinite; 0 < x; y \<in> \<real> |] ==> y < x"
 by (auto dest!: bspec simp add: HInfinite_def abs_if order_less_imp_le)
 
 lemma HInfinite_gt_zero_gt_one:
@@ -1762,7 +1762,7 @@ apply (rule someI2)
 apply (auto intro: approx_sym)
 done
 
-lemma st_SReal: "x \<in> HFinite ==> st x \<in> Reals"
+lemma st_SReal: "x \<in> HFinite ==> st x \<in> \<real>"
 apply (simp add: st_def)
 apply (frule st_part_Ex, safe)
 apply (rule someI2)
@@ -1780,7 +1780,7 @@ apply (rule some_equality)
 apply (auto intro: approx_unique_real)
 done
 
-lemma st_SReal_eq: "x \<in> Reals ==> st x = x"
+lemma st_SReal_eq: "x \<in> \<real> ==> st x = x"
   by (metis approx_refl st_unique) 
 
 lemma st_hypreal_of_real [simp]: "st (hypreal_of_real x) = hypreal_of_real x"
@@ -1793,7 +1793,7 @@ lemma approx_st_eq:
   assumes x: "x \<in> HFinite" and y: "y \<in> HFinite" and xy: "x @= y"
   shows "st x = st y"
 proof -
-  have "st x @= x" "st y @= y" "st x \<in> Reals" "st y \<in> Reals"
+  have "st x @= x" "st y @= y" "st x \<in> \<real>" "st y \<in> \<real>"
     by (simp_all add: st_approx_self st_SReal x y)
   with xy show ?thesis
     by (fast elim: approx_trans approx_trans2 SReal_approx_iff [THEN iffD1])
@@ -1805,13 +1805,13 @@ lemma st_eq_approx_iff:
 by (blast intro: approx_st_eq st_eq_approx)
 
 lemma st_Infinitesimal_add_SReal:
-     "[| x \<in> Reals; e \<in> Infinitesimal |] ==> st(x + e) = x"
+     "[| x \<in> \<real>; e \<in> Infinitesimal |] ==> st(x + e) = x"
 apply (erule st_unique)
 apply (erule Infinitesimal_add_approx_self)
 done
 
 lemma st_Infinitesimal_add_SReal2:
-     "[| x \<in> Reals; e \<in> Infinitesimal |] ==> st(e + x) = x"
+     "[| x \<in> \<real>; e \<in> Infinitesimal |] ==> st(e + x) = x"
 apply (erule st_unique)
 apply (erule Infinitesimal_add_approx_self2)
 done

@@ -103,7 +103,7 @@ proof
     by transfer simp
 qed
 
-lemma Reals_eq_Standard: "(Reals :: hypreal set) = Standard"
+lemma Reals_eq_Standard: "(\<real> :: hypreal set) = Standard"
 by (simp add: Reals_def Standard_def)
 
 
@@ -539,7 +539,7 @@ lemma hyperpow_realpow:
 by transfer (rule refl)
 
 lemma hyperpow_SReal [simp]:
-     "(hypreal_of_real r) pow (hypnat_of_nat n) \<in> Reals"
+     "(hypreal_of_real r) pow (hypnat_of_nat n) \<in> \<real>"
 by (simp add: Reals_eq_Standard)
 
 lemma hyperpow_zero_HNatInfinite [simp]:

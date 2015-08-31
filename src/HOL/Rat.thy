@@ -808,58 +808,54 @@ subsection \<open>The Set of Rational Numbers\<close>
 context field_char_0
 begin
 
-definition
-  Rats  :: "'a set" where
-  "Rats = range of_rat"
-
-notation (xsymbols)
-  Rats  ("\<rat>")
+definition Rats :: "'a set" ("\<rat>")
+  where "\<rat> = range of_rat"
 
 end
 
-lemma Rats_of_rat [simp]: "of_rat r \<in> Rats"
+lemma Rats_of_rat [simp]: "of_rat r \<in> \<rat>"
 by (simp add: Rats_def)
 
-lemma Rats_of_int [simp]: "of_int z \<in> Rats"
+lemma Rats_of_int [simp]: "of_int z \<in> \<rat>"
 by (subst of_rat_of_int_eq [symmetric], rule Rats_of_rat)
 
-lemma Rats_of_nat [simp]: "of_nat n \<in> Rats"
+lemma Rats_of_nat [simp]: "of_nat n \<in> \<rat>"
 by (subst of_rat_of_nat_eq [symmetric], rule Rats_of_rat)
 
-lemma Rats_number_of [simp]: "numeral w \<in> Rats"
+lemma Rats_number_of [simp]: "numeral w \<in> \<rat>"
 by (subst of_rat_numeral_eq [symmetric], rule Rats_of_rat)
 
-lemma Rats_0 [simp]: "0 \<in> Rats"
+lemma Rats_0 [simp]: "0 \<in> \<rat>"
 apply (unfold Rats_def)
 apply (rule range_eqI)
 apply (rule of_rat_0 [symmetric])
 done
 
-lemma Rats_1 [simp]: "1 \<in> Rats"
+lemma Rats_1 [simp]: "1 \<in> \<rat>"
 apply (unfold Rats_def)
 apply (rule range_eqI)
 apply (rule of_rat_1 [symmetric])
 done
 
-lemma Rats_add [simp]: "\<lbrakk>a \<in> Rats; b \<in> Rats\<rbrakk> \<Longrightarrow> a + b \<in> Rats"
+lemma Rats_add [simp]: "\<lbrakk>a \<in> \<rat>; b \<in> \<rat>\<rbrakk> \<Longrightarrow> a + b \<in> \<rat>"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
 apply (rule of_rat_add [symmetric])
 done
 
-lemma Rats_minus [simp]: "a \<in> Rats \<Longrightarrow> - a \<in> Rats"
+lemma Rats_minus [simp]: "a \<in> \<rat> \<Longrightarrow> - a \<in> \<rat>"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
 apply (rule of_rat_minus [symmetric])
 done
 
-lemma Rats_diff [simp]: "\<lbrakk>a \<in> Rats; b \<in> Rats\<rbrakk> \<Longrightarrow> a - b \<in> Rats"
+lemma Rats_diff [simp]: "\<lbrakk>a \<in> \<rat>; b \<in> \<rat>\<rbrakk> \<Longrightarrow> a - b \<in> \<rat>"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
 apply (rule of_rat_diff [symmetric])
 done
 
-lemma Rats_mult [simp]: "\<lbrakk>a \<in> Rats; b \<in> Rats\<rbrakk> \<Longrightarrow> a * b \<in> Rats"
+lemma Rats_mult [simp]: "\<lbrakk>a \<in> \<rat>; b \<in> \<rat>\<rbrakk> \<Longrightarrow> a * b \<in> \<rat>"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
 apply (rule of_rat_mult [symmetric])
@@ -867,7 +863,7 @@ done
 
 lemma nonzero_Rats_inverse:
   fixes a :: "'a::field_char_0"
-  shows "\<lbrakk>a \<in> Rats; a \<noteq> 0\<rbrakk> \<Longrightarrow> inverse a \<in> Rats"
+  shows "\<lbrakk>a \<in> \<rat>; a \<noteq> 0\<rbrakk> \<Longrightarrow> inverse a \<in> \<rat>"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
 apply (erule nonzero_of_rat_inverse [symmetric])
@@ -875,7 +871,7 @@ done
 
 lemma Rats_inverse [simp]:
   fixes a :: "'a::{field_char_0, field}"
-  shows "a \<in> Rats \<Longrightarrow> inverse a \<in> Rats"
+  shows "a \<in> \<rat> \<Longrightarrow> inverse a \<in> \<rat>"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
 apply (rule of_rat_inverse [symmetric])
@@ -883,7 +879,7 @@ done
 
 lemma nonzero_Rats_divide:
   fixes a b :: "'a::field_char_0"
-  shows "\<lbrakk>a \<in> Rats; b \<in> Rats; b \<noteq> 0\<rbrakk> \<Longrightarrow> a / b \<in> Rats"
+  shows "\<lbrakk>a \<in> \<rat>; b \<in> \<rat>; b \<noteq> 0\<rbrakk> \<Longrightarrow> a / b \<in> \<rat>"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
 apply (erule nonzero_of_rat_divide [symmetric])
@@ -891,7 +887,7 @@ done
 
 lemma Rats_divide [simp]:
   fixes a b :: "'a::{field_char_0, field}"
-  shows "\<lbrakk>a \<in> Rats; b \<in> Rats\<rbrakk> \<Longrightarrow> a / b \<in> Rats"
+  shows "\<lbrakk>a \<in> \<rat>; b \<in> \<rat>\<rbrakk> \<Longrightarrow> a / b \<in> \<rat>"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
 apply (rule of_rat_divide [symmetric])
@@ -899,7 +895,7 @@ done
 
 lemma Rats_power [simp]:
   fixes a :: "'a::field_char_0"
-  shows "a \<in> Rats \<Longrightarrow> a ^ n \<in> Rats"
+  shows "a \<in> \<rat> \<Longrightarrow> a ^ n \<in> \<rat>"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
 apply (rule of_rat_power [symmetric])

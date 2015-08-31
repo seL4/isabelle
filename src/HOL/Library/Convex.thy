@@ -137,7 +137,7 @@ proof -
     by (simp only: convex_Int 3 4)
 qed
 
-lemma convex_Reals: "convex Reals"
+lemma convex_Reals: "convex \<real>"
   by (simp add: convex_def scaleR_conv_of_real)
 
 

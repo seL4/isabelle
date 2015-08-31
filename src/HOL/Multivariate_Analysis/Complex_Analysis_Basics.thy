@@ -242,9 +242,9 @@ lemma
   by (intro open_Collect_less closed_Collect_le closed_Collect_eq isCont_Re
             isCont_Im continuous_ident continuous_const)+
 
-lemma closed_complex_Reals: "closed (Reals :: complex set)"
+lemma closed_complex_Reals: "closed (\<real> :: complex set)"
 proof -
-  have "(Reals :: complex set) = {z. Im z = 0}"
+  have "(\<real> :: complex set) = {z. Im z = 0}"
     by (auto simp: complex_is_Real_iff)
   then show ?thesis
     by (metis closed_halfspace_Im_eq)

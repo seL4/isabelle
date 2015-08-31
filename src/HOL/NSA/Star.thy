@@ -53,7 +53,7 @@ subsection{*Properties of the Star-transform Applied to Sets of Reals*}
 lemma STAR_star_of_image_subset: "star_of ` A <= *s* A"
 by auto
 
-lemma STAR_hypreal_of_real_Int: "*s* X Int Reals = hypreal_of_real ` X"
+lemma STAR_hypreal_of_real_Int: "*s* X Int \<real> = hypreal_of_real ` X"
 by (auto simp add: SReal_def)
 
 lemma STAR_star_of_Int: "*s* X Int Standard = star_of ` X"

@@ -29,13 +29,13 @@ lemma SComplex_add_cancel:
 by (drule (1) Standard_diff, simp)
 
 lemma SReal_hcmod_hcomplex_of_complex [simp]:
-     "hcmod (hcomplex_of_complex r) \<in> Reals"
+     "hcmod (hcomplex_of_complex r) \<in> \<real>"
 by (simp add: Reals_eq_Standard)
 
-lemma SReal_hcmod_numeral [simp]: "hcmod (numeral w ::hcomplex) \<in> Reals"
+lemma SReal_hcmod_numeral [simp]: "hcmod (numeral w ::hcomplex) \<in> \<real>"
 by (simp add: Reals_eq_Standard)
 
-lemma SReal_hcmod_SComplex: "x \<in> SComplex ==> hcmod x \<in> Reals"
+lemma SReal_hcmod_SComplex: "x \<in> SComplex ==> hcmod x \<in> \<real>"
 by (simp add: Reals_eq_Standard)
 
 lemma SComplex_divide_numeral:
@@ -482,7 +482,7 @@ lemma HFinite_HFinite_hcomplex_of_hypreal:
 by (simp add: hcomplex_HFinite_iff)
 
 lemma SComplex_SReal_hcomplex_of_hypreal:
-     "x \<in> Reals ==>  hcomplex_of_hypreal x \<in> SComplex"
+     "x \<in> \<real> ==>  hcomplex_of_hypreal x \<in> SComplex"
 apply (rule Standard_of_hypreal)
 apply (simp add: Reals_eq_Standard)
 done

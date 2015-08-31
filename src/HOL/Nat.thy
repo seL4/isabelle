@@ -1588,11 +1588,8 @@ subsection \<open>The set of natural numbers\<close>
 context semiring_1
 begin
 
-definition Nats  :: "'a set" where
-  "Nats = range of_nat"
-
-notation (xsymbols)
-  Nats  ("\<nat>")
+definition Nats :: "'a set"  ("\<nat>")
+  where "\<nat> = range of_nat"
 
 lemma of_nat_in_Nats [simp]: "of_nat n \<in> \<nat>"
   by (simp add: Nats_def)

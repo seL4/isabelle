@@ -623,11 +623,8 @@ subsection \<open>The Set of Integers\<close>
 context ring_1
 begin
 
-definition Ints  :: "'a set" where
-  "Ints = range of_int"
-
-notation (xsymbols)
-  Ints  ("\<int>")
+definition Ints :: "'a set"  ("\<int>")
+  where "\<int> = range of_int"
 
 lemma Ints_of_int [simp]: "of_int z \<in> \<int>"
   by (simp add: Ints_def)
@@ -687,7 +684,7 @@ end
 text \<open>The premise involving @{term Ints} prevents @{term "a = 1/2"}.\<close>
 
 lemma Ints_double_eq_0_iff:
-  assumes in_Ints: "a \<in> Ints"
+  assumes in_Ints: "a \<in> \<int>"
   shows "(a + a = 0) = (a = (0::'a::ring_char_0))"
 proof -
   from in_Ints have "a \<in> range of_int" unfolding Ints_def [symmetric] .
@@ -706,7 +703,7 @@ proof -
 qed
 
 lemma Ints_odd_nonzero:
-  assumes in_Ints: "a \<in> Ints"
+  assumes in_Ints: "a \<in> \<int>"
   shows "1 + a + a \<noteq> (0::'a::ring_char_0)"
 proof -
   from in_Ints have "a \<in> range of_int" unfolding Ints_def [symmetric] .
@@ -720,11 +717,11 @@ proof -
   qed
 qed
 
-lemma Nats_numeral [simp]: "numeral w \<in> Nats"
+lemma Nats_numeral [simp]: "numeral w \<in> \<nat>"
   using of_nat_in_Nats [of "numeral w"] by simp
 
 lemma Ints_odd_less_0:
-  assumes in_Ints: "a \<in> Ints"
+  assumes in_Ints: "a \<in> \<int>"
   shows "(1 + a + a < 0) = (a < (0::'a::linordered_idom))"
 proof -
   from in_Ints have "a \<in> range of_int" unfolding Ints_def [symmetric] .

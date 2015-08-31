@@ -358,55 +358,52 @@ instance real_field < field_char_0 ..
 
 subsection \<open>The Set of Real Numbers\<close>
 
-definition Reals :: "'a::real_algebra_1 set" where
-  "Reals = range of_real"
+definition Reals :: "'a::real_algebra_1 set"  ("\<real>")
+  where "\<real> = range of_real"
 
-notation (xsymbols)
-  Reals  ("\<real>")
-
-lemma Reals_of_real [simp]: "of_real r \<in> Reals"
+lemma Reals_of_real [simp]: "of_real r \<in> \<real>"
 by (simp add: Reals_def)
 
-lemma Reals_of_int [simp]: "of_int z \<in> Reals"
+lemma Reals_of_int [simp]: "of_int z \<in> \<real>"
 by (subst of_real_of_int_eq [symmetric], rule Reals_of_real)
 
-lemma Reals_of_nat [simp]: "of_nat n \<in> Reals"
+lemma Reals_of_nat [simp]: "of_nat n \<in> \<real>"
 by (subst of_real_of_nat_eq [symmetric], rule Reals_of_real)
 
-lemma Reals_numeral [simp]: "numeral w \<in> Reals"
+lemma Reals_numeral [simp]: "numeral w \<in> \<real>"
 by (subst of_real_numeral [symmetric], rule Reals_of_real)
 
-lemma Reals_0 [simp]: "0 \<in> Reals"
+lemma Reals_0 [simp]: "0 \<in> \<real>"
 apply (unfold Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_0 [symmetric])
 done
 
-lemma Reals_1 [simp]: "1 \<in> Reals"
+lemma Reals_1 [simp]: "1 \<in> \<real>"
 apply (unfold Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_1 [symmetric])
 done
 
-lemma Reals_add [simp]: "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a + b \<in> Reals"
+lemma Reals_add [simp]: "\<lbrakk>a \<in> \<real>; b \<in> \<real>\<rbrakk> \<Longrightarrow> a + b \<in> \<real>"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_add [symmetric])
 done
 
-lemma Reals_minus [simp]: "a \<in> Reals \<Longrightarrow> - a \<in> Reals"
+lemma Reals_minus [simp]: "a \<in> \<real> \<Longrightarrow> - a \<in> \<real>"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_minus [symmetric])
 done
 
-lemma Reals_diff [simp]: "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a - b \<in> Reals"
+lemma Reals_diff [simp]: "\<lbrakk>a \<in> \<real>; b \<in> \<real>\<rbrakk> \<Longrightarrow> a - b \<in> \<real>"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_diff [symmetric])
 done
 
-lemma Reals_mult [simp]: "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a * b \<in> Reals"
+lemma Reals_mult [simp]: "\<lbrakk>a \<in> \<real>; b \<in> \<real>\<rbrakk> \<Longrightarrow> a * b \<in> \<real>"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_mult [symmetric])
@@ -414,7 +411,7 @@ done
 
 lemma nonzero_Reals_inverse:
   fixes a :: "'a::real_div_algebra"
-  shows "\<lbrakk>a \<in> Reals; a \<noteq> 0\<rbrakk> \<Longrightarrow> inverse a \<in> Reals"
+  shows "\<lbrakk>a \<in> \<real>; a \<noteq> 0\<rbrakk> \<Longrightarrow> inverse a \<in> \<real>"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (erule nonzero_of_real_inverse [symmetric])
@@ -422,7 +419,7 @@ done
 
 lemma Reals_inverse:
   fixes a :: "'a::{real_div_algebra, division_ring}"
-  shows "a \<in> Reals \<Longrightarrow> inverse a \<in> Reals"
+  shows "a \<in> \<real> \<Longrightarrow> inverse a \<in> \<real>"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_inverse [symmetric])
@@ -435,7 +432,7 @@ by (metis Reals_inverse inverse_inverse_eq)
 
 lemma nonzero_Reals_divide:
   fixes a b :: "'a::real_field"
-  shows "\<lbrakk>a \<in> Reals; b \<in> Reals; b \<noteq> 0\<rbrakk> \<Longrightarrow> a / b \<in> Reals"
+  shows "\<lbrakk>a \<in> \<real>; b \<in> \<real>; b \<noteq> 0\<rbrakk> \<Longrightarrow> a / b \<in> \<real>"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (erule nonzero_of_real_divide [symmetric])
@@ -443,7 +440,7 @@ done
 
 lemma Reals_divide [simp]:
   fixes a b :: "'a::{real_field, field}"
-  shows "\<lbrakk>a \<in> Reals; b \<in> Reals\<rbrakk> \<Longrightarrow> a / b \<in> Reals"
+  shows "\<lbrakk>a \<in> \<real>; b \<in> \<real>\<rbrakk> \<Longrightarrow> a / b \<in> \<real>"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_divide [symmetric])
@@ -451,7 +448,7 @@ done
 
 lemma Reals_power [simp]:
   fixes a :: "'a::{real_algebra_1}"
-  shows "a \<in> Reals \<Longrightarrow> a ^ n \<in> Reals"
+  shows "a \<in> \<real> \<Longrightarrow> a ^ n \<in> \<real>"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_power [symmetric])

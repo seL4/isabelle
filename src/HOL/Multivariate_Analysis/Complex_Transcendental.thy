@@ -211,7 +211,7 @@ lemma exp_complex_eqI: "abs(Im w - Im z) < 2*pi \<Longrightarrow> exp w = exp z 
   by (auto simp: exp_eq abs_mult)
 
 lemma exp_integer_2pi:
-  assumes "n \<in> Ints"
+  assumes "n \<in> \<int>"
   shows "exp((2 * n * pi) * ii) = 1"
 proof -
   have "exp((2 * n * pi) * ii) = exp 0"
@@ -751,15 +751,15 @@ next
     by blast
 qed
 
-lemma Arg_eq_0: "Arg z = 0 \<longleftrightarrow> z \<in> Reals \<and> 0 \<le> Re z"
+lemma Arg_eq_0: "Arg z = 0 \<longleftrightarrow> z \<in> \<real> \<and> 0 \<le> Re z"
 proof (cases "z=0")
   case True then show ?thesis
     by simp
 next
   case False
-  have "z \<in> Reals \<and> 0 \<le> Re z \<longleftrightarrow> z \<in> Reals \<and> 0 \<le> Re (of_real (cmod z) * exp (\<i> * complex_of_real (Arg z)))"
+  have "z \<in> \<real> \<and> 0 \<le> Re z \<longleftrightarrow> z \<in> \<real> \<and> 0 \<le> Re (of_real (cmod z) * exp (\<i> * complex_of_real (Arg z)))"
     by (metis Arg_eq)
-  also have "... \<longleftrightarrow> z \<in> Reals \<and> 0 \<le> Re (exp (\<i> * complex_of_real (Arg z)))"
+  also have "... \<longleftrightarrow> z \<in> \<real> \<and> 0 \<le> Re (exp (\<i> * complex_of_real (Arg z)))"
     using False
     by (simp add: zero_le_mult_iff)
   also have "... \<longleftrightarrow> Arg z = 0"
@@ -955,7 +955,7 @@ corollary Ln_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> Re z > 0 \<Long
 corollary Im_Ln_of_real [simp]: "r > 0 \<Longrightarrow> Im (ln (of_real r)) = 0"
   by (simp add: Ln_of_real)
 
-lemma cmod_Ln_Reals [simp]: "z \<in> Reals \<Longrightarrow> 0 < Re z \<Longrightarrow> cmod (ln z) = norm (ln (Re z))"
+lemma cmod_Ln_Reals [simp]: "z \<in> \<real> \<Longrightarrow> 0 < Re z \<Longrightarrow> cmod (ln z) = norm (ln (Re z))"
   using Ln_of_real by force
 
 lemma Ln_1: "ln 1 = (0::complex)"
@@ -1565,10 +1565,10 @@ lemma lim_Ln_over_n: "((\<lambda>n. Ln(of_nat n) / of_nat n) ---> 0) sequentiall
   using lim_Ln_over_power [of 1]
   by simp
 
-lemma Ln_Reals_eq: "x \<in> Reals \<Longrightarrow> Re x > 0 \<Longrightarrow> Ln x = of_real (ln (Re x))"
+lemma Ln_Reals_eq: "x \<in> \<real> \<Longrightarrow> Re x > 0 \<Longrightarrow> Ln x = of_real (ln (Re x))"
   using Ln_of_real by force
 
-lemma powr_Reals_eq: "x \<in> Reals \<Longrightarrow> Re x > 0 \<Longrightarrow> x powr complex_of_real y = of_real (x powr y)"
+lemma powr_Reals_eq: "x \<in> \<real> \<Longrightarrow> Re x > 0 \<Longrightarrow> x powr complex_of_real y = of_real (x powr y)"
   by (simp add: powr_of_real)
 
 lemma lim_ln_over_power:

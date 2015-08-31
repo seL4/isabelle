@@ -546,14 +546,14 @@ definition frac :: "'a \<Rightarrow> 'a::floor_ceiling" where
 lemma frac_lt_1: "frac x < 1"
   by  (simp add: frac_def) linarith
 
-lemma frac_eq_0_iff [simp]: "frac x = 0 \<longleftrightarrow> x \<in> Ints"
+lemma frac_eq_0_iff [simp]: "frac x = 0 \<longleftrightarrow> x \<in> \<int>"
   by (simp add: frac_def) (metis Ints_cases Ints_of_int floor_of_int )
 
 lemma frac_ge_0 [simp]: "frac x \<ge> 0"
   unfolding frac_def
   by linarith
 
-lemma frac_gt_0_iff [simp]: "frac x > 0 \<longleftrightarrow> x \<notin> Ints"
+lemma frac_gt_0_iff [simp]: "frac x > 0 \<longleftrightarrow> x \<notin> \<int>"
   by (metis frac_eq_0_iff frac_ge_0 le_less less_irrefl)
 
 lemma frac_of_int [simp]: "frac (of_int z) = 0"
@@ -582,7 +582,7 @@ lemma frac_add: "frac (x + y) = (if frac x + frac y < 1 then frac x + frac y
 
 lemma frac_unique_iff:
   fixes x :: "'a::floor_ceiling"
-  shows  "(frac x) = a \<longleftrightarrow> x - a \<in> Ints \<and> 0 \<le> a \<and> a < 1"
+  shows  "(frac x) = a \<longleftrightarrow> x - a \<in> \<int> \<and> 0 \<le> a \<and> a < 1"
   apply (auto simp: Ints_def frac_def)
   apply linarith
   apply linarith
@@ -593,7 +593,7 @@ lemma frac_eq: "(frac x) = x \<longleftrightarrow> 0 \<le> x \<and> x < 1"
   
 lemma frac_neg:
   fixes x :: "'a::floor_ceiling"
-  shows  "frac (-x) = (if x \<in> Ints then 0 else 1 - frac x)"
+  shows  "frac (-x) = (if x \<in> \<int> then 0 else 1 - frac x)"
   apply (auto simp add: frac_unique_iff)
   apply (simp add: frac_def)
   by (meson frac_lt_1 less_iff_diff_less_0 not_le not_less_iff_gr_or_eq)
