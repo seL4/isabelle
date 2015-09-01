@@ -35,7 +35,7 @@ primrec myrev :: "'a mylist \<Rightarrow> 'a mylist" where
   "myrev MyNil = MyNil" |
   "myrev (MyCons x xs) = myapp (myrev xs) (MyCons x MyNil)"
 
-primrec shuffle_sp :: "('a \<Colon> ord, 'b \<Colon> ord, 'c, 'd) some_passive \<Rightarrow> ('d, 'a, 'b, 'c) some_passive" where
+primrec shuffle_sp :: "('a :: ord, 'b :: ord, 'c, 'd) some_passive \<Rightarrow> ('d, 'a, 'b, 'c) some_passive" where
   "shuffle_sp (SP1 sp) = SP1 (shuffle_sp sp)" |
   "shuffle_sp (SP2 a) = SP3 a" |
   "shuffle_sp (SP3 b) = SP4 b" |
@@ -54,7 +54,7 @@ primrec rename_lam :: "(string \<Rightarrow> string) \<Rightarrow> lambda \<Righ
   "rename_lam f (Let SL l) = Let (fimage (map_prod f (rename_lam f)) SL) (rename_lam f l)"
 
 primrec
-  sum_i1 :: "('a\<Colon>{zero,plus}) I1 \<Rightarrow> 'a" and
+  sum_i1 :: "('a::{zero,plus}) I1 \<Rightarrow> 'a" and
   sum_i2 :: "'a I2 \<Rightarrow> 'a"
 where
   "sum_i1 (I11 n i) = n + sum_i1 i" |

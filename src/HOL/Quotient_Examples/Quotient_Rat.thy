@@ -32,10 +32,10 @@ instantiation rat :: "{zero, one, plus, uminus, minus, times, ord, abs_if, sgn_i
 begin
 
 quotient_definition
-  "0 \<Colon> rat" is "(0\<Colon>int, 1\<Colon>int)" by simp
+  "0 :: rat" is "(0::int, 1::int)" by simp
 
 quotient_definition
-  "1 \<Colon> rat" is "(1\<Colon>int, 1\<Colon>int)" by simp
+  "1 :: rat" is "(1::int, 1::int)" by simp
 
 fun times_rat_raw where
   "times_rat_raw (a :: int, b :: int) (c, d) = (a * c, b * d)"
@@ -54,10 +54,10 @@ fun uminus_rat_raw where
   "uminus_rat_raw (a :: int, b :: int) = (-a, b)"
 
 quotient_definition
-  "(uminus \<Colon> (rat \<Rightarrow> rat))" is "uminus_rat_raw" by fastforce
+  "(uminus :: (rat \<Rightarrow> rat))" is "uminus_rat_raw" by fastforce
 
 definition
-  minus_rat_def: "a - b = a + (-b\<Colon>rat)"
+  minus_rat_def: "a - b = a + (-b::rat)"
 
 fun le_rat_raw where
   "le_rat_raw (a :: int, b) (c, d) \<longleftrightarrow> (a * d) * (b * d) \<le> (c * b) * (b * d)"
@@ -92,13 +92,13 @@ proof -
 qed
 
 definition
-  less_rat_def: "(z\<Colon>rat) < w = (z \<le> w \<and> z \<noteq> w)"
+  less_rat_def: "(z::rat) < w = (z \<le> w \<and> z \<noteq> w)"
 
 definition
-  rabs_rat_def: "\<bar>i\<Colon>rat\<bar> = (if i < 0 then - i else i)"
+  rabs_rat_def: "\<bar>i::rat\<bar> = (if i < 0 then - i else i)"
 
 definition
-  sgn_rat_def: "sgn (i\<Colon>rat) = (if i = 0 then 0 else if 0 < i then 1 else - 1)"
+  sgn_rat_def: "sgn (i::rat) = (if i = 0 then 0 else if 0 < i then 1 else - 1)"
 
 instance by intro_classes
   (auto simp add: rabs_rat_def sgn_rat_def)
@@ -259,7 +259,7 @@ proof
     assume "b \<noteq> 0"
     then have "a * b \<le> (a div b + 1) * b * b"
       by (metis mult.commute div_mult_self1_is_id less_int_def linorder_le_cases zdiv_mono1 zdiv_mono1_neg zle_add1_eq_le)
-    then show "\<exists>z\<Colon>int. a * b \<le> z * b * b" by auto
+    then show "\<exists>z::int. a * b \<le> z * b * b" by auto
   qed
 qed
 *)

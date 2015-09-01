@@ -28,7 +28,7 @@ code_printing
     and (OCaml) "!((_ : char) = _)"
     and (Haskell) infix 4 "=="
     and (Scala) infixl 5 "=="
-| constant "Code_Evaluation.term_of \<Colon> char \<Rightarrow> term" \<rightharpoonup>
+| constant "Code_Evaluation.term_of :: char \<Rightarrow> term" \<rightharpoonup>
     (Eval) "HOLogic.mk'_char/ (IntInf.fromInt/ (Char.ord/ _))"
 
 code_reserved SML

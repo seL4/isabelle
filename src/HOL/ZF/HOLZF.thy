@@ -583,8 +583,8 @@ proof -
     ultimately have "False" using u by arith
   }
   note lemma_nat2Nat = this
-  have th:"\<And>x y. \<not> (x < y \<and> (\<forall>(m\<Colon>nat). y \<noteq> x + m))" by presburger
-  have th': "\<And>x y. \<not> (x \<noteq> y \<and> (\<not> x < y) \<and> (\<forall>(m\<Colon>nat). x \<noteq> y + m))" by presburger
+  have th:"\<And>x y. \<not> (x < y \<and> (\<forall>(m::nat). y \<noteq> x + m))" by presburger
+  have th': "\<And>x y. \<not> (x \<noteq> y \<and> (\<not> x < y) \<and> (\<forall>(m::nat). x \<noteq> y + m))" by presburger
   show ?thesis
     apply (auto simp add: inj_on_def)
     apply (case_tac "x = y")

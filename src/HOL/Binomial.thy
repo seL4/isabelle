@@ -448,7 +448,7 @@ next
   case False
   have *: "finite {1 .. n}" "0 \<notin> {1 .. n}" by auto
   have eq: "insert 0 {1 .. n} = {0..n}" by auto
-  have **: "(\<Prod>n\<in>{1\<Colon>nat..n}. a + of_nat n) = (\<Prod>n\<in>{0\<Colon>nat..n - 1}. a + 1 + of_nat n)"
+  have **: "(\<Prod>n\<in>{1::nat..n}. a + of_nat n) = (\<Prod>n\<in>{0::nat..n - 1}. a + 1 + of_nat n)"
     apply (rule setprod.reindex_cong [where l = Suc])
     using False
     apply (auto simp add: fun_eq_iff field_simps)
@@ -564,7 +564,7 @@ proof (cases "n = 0")
 next
   case False
   from this setprod_constant[of "{0 .. n - 1}" "- (1:: 'a)"]
-  have eq: "(- (1\<Colon>'a)) ^ n = setprod (\<lambda>i. - 1) {0 .. n - 1}"
+  have eq: "(- (1::'a)) ^ n = setprod (\<lambda>i. - 1) {0 .. n - 1}"
     by auto
   from False show ?thesis
     by (simp add: pochhammer_def gbinomial_def field_simps
@@ -687,7 +687,7 @@ next
                    (of_nat h * (\<Prod>i = 0..h. a - of_nat i) + 2 * (\<Prod>i = 0..h. a - of_nat i))"
     by (simp add: field_simps)
   also have "... = 
-    ((a gchoose Suc h) * (fact (Suc h)) * of_nat (Suc k)) + (\<Prod>i\<in>{0\<Colon>nat..Suc h}. a - of_nat i)"
+    ((a gchoose Suc h) * (fact (Suc h)) * of_nat (Suc k)) + (\<Prod>i\<in>{0::nat..Suc h}. a - of_nat i)"
     unfolding gbinomial_mult_fact'
     by (simp add: comm_semiring_class.distrib field_simps Suc)
   also have "\<dots> = (\<Prod>i\<in>{0..h}. a - of_nat i) * (a + 1)"

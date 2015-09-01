@@ -20,13 +20,13 @@ class semigroup = plus +
 
 text {* \noindent This @{command class} specification requires that
 all instances of @{class semigroup} obey @{fact "assoc:"}~@{prop
-[source] "\<And>x y z \<Colon> 'a\<Colon>semigroup. (x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"}.
+[source] "\<And>x y z :: 'a::semigroup. (x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"}.
 
 We can use this class axiom to derive further abstract theorems
 relative to class @{class semigroup}: *}
 
 lemma assoc_left:
-  fixes x y z :: "'a\<Colon>semigroup"
+  fixes x y z :: "'a::semigroup"
   shows "x \<oplus> (y \<oplus> z) = (x \<oplus> y) \<oplus> z"
   using assoc by (rule sym)
 
@@ -63,7 +63,7 @@ instantiation prod :: (semigroup, semigroup) semigroup
 begin
 
 instance proof
-  fix p\<^sub>1 p\<^sub>2 p\<^sub>3 :: "'a\<Colon>semigroup \<times> 'b\<Colon>semigroup"
+  fix p\<^sub>1 p\<^sub>2 p\<^sub>3 :: "'a::semigroup \<times> 'b::semigroup"
   show "p\<^sub>1 \<oplus> p\<^sub>2 \<oplus> p\<^sub>3 = p\<^sub>1 \<oplus> (p\<^sub>2 \<oplus> p\<^sub>3)"
     by (cases p\<^sub>1, cases p\<^sub>2, cases p\<^sub>3) (simp add: assoc)
 
@@ -96,7 +96,7 @@ instantiation nat :: monoidl
 begin
 
 definition
-  neutral_nat_def: "\<zero> = (0\<Colon>nat)"
+  neutral_nat_def: "\<zero> = (0::nat)"
 
 instance proof
   fix n :: nat
@@ -119,7 +119,7 @@ definition
   neutral_prod_def: "\<zero> = (\<zero>, \<zero>)"
 
 instance proof
-  fix p :: "'a\<Colon>monoidl \<times> 'b\<Colon>monoidl"
+  fix p :: "'a::monoidl \<times> 'b::monoidl"
   show "\<zero> \<oplus> p = p"
     by (cases p) (simp add: neutral_prod_def neutl)
 qed
@@ -149,7 +149,7 @@ text {* \noindent We continue with a further example for abstract
 proofs relative to type classes: *}
 
 lemma left_cancel:
-  fixes x y z :: "'a\<Colon>group"
+  fixes x y z :: "'a::group"
   shows "x \<oplus> y = x \<oplus> z \<longleftrightarrow> y = z"
 proof
   assume "x \<oplus> y = x \<oplus> z"
@@ -255,7 +255,7 @@ Table~\ref{tab:overloading} in the appendix.  Section
 
 Further note that classes may contain axioms but \emph{no} operations.
 An example is class @{class finite} from theory @{theory Finite_Set}
-which specifies a type to be finite: @{lemma [source] "finite (UNIV \<Colon> 'a\<Colon>finite
+which specifies a type to be finite: @{lemma [source] "finite (UNIV :: 'a::finite
 set)" by (fact finite_UNIV)}. *}
 
 (*<*)end(*>*)

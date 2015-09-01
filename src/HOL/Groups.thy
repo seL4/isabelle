@@ -1392,7 +1392,7 @@ lemmas diff_diff_eq = diff_diff_add -- \<open>FIXME duplicate\<close>
 subsection \<open>Tools setup\<close>
 
 lemma add_mono_thms_linordered_semiring:
-  fixes i j k :: "'a\<Colon>ordered_ab_semigroup_add"
+  fixes i j k :: "'a::ordered_ab_semigroup_add"
   shows "i \<le> j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
     and "i = j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
     and "i \<le> j \<and> k = l \<Longrightarrow> i + k \<le> j + l"
@@ -1400,7 +1400,7 @@ lemma add_mono_thms_linordered_semiring:
 by (rule add_mono, clarify+)+
 
 lemma add_mono_thms_linordered_field:
-  fixes i j k :: "'a\<Colon>ordered_cancel_ab_semigroup_add"
+  fixes i j k :: "'a::ordered_cancel_ab_semigroup_add"
   shows "i < j \<and> k = l \<Longrightarrow> i + k < j + l"
     and "i = j \<and> k < l \<Longrightarrow> i + k < j + l"
     and "i < j \<and> k \<le> l \<Longrightarrow> i + k < j + l"

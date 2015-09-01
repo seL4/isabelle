@@ -68,7 +68,7 @@ oops
 
 subsection {* 2.5. Natural Numbers and Integers *}
 
-lemma "\<lbrakk>i \<le> j; n \<le> (m\<Colon>int)\<rbrakk> \<Longrightarrow> i * n + j * m \<le> i * m + j * n"
+lemma "\<lbrakk>i \<le> j; n \<le> (m::int)\<rbrakk> \<Longrightarrow> i * n + j * m \<le> i * m + j * n"
 nitpick [expect = genuine]
 nitpick [binary_ints, bits = 16, expect = genuine]
 oops
@@ -81,7 +81,7 @@ lemma "P Suc"
 nitpick [expect = none]
 oops
 
-lemma "P (op +\<Colon>nat\<Rightarrow>nat\<Rightarrow>nat)"
+lemma "P (op +::nat\<Rightarrow>nat\<Rightarrow>nat)"
 nitpick [card nat = 1, expect = genuine]
 nitpick [card nat = 2, expect = none]
 oops
@@ -101,7 +101,7 @@ oops
 
 subsection {* 2.7. Typedefs, Records, Rationals, and Reals *}
 
-definition "three = {0\<Colon>nat, 1, 2}"
+definition "three = {0::nat, 1, 2}"
 typedef three = three
   unfolding three_def by blast
 
@@ -120,9 +120,9 @@ quotient_type my_int = "nat \<times> nat" / my_int_rel
 by (auto simp add: equivp_def fun_eq_iff)
 
 definition add_raw where
-"add_raw \<equiv> \<lambda>(x, y) (u, v). (x + (u\<Colon>nat), y + (v\<Colon>nat))"
+"add_raw \<equiv> \<lambda>(x, y) (u, v). (x + (u::nat), y + (v::nat))"
 
-quotient_definition "add\<Colon>my_int \<Rightarrow> my_int \<Rightarrow> my_int" is add_raw
+quotient_definition "add::my_int \<Rightarrow> my_int \<Rightarrow> my_int" is add_raw
 unfolding add_raw_def by auto
 
 lemma "add x y = add x x"
@@ -148,11 +148,11 @@ record point =
   Xcoord :: int
   Ycoord :: int
 
-lemma "Xcoord (p\<Colon>point) = Xcoord (q\<Colon>point)"
+lemma "Xcoord (p::point) = Xcoord (q::point)"
 nitpick [show_types, expect = genuine]
 oops
 
-lemma "4 * x + 3 * (y\<Colon>real) \<noteq> 1 / 2"
+lemma "4 * x + 3 * (y::real) \<noteq> 1 / 2"
 nitpick [show_types, expect = genuine]
 oops
 
@@ -172,7 +172,7 @@ nitpick [card nat = 50, unary_ints, expect = genuine]
 oops
 
 inductive even' where
-"even' (0\<Colon>nat)" |
+"even' (0::nat)" |
 "even' 2" |
 "\<lbrakk>even' m; even' n\<rbrakk> \<Longrightarrow> even' (m + n)"
 
@@ -185,7 +185,7 @@ nitpick [card nat = 10, show_consts, expect = genuine]
 oops
 
 coinductive nats where
-"nats (x\<Colon>nat) \<Longrightarrow> nats x"
+"nats (x::nat) \<Longrightarrow> nats x"
 
 lemma "nats = (\<lambda>n. n \<in> {0, 1, 2, 3, 4})"
 nitpick [card nat = 10, show_consts, expect = genuine]
@@ -264,7 +264,7 @@ lemma "length xs = length ys \<Longrightarrow> rev (zip xs ys) = zip xs (rev ys)
 nitpick [verbose, expect = genuine]
 oops
 
-lemma "\<exists>g. \<forall>x\<Colon>'b. g (f x) = x \<Longrightarrow> \<forall>y\<Colon>'a. \<exists>x. y = f x"
+lemma "\<exists>g. \<forall>x::'b. g (f x) = x \<Longrightarrow> \<forall>y::'a. \<exists>x. y = f x"
 nitpick [mono, expect = none]
 nitpick [expect = genuine]
 oops
@@ -273,7 +273,7 @@ oops
 subsection {* 2.12. Inductive Properties *}
 
 inductive_set reach where
-"(4\<Colon>nat) \<in> reach" |
+"(4::nat) \<in> reach" |
 "n \<in> reach \<Longrightarrow> n < 4 \<Longrightarrow> 3 * n + 1 \<in> reach" |
 "n \<in> reach \<Longrightarrow> n + 2 \<in> reach"
 
@@ -381,7 +381,7 @@ sorry
 
 subsection {* 3.2. AA Trees *}
 
-datatype 'a aa_tree = \<Lambda> | N "'a\<Colon>linorder" nat "'a aa_tree" "'a aa_tree"
+datatype 'a aa_tree = \<Lambda> | N "'a::linorder" nat "'a aa_tree" "'a aa_tree"
 
 primrec data where
 "data \<Lambda> = undefined" |
@@ -449,7 +449,7 @@ theorem wf_insort\<^sub>1: "wf t \<Longrightarrow> wf (insort\<^sub>1 t x)"
 nitpick [expect = genuine]
 oops
 
-theorem wf_insort\<^sub>1_nat: "wf t \<Longrightarrow> wf (insort\<^sub>1 t (x\<Colon>nat))"
+theorem wf_insort\<^sub>1_nat: "wf t \<Longrightarrow> wf (insort\<^sub>1 t (x::nat))"
 nitpick [eval = "insort\<^sub>1 t x", expect = genuine]
 oops
 

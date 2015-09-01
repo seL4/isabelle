@@ -7948,7 +7948,7 @@ proof -
     using assms by auto
   have *: "a \<le> x"
     using assms(5) by auto
-  have "((\<lambda>x. 0\<Colon>'a) has_integral f x - f a) {a .. x}"
+  have "((\<lambda>x. 0::'a) has_integral f x - f a) {a .. x}"
     apply (rule fundamental_theorem_of_calculus_interior_strong[OF assms(1) *])
     apply (rule continuous_on_subset[OF assms(2)])
     defer

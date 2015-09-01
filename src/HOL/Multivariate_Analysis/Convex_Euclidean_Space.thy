@@ -3706,7 +3706,7 @@ lemma affine_hull_substd_basis:
   shows "affine hull (insert 0 d) = {x::'a::euclidean_space. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0}"
   (is "affine hull (insert 0 ?A) = ?B")
 proof -
-  have *: "\<And>A. op + (0\<Colon>'a) ` A = A" "\<And>A. op + (- (0\<Colon>'a)) ` A = A"
+  have *: "\<And>A. op + (0::'a) ` A = A" "\<And>A. op + (- (0::'a)) ` A = A"
     by auto
   show ?thesis
     unfolding affine_hull_insert_span_gen span_substd_basis[OF assms,symmetric] * ..

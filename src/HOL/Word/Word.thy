@@ -43,7 +43,7 @@ lemma word_uint_eqI:
   "uint a = uint b \<Longrightarrow> a = b"
   by (simp add: word_uint_eq_iff)
 
-definition word_of_int :: "int \<Rightarrow> 'a\<Colon>len0 word"
+definition word_of_int :: "int \<Rightarrow> 'a::len0 word"
 where
   -- {* representation of words using unsigned or signed bins,
     only difference in these is the type class *}
@@ -2707,7 +2707,7 @@ lemma test_bit_2p:
   by (auto simp add: word_ubin.eq_norm nth_bintr nth_2p_bin)
 
 lemma nth_w2p:
-  "((2\<Colon>'a\<Colon>len word) ^ n) !! m \<longleftrightarrow> m = n \<and> m < len_of TYPE('a\<Colon>len)"
+  "((2::'a::len word) ^ n) !! m \<longleftrightarrow> m = n \<and> m < len_of TYPE('a::len)"
   unfolding test_bit_2p [symmetric] word_of_int [symmetric]
   by (simp add:  of_int_power)
 
@@ -3736,7 +3736,7 @@ lemma test_bit_split':
 
 lemma test_bit_split:
   "word_split c = (a, b) \<Longrightarrow>
-    (\<forall>n\<Colon>nat. b !! n \<longleftrightarrow> n < size b \<and> c !! n) \<and> (\<forall>m\<Colon>nat. a !! m \<longleftrightarrow> m < size a \<and> c !! (m + size b))"
+    (\<forall>n::nat. b !! n \<longleftrightarrow> n < size b \<and> c !! n) \<and> (\<forall>m::nat. a !! m \<longleftrightarrow> m < size a \<and> c !! (m + size b))"
   by (simp add: test_bit_split')
 
 lemma test_bit_split_eq: "word_split c = (a, b) <-> 

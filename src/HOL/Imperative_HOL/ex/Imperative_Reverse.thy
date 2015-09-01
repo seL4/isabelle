@@ -8,7 +8,7 @@ theory Imperative_Reverse
 imports Subarray "~~/src/HOL/Imperative_HOL/Imperative_HOL"
 begin
 
-fun swap :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap" where
+fun swap :: "'a::heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap" where
   "swap a i j = do {
      x \<leftarrow> Array.nth a i;
      y \<leftarrow> Array.nth a j;
@@ -17,7 +17,7 @@ fun swap :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarr
      return ()
    }"
 
-fun rev :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap" where
+fun rev :: "'a::heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap" where
   "rev a i j = (if (i < j) then do {
      swap a i j;
      rev a (i + 1) (j - 1)

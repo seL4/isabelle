@@ -138,7 +138,7 @@ functor map: map
 
 subsection \<open>Derived operations\<close>
 
-definition ordered_keys :: "('a\<Colon>linorder, 'b) mapping \<Rightarrow> 'a list"
+definition ordered_keys :: "('a::linorder, 'b) mapping \<Rightarrow> 'a list"
 where
   "ordered_keys m = (if finite (keys m) then sorted_list_of_set (keys m) else [])"
 

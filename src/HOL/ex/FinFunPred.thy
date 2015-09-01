@@ -15,7 +15,7 @@ begin
 
 definition le_finfun_def [code del]: "f \<le> g \<longleftrightarrow> (\<forall>x. f $ x \<le> g $ x)"
 
-definition [code del]: "(f\<Colon>'a \<Rightarrow>f 'b) < g \<longleftrightarrow> f \<le> g \<and> \<not> g \<le> f"
+definition [code del]: "(f::'a \<Rightarrow>f 'b) < g \<longleftrightarrow> f \<le> g \<and> \<not> g \<le> f"
 
 instance ..
 

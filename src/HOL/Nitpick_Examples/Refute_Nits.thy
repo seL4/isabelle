@@ -56,7 +56,7 @@ lemma "P \<longrightarrow> Q"
 nitpick [expect = genuine]
 oops
 
-lemma "(P\<Colon>bool) = Q"
+lemma "(P::bool) = Q"
 nitpick [expect = genuine]
 oops
 
@@ -96,11 +96,11 @@ lemma "f x = g x"
 nitpick [expect = genuine]
 oops
 
-lemma "(f\<Colon>'a\<Rightarrow>'b) = g"
+lemma "(f::'a\<Rightarrow>'b) = g"
 nitpick [expect = genuine]
 oops
 
-lemma "(f\<Colon>('d\<Rightarrow>'d)\<Rightarrow>('c\<Rightarrow>'d)) = g"
+lemma "(f::('d\<Rightarrow>'d)\<Rightarrow>('c\<Rightarrow>'d)) = g"
 nitpick [expect = genuine]
 oops
 
@@ -202,7 +202,7 @@ oops
 
 text {* "Two functions that are equivalent wrt.\ the same predicate 'P' are equal." *}
 
-lemma "((P\<Colon>('a\<Rightarrow>'b)\<Rightarrow>bool) f = P g) \<longrightarrow> (f x = g x)"
+lemma "((P::('a\<Rightarrow>'b)\<Rightarrow>bool) f = P g) \<longrightarrow> (f x = g x)"
 nitpick [expect = genuine]
 oops
 
@@ -367,11 +367,11 @@ done
 
 subsubsection {* Sets *}
 
-lemma "P (A\<Colon>'a set)"
+lemma "P (A::'a set)"
 nitpick [expect = genuine]
 oops
 
-lemma "P (A\<Colon>'a set set)"
+lemma "P (A::'a set set)"
 nitpick [expect = genuine]
 oops
 
@@ -473,33 +473,33 @@ done
 
 subsubsection {* Operations on Natural Numbers *}
 
-lemma "(x\<Colon>nat) + y = 0"
+lemma "(x::nat) + y = 0"
 nitpick [expect = genuine]
 oops
 
-lemma "(x\<Colon>nat) = x + x"
+lemma "(x::nat) = x + x"
 nitpick [expect = genuine]
 oops
 
-lemma "(x\<Colon>nat) - y + y = x"
+lemma "(x::nat) - y + y = x"
 nitpick [expect = genuine]
 oops
 
-lemma "(x\<Colon>nat) = x * x"
+lemma "(x::nat) = x * x"
 nitpick [expect = genuine]
 oops
 
-lemma "(x\<Colon>nat) < x + y"
+lemma "(x::nat) < x + y"
 nitpick [card = 1, expect = genuine]
 oops
 
 text {* \<times> *}
 
-lemma "P (x\<Colon>'a\<times>'b)"
+lemma "P (x::'a\<times>'b)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>'a\<times>'b. P x"
+lemma "\<forall>x::'a\<times>'b. P x"
 nitpick [expect = genuine]
 oops
 
@@ -532,7 +532,7 @@ definition "myTdef = insert (undefined::'a) (undefined::'a set)"
 typedef 'a myTdef = "myTdef :: 'a set"
 unfolding myTdef_def by auto
 
-lemma "(x\<Colon>'a myTdef) = y"
+lemma "(x::'a myTdef) = y"
 nitpick [expect = genuine]
 oops
 
@@ -543,7 +543,7 @@ definition "T_bij = {(f::'a\<Rightarrow>'a). \<forall>y. \<exists>!x. f x = y}"
 typedef 'a T_bij = "T_bij :: ('a \<Rightarrow> 'a) set"
 unfolding T_bij_def by auto
 
-lemma "P (f\<Colon>(myTdecl myTdef) T_bij)"
+lemma "P (f::(myTdecl myTdef) T_bij)"
 nitpick [expect = genuine]
 oops
 
@@ -551,11 +551,11 @@ subsubsection {* Inductive Datatypes *}
 
 text {* unit *}
 
-lemma "P (x\<Colon>unit)"
+lemma "P (x::unit)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>unit. P x"
+lemma "\<forall>x::unit. P x"
 nitpick [expect = genuine]
 oops
 
@@ -569,11 +569,11 @@ oops
 
 text {* option *}
 
-lemma "P (x\<Colon>'a option)"
+lemma "P (x::'a option)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>'a option. P x"
+lemma "\<forall>x::'a option. P x"
 nitpick [expect = genuine]
 oops
 
@@ -591,11 +591,11 @@ oops
 
 text {* + *}
 
-lemma "P (x\<Colon>'a+'b)"
+lemma "P (x::'a+'b)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>'a+'b. P x"
+lemma "\<forall>x::'a+'b. P x"
 nitpick [expect = genuine]
 oops
 
@@ -619,11 +619,11 @@ text {* Non-recursive datatypes *}
 
 datatype T1 = A | B
 
-lemma "P (x\<Colon>T1)"
+lemma "P (x::T1)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>T1. P x"
+lemma "\<forall>x::T1. P x"
 nitpick [expect = genuine]
 oops
 
@@ -655,11 +655,11 @@ oops
 
 datatype 'a T2 = C T1 | D 'a
 
-lemma "P (x\<Colon>'a T2)"
+lemma "P (x::'a T2)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>'a T2. P x"
+lemma "\<forall>x::'a T2. P x"
 nitpick [expect = genuine]
 oops
 
@@ -687,11 +687,11 @@ oops
 
 datatype ('a, 'b) T3 = E "'a \<Rightarrow> 'b"
 
-lemma "P (x\<Colon>('a, 'b) T3)"
+lemma "P (x::('a, 'b) T3)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>('a, 'b) T3. P x"
+lemma "\<forall>x::('a, 'b) T3. P x"
 nitpick [expect = genuine]
 oops
 
@@ -716,11 +716,11 @@ text {* Recursive datatypes *}
 
 text {* nat *}
 
-lemma "P (x\<Colon>nat)"
+lemma "P (x::nat)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>nat. P x"
+lemma "\<forall>x::nat. P x"
 nitpick [expect = genuine]
 oops
 
@@ -752,11 +752,11 @@ oops
 
 text {* 'a list *}
 
-lemma "P (xs\<Colon>'a list)"
+lemma "P (xs::'a list)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>xs\<Colon>'a list. P xs"
+lemma "\<forall>xs::'a list. P xs"
 nitpick [expect = genuine]
 oops
 
@@ -782,7 +782,7 @@ lemma "P (case x of Nil \<Rightarrow> nil | Cons a b \<Rightarrow> cons a b)"
 nitpick [expect = genuine]
 oops
 
-lemma "(xs\<Colon>'a list) = ys"
+lemma "(xs::'a list) = ys"
 nitpick [expect = genuine]
 oops
 
@@ -792,11 +792,11 @@ oops
 
 datatype BitList = BitListNil | Bit0 BitList | Bit1 BitList
 
-lemma "P (x\<Colon>BitList)"
+lemma "P (x::BitList)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>BitList. P x"
+lemma "\<forall>x::BitList. P x"
 nitpick [expect = genuine]
 oops
 
@@ -825,11 +825,11 @@ oops
 
 datatype 'a BinTree = Leaf 'a | Node "'a BinTree" "'a BinTree"
 
-lemma "P (x\<Colon>'a BinTree)"
+lemma "P (x::'a BinTree)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>'a BinTree. P x"
+lemma "\<forall>x::'a BinTree. P x"
 nitpick [expect = genuine]
 oops
 
@@ -860,11 +860,11 @@ text {* Mutually recursive datatypes *}
 datatype 'a aexp = Number 'a | ITE "'a bexp" "'a aexp" "'a aexp"
  and 'a bexp = Equal "'a aexp" "'a aexp"
 
-lemma "P (x\<Colon>'a aexp)"
+lemma "P (x::'a aexp)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>'a aexp. P x"
+lemma "\<forall>x::'a aexp. P x"
 nitpick [expect = genuine]
 oops
 
@@ -872,11 +872,11 @@ lemma "P (ITE (Equal (Number x) (Number y)) (Number x) (Number y))"
 nitpick [expect = genuine]
 oops
 
-lemma "P (x\<Colon>'a bexp)"
+lemma "P (x::'a bexp)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>'a bexp. P x"
+lemma "\<forall>x::'a bexp. P x"
 nitpick [expect = genuine]
 oops
 
@@ -913,11 +913,11 @@ oops
 
 datatype X = A | B X | C Y and Y = D X | E Y | F
 
-lemma "P (x\<Colon>X)"
+lemma "P (x::X)"
 nitpick [expect = genuine]
 oops
 
-lemma "P (y\<Colon>Y)"
+lemma "P (y::Y)"
 nitpick [expect = genuine]
 oops
 
@@ -1001,7 +1001,7 @@ text {* Indirect recursion is implemented via mutual recursion. *}
 
 datatype XOpt = CX "XOpt option" | DX "bool \<Rightarrow> XOpt option"
 
-lemma "P (x\<Colon>XOpt)"
+lemma "P (x::XOpt)"
 nitpick [expect = genuine]
 oops
 
@@ -1019,7 +1019,7 @@ oops
 
 datatype 'a YOpt = CY "('a \<Rightarrow> 'a YOpt) option"
 
-lemma "P (x\<Colon>'a YOpt)"
+lemma "P (x::'a YOpt)"
 nitpick [expect = genuine]
 oops
 
@@ -1033,11 +1033,11 @@ oops
 
 datatype Trie = TR "Trie list"
 
-lemma "P (x\<Colon>Trie)"
+lemma "P (x::Trie)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>Trie. P x"
+lemma "\<forall>x::Trie. P x"
 nitpick [expect = genuine]
 oops
 
@@ -1047,11 +1047,11 @@ oops
 
 datatype InfTree = Leaf | Node "nat \<Rightarrow> InfTree"
 
-lemma "P (x\<Colon>InfTree)"
+lemma "P (x::InfTree)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>InfTree. P x"
+lemma "\<forall>x::InfTree. P x"
 nitpick [expect = genuine]
 oops
 
@@ -1075,11 +1075,11 @@ oops
 
 datatype 'a lambda = Var 'a | App "'a lambda" "'a lambda" | Lam "'a \<Rightarrow> 'a lambda"
 
-lemma "P (x\<Colon>'a lambda)"
+lemma "P (x::'a lambda)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>'a lambda. P x"
+lemma "\<forall>x::'a lambda. P x"
 nitpick [expect = genuine]
 oops
 
@@ -1112,11 +1112,11 @@ text {* Taken from "Inductive datatypes in HOL", p. 8: *}
 datatype (dead 'a, 'b) T = C "'a \<Rightarrow> bool" | D "'b list"
 datatype 'c U = E "('c, 'c U) T"
 
-lemma "P (x\<Colon>'c U)"
+lemma "P (x::'c U)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>'c U. P x"
+lemma "\<forall>x::'c U. P x"
 nitpick [expect = genuine]
 oops
 
@@ -1130,14 +1130,14 @@ record ('a, 'b) point =
   xpos :: 'a
   ypos :: 'b
 
-lemma "(x\<Colon>('a, 'b) point) = y"
+lemma "(x::('a, 'b) point) = y"
 nitpick [expect = genuine]
 oops
 
 record ('a, 'b, 'c) extpoint = "('a, 'b) point" +
   ext :: 'c
 
-lemma "(x\<Colon>('a, 'b, 'c) extpoint) = y"
+lemma "(x::('a, 'b, 'c) extpoint) = y"
 nitpick [expect = genuine]
 oops
 
@@ -1218,7 +1218,7 @@ text {* A type class without axioms: *}
 
 class classA
 
-lemma "P (x\<Colon>'a\<Colon>classA)"
+lemma "P (x::'a::classA)"
 nitpick [expect = genuine]
 oops
 
@@ -1227,11 +1227,11 @@ text {* An axiom with a type variable (denoting types which have at least two el
 class classC =
   assumes classC_ax: "\<exists>x y. x \<noteq> y"
 
-lemma "P (x\<Colon>'a\<Colon>classC)"
+lemma "P (x::'a::classC)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<exists>x y. (x\<Colon>'a\<Colon>classC) \<noteq> y"
+lemma "\<exists>x y. (x::'a::classC) \<noteq> y"
 nitpick [expect = none]
 sorry
 
@@ -1241,7 +1241,7 @@ class classD =
   fixes classD_const :: "'a \<Rightarrow> 'a"
   assumes classD_ax: "classD_const (classD_const x) = classD_const x"
 
-lemma "P (x\<Colon>'a\<Colon>classD)"
+lemma "P (x::'a::classD)"
 nitpick [expect = genuine]
 oops
 
@@ -1249,23 +1249,23 @@ text {* A type class with multiple superclasses: *}
 
 class classE = classC + classD
 
-lemma "P (x\<Colon>'a\<Colon>classE)"
+lemma "P (x::'a::classE)"
 nitpick [expect = genuine]
 oops
 
 text {* OFCLASS: *}
 
-lemma "OFCLASS('a\<Colon>type, type_class)"
+lemma "OFCLASS('a::type, type_class)"
 nitpick [expect = none]
 apply intro_classes
 done
 
-lemma "OFCLASS('a\<Colon>classC, type_class)"
+lemma "OFCLASS('a::classC, type_class)"
 nitpick [expect = none]
 apply intro_classes
 done
 
-lemma "OFCLASS('a\<Colon>type, classC_class)"
+lemma "OFCLASS('a::type, classC_class)"
 nitpick [expect = genuine]
 oops
 
@@ -1274,19 +1274,19 @@ text {* Overloading: *}
 consts inverse :: "'a \<Rightarrow> 'a"
 
 defs (overloaded)
-inverse_bool: "inverse (b\<Colon>bool) \<equiv> \<not> b"
-inverse_set: "inverse (S\<Colon>'a set) \<equiv> -S"
+inverse_bool: "inverse (b::bool) \<equiv> \<not> b"
+inverse_set: "inverse (S::'a set) \<equiv> -S"
 inverse_pair: "inverse p \<equiv> (inverse (fst p), inverse (snd p))"
 
 lemma "inverse b"
 nitpick [expect = genuine]
 oops
 
-lemma "P (inverse (S\<Colon>'a set))"
+lemma "P (inverse (S::'a set))"
 nitpick [expect = genuine]
 oops
 
-lemma "P (inverse (p\<Colon>'a\<times>'b))"
+lemma "P (inverse (p::'a\<times>'b))"
 nitpick [expect = genuine]
 oops
 

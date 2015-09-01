@@ -192,8 +192,8 @@ its homologue from the @{theory Option} theory:
 
 text {*
 \noindent
-The constructors are @{text "None \<Colon> 'a option"} and
-@{text "Some \<Colon> 'a \<Rightarrow> 'a option"}.
+The constructors are @{text "None :: 'a option"} and
+@{text "Some :: 'a \<Rightarrow> 'a option"}.
 
 The next example has three type parameters:
 *}
@@ -203,7 +203,7 @@ The next example has three type parameters:
 text {*
 \noindent
 The constructor is
-@{text "Triple \<Colon> 'a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> ('a, 'b, 'c) triple"}.
+@{text "Triple :: 'a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> ('a, 'b, 'c) triple"}.
 Unlike in Standard ML, curried constructors are supported. The uncurried variant
 is also possible:
 *}
@@ -381,21 +381,21 @@ The types of the constants that appear in the specification are listed below.
 
 \begin{tabular}{@ {}ll@ {}}
 Constructors: &
-  @{text "Nil \<Colon> 'a list"} \\
+  @{text "Nil :: 'a list"} \\
 &
-  @{text "Cons \<Colon> 'a \<Rightarrow> 'a list \<Rightarrow> 'a list"} \\
+  @{text "Cons :: 'a \<Rightarrow> 'a list \<Rightarrow> 'a list"} \\
 Discriminator: &
-  @{text "null \<Colon> 'a list \<Rightarrow> bool"} \\
+  @{text "null :: 'a list \<Rightarrow> bool"} \\
 Selectors: &
-  @{text "hd \<Colon> 'a list \<Rightarrow> 'a"} \\
+  @{text "hd :: 'a list \<Rightarrow> 'a"} \\
 &
-  @{text "tl \<Colon> 'a list \<Rightarrow> 'a list"} \\
+  @{text "tl :: 'a list \<Rightarrow> 'a list"} \\
 Set function: &
-  @{text "set \<Colon> 'a list \<Rightarrow> 'a set"} \\
+  @{text "set :: 'a list \<Rightarrow> 'a set"} \\
 Map function: &
-  @{text "map \<Colon> ('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"} \\
+  @{text "map :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"} \\
 Relator: &
-  @{text "list_all2 \<Colon> ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> bool"}
+  @{text "list_all2 :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> bool"}
 \end{tabular}
 
 \medskip
@@ -1327,7 +1327,7 @@ The next example features recursion through the @{text option} type. Although
 map function @{const map_option}:
 *}
 
-    primrec (*<*)(in early) (*>*)sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" where
+    primrec (*<*)(in early) (*>*)sum_btree :: "('a::{zero,plus}) btree \<Rightarrow> 'a" where
       "sum_btree (BNode a lt rt) =
          a + the_default 0 (map_option sum_btree lt) +
            the_default 0 (map_option sum_btree rt)"
@@ -1427,7 +1427,7 @@ Here is a second example:
 *}
 
     primrec
-      sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" and
+      sum_btree :: "('a::{zero,plus}) btree \<Rightarrow> 'a" and
       sum_btree_option :: "'a btree option \<Rightarrow> 'a"
     where
       "sum_btree (BNode a lt rt) =
@@ -1590,7 +1590,7 @@ from the tedium of manual derivations:
 \setlength{\itemsep}{0pt}
 
 \item
-Introduce a fully unspecified constant @{text "un_D\<^sub>0 \<Colon> 'a"} using
+Introduce a fully unspecified constant @{text "un_D\<^sub>0 :: 'a"} using
 @{command consts}.
 
 \item
@@ -1627,7 +1627,7 @@ text {* \blankline *}
 text {* \blankline *}
 
     overloading
-      termi\<^sub>0 \<equiv> "termi\<^sub>0 \<Colon> ('a, 'b) tlist \<Rightarrow> 'b"
+      termi\<^sub>0 \<equiv> "termi\<^sub>0 :: ('a, 'b) tlist \<Rightarrow> 'b"
     begin
     primrec termi\<^sub>0 :: "('a, 'b) tlist \<Rightarrow> 'b" where
       "termi\<^sub>0 (TNil y) = y" |
@@ -2322,12 +2322,12 @@ constructor view:
 text {*
 \noindent
 Since there is no sequentiality, we can apply the equation for @{const Choice}
-without having first to discharge @{term "n mod (4\<Colon>int) \<noteq> 0"},
-@{term "n mod (4\<Colon>int) \<noteq> 1"}, and
-@{term "n mod (4\<Colon>int) \<noteq> 2"}.
+without having first to discharge @{term "n mod (4::int) \<noteq> 0"},
+@{term "n mod (4::int) \<noteq> 1"}, and
+@{term "n mod (4::int) \<noteq> 2"}.
 The price to pay for this elegance is that we must discharge exclusiveness proof
 obligations, one for each pair of conditions
-@{term "(n mod (4\<Colon>int) = i, n mod (4\<Colon>int) = j)"}
+@{term "(n mod (4::int) = i, n mod (4::int) = j)"}
 with @{term "i < j"}. If we prefer not to discharge any obligations, we can
 enable the @{text "sequential"} option. This pushes the problem to the users of
 the generated properties.
@@ -2649,7 +2649,7 @@ An $n$-ary BNF is a type constructor equipped with a map function
 (functorial action), $n$ set functions (natural transformations),
 and an infinite cardinal bound that satisfy certain properties.
 For example, @{typ "'a llist"} is a unary BNF.
-Its relator @{text "llist_all2 \<Colon>
+Its relator @{text "llist_all2 ::
   ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow>
   'a llist \<Rightarrow> 'b llist \<Rightarrow> bool"}
 extends binary predicates over elements to binary predicates over parallel
@@ -2680,7 +2680,7 @@ is live and @{typ 'd} is dead. We introduce it together with its map function,
 set function, and relator.
 *}
 
-    typedef ('d, 'a) fn = "UNIV \<Colon> ('d \<Rightarrow> 'a) set"
+    typedef ('d, 'a) fn = "UNIV :: ('d \<Rightarrow> 'a) set"
       by simp
 
 text {* \blankline *}
@@ -2723,22 +2723,22 @@ text {* \blankline *}
       show "set_fn \<circ> map_fn f = op ` f \<circ> set_fn"
         by transfer (auto simp add: comp_def)
     next
-      show "card_order (natLeq +c |UNIV \<Colon> 'd set| )"
+      show "card_order (natLeq +c |UNIV :: 'd set| )"
         apply (rule card_order_csum)
         apply (rule natLeq_card_order)
         by (rule card_of_card_order_on)
     next
-      show "cinfinite (natLeq +c |UNIV \<Colon> 'd set| )"
+      show "cinfinite (natLeq +c |UNIV :: 'd set| )"
         apply (rule cinfinite_csum)
         apply (rule disjI1)
         by (rule natLeq_cinfinite)
     next
       fix F :: "('d, 'a) fn"
-      have "|set_fn F| \<le>o |UNIV \<Colon> 'd set|" (is "_ \<le>o ?U")
+      have "|set_fn F| \<le>o |UNIV :: 'd set|" (is "_ \<le>o ?U")
         by transfer (rule card_of_image)
       also have "?U \<le>o natLeq +c ?U"
         by (rule ordLeq_csum2) (rule card_of_Card_order)
-      finally show "|set_fn F| \<le>o natLeq +c |UNIV \<Colon> 'd set|" .
+      finally show "|set_fn F| \<le>o natLeq +c |UNIV :: 'd set|" .
     next
       fix R :: "'a \<Rightarrow> 'b \<Rightarrow> bool" and S :: "'b \<Rightarrow> 'c \<Rightarrow> bool"
       show "rel_fn R OO rel_fn S \<le> rel_fn (R OO S)"
@@ -3122,7 +3122,7 @@ subsection {* Size
 text {*
 For each datatype, the \hthm{size} plugin generates a generic size
 function @{text "t.size_t"} as well as a specific instance
-@{text "size \<Colon> t \<Rightarrow> nat"} belonging to the @{text size} type
+@{text "size :: t \<Rightarrow> nat"} belonging to the @{text size} type
 class. The \keyw{fun} command relies on @{const size} to prove termination of
 recursive functions on datatypes.
 

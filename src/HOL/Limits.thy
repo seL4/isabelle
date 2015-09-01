@@ -22,7 +22,7 @@ lemma eventually_at_infinity: "eventually P at_infinity \<longleftrightarrow> (\
      (auto simp: subset_eq eventually_principal intro!: exI[of _ "max a b" for a b])
 
 lemma at_infinity_eq_at_top_bot:
-  "(at_infinity \<Colon> real filter) = sup at_top at_bot"
+  "(at_infinity :: real filter) = sup at_top at_bot"
   apply (simp add: filter_eq_iff eventually_sup eventually_at_infinity
                    eventually_at_top_linorder eventually_at_bot_linorder)
   apply safe
@@ -872,7 +872,7 @@ lemma continuous_on_sgn[continuous_intros]:
   using assms unfolding continuous_on_def by (fast intro: tendsto_sgn)
 
 lemma filterlim_at_infinity:
-  fixes f :: "_ \<Rightarrow> 'a\<Colon>real_normed_vector"
+  fixes f :: "_ \<Rightarrow> 'a::real_normed_vector"
   assumes "0 \<le> c"
   shows "(LIM x F. f x :> at_infinity) \<longleftrightarrow> (\<forall>r>c. eventually (\<lambda>x. r \<le> norm (f x)) F)"
   unfolding filterlim_iff eventually_at_infinity
@@ -983,7 +983,7 @@ proof safe
 qed
 
 lemma tendsto_inverse_0:
-  fixes x :: "_ \<Rightarrow> 'a\<Colon>real_normed_div_algebra"
+  fixes x :: "_ \<Rightarrow> 'a::real_normed_div_algebra"
   shows "(inverse ---> (0::'a)) at_infinity"
   unfolding tendsto_Zfun_iff diff_0_right Zfun_def eventually_at_infinity
 proof safe
@@ -1041,7 +1041,7 @@ lemma filterlim_at_top_to_right:
   unfolding filterlim_def at_top_to_right filtermap_filtermap ..
 
 lemma filterlim_inverse_at_infinity:
-  fixes x :: "_ \<Rightarrow> 'a\<Colon>{real_normed_div_algebra, division_ring}"
+  fixes x :: "_ \<Rightarrow> 'a::{real_normed_div_algebra, division_ring}"
   shows "filterlim inverse at_infinity (at (0::'a))"
   unfolding filterlim_at_infinity[OF order_refl]
 proof safe
@@ -1053,7 +1053,7 @@ proof safe
 qed
 
 lemma filterlim_inverse_at_iff:
-  fixes g :: "'a \<Rightarrow> 'b\<Colon>{real_normed_div_algebra, division_ring}"
+  fixes g :: "'a \<Rightarrow> 'b::{real_normed_div_algebra, division_ring}"
   shows "(LIM x F. inverse (g x) :> at 0) \<longleftrightarrow> (LIM x F. g x :> at_infinity)"
   unfolding filterlim_def filtermap_filtermap[symmetric]
 proof
@@ -1078,7 +1078,7 @@ lemma tendsto_inverse_0_at_top: "LIM x F. f x :> at_top \<Longrightarrow> ((\<la
 
 
 lemma at_to_infinity:
-  fixes x :: "'a \<Colon> {real_normed_field,field}"
+  fixes x :: "'a :: {real_normed_field,field}"
   shows "(at (0::'a)) = filtermap inverse at_infinity"
 proof (rule antisym)
   have "(inverse ---> (0::'a)) at_infinity"
@@ -1226,7 +1226,7 @@ proof safe
 qed
 
 lemma tendsto_divide_0:
-  fixes f :: "_ \<Rightarrow> 'a\<Colon>{real_normed_div_algebra, division_ring}"
+  fixes f :: "_ \<Rightarrow> 'a::{real_normed_div_algebra, division_ring}"
   assumes f: "(f ---> c) F"
   assumes g: "LIM x F. g x :> at_infinity"
   shows "((\<lambda>x. f x / g x) ---> 0) F"

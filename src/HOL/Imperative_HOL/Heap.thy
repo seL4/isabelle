@@ -79,10 +79,10 @@ instance ref :: (type) countable
 text {* Syntactic convenience *}
 
 setup {*
-  Sign.add_const_constraint (@{const_name Array}, SOME @{typ "nat \<Rightarrow> 'a\<Colon>heap array"})
-  #> Sign.add_const_constraint (@{const_name Ref}, SOME @{typ "nat \<Rightarrow> 'a\<Colon>heap ref"})
-  #> Sign.add_const_constraint (@{const_name addr_of_array}, SOME @{typ "'a\<Colon>heap array \<Rightarrow> nat"})
-  #> Sign.add_const_constraint (@{const_name addr_of_ref}, SOME @{typ "'a\<Colon>heap ref \<Rightarrow> nat"})
+  Sign.add_const_constraint (@{const_name Array}, SOME @{typ "nat \<Rightarrow> 'a::heap array"})
+  #> Sign.add_const_constraint (@{const_name Ref}, SOME @{typ "nat \<Rightarrow> 'a::heap ref"})
+  #> Sign.add_const_constraint (@{const_name addr_of_array}, SOME @{typ "'a::heap array \<Rightarrow> nat"})
+  #> Sign.add_const_constraint (@{const_name addr_of_ref}, SOME @{typ "'a::heap ref \<Rightarrow> nat"})
 *}
 
 hide_const (open) empty

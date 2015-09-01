@@ -10,7 +10,7 @@ begin
 
 subsection \<open>Type definition\<close>
 
-typedef ('a, 'b) rbt = "{t :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt. is_rbt t}"
+typedef ('a, 'b) rbt = "{t :: ('a::linorder, 'b) RBT_Impl.rbt. is_rbt t}"
   morphisms impl_of RBT
 proof -
   have "RBT_Impl.Empty \<in> ?rbt" by simp
@@ -37,32 +37,32 @@ subsection \<open>Primitive operations\<close>
 
 setup_lifting type_definition_rbt
 
-lift_definition lookup :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" is "rbt_lookup" .
+lift_definition lookup :: "('a::linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" is "rbt_lookup" .
 
-lift_definition empty :: "('a\<Colon>linorder, 'b) rbt" is RBT_Impl.Empty 
+lift_definition empty :: "('a::linorder, 'b) rbt" is RBT_Impl.Empty 
 by (simp add: empty_def)
 
-lift_definition insert :: "'a\<Colon>linorder \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "rbt_insert" 
+lift_definition insert :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "rbt_insert" 
 by simp
 
-lift_definition delete :: "'a\<Colon>linorder \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "rbt_delete" 
+lift_definition delete :: "'a::linorder \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "rbt_delete" 
 by simp
 
-lift_definition entries :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a \<times> 'b) list" is RBT_Impl.entries .
+lift_definition entries :: "('a::linorder, 'b) rbt \<Rightarrow> ('a \<times> 'b) list" is RBT_Impl.entries .
 
-lift_definition keys :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a list" is RBT_Impl.keys .
+lift_definition keys :: "('a::linorder, 'b) rbt \<Rightarrow> 'a list" is RBT_Impl.keys .
 
-lift_definition bulkload :: "('a\<Colon>linorder \<times> 'b) list \<Rightarrow> ('a, 'b) rbt" is "rbt_bulkload" ..
+lift_definition bulkload :: "('a::linorder \<times> 'b) list \<Rightarrow> ('a, 'b) rbt" is "rbt_bulkload" ..
 
-lift_definition map_entry :: "'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is rbt_map_entry
+lift_definition map_entry :: "'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a::linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is rbt_map_entry
 by simp
 
-lift_definition map :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'c) rbt" is RBT_Impl.map
+lift_definition map :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a::linorder, 'b) rbt \<Rightarrow> ('a, 'c) rbt" is RBT_Impl.map
 by simp
 
-lift_definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c"  is RBT_Impl.fold .
+lift_definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a::linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c"  is RBT_Impl.fold .
 
-lift_definition union :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "rbt_union"
+lift_definition union :: "('a::linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is "rbt_union"
 by (simp add: rbt_union_is_rbt)
 
 lift_definition foldi :: "('c \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a :: linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c"
@@ -70,7 +70,7 @@ lift_definition foldi :: "('c \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow
 
 subsection \<open>Derived operations\<close>
 
-definition is_empty :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> bool" where
+definition is_empty :: "('a::linorder, 'b) rbt \<Rightarrow> bool" where
   [code]: "is_empty t = (case impl_of t of RBT_Impl.Empty \<Rightarrow> True | _ \<Rightarrow> False)"
 
 

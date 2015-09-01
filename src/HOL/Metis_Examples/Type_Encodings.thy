@@ -89,7 +89,7 @@ definition "null xs = (xs = [])"
 lemma "P (null xs) \<Longrightarrow> null xs \<Longrightarrow> xs = []"
 by (metis_exhaust null_def)
 
-lemma "(0\<Colon>nat) + 0 = 0"
+lemma "(0::nat) + 0 = 0"
 by (metis_exhaust add_0_left)
 
 end

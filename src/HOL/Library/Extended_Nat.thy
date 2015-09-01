@@ -112,8 +112,8 @@ lemma i0_ne_infinity [simp]: "0 \<noteq> (\<infinity>::enat)"
   by (simp add: zero_enat_def)
 
 lemma zero_one_enat_neq [simp]:
-  "\<not> 0 = (1\<Colon>enat)"
-  "\<not> 1 = (0\<Colon>enat)"
+  "\<not> 0 = (1::enat)"
+  "\<not> 1 = (0::enat)"
   unfolding zero_enat_def one_enat_def by simp_all
 
 lemma infinity_ne_i1 [simp]: "(\<infinity>::enat) \<noteq> 1"
@@ -380,14 +380,14 @@ it does not have the cancellation property. Would it be worthwhile to
 a generalize linordered_semidom to a new class that includes enat? *)
 
 lemma enat_ord_number [simp]:
-  "(numeral m \<Colon> enat) \<le> numeral n \<longleftrightarrow> (numeral m \<Colon> nat) \<le> numeral n"
-  "(numeral m \<Colon> enat) < numeral n \<longleftrightarrow> (numeral m \<Colon> nat) < numeral n"
+  "(numeral m :: enat) \<le> numeral n \<longleftrightarrow> (numeral m :: nat) \<le> numeral n"
+  "(numeral m :: enat) < numeral n \<longleftrightarrow> (numeral m :: nat) < numeral n"
   by (simp_all add: numeral_eq_enat)
 
-lemma i0_lb [simp]: "(0\<Colon>enat) \<le> n"
+lemma i0_lb [simp]: "(0::enat) \<le> n"
   by (simp add: zero_enat_def less_eq_enat_def split: enat.splits)
 
-lemma ile0_eq [simp]: "n \<le> (0\<Colon>enat) \<longleftrightarrow> n = 0"
+lemma ile0_eq [simp]: "n \<le> (0::enat) \<longleftrightarrow> n = 0"
   by (simp add: zero_enat_def less_eq_enat_def split: enat.splits)
 
 lemma infinity_ileE [elim!]: "\<infinity> \<le> enat m \<Longrightarrow> R"
@@ -396,10 +396,10 @@ lemma infinity_ileE [elim!]: "\<infinity> \<le> enat m \<Longrightarrow> R"
 lemma infinity_ilessE [elim!]: "\<infinity> < enat m \<Longrightarrow> R"
   by simp
 
-lemma not_iless0 [simp]: "\<not> n < (0\<Colon>enat)"
+lemma not_iless0 [simp]: "\<not> n < (0::enat)"
   by (simp add: zero_enat_def less_enat_def split: enat.splits)
 
-lemma i0_less [simp]: "(0\<Colon>enat) < n \<longleftrightarrow> n \<noteq> 0"
+lemma i0_less [simp]: "(0::enat) < n \<longleftrightarrow> n \<noteq> 0"
   by (simp add: zero_enat_def less_enat_def split: enat.splits)
 
 lemma eSuc_ile_mono [simp]: "eSuc n \<le> eSuc m \<longleftrightarrow> n \<le> m"
@@ -623,7 +623,7 @@ qed
 instance enat :: wellorder
 proof
   fix P and n
-  assume hyp: "(\<And>n\<Colon>enat. (\<And>m\<Colon>enat. m < n \<Longrightarrow> P m) \<Longrightarrow> P n)"
+  assume hyp: "(\<And>n::enat. (\<And>m::enat. m < n \<Longrightarrow> P m) \<Longrightarrow> P n)"
   show "P n" by (blast intro: enat_less_induct hyp)
 qed
 

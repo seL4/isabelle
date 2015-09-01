@@ -174,12 +174,12 @@ text \<open>
     \item[@{text "Code_Binary_Nat"}] implements type
        @{typ nat} using a binary rather than a linear representation,
        which yields a considerable speedup for computations.
-       Pattern matching with @{term "0\<Colon>nat"} / @{const "Suc"} is eliminated
+       Pattern matching with @{term "0::nat"} / @{const "Suc"} is eliminated
        by a preprocessor.\label{abstract_nat}
 
     \item[@{text "Code_Target_Nat"}] implements type @{typ nat}
        by @{typ integer} and thus by target-language built-in integers.
-       Pattern matching with @{term "0\<Colon>nat"} / @{const "Suc"} is eliminated
+       Pattern matching with @{term "0::nat"} / @{const "Suc"} is eliminated
        by a preprocessor.
 
     \item[@{text "Code_Target_Numeral"}] is a convenience theory
@@ -344,7 +344,7 @@ typedecl %quote bar
 instantiation %quote bar :: equal
 begin
 
-definition %quote "HOL.equal (x\<Colon>bar) y \<longleftrightarrow> x = y"
+definition %quote "HOL.equal (x::bar) y \<longleftrightarrow> x = y"
 
 instance %quote by default (simp add: equal_bar_def)
 

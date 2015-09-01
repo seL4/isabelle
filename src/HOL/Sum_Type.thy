@@ -98,7 +98,7 @@ old_rep_datatype Inl Inr
 proof -
   fix P
   fix s :: "'a + 'b"
-  assume x: "\<And>x\<Colon>'a. P (Inl x)" and y: "\<And>y\<Colon>'b. P (Inr y)"
+  assume x: "\<And>x::'a. P (Inl x)" and y: "\<And>y::'b. P (Inr y)"
   then show "P s" by (auto intro: sumE [of s])
 qed (auto dest: Inl_inject Inr_inject simp add: Inl_not_Inr)
 
@@ -155,7 +155,7 @@ lemma case_sum_KK [simp]: "case_sum (\<lambda>x. a) (\<lambda>x. a) = (\<lambda>
 lemma surjective_sum: "case_sum (\<lambda>x::'a. f (Inl x)) (\<lambda>y::'b. f (Inr y)) = f"
 proof
   fix s :: "'a + 'b"
-  show "(case s of Inl (x\<Colon>'a) \<Rightarrow> f (Inl x) | Inr (y\<Colon>'b) \<Rightarrow> f (Inr y)) = f s"
+  show "(case s of Inl (x::'a) \<Rightarrow> f (Inl x) | Inr (y::'b) \<Rightarrow> f (Inr y)) = f s"
     by (cases s) simp_all
 qed
 
@@ -186,7 +186,7 @@ lemma Suml_inject:
   assumes "Suml f = Suml g" shows "f = g"
 proof
   fix x :: 'a
-  let ?s = "Inl x \<Colon> 'a + 'b"
+  let ?s = "Inl x :: 'a + 'b"
   from assms have "Suml f ?s = Suml g ?s" by simp
   then show "f x = g x" by simp
 qed
@@ -195,7 +195,7 @@ lemma Sumr_inject:
   assumes "Sumr f = Sumr g" shows "f = g"
 proof
   fix x :: 'b
-  let ?s = "Inr x \<Colon> 'a + 'b"
+  let ?s = "Inr x :: 'a + 'b"
   from assms have "Sumr f ?s = Sumr g ?s" by simp
   then show "f x = g x" by simp
 qed

@@ -69,9 +69,9 @@ qed
 instantiation list :: (linorder) distrib_lattice
 begin
 
-definition "(inf \<Colon> 'a list \<Rightarrow> _) = min"
+definition "(inf :: 'a list \<Rightarrow> _) = min"
 
-definition "(sup \<Colon> 'a list \<Rightarrow> _) = max"
+definition "(sup :: 'a list \<Rightarrow> _) = max"
 
 instance
   by standard (auto simp add: inf_list_def sup_list_def max_min_distrib2)
@@ -107,15 +107,15 @@ instance
 end
 
 lemma less_list_code [code]:
-  "xs < ([]\<Colon>'a\<Colon>{equal, order} list) \<longleftrightarrow> False"
-  "[] < (x\<Colon>'a\<Colon>{equal, order}) # xs \<longleftrightarrow> True"
-  "(x\<Colon>'a\<Colon>{equal, order}) # xs < y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs < ys"
+  "xs < ([]::'a::{equal, order} list) \<longleftrightarrow> False"
+  "[] < (x::'a::{equal, order}) # xs \<longleftrightarrow> True"
+  "(x::'a::{equal, order}) # xs < y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs < ys"
   by simp_all
 
 lemma less_eq_list_code [code]:
-  "x # xs \<le> ([]\<Colon>'a\<Colon>{equal, order} list) \<longleftrightarrow> False"
-  "[] \<le> (xs\<Colon>'a\<Colon>{equal, order} list) \<longleftrightarrow> True"
-  "(x\<Colon>'a\<Colon>{equal, order}) # xs \<le> y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs \<le> ys"
+  "x # xs \<le> ([]::'a::{equal, order} list) \<longleftrightarrow> False"
+  "[] \<le> (xs::'a::{equal, order} list) \<longleftrightarrow> True"
+  "(x::'a::{equal, order}) # xs \<le> y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs \<le> ys"
   by simp_all
 
 end

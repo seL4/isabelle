@@ -1034,21 +1034,21 @@ subsection \<open>Monotonicity\<close>
 context order
 begin
 
-definition mono :: "('a \<Rightarrow> 'b\<Colon>order) \<Rightarrow> bool" where
+definition mono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool" where
   "mono f \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> f x \<le> f y)"
 
 lemma monoI [intro?]:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  fixes f :: "'a \<Rightarrow> 'b::order"
   shows "(\<And>x y. x \<le> y \<Longrightarrow> f x \<le> f y) \<Longrightarrow> mono f"
   unfolding mono_def by iprover
 
 lemma monoD [dest?]:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  fixes f :: "'a \<Rightarrow> 'b::order"
   shows "mono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
   unfolding mono_def by iprover
 
 lemma monoE:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  fixes f :: "'a \<Rightarrow> 'b::order"
   assumes "mono f"
   assumes "x \<le> y"
   obtains "f x \<le> f y"
@@ -1056,21 +1056,21 @@ proof
   from assms show "f x \<le> f y" by (simp add: mono_def)
 qed
 
-definition antimono :: "('a \<Rightarrow> 'b\<Colon>order) \<Rightarrow> bool" where
+definition antimono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool" where
   "antimono f \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> f x \<ge> f y)"
 
 lemma antimonoI [intro?]:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  fixes f :: "'a \<Rightarrow> 'b::order"
   shows "(\<And>x y. x \<le> y \<Longrightarrow> f x \<ge> f y) \<Longrightarrow> antimono f"
   unfolding antimono_def by iprover
 
 lemma antimonoD [dest?]:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  fixes f :: "'a \<Rightarrow> 'b::order"
   shows "antimono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<ge> f y"
   unfolding antimono_def by iprover
 
 lemma antimonoE:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  fixes f :: "'a \<Rightarrow> 'b::order"
   assumes "antimono f"
   assumes "x \<le> y"
   obtains "f x \<ge> f y"
@@ -1078,7 +1078,7 @@ proof
   from assms show "f x \<ge> f y" by (simp add: antimono_def)
 qed
 
-definition strict_mono :: "('a \<Rightarrow> 'b\<Colon>order) \<Rightarrow> bool" where
+definition strict_mono :: "('a \<Rightarrow> 'b::order) \<Rightarrow> bool" where
   "strict_mono f \<longleftrightarrow> (\<forall>x y. x < y \<longrightarrow> f x < f y)"
 
 lemma strict_monoI [intro?]:
@@ -1112,7 +1112,7 @@ context linorder
 begin
 
 lemma mono_invE:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  fixes f :: "'a \<Rightarrow> 'b::order"
   assumes "mono f"
   assumes "f x < f y"
   obtains "x \<le> y"
@@ -1180,10 +1180,10 @@ lemma min_absorb1: "x \<le> y \<Longrightarrow> min x y = x"
 lemma max_absorb2: "x \<le> y \<Longrightarrow> max x y = y"
   by (simp add: max_def)
 
-lemma min_absorb2: "(y\<Colon>'a\<Colon>order) \<le> x \<Longrightarrow> min x y = y"
+lemma min_absorb2: "(y::'a::order) \<le> x \<Longrightarrow> min x y = y"
   by (simp add:min_def)
 
-lemma max_absorb1: "(y\<Colon>'a\<Colon>order) \<le> x \<Longrightarrow> max x y = x"
+lemma max_absorb1: "(y::'a::order) \<le> x \<Longrightarrow> max x y = x"
   by (simp add: max_def)
 
 
@@ -1409,7 +1409,7 @@ definition
   le_bool_def [simp]: "P \<le> Q \<longleftrightarrow> P \<longrightarrow> Q"
 
 definition
-  [simp]: "(P\<Colon>bool) < Q \<longleftrightarrow> \<not> P \<and> Q"
+  [simp]: "(P::bool) < Q \<longleftrightarrow> \<not> P \<and> Q"
 
 definition
   [simp]: "\<bottom> \<longleftrightarrow> False"
@@ -1457,7 +1457,7 @@ definition
   le_fun_def: "f \<le> g \<longleftrightarrow> (\<forall>x. f x \<le> g x)"
 
 definition
-  "(f\<Colon>'a \<Rightarrow> 'b) < g \<longleftrightarrow> f \<le> g \<and> \<not> (g \<le> f)"
+  "(f::'a \<Rightarrow> 'b) < g \<longleftrightarrow> f \<le> g \<and> \<not> (g \<le> f)"
 
 instance ..
 
@@ -1620,4 +1620,3 @@ lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
 lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
 
 end
-

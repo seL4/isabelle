@@ -41,7 +41,7 @@ subsection \<open>Cardinalities of types\<close>
 
 syntax "_type_card" :: "type => nat" ("(1CARD/(1'(_')))")
 
-translations "CARD('t)" => "CONST card (CONST UNIV \<Colon> 't set)"
+translations "CARD('t)" => "CONST card (CONST UNIV :: 't set)"
 
 print_translation \<open>
   let

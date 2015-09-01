@@ -182,7 +182,7 @@ subsection \<open>Skolemization helpers\<close>
 definition skolem :: "'a \<Rightarrow> 'a" where
 "skolem = (\<lambda>x. x)"
 
-lemma skolem_COMBK_iff: "P \<longleftrightarrow> skolem (COMBK P (i\<Colon>nat))"
+lemma skolem_COMBK_iff: "P \<longleftrightarrow> skolem (COMBK P (i::nat))"
 unfolding skolem_def COMBK_def by (rule refl)
 
 lemmas skolem_COMBK_I = iffD1 [OF skolem_COMBK_iff]

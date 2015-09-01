@@ -927,7 +927,7 @@ proof (rule eq_reflection, rule ext, rule ext)
     then show ?case by simp
   next
     case (Suc n)
-    have "\<And>x::'a star. x * ( *f* (\<lambda>x\<Colon>'a. x ^ n)) x = ( *f* (\<lambda>x\<Colon>'a. x * x ^ n)) x"
+    have "\<And>x::'a star. x * ( *f* (\<lambda>x::'a. x ^ n)) x = ( *f* (\<lambda>x::'a. x * x ^ n)) x"
       by transfer simp
     with Suc show ?case by simp
   qed

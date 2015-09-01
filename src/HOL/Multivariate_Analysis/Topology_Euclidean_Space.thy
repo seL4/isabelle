@@ -869,7 +869,7 @@ lemma box_Int_box:
   unfolding set_eq_iff and Int_iff and mem_box by auto
 
 lemma rational_boxes:
-  fixes x :: "'a\<Colon>euclidean_space"
+  fixes x :: "'a::euclidean_space"
   assumes "e > 0"
   shows "\<exists>a b. (\<forall>i\<in>Basis. a \<bullet> i \<in> \<rat> \<and> b \<bullet> i \<in> \<rat> ) \<and> x \<in> box a b \<and> box a b \<subseteq> ball x e"
 proof -
@@ -926,7 +926,7 @@ proof -
 qed
 
 lemma open_UNION_box:
-  fixes M :: "'a\<Colon>euclidean_space set"
+  fixes M :: "'a::euclidean_space set"
   assumes "open M"
   defines "a' \<equiv> \<lambda>f :: 'a \<Rightarrow> real \<times> real. (\<Sum>(i::'a)\<in>Basis. fst (f i) *\<^sub>R i)"
   defines "b' \<equiv> \<lambda>f :: 'a \<Rightarrow> real \<times> real. (\<Sum>(i::'a)\<in>Basis. snd (f i) *\<^sub>R i)"
@@ -6677,25 +6677,25 @@ lemma diameter_cbox:
      simp: euclidean_dist_l2[where 'a='a] cbox_def dist_norm)
 
 lemma eucl_less_eq_halfspaces:
-  fixes a :: "'a\<Colon>euclidean_space"
+  fixes a :: "'a::euclidean_space"
   shows "{x. x <e a} = (\<Inter>i\<in>Basis. {x. x \<bullet> i < a \<bullet> i})"
     "{x. a <e x} = (\<Inter>i\<in>Basis. {x. a \<bullet> i < x \<bullet> i})"
   by (auto simp: eucl_less_def)
 
 lemma eucl_le_eq_halfspaces:
-  fixes a :: "'a\<Colon>euclidean_space"
+  fixes a :: "'a::euclidean_space"
   shows "{x. \<forall>i\<in>Basis. x \<bullet> i \<le> a \<bullet> i} = (\<Inter>i\<in>Basis. {x. x \<bullet> i \<le> a \<bullet> i})"
     "{x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i} = (\<Inter>i\<in>Basis. {x. a \<bullet> i \<le> x \<bullet> i})"
   by auto
 
 lemma open_Collect_eucl_less[simp, intro]:
-  fixes a :: "'a\<Colon>euclidean_space"
+  fixes a :: "'a::euclidean_space"
   shows "open {x. x <e a}"
     "open {x. a <e x}"
   by (auto simp: eucl_less_eq_halfspaces open_halfspace_component_lt open_halfspace_component_gt)
 
 lemma closed_Collect_eucl_le[simp, intro]:
-  fixes a :: "'a\<Colon>euclidean_space"
+  fixes a :: "'a::euclidean_space"
   shows "closed {x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i}"
     "closed {x. \<forall>i\<in>Basis. x \<bullet> i \<le> a \<bullet> i}"
   unfolding eucl_le_eq_halfspaces

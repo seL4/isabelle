@@ -14,7 +14,7 @@ text \<open>
 \<close>
 
 locale linearform =
-  fixes V :: "'a\<Colon>{minus, plus, zero, uminus} set" and f
+  fixes V :: "'a::{minus, plus, zero, uminus} set" and f
   assumes add [iff]: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> f (x + y) = f x + f y"
     and mult [iff]: "x \<in> V \<Longrightarrow> f (a \<cdot> x) = a * f x"
 

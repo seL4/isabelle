@@ -561,13 +561,13 @@ qed
 subsection \<open>Class @{text finite}\<close>
 
 class finite =
-  assumes finite_UNIV: "finite (UNIV \<Colon> 'a set)"
+  assumes finite_UNIV: "finite (UNIV :: 'a set)"
 begin
 
-lemma finite [simp]: "finite (A \<Colon> 'a set)"
+lemma finite [simp]: "finite (A :: 'a set)"
   by (rule subset_UNIV finite_UNIV finite_subset)+
 
-lemma finite_code [code]: "finite (A \<Colon> 'a set) \<longleftrightarrow> True"
+lemma finite_code [code]: "finite (A :: 'a set) \<longleftrightarrow> True"
   by simp
 
 end

@@ -1205,7 +1205,7 @@ qed
 
 end
 
-lemma comp_fun_commute_plus_mset[simp]: "comp_fun_commute (op + \<Colon> 'a multiset \<Rightarrow> _ \<Rightarrow> _)"
+lemma comp_fun_commute_plus_mset[simp]: "comp_fun_commute (op + :: 'a multiset \<Rightarrow> _ \<Rightarrow> _)"
   by standard (simp add: add_ac comp_def)
 
 declare comp_fun_commute.fold_mset_insert[OF comp_fun_commute_plus_mset, simp]
@@ -1240,7 +1240,7 @@ lemma setsum_unfold_msetsum:
 end
 
 lemma msetsum_diff:
-  fixes M N :: "('a \<Colon> ordered_cancel_comm_monoid_diff) multiset"
+  fixes M N :: "('a :: ordered_cancel_comm_monoid_diff) multiset"
   shows "N \<le># M \<Longrightarrow> msetsum (M - N) = msetsum M - msetsum N"
   by (metis add_diff_cancel_right' msetsum.union subset_mset.diff_add)
 
@@ -1756,10 +1756,10 @@ using one_step_implies_mult_aux by blast
 
 subsubsection \<open>Partial-order properties\<close>
 
-definition less_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "#<#" 50) where
+definition less_multiset :: "'a::order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "#<#" 50) where
   "M' #<# M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
 
-definition le_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "#<=#" 50) where
+definition le_multiset :: "'a::order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "#<=#" 50) where
   "M' #<=# M \<longleftrightarrow> M' #<# M \<or> M' = M"
 
 notation (xsymbols) less_multiset (infix "#\<subset>#" 50)
@@ -2210,7 +2210,7 @@ text \<open>
 text \<open>Quickcheck generators\<close>
 
 definition (in term_syntax)
-  msetify :: "'a\<Colon>typerep list \<times> (unit \<Rightarrow> Code_Evaluation.term)
+  msetify :: "'a::typerep list \<times> (unit \<Rightarrow> Code_Evaluation.term)
     \<Rightarrow> 'a multiset \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
   [code_unfold]: "msetify xs = Code_Evaluation.valtermify mset {\<cdot>} xs"
 

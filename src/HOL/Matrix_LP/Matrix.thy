@@ -1290,7 +1290,7 @@ definition
   le_matrix_def: "A \<le> B \<longleftrightarrow> (\<forall>j i. Rep_matrix A j i \<le> Rep_matrix B j i)"
 
 definition
-  less_def: "A < (B\<Colon>'a matrix) \<longleftrightarrow> A \<le> B \<and> \<not> B \<le> A"
+  less_def: "A < (B::'a matrix) \<longleftrightarrow> A \<le> B \<and> \<not> B \<le> A"
 
 instance ..
 
@@ -1496,7 +1496,7 @@ instantiation matrix :: ("{lattice, uminus, zero}") abs
 begin
 
 definition
-  abs_matrix_def: "abs (A \<Colon> 'a matrix) = sup A (- A)"
+  abs_matrix_def: "abs (A :: 'a matrix) = sup A (- A)"
 
 instance ..
 

@@ -416,10 +416,10 @@ theorem abs_fract [simp]: "\<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<
       eq_fract zero_less_mult_iff mult_less_0_iff split: abs_split)
 
 definition inf_fract_def:
-  "(inf \<Colon> 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = min"
+  "(inf :: 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = min"
 
 definition sup_fract_def:
-  "(sup \<Colon> 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = max"
+  "(sup :: 'a fract \<Rightarrow> 'a fract \<Rightarrow> 'a fract) = max"
 
 instance
   by intro_classes

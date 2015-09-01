@@ -10,7 +10,7 @@ begin
 
 subsection \<open>Type of target language integers\<close>
 
-typedef integer = "UNIV \<Colon> int set"
+typedef integer = "UNIV :: int set"
   morphisms int_of_integer integer_of_int ..
 
 setup_lifting type_definition_integer
@@ -615,7 +615,7 @@ code_identifier
 
 subsection \<open>Type of target language naturals\<close>
 
-typedef natural = "UNIV \<Colon> nat set"
+typedef natural = "UNIV :: nat set"
   morphisms nat_of_natural natural_of_nat ..
 
 setup_lifting type_definition_natural

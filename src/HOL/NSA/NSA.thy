@@ -104,11 +104,11 @@ lemma hnorm_hyperpow:
 by transfer (rule norm_power)
 
 lemma hnorm_one [simp]:
-  "hnorm (1\<Colon>'a::real_normed_div_algebra star) = 1"
+  "hnorm (1::'a::real_normed_div_algebra star) = 1"
 by transfer (rule norm_one)
 
 lemma hnorm_zero [simp]:
-  "hnorm (0\<Colon>'a::real_normed_vector star) = 0"
+  "hnorm (0::'a::real_normed_vector star) = 0"
 by transfer (rule norm_zero)
 
 lemma zero_less_hnorm_iff [simp]:

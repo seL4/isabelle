@@ -16,38 +16,38 @@ text {*
 
 subsection {* Primitives *}
 
-definition present :: "heap \<Rightarrow> 'a\<Colon>heap ref \<Rightarrow> bool" where
+definition present :: "heap \<Rightarrow> 'a::heap ref \<Rightarrow> bool" where
   "present h r \<longleftrightarrow> addr_of_ref r < lim h"
 
-definition get :: "heap \<Rightarrow> 'a\<Colon>heap ref \<Rightarrow> 'a" where
+definition get :: "heap \<Rightarrow> 'a::heap ref \<Rightarrow> 'a" where
   "get h = from_nat \<circ> refs h TYPEREP('a) \<circ> addr_of_ref"
 
-definition set :: "'a\<Colon>heap ref \<Rightarrow> 'a \<Rightarrow> heap \<Rightarrow> heap" where
+definition set :: "'a::heap ref \<Rightarrow> 'a \<Rightarrow> heap \<Rightarrow> heap" where
   "set r x = refs_update
     (\<lambda>h. h(TYPEREP('a) := ((h (TYPEREP('a))) (addr_of_ref r := to_nat x))))"
 
-definition alloc :: "'a \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap ref \<times> heap" where
+definition alloc :: "'a \<Rightarrow> heap \<Rightarrow> 'a::heap ref \<times> heap" where
   "alloc x h = (let
      l = lim h;
      r = Ref l
    in (r, set r x (h\<lparr>lim := l + 1\<rparr>)))"
 
-definition noteq :: "'a\<Colon>heap ref \<Rightarrow> 'b\<Colon>heap ref \<Rightarrow> bool" (infix "=!=" 70) where
+definition noteq :: "'a::heap ref \<Rightarrow> 'b::heap ref \<Rightarrow> bool" (infix "=!=" 70) where
   "r =!= s \<longleftrightarrow> TYPEREP('a) \<noteq> TYPEREP('b) \<or> addr_of_ref r \<noteq> addr_of_ref s"
 
 
 subsection {* Monad operations *}
 
-definition ref :: "'a\<Colon>heap \<Rightarrow> 'a ref Heap" where
+definition ref :: "'a::heap \<Rightarrow> 'a ref Heap" where
   [code del]: "ref v = Heap_Monad.heap (alloc v)"
 
-definition lookup :: "'a\<Colon>heap ref \<Rightarrow> 'a Heap" ("!_" 61) where
+definition lookup :: "'a::heap ref \<Rightarrow> 'a Heap" ("!_" 61) where
   [code del]: "lookup r = Heap_Monad.tap (\<lambda>h. get h r)"
 
-definition update :: "'a ref \<Rightarrow> 'a\<Colon>heap \<Rightarrow> unit Heap" ("_ := _" 62) where
+definition update :: "'a ref \<Rightarrow> 'a::heap \<Rightarrow> unit Heap" ("_ := _" 62) where
   [code del]: "update r v = Heap_Monad.heap (\<lambda>h. ((), set r v h))"
 
-definition change :: "('a\<Colon>heap \<Rightarrow> 'a) \<Rightarrow> 'a ref \<Rightarrow> 'a Heap" where
+definition change :: "('a::heap \<Rightarrow> 'a) \<Rightarrow> 'a ref \<Rightarrow> 'a Heap" where
   "change f r = do {
      x \<leftarrow> ! r;
      let y = f x;

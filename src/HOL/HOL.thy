@@ -1792,7 +1792,7 @@ lemma equal_itself_code [code]:
   "equal TYPE('a) TYPE('a) \<longleftrightarrow> True"
   by (simp add: equal)
 
-setup \<open>Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a\<Colon>type \<Rightarrow> 'a \<Rightarrow> bool"})\<close>
+setup \<open>Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a::type \<Rightarrow> 'a \<Rightarrow> bool"})\<close>
 
 lemma equal_alias_cert: "OFCLASS('a, equal_class) \<equiv> ((op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool) \<equiv> equal)" (is "?ofclass \<equiv> ?equal")
 proof
@@ -1806,7 +1806,7 @@ next
   qed (simp add: \<open>PROP ?equal\<close>)
 qed
 
-setup \<open>Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a\<Colon>equal \<Rightarrow> 'a \<Rightarrow> bool"})\<close>
+setup \<open>Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a::equal \<Rightarrow> 'a \<Rightarrow> bool"})\<close>
 
 setup \<open>Nbe.add_const_alias @{thm equal_alias_cert}\<close>
 

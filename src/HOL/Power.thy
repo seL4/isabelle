@@ -800,7 +800,7 @@ text\<open>Valid for the naturals, but what if @{text"0<i<1"}?
 Premises cannot be weakened: consider the case where @{term "i=0"},
 @{term "m=1"} and @{term "n=0"}.\<close>
 lemma nat_power_less_imp_less:
-  assumes nonneg: "0 < (i\<Colon>nat)"
+  assumes nonneg: "0 < (i::nat)"
   assumes less: "i ^ m < i ^ n"
   shows "m < n"
 proof (cases "i = 1")

@@ -10,7 +10,7 @@ subsection {* Ordered structures *}
 
 text {*
   We define several classes of ordered structures over some type @{typ
-  'a} with relation @{text "\<sqsubseteq> \<Colon> 'a \<Rightarrow> 'a \<Rightarrow> bool"}.  For a
+  'a} with relation @{text "\<sqsubseteq> :: 'a \<Rightarrow> 'a \<Rightarrow> bool"}.  For a
   \emph{quasi-order} that relation is required to be reflexive and
   transitive, for a \emph{partial order} it also has to be
   anti-symmetric, while for a \emph{linear order} all elements are

@@ -287,7 +287,7 @@ proof -
   proof (rule UNIV_eq_I)
     fix x :: 'a
     from b1b2 have "x = inv (\<lambda>y. if y = x then b1 else b2) b1" by (simp add: inv_into_def)
-    thus "x \<in> range (\<lambda>f\<Colon>'a \<Rightarrow> 'b. inv f b1)" by blast
+    thus "x \<in> range (\<lambda>f::'a \<Rightarrow> 'b. inv f b1)" by blast
   qed
   ultimately show "finite (UNIV :: 'a set)" by simp
 qed

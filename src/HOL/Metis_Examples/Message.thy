@@ -707,7 +707,7 @@ proof -
   have F2: "\<forall>x\<^sub>1. parts x\<^sub>1 \<union> synth (analz x\<^sub>1) = parts (synth (analz x\<^sub>1))"
     by (metis parts_analz parts_synth)
   have F3: "X \<in> synth (analz H)" using A1 by metis
-  have "\<forall>x\<^sub>2 x\<^sub>1\<Colon>msg set. x\<^sub>1 \<le> sup x\<^sub>1 x\<^sub>2" by (metis inf_sup_ord(3))
+  have "\<forall>x\<^sub>2 x\<^sub>1::msg set. x\<^sub>1 \<le> sup x\<^sub>1 x\<^sub>2" by (metis inf_sup_ord(3))
   hence F4: "\<forall>x\<^sub>1. analz x\<^sub>1 \<subseteq> analz (synth x\<^sub>1)" by (metis analz_synth)
   have F5: "X \<in> synth (analz H)" using F3 by metis
   have "\<forall>x\<^sub>1. analz x\<^sub>1 \<subseteq> synth (analz x\<^sub>1)

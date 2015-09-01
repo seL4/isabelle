@@ -26,7 +26,7 @@ ML_file "~~/src/Tools/Code/code_ml.ML"
 ML_file "~~/src/Tools/Code/code_haskell.ML"
 ML_file "~~/src/Tools/Code/code_scala.ML"
 
-code_datatype "TYPE('a\<Colon>{})"
+code_datatype "TYPE('a::{})"
 
 definition holds :: "prop" where
   "holds \<equiv> ((\<lambda>x::prop. x) \<equiv> (\<lambda>x. x))"
@@ -59,4 +59,3 @@ ML_file "~~/src/Tools/nbe.ML"
 hide_const (open) holds
 
 end
-

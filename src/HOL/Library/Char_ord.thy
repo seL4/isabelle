@@ -22,8 +22,8 @@ end
 instantiation nibble :: distrib_lattice
 begin
 
-definition "(inf \<Colon> nibble \<Rightarrow> _) = min"
-definition "(sup \<Colon> nibble \<Rightarrow> _) = max"
+definition "(inf :: nibble \<Rightarrow> _) = min"
+definition "(sup :: nibble \<Rightarrow> _) = max"
 
 instance
   by standard (auto simp add: inf_nibble_def sup_nibble_def max_min_distrib2)
@@ -74,8 +74,8 @@ qed
 instantiation char :: distrib_lattice
 begin
 
-definition "(inf \<Colon> char \<Rightarrow> _) = min"
-definition "(sup \<Colon> char \<Rightarrow> _) = max"
+definition "(inf :: char \<Rightarrow> _) = min"
+definition "(sup :: char \<Rightarrow> _) = max"
 
 instance
   by standard (auto simp add: inf_char_def sup_char_def max_min_distrib2)

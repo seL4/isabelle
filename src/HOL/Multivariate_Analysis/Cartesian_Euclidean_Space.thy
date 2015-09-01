@@ -61,7 +61,7 @@ end
 text\<open>The ordering on one-dimensional vectors is linear.\<close>
 
 class cart_one =
-  assumes UNIV_one: "card (UNIV \<Colon> 'a set) = Suc 0"
+  assumes UNIV_one: "card (UNIV :: 'a set) = Suc 0"
 begin
 
 subclass finite
@@ -690,7 +690,7 @@ proof -
     { fix y
       have "?P y"
       proof (rule span_induct_alt[of ?P "columns A", folded scalar_mult_eq_scaleR])
-        show "\<exists>x\<Colon>real ^ 'm. setsum (\<lambda>i. (x$i) *s column i A) ?U = 0"
+        show "\<exists>x::real ^ 'm. setsum (\<lambda>i. (x$i) *s column i A) ?U = 0"
           by (rule exI[where x=0], simp)
       next
         fix c y1 y2

@@ -48,7 +48,7 @@ qed
 
 (* The Divisibility relation between reals *)
 definition rdvd:: "real \<Rightarrow> real \<Rightarrow> bool" (infixl "rdvd" 50)
-  where "x rdvd y \<longleftrightarrow> (\<exists>k\<Colon>int. y = x * real k)"
+  where "x rdvd y \<longleftrightarrow> (\<exists>k::int. y = x * real k)"
 
 lemma int_rdvd_real: 
   "real (i::int) rdvd x = (i dvd (floor x) \<and> real (floor x) = x)" (is "?l = ?r")
@@ -60,7 +60,7 @@ proof
   hence "\<exists> k. floor x = i*k" by (simp only: real_of_int_inject)
   thus ?r  using th' by (simp add: dvd_def) 
 next
-  assume "?r" hence "(i\<Colon>int) dvd \<lfloor>x\<Colon>real\<rfloor>" ..
+  assume "?r" hence "(i::int) dvd \<lfloor>x::real\<rfloor>" ..
   hence "\<exists> k. real (floor x) = real (i*k)" 
     by (simp only: real_of_int_inject) (simp add: dvd_def)
   thus ?l using \<open>?r\<close> by (simp add: rdvd_def)
@@ -2438,7 +2438,7 @@ proof (induct p rule: iszlfm.induct)
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
-    hence "(real l * real x + real (l div c) * Inum (real x # bs) e < (0\<Colon>real)) =
+    hence "(real l * real x + real (l div c) * Inum (real x # bs) e < (0::real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e < 0)"
       by simp
     also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) < (real (l div c)) * 0)" by (simp add: algebra_simps)
@@ -2456,7 +2456,7 @@ next
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
-    hence "(real l * real x + real (l div c) * Inum (real x # bs) e \<le> (0\<Colon>real)) =
+    hence "(real l * real x + real (l div c) * Inum (real x # bs) e \<le> (0::real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e \<le> 0)"
       by simp
     also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) \<le> (real (l div c)) * 0)" by (simp add: algebra_simps)
@@ -2474,7 +2474,7 @@ next
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
-    hence "(real l * real x + real (l div c) * Inum (real x # bs) e > (0\<Colon>real)) =
+    hence "(real l * real x + real (l div c) * Inum (real x # bs) e > (0::real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e > 0)"
       by simp
     also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) > (real (l div c)) * 0)" by (simp add: algebra_simps)
@@ -2492,7 +2492,7 @@ next
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
-    hence "(real l * real x + real (l div c) * Inum (real x # bs) e \<ge> (0\<Colon>real)) =
+    hence "(real l * real x + real (l div c) * Inum (real x # bs) e \<ge> (0::real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e \<ge> 0)"
       by simp
     also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) \<ge> (real (l div c)) * 0)" by (simp add: algebra_simps)
@@ -2510,7 +2510,7 @@ next
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
-    hence "(real l * real x + real (l div c) * Inum (real x # bs) e = (0\<Colon>real)) =
+    hence "(real l * real x + real (l div c) * Inum (real x # bs) e = (0::real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e = 0)"
       by simp
     also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) = (real (l div c)) * 0)" by (simp add: algebra_simps)
@@ -2528,7 +2528,7 @@ next
     have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
-    hence "(real l * real x + real (l div c) * Inum (real x # bs) e \<noteq> (0\<Colon>real)) =
+    hence "(real l * real x + real (l div c) * Inum (real x # bs) e \<noteq> (0::real)) =
           (real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e \<noteq> 0)"
       by simp
     also have "\<dots> = (real (l div c) * (real c * real x + Inum (real x # bs) e) \<noteq> (real (l div c)) * 0)" by (simp add: algebra_simps)
@@ -3431,7 +3431,7 @@ proof(induct t rule: rsplit0.induct)
         and n0: "n = 0" 
         and s_def: "s = (Add (Floor s') (C j))" 
         and jp: "0 \<le> j" and jn: "j \<le> n'"
-      from 5 pns have H:"(Ifm ((x\<Colon>real) # (bs\<Colon>real list)) p' \<longrightarrow>
+      from 5 pns have H:"(Ifm ((x::real) # (bs::real list)) p' \<longrightarrow>
           Inum (x # bs) a = Inum (x # bs) (CN 0 n' s')) \<and>
           numbound0 s' \<and> isrlfm p'" by blast
       hence nb: "numbound0 s'" by simp
@@ -3457,7 +3457,7 @@ proof(induct t rule: rsplit0.induct)
         and n0: "n = 0" 
         and s_def: "s = (Add (Floor s') (C j))" 
         and jp: "n' \<le> j" and jn: "j \<le> 0"
-      from 5 pns have H:"(Ifm ((x\<Colon>real) # (bs\<Colon>real list)) p' \<longrightarrow>
+      from 5 pns have H:"(Ifm ((x::real) # (bs::real list)) p' \<longrightarrow>
           Inum (x # bs) a = Inum (x # bs) (CN 0 n' s')) \<and>
           numbound0 s' \<and> isrlfm p'" by blast
       hence nb: "numbound0 s'" by simp

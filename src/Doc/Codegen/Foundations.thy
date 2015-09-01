@@ -144,7 +144,7 @@ text \<open>
   \emph{Function transformers} provide a very general
   interface, transforming a list of function theorems to another list
   of function theorems, provided that neither the heading constant nor
-  its type change.  The @{term "0\<Colon>nat"} / @{const Suc} pattern
+  its type change.  The @{term "0::nat"} / @{const Suc} pattern
   used in theory @{text Code_Abstract_Nat} (see \secref{abstract_nat})
   uses this interface.
 

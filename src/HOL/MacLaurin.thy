@@ -83,7 +83,7 @@ proof -
     by (cases n) (simp add: n)
 
   obtain B where f_h: "f h =
-        (\<Sum>m<n. diff m (0\<Colon>real) / (fact m) * h ^ m) + B * (h ^ n / (fact n))"
+        (\<Sum>m<n. diff m (0::real) / (fact m) * h ^ m) + B * (h ^ n / (fact n))"
     using Maclaurin_lemma [OF h] ..
 
   def g \<equiv> "(\<lambda>t. f t -
@@ -99,8 +99,8 @@ proof -
   have difg_0: "difg 0 = g"
     unfolding difg_def g_def by (simp add: diff_0)
 
-  have difg_Suc: "\<forall>(m\<Colon>nat) t\<Colon>real.
-        m < n \<and> (0\<Colon>real) \<le> t \<and> t \<le> h \<longrightarrow> DERIV (difg m) t :> difg (Suc m) t"
+  have difg_Suc: "\<forall>(m::nat) t::real.
+        m < n \<and> (0::real) \<le> t \<and> t \<le> h \<longrightarrow> DERIV (difg m) t :> difg (Suc m) t"
     using diff_Suc m unfolding difg_def by (rule Maclaurin_lemma2)
 
   have difg_eq_0: "\<forall>m<n. difg m 0 = 0"
@@ -127,9 +127,9 @@ proof -
     proof (rule Rolle)
       show "0 < h" by fact
       show "difg 0 0 = difg 0 h" by (simp add: difg_0 g2)
-      show "\<forall>x. 0 \<le> x \<and> x \<le> h \<longrightarrow> isCont (difg (0\<Colon>nat)) x"
+      show "\<forall>x. 0 \<le> x \<and> x \<le> h \<longrightarrow> isCont (difg (0::nat)) x"
         by (simp add: isCont_difg n)
-      show "\<forall>x. 0 < x \<and> x < h \<longrightarrow> difg (0\<Colon>nat) differentiable (at x)"
+      show "\<forall>x. 0 < x \<and> x < h \<longrightarrow> difg (0::nat) differentiable (at x)"
         by (simp add: differentiable_difg n)
     qed
   next

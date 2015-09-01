@@ -171,13 +171,13 @@ corollary lim_n_over_pown:
 using powser_times_n_limit_0 [of "inverse x"]
 by (simp add: norm_divide divide_simps)
 
-lemma lim_1_over_n: "((\<lambda>n. 1 / of_nat n) ---> (0::'a\<Colon>real_normed_field)) sequentially"
+lemma lim_1_over_n: "((\<lambda>n. 1 / of_nat n) ---> (0::'a::real_normed_field)) sequentially"
   apply (clarsimp simp: lim_sequentially norm_divide dist_norm divide_simps)
   apply (auto simp: mult_ac dest!: ex_less_of_nat_mult [of _ 1])
   by (metis le_eq_less_or_eq less_trans linordered_comm_semiring_strict_class.comm_mult_strict_left_mono 
           of_nat_less_0_iff of_nat_less_iff zero_less_mult_iff zero_less_one)
 
-lemma lim_inverse_n: "((\<lambda>n. inverse(of_nat n)) ---> (0::'a\<Colon>real_normed_field)) sequentially"
+lemma lim_inverse_n: "((\<lambda>n. inverse(of_nat n)) ---> (0::'a::real_normed_field)) sequentially"
   using lim_1_over_n
   by (simp add: inverse_eq_divide)
 

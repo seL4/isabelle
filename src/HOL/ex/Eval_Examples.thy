@@ -43,7 +43,7 @@ value "[(nat 100, ())]"
 text {* a fancy datatype *}
 
 datatype ('a, 'b) foo =
-    Foo "'a\<Colon>order" 'b
+    Foo "'a::order" 'b
   | Bla "('a, 'b) bar"
   | Dummy nat
 and ('a, 'b) bar =

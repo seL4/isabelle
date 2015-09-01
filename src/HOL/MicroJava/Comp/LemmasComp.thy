@@ -311,10 +311,10 @@ lemma comp_method [rule_format (no_asm)]:
      apply (simp add: map_of_map [symmetric])
      apply (simp add: split_beta)
      apply (simp add: Fun.comp_def split_beta)
-     apply (subgoal_tac "(\<lambda>x\<Colon>(vname list \<times> fdecl list \<times> stmt \<times> expr) mdecl.
+     apply (subgoal_tac "(\<lambda>x::(vname list \<times> fdecl list \<times> stmt \<times> expr) mdecl.
                         (fst x, Object,
                          snd (compMethod G Object
-                         (inv (\<lambda>(s\<Colon>sig, m\<Colon>ty \<times> vname list \<times> fdecl list \<times> stmt \<times> expr).
+                         (inv (\<lambda>(s::sig, m::ty \<times> vname list \<times> fdecl list \<times> stmt \<times> expr).
                            (s, Object, m))
                            (S, Object, snd x)))))
                         = (\<lambda>x. (fst x, Object, fst (snd x),

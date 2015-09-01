@@ -30,7 +30,7 @@ primcorec myapp :: "'a mylist \<Rightarrow> 'a mylist \<Rightarrow> 'a mylist" w
       else if ys = MyNil then xs
       else MyCons (myhd xs) (myapp (mytl xs) ys))"
 
-primcorec shuffle_sp :: "('a \<Colon> ord, 'b \<Colon> ord, 'c, 'd) some_passive \<Rightarrow> ('d, 'a, 'b, 'c) some_passive" where
+primcorec shuffle_sp :: "('a :: ord, 'b :: ord, 'c, 'd) some_passive \<Rightarrow> ('d, 'a, 'b, 'c) some_passive" where
   "shuffle_sp sp =
      (case sp of
        SP1 sp' \<Rightarrow> SP1 (shuffle_sp sp')
@@ -48,7 +48,7 @@ primcorec rename_lam :: "(string \<Rightarrow> string) \<Rightarrow> lambda \<Ri
      | Let SL l \<Rightarrow> Let (fimage (map_prod f (rename_lam f)) SL) (rename_lam f l))"
 
 primcorec
-  j1_sum :: "('a\<Colon>{zero,one,plus}) \<Rightarrow> 'a J1" and
+  j1_sum :: "('a::{zero,one,plus}) \<Rightarrow> 'a J1" and
   j2_sum :: "'a \<Rightarrow> 'a J2"
 where
   "n = 0 \<Longrightarrow> is_J11 (j1_sum n)" |

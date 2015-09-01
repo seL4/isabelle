@@ -494,7 +494,7 @@ done
 
 definition "m_c m c = (let as = annos c in \<Sum>i=0..<size as. m(as!i))"
 
-lemma measure_m_c: "finite X \<Longrightarrow> {(c, c \<nabla>\<^sub>c c') |c c'\<Colon>ivl st option acom.
+lemma measure_m_c: "finite X \<Longrightarrow> {(c, c \<nabla>\<^sub>c c') |c c'::ivl st option acom.
      strip c' = strip c \<and> c : Com X \<and> c' : Com X \<and> \<not> c' \<sqsubseteq> c}\<inverse>
     \<subseteq> measure(m_c(m_o (m_st m_ivl) (2*card(X))))"
 apply(auto simp: m_c_def Let_def Com_def)

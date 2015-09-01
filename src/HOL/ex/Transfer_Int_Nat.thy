@@ -200,7 +200,7 @@ text {* Equality on a higher type can be transferred if the relations
   involved are bi-unique. *}
 
 lemma
-  assumes "\<And>xs\<Colon>int list. \<lbrakk>list_all (\<lambda>x. x \<ge> 0) xs; xs \<noteq> []\<rbrakk> \<Longrightarrow>
+  assumes "\<And>xs::int list. \<lbrakk>list_all (\<lambda>x. x \<ge> 0) xs; xs \<noteq> []\<rbrakk> \<Longrightarrow>
     listsum xs < listsum (map (\<lambda>x. x + 1) xs)"
   shows "xs \<noteq> [] \<Longrightarrow> listsum xs < listsum (map Suc xs)"
 apply transfer

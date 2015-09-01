@@ -6280,19 +6280,19 @@ lemma atLeastAtMost_upt [code_unfold]:
   by auto
 
 lemma all_nat_less_eq [code_unfold]:
-  "(\<forall>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)"
+  "(\<forall>m<n::nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)"
   by auto
 
 lemma ex_nat_less_eq [code_unfold]:
-  "(\<exists>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..<n}. P m)"
+  "(\<exists>m<n::nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..<n}. P m)"
   by auto
 
 lemma all_nat_less [code_unfold]:
-  "(\<forall>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..n}. P m)"
+  "(\<forall>m\<le>n::nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..n}. P m)"
   by auto
 
 lemma ex_nat_less [code_unfold]:
-  "(\<exists>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
+  "(\<exists>m\<le>n::nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
   by auto
 
 text\<open>Bounded @{text LEAST} operator:\<close>

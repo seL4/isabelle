@@ -10,63 +10,63 @@ begin
 
 subsection {* Primitives *}
 
-definition present :: "heap \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> bool" where
+definition present :: "heap \<Rightarrow> 'a::heap array \<Rightarrow> bool" where
   "present h a \<longleftrightarrow> addr_of_array a < lim h"
 
-definition get :: "heap \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> 'a list" where
+definition get :: "heap \<Rightarrow> 'a::heap array \<Rightarrow> 'a list" where
   "get h a = map from_nat (arrays h (TYPEREP('a)) (addr_of_array a))"
 
-definition set :: "'a\<Colon>heap array \<Rightarrow> 'a list \<Rightarrow> heap \<Rightarrow> heap" where
+definition set :: "'a::heap array \<Rightarrow> 'a list \<Rightarrow> heap \<Rightarrow> heap" where
   "set a x = arrays_update (\<lambda>h. h(TYPEREP('a) := ((h(TYPEREP('a))) (addr_of_array a:=map to_nat x))))"
 
-definition alloc :: "'a list \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap array \<times> heap" where
+definition alloc :: "'a list \<Rightarrow> heap \<Rightarrow> 'a::heap array \<times> heap" where
   "alloc xs h = (let
      l = lim h;
      r = Array l;
      h'' = set r xs (h\<lparr>lim := l + 1\<rparr>)
    in (r, h''))"
 
-definition length :: "heap \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> nat" where
+definition length :: "heap \<Rightarrow> 'a::heap array \<Rightarrow> nat" where
   "length h a = List.length (get h a)"
   
-definition update :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> heap \<Rightarrow> heap" where
+definition update :: "'a::heap array \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> heap \<Rightarrow> heap" where
   "update a i x h = set a ((get h a)[i:=x]) h"
 
-definition noteq :: "'a\<Colon>heap array \<Rightarrow> 'b\<Colon>heap array \<Rightarrow> bool" (infix "=!!=" 70) where
+definition noteq :: "'a::heap array \<Rightarrow> 'b::heap array \<Rightarrow> bool" (infix "=!!=" 70) where
   "r =!!= s \<longleftrightarrow> TYPEREP('a) \<noteq> TYPEREP('b) \<or> addr_of_array r \<noteq> addr_of_array s"
 
 
 subsection {* Monad operations *}
 
-definition new :: "nat \<Rightarrow> 'a\<Colon>heap \<Rightarrow> 'a array Heap" where
+definition new :: "nat \<Rightarrow> 'a::heap \<Rightarrow> 'a array Heap" where
   [code del]: "new n x = Heap_Monad.heap (alloc (replicate n x))"
 
-definition of_list :: "'a\<Colon>heap list \<Rightarrow> 'a array Heap" where
+definition of_list :: "'a::heap list \<Rightarrow> 'a array Heap" where
   [code del]: "of_list xs = Heap_Monad.heap (alloc xs)"
 
-definition make :: "nat \<Rightarrow> (nat \<Rightarrow> 'a\<Colon>heap) \<Rightarrow> 'a array Heap" where
+definition make :: "nat \<Rightarrow> (nat \<Rightarrow> 'a::heap) \<Rightarrow> 'a array Heap" where
   [code del]: "make n f = Heap_Monad.heap (alloc (map f [0 ..< n]))"
 
-definition len :: "'a\<Colon>heap array \<Rightarrow> nat Heap" where
+definition len :: "'a::heap array \<Rightarrow> nat Heap" where
   [code del]: "len a = Heap_Monad.tap (\<lambda>h. length h a)"
 
-definition nth :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> 'a Heap" where
+definition nth :: "'a::heap array \<Rightarrow> nat \<Rightarrow> 'a Heap" where
   [code del]: "nth a i = Heap_Monad.guard (\<lambda>h. i < length h a)
     (\<lambda>h. (get h a ! i, h))"
 
-definition upd :: "nat \<Rightarrow> 'a \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> 'a\<Colon>heap array Heap" where
+definition upd :: "nat \<Rightarrow> 'a \<Rightarrow> 'a::heap array \<Rightarrow> 'a::heap array Heap" where
   [code del]: "upd i x a = Heap_Monad.guard (\<lambda>h. i < length h a)
     (\<lambda>h. (a, update a i x h))"
 
-definition map_entry :: "nat \<Rightarrow> ('a\<Colon>heap \<Rightarrow> 'a) \<Rightarrow> 'a array \<Rightarrow> 'a array Heap" where
+definition map_entry :: "nat \<Rightarrow> ('a::heap \<Rightarrow> 'a) \<Rightarrow> 'a array \<Rightarrow> 'a array Heap" where
   [code del]: "map_entry i f a = Heap_Monad.guard (\<lambda>h. i < length h a)
     (\<lambda>h. (a, update a i (f (get h a ! i)) h))"
 
-definition swap :: "nat \<Rightarrow> 'a \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> 'a Heap" where
+definition swap :: "nat \<Rightarrow> 'a \<Rightarrow> 'a::heap array \<Rightarrow> 'a Heap" where
   [code del]: "swap i x a = Heap_Monad.guard (\<lambda>h. i < length h a)
     (\<lambda>h. (get h a ! i, update a i x h))"
 
-definition freeze :: "'a\<Colon>heap array \<Rightarrow> 'a list Heap" where
+definition freeze :: "'a::heap array \<Rightarrow> 'a list Heap" where
   [code del]: "freeze a = Heap_Monad.tap (\<lambda>h. get h a)"
 
 

@@ -102,7 +102,7 @@ definition
   preal_inverse_def:
     "inverse R == Abs_preal (inverse_set (Rep_preal R))"
 
-definition "R div S = R * inverse (S\<Colon>preal)"
+definition "R div S = R * inverse (S::preal)"
 
 definition
   preal_one_def:
@@ -220,10 +220,10 @@ instantiation preal :: distrib_lattice
 begin
 
 definition
-  "(inf \<Colon> preal \<Rightarrow> preal \<Rightarrow> preal) = min"
+  "(inf :: preal \<Rightarrow> preal \<Rightarrow> preal) = min"
 
 definition
-  "(sup \<Colon> preal \<Rightarrow> preal \<Rightarrow> preal) = max"
+  "(sup :: preal \<Rightarrow> preal \<Rightarrow> preal) = max"
 
 instance
   by intro_classes
@@ -1229,7 +1229,7 @@ definition
     (\<exists>x y u v. x+v \<le> u+y & (x,y) \<in> Rep_Real z & (u,v) \<in> Rep_Real w)"
 
 definition
-  real_less_def: "x < (y\<Colon>real) \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
+  real_less_def: "x < (y::real) \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
 
 definition
   real_abs_def:  "abs (r::real) = (if r < 0 then - r else r)"
@@ -1561,10 +1561,10 @@ instantiation real :: distrib_lattice
 begin
 
 definition
-  "(inf \<Colon> real \<Rightarrow> real \<Rightarrow> real) = min"
+  "(inf :: real \<Rightarrow> real \<Rightarrow> real) = min"
 
 definition
-  "(sup \<Colon> real \<Rightarrow> real \<Rightarrow> real) = max"
+  "(sup :: real \<Rightarrow> real \<Rightarrow> real) = max"
 
 instance
   by default (auto simp add: inf_real_def sup_real_def max_min_distrib2)

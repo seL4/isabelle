@@ -27,10 +27,10 @@ lemma [code]:
   by (simp_all add: nat_of_num_inverse)
 
 lemma [code]:
-  "(1\<Colon>nat) = Numeral1"
+  "(1::nat) = Numeral1"
   by simp
 
-lemma [code_abbrev]: "Numeral1 = (1\<Colon>nat)"
+lemma [code_abbrev]: "Numeral1 = (1::nat)"
   by simp
 
 lemma [code]:

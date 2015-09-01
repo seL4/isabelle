@@ -38,20 +38,20 @@ ML_val {* none 4 @{prop "\<exists>x. x = x"} *}
 ML_val {* none 1 @{prop "\<forall>x. x = y"} *}
 ML_val {* genuine 2 @{prop "\<forall>x. x = y"} *}
 ML_val {* none 2 @{prop "\<exists>x. x = y"} *}
-ML_val {* none 2 @{prop "\<forall>x\<Colon>'a \<times> 'a. x = x"} *}
-ML_val {* none 2 @{prop "\<exists>x\<Colon>'a \<times> 'a. x = y"} *}
-ML_val {* genuine 2 @{prop "\<forall>x\<Colon>'a \<times> 'a. x = y"} *}
-ML_val {* none 2 @{prop "\<exists>x\<Colon>'a \<times> 'a. x = y"} *}
+ML_val {* none 2 @{prop "\<forall>x::'a \<times> 'a. x = x"} *}
+ML_val {* none 2 @{prop "\<exists>x::'a \<times> 'a. x = y"} *}
+ML_val {* genuine 2 @{prop "\<forall>x::'a \<times> 'a. x = y"} *}
+ML_val {* none 2 @{prop "\<exists>x::'a \<times> 'a. x = y"} *}
 ML_val {* none 1 @{prop "All = Ex"} *}
 ML_val {* genuine 2 @{prop "All = Ex"} *}
 ML_val {* none 1 @{prop "All P = Ex P"} *}
 ML_val {* genuine 2 @{prop "All P = Ex P"} *}
 ML_val {* none 4 @{prop "x = y \<longrightarrow> P x = P y"} *}
-ML_val {* none 4 @{prop "(x\<Colon>'a \<times> 'a) = y \<longrightarrow> P x = P y"} *}
-ML_val {* none 2 @{prop "(x\<Colon>'a \<times> 'a) = y \<longrightarrow> P x y = P y x"} *}
-ML_val {* none 4 @{prop "\<exists>x\<Colon>'a \<times> 'a. x = y \<longrightarrow> P x = P y"} *}
-ML_val {* none 2 @{prop "(x\<Colon>'a \<Rightarrow> 'a) = y \<longrightarrow> P x = P y"} *}
-ML_val {* none 2 @{prop "\<exists>x\<Colon>'a \<Rightarrow> 'a. x = y \<longrightarrow> P x = P y"} *}
+ML_val {* none 4 @{prop "(x::'a \<times> 'a) = y \<longrightarrow> P x = P y"} *}
+ML_val {* none 2 @{prop "(x::'a \<times> 'a) = y \<longrightarrow> P x y = P y x"} *}
+ML_val {* none 4 @{prop "\<exists>x::'a \<times> 'a. x = y \<longrightarrow> P x = P y"} *}
+ML_val {* none 2 @{prop "(x::'a \<Rightarrow> 'a) = y \<longrightarrow> P x = P y"} *}
+ML_val {* none 2 @{prop "\<exists>x::'a \<Rightarrow> 'a. x = y \<longrightarrow> P x = P y"} *}
 ML_val {* genuine 1 @{prop "(op =) X = Ex"} *}
 ML_val {* none 2 @{prop "\<forall>x::'a \<Rightarrow> 'a. x = x"} *}
 ML_val {* none 1 @{prop "x = y"} *}
@@ -68,8 +68,8 @@ ML_val {* genuine 2 @{prop "{a} = {a, b}"} *}
 ML_val {* genuine 1 @{prop "{a} \<noteq> {a, b}"} *}
 ML_val {* none 4 @{prop "{}\<^sup>+ = {}"} *}
 ML_val {* none 4 @{prop "UNIV\<^sup>+ = UNIV"} *}
-ML_val {* none 4 @{prop "(UNIV \<Colon> ('a \<times> 'b) set) - {} = UNIV"} *}
-ML_val {* none 4 @{prop "{} - (UNIV \<Colon> ('a \<times> 'b) set) = {}"} *}
+ML_val {* none 4 @{prop "(UNIV :: ('a \<times> 'b) set) - {} = UNIV"} *}
+ML_val {* none 4 @{prop "{} - (UNIV :: ('a \<times> 'b) set) = {}"} *}
 ML_val {* none 1 @{prop "{(a, b), (b, c)}\<^sup>+ = {(a, b), (a, c), (b, c)}"} *}
 ML_val {* genuine 2 @{prop "{(a, b), (b, c)}\<^sup>+ = {(a, b), (a, c), (b, c)}"} *}
 ML_val {* none 4 @{prop "a \<noteq> c \<Longrightarrow> {(a, b), (b, c)}\<^sup>+ = {(a, b), (a, c), (b, c)}"} *}
@@ -79,12 +79,12 @@ ML_val {* none 4 @{prop "A - B = (\<lambda>x. A x \<and> \<not> B x)"} *}
 ML_val {* none 4 @{prop "\<exists>a b. (a, b) = (b, a)"} *}
 ML_val {* genuine 2 @{prop "(a, b) = (b, a)"} *}
 ML_val {* genuine 2 @{prop "(a, b) \<noteq> (b, a)"} *}
-ML_val {* none 4 @{prop "\<exists>a b\<Colon>'a \<times> 'a. (a, b) = (b, a)"} *}
-ML_val {* genuine 2 @{prop "(a\<Colon>'a \<times> 'a, b) = (b, a)"} *}
-ML_val {* none 4 @{prop "\<exists>a b\<Colon>'a \<times> 'a \<times> 'a. (a, b) = (b, a)"} *}
-ML_val {* genuine 2 @{prop "(a\<Colon>'a \<times> 'a \<times> 'a, b) \<noteq> (b, a)"} *}
-ML_val {* none 4 @{prop "\<exists>a b\<Colon>'a \<Rightarrow> 'a. (a, b) = (b, a)"} *}
-ML_val {* genuine 1 @{prop "(a\<Colon>'a \<Rightarrow> 'a, b) \<noteq> (b, a)"} *}
+ML_val {* none 4 @{prop "\<exists>a b::'a \<times> 'a. (a, b) = (b, a)"} *}
+ML_val {* genuine 2 @{prop "(a::'a \<times> 'a, b) = (b, a)"} *}
+ML_val {* none 4 @{prop "\<exists>a b::'a \<times> 'a \<times> 'a. (a, b) = (b, a)"} *}
+ML_val {* genuine 2 @{prop "(a::'a \<times> 'a \<times> 'a, b) \<noteq> (b, a)"} *}
+ML_val {* none 4 @{prop "\<exists>a b::'a \<Rightarrow> 'a. (a, b) = (b, a)"} *}
+ML_val {* genuine 1 @{prop "(a::'a \<Rightarrow> 'a, b) \<noteq> (b, a)"} *}
 ML_val {* none 4 @{prop "fst (a, b) = a"} *}
 ML_val {* none 1 @{prop "fst (a, b) = b"} *}
 ML_val {* genuine 2 @{prop "fst (a, b) = b"} *}
@@ -104,8 +104,8 @@ ML_val {* none 2 @{prop "\<exists>f. \<forall>a b. f (a, b) = (a, b)"} *}
 ML_val {* none 3 @{prop "f = (\<lambda>a b. (b, a)) \<longrightarrow> f x y = (y, x)"} *}
 ML_val {* genuine 2 @{prop "f = (\<lambda>a b. (b, a)) \<longrightarrow> f x y = (x, y)"} *}
 ML_val {* none 4 @{prop "f = (\<lambda>x. f x)"} *}
-ML_val {* none 4 @{prop "f = (\<lambda>x. f x\<Colon>'a \<Rightarrow> bool)"} *}
+ML_val {* none 4 @{prop "f = (\<lambda>x. f x::'a \<Rightarrow> bool)"} *}
 ML_val {* none 4 @{prop "f = (\<lambda>x y. f x y)"} *}
-ML_val {* none 4 @{prop "f = (\<lambda>x y. f x y\<Colon>'a \<Rightarrow> bool)"} *}
+ML_val {* none 4 @{prop "f = (\<lambda>x y. f x y::'a \<Rightarrow> bool)"} *}
 
 end

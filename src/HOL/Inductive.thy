@@ -57,7 +57,7 @@ lemma lfp_const: "lfp (\<lambda>x. t) = t"
 subsection \<open>General induction rules for least fixed points\<close>
 
 lemma lfp_ordinal_induct[case_names mono step union]:
-  fixes f :: "'a\<Colon>complete_lattice \<Rightarrow> 'a"
+  fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
   assumes mono: "mono f"
   and P_f: "\<And>S. P S \<Longrightarrow> S \<le> lfp f \<Longrightarrow> P (f S)"
   and P_Union: "\<And>M. \<forall>S\<in>M. P S \<Longrightarrow> P (Sup M)"
@@ -177,7 +177,7 @@ lemma gfp_fun_UnI2: "[| mono(f);  a: gfp(f) |] ==> a: f(X Un gfp(f))"
   by (blast dest: gfp_lemma2 mono_Un)
 
 lemma gfp_ordinal_induct[case_names mono step union]:
-  fixes f :: "'a\<Colon>complete_lattice \<Rightarrow> 'a"
+  fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
   assumes mono: "mono f"
   and P_f: "\<And>S. P S \<Longrightarrow> gfp f \<le> S \<Longrightarrow> P (f S)"
   and P_Union: "\<And>M. \<forall>S\<in>M. P S \<Longrightarrow> P (Inf M)"

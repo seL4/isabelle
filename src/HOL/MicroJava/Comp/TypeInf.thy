@@ -108,9 +108,9 @@ method strip_case_simp = (intro strip, ty_case_simp)
 (* Uniqueness of types property *)
 
 lemma uniqueness_of_types: "
-  (\<forall> (E\<Colon>'a prog \<times> (vname \<Rightarrow> ty option)) T1 T2. 
+  (\<forall> (E::'a prog \<times> (vname \<Rightarrow> ty option)) T1 T2. 
   E\<turnstile>e :: T1 \<longrightarrow> E\<turnstile>e :: T2 \<longrightarrow> T1 = T2) \<and>
-  (\<forall> (E\<Colon>'a prog \<times> (vname \<Rightarrow> ty option)) Ts1 Ts2. 
+  (\<forall> (E::'a prog \<times> (vname \<Rightarrow> ty option)) Ts1 Ts2. 
   E\<turnstile>es [::] Ts1 \<longrightarrow> E\<turnstile>es [::] Ts2 \<longrightarrow> Ts1 = Ts2)"
   apply (rule compat_expr_expr_list.induct)
             (* NewC *)

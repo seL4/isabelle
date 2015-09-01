@@ -374,7 +374,7 @@ begin
 
 definition size_literal :: "literal \<Rightarrow> nat"
 where
-  [code]: "size_literal (s\<Colon>literal) = 0"
+  [code]: "size_literal (s::literal) = 0"
 
 instance ..
 

@@ -17,7 +17,7 @@ text \<open>
 \<close>
 
 locale subspace =
-  fixes U :: "'a\<Colon>{minus, plus, zero, uminus} set" and V
+  fixes U :: "'a::{minus, plus, zero, uminus} set" and V
   assumes non_empty [iff, intro]: "U \<noteq> {}"
     and subset [iff]: "U \<subseteq> V"
     and add_closed [iff]: "x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x + y \<in> U"

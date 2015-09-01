@@ -16,11 +16,11 @@ begin
 
 subsection {* Definitions *}
 
-definition bigo :: "('a => 'b\<Colon>linordered_idom) => ('a => 'b) set" ("(1O'(_'))") where
-  "O(f\<Colon>('a => 'b)) == {h. \<exists>c. \<forall>x. abs (h x) <= c * abs (f x)}"
+definition bigo :: "('a => 'b::linordered_idom) => ('a => 'b) set" ("(1O'(_'))") where
+  "O(f::('a => 'b)) == {h. \<exists>c. \<forall>x. abs (h x) <= c * abs (f x)}"
 
 lemma bigo_pos_const:
-  "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
+  "(\<exists>c::'a::linordered_idom.
     \<forall>x. abs (h x) \<le> c * abs (f x))
     \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
   by (metis (no_types) abs_ge_zero
@@ -32,7 +32,7 @@ lemma bigo_pos_const:
 sledgehammer_params [isar_proofs, compress = 1]
 
 lemma
-  "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
+  "(\<exists>c::'a::linordered_idom.
     \<forall>x. abs (h x) \<le> c * abs (f x))
     \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
   apply auto
@@ -42,19 +42,19 @@ lemma
 proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  have F1: "\<forall>x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> \<bar>x\<^sub>1\<bar>" by (metis abs_ge_zero)
-  have F2: "\<forall>x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
+  have F1: "\<forall>x\<^sub>1::'a::linordered_idom. 0 \<le> \<bar>x\<^sub>1\<bar>" by (metis abs_ge_zero)
+  have F2: "\<forall>x\<^sub>1::'a::linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
   have F3: "\<forall>x\<^sub>1 x\<^sub>3. x\<^sub>3 \<le> \<bar>h x\<^sub>1\<bar> \<longrightarrow> x\<^sub>3 \<le> c * \<bar>f x\<^sub>1\<bar>" by (metis A1 order_trans)
-  have F4: "\<forall>x\<^sub>2 x\<^sub>3\<Colon>'a\<Colon>linordered_idom. \<bar>x\<^sub>3\<bar> * \<bar>x\<^sub>2\<bar> = \<bar>x\<^sub>3 * x\<^sub>2\<bar>"
+  have F4: "\<forall>x\<^sub>2 x\<^sub>3::'a::linordered_idom. \<bar>x\<^sub>3\<bar> * \<bar>x\<^sub>2\<bar> = \<bar>x\<^sub>3 * x\<^sub>2\<bar>"
     by (metis abs_mult)
-  have F5: "\<forall>x\<^sub>3 x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> x\<^sub>1 \<longrightarrow> \<bar>x\<^sub>3 * x\<^sub>1\<bar> = \<bar>x\<^sub>3\<bar> * x\<^sub>1"
+  have F5: "\<forall>x\<^sub>3 x\<^sub>1::'a::linordered_idom. 0 \<le> x\<^sub>1 \<longrightarrow> \<bar>x\<^sub>3 * x\<^sub>1\<bar> = \<bar>x\<^sub>3\<bar> * x\<^sub>1"
     by (metis abs_mult_pos)
-  hence "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1\<Colon>'a\<Colon>linordered_idom\<bar> = \<bar>1\<bar> * x\<^sub>1" by (metis F2)
-  hence "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^sub>1" by (metis F2 abs_one)
+  hence "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1::'a::linordered_idom\<bar> = \<bar>1\<bar> * x\<^sub>1" by (metis F2)
+  hence "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1::'a::linordered_idom\<bar> = x\<^sub>1" by (metis F2 abs_one)
   hence "\<forall>x\<^sub>3. 0 \<le> \<bar>h x\<^sub>3\<bar> \<longrightarrow> \<bar>c * \<bar>f x\<^sub>3\<bar>\<bar> = c * \<bar>f x\<^sub>3\<bar>" by (metis F3)
   hence "\<forall>x\<^sub>3. \<bar>c * \<bar>f x\<^sub>3\<bar>\<bar> = c * \<bar>f x\<^sub>3\<bar>" by (metis F1)
-  hence "\<forall>x\<^sub>3. (0\<Colon>'a) \<le> \<bar>f x\<^sub>3\<bar> \<longrightarrow> c * \<bar>f x\<^sub>3\<bar> = \<bar>c\<bar> * \<bar>f x\<^sub>3\<bar>" by (metis F5)
-  hence "\<forall>x\<^sub>3. (0\<Colon>'a) \<le> \<bar>f x\<^sub>3\<bar> \<longrightarrow> c * \<bar>f x\<^sub>3\<bar> = \<bar>c * f x\<^sub>3\<bar>" by (metis F4)
+  hence "\<forall>x\<^sub>3. (0::'a) \<le> \<bar>f x\<^sub>3\<bar> \<longrightarrow> c * \<bar>f x\<^sub>3\<bar> = \<bar>c\<bar> * \<bar>f x\<^sub>3\<bar>" by (metis F5)
+  hence "\<forall>x\<^sub>3. (0::'a) \<le> \<bar>f x\<^sub>3\<bar> \<longrightarrow> c * \<bar>f x\<^sub>3\<bar> = \<bar>c * f x\<^sub>3\<bar>" by (metis F4)
   hence "\<forall>x\<^sub>3. c * \<bar>f x\<^sub>3\<bar> = \<bar>c * f x\<^sub>3\<bar>" by (metis F1)
   hence "\<bar>h x\<bar> \<le> \<bar>c * f x\<bar>" by (metis A1)
   thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis F4)
@@ -63,7 +63,7 @@ qed
 sledgehammer_params [isar_proofs, compress = 2]
 
 lemma
-  "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
+  "(\<exists>c::'a::linordered_idom.
     \<forall>x. abs (h x) \<le> c * abs (f x))
     \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
   apply auto
@@ -73,10 +73,10 @@ lemma
 proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  have F1: "\<forall>x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
-  have F2: "\<forall>x\<^sub>2 x\<^sub>3\<Colon>'a\<Colon>linordered_idom. \<bar>x\<^sub>3\<bar> * \<bar>x\<^sub>2\<bar> = \<bar>x\<^sub>3 * x\<^sub>2\<bar>"
+  have F1: "\<forall>x\<^sub>1::'a::linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
+  have F2: "\<forall>x\<^sub>2 x\<^sub>3::'a::linordered_idom. \<bar>x\<^sub>3\<bar> * \<bar>x\<^sub>2\<bar> = \<bar>x\<^sub>3 * x\<^sub>2\<bar>"
     by (metis abs_mult)
-  have "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^sub>1" by (metis F1 abs_mult_pos abs_one)
+  have "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1::'a::linordered_idom\<bar> = x\<^sub>1" by (metis F1 abs_mult_pos abs_one)
   hence "\<forall>x\<^sub>3. \<bar>c * \<bar>f x\<^sub>3\<bar>\<bar> = c * \<bar>f x\<^sub>3\<bar>" by (metis A1 abs_ge_zero order_trans)
   hence "\<forall>x\<^sub>3. 0 \<le> \<bar>f x\<^sub>3\<bar> \<longrightarrow> c * \<bar>f x\<^sub>3\<bar> = \<bar>c * f x\<^sub>3\<bar>" by (metis F2 abs_mult_pos)
   hence "\<bar>h x\<bar> \<le> \<bar>c * f x\<bar>" by (metis A1 abs_ge_zero)
@@ -86,7 +86,7 @@ qed
 sledgehammer_params [isar_proofs, compress = 3]
 
 lemma
-  "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
+  "(\<exists>c::'a::linordered_idom.
     \<forall>x. abs (h x) \<le> c * abs (f x))
     \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
   apply auto
@@ -96,9 +96,9 @@ lemma
 proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  have F1: "\<forall>x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
-  have F2: "\<forall>x\<^sub>3 x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> x\<^sub>1 \<longrightarrow> \<bar>x\<^sub>3 * x\<^sub>1\<bar> = \<bar>x\<^sub>3\<bar> * x\<^sub>1" by (metis abs_mult_pos)
-  hence "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^sub>1" by (metis F1 abs_one)
+  have F1: "\<forall>x\<^sub>1::'a::linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
+  have F2: "\<forall>x\<^sub>3 x\<^sub>1::'a::linordered_idom. 0 \<le> x\<^sub>1 \<longrightarrow> \<bar>x\<^sub>3 * x\<^sub>1\<bar> = \<bar>x\<^sub>3\<bar> * x\<^sub>1" by (metis abs_mult_pos)
+  hence "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1::'a::linordered_idom\<bar> = x\<^sub>1" by (metis F1 abs_one)
   hence "\<forall>x\<^sub>3. 0 \<le> \<bar>f x\<^sub>3\<bar> \<longrightarrow> c * \<bar>f x\<^sub>3\<bar> = \<bar>c\<bar> * \<bar>f x\<^sub>3\<bar>" by (metis F2 A1 abs_ge_zero order_trans)
   thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis A1 abs_ge_zero)
 qed
@@ -106,7 +106,7 @@ qed
 sledgehammer_params [isar_proofs, compress = 4]
 
 lemma
-  "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
+  "(\<exists>c::'a::linordered_idom.
     \<forall>x. abs (h x) \<le> c * abs (f x))
     \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
   apply auto
@@ -116,7 +116,7 @@ lemma
 proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  have "\<forall>x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
+  have "\<forall>x\<^sub>1::'a::linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
   hence "\<forall>x\<^sub>3. \<bar>c * \<bar>f x\<^sub>3\<bar>\<bar> = c * \<bar>f x\<^sub>3\<bar>"
     by (metis A1 abs_ge_zero order_trans abs_mult_pos abs_one)
   hence "\<bar>h x\<bar> \<le> \<bar>c * f x\<bar>" by (metis A1 abs_ge_zero abs_mult_pos abs_mult)
@@ -321,7 +321,7 @@ lemma bigo_mult4 [intro]:"f : k +o O(h) \<Longrightarrow> g * f : (g * k) +o O(g
 by (metis bigo_mult2 set_plus_mono_b set_times_intro2 set_times_plus_distrib)
 
 lemma bigo_mult5: "\<forall>x. f x ~= 0 \<Longrightarrow>
-    O(f * g) <= (f\<Colon>'a => ('b\<Colon>linordered_field)) *o O(g)"
+    O(f * g) <= (f::'a => ('b::linordered_field)) *o O(g)"
 proof -
   assume a: "\<forall>x. f x ~= 0"
   show "O(f * g) <= f *o O(g)"
@@ -334,31 +334,31 @@ proof -
       by (rule bigo_mult2)
     also have "(\<lambda>x. 1 / f x) * (f * g) = g"
       by (simp add: fun_eq_iff a)
-    finally have "(\<lambda>x. (1\<Colon>'b) / f x) * h : O(g)".
-    then have "f * ((\<lambda>x. (1\<Colon>'b) / f x) * h) : f *o O(g)"
+    finally have "(\<lambda>x. (1::'b) / f x) * h : O(g)".
+    then have "f * ((\<lambda>x. (1::'b) / f x) * h) : f *o O(g)"
       by auto
-    also have "f * ((\<lambda>x. (1\<Colon>'b) / f x) * h) = h"
+    also have "f * ((\<lambda>x. (1::'b) / f x) * h) = h"
       by (simp add: func_times fun_eq_iff a)
     finally show "h : f *o O(g)".
   qed
 qed
 
 lemma bigo_mult6:
-"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = (f\<Colon>'a \<Rightarrow> ('b\<Colon>linordered_field)) *o O(g)"
+"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = (f::'a \<Rightarrow> ('b::linordered_field)) *o O(g)"
 by (metis bigo_mult2 bigo_mult5 order_antisym)
 
 (*proof requires relaxing relevance: 2007-01-25*)
 declare bigo_mult6 [simp]
 
 lemma bigo_mult7:
-"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) \<le> O(f\<Colon>'a \<Rightarrow> ('b\<Colon>linordered_field)) * O(g)"
+"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) \<le> O(f::'a \<Rightarrow> ('b::linordered_field)) * O(g)"
 by (metis bigo_refl bigo_mult6 set_times_mono3)
 
 declare bigo_mult6 [simp del]
 declare bigo_mult7 [intro!]
 
 lemma bigo_mult8:
-"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = O(f\<Colon>'a \<Rightarrow> ('b\<Colon>linordered_field)) * O(g)"
+"\<forall>x. f x \<noteq> 0 \<Longrightarrow> O(f * g) = O(f::'a \<Rightarrow> ('b::linordered_field)) * O(g)"
 by (metis bigo_mult bigo_mult7 order_antisym_conv)
 
 lemma bigo_minus [intro]: "f : O(g) \<Longrightarrow> - f : O(g)"
@@ -397,14 +397,14 @@ by (auto simp add: bigo_def ac_simps)
 lemma bigo_const2 [intro]: "O(\<lambda>x. c) \<le> O(\<lambda>x. 1)"
 by (metis bigo_const1 bigo_elt_subset)
 
-lemma bigo_const3: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow> (\<lambda>x. 1) : O(\<lambda>x. c)"
+lemma bigo_const3: "(c::'a::linordered_field) ~= 0 \<Longrightarrow> (\<lambda>x. 1) : O(\<lambda>x. c)"
 apply (simp add: bigo_def)
 by (metis abs_eq_0 left_inverse order_refl)
 
-lemma bigo_const4: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow> O(\<lambda>x. 1) <= O(\<lambda>x. c)"
+lemma bigo_const4: "(c::'a::linordered_field) ~= 0 \<Longrightarrow> O(\<lambda>x. 1) <= O(\<lambda>x. c)"
 by (metis bigo_elt_subset bigo_const3)
 
-lemma bigo_const [simp]: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow>
+lemma bigo_const [simp]: "(c::'a::linordered_field) ~= 0 \<Longrightarrow>
     O(\<lambda>x. c) = O(\<lambda>x. 1)"
 by (metis bigo_const2 bigo_const4 equalityI)
 
@@ -415,19 +415,19 @@ by (metis le_less)
 lemma bigo_const_mult2: "O(\<lambda>x. c * f x) \<le> O(f)"
 by (rule bigo_elt_subset, rule bigo_const_mult1)
 
-lemma bigo_const_mult3: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow> f : O(\<lambda>x. c * f x)"
+lemma bigo_const_mult3: "(c::'a::linordered_field) ~= 0 \<Longrightarrow> f : O(\<lambda>x. c * f x)"
 apply (simp add: bigo_def)
 by (metis (no_types) abs_mult mult.assoc mult_1 order_refl left_inverse)
 
 lemma bigo_const_mult4:
-"(c\<Colon>'a\<Colon>linordered_field) \<noteq> 0 \<Longrightarrow> O(f) \<le> O(\<lambda>x. c * f x)"
+"(c::'a::linordered_field) \<noteq> 0 \<Longrightarrow> O(f) \<le> O(\<lambda>x. c * f x)"
 by (metis bigo_elt_subset bigo_const_mult3)
 
-lemma bigo_const_mult [simp]: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow>
+lemma bigo_const_mult [simp]: "(c::'a::linordered_field) ~= 0 \<Longrightarrow>
     O(\<lambda>x. c * f x) = O(f)"
 by (metis equalityI bigo_const_mult2 bigo_const_mult4)
 
-lemma bigo_const_mult5 [simp]: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow>
+lemma bigo_const_mult5 [simp]: "(c::'a::linordered_field) ~= 0 \<Longrightarrow>
     (\<lambda>x. c) *o O(f) = O(f)"
   apply (auto del: subsetI)
   apply (rule order_trans)
@@ -444,20 +444,20 @@ lemma bigo_const_mult5 [simp]: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Lon
   (* couldn't get this proof without the step above *)
 proof -
   fix g :: "'b \<Rightarrow> 'a" and d :: 'a
-  assume A1: "c \<noteq> (0\<Colon>'a)"
-  assume A2: "\<forall>x\<Colon>'b. \<bar>g x\<bar> \<le> d * \<bar>f x\<bar>"
+  assume A1: "c \<noteq> (0::'a)"
+  assume A2: "\<forall>x::'b. \<bar>g x\<bar> \<le> d * \<bar>f x\<bar>"
   have F1: "inverse \<bar>c\<bar> = \<bar>inverse c\<bar>" using A1 by (metis nonzero_abs_inverse)
-  have F2: "(0\<Colon>'a) < \<bar>c\<bar>" using A1 by (metis zero_less_abs_iff)
-  have "(0\<Colon>'a) < \<bar>c\<bar> \<longrightarrow> (0\<Colon>'a) < \<bar>inverse c\<bar>" using F1 by (metis positive_imp_inverse_positive)
-  hence "(0\<Colon>'a) < \<bar>inverse c\<bar>" using F2 by metis
-  hence F3: "(0\<Colon>'a) \<le> \<bar>inverse c\<bar>" by (metis order_le_less)
-  have "\<exists>(u\<Colon>'a) SKF\<^sub>7\<Colon>'a \<Rightarrow> 'b. \<bar>g (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar> \<le> u * \<bar>f (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar>"
+  have F2: "(0::'a) < \<bar>c\<bar>" using A1 by (metis zero_less_abs_iff)
+  have "(0::'a) < \<bar>c\<bar> \<longrightarrow> (0::'a) < \<bar>inverse c\<bar>" using F1 by (metis positive_imp_inverse_positive)
+  hence "(0::'a) < \<bar>inverse c\<bar>" using F2 by metis
+  hence F3: "(0::'a) \<le> \<bar>inverse c\<bar>" by (metis order_le_less)
+  have "\<exists>(u::'a) SKF\<^sub>7::'a \<Rightarrow> 'b. \<bar>g (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar> \<le> u * \<bar>f (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar>"
     using A2 by metis
-  hence F4: "\<exists>(u\<Colon>'a) SKF\<^sub>7\<Colon>'a \<Rightarrow> 'b. \<bar>g (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar> \<le> u * \<bar>f (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar> \<and> (0\<Colon>'a) \<le> \<bar>inverse c\<bar>"
+  hence F4: "\<exists>(u::'a) SKF\<^sub>7::'a \<Rightarrow> 'b. \<bar>g (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar> \<le> u * \<bar>f (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar> \<and> (0::'a) \<le> \<bar>inverse c\<bar>"
     using F3 by metis
-  hence "\<exists>(v\<Colon>'a) (u\<Colon>'a) SKF\<^sub>7\<Colon>'a \<Rightarrow> 'b. \<bar>inverse c\<bar> * \<bar>g (SKF\<^sub>7 (u * v))\<bar> \<le> u * (v * \<bar>f (SKF\<^sub>7 (u * v))\<bar>)"
+  hence "\<exists>(v::'a) (u::'a) SKF\<^sub>7::'a \<Rightarrow> 'b. \<bar>inverse c\<bar> * \<bar>g (SKF\<^sub>7 (u * v))\<bar> \<le> u * (v * \<bar>f (SKF\<^sub>7 (u * v))\<bar>)"
     by (metis mult_left_mono)
-  then show "\<exists>ca\<Colon>'a. \<forall>x\<Colon>'b. inverse \<bar>c\<bar> * \<bar>g x\<bar> \<le> ca * \<bar>f x\<bar>"
+  then show "\<exists>ca::'a. \<forall>x::'b. inverse \<bar>c\<bar> * \<bar>g x\<bar> \<le> ca * \<bar>f x\<bar>"
     using A2 F4 by (metis F1 `0 < \<bar>inverse c\<bar>` linordered_field_class.sign_simps(23) mult_le_cancel_left_pos)
 qed
 
@@ -582,7 +582,7 @@ lemma bigo_useful_add: "f =o O(h) \<Longrightarrow> g =o O(h) \<Longrightarrow> 
   apply assumption+
 done
 
-lemma bigo_useful_const_mult: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Longrightarrow>
+lemma bigo_useful_const_mult: "(c::'a::linordered_field) ~= 0 \<Longrightarrow>
     (\<lambda>x. c) * f =o O(h) \<Longrightarrow> f =o O(h)"
   apply (rule subsetD)
   apply (subgoal_tac "(\<lambda>x. 1 / c) *o O(h) <= O(h)")
@@ -594,13 +594,13 @@ lemma bigo_useful_const_mult: "(c\<Colon>'a\<Colon>linordered_field) ~= 0 \<Long
   apply (simp add: func_times)
 done
 
-lemma bigo_fix: "(\<lambda>x. f ((x\<Colon>nat) + 1)) =o O(\<lambda>x. h(x + 1)) \<Longrightarrow> f 0 = 0 \<Longrightarrow>
+lemma bigo_fix: "(\<lambda>x. f ((x::nat) + 1)) =o O(\<lambda>x. h(x + 1)) \<Longrightarrow> f 0 = 0 \<Longrightarrow>
     f =o O(h)"
 apply (simp add: bigo_alt_def)
 by (metis abs_ge_zero abs_mult abs_of_pos abs_zero not0_implies_Suc)
 
 lemma bigo_fix2:
-    "(\<lambda>x. f ((x\<Colon>nat) + 1)) =o (\<lambda>x. g(x + 1)) +o O(\<lambda>x. h(x + 1)) \<Longrightarrow>
+    "(\<lambda>x. f ((x::nat) + 1)) =o (\<lambda>x. g(x + 1)) +o O(\<lambda>x. h(x + 1)) \<Longrightarrow>
        f 0 = g 0 \<Longrightarrow> f =o g +o O(h)"
   apply (rule set_minus_imp_plus)
   apply (rule bigo_fix)
@@ -613,7 +613,7 @@ done
 
 subsection {* Less than or equal to *}
 
-definition lesso :: "('a => 'b\<Colon>linordered_idom) => ('a => 'b) => ('a => 'b)" (infixl "<o" 70) where
+definition lesso :: "('a => 'b::linordered_idom) => ('a => 'b) => ('a => 'b)" (infixl "<o" 70) where
   "f <o g == (\<lambda>x. max (f x - g x) 0)"
 
 lemma bigo_lesseq1: "f =o O(h) \<Longrightarrow> \<forall>x. abs (g x) <= abs (f x) \<Longrightarrow>
@@ -691,7 +691,7 @@ apply (case_tac "0 <= f x - k x")
 by (metis abs_ge_zero linorder_linear max.absorb1 max.commute)
 
 lemma bigo_lesso4:
-  "f <o g =o O(k\<Colon>'a=>'b\<Colon>{linordered_field}) \<Longrightarrow>
+  "f <o g =o O(k::'a=>'b::{linordered_field}) \<Longrightarrow>
    g =o h +o O(k) \<Longrightarrow> f <o h =o O(k)"
 apply (unfold lesso_def)
 apply (drule set_plus_imp_minus)

@@ -13,7 +13,7 @@ begin
 subsection \<open>The class of countable types\<close>
 
 class countable =
-  assumes ex_inj: "\<exists>to_nat \<Colon> 'a \<Rightarrow> nat. inj to_nat"
+  assumes ex_inj: "\<exists>to_nat :: 'a \<Rightarrow> nat. inj to_nat"
 
 lemma countable_classI:
   fixes f :: "'a \<Rightarrow> nat"
@@ -27,11 +27,11 @@ qed
 
 subsection \<open>Conversion functions\<close>
 
-definition to_nat :: "'a\<Colon>countable \<Rightarrow> nat" where
+definition to_nat :: "'a::countable \<Rightarrow> nat" where
   "to_nat = (SOME f. inj f)"
 
-definition from_nat :: "nat \<Rightarrow> 'a\<Colon>countable" where
-  "from_nat = inv (to_nat \<Colon> 'a \<Rightarrow> nat)"
+definition from_nat :: "nat \<Rightarrow> 'a::countable" where
+  "from_nat = inv (to_nat :: 'a \<Rightarrow> nat)"
 
 lemma inj_to_nat [simp]: "inj to_nat"
   by (rule exE_some [OF ex_inj]) (simp add: to_nat_def)
@@ -54,13 +54,13 @@ subsection \<open>Finite types are countable\<close>
 
 subclass (in finite) countable
 proof
-  have "finite (UNIV\<Colon>'a set)" by (rule finite_UNIV)
+  have "finite (UNIV::'a set)" by (rule finite_UNIV)
   with finite_conv_nat_seg_image [of "UNIV::'a set"]
   obtain n and f :: "nat \<Rightarrow> 'a" 
     where "UNIV = f ` {i. i < n}" by auto
   then have "surj f" unfolding surj_def by auto
   then have "inj (inv f)" by (rule surj_imp_inj_inv)
-  then show "\<exists>to_nat \<Colon> 'a \<Rightarrow> nat. inj to_nat" by (rule exI[of inj])
+  then show "\<exists>to_nat :: 'a \<Rightarrow> nat. inj to_nat" by (rule exI[of inj])
 qed
 
 

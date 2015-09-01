@@ -491,7 +491,7 @@ instance proof
     by transfer (simp add: ac_simps realrel_def)
   show "(a + b) * c = a * c + b * c"
     by transfer (simp add: distrib_right realrel_def)
-  show "(0\<Colon>real) \<noteq> (1\<Colon>real)"
+  show "(0::real) \<noteq> (1::real)"
     by transfer (simp add: realrel_def)
   show "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
     apply transfer
@@ -1975,7 +1975,7 @@ by simp
 instantiation real :: equal
 begin
 
-definition "HOL.equal (x\<Colon>real) y \<longleftrightarrow> x - y = 0"
+definition "HOL.equal (x::real) y \<longleftrightarrow> x - y = 0"
 
 instance proof
 qed (simp add: equal_real_def)

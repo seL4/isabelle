@@ -177,7 +177,7 @@ instance prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_eucl
 text\<open>Instantiation for intervals on @{text ordered_euclidean_space}\<close>
 
 lemma
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  fixes a :: "'a::ordered_euclidean_space"
   shows cbox_interval: "cbox a b = {a..b}"
     and interval_cbox: "{a..b} = cbox a b"
     and eucl_le_atMost: "{x. \<forall>i\<in>Basis. x \<bullet> i <= a \<bullet> i} = {..a}"
@@ -185,17 +185,17 @@ lemma
     by (auto simp: eucl_le[where 'a='a] eucl_less_def box_def cbox_def)
 
 lemma closed_eucl_atLeastAtMost[simp, intro]:
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  fixes a :: "'a::ordered_euclidean_space"
   shows "closed {a..b}"
   by (simp add: cbox_interval[symmetric] closed_cbox)
 
 lemma closed_eucl_atMost[simp, intro]:
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  fixes a :: "'a::ordered_euclidean_space"
   shows "closed {..a}"
   by (simp add: eucl_le_atMost[symmetric])
 
 lemma closed_eucl_atLeast[simp, intro]:
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  fixes a :: "'a::ordered_euclidean_space"
   shows "closed {a..}"
   by (simp add: eucl_le_atLeast[symmetric])
 

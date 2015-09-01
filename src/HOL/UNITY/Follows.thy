@@ -172,7 +172,7 @@ subsection{*Multiset union properties (with the multiset ordering)*}
 instantiation multiset :: (order) ordered_ab_semigroup_add
 begin
 
-definition less_multiset :: "'a\<Colon>order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
+definition less_multiset :: "'a::order multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where
   "M' < M \<longleftrightarrow> M' #<# M"
 
 definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where

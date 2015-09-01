@@ -814,8 +814,8 @@ subsection \<open>Division on @{typ nat}\<close>
 text \<open>
   We define @{const divide} and @{const mod} on @{typ nat} by means
   of a characteristic relation with two input arguments
-  @{term "m\<Colon>nat"}, @{term "n\<Colon>nat"} and two output arguments
-  @{term "q\<Colon>nat"}(uotient) and @{term "r\<Colon>nat"}(emainder).
+  @{term "m::nat"}, @{term "n::nat"} and two output arguments
+  @{term "q::nat"}(uotient) and @{term "r::nat"}(emainder).
 \<close>
 
 definition divmod_nat_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat \<Rightarrow> bool" where
@@ -835,7 +835,7 @@ next
   have "\<exists>q r. m = q * n + r \<and> r < n"
   proof (induct m)
     case 0 with \<open>n \<noteq> 0\<close>
-    have "(0\<Colon>nat) = 0 * n + 0 \<and> 0 < n" by simp
+    have "(0::nat) = 0 * n + 0 \<and> 0 < n" by simp
     then show ?case by blast
   next
     case (Suc m) then obtain q' r'
@@ -868,7 +868,7 @@ proof (cases "n = 0")
       (simp add: divmod_nat_rel_def)
 next
   case False
-  have aux: "\<And>q r q' r'. q' * n + r' = q * n + r \<Longrightarrow> r < n \<Longrightarrow> q' \<le> (q\<Colon>nat)"
+  have aux: "\<And>q r q' r'. q' * n + r' = q * n + r \<Longrightarrow> r < n \<Longrightarrow> q' \<le> (q::nat)"
   apply (rule leI)
   apply (subst less_iff_Suc_add)
   apply (auto simp add: add_mult_distrib)
@@ -1115,10 +1115,10 @@ proof (rule add_leD2)
   then show "m div n * n + m mod n \<le> m" by auto
 qed
 
-lemma mod_geq: "\<not> m < (n\<Colon>nat) \<Longrightarrow> m mod n = (m - n) mod n"
+lemma mod_geq: "\<not> m < (n::nat) \<Longrightarrow> m mod n = (m - n) mod n"
 by (simp add: le_mod_geq linorder_not_less)
 
-lemma mod_if: "m mod (n\<Colon>nat) = (if m < n then m else (m - n) mod n)"
+lemma mod_if: "m mod (n::nat) = (if m < n then m else (m - n) mod n)"
 by (simp add: le_mod_geq)
 
 lemma mod_1 [simp]: "m mod Suc 0 = 0"
@@ -1313,7 +1313,7 @@ qed
 
 lemma split_div_lemma:
   assumes "0 < n"
-  shows "n * q \<le> m \<and> m < n * Suc q \<longleftrightarrow> q = ((m\<Colon>nat) div n)" (is "?lhs \<longleftrightarrow> ?rhs")
+  shows "n * q \<le> m \<and> m < n * Suc q \<longleftrightarrow> q = ((m::nat) div n)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?rhs
   with mult_div_cancel have nq: "n * q = m - (m mod n)" by simp
@@ -1486,7 +1486,7 @@ lemma mod2_Suc_Suc [simp]: "Suc (Suc m) mod 2 = m mod 2"
 lemma add_self_div_2 [simp]: "(m + m) div 2 = (m::nat)"
 by (simp add: mult_2 [symmetric])
 
-lemma mod2_gr_0 [simp]: "0 < (m\<Colon>nat) mod 2 \<longleftrightarrow> m mod 2 = 1"
+lemma mod2_gr_0 [simp]: "0 < (m::nat) mod 2 \<longleftrightarrow> m mod 2 = 1"
 proof -
   { fix n :: nat have  "(n::nat) < 2 \<Longrightarrow> n = 0 \<or> n = 1" by (cases n) simp_all }
   moreover have "m mod 2 < 2" by simp
@@ -1999,7 +1999,7 @@ by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
 lemmas zmod_eq_0D [dest!] = zmod_eq_0_iff [THEN iffD1]
 
 lemma zmod_zdiv_equality' [nitpick_unfold]:
-  "(m\<Colon>int) mod n = m - (m div n) * n"
+  "(m::int) mod n = m - (m div n) * n"
   using mod_div_equality [of m n] by arith
 
 

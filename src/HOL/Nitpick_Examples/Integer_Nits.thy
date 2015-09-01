@@ -232,7 +232,7 @@ lemma "t \<noteq> Null \<Longrightarrow> (\<Sum>n \<in> labels t. n + 2) \<ge> 2
 nitpick [expect = potential] (* unfortunate *)
 sorry
 
-lemma "(\<Sum>i \<in> labels (Node x t u). f i\<Colon>nat) = f x + (\<Sum>i \<in> labels t. f i) + (\<Sum>i \<in> labels u. f i)"
+lemma "(\<Sum>i \<in> labels (Node x t u). f i::nat) = f x + (\<Sum>i \<in> labels t. f i) + (\<Sum>i \<in> labels u. f i)"
 nitpick [expect = potential] (* unfortunate *)
 oops
 

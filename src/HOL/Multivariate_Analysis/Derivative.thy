@@ -2178,7 +2178,7 @@ lemma has_derivative_series:
   apply auto
   done
 
-text \<open>Considering derivative @{typ "real \<Rightarrow> 'b\<Colon>real_normed_vector"} as a vector.\<close>
+text \<open>Considering derivative @{typ "real \<Rightarrow> 'b::real_normed_vector"} as a vector.\<close>
 
 definition "vector_derivative f net = (SOME f'. (f has_vector_derivative f') net)"
 

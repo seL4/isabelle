@@ -144,7 +144,7 @@ lemma [code nbe]:
   by (fact equal_refl)
 
 lemma order_fun [code]:
-  fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>order"
+  fixes f g :: "'a::enum \<Rightarrow> 'b::order"
   shows "f \<le> g \<longleftrightarrow> enum_all (\<lambda>x. f x \<le> g x)"
     and "f < g \<longleftrightarrow> f \<le> g \<and> enum_ex (\<lambda>x. f x \<noteq> g x)"
   by (simp_all add: fun_eq_iff le_fun_def order_less_le)
@@ -244,32 +244,32 @@ lemma [code]:
 subsection \<open>Default instances for @{class enum}\<close>
 
 lemma map_of_zip_enum_is_Some:
-  assumes "length ys = length (enum \<Colon> 'a\<Colon>enum list)"
-  shows "\<exists>y. map_of (zip (enum \<Colon> 'a\<Colon>enum list) ys) x = Some y"
+  assumes "length ys = length (enum :: 'a::enum list)"
+  shows "\<exists>y. map_of (zip (enum :: 'a::enum list) ys) x = Some y"
 proof -
-  from assms have "x \<in> set (enum \<Colon> 'a\<Colon>enum list) \<longleftrightarrow>
-    (\<exists>y. map_of (zip (enum \<Colon> 'a\<Colon>enum list) ys) x = Some y)"
+  from assms have "x \<in> set (enum :: 'a::enum list) \<longleftrightarrow>
+    (\<exists>y. map_of (zip (enum :: 'a::enum list) ys) x = Some y)"
     by (auto intro!: map_of_zip_is_Some)
   then show ?thesis using enum_UNIV by auto
 qed
 
 lemma map_of_zip_enum_inject:
-  fixes xs ys :: "'b\<Colon>enum list"
-  assumes length: "length xs = length (enum \<Colon> 'a\<Colon>enum list)"
-      "length ys = length (enum \<Colon> 'a\<Colon>enum list)"
-    and map_of: "the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) xs) = the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) ys)"
+  fixes xs ys :: "'b::enum list"
+  assumes length: "length xs = length (enum :: 'a::enum list)"
+      "length ys = length (enum :: 'a::enum list)"
+    and map_of: "the \<circ> map_of (zip (enum :: 'a::enum list) xs) = the \<circ> map_of (zip (enum :: 'a::enum list) ys)"
   shows "xs = ys"
 proof -
-  have "map_of (zip (enum \<Colon> 'a list) xs) = map_of (zip (enum \<Colon> 'a list) ys)"
+  have "map_of (zip (enum :: 'a list) xs) = map_of (zip (enum :: 'a list) ys)"
   proof
     fix x :: 'a
     from length map_of_zip_enum_is_Some obtain y1 y2
-      where "map_of (zip (enum \<Colon> 'a list) xs) x = Some y1"
-        and "map_of (zip (enum \<Colon> 'a list) ys) x = Some y2" by blast
+      where "map_of (zip (enum :: 'a list) xs) x = Some y1"
+        and "map_of (zip (enum :: 'a list) ys) x = Some y2" by blast
     moreover from map_of
-      have "the (map_of (zip (enum \<Colon> 'a\<Colon>enum list) xs) x) = the (map_of (zip (enum \<Colon> 'a\<Colon>enum list) ys) x)"
+      have "the (map_of (zip (enum :: 'a::enum list) xs) x) = the (map_of (zip (enum :: 'a::enum list) ys) x)"
       by (auto dest: fun_cong)
-    ultimately show "map_of (zip (enum \<Colon> 'a\<Colon>enum list) xs) x = map_of (zip (enum \<Colon> 'a\<Colon>enum list) ys) x"
+    ultimately show "map_of (zip (enum :: 'a::enum list) xs) x = map_of (zip (enum :: 'a::enum list) ys) x"
       by simp
   qed
   with length enum_distinct show "xs = ys" by (rule map_of_zip_inject)
@@ -297,7 +297,7 @@ instantiation "fun" :: (enum, enum) enum
 begin
 
 definition
-  "enum = map (\<lambda>ys. the o map_of (zip (enum\<Colon>'a list) ys)) (List.n_lists (length (enum\<Colon>'a\<Colon>enum list)) enum)"
+  "enum = map (\<lambda>ys. the o map_of (zip (enum::'a list) ys)) (List.n_lists (length (enum::'a::enum list)) enum)"
 
 definition
   "enum_all P = all_n_lists (\<lambda>bs. P (the o map_of (zip enum bs))) (length (enum :: 'a list))"
@@ -306,17 +306,17 @@ definition
   "enum_ex P = ex_n_lists (\<lambda>bs. P (the o map_of (zip enum bs))) (length (enum :: 'a list))"
 
 instance proof
-  show "UNIV = set (enum \<Colon> ('a \<Rightarrow> 'b) list)"
+  show "UNIV = set (enum :: ('a \<Rightarrow> 'b) list)"
   proof (rule UNIV_eq_I)
     fix f :: "'a \<Rightarrow> 'b"
-    have "f = the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum))"
+    have "f = the \<circ> map_of (zip (enum :: 'a::enum list) (map f enum))"
       by (auto simp add: map_of_zip_map fun_eq_iff intro: in_enum)
     then show "f \<in> set enum"
       by (auto simp add: enum_fun_def set_n_lists intro: in_enum)
   qed
 next
   from map_of_zip_enum_inject
-  show "distinct (enum \<Colon> ('a \<Rightarrow> 'b) list)"
+  show "distinct (enum :: ('a \<Rightarrow> 'b) list)"
     by (auto intro!: inj_onI simp add: enum_fun_def
       distinct_map distinct_n_lists enum_distinct set_n_lists)
 next
@@ -327,7 +327,7 @@ next
     show "Ball UNIV P"
     proof
       fix f :: "'a \<Rightarrow> 'b"
-      have f: "f = the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum))"
+      have f: "f = the \<circ> map_of (zip (enum :: 'a::enum list) (map f enum))"
         by (auto simp add: map_of_zip_map fun_eq_iff intro: in_enum)
       from \<open>enum_all P\<close> have "P (the \<circ> map_of (zip enum (map f enum)))"
         unfolding enum_all_fun_def all_n_lists_def
@@ -352,9 +352,9 @@ next
   next
     assume "Bex UNIV P"
     from this obtain f where "P f" ..
-    have f: "f = the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum))"
+    have f: "f = the \<circ> map_of (zip (enum :: 'a::enum list) (map f enum))"
       by (auto simp add: map_of_zip_map fun_eq_iff intro: in_enum) 
-    from \<open>P f\<close> this have "P (the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum)))"
+    from \<open>P f\<close> this have "P (the \<circ> map_of (zip (enum :: 'a::enum list) (map f enum)))"
       by auto
     from  this show "enum_ex P"
       unfolding enum_ex_fun_def ex_n_lists_def
@@ -367,7 +367,7 @@ qed
 
 end
 
-lemma enum_fun_code [code]: "enum = (let enum_a = (enum \<Colon> 'a\<Colon>{enum, equal} list)
+lemma enum_fun_code [code]: "enum = (let enum_a = (enum :: 'a::{enum, equal} list)
   in map (\<lambda>ys. the o map_of (zip enum_a ys)) (List.n_lists (length enum_a) enum))"
   by (simp add: enum_fun_def Let_def)
 

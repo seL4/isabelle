@@ -189,7 +189,7 @@ instance
 end
 
 lemma [code]:
-  "HOL.equal (u\<Colon>unit) v \<longleftrightarrow> True" unfolding equal unit_eq [of u] unit_eq [of v] by rule+
+  "HOL.equal (u::unit) v \<longleftrightarrow> True" unfolding equal unit_eq [of u] unit_eq [of v] by rule+
 
 code_printing
   type_constructor unit \<rightharpoonup>
@@ -224,7 +224,7 @@ subsubsection \<open>Type definition\<close>
 definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" where
   "Pair_Rep a b = (\<lambda>x y. x = a \<and> y = b)"
 
-definition "prod = {f. \<exists>a b. f = Pair_Rep (a\<Colon>'a) (b\<Colon>'b)}"
+definition "prod = {f. \<exists>a b. f = Pair_Rep (a::'a) (b::'b)}"
 
 typedef ('a, 'b) prod (infixr "*" 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarrow> bool) set"
   unfolding prod_def by auto
@@ -1285,7 +1285,7 @@ lemma map_prod_surj_on:
 unfolding image_def
 proof(rule set_eqI,rule iffI)
   fix x :: "'a \<times> 'c"
-  assume "x \<in> {y\<Colon>'a \<times> 'c. \<exists>x\<Colon>'b \<times> 'd\<in>A \<times> B. y = map_prod f g x}"
+  assume "x \<in> {y::'a \<times> 'c. \<exists>x::'b \<times> 'd\<in>A \<times> B. y = map_prod f g x}"
   then obtain y where "y \<in> A \<times> B" and "x = map_prod f g y" by blast
   from \<open>image f A = A'\<close> and \<open>y \<in> A \<times> B\<close> have "f (fst y) \<in> A'" by auto
   moreover from \<open>image g B = B'\<close> and \<open>y \<in> A \<times> B\<close> have "g (snd y) \<in> B'" by auto

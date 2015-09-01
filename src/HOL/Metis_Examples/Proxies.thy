@@ -19,7 +19,7 @@ sledgehammer_params [prover = spass, blocking, fact_filter = mepo, timeout = 30,
 
 text {* Extensionality and set constants *}
 
-lemma plus_1_not_0: "n + (1\<Colon>nat) \<noteq> 0"
+lemma plus_1_not_0: "n + (1::nat) \<noteq> 0"
 by simp
 
 definition inc :: "nat \<Rightarrow> nat" where
@@ -40,7 +40,7 @@ lemma "add_swap m n = n + m"
 sledgehammer [expect = some] (add_swap_def)
 by (metis_exhaust add_swap_def)
 
-definition "A = {xs\<Colon>'a list. True}"
+definition "A = {xs::'a list. True}"
 
 lemma "xs \<in> A"
 (* The "add:" argument is unfortunate. *)

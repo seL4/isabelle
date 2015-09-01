@@ -111,7 +111,7 @@ lemma append_one_prefixeq:
     assume a1: "\<exists>zs. ys = xs @ zs"
     then obtain sk :: "'a list" where sk: "ys = xs @ sk" by fastforce
     assume a2: "length xs < length ys"
-    have f1: "\<And>v. ([]\<Colon>'a list) @ v = v" using append_Nil2 by simp
+    have f1: "\<And>v. ([]::'a list) @ v = v" using append_Nil2 by simp
     have "[] \<noteq> sk" using a1 a2 sk less_not_refl by force
     hence "\<exists>v. xs @ hd sk # v = ys" using sk by (metis hd_Cons_tl)
     thus "\<exists>zs. ys = (xs @ [ys ! length xs]) @ zs" using f1 by fastforce

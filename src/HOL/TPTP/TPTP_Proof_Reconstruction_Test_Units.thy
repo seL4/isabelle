@@ -27,8 +27,8 @@ oops
 (*
   (* SEU581^2.p_nux *)
      (* (Annotated_step ("inode1", "bind"), *)
-lemma "\<forall>(SV5\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-            SV6\<Colon>TPTP_Interpret.ind.
+lemma "\<forall>(SV5::TPTP_Interpret.ind \<Rightarrow> bool)
+            SV6::TPTP_Interpret.ind.
             (bnd_in (bnd_dsetconstr bnd_sK1_A bnd_sK2_SY15)
               (bnd_powerset bnd_sK1_A) =
              bnd_in (bnd_dsetconstr SV6 SV5)
@@ -66,7 +66,7 @@ apply (tactic {*tec*})
 done
 
      (* (Annotated_step ("inode2", "bind"), *)
-lemma "\<forall>(SV7\<Colon>TPTP_Interpret.ind) SV8\<Colon>TPTP_Interpret.ind.
+lemma "\<forall>(SV7::TPTP_Interpret.ind) SV8::TPTP_Interpret.ind.
             (bnd_subset SV8 SV7 =
              bnd_subset (bnd_dsetconstr bnd_sK1_A bnd_sK2_SY15)
               bnd_sK1_A) =
@@ -303,12 +303,12 @@ done
 (*SEU882^5*)
 (*
 lemma
- "\<forall>(SV2\<Colon>TPTP_Interpret.ind)
-        SV1\<Colon>TPTP_Interpret.ind \<Rightarrow> TPTP_Interpret.ind.
+ "\<forall>(SV2::TPTP_Interpret.ind)
+        SV1::TPTP_Interpret.ind \<Rightarrow> TPTP_Interpret.ind.
         (SV1 SV2 = bnd_sK1_Xy) =
         False
    \<Longrightarrow>
-   \<forall>SV2\<Colon>TPTP_Interpret.ind.
+   \<forall>SV2::TPTP_Interpret.ind.
             (bnd_sK1_Xy = bnd_sK1_Xy) =
             False"
 ML_prf {*
@@ -462,12 +462,12 @@ consts
   SEU602_2_bnd_in :: "TPTP_Interpret.ind \<Rightarrow> TPTP_Interpret.ind \<Rightarrow> bool"
 
      (* (Annotated_step ("113", "extuni_func"), *)
-lemma "\<forall>SV49\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+lemma "\<forall>SV49::TPTP_Interpret.ind \<Rightarrow> bool.
             (SV49 =
-             (\<lambda>SY23\<Colon>TPTP_Interpret.ind.
+             (\<lambda>SY23::TPTP_Interpret.ind.
                  \<not> SEU602_2_bnd_in SY23 SEU602_2_bnd_sK2_SY17)) =
             False \<Longrightarrow>
-         \<forall>SV49\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         \<forall>SV49::TPTP_Interpret.ind \<Rightarrow> bool.
             (SV49 (SEU602_2_bnd_sK7_E SV49) =
              (\<not> SEU602_2_bnd_in (SEU602_2_bnd_sK7_E SV49) SEU602_2_bnd_sK2_SY17)) =
             False"
@@ -478,12 +478,12 @@ consts
   SEV405_5_bnd_sK1_SY2 :: "(TPTP_Interpret.ind \<Rightarrow> bool) \<Rightarrow> TPTP_Interpret.ind"
   SEV405_5_bnd_cA :: bool
 
-lemma "\<forall>SV1\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
-            (\<forall>SY2\<Colon>TPTP_Interpret.ind.
+lemma "\<forall>SV1::TPTP_Interpret.ind \<Rightarrow> bool.
+            (\<forall>SY2::TPTP_Interpret.ind.
                 \<not> (\<not> (\<not> SV1 SY2 \<or> SEV405_5_bnd_cA) \<or>
                    \<not> (\<not> SEV405_5_bnd_cA \<or> SV1 SY2))) =
             False \<Longrightarrow>
-         \<forall>SV1\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         \<forall>SV1::TPTP_Interpret.ind \<Rightarrow> bool.
             (\<not> (\<not> (\<not> SV1 (SEV405_5_bnd_sK1_SY2 SV1) \<or> SEV405_5_bnd_cA) \<or>
                 \<not> (\<not> SEV405_5_bnd_cA \<or> SV1 (SEV405_5_bnd_sK1_SY2 SV1)))) =
             False"
@@ -1046,28 +1046,28 @@ consts PUZ107_5_bnd_sK1_SX0 ::
       \<Rightarrow> TPTP_Interpret.ind
         \<Rightarrow> TPTP_Interpret.ind \<Rightarrow> TPTP_Interpret.ind \<Rightarrow> bool"
 
-lemma "\<forall>(SV4\<Colon>TPTP_Interpret.ind) (SV8\<Colon>TPTP_Interpret.ind)
-   (SV6\<Colon>TPTP_Interpret.ind) (SV2\<Colon>TPTP_Interpret.ind)
-   (SV3\<Colon>TPTP_Interpret.ind) SV1\<Colon>TPTP_Interpret.ind.
+lemma "\<forall>(SV4::TPTP_Interpret.ind) (SV8::TPTP_Interpret.ind)
+   (SV6::TPTP_Interpret.ind) (SV2::TPTP_Interpret.ind)
+   (SV3::TPTP_Interpret.ind) SV1::TPTP_Interpret.ind.
    ((SV1 \<noteq> SV3) = False \<or> PUZ107_5_bnd_sK1_SX0 SV1 SV2 SV6 SV8 = False) \<or>
    PUZ107_5_bnd_sK1_SX0 SV3 SV4 SV6 SV8 = False \<Longrightarrow>
-\<forall>(SV4\<Colon>TPTP_Interpret.ind) (SV8\<Colon>TPTP_Interpret.ind)
-   (SV6\<Colon>TPTP_Interpret.ind) (SV2\<Colon>TPTP_Interpret.ind)
-   (SV3\<Colon>TPTP_Interpret.ind) SV1\<Colon>TPTP_Interpret.ind.
+\<forall>(SV4::TPTP_Interpret.ind) (SV8::TPTP_Interpret.ind)
+   (SV6::TPTP_Interpret.ind) (SV2::TPTP_Interpret.ind)
+   (SV3::TPTP_Interpret.ind) SV1::TPTP_Interpret.ind.
    ((SV1 = SV3) = True \<or> PUZ107_5_bnd_sK1_SX0 SV1 SV2 SV6 SV8 = False) \<or>
    PUZ107_5_bnd_sK1_SX0 SV3 SV4 SV6 SV8 = False"
 by (tactic {*nonfull_extcnf_combined_tac @{context} [Not_neg]*})
 
 lemma "
-\<forall>(SV8\<Colon>TPTP_Interpret.ind) (SV6\<Colon>TPTP_Interpret.ind)
-   (SV4\<Colon>TPTP_Interpret.ind) (SV2\<Colon>TPTP_Interpret.ind)
-   (SV3\<Colon>TPTP_Interpret.ind) SV1\<Colon>TPTP_Interpret.ind.
+\<forall>(SV8::TPTP_Interpret.ind) (SV6::TPTP_Interpret.ind)
+   (SV4::TPTP_Interpret.ind) (SV2::TPTP_Interpret.ind)
+   (SV3::TPTP_Interpret.ind) SV1::TPTP_Interpret.ind.
    ((SV1 \<noteq> SV3 \<or> SV2 \<noteq> SV4) = False \<or>
     PUZ107_5_bnd_sK1_SX0 SV1 SV2 SV6 SV8 = False) \<or>
    PUZ107_5_bnd_sK1_SX0 SV3 SV4 SV6 SV8 = False \<Longrightarrow>
-\<forall>(SV4\<Colon>TPTP_Interpret.ind) (SV8\<Colon>TPTP_Interpret.ind)
-   (SV6\<Colon>TPTP_Interpret.ind) (SV2\<Colon>TPTP_Interpret.ind)
-   (SV3\<Colon>TPTP_Interpret.ind) SV1\<Colon>TPTP_Interpret.ind.
+\<forall>(SV4::TPTP_Interpret.ind) (SV8::TPTP_Interpret.ind)
+   (SV6::TPTP_Interpret.ind) (SV2::TPTP_Interpret.ind)
+   (SV3::TPTP_Interpret.ind) SV1::TPTP_Interpret.ind.
    ((SV1 \<noteq> SV3) = False \<or> PUZ107_5_bnd_sK1_SX0 SV1 SV2 SV6 SV8 = False) \<or>
    PUZ107_5_bnd_sK1_SX0 SV3 SV4 SV6 SV8 = False"
 by (tactic {*nonfull_extcnf_combined_tac @{context} [Or_neg]*})
@@ -1081,70 +1081,70 @@ consts
   NUM016_5_bnd_less :: "TPTP_Interpret.ind \<Rightarrow> TPTP_Interpret.ind \<Rightarrow> bool"
 
      (* (Annotated_step ("6", "unfold_def"), *)
-lemma "((((((((((((\<forall>X\<Colon>TPTP_Interpret.ind. \<not> NUM016_5_bnd_less X X) \<and>
-                    (\<forall>(X\<Colon>TPTP_Interpret.ind)
-                        Y\<Colon>TPTP_Interpret.ind.
+lemma "((((((((((((\<forall>X::TPTP_Interpret.ind. \<not> NUM016_5_bnd_less X X) \<and>
+                    (\<forall>(X::TPTP_Interpret.ind)
+                        Y::TPTP_Interpret.ind.
                         \<not> NUM016_5_bnd_less X Y \<or> \<not> NUM016_5_bnd_less Y X)) \<and>
-                   (\<forall>X\<Colon>TPTP_Interpret.ind. NUM016_5_bnd_divides X X)) \<and>
-                  (\<forall>(X\<Colon>TPTP_Interpret.ind)
-                      (Y\<Colon>TPTP_Interpret.ind)
-                      Z\<Colon>TPTP_Interpret.ind.
+                   (\<forall>X::TPTP_Interpret.ind. NUM016_5_bnd_divides X X)) \<and>
+                  (\<forall>(X::TPTP_Interpret.ind)
+                      (Y::TPTP_Interpret.ind)
+                      Z::TPTP_Interpret.ind.
                       (\<not> NUM016_5_bnd_divides X Y \<or> \<not> NUM016_5_bnd_divides Y Z) \<or>
                       NUM016_5_bnd_divides X Z)) \<and>
-                 (\<forall>(X\<Colon>TPTP_Interpret.ind) Y\<Colon>TPTP_Interpret.ind.
+                 (\<forall>(X::TPTP_Interpret.ind) Y::TPTP_Interpret.ind.
                      \<not> NUM016_5_bnd_divides X Y \<or> \<not> NUM016_5_bnd_less Y X)) \<and>
-                (\<forall>X\<Colon>TPTP_Interpret.ind.
+                (\<forall>X::TPTP_Interpret.ind.
                     NUM016_5_bnd_less X (NUM016_5_bnd_factorial_plus_one X))) \<and>
-               (\<forall>(X\<Colon>TPTP_Interpret.ind) Y\<Colon>TPTP_Interpret.ind.
+               (\<forall>(X::TPTP_Interpret.ind) Y::TPTP_Interpret.ind.
                    \<not> NUM016_5_bnd_divides X (NUM016_5_bnd_factorial_plus_one Y) \<or>
                    NUM016_5_bnd_less Y X)) \<and>
-              (\<forall>X\<Colon>TPTP_Interpret.ind.
+              (\<forall>X::TPTP_Interpret.ind.
                   NUM016_5_bnd_prime X \<or>
                   NUM016_5_bnd_divides (NUM016_5_bnd_prime_divisor X) X)) \<and>
-             (\<forall>X\<Colon>TPTP_Interpret.ind.
+             (\<forall>X::TPTP_Interpret.ind.
                  NUM016_5_bnd_prime X \<or>
                  NUM016_5_bnd_prime (NUM016_5_bnd_prime_divisor X))) \<and>
-            (\<forall>X\<Colon>TPTP_Interpret.ind.
+            (\<forall>X::TPTP_Interpret.ind.
                 NUM016_5_bnd_prime X \<or>
                 NUM016_5_bnd_less (NUM016_5_bnd_prime_divisor X) X)) \<and>
            NUM016_5_bnd_prime NUM016_5_bnd_a) \<and>
-          (\<forall>X\<Colon>TPTP_Interpret.ind.
+          (\<forall>X::TPTP_Interpret.ind.
               (\<not> NUM016_5_bnd_prime X \<or> \<not> NUM016_5_bnd_less NUM016_5_bnd_a X) \<or>
               NUM016_5_bnd_less (NUM016_5_bnd_factorial_plus_one NUM016_5_bnd_a) X)) =
          True \<Longrightarrow>
-         (\<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> (\<forall>SX0\<Colon>TPTP_Interpret.ind.
+         (\<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> \<not> (\<not> (\<forall>SX0::TPTP_Interpret.ind.
      \<not> NUM016_5_bnd_less SX0 SX0) \<or>
-                               \<not> (\<forall>(SX0\<Colon>TPTP_Interpret.ind)
-     SX1\<Colon>TPTP_Interpret.ind.
+                               \<not> (\<forall>(SX0::TPTP_Interpret.ind)
+     SX1::TPTP_Interpret.ind.
      \<not> NUM016_5_bnd_less SX0 SX1 \<or> \<not> NUM016_5_bnd_less SX1 SX0)) \<or>
-                          \<not> (\<forall>SX0\<Colon>TPTP_Interpret.ind.
+                          \<not> (\<forall>SX0::TPTP_Interpret.ind.
 NUM016_5_bnd_divides SX0 SX0)) \<or>
-                     \<not> (\<forall>(SX0\<Colon>TPTP_Interpret.ind)
-                           (SX1\<Colon>TPTP_Interpret.ind)
-                           SX2\<Colon>TPTP_Interpret.ind.
+                     \<not> (\<forall>(SX0::TPTP_Interpret.ind)
+                           (SX1::TPTP_Interpret.ind)
+                           SX2::TPTP_Interpret.ind.
                            (\<not> NUM016_5_bnd_divides SX0 SX1 \<or>
                             \<not> NUM016_5_bnd_divides SX1 SX2) \<or>
                            NUM016_5_bnd_divides SX0 SX2)) \<or>
-                \<not> (\<forall>(SX0\<Colon>TPTP_Interpret.ind)
-                      SX1\<Colon>TPTP_Interpret.ind.
+                \<not> (\<forall>(SX0::TPTP_Interpret.ind)
+                      SX1::TPTP_Interpret.ind.
                       \<not> NUM016_5_bnd_divides SX0 SX1 \<or>
                       \<not> NUM016_5_bnd_less SX1 SX0)) \<or>
-           \<not> (\<forall>SX0\<Colon>TPTP_Interpret.ind.
+           \<not> (\<forall>SX0::TPTP_Interpret.ind.
                  NUM016_5_bnd_less SX0 (NUM016_5_bnd_factorial_plus_one SX0))) \<or>
-      \<not> (\<forall>(SX0\<Colon>TPTP_Interpret.ind) SX1\<Colon>TPTP_Interpret.ind.
+      \<not> (\<forall>(SX0::TPTP_Interpret.ind) SX1::TPTP_Interpret.ind.
             \<not> NUM016_5_bnd_divides SX0 (NUM016_5_bnd_factorial_plus_one SX1) \<or>
             NUM016_5_bnd_less SX1 SX0)) \<or>
- \<not> (\<forall>SX0\<Colon>TPTP_Interpret.ind.
+ \<not> (\<forall>SX0::TPTP_Interpret.ind.
        NUM016_5_bnd_prime SX0 \<or>
        NUM016_5_bnd_divides (NUM016_5_bnd_prime_divisor SX0) SX0)) \<or>
-                            \<not> (\<forall>SX0\<Colon>TPTP_Interpret.ind.
+                            \<not> (\<forall>SX0::TPTP_Interpret.ind.
   NUM016_5_bnd_prime SX0 \<or> NUM016_5_bnd_prime (NUM016_5_bnd_prime_divisor SX0))) \<or>
-                       \<not> (\<forall>SX0\<Colon>TPTP_Interpret.ind.
+                       \<not> (\<forall>SX0::TPTP_Interpret.ind.
                              NUM016_5_bnd_prime SX0 \<or>
                              NUM016_5_bnd_less (NUM016_5_bnd_prime_divisor SX0)
                               SX0)) \<or>
                   \<not> NUM016_5_bnd_prime NUM016_5_bnd_a) \<or>
-             \<not> (\<forall>SX0\<Colon>TPTP_Interpret.ind.
+             \<not> (\<forall>SX0::TPTP_Interpret.ind.
                    (\<not> NUM016_5_bnd_prime SX0 \<or> \<not> NUM016_5_bnd_less NUM016_5_bnd_a SX0) \<or>
                    NUM016_5_bnd_less (NUM016_5_bnd_factorial_plus_one NUM016_5_bnd_a)
                     SX0))) =
@@ -1248,7 +1248,7 @@ consts
 
 (*test that nullary skolem terms are OK*)
      (* (Annotated_step ("79", "extcnf_forall_neg"), *)
-lemma "(\<forall>SX0\<Colon>TPTP_Interpret.ind.
+lemma "(\<forall>SX0::TPTP_Interpret.ind.
              AGT037_2_bnd_possibly_likes AGT037_2_bnd_jan AGT037_2_bnd_cola SX0) =
          False \<Longrightarrow>
          AGT037_2_bnd_possibly_likes AGT037_2_bnd_jan AGT037_2_bnd_cola AGT037_2_bnd_sK1_SX0 =
@@ -1256,27 +1256,27 @@ lemma "(\<forall>SX0\<Colon>TPTP_Interpret.ind.
 by (tactic {*nonfull_extcnf_combined_tac @{context} [Existential_Var]*})
 
      (* (Annotated_step ("202", "extcnf_forall_neg"), *)
-lemma "\<forall>(SV13\<Colon>TPTP_Interpret.ind) (SV39\<Colon>AGT037_2_bnd_mu) (SV29\<Colon>AGT037_2_bnd_mu)
-            SV45\<Colon>TPTP_Interpret.ind.
-            ((((\<forall>SY68\<Colon>TPTP_Interpret.ind.
+lemma "\<forall>(SV13::TPTP_Interpret.ind) (SV39::AGT037_2_bnd_mu) (SV29::AGT037_2_bnd_mu)
+            SV45::TPTP_Interpret.ind.
+            ((((\<forall>SY68::TPTP_Interpret.ind.
                    \<not> AGT037_2_bnd_a1 SV45 SY68 \<or>
                    AGT037_2_bnd_likes SV29 SV39 SY68) =
                False \<or>
-               (\<not> (\<forall>SY69\<Colon>TPTP_Interpret.ind.
+               (\<not> (\<forall>SY69::TPTP_Interpret.ind.
                       \<not> AGT037_2_bnd_a2 SV45 SY69 \<or>
                       AGT037_2_bnd_likes SV29 SV39 SY69)) =
                True) \<or>
               AGT037_2_bnd_likes SV29 SV39 SV45 = False) \<or>
              AGT037_2_bnd_very_much_likes SV29 SV39 SV45 = True) \<or>
             AGT037_2_bnd_a3 SV13 SV45 = False \<Longrightarrow>
-         \<forall>(SV29\<Colon>AGT037_2_bnd_mu) (SV39\<Colon>AGT037_2_bnd_mu) (SV13\<Colon>TPTP_Interpret.ind)
-            SV45\<Colon>TPTP_Interpret.ind.
+         \<forall>(SV29::AGT037_2_bnd_mu) (SV39::AGT037_2_bnd_mu) (SV13::TPTP_Interpret.ind)
+            SV45::TPTP_Interpret.ind.
             ((((\<not> AGT037_2_bnd_a1 SV45
                    (AGT037_2_bnd_sK5_SY68 SV13 SV39 SV29 SV45) \<or>
                 AGT037_2_bnd_likes SV29 SV39
                  (AGT037_2_bnd_sK5_SY68 SV13 SV39 SV29 SV45)) =
                False \<or>
-               (\<not> (\<forall>SY69\<Colon>TPTP_Interpret.ind.
+               (\<not> (\<forall>SY69::TPTP_Interpret.ind.
                       \<not> AGT037_2_bnd_a2 SV45 SY69 \<or>
                       AGT037_2_bnd_likes SV29 SV39 SY69)) =
                True) \<or>
@@ -1555,10 +1555,10 @@ lemma "(bnd_addition bnd_sK1_X1 bnd_sK2_X2 \<noteq>
           bnd_addition bnd_sK2_X2 bnd_sK1_X1) =
          True \<Longrightarrow>
          (bnd_sup
-           (\<lambda>SX0\<Colon>TPTP_Interpret.ind.
+           (\<lambda>SX0::TPTP_Interpret.ind.
                SX0 = bnd_sK1_X1 \<or> SX0 = bnd_sK2_X2) \<noteq>
           bnd_sup
-           (\<lambda>SX0\<Colon>TPTP_Interpret.ind.
+           (\<lambda>SX0::TPTP_Interpret.ind.
                SX0 = bnd_sK2_X2 \<or> SX0 = bnd_sK1_X1)) =
          True"
 by (tactic {*rtac (leo2_tac @{context} (hd prob_names) "20") 1*})
@@ -2011,60 +2011,60 @@ declare [[ML_print_depth = 1400]]
 
      (* (Annotated_step ("12", "unfold_def"), *)
 lemma "bnd_mor =
-         (\<lambda>(X\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             (Y\<Colon>TPTP_Interpret.ind \<Rightarrow> bool) U\<Colon>TPTP_Interpret.ind.
+         (\<lambda>(X::TPTP_Interpret.ind \<Rightarrow> bool)
+             (Y::TPTP_Interpret.ind \<Rightarrow> bool) U::TPTP_Interpret.ind.
              X U \<or> Y U) \<and>
          bnd_mnot =
-         (\<lambda>(X\<Colon>TPTP_Interpret.ind \<Rightarrow> bool) U\<Colon>TPTP_Interpret.ind.
+         (\<lambda>(X::TPTP_Interpret.ind \<Rightarrow> bool) U::TPTP_Interpret.ind.
              \<not> X U) \<and>
          bnd_mimplies =
-         (\<lambda>U\<Colon>TPTP_Interpret.ind \<Rightarrow> bool. bnd_mor (bnd_mnot U)) \<and>
+         (\<lambda>U::TPTP_Interpret.ind \<Rightarrow> bool. bnd_mor (bnd_mnot U)) \<and>
          bnd_mbox_s4 =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool) X\<Colon>TPTP_Interpret.ind.
-             \<forall>Y\<Colon>TPTP_Interpret.ind. bnd_irel X Y \<longrightarrow> P Y) \<and>
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool) X::TPTP_Interpret.ind.
+             \<forall>Y::TPTP_Interpret.ind. bnd_irel X Y \<longrightarrow> P Y) \<and>
          bnd_mand =
-         (\<lambda>(X\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             (Y\<Colon>TPTP_Interpret.ind \<Rightarrow> bool) U\<Colon>TPTP_Interpret.ind.
+         (\<lambda>(X::TPTP_Interpret.ind \<Rightarrow> bool)
+             (Y::TPTP_Interpret.ind \<Rightarrow> bool) U::TPTP_Interpret.ind.
              X U \<and> Y U) \<and>
          bnd_ixor =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             Q\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool)
+             Q::TPTP_Interpret.ind \<Rightarrow> bool.
              bnd_inot (bnd_iequiv P Q)) \<and>
          bnd_ivalid = All \<and>
-         bnd_itrue = (\<lambda>W\<Colon>TPTP_Interpret.ind. True) \<and>
+         bnd_itrue = (\<lambda>W::TPTP_Interpret.ind. True) \<and>
          bnd_isatisfiable = Ex \<and>
          bnd_ior =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             Q\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool)
+             Q::TPTP_Interpret.ind \<Rightarrow> bool.
              bnd_mor (bnd_mbox_s4 P) (bnd_mbox_s4 Q)) \<and>
          bnd_inot =
-         (\<lambda>P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         (\<lambda>P::TPTP_Interpret.ind \<Rightarrow> bool.
              bnd_mnot (bnd_mbox_s4 P)) \<and>
          bnd_iinvalid =
-         (\<lambda>Phi\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
-             \<forall>W\<Colon>TPTP_Interpret.ind. \<not> Phi W) \<and>
+         (\<lambda>Phi::TPTP_Interpret.ind \<Rightarrow> bool.
+             \<forall>W::TPTP_Interpret.ind. \<not> Phi W) \<and>
          bnd_iimplies =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             Q\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool)
+             Q::TPTP_Interpret.ind \<Rightarrow> bool.
              bnd_mimplies (bnd_mbox_s4 P) (bnd_mbox_s4 Q)) \<and>
          bnd_iimplied =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             Q\<Colon>TPTP_Interpret.ind \<Rightarrow> bool. bnd_iimplies Q P) \<and>
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool)
+             Q::TPTP_Interpret.ind \<Rightarrow> bool. bnd_iimplies Q P) \<and>
          bnd_ifalse = bnd_inot bnd_itrue \<and>
          bnd_iequiv =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             Q\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool)
+             Q::TPTP_Interpret.ind \<Rightarrow> bool.
              bnd_iand (bnd_iimplies P Q) (bnd_iimplies Q P)) \<and>
          bnd_icountersatisfiable =
-         (\<lambda>Phi\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
-             \<exists>W\<Colon>TPTP_Interpret.ind. \<not> Phi W) \<and>
-         bnd_iatom = (\<lambda>P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool. P) \<and>
+         (\<lambda>Phi::TPTP_Interpret.ind \<Rightarrow> bool.
+             \<exists>W::TPTP_Interpret.ind. \<not> Phi W) \<and>
+         bnd_iatom = (\<lambda>P::TPTP_Interpret.ind \<Rightarrow> bool. P) \<and>
          bnd_iand = bnd_mand \<and>
-         (\<forall>(X\<Colon>TPTP_Interpret.ind) (Y\<Colon>TPTP_Interpret.ind)
-             Z\<Colon>TPTP_Interpret.ind.
+         (\<forall>(X::TPTP_Interpret.ind) (Y::TPTP_Interpret.ind)
+             Z::TPTP_Interpret.ind.
              bnd_irel X Y \<and> bnd_irel Y Z \<longrightarrow> bnd_irel X Z) \<Longrightarrow>
-         (\<forall>(X\<Colon>TPTP_Interpret.ind) (Y\<Colon>TPTP_Interpret.ind)
-             Z\<Colon>TPTP_Interpret.ind.
+         (\<forall>(X::TPTP_Interpret.ind) (Y::TPTP_Interpret.ind)
+             Z::TPTP_Interpret.ind.
              bnd_irel X Y \<and> bnd_irel Y Z \<longrightarrow> bnd_irel X Z) =
          True"
 (* by (tactic {*tectoc @{context}*}) *)
@@ -2072,61 +2072,61 @@ by (tactic {*rtac (leo2_tac @{context} (hd prob_names) "12") 1*})
 
      (* (Annotated_step ("11", "unfold_def"), *)
 lemma "bnd_mor =
-         (\<lambda>(X\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             (Y\<Colon>TPTP_Interpret.ind \<Rightarrow> bool) U\<Colon>TPTP_Interpret.ind.
+         (\<lambda>(X::TPTP_Interpret.ind \<Rightarrow> bool)
+             (Y::TPTP_Interpret.ind \<Rightarrow> bool) U::TPTP_Interpret.ind.
              X U \<or> Y U) \<and>
          bnd_mnot =
-         (\<lambda>(X\<Colon>TPTP_Interpret.ind \<Rightarrow> bool) U\<Colon>TPTP_Interpret.ind.
+         (\<lambda>(X::TPTP_Interpret.ind \<Rightarrow> bool) U::TPTP_Interpret.ind.
              \<not> X U) \<and>
          bnd_mimplies =
-         (\<lambda>U\<Colon>TPTP_Interpret.ind \<Rightarrow> bool. bnd_mor (bnd_mnot U)) \<and>
+         (\<lambda>U::TPTP_Interpret.ind \<Rightarrow> bool. bnd_mor (bnd_mnot U)) \<and>
          bnd_mbox_s4 =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool) X\<Colon>TPTP_Interpret.ind.
-             \<forall>Y\<Colon>TPTP_Interpret.ind. bnd_irel X Y \<longrightarrow> P Y) \<and>
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool) X::TPTP_Interpret.ind.
+             \<forall>Y::TPTP_Interpret.ind. bnd_irel X Y \<longrightarrow> P Y) \<and>
          bnd_mand =
-         (\<lambda>(X\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             (Y\<Colon>TPTP_Interpret.ind \<Rightarrow> bool) U\<Colon>TPTP_Interpret.ind.
+         (\<lambda>(X::TPTP_Interpret.ind \<Rightarrow> bool)
+             (Y::TPTP_Interpret.ind \<Rightarrow> bool) U::TPTP_Interpret.ind.
              X U \<and> Y U) \<and>
          bnd_ixor =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             Q\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool)
+             Q::TPTP_Interpret.ind \<Rightarrow> bool.
              bnd_inot (bnd_iequiv P Q)) \<and>
          bnd_ivalid = All \<and>
-         bnd_itrue = (\<lambda>W\<Colon>TPTP_Interpret.ind. True) \<and>
+         bnd_itrue = (\<lambda>W::TPTP_Interpret.ind. True) \<and>
          bnd_isatisfiable = Ex \<and>
          bnd_ior =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             Q\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool)
+             Q::TPTP_Interpret.ind \<Rightarrow> bool.
              bnd_mor (bnd_mbox_s4 P) (bnd_mbox_s4 Q)) \<and>
          bnd_inot =
-         (\<lambda>P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         (\<lambda>P::TPTP_Interpret.ind \<Rightarrow> bool.
              bnd_mnot (bnd_mbox_s4 P)) \<and>
          bnd_iinvalid =
-         (\<lambda>Phi\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
-             \<forall>W\<Colon>TPTP_Interpret.ind. \<not> Phi W) \<and>
+         (\<lambda>Phi::TPTP_Interpret.ind \<Rightarrow> bool.
+             \<forall>W::TPTP_Interpret.ind. \<not> Phi W) \<and>
          bnd_iimplies =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             Q\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool)
+             Q::TPTP_Interpret.ind \<Rightarrow> bool.
              bnd_mimplies (bnd_mbox_s4 P) (bnd_mbox_s4 Q)) \<and>
          bnd_iimplied =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             Q\<Colon>TPTP_Interpret.ind \<Rightarrow> bool. bnd_iimplies Q P) \<and>
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool)
+             Q::TPTP_Interpret.ind \<Rightarrow> bool. bnd_iimplies Q P) \<and>
          bnd_ifalse = bnd_inot bnd_itrue \<and>
          bnd_iequiv =
-         (\<lambda>(P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool)
-             Q\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         (\<lambda>(P::TPTP_Interpret.ind \<Rightarrow> bool)
+             Q::TPTP_Interpret.ind \<Rightarrow> bool.
              bnd_iand (bnd_iimplies P Q) (bnd_iimplies Q P)) \<and>
          bnd_icountersatisfiable =
-         (\<lambda>Phi\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
-             \<exists>W\<Colon>TPTP_Interpret.ind. \<not> Phi W) \<and>
-         bnd_iatom = (\<lambda>P\<Colon>TPTP_Interpret.ind \<Rightarrow> bool. P) \<and>
+         (\<lambda>Phi::TPTP_Interpret.ind \<Rightarrow> bool.
+             \<exists>W::TPTP_Interpret.ind. \<not> Phi W) \<and>
+         bnd_iatom = (\<lambda>P::TPTP_Interpret.ind \<Rightarrow> bool. P) \<and>
          bnd_iand = bnd_mand \<and>
          bnd_ivalid
           (bnd_iimplies (bnd_iatom bnd_q) (bnd_iatom bnd_r)) \<Longrightarrow>
-         (\<forall>SY161\<Colon>TPTP_Interpret.ind.
-             \<not> (\<forall>SY162\<Colon>TPTP_Interpret.ind.
+         (\<forall>SY161::TPTP_Interpret.ind.
+             \<not> (\<forall>SY162::TPTP_Interpret.ind.
                    bnd_irel SY161 SY162 \<longrightarrow> bnd_q SY162) \<or>
-             (\<forall>SY163\<Colon>TPTP_Interpret.ind.
+             (\<forall>SY163::TPTP_Interpret.ind.
                  bnd_irel SY161 SY163 \<longrightarrow> bnd_r SY163)) =
          True"
 (* by (tactic {*tectoc @{context}*}) *)
@@ -2147,12 +2147,12 @@ by (tactic {*HEADGOAL (extcnf_combined_tac Full false (hd prob_names))*})
 *)
 
      (* (Annotated_step ("11", "extcnf_forall_neg"), *)
-lemma "\<forall>SV1\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
-            (\<forall>SY2\<Colon>TPTP_Interpret.ind.
+lemma "\<forall>SV1::TPTP_Interpret.ind \<Rightarrow> bool.
+            (\<forall>SY2::TPTP_Interpret.ind.
                 \<not> (\<not> (\<not> SV1 SY2 \<or> SEV405_5_bnd_cA) \<or>
                    \<not> (\<not> SEV405_5_bnd_cA \<or> SV1 SY2))) =
             False \<Longrightarrow>
-         \<forall>SV1\<Colon>TPTP_Interpret.ind \<Rightarrow> bool.
+         \<forall>SV1::TPTP_Interpret.ind \<Rightarrow> bool.
             (\<not> (\<not> (\<not> SV1 (SEV405_5_bnd_sK1_SY2 SV1) \<or> SEV405_5_bnd_cA) \<or>
                 \<not> (\<not> SEV405_5_bnd_cA \<or> SV1 (SEV405_5_bnd_sK1_SY2 SV1)))) =
             False"
@@ -2184,7 +2184,7 @@ by (tactic {*nonfull_extcnf_combined_tac @{context} [Universal]*})
 
 (*from SYO198^5.p.out*)
    (* [[(Annotated_step ("11", "extcnf_forall_special_pos"), *)
-lemma "(\<forall>SX0\<Colon>bool \<Rightarrow> bool.
+lemma "(\<forall>SX0::bool \<Rightarrow> bool.
              \<not> \<not> (\<not> SX0 bnd_sK1_Xx \<or> \<not> SX0 bnd_sK2_Xy)) =
          True \<Longrightarrow>
          (\<not> \<not> (\<not> True \<or> \<not> True)) = True"
@@ -2192,7 +2192,7 @@ apply (tactic {*extcnf_forall_special_pos_tac 1*})
 done
 
      (* (Annotated_step ("13", "extcnf_forall_special_pos"), *)
-lemma "(\<forall>SX0\<Colon>bool \<Rightarrow> bool.
+lemma "(\<forall>SX0::bool \<Rightarrow> bool.
              \<not> \<not> (\<not> SX0 bnd_sK1_Xx \<or> \<not> SX0 bnd_sK2_Xy)) =
          True \<Longrightarrow>
          (\<not> \<not> (\<not> bnd_sK1_Xx \<or> \<not> bnd_sK2_Xy)) = True"
@@ -2200,9 +2200,9 @@ apply (tactic {*extcnf_forall_special_pos_tac 1*})
 done
 
    (* [[(Annotated_step ("8", "polarity_switch"), *)
-lemma "(\<forall>(Xx\<Colon>bool) (Xy\<Colon>bool) Xz\<Colon>bool. True \<and> True \<longrightarrow> True) =
+lemma "(\<forall>(Xx::bool) (Xy::bool) Xz::bool. True \<and> True \<longrightarrow> True) =
          False \<Longrightarrow>
-         (\<not> (\<forall>(Xx\<Colon>bool) (Xy\<Colon>bool) Xz\<Colon>bool.
+         (\<not> (\<forall>(Xx::bool) (Xy::bool) Xz::bool.
                 True \<and> True \<longrightarrow> True)) =
          True"
 apply (tactic {*nonfull_extcnf_combined_tac @{context} [Polarity_switch]*})

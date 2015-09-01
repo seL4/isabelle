@@ -10,7 +10,7 @@ text {*
   of overloading\footnote{throughout this tutorial, we are referring
   to classical Haskell 1.0 type classes, not considering later
   additions in expressiveness}.  As a canonical example, a polymorphic
-  equality function @{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} which is overloaded on
+  equality function @{text "eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} which is overloaded on
   different types for @{text "\<alpha>"}, which is achieved by splitting
   introduction of the @{text eq} function from its overloaded
   definitions by means of @{text class} and @{text instance}
@@ -20,20 +20,20 @@ text {*
   \begin{quote}
 
   \noindent@{text "class eq where"} \\
-  \hspace*{2ex}@{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
+  \hspace*{2ex}@{text "eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
 
-  \medskip\noindent@{text "instance nat \<Colon> eq where"} \\
+  \medskip\noindent@{text "instance nat :: eq where"} \\
   \hspace*{2ex}@{text "eq 0 0 = True"} \\
   \hspace*{2ex}@{text "eq 0 _ = False"} \\
   \hspace*{2ex}@{text "eq _ 0 = False"} \\
   \hspace*{2ex}@{text "eq (Suc n) (Suc m) = eq n m"}
 
-  \medskip\noindent@{text "instance (\<alpha>\<Colon>eq, \<beta>\<Colon>eq) pair \<Colon> eq where"} \\
+  \medskip\noindent@{text "instance (\<alpha>::eq, \<beta>::eq) pair :: eq where"} \\
   \hspace*{2ex}@{text "eq (x1, y1) (x2, y2) = eq x1 x2 \<and> eq y1 y2"}
 
   \medskip\noindent@{text "class ord extends eq where"} \\
-  \hspace*{2ex}@{text "less_eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
-  \hspace*{2ex}@{text "less \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
+  \hspace*{2ex}@{text "less_eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
+  \hspace*{2ex}@{text "less :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
 
   \end{quote}
 
@@ -57,7 +57,7 @@ text {*
   \begin{quote}
 
   \noindent@{text "class eq where"} \\
-  \hspace*{2ex}@{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
+  \hspace*{2ex}@{text "eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
   @{text "satisfying"} \\
   \hspace*{2ex}@{text "refl: eq x x"} \\
   \hspace*{2ex}@{text "sym: eq x y \<longleftrightarrow> eq x y"} \\
@@ -111,9 +111,9 @@ text {*
   "fixes"}), the \qn{logical} part specifies properties on them
   (@{element "assumes"}).  The local @{element "fixes"} and @{element
   "assumes"} are lifted to the theory toplevel, yielding the global
-  parameter @{term [source] "mult \<Colon> \<alpha>\<Colon>semigroup \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"} and the
-  global theorem @{fact "semigroup.assoc:"}~@{prop [source] "\<And>x y z \<Colon>
-  \<alpha>\<Colon>semigroup. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"}.
+  parameter @{term [source] "mult :: \<alpha>::semigroup \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"} and the
+  global theorem @{fact "semigroup.assoc:"}~@{prop [source] "\<And>x y z ::
+  \<alpha>::semigroup. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"}.
 *}
 
 
@@ -130,7 +130,7 @@ instantiation %quote int :: semigroup
 begin
 
 definition %quote
-  mult_int_def: "i \<otimes> j = i + (j\<Colon>int)"
+  mult_int_def: "i \<otimes> j = i + (j::int)"
 
 instance %quote proof
   fix i j k :: int have "(i + j) + k = i + (j + k)" by simp
@@ -163,7 +163,7 @@ instantiation %quote nat :: semigroup
 begin
 
 primrec %quote mult_nat where
-  "(0\<Colon>nat) \<otimes> n = n"
+  "(0::nat) \<otimes> n = n"
   | "Suc m \<otimes> n = Suc (m \<otimes> n)"
 
 instance %quote proof
@@ -197,7 +197,7 @@ definition %quote
   mult_prod_def: "p\<^sub>1 \<otimes> p\<^sub>2 = (fst p\<^sub>1 \<otimes> fst p\<^sub>2, snd p\<^sub>1 \<otimes> snd p\<^sub>2)"
 
 instance %quote proof
-  fix p\<^sub>1 p\<^sub>2 p\<^sub>3 :: "\<alpha>\<Colon>semigroup \<times> \<beta>\<Colon>semigroup"
+  fix p\<^sub>1 p\<^sub>2 p\<^sub>3 :: "\<alpha>::semigroup \<times> \<beta>::semigroup"
   show "p\<^sub>1 \<otimes> p\<^sub>2 \<otimes> p\<^sub>3 = p\<^sub>1 \<otimes> (p\<^sub>2 \<otimes> p\<^sub>3)"
     unfolding mult_prod_def by (simp add: assoc)
 qed      
@@ -237,10 +237,10 @@ instantiation %quote nat and int :: monoidl
 begin
 
 definition %quote
-  neutral_nat_def: "\<one> = (0\<Colon>nat)"
+  neutral_nat_def: "\<one> = (0::nat)"
 
 definition %quote
-  neutral_int_def: "\<one> = (0\<Colon>int)"
+  neutral_int_def: "\<one> = (0::int)"
 
 instance %quote proof
   fix n :: nat
@@ -261,7 +261,7 @@ definition %quote
   neutral_prod_def: "\<one> = (\<one>, \<one>)"
 
 instance %quote proof
-  fix p :: "\<alpha>\<Colon>monoidl \<times> \<beta>\<Colon>monoidl"
+  fix p :: "\<alpha>::monoidl \<times> \<beta>::monoidl"
   show "\<one> \<otimes> p = p"
     unfolding neutral_prod_def mult_prod_def by (simp add: neutl)
 qed
@@ -295,7 +295,7 @@ instantiation %quote prod :: (monoid, monoid) monoid
 begin
 
 instance %quote proof 
-  fix p :: "\<alpha>\<Colon>monoid \<times> \<beta>\<Colon>monoid"
+  fix p :: "\<alpha>::monoid \<times> \<beta>::monoid"
   show "p \<otimes> \<one> = p"
     unfolding neutral_prod_def mult_prod_def by (simp add: neutr)
 qed
@@ -315,7 +315,7 @@ instantiation %quote int :: group
 begin
 
 definition %quote
-  inverse_int_def: "i\<div> = - (i\<Colon>int)"
+  inverse_int_def: "i\<div> = - (i::int)"
 
 instance %quote proof
   fix i :: int
@@ -361,7 +361,7 @@ text {*
 *}
 
 interpretation %quote idem_class:
-  idem "f \<Colon> (\<alpha>\<Colon>idem) \<Rightarrow> \<alpha>"
+  idem "f :: (\<alpha>::idem) \<Rightarrow> \<alpha>"
 (*<*)sorry(*>*)
 
 text {*
@@ -394,10 +394,10 @@ text {*
   \noindent Here the \qt{@{keyword "in"} @{class group}} target
   specification indicates that the result is recorded within that
   context for later use.  This local theorem is also lifted to the
-  global one @{fact "group.left_cancel:"} @{prop [source] "\<And>x y z \<Colon>
-  \<alpha>\<Colon>group. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"}.  Since type @{text "int"} has been
+  global one @{fact "group.left_cancel:"} @{prop [source] "\<And>x y z ::
+  \<alpha>::group. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"}.  Since type @{text "int"} has been
   made an instance of @{text "group"} before, we may refer to that
-  fact as well: @{prop [source] "\<And>x y z \<Colon> int. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y =
+  fact as well: @{prop [source] "\<And>x y z :: int. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y =
   z"}.
 *}
 
@@ -415,7 +415,7 @@ primrec %quote (in monoid) pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> 
 text {*
   \noindent If the locale @{text group} is also a class, this local
   definition is propagated onto a global definition of @{term [source]
-  "pow_nat \<Colon> nat \<Rightarrow> \<alpha>\<Colon>monoid \<Rightarrow> \<alpha>\<Colon>monoid"} with corresponding theorems
+  "pow_nat :: nat \<Rightarrow> \<alpha>::monoid \<Rightarrow> \<alpha>::monoid"} with corresponding theorems
 
   @{thm pow_nat.simps [no_vars]}.
 
@@ -542,8 +542,8 @@ definition %quote (in group) pow_int :: "int \<Rightarrow> \<alpha> \<Rightarrow
     else (pow_nat (nat (- k)) x)\<div>)"
 
 text {*
-  \noindent yields the global definition of @{term [source] "pow_int \<Colon>
-  int \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group"} with the corresponding theorem @{thm
+  \noindent yields the global definition of @{term [source] "pow_int ::
+  int \<Rightarrow> \<alpha>::group \<Rightarrow> \<alpha>::group"} with the corresponding theorem @{thm
   pow_int_def [no_vars]}.
 *}
 
@@ -559,7 +559,7 @@ context %quote semigroup
 begin
 
 term %quote "x \<otimes> y" -- {* example 1 *}
-term %quote "(x\<Colon>nat) \<otimes> y" -- {* example 2 *}
+term %quote "(x::nat) \<otimes> y" -- {* example 2 *}
 
 end  %quote
 
@@ -570,7 +570,7 @@ text {*
   operation @{text "mult [\<alpha>]"}, whereas in example 2 the type
   constraint enforces the global class operation @{text "mult [nat]"}.
   In the global context in example 3, the reference is to the
-  polymorphic global class operation @{text "mult [?\<alpha> \<Colon> semigroup]"}.
+  polymorphic global class operation @{text "mult [?\<alpha> :: semigroup]"}.
 *}
 
 section {* Further issues *}

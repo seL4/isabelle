@@ -85,10 +85,10 @@ apply (iprover elim: Nat_Abs_Nat_inverse [THEN subst])
 done
 
 free_constructors case_nat for
-    "0 \<Colon> nat"
+    "0 :: nat"
   | Suc pred
 where
-  "pred (0 \<Colon> nat) = (0 \<Colon> nat)"
+  "pred (0 :: nat) = (0 :: nat)"
     apply atomize_elim
     apply (rename_tac n, induct_tac n rule: nat_induct0, auto)
    apply (simp add: Suc_def Nat_Abs_Nat_inject Nat_Rep_Nat Suc_RepI Suc_Rep_inject'
@@ -99,7 +99,7 @@ where
 -- \<open>Avoid name clashes by prefixing the output of @{text old_rep_datatype} with @{text old}.\<close>
 setup \<open>Sign.mandatory_path "old"\<close>
 
-old_rep_datatype "0 \<Colon> nat" Suc
+old_rep_datatype "0 :: nat" Suc
   apply (erule nat_induct0, assumption)
  apply (rule nat.inject)
 apply (rule nat.distinct(1))
@@ -216,7 +216,7 @@ instantiation nat :: comm_monoid_diff
 begin
 
 primrec plus_nat where
-  add_0:      "0 + n = (n\<Colon>nat)"
+  add_0:      "0 + n = (n::nat)"
 | add_Suc:  "Suc m + n = Suc (m + n)"
 
 lemma add_0_right [simp]: "m + 0 = (m::nat)"
@@ -231,7 +231,7 @@ lemma add_Suc_shift [code]: "Suc m + n = m + Suc n"
   by simp
 
 primrec minus_nat where
-  diff_0 [code]: "m - 0 = (m\<Colon>nat)"
+  diff_0 [code]: "m - 0 = (m::nat)"
 | diff_Suc: "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
 
 declare diff_Suc [simp del]
@@ -263,7 +263,7 @@ definition
   One_nat_def [simp]: "1 = Suc 0"
 
 primrec times_nat where
-  mult_0:     "0 * n = (0\<Colon>nat)"
+  mult_0: "0 * n = (0::nat)"
 | mult_Suc: "Suc m * n = n + (m * n)"
 
 lemma mult_0_right [simp]: "(m::nat) * 0 = 0"
@@ -349,7 +349,7 @@ lemma Suc_eq_plus1_left: "Suc n = 1 + n"
 
 subsubsection \<open>Difference\<close>
 
-lemma diff_self_eq_0 [simp]: "(m\<Colon>nat) - m = 0"
+lemma diff_self_eq_0 [simp]: "(m::nat) - m = 0"
   by (fact diff_cancel)
 
 lemma diff_diff_left: "(i::nat) - j - k = i - (j + k)"
@@ -435,12 +435,12 @@ instantiation nat :: linorder
 begin
 
 primrec less_eq_nat where
-  "(0\<Colon>nat) \<le> n \<longleftrightarrow> True"
+  "(0::nat) \<le> n \<longleftrightarrow> True"
 | "Suc m \<le> n \<longleftrightarrow> (case n of 0 \<Rightarrow> False | Suc n \<Rightarrow> m \<le> n)"
 
 declare less_eq_nat.simps [simp del]
-lemma le0 [iff]: "0 \<le> (n\<Colon>nat)" by (simp add: less_eq_nat.simps)
-lemma [code]: "(0\<Colon>nat) \<le> n \<longleftrightarrow> True" by simp
+lemma le0 [iff]: "0 \<le> (n::nat)" by (simp add: less_eq_nat.simps)
+lemma [code]: "(0::nat) \<le> n \<longleftrightarrow> True" by simp
 
 definition less_nat where
   less_eq_Suc_le: "n < m \<longleftrightarrow> Suc n \<le> m"
@@ -451,13 +451,13 @@ lemma Suc_le_mono [iff]: "Suc n \<le> Suc m \<longleftrightarrow> n \<le> m"
 lemma Suc_le_eq [code]: "Suc m \<le> n \<longleftrightarrow> m < n"
   unfolding less_eq_Suc_le ..
 
-lemma le_0_eq [iff]: "(n\<Colon>nat) \<le> 0 \<longleftrightarrow> n = 0"
+lemma le_0_eq [iff]: "(n::nat) \<le> 0 \<longleftrightarrow> n = 0"
   by (induct n) (simp_all add: less_eq_nat.simps(2))
 
-lemma not_less0 [iff]: "\<not> n < (0\<Colon>nat)"
+lemma not_less0 [iff]: "\<not> n < (0::nat)"
   by (simp add: less_eq_Suc_le)
 
-lemma less_nat_zero_code [code]: "n < (0\<Colon>nat) \<longleftrightarrow> False"
+lemma less_nat_zero_code [code]: "n < (0::nat) \<longleftrightarrow> False"
   by simp
 
 lemma Suc_less_eq [iff]: "Suc m < Suc n \<longleftrightarrow> m < n"
@@ -1290,10 +1290,10 @@ instantiation nat :: distrib_lattice
 begin
 
 definition
-  "(inf \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat) = min"
+  "(inf :: nat \<Rightarrow> nat \<Rightarrow> nat) = min"
 
 definition
-  "(sup \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat) = max"
+  "(sup :: nat \<Rightarrow> nat \<Rightarrow> nat) = max"
 
 instance by intro_classes
   (auto simp add: inf_nat_def sup_nat_def max_def not_le min_def
@@ -1934,7 +1934,7 @@ lemma dvd_antisym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
 
 text \<open>@{term "op dvd"} is a partial order\<close>
 
-interpretation dvd: order "op dvd" "\<lambda>n m \<Colon> nat. n dvd m \<and> \<not> m dvd n"
+interpretation dvd: order "op dvd" "\<lambda>n m :: nat. n dvd m \<and> \<not> m dvd n"
   proof qed (auto intro: dvd_refl dvd_trans dvd_antisym)
 
 lemma dvd_diff_nat[simp]: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"
@@ -2021,7 +2021,7 @@ instantiation nat :: size
 begin
 
 definition size_nat where
-  [simp, code]: "size (n \<Colon> nat) = n"
+  [simp, code]: "size (n::nat) = n"
 
 instance ..
 

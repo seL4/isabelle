@@ -10,25 +10,25 @@ begin
 
 section {* Definition of Linked Lists *}
 
-setup {* Sign.add_const_constraint (@{const_name Ref}, SOME @{typ "nat \<Rightarrow> 'a\<Colon>type ref"}) *}
+setup {* Sign.add_const_constraint (@{const_name Ref}, SOME @{typ "nat \<Rightarrow> 'a::type ref"}) *}
 datatype 'a node = Empty | Node 'a "'a node ref"
 
 primrec
-  node_encode :: "'a\<Colon>countable node \<Rightarrow> nat"
+  node_encode :: "'a::countable node \<Rightarrow> nat"
 where
   "node_encode Empty = 0"
   | "node_encode (Node x r) = Suc (to_nat (x, r))"
 
 instance node :: (countable) countable
 proof (rule countable_classI [of "node_encode"])
-  fix x y :: "'a\<Colon>countable node"
+  fix x y :: "'a::countable node"
   show "node_encode x = node_encode y \<Longrightarrow> x = y"
   by (induct x, auto, induct y, auto, induct y, auto)
 qed
 
 instance node :: (heap) heap ..
 
-primrec make_llist :: "'a\<Colon>heap list \<Rightarrow> 'a node Heap"
+primrec make_llist :: "'a::heap list \<Rightarrow> 'a node Heap"
 where 
   [simp del]: "make_llist []     = return Empty"
             | "make_llist (x#xs) = do { tl \<leftarrow> make_llist xs;
@@ -37,7 +37,7 @@ where
                                    }"
 
 
-partial_function (heap) traverse :: "'a\<Colon>heap node \<Rightarrow> 'a list Heap"
+partial_function (heap) traverse :: "'a::heap node \<Rightarrow> 'a list Heap"
 where
   [code del]: "traverse l =
     (case l of Empty \<Rightarrow> return []

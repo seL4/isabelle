@@ -108,7 +108,7 @@ qed
 
 declare nat_mult_dvd_cancel_disj[presburger]
 lemma nat_mult_dvd_cancel_disj'[presburger]: 
-  "(m\<Colon>nat)*k dvd n*k \<longleftrightarrow> k = 0 \<or> m dvd n" unfolding mult.commute[of m k] mult.commute[of n k] by presburger 
+  "(m::nat)*k dvd n*k \<longleftrightarrow> k = 0 \<or> m dvd n" unfolding mult.commute[of m k] mult.commute[of n k] by presburger 
 
 lemma divides_mul_l: "(a::nat) dvd b ==> (c * a) dvd (c * b)"
   by presburger

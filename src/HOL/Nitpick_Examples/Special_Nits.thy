@@ -131,7 +131,7 @@ nitpick [dont_specialize, expect = potential]
 sorry
 
 lemma "\<forall>a. g a = a
-       \<Longrightarrow> \<exists>b\<^sub>1 b\<^sub>2 b\<^sub>3 b\<^sub>4 b\<^sub>5 b\<^sub>6 b\<^sub>7 b\<^sub>8 b\<^sub>9 b\<^sub>10 (b\<^sub>11\<Colon>nat).
+       \<Longrightarrow> \<exists>b\<^sub>1 b\<^sub>2 b\<^sub>3 b\<^sub>4 b\<^sub>5 b\<^sub>6 b\<^sub>7 b\<^sub>8 b\<^sub>9 b\<^sub>10 (b\<^sub>11::nat).
            b\<^sub>1 < b\<^sub>11 \<and> f5 g x = f5 (\<lambda>a. if b\<^sub>1 < b\<^sub>11 then a else h b\<^sub>2) x"
 nitpick [expect = potential]
 nitpick [dont_specialize, expect = none]
@@ -140,7 +140,7 @@ nitpick [dont_box, dont_specialize, expect = none]
 sorry
 
 lemma "\<forall>a. g a = a
-       \<Longrightarrow> \<exists>b\<^sub>1 b\<^sub>2 b\<^sub>3 b\<^sub>4 b\<^sub>5 b\<^sub>6 b\<^sub>7 b\<^sub>8 b\<^sub>9 b\<^sub>10 (b\<^sub>11\<Colon>nat).
+       \<Longrightarrow> \<exists>b\<^sub>1 b\<^sub>2 b\<^sub>3 b\<^sub>4 b\<^sub>5 b\<^sub>6 b\<^sub>7 b\<^sub>8 b\<^sub>9 b\<^sub>10 (b\<^sub>11::nat).
            b\<^sub>1 < b\<^sub>11
            \<and> f5 g x = f5 (\<lambda>a. if b\<^sub>1 < b\<^sub>11 then
                                 a
@@ -154,7 +154,7 @@ nitpick [card nat = 2, card 'a = 1, dont_box, dont_specialize, expect = none]
 sorry
 
 lemma "\<forall>a. g a = a
-       \<Longrightarrow> \<exists>b\<^sub>1 b\<^sub>2 b\<^sub>3 b\<^sub>4 b\<^sub>5 b\<^sub>6 b\<^sub>7 b\<^sub>8 b\<^sub>9 b\<^sub>10 (b\<^sub>11\<Colon>nat).
+       \<Longrightarrow> \<exists>b\<^sub>1 b\<^sub>2 b\<^sub>3 b\<^sub>4 b\<^sub>5 b\<^sub>6 b\<^sub>7 b\<^sub>8 b\<^sub>9 b\<^sub>10 (b\<^sub>11::nat).
            b\<^sub>1 < b\<^sub>11
            \<and> f5 g x = f5 (\<lambda>a. if b\<^sub>1 \<ge> b\<^sub>11 then
                                 a

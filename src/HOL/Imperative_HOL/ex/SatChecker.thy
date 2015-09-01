@@ -119,7 +119,7 @@ by auto
 text {* Specific definition for derived clauses in the Array *}
 
 definition
-  array_ran :: "('a\<Colon>heap) option array \<Rightarrow> heap \<Rightarrow> 'a set" where
+  array_ran :: "('a::heap) option array \<Rightarrow> heap \<Rightarrow> 'a set" where
   "array_ran a h = {e. Some e \<in> set (Array.get h a)}"
     -- {*FIXME*}
 

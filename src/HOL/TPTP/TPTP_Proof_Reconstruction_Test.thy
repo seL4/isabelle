@@ -348,7 +348,7 @@ fun leo2_tac_wrap ctxt prob_name step i st =
 
 (*FIXME move these examples elsewhere*)
 (*
-lemma "\<forall>(Xj\<Colon>TPTP_Interpret.ind) Xk\<Colon>TPTP_Interpret.ind.
+lemma "\<forall>(Xj::TPTP_Interpret.ind) Xk::TPTP_Interpret.ind.
         bnd_cCKB6_BLACK Xj Xk \<longrightarrow>
         bnd_cCKB6_BLACK (bnd_s (bnd_s (bnd_s Xj))) (bnd_s Xk)"
 apply (tactic {*nth (nth just_the_tacs 0) 0*})

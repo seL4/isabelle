@@ -17,7 +17,7 @@ text \<open>
 \<close>
 
 locale seminorm =
-  fixes V :: "'a\<Colon>{minus, plus, zero, uminus} set"
+  fixes V :: "'a::{minus, plus, zero, uminus} set"
   fixes norm :: "'a \<Rightarrow> real"    ("\<parallel>_\<parallel>")
   assumes ge_zero [iff?]: "x \<in> V \<Longrightarrow> 0 \<le> \<parallel>x\<parallel>"
     and abs_homogenous [iff?]: "x \<in> V \<Longrightarrow> \<parallel>a \<cdot> x\<parallel> = \<bar>a\<bar> * \<parallel>x\<parallel>"

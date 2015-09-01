@@ -859,7 +859,7 @@ lemma MGFn_Fin:
   assumes wf: "wf_prog G" 
   and     mgf_c1: "G,A\<turnstile>{=:n} \<langle>c1\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
   and     mgf_c2: "G,A\<turnstile>{=:n} \<langle>c2\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
-  shows "G,(A\<Colon>state triple set)\<turnstile>{=:n} \<langle>c1 Finally c2\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
+  shows "G,(A::state triple set)\<turnstile>{=:n} \<langle>c1 Finally c2\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
 proof (rule MGFn_free_wt_da_NormalConformI [rule_format],clarsimp)
   fix T L accC C 
   assume wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>In1r (c1 Finally c2)\<Colon>T"
@@ -956,7 +956,7 @@ lemma MGFn_Body:
   assumes wf: "wf_prog G"
   and     mgf_init: "G,A\<turnstile>{=:n} \<langle>Init D\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
   and     mgf_c: "G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}"
-  shows  "G,(A\<Colon>state triple set)\<turnstile>{=:n} \<langle>Body D c\<rangle>\<^sub>e\<succ> {G\<rightarrow>}"
+  shows  "G,(A::state triple set)\<turnstile>{=:n} \<langle>Body D c\<rangle>\<^sub>e\<succ> {G\<rightarrow>}"
 proof (rule MGFn_free_wt_da_NormalConformI [rule_format],clarsimp)
   fix T L accC E
   assume wt: "\<lparr>prg=G, cls=accC,lcl=L\<rparr>\<turnstile>\<langle>Body D c\<rangle>\<^sub>e\<Colon>T"

@@ -107,10 +107,10 @@ instantiation int :: distrib_lattice
 begin
 
 definition
-  "(inf \<Colon> int \<Rightarrow> int \<Rightarrow> int) = min"
+  "(inf :: int \<Rightarrow> int \<Rightarrow> int) = min"
 
 definition
-  "(sup \<Colon> int \<Rightarrow> int \<Rightarrow> int) = max"
+  "(sup :: int \<Rightarrow> int \<Rightarrow> int) = max"
 
 instance
   by intro_classes
@@ -161,10 +161,10 @@ instantiation int :: linordered_idom
 begin
 
 definition
-  zabs_def: "\<bar>i\<Colon>int\<bar> = (if i < 0 then - i else i)"
+  zabs_def: "\<bar>i::int\<bar> = (if i < 0 then - i else i)"
 
 definition
-  zsgn_def: "sgn (i\<Colon>int) = (if i=0 then 0 else if 0<i then 1 else - 1)"
+  zsgn_def: "sgn (i::int) = (if i=0 then 0 else if 0<i then 1 else - 1)"
 
 instance proof
   fix i j k :: int
@@ -172,17 +172,17 @@ instance proof
     by (rule zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)"
     by (simp only: zabs_def)
-  show "sgn (i\<Colon>int) = (if i=0 then 0 else if 0<i then 1 else - 1)"
+  show "sgn (i::int) = (if i=0 then 0 else if 0<i then 1 else - 1)"
     by (simp only: zsgn_def)
 qed
 
 end
 
-lemma zless_imp_add1_zle: "w < z \<Longrightarrow> w + (1\<Colon>int) \<le> z"
+lemma zless_imp_add1_zle: "w < z \<Longrightarrow> w + (1::int) \<le> z"
   by transfer clarsimp
 
 lemma zless_iff_Suc_zadd:
-  "(w \<Colon> int) < z \<longleftrightarrow> (\<exists>n. z = w + int (Suc n))"
+  "(w :: int) < z \<longleftrightarrow> (\<exists>n. z = w + int (Suc n))"
 apply transfer
 apply auto
 apply (rename_tac a b c d)
@@ -438,7 +438,7 @@ lemma measure_function_int[measure_function]: "is_measure (nat o abs)" ..
 
 subsection\<open>Lemmas about the Function @{term of_nat} and Orderings\<close>
 
-lemma negative_zless_0: "- (int (Suc n)) < (0 \<Colon> int)"
+lemma negative_zless_0: "- (int (Suc n)) < (0 :: int)"
 by (simp add: order_less_le del: of_nat_Suc)
 
 lemma negative_zless [iff]: "- (int (Suc n)) < int m"
@@ -1117,9 +1117,9 @@ done
 lemma infinite_UNIV_int: "\<not> finite (UNIV::int set)"
 proof
   assume "finite (UNIV::int set)"
-  moreover have "inj (\<lambda>i\<Colon>int. 2 * i)"
+  moreover have "inj (\<lambda>i::int. 2 * i)"
     by (rule injI) simp
-  ultimately have "surj (\<lambda>i\<Colon>int. 2 * i)"
+  ultimately have "surj (\<lambda>i::int. 2 * i)"
     by (rule finite_UNIV_inj_surj)
   then obtain i :: int where "1 = 2 * i" by (rule surjE)
   then show False by (simp add: pos_zmult_eq_1_iff)

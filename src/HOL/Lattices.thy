@@ -222,7 +222,7 @@ lemma inf_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<sqsubseteq> d \<Longrig
   by (fast intro: inf_greatest le_infI1 le_infI2)
 
 lemma mono_inf:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>semilattice_inf"
+  fixes f :: "'a \<Rightarrow> 'b::semilattice_inf"
   shows "mono f \<Longrightarrow> f (A \<sqinter> B) \<sqsubseteq> f A \<sqinter> f B"
   by (auto simp add: mono_def intro: Lattices.inf_greatest)
 
@@ -259,7 +259,7 @@ lemma sup_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<sqsubseteq> d \<Longrig
   by (fast intro: sup_least le_supI1 le_supI2)
 
 lemma mono_sup:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>semilattice_sup"
+  fixes f :: "'a \<Rightarrow> 'b::semilattice_sup"
   shows "mono f \<Longrightarrow> f A \<squnion> f B \<sqsubseteq> f (A \<squnion> B)"
   by (auto simp add: mono_def intro: Lattices.sup_least)
 
@@ -770,21 +770,21 @@ lemma split_max [no_atp]:
   by (simp add: max_def)
 
 lemma min_of_mono:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>linorder"
+  fixes f :: "'a \<Rightarrow> 'b::linorder"
   shows "mono f \<Longrightarrow> min (f m) (f n) = f (min m n)"
   by (auto simp: mono_def Orderings.min_def min_def intro: Orderings.antisym)
 
 lemma max_of_mono:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>linorder"
+  fixes f :: "'a \<Rightarrow> 'b::linorder"
   shows "mono f \<Longrightarrow> max (f m) (f n) = f (max m n)"
   by (auto simp: mono_def Orderings.max_def max_def intro: Orderings.antisym)
 
 end
 
-lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{semilattice_inf, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+lemma inf_min: "inf = (min :: 'a::{semilattice_inf,linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (auto intro: antisym simp add: min_def fun_eq_iff)
 
-lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{semilattice_sup, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+lemma sup_max: "sup = (max :: 'a::{semilattice_sup,linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (auto intro: antisym simp add: max_def fun_eq_iff)
 
 

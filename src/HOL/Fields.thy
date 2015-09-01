@@ -1161,7 +1161,7 @@ proof (cases "0 < x")
     unfolding le_divide_eq if_P[OF \<open>0 < x\<close>] by simp
 next
   assume "\<not>0 < x" hence "x \<le> 0" by simp
-  obtain s::'a where s: "0 < s" "s < 1" using dense[of 0 "1\<Colon>'a"] by auto
+  obtain s::'a where s: "0 < s" "s < 1" using dense[of 0 "1::'a"] by auto
   hence "x \<le> s * x" using mult_le_cancel_right[of 1 x s] \<open>x \<le> 0\<close> by auto
   also note *[OF s]
   finally show ?thesis .

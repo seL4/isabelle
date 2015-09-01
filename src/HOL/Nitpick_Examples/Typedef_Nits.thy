@@ -14,7 +14,7 @@ begin
 nitpick_params [verbose, card = 1-4, sat_solver = MiniSat_JNI, max_threads = 1,
                 timeout = 240]
 
-definition "three = {0\<Colon>nat, 1, 2}"
+definition "three = {0::nat, 1, 2}"
 typedef three = three
 unfolding three_def by blast
 
@@ -22,37 +22,37 @@ definition A :: three where "A \<equiv> Abs_three 0"
 definition B :: three where "B \<equiv> Abs_three 1"
 definition C :: three where "C \<equiv> Abs_three 2"
 
-lemma "x = (y\<Colon>three)"
+lemma "x = (y::three)"
 nitpick [expect = genuine]
 oops
 
-definition "one_or_two = {undefined False\<Colon>'a, undefined True}"
+definition "one_or_two = {undefined False::'a, undefined True}"
 
 typedef 'a one_or_two = "one_or_two :: 'a set"
 unfolding one_or_two_def by auto
 
-lemma "x = (y\<Colon>unit one_or_two)"
+lemma "x = (y::unit one_or_two)"
 nitpick [expect = none]
 sorry
 
-lemma "x = (y\<Colon>bool one_or_two)"
+lemma "x = (y::bool one_or_two)"
 nitpick [expect = genuine]
 oops
 
-lemma "undefined False \<longleftrightarrow> undefined True \<Longrightarrow> x = (y\<Colon>bool one_or_two)"
+lemma "undefined False \<longleftrightarrow> undefined True \<Longrightarrow> x = (y::bool one_or_two)"
 nitpick [expect = none]
 sorry
 
-lemma "undefined False \<longleftrightarrow> undefined True \<Longrightarrow> \<exists>x (y\<Colon>bool one_or_two). x \<noteq> y"
+lemma "undefined False \<longleftrightarrow> undefined True \<Longrightarrow> \<exists>x (y::bool one_or_two). x \<noteq> y"
 nitpick [card = 1, expect = potential] (* unfortunate *)
 oops
 
-lemma "\<exists>x (y\<Colon>bool one_or_two). x \<noteq> y"
+lemma "\<exists>x (y::bool one_or_two). x \<noteq> y"
 nitpick [card = 1, expect = potential] (* unfortunate *)
 nitpick [card = 2, expect = none]
 oops
 
-definition "bounded = {n\<Colon>nat. finite (UNIV \<Colon> 'a set) \<longrightarrow> n < card (UNIV \<Colon> 'a set)}"
+definition "bounded = {n::nat. finite (UNIV :: 'a set) \<longrightarrow> n < card (UNIV :: 'a set)}"
 
 typedef 'a bounded = "bounded(TYPE('a))"
 unfolding bounded_def
@@ -60,23 +60,23 @@ apply (rule_tac x = 0 in exI)
 apply (case_tac "card UNIV = 0")
 by auto
 
-lemma "x = (y\<Colon>unit bounded)"
+lemma "x = (y::unit bounded)"
 nitpick [expect = none]
 sorry
 
-lemma "x = (y\<Colon>bool bounded)"
+lemma "x = (y::bool bounded)"
 nitpick [expect = genuine]
 oops
 
-lemma "x \<noteq> (y\<Colon>bool bounded) \<Longrightarrow> z = x \<or> z = y"
+lemma "x \<noteq> (y::bool bounded) \<Longrightarrow> z = x \<or> z = y"
 nitpick [expect = potential] (* unfortunate *)
 sorry
 
-lemma "x \<noteq> (y\<Colon>(bool \<times> bool) bounded) \<Longrightarrow> z = x \<or> z = y"
+lemma "x \<noteq> (y::(bool \<times> bool) bounded) \<Longrightarrow> z = x \<or> z = y"
 nitpick [card = 1-5, expect = genuine]
 oops
 
-lemma "True \<equiv> ((\<lambda>x\<Colon>bool. x) = (\<lambda>x. x))"
+lemma "True \<equiv> ((\<lambda>x::bool. x) = (\<lambda>x. x))"
 nitpick [expect = none]
 by (rule True_def)
 
@@ -183,7 +183,7 @@ lemma "Abs_rat (Rep_rat a) = a"
 nitpick [card = 1, expect = none]
 by (rule Rep_rat_inverse)
 
-typedef check = "{x\<Colon>nat. x < 2}" by (rule exI[of _ 0], auto)
+typedef check = "{x::nat. x < 2}" by (rule exI[of _ 0], auto)
 
 lemma "Rep_check (Abs_check n) = n \<Longrightarrow> n < 2"
 nitpick [card = 1-3, expect = none]

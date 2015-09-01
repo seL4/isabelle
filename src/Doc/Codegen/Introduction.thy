@@ -127,7 +127,7 @@ instantiation %quote nat :: monoid
 begin
 
 primrec %quote mult_nat where
-    "0 \<otimes> n = (0\<Colon>nat)"
+    "0 \<otimes> n = (0::nat)"
   | "Suc m \<otimes> n = n + m \<otimes> n"
 
 definition %quote neutral_nat where

@@ -72,7 +72,7 @@ definition wf' :: "('a \<times> 'a) set \<Rightarrow> bool" where
 definition card' :: "'a set \<Rightarrow> nat" where
   "card' A \<equiv> if finite A then length (SOME xs. set xs = A \<and> distinct xs) else 0"
 
-definition setsum' :: "('a \<Rightarrow> 'b\<Colon>comm_monoid_add) \<Rightarrow> 'a set \<Rightarrow> 'b" where
+definition setsum' :: "('a \<Rightarrow> 'b::comm_monoid_add) \<Rightarrow> 'a set \<Rightarrow> 'b" where
   "setsum' f A \<equiv> if finite A then listsum (map f (SOME xs. set xs = A \<and> distinct xs)) else 0"
 
 inductive fold_graph' :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> bool" where
@@ -193,7 +193,7 @@ definition less_frac :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
 definition less_eq_frac :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
   [nitpick_simp]: "less_eq_frac q r \<longleftrightarrow> num (plus_frac q (uminus_frac r)) \<le> 0"
 
-definition of_frac :: "'a \<Rightarrow> 'b\<Colon>{inverse,ring_1}" where
+definition of_frac :: "'a \<Rightarrow> 'b::{inverse,ring_1}" where
   "of_frac q \<equiv> of_int (num q) / of_int (denom q)"
 
 axiomatization wf_wfrec :: "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"

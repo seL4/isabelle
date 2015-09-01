@@ -22,10 +22,10 @@ instantiation int :: "{zero, one, plus, uminus, minus, times, ord, abs, sgn}"
 begin
 
 quotient_definition
-  "0 \<Colon> int" is "(0\<Colon>nat, 0\<Colon>nat)" done
+  "0 :: int" is "(0::nat, 0::nat)" done
 
 quotient_definition
-  "1 \<Colon> int" is "(1\<Colon>nat, 0\<Colon>nat)" done
+  "1 :: int" is "(1::nat, 0::nat)" done
 
 fun
   plus_int_raw :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat) \<Rightarrow> (nat \<times> nat)"
@@ -33,7 +33,7 @@ where
   "plus_int_raw (x, y) (u, v) = (x + u, y + v)"
 
 quotient_definition
-  "(op +) \<Colon> (int \<Rightarrow> int \<Rightarrow> int)" is "plus_int_raw" by auto
+  "(op +) :: (int \<Rightarrow> int \<Rightarrow> int)" is "plus_int_raw" by auto
 
 fun
   uminus_int_raw :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat)"
@@ -41,10 +41,10 @@ where
   "uminus_int_raw (x, y) = (y, x)"
 
 quotient_definition
-  "(uminus \<Colon> (int \<Rightarrow> int))" is "uminus_int_raw" by auto
+  "(uminus :: (int \<Rightarrow> int))" is "uminus_int_raw" by auto
 
 definition
-  minus_int_def:  "z - w = z + (-w\<Colon>int)"
+  minus_int_def:  "z - w = z + (-w::int)"
 
 fun
   times_int_raw :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat) \<Rightarrow> (nat \<times> nat)"
@@ -95,13 +95,13 @@ quotient_definition
   le_int_def: "(op \<le>) :: int \<Rightarrow> int \<Rightarrow> bool" is "le_int_raw" by auto
 
 definition
-  less_int_def: "(z\<Colon>int) < w = (z \<le> w \<and> z \<noteq> w)"
+  less_int_def: "(z::int) < w = (z \<le> w \<and> z \<noteq> w)"
 
 definition
-  zabs_def: "\<bar>i\<Colon>int\<bar> = (if i < 0 then - i else i)"
+  zabs_def: "\<bar>i::int\<bar> = (if i < 0 then - i else i)"
 
 definition
-  zsgn_def: "sgn (i\<Colon>int) = (if i = 0 then 0 else if 0 < i then 1 else - 1)"
+  zsgn_def: "sgn (i::int) = (if i = 0 then 0 else if 0 < i then 1 else - 1)"
 
 instance ..
 
@@ -182,10 +182,10 @@ instantiation int :: distrib_lattice
 begin
 
 definition
-  "(inf \<Colon> int \<Rightarrow> int \<Rightarrow> int) = min"
+  "(inf :: int \<Rightarrow> int \<Rightarrow> int) = min"
 
 definition
-  "(sup \<Colon> int \<Rightarrow> int \<Rightarrow> int) = max"
+  "(sup :: int \<Rightarrow> int \<Rightarrow> int) = max"
 
 instance
   by default
@@ -245,7 +245,7 @@ proof
     by (rule zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)"
     by (simp only: zabs_def)
-  show "sgn (i\<Colon>int) = (if i=0 then 0 else if 0<i then 1 else - 1)"
+  show "sgn (i::int) = (if i=0 then 0 else if 0<i then 1 else - 1)"
     by (simp only: zsgn_def)
 qed
 

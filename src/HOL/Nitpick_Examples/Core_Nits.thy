@@ -55,7 +55,7 @@ lemma "P (\<lambda>x. x)"
 nitpick [card = 1, expect = genuine]
 oops
 
-lemma "{(a\<Colon>'a\<times>'a, b\<Colon>'b)}^-1 = {(b, a)}"
+lemma "{(a::'a\<times>'a, b::'b)}^-1 = {(b, a)}"
 nitpick [card = 1-12, expect = none]
 by auto
 
@@ -67,11 +67,11 @@ lemma "\<exists>P. P = Id"
 nitpick [card = 1-20, expect = none]
 by auto
 
-lemma "(a\<Colon>'a\<Rightarrow>'b, a) \<in> Id\<^sup>*"
+lemma "(a::'a\<Rightarrow>'b, a) \<in> Id\<^sup>*"
 nitpick [card = 1-2, expect = none]
 by auto
 
-lemma "(a\<Colon>'a\<times>'a, a) \<in> Id\<^sup>* \<union> {(a, b)}\<^sup>*"
+lemma "(a::'a\<times>'a, a) \<in> Id\<^sup>* \<union> {(a, b)}\<^sup>*"
 nitpick [card = 1-4, expect = none]
 by auto
 
@@ -79,11 +79,11 @@ lemma "(a, a) \<in> Id"
 nitpick [card = 1-50, expect = none]
 by (auto simp: Id_def)
 
-lemma "((a\<Colon>'a, b\<Colon>'a), (a, b)) \<in> Id"
+lemma "((a::'a, b::'a), (a, b)) \<in> Id"
 nitpick [card = 1-10, expect = none]
 by (auto simp: Id_def)
 
-lemma "(x\<Colon>'a\<times>'a) \<in> UNIV"
+lemma "(x::'a\<times>'a) \<in> UNIV"
 nitpick [card = 1-50, expect = none]
 sorry
 
@@ -112,13 +112,13 @@ lemma "{a, b} = {b}"
 nitpick [card = 50, expect = genuine]
 oops
 
-lemma "(a\<Colon>'a\<times>'a, a\<Colon>'a\<times>'a) \<in> R"
+lemma "(a::'a\<times>'a, a::'a\<times>'a) \<in> R"
 nitpick [card = 1, expect = genuine]
 nitpick [card = 10, expect = genuine]
 nitpick [card = 5, dont_box, expect = genuine]
 oops
 
-lemma "f (g\<Colon>'a\<Rightarrow>'a) = x"
+lemma "f (g::'a\<Rightarrow>'a) = x"
 nitpick [card = 3, dont_box, expect = genuine]
 nitpick [card = 8, expect = genuine]
 oops
@@ -131,7 +131,7 @@ lemma "f (a, a) = f (c, d)"
 nitpick [card = 10, expect = genuine]
 oops
 
-lemma "(x\<Colon>'a) = (\<lambda>a. \<lambda>b. \<lambda>c. if c then a else b) x x True"
+lemma "(x::'a) = (\<lambda>a. \<lambda>b. \<lambda>c. if c then a else b) x x True"
 nitpick [card = 1-10, expect = none]
 by auto
 
@@ -143,7 +143,7 @@ lemma "f = split"
 nitpick [card = 2, expect = genuine]
 oops
 
-lemma "(A\<Colon>'a\<times>'a, B\<Colon>'a\<times>'a) \<in> R \<Longrightarrow> (A, B) \<in> R"
+lemma "(A::'a\<times>'a, B::'a\<times>'a) \<in> R \<Longrightarrow> (A, B) \<in> R"
 nitpick [card = 15, expect = none]
 by auto
 
@@ -152,7 +152,7 @@ lemma "(A, B) \<in> R \<or> (\<exists>C. (A, C) \<in> R \<and> (C, B) \<in> R) \
 nitpick [card = 1-25, expect = none]
 by auto
 
-lemma "f = (\<lambda>x\<Colon>'a\<times>'b. x)"
+lemma "f = (\<lambda>x::'a\<times>'b. x)"
 nitpick [card = 8, expect = genuine]
 oops
 
@@ -168,16 +168,16 @@ nitpick [card 'a = 1, expect = none]
 nitpick [card 'a = 100, expect = genuine]
 oops
 
-lemma "\<forall>x\<Colon>'a \<Rightarrow> bool. x = y"
+lemma "\<forall>x::'a \<Rightarrow> bool. x = y"
 nitpick [card 'a = 1, expect = genuine]
 nitpick [card 'a = 100, expect = genuine]
 oops
 
-lemma "\<exists>x\<Colon>'a \<Rightarrow> bool. x = y"
+lemma "\<exists>x::'a \<Rightarrow> bool. x = y"
 nitpick [card 'a = 1-15, expect = none]
 by auto
 
-lemma "\<exists>x y\<Colon>'a \<Rightarrow> bool. x = y"
+lemma "\<exists>x y::'a \<Rightarrow> bool. x = y"
 nitpick [card = 1-15, expect = none]
 by auto
 
@@ -208,22 +208,22 @@ lemma "\<forall>u. \<exists>v. \<forall>w. \<exists>x. \<forall>y. \<exists>z.
 nitpick [card = 1-2, expect = genuine]
 oops
 
-lemma "\<forall>u\<Colon>'a \<times> 'b. \<exists>v\<Colon>'c. \<forall>w\<Colon>'d. \<exists>x\<Colon>'e \<times> 'f.
+lemma "\<forall>u::'a \<times> 'b. \<exists>v::'c. \<forall>w::'d. \<exists>x::'e \<times> 'f.
        f u v w x = f u (g u) w (h u w)"
 nitpick [card = 1-2, expect = none]
 sorry
 
-lemma "\<forall>u\<Colon>'a \<times> 'b. \<exists>v\<Colon>'c. \<forall>w\<Colon>'d. \<exists>x\<Colon>'e \<times> 'f.
+lemma "\<forall>u::'a \<times> 'b. \<exists>v::'c. \<forall>w::'d. \<exists>x::'e \<times> 'f.
        f u v w x = f u (g u w) w (h u)"
 nitpick [card = 1-2, dont_box, expect = genuine]
 oops
 
-lemma "\<forall>u\<Colon>'a \<Rightarrow> 'b. \<exists>v\<Colon>'c. \<forall>w\<Colon>'d. \<exists>x\<Colon>'e \<Rightarrow> 'f.
+lemma "\<forall>u::'a \<Rightarrow> 'b. \<exists>v::'c. \<forall>w::'d. \<exists>x::'e \<Rightarrow> 'f.
        f u v w x = f u (g u) w (h u w)"
 nitpick [card = 1-2, dont_box, expect = none]
 sorry
 
-lemma "\<forall>u\<Colon>'a \<Rightarrow> 'b. \<exists>v\<Colon>'c. \<forall>w\<Colon>'d. \<exists>x\<Colon>'e \<Rightarrow> 'f.
+lemma "\<forall>u::'a \<Rightarrow> 'b. \<exists>v::'c. \<forall>w::'d. \<exists>x::'e \<Rightarrow> 'f.
        f u v w x = f u (g u w) w (h u)"
 nitpick [card = 1-2, dont_box, expect = genuine]
 oops
@@ -233,7 +233,7 @@ nitpick [card = 1, expect = genuine]
 nitpick [card = 2-5, expect = none]
 oops
 
-lemma "\<forall>x\<Colon>'a\<times>'b. if (\<forall>y. x = y) then False else True"
+lemma "\<forall>x::'a\<times>'b. if (\<forall>y. x = y) then False else True"
 nitpick [card = 1, expect = genuine]
 nitpick [card = 2, expect = none]
 oops
@@ -242,7 +242,7 @@ lemma "\<forall>x. if (\<exists>y. x = y) then True else False"
 nitpick [expect = none]
 sorry
 
-lemma "(\<exists>x\<Colon>'a. \<forall>y. P x y) \<or> (\<exists>x\<Colon>'a \<times> 'a. \<forall>y. P y x)"
+lemma "(\<exists>x::'a. \<forall>y. P x y) \<or> (\<exists>x::'a \<times> 'a. \<forall>y. P y x)"
 nitpick [card 'a = 1, expect = genuine]
 oops
 
@@ -260,7 +260,7 @@ lemma "let x = (\<forall>x. P x) in if x then x else \<not> x"
 nitpick [expect = none]
 by auto
 
-lemma "let x = (\<forall>x\<Colon>'a \<times> 'b. P x) in if x then x else \<not> x"
+lemma "let x = (\<forall>x::'a \<times> 'b. P x) in if x then x else \<not> x"
 nitpick [expect = none]
 by auto
 
@@ -278,7 +278,7 @@ schematic_lemma "\<exists>x. x = ?x"
 nitpick [expect = none]
 by auto
 
-schematic_lemma "\<exists>x\<Colon>'a \<Rightarrow> 'b. x = ?x"
+schematic_lemma "\<exists>x::'a \<Rightarrow> 'b. x = ?x"
 nitpick [expect = none]
 by auto
 
@@ -491,35 +491,35 @@ lemma "snd (x, y) = y"
 nitpick [expect = none]
 by (simp add: snd_def)
 
-lemma "fst (x\<Colon>'a\<Rightarrow>'b, y) = x"
+lemma "fst (x::'a\<Rightarrow>'b, y) = x"
 nitpick [expect = none]
 by (simp add: fst_def)
 
-lemma "snd (x\<Colon>'a\<Rightarrow>'b, y) = y"
+lemma "snd (x::'a\<Rightarrow>'b, y) = y"
 nitpick [expect = none]
 by (simp add: snd_def)
 
-lemma "fst (x, y\<Colon>'a\<Rightarrow>'b) = x"
+lemma "fst (x, y::'a\<Rightarrow>'b) = x"
 nitpick [expect = none]
 by (simp add: fst_def)
 
-lemma "snd (x, y\<Colon>'a\<Rightarrow>'b) = y"
+lemma "snd (x, y::'a\<Rightarrow>'b) = y"
 nitpick [expect = none]
 by (simp add: snd_def)
 
-lemma "fst (x\<Colon>'a\<times>'b, y) = x"
+lemma "fst (x::'a\<times>'b, y) = x"
 nitpick [expect = none]
 by (simp add: fst_def)
 
-lemma "snd (x\<Colon>'a\<times>'b, y) = y"
+lemma "snd (x::'a\<times>'b, y) = y"
 nitpick [expect = none]
 by (simp add: snd_def)
 
-lemma "fst (x, y\<Colon>'a\<times>'b) = x"
+lemma "fst (x, y::'a\<times>'b) = x"
 nitpick [expect = none]
 by (simp add: fst_def)
 
-lemma "snd (x, y\<Colon>'a\<times>'b) = y"
+lemma "snd (x, y::'a\<times>'b) = y"
 nitpick [expect = none]
 by (simp add: snd_def)
 
@@ -626,7 +626,7 @@ lemma "a \<notin> A \<Longrightarrow> a \<notin> (A \<inter> B)" "b \<notin> B \
 nitpick [card = 1-5, expect = none]
 by auto
 
-lemma "x \<in> ((A\<Colon>'a set) - B) \<longleftrightarrow> x \<in> A \<and> x \<notin> B"
+lemma "x \<in> ((A::'a set) - B) \<longleftrightarrow> x \<in> A \<and> x \<notin> B"
 nitpick [card = 1-5, expect = none]
 by auto
 
@@ -650,7 +650,7 @@ lemma "A \<subset> B \<Longrightarrow> A \<subseteq> B"
 nitpick [expect = none]
 by auto
 
-lemma "I = (\<lambda>x\<Colon>'a set. x) \<Longrightarrow> uminus = (\<lambda>x. uminus (I x))"
+lemma "I = (\<lambda>x::'a set. x) \<Longrightarrow> uminus = (\<lambda>x. uminus (I x))"
 nitpick [card = 1-7, expect = none]
 by auto
 
@@ -662,7 +662,7 @@ lemma "A \<inter> - A = {}"
 nitpick [expect = none]
 by auto
 
-lemma "A = -(A\<Colon>'a set)"
+lemma "A = -(A::'a set)"
 nitpick [card 'a = 10, expect = genuine]
 oops
 
@@ -743,7 +743,7 @@ lemma "P (Eps P)"
 nitpick [expect = genuine]
 oops
 
-lemma "Eps (\<lambda>x. x \<in> P) \<in> (P\<Colon>nat set)"
+lemma "Eps (\<lambda>x. x \<in> P) \<in> (P::nat set)"
 nitpick [expect = genuine]
 oops
 
@@ -751,7 +751,7 @@ lemma "\<not> P (Eps P)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<not> (P \<Colon> nat \<Rightarrow> bool) (Eps P)"
+lemma "\<not> (P :: nat \<Rightarrow> bool) (Eps P)"
 nitpick [expect = genuine]
 oops
 
@@ -759,7 +759,7 @@ lemma "P \<noteq> bot \<Longrightarrow> P (Eps P)"
 nitpick [expect = none]
 sorry
 
-lemma "(P \<Colon> nat \<Rightarrow> bool) \<noteq> bot \<Longrightarrow> P (Eps P)"
+lemma "(P :: nat \<Rightarrow> bool) \<noteq> bot \<Longrightarrow> P (Eps P)"
 nitpick [expect = none]
 sorry
 
@@ -767,7 +767,7 @@ lemma "P (The P)"
 nitpick [expect = genuine]
 oops
 
-lemma "(P \<Colon> nat \<Rightarrow> bool) (The P)"
+lemma "(P :: nat \<Rightarrow> bool) (The P)"
 nitpick [expect = genuine]
 oops
 
@@ -775,7 +775,7 @@ lemma "\<not> P (The P)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<not> (P \<Colon> nat \<Rightarrow> bool) (The P)"
+lemma "\<not> (P :: nat \<Rightarrow> bool) (The P)"
 nitpick [expect = genuine]
 oops
 
@@ -783,7 +783,7 @@ lemma "The P \<noteq> x"
 nitpick [expect = genuine]
 oops
 
-lemma "The P \<noteq> (x\<Colon>nat)"
+lemma "The P \<noteq> (x::nat)"
 nitpick [expect = genuine]
 oops
 
@@ -791,7 +791,7 @@ lemma "P x \<Longrightarrow> P (The P)"
 nitpick [expect = genuine]
 oops
 
-lemma "P (x\<Colon>nat) \<Longrightarrow> P (The P)"
+lemma "P (x::nat) \<Longrightarrow> P (The P)"
 nitpick [expect = genuine]
 oops
 
@@ -799,7 +799,7 @@ lemma "P = {x} \<Longrightarrow> (THE x. x \<in> P) \<in> P"
 nitpick [expect = none]
 oops
 
-lemma "P = {x\<Colon>nat} \<Longrightarrow> (THE x. x \<in> P) \<in> P"
+lemma "P = {x::nat} \<Longrightarrow> (THE x. x \<in> P) \<in> P"
 nitpick [expect = none]
 oops
 
@@ -809,23 +809,23 @@ lemma "Q (Eps Q)"
 nitpick [expect = genuine]
 oops
 
-lemma "(Q \<Colon> nat \<Rightarrow> bool) (Eps Q)"
+lemma "(Q :: nat \<Rightarrow> bool) (Eps Q)"
 nitpick [expect = none] (* unfortunate *)
 oops
 
-lemma "\<not> (Q \<Colon> nat \<Rightarrow> bool) (Eps Q)"
+lemma "\<not> (Q :: nat \<Rightarrow> bool) (Eps Q)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<not> (Q \<Colon> nat \<Rightarrow> bool) (Eps Q)"
+lemma "\<not> (Q :: nat \<Rightarrow> bool) (Eps Q)"
 nitpick [expect = genuine]
 oops
 
-lemma "(Q\<Colon>'a \<Rightarrow> bool) \<noteq> bot \<Longrightarrow> (Q\<Colon>'a \<Rightarrow> bool) (Eps Q)"
+lemma "(Q::'a \<Rightarrow> bool) \<noteq> bot \<Longrightarrow> (Q::'a \<Rightarrow> bool) (Eps Q)"
 nitpick [expect = none]
 sorry
 
-lemma "(Q\<Colon>nat \<Rightarrow> bool) \<noteq> bot \<Longrightarrow> (Q\<Colon>nat \<Rightarrow> bool) (Eps Q)"
+lemma "(Q::nat \<Rightarrow> bool) \<noteq> bot \<Longrightarrow> (Q::nat \<Rightarrow> bool) (Eps Q)"
 nitpick [expect = none]
 sorry
 
@@ -833,7 +833,7 @@ lemma "Q (The Q)"
 nitpick [expect = genuine]
 oops
 
-lemma "(Q\<Colon>nat \<Rightarrow> bool) (The Q)"
+lemma "(Q::nat \<Rightarrow> bool) (The Q)"
 nitpick [expect = genuine]
 oops
 
@@ -841,7 +841,7 @@ lemma "\<not> Q (The Q)"
 nitpick [expect = genuine]
 oops
 
-lemma "\<not> (Q\<Colon>nat \<Rightarrow> bool) (The Q)"
+lemma "\<not> (Q::nat \<Rightarrow> bool) (The Q)"
 nitpick [expect = genuine]
 oops
 
@@ -849,7 +849,7 @@ lemma "The Q \<noteq> x"
 nitpick [expect = genuine]
 oops
 
-lemma "The Q \<noteq> (x\<Colon>nat)"
+lemma "The Q \<noteq> (x::nat)"
 nitpick [expect = genuine]
 oops
 
@@ -857,15 +857,15 @@ lemma "Q x \<Longrightarrow> Q (The Q)"
 nitpick [expect = genuine]
 oops
 
-lemma "Q (x\<Colon>nat) \<Longrightarrow> Q (The Q)"
+lemma "Q (x::nat) \<Longrightarrow> Q (The Q)"
 nitpick [expect = genuine]
 oops
 
-lemma "Q = (\<lambda>x\<Colon>'a. x = a) \<Longrightarrow> (Q\<Colon>'a \<Rightarrow> bool) (The Q)"
+lemma "Q = (\<lambda>x::'a. x = a) \<Longrightarrow> (Q::'a \<Rightarrow> bool) (The Q)"
 nitpick [expect = none]
 sorry
 
-lemma "Q = (\<lambda>x\<Colon>nat. x = a) \<Longrightarrow> (Q\<Colon>nat \<Rightarrow> bool) (The Q)"
+lemma "Q = (\<lambda>x::nat. x = a) \<Longrightarrow> (Q::nat \<Rightarrow> bool) (The Q)"
 nitpick [expect = none]
 sorry
 
@@ -921,7 +921,7 @@ nitpick_params [max_potential = 0]
 
 subsection {* Destructors and Recursors *}
 
-lemma "(x\<Colon>'a) = (case True of True \<Rightarrow> x | False \<Rightarrow> x)"
+lemma "(x::'a) = (case True of True \<Rightarrow> x | False \<Rightarrow> x)"
 nitpick [card = 2, expect = none]
 by auto
 

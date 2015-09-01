@@ -99,8 +99,8 @@ lemma "(2::int) + 3 * (- 4) * 1 + 0 = -10" by normalization
 lemma "(2::int) < 3" by normalization
 lemma "(2::int) <= 3" by normalization
 lemma "abs ((-4::int) + 2 * 1) = 2" by normalization
-lemma "4 - 42 * abs (3 + (-7\<Colon>int)) = -164" by normalization
-lemma "(if (0\<Colon>nat) \<le> (x\<Colon>nat) then 0\<Colon>nat else x) = 0" by normalization
+lemma "4 - 42 * abs (3 + (-7::int)) = -164" by normalization
+lemma "(if (0::nat) \<le> (x::nat) then 0::nat else x) = 0" by normalization
 lemma "4 = Suc (Suc (Suc (Suc 0)))" by normalization
 lemma "nat 4 = Suc (Suc (Suc (Suc 0)))" by normalization
 lemma "[Suc 0, 0] = [Suc 0, 0]" by normalization
@@ -127,8 +127,8 @@ value "(%m n. n m) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 
 lemma "map f [x, y] = [f x, f y]" by normalization
 lemma "(map f [x, y], w) = ([f x, f y], w)" by normalization
-lemma "map f [x, y] = [f x \<Colon> 'a\<Colon>semigroup_add, f y]" by normalization
-lemma "map f [x \<Colon> 'a\<Colon>semigroup_add, y] = [f x, f y]" by normalization
-lemma "(map f [x \<Colon> 'a\<Colon>semigroup_add, y], w \<Colon> 'b\<Colon>finite) = ([f x, f y], w)" by normalization
+lemma "map f [x, y] = [f x :: 'a::semigroup_add, f y]" by normalization
+lemma "map f [x :: 'a::semigroup_add, y] = [f x, f y]" by normalization
+lemma "(map f [x :: 'a::semigroup_add, y], w :: 'b::finite) = ([f x, f y], w)" by normalization
 
 end

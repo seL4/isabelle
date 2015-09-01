@@ -12,7 +12,7 @@ begin
 subsection \<open>Implementation of mappings\<close>
 
 context includes rbt.lifting begin
-lift_definition Mapping :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) mapping" is RBT.lookup .
+lift_definition Mapping :: "('a::linorder, 'b) rbt \<Rightarrow> ('a, 'b) mapping" is RBT.lookup .
 end
 
 code_datatype Mapping

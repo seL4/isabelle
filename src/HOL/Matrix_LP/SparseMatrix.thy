@@ -834,14 +834,14 @@ lemmas sorted_sp_simps =
 
 lemma bool1: "(\<not> True) = False"  by blast
 lemma bool2: "(\<not> False) = True"  by blast
-lemma bool3: "((P\<Colon>bool) \<and> True) = P" by blast
-lemma bool4: "(True \<and> (P\<Colon>bool)) = P" by blast
-lemma bool5: "((P\<Colon>bool) \<and> False) = False" by blast
-lemma bool6: "(False \<and> (P\<Colon>bool)) = False" by blast
-lemma bool7: "((P\<Colon>bool) \<or> True) = True" by blast
-lemma bool8: "(True \<or> (P\<Colon>bool)) = True" by blast
-lemma bool9: "((P\<Colon>bool) \<or> False) = P" by blast
-lemma bool10: "(False \<or> (P\<Colon>bool)) = P" by blast
+lemma bool3: "((P::bool) \<and> True) = P" by blast
+lemma bool4: "(True \<and> (P::bool)) = P" by blast
+lemma bool5: "((P::bool) \<and> False) = False" by blast
+lemma bool6: "(False \<and> (P::bool)) = False" by blast
+lemma bool7: "((P::bool) \<or> True) = True" by blast
+lemma bool8: "(True \<or> (P::bool)) = True" by blast
+lemma bool9: "((P::bool) \<or> False) = P" by blast
+lemma bool10: "(False \<or> (P::bool)) = P" by blast
 lemmas boolarith = bool1 bool2 bool3 bool4 bool5 bool6 bool7 bool8 bool9 bool10
 
 lemma if_case_eq: "(if b then x else y) = (case b of True => x | False => y)" by simp

@@ -18,10 +18,10 @@ begin
 
 section \<open>Definition of code datatype constructors\<close>
 
-definition Set :: "('a\<Colon>linorder, unit) rbt \<Rightarrow> 'a set" 
+definition Set :: "('a::linorder, unit) rbt \<Rightarrow> 'a set" 
   where "Set t = {x . RBT.lookup t x = Some ()}"
 
-definition Coset :: "('a\<Colon>linorder, unit) rbt \<Rightarrow> 'a set" 
+definition Coset :: "('a::linorder, unit) rbt \<Rightarrow> 'a set" 
   where [simp]: "Coset t = - Set t"
 
 

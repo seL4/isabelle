@@ -93,7 +93,7 @@ instantiation "fun" :: (typerep, typerep) term_of
 begin
 
 definition
-  "term_of (f \<Colon> 'a \<Rightarrow> 'b) =
+  "term_of (f :: 'a \<Rightarrow> 'b) =
     Const (STR ''Pure.dummy_pattern'')
       (Typerep.Typerep (STR ''fun'') [Typerep.typerep TYPE('a), Typerep.typerep TYPE('b)])"
 
@@ -119,8 +119,8 @@ lemma term_of_string [code]:
   by (subst term_of_anything) rule 
   
 code_printing
-  constant "term_of \<Colon> integer \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_number/ HOLogic.code'_integerT"
-| constant "term_of \<Colon> String.literal \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_literal"
+  constant "term_of :: integer \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_number/ HOLogic.code'_integerT"
+| constant "term_of :: String.literal \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_literal"
 
 declare [[code drop: "term_of :: integer \<Rightarrow> _"]]
 
