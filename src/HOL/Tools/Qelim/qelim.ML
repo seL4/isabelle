@@ -6,7 +6,7 @@ Generic quantifier elimination conversions for HOL formulae.
 
 signature QELIM =
 sig
- val gen_qelim_conv: conv -> conv -> conv -> (cterm -> 'a -> 'a) -> 'a ->
+ val gen_qelim_conv: Proof.context -> conv -> conv -> conv -> (cterm -> 'a -> 'a) -> 'a ->
   ('a -> conv) -> ('a -> conv) -> ('a -> conv) -> conv
  val standard_qelim_conv: Proof.context ->
   (cterm list -> conv) -> (cterm list -> conv) ->
@@ -18,7 +18,7 @@ struct
 
 val all_not_ex = mk_meta_eq @{thm "all_not_ex"};
 
-fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
+fun gen_qelim_conv ctxt precv postcv simpex_conv ins env atcv ncv qcv =
  let
   fun conv env p =
    case Thm.term_of p of
@@ -41,10 +41,10 @@ fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
     in if Thm.is_reflexive th' then Thm.transitive th (qcv env (Thm.rhs_of th))
        else Thm.transitive (Thm.transitive th th') (conv env r) end
   | Const(@{const_name Ex},_)$ _ => (Thm.eta_long_conversion then_conv conv env) p
-  | Const(@{const_name All},_)$_ =>
+  | Const(@{const_name All}, allT)$_ =>
     let
+     val T = Thm.ctyp_of ctxt (#1 (Term.dest_funT (#1 (Term.dest_funT allT))))
      val p = Thm.dest_arg p
-     val ([(_,T)],[]) = Thm.match (@{cpat "All"}, Thm.dest_fun p)
      val th = Thm.instantiate' [SOME T] [SOME p] all_not_ex
     in Thm.transitive th (conv env (Thm.rhs_of th))
     end
@@ -65,7 +65,7 @@ in
 
 fun standard_qelim_conv ctxt atcv ncv qcv p =
   let val pcv = pcv ctxt
-  in gen_qelim_conv pcv pcv pcv cons (Drule.cterm_add_frees p []) atcv ncv qcv p end
+  in gen_qelim_conv ctxt pcv pcv pcv cons (Drule.cterm_add_frees p []) atcv ncv qcv p end
 
 end;
 

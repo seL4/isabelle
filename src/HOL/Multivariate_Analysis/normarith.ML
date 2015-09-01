@@ -343,8 +343,14 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val lctab = vector_lincombs (map snd (filter (not o fst) ntms))
   val (fxns, ctxt') = Variable.variant_fixes (replicate (length lctab) "x") ctxt
   fun instantiate_cterm' ty tms = Drule.cterm_rule (Thm.instantiate' ty tms)
-  fun mk_norm t = Thm.apply (instantiate_cterm' [SOME (Thm.ctyp_of_cterm t)] [] @{cpat "norm :: (?'a :: real_normed_vector) => real"}) t
-  fun mk_equals l r = Thm.apply (Thm.apply (instantiate_cterm' [SOME (Thm.ctyp_of_cterm l)] [] @{cpat "op == :: ?'a =>_"}) l) r
+  fun mk_norm t =
+    let val T = Thm.typ_of_cterm t
+    in Thm.apply (Thm.cterm_of ctxt' (Const (@{const_name norm}, T --> @{typ real}))) t end
+  fun mk_equals l r =
+    let
+      val T = Thm.typ_of_cterm l
+      val eq = Thm.cterm_of ctxt (Const (@{const_name Pure.eq}, T --> T --> propT))
+    in Thm.apply (Thm.apply eq l) r end
   val asl = map2 (fn (t,_) => fn n => Thm.assume (mk_equals (mk_norm t) (Thm.cterm_of ctxt' (Free(n,@{typ real}))))) lctab fxns
   val replace_conv = try_conv (rewrs_conv asl)
   val replace_rule = fconv_rule (funpow 2 arg_conv (replacenegnorms replace_conv))

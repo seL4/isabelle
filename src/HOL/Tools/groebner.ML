@@ -478,8 +478,8 @@ fun conj_ac_rule eq =
 
    (* Conversion for the equivalence of existential statements where
       EX quantifiers are rearranged differently *)
- fun ext T = Drule.cterm_rule (Thm.instantiate' [SOME T] []) @{cpat Ex}
- fun mk_ex v t = Thm.apply (ext (Thm.ctyp_of_cterm v)) (Thm.lambda v t)
+fun ext ctxt T = Thm.cterm_of ctxt (Const (@{const_name Ex}, (T --> @{typ bool}) --> @{typ bool}))
+fun mk_ex ctxt v t = Thm.apply (ext ctxt (Thm.typ_of_cterm v)) (Thm.lambda v t)
 
 fun choose v th th' = case Thm.concl_of th of
   @{term Trueprop} $ (Const(@{const_name Ex},_)$_) =>
@@ -494,8 +494,8 @@ fun choose v th th' = case Thm.concl_of th of
    in Thm.implies_elim (Thm.implies_elim th0 th) th1  end
 | _ => error ""  (* FIXME ? *)
 
-fun simple_choose v th =
-   choose v (Thm.assume ((Thm.apply @{cterm Trueprop} o mk_ex v)
+fun simple_choose ctxt v th =
+   choose v (Thm.assume ((Thm.apply @{cterm Trueprop} o mk_ex ctxt v)
     (Thm.dest_arg (hd (Thm.chyps_of th))))) th
 
 
@@ -507,14 +507,14 @@ fun simple_choose v th =
       (Thm.instantiate' [SOME (Thm.ctyp_of_cterm v)] [SOME p, SOME v] @{thm exI}))
       th
   end
- fun ex_eq_conv t =
+ fun ex_eq_conv ctxt t =
   let
   val (p0,q0) = Thm.dest_binop t
   val (vs',P) = strip_exists p0
   val (vs,_) = strip_exists q0
    val th = Thm.assume (Thm.apply @{cterm Trueprop} P)
-   val th1 = implies_intr_hyps (fold simple_choose vs' (fold mkexi vs th))
-   val th2 = implies_intr_hyps (fold simple_choose vs (fold mkexi vs' th))
+   val th1 = implies_intr_hyps (fold (simple_choose ctxt) vs' (fold mkexi vs th))
+   val th2 = implies_intr_hyps (fold (simple_choose ctxt) vs (fold mkexi vs' th))
    val p = (Thm.dest_arg o Thm.dest_arg1 o Thm.cprop_of) th1
    val q = (Thm.dest_arg o Thm.dest_arg o Thm.cprop_of) th1
   in Thm.implies_elim (Thm.implies_elim (Thm.instantiate' [] [SOME p, SOME q] iffI) th1) th2
@@ -527,7 +527,7 @@ fun simple_choose v th =
  | Var ((s,_),_) => s
  | _ => "x"
  fun mk_eq s t = Thm.apply (Thm.apply @{cterm "op == :: bool => _"} s) t
-  fun mk_exists v th = Drule.arg_cong_rule (ext (Thm.ctyp_of_cterm v))
+ fun mk_exists ctxt v th = Drule.arg_cong_rule (ext ctxt (Thm.typ_of_cterm v))
    (Thm.abstract_rule (getname v) v th)
  fun simp_ex_conv ctxt =
    Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms(39)})
@@ -738,9 +738,10 @@ fun refute ctxt tm =
 fun ring ctxt tm =
  let
   fun mk_forall x p =
-    Thm.apply
-      (Drule.cterm_rule (Thm.instantiate' [SOME (Thm.ctyp_of_cterm x)] [])
-        @{cpat "All:: (?'a => bool) => _"}) (Thm.lambda x p)
+    let
+      val T = Thm.typ_of_cterm x;
+      val all = Thm.cterm_of ctxt (Const (@{const_name All}, (T --> @{typ bool}) --> @{typ bool}))
+    in Thm.apply all (Thm.lambda x p) end
   val avs = Drule.cterm_add_frees tm []
   val P' = fold mk_forall avs tm
   val th1 = initial_conv ctxt (mk_neg P')
@@ -829,9 +830,9 @@ fun poly_eq_conv t =
       (Drule.binop_cong_rule @{cterm HOL.conj} th1
         (Thm.reflexive (Thm.dest_arg (Thm.rhs_of th2))))
   val v = Thm.dest_arg1(Thm.dest_arg1(Thm.rhs_of th3))
-  val th4 = Conv.fconv_rule (Conv.arg_conv (simp_ex_conv ctxt)) (mk_exists v th3)
-  val th5 = ex_eq_conv (mk_eq tm (fold mk_ex (remove op aconvc v vars) (Thm.lhs_of th4)))
- in Thm.transitive th5 (fold mk_exists (remove op aconvc v vars) th4)
+  val th4 = Conv.fconv_rule (Conv.arg_conv (simp_ex_conv ctxt)) (mk_exists ctxt v th3)
+  val th5 = ex_eq_conv ctxt (mk_eq tm (fold (mk_ex ctxt) (remove op aconvc v vars) (Thm.lhs_of th4)))
+ in Thm.transitive th5 (fold (mk_exists ctxt) (remove op aconvc v vars) th4)
  end;
 end
 

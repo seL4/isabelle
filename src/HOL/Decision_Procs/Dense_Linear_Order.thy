@@ -902,15 +902,6 @@ fun dest_frac ct =
   | Const(@{const_name inverse}, _)$a => Rat.rat_of_quotient(1, HOLogic.dest_number a |> snd)
   | t => Rat.rat_of_int (snd (HOLogic.dest_number t))
 
-fun mk_frac phi cT x =
-  let val (a, b) = Rat.quotient_of_rat x
-  in if b = 1 then Numeral.mk_cnumber cT a
-    else Thm.apply
-         (Thm.apply (Drule.cterm_rule (Thm.instantiate' [SOME cT] []) @{cpat "op /"})
-                     (Numeral.mk_cnumber cT a))
-         (Numeral.mk_cnumber cT b)
- end
-
 fun whatis x ct = case Thm.term_of ct of
   Const(@{const_name Groups.plus}, _)$(Const(@{const_name Groups.times},_)$_$y)$_ =>
      if y aconv Thm.term_of x then ("c*x+t",[(funpow 2 Thm.dest_arg1) ct, Thm.dest_arg ct])
@@ -973,9 +964,10 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
    (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
-        val T = Thm.ctyp_of_cterm x
+        val T = Thm.typ_of_cterm x
+        val cT = Thm.ctyp_of_cterm x
         val cr = dest_frac c
-        val clt = Drule.cterm_rule (Thm.instantiate' [SOME T] []) @{cpat "op <"}
+        val clt = Thm.cterm_of ctxt (Const (@{const_name ord_class.less}, T --> T --> @{typ bool}))
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
         val cthp = Simplifier.rewrite ctxt
@@ -983,7 +975,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
-        val th = Thm.implies_elim (Thm.instantiate' [SOME T] (map SOME [c,x,t])
+        val th = Thm.implies_elim (Thm.instantiate' [SOME cT] (map SOME [c,x,t])
              (if neg then @{thm neg_prod_sum_le} else @{thm pos_prod_sum_le})) cth
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
                    (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
@@ -997,9 +989,10 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
        in  rth end
     | ("c*x",[c]) =>
        let
-        val T = Thm.ctyp_of_cterm x
+        val T = Thm.typ_of_cterm x
+        val cT = Thm.ctyp_of_cterm x
         val cr = dest_frac c
-        val clt = Drule.cterm_rule (Thm.instantiate' [SOME T] []) @{cpat "op <"}
+        val clt = Thm.cterm_of ctxt (Const (@{const_name ord_class.less}, T --> T --> @{typ bool}))
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
         val cthp = Simplifier.rewrite ctxt

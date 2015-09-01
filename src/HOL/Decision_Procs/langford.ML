@@ -190,7 +190,7 @@ fun raw_dlo_conv ctxt dlo_ss ({qe_bnds, qe_nolb, qe_noub, gst, gs, ...}: Langfor
           addsimps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib})
   in
     fn p =>
-      Qelim.gen_qelim_conv pcv pcv dnfex_conv cons
+      Qelim.gen_qelim_conv ctxt pcv pcv dnfex_conv cons
         (Drule.cterm_add_frees p []) (K Thm.reflexive) (K Thm.reflexive)
         (K (basic_dloqe ctxt gst qe_bnds qe_nolb qe_noub gs)) p
   end;
@@ -228,12 +228,12 @@ fun dlo_conv ctxt tm =
     (_, NONE) => raise CTERM ("dlo_conv (langford): no corresponding instance in context!", [tm])
   | (ss, SOME instance) => raw_dlo_conv ctxt ss instance tm);
 
-fun generalize_tac f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
+fun generalize_tac ctxt f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
   let
-    fun all T = Drule.cterm_rule (Thm.instantiate' [SOME T] []) @{cpat "Pure.all"}
-    fun gen x t = Thm.apply (all (Thm.ctyp_of_cterm x)) (Thm.lambda x t)
-    val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (Thm.term_of a, Thm.term_of b)) (f p)
-    val p' = fold_rev gen ts p
+    fun all x t =
+      Thm.apply (Thm.cterm_of ctxt (Logic.all_const (Thm.typ_of_cterm x))) (Thm.lambda x t)
+    val ts = sort (fn (a, b) => Term_Ord.fast_term_ord (Thm.term_of a, Thm.term_of b)) (f p)
+    val p' = fold_rev all ts p
   in Thm.implies_intr p' (Thm.implies_elim st (fold Thm.forall_elim ts (Thm.assume p'))) end));
 
 fun cfrees ats ct =
@@ -259,7 +259,7 @@ fun dlo_tac ctxt = CSUBGOAL (fn (p, i) =>
       Object_Logic.full_atomize_tac ctxt i THEN
       simp_tac (put_simpset ss ctxt) i
       THEN (CONVERSION Thm.eta_long_conversion) i
-      THEN (TRY o generalize_tac (cfrees (#atoms instance))) i
+      THEN (TRY o generalize_tac ctxt (cfrees (#atoms instance))) i
       THEN Object_Logic.full_atomize_tac ctxt i
       THEN CONVERSION (Object_Logic.judgment_conv ctxt (raw_dlo_conv ctxt ss instance)) i
       THEN (simp_tac (put_simpset ss ctxt) i)));

@@ -514,14 +514,15 @@ fun gen_gen_real_arith ctxt (mk_numeric,
       | _ => "x"
 
     fun mk_forall x th =
-      Drule.arg_cong_rule
-        (instantiate_cterm' [SOME (Thm.ctyp_of_cterm x)] [] @{cpat "All :: (?'a => bool) => _" })
-        (Thm.abstract_rule (name_of x) x th)
+      let
+        val T = Thm.typ_of_cterm x
+        val all = Thm.cterm_of ctxt (Const (@{const_name All}, (T --> @{typ bool}) --> @{typ bool}))
+      in Drule.arg_cong_rule all (Thm.abstract_rule (name_of x) x th) end
 
     val specl = fold_rev (fn x => fn th => Thm.instantiate' [] [SOME x] (th RS spec));
 
-    fun ext T = Drule.cterm_rule (Thm.instantiate' [SOME T] []) @{cpat Ex}
-    fun mk_ex v t = Thm.apply (ext (Thm.ctyp_of_cterm v)) (Thm.lambda v t)
+    fun ext T = Thm.cterm_of ctxt (Const (@{const_name Ex}, (T --> @{typ bool}) --> @{typ bool}))
+    fun mk_ex v t = Thm.apply (ext (Thm.typ_of_cterm v)) (Thm.lambda v t)
 
     fun choose v th th' =
       case Thm.concl_of th of

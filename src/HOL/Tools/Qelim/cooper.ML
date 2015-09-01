@@ -569,7 +569,7 @@ val conv_ss =
       [not_all, all_not_ex, @{thm ex_disj_distrib}]));
 
 fun conv ctxt p =
-  Qelim.gen_qelim_conv
+  Qelim.gen_qelim_conv ctxt
     (Simplifier.rewrite (put_simpset conv_ss ctxt))
     (Simplifier.rewrite (put_simpset presburger_ss ctxt))
     (Simplifier.rewrite (put_simpset conv_ss ctxt))
@@ -799,12 +799,12 @@ fun int_nat_terms ctxt ct =
  in h [] ct end
 end;
 
-fun generalize_tac f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
+fun generalize_tac ctxt f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
  let 
-   fun all T = Drule.cterm_rule (Thm.instantiate' [SOME T] []) @{cpat "Pure.all"}
-   fun gen x t = Thm.apply (all (Thm.ctyp_of_cterm x)) (Thm.lambda x t)
-   val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (Thm.term_of a, Thm.term_of b)) (f p)
-   val p' = fold_rev gen ts p
+   fun all x t =
+    Thm.apply (Thm.cterm_of ctxt (Logic.all_const (Thm.typ_of_cterm x))) (Thm.lambda x t)
+   val ts = sort (fn (a, b) => Term_Ord.fast_term_ord (Thm.term_of a, Thm.term_of b)) (f p)
+   val p' = fold_rev all ts p
  in Thm.implies_intr p' (Thm.implies_elim st (fold Thm.forall_elim ts (Thm.assume p'))) end));
 
 local
@@ -875,7 +875,7 @@ fun tac elim add_ths del_ths = Subgoal.FOCUS_PARAMS (fn {context = ctxt, ...} =>
     THEN_ALL_NEW Object_Logic.full_atomize_tac ctxt
     THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
     THEN_ALL_NEW simp_tac simpset_ctxt
-    THEN_ALL_NEW (TRY o generalize_tac (int_nat_terms ctxt))
+    THEN_ALL_NEW (TRY o generalize_tac ctxt (int_nat_terms ctxt))
     THEN_ALL_NEW Object_Logic.full_atomize_tac ctxt
     THEN_ALL_NEW (thin_prems_tac ctxt (is_relevant ctxt))
     THEN_ALL_NEW Object_Logic.full_atomize_tac ctxt

@@ -709,7 +709,8 @@ fun transferred ctxt extra_rules thm =
           (SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt' rules)
             THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
-    val thm3 = Goal.prove_internal ctxt' [] @{cpat "Trueprop ?P"} (K tac)
+    val goal = Thm.cterm_of ctxt' (HOLogic.mk_Trueprop (Var (("P", 0), @{typ bool})))
+    val thm3 = Goal.prove_internal ctxt' [] goal (K tac)
     val tnames = map (fst o dest_TFree o Thm.typ_of o snd) instT
   in
     thm3
@@ -746,7 +747,8 @@ fun untransferred ctxt extra_rules thm =
           (SOLVED' (REPEAT_ALL_NEW (resolve_tac ctxt' rules)
             THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
-    val thm3 = Goal.prove_internal ctxt' [] @{cpat "Trueprop ?P"} (K tac)
+    val goal = Thm.cterm_of ctxt' (HOLogic.mk_Trueprop (Var (("P", 0), @{typ bool})))
+    val thm3 = Goal.prove_internal ctxt' [] goal (K tac)
     val tnames = map (fst o dest_TFree o Thm.typ_of o snd) instT
   in
     thm3

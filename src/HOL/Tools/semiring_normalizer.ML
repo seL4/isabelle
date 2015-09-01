@@ -123,6 +123,9 @@ val semiring_funs =
       Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
       then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_1_eq_1}))};
 
+val divide_const = Thm.cterm_of @{context} (Logic.varify_global @{term "op /"});
+val [divide_tvar] = Term.add_tvars (Thm.term_of divide_const) [];
+
 val field_funs =
   let
     fun numeral_is_const ct =
@@ -142,7 +145,7 @@ val field_funs =
       let val (a, b) = Rat.quotient_of_rat x
       in if b = 1 then Numeral.mk_cnumber cT a
         else Thm.apply
-             (Thm.apply (Drule.cterm_rule (Thm.instantiate' [SOME cT] []) @{cpat "op /"})
+             (Thm.apply (Thm.instantiate_cterm ([(divide_tvar, cT)], []) divide_const)
                          (Numeral.mk_cnumber cT a))
              (Numeral.mk_cnumber cT b)
       end
