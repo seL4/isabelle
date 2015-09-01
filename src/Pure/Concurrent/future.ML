@@ -399,14 +399,12 @@ fun error_message pos ((serial, msg), exec_id) =
     end) ();
 
 fun identify_result pos res =
-  (case res of
-    Exn.Exn exn =>
-      let val exec_id =
-        (case Position.get_id pos of
-          NONE => []
-        | SOME id => [(Markup.exec_idN, id)])
-      in Exn.Exn (Par_Exn.identify exec_id exn) end
-  | _ => res);
+  res |> Exn.map_exn (fn exn =>
+    let val exec_id =
+      (case Position.get_id pos of
+        NONE => []
+      | SOME id => [(Markup.exec_idN, id)])
+    in Par_Exn.identify exec_id exn end);
 
 fun assign_result group result res =
   let

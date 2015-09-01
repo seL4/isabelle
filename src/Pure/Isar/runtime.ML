@@ -10,6 +10,7 @@ sig
   exception EXCURSION_FAIL of exn * string
   exception TOPLEVEL_ERROR
   val exn_context: Proof.context option -> exn -> exn
+  val thread_context: exn -> exn
   type error = ((serial * string) * string option)
   val exn_messages_ids: exn -> error list
   val exn_messages: exn -> (serial * string) list
@@ -40,6 +41,9 @@ exception CONTEXT of Proof.context * exn;
 
 fun exn_context NONE exn = exn
   | exn_context (SOME ctxt) exn = if Exn.is_interrupt exn then exn else CONTEXT (ctxt, exn);
+
+fun thread_context exn =
+  exn_context (Option.map Context.proof_of (Context.thread_data ())) exn;
 
 
 (* exn_message *)

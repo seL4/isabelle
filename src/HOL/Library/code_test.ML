@@ -180,7 +180,7 @@ fun dynamic_value_strict ctxt t compiler =
       Exn.interruptible_capture evaluate (Code_Target.evaluator ctxt target program deps true vs_ty);
     fun postproc f = map (apsnd (map_option (map f)))
   in
-    Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_result o postproc) evaluator t)
+    Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) evaluator t)
   end;
 
 (* Term preprocessing *)

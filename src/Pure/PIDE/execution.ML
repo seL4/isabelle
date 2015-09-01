@@ -108,7 +108,8 @@ fun fork ({name, pos, pri}: params) e =
               val _ = status task [Markup.running];
               val result =
                 Exn.capture (Future.interruptible_task e) ()
-                |> Future.identify_result pos;
+                |> Future.identify_result pos
+                |> Exn.map_exn Runtime.thread_context;
               val _ = status task [Markup.joined];
               val _ =
                 (case result of

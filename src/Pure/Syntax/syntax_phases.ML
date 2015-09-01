@@ -353,7 +353,7 @@ fun parse_tree ctxt root input =
     val parse_rules = Syntax.parse_rules syn;
     val (ambig_msgs, asts) = parse_asts ctxt false root input;
     val results =
-      (map o apsnd o Exn.maps_result)
+      (map o apsnd o Exn.maps_res)
         (Ast.normalize ctxt parse_rules #> Exn.interruptible_capture (ast_to_term ctxt tr)) asts;
   in (ambig_msgs, results) end;
 
@@ -405,7 +405,7 @@ fun parse_term is_prop ctxt =
 
           val results' =
             if parsed_len > 1 then
-              (grouped 10 (Par_List.map_name "Syntax_Phases.parse_term") o apsnd o Exn.maps_result)
+              (grouped 10 (Par_List.map_name "Syntax_Phases.parse_term") o apsnd o Exn.maps_res)
                 check results
             else results;
           val reports' = fst (hd results');

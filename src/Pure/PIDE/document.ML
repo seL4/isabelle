@@ -364,7 +364,7 @@ fun the_blob (State {blobs, ...}) digest =
   | SOME content => content);
 
 fun resolve_blob state (blob_digest: blob_digest) =
-  blob_digest |> Exn.map_result (fn (file_node, raw_digest) =>
+  blob_digest |> Exn.map_res (fn (file_node, raw_digest) =>
     (file_node, Option.map (the_blob state) raw_digest));
 
 fun blob_reports pos (blob_digest: blob_digest) =

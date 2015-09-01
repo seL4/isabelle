@@ -131,7 +131,7 @@ fun dynamic_value_exn cookie ctxt some_target postproc t args =
       else ()
     fun evaluator program _ vs_ty_t deps =
       evaluation cookie ctxt (obtain_evaluator ctxt some_target program deps) vs_ty_t args;
-  in Code_Thingol.dynamic_value ctxt (Exn.map_result o postproc) evaluator t end;
+  in Code_Thingol.dynamic_value ctxt (Exn.map_res o postproc) evaluator t end;
 
 fun dynamic_value_strict cookie ctxt some_target postproc t args =
   Exn.release (dynamic_value_exn cookie ctxt some_target postproc t args);
@@ -148,7 +148,7 @@ fun static_evaluator cookie ctxt some_target { program, deps } =
 fun static_value_exn cookie { ctxt, target, lift_postproc, consts } =
   let
     val evaluator = Code_Thingol.static_value { ctxt = ctxt,
-      lift_postproc = Exn.map_result o lift_postproc, consts = consts }
+      lift_postproc = Exn.map_res o lift_postproc, consts = consts }
       (static_evaluator cookie ctxt target);
   in fn ctxt' => evaluator ctxt' o reject_vars ctxt' end;
 
@@ -314,7 +314,7 @@ fun static_value_exn' cookie { ctxt, lift_postproc, consts, T } =
     val cs_code = map (Axclass.unoverload_const thy) consts;
     val cTs = map2 (fn (_, T) => fn c => (c, T)) consts cs_code;
     val evaluator = Code_Thingol.static_value { ctxt = ctxt,
-      lift_postproc = Exn.map_result o lift_postproc, consts = cs_code }
+      lift_postproc = Exn.map_res o lift_postproc, consts = cs_code }
       (compile_evaluator cookie ctxt cs_code cTs T);
   in fn ctxt' =>
     evaluator ctxt' o reject_vars ctxt' o Syntax.check_term ctxt' o Type.constraint T
