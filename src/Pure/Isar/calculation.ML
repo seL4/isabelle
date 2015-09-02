@@ -74,12 +74,12 @@ val trans_del = Thm.declaration_attribute (Data.map o apfst o apfst o Item_Net.r
 
 val sym_add =
   Thm.declaration_attribute (fn th =>
-    (Data.map o apfst o apsnd) (Thm.add_thm th) #>
+    (Data.map o apfst o apsnd) (Thm.add_thm (Thm.trim_context th)) #>
     Thm.attribute_declaration (Context_Rules.elim_query NONE) th);
 
 val sym_del =
   Thm.declaration_attribute (fn th =>
-    (Data.map o apfst o apsnd) (Thm.del_thm th) #>
+    (Data.map o apfst o apsnd) (Thm.del_thm (Thm.trim_context th)) #>
     Thm.attribute_declaration Context_Rules.rule_del th);
 
 
