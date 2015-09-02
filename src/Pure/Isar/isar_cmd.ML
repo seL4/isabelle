@@ -143,7 +143,8 @@ fun oracle (name, range) source =
 (* old-style defs *)
 
 fun add_defs ((unchecked, overloaded), args) thy =
- (legacy_feature "Old 'defs' command -- use 'definition' (with 'overloading') instead";
+ (legacy_feature ("Old 'defs' command -- use 'definition' (with 'overloading') instead" ^
+    Position.here (Position.thread_data ()));
   thy |>
     (if unchecked then Global_Theory.add_defs_unchecked_cmd else Global_Theory.add_defs_cmd)
       overloaded
