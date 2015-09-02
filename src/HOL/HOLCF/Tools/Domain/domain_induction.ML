@@ -132,8 +132,6 @@ let
       mk_trp (p $ HOLCF_Library.mk_bottom T) :: map (con_assm true p) cons
   val assms = maps eq_assms (Ps ~~ newTs ~~ map #con_specs constr_infos)
 
-  val take_ss =
-    simpset_of (put_simpset HOL_ss @{context} addsimps (@{thm Rep_cfun_strict1} :: take_rews))
   fun quant_tac ctxt i = EVERY
     (map (fn name =>
       Rule_Insts.res_inst_tac ctxt [((("x", 0), Position.none), name)] [] spec i) x_names)
@@ -154,6 +152,8 @@ let
 
       fun tacf {prems, context = ctxt} =
         let
+          val take_ctxt = put_simpset HOL_ss ctxt addsimps (@{thm Rep_cfun_strict1} :: take_rews)
+
           (* Prove stronger prems, without definedness side conditions *)
           fun con_thm p (con, args) =
             let
@@ -177,14 +177,14 @@ let
             quant_tac ctxt 1,
             simp_tac (put_simpset HOL_ss ctxt) 1,
             Induct_Tacs.induct_tac ctxt [[SOME "n"]] NONE 1,
-            simp_tac (put_simpset take_ss ctxt addsimps prems) 1,
+            simp_tac (take_ctxt addsimps prems) 1,
             TRY (safe_tac (put_claset HOL_cs ctxt))]
           fun con_tac _ = 
-            asm_simp_tac (put_simpset take_ss ctxt) 1 THEN
+            asm_simp_tac take_ctxt 1 THEN
             (resolve_tac ctxt prems' THEN_ALL_NEW eresolve_tac ctxt [spec]) 1
           fun cases_tacs (cons, exhaust) =
             Rule_Insts.res_inst_tac ctxt [((("y", 0), Position.none), "x")] [] exhaust 1 ::
-            asm_simp_tac (put_simpset take_ss ctxt addsimps prems) 1 ::
+            asm_simp_tac (take_ctxt addsimps prems) 1 ::
             map con_tac cons
           val tacs = tacs1 @ maps cases_tacs (conss ~~ exhausts)
         in
