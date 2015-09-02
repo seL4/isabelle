@@ -70,7 +70,7 @@ fun add_const_alias thm thy =
           ^ Syntax.string_of_term_global thy eqn);
     val _ = if the_list (Axclass.class_of_param thy (snd c_c')) = [class] then ()
       else error ("Inconsistent class: " ^ Display.string_of_thm_global thy thm);
-  in Triv_Class_Data.map (AList.update (op =) (class, thm)) thy end;
+  in Triv_Class_Data.map (AList.update (op =) (class, Thm.trim_context thm)) thy end;
 
 local
 
