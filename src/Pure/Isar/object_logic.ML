@@ -166,10 +166,10 @@ val get_atomize = #1 o #atomize_rulify o get_data;
 val get_rulify = #2 o #atomize_rulify o get_data;
 
 fun add_atomize th = map_data (fn (base_sort, judgment, (atomize, rulify)) =>
-  (base_sort, judgment, (Thm.add_thm th atomize, rulify)));
+  (base_sort, judgment, (Thm.add_thm (Thm.trim_context th) atomize, rulify)));
 
 fun add_rulify th = map_data (fn (base_sort, judgment, (atomize, rulify)) =>
-  (base_sort, judgment, (atomize, Thm.add_thm th rulify)));
+  (base_sort, judgment, (atomize, Thm.add_thm (Thm.trim_context th) rulify)));
 
 val declare_atomize = Thm.declaration_attribute add_atomize;
 val declare_rulify = Thm.declaration_attribute add_rulify;
