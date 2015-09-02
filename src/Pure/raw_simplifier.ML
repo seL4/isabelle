@@ -640,7 +640,7 @@ fun add_eqcong thm ctxt = ctxt |> map_simpset2
       val a = the (cong_name (head_of lhs)) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant or free variable", [thm]);
       val (xs, weak) = congs;
-      val xs' = AList.update (op =) (a, thm) xs;
+      val xs' = AList.update (op =) (a, Thm.trim_context thm) xs;
       val weak' = if is_full_cong thm then weak else a :: weak;
     in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
@@ -1148,7 +1148,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
                     (case cong_name h of
                       SOME a =>
                         (case AList.lookup (op =) (fst congs) a of
-                           NONE => appc ()
+                          NONE => appc ()
                         | SOME cong =>
      (*post processing: some partial applications h t1 ... tj, j <= length ts,
        may be a redex. Example: map (%x. x) = (%xs. xs) wrt map_cong*)
