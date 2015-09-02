@@ -587,16 +587,19 @@ fun add_thmss loc kind facts ctxt =
   if null facts then ctxt
   else
     let
-      val notes = ((kind, trim_context_facts facts), serial ());
+      val stored_notes = ((kind, trim_context_facts facts), serial ());
+
+      fun global_notes morph thy = thy
+        |> (snd o Attrib.global_notes kind
+            (Attrib.transform_facts (Morphism.transfer_morphism thy $> morph) facts));
       fun registrations thy =
-        fold_rev (fn (_, morph) =>
-            snd o Attrib.global_notes kind (Attrib.transform_facts morph facts))
+        fold_rev (fn (_, morph) => global_notes morph)
           (registrations_of (Context.Theory thy) loc) thy;
     in
       ctxt
       |> Attrib.local_notes kind facts |> snd
       |> Proof_Context.background_theory
-        ((change_locale loc o apfst o apsnd) (cons notes) #> registrations)
+        ((change_locale loc o apfst o apsnd) (cons stored_notes) #> registrations)
     end;
 
 end;
