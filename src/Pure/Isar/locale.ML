@@ -608,8 +608,7 @@ local
 
 fun add_decl loc decl =
   add_thmss loc ""
-    [((Binding.concealed Binding.empty,
-        [Attrib.internal (fn phi => Thm.declaration_attribute (K (decl phi)))]),
+    [((Binding.empty, [Attrib.internal (fn phi => Thm.declaration_attribute (K (decl phi)))]),
       [([Drule.dummy_thm], [])])];
 
 in
