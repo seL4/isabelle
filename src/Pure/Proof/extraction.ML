@@ -399,7 +399,7 @@ fun add_expand_thm is_def thm thy =
          typeof_eqns = add_rule ([], Logic.dest_equals (map_types
            Type.strip_sorts (Thm.prop_of (Drule.abs_def thm)))) typeof_eqns,
          types = types,
-         realizers = realizers, defs = insert Thm.eq_thm thm defs,
+         realizers = realizers, defs = insert Thm.eq_thm_prop (Thm.trim_context thm) defs,
          expand = expand, prep = prep}
       else
         {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,
@@ -486,7 +486,8 @@ fun extract thm_vss thy =
     val procs = maps (rev o fst o snd) types;
     val rtypes = map fst types;
     val typroc = typeof_proc [];
-    val prep = the_default (K I) prep thy' o ProofRewriteRules.elim_defs thy' false defs o
+    val prep = the_default (K I) prep thy' o
+      ProofRewriteRules.elim_defs thy' false (map (Thm.transfer thy) defs) o
       Reconstruct.expand_proof thy' (map (rpair NONE) ("" :: expand));
     val rrews = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
 
