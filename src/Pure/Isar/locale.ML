@@ -191,7 +191,8 @@ fun the_locale thy name =
 fun register_locale binding parameters spec intros axioms hyp_spec syntax_decls notes dependencies thy =
   thy |> Locales.map (Name_Space.define (Context.Theory thy) true
     (binding,
-      mk_locale ((parameters, spec, intros, axioms, hyp_spec),
+      mk_locale ((parameters, spec, (apply2 o Option.map) Thm.trim_context intros,
+          map Thm.trim_context axioms, hyp_spec),
         ((map (fn decl => (decl, serial ())) syntax_decls, map (fn n => (n, serial ())) notes),
           (map (fn d => (d |> apsnd (rpair Morphism.identity), serial ())) dependencies,
             Inttab.empty)))) #> snd);
@@ -205,9 +206,9 @@ fun change_locale name =
 
 fun params_of thy = snd o #parameters o the_locale thy;
 
-fun intros_of thy = #intros o the_locale thy;
+fun intros_of thy = (apply2 o Option.map) (Thm.transfer thy) o #intros o the_locale thy;
 
-fun axioms_of thy = #axioms o the_locale thy;
+fun axioms_of thy = map (Thm.transfer thy) o #axioms o the_locale thy;
 
 fun instance_of thy name morph = params_of thy name |>
   map (Morphism.term morph o Free o #1);
@@ -639,16 +640,25 @@ structure Thms = Generic_Data
     Thm.merge_thms (unfolds1, unfolds2));
 );
 
-val get_witnesses = #1 o Thms.get o Context.Proof;
-val get_intros = #2 o Thms.get o Context.Proof;
-val get_unfolds = #3 o Thms.get o Context.Proof;
+fun get_thms which ctxt =
+  map (Thm.transfer (Proof_Context.theory_of ctxt))
+    (which (Thms.get (Context.Proof ctxt)));
+
+val get_witnesses = get_thms #1;
+val get_intros = get_thms #2;
+val get_unfolds = get_thms #3;
 
 val witness_add =
-  Thm.declaration_attribute (fn th => Thms.map (fn (x, y, z) => (Thm.add_thm th x, y, z)));
+  Thm.declaration_attribute (fn th =>
+    Thms.map (fn (x, y, z) => (Thm.add_thm (Thm.trim_context th) x, y, z)));
+
 val intro_add =
-  Thm.declaration_attribute (fn th => Thms.map (fn (x, y, z) => (x, Thm.add_thm th y, z)));
+  Thm.declaration_attribute (fn th =>
+    Thms.map (fn (x, y, z) => (x, Thm.add_thm (Thm.trim_context th) y, z)));
+
 val unfold_add =
-  Thm.declaration_attribute (fn th => Thms.map (fn (x, y, z) => (x, y, Thm.add_thm th z)));
+  Thm.declaration_attribute (fn th =>
+    Thms.map (fn (x, y, z) => (x, y, Thm.add_thm (Thm.trim_context th) z)));
 
 
 (* Tactics *)
