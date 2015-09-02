@@ -575,8 +575,11 @@ fun add_dependency loc (name, morph) mixin export thy =
 
 local
 
-fun trim_context_facts facts =
-  (map o apsnd o map o apfst o map) Thm.trim_context facts;
+val trim_fact = map Thm.trim_context;
+val trim_srcs = (map o Token.map_facts_src) trim_fact;
+
+fun trim_context_facts facts = facts |> map (fn ((b, atts), args) =>
+  ((b, trim_srcs atts), map (fn (a, more_atts) => (trim_fact a, trim_srcs more_atts)) args));
 
 in
 

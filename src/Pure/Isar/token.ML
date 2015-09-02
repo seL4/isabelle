@@ -77,6 +77,8 @@ sig
   val map_values: (value -> value) -> src -> src
   val declare_maxidx: T -> Proof.context -> Proof.context
   val declare_maxidx_src: src -> Proof.context -> Proof.context
+  val map_facts: (thm list -> thm list) -> T -> T
+  val map_facts_src: (thm list -> thm list) -> src -> src
   val transform: morphism -> T -> T
   val transform_src: morphism -> src -> src
   val init_assignable: T -> T
@@ -435,6 +437,17 @@ fun declare_maxidx tok =
         in Variable.declare_maxidx (Variable.maxidx_of ctxt') ctxt end)
   | _ => I)
 and declare_maxidx_src src = fold declare_maxidx (args_of_src src);
+
+
+(* fact values *)
+
+fun map_facts f =
+  map_value (fn v =>
+    (case v of
+      Source src => Source (map_facts_src f src)
+    | Fact (a, ths) => Fact (a, f ths)
+    | _ => v))
+and map_facts_src f = map_args (map_facts f);
 
 
 (* transform *)
