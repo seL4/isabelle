@@ -167,7 +167,7 @@ fun pretty_simpset verbose ctxt =
     fun pretty_simproc (name, lhss) =
       Pretty.block
         (Pretty.mark_str name :: Pretty.str ":" :: Pretty.fbrk ::
-          Pretty.fbreaks (map (Pretty.item o single o pretty_term o Thm.term_of) lhss));
+          Pretty.fbreaks (map (Pretty.item o single o pretty_term) lhss));
 
     fun pretty_cong_name (const, name) =
       pretty_term ((if const then Const else Free) (name, dummyT));
