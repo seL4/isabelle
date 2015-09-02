@@ -12,10 +12,6 @@ From Misra, "A Logic for Concurrent Programming", 1994.
 
 This ZF theory was ported from its HOL equivalent.\<close>
 
-consts
-  "constrains" :: "[i, i] => i"  (infixl "co"     60)
-  op_unless    :: "[i, i] => i"  (infixl "unless" 60)
-
 definition
   program  :: i  where
   "program == {<init, acts, allowed>:
@@ -72,6 +68,14 @@ definition
   initially :: "i=>i"  where
   "initially(A) == {F \<in> program. Init(F)\<subseteq>A}"
 
+definition "constrains" :: "[i, i] => i"  (infixl "co" 60)  where
+  "A co B == {F \<in> program. (\<forall>act \<in> Acts(F). act``A\<subseteq>B) & st_set(A)}"
+    --\<open>the condition @{term "st_set(A)"} makes the definition slightly
+         stronger than the HOL one\<close>
+
+definition unless :: "[i, i] => i"  (infixl "unless" 60)  where
+  "A unless B == (A - B) co (A \<union> B)"
+
 definition
   stable     :: "i=>i"  where
    "stable(A) == A co A"
@@ -92,15 +96,6 @@ definition
 definition
   pg_compl :: "i=>i"  where
   "pg_compl(X)== program - X"
-
-defs
-  constrains_def:
-     "A co B == {F \<in> program. (\<forall>act \<in> Acts(F). act``A\<subseteq>B) & st_set(A)}"
-    --\<open>the condition @{term "st_set(A)"} makes the definition slightly
-         stronger than the HOL one\<close>
-
-  unless_def:    "A unless B == (A - B) co (A \<union> B)"
-
 
 text\<open>SKIP\<close>
 lemma SKIP_in_program [iff,TC]: "SKIP \<in> program"
