@@ -577,10 +577,14 @@ fun mk_rrules ctxt thms =
 
 (* add/del rules explicitly *)
 
+local
+
 fun comb_simps ctxt comb mk_rrule thms =
   let
-    val rews = extract_rews ctxt thms;
+    val rews = extract_rews ctxt (map (Thm.transfer (Proof_Context.theory_of ctxt)) thms);
   in fold (fold comb o mk_rrule) rews ctxt end;
+
+in
 
 fun ctxt addsimps thms =
   comb_simps ctxt insert_rrule (mk_rrule ctxt) thms;
@@ -590,6 +594,8 @@ fun ctxt delsimps thms =
 
 fun add_simp thm ctxt = ctxt addsimps [thm];
 fun del_simp thm ctxt = ctxt delsimps [thm];
+
+end;
 
 
 (* congs *)
