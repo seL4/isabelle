@@ -736,8 +736,8 @@ let
                  else Ferrante_Rackoff_Data.Nox
        | _ => Ferrante_Rackoff_Data.Nox
   in h end
-  fun ss phi =
-    simpset_of (put_simpset HOL_ss @{context} addsimps (simps phi))
+  fun ss phi ctxt =
+    simpset_of (put_simpset HOL_ss ctxt addsimps (simps phi))
 in
   Ferrante_Rackoff_Data.funs  @{thm "ferrack_axiom"}
     {isolate_conv = K (K (K Thm.reflexive)), whatis = generic_whatis, simpset = ss}
@@ -883,7 +883,6 @@ lemma sum_eq:
   fixes x :: "'a::ordered_ab_group_add"
   shows "x + t = 0 \<equiv> x = - t"
   using eq_diff_eq[where a= x and b=t and c=0] by simp
-
 
 interpretation class_dense_linordered_field: constr_dense_linorder
   "op \<le>" "op <" "\<lambda>x y. 1/2 * ((x::'a::linordered_field) + y)"
@@ -1104,8 +1103,8 @@ fun classfield_whatis phi =
        else Ferrante_Rackoff_Data.Nox
    | _ => Ferrante_Rackoff_Data.Nox
  in h end;
-fun class_field_ss phi =
-  simpset_of (put_simpset HOL_basic_ss @{context}
+fun class_field_ss phi ctxt =
+  simpset_of (put_simpset HOL_basic_ss ctxt
     addsimps ([@{thm "linorder_not_less"}, @{thm "linorder_not_le"}])
     |> fold Splitter.add_split [@{thm "abs_split"}, @{thm "split_max"}, @{thm "split_min"}])
 

@@ -15,7 +15,7 @@ sig
   val funs: thm -> 
     {isolate_conv: morphism -> Proof.context -> cterm list -> cterm -> thm,
      whatis: morphism -> cterm -> cterm -> ord,
-     simpset: morphism -> simpset} -> declaration
+     simpset: morphism -> Proof.context -> simpset} -> declaration
   val match: Proof.context -> cterm -> entry option
 end;
 
@@ -57,13 +57,15 @@ fun add entry =
 
 (* extra-logical functions *)
 
-fun funs raw_key {isolate_conv = icv, whatis = wi, simpset = ss} phi = Data.map (fn data =>
-  let
-    val key = Morphism.thm phi raw_key;
-    val _ = AList.defined eq_key data key orelse
-      raise THM ("No data entry for structure key", 0, [key]);
-    val fns = {isolate_conv = icv phi, whatis = wi phi, simpset = ss phi};
-  in AList.map_entry eq_key key (apsnd (K fns)) data end);
+fun funs raw_key {isolate_conv = icv, whatis = wi, simpset = ss} phi context =
+  context |> Data.map (fn data =>
+    let
+      val key = Morphism.thm phi raw_key;
+      val _ = AList.defined eq_key data key orelse
+        raise THM ("No data entry for structure key", 0, [key]);
+      val fns =
+        {isolate_conv = icv phi, whatis = wi phi, simpset = ss phi (Context.proof_of context)};
+    in AList.map_entry eq_key key (apsnd (K fns)) data end);
 
 fun match ctxt tm =
   let
