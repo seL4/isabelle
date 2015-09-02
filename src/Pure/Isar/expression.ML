@@ -683,9 +683,8 @@ fun def_pred binding parms defs ts norm_ts thy =
     val ([pred_def], defs_thy) =
       thy
       |> bodyT = propT ? Sign.typed_print_translation [aprop_tr' (length args) name]
-      |> Sign.declare_const_global ((Binding.concealed binding, predT), NoSyn) |> snd
-      |> Global_Theory.add_defs false
-        [((Binding.concealed (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];
+      |> Sign.declare_const_global ((binding, predT), NoSyn) |> snd
+      |> Global_Theory.add_defs false [((Thm.def_binding binding, Logic.mk_equals (head, body)), [])];
     val defs_ctxt = Proof_Context.init_global defs_thy |> Variable.declare_term head;
 
     val intro = Goal.prove_global defs_thy [] norm_ts statement
@@ -730,7 +729,7 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
             thy'
             |> Sign.qualified_path true abinding
             |> Global_Theory.note_thmss ""
-              [((Binding.concealed (Binding.name introN), []), [([intro], [Locale.unfold_add])])]
+              [((Binding.name introN, []), [([intro], [Locale.unfold_add])])]
             ||> Sign.restore_naming thy';
           in (SOME statement, SOME intro, axioms, thy'') end;
     val (b_pred, b_intro, b_axioms, thy'''') =
@@ -745,8 +744,8 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
             thy'''
             |> Sign.qualified_path true binding
             |> Global_Theory.note_thmss ""
-                 [((Binding.concealed (Binding.name introN), []), [([intro], [Locale.intro_add])]),
-                  ((Binding.concealed (Binding.name axiomsN), []),
+                 [((Binding.name introN, []), [([intro], [Locale.intro_add])]),
+                  ((Binding.name axiomsN, []),
                     [(map (Drule.export_without_context o Element.conclude_witness ctxt''') axioms,
                       [])])]
             ||> Sign.restore_naming thy''';
@@ -815,7 +814,7 @@ fun gen_add_locale prep_decl
 
     val notes =
       if is_some asm then
-        [("", [((Binding.concealed (Binding.suffix_name ("_" ^ axiomsN) binding), []),
+        [("", [((Binding.suffix_name ("_" ^ axiomsN) binding, []),
           [([Assumption.assume pred_ctxt (Thm.cterm_of pred_ctxt (the asm))],
             [(Attrib.internal o K) Locale.witness_add])])])]
       else [];
