@@ -786,14 +786,18 @@ val simple_tac = Fast_Arith.lin_arith_tac;
 
 val init_arith_data =
   Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, number_of, ...} =>
-   {add_mono_thms = @{thms add_mono_thms_linordered_semiring}
-      @ @{thms add_mono_thms_linordered_field} @ add_mono_thms,
-    mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono}
-      :: @{lemma "a = b ==> c * a = c * b" by (rule arg_cong)} :: mult_mono_thms,
+   {add_mono_thms =
+      map Thm.trim_context @{thms add_mono_thms_linordered_semiring add_mono_thms_linordered_field}
+        @ add_mono_thms,
+    mult_mono_thms =
+      map Thm.trim_context
+        (@{thms mult_strict_left_mono mult_left_mono} @
+          [@{lemma "a = b ==> c * a = c * b" by (rule arg_cong)}]) @ mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD,
-    neqE = @{thm linorder_neqE_nat} :: @{thm linorder_neqE_linordered_idom} :: neqE,
-    simpset = put_simpset HOL_basic_ss @{context} |> Simplifier.add_cong @{thm if_weak_cong} |> simpset_of,
+    neqE = map Thm.trim_context @{thms linorder_neqE_nat linorder_neqE_linordered_idom} @ neqE,
+    simpset =
+      put_simpset HOL_basic_ss @{context} |> Simplifier.add_cong @{thm if_weak_cong} |> simpset_of,
     number_of = number_of});
 
 (* FIXME !?? *)

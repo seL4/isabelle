@@ -143,6 +143,8 @@ structure Data = Generic_Data
 val map_data = Data.map;
 val get_data = Data.get o Context.Proof;
 
+fun get_neqE ctxt = map (Thm.transfer (Proof_Context.theory_of ctxt)) (#neqE (get_data ctxt));
+
 fun map_inj_thms f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
   {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = f inj_thms,
     lessD = lessD, neqE = neqE, simpset = simpset, number_of = number_of};
@@ -157,8 +159,8 @@ fun map_simpset f context =
       lessD = lessD, neqE = neqE, simpset = simpset_map (Context.proof_of context) f simpset,
       number_of = number_of}) context;
 
-fun add_inj_thms thms = map_data (map_inj_thms (append thms));
-fun add_lessD thm = map_data (map_lessD (fn thms => thms @ [thm]));
+fun add_inj_thms thms = map_data (map_inj_thms (append (map Thm.trim_context thms)));
+fun add_lessD thm = map_data (map_lessD (fn thms => thms @ [Thm.trim_context thm]));
 fun add_simps thms = map_simpset (fn ctxt => ctxt addsimps thms);
 fun add_simprocs procs = map_simpset (fn ctxt => ctxt addsimprocs procs);
 
@@ -168,7 +170,7 @@ fun set_number_of f =
     lessD = lessD, neqE = neqE, simpset = simpset, number_of = SOME f});
 
 fun number_of ctxt =
-  (case Data.get (Context.Proof ctxt) of
+  (case get_data ctxt of
     {number_of = SOME f, ...} => f ctxt
   | _ => fn _ => fn _ => raise CTERM ("number_of", []));
 
@@ -377,7 +379,13 @@ in
 fun mkthm ctxt asms (just: injust) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset, ...} = get_data ctxt;
+    val {add_mono_thms = add_mono_thms0, mult_mono_thms = mult_mono_thms0,
+      inj_thms = inj_thms0, lessD = lessD0, simpset, ...} = get_data ctxt;
+    val add_mono_thms = map (Thm.transfer thy) add_mono_thms0;
+    val mult_mono_thms = map (Thm.transfer thy) mult_mono_thms0;
+    val inj_thms = map (Thm.transfer thy) inj_thms0;
+    val lessD = map (Thm.transfer thy) lessD0;
+
     val number_of = number_of ctxt;
     val simpset_ctxt = put_simpset simpset ctxt;
     fun only_concl f thm =
@@ -649,7 +657,7 @@ fun refute_tac ctxt (i, split_neq, justs) =
       val _ = trace_thm ctxt
         ["refute_tac (on subgoal " ^ string_of_int i ^ ", with " ^
           string_of_int (length justs) ^ " justification(s)):"] state
-      val {neqE, ...} = get_data ctxt;
+      val neqE = get_neqE ctxt;
       fun just1 j =
         (* eliminate inequalities *)
         (if split_neq then
@@ -718,7 +726,7 @@ let val (Il, r)    = Thm.dest_comb imp
 in (ct1, ct2) end;
 
 fun splitasms ctxt (asms : thm list) : splittree =
-let val {neqE, ...} = get_data ctxt
+let val neqE = get_neqE ctxt
     fun elim_neq [] (asms', []) = Tip (rev asms')
       | elim_neq [] (asms', asms) = Tip (rev asms' @ asms)
       | elim_neq (_ :: neqs) (asms', []) = elim_neq neqs ([],rev asms')
