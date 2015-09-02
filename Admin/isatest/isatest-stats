@@ -17,6 +17,7 @@ ISABELLE_SESSIONS="
   HOL-Codegenerator_Test
   HOL-Datatype_Examples
   HOL-Decision_Procs
+  HOL-Eisbach
   HOL-Hahn_Banach
   HOL-Hoare
   HOL-Hoare_Parallel
@@ -35,6 +36,7 @@ ISABELLE_SESSIONS="
   HOL-Mirabelle
   HOL-Mirabelle-ex
   HOL-Multivariate_Analysis
+  HOL-Multivariate_Analysis-ex
   HOL-Mutabelle
   HOL-NSA
   HOL-NSA-Examples
@@ -105,6 +107,7 @@ AFP_SESSIONS="
   Abstract-Rewriting
   Abstract_Completeness
   Affine_Arithmetic
+  Akra_Bazzi
   Amortized_Complexity
   ArrowImpossibilityGS
   AutoFocus-Stream
@@ -118,9 +121,14 @@ AFP_SESSIONS="
   Bounded_Deducibility_Security
   BytecodeLogicJmlTypes
   CAVA_Automata
+  CAVA_Base
   CAVA_LTL_Modelchecker
+  CAVA_buildchain1
+  CAVA_buildchain3
   CCS
   CISC-Kernel
+  Call_Arity
+  Case_Labeling
   Category
   Category2
   Cauchy
@@ -132,22 +140,33 @@ AFP_SESSIONS="
   Coinductive
   Coinductive_Languages
   Collections
+  Collections_Examples
   Compiling-Exceptions-Correctly
   Completeness
   ComponentDependencies
+  ConcurrentGC
+  ConcurrentIMP
+  Consensus_Refined
   Containers
+  Containers-Benchmarks
   CoreC++
   CryptoBasedCompositionalProperties
   DPT-SAT-Solver
   DataRefinementIBP
   Datatype_Order_Generator
   Decreasing-Diagrams
+  Decreasing-Diagrams-II
   Density_Compiler
   Depth-First-Search
+  Derangements
+  Deriving
   Dijkstra_Shortest_Path
   Discrete_Summation
   DiskPaxos
+  Dynamic_Tables
+  Echelon_Form
   Efficient-Mergesort
+  Encodability_Process_Calculi
   Example-Submission
   FFT
   FOL-Fitting
@@ -157,8 +176,11 @@ AFP_SESSIONS="
   FileRefinement
   FinFun
   Finger-Trees
+  Finite_Automata_HF
   Flyspeck-Tame
   FocusStreamsCaseStudies
+  Formula_Derivatives
+  Formula_Derivatives-Examples
   Free-Boolean-Algebra
   Free-Groups
   FunWithFunctions
@@ -175,9 +197,12 @@ AFP_SESSIONS="
   GraphMarkingIBP
   Graph_Theory
   Group-Ring-Module
+  HOLCF-HOL-Library
+  HOLCF-Nominal2
   HRB-Slicing
   Heard_Of
   HereditarilyFinite
+  Hermite
   HotelKeyCards
   Huffman
   HyperCTL
@@ -187,17 +212,24 @@ AFP_SESSIONS="
   Incompleteness
   Inductive_Confidentiality
   InformationFlowSlicing
+  InformationFlowSlicing_Inter
+  InformationFlowSlicing_Intra
   Integration
+  JNF-AFP-Lib
+  JNF-HOL-Lib
   Jinja
   JinjaThreads
   JiveDataStoreModel
   Jordan_Hoelder
+  Jordan_Normal_Form
   KAT_and_DRA
   KBPs
   Kleene_Algebra
   Koenigsberg_Friendship
+  Koenigsberg_Friendship_Base
   LTL_to_GBA
   Lam-ml-Normalization
+  Landau_Symbols
   LatticeProperties
   Launchbury
   Lazy-Lists-II
@@ -207,8 +239,10 @@ AFP_SESSIONS="
   LinearQuantifierElim
   List-Index
   List-Infinite
+  List_Interleaving
   Locally-Nameless-Sigma
   Lower_Semicontinuous
+  MSO_Examples
   MSO_Regex_Equivalence
   Markov_Models
   Marriage
@@ -217,13 +251,18 @@ AFP_SESSIONS="
   MiniML
   MonoBoolTranAlgebra
   MuchAdoAboutTwo
+  Multirelations
   Myhill-Nerode
   Nat-Interval-Logic
   Native_Word
   Network_Security_Policy_Verification
   Nominal2
   Noninterference_CSP
+  Noninterference_Generic_Unwinding
+  Noninterference_Inductive_Unwinding
+  Noninterference_Ipurge_Unwinding
   NormByEval
+  Old_Datatype_Show
   Open_Induction
   Ordinal
   Ordinals_and_Cardinals
@@ -240,10 +279,14 @@ AFP_SESSIONS="
   Presburger-Automata
   Priority_Queue_Braun
   Probabilistic_Noninterference
+  Probabilistic_System_Zoo
+  Probabilistic_System_Zoo-BNFs
+  Probabilistic_System_Zoo-Non_BNFs
   Program-Conflict-Analysis
   Promela
   PseudoHoops
   Psi_Calculi
+  QR_Decomposition
   RIPEMD-160-SPARK
   RSAPSS
   Ramsey-Infinite
@@ -254,9 +297,12 @@ AFP_SESSIONS="
   Refine_Monadic
   RefinementReactive
   Regex_Equivalence
+  Regex_Equivalence_Examples
   Regular-Sets
   Regular_Algebras
   Relation_Algebra
+  Rep_Fin_Groups
+  Residuated_Lattices
   Ribbon_Proofs
   Robbins-Conjecture
   Roy_Floyd_Warshall
@@ -294,11 +340,14 @@ AFP_SESSIONS="
   Transitive-Closure
   Transitive-Closure-II
   Tree-Automata
+  Trie
   Tycon
   UPF
+  UpDown_Scheme
   Valuation
   VectorSpace
   Verified-Prover
+  Vickrey_Clarke_Groves
   VolpanoSmith
   WHATandWHERE_Security
   Well_Quasi_Orders
