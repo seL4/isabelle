@@ -135,6 +135,10 @@ object Completion
 
   /** semantic completion **/
 
+  def clean_name(s: String): Option[String] =
+    if (s == "" || s == "_") None
+    else Some(s.reverseIterator.dropWhile(_ == '_').toList.reverse.mkString)
+
   def report_no_completion(pos: Position.T): String =
     YXML.string_of_tree(Semantic.Info(pos, No_Completion))
 

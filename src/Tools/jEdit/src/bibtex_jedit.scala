@@ -79,10 +79,14 @@ object Bibtex_JEdit
   {
     for {
       Text.Info(r, name) <- rendering.citation(JEdit_Lib.before_caret_range(text_area, rendering))
+      name1 <- Completion.clean_name(name)
+
       original <- JEdit_Lib.try_get_text(text_area.getBuffer, r)
-      orig = Library.perhaps_unquote(original)
-      entries = complete(name).filter(_ != orig)
+      original1 <- Completion.clean_name(Library.perhaps_unquote(original))
+
+      entries = complete(name1).filter(_ != original1)
       if entries.nonEmpty
+
       items =
         entries.sorted.map({
           case entry =>
