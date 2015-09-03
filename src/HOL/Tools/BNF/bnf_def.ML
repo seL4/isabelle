@@ -808,10 +808,6 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_b
           end
       end;
 
-    fun maybe_restore lthy_old lthy =
-      lthy |> not (Context.eq_thy (apply2 Proof_Context.theory_of (lthy_old, lthy)))
-        ? Local_Theory.restore;
-
     val map_bind_def =
       (fn () => def_qualify (if Binding.is_empty map_b then mk_prefix_binding mapN else map_b),
          map_rhs);
@@ -830,10 +826,11 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_b
       (bnf_set_terms, raw_set_defs)),
       (bnf_bd_term, raw_bd_def)), (lthy, lthy_old)) =
         no_defs_lthy
+        |> Local_Theory.open_target |> snd
         |> maybe_define true map_bind_def
         ||>> apfst split_list o fold_map (maybe_define true) set_binds_defs
         ||>> maybe_define true bd_bind_def
-        ||> `(maybe_restore no_defs_lthy);
+        ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
 
@@ -929,9 +926,10 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_b
 
     val (((bnf_rel_term, raw_rel_def), (bnf_wit_terms, raw_wit_defs)), (lthy, lthy_old)) =
       lthy
+      |> Local_Theory.open_target |> snd
       |> maybe_define (is_some rel_rhs_opt) rel_bind_def
       ||>> apfst split_list o fold_map (maybe_define (not (null wit_rhss))) wit_binds_defs
-      ||> `(maybe_restore lthy);
+      ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val bnf_rel_def = Morphism.thm phi raw_rel_def;

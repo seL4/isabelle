@@ -251,8 +251,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val ((alg_free, (_, alg_def_free)), (lthy, lthy_old)) =
       lthy
+      |> Local_Theory.open_target |> snd
       |> Local_Theory.define ((alg_bind, NoSyn), (alg_def_bind, alg_spec))
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val alg = fst (Term.dest_Const (Morphism.term phi alg_free));
@@ -331,8 +332,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val ((mor_free, (_, mor_def_free)), (lthy, lthy_old)) =
       lthy
+      |> Local_Theory.open_target |> snd
       |> Local_Theory.define ((mor_bind, NoSyn), (mor_def_bind, mor_spec))
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val mor = fst (Term.dest_Const (Morphism.term phi mor_free));
@@ -472,8 +474,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
           val ((sbd_free, (_, sbd_def_free)), (lthy, lthy_old)) =
             lthy
+            |> Local_Theory.open_target |> snd
             |> Local_Theory.define ((sbd_bind, NoSyn), (sbd_def_bind, sbd_spec))
-            ||> `Local_Theory.restore;
+            ||> `Local_Theory.close_target;
 
           val phi = Proof_Context.export_morphism lthy_old lthy;
 
@@ -656,10 +659,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val ((min_alg_frees, (_, min_alg_def_frees)), (lthy, lthy_old)) =
       lthy
+      |> Local_Theory.open_target |> snd
       |> fold_map (fn i => Local_Theory.define
         ((min_alg_bind i, NoSyn), (min_alg_def_bind i, min_alg_spec i))) ks
       |>> apsnd split_list o split_list
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val min_algs = map (fst o Term.dest_Const o Morphism.term phi) min_alg_frees;
@@ -768,10 +772,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val ((str_init_frees, (_, str_init_def_frees)), (lthy, lthy_old)) =
       lthy
+      |> Local_Theory.open_target |> snd
       |> fold_map (fn i => Local_Theory.define
         ((str_init_bind i, NoSyn), (str_init_def_bind i, str_init_spec i))) ks
       |>> apsnd split_list o split_list
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val str_inits =
@@ -926,12 +931,13 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val ((ctor_frees, (_, ctor_def_frees)), (lthy, lthy_old)) =
       lthy
+      |> Local_Theory.open_target |> snd
       |> @{fold_map 4} (fn i => fn abs => fn str => fn mapx =>
         Local_Theory.define
           ((ctor_bind i, NoSyn), (ctor_def_bind i, ctor_spec abs str mapx)))
           ks Abs_Ts str_inits map_FT_inits
       |>> apsnd split_list o split_list
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     fun mk_ctors passive =
@@ -978,10 +984,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val ((fold_frees, (_, fold_def_frees)), (lthy, lthy_old)) =
       lthy
+      |> Local_Theory.open_target |> snd
       |> fold_map (fn i =>
         Local_Theory.define ((fold_bind i, NoSyn), (fold_def_bind i, fold_spec i))) ks
       |>> apsnd split_list o split_list
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val folds = map (Morphism.term phi) fold_frees;
@@ -1086,10 +1093,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val ((dtor_frees, (_, dtor_def_frees)), (lthy, lthy_old)) =
       lthy
+      |> Local_Theory.open_target |> snd
       |> fold_map (fn i =>
         Local_Theory.define ((dtor_bind i, NoSyn), (dtor_def_bind i, dtor_spec i))) ks
       |>> apsnd split_list o split_list
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     fun mk_dtors params =
@@ -1157,10 +1165,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val ((rec_frees, (_, rec_def_frees)), (lthy, lthy_old)) =
       lthy
+      |> Local_Theory.open_target |> snd
       |> @{fold_map 3} (fn i => fn T => fn AT =>
         Local_Theory.define ((rec_bind i, NoSyn), (rec_def_bind i, rec_spec i T AT))) ks Ts activeAs
       |>> apsnd split_list o split_list
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val recs = map (Morphism.term phi) rec_frees;
@@ -1417,8 +1426,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
               val ((sbd0_free, (_, sbd0_def_free)), (lthy, lthy_old)) =
                 lthy
+                |> Local_Theory.open_target |> snd
                 |> Local_Theory.define ((sbd0_bind, NoSyn), (sbd0_def_bind, sbd0_spec))
-                ||> `Local_Theory.restore;
+                ||> `Local_Theory.close_target;
 
               val phi = Proof_Context.export_morphism lthy_old lthy;
 
