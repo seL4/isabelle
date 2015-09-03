@@ -186,7 +186,7 @@ fun representation_proofs (config : Old_Datatype_Aux.config)
       |> Sign.parent_path
       |> fold_map
         (fn (((name, mx), tvs), c) =>
-          Typedef.add_typedef_global false (name, tvs, mx)
+          Typedef.add_typedef_global (name, tvs, mx)
             (Collect $ Const (c, UnivT')) NONE
             (fn ctxt =>
               resolve_tac ctxt [exI] 1 THEN
