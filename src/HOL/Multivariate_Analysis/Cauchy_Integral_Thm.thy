@@ -1,7 +1,7 @@
 section \<open>Complex path integrals and Cauchy's integral theorem\<close>
 
 theory Cauchy_Integral_Thm
-imports Complex_Transcendental Path_Connected
+imports Complex_Transcendental Weierstrass
 begin
 
 
@@ -2512,13 +2512,14 @@ lemma path_integrable_holomorphic_simple:
   apply (rule path_integrable_holomorphic [OF contf os Finite_Set.finite.emptyI g])
   using fh  by (simp add: complex_differentiable_def holomorphic_on_open os)
 
-lemma path_integrable_inversediff:
+lemma continuous_on_inversediff:
+  fixes z:: "'a::real_normed_field" shows "z \<notin> s \<Longrightarrow> continuous_on s (\<lambda>w. 1 / (w - z))"
+  by (rule continuous_intros | force)+
+
+corollary path_integrable_inversediff:
     "\<lbrakk>valid_path g; z \<notin> path_image g\<rbrakk> \<Longrightarrow> (\<lambda>w. 1 / (w-z)) path_integrable_on g"
-apply (rule path_integrable_holomorphic_simple [of "UNIV-{z}"])
-    apply (rule continuous_intros | simp)+
- apply blast
-apply (simp add: holomorphic_on_open open_delete)
-apply (force intro: derivative_eq_intros)
+apply (rule path_integrable_holomorphic_simple [of "UNIV-{z}", OF continuous_on_inversediff])
+apply (auto simp: holomorphic_on_open open_delete intro!: derivative_eq_intros)
 done
 
 text{*Key fact that path integral is the same for a "nearby" path. This is the
@@ -2688,7 +2689,7 @@ proof -
                  \<subseteq> ball (p t) (ee (p t))"
             apply (intro subset_path_image_join pi_hgn pi_ghn')
             using `N>0` Suc.prems
-            apply (auto simp: dist_norm field_simps ptgh_ee)
+            apply (auto simp: dist_norm field_simps closed_segment_eq_real_ivl ptgh_ee)
             done
           have pi0: "(f has_path_integral 0)
                        (subpath (n/ N) ((Suc n)/N) g +++ linepath(g ((Suc n) / N)) (h((Suc n) / N)) +++
@@ -2777,5 +2778,65 @@ lemma
   using path_integral_nearby [OF assms, where Ends=True]
   using path_integral_nearby [OF assms, where Ends=False]
   by simp_all
+
+lemma valid_path_polynomial_function:
+  fixes p :: "real \<Rightarrow> 'b::euclidean_space"
+  shows "polynomial_function p \<Longrightarrow> valid_path p"
+apply (simp add: valid_path_def)
+apply (rule differentiable_on_imp_piecewise_differentiable [OF differentiable_at_imp_differentiable_on])
+using differentiable_def has_vector_derivative_def
+apply (blast intro: dest: has_vector_derivative_polynomial_function)
+done
+
+lemma path_integral_bound_exists:
+assumes s: "open s"
+    and g: "valid_path g"
+    and pag: "path_image g \<subseteq> s"
+  shows "\<exists>L. 0 < L \<and>
+	     (\<forall>f B. f holomorphic_on s \<and> (\<forall>z \<in> s. norm(f z) \<le> B)
+		     \<longrightarrow> norm(path_integral g f) \<le> L*B)"
+proof -
+have "path g" using g
+  by (simp add: valid_path_imp_path)
+then obtain d::real and p
+  where d: "0 < d"
+    and p: "polynomial_function p" "path_image p \<subseteq> s"
+    and pi: "\<And>f. f holomorphic_on s \<Longrightarrow> path_integral g f = path_integral p f"
+  using path_integral_nearby_ends [OF s `path g` pag]
+  apply clarify
+  apply (drule_tac x=g in spec)
+  apply (simp only: assms)
+  apply (force simp: valid_path_polynomial_function dest: path_approx_polynomial_function)
+  done
+then obtain p' where p': "polynomial_function p'"
+	       "\<And>x. (p has_vector_derivative (p' x)) (at x)"
+  using has_vector_derivative_polynomial_function by force
+then have "bounded(p' ` {0..1})"
+  using continuous_on_polymonial_function
+  by (force simp: intro!: compact_imp_bounded compact_continuous_image)
+then obtain L where L: "L>0" and nop': "\<And>x. x \<in> {0..1} \<Longrightarrow> norm (p' x) \<le> L"
+  by (force simp: bounded_pos)
+{ fix f B
+  assume f: "f holomorphic_on s"
+     and B: "\<And>z. z\<in>s \<Longrightarrow> cmod (f z) \<le> B"
+  then have "f path_integrable_on p \<and> valid_path p"
+    using p s
+    by (blast intro: valid_path_polynomial_function path_integrable_holomorphic_simple holomorphic_on_imp_continuous_on)
+  moreover have "\<And>x. x \<in> {0..1} \<Longrightarrow> cmod (vector_derivative p (at x)) * cmod (f (p x)) \<le> L * B"
+    apply (rule mult_mono)
+    apply (subst Derivative.vector_derivative_at; force intro: p' nop')
+    using L B p
+    apply (auto simp: path_image_def image_subset_iff)
+    done
+  ultimately have "cmod (path_integral g f) \<le> L * B"
+    apply (simp add: pi [OF f])
+    apply (simp add: path_integral_integral)
+    apply (rule order_trans [OF integral_norm_bound_integral])
+    apply (auto simp: mult.commute integral_norm_bound_integral path_integrable_on [symmetric] norm_mult)
+    done
+} then
+show ?thesis
+  by (force simp: L path_integral_integral)
+qed
 
 end

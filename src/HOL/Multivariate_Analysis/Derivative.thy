@@ -138,7 +138,7 @@ proof -
 qed
 
 lemma DERIV_caratheodory_within:
-  "(f has_field_derivative l) (at x within s) \<longleftrightarrow> 
+  "(f has_field_derivative l) (at x within s) \<longleftrightarrow>
    (\<exists>g. (\<forall>z. f z - f x = g z * (z - x)) \<and> continuous (at x within s) g \<and> g x = l)"
       (is "?lhs = ?rhs")
 proof
@@ -208,6 +208,15 @@ lemma differentiable_at_withinI: "f differentiable (at x) \<Longrightarrow> f di
   unfolding differentiable_def
   using has_derivative_at_within
   by blast
+
+lemma differentiable_at_imp_differentiable_on:
+  "(\<And>x. x \<in> s \<Longrightarrow> f differentiable at x) \<Longrightarrow> f differentiable_on s"
+  by (metis differentiable_at_withinI differentiable_on_def)
+
+corollary differentiable_iff_scaleR:
+  fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
+  shows "f differentiable F \<longleftrightarrow> (\<exists>d. (f has_derivative (\<lambda>x. x *\<^sub>R d)) F)"
+  by (auto simp: differentiable_def dest: has_derivative_linear linear_imp_scaleR)
 
 lemma differentiable_within_open: (* TODO: delete *)
   assumes "a \<in> s"
@@ -2240,6 +2249,24 @@ lemma vector_derivative_at:
   unfolding has_vector_derivative_def
   apply auto
   done
+
+lemma has_vector_derivative_id_at [simp]: "vector_derivative (\<lambda>x. x) (at a) = 1"
+  by (simp add: vector_derivative_at)
+
+lemma vector_derivative_minus_at [simp]:
+  "f differentiable at a
+   \<Longrightarrow> vector_derivative (\<lambda>x. - f x) (at a) = - vector_derivative f (at a)"
+  by (simp add: vector_derivative_at has_vector_derivative_minus vector_derivative_works [symmetric])
+
+lemma vector_derivative_add_at [simp]:
+  "\<lbrakk>f differentiable at a; g differentiable at a\<rbrakk>
+   \<Longrightarrow> vector_derivative (\<lambda>x. f x + g x) (at a) = vector_derivative f (at a) + vector_derivative g (at a)"
+  by (simp add: vector_derivative_at has_vector_derivative_add vector_derivative_works [symmetric])
+
+lemma vector_derivative_diff_at [simp]:
+  "\<lbrakk>f differentiable at a; g differentiable at a\<rbrakk>
+   \<Longrightarrow> vector_derivative (\<lambda>x. f x - g x) (at a) = vector_derivative f (at a) - vector_derivative g (at a)"
+  by (simp add: vector_derivative_at has_vector_derivative_diff vector_derivative_works [symmetric])
 
 lemma vector_derivative_within_closed_interval:
   assumes "a < b"

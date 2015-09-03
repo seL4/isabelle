@@ -527,6 +527,9 @@ by (cases z)
    (auto simp: complex_eq_iff norm_complex_def power2_eq_square[symmetric] of_real_power[symmetric]
          simp del: of_real_power)
 
+lemma complex_div_cnj: "a / b = (a * cnj b) / (norm b)^2"
+  using complex_norm_square by auto
+
 lemma Re_complex_div_eq_0: "Re (a / b) = 0 \<longleftrightarrow> Re (a * cnj b) = 0"
   by (auto simp add: Re_divide)
 
@@ -567,6 +570,18 @@ lemma Re_complex_div_le_0: "Re(a / b) \<le> 0 \<longleftrightarrow> Re(a * cnj b
 lemma Im_complex_div_le_0: "Im(a / b) \<le> 0 \<longleftrightarrow> Im(a * cnj b) \<le> 0"
   by (metis Im_complex_div_gt_0 not_le)
 
+lemma Re_divide_of_real [simp]: "Re (z / of_real r) = Re z / r"
+  by (simp add: Re_divide power2_eq_square)
+
+lemma Im_divide_of_real [simp]: "Im (z / of_real r) = Im z / r"
+  by (simp add: Im_divide power2_eq_square)
+
+lemma Re_divide_Reals: "r \<in> Reals \<Longrightarrow> Re (z / r) = Re z / Re r"
+  by (metis Re_divide_of_real of_real_Re)
+
+lemma Im_divide_Reals: "r \<in> Reals \<Longrightarrow> Im (z / r) = Im z / Re r"
+  by (metis Im_divide_of_real of_real_Re)
+
 lemma Re_setsum[simp]: "Re (setsum f s) = (\<Sum>x\<in>s. Re (f x))"
   by (induct s rule: infinite_finite_induct) auto
 
@@ -587,6 +602,12 @@ lemma summable_Re: "summable f \<Longrightarrow> summable (\<lambda>x. Re (f x))
 
 lemma summable_Im: "summable f \<Longrightarrow> summable (\<lambda>x. Im (f x))"
   unfolding summable_complex_iff by blast
+
+lemma complex_is_Nat_iff: "z \<in> \<nat> \<longleftrightarrow> Im z = 0 \<and> (\<exists>i. Re z = of_nat i)"
+  by (auto simp: Nats_def complex_eq_iff)
+
+lemma complex_is_Int_iff: "z \<in> \<int> \<longleftrightarrow> Im z = 0 \<and> (\<exists>i. Re z = of_int i)"
+  by (auto simp: Ints_def complex_eq_iff)
 
 lemma complex_is_Real_iff: "z \<in> \<real> \<longleftrightarrow> Im z = 0"
   by (auto simp: Reals_def complex_eq_iff)

@@ -6375,7 +6375,7 @@ lemma segment_bound:
   using segment_furthest_le[OF assms, of b]
   by (auto simp add:norm_minus_commute)
 
-lemma segment_refl: "closed_segment a a = {a}"
+lemma segment_refl [simp]: "closed_segment a a = {a}"
   unfolding segment by (auto simp add: algebra_simps)
 
 lemma closed_segment_commute: "closed_segment a b = closed_segment b a"
