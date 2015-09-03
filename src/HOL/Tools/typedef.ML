@@ -65,10 +65,15 @@ structure Data = Generic_Data
   fun merge data = Symtab.merge_list (K true) data;
 );
 
-val get_info = Symtab.lookup_list o Data.get o Context.Proof;
-val get_info_global = Symtab.lookup_list o Data.get o Context.Theory;
+fun get_info_generic context =
+  Symtab.lookup_list (Data.get context) #>
+  map (transform_info (Morphism.transfer_morphism (Context.theory_of context)));
 
-fun put_info name info = Data.map (Symtab.cons_list (name, info));
+val get_info = get_info_generic o Context.Proof;
+val get_info_global = get_info_generic o Context.Theory;
+
+fun put_info name info =
+  Data.map (Symtab.cons_list (name, transform_info Morphism.trim_context_morphism info));
 
 
 (* global interpretation *)
@@ -289,4 +294,3 @@ val _ =
     >> (fn ((((vs, t), mx), A), morphs) => fn lthy => typedef_cmd ((t, vs, mx), A, morphs) lthy));
 
 end;
-
