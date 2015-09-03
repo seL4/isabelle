@@ -84,7 +84,7 @@ object Bibtex_JEdit
       entries = complete(name).filter(_ != orig)
       if entries.nonEmpty
       items =
-        entries.map({
+        entries.sorted.map({
           case entry =>
             val full_name = Long_Name.qualify(Markup.CITATION, entry)
             val description = List(entry, "(BibTeX entry)")
