@@ -1219,8 +1219,9 @@ fun define_co_rec_as fp Cs fpT b rhs lthy0 =
       #> not (Config.get lthy0 bnf_note_all) ? Binding.concealed;
 
     val ((cst, (_, def)), (lthy', lthy)) = lthy0
+      |> Local_Theory.open_target |> snd
       |> Local_Theory.define ((b, NoSyn), ((maybe_conceal_def_binding b, []), rhs))
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism lthy lthy';
 
@@ -2135,10 +2136,11 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           #> not (Config.get no_defs_lthy bnf_note_all) ? Binding.concealed;
 
         val ((raw_ctrs, raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
+          |> Local_Theory.open_target |> snd
           |> apfst split_list o @{fold_map 3} (fn b => fn mx => fn rhs =>
               Local_Theory.define ((b, mx), ((maybe_conceal_def_binding b, []), rhs)) #>> apsnd snd)
             ctr_bindings ctr_mixfixes ctr_rhss
-          ||> `Local_Theory.restore;
+          ||> `Local_Theory.close_target;
 
         val phi = Proof_Context.export_morphism lthy lthy';
 

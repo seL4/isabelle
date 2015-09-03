@@ -396,8 +396,9 @@ fun construct_mutualized_fp fp mutual_cliques fpTs (fp_sugars : fp_sugar list) b
       resTs (map (Binding.suffix_name ("_" ^ recN)) bs) (([], []), lthy)
       |>> map_prod rev rev;
     val ((raw_co_recs, raw_co_rec_defs), (lthy, raw_lthy)) = lthy
+      |> Local_Theory.open_target |> snd
       |> mk_recs
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.close_target;
 
     val phi = Proof_Context.export_morphism raw_lthy lthy;
 

@@ -503,12 +503,13 @@ fun prepare_free_constructors kind prep_plugins prep_term
       (Const (@{const_name The}, (B --> HOLogic.boolT) --> B) $
          Term.lambda w (Library.foldr1 HOLogic.mk_disj (@{map 3} mk_case_disj xctrs xfs xss)));
 
-    val ((raw_case, (_, raw_case_def)), (lthy', lthy)) = no_defs_lthy
+    val ((raw_case, (_, raw_case_def)), (lthy, lthy_old)) = no_defs_lthy
+      |> Local_Theory.open_target |> snd
       |> Local_Theory.define ((case_binding, NoSyn),
         ((Binding.concealed (Thm.def_binding case_binding), []), case_rhs))
-      ||> `Local_Theory.restore;
+      ||> `Local_Theory.close_target;
 
-    val phi = Proof_Context.export_morphism lthy lthy';
+    val phi = Proof_Context.export_morphism lthy_old lthy;
 
     val case_def = Morphism.thm phi raw_case_def;
 
@@ -549,9 +550,9 @@ fun prepare_free_constructors kind prep_plugins prep_term
       forall (forall Binding.is_empty) (raw_disc_bindings :: raw_sel_bindingss) andalso
       null sel_default_eqs;
 
-    val (all_sels_distinct, discs, selss, disc_defs, sel_defs, sel_defss, lthy') =
+    val (all_sels_distinct, discs, selss, disc_defs, sel_defs, sel_defss, lthy) =
       if no_discs_sels then
-        (true, [], [], [], [], [], lthy')
+        (true, [], [], [], [], [], lthy)
       else
         let
           val all_sel_bindings = flat sel_bindingss;
@@ -623,6 +624,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
           val (((raw_discs, raw_disc_defs), (raw_sels, raw_sel_defs)), (lthy', lthy)) =
             lthy
+            |> Local_Theory.open_target |> snd
             |> apfst split_list o @{fold_map 3} (fn k => fn exist_xs_u_eq_ctr => fn b =>
                 if Binding.is_empty b then
                   if n = 1 then pair (Term.lambda u (mk_uu_eq ()), unique_disc_no_def)
@@ -636,7 +638,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
             ||>> apfst split_list o fold_map (fn (b, proto_sels) =>
               Specification.definition (SOME (b, NONE, NoSyn),
                 ((Thm.def_binding b, []), sel_spec b proto_sels)) #>> apsnd snd) sel_infos
-            ||> `Local_Theory.restore;
+            ||> `Local_Theory.close_target;
 
           val phi = Proof_Context.export_morphism lthy lthy';
 
@@ -1122,7 +1124,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
         (ctr_sugar, lthy' |> register_ctr_sugar plugins ctr_sugar)
       end;
   in
-    (goalss, after_qed, lthy')
+    (goalss, after_qed, lthy)
   end;
 
 fun free_constructors kind tacss = (fn (goalss, after_qed, lthy) =>
