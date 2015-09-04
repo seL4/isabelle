@@ -218,9 +218,12 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
       | _ => error "type_introduction: bad type definition theorem"
     val tfrees = Term.add_tfrees c []
     val tnames = sort_strings (map fst tfrees)
+    val typedef_bindings =
+      Typedef.make_morphisms (Binding.name tycname)
+        (SOME (Binding.name rep_name, Binding.name abs_name))
     val ((_, typedef_info), thy') =
-     Typedef.add_typedef_global false (Binding.name tycname, map (rpair dummyS) tnames, NoSyn) c
-       (SOME (Binding.name rep_name, Binding.name abs_name)) (fn ctxt => resolve_tac ctxt [th2] 1) thy
+     Typedef.add_typedef_global (Binding.name tycname, map (rpair dummyS) tnames, NoSyn) c
+       (SOME typedef_bindings) (fn ctxt => resolve_tac ctxt [th2] 1) thy
     val aty = #abs_type (#1 typedef_info)
     val th = freezeT thy' (#type_definition (#2 typedef_info))
     val (th_s, _) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))

@@ -1083,8 +1083,9 @@ fun global_goal prep_propp before_qed after_qed propp ctxt =
     val goal_ctxt = ctxt
       |> (fold o fold) Variable.auto_fixes propss
       |> fold Variable.bind_term binds;
-    fun after_qed' (result_ctxt, results) ctxt' =
-      after_qed (burrow (Proof_Context.export result_ctxt ctxt') results) ctxt';
+    fun after_qed' (result_ctxt, results) ctxt' = ctxt'
+      |> Proof_Context.restore_naming ctxt
+      |> after_qed (burrow (Proof_Context.export result_ctxt ctxt') results);
   in
     ctxt
     |> init

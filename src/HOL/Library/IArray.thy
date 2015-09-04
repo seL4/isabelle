@@ -13,35 +13,34 @@ Note that arrays cannot be printed directly but only by turning them into
 lists first. Arrays could be converted back into lists for printing if they
 were wrapped up in an additional constructor.\<close>
 
+context
+begin
+
 datatype 'a iarray = IArray "'a list"
 
-primrec list_of :: "'a iarray \<Rightarrow> 'a list" where
+qualified primrec list_of :: "'a iarray \<Rightarrow> 'a list" where
 "list_of (IArray xs) = xs"
-hide_const (open) list_of
 
-definition of_fun :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a iarray" where
+qualified definition of_fun :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a iarray" where
 [simp]: "of_fun f n = IArray (map f [0..<n])"
-hide_const (open) of_fun
 
-definition sub :: "'a iarray \<Rightarrow> nat \<Rightarrow> 'a" (infixl "!!" 100) where
+qualified definition sub :: "'a iarray \<Rightarrow> nat \<Rightarrow> 'a" (infixl "!!" 100) where
 [simp]: "as !! n = IArray.list_of as ! n"
-hide_const (open) sub
 
-definition length :: "'a iarray \<Rightarrow> nat" where
+qualified definition length :: "'a iarray \<Rightarrow> nat" where
 [simp]: "length as = List.length (IArray.list_of as)"
-hide_const (open) length
 
-fun all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a iarray \<Rightarrow> bool" where
+qualified fun all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a iarray \<Rightarrow> bool" where
 "all p (IArray as) = (ALL a : set as. p a)"
-hide_const (open) all
 
-fun exists :: "('a \<Rightarrow> bool) \<Rightarrow> 'a iarray \<Rightarrow> bool" where
+qualified fun exists :: "('a \<Rightarrow> bool) \<Rightarrow> 'a iarray \<Rightarrow> bool" where
 "exists p (IArray as) = (EX a : set as. p a)"
-hide_const (open) exists
 
 lemma list_of_code [code]:
 "IArray.list_of as = map (\<lambda>n. as !! n) [0 ..< IArray.length as]"
 by (cases as) (simp add: map_nth)
+
+end
 
 
 subsection "Code Generation"
@@ -86,10 +85,13 @@ lemma [code]:
   "HOL.equal as bs \<longleftrightarrow> HOL.equal (IArray.list_of as) (IArray.list_of bs)"
   by (cases as, cases bs) (simp add: equal)
 
-primrec tabulate :: "integer \<times> (integer \<Rightarrow> 'a) \<Rightarrow> 'a iarray" where
+context
+begin
+
+qualified primrec tabulate :: "integer \<times> (integer \<Rightarrow> 'a) \<Rightarrow> 'a iarray" where
   "tabulate (n, f) = IArray (map (f \<circ> integer_of_nat) [0..<nat_of_integer n])"
 
-hide_const (open) tabulate
+end
 
 lemma [code]:
   "IArray.of_fun f n = IArray.tabulate (integer_of_nat n, f \<circ> nat_of_integer)"
@@ -98,10 +100,13 @@ lemma [code]:
 code_printing
   constant IArray.tabulate \<rightharpoonup> (SML) "Vector.tabulate"
 
-primrec sub' :: "'a iarray \<times> integer \<Rightarrow> 'a" where
+context
+begin
+
+qualified primrec sub' :: "'a iarray \<times> integer \<Rightarrow> 'a" where
   [code del]: "sub' (as, n) = IArray.list_of as ! nat_of_integer n"
 
-hide_const (open) sub'
+end
 
 lemma [code]:
   "IArray.sub' (IArray as, n) = as ! nat_of_integer n"
@@ -114,10 +119,13 @@ lemma [code]:
 code_printing
   constant IArray.sub' \<rightharpoonup> (SML) "Vector.sub"
 
-definition length' :: "'a iarray \<Rightarrow> integer" where
+context
+begin
+
+qualified definition length' :: "'a iarray \<Rightarrow> integer" where
   [code del, simp]: "length' as = integer_of_nat (List.length (IArray.list_of as))"
 
-hide_const (open) length'
+end
 
 lemma [code]:
   "IArray.length' (IArray as) = integer_of_nat (List.length as)" 

@@ -53,7 +53,7 @@ structure Mode_Inference : MODE_INFERENCE =
 struct
 
 open Predicate_Compile_Aux;
-open Core_Data;
+
 
 (* derivation trees for modes of premises *)
 
@@ -317,7 +317,7 @@ fun deriv_ord' ctxt _ pred modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
         fun is_functional t mode =
           case try (fst o dest_Const o fst o strip_comb) t of
             NONE => false
-          | SOME c => is_some (alternative_compilation_of ctxt c mode)
+          | SOME c => is_some (Core_Data.alternative_compilation_of ctxt c mode)
       in
         case (is_functional t1 (head_mode_of deriv1), is_functional t2 (head_mode_of deriv2)) of
           (true, true) => EQUAL

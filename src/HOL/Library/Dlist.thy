@@ -46,61 +46,71 @@ lemma Dlist_list_of_dlist [simp, code abstype]:
 
 text \<open>Fundamental operations:\<close>
 
-definition empty :: "'a dlist" where
+context
+begin
+
+qualified definition empty :: "'a dlist" where
   "empty = Dlist []"
 
-definition insert :: "'a \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist" where
+qualified definition insert :: "'a \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist" where
   "insert x dxs = Dlist (List.insert x (list_of_dlist dxs))"
 
-definition remove :: "'a \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist" where
+qualified definition remove :: "'a \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist" where
   "remove x dxs = Dlist (remove1 x (list_of_dlist dxs))"
 
-definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b dlist" where
+qualified definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b dlist" where
   "map f dxs = Dlist (remdups (List.map f (list_of_dlist dxs)))"
 
-definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist" where
+qualified definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a dlist \<Rightarrow> 'a dlist" where
   "filter P dxs = Dlist (List.filter P (list_of_dlist dxs))"
+
+end
 
 
 text \<open>Derived operations:\<close>
 
-definition null :: "'a dlist \<Rightarrow> bool" where
+context
+begin
+
+qualified definition null :: "'a dlist \<Rightarrow> bool" where
   "null dxs = List.null (list_of_dlist dxs)"
 
-definition member :: "'a dlist \<Rightarrow> 'a \<Rightarrow> bool" where
+qualified definition member :: "'a dlist \<Rightarrow> 'a \<Rightarrow> bool" where
   "member dxs = List.member (list_of_dlist dxs)"
 
-definition length :: "'a dlist \<Rightarrow> nat" where
+qualified definition length :: "'a dlist \<Rightarrow> nat" where
   "length dxs = List.length (list_of_dlist dxs)"
 
-definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" where
+qualified definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" where
   "fold f dxs = List.fold f (list_of_dlist dxs)"
 
-definition foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" where
+qualified definition foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" where
   "foldr f dxs = List.foldr f (list_of_dlist dxs)"
+
+end
 
 
 subsection \<open>Executable version obeying invariant\<close>
 
 lemma list_of_dlist_empty [simp, code abstract]:
-  "list_of_dlist empty = []"
-  by (simp add: empty_def)
+  "list_of_dlist Dlist.empty = []"
+  by (simp add: Dlist.empty_def)
 
 lemma list_of_dlist_insert [simp, code abstract]:
-  "list_of_dlist (insert x dxs) = List.insert x (list_of_dlist dxs)"
-  by (simp add: insert_def)
+  "list_of_dlist (Dlist.insert x dxs) = List.insert x (list_of_dlist dxs)"
+  by (simp add: Dlist.insert_def)
 
 lemma list_of_dlist_remove [simp, code abstract]:
-  "list_of_dlist (remove x dxs) = remove1 x (list_of_dlist dxs)"
-  by (simp add: remove_def)
+  "list_of_dlist (Dlist.remove x dxs) = remove1 x (list_of_dlist dxs)"
+  by (simp add: Dlist.remove_def)
 
 lemma list_of_dlist_map [simp, code abstract]:
-  "list_of_dlist (map f dxs) = remdups (List.map f (list_of_dlist dxs))"
-  by (simp add: map_def)
+  "list_of_dlist (Dlist.map f dxs) = remdups (List.map f (list_of_dlist dxs))"
+  by (simp add: Dlist.map_def)
 
 lemma list_of_dlist_filter [simp, code abstract]:
-  "list_of_dlist (filter P dxs) = List.filter P (list_of_dlist dxs)"
-  by (simp add: filter_def)
+  "list_of_dlist (Dlist.filter P dxs) = List.filter P (list_of_dlist dxs)"
+  by (simp add: Dlist.filter_def)
 
 
 text \<open>Explicit executable conversion\<close>
@@ -134,28 +144,29 @@ lemma [code nbe]: "HOL.equal (dxs :: 'a::equal dlist) dxs \<longleftrightarrow> 
 subsection \<open>Induction principle and case distinction\<close>
 
 lemma dlist_induct [case_names empty insert, induct type: dlist]:
-  assumes empty: "P empty"
-  assumes insrt: "\<And>x dxs. \<not> member dxs x \<Longrightarrow> P dxs \<Longrightarrow> P (insert x dxs)"
+  assumes empty: "P Dlist.empty"
+  assumes insrt: "\<And>x dxs. \<not> Dlist.member dxs x \<Longrightarrow> P dxs \<Longrightarrow> P (Dlist.insert x dxs)"
   shows "P dxs"
 proof (cases dxs)
   case (Abs_dlist xs)
-  then have "distinct xs" and dxs: "dxs = Dlist xs" by (simp_all add: Dlist_def distinct_remdups_id)
+  then have "distinct xs" and dxs: "dxs = Dlist xs"
+    by (simp_all add: Dlist_def distinct_remdups_id)
   from \<open>distinct xs\<close> have "P (Dlist xs)"
   proof (induct xs)
-    case Nil from empty show ?case by (simp add: empty_def)
+    case Nil from empty show ?case by (simp add: Dlist.empty_def)
   next
     case (Cons x xs)
-    then have "\<not> member (Dlist xs) x" and "P (Dlist xs)"
-      by (simp_all add: member_def List.member_def)
-    with insrt have "P (insert x (Dlist xs))" .
-    with Cons show ?case by (simp add: insert_def distinct_remdups_id)
+    then have "\<not> Dlist.member (Dlist xs) x" and "P (Dlist xs)"
+      by (simp_all add: Dlist.member_def List.member_def)
+    with insrt have "P (Dlist.insert x (Dlist xs))" .
+    with Cons show ?case by (simp add: Dlist.insert_def distinct_remdups_id)
   qed
   with dxs show "P dxs" by simp
 qed
 
 lemma dlist_case [cases type: dlist]:
-  obtains (empty) "dxs = empty"
-    | (insert) x dys where "\<not> member dys x" and "dxs = insert x dys"
+  obtains (empty) "dxs = Dlist.empty"
+    | (insert) x dys where "\<not> Dlist.member dys x" and "dxs = Dlist.insert x dys"
 proof (cases dxs)
   case (Abs_dlist xs)
   then have dxs: "dxs = Dlist xs" and distinct: "distinct xs"
@@ -163,13 +174,13 @@ proof (cases dxs)
   show thesis
   proof (cases xs)
     case Nil with dxs
-    have "dxs = empty" by (simp add: empty_def) 
+    have "dxs = Dlist.empty" by (simp add: Dlist.empty_def) 
     with empty show ?thesis .
   next
     case (Cons x xs)
-    with dxs distinct have "\<not> member (Dlist xs) x"
-      and "dxs = insert x (Dlist xs)"
-      by (simp_all add: member_def List.member_def insert_def distinct_remdups_id)
+    with dxs distinct have "\<not> Dlist.member (Dlist xs) x"
+      and "dxs = Dlist.insert x (Dlist xs)"
+      by (simp_all add: Dlist.member_def List.member_def Dlist.insert_def distinct_remdups_id)
     with insert show ?thesis .
   qed
 qed
@@ -178,14 +189,11 @@ qed
 subsection \<open>Functorial structure\<close>
 
 functor map: map
-  by (simp_all add: List.map.id remdups_map_remdups fun_eq_iff dlist_eq_iff)
+  by (simp_all add: remdups_map_remdups fun_eq_iff dlist_eq_iff)
 
 
 subsection \<open>Quickcheck generators\<close>
 
-quickcheck_generator dlist predicate: distinct constructors: empty, insert
-
-
-hide_const (open) member fold foldr empty insert remove map filter null member length fold
+quickcheck_generator dlist predicate: distinct constructors: Dlist.empty, Dlist.insert
 
 end

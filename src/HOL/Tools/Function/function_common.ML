@@ -282,7 +282,7 @@ structure Data = Generic_Data
 
 fun termination_rule_tac ctxt = resolve_tac ctxt (#1 (Data.get (Context.Proof ctxt)))
 
-val store_termination_rule = Data.map o @{apply 4(1)} o cons
+val store_termination_rule = Data.map o @{apply 4(1)} o cons o Thm.trim_context
 
 val get_functions = #2 o Data.get o Context.Proof
 fun add_function_data (info : info as {fs, termination, ...}) =

@@ -86,9 +86,10 @@ fun prepare_decl prepare_plugins prepare_constraint prepare_typ
     fun mk_wit_thms set_maps =
       Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)
         (fn {context = ctxt, prems = _} => mk_wits_tac ctxt set_maps)
+      |> Thm.close_derivation
       |> Conjunction.elim_balanced (length wit_goals)
       |> map2 (Conjunction.elim_balanced o length) wit_goalss
-      |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
+      |> (map o map) (Thm.forall_elim_vars 0);
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val thms = unflat all_goalss (Morphism.fact phi raw_thms);
 
