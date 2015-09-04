@@ -273,8 +273,7 @@ fun add_case_cong n thy =
     val cong = #case_cong (Old_Datatype_Data.the_info thy n)
       |> safe_mk_meta_eq
   in
-    Context.theory_map
-      (Function_Context_Tree.map_function_congs (Thm.add_thm cong)) thy
+    Context.theory_map (Function_Context_Tree.add_function_cong cong) thy
   end
 
 val _ = Theory.setup (Old_Datatype_Data.interpretation (K (fold add_case_cong)))

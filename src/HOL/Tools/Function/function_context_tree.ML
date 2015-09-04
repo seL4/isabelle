@@ -10,10 +10,8 @@ sig
   type ctxt = (string * typ) list * thm list
   type ctx_tree
 
-  (* FIXME: This interface is a mess and needs to be cleaned up! *)
   val get_function_congs : Proof.context -> thm list
   val add_function_cong : thm -> Context.generic -> Context.generic
-  val map_function_congs : (thm list -> thm list) -> Context.generic -> Context.generic
 
   val cong_add: attribute
   val cong_del: attribute
@@ -53,14 +51,17 @@ structure FunctionCongs = Generic_Data
   val merge = Thm.merge_thms
 );
 
-val get_function_congs = FunctionCongs.get o Context.Proof
-val map_function_congs = FunctionCongs.map
-val add_function_cong = FunctionCongs.map o Thm.add_thm
+fun get_function_congs ctxt =
+  FunctionCongs.get (Context.Proof ctxt)
+  |> map (Thm.transfer (Proof_Context.theory_of ctxt));
+
+val add_function_cong = FunctionCongs.map o Thm.add_thm o Thm.trim_context;
+
 
 (* congruence rules *)
 
-val cong_add = Thm.declaration_attribute (map_function_congs o Thm.add_thm o safe_mk_meta_eq);
-val cong_del = Thm.declaration_attribute (map_function_congs o Thm.del_thm o safe_mk_meta_eq);
+val cong_add = Thm.declaration_attribute (add_function_cong o safe_mk_meta_eq);
+val cong_del = Thm.declaration_attribute (FunctionCongs.map o Thm.del_thm o safe_mk_meta_eq);
 
 
 type depgraph = int Int_Graph.T
