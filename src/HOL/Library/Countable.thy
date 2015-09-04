@@ -66,15 +66,17 @@ qed
 
 subsection \<open>Automatically proving countability of old-style datatypes\<close>
 
-inductive finite_item :: "'a Old_Datatype.item \<Rightarrow> bool" where
+context
+begin
+
+qualified inductive finite_item :: "'a Old_Datatype.item \<Rightarrow> bool" where
   undefined: "finite_item undefined"
 | In0: "finite_item x \<Longrightarrow> finite_item (Old_Datatype.In0 x)"
 | In1: "finite_item x \<Longrightarrow> finite_item (Old_Datatype.In1 x)"
 | Leaf: "finite_item (Old_Datatype.Leaf a)"
 | Scons: "\<lbrakk>finite_item x; finite_item y\<rbrakk> \<Longrightarrow> finite_item (Old_Datatype.Scons x y)"
 
-function
-  nth_item :: "nat \<Rightarrow> ('a::countable) Old_Datatype.item"
+qualified function nth_item :: "nat \<Rightarrow> ('a::countable) Old_Datatype.item"
 where
   "nth_item 0 = undefined"
 | "nth_item (Suc n) =
@@ -97,7 +99,7 @@ unfolding sum_encode_def by simp
 lemma le_sum_encode_Inr: "x \<le> y \<Longrightarrow> x \<le> sum_encode (Inr y)"
 unfolding sum_encode_def by simp
 
-termination
+qualified termination
 by (relation "measure id")
   (auto simp add: sum_encode_eq [symmetric] prod_encode_eq [symmetric]
     le_imp_less_Suc le_sum_encode_Inl le_sum_encode_Inr
@@ -193,7 +195,7 @@ ML \<open>
       end)
 \<close>
 
-hide_const (open) finite_item nth_item
+end
 
 
 subsection \<open>Automatically proving countability of datatypes\<close>

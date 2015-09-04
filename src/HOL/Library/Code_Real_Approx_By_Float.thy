@@ -85,19 +85,22 @@ code_printing
     and (OCaml) "Pervasives.sqrt"
 declare sqrt_def[code del]
 
-definition real_exp :: "real \<Rightarrow> real" where "real_exp = exp"
+context
+begin
+
+qualified definition real_exp :: "real \<Rightarrow> real" where "real_exp = exp"
 
 lemma exp_eq_real_exp[code_unfold]: "exp = real_exp"
   unfolding real_exp_def ..
 
+end
+
 code_printing
-  constant real_exp \<rightharpoonup>
+  constant Code_Real_Approx_By_Float.real_exp \<rightharpoonup>
     (SML) "Math.exp"
     and (OCaml) "Pervasives.exp"
-declare real_exp_def[code del]
+declare Code_Real_Approx_By_Float.real_exp_def[code del]
 declare exp_def[code del]
-
-hide_const (open) real_exp
 
 code_printing
   constant ln \<rightharpoonup>
@@ -149,7 +152,10 @@ code_printing
     (SML) "Real.fromInt"
     and (OCaml) "Pervasives.float (Big'_int.int'_of'_big'_int (_))"
 
-definition real_of_int :: "int \<Rightarrow> real" where
+context
+begin
+
+qualified definition real_of_int :: "int \<Rightarrow> real" where
   [code_abbrev]: "real_of_int = of_int"
 
 lemma [code]:
@@ -172,7 +178,7 @@ lemma [code_unfold del]:
   "- numeral k \<equiv> (of_rat (- numeral k) :: real)"
   by simp
 
-hide_const (open) real_of_int
+end
 
 code_printing
   constant Ratreal \<rightharpoonup> (SML)

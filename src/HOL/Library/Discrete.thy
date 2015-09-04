@@ -8,7 +8,10 @@ begin
 
 subsection \<open>Discrete logarithm\<close>
 
-fun log :: "nat \<Rightarrow> nat"
+context
+begin
+
+qualified fun log :: "nat \<Rightarrow> nat"
   where [simp del]: "log n = (if n < 2 then 0 else Suc (log (n div 2)))"
 
 lemma log_zero [simp]: "log 0 = 0"
@@ -67,7 +70,7 @@ qed
 
 subsection \<open>Discrete square root\<close>
 
-definition sqrt :: "nat \<Rightarrow> nat"
+qualified definition sqrt :: "nat \<Rightarrow> nat"
   where "sqrt n = Max {m. m\<^sup>2 \<le> n}"
 
 lemma sqrt_aux:
@@ -173,7 +176,6 @@ qed
 lemma sqrt_le: "sqrt n \<le> n"
   using sqrt_aux [of n] by (auto simp add: sqrt_def intro: power2_nat_le_imp_le)
 
-hide_const (open) log sqrt
-
 end
 
+end
