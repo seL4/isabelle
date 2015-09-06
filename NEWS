@@ -181,6 +181,12 @@ INCOMPATIBILITY in exotic situations.
 
 *** HOL ***
 
+* Qualification of various formal entities in the libraries is done more
+uniformly via "context begin qualified definition ... end" instead of
+old-style "hide_const (open) ...". Consequently, both the defined
+constant and its defining fact become qualified, e.g. Option.is_none and
+Option.is_none_def. Occasional INCOMPATIBILITY in applications.
+
 * Some old and rarely used ASCII replacement syntax has been removed.
 INCOMPATIBILITY, standard syntax with symbols should be used instead.
 The subsequent commands help to reproduce the old forms, e.g. to
