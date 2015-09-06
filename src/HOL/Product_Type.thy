@@ -307,11 +307,6 @@ translations
   "%(x, y, zs). b" == "CONST case_prod (%x (y, zs). b)"
   "%(x, y). b" == "CONST case_prod (%x y. b)"
   "_abs (CONST Pair x y) t" => "%(x, y). t"
-
-
-
-
-
   -- \<open>The last rule accommodates tuples in `case C ... (x,y) ... => ...'
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn\<close>
 
