@@ -300,15 +300,16 @@ syntax
   "_patterns"   :: "[pttrn, patterns] => patterns"      ("_,/ _")
 
 translations
-  "(x, y)" == "CONST Pair x y"
-  "_pattern x y" => "CONST Pair x y"
-  "_patterns x y" => "CONST Pair x y"
-  "_tuple x (_tuple_args y z)" == "_tuple x (_tuple_arg (_tuple y z))"
-  "%(x, y, zs). b" == "CONST case_prod (%x (y, zs). b)"
-  "%(x, y). b" == "CONST case_prod (%x y. b)"
-  "_abs (CONST Pair x y) t" => "%(x, y). t"
-  -- \<open>The last rule accommodates tuples in `case C ... (x,y) ... => ...'
-     The (x,y) is parsed as `Pair x y' because it is logic, not pttrn\<close>
+  "(x, y)" \<rightleftharpoons> "CONST Pair x y"
+  "_pattern x y" \<rightleftharpoons> "CONST Pair x y"
+  "_patterns x y" \<rightleftharpoons> "CONST Pair x y"
+  "_tuple x (_tuple_args y z)" \<rightleftharpoons> "_tuple x (_tuple_arg (_tuple y z))"
+  "\<lambda>(x, y, zs). b" \<rightleftharpoons> "CONST case_prod (\<lambda>x (y, zs). b)"
+  "\<lambda>(x, y). b" \<rightleftharpoons> "CONST case_prod (\<lambda>x y. b)"
+  "_abs (CONST Pair x y) t" \<rightharpoonup> "\<lambda>(x, y). t"
+  -- \<open>This rule accommodates tuples in @{text "case C \<dots> (x, y) \<dots> \<Rightarrow> \<dots>"}:
+     The @{text "(x, y)"} is parsed as @{text "Pair x y"} because it is @{text logic},
+     not @{text pttrn}.\<close>
 
 (* print "split f" as "\<lambda>(x,y). f x y" and "split (\<lambda>x. f x)" as "\<lambda>(x,y). f x y" *) 
 typed_print_translation \<open>
