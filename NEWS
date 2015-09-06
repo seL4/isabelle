@@ -282,6 +282,8 @@ not available during instantiation.
 * Theory Library/Old_Recdef: discontinued obsolete 'defer_recdef'
 command. Minor INCOMPATIBILITY, use 'function' instead.
 
+* Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
+
 
 *** ML ***
 
