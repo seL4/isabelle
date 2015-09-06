@@ -240,7 +240,7 @@ definition Pair :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b" where
 lemma prod_cases: "(\<And>a b. P (Pair a b)) \<Longrightarrow> P p"
   by (cases p) (auto simp add: prod_def Pair_def Pair_Rep_def)
 
-free_constructors case_prod for Pair fst snd
+free_constructors uncurry for Pair fst snd
 proof -
   fix P :: bool and p :: "'a \<times> 'b"
   show "(\<And>x1 x2. p = Pair x1 x2 \<Longrightarrow> P) \<Longrightarrow> P"
@@ -304,8 +304,8 @@ translations
   "_pattern x y" \<rightleftharpoons> "CONST Pair x y"
   "_patterns x y" \<rightleftharpoons> "CONST Pair x y"
   "_tuple x (_tuple_args y z)" \<rightleftharpoons> "_tuple x (_tuple_arg (_tuple y z))"
-  "\<lambda>(x, y, zs). b" \<rightleftharpoons> "CONST case_prod (\<lambda>x (y, zs). b)"
-  "\<lambda>(x, y). b" \<rightleftharpoons> "CONST case_prod (\<lambda>x y. b)"
+  "\<lambda>(x, y, zs). b" \<rightleftharpoons> "CONST uncurry (\<lambda>x (y, zs). b)"
+  "\<lambda>(x, y). b" \<rightleftharpoons> "CONST uncurry (\<lambda>x y. b)"
   "_abs (CONST Pair x y) t" \<rightharpoonup> "\<lambda>(x, y). t"
   -- \<open>This rule accommodates tuples in @{text "case C \<dots> (x, y) \<dots> \<Rightarrow> \<dots>"}:
      The @{text "(x, y)"} is parsed as @{text "Pair x y"} because it is @{text logic},
@@ -317,7 +317,7 @@ typed_print_translation \<open>
     fun split_guess_names_tr' T [Abs (x, _, Abs _)] = raise Match
       | split_guess_names_tr' T [Abs (x, xT, t)] =
           (case (head_of t) of
-            Const (@{const_syntax case_prod}, _) => raise Match
+            Const (@{const_syntax uncurry}, _) => raise Match
           | _ =>
             let 
               val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
@@ -329,7 +329,7 @@ typed_print_translation \<open>
             end)
       | split_guess_names_tr' T [t] =
           (case head_of t of
-            Const (@{const_syntax case_prod}, _) => raise Match
+            Const (@{const_syntax uncurry}, _) => raise Match
           | _ =>
             let
               val (xT :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
@@ -341,7 +341,7 @@ typed_print_translation \<open>
                 (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
             end)
       | split_guess_names_tr' _ _ = raise Match;
-  in [(@{const_syntax case_prod}, K split_guess_names_tr')] end
+  in [(@{const_syntax uncurry}, K split_guess_names_tr')] end
 \<close>
 
 
@@ -379,7 +379,7 @@ code_printing
   constant fst \<rightharpoonup> (Haskell) "fst"
 | constant snd \<rightharpoonup> (Haskell) "snd"
 
-lemma case_prod_unfold [nitpick_unfold]: "case_prod = (%c p. c (fst p) (snd p))"
+lemma case_prod_unfold [nitpick_unfold]: "uncurry = (%c p. c (fst p) (snd p))"
   by (simp add: fun_eq_iff split: prod.split)
 
 lemma fst_eqD: "fst (x, y) = a ==> x = a"
@@ -396,13 +396,13 @@ lemma prod_eq_iff: "s = t \<longleftrightarrow> fst s = fst t \<and> snd s = snd
 lemma prod_eqI [intro?]: "fst p = fst q \<Longrightarrow> snd p = snd q \<Longrightarrow> p = q"
   by (simp add: prod_eq_iff)
 
-lemma split_conv [simp, code]: "case_prod f (a, b) = f a b"
+lemma split_conv [simp, code]: "uncurry f (a, b) = f a b"
   by (fact prod.case)
 
-lemma splitI: "f a b \<Longrightarrow> case_prod f (a, b)"
+lemma splitI: "f a b \<Longrightarrow> uncurry f (a, b)"
   by (rule split_conv [THEN iffD2])
 
-lemma splitD: "case_prod f (a, b) \<Longrightarrow> f a b"
+lemma splitD: "uncurry f (a, b) \<Longrightarrow> f a b"
   by (rule split_conv [THEN iffD1])
 
 lemma split_Pair [simp]: "(\<lambda>(x, y). (x, y)) = id"
@@ -412,13 +412,13 @@ lemma split_eta: "(\<lambda>(x, y). f (x, y)) = f"
   -- \<open>Subsumes the old @{text split_Pair} when @{term f} is the identity function.\<close>
   by (simp add: fun_eq_iff split: prod.split)
 
-lemma split_comp: "case_prod (f \<circ> g) x = f (g (fst x)) (snd x)"
+lemma split_comp: "uncurry (f \<circ> g) x = f (g (fst x)) (snd x)"
   by (cases x) simp
 
-lemma split_twice: "case_prod f (case_prod g p) = case_prod (\<lambda>x y. case_prod f (g x y)) p"
+lemma split_twice: "uncurry f (uncurry g p) = uncurry (\<lambda>x y. uncurry f (g x y)) p"
   by (fact prod.case_distrib)
 
-lemma The_split: "The (case_prod P) = (THE xy. P (fst xy) (snd xy))"
+lemma The_split: "The (uncurry P) = (THE xy. P (fst xy) (snd xy))"
   by (simp add: case_prod_unfold)
 
 lemmas split_weak_cong = prod.case_cong_weak
@@ -438,7 +438,7 @@ next
   from \<open>PROP P (fst x, snd x)\<close> show "PROP P x" by simp
 qed
 
-lemma case_prod_distrib: "f (case x of (x, y) \<Rightarrow> g x y) = (case x of (x, y) \<Rightarrow> f (g x y))"
+lemma uncurry_distrib: "f (case x of (x, y) \<Rightarrow> g x y) = (case x of (x, y) \<Rightarrow> f (g x y))"
   by (cases x) simp
 
 text \<open>
@@ -510,7 +510,7 @@ local
     | no_args k i (Bound m) = m < k orelse m > k + i
     | no_args _ _ _ = true;
   fun split_pat tp i (Abs  (_, _, t)) = if tp 0 i t then SOME (i, t) else NONE
-    | split_pat tp i (Const (@{const_name case_prod}, _) $ Abs (_, _, t)) = split_pat tp (i + 1) t
+    | split_pat tp i (Const (@{const_name uncurry}, _) $ Abs (_, _, t)) = split_pat tp (i + 1) t
     | split_pat tp i _ = NONE;
   fun metaeq ctxt lhs rhs = mk_meta_eq (Goal.prove ctxt [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
@@ -528,12 +528,12 @@ local
         else (subst arg k i t $ subst arg k i u)
     | subst arg k i t = t;
 in
-  fun beta_proc ctxt (s as Const (@{const_name case_prod}, _) $ Abs (_, _, t) $ arg) =
+  fun beta_proc ctxt (s as Const (@{const_name uncurry}, _) $ Abs (_, _, t) $ arg) =
         (case split_pat beta_term_pat 1 t of
           SOME (i, f) => SOME (metaeq ctxt s (subst arg 0 i f))
         | NONE => NONE)
     | beta_proc _ _ = NONE;
-  fun eta_proc ctxt (s as Const (@{const_name case_prod}, _) $ Abs (_, _, t)) =
+  fun eta_proc ctxt (s as Const (@{const_name uncurry}, _) $ Abs (_, _, t)) =
         (case split_pat eta_term_pat 1 t of
           SOME (_, ft) => SOME (metaeq ctxt s (let val f $ _ = ft in f end))
         | NONE => NONE)
@@ -563,31 +563,31 @@ text \<open>
 lemmas split_split_asm [no_atp] = prod.split_asm
 
 text \<open>
-  \medskip @{const case_prod} used as a logical connective or set former.
+  \medskip @{const uncurry} used as a logical connective or set former.
 
   \medskip These rules are for use with @{text blast}; could instead
   call @{text simp} using @{thm [source] prod.split} as rewrite.\<close>
 
-lemma splitI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> case_prod c p"
+lemma splitI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> uncurry c p"
   apply (simp only: split_tupled_all)
   apply (simp (no_asm_simp))
   done
 
-lemma splitI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> case_prod c p x"
+lemma splitI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> uncurry c p x"
   apply (simp only: split_tupled_all)
   apply (simp (no_asm_simp))
   done
 
-lemma splitE: "case_prod c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
+lemma splitE: "uncurry c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
   by (induct p) auto
 
-lemma splitE': "case_prod c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
+lemma splitE': "uncurry c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
   by (induct p) auto
 
 lemma splitE2:
-  "[| Q (case_prod P z);  !!x y. [|z = (x, y); Q (P x y)|] ==> R |] ==> R"
+  "[| Q (uncurry P z);  !!x y. [|z = (x, y); Q (P x y)|] ==> R |] ==> R"
 proof -
-  assume q: "Q (case_prod P z)"
+  assume q: "Q (uncurry P z)"
   assume r: "!!x y. [|z = (x, y); Q (P x y)|] ==> R"
   show R
     apply (rule r surjective_pairing)+
@@ -595,17 +595,17 @@ proof -
     done
 qed
 
-lemma splitD': "case_prod R (a,b) c ==> R a b c"
+lemma splitD': "uncurry R (a,b) c ==> R a b c"
   by simp
 
-lemma mem_splitI: "z: c a b ==> z: case_prod c (a, b)"
+lemma mem_splitI: "z: c a b ==> z: uncurry c (a, b)"
   by simp
 
-lemma mem_splitI2: "!!p. [| !!a b. p = (a, b) ==> z: c a b |] ==> z: case_prod c p"
+lemma mem_splitI2: "!!p. [| !!a b. p = (a, b) ==> z: c a b |] ==> z: uncurry c p"
 by (simp only: split_tupled_all, simp)
 
 lemma mem_splitE:
-  assumes "z \<in> case_prod c p"
+  assumes "z \<in> uncurry c p"
   obtains x y where "p = (x, y)" and "z \<in> c x y"
   using assms by (rule splitE2)
 
@@ -614,7 +614,7 @@ declare mem_splitE [elim!] splitE' [elim!] splitE [elim!]
 
 ML \<open>
 local (* filtering with exists_p_split is an essential optimization *)
-  fun exists_p_split (Const (@{const_name case_prod},_) $ _ $ (Const (@{const_name Pair},_)$_$_)) = true
+  fun exists_p_split (Const (@{const_name uncurry},_) $ _ $ (Const (@{const_name Pair},_)$_$_)) = true
     | exists_p_split (t $ u) = exists_p_split t orelse exists_p_split u
     | exists_p_split (Abs (_, _, t)) = exists_p_split t
     | exists_p_split _ = false;
@@ -633,10 +633,10 @@ setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_conv_tac", sp
 lemma split_eta_SetCompr [simp, no_atp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
   by (rule ext) fast
 
-lemma split_eta_SetCompr2 [simp, no_atp]: "(%u. EX x y. u = (x, y) & P x y) = case_prod P"
+lemma split_eta_SetCompr2 [simp, no_atp]: "(%u. EX x y. u = (x, y) & P x y) = uncurry P"
   by (rule ext) fast
 
-lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & case_prod Q ab)"
+lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & uncurry Q ab)"
   -- \<open>Allows simplifications of nested splits in case of independent predicates.\<close>
   by (rule ext) blast
 
@@ -646,7 +646,7 @@ lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & case_prod Q ab)"
 *)
 lemma split_comp_eq: 
   fixes f :: "'a => 'b => 'c" and g :: "'d => 'a"
-  shows "(%u. f (g (fst u)) (snd u)) = (case_prod (%x. f (g x)))"
+  shows "(%u. f (g (fst u)) (snd u)) = (uncurry (%x. f (g x)))"
   by (rule ext) auto
 
 lemma pair_imageI [intro]: "(a, b) : A ==> f a b : (%(a, b). f a b) ` A"
@@ -676,22 +676,22 @@ text \<open>
 
 lemmas case_prodI = prod.case [THEN iffD2]
 
-lemma case_prodI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> case_prod c p"
+lemma case_prodI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> uncurry c p"
   by (fact splitI2)
 
-lemma case_prodI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> case_prod c p x"
+lemma case_prodI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> uncurry c p x"
   by (fact splitI2')
 
-lemma case_prodE: "case_prod c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
+lemma case_prodE: "uncurry c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
   by (fact splitE)
 
-lemma case_prodE': "case_prod c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
+lemma case_prodE': "uncurry c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
   by (fact splitE')
 
 declare case_prodI [intro!]
 
 lemma case_prod_beta:
-  "case_prod f p = f (fst p) (snd p)"
+  "uncurry f p = f (fst p) (snd p)"
   by (fact split_beta)
 
 lemma prod_cases3 [cases type]:
@@ -735,7 +735,7 @@ lemma prod_induct7 [case_names fields, induct type]:
   by (cases x) blast
 
 definition internal_split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
-  "internal_split == case_prod"
+  "internal_split == uncurry"
 
 lemma internal_split_conv: "internal_split c (a, b) = c a b"
   by (simp only: internal_split_def split_conv)
@@ -762,10 +762,10 @@ lemma curryD [dest!]: "curry f a b \<Longrightarrow> f (a, b)"
 lemma curryE: "curry f a b \<Longrightarrow> (f (a, b) \<Longrightarrow> Q) \<Longrightarrow> Q"
   by (simp add: curry_def)
 
-lemma curry_split [simp]: "curry (case_prod f) = f"
+lemma curry_split [simp]: "curry (uncurry f) = f"
   by (simp add: curry_def case_prod_unfold)
 
-lemma split_curry [simp]: "case_prod (curry f) = f"
+lemma split_curry [simp]: "uncurry (curry f) = f"
   by (simp add: curry_def case_prod_unfold)
 
 lemma curry_K: "curry (\<lambda>x. c) = (\<lambda>x y. c)"
@@ -778,12 +778,12 @@ text \<open>
 notation fcomp (infixl "\<circ>>" 60)
 
 definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd" (infixl "\<circ>\<rightarrow>" 60) where
-  "f \<circ>\<rightarrow> g = (\<lambda>x. case_prod g (f x))"
+  "f \<circ>\<rightarrow> g = (\<lambda>x. uncurry g (f x))"
 
 lemma scomp_unfold: "scomp = (\<lambda>f g x. g (fst (f x)) (snd (f x)))"
   by (simp add: fun_eq_iff scomp_def case_prod_unfold)
 
-lemma scomp_apply [simp]: "(f \<circ>\<rightarrow> g) x = case_prod g (f x)"
+lemma scomp_apply [simp]: "(f \<circ>\<rightarrow> g) x = uncurry g (f x)"
   by (simp add: scomp_unfold case_prod_unfold)
 
 lemma Pair_scomp: "Pair x \<circ>\<rightarrow> f = f x"
@@ -1077,7 +1077,7 @@ lemma Times_eq_cancel2: "x:C ==> (A <*> C = B <*> C) = (A = B)"
   by (blast elim: equalityE)
 
 lemma SetCompr_Sigma_eq:
-  "Collect (case_prod (%x y. P x & Q x y)) = (SIGMA x:Collect P. Collect (Q x))"
+  "Collect (uncurry (%x y. P x & Q x y)) = (SIGMA x:Collect P. Collect (Q x))"
   by blast
 
 lemma Collect_split [simp]: "{(a,b). P a & Q b} = Collect P <*> Collect Q"
@@ -1314,8 +1314,11 @@ ML_file "Tools/inductive_set.ML"
 
 subsection \<open>Legacy theorem bindings and duplicates\<close>
 
+abbreviation (input) case_prod :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
+  "case_prod \<equiv> uncurry"
+
 abbreviation (input) split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
-  "split \<equiv> case_prod"
+  "split \<equiv> uncurry"
 
 lemmas PairE = prod.exhaust
 lemmas Pair_eq = prod.inject

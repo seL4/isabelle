@@ -66,7 +66,7 @@ fun unfold_lets_splits (Const (@{const_name Let}, _) $ t $ u) =
   | unfold_lets_splits (t $ u) = betapply (unfold_lets_splits t, unfold_lets_splits u)
   | unfold_lets_splits (Abs (s, T, t)) = Abs (s, T, unfold_lets_splits t)
   | unfold_lets_splits t = t
-and unfold_splits_lets ((t as Const (@{const_name case_prod}, _)) $ u) =
+and unfold_splits_lets ((t as Const (@{const_name uncurry}, _)) $ u) =
     (case unfold_splits_lets u of
       u' as Abs (s1, T1, Abs (s2, T2, _)) =>
       let val v = Var ((s1 ^ s2, Term.maxidx_of_term u' + 1), HOLogic.mk_prodT (T1, T2)) in

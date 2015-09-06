@@ -164,7 +164,7 @@ fun fp_sugar_of_prod ctxt =
         set_cases = @{thms fsts.cases[unfolded eq_fst_iff ex_neg_all_pos]
           snds.cases[unfolded eq_snd_iff ex_neg_all_pos]}},
      fp_co_induct_sugar =
-       {co_rec = Const (@{const_name case_prod}, (ctr_Ts ---> C) --> fpT --> C),
+       {co_rec = Const (@{const_name uncurry}, (ctr_Ts ---> C) --> fpT --> C),
         common_co_inducts = @{thms prod.induct},
         co_inducts = @{thms prod.induct},
         co_rec_def = @{thm ctor_rec_def_alt[of "case_prod f" for f]},

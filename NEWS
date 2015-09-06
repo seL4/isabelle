@@ -187,6 +187,10 @@ old-style "hide_const (open) ...". Consequently, both the defined
 constant and its defining fact become qualified, e.g. Option.is_none and
 Option.is_none_def. Occasional INCOMPATIBILITY in applications.
 
+* Combinator to represent case distinction on products is named "uncurry",
+with "split" and "prod_case" retained as input abbreviations.
+INCOMPATIBILITY.
+
 * Some old and rarely used ASCII replacement syntax has been removed.
 INCOMPATIBILITY, standard syntax with symbols should be used instead.
 The subsequent commands help to reproduce the old forms, e.g. to

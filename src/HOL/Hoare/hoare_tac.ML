@@ -26,7 +26,7 @@ struct
 local
 
 (** maps (%x1 ... xn. t) to [x1,...,xn] **)
-fun abs2list (Const (@{const_name case_prod}, _) $ Abs (x, T, t)) = Free (x, T) :: abs2list t
+fun abs2list (Const (@{const_name uncurry}, _) $ Abs (x, T, t)) = Free (x, T) :: abs2list t
   | abs2list (Abs (x, T, _)) = [Free (x, T)]
   | abs2list _ = [];
 
@@ -47,7 +47,7 @@ fun mk_abstupleC [] body = absfree ("x", HOLogic.unitT) body
             Abs (_, T, _) => T
           | Const (_, Type (_, [_, Type (_, [T, _])])) $ _ => T);
       in
-        Const (@{const_name case_prod},
+        Const (@{const_name uncurry},
             (T --> T2 --> HOLogic.boolT) --> HOLogic.mk_prodT (T, T2) --> HOLogic.boolT) $
           absfree (x, T) z
       end;
