@@ -239,8 +239,8 @@ hide_type (open) bisim_iterator fun_box pair_box unsigned_bit signed_bit word
 
 hide_fact (open) Ex1_unfold rtrancl_unfold rtranclp_unfold tranclp_unfold prod_def refl'_def wf'_def
   card'_def setsum'_def fold_graph'_def The_psimp Eps_psimp case_unit_unfold case_nat_unfold
-  size_list_simp nat_gcd_def nat_lcm_def int_gcd_def int_lcm_def Frac_def zero_frac_def one_frac_def
-  num_def denom_def norm_frac_def frac_def plus_frac_def times_frac_def uminus_frac_def
+  size_list_simp nat_lcm_def int_gcd_def int_lcm_def Frac_def zero_frac_def one_frac_def
+  num_def denom_def frac_def plus_frac_def times_frac_def uminus_frac_def
   number_of_frac_def inverse_frac_def less_frac_def less_eq_frac_def of_frac_def wf_wfrec'_def
   wfrec'_def
 

@@ -282,6 +282,11 @@ not available during instantiation.
 * Theory Library/Old_Recdef: discontinued obsolete 'defer_recdef'
 command. Minor INCOMPATIBILITY, use 'function' instead.
 
+* Recursive function definitions ('fun', 'function', 'partial_function')
+no longer expose the low-level "_def" facts of the internal
+construction. INCOMPATIBILITY, enable option "function_defs" in the
+context for rare situations where these facts are really needed.
+
 * Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
 
 

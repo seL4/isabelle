@@ -258,9 +258,11 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val inst_mono_thm = Thm.forall_elim (Thm.cterm_of lthy x_uc) mono_thm
 
     val f_def_rhs = curry_n arity (apply_inst lthy fixp F_uc);
-    val f_def_binding = Binding.concealed (Binding.name (Thm.def_name fname));
+    val f_def_binding =
+      if Config.get lthy Function_Lib.function_defs then (Binding.name (Thm.def_name fname), [])
+      else Attrib.empty_binding;
     val ((f, (_, f_def)), lthy') = Local_Theory.define
-      ((f_binding, mixfix), ((f_def_binding, []), f_def_rhs)) lthy;
+      ((f_binding, mixfix), (f_def_binding, f_def_rhs)) lthy;
 
     val eqn = HOLogic.mk_eq (list_comb (f, args),
         Term.betapplys (F, f :: args))
