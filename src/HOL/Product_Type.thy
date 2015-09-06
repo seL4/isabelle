@@ -363,23 +363,23 @@ lemma prod_eq_iff: "s = t \<longleftrightarrow> fst s = fst t \<and> snd s = snd
 lemma prod_eqI [intro?]: "fst p = fst q \<Longrightarrow> snd p = snd q \<Longrightarrow> p = q"
   by (simp add: prod_eq_iff)
 
-lemma split_conv [simp, code]: "uncurry f (a, b) = f a b"
+lemma split_conv [simp, code]: "(case (a, b) of (c, d) \<Rightarrow> f c d) = f a b"
   by (fact prod.case)
 
-lemma splitI: "f a b \<Longrightarrow> uncurry f (a, b)"
+lemma splitI: "f a b \<Longrightarrow> case (a, b) of (c, d) \<Rightarrow> f c d"
   by (rule split_conv [THEN iffD2])
 
-lemma splitD: "uncurry f (a, b) \<Longrightarrow> f a b"
+lemma splitD: "(case (a, b) of (c, d) \<Rightarrow> f c d) \<Longrightarrow> f a b"
   by (rule split_conv [THEN iffD1])
 
-lemma split_Pair [simp]: "(\<lambda>(x, y). (x, y)) = id"
+lemma split_Pair [simp]: "uncurry Pair = id"
   by (simp add: fun_eq_iff split: prod.split)
 
 lemma split_eta: "(\<lambda>(x, y). f (x, y)) = f"
   -- \<open>Subsumes the old @{text split_Pair} when @{term f} is the identity function.\<close>
   by (simp add: fun_eq_iff split: prod.split)
 
-lemma split_comp: "uncurry (f \<circ> g) x = f (g (fst x)) (snd x)"
+lemma split_comp: "(case x of (a, b) \<Rightarrow> (f \<circ> g) a b) = f (g (fst x)) (snd x)"
   by (cases x) simp
 
 lemma split_twice: "uncurry f (uncurry g p) = uncurry (\<lambda>x y. uncurry f (g x y)) p"
@@ -535,24 +535,24 @@ text \<open>
   \medskip These rules are for use with @{text blast}; could instead
   call @{text simp} using @{thm [source] prod.split} as rewrite.\<close>
 
-lemma splitI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> uncurry c p"
+lemma splitI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> case p of (a, b) \<Rightarrow> c a b"
   apply (simp only: split_tupled_all)
   apply (simp (no_asm_simp))
   done
 
-lemma splitI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> uncurry c p x"
+lemma splitI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> (case p of (a, b) \<Rightarrow> c a b) x"
   apply (simp only: split_tupled_all)
   apply (simp (no_asm_simp))
   done
 
-lemma splitE: "uncurry c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
+lemma splitE: "(case p of (a, b) \<Rightarrow> c a b) ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
   by (induct p) auto
 
-lemma splitE': "uncurry c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
+lemma splitE': "(case p of (a, b) \<Rightarrow> c a b) z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
   by (induct p) auto
 
 lemma splitE2:
-  "[| Q (uncurry P z);  !!x y. [|z = (x, y); Q (P x y)|] ==> R |] ==> R"
+  "[| Q (case z of (a, b) \<Rightarrow> P a b);  !!x y. [|z = (x, y); Q (P x y)|] ==> R |] ==> R"
 proof -
   assume q: "Q (uncurry P z)"
   assume r: "!!x y. [|z = (x, y); Q (P x y)|] ==> R"
@@ -562,14 +562,17 @@ proof -
     done
 qed
 
-lemma splitD': "uncurry R (a,b) c ==> R a b c"
+lemma splitD':
+  "(case (a, b) of (c, d) \<Rightarrow> R c d) c \<Longrightarrow> R a b c"
   by simp
 
-lemma mem_splitI: "z: c a b ==> z: uncurry c (a, b)"
+lemma mem_splitI:
+  "z \<in> c a b \<Longrightarrow> z \<in> (case (a, b) of (d, e) \<Rightarrow> c d e)"
   by simp
 
-lemma mem_splitI2: "!!p. [| !!a b. p = (a, b) ==> z: c a b |] ==> z: uncurry c p"
-by (simp only: split_tupled_all, simp)
+lemma mem_splitI2:
+  "\<And>p. (\<And>a b. p = (a, b) \<Longrightarrow> z \<in> c a b) \<Longrightarrow> z \<in> (case p of (a, b) \<Rightarrow> c a b)"
+  by (simp only: split_tupled_all) simp
 
 lemma mem_splitE:
   assumes "z \<in> uncurry c p"
@@ -1044,44 +1047,52 @@ lemma Times_eq_cancel2: "x:C ==> (A <*> C = B <*> C) = (A = B)"
   by (blast elim: equalityE)
 
 lemma SetCompr_Sigma_eq:
-  "Collect (uncurry (%x y. P x & Q x y)) = (SIGMA x:Collect P. Collect (Q x))"
+  "{(x, y). P x \<and> Q x y} = (SIGMA x:Collect P. Collect (Q x))"
   by blast
 
-lemma Collect_split [simp]: "{(a,b). P a & Q b} = Collect P <*> Collect Q"
+lemma Collect_split [simp]:
+  "{(a, b). P a \<and> Q b} = Collect P \<times> Collect Q "
   by (fact SetCompr_Sigma_eq)
 
 lemma UN_Times_distrib:
-  "(UN (a,b):(A <*> B). E a <*> F b) = (UNION A E) <*> (UNION B F)"
+  "(\<Union>(a, b)\<in>A \<times> B. E a \<times> F b) = UNION A E \<times> UNION B F"
   -- \<open>Suggested by Pierre Chartier\<close>
   by blast
 
 lemma split_paired_Ball_Sigma [simp, no_atp]:
-    "(ALL z: Sigma A B. P z) = (ALL x:A. ALL y: B x. P(x,y))"
+  "(\<forall>z\<in>Sigma A B. P z) \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>B x. P (x, y))"
   by blast
 
 lemma split_paired_Bex_Sigma [simp, no_atp]:
-    "(EX z: Sigma A B. P z) = (EX x:A. EX y: B x. P(x,y))"
+  "(\<exists>z\<in>Sigma A B. P z) \<longleftrightarrow> (\<exists>x\<in>A. \<exists>y\<in>B x. P (x, y))"
   by blast
 
-lemma Sigma_Un_distrib1: "(SIGMA i:I Un J. C(i)) = (SIGMA i:I. C(i)) Un (SIGMA j:J. C(j))"
+lemma Sigma_Un_distrib1:
+  "Sigma (I \<union> J) C = Sigma I C \<union> Sigma J C"
   by blast
 
-lemma Sigma_Un_distrib2: "(SIGMA i:I. A(i) Un B(i)) = (SIGMA i:I. A(i)) Un (SIGMA i:I. B(i))"
+lemma Sigma_Un_distrib2:
+  "(SIGMA i:I. A i \<union> B i) = Sigma I A \<union> Sigma I B"
   by blast
 
-lemma Sigma_Int_distrib1: "(SIGMA i:I Int J. C(i)) = (SIGMA i:I. C(i)) Int (SIGMA j:J. C(j))"
+lemma Sigma_Int_distrib1:
+  "Sigma (I \<inter> J) C = Sigma I C \<inter> Sigma J C"
   by blast
 
-lemma Sigma_Int_distrib2: "(SIGMA i:I. A(i) Int B(i)) = (SIGMA i:I. A(i)) Int (SIGMA i:I. B(i))"
+lemma Sigma_Int_distrib2:
+  "(SIGMA i:I. A i \<inter> B i) = Sigma I A \<inter> Sigma I B"
   by blast
 
-lemma Sigma_Diff_distrib1: "(SIGMA i:I - J. C(i)) = (SIGMA i:I. C(i)) - (SIGMA j:J. C(j))"
+lemma Sigma_Diff_distrib1:
+  "Sigma (I - J) C = Sigma I C - Sigma J C"
   by blast
 
-lemma Sigma_Diff_distrib2: "(SIGMA i:I. A(i) - B(i)) = (SIGMA i:I. A(i)) - (SIGMA i:I. B(i))"
+lemma Sigma_Diff_distrib2:
+  "(SIGMA i:I. A i - B i) = Sigma I A - Sigma I B"
   by blast
 
-lemma Sigma_Union: "Sigma (Union X) B = (UN A:X. Sigma A B)"
+lemma Sigma_Union:
+  "Sigma (\<Union>X) B = (\<Union>A\<in>X. Sigma A B)"
   by blast
 
 text \<open>
@@ -1089,25 +1100,32 @@ text \<open>
   matching, especially when the rules are re-oriented.
 \<close>
 
-lemma Times_Un_distrib1: "(A Un B) <*> C = (A <*> C) Un (B <*> C)"
+lemma Times_Un_distrib1:
+  "(A \<union> B) \<times> C = A \<times> C \<union> B \<times> C "
   by (fact Sigma_Un_distrib1)
 
-lemma Times_Int_distrib1: "(A Int B) <*> C = (A <*> C) Int (B <*> C)"
+lemma Times_Int_distrib1:
+  "(A \<inter> B) \<times> C = A \<times> C \<inter> B \<times> C "
   by (fact Sigma_Int_distrib1)
 
-lemma Times_Diff_distrib1: "(A - B) <*> C = (A <*> C) - (B <*> C)"
+lemma Times_Diff_distrib1:
+  "(A - B) \<times> C = A \<times> C - B \<times> C "
   by (fact Sigma_Diff_distrib1)
 
-lemma Times_empty[simp]: "A \<times> B = {} \<longleftrightarrow> A = {} \<or> B = {}"
+lemma Times_empty [simp]:
+  "A \<times> B = {} \<longleftrightarrow> A = {} \<or> B = {}"
   by auto
 
-lemma times_eq_iff: "A \<times> B = C \<times> D \<longleftrightarrow> A = C \<and> B = D \<or> ((A = {} \<or> B = {}) \<and> (C = {} \<or> D = {}))"
+lemma times_eq_iff:
+  "A \<times> B = C \<times> D \<longleftrightarrow> A = C \<and> B = D \<or> (A = {} \<or> B = {}) \<and> (C = {} \<or> D = {})"
   by auto
 
-lemma fst_image_times[simp]: "fst ` (A \<times> B) = (if B = {} then {} else A)"
+lemma fst_image_times [simp]:
+  "fst ` (A \<times> B) = (if B = {} then {} else A)"
   by force
 
-lemma snd_image_times[simp]: "snd ` (A \<times> B) = (if A = {} then {} else B)"
+lemma snd_image_times [simp]:
+  "snd ` (A \<times> B) = (if A = {} then {} else B)"
   by force
 
 lemma vimage_fst:
@@ -1121,15 +1139,18 @@ lemma vimage_snd:
 lemma insert_times_insert[simp]:
   "insert a A \<times> insert b B =
    insert (a,b) (A \<times> insert b B \<union> insert a A \<times> B)"
-by blast
+  by blast
 
-lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd \<circ> f) -` B)"
-  apply auto
-  apply (case_tac "f x")
-  apply auto
-  done
+lemma vimage_Times:
+  "f -` (A \<times> B) = (fst \<circ> f) -` A \<inter> (snd \<circ> f) -` B"
+proof (rule set_eqI)
+  fix x
+  show "x \<in> f -` (A \<times> B) \<longleftrightarrow> x \<in> (fst \<circ> f) -` A \<inter> (snd \<circ> f) -` B"
+    by (cases "f x") (auto split: prod.split)
+qed
 
-lemma times_Int_times: "A \<times> B \<inter> C \<times> D = (A \<inter> C) \<times> (B \<inter> D)"
+lemma times_Int_times:
+  "A \<times> B \<inter> C \<times> D = (A \<inter> C) \<times> (B \<inter> D)"
   by auto
 
 lemma product_swap:
@@ -1160,15 +1181,18 @@ by(auto simp add: inj_on_def)
 lemma inj_apsnd [simp]: "inj (apsnd f) \<longleftrightarrow> inj f"
 using inj_on_apsnd[of f UNIV] by simp
 
-definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
-  [code_abbrev]: "product A B = A \<times> B"
+context
+begin
 
-hide_const (open) product
+qualified definition product :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set" where
+  [code_abbrev]: "product A B = A \<times> B"
 
 lemma member_product:
   "x \<in> Product_Type.product A B \<longleftrightarrow> x \<in> A \<times> B"
-  by (simp add: product_def)
+  by (simp add: Product_Type.product_def)
 
+end
+  
 text \<open>The following @{const map_prod} lemmas are due to Joachim Breitner:\<close>
 
 lemma map_prod_inj_on:
