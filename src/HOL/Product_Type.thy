@@ -310,43 +310,6 @@ translations
   -- \<open>The last rule accommodates tuples in `case C ... (x,y) ... => ...'
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn\<close>
 
-(*reconstruct pattern from (nested) splits, avoiding eta-contraction of body;
-  works best with enclosing "let", if "let" does not avoid eta-contraction*)
-print_translation \<open>
-  let
-    fun split_tr' [Abs (x, T, t as (Abs abs))] =
-          (* split (%x y. t) => %(x,y) t *)
-          let
-            val (y, t') = Syntax_Trans.atomic_abs_tr' abs;
-            val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
-          in
-            Syntax.const @{syntax_const "_abs"} $
-              (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
-          end
-      | split_tr' [Abs (x, T, (s as Const (@{const_syntax case_prod}, _) $ t))] =
-          (* split (%x. (split (%y z. t))) => %(x,y,z). t *)
-          let
-            val Const (@{syntax_const "_abs"}, _) $
-              (Const (@{syntax_const "_pattern"}, _) $ y $ z) $ t' = split_tr' [t];
-            val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
-          in
-            Syntax.const @{syntax_const "_abs"} $
-              (Syntax.const @{syntax_const "_pattern"} $ x' $
-                (Syntax.const @{syntax_const "_patterns"} $ y $ z)) $ t''
-          end
-      | split_tr' [Const (@{const_syntax case_prod}, _) $ t] =
-          (* split (split (%x y z. t)) => %((x, y), z). t *)
-          split_tr' [(split_tr' [t])] (* inner split_tr' creates next pattern *)
-      | split_tr' [Const (@{syntax_const "_abs"}, _) $ x_y $ Abs abs] =
-          (* split (%pttrn z. t) => %(pttrn,z). t *)
-          let val (z, t) = Syntax_Trans.atomic_abs_tr' abs in
-            Syntax.const @{syntax_const "_abs"} $
-              (Syntax.const @{syntax_const "_pattern"} $ x_y $ z) $ t
-          end
-      | split_tr' _ = raise Match;
-  in [(@{const_syntax case_prod}, K split_tr')] end
-\<close>
-
 (* print "split f" as "\<lambda>(x,y). f x y" and "split (\<lambda>x. f x)" as "\<lambda>(x,y). f x y" *) 
 typed_print_translation \<open>
   let
