@@ -311,39 +311,6 @@ translations
      The @{text "(x, y)"} is parsed as @{text "Pair x y"} because it is @{text logic},
      not @{text pttrn}.\<close>
 
-(* print "split f" as "\<lambda>(x,y). f x y" and "split (\<lambda>x. f x)" as "\<lambda>(x,y). f x y" *) 
-typed_print_translation \<open>
-  let
-    fun split_guess_names_tr' T [Abs (x, _, Abs _)] = raise Match
-      | split_guess_names_tr' T [Abs (x, xT, t)] =
-          (case (head_of t) of
-            Const (@{const_syntax uncurry}, _) => raise Match
-          | _ =>
-            let 
-              val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
-              val (y, t') = Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 1 t $ Bound 0);
-              val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, xT, t');
-            in
-              Syntax.const @{syntax_const "_abs"} $
-                (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
-            end)
-      | split_guess_names_tr' T [t] =
-          (case head_of t of
-            Const (@{const_syntax uncurry}, _) => raise Match
-          | _ =>
-            let
-              val (xT :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
-              val (y, t') =
-                Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 2 t $ Bound 1 $ Bound 0);
-              val (x', t'') = Syntax_Trans.atomic_abs_tr' ("x", xT, t');
-            in
-              Syntax.const @{syntax_const "_abs"} $
-                (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
-            end)
-      | split_guess_names_tr' _ _ = raise Match;
-  in [(@{const_syntax uncurry}, K split_guess_names_tr')] end
-\<close>
-
 
 subsubsection \<open>Code generator setup\<close>
 
