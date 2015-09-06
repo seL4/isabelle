@@ -55,4 +55,10 @@ definition check_list :: unit
 where
   "check_list = (if funny_list = funny_list' then () else undefined)"
 
+text \<open>Explicit check in @{text Scala} for correct bracketing of abstractions\<close>
+
+definition funny_funs :: "(bool \<Rightarrow> bool) list \<Rightarrow> (bool \<Rightarrow> bool) list"
+where
+  "funny_funs fs = (\<lambda>x. x \<or> True) # (\<lambda>x. x \<or> False) # fs"
+
 end

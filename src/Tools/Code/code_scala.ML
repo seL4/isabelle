@@ -63,15 +63,13 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                 (print_term tyvars is_pat some_thm vars BR t1) [t2])
       | print_term tyvars is_pat some_thm vars fxy (IVar v) =
           print_var vars v
-      | print_term tyvars is_pat some_thm vars fxy ((v, ty) `|=> t) =
+      | print_term tyvars is_pat some_thm vars fxy (t as _ `|=> _) =
           let
-            val vars' = intro_vars (the_list v) vars;
+            val (vs_tys, body) = Code_Thingol.unfold_abs t;
+            val (ps, vars') = fold_map (print_abs_head tyvars) vs_tys vars;
+            val vars' = intro_vars (map_filter fst vs_tys) vars;
           in
-            concat [
-              enclose "(" ")" [constraint (print_var vars' v) (print_typ tyvars NOBR ty)],
-              str "=>",
-              print_term tyvars false some_thm vars' NOBR t
-            ]
+            brackets (ps @| print_term tyvars false some_thm vars' NOBR body)
           end
       | print_term tyvars is_pat some_thm vars fxy (ICase case_expr) =
           (case Code_Thingol.unfold_const_app (#primitive case_expr)
@@ -80,6 +78,15 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                 then print_case tyvars some_thm vars fxy case_expr
                 else print_app tyvars is_pat some_thm vars fxy app
             | NONE => print_case tyvars some_thm vars fxy case_expr)
+    and print_abs_head tyvars (some_v, ty) vars =
+           let
+             val vars' = intro_vars (the_list some_v) vars;
+           in
+             (concat [
+               enclose "(" ")" [constraint (print_var vars' some_v) (print_typ tyvars NOBR ty)],
+               str "=>"
+             ], vars')
+           end
     and print_app tyvars is_pat some_thm vars fxy
         (app as ({ sym, typargs, dom, ... }, ts)) =
       let
