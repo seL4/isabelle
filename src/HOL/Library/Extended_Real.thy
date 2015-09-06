@@ -913,7 +913,7 @@ lemma ereal_m1_less_0[simp]: "-(1::ereal) < 0"
 lemma ereal_times[simp]:
   "1 \<noteq> (\<infinity>::ereal)" "(\<infinity>::ereal) \<noteq> 1"
   "1 \<noteq> -(\<infinity>::ereal)" "-(\<infinity>::ereal) \<noteq> 1"
-  by (auto simp add: times_ereal_def one_ereal_def)
+  by (auto simp: one_ereal_def)
 
 lemma ereal_plus_1[simp]:
   "1 + ereal r = ereal (r + 1)"
