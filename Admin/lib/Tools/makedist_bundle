@@ -198,7 +198,7 @@ case "$PLATFORM_FAM" in
     done
     cat "$ISABELLE_HOME/Admin/Linux/Isabelle.run" | \
       perl -p > "$ISABELLE_TARGET/${ISABELLE_NAME}.run" \
-        -e "s,{JAVA_ARGS},$JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS,g; s,{CLASSPATH},$LINUX_CLASSPATH,;"
+        -e "s,{JAVA_ARGS},$JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS,g; s,{CLASSPATH},$LINUX_CLASSPATH,;"
     chmod +x "$ISABELLE_TARGET/${ISABELLE_NAME}.run"
 
     mv "$ISABELLE_TARGET/contrib/linux_app" "$TMP/."
@@ -242,7 +242,7 @@ case "$PLATFORM_FAM" in
     (
       echo -e "# Java runtime options\r"
       declare -a JAVA_ARGS=()
-      eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS)"
+      eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
       for ARG in "${JAVA_ARGS[@]}"
       do
         echo -e "$ARG\r"
@@ -335,7 +335,7 @@ then
           cat "$APP_TEMPLATE/Info.plist-part1"
 
           declare -a OPTIONS=()
-          eval "OPTIONS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS)"
+          eval "OPTIONS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
           for OPT in "${OPTIONS[@]}"
           do
             echo "<string>$OPT</string>"
