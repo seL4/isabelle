@@ -14,6 +14,8 @@ function show_settings()
   local PREFIX="$1"
   echo "${PREFIX}ISABELLE_BUILD_OPTIONS=\"$ISABELLE_BUILD_OPTIONS\""
   echo
+  echo "${PREFIX}ISABELLE_BUILD_JAVA_OPTIONS=\"$ISABELLE_BUILD_JAVA_OPTIONS\""
+  echo
   echo "${PREFIX}ML_PLATFORM=\"$ML_PLATFORM\""
   echo "${PREFIX}ML_HOME=\"$ML_HOME\""
   echo "${PREFIX}ML_SYSTEM=\"$ML_SYSTEM\""
