@@ -187,6 +187,23 @@ case "$PLATFORM_FAM" in
     purge_jdk "x86-linux"
     purge_jdk "x86_64-linux"
 
+    for PLATFORM in 32 64
+    do
+      (
+        echo "# Java runtime options for ${PLATFORM}bit platform"
+        declare -a JAVA_ARGS
+        if [ "$PLATFORM" = 32 ]; then
+          eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS32)"
+        else
+          eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS64)"
+        fi
+        for ARG in "${JAVA_ARGS[@]}"
+        do
+          echo "$ARG"
+        done
+      ) > "$ISABELLE_TARGET/${ISABELLE_NAME}.options${PLATFORM}"
+    done
+
     LINUX_CLASSPATH=""
     for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
     do
@@ -196,9 +213,9 @@ case "$PLATFORM_FAM" in
         LINUX_CLASSPATH="$LINUX_CLASSPATH:\\\$ISABELLE_HOME/$ENTRY"
       fi
     done
+
     cat "$ISABELLE_HOME/Admin/Linux/Isabelle.run" | \
-      perl -p > "$ISABELLE_TARGET/${ISABELLE_NAME}.run" \
-        -e "s,{JAVA_ARGS},$JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS,g; s,{CLASSPATH},$LINUX_CLASSPATH,;"
+      perl -p > "$ISABELLE_TARGET/${ISABELLE_NAME}.run" -e "s,{CLASSPATH},$LINUX_CLASSPATH,;"
     chmod +x "$ISABELLE_TARGET/${ISABELLE_NAME}.run"
 
     mv "$ISABELLE_TARGET/contrib/linux_app" "$TMP/."
@@ -240,9 +257,14 @@ case "$PLATFORM_FAM" in
       "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
 
     (
-      echo -e "# Java runtime options\r"
       declare -a JAVA_ARGS=()
-      eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
+      if [ "$PLATFORM_FAMILY" = windows ]; then
+        echo -e "# Java runtime options for 32bit platform\r"
+        eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS32)"
+      else
+        echo -e "# Java runtime options for 64bit platform\r"
+        eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS64)"
+      fi
       for ARG in "${JAVA_ARGS[@]}"
       do
         echo -e "$ARG\r"
@@ -335,7 +357,7 @@ then
           cat "$APP_TEMPLATE/Info.plist-part1"
 
           declare -a OPTIONS=()
-          eval "OPTIONS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
+          eval "OPTIONS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS64)"
           for OPT in "${OPTIONS[@]}"
           do
             echo "<string>$OPT</string>"

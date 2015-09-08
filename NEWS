@@ -21,6 +21,12 @@ menu), step through stopped threads, evaluate local ML expressions etc.
 At least one Debugger view needs to be active to have any effect on the
 running ML program.
 
+* Java runtime options are determined separately for 32 vs. 64 bit
+platforms. The "isabelle jedit" command-line tool is subject to settings
+variables JEDIT_JAVA_SYSTEM_OPTIONS and JEDIT_JAVA_OPTIONS32 /
+JEDIT_JAVA_OPTIONS64. The desktop application uses a separate option
+file, depending on the platform family.
+
 
 *** Isar ***
 
