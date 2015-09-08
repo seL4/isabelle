@@ -40,6 +40,12 @@ case "$ISABELLE_PLATFORM" in
 esac
 
 case "$ML_PLATFORM" in
+  x86_64-windows)
+    ML_OPTIONS="-H 1000 --codepage utf8"
+    ;;
+  x86-windows)
+    ML_OPTIONS="-H 500 --codepage utf8"
+    ;;
   x86_64-*)
     ML_OPTIONS="-H 1000"
     ;;
