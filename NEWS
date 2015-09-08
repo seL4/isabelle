@@ -21,12 +21,6 @@ menu), step through stopped threads, evaluate local ML expressions etc.
 At least one Debugger view needs to be active to have any effect on the
 running ML program.
 
-* Java runtime options are determined separately for 32 vs. 64 bit
-platforms. The "isabelle jedit" command-line tool is subject to settings
-variables JEDIT_JAVA_SYSTEM_OPTIONS and JEDIT_JAVA_OPTIONS32 /
-JEDIT_JAVA_OPTIONS64. The desktop application uses a separate option
-file, depending on the platform family.
-
 
 *** Isar ***
 
@@ -350,6 +344,19 @@ which both allow larger heap space than former x86-cygwin.
 
 * Java runtime environment for x86_64-windows allows to use larger heap
 space.
+
+* Java runtime options are determined separately for 32bit vs. 64bit
+platforms as follows.
+
+  - Isabelle desktop application: platform-specific files that are
+    associated with the main app bundle
+
+  - isabelle jedit: settings
+    JEDIT_JAVA_SYSTEM_OPTIONS
+    JEDIT_JAVA_OPTIONS32 vs. JEDIT_JAVA_OPTIONS64
+
+  - isabelle build: settings
+    ISABELLE_BUILD_JAVA_OPTIONS32 vs. ISABELLE_BUILD_JAVA_OPTIONS64
 
 
 

@@ -4,6 +4,17 @@
 #
 # DESCRIPTION: build and manage Isabelle sessions
 
+## settings
+
+case "$ISABELLE_JAVA_PLATFORM" in
+  x86-*)
+    ISABELLE_BUILD_JAVA_OPTIONS="$ISABELLE_BUILD_JAVA_OPTIONS32"
+    ;;
+  x86_64-*)
+    ISABELLE_BUILD_JAVA_OPTIONS="$ISABELLE_BUILD_JAVA_OPTIONS64"
+    ;;
+esac
+
 
 ## diagnostics
 
