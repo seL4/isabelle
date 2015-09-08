@@ -13,11 +13,10 @@ fun ml_platform_path path =
             (case Char.fromString drive of
               NONE => drive ^ ":"
             | SOME d => String.str (Char.toUpper d) ^ ":");
-        in OS.Path.toString {vol = vol, arcs = arcs, isAbs = true} end
+        in String.concatWith "\\" (vol :: arcs) end
     | arcs =>
         (case OS.Process.getEnv "CYGWIN_ROOT" of
-          SOME root =>
-            OS.Path.concat (root, OS.Path.toString {vol = "", arcs = arcs, isAbs = false})
+          SOME root => OS.Path.concat (root, String.concatWith "\\" arcs)
         | NONE => raise Fail "Unknown environment variable CYGWIN_ROOT"))
   else String.translate (fn #"/" => "\\" | c => String.str c) path;
 
