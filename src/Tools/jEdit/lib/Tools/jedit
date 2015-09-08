@@ -5,6 +5,18 @@
 # DESCRIPTION: Isabelle/jEdit interface wrapper
 
 
+## settings
+
+case "$ISABELLE_JAVA_PLATFORM" in
+  x86_64-*)
+    JEDIT_JAVA_OPTIONS="$JEDIT_JAVA_OPTIONS64"
+    ;;
+  *)
+    JEDIT_JAVA_OPTIONS="$JEDIT_JAVA_OPTIONS32"
+    ;;
+esac
+
+
 ## sources
 
 declare -a SOURCES=(
@@ -81,9 +93,7 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
   echo
   echo "  Options are:"
-  echo "    -J OPTION    add JVM runtime option (defaults"
-  echo "                   JEDIT_JAVA_SYSTEM_OPTIONS=$JEDIT_JAVA_SYSTEM_OPTIONS"
-  echo "                   JEDIT_JAVA_OPTIONS=$JEDIT_JAVA_OPTIONS)"
+  echo "    -J OPTION    add JVM runtime option (default $JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
   echo "    -b           build only"
   echo "    -d DIR       include session directory"
   echo "    -f           fresh build"
