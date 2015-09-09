@@ -1059,9 +1059,13 @@ in
     subrecord.
 *)
 val simproc =
-  Simplifier.simproc_global @{theory HOL} "record" ["x"]
-    (fn ctxt => fn t =>
-      let val thy = Proof_Context.theory_of ctxt in
+  Simplifier.make_simproc @{context} "record"
+   {lhss = [@{term "x"}],
+    proc = fn _ => fn ctxt => fn ct =>
+      let
+        val thy = Proof_Context.theory_of ctxt;
+        val t = Thm.term_of ct;
+      in
         (case t of
           (sel as Const (s, Type (_, [_, rangeS]))) $
               ((upd as Const (u, Type (_, [_, Type (_, [rT, _])]))) $ k $ r) =>
@@ -1109,7 +1113,8 @@ val simproc =
               end
             else NONE
         | _ => NONE)
-      end);
+      end,
+    identifier = []};
 
 fun get_upd_acc_cong_thm upd acc thy ss =
   let
@@ -1139,10 +1144,12 @@ fun get_upd_acc_cong_thm upd acc thy ss =
   we omit considering further updates if doing so would introduce
   both a more update and an update to a field within it.*)
 val upd_simproc =
-  Simplifier.simproc_global @{theory HOL} "record_upd" ["x"]
-    (fn ctxt => fn t =>
+  Simplifier.make_simproc @{context} "record_upd"
+   {lhss = [@{term "x"}],
+    proc = fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
+        val t = Thm.term_of ct;
         (*We can use more-updators with other updators as long
           as none of the other updators go deeper than any more
           updator. min here is the depth of the deepest other
@@ -1240,7 +1247,8 @@ val upd_simproc =
             (prove_unfold_defs thy noops' [simproc]
               (Logic.list_all (vars, Logic.mk_equals (lhs, rhs))))
         else NONE
-      end);
+      end,
+    identifier = []};
 
 end;
 
@@ -1260,16 +1268,19 @@ end;
  Complexity: #components * #updates     #updates
 *)
 val eq_simproc =
-  Simplifier.simproc_global @{theory HOL} "record_eq" ["r = s"]
-    (fn ctxt => fn t =>
-      (case t of Const (@{const_name HOL.eq}, Type (_, [T, _])) $ _ $ _ =>
-        (case rec_id ~1 T of
-          "" => NONE
-        | name =>
-            (case get_equalities (Proof_Context.theory_of ctxt) name of
-              NONE => NONE
-            | SOME thm => SOME (thm RS @{thm Eq_TrueI})))
-      | _ => NONE));
+  Simplifier.make_simproc @{context} "record_eq"
+   {lhss = [@{term "r = s"}],
+    proc = fn _ => fn ctxt => fn ct =>
+      (case Thm.term_of ct of
+        Const (@{const_name HOL.eq}, Type (_, [T, _])) $ _ $ _ =>
+          (case rec_id ~1 T of
+            "" => NONE
+          | name =>
+              (case get_equalities (Proof_Context.theory_of ctxt) name of
+                NONE => NONE
+              | SOME thm => SOME (thm RS @{thm Eq_TrueI})))
+      | _ => NONE),
+    identifier = []};
 
 
 (* split_simproc *)
@@ -1280,9 +1291,10 @@ val eq_simproc =
     P t = ~1: completely split
     P t > 0: split up to given bound of record extensions.*)
 fun split_simproc P =
-  Simplifier.simproc_global @{theory HOL} "record_split" ["x"]
-    (fn ctxt => fn t =>
-      (case t of
+  Simplifier.make_simproc @{context} "record_split"
+   {lhss = [@{term x}],
+    proc = fn _ => fn ctxt => fn ct =>
+      (case Thm.term_of ct of
         Const (quantifier, Type (_, [Type (_, [T, _]), _])) $ _ =>
           if quantifier = @{const_name Pure.all} orelse
             quantifier = @{const_name All} orelse
@@ -1291,7 +1303,7 @@ fun split_simproc P =
             (case rec_id ~1 T of
               "" => NONE
             | _ =>
-                let val split = P t in
+                let val split = P (Thm.term_of ct) in
                   if split <> 0 then
                     (case get_splits (Proof_Context.theory_of ctxt) (rec_id split T) of
                       NONE => NONE
@@ -1305,13 +1317,16 @@ fun split_simproc P =
                   else NONE
                 end)
           else NONE
-      | _ => NONE));
+      | _ => NONE),
+    identifier = []};
 
 val ex_sel_eq_simproc =
-  Simplifier.simproc_global @{theory HOL} "ex_sel_eq" ["Ex t"]
-    (fn ctxt => fn t =>
+  Simplifier.make_simproc @{context} "ex_sel_eq"
+   {lhss = [@{term "Ex t"}],
+    proc = fn _ => fn ctxt => fn ct =>
       let
         val thy = Proof_Context.theory_of ctxt;
+        val t = Thm.term_of ct;
         fun mkeq (lr, Teq, (sel, Tsel), x) i =
           if is_selector thy sel then
             let
@@ -1344,7 +1359,8 @@ val ex_sel_eq_simproc =
                     addsimps @{thms simp_thms} addsimprocs [split_simproc (K ~1)]) 1))
             end handle TERM _ => NONE)
         | _ => NONE)
-      end);
+      end,
+    identifier = []};
 
 
 (* split_simp_tac *)

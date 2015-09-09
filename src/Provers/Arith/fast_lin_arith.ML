@@ -87,7 +87,7 @@ signature FAST_LIN_ARITH =
 sig
   val prems_lin_arith_tac: Proof.context -> int -> tactic
   val lin_arith_tac: Proof.context -> int -> tactic
-  val lin_arith_simproc: Proof.context -> term -> thm option
+  val lin_arith_simproc: Proof.context -> cterm -> thm option
   val map_data:
     ({add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
       lessD: thm list, neqE: thm list, simpset: simpset,
@@ -775,7 +775,7 @@ fun lin_arith_simproc ctxt concl =
   let
     val thms = maps LA_Logic.atomize (Simplifier.prems_of ctxt)
     val Hs = map Thm.prop_of thms
-    val Tconcl = LA_Logic.mk_Trueprop concl
+    val Tconcl = LA_Logic.mk_Trueprop (Thm.term_of concl)
   in
     case prove ctxt [] false Hs Tconcl of (* concl provable? *)
       (split_neq, SOME js) => prover ctxt thms Tconcl js split_neq true

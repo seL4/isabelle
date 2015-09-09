@@ -98,12 +98,15 @@ fun dest_permT (Type (@{type_name fun},
 fun permTs_of (Const (@{const_name Nominal.perm}, T) $ t $ u) = fst (dest_permT T) :: permTs_of u
   | permTs_of _ = [];
 
-fun perm_simproc' ctxt (Const (@{const_name Nominal.perm}, T) $ t $ (u as Const (@{const_name Nominal.perm}, U) $ r $ s)) =
+fun perm_simproc' ctxt ct =
+  (case Thm.term_of ct of
+    Const (@{const_name Nominal.perm}, T) $ t $ (u as Const (@{const_name Nominal.perm}, U) $ r $ s) =>
       let
         val thy = Proof_Context.theory_of ctxt;
         val (aT as Type (a, []), S) = dest_permT T;
         val (bT as Type (b, []), _) = dest_permT U;
-      in if member (op =) (permTs_of u) aT andalso aT <> bT then
+      in
+        if member (op =) (permTs_of u) aT andalso aT <> bT then
           let
             val cp = cp_inst_of thy a b;
             val dj = dj_thm_of thy b a;
@@ -115,10 +118,11 @@ fun perm_simproc' ctxt (Const (@{const_name Nominal.perm}, T) $ t $ (u as Const 
           end
         else NONE
       end
-  | perm_simproc' _ _ = NONE;
+  | _ => NONE);
 
 val perm_simproc =
-  Simplifier.simproc_global @{theory} "perm_simp" ["pi1 \<bullet> (pi2 \<bullet> x)"] perm_simproc';
+  Simplifier.make_simproc @{context} "perm_simp"
+   {lhss = [@{term "pi1 \<bullet> (pi2 \<bullet> x)"}], proc = K perm_simproc', identifier = []};
 
 fun projections ctxt rule =
   Project_Rule.projections ctxt rule

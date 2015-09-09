@@ -170,11 +170,8 @@ fun proc ctxt ct =
 in
 
 val reduce_ex_simproc =
-  Simplifier.make_simproc
-    {lhss = [@{cpat "\<exists>x. ?P x"}],
-     name = "reduce_ex_simproc",
-     proc = K proc,
-     identifier = []};
+  Simplifier.make_simproc @{context} "reduce_ex_simproc"
+    {lhss = [@{term "\<exists>x. P x"}], proc = K proc, identifier = []};
 
 end;
 

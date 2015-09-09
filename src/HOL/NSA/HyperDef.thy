@@ -337,7 +337,7 @@ declaration {*
 *}
 
 simproc_setup fast_arith_hypreal ("(m::hypreal) < n" | "(m::hypreal) <= n" | "(m::hypreal) = n") =
-  {* fn _ => fn ss => fn ct => Lin_Arith.simproc ss (Thm.term_of ct) *}
+  {* K Lin_Arith.simproc *}
 
 
 subsection {* Exponentials on the Hyperreals *}

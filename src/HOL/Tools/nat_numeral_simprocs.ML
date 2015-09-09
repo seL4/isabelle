@@ -216,10 +216,10 @@ structure DiffCancelNumerals = CancelNumeralsFun
   val bal_add2 = @{thm nat_diff_add_eq2} RS trans
 );
 
-fun eq_cancel_numerals ctxt ct = EqCancelNumerals.proc ctxt (Thm.term_of ct)
-fun less_cancel_numerals ctxt ct = LessCancelNumerals.proc ctxt (Thm.term_of ct)
-fun le_cancel_numerals ctxt ct = LeCancelNumerals.proc ctxt (Thm.term_of ct)
-fun diff_cancel_numerals ctxt ct = DiffCancelNumerals.proc ctxt (Thm.term_of ct)
+val eq_cancel_numerals = EqCancelNumerals.proc
+val less_cancel_numerals = LessCancelNumerals.proc
+val le_cancel_numerals = LeCancelNumerals.proc
+val diff_cancel_numerals = DiffCancelNumerals.proc
 
 
 (*** Applying CombineNumeralsFun ***)
@@ -257,7 +257,7 @@ end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 
-fun combine_numerals ctxt ct = CombineNumerals.proc ctxt (Thm.term_of ct)
+val combine_numerals = CombineNumerals.proc
 
 
 (*** Applying CancelNumeralFactorFun ***)
@@ -311,7 +311,8 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
 );
 
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
- (open CancelNumeralFactorCommon
+(
+  open CancelNumeralFactorCommon
   val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less}
   val dest_bal = HOLogic.dest_bin @{const_name Orderings.less} HOLogic.natT
   val cancel = @{thm nat_mult_less_cancel1} RS trans
@@ -319,18 +320,19 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 );
 
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
- (open CancelNumeralFactorCommon
+(
+  open CancelNumeralFactorCommon
   val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
   val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} HOLogic.natT
   val cancel = @{thm nat_mult_le_cancel1} RS trans
   val neg_exchanges = true
 )
 
-fun eq_cancel_numeral_factor ctxt ct = EqCancelNumeralFactor.proc ctxt (Thm.term_of ct)
-fun less_cancel_numeral_factor ctxt ct = LessCancelNumeralFactor.proc ctxt (Thm.term_of ct)
-fun le_cancel_numeral_factor ctxt ct = LeCancelNumeralFactor.proc ctxt (Thm.term_of ct)
-fun div_cancel_numeral_factor ctxt ct = DivCancelNumeralFactor.proc ctxt (Thm.term_of ct)
-fun dvd_cancel_numeral_factor ctxt ct = DvdCancelNumeralFactor.proc ctxt (Thm.term_of ct)
+val eq_cancel_numeral_factor = EqCancelNumeralFactor.proc
+val less_cancel_numeral_factor = LessCancelNumeralFactor.proc
+val le_cancel_numeral_factor = LeCancelNumeralFactor.proc
+val div_cancel_numeral_factor = DivCancelNumeralFactor.proc
+val dvd_cancel_numeral_factor = DvdCancelNumeralFactor.proc
 
 
 (*** Applying ExtractCommonTermFun ***)

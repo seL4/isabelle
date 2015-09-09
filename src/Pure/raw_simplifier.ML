@@ -35,10 +35,10 @@ sig
     safe_solvers: string list}
   type simproc
   val eq_simproc: simproc * simproc -> bool
+  val cert_simproc: theory -> string ->
+    {lhss: term list, proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list}
+    -> simproc
   val transform_simproc: morphism -> simproc -> simproc
-  val make_simproc: {name: string, lhss: cterm list,
-    proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list} -> simproc
-  val mk_simproc: string -> cterm list -> (Proof.context -> term -> thm option) -> simproc
   val simpset_of: Proof.context -> simpset
   val put_simpset: simpset -> Proof.context -> Proof.context
   val simpset_map: Proof.context -> (Proof.context -> Proof.context) -> simpset -> simpset
@@ -105,10 +105,6 @@ sig
   val solver: Proof.context -> solver -> int -> tactic
   val simp_depth_limit_raw: Config.raw
   val default_mk_sym: Proof.context -> thm -> thm option
-  val simproc_global_i: theory -> string -> term list ->
-    (Proof.context -> term -> thm option) -> simproc
-  val simproc_global: theory -> string -> string list ->
-    (Proof.context -> term -> thm option) -> simproc
   val simp_trace_depth_limit_raw: Config.raw
   val simp_trace_raw: Config.raw
   val simp_debug_raw: Config.raw
@@ -675,25 +671,16 @@ datatype simproc =
 
 fun eq_simproc (Simproc {id = id1, ...}, Simproc {id = id2, ...}) = eq_procid (id1, id2);
 
+fun cert_simproc thy name {lhss, proc, identifier} =
+  Simproc {name = name, lhss = map (Sign.cert_term thy) lhss, proc = proc,
+    id = (stamp (), map Thm.trim_context identifier)};
+
 fun transform_simproc phi (Simproc {name, lhss, proc, id = (s, ths)}) =
   Simproc
    {name = name,
     lhss = map (Morphism.term phi) lhss,
     proc = Morphism.transform phi proc,
     id = (s, Morphism.fact phi ths)};
-
-fun make_simproc {name, lhss, proc, identifier} =
-  Simproc {name = name, lhss = map Thm.term_of lhss, proc = proc,
-    id = (stamp (), map Thm.trim_context identifier)};
-
-fun mk_simproc name lhss proc =
-  make_simproc {name = name, lhss = lhss, proc = fn _ => fn ctxt => fn ct =>
-    proc ctxt (Thm.term_of ct), identifier = []};
-
-(* FIXME avoid global thy and Logic.varify_global *)
-fun simproc_global_i thy name = mk_simproc name o map (Thm.global_cterm_of thy o Logic.varify_global);
-fun simproc_global thy name = simproc_global_i thy name o map (Syntax.read_term_global thy);
-
 
 local
 

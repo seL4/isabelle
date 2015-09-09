@@ -70,8 +70,9 @@ struct
 
  val datatype_ss = simpset_of @{context};
 
- fun proc ctxt old =
-   let val thy = Proof_Context.theory_of ctxt
+ fun proc ctxt ct =
+   let val old = Thm.term_of ct
+       val thy = Proof_Context.theory_of ctxt
        val _ =
          if !trace then writeln ("data_free: OLD = " ^ Syntax.string_of_term ctxt old)
          else ()
@@ -104,7 +105,9 @@ struct
    handle Match => NONE;
 
 
- val conv = Simplifier.simproc_global @{theory} "data_free" ["(x::i) = y"] proc;
+  val conv =
+    Simplifier.make_simproc @{context} "data_free"
+     {lhss = [@{term "(x::i) = y"}], proc = K proc, identifier = []};
 
 end;
 \<close>

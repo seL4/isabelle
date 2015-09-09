@@ -98,8 +98,10 @@ end
 
 (* Z3 proof replay *)
 
-val real_linarith_proc = Simplifier.simproc_global @{theory} "fast_real_arith" [
-  "(m::real) < n", "(m::real) <= n", "(m::real) = n"] Lin_Arith.simproc
+val real_linarith_proc =
+  Simplifier.make_simproc @{context} "fast_real_arith"
+   {lhss = [@{term "(m::real) < n"}, @{term "(m::real) \<le> n"}, @{term "(m::real) = n"}],
+    proc = K Lin_Arith.simproc, identifier = []}
 
 
 (* setup *)

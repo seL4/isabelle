@@ -497,8 +497,8 @@ lemma upt_eq_list_intros:
 text {* Tactic definition *}
 
 ML {*
-
-structure Word_Bitwise_Tac = struct
+structure Word_Bitwise_Tac =
+struct
 
 val word_ss = simpset_of @{theory_context Word};
 
@@ -523,10 +523,9 @@ fun upt_conv ctxt ct =
       end
   | _ => NONE;
 
-val expand_upt_simproc = Simplifier.make_simproc
-  {lhss = [@{cpat "upt _ _"}],
-   name = "expand_upt", identifier = [],
-   proc = K upt_conv};
+val expand_upt_simproc =
+  Simplifier.make_simproc @{context} "expand_upt"
+   {lhss = [@{term "upt x y"}], proc = K upt_conv, identifier = []};
 
 fun word_len_simproc_fn ctxt ct =
   case Thm.term_of ct of
@@ -540,10 +539,9 @@ fun word_len_simproc_fn ctxt ct =
     handle TERM _ => NONE | TYPE _ => NONE)
   | _ => NONE;
 
-val word_len_simproc = Simplifier.make_simproc
-  {lhss = [@{cpat "len_of _"}],
-   name = "word_len", identifier = [],
-   proc = K word_len_simproc_fn};
+val word_len_simproc =
+  Simplifier.make_simproc @{context} "word_len"
+   {lhss = [@{term "len_of x"}], proc = K word_len_simproc_fn, identifier = []};
 
 (* convert 5 or nat 5 to Suc 4 when n_sucs = 1, Suc (Suc 4) when n_sucs = 2,
    or just 5 (discarding nat) when n_sucs = 0 *)
@@ -567,10 +565,10 @@ fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
        |> mk_meta_eq |> SOME end
     handle TERM _ => NONE;
 
-fun nat_get_Suc_simproc n_sucs cts = Simplifier.make_simproc
-  {lhss = map (fn t => Thm.apply t @{cpat "?n :: nat"}) cts,
-   name = "nat_get_Suc", identifier = [],
-   proc = K (nat_get_Suc_simproc_fn n_sucs)};
+fun nat_get_Suc_simproc n_sucs ts =
+  Simplifier.make_simproc @{context} "nat_get_Suc"
+   {lhss = map (fn t => t $ @{term "n :: nat"}) ts,
+    proc = K (nat_get_Suc_simproc_fn n_sucs), identifier = []};
 
 val no_split_ss =
   simpset_of (put_simpset HOL_ss @{context}
@@ -601,10 +599,10 @@ val expand_word_eq_sss =
                                 rev_bl_order_simps}
           addsimprocs [expand_upt_simproc,
                        nat_get_Suc_simproc 4
-                         [@{cpat replicate}, @{cpat "takefill ?x"},
-                          @{cpat drop}, @{cpat "bin_to_bl"},
-                          @{cpat "takefill_last ?x"},
-                          @{cpat "drop_nonempty ?x"}]],
+                         [@{term replicate}, @{term "takefill x"},
+                          @{term drop}, @{term "bin_to_bl"},
+                          @{term "takefill_last x"},
+                          @{term "drop_nonempty x"}]],
     put_simpset no_split_ss @{context} addsimps @{thms xor3_simps carry_simps if_bool_simps}
   ])
 

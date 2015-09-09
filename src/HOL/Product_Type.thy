@@ -1261,8 +1261,10 @@ ML_file "Tools/set_comprehension_pointfree.ML"
 
 setup \<open>
   Code_Preproc.map_pre (fn ctxt => ctxt addsimprocs
-    [Raw_Simplifier.make_simproc {name = "set comprehension", lhss = [@{cpat "Collect ?P"}],
-    proc = K Set_Comprehension_Pointfree.code_simproc, identifier = []}])
+    [Simplifier.make_simproc @{context} "set comprehension"
+      {lhss = [@{term "Collect P"}],
+       proc = K Set_Comprehension_Pointfree.code_simproc,
+       identifier = []}])
 \<close>
 
 

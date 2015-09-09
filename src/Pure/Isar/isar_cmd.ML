@@ -168,8 +168,9 @@ fun simproc_setup name lhss source identifier =
   ML_Lex.read_source false source
   |> ML_Context.expression (Input.range_of source) "proc"
     "Morphism.morphism -> Proof.context -> cterm -> thm option"
-    ("Context.map_proof (Simplifier.def_simproc_cmd {name = " ^ ML_Syntax.make_binding name ^ ", \
-      \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
+    ("Context.map_proof (Simplifier.define_simproc_cmd " ^
+      ML_Syntax.atomic (ML_Syntax.make_binding name) ^
+      "{lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
       \identifier = Library.maps ML_Context.thms " ^ ML_Syntax.print_strings identifier ^ "})")
   |> Context.proof_map;
 

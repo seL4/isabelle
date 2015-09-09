@@ -38,65 +38,68 @@ struct
 val anyt = Free ("t", TFree ("'t", []));
 
 fun strong_ind_simproc tab =
-  Simplifier.simproc_global_i @{theory HOL} "strong_ind" [anyt] (fn ctxt => fn t =>
-    let
-      fun close p t f =
-        let val vs = Term.add_vars t []
-        in Thm.instantiate' [] (rev (map (SOME o Thm.cterm_of ctxt o Var) vs))
-          (p (fold (Logic.all o Var) vs t) f)
-        end;
-      fun mkop @{const_name HOL.conj} T x =
-            SOME (Const (@{const_name Lattices.inf}, T --> T --> T), x)
-        | mkop @{const_name HOL.disj} T x =
-            SOME (Const (@{const_name Lattices.sup}, T --> T --> T), x)
-        | mkop _ _ _ = NONE;
-      fun mk_collect p T t =
-        let val U = HOLogic.dest_setT T
-        in HOLogic.Collect_const U $
-          HOLogic.mk_psplits (HOLogic.flat_tuple_paths p) U HOLogic.boolT t
-        end;
-      fun decomp (Const (s, _) $ ((m as Const (@{const_name Set.member},
-            Type (_, [_, Type (_, [T, _])]))) $ p $ S) $ u) =
-              mkop s T (m, p, S, mk_collect p T (head_of u))
-        | decomp (Const (s, _) $ u $ ((m as Const (@{const_name Set.member},
-            Type (_, [_, Type (_, [T, _])]))) $ p $ S)) =
-              mkop s T (m, p, mk_collect p T (head_of u), S)
-        | decomp _ = NONE;
-      val simp =
-        full_simp_tac
-          (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm split_conv}]) 1;
-      fun mk_rew t = (case strip_abs_vars t of
-          [] => NONE
-        | xs => (case decomp (strip_abs_body t) of
-            NONE => NONE
-          | SOME (bop, (m, p, S, S')) =>
-              SOME (close (Goal.prove ctxt [] [])
-                (Logic.mk_equals (t, fold_rev Term.abs xs (m $ p $ (bop $ S $ S'))))
-                (K (EVERY
-                  [resolve_tac ctxt [eq_reflection] 1,
-                   REPEAT (resolve_tac ctxt @{thms ext} 1),
-                   resolve_tac ctxt [iffI] 1,
-                   EVERY [eresolve_tac ctxt [conjE] 1, resolve_tac ctxt [IntI] 1, simp, simp,
-                     eresolve_tac ctxt [IntE] 1, resolve_tac ctxt [conjI] 1, simp, simp] ORELSE
-                   EVERY [eresolve_tac ctxt [disjE] 1, resolve_tac ctxt [UnI1] 1, simp,
-                     resolve_tac ctxt [UnI2] 1, simp,
-                     eresolve_tac ctxt [UnE] 1, resolve_tac ctxt [disjI1] 1, simp,
-                     resolve_tac ctxt [disjI2] 1, simp]])))
-                handle ERROR _ => NONE))
-    in
-      case strip_comb t of
-        (h as Const (name, _), ts) => (case Symtab.lookup tab name of
-          SOME _ =>
-            let val rews = map mk_rew ts
-            in
-              if forall is_none rews then NONE
-              else SOME (fold (fn th1 => fn th2 => Thm.combination th2 th1)
-                (map2 (fn SOME r => K r | NONE => Thm.reflexive o Thm.cterm_of ctxt)
-                   rews ts) (Thm.reflexive (Thm.cterm_of ctxt h)))
-            end
-        | NONE => NONE)
-      | _ => NONE
-    end);
+  Simplifier.make_simproc @{context} "strong_ind"
+   {lhss = [@{term "x::'a::{}"}],
+    proc = fn _ => fn ctxt => fn ct =>
+      let
+        fun close p t f =
+          let val vs = Term.add_vars t []
+          in Thm.instantiate' [] (rev (map (SOME o Thm.cterm_of ctxt o Var) vs))
+            (p (fold (Logic.all o Var) vs t) f)
+          end;
+        fun mkop @{const_name HOL.conj} T x =
+              SOME (Const (@{const_name Lattices.inf}, T --> T --> T), x)
+          | mkop @{const_name HOL.disj} T x =
+              SOME (Const (@{const_name Lattices.sup}, T --> T --> T), x)
+          | mkop _ _ _ = NONE;
+        fun mk_collect p T t =
+          let val U = HOLogic.dest_setT T
+          in HOLogic.Collect_const U $
+            HOLogic.mk_psplits (HOLogic.flat_tuple_paths p) U HOLogic.boolT t
+          end;
+        fun decomp (Const (s, _) $ ((m as Const (@{const_name Set.member},
+              Type (_, [_, Type (_, [T, _])]))) $ p $ S) $ u) =
+                mkop s T (m, p, S, mk_collect p T (head_of u))
+          | decomp (Const (s, _) $ u $ ((m as Const (@{const_name Set.member},
+              Type (_, [_, Type (_, [T, _])]))) $ p $ S)) =
+                mkop s T (m, p, mk_collect p T (head_of u), S)
+          | decomp _ = NONE;
+        val simp =
+          full_simp_tac
+            (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm split_conv}]) 1;
+        fun mk_rew t = (case strip_abs_vars t of
+            [] => NONE
+          | xs => (case decomp (strip_abs_body t) of
+              NONE => NONE
+            | SOME (bop, (m, p, S, S')) =>
+                SOME (close (Goal.prove ctxt [] [])
+                  (Logic.mk_equals (t, fold_rev Term.abs xs (m $ p $ (bop $ S $ S'))))
+                  (K (EVERY
+                    [resolve_tac ctxt [eq_reflection] 1,
+                     REPEAT (resolve_tac ctxt @{thms ext} 1),
+                     resolve_tac ctxt [iffI] 1,
+                     EVERY [eresolve_tac ctxt [conjE] 1, resolve_tac ctxt [IntI] 1, simp, simp,
+                       eresolve_tac ctxt [IntE] 1, resolve_tac ctxt [conjI] 1, simp, simp] ORELSE
+                     EVERY [eresolve_tac ctxt [disjE] 1, resolve_tac ctxt [UnI1] 1, simp,
+                       resolve_tac ctxt [UnI2] 1, simp,
+                       eresolve_tac ctxt [UnE] 1, resolve_tac ctxt [disjI1] 1, simp,
+                       resolve_tac ctxt [disjI2] 1, simp]])))
+                  handle ERROR _ => NONE))
+      in
+        (case strip_comb (Thm.term_of ct) of
+          (h as Const (name, _), ts) =>
+            if Symtab.defined tab name then
+              let val rews = map mk_rew ts
+              in
+                if forall is_none rews then NONE
+                else SOME (fold (fn th1 => fn th2 => Thm.combination th2 th1)
+                  (map2 (fn SOME r => K r | NONE => Thm.reflexive o Thm.cterm_of ctxt)
+                     rews ts) (Thm.reflexive (Thm.cterm_of ctxt h)))
+              end
+            else NONE
+        | _ => NONE)
+      end,
+    identifier = []};
 
 (* only eta contract terms occurring as arguments of functions satisfying p *)
 fun eta_contract p =
@@ -312,9 +315,12 @@ fun is_pred tab t =
 fun to_pred_simproc rules =
   let val rules' = map mk_meta_eq rules
   in
-    Simplifier.simproc_global_i @{theory HOL} "to_pred" [anyt]
-      (fn ctxt =>
-        lookup_rule (Proof_Context.theory_of ctxt) (Thm.prop_of #> Logic.dest_equals) rules')
+    Simplifier.make_simproc @{context} "to_pred"
+      {lhss = [anyt],
+       proc = fn _ => fn ctxt => fn ct =>
+        lookup_rule (Proof_Context.theory_of ctxt)
+          (Thm.prop_of #> Logic.dest_equals) rules' (Thm.term_of ct),
+       identifier = []}
   end;
 
 fun to_pred_proc thy rules t =

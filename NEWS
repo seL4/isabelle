@@ -315,6 +315,12 @@ context for rare situations where these facts are really needed.
 
 *** ML ***
 
+* Simproc programming interfaces have been simplified:
+Simplifier.make_simproc and Simplifier.define_simproc supersede various
+forms of Simplifier.mk_simproc, Simplifier.simproc_global etc. Note that
+term patterns for the left-hand sides are specified with implicitly
+fixed variables, like top-level theorem statements. INCOMPATIBILITY.
+
 * Instantiation rules have been re-organized as follows:
 
   Thm.instantiate  (*low-level instantiation with named arguments*)

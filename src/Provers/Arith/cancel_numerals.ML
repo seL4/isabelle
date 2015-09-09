@@ -44,7 +44,7 @@ end;
 
 signature CANCEL_NUMERALS =
 sig
-  val proc: Proof.context -> term -> thm option
+  val proc: Proof.context -> cterm -> thm option
 end;
 
 functor CancelNumeralsFun(Data: CANCEL_NUMERALS_DATA): CANCEL_NUMERALS =
@@ -65,9 +65,10 @@ fun find_common (terms1,terms2) =
   in  seek terms1 end;
 
 (*the simplification procedure*)
-fun proc ctxt t =
+fun proc ctxt ct =
   let
     val prems = Simplifier.prems_of ctxt
+    val t = Thm.term_of ct
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
     val export = singleton (Variable.export ctxt' ctxt)
     (* FIXME ctxt vs. ctxt' (!?) *)

@@ -775,9 +775,9 @@ ML_file "Tools/int_arith.ML"
 declaration \<open>K Int_Arith.setup\<close>
 
 simproc_setup fast_arith ("(m::'a::linordered_idom) < n" |
-  "(m::'a::linordered_idom) <= n" |
+  "(m::'a::linordered_idom) \<le> n" |
   "(m::'a::linordered_idom) = n") =
-  \<open>fn _ => fn ss => fn ct => Lin_Arith.simproc ss (Thm.term_of ct)\<close>
+  \<open>K Lin_Arith.simproc\<close>
 
 
 subsection\<open>More Inequality Reasoning\<close>

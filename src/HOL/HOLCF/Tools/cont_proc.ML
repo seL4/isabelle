@@ -8,7 +8,7 @@ sig
   val cont_thms: term -> thm list
   val all_cont_thms: term -> thm list
   val cont_tac: Proof.context -> int -> tactic
-  val cont_proc: theory -> simproc
+  val cont_proc: simproc
   val setup: theory -> theory
 end
 
@@ -119,15 +119,17 @@ fun cont_tac ctxt =
   end
 
 local
-  fun solve_cont ctxt t =
+  fun solve_cont ctxt ct =
     let
+      val t = Thm.term_of ct
       val tr = Thm.instantiate' [] [SOME (Thm.cterm_of ctxt t)] @{thm Eq_TrueI}
     in Option.map fst (Seq.pull (cont_tac ctxt 1 tr)) end
 in
-  fun cont_proc thy =
-    Simplifier.simproc_global thy "cont_proc" ["cont f"] solve_cont
+  val cont_proc =
+    Simplifier.make_simproc @{context} "cont_proc"
+     {lhss = [@{term "cont f"}], proc = K solve_cont, identifier = []}
 end
 
-fun setup thy = map_theory_simpset (fn ctxt => ctxt addsimprocs [cont_proc thy]) thy
+val setup = map_theory_simpset (fn ctxt => ctxt addsimprocs [cont_proc])
 
 end

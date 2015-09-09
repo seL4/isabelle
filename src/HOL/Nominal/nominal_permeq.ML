@@ -3,7 +3,7 @@
     Author:     Julien Narboux, TU Muenchen
 
 Methods for simplifying permutations and for analysing equations
-involving permutations. 
+involving permutations.
 *)
 
 (*
@@ -18,8 +18,8 @@ FIXMES:
 
       [(a,b)] o pi1 o pi2 = ....
 
-   rather it tries to permute pi1 over pi2, which 
-   results in a failure when used with the 
+   rather it tries to permute pi1 over pi2, which
+   results in a failure when used with the
    perm_(full)_simp tactics
 
 *)
@@ -67,7 +67,7 @@ val supp_prod     = @{thm "supp_prod"};
 val supp_unit     = @{thm "supp_unit"};
 val pt_perm_compose_aux = @{thm "pt_perm_compose_aux"};
 val cp1_aux             = @{thm "cp1_aux"};
-val perm_aux_fold       = @{thm "perm_aux_fold"}; 
+val perm_aux_fold       = @{thm "perm_aux_fold"};
 val supports_fresh_rule = @{thm "supports_fresh"};
 
 (* needed in the process of fully simplifying permutations *)
@@ -76,31 +76,32 @@ val strong_congs = [@{thm "if_cong"}]
 val weak_congs   = [@{thm "if_weak_cong"}]
 
 (* debugging *)
-fun DEBUG ctxt (msg,tac) = 
-    CHANGED (EVERY [print_tac ctxt ("before "^msg), tac, print_tac ctxt ("after "^msg)]); 
-fun NO_DEBUG _ (_,tac) = CHANGED tac; 
+fun DEBUG ctxt (msg,tac) =
+    CHANGED (EVERY [print_tac ctxt ("before "^msg), tac, print_tac ctxt ("after "^msg)]);
+fun NO_DEBUG _ (_,tac) = CHANGED tac;
 
 
 (* simproc that deals with instances of permutations in front *)
 (* of applications; just adding this rule to the simplifier   *)
 (* would loop; it also needs careful tuning with the simproc  *)
 (* for functions to avoid further possibilities for looping   *)
-fun perm_simproc_app' ctxt redex =
-  let 
-    val thy = Proof_Context.theory_of ctxt;
+fun perm_simproc_app' ctxt ct =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val redex = Thm.term_of ct
     (* the "application" case is only applicable when the head of f is not a *)
     (* constant or when (f x) is a permuation with two or more arguments     *)
-    fun applicable_app t = 
+    fun applicable_app t =
           (case (strip_comb t) of
               (Const (@{const_name Nominal.perm},_),ts) => (length ts) >= 2
             | (Const _,_) => false
             | _ => true)
   in
-    case redex of 
+    case redex of
         (* case pi o (f x) == (pi o f) (pi o x)          *)
         (Const(@{const_name Nominal.perm},
           Type(@{type_name fun},
-            [Type(@{type_name list}, [Type(@{type_name prod},[Type(n,_),_])]),_])) $ pi $ (f $ x)) => 
+            [Type(@{type_name list}, [Type(@{type_name prod},[Type(n,_),_])]),_])) $ pi $ (f $ x)) =>
             (if (applicable_app f) then
               let
                 val name = Long_Name.base_name n
@@ -111,12 +112,14 @@ fun perm_simproc_app' ctxt redex =
       | _ => NONE
   end
 
-val perm_simproc_app = Simplifier.simproc_global @{theory} "perm_simproc_app"
-  ["Nominal.perm pi x"] perm_simproc_app';
+val perm_simproc_app =
+  Simplifier.make_simproc @{context} "perm_simproc_app"
+   {lhss = [@{term "Nominal.perm pi x"}], proc = K perm_simproc_app', identifier = []}
 
 (* a simproc that deals with permutation instances in front of functions  *)
-fun perm_simproc_fun' ctxt redex = 
-   let 
+fun perm_simproc_fun' ctxt ct =
+   let
+     val redex = Thm.term_of ct
      fun applicable_fun t =
        (case (strip_comb t) of
           (Abs _ ,[]) => true
@@ -124,20 +127,21 @@ fun perm_simproc_fun' ctxt redex =
         | (Const _, _) => true
         | _ => false)
    in
-     case redex of 
-       (* case pi o f == (%x. pi o (f ((rev pi)o x))) *)     
-       (Const(@{const_name Nominal.perm},_) $ pi $ f)  => 
+     case redex of
+       (* case pi o f == (%x. pi o (f ((rev pi)o x))) *)
+       (Const(@{const_name Nominal.perm},_) $ pi $ f)  =>
           (if applicable_fun f then SOME perm_fun_def else NONE)
       | _ => NONE
    end
 
-val perm_simproc_fun = Simplifier.simproc_global @{theory} "perm_simproc_fun"
-  ["Nominal.perm pi x"] perm_simproc_fun';
+val perm_simproc_fun =
+  Simplifier.make_simproc @{context} "perm_simproc_fun"
+   {lhss = [@{term "Nominal.perm pi x"}], proc = K perm_simproc_fun', identifier = []}
 
 (* function for simplyfying permutations          *)
 (* stac contains the simplifiation tactic that is *)
 (* applied (see (no_asm) options below            *)
-fun perm_simp_gen stac dyn_thms eqvt_thms ctxt i = 
+fun perm_simp_gen stac dyn_thms eqvt_thms ctxt i =
     ("general simplification of permutations", fn st => SUBGOAL (fn _ =>
     let
        val ctxt' = ctxt
@@ -150,23 +154,23 @@ fun perm_simp_gen stac dyn_thms eqvt_thms ctxt i =
     end) i st);
 
 (* general simplification of permutations and permutation that arose from eqvt-problems *)
-fun perm_simp stac ctxt = 
+fun perm_simp stac ctxt =
     let val simps = ["perm_swap","perm_fresh_fresh","perm_bij","perm_pi_simp","swap_simps"]
-    in 
+    in
         perm_simp_gen stac simps [] ctxt
     end;
 
-fun eqvt_simp stac ctxt = 
+fun eqvt_simp stac ctxt =
     let val simps = ["perm_swap","perm_fresh_fresh","perm_pi_simp"]
         val eqvts_thms = NominalThmDecls.get_eqvt_thms ctxt;
-    in 
+    in
         perm_simp_gen stac simps eqvts_thms ctxt
     end;
 
 
 (* main simplification tactics for permutations *)
 fun perm_simp_tac_gen_i stac tactical ctxt i = DETERM (tactical ctxt (perm_simp stac ctxt i));
-fun eqvt_simp_tac_gen_i stac tactical ctxt i = DETERM (tactical ctxt (eqvt_simp stac ctxt i)); 
+fun eqvt_simp_tac_gen_i stac tactical ctxt i = DETERM (tactical ctxt (eqvt_simp stac ctxt i));
 
 val perm_simp_tac_i          = perm_simp_tac_gen_i simp_tac
 val perm_asm_simp_tac_i      = perm_simp_tac_gen_i asm_simp_tac
@@ -177,18 +181,18 @@ val eqvt_asm_full_simp_tac_i = eqvt_simp_tac_gen_i asm_full_simp_tac
 
 (* applies the perm_compose rule such that                             *)
 (*   pi o (pi' o lhs) = rhs                                            *)
-(* is transformed to                                                   *) 
+(* is transformed to                                                   *)
 (*  (pi o pi') o (pi' o lhs) = rhs                                     *)
 (*                                                                     *)
 (* this rule would loop in the simplifier, so some trick is used with  *)
 (* generating perm_aux'es for the outermost permutation and then un-   *)
 (* folding the definition                                              *)
 
-fun perm_compose_simproc' ctxt redex =
-  (case redex of
+fun perm_compose_simproc' ctxt ct =
+  (case Thm.term_of ct of
      (Const (@{const_name Nominal.perm}, Type (@{type_name fun}, [Type (@{type_name list},
-       [Type (@{type_name Product_Type.prod}, [T as Type (tname,_),_])]),_])) $ pi1 $ (Const (@{const_name Nominal.perm}, 
-         Type (@{type_name fun}, [Type (@{type_name list}, [Type (@{type_name Product_Type.prod}, [U as Type (uname,_),_])]),_])) $ 
+       [Type (@{type_name Product_Type.prod}, [T as Type (tname,_),_])]),_])) $ pi1 $ (Const (@{const_name Nominal.perm},
+         Type (@{type_name fun}, [Type (@{type_name list}, [Type (@{type_name Product_Type.prod}, [U as Type (uname,_),_])]),_])) $
           pi2 $ t)) =>
     let
       val thy = Proof_Context.theory_of ctxt
@@ -196,7 +200,7 @@ fun perm_compose_simproc' ctxt redex =
       val uname' = Long_Name.base_name uname
     in
       if pi1 <> pi2 then  (* only apply the composition rule in this case *)
-        if T = U then    
+        if T = U then
           SOME (Thm.instantiate'
             [SOME (Thm.global_ctyp_of thy (fastype_of t))]
             [SOME (Thm.global_cterm_of thy pi1), SOME (Thm.global_cterm_of thy pi2), SOME (Thm.global_cterm_of thy t)]
@@ -206,16 +210,18 @@ fun perm_compose_simproc' ctxt redex =
           SOME (Thm.instantiate'
             [SOME (Thm.global_ctyp_of thy (fastype_of t))]
             [SOME (Thm.global_cterm_of thy pi1), SOME (Thm.global_cterm_of thy pi2), SOME (Thm.global_cterm_of thy t)]
-            (mk_meta_eq (Global_Theory.get_thm thy ("cp_"^tname'^"_"^uname'^"_inst") RS 
+            (mk_meta_eq (Global_Theory.get_thm thy ("cp_"^tname'^"_"^uname'^"_inst") RS
              cp1_aux)))
       else NONE
     end
   | _ => NONE);
 
-val perm_compose_simproc = Simplifier.simproc_global @{theory} "perm_compose"
-  ["Nominal.perm pi1 (Nominal.perm pi2 t)"] perm_compose_simproc';
+val perm_compose_simproc =
+  Simplifier.make_simproc @{context} "perm_compose"
+   {lhss = [@{term "Nominal.perm pi1 (Nominal.perm pi2 t)"}],
+    proc = K perm_compose_simproc', identifier = []}
 
-fun perm_compose_tac ctxt i = 
+fun perm_compose_tac ctxt i =
   ("analysing permutation compositions on the lhs",
    fn st => EVERY
      [resolve_tac ctxt [trans] i,
@@ -227,11 +233,11 @@ fun apply_cong_tac ctxt i = ("application of congruence", cong_tac ctxt i);
 
 (* unfolds the definition of permutations     *)
 (* applied to functions such that             *)
-(*     pi o f = rhs                           *)  
+(*     pi o f = rhs                           *)
 (* is transformed to                          *)
 (*     %x. pi o (f ((rev pi) o x)) = rhs      *)
 fun unfold_perm_fun_def_tac ctxt i =
-    ("unfolding of permutations on functions", 
+    ("unfolding of permutations on functions",
       resolve_tac ctxt [perm_fun_def RS meta_eq_to_obj_eq RS trans] i)
 
 (* applies the ext-rule such that      *)
@@ -246,14 +252,14 @@ fun ext_fun_tac ctxt i =
 (* since it contains looping rules the "recursion" - depth is set *)
 (* to 10 - this seems to be sufficient in most cases              *)
 fun perm_extend_simp_tac_i tactical ctxt =
-  let fun perm_extend_simp_tac_aux tactical ctxt n = 
+  let fun perm_extend_simp_tac_aux tactical ctxt n =
           if n=0 then K all_tac
-          else DETERM o 
+          else DETERM o
                (FIRST'
                  [fn i => tactical ctxt ("splitting conjunctions on the rhs", resolve_tac ctxt [conjI] i),
                   fn i => tactical ctxt (perm_simp asm_full_simp_tac ctxt i),
                   fn i => tactical ctxt (perm_compose_tac ctxt i),
-                  fn i => tactical ctxt (apply_cong_tac ctxt i), 
+                  fn i => tactical ctxt (apply_cong_tac ctxt i),
                   fn i => tactical ctxt (unfold_perm_fun_def_tac ctxt i),
                   fn i => tactical ctxt (ext_fun_tac ctxt i)]
                 THEN_ALL_NEW (TRY o (perm_extend_simp_tac_aux tactical ctxt (n-1))))
@@ -264,7 +270,7 @@ fun perm_extend_simp_tac_i tactical ctxt =
 (* unfolds the support definition and strips off the     *)
 (* intros, then applies eqvt_simp_tac                    *)
 fun supports_tac_i tactical ctxt i =
-  let 
+  let
      val simps        = [supports_def, Thm.symmetric fresh_def, fresh_prod]
   in
       EVERY [tactical ctxt ("unfolding of supports   ", simp_tac (put_simpset HOL_basic_ss ctxt addsimps simps) i),
@@ -323,11 +329,11 @@ fun finite_guess_tac_i tactical ctxt i st =
 
 
 (* tactic that guesses whether an atom is fresh for an expression  *)
-(* it first collects all free variables and tries to show that the *) 
+(* it first collects all free variables and tries to show that the *)
 (* support of these free variables (op supports) the goal          *)
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 fun fresh_guess_tac_i tactical ctxt i st =
-    let 
+    let
         val goal = nth (cprems_of st) (i - 1)
         val fin_supp = Proof_Context.get_thms ctxt "fin_supp"
         val fresh_atm = Proof_Context.get_thms ctxt "fresh_atm"
@@ -335,7 +341,7 @@ fun fresh_guess_tac_i tactical ctxt i st =
         val ctxt2 = ctxt addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
     in
       case Logic.strip_assums_concl (Thm.term_of goal) of
-          _ $ (Const (@{const_name Nominal.fresh}, Type ("fun", [T, _])) $ _ $ t) => 
+          _ $ (Const (@{const_name Nominal.fresh}, Type ("fun", [T, _])) $ _ $ t) =>
           let
             val ps = Logic.strip_params (Thm.term_of goal);
             val Ts = rev (map snd ps);
@@ -353,15 +359,15 @@ fun fresh_guess_tac_i tactical ctxt i st =
               infer_instantiate ctxt
                 [(#1 (dest_Var (head_of S)), Thm.cterm_of ctxt s')] supports_fresh_rule';
           in
-            (tactical ctxt ("guessing of the right set that supports the goal", 
+            (tactical ctxt ("guessing of the right set that supports the goal",
                       (EVERY [compose_tac ctxt (false, supports_fresh_rule'', 3) i,
                              asm_full_simp_tac ctxt1 (i+2),
-                             asm_full_simp_tac ctxt2 (i+1), 
+                             asm_full_simp_tac ctxt2 (i+1),
                              supports_tac_i tactical ctxt i]))) st
           end
-          (* when a term-constructor contains more than one binder, it is useful    *) 
+          (* when a term-constructor contains more than one binder, it is useful    *)
           (* in nominal_primrecs to try whether the goal can be solved by an hammer *)
-        | _ => (tactical ctxt ("if it is not of the form _\<sharp>_, then try the simplifier",   
+        | _ => (tactical ctxt ("if it is not of the form _\<sharp>_, then try the simplifier",
                           (asm_full_simp_tac (put_simpset HOL_ss ctxt addsimps [fresh_prod]@fresh_atm) i))) st
     end
     handle General.Subscript => Seq.empty;
@@ -383,7 +389,7 @@ val dfresh_guess_tac      = fresh_guess_tac_i DEBUG;
 
 (* Code opied from the Simplifer for setting up the perm_simp method   *)
 (* behaves nearly identical to the simp-method, for example can handle *)
-(* options like (no_asm) etc.                                          *) 
+(* options like (no_asm) etc.                                          *)
 val no_asmN = "no_asm";
 val no_asm_useN = "no_asm_use";
 val no_asm_simpN = "no_asm_simp";
