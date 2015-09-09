@@ -4,7 +4,7 @@ imports "../SPARK"
 begin
 
 syntax (my_constrain output)
-  "_constrain" :: "logic => type => logic" ("_ \<Colon> _" [4, 0] 3)
+  "_constrain" :: "logic => type => logic" ("_ :: _" [4, 0] 3)
 (*>*)
 
 chapter {* HOL-\SPARK{} Reference *}
