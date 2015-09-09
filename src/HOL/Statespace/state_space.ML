@@ -211,10 +211,15 @@ fun distinctTree_tac ctxt = SUBGOAL (fn (goal, i) =>
 val distinctNameSolver = mk_solver "distinctNameSolver" distinctTree_tac;
 
 val distinct_simproc =
-  Simplifier.simproc_global @{theory HOL} "StateSpace.distinct_simproc" ["x = y"]
-    (fn ctxt => (fn (Const (@{const_name HOL.eq},_)$(x as Free _)$(y as Free _)) =>
-        Option.map (fn neq => DistinctTreeProver.neq_to_eq_False OF [neq]) (neq_x_y ctxt x y)
-      | _ => NONE));
+  Simplifier.make_simproc @{context} "StateSpace.distinct_simproc"
+   {lhss = [@{term "x = y"}],
+    proc = fn _ => fn ctxt => fn ct =>
+      (case Thm.term_of ct of
+        Const (@{const_name HOL.eq},_) $ (x as Free _) $ (y as Free _) =>
+          Option.map (fn neq => DistinctTreeProver.neq_to_eq_False OF [neq])
+            (neq_x_y ctxt x y)
+      | _ => NONE),
+    identifier = []};
 
 fun interprete_parent name dist_thm_name parent_expr thy =
   let

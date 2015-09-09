@@ -48,14 +48,13 @@ translations
   "_bind (CONST DUMMY # p) e" <= "_bind p (CONST tl e)"
 
 (* type constraints with spacing *)
+no_syntax (output)
+  "_constrain" :: "logic => type => logic"  ("_::_" [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  ("_::_" [4, 0] 3)
 
-no_syntax (xsymbols output)
-  "_constrain" :: "logic => type => logic"  ("_\<Colon>_" [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  ("_\<Colon>_" [4, 0] 3)
-
-syntax (xsymbols output)
-  "_constrain" :: "logic => type => logic"  ("_ \<Colon> _" [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  ("_ \<Colon> _" [4, 0] 3)
+syntax (output)
+  "_constrain" :: "logic => type => logic"  ("_ :: _" [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  ("_ :: _" [4, 0] 3)
 
 
 (* sorts as intersections *)

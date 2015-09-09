@@ -778,17 +778,20 @@ fun poly_eq_conv t =
  in Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv ring_normalize_conv))
      (Thm.instantiate' [] [SOME a, SOME b] idl_sub)
  end
- val poly_eq_simproc =
+
+val poly_eq_simproc =
   let
-   fun proc phi ctxt t =
-    let val th = poly_eq_conv t
-    in if Thm.is_reflexive th then NONE else SOME th
-    end
-   in make_simproc {lhss = [Thm.lhs_of idl_sub],
-                name = "poly_eq_simproc", proc = proc, identifier = []}
-   end;
- val poly_eq_ss =
-   simpset_of (put_simpset HOL_basic_ss @{context}
+    fun proc ct =
+      let val th = poly_eq_conv ct
+      in if Thm.is_reflexive th then NONE else SOME th end
+  in
+    Simplifier.cert_simproc (Thm.theory_of_thm idl_sub) "poly_eq_simproc"
+     {lhss = [Thm.term_of (Thm.lhs_of idl_sub)],
+      proc = fn _ => fn _ => proc, identifier = []}
+  end;
+
+val poly_eq_ss =
+  simpset_of (put_simpset HOL_basic_ss @{context}
     addsimps @{thms simp_thms}
     addsimprocs [poly_eq_simproc])
 

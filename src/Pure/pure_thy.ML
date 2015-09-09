@@ -176,11 +176,6 @@ val _ = Theory.setup
   #> Sign.add_syntax (Symbol.xsymbolsN, true)
    [(tycon "fun",         typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
     ("_bracket",          typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
-    ("_ofsort",           typ "tid_position => sort => type", Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
-    ("_constrain",        typ "logic => type => logic", Mixfix ("_\\<Colon>_", [4, 0], 3)),
-    ("_constrain",        typ "prop' => type => prop'", Mixfix ("_\\<Colon>_", [4, 0], 3)),
-    ("_idtyp",            typ "id_position => type => idt", Mixfix ("_\\<Colon>_", [], 0)),
-    ("_idtypdummy",       typ "type => idt",            Mixfix ("'_()\\<Colon>_", [], 0)),
     ("_lambda",           typ "pttrns => 'a => logic",  Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
     (const "Pure.eq",     typ "'a => 'a => prop",       Infix ("\\<equiv>", 2)),
     (const "Pure.all_binder", typ "idts => prop => prop", Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),

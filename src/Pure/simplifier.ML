@@ -36,12 +36,11 @@ sig
   val cong_del: attribute
   val check_simproc: Proof.context -> xstring * Position.T -> string
   val the_simproc: Proof.context -> string -> simproc
-  val def_simproc: {name: binding, lhss: term list,
-    proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list} ->
-    local_theory -> local_theory
-  val def_simproc_cmd: {name: binding, lhss: string list,
-    proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list} ->
-    local_theory -> local_theory
+  type 'a simproc_spec =
+    {lhss: 'a list, proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list}
+  val make_simproc: Proof.context -> string -> term simproc_spec -> simproc
+  val define_simproc: binding -> term simproc_spec -> local_theory -> local_theory
+  val define_simproc_cmd: binding -> string simproc_spec -> local_theory -> local_theory
   val pretty_simpset: bool -> Proof.context -> Pretty.T
   val default_mk_sym: Proof.context -> thm -> thm option
   val prems_of: Proof.context -> thm list
@@ -61,10 +60,6 @@ sig
   val set_subgoaler: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
   type trace_ops
   val set_trace_ops: trace_ops -> theory -> theory
-  val simproc_global_i: theory -> string -> term list ->
-    (Proof.context -> term -> thm option) -> simproc
-  val simproc_global: theory -> string -> string list ->
-    (Proof.context -> term -> thm option) -> simproc
   val rewrite: Proof.context -> conv
   val asm_rewrite: Proof.context -> conv
   val full_rewrite: Proof.context -> conv
@@ -122,19 +117,25 @@ val _ = Theory.setup
 
 (* define simprocs *)
 
+type 'a simproc_spec =
+  {lhss: 'a list, proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list};
+
+fun make_simproc ctxt name {lhss, proc, identifier} =
+  let
+    val ctxt' = fold Variable.auto_fixes lhss ctxt;
+    val lhss' = Variable.export_terms ctxt' ctxt lhss;
+  in
+    cert_simproc (Proof_Context.theory_of ctxt) name
+      {lhss = lhss', proc = proc, identifier = identifier}
+  end;
+
 local
 
-fun gen_simproc prep {name = b, lhss, proc, identifier} lthy =
+fun def_simproc prep b {lhss, proc, identifier} lthy =
   let
-    val simproc = make_simproc
-      {name = Local_Theory.full_name lthy b,
-       lhss =
-        let
-          val lhss' = prep lthy lhss;
-          val ctxt' = fold Variable.auto_fixes lhss' lthy;
-        in Variable.export_terms ctxt' lthy lhss' end |> map (Thm.cterm_of lthy),
-       proc = proc,
-       identifier = identifier};
+    val simproc =
+      make_simproc lthy (Local_Theory.full_name lthy b)
+        {lhss = prep lthy lhss, proc = proc, identifier = identifier};
   in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = true} (fn phi => fn context =>
       let
@@ -149,8 +150,8 @@ fun gen_simproc prep {name = b, lhss, proc, identifier} lthy =
 
 in
 
-val def_simproc = gen_simproc Syntax.check_terms;
-val def_simproc_cmd = gen_simproc Syntax.read_terms;
+val define_simproc = def_simproc Syntax.check_terms;
+val define_simproc_cmd = def_simproc Syntax.read_terms;
 
 end;
 

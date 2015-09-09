@@ -38,7 +38,7 @@ end;
 
 functor CombineNumeralsFun(Data: COMBINE_NUMERALS_DATA):
   sig
-  val proc: Proof.context -> term -> thm option
+  val proc: Proof.context -> cterm -> thm option
   end
 =
 struct
@@ -65,8 +65,9 @@ fun find_repeated (tab, _, []) = raise TERM("find_repeated", [])
         | NONE => find_repeated (tab, t::past, terms);
 
 (*the simplification procedure*)
-fun proc ctxt t =
+fun proc ctxt ct =
   let
+    val t = Thm.term_of ct
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
     val export = singleton (Variable.export ctxt' ctxt)
     (* FIXME ctxt vs. ctxt' (!?) *)

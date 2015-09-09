@@ -37,16 +37,14 @@ end;
 
 
 functor CancelNumeralFactorFun(Data: CANCEL_NUMERAL_FACTOR_DATA):
-  sig
-  val proc: Proof.context -> term -> thm option
-  end
-=
+  sig val proc: Proof.context -> cterm -> thm option end =
 struct
 
 (*the simplification procedure*)
-fun proc ctxt t =
+fun proc ctxt ct =
   let
     val prems = Simplifier.prems_of ctxt;
+    val t = Thm.term_of ct;
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
     val export = singleton (Variable.export ctxt' ctxt)
     (* FIXME ctxt vs. ctxt' *)

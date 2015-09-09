@@ -292,7 +292,7 @@ values [random_dseq 2, 2, 15] 6 "{(M::int list list, n, m). matrix M n m}"
 
 definition "scalar_product v w = (\<Sum> (x, y)\<leftarrow>zip v w. x * y)"
 
-definition mv :: "('a \<Colon> semiring_0) list list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+definition mv :: "('a :: semiring_0) list list \<Rightarrow> 'a list \<Rightarrow> 'a list"
   where [simp]: "mv M v = map (scalar_product v) M"
 text {*
   This defines the matrix vector multiplication. To work properly @{term
@@ -307,7 +307,7 @@ lemma sparsify_length: "(i, x) \<in> set (sparsify xs) \<Longrightarrow> i < len
   by (auto simp: sparsify_def set_zip)
 
 lemma listsum_sparsify[simp]:
-  fixes v :: "('a \<Colon> semiring_0) list"
+  fixes v :: "('a :: semiring_0) list"
   assumes "length w = length v"
   shows "(\<Sum>x\<leftarrow>sparsify w. (\<lambda>(i, x). v ! i) x * snd x) = scalar_product v w"
     (is "(\<Sum>x\<leftarrow>_. ?f x) = _")
@@ -317,11 +317,11 @@ lemma listsum_sparsify[simp]:
 *)
 definition [simp]: "unzip w = (map fst w, map snd w)"
 
-primrec insert :: "('a \<Rightarrow> 'b \<Colon> linorder) => 'a \<Rightarrow> 'a list => 'a list" where
+primrec insert :: "('a \<Rightarrow> 'b :: linorder) => 'a \<Rightarrow> 'a list => 'a list" where
   "insert f x [] = [x]" |
   "insert f x (y # ys) = (if f y < f x then y # insert f x ys else x # y # ys)"
 
-primrec sort :: "('a \<Rightarrow> 'b \<Colon> linorder) \<Rightarrow> 'a list => 'a list" where
+primrec sort :: "('a \<Rightarrow> 'b :: linorder) \<Rightarrow> 'a list => 'a list" where
   "sort f [] = []" |
   "sort f (x # xs) = insert f x (sort f xs)"
 
