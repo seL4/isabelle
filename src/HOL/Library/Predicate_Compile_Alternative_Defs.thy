@@ -212,6 +212,18 @@ proof -
     done
 qed
 
+subsection \<open>Alternative rules for membership in lists\<close>
+
+declare in_set_member[code_pred_inline]
+
+lemma member_intros [code_pred_intro]:
+  "List.member (x#xs) x"
+  "List.member xs x \<Longrightarrow> List.member (y#xs) x"
+by(simp_all add: List.member_def)
+
+code_pred List.member
+  by(auto simp add: List.member_def elim: list.set_cases)
+
 section \<open>Setup for String.literal\<close>
 
 setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name "STR"}]\<close>
