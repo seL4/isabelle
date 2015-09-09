@@ -137,7 +137,7 @@ fun def_simproc prep b {lhss, proc, identifier} lthy =
       make_simproc lthy (Local_Theory.full_name lthy b)
         {lhss = prep lthy lhss, proc = proc, identifier = identifier};
   in
-    lthy |> Local_Theory.declaration {syntax = false, pervasive = true} (fn phi => fn context =>
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
       let
         val b' = Morphism.binding phi b;
         val simproc' = transform_simproc phi simproc;
