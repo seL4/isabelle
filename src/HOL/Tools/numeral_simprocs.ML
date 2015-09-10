@@ -584,23 +584,28 @@ fun divide_cancel_factor ctxt ct = DivideCancelFactor.proc ctxt (Thm.term_of ct)
 
 local
 
-val zr = @{cpat "0"}
-val zT = Thm.ctyp_of_cterm zr
-val geq = @{cpat HOL.eq}
-val eqT = Thm.dest_ctyp (Thm.ctyp_of_cterm geq) |> hd
+val cterm_of = Thm.cterm_of @{context};
+fun tvar S = (("'a", 0), S);
+
+val zero_tvar = tvar @{sort zero};
+val zero = cterm_of (Const (@{const_name zero_class.zero}, TVar zero_tvar));
+
+val type_tvar = tvar @{sort type};
+val geq = cterm_of (Const (@{const_name HOL.eq}, TVar type_tvar --> TVar type_tvar --> @{typ bool}));
+
 val add_frac_eq = mk_meta_eq @{thm "add_frac_eq"}
 val add_frac_num = mk_meta_eq @{thm "add_frac_num"}
 val add_num_frac = mk_meta_eq @{thm "add_num_frac"}
 
 fun prove_nz ctxt T t =
   let
-    val z = Thm.instantiate_cterm ([(dest_TVar (Thm.typ_of zT), T)],[]) zr
-    val eq = Thm.instantiate_cterm ([(dest_TVar (Thm.typ_of eqT), T)],[]) geq
-    val th = Simplifier.rewrite (ctxt addsimps @{thms simp_thms})
-         (Thm.apply @{cterm "Trueprop"} (Thm.apply @{cterm "Not"}
-                (Thm.apply (Thm.apply eq t) z)))
-  in Thm.equal_elim (Thm.symmetric th) TrueI
-  end
+    val z = Thm.instantiate_cterm ([(zero_tvar, T)], []) zero
+    val eq = Thm.instantiate_cterm ([(type_tvar, T)], []) geq
+    val th =
+      Simplifier.rewrite (ctxt addsimps @{thms simp_thms})
+        (Thm.apply @{cterm "Trueprop"} (Thm.apply @{cterm "Not"}
+          (Thm.apply (Thm.apply eq t) z)))
+  in Thm.equal_elim (Thm.symmetric th) TrueI end
 
 fun proc ctxt ct =
   let
