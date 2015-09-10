@@ -213,11 +213,6 @@ simplify porting old theories:
 removed: in LaTeX document output it looks the same as "::".
 INCOMPATIBILITY, use plain "::" instead.
 
-* Case combinator "prod_case" with eta-contracted body functions
-has explicit "uncurry" notation, to provide a compact notation while
-getting ride of a special case translation.  Slight syntactic
-INCOMPATIBILITY.
-
 * Theory Map: lemma map_of_is_SomeD was a clone of map_of_SomeD and has
 been removed. INCOMPATIBILITY.
 
