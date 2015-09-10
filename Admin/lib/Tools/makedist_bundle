@@ -381,6 +381,7 @@ then
           chmod +x "$APP/Contents/MacOS/JavaAppLauncher"
 
         mv "$ISABELLE_NAME" "$APP/Contents/Resources/."
+        ln -sf "../../Info.plist" "$APP/Contents/Resources/$ISABELLE_NAME/${ISABELLE_NAME}.plist"
         ln -sf "Contents/Resources/$ISABELLE_NAME" "$APP/Isabelle"
 
         rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
