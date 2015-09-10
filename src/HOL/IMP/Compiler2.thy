@@ -44,7 +44,7 @@ subsection {* Basic properties of @{term exec_n} *}
 
 lemma exec_n_exec:
   "P \<turnstile> c \<rightarrow>^n c' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c'"
-  by (induct n arbitrary: c) auto
+  by (induct n arbitrary: c) (auto intro: star.step)
 
 lemma exec_0 [intro!]: "P \<turnstile> c \<rightarrow>^0 c" by simp
 

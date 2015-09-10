@@ -81,8 +81,6 @@ abbreviation
 where
   "exec P \<equiv> star (exec1 P)"
 
-declare star.step[intro]
-
 lemmas exec_induct = star.induct [of "exec1 P", split_format(complete)]
 
 code_pred exec1 by (metis exec1_def)
@@ -107,7 +105,7 @@ lemma exec1_appendR: "P \<turnstile> c \<rightarrow> c' \<Longrightarrow> P@P' \
 by (auto simp: exec1_def)
 
 lemma exec_appendR: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P@P' \<turnstile> c \<rightarrow>* c'"
-by (induction rule: star.induct) (fastforce intro: exec1_appendR)+
+by (induction rule: star.induct) (fastforce intro: star.step exec1_appendR)+
 
 lemma exec1_appendL:
   fixes i i' :: int 
@@ -122,7 +120,7 @@ lemma exec_appendL:
   shows
  "P \<turnstile> (i,s,stk) \<rightarrow>* (i',s',stk')  \<Longrightarrow>
   P' @ P \<turnstile> (size(P')+i,s,stk) \<rightarrow>* (size(P')+i',s',stk')"
-  by (induction rule: exec_induct) (blast intro!: exec1_appendL)+
+  by (induction rule: exec_induct) (blast intro: star.step exec1_appendL)+
 
 text{* Now we specialise the above lemmas to enable automatic proofs of
 @{prop "P \<turnstile> c \<rightarrow>* c'"} where @{text P} is a mixture of concrete instructions and
