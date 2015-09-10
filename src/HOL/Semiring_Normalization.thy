@@ -72,101 +72,120 @@ ML_file "Tools/semiring_normalizer.ML"
 context comm_semiring_1
 begin
 
-declaration \<open>
-let
-  val rules = @{lemma
-    "(a * m) + (b * m) = (a + b) * m"
-    "(a * m) + m = (a + 1) * m"
-    "m + (a * m) = (a + 1) * m"
-    "m + m = (1 + 1) * m"
-    "0 + a = a"
-    "a + 0 = a"
-    "a * b = b * a"
-    "(a + b) * c = (a * c) + (b * c)"
-    "0 * a = 0"
-    "a * 0 = 0"
-    "1 * a = a"
-    "a * 1 = a"
-    "(lx * ly) * (rx * ry) = (lx * rx) * (ly * ry)"
-    "(lx * ly) * (rx * ry) = lx * (ly * (rx * ry))"
-    "(lx * ly) * (rx * ry) = rx * ((lx * ly) * ry)"
-    "(lx * ly) * rx = (lx * rx) * ly"
-    "(lx * ly) * rx = lx * (ly * rx)"
-    "lx * (rx * ry) = (lx * rx) * ry"
-    "lx * (rx * ry) = rx * (lx * ry)"
-    "(a + b) + (c + d) = (a + c) + (b + d)"
-    "(a + b) + c = a + (b + c)"
-    "a + (c + d) = c + (a + d)"
-    "(a + b) + c = (a + c) + b"
-    "a + c = c + a"
-    "a + (c + d) = (a + c) + d"
-    "(x ^ p) * (x ^ q) = x ^ (p + q)"
-    "x * (x ^ q) = x ^ (Suc q)"
-    "(x ^ q) * x = x ^ (Suc q)"
-    "x * x = x\<^sup>2"
-    "(x * y) ^ q = (x ^ q) * (y ^ q)"
-    "(x ^ p) ^ q = x ^ (p * q)"
-    "x ^ 0 = 1"
-    "x ^ 1 = x"
-    "x * (y + z) = (x * y) + (x * z)"
-    "x ^ (Suc q) = x * (x ^ q)"
-    "x ^ (2*n) = (x ^ n) * (x ^ n)"
-    by (simp_all add: algebra_simps power_add power2_eq_square
-      power_mult_distrib power_mult del: one_add_one)}
-in
+lemma semiring_normalization_rules:
+  "(a * m) + (b * m) = (a + b) * m"
+  "(a * m) + m = (a + 1) * m"
+  "m + (a * m) = (a + 1) * m"
+  "m + m = (1 + 1) * m"
+  "0 + a = a"
+  "a + 0 = a"
+  "a * b = b * a"
+  "(a + b) * c = (a * c) + (b * c)"
+  "0 * a = 0"
+  "a * 0 = 0"
+  "1 * a = a"
+  "a * 1 = a"
+  "(lx * ly) * (rx * ry) = (lx * rx) * (ly * ry)"
+  "(lx * ly) * (rx * ry) = lx * (ly * (rx * ry))"
+  "(lx * ly) * (rx * ry) = rx * ((lx * ly) * ry)"
+  "(lx * ly) * rx = (lx * rx) * ly"
+  "(lx * ly) * rx = lx * (ly * rx)"
+  "lx * (rx * ry) = (lx * rx) * ry"
+  "lx * (rx * ry) = rx * (lx * ry)"
+  "(a + b) + (c + d) = (a + c) + (b + d)"
+  "(a + b) + c = a + (b + c)"
+  "a + (c + d) = c + (a + d)"
+  "(a + b) + c = (a + c) + b"
+  "a + c = c + a"
+  "a + (c + d) = (a + c) + d"
+  "(x ^ p) * (x ^ q) = x ^ (p + q)"
+  "x * (x ^ q) = x ^ (Suc q)"
+  "(x ^ q) * x = x ^ (Suc q)"
+  "x * x = x\<^sup>2"
+  "(x * y) ^ q = (x ^ q) * (y ^ q)"
+  "(x ^ p) ^ q = x ^ (p * q)"
+  "x ^ 0 = 1"
+  "x ^ 1 = x"
+  "x * (y + z) = (x * y) + (x * z)"
+  "x ^ (Suc q) = x * (x ^ q)"
+  "x ^ (2*n) = (x ^ n) * (x ^ n)"
+  by (simp_all add: algebra_simps power_add power2_eq_square
+    power_mult_distrib power_mult del: one_add_one)
+
+local_setup \<open>
   Semiring_Normalizer.declare @{thm comm_semiring_1_axioms}
-    {semiring = ([@{cpat "?x + ?y"}, @{cpat "?x * ?y"}, @{cpat "?x ^ ?n"}, @{cpat 0}, @{cpat 1}],
-      rules), ring = ([], []), field = ([], []), idom = [], ideal = []}
-end\<close>
+    {semiring = ([@{term "x + y"}, @{term "x * y"}, @{term "x ^ n"}, @{term 0}, @{term 1}],
+      @{thms semiring_normalization_rules}),
+     ring = ([], []),
+     field = ([], []),
+     idom = [],
+     ideal = []}
+\<close>
 
 end
 
 context comm_ring_1
 begin
 
-declaration \<open>
-let
-  val rules = @{lemma
-    "- x = (- 1) * x"
-    "x - y = x + (- y)"
-    by simp_all}
-in
+lemma ring_normalization_rules:
+  "- x = (- 1) * x"
+  "x - y = x + (- y)"
+  by simp_all
+
+local_setup \<open>
   Semiring_Normalizer.declare @{thm comm_ring_1_axioms}
-    {semiring = Semiring_Normalizer.the_semiring @{context} @{thm comm_semiring_1_axioms},
-      ring = ([@{cpat "?x - ?y"}, @{cpat "- ?x"}], rules), field = ([], []), idom = [], ideal = []}
-end\<close>
+    {semiring = ([@{term "x + y"}, @{term "x * y"}, @{term "x ^ n"}, @{term 0}, @{term 1}],
+      @{thms semiring_normalization_rules}),
+      ring = ([@{term "x - y"}, @{term "- x"}], @{thms ring_normalization_rules}),
+      field = ([], []),
+      idom = [],
+      ideal = []}
+\<close>
 
 end
 
 context comm_semiring_1_cancel_crossproduct
 begin
 
-declaration \<open>Semiring_Normalizer.declare @{thm comm_semiring_1_cancel_crossproduct_axioms}
-  {semiring = Semiring_Normalizer.the_semiring @{context} @{thm comm_semiring_1_axioms},
-    ring = ([], []), field = ([], []), idom = @{thms crossproduct_noteq add_scale_eq_noteq}, ideal = []}\<close>
+local_setup \<open>
+  Semiring_Normalizer.declare @{thm comm_semiring_1_cancel_crossproduct_axioms}
+    {semiring = ([@{term "x + y"}, @{term "x * y"}, @{term "x ^ n"}, @{term 0}, @{term 1}],
+      @{thms semiring_normalization_rules}),
+     ring = ([], []),
+     field = ([], []),
+     idom = @{thms crossproduct_noteq add_scale_eq_noteq},
+     ideal = []}
+\<close>
 
 end
 
 context idom
 begin
 
-declaration \<open>Semiring_Normalizer.declare @{thm idom_axioms}
-  {semiring = Semiring_Normalizer.the_semiring @{context} @{thm comm_ring_1_axioms},
-    ring = Semiring_Normalizer.the_ring @{context} @{thm comm_ring_1_axioms},
-    field = ([], []), idom = @{thms crossproduct_noteq add_scale_eq_noteq},
-    ideal = @{thms right_minus_eq add_0_iff}}\<close>
+local_setup \<open>
+  Semiring_Normalizer.declare @{thm idom_axioms}
+   {semiring = ([@{term "x + y"}, @{term "x * y"}, @{term "x ^ n"}, @{term 0}, @{term 1}],
+      @{thms semiring_normalization_rules}),
+    ring = ([@{term "x - y"}, @{term "- x"}], @{thms ring_normalization_rules}),
+    field = ([], []),
+    idom = @{thms crossproduct_noteq add_scale_eq_noteq},
+    ideal = @{thms right_minus_eq add_0_iff}}
+\<close>
 
 end
 
 context field
 begin
 
-declaration \<open>Semiring_Normalizer.declare @{thm field_axioms}
-  {semiring = Semiring_Normalizer.the_semiring @{context} @{thm idom_axioms},
-    ring = Semiring_Normalizer.the_ring @{context} @{thm idom_axioms},
-    field = ([@{cpat "?x / ?y"}, @{cpat "inverse ?x"}], @{thms divide_inverse inverse_eq_divide}),
-    idom = Semiring_Normalizer.the_idom @{context} @{thm idom_axioms},
-    ideal = Semiring_Normalizer.the_ideal @{context} @{thm idom_axioms}}\<close>
+local_setup \<open>
+  Semiring_Normalizer.declare @{thm field_axioms}
+   {semiring = ([@{term "x + y"}, @{term "x * y"}, @{term "x ^ n"}, @{term 0}, @{term 1}],
+      @{thms semiring_normalization_rules}),
+    ring = ([@{term "x - y"}, @{term "- x"}], @{thms ring_normalization_rules}),
+    field = ([@{term "x / y"}, @{term "inverse x"}], @{thms divide_inverse inverse_eq_divide}),
+    idom = @{thms crossproduct_noteq add_scale_eq_noteq},
+    ideal = @{thms right_minus_eq add_0_iff}}
+\<close>
 
 end
 
