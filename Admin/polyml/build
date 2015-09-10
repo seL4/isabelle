@@ -64,11 +64,11 @@ case "$TARGET" in
     OPTIONS=()
     ;;
   x86-windows)
-    OPTIONS=(--host=i686-w32-mingw32 CPPFLAGS='-I/mingw32/include -DUNICODE -D_UNICODE')
+    OPTIONS=(--host=i686-w32-mingw32 CPPFLAGS='-I/mingw32/include')
     PATH="/mingw32/bin:$PATH"
     ;;
   x86_64-windows)
-    OPTIONS=(--host=x86_64-w64-mingw32 CPPFLAGS='-I/mingw64/include -DUNICODE -D_UNICODE')
+    OPTIONS=(--host=x86_64-w64-mingw32 CPPFLAGS='-I/mingw64/include')
     PATH="/mingw64/bin:$PATH"
     ;;
   *)
