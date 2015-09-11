@@ -344,6 +344,10 @@ the proof context discipline.
 
 *** System ***
 
+* Poly/ML default platform architecture may be changed from 32bit to
+64bit via system option ML_system_64. A system restart (and rebuild)
+is required after change.
+
 * Poly/ML 5.5.3 runs natively on x86-windows and x86_64-windows,
 which both allow larger heap space than former x86-cygwin.
 
