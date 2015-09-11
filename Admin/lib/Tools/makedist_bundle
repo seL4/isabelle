@@ -290,6 +290,7 @@ case "$PLATFORM_FAM" in
         -e "s,{ICON},$APP_TEMPLATE/isabelle_transparent.ico,g;" \
         -e "s,{SPLASH},$APP_TEMPLATE/isabelle.bmp,g;" \
         -e "s,{CLASSPATH},$EXE_CLASSPATH,g;" \
+        -e "s,{ISABELLE_NAME},$ISABELLE_NAME,g;" \
         -e "s,{PLATFORM},$PLATFORM,g;" \
         -e "s,{PLATFORM_IS_64},$PLATFORM_IS_64,g;" \
         -e "s,{PLATFORM_BITS},$PLATFORM_BITS,g;" \

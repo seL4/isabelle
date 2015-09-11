@@ -18,6 +18,10 @@
     <mainClass>isabelle.Main</mainClass>
 {CLASSPATH}
   </classPath>
+  <singleInstance>
+    <mutexName>{ISABELLE_NAME}</mutexName>
+    <windowTitle>{ISABELLE_NAME}</windowTitle>
+  </singleInstance>
   <jre>
     <path>%EXEDIR%\contrib\jdk\{PLATFORM}\jre</path>
     <bundledJre64Bit>{PLATFORM_IS_64}</bundledJre64Bit>
