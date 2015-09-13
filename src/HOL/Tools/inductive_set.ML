@@ -473,8 +473,7 @@ fun add_ind_set_def
         (map (fn (((c, syn), (fs, U, _)), p) => ((c, syn), ((Thm.def_binding c, []),
            fold_rev lambda params (HOLogic.Collect_const U $
              HOLogic.mk_psplits fs U HOLogic.boolT (list_comb (p, params3))))))
-           (cnames_syn ~~ cs_info ~~ preds))
-      ||> Proof_Context.restore_naming lthy1;
+           (cnames_syn ~~ cs_info ~~ preds));
 
     (* prove theorems for converting predicate to set notation *)
     val lthy3 = fold
