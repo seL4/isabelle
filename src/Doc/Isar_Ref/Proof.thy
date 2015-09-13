@@ -886,10 +886,10 @@ text \<open>
   method; thus a plain \emph{do-nothing} proof step would be ``@{command
   "proof"}~@{text "-"}'' rather than @{command "proof"} alone.
 
-  \item @{method "goals"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} is like ``@{method "-"}'', but
-  the current subgoals are turned into cases within the context (see also
-  \secref{sec:cases-induct}). The specified case names are used if present;
-  otherwise cases are numbered starting from 1.
+  \item @{method "goals"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} turns the current subgoals
+  into cases within the context (see also \secref{sec:cases-induct}). The
+  specified case names are used if present; otherwise cases are numbered
+  starting from 1.
 
   Invoking cases in the subsequent proof body via the @{command_ref case}
   command will @{command fix} goal parameters, @{command assume} goal

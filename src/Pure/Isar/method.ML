@@ -694,20 +694,19 @@ val _ = Theory.setup
   setup @{binding "-"} (Scan.succeed (K insert_facts))
     "insert current facts, nothing else" #>
   setup @{binding goals} (Scan.lift (Scan.repeat Args.name_token) >> (fn names => fn ctxt =>
-    METHOD_CASES (fn facts =>
-      Seq.THEN (ALLGOALS (insert_tac facts), fn st =>
-        let
-          val _ =
-            (case drop (Thm.nprems_of st) names of
-              [] => ()
-            | bad =>
-                if detect_closure_state st then ()
-                else
-                  (* FIXME Seq.Error *)
-                  error ("Excessive case names: " ^ commas_quote (map Token.content_of bad) ^
-                    Position.here (Position.set_range (Token.range_of bad))));
-        in goals_tac ctxt (map Token.content_of names) st end))))
-    "insert facts and bind cases for goals" #>
+    METHOD_CASES (fn facts => fn st =>
+      let
+        val _ =
+          (case drop (Thm.nprems_of st) names of
+            [] => ()
+          | bad =>
+              if detect_closure_state st then ()
+              else
+                (* FIXME Seq.Error *)
+                error ("Excessive case names: " ^ commas_quote (map Token.content_of bad) ^
+                  Position.here (Position.set_range (Token.range_of bad))));
+      in goals_tac ctxt (map Token.content_of names) st end)))
+    "bind cases for goals" #>
   setup @{binding insert} (Attrib.thms >> (K o insert))
     "insert theorems, ignoring facts" #>
   setup @{binding intro} (Attrib.thms >> (fn ths => fn ctxt => intro ctxt ths))
