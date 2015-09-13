@@ -1333,7 +1333,7 @@ lemma (in dynkin_system) dynkin_subset:
   assumes "N \<subseteq> M"
   shows "dynkin \<Omega> N \<subseteq> M"
 proof -
-  have "dynkin_system \<Omega> M" by default
+  have "dynkin_system \<Omega> M" ..
   then have "dynkin_system \<Omega> M"
     using assms unfolding dynkin_system_def dynkin_system_axioms_def subset_class_def by simp
   with `N \<subseteq> M` show ?thesis by (auto simp add: dynkin_def)
@@ -1432,7 +1432,7 @@ proof -
     using closed by (rule sigma_algebra_sigma_sets)
   from compl[OF _ empty] closed have space: "P \<Omega>" by simp
   interpret dynkin_system \<Omega> ?D
-    by default (auto dest: sets_into_space intro!: space compl union)
+    by standard (auto dest: sets_into_space intro!: space compl union)
   have "sigma_sets \<Omega> G = ?D"
     by (rule dynkin_lemma) (auto simp: basic `Int_stable G`)
   with A show ?thesis by auto
@@ -1967,7 +1967,7 @@ next
   assume "\<not> (\<forall>i\<in>I. \<mu> i = 0)"
   moreover
   have "measure_space (space M) (sets M) \<mu>'"
-    using ms unfolding measure_space_def by auto default
+    using ms unfolding measure_space_def by auto standard
   with ms eq have "\<exists>\<mu>'. P \<mu>'"
     unfolding P_def
     by (intro exI[of _ \<mu>']) (auto simp add: M space_extend_measure sets_extend_measure)

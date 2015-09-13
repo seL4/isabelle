@@ -236,7 +236,7 @@ proof -
     by (rule a_normal)
 
   show "abelian_subgroup H G"
-    by default (simp add: a_comm)
+    by standard (simp add: a_comm)
 qed
 
 lemma abelian_subgroupI2:

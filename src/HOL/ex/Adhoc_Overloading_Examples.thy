@@ -88,7 +88,7 @@ definition perms :: "('a \<Rightarrow> 'a) set" where
   "perms = {f. bij f \<and> finite {x. f x \<noteq> x}}"
 
 typedef 'a perm = "perms :: ('a \<Rightarrow> 'a) set"
-  by (default) (auto simp: perms_def)
+  by standard (auto simp: perms_def)
 
 text {*First we need some auxiliary lemmas.*}
 lemma permsI [Pure.intro]:
@@ -153,13 +153,14 @@ lemma Rep_perm_uminus:
   unfolding uminus_perm_def by (simp add: Abs_perm_inverse perms_inv Rep_perm)
 
 instance
-  apply default
+  apply standard
   unfolding Rep_perm_inject [symmetric]
   unfolding minus_perm_def
   unfolding Rep_perm_add
   unfolding Rep_perm_uminus
   unfolding Rep_perm_0
-  by (simp_all add: o_assoc inv_o_cancel [OF bij_is_inj [OF bij_Rep_perm]])
+  apply (simp_all add: o_assoc inv_o_cancel [OF bij_is_inj [OF bij_Rep_perm]])
+  done
 
 end
 
@@ -198,7 +199,7 @@ adhoc_overloading
   PERMUTE permute_atom
 
 interpretation atom_permute: permute permute_atom
-  by (default) (simp add: permute_atom_def Rep_perm_simps)+
+  by standard (simp_all add: permute_atom_def Rep_perm_simps)
 
 text {*Permuting permutations.*}
 definition permute_perm :: "'a perm \<Rightarrow> 'a perm \<Rightarrow> 'a perm" where
@@ -208,7 +209,7 @@ adhoc_overloading
   PERMUTE permute_perm
 
 interpretation perm_permute: permute permute_perm
-  apply default
+  apply standard
   unfolding permute_perm_def
   apply simp
   apply (simp only: diff_conv_add_uminus minus_add add.assoc)

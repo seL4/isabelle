@@ -21,7 +21,7 @@ locale semilattice_set = semilattice
 begin
 
 interpretation comp_fun_idem f
-  by default (simp_all add: fun_eq_iff left_commute)
+  by standard (simp_all add: fun_eq_iff left_commute)
 
 definition F :: "'a set \<Rightarrow> 'a"
 where
@@ -33,7 +33,7 @@ lemma eq_fold:
 proof (rule sym)
   let ?f = "\<lambda>x y. Some (case y of None \<Rightarrow> x | Some z \<Rightarrow> f x z)"
   interpret comp_fun_idem "?f"
-    by default (simp_all add: fun_eq_iff commute left_commute split: option.split)
+    by standard (simp_all add: fun_eq_iff commute left_commute split: option.split)
   from assms show "Finite_Set.fold f x A = F (insert x A)"
   proof induct
     case empty then show ?case by (simp add: eq_fold')
@@ -189,7 +189,7 @@ locale semilattice_neutr_set = semilattice_neutr
 begin
 
 interpretation comp_fun_idem f
-  by default (simp_all add: fun_eq_iff left_commute)
+  by standard (simp_all add: fun_eq_iff left_commute)
 
 definition F :: "'a set \<Rightarrow> 'a"
 where
@@ -496,9 +496,9 @@ where
   "semilattice_set.F min = Min"
   and "semilattice_set.F max = Max"
 proof -
-  show "semilattice_order_set min less_eq less" by default (auto simp add: min_def)
+  show "semilattice_order_set min less_eq less" by standard (auto simp add: min_def)
   then interpret Min!: semilattice_order_set min less_eq less .
-  show "semilattice_order_set max greater_eq greater" by default (auto simp add: max_def)
+  show "semilattice_order_set max greater_eq greater" by standard (auto simp add: max_def)
   then interpret Max!: semilattice_order_set max greater_eq greater .
   from Min_def show "semilattice_set.F min = Min" by rule
   from Max_def show "semilattice_set.F max = Max" by rule

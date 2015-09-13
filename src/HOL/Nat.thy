@@ -529,7 +529,7 @@ qed (simp add: bot_nat_def)
 end
 
 instance nat :: no_top
-  by default (auto intro: less_Suc_eq_le [THEN iffD2])
+  by standard (auto intro: less_Suc_eq_le [THEN iffD2])
 
 
 subsubsection \<open>Introduction properties\<close>

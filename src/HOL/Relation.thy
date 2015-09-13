@@ -1116,7 +1116,7 @@ lemma Id_on_fold:
   assumes "finite A"
   shows "Id_on A = Finite_Set.fold (\<lambda>x. Set.insert (Pair x x)) {} A"
 proof -
-  interpret comp_fun_commute "\<lambda>x. Set.insert (Pair x x)" by default auto
+  interpret comp_fun_commute "\<lambda>x. Set.insert (Pair x x)" by standard auto
   show ?thesis using assms unfolding Id_on_def by (induct A) simp_all
 qed
 
@@ -1126,7 +1126,7 @@ proof -
   interpret comp_fun_idem Set.insert
       by (fact comp_fun_idem_insert)
   show ?thesis 
-  by default (auto simp add: fun_eq_iff comp_fun_commute split:prod.split)
+  by standard (auto simp add: fun_eq_iff comp_fun_commute split:prod.split)
 qed
 
 lemma Image_fold:
@@ -1148,7 +1148,7 @@ proof -
   proof - 
     interpret comp_fun_idem Set.insert by (fact comp_fun_idem_insert)
     show "comp_fun_commute (\<lambda>(w,z) A'. if snd x = w then Set.insert (fst x,z) A' else A')"
-    by default (auto simp add: fun_eq_iff split:prod.split)
+    by standard (auto simp add: fun_eq_iff split:prod.split)
   qed
   have *: "{x} O S = {(x', z). x' = fst x \<and> (snd x,z) \<in> S}" by (auto simp: relcomp_unfold intro!: exI)
   show ?thesis unfolding *
@@ -1172,7 +1172,7 @@ proof -
   have *: "\<And>a b A. 
     Finite_Set.fold (\<lambda>(w, z) A'. if b = w then Set.insert (a, z) A' else A') A S = {(a,b)} O S \<union> A"
     by (auto simp: insert_relcomp_union_fold[OF assms] cong: if_cong)
-  show ?thesis by default (auto simp: *)
+  show ?thesis by standard (auto simp: *)
 qed
 
 lemma relcomp_fold:

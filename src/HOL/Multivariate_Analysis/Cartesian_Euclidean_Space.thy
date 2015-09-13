@@ -73,7 +73,7 @@ qed
 end
 
 instance vec:: (order, finite) order
-  by default (auto simp: less_eq_vec_def less_vec_def vec_eq_iff
+  by standard (auto simp: less_eq_vec_def less_vec_def vec_eq_iff
       intro: order.trans order.antisym order.strict_implies_order)
 
 instance vec :: (linorder, cart_one) linorder
@@ -183,26 +183,26 @@ lemmas vector_component =
 subsection \<open>Some frequently useful arithmetic lemmas over vectors.\<close>
 
 instance vec :: (semigroup_mult, finite) semigroup_mult
-  by default (vector mult.assoc)
+  by standard (vector mult.assoc)
 
 instance vec :: (monoid_mult, finite) monoid_mult
-  by default vector+
+  by standard vector+
 
 instance vec :: (ab_semigroup_mult, finite) ab_semigroup_mult
-  by default (vector mult.commute)
+  by standard (vector mult.commute)
 
 instance vec :: (comm_monoid_mult, finite) comm_monoid_mult
-  by default vector
+  by standard vector
 
 instance vec :: (semiring, finite) semiring
-  by default (vector field_simps)+
+  by standard (vector field_simps)+
 
 instance vec :: (semiring_0, finite) semiring_0
-  by default (vector field_simps)+
+  by standard (vector field_simps)+
 instance vec :: (semiring_1, finite) semiring_1
-  by default vector
+  by standard vector
 instance vec :: (comm_semiring, finite) comm_semiring
-  by default (vector field_simps)+
+  by standard (vector field_simps)+
 
 instance vec :: (comm_semiring_0, finite) comm_semiring_0 ..
 instance vec :: (cancel_comm_monoid_add, finite) cancel_comm_monoid_add ..
@@ -215,7 +215,7 @@ instance vec :: (comm_semiring_1, finite) comm_semiring_1 ..
 instance vec :: (ring_1, finite) ring_1 ..
 
 instance vec :: (real_algebra, finite) real_algebra
-  by default (simp_all add: vec_eq_iff)
+  by standard (simp_all add: vec_eq_iff)
 
 instance vec :: (real_algebra_1, finite) real_algebra_1 ..
 

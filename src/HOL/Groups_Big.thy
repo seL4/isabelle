@@ -18,7 +18,7 @@ locale comm_monoid_set = comm_monoid
 begin
 
 interpretation comp_fun_commute f
-  by default (simp add: fun_eq_iff left_commute)
+  by standard (simp add: fun_eq_iff left_commute)
 
 interpretation comp?: comp_fun_commute "f \<circ> g"
   by (fact comp_comp_fun_commute)

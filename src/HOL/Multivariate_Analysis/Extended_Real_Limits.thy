@@ -53,7 +53,7 @@ proof -
 qed
 
 instance ereal :: second_countable_topology
-proof (default, intro exI conjI)
+proof (standard, intro exI conjI)
   let ?B = "(\<Union>r\<in>\<rat>. {{..< r}, {r <..}} :: ereal set set)"
   show "countable ?B"
     by (auto intro: countable_rat)

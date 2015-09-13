@@ -17,7 +17,7 @@ locale ring_hom_ring = R: ring R + S: ring S
     and hom_one [simp] = ring_hom_one [OF homh]
 
 sublocale ring_hom_cring \<subseteq> ring: ring_hom_ring
-  by default (rule homh)
+  by standard (rule homh)
 
 sublocale ring_hom_ring \<subseteq> abelian_group: abelian_group_hom R S
 apply (rule abelian_group_homI)

@@ -1448,7 +1448,7 @@ definition "inf = combine_matrix inf"
 definition "sup = combine_matrix sup"
 
 instance
-  by default (auto simp add: le_infI le_matrix_def inf_matrix_def sup_matrix_def)
+  by standard (auto simp add: le_infI le_matrix_def inf_matrix_def sup_matrix_def)
 
 end
 

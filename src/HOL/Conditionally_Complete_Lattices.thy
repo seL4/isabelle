@@ -371,7 +371,7 @@ lemma cInf_le_cSup:
 end
 
 instance complete_lattice \<subseteq> conditionally_complete_lattice
-  by default (auto intro: Sup_upper Sup_least Inf_lower Inf_greatest)
+  by standard (auto intro: Sup_upper Sup_least Inf_lower Inf_greatest)
 
 lemma cSup_eq:
   fixes a :: "'a :: {conditionally_complete_lattice, no_bot}"

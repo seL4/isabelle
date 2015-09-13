@@ -446,9 +446,10 @@ definition
   "enum_ex P = enum_ex (%x. enum_ex (%y. P (x, y)))"
 
  
-instance by default
-  (simp_all add: enum_prod_def distinct_product
-    enum_UNIV enum_distinct enum_all_prod_def enum_ex_prod_def)
+instance
+  by standard
+    (simp_all add: enum_prod_def distinct_product
+      enum_UNIV enum_distinct enum_all_prod_def enum_ex_prod_def)
 
 end
 

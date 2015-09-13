@@ -25,7 +25,7 @@ proof -
   proof
     show "emeasure M (space M) \<noteq> \<infinity>" using * by auto
   qed
-  show "subprob_space M" by default fact+
+  show "subprob_space M" by standard fact+
 qed
 
 lemma prob_space_imp_subprob_space:

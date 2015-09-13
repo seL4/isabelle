@@ -98,7 +98,7 @@ apply (erule ubasis_le_lower)
 done
 
 interpretation udom: preorder ubasis_le
-apply default
+apply standard
 apply (rule ubasis_le_refl)
 apply (erule (1) ubasis_le_trans)
 done
@@ -879,7 +879,7 @@ apply (erule basis_prj_mono)
 done
 
 lemma ep_pair_udom: "ep_pair udom_emb udom_prj"
- apply default
+ apply standard
   apply (rule compact_basis.principal_induct, simp)
   apply (simp add: udom_emb_principal udom_prj_principal)
   apply (simp add: basis_prj_basis_emb)
@@ -986,7 +986,7 @@ proof
 qed
 
 instance udom :: bifinite
-  by default (fast intro: udom_approx)
+  by standard (fast intro: udom_approx)
 
 hide_const (open) node
 

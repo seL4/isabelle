@@ -1254,10 +1254,10 @@ next
 qed
 
 lemma implies_True_equals: "(PROP P \<Longrightarrow> True) \<equiv> Trueprop True"
-by default (intro TrueI)
+  by standard (intro TrueI)
 
 lemma False_implies_equals: "(False \<Longrightarrow> P) \<equiv> Trueprop True"
-by default simp_all
+  by standard simp_all
 
 (* This is not made a simp rule because it does not improve any proofs
    but slows some AFP entries down by 5% (cpu time). May 2015 *)

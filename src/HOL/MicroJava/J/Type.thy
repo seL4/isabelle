@@ -13,7 +13,7 @@ instantiation cnam :: equal
 begin
 
 definition "HOL.equal (cn :: cnam) cn' \<longleftrightarrow> cn = cn'"
-instance by default (simp add: equal_cnam_def)
+instance by standard (simp add: equal_cnam_def)
 
 end
 
@@ -63,7 +63,7 @@ instantiation vnam :: equal
 begin
 
 definition "HOL.equal (vn :: vnam) vn' \<longleftrightarrow> vn = vn'"
-instance by default (simp add: equal_vnam_def)
+instance by standard (simp add: equal_vnam_def)
 
 end
 
@@ -98,7 +98,7 @@ instantiation mname :: equal
 begin
 
 definition "HOL.equal (M :: mname) M' \<longleftrightarrow> M = M'"
-instance by default (simp add: equal_mname_def)
+instance by standard (simp add: equal_mname_def)
 
 end
 

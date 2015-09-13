@@ -17,20 +17,20 @@ class ordered_euclidean_space = ord + inf + sup + abs + Inf + Sup + euclidean_sp
 begin
 
 subclass order
-  by default
+  by standard
     (auto simp: eucl_le eucl_less_le_not_le intro!: euclidean_eqI antisym intro: order.trans)
 
 subclass ordered_ab_group_add_abs
-  by default (auto simp: eucl_le inner_add_left eucl_abs abs_leI)
+  by standard (auto simp: eucl_le inner_add_left eucl_abs abs_leI)
 
 subclass ordered_real_vector
-  by default (auto simp: eucl_le intro!: mult_left_mono mult_right_mono)
+  by standard (auto simp: eucl_le intro!: mult_left_mono mult_right_mono)
 
 subclass lattice
-  by default (auto simp: eucl_inf eucl_sup eucl_le)
+  by standard (auto simp: eucl_inf eucl_sup eucl_le)
 
 subclass distrib_lattice
-  by default (auto simp: eucl_inf eucl_sup sup_inf_distrib1 intro!: euclidean_eqI)
+  by standard (auto simp: eucl_inf eucl_sup sup_inf_distrib1 intro!: euclidean_eqI)
 
 subclass conditionally_complete_lattice
 proof
@@ -152,7 +152,7 @@ lemma (in order) atLeastatMost_empty'[simp]:
   by (auto)
 
 instance real :: ordered_euclidean_space
-  by default (auto simp: INF_def SUP_def)
+  by standard (auto simp: INF_def SUP_def)
 
 lemma in_Basis_prod_iff:
   fixes i::"'a::euclidean_space*'b::euclidean_space"
@@ -168,7 +168,7 @@ instance proof qed
 end
 
 instance prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_euclidean_space
-  by default
+  by standard
     (auto intro!: add_mono simp add: euclidean_representation_setsum'  Ball_def inner_prod_def
       in_Basis_prod_iff inner_Basis_inf_left inner_Basis_sup_left inner_Basis_INF_left Inf_prod_def
       inner_Basis_SUP_left Sup_prod_def less_prod_def less_eq_prod_def eucl_le[where 'a='a]
@@ -281,7 +281,7 @@ definition "Sup X = (\<chi> i. (SUP x:X. x $ i))"
 definition "abs x = (\<chi> i. abs (x $ i))"
 
 instance
-  apply default
+  apply standard
   unfolding euclidean_representation_setsum'
   apply (auto simp: less_eq_vec_def inf_vec_def sup_vec_def Inf_vec_def Sup_vec_def inner_axis
     Basis_vec_def inner_Basis_inf_left inner_Basis_sup_left inner_Basis_INF_left

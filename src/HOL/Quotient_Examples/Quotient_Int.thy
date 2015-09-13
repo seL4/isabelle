@@ -188,8 +188,7 @@ definition
   "(sup :: int \<Rightarrow> int \<Rightarrow> int) = max"
 
 instance
-  by default
-     (auto simp add: inf_int_def sup_int_def max_min_distrib2)
+  by standard (auto simp add: inf_int_def sup_int_def max_min_distrib2)
 
 end
 

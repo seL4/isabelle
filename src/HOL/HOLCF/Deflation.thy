@@ -161,7 +161,7 @@ lemma finite_deflation_imp_deflation:
 unfolding finite_deflation_def by simp
 
 lemma finite_deflation_bottom: "finite_deflation \<bottom>"
-by default simp_all
+by standard simp_all
 
 
 subsection {* Continuous embedding-projection pairs *}
@@ -358,7 +358,7 @@ by (fast intro: below_antisym elim: ep_pair_unique_p_lemma)
 subsection {* Composing ep-pairs *}
 
 lemma ep_pair_ID_ID: "ep_pair ID ID"
-by default simp_all
+by standard simp_all
 
 lemma ep_pair_comp:
   assumes "ep_pair e1 p1" and "ep_pair e2 p2"

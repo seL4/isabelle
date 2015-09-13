@@ -478,8 +478,8 @@ locale antisym =
   fixes R
   assumes "R x y --> R y x --> x = y"
 
-interpretation equal : antisym "op =" by default simp
-interpretation order_nat : antisym "op <= :: nat => _ => _" by default simp
+interpretation equal : antisym "op =" by standard simp
+interpretation order_nat : antisym "op <= :: nat => _ => _" by standard simp
 
 lemma (in antisym)
   "R x y --> R y z --> R x z"

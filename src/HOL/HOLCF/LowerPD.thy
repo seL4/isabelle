@@ -407,14 +407,14 @@ lemma lower_map_bind:
 by (simp add: lower_map_def lower_bind_bind)
 
 lemma ep_pair_lower_map: "ep_pair e p \<Longrightarrow> ep_pair (lower_map\<cdot>e) (lower_map\<cdot>p)"
-apply default
+apply standard
 apply (induct_tac x rule: lower_pd_induct, simp_all add: ep_pair.e_inverse)
 apply (induct_tac y rule: lower_pd_induct)
 apply (simp_all add: ep_pair.e_p_below monofun_cfun del: lower_plus_below_iff)
 done
 
 lemma deflation_lower_map: "deflation d \<Longrightarrow> deflation (lower_map\<cdot>d)"
-apply default
+apply standard
 apply (induct_tac x rule: lower_pd_induct, simp_all add: deflation.idem)
 apply (induct_tac x rule: lower_pd_induct)
 apply (simp_all add: deflation.below monofun_cfun del: lower_plus_below_iff)

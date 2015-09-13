@@ -15,10 +15,10 @@ imports BNF_Composition Basic_BNFs
 begin
 
 lemma False_imp_eq_True: "(False \<Longrightarrow> Q) \<equiv> Trueprop True"
-  by default simp_all
+  by standard simp_all
 
 lemma conj_imp_eq_imp_imp: "(P \<and> Q \<Longrightarrow> PROP R) \<equiv> (P \<Longrightarrow> Q \<Longrightarrow> PROP R)"
-  by default simp_all
+  by standard simp_all
 
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
   by auto

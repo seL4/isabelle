@@ -19,7 +19,7 @@ definition
   "(op \<sqsubseteq> :: 'a discr \<Rightarrow> 'a discr \<Rightarrow> bool) = (op =)"
 
 instance
-by default (simp add: below_discr_def)
+  by standard (simp add: below_discr_def)
 
 end
 

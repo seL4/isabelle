@@ -162,7 +162,7 @@ proof
 qed
 
 instance u :: (profinite) bifinite
-  by default (rule profinite)
+  by standard (rule profinite)
 
 text {*
   Types @{typ "'a \<rightarrow> 'b"} and @{typ "'a u \<rightarrow>! 'b"} are isomorphic.
@@ -256,10 +256,10 @@ lemma approx_chain_unit: "approx_chain (\<bottom> :: nat \<Rightarrow> unit \<ri
 by (simp add: approx_chain_def cfun_eq_iff finite_deflation_bottom)
 
 instance unit :: bifinite
-  by default (fast intro!: approx_chain_unit)
+  by standard (fast intro!: approx_chain_unit)
 
 instance discr :: (countable) profinite
-  by default (fast intro!: discr_approx)
+  by standard (fast intro!: discr_approx)
 
 instance lift :: (countable) bifinite
 proof

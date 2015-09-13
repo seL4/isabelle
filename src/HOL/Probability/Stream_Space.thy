@@ -160,7 +160,7 @@ qed
 
 lemma (in prob_space) prob_space_stream_space: "prob_space (stream_space M)"
 proof -
-  interpret product_prob_space "\<lambda>_. M" UNIV by default
+  interpret product_prob_space "\<lambda>_. M" UNIV ..
   show ?thesis
     by (subst stream_space_eq_distr) (auto intro!: P.prob_space_distr)
 qed
@@ -169,10 +169,8 @@ lemma (in prob_space) nn_integral_stream_space:
   assumes [measurable]: "f \<in> borel_measurable (stream_space M)"
   shows "(\<integral>\<^sup>+X. f X \<partial>stream_space M) = (\<integral>\<^sup>+x. (\<integral>\<^sup>+X. f (x ## X) \<partial>stream_space M) \<partial>M)"
 proof -                  
-  interpret S: sequence_space M
-    by default
-  interpret P: pair_sigma_finite M "\<Pi>\<^sub>M i::nat\<in>UNIV. M"
-    by default
+  interpret S: sequence_space M ..
+  interpret P: pair_sigma_finite M "\<Pi>\<^sub>M i::nat\<in>UNIV. M" ..
 
   have "(\<integral>\<^sup>+X. f X \<partial>stream_space M) = (\<integral>\<^sup>+X. f (to_stream X) \<partial>S.S)"
     by (subst stream_space_eq_distr) (simp add: nn_integral_distr)

@@ -191,7 +191,7 @@ instantiation loc' :: equal
 begin
 
 definition "HOL.equal (l :: loc') l' \<longleftrightarrow> l = l'"
-instance by default (simp add: equal_loc'_def)
+instance by standard (simp add: equal_loc'_def)
 
 end
 

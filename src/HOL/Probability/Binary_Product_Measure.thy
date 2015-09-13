@@ -702,7 +702,7 @@ lemma pair_measure_count_space:
 proof (rule measure_eqI)
   interpret A: finite_measure "count_space A" by (rule finite_measure_count_space) fact
   interpret B: finite_measure "count_space B" by (rule finite_measure_count_space) fact
-  interpret P: pair_sigma_finite "count_space A" "count_space B" by default
+  interpret P: pair_sigma_finite "count_space A" "count_space B" ..
   show eq: "sets ?P = sets ?C"
     by (simp add: sets_pair_measure sigma_sets_pair_measure_generator_finite A B)
   fix X assume X: "X \<in> sets ?P"
@@ -890,7 +890,7 @@ lemma pair_measure_eqI:
 proof -
   interpret M1: sigma_finite_measure M1 by fact
   interpret M2: sigma_finite_measure M2 by fact
-  interpret pair_sigma_finite M1 M2 by default
+  interpret pair_sigma_finite M1 M2 ..
   from sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('a \<times> 'b) set" .. note F = this
   let ?E = "{a \<times> b |a b. a \<in> sets M1 \<and> b \<in> sets M2}"
   let ?P = "M1 \<Otimes>\<^sub>M M2"

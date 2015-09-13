@@ -179,7 +179,7 @@ definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarr
    "(M'::'a multiset) \<le> M \<longleftrightarrow> M' #<=# M"
 
 instance
-  by default (auto simp add: less_eq_multiset_def less_multiset_def multiset_order.less_le_not_le add.commute multiset_order.add_right_mono)
+  by standard (auto simp add: less_eq_multiset_def less_multiset_def multiset_order.less_le_not_le add.commute multiset_order.add_right_mono)
 end
 
 lemma increasing_union: 

@@ -2868,7 +2868,7 @@ lemma (in semilattice_set) set_eq_fold [code]:
   "F (set (x # xs)) = fold f xs x"
 proof -
   interpret comp_fun_idem f
-    by default (simp_all add: fun_eq_iff left_commute)
+    by standard (simp_all add: fun_eq_iff left_commute)
   show ?thesis by (simp add: eq_fold fold_set_fold)
 qed
 
@@ -5161,7 +5161,7 @@ where
   "folding.F insort [] = sorted_list_of_set"
 proof -
   interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
-  show "folding insort" by default (fact comp_fun_commute)
+  show "folding insort" by standard (fact comp_fun_commute)
   show "folding.F insort [] = sorted_list_of_set" by (simp only: sorted_list_of_set_def)
 qed
 

@@ -653,7 +653,7 @@ proof (intro conjI)
     measure (density (count_space UNIV) (ereal \<circ> f)) {x} \<noteq> 0"
     by (simp add: AE_density nonneg measure_def emeasure_density max_def)
   show "prob_space (density (count_space UNIV) (ereal \<circ> f))"
-    by default (simp add: emeasure_density prob)
+    by standard (simp add: emeasure_density prob)
 qed simp
 
 lemma pmf_embed_pmf: "pmf embed_pmf x = f x"

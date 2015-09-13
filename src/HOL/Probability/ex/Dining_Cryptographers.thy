@@ -399,7 +399,7 @@ sublocale dining_cryptographers_space \<subseteq> prob_space "uniform_count_meas
      (insert n_gt_3, auto simp: dc_crypto intro: exI[of _ "replicate n True"])
 
 sublocale dining_cryptographers_space \<subseteq> information_space "uniform_count_measure dc_crypto" 2
-  by default auto
+  by standard auto
 
 notation (in dining_cryptographers_space)
   mutual_information_Pow ("\<I>'( _ ; _ ')")

@@ -346,7 +346,7 @@ begin
 
 definition %quote "HOL.equal (x::bar) y \<longleftrightarrow> x = y"
 
-instance %quote by default (simp add: equal_bar_def)
+instance %quote by standard (simp add: equal_bar_def)
 
 end %quote (*<*)
 

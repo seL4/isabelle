@@ -116,7 +116,7 @@ lemma typedef_ideal_cpo:
   assumes type: "type_definition Rep Abs {S. ideal S}"
   assumes below: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
   shows "OFCLASS('b, cpo_class)"
-by (default, rule exI, erule typedef_ideal_lub [OF type below])
+  by standard (rule exI, erule typedef_ideal_lub [OF type below])
 
 end
 

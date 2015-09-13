@@ -169,7 +169,7 @@ proof -
   from A_props and inj have "\<forall>a\<in>op ` f ` A. emeasure (embed_measure M f) a \<noteq> \<infinity>"
     by (intro ballI, subst emeasure_embed_measure)
        (auto simp: inj_vimage_image_eq intro: in_sets_embed_measure)
-  ultimately show ?thesis by - (default, blast)
+  ultimately show ?thesis by - (standard, blast)
 qed
 
 lemma embed_measure_count_space':

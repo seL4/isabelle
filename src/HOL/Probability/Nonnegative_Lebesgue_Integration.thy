@@ -2454,7 +2454,7 @@ lemma measure_restricted:
 
 lemma (in finite_measure) finite_measure_restricted:
   "S \<in> sets M \<Longrightarrow> finite_measure (density M (indicator S))"
-  by default (simp add: emeasure_restricted)
+  by standard (simp add: emeasure_restricted)
 
 lemma emeasure_density_const:
   "A \<in> sets M \<Longrightarrow> 0 \<le> c \<Longrightarrow> emeasure (density M (\<lambda>_. c)) A = c * emeasure M A"

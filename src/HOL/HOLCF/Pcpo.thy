@@ -198,7 +198,7 @@ class chfin = po +
 begin
 
 subclass cpo
-apply default
+apply standard
 apply (frule chfin)
 apply (blast intro: lub_finch1)
 done
@@ -213,7 +213,7 @@ class flat = pcpo +
 begin
 
 subclass chfin
-apply default
+apply standard
 apply (unfold max_in_chain_def)
 apply (case_tac "\<forall>i. Y i = \<bottom>")
 apply simp
