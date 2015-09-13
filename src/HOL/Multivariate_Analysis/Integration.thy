@@ -2392,7 +2392,7 @@ proof -
   have lem: "\<And>(f :: 'n \<Rightarrow> 'a) y a b.
     (f has_integral y) (cbox a b) \<Longrightarrow> ((h o f) has_integral h y) (cbox a b)"
     unfolding has_integral
-  proof (clarify, goals)
+  proof (clarify, goal_cases)
     case (1 f y a b e)
     from pos_bounded
     obtain B where B: "0 < B" "\<And>x. norm (h x) \<le> norm x * B"
@@ -2441,7 +2441,7 @@ proof -
       using has_integral_altD[OF assms(1) as *] by blast
     show "\<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow>
       (\<exists>z. ((\<lambda>x. if x \<in> s then (h \<circ> f) x else 0) has_integral z) (cbox a b) \<and> norm (z - h y) < e)"
-    proof (rule_tac x=M in exI, clarsimp simp add: M, goals)
+    proof (rule_tac x=M in exI, clarsimp simp add: M, goal_cases)
       case (1 a b)
       obtain z where z:
         "((\<lambda>x. if x \<in> s then f x else 0) has_integral z) (cbox a b)"
@@ -2553,7 +2553,7 @@ proof -
   }
   assume as: "\<not> (\<exists>a b. s = cbox a b)"
   then show ?thesis
-  proof (subst has_integral_alt, clarsimp, goals)
+  proof (subst has_integral_alt, clarsimp, goal_cases)
     case (1 e)
     then have *: "e / 2 > 0"
       by auto
@@ -2809,7 +2809,7 @@ proof
   assume ?l
   then guess y unfolding integrable_on_def has_integral .. note y=this
   show "\<forall>e>0. \<exists>d. ?P e d"
-  proof (clarify, goals)
+  proof (clarify, goal_cases)
     case (1 e)
     then have "e/2 > 0" by auto
     then guess d
@@ -2844,7 +2844,7 @@ next
   have dp: "\<And>i n. i\<le>n \<Longrightarrow> d i fine p n"
     using p(2) unfolding fine_inters by auto
   have "Cauchy (\<lambda>n. setsum (\<lambda>(x,k). content k *\<^sub>R (f x)) (p n))"
-  proof (rule CauchyI, goals)
+  proof (rule CauchyI, goal_cases)
     case (1 e)
     then guess N unfolding real_arch_inv[of e] .. note N=this
     show ?case
@@ -3104,7 +3104,7 @@ lemma has_integral_split:
       and fj: "(f has_integral j) (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
       and k: "k \<in> Basis"
   shows "(f has_integral (i + j)) (cbox a b)"
-proof (unfold has_integral, rule, rule, goals)
+proof (unfold has_integral, rule, rule, goal_cases)
   case (1 e)
   then have e: "e/2 > 0"
     by auto
@@ -4748,7 +4748,7 @@ lemma negligible_standard_hyperplane[intro]:
   assumes k: "k \<in> Basis"
   shows "negligible {x. x\<bullet>k = c}"
   unfolding negligible_def has_integral
-proof (clarify, goals)
+proof (clarify, goal_cases)
   case (1 a b e)
   from this and k obtain d where d: "0 < d" "content (cbox a b \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) < e"
     by (rule content_doublesplit)
@@ -4823,7 +4823,7 @@ proof (clarify, goals)
         apply (auto simp add:interval_doublesplit[OF k])
         done
       also have "\<dots> < e"
-      proof (subst setsum_over_tagged_division_lemma[OF p[THEN conjunct1]], goals)
+      proof (subst setsum_over_tagged_division_lemma[OF p[THEN conjunct1]], goal_cases)
         case (1 u v)
         have "content (cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<le> content (cbox u v)"
           unfolding interval_doublesplit[OF k]
@@ -5112,7 +5112,7 @@ next
   assume assm: "\<forall>x. x \<notin> s \<longrightarrow> f x = 0"
   show "(f has_integral 0) (cbox a b)"
     unfolding has_integral
-  proof (safe, goals)
+  proof (safe, goal_cases)
     case (1 e)
     then have "\<And>n. e / 2 / ((real n+1) * (2 ^ n)) > 0"
       apply -
@@ -5240,7 +5240,7 @@ next
           done
       qed (insert as, auto)
       also have "\<dots> \<le> setsum (\<lambda>i. e / 2 / 2 ^ i) {..N+1}"
-      proof (rule setsum_mono, goals)
+      proof (rule setsum_mono, goal_cases)
         case (1 i)
         then show ?case
           apply (subst mult.commute, subst pos_le_divide_eq[symmetric])
@@ -5347,7 +5347,7 @@ lemma negligible_subset[intro]:
     and "t \<subseteq> s"
   shows "negligible t"
   unfolding negligible_def
-proof (safe, goals)
+proof (safe, goal_cases)
   case (1 a b)
   show ?case
     using assms(1)[unfolded negligible_def,rule_format,of a b]
@@ -5376,7 +5376,7 @@ lemma negligible_union:
     and "negligible t"
   shows "negligible (s \<union> t)"
   unfolding negligible_def
-proof (safe, goals)
+proof (safe, goal_cases)
   case (1 a b)
   note assm = assms[unfolded negligible_def,rule_format,of a b]
   then show ?case
@@ -5584,7 +5584,7 @@ proof safe
   show "\<exists>g. (\<forall>x\<in>cbox a b. norm (f x - g x) \<le> e) \<and> g integrable_on cbox a b"
     apply (rule_tac x="?g" in exI)
     apply safe
-  proof goals
+  proof goal_cases
     case (1 x)
     then show ?case
       apply -
@@ -6074,7 +6074,7 @@ lemma
     "f b = (\<Sum>i<p. ((b - a) ^ i / fact i) *\<^sub>R Df i a) + integral {a..b} i"
   and taylor_integrable:
     "i integrable_on {a .. b}"
-proof goals
+proof goal_cases
   case 1
   interpret bounded_bilinear "scaleR::real\<Rightarrow>'a\<Rightarrow>'a"
     by (rule bounded_bilinear_scaleR)
@@ -6431,7 +6431,7 @@ proof -
   let ?I = "\<lambda>a b. integral {a .. b} f"
   show "\<exists>d>0. \<forall>y\<in>{a .. b}. norm (y - x) < d \<longrightarrow>
     norm (?I a y - ?I a x - (y - x) *\<^sub>R f x) \<le> e * norm (y - x)"
-  proof (rule, rule, rule d, safe, goals)
+  proof (rule, rule, rule d, safe, goal_cases)
     case (1 y)
     show ?case
     proof (cases "y < x")
@@ -6565,7 +6565,7 @@ proof -
   show ?thesis
     apply (rule that[of g])
     apply safe
-  proof goals
+  proof goal_cases
     case (1 u v)
     have "\<forall>x\<in>cbox u v. (g has_vector_derivative f x) (at x within cbox u v)"
       apply rule
@@ -6598,7 +6598,7 @@ proof -
     defer
     apply (rule *)
     apply assumption
-  proof goals
+  proof goal_cases
     case 1
     then show ?thesis
       unfolding 1 assms(8)[unfolded 1 has_integral_empty_eq] by auto
@@ -7185,7 +7185,7 @@ proof -
   let ?d = "(\<lambda>x. ball x (if x=a then da else if x=b then db else d x))"
   show "?P e"
     apply (rule_tac x="?d" in exI)
-  proof (safe, goals)
+  proof (safe, goal_cases)
     case 1
     show ?case
       apply (rule gauge_ball_dependent)
@@ -7207,7 +7207,7 @@ proof -
       apply (subst(2) pA)
       apply (subst pA)
       unfolding setsum.union_disjoint[OF pA(2-)]
-    proof (rule norm_triangle_le, rule **, goals)
+    proof (rule norm_triangle_le, rule **, goal_cases)
       case 1
       show ?case
         apply (rule order_trans)
@@ -7295,7 +7295,7 @@ proof -
           defer
           apply rule
           unfolding split_paired_all split_conv o_def
-        proof goals
+        proof goal_cases
           fix x k
           assume "(x, k) \<in> p \<inter> {t. fst t \<in> {a, b}} - p \<inter> {t. fst t \<in> {a, b} \<and> content (snd t) \<noteq> 0}"
           then have xk: "(x, k) \<in> p" "content k = 0"
@@ -7450,7 +7450,7 @@ proof -
               apply rule
               unfolding mem_Collect_eq
               unfolding split_paired_all fst_conv snd_conv
-            proof (safe, goals)
+            proof (safe, goal_cases)
               case 1
               guess v using pa[OF 1(1)] .. note v = conjunctD2[OF this]
               have "?a \<in> {?a..v}"
@@ -7482,7 +7482,7 @@ proof -
               apply rule
               unfolding mem_Collect_eq
               unfolding split_paired_all fst_conv snd_conv
-            proof (safe, goals)
+            proof (safe, goal_cases)
               case 1
               guess v using pb[OF 1(1)] .. note v = conjunctD2[OF this]
               have "?b \<in> {v.. ?b}"
@@ -7698,7 +7698,7 @@ proof -
     from fine_division_exists_real[OF this, of a t] guess p . note p=this
     note p'=tagged_division_ofD[OF this(1)]
     have pt: "\<forall>(x,k)\<in>p. x \<le> t"
-    proof (safe, goals)
+    proof (safe, goal_cases)
       case 1
       from p'(2,3)[OF this] show ?case
         by auto
@@ -7753,7 +7753,7 @@ proof -
       have **: "\<And>x F. F \<union> {x} = insert x F"
         by auto
       have "(c, cbox t c) \<notin> p"
-      proof (safe, goals)
+      proof (safe, goal_cases)
         case 1
         from p'(2-3)[OF this] have "c \<in> cbox a t"
           by auto
@@ -7855,7 +7855,7 @@ proof (unfold continuous_on_iff, safe)
       apply cases
       apply (rule *)
       apply assumption
-    proof goals
+    proof goal_cases
       case 1
       then have "cbox a b = {x}"
         using as(1)
@@ -8143,7 +8143,7 @@ proof -
       apply cases
       apply (rule *)
       apply assumption
-    proof goals
+    proof goal_cases
       case 1
       then have *: "box c d = {}"
         by (metis bot.extremum_uniqueI box_subset_cbox)
@@ -8347,7 +8347,7 @@ proof -
     have "ball 0 C \<subseteq> cbox c d"
       apply (rule subsetI)
       unfolding mem_box mem_ball dist_norm
-    proof (rule, goals)
+    proof (rule, goal_cases)
       fix x i :: 'n
       assume x: "norm (0 - x) < C" and i: "i \<in> Basis"
       show "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i"
@@ -8658,7 +8658,7 @@ proof
   show ?l
     apply (subst has_integral')
     apply safe
-  proof goals
+  proof goal_cases
     case (1 e)
     from \<open>?r\<close>[THEN conjunct2,rule_format,OF this] guess B .. note B=conjunctD2[OF this]
     show ?case
@@ -8686,7 +8686,7 @@ next
       have "ball 0 B \<subseteq> cbox ?a ?b"
         apply (rule subsetI)
         unfolding mem_ball mem_box dist_norm
-      proof (rule, goals)
+      proof (rule, goal_cases)
         case (1 x i)
         then show ?case using Basis_le_norm[of i x]
           by (auto simp add:field_simps)
@@ -8712,7 +8712,7 @@ next
       apply rule
       apply (rule B)
       apply safe
-    proof goals
+    proof goal_cases
       case 1
       from B(2)[OF this] guess z .. note z=conjunctD2[OF this]
       from integral_unique[OF this(1)] show ?case
@@ -8739,7 +8739,7 @@ proof
   show ?r
     apply safe
     apply (rule y)
-  proof goals
+  proof goal_cases
     case (1 e)
     then have "e/2 > 0"
       by auto
@@ -8749,7 +8749,7 @@ proof
       apply rule
       apply (rule B)
       apply safe
-    proof goals
+    proof goal_cases
       case (1 a b c d)
       show ?case
         apply (rule norm_triangle_half_l)
@@ -8763,7 +8763,7 @@ next
   note as = conjunctD2[OF this,rule_format]
   let ?cube = "\<lambda>n. cbox (\<Sum>i\<in>Basis. - real n *\<^sub>R i::'n) (\<Sum>i\<in>Basis. real n *\<^sub>R i)"
   have "Cauchy (\<lambda>n. integral (?cube n) (\<lambda>x. if x \<in> s then f x else 0))"
-  proof (unfold Cauchy_def, safe, goals)
+  proof (unfold Cauchy_def, safe, goal_cases)
     case (1 e)
     from as(2)[OF this] guess B .. note B = conjunctD2[OF this,rule_format]
     from real_arch_simple[of B] guess N .. note N = this
@@ -8773,7 +8773,7 @@ next
       have "ball 0 B \<subseteq> ?cube n"
         apply (rule subsetI)
         unfolding mem_ball mem_box dist_norm
-      proof (rule, goals)
+      proof (rule, goal_cases)
         case (1 x i)
         then show ?case
           using Basis_le_norm[of i x] \<open>i\<in>Basis\<close>
@@ -8797,7 +8797,7 @@ next
     apply (rule_tac x=i in exI)
     apply safe
     apply (rule as(1)[unfolded integrable_on_def])
-  proof goals
+  proof goal_cases
     case (1 e)
     then have *: "e/2 > 0" by auto
     from i[OF this] guess N .. note N =this[rule_format]
@@ -8830,7 +8830,7 @@ next
           using x
           unfolding mem_box mem_ball dist_norm
           apply -
-        proof (rule, goals)
+        proof (rule, goal_cases)
           case (1 i)
           then show ?case
             using Basis_le_norm[of i x] \<open>i \<in> Basis\<close>
@@ -8870,7 +8870,7 @@ lemma integrable_straddle_interval:
   assumes "\<forall>e>0. \<exists>g  h i j. (g has_integral i) (cbox a b) \<and> (h has_integral j) (cbox a b) \<and>
     norm (i - j) < e \<and> (\<forall>x\<in>cbox a b. (g x) \<le> f x \<and> f x \<le> h x)"
   shows "f integrable_on cbox a b"
-proof (subst integrable_cauchy, safe, goals)
+proof (subst integrable_cauchy, safe, goal_cases)
   case (1 e)
   then have e: "e/3 > 0"
     by auto
@@ -8882,7 +8882,7 @@ proof (subst integrable_cauchy, safe, goals)
     apply (rule_tac x="\<lambda>x. d1 x \<inter> d2 x" in exI)
     apply (rule conjI gauge_inter d1 d2)+
     unfolding fine_inter
-  proof (safe, goals)
+  proof (safe, goal_cases)
     have **: "\<And>i j g1 g2 h1 h2 f1 f2. g1 - h2 \<le> f1 - f2 \<Longrightarrow> f1 - f2 \<le> h1 - g2 \<Longrightarrow>
       abs (i - j) < e / 3 \<Longrightarrow> abs (g2 - i) < e / 3 \<Longrightarrow>  abs (g1 - i) < e / 3 \<Longrightarrow>
       abs (h2 - j) < e / 3 \<Longrightarrow> abs (h1 - j) < e / 3 \<Longrightarrow> abs (f1 - f2) < e"
@@ -8949,7 +8949,7 @@ lemma integrable_straddle:
   shows "f integrable_on s"
 proof -
   have "\<And>a b. (\<lambda>x. if x \<in> s then f x else 0) integrable_on cbox a b"
-  proof (rule integrable_straddle_interval, safe, goals)
+  proof (rule integrable_straddle_interval, safe, goal_cases)
     case (1 a b e)
     then have *: "e/4 > 0"
       by auto
@@ -8968,7 +8968,7 @@ proof -
       apply safe
       unfolding mem_ball mem_box dist_norm
       apply (rule_tac[!] ballI)
-    proof goals
+    proof goal_cases
       case (1 x i)
       then show ?case using Basis_le_norm[of i x]
         unfolding c_def d_def by auto
@@ -9027,7 +9027,7 @@ proof -
     unfolding integrable_alt[of f]
     apply safe
     apply (rule interv)
-  proof goals
+  proof goal_cases
     case (1 e)
     then have *: "e/3 > 0"
       by auto
@@ -9132,7 +9132,7 @@ proof -
     defer
     apply assumption
     apply safe
-  proof goals
+  proof goal_cases
     case (1 x)
     then show ?case
     proof (cases "x \<in> \<Union>t")
@@ -9174,7 +9174,7 @@ proof -
     apply rule
     apply rule
     apply rule
-  proof goals
+  proof goal_cases
     case (1 s s')
     from d(4)[OF this(1)] d(4)[OF this(2)] guess a c b d by (elim exE) note obt=this
     from d(5)[OF 1] show ?case
@@ -9208,7 +9208,7 @@ lemma has_integral_combine_division_topdown:
   apply (rule has_integral_combine_division[OF assms(2)])
   apply safe
   unfolding has_integral_integral[symmetric]
-proof goals
+proof goal_cases
   case (1 k)
   from division_ofD(2,4)[OF assms(2) this]
   show ?case
@@ -9248,7 +9248,7 @@ lemma integrable_on_subdivision:
   shows "f integrable_on i"
   apply (rule integrable_combine_division assms)+
   apply safe
-proof goals
+proof goal_cases
   case 1
   note division_ofD(2,4)[OF assms(1) this]
   then show ?case
@@ -9310,7 +9310,7 @@ lemma has_integral_combine_tagged_division_topdown:
   shows "(f has_integral (setsum (\<lambda>(x,k). integral k f) p)) (cbox a b)"
   apply (rule has_integral_combine_tagged_division[OF assms(2)])
   apply safe
-proof goals
+proof goal_cases
   case 1
   note tagged_division_ofD(3-4)[OF assms(2) this]
   then show ?case
@@ -9359,7 +9359,7 @@ proof -
   have "\<forall>i\<in>r. \<exists>p. p tagged_division_of i \<and> d fine p \<and>
     norm (setsum (\<lambda>(x,j). content j *\<^sub>R f x) p - integral i f) < k / (real (card r) + 1)"
     apply safe
-  proof goals
+  proof goal_cases
     case (1 i)
     then have i: "i \<in> q"
       unfolding r_def by auto
@@ -9398,7 +9398,7 @@ proof -
     note * = tagged_partial_division_of_union_self[OF p(1)]
     have "p \<union> \<Union>(qq ` r) tagged_division_of \<Union>(snd ` p) \<union> \<Union>r"
       using r
-    proof (rule tagged_division_union[OF * tagged_division_unions], goals)
+    proof (rule tagged_division_union[OF * tagged_division_unions], goal_cases)
       case 1
       then show ?case
         using qq by auto
@@ -9534,7 +9534,7 @@ proof -
     unfolding split_def setsum_subtractf ..
   also have "\<dots> \<le> e + k"
     apply (rule *[OF **, where ir2="setsum (\<lambda>k. integral k f) r"])
-  proof goals
+  proof goal_cases
     case 2
     have *: "(\<Sum>(x, k)\<in>p. integral k f) = (\<Sum>k\<in>snd ` p. integral k f)"
       apply (subst setsum.reindex_nontrivial)
@@ -9620,7 +9620,7 @@ proof -
   show thesis
     apply (rule that)
     apply (rule d)
-  proof (safe, goals)
+  proof (safe, goal_cases)
     case (1 p)
     note * = henstock_lemma_part2[OF assms(1) * d this]
     show ?case
@@ -9776,7 +9776,7 @@ next
 
   have "(g has_integral i) (cbox a b)"
     unfolding has_integral
-  proof (safe, goals)
+  proof (safe, goal_cases)
     case e: (1 e)
     then have "\<forall>k. (\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of (cbox a b) \<and> d fine p \<longrightarrow>
       norm ((\<Sum>(x, ka)\<in>p. content ka *\<^sub>R f k x) - integral (cbox a b) (f k)) < e / 2 ^ (k + 2)))"
@@ -9803,7 +9803,7 @@ next
 
     have "\<forall>x\<in>cbox a b. \<exists>n\<ge>r. \<forall>k\<ge>n. 0 \<le> (g x)\<bullet>1 - (f k x)\<bullet>1 \<and>
       (g x)\<bullet>1 - (f k x)\<bullet>1 < e / (4 * content(cbox a b))"
-    proof (rule, goals)
+    proof (rule, goal_cases)
       case (1 x)
       have "e / (4 * content (cbox a b)) > 0"
         using \<open>e>0\<close> False content_pos_le[of a b] by auto
@@ -9835,7 +9835,7 @@ next
       then guess s .. note s=this
       have *: "\<forall>a b c d. norm(a - b) \<le> e / 4 \<and> norm(b - c) < e / 2 \<and>
         norm (c - d) < e / 4 \<longrightarrow> norm (a - d) < e"
-      proof (safe, goals)
+      proof (safe, goal_cases)
         case (1 a b c d)
         then show ?case
           using norm_triangle_lt[of "a - b" "b - c" "3* e/4"]
@@ -9846,7 +9846,7 @@ next
       show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - i) < e"
         apply (rule *[rule_format,where
           b="\<Sum>(x, k)\<in>p. content k *\<^sub>R f (m x) x" and c="\<Sum>(x, k)\<in>p. integral k (f (m x))"])
-      proof (safe, goals)
+      proof (safe, goal_cases)
         case 1
         show ?case
           apply (rule order_trans[of _ "\<Sum>(x, k)\<in>p. content k * (e / (4 * content (cbox a b)))"])
@@ -10062,7 +10062,7 @@ proof -
     have "\<And>a b. (\<lambda>x. if x \<in> s then g x else 0) integrable_on cbox a b \<and>
       ((\<lambda>k. integral (cbox a b) (\<lambda>x. if x \<in> s then f k x else 0)) --->
       integral (cbox a b) (\<lambda>x. if x \<in> s then g x else 0)) sequentially"
-    proof (rule monotone_convergence_interval, safe, goals)
+    proof (rule monotone_convergence_interval, safe, goal_cases)
       case 1
       show ?case by (rule int)
     next
@@ -10117,7 +10117,7 @@ proof -
       unfolding has_integral_alt'
       apply safe
       apply (rule g(1))
-    proof goals
+    proof goal_cases
       case (1 e)
       then have "e/4>0"
         by auto
@@ -10155,7 +10155,7 @@ proof -
           apply (rule integral_le[OF int int])
           defer
           apply (rule order_trans[OF _ i'[rule_format,of "M + N",unfolded real_inner_1_right]])
-        proof (safe, goals)
+        proof (safe, goal_cases)
           case (2 x)
           have "\<And>m. x \<in> s \<Longrightarrow> \<forall>n\<ge>m. (f m x)\<bullet>1 \<le> (f n x)\<bullet>1"
             apply (rule transitive_stepwise_le)
@@ -10200,7 +10200,7 @@ proof -
     integral s (\<lambda>x. g x - f 0 x)) sequentially"
     apply (rule lem)
     apply safe
-  proof goals
+  proof goal_cases
     case (1 k x)
     then show ?case
       using *[of x 0 "Suc k"] by auto
@@ -10538,7 +10538,7 @@ lemma absolutely_integrable_bounded_variation:
   obtains B where "\<forall>d. d division_of (\<Union>d) \<longrightarrow> setsum (\<lambda>k. norm(integral k f)) d \<le> B"
   apply (rule that[of "integral UNIV (\<lambda>x. norm (f x))"])
   apply safe
-proof goals
+proof goal_cases
   case (1 d)
   note d = division_ofD[OF 1(2)]
   have "(\<Sum>k\<in>d. norm (integral k f)) \<le> (\<Sum>i\<in>d. integral i (\<lambda>x. norm (f x)))"
@@ -10591,7 +10591,7 @@ proof -
     apply (rule absolutely_integrable_onI [OF f has_integral_integrable])
     apply (subst has_integral[of _ ?S])
     apply safe
-  proof goals
+  proof goal_cases
     case (1 e)
     then have "?S - e / 2 < ?S" by simp
     then obtain d where d: "d division_of (cbox a b)" "?S - e / 2 < (\<Sum>k\<in>d. norm (integral k f))"
@@ -10725,7 +10725,7 @@ proof -
         by (force intro!: helplemma)
 
       have p'alt: "p' = {(x,(i \<inter> l)) | x i l. (x,l) \<in> p \<and> i \<in> d \<and> i \<inter> l \<noteq> {}}"
-      proof (safe, goals)
+      proof (safe, goal_cases)
         case (2 _ _ x i l)
         have "x \<in> i"
           using fineD[OF p(3) 2(1)] k(2)[OF 2(2), of x] 2(4-)
@@ -10773,7 +10773,7 @@ proof -
         apply (rule *[rule_format,OF **])
         apply safe
         apply(rule d(2))
-      proof goals
+      proof goal_cases
         case 1
         show ?case
           by (auto simp: sum_p' division_of_tagged_division[OF p''] D intro!: cSUP_upper)
@@ -10783,7 +10783,7 @@ proof -
           (\<lambda>(k,l). k \<inter> l) ` {(k,l)|k l. k \<in> d \<and> l \<in> snd ` p}"
           by auto
         have "(\<Sum>k\<in>d. norm (integral k f)) \<le> (\<Sum>i\<in>d. \<Sum>l\<in>snd ` p. norm (integral (i \<inter> l) f))"
-        proof (rule setsum_mono, goals)
+        proof (rule setsum_mono, goal_cases)
           case k: (1 k)
           from d'(4)[OF this] guess u v by (elim exE) note uv=this
           def d' \<equiv> "{cbox u v \<inter> l |l. l \<in> snd ` p \<and>  cbox u v \<inter> l \<noteq> {}}"
@@ -10809,7 +10809,7 @@ proof -
             apply fact
             unfolding d'_def uv
             apply blast
-          proof (rule, goals)
+          proof (rule, goal_cases)
             case (1 i)
             then have "i \<in> {cbox u v \<inter> l |l. l \<in> snd ` p}"
               by auto
@@ -10824,7 +10824,7 @@ proof -
             apply (rule setsum.reindex_nontrivial [unfolded o_def])
             apply (rule finite_imageI)
             apply (rule p')
-          proof goals
+          proof goal_cases
             case (1 l y)
             have "interior (k \<inter> l) \<subseteq> interior (l \<inter> y)"
               apply (subst(2) interior_inter)
@@ -10900,7 +10900,7 @@ proof -
           apply fact
           apply (rule finite_imageI[OF p'(1)])
           apply safe
-        proof goals
+        proof goal_cases
           case (2 i ia l a b)
           then have "ia \<inter> b = {}"
             unfolding p'alt image_iff Bex_def not_ex
@@ -11011,7 +11011,7 @@ proof -
             unfolding simple_image
             apply (rule setsum.reindex_nontrivial [unfolded o_def, symmetric])
             apply (rule d')
-          proof goals
+          proof goal_cases
             case (1 k y)
             from d'(4)[OF this(1)] d'(4)[OF this(2)]
             guess u1 v1 u2 v2 by (elim exE) note uv=this
@@ -11035,7 +11035,7 @@ proof -
             apply blast
             apply safe
             apply (rule_tac x=k in exI)
-          proof goals
+          proof goal_cases
             case (1 i k)
             from d'(4)[OF this(1)] guess a b by (elim exE) note ab=this
             have "interior (k \<inter> cbox u v) \<noteq> {}"
@@ -11085,7 +11085,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
   show "((\<lambda>x. norm (f x)) has_integral ?S) UNIV"
     apply (subst has_integral_alt')
     apply safe
-  proof goals
+  proof goal_cases
     case (1 a b)
     show ?case
       using f_int[of a b] by auto
@@ -11124,7 +11124,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
         apply (rule *[rule_format])
         apply safe
         apply (rule d(2))
-      proof goals
+      proof goal_cases
         case 1
         have "(\<Sum>k\<in>d. norm (integral k f)) \<le> setsum (\<lambda>k. integral k (\<lambda>x. norm (f x))) d"
           apply (rule setsum_mono)
@@ -11251,7 +11251,7 @@ proof -
     apply (rule integrable_add)
     prefer 3
     apply safe
-  proof goals
+  proof goal_cases
     case (1 d)
     have "\<And>k. k \<in> d \<Longrightarrow> f integrable_on k \<and> g integrable_on k"
       apply (drule division_ofD(4)[OF 1])
@@ -11310,12 +11310,12 @@ proof -
     apply (rule bounded_variation_absolutely_integrable[of _ "B * b"])
     apply (rule integrable_linear[OF _ assms(2)])
     apply safe
-  proof goals
+  proof goal_cases
     case (2 d)
     have "(\<Sum>k\<in>d. norm (integral k (h \<circ> f))) \<le> setsum (\<lambda>k. norm(integral k f)) d * b"
       unfolding setsum_left_distrib
       apply (rule setsum_mono)
-    proof goals
+    proof goal_cases
       case (1 k)
       from division_ofD(4)[OF 2 this]
       guess u v by (elim exE) note uv=this
@@ -11455,7 +11455,7 @@ next
   show "f absolutely_integrable_on UNIV"
     apply (rule bounded_variation_absolutely_integrable[OF assms(1), where B="?B"])
     apply safe
-  proof goals
+  proof goal_cases
     case (1 d)
     note d=this and d'=division_ofD[OF this]
     have "(\<Sum>k\<in>d. norm (integral k f)) \<le>
@@ -11486,7 +11486,7 @@ next
     also have "\<dots> \<le> setsum (op \<bullet> (integral UNIV (\<lambda>x. (\<Sum>i\<in>Basis. \<bar>f x\<bullet>i\<bar> *\<^sub>R i)::'m))) Basis"
       apply (subst setsum.commute)
       apply (rule setsum_mono)
-    proof goals
+    proof goal_cases
       case (1 j)
       have *: "(\<lambda>x. \<Sum>i\<in>Basis. \<bar>f x\<bullet>i\<bar> *\<^sub>R i::'m) integrable_on \<Union>d"
         using integrable_on_subdivision[OF d assms(2)] by auto
@@ -11541,7 +11541,7 @@ proof -
   show "f absolutely_integrable_on UNIV"
     apply (rule bounded_variation_absolutely_integrable[OF assms(2),where B="integral UNIV g"])
     apply safe
-  proof goals
+  proof goal_cases
     case d: (1 d)
     note d'=division_ofD[OF d]
     have "(\<Sum>k\<in>d. norm (integral k f)) \<le> (\<Sum>k\<in>d. integral k g)"
@@ -11731,7 +11731,7 @@ proof -
       by (rule cInf_superset_mono) auto
     let ?S = "{f j x| j. m \<le> j}"
     show "((\<lambda>k. Inf {f j x |j. j \<in> {m..m + k}}) ---> Inf ?S) sequentially"
-    proof (rule LIMSEQ_I, goals)
+    proof (rule LIMSEQ_I, goal_cases)
       case r: (1 r)
 
       have "\<exists>y\<in>?S. y < Inf ?S + r"
@@ -11742,7 +11742,7 @@ proof -
       show ?case
         apply (rule_tac x=N in exI)
         apply safe
-      proof goals
+      proof goal_cases
         case (1 n)
         have *: "\<And>y ix. y < Inf ?S + r \<longrightarrow> Inf ?S \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - Inf ?S) < r"
           by arith
@@ -11802,7 +11802,7 @@ proof -
       by (rule cSup_subset_mono) auto
     let ?S = "{f j x| j. m \<le> j}"
     show "((\<lambda>k. Sup {f j x |j. j \<in> {m..m + k}}) ---> Sup ?S) sequentially"
-    proof (rule LIMSEQ_I, goals)
+    proof (rule LIMSEQ_I, goal_cases)
       case r: (1 r)
       have "\<exists>y\<in>?S. Sup ?S - r < y"
         by (subst less_cSup_iff[symmetric]) (auto simp: r \<open>x\<in>s\<close>)
@@ -11812,7 +11812,7 @@ proof -
       show ?case
         apply (rule_tac x=N in exI)
         apply safe
-      proof goals
+      proof goal_cases
         case (1 n)
         have *: "\<And>y ix. Sup ?S - r < y \<longrightarrow> ix \<le> Sup ?S \<longrightarrow> y \<le> ix \<longrightarrow> abs(ix - Sup ?S) < r"
           by arith
@@ -11856,7 +11856,7 @@ proof -
       by (intro cInf_superset_mono) (auto simp: \<open>x\<in>s\<close>)
 
     show "(\<lambda>k::nat. Inf {f j x |j. k \<le> j}) ----> g x"
-    proof (rule LIMSEQ_I, goals)
+    proof (rule LIMSEQ_I, goal_cases)
       case r: (1 r)
       then have "0<r/2"
         by auto
@@ -11904,7 +11904,7 @@ proof -
     show "Sup {f j x |j. k \<le> j} \<ge> Sup {f j x |j. Suc k \<le> j}"
       by (rule cSup_subset_mono) (auto simp: \<open>x\<in>s\<close>)
     show "((\<lambda>k. Sup {f j x |j. k \<le> j}) ---> g x) sequentially"
-    proof (rule LIMSEQ_I, goals)
+    proof (rule LIMSEQ_I, goal_cases)
       case r: (1 r)
       then have "0<r/2"
         by auto
@@ -11926,7 +11926,7 @@ proof -
 
   show "g integrable_on s" by fact
   show "((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
-  proof (rule LIMSEQ_I, goals)
+  proof (rule LIMSEQ_I, goal_cases)
     case r: (1 r)
     from LIMSEQ_D [OF inc2(2) r] guess N1 .. note N1=this[unfolded real_norm_def]
     from LIMSEQ_D [OF dec2(2) r] guess N2 .. note N2=this[unfolded real_norm_def]

@@ -62,7 +62,7 @@ lemma supp_PTuple [simp]: "((supp \<langle>\<langle>p, q\<rangle>\<rangle>)::nam
   by (simp add: supp_def Collect_disj_eq del: disj_not1)
 
 instance pat :: pt_name
-proof (default, goals)
+proof (default, goal_cases)
   case (1 x)
   show ?case by (induct x) simp_all
 next
@@ -74,7 +74,7 @@ next
 qed
 
 instance pat :: fs_name
-proof (default, goals)
+proof (default, goal_cases)
   case (1 x)
   show ?case by (induct x) (simp_all add: fin_supp)
 qed

@@ -479,7 +479,7 @@ lemma eq_set_code [code]:
   and "eq_set (set ys) (List.coset xs) \<longleftrightarrow> rhs"
   and "eq_set (set xs) (set ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)"
   and "eq_set (List.coset xs) (List.coset ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)"
-proof goals
+proof goal_cases
   {
     case 1
     show ?case (is "?lhs \<longleftrightarrow> ?rhs")

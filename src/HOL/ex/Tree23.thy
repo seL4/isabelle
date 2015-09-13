@@ -377,7 +377,7 @@ proof -
      done
   } note B = this
   show "full (Suc n) t \<Longrightarrow> dfull n (del k t)"
-  proof (induct k t arbitrary: n rule: del.induct, goals)
+  proof (induct k t arbitrary: n rule: del.induct, goal_cases)
     case (1 k n)
     thus "dfull n (del (Some k) Empty)" by simp
   next

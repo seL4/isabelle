@@ -333,7 +333,7 @@ function plus_ereal where
 | "ereal r + -\<infinity> = - \<infinity>"
 | "-\<infinity> + ereal p = -(\<infinity>::ereal)"
 | "-\<infinity> + -\<infinity> = -(\<infinity>::ereal)"
-proof goals
+proof goal_cases
   case prems: (1 P x)
   then obtain a b where "x = (a, b)"
     by (cases x) auto
@@ -437,7 +437,7 @@ where
 | "ereal x    < \<infinity>           \<longleftrightarrow> True"
 | "        -\<infinity> < ereal r     \<longleftrightarrow> True"
 | "        -\<infinity> < (\<infinity>::ereal) \<longleftrightarrow> True"
-proof goals
+proof goal_cases
   case prems: (1 P x)
   then obtain a b where "x = (a,b)" by (cases x) auto
   with prems show P by (cases rule: ereal2_cases[of a b]) auto
@@ -860,7 +860,7 @@ function times_ereal where
 | "-(\<infinity>::ereal) * \<infinity> = -\<infinity>"
 | "(\<infinity>::ereal) * -\<infinity> = -\<infinity>"
 | "-(\<infinity>::ereal) * -\<infinity> = \<infinity>"
-proof goals
+proof goal_cases
   case prems: (1 P x)
   then obtain a b where "x = (a, b)"
     by (cases x) auto

@@ -193,7 +193,7 @@ lemma PiM_cong:
   assumes "I = J" "\<And>x. x \<in> I \<Longrightarrow> M x = N x"
   shows "PiM I M = PiM J N"
   unfolding PiM_def
-proof (rule extend_measure_cong, goals)
+proof (rule extend_measure_cong, goal_cases)
   case 1
   show ?case using assms
     by (subst assms(1), intro PiE_cong[of J "\<lambda>i. space (M i)" "\<lambda>i. space (N i)"]) simp_all

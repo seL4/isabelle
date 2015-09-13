@@ -116,13 +116,13 @@ refinements, to avoid proof scripts degenerating into long of 'apply'
 sequences. Further explanations and examples are given in the isar-ref
 manual.
 
-* Proof method "goals" turns the current subgoals into cases within the
-context; the conclusion is bound to variable ?case in each case.
-For example:
+* Proof method "goal_cases" turns the current subgoals into cases within
+the context; the conclusion is bound to variable ?case in each case. For
+example:
 
 lemma "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
   and "\<And>y z. U y \<Longrightarrow> V z \<Longrightarrow> W y z"
-proof goals
+proof goal_cases
   case (1 x)
   then show ?case using \<open>A x\<close> \<open>B x\<close> sorry
 next
@@ -132,7 +132,7 @@ qed
 
 lemma "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
   and "\<And>y z. U y \<Longrightarrow> V z \<Longrightarrow> W y z"
-proof goals
+proof goal_cases
   case prems: 1
   then show ?case using prems sorry
 next

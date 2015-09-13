@@ -122,7 +122,7 @@ lemma mark_out_aux_simps [simp, code]:
   "mark_out_aux n m [] = []"
   "mark_out_aux n 0 (b # bs) = False # mark_out_aux n n bs"
   "mark_out_aux n (Suc m) (b # bs) = b # mark_out_aux n m bs"
-proof goals
+proof goal_cases
   case 1
   show ?case
     by (simp add: mark_out_aux_def)

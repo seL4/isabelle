@@ -175,7 +175,7 @@ proof (rule ccontr)
   qed
   have 3: "(negatex \<circ> sqprojection \<circ> ?F) ` cbox (-1) 1 \<subseteq> cbox (-1) 1"
     unfolding subset_eq
-  proof (rule, goals)
+  proof (rule, goal_cases)
     case (1 x)
     then obtain y :: "real^2" where y:
         "y \<in> cbox (- 1) 1"
@@ -834,7 +834,7 @@ proof -
       z \<in> closed_segment (pathfinish g) (vector [pathfinish g $ 1, a $ 2 - 1])) \<or>
       z \<in> closed_segment (vector [pathfinish g $ 1, a $ 2 - 1]) (vector [b $ 1 + 1, a $ 2 - 1])) \<or>
       z \<in> closed_segment (vector [b $ 1 + 1, a $ 2 - 1]) (vector [b $ 1 + 1, b $ 2 + 3]) \<Longrightarrow> False"
-    proof (simp only: segment_vertical segment_horizontal vector_2, goals)
+    proof (simp only: segment_vertical segment_horizontal vector_2, goal_cases)
       case as: 1
       have "pathfinish f \<in> cbox a b"
         using assms(3) pathfinish_in_path_image[of f] by auto 
