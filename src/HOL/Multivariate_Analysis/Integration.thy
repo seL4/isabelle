@@ -2393,16 +2393,16 @@ proof -
     (f has_integral y) (cbox a b) \<Longrightarrow> ((h o f) has_integral h y) (cbox a b)"
     unfolding has_integral
   proof (clarify, goal_cases)
-    case (1 f y a b e)
+    case prems: (1 f y a b e)
     from pos_bounded
     obtain B where B: "0 < B" "\<And>x. norm (h x) \<le> norm x * B"
       by blast
-    have "e / B > 0" using 1(2) B by simp
+    have "e / B > 0" using prems(2) B by simp
     then obtain g
       where g: "gauge g"
                "\<And>p. p tagged_division_of (cbox a b) \<Longrightarrow> g fine p \<Longrightarrow>
                     norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - y) < e / B"
-        using 1(1) by auto
+        using prems(1) by auto
     {
       fix p
       assume as: "p tagged_division_of (cbox a b)" "g fine p"
@@ -2442,11 +2442,11 @@ proof -
     show "\<exists>B>0. \<forall>a b. ball 0 B \<subseteq> cbox a b \<longrightarrow>
       (\<exists>z. ((\<lambda>x. if x \<in> s then (h \<circ> f) x else 0) has_integral z) (cbox a b) \<and> norm (z - h y) < e)"
     proof (rule_tac x=M in exI, clarsimp simp add: M, goal_cases)
-      case (1 a b)
+      case prems: (1 a b)
       obtain z where z:
         "((\<lambda>x. if x \<in> s then f x else 0) has_integral z) (cbox a b)"
         "norm (z - y) < e / B"
-        using M(2)[OF 1(1)] by blast
+        using M(2)[OF prems(1)] by blast
       have *: "(\<lambda>x. if x \<in> s then (h \<circ> f) x else 0) = h \<circ> (\<lambda>x. if x \<in> s then f x else 0)"
         using zero by auto
       show ?case
@@ -4824,7 +4824,7 @@ proof (clarify, goal_cases)
         done
       also have "\<dots> < e"
       proof (subst setsum_over_tagged_division_lemma[OF p[THEN conjunct1]], goal_cases)
-        case (1 u v)
+        case prems: (1 u v)
         have "content (cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<le> content (cbox u v)"
           unfolding interval_doublesplit[OF k]
           apply (rule content_subset)
@@ -4832,8 +4832,7 @@ proof (clarify, goal_cases)
           apply auto
           done
         then show ?case
-          unfolding 1
-          unfolding interval_doublesplit[OF k]
+          unfolding prems interval_doublesplit[OF k]
           by (blast intro: antisym)
       next
         have *: "setsum content {l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} |l. l \<in> snd ` p \<and> l \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {}} \<ge> 0"
@@ -5113,7 +5112,7 @@ next
   show "(f has_integral 0) (cbox a b)"
     unfolding has_integral
   proof (safe, goal_cases)
-    case (1 e)
+    case prems: (1 e)
     then have "\<And>n. e / 2 / ((real n+1) * (2 ^ n)) > 0"
       apply -
       apply (rule divide_pos_pos)
@@ -5136,7 +5135,7 @@ next
         presume "p \<noteq> {} \<Longrightarrow> ?goal"
         then show ?goal
           apply (cases "p = {}")
-          using 1
+          using prems
           apply auto
           done
       }
@@ -5254,7 +5253,7 @@ next
         apply (rule mult_strict_left_mono)
         unfolding power_inverse [symmetric] lessThan_Suc_atMost[symmetric]
         apply (subst geometric_sum)
-        using 1
+        using prems
         apply auto
         done
       finally show "?goal" by auto
@@ -6432,7 +6431,7 @@ proof -
   show "\<exists>d>0. \<forall>y\<in>{a .. b}. norm (y - x) < d \<longrightarrow>
     norm (?I a y - ?I a x - (y - x) *\<^sub>R f x) \<le> e * norm (y - x)"
   proof (rule, rule, rule d, safe, goal_cases)
-    case (1 y)
+    case prems: (1 y)
     show ?case
     proof (cases "y < x")
       case False
@@ -6440,7 +6439,7 @@ proof -
         apply (rule integrable_subinterval_real,rule integrable_continuous_real)
         apply (rule assms)
         unfolding not_less
-        using assms(2) 1
+        using assms(2) prems
         apply auto
         done
       then have *: "?I a y - ?I a x = ?I x y"
@@ -6449,7 +6448,7 @@ proof -
         apply (rule integral_combine)
         using False
         unfolding not_less
-        using assms(2) 1
+        using assms(2) prems
         apply auto
         done
       have **: "norm (y - x) = content {x .. y}"
@@ -6466,7 +6465,7 @@ proof -
         apply (rule assms)+
       proof -
         show "{x .. y} \<subseteq> {a .. b}"
-          using 1 assms(2) by auto
+          using prems assms(2) by auto
         have *: "y - x = norm (y - x)"
           using False by auto
         show "((\<lambda>xa. f x) has_integral (y - x) *\<^sub>R f x) {x .. y}"
@@ -6478,7 +6477,7 @@ proof -
           apply (rule less_imp_le)
           apply (rule d(2)[unfolded dist_norm])
           using assms(2)
-          using 1
+          using prems
           apply auto
           done
       qed (insert e, auto)
@@ -6489,14 +6488,14 @@ proof -
         unfolding box_real
         apply (rule assms)+
         unfolding not_less
-        using assms(2) 1
+        using assms(2) prems
         apply auto
         done
       then have *: "?I a x - ?I a y = ?I y x"
         unfolding algebra_simps
         apply (subst eq_commute)
         apply (rule integral_combine)
-        using True using assms(2) 1
+        using True using assms(2) prems
         apply auto
         done
       have **: "norm (y - x) = content {y .. x}"
@@ -6522,7 +6521,7 @@ proof -
         apply (rule assms)+
       proof -
         show "{y .. x} \<subseteq> {a .. b}"
-          using 1 assms(2) by auto
+          using prems assms(2) by auto
         have *: "x - y = norm (y - x)"
           using True by auto
         show "((\<lambda>xa. f x) has_integral (x - y) *\<^sub>R f x) {y .. x}"
@@ -6535,7 +6534,7 @@ proof -
           apply (rule less_imp_le)
           apply (rule d(2)[unfolded dist_norm])
           using assms(2)
-          using 1
+          using prems
           apply auto
           done
       qed (insert e, auto)
@@ -6566,16 +6565,16 @@ proof -
     apply (rule that[of g])
     apply safe
   proof goal_cases
-    case (1 u v)
+    case prems: (1 u v)
     have "\<forall>x\<in>cbox u v. (g has_vector_derivative f x) (at x within cbox u v)"
       apply rule
       apply (rule has_vector_derivative_within_subset)
       apply (rule g[rule_format])
-      using 1(1-2)
+      using prems(1,2)
       apply auto
       done
     then show ?case
-      using fundamental_theorem_of_calculus[OF 1(3), of g f] by auto
+      using fundamental_theorem_of_calculus[OF prems(3), of g f] by auto
   qed
 qed
 
@@ -6599,9 +6598,9 @@ proof -
     apply (rule *)
     apply assumption
   proof goal_cases
-    case 1
+    case prems: 1
     then show ?thesis
-      unfolding 1 assms(8)[unfolded 1 has_integral_empty_eq] by auto
+      unfolding prems assms(8)[unfolded prems has_integral_empty_eq] by auto
   qed
   assume "cbox a b \<noteq> {}"
   from assms(6)[rule_format,of a b] guess w z by (elim exE) note wz=this
@@ -7273,7 +7272,6 @@ proof -
         defer
         unfolding setsum.union_disjoint[OF pA(2-),symmetric] pA(1)[symmetric]
         unfolding setsum_right_distrib[symmetric]
-        thm additive_tagged_division_1
         apply (subst additive_tagged_division_1[OF _ as(1)])
         apply (rule assms)
       proof -
@@ -7451,14 +7449,14 @@ proof -
               unfolding mem_Collect_eq
               unfolding split_paired_all fst_conv snd_conv
             proof (safe, goal_cases)
-              case 1
-              guess v using pa[OF 1(1)] .. note v = conjunctD2[OF this]
+              case prems: 1
+              guess v using pa[OF prems(1)] .. note v = conjunctD2[OF this]
               have "?a \<in> {?a..v}"
                 using v(2) by auto
               then have "v \<le> ?b"
-                using p(3)[OF 1(1)] unfolding subset_eq v by auto
+                using p(3)[OF prems(1)] unfolding subset_eq v by auto
               moreover have "{?a..v} \<subseteq> ball ?a da"
-                using fineD[OF as(2) 1(1)]
+                using fineD[OF as(2) prems(1)]
                 apply -
                 apply (subst(asm) if_P)
                 apply (rule refl)
@@ -7471,7 +7469,7 @@ proof -
                 unfolding v interval_bounds_real[OF v(2)] box_real
                 apply -
                 apply(rule da(2)[of "v"])
-                using 1 fineD[OF as(2) 1(1)]
+                using prems fineD[OF as(2) prems(1)]
                 unfolding v content_eq_0
                 apply auto
                 done
@@ -7483,14 +7481,14 @@ proof -
               unfolding mem_Collect_eq
               unfolding split_paired_all fst_conv snd_conv
             proof (safe, goal_cases)
-              case 1
-              guess v using pb[OF 1(1)] .. note v = conjunctD2[OF this]
+              case prems: 1
+              guess v using pb[OF prems(1)] .. note v = conjunctD2[OF this]
               have "?b \<in> {v.. ?b}"
                 using v(2) by auto
-              then have "v \<ge> ?a" using p(3)[OF 1(1)]
+              then have "v \<ge> ?a" using p(3)[OF prems(1)]
                 unfolding subset_eq v by auto
               moreover have "{v..?b} \<subseteq> ball ?b db"
-                using fineD[OF as(2) 1(1)]
+                using fineD[OF as(2) prems(1)]
                 apply -
                 apply (subst(asm) if_P, rule refl)
                 unfolding subset_eq
@@ -7504,7 +7502,7 @@ proof -
                 unfolding interval_bounds_real[OF v(2)] box_real
                 apply -
                 apply(rule db(2)[of "v"])
-                using 1 fineD[OF as(2) 1(1)]
+                using prems fineD[OF as(2) prems(1)]
                 unfolding v content_eq_0
                 apply auto
                 done
@@ -7699,8 +7697,8 @@ proof -
     note p'=tagged_division_ofD[OF this(1)]
     have pt: "\<forall>(x,k)\<in>p. x \<le> t"
     proof (safe, goal_cases)
-      case 1
-      from p'(2,3)[OF this] show ?case
+      case prems: 1
+      from p'(2,3)[OF prems] show ?case
         by auto
     qed
     with p(2) have "d2 fine p"
@@ -7754,8 +7752,8 @@ proof -
         by auto
       have "(c, cbox t c) \<notin> p"
       proof (safe, goal_cases)
-        case 1
-        from p'(2-3)[OF this] have "c \<in> cbox a t"
+        case prems: 1
+        from p'(2-3)[OF prems] have "c \<in> cbox a t"
           by auto
         then show False using \<open>t < c\<close>
           by auto
@@ -8144,13 +8142,13 @@ proof -
       apply (rule *)
       apply assumption
     proof goal_cases
-      case 1
+      case prems: 1
       then have *: "box c d = {}"
         by (metis bot.extremum_uniqueI box_subset_cbox)
       show ?thesis
         using assms(1)
         unfolding *
-        using 1
+        using prems
         by auto
     qed
   }
@@ -8347,7 +8345,7 @@ proof -
     have "ball 0 C \<subseteq> cbox c d"
       apply (rule subsetI)
       unfolding mem_box mem_ball dist_norm
-    proof (rule, goal_cases)
+    proof
       fix x i :: 'n
       assume x: "norm (0 - x) < C" and i: "i \<in> Basis"
       show "c \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> d \<bullet> i"
@@ -8750,10 +8748,10 @@ proof
       apply (rule B)
       apply safe
     proof goal_cases
-      case (1 a b c d)
+      case prems: (1 a b c d)
       show ?case
         apply (rule norm_triangle_half_l)
-        using B(2)[OF 1(1)] B(2)[OF 1(2)]
+        using B(2)[OF prems(1)] B(2)[OF prems(2)]
         apply auto
         done
     qed
@@ -8887,8 +8885,8 @@ proof (subst integrable_cauchy, safe, goal_cases)
       abs (i - j) < e / 3 \<Longrightarrow> abs (g2 - i) < e / 3 \<Longrightarrow>  abs (g1 - i) < e / 3 \<Longrightarrow>
       abs (h2 - j) < e / 3 \<Longrightarrow> abs (h1 - j) < e / 3 \<Longrightarrow> abs (f1 - f2) < e"
     using \<open>e > 0\<close> by arith
-    case (1 p1 p2)
-    note tagged_division_ofD(2-4) note * = this[OF 1(1)] this[OF 1(4)]
+    case prems: (1 p1 p2)
+    note tagged_division_ofD(2-4) note * = this[OF prems(1)] this[OF prems(4)]
 
     have "(\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p1. content k *\<^sub>R g x) \<ge> 0"
       and "0 \<le> (\<Sum>(x, k)\<in>p2. content k *\<^sub>R h x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)"
@@ -8933,10 +8931,10 @@ proof (subst integrable_cauchy, safe, goal_cases)
       defer
       unfolding real_norm_def[symmetric]
       apply (rule obt(3))
-      apply (rule d1(2)[OF conjI[OF 1(4,5)]])
-      apply (rule d1(2)[OF conjI[OF 1(1,2)]])
-      apply (rule d2(2)[OF conjI[OF 1(4,6)]])
-      apply (rule d2(2)[OF conjI[OF 1(1,3)]])
+      apply (rule d1(2)[OF conjI[OF prems(4,5)]])
+      apply (rule d1(2)[OF conjI[OF prems(1,2)]])
+      apply (rule d2(2)[OF conjI[OF prems(4,6)]])
+      apply (rule d2(2)[OF conjI[OF prems(1,3)]])
       apply auto
       done
   qed
@@ -9133,13 +9131,13 @@ proof -
     apply assumption
     apply safe
   proof goal_cases
-    case (1 x)
+    case prems: (1 x)
     then show ?case
     proof (cases "x \<in> \<Union>t")
       case True
       then guess s unfolding Union_iff .. note s=this
       then have *: "\<forall>b\<in>t. x \<in> b \<longleftrightarrow> b = s"
-        using 1(3) by blast
+        using prems(3) by blast
       show ?thesis
         unfolding if_P[OF True]
         apply (rule trans)
@@ -9175,9 +9173,9 @@ proof -
     apply rule
     apply rule
   proof goal_cases
-    case (1 s s')
+    case prems: (1 s s')
     from d(4)[OF this(1)] d(4)[OF this(2)] guess a c b d by (elim exE) note obt=this
-    from d(5)[OF 1] show ?case
+    from d(5)[OF prems] show ?case
       unfolding obt interior_cbox
       apply -
       apply (rule negligible_subset[of "(cbox a b-box a b) \<union> (cbox c d-box c d)"])
@@ -9535,6 +9533,22 @@ proof -
   also have "\<dots> \<le> e + k"
     apply (rule *[OF **, where ir2="setsum (\<lambda>k. integral k f) r"])
   proof goal_cases
+    case 1
+    have *: "k * real (card r) / (1 + real (card r)) < k"
+      using k by (auto simp add: field_simps)
+    show ?case
+      apply (rule le_less_trans[of _ "setsum (\<lambda>x. k / (real (card r) + 1)) r"])
+      unfolding setsum_subtractf[symmetric]
+      apply (rule setsum_norm_le)
+      apply rule
+      apply (drule qq)
+      defer
+      unfolding divide_inverse setsum_left_distrib[symmetric]
+      unfolding divide_inverse[symmetric]
+      using *
+      apply (auto simp add: field_simps real_eq_of_nat)
+      done
+  next
     case 2
     have *: "(\<Sum>(x, k)\<in>p. integral k f) = (\<Sum>k\<in>snd ` p. integral k f)"
       apply (subst setsum.reindex_nontrivial)
@@ -9559,22 +9573,6 @@ proof -
       unfolding integral_combine_division_topdown[OF assms(1) q(2)] * r_def
       using ** q'(1) p'(1) setsum.union_disjoint [of "snd ` p" "q - snd ` p" "\<lambda>k. integral k f", symmetric]
         by simp
-  next
-    case 1
-    have *: "k * real (card r) / (1 + real (card r)) < k"
-      using k by (auto simp add: field_simps)
-    show ?case
-      apply (rule le_less_trans[of _ "setsum (\<lambda>x. k / (real (card r) + 1)) r"])
-      unfolding setsum_subtractf[symmetric]
-      apply (rule setsum_norm_le)
-      apply rule
-      apply (drule qq)
-      defer
-      unfolding divide_inverse setsum_left_distrib[symmetric]
-      unfolding divide_inverse[symmetric]
-      using *
-      apply (auto simp add: field_simps real_eq_of_nat)
-      done
   qed
   finally show "?x \<le> e + k" .
 qed
@@ -9804,17 +9802,17 @@ next
     have "\<forall>x\<in>cbox a b. \<exists>n\<ge>r. \<forall>k\<ge>n. 0 \<le> (g x)\<bullet>1 - (f k x)\<bullet>1 \<and>
       (g x)\<bullet>1 - (f k x)\<bullet>1 < e / (4 * content(cbox a b))"
     proof (rule, goal_cases)
-      case (1 x)
+      case prems: (1 x)
       have "e / (4 * content (cbox a b)) > 0"
         using \<open>e>0\<close> False content_pos_le[of a b] by auto
-      from assms(3)[rule_format, OF 1, THEN LIMSEQ_D, OF this]
+      from assms(3)[rule_format, OF prems, THEN LIMSEQ_D, OF this]
       guess n .. note n=this
       then show ?case
         apply (rule_tac x="n + r" in exI)
         apply safe
         apply (erule_tac[2-3] x=k in allE)
         unfolding dist_real_def
-        using fg[rule_format,OF 1]
+        using fg[rule_format, OF prems]
         apply (auto simp add: field_simps)
         done
     qed
@@ -10539,8 +10537,8 @@ lemma absolutely_integrable_bounded_variation:
   apply (rule that[of "integral UNIV (\<lambda>x. norm (f x))"])
   apply safe
 proof goal_cases
-  case (1 d)
-  note d = division_ofD[OF 1(2)]
+  case prems: (1 d)
+  note d = division_ofD[OF prems(2)]
   have "(\<Sum>k\<in>d. norm (integral k f)) \<le> (\<Sum>i\<in>d. integral i (\<lambda>x. norm (f x)))"
     apply (rule setsum_mono,rule absolutely_integrable_le)
     apply (drule d(4))
@@ -10549,14 +10547,14 @@ proof goal_cases
     apply auto
     done
   also have "\<dots> \<le> integral (\<Union>d) (\<lambda>x. norm (f x))"
-    apply (subst integral_combine_division_topdown[OF _ 1(2)])
-    using integrable_on_subdivision[OF 1(2)]
+    apply (subst integral_combine_division_topdown[OF _ prems(2)])
+    using integrable_on_subdivision[OF prems(2)]
     using assms
     apply auto
     done
   also have "\<dots> \<le> integral UNIV (\<lambda>x. norm (f x))"
     apply (rule integral_subset_le)
-    using integrable_on_subdivision[OF 1(2)]
+    using integrable_on_subdivision[OF prems(2)]
     using assms
     apply auto
     done
@@ -10592,7 +10590,7 @@ proof -
     apply (subst has_integral[of _ ?S])
     apply safe
   proof goal_cases
-    case (1 e)
+    case e: (1 e)
     then have "?S - e / 2 < ?S" by simp
     then obtain d where d: "d division_of (cbox a b)" "?S - e / 2 < (\<Sum>k\<in>d. norm (integral k f))"
       unfolding less_cSUP_iff[OF D] by auto
@@ -10614,7 +10612,7 @@ proof -
     from choice[OF this] guess k .. note k=conjunctD2[OF this[rule_format],rule_format]
 
     have "e/2 > 0"
-      using 1 by auto
+      using e by auto
     from henstock_lemma[OF assms(1) this] guess g . note g=this[rule_format]
     let ?g = "\<lambda>x. g x \<inter> ball x (k x)"
     show ?case
@@ -10726,22 +10724,22 @@ proof -
 
       have p'alt: "p' = {(x,(i \<inter> l)) | x i l. (x,l) \<in> p \<and> i \<in> d \<and> i \<inter> l \<noteq> {}}"
       proof (safe, goal_cases)
-        case (2 _ _ x i l)
+        case prems: (2 _ _ x i l)
         have "x \<in> i"
-          using fineD[OF p(3) 2(1)] k(2)[OF 2(2), of x] 2(4-)
+          using fineD[OF p(3) prems(1)] k(2)[OF prems(2), of x] prems(4-)
           by auto
         then have "(x, i \<inter> l) \<in> p'"
           unfolding p'_def
-          using 2
+          using prems
           apply safe
           apply (rule_tac x=x in exI)
           apply (rule_tac x="i \<inter> l" in exI)
           apply safe
-          using 2
+          using prems
           apply auto
           done
         then show ?case
-          using 2(3) by auto
+          using prems(3) by auto
       next
         fix x k
         assume "(x, k) \<in> p'"
@@ -10810,12 +10808,12 @@ proof -
             unfolding d'_def uv
             apply blast
           proof (rule, goal_cases)
-            case (1 i)
+            case prems: (1 i)
             then have "i \<in> {cbox u v \<inter> l |l. l \<in> snd ` p}"
               by auto
             from this[unfolded mem_Collect_eq] guess l .. note l=this
             then have "cbox u v \<inter> l = {}"
-              using 1 by auto
+              using prems by auto
             then show ?case
               using l by auto
           qed
@@ -10825,17 +10823,17 @@ proof -
             apply (rule finite_imageI)
             apply (rule p')
           proof goal_cases
-            case (1 l y)
+            case prems: (1 l y)
             have "interior (k \<inter> l) \<subseteq> interior (l \<inter> y)"
               apply (subst(2) interior_inter)
               apply (rule Int_greatest)
               defer
-              apply (subst 1(4))
+              apply (subst prems(4))
               apply auto
               done
             then have *: "interior (k \<inter> l) = {}"
-              using snd_p(5)[OF 1(1-3)] by auto
-            from d'(4)[OF k] snd_p(4)[OF 1(1)] guess u1 v1 u2 v2 by (elim exE) note uv=this
+              using snd_p(5)[OF prems(1-3)] by auto
+            from d'(4)[OF k] snd_p(4)[OF prems(1)] guess u1 v1 u2 v2 by (elim exE) note uv=this
             show ?case
               using *
               unfolding uv inter_interval content_eq_0_interior[symmetric]
@@ -11012,18 +11010,18 @@ proof -
             apply (rule setsum.reindex_nontrivial [unfolded o_def, symmetric])
             apply (rule d')
           proof goal_cases
-            case (1 k y)
+            case prems: (1 k y)
             from d'(4)[OF this(1)] d'(4)[OF this(2)]
             guess u1 v1 u2 v2 by (elim exE) note uv=this
             have "{} = interior ((k \<inter> y) \<inter> cbox u v)"
               apply (subst interior_inter)
-              using d'(5)[OF 1(1-3)]
+              using d'(5)[OF prems(1-3)]
               apply auto
               done
             also have "\<dots> = interior (y \<inter> (k \<inter> cbox u v))"
               by auto
             also have "\<dots> = interior (k \<inter> cbox u v)"
-              unfolding 1(4) by auto
+              unfolding prems(4) by auto
             finally show ?case
               unfolding uv inter_interval content_eq_0_interior ..
           qed
@@ -11036,14 +11034,14 @@ proof -
             apply safe
             apply (rule_tac x=k in exI)
           proof goal_cases
-            case (1 i k)
+            case prems: (1 i k)
             from d'(4)[OF this(1)] guess a b by (elim exE) note ab=this
             have "interior (k \<inter> cbox u v) \<noteq> {}"
-              using 1(2)
+              using prems(2)
               unfolding ab inter_interval content_eq_0_interior
               by auto
             then show ?case
-              using 1(1)
+              using prems(1)
               using interior_subset[of "k \<inter> cbox u v"]
               by auto
           qed
@@ -11090,14 +11088,14 @@ proof (rule absolutely_integrable_onI, fact, rule)
     show ?case
       using f_int[of a b] by auto
   next
-    case (2 e)
+    case prems: (2 e)
     have "\<exists>y\<in>setsum (\<lambda>k. norm (integral k f)) ` {d. d division_of \<Union>d}. \<not> y \<le> ?S - e"
     proof (rule ccontr)
       assume "\<not> ?thesis"
       then have "?S \<le> ?S - e"
         by (intro cSUP_least[OF D(1)]) auto
       then show False
-        using 2 by auto
+        using prems by auto
     qed
     then obtain K where *: "\<exists>x\<in>{d. d division_of \<Union>d}. K = (\<Sum>k\<in>x. norm (integral k f))"
       "SUPREMUM {d. d division_of \<Union>d} (setsum (\<lambda>k. norm (integral k f))) - e < K"
@@ -11252,9 +11250,9 @@ proof -
     prefer 3
     apply safe
   proof goal_cases
-    case (1 d)
+    case prems: (1 d)
     have "\<And>k. k \<in> d \<Longrightarrow> f integrable_on k \<and> g integrable_on k"
-      apply (drule division_ofD(4)[OF 1])
+      apply (drule division_ofD(4)[OF prems])
       apply safe
       apply (rule_tac[!] integrable_on_subcbox[of _ UNIV])
       using assms
@@ -11271,7 +11269,7 @@ proof -
       apply auto
       done
     also have "\<dots> \<le> B1 + B2"
-      using B(1)[OF 1] B(2)[OF 1] by auto
+      using B(1)[OF prems] B(2)[OF prems] by auto
     finally show ?case .
   qed (insert assms, auto)
 qed
@@ -11311,13 +11309,13 @@ proof -
     apply (rule integrable_linear[OF _ assms(2)])
     apply safe
   proof goal_cases
-    case (2 d)
+    case prems: (2 d)
     have "(\<Sum>k\<in>d. norm (integral k (h \<circ> f))) \<le> setsum (\<lambda>k. norm(integral k f)) d * b"
       unfolding setsum_left_distrib
       apply (rule setsum_mono)
     proof goal_cases
       case (1 k)
-      from division_ofD(4)[OF 2 this]
+      from division_ofD(4)[OF prems this]
       guess u v by (elim exE) note uv=this
       have *: "f integrable_on k"
         unfolding uv
@@ -11333,7 +11331,7 @@ proof -
     qed
     also have "\<dots> \<le> B * b"
       apply (rule mult_right_mono)
-      using B 2 b
+      using B prems b
       apply auto
       done
     finally show ?case .
@@ -11456,8 +11454,8 @@ next
     apply (rule bounded_variation_absolutely_integrable[OF assms(1), where B="?B"])
     apply safe
   proof goal_cases
-    case (1 d)
-    note d=this and d'=division_ofD[OF this]
+    case d: (1 d)
+    note d'=division_ofD[OF d]
     have "(\<Sum>k\<in>d. norm (integral k f)) \<le>
       (\<Sum>k\<in>d. setsum (op \<bullet> (integral k (\<lambda>x. (\<Sum>i\<in>Basis. \<bar>f x\<bullet>i\<bar> *\<^sub>R i)::'m))) Basis)"
       apply (rule setsum_mono)
@@ -11743,7 +11741,7 @@ proof -
         apply (rule_tac x=N in exI)
         apply safe
       proof goal_cases
-        case (1 n)
+        case prems: (1 n)
         have *: "\<And>y ix. y < Inf ?S + r \<longrightarrow> Inf ?S \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - Inf ?S) < r"
           by arith
         show ?case
@@ -11751,7 +11749,7 @@ proof -
             apply (rule *[rule_format, OF N(1)])
             apply (rule cInf_superset_mono, auto simp: \<open>x\<in>s\<close>) []
             apply (rule cInf_lower)
-            using N 1
+            using N prems
             apply auto []
             apply simp
             done
@@ -11813,7 +11811,7 @@ proof -
         apply (rule_tac x=N in exI)
         apply safe
       proof goal_cases
-        case (1 n)
+        case prems: (1 n)
         have *: "\<And>y ix. Sup ?S - r < y \<longrightarrow> ix \<le> Sup ?S \<longrightarrow> y \<le> ix \<longrightarrow> abs(ix - Sup ?S) < r"
           by arith
         show ?case
@@ -11821,7 +11819,7 @@ proof -
           apply (rule *[rule_format, OF N(1)])
           apply (rule cSup_subset_mono, auto simp: \<open>x\<in>s\<close>) []
           apply (subst cSup_upper)
-          using N 1
+          using N prems
           apply auto
           done
       qed

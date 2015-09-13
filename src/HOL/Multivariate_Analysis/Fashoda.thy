@@ -835,13 +835,13 @@ proof -
       z \<in> closed_segment (vector [pathfinish g $ 1, a $ 2 - 1]) (vector [b $ 1 + 1, a $ 2 - 1])) \<or>
       z \<in> closed_segment (vector [b $ 1 + 1, a $ 2 - 1]) (vector [b $ 1 + 1, b $ 2 + 3]) \<Longrightarrow> False"
     proof (simp only: segment_vertical segment_horizontal vector_2, goal_cases)
-      case as: 1
+      case prems: 1
       have "pathfinish f \<in> cbox a b"
         using assms(3) pathfinish_in_path_image[of f] by auto 
       then have "1 + b $ 1 \<le> pathfinish f $ 1 \<Longrightarrow> False"
         unfolding mem_interval_cart forall_2 by auto
       then have "z$1 \<noteq> pathfinish f$1"
-        using as(2)
+        using prems(2)
         using assms ab
         by (auto simp add: field_simps)
       moreover have "pathstart f \<in> cbox a b"
@@ -851,13 +851,13 @@ proof -
         unfolding mem_interval_cart forall_2
         by auto
       then have "z$1 \<noteq> pathstart f$1"
-        using as(2) using assms ab
+        using prems(2) using assms ab
         by (auto simp add: field_simps)
       ultimately have *: "z$2 = a$2 - 2"
-        using as(1)
+        using prems(1)
         by auto
       have "z$1 \<noteq> pathfinish g$1"
-        using as(2)
+        using prems(2)
         using assms ab
         by (auto simp add: field_simps *)
       moreover have "pathstart g \<in> cbox a b"
@@ -865,11 +865,11 @@ proof -
         by auto 
       note this[unfolded mem_interval_cart forall_2]
       then have "z$1 \<noteq> pathstart g$1"
-        using as(1)
+        using prems(1)
         using assms ab
         by (auto simp add: field_simps *)
       ultimately have "a $ 2 - 1 \<le> z $ 2 \<and> z $ 2 \<le> b $ 2 + 3 \<or> b $ 2 + 3 \<le> z $ 2 \<and> z $ 2 \<le> a $ 2 - 1"
-        using as(2)
+        using prems(2)
         unfolding * assms
         by (auto simp add: field_simps)
       then show False
