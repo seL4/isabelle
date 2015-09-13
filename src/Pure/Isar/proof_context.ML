@@ -1249,7 +1249,7 @@ fun check_case ctxt internal (name, pos) param_specs =
     val _ =
       if legacy then
         legacy_feature ("Bad case " ^ quote name ^ Position.here pos ^
-          " -- use proof method \"goals\" instead")
+          " -- use proof method \"goal_cases\" instead")
       else ();
 
     val _ = List.app (fn NONE => () | SOME b => ignore (check_var internal b)) param_specs;
