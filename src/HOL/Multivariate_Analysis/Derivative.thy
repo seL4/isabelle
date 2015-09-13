@@ -1191,8 +1191,9 @@ proof -
   have lem1: "\<forall>e>0. \<exists>d>0. \<forall>z.
     norm (z - y) < d \<longrightarrow> norm (g z - g y - g'(z - y)) \<le> e * norm (g z - g y)"
   proof (rule, rule)
-    case goal1
-    have *: "e / C > 0" using \<open>e > 0\<close> C(1) by auto
+    fix e :: real
+    assume "e > 0"
+    with C(1) have *: "e / C > 0" by auto
     obtain d0 where d0:
         "0 < d0"
         "\<forall>ya. norm (ya - g y) < d0 \<longrightarrow> norm (f ya - f (g y) - f' (ya - g y)) \<le> e / C * norm (ya - g y)"
@@ -1213,7 +1214,7 @@ proof -
       using assms(6) by blast
     obtain d where d: "0 < d" "d < d1" "d < d2"
       using real_lbound_gt_zero[OF d1(1) d2(1)] by blast
-    then show ?case
+    then show "\<exists>d>0. \<forall>z. norm (z - y) < d \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> e * norm (g z - g y)"
       apply (rule_tac x=d in exI)
       apply rule
       defer
@@ -1257,14 +1258,13 @@ proof -
   def B \<equiv> "C * 2"
   have "B > 0"
     unfolding B_def using C by auto
-  have lem2: "\<forall>z. norm(z - y) < d \<longrightarrow> norm (g z - g y) \<le> B * norm (z - y)"
-  proof (rule, rule)
-    case goal1
+  have lem2: "norm (g z - g y) \<le> B * norm (z - y)" if z: "norm(z - y) < d" for z
+  proof -
     have "norm (g z - g y) \<le> norm(g' (z - y)) + norm ((g z - g y) - g'(z - y))"
       by (rule norm_triangle_sub)
     also have "\<dots> \<le> norm (g' (z - y)) + 1 / 2 * norm (g z - g y)"
       apply (rule add_left_mono)
-      using d and goal1
+      using d and z
       apply auto
       done
     also have "\<dots> \<le> norm (z - y) * C + 1 / 2 * norm (g z - g y)"
@@ -1272,7 +1272,7 @@ proof -
       using C
       apply auto
       done
-    finally show ?case
+    finally show "norm (g z - g y) \<le> B * norm (z - y)"
       unfolding B_def
       by (auto simp add: field_simps)
   qed
@@ -1283,15 +1283,16 @@ proof -
     apply rule
     apply rule
   proof -
-    case goal1
-    hence *: "e / B >0" by (metis \<open>0 < B\<close> divide_pos_pos)
+    fix e :: real
+    assume "e > 0"
+    then have *: "e / B > 0" by (metis \<open>B > 0\<close> divide_pos_pos)
     obtain d' where d':
         "0 < d'"
         "\<forall>z. norm (z - y) < d' \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> e / B * norm (g z - g y)"
       using lem1 * by blast
     obtain k where k: "0 < k" "k < d" "k < d'"
       using real_lbound_gt_zero[OF d(1) d'(1)] by blast
-    show ?case
+    show "\<exists>d>0. \<forall>ya. norm (ya - y) < d \<longrightarrow> norm (g ya - g y - g' (ya - y)) \<le> e * norm (ya - y)"
       apply (rule_tac x=k in exI)
       apply auto
     proof -
@@ -1301,7 +1302,7 @@ proof -
         using d' k by auto
       also have "\<dots> \<le> e * norm (z - y)"
         unfolding times_divide_eq_left pos_divide_le_eq[OF \<open>B>0\<close>]
-        using lem2[THEN spec[where x=z]]
+        using lem2[of z]
         using k as using \<open>e > 0\<close>
         by (auto simp add: field_simps)
       finally show "norm (g z - g y - g' (z - y)) \<le> e * norm (z - y)"
@@ -1650,7 +1651,8 @@ proof -
       apply rule
       apply rule
     proof -
-      case goal1
+      fix y
+      assume "0 < dist y (f x) \<and> dist y (f x) < d"
       then have "g y \<in> g ` f ` (ball x e \<inter> s)"
         using d(2)[unfolded subset_eq,THEN bspec[where x=y]]
         by (auto simp add: dist_commute)
@@ -1667,13 +1669,12 @@ proof -
     using interior_open[OF assms(1)] and \<open>x \<in> s\<close>
     apply auto
     done
-  moreover have "\<And>y. y \<in> interior (f ` s) \<Longrightarrow> f (g y) = y"
+  moreover have "f (g y) = y" if "y \<in> interior (f ` s)" for y
   proof -
-    case goal1
-    then have "y \<in> f ` s"
+    from that have "y \<in> f ` s"
       using interior_subset by auto
     then obtain z where "z \<in> s" "y = f z" unfolding image_iff ..
-    then show ?case
+    then show ?thesis
       using assms(4) by auto
   qed
   ultimately show ?thesis using assms
@@ -1882,11 +1883,13 @@ lemma has_derivative_sequence_lipschitz:
   shows "\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s.
     norm ((f m x - f n x) - (f m y - f n y)) \<le> e * norm (x - y)"
 proof (rule, rule)
-  case goal1 have *: "2 * (1/2* e) = e" "1/2 * e >0"
-    using \<open>e > 0\<close> by auto
+  fix e :: real
+  assume "e > 0"
+  then have *: "2 * (1/2* e) = e" "1/2 * e >0"
+    by auto
   obtain N where "\<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> 1 / 2 * e * norm h"
     using assms(3) *(2) by blast
-  then show ?case
+  then show "\<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm (f m x - f n x - (f m y - f n y)) \<le> e * norm (x - y)"
     apply (rule_tac x=N in exI)
     apply (rule has_derivative_sequence_lipschitz_lemma[where e="1/2 *e", unfolded *])
     using assms \<open>e > 0\<close>
@@ -2060,9 +2063,10 @@ proof -
     qed
     show "\<forall>e>0. eventually (\<lambda>y. norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)) (at x within s)"
     proof (rule, rule)
-      case goal1
-      have *: "e / 3 > 0"
-        using goal1 by auto
+      fix e :: real
+      assume "e > 0"
+      then have *: "e / 3 > 0"
+        by auto
       obtain N1 where N1: "\<forall>n\<ge>N1. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e / 3 * norm h"
         using assms(3) * by blast
       obtain N2 where
@@ -2073,7 +2077,7 @@ proof -
         using assms(2)[unfolded has_derivative_within_alt2] and \<open>x \<in> s\<close> and * by fast
       moreover have "eventually (\<lambda>y. y \<in> s) (at x within s)"
         unfolding eventually_at by (fast intro: zero_less_one)
-      ultimately show ?case
+      ultimately show "\<forall>\<^sub>F y in at x within s. norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)"
       proof (rule eventually_elim2)
         fix y
         assume "y \<in> s"
@@ -2150,15 +2154,20 @@ proof -
       using reals_Archimedean[OF \<open>e>0\<close>] ..
     show "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
       apply (rule_tac x=N in exI)
-    proof rule+
-      case goal1
+      apply rule
+      apply rule
+      apply rule
+      apply rule
+    proof -
+      fix n x h
+      assume n: "N \<le> n" and x: "x \<in> s"
       have *: "inverse (real (Suc n)) \<le> e"
         apply (rule order_trans[OF _ N[THEN less_imp_le]])
-        using goal1(1)
+        using n
         apply (auto simp add: field_simps)
         done
-      show ?case
-        using f[rule_format,THEN conjunct2,OF goal1(2), of n, THEN spec[where x=h]]
+      show "norm (f' n x h - g' x h) \<le> e * norm h"
+        using f[rule_format,THEN conjunct2, OF x, of n, THEN spec[where x=h]]
         apply (rule order_trans)
         using N *
         apply (cases "h = 0")

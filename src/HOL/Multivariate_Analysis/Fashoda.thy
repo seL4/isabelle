@@ -175,9 +175,8 @@ proof (rule ccontr)
   qed
   have 3: "(negatex \<circ> sqprojection \<circ> ?F) ` cbox (-1) 1 \<subseteq> cbox (-1) 1"
     unfolding subset_eq
-    apply rule
-  proof -
-    case goal1
+  proof (rule, goals)
+    case (1 x)
     then obtain y :: "real^2" where y:
         "y \<in> cbox (- 1) 1"
         "x = (negatex \<circ> sqprojection \<circ> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w)) y"
@@ -198,8 +197,9 @@ proof (rule ccontr)
       apply -
       apply rule
     proof -
-      case goal1
-      then show ?case
+      fix i
+      assume "max \<bar>x $ 1\<bar> \<bar>x $ 2\<bar> = 1"
+      then show "(- 1) $ i \<le> x $ i \<and> x $ i \<le> 1 $ i"
         apply (cases "i = 1")
         defer
         apply (drule 21)
@@ -834,9 +834,8 @@ proof -
       z \<in> closed_segment (pathfinish g) (vector [pathfinish g $ 1, a $ 2 - 1])) \<or>
       z \<in> closed_segment (vector [pathfinish g $ 1, a $ 2 - 1]) (vector [b $ 1 + 1, a $ 2 - 1])) \<or>
       z \<in> closed_segment (vector [b $ 1 + 1, a $ 2 - 1]) (vector [b $ 1 + 1, b $ 2 + 3]) \<Longrightarrow> False"
-      apply (simp only: segment_vertical segment_horizontal vector_2)
-    proof -
-      case goal1 note as=this
+    proof (simp only: segment_vertical segment_horizontal vector_2, goals)
+      case as: 1
       have "pathfinish f \<in> cbox a b"
         using assms(3) pathfinish_in_path_image[of f] by auto 
       then have "1 + b $ 1 \<le> pathfinish f $ 1 \<Longrightarrow> False"
@@ -855,7 +854,7 @@ proof -
         using as(2) using assms ab
         by (auto simp add: field_simps)
       ultimately have *: "z$2 = a$2 - 2"
-        using goal1(1)
+        using as(1)
         by auto
       have "z$1 \<noteq> pathfinish g$1"
         using as(2)
