@@ -347,6 +347,11 @@ the proof context discipline.
 
 *** System ***
 
+* Property values in etc/symbols may contain spaces, if written with the
+replacement character "␣" (Unicode point 0x2324).  For example:
+
+  \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
+
 * Command-line tool "isabelle jedit_client" allows to connect to already
 running Isabelle/jEdit process. This achieves the effect of
 single-instance applications seen on common GUI desktops.
