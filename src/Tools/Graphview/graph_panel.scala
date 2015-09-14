@@ -331,12 +331,22 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel
     tooltip = "Regenerate graph layout according to built-in algorithm"
   }
 
+  private val editor_style = new CheckBox() {
+    selected = graphview.editor_style
+    action = Action("Editor style") {
+      graphview.editor_style = selected
+      graphview.update_layout()
+      refresh()
+    }
+    tooltip = "Use editor font and colors for painting"
+  }
+
   private val colorations = new Button { action = Action("Colorations") { color_dialog.open } }
   private val filters = new Button { action = Action("Filters") { mutator_dialog.open } }
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(show_content, show_arrow_heads, show_dummies,
-      save_image, zoom, fit_window, update_layout) // FIXME colorations, filters
+      save_image, zoom, fit_window, update_layout, editor_style) // FIXME colorations, filters
 
 
 

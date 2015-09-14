@@ -76,14 +76,31 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
           }
 
           override def make_font(): Font =
-            GUI.imitate_font(Font_Info.main().font,
-              options.string("graphview_font_family"),
-              options.real("graphview_font_scale"))
+            if (editor_style) Font_Info.main(PIDE.options.real("graphview_font_scale")).font
+            else
+              GUI.imitate_font(Font_Info.main().font,
+                options.string("graphview_font_family"),
+                options.real("graphview_font_scale"))
 
-          override def foreground_color = view.getTextArea.getPainter.getForeground
-          override def selection_color = view.getTextArea.getPainter.getSelectionColor
-          override def highlight_color = view.getTextArea.getPainter.getLineHighlightColor
+          override def foreground_color =
+            if (editor_style) view.getTextArea.getPainter.getForeground
+            else super.foreground_color
+
+          override def background_color =
+            if (editor_style) view.getTextArea.getPainter.getBackground
+            else super.background_color
+
+          override def selection_color =
+            if (editor_style) view.getTextArea.getPainter.getSelectionColor
+            else super.selection_color
+
+          override def highlight_color =
+            if (editor_style) view.getTextArea.getPainter.getLineHighlightColor
+            else super.highlight_color
+
           override def error_color = PIDE.options.color_value("error_color")
+
+          editor_style = true
         }
         new isabelle.graphview.Main_Panel(graphview)
       case Exn.Exn(exn) => new TextArea(Exn.message(exn))

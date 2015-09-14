@@ -94,8 +94,8 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
 
   def foreground_color: Color = Color.BLACK
   def background_color: Color = Color.WHITE
-  def selection_color: Color = Color.GREEN
-  def highlight_color: Color = Color.YELLOW
+  def selection_color: Color = new Color(204, 204, 255)
+  def highlight_color: Color = new Color(255, 255, 224)
   def error_color: Color = Color.RED
   def dummy_color: Color = Color.GRAY
 
@@ -116,6 +116,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
   var show_content = false
   var show_arrow_heads = false
   var show_dummies = false
+  var editor_style = false
 
   object Colors
   {
