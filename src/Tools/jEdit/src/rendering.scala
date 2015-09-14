@@ -14,7 +14,7 @@ import java.awt.Color
 import javax.swing.Icon
 
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
-import org.gjt.sp.jedit.{jEdit, View}
+import org.gjt.sp.jedit.jEdit
 
 import scala.collection.immutable.SortedMap
 
@@ -719,6 +719,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* text color */
 
+  val foreground_color = jEdit.getColorProperty("view.fgColor")
+
   private lazy val text_colors: Map[String, Color] = Map(
       Markup.KEYWORD1 -> keyword1_color,
       Markup.KEYWORD2 -> keyword2_color,
@@ -726,12 +728,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.QUASI_KEYWORD -> quasi_keyword_color,
       Markup.IMPROPER -> improper_color,
       Markup.OPERATOR -> operator_color,
-      Markup.STRING -> Color.BLACK,
-      Markup.ALT_STRING -> Color.BLACK,
-      Markup.VERBATIM -> Color.BLACK,
-      Markup.CARTOUCHE -> Color.BLACK,
+      Markup.STRING -> foreground_color,
+      Markup.ALT_STRING -> foreground_color,
+      Markup.VERBATIM -> foreground_color,
+      Markup.CARTOUCHE -> foreground_color,
       Markup.LITERAL -> keyword1_color,
-      Markup.DELIMITER -> Color.BLACK,
+      Markup.DELIMITER -> foreground_color,
       Markup.TFREE -> tfree_color,
       Markup.TVAR -> tvar_color,
       Markup.FREE -> free_color,
@@ -746,7 +748,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.ML_KEYWORD1 -> keyword1_color,
       Markup.ML_KEYWORD2 -> keyword2_color,
       Markup.ML_KEYWORD3 -> keyword3_color,
-      Markup.ML_DELIMITER -> Color.BLACK,
+      Markup.ML_DELIMITER -> foreground_color,
       Markup.ML_NUMERAL -> inner_numeral_color,
       Markup.ML_CHAR -> inner_quoted_color,
       Markup.ML_STRING -> inner_quoted_color,
