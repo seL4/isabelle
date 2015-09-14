@@ -21,9 +21,8 @@ menu), step through stopped threads, evaluate local ML expressions etc.
 At least one Debugger view needs to be active to have any effect on the
 running ML program.
 
-* Command-line tool "isabelle jedit_client" allows to connect to already
-running Isabelle/jEdit process. This achieves the effect of
-single-instance applications seen on common GUI desktops.
+* The main Isabelle executable is managed as single-instance Desktop
+application uniformly on all platforms: Linux, Windows, Mac OS X.
 
 
 *** Isar ***
@@ -347,6 +346,10 @@ the proof context discipline.
 
 
 *** System ***
+
+* Command-line tool "isabelle jedit_client" allows to connect to already
+running Isabelle/jEdit process. This achieves the effect of
+single-instance applications seen on common GUI desktops.
 
 * Poly/ML default platform architecture may be changed from 32bit to
 64bit via system option ML_system_64. A system restart (and rebuild)
