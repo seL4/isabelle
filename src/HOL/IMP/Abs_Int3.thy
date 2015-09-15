@@ -63,18 +63,14 @@ lift_definition narrow_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" is 
 by(auto simp: eq_st_def)
 
 instance
-proof
-  case goal1 thus ?case
-    by transfer (simp add: less_eq_st_rep_iff widen1)
+proof (standard, goal_cases)
+  case 1 thus ?case by transfer (simp add: less_eq_st_rep_iff widen1)
 next
-  case goal2 thus ?case
-    by transfer (simp add: less_eq_st_rep_iff widen2)
+  case 2 thus ?case by transfer (simp add: less_eq_st_rep_iff widen2)
 next
-  case goal3 thus ?case
-    by transfer (simp add: less_eq_st_rep_iff narrow1)
+  case 3 thus ?case by transfer (simp add: less_eq_st_rep_iff narrow1)
 next
-  case goal4 thus ?case
-    by transfer (simp add: less_eq_st_rep_iff narrow2)
+  case 4 thus ?case by transfer (simp add: less_eq_st_rep_iff narrow2)
 qed
 
 end
@@ -94,17 +90,17 @@ fun narrow_option where
 "(Some x) \<triangle> (Some y) = Some(x \<triangle> y)"
 
 instance
-proof
-  case goal1 thus ?case
+proof (standard, goal_cases)
+  case (1 x y) thus ?case
     by(induct x y rule: widen_option.induct)(simp_all add: widen1)
 next
-  case goal2 thus ?case
+  case (2 x y) thus ?case
     by(induct x y rule: widen_option.induct)(simp_all add: widen2)
 next
-  case goal3 thus ?case
+  case (3 x y) thus ?case
     by(induct x y rule: narrow_option.induct) (simp_all add: narrow1)
 next
-  case goal4 thus ?case
+  case (4 y x) thus ?case
     by(induct x y rule: narrow_option.induct) (simp_all add: narrow2)
 qed
 
@@ -550,14 +546,14 @@ where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
 and m = m_ivl and n = n_ivl and h = 3
-proof
-  case goal2 thus ?case by(rule m_ivl_anti_mono)
+proof (standard, goal_cases)
+  case 2 thus ?case by(rule m_ivl_anti_mono)
 next
-  case goal1 thus ?case by(rule m_ivl_height)
+  case 1 thus ?case by(rule m_ivl_height)
 next
-  case goal3 thus ?case by(rule m_ivl_widen)
+  case 3 thus ?case by(rule m_ivl_widen)
 next
-  case goal4 from goal4(2) show ?case by(rule n_ivl_narrow)
+  case 4 from 4(2) show ?case by(rule n_ivl_narrow)
   -- "note that the first assms is unnecessary for intervals"
 qed
 

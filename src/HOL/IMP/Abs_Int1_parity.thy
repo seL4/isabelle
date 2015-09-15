@@ -58,21 +58,21 @@ definition sup_parity where
 definition top_parity where
 "\<top> = Either"
 
-text{* Now the instance proof. This time we take a lazy shortcut: we do not
-write out the proof obligations but use the @{text goali} primitive to refer
-to the assumptions of subgoal i and @{text "case?"} to refer to the
-conclusion of subgoal i. The class axioms are presented in the same order as
-in the class definition. Warning: this is brittle! *}
+text{* Now the instance proof. This time we take a shortcut with the help of
+proof method @{text goal_cases}: it creates cases 1 ... n for the subgoals
+1 ... n; in case i, i is also the name of the assumptions of subgoal i and
+@{text "case?"} refers to the conclusion of subgoal i.
+The class axioms are presented in the same order as in the class definition. *}
 
 instance
-proof
-  case goal1 (*sup1*) show ?case by(auto simp: less_eq_parity_def sup_parity_def)
+proof (standard, goal_cases)
+  case 1 (*sup1*) show ?case by(auto simp: less_eq_parity_def sup_parity_def)
 next
-  case goal2 (*sup2*) show ?case by(auto simp: less_eq_parity_def sup_parity_def)
+  case 2 (*sup2*) show ?case by(auto simp: less_eq_parity_def sup_parity_def)
 next
-  case goal3 (*sup least*) thus ?case by(auto simp: less_eq_parity_def sup_parity_def)
+  case 3 (*sup least*) thus ?case by(auto simp: less_eq_parity_def sup_parity_def)
 next
-  case goal4 (*top*) show ?case by(auto simp: less_eq_parity_def top_parity_def)
+  case 4 (*top*) show ?case by(auto simp: less_eq_parity_def top_parity_def)
 qed
 
 end
@@ -104,20 +104,21 @@ functions on type @{typ parity} have all the necessary properties: *}
 
 permanent_interpretation Val_semilattice
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
-proof txt{* of the locale axioms *}
-  fix a b :: parity
-  assume "a \<le> b" thus "\<gamma>_parity a \<subseteq> \<gamma>_parity b"
-    by(auto simp: less_eq_parity_def)
-next txt{* The rest in the lazy, implicit way *}
-  case goal2 show ?case by(auto simp: top_parity_def)
+proof (standard, goal_cases) txt{* subgoals are the locale axioms *}
+  case 1 thus ?case by(auto simp: less_eq_parity_def)
 next
-  case goal3 show ?case by auto
+  case 2 show ?case by(auto simp: top_parity_def)
 next
-  txt{* Warning: this subproof refers to the names @{text a1} and @{text a2}
-  from the statement of the axiom. *}
-  case goal4 thus ?case
+  case 3 show ?case by auto
+next
+  case (4 _ a1 _ a2) thus ?case
     by (induction a1 a2 rule: plus_parity.induct) (auto simp add:mod_add_eq)
 qed
+
+text{* In case 4 we needed to refer to particular variables.
+Writing (i x y z) fixes the names of the variables in case i to be x, y and z
+in the left-to-right order in which the variables occur in the subgoal.
+Underscores are anonymous placeholders for variable names we don't care to fix. *}
 
 text{* Instantiating the abstract interpretation locale requires no more
 proofs (they happened in the instatiation above) but delivers the
@@ -156,8 +157,8 @@ subsubsection "Termination"
 
 permanent_interpretation Abs_Int_mono
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
-proof
-  case goal1 thus ?case
+proof (standard, goal_cases)
+  case (1 _ a1 _ a2) thus ?case
     by(induction a1 a2 rule: plus_parity.induct)
       (auto simp add:less_eq_parity_def)
 qed
@@ -168,10 +169,10 @@ definition m_parity :: "parity \<Rightarrow> nat" where
 permanent_interpretation Abs_Int_measure
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 and m = m_parity and h = "1"
-proof
-  case goal1 thus ?case by(auto simp add: m_parity_def less_eq_parity_def)
+proof (standard, goal_cases)
+  case 1 thus ?case by(auto simp add: m_parity_def less_eq_parity_def)
 next
-  case goal2 thus ?case by(auto simp add: m_parity_def less_eq_parity_def less_parity_def)
+  case 2 thus ?case by(auto simp add: m_parity_def less_eq_parity_def less_parity_def)
 qed
 
 thm AI_Some_measure

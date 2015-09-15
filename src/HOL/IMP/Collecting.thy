@@ -45,14 +45,14 @@ definition less_acom :: "'a acom \<Rightarrow> 'a acom \<Rightarrow> bool" where
 "less_acom x y = (x \<le> y \<and> \<not> y \<le> x)"
 
 instance
-proof
-  case goal1 show ?case by(simp add: less_acom_def)
+proof (standard, goal_cases)
+  case 1 show ?case by(simp add: less_acom_def)
 next
-  case goal2 thus ?case by(auto simp: less_eq_acom_def)
+  case 2 thus ?case by(auto simp: less_eq_acom_def)
 next
-  case goal3 thus ?case by(fastforce simp: less_eq_acom_def size_annos)
+  case 3 thus ?case by(fastforce simp: less_eq_acom_def size_annos)
 next
-  case goal4 thus ?case
+  case 4 thus ?case
     by(fastforce simp: le_antisym less_eq_acom_def size_annos
          eq_acom_iff_strip_anno)
 qed
@@ -97,14 +97,14 @@ definition Inf_acom :: "com \<Rightarrow> 'a::complete_lattice acom set \<Righta
 
 permanent_interpretation
   Complete_Lattice "{C. strip C = c}" "Inf_acom c" for c
-proof
-  case goal1 thus ?case
+proof (standard, goal_cases)
+  case 1 thus ?case
     by(auto simp: Inf_acom_def less_eq_acom_def size_annos intro:INF_lower)
 next
-  case goal2 thus ?case
+  case 2 thus ?case
     by(auto simp: Inf_acom_def less_eq_acom_def size_annos intro:INF_greatest)
 next
-  case goal3 thus ?case by(auto simp: Inf_acom_def)
+  case 3 thus ?case by(auto simp: Inf_acom_def)
 qed
 
 
