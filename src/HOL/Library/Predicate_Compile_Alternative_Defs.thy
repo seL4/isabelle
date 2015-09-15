@@ -224,6 +224,18 @@ by(simp_all add: List.member_def)
 code_pred List.member
   by(auto simp add: List.member_def elim: list.set_cases)
 
+code_identifier constant member_i_i
+   \<rightharpoonup> (SML) "List.member_i_i"
+  and (OCaml) "List.member_i_i"
+  and (Haskell) "List.member_i_i"
+  and (Scala) "List.member_i_i"
+
+code_identifier constant member_i_o
+   \<rightharpoonup> (SML) "List.member_i_o"
+  and (OCaml) "List.member_i_o"
+  and (Haskell) "List.member_i_o"
+  and (Scala) "List.member_i_o"
+
 section \<open>Setup for String.literal\<close>
 
 setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name "STR"}]\<close>
