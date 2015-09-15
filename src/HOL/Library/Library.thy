@@ -45,6 +45,7 @@ imports
   More_List
   Multiset_Order
   Numeral_Type
+  Omega_Words_Fun
   OptionalSugar
   Option_ord
   Order_Continuity

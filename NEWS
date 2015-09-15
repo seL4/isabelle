@@ -310,6 +310,8 @@ context for rare situations where these facts are really needed.
 
 * Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
 
+* Library/Omega_Words_Fun: Infinite words modeled as functions nat => 'a.
+
 
 *** ML ***
 
