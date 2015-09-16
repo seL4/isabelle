@@ -64,11 +64,11 @@ case "$TARGET" in
     OPTIONS=()
     ;;
   x86-windows)
-    OPTIONS=(--host=i686-w32-mingw32 CPPFLAGS='-I/mingw32/include')
+    OPTIONS=(--host=i686-w32-mingw32 CPPFLAGS='-I/mingw32/include' --disable-windows-gui)
     PATH="/mingw32/bin:$PATH"
     ;;
   x86_64-windows)
-    OPTIONS=(--host=x86_64-w64-mingw32 CPPFLAGS='-I/mingw64/include')
+    OPTIONS=(--host=x86_64-w64-mingw32 CPPFLAGS='-I/mingw64/include' --disable-windows-gui)
     PATH="/mingw64/bin:$PATH"
     ;;
   *)
