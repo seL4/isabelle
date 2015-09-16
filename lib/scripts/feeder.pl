@@ -19,14 +19,18 @@ $SIG{'INT'} = "IGNORE";
 #buffer lines
 $| = 1;
 
+sub emit {
+  my ($text) = @_;
+  if ($text) {
+    utf8::upgrade($text);
+    $text =~ s/([\x80-\xff])/\\${\(ord($1))}/g;
+    print $text, "\n";
+  }
+}
 
 $emitpid && (print $$, "\n");
 
-if ($head) {
-  utf8::upgrade($head);
-  $head =~ s/([\x80-\xff])/\\${\(ord($1))}/g;
-  print $head, "\n";
-}
+emit("$head");
 
 if (!$quit) {
   while (<STDIN>) {
@@ -34,7 +38,7 @@ if (!$quit) {
   }
 }
 
-$tail && (print "$tail", "\n");
+emit("$tail");
 
 
 # wait forever
