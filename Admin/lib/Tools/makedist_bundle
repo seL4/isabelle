@@ -376,7 +376,7 @@ then
         cp -R "$APP_TEMPLATE/Resources/." "$APP/Contents/Resources/."
 
         ln -sf "../Resources/${ISABELLE_NAME}/contrib/jdk/x86_64-darwin" \
-          "$APP/Contents/PlugIns/jdk"
+          "$APP/Contents/PlugIns/bundled.jdk"
 
         cp macos_app/JavaAppLauncher "$APP/Contents/MacOS/." && \
           chmod +x "$APP/Contents/MacOS/JavaAppLauncher"

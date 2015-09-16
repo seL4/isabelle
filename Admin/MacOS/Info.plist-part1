@@ -35,7 +35,7 @@
 <key>NSSupportsAutomaticGraphicsSwitching</key>
 <string>true</string>
 <key>JVMRuntime</key>
-<string>jdk</string>
+<string>bundled.jdk</string>
 <key>JVMMainClassName</key>
 <string>isabelle.Main</string>
 <key>CFBundleDocumentTypes</key>
