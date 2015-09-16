@@ -29,7 +29,7 @@ object Main
       system_dialog.join_exit
     }
 
-    def build
+    def build()
     {
       try {
         GUI.init_laf()
@@ -74,7 +74,7 @@ object Main
       catch { case exn: Throwable => exit_error(exn) }
     }
 
-    def start
+    def start()
     {
       val do_start =
       {
@@ -161,9 +161,9 @@ object Main
       }
     }
 
-    build
+    build()
     val rc = system_dialog.join
-    if (rc == 0) start else sys.exit(rc)
+    if (rc == 0) start() else sys.exit(rc)
   }
 
 
