@@ -2195,7 +2195,7 @@ proof (intro antisym mono_Sup)
   show "ereal_of_enat (Sup A) \<le> (SUP a : A. ereal_of_enat a)"
   proof cases
     assume "finite A"
-    with `A \<noteq> {}` obtain a where "a \<in> A" "ereal_of_enat (Sup A) = ereal_of_enat a"
+    with \<open>A \<noteq> {}\<close> obtain a where "a \<in> A" "ereal_of_enat (Sup A) = ereal_of_enat a"
       using Max_in[of A] by (auto simp: Sup_enat_def simp del: Max_in)
     then show ?thesis
       by (auto intro: SUP_upper)
@@ -2208,11 +2208,11 @@ proof (intro antisym mono_Sup)
       then obtain n :: nat where "x < n"
         using less_PInf_Ex_of_nat top_ereal_def by auto
       obtain a where "a \<in> A - enat ` {.. n}"
-        by (metis `\<not> finite A` all_not_in_conv finite_Diff2 finite_atMost finite_imageI finite.emptyI)
+        by (metis \<open>\<not> finite A\<close> all_not_in_conv finite_Diff2 finite_atMost finite_imageI finite.emptyI)
       then have "a \<in> A" "ereal n \<le> ereal_of_enat a"
         by (auto simp: image_iff Ball_def)
            (metis enat_iless enat_ord_simps(1) ereal_of_enat_less_iff ereal_of_enat_simps(1) less_le not_less)
-      with `x < n` show "\<exists>i\<in>A. x < ereal_of_enat i"
+      with \<open>x < n\<close> show "\<exists>i\<in>A. x < ereal_of_enat i"
         by (auto intro!: bexI[of _ a])
     qed
     show ?thesis

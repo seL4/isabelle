@@ -1408,14 +1408,14 @@ lemma sort_key_inj_key_eq:
 proof (rule properties_for_sort_key)
   from mset_equal
   show "mset ys = mset xs" by simp
-  from `sorted (map f ys)`
+  from \<open>sorted (map f ys)\<close>
   show "sorted (map f ys)" .
   show "[x\<leftarrow>ys . f k = f x] = [x\<leftarrow>xs . f k = f x]" if "k \<in> set ys" for k
   proof -
     from mset_equal
     have set_equal: "set xs = set ys" by (rule mset_eq_setD)
     with that have "insert k (set ys) = set ys" by auto
-    with `inj_on f (set xs)` have inj: "inj_on f (insert k (set ys))"
+    with \<open>inj_on f (set xs)\<close> have inj: "inj_on f (insert k (set ys))"
       by (simp add: set_equal)
     from inj have "[x\<leftarrow>ys . f k = f x] = filter (HOL.eq k) ys"
       by (auto intro!: inj_on_filter_key_eq)
