@@ -1757,9 +1757,9 @@ hide_fact (open)
   compare.eq.refl compare.eq.simps
   compare.EQ_def compare.GT_def compare.LT_def
   equal_compare_def
-  skip_red_def skip_red.simps skip_red.cases skip_red.induct 
+  skip_red.simps skip_red.cases skip_red.induct 
   skip_black_def
-  compare_height_def compare_height.simps
+  compare_height.simps
 
 subsection \<open>union and intersection of sorted associative lists\<close>
 

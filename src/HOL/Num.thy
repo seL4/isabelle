@@ -106,7 +106,7 @@ definition [code del]:
   "m < n \<longleftrightarrow> nat_of_num m < nat_of_num n"
 
 instance
-  by (default, auto simp add: less_num_def less_eq_num_def num_eq_iff)
+  by standard (auto simp add: less_num_def less_eq_num_def num_eq_iff)
 
 end
 

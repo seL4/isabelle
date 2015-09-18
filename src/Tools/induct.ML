@@ -158,8 +158,10 @@ fun mk_swap_rrule ctxt ct =
   | SOME (i, k, j) => SOME (swap_params_conv ctxt k j (K (swap_prems_conv i)) ct));
 
 val rearrange_eqs_simproc =
-  Simplifier.simproc_global Pure.thy "rearrange_eqs" ["Pure.all t"]
-    (fn ctxt => fn t => mk_swap_rrule ctxt (Thm.cterm_of ctxt t));
+  Simplifier.make_simproc @{context} "rearrange_eqs"
+   {lhss = [@{term "Pure.all(t)"}],
+    proc = fn _ => fn ctxt => fn ct => mk_swap_rrule ctxt ct,
+    identifier = []};
 
 
 (* rotate k premises to the left by j, skipping over first j premises *)

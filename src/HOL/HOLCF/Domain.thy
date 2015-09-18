@@ -125,7 +125,7 @@ proof
     unfolding prj_beta emb_beta
     by (simp add: type_definition.Abs_inverse [OF type])
   show "ep_pair (emb :: 'a \<rightarrow> udom) prj"
-    apply default
+    apply standard
     apply (simp add: prj_emb)
     apply (simp add: emb_prj cast.below)
     done

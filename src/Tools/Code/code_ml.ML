@@ -454,8 +454,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                   [str "let", p, str "=", print_term is_pseudo_fun some_thm vars NOBR t, str "in"])
             val (ps, vars') = fold_map print_let binds vars;
           in
-            brackify_block fxy (Pretty.chunks ps) []
-              (print_term is_pseudo_fun some_thm vars' NOBR body)
+            brackets [Pretty.chunks ps, print_term is_pseudo_fun some_thm vars' NOBR body]
           end
       | print_case is_pseudo_fun some_thm vars fxy { term = t, typ = ty, clauses = clause :: clauses, ... } =
           let

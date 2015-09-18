@@ -11,14 +11,14 @@ definition "less_eq_prod p1 p2 = (fst p1 \<le> fst p2 \<and> snd p1 \<le> snd p2
 definition "less_prod p1 p2 = (p1 \<le> p2 \<and> \<not> p2 \<le> (p1::'a*'b))"
 
 instance
-proof
-  case goal1 show ?case by(rule less_prod_def)
+proof (standard, goal_cases)
+  case 1 show ?case by(rule less_prod_def)
 next
-  case goal2 show ?case by(simp add: less_eq_prod_def)
+  case 2 show ?case by(simp add: less_eq_prod_def)
 next
-  case goal3 thus ?case unfolding less_eq_prod_def by(metis order_trans)
+  case 3 thus ?case unfolding less_eq_prod_def by(metis order_trans)
 next
-  case goal4 thus ?case by(simp add: less_eq_prod_def)(metis eq_iff surjective_pairing)
+  case 4 thus ?case by(simp add: less_eq_prod_def)(metis eq_iff surjective_pairing)
 qed
 
 end

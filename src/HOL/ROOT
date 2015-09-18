@@ -14,7 +14,7 @@ session HOL (main) = Pure +
     "root.bib"
     "root.tex"
 
-session "HOL-Proofs" = Pure +
+session "HOL-Proofs" (slow) = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
@@ -975,15 +975,14 @@ session "HOL-Predicate_Compile_Examples" in Predicate_Compile_Examples = HOL +
   theories
     Examples
     Predicate_Compile_Tests
-    (* FIXME
-    Predicate_Compile_Quickcheck_Examples  -- should be added again soon (since 21-Oct-2010) *)
+    Predicate_Compile_Quickcheck_Examples
     Specialisation_Examples
     IMP_1
     IMP_2
     (* FIXME since 21-Jul-2011
-    Hotel_Example_Small_Generator
+    Hotel_Example_Small_Generator *)
     IMP_3
-    IMP_4 *)
+    IMP_4
   theories [condition = "ISABELLE_SWIPL"]
     Code_Prolog_Examples
     Context_Free_Grammar_Example

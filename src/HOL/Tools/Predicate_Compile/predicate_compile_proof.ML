@@ -12,14 +12,13 @@ sig
     -> (string * (term list * indprem list) list) list
     -> (string * typ) list -> string -> bool * mode
     -> (term list * (indprem * Mode_Inference.mode_derivation) list) list * term
-    -> Thm.thm
+    -> thm
 end;
 
 structure Predicate_Compile_Proof : PREDICATE_COMPILE_PROOF =
 struct
 
 open Predicate_Compile_Aux;
-open Core_Data;
 open Mode_Inference;
 
 
@@ -62,7 +61,7 @@ fun prove_param options ctxt nargs t deriv =
     val f_tac =
       (case f of
         Const (name, _) => simp_tac (put_simpset HOL_basic_ss ctxt addsimps
-           [@{thm eval_pred}, predfun_definition_of ctxt name mode,
+           [@{thm eval_pred}, Core_Data.predfun_definition_of ctxt name mode,
            @{thm split_eta}, @{thm split_beta}, @{thm fst_conv},
            @{thm snd_conv}, @{thm pair_collapse}, @{thm Product_Type.split_conv}]) 1
       | Free _ =>
@@ -88,7 +87,7 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
     (Const (name, _), args) =>
       let
         val mode = head_mode_of deriv
-        val introrule = predfun_intro_of ctxt name mode
+        val introrule = Core_Data.predfun_intro_of ctxt name mode
         val param_derivations = param_derivations_of deriv
         val ho_args = ho_args_of mode args
       in
@@ -170,12 +169,12 @@ fun prove_sidecond ctxt t =
     fun preds_of t nameTs =
       (case strip_comb t of
         (Const (name, T), args) =>
-          if is_registered ctxt name then (name, T) :: nameTs
-            else fold preds_of args nameTs
+          if Core_Data.is_registered ctxt name then (name, T) :: nameTs
+          else fold preds_of args nameTs
       | _ => nameTs)
     val preds = preds_of t []
     val defs = map
-      (fn (pred, T) => predfun_definition_of ctxt pred
+      (fn (pred, T) => Core_Data.predfun_definition_of ctxt pred
         (all_input_of T))
         preds
   in
@@ -227,7 +226,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
                 val name = (case strip_comb t of (Const (c, _), _) => SOME c | _ => NONE)
                 val neg_intro_rule =
                   Option.map (fn name =>
-                    the (predfun_neg_intro_of ctxt name mode)) name
+                    the (Core_Data.predfun_neg_intro_of ctxt name mode)) name
                 val param_derivations = param_derivations_of deriv
                 val params = ho_args_of mode args
               in
@@ -278,11 +277,11 @@ fun prove_one_direction options ctxt clauses preds pred mode moded_clauses =
   let
     val T = the (AList.lookup (op =) preds pred)
     val nargs = length (binder_types T)
-    val pred_case_rule = the_elim_of ctxt pred
+    val pred_case_rule = Core_Data.the_elim_of ctxt pred
   in
     REPEAT_DETERM (CHANGED (rewrite_goals_tac ctxt @{thms split_paired_all}))
     THEN trace_tac ctxt options "before applying elim rule"
-    THEN eresolve_tac ctxt [predfun_elim_of ctxt pred mode] 1
+    THEN eresolve_tac ctxt [Core_Data.predfun_elim_of ctxt pred mode] 1
     THEN eresolve_tac ctxt [pred_case_rule] 1
     THEN trace_tac ctxt options "after applying elim rule"
     THEN (EVERY (map
@@ -338,8 +337,8 @@ fun prove_param2 options ctxt t deriv =
     val f_tac =
       (case f of
         Const (name, _) => full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
-           (@{thm eval_pred}::(predfun_definition_of ctxt name mode)
-           :: @{thm "Product_Type.split_conv"}::[])) 1
+           [@{thm eval_pred}, Core_Data.predfun_definition_of ctxt name mode,
+            @{thm Product_Type.split_conv}]) 1
       | Free _ => all_tac
       | _ => error "prove_param2: illegal parameter term")
   in
@@ -360,7 +359,7 @@ fun prove_expr2 options ctxt (t, deriv) =
           eresolve_tac ctxt @{thms bindE} 1
           THEN (REPEAT_DETERM (CHANGED (rewrite_goals_tac ctxt @{thms split_paired_all})))
           THEN trace_tac ctxt options "prove_expr2-before"
-          THEN eresolve_tac ctxt [predfun_elim_of ctxt name mode] 1
+          THEN eresolve_tac ctxt [Core_Data.predfun_elim_of ctxt name mode] 1
           THEN trace_tac ctxt options "prove_expr2"
           THEN (EVERY (map2 (prove_param2 options ctxt) ho_args param_derivations))
           THEN trace_tac ctxt options "finished prove_expr2"
@@ -372,12 +371,12 @@ fun prove_sidecond2 options ctxt t =
     fun preds_of t nameTs =
       (case strip_comb t of
         (Const (name, T), args) =>
-          if is_registered ctxt name then (name, T) :: nameTs
-            else fold preds_of args nameTs
+          if Core_Data.is_registered ctxt name then (name, T) :: nameTs
+          else fold preds_of args nameTs
       | _ => nameTs)
     val preds = preds_of t []
     val defs = map
-      (fn (pred, T) => predfun_definition_of ctxt pred
+      (fn (pred, T) => Core_Data.predfun_definition_of ctxt pred
         (all_input_of T))
         preds
   in
@@ -389,7 +388,7 @@ fun prove_sidecond2 options ctxt t =
 
 fun prove_clause2 options ctxt pred mode (ts, ps) i =
   let
-    val pred_intro_rule = nth (intros_of ctxt pred) (i - 1)
+    val pred_intro_rule = nth (Core_Data.intros_of ctxt pred) (i - 1)
     val (in_ts, _) = split_mode mode ts;
     val split_simpset =
       put_simpset HOL_basic_ss' ctxt
@@ -441,9 +440,9 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
                 THEN eresolve_tac ctxt @{thms bindE} 1
                 THEN (if is_some name then
                     full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
-                      [predfun_definition_of ctxt (the name) mode]) 1
+                      [Core_Data.predfun_definition_of ctxt (the name) mode]) 1
                     THEN eresolve_tac ctxt @{thms not_predE} 1
-                    THEN simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm not_False_eq_True}]) 1
+                    THEN simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms not_False_eq_True}) 1
                     THEN (EVERY (map2 (prove_param2 options ctxt) ho_args param_derivations))
                   else
                     eresolve_tac ctxt @{thms not_predE'} 1)
@@ -478,7 +477,7 @@ fun prove_other_direction options ctxt pred mode moded_clauses =
   in
     (DETERM (TRY (resolve_tac ctxt @{thms unit.induct} 1)))
      THEN (REPEAT_DETERM (CHANGED (rewrite_goals_tac ctxt @{thms split_paired_all})))
-     THEN (resolve_tac ctxt [predfun_intro_of ctxt pred mode] 1)
+     THEN (resolve_tac ctxt [Core_Data.predfun_intro_of ctxt pred mode] 1)
      THEN (REPEAT_DETERM (resolve_tac ctxt @{thms refl} 2))
      THEN (
        if null moded_clauses then eresolve_tac ctxt @{thms botE} 1

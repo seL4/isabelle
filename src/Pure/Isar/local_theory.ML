@@ -368,10 +368,11 @@ fun exit_result_global f (x, lthy) =
 fun init_target background_naming operations after_close lthy =
   let
     val _ = assert lthy;
+    val after_close' = Proof_Context.restore_naming lthy #> after_close;
     val (scope, target) = Proof_Context.new_scope lthy;
     val lthy' =
       target
-      |> Data.map (cons (make_lthy (background_naming, operations, after_close, true, target)));
+      |> Data.map (cons (make_lthy (background_naming, operations, after_close', true, target)));
   in (scope, lthy') end;
 
 fun open_target lthy =

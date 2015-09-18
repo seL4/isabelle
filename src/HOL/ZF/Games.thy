@@ -418,7 +418,7 @@ lemma "\<forall> y. (zin y (right_options x) \<longrightarrow> \<not> ge_game (x
 proof (induct x rule: wf_induct[OF wf_option_of]) 
   case (1 "g")  
   show ?case
-  proof (auto, goals)
+  proof (auto, goal_cases)
     {case prems: (1 y) 
       from prems have "(y, g) \<in> option_of" by (auto)
       with 1 have "ge_game (y, y)" by auto
@@ -462,7 +462,7 @@ proof -
     proof (induct a rule: induct_game)
       case (1 a)
       show ?case
-      proof ((rule allI | rule impI)+, goals)
+      proof ((rule allI | rule impI)+, goal_cases)
         case prems: (1 x y z)
         show ?case
         proof -
@@ -543,7 +543,7 @@ lemma right_zero_game[simp]: "right_options (zero_game) = zempty"
 lemma plus_game_zero_right[simp]: "plus_game G zero_game = G"
 proof -
   have "H = zero_game \<longrightarrow> plus_game G H = G " for G H
-  proof (induct G H rule: plus_game.induct, rule impI, goals)
+  proof (induct G H rule: plus_game.induct, rule impI, goal_cases)
     case prems: (1 G H)
     note induct_hyp = this[simplified prems, simplified] and this
     show ?case
@@ -583,7 +583,7 @@ lemma right_options_neg: "right_options (neg_game u) = zimage neg_game (left_opt
 lemma plus_game_assoc: "plus_game (plus_game F G) H = plus_game F (plus_game G H)"
 proof -
   have "\<forall>F G H. a = [F, G, H] \<longrightarrow> plus_game (plus_game F G) H = plus_game F (plus_game G H)" for a
-  proof (induct a rule: induct_game, (rule impI | rule allI)+, goals)
+  proof (induct a rule: induct_game, (rule impI | rule allI)+, goal_cases)
     case prems: (1 x F G H)
     let ?L = "plus_game (plus_game F G) H"
     let ?R = "plus_game F (plus_game G H)"
@@ -626,7 +626,7 @@ proof (induct G H rule: plus_game.induct)
 qed
 
 lemma eq_game_plus_inverse: "eq_game (plus_game x (neg_game x)) zero_game"
-proof (induct x rule: wf_induct[OF wf_option_of], goals)
+proof (induct x rule: wf_induct[OF wf_option_of], goal_cases)
   case prems: (1 x)
   then have ihyp: "eq_game (plus_game y (neg_game y)) zero_game" if "zin y (options x)" for y
     using that by (auto simp add: prems)
@@ -670,7 +670,7 @@ qed
 lemma ge_plus_game_left: "ge_game (y,z) = ge_game (plus_game x y, plus_game x z)"
 proof -
   have "\<forall>x y z. a = [x,y,z] \<longrightarrow> ge_game (y,z) = ge_game (plus_game x y, plus_game x z)" for a
-  proof (induct a rule: induct_game, (rule impI | rule allI)+, goals)
+  proof (induct a rule: induct_game, (rule impI | rule allI)+, goal_cases)
     case prems: (1 a x y z)
     note induct_hyp = prems(1)[rule_format, simplified prems(2)]
     { 
@@ -780,7 +780,7 @@ lemma ge_plus_game_right: "ge_game (y,z) = ge_game(plus_game y x, plus_game z x)
 lemma ge_neg_game: "ge_game (neg_game x, neg_game y) = ge_game (y, x)"
 proof -
   have "\<forall>x y. a = [x, y] \<longrightarrow> ge_game (neg_game x, neg_game y) = ge_game (y, x)" for a
-  proof (induct a rule: induct_game, (rule impI | rule allI)+, goals)
+  proof (induct a rule: induct_game, (rule impI | rule allI)+, goal_cases)
     case prems: (1 a x y)
     note ihyp = prems(1)[rule_format, simplified prems(2)]
     { fix xl

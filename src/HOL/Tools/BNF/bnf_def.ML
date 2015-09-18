@@ -1484,9 +1484,9 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                 (fn {context = ctxt, prems = _} =>
                    mk_set_transfer_tac ctxt (Lazy.force in_rel) (map Lazy.force set_map))
+              |> Thm.close_derivation
               |> Conjunction.elim_balanced (length goals)
               |> Proof_Context.export names_lthy lthy
-              |> map Thm.close_derivation
           end;
 
         val set_transfer = Lazy.lazy mk_set_transfer;
@@ -1566,9 +1566,10 @@ fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_
     fun mk_wit_thms set_maps =
       Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)
         (fn {context = ctxt, prems = _} => mk_wits_tac ctxt set_maps)
+        |> Thm.close_derivation
         |> Conjunction.elim_balanced (length wit_goals)
         |> map2 (Conjunction.elim_balanced o length) wit_goalss
-        |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
+        |> (map o map) (Thm.forall_elim_vars 0);
   in
     map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])
       goals (map (fn tac => fn {context = ctxt, prems = _} =>
@@ -1585,9 +1586,10 @@ fun bnf_cmd (raw_csts, raw_plugins) =
     fun mk_triv_wit_thms tac set_maps =
       Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)
         (fn {context = ctxt, prems = _} => TRYALL Goal.conjunction_tac THEN tac ctxt set_maps)
+        |> Thm.close_derivation
         |> Conjunction.elim_balanced (length wit_goals)
         |> map2 (Conjunction.elim_balanced o length) wit_goalss
-        |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
+        |> (map o map) (Thm.forall_elim_vars 0);
     val (mk_wit_thms, nontriv_wit_goals) =
       (case triv_tac_opt of
         NONE => (fn _ => [], map (map (rpair [])) wit_goalss)

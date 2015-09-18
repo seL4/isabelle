@@ -589,7 +589,7 @@ proof safe
       using enum_Suc[of 0] na[rule_format, OF \<open>enum 1 \<in> s - {a}\<close>] \<open>a = enum 0\<close> by (auto simp: \<open>upd 0 = n\<close>)
 
     show ?thesis
-    proof (rule ksimplex.intros, default)
+    proof (rule ksimplex.intros, standard)
       show "bij_betw (upd\<circ>Suc) {..< n} {..< n}" by fact
       show "base(n := p) \<in> {..<n} \<rightarrow> {..<p}" "\<And>i. n\<le>i \<Longrightarrow> (base(n := p)) i = p"
         using base base_out by (auto simp: Pi_iff)
@@ -620,7 +620,7 @@ next
     def u \<equiv> "\<lambda>i. case i of 0 \<Rightarrow> n | Suc i \<Rightarrow> upd i"
 
     have "ksimplex p (Suc n) (s' \<union> {b})"
-    proof (rule ksimplex.intros, default)
+    proof (rule ksimplex.intros, standard)
       show "b \<in> {..<Suc n} \<rightarrow> {..<p}"
         using base \<open>0 < p\<close> unfolding lessThan_Suc b_def by (auto simp: PiE_iff)
       show "\<And>i. Suc n \<le> i \<Longrightarrow> b i = p"

@@ -269,7 +269,7 @@ by (simp add: ID_def cfun_eq_iff option.map_id[unfolded id_def] id_def)
 
 lemma deflation_option_map [domain_deflation]:
   "deflation d \<Longrightarrow> deflation (option_map d)"
-apply default
+apply standard
 apply (induct_tac x, simp_all add: deflation.idem)
 apply (induct_tac x, simp_all add: deflation.below)
 done

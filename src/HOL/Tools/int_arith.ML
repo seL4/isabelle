@@ -20,33 +20,29 @@ struct
    That is, m and n consist only of 1s combined with "+", "-" and "*".
 *)
 
-val zeroth = (Thm.symmetric o mk_meta_eq) @{thm of_int_0};
-
-val lhss0 = [@{cpat "0::?'a::ring"}];
-
-fun proc0 phi ctxt ct =
-  let val T = Thm.ctyp_of_cterm ct
-  in if Thm.typ_of T = @{typ int} then NONE else
-     SOME (Thm.instantiate' [SOME T] [] zeroth)
-  end;
+val zeroth = Thm.symmetric (mk_meta_eq @{thm of_int_0});
 
 val zero_to_of_int_zero_simproc =
-  make_simproc {lhss = lhss0, name = "zero_to_of_int_zero_simproc",
-  proc = proc0, identifier = []};
+  Simplifier.make_simproc @{context} "zero_to_of_int_zero_simproc"
+   {lhss = [@{term "0::'a::ring"}],
+    proc = fn _ => fn ctxt => fn ct =>
+      let val T = Thm.ctyp_of_cterm ct in
+        if Thm.typ_of T = @{typ int} then NONE
+        else SOME (Thm.instantiate' [SOME T] [] zeroth)
+      end,
+     identifier = []};
 
-val oneth = (Thm.symmetric o mk_meta_eq) @{thm of_int_1};
-
-val lhss1 = [@{cpat "1::?'a::ring_1"}];
-
-fun proc1 phi ctxt ct =
-  let val T = Thm.ctyp_of_cterm ct
-  in if Thm.typ_of T = @{typ int} then NONE else
-     SOME (Thm.instantiate' [SOME T] [] oneth)
-  end;
+val oneth = Thm.symmetric (mk_meta_eq @{thm of_int_1});
 
 val one_to_of_int_one_simproc =
-  make_simproc {lhss = lhss1, name = "one_to_of_int_one_simproc",
-  proc = proc1, identifier = []};
+  Simplifier.make_simproc @{context} "one_to_of_int_one_simproc"
+   {lhss = [@{term "1::'a::ring_1"}],
+    proc = fn _ => fn ctxt => fn ct =>
+      let val T = Thm.ctyp_of_cterm ct in
+        if Thm.typ_of T = @{typ int} then NONE
+        else SOME (Thm.instantiate' [SOME T] [] oneth)
+      end,
+    identifier = []};
 
 fun check (Const (@{const_name Groups.one}, @{typ int})) = false
   | check (Const (@{const_name Groups.one}, _)) = true
@@ -66,18 +62,18 @@ val conv_ss =
       [@{thm of_int_less_iff}, @{thm of_int_le_iff}, @{thm of_int_eq_iff}])
      addsimprocs [zero_to_of_int_zero_simproc,one_to_of_int_one_simproc]);
 
-fun sproc phi ctxt ct =
-  if check (Thm.term_of ct) then SOME (Simplifier.rewrite (put_simpset conv_ss ctxt) ct)
-  else NONE;
-
-val lhss' =
-  [@{cpat "(?x::?'a::ring_char_0) = (?y::?'a)"},
-   @{cpat "(?x::?'a::linordered_idom) < (?y::?'a)"},
-   @{cpat "(?x::?'a::linordered_idom) <= (?y::?'a)"}]
-
 val zero_one_idom_simproc =
-  make_simproc {lhss = lhss' , name = "zero_one_idom_simproc",
-  proc = sproc, identifier = []}
+  Simplifier.make_simproc @{context} "zero_one_idom_simproc"
+   {lhss =
+      [@{term "(x::'a::ring_char_0) = y"},
+       @{term "(x::'a::linordered_idom) < y"},
+       @{term "(x::'a::linordered_idom) \<le> y"}],
+    proc = fn _ => fn ctxt => fn ct =>
+      if check (Thm.term_of ct)
+      then SOME (Simplifier.rewrite (put_simpset conv_ss ctxt) ct)
+      else NONE,
+    identifier = []};
+
 
 fun number_of ctxt T n =
   if not (Sign.of_sort (Proof_Context.theory_of ctxt) (T, @{sort numeral}))

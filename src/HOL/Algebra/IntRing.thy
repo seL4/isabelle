@@ -60,7 +60,7 @@ interpretation int: monoid \<Z>
     and "pow \<Z> x n = x^n"
 proof -
   -- "Specification"
-  show "monoid \<Z>" by default auto
+  show "monoid \<Z>" by standard auto
   then interpret int: monoid \<Z> .
 
   -- "Carrier"
@@ -76,7 +76,7 @@ interpretation int: comm_monoid \<Z>
   where "finprod \<Z> f A = setprod f A"
 proof -
   -- "Specification"
-  show "comm_monoid \<Z>" by default auto
+  show "comm_monoid \<Z>" by standard auto
   then interpret int: comm_monoid \<Z> .
 
   -- "Operations"
@@ -94,7 +94,7 @@ interpretation int: abelian_monoid \<Z>
     and int_finsum_eq: "finsum \<Z> f A = setsum f A"
 proof -
   -- "Specification"
-  show "abelian_monoid \<Z>" by default auto
+  show "abelian_monoid \<Z>" by standard auto
   then interpret int: abelian_monoid \<Z> .
 
   -- "Carrier"
@@ -178,7 +178,7 @@ interpretation int (* FIXME [unfolded UNIV] *) :
     and "lless \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = (x < y)"
 proof -
   show "partial_order \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr>"
-    by default simp_all
+    by standard simp_all
   show "carrier \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> = UNIV"
     by simp
   show "le \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = (x \<le> y)"
@@ -215,7 +215,7 @@ qed
 
 interpretation int (* [unfolded UNIV] *) :
   total_order "\<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr>"
-  by default clarsimp
+  by standard clarsimp
 
 
 subsection {* Generated Ideals of @{text "\<Z>"} *}

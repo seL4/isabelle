@@ -145,7 +145,7 @@ locale semilattice_neutr_order = semilattice_neutr + semilattice_order
 begin
 
 sublocale ordering_top less_eq less 1
-  by default (simp add: order_iff)
+  by standard (simp add: order_iff)
 
 end
 
@@ -283,7 +283,7 @@ proof
 qed
 
 sublocale inf!: semilattice_order inf less_eq less
-  by default (auto simp add: le_iff_inf less_le)
+  by standard (auto simp add: le_iff_inf less_le)
 
 lemma inf_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
   by (fact inf.assoc)
@@ -328,7 +328,7 @@ proof
 qed
 
 sublocale sup!: semilattice_order sup greater_eq greater
-  by default (auto simp add: le_iff_sup sup.commute less_le)
+  by standard (auto simp add: le_iff_sup sup.commute less_le)
 
 lemma sup_assoc: "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
   by (fact sup.assoc)
@@ -717,7 +717,7 @@ begin
 
 sublocale min!: semilattice_order min less_eq less
   + max!: semilattice_order max greater_eq greater
-  by default (auto simp add: min_def max_def)
+  by standard (auto simp add: min_def max_def)
 
 lemma min_le_iff_disj:
   "min x y \<le> z \<longleftrightarrow> x \<le> z \<or> y \<le> z"

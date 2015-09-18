@@ -226,12 +226,12 @@ text \<open>
   Usage: isabelle jedit [OPTIONS] [FILES ...]
 
   Options are:
-    -J OPTION    add JVM runtime option (default JEDIT_JAVA_OPTIONS)
+    -J OPTION    add JVM runtime option
     -b           build only
     -d DIR       include session directory
     -f           fresh build
-    -j OPTION    add jEdit runtime option (default JEDIT_OPTIONS)
-    -l NAME      logic image name (default ISABELLE_LOGIC)
+    -j OPTION    add jEdit runtime option
+    -l NAME      logic image name
     -m MODE      add print mode for output
     -n           no build of session image on startup
     -s           system build mode for session image

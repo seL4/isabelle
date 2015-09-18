@@ -20,7 +20,7 @@ proof -
   proof
     show "emeasure M (space M) \<noteq> \<infinity>" using * by simp 
   qed
-  show "prob_space M" by default fact
+  show "prob_space M" by standard fact
 qed
 
 lemma prob_space_imp_sigma_finite: "prob_space M \<Longrightarrow> sigma_finite_measure M"
@@ -278,7 +278,7 @@ print_translation {*
             in
               go ((x, 0) :: pattern) (bound_dummyT $ tx :: elem) t
             end
-        | go pattern elem (Const (@{const_syntax case_prod}, _) $ t) =
+        | go pattern elem (Const (@{const_syntax uncurry}, _) $ t) =
             go 
               ((Syntax.const @{syntax_const "_pattern"}, 2) :: pattern)
               (Syntax.const @{const_syntax Pair} :: elem)
@@ -626,7 +626,7 @@ lemma (in prob_space) distributed_jointI:
 proof safe
   interpret S: sigma_finite_measure S by fact
   interpret T: sigma_finite_measure T by fact
-  interpret ST: pair_sigma_finite S T by default
+  interpret ST: pair_sigma_finite S T ..
 
   from ST.sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('b \<times> 'c) set" .. note F = this
   let ?E = "{a \<times> b |a b. a \<in> sets S \<and> b \<in> sets T}"
@@ -666,8 +666,8 @@ lemma (in prob_space) distributed_swap:
 proof -
   interpret S: sigma_finite_measure S by fact
   interpret T: sigma_finite_measure T by fact
-  interpret ST: pair_sigma_finite S T by default
-  interpret TS: pair_sigma_finite T S by default
+  interpret ST: pair_sigma_finite S T ..
+  interpret TS: pair_sigma_finite T S ..
 
   note Pxy[measurable]
   show ?thesis 
@@ -715,7 +715,7 @@ lemma (in prob_space) distr_marginal1:
 proof safe
   interpret S: sigma_finite_measure S by fact
   interpret T: sigma_finite_measure T by fact
-  interpret ST: pair_sigma_finite S T by default
+  interpret ST: pair_sigma_finite S T ..
 
   note Pxy[measurable]
   show X: "X \<in> measurable M S" by simp
@@ -792,7 +792,7 @@ lemma (in prob_space) distributed_joint_indep':
 proof safe
   interpret S: sigma_finite_measure S by fact
   interpret T: sigma_finite_measure T by fact
-  interpret ST: pair_sigma_finite S T by default
+  interpret ST: pair_sigma_finite S T ..
 
   interpret X: prob_space "density S Px"
     unfolding distributed_distr_eq_density[OF X, symmetric]
@@ -1133,7 +1133,7 @@ proof
 qed
 
 lemma prob_space_uniform_count_measure: "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> prob_space (uniform_count_measure A)"
-  by default (auto simp: emeasure_uniform_count_measure space_uniform_count_measure one_ereal_def)
+  by standard (auto simp: emeasure_uniform_count_measure space_uniform_count_measure one_ereal_def)
 
 lemma (in prob_space) measure_uniform_measure_eq_cond_prob:
   assumes [measurable]: "Measurable.pred M P" "Measurable.pred M Q"

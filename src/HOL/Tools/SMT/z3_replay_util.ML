@@ -91,9 +91,9 @@ local
   fun dest_binop ((c as Const _) $ t $ u) = (c, t, u)
     | dest_binop t = raise TERM ("dest_binop", [t])
 
-  fun prove_antisym_le ctxt t =
+  fun prove_antisym_le ctxt ct =
     let
-      val (le, r, s) = dest_binop t
+      val (le, r, s) = dest_binop (Thm.term_of ct)
       val less = Const (@{const_name less}, Term.fastype_of le)
       val prems = Simplifier.prems_of ctxt
     in
@@ -105,9 +105,9 @@ local
     end
     handle THM _ => NONE
 
-  fun prove_antisym_less ctxt t =
+  fun prove_antisym_less ctxt ct =
     let
-      val (less, r, s) = dest_binop (HOLogic.dest_not t)
+      val (less, r, s) = dest_binop (HOLogic.dest_not (Thm.term_of ct))
       val le = Const (@{const_name less_eq}, Term.fastype_of less)
       val prems = Simplifier.prems_of ctxt
     in
@@ -124,11 +124,15 @@ local
       addsimps @{thms field_simps times_divide_eq_right times_divide_eq_left arith_special
         arith_simps rel_simps array_rules z3div_def z3mod_def NO_MATCH_def}
       addsimprocs [@{simproc numeral_divmod},
-        Simplifier.simproc_global @{theory} "fast_int_arith" [
-          "(m::int) < n", "(m::int) <= n", "(m::int) = n"] Lin_Arith.simproc,
-        Simplifier.simproc_global @{theory} "antisym_le" ["(x::'a::order) <= y"] prove_antisym_le,
-        Simplifier.simproc_global @{theory} "antisym_less" ["~ (x::'a::linorder) < y"]
-          prove_antisym_less])
+        Simplifier.make_simproc @{context} "fast_int_arith"
+         {lhss = [@{term "(m::int) < n"}, @{term "(m::int) \<le> n"}, @{term "(m::int) = n"}],
+          proc = K Lin_Arith.simproc, identifier = []},
+        Simplifier.make_simproc @{context} "antisym_le"
+         {lhss = [@{term "(x::'a::order) \<le> y"}],
+          proc = K prove_antisym_le, identifier = []},
+        Simplifier.make_simproc @{context} "antisym_less"
+         {lhss = [@{term "\<not> (x::'a::linorder) < y"}],
+          proc = K prove_antisym_less, identifier = []}])
 
   structure Simpset = Generic_Data
   (

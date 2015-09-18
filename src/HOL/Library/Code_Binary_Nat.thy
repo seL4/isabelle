@@ -40,6 +40,9 @@ lemma [code]:
 
 subsection \<open>Basic arithmetic\<close>
 
+context
+begin
+
 lemma [code, code del]:
   "(plus :: nat \<Rightarrow> _) = plus" ..
 
@@ -51,7 +54,7 @@ lemma plus_nat_code [code]:
 
 text \<open>Bounded subtraction needs some auxiliary\<close>
 
-definition dup :: "nat \<Rightarrow> nat" where
+qualified definition dup :: "nat \<Rightarrow> nat" where
   "dup n = n + n"
 
 lemma dup_code [code]:
@@ -59,7 +62,7 @@ lemma dup_code [code]:
   "dup (nat_of_num k) = nat_of_num (Num.Bit0 k)"
   by (simp_all add: dup_def numeral_Bit0)
 
-definition sub :: "num \<Rightarrow> num \<Rightarrow> nat option" where
+qualified definition sub :: "num \<Rightarrow> num \<Rightarrow> nat option" where
   "sub k l = (if k \<ge> l then Some (numeral k - numeral l) else None)"
 
 lemma sub_code [code]:
@@ -139,6 +142,8 @@ lemma divmod_nat_code [code]:
   "divmod_nat 0 n = (0, 0)"
   by (simp_all add: prod_eq_iff nat_of_num_numeral)
 
+end
+
 
 subsection \<open>Conversions\<close>
 
@@ -155,7 +160,4 @@ code_identifier
   code_module Code_Binary_Nat \<rightharpoonup>
     (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
-hide_const (open) dup sub
-
 end
-

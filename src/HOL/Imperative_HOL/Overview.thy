@@ -8,18 +8,14 @@ imports Imperative_HOL "~~/src/HOL/Library/LaTeXsugar"
 begin
 
 (* type constraints with spacing *)
-setup {*
-let
-  val typ = Simple_Syntax.read_typ;
-in
-  Sign.del_syntax (Symbol.xsymbolsN, false)
-   [("_constrain", typ "logic => type => logic", Mixfix ("_\<Colon>_", [4, 0], 3)),
-    ("_constrain", typ "prop' => type => prop'", Mixfix ("_\<Colon>_", [4, 0], 3))] #>
-  Sign.add_syntax (Symbol.xsymbolsN, false)
-   [("_constrain", typ "logic => type => logic", Mixfix ("_ \<Colon>  _", [4, 0], 3)),
-    ("_constrain", typ "prop' => type => prop'", Mixfix ("_ \<Colon> _", [4, 0], 3))]
-end
-*}(*>*)
+no_syntax (output)
+  "_constrain" :: "logic => type => logic"  ("_::_" [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  ("_::_" [4, 0] 3)
+
+syntax (output)
+  "_constrain" :: "logic => type => logic"  ("_ :: _" [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  ("_ :: _" [4, 0] 3)
+(*>*)
 
 text {*
   @{text "Imperative HOL"} is a leightweight framework for reasoning

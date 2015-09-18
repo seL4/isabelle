@@ -193,7 +193,7 @@ lemma PiM_cong:
   assumes "I = J" "\<And>x. x \<in> I \<Longrightarrow> M x = N x"
   shows "PiM I M = PiM J N"
   unfolding PiM_def
-proof (rule extend_measure_cong, goals)
+proof (rule extend_measure_cong, goal_cases)
   case 1
   show ?case using assms
     by (subst assms(1), intro PiE_cong[of J "\<lambda>i. space (M i)" "\<lambda>i. space (N i)"]) simp_all
@@ -764,9 +764,9 @@ lemma (in product_sigma_finite) emeasure_PiM:
   "finite I \<Longrightarrow> (\<And>i. i\<in>I \<Longrightarrow> A i \<in> sets (M i)) \<Longrightarrow> emeasure (PiM I M) (Pi\<^sub>E I A) = (\<Prod>i\<in>I. emeasure (M i) (A i))"
 proof (induct I arbitrary: A rule: finite_induct)
   case (insert i I)
-  interpret finite_product_sigma_finite M I by default fact
+  interpret finite_product_sigma_finite M I by standard fact
   have "finite (insert i I)" using `finite I` by auto
-  interpret I': finite_product_sigma_finite M "insert i I" by default fact
+  interpret I': finite_product_sigma_finite M "insert i I" by standard fact
   let ?h = "(\<lambda>(f, y). f(i := y))"
 
   let ?P = "distr (Pi\<^sub>M I M \<Otimes>\<^sub>M M i) (Pi\<^sub>M (insert i I) M) ?h"
@@ -821,7 +821,7 @@ lemma (in product_sigma_finite) sigma_finite:
   assumes "finite I"
   shows "sigma_finite_measure (PiM I M)"
 proof
-  interpret finite_product_sigma_finite M I by default fact
+  interpret finite_product_sigma_finite M I by standard fact
 
   obtain F where F: "\<And>j. countable (F j)" "\<And>j f. f \<in> F j \<Longrightarrow> f \<in> sets (M j)"
     "\<And>j f. f \<in> F j \<Longrightarrow> emeasure (M j) f \<noteq> \<infinity>" and
@@ -846,7 +846,7 @@ lemma (in product_sigma_finite) nn_integral_empty:
   assumes pos: "0 \<le> f (\<lambda>k. undefined)"
   shows "integral\<^sup>N (Pi\<^sub>M {} M) f = f (\<lambda>k. undefined)"
 proof -
-  interpret finite_product_sigma_finite M "{}" by default (fact finite.emptyI)
+  interpret finite_product_sigma_finite M "{}" by standard (fact finite.emptyI)
   have "\<And>A. emeasure (Pi\<^sub>M {} M) (Pi\<^sub>E {} A) = 1"
     using assms by (subst measure_times) auto
   then show ?thesis
@@ -864,11 +864,11 @@ lemma (in product_sigma_finite) distr_merge:
   shows "distr (Pi\<^sub>M I M \<Otimes>\<^sub>M Pi\<^sub>M J M) (Pi\<^sub>M (I \<union> J) M) (merge I J) = Pi\<^sub>M (I \<union> J) M"
    (is "?D = ?P")
 proof -
-  interpret I: finite_product_sigma_finite M I by default fact
-  interpret J: finite_product_sigma_finite M J by default fact
+  interpret I: finite_product_sigma_finite M I by standard fact
+  interpret J: finite_product_sigma_finite M J by standard fact
   have "finite (I \<union> J)" using fin by auto
-  interpret IJ: finite_product_sigma_finite M "I \<union> J" by default fact
-  interpret P: pair_sigma_finite "Pi\<^sub>M I M" "Pi\<^sub>M J M" by default
+  interpret IJ: finite_product_sigma_finite M "I \<union> J" by standard fact
+  interpret P: pair_sigma_finite "Pi\<^sub>M I M" "Pi\<^sub>M J M" by standard
   let ?g = "merge I J"
 
   from IJ.sigma_finite_pairs obtain F where
@@ -928,9 +928,9 @@ lemma (in product_sigma_finite) product_nn_integral_fold:
   shows "integral\<^sup>N (Pi\<^sub>M (I \<union> J) M) f =
     (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (merge I J (x, y)) \<partial>(Pi\<^sub>M J M)) \<partial>(Pi\<^sub>M I M))"
 proof -
-  interpret I: finite_product_sigma_finite M I by default fact
-  interpret J: finite_product_sigma_finite M J by default fact
-  interpret P: pair_sigma_finite "Pi\<^sub>M I M" "Pi\<^sub>M J M" by default
+  interpret I: finite_product_sigma_finite M I by standard fact
+  interpret J: finite_product_sigma_finite M J by standard fact
+  interpret P: pair_sigma_finite "Pi\<^sub>M I M" "Pi\<^sub>M J M" by standard
   have P_borel: "(\<lambda>x. f (merge I J x)) \<in> borel_measurable (Pi\<^sub>M I M \<Otimes>\<^sub>M Pi\<^sub>M J M)"
     using measurable_comp[OF measurable_merge f] by (simp add: comp_def)
   show ?thesis
@@ -944,7 +944,7 @@ qed
 lemma (in product_sigma_finite) distr_singleton:
   "distr (Pi\<^sub>M {i} M) (M i) (\<lambda>x. x i) = M i" (is "?D = _")
 proof (intro measure_eqI[symmetric])
-  interpret I: finite_product_sigma_finite M "{i}" by default simp
+  interpret I: finite_product_sigma_finite M "{i}" by standard simp
   fix A assume A: "A \<in> sets (M i)"
   then have "(\<lambda>x. x i) -` A \<inter> space (Pi\<^sub>M {i} M) = (\<Pi>\<^sub>E i\<in>{i}. A)"
     using sets.sets_into_space by (auto simp: space_PiM)
@@ -957,7 +957,7 @@ lemma (in product_sigma_finite) product_nn_integral_singleton:
   assumes f: "f \<in> borel_measurable (M i)"
   shows "integral\<^sup>N (Pi\<^sub>M {i} M) (\<lambda>x. f (x i)) = integral\<^sup>N (M i) f"
 proof -
-  interpret I: finite_product_sigma_finite M "{i}" by default simp
+  interpret I: finite_product_sigma_finite M "{i}" by standard simp
   from f show ?thesis
     apply (subst distr_singleton[symmetric])
     apply (subst nn_integral_distr[OF measurable_component_singleton])
@@ -970,8 +970,8 @@ lemma (in product_sigma_finite) product_nn_integral_insert:
     and f: "f \<in> borel_measurable (Pi\<^sub>M (insert i I) M)"
   shows "integral\<^sup>N (Pi\<^sub>M (insert i I) M) f = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f (x(i := y)) \<partial>(M i)) \<partial>(Pi\<^sub>M I M))"
 proof -
-  interpret I: finite_product_sigma_finite M I by default auto
-  interpret i: finite_product_sigma_finite M "{i}" by default auto
+  interpret I: finite_product_sigma_finite M I by standard auto
+  interpret i: finite_product_sigma_finite M "{i}" by standard auto
   have IJ: "I \<inter> {i} = {}" and insert: "I \<union> {i} = insert i I"
     using f by auto
   show ?thesis
@@ -1008,7 +1008,7 @@ lemma (in product_sigma_finite) product_nn_integral_setprod:
 using assms proof induct
   case (insert i I)
   note `finite I`[intro, simp]
-  interpret I: finite_product_sigma_finite M I by default auto
+  interpret I: finite_product_sigma_finite M I by standard auto
   have *: "\<And>x y. (\<Prod>j\<in>I. f j (if j = i then y else x j)) = (\<Prod>j\<in>I. f j (x j))"
     using insert by (auto intro!: setprod.cong)
   have prod: "\<And>J. J \<subseteq> insert i I \<Longrightarrow> (\<lambda>x. (\<Prod>i\<in>J. f i (x i))) \<in> borel_measurable (Pi\<^sub>M J M)"
@@ -1044,7 +1044,7 @@ qed
 lemma (in product_sigma_finite) distr_component:
   "distr (M i) (Pi\<^sub>M {i} M) (\<lambda>x. \<lambda>i\<in>{i}. x) = Pi\<^sub>M {i} M" (is "?D = ?P")
 proof (intro measure_eqI[symmetric])
-  interpret I: finite_product_sigma_finite M "{i}" by default simp
+  interpret I: finite_product_sigma_finite M "{i}" by standard simp
 
   have eq: "\<And>x. x \<in> extensional {i} \<Longrightarrow> (\<lambda>j\<in>{i}. x i) = x"
     by (auto simp: extensional_def restrict_def)
@@ -1068,8 +1068,8 @@ lemma (in product_sigma_finite)
     and emeasure_fold_measurable:
     "(\<lambda>x. emeasure (Pi\<^sub>M J M) ((\<lambda>y. merge I J (x, y)) -` A \<inter> space (Pi\<^sub>M J M))) \<in> borel_measurable (Pi\<^sub>M I M)" (is ?B)
 proof -
-  interpret I: finite_product_sigma_finite M I by default fact
-  interpret J: finite_product_sigma_finite M J by default fact
+  interpret I: finite_product_sigma_finite M I by standard fact
+  interpret J: finite_product_sigma_finite M J by standard fact
   interpret IJ: pair_sigma_finite "Pi\<^sub>M I M" "Pi\<^sub>M J M" ..
   have merge: "merge I J -` A \<inter> space (Pi\<^sub>M I M \<Otimes>\<^sub>M Pi\<^sub>M J M) \<in> sets (Pi\<^sub>M I M \<Otimes>\<^sub>M Pi\<^sub>M J M)"
     by (intro measurable_sets[OF _ A] measurable_merge assms)

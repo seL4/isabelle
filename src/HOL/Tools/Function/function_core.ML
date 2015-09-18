@@ -7,7 +7,6 @@ Core of the function package.
 signature FUNCTION_CORE =
 sig
   val trace: bool Unsynchronized.ref
-
   val prepare_function : Function_Common.function_config
     -> string (* defname *)
     -> ((bstring * typ) * mixfix) list (* defined symbol *)
@@ -504,10 +503,12 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
       Abs ("x", domT, Const (@{const_name Fun_Def.THE_default}, ranT --> (ranT --> boolT) --> ranT)
         $ (default $ Bound 0) $ Abs ("y", ranT, G $ Bound 1 $ Bound 0))
       |> Syntax.check_term lthy
+    val def_binding =
+      if Config.get lthy function_defs then (Binding.name fdefname, [])
+      else Attrib.empty_binding
   in
     Local_Theory.define
-      ((Binding.name (function_name fname), mixfix),
-        ((Binding.concealed (Binding.name fdefname), []), f_def)) lthy
+      ((Binding.name (function_name fname), mixfix), (def_binding, f_def)) lthy
   end
 
 fun define_recursion_relation Rname domT qglrs clauses RCss lthy =

@@ -76,9 +76,6 @@ fun prove_conv name tacs ctxt prems (t,u) =
         (warning (msg ^ "\nCancellation failed: no typing information? (" ^ name ^ ")"); NONE)
   end;
 
-fun prep_simproc thy (name, pats, proc) =
-  Simplifier.simproc_global thy name pats proc;
-
 
 (*** Use CancelNumerals simproc without binary numerals,
      just for cancellation ***)
@@ -202,22 +199,24 @@ structure DiffCancelNumerals = CancelNumeralsFun(DiffCancelNumeralsData);
 
 
 val nat_cancel =
-  map (prep_simproc @{theory})
-   [("nateq_cancel_numerals",
-     ["l #+ m = n", "l = m #+ n",
-      "l #* m = n", "l = m #* n",
-      "succ(m) = n", "m = succ(n)"],
-     EqCancelNumerals.proc),
-    ("natless_cancel_numerals",
-     ["l #+ m < n", "l < m #+ n",
-      "l #* m < n", "l < m #* n",
-      "succ(m) < n", "m < succ(n)"],
-     LessCancelNumerals.proc),
-    ("natdiff_cancel_numerals",
-     ["(l #+ m) #- n", "l #- (m #+ n)",
-      "(l #* m) #- n", "l #- (m #* n)",
-      "succ(m) #- n", "m #- succ(n)"],
-     DiffCancelNumerals.proc)];
+ [Simplifier.make_simproc @{context} "nateq_cancel_numerals"
+   {lhss =
+     [@{term "l #+ m = n"}, @{term "l = m #+ n"},
+      @{term "l #* m = n"}, @{term "l = m #* n"},
+      @{term "succ(m) = n"}, @{term "m = succ(n)"}],
+    proc = K EqCancelNumerals.proc, identifier = []},
+  Simplifier.make_simproc @{context} "natless_cancel_numerals"
+   {lhss =
+     [@{term "l #+ m < n"}, @{term "l < m #+ n"},
+      @{term "l #* m < n"}, @{term "l < m #* n"},
+      @{term "succ(m) < n"}, @{term "m < succ(n)"}],
+    proc = K LessCancelNumerals.proc, identifier = []},
+  Simplifier.make_simproc @{context} "natdiff_cancel_numerals"
+   {lhss =
+     [@{term "(l #+ m) #- n"}, @{term "l #- (m #+ n)"},
+      @{term "(l #* m) #- n"}, @{term "l #- (m #* n)"},
+      @{term "succ(m) #- n"}, @{term "m #- succ(n)"}],
+    proc = K DiffCancelNumerals.proc, identifier = []}];
 
 end;
 

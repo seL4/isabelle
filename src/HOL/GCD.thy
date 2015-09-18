@@ -1975,7 +1975,7 @@ where "Inf.INFIMUM Gcd A f = Gcd (f ` A :: nat set)"
   and "Sup.SUPREMUM Lcm A f = Lcm (f ` A)"
 proof -
   show "class.complete_lattice Gcd Lcm gcd Rings.dvd (\<lambda>m n. m dvd n \<and> \<not> n dvd m) lcm 1 (0::nat)"
-    by default (auto simp add: Gcd_nat_def Lcm_nat_empty Lcm_nat_infinite)
+    by standard (auto simp add: Gcd_nat_def Lcm_nat_empty Lcm_nat_infinite)
   then interpret gcd_lcm_complete_lattice_nat:
     complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat" .
   from gcd_lcm_complete_lattice_nat.INF_def show "Inf.INFIMUM Gcd A f = Gcd (f ` A)" .

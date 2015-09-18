@@ -91,7 +91,7 @@ by auto
 
 datatype ('a::finite, 'b::finite) F = F 'a | F2 'b
 
-instance T :: (finite) finite by (default, transfer, auto)
+instance T :: (finite) finite by standard (transfer, auto)
 
 lift_definition(code_dt) f17 :: "bool \<Rightarrow> (bool T, 'b::finite) F" is "\<lambda>b. F b" by auto
 

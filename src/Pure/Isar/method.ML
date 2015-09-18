@@ -17,7 +17,7 @@ sig
   val SIMPLE_METHOD: tactic -> method
   val SIMPLE_METHOD': (int -> tactic) -> method
   val SIMPLE_METHOD'': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
-  val goals_tac: Proof.context -> string list -> cases_tactic
+  val goal_cases_tac: Proof.context -> string list -> cases_tactic
   val cheating: Proof.context -> bool -> method
   val intro: Proof.context -> thm list -> method
   val elim: Proof.context -> thm list -> method
@@ -130,7 +130,7 @@ end;
 
 (* goals as cases *)
 
-fun goals_tac ctxt case_names st =
+fun goal_cases_tac ctxt case_names st =
   let
     val cases =
       (if null case_names then map string_of_int (1 upto Thm.nprems_of st) else case_names)
@@ -693,21 +693,20 @@ val _ = Theory.setup
     "succeed after delay (in seconds)" #>
   setup @{binding "-"} (Scan.succeed (K insert_facts))
     "insert current facts, nothing else" #>
-  setup @{binding goals} (Scan.lift (Scan.repeat Args.name_token) >> (fn names => fn ctxt =>
-    METHOD_CASES (fn facts =>
-      Seq.THEN (ALLGOALS (insert_tac facts), fn st =>
-        let
-          val _ =
-            (case drop (Thm.nprems_of st) names of
-              [] => ()
-            | bad =>
-                if detect_closure_state st then ()
-                else
-                  (* FIXME Seq.Error *)
-                  error ("Excessive case names: " ^ commas_quote (map Token.content_of bad) ^
-                    Position.here (Position.set_range (Token.range_of bad))));
-        in goals_tac ctxt (map Token.content_of names) st end))))
-    "insert facts and bind cases for goals" #>
+  setup @{binding goal_cases} (Scan.lift (Scan.repeat Args.name_token) >> (fn names => fn ctxt =>
+    METHOD_CASES (fn facts => fn st =>
+      let
+        val _ =
+          (case drop (Thm.nprems_of st) names of
+            [] => ()
+          | bad =>
+              if detect_closure_state st then ()
+              else
+                (* FIXME Seq.Error *)
+                error ("Excessive case names: " ^ commas_quote (map Token.content_of bad) ^
+                  Position.here (Position.set_range (Token.range_of bad))));
+      in goal_cases_tac ctxt (map Token.content_of names) st end)))
+    "bind cases for goals" #>
   setup @{binding insert} (Attrib.thms >> (K o insert))
     "insert theorems, ignoring facts" #>
   setup @{binding intro} (Attrib.thms >> (fn ths => fn ctxt => intro ctxt ths))

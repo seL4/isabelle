@@ -333,7 +333,7 @@ function plus_ereal where
 | "ereal r + -\<infinity> = - \<infinity>"
 | "-\<infinity> + ereal p = -(\<infinity>::ereal)"
 | "-\<infinity> + -\<infinity> = -(\<infinity>::ereal)"
-proof goals
+proof goal_cases
   case prems: (1 P x)
   then obtain a b where "x = (a, b)"
     by (cases x) auto
@@ -437,7 +437,7 @@ where
 | "ereal x    < \<infinity>           \<longleftrightarrow> True"
 | "        -\<infinity> < ereal r     \<longleftrightarrow> True"
 | "        -\<infinity> < (\<infinity>::ereal) \<longleftrightarrow> True"
-proof goals
+proof goal_cases
   case prems: (1 P x)
   then obtain a b where "x = (a,b)" by (cases x) auto
   with prems show P by (cases rule: ereal2_cases[of a b]) auto
@@ -860,7 +860,7 @@ function times_ereal where
 | "-(\<infinity>::ereal) * \<infinity> = -\<infinity>"
 | "(\<infinity>::ereal) * -\<infinity> = -\<infinity>"
 | "-(\<infinity>::ereal) * -\<infinity> = \<infinity>"
-proof goals
+proof goal_cases
   case prems: (1 P x)
   then obtain a b where "x = (a, b)"
     by (cases x) auto
@@ -913,7 +913,7 @@ lemma ereal_m1_less_0[simp]: "-(1::ereal) < 0"
 lemma ereal_times[simp]:
   "1 \<noteq> (\<infinity>::ereal)" "(\<infinity>::ereal) \<noteq> 1"
   "1 \<noteq> -(\<infinity>::ereal)" "-(\<infinity>::ereal) \<noteq> 1"
-  by (auto simp add: times_ereal_def one_ereal_def)
+  by (auto simp: one_ereal_def)
 
 lemma ereal_plus_1[simp]:
   "1 + ereal r = ereal (r + 1)"
@@ -2195,7 +2195,7 @@ proof (intro antisym mono_Sup)
   show "ereal_of_enat (Sup A) \<le> (SUP a : A. ereal_of_enat a)"
   proof cases
     assume "finite A"
-    with `A \<noteq> {}` obtain a where "a \<in> A" "ereal_of_enat (Sup A) = ereal_of_enat a"
+    with \<open>A \<noteq> {}\<close> obtain a where "a \<in> A" "ereal_of_enat (Sup A) = ereal_of_enat a"
       using Max_in[of A] by (auto simp: Sup_enat_def simp del: Max_in)
     then show ?thesis
       by (auto intro: SUP_upper)
@@ -2208,11 +2208,11 @@ proof (intro antisym mono_Sup)
       then obtain n :: nat where "x < n"
         using less_PInf_Ex_of_nat top_ereal_def by auto
       obtain a where "a \<in> A - enat ` {.. n}"
-        by (metis `\<not> finite A` all_not_in_conv finite_Diff2 finite_atMost finite_imageI finite.emptyI)
+        by (metis \<open>\<not> finite A\<close> all_not_in_conv finite_Diff2 finite_atMost finite_imageI finite.emptyI)
       then have "a \<in> A" "ereal n \<le> ereal_of_enat a"
         by (auto simp: image_iff Ball_def)
            (metis enat_iless enat_ord_simps(1) ereal_of_enat_less_iff ereal_of_enat_simps(1) less_le not_less)
-      with `x < n` show "\<exists>i\<in>A. x < ereal_of_enat i"
+      with \<open>x < n\<close> show "\<exists>i\<in>A. x < ereal_of_enat i"
         by (auto intro!: bexI[of _ a])
     qed
     show ?thesis

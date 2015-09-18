@@ -1017,9 +1017,9 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
                     (fn {context = ctxt, ...} => mk_disc_eq_case_tac ctxt (Thm.cterm_of ctxt u)
                        exhaust_thm (flat nontriv_disc_thmss) distinct_thms case_thms)
+                  |> Thm.close_derivation
                   |> Conjunction.elim_balanced (length goals)
                   |> Proof_Context.export names_lthy lthy
-                  |> map Thm.close_derivation
                 end;
             in
               (sel_defs, all_sel_thms, sel_thmss, disc_defs, disc_thmss, nontriv_disc_thmss,

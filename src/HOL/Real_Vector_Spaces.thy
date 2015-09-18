@@ -1294,7 +1294,7 @@ lemma linearI:
   assumes "\<And>x y. f (x + y) = f x + f y"
   assumes "\<And>c x. f (c *\<^sub>R x) = c *\<^sub>R f x"
   shows "linear f"
-  by default (rule assms)+
+  by standard (rule assms)+
 
 locale bounded_linear = linear f for f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" +
   assumes bounded: "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
@@ -1334,7 +1334,7 @@ lemma bounded_linear_intro:
   assumes "\<And>r x. f (scaleR r x) = scaleR r (f x)"
   assumes "\<And>x. norm (f x) \<le> norm x * K"
   shows "bounded_linear f"
-  by default (fast intro: assms)+
+  by standard (fast intro: assms)+
 
 locale bounded_bilinear =
   fixes prod :: "['a::real_normed_vector, 'b::real_normed_vector]
@@ -1415,10 +1415,10 @@ by (simp add: diff_left diff_right)
 end
 
 lemma bounded_linear_ident[simp]: "bounded_linear (\<lambda>x. x)"
-  by default (auto intro!: exI[of _ 1])
+  by standard (auto intro!: exI[of _ 1])
 
 lemma bounded_linear_zero[simp]: "bounded_linear (\<lambda>x. 0)"
-  by default (auto intro!: exI[of _ 1])
+  by standard (auto intro!: exI[of _ 1])
 
 lemma bounded_linear_add:
   assumes "bounded_linear f"
@@ -1859,7 +1859,7 @@ instance real :: complete_space
 
 class banach = real_normed_vector + complete_space
 
-instance real :: banach by default
+instance real :: banach ..
 
 lemma tendsto_at_topI_sequentially:
   fixes f :: "real \<Rightarrow> 'b::first_countable_topology"

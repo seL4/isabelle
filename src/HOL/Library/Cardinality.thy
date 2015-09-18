@@ -410,7 +410,10 @@ text \<open>
   possibly slow dictionary constructions.
 \<close>
 
-definition card_UNIV' :: "'a card_UNIV"
+context
+begin
+
+qualified definition card_UNIV' :: "'a card_UNIV"
 where [code del]: "card_UNIV' = Phantom('a) CARD('a)"
 
 lemma CARD_code [code_unfold]:
@@ -421,7 +424,7 @@ lemma card_UNIV'_code [code]:
   "card_UNIV' = card_UNIV"
 by(simp add: card_UNIV card_UNIV'_def)
 
-hide_const (open) card_UNIV'
+end
 
 lemma card_Compl:
   "finite A \<Longrightarrow> card (- A) = card (UNIV :: 'a set) - card (A :: 'a set)"
@@ -430,7 +433,7 @@ by (metis Compl_eq_Diff_UNIV card_Diff_subset top_greatest)
 context fixes xs :: "'a :: finite_UNIV list"
 begin
 
-definition finite' :: "'a set \<Rightarrow> bool"
+qualified definition finite' :: "'a set \<Rightarrow> bool"
 where [simp, code del, code_abbrev]: "finite' = finite"
 
 lemma finite'_code [code]:
@@ -443,7 +446,7 @@ end
 context fixes xs :: "'a :: card_UNIV list"
 begin
 
-definition card' :: "'a set \<Rightarrow> nat" 
+qualified definition card' :: "'a set \<Rightarrow> nat" 
 where [simp, code del, code_abbrev]: "card' = card"
  
 lemma card'_code [code]:
@@ -452,7 +455,7 @@ lemma card'_code [code]:
 by(simp_all add: List.card_set card_Compl card_UNIV)
 
 
-definition subset' :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+qualified definition subset' :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
 where [simp, code del, code_abbrev]: "subset' = op \<subseteq>"
 
 lemma subset'_code [code]:
@@ -462,7 +465,7 @@ lemma subset'_code [code]:
 by(auto simp add: Let_def card_gt_0_iff dest: card_eq_UNIV_imp_eq_UNIV intro: arg_cong[where f=card])
   (metis finite_compl finite_set rev_finite_subset)
 
-definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+qualified definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
 where [simp, code del, code_abbrev]: "eq_set = op ="
 
 lemma eq_set_code [code]:
@@ -476,7 +479,7 @@ lemma eq_set_code [code]:
   and "eq_set (set ys) (List.coset xs) \<longleftrightarrow> rhs"
   and "eq_set (set xs) (set ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)"
   and "eq_set (List.coset xs) (List.coset ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)"
-proof goals
+proof goal_cases
   {
     case 1
     show ?case (is "?lhs \<longleftrightarrow> ?rhs")
@@ -538,7 +541,4 @@ have "List.coset [True] = set [False] \<and>
   by eval
 end
 
-hide_const (open) card' finite' subset' eq_set
-
 end
-

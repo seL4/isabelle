@@ -11,18 +11,13 @@ begin
 ML_file "../antiquote_setup.ML"
 ML_file "../more_antiquote.ML"
 
-setup \<open>
-let
-  val typ = Simple_Syntax.read_typ;
-in
-  Sign.del_syntax (Symbol.xsymbolsN, false)
-   [("_constrain", typ "logic => type => logic", Mixfix ("_\<Colon>_", [4, 0], 3)),
-    ("_constrain", typ "prop' => type => prop'", Mixfix ("_\<Colon>_", [4, 0], 3))] #>
-  Sign.add_syntax (Symbol.xsymbolsN, false)
-   [("_constrain", typ "logic => type => logic", Mixfix ("_ \<Colon>  _", [4, 0], 3)),
-    ("_constrain", typ "prop' => type => prop'", Mixfix ("_ \<Colon> _", [4, 0], 3))]
-end
-\<close>
+no_syntax (output)
+  "_constrain" :: "logic => type => logic"  ("_::_" [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  ("_::_" [4, 0] 3)
+
+syntax (output)
+  "_constrain" :: "logic => type => logic"  ("_ :: _" [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  ("_ :: _" [4, 0] 3)
 
 declare [[default_code_width = 74]]
 

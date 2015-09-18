@@ -104,22 +104,22 @@ lemma is_empty_min_max:
 by(auto simp add: is_empty_rep_def max_def min_def split: if_splits)
 
 instance
-proof
-  case goal1 show ?case by (rule less_ivl_def)
+proof (standard, goal_cases)
+  case 1 show ?case by (rule less_ivl_def)
 next
-  case goal2 show ?case by transfer (simp add: le_rep_def split: prod.splits)
+  case 2 show ?case by transfer (simp add: le_rep_def split: prod.splits)
 next
-  case goal3 thus ?case by transfer (auto simp: le_rep_def split: if_splits)
+  case 3 thus ?case by transfer (auto simp: le_rep_def split: if_splits)
 next
-  case goal4 thus ?case by transfer (auto simp: le_rep_def eq_ivl_iff split: if_splits)
+  case 4 thus ?case by transfer (auto simp: le_rep_def eq_ivl_iff split: if_splits)
 next
-  case goal5 thus ?case by transfer (auto simp add: le_rep_def sup_rep_def is_empty_min_max)
+  case 5 thus ?case by transfer (auto simp add: le_rep_def sup_rep_def is_empty_min_max)
 next
-  case goal6 thus ?case by transfer (auto simp add: le_rep_def sup_rep_def is_empty_min_max)
+  case 6 thus ?case by transfer (auto simp add: le_rep_def sup_rep_def is_empty_min_max)
 next
-  case goal7 thus ?case by transfer (auto simp add: le_rep_def sup_rep_def)
+  case 7 thus ?case by transfer (auto simp add: le_rep_def sup_rep_def)
 next
-  case goal8 show ?case by transfer (simp add: le_rep_def is_empty_rep_def)
+  case 8 show ?case by transfer (simp add: le_rep_def is_empty_rep_def)
 qed
 
 end
@@ -132,8 +132,8 @@ definition equal_ivl where
 "equal_ivl i1 (i2::ivl) = (i1\<le>i2 \<and> i2 \<le> i1)"
 
 instance
-proof
-  case goal1 show ?case by(simp add: equal_ivl_def eq_iff)
+proof (standard, goal_cases)
+  case 1 show ?case by(simp add: equal_ivl_def eq_iff)
 qed
 
 end
@@ -161,14 +161,14 @@ by transfer (rule \<gamma>_inf_rep)
 definition "\<bottom> = empty_ivl"
 
 instance
-proof
-  case goal1 thus ?case by (simp add: \<gamma>_inf le_ivl_iff_subset)
+proof (standard, goal_cases)
+  case 1 thus ?case by (simp add: \<gamma>_inf le_ivl_iff_subset)
 next
-  case goal2 thus ?case by (simp add: \<gamma>_inf le_ivl_iff_subset)
+  case 2 thus ?case by (simp add: \<gamma>_inf le_ivl_iff_subset)
 next
-  case goal3 thus ?case by (simp add: \<gamma>_inf le_ivl_iff_subset)
+  case 3 thus ?case by (simp add: \<gamma>_inf le_ivl_iff_subset)
 next
-  case goal4 show ?case
+  case 4 show ?case
     unfolding bot_ivl_def by transfer (auto simp: le_iff_subset)
 qed
 
@@ -304,14 +304,14 @@ by(drule (1) add_mono) simp
 
 permanent_interpretation Val_semilattice
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
-proof
-  case goal1 thus ?case by transfer (simp add: le_iff_subset)
+proof (standard, goal_cases)
+  case 1 thus ?case by transfer (simp add: le_iff_subset)
 next
-  case goal2 show ?case by transfer (simp add: \<gamma>_rep_def)
+  case 2 show ?case by transfer (simp add: \<gamma>_rep_def)
 next
-  case goal3 show ?case by transfer (simp add: \<gamma>_rep_def)
+  case 3 show ?case by transfer (simp add: \<gamma>_rep_def)
 next
-  case goal4 thus ?case
+  case 4 thus ?case
     apply transfer
     apply(auto simp: \<gamma>_rep_def plus_rep_def add_mono_le_Fin add_mono_Fin_le)
     by(auto simp: empty_rep_def is_empty_rep_def)
@@ -321,26 +321,26 @@ qed
 permanent_interpretation Val_lattice_gamma
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 defining aval_ivl = aval'
-proof
-  case goal1 show ?case by(simp add: \<gamma>_inf)
+proof (standard, goal_cases)
+  case 1 show ?case by(simp add: \<gamma>_inf)
 next
-  case goal2 show ?case unfolding bot_ivl_def by transfer simp
+  case 2 show ?case unfolding bot_ivl_def by transfer simp
 qed
 
 permanent_interpretation Val_inv
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
-proof
-  case goal1 thus ?case by transfer (auto simp: \<gamma>_rep_def)
+proof (standard, goal_cases)
+  case 1 thus ?case by transfer (auto simp: \<gamma>_rep_def)
 next
-  case goal2 thus ?case
+  case (2 _ _ _ _ _ i1 i2) thus ?case
     unfolding inv_plus_ivl_def minus_ivl_def
     apply(clarsimp simp add: \<gamma>_inf)
     using gamma_plus'[of "i1+i2" _ "-i1"] gamma_plus'[of "i1+i2" _ "-i2"]
     by(simp add:  \<gamma>_uminus)
 next
-  case goal3 thus ?case
+  case (3 i1 i2) thus ?case
     unfolding inv_less_ivl_def minus_ivl_def one_extended_def
     apply(clarsimp simp add: \<gamma>_inf split: if_splits)
     using gamma_plus'[of "i1+1" _ "-1"] gamma_plus'[of "i2 - 1" _ "1"]
@@ -388,14 +388,14 @@ permanent_interpretation Abs_Int_inv_mono
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
-proof
-  case goal1 thus ?case by (rule mono_plus_ivl)
+proof (standard, goal_cases)
+  case 1 thus ?case by (rule mono_plus_ivl)
 next
-  case goal2 thus ?case
+  case 2 thus ?case
     unfolding inv_plus_ivl_def minus_ivl_def less_eq_prod_def
     by (auto simp: le_infI1 le_infI2 mono_plus_ivl mono_minus_ivl)
 next
-  case goal3 thus ?case
+  case 3 thus ?case
     unfolding less_eq_prod_def inv_less_ivl_def minus_ivl_def
     by (auto simp: le_infI1 le_infI2 mono_plus_ivl mono_above mono_below)
 qed

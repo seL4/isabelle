@@ -7,28 +7,34 @@ Partial function definitions based on least fixed points in ccpos.
 signature PARTIAL_FUNCTION =
 sig
   val init: string -> term -> term -> thm -> thm -> thm option -> declaration
-
   val mono_tac: Proof.context -> int -> tactic
-
   val add_partial_function: string -> (binding * typ option * mixfix) list ->
     Attrib.binding * term -> local_theory -> local_theory
-
   val add_partial_function_cmd: string -> (binding * string option * mixfix) list ->
     Attrib.binding * string -> local_theory -> local_theory
 end;
-
 
 structure Partial_Function: PARTIAL_FUNCTION =
 struct
 
 (*** Context Data ***)
 
-datatype setup_data = Setup_Data of 
+datatype setup_data = Setup_Data of
  {fixp: term,
   mono: term,
   fixp_eq: thm,
   fixp_induct: thm,
   fixp_induct_user: thm option};
+
+fun transform_setup_data phi (Setup_Data {fixp, mono, fixp_eq, fixp_induct, fixp_induct_user}) =
+  let
+    val term = Morphism.term phi;
+    val thm = Morphism.thm phi;
+  in
+    Setup_Data
+     {fixp = term fixp, mono = term mono, fixp_eq = thm fixp_eq,
+      fixp_induct = thm fixp_induct, fixp_induct_user = Option.map thm fixp_induct_user}
+  end;
 
 structure Modes = Generic_Data
 (
@@ -40,17 +46,18 @@ structure Modes = Generic_Data
 
 fun init mode fixp mono fixp_eq fixp_induct fixp_induct_user phi =
   let
-    val term = Morphism.term phi;
-    val thm = Morphism.thm phi;
-    val data' = Setup_Data 
-      {fixp=term fixp, mono=term mono, fixp_eq=thm fixp_eq,
-       fixp_induct=thm fixp_induct, fixp_induct_user=Option.map thm fixp_induct_user};
-  in
-    Modes.map (Symtab.update (mode, data'))
-  end
+    val data' =
+      Setup_Data
+       {fixp = fixp, mono = mono, fixp_eq = fixp_eq,
+        fixp_induct = fixp_induct, fixp_induct_user = fixp_induct_user}
+      |> transform_setup_data (phi $> Morphism.trim_context_morphism);
+  in Modes.map (Symtab.update (mode, data')) end;
 
 val known_modes = Symtab.keys o Modes.get o Context.Proof;
-val lookup_mode = Symtab.lookup o Modes.get o Context.Proof;
+
+fun lookup_mode ctxt =
+  Symtab.lookup (Modes.get (Context.Proof ctxt))
+  #> Option.map (transform_setup_data (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)));
 
 
 (*** Automated monotonicity proofs ***)
@@ -159,7 +166,7 @@ fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rul
   let
     val ([P], ctxt') = Variable.variant_fixes ["P"] ctxt
     val P_inst = Abs ("f", fT_uc, Free (P, fT --> HOLogic.boolT) $ (curry $ Bound 0))
-  in 
+  in
     (* FIXME ctxt vs. ctxt' (!?) *)
     rule
     |> infer_instantiate' ctxt
@@ -182,7 +189,7 @@ fun mk_curried_induct args ctxt inst_rule =
     val split_paired_all_conv =
       Conv.every_conv (replicate (length args - 1) (Conv.rewr_conv @{thm split_paired_all}))
 
-    val split_params_conv = 
+    val split_params_conv =
       Conv.params_conv ~1 (fn ctxt' =>
         Conv.implies_conv split_paired_all_conv Conv.all_conv)
 
@@ -207,7 +214,7 @@ fun mk_curried_induct args ctxt inst_rule =
   in
     inst_rule'
   end;
-    
+
 
 (*** partial_function definition ***)
 
@@ -251,9 +258,11 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val inst_mono_thm = Thm.forall_elim (Thm.cterm_of lthy x_uc) mono_thm
 
     val f_def_rhs = curry_n arity (apply_inst lthy fixp F_uc);
-    val f_def_binding = Binding.concealed (Binding.name (Thm.def_name fname));
+    val f_def_binding =
+      if Config.get lthy Function_Lib.function_defs then (Binding.name (Thm.def_name fname), [])
+      else Attrib.empty_binding;
     val ((f, (_, f_def)), lthy') = Local_Theory.define
-      ((f_binding, mixfix), ((f_def_binding, []), f_def_rhs)) lthy;
+      ((f_binding, mixfix), (f_def_binding, f_def_rhs)) lthy;
 
     val eqn = HOLogic.mk_eq (list_comb (f, args),
         Term.betapplys (F, f :: args))
@@ -264,7 +273,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
         OF [inst_mono_thm, f_def])
       |> Tactic.rule_by_tactic lthy' (Simplifier.simp_tac (put_simpset curry_uncurry_ss lthy') 1);
 
-    val specialized_fixp_induct = 
+    val specialized_fixp_induct =
       specialize_fixp_induct lthy' args fT fT_uc F curry uncurry inst_mono_thm f_def fixp_induct
       |> Drule.rename_bvars' (map SOME (fname :: fname :: argnames));
 
@@ -288,10 +297,10 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     |-> (fn (_, rec') =>
       Spec_Rules.add Spec_Rules.Equational ([f], rec')
       #> Local_Theory.note ((Binding.qualify true fname (Binding.name "simps"), []), rec') #> snd)
-    |> (Local_Theory.note ((Binding.qualify true fname (Binding.name "mono"), []), [mono_thm]) #> snd) 
+    |> (Local_Theory.note ((Binding.qualify true fname (Binding.name "mono"), []), [mono_thm]) #> snd)
     |> (case raw_induct of NONE => I | SOME thm =>
          Local_Theory.note ((Binding.qualify true fname (Binding.name "raw_induct"), []), [thm]) #> snd)
-    |> (Local_Theory.note ((Binding.qualify true fname (Binding.name "fixp_induct"), []), [specialized_fixp_induct]) #> snd) 
+    |> (Local_Theory.note ((Binding.qualify true fname (Binding.name "fixp_induct"), []), [specialized_fixp_induct]) #> snd)
   end;
 
 val add_partial_function = gen_add_partial_function Specification.check_spec;
@@ -304,4 +313,4 @@ val _ =
     ((mode -- (Parse.fixes -- (Parse.where_ |-- Parse_Spec.spec)))
       >> (fn (mode, (fixes, spec)) => add_partial_function_cmd mode fixes spec));
 
-end
+end;

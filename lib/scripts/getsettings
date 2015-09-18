@@ -240,21 +240,29 @@ function init_components ()
 {
   local BASE="$1"
   local CATALOG="$2"
+  local COMPONENT=""
+  local -a COMPONENTS=()
 
   if [ ! -f "$CATALOG" ]; then
     echo >&2 "Bad component catalog file: \"$CATALOG\""
     exit 2
   fi
+
   {
     while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
     do
       case "$REPLY" in
         \#* | "") ;;
-        /*) init_component "$REPLY" ;;
-        *) init_component "$BASE/$REPLY" ;;
+        /*) COMPONENTS["${#COMPONENTS[@]}"]="$REPLY" ;;
+        *) COMPONENTS["${#COMPONENTS[@]}"]="$BASE/$REPLY" ;;
       esac
     done
   } < "$CATALOG"
+
+  for COMPONENT in "${COMPONENTS[@]}"
+  do
+    init_component "$COMPONENT"
+  done
 }
 
 #main components

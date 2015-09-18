@@ -92,7 +92,7 @@ fun mk_split_abs vs (Bound i) t = let val (x, T) = nth vs i in Abs (x, T, t) end
 val strip_psplits =
   let
     fun strip [] qs vs t = (t, rev vs, qs)
-      | strip (p :: ps) qs vs (Const (@{const_name Product_Type.prod.case_prod}, _) $ t) =
+      | strip (p :: ps) qs vs (Const (@{const_name uncurry}, _) $ t) =
           strip ((1 :: p) :: (2 :: p) :: ps) (p :: qs) vs t
       | strip (_ :: ps) qs vs (Abs (s, T, t)) = strip ps qs ((s, T) :: vs) t
       | strip (_ :: ps) qs vs t = strip ps qs
@@ -305,7 +305,7 @@ val rewrite_term = try mk_pointfree_expr
 
 (* proof tactic *)
 
-val case_prod_distrib = @{lemma "(case_prod g x) z = case_prod (% x y. (g x y) z) x" by (simp add: case_prod_beta)}
+val case_prod_distrib = @{lemma "(uncurry g x) z = uncurry (\<lambda>x y. (g x y) z) x" by (simp add: case_prod_beta)}
 
 val vimageI2' = @{lemma "f a \<notin> A ==> a \<notin> f -` A" by simp}
 val vimageE' =

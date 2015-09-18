@@ -143,7 +143,7 @@ by (simp add: ID_def)
 
 lemma deflation_list_map [domain_deflation]:
   "deflation d \<Longrightarrow> deflation (list_map d)"
-apply default
+apply standard
 apply (induct_tac x, simp_all add: deflation.idem)
 apply (induct_tac x, simp_all add: deflation.below)
 done

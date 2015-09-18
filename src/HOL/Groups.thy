@@ -71,7 +71,7 @@ locale comm_monoid = abel_semigroup +
 begin
 
 sublocale monoid
-  by default (simp_all add: commute comm_neutral)
+  by standard (simp_all add: commute comm_neutral)
 
 end
 
@@ -132,7 +132,7 @@ class semigroup_add = plus +
 begin
 
 sublocale add!: semigroup plus
-  by default (fact add_assoc)
+  by standard (fact add_assoc)
 
 end
 
@@ -143,7 +143,7 @@ class ab_semigroup_add = semigroup_add +
 begin
 
 sublocale add!: abel_semigroup plus
-  by default (fact add_commute)
+  by standard (fact add_commute)
 
 declare add.left_commute [algebra_simps, field_simps]
 
@@ -160,7 +160,7 @@ class semigroup_mult = times +
 begin
 
 sublocale mult!: semigroup times
-  by default (fact mult_assoc)
+  by standard (fact mult_assoc)
 
 end
 
@@ -171,7 +171,7 @@ class ab_semigroup_mult = semigroup_mult +
 begin
 
 sublocale mult!: abel_semigroup times
-  by default (fact mult_commute)
+  by standard (fact mult_commute)
 
 declare mult.left_commute [algebra_simps, field_simps]
 
@@ -189,7 +189,7 @@ class monoid_add = zero + semigroup_add +
 begin
 
 sublocale add!: monoid plus 0
-  by default (fact add_0_left add_0_right)+
+  by standard (fact add_0_left add_0_right)+
 
 end
 
@@ -201,10 +201,10 @@ class comm_monoid_add = zero + ab_semigroup_add +
 begin
 
 subclass monoid_add
-  by default (simp_all add: add_0 add.commute [of _ 0])
+  by standard (simp_all add: add_0 add.commute [of _ 0])
 
 sublocale add!: comm_monoid plus 0
-  by default (simp add: ac_simps)
+  by standard (simp add: ac_simps)
 
 end
 
@@ -214,7 +214,7 @@ class monoid_mult = one + semigroup_mult +
 begin
 
 sublocale mult!: monoid times 1
-  by default (fact mult_1_left mult_1_right)+
+  by standard (fact mult_1_left mult_1_right)+
 
 end
 
@@ -226,10 +226,10 @@ class comm_monoid_mult = one + ab_semigroup_mult +
 begin
 
 subclass monoid_mult
-  by default (simp_all add: mult_1 mult.commute [of _ 1])
+  by standard (simp_all add: mult_1 mult.commute [of _ 1])
 
 sublocale mult!: comm_monoid times 1
-  by default (simp add: ac_simps)
+  by standard (simp add: ac_simps)
 
 end
 

@@ -157,7 +157,7 @@ next
     note b = this(1) and body = this(2) and inv = this(3)
     hence k': "f ((c ^^ k') s) = (c' ^^ k') (f s)" by auto
     ultimately show ?thesis unfolding Suc using b
-    proof (intro Least_equality[symmetric], goals)
+    proof (intro Least_equality[symmetric], goal_cases)
       case 1
       hence Test: "\<not> b' (f ((c ^^ Suc k') s))"
         by (auto simp: BodyCommute inv b)
@@ -314,10 +314,10 @@ and f :: "'a \<Rightarrow> 'a list"
 and x :: 'a
 begin
 
-fun rtrancl_while_test :: "'a list \<times> 'a set \<Rightarrow> bool"
+qualified fun rtrancl_while_test :: "'a list \<times> 'a set \<Rightarrow> bool"
 where "rtrancl_while_test (ws,_) = (ws \<noteq> [] \<and> p(hd ws))"
 
-fun rtrancl_while_step :: "'a list \<times> 'a set \<Rightarrow> 'a list \<times> 'a set"
+qualified fun rtrancl_while_step :: "'a list \<times> 'a set \<Rightarrow> 'a list \<times> 'a set"
 where "rtrancl_while_step (ws, Z) =
   (let x = hd ws; new = remdups (filter (\<lambda>y. y \<notin> Z) (f x))
   in (new @ tl ws, set new \<union> Z))"
@@ -325,12 +325,12 @@ where "rtrancl_while_step (ws, Z) =
 definition rtrancl_while :: "('a list * 'a set) option"
 where "rtrancl_while = while_option rtrancl_while_test rtrancl_while_step ([x],{x})"
 
-fun rtrancl_while_invariant :: "'a list \<times> 'a set \<Rightarrow> bool"
+qualified fun rtrancl_while_invariant :: "'a list \<times> 'a set \<Rightarrow> bool"
 where "rtrancl_while_invariant (ws, Z) =
    (x \<in> Z \<and> set ws \<subseteq> Z \<and> distinct ws \<and> {(x,y). y \<in> set(f x)} `` (Z - set ws) \<subseteq> Z \<and>
     Z \<subseteq> {(x,y). y \<in> set(f x)}^* `` {x} \<and> (\<forall>z\<in>Z - set ws. p z))"
 
-lemma rtrancl_while_invariant: 
+qualified lemma rtrancl_while_invariant: 
   assumes inv: "rtrancl_while_invariant st" and test: "rtrancl_while_test st"
   shows   "rtrancl_while_invariant (rtrancl_while_step st)"
 proof (cases st)
@@ -391,8 +391,5 @@ proof -
 qed
 
 end
-
-hide_const (open) rtrancl_while_test rtrancl_while_step rtrancl_while_invariant
-hide_fact (open) rtrancl_while_invariant
 
 end

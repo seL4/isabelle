@@ -143,10 +143,20 @@ fun typedef (b, Ts, mx) set opt_morphs tac lthy =
   let
     (*Work around loss of qualification in "typedef" axioms by replicating it in the name*)
     val b' = fold_rev Binding.prefix_name (map (suffix "_" o fst) (Binding.path_of b)) b;
+
+    val default_bindings = Typedef.default_bindings (Binding.concealed b');
+    val bindings =
+      (case opt_morphs of
+        NONE => default_bindings
+      | SOME (Rep_name, Abs_name) =>
+         {Rep_name = Binding.concealed Rep_name,
+          Abs_name = Binding.concealed Abs_name,
+          type_definition_name = #type_definition_name default_bindings});
+
     val ((name, info), (lthy, lthy_old)) =
       lthy
       |> Local_Theory.open_target |> snd
-      |> Typedef.add_typedef true (b', Ts, mx) set opt_morphs tac
+      |> Typedef.add_typedef (b', Ts, mx) set (SOME bindings) tac
       ||> `Local_Theory.close_target;
     val phi = Proof_Context.export_morphism lthy_old lthy;
   in

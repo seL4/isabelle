@@ -146,9 +146,6 @@ val int_minus_from_mult_simps =
 val int_mult_minus_simps =
     [@{thm zmult_assoc}, @{thm zmult_zminus} RS @{thm sym}, int_minus_mult_eq_1_to_2];
 
-fun prep_simproc thy (name, pats, proc) =
-  Simplifier.simproc_global thy name pats proc;
-
 structure CancelNumeralsCommon =
   struct
   val mk_sum = (fn _ : typ => mk_sum)
@@ -210,22 +207,24 @@ structure LeCancelNumerals = CancelNumeralsFun
 );
 
 val cancel_numerals =
-  map (prep_simproc @{theory})
-   [("inteq_cancel_numerals",
-     ["l $+ m = n", "l = m $+ n",
-      "l $- m = n", "l = m $- n",
-      "l $* m = n", "l = m $* n"],
-     EqCancelNumerals.proc),
-    ("intless_cancel_numerals",
-     ["l $+ m $< n", "l $< m $+ n",
-      "l $- m $< n", "l $< m $- n",
-      "l $* m $< n", "l $< m $* n"],
-     LessCancelNumerals.proc),
-    ("intle_cancel_numerals",
-     ["l $+ m $<= n", "l $<= m $+ n",
-      "l $- m $<= n", "l $<= m $- n",
-      "l $* m $<= n", "l $<= m $* n"],
-     LeCancelNumerals.proc)];
+ [Simplifier.make_simproc @{context} "inteq_cancel_numerals"
+   {lhss =
+     [@{term "l $+ m = n"}, @{term "l = m $+ n"},
+      @{term "l $- m = n"}, @{term "l = m $- n"},
+      @{term "l $* m = n"}, @{term "l = m $* n"}],
+    proc = K EqCancelNumerals.proc, identifier = []},
+  Simplifier.make_simproc @{context} "intless_cancel_numerals"
+   {lhss =
+     [@{term "l $+ m $< n"}, @{term "l $< m $+ n"},
+      @{term "l $- m $< n"}, @{term "l $< m $- n"},
+      @{term "l $* m $< n"}, @{term "l $< m $* n"}],
+    proc = K LessCancelNumerals.proc, identifier = []},
+  Simplifier.make_simproc @{context} "intle_cancel_numerals"
+   {lhss =
+     [@{term "l $+ m $<= n"}, @{term "l $<= m $+ n"},
+      @{term "l $- m $<= n"}, @{term "l $<= m $- n"},
+      @{term "l $* m $<= n"}, @{term "l $<= m $* n"}],
+    proc = K LeCancelNumerals.proc, identifier = []}];
 
 
 (*version without the hyps argument*)
@@ -268,8 +267,9 @@ structure CombineNumeralsData =
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 
 val combine_numerals =
-  prep_simproc @{theory}
-    ("int_combine_numerals", ["i $+ j", "i $- j"], CombineNumerals.proc);
+  Simplifier.make_simproc @{context} "int_combine_numerals"
+    {lhss = [@{term "i $+ j"}, @{term "i $- j"}],
+     proc = K CombineNumerals.proc, identifier = []};
 
 
 
@@ -314,8 +314,8 @@ end;
 structure CombineNumeralsProd = CombineNumeralsFun(CombineNumeralsProdData);
 
 val combine_numerals_prod =
-  prep_simproc @{theory}
-    ("int_combine_numerals_prod", ["i $* j"], CombineNumeralsProd.proc);
+  Simplifier.make_simproc @{context} "int_combine_numerals_prod"
+   {lhss = [@{term "i $* j"}], proc = K CombineNumeralsProd.proc, identifier = []};
 
 end;
 

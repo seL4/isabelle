@@ -212,7 +212,7 @@ lemma generate_topology_Union:
 
 lemma topological_space_generate_topology:
   "class.topological_space (generate_topology S)"
-  by default (auto intro: generate_topology.intros)
+  by standard (auto intro: generate_topology.intros)
 
 subsection \<open>Order topologies\<close>
 

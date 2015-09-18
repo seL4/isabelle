@@ -66,7 +66,7 @@ proof (clarsimp)
 qed
 
 instance
-  by default (transfer, clarsimp simp: algebra_simps)+
+  by standard (transfer, clarsimp simp: algebra_simps)+
 
 end
 
@@ -99,7 +99,7 @@ lift_definition less_int :: "int \<Rightarrow> int \<Rightarrow> bool"
   by auto
 
 instance
-  by default (transfer, force)+
+  by standard (transfer, force)+
 
 end
 
@@ -305,13 +305,13 @@ qed
 
 
 instance int :: no_top
-  apply default
+  apply standard
   apply (rule_tac x="x + 1" in exI)
   apply simp
   done
 
 instance int :: no_bot
-  apply default
+  apply standard
   apply (rule_tac x="x - 1" in exI)
   apply simp
   done
@@ -775,9 +775,9 @@ ML_file "Tools/int_arith.ML"
 declaration \<open>K Int_Arith.setup\<close>
 
 simproc_setup fast_arith ("(m::'a::linordered_idom) < n" |
-  "(m::'a::linordered_idom) <= n" |
+  "(m::'a::linordered_idom) \<le> n" |
   "(m::'a::linordered_idom) = n") =
-  \<open>fn _ => fn ss => fn ct => Lin_Arith.simproc ss (Thm.term_of ct)\<close>
+  \<open>K Lin_Arith.simproc\<close>
 
 
 subsection\<open>More Inequality Reasoning\<close>
@@ -1526,7 +1526,8 @@ begin
 definition
   "HOL.equal k l \<longleftrightarrow> k = (l::int)"
 
-instance by default (rule equal_int_def)
+instance
+  by standard (rule equal_int_def)
 
 end
 

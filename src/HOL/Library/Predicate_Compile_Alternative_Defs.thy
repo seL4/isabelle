@@ -22,7 +22,7 @@ setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name Let}]\<close>
 
 section \<open>Pairs\<close>
 
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name fst}, @{const_name snd}, @{const_name case_prod}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name fst}, @{const_name snd}, @{const_name uncurry}]\<close>
 
 section \<open>Filters\<close>
 
@@ -211,6 +211,30 @@ proof -
     apply auto
     done
 qed
+
+subsection \<open>Alternative rules for membership in lists\<close>
+
+declare in_set_member[code_pred_inline]
+
+lemma member_intros [code_pred_intro]:
+  "List.member (x#xs) x"
+  "List.member xs x \<Longrightarrow> List.member (y#xs) x"
+by(simp_all add: List.member_def)
+
+code_pred List.member
+  by(auto simp add: List.member_def elim: list.set_cases)
+
+code_identifier constant member_i_i
+   \<rightharpoonup> (SML) "List.member_i_i"
+  and (OCaml) "List.member_i_i"
+  and (Haskell) "List.member_i_i"
+  and (Scala) "List.member_i_i"
+
+code_identifier constant member_i_o
+   \<rightharpoonup> (SML) "List.member_i_o"
+  and (OCaml) "List.member_i_o"
+  and (Haskell) "List.member_i_o"
+  and (Scala) "List.member_i_o"
 
 section \<open>Setup for String.literal\<close>
 

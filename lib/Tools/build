@@ -4,6 +4,17 @@
 #
 # DESCRIPTION: build and manage Isabelle sessions
 
+## settings
+
+case "$ISABELLE_JAVA_PLATFORM" in
+  x86-*)
+    ISABELLE_BUILD_JAVA_OPTIONS="$ISABELLE_BUILD_JAVA_OPTIONS32"
+    ;;
+  x86_64-*)
+    ISABELLE_BUILD_JAVA_OPTIONS="$ISABELLE_BUILD_JAVA_OPTIONS64"
+    ;;
+esac
+
 
 ## diagnostics
 
@@ -13,6 +24,8 @@ function show_settings()
 {
   local PREFIX="$1"
   echo "${PREFIX}ISABELLE_BUILD_OPTIONS=\"$ISABELLE_BUILD_OPTIONS\""
+  echo
+  echo "${PREFIX}ISABELLE_BUILD_JAVA_OPTIONS=\"$ISABELLE_BUILD_JAVA_OPTIONS\""
   echo
   echo "${PREFIX}ML_PLATFORM=\"$ML_PLATFORM\""
   echo "${PREFIX}ML_HOME=\"$ML_HOME\""

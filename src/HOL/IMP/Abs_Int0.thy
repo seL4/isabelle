@@ -31,14 +31,15 @@ by (cases x) simp_all
 lemma Some_le[simp]: "(Some x \<le> u) = (\<exists>y. u = Some y \<and> x \<le> y)"
 by (cases u) auto
 
-instance proof
-  case goal1 show ?case by(rule less_option_def)
+instance
+proof (standard, goal_cases)
+  case 1 show ?case by(rule less_option_def)
 next
-  case goal2 show ?case by(cases x, simp_all)
+  case (2 x) show ?case by(cases x, simp_all)
 next
-  case goal3 thus ?case by(cases z, simp, cases y, simp, cases x, auto)
+  case (3 x y z) thus ?case by(cases z, simp, cases y, simp, cases x, auto)
 next
-  case goal4 thus ?case by(cases y, simp, cases x, auto)
+  case (4 x y) thus ?case by(cases y, simp, cases x, auto)
 qed
 
 end
@@ -63,14 +64,15 @@ begin
 
 definition top_option where "\<top> = Some \<top>"
 
-instance proof
-  case goal4 show ?case by(cases a, simp_all add: top_option_def)
+instance
+proof (standard, goal_cases)
+  case (4 a) show ?case by(cases a, simp_all add: top_option_def)
 next
-  case goal1 thus ?case by(cases x, simp, cases y, simp_all)
+  case (1 x y) thus ?case by(cases x, simp, cases y, simp_all)
 next
-  case goal2 thus ?case by(cases y, simp, cases x, simp_all)
+  case (2 x y) thus ?case by(cases y, simp, cases x, simp_all)
 next
-  case goal3 thus ?case by(cases z, simp, cases y, simp, cases x, simp_all)
+  case (3 x y z) thus ?case by(cases z, simp, cases y, simp, cases x, simp_all)
 qed
 
 end
@@ -85,8 +87,8 @@ definition bot_option :: "'a option" where
 "\<bottom> = None"
 
 instance
-proof
-  case goal1 thus ?case by(auto simp: bot_option_def)
+proof (standard, goal_cases)
+  case 1 thus ?case by(auto simp: bot_option_def)
 qed
 
 end

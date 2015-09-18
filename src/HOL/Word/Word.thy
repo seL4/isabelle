@@ -313,7 +313,7 @@ definition
   word_mod_def: "a mod b = word_of_int (uint a mod uint b)"
 
 instance
-  by default (transfer, simp add: algebra_simps)+
+  by standard (transfer, simp add: algebra_simps)+
 
 end
 
@@ -384,7 +384,7 @@ definition
   word_less_def: "a < b \<longleftrightarrow> uint a < uint b"
 
 instance
-  by default (auto simp: word_less_def word_le_def)
+  by standard (auto simp: word_less_def word_le_def)
 
 end
 
@@ -1194,7 +1194,7 @@ lemma word_less_alt: "(a < b) = (uint a < uint b)"
   by (fact word_less_def)
 
 lemma signed_linorder: "class.linorder word_sle word_sless"
-  by default (unfold word_sle_def word_sless_def, auto)
+  by standard (unfold word_sle_def word_sless_def, auto)
 
 interpretation signed: linorder "word_sle" "word_sless"
   by (rule signed_linorder)
@@ -2215,7 +2215,7 @@ lemma of_bl_length_less:
 subsection {* Cardinality, finiteness of set of words *}
 
 instance word :: (len0) finite
-  by (default, simp add: type_definition.univ [OF type_definition_word])
+  by standard (simp add: type_definition.univ [OF type_definition_word])
 
 lemma card_word: "CARD('a::len0 word) = 2 ^ len_of TYPE('a)"
   by (simp add: type_definition.card [OF type_definition_word] nat_power_eq)

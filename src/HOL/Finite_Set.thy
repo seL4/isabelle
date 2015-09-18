@@ -573,7 +573,7 @@ lemma finite_code [code]: "finite (A :: 'a set) \<longleftrightarrow> True"
 end
 
 instance prod :: (finite, finite) finite
-  by default (simp only: UNIV_Times_UNIV [symmetric] finite_cartesian_product finite)
+  by standard (simp only: UNIV_Times_UNIV [symmetric] finite_cartesian_product finite)
 
 lemma inj_graph: "inj (%f. {(x, y). y = f x})"
   by (rule inj_onI, auto simp add: set_eq_iff fun_eq_iff)
@@ -593,16 +593,16 @@ proof
 qed
 
 instance bool :: finite
-  by default (simp add: UNIV_bool)
+  by standard (simp add: UNIV_bool)
 
 instance set :: (finite) finite
-  by default (simp only: Pow_UNIV [symmetric] finite_Pow_iff finite)
+  by standard (simp only: Pow_UNIV [symmetric] finite_Pow_iff finite)
 
 instance unit :: finite
-  by default (simp add: UNIV_unit)
+  by standard (simp add: UNIV_unit)
 
 instance sum :: (finite, finite) finite
-  by default (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
+  by standard (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
 
 
 subsection \<open>A basic fold functional for finite sets\<close>
@@ -967,7 +967,7 @@ lemma comp_fun_commute_filter_fold:
   "comp_fun_commute (\<lambda>x A'. if P x then Set.insert x A' else A')"
 proof - 
   interpret comp_fun_idem Set.insert by (fact comp_fun_idem_insert)
-  show ?thesis by default (auto simp: fun_eq_iff)
+  show ?thesis by standard (auto simp: fun_eq_iff)
 qed
 
 lemma Set_filter_fold:
@@ -988,7 +988,7 @@ lemma image_fold_insert:
   shows "image f A = fold (\<lambda>k A. Set.insert (f k) A) {} A"
 using assms
 proof -
-  interpret comp_fun_commute "\<lambda>k A. Set.insert (f k) A" by default auto
+  interpret comp_fun_commute "\<lambda>k A. Set.insert (f k) A" by standard auto
   show ?thesis using assms by (induct A) auto
 qed
 
@@ -997,7 +997,7 @@ lemma Ball_fold:
   shows "Ball A P = fold (\<lambda>k s. s \<and> P k) True A"
 using assms
 proof -
-  interpret comp_fun_commute "\<lambda>k s. s \<and> P k" by default auto
+  interpret comp_fun_commute "\<lambda>k s. s \<and> P k" by standard auto
   show ?thesis using assms by (induct A) auto
 qed
 
@@ -1006,7 +1006,7 @@ lemma Bex_fold:
   shows "Bex A P = fold (\<lambda>k s. s \<or> P k) False A"
 using assms
 proof -
-  interpret comp_fun_commute "\<lambda>k s. s \<or> P k" by default auto
+  interpret comp_fun_commute "\<lambda>k s. s \<or> P k" by standard auto
   show ?thesis using assms by (induct A) auto
 qed
 
@@ -1027,14 +1027,14 @@ lemma fold_union_pair:
   assumes "finite B"
   shows "(\<Union>y\<in>B. {(x, y)}) \<union> A = fold (\<lambda>y. Set.insert (x, y)) A B"
 proof -
-  interpret comp_fun_commute "\<lambda>y. Set.insert (x, y)" by default auto
+  interpret comp_fun_commute "\<lambda>y. Set.insert (x, y)" by standard auto
   show ?thesis using assms  by (induct B arbitrary: A) simp_all
 qed
 
 lemma comp_fun_commute_product_fold: 
   assumes "finite B"
   shows "comp_fun_commute (\<lambda>x z. fold (\<lambda>y. Set.insert (x, y)) z B)" 
-by default (auto simp: fold_union_pair[symmetric] assms)
+  by standard (auto simp: fold_union_pair[symmetric] assms)
 
 lemma product_fold:
   assumes "finite A"
@@ -1122,18 +1122,16 @@ locale folding =
 begin
 
 interpretation fold?: comp_fun_commute f
-  by default (insert comp_fun_commute, simp add: fun_eq_iff)
+  by standard (insert comp_fun_commute, simp add: fun_eq_iff)
 
 definition F :: "'a set \<Rightarrow> 'b"
 where
   eq_fold: "F A = fold f z A"
 
-lemma empty [simp]:
-  "F {} = z"
+lemma empty [simp]:"F {} = z"
   by (simp add: eq_fold)
 
-lemma infinite [simp]:
-  "\<not> finite A \<Longrightarrow> F A = z"
+lemma infinite [simp]: "\<not> finite A \<Longrightarrow> F A = z"
   by (simp add: eq_fold)
  
 lemma insert [simp]:
@@ -1172,7 +1170,7 @@ begin
 declare insert [simp del]
 
 interpretation fold?: comp_fun_idem f
-  by default (insert comp_fun_commute comp_fun_idem, simp add: fun_eq_iff)
+  by standard (insert comp_fun_commute comp_fun_idem, simp add: fun_eq_iff)
 
 lemma insert_idem [simp]:
   assumes "finite A"
@@ -1202,7 +1200,7 @@ interpretation card!: folding "\<lambda>_. Suc" 0
 where
   "folding.F (\<lambda>_. Suc) 0 = card"
 proof -
-  show "folding (\<lambda>_. Suc)" by default rule
+  show "folding (\<lambda>_. Suc)" by standard rule
   then interpret card!: folding "\<lambda>_. Suc" 0 .
   from card_def show "folding.F (\<lambda>_. Suc) 0 = card" by rule
 qed

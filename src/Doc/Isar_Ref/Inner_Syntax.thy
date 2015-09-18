@@ -839,10 +839,6 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
   input is likely to be ambiguous.  The correct form is @{text "x < (y
   :: nat)"}.
 
-  \item Constraints may be either written with two literal colons
-  ``@{verbatim "::"}'' or the double-colon symbol @{verbatim "\<Colon>"},
-  which actually looks exactly the same in some {\LaTeX} styles.
-
   \item Dummy variables (written as underscore) may occur in different
   roles.
 

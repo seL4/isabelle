@@ -2549,7 +2549,7 @@ lemma (in pair_sigma_finite) integrable_product_swap:
   assumes "integrable (M1 \<Otimes>\<^sub>M M2) f"
   shows "integrable (M2 \<Otimes>\<^sub>M M1) (\<lambda>(x,y). f (y,x))"
 proof -
-  interpret Q: pair_sigma_finite M2 M1 by default
+  interpret Q: pair_sigma_finite M2 M1 ..
   have *: "(\<lambda>(x,y). f (y,x)) = (\<lambda>x. f (case x of (x,y)\<Rightarrow>(y,x)))" by (auto simp: fun_eq_iff)
   show ?thesis unfolding *
     by (rule integrable_distr[OF measurable_pair_swap'])
@@ -2560,7 +2560,7 @@ lemma (in pair_sigma_finite) integrable_product_swap_iff:
   fixes f :: "_ \<Rightarrow> _::{banach, second_countable_topology}"
   shows "integrable (M2 \<Otimes>\<^sub>M M1) (\<lambda>(x,y). f (y,x)) \<longleftrightarrow> integrable (M1 \<Otimes>\<^sub>M M2) f"
 proof -
-  interpret Q: pair_sigma_finite M2 M1 by default
+  interpret Q: pair_sigma_finite M2 M1 ..
   from Q.integrable_product_swap[of "\<lambda>(x,y). f (y,x)"] integrable_product_swap[of f]
   show ?thesis by auto
 qed
@@ -2751,7 +2751,7 @@ lemma (in pair_sigma_finite)
     and integrable_snd: "integrable M2 (\<lambda>y. \<integral>x. f x y \<partial>M1)" (is "?INT")
     and integral_snd: "(\<integral>y. (\<integral>x. f x y \<partial>M1) \<partial>M2) = integral\<^sup>L (M1 \<Otimes>\<^sub>M M2) (split f)" (is "?EQ")
 proof -
-  interpret Q: pair_sigma_finite M2 M1 by default
+  interpret Q: pair_sigma_finite M2 M1 ..
   have Q_int: "integrable (M2 \<Otimes>\<^sub>M M1) (\<lambda>(x, y). f y x)"
     using f unfolding integrable_product_swap_iff[symmetric] by simp
   show ?AE  using Q.AE_integrable_fst'[OF Q_int] by simp
@@ -2780,11 +2780,11 @@ lemma (in product_sigma_finite) product_integral_fold:
   and f: "integrable (Pi\<^sub>M (I \<union> J) M) f"
   shows "integral\<^sup>L (Pi\<^sub>M (I \<union> J) M) f = (\<integral>x. (\<integral>y. f (merge I J (x, y)) \<partial>Pi\<^sub>M J M) \<partial>Pi\<^sub>M I M)"
 proof -
-  interpret I: finite_product_sigma_finite M I by default fact
-  interpret J: finite_product_sigma_finite M J by default fact
+  interpret I: finite_product_sigma_finite M I by standard fact
+  interpret J: finite_product_sigma_finite M J by standard fact
   have "finite (I \<union> J)" using fin by auto
-  interpret IJ: finite_product_sigma_finite M "I \<union> J" by default fact
-  interpret P: pair_sigma_finite "Pi\<^sub>M I M" "Pi\<^sub>M J M" by default
+  interpret IJ: finite_product_sigma_finite M "I \<union> J" by standard fact
+  interpret P: pair_sigma_finite "Pi\<^sub>M I M" "Pi\<^sub>M J M" ..
   let ?M = "merge I J"
   let ?f = "\<lambda>x. f (?M x)"
   from f have f_borel: "f \<in> borel_measurable (Pi\<^sub>M (I \<union> J) M)"
@@ -2830,7 +2830,7 @@ lemma (in product_sigma_finite) product_integrable_setprod:
   assumes [simp]: "finite I" and integrable: "\<And>i. i \<in> I \<Longrightarrow> integrable (M i) (f i)"
   shows "integrable (Pi\<^sub>M I M) (\<lambda>x. (\<Prod>i\<in>I. f i (x i)))" (is "integrable _ ?f")
 proof (unfold integrable_iff_bounded, intro conjI)
-  interpret finite_product_sigma_finite M I by default fact
+  interpret finite_product_sigma_finite M I by standard fact
 
   show "?f \<in> borel_measurable (Pi\<^sub>M I M)"
     using assms by simp
@@ -2859,7 +2859,7 @@ next
   then have prod: "\<And>J. J \<subseteq> insert i I \<Longrightarrow>
     integrable (Pi\<^sub>M J M) (\<lambda>x. (\<Prod>i\<in>J. f i (x i)))"
     by (intro product_integrable_setprod insert(4)) (auto intro: finite_subset)
-  interpret I: finite_product_sigma_finite M I by default fact
+  interpret I: finite_product_sigma_finite M I by standard fact
   have *: "\<And>x y. (\<Prod>j\<in>I. f j (if j = i then y else x j)) = (\<Prod>j\<in>I. f j (x j))"
     using `i \<notin> I` by (auto intro!: setprod.cong)
   show ?case

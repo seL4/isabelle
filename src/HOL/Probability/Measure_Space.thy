@@ -2078,7 +2078,7 @@ definition less_measure :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> bo
   "less_measure M N \<longleftrightarrow> (M \<le> N \<and> \<not> N \<le> M)"
 
 instance
-proof (standard, goals)
+proof (standard, goal_cases)
   case 1 then show ?case
     unfolding less_measure_def ..
 next

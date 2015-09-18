@@ -400,14 +400,14 @@ lemma upper_map_bind:
 by (simp add: upper_map_def upper_bind_bind)
 
 lemma ep_pair_upper_map: "ep_pair e p \<Longrightarrow> ep_pair (upper_map\<cdot>e) (upper_map\<cdot>p)"
-apply default
+apply standard
 apply (induct_tac x rule: upper_pd_induct, simp_all add: ep_pair.e_inverse)
 apply (induct_tac y rule: upper_pd_induct)
 apply (simp_all add: ep_pair.e_p_below monofun_cfun del: upper_below_plus_iff)
 done
 
 lemma deflation_upper_map: "deflation d \<Longrightarrow> deflation (upper_map\<cdot>d)"
-apply default
+apply standard
 apply (induct_tac x rule: upper_pd_induct, simp_all add: deflation.idem)
 apply (induct_tac x rule: upper_pd_induct)
 apply (simp_all add: deflation.below monofun_cfun del: upper_below_plus_iff)

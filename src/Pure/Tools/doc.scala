@@ -58,19 +58,24 @@ object Doc
         })
 
   def contents(): List[Entry] =
-    (for {
-      (dir, line) <- contents_lines()
-      entry <-
-        line match {
-          case Section_Entry(text) =>
-            Library.try_unsuffix("!", text) match {
-              case None => Some(Section(text, false))
-              case Some(txt) => Some(Section(txt, true))
-            }
-          case Doc_Entry(name, title) => Some(Doc(name, title, dir + Path.basic(name)))
-          case _ => None
-        }
-    } yield entry) ::: release_notes() ::: examples()
+  {
+    val main_contents =
+      for {
+        (dir, line) <- contents_lines()
+        entry <-
+          line match {
+            case Section_Entry(text) =>
+              Library.try_unsuffix("!", text) match {
+                case None => Some(Section(text, false))
+                case Some(txt) => Some(Section(txt, true))
+              }
+            case Doc_Entry(name, title) => Some(Doc(name, title, dir + Path.basic(name)))
+            case _ => None
+          }
+      } yield entry
+
+    examples() ::: release_notes() ::: main_contents
+  }
 
 
   /* view */
@@ -104,4 +109,3 @@ object Doc
     }
   }
 }
-

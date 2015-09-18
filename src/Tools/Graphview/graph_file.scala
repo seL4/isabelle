@@ -23,7 +23,7 @@ object Graph_File
 
     def paint(gfx: Graphics2D)
     {
-      gfx.setColor(Color.WHITE)
+      gfx.setColor(graphview.background_color)
       gfx.fillRect(0, 0, w, h)
       gfx.translate(- box.x, - box.y)
       graphview.paint(gfx)

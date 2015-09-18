@@ -77,12 +77,7 @@ val _ = Theory.setup
     "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
 
   ML_Antiquotation.value @{binding cprop} (Args.prop >> (fn t =>
-    "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))) #>
-
-  ML_Antiquotation.value @{binding cpat}
-    (Args.context --
-      Scan.lift Args.name_inner_syntax >> uncurry Proof_Context.read_term_pattern >> (fn t =>
-        "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
+    "Thm.cterm_of ML_context " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
 
 
 (* type classes *)

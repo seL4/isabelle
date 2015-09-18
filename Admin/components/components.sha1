@@ -81,6 +81,7 @@ ffe179867cf5ffaabbb6bb096db9bdc0d7110065  jortho-1.0.tar.gz
 5f95c96bb99927f3a026050f85bd056f37a9189e  kodkodi-1.5.2.tar.gz
 377e36efb8608e6c828c7718d890e97fde2006a4  linux_app-20131007.tar.gz
 0aab4f73ff7f5e36f33276547e10897e1e56fb1d  macos_app-20130716.tar.gz
+ad5d0e640ce3609a885cecab645389a2204e03bb  macos_app-20150916.tar.gz
 1c8cb6a8f4cbeaedce2d6d1ba8fc7e2ab3663aeb  polyml-5.4.1.tar.gz
 a3f9c159a0ee9a63b7a5d0c835ed9c2c908f8b56  polyml-5.5.0-1.tar.gz
 7d604a99355efbfc1459d80db3279ffa7ade3e39  polyml-5.5.0-2.tar.gz
@@ -93,6 +94,9 @@ a588640dbf5da9ae15455b02ef709764a48637dc  polyml-5.5.2-1.tar.gz
 5b31ad8556e41dfd6d5e85f407818be399aa3d2a  polyml-5.5.2-3.tar.gz
 532f6e8814752aeb406c62fabcfd2cc05f8a7ca8  polyml-5.5.2.tar.gz
 1c53f699d35c0db6c7cf4ea51f2310adbd1d0dc5  polyml-5.5.3-20150820.tar.gz
+b4b624fb5f34d1dc814fb4fb469fafd7d7ea018a  polyml-5.5.3-20150908.tar.gz
+b668e1f43a41608a8eb365c5e19db6c54c72748a  polyml-5.5.3-20150911.tar.gz
+1f5cd9b1390dab13861f90dfc06d4180cc107587  polyml-5.5.3-20150916.tar.gz
 8ee375cfc38972f080dbc78f07b68dac03efe968  ProofGeneral-3.7.1.1.tar.gz
 847b52c0676b5eb0fbf0476f64fc08c2d72afd0c  ProofGeneral-4.1.tar.gz
 8e0b2b432755ef11d964e20637d1bc567d1c0477  ProofGeneral-4.2-1.tar.gz

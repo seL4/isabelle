@@ -45,7 +45,7 @@ fun typedef_make (vs, qty_name, mx, rel, rty) equiv_thm lthy =
     fun typedef_tac ctxt =
       EVERY1 (map (resolve_tac ctxt o single) [@{thm part_equivp_typedef}, equiv_thm])
   in
-    Typedef.add_typedef false (qty_name, map (rpair dummyS) vs, mx)
+    Typedef.add_typedef (qty_name, map (rpair dummyS) vs, mx)
       (typedef_term rel rty lthy) NONE typedef_tac lthy
   end
 

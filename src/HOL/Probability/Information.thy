@@ -311,7 +311,7 @@ lemma (in sigma_finite_measure) KL_density_density_nonneg:
   shows "0 \<le> KL_divergence b (density M f) (density M g)"
 proof -
   interpret Mf: prob_space "density M f" by fact
-  interpret Mf: information_space "density M f" b by default fact
+  interpret Mf: information_space "density M f" b by standard fact
   have eq: "density (density M f) (\<lambda>x. g x / f x) = density M g" (is "?DD = _")
     using f g ac by (subst density_density_divide) simp_all
 
@@ -443,8 +443,8 @@ proof safe
     by (rule prob_space_distr) fact
   interpret Y: prob_space "distr M T Y"
     by (rule prob_space_distr) fact
-  interpret XY: pair_prob_space "distr M S X" "distr M T Y" by default
-  interpret P: information_space P b unfolding P_def by default (rule b_gt_1)
+  interpret XY: pair_prob_space "distr M S X" "distr M T Y" by standard
+  interpret P: information_space P b unfolding P_def by standard (rule b_gt_1)
 
   interpret Q: prob_space Q unfolding Q_def
     by (rule prob_space_distr) simp
@@ -770,7 +770,7 @@ proof -
   interpret X: prob_space "distr M S X"
     using D(1) by (rule prob_space_distr)
 
-  have sf: "sigma_finite_measure (distr M S X)" by default
+  have sf: "sigma_finite_measure (distr M S X)" by standard
   show ?thesis
     using D
     apply (subst eq_commute)

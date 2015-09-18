@@ -26,7 +26,7 @@ sig
   val put_cps_result : (unit -> Code_Numeral.natural -> (bool * term list) option) ->
     Proof.context -> Proof.context
   val test_goals : (Predicate_Compile_Aux.compilation * bool) ->
-    Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list ->
+    Proof.context -> bool -> (string * typ) list -> (term * term list) list ->
     Quickcheck.result list
   val nrandom : int Unsynchronized.ref
   val debug : bool Unsynchronized.ref

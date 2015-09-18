@@ -18,11 +18,11 @@ sig
     }
 
   val add_domaindef: binding * (string * sort) list * mixfix ->
-    term -> (binding * binding) option -> theory ->
+    term -> Typedef.bindings option -> theory ->
     (Typedef.info * Cpodef.cpo_info * Cpodef.pcpo_info * rep_info) * theory
 
   val domaindef_cmd: (binding * (string * string option) list * mixfix) * string
-    * (binding * binding) option -> theory -> theory
+    * Typedef.bindings option -> theory -> theory
 end
 
 structure Domaindef : DOMAINDEF =
@@ -80,7 +80,7 @@ fun gen_add_domaindef
       (prep_term: Proof.context -> 'a -> term)
       (typ as (tname, raw_args, _) : binding * (string * sort) list * mixfix)
       (raw_defl: 'a)
-      (opt_morphs: (binding * binding) option)
+      (opt_bindings: Typedef.bindings option)
       (thy: theory)
     : (Typedef.info * Cpodef.cpo_info * Cpodef.pcpo_info * rep_info) * theory =
   let
@@ -100,10 +100,6 @@ fun gen_add_domaindef
     val full_tname = Sign.full_name thy tname
     val newT = Type (full_tname, map TFree lhs_tfrees)
 
-    (*morphisms*)
-    val morphs = opt_morphs
-      |> the_default (Binding.prefix_name "Rep_" tname, Binding.prefix_name "Abs_" tname)
-
     (*set*)
     val set = @{term "defl_set :: udom defl => udom set"} $ defl
 
@@ -111,7 +107,7 @@ fun gen_add_domaindef
     fun tac1 ctxt = resolve_tac ctxt @{thms defl_set_bottom} 1
     fun tac2 ctxt = resolve_tac ctxt @{thms adm_defl_set} 1
     val ((info, cpo_info, pcpo_info), thy) = thy
-      |> Cpodef.add_pcpodef typ set (SOME morphs) (tac1, tac2)
+      |> Cpodef.add_pcpodef typ set opt_bindings (tac1, tac2)
 
     (*definitions*)
     val Rep_const = Const (#Rep_name (#1 info), newT --> udomT)
@@ -187,8 +183,8 @@ fun gen_add_domaindef
   handle ERROR msg =>
     cat_error msg ("The error(s) above occurred in domaindef " ^ Binding.print tname)
 
-fun add_domaindef typ defl opt_morphs thy =
-  gen_add_domaindef Syntax.check_term typ defl opt_morphs thy
+fun add_domaindef typ defl opt_bindings thy =
+  gen_add_domaindef Syntax.check_term typ defl opt_bindings thy
 
 fun domaindef_cmd ((b, raw_args, mx), A, morphs) thy =
   let
@@ -199,17 +195,13 @@ fun domaindef_cmd ((b, raw_args, mx), A, morphs) thy =
 
 (** outer syntax **)
 
-val domaindef_decl =
-  (Parse.type_args_constrained -- Parse.binding) --
-  Parse.opt_mixfix -- (@{keyword "="} |-- Parse.term) --
-  Scan.option
-    (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
-
-fun mk_domaindef (((((args, t)), mx), A), morphs) =
-  domaindef_cmd ((t, args, mx), A, morphs)
-
 val _ =
   Outer_Syntax.command @{command_keyword domaindef} "HOLCF definition of domains from deflations"
-    (domaindef_decl >> (Toplevel.theory o mk_domaindef))
+    ((Parse.type_args_constrained -- Parse.binding) --
+      Parse.opt_mixfix -- (@{keyword "="} |-- Parse.term) --
+      Scan.option
+        (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)) >>
+     (fn (((((args, t)), mx), A), morphs) =>
+      Toplevel.theory (domaindef_cmd ((t, args, mx), A, SOME (Typedef.make_morphisms t morphs)))));
 
 end

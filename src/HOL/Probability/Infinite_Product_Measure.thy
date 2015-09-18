@@ -50,8 +50,8 @@ next
 
     have "finite (K - J)" using K by auto
 
-    interpret J: finite_product_prob_space M J by default fact+
-    interpret KmJ: finite_product_prob_space M "K - J" by default fact+
+    interpret J: finite_product_prob_space M J by standard fact+
+    interpret KmJ: finite_product_prob_space M "K - J" by standard fact+
 
     have "\<mu>G Z = emeasure (Pi\<^sub>M (J \<union> (K - J)) M) (emb (J \<union> (K - J)) K X)"
       using K J by simp
@@ -84,7 +84,7 @@ next
   proof (rule G.caratheodory_empty_continuous[OF positive_mu_G additive_mu_G])
     fix A assume "A \<in> ?G"
     with generatorE guess J X . note JX = this
-    interpret JK: finite_product_prob_space M J by default fact+ 
+    interpret JK: finite_product_prob_space M J by standard fact+ 
     from JX show "\<mu>G A \<noteq> \<infinity>" by simp
   next
     fix A assume A: "range A \<subseteq> ?G" "decseq A" "(\<Inter>i. A i) = {}"
@@ -113,7 +113,7 @@ next
       have J_mono: "\<And>n m. n \<le> m \<Longrightarrow> J n \<subseteq> J m"
         unfolding J_def by force
 
-      interpret J: finite_product_prob_space M "J i" for i by default fact+
+      interpret J: finite_product_prob_space M "J i" for i by standard fact+
 
       have a_le_1: "?a \<le> 1"
         using mu_G_spec[of "J 0" "A 0" "X 0"] J A_eq
@@ -124,7 +124,7 @@ next
       { fix Z k assume Z: "range Z \<subseteq> ?G" "decseq Z" "\<forall>n. ?a / 2^k \<le> \<mu>G (Z n)"
         then have Z_sets: "\<And>n. Z n \<in> ?G" by auto
         fix J' assume J': "J' \<noteq> {}" "finite J'" "J' \<subseteq> I"
-        interpret J': finite_product_prob_space M J' by default fact+
+        interpret J': finite_product_prob_space M J' by standard fact+
 
         let ?q = "\<lambda>n y. \<mu>G (?M J' (Z n) y)"
         let ?Q = "\<lambda>n. ?q n -` {?a / 2^(k+1) ..} \<inter> space (Pi\<^sub>M J' M)"

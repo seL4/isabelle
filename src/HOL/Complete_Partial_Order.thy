@@ -293,7 +293,7 @@ qed
 end
 
 instance complete_lattice \<subseteq> ccpo
-  by default (fast intro: Sup_upper Sup_least)+
+  by standard (fast intro: Sup_upper Sup_least)+
 
 lemma lfp_eq_fixp:
   assumes f: "mono f" shows "lfp f = fixp f"

@@ -342,7 +342,7 @@ by (simp add: ID_def cfun_eq_iff map_sum.identity id_def)
 
 lemma deflation_map_sum [domain_deflation]:
   "\<lbrakk>deflation d1; deflation d2\<rbrakk> \<Longrightarrow> deflation (map_sum' d1 d2)"
-apply default
+apply standard
 apply (induct_tac x, simp_all add: deflation.idem)
 apply (induct_tac x, simp_all add: deflation.below)
 done

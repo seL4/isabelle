@@ -37,27 +37,33 @@ fun mk_cnumeral i =
 
 local
 
-val zero = @{cpat "0"};
-val zeroT = Thm.ctyp_of_cterm zero;
+val cterm_of = Thm.cterm_of @{context};
+fun tvar S = (("'a", 0), S);
 
-val one = @{cpat "1"};
-val oneT = Thm.ctyp_of_cterm one;
+val zero_tvar = tvar @{sort zero};
+val zero = cterm_of (Const (@{const_name zero_class.zero}, TVar zero_tvar));
 
-val numeral = @{cpat "numeral"};
-val numeralT = Thm.ctyp_of @{context} (Term.range_type (Thm.typ_of_cterm numeral));
+val one_tvar = tvar @{sort one};
+val one = cterm_of (Const (@{const_name one_class.one}, TVar one_tvar));
 
-val uminus = @{cpat "uminus"};
-val uminusT = Thm.ctyp_of @{context} (Term.range_type (Thm.typ_of_cterm uminus));
+val numeral_tvar = tvar @{sort numeral};
+val numeral = cterm_of (Const (@{const_name numeral}, @{typ num} --> TVar numeral_tvar));
 
-fun instT T V = Thm.instantiate_cterm ([(dest_TVar (Thm.typ_of V), T)], []);
+val uminus_tvar = tvar @{sort uminus};
+val uminus = cterm_of (Const (@{const_name uminus}, TVar uminus_tvar --> TVar uminus_tvar));
+
+fun instT T v = Thm.instantiate_cterm ([(v, T)], []);
 
 in
 
-fun mk_cnumber T 0 = instT T zeroT zero
-  | mk_cnumber T 1 = instT T oneT one
+fun mk_cnumber T 0 = instT T zero_tvar zero
+  | mk_cnumber T 1 = instT T one_tvar one
   | mk_cnumber T i =
-    if i > 0 then Thm.apply (instT T numeralT numeral) (mk_cnumeral i)
-    else Thm.apply (instT T uminusT uminus) (Thm.apply (instT T numeralT numeral) (mk_cnumeral (~i)));
+      if i > 0 then
+        Thm.apply (instT T numeral_tvar numeral) (mk_cnumeral i)
+      else
+        Thm.apply (instT T uminus_tvar uminus)
+          (Thm.apply (instT T numeral_tvar numeral) (mk_cnumeral (~ i)));
 
 end;
 

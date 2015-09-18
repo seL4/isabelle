@@ -32,22 +32,22 @@ fun sup_const where "x \<squnion> y = (if x=y then x else Any)"
 definition "\<top> = Any"
 
 instance
-proof
-  case goal1 thus ?case by (rule less_const_def)
+proof (standard, goal_cases)
+  case 1 thus ?case by (rule less_const_def)
 next
-  case goal2 show ?case by (cases x) simp_all
+  case (2 x) show ?case by (cases x) simp_all
 next
-  case goal3 thus ?case by(cases z, cases y, cases x, simp_all)
+  case (3 x y z) thus ?case by(cases z, cases y, cases x, simp_all)
 next
-  case goal4 thus ?case by(cases x, cases y, simp_all, cases y, simp_all)
+  case (4 x y) thus ?case by(cases x, cases y, simp_all, cases y, simp_all)
 next
-  case goal6 thus ?case by(cases x, cases y, simp_all)
+  case (6 x y) thus ?case by(cases x, cases y, simp_all)
 next
-  case goal5 thus ?case by(cases y, cases x, simp_all)
+  case (5 x y) thus ?case by(cases y, cases x, simp_all)
 next
-  case goal7 thus ?case by(cases z, cases y, cases x, simp_all)
+  case (7 x y z) thus ?case by(cases z, cases y, cases x, simp_all)
 next
-  case goal8 thus ?case by(simp add: top_const_def)
+  case 8 thus ?case by(simp add: top_const_def)
 qed
 
 end
@@ -55,16 +55,15 @@ end
 
 permanent_interpretation Val_semilattice
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
-proof
-  case goal1 thus ?case
+proof (standard, goal_cases)
+  case (1 a b) thus ?case
     by(cases a, cases b, simp, simp, cases b, simp, simp)
 next
-  case goal2 show ?case by(simp add: top_const_def)
+  case 2 show ?case by(simp add: top_const_def)
 next
-  case goal3 show ?case by simp
+  case 3 show ?case by simp
 next
-  case goal4 thus ?case
-    by(auto simp: plus_const_cases split: const.split)
+  case 4 thus ?case by(auto simp: plus_const_cases split: const.split)
 qed
 
 permanent_interpretation Abs_Int
@@ -123,9 +122,8 @@ text{* Monotonicity: *}
 
 permanent_interpretation Abs_Int_mono
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
-proof
-  case goal1 thus ?case
-    by(auto simp: plus_const_cases split: const.split)
+proof (standard, goal_cases)
+  case 1 thus ?case by(auto simp: plus_const_cases split: const.split)
 qed
 
 text{* Termination: *}
@@ -136,10 +134,10 @@ definition m_const :: "const \<Rightarrow> nat" where
 permanent_interpretation Abs_Int_measure
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 and m = m_const and h = "1"
-proof
-  case goal1 thus ?case by(auto simp: m_const_def split: const.splits)
+proof (standard, goal_cases)
+  case 1 thus ?case by(auto simp: m_const_def split: const.splits)
 next
-  case goal2 thus ?case by(auto simp: m_const_def less_const_def split: const.splits)
+  case 2 thus ?case by(auto simp: m_const_def less_const_def split: const.splits)
 qed
 
 thm AI_Some_measure

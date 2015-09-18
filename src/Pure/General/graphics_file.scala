@@ -15,6 +15,8 @@ import javax.imageio.ImageIO
 
 import org.jfree.chart.JFreeChart
 
+import com.lowagie.text.pdf.{PdfWriter, BaseFont, FontMapper, DefaultFontMapper}
+
 
 object Graphics_File
 {
@@ -39,10 +41,24 @@ object Graphics_File
 
   /* PDF */
 
-  def write_pdf(file: JFile, paint: Graphics2D => Unit, width: Int, height: Int)
+  private def font_mapper(): FontMapper =
+  {
+    val mapper = new DefaultFontMapper
+    for {
+      font <- Path.split(Isabelle_System.getenv_strict("ISABELLE_FONTS"))
+      name <- Library.try_unsuffix(".ttf", font.base.implode)
+    } {
+      val parameters = new DefaultFontMapper.BaseFontParameters(File.platform_path(font))
+      parameters.encoding = BaseFont.IDENTITY_H
+      mapper.putName(name, parameters)
+    }
+    mapper
+  }
+
+  def write_pdf(
+    file: JFile, paint: Graphics2D => Unit, width: Int, height: Int)
   {
     import com.lowagie.text.{Document, Rectangle}
-    import com.lowagie.text.pdf.PdfWriter
 
     val out = new BufferedOutputStream(new FileOutputStream(file))
     try {
@@ -54,7 +70,7 @@ object Graphics_File
 
         val cb = writer.getDirectContent()
         val tp = cb.createTemplate(width, height)
-        val gfx = tp.createGraphics(width, height)
+        val gfx = tp.createGraphics(width, height, font_mapper())
 
         paint(gfx)
         gfx.dispose
@@ -78,4 +94,3 @@ object Graphics_File
   def write_pdf(path: Path, chart: JFreeChart, width: Int, height: Int): Unit =
     write_pdf(path.file, chart, width, height)
 }
-

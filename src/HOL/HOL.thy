@@ -1254,10 +1254,10 @@ next
 qed
 
 lemma implies_True_equals: "(PROP P \<Longrightarrow> True) \<equiv> Trueprop True"
-by default (intro TrueI)
+  by standard (intro TrueI)
 
 lemma False_implies_equals: "(False \<Longrightarrow> P) \<equiv> Trueprop True"
-by default simp_all
+  by standard simp_all
 
 (* This is not made a simp rule because it does not improve any proofs
    but slows some AFP entries down by 5% (cpu time). May 2015 *)
@@ -1446,25 +1446,29 @@ ML_file "~~/src/Tools/induction.ML"
 declaration \<open>
   fn _ => Induct.map_simpset (fn ss => ss
     addsimprocs
-      [Simplifier.simproc_global @{theory} "swap_induct_false"
-         ["induct_false \<Longrightarrow> PROP P \<Longrightarrow> PROP Q"]
-         (fn _ =>
-            (fn _ $ (P as _ $ @{const induct_false}) $ (_ $ Q $ _) =>
-                  if P <> Q then SOME Drule.swap_prems_eq else NONE
-              | _ => NONE)),
-       Simplifier.simproc_global @{theory} "induct_equal_conj_curry"
-         ["induct_conj P Q \<Longrightarrow> PROP R"]
-         (fn _ =>
-            (fn _ $ (_ $ P) $ _ =>
-                let
-                  fun is_conj (@{const induct_conj} $ P $ Q) =
-                        is_conj P andalso is_conj Q
-                    | is_conj (Const (@{const_name induct_equal}, _) $ _ $ _) = true
-                    | is_conj @{const induct_true} = true
-                    | is_conj @{const induct_false} = true
-                    | is_conj _ = false
-                in if is_conj P then SOME @{thm induct_conj_curry} else NONE end
-              | _ => NONE))]
+      [Simplifier.make_simproc @{context} "swap_induct_false"
+        {lhss = [@{term "induct_false \<Longrightarrow> PROP P \<Longrightarrow> PROP Q"}],
+         proc = fn _ => fn _ => fn ct =>
+          (case Thm.term_of ct of
+            _ $ (P as _ $ @{const induct_false}) $ (_ $ Q $ _) =>
+              if P <> Q then SOME Drule.swap_prems_eq else NONE
+          | _ => NONE),
+         identifier = []},
+       Simplifier.make_simproc @{context} "induct_equal_conj_curry"
+        {lhss = [@{term "induct_conj P Q \<Longrightarrow> PROP R"}],
+         proc = fn _ => fn _ => fn ct =>
+          (case Thm.term_of ct of
+            _ $ (_ $ P) $ _ =>
+              let
+                fun is_conj (@{const induct_conj} $ P $ Q) =
+                      is_conj P andalso is_conj Q
+                  | is_conj (Const (@{const_name induct_equal}, _) $ _ $ _) = true
+                  | is_conj @{const induct_true} = true
+                  | is_conj @{const induct_false} = true
+                  | is_conj _ = false
+              in if is_conj P then SOME @{thm induct_conj_curry} else NONE end
+            | _ => NONE),
+          identifier = []}]
     |> Simplifier.set_mksimps (fn ctxt =>
         Simpdata.mksimps Simpdata.mksimps_pairs ctxt #>
         map (rewrite_rule ctxt (map Thm.symmetric @{thms induct_rulify_fallback}))))
@@ -1731,8 +1735,14 @@ declare eq_equal [code]
 
 setup \<open>
   Code_Preproc.map_pre (fn ctxt =>
-    ctxt addsimprocs [Simplifier.simproc_global_i @{theory} "equal" [@{term HOL.eq}]
-      (fn _ => fn Const (_, Type ("fun", [Type _, _])) => SOME @{thm eq_equal} | _ => NONE)])
+    ctxt addsimprocs
+      [Simplifier.make_simproc @{context} "equal"
+        {lhss = [@{term HOL.eq}],
+         proc = fn _ => fn _ => fn ct =>
+          (case Thm.term_of ct of
+            Const (_, Type (@{type_name fun}, [Type _, _])) => SOME @{thm eq_equal}
+          | _ => NONE),
+         identifier = []}])
 \<close>
 
 

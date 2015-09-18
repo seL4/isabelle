@@ -1567,7 +1567,7 @@ definition
   "(sup :: real \<Rightarrow> real \<Rightarrow> real) = max"
 
 instance
-  by default (auto simp add: inf_real_def sup_real_def max_min_distrib2)
+  by standard (auto simp add: inf_real_def sup_real_def max_min_distrib2)
 
 end
 

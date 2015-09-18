@@ -578,7 +578,7 @@ locale constr_dense_linorder = linorder_no_lb + linorder_no_ub +
 begin
 
 sublocale dlo: unbounded_dense_linorder
-proof (unfold_locales, goals)
+proof (unfold_locales, goal_cases)
   case (1 x y)
   then show ?case
     using between_less [of x y] by auto

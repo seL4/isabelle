@@ -21,6 +21,9 @@ menu), step through stopped threads, evaluate local ML expressions etc.
 At least one Debugger view needs to be active to have any effect on the
 running ML program.
 
+* The main Isabelle executable is managed as single-instance Desktop
+application uniformly on all platforms: Linux, Windows, Mac OS X.
+
 
 *** Isar ***
 
@@ -116,13 +119,13 @@ refinements, to avoid proof scripts degenerating into long of 'apply'
 sequences. Further explanations and examples are given in the isar-ref
 manual.
 
-* Proof method "goals" turns the current subgoals into cases within the
-context; the conclusion is bound to variable ?case in each case.
-For example:
+* Proof method "goal_cases" turns the current subgoals into cases within
+the context; the conclusion is bound to variable ?case in each case. For
+example:
 
 lemma "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
   and "\<And>y z. U y \<Longrightarrow> V z \<Longrightarrow> W y z"
-proof goals
+proof goal_cases
   case (1 x)
   then show ?case using \<open>A x\<close> \<open>B x\<close> sorry
 next
@@ -132,7 +135,7 @@ qed
 
 lemma "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x"
   and "\<And>y z. U y \<Longrightarrow> V z \<Longrightarrow> W y z"
-proof goals
+proof goal_cases
   case prems: 1
   then show ?case using prems sorry
 next
@@ -181,6 +184,26 @@ INCOMPATIBILITY in exotic situations.
 
 *** HOL ***
 
+* Qualification of various formal entities in the libraries is done more
+uniformly via "context begin qualified definition ... end" instead of
+old-style "hide_const (open) ...". Consequently, both the defined
+constant and its defining fact become qualified, e.g. Option.is_none and
+Option.is_none_def. Occasional INCOMPATIBILITY in applications.
+
+* Combinator to represent case distinction on products is named "uncurry",
+with "split" and "prod_case" retained as input abbreviations.
+Partially applied occurences of "uncurry" with eta-contracted body
+terms are not printed with special syntax, to provide a compact
+notation and getting rid of a special-case print translation.
+Hence, the "uncurry"-expressions are printed the following way:
+a) fully applied "uncurry f p": explicit case-expression;
+b) partially applied with explicit double lambda abstraction in
+the body term "uncurry (%a b. t [a, b])": explicit paired abstraction;
+c) partially applied with eta-contracted body term "uncurry f":
+no special syntax, plain "uncurry" combinator.
+This aims for maximum readability in a given subterm.
+INCOMPATIBILITY.
+
 * Some old and rarely used ASCII replacement syntax has been removed.
 INCOMPATIBILITY, standard syntax with symbols should be used instead.
 The subsequent commands help to reproduce the old forms, e.g. to
@@ -188,6 +211,10 @@ simplify porting old theories:
 
   type_notation Map.map  (infixr "~=>" 0)
   notation Map.map_comp  (infixl "o'_m" 55)
+
+* The alternative notation "\<Colon>" for type and sort constraints has been
+removed: in LaTeX document output it looks the same as "::".
+INCOMPATIBILITY, use plain "::" instead.
 
 * Theory Map: lemma map_of_is_SomeD was a clone of map_of_SomeD and has
 been removed. INCOMPATIBILITY.
@@ -276,8 +303,23 @@ not available during instantiation.
 * Theory Library/Old_Recdef: discontinued obsolete 'defer_recdef'
 command. Minor INCOMPATIBILITY, use 'function' instead.
 
+* Recursive function definitions ('fun', 'function', 'partial_function')
+no longer expose the low-level "_def" facts of the internal
+construction. INCOMPATIBILITY, enable option "function_defs" in the
+context for rare situations where these facts are really needed.
+
+* Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
+
+* Library/Omega_Words_Fun: Infinite words modeled as functions nat => 'a.
+
 
 *** ML ***
+
+* Simproc programming interfaces have been simplified:
+Simplifier.make_simproc and Simplifier.define_simproc supersede various
+forms of Simplifier.mk_simproc, Simplifier.simproc_global etc. Note that
+term patterns for the left-hand sides are specified with implicitly
+fixed variables, like top-level theorem statements. INCOMPATIBILITY.
 
 * Instantiation rules have been re-organized as follows:
 
@@ -307,11 +349,37 @@ the proof context discipline.
 
 *** System ***
 
+* Property values in etc/symbols may contain spaces, if written with the
+replacement character "␣" (Unicode point 0x2324).  For example:
+
+  \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
+
+* Command-line tool "isabelle jedit_client" allows to connect to already
+running Isabelle/jEdit process. This achieves the effect of
+single-instance applications seen on common GUI desktops.
+
+* Poly/ML default platform architecture may be changed from 32bit to
+64bit via system option ML_system_64. A system restart (and rebuild)
+is required after change.
+
 * Poly/ML 5.5.3 runs natively on x86-windows and x86_64-windows,
 which both allow larger heap space than former x86-cygwin.
 
 * Java runtime environment for x86_64-windows allows to use larger heap
 space.
+
+* Java runtime options are determined separately for 32bit vs. 64bit
+platforms as follows.
+
+  - Isabelle desktop application: platform-specific files that are
+    associated with the main app bundle
+
+  - isabelle jedit: settings
+    JEDIT_JAVA_SYSTEM_OPTIONS
+    JEDIT_JAVA_OPTIONS32 vs. JEDIT_JAVA_OPTIONS64
+
+  - isabelle build: settings
+    ISABELLE_BUILD_JAVA_OPTIONS32 vs. ISABELLE_BUILD_JAVA_OPTIONS64
 
 
 

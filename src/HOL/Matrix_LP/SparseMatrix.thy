@@ -120,8 +120,11 @@ lemma sparse_row_vector_minus:
   done
 
 instance matrix :: (lattice_ab_group_add_abs) lattice_ab_group_add_abs
-apply default
-unfolding abs_matrix_def .. (*FIXME move*)
+  apply standard
+  unfolding abs_matrix_def
+  apply rule
+  done
+  (*FIXME move*)
 
 lemma sparse_row_vector_abs:
   "sorted_spvec (v :: 'a::lattice_ring spvec) \<Longrightarrow> sparse_row_vector (abs_spvec v) = abs (sparse_row_vector v)"

@@ -490,7 +490,7 @@ lemma meet_defl_eq2: "b \<sqsubseteq> a \<Longrightarrow> meet_defl\<cdot>a\<cdo
 by (fast intro: below_antisym meet_defl_below2 meet_defl_greatest)
 
 interpretation meet_defl: semilattice "\<lambda>a b. meet_defl\<cdot>a\<cdot>b"
-by default
+by standard
   (fast intro: below_antisym meet_defl_greatest
    meet_defl_below1 [THEN below_trans] meet_defl_below2 [THEN below_trans])+
 

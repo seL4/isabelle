@@ -119,10 +119,10 @@ proof -
 qed
 
 instance "domain" \<subseteq> bifinite
-by default (rule approx_chain_ep_cast [OF ep_pair_emb_prj cast_DEFL])
+by standard (rule approx_chain_ep_cast [OF ep_pair_emb_prj cast_DEFL])
 
 instance predomain \<subseteq> profinite
-by default (rule approx_chain_ep_cast [OF predomain_ep cast_liftdefl])
+by standard (rule approx_chain_ep_cast [OF predomain_ep cast_liftdefl])
 
 subsection {* Universal domain ep-pairs *}
 

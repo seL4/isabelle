@@ -139,7 +139,7 @@ definition
   [simp]: "Basis = {1::real}"
 
 instance
-  by default auto
+  by standard auto
 
 end
 
@@ -155,7 +155,7 @@ definition Basis_complex_def:
   "Basis = {1, ii}"
 
 instance
-  by default (auto simp add: Basis_complex_def intro: complex_eqI split: split_if_asm)
+  by standard (auto simp add: Basis_complex_def intro: complex_eqI split: split_if_asm)
 
 end
 

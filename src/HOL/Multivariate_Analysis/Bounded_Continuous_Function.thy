@@ -315,7 +315,7 @@ lemma Rep_bcontfun_scaleR[simp]: "Rep_bcontfun (a *\<^sub>R g) x = a *\<^sub>R R
   by (simp add: scaleR_bcontfun_def Abs_bcontfun_inverse scaleR_cont Rep_bcontfun)
 
 instance
-  by default
+  by standard
     (simp_all add: plus_bcontfun_def zero_bcontfun_def minus_bcontfun_def scaleR_bcontfun_def
       Abs_bcontfun_inverse Rep_bcontfun_inverse Rep_bcontfun algebra_simps
       plus_cont const_bcontfun minus_cont scaleR_cont)

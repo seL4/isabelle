@@ -125,10 +125,10 @@ lemma (in finite_information) positive_p_sum[simp]: "0 \<le> setsum p X"
    by (auto intro!: setsum_nonneg)
 
 sublocale finite_information \<subseteq> prob_space "point_measure \<Omega> p"
-  by default (simp add: one_ereal_def emeasure_point_measure_finite)
+  by standard (simp add: one_ereal_def emeasure_point_measure_finite)
 
 sublocale finite_information \<subseteq> information_space "point_measure \<Omega> p" b
-  by default simp
+  by standard simp
 
 lemma (in finite_information) \<mu>'_eq: "A \<subseteq> \<Omega> \<Longrightarrow> prob A = setsum p A"
   by (auto simp: measure_point_measure)
@@ -150,7 +150,7 @@ definition P :: "('key \<times> 'message list) \<Rightarrow> real" where
 end
 
 sublocale koepf_duermuth \<subseteq> finite_information msgs P b
-proof default
+proof
   show "finite msgs" unfolding msgs_def
     using finite_lists_length_eq[OF M.finite_space, of n]
     by auto

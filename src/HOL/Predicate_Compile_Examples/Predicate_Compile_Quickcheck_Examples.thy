@@ -2,6 +2,7 @@ theory Predicate_Compile_Quickcheck_Examples
 imports "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
 begin
 
+(*
 section {* Sets *}
 
 lemma "x \<in> {(1::nat)} ==> False"
@@ -35,6 +36,7 @@ lemma
   "x \<in> {1, 2} \<union> {3, 4} ==> x = (1::nat) \<or> x = (2::nat)"
 quickcheck[generator=predicate_compile_wo_ff]
 oops
+*)
 
 section {* Equivalences *}
 
@@ -48,7 +50,7 @@ where
 
 lemma
   "is_ten x = is_eleven x"
-quickcheck[tester = predicate_compile_wo_ff, iterations = 1, size = 1, expect = counterexample]
+quickcheck[tester = smart_exhaustive, iterations = 1, size = 1, expect = counterexample]
 oops
 
 section {* Context Free Grammar *}
@@ -64,13 +66,13 @@ inductive_set S\<^sub>1 and A\<^sub>1 and B\<^sub>1 where
 | "\<lbrakk>v \<in> B\<^sub>1; v \<in> B\<^sub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>1"
 
 lemma
-  "w \<in> S\<^sub>1 \<Longrightarrow> w = []"
-quickcheck[tester = predicate_compile_ff_nofs, iterations=1]
+  "S\<^sub>1p w \<Longrightarrow> w = []"
+quickcheck[tester = smart_exhaustive, iterations=1]
 oops
 
 theorem S\<^sub>1_sound:
-"w \<in> S\<^sub>1 \<Longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator=predicate_compile_ff_nofs, size=15]
+"S\<^sub>1p w \<Longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+quickcheck[tester=smart_exhaustive, size=15]
 oops
 
 
@@ -111,8 +113,8 @@ quickcheck[generator=predicate_compile, size = 10, iterations = 1]
 oops
 *)
 theorem S\<^sub>2_sound:
-"w \<in> S\<^sub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator=predicate_compile_ff_nofs, size=5, iterations=10]
+"S\<^sub>2p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+quickcheck[tester=smart_exhaustive, size=5, iterations=10]
 oops
 
 inductive_set S\<^sub>3 and A\<^sub>3 and B\<^sub>3 where
@@ -123,26 +125,26 @@ inductive_set S\<^sub>3 and A\<^sub>3 and B\<^sub>3 where
 | "w \<in> S\<^sub>3 \<Longrightarrow> b # w \<in> B\<^sub>3"
 | "\<lbrakk>v \<in> B\<^sub>3; w \<in> B\<^sub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>3"
 
-code_pred [inductify, skip_proof] S\<^sub>3 .
-thm S\<^sub>3.equation
+code_pred [inductify, skip_proof] S\<^sub>3p .
+thm S\<^sub>3p.equation
 (*
 values 10 "{x. S\<^sub>3 x}"
 *)
 
 
 lemma S\<^sub>3_sound:
-"w \<in> S\<^sub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[generator=predicate_compile_ff_fs, size=10, iterations=10]
+"S\<^sub>3p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+quickcheck[tester=smart_exhaustive, size=10, iterations=10]
 oops
 
 lemma "\<not> (length w > 2) \<or> \<not> (length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b])"
-quickcheck[size=10, tester = predicate_compile_ff_fs]
+quickcheck[size=10, tester = smart_exhaustive]
 oops
 
 theorem S\<^sub>3_complete:
-"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. b = x] \<longrightarrow> w \<in> S\<^sub>3"
+"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. b = x] \<longrightarrow> S\<^sub>3p w"
 (*quickcheck[generator=SML]*)
-quickcheck[generator=predicate_compile_ff_fs, size=10, iterations=100]
+quickcheck[tester=smart_exhaustive, size=10, iterations=100]
 oops
 
 
@@ -156,13 +158,13 @@ inductive_set S\<^sub>4 and A\<^sub>4 and B\<^sub>4 where
 | "\<lbrakk>v \<in> B\<^sub>4; w \<in> B\<^sub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>4"
 
 theorem S\<^sub>4_sound:
-"w \<in> S\<^sub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-quickcheck[tester = predicate_compile_ff_nofs, size=5, iterations=1]
+"S\<^sub>4p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+quickcheck[tester = smart_exhaustive, size=5, iterations=1]
 oops
 
 theorem S\<^sub>4_complete:
-"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^sub>4"
-quickcheck[tester = predicate_compile_ff_nofs, size=5, iterations=1]
+"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> S\<^sub>4p w"
+quickcheck[tester = smart_exhaustive, size=5, iterations=1]
 oops
 
 hide_const a b
@@ -201,7 +203,7 @@ values [random_dseq 1, 2, 3] 10 "{(c, s, s'). exec c s s'}"
 
 lemma
   "exec c s s' ==> exec (Seq c c) s s'"
-  quickcheck[tester = predicate_compile_wo_ff, size=2, iterations=20, expect = counterexample]
+  quickcheck[tester = smart_exhaustive, size=2, iterations=20, expect = counterexample]
 oops
 
 subsection {* Lambda *}
@@ -256,7 +258,7 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
 
 lemma
   "\<Gamma> \<turnstile> t : U \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> \<Gamma> \<turnstile> t' : U"
-quickcheck[tester = predicate_compile_ff_fs, size = 7, iterations = 10]
+quickcheck[tester = smart_exhaustive, size = 7, iterations = 10]
 oops
 
 subsection {* JAD *}
@@ -281,17 +283,16 @@ next
     unfolding matrix_def by auto
 qed
 
-code_pred [random_dseq inductify] matrix
+code_pred [random_dseq] matrix
   apply (cases x)
   unfolding matrix_def apply fastforce
   apply fastforce done
-
 
 values [random_dseq 2, 2, 15] 6 "{(M::int list list, n, m). matrix M n m}"
 
 definition "scalar_product v w = (\<Sum> (x, y)\<leftarrow>zip v w. x * y)"
 
-definition mv :: "('a \<Colon> semiring_0) list list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+definition mv :: "('a :: semiring_0) list list \<Rightarrow> 'a list \<Rightarrow> 'a list"
   where [simp]: "mv M v = map (scalar_product v) M"
 text {*
   This defines the matrix vector multiplication. To work properly @{term
@@ -306,7 +307,7 @@ lemma sparsify_length: "(i, x) \<in> set (sparsify xs) \<Longrightarrow> i < len
   by (auto simp: sparsify_def set_zip)
 
 lemma listsum_sparsify[simp]:
-  fixes v :: "('a \<Colon> semiring_0) list"
+  fixes v :: "('a :: semiring_0) list"
   assumes "length w = length v"
   shows "(\<Sum>x\<leftarrow>sparsify w. (\<lambda>(i, x). v ! i) x * snd x) = scalar_product v w"
     (is "(\<Sum>x\<leftarrow>_. ?f x) = _")
@@ -316,11 +317,11 @@ lemma listsum_sparsify[simp]:
 *)
 definition [simp]: "unzip w = (map fst w, map snd w)"
 
-primrec insert :: "('a \<Rightarrow> 'b \<Colon> linorder) => 'a \<Rightarrow> 'a list => 'a list" where
+primrec insert :: "('a \<Rightarrow> 'b :: linorder) => 'a \<Rightarrow> 'a list => 'a list" where
   "insert f x [] = [x]" |
   "insert f x (y # ys) = (if f y < f x then y # insert f x ys else x # y # ys)"
 
-primrec sort :: "('a \<Rightarrow> 'b \<Colon> linorder) \<Rightarrow> 'a list => 'a list" where
+primrec sort :: "('a \<Rightarrow> 'b :: linorder) \<Rightarrow> 'a list => 'a list" where
   "sort f [] = []" |
   "sort f (x # xs) = insert f x (sort f xs)"
 
@@ -340,12 +341,12 @@ definition
   "jad_mv v = inflate o split zip o apsnd (map listsum o transpose o map (map (\<lambda> (i, x). v ! i * x)))"
 
 lemma "matrix (M::int list list) rs cs \<Longrightarrow> False"
-quickcheck[tester = predicate_compile_ff_nofs, size = 6]
+quickcheck[tester = smart_exhaustive, size = 6]
 oops
 
 lemma
   "\<lbrakk> matrix M rs cs ; length v = cs \<rbrakk> \<Longrightarrow> jad_mv v (jad M) = mv M v"
-quickcheck[tester = predicate_compile_wo_ff]
+quickcheck[tester = smart_exhaustive]
 oops
 
 end

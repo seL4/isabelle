@@ -275,10 +275,13 @@ where
   "fold_impl fn e ((a,n) # ms) = (fold_impl fn ((fn a n) e) ms)"
 | "fold_impl fn e [] = e"
 
-definition fold :: "('a \<Rightarrow> nat \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> ('a, nat) alist \<Rightarrow> 'b"
+context
+begin
+
+qualified definition fold :: "('a \<Rightarrow> nat \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> ('a, nat) alist \<Rightarrow> 'b"
   where "fold f e al = fold_impl f e (DAList.impl_of al)"
 
-hide_const (open) fold
+end
 
 context comp_fun_commute
 begin
@@ -348,7 +351,10 @@ qed
 
 end
 
-lift_definition single_alist_entry :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) alist" is "\<lambda>a b. [(a, b)]"
+context
+begin
+
+private lift_definition single_alist_entry :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) alist" is "\<lambda>a b. [(a, b)]"
   by auto
 
 lemma image_mset_Bag [code]:
@@ -368,7 +374,7 @@ proof (rule comp_fun_commute.DAList_Multiset_fold, unfold_locales, (auto simp: a
   qed
 qed
 
-hide_const single_alist_entry
+end
 
 (* we cannot use (\<lambda>a n. op + (a * n)) for folding, since * is not defined
    in comm_monoid_add *)

@@ -993,7 +993,7 @@ next
   note A_in_sets = this
 
   show "sigma_finite_measure ?N"
-  proof (default, intro exI conjI ballI)
+  proof (standard, intro exI conjI ballI)
     show "countable (range (\<lambda>(i, j). A i \<inter> Q j))"
       by auto
     show "range (\<lambda>(i, j). A i \<inter> Q j) \<subseteq> sets (density M f)"

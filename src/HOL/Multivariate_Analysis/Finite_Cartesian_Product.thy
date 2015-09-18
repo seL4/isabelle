@@ -95,30 +95,30 @@ lemma vector_uminus_component [simp]: "(- x)$i = - (x$i)"
   unfolding uminus_vec_def by simp
 
 instance vec :: (semigroup_add, finite) semigroup_add
-  by default (simp add: vec_eq_iff add.assoc)
+  by standard (simp add: vec_eq_iff add.assoc)
 
 instance vec :: (ab_semigroup_add, finite) ab_semigroup_add
-  by default (simp add: vec_eq_iff add.commute)
+  by standard (simp add: vec_eq_iff add.commute)
 
 instance vec :: (monoid_add, finite) monoid_add
-  by default (simp_all add: vec_eq_iff)
+  by standard (simp_all add: vec_eq_iff)
 
 instance vec :: (comm_monoid_add, finite) comm_monoid_add
-  by default (simp add: vec_eq_iff)
+  by standard (simp add: vec_eq_iff)
 
 instance vec :: (cancel_semigroup_add, finite) cancel_semigroup_add
-  by default (simp_all add: vec_eq_iff)
+  by standard (simp_all add: vec_eq_iff)
 
 instance vec :: (cancel_ab_semigroup_add, finite) cancel_ab_semigroup_add
-  by default (simp_all add: vec_eq_iff diff_diff_eq)
+  by standard (simp_all add: vec_eq_iff diff_diff_eq)
 
 instance vec :: (cancel_comm_monoid_add, finite) cancel_comm_monoid_add ..
 
 instance vec :: (group_add, finite) group_add
-  by default (simp_all add: vec_eq_iff)
+  by standard (simp_all add: vec_eq_iff)
 
 instance vec :: (ab_group_add, finite) ab_group_add
-  by default (simp_all add: vec_eq_iff)
+  by standard (simp_all add: vec_eq_iff)
 
 
 subsection \<open>Real vector space\<close>
@@ -132,7 +132,7 @@ lemma vector_scaleR_component [simp]: "(scaleR r x)$i = scaleR r (x$i)"
   unfolding scaleR_vec_def by simp
 
 instance
-  by default (simp_all add: vec_eq_iff scaleR_left_distrib scaleR_right_distrib)
+  by standard (simp_all add: vec_eq_iff scaleR_left_distrib scaleR_right_distrib)
 
 end
 
@@ -412,7 +412,7 @@ unfolding norm_vec_def
 by (rule member_le_setL2) simp_all
 
 lemma bounded_linear_vec_nth: "bounded_linear (\<lambda>x. x $ i)"
-apply default
+apply standard
 apply (rule vector_add_component)
 apply (rule vector_scaleR_component)
 apply (rule_tac x="1" in exI, simp add: norm_nth_le)

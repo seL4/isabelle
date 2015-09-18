@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: Isabelle/jEdit client for already running application
+
+## settings
+
+SERVER_NAME="${ISABELLE_IDENTIFIER:-Isabelle}"
+
+case "$ISABELLE_JAVA_PLATFORM" in
+  x86_64-*)
+    JEDIT_JAVA_OPTIONS="$JEDIT_JAVA_OPTIONS64"
+    ;;
+  *)
+    JEDIT_JAVA_OPTIONS="$JEDIT_JAVA_OPTIONS32"
+    ;;
+esac
+
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($JEDIT_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS)"
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] [FILES ...]"
+  echo
+  echo "  Options are:"
+  echo "    -c           only check presence of server"
+  echo "    -n           only report server name"
+  echo "    -s NAME      server name (default $SERVER_NAME)"
+  echo
+  echo "  Connect to already running Isabelle/jEdit instance and open FILES"
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+function failed()
+{
+  fail "Failed!"
+}
+
+
+## process command line
+
+# options
+
+CHECK_ONLY="false"
+NAME_ONLY="false"
+
+while getopts "cns:" OPT
+do
+  case "$OPT" in
+    c)
+      CHECK_ONLY="true"
+      ;;
+    n)
+      NAME_ONLY="true"
+      ;;
+    s)
+      SERVER_NAME="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+declare -a ARGS=()
+
+while [ "$#" -gt 0 ]
+do
+  ARGS["${#ARGS[@]}"]="$(jvmpath "$1")"
+  shift
+done
+
+
+## main
+
+if [ "$CHECK_ONLY" = true ]
+then
+  [ -f "$JEDIT_SETTINGS/$SERVER_NAME" ]
+  exit $?
+fi
+
+if [ "$NAME_ONLY" = true ]
+then
+  echo "$SERVER_NAME"
+  exit
+fi
+
+"$ISABELLE_TOOL" jedit -b || exit $?
+
+if [ -f "$JEDIT_SETTINGS/$SERVER_NAME" ]
+then
+  exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" -jar "$JEDIT_HOME/dist/jedit.jar" \
+    "-settings=$(jvmpath "$JEDIT_SETTINGS")" -server="$SERVER_NAME" -reuseview "${ARGS[@]}"
+else
+  fail "Isabelle/jEdit server \"$SERVER_NAME\" not active"
+fi

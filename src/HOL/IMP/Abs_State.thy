@@ -66,15 +66,14 @@ by(auto simp add: eq_st_def less_eq_st_rep_iff)
 definition less_st where "F < (G::'a st) = (F \<le> G \<and> \<not> G \<le> F)"
 
 instance
-proof
-  case goal1 show ?case by(rule less_st_def)
+proof (standard, goal_cases)
+  case 1 show ?case by(rule less_st_def)
 next
-  case goal2 show ?case by transfer (auto simp: less_eq_st_rep_def)
+  case 2 show ?case by transfer (auto simp: less_eq_st_rep_def)
 next
-  case goal3 thus ?case
-    by transfer (metis less_eq_st_rep_iff order_trans)
+  case 3 thus ?case by transfer (metis less_eq_st_rep_iff order_trans)
 next
-  case goal4 thus ?case
+  case 4 thus ?case
     by transfer (metis less_eq_st_rep_iff eq_st_def fun_eq_iff antisym)
 qed
 
@@ -105,15 +104,14 @@ by (simp add: eq_st_def)
 lift_definition top_st :: "'a st" is "[]" .
 
 instance
-proof
-  case goal1 show ?case by transfer (simp add:less_eq_st_rep_iff)
+proof (standard, goal_cases)
+  case 1 show ?case by transfer (simp add:less_eq_st_rep_iff)
 next
-  case goal2 show ?case by transfer (simp add:less_eq_st_rep_iff)
+  case 2 show ?case by transfer (simp add:less_eq_st_rep_iff)
 next
-  case goal3 thus ?case by transfer (simp add:less_eq_st_rep_iff)
+  case 3 thus ?case by transfer (simp add:less_eq_st_rep_iff)
 next
-  case goal4 show ?case
-    by transfer (simp add:less_eq_st_rep_iff fun_rep_map_of)
+  case 4 show ?case by transfer (simp add:less_eq_st_rep_iff fun_rep_map_of)
 qed
 
 end

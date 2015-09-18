@@ -529,7 +529,7 @@ qed (simp add: bot_nat_def)
 end
 
 instance nat :: no_top
-  by default (auto intro: less_Suc_eq_le [THEN iffD2])
+  by standard (auto intro: less_Suc_eq_le [THEN iffD2])
 
 
 subsubsection \<open>Introduction properties\<close>
@@ -1664,8 +1664,8 @@ ML_file "Tools/lin_arith.ML"
 setup \<open>Lin_Arith.global_setup\<close>
 declaration \<open>K Lin_Arith.setup\<close>
 
-simproc_setup fast_arith_nat ("(m::nat) < n" | "(m::nat) <= n" | "(m::nat) = n") =
-  \<open>fn _ => fn ss => fn ct => Lin_Arith.simproc ss (Thm.term_of ct)\<close>
+simproc_setup fast_arith_nat ("(m::nat) < n" | "(m::nat) \<le> n" | "(m::nat) = n") =
+  \<open>K Lin_Arith.simproc\<close>
 (* Because of this simproc, the arithmetic solver is really only
 useful to detect inconsistencies among the premises for subgoals which are
 *not* themselves (in)equalities, because the latter activate

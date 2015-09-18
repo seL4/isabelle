@@ -16,8 +16,6 @@ and d = gcd(m,m') and n=m/d and n'=m'/d.
 
 signature NUMERAL_SIMPROCS =
 sig
-  val prep_simproc: theory -> string * string list * (Proof.context -> term -> thm option)
-    -> simproc
   val trans_tac: Proof.context -> thm option -> tactic
   val assoc_fold: Proof.context -> cterm -> thm option
   val combine_numerals: Proof.context -> cterm -> thm option
@@ -37,16 +35,13 @@ sig
   val div_cancel_numeral_factor: Proof.context -> cterm -> thm option
   val divide_cancel_numeral_factor: Proof.context -> cterm -> thm option
   val field_combine_numerals: Proof.context -> cterm -> thm option
-  val field_divide_cancel_numeral_factor: simproc list
+  val field_divide_cancel_numeral_factor: simproc
   val num_ss: simpset
   val field_comp_conv: Proof.context -> conv
 end;
 
 structure Numeral_Simprocs : NUMERAL_SIMPROCS =
 struct
-
-fun prep_simproc thy (name, pats, proc) =
-  Simplifier.simproc_global thy name pats proc;
 
 fun trans_tac _ NONE  = all_tac
   | trans_tac ctxt (SOME th) = ALLGOALS (resolve_tac ctxt [th RS trans]);
@@ -65,7 +60,7 @@ fun one_of T = Const(@{const_name Groups.one}, T);
    which is not required for cancellation of common factors in divisions.
    UPDATE: this reasoning no longer applies (number_ring is gone)
 *)
-fun mk_prod T = 
+fun mk_prod T =
   let val one = one_of T
   fun mk [] = one
     | mk [t] = t
@@ -141,7 +136,7 @@ fun dest_fcoeff sign (Const (@{const_name Groups.uminus}, _) $ t) = dest_fcoeff 
   ordering is not well-founded.*)
 fun num_ord (i,j) =
   (case int_ord (abs i, abs j) of
-    EQUAL => int_ord (Int.sign i, Int.sign j) 
+    EQUAL => int_ord (Int.sign i, Int.sign j)
   | ord => ord);
 
 (*This resembles Term_Ord.term_ord, but it puts binary numerals before other
@@ -190,7 +185,7 @@ val post_simps =
 
 val field_post_simps =
     post_simps @ [@{thm divide_zero_left}, @{thm divide_1}]
-                      
+
 (*Simplify inverse Numeral1*)
 val inverse_1s = [@{thm inverse_numeral_1}];
 
@@ -202,7 +197,7 @@ val simps =
     @{thms add_neg_numeral_left} @
     @{thms mult_numeral_left} @
     @{thms arith_simps} @ @{thms rel_simps};
-    
+
 (*Binary arithmetic BUT NOT ADDITION since it may collapse adjacent terms
   during re-arrangement*)
 val non_add_simps =
@@ -288,9 +283,9 @@ structure LeCancelNumerals = CancelNumeralsFun
   val bal_add2 = @{thm le_add_iff2} RS trans
 );
 
-fun eq_cancel_numerals ctxt ct = EqCancelNumerals.proc ctxt (Thm.term_of ct)
-fun less_cancel_numerals ctxt ct = LessCancelNumerals.proc ctxt (Thm.term_of ct)
-fun le_cancel_numerals ctxt ct = LeCancelNumerals.proc ctxt (Thm.term_of ct)
+val eq_cancel_numerals = EqCancelNumerals.proc
+val less_cancel_numerals = LessCancelNumerals.proc
+val le_cancel_numerals = LeCancelNumerals.proc
 
 structure CombineNumeralsData =
 struct
@@ -350,9 +345,9 @@ end;
 
 structure FieldCombineNumerals = CombineNumeralsFun(FieldCombineNumeralsData);
 
-fun combine_numerals ctxt ct = CombineNumerals.proc ctxt (Thm.term_of ct)
+val combine_numerals = CombineNumerals.proc
 
-fun field_combine_numerals ctxt ct = FieldCombineNumerals.proc ctxt (Thm.term_of ct)
+val field_combine_numerals = FieldCombineNumerals.proc
 
 
 (** Constant folding for multiplication in semirings **)
@@ -433,37 +428,40 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 )
 
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
- (open CancelNumeralFactorCommon
-  val mk_bal   = HOLogic.mk_binrel @{const_name Orderings.less_eq}
+(
+  open CancelNumeralFactorCommon
+  val mk_bal = HOLogic.mk_binrel @{const_name Orderings.less_eq}
   val dest_bal = HOLogic.dest_bin @{const_name Orderings.less_eq} dummyT
   val cancel = @{thm mult_le_cancel_left} RS trans
   val neg_exchanges = true
 )
 
-fun eq_cancel_numeral_factor ctxt ct = EqCancelNumeralFactor.proc ctxt (Thm.term_of ct)
-fun less_cancel_numeral_factor ctxt ct = LessCancelNumeralFactor.proc ctxt (Thm.term_of ct)
-fun le_cancel_numeral_factor ctxt ct = LeCancelNumeralFactor.proc ctxt (Thm.term_of ct)
-fun div_cancel_numeral_factor ctxt ct = DivCancelNumeralFactor.proc ctxt (Thm.term_of ct)
-fun divide_cancel_numeral_factor ctxt ct = DivideCancelNumeralFactor.proc ctxt (Thm.term_of ct)
+val eq_cancel_numeral_factor = EqCancelNumeralFactor.proc
+val less_cancel_numeral_factor = LessCancelNumeralFactor.proc
+val le_cancel_numeral_factor = LeCancelNumeralFactor.proc
+val div_cancel_numeral_factor = DivCancelNumeralFactor.proc
+val divide_cancel_numeral_factor = DivideCancelNumeralFactor.proc
 
 val field_divide_cancel_numeral_factor =
-  [prep_simproc @{theory}
-    ("field_divide_cancel_numeral_factor",
-     ["((l::'a::field) * m) / n",
-      "(l::'a::field) / (m * n)",
-      "((numeral v)::'a::field) / (numeral w)",
-      "((numeral v)::'a::field) / (- numeral w)",
-      "((- numeral v)::'a::field) / (numeral w)",
-      "((- numeral v)::'a::field) / (- numeral w)"],
-     DivideCancelNumeralFactor.proc)];
+  Simplifier.make_simproc @{context} "field_divide_cancel_numeral_factor"
+   {lhss =
+     [@{term "((l::'a::field) * m) / n"},
+      @{term "(l::'a::field) / (m * n)"},
+      @{term "((numeral v)::'a::field) / (numeral w)"},
+      @{term "((numeral v)::'a::field) / (- numeral w)"},
+      @{term "((- numeral v)::'a::field) / (numeral w)"},
+      @{term "((- numeral v)::'a::field) / (- numeral w)"}],
+    proc = K DivideCancelNumeralFactor.proc,
+    identifier = []}
 
 val field_cancel_numeral_factors =
-  prep_simproc @{theory}
-    ("field_eq_cancel_numeral_factor",
-     ["(l::'a::field) * m = n",
-      "(l::'a::field) = m * n"],
-     EqCancelNumeralFactor.proc)
-   :: field_divide_cancel_numeral_factor;
+  [Simplifier.make_simproc @{context} "field_eq_cancel_numeral_factor"
+    {lhss =
+       [@{term "(l::'a::field) * m = n"},
+        @{term "(l::'a::field) = m * n"}],
+      proc = K EqCancelNumeralFactor.proc,
+      identifier = []},
+   field_divide_cancel_numeral_factor]
 
 
 (** Declarations for ExtractCommonTerm **)
@@ -476,7 +474,7 @@ fun find_first_t past u []         = raise TERM ("find_first_t", [])
         handle TERM _ => find_first_t (t::past) u terms;
 
 (** Final simplification for the CancelFactor simprocs **)
-val simplify_one = Arith_Data.simplify_meta_eq  
+val simplify_one = Arith_Data.simplify_meta_eq
   [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_by_1}, @{thm numeral_1_eq_1}];
 
 fun cancel_simplify_meta_eq ctxt cancel_th th =
@@ -484,7 +482,7 @@ fun cancel_simplify_meta_eq ctxt cancel_th th =
 
 local
   val Tp_Eq = Thm.reflexive (Thm.cterm_of @{theory_context HOL} HOLogic.Trueprop)
-  fun Eq_True_elim Eq = 
+  fun Eq_True_elim Eq =
     Thm.equal_elim (Thm.combination Tp_Eq (Thm.symmetric Eq)) @{thm TrueI}
 in
 fun sign_conv pos_th neg_th ctxt t =
@@ -515,7 +513,7 @@ struct
     simpset_of (put_simpset HOL_basic_ss @{context} addsimps mult_1s @ @{thms ac_simps minus_mult_commute})
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
-  val simplify_meta_eq  = cancel_simplify_meta_eq 
+  val simplify_meta_eq  = cancel_simplify_meta_eq
   fun mk_eq (a, b) = HOLogic.mk_Trueprop (HOLogic.mk_eq (a, b))
 end;
 
@@ -585,25 +583,31 @@ fun dvd_cancel_factor ctxt ct = DvdCancelFactor.proc ctxt (Thm.term_of ct)
 fun divide_cancel_factor ctxt ct = DivideCancelFactor.proc ctxt (Thm.term_of ct)
 
 local
- val zr = @{cpat "0"}
- val zT = Thm.ctyp_of_cterm zr
- val geq = @{cpat HOL.eq}
- val eqT = Thm.dest_ctyp (Thm.ctyp_of_cterm geq) |> hd
- val add_frac_eq = mk_meta_eq @{thm "add_frac_eq"}
- val add_frac_num = mk_meta_eq @{thm "add_frac_num"}
- val add_num_frac = mk_meta_eq @{thm "add_num_frac"}
 
- fun prove_nz ctxt T t =
-    let
-      val z = Thm.instantiate_cterm ([(dest_TVar (Thm.typ_of zT), T)],[]) zr
-      val eq = Thm.instantiate_cterm ([(dest_TVar (Thm.typ_of eqT), T)],[]) geq
-      val th = Simplifier.rewrite (ctxt addsimps @{thms simp_thms})
-           (Thm.apply @{cterm "Trueprop"} (Thm.apply @{cterm "Not"}
-                  (Thm.apply (Thm.apply eq t) z)))
-    in Thm.equal_elim (Thm.symmetric th) TrueI
-    end
+val cterm_of = Thm.cterm_of @{context};
+fun tvar S = (("'a", 0), S);
 
- fun proc phi ctxt ct =
+val zero_tvar = tvar @{sort zero};
+val zero = cterm_of (Const (@{const_name zero_class.zero}, TVar zero_tvar));
+
+val type_tvar = tvar @{sort type};
+val geq = cterm_of (Const (@{const_name HOL.eq}, TVar type_tvar --> TVar type_tvar --> @{typ bool}));
+
+val add_frac_eq = mk_meta_eq @{thm "add_frac_eq"}
+val add_frac_num = mk_meta_eq @{thm "add_frac_num"}
+val add_num_frac = mk_meta_eq @{thm "add_num_frac"}
+
+fun prove_nz ctxt T t =
+  let
+    val z = Thm.instantiate_cterm ([(zero_tvar, T)], []) zero
+    val eq = Thm.instantiate_cterm ([(type_tvar, T)], []) geq
+    val th =
+      Simplifier.rewrite (ctxt addsimps @{thms simp_thms})
+        (Thm.apply @{cterm "Trueprop"} (Thm.apply @{cterm "Not"}
+          (Thm.apply (Thm.apply eq t) z)))
+  in Thm.equal_elim (Thm.symmetric th) TrueI end
+
+fun proc ctxt ct =
   let
     val ((x,y),(w,z)) =
          (Thm.dest_binop #> (fn (a,b) => (Thm.dest_binop a, Thm.dest_binop b))) ct
@@ -611,11 +615,10 @@ local
     val T = Thm.ctyp_of_cterm x
     val [y_nz, z_nz] = map (prove_nz ctxt T) [y, z]
     val th = Thm.instantiate' [SOME T] (map SOME [y,z,x,w]) add_frac_eq
-  in SOME (Thm.implies_elim (Thm.implies_elim th y_nz) z_nz)
-  end
+  in SOME (Thm.implies_elim (Thm.implies_elim th y_nz) z_nz) end
   handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
 
- fun proc2 phi ctxt ct =
+fun proc2 ctxt ct =
   let
     val (l,r) = Thm.dest_binop ct
     val T = Thm.ctyp_of_cterm l
@@ -636,12 +639,12 @@ local
   end
   handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
 
- fun is_number (Const(@{const_name Rings.divide},_)$a$b) = is_number a andalso is_number b
-   | is_number t = can HOLogic.dest_number t
+fun is_number (Const(@{const_name Rings.divide},_)$a$b) = is_number a andalso is_number b
+  | is_number t = can HOLogic.dest_number t
 
- val is_number = is_number o Thm.term_of
+val is_number = is_number o Thm.term_of
 
- fun proc3 phi ctxt ct =
+fun proc3 ctxt ct =
   (case Thm.term_of ct of
     Const(@{const_name Orderings.less},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
@@ -685,41 +688,42 @@ local
         val T = Thm.ctyp_of_cterm c
         val th = Thm.instantiate' [SOME T] (map SOME [a,b,c]) @{thm "eq_divide_eq"}
       in SOME (mk_meta_eq th) end
-  | _ => NONE)
-  handle TERM _ => NONE | CTERM _ => NONE | THM _ => NONE
+  | _ => NONE) handle TERM _ => NONE | CTERM _ => NONE | THM _ => NONE
 
 val add_frac_frac_simproc =
-       make_simproc {lhss = [@{cpat "(?x::?'a::field)/?y + (?w::?'a::field)/?z"}],
-                     name = "add_frac_frac_simproc",
-                     proc = proc, identifier = []}
+  Simplifier.make_simproc @{context} "add_frac_frac_simproc"
+   {lhss = [@{term "(x::'a::field) / y + (w::'a::field) / z"}],
+    proc = K proc, identifier = []}
 
 val add_frac_num_simproc =
-       make_simproc {lhss = [@{cpat "(?x::?'a::field)/?y + ?z"}, @{cpat "?z + (?x::?'a::field)/?y"}],
-                     name = "add_frac_num_simproc",
-                     proc = proc2, identifier = []}
+  Simplifier.make_simproc @{context} "add_frac_num_simproc"
+   {lhss = [@{term "(x::'a::field) / y + z"}, @{term "z + (x::'a::field) / y"}],
+    proc = K proc2, identifier = []}
 
 val ord_frac_simproc =
-  make_simproc
-    {lhss = [@{cpat "(?a::(?'a::{field, ord}))/?b < ?c"},
-             @{cpat "(?a::(?'a::{field, ord}))/?b <= ?c"},
-             @{cpat "?c < (?a::(?'a::{field, ord}))/?b"},
-             @{cpat "?c <= (?a::(?'a::{field, ord}))/?b"},
-             @{cpat "?c = ((?a::(?'a::{field, ord}))/?b)"},
-             @{cpat "((?a::(?'a::{field, ord}))/ ?b) = ?c"}],
-             name = "ord_frac_simproc", proc = proc3, identifier = []}
+  Simplifier.make_simproc @{context} "ord_frac_simproc"
+   {lhss =
+     [@{term "(a::'a::{field,ord}) / b < c"},
+      @{term "(a::'a::{field,ord}) / b \<le> c"},
+      @{term "c < (a::'a::{field,ord}) / b"},
+      @{term "c \<le> (a::'a::{field,ord}) / b"},
+      @{term "c = (a::'a::{field,ord}) / b"},
+      @{term "(a::'a::{field, ord}) / b = c"}],
+    proc = K proc3, identifier = []}
 
-val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
-           @{thm "divide_numeral_1"},
-           @{thm "divide_zero"}, @{thm divide_zero_left},
-           @{thm "divide_divide_eq_left"}, 
-           @{thm "times_divide_eq_left"}, @{thm "times_divide_eq_right"},
-           @{thm "times_divide_times_eq"},
-           @{thm "divide_divide_eq_right"},
-           @{thm diff_conv_add_uminus}, @{thm "minus_divide_left"},
-           @{thm "add_divide_distrib"} RS sym,
-           @{thm Fields.field_divide_inverse} RS sym, @{thm inverse_divide}, 
-           Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult.commute}))))   
-           (@{thm Fields.field_divide_inverse} RS sym)]
+val ths =
+ [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
+  @{thm "divide_numeral_1"},
+  @{thm "divide_zero"}, @{thm divide_zero_left},
+  @{thm "divide_divide_eq_left"},
+  @{thm "times_divide_eq_left"}, @{thm "times_divide_eq_right"},
+  @{thm "times_divide_times_eq"},
+  @{thm "divide_divide_eq_right"},
+  @{thm diff_conv_add_uminus}, @{thm "minus_divide_left"},
+  @{thm "add_divide_distrib"} RS sym,
+  @{thm Fields.field_divide_inverse} RS sym, @{thm inverse_divide},
+  Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult.commute}))))
+  (@{thm Fields.field_divide_inverse} RS sym)]
 
 val field_comp_ss =
   simpset_of
@@ -740,4 +744,3 @@ fun field_comp_conv ctxt =
 end
 
 end;
-

@@ -4,7 +4,7 @@
 Normalization of expressions in semirings.
 *)
 
-signature SEMIRING_NORMALIZER = 
+signature SEMIRING_NORMALIZER =
 sig
   type entry
   val match: Proof.context -> cterm -> entry option
@@ -13,8 +13,9 @@ sig
   val the_field: Proof.context -> thm -> cterm list * thm list
   val the_idom: Proof.context -> thm -> thm list
   val the_ideal: Proof.context -> thm -> thm list
-  val declare: thm -> {semiring: cterm list * thm list, ring: cterm list * thm list,
-    field: cterm list * thm list, idom: thm list, ideal: thm list} -> declaration
+  val declare: thm -> {semiring: term list * thm list, ring: term list * thm list,
+    field: term list * thm list, idom: thm list, ideal: thm list} ->
+    local_theory -> local_theory
 
   val semiring_normalize_conv: Proof.context -> conv
   val semiring_normalize_ord_conv: Proof.context -> (cterm -> cterm -> bool) -> conv
@@ -40,7 +41,7 @@ sig
        sub: Proof.context -> conv}
 end
 
-structure Semiring_Normalizer: SEMIRING_NORMALIZER = 
+structure Semiring_Normalizer: SEMIRING_NORMALIZER =
 struct
 
 (** data **)
@@ -76,7 +77,7 @@ val the_ideal = #ideal oo the_rules
 fun match ctxt tm =
   let
     fun match_inst
-        ({vars, semiring = (sr_ops, sr_rules), 
+        ({vars, semiring = (sr_ops, sr_rules),
           ring = (r_ops, r_rules), field = (f_ops, f_rules), idom, ideal},
          fns) pat =
        let
@@ -92,7 +93,7 @@ fun match ctxt tm =
             val idom' = map substT idom;
             val ideal' = map substT ideal;
 
-            val result = ({vars = vars', semiring = semiring', 
+            val result = ({vars = vars', semiring = semiring',
                            ring = ring', field = field', idom = idom', ideal = ideal'}, fns);
           in SOME result end
       in (case try Thm.match (pat, tm) of
@@ -105,7 +106,7 @@ fun match ctxt tm =
       get_first (match_inst entry) (sr_ops @ r_ops @ f_ops);
   in get_first match_struct (Data.get (Context.Proof ctxt)) end;
 
-  
+
 (* extra-logical functions *)
 
 val semiring_norm_ss =
@@ -137,9 +138,9 @@ val field_funs =
     fun dest_const ct = ((case Thm.term_of ct of
        Const (@{const_name Rings.divide},_) $ a $ b=>
         Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
-     | Const (@{const_name Fields.inverse},_)$t => 
+     | Const (@{const_name Fields.inverse},_)$t =>
                    Rat.inv (Rat.rat_of_int (snd (HOLogic.dest_number t)))
-     | t => Rat.rat_of_int (snd (HOLogic.dest_number t))) 
+     | t => Rat.rat_of_int (snd (HOLogic.dest_number t)))
        handle TERM _ => error "ring_dest_const")
     fun mk_const cT x =
       let val (a, b) = Rat.quotient_of_rat x
@@ -165,62 +166,71 @@ val fieldN = "field";
 val idomN = "idom";
 
 fun declare raw_key
-    {semiring = raw_semiring, ring = raw_ring, field = raw_field, idom = raw_idom, ideal = raw_ideal}
-    phi context =
+    {semiring = raw_semiring0, ring = raw_ring0, field = raw_field0, idom = raw_idom, ideal = raw_ideal}
+    lthy =
   let
-    val ctxt = Context.proof_of context;
-    val key = Morphism.thm phi raw_key;
-    fun morphism_ops_rules (ops, rules) = (map (Morphism.cterm phi) ops, Morphism.fact phi rules);
-    val (sr_ops, sr_rules) = morphism_ops_rules raw_semiring;
-    val (r_ops, r_rules) = morphism_ops_rules raw_ring;
-    val (f_ops, f_rules) = morphism_ops_rules raw_field;
-    val idom = Morphism.fact phi raw_idom;
-    val ideal = Morphism.fact phi raw_ideal;
-
-    fun check kind name xs n =
-      null xs orelse length xs = n orelse
-      error ("Expected " ^ string_of_int n ^ " " ^ kind ^ " for " ^ name);
-    val check_ops = check "operations";
-    val check_rules = check "rules";
-    val _ =
-      check_ops semiringN sr_ops 5 andalso
-      check_rules semiringN sr_rules 36 andalso
-      check_ops ringN r_ops 2 andalso
-      check_rules ringN r_rules 2 andalso
-      check_ops fieldN f_ops 2 andalso
-      check_rules fieldN f_rules 2 andalso
-      check_rules idomN idom 2;
-
-    val mk_meta = Local_Defs.meta_rewrite_rule ctxt;
-    val sr_rules' = map mk_meta sr_rules;
-    val r_rules' = map mk_meta r_rules;
-    val f_rules' = map mk_meta f_rules;
-
-    fun rule i = nth sr_rules' (i - 1);
-    
-    val (cx, cy) = Thm.dest_binop (hd sr_ops);
-    val cz = rule 34 |> Thm.rhs_of |> Thm.dest_arg |> Thm.dest_arg;
-    val cn = rule 36 |> Thm.rhs_of |> Thm.dest_arg |> Thm.dest_arg;
-    val ((clx, crx), (cly, cry)) =
-      rule 13 |> Thm.rhs_of |> Thm.dest_binop |> apply2 Thm.dest_binop;
-    val ((ca, cb), (cc, cd)) =
-      rule 20 |> Thm.lhs_of |> Thm.dest_binop |> apply2 Thm.dest_binop;
-    val cm = rule 1 |> Thm.rhs_of |> Thm.dest_arg;
-    val (cp, cq) = rule 26 |> Thm.lhs_of |> Thm.dest_binop |> apply2 Thm.dest_arg;
-
-    val vars = [ca, cb, cc, cd, cm, cn, cp, cq, cx, cy, cz, clx, crx, cly, cry];
-
-    val semiring = (sr_ops, sr_rules');
-    val ring = (r_ops, r_rules');
-    val field = (f_ops, f_rules');
-    val ideal' = map (Thm.symmetric o mk_meta) ideal
-
+    val ctxt' = fold Variable.auto_fixes (fst raw_semiring0 @ fst raw_ring0 @ fst raw_field0) lthy;
+    val prepare_ops = apfst (Variable.export_terms ctxt' lthy #> map (Thm.cterm_of lthy));
+    val raw_semiring = prepare_ops raw_semiring0;
+    val raw_ring = prepare_ops raw_ring0;
+    val raw_field = prepare_ops raw_field0;
   in
-    context
-    |> Data.map (AList.update Thm.eq_thm (key,
-        ({vars = vars, semiring = semiring, ring = ring, field = field, idom = idom, ideal = ideal'},
-          (if null f_ops then semiring_funs else field_funs))))
-  end
+    lthy |> Local_Theory.declaration {syntax = false, pervasive = false} (fn phi => fn context =>
+      let
+        val ctxt = Context.proof_of context;
+        val key = Morphism.thm phi raw_key;
+        fun transform_ops_rules (ops, rules) =
+          (map (Morphism.cterm phi) ops, Morphism.fact phi rules);
+        val (sr_ops, sr_rules) = transform_ops_rules raw_semiring;
+        val (r_ops, r_rules) = transform_ops_rules raw_ring;
+        val (f_ops, f_rules) = transform_ops_rules raw_field;
+        val idom = Morphism.fact phi raw_idom;
+        val ideal = Morphism.fact phi raw_ideal;
+
+        fun check kind name xs n =
+          null xs orelse length xs = n orelse
+          error ("Expected " ^ string_of_int n ^ " " ^ kind ^ " for " ^ name);
+        val check_ops = check "operations";
+        val check_rules = check "rules";
+        val _ =
+          check_ops semiringN sr_ops 5 andalso
+          check_rules semiringN sr_rules 36 andalso
+          check_ops ringN r_ops 2 andalso
+          check_rules ringN r_rules 2 andalso
+          check_ops fieldN f_ops 2 andalso
+          check_rules fieldN f_rules 2 andalso
+          check_rules idomN idom 2;
+
+        val mk_meta = Local_Defs.meta_rewrite_rule ctxt;
+        val sr_rules' = map mk_meta sr_rules;
+        val r_rules' = map mk_meta r_rules;
+        val f_rules' = map mk_meta f_rules;
+
+        fun rule i = nth sr_rules' (i - 1);
+
+        val (cx, cy) = Thm.dest_binop (hd sr_ops);
+        val cz = rule 34 |> Thm.rhs_of |> Thm.dest_arg |> Thm.dest_arg;
+        val cn = rule 36 |> Thm.rhs_of |> Thm.dest_arg |> Thm.dest_arg;
+        val ((clx, crx), (cly, cry)) =
+          rule 13 |> Thm.rhs_of |> Thm.dest_binop |> apply2 Thm.dest_binop;
+        val ((ca, cb), (cc, cd)) =
+          rule 20 |> Thm.lhs_of |> Thm.dest_binop |> apply2 Thm.dest_binop;
+        val cm = rule 1 |> Thm.rhs_of |> Thm.dest_arg;
+        val (cp, cq) = rule 26 |> Thm.lhs_of |> Thm.dest_binop |> apply2 Thm.dest_arg;
+
+        val vars = [ca, cb, cc, cd, cm, cn, cp, cq, cx, cy, cz, clx, crx, cly, cry];
+
+        val semiring = (sr_ops, sr_rules');
+        val ring = (r_ops, r_rules');
+        val field = (f_ops, f_rules');
+        val ideal' = map (Thm.symmetric o mk_meta) ideal
+      in
+        context
+        |> Data.map (AList.update Thm.eq_thm (key,
+            ({vars = vars, semiring = semiring, ring = ring, field = field, idom = idom, ideal = ideal'},
+              (if null f_ops then semiring_funs else field_funs))))
+      end)
+  end;
 
 
 (** auxiliary **)
@@ -255,7 +265,7 @@ fun zero1_numeral_conv ctxt =
 fun zerone_conv ctxt cv =
   zero1_numeral_conv ctxt then_conv cv then_conv numeral01_conv ctxt;
 
-val nat_add_ss = simpset_of 
+val nat_add_ss = simpset_of
   (put_simpset HOL_basic_ss @{context}
      addsimps @{thms arith_simps} @ @{thms diff_nat_numeral} @ @{thms rel_simps}
        @ @{thms if_False if_True Nat.add_0 add_Suc add_numeral_left Suc_eq_plus1}
@@ -308,9 +318,9 @@ val (neg_mul, sub_add, sub_tm, neg_tm, dest_sub, cx', cy') =
       end
     | _ => (TrueI, TrueI, true_tm, true_tm, (fn t => (t,t)), true_tm, true_tm));
 
-val (divide_inverse, divide_tm, inverse_tm) = 
-  (case (f_ops, f_rules) of 
-   ([divide_pat, inverse_pat], [div_inv, _]) => 
+val (divide_inverse, divide_tm, inverse_tm) =
+  (case (f_ops, f_rules) of
+   ([divide_pat, inverse_pat], [div_inv, _]) =>
      let val div_tm = funpow 2 Thm.dest_fun divide_pat
          val inv_tm = Thm.dest_fun inverse_pat
      in (div_inv, div_tm, inv_tm)
@@ -420,7 +430,7 @@ in fn variable_order =>
     else
      ((let val (lopr,r) = Thm.dest_comb tm
            val (opr,l) = Thm.dest_comb lopr
-       in if opr aconvc pow_tm andalso is_number r then l 
+       in if opr aconvc pow_tm andalso is_number r then l
           else raise CTERM ("monomial_mul_conv",[tm]) end)
      handle CTERM _ => tm)   (* FIXME !? *)
    fun  vorder x y =
@@ -803,9 +813,9 @@ fun polynomial_conv ctxt tm =
               let val th1 = Drule.fun_cong_rule (Drule.arg_cong_rule opr (polynomial_conv ctxt l)) r
               in Thm.transitive th1 (polynomial_pow_conv ctxt (concl th1))
               end
-         else if opr aconvc divide_tm 
+         else if opr aconvc divide_tm
             then
-              let val th1 = Thm.combination (Drule.arg_cong_rule opr (polynomial_conv ctxt l)) 
+              let val th1 = Thm.combination (Drule.arg_cong_rule opr (polynomial_conv ctxt l))
                                         (polynomial_conv ctxt r)
                   val th2 = (Conv.rewr_conv divide_inverse then_conv polynomial_mul_conv ctxt)
                               (Thm.rhs_of th1)
@@ -846,7 +856,7 @@ fun simple_cterm_ord t u = Term_Ord.term_ord (Thm.term_of t, Thm.term_of u) = LE
 
 (* various normalizing conversions *)
 
-fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, field, idom, ideal}, 
+fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, field, idom, ideal},
                                      {conv, dest_const, mk_const, is_const}) ord =
   let
     val pow_conv =
@@ -862,14 +872,14 @@ fun semiring_normalize_ord_wrapper ctxt ({vars, semiring, ring, field, idom, ide
   ({vars = vars, semiring = semiring, ring = ring, field = field, idom = idom, ideal = ideal},
    {conv = conv, dest_const = dest_const, mk_const = mk_const, is_const = is_const}) ord) ctxt;
 
-fun semiring_normalize_wrapper ctxt data = 
+fun semiring_normalize_wrapper ctxt data =
   semiring_normalize_ord_wrapper ctxt data simple_cterm_ord;
 
 fun semiring_normalize_ord_conv ctxt ord tm =
   (case match ctxt tm of
     NONE => Thm.reflexive tm
   | SOME res => semiring_normalize_ord_wrapper ctxt res ord tm);
- 
+
 fun semiring_normalize_conv ctxt = semiring_normalize_ord_conv ctxt simple_cterm_ord;
 
 end;

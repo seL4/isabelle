@@ -832,7 +832,7 @@ text \<open>
   \begin{matharray}{rcl}
     @{command_def "print_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\[0.5ex]
     @{method_def "-"} & : & @{text method} \\
-    @{method_def "goals"} & : & @{text method} \\
+    @{method_def "goal_cases"} & : & @{text method} \\
     @{method_def "fact"} & : & @{text method} \\
     @{method_def "assumption"} & : & @{text method} \\
     @{method_def "this"} & : & @{text method} \\
@@ -847,7 +847,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{method goals} (@{syntax name}*)
+    @@{method goal_cases} (@{syntax name}*)
     ;
     @@{method fact} @{syntax thmrefs}?
     ;
@@ -886,10 +886,10 @@ text \<open>
   method; thus a plain \emph{do-nothing} proof step would be ``@{command
   "proof"}~@{text "-"}'' rather than @{command "proof"} alone.
 
-  \item @{method "goals"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} is like ``@{method "-"}'', but
-  the current subgoals are turned into cases within the context (see also
-  \secref{sec:cases-induct}). The specified case names are used if present;
-  otherwise cases are numbered starting from 1.
+  \item @{method "goal_cases"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} turns the current subgoals
+  into cases within the context (see also \secref{sec:cases-induct}). The
+  specified case names are used if present; otherwise cases are numbered
+  starting from 1.
 
   Invoking cases in the subsequent proof body via the @{command_ref case}
   command will @{command fix} goal parameters, @{command assume} goal

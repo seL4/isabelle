@@ -635,7 +635,7 @@ fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
   | fm_of_term ps vs (@{term "op = :: bool => _ "} $ t1 $ t2) =
       Proc.Iff (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (Const (@{const_name Not}, _) $ t') =
-      Proc.Not (fm_of_term ps vs t')
+      Proc.NOT (fm_of_term ps vs t')
   | fm_of_term ps vs (Const (@{const_name Ex}, _) $ Abs abs) =
       Proc.E (uncurry (fm_of_term ps) (descend vs abs))
   | fm_of_term ps vs (Const (@{const_name All}, _) $ Abs abs) =
@@ -663,7 +663,7 @@ fun term_of_num vs (Proc.C i) = HOLogic.mk_number HOLogic.intT (Proc.integer_of_
       @{term "op - :: int => _"} $ term_of_num vs t1 $ term_of_num vs t2
   | term_of_num vs (Proc.Mul (i, t2)) =
       @{term "op * :: int => _"} $ HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t2
-  | term_of_num vs (Proc.Cn (n, i, t')) =
+  | term_of_num vs (Proc.CN (n, i, t')) =
       term_of_num vs (Proc.Add (Proc.Mul (i, Proc.Bound n), t'));
 
 fun term_of_fm ps vs Proc.T = @{term True}
@@ -672,18 +672,18 @@ fun term_of_fm ps vs Proc.T = @{term True}
   | term_of_fm ps vs (Proc.Or (t1, t2)) = HOLogic.disj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (Proc.Imp (t1, t2)) = HOLogic.imp $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (Proc.Iff (t1, t2)) = @{term "op = :: bool => _"} $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
-  | term_of_fm ps vs (Proc.Not t') = HOLogic.Not $ term_of_fm ps vs t'
+  | term_of_fm ps vs (Proc.NOT t') = HOLogic.Not $ term_of_fm ps vs t'
   | term_of_fm ps vs (Proc.Eq t') = @{term "op = :: int => _ "} $ term_of_num vs t'$ @{term "0::int"}
-  | term_of_fm ps vs (Proc.NEq t') = term_of_fm ps vs (Proc.Not (Proc.Eq t'))
+  | term_of_fm ps vs (Proc.NEq t') = term_of_fm ps vs (Proc.NOT (Proc.Eq t'))
   | term_of_fm ps vs (Proc.Lt t') = @{term "op < :: int => _ "} $ term_of_num vs t' $ @{term "0::int"}
   | term_of_fm ps vs (Proc.Le t') = @{term "op <= :: int => _ "} $ term_of_num vs t' $ @{term "0::int"}
   | term_of_fm ps vs (Proc.Gt t') = @{term "op < :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
   | term_of_fm ps vs (Proc.Ge t') = @{term "op <= :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
   | term_of_fm ps vs (Proc.Dvd (i, t')) = @{term "op dvd :: int => _ "} $
       HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t'
-  | term_of_fm ps vs (Proc.NDvd (i, t')) = term_of_fm ps vs (Proc.Not (Proc.Dvd (i, t')))
+  | term_of_fm ps vs (Proc.NDvd (i, t')) = term_of_fm ps vs (Proc.NOT (Proc.Dvd (i, t')))
   | term_of_fm ps vs (Proc.Closed n) = nth ps (Proc.integer_of_nat n)
-  | term_of_fm ps vs (Proc.NClosed n) = term_of_fm ps vs (Proc.Not (Proc.Closed n));
+  | term_of_fm ps vs (Proc.NClosed n) = term_of_fm ps vs (Proc.NOT (Proc.Closed n));
 
 fun procedure t =
   let

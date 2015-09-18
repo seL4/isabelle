@@ -93,7 +93,7 @@ lemma minimal_fun: "(\<lambda>x. \<bottom>) \<sqsubseteq> f"
 by (simp add: below_fun_def)
 
 instance "fun"  :: (type, pcpo) pcpo
-by default (fast intro: minimal_fun)
+by standard (fast intro: minimal_fun)
 
 lemma inst_fun_pcpo: "\<bottom> = (\<lambda>x. \<bottom>)"
 by (rule minimal_fun [THEN bottomI, symmetric])

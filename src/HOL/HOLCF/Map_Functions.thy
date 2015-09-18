@@ -195,13 +195,13 @@ lemma u_map_oo: "u_map\<cdot>(f oo g) = u_map\<cdot>f oo u_map\<cdot>g"
 by (simp add: cfcomp1 u_map_map eta_cfun)
 
 lemma ep_pair_u_map: "ep_pair e p \<Longrightarrow> ep_pair (u_map\<cdot>e) (u_map\<cdot>p)"
-apply default
+apply standard
 apply (case_tac x, simp, simp add: ep_pair.e_inverse)
 apply (case_tac y, simp, simp add: ep_pair.e_p_below)
 done
 
 lemma deflation_u_map: "deflation d \<Longrightarrow> deflation (u_map\<cdot>d)"
-apply default
+apply standard
 apply (case_tac x, simp, simp add: deflation.idem)
 apply (case_tac x, simp, simp add: deflation.below)
 done

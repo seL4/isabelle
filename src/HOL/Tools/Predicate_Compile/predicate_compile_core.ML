@@ -72,7 +72,6 @@ struct
 type random_seed = Random_Engine.seed
 
 open Predicate_Compile_Aux;
-open Core_Data;
 open Mode_Inference;
 open Predicate_Compile_Proof;
 
@@ -126,18 +125,19 @@ fun print_compiled_terms options ctxt =
 
 fun print_stored_rules ctxt =
   let
-    val preds = Graph.keys (PredData.get (Proof_Context.theory_of ctxt))
-    fun print pred () = let
-      val _ = writeln ("predicate: " ^ pred)
-      val _ = writeln ("introrules: ")
-      val _ = fold (fn thm => fn _ => writeln (Display.string_of_thm ctxt thm))
-        (rev (intros_of ctxt pred)) ()
-    in
-      if (has_elim ctxt pred) then
-        writeln ("elimrule: " ^ Display.string_of_thm ctxt (the_elim_of ctxt pred))
-      else
-        writeln ("no elimrule defined")
-    end
+    val preds = Graph.keys (Core_Data.PredData.get (Proof_Context.theory_of ctxt))
+    fun print pred () =
+      let
+        val _ = writeln ("predicate: " ^ pred)
+        val _ = writeln ("introrules: ")
+        val _ = fold (fn thm => fn _ => writeln (Display.string_of_thm ctxt thm))
+          (rev (Core_Data.intros_of ctxt pred)) ()
+      in
+        if Core_Data.has_elim ctxt pred then
+          writeln ("elimrule: " ^ Display.string_of_thm ctxt (Core_Data.the_elim_of ctxt pred))
+        else
+          writeln ("no elimrule defined")
+      end
   in
     fold print preds ()
   end;
@@ -151,7 +151,7 @@ fun print_all_modes compilation ctxt =
         val _ = writeln ("modes: " ^ (commas (map string_of_mode modes)))
       in u end
   in
-    fold print (all_modes_of compilation ctxt) ()
+    fold print (Core_Data.all_modes_of compilation ctxt) ()
   end
 
 (* validity checks *)
@@ -670,10 +670,10 @@ fun compile_expr compilation_modifiers ctxt (t, deriv) param_modes additional_ar
           SOME (compile_arg compilation_modifiers additional_arguments ctxt param_modes t)
       | (_, Term Output) => NONE
       | (Const (name, T), Context mode) =>
-          (case alternative_compilation_of ctxt name mode of
+          (case Core_Data.alternative_compilation_of ctxt name mode of
             SOME alt_comp => SOME (alt_comp compfuns T)
           | NONE =>
-            SOME (Const (function_name_of (Comp_Mod.compilation compilation_modifiers)
+            SOME (Const (Core_Data.function_name_of (Comp_Mod.compilation compilation_modifiers)
               ctxt name mode,
               Comp_Mod.funT_of compilation_modifiers mode T)))
       | (Free (s, T), Context m) =>
@@ -1014,7 +1014,7 @@ fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mo
               foldr1 (mk_plus compfuns) cl_ts)
         end
     val fun_const =
-      Const (function_name_of (Comp_Mod.compilation compilation_modifiers) ctxt s mode, funT)
+      Const (Core_Data.function_name_of (Comp_Mod.compilation compilation_modifiers) ctxt s mode, funT)
   in
     HOLogic.mk_Trueprop
       (HOLogic.mk_eq (list_comb (fun_const, in_ts @ additional_arguments), compilation))
@@ -1023,7 +1023,7 @@ fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mo
 
 (* Definition of executable functions and their intro and elim rules *)
 
-fun strip_split_abs (Const (@{const_name case_prod}, _) $ t) = strip_split_abs t
+fun strip_split_abs (Const (@{const_name uncurry}, _) $ t) = strip_split_abs t
   | strip_split_abs (Abs (_, _, t)) = strip_split_abs t
   | strip_split_abs t = t
 
@@ -1132,7 +1132,7 @@ fun create_definitions options preds (name, modes) thy =
         val mode_cname = create_constname_of_mode options thy "" name T mode
         val mode_cbasename = Long_Name.base_name mode_cname
         val funT = funT_of compfuns mode T
-        val (args, _) = fold_map (mk_args true) ((strip_fun_mode mode) ~~ (binder_types T)) []
+        val (args, _) = fold_map (mk_args true) (strip_fun_mode mode ~~ binder_types T) []
         fun strip_eval _ t =
           let
             val t' = strip_split_abs t
@@ -1152,13 +1152,13 @@ fun create_definitions options preds (name, modes) thy =
           create_intro_elim_rule ctxt' mode definition mode_cname funT (Const (name, T))
         in
           thy'
-          |> set_function_name Pred name mode mode_cname
-          |> add_predfun_data name mode (definition, rules)
+          |> Core_Data.set_function_name Pred name mode mode_cname
+          |> Core_Data.add_predfun_data name mode (definition, rules)
           |> Global_Theory.store_thm (Binding.name (mode_cbasename ^ "I"), intro) |> snd
           |> Global_Theory.store_thm (Binding.name (mode_cbasename ^ "E"), elim)  |> snd
         end;
   in
-    thy |> defined_function_of Pred name |> fold create_definition modes
+    thy |> Core_Data.defined_function_of Pred name |> fold create_definition modes
   end;
 
 fun define_functions comp_modifiers _ options preds (name, modes) thy =
@@ -1171,11 +1171,11 @@ fun define_functions comp_modifiers _ options preds (name, modes) thy =
         val funT = Comp_Mod.funT_of comp_modifiers mode T
       in
         thy |> Sign.add_consts [(Binding.name (Long_Name.base_name mode_cname), funT, NoSyn)]
-        |> set_function_name (Comp_Mod.compilation comp_modifiers) name mode mode_cname
+        |> Core_Data.set_function_name (Comp_Mod.compilation comp_modifiers) name mode mode_cname
       end;
   in
     thy
-    |> defined_function_of (Comp_Mod.compilation comp_modifiers) name
+    |> Core_Data.defined_function_of (Comp_Mod.compilation comp_modifiers) name
     |> fold create_definition modes
   end;
 
@@ -1220,7 +1220,7 @@ fun dest_prem ctxt params t =
           Syntax.string_of_term ctxt (c $ t))
       | Sidecond t => Sidecond (c $ t))
   | (Const (s, _), _) =>
-      if is_registered ctxt s then Prem t else Sidecond t
+      if Core_Data.is_registered ctxt s then Prem t else Sidecond t
   | _ => Sidecond t)
 
 fun prepare_intrs options ctxt prednames intros =
@@ -1334,18 +1334,18 @@ fun add_code_equations ctxt preds result_thmss =
       let
         val full_mode = fold_rev (curry Fun) (map (K Input) (binder_types T)) Bool
       in
-        if member eq_mode  (modes_of Pred ctxt predname) full_mode then
+        if member eq_mode (Core_Data.modes_of Pred ctxt predname) full_mode then
           let
             val Ts = binder_types T
             val arg_names = Name.variant_list []
               (map (fn i => "x" ^ string_of_int i) (1 upto length Ts))
             val args = map2 (curry Free) arg_names Ts
-            val predfun = Const (function_name_of Pred ctxt predname full_mode,
+            val predfun = Const (Core_Data.function_name_of Pred ctxt predname full_mode,
               Ts ---> Predicate_Comp_Funs.mk_monadT @{typ unit})
             val rhs = @{term Predicate.holds} $ (list_comb (predfun, args))
             val eq_term = HOLogic.mk_Trueprop
               (HOLogic.mk_eq (list_comb (Const (predname, T), args), rhs))
-            val def = predfun_definition_of ctxt predname full_mode
+            val def = Core_Data.predfun_definition_of ctxt predname full_mode
             val tac = fn _ => Simplifier.simp_tac
               (put_simpset HOL_basic_ss ctxt addsimps [def, @{thm holds_eq}, @{thm eval_pred}]) 1
             val eq = Goal.prove ctxt arg_names [] eq_term tac
@@ -1387,18 +1387,18 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
     (*val _ = map (check_format_of_intro_rule thy) (maps (intros_of thy) prednames)*)
     val _ =
       if show_intermediate_results options then
-        tracing (commas (map (Display.string_of_thm ctxt) (maps (intros_of ctxt) prednames)))
+        tracing (commas (map (Display.string_of_thm ctxt) (maps (Core_Data.intros_of ctxt) prednames)))
       else ()
     val (preds, all_vs, param_vs, all_modes, clauses) =
-      prepare_intrs options ctxt prednames (maps (intros_of ctxt) prednames)
+      prepare_intrs options ctxt prednames (maps (Core_Data.intros_of ctxt) prednames)
     val _ = print_step options "Infering modes..."
-    val (lookup_mode, lookup_neg_mode, needs_random) = (modes_of compilation ctxt,
-      modes_of (negative_compilation_of compilation) ctxt, needs_random ctxt)
+    val (lookup_mode, lookup_neg_mode, needs_random) = (Core_Data.modes_of compilation ctxt,
+      Core_Data.modes_of (negative_compilation_of compilation) ctxt, Core_Data.needs_random ctxt)
     val ((moded_clauses, needs_random), errors) =
       cond_timeit (Config.get ctxt Quickcheck.timing) "Infering modes"
       (fn _ => infer_modes mode_analysis_options
         options (lookup_mode, lookup_neg_mode, needs_random) ctxt preds all_modes param_vs clauses)
-    val thy' = fold (fn (s, ms) => set_needs_random s ms) needs_random thy
+    val thy' = fold (fn (s, ms) => Core_Data.set_needs_random s ms) needs_random thy
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
     val _ = check_expected_modes options preds modes
     val _ = check_proposed_modes options preds modes errors
@@ -1435,12 +1435,12 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
 fun gen_add_equations steps options names thy =
   let
     fun dest_steps (Steps s) = s
-    val defined = defined_functions (Comp_Mod.compilation (#comp_modifiers (dest_steps steps)))
-    val thy' = extend_intro_graph names thy;
+    val defined = Core_Data.defined_functions (Comp_Mod.compilation (#comp_modifiers (dest_steps steps)))
+    val thy' = Core_Data.extend_intro_graph names thy;
     fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.restrict (member (op =) (Graph.all_succs gr keys)) gr)
-    val scc = strong_conn_of (PredData.get thy') names
-    val thy'' = fold preprocess_intros (flat scc) thy'
+    val scc = strong_conn_of (Core_Data.PredData.get thy') names
+    val thy'' = fold Core_Data.preprocess_intros (flat scc) thy'
     val thy''' = fold_rev
       (fn preds => fn thy =>
         if not (forall (defined (Proof_Context.init_global thy)) preds) then
@@ -1601,7 +1601,7 @@ val add_generator_cps_equations = gen_add_equations
 fun attrib' f opt_case_name =
   Thm.declaration_attribute (fn thm => Context.mapping (f (opt_case_name, thm)) I);
 
-val code_pred_intro_attrib = attrib' add_intro NONE;
+val code_pred_intro_attrib = attrib' Core_Data.add_intro NONE;
 
 (*FIXME
 - Naming of auxiliary rules necessary?
@@ -1616,8 +1616,9 @@ val values_timeout =
 
 val _ =
   Theory.setup
-   (PredData.put (Graph.empty) #>
-    Attrib.setup @{binding code_pred_intro} (Scan.lift (Scan.option Args.name) >> attrib' add_intro)
+   (Core_Data.PredData.put (Graph.empty) #>
+    Attrib.setup @{binding code_pred_intro}
+      (Scan.lift (Scan.option Args.name) >> attrib' Core_Data.add_intro)
       "adding alternative introduction rules for code generation of inductive predicates")
 
 (* TODO: make Theory_Data to Generic_Data & remove duplication of local theory and theory *)
@@ -1626,15 +1627,16 @@ fun generic_code_pred prep_const options raw_const lthy =
   let
     val thy = Proof_Context.theory_of lthy
     val const = prep_const thy raw_const
-    val lthy' = Local_Theory.background_theory (extend_intro_graph [const]) lthy
+    val lthy' = Local_Theory.background_theory (Core_Data.extend_intro_graph [const]) lthy
     val thy' = Proof_Context.theory_of lthy'
     val ctxt' = Proof_Context.init_global thy'
-    val preds = Graph.all_succs (PredData.get thy') [const] |> filter_out (has_elim ctxt')
+    val preds =
+      Graph.all_succs (Core_Data.PredData.get thy') [const] |> filter_out (Core_Data.has_elim ctxt')
     fun mk_cases const =
       let
         val T = Sign.the_const_type thy' const
         val pred = Const (const, T)
-        val intros = intros_of ctxt' const
+        val intros = Core_Data.intros_of ctxt' const
       in mk_casesrule lthy' pred intros end
     val cases_rules = map mk_cases preds
     val cases =
@@ -1644,7 +1646,7 @@ fun generic_code_pred prep_const options raw_const lthy =
           assumes =
             ("that", tl (Logic.strip_imp_prems case_rule)) ::
             map_filter (fn (fact_name, fact) => Option.map (fn a => (a, [fact])) fact_name)
-              ((SOME "prems" :: names_of ctxt' pred_name) ~~ Logic.strip_imp_prems case_rule),
+              ((SOME "prems" :: Core_Data.names_of ctxt' pred_name) ~~ Logic.strip_imp_prems case_rule),
           binds = [], cases = []}) preds cases_rules
     val case_env = map2 (fn p => fn c => (Long_Name.base_name p, SOME c)) preds cases
     val lthy'' = lthy'
@@ -1655,7 +1657,7 @@ fun generic_code_pred prep_const options raw_const lthy =
         val global_thms = Proof_Context.export goal_ctxt
           (Proof_Context.init_global (Proof_Context.theory_of goal_ctxt)) (map the_single thms)
       in
-        goal_ctxt |> Local_Theory.background_theory (fold set_elim global_thms #>
+        goal_ctxt |> Local_Theory.background_theory (fold Core_Data.set_elim global_thms #>
           ((case compilation options of
              Pred => add_equations
            | DSeq => add_dseq_equations
@@ -1762,7 +1764,7 @@ fun analyze_compr ctxt (comp_modifiers, additional_arguments) param_user_modes
   (compilation, _) t_compr =
   let
     val compfuns = Comp_Mod.compfuns comp_modifiers
-    val all_modes_of = all_modes_of compilation
+    val all_modes_of = Core_Data.all_modes_of compilation
     val (((body, output), T_compr), output_names) =
       (case try dest_special_compr t_compr of
         SOME r => r
@@ -1772,7 +1774,7 @@ fun analyze_compr ctxt (comp_modifiers, additional_arguments) param_user_modes
         (Const (name, T), all_args) => (Const (name, T), all_args)
       | (head, _) => error ("Not a constant: " ^ Syntax.string_of_term ctxt head))
   in
-    if defined_functions compilation ctxt name then
+    if Core_Data.defined_functions compilation ctxt name then
       let
         fun extract_mode (Const (@{const_name Pair}, _) $ t1 $ t2) =
               Pair (extract_mode t1, extract_mode t2)
@@ -1878,7 +1880,6 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
             @{term natural_of_nat} $ (HOLogic.size_const T $ Bound 0)))) t
       else
         mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t
-    val thy = Proof_Context.theory_of ctxt
     val time_limit = seconds (Config.get ctxt values_timeout)
     val (ts, statistics) =
       (case compilation of

@@ -38,7 +38,9 @@ ISABELLE_LINE_EDITOR="rlwrap"
 ###
 
 ISABELLE_BUILD_OPTIONS=""
-ISABELLE_BUILD_JAVA_OPTIONS="-Djava.awt.headless=true -Xmx1024m -Xss1m"
+
+ISABELLE_BUILD_JAVA_OPTIONS32="-Djava.awt.headless=true -Xms128m -Xmx1024m -Xss1m"
+ISABELLE_BUILD_JAVA_OPTIONS64="-Djava.awt.headless=true -Xms512m -Xmx2560m -Xss4m"
 
 
 ###

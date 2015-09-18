@@ -646,11 +646,6 @@ lemma full_exhaustive_char_code [code]:
 hide_fact (open) orelse_def
 no_notation orelse (infixr "orelse" 55)
 
-hide_fact
-  exhaustive_int'_def
-  exhaustive_integer'_def
-  exhaustive_natural'_def
-
 hide_const valtermify_absdummy valtermify_fun_upd valterm_emptyset valtermify_insert valtermify_pair
   valtermify_Inl valtermify_Inr
   termify_fun_upd term_emptyset termify_insert termify_pair setify

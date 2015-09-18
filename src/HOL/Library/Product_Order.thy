@@ -233,7 +233,7 @@ subsection \<open>Complete distributive lattices\<close>
 (* Contribution: Alessandro Coglio *)
 
 instance prod :: (complete_distrib_lattice, complete_distrib_lattice) complete_distrib_lattice
-proof (standard, goals)
+proof (standard, goal_cases)
   case 1
   then show ?case
     by (auto simp: sup_prod_def Inf_prod_def INF_prod_alt_def sup_Inf sup_INF comp_def)
