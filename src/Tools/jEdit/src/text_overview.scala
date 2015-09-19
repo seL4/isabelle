@@ -55,33 +55,17 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
   /* overview */
 
   private case class Overview(
-    relevant_range: Text.Range = Text.Range(0),
     line_count: Int = 0,
     char_count: Int = 0,
     L: Int = 0,
     H: Int = 0)
 
-  private def get_overview(rendering: Rendering): Overview =
-  {
-    val char_count = buffer.getLength
+  private def get_overview(): Overview =
     Overview(
-      relevant_range =
-        JEdit_Lib.visible_range(text_area) match {
-          case None => Text.Range(0)
-          case Some(visible_range) =>
-            val len = rendering.overview_limit max visible_range.length
-            val start = (visible_range.start + visible_range.stop - len) / 2
-            val stop = start + len
-
-            if (start < 0) Text.Range(0, len min char_count)
-            else if (stop > char_count) Text.Range((char_count - len) max 0, char_count)
-            else Text.Range(start, stop)
-        },
       line_count = buffer.getLineCount,
-      char_count = char_count,
+      char_count = buffer.getLength,
       L = lines(),
       H = getHeight())
-  }
 
 
   /* synchronous painting */
@@ -101,7 +85,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
         val rendering = doc_view.get_rendering()
         val snapshot = rendering.snapshot
         val options = rendering.options
-        val overview = get_overview(rendering)
+        val overview = get_overview()
 
         if (!snapshot.is_outdated && overview == current_overview) {
           gfx.setColor(getBackground)
@@ -136,7 +120,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
           val rendering = doc_view.get_rendering()
           val snapshot = rendering.snapshot
           val options = rendering.options
-          val overview = get_overview(rendering)
+          val overview = get_overview()
 
           if (!snapshot.is_outdated &&
               (overview != current_overview ||
@@ -155,7 +139,6 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
             future_refresh =
               Some(Simple_Thread.submit_task {
-                val relevant_range = overview.relevant_range
                 val line_count = overview.line_count
                 val char_count = overview.char_count
                 val L = overview.L
@@ -177,13 +160,9 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
                     val end =
                       if (l1 < line_count) line_offsets(l1)
                       else char_count
-                    val range = Text.Range(start, end)
 
-                    val range_color =
-                      if (range overlaps relevant_range) rendering.overview_color(range)
-                      else Some(rendering.outdated_color)
                     val colors1 =
-                      (range_color, colors) match {
+                      (rendering.overview_color(Text.Range(start, end)), colors) match {
                         case (Some(color), (old_color, old_h, old_h1) :: rest)
                         if color == old_color && old_h1 == h => (color, old_h, h1) :: rest
                         case (Some(color), _) => (color, h, h1) :: colors

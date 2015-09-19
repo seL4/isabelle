@@ -360,8 +360,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* command status overview */
 
-  def overview_limit: Int = options.int("jedit_text_overview_limit")
-
   def overview_color(range: Text.Range): Option[Color] =
   {
     if (snapshot.is_outdated) None
