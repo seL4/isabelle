@@ -70,8 +70,6 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
   /* synchronous painting */
 
-  private var current_snapshot = Document.Snapshot.init
-  private var current_options = PIDE.options.value
   private var current_overview = Overview()
   private var current_colors: List[(Color, Int, Int)] = Nil
 
@@ -83,11 +81,9 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
     doc_view.rich_text_area.robust_body(()) {
       JEdit_Lib.buffer_lock(buffer) {
         val rendering = doc_view.get_rendering()
-        val snapshot = rendering.snapshot
-        val options = rendering.options
         val overview = get_overview()
 
-        if (!snapshot.is_outdated && overview == current_overview) {
+        if (!rendering.snapshot.is_outdated && overview == current_overview) {
           gfx.setColor(getBackground)
           gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
           for ((color, h, h1) <- current_colors) {
@@ -118,15 +114,9 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
       doc_view.rich_text_area.robust_body(()) {
         JEdit_Lib.buffer_lock(buffer) {
           val rendering = doc_view.get_rendering()
-          val snapshot = rendering.snapshot
-          val options = rendering.options
           val overview = get_overview()
 
-          if (!snapshot.is_outdated &&
-              (overview != current_overview ||
-               !(snapshot eq_content current_snapshot) ||
-               !(options eq current_options)))
-          {
+          if (!rendering.snapshot.is_outdated) {
             cancel()
 
             val line_offsets =
@@ -175,8 +165,6 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
                 val new_colors = loop(0, 0, 0, 0, Nil)
 
                 GUI_Thread.later {
-                  current_snapshot = snapshot
-                  current_options = options
                   current_overview = overview
                   current_colors = new_colors
                   repaint()

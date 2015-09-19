@@ -150,12 +150,6 @@ object Command
       else Some(new State(other_command, Nil, Results.empty, markups1))
     }
 
-    def eq_content(other: State): Boolean =
-      command.source == other.command.source &&
-      status == other.status &&
-      results == other.results &&
-      markups == other.markups
-
     private def add_status(st: Markup): State =
       copy(status = st :: status)
 

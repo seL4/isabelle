@@ -452,7 +452,6 @@ object Document
     val node: Node
     val load_commands: List[Command]
     def is_loaded: Boolean
-    def eq_content(other: Snapshot): Boolean
 
     def cumulate[A](
       range: Text.Range,
@@ -793,23 +792,6 @@ object Document
           else version.nodes.load_commands(node_name)
 
         val is_loaded: Boolean = node_name.is_theory || load_commands.nonEmpty
-
-        def eq_content(other: Snapshot): Boolean =
-        {
-          def eq_commands(commands: (Command, Command)): Boolean =
-          {
-            val states1 = state.command_states(version, commands._1)
-            val states2 = other.state.command_states(other.version, commands._2)
-            states1.length == states2.length &&
-            (states1 zip states2).forall({ case (st1, st2) => st1 eq_content st2 })
-          }
-
-          !is_outdated && !other.is_outdated &&
-          node.commands.size == other.node.commands.size &&
-          (node.commands.iterator zip other.node.commands.iterator).forall(eq_commands) &&
-          load_commands.length == other.load_commands.length &&
-          (load_commands zip other.load_commands).forall(eq_commands)
-        }
 
 
         /* cumulate markup */
