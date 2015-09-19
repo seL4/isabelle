@@ -905,9 +905,6 @@ text \<open>
   text buffer. The graphics is scaled to fit the logical buffer length into
   the given window height. Mouse clicks on the overview area position the
   cursor approximately to the corresponding line of text in the buffer.
-  Repainting the overview in real-time causes problems with big theories, so
-  it is restricted according to the system option @{system_option
-  jedit_text_overview_limit} (in characters).
 
   Another course-grained overview is provided by the \emph{Theories}
   panel, but without direct correspondence to text positions.  A
