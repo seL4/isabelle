@@ -24,6 +24,10 @@ running ML program.
 * The main Isabelle executable is managed as single-instance Desktop
 application uniformly on all platforms: Linux, Windows, Mac OS X.
 
+* The text overview column (status of errors, warnings etc.) is updated
+asynchronously, leading to much better editor reactivity. Moreover, the
+full document node content is taken into account.
+
 
 *** Isar ***
 
