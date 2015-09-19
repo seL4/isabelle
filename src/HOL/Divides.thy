@@ -733,7 +733,7 @@ next
   with False show ?thesis by simp
 qed
 
-text \<open>The division rewrite proper – first, trivial results involving @{text 1}\<close>
+text \<open>The division rewrite proper -- first, trivial results involving @{text 1}\<close>
 
 lemma divmod_trivial [simp, code]:
   "divmod Num.One Num.One = (numeral Num.One, 0)"
