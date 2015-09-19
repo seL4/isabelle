@@ -194,19 +194,14 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /* text status overview left of scrollbar */
 
-  private object overview extends Text_Overview(this)
-  {
-    val delay_repaint =
-      GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { repaint() }
-  }
+  private val overview = new Text_Overview(this)
 
 
   /* main */
 
   private val main =
     Session.Consumer[Any](getClass.getName) {
-      case _: Session.Raw_Edits =>
-        overview.delay_repaint.postpone(PIDE.options.seconds("editor_input_delay"))
+      case _: Session.Raw_Edits => overview.postpone()
 
       case changed: Session.Commands_Changed =>
         val buffer = model.buffer
@@ -221,7 +216,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
               if (changed.assignment || load_changed ||
                   (changed.nodes.contains(model.node_name) &&
                    changed.commands.exists(snapshot.node.commands.contains)))
-                overview.delay_repaint.invoke()
+                overview.invoke()
 
               val visible_lines = text_area.getVisibleLines
               if (visible_lines > 0) {
@@ -275,7 +270,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     session.commands_changed -= main
     Isabelle.structure_matchers(JEdit_Lib.buffer_mode(text_area.getBuffer)).
       foreach(text_area.removeStructureMatcher(_))
-    text_area.removeLeftOfScrollBar(overview); overview.delay_repaint.revoke()
+    text_area.removeLeftOfScrollBar(overview); overview.revoke()
     text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
     text_area.removeKeyListener(key_listener)
     text_area.getGutter.removeExtension(gutter_painter)
