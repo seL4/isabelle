@@ -3166,8 +3166,8 @@ assumes s: "open s"
     and g: "valid_path g"
     and pag: "path_image g \<subseteq> s"
   shows "\<exists>L. 0 < L \<and>
-	     (\<forall>f B. f holomorphic_on s \<and> (\<forall>z \<in> s. norm(f z) \<le> B)
-		     \<longrightarrow> norm(path_integral g f) \<le> L*B)"
+       (\<forall>f B. f holomorphic_on s \<and> (\<forall>z \<in> s. norm(f z) \<le> B)
+         \<longrightarrow> norm(path_integral g f) \<le> L*B)"
 proof -
 have "path g" using g
   by (simp add: valid_path_imp_path)
@@ -3182,7 +3182,7 @@ then obtain d::real and p
   apply (force simp: valid_path_polynomial_function dest: path_approx_polynomial_function)
   done
 then obtain p' where p': "polynomial_function p'"
-	       "\<And>x. (p has_vector_derivative (p' x)) (at x)"
+         "\<And>x. (p has_vector_derivative (p' x)) (at x)"
   using has_vector_derivative_polynomial_function by force
 then have "bounded(p' ` {0..1})"
   using continuous_on_polymonial_function
