@@ -18,7 +18,7 @@ import scala.util.parsing.input.CharSequenceReader
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug}
 import org.gjt.sp.jedit.gui.KeyEventWorkaround
-import org.gjt.sp.jedit.buffer.JEditBuffer
+import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
 import org.gjt.sp.jedit.syntax.TokenMarker
 
@@ -113,6 +113,9 @@ object JEdit_Lib
   }
 
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
+
+  def buffer_line_manager(buffer: JEditBuffer): LineManager =
+    Untyped.get[LineManager](buffer, "lineMgr")
 
 
   /* main jEdit components */

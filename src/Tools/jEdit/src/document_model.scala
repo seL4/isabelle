@@ -16,7 +16,7 @@ import scala.util.parsing.input.CharSequenceReader
 
 import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.Buffer
-import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer, LineManager}
+import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer}
 
 
 object Document_Model
@@ -302,7 +302,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   def syntax_changed()
   {
-    Untyped.get[LineManager](buffer, "lineMgr").setFirstInvalidLineContext(0)
+    JEdit_Lib.buffer_line_manager(buffer).setFirstInvalidLineContext(0)
     for (text_area <- JEdit_Lib.jedit_text_areas(buffer))
       Untyped.method(Class.forName("org.gjt.sp.jedit.textarea.TextArea"), "foldStructureChanged").
         invoke(text_area)
