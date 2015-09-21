@@ -15,7 +15,7 @@ structure Query_Operation: QUERY_OPERATION =
 struct
 
 fun register {name, pri} f =
-  Command.print_function name
+  Command.print_function (name ^ "_query")
     (fn {args = instance :: args, ...} =>
         SOME {delay = NONE, pri = pri, persistent = false, strict = false,
           print_fn = fn _ => uninterruptible (fn restore_attributes => fn state =>
@@ -37,4 +37,3 @@ fun register {name, pri} f =
       | _ => NONE);
 
 end;
-

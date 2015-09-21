@@ -25,6 +25,7 @@ class Query_Operation[Editor_Context](
   consume_status: Query_Operation.Status.Value => Unit,
   consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit)
 {
+  private val print_function = operation_name + "_query"
   private val instance = Document_ID.make().toString
 
 
@@ -52,7 +53,7 @@ class Query_Operation[Editor_Context](
     current_location match {
       case None =>
       case Some(command) =>
-        editor.remove_overlay(command, operation_name, instance :: current_query)
+        editor.remove_overlay(command, print_function, instance :: current_query)
         editor.flush()
     }
   }
@@ -184,7 +185,7 @@ class Query_Operation[Editor_Context](
               current_location = Some(command)
               current_query = query
               current_status = Query_Operation.Status.WAITING
-              editor.insert_overlay(command, operation_name, instance :: query)
+              editor.insert_overlay(command, print_function, instance :: query)
             case None =>
           }
         }
