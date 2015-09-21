@@ -111,6 +111,9 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
       case _: Session.Global_Options =>
         GUI_Thread.later { handle_resize() }
 
+      case changed: Session.Commands_Changed =>
+        if (changed.assignment) GUI_Thread.later { maybe_update() }
+
       case Session.Caret_Focus =>
         GUI_Thread.later { maybe_update() }
     }
@@ -118,9 +121,11 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   override def init()
   {
     PIDE.session.global_options += main
+    PIDE.session.commands_changed += main
     PIDE.session.caret_focus += main
     handle_resize()
     print_state.activate()
+    maybe_update()
   }
 
   override def exit()
@@ -128,6 +133,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     print_state.deactivate()
     PIDE.session.caret_focus -= main
     PIDE.session.global_options -= main
+    PIDE.session.commands_changed -= main
     delay_resize.revoke()
   }
 }
