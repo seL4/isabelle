@@ -32,7 +32,7 @@
 	    isabelle.jedit.Isabelle.toggle_node_required(view);
 	  </CODE>
 	</ACTION>
-	<ACTION NAME="isabelle-update-state">
+	<ACTION NAME="isabelle.update-state">
 	  <CODE>
 	    isabelle.jedit.Isabelle.update_state(view);
 	  </CODE>
