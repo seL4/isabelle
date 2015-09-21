@@ -74,7 +74,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* controls */
 
-  private val update_button = new Button("Update") {
+  private val update_button = new Button("<html><b>Update</b></html>") {
     tooltip = "Update display according to the command at cursor position"
     reactions += { case ButtonClicked(_) => print_state.apply_query(Nil) }
   }
