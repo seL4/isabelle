@@ -1,0 +1,42 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{latexsym}
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% snip
+\newcommand{\repeatisanl}[1]{\ifnum#1=0\else\isanewline\repeatisanl{\numexpr#1-1}\fi}
+\newcommand{\snip}[4]{\repeatisanl#2#4\repeatisanl#3}
+
+\urlstyle{rm}
+\isabellestyle{it}
+
+\renewcommand{\isacharunderscore}{\_}
+\renewcommand{\isacharunderscorekeyword}{\_}
+
+% for uniform font size
+\renewcommand{\isastyle}{\isastyleminor}
+
+\begin{document}
+
+\title{Functional Data Structures}
+\author{Tobias Nipkow}
+\maketitle
+
+\begin{abstract}
+A collection of verified functional data structures. The emphasis is on
+conciseness of algorithms and succinctness of proofs, more in the style
+of a textbook than a library of efficient algorithms.
+\end{abstract}
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+\newpage
+
+% generated text of all theories
+\input{session}
+
+%\bibliographystyle{abbrv}
+%\bibliography{root}
+
+\end{document}

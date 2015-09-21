@@ -169,6 +169,15 @@ session "HOL-IMPP" in IMPP = HOL +
   options [document = false]
   theories EvenOdd
 
+session "HOL-Data_Structures" in Data_Structures = HOL +
+  options [document_variants = document]
+  theories [document = false]
+    "Less_False"
+  theories
+    Tree_Set
+    Tree_Map
+  document_files "root.tex"
+
 session "HOL-Import" in Import = HOL +
   theories HOL_Light_Maps
   theories [condition = HOL_LIGHT_BUNDLE] HOL_Light_Import
