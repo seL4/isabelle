@@ -1392,6 +1392,10 @@ lemma continuous_on_open_UN:
   "(\<And>s. s \<in> S \<Longrightarrow> open (A s)) \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> continuous_on (A s) f) \<Longrightarrow> continuous_on (\<Union>s\<in>S. A s) f"
   unfolding Union_image_eq[symmetric] by (rule continuous_on_open_Union) auto
 
+lemma continuous_on_open_Un:
+  "open s \<Longrightarrow> open t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t f \<Longrightarrow> continuous_on (s \<union> t) f"
+  using continuous_on_open_Union [of "{s,t}"] by auto
+
 lemma continuous_on_closed_Un:
   "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t f \<Longrightarrow> continuous_on (s \<union> t) f"
   by (auto simp add: continuous_on_closed_vimage closed_Un Int_Un_distrib)

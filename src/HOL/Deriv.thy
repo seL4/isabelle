@@ -644,6 +644,18 @@ lemma has_vector_derivative_diff[derivative_intros]:
     ((\<lambda>x. f x - g x) has_vector_derivative (f' - g')) net"
   by (auto simp: has_vector_derivative_def scaleR_diff_right)
 
+lemma has_vector_derivative_add_const:
+     "((\<lambda>t. g t + z) has_vector_derivative f') (at x) = ((\<lambda>t. g t) has_vector_derivative f') (at x)"
+apply (intro iffI)
+apply (drule has_vector_derivative_diff [where g = "\<lambda>t. z", OF _ has_vector_derivative_const], simp)
+apply (drule has_vector_derivative_add [OF _ has_vector_derivative_const], simp)
+done
+
+lemma has_vector_derivative_diff_const:
+     "((\<lambda>t. g t - z) has_vector_derivative f') (at x) = ((\<lambda>t. g t) has_vector_derivative f') (at x)"
+using has_vector_derivative_add_const [where z = "-z"]
+by simp
+
 lemma (in bounded_linear) has_vector_derivative:
   assumes "(g has_vector_derivative g') F"
   shows "((\<lambda>x. f (g x)) has_vector_derivative f g') F"

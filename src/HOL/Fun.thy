@@ -69,7 +69,7 @@ lemma comp_eq_dest:
 
 lemma comp_eq_elim:
   "a o b = c o d \<Longrightarrow> ((\<And>v. a (b v) = c (d v)) \<Longrightarrow> R) \<Longrightarrow> R"
-  by (simp add: fun_eq_iff) 
+  by (simp add: fun_eq_iff)
 
 lemma comp_eq_dest_lhs: "a o b = c \<Longrightarrow> a (b v) = c v"
   by clarsimp
@@ -833,7 +833,7 @@ proof clarify
   thus False by best
 qed
 
-subsection \<open>Setup\<close> 
+subsection \<open>Setup\<close>
 
 subsubsection \<open>Proof tools\<close>
 

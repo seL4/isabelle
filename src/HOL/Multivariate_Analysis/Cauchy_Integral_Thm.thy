@@ -4,58 +4,6 @@ theory Cauchy_Integral_Thm
 imports Complex_Transcendental Weierstrass
 begin
 
-(*FIXME migrate into libraries*)
-
-lemma inj_mult_left [simp]: "inj (op* x) \<longleftrightarrow> x \<noteq> (0::'a::idom)"
-  by (metis injI mult_cancel_left the_inv_f_f zero_neq_one)
-
-lemma continuous_on_strong_cong:
-  "s = t \<Longrightarrow> (\<And>x. x \<in> t =simp=> f x = g x) \<Longrightarrow> continuous_on s f \<longleftrightarrow> continuous_on t g"
-  by (simp add: simp_implies_def)
-
-thm image_affinity_atLeastAtMost_div_diff
-lemma image_affinity_atLeastAtMost_div:
-  fixes c :: "'a::linordered_field"
-  shows "((\<lambda>x. x/m + c) ` {a..b}) = (if {a..b}={} then {}
-            else if 0 \<le> m then {a/m + c .. b/m + c}
-            else {b/m + c .. a/m + c})"
-  using image_affinity_atLeastAtMost [of "inverse m" c a b]
-  by (simp add: field_class.field_divide_inverse algebra_simps)
-
-thm continuous_on_closed_Un
-lemma continuous_on_open_Un:
-  "open s \<Longrightarrow> open t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t f \<Longrightarrow> continuous_on (s \<union> t) f"
-  using continuous_on_open_Union [of "{s,t}"] by auto
-
-thm continuous_on_eq (*REPLACE*)
-lemma continuous_on_eq:
-  "\<lbrakk>continuous_on s f; \<And>x. x \<in> s \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> continuous_on s g"
-  unfolding continuous_on_def tendsto_def eventually_at_topological
-  by simp
-
-thm vector_derivative_add_at
-lemma vector_derivative_mult_at [simp]:
-  fixes f g :: "real \<Rightarrow> 'a :: real_normed_algebra"
-  shows  "\<lbrakk>f differentiable at a; g differentiable at a\<rbrakk>
-   \<Longrightarrow> vector_derivative (\<lambda>x. f x * g x) (at a) = f a * vector_derivative g (at a) + vector_derivative f (at a) * g a"
-  by (simp add: vector_derivative_at has_vector_derivative_mult vector_derivative_works [symmetric])
-
-lemma vector_derivative_scaleR_at [simp]:
-    "\<lbrakk>f differentiable at a; g differentiable at a\<rbrakk>
-   \<Longrightarrow> vector_derivative (\<lambda>x. f x *\<^sub>R g x) (at a) = f a *\<^sub>R vector_derivative g (at a) + vector_derivative f (at a) *\<^sub>R g a"
-apply (rule vector_derivative_at)
-apply (rule has_vector_derivative_scaleR)
-apply (auto simp: vector_derivative_works has_vector_derivative_def has_field_derivative_def mult_commute_abs)
-done
-
-thm Derivative.vector_diff_chain_at
-lemma vector_derivative_chain_at:
-  assumes "f differentiable at x" "(g differentiable at (f x))"
-  shows "vector_derivative (g \<circ> f) (at x) =
-         vector_derivative f (at x) *\<^sub>R vector_derivative g (at (f x))"
-by (metis Derivative.vector_diff_chain_at vector_derivative_at vector_derivative_works assms)
-
-
 subsection \<open>Piecewise differentiable functions\<close>
 
 definition piecewise_differentiable_on
@@ -88,6 +36,9 @@ lemma differentiable_imp_piecewise_differentiable:
          \<Longrightarrow> f piecewise_differentiable_on s"
 by (auto simp: piecewise_differentiable_on_def differentiable_imp_continuous_on differentiable_on_def
          intro: differentiable_within_subset)
+
+lemma piecewise_differentiable_const [iff]: "(\<lambda>x. z) piecewise_differentiable_on s"
+  by (simp add: differentiable_imp_piecewise_differentiable)
 
 lemma piecewise_differentiable_compose:
     "\<lbrakk>f piecewise_differentiable_on s; g piecewise_differentiable_on (f ` s);
@@ -466,7 +417,7 @@ proof -
     by (auto simp: piecewise_C1_differentiable_on_def continuous_on_add)
 qed
 
-lemma piecewise_C1_differentiable_C1_diff:
+lemma piecewise_C1_differentiable_diff:
     "\<lbrakk>f piecewise_C1_differentiable_on s;  g piecewise_C1_differentiable_on s\<rbrakk>
      \<Longrightarrow> (\<lambda>x. f x - g x) piecewise_C1_differentiable_on s"
   unfolding diff_conv_add_uminus

@@ -2309,13 +2309,7 @@ lemma seq_harmonic: "((\<lambda>n. inverse (real n)) ---> 0) sequentially"
 
 subsection \<open>More properties of closed balls\<close>
 
-lemma closed_vimage: (* TODO: move to Topological_Spaces.thy *)
-  assumes "closed s" and "continuous_on UNIV f"
-  shows "closed (vimage f s)"
-  using assms unfolding continuous_on_closed_vimage [OF closed_UNIV]
-  by simp
-
-lemma closed_cball: "closed (cball x e)"
+lemma closed_cball [iff]: "closed (cball x e)"
 proof -
   have "closed (dist x -` {..e})"
     by (intro closed_vimage closed_atMost continuous_intros)
@@ -4663,7 +4657,7 @@ lemma continuous_on_interior:
   by (metis continuous_on_eq_continuous_at continuous_on_subset interiorE)
 
 lemma continuous_on_eq:
-  "(\<forall>x \<in> s. f x = g x) \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on s g"
+  "\<lbrakk>continuous_on s f; \<And>x. x \<in> s \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> continuous_on s g"
   unfolding continuous_on_def tendsto_def eventually_at_topological
   by simp
 

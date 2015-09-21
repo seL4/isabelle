@@ -496,6 +496,9 @@ lemma content_cbox':
 lemma content_real: "a \<le> b \<Longrightarrow> content {a..b} = b - a"
   by (auto simp: interval_upperbound_def interval_lowerbound_def SUP_def INF_def content_def)
 
+lemma abs_eq_content: "abs (y - x) = (if x\<le>y then content {x .. y} else content {y..x})"
+  by (auto simp: content_real)
+
 lemma content_singleton[simp]: "content {a} = 0"
 proof -
   have "content (cbox a a) = 0"
@@ -6414,133 +6417,75 @@ lemma integrable_const[intro]: "(\<lambda>x. c) integrable_on cbox a b"
   apply (rule has_integral_const)
   done
 
+lemma integral_has_vector_derivative_continuous_at:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes f: "f integrable_on {a..b}"
+      and x: "x \<in> {a..b}"
+      and fx: "continuous (at x within {a..b}) f"
+  shows "((\<lambda>u. integral {a..u} f) has_vector_derivative f x) (at x within {a..b})"
+proof -
+  let ?I = "\<lambda>a b. integral {a..b} f"
+  { fix e::real 
+    assume "e > 0"
+    obtain d where "d>0" and d: "\<And>x'. \<lbrakk>x' \<in> {a..b}; \<bar>x' - x\<bar> < d\<rbrakk> \<Longrightarrow> norm(f x' - f x) \<le> e"
+      using `e>0` fx by (auto simp: continuous_within_eps_delta dist_norm less_imp_le)
+    have "norm (integral {a..y} f - integral {a..x} f - (y - x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
+           if y: "y \<in> {a..b}" and yx: "\<bar>y - x\<bar> < d" for y  
+    proof (cases "y < x")
+      case False
+      have "f integrable_on {a..y}"
+        using f y by (simp add: integrable_subinterval_real)
+      then have Idiff: "?I a y - ?I a x = ?I x y" 
+        using False x by (simp add: algebra_simps integral_combine)
+      have fux_int: "((\<lambda>u. f u - f x) has_integral integral {x..y} f - (y - x) *\<^sub>R f x) {x..y}"
+        apply (rule has_integral_sub)
+        using x y apply (force intro: integrable_integral [OF integrable_subinterval_real [OF f]])
+        using has_integral_const_real [of "f x" x y] False
+        apply (simp add: )
+        done
+      show ?thesis
+        using False
+        apply (simp add: abs_eq_content del: content_real_if)
+        apply (rule has_integral_bound_real[where f="(\<lambda>u. f u - f x)"])
+        using yx False d x y `e>0` apply (auto simp add: Idiff fux_int)
+        done
+    next
+      case True
+      have "f integrable_on {a..x}"
+        using f x by (simp add: integrable_subinterval_real)
+      then have Idiff: "?I a x - ?I a y = ?I y x" 
+        using True x y by (simp add: algebra_simps integral_combine)
+      have fux_int: "((\<lambda>u. f u - f x) has_integral integral {y..x} f - (x - y) *\<^sub>R f x) {y..x}"
+        apply (rule has_integral_sub)
+        using x y apply (force intro: integrable_integral [OF integrable_subinterval_real [OF f]])
+        using has_integral_const_real [of "f x" y x] True
+        apply (simp add: )
+        done
+      have "norm (integral {a..x} f - integral {a..y} f - (x - y) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
+        using True
+        apply (simp add: abs_eq_content del: content_real_if)
+        apply (rule has_integral_bound_real[where f="(\<lambda>u. f u - f x)"])
+        using yx True d x y `e>0` apply (auto simp add: Idiff fux_int)
+        done
+      then show ?thesis
+        by (simp add: algebra_simps norm_minus_commute)
+    qed
+    then have "\<exists>d>0. \<forall>y\<in>{a..b}. \<bar>y - x\<bar> < d \<longrightarrow> norm (integral {a..y} f - integral {a..x} f - (y - x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
+      using `d>0` by blast 
+  } 
+  then show ?thesis
+    by (simp add: has_vector_derivative_def has_derivative_within_alt bounded_linear_scaleR_left)
+qed
+
 lemma integral_has_vector_derivative:
   fixes f :: "real \<Rightarrow> 'a::banach"
   assumes "continuous_on {a .. b} f"
     and "x \<in> {a .. b}"
   shows "((\<lambda>u. integral {a .. u} f) has_vector_derivative f(x)) (at x within {a .. b})"
-  unfolding has_vector_derivative_def has_derivative_within_alt
-  apply safe
-  apply (rule bounded_linear_scaleR_left)
-proof -
-  fix e :: real
-  assume e: "e > 0"
-  note compact_uniformly_continuous[OF assms(1) compact_Icc,unfolded uniformly_continuous_on_def]
-  from this[rule_format,OF e] guess d by (elim conjE exE) note d=this[rule_format]
-  let ?I = "\<lambda>a b. integral {a .. b} f"
-  show "\<exists>d>0. \<forall>y\<in>{a .. b}. norm (y - x) < d \<longrightarrow>
-    norm (?I a y - ?I a x - (y - x) *\<^sub>R f x) \<le> e * norm (y - x)"
-  proof (rule, rule, rule d, safe, goal_cases)
-    case prems: (1 y)
-    show ?case
-    proof (cases "y < x")
-      case False
-      have "f integrable_on {a .. y}"
-        apply (rule integrable_subinterval_real,rule integrable_continuous_real)
-        apply (rule assms)
-        unfolding not_less
-        using assms(2) prems
-        apply auto
-        done
-      then have *: "?I a y - ?I a x = ?I x y"
-        unfolding algebra_simps
-        apply (subst eq_commute)
-        apply (rule integral_combine)
-        using False
-        unfolding not_less
-        using assms(2) prems
-        apply auto
-        done
-      have **: "norm (y - x) = content {x .. y}"
-        using False by (auto simp: content_real)
-      show ?thesis
-        unfolding **
-        apply (rule has_integral_bound_real[where f="(\<lambda>u. f u - f x)"])
-        unfolding *
-        defer
-        apply (rule has_integral_sub)
-        apply (rule integrable_integral)
-        apply (rule integrable_subinterval_real)
-        apply (rule integrable_continuous_real)
-        apply (rule assms)+
-      proof -
-        show "{x .. y} \<subseteq> {a .. b}"
-          using prems assms(2) by auto
-        have *: "y - x = norm (y - x)"
-          using False by auto
-        show "((\<lambda>xa. f x) has_integral (y - x) *\<^sub>R f x) {x .. y}"
-          apply (subst *)
-          unfolding **
-          by blast
-        show "\<forall>xa\<in>{x .. y}. norm (f xa - f x) \<le> e"
-          apply safe
-          apply (rule less_imp_le)
-          apply (rule d(2)[unfolded dist_norm])
-          using assms(2)
-          using prems
-          apply auto
-          done
-      qed (insert e, auto)
-    next
-      case True
-      have "f integrable_on cbox a x"
-        apply (rule integrable_subinterval,rule integrable_continuous)
-        unfolding box_real
-        apply (rule assms)+
-        unfolding not_less
-        using assms(2) prems
-        apply auto
-        done
-      then have *: "?I a x - ?I a y = ?I y x"
-        unfolding algebra_simps
-        apply (subst eq_commute)
-        apply (rule integral_combine)
-        using True using assms(2) prems
-        apply auto
-        done
-      have **: "norm (y - x) = content {y .. x}"
-        apply (subst content_real)
-        using True
-        unfolding not_less
-        apply auto
-        done
-      have ***: "\<And>fy fx c::'a. fx - fy - (y - x) *\<^sub>R c = -(fy - fx - (x - y) *\<^sub>R c)"
-        unfolding scaleR_left.diff by auto
-      show ?thesis
-        apply (subst ***)
-        unfolding norm_minus_cancel **
-        apply (rule has_integral_bound_real[where f="(\<lambda>u. f u - f x)"])
-        unfolding *
-        unfolding o_def
-        defer
-        apply (rule has_integral_sub)
-        apply (subst minus_minus[symmetric])
-        unfolding minus_minus
-        apply (rule integrable_integral)
-        apply (rule integrable_subinterval_real,rule integrable_continuous_real)
-        apply (rule assms)+
-      proof -
-        show "{y .. x} \<subseteq> {a .. b}"
-          using prems assms(2) by auto
-        have *: "x - y = norm (y - x)"
-          using True by auto
-        show "((\<lambda>xa. f x) has_integral (x - y) *\<^sub>R f x) {y .. x}"
-          apply (subst *)
-          unfolding **
-          apply blast
-          done
-        show "\<forall>xa\<in>{y .. x}. norm (f xa - f x) \<le> e"
-          apply safe
-          apply (rule less_imp_le)
-          apply (rule d(2)[unfolded dist_norm])
-          using assms(2)
-          using prems
-          apply auto
-          done
-      qed (insert e, auto)
-    qed
-  qed
-qed
+apply (rule integral_has_vector_derivative_continuous_at [OF integrable_continuous_real])
+using assms
+apply (auto simp: continuous_on_eq_continuous_within)
+done
 
 lemma antiderivative_continuous:
   fixes q b :: real

@@ -22,6 +22,13 @@ text \<open>
 
 subsection \<open>Preliminary lemmas\<close>
 
+lemma inj_add_left [simp]: 
+  fixes x :: "'a::cancel_semigroup_add" shows "inj (op+ x)"
+by (meson add_left_imp_eq injI)
+
+lemma inj_mult_left [simp]: "inj (op* x) \<longleftrightarrow> x \<noteq> (0::'a::idom)"
+  by (metis injI mult_cancel_left the_inv_f_f zero_neq_one)
+
 lemma add_diff_add:
   fixes a b c d :: "'a::ab_group_add"
   shows "(a + c) - (b + d) = (a - b) + (c - d)"

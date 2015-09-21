@@ -2277,6 +2277,20 @@ lemma vector_derivative_diff_at [simp]:
    \<Longrightarrow> vector_derivative (\<lambda>x. f x - g x) (at a) = vector_derivative f (at a) - vector_derivative g (at a)"
   by (simp add: vector_derivative_at has_vector_derivative_diff vector_derivative_works [symmetric])
 
+lemma vector_derivative_mult_at [simp]:
+  fixes f g :: "real \<Rightarrow> 'a :: real_normed_algebra"
+  shows  "\<lbrakk>f differentiable at a; g differentiable at a\<rbrakk>
+   \<Longrightarrow> vector_derivative (\<lambda>x. f x * g x) (at a) = f a * vector_derivative g (at a) + vector_derivative f (at a) * g a"
+  by (simp add: vector_derivative_at has_vector_derivative_mult vector_derivative_works [symmetric])
+
+lemma vector_derivative_scaleR_at [simp]:
+    "\<lbrakk>f differentiable at a; g differentiable at a\<rbrakk>
+   \<Longrightarrow> vector_derivative (\<lambda>x. f x *\<^sub>R g x) (at a) = f a *\<^sub>R vector_derivative g (at a) + vector_derivative f (at a) *\<^sub>R g a"
+apply (rule vector_derivative_at)
+apply (rule has_vector_derivative_scaleR)
+apply (auto simp: vector_derivative_works has_vector_derivative_def has_field_derivative_def mult_commute_abs)
+done
+
 lemma vector_derivative_within_closed_interval:
   assumes "a < b"
     and "x \<in> cbox a b"
@@ -2355,5 +2369,11 @@ lemma vector_derivative_at_within_ivl:
   "(f has_vector_derivative f') (at x) \<Longrightarrow>
     a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> a<b \<Longrightarrow> vector_derivative f (at x within {a..b}) = f'"
 using has_vector_derivative_at_within vector_derivative_within_closed_interval by fastforce
+
+lemma vector_derivative_chain_at:
+  assumes "f differentiable at x" "(g differentiable at (f x))"
+  shows "vector_derivative (g \<circ> f) (at x) =
+         vector_derivative f (at x) *\<^sub>R vector_derivative g (at (f x))"
+by (metis vector_diff_chain_at vector_derivative_at vector_derivative_works assms)
 
 end

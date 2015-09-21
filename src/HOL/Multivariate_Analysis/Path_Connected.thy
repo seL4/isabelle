@@ -437,11 +437,8 @@ lemma path_imp_reversepath: "path g \<Longrightarrow> path(reversepath g)"
   apply (auto simp: continuous_on_op_minus)
   done
 
-lemma forall_01_trivial: "(\<forall>x\<in>{0..1}. x \<le> 0 \<longrightarrow> P x) \<longleftrightarrow> P (0::real)"
-  by auto
-
-lemma forall_half1_trivial: "(\<forall>x\<in>{1/2..1}. x * 2 \<le> 1 \<longrightarrow> P x) \<longleftrightarrow> P (1/2::real)"
-  by auto (metis add_divide_distrib mult_2_right real_sum_of_halves)
+lemma half_bounded_equal: "1 \<le> x * 2 \<Longrightarrow> x * 2 \<le> 1 \<longleftrightarrow> x = (1/2::real)"
+  by simp
 
 lemma continuous_on_joinpaths:
   assumes "continuous_on {0..1} g1" "continuous_on {0..1} g2" "pathfinish g1 = pathstart g2"
@@ -451,17 +448,17 @@ proof -
     by auto
   have gg: "g2 0 = g1 1"
     by (metis assms(3) pathfinish_def pathstart_def)
-  have 1: "continuous_on {0..1 / 2} (g1 +++ g2)"
+  have 1: "continuous_on {0..1/2} (g1 +++ g2)"
     apply (rule continuous_on_eq [of _ "g1 o (\<lambda>x. 2*x)"])
-    apply (simp add: joinpaths_def)
-    apply (rule continuous_intros | simp add: assms)+
+    apply (rule continuous_intros | simp add: joinpaths_def assms)+
     done
-  have 2: "continuous_on {1 / 2..1} (g1 +++ g2)"
-    apply (rule continuous_on_eq [of _ "g2 o (\<lambda>x. 2*x-1)"])
-    apply (simp add: joinpaths_def)
-    apply (rule continuous_intros | simp add: forall_half1_trivial gg)+
-    apply (rule continuous_on_subset)
-    apply (rule assms, auto)
+  have "continuous_on {1/2..1} (g2 o (\<lambda>x. 2*x-1))"
+    apply (rule continuous_on_subset [of "{1/2..1}"])
+    apply (rule continuous_intros | simp add: image_affinity_atLeastAtMost_diff assms)+
+    done
+  then have 2: "continuous_on {1/2..1} (g1 +++ g2)"
+    apply (rule continuous_on_eq [of "{1/2..1}" "g2 o (\<lambda>x. 2*x-1)"])
+    apply (rule assms continuous_intros | simp add: joinpaths_def mult.commute half_bounded_equal gg)+
     done
   show ?thesis
     apply (subst *)
@@ -800,7 +797,6 @@ proof -
     apply (rule continuous_on_eq[of _ "g \<circ> (\<lambda>x. a + x)"])
     prefer 3
     apply (rule continuous_on_eq[of _ "g \<circ> (\<lambda>x. a - 1 + x)"])
-    defer
     prefer 3
     apply (rule continuous_intros)+
     prefer 2

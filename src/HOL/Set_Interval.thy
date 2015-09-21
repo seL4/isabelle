@@ -863,6 +863,14 @@ lemma image_affinity_atLeastAtMost_diff:
   using image_affinity_atLeastAtMost [of m "-c" a b]
   by simp
 
+lemma image_affinity_atLeastAtMost_div:
+  fixes c :: "'a::linordered_field"
+  shows "((\<lambda>x. x/m + c) ` {a..b}) = (if {a..b}={} then {}
+            else if 0 \<le> m then {a/m + c .. b/m + c}
+            else {b/m + c .. a/m + c})"
+  using image_affinity_atLeastAtMost [of "inverse m" c a b]
+  by (simp add: field_class.field_divide_inverse algebra_simps)
+    
 lemma image_affinity_atLeastAtMost_div_diff:
   fixes c :: "'a::linordered_field"
   shows "((\<lambda>x. x/m - c) ` {a..b}) = (if {a..b}={} then {}

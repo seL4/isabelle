@@ -518,7 +518,7 @@ done
 lemma int_cases3 [case_names zero pos neg]:
   fixes k :: int
   assumes "k = 0 \<Longrightarrow> P" and "\<And>n. k = int n \<Longrightarrow> n > 0 \<Longrightarrow> P"
-    and "\<And>n. k = - int n \<Longrightarrow> n > 0 \<Longrightarrow> P" 
+    and "\<And>n. k = - int n \<Longrightarrow> n > 0 \<Longrightarrow> P"
   shows "P"
 proof (cases k "0::int" rule: linorder_cases)
   case equal with assms(1) show P by simp
@@ -890,7 +890,7 @@ proof -
   moreover have "k \<in> range abs" if "k \<in> \<nat>" for k :: int
     using that by induct simp
   ultimately show ?thesis by blast
-qed  
+qed
 
 lemma Suc_nat_eq_nat_zadd1: "(0::int) <= z ==> Suc (nat z) = nat (1 + z)"
 apply (rule sym)
