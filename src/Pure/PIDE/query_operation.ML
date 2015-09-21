@@ -39,7 +39,7 @@ fun register {name, pri} f =
 (* print_state *)
 
 val _ =
-  register {name = "print_state", pri = Task_Queue.urgent_pri + 2}
+  register {name = "print_state", pri = Task_Queue.urgent_pri}
     (fn {state = st, output_result, ...} =>
       if Toplevel.is_proof st
       then output_result (Markup.markup Markup.state (Toplevel.string_of_state st))
