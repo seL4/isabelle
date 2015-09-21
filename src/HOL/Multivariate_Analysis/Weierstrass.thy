@@ -1,4 +1,4 @@
-section{*Bernstein-Weierstrass and Stone-Weierstrass Theorems*}
+section\<open>Bernstein-Weierstrass and Stone-Weierstrass Theorems\<close>
 
 theory Weierstrass
 imports Uniform_Limit Path_Connected
@@ -11,7 +11,7 @@ declare of_nat_Suc [simp del]
 (*Power.thy:*)
 declare power_divide [where b = "numeral w" for w, simp del]
 
-subsection {*Bernstein polynomials*}
+subsection \<open>Bernstein polynomials\<close>
 
 definition Bernstein :: "[nat,nat,real] \<Rightarrow> real" where
   "Bernstein n k x \<equiv> of_nat (n choose k) * x ^ k * (1 - x) ^ (n - k)"
@@ -65,7 +65,7 @@ proof -
     by auto
 qed
 
-subsection {*Explicit Bernstein version of the 1D Weierstrass approximation theorem*}
+subsection \<open>Explicit Bernstein version of the 1D Weierstrass approximation theorem\<close>
 
 lemma Bernstein_Weierstrass:
   fixes f :: "real \<Rightarrow> real"
@@ -87,11 +87,11 @@ proof -
     assume n: "Suc (nat\<lceil>4*M/(e*d\<^sup>2)\<rceil>) \<le> n" and x: "0 \<le> x" "x \<le> 1"
     have "0 < n" using n by simp
     have ed0: "- (e * d\<^sup>2) < 0"
-      using e `0<d` by simp
+      using e \<open>0<d\<close> by simp
     also have "... \<le> M * 4"
-      using `0\<le>M` by simp
+      using \<open>0\<le>M\<close> by simp
     finally have [simp]: "real (nat \<lceil>4 * M / (e * d\<^sup>2)\<rceil>) = real \<lceil>4 * M / (e * d\<^sup>2)\<rceil>"
-      using `0\<le>M` e `0<d`
+      using \<open>0\<le>M\<close> e \<open>0<d\<close>
       by (simp add: Real.real_of_nat_Suc field_simps)
     have "4*M/(e*d\<^sup>2) + 1 \<le> real (Suc (nat\<lceil>4*M/(e*d\<^sup>2)\<rceil>))"
       by (simp add: Real.real_of_nat_Suc)
@@ -137,7 +137,7 @@ proof -
         also have "... \<le> 2 * M * ((x - k/n)\<^sup>2 / d\<^sup>2)"
           apply simp
           apply (rule Rings.ordered_semiring_class.mult_left_mono [of 1 "((x - k/n)\<^sup>2 / d\<^sup>2)", simplified])
-          using dle `d>0` `M\<ge>0` by auto
+          using dle \<open>d>0\<close> \<open>M\<ge>0\<close> by auto
         also have "... \<le> e/2 + 2 * M / d\<^sup>2 * (x - k/n)\<^sup>2"
           using e  by simp
         finally show ?thesis .
@@ -152,12 +152,12 @@ proof -
       done
     also have "... \<le> e/2 + (2 * M) / (d\<^sup>2 * n)"
       apply (simp only: setsum.distrib Rings.semiring_class.distrib_right setsum_right_distrib [symmetric] mult.assoc sum_bern)
-      using `d>0` x
+      using \<open>d>0\<close> x
       apply (simp add: divide_simps Mge0 mult_le_one mult_left_le)
       done
     also have "... < e"
       apply (simp add: field_simps)
-      using `d>0` nbig e `n>0`
+      using \<open>d>0\<close> nbig e \<open>n>0\<close>
       apply (simp add: divide_simps algebra_simps)
       using ed0 by linarith
     finally have "\<bar>f x - (\<Sum>k = 0..n. f (real k / real n) * Bernstein n k x)\<bar> < e" .
@@ -167,7 +167,7 @@ proof -
 qed
 
 
-subsection {*General Stone-Weierstrass theorem*}
+subsection \<open>General Stone-Weierstrass theorem\<close>
 
 text\<open>Source:
 Bruno Brosowski and Frank Deutsch.
@@ -282,7 +282,7 @@ proof -
     show ?thesis
       using subU i t
       apply (clarsimp simp: p_def divide_simps)
-      apply (rule setsum_pos2 [OF `finite subU`])
+      apply (rule setsum_pos2 [OF \<open>finite subU\<close>])
       using Uf t pf01 apply auto
       apply (force elim!: subsetCE)
       done
@@ -345,10 +345,10 @@ proof -
     using t0 pf by (simp add: q_def power_0_left)
   { fix t and n::nat
     assume t: "t \<in> s \<inter> V"
-    with `k>0` V have "k * p t < k * \<delta> / 2"
+    with \<open>k>0\<close> V have "k * p t < k * \<delta> / 2"
        by force
     then have "1 - (k * \<delta> / 2)^n \<le> 1 - (k * p t)^n"
-      using  `k>0` p01 t by (simp add: power_mono)
+      using  \<open>k>0\<close> p01 t by (simp add: power_mono)
     also have "... \<le> q n t"
       using Bernoulli_inequality [of "- ((p t)^n)" "k^n"]
       apply (simp add: q_def)
@@ -357,7 +357,7 @@ proof -
   } note limitV = this
   { fix t and n::nat
     assume t: "t \<in> s - U"
-    with `k>0` U have "k * \<delta> \<le> k * p t"
+    with \<open>k>0\<close> U have "k * \<delta> \<le> k * p t"
       by (simp add: pt_\<delta>)
     with k\<delta> have kpt: "1 < k * p t"
       by (blast intro: less_le_trans)
@@ -366,9 +366,9 @@ proof -
     have ptn_le: "p t ^ n \<le> 1"
       by (meson DiffE atLeastAtMost_iff p01 power_le_one t)
     have "q n t = (1/(k^n * (p t)^n)) * (1 - p t ^ n) ^ (k^n) * k^n * (p t)^n"
-      using pt_pos [OF t] `k>0` by (simp add: q_def)
+      using pt_pos [OF t] \<open>k>0\<close> by (simp add: q_def)
     also have "... \<le> (1/(k * (p t))^n) * (1 - p t ^ n) ^ (k^n) * (1 + k^n * (p t)^n)"
-      using pt_pos [OF t] `k>0`
+      using pt_pos [OF t] \<open>k>0\<close>
       apply simp
       apply (simp only: times_divide_eq_right [symmetric])
       apply (rule mult_left_mono [of "1::real", simplified])
@@ -377,20 +377,20 @@ proof -
       using ptn_le by linarith
     also have "... \<le> (1/(k * (p t))^n) * (1 - p t ^ n) ^ (k^n) * (1 + (p t)^n) ^ (k^n)"
       apply (rule mult_left_mono [OF Bernoulli_inequality [of "p t ^ n" "k^n"]])
-      using `k>0` ptn_pos ptn_le
+      using \<open>k>0\<close> ptn_pos ptn_le
       apply (auto simp: power_mult_distrib)
       done
     also have "... = (1/(k * (p t))^n) * (1 - p t ^ (2*n)) ^ (k^n)"
-      using pt_pos [OF t] `k>0`
+      using pt_pos [OF t] \<open>k>0\<close>
       by (simp add: algebra_simps power_mult power2_eq_square power_mult_distrib [symmetric])
     also have "... \<le> (1/(k * (p t))^n) * 1"
       apply (rule mult_left_mono [OF power_le_one])
       apply (metis diff_le_iff(1) less_eq_real_def mult.commute power_le_one power_mult ptn_pos ptn_le)
-      using pt_pos [OF t] `k>0`
+      using pt_pos [OF t] \<open>k>0\<close>
       apply auto
       done
     also have "... \<le> (1 / (k*\<delta>))^n"
-      using `k>0` \<delta>01  power_mono pt_\<delta> t
+      using \<open>k>0\<close> \<delta>01  power_mono pt_\<delta> t
       by (fastforce simp: field_simps)
     finally have "q n t \<le> (1 / (real k * \<delta>)) ^ n " .
   } note limitNonU = this
@@ -401,13 +401,13 @@ proof -
   have NN1: "\<And>e. e>0 \<Longrightarrow> (k * \<delta> / 2)^NN e < e"
     apply (subst Transcendental.ln_less_cancel_iff [symmetric])
       prefer 3 apply (subst ln_realpow)
-    using `k>0` `\<delta>>0` NN  k\<delta>
+    using \<open>k>0\<close> \<open>\<delta>>0\<close> NN  k\<delta>
     apply (force simp add: field_simps)+
     done
   have NN0: "\<And>e. e>0 \<Longrightarrow> (1/(k*\<delta>))^NN e < e"
     apply (subst Transcendental.ln_less_cancel_iff [symmetric])
       prefer 3 apply (subst ln_realpow)
-    using `k>0` `\<delta>>0` NN k\<delta>
+    using \<open>k>0\<close> \<open>\<delta>>0\<close> NN k\<delta>
     apply (force simp add: field_simps ln_div)+
     done
   { fix t and e::real
@@ -416,11 +416,11 @@ proof -
     proof -
       assume t: "t \<in> s \<inter> V"
       show "1 - q (NN e) t < e"
-        by (metis add.commute diff_le_eq not_le limitV [OF t] less_le_trans [OF NN1 [OF `e>0`]])
+        by (metis add.commute diff_le_eq not_le limitV [OF t] less_le_trans [OF NN1 [OF \<open>e>0\<close>]])
     next
       assume t: "t \<in> s - U"
       show "q (NN e) t < e"
-      using  limitNonU [OF t] less_le_trans [OF NN0 [OF `e>0`]] not_le by blast
+      using  limitNonU [OF t] less_le_trans [OF NN0 [OF \<open>e>0\<close>]] not_le by blast
     qed
   } then have "\<And>e. e > 0 \<Longrightarrow> \<exists>f\<in>R. f ` s \<subseteq> {0..1} \<and> (\<forall>t \<in> s \<inter> V. f t < e) \<and> (\<forall>t \<in> s - U. 1 - e < f t)"
     using q01
@@ -445,7 +445,7 @@ proof -
       using assms by auto
     then have "\<exists>V. open V \<and> w \<in> V \<and> s \<inter> V \<subseteq> -B \<and>
                (\<forall>e>0. \<exists>f \<in> R. f ` s \<subseteq> {0..1} \<and> (\<forall>x \<in> s \<inter> V. f x < e) \<and> (\<forall>x \<in> s \<inter> B. f x > 1 - e))"
-      using one [of "-B" w b] assms `w \<in> A` by simp
+      using one [of "-B" w b] assms \<open>w \<in> A\<close> by simp
   }
   then obtain Vf where Vf:
          "\<And>w. w \<in> A \<Longrightarrow> open (Vf w) \<and> w \<in> Vf w \<and> s \<inter> Vf w \<subseteq> -B \<and>
@@ -462,7 +462,7 @@ proof -
   obtain subA where subA: "subA \<subseteq> A" "finite subA" "A \<subseteq> (\<Union>x \<in> subA. Vf x)"
     by (blast intro: that open_Vf compactE_image [OF com_A _ setsum_max_0])
   then have [simp]: "subA \<noteq> {}"
-    using `a \<in> A` by auto
+    using \<open>a \<in> A\<close> by auto
   then have cardp: "card subA > 0" using subA
     by (simp add: card_gt_0_iff)
   have "\<And>w. w \<in> A \<Longrightarrow> \<exists>f \<in> R. f ` s \<subseteq> {0..1} \<and> (\<forall>x \<in> s \<inter> Vf w. f x < e / card subA) \<and> (\<forall>x \<in> s \<inter> B. f x > 1 - e / card subA)"
@@ -623,7 +623,7 @@ proof -
     then have fj1: "f t \<le> (j - 1/3)*e"
       by (simp add: A_def)
     then have Anj: "t \<notin> A i" if "i<j" for i
-      using  Aj  `i<j`
+      using  Aj  \<open>i<j\<close>
       apply (simp add: j_def)
       using not_less_Least by blast
     have j1: "1 \<le> j"
@@ -639,7 +639,7 @@ proof -
       then obtain d where "i+2+d = j"
         using le_Suc_ex that by blast
       then have "t \<in> B i"
-        using Anj e ge_fx [OF t] `1 \<le> n` fpos [OF t] t
+        using Anj e ge_fx [OF t] \<open>1 \<le> n\<close> fpos [OF t] t
         apply (simp add: A_def B_def)
         apply (clarsimp simp add: field_simps real_of_nat_diff not_le real_of_nat_Suc)
         apply (rule order_trans [of _ "e * 2 + (e * (real d * 3) + e * (real i * 3))"])
@@ -664,9 +664,9 @@ proof -
       apply simp
       done
     also have "... \<le> j*e + e*(n - j + 1)*e/n "
-      using `1 \<le> n` e  by (simp add: field_simps)
+      using \<open>1 \<le> n\<close> e  by (simp add: field_simps)
     also have "... \<le> j*e + e*e"
-      using `1 \<le> n` e j1 by (simp add: field_simps)
+      using \<open>1 \<le> n\<close> e j1 by (simp add: field_simps)
     also have "... < (j + 1/3)*e"
       using e by (auto simp: field_simps)
     finally have gj1: "g t < (j + 1 / 3) * e" .
@@ -737,7 +737,7 @@ proof -
       assume n: "N \<le> n"  "\<forall>x\<in>s. \<bar>f x - g x\<bar> < 1 / (1 + real n)"
       assume x: "x \<in> s"
       have "\<not> real (Suc n) < inverse e"
-        using `N \<le> n` N using less_imp_inverse_less by force
+        using \<open>N \<le> n\<close> N using less_imp_inverse_less by force
       then have "1 / (1 + real n) \<le> e"
         using e by (simp add: field_simps real_of_nat_Suc)
       then have "\<bar>f x - g x\<bar> < e"
@@ -756,7 +756,7 @@ proof -
     done
 qed
 
-text{*A HOL Light formulation*}
+text\<open>A HOL Light formulation\<close>
 corollary Stone_Weierstrass_HOL:
   fixes R :: "('a::t2_space \<Rightarrow> real) set" and s :: "'a set"
   assumes "compact s"  "\<And>c. P(\<lambda>x. c::real)"
@@ -772,12 +772,12 @@ proof -
     using assms
     by auto
   show ?thesis
-    using PR.Stone_Weierstrass_basic [OF `continuous_on s f` `0 < e`]
+    using PR.Stone_Weierstrass_basic [OF \<open>continuous_on s f\<close> \<open>0 < e\<close>]
     by blast
 qed
 
 
-subsection {*Polynomial functions*}
+subsection \<open>Polynomial functions\<close>
 
 inductive real_polynomial_function :: "('a::real_normed_vector \<Rightarrow> real) \<Rightarrow> bool" where
     linear: "bounded_linear f \<Longrightarrow> real_polynomial_function f"
@@ -978,7 +978,7 @@ next
     by (simp add: euclidean_representation_setsum_fun)
 qed
 
-subsection {*Stone-Weierstrass theorem for polynomial functions*}
+subsection \<open>Stone-Weierstrass theorem for polynomial functions\<close>
 
 text\<open>First, we need to show that they are continous, differentiable and separable.\<close>
 
@@ -1048,12 +1048,12 @@ proof -
     assume "b \<in> Basis"
     then
     obtain p' where p': "real_polynomial_function p'" and pd: "\<And>x. ((\<lambda>x. p x \<bullet> b) has_real_derivative p' x) (at x)"
-      using assms [unfolded polynomial_function_iff_Basis_inner, rule_format]  `b \<in> Basis`
+      using assms [unfolded polynomial_function_iff_Basis_inner, rule_format]  \<open>b \<in> Basis\<close>
       has_real_derivative_polynomial_function
       by blast
     have "\<exists>q. polynomial_function q \<and> (\<forall>x. ((\<lambda>u. (p u \<bullet> b) *\<^sub>R b) has_vector_derivative q x) (at x))"
       apply (rule_tac x="\<lambda>x. p' x *\<^sub>R b" in exI)
-      using `b \<in> Basis` p'
+      using \<open>b \<in> Basis\<close> p'
       apply (simp add: polynomial_function_iff_Basis_inner inner_Basis)
       apply (auto intro: derivative_eq_intros pd)
       done
@@ -1096,7 +1096,7 @@ proof -
     apply (auto intro: real_polynomial_function_separable)
     done
   show ?thesis
-    using PR.Stone_Weierstrass_basic [OF `continuous_on s f` `0 < e`]
+    using PR.Stone_Weierstrass_basic [OF \<open>continuous_on s f\<close> \<open>0 < e\<close>]
     by blast
 qed
 
@@ -1131,7 +1131,7 @@ proof -
       by (rule norm_setsum)
     also have "... < of_nat DIM('b) * (e / DIM('b))"
       apply (rule setsum_bounded_above_strict)
-      apply (simp add: Real_Vector_Spaces.scaleR_diff_left [symmetric] pf `x \<in> s`)
+      apply (simp add: Real_Vector_Spaces.scaleR_diff_left [symmetric] pf \<open>x \<in> s\<close>)
       apply (rule DIM_positive)
       done
     also have "... = e"
@@ -1149,8 +1149,8 @@ qed
 
 subsection\<open>Polynomial functions as paths\<close>
 
-text{*One application is to pick a smooth approximation to a path,
-or just pick a smooth path anyway in an open connected set*}
+text\<open>One application is to pick a smooth approximation to a path,
+or just pick a smooth path anyway in an open connected set\<close>
 
 lemma path_polynomial_function:
     fixes g  :: "real \<Rightarrow> 'b::euclidean_space"
@@ -1192,7 +1192,7 @@ lemma connected_open_polynomial_connected:
 proof -
   have "path_connected s" using assms
     by (simp add: connected_open_path_connected)
-  with `x \<in> s` `y \<in> s` obtain p where p: "path p" "path_image p \<subseteq> s" "pathstart p = x" "pathfinish p = y"
+  with \<open>x \<in> s\<close> \<open>y \<in> s\<close> obtain p where p: "path p" "path_image p \<subseteq> s" "pathstart p = x" "pathfinish p = y"
     by (force simp: path_connected_def)
   have "\<exists>e. 0 < e \<and> (\<forall>x \<in> path_image p. ball x e \<subseteq> s)"
   proof (cases "s = UNIV")
@@ -1211,7 +1211,7 @@ proof -
   then obtain e where "0 < e"and eb: "\<And>x. x \<in> path_image p \<Longrightarrow> ball x e \<subseteq> s"
     by auto
   show ?thesis
-    using path_approx_polynomial_function [OF `path p` `0 < e`]
+    using path_approx_polynomial_function [OF \<open>path p\<close> \<open>0 < e\<close>]
     apply clarify
     apply (intro exI conjI, assumption)
     using p

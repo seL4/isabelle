@@ -1691,8 +1691,8 @@ text \<open>
 \<close>
 
 
-text{* Tagging a premise of a simp rule with ASSUMPTION forces the simplifier
-not to simplify the argument and to solve it by an assumption. *}
+text\<open>Tagging a premise of a simp rule with ASSUMPTION forces the simplifier
+not to simplify the argument and to solve it by an assumption.\<close>
 
 definition ASSUMPTION :: "bool \<Rightarrow> bool" where
 "ASSUMPTION A \<equiv> A"
@@ -1706,7 +1706,7 @@ by(simp add: ASSUMPTION_def)
 lemma ASSUMPTION_D: "ASSUMPTION A \<Longrightarrow> A"
 by(simp add: ASSUMPTION_def)
 
-setup {*
+setup \<open>
 let
   val asm_sol = mk_solver "ASSUMPTION" (fn ctxt =>
     resolve_tac ctxt [@{thm ASSUMPTION_I}] THEN'
@@ -1714,7 +1714,7 @@ let
 in
   map_theory_simpset (fn ctxt => Simplifier.addSolver (ctxt,asm_sol))
 end
-*}
+\<close>
 
 
 subsection \<open>Code generator setup\<close>

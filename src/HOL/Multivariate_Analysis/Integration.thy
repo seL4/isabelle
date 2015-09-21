@@ -2889,7 +2889,7 @@ next
         apply (rule less_trans[OF _ *])
         apply (subst N1', rule d(2)[of "p (N1+N2)"])
         using N1' as(1) as(2) dp
-        apply (simp add: `\<forall>x. p x tagged_division_of cbox a b \<and> (\<lambda>xa. \<Inter>{d i xa |i. i \<in> {0..x}}) fine p x`)
+        apply (simp add: \<open>\<forall>x. p x tagged_division_of cbox a b \<and> (\<lambda>xa. \<Inter>{d i xa |i. i \<in> {0..x}}) fine p x\<close>)
         using N2 le_add2 by blast
     }
     ultimately show "\<exists>d. gauge d \<and>
@@ -3602,11 +3602,11 @@ next
   proof (cases "f x = neutral opp")
     case True
     then show ?thesis
-      using assms `x \<notin> s`
+      using assms \<open>x \<notin> s\<close>
       by (auto simp: iterate_def support_clauses)
   next
     case False
-    with `x \<notin> s` \<open>finite s\<close> support_subset show ?thesis
+    with \<open>x \<notin> s\<close> \<open>finite s\<close> support_subset show ?thesis
       apply (simp add: iterate_def fold'_def support_clauses)
       apply (subst comp_fun_commute.fold_insert[OF * finite_support, simplified comp_def])
       apply (force simp add: )+
@@ -3962,7 +3962,7 @@ proof -
       case True
       show "iterate opp d f = f (cbox a b)"
         unfolding operativeD(1)[OF assms(2) True]
-      proof (rule iterate_eq_neutral[OF `monoidal opp`])
+      proof (rule iterate_eq_neutral[OF \<open>monoidal opp\<close>])
         fix x
         assume x: "x \<in> d"
         then show "f x = neutral opp"
@@ -3990,9 +3990,9 @@ proof -
           note *[OF this(1)] *[OF this(2)] note this[unfolded interval_bounds[OF uv(1)]]
           moreover
           have "a\<bullet>j \<le> u\<bullet>j" "v\<bullet>j \<le> b\<bullet>j"
-            using division_ofD(2,2,3)[OF `d division_of cbox a b` as]
+            using division_ofD(2,2,3)[OF \<open>d division_of cbox a b\<close> as]
             apply (metis j subset_box(1) uv(1))
-            by (metis `cbox u v \<subseteq> cbox a b` j subset_box(1) uv(1))
+            by (metis \<open>cbox u v \<subseteq> cbox a b\<close> j subset_box(1) uv(1))
           ultimately have "u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = a\<bullet>j \<or> u\<bullet>j = b\<bullet>j \<and> v\<bullet>j = b\<bullet>j \<or> u\<bullet>j = a\<bullet>j \<and> v\<bullet>j = b\<bullet>j"
             unfolding not_less de_Morgan_disj using ab[rule_format,of j] uv(2) j by force }
         then have d': "\<forall>i\<in>d. \<exists>u v. i = cbox u v \<and>
@@ -4001,7 +4001,7 @@ proof -
           by blast
         have "(1/2) *\<^sub>R (a+b) \<in> cbox a b"
           unfolding mem_box using ab by(auto intro!: less_imp_le simp: inner_simps)
-        note this[unfolded division_ofD(6)[OF `d division_of cbox a b`,symmetric] Union_iff]
+        note this[unfolded division_ofD(6)[OF \<open>d division_of cbox a b\<close>,symmetric] Union_iff]
         then guess i .. note i=this
         guess u v using d'[rule_format,OF i(1)] by (elim exE conjE) note uv=this
         have "cbox a b \<in> d"
@@ -4059,18 +4059,18 @@ proof -
         def d2 \<equiv> "{l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> d \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
         def cb \<equiv> "(\<Sum>i\<in>Basis. (if i = k then c else b\<bullet>i) *\<^sub>R i)::'a"
         def ca \<equiv> "(\<Sum>i\<in>Basis. (if i = k then c else a\<bullet>i) *\<^sub>R i)::'a"
-        note division_points_psubset[OF `d division_of cbox a b` ab kc(1-2) j]
+        note division_points_psubset[OF \<open>d division_of cbox a b\<close> ab kc(1-2) j]
         note psubset_card_mono[OF _ this(1)] psubset_card_mono[OF _ this(2)]
         then have *: "(iterate opp d1 f) = f (cbox a b \<inter> {x. x\<bullet>k \<le> c})"
           "(iterate opp d2 f) = f (cbox a b \<inter> {x. x\<bullet>k \<ge> c})"
           unfolding interval_split[OF kc(4)]
           apply (rule_tac[!] "1.hyps"[rule_format])
-          using division_split[OF `d division_of cbox a b`, where k=k and c=c]
-          apply (simp_all add: interval_split 1 kc d1_def d2_def division_points_finite[OF `d division_of cbox a b`])
+          using division_split[OF \<open>d division_of cbox a b\<close>, where k=k and c=c]
+          apply (simp_all add: interval_split 1 kc d1_def d2_def division_points_finite[OF \<open>d division_of cbox a b\<close>])
           done
         { fix l y
           assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} = y \<inter> {x. x \<bullet> k \<le> c}" "l \<noteq> y"
-          from division_ofD(4)[OF `d division_of cbox a b` this(1)] guess u v by (elim exE) note leq=this
+          from division_ofD(4)[OF \<open>d division_of cbox a b\<close> this(1)] guess u v by (elim exE) note leq=this
           have "f (l \<inter> {x. x \<bullet> k \<le> c}) = neutral opp"
             unfolding leq interval_split[OF kc(4)]
             apply (rule operativeD(1) 1)+
@@ -4079,7 +4079,7 @@ proof -
         } note fxk_le = this
         { fix l y
           assume as: "l \<in> d" "y \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} = y \<inter> {x. c \<le> x \<bullet> k}" "l \<noteq> y"
-          from division_ofD(4)[OF `d division_of cbox a b` this(1)] guess u v by (elim exE) note leq=this
+          from division_ofD(4)[OF \<open>d division_of cbox a b\<close> this(1)] guess u v by (elim exE) note leq=this
           have "f (l \<inter> {x. x \<bullet> k \<ge> c}) = neutral opp"
             unfolding leq interval_split[OF kc(4)]
             apply (rule operativeD(1) 1)+
@@ -4102,7 +4102,7 @@ proof -
           apply (force simp add: empty_as_interval[symmetric] fxk_ge)+
           done
         also have *: "\<forall>x\<in>d. f x = opp (f (x \<inter> {x. x \<bullet> k \<le> c})) (f (x \<inter> {x. c \<le> x \<bullet> k}))"
-          unfolding forall_in_division[OF `d division_of cbox a b`]
+          unfolding forall_in_division[OF \<open>d division_of cbox a b\<close>]
           using assms(2) kc(4) by blast
         have "opp (iterate opp d (\<lambda>l. f (l \<inter> {x. x \<bullet> k \<le> c}))) (iterate opp d (\<lambda>l. f (l \<inter> {x. c \<le> x \<bullet> k}))) =
           iterate opp d f"
@@ -4689,7 +4689,7 @@ lemma content_doublesplit:
 proof (cases "content (cbox a b) = 0")
   case True
   then have ce: "content (cbox a b) < e"
-    by (metis `0 < e`)
+    by (metis \<open>0 < e\<close>)
   show ?thesis
     apply (rule that[of 1])
     apply simp
@@ -6112,10 +6112,10 @@ proof goal_cases
   have one: "(- 1) ^ p' * (- 1) ^ p' = (1::real)"
     and "{..<p} \<inter> {i. p = Suc i} = {p - 1}"
     for p'
-    using `p > 0`
+    using \<open>p > 0\<close>
     by (auto simp: power_mult_distrib[symmetric])
   then have "?sum b = f b"
-    using Suc_pred'[OF `p > 0`]
+    using Suc_pred'[OF \<open>p > 0\<close>]
     by (simp add: diff_eq_eq Dg_def power_0_left le_Suc_eq if_distrib
         cond_application_beta setsum.If_cases f0)
   also
@@ -6428,7 +6428,7 @@ proof -
   { fix e::real 
     assume "e > 0"
     obtain d where "d>0" and d: "\<And>x'. \<lbrakk>x' \<in> {a..b}; \<bar>x' - x\<bar> < d\<rbrakk> \<Longrightarrow> norm(f x' - f x) \<le> e"
-      using `e>0` fx by (auto simp: continuous_within_eps_delta dist_norm less_imp_le)
+      using \<open>e>0\<close> fx by (auto simp: continuous_within_eps_delta dist_norm less_imp_le)
     have "norm (integral {a..y} f - integral {a..x} f - (y - x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
            if y: "y \<in> {a..b}" and yx: "\<bar>y - x\<bar> < d" for y  
     proof (cases "y < x")
@@ -6447,7 +6447,7 @@ proof -
         using False
         apply (simp add: abs_eq_content del: content_real_if)
         apply (rule has_integral_bound_real[where f="(\<lambda>u. f u - f x)"])
-        using yx False d x y `e>0` apply (auto simp add: Idiff fux_int)
+        using yx False d x y \<open>e>0\<close> apply (auto simp add: Idiff fux_int)
         done
     next
       case True
@@ -6465,13 +6465,13 @@ proof -
         using True
         apply (simp add: abs_eq_content del: content_real_if)
         apply (rule has_integral_bound_real[where f="(\<lambda>u. f u - f x)"])
-        using yx True d x y `e>0` apply (auto simp add: Idiff fux_int)
+        using yx True d x y \<open>e>0\<close> apply (auto simp add: Idiff fux_int)
         done
       then show ?thesis
         by (simp add: algebra_simps norm_minus_commute)
     qed
     then have "\<exists>d>0. \<forall>y\<in>{a..b}. \<bar>y - x\<bar> < d \<longrightarrow> norm (integral {a..y} f - integral {a..x} f - (y - x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
-      using `d>0` by blast 
+      using \<open>d>0\<close> by blast 
   } 
   then show ?thesis
     by (simp add: has_vector_derivative_def has_derivative_within_alt bounded_linear_scaleR_left)
@@ -11913,7 +11913,7 @@ proof -
     by simp
 qed
 
-subsection{*Compute a double integral using iterated integrals and switching the order of integration*}
+subsection\<open>Compute a double integral using iterated integrals and switching the order of integration\<close>
 
 lemma setcomp_dot1: "{z. P (z \<bullet> (i,0))} = {(x,y). P(x \<bullet> i)}"
   by auto
@@ -12197,7 +12197,7 @@ next
       using compact_uniformly_continuous [OF assms compact_cbox]
       apply (simp add: uniformly_continuous_on_def dist_norm)
       apply (drule_tac x="e / 2 / content?CBOX" in spec)
-      using cbp `0 < e`
+      using cbp \<open>0 < e\<close>
       apply (auto simp: zero_less_mult_iff)
       apply (rename_tac k)
       apply (rule_tac e1=k in fine_division_exists [OF gauge_ball, where a = "(a,c)" and b = "(b,d)"])

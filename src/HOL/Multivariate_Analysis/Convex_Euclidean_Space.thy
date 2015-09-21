@@ -9467,7 +9467,7 @@ next
     using g by (simp add: Fun.image_comp)
   then show "coplanar s"
     unfolding coplanar_def
-    using affine_hull_linear_image [of g "{u,v,w}" for u v w]  `linear g` linear_conv_bounded_linear
+    using affine_hull_linear_image [of g "{u,v,w}" for u v w]  \<open>linear g\<close> linear_conv_bounded_linear
     by fastforce
 qed
 (*The HOL Light proof is simply
@@ -9651,7 +9651,7 @@ next
     then have *: "\<And>x. x \<in> closure s \<Longrightarrow> setdist s t \<le> dist x y"
       apply (rule continuous_ge_on_closure)
       apply assumption
-      apply (blast intro: setdist_le_dist `y \<in> t` )
+      apply (blast intro: setdist_le_dist \<open>y \<in> t\<close> )
       done
   } note * = this
   show ?thesis
@@ -9687,7 +9687,7 @@ lemma setdist_closed_compact:
   assumes s: "closed s" and t: "compact t"
       and "s \<noteq> {}" "t \<noteq> {}"
     shows "\<exists>x \<in> s. \<exists>y \<in> t. dist x y = setdist s t"
-  using setdist_compact_closed [OF t s `t \<noteq> {}` `s \<noteq> {}`]
+  using setdist_compact_closed [OF t s \<open>t \<noteq> {}\<close> \<open>s \<noteq> {}\<close>]
   by (metis dist_commute setdist_sym)
 
 lemma setdist_eq_0I: "\<lbrakk>x \<in> s; x \<in> t\<rbrakk> \<Longrightarrow> setdist s t = 0"

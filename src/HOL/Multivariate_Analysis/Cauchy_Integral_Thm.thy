@@ -81,7 +81,7 @@ proof -
     using assms
     by (auto simp: piecewise_differentiable_on_def)
   have finabc: "finite ({a,b,c} \<union> (s \<union> t))"
-    by (metis `finite s` `finite t` finite_Un finite_insert finite.emptyI)
+    by (metis \<open>finite s\<close> \<open>finite t\<close> finite_Un finite_insert finite.emptyI)
   have "continuous_on {a..c} f" "continuous_on {c..b} g"
     using assms piecewise_differentiable_on_def by auto
   then have "continuous_on {a..b} (\<lambda>x. if x \<le> c then f x else g x)"
@@ -462,7 +462,7 @@ proof -
     by (rule continuous_on_eq) (simp add: scaleR_conv_of_real)
   have "continuous_on {0..1} g1"
     using continuous_on_joinpaths_D1 assms piecewise_C1_differentiable_on_def by blast
-  with `finite s` show ?thesis
+  with \<open>finite s\<close> show ?thesis
     apply (clarsimp simp add: piecewise_C1_differentiable_on_def C1_differentiable_on_eq)
     apply (rule_tac x="insert 1 ((op*2)`s)" in exI)
     apply (simp add: g1D con_g1)
@@ -509,7 +509,7 @@ proof -
     by (rule continuous_on_eq) (simp add: scaleR_conv_of_real)
   have "continuous_on {0..1} g2"
     using continuous_on_joinpaths_D2 assms piecewise_C1_differentiable_on_def by blast
-  with `finite s` show ?thesis
+  with \<open>finite s\<close> show ?thesis
     apply (clarsimp simp add: piecewise_C1_differentiable_on_def C1_differentiable_on_eq)
     apply (rule_tac x="insert 0 ((\<lambda>x. 2 * x - 1) ` s)" in exI)
     apply (simp add: g2D con_g2)
@@ -2253,11 +2253,11 @@ proof -
         def shrink \<equiv> "\<lambda>x. x - e *\<^sub>R (x - d)"
         let ?pathint = "\<lambda>x y. path_integral(linepath x y) f"
         have e: "0 < e" "e \<le> 1" "e \<le> d1 / (4 * C)" "e \<le> cmod y / 24 / C / B"
-          using d1_pos `C>0` `B>0` ynz by (simp_all add: e_def)
+          using d1_pos \<open>C>0\<close> \<open>B>0\<close> ynz by (simp_all add: e_def)
         then have eCB: "24 * e * C * B \<le> cmod y"
-          using `C>0` `B>0`  by (simp add: field_simps)
+          using \<open>C>0\<close> \<open>B>0\<close>  by (simp add: field_simps)
         have e_le_d1: "e * (4 * C) \<le> d1"
-          using e `C>0` by (simp add: field_simps)
+          using e \<open>C>0\<close> by (simp add: field_simps)
         have "shrink a \<in> interior(convex hull {a,b,c})"
              "shrink b \<in> interior(convex hull {a,b,c})"
              "shrink c \<in> interior(convex hull {a,b,c})"
@@ -2276,10 +2276,10 @@ proof -
         have sh_eq: "\<And>a b d::complex. (b - e *\<^sub>R (b - d)) - (a - e *\<^sub>R (a - d)) - (b - a) = e *\<^sub>R (a - b)"
           by (simp add: algebra_simps)
         have "cmod y / (24 * C) \<le> cmod y / cmod (b - a) / 12"
-          using False `C>0` diff_2C [of b a] ynz
+          using False \<open>C>0\<close> diff_2C [of b a] ynz
           by (auto simp: divide_simps hull_inc)
         have less_C: "\<lbrakk>u \<in> convex hull {a, b, c}; 0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> x * cmod u < C" for x u
-          apply (cases "x=0", simp add: `0<C`)
+          apply (cases "x=0", simp add: \<open>0<C\<close>)
           using Cno [of u] mult_left_le_one_le [of "cmod u" x] le_less_trans norm_ge_zero by blast
         { fix u v
           assume uv: "u \<in> convex hull {a, b, c}" "v \<in> convex hull {a, b, c}" "u\<noteq>v"
@@ -2292,7 +2292,7 @@ proof -
             using shr_uv by (blast intro: Bnf linepath_in_convex_hull interior_subset [THEN subsetD])
           have By_uv: "B * (12 * (e * cmod (u - v))) \<le> cmod y"
             apply (rule order_trans [OF _ eCB])
-            using e `B>0` diff_2C [of u v] uv
+            using e \<open>B>0\<close> diff_2C [of u v] uv
             by (auto simp: field_simps)
           { fix x::real   assume x: "0\<le>x" "x\<le>1"
             have cmod_less_4C: "cmod ((1 - x) *\<^sub>R u - (1 - x) *\<^sub>R d) + cmod (x *\<^sub>R v - x *\<^sub>R d) < (C+C) + (C+C)"
@@ -2303,7 +2303,7 @@ proof -
             have ll: "linepath (shrink u) (shrink v) x - linepath u v x = -e * ((1 - x) *\<^sub>R (u - d) + x *\<^sub>R (v - d))"
               by (simp add: linepath_def shrink_def algebra_simps scaleR_conv_of_real)
             have cmod_less_dt: "cmod (linepath (shrink u) (shrink v) x - linepath u v x) < d1"
-              using `e>0`
+              using \<open>e>0\<close>
               apply (simp add: ll norm_mult scaleR_diff_right)
               apply (rule less_le_trans [OF _ e_le_d1])
               using cmod_less_4C
@@ -2313,7 +2313,7 @@ proof -
               using x uv shr_uv cmod_less_dt
               by (auto simp: hull_inc intro: d1 interior_subset [THEN subsetD] linepath_in_convex_hull)
             also have "... \<le> cmod y / cmod (v - u) / 12"
-              using False uv `C>0` diff_2C [of v u] ynz
+              using False uv \<open>C>0\<close> diff_2C [of v u] ynz
               by (auto simp: divide_simps hull_inc)
             finally have "cmod (f (linepath (shrink u) (shrink v) x) - f (linepath u v x)) \<le> cmod y / cmod (v - u) / 12"
               by simp
@@ -2324,7 +2324,7 @@ proof -
                   \<le> cmod y / 6"
               apply (rule order_trans [of _ "B*((norm y / 24 / C / B)*2*C) + (2*C)*(norm y /24 / C)"])
               apply (rule add_mono [OF mult_mono])
-              using By_uv e `0 < B` `0 < C` x ynz
+              using By_uv e \<open>0 < B\<close> \<open>0 < C\<close> x ynz
               apply (simp_all add: cmod_fuv cmod_shr cmod_12_le hull_inc)
               apply (simp add: field_simps)
               done
@@ -2339,7 +2339,7 @@ proof -
                     [of "B*(norm y /24/C/B)*2*C + (2*C)*(norm y/24/C)"
                         "\<lambda>x. f(linepath (shrink u) (shrink v) x) * (shrink v - shrink u) - f(linepath u v x)*(v - u)"
                         _ 0 1 ])
-            using ynz `0 < B` `0 < C`
+            using ynz \<open>0 < B\<close> \<open>0 < C\<close>
             apply (simp_all del: le_divide_eq_numeral1)
             apply (simp add: has_integral_sub has_path_integral_linepath [symmetric] has_path_integral_integral
                              fpi_uv f_uv path_integrable_continuous_linepath, clarify)
@@ -2376,7 +2376,7 @@ proof -
           by (simp add: contf compact_convex_hull compact_uniformly_continuous)
         ultimately have "False"
           unfolding uniformly_continuous_on_def
-          by (force simp: ynz `0 < C` dist_norm)
+          by (force simp: ynz \<open>0 < C\<close> dist_norm)
         then show ?thesis ..
       qed
   }
@@ -2411,7 +2411,7 @@ proof (induction "card s" arbitrary: a b c s rule: less_induct)
       case False
       show "(f has_path_integral 0) (linepath a b +++ linepath b c +++ linepath c a)"
         apply (rule less.hyps [of "s'"])
-        using False d `finite s` interior_subset
+        using False d \<open>finite s\<close> interior_subset
         apply (auto intro!: less.prems)
         done
     next
@@ -2420,7 +2420,7 @@ proof (induction "card s" arbitrary: a b c s rule: less_induct)
         by (meson True hull_subset insert_subset convex_hull_subset)
       have abd: "(f has_path_integral 0) (linepath a b +++ linepath b d +++ linepath d a)"
         apply (rule less.hyps [of "s'"])
-        using True d  `finite s` not_in_interior_convex_hull_3
+        using True d  \<open>finite s\<close> not_in_interior_convex_hull_3
         apply (auto intro!: less.prems continuous_on_subset [OF  _ *])
         apply (metis * insert_absorb insert_subset interior_mono)
         done
@@ -2428,7 +2428,7 @@ proof (induction "card s" arbitrary: a b c s rule: less_induct)
         by (meson True hull_subset insert_subset convex_hull_subset)
       have bcd: "(f has_path_integral 0) (linepath b c +++ linepath c d +++ linepath d b)"
         apply (rule less.hyps [of "s'"])
-        using True d  `finite s` not_in_interior_convex_hull_3
+        using True d  \<open>finite s\<close> not_in_interior_convex_hull_3
         apply (auto intro!: less.prems continuous_on_subset [OF _ *])
         apply (metis * insert_absorb insert_subset interior_mono)
         done
@@ -2436,7 +2436,7 @@ proof (induction "card s" arbitrary: a b c s rule: less_induct)
         by (meson True hull_subset insert_subset convex_hull_subset)
       have cad: "(f has_path_integral 0) (linepath c a +++ linepath a d +++ linepath d c)"
         apply (rule less.hyps [of "s'"])
-        using True d  `finite s` not_in_interior_convex_hull_3
+        using True d  \<open>finite s\<close> not_in_interior_convex_hull_3
         apply (auto intro!: less.prems continuous_on_subset [OF _ *])
         apply (metis * insert_absorb insert_subset interior_mono)
         done
@@ -2518,7 +2518,7 @@ proof -
     then obtain d1 where d1: "d1>0" and d1_less: "\<And>y. cmod (y - x) < d1 \<Longrightarrow> cmod (f y - f x) < e/2"
       unfolding continuous_at Lim_at dist_norm  using e
       by (drule_tac x="e/2" in spec) force
-    obtain d2 where d2: "d2>0" "ball x d2 \<subseteq> s" using  `open s` x
+    obtain d2 where d2: "d2>0" "ball x d2 \<subseteq> s" using  \<open>open s\<close> x
       by (auto simp: open_contains_ball)
     have dpos: "min d1 d2 > 0" using d1 d2 by simp
     { fix y
@@ -2556,7 +2556,7 @@ proof -
     apply (simp add: has_field_derivative_def has_derivative_at bounded_linear_mult_right)
     apply (rule Lim_transform [OF * Lim_eventually])
     apply (simp add: inverse_eq_divide [symmetric] eventually_at)
-    using `open s` x
+    using \<open>open s\<close> x
     apply (force simp: dist_norm open_contains_ball)
     done
 qed
@@ -2802,7 +2802,7 @@ lemma path_integrable_holomorphic:
 proof -
   { fix z
     assume z: "z \<in> s"
-    obtain d where d: "d>0" "ball z d \<subseteq> s" using  `open s` z
+    obtain d where d: "d>0" "ball z d \<subseteq> s" using  \<open>open s\<close> z
       by (auto simp: open_contains_ball)
     then have contfb: "continuous_on (ball z d) f"
       using contf continuous_on_subset by blast
@@ -2839,16 +2839,16 @@ apply (rule path_integrable_holomorphic_simple [of "UNIV-{z}", OF continuous_on_
 apply (auto simp: holomorphic_on_open open_delete intro!: derivative_eq_intros)
 done
 
-text{*Key fact that path integral is the same for a "nearby" path. This is the
+text\<open>Key fact that path integral is the same for a "nearby" path. This is the
  main lemma for the homotopy form of Cauchy's theorem and is also useful
  if we want "without loss of generality" to assume some nice properties of a
  path (e.g. smoothness). It can also be used to define the integrals of
  analytic functions over arbitrary continuous paths. This is just done for
  winding numbers now.
-*}
+\<close>
 
-text{*This formulation covers two cases: @{term g} and @{term h} share their
-      start and end points; @{term g} and @{term h} both loop upon themselves. *}
+text\<open>This formulation covers two cases: @{term g} and @{term h} share their
+      start and end points; @{term g} and @{term h} both loop upon themselves.\<close>
 lemma path_integral_nearby:
   assumes os: "open s"
       and p: "path p" "path_image p \<subseteq> s"
@@ -2876,7 +2876,7 @@ proof -
     by blast
   then obtain k where k: "k \<subseteq> {0..1}" "finite k" and D_eq: "D = ((\<lambda>z. ball z (ee z / 3)) \<circ> p) ` k"
     apply (simp add: cover_def path_image_def image_comp)
-    apply (blast dest!: finite_subset_image [OF `finite D`])
+    apply (blast dest!: finite_subset_image [OF \<open>finite D\<close>])
     done
   then have kne: "k \<noteq> {}"
     using D by auto
@@ -2905,7 +2905,7 @@ proof -
     { fix t::real
       assume t: "0 \<le> t" "t \<le> 1"
       then obtain u where u: "u \<in> k" and ptu: "p t \<in> ball(p u) (ee(p u) / 3)"
-        using `path_image p \<subseteq> \<Union>D` D_eq by (force simp: path_image_def)
+        using \<open>path_image p \<subseteq> \<Union>D\<close> D_eq by (force simp: path_image_def)
       then have ele: "e \<le> ee (p u)" using fin_eep
         by (simp add: e_def)
       have "cmod (g t - p t) < e / 3" "cmod (h t - p t) < e / 3"
@@ -2950,7 +2950,7 @@ proof -
         next
           case (Suc n)
           obtain t where t: "t \<in> k" and "p (n/N) \<in> ball(p t) (ee(p t) / 3)"
-            using `path_image p \<subseteq> \<Union>D` [THEN subsetD, where c="p (n/N)"] D_eq N Suc.prems
+            using \<open>path_image p \<subseteq> \<Union>D\<close> [THEN subsetD, where c="p (n/N)"] D_eq N Suc.prems
             by (force simp: path_image_def)
           then have ptu: "cmod (p t - p (n/N)) < ee (p t) / 3"
             by (simp add: dist_norm)
@@ -2988,7 +2988,7 @@ proof -
             using ptgh_ee [of "n/N"] Suc.prems
             by (auto simp: field_simps real_of_nat_def dist_norm dest: segment_furthest_le [where y="p t"])
           then have gh_ns: "closed_segment (g (n/N)) (h (n/N)) \<subseteq> s"
-            using `N>0` Suc.prems
+            using \<open>N>0\<close> Suc.prems
             apply (simp add: real_of_nat_def path_image_join field_simps closed_segment_commute)
             apply (erule order_trans)
             apply (simp add: ee pi t)
@@ -2998,14 +2998,14 @@ proof -
             using ptgh_ee [of "(1+n)/N"] Suc.prems
             by (auto simp: field_simps real_of_nat_def dist_norm dest: segment_furthest_le [where y="p t"])
           then have gh_n's: "closed_segment (g ((1 + n) / N)) (h ((1 + n) / N)) \<subseteq> s"
-            using `N>0` Suc.prems ee pi t
+            using \<open>N>0\<close> Suc.prems ee pi t
             by (auto simp: Path_Connected.path_image_join field_simps)
           have pi_subset_ball:
                 "path_image (subpath (n/N) ((1+n) / N) g +++ linepath (g ((1+n) / N)) (h ((1+n) / N)) +++
                              subpath ((1+n) / N) (n/N) h +++ linepath (h (n/N)) (g (n/N)))
                  \<subseteq> ball (p t) (ee (p t))"
             apply (intro subset_path_image_join pi_hgn pi_ghn')
-            using `N>0` Suc.prems
+            using \<open>N>0\<close> Suc.prems
             apply (auto simp: dist_norm field_simps closed_segment_eq_real_ivl ptgh_ee)
             done
           have pi0: "(f has_path_integral 0)
@@ -3126,7 +3126,7 @@ then obtain d::real and p
   where d: "0 < d"
     and p: "polynomial_function p" "path_image p \<subseteq> s"
     and pi: "\<And>f. f holomorphic_on s \<Longrightarrow> path_integral g f = path_integral p f"
-  using path_integral_nearby_ends [OF s `path g` pag]
+  using path_integral_nearby_ends [OF s \<open>path g\<close> pag]
   apply clarify
   apply (drule_tac x=g in spec)
   apply (simp only: assms)

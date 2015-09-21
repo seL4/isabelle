@@ -462,7 +462,7 @@ lemma approachable_lt_le: "(\<exists>(d::real) > 0. \<forall>x. f x < d \<longri
   apply auto
   done
 
-lemma approachable_lt_le2:  --{*like the above, but pushes aside an extra formula*}
+lemma approachable_lt_le2:  --\<open>like the above, but pushes aside an extra formula\<close>
     "(\<exists>(d::real) > 0. \<forall>x. Q x \<longrightarrow> f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> Q x \<longrightarrow> P x)"
   apply auto
   apply (rule_tac x="d/2" in exI, auto)
@@ -562,7 +562,7 @@ lemma real_arch_inv: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0
   using reals_Archimedean[of e] less_trans[of 0 "1 / real n" e for n::nat]
   by (auto simp add: field_simps cong: conj_cong)
 
-text{*Bernoulli's inequality*}
+text\<open>Bernoulli's inequality\<close>
 lemma Bernoulli_inequality:
   fixes x :: real
   assumes "-1 \<le> x"

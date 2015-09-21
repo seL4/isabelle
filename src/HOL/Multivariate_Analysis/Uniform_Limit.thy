@@ -58,15 +58,15 @@ proof (rule tendstoI)
   def e' \<equiv> "e/3"
   assume "0 < e"
   then have "0 < e'" by (simp add: e'_def)
-  from uniform_limitD[OF uc `0 < e'`]
+  from uniform_limitD[OF uc \<open>0 < e'\<close>]
   have "\<forall>\<^sub>F n in F. \<forall>x\<in>S. dist (h x) (f n x) < e'"
     by (simp add: dist_commute)
   moreover
   from f
   have "\<forall>\<^sub>F n in F. \<forall>\<^sub>F x in at x within S. dist (g n) (f n x) < e'"
-    by eventually_elim (auto dest!: tendstoD[OF _ `0 < e'`] simp: dist_commute)
+    by eventually_elim (auto dest!: tendstoD[OF _ \<open>0 < e'\<close>] simp: dist_commute)
   moreover
-  from tendstoD[OF g `0 < e'`] have "\<forall>\<^sub>F x in F. dist l (g x) < e'"
+  from tendstoD[OF g \<open>0 < e'\<close>] have "\<forall>\<^sub>F x in F. dist l (g x) < e'"
     by (simp add: dist_commute)
   ultimately
   have "\<forall>\<^sub>F _ in F. \<forall>\<^sub>F x in at x within S. dist (h x) l < e"
@@ -80,7 +80,7 @@ proof (rule tendstoI)
     show ?case
     proof eventually_elim
       case (elim x)
-      from fh[rule_format, OF `x \<in> S`] elim(1)
+      from fh[rule_format, OF \<open>x \<in> S\<close>] elim(1)
       have "dist (h x) (g n) < e' + e'"
         by (rule dist_triangle_lt[OF add_strict_mono])
       from dist_triangle_lt[OF add_strict_mono, OF this gl]
@@ -88,7 +88,7 @@ proof (rule tendstoI)
     qed
   qed
   thus "\<forall>\<^sub>F x in at x within S. dist (h x) l < e"
-    using eventually_happens by (metis `\<not>trivial_limit F`)
+    using eventually_happens by (metis \<open>\<not>trivial_limit F\<close>)
 qed
 
 lemma
@@ -122,7 +122,7 @@ shows "uniform_limit A (\<lambda>n x. \<Sum>i<n. f i x) (\<lambda>x. suminf (\<l
 proof (rule uniform_limitI)
   fix e :: real
   assume "0 < e"
-  from suminf_exist_split[OF `0 < e` `summable M`]
+  from suminf_exist_split[OF \<open>0 < e\<close> \<open>summable M\<close>]
   have "\<forall>\<^sub>F k in sequentially. norm (\<Sum>i. M (i + k)) < e"
     by (auto simp: eventually_sequentially)
   thus "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>A. dist (\<Sum>i<n. f i x) (\<Sum>i. f i x) < e"
@@ -132,16 +132,16 @@ proof (rule uniform_limitI)
     proof safe
       fix x assume "x \<in> A"
       have "\<exists>N. \<forall>n\<ge>N. norm (f n x) \<le> M n"
-        using assms(1)[OF `x \<in> A`] by simp
+        using assms(1)[OF \<open>x \<in> A\<close>] by simp
       hence summable_norm_f: "summable (\<lambda>n. norm (f n x))"
-        by(rule summable_norm_comparison_test[OF _ `summable M`])
+        by(rule summable_norm_comparison_test[OF _ \<open>summable M\<close>])
       have summable_f: "summable (\<lambda>n. f n x)"
         using summable_norm_cancel[OF summable_norm_f] .
       have summable_norm_f_plus_k: "summable (\<lambda>i. norm (f (i + k) x))"
         using summable_ignore_initial_segment[OF summable_norm_f]
         by auto
       have summable_M_plus_k: "summable (\<lambda>i. M (i + k))"
-        using summable_ignore_initial_segment[OF `summable M`]
+        using summable_ignore_initial_segment[OF \<open>summable M\<close>]
         by auto
 
       have "dist (\<Sum>i<k. f i x) (\<Sum>i. f i x) = norm ((\<Sum>i. f i x) - (\<Sum>i<k. f i x))"
@@ -152,7 +152,7 @@ proof (rule uniform_limitI)
         using summable_norm[OF summable_norm_f_plus_k] .
       also have "... \<le> (\<Sum>i. M (i + k))"
         by (rule suminf_le[OF _ summable_norm_f_plus_k summable_M_plus_k])
-           (simp add: assms(1)[OF `x \<in> A`])
+           (simp add: assms(1)[OF \<open>x \<in> A\<close>])
       finally show "dist (\<Sum>i<k. f i x) (\<Sum>i. f i x) < e"
         using elim by auto
     qed
@@ -163,12 +163,12 @@ lemma uniform_limit_eq_rhs: "uniform_limit X f l F \<Longrightarrow> l = m \<Lon
   by simp
 
 named_theorems uniform_limit_intros "introduction rules for uniform_limit"
-setup {*
+setup \<open>
   Global_Theory.add_thms_dynamic (@{binding uniform_limit_eq_intros},
     fn context =>
       Named_Theorems.get (Context.proof_of context) @{named_theorems uniform_limit_intros}
       |> map_filter (try (fn thm => @{thm uniform_limit_eq_rhs} OF [thm])))
-*}
+\<close>
 
 lemma (in bounded_linear) uniform_limit[uniform_limit_intros]:
   assumes "uniform_limit X g l F"
@@ -178,7 +178,7 @@ proof (rule uniform_limitI)
   from pos_bounded obtain K
     where K: "\<And>x y. dist (f x) (f y) \<le> K * dist x y" "K > 0"
     by (auto simp: ac_simps dist_norm diff[symmetric])
-  assume "0 < e" with `K > 0` have "e / K > 0" by simp
+  assume "0 < e" with \<open>K > 0\<close> have "e / K > 0" by simp
   from uniform_limitD[OF assms this]
   show "\<forall>\<^sub>F n in F. \<forall>x\<in>X. dist (f (g n x)) (f (l x)) < e"
     by eventually_elim (metis le_less_trans mult.commute pos_less_divide_eq K)
@@ -245,15 +245,15 @@ proof (rule uniform_limitI)
     and Kl: "Kl > 0" "\<And>x. x \<in> X \<Longrightarrow> norm (l x) \<le> Kl"
     by (auto simp: bounded_pos)
   hence "K * Km * 4 > 0" "K * Kl * 4 > 0"
-    using `K > 0`
+    using \<open>K > 0\<close>
     by simp_all
   assume "0 < e"
 
   hence "sqrt e > 0" by simp
-  from uniform_limitD[OF assms(1) divide_pos_pos[OF this `sqrt (K*4) > 0`]]
-    uniform_limitD[OF assms(2) divide_pos_pos[OF this `sqrt (K*4) > 0`]]
-    uniform_limitD[OF assms(1) divide_pos_pos[OF `e > 0` `K * Km * 4 > 0`]]
-    uniform_limitD[OF assms(2) divide_pos_pos[OF `e > 0` `K * Kl * 4 > 0`]]
+  from uniform_limitD[OF assms(1) divide_pos_pos[OF this \<open>sqrt (K*4) > 0\<close>]]
+    uniform_limitD[OF assms(2) divide_pos_pos[OF this \<open>sqrt (K*4) > 0\<close>]]
+    uniform_limitD[OF assms(1) divide_pos_pos[OF \<open>e > 0\<close> \<open>K * Km * 4 > 0\<close>]]
+    uniform_limitD[OF assms(2) divide_pos_pos[OF \<open>e > 0\<close> \<open>K * Kl * 4 > 0\<close>]]
   show "\<forall>\<^sub>F n in F. \<forall>x\<in>X. dist (prod (f n x) (g n x)) (prod (l x) (m x)) < e"
   proof eventually_elim
     case (elim n)
@@ -266,31 +266,31 @@ proof (rule uniform_limitI)
         norm (prod (l x) (g n x - m x))"
         by (auto simp: dist_norm prod_diff_prod intro: order_trans norm_triangle_ineq add_mono)
       also note K(2)[of "f n x - l x" "g n x - m x"]
-      also from elim(1)[THEN bspec, OF `_ \<in> X`, unfolded dist_norm]
+      also from elim(1)[THEN bspec, OF \<open>_ \<in> X\<close>, unfolded dist_norm]
       have "norm (f n x - l x) \<le> sqrt e / sqrt (K * 4)"
         by simp
-      also from elim(2)[THEN bspec, OF `_ \<in> X`, unfolded dist_norm]
+      also from elim(2)[THEN bspec, OF \<open>_ \<in> X\<close>, unfolded dist_norm]
       have "norm (g n x - m x) \<le> sqrt e / sqrt (K * 4)"
         by simp
       also have "sqrt e / sqrt (K * 4) * (sqrt e / sqrt (K * 4)) * K = e / 4"
-        using `K > 0` `e > 0` by auto
+        using \<open>K > 0\<close> \<open>e > 0\<close> by auto
       also note K(2)[of "f n x - l x" "m x"]
       also note K(2)[of "l x" "g n x - m x"]
-      also from elim(3)[THEN bspec, OF `_ \<in> X`, unfolded dist_norm]
+      also from elim(3)[THEN bspec, OF \<open>_ \<in> X\<close>, unfolded dist_norm]
       have "norm (f n x - l x) \<le> e / (K * Km * 4)"
         by simp
-      also from elim(4)[THEN bspec, OF `_ \<in> X`, unfolded dist_norm]
+      also from elim(4)[THEN bspec, OF \<open>_ \<in> X\<close>, unfolded dist_norm]
       have "norm (g n x - m x) \<le> e / (K * Kl * 4)"
         by simp
-      also note Kl(2)[OF `_ \<in> X`]
-      also note Km(2)[OF `_ \<in> X`]
+      also note Kl(2)[OF \<open>_ \<in> X\<close>]
+      also note Km(2)[OF \<open>_ \<in> X\<close>]
       also have "e / (K * Km * 4) * Km * K = e / 4"
-        using `K > 0` `Km > 0` by simp
+        using \<open>K > 0\<close> \<open>Km > 0\<close> by simp
       also have " Kl * (e / (K * Kl * 4)) * K = e / 4"
-        using `K > 0` `Kl > 0` by simp
-      also have "e / 4 + e / 4 + e / 4 < e" using `e > 0` by simp
+        using \<open>K > 0\<close> \<open>Kl > 0\<close> by simp
+      also have "e / 4 + e / 4 + e / 4 < e" using \<open>e > 0\<close> by simp
       finally show "dist (prod (f n x) (g n x)) (prod (l x) (m x)) < e"
-        using `K > 0` `Kl > 0` `Km > 0` `e > 0`
+        using \<open>K > 0\<close> \<open>Kl > 0\<close> \<open>Km > 0\<close> \<open>e > 0\<close>
         by (simp add: algebra_simps mult_right_mono divide_right_mono)
     qed
   qed
