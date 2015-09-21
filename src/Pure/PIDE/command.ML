@@ -357,7 +357,8 @@ val _ =
 val _ =
   print_function "print_state"
     (fn {keywords, command_name, ...} =>
-      if Keyword.is_printed keywords command_name then
+      if Options.default_bool "editor_output_state" andalso Keyword.is_printed keywords command_name
+      then
         SOME {delay = NONE, pri = Task_Queue.urgent_pri + 1, persistent = false, strict = false,
           print_fn = fn _ => fn st =>
             if Toplevel.is_proof st then Output.state (Toplevel.string_of_state st)
