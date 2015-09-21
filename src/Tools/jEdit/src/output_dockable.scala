@@ -37,8 +37,6 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   override def detach_operation = pretty_text_area.detach_operation
 
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
-
   private def handle_resize()
   {
     GUI_Thread.require {}
@@ -83,6 +81,28 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   }
 
 
+  /* controls */
+
+  private val auto_update = new CheckBox("Auto update") {
+    tooltip = "Indicate automatic update following cursor movement"
+    reactions += {
+      case ButtonClicked(_) => do_update = this.selected; handle_update(do_update, None) }
+    selected = do_update
+  }
+
+  private val update = new Button("Update") {
+    tooltip = "Update display according to the command at cursor position"
+    reactions += { case ButtonClicked(_) => handle_update(true, None) }
+  }
+
+  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+
+  private val controls =
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update, update,
+      pretty_text_area.search_label, pretty_text_area.search_field, zoom)
+  add(controls.peer, BorderLayout.NORTH)
+
+
   /* main */
 
   private val main =
@@ -124,24 +144,4 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
     override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
   })
-
-
-  /* controls */
-
-  private val auto_update = new CheckBox("Auto update") {
-    tooltip = "Indicate automatic update following cursor movement"
-    reactions += {
-      case ButtonClicked(_) => do_update = this.selected; handle_update(do_update, None) }
-    selected = do_update
-  }
-
-  private val update = new Button("Update") {
-    tooltip = "Update display according to the command at cursor position"
-    reactions += { case ButtonClicked(_) => handle_update(true, None) }
-  }
-
-  private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update, update,
-      pretty_text_area.search_label, pretty_text_area.search_field, zoom)
-  add(controls.peer, BorderLayout.NORTH)
 }
