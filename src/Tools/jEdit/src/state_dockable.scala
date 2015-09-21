@@ -55,7 +55,34 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   }
 
 
+  /* caret update */
+
+  private var do_update = true
+
+  private def caret_update()
+  {
+    GUI_Thread.require {}
+
+    if (do_update) {
+      PIDE.document_model(view.getBuffer).map(_.snapshot()) match {
+        case Some(snapshot) =>
+          (PIDE.editor.current_command(view, snapshot), print_state.get_location) match {
+            case (Some(command1), Some(command2)) if command1.id == command2.id =>
+            case _ => print_state.apply_query(Nil)
+          }
+        case None =>
+      }
+    }
+  }
+
+
   /* controls */
+
+  private val auto_update = new CheckBox("Auto update") {
+    tooltip = "Indicate automatic update following cursor movement"
+    reactions += { case ButtonClicked(_) => do_update = this.selected; caret_update() }
+    selected = do_update
+  }
 
   private val update = new Button("Update") {
     tooltip = "Update display according to the command at cursor position"
@@ -70,7 +97,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(update, locate,
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update, update, locate,
       pretty_text_area.search_label, pretty_text_area.search_field, zoom)
   add(controls.peer, BorderLayout.NORTH)
 
@@ -83,11 +110,15 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
         GUI_Thread.later { handle_resize() }
+
+      case Session.Caret_Focus =>
+        GUI_Thread.later { caret_update() }
     }
 
   override def init()
   {
     PIDE.session.global_options += main
+    PIDE.session.caret_focus += main
     handle_resize()
     print_state.activate()
   }
@@ -95,6 +126,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   override def exit()
   {
     print_state.deactivate()
+    PIDE.session.caret_focus -= main
     PIDE.session.global_options -= main
     delay_resize.revoke()
   }

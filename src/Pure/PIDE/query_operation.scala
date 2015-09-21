@@ -38,6 +38,8 @@ class Query_Operation[Editor_Context](
   @volatile private var current_status = Query_Operation.Status.FINISHED
   @volatile private var current_exec_id = Document_ID.none
 
+  def get_location: Option[Command] = current_location
+
   private def reset_state()
   {
     current_location = None
