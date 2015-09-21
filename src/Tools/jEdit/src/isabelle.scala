@@ -147,6 +147,12 @@ object Isabelle
       case _ => None
     }
 
+  def state_dockable(view: View): Option[State_Dockable] =
+    wm(view).getDockableWindow("isabelle-state") match {
+      case dockable: State_Dockable => Some(dockable)
+      case _ => None
+    }
+
   def symbols_dockable(view: View): Option[Symbols_Dockable] =
     wm(view).getDockableWindow("isabelle-symbols") match {
       case dockable: Symbols_Dockable => Some(dockable)

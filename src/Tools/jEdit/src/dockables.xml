@@ -35,6 +35,9 @@
 	<DOCKABLE NAME="isabelle-sledgehammer" MOVABLE="TRUE">
 		new isabelle.jedit.Sledgehammer_Dockable(view, position);
 	</DOCKABLE>
+	<DOCKABLE NAME="isabelle-state" MOVABLE="TRUE">
+		new isabelle.jedit.State_Dockable(view, position);
+	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-symbols" MOVABLE="TRUE">
 		new isabelle.jedit.Symbols_Dockable(view, position);
 	</DOCKABLE>

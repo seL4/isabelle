@@ -17,23 +17,33 @@ struct
 fun register {name, pri} f =
   Command.print_function (name ^ "_query")
     (fn {args = instance :: args, ...} =>
-        SOME {delay = NONE, pri = pri, persistent = false, strict = false,
-          print_fn = fn _ => uninterruptible (fn restore_attributes => fn state =>
-            let
-              fun result s = Output.result [(Markup.instanceN, instance)] [s];
-              fun status m = result (Markup.markup_only m);
-              fun output_result s = result (Markup.markup (Markup.writelnN, []) s);
-              fun toplevel_error exn =
-                result (Markup.markup (Markup.errorN, []) (Runtime.exn_message exn));
+      SOME {delay = NONE, pri = pri, persistent = false, strict = false,
+        print_fn = fn _ => uninterruptible (fn restore_attributes => fn state =>
+          let
+            fun result s = Output.result [(Markup.instanceN, instance)] [s];
+            fun status m = result (Markup.markup_only m);
+            fun output_result s = result (Markup.markup (Markup.writelnN, []) s);
+            fun toplevel_error exn =
+              result (Markup.markup (Markup.errorN, []) (Runtime.exn_message exn));
 
-              val _ = status Markup.running;
-              fun run () = f {state = state, args = args, output_result = output_result};
-              val _ =
-                (case Exn.capture (*sic!*) (restore_attributes run) () of
-                  Exn.Res () => ()
-                | Exn.Exn exn => toplevel_error exn);
-              val _ = status Markup.finished;
-            in () end)}
-      | _ => NONE);
+            val _ = status Markup.running;
+            fun run () = f {state = state, args = args, output_result = output_result};
+            val _ =
+              (case Exn.capture (*sic!*) (restore_attributes run) () of
+                Exn.Res () => ()
+              | Exn.Exn exn => toplevel_error exn);
+            val _ = status Markup.finished;
+          in () end)}
+    | _ => NONE);
+
+
+(* print_state *)
+
+val _ =
+  register {name = "print_state", pri = Task_Queue.urgent_pri + 2}
+    (fn {state = st, output_result, ...} =>
+      if Toplevel.is_proof st
+      then output_result (Markup.markup (Markup.stateN, []) (Toplevel.string_of_state st))
+      else ());
 
 end;

@@ -193,6 +193,7 @@ isabelle-output.width=412
 isabelle-query.dock-position=bottom
 isabelle-simplifier-trace.dock-position=floating
 isabelle-sledgehammer.dock-position=bottom
+isabelle-state.dock-position=right
 isabelle-symbols.dock-position=bottom
 isabelle-theories.dock-position=right
 isabelle.complete-word.label=Complete word
