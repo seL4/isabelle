@@ -28,6 +28,12 @@ application uniformly on all platforms: Linux, Windows, Mac OS X.
 asynchronously, leading to much better editor reactivity. Moreover, the
 full document node content is taken into account.
 
+* The State panel manages implicit proof state output, with jEdit action
+"isabelle-update-state" to trigger update according to cursor position.
+Option "editor_output_state" controls implicit proof state output in the
+Output panel: suppressing this may reduce resource requirements of
+prover time and GUI space.
+
 
 *** Isar ***
 
