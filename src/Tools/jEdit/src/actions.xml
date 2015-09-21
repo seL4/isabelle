@@ -32,6 +32,11 @@
 	    isabelle.jedit.Isabelle.toggle_node_required(view);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle-update-state">
+	  <CODE>
+	    isabelle.jedit.Isabelle.update_state(view);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.reset-font-size">
 	  <CODE>
 	    isabelle.jedit.Isabelle.reset_font_size();

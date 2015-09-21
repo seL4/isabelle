@@ -55,41 +55,41 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   }
 
 
-  /* caret update */
+  /* update */
 
   private var do_update = true
 
-  private def caret_update()
+  private def maybe_update(): Unit = GUI_Thread.require { if (do_update) update() }
+
+  def update()
   {
     GUI_Thread.require {}
 
-    if (do_update) {
-      PIDE.document_model(view.getBuffer).map(_.snapshot()) match {
-        case Some(snapshot) =>
-          (PIDE.editor.current_command(view, snapshot), print_state.get_location) match {
-            case (Some(command1), Some(command2)) if command1.id == command2.id =>
-            case _ => print_state.apply_query(Nil)
-          }
-        case None =>
-      }
+    PIDE.document_model(view.getBuffer).map(_.snapshot()) match {
+      case Some(snapshot) =>
+        (PIDE.editor.current_command(view, snapshot), print_state.get_location) match {
+          case (Some(command1), Some(command2)) if command1.id == command2.id =>
+          case _ => print_state.apply_query(Nil)
+        }
+      case None =>
     }
   }
 
 
   /* controls */
 
-  private val auto_update = new CheckBox("Auto update") {
+  private val auto_update_button = new CheckBox("Auto update") {
     tooltip = "Indicate automatic update following cursor movement"
-    reactions += { case ButtonClicked(_) => do_update = this.selected; caret_update() }
+    reactions += { case ButtonClicked(_) => do_update = this.selected; maybe_update() }
     selected = do_update
   }
 
-  private val update = new Button("Update") {
+  private val update_button = new Button("Update") {
     tooltip = "Update display according to the command at cursor position"
     reactions += { case ButtonClicked(_) => print_state.apply_query(Nil) }
   }
 
-  private val locate = new Button("Locate") {
+  private val locate_button = new Button("Locate") {
     tooltip = "Locate printed command within source text"
     reactions += { case ButtonClicked(_) => print_state.locate_query() }
   }
@@ -97,11 +97,11 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update, update, locate,
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update_button, update_button, locate_button,
       pretty_text_area.search_label, pretty_text_area.search_field, zoom)
   add(controls.peer, BorderLayout.NORTH)
 
-  override def focusOnDefaultComponent { update.requestFocus }
+  override def focusOnDefaultComponent { update_button.requestFocus }
 
 
   /* main */
@@ -112,7 +112,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
         GUI_Thread.later { handle_resize() }
 
       case Session.Caret_Focus =>
-        GUI_Thread.later { caret_update() }
+        GUI_Thread.later { maybe_update() }
     }
 
   override def init()

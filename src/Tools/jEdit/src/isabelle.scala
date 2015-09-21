@@ -205,6 +205,12 @@ object Isabelle
   }
 
 
+  /* update state */
+
+  def update_state(view: View): Unit =
+    state_dockable(view).foreach(_.update())
+
+
   /* ML statistics */
 
   class ML_Stats extends
