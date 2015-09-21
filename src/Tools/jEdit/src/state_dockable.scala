@@ -57,10 +57,6 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* update */
 
-  private var do_update = true
-
-  private def maybe_update(): Unit = GUI_Thread.require { if (do_update) update() }
-
   def update()
   {
     GUI_Thread.require {}
@@ -78,12 +74,6 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* controls */
 
-  private val auto_update_button = new CheckBox("Auto update") {
-    tooltip = "Indicate automatic update following cursor movement"
-    reactions += { case ButtonClicked(_) => do_update = this.selected; maybe_update() }
-    selected = do_update
-  }
-
   private val update_button = new Button("Update") {
     tooltip = "Update display according to the command at cursor position"
     reactions += { case ButtonClicked(_) => print_state.apply_query(Nil) }
@@ -97,7 +87,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update_button, update_button, locate_button,
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(update_button, locate_button,
       pretty_text_area.search_label, pretty_text_area.search_field, zoom)
   add(controls.peer, BorderLayout.NORTH)
 
@@ -110,30 +100,19 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
         GUI_Thread.later { handle_resize() }
-
-      case changed: Session.Commands_Changed =>
-        if (changed.assignment) GUI_Thread.later { maybe_update() }
-
-      case Session.Caret_Focus =>
-        GUI_Thread.later { maybe_update() }
     }
 
   override def init()
   {
     PIDE.session.global_options += main
-    PIDE.session.commands_changed += main
-    PIDE.session.caret_focus += main
     handle_resize()
     print_state.activate()
-    maybe_update()
   }
 
   override def exit()
   {
     print_state.deactivate()
-    PIDE.session.caret_focus -= main
     PIDE.session.global_options -= main
-    PIDE.session.commands_changed -= main
     delay_resize.revoke()
   }
 }
