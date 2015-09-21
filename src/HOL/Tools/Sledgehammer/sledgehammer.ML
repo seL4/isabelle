@@ -118,7 +118,7 @@ fun play_one_line_proof minimize timeout used_facts0 state i (preferred_meth, me
   end
 
 fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize, timeout,
-      preplay_timeout, expect, ...}) mode output_result only learn
+      preplay_timeout, expect, ...}) mode writeln_result only learn
     {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _} name =
   let
     val ctxt = Proof.context_of state
@@ -230,8 +230,8 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize
         val outcome =
           if outcome_code = someN orelse mode = Normal then quote name ^ ": " ^ message () else ""
         val _ =
-          if outcome <> "" andalso is_some output_result then
-            the output_result outcome
+          if outcome <> "" andalso is_some writeln_result then
+            the writeln_result outcome
           else
             outcome
             |> Async_Manager_Legacy.break_into_chunks
@@ -258,7 +258,7 @@ fun string_of_factss factss =
       (if filter = "" then "" else quote filter ^ ": ") ^ string_of_facts facts) factss)
 
 fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...}) mode
-    output_result i (fact_override as {only, ...}) state =
+    writeln_result i (fact_override as {only, ...}) state =
   if null provers then
     error "No prover is set."
   else
@@ -269,7 +269,7 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
       let
         val _ = Proof.assert_backward state
         val print =
-          if mode = Normal andalso is_none output_result then writeln else K ()
+          if mode = Normal andalso is_none writeln_result then writeln else K ()
         val ctxt = Proof.context_of state
         val keywords = Thy_Header.get_keywords' ctxt
         val {facts = chained, goal, ...} = Proof.goal state
@@ -315,7 +315,7 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
                factss = factss}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal) all_facts
-            val launch = launch_prover params mode output_result only learn
+            val launch = launch_prover params mode writeln_result only learn
           in
             if mode = Auto_Try then
               (unknownN, [])

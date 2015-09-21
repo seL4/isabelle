@@ -299,7 +299,7 @@ val silence_state =
 
 val default_learn_prover_timeout = 2.0
 
-fun hammer_away override_params output_result subcommand opt_i fact_override state0 =
+fun hammer_away override_params writeln_result subcommand opt_i fact_override state0 =
   let
     (* We generally want chained facts to be picked up by the relevance filter, because it can then
        give it a proper name, which is useful for a variety of reasons (minimization, Isar proofs,
@@ -328,7 +328,7 @@ fun hammer_away override_params output_result subcommand opt_i fact_override sta
     if subcommand = runN then
       let val i = the_default 1 opt_i in
         ignore (run_sledgehammer
-          (get_params Normal thy override_params) Normal output_result i fact_override state)
+          (get_params Normal thy override_params) Normal writeln_result i fact_override state)
       end
     else if subcommand = messagesN then
       messages opt_i
@@ -408,20 +408,21 @@ fun try_sledgehammer auto state =
 val _ = Try.tool_setup (sledgehammerN, (40, @{system_option auto_sledgehammer}, try_sledgehammer))
 
 val _ =
-  Query_Operation.register {name = sledgehammerN, pri = 0} (fn {state = st, args, output_result} =>
-    (case try Toplevel.proof_of st of
-      SOME state =>
-        let
-          val [provers_arg, isar_proofs_arg, try0_arg] = args
-          val override_params =
-            ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
-              [("isar_proofs", [if isar_proofs_arg = "true" then "true" else "smart"]),
-               ("try0", [try0_arg]),
-               ("blocking", ["true"]),
-               ("debug", ["false"]),
-               ("verbose", ["false"]),
-               ("overlord", ["false"])]);
-        in hammer_away override_params (SOME output_result) runN NONE no_fact_override state end
-    | NONE => error "Unknown proof context"))
+  Query_Operation.register {name = sledgehammerN, pri = 0}
+    (fn {state = st, args, writeln_result, ...} =>
+      (case try Toplevel.proof_of st of
+        SOME state =>
+          let
+            val [provers_arg, isar_proofs_arg, try0_arg] = args
+            val override_params =
+              ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
+                [("isar_proofs", [if isar_proofs_arg = "true" then "true" else "smart"]),
+                 ("try0", [try0_arg]),
+                 ("blocking", ["true"]),
+                 ("debug", ["false"]),
+                 ("verbose", ["false"]),
+                 ("overlord", ["false"])]);
+          in hammer_away override_params (SOME writeln_result) runN NONE no_fact_override state end
+      | NONE => error "Unknown proof context"))
 
 end;
