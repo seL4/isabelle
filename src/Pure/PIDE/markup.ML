@@ -155,16 +155,16 @@ sig
   val failedN: string val failed: T
   val exec_idN: string
   val initN: string
-  val statusN: string
-  val resultN: string
-  val writelnN: string
-  val stateN: string
-  val informationN: string
-  val tracingN: string
-  val warningN: string
-  val legacyN: string
-  val errorN: string
-  val systemN: string
+  val statusN: string val status: T
+  val resultN: string val result: T
+  val writelnN: string val writeln: T
+  val stateN: string val state: T
+  val informationN: string val information: T
+  val tracingN: string val tracing: T
+  val warningN: string val warning: T
+  val legacyN: string val legacy: T
+  val errorN: string val error: T
+  val systemN: string val system: T
   val protocolN: string
   val reportN: string val report: T
   val no_reportN: string val no_report: T
@@ -550,16 +550,16 @@ val (failedN, failed) = markup_elem "failed";
 val exec_idN = "exec_id";
 
 val initN = "init";
-val statusN = "status";
-val resultN = "result";
-val writelnN = "writeln";
-val stateN = "state"
-val informationN = "information";
-val tracingN = "tracing";
-val warningN = "warning";
-val legacyN = "legacy";
-val errorN = "error";
-val systemN = "system";
+val (statusN, status) = markup_elem "status";
+val (resultN, result) = markup_elem "result";
+val (writelnN, writeln) = markup_elem "writeln";
+val (stateN, state) = markup_elem "state"
+val (informationN, information) = markup_elem "information";
+val (tracingN, tracing) = markup_elem "tracing";
+val (warningN, warning) = markup_elem "warning";
+val (legacyN, legacy) = markup_elem "legacy";
+val (errorN, error) = markup_elem "error";
+val (systemN, system) = markup_elem "system";
 val protocolN = "protocol";
 
 val (reportN, report) = markup_elem "report";
@@ -645,7 +645,7 @@ in
   fun add_mode name output =
     Synchronized.change modes (fn tab =>
       (if not (Symtab.defined tab name) then ()
-       else warning ("Redefining markup mode " ^ quote name);
+       else Output.warning ("Redefining markup mode " ^ quote name);
        Symtab.update (name, {output = output}) tab));
   fun get_mode () =
     the_default default
