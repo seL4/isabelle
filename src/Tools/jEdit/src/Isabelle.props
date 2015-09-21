@@ -39,6 +39,7 @@ plugin.isabelle.jedit.Plugin.menu= \
   isabelle-raw-output \
   isabelle-simplifier-trace \
   isabelle-sledgehammer \
+  isabelle-state \
   isabelle-symbols \
   isabelle-syslog \
   isabelle-theories \
@@ -65,6 +66,8 @@ isabelle-simplifier-trace.label=Simplifier Trace panel
 isabelle-simplifier-trace.title=Simplifier Trace
 isabelle-sledgehammer.label=Sledgehammer panel
 isabelle-sledgehammer.title=Sledgehammer
+isabelle-state.label=State panel
+isabelle-state.title=State
 isabelle-symbols.label=Symbols panel
 isabelle-symbols.title=Symbols
 isabelle-syslog.label=Syslog panel

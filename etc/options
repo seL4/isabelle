@@ -140,6 +140,9 @@ public option editor_chart_delay : real = 3.0
 public option editor_continuous_checking : bool = true
   -- "continuous checking of proof document (visible and required parts)"
 
+public option editor_output_state : bool = true
+  -- "implicit output of proof state"
+
 option editor_execution_delay : real = 0.02
   -- "delay for start of execution process after document update (seconds)"
 

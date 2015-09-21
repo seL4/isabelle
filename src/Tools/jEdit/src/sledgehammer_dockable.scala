@@ -21,6 +21,11 @@ import org.gjt.sp.jedit.gui.HistoryTextField
 
 class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view, position)
 {
+  GUI_Thread.require {}
+
+
+  /* text area */
+
   val pretty_text_area = new Pretty_Text_Area(view)
   set_content(pretty_text_area)
 
@@ -51,7 +56,13 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   /* resize */
 
-  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
+  private val delay_resize =
+    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
+
+  addComponentListener(new ComponentAdapter {
+    override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
+    override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
+  })
 
   private def handle_resize()
   {
@@ -60,14 +71,6 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     pretty_text_area.resize(
       Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom.factor / 100))
   }
-
-  private val delay_resize =
-    GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
-
-  addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
-    override def componentShown(e: ComponentEvent) { delay_resize.invoke() }
-  })
 
 
   /* controls */
@@ -130,6 +133,8 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     tooltip = "Locate context of current query within source text"
     reactions += { case ButtonClicked(_) => sledgehammer.locate_query() }
   }
+
+  private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(

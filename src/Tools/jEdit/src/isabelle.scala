@@ -147,6 +147,12 @@ object Isabelle
       case _ => None
     }
 
+  def state_dockable(view: View): Option[State_Dockable] =
+    wm(view).getDockableWindow("isabelle-state") match {
+      case dockable: State_Dockable => Some(dockable)
+      case _ => None
+    }
+
   def symbols_dockable(view: View): Option[Symbols_Dockable] =
     wm(view).getDockableWindow("isabelle-symbols") match {
       case dockable: Symbols_Dockable => Some(dockable)
@@ -197,6 +203,12 @@ object Isabelle
     def load() { selected = continuous_checking }
     load()
   }
+
+
+  /* update state */
+
+  def update_state(view: View): Unit =
+    state_dockable(view).foreach(_.update())
 
 
   /* ML statistics */

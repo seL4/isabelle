@@ -24,7 +24,7 @@ sig
   val end_theory: Position.T -> state -> theory
   val pretty_context: state -> Pretty.T list
   val pretty_state: state -> Pretty.T list
-  val print_state: state -> unit
+  val string_of_state: state -> string
   val pretty_abstract: state -> Pretty.T
   val profiling: int Unsynchronized.ref
   type transition
@@ -196,7 +196,7 @@ fun pretty_state state =
   | SOME (Proof (prf, _)) => Proof.pretty_state (Proof_Node.current prf)
   | SOME (Skipped_Proof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)]);
 
-val print_state = pretty_state #> Pretty.chunks #> Pretty.string_of #> Output.state;
+val string_of_state = pretty_state #> Pretty.chunks #> Pretty.string_of;
 
 fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 

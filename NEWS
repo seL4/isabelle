@@ -28,6 +28,12 @@ application uniformly on all platforms: Linux, Windows, Mac OS X.
 asynchronously, leading to much better editor reactivity. Moreover, the
 full document node content is taken into account.
 
+* The State panel manages explicit proof state output, with jEdit action
+"isabelle.update-state" (shortcut S+ENTER) to trigger update according
+to cursor position. Option "editor_output_state" controls implicit proof
+state output in the Output panel: suppressing this reduces resource
+requirements of prover time and GUI space.
+
 
 *** Isar ***
 
@@ -361,6 +367,15 @@ replacement character "␣" (Unicode point 0x2324).  For example:
 * Command-line tool "isabelle jedit_client" allows to connect to already
 running Isabelle/jEdit process. This achieves the effect of
 single-instance applications seen on common GUI desktops.
+
+* Command-line tool "isabelle update_then" expands old Isar command
+conflations:
+
+    hence  ~>  then have
+    thus   ~>  then show
+
+This syntax is more orthogonal and improves readability and
+maintainability of proofs.
 
 * Poly/ML default platform architecture may be changed from 32bit to
 64bit via system option ML_system_64. A system restart (and rebuild)

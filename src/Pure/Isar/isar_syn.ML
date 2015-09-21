@@ -914,7 +914,8 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword print_state}
     "print current proof state (if present)"
-    (opt_modes >> (fn modes => Toplevel.keep (Print_Mode.with_modes modes Toplevel.print_state)));
+    (opt_modes >> (fn modes =>
+      Toplevel.keep (Print_Mode.with_modes modes (Output.state o Toplevel.string_of_state))));
 
 val _ =
   Outer_Syntax.command @{command_keyword welcome} "print welcome message"
