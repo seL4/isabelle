@@ -76,8 +76,4 @@ val _ =
   register "theorems" "theorems of local theory or proof context"
     (Isar_Cmd.pretty_theorems false);
 
-val _ =
-  register "state" "proof state" Toplevel.pretty_state;
-
 end;
-
