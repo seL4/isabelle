@@ -85,7 +85,7 @@ fun pretty_definitions verbose ctxt =
 
     val const_space = Proof_Context.const_space ctxt;
     val type_space = Proof_Context.type_space ctxt;
-    val item_space = fn Defs.Constant => const_space | Defs.Type => type_space;
+    val item_space = fn Defs.Const => const_space | Defs.Type => type_space;
     fun prune_item (k, c) = not verbose andalso Name_Space.is_concealed (item_space k) c;
 
     fun markup_extern_item (kind, name) =

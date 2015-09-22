@@ -213,7 +213,7 @@ fun add_axiom ctxt raw_axm thy = thy |> map_axioms (fn axioms =>
 
 (* dependencies *)
 
-fun const_dep thy (c, T) = ((Defs.Constant, c), Sign.const_typargs thy (c, T));
+fun const_dep thy (c, T) = ((Defs.Const, c), Sign.const_typargs thy (c, T));
 fun type_dep (c, args) = ((Defs.Type, c), args);
 
 fun dependencies ctxt unchecked def description lhs rhs =
@@ -237,7 +237,7 @@ fun dependencies ctxt unchecked def description lhs rhs =
         "\nThe error(s) above occurred in " ^ quote description);
   in Defs.define ctxt unchecked def description (prep lhs) (map prep rhs) end;
 
-fun cert_entry thy ((Defs.Constant, c), args) =
+fun cert_entry thy ((Defs.Const, c), args) =
       Sign.cert_term thy (Const (c, Sign.const_instance thy (c, args)))
       |> dest_Const |> const_dep thy
   | cert_entry thy ((Defs.Type, c), args) =

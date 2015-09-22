@@ -597,7 +597,7 @@ fun class_const c =
   (Logic.const_of_class c, Term.itselfT (Term.aT []) --> propT);
 
 fun class_const_dep c =
-  ((Defs.Constant, Logic.const_of_class c), [Term.aT []]);
+  ((Defs.Const, Logic.const_of_class c), [Term.aT []]);
 
 in
 

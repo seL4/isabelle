@@ -7,7 +7,7 @@ definitions and simple sub-structural overloading.
 
 signature DEFS =
 sig
-  datatype item_kind = Constant | Type
+  datatype item_kind = Const | Type
   type item = item_kind * string
   val item_ord: item * item -> order
   type entry = item * typ list
@@ -35,17 +35,17 @@ struct
 
 (* specification items *)
 
-datatype item_kind = Constant | Type;
+datatype item_kind = Const | Type;
 type item = item_kind * string;
 
-fun item_kind_ord (Constant, Type) = LESS
-  | item_kind_ord (Type, Constant) = GREATER
+fun item_kind_ord (Const, Type) = LESS
+  | item_kind_ord (Type, Const) = GREATER
   | item_kind_ord _ = EQUAL;
 
 val item_ord = prod_ord item_kind_ord string_ord;
 val fast_item_ord = prod_ord item_kind_ord fast_string_ord;
 
-fun print_item (k, s) = if k = Constant then s else "type " ^ s;
+fun print_item (k, s) = if k = Const then s else "type " ^ s;
 
 structure Itemtab = Table(type key = item val ord = fast_item_ord);
 

@@ -198,11 +198,11 @@ val _ = Theory.setup
     (qualify (Binding.make ("prop", @{here})), typ "prop => prop", NoSyn),
     (qualify (Binding.make ("type", @{here})), typ "'a itself", NoSyn),
     (qualify (Binding.make ("dummy_pattern", @{here})), typ "'a", Delimfix "'_")]
-  #> Theory.add_deps_global "Pure.eq" ((Defs.Constant, "Pure.eq"), [typ "'a"]) []
-  #> Theory.add_deps_global "Pure.imp" ((Defs.Constant, "Pure.imp"), []) []
-  #> Theory.add_deps_global "Pure.all" ((Defs.Constant, "Pure.all"), [typ "'a"]) []
-  #> Theory.add_deps_global "Pure.type" ((Defs.Constant, "Pure.type"), [typ "'a"]) []
-  #> Theory.add_deps_global "Pure.dummy_pattern" ((Defs.Constant, "Pure.dummy_pattern"), [typ "'a"]) []
+  #> Theory.add_deps_global "Pure.eq" ((Defs.Const, "Pure.eq"), [typ "'a"]) []
+  #> Theory.add_deps_global "Pure.imp" ((Defs.Const, "Pure.imp"), []) []
+  #> Theory.add_deps_global "Pure.all" ((Defs.Const, "Pure.all"), [typ "'a"]) []
+  #> Theory.add_deps_global "Pure.type" ((Defs.Const, "Pure.type"), [typ "'a"]) []
+  #> Theory.add_deps_global "Pure.dummy_pattern" ((Defs.Const, "Pure.dummy_pattern"), [typ "'a"]) []
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation
