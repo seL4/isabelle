@@ -10,7 +10,7 @@ sig
   datatype item_kind = Constant | Type
   type item = item_kind * string
   val item_ord: item * item -> order
-  val pretty_item: Proof.context -> item * typ list -> Pretty.T
+  val pretty_args: Proof.context -> typ list -> Pretty.T list
   val plain_args: typ list -> bool
   type T
   type spec =
@@ -45,8 +45,7 @@ fun item_kind_ord (Constant, Type) = LESS
 val item_ord = prod_ord item_kind_ord string_ord;
 val fast_item_ord = prod_ord item_kind_ord fast_string_ord;
 
-val print_item_kind = fn Constant => "constant" | Type => "type";
-fun print_item (k, s) = print_item_kind k ^ " " ^ quote s;
+fun print_item (k, s) = if k = Constant then s else "type " ^ s;
 
 structure Itemtab = Table(type key = item val ord = fast_item_ord);
 
@@ -55,12 +54,12 @@ structure Itemtab = Table(type key = item val ord = fast_item_ord);
 
 type args = typ list;
 
-fun pretty_item ctxt (c, args) =
-  let
-    val prt_args =
-      if null args then []
-      else [Pretty.list "(" ")" (map (Syntax.pretty_typ ctxt o Logic.unvarifyT_global) args)];
-  in Pretty.block (Pretty.str (print_item c) :: prt_args) end;
+fun pretty_args ctxt args =
+  if null args then []
+  else [Pretty.list "(" ")" (map (Syntax.pretty_typ ctxt o Logic.unvarifyT_global) args)];
+
+fun pretty_entry ctxt (c, args) =
+  Pretty.block (Pretty.str (print_item c) :: pretty_args ctxt args);
 
 fun plain_args args =
   forall Term.is_TVar args andalso not (has_duplicates (op =) args);
@@ -149,7 +148,7 @@ fun update_specs c spec = map_def c (fn (specs, restricts, reducts) =>
 
 local
 
-val prt = Pretty.string_of oo pretty_item;
+val prt = Pretty.string_of oo pretty_entry;
 fun err ctxt (c, args) (d, Us) s1 s2 =
   error (s1 ^ " dependency of " ^ prt ctxt (c, args) ^ " -> " ^ prt ctxt (d, Us) ^ s2);
 
