@@ -104,8 +104,6 @@ fun pretty_full_theory verbose thy =
     fun prt_term t = Pretty.quote (Syntax.pretty_term ctxt t);
     val prt_term_no_vars = prt_term o Logic.unvarify_global;
     fun prt_const (c, ty) = [Pretty.mark_str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
-    val prt_item = Defs.pretty_item ctxt;
-    fun sort_item_by f = sort (Defs.item_ord o apply2 f);
 
     fun pretty_classrel (c, []) = prt_cls c
       | pretty_classrel (c, cs) = Pretty.block
@@ -134,18 +132,6 @@ fun pretty_full_theory verbose thy =
     fun pretty_axm (a, t) =
       Pretty.block [Pretty.mark_str a, Pretty.str ":", Pretty.brk 1, prt_term_no_vars t];
 
-    fun pretty_finals reds = Pretty.block
-      (Pretty.str "final:" :: Pretty.brk 1 :: Pretty.commas (map (prt_item o fst) reds));
-
-    fun pretty_reduct (lhs, rhs) = Pretty.block
-      ([prt_item lhs, Pretty.str "  ->", Pretty.brk 2] @
-        Pretty.commas (map prt_item (sort_item_by #1 rhs)));
-
-    fun pretty_restrict (const, name) =
-      Pretty.block ([prt_item const, Pretty.brk 2, Pretty.str ("(from " ^ quote name ^ ")")]);
-
-    val defs = Theory.defs_of thy;
-    val {restricts, reducts} = Defs.dest defs;
     val tsig = Sign.tsig_of thy;
     val consts = Sign.consts_of thy;
     val {const_space, constants, constraints} = Consts.dest consts;
@@ -154,10 +140,6 @@ fun pretty_full_theory verbose thy =
     val (class_space, class_algebra) = classes;
     val classes = Sorts.classes_of class_algebra;
     val arities = Sorts.arities_of class_algebra;
-
-    val item_space = fn Defs.Constant => const_space | Defs.Type => type_space;
-    fun extern_item (k, c) = (k, Name_Space.extern ctxt (item_space k) c);
-    fun prune_item (k, c) = not verbose andalso Name_Space.is_concealed (item_space k) c;
 
     val clsses =
       Name_Space.extern_entries verbose ctxt class_space
@@ -174,14 +156,6 @@ fun pretty_full_theory verbose thy =
     val cnstrs = Name_Space.markup_entries verbose ctxt const_space constraints;
 
     val axms = Name_Space.markup_table verbose ctxt (Theory.axiom_table thy);
-
-    val (reds0, (reds1, reds2)) = filter_out (prune_item o fst o fst) reducts
-      |> map (fn (lhs, rhs) =>
-        (apfst extern_item lhs, map (apfst extern_item) (filter_out (prune_item o fst) rhs)))
-      |> sort_item_by (#1 o #1)
-      |> List.partition (null o #2)
-      ||> List.partition (Defs.plain_args o #2 o #1);
-    val rests = restricts |> map (apfst (apfst extern_item)) |> sort_item_by (#1 o #1);
   in
     [Pretty.strs ("names:" :: Context.display_names thy)] @
     [Pretty.big_list "classes:" (map pretty_classrel clsses),
@@ -195,12 +169,7 @@ fun pretty_full_theory verbose thy =
       Pretty.big_list "axioms:" (map pretty_axm axms),
       Pretty.block
         (Pretty.breaks (Pretty.str "oracles:" ::
-          map Pretty.mark_str (Thm.extern_oracles verbose ctxt))),
-      Pretty.big_list "definitions:"
-        [pretty_finals reds0,
-         Pretty.big_list "non-overloaded:" (map pretty_reduct reds1),
-         Pretty.big_list "overloaded:" (map pretty_reduct reds2),
-         Pretty.big_list "pattern restrictions:" (map pretty_restrict rests)]]
+          map Pretty.mark_str (Thm.extern_oracles verbose ctxt)))]
   end;
 
 end;

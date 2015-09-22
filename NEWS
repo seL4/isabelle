@@ -177,6 +177,9 @@ occasionally useful for demonstration and testing purposes.
 
 *** Pure ***
 
+* Command 'print_definitions' prints dependencies of definitional
+specifications. This functionality used to be part of 'print_theory'.
+
 * The vacuous fact "TERM x" may be established "by fact" or as `TERM x`
 as well, not just "by this" or "." as before.
 

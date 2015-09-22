@@ -770,6 +770,12 @@ val _ =
       Toplevel.keep (Pretty.writeln o Proof_Display.pretty_full_theory b o Toplevel.theory_of)));
 
 val _ =
+  Outer_Syntax.command @{command_keyword print_definitions}
+    "print dependencies of definitional theory content"
+    (Parse.opt_bang >> (fn b =>
+      Toplevel.keep (Pretty.writeln o Proof_Display.pretty_definitions b o Toplevel.context_of)));
+
+val _ =
   Outer_Syntax.command @{command_keyword print_syntax}
     "print inner syntax of context"
     (Scan.succeed (Toplevel.keep (Proof_Context.print_syntax o Toplevel.context_of)));

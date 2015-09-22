@@ -12,10 +12,10 @@ sig
   val pp_term: (unit -> theory) -> term -> Pretty.T
   val pp_ctyp: (unit -> theory) -> ctyp -> Pretty.T
   val pp_cterm: (unit -> theory) -> cterm -> Pretty.T
+  val pretty_definitions: bool -> Proof.context -> Pretty.T
   val pretty_theorems_diff: bool -> theory list -> theory -> Pretty.T list
   val pretty_theorems: bool -> theory -> Pretty.T list
   val pretty_full_theory: bool -> theory -> Pretty.T
-  val print_theory: theory -> unit
   val string_of_rule: Proof.context -> string -> thm -> string
   val pretty_goal_header: thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
@@ -31,7 +31,7 @@ end
 structure Proof_Display: PROOF_DISPLAY =
 struct
 
-(* toplevel pretty printing *)
+(** toplevel pretty printing **)
 
 fun pp_context ctxt =
  (if Config.get ctxt Proof_Context.debug then
@@ -57,6 +57,9 @@ fun pp_ctyp mk_thy cT = pp_typ mk_thy (Thm.typ_of cT);
 fun pp_cterm mk_thy ct = pp_term mk_thy (Thm.term_of ct);
 
 
+
+(** theory content **)
+
 (* theorems and theory *)
 
 fun pretty_theorems_diff verbose prev_thys thy =
@@ -73,8 +76,54 @@ fun pretty_theorems verbose thy =
 fun pretty_full_theory verbose thy =
   Pretty.chunks (Display.pretty_full_theory verbose thy @ pretty_theorems verbose thy);
 
-val print_theory = Pretty.writeln o pretty_full_theory false;
 
+(* definitions *)
+
+fun pretty_definitions verbose ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+
+    val prt_item = Defs.pretty_item ctxt;
+    fun sort_item_by f = sort (Defs.item_ord o apply2 f);
+
+    fun pretty_finals reds = Pretty.block
+      (Pretty.str "final:" :: Pretty.brk 1 :: Pretty.commas (map (prt_item o fst) reds));
+
+    fun pretty_reduct (lhs, rhs) = Pretty.block
+      ([prt_item lhs, Pretty.str "  ->", Pretty.brk 2] @
+        Pretty.commas (map prt_item (sort_item_by #1 rhs)));
+
+    fun pretty_restrict (const, name) =
+      Pretty.block ([prt_item const, Pretty.brk 2, Pretty.str ("(from " ^ quote name ^ ")")]);
+
+    val defs = Theory.defs_of thy;
+    val {restricts, reducts} = Defs.dest defs;
+
+    val const_space = Proof_Context.const_space ctxt;
+    val type_space = Proof_Context.type_space ctxt;
+    val item_space = fn Defs.Constant => const_space | Defs.Type => type_space;
+
+    fun extern_item (k, c) = (k, Name_Space.extern ctxt (item_space k) c);
+    fun prune_item (k, c) = not verbose andalso Name_Space.is_concealed (item_space k) c;
+
+    val (reds0, (reds1, reds2)) = filter_out (prune_item o fst o fst) reducts
+      |> map (fn (lhs, rhs) =>
+        (apfst extern_item lhs, map (apfst extern_item) (filter_out (prune_item o fst) rhs)))
+      |> sort_item_by (#1 o #1)
+      |> List.partition (null o #2)
+      ||> List.partition (Defs.plain_args o #2 o #1);
+    val rests = restricts |> map (apfst (apfst extern_item)) |> sort_item_by (#1 o #1);
+  in
+    Pretty.big_list "definitions:"
+      [pretty_finals reds0,
+       Pretty.big_list "non-overloaded:" (map pretty_reduct reds1),
+       Pretty.big_list "overloaded:" (map pretty_reduct reds2),
+       Pretty.big_list "pattern restrictions:" (map pretty_restrict rests)]
+  end;
+
+
+
+(** proof items **)
 
 (* refinement rule *)
 
