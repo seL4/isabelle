@@ -501,10 +501,10 @@ lemma holomorphic_on_setsum:
   unfolding holomorphic_on_def by (metis complex_differentiable_setsum)
 
 definition deriv :: "('a \<Rightarrow> 'a::real_normed_field) \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "deriv f x \<equiv> THE D. DERIV f x :> D"
+  "deriv f x \<equiv> SOME D. DERIV f x :> D"
 
 lemma DERIV_imp_deriv: "DERIV f x :> f' \<Longrightarrow> deriv f x = f'"
-  unfolding deriv_def by (metis the_equality DERIV_unique)
+  unfolding deriv_def by (metis some_equality DERIV_unique)
 
 lemma DERIV_deriv_iff_real_differentiable:
   fixes x :: real
