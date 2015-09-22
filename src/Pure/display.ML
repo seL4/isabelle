@@ -115,10 +115,10 @@ fun pretty_full_theory verbose thy =
       [Pretty.str "default sort:", Pretty.brk 1, prt_sort S];
 
     val tfrees = map (fn v => TFree (v, []));
-    fun pretty_type syn (t, (Type.LogicalType n)) =
+    fun pretty_type syn (t, Type.LogicalType n) =
           if syn then NONE
           else SOME (prt_typ (Type (t, tfrees (Name.invent Name.context Name.aT n))))
-      | pretty_type syn (t, (Type.Abbreviation (vs, U, syn'))) =
+      | pretty_type syn (t, Type.Abbreviation (vs, U, syn')) =
           if syn <> syn' then NONE
           else SOME (Pretty.block
             [prt_typ (Type (t, tfrees vs)), Pretty.str " =", Pretty.brk 1, prt_typ U])
@@ -155,11 +155,9 @@ fun pretty_full_theory verbose thy =
     val classes = Sorts.classes_of class_algebra;
     val arities = Sorts.arities_of class_algebra;
 
-    fun extern_item (Defs.Constant, c) = (Defs.Constant, Name_Space.extern ctxt const_space c)
-      | extern_item (Defs.Type, c) = (Defs.Type, Name_Space.extern ctxt type_space c);
-
-    fun prune_item (Defs.Constant, c) = not verbose andalso Consts.is_concealed consts c
-      | prune_item (Defs.Type, c) = not verbose andalso Name_Space.is_concealed type_space c;
+    val item_space = fn Defs.Constant => const_space | Defs.Type => type_space;
+    fun extern_item (k, c) = (k, Name_Space.extern ctxt (item_space k) c);
+    fun prune_item (k, c) = not verbose andalso Name_Space.is_concealed (item_space k) c;
 
     val clsses =
       Name_Space.extern_entries verbose ctxt class_space
@@ -167,7 +165,7 @@ fun pretty_full_theory verbose thy =
       |> map (apfst #1);
     val tdecls = Name_Space.extern_table verbose ctxt types |> map (apfst #1);
     val arties =
-      Name_Space.extern_entries verbose ctxt (Type.type_space tsig) (Symtab.dest arities)
+      Name_Space.extern_entries verbose ctxt type_space (Symtab.dest arities)
       |> map (apfst #1);
 
     val cnsts = Name_Space.markup_entries verbose ctxt const_space constants;
