@@ -283,18 +283,18 @@ fun check_overloading ctxt overloaded (c, T) =
 
 local
 
-fun fold_type_constr f (Type (name, Ts)) = f (name,Ts) #> fold (fold_type_constr f) Ts
-  | fold_type_constr _ _ = I;
-
 fun check_def ctxt thy unchecked overloaded (b, tm) defs =
   let
     val name = Sign.full_name thy b;
     val ((lhs, rhs), _) = Primitive_Defs.dest_def ctxt Term.is_Const (K false) (K false) tm
       handle TERM (msg, _) => error msg;
     val lhs_const = Term.dest_Const (Term.head_of lhs);
-    val rhs_consts = fold_aterms (fn Const const => insert (op =) (DConst const) | _ => I) rhs [];
-    val rhs_types = fold_types (fold_type_constr (insert (op =) o DType)) rhs []
-    val rhs_deps = rhs_consts @ rhs_types
+
+    val rhs_consts = fold_aterms (fn Const c => insert (op =) (DConst c) | _ => I) rhs [];
+    val rhs_types =
+      (fold_types o fold_subtypes) (fn Type t => insert (op =) (DType t) | _ => I) rhs [];
+    val rhs_deps = rhs_consts @ rhs_types;
+
     val _ = check_overloading ctxt overloaded lhs_const;
   in defs |> dependencies ctxt unchecked (SOME name) name (DConst lhs_const) rhs_deps end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block

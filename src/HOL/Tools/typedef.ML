@@ -133,11 +133,9 @@ fun primitive_typedef type_definition_name newT oldT Rep_name Abs_name A lthy =
         (Sign.declare_const lthy ((Rep_name, newT --> oldT), NoSyn) ##>>
           Sign.declare_const lthy ((Abs_name, oldT --> newT), NoSyn));
 
-    fun fold_type_constr f (Type (name, Ts)) = f (name,Ts) #> fold (fold_type_constr f) Ts
-      | fold_type_constr _ _ = I;
-
-    val A_consts = fold_aterms (fn Const const => insert (op =) (Theory.DConst const) | _ => I) A [];
-    val A_types = fold_types (fold_type_constr (insert (op =) o Theory.DType)) A [];
+    val A_consts = fold_aterms (fn Const c => insert (op =) (Theory.DConst c) | _ => I) A [];
+    val A_types =
+      (fold_types o fold_subtypes) (fn Type t => insert (op =) (Theory.DType t) | _ => I) A [];
     val typedef_deps = A_consts @ A_types;
 
     val newT_dep = Theory.DType (dest_Type newT);
