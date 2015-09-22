@@ -7,9 +7,10 @@ definitions and simple sub-structural overloading.
 
 signature DEFS =
 sig
-  datatype node = NConst of string | NType of string
-  val fast_node_ord: node * node -> order
-  val pretty_node: Proof.context -> node * typ list -> Pretty.T
+  datatype item_kind = Constant | Type
+  type item = item_kind * string
+  val item_ord: item * item -> order
+  val pretty_item: Proof.context -> item * typ list -> Pretty.T
   val plain_args: typ list -> bool
   type T
   type spec =
@@ -17,44 +18,49 @@ sig
     description: string,
     pos: Position.T,
     lhs: typ list,
-    rhs: (node * typ list) list}
-  val all_specifications_of: T -> (node * spec list) list
-  val specifications_of: T -> node -> spec list
+    rhs: (item * typ list) list}
+  val all_specifications_of: T -> (item * spec list) list
+  val specifications_of: T -> item -> spec list
   val dest: T ->
-   {restricts: ((node * typ list) * string) list,
-    reducts: ((node * typ list) * (node * typ list) list) list}
+   {restricts: ((item * typ list) * string) list,
+    reducts: ((item * typ list) * (item * typ list) list) list}
   val empty: T
   val merge: Proof.context -> T * T -> T
   val define: Proof.context -> bool -> string option -> string ->
-    node * typ list -> (node * typ list) list -> T -> T
-end
-
+    item * typ list -> (item * typ list) list -> T -> T
+end;
 
 structure Defs: DEFS =
 struct
 
-datatype node = NConst of string | NType of string
+(* specification items *)
 
-fun fast_node_ord (NConst s1, NConst s2) = fast_string_ord (s1, s2)
-  | fast_node_ord (NType s1, NType s2) = fast_string_ord (s1, s2)
-  | fast_node_ord (NConst _, NType _) = LESS
-  | fast_node_ord (NType _, NConst _) = GREATER
+datatype item_kind = Constant | Type;
+type item = item_kind * string;
 
-fun string_of_node (NConst s) = "constant " ^ s
-  | string_of_node (NType s) = "type " ^ s
+fun item_kind_ord (Constant, Type) = LESS
+  | item_kind_ord (Type, Constant) = GREATER
+  | item_kind_ord _ = EQUAL;
 
-structure Deftab = Table(type key = node val ord = fast_node_ord);
+val item_ord = prod_ord item_kind_ord string_ord;
+val fast_item_ord = prod_ord item_kind_ord fast_string_ord;
+
+val print_item_kind = fn Constant => "constant" | Type => "type";
+fun print_item (k, s) = print_item_kind k ^ " " ^ quote s;
+
+structure Itemtab = Table(type key = item val ord = fast_item_ord);
+
 
 (* type arguments *)
 
 type args = typ list;
 
-fun pretty_node ctxt (c, args) =
+fun pretty_item ctxt (c, args) =
   let
     val prt_args =
       if null args then []
       else [Pretty.list "(" ")" (map (Syntax.pretty_typ ctxt o Logic.unvarifyT_global) args)];
-  in Pretty.block (Pretty.str (string_of_node c) :: prt_args) end;
+  in Pretty.block (Pretty.str (print_item c) :: prt_args) end;
 
 fun plain_args args =
   forall Term.is_TVar args andalso not (has_duplicates (op =) args);
@@ -78,31 +84,31 @@ type spec =
   description: string,
   pos: Position.T,
   lhs: args,
-  rhs: (node * args) list};
+  rhs: (item * args) list};
 
 type def =
  {specs: spec Inttab.table,  (*source specifications*)
   restricts: (args * string) list,  (*global restrictions imposed by incomplete patterns*)
-  reducts: (args * (node * args) list) list};  (*specifications as reduction system*)
+  reducts: (args * (item * args) list) list};  (*specifications as reduction system*)
 
 fun make_def (specs, restricts, reducts) =
   {specs = specs, restricts = restricts, reducts = reducts}: def;
 
 fun map_def c f =
-  Deftab.default (c, make_def (Inttab.empty, [], [])) #>
-  Deftab.map_entry c (fn {specs, restricts, reducts}: def =>
+  Itemtab.default (c, make_def (Inttab.empty, [], [])) #>
+  Itemtab.map_entry c (fn {specs, restricts, reducts}: def =>
     make_def (f (specs, restricts, reducts)));
 
 
-datatype T = Defs of def Deftab.table;
+datatype T = Defs of def Itemtab.table;
 
 fun lookup_list which defs c =
-  (case Deftab.lookup defs c of
+  (case Itemtab.lookup defs c of
     SOME (def: def) => which def
   | NONE => []);
 
 fun all_specifications_of (Defs defs) =
-  (map o apsnd) (map snd o Inttab.dest o #specs) (Deftab.dest defs);
+  (map o apsnd) (map snd o Inttab.dest o #specs) (Itemtab.dest defs);
 
 fun specifications_of (Defs defs) = lookup_list (map snd o Inttab.dest o #specs) defs;
 
@@ -111,13 +117,13 @@ val reducts_of = lookup_list #reducts;
 
 fun dest (Defs defs) =
   let
-    val restricts = Deftab.fold (fn (c, {restricts, ...}) =>
+    val restricts = Itemtab.fold (fn (c, {restricts, ...}) =>
       fold (fn (args, description) => cons ((c, args), description)) restricts) defs [];
-    val reducts = Deftab.fold (fn (c, {reducts, ...}) =>
+    val reducts = Itemtab.fold (fn (c, {reducts, ...}) =>
       fold (fn (args, deps) => cons ((c, args), deps)) reducts) defs [];
   in {restricts = restricts, reducts = reducts} end;
 
-val empty = Defs Deftab.empty;
+val empty = Defs Itemtab.empty;
 
 
 (* specifications *)
@@ -125,7 +131,7 @@ val empty = Defs Deftab.empty;
 fun disjoint_specs c (i, {description = a, pos = pos_a, lhs = Ts, ...}: spec) =
   Inttab.forall (fn (j, {description = b, pos = pos_b, lhs = Us, ...}: spec) =>
     i = j orelse disjoint_args (Ts, Us) orelse
-      error ("Clash of specifications for " ^ quote (string_of_node c) ^ ":\n" ^
+      error ("Clash of specifications for " ^ print_item c ^ ":\n" ^
         "  " ^ quote a ^ Position.here pos_a ^ "\n" ^
         "  " ^ quote b ^ Position.here pos_b));
 
@@ -143,7 +149,7 @@ fun update_specs c spec = map_def c (fn (specs, restricts, reducts) =>
 
 local
 
-val prt = Pretty.string_of oo pretty_node;
+val prt = Pretty.string_of oo pretty_item;
 fun err ctxt (c, args) (d, Us) s1 s2 =
   error (s1 ^ " dependency of " ^ prt ctxt (c, args) ^ " -> " ^ prt ctxt (d, Us) ^ s2);
 
@@ -189,12 +195,12 @@ fun normalize ctxt =
         else (true, defs |> map_def c (fn (specs, restricts, _) => (specs, restricts, reducts')))
       end;
     fun norm_all defs =
-      (case Deftab.fold norm_update defs (false, defs) of
+      (case Itemtab.fold norm_update defs (false, defs) of
         (true, defs') => norm_all defs'
       | (false, _) => defs);
     fun check defs (c, {reducts, ...}: def) =
       reducts |> forall (fn (args, deps) => forall (wellformed ctxt defs (c, args)) deps);
-  in norm_all #> (fn defs => tap (Deftab.forall (check defs)) defs) end;
+  in norm_all #> (fn defs => tap (Itemtab.forall (check defs)) defs) end;
 
 fun dependencies ctxt (c, args) restr deps =
   map_def c (fn (specs, restricts, reducts) =>
@@ -217,8 +223,8 @@ fun merge ctxt (Defs defs1, Defs defs2) =
     fun add_def (c, {restricts, reducts, ...}: def) =
       fold (fn (args, deps) => add_deps (c, args) restricts deps) reducts;
   in
-    Defs (Deftab.join join_specs (defs1, defs2)
-      |> normalize ctxt |> Deftab.fold add_def defs2)
+    Defs (Itemtab.join join_specs (defs1, defs2)
+      |> normalize ctxt |> Itemtab.fold add_def defs2)
   end;
 
 
@@ -229,7 +235,7 @@ fun define ctxt unchecked def description (c, args) deps (Defs defs) =
     val pos = Position.thread_data ();
     val restr =
       if plain_args args orelse
-        (case args of [Type (_, rec_args)] => plain_args rec_args | _ => false)
+        (case args of [Term.Type (_, rec_args)] => plain_args rec_args | _ => false)
       then [] else [(args, description)];
     val spec =
       (serial (), {def = def, description = description, pos = pos, lhs = args, rhs = deps});

@@ -104,8 +104,8 @@ fun pretty_full_theory verbose thy =
     fun prt_term t = Pretty.quote (Syntax.pretty_term ctxt t);
     val prt_term_no_vars = prt_term o Logic.unvarify_global;
     fun prt_const (c, ty) = [Pretty.mark_str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
-    val prt_node = Defs.pretty_node ctxt;
-    fun sort_node_wrt f = sort (Defs.fast_node_ord o apply2 f)
+    val prt_item = Defs.pretty_item ctxt;
+    fun sort_item_by f = sort (Defs.item_ord o apply2 f);
 
     fun pretty_classrel (c, []) = prt_cls c
       | pretty_classrel (c, cs) = Pretty.block
@@ -135,14 +135,14 @@ fun pretty_full_theory verbose thy =
       Pretty.block [Pretty.mark_str a, Pretty.str ":", Pretty.brk 1, prt_term_no_vars t];
 
     fun pretty_finals reds = Pretty.block
-      (Pretty.str "final:" :: Pretty.brk 1 :: Pretty.commas (map (prt_node o fst) reds));
+      (Pretty.str "final:" :: Pretty.brk 1 :: Pretty.commas (map (prt_item o fst) reds));
 
     fun pretty_reduct (lhs, rhs) = Pretty.block
-      ([prt_node lhs, Pretty.str "  ->", Pretty.brk 2] @
-        Pretty.commas (map prt_node ((sort_node_wrt #1) rhs)));
+      ([prt_item lhs, Pretty.str "  ->", Pretty.brk 2] @
+        Pretty.commas (map prt_item (sort_item_by #1 rhs)));
 
     fun pretty_restrict (const, name) =
-      Pretty.block ([prt_node const, Pretty.brk 2, Pretty.str ("(from " ^ quote name ^ ")")]);
+      Pretty.block ([prt_item const, Pretty.brk 2, Pretty.str ("(from " ^ quote name ^ ")")]);
 
     val defs = Theory.defs_of thy;
     val {restricts, reducts} = Defs.dest defs;
@@ -155,8 +155,11 @@ fun pretty_full_theory verbose thy =
     val classes = Sorts.classes_of class_algebra;
     val arities = Sorts.arities_of class_algebra;
 
-    fun extern_node (Defs.NConst c) = Defs.NConst (Name_Space.extern ctxt const_space c)
-      | extern_node (Defs.NType t) = Defs.NType (Name_Space.extern ctxt type_space t);
+    fun extern_item (Defs.Constant, c) = (Defs.Constant, Name_Space.extern ctxt const_space c)
+      | extern_item (Defs.Type, c) = (Defs.Type, Name_Space.extern ctxt type_space c);
+
+    fun prune_item (Defs.Constant, c) = not verbose andalso Consts.is_concealed consts c
+      | prune_item (Defs.Type, c) = not verbose andalso Name_Space.is_concealed type_space c;
 
     val clsses =
       Name_Space.extern_entries verbose ctxt class_space
@@ -167,11 +170,6 @@ fun pretty_full_theory verbose thy =
       Name_Space.extern_entries verbose ctxt (Type.type_space tsig) (Symtab.dest arities)
       |> map (apfst #1);
 
-    fun prune_const c = not verbose andalso Consts.is_concealed consts c;
-
-    fun prune_node (Defs.NConst c) = prune_const c
-      | prune_node (Defs.NType t) = not verbose andalso Name_Space.is_concealed type_space t;
-
     val cnsts = Name_Space.markup_entries verbose ctxt const_space constants;
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
     val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
@@ -179,13 +177,13 @@ fun pretty_full_theory verbose thy =
 
     val axms = Name_Space.markup_table verbose ctxt (Theory.axiom_table thy);
 
-    val (reds0, (reds1, reds2)) = filter_out (prune_node o fst o fst) reducts
+    val (reds0, (reds1, reds2)) = filter_out (prune_item o fst o fst) reducts
       |> map (fn (lhs, rhs) =>
-        (apfst extern_node lhs, map (apfst extern_node) (filter_out (prune_node o fst) rhs)))
-      |> sort_node_wrt (#1 o #1)
+        (apfst extern_item lhs, map (apfst extern_item) (filter_out (prune_item o fst) rhs)))
+      |> sort_item_by (#1 o #1)
       |> List.partition (null o #2)
       ||> List.partition (Defs.plain_args o #2 o #1);
-    val rests = restricts |> map (apfst (apfst extern_node)) |> sort_node_wrt (#1 o #1);
+    val rests = restricts |> map (apfst (apfst extern_item)) |> sort_item_by (#1 o #1);
   in
     [Pretty.strs ("names:" :: Context.display_names thy)] @
     [Pretty.big_list "classes:" (map pretty_classrel clsses),
