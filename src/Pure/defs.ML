@@ -10,6 +10,7 @@ sig
   datatype item_kind = Constant | Type
   type item = item_kind * string
   val item_ord: item * item -> order
+  type entry = item * typ list
   val pretty_args: Proof.context -> typ list -> Pretty.T list
   val plain_args: typ list -> bool
   type T
@@ -18,16 +19,15 @@ sig
     description: string,
     pos: Position.T,
     lhs: typ list,
-    rhs: (item * typ list) list}
+    rhs: entry list}
   val all_specifications_of: T -> (item * spec list) list
   val specifications_of: T -> item -> spec list
   val dest: T ->
-   {restricts: ((item * typ list) * string) list,
-    reducts: ((item * typ list) * (item * typ list) list) list}
+   {restricts: (entry * string) list,
+    reducts: (entry * entry list) list}
   val empty: T
   val merge: Proof.context -> T * T -> T
-  val define: Proof.context -> bool -> string option -> string ->
-    item * typ list -> (item * typ list) list -> T -> T
+  val define: Proof.context -> bool -> string option -> string -> entry -> entry list -> T -> T
 end;
 
 structure Defs: DEFS =
@@ -52,7 +52,7 @@ structure Itemtab = Table(type key = item val ord = fast_item_ord);
 
 (* type arguments *)
 
-type args = typ list;
+type entry = item * typ list;
 
 fun pretty_args ctxt args =
   if null args then []
@@ -82,13 +82,13 @@ type spec =
  {def: string option,
   description: string,
   pos: Position.T,
-  lhs: args,
-  rhs: (item * args) list};
+  lhs: typ list,
+  rhs: entry list};
 
 type def =
  {specs: spec Inttab.table,  (*source specifications*)
-  restricts: (args * string) list,  (*global restrictions imposed by incomplete patterns*)
-  reducts: (args * (item * args) list) list};  (*specifications as reduction system*)
+  restricts: (typ list * string) list,  (*global restrictions imposed by incomplete patterns*)
+  reducts: (typ list * entry list) list};  (*specifications as reduction system*)
 
 fun make_def (specs, restricts, reducts) =
   {specs = specs, restricts = restricts, reducts = reducts}: def;
