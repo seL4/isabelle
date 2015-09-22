@@ -77,7 +77,7 @@ lemma upd_list_sorted2: "\<lbrakk> sorted (map fst ps @ [x]); x \<le> a \<rbrakk
   upd_list a b (ps @ (x,y) # qs) = ps @ upd_list a b ((x,y)#qs)"
 by(induction ps) (auto simp: sorted_lems)
 
-lemmas upd_list_sorteds = upd_list_sorted1 upd_list_sorted2
+lemmas upd_list_simps = sorted_lems upd_list_sorted1 upd_list_sorted2
 
 (*
 lemma set_ins_list[simp]: "set (ins_list x xs) = insert x (set xs)"

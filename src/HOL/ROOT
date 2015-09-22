@@ -176,7 +176,8 @@ session "HOL-Data_Structures" in Data_Structures = HOL +
   theories
     Tree_Set
     Tree_Map
-  document_files "root.tex"
+    RBT_Map
+  document_files "root.tex" "root.bib"
 
 session "HOL-Import" in Import = HOL +
   theories HOL_Light_Maps

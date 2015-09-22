@@ -33,7 +33,8 @@ fun delete :: "'a::linorder \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tre
 
 subsection "Functional Correctness Proofs"
 
-lemma lookup_eq: "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
+lemma lookup_eq:
+  "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
 apply (induction t)
 apply (auto simp: sorted_lems map_of_append map_of_sorteds split: option.split)
 done
@@ -41,7 +42,7 @@ done
 
 lemma inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update a b t) = upd_list a b (inorder t)"
-by(induction t) (auto simp: upd_list_sorteds sorted_lems)
+by(induction t) (auto simp: upd_list_simps)
 
 
 lemma del_minD:
