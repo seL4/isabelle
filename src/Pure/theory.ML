@@ -23,7 +23,7 @@ sig
   val begin_theory: string * Position.T -> theory list -> theory
   val end_theory: theory -> theory
   val add_axiom: Proof.context -> binding * term -> theory -> theory
-  datatype dep = DConst of string * typ | DType of string * typ list 
+  datatype dep = DConst of string * typ | DType of string * typ list
   val add_deps: Proof.context -> string -> dep -> dep list -> theory -> theory
   val add_deps_global: string -> dep -> dep list -> theory -> theory
   val add_def: Proof.context -> bool -> bool -> binding * term -> theory -> theory
@@ -212,7 +212,7 @@ fun add_axiom ctxt raw_axm thy = thy |> map_axioms (fn axioms =>
 
 (* dependencies *)
 
-datatype dep = DConst of string * typ | DType of string * typ list 
+datatype dep = DConst of string * typ | DType of string * typ list
 
 fun name_of_dep (DConst (s, _)) = s
   | name_of_dep (DType (s, _)) = s
@@ -224,13 +224,13 @@ fun dependencies ctxt unchecked def description lhs rhs =
     fun prep (DConst const) =
       let val Const (c, T) = Sign.no_vars ctxt (Const const)
       in (Defs.NConst c, Consts.typargs consts (c, Logic.varifyT_global T)) end
-    | prep (DType typ) = 
+    | prep (DType typ) =
       let val Type (c, T) = Type.no_tvars (Type typ)
       in (Defs.NType c, map Logic.varifyT_global T) end;
     fun fold_dep_tfree f (DConst (_, T)) = fold_atyps (fn TFree v => f v | _ => I) T
       | fold_dep_tfree f (DType (_, Ts)) = fold (fold_atyps (fn TFree v => f v | _ => I)) Ts
     val lhs_vars = fold_dep_tfree (insert (op =)) lhs [];
-    val rhs_extras = fold (fold_dep_tfree 
+    val rhs_extras = fold (fold_dep_tfree
       (fn v => if member (op =) lhs_vars v then I else insert (op =) v)) rhs [];
     val _ =
       if null rhs_extras then ()

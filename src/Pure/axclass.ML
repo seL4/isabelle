@@ -614,7 +614,7 @@ fun class_axiomatization (bclass, raw_super) thy =
     thy
     |> Sign.primitive_class (bclass, super)
     |> classrel_axiomatization (map (fn c => (class, c)) super)
-    |> Theory.add_deps_global "" (Theory.DConst (class_const class)) 
+    |> Theory.add_deps_global "" (Theory.DConst (class_const class))
       (map (Theory.DConst o class_const) super)
   end;
 

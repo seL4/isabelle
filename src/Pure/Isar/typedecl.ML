@@ -56,7 +56,7 @@ fun global_type lthy (b, raw_args) =
 
 fun basic_typedecl final (b, n, mx) lthy =
   let
-    fun make_final lthy = 
+    fun make_final lthy =
       let
         val tfree_names = Name.invent (Variable.names_of lthy) Name.aT n
         val tfrees = map (fn name => (name, [])) tfree_names
@@ -134,4 +134,3 @@ fun abbrev_global decl rhs =
   #> Local_Theory.exit_result_global (K I);
 
 end;
-
