@@ -596,6 +596,9 @@ fun add_axioms prep mk name add raw_args thy =
 fun class_const c =
   (Logic.const_of_class c, Term.itselfT (Term.aT []) --> propT);
 
+fun class_const_dep c =
+  ((Defs.Constant, Logic.const_of_class c), [Term.aT []]);
+
 in
 
 val classrel_axiomatization =
@@ -614,8 +617,7 @@ fun class_axiomatization (bclass, raw_super) thy =
     thy
     |> Sign.primitive_class (bclass, super)
     |> classrel_axiomatization (map (fn c => (class, c)) super)
-    |> Theory.add_deps_global "" (Theory.DConst (class_const class))
-      (map (Theory.DConst o class_const) super)
+    |> Theory.add_deps_global "" (class_const_dep class) (map class_const_dep super)
   end;
 
 end;

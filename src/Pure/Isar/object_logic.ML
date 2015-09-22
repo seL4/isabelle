@@ -87,10 +87,13 @@ fun add_base_sort S =
 local
 
 fun gen_add_judgment add_consts (b, T, mx) thy =
-  let val c = Sign.full_name thy b in
-    thy
-    |> add_consts [(b, T, mx)]
-    |> (fn thy' => Theory.add_deps_global c (Theory.DConst (c, Sign.the_const_type thy' c)) [] thy')
+  let
+    val c = Sign.full_name thy b;
+    val thy' = thy |> add_consts [(b, T, mx)];
+    val T' = Logic.unvarifyT_global (Sign.the_const_type thy' c);
+  in
+    thy'
+    |> Theory.add_deps_global "" (Theory.const_dep thy' (c, T')) []
     |> (Context.theory_map o map_data) (fn (base_sort, judgment, atomize_rulify) =>
         if is_some judgment then error "Attempt to redeclare object-logic judgment"
         else (base_sort, SOME c, atomize_rulify))

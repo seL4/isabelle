@@ -23,9 +23,10 @@ sig
   val begin_theory: string * Position.T -> theory list -> theory
   val end_theory: theory -> theory
   val add_axiom: Proof.context -> binding * term -> theory -> theory
-  datatype dep = DConst of string * typ | DType of string * typ list
-  val add_deps: Proof.context -> string -> dep -> dep list -> theory -> theory
-  val add_deps_global: string -> dep -> dep list -> theory -> theory
+  val const_dep: theory -> string * typ -> Defs.entry
+  val type_dep: string * typ list -> Defs.entry
+  val add_deps: Proof.context -> string -> Defs.entry -> Defs.entry list -> theory -> theory
+  val add_deps_global: string -> Defs.entry -> Defs.entry list -> theory -> theory
   val add_def: Proof.context -> bool -> bool -> binding * term -> theory -> theory
   val specify_const: (binding * typ) * mixfix -> theory -> term * theory
   val check_overloading: Proof.context -> bool -> string * typ -> unit
@@ -212,29 +213,23 @@ fun add_axiom ctxt raw_axm thy = thy |> map_axioms (fn axioms =>
 
 (* dependencies *)
 
-datatype dep = DConst of string * typ | DType of string * typ list
-
-fun name_of_dep (DConst (s, _)) = s
-  | name_of_dep (DType (s, _)) = s
+fun const_dep thy (c, T) = ((Defs.Constant, c), Sign.const_typargs thy (c, T));
+fun type_dep (c, args) = ((Defs.Type, c), args);
 
 fun dependencies ctxt unchecked def description lhs rhs =
   let
     val thy = Proof_Context.theory_of ctxt;
     val consts = Sign.consts_of thy;
 
-    fun prep (DConst const) =
-        let val Const (c, T) = Sign.no_vars ctxt (Const const)
-        in ((Defs.Constant, c), Consts.typargs consts (c, Logic.varifyT_global T)) end
-    | prep (DType typ) =
-        let val Type (c, Ts) = Type.no_tvars (Type typ)
-        in ((Defs.Type, c), map Logic.varifyT_global Ts) end;
+    fun prep (item, args) =
+      (case fold Term.add_tvarsT args [] of
+        [] => (item, map Logic.varifyT_global args)
+      | vs => raise TYPE ("Illegal schematic type variable(s)", map TVar vs, []));
 
-    fun fold_dep_tfree f (DConst (_, T)) = fold_atyps (fn TFree v => f v | _ => I) T
-      | fold_dep_tfree f (DType (_, Ts)) = fold (fold_atyps (fn TFree v => f v | _ => I)) Ts;
-
-    val lhs_vars = fold_dep_tfree (insert (op =)) lhs [];
-    val rhs_extras = fold (fold_dep_tfree
-      (fn v => if member (op =) lhs_vars v then I else insert (op =) v)) rhs [];
+    val lhs_vars = fold Term.add_tfreesT (snd lhs) [];
+    val rhs_extras =
+      fold (fn (_, args) => args |> (fold o Term.fold_atyps) (fn TFree v =>
+        if member (op =) lhs_vars v then I else insert (op =) v)) rhs [];
     val _ =
       if null rhs_extras then ()
       else error ("Specification depends on extra type variables: " ^
@@ -242,19 +237,24 @@ fun dependencies ctxt unchecked def description lhs rhs =
         "\nThe error(s) above occurred in " ^ quote description);
   in Defs.define ctxt unchecked def description (prep lhs) (map prep rhs) end;
 
+fun cert_entry thy ((Defs.Constant, c), args) =
+      Sign.cert_term thy (Const (c, Sign.const_instance thy (c, args)))
+      |> dest_Const |> const_dep thy
+  | cert_entry thy ((Defs.Type, c), args) =
+      Sign.certify_typ thy (Type (c, args)) |> dest_Type |> type_dep;
+
 fun add_deps ctxt a raw_lhs raw_rhs thy =
   let
-    fun cert_dep (DConst const) = const |> Const |> Sign.cert_term thy |> dest_Const |> DConst
-      | cert_dep (DType typ) = typ |> Type |> Sign.certify_typ thy |> dest_Type |> DType;
-    val lhs :: rhs = map cert_dep (raw_lhs :: raw_rhs);
-    val description = if a = "" then name_of_dep lhs ^ " axiom" else a;
+    val (lhs as ((_, lhs_name), _)) :: rhs = map (cert_entry thy) (raw_lhs :: raw_rhs);
+    val description = if a = "" then lhs_name ^ " axiom" else a;
   in thy |> map_defs (dependencies ctxt false NONE description lhs rhs) end;
 
-fun add_deps_global a x y thy = add_deps (Syntax.init_pretty_global thy) a x y thy;
+fun add_deps_global a x y thy =
+  add_deps (Syntax.init_pretty_global thy) a x y thy;
 
 fun specify_const decl thy =
-  let val (t as Const const, thy') = Sign.declare_const_global decl thy;
-  in (t, add_deps_global "" (DConst const) [] thy') end;
+  let val (t, thy') = Sign.declare_const_global decl thy;
+  in (t, add_deps_global "" (const_dep thy' (dest_Const t)) [] thy') end;
 
 
 (* overloading *)
@@ -293,13 +293,14 @@ fun check_def ctxt thy unchecked overloaded (b, tm) defs =
       handle TERM (msg, _) => error msg;
     val lhs_const = Term.dest_Const (Term.head_of lhs);
 
-    val rhs_consts = fold_aterms (fn Const c => insert (op =) (DConst c) | _ => I) rhs [];
+    val rhs_consts =
+      fold_aterms (fn Const const => insert (op =) (const_dep thy const) | _ => I) rhs [];
     val rhs_types =
-      (fold_types o fold_subtypes) (fn Type t => insert (op =) (DType t) | _ => I) rhs [];
+      (fold_types o fold_subtypes) (fn Type t => insert (op =) (type_dep t) | _ => I) rhs [];
     val rhs_deps = rhs_consts @ rhs_types;
 
     val _ = check_overloading ctxt overloaded lhs_const;
-  in defs |> dependencies ctxt unchecked (SOME name) name (DConst lhs_const) rhs_deps end
+  in defs |> dependencies ctxt unchecked (SOME name) name (const_dep thy lhs_const) rhs_deps end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ Binding.print b ^ ":"),
     Pretty.fbrk, Pretty.quote (Syntax.pretty_term ctxt tm)]));
