@@ -202,16 +202,10 @@ Option.is_none_def. Occasional INCOMPATIBILITY in applications.
 
 * Combinator to represent case distinction on products is named "uncurry",
 with "split" and "prod_case" retained as input abbreviations.
-Partially applied occurences of "uncurry" with eta-contracted body
-terms are not printed with special syntax, to provide a compact
-notation and getting rid of a special-case print translation.
 Hence, the "uncurry"-expressions are printed the following way:
 a) fully applied "uncurry f p": explicit case-expression;
-b) partially applied with explicit double lambda abstraction in
-the body term "uncurry (%a b. t [a, b])": explicit paired abstraction;
-c) partially applied with eta-contracted body term "uncurry f":
-no special syntax, plain "uncurry" combinator.
-This aims for maximum readability in a given subterm.
+b) partially applied "uncurry f": explicit paired abstraction;
+c) unapplied "uncurry": as it is.
 INCOMPATIBILITY.
 
 * Some old and rarely used ASCII replacement syntax has been removed.
