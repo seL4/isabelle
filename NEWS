@@ -185,7 +185,7 @@ as well, not just "by this" or "." as before.
 
 * Abbreviations in type classes now carry proper sort constraint.
 Rare INCOMPATIBILITY in situations where the previous misbehaviour
-has been exploited previously.
+has been exploited.
 
 * Refinement of user-space type system in type classes: pseudo-local
 operations behave more similar to abbreviations.  Potential
