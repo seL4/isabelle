@@ -377,6 +377,10 @@ lemma eventually_at_topological:
 lemma at_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> at a within S = at a"
   unfolding filter_eq_iff eventually_at_topological by (metis open_Int Int_iff UNIV_I)
 
+lemma at_within_open_NO_MATCH:
+  "a \<in> s \<Longrightarrow> open s \<Longrightarrow> NO_MATCH UNIV s \<Longrightarrow> at a within s = at a"
+  by (simp only: at_within_open)
+
 lemma at_within_empty [simp]: "at a within {} = bot"
   unfolding at_within_def by simp
 

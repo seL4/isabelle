@@ -258,6 +258,10 @@ lemma of_int_0_eq_iff [simp]:
   "0 = of_int z \<longleftrightarrow> z = 0"
   using of_int_eq_iff [of 0 z] by simp
 
+lemma of_int_eq_1_iff [iff]:
+   "of_int z = 1 \<longleftrightarrow> z = 1"
+  using of_int_eq_iff [of z 1] by simp
+
 end
 
 context linordered_idom
@@ -291,7 +295,48 @@ lemma of_int_less_0_iff [simp]:
   "of_int z < 0 \<longleftrightarrow> z < 0"
   using of_int_less_iff [of z 0] by simp
 
+lemma of_int_1_le_iff [simp]:
+  "1 \<le> of_int z \<longleftrightarrow> 1 \<le> z"
+  using of_int_le_iff [of 1 z] by simp
+
+lemma of_int_le_1_iff [simp]:
+  "of_int z \<le> 1 \<longleftrightarrow> z \<le> 1"
+  using of_int_le_iff [of z 1] by simp
+
+lemma of_int_1_less_iff [simp]:
+  "1 < of_int z \<longleftrightarrow> 1 < z"
+  using of_int_less_iff [of 1 z] by simp
+
+lemma of_int_less_1_iff [simp]:
+  "of_int z < 1 \<longleftrightarrow> z < 1"
+  using of_int_less_iff [of z 1] by simp
+
 end
+
+text \<open>Comparisons involving @{term of_int}.\<close>
+
+lemma of_int_eq_numeral_iff [iff]:
+   "of_int z = (numeral n :: 'a::ring_char_0) 
+   \<longleftrightarrow> z = numeral n"
+  using of_int_eq_iff by fastforce
+
+lemma of_int_le_numeral_iff [simp]:           
+   "of_int z \<le> (numeral n :: 'a::linordered_idom) 
+   \<longleftrightarrow> z \<le> numeral n"
+  using of_int_le_iff [of z "numeral n"] by simp
+
+lemma of_int_numeral_le_iff [simp]:  
+   "(numeral n :: 'a::linordered_idom) \<le> of_int z \<longleftrightarrow> numeral n \<le> z"
+  using of_int_le_iff [of "numeral n"] by simp
+
+lemma of_int_less_numeral_iff [simp]:           
+   "of_int z < (numeral n :: 'a::linordered_idom) 
+   \<longleftrightarrow> z < numeral n"
+  using of_int_less_iff [of z "numeral n"] by simp
+
+lemma of_int_numeral_less_iff [simp]:           
+   "(numeral n :: 'a::linordered_idom) < of_int z \<longleftrightarrow> numeral n < z"
+  using of_int_less_iff [of "numeral n" z] by simp
 
 lemma of_nat_less_of_int_iff:
   "(of_nat n::'a::linordered_idom) < of_int x \<longleftrightarrow> int n < x"
