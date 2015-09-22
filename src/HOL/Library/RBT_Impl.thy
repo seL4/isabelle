@@ -331,6 +331,8 @@ end
 
 subsection \<open>Insertion\<close>
 
+text \<open>The function definitions are based on the book by Okasaki.\<close>
+
 fun (* slow, due to massive case splitting *)
   balance :: "('a,'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"
 where
@@ -553,6 +555,9 @@ subsection \<open>Deletion\<close>
 
 lemma bheight_paintR'[simp]: "color_of t = B \<Longrightarrow> bheight (paint R t) = bheight t - 1"
 by (cases t rule: rbt_cases) auto
+
+text \<open>The function definitions are based on the Haskell code by Stefan Kahrs
+at @{url "http://www.cs.ukc.ac.uk/people/staff/smk/redblack/rb.html"} .\<close>
 
 fun
   balance_left :: "('a,'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a,'b) rbt \<Rightarrow> ('a,'b) rbt"
