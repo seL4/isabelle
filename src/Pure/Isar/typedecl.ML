@@ -7,9 +7,9 @@ Type declarations (with object-logic arities) and type abbreviations.
 signature TYPEDECL =
 sig
   val read_constraint: Proof.context -> string option -> sort
-  val basic_typedecl: binding * int * mixfix -> local_theory -> string * local_theory
-  val typedecl: binding * (string * sort) list * mixfix -> local_theory -> typ * local_theory
-  val typedecl_global: binding * (string * sort) list * mixfix -> theory -> typ * theory
+  val basic_typedecl: bool -> binding * int * mixfix -> local_theory -> string * local_theory
+  val typedecl: bool -> binding * (string * sort) list * mixfix -> local_theory -> typ * local_theory
+  val typedecl_global: bool -> binding * (string * sort) list * mixfix -> theory -> typ * theory
   val abbrev: binding * string list * mixfix -> typ -> local_theory -> string * local_theory
   val abbrev_cmd: binding * string list * mixfix -> string -> local_theory -> string * local_theory
   val abbrev_global: binding * string list * mixfix -> typ -> theory -> string * theory
@@ -35,13 +35,6 @@ fun basic_decl decl (b, n, mx) lthy =
     |> pair name
   end;
 
-fun basic_typedecl (b, n, mx) lthy =
-  basic_decl (fn name =>
-    Sign.add_type lthy (b, n, NoSyn) #>
-    (case Object_Logic.get_base_sort lthy of
-      SOME S => Axclass.arity_axiomatization (name, replicate n S, S)
-    | NONE => I)) (b, n, mx) lthy;
-
 
 (* global type -- without dependencies on type parameters of the context *)
 
@@ -61,21 +54,41 @@ fun global_type lthy (b, raw_args) =
         commas_quote (map (Syntax.string_of_typ lthy) bad_args));
   in T end;
 
+fun basic_typedecl final (b, n, mx) lthy =
+  let
+    fun make_final lthy = 
+      let
+        val tfree_names = Name.invent (Variable.names_of lthy) Name.aT n
+        val tfrees = map (fn name => (name, [])) tfree_names
+        val T = global_type lthy (b, tfrees)
+      in
+        Local_Theory.background_theory (Theory.add_deps lthy "" (Theory.DType (dest_Type T)) []) lthy
+      end
+  in
+    lthy
+    |> basic_decl (fn name =>
+      Sign.add_type lthy (b, n, NoSyn) #>
+      (case Object_Logic.get_base_sort lthy of
+        SOME S => Axclass.arity_axiomatization (name, replicate n S, S)
+      | NONE => I)) (b, n, mx)
+    ||> (if final then make_final else I)
+  end
+
 
 (* type declarations *)
 
-fun typedecl (b, raw_args, mx) lthy =
+fun typedecl final (b, raw_args, mx) lthy =
   let val T = global_type lthy (b, raw_args) in
     lthy
-    |> basic_typedecl (b, length raw_args, mx)
+    |> basic_typedecl final (b, length raw_args, mx)
     |> snd
     |> Variable.declare_typ T
     |> pair T
   end;
 
-fun typedecl_global decl =
+fun typedecl_global final decl =
   Named_Target.theory_init
-  #> typedecl decl
+  #> typedecl final decl
   #> Local_Theory.exit_result_global Morphism.typ;
 
 

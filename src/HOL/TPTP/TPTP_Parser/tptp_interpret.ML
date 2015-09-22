@@ -199,7 +199,7 @@ fun declare_type (config : config) (thf_type, (type_name, arity)) ty_map thy =
       val tyargs =
         List.tabulate (arity, rpair @{sort type} o prefix "'" o string_of_int)
       val thy' =
-        Typedecl.typedecl_global (mk_binding config type_name, tyargs, NoSyn) thy
+        Typedecl.typedecl_global true (mk_binding config type_name, tyargs, NoSyn) thy
         |> snd
       val typ_map_entry = (thf_type, (final_fqn, arity))
       val ty_map' = typ_map_entry :: ty_map

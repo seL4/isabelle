@@ -389,7 +389,7 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
        case get_type thy prfx s of
          SOME _ => thy
        | NONE => Typedecl.typedecl_global
-           (Binding.name s, [], NoSyn) thy |> snd);
+           true (Binding.name s, [], NoSyn) thy |> snd);
 
 
 fun term_of_expr thy prfx types pfuns =

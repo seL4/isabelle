@@ -66,6 +66,10 @@ val _ = Theory.setup
     (Binding.make ("prop", @{here}), 0, NoSyn),
     (Binding.make ("itself", @{here}), 1, NoSyn),
     (Binding.make ("dummy", @{here}), 0, NoSyn)]
+  #> Theory.add_deps_global "fun" (Theory.DType ("fun", [typ "'a", typ "'b"])) []
+  #> Theory.add_deps_global "prop" (Theory.DType ("prop", [])) []
+  #> Theory.add_deps_global "itself" (Theory.DType ("itself", [typ "'a"])) []
+  #> Theory.add_deps_global "dummy" (Theory.DType ("dummy", [])) []
   #> Sign.add_nonterminals_global
     (map (fn name => Binding.make (name, @{here}))
       (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
@@ -194,11 +198,11 @@ val _ = Theory.setup
     (qualify (Binding.make ("prop", @{here})), typ "prop => prop", NoSyn),
     (qualify (Binding.make ("type", @{here})), typ "'a itself", NoSyn),
     (qualify (Binding.make ("dummy_pattern", @{here})), typ "'a", Delimfix "'_")]
-  #> Theory.add_deps_global "Pure.eq" ("Pure.eq", typ "'a => 'a => prop") []
-  #> Theory.add_deps_global "Pure.imp" ("Pure.imp", typ "prop => prop => prop") []
-  #> Theory.add_deps_global "Pure.all" ("Pure.all", typ "('a => prop) => prop") []
-  #> Theory.add_deps_global "Pure.type" ("Pure.type", typ "'a itself") []
-  #> Theory.add_deps_global "Pure.dummy_pattern" ("Pure.dummy_pattern", typ "'a") []
+  #> Theory.add_deps_global "Pure.eq" (Theory.DConst ("Pure.eq", typ "'a => 'a => prop")) []
+  #> Theory.add_deps_global "Pure.imp" (Theory.DConst ("Pure.imp", typ "prop => prop => prop")) []
+  #> Theory.add_deps_global "Pure.all" (Theory.DConst ("Pure.all", typ "('a => prop) => prop")) []
+  #> Theory.add_deps_global "Pure.type" (Theory.DConst ("Pure.type", typ "'a itself")) []
+  #> Theory.add_deps_global "Pure.dummy_pattern" (Theory.DConst ("Pure.dummy_pattern", typ "'a")) []
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation

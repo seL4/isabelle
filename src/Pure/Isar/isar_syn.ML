@@ -22,7 +22,7 @@ val _ =
 val _ =
   Outer_Syntax.local_theory @{command_keyword typedecl} "type declaration"
     (Parse.type_args -- Parse.binding -- Parse.opt_mixfix
-      >> (fn ((args, a), mx) => Typedecl.typedecl (a, map (rpair dummyS) args, mx) #> snd));
+      >> (fn ((args, a), mx) => Typedecl.typedecl true (a, map (rpair dummyS) args, mx) #> snd));
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword type_synonym} "declare type abbreviation"

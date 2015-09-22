@@ -132,14 +132,22 @@ fun primitive_typedef type_definition_name newT oldT Rep_name Abs_name A lthy =
       |> Local_Theory.background_theory_result
         (Sign.declare_const lthy ((Rep_name, newT --> oldT), NoSyn) ##>>
           Sign.declare_const lthy ((Abs_name, oldT --> newT), NoSyn));
-
-    val typedef_deps = Term.add_consts A [];
+       
+    fun fold_type_constr f (Type (name, Ts)) = f (name,Ts) #> fold (fold_type_constr f) Ts
+      | fold_type_constr _ _ = I;
+    
+    val A_consts = fold_aterms (fn Const const => insert (op =) (Theory.DConst const) | _ => I) A [];
+    val A_types = fold_types (fold_type_constr (insert (op =) o Theory.DType)) A []
+    val typedef_deps = A_consts @ A_types;
+    
+    val newT_dep = Theory.DType (dest_Type newT);
 
     val ((axiom_name, axiom), axiom_lthy) = consts_lthy
       |> Local_Theory.background_theory_result
         (Thm.add_axiom consts_lthy (type_definition_name, mk_typedef newT oldT RepC AbsC A) ##>
-          Theory.add_deps consts_lthy "" (dest_Const RepC) typedef_deps ##>
-          Theory.add_deps consts_lthy "" (dest_Const AbsC) typedef_deps);
+          Theory.add_deps consts_lthy "" newT_dep typedef_deps ##>
+          Theory.add_deps consts_lthy "" (Theory.DConst (dest_Const RepC)) [newT_dep] ##>
+          Theory.add_deps consts_lthy "" (Theory.DConst (dest_Const AbsC)) [newT_dep]);
 
   in ((RepC, AbsC, axiom_name, axiom), axiom_lthy) end;
 
@@ -187,7 +195,7 @@ fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_bindings lthy =
 
     val args = map (Proof_Context.check_tfree tmp_ctxt') raw_args;
     val (newT, typedecl_lthy) = lthy
-      |> Typedecl.typedecl (name, args, mx)
+      |> Typedecl.typedecl false (name, args, mx)
       ||> Variable.declare_term set;
 
     val Type (full_name, _) = newT;

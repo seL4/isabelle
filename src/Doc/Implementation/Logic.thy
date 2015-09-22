@@ -667,7 +667,7 @@ text %mlref \<open>
   \end{mldecls}
   \begin{mldecls}
   @{index_ML Theory.add_deps: "Proof.context -> string ->
-  string * typ -> (string * typ) list -> theory -> theory"} \\
+  Theory.dep -> Theory.dep list -> theory -> theory"} \\
   \end{mldecls}
 
   \begin{description}
