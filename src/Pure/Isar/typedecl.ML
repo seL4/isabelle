@@ -54,25 +54,20 @@ fun global_type lthy (b, raw_args) =
         commas_quote (map (Syntax.string_of_typ lthy) bad_args));
   in T end;
 
-fun basic_typedecl final (b, n, mx) lthy =
+fun final_type (b, n) lthy =
   let
-    fun make_final lthy =
-      let
-        val tfree_names = Name.invent (Variable.names_of lthy) Name.aT n
-        val tfrees = map (fn name => (name, [])) tfree_names
-        val T = global_type lthy (b, tfrees)
-      in
-        Local_Theory.background_theory (Theory.add_deps lthy "" (Theory.DType (dest_Type T)) []) lthy
-      end
-  in
-    lthy
-    |> basic_decl (fn name =>
-      Sign.add_type lthy (b, n, NoSyn) #>
-      (case Object_Logic.get_base_sort lthy of
-        SOME S => Axclass.arity_axiomatization (name, replicate n S, S)
-      | NONE => I)) (b, n, mx)
-    ||> (if final then make_final else I)
-  end
+    val c = Local_Theory.full_name lthy b;
+    val args = map (fn a => TFree (a, [])) (Name.invent Name.context Name.aT n);
+  in Local_Theory.background_theory (Theory.add_deps lthy "" (Theory.DType (c, args)) []) lthy end;
+
+fun basic_typedecl final (b, n, mx) lthy =
+  lthy
+  |> basic_decl (fn name =>
+    Sign.add_type lthy (b, n, NoSyn) #>
+    (case Object_Logic.get_base_sort lthy of
+      SOME S => Axclass.arity_axiomatization (name, replicate n S, S)
+    | NONE => I)) (b, n, mx)
+  ||> final ? final_type (b, n);
 
 
 (* type declarations *)
