@@ -994,7 +994,9 @@ unfolding rel_filter_eventually[abs_def]
 by(rule le_funI)+(intro fun_mono fun_mono[THEN le_funD, THEN le_funD] order.refl)
 
 lemma rel_filter_conversep [simp]: "rel_filter A\<inverse>\<inverse> = (rel_filter A)\<inverse>\<inverse>"
-by(auto simp add: rel_filter_eventually fun_eq_iff rel_fun_def)
+apply (simp add: rel_filter_eventually fun_eq_iff rel_fun_def)
+apply (safe; metis)
+done
 
 lemma is_filter_parametric_aux:
   assumes "is_filter F"
@@ -1038,7 +1040,8 @@ apply(rule rel_funI)
 apply(rule iffI)
  apply(erule (3) is_filter_parametric_aux)
 apply(erule is_filter_parametric_aux[where A="conversep A"])
-apply(auto simp add: rel_fun_def)
+apply (simp_all add: rel_fun_def)
+apply metis
 done
 
 lemma left_total_rel_filter [transfer_rule]:
