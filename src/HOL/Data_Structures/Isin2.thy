@@ -13,9 +13,9 @@ fun isin :: "('a,'b) tree \<Rightarrow> ('a::order) \<Rightarrow> bool" where
 "isin (Node _ l a r) x = (x < a \<and> isin l x \<or> x=a \<or> isin r x)"
 
 lemma "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems(inorder t))"
-by (induction t) (auto simp: elems_simps)
+by (induction t) (auto simp: elems_simps1)
 
 lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems(inorder t))"
-by (induction t) (auto simp: elems_simps dest: sortedD)
+by (induction t) (auto simp: elems_simps2)
 
 end

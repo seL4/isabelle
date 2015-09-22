@@ -35,10 +35,10 @@ fun delete :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 subsection "Functional Correctness Proofs"
 
 lemma "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
-by (induction t) (auto simp: elems_simps)
+by (induction t) (auto simp: elems_simps1)
 
 lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
-by (induction t) (auto simp: elems_simps0 dest: sortedD)
+by (induction t) (auto simp: elems_simps2)
 
 
 lemma inorder_insert:
