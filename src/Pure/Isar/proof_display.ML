@@ -123,9 +123,10 @@ fun pretty_definitions verbose ctxt =
     val rests = restricts |> map (apfst (apfst markup_extern_item)) |> sort_items (#1 o #1);
   in
     Pretty.big_list "definitions:"
-      [Pretty.big_list "non-overloaded LHS:" (map pretty_reduct reds1),
-       Pretty.big_list "overloaded LHS:" (map pretty_reduct reds2),
-       Pretty.big_list "pattern restrictions due to incomplete LHS:" (map pretty_restrict rests)]
+      (map (Pretty.text_fold o single)
+        [Pretty.big_list "non-overloaded LHS:" (map pretty_reduct reds1),
+         Pretty.big_list "overloaded LHS:" (map pretty_reduct reds2),
+         Pretty.big_list "pattern restrictions due to incomplete LHS:" (map pretty_restrict rests)])
   end;
 
 
