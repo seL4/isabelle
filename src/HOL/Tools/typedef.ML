@@ -194,7 +194,7 @@ fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_bindings lthy =
 
     val args = map (Proof_Context.check_tfree tmp_ctxt') raw_args;
     val (newT, typedecl_lthy) = lthy
-      |> Typedecl.typedecl false (name, args, mx)
+      |> Typedecl.typedecl {final = false} (name, args, mx)
       ||> Variable.declare_term set;
 
     val Type (full_name, _) = newT;
