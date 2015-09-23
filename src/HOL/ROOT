@@ -176,6 +176,7 @@ session "HOL-Data_Structures" in Data_Structures = HOL +
   theories
     Tree_Set
     Tree_Map
+    AVL_Map
     RBT_Map
   document_files "root.tex" "root.bib"
 

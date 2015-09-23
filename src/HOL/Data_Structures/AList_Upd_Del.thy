@@ -17,7 +17,7 @@ fun map_of :: "('a*'b)list \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "map_of [] = (\<lambda>a. None)" |
 "map_of ((x,y)#ps) = (\<lambda>a. if x=a then Some y else map_of ps a)"
 
-text \<open>Updating into an association list:\<close>
+text \<open>Updating an association list:\<close>
 
 fun upd_list :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) list \<Rightarrow> ('a*'b) list" where
 "upd_list a b [] = [(a,b)]" |
@@ -58,6 +58,7 @@ lemma map_of_sorted_snoc: "sorted (map fst ps @ [a]) \<Longrightarrow> a \<le> x
 by (meson le_less_trans map_of_None2 not_less sorted_snoc_iff)
 
 lemmas map_of_sorteds = map_of_sorted_Cons map_of_sorted_snoc
+lemmas map_of_simps = sorted_lems map_of_append map_of_sorteds
 
 
 subsection \<open>Lemmas for @{const upd_list}\<close>
@@ -135,5 +136,7 @@ by (induction xs) (auto simp: sorted_Cons_iff del_list_sorted4)
 
 lemmas del_list_sorted =
   del_list_sorted1 del_list_sorted2 del_list_sorted3 del_list_sorted4 del_list_sorted5
+
+lemmas del_list_simps = sorted_lems del_list_sorted
 
 end

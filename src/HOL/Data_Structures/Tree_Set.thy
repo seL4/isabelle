@@ -43,7 +43,7 @@ by (induction t) (auto simp: elems_simps2)
 
 lemma inorder_insert:
   "sorted(inorder t) \<Longrightarrow> inorder(insert x t) = ins_list x (inorder t)"
-by(induction t) (auto simp: ins_simps)
+by(induction t) (auto simp: ins_list_simps)
 
 
 lemma del_minD:
@@ -54,7 +54,7 @@ by(induction t arbitrary: t' rule: del_min.induct)
 
 lemma inorder_delete:
   "sorted(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
-by(induction t) (auto simp: del_simps del_minD split: prod.splits)
+by(induction t) (auto simp: del_list_simps del_minD split: prod.splits)
 
 
 interpretation Set_by_Ordered
