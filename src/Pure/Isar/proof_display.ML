@@ -102,9 +102,6 @@ fun pretty_definitions verbose ctxt =
 
     fun sort_items f = sort (Defs.item_ord o apply2 (snd o f));
 
-    fun pretty_finals reds = Pretty.block
-      (Pretty.str "final:" :: Pretty.brk 1 :: Pretty.commas (map (pretty_entry o fst) reds));
-
     fun pretty_reduct (lhs, rhs) = Pretty.block
       ([pretty_entry lhs, Pretty.str "  ->", Pretty.brk 2] @
         Pretty.commas (map pretty_entry (sort_items fst rhs)));
@@ -115,21 +112,20 @@ fun pretty_definitions verbose ctxt =
     val defs = Theory.defs_of thy;
     val {restricts, reducts} = Defs.dest defs;
 
-    val (reds0, (reds1, reds2)) =
+    val (reds1, reds2) =
       filter_out (prune_item o #1 o #1) reducts
       |> map (fn (lhs, rhs) =>
         (apfst markup_extern_item lhs, map (apfst markup_extern_item) (filter_out (prune_item o fst) rhs)))
       |> sort_items (#1 o #1)
-      |> List.partition (null o #2)
-      ||> List.partition (Defs.plain_args o #2 o #1);
+      |> filter_out (null o #2)
+      |> List.partition (Defs.plain_args o #2 o #1);
 
     val rests = restricts |> map (apfst (apfst markup_extern_item)) |> sort_items (#1 o #1);
   in
     Pretty.big_list "definitions:"
-      [pretty_finals reds0,
-       Pretty.big_list "non-overloaded:" (map pretty_reduct reds1),
-       Pretty.big_list "overloaded:" (map pretty_reduct reds2),
-       Pretty.big_list "pattern restrictions:" (map pretty_restrict rests)]
+      [Pretty.big_list "non-overloaded LHS:" (map pretty_reduct reds1),
+       Pretty.big_list "overloaded LHS:" (map pretty_reduct reds2),
+       Pretty.big_list "pattern restrictions due to incomplete LHS:" (map pretty_restrict rests)]
   end;
 
 
