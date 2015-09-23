@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section \<open>Red-Black Trees\<close>
+section \<open>Red-Black Tree\<close>
 
 theory RBT
 imports Tree2

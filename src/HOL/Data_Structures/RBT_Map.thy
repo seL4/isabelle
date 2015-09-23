@@ -5,14 +5,8 @@ section \<open>Red-Black Tree Implementation of Maps\<close>
 theory RBT_Map
 imports
   RBT_Set
-  Map_by_Ordered
+  Lookup2
 begin
-
-fun lookup :: "('a::linorder * 'b) rbt \<Rightarrow> 'a \<Rightarrow> 'b option" where
-"lookup Leaf x = None" |
-"lookup (Node _ l (a,b) r) x =
-  (if x < a then lookup l x else
-   if x > a then lookup r x else Some b)"
 
 fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
 "update x y Leaf = R Leaf (x,y) Leaf" |
@@ -41,12 +35,6 @@ where
 
 subsection "Functional Correctness Proofs"
 
-lemma lookup_eq:
-  "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
-by(induction t)
-  (auto simp: sorted_lems map_of_append map_of_sorteds split: option.split)
-
-
 lemma inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"
 by(induction x y t rule: update.induct)
@@ -60,7 +48,7 @@ lemma inorder_delete:
  "sorted1(inorder t2) \<Longrightarrow>  inorder(deleteR x t1 a t2) =
     inorder t1 @ a # del_list x (inorder t2)"
 by(induction x t1 and x t1 a t2 and x t1 a t2 rule: delete_deleteL_deleteR.induct)
-  (auto simp: del_list_sorted sorted_lems inorder_combine inorder_balL inorder_balR)
+  (auto simp: del_list_simps inorder_combine inorder_balL inorder_balR)
 
 
 interpretation Map_by_Ordered

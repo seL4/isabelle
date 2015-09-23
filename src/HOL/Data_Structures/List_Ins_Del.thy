@@ -74,7 +74,7 @@ lemma ins_list_sorted2: "sorted (xs @ [y]) \<Longrightarrow> x < y \<Longrightar
   ins_list x (xs @ y # ys) = ins_list x xs @ (y#ys)"
 by(induction xs) (auto simp: sorted_lems)
 
-lemmas ins_simps = sorted_lems ins_list_sorted1 ins_list_sorted2
+lemmas ins_list_simps = sorted_lems ins_list_sorted1 ins_list_sorted2
 
 
 subsection \<open>Delete one occurrence of an element from a list:\<close>
@@ -123,7 +123,7 @@ lemma del_list_sorted5:
    del_list a (xs @ x # ys @ y # zs @ z # us) @ u # vs" 
 by (induction xs) (auto simp: sorted_Cons_iff del_list_sorted4)
 
-lemmas del_simps = sorted_lems
+lemmas del_list_simps = sorted_lems
   del_list_sorted1
   del_list_sorted2
   del_list_sorted3

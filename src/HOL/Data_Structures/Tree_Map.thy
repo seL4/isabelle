@@ -4,7 +4,7 @@ section {* Unbalanced Tree as Map *}
 
 theory Tree_Map
 imports
-  "~~/src/HOL/Library/Tree"
+  Tree_Set
   Map_by_Ordered
 begin
 
@@ -20,10 +20,6 @@ fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree \<Righta
     else if a=x then Node l (a,b) r
     else Node l (x,y) (update a b r))"
 
-fun del_min :: "'a tree \<Rightarrow> 'a * 'a tree" where
-"del_min (Node Leaf a r) = (a, r)" |
-"del_min (Node l a r) = (let (x,l') = del_min l in (x, Node l' a r))"
-
 fun delete :: "'a::linorder \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
 "delete k Leaf = Leaf" |
 "delete k (Node l (a,b) r) = (if k<a then Node (delete k l) (a,b) r else
@@ -35,9 +31,7 @@ subsection "Functional Correctness Proofs"
 
 lemma lookup_eq:
   "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
-apply (induction t)
-apply (auto simp: sorted_lems map_of_append map_of_sorteds split: option.split)
-done
+by (induction t) (auto simp: map_of_simps split: option.split)
 
 
 lemma inorder_update:
@@ -49,12 +43,11 @@ lemma del_minD:
   "del_min t = (x,t') \<Longrightarrow> t \<noteq> Leaf \<Longrightarrow> sorted1(inorder t) \<Longrightarrow>
    x # inorder t' = inorder t"
 by(induction t arbitrary: t' rule: del_min.induct)
-  (auto simp: sorted_lems split: prod.splits)
+  (auto simp: del_list_simps split: prod.splits)
 
 lemma inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
-by(induction t)
-  (auto simp: del_list_sorted sorted_lems dest!: del_minD split: prod.splits)
+by(induction t) (auto simp: del_list_simps del_minD split: prod.splits)
 
 
 interpretation Map_by_Ordered

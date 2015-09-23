@@ -35,29 +35,27 @@ subsection "Functional Correctness Proofs"
 
 lemma inorder_bal:
   "inorder(bal l a r) = inorder l @ a # inorder r"
-by(induction l a r rule: bal.induct) (auto simp: sorted_lems)
+by(induction l a r rule: bal.induct) (auto)
 
 lemma inorder_insert:
   "sorted(inorder t) \<Longrightarrow> inorder(insert a t) = ins_list a (inorder t)"
-by(induction a t rule: insert.induct) (auto simp: ins_simps inorder_bal)
+by(induction a t rule: insert.induct) (auto simp: ins_list_simps inorder_bal)
 
 lemma inorder_red: "inorder(red t) = inorder t"
-by(induction t) (auto simp: sorted_lems)
+by(induction t) (auto)
 
 lemma inorder_balL:
   "inorder(balL l a r) = inorder l @ a # inorder r"
-by(induction l a r rule: balL.induct)
-  (auto simp: sorted_lems inorder_bal inorder_red)
+by(induction l a r rule: balL.induct)(auto simp: inorder_bal inorder_red)
 
 lemma inorder_balR:
   "inorder(balR l a r) = inorder l @ a # inorder r"
-by(induction l a r rule: balR.induct)
-  (auto simp: sorted_lems inorder_bal inorder_red)
+by(induction l a r rule: balR.induct) (auto simp: inorder_bal inorder_red)
 
 lemma inorder_combine:
   "inorder(combine l r) = inorder l @ inorder r"
 by(induction l r rule: combine.induct)
-  (auto simp: sorted_lems inorder_balL inorder_balR split: tree.split color.split)
+  (auto simp: inorder_balL inorder_balR split: tree.split color.split)
 
 lemma inorder_delete:
  "sorted(inorder t) \<Longrightarrow>  inorder(delete x t) = del_list x (inorder t)" and
@@ -66,7 +64,7 @@ lemma inorder_delete:
  "sorted(inorder r) \<Longrightarrow>  inorder(deleteR x l a r) =
     inorder l @ a # del_list x (inorder r)"
 by(induction x t and x l a r and x l a r rule: delete_deleteL_deleteR.induct)
-  (auto simp: del_simps inorder_combine inorder_balL inorder_balR)
+  (auto simp: del_list_simps inorder_combine inorder_balL inorder_balR)
 
 interpretation Set_by_Ordered
 where empty = Leaf and isin = isin and insert = insert and delete = delete
