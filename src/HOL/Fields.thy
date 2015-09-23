@@ -333,6 +333,9 @@ lemma nonzero_mult_divide_mult_cancel_right [simp]:
 lemma times_divide_eq_left [simp]: "(b / c) * a = (b * a) / c"
   by (simp add: divide_inverse ac_simps)
 
+lemma divide_inverse_commute: "a / b = inverse b * a"
+  by (simp add: divide_inverse mult.commute)
+
 lemma add_frac_eq:
   assumes "y \<noteq> 0" and "z \<noteq> 0"
   shows "x / y + w / z = (x * z + w * y) / (y * z)"
@@ -1168,6 +1171,38 @@ next
 qed
 
 end
+
+text \<open>Min/max Simplification Rules\<close>
+
+lemma min_mult_distrib_left:
+  fixes x::"'a::linordered_idom" 
+  shows "p * min x y = (if 0 \<le> p then min (p*x) (p*y) else max (p*x) (p*y))"
+by (auto simp add: min_def max_def mult_le_cancel_left)
+
+lemma min_mult_distrib_right:
+  fixes x::"'a::linordered_idom" 
+  shows "min x y * p = (if 0 \<le> p then min (x*p) (y*p) else max (x*p) (y*p))"
+by (auto simp add: min_def max_def mult_le_cancel_right)
+
+lemma min_divide_distrib_right:
+  fixes x::"'a::linordered_field" 
+  shows "min x y / p = (if 0 \<le> p then min (x/p) (y/p) else max (x/p) (y/p))"
+by (simp add: min_mult_distrib_right divide_inverse)
+
+lemma max_mult_distrib_left:
+  fixes x::"'a::linordered_idom" 
+  shows "p * max x y = (if 0 \<le> p then max (p*x) (p*y) else min (p*x) (p*y))"
+by (auto simp add: min_def max_def mult_le_cancel_left)
+
+lemma max_mult_distrib_right:
+  fixes x::"'a::linordered_idom" 
+  shows "max x y * p = (if 0 \<le> p then max (x*p) (y*p) else min (x*p) (y*p))"
+by (auto simp add: min_def max_def mult_le_cancel_right)
+
+lemma max_divide_distrib_right:
+  fixes x::"'a::linordered_field" 
+  shows "max x y / p = (if 0 \<le> p then max (x/p) (y/p) else min (x/p) (y/p))"
+by (simp add: max_mult_distrib_right divide_inverse)
 
 hide_fact (open) field_inverse field_divide_inverse field_inverse_zero
 
