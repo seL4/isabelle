@@ -43,7 +43,7 @@ lemma order_le_prod [iff]:
   "order(Product.le rA rB) = (order rA & order rB)"
 apply (unfold Semilat.order_def)
 apply simp
-apply blast
+apply meson
 done 
 
 lemma acc_le_prodI [intro!]:
