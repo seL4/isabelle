@@ -28,6 +28,7 @@ sig
   val mk_rel_map0_tac: Proof.context -> int -> thm -> thm -> thm -> thm -> tactic
   val mk_rel_mono_tac: Proof.context -> thm list -> thm -> tactic
   val mk_rel_mono_strong0_tac: Proof.context -> thm -> thm list -> tactic
+  val mk_rel_cong_tac: Proof.context -> thm list * thm list -> thm -> tactic
   val mk_rel_transfer_tac: Proof.context -> thm -> thm list -> thm -> tactic
 
   val mk_map_transfer_tac: Proof.context -> thm -> thm -> thm list -> thm -> thm -> tactic
@@ -355,5 +356,16 @@ fun mk_set_transfer_tac ctxt in_rel set_maps =
   REPEAT (HEADGOAL (etac ctxt imageE THEN' dtac ctxt @{thm set_mp} THEN' assume_tac ctxt THEN'
     REPEAT_DETERM o (eresolve_tac ctxt @{thms CollectE case_prodE}) THEN' hyp_subst_tac ctxt THEN'
     rtac ctxt bexI THEN' etac ctxt @{thm subst_Pair[OF _ refl]} THEN' etac ctxt imageI))) set_maps);
+
+fun mk_rel_cong_tac ctxt (eqs, prems) mono =
+  let
+    fun mk_tac thm = etac ctxt thm THEN_ALL_NEW assume_tac ctxt;
+    fun mk_tacs iffD = etac ctxt mono :: 
+      map (fn thm => (unfold_thms ctxt @{thms simp_implies_def} thm RS iffD)
+        |> Drule.rotate_prems ~1 |> mk_tac) prems;
+  in
+    unfold_thms_tac ctxt eqs THEN
+    HEADGOAL (EVERY' (rtac ctxt iffI :: mk_tacs iffD1 @ mk_tacs iffD2))
+  end;
 
 end;

@@ -325,13 +325,12 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     fun rel_OO_Grp_tac ctxt =
       let
         val outer_rel_Grp = rel_Grp_of_bnf outer RS sym;
-        val outer_rel_cong = rel_cong_of_bnf outer;
         val thm =
           (trans OF [in_alt_thm RS @{thm OO_Grp_cong},
              trans OF [@{thm arg_cong2[of _ _ _ _ relcompp]} OF
                [trans OF [outer_rel_Grp RS @{thm arg_cong[of _ _ conversep]},
                  rel_conversep_of_bnf outer RS sym], outer_rel_Grp],
-               trans OF [rel_OO_of_bnf outer RS sym, outer_rel_cong OF
+               trans OF [rel_OO_of_bnf outer RS sym, rel_cong0_of_bnf outer OF
                  (map (fn bnf => rel_OO_Grp_of_bnf bnf RS sym) inners)]]] RS sym);
       in
         unfold_thms_tac ctxt set'_eq_sets THEN rtac ctxt thm 1
@@ -441,7 +440,7 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
             trans OF [@{thm arg_cong2[of _ _ _ _ relcompp]} OF
               [trans OF [rel_Grp RS @{thm arg_cong[of _ _ conversep]},
                 rel_conversep_of_bnf bnf RS sym], rel_Grp],
-              trans OF [rel_OO_of_bnf bnf RS sym, rel_cong_of_bnf bnf OF
+              trans OF [rel_OO_of_bnf bnf RS sym, rel_cong0_of_bnf bnf OF
                 (replicate n @{thm trans[OF Grp_UNIV_id[OF refl] eq_alt[symmetric]]} @
                  replicate (live - n) @{thm Grp_fst_snd})]]] RS sym);
       in

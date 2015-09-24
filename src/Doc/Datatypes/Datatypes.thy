@@ -1000,6 +1000,15 @@ The @{text "[relator_distr]"} attribute is set by the @{text lifting} plugin
 The @{text "[relator_mono]"} attribute is set by the @{text lifting} plugin
 (Section~\ref{ssec:lifting}).
 
+\item[@{text "t."}\hthm{rel_mono_strong}\rm:] ~ \\
+@{thm list.rel_mono_strong[no_vars]}
+
+\item[@{text "t."}\hthm{rel_cong} @{text "[fundef_cong]"}\rm:] ~ \\
+@{thm list.rel_cong[no_vars]}
+
+\item[@{text "t."}\hthm{rel_cong_simp}\rm:] ~ \\
+@{thm list.rel_cong_simp[no_vars]}
+
 \item[@{text "t."}\hthm{rel_refl}\rm:] ~ \\
 @{thm list.rel_refl[no_vars]}
 

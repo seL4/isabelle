@@ -219,7 +219,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val map_ids = map map_id_of_bnf bnfs;
     val set_bdss = map set_bd_of_bnf bnfs;
     val set_mapss = map set_map_of_bnf bnfs;
-    val rel_congs = map rel_cong_of_bnf bnfs;
+    val rel_congs = map rel_cong0_of_bnf bnfs;
     val rel_converseps = map rel_conversep_of_bnf bnfs;
     val rel_Grps = map rel_Grp_of_bnf bnfs;
     val le_rel_OOs = map le_rel_OO_of_bnf bnfs;
