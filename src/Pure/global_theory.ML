@@ -207,7 +207,7 @@ fun add prep unchecked overloaded = fold_map (fn ((b, raw_prop), atts) => fn thy
   let
     val ctxt = Syntax.init_pretty_global thy;
     val prop = prep ctxt (b, raw_prop);
-    val ((_, def), thy') = Thm.add_def ctxt unchecked overloaded (b, prop) thy;
+    val ((_, def), thy') = Thm.add_def (ctxt, NONE) unchecked overloaded (b, prop) thy;
     val thm = def
       |> Thm.forall_intr_frees
       |> Thm.forall_elim_vars 0

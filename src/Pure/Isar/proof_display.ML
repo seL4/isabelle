@@ -82,25 +82,25 @@ fun pretty_full_theory verbose thy =
 fun pretty_definitions verbose ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
+    val context = Proof_Context.defs_context ctxt;
 
     val const_space = Proof_Context.const_space ctxt;
     val type_space = Proof_Context.type_space ctxt;
     val item_space = fn Defs.Const => const_space | Defs.Type => type_space;
     fun prune_item (k, c) = not verbose andalso Name_Space.is_concealed (item_space k) c;
 
-    fun markup_extern_item (kind, name) =
-      let val (markup, xname) = Name_Space.markup_extern ctxt (item_space kind) name
-      in (markup, (kind, xname)) end;
+    fun extern_item (kind, name) =
+      let val xname = Name_Space.extern ctxt (item_space kind) name
+      in (xname, (kind, name)) end;
 
-    fun pretty_entry ((markup, (kind, xname)), args) =
-      let
-        val prt_prefix =
-          if kind = Defs.Type then [Pretty.keyword1 "type", Pretty.brk 1] else [];
-        val prt_item = Pretty.mark_str (markup, xname);
-        val prt_args = Defs.pretty_args ctxt args;
-      in Pretty.block (prt_prefix @ [prt_item] @ prt_args) end;
+    fun extern_item_ord ((xname1, (kind1, _)), (xname2, (kind2, _))) =
+      (case Defs.item_kind_ord (kind1, kind2) of
+        EQUAL => string_ord (xname1, xname2)
+      | ord => ord);
 
-    fun sort_items f = sort (Defs.item_ord o apply2 (snd o f));
+    fun sort_items f = sort (extern_item_ord o apply2 f);
+
+    fun pretty_entry ((_: string, item), args) = Defs.pretty_entry context (item, args);
 
     fun pretty_reduct (lhs, rhs) = Pretty.block
       ([pretty_entry lhs, Pretty.str "  ->", Pretty.brk 2] @
@@ -115,12 +115,12 @@ fun pretty_definitions verbose ctxt =
     val (reds1, reds2) =
       filter_out (prune_item o #1 o #1) reducts
       |> map (fn (lhs, rhs) =>
-        (apfst markup_extern_item lhs, map (apfst markup_extern_item) (filter_out (prune_item o fst) rhs)))
+        (apfst extern_item lhs, map (apfst extern_item) (filter_out (prune_item o fst) rhs)))
       |> sort_items (#1 o #1)
       |> filter_out (null o #2)
       |> List.partition (Defs.plain_args o #2 o #1);
 
-    val rests = restricts |> map (apfst (apfst markup_extern_item)) |> sort_items (#1 o #1);
+    val rests = restricts |> map (apfst (apfst extern_item)) |> sort_items (#1 o #1);
   in
     Pretty.big_list "definitions:"
       (map (Pretty.text_fold o single)

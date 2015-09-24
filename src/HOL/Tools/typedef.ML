@@ -138,6 +138,7 @@ fun primitive_typedef {overloaded} type_definition_name newT oldT Rep_name Abs_n
         (Sign.declare_const lthy ((Rep_name, newT --> oldT), NoSyn) ##>>
           Sign.declare_const lthy ((Abs_name, oldT --> newT), NoSyn));
     val const_dep = Theory.const_dep (Proof_Context.theory_of consts_lthy);
+    val defs_context = Proof_Context.defs_context consts_lthy;
 
     val A_consts = fold_aterms (fn Const c => insert (op =) (const_dep c) | _ => I) A [];
     val A_types =
@@ -149,9 +150,9 @@ fun primitive_typedef {overloaded} type_definition_name newT oldT Rep_name Abs_n
     val ((axiom_name, axiom), axiom_lthy) = consts_lthy
       |> Local_Theory.background_theory_result
         (Thm.add_axiom consts_lthy (type_definition_name, mk_typedef newT oldT RepC AbsC A) ##>
-          Theory.add_deps consts_lthy "" newT_dep typedef_deps ##>
-          Theory.add_deps consts_lthy "" (const_dep (dest_Const RepC)) [newT_dep] ##>
-          Theory.add_deps consts_lthy "" (const_dep (dest_Const AbsC)) [newT_dep]);
+          Theory.add_deps defs_context "" newT_dep typedef_deps ##>
+          Theory.add_deps defs_context "" (const_dep (dest_Const RepC)) [newT_dep] ##>
+          Theory.add_deps defs_context "" (const_dep (dest_Const AbsC)) [newT_dep]);
 
     val axiom_defs = Theory.defs_of (Proof_Context.theory_of axiom_lthy);
     val newT_deps = maps #2 (Defs.get_deps axiom_defs (#1 newT_dep));
@@ -166,7 +167,8 @@ fun primitive_typedef {overloaded} type_definition_name newT oldT Rep_name Abs_n
              Pretty.text "or enable configuration option \"typedef_overloaded\" in the context."),
            Pretty.block [Pretty.str "  Type:", Pretty.brk 2, Syntax.pretty_typ axiom_lthy newT],
            Pretty.block (Pretty.str "  Deps:" :: Pretty.brk 2 ::
-             Pretty.commas (map (Defs.pretty_entry axiom_lthy) newT_deps))]))
+             Pretty.commas
+              (map (Defs.pretty_entry (Proof_Context.defs_context axiom_lthy)) newT_deps))]))
   in ((RepC, AbsC, axiom_name, axiom), axiom_lthy) end;
 
 

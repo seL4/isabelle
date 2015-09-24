@@ -662,11 +662,11 @@ text %mlref \<open>
   binding * term -> theory -> (string * thm) * theory"} \\
   @{index_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory ->
   (string * ('a -> thm)) * theory"} \\
-  @{index_ML Thm.add_def: "Proof.context -> bool -> bool ->
+  @{index_ML Thm.add_def: "Defs.context -> bool -> bool ->
   binding * term -> theory -> (string * thm) * theory"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Theory.add_deps: "Proof.context -> string ->
+  @{index_ML Theory.add_deps: "Defs.context -> string ->
   Defs.entry -> Defs.entry list -> theory -> theory"} \\
   \end{mldecls}
 

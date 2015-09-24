@@ -72,7 +72,7 @@ sig
   val rename_boundvars: term -> term -> thm -> thm
   val add_axiom: Proof.context -> binding * term -> theory -> (string * thm) * theory
   val add_axiom_global: binding * term -> theory -> (string * thm) * theory
-  val add_def: Proof.context -> bool -> bool -> binding * term -> theory -> (string * thm) * theory
+  val add_def: Defs.context -> bool -> bool -> binding * term -> theory -> (string * thm) * theory
   val add_def_global: bool -> bool -> binding * term -> theory -> (string * thm) * theory
   type attribute = Context.generic * thm -> Context.generic option * thm option
   type binding = binding * attribute list
@@ -475,13 +475,13 @@ fun add_axiom ctxt (b, prop) thy =
 
 fun add_axiom_global arg thy = add_axiom (Syntax.init_pretty_global thy) arg thy;
 
-fun add_def ctxt unchecked overloaded (b, prop) thy =
+fun add_def (context as (ctxt, _)) unchecked overloaded (b, prop) thy =
   let
     val _ = Sign.no_vars ctxt prop;
     val prems = map (Thm.cterm_of ctxt) (Logic.strip_imp_prems prop);
     val (_, recover, concl') = stripped_sorts thy (Logic.strip_imp_concl prop);
 
-    val thy' = Theory.add_def ctxt unchecked overloaded (b, concl') thy;
+    val thy' = Theory.add_def context unchecked overloaded (b, concl') thy;
     val axm_name = Sign.full_name thy' b;
     val axm' = Thm.axiom thy' axm_name;
     val thm =
@@ -491,7 +491,7 @@ fun add_def ctxt unchecked overloaded (b, prop) thy =
   in ((axm_name, thm), thy') end;
 
 fun add_def_global unchecked overloaded arg thy =
-  add_def (Syntax.init_pretty_global thy) unchecked overloaded arg thy;
+  add_def (Syntax.init_pretty_global thy, NONE) unchecked overloaded arg thy;
 
 
 

@@ -62,7 +62,8 @@ fun final_type (b, n) lthy =
     val c = Local_Theory.full_name lthy b;
     val args = map (fn a => TFree (a, [])) (Name.invent Name.context Name.aT n);
   in
-    Local_Theory.background_theory (Theory.add_deps lthy "" (Theory.type_dep (c, args)) []) lthy
+    Local_Theory.background_theory
+      (Theory.add_deps (Proof_Context.defs_context lthy) "" (Theory.type_dep (c, args)) []) lthy
   end;
 
 fun basic_typedecl {final} (b, n, mx) lthy =

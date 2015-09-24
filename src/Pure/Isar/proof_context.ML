@@ -44,6 +44,7 @@ sig
   val class_space: Proof.context -> Name_Space.T
   val type_space: Proof.context -> Name_Space.T
   val const_space: Proof.context -> Name_Space.T
+  val defs_context: Proof.context -> Defs.context
   val intern_class: Proof.context -> xstring -> string
   val intern_type: Proof.context -> xstring -> string
   val intern_const: Proof.context -> xstring -> string
@@ -321,6 +322,8 @@ val concealed = map_naming Name_Space.concealed;
 val class_space = Type.class_space o tsig_of;
 val type_space = Type.type_space o tsig_of;
 val const_space = Consts.space_of o consts_of;
+
+fun defs_context ctxt = (ctxt, SOME (const_space ctxt, type_space ctxt));
 
 val intern_class = Name_Space.intern o class_space;
 val intern_type = Name_Space.intern o type_space;

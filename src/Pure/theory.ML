@@ -25,9 +25,9 @@ sig
   val add_axiom: Proof.context -> binding * term -> theory -> theory
   val const_dep: theory -> string * typ -> Defs.entry
   val type_dep: string * typ list -> Defs.entry
-  val add_deps: Proof.context -> string -> Defs.entry -> Defs.entry list -> theory -> theory
+  val add_deps: Defs.context -> string -> Defs.entry -> Defs.entry list -> theory -> theory
   val add_deps_global: string -> Defs.entry -> Defs.entry list -> theory -> theory
-  val add_def: Proof.context -> bool -> bool -> binding * term -> theory -> theory
+  val add_def: Defs.context -> bool -> bool -> binding * term -> theory -> theory
   val specify_const: (binding * typ) * mixfix -> theory -> term * theory
   val check_overloading: Proof.context -> bool -> string * typ -> unit
 end
@@ -75,12 +75,11 @@ structure Thy = Theory_Data_PP
 
   fun merge pp (thy1, thy2) =
     let
-      val ctxt = Syntax.init_pretty pp;
       val Thy {pos = _, id = _, axioms = _, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
       val Thy {pos = _, id = _, axioms = _, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
 
       val axioms' = empty_axioms;
-      val defs' = Defs.merge ctxt (defs1, defs2);
+      val defs' = Defs.merge (Syntax.init_pretty pp, NONE) (defs1, defs2);
       val bgs' = Library.merge (eq_snd op =) (bgs1, bgs2);
       val ens' = Library.merge (eq_snd op =) (ens1, ens2);
     in make_thy (Position.none, 0, axioms', defs', (bgs', ens')) end;
@@ -216,7 +215,7 @@ fun add_axiom ctxt raw_axm thy = thy |> map_axioms (fn axioms =>
 fun const_dep thy (c, T) = ((Defs.Const, c), Sign.const_typargs thy (c, T));
 fun type_dep (c, args) = ((Defs.Type, c), args);
 
-fun dependencies ctxt unchecked def description lhs rhs =
+fun dependencies (context as (ctxt, _)) unchecked def description lhs rhs =
   let
     val thy = Proof_Context.theory_of ctxt;
     val consts = Sign.consts_of thy;
@@ -235,7 +234,7 @@ fun dependencies ctxt unchecked def description lhs rhs =
       else error ("Specification depends on extra type variables: " ^
         commas_quote (map (Syntax.string_of_typ ctxt o TFree) rhs_extras) ^
         "\nThe error(s) above occurred in " ^ quote description);
-  in Defs.define ctxt unchecked def description (prep lhs) (map prep rhs) end;
+  in Defs.define context unchecked def description (prep lhs) (map prep rhs) end;
 
 fun cert_entry thy ((Defs.Const, c), args) =
       Sign.cert_term thy (Const (c, Sign.const_instance thy (c, args)))
@@ -243,14 +242,14 @@ fun cert_entry thy ((Defs.Const, c), args) =
   | cert_entry thy ((Defs.Type, c), args) =
       Sign.certify_typ thy (Type (c, args)) |> dest_Type |> type_dep;
 
-fun add_deps ctxt a raw_lhs raw_rhs thy =
+fun add_deps context a raw_lhs raw_rhs thy =
   let
     val (lhs as ((_, lhs_name), _)) :: rhs = map (cert_entry thy) (raw_lhs :: raw_rhs);
     val description = if a = "" then lhs_name ^ " axiom" else a;
-  in thy |> map_defs (dependencies ctxt false NONE description lhs rhs) end;
+  in thy |> map_defs (dependencies context false NONE description lhs rhs) end;
 
 fun add_deps_global a x y thy =
-  add_deps (Syntax.init_pretty_global thy) a x y thy;
+  add_deps (Syntax.init_pretty_global thy, NONE) a x y thy;
 
 fun specify_const decl thy =
   let val (t, thy') = Sign.declare_const_global decl thy;
@@ -286,7 +285,7 @@ fun check_overloading ctxt overloaded (c, T) =
 
 local
 
-fun check_def ctxt thy unchecked overloaded (b, tm) defs =
+fun check_def (context as (ctxt, _)) thy unchecked overloaded (b, tm) defs =
   let
     val name = Sign.full_name thy b;
     val ((lhs, rhs), _) = Primitive_Defs.dest_def ctxt Term.is_Const (K false) (K false) tm
@@ -300,17 +299,17 @@ fun check_def ctxt thy unchecked overloaded (b, tm) defs =
     val rhs_deps = rhs_consts @ rhs_types;
 
     val _ = check_overloading ctxt overloaded lhs_const;
-  in defs |> dependencies ctxt unchecked (SOME name) name (const_dep thy lhs_const) rhs_deps end
+  in defs |> dependencies context unchecked (SOME name) name (const_dep thy lhs_const) rhs_deps end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ Binding.print b ^ ":"),
     Pretty.fbrk, Pretty.quote (Syntax.pretty_term ctxt tm)]));
 
 in
 
-fun add_def ctxt unchecked overloaded raw_axm thy =
+fun add_def (context as (ctxt, _)) unchecked overloaded raw_axm thy =
   let val axm = cert_axm ctxt raw_axm in
     thy
-    |> map_defs (check_def ctxt thy unchecked overloaded axm)
+    |> map_defs (check_def context thy unchecked overloaded axm)
     |> add_axiom ctxt axm
   end;
 
