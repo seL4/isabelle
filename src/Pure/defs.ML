@@ -12,6 +12,7 @@ sig
   val item_ord: item * item -> order
   type entry = item * typ list
   val pretty_args: Proof.context -> typ list -> Pretty.T list
+  val pretty_entry: Proof.context -> entry -> Pretty.T
   val plain_args: typ list -> bool
   type T
   type spec =
@@ -28,6 +29,7 @@ sig
   val empty: T
   val merge: Proof.context -> T * T -> T
   val define: Proof.context -> bool -> string option -> string -> entry -> entry list -> T -> T
+  val get_deps: T -> item -> (typ list * entry list) list
 end;
 
 structure Defs: DEFS =
@@ -240,5 +242,7 @@ fun define ctxt unchecked def description (c, args) deps (Defs defs) =
       (serial (), {def = def, description = description, pos = pos, lhs = args, rhs = deps});
     val defs' = defs |> update_specs c spec;
   in Defs (defs' |> (if unchecked then I else dependencies ctxt (c, args) restr deps)) end;
+
+fun get_deps (Defs defs) c = reducts_of defs c;
 
 end;

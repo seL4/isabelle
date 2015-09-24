@@ -359,7 +359,7 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
          map (rpair (mk_type thy prfx ty)) flds) fldtys
        in case get_type thy prfx s of
            NONE =>
-             Record.add_record ([], Binding.name s) NONE
+             Record.add_record {overloaded = false} ([], Binding.name s) NONE
                (map (fn (fld, T) => (Binding.name fld, T, NoSyn)) fldTs) thy
          | SOME (rT, cmap) =>
              (case get_record_info thy rT of

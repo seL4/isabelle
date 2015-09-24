@@ -62,7 +62,7 @@ text \<open>The quotient type @{text "'a quot"} consists of all \emph{equivalenc
 
 definition (in eqv) "quot = {{x. a \<sim> x} | a. True}"
 
-typedef 'a quot = "quot :: 'a::eqv set set"
+typedef (overloaded) 'a quot = "quot :: 'a::eqv set set"
   unfolding quot_def by blast
 
 lemma quotI [intro]: "{x. a \<sim> x} \<in> quot"

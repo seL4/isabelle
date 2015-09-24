@@ -11,6 +11,9 @@ theory Misc_N2M
 imports "~~/src/HOL/Library/BNF_Axiomatization"
 begin
 
+declare [[typedef_overloaded]]
+
+
 locale misc
 begin
 

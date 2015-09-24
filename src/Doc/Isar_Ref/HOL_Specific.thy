@@ -932,7 +932,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) record} @{syntax typespec_sorts} '=' \<newline>
+    @@{command (HOL) record} @{syntax "overloaded"}? @{syntax typespec_sorts} '=' \<newline>
       (@{syntax type} '+')? (constdecl +)
     ;
     constdecl: @{syntax name} '::' @{syntax type} @{syntax mixfix}?
@@ -1131,7 +1131,9 @@ text \<open>
   definition, but less powerful in practice.
 
   @{rail \<open>
-    @@{command (HOL) typedef} abs_type '=' rep_set
+    @@{command (HOL) typedef} @{syntax "overloaded"}? abs_type '=' rep_set
+    ;
+    @{syntax_def "overloaded"}: ('(' @'overloaded' ')')
     ;
     abs_type: @{syntax typespec_sorts} @{syntax mixfix}?
     ;
@@ -1184,6 +1186,13 @@ text \<open>
   surjectivity.  These rules are already declared as set or type rules
   for the generic @{method cases} and @{method induct} methods,
   respectively.
+
+  \medskip The ``@{text "(overloaded)"}'' option allows the @{command
+  "typedef"} specification to depend on constants that are not (yet)
+  specified and thus left open as parameters. In particular, a @{command
+  typedef} depending on type-class parameters (cf.\ \secref{sec:class}) is
+  semantically like a dependent type: its meaning is determined for
+  different type-class instances according to their respective operations.
 
   \end{description}
 \<close>
@@ -1299,8 +1308,9 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) quotient_type} @{syntax typespec} @{syntax mixfix}? '='
-      quot_type \<newline> quot_morphisms? quot_parametric?
+    @@{command (HOL) quotient_type} @{syntax "overloaded"}? \<newline>
+      @{syntax typespec} @{syntax mixfix}? '=' quot_type \<newline>
+      quot_morphisms? quot_parametric?
     ;
     quot_type: @{syntax type} '/' ('partial' ':')? @{syntax term}
     ;

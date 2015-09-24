@@ -8,6 +8,9 @@ theory Porder
 imports Main
 begin
 
+declare [[typedef_overloaded]]
+
+
 subsection {* Type class for partial orders *}
 
 class below =

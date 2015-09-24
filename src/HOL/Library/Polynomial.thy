@@ -52,7 +52,7 @@ lemma tl_cCons [simp]:
 
 subsection \<open>Definition of type @{text poly}\<close>
 
-typedef 'a poly = "{f :: nat \<Rightarrow> 'a::zero. \<forall>\<^sub>\<infinity> n. f n = 0}"
+typedef (overloaded) 'a poly = "{f :: nat \<Rightarrow> 'a::zero. \<forall>\<^sub>\<infinity> n. f n = 0}"
   morphisms coeff Abs_poly by (auto intro!: ALL_MOST)
 
 setup_lifting type_definition_poly

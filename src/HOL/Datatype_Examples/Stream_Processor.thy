@@ -12,6 +12,9 @@ theory Stream_Processor
 imports "~~/src/HOL/Library/Stream" "~~/src/HOL/Library/BNF_Axiomatization"
 begin
 
+declare [[typedef_overloaded]]
+
+
 section {* Continuous Functions on Streams *}
 
 datatype ('a, 'b, 'c) sp\<^sub>\<mu> = Get "'a \<Rightarrow> ('a, 'b, 'c) sp\<^sub>\<mu>" | Put "'b" "'c"

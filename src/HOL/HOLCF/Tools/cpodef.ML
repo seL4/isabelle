@@ -165,7 +165,7 @@ fun add_podef typ set opt_bindings tac thy =
   let
     val name = #1 typ
     val ((full_tname, info as ({Rep_name, ...}, {type_definition, ...})), thy) = thy
-      |> Typedef.add_typedef_global typ set opt_bindings tac
+      |> Typedef.add_typedef_global {overloaded = false} typ set opt_bindings tac
     val oldT = #rep_type (#1 info)
     val newT = #abs_type (#1 info)
     val lhs_tfrees = map dest_TFree (snd (dest_Type newT))

@@ -9,7 +9,8 @@ subsection \<open>Definition\<close>
 definition bcontfun :: "('a::topological_space \<Rightarrow> 'b::metric_space) set"
   where "bcontfun = {f. continuous_on UNIV f \<and> bounded (range f)}"
 
-typedef ('a, 'b) bcontfun = "bcontfun :: ('a::topological_space \<Rightarrow> 'b::metric_space) set"
+typedef (overloaded) ('a, 'b) bcontfun =
+    "bcontfun :: ('a::topological_space \<Rightarrow> 'b::metric_space) set"
   by (auto simp: bcontfun_def intro: continuous_intros simp: bounded_def)
 
 lemma bcontfunE:
