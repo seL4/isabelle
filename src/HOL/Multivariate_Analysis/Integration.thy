@@ -7,6 +7,7 @@ section \<open>Kurzweil-Henstock Gauge Integration in many dimensions.\<close>
 theory Integration
 imports
   Derivative
+  Uniform_Limit
   "~~/src/HOL/Library/Indicator_Function"
 begin
 
@@ -11607,6 +11608,73 @@ proof induct
       done
   qed
 qed auto
+
+
+subsection \<open>Exchange uniform limit and integral\<close>
+
+lemma
+  uniform_limit_integral:
+  fixes f::"'a \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::banach"
+  assumes u: "uniform_limit (cbox a b) f g F"
+  assumes c: "\<And>n. continuous_on (cbox a b) (f n)"
+  assumes [simp]: "F \<noteq> bot"
+  obtains I J where
+    "\<And>n. (f n has_integral I n) (cbox a b)"
+    "(g has_integral J) (cbox a b)"
+    "(I ---> J) F"
+proof -
+  have fi[simp]: "f n integrable_on (cbox a b)" for n
+    by (auto intro!: integrable_continuous assms)
+  then obtain I where I: "\<And>n. (f n has_integral I n) (cbox a b)"
+    by atomize_elim (auto simp: integrable_on_def intro!: choice)
+
+  moreover
+
+  have gi[simp]: "g integrable_on (cbox a b)"
+    by (auto intro!: integrable_continuous uniform_limit_theorem[OF _ u] eventuallyI c)
+  then obtain J where J: "(g has_integral J) (cbox a b)"
+    by blast
+
+  moreover
+
+  have "(I ---> J) F"
+  proof cases
+    assume "content (cbox a b) = 0"
+    hence "I = (\<lambda>_. 0)" "J = 0"
+      by (auto intro!: has_integral_unique I J)
+    thus ?thesis by simp
+  next
+    assume content_nonzero: "content (cbox a b) \<noteq> 0"
+    show ?thesis
+    proof (rule tendstoI)
+      fix e::real
+      assume "e > 0"
+      def e' \<equiv> "e / 2"
+      with \<open>e > 0\<close> have "e' > 0" by simp
+      then have "\<forall>\<^sub>F n in F. \<forall>x\<in>cbox a b. norm (f n x - g x) < e' / content (cbox a b)"
+        using u content_nonzero content_pos_le[of a b]
+        by (auto simp: uniform_limit_iff dist_norm)
+      then show "\<forall>\<^sub>F n in F. dist (I n) J < e"
+      proof eventually_elim
+        case (elim n)
+        have "I n = integral (cbox a b) (f n)"
+            "J = integral (cbox a b) g"
+          using I[of n] J by (simp_all add: integral_unique)
+        then have "dist (I n) J = norm (integral (cbox a b) (\<lambda>x. f n x - g x))"
+          by (simp add: integral_sub dist_norm)
+        also have "\<dots> \<le> integral (cbox a b) (\<lambda>x. (e' / content (cbox a b)))"
+          using elim
+          by (intro integral_norm_bound_integral)
+            (auto intro!: integrable_sub absolutely_integrable_onI)
+        also have "\<dots> < e"
+          using \<open>0 < e\<close>
+          by (simp add: e'_def)
+        finally show ?case .
+      qed
+    qed
+  qed
+  ultimately show ?thesis ..
+qed
 
 
 subsection \<open>Dominated convergence\<close>
