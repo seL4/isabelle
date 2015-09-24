@@ -1003,6 +1003,18 @@ The @{text "[relator_mono]"} attribute is set by the @{text lifting} plugin
 \item[@{text "t."}\hthm{rel_refl}\rm:] ~ \\
 @{thm list.rel_refl[no_vars]}
 
+\item[@{text "t."}\hthm{rel_refl_strong}\rm:] ~ \\
+@{thm list.rel_refl_strong[no_vars]}
+
+\item[@{text "t."}\hthm{rel_reflp}\rm:] ~ \\
+@{thm list.rel_reflp[no_vars]}
+
+\item[@{text "t."}\hthm{rel_symp}\rm:] ~ \\
+@{thm list.rel_symp[no_vars]}
+
+\item[@{text "t."}\hthm{rel_transp}\rm:] ~ \\
+@{thm list.rel_transp[no_vars]}
+
 \item[@{text "t."}\hthm{rel_transfer} @{text "[transfer_rule]"}\rm:] ~ \\
 @{thm list.rel_transfer[no_vars]} \\
 The @{text "[transfer_rule]"} attribute is set by the @{text transfer} plugin

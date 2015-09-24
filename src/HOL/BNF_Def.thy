@@ -234,6 +234,18 @@ lemma refl_ge_eq: "(\<And>x. R x x) \<Longrightarrow> op = \<le> R"
 lemma ge_eq_refl: "op = \<le> R \<Longrightarrow> R x x"
   by auto
 
+lemma reflp_eq: "reflp R = (op = \<le> R)"
+  by (auto simp: reflp_def fun_eq_iff)
+
+lemma transp_relcompp: "transp r \<longleftrightarrow> r OO r \<le> r"
+  by (auto simp: transp_def)
+
+lemma symp_conversep: "symp R = (R\<inverse>\<inverse> \<le> R)"
+  by (auto simp: symp_def fun_eq_iff)
+
+lemma diag_imp_eq_le: "(\<And>x. x \<in> A \<Longrightarrow> R x x) \<Longrightarrow> \<forall>x y. x \<in> A \<longrightarrow> y \<in> A \<longrightarrow> x = y \<longrightarrow> R x y"
+  by blast
+
 ML_file "Tools/BNF/bnf_util.ML"
 ML_file "Tools/BNF/bnf_tactics.ML"
 ML_file "Tools/BNF/bnf_def_tactics.ML"

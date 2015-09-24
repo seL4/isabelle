@@ -61,6 +61,9 @@ sig
   val mk_rel_comp: term * term -> term
   val mk_rel_compp: term * term -> term
   val mk_vimage2p: term -> term -> term
+  val mk_reflp: term -> term
+  val mk_symp: term -> term
+  val mk_transp: term -> term
 
   (*parameterized terms*)
   val mk_nthN: int -> term -> int -> term
@@ -347,6 +350,12 @@ fun mk_vimage2p f g =
     Const (@{const_name vimage2p},
       (T1 --> T2) --> (U1 --> U2) --> mk_pred2T T2 U2 --> mk_pred2T T1 U1) $ f $ g
   end;
+
+fun mk_pred name R =
+  Const (name, uncurry mk_pred2T (fastype_of R |> dest_pred2T) --> HOLogic.boolT) $ R;
+val mk_reflp = mk_pred @{const_name reflp};
+val mk_symp = mk_pred @{const_name symp};
+val mk_transp =  mk_pred @{const_name transp};
 
 fun mk_trans thm1 thm2 = trans OF [thm1, thm2];
 fun mk_sym thm = thm RS sym;
