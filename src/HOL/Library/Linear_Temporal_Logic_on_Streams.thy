@@ -22,8 +22,8 @@ qed auto
 lemma shift_prefix_cases:
 assumes "xl @- xs = yl @- ys"
 shows "prefixeq xl yl \<or> prefixeq yl xl"
-using shift_prefix[OF assms] apply(cases "length xl \<le> length yl")
-by (metis, metis assms nat_le_linear shift_prefix)
+using shift_prefix[OF assms]
+by (cases "length xl \<le> length yl") (metis, metis assms nat_le_linear shift_prefix)
 
 
 section\<open>Linear temporal logic\<close>
@@ -111,12 +111,12 @@ lemma alw_coinduct[consumes 1, case_names alw stl]:
 lemma ev_mono:
 assumes ev: "ev \<phi> xs" and 0: "\<And> xs. \<phi> xs \<Longrightarrow> \<psi> xs"
 shows "ev \<psi> xs"
-using ev by induct (auto intro: ev.intros simp: 0)
+using ev by induct (auto simp: 0)
 
 lemma alw_mono:
 assumes alw: "alw \<phi> xs" and 0: "\<And> xs. \<phi> xs \<Longrightarrow> \<psi> xs"
 shows "alw \<psi> xs"
-using alw by coinduct (auto elim: alw.cases simp: 0)
+using alw by coinduct (auto simp: 0)
 
 lemma until_monoL:
 assumes until: "(\<phi>1 until \<psi>) xs" and 0: "\<And> xs. \<phi>1 xs \<Longrightarrow> \<phi>2 xs"
@@ -137,55 +137,55 @@ using until by coinduct (auto elim: UNTIL.cases simp: 0)
 lemma until_false: "\<phi> until false = alw \<phi>"
 proof-
   {fix xs assume "(\<phi> until false) xs" hence "alw \<phi> xs"
-   apply coinduct by (auto elim: UNTIL.cases)
+   by coinduct (auto elim: UNTIL.cases)
   }
   moreover
   {fix xs assume "alw \<phi> xs" hence "(\<phi> until false) xs"
-   apply coinduct by (auto elim: alw.cases)
+   by coinduct auto
   }
   ultimately show ?thesis by blast
 qed
 
 lemma ev_nxt: "ev \<phi> = (\<phi> or nxt (ev \<phi>))"
-apply(rule ext) by (metis ev.simps nxt.simps)
+by (rule ext) (metis ev.simps nxt.simps)
 
 lemma alw_nxt: "alw \<phi> = (\<phi> aand nxt (alw \<phi>))"
-apply(rule ext) by (metis alw.simps nxt.simps)
+by (rule ext) (metis alw.simps nxt.simps)
 
 lemma ev_ev[simp]: "ev (ev \<phi>) = ev \<phi>"
 proof-
   {fix xs
    assume "ev (ev \<phi>) xs" hence "ev \<phi> xs"
-   by induct (auto intro: ev.intros)
+   by induct auto
   }
-  thus ?thesis by (auto intro: ev.intros)
+  thus ?thesis by auto
 qed
 
 lemma alw_alw[simp]: "alw (alw \<phi>) = alw \<phi>"
 proof-
   {fix xs
    assume "alw \<phi> xs" hence "alw (alw \<phi>) xs"
-   by coinduct (auto elim: alw.cases)
+   by coinduct auto
   }
-  thus ?thesis by (auto elim: alw.cases)
+  thus ?thesis by auto
 qed
 
 lemma ev_shift:
 assumes "ev \<phi> xs"
 shows "ev \<phi> (xl @- xs)"
-using assms by (induct xl) (auto intro: ev.intros)
+using assms by (induct xl) auto
 
 lemma ev_imp_shift:
 assumes "ev \<phi> xs"  shows "\<exists> xl xs2. xs = xl @- xs2 \<and> \<phi> xs2"
 using assms by induct (metis shift.simps(1), metis shift.simps(2) stream.collapse)+
 
 lemma alw_ev_shift: "alw \<phi> xs1 \<Longrightarrow> ev (alw \<phi>) (xl @- xs1)"
-by (auto intro: ev_shift ev.intros)
+by (auto intro: ev_shift)
 
 lemma alw_shift:
 assumes "alw \<phi> (xl @- xs)"
 shows "alw \<phi> xs"
-using assms by (induct xl) (auto elim: alw.cases)
+using assms by (induct xl) auto
 
 lemma ev_ex_nxt:
 assumes "ev \<phi> xs"
@@ -224,15 +224,15 @@ assumes ev: "ev \<phi> xs" and nxt: "\<phi> (sdrop n xs)"  shows "wait \<phi> xs
 using assms nxt_wait_least unfolding nxt_sdrop by auto
 
 lemma nxt_ev: "(nxt ^^ n) \<phi> xs \<Longrightarrow> ev \<phi> xs"
-by (induct n arbitrary: xs) (auto intro: ev.intros)
+by (induct n arbitrary: xs) auto
 
 lemma not_ev: "not (ev \<phi>) = alw (not \<phi>)"
 proof(rule ext, safe)
   fix xs assume "not (ev \<phi>) xs" thus "alw (not \<phi>) xs"
-  by (coinduct) (auto intro: ev.intros)
+  by (coinduct) auto
 next
   fix xs assume "ev \<phi> xs" and "alw (not \<phi>) xs" thus False
-  by (induct) (auto elim: alw.cases)
+  by (induct) auto
 qed
 
 lemma not_alw: "not (alw \<phi>) = ev (not \<phi>)"
@@ -256,9 +256,7 @@ by coinduct (metis alw_nxt ev_shift funpow_swap1 nxt.simps nxt_sdrop stake_sdrop
 
 lemma ev_alw_imp_alw_ev:
 assumes "ev (alw \<phi>) xs"  shows "alw (ev \<phi>) xs"
-using assms apply induct
-  apply (metis (full_types) alw_mono ev.base)
-  by (metis alw alw_nxt ev.step)
+using assms by induct (metis (full_types) alw_mono ev.base, metis alw alw_nxt ev.step)
 
 lemma alw_aand: "alw (\<phi> aand \<psi>) = alw \<phi> aand alw \<psi>"
 proof-
@@ -267,7 +265,7 @@ proof-
   }
   moreover
   {fix xs assume "(alw \<phi> aand alw \<psi>) xs" hence "alw (\<phi> aand \<psi>) xs"
-   by coinduct (auto elim: alw.cases)
+   by coinduct auto
   }
   ultimately show ?thesis by blast
 qed
@@ -279,7 +277,7 @@ proof-
   }
   moreover
   {fix xs assume "ev (\<phi> or \<psi>) xs" hence "(ev \<phi> or ev \<psi>) xs"
-   by induct (auto intro: ev.intros)
+   by induct auto
   }
   ultimately show ?thesis by blast
 qed
@@ -314,7 +312,7 @@ qed
 lemma ev_alw_alw_impl:
 assumes "ev (alw \<phi>) xs" and "alw (alw \<phi> impl ev \<psi>) xs"
 shows "ev \<psi> xs"
-using assms by induct (auto intro: ev.intros elim: alw.cases)
+using assms by induct auto
 
 lemma ev_alw_stl[simp]: "ev (alw \<phi>) (stl x) \<longleftrightarrow> ev (alw \<phi>) x"
 by (metis (full_types) alw_nxt ev_nxt nxt.simps)
@@ -323,18 +321,18 @@ lemma alw_alw_impl_ev:
 "alw (alw \<phi> impl ev \<psi>) = (ev (alw \<phi>) impl alw (ev \<psi>))" (is "?A = ?B")
 proof-
   {fix xs assume "?A xs \<and> ev (alw \<phi>) xs" hence "alw (ev \<psi>) xs"
-   apply coinduct using ev_nxt by (auto elim: ev_alw_alw_impl alw.cases intro: ev.intros)
+    by coinduct (auto elim: ev_alw_alw_impl)
   }
   moreover
   {fix xs assume "?B xs" hence "?A xs"
-   apply coinduct by (auto elim: alw.cases intro: ev.intros)
+   by coinduct auto
   }
   ultimately show ?thesis by blast
 qed
 
 lemma ev_alw_impl:
 assumes "ev \<phi> xs" and "alw (\<phi> impl \<psi>) xs"  shows "ev \<psi> xs"
-using assms by induct (auto intro: ev.intros elim: alw.cases)
+using assms by induct auto
 
 lemma ev_alw_impl_ev:
 assumes "ev \<phi> xs" and "alw (\<phi> impl ev \<psi>) xs"  shows "ev \<psi> xs"
@@ -345,7 +343,7 @@ assumes "alw \<phi> xs" and "alw (\<phi> impl \<psi>) xs"
 shows "alw \<psi> xs"
 proof-
   {assume "alw \<phi> xs \<and> alw (\<phi> impl \<psi>) xs" hence ?thesis
-   apply coinduct by (auto elim: alw.cases)
+   by coinduct auto
   }
   thus ?thesis using assms by auto
 qed
@@ -362,7 +360,7 @@ qed
 lemma alw_impl_ev_alw:
 assumes "alw (\<phi> impl ev \<psi>) xs"
 shows "alw (ev \<phi> impl ev \<psi>) xs"
-using assms by coinduct (auto elim: alw.cases dest: ev_alw_impl intro: ev.intros)
+using assms by coinduct (auto dest: ev_alw_impl)
 
 lemma ev_holds_sset:
 "ev (holds P) xs \<longleftrightarrow> (\<exists> x \<in> sset xs. P x)" (is "?L \<longleftrightarrow> ?R")
@@ -379,7 +377,7 @@ assumes "\<phi> xs" and "alw (\<phi> impl nxt \<phi>) xs"
 shows "alw \<phi> xs"
 proof-
   {assume "\<phi> xs \<and> alw (\<phi> impl nxt \<phi>) xs" hence ?thesis
-   apply coinduct by(auto elim: alw.cases)
+   by coinduct auto
   }
   thus ?thesis using assms by auto
 qed
@@ -390,7 +388,7 @@ shows "(alw \<phi> or ev \<psi>) xs"
 proof-
   {assume "\<not> ev \<psi> xs" hence "alw (not \<psi>) xs" unfolding not_ev[symmetric] .
    moreover have "alw (not \<psi> impl (\<phi> impl nxt \<phi>)) xs"
-   using 2 by coinduct (auto elim: alw.cases)
+   using 2 by coinduct auto
    ultimately have "alw (\<phi> impl nxt \<phi>) xs" by(auto dest: alw_mp)
    with 1 have "alw \<phi> xs" by(rule alw_invar)
   }
@@ -404,7 +402,7 @@ proof-
   obtain xl xs1 where xs: "xs = xl @- xs1" and \<phi>: "\<phi> xs1"
   using e by (metis ev_imp_shift)
   have "\<phi> xs1 \<and> alw (\<phi> impl (nxt \<phi>)) xs1" using a \<phi> unfolding xs by (metis alw_shift)
-  hence "alw \<phi> xs1" by(coinduct xs1 rule: alw.coinduct) (auto elim: alw.cases)
+  hence "alw \<phi> xs1" by(coinduct xs1 rule: alw.coinduct) auto
   thus ?thesis unfolding xs by (auto intro: alw_ev_shift)
 qed
 
@@ -602,7 +600,7 @@ lemma suntil_induct_strong[consumes 1, case_names base step]:
   using suntil.induct[of \<phi> \<psi> x P] by blast
 
 lemma ev_suntil: "(\<phi> suntil \<psi>) \<omega> \<Longrightarrow> ev \<psi> \<omega>"
-  by (induct rule: suntil.induct) (auto intro: ev.intros)
+  by (induct rule: suntil.induct) auto
 
 lemma suntil_inv:
   assumes stl: "\<And>s. f (stl s) = stl (f s)"
