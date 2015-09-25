@@ -290,12 +290,8 @@ fun check_hyps context th =
   (case undeclared_hyps context th of
     [] => th
   | undeclared =>
-      let
-        val ctxt = Context.cases Syntax.init_pretty_global I context;
-      in
-        error (Pretty.string_of (Pretty.big_list "Undeclared hyps:"
-          (map (Pretty.item o single o Syntax.pretty_term ctxt) undeclared)))
-      end);
+      error (Pretty.string_of (Pretty.big_list "Undeclared hyps:"
+        (map (Pretty.item o single o Syntax.pretty_term (Syntax.init_pretty context)) undeclared))));
 
 
 
