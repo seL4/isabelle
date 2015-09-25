@@ -1079,7 +1079,7 @@ fun import_intros inp_pred [] ctxt =
                 error ("Type mismatch of predicate " ^ fst (dest_Const pred) ^
                   " (trying to match " ^ Syntax.string_of_typ ctxt' (fastype_of pred') ^
                   " and " ^ Syntax.string_of_typ ctxt' (fastype_of pred) ^ ")" ^
-                  " in " ^ Display.string_of_thm ctxt' th)
+                  " in " ^ Thm.string_of_thm ctxt' th)
           in map (fn (xi, (S, T)) => ((xi, S), T)) (Vartab.dest subst) end
         fun instantiate_typ th =
           let

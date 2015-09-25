@@ -932,7 +932,7 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) record} @{syntax typespec_sorts} '=' \<newline>
+    @@{command (HOL) record} @{syntax "overloaded"}? @{syntax typespec_sorts} '=' \<newline>
       (@{syntax type} '+')? (constdecl +)
     ;
     constdecl: @{syntax name} '::' @{syntax type} @{syntax mixfix}?
@@ -1100,61 +1100,90 @@ subsubsection \<open>Examples\<close>
 text \<open>See @{file "~~/src/HOL/ex/Records.thy"}, for example.\<close>
 
 
-section \<open>Typedef axiomatization \label{sec:hol-typedef}\<close>
+section \<open>Semantic subtype definitions \label{sec:hol-typedef}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
     @{command_def (HOL) "typedef"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
-  A Gordon/HOL-style type definition is a certain axiom scheme that
-  identifies a new type with a subset of an existing type.  More
-  precisely, the new type is defined by exhibiting an existing type
-  @{text \<tau>}, a set @{text "A :: \<tau> set"}, and a theorem that proves
-  @{prop "\<exists>x. x \<in> A"}.  Thus @{text A} is a non-empty subset of @{text
-  \<tau>}, and the new type denotes this subset.  New functions are
-  postulated that establish an isomorphism between the new type and
-  the subset.  In general, the type @{text \<tau>} may involve type
-  variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} which means that the type definition
-  produces a type constructor @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} depending on
-  those type arguments.
-
-  The axiomatization can be considered a ``definition'' in the sense of the
-  particular set-theoretic interpretation of HOL @{cite pitts93}, where the
-  universe of types is required to be downwards-closed wrt.\ arbitrary
-  non-empty subsets. Thus genuinely new types introduced by @{command
-  "typedef"} stay within the range of HOL models by construction.
-
-  In contrast, the command @{command_ref type_synonym} from Isabelle/Pure
-  merely introduces syntactic abbreviations, without any logical
-  significance. Thus it is more faithful to the idea of a genuine type
-  definition, but less powerful in practice.
+  A type definition identifies a new type with a non-empty subset of an
+  existing type. More precisely, the new type is defined by exhibiting an
+  existing type @{text \<tau>}, a set @{text "A :: \<tau> set"}, and proving @{prop
+  "\<exists>x. x \<in> A"}. Thus @{text A} is a non-empty subset of @{text \<tau>}, and the
+  new type denotes this subset. New functions are postulated that establish
+  an isomorphism between the new type and the subset. In general, the type
+  @{text \<tau>} may involve type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} which means
+  that the type definition produces a type constructor @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n)
+  t"} depending on those type arguments.
 
   @{rail \<open>
-    @@{command (HOL) typedef} abs_type '=' rep_set
+    @@{command (HOL) typedef} @{syntax "overloaded"}? abs_type '=' rep_set
+    ;
+    @{syntax_def "overloaded"}: ('(' @'overloaded' ')')
     ;
     abs_type: @{syntax typespec_sorts} @{syntax mixfix}?
     ;
     rep_set: @{syntax term} (@'morphisms' @{syntax name} @{syntax name})?
   \<close>}
 
+  To understand the concept of type definition better, we need to recount
+  its somewhat complex history. The HOL logic goes back to the ``Simple
+  Theory of Types'' (STT) of A. Church @{cite "church40"}, which is further
+  explained in the book by P. Andrews @{cite "andrews86"}. The overview
+  article by W. Farmer @{cite "Farmer:2008"} points out the ``seven
+  virtues'' of this relatively simple family of logics. STT has only ground
+  types, without polymorphism and without type definitions.
+
+  \medskip M. Gordon @{cite "Gordon:1985:HOL"} augmented Church's STT by
+  adding schematic polymorphism (type variables and type constructors) and a
+  facility to introduce new types as semantic subtypes from existing types.
+  This genuine extension of the logic was explained semantically by A. Pitts
+  in the book of the original Cambridge HOL88 system @{cite "pitts93"}. Type
+  definitions work in this setting, because the general model-theory of STT
+  is restricted to models that ensure that the universe of type
+  interpretations is closed by forming subsets (via predicates taken from
+  the logic).
+
+  \medskip Isabelle/HOL goes beyond Gordon-style HOL by admitting overloaded
+  constant definitions @{cite "Wenzel:1997:TPHOL" and
+  "Haftmann-Wenzel:2006:classes"}, which are actually a concept of
+  Isabelle/Pure and do not depend on particular set-theoretic semantics of
+  HOL. Over many years, there was no formal checking of semantic type
+  definitions in Isabelle/HOL versus syntactic constant definitions in
+  Isabelle/Pure. So the @{command typedef} command was described as
+  ``axiomatic'' in the sense of \secref{sec:axiomatizations}, only with some
+  local checks of the given type and its representing set.
+
+  Recent clarification of overloading in the HOL logic proper @{cite
+  "Kuncar-Popescu:2015"} demonstrate how the dissimilar concepts of constant
+  definitions versus type definitions may be understood uniformly. This
+  requires an interpretation of Isabelle/HOL that substantially reforms the
+  set-theoretic model of A. Pitts @{cite "pitts93"}, by taking a schematic
+  view on polymorphism and interpreting only ground types in the
+  set-theoretic sense of HOL88. Moreover, type-constructors may be
+  explicitly overloaded, e.g.\ by making the subset depend on type-class
+  parameters (cf.\ \secref{sec:class}). This is semantically like a
+  dependent type: the meaning relies on the operations provided by different
+  type-class instances.
+
   \begin{description}
 
-  \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"} produces an
-  axiomatization (\secref{sec:axiomatizations}) for a type definition in the
-  background theory of the current context, depending on a non-emptiness
-  result of the set @{text A} that needs to be proven here. The set @{text
-  A} may contain type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} as specified on the
-  LHS, but no term variables.
+  \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"} defines a
+  new type @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} from the set @{text A} over an existing
+  type. The set @{text A} may contain type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"}
+  as specified on the LHS, but no term variables. Non-emptiness of @{text A}
+  needs to be proven on the spot, in order to turn the internal conditional
+  characterization into usable theorems.
 
-  Even though a local theory specification, the newly introduced type
-  constructor cannot depend on parameters or assumptions of the
-  context: this is structurally impossible in HOL.  In contrast, the
-  non-emptiness proof may use local assumptions in unusual situations,
-  which could result in different interpretations in target contexts:
-  the meaning of the bijection between the representing set @{text A}
-  and the new type @{text t} may then change in different application
-  contexts.
+  The ``@{text "(overloaded)"}'' option allows the @{command
+  "typedef"} specification to depend on constants that are not (yet)
+  specified and thus left open as parameters, e.g.\ type-class parameters.
+
+  Within a local theory specification, the newly introduced type constructor
+  cannot depend on parameters or assumptions of the context: this is
+  syntactically impossible in HOL. The non-emptiness proof may formally
+  depend on local assumptions, but this has little practical relevance.
 
   For @{command (HOL) "typedef"}~@{text "t = A"} the newly introduced
   type @{text t} is accompanied by a pair of morphisms to relate it to
@@ -1163,11 +1192,11 @@ text \<open>
   Abs_t}: An explicit @{keyword (HOL) "morphisms"} specification
   allows to provide alternative names.
 
-  The core axiomatization uses the locale predicate @{const
-  type_definition} as defined in Isabelle/HOL.  Various basic
-  consequences of that are instantiated accordingly, re-using the
-  locale facts with names derived from the new type constructor.  Thus
-  the generic @{thm type_definition.Rep} is turned into the specific
+  The logical characterization of @{command typedef} uses the predicate of
+  locale @{const type_definition} that is defined in Isabelle/HOL. Various
+  basic consequences of that are instantiated accordingly, re-using the
+  locale facts with names derived from the new type constructor. Thus the
+  generic theorem @{thm type_definition.Rep} is turned into the specific
   @{text "Rep_t"}, for example.
 
   Theorems @{thm type_definition.Rep}, @{thm
@@ -1191,27 +1220,8 @@ text \<open>
 
 subsubsection \<open>Examples\<close>
 
-text \<open>Type definitions permit the introduction of abstract data
-  types in a safe way, namely by providing models based on already
-  existing types.  Given some abstract axiomatic description @{text P}
-  of a type, this involves two steps:
-
-  \begin{enumerate}
-
-  \item Find an appropriate type @{text \<tau>} and subset @{text A} which
-  has the desired properties @{text P}, and make a type definition
-  based on this representation.
-
-  \item Prove that @{text P} holds for @{text \<tau>} by lifting @{text P}
-  from the representation.
-
-  \end{enumerate}
-
-  You can later forget about the representation and work solely in
-  terms of the abstract properties @{text P}.
-
-  \medskip The following trivial example pulls a three-element type
-  into existence within the formal logical environment of HOL.\<close>
+text \<open>The following trivial example pulls a three-element type into
+existence within the formal logical environment of Isabelle/HOL.\<close>
 
 (*<*)experiment begin(*>*)
 typedef three = "{(True, True), (True, False), (False, True)}"
@@ -1299,8 +1309,9 @@ text \<open>
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) quotient_type} @{syntax typespec} @{syntax mixfix}? '='
-      quot_type \<newline> quot_morphisms? quot_parametric?
+    @@{command (HOL) quotient_type} @{syntax "overloaded"}? \<newline>
+      @{syntax typespec} @{syntax mixfix}? '=' quot_type \<newline>
+      quot_morphisms? quot_parametric?
     ;
     quot_type: @{syntax type} '/' ('partial' ':')? @{syntax term}
     ;

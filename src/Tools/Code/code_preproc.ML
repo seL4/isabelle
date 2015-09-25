@@ -517,7 +517,7 @@ fun extend_arities_eqngr raw_ctxt cs ts (arities, (eqngr : code_graph)) =
       |> fold (ensure_fun ctxt arities eqngr) cs
       |> fold (ensure_rhs ctxt arities eqngr) cs_rhss;
     val arities' = fold (add_arity ctxt vardeps) insts arities;
-    val algebra = Sorts.subalgebra (Context.pretty_global thy) (is_proper_class thy)
+    val algebra = Sorts.subalgebra (Context.Theory thy) (is_proper_class thy)
       (AList.lookup (op =) arities') (Sign.classes_of thy);
     val (rhss, eqngr') = Symtab.fold (add_cert ctxt vardeps) eqntab ([], eqngr);
     fun deps_of (c, rhs) = c :: maps (dicts_of ctxt algebra)

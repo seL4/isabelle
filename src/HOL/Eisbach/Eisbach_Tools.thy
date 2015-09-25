@@ -31,7 +31,7 @@ val _ =
       (Scan.lift (Scan.ahead Parse.not_eof) -- Attrib.thms)
       (fn ctxt => fn (tok, thms) =>
         (* FIXME proper formatting!? *)
-        Token.unparse tok ^ ": " ^ commas (map (Display.string_of_thm ctxt) thms)) #>
+        Token.unparse tok ^ ": " ^ commas (map (Thm.string_of_thm ctxt) thms)) #>
     setup_trace_method @{binding print_term}
       (Scan.lift (Scan.ahead Parse.not_eof) -- Args.term)
       (fn ctxt => fn (tok, t) =>

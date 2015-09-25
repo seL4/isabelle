@@ -38,7 +38,7 @@ fun mk_meta_eq ctxt th = case Thm.concl_of th of
                     | (Const(@{const_name iff},_)$_$_) => th RS @{thm iff_reflection}
                     | (Const(@{const_name Not},_)$_)      => th RS @{thm iff_reflection_F}
                     | _                       => th RS @{thm iff_reflection_T})
-           | _ => error ("addsimps: unable to use theorem\n" ^ Display.string_of_thm ctxt th));
+           | _ => error ("addsimps: unable to use theorem\n" ^ Thm.string_of_thm ctxt th));
 
 (*Replace premises x=y, X<->Y by X==Y*)
 fun mk_meta_prems ctxt =

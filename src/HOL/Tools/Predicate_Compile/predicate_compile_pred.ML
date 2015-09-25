@@ -192,7 +192,7 @@ fun rewrite_intros ctxt =
 
 fun print_specs options thy msg ths =
   if show_intermediate_results options then
-    (tracing (msg); tracing (commas (map (Display.string_of_thm_global thy) ths)))
+    (tracing (msg); tracing (commas (map (Thm.string_of_thm_global thy) ths)))
   else
     ()
 
@@ -209,7 +209,7 @@ fun preprocess options (constname, specs) thy =
           map (rewrite_intros ctxt) specs
         else
           error ("unexpected specification for constant " ^ quote constname ^ ":\n"
-            ^ commas (map (quote o Display.string_of_thm_global thy) specs))
+            ^ commas (map (quote o Thm.string_of_thm_global thy) specs))
       val if_beta = @{lemma "(if c then x else y) z = (if c then x z else y z)" by simp}
       val intros = map (rewrite_rule ctxt [if_beta RS @{thm eq_reflection}]) intros
       val _ = print_specs options thy "normalized intros" intros

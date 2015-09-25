@@ -20,16 +20,17 @@ sig
   val default_bindings: binding -> bindings
   val make_bindings: binding -> bindings option -> bindings
   val make_morphisms: binding -> (binding * binding) option -> bindings
-  val add_typedef: binding * (string * sort) list * mixfix ->
+  val overloaded: bool Config.T
+  val add_typedef: {overloaded: bool} -> binding * (string * sort) list * mixfix ->
     term -> bindings option -> (Proof.context -> tactic) -> local_theory ->
     (string * info) * local_theory
-  val add_typedef_global: binding * (string * sort) list * mixfix ->
+  val add_typedef_global: {overloaded: bool} -> binding * (string * sort) list * mixfix ->
     term -> bindings option -> (Proof.context -> tactic) -> theory ->
     (string * info) * theory
-  val typedef: binding * (string * sort) list * mixfix -> term -> bindings option ->
-    local_theory -> Proof.state
-  val typedef_cmd: binding * (string * string option) list * mixfix -> string -> bindings option ->
-    local_theory -> Proof.state
+  val typedef: {overloaded: bool} -> binding * (string * sort) list * mixfix ->
+    term -> bindings option -> local_theory -> Proof.state
+  val typedef_cmd: {overloaded: bool} -> binding * (string * string option) list * mixfix ->
+    string -> bindings option -> local_theory -> Proof.state
 end;
 
 structure Typedef: TYPEDEF =
@@ -98,6 +99,8 @@ fun interpretation f =
 
 (* primitive typedef axiomatization -- for fresh typedecl *)
 
+val typedef_overloaded = Attrib.setup_config_bool @{binding typedef_overloaded} (K false);
+
 fun mk_inhabited A =
   let val T = HOLogic.dest_setT (Term.fastype_of A)
   in HOLogic.mk_Trueprop (HOLogic.exists_const T $ Abs ("x", T, HOLogic.mk_mem (Bound 0, A))) end;
@@ -109,7 +112,7 @@ fun mk_typedef newT oldT RepC AbsC A =
         (newT --> oldT) --> (oldT --> newT) --> HOLogic.mk_setT oldT --> HOLogic.boolT);
   in Logic.mk_implies (mk_inhabited A, HOLogic.mk_Trueprop (typedefC $ RepC $ AbsC $ A)) end;
 
-fun primitive_typedef type_definition_name newT oldT Rep_name Abs_name A lthy =
+fun primitive_typedef {overloaded} type_definition_name newT oldT Rep_name Abs_name A lthy =
   let
     (* errors *)
 
@@ -118,11 +121,13 @@ fun primitive_typedef type_definition_name newT oldT Rep_name Abs_name A lthy =
     val lhs_tfrees = Term.add_tfreesT newT [];
     val rhs_tfrees = Term.add_tfreesT oldT [];
     val _ =
-      (case fold (remove (op =)) lhs_tfrees rhs_tfrees of [] => ()
+      (case fold (remove (op =)) lhs_tfrees rhs_tfrees of
+        [] => ()
       | extras => error ("Extra type variables in representing set: " ^ show_names extras));
 
     val _ =
-      (case Term.add_frees A [] of [] => []
+      (case Term.add_frees A [] of [] =>
+        []
       | xs => error ("Illegal variables in representing set: " ^ show_names xs));
 
 
@@ -132,15 +137,38 @@ fun primitive_typedef type_definition_name newT oldT Rep_name Abs_name A lthy =
       |> Local_Theory.background_theory_result
         (Sign.declare_const lthy ((Rep_name, newT --> oldT), NoSyn) ##>>
           Sign.declare_const lthy ((Abs_name, oldT --> newT), NoSyn));
+    val const_dep = Theory.const_dep (Proof_Context.theory_of consts_lthy);
+    val defs_context = Proof_Context.defs_context consts_lthy;
 
-    val typedef_deps = Term.add_consts A [];
+    val A_consts = fold_aterms (fn Const c => insert (op =) (const_dep c) | _ => I) A [];
+    val A_types =
+      (fold_types o fold_subtypes) (fn Type t => insert (op =) (Theory.type_dep t) | _ => I) A [];
+    val typedef_deps = A_consts @ A_types;
+
+    val newT_dep = Theory.type_dep (dest_Type newT);
 
     val ((axiom_name, axiom), axiom_lthy) = consts_lthy
       |> Local_Theory.background_theory_result
         (Thm.add_axiom consts_lthy (type_definition_name, mk_typedef newT oldT RepC AbsC A) ##>
-          Theory.add_deps consts_lthy "" (dest_Const RepC) typedef_deps ##>
-          Theory.add_deps consts_lthy "" (dest_Const AbsC) typedef_deps);
+          Theory.add_deps defs_context "" newT_dep typedef_deps ##>
+          Theory.add_deps defs_context "" (const_dep (dest_Const RepC)) [newT_dep] ##>
+          Theory.add_deps defs_context "" (const_dep (dest_Const AbsC)) [newT_dep]);
 
+    val axiom_defs = Theory.defs_of (Proof_Context.theory_of axiom_lthy);
+    val newT_deps = maps #2 (Defs.get_deps axiom_defs (#1 newT_dep));
+    val _ =
+      if null newT_deps orelse overloaded orelse Config.get lthy typedef_overloaded then ()
+      else
+        error (Pretty.string_of (Pretty.chunks
+          [Pretty.paragraph
+            (Pretty.text "Type definition with open dependencies, use" @
+             [Pretty.brk 1, Pretty.str "\"", Pretty.keyword1 "typedef", Pretty.brk 1,
+              Pretty.str "(", Pretty.keyword2 "overloaded", Pretty.str ")\"", Pretty.brk 1] @
+             Pretty.text "or enable configuration option \"typedef_overloaded\" in the context."),
+           Pretty.block [Pretty.str "  Type:", Pretty.brk 2, Syntax.pretty_typ axiom_lthy newT],
+           Pretty.block (Pretty.str "  Deps:" :: Pretty.brk 2 ::
+             Pretty.commas
+              (map (Defs.pretty_entry (Proof_Context.defs_context axiom_lthy)) newT_deps))]))
   in ((RepC, AbsC, axiom_name, axiom), axiom_lthy) end;
 
 
@@ -164,7 +192,7 @@ fun make_morphisms name NONE = default_bindings name
 
 (* prepare_typedef *)
 
-fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_bindings lthy =
+fun prepare_typedef prep_term overloaded (name, raw_args, mx) raw_set opt_bindings lthy =
   let
     val bname = Binding.name_of name;
 
@@ -187,7 +215,7 @@ fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_bindings lthy =
 
     val args = map (Proof_Context.check_tfree tmp_ctxt') raw_args;
     val (newT, typedecl_lthy) = lthy
-      |> Typedecl.typedecl (name, args, mx)
+      |> Typedecl.typedecl {final = false} (name, args, mx)
       ||> Variable.declare_term set;
 
     val Type (full_name, _) = newT;
@@ -198,7 +226,7 @@ fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_bindings lthy =
     val {Rep_name, Abs_name, type_definition_name} = make_bindings name opt_bindings;
 
     val ((RepC, AbsC, axiom_name, typedef), typedef_lthy) = typedecl_lthy
-      |> primitive_typedef type_definition_name newT oldT Rep_name Abs_name set;
+      |> primitive_typedef overloaded type_definition_name newT oldT Rep_name Abs_name set;
 
     val alias_lthy = typedef_lthy
       |> Local_Theory.const_alias Rep_name (#1 (Term.dest_Const RepC))
@@ -262,18 +290,18 @@ fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_bindings lthy =
 
 (* add_typedef: tactic interface *)
 
-fun add_typedef typ set opt_bindings tac lthy =
+fun add_typedef overloaded typ set opt_bindings tac lthy =
   let
     val ((goal, _, typedef_result), lthy') =
-      prepare_typedef Syntax.check_term typ set opt_bindings lthy;
+      prepare_typedef Syntax.check_term overloaded typ set opt_bindings lthy;
     val inhabited =
       Goal.prove lthy' [] [] goal (tac o #context)
       |> Goal.norm_result lthy' |> Thm.close_derivation;
   in typedef_result inhabited lthy' end;
 
-fun add_typedef_global typ set opt_bindings tac =
+fun add_typedef_global overloaded typ set opt_bindings tac =
   Named_Target.theory_init
-  #> add_typedef typ set opt_bindings tac
+  #> add_typedef overloaded typ set opt_bindings tac
   #> Local_Theory.exit_result_global (apsnd o transform_info);
 
 
@@ -281,11 +309,11 @@ fun add_typedef_global typ set opt_bindings tac =
 
 local
 
-fun gen_typedef prep_term prep_constraint (b, raw_args, mx) set opt_bindings lthy =
+fun gen_typedef prep_term prep_constraint overloaded (b, raw_args, mx) set opt_bindings lthy =
   let
     val args = map (apsnd (prep_constraint lthy)) raw_args;
     val ((goal, goal_pat, typedef_result), lthy') =
-      prepare_typedef prep_term (b, args, mx) set opt_bindings lthy;
+      prepare_typedef prep_term overloaded (b, args, mx) set opt_bindings lthy;
     fun after_qed [[th]] = snd o typedef_result th;
   in Proof.theorem NONE after_qed [[(goal, [goal_pat])]] lthy' end;
 
@@ -303,10 +331,14 @@ end;
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword typedef}
     "HOL type definition (requires non-emptiness proof)"
-    (Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
+    (Parse_Spec.overloaded -- Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
       (@{keyword "="} |-- Parse.term) --
       Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
-    >> (fn ((((vs, t), mx), A), opt_morphs) => fn lthy =>
-        typedef_cmd (t, vs, mx) A (SOME (make_morphisms t opt_morphs)) lthy));
+    >> (fn (((((overloaded, vs), t), mx), A), opt_morphs) => fn lthy =>
+        typedef_cmd {overloaded = overloaded} (t, vs, mx) A
+          (SOME (make_morphisms t opt_morphs)) lthy));
+
+
+val overloaded = typedef_overloaded;
 
 end;

@@ -462,7 +462,7 @@ fun pretty_ref ctxt thmref =
 in
 
 fun pretty_thm ctxt (thmref, thm) =
-  Pretty.block (pretty_ref ctxt thmref @ [Display.pretty_thm ctxt thm]);
+  Pretty.block (pretty_ref ctxt thmref @ [Thm.pretty_thm ctxt thm]);
 
 fun pretty_theorems state opt_limit rem_dups raw_criteria =
   let

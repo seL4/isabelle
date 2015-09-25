@@ -443,11 +443,11 @@ fun is_abstr thy c = case get_type_of_constr_or_abstr thy c
 exception BAD_THM of string;
 fun bad_thm msg = raise BAD_THM msg;
 fun error_thm f thy (thm, proper) = f (thm, proper)
-  handle BAD_THM msg => error (msg ^ ", in theorem:\n" ^ Display.string_of_thm_global thy thm);
+  handle BAD_THM msg => error (msg ^ ", in theorem:\n" ^ Thm.string_of_thm_global thy thm);
 fun error_abs_thm f thy thm = f thm
-  handle BAD_THM msg => error (msg ^ ", in theorem:\n" ^ Display.string_of_thm_global thy thm);
+  handle BAD_THM msg => error (msg ^ ", in theorem:\n" ^ Thm.string_of_thm_global thy thm);
 fun warning_thm f thy (thm, proper) = SOME (f (thm, proper))
-  handle BAD_THM msg => (warning (msg ^ ", in theorem:\n" ^ Display.string_of_thm_global thy thm); NONE)
+  handle BAD_THM msg => (warning (msg ^ ", in theorem:\n" ^ Thm.string_of_thm_global thy thm); NONE)
 fun try_thm f thm_proper = SOME (f thm_proper)
   handle BAD_THM _ => NONE;
 
@@ -764,7 +764,7 @@ fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
         val (thms, propers) = split_list eqns;
         val _ = map (fn thm => if c = const_eqn thy thm then ()
           else error ("Wrong head of code equation,\nexpected constant "
-            ^ string_of_const thy c ^ "\n" ^ Display.string_of_thm_global thy thm)) thms;
+            ^ string_of_const thy c ^ "\n" ^ Thm.string_of_thm_global thy thm)) thms;
         fun tvars_of T = rev (Term.add_tvarsT T []);
         val vss = map (tvars_of o snd o head_eqn) thms;
         fun inter_sorts vs =
@@ -794,7 +794,7 @@ fun cert_of_abs thy tyco c raw_abs_thm =
     val _ = assert_abs_eqn thy (SOME tyco) abs_thm;
     val _ = if c = const_abs_eqn thy abs_thm then ()
       else error ("Wrong head of abstract code equation,\nexpected constant "
-        ^ string_of_const thy c ^ "\n" ^ Display.string_of_thm_global thy abs_thm);
+        ^ string_of_const thy c ^ "\n" ^ Thm.string_of_thm_global thy abs_thm);
   in Abstract (Thm.legacy_freezeT abs_thm, tyco) end;
 
 fun constrain_cert_thm thy sorts cert_thm =
@@ -888,12 +888,12 @@ fun equations_of_cert thy (cert as Nothing _) =
 fun pretty_cert thy (cert as Nothing _) =
       [Pretty.str "(not implemented)"]
   | pretty_cert thy (cert as Equations _) =
-      (map_filter (Option.map (Display.pretty_thm_global thy o Axclass.overload thy) o fst o snd)
+      (map_filter (Option.map (Thm.pretty_thm_global thy o Axclass.overload thy) o fst o snd)
          o these o snd o equations_of_cert thy) cert
   | pretty_cert thy (Projection (t, _)) =
       [Syntax.pretty_term_global thy (Logic.varify_types_global t)]
   | pretty_cert thy (Abstract (abs_thm, _)) =
-      [(Display.pretty_thm_global thy o Axclass.overload thy o Thm.varifyT_global) abs_thm];
+      [(Thm.pretty_thm_global thy o Axclass.overload thy o Thm.varifyT_global) abs_thm];
 
 end;
 
@@ -927,7 +927,7 @@ fun preprocess conv ctxt =
 fun cert_of_eqns_preprocess ctxt functrans c =
   let
     fun trace_eqns s eqns = (Pretty.writeln o Pretty.chunks)
-      (Pretty.str s :: map (Display.pretty_thm ctxt o fst) eqns);
+      (Pretty.str s :: map (Thm.pretty_thm ctxt o fst) eqns);
     val tracing = if Config.get ctxt simp_trace then trace_eqns else (K o K) ();
   in
     tap (tracing "before function transformation")
@@ -1010,7 +1010,7 @@ fun print_codesetup thy =
     val exec = the_exec thy;
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks)
-        (Pretty.str (string_of_const thy const) :: map (Display.pretty_thm_item ctxt) thms);
+        (Pretty.str (string_of_const thy const) :: map (Thm.pretty_thm_item ctxt) thms);
     fun pretty_function (const, Eqns_Default (_, eqns_lazy)) =
           pretty_equations const (map fst (Lazy.force eqns_lazy))
       | pretty_function (const, Eqns eqns) = pretty_equations const (map fst eqns)
@@ -1096,7 +1096,7 @@ fun gen_add_eqn default (raw_thm, proper) thy =
         fun drop (thm', proper') = if (proper orelse not proper')
           andalso matches_args (args_of thm') then 
             (if verbose then warning ("Code generator: dropping subsumed code equation\n" ^
-                Display.string_of_thm_global thy thm') else (); true)
+                Thm.string_of_thm_global thy thm') else (); true)
           else false;
       in (thm, proper) :: filter_out drop eqns end;
     fun natural_order eqns =

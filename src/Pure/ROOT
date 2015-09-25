@@ -247,7 +247,6 @@ session Pure =
     "context_position.ML"
     "conv.ML"
     "defs.ML"
-    "display.ML"
     "drule.ML"
     "envir.ML"
     "facts.ML"

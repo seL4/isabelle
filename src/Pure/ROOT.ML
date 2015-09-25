@@ -170,8 +170,8 @@ use "item_net.ML";
 use "envir.ML";
 use "consts.ML";
 use "primitive_defs.ML";
-use "defs.ML";
 use "sign.ML";
+use "defs.ML";
 use "term_sharing.ML";
 use "pattern.ML";
 use "unify.ML";
@@ -195,7 +195,6 @@ use "tactic.ML";
 use "raw_simplifier.ML";
 use "conjunction.ML";
 use "assumption.ML";
-use "display.ML";
 
 
 (* Isar -- Intelligible Semi-Automated Reasoning *)

@@ -207,7 +207,7 @@ fun filter_rules (rs: rules) th =
 
 fun pretty_rules ctxt kind rs =
   let val thms = map snd (Item_Net.content rs)
-  in Pretty.big_list kind (map (Display.pretty_thm_item ctxt) thms) end;
+  in Pretty.big_list kind (map (Thm.pretty_thm_item ctxt) thms) end;
 
 
 (* context data *)

@@ -495,7 +495,7 @@ fun conclude_goal ctxt goal propss =
         error "Bad background theory of goal state";
     val _ = Thm.no_prems goal orelse error (Proof_Display.string_of_goal ctxt goal);
 
-    fun err_lost () = error ("Lost goal structure:\n" ^ Display.string_of_thm ctxt goal);
+    fun err_lost () = error ("Lost goal structure:\n" ^ Thm.string_of_thm ctxt goal);
 
     val th =
       (Goal.conclude (if length (flat propss) > 1 then Thm.close_derivation goal else goal)
@@ -511,7 +511,7 @@ fun conclude_goal ctxt goal propss =
       handle THM _ => err_lost ();
     val _ =
       Unify.matches_list (Context.Proof ctxt) (flat goal_propss) (map Thm.prop_of (flat results))
-        orelse error ("Proved a different theorem:\n" ^ Display.string_of_thm ctxt th);
+        orelse error ("Proved a different theorem:\n" ^ Thm.string_of_thm ctxt th);
 
     fun recover_result ([] :: pss) thss = [] :: recover_result pss thss
       | recover_result (_ :: pss) (ths :: thss) = ths :: recover_result pss thss

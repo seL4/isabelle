@@ -375,8 +375,8 @@ fun splitto ctxt splitths genth =
         (case find_thms_split splitths 1 th of
           NONE =>
            (writeln (cat_lines
-            (["th:", Display.string_of_thm ctxt th, "split ths:"] @
-              map (Display.string_of_thm ctxt) splitths @ ["\n--"]));
+            (["th:", Thm.string_of_thm ctxt th, "split ths:"] @
+              map (Thm.string_of_thm ctxt) splitths @ ["\n--"]));
             error "splitto: cannot find variable to split on")
         | SOME v =>
             let
@@ -1342,7 +1342,7 @@ val tracing = Unsynchronized.ref false;
 fun say s = if !tracing then writeln s else ();
 
 fun print_thms ctxt s L =
-  say (cat_lines (s :: map (Display.string_of_thm ctxt) L));
+  say (cat_lines (s :: map (Thm.string_of_thm ctxt) L));
 
 fun print_term ctxt s t =
   say (cat_lines [s, Syntax.string_of_term ctxt t]);
@@ -1458,7 +1458,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
              val cntxt = Simplifier.prems_of ctxt
              val _ = print_thms ctxt "cntxt:" cntxt
              val _ = say "cong rule:"
-             val _ = say (Display.string_of_thm ctxt thm)
+             val _ = say (Thm.string_of_thm ctxt thm)
              (* Unquantified eliminate *)
              fun uq_eliminate (thm,imp) =
                  let val tych = Thm.cterm_of ctxt
@@ -2390,7 +2390,7 @@ fun elim_tc tcthm (rule,induction) =
 
 
 fun trace_thms ctxt s L =
-  if !trace then writeln (cat_lines (s :: map (Display.string_of_thm ctxt) L))
+  if !trace then writeln (cat_lines (s :: map (Thm.string_of_thm ctxt) L))
   else ();
 
 fun trace_cterm ctxt s ct =

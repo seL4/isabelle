@@ -662,12 +662,12 @@ text %mlref \<open>
   binding * term -> theory -> (string * thm) * theory"} \\
   @{index_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory ->
   (string * ('a -> thm)) * theory"} \\
-  @{index_ML Thm.add_def: "Proof.context -> bool -> bool ->
+  @{index_ML Thm.add_def: "Defs.context -> bool -> bool ->
   binding * term -> theory -> (string * thm) * theory"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Theory.add_deps: "Proof.context -> string ->
-  string * typ -> (string * typ) list -> theory -> theory"} \\
+  @{index_ML Theory.add_deps: "Defs.context -> string ->
+  Defs.entry -> Defs.entry list -> theory -> theory"} \\
   \end{mldecls}
 
   \begin{description}
@@ -766,7 +766,7 @@ text %mlref \<open>
   \item @{ML Theory.add_deps}~@{text "ctxt name c\<^sub>\<tau> \<^vec>d\<^sub>\<sigma>"}
   declares dependencies of a named specification for constant @{text
   "c\<^sub>\<tau>"}, relative to existing specifications for constants @{text
-  "\<^vec>d\<^sub>\<sigma>"}.
+  "\<^vec>d\<^sub>\<sigma>"}.  This also works for type constructors.
 
   \end{description}
 \<close>

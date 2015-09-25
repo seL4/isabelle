@@ -303,11 +303,11 @@ fun is_split_thm ctxt thm =
           @{const_name Rings.divide}] a
     | _ =>
       (if Context_Position.is_visible ctxt then
-        warning ("Lin. Arith.: wrong format for split rule " ^ Display.string_of_thm ctxt thm)
+        warning ("Lin. Arith.: wrong format for split rule " ^ Thm.string_of_thm ctxt thm)
        else (); false))
   | _ =>
     (if Context_Position.is_visible ctxt then
-      warning ("Lin. Arith.: wrong format for split rule " ^ Display.string_of_thm ctxt thm)
+      warning ("Lin. Arith.: wrong format for split rule " ^ Thm.string_of_thm ctxt thm)
      else (); false));
 
 (* substitute new for occurrences of old in a term, incrementing bound       *)

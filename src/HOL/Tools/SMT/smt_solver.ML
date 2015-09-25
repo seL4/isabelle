@@ -103,7 +103,7 @@ fun run_solver ctxt name mk_cmd input =
 
 fun trace_assms ctxt =
   SMT_Config.trace_msg ctxt (Pretty.string_of o
-    Pretty.big_list "Assertions:" o map (Display.pretty_thm ctxt o snd))
+    Pretty.big_list "Assertions:" o map (Thm.pretty_thm ctxt o snd))
 
 fun trace_replay_data ({context = ctxt, typs, terms, ...} : SMT_Translate.replay_data) =
   let

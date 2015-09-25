@@ -26,8 +26,8 @@ sig
   val get_info: theory -> string -> info option
   val the_info: theory -> string -> info
   val get_hierarchy: theory -> (string * typ list) -> (string * ((string * sort) * typ) list) list
-  val add_record: (string * sort) list * binding -> (typ list * string) option ->
-    (binding * typ * mixfix) list -> theory -> theory
+  val add_record: {overloaded: bool} -> (string * sort) list * binding ->
+    (typ list * string) option -> (binding * typ * mixfix) list -> theory -> theory
 
   val last_extT: typ -> (string * typ list) option
   val dest_recTs: typ -> (string * typ list) list
@@ -55,7 +55,7 @@ end;
 
 signature ISO_TUPLE_SUPPORT =
 sig
-  val add_iso_tuple_type: binding * (string * sort) list ->
+  val add_iso_tuple_type: {overloaded: bool} -> binding * (string * sort) list ->
     typ * typ -> theory -> (term * term) * theory
   val mk_cons_tuple: term * term -> term
   val dest_cons_tuple: term -> term * term
@@ -93,13 +93,13 @@ fun get_typedef_info tyco vs
     |> pair (tyco, ((Rep_inject, proj_constr), Const (Abs_name, rep_type --> absT), absT))
   end
 
-fun do_typedef raw_tyco repT raw_vs thy =
+fun do_typedef overloaded raw_tyco repT raw_vs thy =
   let
     val ctxt = Proof_Context.init_global thy |> Variable.declare_typ repT;
     val vs = map (Proof_Context.check_tfree ctxt) raw_vs;
   in
     thy
-    |> Typedef.add_typedef_global (raw_tyco, vs, NoSyn)
+    |> Typedef.add_typedef_global overloaded (raw_tyco, vs, NoSyn)
         (HOLogic.mk_UNIV repT) NONE (fn ctxt' => resolve_tac ctxt' [UNIV_witness] 1)
     |-> (fn (tyco, info) => get_typedef_info tyco vs info)
   end;
@@ -117,13 +117,13 @@ fun mk_cons_tuple (left, right) =
 fun dest_cons_tuple (Const (@{const_name Record.iso_tuple_cons}, _) $ Const _ $ t $ u) = (t, u)
   | dest_cons_tuple t = raise TERM ("dest_cons_tuple", [t]);
 
-fun add_iso_tuple_type (b, alphas) (leftT, rightT) thy =
+fun add_iso_tuple_type overloaded (b, alphas) (leftT, rightT) thy =
   let
     val repT = HOLogic.mk_prodT (leftT, rightT);
 
     val ((_, ((rep_inject, abs_inverse), absC, absT)), typ_thy) =
       thy
-      |> do_typedef b repT alphas
+      |> do_typedef overloaded b repT alphas
       ||> Sign.add_path (Binding.name_of b); (*FIXME proper prefixing instead*)
     val typ_ctxt = Proof_Context.init_global typ_thy;
 
@@ -1499,7 +1499,7 @@ fun try_param_tac ctxt s rule = CSUBGOAL (fn (cgoal, i) =>
   in compose_tac ctxt (false, rule'', Thm.nprems_of rule) i end);
 
 
-fun extension_definition name fields alphas zeta moreT more vars thy =
+fun extension_definition overloaded name fields alphas zeta moreT more vars thy =
   let
     val ctxt = Proof_Context.init_global thy;
 
@@ -1525,7 +1525,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       let
         val suff = if i = 0 then ext_typeN else inner_typeN ^ string_of_int i;
         val ((_, cons), thy') = thy
-          |> Iso_Tuple_Support.add_iso_tuple_type
+          |> Iso_Tuple_Support.add_iso_tuple_type overloaded
             (Binding.suffix_name suff (Binding.name base_name), alphas_zeta)
               (fastype_of left, fastype_of right);
       in
@@ -1808,7 +1808,7 @@ fun add_ctr_sugar ctr exhaust inject sel_thms =
 
 (* definition *)
 
-fun definition (alphas, binding) parent (parents: parent_info list) raw_fields thy0 =
+fun definition overloaded (alphas, binding) parent (parents: parent_info list) raw_fields thy0 =
   let
     val ctxt0 = Proof_Context.init_global thy0;
 
@@ -1867,7 +1867,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         extT, ext_induct, ext_inject, ext_surjective, ext_split, ext_def), ext_thy) =
       thy0
       |> Sign.qualified_path false binding
-      |> extension_definition extension_name fields alphas_ext zeta moreT more vars;
+      |> extension_definition overloaded extension_name fields alphas_ext zeta moreT more vars;
     val ext_ctxt = Proof_Context.init_global ext_thy;
 
     val _ = timing_msg ext_ctxt "record preparing definitions";
@@ -2277,7 +2277,7 @@ fun read_fields raw_fields ctxt =
 
 in
 
-fun add_record (params, binding) raw_parent raw_fields thy =
+fun add_record overloaded (params, binding) raw_parent raw_fields thy =
   let
     val ctxt = Proof_Context.init_global thy;
     fun cert_typ T = Type.no_tvars (Proof_Context.cert_typ ctxt T)
@@ -2327,11 +2327,11 @@ fun add_record (params, binding) raw_parent raw_fields thy =
       err_dup_record @ err_extra_frees @ err_no_fields @ err_dup_fields @ err_bad_fields;
     val _ = if null errs then () else error (cat_lines errs);
   in
-    thy |> definition (params, binding) parent parents bfields
+    thy |> definition overloaded (params, binding) parent parents bfields
   end
   handle ERROR msg => cat_error msg ("Failed to define record " ^ Binding.print binding);
 
-fun add_record_cmd (raw_params, binding) raw_parent raw_fields thy =
+fun add_record_cmd overloaded (raw_params, binding) raw_parent raw_fields thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val params = map (apsnd (Typedecl.read_constraint ctxt)) raw_params;
@@ -2339,7 +2339,7 @@ fun add_record_cmd (raw_params, binding) raw_parent raw_fields thy =
     val (parent, ctxt2) = read_parent raw_parent ctxt1;
     val (fields, ctxt3) = read_fields raw_fields ctxt2;
     val params' = map (Proof_Context.check_tfree ctxt3) params;
-  in thy |> add_record (params', binding) parent fields end;
+  in thy |> add_record overloaded (params', binding) parent fields end;
 
 end;
 
@@ -2348,9 +2348,10 @@ end;
 
 val _ =
   Outer_Syntax.command @{command_keyword record} "define extensible record"
-    (Parse.type_args_constrained -- Parse.binding --
+    (Parse_Spec.overloaded -- (Parse.type_args_constrained -- Parse.binding) --
       (@{keyword "="} |-- Scan.option (Parse.typ --| @{keyword "+"}) --
         Scan.repeat1 Parse.const_binding)
-    >> (fn (x, (y, z)) => Toplevel.theory (add_record_cmd x y z)));
+    >> (fn ((overloaded, x), (y, z)) =>
+        Toplevel.theory (add_record_cmd {overloaded = overloaded} x y z)));
 
 end;

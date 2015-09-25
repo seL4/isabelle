@@ -162,7 +162,7 @@ fun background_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params
 
     val ((_, def), lthy3) = lthy2
       |> Local_Theory.background_theory_result
-        (Thm.add_def lthy2 false false
+        (Thm.add_def (Proof_Context.defs_context lthy2) false false
           (Thm.def_binding_optional b b_def, Logic.mk_equals (lhs, rhs)));
   in ((lhs, def), lthy3) end;
 

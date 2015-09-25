@@ -107,6 +107,7 @@ sig
   val maxidx_of_typ: typ -> int
   val maxidx_of_typs: typ list -> int
   val maxidx_of_term: term -> int
+  val fold_subtypes: (typ -> 'a -> 'a) -> typ -> 'a -> 'a
   val exists_subtype: (typ -> bool) -> typ -> bool
   val exists_type: (typ -> bool) -> term -> bool
   val exists_subterm: (term -> bool) -> term -> bool
@@ -877,6 +878,12 @@ fun maxidx_of_term t = maxidx_term t ~1;
 (** misc syntax operations **)
 
 (* substructure *)
+
+fun fold_subtypes f =
+  let
+    fun iter ty =
+      (case ty of Type (_, Ts) => f ty #> fold iter Ts | _ => f ty);
+  in iter end;
 
 fun exists_subtype P =
   let

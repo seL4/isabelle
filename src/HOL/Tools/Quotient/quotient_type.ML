@@ -6,14 +6,17 @@ Definition of a quotient type.
 
 signature QUOTIENT_TYPE =
 sig
-  val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool) *
-    ((binding * binding) option * thm option)) * thm -> local_theory -> Quotient_Info.quotients * local_theory
-
-  val quotient_type: (string list * binding * mixfix) * (typ * term * bool) *
-    ((binding * binding) option * thm option) -> Proof.context -> Proof.state
-
-  val quotient_type_cmd: (((((string list * binding) * mixfix) * string) * (bool * string)) *
-    (binding * binding) option) * (Facts.ref * Token.src list) option -> Proof.context -> Proof.state
+  val add_quotient_type: {overloaded: bool} ->
+    ((string list * binding * mixfix) * (typ * term * bool) *
+      ((binding * binding) option * thm option)) * thm -> local_theory ->
+      Quotient_Info.quotients * local_theory
+  val quotient_type:  {overloaded: bool} ->
+    (string list * binding * mixfix) * (typ * term * bool) *
+      ((binding * binding) option * thm option) -> Proof.context -> Proof.state
+  val quotient_type_cmd:  {overloaded: bool} ->
+    (((((string list * binding) * mixfix) * string) * (bool * string)) *
+      (binding * binding) option) * (Facts.ref * Token.src list) option ->
+      Proof.context -> Proof.state
 end;
 
 structure Quotient_Type: QUOTIENT_TYPE =
@@ -40,12 +43,12 @@ fun typedef_term rel rty lthy =
 
 
 (* makes the new type definitions and proves non-emptyness *)
-fun typedef_make (vs, qty_name, mx, rel, rty) equiv_thm lthy =
+fun typedef_make overloaded (vs, qty_name, mx, rel, rty) equiv_thm lthy =
   let
     fun typedef_tac ctxt =
       EVERY1 (map (resolve_tac ctxt o single) [@{thm part_equivp_typedef}, equiv_thm])
   in
-    Typedef.add_typedef (qty_name, map (rpair dummyS) vs, mx)
+    Typedef.add_typedef overloaded (qty_name, map (rpair dummyS) vs, mx)
       (typedef_term rel rty lthy) NONE typedef_tac lthy
   end
 
@@ -152,7 +155,8 @@ fun init_quotient_infr quot_thm equiv_thm opt_par_thm lthy =
   end
 
 (* main function for constructing a quotient type *)
-fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, opt_par_thm)), equiv_thm) lthy =
+fun add_quotient_type overloaded
+    (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, opt_par_thm)), equiv_thm) lthy =
   let
     val part_equiv =
       if partial
@@ -161,7 +165,7 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial), (opt_morphs, op
 
     (* generates the typedef *)
     val ((_, typedef_info), lthy1) =
-      typedef_make (vs, qty_name, mx, rel, rty) part_equiv lthy
+      typedef_make overloaded (vs, qty_name, mx, rel, rty) part_equiv lthy
 
     (* abs and rep functions from the typedef *)
     val Abs_ty = #abs_type (#1 typedef_info)
@@ -290,7 +294,7 @@ fun map_check ctxt (_, (rty, _, _), _) =
  relations are equivalence relations
 *)
 
-fun quotient_type quot lthy =
+fun quotient_type overloaded quot lthy =
   let
     (* sanity check *)
     val _ = sanity_check quot
@@ -307,12 +311,12 @@ fun quotient_type quot lthy =
 
     val goal = (mk_goal o #2) quot
 
-    fun after_qed [[thm]] = (snd oo add_quotient_type) (quot, thm)
+    fun after_qed [[thm]] = (snd oo add_quotient_type overloaded) (quot, thm)
   in
     Proof.theorem NONE after_qed [[(goal, [])]] lthy
   end
 
-fun quotient_type_cmd spec lthy =
+fun quotient_type_cmd overloaded spec lthy =
   let
     fun parse_spec ((((((vs, qty_name), mx), rty_str), (partial, rel_str)), opt_morphs), opt_par_xthm) lthy =
       let
@@ -330,7 +334,7 @@ fun quotient_type_cmd spec lthy =
 
     val (spec', _) = parse_spec spec lthy
   in
-    quotient_type spec' lthy
+    quotient_type overloaded spec' lthy
   end
 
 
@@ -340,11 +344,11 @@ val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword quotient_type}
     "quotient type definitions (require equivalence proofs)"
       (* FIXME Parse.type_args_constrained and standard treatment of sort constraints *)
-      (Parse.type_args -- Parse.binding --
+      (Parse_Spec.overloaded -- (Parse.type_args -- Parse.binding --
         Parse.opt_mixfix -- (@{keyword "="} |-- Parse.typ) -- (@{keyword "/"} |--
           Scan.optional (Parse.reserved "partial" -- @{keyword ":"} >> K true) false -- Parse.term) --
         Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding)) --
-        Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.xthm)
-      >> quotient_type_cmd)
+        Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse.xthm))
+      >> (fn (overloaded, spec) => quotient_type_cmd {overloaded = overloaded} spec))
 
 end

@@ -349,7 +349,7 @@ fun elim ctxt (ineqs, hist) =
 
 fun trace_thm ctxt msgs th =
  (if Config.get ctxt LA_Data.trace
-  then tracing (cat_lines (msgs @ [Display.string_of_thm ctxt th]))
+  then tracing (cat_lines (msgs @ [Thm.string_of_thm ctxt th]))
   else (); th);
 
 fun trace_term ctxt msgs t =
@@ -468,8 +468,8 @@ fun mkthm ctxt asms (just: injust) =
         if LA_Logic.is_False fls then ()
         else
          (tracing (cat_lines
-           (["Assumptions:"] @ map (Display.string_of_thm ctxt) asms @ [""] @
-            ["Proved:", Display.string_of_thm ctxt fls, ""]));
+           (["Assumptions:"] @ map (Thm.string_of_thm ctxt) asms @ [""] @
+            ["Proved:", Thm.string_of_thm ctxt fls, ""]));
           warning "Linear arithmetic should have refuted the assumptions.\n\
             \Please inform Tobias Nipkow.")
     in fls end

@@ -532,9 +532,9 @@ val _ = Theory.setup
   register_config Proof_Context.show_abbrevs_raw #>
   register_config Goal_Display.goals_limit_raw #>
   register_config Goal_Display.show_main_goal_raw #>
-  register_config Goal_Display.show_consts_raw #>
-  register_config Display.show_hyps_raw #>
-  register_config Display.show_tags_raw #>
+  register_config Thm.show_consts_raw #>
+  register_config Thm.show_hyps_raw #>
+  register_config Thm.show_tags_raw #>
   register_config Pattern.unify_trace_failure_raw #>
   register_config Unify.trace_bound_raw #>
   register_config Unify.search_bound_raw #>

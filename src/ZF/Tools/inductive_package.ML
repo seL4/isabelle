@@ -319,7 +319,7 @@ let
       if ! Ind_Syntax.trace then
         writeln (cat_lines
           (["ind_prems:"] @ map (Syntax.string_of_term ctxt1) ind_prems @
-           ["raw_induct:", Display.string_of_thm ctxt1 raw_induct]))
+           ["raw_induct:", Thm.string_of_thm ctxt1 raw_induct]))
       else ();
 
 
@@ -352,7 +352,7 @@ let
 
      val dummy =
       if ! Ind_Syntax.trace then
-        writeln ("quant_induct:\n" ^ Display.string_of_thm ctxt1 quant_induct)
+        writeln ("quant_induct:\n" ^ Thm.string_of_thm ctxt1 quant_induct)
       else ();
 
 
@@ -429,7 +429,7 @@ let
 
      val dummy =
       if ! Ind_Syntax.trace then
-        writeln ("lemma: " ^ Display.string_of_thm ctxt1 lemma)
+        writeln ("lemma: " ^ Thm.string_of_thm ctxt1 lemma)
       else ();
 
 

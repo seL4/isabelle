@@ -11,9 +11,6 @@ sig
   val goals_limit: int Config.T
   val show_main_goal_raw: Config.raw
   val show_main_goal: bool Config.T
-  val show_consts_raw: Config.raw
-  val show_consts: bool Config.T
-  val pretty_flexpair: Proof.context -> term * term -> Pretty.T
   val pretty_goals: Proof.context -> thm -> Pretty.T list
   val pretty_goal: Proof.context -> thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
@@ -27,12 +24,6 @@ val goals_limit = Config.int goals_limit_raw;
 
 val show_main_goal_raw = Config.declare_option ("show_main_goal", @{here});
 val show_main_goal = Config.bool show_main_goal_raw;
-
-val show_consts_raw = Config.declare_option ("show_consts", @{here});
-val show_consts = Config.bool show_consts_raw;
-
-fun pretty_flexpair ctxt (t, u) = Pretty.block
-  [Syntax.pretty_term ctxt t, Pretty.str " =?=", Pretty.brk 1, Syntax.pretty_term ctxt u];
 
 
 (*print thm A1,...,An/B in "goal style" -- premises as numbered subgoals*)
@@ -107,7 +98,7 @@ fun pretty_goals ctxt0 state =
       Pretty.markup (Markup.subgoal s) [Pretty.str (" " ^ s ^ ". "), prt_term A];
     val pretty_subgoals = map_index (fn (i, A) => pretty_subgoal (string_of_int (i + 1)) A);
 
-    val pretty_ffpairs = pretty_list "flex-flex pairs:" (pretty_flexpair ctxt);
+    val pretty_ffpairs = pretty_list "flex-flex pairs:" (Thm.pretty_flexpair ctxt);
 
     val pretty_consts = pretty_list "constants:" prt_consts o consts_of;
     val pretty_vars = pretty_list "variables:" prt_vars o vars_of;

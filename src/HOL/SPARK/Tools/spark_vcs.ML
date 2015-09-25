@@ -359,7 +359,7 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
          map (rpair (mk_type thy prfx ty)) flds) fldtys
        in case get_type thy prfx s of
            NONE =>
-             Record.add_record ([], Binding.name s) NONE
+             Record.add_record {overloaded = false} ([], Binding.name s) NONE
                (map (fn (fld, T) => (Binding.name fld, T, NoSyn)) fldTs) thy
          | SOME (rT, cmap) =>
              (case get_record_info thy rT of
@@ -388,8 +388,7 @@ fun add_type_def prfx (s, Basic_Type ty) (ids, thy) =
       (ids,
        case get_type thy prfx s of
          SOME _ => thy
-       | NONE => Typedecl.typedecl_global
-           (Binding.name s, [], NoSyn) thy |> snd);
+       | NONE => Typedecl.typedecl_global {final = true} (Binding.name s, [], NoSyn) thy |> snd);
 
 
 fun term_of_expr thy prfx types pfuns =

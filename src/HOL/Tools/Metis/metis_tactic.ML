@@ -160,7 +160,7 @@ fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
       val dischargers = map (fst o snd) th_cls_pairs
       val cls = cls |> map (Drule.eta_contraction_rule #> do_lams)
       val _ = trace_msg ctxt (K "FOL_SOLVE: CONJECTURE CLAUSES")
-      val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
+      val _ = app (fn th => trace_msg ctxt (fn () => Thm.string_of_thm ctxt th)) cls
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
       val type_enc = type_enc_of_string Strict type_enc
       val (sym_tab, axioms, ord_info, concealed) =
@@ -172,7 +172,7 @@ fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
         | get_isa_thm _ (Isa_Raw ith) = ith
       val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
       val _ = trace_msg ctxt (K "ISABELLE CLAUSES")
-      val _ = app (fn (_, ith) => trace_msg ctxt (fn () => Display.string_of_thm ctxt ith)) axioms
+      val _ = app (fn (_, ith) => trace_msg ctxt (fn () => Thm.string_of_thm ctxt ith)) axioms
       val _ = trace_msg ctxt (K "METIS CLAUSES")
       val _ = app (fn (mth, _) => trace_msg ctxt (fn () => Metis_Thm.toString mth)) axioms
       val _ = trace_msg ctxt (K "START METIS PROVE PROCESS")
@@ -200,7 +200,7 @@ fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
          val result = fold (replay_one_inference ctxt' type_enc concealed sym_tab) proof axioms
          val used = map_filter (used_axioms axioms) proof
          val _ = trace_msg ctxt (K "METIS COMPLETED; clauses actually used:")
-         val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used
+         val _ = app (fn th => trace_msg ctxt (fn () => Thm.string_of_thm ctxt th)) used
          val (used_th_cls_pairs, unused_th_cls_pairs) =
            List.partition (have_common_thm ctxt used o snd o snd) th_cls_pairs
          val unused_ths = maps (snd o snd) unused_th_cls_pairs
@@ -217,7 +217,7 @@ fun FOL_SOLVE unused (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
            ();
          (case result of
            (_, ith) :: _ =>
-           (trace_msg ctxt (fn () => "Success: " ^ Display.string_of_thm ctxt ith);
+           (trace_msg ctxt (fn () => "Success: " ^ Thm.string_of_thm ctxt ith);
             [discharge_skolem_premises ctxt dischargers ith])
          | _ => (trace_msg ctxt (K "Metis: No result"); []))
        end
@@ -251,7 +251,7 @@ fun metis_tac_unused type_encs0 lam_trans ctxt ths i st0 =
     val unused = Unsynchronized.ref []
     val type_encs = if null type_encs0 then partial_type_encs else type_encs0
     val _ = trace_msg ctxt (fn () =>
-      "Metis called with theorems\n" ^ cat_lines (map (Display.string_of_thm ctxt) ths))
+      "Metis called with theorems\n" ^ cat_lines (map (Thm.string_of_thm ctxt) ths))
     val type_encs = type_encs |> maps unalias_type_enc
     val combs = (lam_trans = combsN)
     fun tac clause = resolve_tac ctxt (FOL_SOLVE unused type_encs lam_trans ctxt clause ths) 1

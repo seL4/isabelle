@@ -22,7 +22,8 @@ val _ =
 val _ =
   Outer_Syntax.local_theory @{command_keyword typedecl} "type declaration"
     (Parse.type_args -- Parse.binding -- Parse.opt_mixfix
-      >> (fn ((args, a), mx) => Typedecl.typedecl (a, map (rpair dummyS) args, mx) #> snd));
+      >> (fn ((args, a), mx) =>
+          Typedecl.typedecl {final = true} (a, map (rpair dummyS) args, mx) #> snd));
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword type_synonym} "declare type abbreviation"
@@ -767,7 +768,13 @@ val _ =
   Outer_Syntax.command @{command_keyword print_theory}
     "print logical theory contents"
     (Parse.opt_bang >> (fn b =>
-      Toplevel.keep (Pretty.writeln o Proof_Display.pretty_full_theory b o Toplevel.theory_of)));
+      Toplevel.keep (Pretty.writeln o Proof_Display.pretty_theory b o Toplevel.context_of)));
+
+val _ =
+  Outer_Syntax.command @{command_keyword print_definitions}
+    "print dependencies of definitional theory content"
+    (Parse.opt_bang >> (fn b =>
+      Toplevel.keep (Pretty.writeln o Proof_Display.pretty_definitions b o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_syntax}

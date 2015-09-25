@@ -177,6 +177,9 @@ occasionally useful for demonstration and testing purposes.
 
 *** Pure ***
 
+* Command 'print_definitions' prints dependencies of definitional
+specifications. This functionality used to be part of 'print_theory'.
+
 * The vacuous fact "TERM x" may be established "by fact" or as `TERM x`
 as well, not just "by this" or "." as before.
 
@@ -193,6 +196,13 @@ INCOMPATIBILITY in exotic situations.
 
 
 *** HOL ***
+
+* The 'typedef' command has been upgraded from a partially checked
+"axiomatization", to a full definitional specification that takes the
+global collection of overloaded constant / type definitions into
+account. Type definitions with open dependencies on overloaded
+definitions need to be specified as "typedef (overloaded)". This
+provides extra robustness in theory construction. Rare INCOMPATIBILITY.
 
 * Qualification of various formal entities in the libraries is done more
 uniformly via "context begin qualified definition ... end" instead of
@@ -318,6 +328,10 @@ context for rare situations where these facts are really needed.
 
 
 *** ML ***
+
+* The auxiliary module Pure/display.ML has been eliminated. Its
+elementary thm print operations are now in Pure/more_thm.ML and thus
+called Thm.pretty_thm, Thm.string_of_thm etc. INCOMPATIBILITY.
 
 * Simproc programming interfaces have been simplified:
 Simplifier.make_simproc and Simplifier.define_simproc supersede various

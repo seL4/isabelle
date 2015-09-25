@@ -44,6 +44,7 @@ sig
   val class_space: Proof.context -> Name_Space.T
   val type_space: Proof.context -> Name_Space.T
   val const_space: Proof.context -> Name_Space.T
+  val defs_context: Proof.context -> Defs.context
   val intern_class: Proof.context -> xstring -> string
   val intern_type: Proof.context -> xstring -> string
   val intern_const: Proof.context -> xstring -> string
@@ -286,7 +287,7 @@ val restore_syntax_mode = map_syntax o Local_Syntax.restore_mode o syntax_of;
 val tsig_of = #1 o #tsig o rep_data;
 val set_defsort = map_tsig o apfst o Type.set_defsort;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
-fun arity_sorts ctxt = Type.arity_sorts (Context.pretty ctxt) (tsig_of ctxt);
+fun arity_sorts ctxt = Type.arity_sorts (Context.Proof ctxt) (tsig_of ctxt);
 
 val consts_of = #1 o #consts o rep_data;
 val cases_of = #cases o rep_data;
@@ -322,6 +323,8 @@ val class_space = Type.class_space o tsig_of;
 val type_space = Type.type_space o tsig_of;
 val const_space = Consts.space_of o consts_of;
 
+fun defs_context ctxt = (ctxt, (const_space ctxt, type_space ctxt));
+
 val intern_class = Name_Space.intern o class_space;
 val intern_type = Name_Space.intern o type_space;
 val intern_const = Name_Space.intern o const_space;
@@ -346,7 +349,7 @@ fun transfer_syntax thy ctxt = ctxt |>
   map_tsig (fn tsig as (local_tsig, global_tsig) =>
     let val thy_tsig = Sign.tsig_of thy in
       if Type.eq_tsig (thy_tsig, global_tsig) then tsig
-      else (Type.merge_tsig (Context.pretty ctxt) (local_tsig, thy_tsig), thy_tsig)  (*historic merge order*)
+      else (Type.merge_tsig (Context.Proof ctxt) (local_tsig, thy_tsig), thy_tsig)  (*historic merge order*)
     end) |>
   map_consts (fn consts as (local_consts, global_consts) =>
     let val thy_consts = Sign.consts_of thy in
@@ -393,8 +396,8 @@ fun pretty_fact_name ctxt a =
 
 fun pretty_fact ctxt =
   let
-    val pretty_thm = Display.pretty_thm ctxt;
-    val pretty_thms = map (Display.pretty_thm_item ctxt);
+    val pretty_thm = Thm.pretty_thm ctxt;
+    val pretty_thms = map (Thm.pretty_thm_item ctxt);
   in
     fn ("", [th]) => pretty_thm th
      | ("", ths) => Pretty.blk (0, Pretty.fbreaks (pretty_thms ths))
@@ -552,7 +555,7 @@ local
 
 fun prep_arity prep_tycon prep_sort ctxt (t, Ss, S) =
   let val arity = (prep_tycon ctxt t, map (prep_sort ctxt) Ss, prep_sort ctxt S)
-  in Type.add_arity (Context.pretty ctxt) arity (tsig_of ctxt); arity end;
+  in Type.add_arity (Context.Proof ctxt) arity (tsig_of ctxt); arity end;
 
 in
 
@@ -577,8 +580,9 @@ val read_term_abbrev    = read_term_mode mode_abbrev;
 
 local
 
-fun certify_consts ctxt = Consts.certify (Context.pretty ctxt) (tsig_of ctxt)
-  (not (abbrev_mode ctxt)) (consts_of ctxt);
+fun certify_consts ctxt =
+  Consts.certify (Context.Proof ctxt) (tsig_of ctxt)
+    (not (abbrev_mode ctxt)) (consts_of ctxt);
 
 fun expand_binds ctxt =
   let
@@ -761,7 +765,7 @@ fun gen_cert prop ctxt t =
   t
   |> expand_abbrevs ctxt
   |> (fn t' =>
-      #1 (Sign.certify' prop (Context.pretty ctxt) false (consts_of ctxt) (theory_of ctxt) t')
+      #1 (Sign.certify' prop (Context.Proof ctxt) false (consts_of ctxt) (theory_of ctxt) t')
         handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg);
 
 in

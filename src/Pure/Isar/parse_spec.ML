@@ -29,6 +29,7 @@ sig
   val obtains: Element.obtains parser
   val general_statement: (Element.context list * Element.statement) parser
   val statement_keyword: string parser
+  val overloaded: bool parser
 end;
 
 structure Parse_Spec: PARSE_SPEC =
@@ -154,5 +155,11 @@ val general_statement =
     Parse.$$$ "shows" |-- Parse.!!! statement >> Element.Shows);
 
 val statement_keyword = Parse.$$$ "obtains" || Parse.$$$ "shows";
+
+
+(* options *)
+
+val overloaded =
+  Scan.optional (Parse.$$$ "(" -- Parse.$$$ "overloaded" -- Parse.$$$ ")" >> K true) false;
 
 end;

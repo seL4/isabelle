@@ -18,7 +18,7 @@ text {* See @{file "Examples/WordExamples.thy"} for examples. *}
 
 subsection {* Type definition *}
 
-typedef 'a word = "{(0::int) ..< 2 ^ len_of TYPE('a::len0)}"
+typedef (overloaded) 'a word = "{(0::int) ..< 2 ^ len_of TYPE('a::len0)}"
   morphisms uint Abs_word by auto
 
 lemma uint_nonnegative:

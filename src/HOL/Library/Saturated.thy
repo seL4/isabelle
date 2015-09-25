@@ -12,7 +12,7 @@ begin
 
 subsection \<open>The type of saturated naturals\<close>
 
-typedef ('a::len) sat = "{.. len_of TYPE('a)}"
+typedef (overloaded) ('a::len) sat = "{.. len_of TYPE('a)}"
   morphisms nat_of Abs_sat
   by auto
 

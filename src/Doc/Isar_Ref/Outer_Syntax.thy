@@ -462,6 +462,7 @@ section \<open>Diagnostic commands\<close>
 text \<open>
   \begin{matharray}{rcl}
     @{command_def "print_theory"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_definitions"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_methods"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_attributes"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_theorems"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -475,6 +476,7 @@ text \<open>
 
   @{rail \<open>
     (@@{command print_theory} |
+      @@{command print_definitions} |
       @@{command print_methods} |
       @@{command print_attributes} |
       @@{command print_theorems} |
@@ -503,6 +505,12 @@ text \<open>
 
   \item @{command "print_theory"} prints the main logical content of the
   background theory; the ``@{text "!"}'' option indicates extra verbosity.
+
+  \item @{command "print_definitions"} prints dependencies of definitional
+  specifications within the background theory, which may be constants
+  \secref{sec:consts} or types (\secref{sec:types-pure},
+  \secref{sec:hol-typedef}); the ``@{text "!"}'' option indicates extra
+  verbosity.
 
   \item @{command "print_methods"} prints all proof methods available in the
   current theory context; the ``@{text "!"}'' option indicates extra

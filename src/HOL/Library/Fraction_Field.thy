@@ -47,7 +47,7 @@ by(rule part_equivpI)(rule exI[where x="(0, 1)"]; simp)
 
 end
 
-quotient_type 'a fract = "'a :: idom \<times> 'a" / partial: "fractrel"
+quotient_type (overloaded) 'a fract = "'a :: idom \<times> 'a" / partial: "fractrel"
 by(rule part_equivp_fractrel)
 
 subsubsection \<open>Representation and basic operations\<close>

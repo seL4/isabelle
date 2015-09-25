@@ -35,9 +35,9 @@ fun prepare_decl prepare_plugins prepare_constraint prepare_typ
     fun mk_b name user_b =
       (if Binding.is_empty user_b then Binding.prefix_name (name ^ "_") b else user_b)
       |> Binding.qualify false (Binding.name_of b);
-    val (Tname, lthy) = Typedecl.basic_typedecl (b, length vars, mx) lthy;
-    val (bd_type_Tname, lthy) =
-      Typedecl.basic_typedecl (mk_b "bd_type" Binding.empty, length deads, NoSyn) lthy;
+    val (Tname, lthy) = Typedecl.basic_typedecl {final = true} (b, length vars, mx) lthy;
+    val (bd_type_Tname, lthy) = lthy
+      |> Typedecl.basic_typedecl {final = true} (mk_b "bd_type" Binding.empty, length deads, NoSyn);
     val T = Type (Tname, map TFree vars);
     val bd_type_T = Type (bd_type_Tname, map TFree deads);
     val lives = map TFree (filter_out (member (op =) deads) vars);

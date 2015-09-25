@@ -306,8 +306,8 @@ fun dest_ss(SS{congs,simps,...}) = (congs, map #1 simps);
 
 fun print_ss ctxt (SS{congs,simps,...}) =
   writeln (cat_lines
-   (["Congruences:"] @ map (Display.string_of_thm ctxt) congs @
-    ["Rewrite Rules:"] @ map (Display.string_of_thm ctxt o #1) simps));
+   (["Congruences:"] @ map (Thm.string_of_thm ctxt) congs @
+    ["Rewrite Rules:"] @ map (Thm.string_of_thm ctxt o #1) simps));
 
 
 (* Rewriting with conditionals *)

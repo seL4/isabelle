@@ -186,8 +186,8 @@ fun forward_res ctxt nf st =
       | tacf prems =
         error (cat_lines
           ("Bad proof state in forward_res, please inform lcp@cl.cam.ac.uk:" ::
-            Display.string_of_thm ctxt st ::
-            "Premises:" :: map (Display.string_of_thm ctxt) prems))
+            Thm.string_of_thm ctxt st ::
+            "Premises:" :: map (Thm.string_of_thm ctxt) prems))
   in
     case Seq.pull (ALLGOALS (Misc_Legacy.METAHYPS ctxt tacf) st) of
       SOME (th, _) => th
@@ -395,7 +395,7 @@ fun cnf old_skolem_ths ctxt (th, ths) =
       val cls =
         if has_too_many_clauses ctxt (Thm.concl_of th) then
           (trace_msg ctxt (fn () =>
-               "cnf is ignoring: " ^ Display.string_of_thm ctxt th); ths)
+               "cnf is ignoring: " ^ Thm.string_of_thm ctxt th); ths)
         else
           cnf_aux (th, ths)
   in (cls, !ctxt_ref) end
@@ -652,7 +652,7 @@ fun try_skolemize_etc ctxt th =
                                |> tap (fn NONE =>
                                           trace_msg ctxt (fn () =>
                                               "Failed to skolemize " ^
-                                               Display.string_of_thm ctxt th)
+                                               Thm.string_of_thm ctxt th)
                                         | _ => ()))
   end
 
@@ -751,8 +751,8 @@ fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON all_tac (make_clauses ctxt)
           val horns = make_horns (cls @ ths)
           val _ = trace_msg ctxt (fn () =>
             cat_lines ("meson method called:" ::
-              map (Display.string_of_thm ctxt) (cls @ ths) @
-              ["clauses:"] @ map (Display.string_of_thm ctxt) horns))
+              map (Thm.string_of_thm ctxt) (cls @ ths) @
+              ["clauses:"] @ map (Thm.string_of_thm ctxt) horns))
         in
           THEN_ITER_DEEPEN iter_deepen_limit
             (resolve_tac ctxt goes 1) (has_fewer_prems 1) (prolog_step_tac' ctxt horns)

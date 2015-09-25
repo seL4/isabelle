@@ -65,7 +65,7 @@ sig
   val is_pretty_global: Proof.context -> bool
   val set_pretty_global: bool -> Proof.context -> Proof.context
   val init_pretty_global: theory -> Proof.context
-  val init_pretty: Context.pretty -> Proof.context
+  val init_pretty: Context.generic -> Proof.context
   val pretty_term_global: theory -> term -> Pretty.T
   val pretty_typ_global: theory -> typ -> Pretty.T
   val pretty_sort_global: theory -> sort -> Pretty.T
@@ -324,7 +324,7 @@ val pretty_global =
 fun is_pretty_global ctxt = Config.get ctxt pretty_global;
 val set_pretty_global = Config.put pretty_global;
 val init_pretty_global = set_pretty_global true o Proof_Context.init_global;
-val init_pretty = Context.pretty_context init_pretty_global;
+val init_pretty = Context.cases init_pretty_global I;
 
 val pretty_term_global = pretty_term o init_pretty_global;
 val pretty_typ_global = pretty_typ o init_pretty_global;

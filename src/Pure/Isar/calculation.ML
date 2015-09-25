@@ -41,7 +41,7 @@ val get_rules = #1 o Data.get o Context.Proof;
 
 fun print_rules ctxt =
   let
-    val pretty_thm = Display.pretty_thm_item ctxt;
+    val pretty_thm = Thm.pretty_thm_item ctxt;
     val (trans, sym) = get_rules ctxt;
   in
    [Pretty.big_list "transitivity rules:" (map pretty_thm (Item_Net.content trans)),
@@ -137,8 +137,8 @@ fun maintain_calculation int final calc state =
 fun calculate prep_rules final raw_rules int state =
   let
     val ctxt = Proof.context_of state;
-    val pretty_thm = Display.pretty_thm ctxt;
-    val pretty_thm_item = Display.pretty_thm_item ctxt;
+    val pretty_thm = Thm.pretty_thm ctxt;
+    val pretty_thm_item = Thm.pretty_thm_item ctxt;
 
     val strip_assums_concl = Logic.strip_assums_concl o Thm.prop_of;
     val eq_prop = op aconv o apply2 (Envir.beta_eta_contract o strip_assums_concl);

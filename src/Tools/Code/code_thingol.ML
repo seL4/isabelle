@@ -396,7 +396,7 @@ fun translation_error ctxt permissive some_thm deps msg sub_msg =
   else
     let
       val thm_msg =
-        Option.map (fn thm => "in code equation " ^ Display.string_of_thm ctxt thm) some_thm;
+        Option.map (fn thm => "in code equation " ^ Thm.string_of_thm ctxt thm) some_thm;
       val dep_msg = if null (tl deps) then NONE
         else SOME ("with dependency "
           ^ space_implode " -> " (map (Code_Symbol.quote ctxt) (rev deps)));
@@ -412,7 +412,7 @@ fun maybe_permissive f prgrm =
 
 fun not_wellsorted ctxt permissive some_thm deps ty sort e =
   let
-    val err_class = Sorts.class_error (Context.pretty ctxt) e;
+    val err_class = Sorts.class_error (Context.Proof ctxt) e;
     val err_typ =
       "Type " ^ Syntax.string_of_typ ctxt ty ^ " not of sort " ^
         Syntax.string_of_sort ctxt sort;

@@ -154,7 +154,7 @@ text \<open>
 
 definition "quot = {{x. a \<sim> x}| a::'a::partial_equiv. True}"
 
-typedef 'a quot = "quot :: 'a::partial_equiv set set"
+typedef (overloaded) 'a quot = "quot :: 'a::partial_equiv set set"
   unfolding quot_def by blast
 
 lemma quotI [intro]: "{x. a \<sim> x} \<in> quot"

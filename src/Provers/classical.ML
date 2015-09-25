@@ -282,7 +282,7 @@ fun insert' w (nI, nE) = insert_tagged_list o tag_brls' w (~(nI + nE)) o joinrul
 fun delete_tagged_list rls = fold_rev Tactic.delete_tagged_brl rls;
 fun delete x = delete_tagged_list (joinrules x);
 
-fun bad_thm ctxt msg th = error (msg ^ "\n" ^ Display.string_of_thm ctxt th);
+fun bad_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
 
 fun make_elim ctxt th =
   if has_fewer_prems 1 th then bad_thm ctxt "Ill-formed destruction rule" th
@@ -290,7 +290,7 @@ fun make_elim ctxt th =
 
 fun warn_thm ctxt msg th =
   if Context_Position.is_really_visible ctxt
-  then warning (msg ^ Display.string_of_thm ctxt th) else ();
+  then warning (msg ^ Thm.string_of_thm ctxt th) else ();
 
 fun warn_rules ctxt msg rules (r: rule) =
   Item_Net.member rules r andalso (warn_thm ctxt msg (#1 r); true);
@@ -634,7 +634,7 @@ fun put_claset cs = map_claset (K cs);
 fun print_claset ctxt =
   let
     val {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers, ...} = rep_claset_of ctxt;
-    val pretty_thms = map (Display.pretty_thm_item ctxt o #1) o Item_Net.content;
+    val pretty_thms = map (Thm.pretty_thm_item ctxt o #1) o Item_Net.content;
   in
     [Pretty.big_list "safe introduction rules (intro!):" (pretty_thms safeIs),
       Pretty.big_list "introduction rules (intro):" (pretty_thms unsafeIs),

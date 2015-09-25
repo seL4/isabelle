@@ -599,7 +599,7 @@ fun resort_terms ctxt algebra consts constraints ts =
               fold2 (curry (Sorts.meet_sort algebra)) (Consts.typargs consts c_ty) sorts)
       | matchings _ = I;
     val tvartab = (fold o fold_aterms) matchings ts Vartab.empty
-      handle Sorts.CLASS_ERROR e => error (Sorts.class_error (Context.pretty ctxt) e);
+      handle Sorts.CLASS_ERROR e => error (Sorts.class_error (Context.Proof ctxt) e);
     val inst = map_type_tvar
       (fn (vi, sort) => TVar (vi, the_default sort (Vartab.lookup tvartab vi)));
   in if Vartab.is_empty tvartab then ts else (map o map_types) inst ts end;
@@ -657,7 +657,7 @@ fun instantiation (tycos, vs, sort) thy =
     val primary_constraints = map (apsnd
       (map_atyps (K (TVar ((Name.aT, 0), [])))) o snd o snd) class_params;
     val algebra = Sign.classes_of thy
-      |> fold (fn tyco => Sorts.add_arities (Context.pretty_global thy)
+      |> fold (fn tyco => Sorts.add_arities (Context.Theory thy)
             (tyco, map (fn class => (class, map snd vs)) sort)) tycos;
     val consts = Sign.consts_of thy;
     val improve_constraints = AList.lookup (op =)

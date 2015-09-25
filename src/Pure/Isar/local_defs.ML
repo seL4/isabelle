@@ -176,7 +176,7 @@ structure Rules = Generic_Data
 
 fun print_rules ctxt =
   Pretty.writeln (Pretty.big_list "definitional rewrite rules:"
-    (map (Display.pretty_thm_item ctxt) (Rules.get (Context.Proof ctxt))));
+    (map (Thm.pretty_thm_item ctxt) (Rules.get (Context.Proof ctxt))));
 
 val defn_add = Thm.declaration_attribute (Rules.map o Thm.add_thm o Thm.trim_context);
 val defn_del = Thm.declaration_attribute (Rules.map o Thm.del_thm o Thm.trim_context);

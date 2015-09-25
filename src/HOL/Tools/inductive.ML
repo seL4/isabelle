@@ -236,7 +236,7 @@ fun print_inductives verbose ctxt =
         (Pretty.str "(co)inductives:" ::
           map (Pretty.mark_str o #1)
             (Name_Space.markup_entries verbose ctxt space (Symtab.dest infos)))),
-     Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm_item ctxt) monos)]
+     Pretty.big_list "monotonicity rules:" (map (Thm.pretty_thm_item ctxt) monos)]
   end |> Pretty.writeln_chunks;
 
 
@@ -269,7 +269,7 @@ fun mk_mono ctxt thm =
       dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
         (resolve_tac ctxt [@{thm le_funI}, @{thm le_boolI'}])) thm))
     | _ => thm)
-  end handle THM _ => error ("Bad monotonicity theorem:\n" ^ Display.string_of_thm ctxt thm);
+  end handle THM _ => error ("Bad monotonicity theorem:\n" ^ Thm.string_of_thm ctxt thm);
 
 val mono_add =
   Thm.declaration_attribute (fn thm => fn context =>

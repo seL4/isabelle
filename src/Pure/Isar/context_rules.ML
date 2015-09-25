@@ -121,7 +121,7 @@ fun print_rules ctxt =
     fun prt_kind (i, b) =
       Pretty.big_list ((the o AList.lookup (op =) kind_names) (i, b) ^ ":")
         (map_filter (fn (_, (k, th)) =>
-            if k = (i, b) then SOME (Display.pretty_thm_item ctxt th) else NONE)
+            if k = (i, b) then SOME (Thm.pretty_thm_item ctxt th) else NONE)
           (sort (int_ord o apply2 fst) rules));
   in Pretty.writeln_chunks (map prt_kind rule_kinds) end;
 

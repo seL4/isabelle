@@ -72,7 +72,7 @@ fun NAMED ctxt name tac i st =
 fun pretty_goal ctxt thms t =
   [Pretty.block [Pretty.str "proposition: ", Syntax.pretty_term ctxt t]]
   |> not (null thms) ? cons (Pretty.big_list "assumptions:"
-       (map (Display.pretty_thm ctxt) thms))
+       (map (Thm.pretty_thm ctxt) thms))
 
 fun try_apply ctxt thms =
   let
