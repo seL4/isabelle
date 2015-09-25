@@ -197,6 +197,13 @@ INCOMPATIBILITY in exotic situations.
 
 *** HOL ***
 
+* The 'typedef' command has been upgraded from a partially checked
+"axiomatization", to a full definitional specification that takes the
+global collection of overloaded constant / type definitions into
+account. Type definitions with open dependencies on overloaded
+definitions need to be specified as "typedef (overloaded)". This
+provides extra robustness in theory construction. Rare INCOMPATIBILITY.
+
 * Qualification of various formal entities in the libraries is done more
 uniformly via "context begin qualified definition ... end" instead of
 old-style "hide_const (open) ...". Consequently, both the defined
