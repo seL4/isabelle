@@ -38,15 +38,15 @@ sig
   val minimize_sort: algebra -> sort -> sort
   val complete_sort: algebra -> sort -> sort
   val minimal_sorts: algebra -> sort list -> sort Ord_List.T
-  val add_class: Context.pretty -> class * class list -> algebra -> algebra
-  val add_classrel: Context.pretty -> class * class -> algebra -> algebra
-  val add_arities: Context.pretty -> string * (class * sort list) list -> algebra -> algebra
+  val add_class: Context.generic -> class * class list -> algebra -> algebra
+  val add_classrel: Context.generic -> class * class -> algebra -> algebra
+  val add_arities: Context.generic -> string * (class * sort list) list -> algebra -> algebra
   val empty_algebra: algebra
-  val merge_algebra: Context.pretty -> algebra * algebra -> algebra
-  val subalgebra: Context.pretty -> (class -> bool) -> (class * string -> sort list option)
+  val merge_algebra: Context.generic -> algebra * algebra -> algebra
+  val subalgebra: Context.generic -> (class -> bool) -> (class * string -> sort list option)
     -> algebra -> (sort -> sort) * algebra
   type class_error
-  val class_error: Context.pretty -> class_error -> string
+  val class_error: Context.generic -> class_error -> string
   exception CLASS_ERROR of class_error
   val has_instance: algebra -> string -> sort -> bool
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)

@@ -29,7 +29,7 @@ fun gen_class_deps prep_sort ctxt bounds =
       Graph_Display.content_node (Name_Space.extern ctxt space c)
         (Class.pretty_specification (Proof_Context.theory_of ctxt) c);
   in
-    Sorts.subalgebra (Context.pretty ctxt) pred (K NONE) algebra
+    Sorts.subalgebra (Context.Proof ctxt) pred (K NONE) algebra
     |> #2 |> Sorts.classes_of |> Graph.dest
     |> map (fn ((c, _), ds) => ((c, node c), ds))
   end;

@@ -31,7 +31,6 @@ sig
   type theory_id
   val theory_id: theory -> theory_id
   val timing: bool Unsynchronized.ref
-  type pretty
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
   val theory_id_name: theory_id -> string
@@ -52,7 +51,7 @@ sig
   val subthy_id: theory_id * theory_id -> bool
   val subthy: theory * theory -> bool
   val finish_thy: theory -> theory
-  val begin_thy: (theory -> pretty) -> string -> theory list -> theory
+  val begin_thy: string -> theory list -> theory
   (*proof context*)
   val raw_transfer: theory -> Proof.context -> Proof.context
   (*certificate*)
@@ -77,11 +76,6 @@ sig
   val proof_map: (generic -> generic) -> Proof.context -> Proof.context
   val theory_of: generic -> theory  (*total*)
   val proof_of: generic -> Proof.context  (*total*)
-  (*pretty printing context*)
-  val pretty: Proof.context -> pretty
-  val pretty_global: theory -> pretty
-  val pretty_generic: generic -> pretty
-  val pretty_context: (theory -> Proof.context) -> pretty -> Proof.context
   (*thread data*)
   val thread_data: unit -> generic option
   val the_thread_data: unit -> generic
@@ -97,7 +91,7 @@ sig
   structure Theory_Data:
   sig
     val declare: Position.T -> Any.T -> (Any.T -> Any.T) ->
-      (pretty -> Any.T * Any.T -> Any.T) -> serial
+      (theory * theory -> Any.T * Any.T -> Any.T) -> serial
     val get: serial -> (Any.T -> 'a) -> theory -> 'a
     val put: serial -> ('a -> Any.T) -> 'a -> theory -> theory
   end
@@ -114,54 +108,8 @@ struct
 
 (*** theory context ***)
 
-(** theory data **)
-
-(* data kinds and access methods *)
-
-val timing = Unsynchronized.ref false;
-
 (*private copy avoids potential conflict of table exceptions*)
 structure Datatab = Table(type key = int val ord = int_ord);
-
-datatype pretty = Pretty of Any.T;
-
-local
-
-type kind =
- {pos: Position.T,
-  empty: Any.T,
-  extend: Any.T -> Any.T,
-  merge: pretty -> Any.T * Any.T -> Any.T};
-
-val kinds = Synchronized.var "Theory_Data" (Datatab.empty: kind Datatab.table);
-
-fun invoke name f k x =
-  (case Datatab.lookup (Synchronized.value kinds) k of
-    SOME kind =>
-      if ! timing andalso name <> "" then
-        Timing.cond_timeit true ("Theory_Data." ^ name ^ Position.here (#pos kind))
-          (fn () => f kind x)
-      else f kind x
-  | NONE => raise Fail "Invalid theory data identifier");
-
-in
-
-fun invoke_empty k = invoke "" (K o #empty) k ();
-val invoke_extend = invoke "extend" #extend;
-fun invoke_merge pp = invoke "merge" (fn kind => #merge kind pp);
-
-fun declare_theory_data pos empty extend merge =
-  let
-    val k = serial ();
-    val kind = {pos = pos, empty = empty, extend = extend, merge = merge};
-    val _ = Synchronized.change kinds (Datatab.update (k, kind));
-  in k end;
-
-val extend_data = Datatab.map invoke_extend;
-fun merge_data pp = Datatab.join (invoke_merge pp) o apply2 extend_data;
-
-end;
-
 
 
 (** datatype theory **)
@@ -288,6 +236,51 @@ val merge_ancestors = merge eq_thy_consistent;
 
 
 
+(** theory data **)
+
+(* data kinds and access methods *)
+
+val timing = Unsynchronized.ref false;
+
+local
+
+type kind =
+ {pos: Position.T,
+  empty: Any.T,
+  extend: Any.T -> Any.T,
+  merge: theory * theory -> Any.T * Any.T -> Any.T};
+
+val kinds = Synchronized.var "Theory_Data" (Datatab.empty: kind Datatab.table);
+
+fun invoke name f k x =
+  (case Datatab.lookup (Synchronized.value kinds) k of
+    SOME kind =>
+      if ! timing andalso name <> "" then
+        Timing.cond_timeit true ("Theory_Data." ^ name ^ Position.here (#pos kind))
+          (fn () => f kind x)
+      else f kind x
+  | NONE => raise Fail "Invalid theory data identifier");
+
+in
+
+fun invoke_empty k = invoke "" (K o #empty) k ();
+val invoke_extend = invoke "extend" #extend;
+fun invoke_merge thys = invoke "merge" (fn kind => #merge kind thys);
+
+fun declare_theory_data pos empty extend merge =
+  let
+    val k = serial ();
+    val kind = {pos = pos, empty = empty, extend = extend, merge = merge};
+    val _ = Synchronized.change kinds (Datatab.update (k, kind));
+  in k end;
+
+val extend_data = Datatab.map invoke_extend;
+fun merge_data thys = Datatab.join (invoke_merge thys) o apply2 extend_data;
+
+end;
+
+
+
 (** build theories **)
 
 (* primitives *)
@@ -325,12 +318,12 @@ end;
 
 local
 
-fun merge_thys pp (thy1, thy2) =
+fun merge_thys (thy1, thy2) =
   let
     val ids = merge_ids thy1 thy2;
     val history = make_history "" 0;
     val ancestry = make_ancestry [] [];
-    val data = merge_data (pp thy1) (data_of thy1, data_of thy2);
+    val data = merge_data (thy1, thy2) (data_of thy1, data_of thy2);
   in create_thy ids history ancestry data end;
 
 fun maximal_thys thys =
@@ -338,7 +331,7 @@ fun maximal_thys thys =
 
 in
 
-fun begin_thy pp name imports =
+fun begin_thy name imports =
   if name = "" then error ("Bad theory name: " ^ quote name)
   else
     let
@@ -351,7 +344,7 @@ fun begin_thy pp name imports =
         (case parents of
           [] => error "Missing theory imports"
         | [thy] => extend_thy thy
-        | thy :: thys => Library.foldl (merge_thys pp) (thy, thys));
+        | thy :: thys => Library.foldl merge_thys (thy, thys));
 
       val history = make_history name 0;
       val ancestry = make_ancestry parents ancestors;
@@ -498,17 +491,6 @@ val theory_of = cases I Proof_Context.theory_of;
 val proof_of = cases Proof_Context.init_global I;
 
 
-(* pretty printing context *)
-
-exception PRETTY of generic;
-
-val pretty_generic = Pretty o PRETTY;
-val pretty = pretty_generic o Proof;
-val pretty_global = pretty_generic o Theory;
-
-fun pretty_context init (Pretty (PRETTY context)) = cases init I context;
-
-
 
 (** thread data **)
 
@@ -551,12 +533,12 @@ open Basic_Context;
 
 (** theory data **)
 
-signature THEORY_DATA_PP_ARGS =
+signature THEORY_DATA'_ARGS =
 sig
   type T
   val empty: T
   val extend: T -> T
-  val merge: Context.pretty -> T * T -> T
+  val merge: theory * theory -> T * T -> T
 end;
 
 signature THEORY_DATA_ARGS =
@@ -575,7 +557,7 @@ sig
   val map: (T -> T) -> theory -> theory
 end;
 
-functor Theory_Data_PP(Data: THEORY_DATA_PP_ARGS): THEORY_DATA =
+functor Theory_Data'(Data: THEORY_DATA'_ARGS): THEORY_DATA =
 struct
 
 type T = Data.T;
@@ -586,7 +568,7 @@ val kind =
     (Position.thread_data ())
     (Data Data.empty)
     (fn Data x => Data (Data.extend x))
-    (fn pp => fn (Data x1, Data x2) => Data (Data.merge pp (x1, x2)));
+    (fn thys => fn (Data x1, Data x2) => Data (Data.merge thys (x1, x2)));
 
 val get = Context.Theory_Data.get kind (fn Data x => x);
 val put = Context.Theory_Data.put kind Data;
@@ -595,7 +577,7 @@ fun map f thy = put (f (get thy)) thy;
 end;
 
 functor Theory_Data(Data: THEORY_DATA_ARGS): THEORY_DATA =
-  Theory_Data_PP
+  Theory_Data'
   (
     type T = Data.T;
     val empty = Data.empty;

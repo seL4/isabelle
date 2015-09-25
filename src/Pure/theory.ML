@@ -64,7 +64,7 @@ datatype thy = Thy of
 fun make_thy (pos, id, axioms, defs, wrappers) =
   Thy {pos = pos, id = id, axioms = axioms, defs = defs, wrappers = wrappers};
 
-structure Thy = Theory_Data_PP
+structure Thy = Theory_Data'
 (
   type T = thy;
   val empty_axioms = Name_Space.empty_table "axiom" : term Name_Space.table;
@@ -73,13 +73,13 @@ structure Thy = Theory_Data_PP
   fun extend (Thy {pos = _, id = _, axioms = _, defs, wrappers}) =
     make_thy (Position.none, 0, empty_axioms, defs, wrappers);
 
-  fun merge pp (thy1, thy2) =
+  fun merge old_thys (thy1, thy2) =
     let
       val Thy {pos = _, id = _, axioms = _, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
       val Thy {pos = _, id = _, axioms = _, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
 
       val axioms' = empty_axioms;
-      val defs' = Defs.merge (Syntax.init_pretty pp, NONE) (defs1, defs2);
+      val defs' = Defs.merge (Defs.global_context (fst old_thys)) (defs1, defs2);
       val bgs' = Library.merge (eq_snd op =) (bgs1, bgs2);
       val ens' = Library.merge (eq_snd op =) (ens1, ens2);
     in make_thy (Position.none, 0, axioms', defs', (bgs', ens')) end;
@@ -164,7 +164,7 @@ fun begin_theory (name, pos) imports =
     | _ => error "Bad bootstrapping of theory Pure")
   else
     let
-      val thy = Context.begin_thy Context.pretty_global name imports;
+      val thy = Context.begin_thy name imports;
       val wrappers = begin_wrappers thy;
     in
       thy
@@ -249,7 +249,7 @@ fun add_deps context a raw_lhs raw_rhs thy =
   in thy |> map_defs (dependencies context false NONE description lhs rhs) end;
 
 fun add_deps_global a x y thy =
-  add_deps (Syntax.init_pretty_global thy, NONE) a x y thy;
+  add_deps (Defs.global_context thy) a x y thy;
 
 fun specify_const decl thy =
   let val (t, thy') = Sign.declare_const_global decl thy;

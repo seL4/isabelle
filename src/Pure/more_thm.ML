@@ -491,7 +491,7 @@ fun add_def (context as (ctxt, _)) unchecked overloaded (b, prop) thy =
   in ((axm_name, thm), thy') end;
 
 fun add_def_global unchecked overloaded arg thy =
-  add_def (Syntax.init_pretty_global thy, NONE) unchecked overloaded arg thy;
+  add_def (Defs.global_context thy) unchecked overloaded arg thy;
 
 
 

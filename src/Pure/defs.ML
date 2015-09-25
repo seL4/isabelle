@@ -13,6 +13,7 @@ sig
   val item_kind_ord: item_kind * item_kind -> order
   val plain_args: typ list -> bool
   type context = Proof.context * (Name_Space.T * Name_Space.T) option
+  val global_context: theory -> context
   val space: context -> item_kind -> Name_Space.T
   val pretty_item: context -> item -> Pretty.T
   val pretty_args: Proof.context -> typ list -> Pretty.T list
@@ -54,6 +55,8 @@ structure Itemtab = Table(type key = item val ord = prod_ord item_kind_ord fast_
 (* pretty printing *)
 
 type context = Proof.context * (Name_Space.T * Name_Space.T) option;
+
+fun global_context thy : context = (Syntax.init_pretty_global thy, NONE);
 
 fun space (ctxt, spaces) kind =
   (case (kind, spaces) of

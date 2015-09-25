@@ -62,7 +62,7 @@ sig
   val certify_sort: theory -> sort -> sort
   val certify_typ: theory -> typ -> typ
   val certify_typ_mode: Type.mode -> theory -> typ -> typ
-  val certify': bool -> Context.pretty -> bool -> Consts.T -> theory -> term -> term * typ * int
+  val certify': bool -> Context.generic -> bool -> Consts.T -> theory -> term -> term * typ * int
   val certify_term: theory -> term -> term * typ * int
   val cert_term: theory -> term -> term
   val cert_prop: theory -> term -> term
@@ -133,20 +133,20 @@ datatype sign = Sign of
 
 fun make_sign (syn, tsig, consts) = Sign {syn = syn, tsig = tsig, consts = consts};
 
-structure Data = Theory_Data_PP
+structure Data = Theory_Data'
 (
   type T = sign;
   fun extend (Sign {syn, tsig, consts, ...}) = make_sign (syn, tsig, consts);
 
   val empty = make_sign (Syntax.empty_syntax, Type.empty_tsig, Consts.empty);
 
-  fun merge pp (sign1, sign2) =
+  fun merge old_thys (sign1, sign2) =
     let
       val Sign {syn = syn1, tsig = tsig1, consts = consts1} = sign1;
       val Sign {syn = syn2, tsig = tsig2, consts = consts2} = sign2;
 
       val syn = Syntax.merge_syntax (syn1, syn2);
-      val tsig = Type.merge_tsig pp (tsig1, tsig2);
+      val tsig = Type.merge_tsig (Context.Theory (fst old_thys)) (tsig1, tsig2);
       val consts = Consts.merge (consts1, consts2);
     in make_sign (syn, tsig, consts) end;
 );
@@ -257,7 +257,7 @@ fun const_alias b c thy = map_consts (Consts.alias (naming_of thy) b c) thy;
 (* certify wrt. type signature *)
 
 val arity_number = Type.arity_number o tsig_of;
-fun arity_sorts thy = Type.arity_sorts (Context.pretty_global thy) (tsig_of thy);
+fun arity_sorts thy = Type.arity_sorts (Context.Theory thy) (tsig_of thy);
 
 val certify_class = Type.cert_class o tsig_of;
 val certify_sort = Type.cert_sort o tsig_of;
@@ -269,14 +269,14 @@ fun certify_typ_mode mode = Type.cert_typ_mode mode o tsig_of;
 
 local
 
-fun type_check pp tm =
+fun type_check context tm =
   let
     fun err_appl bs t T u U =
       let
         val xs = map Free bs;           (*we do not rename here*)
         val t' = subst_bounds (xs, t);
         val u' = subst_bounds (xs, u);
-        val msg = Type.appl_error (Syntax.init_pretty pp) t' T u' U;
+        val msg = Type.appl_error (Syntax.init_pretty context) t' T u' U;
       in raise TYPE (msg, [T, U], [t', u']) end;
 
     fun typ_of (_, Const (_, T)) = T
@@ -306,20 +306,19 @@ fun check_vars (t $ u) = (check_vars t; check_vars u)
 
 in
 
-fun certify' prop pp do_expand consts thy tm =
+fun certify' prop context do_expand consts thy tm =
   let
     val _ = check_vars tm;
     val tm' = Term.map_types (certify_typ thy) tm;
-    val T = type_check pp tm';
+    val T = type_check context tm';
     val _ = if prop andalso T <> propT then err "Term not of type prop" else ();
-    val tm'' = Consts.certify pp (tsig_of thy) do_expand consts tm';
+    val tm'' = Consts.certify context (tsig_of thy) do_expand consts tm';
   in (if tm = tm'' then tm else tm'', T, Term.maxidx_of_term tm'') end;
 
-fun certify_term thy = certify' false (Context.pretty_global thy) true (consts_of thy) thy;
-fun cert_term_abbrev thy =
-  #1 o certify' false (Context.pretty_global thy) false (consts_of thy) thy;
+fun certify_term thy = certify' false (Context.Theory thy) true (consts_of thy) thy;
+fun cert_term_abbrev thy = #1 o certify' false (Context.Theory thy) false (consts_of thy) thy;
 val cert_term = #1 oo certify_term;
-fun cert_prop thy = #1 o certify' true (Context.pretty_global thy) true (consts_of thy) thy;
+fun cert_prop thy = #1 o certify' true (Context.Theory thy) true (consts_of thy) thy;
 
 end;
 
@@ -474,10 +473,10 @@ fun primitive_class (bclass, classes) thy =
   |> add_consts [(Binding.map_name Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
 
 fun primitive_classrel arg thy =
-  thy |> map_tsig (Type.add_classrel (Context.pretty_global thy) arg);
+  thy |> map_tsig (Type.add_classrel (Context.Theory thy) arg);
 
 fun primitive_arity arg thy =
-  thy |> map_tsig (Type.add_arity (Context.pretty_global thy) arg);
+  thy |> map_tsig (Type.add_arity (Context.Theory thy) arg);
 
 
 (* add translation functions *)

@@ -82,25 +82,25 @@ fun make_data
   Data {axclasses = axclasses, params = params, proven_classrels = proven_classrels,
     proven_arities = proven_arities, inst_params = inst_params};
 
-structure Data = Theory_Data_PP
+structure Data = Theory_Data'
 (
   type T = data;
   val empty =
     make_data (Symtab.empty, [], Symreltab.empty, Symtab.empty, (Symtab.empty, Symtab.empty));
   val extend = I;
-  fun merge pp
+  fun merge old_thys
       (Data {axclasses = axclasses1, params = params1, proven_classrels = proven_classrels1,
         proven_arities = proven_arities1, inst_params = inst_params1},
        Data {axclasses = axclasses2, params = params2, proven_classrels = proven_classrels2,
         proven_arities = proven_arities2, inst_params = inst_params2}) =
     let
-      val ctxt = Syntax.init_pretty pp;
+      val old_ctxt = Syntax.init_pretty_global (fst old_thys);
 
       val axclasses' = Symtab.merge (K true) (axclasses1, axclasses2);
       val params' =
         if null params1 then params2
         else
-          fold_rev (fn p => if member (op =) params1 p then I else add_param ctxt p)
+          fold_rev (fn p => if member (op =) params1 p then I else add_param old_ctxt p)
             params2 params1;
 
       (*see Theory.at_begin hook for transitive closure of classrels and arity completion*)

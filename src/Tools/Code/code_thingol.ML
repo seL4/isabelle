@@ -412,7 +412,7 @@ fun maybe_permissive f prgrm =
 
 fun not_wellsorted ctxt permissive some_thm deps ty sort e =
   let
-    val err_class = Sorts.class_error (Context.pretty ctxt) e;
+    val err_class = Sorts.class_error (Context.Proof ctxt) e;
     val err_typ =
       "Type " ^ Syntax.string_of_typ ctxt ty ^ " not of sort " ^
         Syntax.string_of_sort ctxt sort;
