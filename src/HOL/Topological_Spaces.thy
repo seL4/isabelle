@@ -381,6 +381,17 @@ lemma at_within_open_NO_MATCH:
   "a \<in> s \<Longrightarrow> open s \<Longrightarrow> NO_MATCH UNIV s \<Longrightarrow> at a within s = at a"
   by (simp only: at_within_open)
 
+lemma at_within_nhd:
+  assumes "x \<in> S" "open S" "T \<inter> S - {x} = U \<inter> S - {x}"
+  shows "at x within T = at x within U"
+  unfolding filter_eq_iff eventually_at_filter
+proof (intro allI eventually_subst)
+  have "eventually (\<lambda>x. x \<in> S) (nhds x)"
+    using \<open>x \<in> S\<close> \<open>open S\<close> by (auto simp: eventually_nhds)
+  then show "\<forall>\<^sub>F n in nhds x. (n \<noteq> x \<longrightarrow> n \<in> T \<longrightarrow> P n) = (n \<noteq> x \<longrightarrow> n \<in> U \<longrightarrow> P n)" for P  
+    by eventually_elim (insert \<open>T \<inter> S - {x} = U \<inter> S - {x}\<close>, blast)
+qed
+
 lemma at_within_empty [simp]: "at a within {} = bot"
   unfolding at_within_def by simp
 
@@ -1574,7 +1585,7 @@ lemma continuous_at_split:
   "continuous (at (x::'a::linorder_topology)) f = (continuous (at_left x) f \<and> continuous (at_right x) f)"
   by (simp add: continuous_within filterlim_at_split)
 
-subsubsection\<open>Open-cover compactness\<close>
+subsubsection \<open>Open-cover compactness\<close>
 
 context topological_space
 begin

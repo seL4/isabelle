@@ -390,6 +390,9 @@ lemma frequently_const_iff: "frequently (\<lambda>x. P) F \<longleftrightarrow> 
 lemma frequently_const[simp]: "F \<noteq> bot \<Longrightarrow> frequently (\<lambda>x. P) F \<longleftrightarrow> P"
   by (simp add: frequently_const_iff)
 
+lemma eventually_happens: "eventually P net \<Longrightarrow> net = bot \<or> (\<exists>x. P x)"
+  by (metis frequentlyE eventually_frequently)
+
 abbreviation (input) trivial_limit :: "'a filter \<Rightarrow> bool"
   where "trivial_limit F \<equiv> F = bot"
 

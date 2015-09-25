@@ -313,6 +313,46 @@ lemma min_Liminf_at:
   apply (metis INF_absorb centre_in_ball)
   done
 
+lemma continuous_on_inverse_ereal: "continuous_on {0::ereal ..} inverse"
+  unfolding continuous_on_def
+proof clarsimp
+  fix x :: ereal assume "0 \<le> x"
+  moreover have "at 0 within {0 ..} = at_right (0::ereal)"
+    by (auto simp: filter_eq_iff eventually_at_filter le_less)
+  moreover have "0 < x \<Longrightarrow> at x within {0 ..} = at x"
+    using at_within_interior[of x "{0 ..}"] by (simp add: interior_Ici[of "- \<infinity>"])
+  ultimately show "(inverse ---> inverse x) (at x within {0..})"
+    by (auto simp: le_less inverse_ereal_tendsto_at_right_0 inverse_ereal_tendsto_pos)
+qed
+
+
+lemma Liminf_inverse_ereal:
+  assumes nneg: "\<forall>\<^sub>F x in F. f x \<ge> (0 :: ereal)" and "F \<noteq> bot"
+  shows "Liminf F (\<lambda>n. inverse (f n)) = inverse (Limsup F f)"
+proof -
+  def I \<equiv> "\<lambda>x::ereal. if x \<le> 0 then \<infinity> else inverse x"
+  have "Liminf F (\<lambda>n. I (f n)) = I (Limsup F f)"
+  proof (rule Liminf_compose_continuous_antimono)
+    have "continuous_on ({.. 0} \<union> {0 ..}) I"
+      unfolding I_def by (intro continuous_on_cases) (auto intro: continuous_on_const continuous_on_inverse_ereal)
+    also have "{.. 0} \<union> {0::ereal ..} = UNIV"
+      by auto
+    finally show "continuous_on UNIV I" .
+    show "antimono I"
+      unfolding antimono_def I_def by (auto intro: ereal_inverse_antimono)
+  qed fact
+  also have "Liminf F (\<lambda>n. I (f n)) = Liminf F (\<lambda>n. inverse (f n))"
+  proof (rule Liminf_eq)
+    show "\<forall>\<^sub>F x in F. I (f x) = inverse (f x)"
+      using nneg by eventually_elim (auto simp: I_def)
+  qed
+  also have "0 \<le> Limsup F f"
+    by (intro le_Limsup) fact+
+  then have "I (Limsup F f) = inverse (Limsup F f)"
+    by (auto simp: I_def)
+  finally show ?thesis .
+qed
+
 subsection \<open>monoset\<close>
 
 definition (in order) mono_set:

@@ -150,6 +150,17 @@ lemma Limsup_bounded:
   shows "Limsup F X \<le> C"
   using Limsup_mono[OF le] Limsup_const[OF ntriv, of C] by simp
 
+lemma le_Limsup:
+  assumes F: "F \<noteq> bot" and x: "\<forall>\<^sub>F x in F. l \<le> f x"
+  shows "l \<le> Limsup F f"
+proof -
+  have "l = Limsup F (\<lambda>x. l)"
+    using F by (simp add: Limsup_const)
+  also have "\<dots> \<le> Limsup F f"
+    by (intro Limsup_mono x) 
+  finally show ?thesis .
+qed
+
 lemma le_Liminf_iff:
   fixes X :: "_ \<Rightarrow> _ :: complete_linorder"
   shows "C \<le> Liminf F X \<longleftrightarrow> (\<forall>y<C. eventually (\<lambda>x. y < X x) F)"
@@ -306,6 +317,35 @@ proof-
       using seq_suble[OF \<open>subseq r\<close>, of m] by (intro bexI[of _ "r m"]) auto
   qed
   then show ?thesis by (auto intro!: INF_mono simp: limsup_INF_SUP comp_def)
+qed
+
+lemma continuous_on_imp_continuous_within: "continuous_on s f \<Longrightarrow> t \<subseteq> s \<Longrightarrow> x \<in> s \<Longrightarrow> continuous (at x within t) f"
+  unfolding continuous_on_eq_continuous_within by (auto simp: continuous_within intro: tendsto_within_subset)
+
+lemma Liminf_compose_continuous_antimono:
+  fixes f :: "'a::{complete_linorder, linorder_topology} \<Rightarrow> 'b::{complete_linorder, linorder_topology}"
+  assumes c: "continuous_on UNIV f" and am: "antimono f" and F: "F \<noteq> bot"
+  shows "Liminf F (\<lambda>n. f (g n)) = f (Limsup F g)"
+proof -
+  { fix P assume "eventually P F"
+    have "\<exists>x. P x"
+    proof (rule ccontr)
+      assume "\<not> (\<exists>x. P x)" then have "P = (\<lambda>x. False)"
+        by auto
+      with \<open>eventually P F\<close> F show False
+        by auto
+    qed }
+  note * = this
+
+  have "f (Limsup F g) = (SUP P : {P. eventually P F}. f (Sup (g ` Collect P)))"
+    unfolding Limsup_def INF_def
+    by (subst continuous_at_Inf_antimono[OF am continuous_on_imp_continuous_within[OF c]])
+       (auto intro: eventually_True)
+  also have "\<dots> = (SUP P : {P. eventually P F}. INFIMUM (g ` Collect P) f)"
+    by (intro SUP_cong refl continuous_at_Sup_antimono[OF am continuous_on_imp_continuous_within[OF c]])
+       (auto dest!: eventually_happens simp: F)
+  finally show ?thesis
+    by (auto simp: Liminf_def)
 qed
 
 end

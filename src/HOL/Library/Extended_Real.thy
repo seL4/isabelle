@@ -1732,6 +1732,14 @@ lemma tendsto_uminus_ereal[tendsto_intros, simp, intro]: "(f ---> x) F \<Longrig
   apply (auto split: ereal.split simp: ereal_uminus_reorder) []
   done
 
+lemma at_infty_ereal_eq_at_top: "at \<infinity> = filtermap ereal at_top"
+  unfolding filter_eq_iff eventually_at_filter eventually_at_top_linorder eventually_filtermap
+    top_ereal_def[symmetric]
+  apply (subst eventually_nhds_top[of 0])
+  apply (auto simp: top_ereal_def less_le ereal_all_split ereal_ex_split)
+  apply (metis PInfty_neq_ereal(2) ereal_less_eq(3) ereal_top le_cases order_trans)
+  done
+
 lemma ereal_Lim_uminus: "(f ---> f0) net \<longleftrightarrow> ((\<lambda>x. - f x::ereal) ---> - f0) net"
   using tendsto_uminus_ereal[of f f0 net] tendsto_uminus_ereal[of "\<lambda>x. - f x" "- f0" net]
   by auto
@@ -3588,6 +3596,34 @@ lemma ereal_tendsto_simps2:
   "((ereal \<circ> f) ---> -\<infinity>) F \<longleftrightarrow> (LIM x F. f x :> at_bot)"
   unfolding tendsto_PInfty filterlim_at_top_dense tendsto_MInfty filterlim_at_bot_dense
   using lim_ereal by (simp_all add: comp_def)
+
+lemma inverse_infty_ereal_tendsto_0: "inverse -- \<infinity> --> (0::ereal)"
+proof -
+  have **: "((\<lambda>x. ereal (inverse x)) ---> ereal 0) at_infinity"
+    by (intro tendsto_intros tendsto_inverse_0)
+  
+  show ?thesis
+    by (simp add: at_infty_ereal_eq_at_top tendsto_compose_filtermap[symmetric] comp_def)
+       (auto simp: eventually_at_top_linorder exI[of _ 1] zero_ereal_def at_top_le_at_infinity
+             intro!: filterlim_mono_eventually[OF **])
+qed
+
+lemma inverse_ereal_tendsto_pos: 
+  fixes x :: ereal assumes "0 < x"
+  shows "inverse -- x --> inverse x"
+proof (cases x)
+  case (real r)
+  with `0 < x` have **: "(\<lambda>x. ereal (inverse x)) -- r --> ereal (inverse r)"
+    by (auto intro!: tendsto_inverse)
+  from real \<open>0 < x\<close> show ?thesis
+    by (auto simp: at_ereal tendsto_compose_filtermap[symmetric] eventually_at_filter
+             intro!: Lim_transform_eventually[OF _ **] t1_space_nhds)
+qed (insert \<open>0 < x\<close>, auto intro!: inverse_infty_ereal_tendsto_0)
+
+lemma inverse_ereal_tendsto_at_right_0: "(inverse ---> \<infinity>) (at_right (0::ereal))"
+  unfolding tendsto_compose_filtermap[symmetric] at_right_ereal zero_ereal_def
+  by (subst filterlim_cong[OF refl refl, where g="\<lambda>x. ereal (inverse x)"])
+     (auto simp: eventually_at_filter tendsto_PInfty_eq_at_top filterlim_inverse_at_top_right)
 
 lemmas ereal_tendsto_simps = ereal_tendsto_simps1 ereal_tendsto_simps2
 

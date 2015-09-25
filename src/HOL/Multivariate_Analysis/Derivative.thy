@@ -2200,17 +2200,34 @@ text \<open>Considering derivative @{typ "real \<Rightarrow> 'b::real_normed_vec
 
 definition "vector_derivative f net = (SOME f'. (f has_vector_derivative f') net)"
 
-lemma vector_derivative_unique_at:
-  assumes "(f has_vector_derivative f') (at x)"
-    and "(f has_vector_derivative f'') (at x)"
+lemma vector_derivative_unique_within:
+  assumes not_bot: "at x within s \<noteq> bot"
+    and f': "(f has_vector_derivative f') (at x within s)"
+    and f'': "(f has_vector_derivative f'') (at x within s)"
   shows "f' = f''"
 proof -
   have "(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')"
-    using assms [unfolded has_vector_derivative_def]
-    by (rule frechet_derivative_unique_at)
+  proof (rule frechet_derivative_unique_within)
+    show "\<forall>i\<in>Basis. \<forall>e>0. \<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> x + d *\<^sub>R i \<in> s"
+    proof clarsimp
+      fix e :: real assume "0 < e"
+      with islimpt_approachable_real[of x s] not_bot
+      obtain x' where "x' \<in> s" "x' \<noteq> x" "\<bar>x' - x\<bar> < e"
+        by (auto simp add: trivial_limit_within)
+      then show "\<exists>d. d \<noteq> 0 \<and> \<bar>d\<bar> < e \<and> x + d \<in> s"
+        by (intro exI[of _ "x' - x"]) auto
+    qed
+  qed (insert f' f'', auto simp: has_vector_derivative_def)
   then show ?thesis
     unfolding fun_eq_iff by auto
 qed
+
+lemma vector_derivative_unique_at:
+  "(f has_vector_derivative f') (at x) \<Longrightarrow> (f has_vector_derivative f'') (at x) \<Longrightarrow> f' = f''"
+  by (rule vector_derivative_unique_within) auto
+
+lemma differentiableI_vector: "(f has_vector_derivative y) F \<Longrightarrow> f differentiable F"
+  by (auto simp: differentiable_def has_vector_derivative_def)
 
 lemma vector_derivative_works:
   "f differentiable net \<longleftrightarrow> (f has_vector_derivative (vector_derivative f net)) net"
@@ -2226,38 +2243,44 @@ proof
     by (rule someI[of _ "f' 1"]) (simp add: scaleR[symmetric] f')
 qed (auto simp: vector_derivative_def has_vector_derivative_def differentiable_def)
 
-lemma vector_derivative_unique_within_closed_interval:
-  assumes "a < b"
-    and "x \<in> cbox a b"
-  assumes "(f has_vector_derivative f') (at x within cbox a b)"
-  assumes "(f has_vector_derivative f'') (at x within cbox a b)"
-  shows "f' = f''"
-proof -
-  have *: "(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')"
-    apply (rule frechet_derivative_unique_within_closed_interval[of "a" "b"])
-    using assms(3-)[unfolded has_vector_derivative_def]
-    using assms(1-2)
-    apply auto
-    done
-  show ?thesis
-  proof (rule ccontr)
-    assume **: "f' \<noteq> f''"
-    with * have "(\<lambda>x. x *\<^sub>R f') 1 = (\<lambda>x. x *\<^sub>R f'') 1"
-      by (auto simp: fun_eq_iff)
-    with ** show False
-      unfolding o_def by auto
-  qed
+lemma vector_derivative_within:
+  assumes not_bot: "at x within s \<noteq> bot" and y: "(f has_vector_derivative y) (at x within s)"
+  shows "vector_derivative f (at x within s) = y"
+  using y
+  by (intro vector_derivative_unique_within[OF not_bot vector_derivative_works[THEN iffD1] y])
+     (auto simp: differentiable_def has_vector_derivative_def)
+
+lemma islimpt_closure_open:
+  fixes s :: "'a::perfect_space set"
+  assumes "open s" and t: "t = closure s" "x \<in> t"
+  shows "x islimpt t"
+proof cases
+  assume "x \<in> s" 
+  { fix T assume "x \<in> T" "open T"
+    then have "open (s \<inter> T)"
+      using \<open>open s\<close> by auto
+    then have "s \<inter> T \<noteq> {x}"
+      using not_open_singleton[of x] by auto
+    with \<open>x \<in> T\<close> \<open>x \<in> s\<close> have "\<exists>y\<in>t. y \<in> T \<and> y \<noteq> x"
+      using closure_subset[of s] by (auto simp: t) }
+  then show ?thesis
+    by (auto intro!: islimptI)
+next
+  assume "x \<notin> s" with t show ?thesis
+    unfolding t closure_def by (auto intro: islimpt_subset)
 qed
+
+lemma vector_derivative_unique_within_closed_interval:
+  assumes ab: "a < b" "x \<in> cbox a b"
+  assumes D: "(f has_vector_derivative f') (at x within cbox a b)" "(f has_vector_derivative f'') (at x within cbox a b)"
+  shows "f' = f''"
+  using ab
+  by (intro vector_derivative_unique_within[OF _ D])
+     (auto simp: trivial_limit_within intro!: islimpt_closure_open[where s="{a <..< b}"])
 
 lemma vector_derivative_at:
   "(f has_vector_derivative f') (at x) \<Longrightarrow> vector_derivative f (at x) = f'"
-  apply (rule vector_derivative_unique_at)
-  defer
-  apply assumption
-  unfolding vector_derivative_works[symmetric] differentiable_def
-  unfolding has_vector_derivative_def
-  apply auto
-  done
+  by (intro vector_derivative_within at_neq_bot)
 
 lemma has_vector_derivative_id_at [simp]: "vector_derivative (\<lambda>x. x) (at a) = 1"
   by (simp add: vector_derivative_at)
@@ -2292,15 +2315,12 @@ apply (auto simp: vector_derivative_works has_vector_derivative_def has_field_de
 done
 
 lemma vector_derivative_within_closed_interval:
-  assumes "a < b"
-    and "x \<in> cbox a b"
-  assumes "(f has_vector_derivative f') (at x within cbox a b)"
+  assumes ab: "a < b" "x \<in> cbox a b"
+  assumes f: "(f has_vector_derivative f') (at x within cbox a b)"
   shows "vector_derivative f (at x within cbox a b) = f'"
-  apply (rule vector_derivative_unique_within_closed_interval)
-  using vector_derivative_works[unfolded differentiable_def]
-  using assms
-  apply (auto simp add:has_vector_derivative_def)
-  done
+  by (intro vector_derivative_unique_within_closed_interval[OF ab _ f]
+            vector_derivative_works[THEN iffD1] differentiableI_vector)
+     fact
 
 lemma has_vector_derivative_within_subset:
   "(f has_vector_derivative f') (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_vector_derivative f') (at x within t)"

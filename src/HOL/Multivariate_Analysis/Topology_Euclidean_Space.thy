@@ -1551,6 +1551,43 @@ proof (rule interior_unique)
   qed
 qed
 
+lemma interior_Ici:
+  fixes x :: "'a :: {dense_linorder, linorder_topology}"
+  assumes "b < x"
+  shows "interior { x ..} = { x <..}"
+proof (rule interior_unique)
+  fix T assume "T \<subseteq> {x ..}" "open T"
+  moreover have "x \<notin> T"
+  proof
+    assume "x \<in> T"
+    obtain y where "y < x" "{y <.. x} \<subseteq> T"
+      using open_left[OF \<open>open T\<close> \<open>x \<in> T\<close> \<open>b < x\<close>] by auto
+    with dense[OF \<open>y < x\<close>] obtain z where "z \<in> T" "z < x"
+      by (auto simp: subset_eq Ball_def)
+    with \<open>T \<subseteq> {x ..}\<close> show False by auto
+  qed
+  ultimately show "T \<subseteq> {x <..}"
+    by (auto simp: subset_eq less_le)
+qed auto
+
+lemma interior_Iic:
+  fixes x :: "'a :: {dense_linorder, linorder_topology}"
+  assumes "x < b"
+  shows "interior {.. x} = {..< x}"
+proof (rule interior_unique)
+  fix T assume "T \<subseteq> {.. x}" "open T"
+  moreover have "x \<notin> T"
+  proof
+    assume "x \<in> T"
+    obtain y where "x < y" "{x ..< y} \<subseteq> T"
+      using open_right[OF \<open>open T\<close> \<open>x \<in> T\<close> \<open>x < b\<close>] by auto
+    with dense[OF \<open>x < y\<close>] obtain z where "z \<in> T" "x < z"
+      by (auto simp: subset_eq Ball_def less_le)
+    with \<open>T \<subseteq> {.. x}\<close> show False by auto
+  qed
+  ultimately show "T \<subseteq> {..< x}"
+    by (auto simp: subset_eq less_le)
+qed auto
 
 subsection \<open>Closure of a Set\<close>
 
@@ -1762,10 +1799,6 @@ lemma not_trivial_limit_within: "\<not> trivial_limit (at x within S) = (x \<in>
   by (metis trivial_limit_within)
 
 text \<open>Some property holds "sufficiently close" to the limit point.\<close>
-
-lemma eventually_happens: "eventually P net \<Longrightarrow> trivial_limit net \<or> (\<exists>x. P x)"
-  unfolding trivial_limit_def
-  by (auto elim: eventually_rev_mp)
 
 lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually P net"
   by simp
