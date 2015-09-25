@@ -460,21 +460,19 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val ((((((((([exh_y], (xss, xss')), yss), fs), gs), [h]), [u', v']), [w]), (p, p')),
-        names_lthy) =
+    val (((((((((exh_y, xss), yss), fs), gs), u), v), w), (p, p'))) =
       no_defs_lthy
-      |> mk_Frees "y" [fcT] (* for compatibility with "datatype_realizer.ML" *)
-      ||>> mk_Freess' "x" ctr_Tss
+      |> yield_singleton (mk_Frees "y") fcT (* for compatibility with "datatype_realizer.ML" *)
+      ||>> mk_Freess "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
-      ||>> mk_Frees "h" [B --> C]
-      ||>> (apfst (map (rpair fcT)) oo Variable.variant_fixes) [fc_b_name, fc_b_name ^ "'"]
-      ||>> mk_Frees "z" [B]
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT;
+      ||>> yield_singleton (mk_Frees fc_b_name) fcT
+      ||>> yield_singleton (mk_Frees (fc_b_name ^ "'")) fcT
+      ||>> yield_singleton (mk_Frees "z") B
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT
+      |> fst;
 
-    val u = Free u';
-    val v = Free v';
     val q = Free (fst p', mk_pred1T B);
 
     val xctrs = map2 (curry Term.list_comb) ctrs xss;
@@ -518,20 +516,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
     val casexC = mk_case As C case0;
     val casexBool = mk_case As HOLogic.boolT case0;
 
-    val fcase = Term.list_comb (casex, fs);
-
-    val ufcase = fcase $ u;
-    val vfcase = fcase $ v;
-
-    val eta_fcase = Term.list_comb (casex, eta_fs);
-    val eta_gcase = Term.list_comb (casex, eta_gs);
-
-    val eta_ufcase = eta_fcase $ u;
-    val eta_vgcase = eta_gcase $ v;
-
     fun mk_uu_eq () = HOLogic.mk_eq (u, u);
-
-    val uv_eq = mk_Trueprop_eq (u, v);
 
     val exist_xs_u_eq_ctrs =
       map2 (fn xctr => fn xs => list_exists_free xs (HOLogic.mk_eq (u, xctr))) xctrs xss;
@@ -685,6 +670,34 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     fun after_qed ([exhaust_thm] :: thmss) lthy =
       let
+        val ((((((((xss, xss'), fs), gs), h), (u, u')), v), p), names_lthy) =
+          lthy
+          |> mk_Freess' "x" ctr_Tss
+          ||>> mk_Frees "f" case_Ts
+          ||>> mk_Frees "g" case_Ts
+          ||>> yield_singleton (mk_Frees "h") (B --> C)
+          ||>> yield_singleton (apfst (op ~~) oo mk_Frees' fc_b_name) fcT
+          ||>> yield_singleton (mk_Frees (fc_b_name ^ "'")) fcT
+          ||>> yield_singleton (mk_Frees "P") HOLogic.boolT;
+
+        val xfs = map2 (curry Term.list_comb) fs xss;
+        val xgs = map2 (curry Term.list_comb) gs xss;
+
+        val fcase = Term.list_comb (casex, fs);
+    
+        val ufcase = fcase $ u;
+        val vfcase = fcase $ v;
+    
+        val eta_fcase = Term.list_comb (casex, eta_fs);
+        val eta_gcase = Term.list_comb (casex, eta_gs);
+    
+        val eta_ufcase = eta_fcase $ u;
+        val eta_vgcase = eta_gcase $ v;
+
+        fun mk_uu_eq () = HOLogic.mk_eq (u, u);
+    
+        val uv_eq = mk_Trueprop_eq (u, v);
+
         val ((inject_thms, inject_thmss), half_distinct_thmss) = chop n thmss |>> `flat;
 
         val rho_As =
@@ -743,8 +756,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
                mk_case_cong_tac ctxt uexhaust_thm case_thms),
              Goal.prove_sorry lthy [] [] weak_goal (fn {context = ctxt, prems = _} =>
                etac ctxt arg_cong 1))
-            |> apply2 (singleton (Proof_Context.export names_lthy lthy) #>
-              Thm.close_derivation)
+            |> apply2 (Thm.close_derivation #> singleton (Proof_Context.export names_lthy lthy))
           end;
 
         val split_lhs = q $ ufcase;

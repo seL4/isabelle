@@ -157,41 +157,18 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val sum_bdT = fst (dest_relT (fastype_of sum_bd));
     val (sum_bdT_params, sum_bdT_params') = `(map TFree) (Term.add_tfreesT sum_bdT []);
 
-    val ((((((((((((((((((((((((((((((((zs, zs'), zs_copy), zs_copy2), z's), (ys, ys')),
-      Bs), Bs_copy), B's), B''s), ss), sum_ss), s's), s''s), fs), fs_copy),
-      self_fs), gs), all_gs), xFs), yFs), yFs_copy), RFs), (Rtuple, Rtuple')),
-      (nat, nat')), Rs), Rs_copy), R's), sRs), (idx, idx')), Idx), Ris), names_lthy) = lthy
+    val ((((((((((zs, zs'), Bs), ss), fs), self_fs), all_gs), xFs), yFs), yFs_copy),
+        names_lthy) =
+      lthy
       |> mk_Frees' "b" activeAs
-      ||>> mk_Frees "b" activeAs
-      ||>> mk_Frees "b" activeAs
-      ||>> mk_Frees "b" activeBs
-      ||>> mk_Frees' "y" passiveAs
       ||>> mk_Frees "B" BTs
-      ||>> mk_Frees "B" BTs
-      ||>> mk_Frees "B'" B'Ts
-      ||>> mk_Frees "B''" B''Ts
       ||>> mk_Frees "s" sTs
-      ||>> mk_Frees "sums" sum_sTs
-      ||>> mk_Frees "s'" s'Ts
-      ||>> mk_Frees "s''" s''Ts
-      ||>> mk_Frees "f" fTs
       ||>> mk_Frees "f" fTs
       ||>> mk_Frees "f" self_fTs
-      ||>> mk_Frees "g" gTs
       ||>> mk_Frees "g" all_gTs
       ||>> mk_Frees "x" FTsAs
       ||>> mk_Frees "y" FTsBs
-      ||>> mk_Frees "y" FTsBs
-      ||>> mk_Frees "x" FRTs
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "Rtuple") all_sbisT
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "n") HOLogic.natT
-      ||>> mk_Frees "R" setRTs
-      ||>> mk_Frees "R" setRTs
-      ||>> mk_Frees "R'" setR'Ts
-      ||>> mk_Frees "R" setsRTs
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "i") idxT
-      ||>> yield_singleton (mk_Frees "I") (HOLogic.mk_setT idxT)
-      ||>> mk_Frees "Ri" (map (fn T => idxT --> T) setRTs);
+      ||>> mk_Frees "y" FTsBs;
 
     val passive_UNIVs = map HOLogic.mk_UNIV passiveAs;
     val passive_eqs = map HOLogic.eq_const passiveAs;
@@ -320,6 +297,14 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         Term.list_comb (Const (coalg, coalgT), args)
       end;
 
+    val((((((zs, zs'), Bs), B's), ss), s's), names_lthy) =
+      lthy
+      |> mk_Frees' "b" activeAs
+      ||>> mk_Frees "B" BTs
+      ||>> mk_Frees "B'" B'Ts
+      ||>> mk_Frees "s" sTs
+      ||>> mk_Frees "s'" s'Ts;
+
     val coalg_prem = HOLogic.mk_Trueprop (mk_coalg Bs ss);
 
     val coalg_in_thms = map (fn i =>
@@ -399,6 +384,25 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       in
         Term.list_comb (Const (mor, morT), args)
       end;
+
+    val (((((((((((((((zs, z's), Bs), Bs_copy), B's), B''s), ss), sum_ss), s's), s''s), fs),
+        fs_copy), gs), RFs), Rs), names_lthy) =
+      lthy
+      |> mk_Frees "b" activeAs
+      ||>> mk_Frees "b" activeBs
+      ||>> mk_Frees "B" BTs
+      ||>> mk_Frees "B" BTs
+      ||>> mk_Frees "B'" B'Ts
+      ||>> mk_Frees "B''" B''Ts
+      ||>> mk_Frees "s" sTs
+      ||>> mk_Frees "sums" sum_sTs
+      ||>> mk_Frees "s'" s'Ts
+      ||>> mk_Frees "s''" s''Ts
+      ||>> mk_Frees "f" fTs
+      ||>> mk_Frees "f" fTs
+      ||>> mk_Frees "g" gTs
+      ||>> mk_Frees "x" FRTs
+      ||>> mk_Frees "R" setRTs;
 
     val mor_prem = HOLogic.mk_Trueprop (mk_mor Bs ss B's s's fs);
 
@@ -550,6 +554,27 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         Term.list_comb (Const (bis, bisT), args)
       end;
 
+    val (((((((((((((((((zs, z's), Bs), B's), B''s), ss), s's), s''s), fs), (Rtuple, Rtuple')), Rs),
+        Rs_copy), R's), sRs), (idx, idx')), Idx), Ris), names_lthy) =
+      lthy
+      |> mk_Frees "b" activeAs
+      ||>> mk_Frees "b" activeBs
+      ||>> mk_Frees "B" BTs
+      ||>> mk_Frees "B'" B'Ts
+      ||>> mk_Frees "B''" B''Ts
+      ||>> mk_Frees "s" sTs
+      ||>> mk_Frees "s'" s'Ts
+      ||>> mk_Frees "s''" s''Ts
+      ||>> mk_Frees "f" fTs
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "Rtuple") all_sbisT
+      ||>> mk_Frees "R" setRTs
+      ||>> mk_Frees "R" setRTs
+      ||>> mk_Frees "R'" setR'Ts
+      ||>> mk_Frees "R" setsRTs
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "i") idxT
+      ||>> yield_singleton (mk_Frees "I") (HOLogic.mk_setT idxT)
+      ||>> mk_Frees "Ri" (map (fn T => idxT --> T) setRTs);
+
     val bis_cong_thm =
       let
         val prems = map HOLogic.mk_Trueprop
@@ -640,8 +665,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     fun mk_sbis Bs ss Rs = mk_bis Bs ss Bs ss Rs;
 
-    val sbis_prem = HOLogic.mk_Trueprop (mk_sbis Bs ss sRs);
-
     (* largest self-bisimulation *)
 
     val lsbis_binds = mk_internal_bs lsbisN;
@@ -678,6 +701,16 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       in
         Term.list_comb (Const (nth lsbiss (i - 1), lsbisT), args)
       end;
+
+    val (((((zs, zs'), Bs), ss), sRs), names_lthy) =
+      lthy
+      |> mk_Frees' "b" activeAs
+      ||>> mk_Frees "B" BTs
+      ||>> mk_Frees "s" sTs
+      ||>> mk_Frees "R" setsRTs;
+
+    val sbis_prem = HOLogic.mk_Trueprop (mk_sbis Bs ss sRs);
+    val coalg_prem = HOLogic.mk_Trueprop (mk_coalg Bs ss);
 
     val sbis_lsbis_thm =
       Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop (mk_sbis Bs ss (map (mk_lsbis Bs ss) ks)))
@@ -800,10 +833,15 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       Term.absfree z' (mk_InN activeAs z i)) ks zs zs');
     val rv_recT = fastype_of Nil;
 
-    val (((((((((((sumx, sumx'), (kks, kks')), (kl, kl')), (kl_copy, kl'_copy)), (Kl, Kl')),
-      (lab, lab')), (Kl_lab, Kl_lab')), xs), (Lev_rec, Lev_rec')), (rv_rec, rv_rec')),
-      names_lthy) = names_lthy
-      |> yield_singleton (apfst (op ~~) oo mk_Frees' "sumx") sum_sbdT
+    val (((((((((((((((zs, zs'), zs_copy), ss), (nat, nat')),
+        (sumx, sumx')), (kks, kks')), (kl, kl')), (kl_copy, kl'_copy)), (Kl, Kl')), (lab, lab')),
+        (Kl_lab, Kl_lab')), xs), (Lev_rec, Lev_rec')), (rv_rec, rv_rec')), _) =
+      lthy
+      |> mk_Frees' "b" activeAs
+      ||>> mk_Frees "b" activeAs
+      ||>> mk_Frees "s" sTs
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "n") HOLogic.natT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "sumx") sum_sbdT
       ||>> mk_Frees' "k" sbdTs
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "kl") sum_sbd_listT
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "kl") sum_sbd_listT
@@ -1093,6 +1131,15 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         Term.list_comb (Const (nth behs (i - 1), behT), ss)
       end;
 
+    val ((((((zs, zs_copy), zs_copy2), ss), (nat, nat')), (kl, kl')), names_lthy) =
+      lthy
+      |> mk_Frees "b" activeAs
+      ||>> mk_Frees "b" activeAs
+      ||>> mk_Frees "b" activeAs
+      ||>> mk_Frees "s" sTs
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "n") HOLogic.natT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "kl") sum_sbd_listT;
+
     val (length_Lev_thms, length_Lev'_thms) =
       let
         fun mk_conjunct i z = HOLogic.mk_imp (HOLogic.mk_mem (kl, mk_Lev ss nat i $ z),
@@ -1326,21 +1373,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
      HOLogic.mk_tuple (map (fn U => absdummy U empty) Ts)) emptys;
     val hrecTs = map fastype_of Zeros;
 
-    val (((((((((((((Jzs, Jzs'), Jz's), Jzs_copy), Jz's_copy), Jzs1), Jzs2),
-      TRs), unfold_fs), corec_ss), phis), dtor_set_induct_phiss), (hrecs, hrecs')),
-      names_lthy) = names_lthy
-      |> mk_Frees' "z" Ts
-      ||>> mk_Frees "y" Ts'
-      ||>> mk_Frees "z'" Ts
-      ||>> mk_Frees "y'" Ts'
-      ||>> mk_Frees "z1" Ts
-      ||>> mk_Frees "z2" Ts
-      ||>> mk_Frees "r" (map (mk_relT o `I) Ts)
-      ||>> mk_Frees "f" unfold_fTs
-      ||>> mk_Frees "s" corec_sTs
-      ||>> mk_Frees "P" (map2 mk_pred2T Ts Ts)
-      ||>> mk_Freess "P" (map (fn A => map (mk_pred2T A) Ts) passiveAs)
-      ||>> mk_Frees' "rec" hrecTs;
+    val (((zs, ss), (Jzs, Jzs')), _) =
+      lthy
+      |> mk_Frees "b" activeAs
+      ||>> mk_Frees "s" sTs
+      ||>> mk_Frees' "z" Ts;
 
     fun dtor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtorN ^ "_");
     val dtor_def_bind = rpair [] o Binding.concealed o Thm.def_binding o dtor_bind;
@@ -1417,6 +1454,13 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       (map fastype_of ss, domain_type (fastype_of (nth ss (i - 1))) --> nth Ts (i - 1))), ss);
     val unfold_defs = map (fn def =>
       mk_unabs_def (n + 1) (Morphism.thm phi def RS meta_eq_to_obj_eq)) unfold_def_frees;
+
+    val ((((ss, TRs), unfold_fs), corec_ss), names_lthy) =
+      lthy
+      |> mk_Frees "s" sTs
+      ||>> mk_Frees "r" (map (mk_relT o `I) Ts)
+      ||>> mk_Frees "f" unfold_fTs
+      ||>> mk_Frees "s" corec_sTs;
 
     val mor_unfold_thm =
       let
@@ -1552,7 +1596,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     fun corec_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtor_corecN ^ "_");
     val corec_def_bind = rpair [] o Binding.concealed o Thm.def_binding o corec_bind;
 
-    val corec_strs =
+    fun mk_corec_strs corec_ss =
       @{map 3} (fn dtor => fn sum_s => fn mapx =>
         mk_case_sum
           (HOLogic.mk_comp (Term.list_comb (mapx, passive_ids @ corec_Inls), dtor), sum_s))
@@ -1560,7 +1604,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     fun corec_spec i T AT =
       fold_rev (Term.absfree o Term.dest_Free) corec_ss
-        (HOLogic.mk_comp (mk_unfold Ts corec_strs i, Inr_const T AT));
+        (HOLogic.mk_comp (mk_unfold Ts (mk_corec_strs corec_ss) i, Inr_const T AT));
 
     val ((corec_frees, (_, corec_def_frees)), (lthy, lthy_old)) =
       lthy
@@ -1587,6 +1631,17 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val corec_defs = map (fn def =>
       mk_unabs_def n (Morphism.thm phi def RS meta_eq_to_obj_eq)) corec_def_frees;
 
+    val ((((((((zs, Jzs), Jzs_copy), Jzs1), Jzs2), unfold_fs), corec_ss), phis), names_lthy) =
+      lthy
+      |> mk_Frees "b" activeAs
+      ||>> mk_Frees "z" Ts
+      ||>> mk_Frees "z'" Ts
+      ||>> mk_Frees "z1" Ts
+      ||>> mk_Frees "z2" Ts
+      ||>> mk_Frees "f" unfold_fTs
+      ||>> mk_Frees "s" corec_sTs
+      ||>> mk_Frees "P" (map2 mk_pred2T Ts Ts);
+
     val case_sums =
       map2 (fn T => fn i => mk_case_sum (HOLogic.id_const T, mk_corec corec_ss i)) Ts ks;
     val dtor_corec_thms =
@@ -1612,7 +1667,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val corec_unique_mor_thm =
       let
         val id_fs = map2 (fn T => fn f => mk_case_sum (HOLogic.id_const T, f)) Ts unfold_fs;
-        val prem = HOLogic.mk_Trueprop (mk_mor corec_UNIVs corec_strs UNIVs dtors id_fs);
+        val prem = HOLogic.mk_Trueprop (mk_mor corec_UNIVs (mk_corec_strs corec_ss) UNIVs dtors id_fs);
         fun mk_fun_eq f i = HOLogic.mk_eq (f, mk_corec corec_ss i);
         val unique = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
           (map2 mk_fun_eq unfold_fs ks));
@@ -1684,13 +1739,15 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val sndsTsTs' = map snd_const prodTsTs';
     val activephiTs = map2 mk_pred2T activeAs activeBs;
     val activeJphiTs = map2 mk_pred2T Ts Ts';
-    val (((((Jphis, Jpsi1s), Jpsi2s), activephis), activeJphis), names_lthy) = names_lthy
-      |> mk_Frees "R" JphiTs
-      ||>> mk_Frees "R" Jpsi1Ts
-      ||>> mk_Frees "Q" Jpsi2Ts
-      ||>> mk_Frees "S" activephiTs
-      ||>> mk_Frees "JR" activeJphiTs;
+
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
+
+    val ((((Jzs, Jz's), Jphis), activeJphis), _) =
+      lthy
+      |> mk_Frees "z" Ts
+      ||>> mk_Frees "y" Ts'
+      ||>> mk_Frees "R" JphiTs
+      ||>> mk_Frees "JR" activeJphiTs;
 
     fun mk_Jrel_DEADID_coinduct_thm () =
       mk_xtor_rel_co_induct_thm Greatest_FP rels activeJphis (map HOLogic.eq_const Ts) Jphis
@@ -1710,17 +1767,14 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val gTs = map2 (curry op -->) passiveBs passiveCs;
         val uTs = map2 (curry op -->) Ts Ts';
-
-        val (((((((((fs, fs'), fs_copy), gs), us), (Jys, Jys')), (Jys_copy, Jys'_copy)),
-          (ys_copy, ys'_copy)), Kss), names_lthy) = names_lthy
-          |> mk_Frees' "f" fTs
+        val (((((((nat, nat'), (Jzs, Jzs')), (hrecs, hrecs')), (fs, fs')), fs_copy), gs), _) =
+          lthy
+          |> yield_singleton (apfst (op ~~) oo mk_Frees' "n") HOLogic.natT
+          ||>> mk_Frees' "z" Ts
+          ||>> mk_Frees' "rec" hrecTs
+          ||>> mk_Frees' "f" fTs
           ||>> mk_Frees "f" fTs
-          ||>> mk_Frees "g" gTs
-          ||>> mk_Frees "u" uTs
-          ||>> mk_Frees' "b" Ts'
-          ||>> mk_Frees' "b" Ts'
-          ||>> mk_Frees' "y" passiveAs
-          ||>> mk_Freess "K" (map (fn AT => map (fn T => T --> AT) Ts) ATs);;
+          ||>> mk_Frees "g" gTs;
 
         val map_FTFT's = map2 (fn Ds =>
           mk_map_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
@@ -1815,14 +1869,39 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         fun mk_Jrels As Bs = map (fn mk => mk deads As Bs) mk_Jrels_Ds;
 
         val Jmaps = mk_Jmaps passiveAs passiveBs;
+        val (Jsetss_by_range, Jsetss_by_bnf) = `transpose (mk_Jsetss passiveAs);
+
+        val timer = time (timer "bnf constants for the new datatypes");
+
+        val ((((((((((((((((((((ys, ys'), (nat, nat')), (Jzs, Jzs')), Jz's), Jzs_copy), Jz's_copy),
+            dtor_set_induct_phiss), Jphis), Jpsi1s), Jpsi2s), activeJphis), fs), fs_copy), gs), us),
+            (Jys, Jys')), (Jys_copy, Jys'_copy)), (ys_copy, ys'_copy)), Kss), names_lthy) =
+          lthy
+          |> mk_Frees' "y" passiveAs
+          ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "n") HOLogic.natT
+          ||>> mk_Frees' "z" Ts
+          ||>> mk_Frees "y" Ts'
+          ||>> mk_Frees "z'" Ts
+          ||>> mk_Frees "y'" Ts'
+          ||>> mk_Freess "P" (map (fn A => map (mk_pred2T A) Ts) passiveAs)
+          ||>> mk_Frees "R" JphiTs
+          ||>> mk_Frees "R" Jpsi1Ts
+          ||>> mk_Frees "Q" Jpsi2Ts
+          ||>> mk_Frees "JR" activeJphiTs
+          ||>> mk_Frees "f" fTs
+          ||>> mk_Frees "f" fTs
+          ||>> mk_Frees "g" gTs
+          ||>> mk_Frees "u" uTs
+          ||>> mk_Frees' "b" Ts'
+          ||>> mk_Frees' "b" Ts'
+          ||>> mk_Frees' "y" passiveAs
+          ||>> mk_Freess "K" (map (fn AT => map (fn T => T --> AT) Ts) ATs);
+
         val fs_Jmaps = map (fn m => Term.list_comb (m, fs)) Jmaps;
         val fs_copy_Jmaps = map (fn m => Term.list_comb (m, fs_copy)) Jmaps;
         val gs_Jmaps = map (fn m => Term.list_comb (m, gs)) (mk_Jmaps passiveBs passiveCs);
         val fgs_Jmaps = map (fn m => Term.list_comb (m, map2 (curry HOLogic.mk_comp) gs fs))
           (mk_Jmaps passiveAs passiveCs);
-        val (Jsetss_by_range, Jsetss_by_bnf) = `transpose (mk_Jsetss passiveAs);
-
-        val timer = time (timer "bnf constants for the new datatypes");
 
         val (dtor_Jmap_thms, Jmap_thms) =
           let
@@ -2181,7 +2260,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       val zipFTs = mk_FTs zip_ranTs;
       val zipTs = @{map 3} (fn T => fn T' => fn FT => T --> T' --> FT) Ts Ts' zipFTs;
       val zip_zTs = mk_Ts passiveABs;
-      val (((zips, (abs, abs')), (zip_zs, zip_zs')), names_lthy) = names_lthy
+      val (((zips, (abs, abs')), (zip_zs, zip_zs')), names_lthy) =
+        names_lthy
         |> mk_Frees "zip" zipTs
         ||>> mk_Frees' "ab" passiveABs
         ||>> mk_Frees' "z" zip_zTs;
@@ -2519,6 +2599,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           dtor_Jrel_thms, Jrel_coinduct_thm, Jbnf_common_notes @ Jbnf_notes, dtor_Jset_induct_thms,
           lthy)
       end;
+
+    val ((Jphis, activephis), _) =
+      lthy
+      |> mk_Frees "R" JphiTs
+      ||>> mk_Frees "S" activephiTs;
 
     val dtor_unfold_o_Jmap_thms = mk_xtor_un_fold_o_map_thms Greatest_FP false m
       dtor_unfold_unique_thm dtor_Jmap_o_thms (map (mk_pointfree lthy) dtor_unfold_thms)
