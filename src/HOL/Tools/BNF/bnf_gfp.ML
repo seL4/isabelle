@@ -445,7 +445,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           HOLogic.mk_Trueprop (mk_mor Bs ss B''s s''s (map2 (curry HOLogic.mk_comp) gs fs));
       in
         Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
-          (K (mk_mor_comp_tac lthy mor_def mor_image'_thms morE_thms map_comp_id_thms))
+          (fn {context = ctxt, prems = _} =>
+            mk_mor_comp_tac ctxt mor_def mor_image'_thms morE_thms map_comp_id_thms)
         |> Thm.close_derivation
         |> singleton (Proof_Context.export names_lthy lthy)
       end;
@@ -457,7 +458,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val concl = HOLogic.mk_Trueprop (mk_mor Bs ss B's s's fs_copy);
       in
         Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
-          (K ((hyp_subst_tac lthy THEN' assume_tac lthy) 1))
+          (fn {context = ctxt, prems = _} => (hyp_subst_tac ctxt THEN' assume_tac ctxt) 1)
         |> Thm.close_derivation
         |> singleton (Proof_Context.export names_lthy lthy)
       end;
@@ -597,7 +598,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           HOLogic.mk_Trueprop (mk_bis Bs ss B''s s''s (map2 (curry mk_rel_comp) Rs R's));
       in
         Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
-          (K (mk_bis_O_tac lthy m bis_rel_thm rel_congs le_rel_OOs))
+          (fn {context = ctxt, prems = _} => mk_bis_O_tac ctxt m bis_rel_thm rel_congs le_rel_OOs)
         |> Thm.close_derivation
         |> singleton (Proof_Context.export names_lthy lthy)
       end;
@@ -680,7 +681,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val sbis_lsbis_thm =
       Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop (mk_sbis Bs ss (map (mk_lsbis Bs ss) ks)))
-        (K (mk_sbis_lsbis_tac lthy lsbis_defs bis_Union_thm bis_cong_thm))
+        (fn {context = ctxt, prems = _} =>
+          mk_sbis_lsbis_tac ctxt lsbis_defs bis_Union_thm bis_cong_thm)
       |> Thm.close_derivation
       |> singleton (Proof_Context.export names_lthy lthy);
 
@@ -1102,7 +1104,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val length_Lev =
           Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop goal)
-            (K (mk_length_Lev_tac lthy cts Lev_0s Lev_Sucs))
+            (fn {context = ctxt, prems = _} => mk_length_Lev_tac ctxt cts Lev_0s Lev_Sucs)
           |> Thm.close_derivation
           |> singleton (Proof_Context.export names_lthy lthy);
 
@@ -1176,7 +1178,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val set_Lev =
           Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop goal)
-            (K (mk_set_Lev_tac lthy cts Lev_0s Lev_Sucs rv_Nils rv_Conss from_to_sbd_thmss))
+            (fn {context = ctxt, prems = _} =>
+              mk_set_Lev_tac ctxt cts Lev_0s Lev_Sucs rv_Nils rv_Conss from_to_sbd_thmss)
           |> Thm.close_derivation
           |> singleton (Proof_Context.export names_lthy lthy);
 
@@ -1215,8 +1218,9 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val set_image_Lev =
           Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop goal)
-            (K (mk_set_image_Lev_tac lthy cts Lev_0s Lev_Sucs rv_Nils rv_Conss
-              from_to_sbd_thmss to_sbd_inj_thmss))
+            (fn {context = ctxt, prems = _} =>
+              mk_set_image_Lev_tac ctxt cts Lev_0s Lev_Sucs rv_Nils rv_Conss
+                from_to_sbd_thmss to_sbd_inj_thmss)
           |> Thm.close_derivation
           |> singleton (Proof_Context.export names_lthy lthy);
 
@@ -2161,8 +2165,9 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               fn dtor_map => fn dtor_sets => fn dtor_inject => fn dtor_ctor =>
               fn set_map0s => fn dtor_set_incls => fn dtor_set_set_inclss =>
               Goal.prove_sorry lthy [] [] goal
-                (K (mk_dtor_rel_tac lthy in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_sets
-                  dtor_inject dtor_ctor set_map0s dtor_set_incls dtor_set_set_inclss))
+                (fn {context = ctxt, prems = _} =>
+                  mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_sets
+                    dtor_inject dtor_ctor set_map0s dtor_set_incls dtor_set_set_inclss)
               |> Thm.close_derivation
               |> singleton (Proof_Context.export names_lthy lthy))
             ks goals in_rels map_comps map_cong0s dtor_Jmap_thms dtor_Jset_thmss'

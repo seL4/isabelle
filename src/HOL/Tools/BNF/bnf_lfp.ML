@@ -298,7 +298,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       in
         map2 (fn goal => fn alg_set =>
           Goal.prove_sorry lthy [] [] goal
-            (K (mk_alg_not_empty_tac lthy alg_set alg_set_thms wit_thms))
+            (fn {context = ctxt, prems = _} =>
+              mk_alg_not_empty_tac ctxt alg_set alg_set_thms wit_thms)
           |> Thm.close_derivation
           |> singleton (Proof_Context.export names_lthy lthy))
         goals alg_set_thms
@@ -606,7 +607,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val monos =
           map2 (fn goal => fn min_algs =>
-            Goal.prove_sorry lthy [] [] goal (K (mk_min_algs_mono_tac lthy min_algs))
+            Goal.prove_sorry lthy [] [] goal
+              (fn {context = ctxt, prems = _} => mk_min_algs_mono_tac ctxt min_algs)
             |> Thm.close_derivation
             |> singleton (Proof_Context.export names_lthy lthy))
           (map mk_mono_goal min_algss) min_algs_thms;
@@ -1255,8 +1257,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val goal = Logic.list_implies (prems, concl);
       in
         (Goal.prove_sorry lthy [] [] goal
-          (K (mk_ctor_induct_tac lthy m set_mapss init_induct_thm morE_thms mor_Abs_thm
-            Rep_inverses Abs_inverses Reps))
+          (fn {context = ctxt, prems = _} => 
+            mk_ctor_induct_tac ctxt m set_mapss init_induct_thm morE_thms mor_Abs_thm
+            Rep_inverses Abs_inverses Reps)
         |> Thm.close_derivation
         |> singleton (Proof_Context.export names_lthy lthy),
         rev (Term.add_tfrees goal []))
@@ -1696,8 +1699,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               fn ctor_map => fn ctor_sets => fn ctor_inject => fn ctor_dtor =>
               fn set_map0s => fn ctor_set_incls => fn ctor_set_set_inclss =>
               Goal.prove_sorry lthy [] [] goal
-               (K (mk_ctor_rel_tac lthy in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_sets
-                 ctor_inject ctor_dtor set_map0s ctor_set_incls ctor_set_set_inclss))
+               (fn {context = ctxt, prems = _} =>
+                 mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_sets
+                   ctor_inject ctor_dtor set_map0s ctor_set_incls ctor_set_set_inclss)
               |> Thm.close_derivation
               |> singleton (Proof_Context.export names_lthy lthy))
             ks goals in_rels map_comps map_cong0s ctor_Imap_thms ctor_Iset_thmss'

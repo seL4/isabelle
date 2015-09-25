@@ -552,9 +552,10 @@ fun prepare_primrec plugins nonexhaustives transfers fixes specs lthy0 =
           |> map_filter (try (fn (x, [y]) =>
             (#user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
           |> map (fn (user_eqn, num_extra_args, rec_thm) =>
-              mk_primrec_tac lthy' num_extra_args fp_nesting_map_ident0s fp_nesting_map_comps
-                def_thms rec_thm
-              |> K |> Goal.prove_sorry lthy' [] [] user_eqn
+              Goal.prove_sorry lthy' [] [] user_eqn
+                (fn {context = ctxt, prems = _} =>
+                  mk_primrec_tac ctxt num_extra_args fp_nesting_map_ident0s fp_nesting_map_comps
+                    def_thms rec_thm)
               |> Thm.close_derivation);
       in
         ((js, simps), lthy')

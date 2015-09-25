@@ -739,7 +739,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
                  mk_Trueprop_eq (eta_ufcase, eta_vgcase));
             val weak_goal = Logic.mk_implies (uv_eq, mk_Trueprop_eq (ufcase, vfcase));
           in
-            (Goal.prove_sorry lthy [] [] goal (fn _ => mk_case_cong_tac lthy uexhaust_thm case_thms),
+            (Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+               mk_case_cong_tac ctxt uexhaust_thm case_thms),
              Goal.prove_sorry lthy [] [] weak_goal (fn {context = ctxt, prems = _} =>
                etac ctxt arg_cong 1))
             |> apply2 (singleton (Proof_Context.export names_lthy lthy) #>
@@ -762,8 +763,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
             (@{map 3} mk_split_disjunct xctrs xss xfs)));
 
         fun prove_split selss goal =
-          Goal.prove_sorry lthy [] [] goal (fn _ =>
-            mk_split_tac lthy ms uexhaust_thm case_thms selss inject_thmss distinct_thmsss)
+          Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+            mk_split_tac ctxt ms uexhaust_thm case_thms selss inject_thmss distinct_thmsss)
           |> singleton (Proof_Context.export names_lthy lthy)
           |> Thm.close_derivation;
 
@@ -976,8 +977,8 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   val uncollapse_thms =
                     map2 (fn thm => fn [] => thm | _ => thm RS sym) all_collapse_thms uselss;
                 in
-                  Goal.prove_sorry lthy [] [] goal (fn _ =>
-                    mk_expand_tac lthy n ms (inst_thm u exhaust_disc_thm)
+                  Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+                    mk_expand_tac ctxt n ms (inst_thm u exhaust_disc_thm)
                       (inst_thm v exhaust_disc_thm) uncollapse_thms distinct_disc_thmsss
                       distinct_disc_thmsss')
                   |> singleton (Proof_Context.export names_lthy lthy)

@@ -1258,8 +1258,9 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             val goal = fold_rev Logic.all (x :: x_copy :: fs @ fs_copy)
               (Logic.list_implies (prem0 :: prems, eq));
           in
-            Goal.prove_sorry lthy [] [] goal (K (unfold_thms_tac lthy @{thms simp_implies_def} THEN
-              mk_map_cong_tac lthy (#map_cong0 axioms)))
+            Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+              unfold_thms_tac ctxt @{thms simp_implies_def} THEN
+              mk_map_cong_tac ctxt (#map_cong0 axioms))
             |> Thm.close_derivation
           end;
 
