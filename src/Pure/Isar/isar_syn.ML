@@ -768,7 +768,7 @@ val _ =
   Outer_Syntax.command @{command_keyword print_theory}
     "print logical theory contents"
     (Parse.opt_bang >> (fn b =>
-      Toplevel.keep (Pretty.writeln o Proof_Display.pretty_full_theory b o Toplevel.theory_of)));
+      Toplevel.keep (Pretty.writeln o Proof_Display.pretty_theory b o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command @{command_keyword print_definitions}

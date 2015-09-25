@@ -13,9 +13,9 @@ sig
   val pp_ctyp: (unit -> theory) -> ctyp -> Pretty.T
   val pp_cterm: (unit -> theory) -> cterm -> Pretty.T
   val pretty_definitions: bool -> Proof.context -> Pretty.T
-  val pretty_theorems_diff: bool -> theory list -> theory -> Pretty.T list
-  val pretty_theorems: bool -> theory -> Pretty.T list
-  val pretty_full_theory: bool -> theory -> Pretty.T
+  val pretty_theorems_diff: bool -> theory list -> Proof.context -> Pretty.T list
+  val pretty_theorems: bool -> Proof.context -> Pretty.T list
+  val pretty_theory: bool -> Proof.context -> Pretty.T
   val string_of_rule: Proof.context -> string -> thm -> string
   val pretty_goal_header: thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
@@ -62,19 +62,97 @@ fun pp_cterm mk_thy ct = pp_term mk_thy (Thm.term_of ct);
 
 (* theorems and theory *)
 
-fun pretty_theorems_diff verbose prev_thys thy =
+fun pretty_theorems_diff verbose prev_thys ctxt =
   let
-    val pretty_fact = Proof_Context.pretty_fact (Proof_Context.init_global thy);
-    val facts = Global_Theory.facts_of thy;
+    val pretty_fact = Proof_Context.pretty_fact ctxt;
+    val facts = Global_Theory.facts_of (Proof_Context.theory_of ctxt);
     val thmss = Facts.dest_static verbose (map Global_Theory.facts_of prev_thys) facts;
     val prts = map #1 (sort_by (#1 o #2) (map (`pretty_fact) thmss));
   in if null prts then [] else [Pretty.big_list "theorems:" prts] end;
 
-fun pretty_theorems verbose thy =
-  pretty_theorems_diff verbose (Theory.parents_of thy) thy;
+fun pretty_theorems verbose ctxt =
+  pretty_theorems_diff verbose (Theory.parents_of (Proof_Context.theory_of ctxt)) ctxt;
 
-fun pretty_full_theory verbose thy =
-  Pretty.chunks (Display.pretty_full_theory verbose thy @ pretty_theorems verbose thy);
+fun pretty_theory verbose ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+
+    fun prt_cls c = Syntax.pretty_sort ctxt [c];
+    fun prt_sort S = Syntax.pretty_sort ctxt S;
+    fun prt_arity t (c, Ss) = Syntax.pretty_arity ctxt (t, Ss, [c]);
+    fun prt_typ ty = Pretty.quote (Syntax.pretty_typ ctxt ty);
+    val prt_typ_no_tvars = prt_typ o Logic.unvarifyT_global;
+    fun prt_term t = Pretty.quote (Syntax.pretty_term ctxt t);
+    val prt_term_no_vars = prt_term o Logic.unvarify_global;
+    fun prt_const (c, ty) = [Pretty.mark_str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
+
+    fun pretty_classrel (c, []) = prt_cls c
+      | pretty_classrel (c, cs) = Pretty.block
+          (prt_cls c :: Pretty.str " <" :: Pretty.brk 1 :: Pretty.commas (map prt_cls cs));
+
+    fun pretty_default S = Pretty.block
+      [Pretty.str "default sort:", Pretty.brk 1, prt_sort S];
+
+    val tfrees = map (fn v => TFree (v, []));
+    fun pretty_type syn (t, Type.LogicalType n) =
+          if syn then NONE
+          else SOME (prt_typ (Type (t, tfrees (Name.invent Name.context Name.aT n))))
+      | pretty_type syn (t, Type.Abbreviation (vs, U, syn')) =
+          if syn <> syn' then NONE
+          else SOME (Pretty.block
+            [prt_typ (Type (t, tfrees vs)), Pretty.str " =", Pretty.brk 1, prt_typ U])
+      | pretty_type syn (t, Type.Nonterminal) =
+          if not syn then NONE
+          else SOME (prt_typ (Type (t, [])));
+
+    val pretty_arities = maps (fn (t, ars) => map (prt_arity t) ars);
+
+    fun pretty_abbrev (c, (ty, t)) = Pretty.block
+      (prt_const (c, ty) @ [Pretty.str " ==", Pretty.brk 1, prt_term_no_vars t]);
+
+    fun pretty_axm (a, t) =
+      Pretty.block [Pretty.mark_str a, Pretty.str ":", Pretty.brk 1, prt_term_no_vars t];
+
+    val tsig = Sign.tsig_of thy;
+    val consts = Sign.consts_of thy;
+    val {const_space, constants, constraints} = Consts.dest consts;
+    val {classes, default, types, ...} = Type.rep_tsig tsig;
+    val type_space = Type.type_space tsig;
+    val (class_space, class_algebra) = classes;
+    val classes = Sorts.classes_of class_algebra;
+    val arities = Sorts.arities_of class_algebra;
+
+    val clsses =
+      Name_Space.extern_entries verbose ctxt class_space
+        (map (fn ((c, _), cs) => (c, Sign.minimize_sort thy cs)) (Graph.dest classes))
+      |> map (apfst #1);
+    val tdecls = Name_Space.extern_table verbose ctxt types |> map (apfst #1);
+    val arties =
+      Name_Space.extern_entries verbose ctxt type_space (Symtab.dest arities)
+      |> map (apfst #1);
+
+    val cnsts = Name_Space.markup_entries verbose ctxt const_space constants;
+    val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
+    val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
+    val cnstrs = Name_Space.markup_entries verbose ctxt const_space constraints;
+
+    val axms = Name_Space.markup_table verbose ctxt (Theory.axiom_table thy);
+  in
+    [Pretty.strs ("names:" :: Context.display_names thy)] @
+    [Pretty.big_list "classes:" (map pretty_classrel clsses),
+      pretty_default default,
+      Pretty.big_list "syntactic types:" (map_filter (pretty_type true) tdecls),
+      Pretty.big_list "logical types:" (map_filter (pretty_type false) tdecls),
+      Pretty.big_list "type arities:" (pretty_arities arties),
+      Pretty.big_list "logical consts:" (map (Pretty.block o prt_const) log_cnsts),
+      Pretty.big_list "abbreviations:" (map pretty_abbrev abbrevs),
+      Pretty.big_list "constraints:" (map (Pretty.block o prt_const) cnstrs),
+      Pretty.big_list "axioms:" (map pretty_axm axms),
+      Pretty.block
+        (Pretty.breaks (Pretty.str "oracles:" ::
+          map Pretty.mark_str (Thm.extern_oracles verbose ctxt)))] @
+    pretty_theorems verbose ctxt
+  end |> Pretty.chunks;
 
 
 (* definitions *)

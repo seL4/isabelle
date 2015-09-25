@@ -238,12 +238,12 @@ fun pretty_theorems verbose st =
     Proof_Context.pretty_local_facts verbose (Toplevel.context_of st)
   else
     let
-      val thy = Toplevel.theory_of st;
+      val ctxt = Toplevel.context_of st;
       val prev_thys =
         (case Toplevel.previous_context_of st of
           SOME prev => [Proof_Context.theory_of prev]
-        | NONE => Theory.parents_of thy);
-    in Proof_Display.pretty_theorems_diff verbose prev_thys thy end;
+        | NONE => Theory.parents_of (Proof_Context.theory_of ctxt));
+    in Proof_Display.pretty_theorems_diff verbose prev_thys ctxt end;
 
 
 (* print theorems, terms, types etc. *)
