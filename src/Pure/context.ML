@@ -36,8 +36,6 @@ sig
   val theory_id_name: theory_id -> string
   val theory_name: theory -> string
   val PureN: string
-  val display_name: theory_id -> string
-  val display_names: theory -> string list
   val pretty_thy: theory -> Pretty.T
   val string_of_thy: theory -> string
   val pretty_abbrev_thy: theory -> Pretty.T

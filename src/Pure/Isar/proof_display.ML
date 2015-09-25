@@ -12,10 +12,10 @@ sig
   val pp_term: (unit -> theory) -> term -> Pretty.T
   val pp_ctyp: (unit -> theory) -> ctyp -> Pretty.T
   val pp_cterm: (unit -> theory) -> cterm -> Pretty.T
+  val pretty_theory: bool -> Proof.context -> Pretty.T
   val pretty_definitions: bool -> Proof.context -> Pretty.T
   val pretty_theorems_diff: bool -> theory list -> Proof.context -> Pretty.T list
   val pretty_theorems: bool -> Proof.context -> Pretty.T list
-  val pretty_theory: bool -> Proof.context -> Pretty.T
   val string_of_rule: Proof.context -> string -> thm -> string
   val pretty_goal_header: thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
@@ -59,19 +59,6 @@ fun pp_cterm mk_thy ct = pp_term mk_thy (Thm.term_of ct);
 
 
 (** theory content **)
-
-(* theorems and theory *)
-
-fun pretty_theorems_diff verbose prev_thys ctxt =
-  let
-    val pretty_fact = Proof_Context.pretty_fact ctxt;
-    val facts = Global_Theory.facts_of (Proof_Context.theory_of ctxt);
-    val thmss = Facts.dest_static verbose (map Global_Theory.facts_of prev_thys) facts;
-    val prts = map #1 (sort_by (#1 o #2) (map (`pretty_fact) thmss));
-  in if null prts then [] else [Pretty.big_list "theorems:" prts] end;
-
-fun pretty_theorems verbose ctxt =
-  pretty_theorems_diff verbose (Theory.parents_of (Proof_Context.theory_of ctxt)) ctxt;
 
 fun pretty_theory verbose ctxt =
   let
@@ -138,8 +125,8 @@ fun pretty_theory verbose ctxt =
 
     val axms = Name_Space.markup_table verbose ctxt (Theory.axiom_table thy);
   in
-    [Pretty.strs ("names:" :: Context.display_names thy)] @
-    [Pretty.big_list "classes:" (map pretty_classrel clsses),
+    Pretty.chunks
+     [Pretty.big_list "classes:" (map pretty_classrel clsses),
       pretty_default default,
       Pretty.big_list "syntactic types:" (map_filter (pretty_type true) tdecls),
       Pretty.big_list "logical types:" (map_filter (pretty_type false) tdecls),
@@ -150,9 +137,22 @@ fun pretty_theory verbose ctxt =
       Pretty.big_list "axioms:" (map pretty_axm axms),
       Pretty.block
         (Pretty.breaks (Pretty.str "oracles:" ::
-          map Pretty.mark_str (Thm.extern_oracles verbose ctxt)))] @
-    pretty_theorems verbose ctxt
-  end |> Pretty.chunks;
+          map Pretty.mark_str (Thm.extern_oracles verbose ctxt)))]
+  end;
+
+
+(* theorems *)
+
+fun pretty_theorems_diff verbose prev_thys ctxt =
+  let
+    val pretty_fact = Proof_Context.pretty_fact ctxt;
+    val facts = Global_Theory.facts_of (Proof_Context.theory_of ctxt);
+    val thmss = Facts.dest_static verbose (map Global_Theory.facts_of prev_thys) facts;
+    val prts = map #1 (sort_by (#1 o #2) (map (`pretty_fact) thmss));
+  in if null prts then [] else [Pretty.big_list "theorems:" prts] end;
+
+fun pretty_theorems verbose ctxt =
+  pretty_theorems_diff verbose (Theory.parents_of (Proof_Context.theory_of ctxt)) ctxt;
 
 
 (* definitions *)
