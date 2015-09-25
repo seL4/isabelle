@@ -323,7 +323,7 @@ val class_space = Type.class_space o tsig_of;
 val type_space = Type.type_space o tsig_of;
 val const_space = Consts.space_of o consts_of;
 
-fun defs_context ctxt = (ctxt, SOME (const_space ctxt, type_space ctxt));
+fun defs_context ctxt = (ctxt, (const_space ctxt, type_space ctxt));
 
 val intern_class = Name_Space.intern o class_space;
 val intern_type = Name_Space.intern o type_space;

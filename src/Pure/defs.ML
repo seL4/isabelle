@@ -12,7 +12,7 @@ sig
   type entry = item * typ list
   val item_kind_ord: item_kind * item_kind -> order
   val plain_args: typ list -> bool
-  type context = Proof.context * (Name_Space.T * Name_Space.T) option
+  type context = Proof.context * (Name_Space.T * Name_Space.T)
   val global_context: theory -> context
   val space: context -> item_kind -> Name_Space.T
   val pretty_item: context -> item -> Pretty.T
@@ -54,16 +54,13 @@ structure Itemtab = Table(type key = item val ord = prod_ord item_kind_ord fast_
 
 (* pretty printing *)
 
-type context = Proof.context * (Name_Space.T * Name_Space.T) option;
+type context = Proof.context * (Name_Space.T * Name_Space.T)
 
-fun global_context thy : context = (Syntax.init_pretty_global thy, NONE);
+fun global_context thy =
+  (Syntax.init_pretty_global thy, (Sign.const_space thy, Sign.type_space thy));
 
-fun space (ctxt, spaces) kind =
-  (case (kind, spaces) of
-    (Const, SOME (const_space, _)) => const_space
-  | (Type, SOME (_, type_space)) => type_space
-  | (Const, NONE) => Sign.const_space (Proof_Context.theory_of ctxt)
-  | (Type, NONE) => Sign.type_space (Proof_Context.theory_of ctxt));
+fun space ((ctxt, spaces): context) kind =
+  if kind = Const then #1 spaces else #2 spaces;
 
 fun pretty_item (context as (ctxt, _)) (kind, name) =
   let val prt_name = Name_Space.pretty ctxt (space context kind) name in
