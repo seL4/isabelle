@@ -396,8 +396,8 @@ fun pretty_fact_name ctxt a =
 
 fun pretty_fact ctxt =
   let
-    val pretty_thm = Display.pretty_thm ctxt;
-    val pretty_thms = map (Display.pretty_thm_item ctxt);
+    val pretty_thm = Thm.pretty_thm ctxt;
+    val pretty_thms = map (Thm.pretty_thm_item ctxt);
   in
     fn ("", [th]) => pretty_thm th
      | ("", ths) => Pretty.blk (0, Pretty.fbreaks (pretty_thms ths))

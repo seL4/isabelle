@@ -310,7 +310,7 @@ fun define_predicates specs thy =
 fun rewrite_intro thy intro =
   let
     fun lookup_pred t = lookup thy (Fun_Pred.get thy) t
-    (*val _ = tracing ("Rewriting intro " ^ Display.string_of_thm_global thy intro)*)
+    (*val _ = tracing ("Rewriting intro " ^ Thm.string_of_thm_global thy intro)*)
     val intro_t = Logic.unvarify_global (Thm.prop_of intro)
     val (prems, concl) = Logic.strip_horn intro_t
     val frees = map fst (Term.add_frees intro_t [])

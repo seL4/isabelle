@@ -155,9 +155,9 @@ fun resolve_raw_clauses _ [] =
           let
             val _ =
               cond_tracing ctxt (fn () =>
-                "Resolving clause: " ^ Display.string_of_thm ctxt c1 ^
+                "Resolving clause: " ^ Thm.string_of_thm ctxt c1 ^
                 " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term ctxt) (Thm.hyps_of c1) ^
-                ")\nwith clause: " ^ Display.string_of_thm ctxt c2 ^
+                ")\nwith clause: " ^ Thm.string_of_thm ctxt c2 ^
                 " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term ctxt) (Thm.hyps_of c2) ^ ")")
 
             (* the two literals used for resolution *)
@@ -176,7 +176,7 @@ fun resolve_raw_clauses _ [] =
 
             val _ =
               cond_tracing ctxt
-                (fn () => "Resolution theorem: " ^ Display.string_of_thm ctxt res_thm)
+                (fn () => "Resolution theorem: " ^ Thm.string_of_thm ctxt res_thm)
 
             (* Gamma1, Gamma2 |- False *)
             val c_new =
@@ -186,7 +186,7 @@ fun resolve_raw_clauses _ [] =
 
             val _ =
               cond_tracing ctxt (fn () =>
-                "Resulting clause: " ^ Display.string_of_thm ctxt c_new ^
+                "Resulting clause: " ^ Thm.string_of_thm ctxt c_new ^
                 " (hyps: " ^
                 ML_Syntax.print_list (Syntax.string_of_term ctxt) (Thm.hyps_of c_new) ^ ")")
 

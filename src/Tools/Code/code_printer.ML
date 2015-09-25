@@ -111,7 +111,7 @@ open Code_Thingol;
 (** generic nonsense *)
 
 fun eqn_error thy (SOME thm) s =
-      error (s ^ ",\nin equation " ^ Display.string_of_thm_global thy thm)
+      error (s ^ ",\nin equation " ^ Thm.string_of_thm_global thy thm)
   | eqn_error _ NONE s = error s;
 
 val code_presentationN = "code_presentation";

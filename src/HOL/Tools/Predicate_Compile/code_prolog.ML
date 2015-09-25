@@ -355,7 +355,7 @@ fun add_edges edges_of key G =
 fun print_intros ctxt gr consts =
   tracing (cat_lines (map (fn const =>
     "Constant " ^ const ^ "has intros:\n" ^
-    cat_lines (map (Display.string_of_thm ctxt) (Graph.get_node gr const))) consts))
+    cat_lines (map (Thm.string_of_thm ctxt) (Graph.get_node gr const))) consts))
 
 
 (* translation of moded predicates *)

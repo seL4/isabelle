@@ -175,7 +175,7 @@ fun thm_of_cl_prf ctxt goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
   let
     val _ =
       cond_trace ctxt (fn () =>
-        Pretty.string_of (Pretty.big_list "asms:" (map (Display.pretty_thm ctxt) asms)));
+        Pretty.string_of (Pretty.big_list "asms:" (map (Thm.pretty_thm ctxt) asms)));
     val th' =
       Drule.implies_elim_list
         (Thm.instantiate

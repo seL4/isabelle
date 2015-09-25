@@ -298,7 +298,7 @@ fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arit
       val _ =
         if Context_Position.is_really_visible ctxt then
           warning ("Ignoring malformed set / predicate conversion rule: " ^ msg ^
-            "\n" ^ Display.string_of_thm ctxt thm)
+            "\n" ^ Thm.string_of_thm ctxt thm)
         else ();
     in tab end;
 

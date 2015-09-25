@@ -48,7 +48,7 @@ fun default_context mk_thy =
   | NONE => Syntax.init_pretty_global (mk_thy ()));
 
 fun pp_thm mk_thy th =
-  Display.pretty_thm_raw (default_context mk_thy) {quote = true, show_hyps = false} th;
+  Thm.pretty_thm_raw (default_context mk_thy) {quote = true, show_hyps = false} th;
 
 fun pp_typ mk_thy T = Pretty.quote (Syntax.pretty_typ (default_context mk_thy) T);
 fun pp_term mk_thy t = Pretty.quote (Syntax.pretty_term (default_context mk_thy) t);
@@ -215,7 +215,7 @@ fun pretty_definitions verbose ctxt =
 
 fun pretty_rule ctxt s thm =
   Pretty.block [Pretty.str (s ^ " attempt to solve goal by exported rule:"),
-    Pretty.fbrk, Display.pretty_thm ctxt thm];
+    Pretty.fbrk, Thm.pretty_thm ctxt thm];
 
 val string_of_rule = Pretty.string_of ooo pretty_rule;
 

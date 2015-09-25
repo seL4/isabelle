@@ -148,7 +148,7 @@ fun process_spec cos alt_props thy =
             fun add_final (thm, thy) =
               if name = ""
               then (thm, thy)
-              else (writeln ("  " ^ name ^ ": " ^ Display.string_of_thm_global thy thm);
+              else (writeln ("  " ^ name ^ ": " ^ Thm.string_of_thm_global thy thm);
                 Global_Theory.store_thm (Binding.name name, thm) thy)
           in
             swap args

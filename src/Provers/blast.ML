@@ -484,7 +484,7 @@ fun cond_tracing true msg = tracing (msg ())
   | cond_tracing false _ = ();
 
 fun TRACE ctxt rl tac i st =
-  (cond_tracing (Config.get ctxt trace) (fn () => Display.string_of_thm ctxt rl); tac i st);
+  (cond_tracing (Config.get ctxt trace) (fn () => Thm.string_of_thm ctxt rl); tac i st);
 
 (*Resolution/matching tactics: if upd then the proof state may be updated.
   Matching makes the tactics more deterministic in the presence of Vars.*)
@@ -509,13 +509,13 @@ fun fromRule (state as State {ctxt, ...}) vars rl0 =
   handle
     ElimBadPrem => (*reject: prems don't preserve conclusion*)
       (if Context_Position.is_visible ctxt then
-        warning ("Ignoring weak elimination rule\n" ^ Display.string_of_thm ctxt rl0)
+        warning ("Ignoring weak elimination rule\n" ^ Thm.string_of_thm ctxt rl0)
        else ();
        Option.NONE)
   | ElimBadConcl => (*ignore: conclusion is not just a variable*)
       (cond_tracing (Config.get ctxt trace)
         (fn () => "Ignoring ill-formed elimination rule:\n" ^
-          "conclusion should be a variable\n" ^ Display.string_of_thm ctxt rl0);
+          "conclusion should be a variable\n" ^ Thm.string_of_thm ctxt rl0);
        Option.NONE);
 
 

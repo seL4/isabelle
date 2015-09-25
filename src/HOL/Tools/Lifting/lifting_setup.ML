@@ -202,14 +202,14 @@ fun quot_thm_sanity_check ctxt quot_thm =
           raise QUOT_ERROR [Pretty.block
             [Pretty.str "The Quotient theorem has extra assumptions:",
              Pretty.brk 1,
-             Display.pretty_thm ctxt quot_thm]]
+             Thm.pretty_thm ctxt quot_thm]]
       else ()
     val _ = quot_thm |> Thm.concl_of |> HOLogic.dest_Trueprop |> dest_Quotient
     handle TERM _ => raise QUOT_ERROR
           [Pretty.block
             [Pretty.str "The Quotient theorem is not of the right form:",
              Pretty.brk 1,
-             Display.pretty_thm ctxt quot_thm]]
+             Thm.pretty_thm ctxt quot_thm]]
     val ((_, [quot_thm_fixed]), ctxt') = Variable.importT [quot_thm] ctxt 
     val (rty, qty) = quot_thm_rty_qty quot_thm_fixed
     val rty_tfreesT = Term.add_tfree_namesT rty []
@@ -837,13 +837,13 @@ fun lifting_restore_sanity_check ctxt (qinfo:Lifting_Info.quotient) =
               handle TERM _ => raise PCR_ERROR [Pretty.block 
                     [Pretty.str "The pcr definiton theorem is not a plain meta equation:",
                     Pretty.brk 1,
-                    Display.pretty_thm ctxt pcrel_def]]
+                    Thm.pretty_thm ctxt pcrel_def]]
             val pcr_const_def = head_of def_lhs
             val (eq_lhs, eq_rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of pcr_cr_eq))
               handle TERM _ => raise PCR_ERROR [Pretty.block 
                     [Pretty.str "The pcr_cr equation theorem is not a plain equation:",
                     Pretty.brk 1,
-                    Display.pretty_thm ctxt pcr_cr_eq]]
+                    Thm.pretty_thm ctxt pcr_cr_eq]]
             val (pcr_const_eq, eqs) = strip_comb eq_lhs
             fun is_eq (Const (@{const_name HOL.eq}, _)) = true
               | is_eq _ = false
@@ -853,7 +853,7 @@ fun lifting_restore_sanity_check ctxt (qinfo:Lifting_Info.quotient) =
               [Pretty.block
                     [Pretty.str "Arguments of the lhs of the pcr_cr equation theorem are not only equalities:",
                     Pretty.brk 1,
-                    Display.pretty_thm ctxt pcr_cr_eq]]
+                    Thm.pretty_thm ctxt pcr_cr_eq]]
               else []
             val pcr_consts_not_equal = if not (eq_Const pcr_const_def pcr_const_eq) then
               [Pretty.block

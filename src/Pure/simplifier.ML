@@ -162,8 +162,8 @@ end;
 fun pretty_simpset verbose ctxt =
   let
     val pretty_term = Syntax.pretty_term ctxt;
-    val pretty_thm = Display.pretty_thm ctxt;
-    val pretty_thm_item = Display.pretty_thm_item ctxt;
+    val pretty_thm = Thm.pretty_thm ctxt;
+    val pretty_thm_item = Thm.pretty_thm_item ctxt;
 
     fun pretty_simproc (name, lhss) =
       Pretty.block

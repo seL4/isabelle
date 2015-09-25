@@ -170,7 +170,7 @@ fun introduce_combinators_in_theorem ctxt th =
       val eqth = introduce_combinators_in_cterm ctxt (Thm.cprop_of th)
     in Thm.equal_elim eqth th end
     handle THM (msg, _, _) =>
-           (warning ("Error in the combinator translation of " ^ Display.string_of_thm ctxt th ^
+           (warning ("Error in the combinator translation of " ^ Thm.string_of_thm ctxt th ^
               "\nException message: " ^ msg);
             (* A type variable of sort "{}" will make "abstraction" fail. *)
             TrueI)

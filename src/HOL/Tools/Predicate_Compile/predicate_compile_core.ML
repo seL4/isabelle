@@ -130,11 +130,11 @@ fun print_stored_rules ctxt =
       let
         val _ = writeln ("predicate: " ^ pred)
         val _ = writeln ("introrules: ")
-        val _ = fold (fn thm => fn _ => writeln (Display.string_of_thm ctxt thm))
+        val _ = fold (fn thm => fn _ => writeln (Thm.string_of_thm ctxt thm))
           (rev (Core_Data.intros_of ctxt pred)) ()
       in
         if Core_Data.has_elim ctxt pred then
-          writeln ("elimrule: " ^ Display.string_of_thm ctxt (Core_Data.the_elim_of ctxt pred))
+          writeln ("elimrule: " ^ Thm.string_of_thm ctxt (Core_Data.the_elim_of ctxt pred))
         else
           writeln ("no elimrule defined")
       end
@@ -1295,7 +1295,7 @@ fun check_format_of_intro_rule thy intro =
         else
           error ("Format of introduction rule is invalid: tuples must be expanded:"
           ^ (Syntax.string_of_term_global thy arg) ^ " in " ^
-          (Display.string_of_thm_global thy intro))
+          (Thm.string_of_thm_global thy intro))
       | _ => true
     val prems = Logic.strip_imp_prems (prop_of intro)
     fun check_prem (Prem t) = forall check_arg args
@@ -1387,7 +1387,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
     (*val _ = map (check_format_of_intro_rule thy) (maps (intros_of thy) prednames)*)
     val _ =
       if show_intermediate_results options then
-        tracing (commas (map (Display.string_of_thm ctxt) (maps (Core_Data.intros_of ctxt) prednames)))
+        tracing (commas (map (Thm.string_of_thm ctxt) (maps (Core_Data.intros_of ctxt) prednames)))
       else ()
     val (preds, all_vs, param_vs, all_modes, clauses) =
       prepare_intrs options ctxt prednames (maps (Core_Data.intros_of ctxt) prednames)

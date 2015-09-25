@@ -89,7 +89,7 @@ fun preplay_trace ctxt assmsp concl outcome =
     val ctxt = ctxt |> Config.put show_markup true
     val assms = op @ assmsp
     val time = Pretty.str ("[" ^ string_of_play_outcome outcome ^ "]")
-    val assms = Pretty.enum " and " "using " " shows " (map (Display.pretty_thm ctxt) assms)
+    val assms = Pretty.enum " and " "using " " shows " (map (Thm.pretty_thm ctxt) assms)
     val concl = Syntax.pretty_term ctxt concl
   in
     tracing (Pretty.string_of (Pretty.blk (2, Pretty.breaks [time, assms, concl])))

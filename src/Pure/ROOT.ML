@@ -195,7 +195,6 @@ use "tactic.ML";
 use "raw_simplifier.ML";
 use "conjunction.ML";
 use "assumption.ML";
-use "display.ML";
 
 
 (* Isar -- Intelligible Semi-Automated Reasoning *)

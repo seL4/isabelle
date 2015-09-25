@@ -63,8 +63,8 @@ fun get_rules ctxt = let val Pack rules = get_pack ctxt in rules end;
 fun pretty_pack ctxt =
   let val (safes, unsafes) = get_rules ctxt in
     Pretty.chunks
-     [Pretty.big_list "safe rules:" (map (Display.pretty_thm ctxt) safes),
-      Pretty.big_list "unsafe rules:" (map (Display.pretty_thm ctxt) unsafes)]
+     [Pretty.big_list "safe rules:" (map (Thm.pretty_thm ctxt) safes),
+      Pretty.big_list "unsafe rules:" (map (Thm.pretty_thm ctxt) unsafes)]
   end;
 
 val _ =
@@ -82,7 +82,7 @@ fun add_rule which th context = context |> Pack.map (fn Pack rules =>
           (case context of
             Context.Proof ctxt =>
               if Context_Position.is_really_visible ctxt then
-                warning ("Ignoring duplicate theorems:\n" ^ Display.string_of_thm ctxt th)
+                warning ("Ignoring duplicate theorems:\n" ^ Thm.string_of_thm ctxt th)
               else ()
           | _ => ());
       in ths end

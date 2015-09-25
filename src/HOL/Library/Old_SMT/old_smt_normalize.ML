@@ -21,7 +21,7 @@ struct
 
 fun drop_fact_warning ctxt =
   Old_SMT_Config.verbose_msg ctxt (prefix "Warning: dropping assumption: " o
-    Display.string_of_thm ctxt)
+    Thm.string_of_thm ctxt)
 
 
 (* general theorem normalizations *)

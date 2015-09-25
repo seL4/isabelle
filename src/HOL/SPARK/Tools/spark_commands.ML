@@ -78,7 +78,7 @@ fun show_status thy (p, f) =
      Pretty.chunks (map (fn (b, th) => Pretty.block
        [Binding.pretty b, Pretty.str ":",
         Pretty.brk 1,
-        Display.pretty_thm ctxt th])
+        Thm.pretty_thm ctxt th])
           defs),
 
      Pretty.str "Verification conditions:",

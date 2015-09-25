@@ -134,11 +134,11 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
       end
       handle Option.Option =>
              (trace_msg ctxt (fn () =>
-                "\"find_var\" failed for " ^ x ^ " in " ^ Display.string_of_thm ctxt i_th);
+                "\"find_var\" failed for " ^ x ^ " in " ^ Thm.string_of_thm ctxt i_th);
               NONE)
            | TYPE _ =>
              (trace_msg ctxt (fn () =>
-                "\"hol_term_of_metis\" failed for " ^ x ^ " in " ^ Display.string_of_thm ctxt i_th);
+                "\"hol_term_of_metis\" failed for " ^ x ^ " in " ^ Thm.string_of_thm ctxt i_th);
               NONE)
     fun remove_typeinst (a, t) =
       let val a = Metis_Name.toString a in
@@ -149,7 +149,7 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
             SOME _ => NONE (* type instantiations are forbidden *)
           | NONE => SOME (a, t) (* internal Metis var? *)))
       end
-    val _ = trace_msg ctxt (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
+    val _ = trace_msg ctxt (fn () => "  isa th: " ^ Thm.string_of_thm ctxt i_th)
     val substs = map_filter remove_typeinst (Metis_Subst.toList fsubst)
     val (vars, tms) =
       ListPair.unzip (map_filter subst_translation substs)
@@ -269,8 +269,8 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
   let
     val (i_th1, i_th2) = apply2 (lookth th_pairs) (th1, th2)
     val _ = trace_msg ctxt (fn () =>
-        "  isa th1 (pos): " ^ Display.string_of_thm ctxt i_th1 ^ "\n\
-        \  isa th2 (neg): " ^ Display.string_of_thm ctxt i_th2)
+        "  isa th1 (pos): " ^ Thm.string_of_thm ctxt i_th1 ^ "\n\
+        \  isa th2 (neg): " ^ Thm.string_of_thm ctxt i_th2)
   in
     (* Trivial cases where one operand is type info *)
     if Thm.eq_thm (TrueI, i_th1) then
@@ -369,7 +369,7 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
       val _ = trace_msg ctxt (fn () => "located term: " ^ Syntax.string_of_term ctxt tm_subst)
       val imax = maxidx_of_term (i_tm $ tm_abs $ tm_subst)  (*ill-typed but gives right max*)
       val subst' = Thm.incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
-      val _ = trace_msg ctxt (fn () => "subst' " ^ Display.string_of_thm ctxt subst')
+      val _ = trace_msg ctxt (fn () => "subst' " ^ Thm.string_of_thm ctxt subst')
       val eq_terms =
         map (apply2 (Thm.cterm_of ctxt))
           (ListPair.zip (Misc_Legacy.term_vars (Thm.prop_of subst'), [tm_abs, tm_subst, i_tm]))
@@ -462,7 +462,7 @@ fun replay_one_inference ctxt type_enc concealed sym_tab (fol_th, inf)
       val th = one_step ctxt type_enc concealed sym_tab th_pairs (fol_th, inf)
         |> flexflex_first_order ctxt
         |> resynchronize ctxt fol_th
-      val _ = trace_msg ctxt (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
+      val _ = trace_msg ctxt (fn () => "ISABELLE THM: " ^ Thm.string_of_thm ctxt th)
       val _ = trace_msg ctxt (fn () => "=============================================")
     in
       (fol_th, th) :: th_pairs

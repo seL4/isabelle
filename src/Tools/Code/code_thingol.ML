@@ -396,7 +396,7 @@ fun translation_error ctxt permissive some_thm deps msg sub_msg =
   else
     let
       val thm_msg =
-        Option.map (fn thm => "in code equation " ^ Display.string_of_thm ctxt thm) some_thm;
+        Option.map (fn thm => "in code equation " ^ Thm.string_of_thm ctxt thm) some_thm;
       val dep_msg = if null (tl deps) then NONE
         else SOME ("with dependency "
           ^ space_implode " -> " (map (Code_Symbol.quote ctxt) (rev deps)));

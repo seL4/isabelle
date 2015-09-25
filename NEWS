@@ -328,6 +328,10 @@ context for rare situations where these facts are really needed.
 
 *** ML ***
 
+* The auxiliary module Pure/display.ML has been eliminated. Its
+elementary thm print operations are now in Pure/more_thm.ML and thus
+called Thm.pretty_thm, Thm.string_of_thm etc. INCOMPATIBILITY.
+
 * Simproc programming interfaces have been simplified:
 Simplifier.make_simproc and Simplifier.define_simproc supersede various
 forms of Simplifier.mk_simproc, Simplifier.simproc_global etc. Note that

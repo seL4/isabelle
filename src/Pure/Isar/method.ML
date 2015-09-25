@@ -218,7 +218,7 @@ val rule_trace = Attrib.setup_config_bool @{binding rule_trace} (fn _ => false);
 
 fun trace ctxt rules =
   if Config.get ctxt rule_trace andalso not (null rules) then
-    Pretty.big_list "rules:" (map (Display.pretty_thm_item ctxt) rules)
+    Pretty.big_list "rules:" (map (Thm.pretty_thm_item ctxt) rules)
     |> Pretty.string_of |> tracing
   else ();
 
