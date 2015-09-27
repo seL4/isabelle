@@ -147,6 +147,25 @@ lemma int_of_integer_sub [simp]:
   "int_of_integer (Num.sub k l) = Num.sub k l"
   by transfer rule
 
+lift_definition integer_of_num :: "num \<Rightarrow> integer"
+  is "numeral :: num \<Rightarrow> int"
+  .
+
+lemma integer_of_num [code]:
+  "integer_of_num num.One = 1"
+  "integer_of_num (num.Bit0 n) = (let k = integer_of_num n in k + k)"
+  "integer_of_num (num.Bit1 n) = (let k = integer_of_num n in k + k + 1)"
+  by (transfer, simp only: numeral.simps Let_def)+
+
+lemma numeral_unfold_integer_of_num:
+  "numeral = integer_of_num"
+  by (simp add: integer_of_num_def map_fun_def fun_eq_iff)
+
+lemma integer_of_num_triv:
+  "integer_of_num Num.One = 1"
+  "integer_of_num (Num.Bit0 Num.One) = 2"
+  by (transfer, simp)+
+
 instantiation integer :: "{ring_div, equal, linordered_idom}"
 begin
 
@@ -215,18 +234,43 @@ lemma of_nat_of_integer [simp]:
   "of_nat (nat_of_integer k) = max 0 k"
   by transfer auto
 
-instance integer :: semiring_numeral_div
-  by intro_classes (transfer,
-    fact le_add_diff_inverse2
-    semiring_numeral_div_class.div_less
-    semiring_numeral_div_class.mod_less
-    semiring_numeral_div_class.div_positive
-    semiring_numeral_div_class.mod_less_eq_dividend
-    semiring_numeral_div_class.pos_mod_bound
-    semiring_numeral_div_class.pos_mod_sign
-    semiring_numeral_div_class.mod_mult2_eq
-    semiring_numeral_div_class.div_mult2_eq
-    semiring_numeral_div_class.discrete)+
+instantiation integer :: semiring_numeral_div
+begin
+
+definition divmod_integer :: "num \<Rightarrow> num \<Rightarrow> integer \<times> integer"
+where
+  divmod_integer'_def: "divmod_integer m n = (numeral m div numeral n, numeral m mod numeral n)"
+
+definition divmod_step_integer :: "num \<Rightarrow> integer \<times> integer \<Rightarrow> integer \<times> integer"
+where
+  "divmod_step_integer l qr = (let (q, r) = qr
+    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    else (2 * q, r))"
+
+instance proof
+  show "divmod m n = (numeral m div numeral n :: integer, numeral m mod numeral n)"
+    for m n by (fact divmod_integer'_def)
+  show "divmod_step l qr = (let (q, r) = qr
+    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    else (2 * q, r))" for l and qr :: "integer \<times> integer"
+    by (fact divmod_step_integer_def)
+qed (transfer,
+  fact le_add_diff_inverse2
+  semiring_numeral_div_class.div_less
+  semiring_numeral_div_class.mod_less
+  semiring_numeral_div_class.div_positive
+  semiring_numeral_div_class.mod_less_eq_dividend
+  semiring_numeral_div_class.pos_mod_bound
+  semiring_numeral_div_class.pos_mod_sign
+  semiring_numeral_div_class.mod_mult2_eq
+  semiring_numeral_div_class.div_mult2_eq
+  semiring_numeral_div_class.discrete)+
+
+end
+
+declare divmod_algorithm_code [where ?'a = integer,
+  unfolded numeral_unfold_integer_of_num, unfolded integer_of_num_triv, 
+  code]
 
 lemma integer_of_nat_0: "integer_of_nat 0 = 0"
 by transfer simp
@@ -439,16 +483,6 @@ lemma less_integer_code [code]:
   "Neg k < Pos l \<longleftrightarrow> True"
   "Neg k < Neg l \<longleftrightarrow> l < k"
   by simp_all
-
-lift_definition integer_of_num :: "num \<Rightarrow> integer"
-  is "numeral :: num \<Rightarrow> int"
-  .
-
-lemma integer_of_num [code]:
-  "integer_of_num num.One = 1"
-  "integer_of_num (num.Bit0 n) = (let k = integer_of_num n in k + k)"
-  "integer_of_num (num.Bit1 n) = (let k = integer_of_num n in k + k + 1)"
-  by (transfer, simp only: numeral.simps Let_def)+
 
 lift_definition num_of_integer :: "integer \<Rightarrow> num"
   is "num_of_nat \<circ> nat"

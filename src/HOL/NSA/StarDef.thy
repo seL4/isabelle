@@ -1009,18 +1009,42 @@ apply(transfer, rule one_mod_two_eq_one)
 apply(transfer, rule zero_not_eq_two)
 done
 
-instance star :: (semiring_numeral_div) semiring_numeral_div
-apply intro_classes
-apply(transfer, fact semiring_numeral_div_class.div_less)
-apply(transfer, fact semiring_numeral_div_class.mod_less)
-apply(transfer, fact semiring_numeral_div_class.div_positive)
-apply(transfer, fact semiring_numeral_div_class.mod_less_eq_dividend)
-apply(transfer, fact semiring_numeral_div_class.pos_mod_bound)
-apply(transfer, fact semiring_numeral_div_class.pos_mod_sign)
-apply(transfer, fact semiring_numeral_div_class.mod_mult2_eq)
-apply(transfer, fact semiring_numeral_div_class.div_mult2_eq)
-apply(transfer, fact discrete)
-done
+instantiation star :: (semiring_numeral_div) semiring_numeral_div
+begin
+
+definition divmod_star :: "num \<Rightarrow> num \<Rightarrow> 'a star \<times> 'a star"
+where
+  divmod_star_def: "divmod_star m n = (numeral m div numeral n, numeral m mod numeral n)"
+
+definition divmod_step_star :: "num \<Rightarrow> 'a star \<times> 'a star \<Rightarrow> 'a star \<times> 'a star"
+where
+  "divmod_step_star l qr = (let (q, r) = qr
+    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    else (2 * q, r))"
+
+instance proof
+  show "divmod m n = (numeral m div numeral n :: 'a star, numeral m mod numeral n)"
+    for m n by (fact divmod_star_def)
+  show "divmod_step l qr = (let (q, r) = qr
+    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    else (2 * q, r))" for l and qr :: "'a star \<times> 'a star"
+    by (fact divmod_step_star_def)
+qed (transfer,
+  fact
+  semiring_numeral_div_class.div_less
+  semiring_numeral_div_class.mod_less
+  semiring_numeral_div_class.div_positive
+  semiring_numeral_div_class.mod_less_eq_dividend
+  semiring_numeral_div_class.pos_mod_bound
+  semiring_numeral_div_class.pos_mod_sign
+  semiring_numeral_div_class.mod_mult2_eq
+  semiring_numeral_div_class.div_mult2_eq
+  semiring_numeral_div_class.discrete)+
+
+end
+
+declare divmod_algorithm_code [where ?'a = "'a::semiring_numeral_div star", code]
+
 
 subsection {* Finite class *}
 

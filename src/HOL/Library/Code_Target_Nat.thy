@@ -85,6 +85,12 @@ lemma [code]:
   by (fact divmod_nat_div_mod)
 
 lemma [code]:
+  "divmod m n = map_prod nat_of_integer nat_of_integer (divmod m n)"
+  by (simp only: prod_eq_iff divmod_def map_prod_def case_prod_beta fst_conv snd_conv)
+    (transfer, simp_all only: nat_div_distrib nat_mod_distrib
+        zero_le_numeral nat_numeral)
+  
+lemma [code]:
   "HOL.equal m n = HOL.equal (of_nat m :: integer) (of_nat n)"
   by transfer (simp add: equal)
 
