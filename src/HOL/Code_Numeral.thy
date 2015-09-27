@@ -244,11 +244,17 @@ text \<open>Constructors\<close>
 
 definition Pos :: "num \<Rightarrow> integer"
 where
-  [simp, code_abbrev]: "Pos = numeral"
+  [simp, code_post]: "Pos = numeral"
 
 lemma [transfer_rule]:
   "rel_fun HOL.eq pcr_integer numeral Pos"
   by simp transfer_prover
+
+lemma Pos_fold [code_unfold]:
+  "numeral Num.One = Pos Num.One"
+  "numeral (Num.Bit0 k) = Pos (Num.Bit0 k)"
+  "numeral (Num.Bit1 k) = Pos (Num.Bit1 k)"
+  by simp_all
 
 definition Neg :: "num \<Rightarrow> integer"
 where
