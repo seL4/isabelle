@@ -41,49 +41,43 @@ proof -
   ultimately
   show ?thesis unfolding g_def using pos
     by (auto intro!: SUP_eq  simp: setsum.cartesian_product reindex SUP_upper2
-                     setsum_nonneg suminf_ereal_eq_SUP SUP_pair
+                     suminf_ereal_eq_SUP SUP_pair
                      SUP_ereal_setsum[symmetric] incseq_setsumI setsum_nonneg)
 qed
 
 subsection {* Characterizations of Measures *}
 
-definition subadditive where "subadditive M f \<longleftrightarrow>
-  (\<forall>x\<in>M. \<forall>y\<in>M. x \<inter> y = {} \<longrightarrow> f (x \<union> y) \<le> f x + f y)"
+definition subadditive where
+  "subadditive M f \<longleftrightarrow> (\<forall>x\<in>M. \<forall>y\<in>M. x \<inter> y = {} \<longrightarrow> f (x \<union> y) \<le> f x + f y)"
 
-definition countably_subadditive where "countably_subadditive M f \<longleftrightarrow>
-  (\<forall>A. range A \<subseteq> M \<longrightarrow> disjoint_family A \<longrightarrow> (\<Union>i. A i) \<in> M \<longrightarrow>
-    (f (\<Union>i. A i) \<le> (\<Sum>i. f (A i))))"
+definition countably_subadditive where
+  "countably_subadditive M f \<longleftrightarrow>
+    (\<forall>A. range A \<subseteq> M \<longrightarrow> disjoint_family A \<longrightarrow> (\<Union>i. A i) \<in> M \<longrightarrow> (f (\<Union>i. A i) \<le> (\<Sum>i. f (A i))))"
 
-definition outer_measure_space where "outer_measure_space M f \<longleftrightarrow>
-  positive M f \<and> increasing M f \<and> countably_subadditive M f"
+definition outer_measure_space where
+  "outer_measure_space M f \<longleftrightarrow> positive M f \<and> increasing M f \<and> countably_subadditive M f"
 
-definition measure_set where "measure_set M f X = {r.
-  \<exists>A. range A \<subseteq> M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i) \<and> (\<Sum>i. f (A i)) = r}"
-
-lemma subadditiveD:
-  "subadditive M f \<Longrightarrow> x \<inter> y = {} \<Longrightarrow> x \<in> M \<Longrightarrow> y \<in> M \<Longrightarrow> f (x \<union> y) \<le> f x + f y"
+lemma subadditiveD: "subadditive M f \<Longrightarrow> x \<inter> y = {} \<Longrightarrow> x \<in> M \<Longrightarrow> y \<in> M \<Longrightarrow> f (x \<union> y) \<le> f x + f y"
   by (auto simp add: subadditive_def)
 
 subsubsection {* Lambda Systems *}
 
-definition lambda_system where "lambda_system \<Omega> M f = {l \<in> M.
-  \<forall>x \<in> M. f (l \<inter> x) + f ((\<Omega> - l) \<inter> x) = f x}"
+definition lambda_system where
+  "lambda_system \<Omega> M f = {l \<in> M. \<forall>x \<in> M. f (l \<inter> x) + f ((\<Omega> - l) \<inter> x) = f x}"
 
 lemma (in algebra) lambda_system_eq:
-  shows "lambda_system \<Omega> M f = {l \<in> M. \<forall>x \<in> M. f (x \<inter> l) + f (x - l) = f x}"
+  "lambda_system \<Omega> M f = {l \<in> M. \<forall>x \<in> M. f (x \<inter> l) + f (x - l) = f x}"
 proof -
-  have [simp]: "!!l x. l \<in> M \<Longrightarrow> x \<in> M \<Longrightarrow> (\<Omega> - l) \<inter> x = x - l"
+  have [simp]: "\<And>l x. l \<in> M \<Longrightarrow> x \<in> M \<Longrightarrow> (\<Omega> - l) \<inter> x = x - l"
     by (metis Int_Diff Int_absorb1 Int_commute sets_into_space)
   show ?thesis
     by (auto simp add: lambda_system_def) (metis Int_commute)+
 qed
 
-lemma (in algebra) lambda_system_empty:
-  "positive M f \<Longrightarrow> {} \<in> lambda_system \<Omega> M f"
+lemma (in algebra) lambda_system_empty: "positive M f \<Longrightarrow> {} \<in> lambda_system \<Omega> M f"
   by (auto simp add: positive_def lambda_system_eq)
 
-lemma lambda_system_sets:
-  "x \<in> lambda_system \<Omega> M f \<Longrightarrow> x \<in> M"
+lemma lambda_system_sets: "x \<in> lambda_system \<Omega> M f \<Longrightarrow> x \<in> M"
   by (simp add: lambda_system_def)
 
 lemma (in algebra) lambda_system_Compl:
@@ -201,12 +195,10 @@ proof (auto simp add: subadditive_def)
     by (auto simp add: Un o_def suminf_binaryset_eq positive_def)
 qed
 
-lemma lambda_system_increasing:
- "increasing M f \<Longrightarrow> increasing (lambda_system \<Omega> M f) f"
+lemma lambda_system_increasing: "increasing M f \<Longrightarrow> increasing (lambda_system \<Omega> M f) f"
   by (simp add: increasing_def lambda_system_def)
 
-lemma lambda_system_positive:
-  "positive M f \<Longrightarrow> positive (lambda_system \<Omega> M f) f"
+lemma lambda_system_positive: "positive M f \<Longrightarrow> positive (lambda_system \<Omega> M f) f"
   by (simp add: positive_def lambda_system_def)
 
 lemma (in algebra) lambda_system_strong_sum:
@@ -258,66 +250,56 @@ proof -
     have *: "\<And>i. 0 \<le> f (A i)" using pos A'' unfolding positive_def by auto
     have dis: "\<And>N. disjoint_family_on A {..<N}" by (intro disjoint_family_on_mono[OF _ disj]) auto
     show "(\<Sum>i. f (A i)) \<le> f (\<Union>i. A i)"
-      using ls.additive_sum [OF lambda_system_positive[OF pos] lambda_system_additive _ A' dis]
-      using A''
+      using ls.additive_sum [OF lambda_system_positive[OF pos] lambda_system_additive _ A' dis] A''
       by (intro suminf_bound[OF _ *]) (auto intro!: increasingD[OF inc] countable_UN)
   qed
-  {
-    fix a
-    assume a [iff]: "a \<in> M"
-    have "f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i)) = f a"
-    proof -
-      show ?thesis
-      proof (rule antisym)
-        have "range (\<lambda>i. a \<inter> A i) \<subseteq> M" using A''
-          by blast
-        moreover
-        have "disjoint_family (\<lambda>i. a \<inter> A i)" using disj
-          by (auto simp add: disjoint_family_on_def)
-        moreover
-        have "a \<inter> (\<Union>i. A i) \<in> M"
-          by (metis Int U_in a)
-        ultimately
-        have "f (a \<inter> (\<Union>i. A i)) \<le> (\<Sum>i. f (a \<inter> A i))"
-          using csa[unfolded countably_subadditive_def, rule_format, of "(\<lambda>i. a \<inter> A i)"]
-          by (simp add: o_def)
-        hence "f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i)) \<le>
-            (\<Sum>i. f (a \<inter> A i)) + f (a - (\<Union>i. A i))"
-          by (rule add_right_mono)
-        moreover
-        have "(\<Sum>i. f (a \<inter> A i)) + f (a - (\<Union>i. A i)) \<le> f a"
-          proof (intro suminf_bound_add allI)
-            fix n
-            have UNION_in: "(\<Union>i\<in>{0..<n}. A i) \<in> M"
-              by (metis A'' UNION_in_sets)
-            have le_fa: "f (UNION {0..<n} A \<inter> a) \<le> f a" using A''
-              by (blast intro: increasingD [OF inc] A'' UNION_in_sets)
-            have ls: "(\<Union>i\<in>{0..<n}. A i) \<in> lambda_system \<Omega> M f"
-              using ls.UNION_in_sets by (simp add: A)
-            hence eq_fa: "f a = f (a \<inter> (\<Union>i\<in>{0..<n}. A i)) + f (a - (\<Union>i\<in>{0..<n}. A i))"
-              by (simp add: lambda_system_eq UNION_in)
-            have "f (a - (\<Union>i. A i)) \<le> f (a - (\<Union>i\<in>{0..<n}. A i))"
-              by (blast intro: increasingD [OF inc] UNION_in U_in)
-            thus "(\<Sum>i<n. f (a \<inter> A i)) + f (a - (\<Union>i. A i)) \<le> f a"
-              by (simp add: lambda_system_strong_sum pos A disj eq_fa add_left_mono atLeast0LessThan[symmetric])
-          next
-            have "\<And>i. a \<inter> A i \<in> M" using A'' by auto
-            then show "\<And>i. 0 \<le> f (a \<inter> A i)" using pos[unfolded positive_def] by auto
-            have "\<And>i. a - (\<Union>i. A i) \<in> M" using A'' by auto
-            then have "\<And>i. 0 \<le> f (a - (\<Union>i. A i))" using pos[unfolded positive_def] by auto
-            then show "f (a - (\<Union>i. A i)) \<noteq> -\<infinity>" by auto
-          qed
-        ultimately show "f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i)) \<le> f a"
-          by (rule order_trans)
-      next
-        have "f a \<le> f (a \<inter> (\<Union>i. A i) \<union> (a - (\<Union>i. A i)))"
-          by (blast intro:  increasingD [OF inc] U_in)
-        also have "... \<le>  f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i))"
-          by (blast intro: subadditiveD [OF sa] U_in)
-        finally show "f a \<le> f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i))" .
-        qed
-     qed
-  }
+  have "f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i)) = f a"
+    if a [iff]: "a \<in> M" for a
+  proof (rule antisym)
+    have "range (\<lambda>i. a \<inter> A i) \<subseteq> M" using A''
+      by blast
+    moreover
+    have "disjoint_family (\<lambda>i. a \<inter> A i)" using disj
+      by (auto simp add: disjoint_family_on_def)
+    moreover
+    have "a \<inter> (\<Union>i. A i) \<in> M"
+      by (metis Int U_in a)
+    ultimately
+    have "f (a \<inter> (\<Union>i. A i)) \<le> (\<Sum>i. f (a \<inter> A i))"
+      using csa[unfolded countably_subadditive_def, rule_format, of "(\<lambda>i. a \<inter> A i)"]
+      by (simp add: o_def)
+    hence "f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i)) \<le> (\<Sum>i. f (a \<inter> A i)) + f (a - (\<Union>i. A i))"
+      by (rule add_right_mono)
+    also have "\<dots> \<le> f a"
+    proof (intro suminf_bound_add allI)
+      fix n
+      have UNION_in: "(\<Union>i\<in>{0..<n}. A i) \<in> M"
+        by (metis A'' UNION_in_sets)
+      have le_fa: "f (UNION {0..<n} A \<inter> a) \<le> f a" using A''
+        by (blast intro: increasingD [OF inc] A'' UNION_in_sets)
+      have ls: "(\<Union>i\<in>{0..<n}. A i) \<in> lambda_system \<Omega> M f"
+        using ls.UNION_in_sets by (simp add: A)
+      hence eq_fa: "f a = f (a \<inter> (\<Union>i\<in>{0..<n}. A i)) + f (a - (\<Union>i\<in>{0..<n}. A i))"
+        by (simp add: lambda_system_eq UNION_in)
+      have "f (a - (\<Union>i. A i)) \<le> f (a - (\<Union>i\<in>{0..<n}. A i))"
+        by (blast intro: increasingD [OF inc] UNION_in U_in)
+      thus "(\<Sum>i<n. f (a \<inter> A i)) + f (a - (\<Union>i. A i)) \<le> f a"
+        by (simp add: lambda_system_strong_sum pos A disj eq_fa add_left_mono atLeast0LessThan[symmetric])
+    next
+      have "\<And>i. a \<inter> A i \<in> M" using A'' by auto
+      then show "\<And>i. 0 \<le> f (a \<inter> A i)" using pos[unfolded positive_def] by auto
+      have "\<And>i. a - (\<Union>i. A i) \<in> M" using A'' by auto
+      then have "\<And>i. 0 \<le> f (a - (\<Union>i. A i))" using pos[unfolded positive_def] by auto
+      then show "f (a - (\<Union>i. A i)) \<noteq> -\<infinity>" by auto
+    qed
+    finally show "f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i)) \<le> f a" .
+  next
+    have "f a \<le> f (a \<inter> (\<Union>i. A i) \<union> (a - (\<Union>i. A i)))"
+      by (blast intro:  increasingD [OF inc] U_in)
+    also have "... \<le>  f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i))"
+      by (blast intro: subadditiveD [OF sa] U_in)
+    finally show "f a \<le> f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i))" .
+  qed
   thus  ?thesis
     by (simp add: lambda_system_eq sums_iff U_eq U_in)
 qed
@@ -345,300 +327,186 @@ proof -
     using pos by (simp add: measure_space_def)
 qed
 
-lemma inf_measure_nonempty:
-  assumes f: "positive M f" and b: "b \<in> M" and a: "a \<subseteq> b" "{} \<in> M"
-  shows "f b \<in> measure_set M f a"
-proof -
-  let ?A = "\<lambda>i::nat. (if i = 0 then b else {})"
-  have "(\<Sum>i. f (?A i)) = (\<Sum>i<1::nat. f (?A i))"
-    by (rule suminf_finite) (simp_all add: f[unfolded positive_def])
-  also have "... = f b"
-    by simp
-  finally show ?thesis using assms
-    by (auto intro!: exI [of _ ?A]
-             simp: measure_set_def disjoint_family_on_def split_if_mem2 comp_def)
-qed
+definition outer_measure :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> 'a set \<Rightarrow> ereal" where
+   "outer_measure M f X =
+     (INF A:{A. range A \<subseteq> M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i)}. \<Sum>i. f (A i))"
 
-lemma (in ring_of_sets) inf_measure_agrees:
-  assumes posf: "positive M f" and ca: "countably_additive M f"
-      and s: "s \<in> M"
-  shows "Inf (measure_set M f s) = f s"
-proof (intro Inf_eqI)
-  fix z
-  assume z: "z \<in> measure_set M f s"
-  from this obtain A where
-    A: "range A \<subseteq> M" and disj: "disjoint_family A"
-    and "s \<subseteq> (\<Union>x. A x)" and si: "(\<Sum>i. f (A i)) = z"
-    by (auto simp add: measure_set_def comp_def)
-  hence seq: "s = (\<Union>i. A i \<inter> s)" by blast
+lemma (in ring_of_sets) outer_measure_agrees:
+  assumes posf: "positive M f" and ca: "countably_additive M f" and s: "s \<in> M"
+  shows "outer_measure M f s = f s"
+  unfolding outer_measure_def
+proof (safe intro!: antisym INF_greatest)
+  fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> M" and dA: "disjoint_family A" and sA: "s \<subseteq> (\<Union>x. A x)"
   have inc: "increasing M f"
     by (metis additive_increasing ca countably_additive_additive posf)
-  have sums: "(\<Sum>i. f (A i \<inter> s)) = f (\<Union>i. A i \<inter> s)"
-    proof (rule ca[unfolded countably_additive_def, rule_format])
-      show "range (\<lambda>n. A n \<inter> s) \<subseteq> M" using A s
-        by blast
-      show "disjoint_family (\<lambda>n. A n \<inter> s)" using disj
-        by (auto simp add: disjoint_family_on_def)
-      show "(\<Union>i. A i \<inter> s) \<in> M" using A s
-        by (metis UN_extend_simps(4) s seq)
-    qed
-  hence "f s = (\<Sum>i. f (A i \<inter> s))"
-    using seq [symmetric] by (simp add: sums_iff)
+  have "f s = f (\<Union>i. A i \<inter> s)"
+    using sA by (auto simp: Int_absorb1)
+  also have "\<dots> = (\<Sum>i. f (A i \<inter> s))"
+    using sA dA A s
+    by (intro ca[unfolded countably_additive_def, rule_format, symmetric])
+       (auto simp: Int_absorb1 disjoint_family_on_def)
   also have "... \<le> (\<Sum>i. f (A i))"
-    proof (rule suminf_le_pos)
-      fix n show "f (A n \<inter> s) \<le> f (A n)" using A s
-        by (force intro: increasingD [OF inc])
-      fix N have "A N \<inter> s \<in> M"  using A s by auto
-      then show "0 \<le> f (A N \<inter> s)" using posf unfolding positive_def by auto
-    qed
-  also have "... = z" by (rule si)
-  finally show "f s \<le> z" .
-qed (blast intro: inf_measure_nonempty [of _ f, OF posf s subset_refl])
-
-lemma measure_set_pos:
-  assumes posf: "positive M f" "r \<in> measure_set M f X"
-  shows "0 \<le> r"
-proof -
-  obtain A where "range A \<subseteq> M" and r: "r = (\<Sum>i. f (A i))"
-    using `r \<in> measure_set M f X` unfolding measure_set_def by auto
-  then show "0 \<le> r" using posf unfolding r positive_def
-    by (intro suminf_0_le) auto
+    using A s by (intro suminf_le_pos increasingD[OF inc] positiveD2[OF posf]) auto
+  finally show "f s \<le> (\<Sum>i. f (A i))" .
+next
+  have "(\<Sum>i. f (if i = 0 then s else {})) \<le> f s"
+    using positiveD1[OF posf] by (subst suminf_finite[of "{0}"]) auto
+  with s show "(INF A:{A. range A \<subseteq> M \<and> disjoint_family A \<and> s \<subseteq> UNION UNIV A}. \<Sum>i. f (A i)) \<le> f s"
+    by (intro INF_lower2[of "\<lambda>i. if i = 0 then s else {}"])
+       (auto simp: disjoint_family_on_def)
 qed
 
-lemma inf_measure_pos:
-  assumes posf: "positive M f"
-  shows "0 \<le> Inf (measure_set M f X)"
-proof (rule complete_lattice_class.Inf_greatest)
-  fix r assume "r \<in> measure_set M f X" with posf show "0 \<le> r"
-    by (rule measure_set_pos)
-qed
+lemma outer_measure_nonneg: "positive M f \<Longrightarrow> 0 \<le> outer_measure M f X"
+  by (auto intro!: INF_greatest suminf_0_le intro: positiveD2 simp: outer_measure_def)
 
-lemma inf_measure_empty:
+lemma outer_measure_empty:
   assumes posf: "positive M f" and "{} \<in> M"
-  shows "Inf (measure_set M f {}) = 0"
+  shows "outer_measure M f {} = 0"
 proof (rule antisym)
-  show "Inf (measure_set M f {}) \<le> 0"
-    by (metis complete_lattice_class.Inf_lower `{} \<in> M`
-              inf_measure_nonempty[OF posf] subset_refl posf[unfolded positive_def])
-qed (rule inf_measure_pos[OF posf])
+  show "outer_measure M f {} \<le> 0"
+    using assms by (auto intro!: INF_lower2[of "\<lambda>_. {}"] simp: outer_measure_def disjoint_family_on_def positive_def)
+qed (intro outer_measure_nonneg posf)
 
-lemma (in ring_of_sets) inf_measure_positive:
-  assumes p: "positive M f" and "{} \<in> M"
-  shows "positive M (\<lambda>x. Inf (measure_set M f x))"
-proof (unfold positive_def, intro conjI ballI)
-  show "Inf (measure_set M f {}) = 0" using inf_measure_empty[OF assms] by auto
-  fix A assume "A \<in> M"
-qed (rule inf_measure_pos[OF p])
+lemma (in ring_of_sets) positive_outer_measure:
+  assumes "positive M f" shows "positive (Pow \<Omega>) (outer_measure M f)"
+  unfolding positive_def by (auto simp: assms outer_measure_empty outer_measure_nonneg)
 
-lemma (in ring_of_sets) inf_measure_increasing:
-  assumes posf: "positive M f"
-  shows "increasing (Pow \<Omega>) (\<lambda>x. Inf (measure_set M f x))"
-apply (clarsimp simp add: increasing_def)
-apply (rule complete_lattice_class.Inf_greatest)
-apply (rule complete_lattice_class.Inf_lower)
-apply (clarsimp simp add: measure_set_def, rule_tac x=A in exI, blast)
-done
+lemma (in ring_of_sets) increasing_outer_measure: "increasing (Pow \<Omega>) (outer_measure M f)"
+  by (force simp: increasing_def outer_measure_def intro!: INF_greatest intro: INF_lower)
 
-lemma (in ring_of_sets) inf_measure_le:
-  assumes posf: "positive M f" and inc: "increasing M f"
-      and x: "x \<in> {r . \<exists>A. range A \<subseteq> M \<and> s \<subseteq> (\<Union>i. A i) \<and> (\<Sum>i. f (A i)) = r}"
-  shows "Inf (measure_set M f s) \<le> x"
-proof -
-  obtain A where A: "range A \<subseteq> M" and ss: "s \<subseteq> (\<Union>i. A i)"
-             and xeq: "(\<Sum>i. f (A i)) = x"
-    using x by auto
-  have dA: "range (disjointed A) \<subseteq> M"
-    by (metis A range_disjointed_sets)
+lemma (in ring_of_sets) outer_measure_le:
+  assumes pos: "positive M f" and inc: "increasing M f" and A: "range A \<subseteq> M" and X: "X \<subseteq> (\<Union>i. A i)"
+  shows "outer_measure M f X \<le> (\<Sum>i. f (A i))"
+  unfolding outer_measure_def
+proof (safe intro!: INF_lower2[of "disjointed A"] del: subsetI)
+  show dA: "range (disjointed A) \<subseteq> M"
+    by (auto intro!: A range_disjointed_sets)
   have "\<forall>n. f (disjointed A n) \<le> f (A n)"
-    by (metis increasingD [OF inc] UNIV_I dA image_subset_iff disjointed_subset A comp_def)
+    by (metis increasingD [OF inc] UNIV_I dA image_subset_iff disjointed_subset A)
   moreover have "\<forall>i. 0 \<le> f (disjointed A i)"
-    using posf dA unfolding positive_def by auto
-  ultimately have sda: "(\<Sum>i. f (disjointed A i)) \<le> (\<Sum>i. f (A i))"
+    using pos dA unfolding positive_def by auto
+  ultimately show "(\<Sum>i. f (disjointed A i)) \<le> (\<Sum>i. f (A i))"
     by (blast intro!: suminf_le_pos)
-  hence ley: "(\<Sum>i. f (disjointed A i)) \<le> x"
-    by (metis xeq)
-  hence y: "(\<Sum>i. f (disjointed A i)) \<in> measure_set M f s"
-    apply (auto simp add: measure_set_def)
-    apply (rule_tac x="disjointed A" in exI)
-    apply (simp add: disjoint_family_disjointed UN_disjointed_eq ss dA comp_def)
-    done
-  show ?thesis
-    by (blast intro: y order_trans [OF _ ley] posf complete_lattice_class.Inf_lower)
-qed
+qed (auto simp: X UN_disjointed_eq disjoint_family_disjointed)
 
-lemma (in ring_of_sets) inf_measure_close:
-  fixes e :: ereal
-  assumes posf: "positive M f" and e: "0 < e" and ss: "s \<subseteq> (\<Omega>)" and "Inf (measure_set M f s) \<noteq> \<infinity>"
-  shows "\<exists>A. range A \<subseteq> M \<and> disjoint_family A \<and> s \<subseteq> (\<Union>i. A i) \<and>
-               (\<Sum>i. f (A i)) \<le> Inf (measure_set M f s) + e"
+lemma (in ring_of_sets) outer_measure_close:
+  assumes posf: "positive M f" and "0 < e" and "outer_measure M f X \<noteq> \<infinity>"
+  shows "\<exists>A. range A \<subseteq> M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i) \<and> (\<Sum>i. f (A i)) \<le> outer_measure M f X + e"
 proof -
-  from `Inf (measure_set M f s) \<noteq> \<infinity>` have fin: "\<bar>Inf (measure_set M f s)\<bar> \<noteq> \<infinity>"
-    using inf_measure_pos[OF posf, of s] by auto
-  obtain l where "l \<in> measure_set M f s" "l \<le> Inf (measure_set M f s) + e"
-    using Inf_ereal_close[OF fin e] by auto
-  thus ?thesis
-    by (auto intro!: exI[of _ l] simp: measure_set_def comp_def)
+  from `outer_measure M f X \<noteq> \<infinity>` have fin: "\<bar>outer_measure M f X\<bar> \<noteq> \<infinity>"
+    using outer_measure_nonneg[OF posf, of X] by auto
+  show ?thesis
+    using Inf_ereal_close[OF fin[unfolded outer_measure_def INF_def], OF \<open>0 < e\<close>]
+    unfolding INF_def[symmetric] outer_measure_def[symmetric] by (auto intro: less_imp_le)
 qed
 
-lemma (in ring_of_sets) inf_measure_countably_subadditive:
+lemma (in ring_of_sets) countably_subadditive_outer_measure:
   assumes posf: "positive M f" and inc: "increasing M f"
-  shows "countably_subadditive (Pow \<Omega>) (\<lambda>x. Inf (measure_set M f x))"
+  shows "countably_subadditive (Pow \<Omega>) (outer_measure M f)"
 proof (simp add: countably_subadditive_def, safe)
-  fix A :: "nat \<Rightarrow> 'a set"
-  let ?outer = "\<lambda>B. Inf (measure_set M f B)"
-  assume A: "range A \<subseteq> Pow (\<Omega>)"
-     and disj: "disjoint_family A"
-     and sb: "(\<Union>i. A i) \<subseteq> \<Omega>"
+  fix A :: "nat \<Rightarrow> _" assume A: "range A \<subseteq> Pow (\<Omega>)" and sb: "(\<Union>i. A i) \<subseteq> \<Omega>"
+  let ?O = "outer_measure M f"
 
-  { fix e :: ereal assume e: "0 < e" and "\<forall>i. ?outer (A i) \<noteq> \<infinity>"
-    hence "\<exists>BB. \<forall>n. range (BB n) \<subseteq> M \<and> disjoint_family (BB n) \<and>
-        A n \<subseteq> (\<Union>i. BB n i) \<and> (\<Sum>i. f (BB n i)) \<le> ?outer (A n) + e * (1/2)^(Suc n)"
-      apply (safe intro!: choice inf_measure_close [of f, OF posf])
-      using e sb by (auto simp: ereal_zero_less_0_iff one_ereal_def)
-    then obtain BB
-      where BB: "\<And>n. (range (BB n) \<subseteq> M)"
-      and disjBB: "\<And>n. disjoint_family (BB n)"
-      and sbBB: "\<And>n. A n \<subseteq> (\<Union>i. BB n i)"
-      and BBle: "\<And>n. (\<Sum>i. f (BB n i)) \<le> ?outer (A n) + e * (1/2)^(Suc n)"
+  { fix e :: ereal assume e: "0 < e" and "\<forall>i. ?O (A i) \<noteq> \<infinity>"
+    hence "\<exists>B. \<forall>n. range (B n) \<subseteq> M \<and> disjoint_family (B n) \<and> A n \<subseteq> (\<Union>i. B n i) \<and>
+        (\<Sum>i. f (B n i)) \<le> ?O (A n) + e * (1/2)^(Suc n)"
+      using e sb by (auto intro!: choice outer_measure_close [of f, OF posf] simp: ereal_zero_less_0_iff one_ereal_def)
+    then obtain B
+      where B: "\<And>n. range (B n) \<subseteq> M"
+      and sbB: "\<And>n. A n \<subseteq> (\<Union>i. B n i)"
+      and Ble: "\<And>n. (\<Sum>i. f (B n i)) \<le> ?O (A n) + e * (1/2)^(Suc n)"
       by auto blast
-    have sll: "(\<Sum>n. \<Sum>i. (f (BB n i))) \<le> (\<Sum>n. ?outer (A n)) + e"
-    proof -
-      have sum_eq_1: "(\<Sum>n. e*(1/2) ^ Suc n) = e"
-        using suminf_half_series_ereal e
-        by (simp add: ereal_zero_le_0_iff zero_le_divide_ereal suminf_cmult_ereal)
-      have "\<And>n i. 0 \<le> f (BB n i)" using posf[unfolded positive_def] BB by auto
-      then have "\<And>n. 0 \<le> (\<Sum>i. f (BB n i))" by (rule suminf_0_le)
-      then have "(\<Sum>n. \<Sum>i. (f (BB n i))) \<le> (\<Sum>n. ?outer (A n) + e*(1/2) ^ Suc n)"
-        by (rule suminf_le_pos[OF BBle])
-      also have "... = (\<Sum>n. ?outer (A n)) + e"
-        using sum_eq_1 inf_measure_pos[OF posf] e
-        by (subst suminf_add_ereal) (auto simp add: ereal_zero_le_0_iff)
-      finally show ?thesis .
-    qed
-    def C \<equiv> "(split BB) o prod_decode"
-    from BB have "\<And>i j. BB i j \<in> M"
-      by (rule range_subsetD)
-    then have C: "\<And>n. C n \<in> M"
-      by (simp add: C_def split_def)
-    have sbC: "(\<Union>i. A i) \<subseteq> (\<Union>i. C i)"
-    proof (auto simp add: C_def)
-      fix x i
-      assume x: "x \<in> A i"
-      with sbBB [of i] obtain j where "x \<in> BB i j"
-        by blast
-      thus "\<exists>i. x \<in> split BB (prod_decode i)"
-        by (metis prod_encode_inverse prod.case)
-    qed
-    have "(f \<circ> C) = (f \<circ> (\<lambda>(x, y). BB x y)) \<circ> prod_decode"
-      by (rule ext)  (auto simp add: C_def)
-    moreover have "suminf ... = (\<Sum>n. \<Sum>i. f (BB n i))" using BBle
-      using BB posf[unfolded positive_def]
-      by (force intro!: suminf_ereal_2dimen simp: o_def)
-    ultimately have Csums: "(\<Sum>i. f (C i)) = (\<Sum>n. \<Sum>i. f (BB n i))" by (simp add: o_def)
-    have "?outer (\<Union>i. A i) \<le> (\<Sum>n. \<Sum>i. f (BB n i))"
-      apply (rule inf_measure_le [OF posf(1) inc], auto)
-      apply (rule_tac x="C" in exI)
-      apply (auto simp add: C sbC Csums)
-      done
-    also have "... \<le> (\<Sum>n. ?outer (A n)) + e" using sll
-      by blast
-    finally have "?outer (\<Union>i. A i) \<le> (\<Sum>n. ?outer (A n)) + e" . }
-  note for_finite_Inf = this
 
-  show "?outer (\<Union>i. A i) \<le> (\<Sum>n. ?outer (A n))"
+    def C \<equiv> "split B o prod_decode"
+    from B have B_in_M: "\<And>i j. B i j \<in> M"
+      by (rule range_subsetD)
+    then have C: "range C \<subseteq> M"
+      by (auto simp add: C_def split_def)
+    have A_C: "(\<Union>i. A i) \<subseteq> (\<Union>i. C i)"
+      using sbB by (auto simp add: C_def subset_eq) (metis prod.case prod_encode_inverse)
+
+    have "?O (\<Union>i. A i) \<le> ?O (\<Union>i. C i)"  
+      using A_C A C by (intro increasing_outer_measure[THEN increasingD]) (auto dest!: sets_into_space)
+    also have "\<dots> \<le> (\<Sum>i. f (C i))"
+      using C by (intro outer_measure_le[OF posf inc]) auto
+    also have "\<dots> = (\<Sum>n. \<Sum>i. f (B n i))"
+      using B_in_M unfolding C_def comp_def by (intro suminf_ereal_2dimen positiveD2[OF posf]) auto
+    also have "\<dots> \<le> (\<Sum>n. ?O (A n) + e*(1/2) ^ Suc n)"
+      using B_in_M by (intro suminf_le_pos[OF Ble] suminf_0_le posf[THEN positiveD2]) auto
+    also have "... = (\<Sum>n. ?O (A n)) + (\<Sum>n. e*(1/2) ^ Suc n)"
+      using e by (subst suminf_add_ereal) (auto simp add: ereal_zero_le_0_iff outer_measure_nonneg posf)
+    also have "(\<Sum>n. e*(1/2) ^ Suc n) = e"
+      using suminf_half_series_ereal e by (simp add: ereal_zero_le_0_iff suminf_cmult_ereal)
+    finally have "?O (\<Union>i. A i) \<le> (\<Sum>n. ?O (A n)) + e" . }
+  note * = this
+
+  show "?O (\<Union>i. A i) \<le> (\<Sum>n. ?O (A n))"
   proof cases
-    assume "\<forall>i. ?outer (A i) \<noteq> \<infinity>"
-    with for_finite_Inf show ?thesis
+    assume "\<forall>i. ?O (A i) \<noteq> \<infinity>" with * show ?thesis
       by (intro ereal_le_epsilon) auto
-  next
-    assume "\<not> (\<forall>i. ?outer (A i) \<noteq> \<infinity>)"
-    then have "\<exists>i. ?outer (A i) = \<infinity>"
-      by auto
-    then have "(\<Sum>n. ?outer (A n)) = \<infinity>"
-      using suminf_PInfty[OF inf_measure_pos, OF posf]
-      by metis
-    then show ?thesis by simp
-  qed
+  qed (metis suminf_PInfty[OF outer_measure_nonneg, OF posf] ereal_less_eq(1))
 qed
 
-lemma (in ring_of_sets) inf_measure_outer:
-  "\<lbrakk> positive M f ; increasing M f \<rbrakk> \<Longrightarrow>
-    outer_measure_space (Pow \<Omega>) (\<lambda>x. Inf (measure_set M f x))"
-  using inf_measure_pos[of M f]
-  by (simp add: outer_measure_space_def inf_measure_empty
-                inf_measure_increasing inf_measure_countably_subadditive positive_def)
+lemma (in ring_of_sets) outer_measure_space_outer_measure:
+  "positive M f \<Longrightarrow> increasing M f \<Longrightarrow> outer_measure_space (Pow \<Omega>) (outer_measure M f)"
+  by (simp add: outer_measure_space_def
+    positive_outer_measure increasing_outer_measure countably_subadditive_outer_measure)
 
 lemma (in ring_of_sets) algebra_subset_lambda_system:
   assumes posf: "positive M f" and inc: "increasing M f"
       and add: "additive M f"
-  shows "M \<subseteq> lambda_system \<Omega> (Pow \<Omega>) (\<lambda>x. Inf (measure_set M f x))"
+  shows "M \<subseteq> lambda_system \<Omega> (Pow \<Omega>) (outer_measure M f)"
 proof (auto dest: sets_into_space
             simp add: algebra.lambda_system_eq [OF algebra_Pow])
-  fix x s
-  assume x: "x \<in> M"
-     and s: "s \<subseteq> \<Omega>"
-  have [simp]: "!!x. x \<in> M \<Longrightarrow> s \<inter> (\<Omega> - x) = s-x" using s
+  fix x s assume x: "x \<in> M" and s: "s \<subseteq> \<Omega>"
+  have [simp]: "\<And>x. x \<in> M \<Longrightarrow> s \<inter> (\<Omega> - x) = s - x" using s
     by blast
-  have "Inf (measure_set M f (s\<inter>x)) + Inf (measure_set M f (s-x))
-        \<le> Inf (measure_set M f s)"
-  proof cases
-    assume "Inf (measure_set M f s) = \<infinity>" then show ?thesis by simp
-  next
-    assume fin: "Inf (measure_set M f s) \<noteq> \<infinity>"
-    then have "measure_set M f s \<noteq> {}"
-      by (auto simp: top_ereal_def)
-    show ?thesis
-    proof (rule complete_lattice_class.Inf_greatest)
-      fix r assume "r \<in> measure_set M f s"
-      then obtain A where A: "disjoint_family A" "range A \<subseteq> M" "s \<subseteq> (\<Union>i. A i)"
-        and r: "r = (\<Sum>i. f (A i))" unfolding measure_set_def by auto
-      have "Inf (measure_set M f (s \<inter> x)) \<le> (\<Sum>i. f (A i \<inter> x))"
-        unfolding measure_set_def
-      proof (safe intro!: complete_lattice_class.Inf_lower exI[of _ "\<lambda>i. A i \<inter> x"])
-        from A(1) show "disjoint_family (\<lambda>i. A i \<inter> x)"
-          by (rule disjoint_family_on_bisimulation) auto
-      qed (insert x A, auto)
-      moreover
-      have "Inf (measure_set M f (s - x)) \<le> (\<Sum>i. f (A i - x))"
-        unfolding measure_set_def
-      proof (safe intro!: complete_lattice_class.Inf_lower exI[of _ "\<lambda>i. A i - x"])
-        from A(1) show "disjoint_family (\<lambda>i. A i - x)"
-          by (rule disjoint_family_on_bisimulation) auto
-      qed (insert x A, auto)
-      ultimately have "Inf (measure_set M f (s \<inter> x)) + Inf (measure_set M f (s - x)) \<le>
-          (\<Sum>i. f (A i \<inter> x)) + (\<Sum>i. f (A i - x))" by (rule add_mono)
-      also have "\<dots> = (\<Sum>i. f (A i \<inter> x) + f (A i - x))"
-        using A(2) x posf by (subst suminf_add_ereal) (auto simp: positive_def)
-      also have "\<dots> = (\<Sum>i. f (A i))"
-        using A x
-        by (subst add[THEN additiveD, symmetric])
-           (auto intro!: arg_cong[where f=suminf] arg_cong[where f=f])
-      finally show "Inf (measure_set M f (s \<inter> x)) + Inf (measure_set M f (s - x)) \<le> r"
-        using r by simp
-    qed
+  have "outer_measure M f (s \<inter> x) + outer_measure M f (s - x) \<le> outer_measure M f s"
+    unfolding outer_measure_def[of M f s]
+  proof (safe intro!: INF_greatest)
+    fix A :: "nat \<Rightarrow> 'a set" assume A: "disjoint_family A" "range A \<subseteq> M" "s \<subseteq> (\<Union>i. A i)"
+    have "outer_measure M f (s \<inter> x) \<le> (\<Sum>i. f (A i \<inter> x))"
+      unfolding outer_measure_def
+    proof (safe intro!: INF_lower2[of "\<lambda>i. A i \<inter> x"])
+      from A(1) show "disjoint_family (\<lambda>i. A i \<inter> x)"
+        by (rule disjoint_family_on_bisimulation) auto
+    qed (insert x A, auto)
+    moreover
+    have "outer_measure M f (s - x) \<le> (\<Sum>i. f (A i - x))"
+      unfolding outer_measure_def
+    proof (safe intro!: INF_lower2[of "\<lambda>i. A i - x"])
+      from A(1) show "disjoint_family (\<lambda>i. A i - x)"
+        by (rule disjoint_family_on_bisimulation) auto
+    qed (insert x A, auto)
+    ultimately have "outer_measure M f (s \<inter> x) + outer_measure M f (s - x) \<le>
+        (\<Sum>i. f (A i \<inter> x)) + (\<Sum>i. f (A i - x))" by (rule add_mono)
+    also have "\<dots> = (\<Sum>i. f (A i \<inter> x) + f (A i - x))"
+      using A(2) x posf by (subst suminf_add_ereal) (auto simp: positive_def)
+    also have "\<dots> = (\<Sum>i. f (A i))"
+      using A x
+      by (subst add[THEN additiveD, symmetric])
+         (auto intro!: arg_cong[where f=suminf] arg_cong[where f=f])
+    finally show "outer_measure M f (s \<inter> x) + outer_measure M f (s - x) \<le> (\<Sum>i. f (A i))" .
   qed
   moreover
-  have "Inf (measure_set M f s)
-       \<le> Inf (measure_set M f (s\<inter>x)) + Inf (measure_set M f (s-x))"
+  have "outer_measure M f s \<le> outer_measure M f (s \<inter> x) + outer_measure M f (s - x)"
   proof -
-    have "Inf (measure_set M f s) = Inf (measure_set M f ((s\<inter>x) \<union> (s-x)))"
+    have "outer_measure M f s = outer_measure M f ((s \<inter> x) \<union> (s - x))"
       by (metis Un_Diff_Int Un_commute)
-    also have "... \<le> Inf (measure_set M f (s\<inter>x)) + Inf (measure_set M f (s-x))"
+    also have "... \<le> outer_measure M f (s \<inter> x) + outer_measure M f (s - x)"
       apply (rule subadditiveD)
       apply (rule ring_of_sets.countably_subadditive_subadditive [OF ring_of_sets_Pow])
-      apply (simp add: positive_def inf_measure_empty[OF posf] inf_measure_pos[OF posf])
-      apply (rule inf_measure_countably_subadditive)
+      apply (simp add: positive_def outer_measure_empty[OF posf] outer_measure_nonneg[OF posf])
+      apply (rule countably_subadditive_outer_measure)
       using s by (auto intro!: posf inc)
     finally show ?thesis .
   qed
   ultimately
-  show "Inf (measure_set M f (s\<inter>x)) + Inf (measure_set M f (s-x))
-        = Inf (measure_set M f s)"
+  show "outer_measure M f (s \<inter> x) + outer_measure M f (s - x) = outer_measure M f s"
     by (rule order_antisym)
 qed
 
-lemma measure_down:
-  "measure_space \<Omega> N \<mu> \<Longrightarrow> sigma_algebra \<Omega> M \<Longrightarrow> M \<subseteq> N \<Longrightarrow> measure_space \<Omega> M \<mu>"
+lemma measure_down: "measure_space \<Omega> N \<mu> \<Longrightarrow> sigma_algebra \<Omega> M \<Longrightarrow> M \<subseteq> N \<Longrightarrow> measure_space \<Omega> M \<mu>"
   by (auto simp add: measure_space_def positive_def countably_additive_def subset_eq)
 
 subsection {* Caratheodory's theorem *}
@@ -649,11 +517,11 @@ theorem (in ring_of_sets) caratheodory':
 proof -
   have inc: "increasing M f"
     by (metis additive_increasing ca countably_additive_additive posf)
-  let ?infm = "(\<lambda>x. Inf (measure_set M f x))"
-  def ls \<equiv> "lambda_system \<Omega> (Pow \<Omega>) ?infm"
-  have mls: "measure_space \<Omega> ls ?infm"
+  let ?O = "outer_measure M f"
+  def ls \<equiv> "lambda_system \<Omega> (Pow \<Omega>) ?O"
+  have mls: "measure_space \<Omega> ls ?O"
     using sigma_algebra.caratheodory_lemma
-            [OF sigma_algebra_Pow  inf_measure_outer [OF posf inc]]
+            [OF sigma_algebra_Pow outer_measure_space_outer_measure [OF posf inc]]
     by (simp add: ls_def)
   hence sls: "sigma_algebra \<Omega> ls"
     by (simp add: measure_space_def)
@@ -663,11 +531,11 @@ proof -
   hence sgs_sb: "sigma_sets (\<Omega>) (M) \<subseteq> ls"
     using sigma_algebra.sigma_sets_subset [OF sls, of "M"]
     by simp
-  have "measure_space \<Omega> (sigma_sets \<Omega> M) ?infm"
+  have "measure_space \<Omega> (sigma_sets \<Omega> M) ?O"
     by (rule measure_down [OF mls], rule sigma_algebra_sigma_sets)
        (simp_all add: sgs_sb space_closed)
-  thus ?thesis using inf_measure_agrees [OF posf ca]
-    by (intro exI[of _ ?infm]) auto
+  thus ?thesis using outer_measure_agrees [OF posf ca]
+    by (intro exI[of _ ?O]) auto
 qed
 
 lemma (in ring_of_sets) caratheodory_empty_continuous:
@@ -1068,6 +936,5 @@ proof -
   qed (auto split: prod.splits intro: assms)
   then show ?thesis by simp
 qed
-
 
 end
