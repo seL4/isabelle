@@ -266,7 +266,7 @@ class Plugin extends EBPlugin
 
   def session_build(): Int =
   {
-    val system_dialog = new System_Dialog
+    val system_dialog = new System_Dialog(jEdit.getActiveView())
 
     try {
       val mode = Isabelle_System.getenv("JEDIT_BUILD_MODE")

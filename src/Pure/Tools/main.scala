@@ -20,7 +20,7 @@ object Main
 
   def main(args: Array[String])
   {
-    val system_dialog = new System_Dialog
+    val system_dialog = new System_Dialog()
 
     def exit_error(exn: Throwable): Nothing =
     {

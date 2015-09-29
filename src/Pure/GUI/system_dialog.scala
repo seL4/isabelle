@@ -8,7 +8,8 @@ package isabelle
 
 
 import java.awt.{GraphicsEnvironment, Point}
-import javax.swing.WindowConstants
+import java.awt.event.{WindowEvent, WindowAdapter}
+import javax.swing.{WindowConstants, JFrame, JDialog}
 import java.io.{File => JFile, BufferedReader, InputStreamReader}
 
 import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
@@ -16,7 +17,7 @@ import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
 import scala.swing.event.ButtonClicked
 
 
-class System_Dialog extends Progress
+class System_Dialog(owner: JFrame = null) extends Progress
 {
   /* component state -- owned by GUI thread */
 
@@ -36,9 +37,10 @@ class System_Dialog extends Progress
 
         window.pack()
         val point = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint()
-        window.location =
-          new Point(point.x - window.size.width / 2, point.y - window.size.height / 2)
-        window.visible = true
+        window.setLocation(
+          new Point(point.x - window.getWidth / 2, point.y - window.getHeight / 2))
+
+        window.setVisible(true)
 
         window
       }
@@ -54,7 +56,7 @@ class System_Dialog extends Progress
     _window match {
       case None =>
       case Some(window) =>
-        window.visible = false
+        window.setVisible(false)
         window.dispose
         _window = None
     }
@@ -69,10 +71,9 @@ class System_Dialog extends Progress
 
   /* window */
 
-  private class Window extends Frame
+  private class Window extends JDialog(owner, _title)
   {
-    title = _title
-    peer.setIconImages(GUI.isabelle_images())
+    setIconImages(GUI.isabelle_images())
 
 
     /* text */
@@ -82,7 +83,7 @@ class System_Dialog extends Progress
       columns = 65
       rows = 24
     }
-    if (GUI.is_windows_laf) text.font = (new Label).font
+    text.font = (new Label).font
 
     val scroll_text = new ScrollPane(text)
 
@@ -94,7 +95,7 @@ class System_Dialog extends Progress
     layout_panel.layout(scroll_text) = BorderPanel.Position.Center
     layout_panel.layout(action_panel) = BorderPanel.Position.South
 
-    contents = layout_panel
+    setContentPane(layout_panel.peer)
 
     def set_actions(cs: Component*)
     {
@@ -107,12 +108,14 @@ class System_Dialog extends Progress
 
     /* close */
 
-    peer.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
+    setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
 
-    override def closeOperation {
-      if (_return_code.isDefined) conclude()
-      else stopping()
-    }
+    addWindowListener(new WindowAdapter {
+      override def windowClosed(e: WindowEvent) {
+        if (_return_code.isDefined) conclude()
+        else stopping()
+      }
+    })
 
     def stopping()
     {
@@ -162,7 +165,7 @@ class System_Dialog extends Progress
   def title(txt: String): Unit =
     GUI_Thread.later {
       _title = txt
-      _window.foreach(window => window.title = txt)
+      _window.foreach(window => window.setTitle(txt))
     }
 
   def return_code(rc: Int): Unit =
@@ -209,4 +212,3 @@ class System_Dialog extends Progress
     proc.waitFor
   }
 }
-
