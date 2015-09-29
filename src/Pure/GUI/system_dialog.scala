@@ -9,7 +9,6 @@ package isabelle
 
 import java.awt.event.{WindowEvent, WindowAdapter}
 import javax.swing.{WindowConstants, JFrame, JDialog}
-import java.io.{File => JFile, BufferedReader, InputStreamReader}
 
 import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
   BorderPanel, Frame, TextArea, Component, Label}
@@ -186,25 +185,4 @@ class System_Dialog(owner: JFrame = null) extends Progress
 
   @volatile private var is_stopped = false
   override def stopped: Boolean = is_stopped
-
-
-  /* system operations */
-
-  def execute(cwd: JFile, env: Map[String, String], args: String*): Int =
-  {
-    val proc = Isabelle_System.raw_execute(cwd, env, true, args: _*)
-    proc.getOutputStream.close
-
-    val stdout = new BufferedReader(new InputStreamReader(proc.getInputStream, UTF8.charset))
-    try {
-      var line = stdout.readLine
-      while (line != null) {
-        echo(line)
-        line = stdout.readLine
-      }
-    }
-    finally { stdout.close }
-
-    proc.waitFor
-  }
 }

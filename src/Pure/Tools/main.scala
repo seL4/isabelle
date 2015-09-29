@@ -131,7 +131,8 @@ object Main
     {
       val cwd = new JFile(isabelle_home)
       val env = Map("CYGWIN" -> "nodosfilewarning")
-      system_dialog.execute(cwd, env, args: _*)
+      val proc = Isabelle_System.raw_execute(cwd, env, true, args: _*)
+      Isabelle_System.process_output(system_dialog, proc)._2
     }
 
     system_dialog.echo("symlinks ...")
