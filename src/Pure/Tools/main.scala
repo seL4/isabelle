@@ -8,64 +8,24 @@ package isabelle
 
 
 import java.lang.{Class, ClassLoader}
-import java.io.{File => JFile, BufferedReader, InputStreamReader}
-import java.nio.file.Files
-
-import scala.annotation.tailrec
 
 
 object Main
 {
-  /** main entry point **/
+  /* main entry point */
 
   def main(args: Array[String])
   {
-    val system_dialog = new System_Dialog()
-
-    def exit_error(exn: Throwable): Nothing =
-    {
-      GUI.dialog(null, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
-      system_dialog.return_code(Exn.return_code(exn, 2))
-      system_dialog.join_exit
-    }
-
-    if (Platform.is_windows) {
-      try {
-        GUI.init_laf()
-
-        val isabelle_home0 = System.getenv("ISABELLE_HOME")
-        val isabelle_home = System.getProperty("isabelle.home")
-
-        if (isabelle_home0 == null || isabelle_home0 == "") {
-          if (isabelle_home == null || isabelle_home == "")
-            error("Unknown Isabelle home directory")
-          if (!(new JFile(isabelle_home)).isDirectory)
-            error("Bad Isabelle home directory: " + quote(isabelle_home))
-
-          val cygwin_root = isabelle_home + "\\contrib\\cygwin"
-          if ((new JFile(cygwin_root)).isDirectory)
-            System.setProperty("cygwin.root", cygwin_root)
-
-          val uninitialized_file = new JFile(cygwin_root, "isabelle\\uninitialized")
-          val uninitialized = uninitialized_file.isFile && uninitialized_file.delete
-
-          if (uninitialized) cygwin_init(system_dialog, isabelle_home, cygwin_root)
-        }
-      }
-      catch { case exn: Throwable => exit_error(exn) }
-
-      if (system_dialog.stopped) {
-        system_dialog.return_code(Exn.Interrupt.return_code)
-        system_dialog.join_exit
-      }
-    }
-
-    system_dialog.return_code(0)
-    system_dialog.join
-
-    val do_start =
+    val start =
     {
       try {
+        /* system init */
+
+        if (Platform.is_windows) Cygwin.init()
+
+        Isabelle_System.init()
+
+
         /* settings directory */
 
         val settings_dir = Path.explode("$JEDIT_SETTINGS")
@@ -112,67 +72,18 @@ object Main
 
         () => jedit_main.invoke(null, jedit_options ++ jedit_settings ++ more_args)
       }
-      catch { case exn: Throwable => exit_error(exn) }
-    }
-
-    do_start()
-  }
-
-
-
-  /** Cygwin init (e.g. after extraction via 7zip) **/
-
-  private def cygwin_init(system_dialog: System_Dialog, isabelle_home: String, cygwin_root: String)
-  {
-    system_dialog.title("Isabelle system initialization")
-    system_dialog.echo("Initializing Cygwin ...")
-
-    def execute(args: String*): Int =
-    {
-      val cwd = new JFile(isabelle_home)
-      val env = Map("CYGWIN" -> "nodosfilewarning")
-      val proc = Isabelle_System.raw_execute(cwd, env, true, args: _*)
-      Isabelle_System.process_output(system_dialog, proc)._2
-    }
-
-    system_dialog.echo("symlinks ...")
-    val symlinks =
-    {
-      val path = (new JFile(cygwin_root + "\\isabelle\\symlinks")).toPath
-      Files.readAllLines(path, UTF8.charset).toArray.toList.asInstanceOf[List[String]]
-    }
-    @tailrec def recover_symlinks(list: List[String]): Unit =
-    {
-      list match {
-        case Nil | List("") =>
-        case link :: content :: rest =>
-          val path = (new JFile(isabelle_home, link)).toPath
-
-          val writer = Files.newBufferedWriter(path, UTF8.charset)
-          try { writer.write("!<symlink>" + content + "\u0000") }
-          finally { writer.close }
-
-          Files.setAttribute(path, "dos:system", true)
-
-          recover_symlinks(rest)
-        case _ => error("Unbalanced symlinks list")
+      catch {
+        case exn: Throwable =>
+          GUI.init_laf()
+          GUI.dialog(null, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
+          sys.exit(2)
       }
     }
-    recover_symlinks(symlinks)
-
-    system_dialog.echo("rebaseall ...")
-    execute(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall")
-
-    system_dialog.echo("postinstall ...")
-    execute(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall")
-
-    system_dialog.echo("init ...")
-    Isabelle_System.init()
+    start()
   }
 
 
-
-  /** adhoc update of JVM environment variables **/
+  /* adhoc update of JVM environment variables */
 
   def update_environment()
   {

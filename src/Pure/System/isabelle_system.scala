@@ -60,10 +60,7 @@ object Isabelle_System
       (2) ISABELLE_HOME process environment variable (e.g. inherited from running isabelle tool)
       (3) isabelle.home system property (e.g. via JVM application boot process)
   */
-  def init(
-      isabelle_home: String = "",
-      cygwin_root: String = "",
-      progress: Progress = Ignore_Progress): Unit = synchronized {
+  def init(isabelle_home: String = "", cygwin_root: String = ""): Unit = synchronized {
     if (_settings.isEmpty) {
       import scala.collection.JavaConversions._
 
@@ -119,7 +116,7 @@ object Isabelle_System
             else Nil
           val cmdline =
             shell_prefix ::: List(system_home + "/bin/isabelle", "getenv", "-d", dump.toString)
-          val (output, rc) = process_output(progress, raw_execute(null, env, true, cmdline: _*))
+          val (output, rc) = process_output(raw_execute(null, env, true, cmdline: _*))
           if (rc != 0) error(output)
 
           val entries =
@@ -199,28 +196,11 @@ object Isabelle_System
     proc.start
   }
 
-  def process_output(progress: Progress, proc: Process): (String, Int) =
+  def process_output(proc: Process): (String, Int) =
   {
     proc.getOutputStream.close
 
-    val output =
-    {
-      val lines = new mutable.ListBuffer[String]
-
-      val stdout = new BufferedReader(new InputStreamReader(proc.getInputStream, UTF8.charset))
-      try {
-        var line = stdout.readLine
-        while (line != null) {
-          progress.echo(line)
-          lines += line
-          line = stdout.readLine
-        }
-      }
-      finally { stdout.close }
-
-      cat_lines(lines.toList)
-    }
-
+    val output = File.read_stream(proc.getInputStream)
     val rc =
       try { proc.waitFor }
       finally {
@@ -229,7 +209,6 @@ object Isabelle_System
         proc.destroy
         Thread.interrupted
       }
-
     (output, rc)
   }
 
@@ -322,7 +301,7 @@ object Isabelle_System
       if (Platform.is_windows) List(get_cygwin_root() + "\\bin\\bash.exe")
       else List("/usr/bin/env", "bash")
     val cmdline = bash ::: List("-c", "kill -" + signal + " -" + group_pid)
-    process_output(Ignore_Progress, raw_execute(null, null, true, cmdline: _*))
+    process_output(raw_execute(null, null, true, cmdline: _*))
   }
 
 
@@ -388,7 +367,7 @@ object Isabelle_System
     } match {
       case Some(dir) =>
         val file = File.standard_path(dir + Path.basic(name))
-        process_output(Ignore_Progress, execute(true, (List(file) ::: args.toList): _*))
+        process_output(execute(true, (List(file) ::: args.toList): _*))
       case None => ("Unknown Isabelle tool: " + name, 2)
     }
   }
