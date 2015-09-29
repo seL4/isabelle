@@ -7,7 +7,6 @@ Dialog for system processes, with optional output window.
 package isabelle
 
 
-import java.awt.{GraphicsEnvironment, Point}
 import java.awt.event.{WindowEvent, WindowAdapter}
 import javax.swing.{WindowConstants, JFrame, JDialog}
 import java.io.{File => JFile, BufferedReader, InputStreamReader}
@@ -36,10 +35,7 @@ class System_Dialog(owner: JFrame = null) extends Progress
         _window = Some(window)
 
         window.pack()
-        val point = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint()
-        window.setLocation(
-          new Point(point.x - window.getWidth / 2, point.y - window.getHeight / 2))
-
+        window.setLocationRelativeTo(owner)
         window.setVisible(true)
 
         window
