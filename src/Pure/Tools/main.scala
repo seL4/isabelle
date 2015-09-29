@@ -29,107 +29,6 @@ object Main
       system_dialog.join_exit
     }
 
-    def build()
-    {
-      try {
-        GUI.init_laf()
-        Isabelle_System.init()
-
-        val mode = Isabelle_System.getenv("JEDIT_BUILD_MODE")
-        if (mode == "none")
-          system_dialog.return_code(0)
-        else {
-          val options = Options.init()
-          val system_mode = mode == "" || mode == "system"
-          val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
-          val session = Isabelle_System.default_logic(
-            Isabelle_System.getenv("JEDIT_LOGIC"),
-            options.string("jedit_logic"))
-
-          if (Build.build(options = options, build_heap = true, no_build = true,
-              dirs = dirs, system_mode = system_mode, sessions = List(session)) == 0)
-            system_dialog.return_code(0)
-          else {
-            system_dialog.title("Isabelle build (" +
-              Isabelle_System.getenv("ML_IDENTIFIER") + " / " +
-              "jdk-" + Platform.jvm_version + "_" + Platform.jvm_platform + ")")
-            system_dialog.echo("Build started for Isabelle/" + session + " ...")
-
-            val (out, rc) =
-              try {
-                ("",
-                  Build.build(options = options, progress = system_dialog, build_heap = true,
-                    dirs = dirs, system_mode = system_mode, sessions = List(session)))
-              }
-              catch {
-                case exn: Throwable =>
-                  (Output.error_text(Exn.message(exn)) + "\n", Exn.return_code(exn, 2))
-              }
-
-            system_dialog.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
-            system_dialog.return_code(rc)
-          }
-        }
-      }
-      catch { case exn: Throwable => exit_error(exn) }
-    }
-
-    def start()
-    {
-      val do_start =
-      {
-        try {
-          /* settings directory */
-
-          val settings_dir = Path.explode("$JEDIT_SETTINGS")
-          Isabelle_System.mkdirs(settings_dir + Path.explode("DockableWindowManager"))
-
-          if (!(settings_dir + Path.explode("perspective.xml")).is_file) {
-            File.write(settings_dir + Path.explode("DockableWindowManager/perspective-view0.xml"),
-              """<DOCKING LEFT="" TOP="" RIGHT="isabelle-documentation" BOTTOM="" LEFT_POS="0" TOP_POS="0" RIGHT_POS="250" BOTTOM_POS="250" />""")
-            File.write(settings_dir + Path.explode("perspective.xml"),
-              """<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE PERSPECTIVE SYSTEM "perspective.dtd">
-<PERSPECTIVE>
-<VIEW PLAIN="FALSE">
-<GEOMETRY X="0" Y="35" WIDTH="1072" HEIGHT="787" EXT_STATE="0" />
-</VIEW>
-</PERSPECTIVE>""")
-          }
-
-
-          /* args */
-
-          val jedit_options =
-            Isabelle_System.getenv_strict("JEDIT_OPTIONS").split(" +")
-
-          val jedit_settings =
-            Array("-settings=" + File.platform_path(Path.explode("$JEDIT_SETTINGS")))
-
-          val more_args =
-            if (args.isEmpty)
-              Array(File.platform_path(Path.explode("$USER_HOME/Scratch.thy")))
-            else args
-
-
-          /* startup */
-
-          update_environment()
-
-          System.setProperty("jedit.home", File.platform_path(Path.explode("$JEDIT_HOME/dist")))
-          System.setProperty("scala.home", File.platform_path(Path.explode("$SCALA_HOME")))
-
-          val jedit =
-            Class.forName("org.gjt.sp.jedit.jEdit", true, ClassLoader.getSystemClassLoader)
-          val jedit_main = jedit.getMethod("main", classOf[Array[String]])
-
-          () => jedit_main.invoke(null, jedit_options ++ jedit_settings ++ more_args)
-        }
-        catch { case exn: Throwable => exit_error(exn) }
-      }
-      do_start()
-    }
-
     if (Platform.is_windows) {
       try {
         GUI.init_laf()
@@ -161,9 +60,62 @@ object Main
       }
     }
 
-    build()
-    val rc = system_dialog.join
-    if (rc == 0) start() else sys.exit(rc)
+    system_dialog.return_code(0)
+    system_dialog.join
+
+    val do_start =
+    {
+      try {
+        /* settings directory */
+
+        val settings_dir = Path.explode("$JEDIT_SETTINGS")
+        Isabelle_System.mkdirs(settings_dir + Path.explode("DockableWindowManager"))
+
+        if (!(settings_dir + Path.explode("perspective.xml")).is_file) {
+          File.write(settings_dir + Path.explode("DockableWindowManager/perspective-view0.xml"),
+            """<DOCKING LEFT="" TOP="" RIGHT="isabelle-documentation" BOTTOM="" LEFT_POS="0" TOP_POS="0" RIGHT_POS="250" BOTTOM_POS="250" />""")
+          File.write(settings_dir + Path.explode("perspective.xml"),
+            """<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE PERSPECTIVE SYSTEM "perspective.dtd">
+<PERSPECTIVE>
+<VIEW PLAIN="FALSE">
+<GEOMETRY X="0" Y="35" WIDTH="1072" HEIGHT="787" EXT_STATE="0" />
+</VIEW>
+</PERSPECTIVE>""")
+        }
+
+
+        /* args */
+
+        val jedit_options =
+          Isabelle_System.getenv_strict("JEDIT_OPTIONS").split(" +")
+
+        val jedit_settings =
+          Array("-settings=" + File.platform_path(Path.explode("$JEDIT_SETTINGS")))
+
+        val more_args =
+          if (args.isEmpty)
+            Array(File.platform_path(Path.explode("$USER_HOME/Scratch.thy")))
+          else args
+
+
+        /* main startup */
+
+        update_environment()
+
+        System.setProperty("jedit.home", File.platform_path(Path.explode("$JEDIT_HOME/dist")))
+        System.setProperty("scala.home", File.platform_path(Path.explode("$SCALA_HOME")))
+
+        val jedit =
+          Class.forName("org.gjt.sp.jedit.jEdit", true, ClassLoader.getSystemClassLoader)
+        val jedit_main = jedit.getMethod("main", classOf[Array[String]])
+
+        () => jedit_main.invoke(null, jedit_options ++ jedit_settings ++ more_args)
+      }
+      catch { case exn: Throwable => exit_error(exn) }
+    }
+
+    do_start()
   }
 
 
@@ -255,4 +207,3 @@ object Main
     }
   }
 }
-
