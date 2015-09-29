@@ -111,7 +111,7 @@ class System_Dialog(owner: JFrame = null) extends Progress
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
 
     addWindowListener(new WindowAdapter {
-      override def windowClosed(e: WindowEvent) {
+      override def windowClosing(e: WindowEvent) {
         if (_return_code.isDefined) conclude()
         else stopping()
       }
