@@ -13,7 +13,7 @@ object Build_Console
 
   def build_console(
     options: Options,
-    progress: Build.Progress = Build.Ignore_Progress,
+    progress: Progress = Ignore_Progress,
     dirs: List[Path] = Nil,
     no_build: Boolean = false,
     system_mode: Boolean = false,
@@ -45,7 +45,7 @@ object Build_Console
             val options = (Options.init() /: system_options)(_ + _)
             File.write(Path.explode(options_file), YXML.string_of_body(options.encode))
 
-            val progress = new Build.Console_Progress()
+            val progress = new Console_Progress()
             progress.interrupt_handler {
               build_console(options, progress,
                 dirs.map(Path.explode(_)), no_build, system_mode, session)

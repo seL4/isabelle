@@ -16,7 +16,7 @@ import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
 import scala.swing.event.ButtonClicked
 
 
-class System_Dialog extends Build.Progress
+class System_Dialog extends Progress
 {
   /* component state -- owned by GUI thread */
 

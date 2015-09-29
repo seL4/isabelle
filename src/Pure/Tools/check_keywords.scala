@@ -32,7 +32,7 @@ object Check_Keywords
   }
 
   def check_keywords(
-    progress: Build.Progress,
+    progress: Progress,
     keywords: Keyword.Keywords,
     check: Set[String],
     paths: List[Path])

@@ -24,7 +24,7 @@ object Batch_Session
     val parent_session =
       session_info.parent getOrElse error("No parent session for " + quote(session))
 
-    if (Build.build(options, new Build.Console_Progress(verbose),
+    if (Build.build(options, new Console_Progress(verbose),
         verbose = verbose, build_heap = true,
         dirs = dirs, sessions = List(parent_session)) != 0)
       new RuntimeException
@@ -36,7 +36,7 @@ object Batch_Session
       new Resources(content.loaded_theories, content.known_theories, content.syntax)
     }
 
-    val progress = new Build.Console_Progress(verbose)
+    val progress = new Console_Progress(verbose)
 
     val prover_session = new Session(resources)
     val batch_session = new Batch_Session(prover_session)
