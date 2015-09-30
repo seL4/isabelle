@@ -30,7 +30,7 @@
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
     <runtimeBits>{PLATFORM_BITS}</runtimeBits>
-    <opt>-Disabelle.root=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\\contrib\\cygwin&quot;</opt>
+    <opt>-Disabelle.root=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\contrib\cygwin&quot;</opt>
   </jre>
   <splash>
     <file>{SPLASH}</file>
