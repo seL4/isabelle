@@ -69,6 +69,8 @@ object Isabelle_System
           bootstrap_directory(cygwin_root, "CYGWIN_ROOT", "cygwin.root", "Cygwin root")
         else ""
 
+      if (Platform.is_windows) Cygwin.init(isabelle_root1, cygwin_root1)
+
       def set_cygwin_root()
       {
         if (Platform.is_windows)
