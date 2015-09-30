@@ -27,7 +27,7 @@ object File
   def standard_path(platform_path: String): String =
     if (Platform.is_windows) {
       val Platform_Root = new Regex("(?i)" +
-        Pattern.quote(Isabelle_System.get_cygwin_root()) + """(?:\\+|\z)(.*)""")
+        Pattern.quote(Isabelle_System.cygwin_root()) + """(?:\\+|\z)(.*)""")
       val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
 
       platform_path.replace('/', '\\') match {
@@ -71,7 +71,7 @@ object File
             result_path ++= root
             rest
           case path if path.startsWith("/") =>
-            result_path ++= Isabelle_System.get_cygwin_root()
+            result_path ++= Isabelle_System.cygwin_root()
             path
           case path => path
         }

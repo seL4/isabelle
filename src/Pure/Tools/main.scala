@@ -19,10 +19,6 @@ object Main
     val start =
     {
       try {
-        /* system init */
-
-        if (Platform.is_windows) Cygwin.init()
-
         Isabelle_System.init()
 
 
