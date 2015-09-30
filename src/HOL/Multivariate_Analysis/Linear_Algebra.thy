@@ -560,7 +560,7 @@ lemma real_arch_simple: "\<exists>n::nat. x \<le> real n"
 
 lemma real_arch_inv: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
   using reals_Archimedean[of e] less_trans[of 0 "1 / real n" e for n::nat]
-  by (auto simp add: field_simps cong: conj_cong)
+  by (auto simp add: field_simps cong: conj_cong simp del: real_of_nat_Suc)
 
 text\<open>Bernoulli's inequality\<close>
 lemma Bernoulli_inequality:
@@ -654,9 +654,7 @@ lemma forall_pos_mono_1:
     (\<And>n. P (inverse (real (Suc n)))) \<Longrightarrow> 0 < e \<Longrightarrow> P e"
   apply (rule forall_pos_mono)
   apply auto
-  apply (atomize)
-  apply (erule_tac x="n - 1" in allE)
-  apply auto
+  apply (metis Suc_pred real_of_nat_Suc)
   done
 
 lemma real_archimedian_rdiv_eq_0:

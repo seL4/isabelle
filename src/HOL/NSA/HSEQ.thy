@@ -225,11 +225,11 @@ lemma NSLIMSEQ_inverse_zero:
 by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_zero)
 
 lemma NSLIMSEQ_inverse_real_of_nat: "(%n. inverse(real(Suc n))) ----NS> 0"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat)
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat del: real_of_nat_Suc)
 
 lemma NSLIMSEQ_inverse_real_of_nat_add:
      "(%n. r + inverse(real(Suc n))) ----NS> r"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add)
+by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add del: real_of_nat_Suc)
 
 lemma NSLIMSEQ_inverse_real_of_nat_add_minus:
      "(%n. r + -inverse(real(Suc n))) ----NS> r"

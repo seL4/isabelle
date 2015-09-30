@@ -664,9 +664,9 @@ proof -
       apply simp
       done
     also have "... \<le> j*e + e*(n - j + 1)*e/n "
-      using \<open>1 \<le> n\<close> e  by (simp add: field_simps)
+      using \<open>1 \<le> n\<close> e  by (simp add: field_simps del: real_of_nat_Suc)
     also have "... \<le> j*e + e*e"
-      using \<open>1 \<le> n\<close> e j1 by (simp add: field_simps)
+      using \<open>1 \<le> n\<close> e j1 by (simp add: field_simps del: real_of_nat_Suc)
     also have "... < (j + 1/3)*e"
       using e by (auto simp: field_simps)
     finally have gj1: "g t < (j + 1 / 3) * e" .

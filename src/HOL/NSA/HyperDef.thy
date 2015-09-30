@@ -266,7 +266,7 @@ by (cut_tac x = x in lemma_epsilon_empty_singleton_disj, auto)
 
 lemma not_ex_hypreal_of_real_eq_epsilon: "~ (\<exists>x. hypreal_of_real x = epsilon)"
 by (auto simp add: epsilon_def star_of_def star_n_eq_iff
-                   lemma_finite_epsilon_set [THEN FreeUltrafilterNat.finite])
+                   lemma_finite_epsilon_set [THEN FreeUltrafilterNat.finite] simp del: real_of_nat_Suc)
 
 lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x \<noteq> epsilon"
 by (insert not_ex_hypreal_of_real_eq_epsilon, auto)

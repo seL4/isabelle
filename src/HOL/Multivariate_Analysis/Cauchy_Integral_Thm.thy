@@ -3030,7 +3030,7 @@ proof -
                      path_integral (linepath (h (n/N)) (g (n/N))) f = 0"
             using path_integral_unique [OF pi0] Suc.prems
             by (simp add: g h fpa valid_path_subpath path_integrable_subpath
-                          fpa1 fpa2 fpa3 algebra_simps)
+                          fpa1 fpa2 fpa3 algebra_simps del: real_of_nat_Suc)
           have *: "\<And>hn he hn' gn gd gn' hgn ghn gh0 ghn'.
                     \<lbrakk>hn - gn = ghn - gh0;
                      gd + ghn' + he + hgn = (0::complex);

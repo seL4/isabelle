@@ -870,7 +870,7 @@ proof (rule LIM_I)
       from DERIV_D[OF DERIV_f[where n=n], THEN LIM_D, OF \<open>0 < ?r\<close>, unfolded real_norm_def]
       obtain s where s_bound: "0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> \<bar>x\<bar> < s \<longrightarrow> \<bar>?diff n x - f' x0 n\<bar> < ?r)"
         by auto
-      have "0 < ?s n" by (rule someI2[where a=s]) (auto simp add: s_bound)
+      have "0 < ?s n" by (rule someI2[where a=s]) (auto simp add: s_bound simp del: real_of_nat_Suc)
       thus "0 < x" unfolding \<open>x = ?s n\<close> .
     qed
   qed auto
@@ -930,7 +930,7 @@ proof (rule LIM_I)
       by (rule setsum_constant)
     also have "\<dots> = real ?N * ?r"
       unfolding real_eq_of_nat by auto
-    also have "\<dots> = r/3" by auto
+    also have "\<dots> = r/3" by (auto simp del: real_of_nat_Suc)
     finally have "\<bar>\<Sum>n<?N. ?diff n x - f' x0 n \<bar> < r / 3" (is "?diff_part < r / 3") .
 
     from suminf_diff[OF allf_summable[OF x_in_I] allf_summable[OF x0_in_I]]
@@ -1042,7 +1042,7 @@ proof -
             by (rule mult_left_mono) auto
           show "norm (f n * x^n) \<le> norm (f n * real (Suc n) * x^n)"
             unfolding real_norm_def abs_mult
-            by (rule mult_right_mono) (auto simp add: le[unfolded mult_1_right])
+            using le mult_right_mono by fastforce
         qed (rule powser_insidea[OF converges[OF \<open>R' \<in> {-R <..< R}\<close>] \<open>norm x < norm R'\<close>])
         from this[THEN summable_mult2[where c=x], unfolded mult.assoc, unfolded mult.commute]
         show "summable (?f x)" by auto
@@ -5110,7 +5110,7 @@ proof -
     }
     have "?a 1 ----> 0"
       unfolding tendsto_rabs_zero_iff power_one divide_inverse One_nat_def
-      by (auto intro!: tendsto_mult LIMSEQ_linear LIMSEQ_inverse_real_of_nat)
+      by (auto intro!: tendsto_mult LIMSEQ_linear LIMSEQ_inverse_real_of_nat simp del: real_of_nat_Suc)
     have "?diff 1 ----> 0"
     proof (rule LIMSEQ_I)
       fix r :: real

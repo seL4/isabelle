@@ -192,7 +192,7 @@ proof -
     also have "\<dots> \<le> (\<Sum>n. ereal (e*2 powr - real (Suc n)))"
       using B_compl_le by (intro suminf_le_pos) (simp_all add: measure_nonneg emeasure_eq_measure)
     also have "\<dots> \<le> (\<Sum>n. ereal (e * (1 / 2) ^ Suc n))"
-      by (simp add: Transcendental.powr_minus powr_realpow field_simps)
+      by (simp add: Transcendental.powr_minus powr_realpow field_simps del: real_of_nat_Suc)
     also have "\<dots> = (\<Sum>n. ereal e * ((1 / 2) ^ Suc n))"
       unfolding times_ereal.simps[symmetric] ereal_power[symmetric] one_ereal_def numeral_eq_ereal
       by simp
@@ -254,7 +254,7 @@ proof -
       from in_closed_iff_infdist_zero[OF `closed A` `A \<noteq> {}`]
       have "A = {x. infdist x A = 0}" by auto
       also have "\<dots> = (\<Inter>i. ?G (1/real (Suc i)))"
-      proof (auto, rule ccontr)
+      proof (auto simp del: real_of_nat_Suc, rule ccontr)
         fix x
         assume "infdist x A \<noteq> 0"
         hence pos: "infdist x A > 0" using infdist_nonneg[of x A] by simp
@@ -262,7 +262,7 @@ proof -
         moreover
         assume "\<forall>i. infdist x A < 1 / real (Suc i)"
         hence "infdist x A < 1 / real (Suc n)" by auto
-        ultimately show False by simp
+        ultimately show False by simp 
       qed
       also have "M \<dots> = (INF n. emeasure M (?G (1 / real (Suc n))))"
       proof (rule INF_emeasure_decseq[symmetric], safe)
@@ -439,7 +439,7 @@ proof -
         by (intro suminf_le_pos, subst emeasure_Diff)
            (auto simp: emeasure_Diff emeasure_eq_measure sb measure_nonneg intro: less_imp_le)
       also have "\<dots> \<le> (\<Sum>n. ereal (e * (1 / 2) ^ Suc n))"
-        by (simp add: powr_minus inverse_eq_divide powr_realpow field_simps power_divide)
+        by (simp add: powr_minus inverse_eq_divide powr_realpow field_simps power_divide del: real_of_nat_Suc)
       also have "\<dots> = (\<Sum>n. ereal e * ((1 / 2) ^  Suc n))"
         unfolding times_ereal.simps[symmetric] ereal_power[symmetric] one_ereal_def numeral_eq_ereal
         by simp

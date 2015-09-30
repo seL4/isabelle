@@ -430,16 +430,16 @@ lemma Maclaurin_sin_expansion2:
 apply (cut_tac f = sin and n = n and x = x
         and diff = "%n x. sin (x + 1/2*real n * pi)" in Maclaurin_all_lt_objl)
 apply safe
-apply (simp (no_asm))
-apply (simp (no_asm) add: sin_expansion_lemma)
-apply (force intro!: derivative_eq_intros)
-apply (subst (asm) setsum.neutral, auto)[1]
-apply (rule ccontr, simp)
-apply (drule_tac x = x in spec, simp)
+    apply (simp)
+   apply (simp add: sin_expansion_lemma del: real_of_nat_Suc)
+   apply (force intro!: derivative_eq_intros)
+  apply (subst (asm) setsum.neutral, auto)[1]
+ apply (rule ccontr, simp)
+ apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])
-apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE)
+apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: real_of_nat_Suc)
 done
 
 lemma Maclaurin_sin_expansion:
@@ -458,13 +458,13 @@ lemma Maclaurin_sin_expansion3:
       + ((sin(t + 1/2 * real(n) *pi) / (fact n)) * x ^ n)"
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin_objl)
 apply safe
-apply simp
-apply (simp (no_asm) add: sin_expansion_lemma)
-apply (force intro!: derivative_eq_intros)
-apply (erule ssubst)
-apply (rule_tac x = t in exI, simp)
-apply (rule setsum.cong[OF refl])
-apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE)
+    apply simp
+   apply (simp (no_asm) add: sin_expansion_lemma del: real_of_nat_Suc)
+   apply (force intro!: derivative_eq_intros)
+  apply (erule ssubst)
+  apply (rule_tac x = t in exI, simp)
+ apply (rule setsum.cong[OF refl])
+ apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: real_of_nat_Suc)
 done
 
 lemma Maclaurin_sin_expansion4:
@@ -475,13 +475,13 @@ lemma Maclaurin_sin_expansion4:
       + ((sin(t + 1/2 * real (n) *pi) / (fact n)) * x ^ n)"
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin2_objl)
 apply safe
-apply simp
-apply (simp (no_asm) add: sin_expansion_lemma)
-apply (force intro!: derivative_eq_intros)
-apply (erule ssubst)
-apply (rule_tac x = t in exI, simp)
-apply (rule setsum.cong[OF refl])
-apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE)
+    apply simp
+   apply (simp (no_asm) add: sin_expansion_lemma del: real_of_nat_Suc)
+   apply (force intro!: derivative_eq_intros)
+  apply (erule ssubst)
+  apply (rule_tac x = t in exI, simp)
+ apply (rule setsum.cong[OF refl])
+ apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: real_of_nat_Suc)
 done
 
 
@@ -502,10 +502,10 @@ lemma Maclaurin_cos_expansion:
       + ((cos(t + 1/2 * real (n) *pi) / (fact n)) * x ^ n)"
 apply (cut_tac f = cos and n = n and x = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_all_lt_objl)
 apply safe
-apply (simp (no_asm))
-apply (simp (no_asm) add: cos_expansion_lemma)
-apply (case_tac "n", simp)
-apply (simp del: setsum_lessThan_Suc)
+    apply (simp (no_asm))
+   apply (simp (no_asm) add: cos_expansion_lemma del: real_of_nat_Suc)
+  apply (case_tac "n", simp)
+  apply (simp del: setsum_lessThan_Suc)
 apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)
 apply (erule ssubst)
@@ -522,10 +522,10 @@ lemma Maclaurin_cos_expansion2:
       + ((cos(t + 1/2 * real (n) *pi) / (fact n)) * x ^ n)"
 apply (cut_tac f = cos and n = n and h = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_objl)
 apply safe
-apply simp
-apply (simp (no_asm) add: cos_expansion_lemma)
-apply (erule ssubst)
-apply (rule_tac x = t in exI, simp)
+  apply simp
+  apply (simp (no_asm) add: cos_expansion_lemma del: real_of_nat_Suc)
+ apply (erule ssubst)
+ apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])
 apply (auto simp add: cos_coeff_def cos_zero_iff elim: evenE)
 done
@@ -538,8 +538,8 @@ lemma Maclaurin_minus_cos_expansion:
       + ((cos(t + 1/2 * real (n) *pi) / (fact n)) * x ^ n)"
 apply (cut_tac f = cos and n = n and h = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_minus_objl)
 apply safe
-apply simp
-apply (simp (no_asm) add: cos_expansion_lemma)
+  apply simp
+ apply (simp (no_asm) add: cos_expansion_lemma del: real_of_nat_Suc)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])

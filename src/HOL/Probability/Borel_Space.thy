@@ -618,7 +618,7 @@ proof -
   interpret sigma_algebra UNIV ?SIGMA
     by (intro sigma_algebra_sigma_sets) simp_all
   have *: "?set = (\<Union>n. UNIV - {x::'a. x \<bullet> i < a + 1 / real (Suc n)})"
-  proof (safe, simp_all add: not_less)
+  proof (safe, simp_all add: not_less del: real_of_nat_Suc)
     fix x :: 'a assume "a < x \<bullet> i"
     with reals_Archimedean[of "x \<bullet> i - a"]
     obtain n where "a + 1 / real (Suc n) < x \<bullet> i"
@@ -655,7 +655,7 @@ proof (rule borel_eq_sigmaI2[OF borel_eq_halfspace_less])
   fix a :: real and i :: 'a assume "(a, i) \<in> UNIV \<times> Basis"
   then have i: "i \<in> Basis" by auto
   have *: "{x::'a. x\<bullet>i < a} = (\<Union>n. {x. x\<bullet>i \<le> a - 1/real (Suc n)})"
-  proof (safe, simp_all)
+  proof (safe, simp_all del: real_of_nat_Suc)
     fix x::'a assume *: "x\<bullet>i < a"
     with reals_Archimedean[of "a - x\<bullet>i"]
     obtain n where "x \<bullet> i < a - 1 / (real (Suc n))"

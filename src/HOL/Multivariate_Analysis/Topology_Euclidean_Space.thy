@@ -6597,8 +6597,7 @@ proof -
         then have "\<exists>N::nat. inverse (real (N + 1)) < e"
           using real_arch_inv[of e]
           apply (auto simp add: Suc_pred')
-          apply (rule_tac x="n - 1" in exI)
-          apply auto
+          apply (metis Suc_pred' real_of_nat_Suc)
           done
         then obtain N :: nat where "inverse (real (N + 1)) < e"
           by auto

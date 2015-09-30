@@ -1298,7 +1298,7 @@ lemma integral_power:
 proof (subst integral_FTC_Icc_real)
   fix x show "DERIV (\<lambda>x. x^Suc k / Suc k) x :> x^k"
     by (intro derivative_eq_intros) auto
-qed (auto simp: field_simps)
+qed (auto simp: field_simps simp del: real_of_nat_Suc)
 
 subsection {* Integration by parts *}
 

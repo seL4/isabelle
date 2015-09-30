@@ -22,7 +22,7 @@ text \<open>
 
 subsection \<open>Preliminary lemmas\<close>
 
-lemma inj_add_left [simp]: 
+lemma inj_add_left [simp]:
   fixes x :: "'a::cancel_semigroup_add" shows "inj (op+ x)"
 by (meson add_left_imp_eq injI)
 
@@ -945,7 +945,7 @@ proof
     then obtain s where s: "\<forall>y\<in>X. y \<le> s" "\<And>z. \<forall>y\<in>X. y \<le> z \<Longrightarrow> s \<le> z"
       using complete_real[of X] by blast
     then have "Sup X = s"
-      unfolding Sup_real_def by (best intro: Least_equality)  
+      unfolding Sup_real_def by (best intro: Least_equality)
     also from s z have "... \<le> z"
       by blast
     finally show "Sup X \<le> z" . }
@@ -971,7 +971,7 @@ declare Abs_real_cases [cases del]
 
 lifting_update real.lifting
 lifting_forget real.lifting
-  
+
 subsection\<open>More Lemmas\<close>
 
 text \<open>BH: These lemmas should not be necessary; they should be
@@ -1010,7 +1010,7 @@ class real_of =
 instantiation nat :: real_of
 begin
 
-definition real_nat :: "nat \<Rightarrow> real" where real_of_nat_def [code_unfold]: "real \<equiv> of_nat" 
+definition real_nat :: "nat \<Rightarrow> real" where real_of_nat_def [code_unfold]: "real \<equiv> of_nat"
 
 instance ..
 end
@@ -1018,7 +1018,7 @@ end
 instantiation int :: real_of
 begin
 
-definition real_int :: "int \<Rightarrow> real" where real_of_int_def [code_unfold]: "real \<equiv> of_int" 
+definition real_int :: "int \<Rightarrow> real" where real_of_int_def [code_unfold]: "real \<equiv> of_int"
 
 instance ..
 end
@@ -1042,23 +1042,23 @@ lemma real_eq_of_nat: "real = of_nat"
 lemma real_eq_of_int: "real = of_int"
   unfolding real_of_int_def ..
 
-lemma real_of_int_zero [simp]: "real (0::int) = 0"  
-by (simp add: real_of_int_def) 
+lemma real_of_int_zero [simp]: "real (0::int) = 0"
+by (simp add: real_of_int_def)
 
 lemma real_of_one [simp]: "real (1::int) = (1::real)"
-by (simp add: real_of_int_def) 
+by (simp add: real_of_int_def)
 
 lemma real_of_int_add [simp]: "real(x + y) = real (x::int) + real y"
-by (simp add: real_of_int_def) 
+by (simp add: real_of_int_def)
 
 lemma real_of_int_minus [simp]: "real(-x) = -real (x::int)"
-by (simp add: real_of_int_def) 
+by (simp add: real_of_int_def)
 
 lemma real_of_int_diff [simp]: "real(x - y) = real (x::int) - real y"
-by (simp add: real_of_int_def) 
+by (simp add: real_of_int_def)
 
 lemma real_of_int_mult [simp]: "real(x * y) = real (x::int) * real y"
-by (simp add: real_of_int_def) 
+by (simp add: real_of_int_def)
 
 lemma real_of_int_power [simp]: "real (x ^ n) = real (x::int) ^ n"
 by (simp add: real_of_int_def of_int_power)
@@ -1070,31 +1070,31 @@ lemma real_of_int_setsum [simp]: "real ((SUM x:A. f x)::int) = (SUM x:A. real(f 
   apply (rule of_int_setsum)
 done
 
-lemma real_of_int_setprod [simp]: "real ((PROD x:A. f x)::int) = 
+lemma real_of_int_setprod [simp]: "real ((PROD x:A. f x)::int) =
     (PROD x:A. real(f x))"
   apply (subst real_eq_of_int)+
   apply (rule of_int_setprod)
 done
 
 lemma real_of_int_zero_cancel [simp, algebra, presburger]: "(real x = 0) = (x = (0::int))"
-by (simp add: real_of_int_def) 
+by (simp add: real_of_int_def)
 
 lemma real_of_int_inject [iff, algebra, presburger]: "(real (x::int) = real y) = (x = y)"
-by (simp add: real_of_int_def) 
+by (simp add: real_of_int_def)
 
 lemma real_of_int_less_iff [iff, presburger]: "(real (x::int) < real y) = (x < y)"
-by (simp add: real_of_int_def) 
+by (simp add: real_of_int_def)
 
 lemma real_of_int_le_iff [simp, presburger]: "(real (x::int) \<le> real y) = (x \<le> y)"
-by (simp add: real_of_int_def) 
+by (simp add: real_of_int_def)
 
 lemma real_of_int_gt_zero_cancel_iff [simp, presburger]: "(0 < real (n::int)) = (0 < n)"
-by (simp add: real_of_int_def) 
+by (simp add: real_of_int_def)
 
 lemma real_of_int_ge_zero_cancel_iff [simp, presburger]: "(0 <= real (n::int)) = (0 <= n)"
-by (simp add: real_of_int_def) 
+by (simp add: real_of_int_def)
 
-lemma real_of_int_lt_zero_cancel_iff [simp, presburger]: "(real (n::int) < 0) = (n < 0)" 
+lemma real_of_int_lt_zero_cancel_iff [simp, presburger]: "(real (n::int) < 0) = (n < 0)"
 by (simp add: real_of_int_def)
 
 lemma real_of_int_le_zero_cancel_iff [simp, presburger]: "(real (n::int) <= 0) = (n <= 0)"
@@ -1127,7 +1127,7 @@ lemma int_le_real_less: "((n::int) <= m) = (real n < real m + 1)"
   apply simp
 done
 
-lemma real_of_int_div_aux: "(real (x::int)) / (real d) = 
+lemma real_of_int_div_aux: "(real (x::int)) / (real d) =
     real (x div d) + (real (x mod d)) / (real d)"
 proof -
   have "x = (x div d) * d + x mod d"
@@ -1167,7 +1167,7 @@ lemma real_of_int_div3:
   apply (auto simp add: divide_le_eq intro: order_less_imp_le)
 done
 
-lemma real_of_int_div4: "real (n div x) <= real (n::int) / real x" 
+lemma real_of_int_div4: "real (n div x) <= real (n::int) / real x"
 by (insert real_of_int_div2 [of n x], simp)
 
 lemma Ints_real_of_int [simp]: "real (x::int) \<in> \<int>"
@@ -1188,11 +1188,10 @@ by (simp add: real_of_nat_def)
 lemma real_of_nat_add [simp]: "real (m + n) = real (m::nat) + real n"
 by (simp add: real_of_nat_def)
 
-(*Not for addsimps: often the LHS is used to represent a positive natural*)
-lemma real_of_nat_Suc: "real (Suc n) = real n + (1::real)"
+lemma real_of_nat_Suc [simp]: "real (Suc n) = real n + (1::real)"
 by (simp add: real_of_nat_def)
 
-lemma real_of_nat_less_iff [iff]: 
+lemma real_of_nat_less_iff [iff]:
      "(real (n::nat) < real m) = (n < m)"
 by (simp add: real_of_nat_def)
 
@@ -1213,13 +1212,13 @@ by (simp add: real_of_nat_def of_nat_power)
 
 lemmas power_real_of_nat = real_of_nat_power [symmetric]
 
-lemma real_of_nat_setsum [simp]: "real ((SUM x:A. f x)::nat) = 
+lemma real_of_nat_setsum [simp]: "real ((SUM x:A. f x)::nat) =
     (SUM x:A. real(f x))"
   apply (subst real_eq_of_nat)+
   apply (rule of_nat_setsum)
 done
 
-lemma real_of_nat_setprod [simp]: "real ((PROD x:A. f x)::nat) = 
+lemma real_of_nat_setprod [simp]: "real ((PROD x:A. f x)::nat) =
     (PROD x:A. real(f x))"
   apply (subst real_eq_of_nat)+
   apply (rule of_nat_setprod)
@@ -1250,18 +1249,12 @@ lemma not_real_of_nat_less_zero [simp]: "~ real (n::nat) < 0"
 by (simp add: add: real_of_nat_def)
 
 lemma nat_less_real_le: "((n::nat) < m) = (real n + 1 <= real m)"
-  apply (subgoal_tac "real n + 1 = real (Suc n)")
-  apply simp
-  apply (auto simp add: real_of_nat_Suc)
-done
+by (metis discrete real_of_nat_1 real_of_nat_add real_of_nat_le_iff)
 
 lemma nat_le_real_less: "((n::nat) <= m) = (real n < real m + 1)"
-  apply (subgoal_tac "real m + 1 = real (Suc m)")
-  apply (simp add: less_Suc_eq_le)
-  apply (simp add: real_of_nat_Suc)
-done
+  by (meson nat_less_real_le not_le)
 
-lemma real_of_nat_div_aux: "(real (x::nat)) / (real d) = 
+lemma real_of_nat_div_aux: "(real (x::nat)) / (real d) =
     real (x div d) + (real (x mod d)) / (real d)"
 proof -
   have "x = (x div d) * d + x mod d"
@@ -1295,7 +1288,7 @@ apply (subst real_of_nat_div_aux)
 apply simp
 done
 
-lemma real_of_nat_div4: "real (n div x) <= real (n::nat) / real x" 
+lemma real_of_nat_div4: "real (n div x) <= real (n::nat) / real x"
 by (insert real_of_nat_div2 [of n x], simp)
 
 lemma real_of_int_of_nat_eq [simp]: "real (of_nat n :: int) = real n"
@@ -1399,7 +1392,7 @@ proof -
     by (rule dvd_mult_div_cancel)
   from \<open>n \<noteq> 0\<close> and gcd_l
   have "?gcd * ?l \<noteq> 0" by simp
-  then have "?l \<noteq> 0" by (blast dest!: mult_not_zero) 
+  then have "?l \<noteq> 0" by (blast dest!: mult_not_zero)
   moreover
   have "\<bar>x\<bar> = real ?k / real ?l"
   proof -
@@ -1432,8 +1425,8 @@ lemma Rats_dense_in_real:
   assumes "x < y" shows "\<exists>r\<in>\<rat>. x < r \<and> r < y"
 proof -
   from \<open>x<y\<close> have "0 < y-x" by simp
-  with reals_Archimedean obtain q::nat 
-    where q: "inverse (real q) < y-x" and "0 < q" by auto
+  with reals_Archimedean obtain q::nat
+    where q: "inverse (real q) < y-x" and "0 < q" by blast 
   def p \<equiv> "ceiling (y * real q) - 1"
   def r \<equiv> "of_int p / real q"
   from q have "x < y - inverse (real q)" by simp
@@ -1493,7 +1486,7 @@ declaration \<open>
 
 subsection\<open>Simprules combining x+y and 0: ARE THEY NEEDED?\<close>
 
-lemma real_add_minus_iff [simp]: "(x + - a = (0::real)) = (x=a)" 
+lemma real_add_minus_iff [simp]: "(x + - a = (0::real)) = (x=a)"
 by arith
 
 text \<open>FIXME: redundant with @{text add_eq_0_iff} below\<close>
@@ -1649,7 +1642,7 @@ by (rule abs_of_nonneg [OF real_of_nat_ge_zero])
 
 lemma abs_add_one_not_less_self: "~ abs(x) + (1::real) < x"
 by simp
- 
+
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
 by simp
 
@@ -2017,7 +2010,7 @@ lemma real_minus_code [code]: "Ratreal x - Ratreal y = Ratreal (x - y)"
 
 lemma real_inverse_code [code]: "inverse (Ratreal x) = Ratreal (inverse x)"
   by (simp add: of_rat_inverse)
- 
+
 lemma real_divide_code [code]: "Ratreal x / Ratreal y = Ratreal (x / y)"
   by (simp add: of_rat_divide)
 
