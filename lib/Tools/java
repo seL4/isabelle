@@ -10,5 +10,5 @@ declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
 unset CLASSPATH
 
 isabelle_java java "${JAVA_ARGS[@]}" \
-  -classpath "$(jvmpath "$ISABELLE_CLASSPATH")" "$@"
+  -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"
 

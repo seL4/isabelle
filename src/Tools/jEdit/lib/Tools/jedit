@@ -197,10 +197,10 @@ shift $(($OPTIND - 1))
 # args
 
 if [ "$#" -eq 0 ]; then
-  ARGS["${#ARGS[@]}"]="$(jvmpath "$USER_HOME/Scratch.thy")"
+  ARGS["${#ARGS[@]}"]="$(platform_path "$USER_HOME/Scratch.thy")"
 else
   while [ "$#" -gt 0 ]; do
-    ARGS["${#ARGS[@]}"]="$(jvmpath "$1")"
+    ARGS["${#ARGS[@]}"]="$(platform_path "$1")"
     shift
   done
 fi
@@ -332,7 +332,7 @@ then
     do
       classpath "$JAR"
     done
-    export CLASSPATH="$(jvmpath "$ISABELLE_CLASSPATH")"
+    export CLASSPATH="$(platform_path "$ISABELLE_CLASSPATH")"
     exec "$SCALA_HOME/bin/scalac" $ISABELLE_SCALA_BUILD_OPTIONS -d dist/classes "${SOURCES[@]}"
   ) || fail "Failed to compile sources"
 
