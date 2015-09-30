@@ -42,8 +42,8 @@ librarypath "$ML_HOME"
 
 case "$ML_PLATFORM" in
   *-windows)
-    PLATFORM_INFILE="$(jvmpath -m "$INFILE")"
-    PLATFORM_OUTFILE="$(jvmpath -m "$OUTFILE")"
+    PLATFORM_INFILE="$(platform_path -m "$INFILE")"
+    PLATFORM_OUTFILE="$(platform_path -m "$OUTFILE")"
     ;;
   *)
     PLATFORM_INFILE="$INFILE"

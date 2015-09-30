@@ -1,7 +1,7 @@
 /*  Title:      Tools/jEdit/src/isabelle_logic.scala
     Author:     Makarius
 
-Isabellel logic session.
+Isabelle logic session.
 */
 
 package isabelle.jedit
@@ -17,7 +17,7 @@ object Isabelle_Logic
 {
   private val option_name = "jedit_logic"
 
-  private def jedit_logic(): String =
+  def session_name(): String =
     Isabelle_System.default_logic(
       Isabelle_System.getenv("JEDIT_LOGIC"),
       PIDE.options.string(option_name))
@@ -32,7 +32,7 @@ object Isabelle_Logic
     GUI_Thread.require {}
 
     val entries =
-      new Logic_Entry("", "default (" + jedit_logic() + ")") ::
+      new Logic_Entry("", "default (" + session_name() + ")") ::
         Isabelle_Logic.session_list().map(name => new Logic_Entry(name, name))
 
     val component = new ComboBox(entries) with Option_Component {
@@ -58,13 +58,23 @@ object Isabelle_Logic
     component
   }
 
-  def session_args(): List[String] =
+  def session_build_mode(): String = Isabelle_System.getenv("JEDIT_BUILD_MODE")
+
+  def session_build(progress: Progress = Ignore_Progress, no_build: Boolean = false): Int =
   {
-    val modes =
+    val mode = session_build_mode()
+
+    Build.build(options = PIDE.options.value, progress = progress,
+      build_heap = true, no_build = no_build, system_mode = mode == "" || mode == "system",
+      dirs = session_dirs(), sessions = List(session_name()))
+  }
+
+  def session_start()
+  {
+    val print_modes =
       space_explode(',', PIDE.options.string("jedit_print_mode")) :::
       space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))
-
-    modes.map("-m" + _) ::: List("-r", "-q", jedit_logic())
+    PIDE.session.start("Isabelle", print_modes.map("-m" + _) ::: List("-r", "-q", session_name()))
   }
 
   def session_dirs(): List[Path] = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
@@ -79,11 +89,9 @@ object Isabelle_Logic
 
   def session_content(inlined_files: Boolean): Build.Session_Content =
   {
-    val dirs = session_dirs()
-    val name = session_args().last
-    val content = Build.session_content(PIDE.options.value, inlined_files, dirs, name)
+    val content =
+      Build.session_content(PIDE.options.value, inlined_files, session_dirs(), session_name())
     content.copy(known_theories =
       content.known_theories.mapValues(name => name.map(File.platform_path(_))))
   }
 }
-

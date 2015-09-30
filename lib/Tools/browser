@@ -86,9 +86,9 @@ if [ -n "$GRAPHFILE" ]; then
   esac
 
   if [ -z "$OUTFILE" ]; then
-    "$ISABELLE_TOOL" java GraphBrowser.GraphBrowser "$(jvmpath "$PRIVATE_FILE")"
+    "$ISABELLE_TOOL" java GraphBrowser.GraphBrowser "$(platform_path "$PRIVATE_FILE")"
   else
-    "$ISABELLE_TOOL" java GraphBrowser.Console "$(jvmpath "$PRIVATE_FILE")" "$(jvmpath "$OUTFILE")"
+    "$ISABELLE_TOOL" java GraphBrowser.Console "$(platform_path "$PRIVATE_FILE")" "$(platform_path "$OUTFILE")"
   fi
   RC="$?"
 

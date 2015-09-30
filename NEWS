@@ -408,6 +408,9 @@ platforms as follows.
   - isabelle build: settings
     ISABELLE_BUILD_JAVA_OPTIONS32 vs. ISABELLE_BUILD_JAVA_OPTIONS64
 
+* Bash shell function "jvmpath" has been renamed to "platform_path": it
+is relevant both for Poly/ML and JVM processes.
+
 
 
 New in Isabelle2015 (May 2015)

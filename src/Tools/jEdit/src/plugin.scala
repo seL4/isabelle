@@ -262,59 +262,6 @@ class Plugin extends EBPlugin
     }
 
 
-  /* session build */
-
-  def session_build(): Int =
-  {
-    val system_dialog = new System_Dialog(jEdit.getActiveView())
-
-    try {
-      val mode = Isabelle_System.getenv("JEDIT_BUILD_MODE")
-      if (mode == "none")
-        system_dialog.return_code(0)
-      else {
-        val system_mode = mode == "" || mode == "system"
-        val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
-        val session = Isabelle_System.default_logic(
-          Isabelle_System.getenv("JEDIT_LOGIC"),
-          PIDE.options.string("jedit_logic"))
-
-        if (Build.build(options = PIDE.options.value, build_heap = true, no_build = true,
-            dirs = dirs, system_mode = system_mode, sessions = List(session)) == 0)
-          system_dialog.return_code(0)
-        else {
-          system_dialog.title("Isabelle build (" +
-            Isabelle_System.getenv("ML_IDENTIFIER") + " / " +
-            "jdk-" + Platform.jvm_version + "_" + Platform.jvm_platform + ")")
-          system_dialog.echo("Build started for Isabelle/" + session + " ...")
-
-          val (out, rc) =
-            try {
-              ("",
-                Build.build(options = PIDE.options.value, progress = system_dialog,
-                  build_heap = true, dirs = dirs, system_mode = system_mode,
-                  sessions = List(session)))
-            }
-            catch {
-              case exn: Throwable =>
-                (Output.error_text(Exn.message(exn)) + "\n", Exn.return_code(exn, 2))
-            }
-
-          system_dialog.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
-          system_dialog.return_code(rc)
-        }
-      }
-    }
-    catch {
-      case exn: Throwable =>
-        GUI.dialog(null, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
-        system_dialog.return_code(Exn.return_code(exn, 2))
-    }
-
-    system_dialog.join()
-  }
-
-
   /* session phase */
 
   private val session_phase =
@@ -379,10 +326,7 @@ class Plugin extends EBPlugin
               "It is for testing only, not for production use.")
           }
 
-          Simple_Thread.fork("session_build") {
-            val rc = session_build()
-            if (rc == 0) PIDE.session.start("Isabelle", Isabelle_Logic.session_args())
-          }
+          Session_Build.session_build(jEdit.getActiveView())
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOADED ||
@@ -440,6 +384,7 @@ class Plugin extends EBPlugin
       Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
       PIDE.plugin = this
+      Isabelle_System.init()
       GUI.install_fonts()
 
       PIDE.options.update(Options.init())

@@ -36,8 +36,9 @@ then
     USER_HOME="$(cygpath -u "$USERPROFILE")"
   fi
 
-  function jvmpath() { cygpath -i -C UTF8 -w -p "$@"; }
-  CYGWIN_ROOT="$(jvmpath "/")"
+  function platform_path() { cygpath -i -C UTF8 -w -p "$@"; }
+  CYGWIN_ROOT="$(platform_path "/")"
+  ISABELLE_ROOT="$(platform_path "$ISABELLE_HOME")"
 
   ISABELLE_CLASSPATH="$(cygpath -i -u -p "$CLASSPATH")"
   unset CLASSPATH
@@ -46,7 +47,9 @@ else
     USER_HOME="$HOME"
   fi
 
-  function jvmpath() { echo "$@"; }
+  ISABELLE_ROOT="$ISABELLE_HOME"
+
+  function platform_path() { echo "$@"; }
 
   ISABELLE_CLASSPATH="$CLASSPATH"
   unset CLASSPATH

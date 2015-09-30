@@ -85,7 +85,7 @@ declare -a ARGS=()
 
 while [ "$#" -gt 0 ]
 do
-  ARGS["${#ARGS[@]}"]="$(jvmpath "$1")"
+  ARGS["${#ARGS[@]}"]="$(platform_path "$1")"
   shift
 done
 
@@ -109,7 +109,7 @@ fi
 if [ -f "$JEDIT_SETTINGS/$SERVER_NAME" ]
 then
   exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" -jar "$JEDIT_HOME/dist/jedit.jar" \
-    "-settings=$(jvmpath "$JEDIT_SETTINGS")" -server="$SERVER_NAME" -reuseview "${ARGS[@]}"
+    "-settings=$(platform_path "$JEDIT_SETTINGS")" -server="$SERVER_NAME" -reuseview "${ARGS[@]}"
 else
   fail "Isabelle/jEdit server \"$SERVER_NAME\" not active"
 fi
