@@ -10,74 +10,6 @@ imports
   "~~/src/HOL/Library/Permutations"
 begin
 
-subsection\<open>First some facts about products\<close>
-
-lemma setprod_add_split:
-  fixes m n :: nat
-  assumes mn: "m \<le> n + 1"
-  shows "setprod f {m..n+p} = setprod f {m .. n} * setprod f {n+1..n+p}"
-proof -
-  let ?A = "{m..n+p}"
-  let ?B = "{m..n}"
-  let ?C = "{n+1..n+p}"
-  from mn have un: "?B \<union> ?C = ?A"
-    by auto
-  from mn have dj: "?B \<inter> ?C = {}"
-    by auto
-  have f: "finite ?B" "finite ?C"
-    by simp_all
-  from setprod.union_disjoint[OF f dj, of f, unfolded un] show ?thesis .
-qed
-
-
-lemma setprod_offset:
-  fixes m n :: nat
-  shows "setprod f {m + p .. n + p} = setprod (\<lambda>i. f (i + p)) {m..n}"
-  by (rule setprod.reindex_bij_witness[where i="op + p" and j="\<lambda>i. i - p"]) auto
-
-lemma setprod_singleton: "setprod f {x} = f x"
-  by simp
-
-lemma setprod_singleton_nat_seg:
-  fixes n :: "'a::order"
-  shows "setprod f {n..n} = f n"
-  by simp
-
-lemma setprod_numseg:
-  "setprod f {m..0} = (if m = 0 then f 0 else 1)"
-  "setprod f {m .. Suc n} =
-    (if m \<le> Suc n then f (Suc n) * setprod f {m..n} else setprod f {m..n})"
-  by (auto simp add: atLeastAtMostSuc_conv)
-
-lemma setprod_le:
-  fixes f g :: "'b \<Rightarrow> 'a::linordered_idom"
-  assumes fS: "finite S"
-    and fg: "\<forall>x\<in>S. f x \<ge> 0 \<and> f x \<le> g x"
-  shows "setprod f S \<le> setprod g S"
-  using fS fg
-  apply (induct S)
-  apply simp
-  apply auto
-  apply (rule mult_mono)
-  apply (auto intro: setprod_nonneg)
-  done
-
-(* FIXME: In Finite_Set there is a useless further assumption *)
-lemma setprod_inversef:
-  "finite A \<Longrightarrow> setprod (inverse \<circ> f) A = (inverse (setprod f A) :: 'a:: field)"
-  apply (erule finite_induct)
-  apply (simp)
-  apply simp
-  done
-
-lemma setprod_le_1:
-  fixes f :: "'b \<Rightarrow> 'a::linordered_idom"
-  assumes fS: "finite S"
-    and f: "\<forall>x\<in>S. f x \<ge> 0 \<and> f x \<le> 1"
-  shows "setprod f S \<le> 1"
-  using setprod_le[OF fS f] unfolding setprod.neutral_const .
-
-
 subsection \<open>Trace\<close>
 
 definition trace :: "'a::semiring_1^'n^'n \<Rightarrow> 'a"
@@ -1275,16 +1207,16 @@ lemma orthogonal_rotation_or_rotoinversion:
 text \<open>Explicit formulas for low dimensions.\<close>
 
 lemma setprod_neutral_const: "setprod f {(1::nat)..1} = f 1"
-  by (fact setprod_singleton_nat_seg)
+  by simp
 
 lemma setprod_2: "setprod f {(1::nat)..2} = f 1 * f 2"
-  by (simp add: eval_nat_numeral setprod_numseg mult.commute)
+  by (simp add: eval_nat_numeral atLeastAtMostSuc_conv mult.commute)
 
 lemma setprod_3: "setprod f {(1::nat)..3} = f 1 * f 2 * f 3"
-  by (simp add: eval_nat_numeral setprod_numseg mult.commute)
+  by (simp add: eval_nat_numeral atLeastAtMostSuc_conv mult.commute)
 
 lemma det_1: "det (A::'a::comm_ring_1^1^1) = A$1$1"
-  by (simp add: det_def sign_id)
+  by (simp add: det_def of_nat_Suc sign_id)
 
 lemma det_2: "det (A::'a::comm_ring_1^2^2) = A$1$1 * A$2$2 - A$1$2 * A$2$1"
 proof -

@@ -27,9 +27,9 @@ qed
 lemma pi_approx_32: "abs(pi - 13493037705/4294967296) \<le> inverse(2 ^ 32)"
   apply (simp only: abs_diff_le_iff)
   apply (rule sin_pi6_straddle, simp_all)
-  using Taylor_sin [of "1686629713/3221225472" 11]
+   using Taylor_sin [of "1686629713/3221225472" 11]
   apply (simp add: in_Reals_norm sin_coeff_def Re_sin atMost_nat_numeral fact_numeral)
-  apply (simp only: pos_le_divide_eq [symmetric])
+   apply (simp only: pos_le_divide_eq [symmetric])
   using Taylor_sin [of "6746518853/12884901888" 11]
   apply (simp add: in_Reals_norm sin_coeff_def Re_sin atMost_nat_numeral fact_numeral)
   apply (simp only: pos_le_divide_eq [symmetric] pos_divide_le_eq [symmetric])
