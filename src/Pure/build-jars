@@ -74,6 +74,7 @@ declare -a SOURCES=(
   PIDE/xml.scala
   PIDE/yxml.scala
   ROOT.scala
+  System/cygwin.scala
   System/command_line.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala
@@ -82,6 +83,7 @@ declare -a SOURCES=(
   System/options.scala
   System/platform.scala
   System/posix_interrupt.scala
+  System/progress.scala
   System/system_channel.scala
   System/utf8.scala
   Thy/html.scala

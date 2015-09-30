@@ -567,6 +567,16 @@ class semiring_numeral_div = semiring_div + comm_semiring_1_cancel + linordered_
     and mod_mult2_eq: "0 \<le> c \<Longrightarrow> a mod (b * c) = b * (a div b mod c) + a mod b"
     and div_mult2_eq: "0 \<le> c \<Longrightarrow> a div (b * c) = a div b div c"
   assumes discrete: "a < b \<longleftrightarrow> a + 1 \<le> b"
+  fixes divmod :: "num \<Rightarrow> num \<Rightarrow> 'a \<times> 'a"
+    and divmod_step :: "num \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<times> 'a"
+  assumes divmod_def: "divmod m n = (numeral m div numeral n, numeral m mod numeral n)"
+    and divmod_step_def: "divmod_step l qr = (let (q, r) = qr
+    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    else (2 * q, r))"
+    -- \<open>These are conceptually definitions but force generated code
+    to be monomorphic wrt. particular instances of this class which
+    yields a significant speedup.\<close>
+
 begin
 
 lemma mult_div_cancel:
@@ -650,10 +660,6 @@ proof -
     by (simp_all add: div mod)
 qed
 
-definition divmod :: "num \<Rightarrow> num \<Rightarrow> 'a \<times> 'a"
-where
-  "divmod m n = (numeral m div numeral n, numeral m mod numeral n)"
-
 lemma fst_divmod:
   "fst (divmod m n) = numeral m div numeral n"
   by (simp add: divmod_def)
@@ -662,12 +668,6 @@ lemma snd_divmod:
   "snd (divmod m n) = numeral m mod numeral n"
   by (simp add: divmod_def)
 
-definition divmod_step :: "num \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<times> 'a"
-where
-  "divmod_step l qr = (let (q, r) = qr
-    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
-    else (2 * q, r))"
-
 text \<open>
   This is a formulation of one step (referring to one digit position)
   in school-method division: compare the dividend at the current
@@ -675,7 +675,7 @@ text \<open>
   and evaluate accordingly.
 \<close>
 
-lemma divmod_step_eq [code, simp]:
+lemma divmod_step_eq [simp]:
   "divmod_step l (q, r) = (if numeral l \<le> r
     then (2 * q + 1, r - numeral l) else (2 * q, r))"
   by (simp add: divmod_step_def)
@@ -735,7 +735,7 @@ qed
 
 text \<open>The division rewrite proper -- first, trivial results involving @{text 1}\<close>
 
-lemma divmod_trivial [simp, code]:
+lemma divmod_trivial [simp]:
   "divmod Num.One Num.One = (numeral Num.One, 0)"
   "divmod (Num.Bit0 m) Num.One = (numeral (Num.Bit0 m), 0)"
   "divmod (Num.Bit1 m) Num.One = (numeral (Num.Bit1 m), 0)"
@@ -745,7 +745,7 @@ lemma divmod_trivial [simp, code]:
 
 text \<open>Division by an even number is a right-shift\<close>
 
-lemma divmod_cancel [simp, code]:
+lemma divmod_cancel [simp]:
   "divmod (Num.Bit0 m) (Num.Bit0 n) = (case divmod m n of (q, r) \<Rightarrow> (q, 2 * r))" (is ?P)
   "divmod (Num.Bit1 m) (Num.Bit0 n) = (case divmod m n of (q, r) \<Rightarrow> (q, 2 * r + 1))" (is ?Q)
 proof -
@@ -761,7 +761,7 @@ qed
 
 text \<open>The really hard work\<close>
 
-lemma divmod_steps [simp, code]:
+lemma divmod_steps [simp]:
   "divmod (num.Bit0 m) (num.Bit1 n) =
       (if m \<le> n then (0, numeral (num.Bit0 m))
        else divmod_step (num.Bit1 n)
@@ -773,6 +773,8 @@ lemma divmod_steps [simp, code]:
              (divmod (num.Bit1 m)
                (num.Bit0 (num.Bit1 n))))"
   by (simp_all add: divmod_divmod_step)
+
+lemmas divmod_algorithm_code = divmod_step_eq divmod_trivial divmod_cancel divmod_steps  
 
 text \<open>Special case: divisibility\<close>
 
@@ -1177,9 +1179,26 @@ by (force simp add: divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN div_nat_u
 lemma mod_mult2_eq: "a mod (b * c) = b * (a div b mod c) + a mod (b::nat)"
 by (auto simp add: mult.commute divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN mod_nat_unique])
 
-instance nat :: semiring_numeral_div
-  by intro_classes (auto intro: div_positive simp add: mult_div_cancel mod_mult2_eq div_mult2_eq)
+instantiation nat :: semiring_numeral_div
+begin
 
+definition divmod_nat :: "num \<Rightarrow> num \<Rightarrow> nat \<times> nat"
+where
+  divmod'_nat_def: "divmod_nat m n = (numeral m div numeral n, numeral m mod numeral n)"
+
+definition divmod_step_nat :: "num \<Rightarrow> nat \<times> nat \<Rightarrow> nat \<times> nat"
+where
+  "divmod_step_nat l qr = (let (q, r) = qr
+    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    else (2 * q, r))"
+
+instance
+  by standard (auto intro: div_positive simp add: divmod'_nat_def divmod_step_nat_def mod_mult2_eq div_mult2_eq)
+
+end
+
+declare divmod_algorithm_code [where ?'a = nat, code]
+  
 
 subsubsection \<open>Further Facts about Quotient and Remainder\<close>
 
@@ -2304,12 +2323,26 @@ lemma zmult_div_cancel:
 
 subsubsection \<open>Computation of Division and Remainder\<close>
 
-instance int :: semiring_numeral_div
-  by intro_classes (auto intro: zmod_le_nonneg_dividend
-    simp add:
-    zmult_div_cancel
-    pos_imp_zdiv_pos_iff div_pos_pos_trivial mod_pos_pos_trivial
-    zmod_zmult2_eq zdiv_zmult2_eq)
+instantiation int :: semiring_numeral_div
+begin
+
+definition divmod_int :: "num \<Rightarrow> num \<Rightarrow> int \<times> int"
+where
+  "divmod_int m n = (numeral m div numeral n, numeral m mod numeral n)"
+
+definition divmod_step_int :: "num \<Rightarrow> int \<times> int \<Rightarrow> int \<times> int"
+where
+  "divmod_step_int l qr = (let (q, r) = qr
+    in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
+    else (2 * q, r))"
+
+instance
+  by standard (auto intro: zmod_le_nonneg_dividend simp add: divmod_int_def divmod_step_int_def
+    pos_imp_zdiv_pos_iff div_pos_pos_trivial mod_pos_pos_trivial zmod_zmult2_eq zdiv_zmult2_eq)
+
+end
+
+declare divmod_algorithm_code [where ?'a = int, code]
 
 context
 begin

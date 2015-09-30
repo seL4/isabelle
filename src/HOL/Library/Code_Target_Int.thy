@@ -79,6 +79,11 @@ lemma [code]:
   by simp
 
 lemma [code]:
+  "divmod m n = map_prod int_of_integer int_of_integer (divmod m n)"
+  unfolding prod_eq_iff divmod_def map_prod_def case_prod_beta fst_conv snd_conv
+  by transfer simp
+
+lemma [code]:
   "HOL.equal k l = HOL.equal (of_int k :: integer) (of_int l)"
   by transfer (simp add: equal)
 

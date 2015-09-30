@@ -16,7 +16,7 @@ object Build_Doc
 
   def build_doc(
     options: Options,
-    progress: Build.Progress = Build.Ignore_Progress,
+    progress: Progress = Ignore_Progress,
     all_docs: Boolean = false,
     max_jobs: Int = 1,
     system_mode: Boolean = false,
@@ -79,7 +79,7 @@ object Build_Doc
           Properties.Value.Boolean(system_mode) ::
           Command_Line.Chunks(docs) =>
             val options = Options.init()
-            val progress = new Build.Console_Progress()
+            val progress = new Console_Progress()
             progress.interrupt_handler {
               build_doc(options, progress, all_docs, max_jobs, system_mode, docs)
             }

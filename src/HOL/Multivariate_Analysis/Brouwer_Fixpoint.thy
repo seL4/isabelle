@@ -1742,7 +1742,7 @@ proof (rule ccontr)
     have "(\<Sum>i\<in>Basis. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)"
       apply (rule setsum_mono)
       using rs(1)[OF b'_im]
-      apply (auto simp add:* field_simps)
+      apply (auto simp add:* field_simps simp del: real_of_nat_Suc)
       done
     also have "\<dots> < e * real p"
       using p \<open>e > 0\<close> \<open>p > 0\<close>
@@ -1754,7 +1754,7 @@ proof (rule ccontr)
     have "(\<Sum>i\<in>Basis. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)"
       apply (rule setsum_mono)
       using rs(2)[OF b'_im]
-      apply (auto simp add:* field_simps)
+      apply (auto simp add:* field_simps simp del: real_of_nat_Suc)
       done
     also have "\<dots> < e * real p"
       using p \<open>e > 0\<close> \<open>p > 0\<close>

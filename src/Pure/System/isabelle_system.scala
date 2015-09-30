@@ -8,9 +8,11 @@ optional init operation.
 package isabelle
 
 
-import java.io.{File => JFile, IOException}
+import java.io.{File => JFile, IOException, BufferedReader, InputStreamReader}
 import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult}
 import java.nio.file.attribute.BasicFileAttributes
+
+import scala.collection.mutable
 
 
 object Isabelle_System
@@ -194,9 +196,10 @@ object Isabelle_System
     proc.start
   }
 
-  private def process_output(proc: Process): (String, Int) =
+  def process_output(proc: Process): (String, Int) =
   {
     proc.getOutputStream.close
+
     val output = File.read_stream(proc.getInputStream)
     val rc =
       try { proc.waitFor }

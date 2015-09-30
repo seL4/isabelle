@@ -471,7 +471,7 @@ proof -
     using entropy_le_card[of "t\<circ>OB", OF simple_distributedI[OF simple_function_finite refl]] by simp
   also have "\<dots> \<le> log b (real (n + 1)^card observations)"
     using card_T_bound not_empty
-    by (auto intro!: log_le simp: card_gt_0_iff power_real_of_nat simp del: real_of_nat_power)
+    by (auto intro!: log_le simp: card_gt_0_iff power_real_of_nat simp del: real_of_nat_power real_of_nat_Suc)
   also have "\<dots> = real (card observations) * log b (real n + 1)"
     by (simp add: log_nat_power real_of_nat_Suc)
   finally show ?thesis  .
