@@ -17,13 +17,13 @@ object Cygwin
 {
   /* init (e.g. after extraction via 7zip) */
 
-  def init(isabelle_home: String, cygwin_root: String)
+  def init(isabelle_root: String, cygwin_root: String)
   {
     require(Platform.is_windows)
 
     def execute(args: String*)
     {
-      val cwd = new JFile(isabelle_home)
+      val cwd = new JFile(isabelle_root)
       val env = Map("CYGWIN" -> "nodosfilewarning")
       val proc = Isabelle_System.raw_execute(cwd, env, true, args: _*)
       val (output, rc) = Isabelle_System.process_output(proc)
@@ -44,7 +44,7 @@ object Cygwin
         list match {
           case Nil | List("") =>
           case link :: content :: rest =>
-            val path = (new JFile(isabelle_home, link)).toPath
+            val path = (new JFile(isabelle_root, link)).toPath
 
             val writer = Files.newBufferedWriter(path, UTF8.charset)
             try { writer.write("!<symlink>" + content + "\u0000") }

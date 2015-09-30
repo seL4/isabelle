@@ -38,6 +38,7 @@ then
 
   function jvmpath() { cygpath -i -C UTF8 -w -p "$@"; }
   CYGWIN_ROOT="$(jvmpath "/")"
+  ISABELLE_ROOT="$(jvmpath "$ISABELLE_HOME")"
 
   ISABELLE_CLASSPATH="$(cygpath -i -u -p "$CLASSPATH")"
   unset CLASSPATH
@@ -45,6 +46,8 @@ else
   if [ -z "$USER_HOME" ]; then
     USER_HOME="$HOME"
   fi
+
+  ISABELLE_ROOT="$ISABELLE_HOME"
 
   function jvmpath() { echo "$@"; }
 

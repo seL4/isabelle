@@ -57,12 +57,12 @@ object Isabelle_System
     _settings.get
   }
 
-  def init(isabelle_home: String = "", cygwin_root: String = ""): Unit = synchronized {
+  def init(isabelle_root: String = "", cygwin_root: String = ""): Unit = synchronized {
     if (_settings.isEmpty) {
       import scala.collection.JavaConversions._
 
-      val isabelle_home1 =
-        bootstrap_directory(isabelle_home, "ISABELLE_HOME", "isabelle.home", "Isabelle home")
+      val isabelle_root1 =
+        bootstrap_directory(isabelle_root, "ISABELLE_ROOT", "isabelle.root", "Isabelle root")
 
       val cygwin_root1 =
         if (Platform.is_windows)
@@ -104,11 +104,13 @@ object Isabelle_System
         val dump = JFile.createTempFile("settings", null)
         dump.deleteOnExit
         try {
-          val shell_prefix =
+          val cmd1 =
             if (Platform.is_windows) List(cygwin_root1 + "\\bin\\bash", "-l") else Nil
-          val cmdline =
-            shell_prefix ::: List(isabelle_home1 + "/bin/isabelle", "getenv", "-d", dump.toString)
-          val (output, rc) = process_output(raw_execute(null, env, true, cmdline: _*))
+          val cmd2 =
+            List(isabelle_root1 + JFile.separator + "bin" + JFile.separator + "isabelle",
+              "getenv", "-d", dump.toString)
+
+          val (output, rc) = process_output(raw_execute(null, env, true, (cmd1 ::: cmd2): _*))
           if (rc != 0) error(output)
 
           val entries =
