@@ -55,6 +55,7 @@ declare -a SOURCES=(
   "src/rendering.scala"
   "src/rich_text_area.scala"
   "src/scala_console.scala"
+  "src/session_build.scala"
   "src/simplifier_trace_dockable.scala"
   "src/simplifier_trace_window.scala"
   "src/sledgehammer_dockable.scala"
