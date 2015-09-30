@@ -37,7 +37,7 @@ then
   "$ISABELLE_HOME/bin/isabelle" jedit_client "$@"
 else
   exec "$ISABELLE_HOME/contrib/jdk/${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}/jre/bin/java" \
-    "-Disabelle.home=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
+    "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
     -classpath "{CLASSPATH}" \
     "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
     isabelle.Main -server="$("$ISABELLE_HOME/bin/isabelle" jedit_client -n)" "$@"
