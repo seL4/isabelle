@@ -103,7 +103,7 @@ object Session_Build
         if (can_auto_close) conclude()
         else {
           val button =
-            new Button(if (_return_code == Some(0)) "OK" else "Exit") {
+            new Button(if (_return_code == Some(0)) "OK" else "Close") {
               reactions += { case ButtonClicked(_) => conclude() }
             }
           set_actions(button)
