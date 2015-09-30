@@ -177,7 +177,9 @@ object Session_Build
         }
 
       progress.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
+
       if (rc == 0) Isabelle_Logic.session_start()
+      else progress.echo("Build failed -- prover remains inactive!")
 
       return_code(rc)
     }
