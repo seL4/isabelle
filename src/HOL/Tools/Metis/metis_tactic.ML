@@ -16,6 +16,8 @@ sig
   val metis_tac_unused : string list -> string -> Proof.context -> thm list -> int -> thm ->
     thm list * thm Seq.seq
   val metis_tac : string list -> string -> Proof.context -> thm list -> int -> tactic
+  val metis_method : (string list option * string option) * thm list -> Proof.context -> thm list ->
+    thm -> thm Seq.seq
   val metis_lam_transs : string list
   val parse_metis_options : (string list option * string option) parser
 end
