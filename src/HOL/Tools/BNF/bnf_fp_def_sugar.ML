@@ -153,6 +153,15 @@ sig
          * ((binding, binding * typ) Ctr_Sugar.ctr_spec * mixfix) list) * (binding * binding))
        * term list) list ->
     local_theory -> local_theory
+  val co_datatype_cmd: BNF_Util.fp_kind ->
+    (mixfix list -> binding list -> binding list -> binding list list -> binding list ->
+     (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
+     BNF_Comp.absT_info list -> local_theory -> BNF_FP_Util.fp_result * Proof.context) ->
+    ((Proof.context -> Plugin_Name.filter) * bool)
+    * ((((((binding option * (string * string option)) list * binding) * mixfix)
+         * ((binding, binding * string) Ctr_Sugar.ctr_spec * mixfix) list)
+        * (binding * binding)) * string list) list ->
+    Proof.context -> local_theory
   val parse_co_datatype_cmd: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->

@@ -150,6 +150,9 @@ sig
     binding -> binding list ->
     (((((binding * typ) * term) * term list) * term) * term list) * term option -> local_theory ->
     bnf * local_theory
+  val bnf_cmd: ((((((binding * string) * string) * string list) * string) * string list)
+      * string option) * (Proof.context -> Plugin_Name.filter) ->
+    Proof.context -> Proof.state
 end;
 
 structure BNF_Def : BNF_DEF =

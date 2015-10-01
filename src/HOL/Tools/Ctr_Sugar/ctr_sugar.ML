@@ -85,6 +85,10 @@ sig
     ({prems: thm list, context: Proof.context} -> tactic) list list ->
     ((ctr_options * binding) * (term, binding) ctr_spec list) * term list -> local_theory ->
     ctr_sugar * local_theory
+  val free_constructors_cmd: ctr_sugar_kind ->
+    ((((Proof.context -> Plugin_Name.filter) * bool) * binding)
+     * ((binding * string) * binding list) list) * string list ->
+    Proof.context -> Proof.state
   val default_ctr_options: ctr_options
   val default_ctr_options_cmd: ctr_options_cmd
   val parse_bound_term: (binding * string) parser
@@ -460,7 +464,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val (((((((((exh_y, xss), yss), fs), gs), u), v), w), (p, p'))) =
+    val ((((((((exh_y, xss), yss), fs), gs), u), w), (p, p'))) =
       no_defs_lthy
       |> yield_singleton (mk_Frees "y") fcT (* for compatibility with "datatype_realizer.ML" *)
       ||>> mk_Freess "x" ctr_Tss
@@ -468,7 +472,6 @@ fun prepare_free_constructors kind prep_plugins prep_term
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
       ||>> yield_singleton (mk_Frees fc_b_name) fcT
-      ||>> yield_singleton (mk_Frees (fc_b_name ^ "'")) fcT
       ||>> yield_singleton (mk_Frees "z") B
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT
       |> fst;
