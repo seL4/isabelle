@@ -589,13 +589,6 @@ automatic provers supported by Sledgehammer. See \S\ref{installation} and
 \S\ref{mode-of-operation} for more information on how to install automatic
 provers.
 
-\item[\labelitemi] \textbf{\textit{running\_provers}:} Prints information about
-currently running automatic provers, including elapsed runtime and remaining
-time until timeout.
-
-\item[\labelitemi] \textbf{\textit{kill\_all}:} Terminates all running
-threads (automatic provers and machine learners).
-
 \item[\labelitemi] \textbf{\textit{refresh\_tptp}:} Refreshes the list of remote
 ATPs available at System\-On\-TPTP \cite{sutcliffe-2000}.
 \end{enum}
@@ -625,10 +618,6 @@ followed by \textit{learn\_isar}.
 
 \item[\labelitemi] \textbf{\textit{relearn\_prover}:} Same as \textit{unlearn}
 followed by \textit{learn\_prover}.
-
-\item[\labelitemi] \textbf{\textit{running\_learners}:} Prints information about
-currently running machine learners, including elapsed runtime and remaining
-time until timeout.
 \end{enum}
 
 Sledgehammer's behavior can be influenced by various \qty{options}, which can be
