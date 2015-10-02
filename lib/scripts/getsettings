@@ -271,8 +271,12 @@ function init_components ()
 #main components
 init_component "$ISABELLE_HOME"
 [ -d "$ISABELLE_HOME/Admin" ] && init_component "$ISABELLE_HOME/Admin"
-[ -d "$ISABELLE_HOME_USER" ] && init_component "$ISABELLE_HOME_USER"
-
+if [ -d "$ISABELLE_HOME_USER" ]; then
+  init_component "$ISABELLE_HOME_USER"
+else
+  mkdir -p "$ISABELLE_HOME_USER"
+  chmod $(umask -S) "$ISABELLE_HOME_USER"
+fi
 
 #ML system identifier
 if [ -z "$ML_PLATFORM" ]; then
