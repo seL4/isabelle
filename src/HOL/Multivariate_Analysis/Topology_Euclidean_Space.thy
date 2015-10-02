@@ -710,7 +710,68 @@ next
   from 1 2 show ?lhs
     unfolding openin_open open_dist by fast
 qed
+ 
+lemma connected_open_in:
+      "connected s \<longleftrightarrow>
+       ~(\<exists>e1 e2. openin (subtopology euclidean s) e1 \<and>
+                 openin (subtopology euclidean s) e2 \<and>
+                 s \<subseteq> e1 \<union> e2 \<and> e1 \<inter> e2 = {} \<and> e1 \<noteq> {} \<and> e2 \<noteq> {})"
+  apply (simp add: connected_def openin_open, safe)
+  apply (simp_all, blast+)
+  done
 
+lemma connected_open_in_eq:
+      "connected s \<longleftrightarrow>
+       ~(\<exists>e1 e2. openin (subtopology euclidean s) e1 \<and>
+                 openin (subtopology euclidean s) e2 \<and>
+                 e1 \<union> e2 = s \<and> e1 \<inter> e2 = {} \<and>
+                 e1 \<noteq> {} \<and> e2 \<noteq> {})"
+  apply (simp add: connected_open_in, safe)
+  apply blast
+  by (metis Int_lower1 Un_subset_iff openin_open subset_antisym)
+
+lemma connected_closed_in:
+      "connected s \<longleftrightarrow>
+       ~(\<exists>e1 e2.
+             closedin (subtopology euclidean s) e1 \<and>
+             closedin (subtopology euclidean s) e2 \<and>
+             s \<subseteq> e1 \<union> e2 \<and> e1 \<inter> e2 = {} \<and>
+             e1 \<noteq> {} \<and> e2 \<noteq> {})"
+proof -
+  { fix A B x x'
+    assume s_sub: "s \<subseteq> A \<union> B"
+       and disj: "A \<inter> B \<inter> s = {}"
+       and x: "x \<in> s" "x \<in> B" and x': "x' \<in> s" "x' \<in> A"
+       and cl: "closed A" "closed B"
+    assume "\<forall>e1. (\<forall>T. closed T \<longrightarrow> e1 \<noteq> s \<inter> T) \<or> (\<forall>e2. e1 \<inter> e2 = {} \<longrightarrow> s \<subseteq> e1 \<union> e2 \<longrightarrow> (\<forall>T. closed T \<longrightarrow> e2 \<noteq> s \<inter> T) \<or> e1 = {} \<or> e2 = {})"
+    then have "\<And>C D. s \<inter> C = {} \<or> s \<inter> D = {} \<or> s \<inter> (C \<inter> (s \<inter> D)) \<noteq> {} \<or> \<not> s \<subseteq> s \<inter> (C \<union> D) \<or> \<not> closed C \<or> \<not> closed D"
+      by (metis (no_types) Int_Un_distrib Int_assoc)
+    moreover have "s \<inter> (A \<inter> B) = {}" "s \<inter> (A \<union> B) = s" "s \<inter> B \<noteq> {}"
+      using disj s_sub x by blast+
+    ultimately have "s \<inter> A = {}"
+      using cl by (metis inf.left_commute inf_bot_right order_refl)
+    then have False
+      using x' by blast
+  } note * = this
+  show ?thesis
+    apply (simp add: connected_closed closedin_closed)
+    apply (safe; simp)
+    apply blast
+    apply (blast intro: *)
+    done
+qed
+
+lemma connected_closed_in_eq:
+      "connected s \<longleftrightarrow>
+           ~(\<exists>e1 e2.
+                 closedin (subtopology euclidean s) e1 \<and>
+                 closedin (subtopology euclidean s) e2 \<and>
+                 e1 \<union> e2 = s \<and> e1 \<inter> e2 = {} \<and>
+                 e1 \<noteq> {} \<and> e2 \<noteq> {})"
+  apply (simp add: connected_closed_in, safe)
+  apply blast
+  by (metis Int_lower1 Un_subset_iff closedin_closed subset_antisym)
+    
 text \<open>These "transitivity" results are handy too\<close>
 
 lemma openin_trans[trans]:
@@ -1316,7 +1377,6 @@ proof -
     unfolding th0 th1 by simp
 qed
 
-
 subsection\<open>Limit points\<close>
 
 definition (in topological_space) islimpt:: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infixr "islimpt" 60)
@@ -1707,6 +1767,368 @@ qed
 lemma islimpt_in_closure: "(x islimpt S) = (x:closure(S-{x}))"
   unfolding closure_def using islimpt_punctured by blast
 
+lemma connected_imp_connected_closure: "connected s \<Longrightarrow> connected (closure s)"
+    by (rule connectedI) (meson closure_subset open_Int open_inter_closure_eq_empty subset_trans connectedD)
+
+lemma limpt_of_limpts:
+      fixes x :: "'a::metric_space"
+      shows "x islimpt {y. y islimpt s} \<Longrightarrow> x islimpt s"
+  apply (clarsimp simp add: islimpt_approachable)
+  apply (drule_tac x="e/2" in spec)
+  apply (auto simp: simp del: less_divide_eq_numeral1)
+  apply (drule_tac x="dist x' x" in spec)
+  apply (auto simp: zero_less_dist_iff simp del: less_divide_eq_numeral1)
+  apply (erule rev_bexI)
+  by (metis dist_commute dist_triangle_half_r less_trans less_irrefl)
+
+lemma closed_limpts:  "closed {x::'a::metric_space. x islimpt s}"
+  using closed_limpt limpt_of_limpts by blast
+
+lemma limpt_of_closure:
+      fixes x :: "'a::metric_space"
+      shows "x islimpt closure s \<longleftrightarrow> x islimpt s"
+  by (auto simp: closure_def islimpt_Un dest: limpt_of_limpts)
+
+lemma closed_in_limpt:
+   "closedin (subtopology euclidean t) s \<longleftrightarrow> s \<subseteq> t \<and> (\<forall>x. x islimpt s \<and> x \<in> t \<longrightarrow> x \<in> s)"
+  apply (simp add: closedin_closed, safe)
+  apply (simp add: closed_limpt islimpt_subset)
+  apply (rule_tac x="closure s" in exI)
+  apply simp
+  apply (force simp: closure_def)
+  done
+
+subsection\<open>Connected components, considered as a connectedness relation or a set\<close>
+
+definition
+   "connected_component s x y \<equiv> \<exists>t. connected t \<and> t \<subseteq> s \<and> x \<in> t \<and> y \<in> t"
+
+abbreviation
+   "connected_component_set s x \<equiv> Collect (connected_component s x)"
+
+lemma connected_component_in: "connected_component s x y \<Longrightarrow> x \<in> s \<and> y \<in> s"
+  by (auto simp: connected_component_def)
+
+lemma connected_component_refl: "x \<in> s \<Longrightarrow> connected_component s x x"
+  apply (auto simp: connected_component_def)
+  using connected_sing by blast
+
+lemma connected_component_refl_eq [simp]: "connected_component s x x \<longleftrightarrow> x \<in> s"
+  by (auto simp: connected_component_refl) (auto simp: connected_component_def)
+
+lemma connected_component_sym: "connected_component s x y \<Longrightarrow> connected_component s y x"
+  by (auto simp: connected_component_def)
+
+lemma connected_component_trans:
+    "\<lbrakk>connected_component s x y; connected_component s y z\<rbrakk> \<Longrightarrow> connected_component s x z"
+  unfolding connected_component_def
+  by (metis Int_iff Un_iff Un_subset_iff equals0D connected_Un)
+
+lemma connected_component_of_subset: "\<lbrakk>connected_component s x y; s \<subseteq> t\<rbrakk> \<Longrightarrow> connected_component t x y"
+  by (auto simp: connected_component_def)
+
+lemma connected_component_Union: "connected_component_set s x = Union {t. connected t \<and> x \<in> t \<and> t \<subseteq> s}"
+  by (auto simp: connected_component_def)
+
+lemma connected_connected_component [iff]: "connected (connected_component_set s x)"
+  by (auto simp: connected_component_Union intro: connected_Union)
+
+lemma connected_iff_eq_connected_component_set: "connected s \<longleftrightarrow> (\<forall>x \<in> s. connected_component_set s x = s)"
+proof (cases "s={}")
+  case True then show ?thesis by simp
+next
+  case False
+  then obtain x where "x \<in> s" by auto
+  show ?thesis
+  proof
+    assume "connected s"
+    then show "\<forall>x \<in> s. connected_component_set s x = s"
+      by (force simp: connected_component_def)
+  next
+    assume "\<forall>x \<in> s. connected_component_set s x = s"
+    then show "connected s"
+      by (metis `x \<in> s` connected_connected_component)
+  qed
+qed
+
+lemma connected_component_subset: "connected_component_set s x \<subseteq> s"
+  using connected_component_in by blast
+
+lemma connected_component_eq_self: "\<lbrakk>connected s; x \<in> s\<rbrakk> \<Longrightarrow> connected_component_set s x = s"
+  by (simp add: connected_iff_eq_connected_component_set)
+
+lemma connected_iff_connected_component:
+    "connected s \<longleftrightarrow> (\<forall>x \<in> s. \<forall>y \<in> s. connected_component s x y)"
+  using connected_component_in by (auto simp: connected_iff_eq_connected_component_set)
+
+lemma connected_component_maximal:
+    "\<lbrakk>x \<in> t; connected t; t \<subseteq> s\<rbrakk> \<Longrightarrow> t \<subseteq> (connected_component_set s x)"
+  using connected_component_eq_self connected_component_of_subset by blast
+
+lemma connected_component_mono:
+    "s \<subseteq> t \<Longrightarrow> (connected_component_set s x) \<subseteq> (connected_component_set t x)"
+  by (simp add: Collect_mono connected_component_of_subset)
+
+lemma connected_component_eq_empty [simp]: "connected_component_set s x = {} \<longleftrightarrow> (x \<notin> s)"
+  using connected_component_refl by (fastforce simp: connected_component_in)
+
+lemma connected_component_set_empty [simp]: "connected_component_set {} x = {}"
+  using connected_component_eq_empty by blast
+
+lemma connected_component_eq:
+    "y \<in> connected_component_set s x
+     \<Longrightarrow> (connected_component_set s y = connected_component_set s x)"
+  by (metis (no_types, lifting) Collect_cong connected_component_sym connected_component_trans mem_Collect_eq)
+
+lemma closed_connected_component:
+  assumes s: "closed s" shows "closed (connected_component_set s x)"
+proof (cases "x \<in> s")
+  case False then show ?thesis
+    by (metis connected_component_eq_empty closed_empty)
+next
+  case True
+  show ?thesis
+    unfolding closure_eq [symmetric]
+    proof
+      show "closure (connected_component_set s x) \<subseteq> connected_component_set s x"
+        apply (rule connected_component_maximal)
+        apply (simp add: closure_def True)
+        apply (simp add: connected_imp_connected_closure)
+        apply (simp add: s closure_minimal connected_component_subset)
+        done
+    next
+      show "connected_component_set s x \<subseteq> closure (connected_component_set s x)"
+        by (simp add: closure_subset)
+  qed
+qed
+
+lemma connected_component_disjoint:
+    "(connected_component_set s a) \<inter> (connected_component_set s b) = {} \<longleftrightarrow>
+     a \<notin> connected_component_set s b"
+apply (auto simp: connected_component_eq)
+using connected_component_eq connected_component_sym by blast
+
+lemma connected_component_nonoverlap:
+    "(connected_component_set s a) \<inter> (connected_component_set s b) = {} \<longleftrightarrow>
+     (a \<notin> s \<or> b \<notin> s \<or> connected_component_set s a \<noteq> connected_component_set s b)"
+  apply (auto simp: connected_component_in)
+  using connected_component_refl_eq apply blast
+  apply (metis connected_component_eq mem_Collect_eq)
+  apply (metis connected_component_eq mem_Collect_eq)
+  done
+
+lemma connected_component_overlap:
+    "(connected_component_set s a \<inter> connected_component_set s b \<noteq> {}) =
+     (a \<in> s \<and> b \<in> s \<and> connected_component_set s a = connected_component_set s b)"
+  by (auto simp: connected_component_nonoverlap)
+
+lemma connected_component_sym_eq: "connected_component s x y \<longleftrightarrow> connected_component s y x"
+  using connected_component_sym by blast
+
+lemma connected_component_eq_eq:
+    "connected_component_set s x = connected_component_set s y \<longleftrightarrow>
+     x \<notin> s \<and> y \<notin> s \<or> x \<in> s \<and> y \<in> s \<and> connected_component s x y"
+  apply (case_tac "y \<in> s")
+   apply (simp add:)
+   apply (metis connected_component_eq connected_component_eq_empty connected_component_refl_eq mem_Collect_eq)
+  apply (case_tac "x \<in> s")
+   apply (simp add:)
+   apply (metis connected_component_eq_empty)
+  using connected_component_eq_empty by blast
+
+lemma connected_iff_connected_component_eq:
+    "connected s \<longleftrightarrow>
+       (\<forall>x \<in> s. \<forall>y \<in> s. connected_component_set s x = connected_component_set s y)"
+  by (simp add: connected_component_eq_eq connected_iff_connected_component)
+
+lemma connected_component_idemp:
+    "connected_component_set (connected_component_set s x) x = connected_component_set s x"
+apply (rule subset_antisym)
+apply (simp add: connected_component_subset)
+by (metis connected_component_eq_empty connected_component_maximal connected_component_refl_eq connected_connected_component mem_Collect_eq set_eq_subset)
+
+lemma connected_component_unique:
+  "\<lbrakk>x \<in> c; c \<subseteq> s; connected c;
+    \<And>c'. x \<in> c' \<and> c' \<subseteq> s \<and> connected c'
+              \<Longrightarrow> c' \<subseteq> c\<rbrakk>
+        \<Longrightarrow> connected_component_set s x = c"
+apply (rule subset_antisym)
+apply (meson connected_component_maximal connected_component_subset connected_connected_component contra_subsetD)
+by (simp add: connected_component_maximal)
+
+lemma joinable_connected_component_eq:
+  "\<lbrakk>connected t; t \<subseteq> s;
+    connected_component_set s x \<inter> t \<noteq> {};
+    connected_component_set s y \<inter> t \<noteq> {}\<rbrakk>
+    \<Longrightarrow> connected_component_set s x = connected_component_set s y"
+apply (simp add: ex_in_conv [symmetric])
+apply (rule connected_component_eq)
+by (metis (no_types, hide_lams) connected_component_eq_eq connected_component_in connected_component_maximal subsetD mem_Collect_eq)
+
+
+lemma Union_connected_component: "Union (connected_component_set s ` s) = s"
+  apply (rule subset_antisym)
+  apply (simp add: SUP_least connected_component_subset)
+  using connected_component_refl_eq
+  by force
+
+
+lemma complement_connected_component_unions:
+    "s - connected_component_set s x =
+     Union (connected_component_set s ` s - {connected_component_set s x})"
+  apply (subst Union_connected_component [symmetric], auto)
+  apply (metis connected_component_eq_eq connected_component_in)
+  by (metis connected_component_eq mem_Collect_eq)
+
+lemma connected_component_intermediate_subset:
+        "\<lbrakk>connected_component_set u a \<subseteq> t; t \<subseteq> u\<rbrakk>
+        \<Longrightarrow> connected_component_set t a = connected_component_set u a"
+  apply (case_tac "a \<in> u")
+  apply (simp add: connected_component_maximal connected_component_mono subset_antisym)
+  using connected_component_eq_empty by blast
+
+subsection\<open>The set of connected components of a set\<close>
+
+definition components:: "'a::topological_space set \<Rightarrow> 'a set set" where
+  "components s \<equiv> connected_component_set s ` s"
+
+lemma components_iff: "s \<in> components u \<longleftrightarrow> (\<exists>x. x \<in> u \<and> s = connected_component_set u x)"
+  by (auto simp: components_def)
+
+lemma Union_components: "u = Union (components u)"
+  apply (rule subset_antisym)
+  apply (metis Union_connected_component components_def set_eq_subset)
+  using Union_connected_component components_def by fastforce
+
+lemma pairwise_disjoint_components: "pairwise (\<lambda>X Y. X \<inter> Y = {}) (components u)"
+  apply (simp add: pairwise_def)
+  apply (auto simp: components_iff)
+  apply (metis connected_component_eq_eq connected_component_in)+
+  done
+
+lemma in_components_nonempty: "c \<in> components s \<Longrightarrow> c \<noteq> {}"
+    by (metis components_iff connected_component_eq_empty)
+
+lemma in_components_subset: "c \<in> components s \<Longrightarrow> c \<subseteq> s"
+  using Union_components by blast
+
+lemma in_components_connected: "c \<in> components s \<Longrightarrow> connected c"
+  by (metis components_iff connected_connected_component)
+
+lemma in_components_maximal:
+     "c \<in> components s \<longleftrightarrow>
+      (c \<noteq> {} \<and> c \<subseteq> s \<and> connected c \<and> (\<forall>d. d \<noteq> {} \<and> c \<subseteq> d \<and> d \<subseteq> s \<and> connected d \<longrightarrow> d = c))"
+  apply (rule iffI)
+  apply (simp add: in_components_nonempty in_components_connected)
+  apply (metis (full_types) components_iff connected_component_eq_self connected_component_intermediate_subset connected_component_refl in_components_subset mem_Collect_eq rev_subsetD)
+  by (metis bot.extremum_uniqueI components_iff connected_component_eq_empty connected_component_maximal connected_component_subset connected_connected_component subset_emptyI)
+
+lemma joinable_components_eq:
+    "connected t \<and> t \<subseteq> s \<and> c1 \<in> components s \<and> c2 \<in> components s \<and> c1 \<inter> t \<noteq> {} \<and> c2 \<inter> t \<noteq> {} \<Longrightarrow> c1 = c2"
+  by (metis (full_types) components_iff joinable_connected_component_eq)
+
+lemma closed_components: "\<lbrakk>closed s; c \<in> components s\<rbrakk> \<Longrightarrow> closed c"
+  by (metis closed_connected_component components_iff)
+
+lemma components_nonoverlap:
+    "\<lbrakk>c \<in> components s; c' \<in> components s\<rbrakk> \<Longrightarrow> (c \<inter> c' = {}) \<longleftrightarrow> (c \<noteq> c')"
+  apply (auto simp: in_components_nonempty components_iff)
+    using connected_component_refl apply blast
+   apply (metis connected_component_eq_eq connected_component_in)
+  by (metis connected_component_eq mem_Collect_eq)
+
+lemma components_eq: "\<lbrakk>c \<in> components s; c' \<in> components s\<rbrakk> \<Longrightarrow> (c = c' \<longleftrightarrow> c \<inter> c' \<noteq> {})"
+  by (metis components_nonoverlap)
+
+lemma components_eq_empty [simp]: "components s = {} \<longleftrightarrow> s = {}"
+  by (simp add: components_def)
+
+lemma components_empty [simp]: "components {} = {}"
+  by simp
+
+lemma connected_eq_connected_components_eq: "connected s \<longleftrightarrow> (\<forall>c \<in> components s. \<forall>c' \<in> components s. c = c')"
+  by (metis (no_types, hide_lams) components_iff connected_component_eq_eq connected_iff_connected_component)
+
+lemma components_eq_sing_iff: "components s = {s} \<longleftrightarrow> connected s \<and> s \<noteq> {}"
+  apply (rule iffI)
+   using in_components_connected apply fastforce
+  apply safe
+    using Union_components apply fastforce
+   apply (metis components_iff connected_component_eq_self)
+  using in_components_maximal by auto
+
+lemma components_eq_sing_exists: "(\<exists>a. components s = {a}) \<longleftrightarrow> connected s \<and> s \<noteq> {}"
+  apply (rule iffI)
+   using connected_eq_connected_components_eq apply fastforce
+  by (metis components_eq_sing_iff)
+
+lemma connected_eq_components_subset_sing: "connected s \<longleftrightarrow> components s \<subseteq> {s}"
+  by (metis Union_components components_empty components_eq_sing_iff connected_empty insert_subset order_refl subset_singletonD)
+
+lemma connected_eq_components_subset_sing_exists: "connected s \<longleftrightarrow> (\<exists>a. components s \<subseteq> {a})"
+  by (metis components_eq_sing_exists connected_eq_components_subset_sing empty_iff subset_iff subset_singletonD)
+
+lemma in_components_self: "s \<in> components s \<longleftrightarrow> connected s \<and> s \<noteq> {}"
+  by (metis components_empty components_eq_sing_iff empty_iff in_components_connected insertI1)
+
+lemma components_maximal: "\<lbrakk>c \<in> components s; connected t; t \<subseteq> s; c \<inter> t \<noteq> {}\<rbrakk> \<Longrightarrow> t \<subseteq> c"
+  apply (simp add: components_def ex_in_conv [symmetric], clarify)
+  by (meson connected_component_def connected_component_trans)
+
+lemma exists_component_superset: "\<lbrakk>t \<subseteq> s; s \<noteq> {}; connected t\<rbrakk> \<Longrightarrow> \<exists>c. c \<in> components s \<and> t \<subseteq> c"
+  apply (case_tac "t = {}")
+   apply force
+  by (metis components_def ex_in_conv connected_component_maximal contra_subsetD image_eqI)
+
+lemma components_intermediate_subset: "\<lbrakk>s \<in> components u; s \<subseteq> t; t \<subseteq> u\<rbrakk> \<Longrightarrow> s \<in> components t"
+  apply (auto simp: components_iff)
+  by (metis connected_component_eq_empty connected_component_intermediate_subset)
+
+lemma in_components_unions_complement: "c \<in> components s \<Longrightarrow> s - c = Union(components s - {c})"
+  by (metis complement_connected_component_unions components_def components_iff)
+
+lemma connected_intermediate_closure:
+  assumes cs: "connected s" and st: "s \<subseteq> t" and ts: "t \<subseteq> closure s"
+    shows "connected t"
+proof (rule connectedI)
+  fix A B
+  assume A: "open A" and B: "open B" and Alap: "A \<inter> t \<noteq> {}" and Blap: "B \<inter> t \<noteq> {}"
+     and disj: "A \<inter> B \<inter> t = {}" and cover: "t \<subseteq> A \<union> B"
+  have disjs: "A \<inter> B \<inter> s = {}"
+    using disj st by auto
+  have "A \<inter> closure s \<noteq> {}"
+    using Alap Int_absorb1 ts by blast
+  then have Alaps: "A \<inter> s \<noteq> {}"
+    by (simp add: A open_inter_closure_eq_empty)
+  have "B \<inter> closure s \<noteq> {}"
+    using Blap Int_absorb1 ts by blast
+  then have Blaps: "B \<inter> s \<noteq> {}"
+    by (simp add: B open_inter_closure_eq_empty)
+  then show False
+    using cs [unfolded connected_def] A B disjs Alaps Blaps cover st
+    by blast
+qed
+
+lemma closed_in_connected_component: "closedin (subtopology euclidean s) (connected_component_set s x)"
+proof (cases "connected_component_set s x = {}")
+  case True then show ?thesis 
+    by (metis closedin_empty)
+next
+  case False
+  then obtain y where y: "connected_component s x y"
+    by blast
+  have 1: "connected_component_set s x \<subseteq> s \<inter> closure (connected_component_set s x)"
+    by (auto simp: closure_def connected_component_in)
+  have 2: "connected_component s x y \<Longrightarrow> s \<inter> closure (connected_component_set s x) \<subseteq> connected_component_set s x"
+    apply (rule connected_component_maximal)
+    apply (simp add:)
+    using closure_subset connected_component_in apply fastforce
+    using "1" connected_intermediate_closure apply blast+
+    done
+  show ?thesis using y
+    apply (simp add: Topology_Euclidean_Space.closedin_closed)
+    using 1 2 by auto
+qed
 
 subsection \<open>Frontier (aka boundary)\<close>
 
@@ -2884,12 +3306,9 @@ lemma Sup_insert:
   by (auto simp: bounded_imp_bdd_above sup_max cSup_insert_If)
 
 lemma Sup_insert_finite:
-  fixes S :: "real set"
+  fixes S :: "'a::conditionally_complete_linorder set"
   shows "finite S \<Longrightarrow> Sup (insert x S) = (if S = {} then x else max x (Sup S))"
-  apply (rule Sup_insert)
-  apply (rule finite_imp_bounded)
-  apply simp
-  done
+by (simp add: cSup_insert sup_max)
 
 lemma bounded_has_Inf:
   fixes S :: "real set"
@@ -2908,12 +3327,29 @@ lemma Inf_insert:
   by (auto simp: bounded_imp_bdd_below inf_min cInf_insert_If)
 
 lemma Inf_insert_finite:
-  fixes S :: "real set"
+  fixes S :: "'a::conditionally_complete_linorder set"
   shows "finite S \<Longrightarrow> Inf (insert x S) = (if S = {} then x else min x (Inf S))"
-  apply (rule Inf_insert)
-  apply (rule finite_imp_bounded)
-  apply simp
-  done
+by (simp add: cInf_eq_Min)
+
+lemma finite_imp_less_Inf:
+  fixes a :: "'a::conditionally_complete_linorder"
+  shows "\<lbrakk>finite X; x \<in> X; \<And>x. x\<in>X \<Longrightarrow> a < x\<rbrakk> \<Longrightarrow> a < Inf X"
+  by (induction X rule: finite_induct) (simp_all add: cInf_eq_Min Inf_insert_finite)
+
+lemma finite_less_Inf_iff:
+  fixes a :: "'a :: conditionally_complete_linorder"
+  shows "\<lbrakk>finite X; X \<noteq> {}\<rbrakk> \<Longrightarrow> a < Inf X \<longleftrightarrow> (\<forall>x \<in> X. a < x)"
+  by (auto simp: cInf_eq_Min)
+
+lemma finite_imp_Sup_less:
+  fixes a :: "'a::conditionally_complete_linorder"
+  shows "\<lbrakk>finite X; x \<in> X; \<And>x. x\<in>X \<Longrightarrow> a > x\<rbrakk> \<Longrightarrow> a > Sup X"
+  by (induction X rule: finite_induct) (simp_all add: cSup_eq_Max Sup_insert_finite)
+
+lemma finite_Sup_less_iff:
+  fixes a :: "'a :: conditionally_complete_linorder"
+  shows "\<lbrakk>finite X; X \<noteq> {}\<rbrakk> \<Longrightarrow> a > Sup X \<longleftrightarrow> (\<forall>x \<in> X. a > x)"
+  by (auto simp: cSup_eq_Max)
 
 subsection \<open>Compactness\<close>
 
@@ -3853,6 +4289,11 @@ next
     by auto
 qed
 
+lemma compact_components:
+  fixes s :: "'a::heine_borel set"
+  shows "\<lbrakk>compact s; c \<in> components s\<rbrakk> \<Longrightarrow> compact c"
+by (meson bounded_subset closed_components in_components_subset compact_eq_bounded_closed)
+
 (* TODO: is this lemma necessary? *)
 lemma bounded_increasing_convergent:
   fixes s :: "nat \<Rightarrow> real"
@@ -4614,7 +5055,7 @@ next
     unfolding continuous_within Lim_within ball_def subset_eq
     apply (auto simp add: dist_commute)
     apply (erule_tac x=e in allE)
-    apply auto
+    apply auto         
     done
 qed
 
@@ -6319,6 +6760,22 @@ lemma Lim_topological:
   "(f ---> l) net \<longleftrightarrow>
     trivial_limit net \<or> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
   unfolding tendsto_def trivial_limit_eq by auto
+
+text \<open>Continuity relative to a union.\<close>
+
+lemma continuous_on_union_local:
+    "\<lbrakk>closedin (subtopology euclidean (s \<union> t)) s; closedin (subtopology euclidean (s \<union> t)) t;
+      continuous_on s f; continuous_on t f\<rbrakk>
+     \<Longrightarrow> continuous_on (s \<union> t) f"
+  unfolding continuous_on closed_in_limpt
+  by (metis Lim_trivial_limit Lim_within_union Un_iff trivial_limit_within)
+
+lemma continuous_on_cases_local:
+     "\<lbrakk>closedin (subtopology euclidean (s \<union> t)) s; closedin (subtopology euclidean (s \<union> t)) t;
+       continuous_on s f; continuous_on t g;
+       \<And>x. \<lbrakk>x \<in> s \<and> ~P x \<or> x \<in> t \<and> P x\<rbrakk> \<Longrightarrow> f x = g x\<rbrakk>
+      \<Longrightarrow> continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
+  by (rule continuous_on_union_local) (auto intro: continuous_on_eq)
 
 text\<open>Some more convenient intermediate-value theorem formulations.\<close>
 

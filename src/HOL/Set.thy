@@ -1931,6 +1931,8 @@ end
 
 text \<open>Misc\<close>
 
+definition "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x\<noteq>y \<longrightarrow> R x y)"
+
 hide_const (open) member not_member
 
 lemmas equalityI = subset_antisym

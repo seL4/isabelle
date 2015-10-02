@@ -1908,9 +1908,6 @@ qed
 
 text \<open>Picking an orthogonal replacement for a spanning set.\<close>
 
-(* FIXME : Move to some general theory ?*)
-definition "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x\<noteq>y \<longrightarrow> R x y)"
-
 lemma vector_sub_project_orthogonal:
   fixes b x :: "'a::euclidean_space"
   shows "b \<bullet> (x - ((b \<bullet> x) / (b \<bullet> b)) *\<^sub>R b) = 0"

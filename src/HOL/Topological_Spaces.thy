@@ -1826,7 +1826,10 @@ lemma connectedI:
   \<Longrightarrow> connected U"
   by (auto simp: connected_def)
 
-lemma connected_empty[simp]: "connected {}"
+lemma connected_empty [simp]: "connected {}"
+  by (auto intro!: connectedI)
+
+lemma connected_sing [simp]: "connected {x}"
   by (auto intro!: connectedI)
 
 lemma connectedD:
@@ -1834,6 +1837,78 @@ lemma connectedD:
   by (auto simp: connected_def)
 
 end
+
+lemma connected_closed:
+    "connected s \<longleftrightarrow>
+     ~ (\<exists>A B. closed A \<and> closed B \<and> s \<subseteq> A \<union> B \<and> A \<inter> B \<inter> s = {} \<and> A \<inter> s \<noteq> {} \<and> B \<inter> s \<noteq> {})"
+apply (simp add: connected_def del: ex_simps, safe)
+apply (drule_tac x="-A" in spec)
+apply (drule_tac x="-B" in spec)
+apply (fastforce simp add: closed_def [symmetric])
+apply (drule_tac x="-A" in spec)
+apply (drule_tac x="-B" in spec)
+apply (fastforce simp add: open_closed [symmetric])
+done
+
+
+lemma connected_Union:
+  assumes cs: "\<And>s. s \<in> S \<Longrightarrow> connected s" and ne: "\<Inter>S \<noteq> {}"
+    shows "connected(\<Union>S)"
+proof (rule connectedI)
+  fix A B
+  assume A: "open A" and B: "open B" and Alap: "A \<inter> \<Union>S \<noteq> {}" and Blap: "B \<inter> \<Union>S \<noteq> {}"
+     and disj: "A \<inter> B \<inter> \<Union>S = {}" and cover: "\<Union>S \<subseteq> A \<union> B"
+  have disjs:"\<And>s. s \<in> S \<Longrightarrow> A \<inter> B \<inter> s = {}"
+    using disj by auto
+  obtain sa where sa: "sa \<in> S" "A \<inter> sa \<noteq> {}"
+    using Alap by auto
+  obtain sb where sb: "sb \<in> S" "B \<inter> sb \<noteq> {}"
+    using Blap by auto
+  obtain x where x: "\<And>s. s \<in> S \<Longrightarrow> x \<in> s"
+    using ne by auto
+  then have "x \<in> \<Union>S"
+    using `sa \<in> S` by blast
+  then have "x \<in> A \<or> x \<in> B"
+    using cover by auto
+  then show False
+    using cs [unfolded connected_def]
+    by (metis A B IntI Sup_upper sa sb disjs x cover empty_iff subset_trans)
+qed
+
+lemma connected_Un: "\<lbrakk>connected s; connected t; s \<inter> t \<noteq> {}\<rbrakk> \<Longrightarrow> connected (s \<union> t)"
+  using connected_Union [of "{s,t}"] by auto
+
+lemma connected_diff_open_from_closed:
+  assumes st: "s \<subseteq> t" and tu: "t \<subseteq> u" and s: "open s"
+      and t: "closed t" and u: "connected u" and ts: "connected (t - s)"
+  shows "connected(u - s)"
+proof (rule connectedI)
+  fix A B
+  assume AB: "open A" "open B" "A \<inter> (u - s) \<noteq> {}" "B \<inter> (u - s) \<noteq> {}"
+     and disj: "A \<inter> B \<inter> (u - s) = {}" and cover: "u - s \<subseteq> A \<union> B"
+  then consider "A \<inter> (t - s) = {}" | "B \<inter> (t - s) = {}"
+    using st ts tu connectedD [of "t-s" "A" "B"]
+    by auto
+  then show False
+  proof cases
+    case 1
+    then have "(A - t) \<inter> (B \<union> s) \<inter> u = {}"
+      using disj st by auto
+    moreover have  "u \<subseteq> (A - t) \<union> (B \<union> s)" using 1 cover by auto
+    ultimately show False
+      using connectedD [of u "A - t" "B \<union> s"] AB s t 1 u
+      by auto
+  next
+    case 2
+    then have "(A \<union> s) \<inter> (B - t) \<inter> u = {}"
+      using disj st
+      by auto
+    moreover have "u \<subseteq> (A \<union> s) \<union> (B - t)" using 2 cover by auto
+    ultimately show False
+      using connectedD [of u "A \<union> s" "B - t"] AB s t 2 u
+      by auto
+  qed
+qed
 
 lemma connected_iff_const:
   fixes S :: "'a::topological_space set"
@@ -1938,7 +2013,8 @@ proof (rule connectedI_const)
     by auto
 qed
 
-section \<open>Connectedness\<close>
+
+section \<open>Linear Continuum Topologies\<close>
 
 class linear_continuum_topology = linorder_topology + linear_continuum
 begin
