@@ -44,7 +44,6 @@ val default_default_params =
    ("wf", "smart"),
    ("sat_solver", "smart"),
    ("batch_size", "smart"),
-   ("blocking", "true"),
    ("falsify", "true"),
    ("user_axioms", "smart"),
    ("assms", "true"),
@@ -76,7 +75,6 @@ val negated_params =
    ("dont_finitize", "finitize"),
    ("non_mono", "mono"),
    ("non_wf", "wf"),
-   ("non_blocking", "blocking"),
    ("satisfy", "falsify"),
    ("no_user_axioms", "user_axioms"),
    ("no_assms", "assms"),
@@ -234,7 +232,6 @@ fun extract_params ctxt mode default_params override_params =
                 else lookup_bool_option_assigns read_type_polymorphic "mono"
     val wfs = lookup_bool_option_assigns read_const_polymorphic "wf"
     val sat_solver = lookup_string "sat_solver"
-    val blocking = mode <> Normal orelse lookup_bool "blocking"
     val falsify = lookup_bool "falsify"
     val debug = (mode <> Auto_Try andalso lookup_bool "debug")
     val verbose = debug orelse (mode <> Auto_Try andalso lookup_bool "verbose")
@@ -275,8 +272,8 @@ fun extract_params ctxt mode default_params override_params =
     {cards_assigns = cards_assigns, maxes_assigns = maxes_assigns,
      iters_assigns = iters_assigns, bitss = bitss, bisim_depths = bisim_depths,
      boxes = boxes, finitizes = finitizes, monos = monos, wfs = wfs,
-     sat_solver = sat_solver, blocking = blocking, falsify = falsify,
-     debug = debug, verbose = verbose, overlord = overlord, spy = spy,
+     sat_solver = sat_solver, falsify = falsify, debug = debug,
+     verbose = verbose, overlord = overlord, spy = spy,
      user_axioms = user_axioms, assms = assms, whacks = whacks,
      merge_type_vars = merge_type_vars, binary_ints = binary_ints,
      destroy_constrs = destroy_constrs, specialize = specialize,
@@ -340,7 +337,7 @@ fun pick_nits override_params mode i step state =
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val _ = List.app check_raw_param override_params
-    val params as {blocking, debug, ...} =
+    val params as {debug, ...} =
       extract_params ctxt mode (default_raw_params thy) override_params
     fun go () =
       (unknownN, [])
@@ -348,7 +345,7 @@ fun pick_nits override_params mode i step state =
           else if debug then fn f => fn x => f x
           else handle_exceptions ctxt)
          (fn _ => pick_nits_in_subgoal state params mode i step)
-  in if blocking then go () else Future.fork (tap go) |> K (unknownN, []) end
+  in go () end
   |> `(fn (outcome_code, _) => outcome_code = genuineN)
 
 fun string_for_raw_param (name, value) =
