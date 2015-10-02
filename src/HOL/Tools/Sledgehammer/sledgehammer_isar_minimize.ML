@@ -76,7 +76,7 @@ fun minimize_isar_step_dependencies ctxt preplay_data
 fun postprocess_isar_proof_remove_show_stuttering (Proof (fix, assms, steps)) =
   let
     fun process_steps [] = []
-      | process_steps (steps as [Prove ([], [], l1, t1, subs1, facts1, meths1, comment1),
+      | process_steps (steps as [Prove ([], [], _, t1, subs1, facts1, meths1, comment1),
           Prove ([Show], [], l2, t2, _, _, _, comment2)]) =
         if t1 aconv t2 then [Prove ([Show], [], l2, t2, subs1, facts1, meths1, comment1 ^ comment2)]
         else steps

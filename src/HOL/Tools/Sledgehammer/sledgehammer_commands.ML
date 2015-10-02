@@ -33,8 +33,6 @@ val z3N = "z3"
 
 val runN = "run"
 val supported_proversN = "supported_provers"
-val kill_learnersN = "kill_learners"
-val running_learnersN = "running_learners"
 val refresh_tptpN = "refresh_tptp"
 
 (** Sledgehammer commands **)
@@ -326,8 +324,6 @@ fun hammer_away override_params writeln_result subcommand opt_i fact_override st
       end
     else if subcommand = supported_proversN then
       supported_provers ctxt
-    else if subcommand = kill_learnersN then
-      kill_learners ()
     else if subcommand = unlearnN then
       mash_unlearn ()
     else if subcommand = learn_isarN orelse subcommand = learn_proverN orelse
@@ -343,8 +339,6 @@ fun hammer_away override_params writeln_result subcommand opt_i fact_override st
                  [("preplay_timeout", ["0"])]))
            fact_override (#facts (Proof.goal state))
            (subcommand = learn_proverN orelse subcommand = relearn_proverN))
-    else if subcommand = running_learnersN then
-      running_learners ()
     else if subcommand = refresh_tptpN then
       refresh_systems_on_tptp ()
     else

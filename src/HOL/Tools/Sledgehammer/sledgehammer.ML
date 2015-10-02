@@ -60,10 +60,6 @@ fun max_outcome_code codes =
     ordered_outcome_codes
   |> the_default unknownN
 
-fun prover_description verbose name num_facts =
-  (quote name,
-   if verbose then " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts else "")
-
 fun is_metis_method (Metis_Method _) = true
   | is_metis_method _ = false
 
@@ -125,8 +121,6 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
 
     val hard_timeout = time_mult 3.0 timeout
     val _ = spying spy (fn () => (state, subgoal, name, "Launched"));
-    val birth_time = Time.now ()
-    val death_time = Time.+ (birth_time, hard_timeout)
     val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt name)
     val num_facts = length facts |> not only ? Integer.min max_facts
 
@@ -228,12 +222,8 @@ fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout,
         val outcome =
           if outcome_code = someN orelse mode = Normal then quote name ^ ": " ^ message () else ""
         val _ =
-          if outcome <> "" andalso is_some writeln_result then
-            the writeln_result outcome
-          else
-            outcome
-            |> Async_Manager_Legacy.break_into_chunks
-            |> List.app writeln
+          if outcome <> "" andalso is_some writeln_result then the writeln_result outcome
+          else writeln outcome
       in (outcome_code, []) end
   end
 

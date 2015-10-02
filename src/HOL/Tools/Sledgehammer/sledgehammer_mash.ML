@@ -81,8 +81,6 @@ sig
   val mash_weight : real
   val relevant_facts : Proof.context -> params -> string -> int -> fact_override -> term list ->
     term -> raw_fact list -> (string * fact list) list
-  val kill_learners : unit -> unit
-  val running_learners : unit -> unit
 end;
 
 structure Sledgehammer_MaSh : SLEDGEHAMMER_MASH =
@@ -1599,8 +1597,5 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
          (mashN, mash |> map fst |> add_and_take)]
       | _ => [(effective_fact_filter, mesh)])
     end
-
-fun kill_learners () = Async_Manager_Legacy.kill_threads MaShN "learner"
-fun running_learners () = Async_Manager_Legacy.running_threads MaShN "learner"
 
 end;
