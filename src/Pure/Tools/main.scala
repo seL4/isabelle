@@ -20,6 +20,7 @@ object Main
     {
       try {
         Isabelle_System.init()
+        GUI.install_fonts()
 
 
         /* settings directory */

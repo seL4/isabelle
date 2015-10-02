@@ -384,9 +384,6 @@ class Plugin extends EBPlugin
       Debug.DISABLE_SEARCH_DIALOG_POOL = true
 
       PIDE.plugin = this
-      Isabelle_System.init()
-      GUI.install_fonts()
-
       PIDE.options.update(Options.init())
       PIDE.completion_history.load()
       PIDE.spell_checker.update(PIDE.options.value)

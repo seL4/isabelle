@@ -834,7 +834,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
         (if null intr_ts then @{term False}
          else foldr1 HOLogic.mk_disj (map transform_rule intr_ts));
 
-    (* add definiton of recursive predicates to theory *)
+    (* add definition of recursive predicates to theory *)
 
     val rec_name =
       if Binding.is_empty alt_name then
@@ -887,20 +887,25 @@ fun declare_rules rec_binding coind no_ind cnames
     val rec_name = Binding.name_of rec_binding;
     fun rec_qualified qualified = Binding.qualify qualified rec_name;
     val intr_names = map Binding.name_of intr_bindings;
-    val ind_case_names = Rule_Cases.case_names intr_names;
+    val ind_case_names =
+      if forall (equal "") intr_names then []
+      else [Attrib.internal (K (Rule_Cases.case_names intr_names))];
     val induct =
       if coind then
         (raw_induct,
-         [Rule_Cases.case_names [rec_name],
-          Rule_Cases.case_conclusion (rec_name, intr_names),
-          Rule_Cases.consumes (1 - Thm.nprems_of raw_induct),
-          Induct.coinduct_pred (hd cnames)])
+          map (Attrib.internal o K)
+            [Rule_Cases.case_names [rec_name],
+             Rule_Cases.case_conclusion (rec_name, intr_names),
+             Rule_Cases.consumes (1 - Thm.nprems_of raw_induct),
+             Induct.coinduct_pred (hd cnames)])
       else if no_ind orelse length cnames > 1 then
         (raw_induct,
-          [ind_case_names, Rule_Cases.consumes (~ (Thm.nprems_of raw_induct))])
+          ind_case_names @
+            [Attrib.internal (K (Rule_Cases.consumes (~ (Thm.nprems_of raw_induct))))])
       else
         (raw_induct RSN (2, rev_mp),
-          [ind_case_names, Rule_Cases.consumes (~ (Thm.nprems_of raw_induct))]);
+          ind_case_names @
+            [Attrib.internal (K (Rule_Cases.consumes (~ (Thm.nprems_of raw_induct))))]);
 
     val (intrs', lthy1) =
       lthy |>
@@ -917,15 +922,16 @@ fun declare_rules rec_binding coind no_ind cnames
       fold_map (fn (name, (elim, cases, k)) =>
         Local_Theory.note
           ((Binding.qualify true (Long_Name.base_name name) (Binding.name "cases"),
-            [Attrib.internal (K (Rule_Cases.case_names cases)),
-             Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of elim))),
-             Attrib.internal (K (Rule_Cases.constraints k)),
-             Attrib.internal (K (Induct.cases_pred name)),
-             Attrib.internal (K (Context_Rules.elim_query NONE))]), [elim]) #>
+            map (Attrib.internal o K)
+              ((if forall (equal "") cases then [] else [Rule_Cases.case_names cases]) @
+               [Rule_Cases.consumes (1 - Thm.nprems_of elim),
+                Rule_Cases.constraints k,
+                Induct.cases_pred name,
+                Context_Rules.elim_query NONE])), [elim]) #>
         apfst (hd o snd)) (if null elims then [] else cnames ~~ elims) ||>>
       Local_Theory.note
-        ((rec_qualified true (Binding.name (coind_prefix coind ^ "induct")),
-          map (Attrib.internal o K) (#2 induct)), [rulify lthy1 (#1 induct)]);
+        ((rec_qualified true (Binding.name (coind_prefix coind ^ "induct")), #2 induct),
+          [rulify lthy1 (#1 induct)]);
 
     val (eqs', lthy3) = lthy2 |>
       fold_map (fn (name, eq) => Local_Theory.note
@@ -940,9 +946,9 @@ fun declare_rules rec_binding coind no_ind cnames
           lthy3 |>
           Local_Theory.notes [((rec_qualified true (Binding.name "inducts"), []),
             inducts |> map (fn (name, th) => ([th],
-              [Attrib.internal (K ind_case_names),
-               Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th))),
-               Attrib.internal (K (Induct.induct_pred name))])))] |>> snd o hd
+              ind_case_names @
+                [Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th))),
+                 Attrib.internal (K (Induct.induct_pred name))])))] |>> snd o hd
         end;
   in (intrs', elims', eqs', induct', inducts, lthy4) end;
 
