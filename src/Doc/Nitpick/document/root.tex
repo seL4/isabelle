@@ -118,22 +118,22 @@ after the locale's \textbf{begin} keyword. To falsify \textit{False}, Nitpick
 must find a model for the axioms. If it finds no model, we have an indication
 that the axioms might be unsatisfiable.
 
-For Isabelle/jEdit users, Nitpick provides an automatic mode that can be enabled
-via the ``Auto Nitpick'' option under ``Plugins > Plugin Options > Isabelle >
-General.'' In this mode, Nitpick is run on every newly entered theorem.
+Nitpick provides an automatic mode that can be enabled via the ``Auto Nitpick''
+option under ``Plugins > Plugin Options > Isabelle > General'' in
+Isabelle/jEdit. In this mode, Nitpick is run on every newly entered theorem.
 
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{nospam}}
 
-\newcommand\authoremail{\texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@\allowbreak
-in.\allowbreak tum.\allowbreak de}}
+\newcommand\authoremail{\texttt{jasmin.blan{\color{white}nospam}\kern-\wd\boxA{}chette@\allowbreak
+inria\allowbreak .\allowbreak fr}}
 
 To run Nitpick, you must also make sure that the theory \textit{Nitpick} is
 imported---this is rarely a problem in practice since it is part of
 \textit{Main}. The examples presented in this manual can be found
 in Isabelle's \texttt{src/HOL/\allowbreak Nitpick\_\allowbreak Examples/\allowbreak Manual\_Nits.thy} theory.
 The known bugs and limitations at the time of writing are listed in
-\S\ref{known-bugs-and-limitations}. Comments and bug reports concerning either
+\S\ref{known-bugs-and-limitations}. Comments and bug reports concerning
 the tool or the manual should be directed to the author at \authoremail.
 
 \vskip2.5\smallskipamount
@@ -1740,18 +1740,18 @@ The options are categorized as follows:\ mode of operation
 format (\S\ref{output-format}), regression testing (\S\ref{regression-testing}),
 optimizations (\S\ref{optimizations}), and timeouts (\S\ref{timeouts}).
 
-If you use Isabelle/jEdit, Nitpick also provides an automatic mode that can
-be enabled via the ``Auto Nitpick'' option under ``Plugins > Plugin Options
-> Isabelle > General.'' For automatic runs,
+Nitpick also provides an automatic mode that can be enabled via the
+``Auto Nitpick'' option under ``Plugins > Plugin Options > Isabelle > General''
+in Isabelle/jEdit. For automatic runs,
 \textit{user\_axioms} (\S\ref{mode-of-operation}),
 \textit{assms} (\S\ref{mode-of-operation}), and \textit{mono}
-(\S\ref{scope-of-search}) are implicitly enabled, \textit{blocking}
-(\S\ref{mode-of-operation}), \textit{verbose} (\S\ref{output-format}), and
+(\S\ref{scope-of-search}) are implicitly enabled,
+\textit{verbose} (\S\ref{output-format}) and
 \textit{debug} (\S\ref{output-format}) are disabled, \textit{max\_potential}
 (\S\ref{output-format}) is taken to be 0, \textit{max\_threads}
 (\S\ref{optimizations}) is taken to be 1, and \textit{timeout}
-(\S\ref{timeouts}) is superseded by the ``Auto Time Limit'' in jEdit. Nitpick's
-output is also more concise.
+(\S\ref{timeouts}) is superseded by the ``Auto Time Limit'' in
+Isabelle/jEdit. Nitpick's output is also more concise.
 
 The number of options can be overwhelming at first glance. Do not let that worry
 you: Nitpick's defaults have been chosen so that it almost always does the right
@@ -1781,19 +1781,13 @@ expressing a number of seconds.
 \end{enum}
 
 Default values are indicated in curly brackets (\textrm{\{\}}). Boolean options
-have a negated counterpart (e.g., \textit{blocking} vs.\
-\textit{non\_blocking}). When setting them, ``= \textit{true}'' may be omitted.
+have a negated counterpart (e.g., \textit{mono} vs.\
+\textit{non\_mono}). When setting them, ``= \textit{true}'' may be omitted.
 
 \subsection{Mode of Operation}
 \label{mode-of-operation}
 
 \begin{enum}
-\optrue{blocking}{non\_blocking}
-Specifies whether the \textbf{nitpick} command should operate synchronously.
-The asynchronous (non-blocking) mode lets the user start proving the putative
-theorem while Nitpick looks for a counterexample, but it can also be more
-confusing. For technical reasons, automatic runs currently always block.
-
 \optrue{falsify}{satisfy}
 Specifies whether Nitpick should look for falsifying examples (countermodels) or
 satisfying examples (models). This manual assumes throughout that
