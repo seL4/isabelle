@@ -345,9 +345,7 @@ that Isar proofs should be generated, in addition to one-line \textit{metis} or
 \textit{compress} (\S\ref{output-format}).
 
 \item[\labelitemi] \textbf{\textit{timeout}} (\S\ref{timeouts}) controls the
-provers' time limit. It is set to 30 seconds, but since Sledgehammer runs
-asynchronously you should not hesitate to raise this limit to 60 or 120 seconds
-if you are the kind of user who can think clearly while ATPs are active.
+provers' time limit. It is set to 30 seconds by default.
 \end{enum}
 
 Options can be set globally using \textbf{sledgehammer\_params}
@@ -579,11 +577,6 @@ In the general syntax, the \qty{subcommand} may be any of the following:
 \item[\labelitemi] \textbf{\textit{run} (the default):} Runs Sledgehammer on
 subgoal number \qty{num} (1 by default), with the given options and facts.
 
-\item[\labelitemi] \textbf{\textit{messages}:} Redisplays recent messages issued
-by Sledgehammer. This allows you to examine results that might have been lost
-due to Sledgehammer's asynchronous nature. The \qty{num} argument specifies a
-limit on the number of messages to display (10 by default).
-
 \item[\labelitemi] \textbf{\textit{supported\_provers}:} Prints the list of
 automatic provers supported by Sledgehammer. See \S\ref{installation} and
 \S\ref{mode-of-operation} for more information on how to install automatic
@@ -729,8 +722,8 @@ expressing a number of seconds.
 \end{enum}
 
 Default values are indicated in curly brackets (\textrm{\{\}}). Boolean options
-have a negative counterpart (e.g., \textit{blocking} vs.\
-\textit{non\_blocking}). When setting Boolean options or their negative
+have a negative counterpart (e.g., \textit{minimize} vs.\
+\textit{dont\_minimize}). When setting Boolean options or their negative
 counterparts, ``= \textit{true\/}'' may be omitted.
 
 \subsection{Mode of Operation}
@@ -919,14 +912,6 @@ generally a good idea to run several provers in parallel.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
-
-\opfalse{blocking}{non\_blocking}
-Specifies whether the \textbf{sledgehammer} command should operate
-synchronously. The asynchronous (non-blocking) mode lets the user start proving
-the putative theorem manually while Sledgehammer looks for a proof, but it can
-also be more confusing. Irrespective of the value of this option, Sledgehammer
-is always run synchronously if \textit{debug} (\S\ref{output-format}) is
-enabled.
 
 \optrue{slice}{dont\_slice}
 Specifies whether the time allocated to a prover should be sliced into several
@@ -1235,8 +1220,7 @@ Specifies whether the \textbf{sledgehammer} command should explain what it does.
 \opfalse{debug}{no\_debug}
 Specifies whether Sledgehammer should display additional debugging information
 beyond what \textit{verbose} already displays. Enabling \textit{debug} also
-enables \textit{verbose} and \textit{blocking} (\S\ref{mode-of-operation})
-behind the scenes.
+enables \textit{verbose} behind the scenes.
 
 \nopagebreak
 {\small See also \textit{spy} (\S\ref{mode-of-operation}) and
@@ -1287,13 +1271,11 @@ Specifies the expected outcome, which must be one of the following:
 problem.
 \end{enum}
 
-Sledgehammer emits an error (if \textit{blocking} is enabled) or a warning
-(otherwise) if the actual outcome differs from the expected outcome. This option
-is useful for regression testing.
+Sledgehammer emits an error if the actual outcome differs from the expected outcome. This option is
+useful for regression testing.
 
 \nopagebreak
-{\small See also \textit{blocking} (\S\ref{mode-of-operation}) and
-\textit{timeout} (\S\ref{timeouts}).}
+{\small See also \textit{timeout} (\S\ref{timeouts}).}
 \end{enum}
 
 \subsection{Timeouts}

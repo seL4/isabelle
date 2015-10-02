@@ -249,9 +249,11 @@ been removed. INCOMPATIBILITY.
   - Handle Vampire 4.0 proof output without raising exception.
   - Eliminated "MASH" environment variable. Use the "MaSh" option in
     Isabelle/jEdit instead. INCOMPATIBILITY.
+  - Eliminated obsolete "blocking" option and related subcommands.
 
 * Nitpick:
   - Removed "check_potential" and "check_genuine" options.
+  - Eliminated obsolete "blocking" option.
 
 * New commands lift_bnf and copy_bnf for lifting (copying) a BNF structure
   on the raw type to an abstract type defined using typedef.
