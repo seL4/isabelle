@@ -88,8 +88,8 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
 
     val facts = facts |> maps (fn (n, ths) => map (pair n) ths)
     val params =
-      {debug = debug, verbose = verbose, overlord = overlord, spy = spy, blocking = true,
-       provers = provers, type_enc = type_enc, strict = strict, lam_trans = lam_trans,
+      {debug = debug, verbose = verbose, overlord = overlord, spy = spy, provers = provers,
+       type_enc = type_enc, strict = strict, lam_trans = lam_trans,
        uncurried_aliases = uncurried_aliases, learn = false, fact_filter = NONE,
        max_facts = SOME (length facts), fact_thresholds = (1.01, 1.01),
        max_mono_iters = max_mono_iters, max_new_mono_instances = max_new_mono_instances,

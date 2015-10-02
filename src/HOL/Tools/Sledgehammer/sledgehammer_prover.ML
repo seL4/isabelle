@@ -22,7 +22,6 @@ sig
      verbose : bool,
      overlord : bool,
      spy : bool,
-     blocking : bool,
      provers : string list,
      type_enc : string option,
      strict : bool,
@@ -73,11 +72,7 @@ sig
     ((''a * stature) * 'b) list
   val repair_monomorph_context : int option -> int -> int option -> int -> Proof.context ->
     Proof.context
-
   val supported_provers : Proof.context -> unit
-  val kill_provers : unit -> unit
-  val running_provers : unit -> unit
-  val messages : int option -> unit
 end;
 
 structure Sledgehammer_Prover : SLEDGEHAMMER_PROVER =
@@ -111,7 +106,6 @@ type params =
    verbose : bool,
    overlord : bool,
    spy : bool,
-   blocking : bool,
    provers : string list,
    type_enc : string option,
    strict : bool,
@@ -200,9 +194,5 @@ fun supported_provers ctxt =
   in
     writeln ("Supported provers: " ^ commas (local_provers @ remote_provers) ^ ".")
   end
-
-fun kill_provers () = Async_Manager_Legacy.kill_threads SledgehammerN "prover"
-fun running_provers () = Async_Manager_Legacy.running_threads SledgehammerN "prover"
-val messages = Async_Manager_Legacy.thread_messages SledgehammerN "prover"
 
 end;

@@ -32,10 +32,8 @@ val veritN = "verit"
 val z3N = "z3"
 
 val runN = "run"
-val messagesN = "messages"
 val supported_proversN = "supported_provers"
-val kill_allN = "kill_all"
-val running_proversN = "running_provers"
+val kill_learnersN = "kill_learners"
 val running_learnersN = "running_learners"
 val refresh_tptpN = "refresh_tptp"
 
@@ -59,7 +57,6 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("spy", "false"),
-   ("blocking", "false"),
    ("type_enc", "smart"),
    ("strict", "false"),
    ("lam_trans", "smart"),
@@ -88,7 +85,6 @@ val negated_alias_params =
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("dont_spy", "spy"),
-   ("non_blocking", "blocking"),
    ("non_strict", "strict"),
    ("no_uncurried_aliases", "uncurried_aliases"),
    ("dont_learn", "learn"),
@@ -248,8 +244,6 @@ fun extract_params mode default_params override_params =
     val verbose = debug orelse (mode <> Auto_Try andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
     val spy = getenv "SLEDGEHAMMER_SPY" = "yes" orelse lookup_bool "spy"
-    val blocking =
-      Isabelle_Process.is_active () orelse mode <> Normal orelse debug orelse lookup_bool "blocking"
     val provers = lookup_string "provers" |> space_explode " " |> mode = Auto_Try ? single o hd
     val type_enc =
       if mode = Auto_Try then
@@ -280,8 +274,8 @@ fun extract_params mode default_params override_params =
     val preplay_timeout = lookup_time "preplay_timeout"
     val expect = lookup_string "expect"
   in
-    {debug = debug, verbose = verbose, overlord = overlord, spy = spy, blocking = blocking,
-     provers = provers, type_enc = type_enc, strict = strict, lam_trans = lam_trans,
+    {debug = debug, verbose = verbose, overlord = overlord, spy = spy, provers = provers,
+     type_enc = type_enc, strict = strict, lam_trans = lam_trans,
      uncurried_aliases = uncurried_aliases, learn = learn, fact_filter = fact_filter,
      max_facts = max_facts, fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
@@ -330,14 +324,10 @@ fun hammer_away override_params writeln_result subcommand opt_i fact_override st
         ignore (run_sledgehammer
           (get_params Normal thy override_params) Normal writeln_result i fact_override state)
       end
-    else if subcommand = messagesN then
-      messages opt_i
     else if subcommand = supported_proversN then
       supported_provers ctxt
-    else if subcommand = kill_allN then
-      (kill_provers (); kill_learners ())
-    else if subcommand = running_proversN then
-      running_provers ()
+    else if subcommand = kill_learnersN then
+      kill_learners ()
     else if subcommand = unlearnN then
       mash_unlearn ()
     else if subcommand = learn_isarN orelse subcommand = learn_proverN orelse
@@ -418,7 +408,6 @@ val _ =
               ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
                 [("isar_proofs", [if isar_proofs_arg = "true" then "true" else "smart"]),
                  ("try0", [try0_arg]),
-                 ("blocking", ["true"]),
                  ("debug", ["false"]),
                  ("verbose", ["false"]),
                  ("overlord", ["false"])]);

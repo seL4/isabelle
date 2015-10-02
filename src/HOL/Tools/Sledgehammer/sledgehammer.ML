@@ -117,8 +117,8 @@ fun play_one_line_proof minimize timeout used_facts0 state i (preferred_meth, me
       end
   end
 
-fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize, timeout,
-      preplay_timeout, expect, ...}) mode writeln_result only learn
+fun launch_prover (params as {debug, verbose, spy, max_facts, minimize, timeout, preplay_timeout,
+      expect, ...}) mode writeln_result only learn
     {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _} name =
   let
     val ctxt = Proof.context_of state
@@ -214,17 +214,15 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize
           if expect = "" orelse outcome_code = expect orelse
              not (is_prover_installed ctxt name) then
             ()
-          else if blocking then
-            error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
           else
-            warning ("Unexpected outcome: " ^ quote outcome_code ^ ".");
+            error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
       in (outcome_code, message) end
   in
     if mode = Auto_Try then
       let val (outcome_code, message) = TimeLimit.timeLimit timeout go () in
         (outcome_code, if outcome_code = someN then [message ()] else [])
       end
-    else if blocking then
+    else
       let
         val (outcome_code, message) = TimeLimit.timeLimit hard_timeout go ()
         val outcome =
@@ -237,11 +235,6 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, minimize
             |> Async_Manager_Legacy.break_into_chunks
             |> List.app writeln
       in (outcome_code, []) end
-    else
-      (Async_Manager_Legacy.thread SledgehammerN birth_time death_time
-         (prover_description verbose name num_facts)
-         ((fn (outcome_code, message) => (verbose orelse outcome_code = someN, message ())) o go);
-       (unknownN, []))
   end
 
 val auto_try_max_facts_divisor = 2 (* FUDGE *)
@@ -257,14 +250,13 @@ fun string_of_factss factss =
     cat_lines (map (fn (filter, facts) =>
       (if filter = "" then "" else quote filter ^ ": ") ^ string_of_facts facts) factss)
 
-fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...}) mode
-    writeln_result i (fact_override as {only, ...}) state =
+fun run_sledgehammer (params as {verbose, spy, provers, max_facts, ...}) mode writeln_result i
+    (fact_override as {only, ...}) state =
   if null provers then
     error "No prover is set."
   else
     (case subgoal_count state of
-      0 =>
-      ((if blocking then error else writeln) "No subgoal!"; (false, (noneN, [])))
+      0 => (error "No subgoal!"; (false, (noneN, [])))
     | n =>
       let
         val _ = Proof.assert_backward state
@@ -278,7 +270,6 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
         val css = clasimpset_rule_table_of ctxt
         val all_facts =
           nearly_all_facts ctxt ho_atp fact_override keywords css chained hyp_ts concl_t
-        val _ = () |> not blocking ? kill_provers
         val _ =
           (case find_first (not o is_prover_supported ctxt) provers of
             SOME name => error ("No such prover: " ^ name ^ ".")
@@ -325,13 +316,13 @@ fun run_sledgehammer (params as {verbose, spy, blocking, provers, max_facts, ...
             else
               (learn chained;
                provers
-               |> (if blocking then Par_List.map else map) (launch problem #> fst)
+               |> Par_List.map (launch problem #> fst)
                |> max_outcome_code |> rpair [])
           end
       in
-        (if blocking then launch_provers ()
-         else (Future.fork launch_provers; (unknownN, [])))
-        handle TimeLimit.TimeOut => (print "Sledgehammer ran out of time."; (unknownN, []))
+        launch_provers ()
+        handle TimeLimit.TimeOut =>
+          (print "Sledgehammer ran out of time."; (unknownN, []))
       end
       |> `(fn (outcome_code, _) => outcome_code = someN))
 
