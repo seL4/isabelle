@@ -116,7 +116,7 @@ fun refute_tptp_file thy timeout file_name =
       (if s = "genuine" then
          if falsify then "CounterSatisfiable" else "Satisfiable"
        else
-         "Unknown")
+         "GaveUp")
       |> writeln
     val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy snd file_name
     val params =
@@ -268,7 +268,7 @@ fun print_szs_of_success conjs success =
     (if success then
        if null conjs then "Unsatisfiable" else "Theorem"
      else
-       "Unknown"))
+       "GaveUp"))
 
 fun sledgehammer_tptp_file thy timeout file_name =
   let
