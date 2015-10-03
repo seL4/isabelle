@@ -243,6 +243,7 @@ been removed. INCOMPATIBILITY.
 * Discontinued simp_legacy_precond. Potential INCOMPATIBILITY.
 
 * Sledgehammer:
+  - The MaSh relevance filter has been sped up.
   - Proof reconstruction has been improved, to minimize the incidence of
     cases where Sledgehammer gives a proof that does not work.
   - Auto Sledgehammer now minimizes and preplays the results.
