@@ -82,8 +82,8 @@ fun generate_accessibility ctxt thys file_name =
     val facts =
       all_facts ctxt
       |> filter_out (has_thys thys o snd)
-      |> attach_parents_to_facts ctxt []
-      |> map (apsnd (nickname_of_thm ctxt o snd))
+      |> attach_parents_to_facts []
+      |> map (apsnd (nickname_of_thm o snd))
   in
     File.write path "";
     List.app do_fact facts
@@ -97,7 +97,7 @@ fun generate_features ctxt thys file_name =
 
     fun do_fact ((_, stature), th) =
       let
-        val name = nickname_of_thm ctxt th
+        val name = nickname_of_thm th
         val feats = features_of ctxt (Thm.theory_name_of_thm th) stature [Thm.prop_of th]
         val s = encode_str name ^ ": " ^ encode_strs (sort string_ord feats) ^ "\n"
       in
@@ -124,7 +124,7 @@ fun smart_dependencies_of ctxt params_opt facts name_tabs th isar_deps_opt =
         let
           val deps =
             (case isar_deps_opt of
-              NONE => isar_dependencies_of ctxt name_tabs th
+              NONE => isar_dependencies_of name_tabs th
             | deps => deps)
         in
           (case deps of
@@ -142,12 +142,12 @@ fun generate_isar_or_prover_dependencies ctxt params_opt range thys file_name =
   let
     val path = Path.explode file_name
     val facts = filter_out (has_thys thys o snd) (all_facts ctxt)
-    val name_tabs = build_name_tables (nickname_of_thm ctxt) facts
+    val name_tabs = build_name_tables nickname_of_thm facts
 
     fun do_fact (j, (_, th)) =
       if in_range range j then
         let
-          val name = nickname_of_thm ctxt th
+          val name = nickname_of_thm th
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val access_facts = filter_accessible_from th facts
           val (marker, deps) = smart_dependencies_of ctxt params_opt access_facts name_tabs th NONE
@@ -180,13 +180,13 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
     val path = Path.explode file_name
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
-    val name_tabs = build_name_tables (nickname_of_thm ctxt) facts
+    val name_tabs = build_name_tables nickname_of_thm facts
 
     fun do_fact (j, (name, (parents, ((_, stature), th)))) =
       if in_range range j then
         let
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
-          val isar_deps = isar_dependencies_of ctxt name_tabs th
+          val isar_deps = isar_dependencies_of name_tabs th
           val do_query = not (is_bad_query ctxt ho_atp step j th isar_deps)
           val goal_feats = features_of ctxt (Thm.theory_name_of_thm th) stature [Thm.prop_of th]
           val access_facts = filter_accessible_from th new_facts @ old_facts
@@ -225,8 +225,8 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys m
 
     val new_facts =
       new_facts
-      |> attach_parents_to_facts ctxt old_facts
-      |> map (`(nickname_of_thm ctxt o snd o snd))
+      |> attach_parents_to_facts old_facts
+      |> map (`(nickname_of_thm o snd o snd))
     val lines = map do_fact (tag_list 1 new_facts)
   in
     File.write_list path lines
@@ -245,16 +245,16 @@ fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
     val path = Path.explode file_name
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
-    val name_tabs = build_name_tables (nickname_of_thm ctxt) facts
+    val name_tabs = build_name_tables nickname_of_thm facts
 
     fun do_fact (j, ((_, th), old_facts)) =
       if in_range range j then
         let
-          val name = nickname_of_thm ctxt th
+          val name = nickname_of_thm th
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
-          val isar_deps = isar_dependencies_of ctxt name_tabs th
+          val isar_deps = isar_dependencies_of name_tabs th
         in
           if is_bad_query ctxt ho_atp step j th isar_deps then
             ""
@@ -265,7 +265,7 @@ fun generate_mepo_or_mash_suggestions mepo_or_mash_suggested_facts ctxt
                 |> filter_accessible_from th
                 |> mepo_or_mash_suggested_facts ctxt (Thm.theory_name_of_thm th)
                   params max_suggs hyp_ts concl_t
-                |> map (nickname_of_thm ctxt o snd)
+                |> map (nickname_of_thm o snd)
             in
               encode_str name ^ ": " ^ encode_strs suggs ^ "\n"
             end

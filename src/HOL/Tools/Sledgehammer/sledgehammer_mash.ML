@@ -45,7 +45,7 @@ sig
   val str_of_mash_algorithm : mash_algorithm -> string
 
   val mesh_facts : ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list -> 'a list
-  val nickname_of_thm : Proof.context -> thm -> string
+  val nickname_of_thm : thm -> string
   val find_suggested_facts : Proof.context -> ('b * thm) list -> string list -> ('b * thm) list
   val crude_thm_ord : Proof.context -> thm * thm -> order
   val thm_less : thm * thm -> bool
@@ -54,11 +54,10 @@ sig
     prover_result
   val features_of : Proof.context -> string -> stature -> term list -> string list
   val trim_dependencies : string list -> string list option
-  val isar_dependencies_of : Proof.context -> string Symtab.table * string Symtab.table ->
-    thm -> string list option
+  val isar_dependencies_of : string Symtab.table * string Symtab.table -> thm -> string list option
   val prover_dependencies_of : Proof.context -> params -> string -> int -> raw_fact list ->
     string Symtab.table * string Symtab.table -> thm -> bool * string list
-  val attach_parents_to_facts : Proof.context -> ('a * thm) list -> ('a * thm) list ->
+  val attach_parents_to_facts : ('a * thm) list -> ('a * thm) list ->
     (string list * ('a * thm)) list
   val num_extra_feature_facts : int
   val extra_feature_factor : real
@@ -635,7 +634,7 @@ fun recompute_ffds_freqs_from_access_G access_G (xtabs as (fact_xtab, _)) =
 
 local
 
-val version = "*** MaSh version 20140625 ***"
+val version = "*** MaSh version 20151004 ***"
 
 exception FILE_VERSION_TOO_NEW of unit
 
@@ -736,24 +735,40 @@ end
 
 (*** Isabelle helpers ***)
 
-fun elided_backquote_thm ctxt threshold th =
-  elide_string threshold (backquote_thm ctxt th)
+fun crude_printed_term depth t =
+  let
+    fun term _ (res, 0) = (res, 0)
+      | term (t $ u) (res, depth) =
+        let
+          val (res, depth) = term t (res ^ "(", depth)
+          val (res, depth) = term u (res ^ " ", depth)
+        in
+          (res ^ ")", depth)
+        end
+      | term (Abs (s, _, t)) (res, depth) = term t (res ^ "%" ^ s ^ ".", depth - 1)
+      | term (Bound n) (res, depth) = (res ^ "#" ^ string_of_int n, depth - 1)
+      | term (Const (s, _)) (res, depth) = (res ^ Long_Name.base_name s, depth - 1)
+      | term (Free (s, _)) (res, depth) = (res ^ s, depth - 1)
+      | term (Var ((s, _), _)) (res, depth) = (res ^ s, depth - 1)
+  in
+    fst (term t ("", depth))
+  end
 
-fun nickname_of_thm ctxt th =
+fun nickname_of_thm th =
   if Thm.has_name_hint th then
     let val hint = Thm.get_name_hint th in
       (* There must be a better way to detect local facts. *)
       (case Long_Name.dest_local hint of
         SOME suf =>
-          Long_Name.implode [Thm.theory_name_of_thm th, suf, elided_backquote_thm ctxt 50 th]
+        Long_Name.implode [Thm.theory_name_of_thm th, suf, crude_printed_term 50 (Thm.prop_of th)]
       | NONE => hint)
     end
   else
-    elided_backquote_thm ctxt 200 th
+    crude_printed_term 100 (Thm.prop_of th)
 
 fun find_suggested_facts ctxt facts =
   let
-    fun add (fact as (_, th)) = Symtab.default (nickname_of_thm ctxt th, fact)
+    fun add (fact as (_, th)) = Symtab.default (nickname_of_thm th, fact)
     val tab = fold add facts Symtab.empty
     fun lookup nick =
       Symtab.lookup tab nick
@@ -772,6 +787,7 @@ fun crude_thm_ord ctxt =
       fold (fn thy => Symtab.update (Context.theory_name thy, length (Context.ancestors_of thy)))
         (Theory.nodes_of (Proof_Context.theory_of ctxt)) Symtab.empty
     val ancestor_length = Symtab.lookup ancestor_lengths o Context.theory_id_name
+
     fun crude_theory_ord p =
       if Context.eq_thy_id p then EQUAL
       else if Context.proper_subthy_id p then LESS
@@ -789,7 +805,7 @@ fun crude_thm_ord ctxt =
         EQUAL =>
         (* The hack below is necessary because of odd dependencies that are not reflected in the theory
            comparison. *)
-        let val q = apply2 (nickname_of_thm ctxt) p in
+        let val q = apply2 nickname_of_thm p in
           (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
           (case bool_ord (apply2 (String.isSuffix "_def") (swap q)) of
             EQUAL => string_ord q
@@ -943,14 +959,14 @@ val max_dependencies = 20
 val prover_default_max_facts = 25
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
-val typedef_dep = nickname_of_thm @{context} @{thm CollectI}
+val typedef_dep = nickname_of_thm @{thm CollectI}
 (* Mysterious parts of the class machinery create lots of proofs that refer exclusively to
    "someI_ex" (and to some internal constructions). *)
-val class_some_dep = nickname_of_thm @{context} @{thm someI_ex}
+val class_some_dep = nickname_of_thm @{thm someI_ex}
 
 val fundef_ths =
   @{thms fundef_ex1_existence fundef_ex1_uniqueness fundef_ex1_iff fundef_default_value}
-  |> map (nickname_of_thm @{context})
+  |> map nickname_of_thm
 
 (* "Rep_xxx_inject", "Abs_xxx_inverse", etc., are derived using these facts. *)
 val typedef_ths =
@@ -958,46 +974,46 @@ val typedef_ths =
       type_definition.Rep_inject type_definition.Abs_inject type_definition.Rep_cases
       type_definition.Abs_cases type_definition.Rep_induct type_definition.Abs_induct
       type_definition.Rep_range type_definition.Abs_image}
-  |> map (nickname_of_thm @{context})
+  |> map nickname_of_thm
 
-fun is_size_def ctxt [dep] th =
+fun is_size_def [dep] th =
     (case first_field ".rec" dep of
       SOME (pref, _) =>
-      (case first_field ".size" (nickname_of_thm ctxt th) of
+      (case first_field ".size" (nickname_of_thm th) of
         SOME (pref', _) => pref = pref'
       | NONE => false)
     | NONE => false)
-  | is_size_def _ _ _ = false
+  | is_size_def _ _ = false
 
 fun trim_dependencies deps =
   if length deps > max_dependencies then NONE else SOME deps
 
-fun isar_dependencies_of ctxt name_tabs th =
+fun isar_dependencies_of name_tabs th =
   thms_in_proof max_dependencies (SOME name_tabs) th
   |> Option.map (fn deps =>
     if deps = [typedef_dep] orelse deps = [class_some_dep] orelse
         exists (member (op =) fundef_ths) deps orelse exists (member (op =) typedef_ths) deps orelse
-        is_size_def ctxt deps th then
+        is_size_def deps th then
       []
     else
       deps)
 
 fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover auto_level facts
     name_tabs th =
-  (case isar_dependencies_of ctxt name_tabs th of
+  (case isar_dependencies_of name_tabs th of
     SOME [] => (false, [])
   | isar_deps0 =>
     let
       val isar_deps = these isar_deps0
       val thy = Proof_Context.theory_of ctxt
       val goal = goal_of_thm thy th
-      val name = nickname_of_thm ctxt th
+      val name = nickname_of_thm th
       val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
       val facts = facts |> filter (fn (_, th') => thm_less (th', th))
 
-      fun nickify ((_, stature), th) = ((nickname_of_thm ctxt th, stature), th)
+      fun nickify ((_, stature), th) = ((nickname_of_thm th, stature), th)
 
-      fun is_dep dep (_, th) = nickname_of_thm ctxt th = dep
+      fun is_dep dep (_, th) = (nickname_of_thm th = dep)
 
       fun add_isar_dep facts dep accum =
         if exists (is_dep dep) accum then
@@ -1041,7 +1057,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover aut
 
 (* In the following functions, chunks are risers w.r.t. "thm_less_eq". *)
 
-fun chunks_and_parents_for ctxt chunks th =
+fun chunks_and_parents_for chunks th =
   let
     fun insert_parent new parents =
       let val parents = parents |> filter_out (fn p => thm_less_eq (p, new)) in
@@ -1065,11 +1081,11 @@ fun chunks_and_parents_for ctxt chunks th =
   in
     fold_rev do_chunk chunks ([], [])
     |>> cons []
-    ||> map (nickname_of_thm ctxt)
+    ||> map nickname_of_thm
   end
 
-fun attach_parents_to_facts _ _ [] = []
-  | attach_parents_to_facts ctxt old_facts (facts as (_, th) :: _) =
+fun attach_parents_to_facts _ [] = []
+  | attach_parents_to_facts old_facts (facts as (_, th) :: _) =
     let
       fun do_facts _ [] = []
         | do_facts (_, parents) [fact] = [(parents, fact)]
@@ -1080,14 +1096,14 @@ fun attach_parents_to_facts _ _ [] = []
             val chunks_and_parents' =
               if thm_less_eq (th, th') andalso
                 Thm.theory_name_of_thm th = Thm.theory_name_of_thm th'
-              then (chunks, [nickname_of_thm ctxt th])
-              else chunks_and_parents_for ctxt chunks th'
+              then (chunks, [nickname_of_thm th])
+              else chunks_and_parents_for chunks th'
           in
             (parents, fact) :: do_facts chunks_and_parents' facts
           end
     in
       old_facts @ facts
-      |> do_facts (chunks_and_parents_for ctxt [[]] th)
+      |> do_facts (chunks_and_parents_for [[]] th)
       |> drop (length old_facts)
     end
 
@@ -1122,16 +1138,16 @@ fun maximal_wrt_graph _ [] = []
           G |> Graph.restrict (not o String.isPrefix anonymous_proof_prefix) |> Graph.maximals)
       end
 
-fun maximal_wrt_access_graph _ _ [] = []
-  | maximal_wrt_access_graph ctxt access_G ((fact as (_, th)) :: facts) =
+fun maximal_wrt_access_graph _ [] = []
+  | maximal_wrt_access_graph access_G ((fact as (_, th)) :: facts) =
     let val thy_id = Thm.theory_id_of_thm th in
       fact :: filter_out (fn (_, th') =>
         Context.proper_subthy_id (Thm.theory_id_of_thm th', thy_id)) facts
-      |> map (nickname_of_thm ctxt o snd)
+      |> map (nickname_of_thm o snd)
       |> maximal_wrt_graph access_G
     end
 
-fun is_fact_in_graph ctxt access_G = can (Graph.get_node access_G) o nickname_of_thm ctxt
+fun is_fact_in_graph access_G = can (Graph.get_node access_G) o nickname_of_thm
 
 val chained_feature_factor = 0.5 (* FUDGE *)
 val extra_feature_factor = 0.1 (* FUDGE *)
@@ -1193,7 +1209,7 @@ fun mash_suggested_facts ctxt thy_name ({debug, ...} : params) max_suggs hyp_ts 
       fold (union (eq_fst (op =))) [chained_feats, extra_feats] (map (rpair 1.0) goal_feats0)
       |> debug ? sort (Real.compare o swap o apply2 snd)
 
-    val parents = maximal_wrt_access_graph ctxt access_G facts
+    val parents = maximal_wrt_access_graph access_G facts
     val visible_facts = map_filter (Symtab.lookup fact_tab) (Graph.all_preds access_G parents)
 
     val suggs =
@@ -1213,7 +1229,7 @@ fun mash_suggested_facts ctxt thy_name ({debug, ...} : params) max_suggs hyp_ts 
             goal_feats int_goal_feats
         end
 
-    val unknown = filter_out (is_fact_in_graph ctxt access_G o snd) facts
+    val unknown = filter_out (is_fact_in_graph access_G o snd) facts
   in
     find_mash_suggestions ctxt max_suggs suggs facts chained unknown
     |> apply2 (map fact_of_raw_fact)
@@ -1281,10 +1297,10 @@ fun mash_learn_proof ctxt ({timeout, ...} : params) t facts used_ths =
         map_state ctxt
           (fn {access_G, xtabs as ((num_facts0, _), _), ffds, freqs, dirty_facts} =>
              let
-               val parents = maximal_wrt_access_graph ctxt access_G facts
+               val parents = maximal_wrt_access_graph access_G facts
                val deps = used_ths
-                 |> filter (is_fact_in_graph ctxt access_G)
-                 |> map (nickname_of_thm ctxt)
+                 |> filter (is_fact_in_graph access_G)
+                 |> map nickname_of_thm
 
                val name = anonymous_proof_name ()
                val (access_G', xtabs', rev_learns) =
@@ -1313,7 +1329,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
     fun next_commit_time () = Time.+ (Timer.checkRealTimer timer, commit_timeout)
 
     val {access_G, ...} = peek_state ctxt
-    val is_in_access_G = is_fact_in_graph ctxt access_G o snd
+    val is_in_access_G = is_fact_in_graph access_G o snd
     val no_new_facts = forall is_in_access_G facts
   in
     if no_new_facts andalso not run_prover then
@@ -1327,7 +1343,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
         ""
     else
       let
-        val name_tabs = build_name_tables (nickname_of_thm ctxt) facts
+        val name_tabs = build_name_tables nickname_of_thm facts
 
         fun deps_of status th =
           if status = Non_Rec_Def orelse status = Rec_Def then
@@ -1336,7 +1352,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
             prover_dependencies_of ctxt params prover auto_level facts name_tabs th
             |> (fn (false, _) => NONE | (true, deps) => trim_dependencies deps)
           else
-            isar_dependencies_of ctxt name_tabs th
+            isar_dependencies_of name_tabs th
 
         fun do_commit [] [] [] state = state
           | do_commit learns relearns flops
@@ -1384,7 +1400,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
           | learn_new_fact (parents, ((_, stature as (_, status)), th))
               (learns, (num_nontrivial, next_commit, _)) =
             let
-              val name = nickname_of_thm ctxt th
+              val name = nickname_of_thm th
               val feats = features_of ctxt (Thm.theory_name_of_thm th) stature [Thm.prop_of th]
               val deps = these (deps_of status th)
               val num_nontrivial = num_nontrivial |> not (null deps) ? Integer.add 1
@@ -1406,7 +1422,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
             let
               val new_facts = facts
                 |> sort (crude_thm_ord ctxt o apply2 snd)
-                |> attach_parents_to_facts ctxt []
+                |> attach_parents_to_facts []
                 |> filter_out (is_in_access_G o snd)
               val (learns, (num_nontrivial, _, _)) =
                 ([], (0, next_commit_time (), false))
@@ -1419,7 +1435,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
           | relearn_old_fact ((_, (_, status)), th)
               ((relearns, flops), (num_nontrivial, next_commit, _)) =
             let
-              val name = nickname_of_thm ctxt th
+              val name = nickname_of_thm th
               val (num_nontrivial, relearns, flops) =
                 (case deps_of status th of
                   SOME deps => (num_nontrivial + 1, (name, deps) :: relearns, flops)
@@ -1443,7 +1459,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, ...}) prover auto_level ru
 
               fun priority_of th =
                 Random.random_range 0 max_isar +
-                (case try (Graph.get_node access_G) (nickname_of_thm ctxt th) of
+                (case try (Graph.get_node access_G) (nickname_of_thm th) of
                   SOME (Isar_Proof, _, deps) => ~100 * length deps
                 | SOME (Automatic_Proof, _, _) => 2 * max_isar
                 | SOME (Isar_Proof_wegen_Prover_Flop, _, _) => max_isar
@@ -1545,7 +1561,7 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
       fun please_learn () =
         let
           val {access_G, xtabs = ((num_facts0, _), _), ...} = peek_state ctxt
-          val is_in_access_G = is_fact_in_graph ctxt access_G o snd
+          val is_in_access_G = is_fact_in_graph access_G o snd
           val min_num_facts_to_learn = length facts - num_facts0
         in
           if min_num_facts_to_learn <= max_facts_to_learn_before_query then

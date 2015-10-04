@@ -54,7 +54,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
 
     val css = clasimpset_rule_table_of ctxt
     val facts = all_facts ctxt true false Keyword.empty_keywords [] [] css
-    val name_tabs = build_name_tables (nickname_of_thm ctxt) facts
+    val name_tabs = build_name_tables nickname_of_thm facts
 
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
     fun index_str (j, s) = s ^ "@" ^ string_of_int j
@@ -90,12 +90,12 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
               [name] => name
             | names => error ("Input files out of sync: facts " ^ commas (map quote names) ^ "."))
           val th =
-            case find_first (fn (_, th) => nickname_of_thm ctxt th = name) facts of
+            case find_first (fn (_, th) => nickname_of_thm th = name) facts of
               SOME (_, th) => th
             | NONE => error ("No fact called \"" ^ name ^ "\".")
           val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
-          val isar_deps = these (isar_dependencies_of ctxt name_tabs th)
+          val isar_deps = these (isar_dependencies_of name_tabs th)
           val suggss = isar_deps :: suggss0
           val facts = facts |> filter (fn (_, th') => thm_less (th', th))
 
@@ -116,7 +116,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
             else
               let
                 fun nickify ((_, stature), th) =
-                  ((K (encode_str (nickname_of_thm ctxt th)), stature), th)
+                  ((K (encode_str (nickname_of_thm th)), stature), th)
 
                 val facts =
                   suggs
