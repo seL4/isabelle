@@ -44,7 +44,8 @@ sig
   val the_mash_algorithm : unit -> mash_algorithm
   val str_of_mash_algorithm : mash_algorithm -> string
 
-  val mesh_facts : ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list -> 'a list
+  val mesh_facts : ('a list -> 'a list) -> ('a * 'a -> bool) -> int ->
+    (real * (('a * real) list * 'a list)) list -> 'a list
   val nickname_of_thm : thm -> string
   val find_suggested_facts : Proof.context -> ('b * thm) list -> string list -> ('b * thm) list
   val crude_thm_ord : Proof.context -> thm * thm -> order
@@ -169,9 +170,10 @@ fun normalize_scores _ [] = []
   | normalize_scores max_facts xs =
     map (apsnd (curry Real.* (1.0 / avg (map snd (take max_facts xs))))) xs
 
-fun mesh_facts fact_eq max_facts [(_, (sels, unks))] =
-    distinct fact_eq (map fst (take max_facts sels) @ take (max_facts - length sels) unks)
-  | mesh_facts fact_eq max_facts mess =
+fun mesh_facts maybe_distinct _ max_facts [(_, (sels, unks))] =
+    map fst (take max_facts sels) @ take (max_facts - length sels) unks
+    |> maybe_distinct
+  | mesh_facts _ fact_eq max_facts mess =
     let
       val mess = mess |> map (apsnd (apfst (normalize_scores max_facts)))
 
@@ -503,7 +505,7 @@ fun query_internal ctxt algorithm num_facts num_feats (fact_names, featss, depss
        MaSh_NB => nb ()
      | MaSh_kNN => knn ()
      | MaSh_NB_kNN =>
-       mesh_facts (op =) max_suggs
+       mesh_facts I (op =) max_suggs
          [(0.5 (* FUDGE *), (weight_facts_steeply (nb ()), [])),
           (0.5 (* FUDGE *), (weight_facts_steeply (knn ()), []))])
      |> map (curry Vector.sub fact_names))
@@ -1169,7 +1171,7 @@ fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
     val unknown = raw_unknown
       |> fold (subtract (eq_snd Thm.eq_thm_prop)) [unknown_chained, unknown_proximate]
   in
-    (mesh_facts (eq_snd (gen_eq_thm ctxt)) max_facts mess, unknown)
+    (mesh_facts (fact_distinct (op aconv)) (eq_snd (gen_eq_thm ctxt)) max_facts mess, unknown)
   end
 
 fun mash_suggested_facts ctxt thy_name ({debug, ...} : params) max_suggs hyp_ts concl_t facts =
@@ -1603,8 +1605,8 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
          |> weight_facts_steeply, [])
 
       fun mash () =
-        mash_suggested_facts ctxt thy_name params
-          (generous_max_suggestions max_facts) hyp_ts concl_t facts
+        mash_suggested_facts ctxt thy_name params (generous_max_suggestions max_facts) hyp_ts
+          concl_t facts
         |>> weight_facts_steeply
 
       val mess =
@@ -1612,7 +1614,9 @@ fun relevant_facts ctxt (params as {verbose, learn, fact_filter, timeout, ...}) 
         [] |> effective_fact_filter <> mepoN ? cons (mash_weight, mash)
            |> effective_fact_filter <> mashN ? cons (mepo_weight, mepo)
            |> Par_List.map (apsnd (fn f => f ()))
-      val mesh = mesh_facts (eq_snd (gen_eq_thm ctxt)) max_facts mess |> add_and_take
+      val mesh =
+        mesh_facts (fact_distinct (op aconv)) (eq_snd (gen_eq_thm ctxt)) max_facts mess
+        |> add_and_take
     in
       (case (fact_filter, mess) of
         (NONE, [(_, (mepo, _)), (_, (mash, _))]) =>

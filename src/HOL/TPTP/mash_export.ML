@@ -314,7 +314,7 @@ fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name mesh_file_
         val mess =
           [(mepo_weight, (mepo_suggs, [])),
            (mash_weight, (mash_suggs, []))]
-        val mesh_suggs = mesh_facts (op =) max_suggs mess
+        val mesh_suggs = mesh_facts I (op =) max_suggs mess
         val mesh_line = encode_str name ^ ": " ^ encode_strs mesh_suggs ^ "\n"
       in File.append mesh_path mesh_line end
 

@@ -28,6 +28,7 @@ sig
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val build_name_tables : (thm -> string) -> ('a * thm) list ->
     string Symtab.table * string Symtab.table
+  val fact_distinct : (term * term -> bool) -> ('a * thm) list -> ('a * thm) list
   val maybe_instantiate_inducts : Proof.context -> term list -> term ->
     (((unit -> string) * 'a) * thm) list -> (((unit -> string) * 'a) * thm) list
   val fact_of_raw_fact : raw_fact -> fact
@@ -375,11 +376,13 @@ fun build_name_tables name_of facts =
   end
 
 fun fact_distinct eq facts =
-  fold (fn fact as (_, th) =>
-      Net.insert_term_safe (eq o apply2 (normalize_eq o Thm.prop_of o snd))
-        (normalize_eq (Thm.prop_of th), fact))
-    facts Net.empty
+  fold (fn (i, fact as (_, th)) =>
+      Net.insert_term_safe (eq o apply2 (normalize_eq o Thm.prop_of o snd o snd))
+        (normalize_eq (Thm.prop_of th), (i, fact)))
+    (tag_list 0 facts) Net.empty
   |> Net.entries
+  |> sort (int_ord o apply2 fst)
+  |> map snd
 
 fun struct_induct_rule_on th =
   (case Logic.strip_horn (Thm.prop_of th) of
