@@ -79,7 +79,7 @@ fun play_one_line_proof minimize timeout used_facts0 state i (preferred_meth, me
         val fact_names = map fst used_facts
         val {facts = chained, goal, ...} = Proof.goal state
         val goal_t = Logic.get_goal (Thm.prop_of goal) i
-          |> add_chained (map Thm.prop_of chained)
+          |> add_chained (map (Thm.prop_of o forall_intr_vars) chained)
 
         fun try_methss [] [] = (used_facts, (preferred_meth, Play_Timed_Out Time.zeroTime))
           | try_methss ress [] =

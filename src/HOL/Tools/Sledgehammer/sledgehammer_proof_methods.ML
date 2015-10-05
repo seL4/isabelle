@@ -117,7 +117,11 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
   Method.insert_tac local_facts THEN'
   (case meth of
     Metis_Method (type_enc_opt, lam_trans_opt) =>
-    let val ctxt = Config.put Metis_Tactic.verbose false ctxt in
+    let
+      val ctxt = ctxt
+        |> Config.put Metis_Tactic.verbose false
+        |> Config.put Metis_Tactic.trace false
+    in
       Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
         (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
     end
