@@ -486,7 +486,7 @@ fun role_of_tptp_string "axiom" = Axiom
 
 val tptp_binary_ops =
   [tptp_and, tptp_not_and, tptp_or, tptp_not_or, tptp_implies, tptp_if, tptp_iff, tptp_not_iff,
-   tptp_equal, tptp_app]
+   tptp_equal, tptp_not_equal, tptp_app]
 
 fun parse_one_in_list xs =
   foldl1 (op ||) (map Scan.this_string xs)
@@ -515,12 +515,13 @@ fun mk_ho_of_fo_quant q =
   else raise Fail ("unrecognized quantification: " ^ q)
 
 fun remove_thf_app (ATerm ((x, ty), arg)) =
-  if x = tptp_app then
-    (case arg of
-      ATerm ((x, ty), arg) :: t => remove_thf_app (ATerm ((x, ty), map remove_thf_app arg @ t))
-    | [AAbs ((var, tvar), phi), t] =>
-      remove_thf_app (AAbs ((var, tvar), map remove_thf_app phi @ [t])))
-  else ATerm ((x, ty), map remove_thf_app arg)
+    if x = tptp_app then
+      (case arg of
+        ATerm ((x, ty), arg) :: t => remove_thf_app (ATerm ((x, ty), map remove_thf_app arg @ t))
+      | [AAbs ((var, tvar), phi), t] =>
+        remove_thf_app (AAbs ((var, tvar), map remove_thf_app phi @ [t])))
+    else
+      ATerm ((x, ty), map remove_thf_app arg)
   | remove_thf_app (AAbs (((x, ty), arg), t)) = AAbs (((x, ty), remove_thf_app arg), t)
 
 fun parse_thf0_typed_var x =
@@ -540,16 +541,13 @@ fun parse_simple_thf0_term x =
                     else I))
             ys t)
   || Scan.this_string tptp_not |-- parse_thf0_term >> mk_app (mk_simple_aterm tptp_not)
-  || scan_general_id --| $$ tptp_has_type -- parse_thf0_type
-    >> (fn (var, typ) => ATerm ((var, [typ]), []))
+  || scan_general_id -- Scan.option ($$ tptp_has_type |-- parse_thf0_type)
+    >> (fn (var, typ_opt) => ATerm ((var, the_list typ_opt), []))
   || parse_ho_quantifier >> mk_simple_aterm
   || $$ "(" |-- parse_thf0_term --| $$ ")"
-  || scan_general_id >> mk_simple_aterm
   || parse_binary_op >> mk_simple_aterm) x
 and parse_thf0_term x =
-  (parse_simple_thf0_term
-      -- Scan.option (parse_binary_op
-      -- parse_thf0_term)
+  (parse_simple_thf0_term -- Scan.option (parse_binary_op -- parse_thf0_term)
     >> (fn (t1, SOME (c, t2)) =>
            if c = tptp_app then mk_app t1 t2 else mk_apps (mk_simple_aterm c) [t1, t2]
          | (t, NONE) => t)) x
@@ -557,10 +555,9 @@ and parse_thf0_term x =
 fun parse_thf0_formula x = (parse_thf0_term #>> remove_thf_app #>> AAtom) x
 
 fun parse_tstp_thf0_line problem =
-  ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof
-    || Scan.this_string tptp_tff || Scan.this_string tptp_thf)
-  -- $$ "(") |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
-  -- parse_thf0_formula -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
+  (Scan.this_string tptp_thf -- $$ "(") |-- scan_general_id --| $$ ","
+  -- Symbol.scan_ascii_id --| $$ "," -- parse_thf0_formula -- parse_tstp_extra_arguments --| $$ ")"
+  --| $$ "."
   >> (fn (((num, role), phi), deps) =>
       let
         val role' = role_of_tptp_string role

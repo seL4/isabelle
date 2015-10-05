@@ -271,11 +271,11 @@ fun run_atp mode name
                 |> map (apsnd Thm.prop_of)
                 |> (if waldmeister_new then
                       generate_waldmeister_problem ctxt hyp_ts concl_t
-                        #> (fn (a,b,c,d,e) => (a,b,c,d,SOME e))
+                      #> (fn (a, b, c, d, e) => (a, b, c, d, SOME e))
                     else
                       generate_atp_problem ctxt format prem_role type_enc atp_mode lam_trans
                         uncurried_aliases readable_names true hyp_ts concl_t
-                        #> (fn (a,b,c,d) => (a,b,c,d,NONE)))
+                      #> (fn (a, b, c, d) => (a, b, c, d, NONE)))
 
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem

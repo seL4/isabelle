@@ -309,24 +309,15 @@ fun unprefix_and_unascii s1 s =
     NONE
 
 val proxy_table =
-  [("c_False", (@{const_name False}, (@{thm fFalse_def},
-       ("fFalse", @{const_name ATP.fFalse})))),
-   ("c_True", (@{const_name True}, (@{thm fTrue_def},
-       ("fTrue", @{const_name ATP.fTrue})))),
-   ("c_Not", (@{const_name Not}, (@{thm fNot_def},
-       ("fNot", @{const_name ATP.fNot})))),
-   ("c_conj", (@{const_name conj}, (@{thm fconj_def},
-       ("fconj", @{const_name ATP.fconj})))),
-   ("c_disj", (@{const_name disj}, (@{thm fdisj_def},
-       ("fdisj", @{const_name ATP.fdisj})))),
-   ("c_implies", (@{const_name implies}, (@{thm fimplies_def},
-       ("fimplies", @{const_name ATP.fimplies})))),
-   ("equal", (@{const_name HOL.eq}, (@{thm fequal_def},
-       ("fequal", @{const_name ATP.fequal})))),
-   ("c_All", (@{const_name All}, (@{thm fAll_def},
-       ("fAll", @{const_name ATP.fAll})))),
-   ("c_Ex", (@{const_name Ex}, (@{thm fEx_def},
-       ("fEx", @{const_name ATP.fEx}))))]
+  [("c_False", (@{const_name False}, (@{thm fFalse_def}, ("fFalse", @{const_name fFalse})))),
+   ("c_True", (@{const_name True}, (@{thm fTrue_def}, ("fTrue", @{const_name fTrue})))),
+   ("c_Not", (@{const_name Not}, (@{thm fNot_def}, ("fNot", @{const_name fNot})))),
+   ("c_conj", (@{const_name conj}, (@{thm fconj_def}, ("fconj", @{const_name fconj})))),
+   ("c_disj", (@{const_name disj}, (@{thm fdisj_def}, ("fdisj", @{const_name fdisj})))),
+   ("c_implies", (@{const_name implies}, (@{thm fimplies_def}, ("fimplies", @{const_name fimplies})))),
+   ("equal", (@{const_name HOL.eq}, (@{thm fequal_def}, ("fequal", @{const_name fequal})))),
+   ("c_All", (@{const_name All}, (@{thm fAll_def}, ("fAll", @{const_name fAll})))),
+   ("c_Ex", (@{const_name Ex}, (@{thm fEx_def}, ("fEx", @{const_name fEx}))))]
 
 val proxify_const = AList.lookup (op =) proxy_table #> Option.map (snd o snd)
 
@@ -1534,7 +1525,7 @@ fun is_pred_sym sym_tab s =
     SOME ({pred_sym, min_ary, max_ary, ...} : sym_info) => pred_sym andalso min_ary = max_ary
   | NONE => false)
 
-val fTrue_iconst = IConst ((const_prefix ^ "fTrue", @{const_name ATP.fTrue}), @{typ bool}, [])
+val fTrue_iconst = IConst ((const_prefix ^ "fTrue", @{const_name fTrue}), @{typ bool}, [])
 val predicator_iconst = IConst (`(make_fixed_const NONE) predicator_name, @{typ "bool => bool"}, [])
 
 fun predicatify completish tm =
