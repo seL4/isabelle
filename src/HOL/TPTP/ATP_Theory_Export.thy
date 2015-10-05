@@ -18,8 +18,17 @@ open ATP_Theory_Export
 ML {*
 val do_it = false (* switch to "true" to generate the files *)
 val ctxt = @{context}
-val thy = @{theory List}
-val infer_policy = Unchecked_Inferences
+val thy = @{theory Complex_Main}
+val infer_policy = (* Unchecked_Inferences *) No_Inferences
+*}
+
+ML {*
+if do_it then
+  "/tmp/isa_filter"
+  |> generate_casc_lbt_isa_files_for_theory ctxt thy (THF (Polymorphic, THF_Without_Choice))
+         infer_policy "poly_native_higher"
+else
+  ()
 *}
 
 ML {*
