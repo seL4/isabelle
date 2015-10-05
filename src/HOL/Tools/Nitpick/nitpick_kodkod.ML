@@ -787,8 +787,8 @@ fun kodkod_formula_from_nut ofs
              case polar of
                Neut =>
                if opt1 then raise NUT ("Nitpick_Kodkod.to_f (Finite)", [u])
-               else KK.True
-             | Pos => formula_for_bool (not opt1)
+               else KK.True (* sound? *)
+             | Pos => KK.False
              | Neg => KK.True
            end
          | Op1 (IsUnknown, _, _, u1) => kk_no (to_r u1)

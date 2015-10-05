@@ -253,6 +253,7 @@ been removed. INCOMPATIBILITY.
   - Eliminated obsolete "blocking" option and related subcommands.
 
 * Nitpick:
+  - Fixed soundness bug in translation of "finite" predicate.
   - Fixed soundness bug in "destroy_constrs" optimization.
   - Removed "check_potential" and "check_genuine" options.
   - Eliminated obsolete "blocking" option.
