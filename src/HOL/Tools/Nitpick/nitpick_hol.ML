@@ -390,12 +390,12 @@ val built_in_consts =
    (@{const_name unknown}, 0),
    (@{const_name is_unknown}, 1),
    (@{const_name safe_The}, 1),
-   (@{const_name Nitpick.Frac}, 0),
-   (@{const_name Nitpick.norm_frac}, 0),
+   (@{const_name Frac}, 0),
+   (@{const_name norm_frac}, 0),
    (@{const_name Suc}, 0),
    (@{const_name nat}, 0),
-   (@{const_name Nitpick.nat_gcd}, 0),
-   (@{const_name Nitpick.nat_lcm}, 0)]
+   (@{const_name nat_gcd}, 0),
+   (@{const_name nat_lcm}, 0)]
 val built_in_typed_consts =
   [((@{const_name zero_class.zero}, nat_T), 0),
    ((@{const_name one_class.one}, nat_T), 0),
@@ -583,9 +583,9 @@ type typedef_info =
 fun typedef_info ctxt s =
   if is_frac_type ctxt (Type (s, [])) then
     SOME {abs_type = Type (s, []), rep_type = @{typ "int * int"},
-          Abs_name = @{const_name Nitpick.Abs_Frac},
-          Rep_name = @{const_name Nitpick.Rep_Frac},
-          prop_of_Rep = @{prop "Nitpick.Rep_Frac x \<in> Collect Nitpick.Frac"}
+          Abs_name = @{const_name Abs_Frac},
+          Rep_name = @{const_name Rep_Frac},
+          prop_of_Rep = @{prop "Rep_Frac x \<in> Collect Frac"}
                         |> Logic.varify_global,
           Abs_inverse = NONE, Rep_inverse = NONE}
   else case Typedef.get_info ctxt s of
@@ -859,7 +859,7 @@ fun is_free_constr ctxt (s, T) =
 
 fun is_stale_constr ctxt (x as (s, T)) =
   is_registered_type ctxt (body_type T) andalso is_nonfree_constr ctxt x andalso
-  not (s = @{const_name Nitpick.Abs_Frac} orelse is_registered_coconstr ctxt x)
+  not (s = @{const_name Abs_Frac} orelse is_registered_coconstr ctxt x)
 
 fun is_constr ctxt (x as (_, T)) =
   is_nonfree_constr ctxt x andalso

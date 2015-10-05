@@ -46,9 +46,9 @@ val may_use_binary_ints =
       | aux def (t as Const (s, _)) =
         (not def orelse t <> @{const Suc}) andalso
         not (member (op =)
-               [@{const_name Nitpick.Abs_Frac}, @{const_name Nitpick.Rep_Frac},
-                @{const_name Nitpick.nat_gcd}, @{const_name Nitpick.nat_lcm},
-                @{const_name Nitpick.Frac}, @{const_name Nitpick.norm_frac}] s)
+               [@{const_name Abs_Frac}, @{const_name Rep_Frac},
+                @{const_name nat_gcd}, @{const_name nat_lcm},
+                @{const_name Frac}, @{const_name norm_frac}] s)
       | aux def (Abs (_, _, t')) = aux def t'
       | aux _ _ = true
   in aux end
@@ -1055,15 +1055,15 @@ fun axioms_for_term
 
 fun simplify_constrs_and_sels ctxt t =
   let
-    fun is_nth_sel_on t' n (Const (s, _) $ t) =
+    fun is_nth_sel_on constr_s t' n (Const (s, _) $ t) =
         (t = t' andalso is_sel_like_and_no_discr s andalso
-         sel_no_from_name s = n)
-      | is_nth_sel_on _ _ _ = false
-    fun do_term (Const (@{const_name Nitpick.Rep_Frac}, _)
-                 $ (Const (@{const_name Nitpick.Abs_Frac}, _) $ t1)) [] =
+         constr_name_for_sel_like s = constr_s andalso sel_no_from_name s = n)
+      | is_nth_sel_on _ _ _ _ = false
+    fun do_term (Const (@{const_name Rep_Frac}, _)
+                 $ (Const (@{const_name Abs_Frac}, _) $ t1)) [] =
         do_term t1 []
-      | do_term (Const (@{const_name Nitpick.Abs_Frac}, _)
-                 $ (Const (@{const_name Nitpick.Rep_Frac}, _) $ t1)) [] =
+      | do_term (Const (@{const_name Abs_Frac}, _)
+                 $ (Const (@{const_name Rep_Frac}, _) $ t1)) [] =
         do_term t1 []
       | do_term (t1 $ t2) args = do_term t1 (do_term t2 [] :: args)
       | do_term (t as Const (x as (s, T))) (args as _ :: _) =
@@ -1072,7 +1072,7 @@ fun simplify_constrs_and_sels ctxt t =
               case hd args of
                 Const (_, T') $ t' =>
                 if domain_type T' = body_type T andalso
-                   forall (uncurry (is_nth_sel_on t'))
+                   forall (uncurry (is_nth_sel_on s t'))
                           (index_seq 0 (length args) ~~ args) then
                   t'
                 else
