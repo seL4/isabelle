@@ -119,6 +119,8 @@ sig
   val unsafe_elim: int option -> attribute
   val unsafe_intro: int option -> attribute
   val rule_del: attribute
+  val rule_tac: Proof.context -> thm list -> thm list -> int -> tactic
+  val standard_tac: Proof.context -> thm list -> tactic
   val cla_modifiers: Method.modifier parser list
   val cla_method:
     (Proof.context -> tactic) -> (Proof.context -> Proof.method) context_parser

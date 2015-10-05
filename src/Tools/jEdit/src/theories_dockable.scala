@@ -192,9 +192,9 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
   {
-    GUI_Thread.require {}
+    val (snapshot, nodes_status0) =
+      GUI_Thread.now { (PIDE.session.snapshot(), nodes_status) }
 
-    val snapshot = PIDE.session.snapshot()
     val nodes = snapshot.version.nodes
 
     val iterator =
@@ -203,7 +203,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         case None => nodes.iterator
       }
     val nodes_status1 =
-      (nodes_status /: iterator)({ case (status, (name, node)) =>
+      (nodes_status0 /: iterator)({ case (status, (name, node)) =>
           if (!name.is_theory || PIDE.resources.loaded_theories(name.theory) || node.is_empty)
             status
           else status + (name -> Protocol.node_status(snapshot.state, snapshot.version, node)) })
@@ -211,10 +211,12 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     val nodes_status2 =
       nodes_status1 -- nodes_status1.keysIterator.filter(nodes.is_hidden(_))
 
-    if (nodes_status != nodes_status2) {
-      nodes_status = nodes_status2
-      status.listData = nodes.topological_order.filter(nodes_status.isDefinedAt(_))
-    }
+    if (nodes_status0 != nodes_status2)
+      GUI_Thread.now {
+        nodes_status = nodes_status2
+        status.listData = nodes.topological_order.filter(nodes_status.isDefinedAt(_))
+        status.repaint
+      }
   }
 
 
@@ -234,7 +236,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         }
 
       case changed: Session.Commands_Changed =>
-        GUI_Thread.later { handle_update(Some(changed.nodes)) }
+        handle_update(Some(changed.nodes))
     }
 
   override def init()
