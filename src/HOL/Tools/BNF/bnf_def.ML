@@ -1420,14 +1420,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
         val in_rel = Lazy.lazy mk_in_rel;
 
         fun mk_rel_flip () =
-          let
-            val rel_conversep_thm = Lazy.force rel_conversep;
-            val cts = map (SOME o Thm.cterm_of lthy) Rs;
-            val rel_conversep_thm' = infer_instantiate' lthy cts rel_conversep_thm;
-          in
-            unfold_thms lthy @{thms conversep_iff} (rel_conversep_thm' RS @{thm predicate2_eqD})
-            |> singleton (Proof_Context.export names_lthy pre_names_lthy)
-          end;
+          unfold_thms lthy @{thms conversep_iff} (Lazy.force rel_conversep RS @{thm predicate2_eqD});
 
         val rel_flip = Lazy.lazy mk_rel_flip;
 
@@ -1469,11 +1462,11 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             val eq = mk_Trueprop_eq (Term.list_comb (rel, Rs) $ x $ y,
               Term.list_comb (rel, Rs_copy) $ x_copy $ y_copy);
           in
-            Goal.prove_sorry lthy [] (prem0 :: prem1 :: prems) eq
+            fold (Variable.add_free_names lthy) (eq :: prem0 :: prem1 :: prems) []
+            |> (fn vars => Goal.prove_sorry lthy vars (prem0 :: prem1 :: prems) eq
               (fn {context = ctxt, prems} =>
-                mk_rel_cong_tac ctxt (chop 2 prems) (Lazy.force rel_mono_strong))
+                mk_rel_cong_tac ctxt (chop 2 prems) (Lazy.force rel_mono_strong)))
             |> Thm.close_derivation
-            |> singleton (Proof_Context.export names_lthy lthy)
           end;
 
         val rel_cong = Lazy.lazy (mk_rel_cong Logic.mk_implies);
@@ -1524,13 +1517,13 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
             val Rs = map2 retype_const_or_free self_pred2RTs Rs;
             val prems = map (HOLogic.mk_Trueprop o mk_prop) Rs;
             val goal = HOLogic.mk_Trueprop (mk_prop (Term.list_comb (relAsAs, Rs)));
+        val vars = fold (Variable.add_free_names lthy) (goal :: prems) [];
           in
-            Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, goal))
+            Goal.prove_sorry lthy vars [] (Logic.list_implies (prems, goal))
               (fn {context = ctxt, prems = _} =>
                 unfold_thms_tac ctxt [prop_conv_thm] THEN
                 HEADGOAL (rtac ctxt (Lazy.force thm RS sym RS @{thm ord_eq_le_trans}) 
                   THEN' rtac ctxt (Lazy.force rel_mono) THEN_ALL_NEW assume_tac ctxt))
-            |> singleton (Proof_Context.export names_lthy lthy)
             |> Thm.close_derivation
           end;
 
@@ -1567,12 +1560,12 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                 (mk_rel_fun (Term.list_comb (mk_bnf_rel pred2RTsBsEs CB' CE', S_BsEs)) iff);
             val goal =
               HOLogic.mk_Trueprop (fold_rev mk_rel_fun prem_rels prem_elems $ rel $ relCsEs);
+            val vars = Variable.add_free_names lthy goal [];
           in
-            Goal.prove_sorry lthy [] [] goal
+            Goal.prove_sorry lthy vars [] goal
               (fn {context = ctxt, prems = _} =>
                 mk_rel_transfer_tac ctxt (Lazy.force in_rel) (Lazy.force rel_map)
                   (Lazy.force rel_mono_strong))
-            |> singleton (Proof_Context.export names_lthy lthy)
             |> Thm.close_derivation
           end;
 
@@ -1587,12 +1580,16 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
           in
             if null goals then []
             else
-              Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-                (fn {context = ctxt, prems = _} =>
-                   mk_set_transfer_tac ctxt (Lazy.force in_rel) (map Lazy.force set_map))
-              |> Thm.close_derivation
-              |> Conjunction.elim_balanced (length goals)
-              |> Proof_Context.export names_lthy lthy
+              let
+                val goal = Logic.mk_conjunction_balanced goals;
+                val vars = Variable.add_free_names lthy goal [];
+              in
+                Goal.prove_sorry lthy vars [] goal
+                  (fn {context = ctxt, prems = _} =>
+                     mk_set_transfer_tac ctxt (Lazy.force in_rel) (map Lazy.force set_map))
+                |> Thm.close_derivation
+                |> Conjunction.elim_balanced (length goals)
+              end
           end;
 
         val set_transfer = Lazy.lazy mk_set_transfer;

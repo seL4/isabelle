@@ -116,18 +116,21 @@ fun fp_rec_sugar_transfer_interpretation prove {transfers, fun_names, funs, fun_
 
 val lfp_rec_sugar_transfer_interpretation = fp_rec_sugar_transfer_interpretation
   (fn _ => fn _ => fn f => fn def => fn lthy =>
-     let val (goal, names_lthy) = mk_goal lthy f in
-       Goal.prove lthy [] [] goal (fn {context = ctxt, prems = _} =>
-         mk_lfp_rec_sugar_transfer_tac ctxt def)
-       |> singleton (Proof_Context.export names_lthy lthy)
-       |> Thm.close_derivation
-     end);
+    let
+      val (goal, _) = mk_goal lthy f;
+      val vars = Variable.add_free_names lthy goal [];
+    in
+      Goal.prove lthy vars [] goal (fn {context = ctxt, prems = _} =>
+        mk_lfp_rec_sugar_transfer_tac ctxt def)
+      |> Thm.close_derivation
+    end);
 
 val gfp_rec_sugar_transfer_interpretation = fp_rec_sugar_transfer_interpretation
   (fn kk => fn bnfs => fn f => fn def => fn lthy =>
      let
        val fp_sugars = map (the o fp_sugar_of_bnf lthy) bnfs;
-       val (goal, names_lthy) = mk_goal lthy f;
+       val (goal, _) = mk_goal lthy f;
+       val vars = Variable.add_free_names lthy goal [];
        val (disc_eq_cases, case_thms, case_distribs, case_congs) =
          bnf_depth_first_traverse lthy (fn bnf =>
              (case fp_sugar_of_bnf lthy bnf of
@@ -141,14 +144,13 @@ val gfp_rec_sugar_transfer_interpretation = fp_rec_sugar_transfer_interpretation
                    insert Thm.eq_thm case_cong case_congs0))))
            (fastype_of f) ([], [], [], []);
      in
-       Goal.prove lthy [] [] goal (fn {context = ctxt, prems = _} =>
+       Goal.prove lthy vars [] goal (fn {context = ctxt, prems = _} =>
          mk_gfp_rec_sugar_transfer_tac ctxt def
          (#co_rec_def (#fp_co_induct_sugar (nth fp_sugars kk)))
          (map (#type_definition o #absT_info) fp_sugars)
          (maps (#xtor_co_rec_transfers o #fp_res) fp_sugars)
          (map (rel_def_of_bnf o #pre_bnf) fp_sugars)
          disc_eq_cases case_thms case_distribs case_congs)
-       |> singleton (Proof_Context.export names_lthy lthy)
        |> Thm.close_derivation
      end);
 

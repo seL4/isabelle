@@ -142,7 +142,7 @@ sig
     thm -> thm list -> thm list -> thm list -> BNF_Def.bnf list -> typ list -> typ list ->
     typ list -> typ list list list -> int list list -> int list list -> int list -> thm list ->
     thm list -> (thm -> thm) -> thm list list -> Ctr_Sugar.ctr_sugar list -> term list ->
-    thm list -> (thm list -> thm list) -> Proof.context -> gfp_sugar_thms
+    thm list -> Proof.context -> gfp_sugar_thms
 
   val co_datatypes: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
@@ -685,13 +685,16 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
         map2 (fn thm => fn 0 => thm RS @{thm eq_True[THEN iffD2]} | _ => thm) rel_inject_thms ms;
 
       val ctr_transfer_thms =
-        let val goals = map2 (mk_parametricity_goal names_lthy Rs) ctrAs ctrBs in
-          Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+        let
+          val goals = map2 (mk_parametricity_goal names_lthy Rs) ctrAs ctrBs;
+          val goal = Logic.mk_conjunction_balanced goals;
+          val vars = Variable.add_free_names lthy goal [];
+        in
+          Goal.prove_sorry lthy vars [] goal
             (fn {context = ctxt, prems = _} =>
                mk_ctr_transfer_tac ctxt rel_intro_thms live_nesting_rel_eqs)
           |> Thm.close_derivation
           |> Conjunction.elim_balanced (length goals)
-          |> Proof_Context.export names_lthy lthy
         end;
 
       val (set_cases_thms, set_cases_attrss) =
@@ -741,10 +744,10 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
                       end) args)
                   end) ctrAs;
               val goal = Logic.mk_implies (mk_Trueprop_mem (elem, set $ ta), thesis);
+              val vars = Variable.add_free_names lthy goal [];
               val thm =
-                Goal.prove_sorry lthy [] (flat premss) goal (fn {context = ctxt, prems} =>
+                Goal.prove_sorry lthy vars (flat premss) goal (fn {context = ctxt, prems} =>
                   mk_set_cases_tac ctxt (Thm.cterm_of ctxt ta) prems exhaust set_thms)
-                |> singleton (Proof_Context.export names_lthy lthy)
                 |> Thm.close_derivation
                 |> rotate_prems ~1;
 
@@ -779,7 +782,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
                   end) (map (mk_set innerTs) (sets_of_bnf bnf)) ctxt))
             | T => (if T = A then [mk_Trueprop_mem (t, setA $ ctr_args)] else [], ctxt));
 
-          val (goalssss, names_lthy) =
+          val (goalssss, _) =
             fold_map (fn set =>
               let val A = HOLogic.dest_setT (range_type (fastype_of set)) in
                 fold_map (fn ctr => fn ctxt =>
@@ -792,11 +795,15 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
           `(fst o unflattt goalssss)
             (if null goals then []
              else
-               Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-                 (fn {context = ctxt, prems = _} => mk_set_intros_tac ctxt set0_thms)
-               |> Thm.close_derivation
-               |> Conjunction.elim_balanced (length goals)
-               |> Proof_Context.export names_lthy lthy)
+               let
+                 val goal = Logic.mk_conjunction_balanced goals;
+                 val vars = Variable.add_free_names lthy goal [];
+               in
+                 Goal.prove_sorry lthy vars [] goal
+                   (fn {context = ctxt, prems = _} => mk_set_intros_tac ctxt set0_thms)
+                 |> Thm.close_derivation
+                 |> Conjunction.elim_balanced (length goals)
+               end)
         end;
 
       val rel_sel_thms =
@@ -820,10 +827,10 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
                  | conjuncts => Library.foldr1 HOLogic.mk_conj conjuncts))];
 
           fun prove goal =
-            Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+            Variable.add_free_names lthy goal []
+            |> (fn vars => Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
               mk_rel_sel_tac ctxt (Thm.cterm_of ctxt ta) (Thm.cterm_of ctxt tb) exhaust (flat disc_thmss)
-                (flat sel_thmss) rel_inject_thms distincts rel_distinct_thms live_nesting_rel_eqs)
-            |> singleton (Proof_Context.export names_lthy lthy)
+                (flat sel_thmss) rel_inject_thms distincts rel_distinct_thms live_nesting_rel_eqs))
             |> Thm.close_derivation;
         in
           map prove goals
@@ -851,13 +858,13 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
                names_ctxt)
             end;
 
-          val (assms, names_lthy) = @{fold_map 2} mk_assms ctrAs ctrBs names_lthy;
+          val (assms, _) = @{fold_map 2} mk_assms ctrAs ctrBs names_lthy;
           val goal = Logic.list_implies (HOLogic.mk_Trueprop rel_Rs_a_b :: assms, thesis);
+          val vars = Variable.add_free_names lthy goal [];
           val thm =
-            Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+            Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
               mk_rel_cases_tac ctxt (Thm.cterm_of ctxt ta) (Thm.cterm_of ctxt tb) exhaust injects
                 rel_inject_thms distincts rel_distinct_thms live_nesting_rel_eqs)
-            |> singleton (Proof_Context.export names_lthy lthy)
             |> Thm.close_derivation;
 
           val ctr_names = quasi_unambiguous_case_names (map name_of_ctr ctrAs);
@@ -870,14 +877,14 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
 
       val case_transfer_thm =
         let
-          val (S, names_lthy) = yield_singleton (mk_Frees "S") (mk_pred2T C E) names_lthy;
+          val (S, _) = yield_singleton (mk_Frees "S") (mk_pred2T C E) names_lthy;
           val caseA = mk_case As C casex;
           val caseB = mk_case Bs E casex;
           val goal = mk_parametricity_goal names_lthy (S :: Rs) caseA caseB;
+          val vars = Variable.add_free_names lthy goal [];
         in
-          Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+          Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
             mk_case_transfer_tac ctxt rel_cases_thm case_thms)
-          |> singleton (Proof_Context.export names_lthy lthy)
           |> Thm.close_derivation
         end;
 
@@ -890,12 +897,16 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
           in
             if null goals then []
             else
-              Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-                (fn {context = ctxt, prems = _} =>
-                   mk_sel_transfer_tac ctxt n sel_defs case_transfer_thm)
-              |> Thm.close_derivation
-              |> Conjunction.elim_balanced (length goals)
-              |> Proof_Context.export names_lthy lthy
+              let
+                val goal = Logic.mk_conjunction_balanced goals;
+                val vars = Variable.add_free_names lthy goal [];
+              in
+                Goal.prove_sorry lthy vars [] goal
+                  (fn {context = ctxt, prems = _} =>
+                     mk_sel_transfer_tac ctxt n sel_defs case_transfer_thm)
+                |> Thm.close_derivation
+                |> Conjunction.elim_balanced (length goals)
+              end
           end;
 
       val disc_transfer_thms =
@@ -903,12 +914,16 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
           if null goals then
             []
           else
-            Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-              (fn {context = ctxt, prems = _} => mk_disc_transfer_tac ctxt (the_single rel_sel_thms)
-                 (the_single exhaust_discs) (flat (flat distinct_discsss)))
-            |> Thm.close_derivation
-            |> Conjunction.elim_balanced (length goals)
-            |> Proof_Context.export names_lthy lthy
+            let
+              val goal = Logic.mk_conjunction_balanced goals;
+              val vars = Variable.add_free_names lthy goal [];
+            in
+              Goal.prove_sorry lthy vars [] goal
+                (fn {context = ctxt, prems = _} => mk_disc_transfer_tac ctxt (the_single rel_sel_thms)
+                   (the_single exhaust_discs) (flat (flat distinct_discsss)))
+              |> Thm.close_derivation
+              |> Conjunction.elim_balanced (length goals)
+            end
         end;
 
       val map_disc_iff_thms =
@@ -927,12 +942,16 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
           if null goals then
             []
           else
-            Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-              (fn {context = ctxt, prems = _} =>
-                 mk_map_disc_iff_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss) map_thms)
-            |> Thm.close_derivation
-            |> Conjunction.elim_balanced (length goals)
-            |> Proof_Context.export names_lthy lthy
+            let
+              val goal = Logic.mk_conjunction_balanced goals;
+              val vars = Variable.add_free_names lthy goal [];
+            in
+              Goal.prove_sorry lthy vars [] goal
+                (fn {context = ctxt, prems = _} =>
+                   mk_map_disc_iff_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss) map_thms)
+              |> Thm.close_derivation
+              |> Conjunction.elim_balanced (length goals)
+            end
         end;
 
       val (map_sel_thmss, map_sel_thms) =
@@ -960,14 +979,18 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
         in
           `(fst o unflat goalss)
             (if null goals then []
-             else
-               Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-                 (fn {context = ctxt, prems = _} =>
-                    mk_map_sel_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss) map_thms
-                      (flat sel_thmss) live_nesting_map_id0s)
-               |> Thm.close_derivation
-               |> Conjunction.elim_balanced (length goals)
-               |> Proof_Context.export names_lthy lthy)
+            else
+              let
+                val goal = Logic.mk_conjunction_balanced goals;
+                val vars = Variable.add_free_names lthy goal [];
+              in
+                Goal.prove_sorry lthy vars [] goal
+                  (fn {context = ctxt, prems = _} =>
+                     mk_map_sel_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss) map_thms
+                       (flat sel_thmss) live_nesting_map_id0s)
+                |> Thm.close_derivation
+                |> Conjunction.elim_balanced (length goals)
+              end)
         end;
 
       val (set_sel_thmssss, set_sel_thms) =
@@ -1012,21 +1035,25 @@ fun derive_map_set_rel_thms plugins fp live As Bs abs_inverses ctr_defs' fp_nest
                 ([], ctxt)
             end;
 
-          val (goalssss, names_lthy) =
+          val (goalssss, _) =
             fold_map (fn set => @{fold_map 2} (fold_map o mk_goal set) discAs selAss)
               setAs names_lthy;
           val goals = flat (flat (flat goalssss));
         in
           `(fst o unflattt goalssss)
             (if null goals then []
-             else
-               Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
-                 (fn {context = ctxt, prems = _} =>
-                    mk_set_sel_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss)
-                      (flat sel_thmss) set0_thms)
-               |> Thm.close_derivation
-               |> Conjunction.elim_balanced (length goals)
-               |> Proof_Context.export names_lthy lthy)
+            else
+              let
+                val goal = Logic.mk_conjunction_balanced goals;
+                val vars = Variable.add_free_names lthy goal [];
+              in
+                Goal.prove_sorry lthy vars [] goal
+                  (fn {context = ctxt, prems = _} =>
+                     mk_set_sel_tac ctxt (Thm.cterm_of ctxt ta) exhaust (flat disc_thmss)
+                       (flat sel_thmss) set0_thms)
+                |> Thm.close_derivation
+                |> Conjunction.elim_balanced (length goals)
+              end)
         end;
 
       val code_attrs = if plugins code_plugin then [Code.add_default_eqn_attrib] else [];
@@ -1309,12 +1336,12 @@ fun derive_rel_induct_thms_for_types lthy fpA_Ts As Bs ctrAss ctrAs_Tsss exhaust
 
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
       (map2 (build_the_rel [] lthy (Rs @ IRs) []) fpA_Ts fpB_Ts) IRs));
+    val vars = Variable.add_free_names lthy goal [];
 
     val rel_induct0_thm =
-      Goal.prove_sorry lthy [] prems goal (fn {context = ctxt, prems} =>
+      Goal.prove_sorry lthy vars prems goal (fn {context = ctxt, prems} =>
         mk_rel_induct0_tac ctxt ctor_rel_induct prems (map (Thm.cterm_of ctxt) IRs) exhausts ctor_defss
           ctor_injects pre_rel_defs abs_inverses live_nesting_rel_eqs)
-      |> singleton (Proof_Context.export names_lthy lthy)
       |> Thm.close_derivation;
   in
     (postproc_co_induct lthy (length fpA_Ts) @{thm predicate2D} @{thm predicate2D_conj}
@@ -1407,16 +1434,17 @@ fun derive_induct_recs_thms_for_types plugins pre_bnfs rec_args_typess ctor_indu
         val goal =
           Library.foldr (Logic.list_implies o apfst (map mk_prem)) (raw_premss,
             HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 (curry (op $)) ps us)));
+        val vars = Variable.add_free_names lthy goal [];
 
         val kksss = map (map (map (fst o snd) o #2)) raw_premss;
 
         val ctor_induct' = ctor_induct OF (map2 mk_absumprodE fp_type_definitions mss);
 
         val thm =
-          Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+          Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
             mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct' fp_abs_inverses
               abs_inverses fp_nesting_set_maps pre_set_defss)
-          |> singleton (Proof_Context.export names_lthy lthy);
+          |> Thm.close_derivation;
       in
         `(conj_dests nn) thm
       end;
@@ -1515,7 +1543,7 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
     val B_ify_T = Term.typ_subst_atomic (As ~~ Bs);
     val fpB_Ts = map B_ify_T fpA_Ts;
 
-    val (Rs, IRs, fpAs, fpBs, names_lthy) =
+    val (Rs, IRs, fpAs, fpBs, _) =
       let
         val fp_names = map base_name_of_typ fpA_Ts;
         val ((((Rs, IRs), fpAs_names), fpBs_names), names_lthy) = lthy
@@ -1567,14 +1595,14 @@ fun derive_rel_coinduct_thm_for_types lthy fpA_Ts ns As Bs mss (ctr_sugars : ctr
 
     val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq
       IRs (map2 (build_the_rel [] lthy (Rs @ IRs) []) fpA_Ts fpB_Ts)));
+    val vars = Variable.add_free_names lthy goal [];
 
     val rel_coinduct0_thm =
-      Goal.prove_sorry lthy [] prems goal (fn {context = ctxt, prems} =>
+      Goal.prove_sorry lthy vars prems goal (fn {context = ctxt, prems} =>
         mk_rel_coinduct0_tac ctxt dtor_rel_coinduct (map (Thm.cterm_of ctxt) IRs) prems
           (map #exhaust ctr_sugars) (map (flat o #disc_thmss) ctr_sugars)
           (map (flat o #sel_thmss) ctr_sugars) ctor_defss dtor_ctors ctor_injects abs_injects
           rel_pre_defs abs_inverses live_nesting_rel_eqs)
-      |> singleton (Proof_Context.export names_lthy lthy)
       |> Thm.close_derivation;
   in
     (postproc_co_induct lthy (length fpA_Ts) @{thm predicate2D} @{thm predicate2D_conj}
@@ -1651,12 +1679,12 @@ fun derive_set_induct_thms_for_types lthy nn fpTs ctrss setss dtor_set_inducts e
           |>> apfst (apsnd (Library.foldr1 HOLogic.mk_conj))
           |>> apsnd flat;
 
+        val vars = fold (Variable.add_free_names lthy) (concl :: prems) [];
         val thm =
-          Goal.prove_sorry lthy [] prems (HOLogic.mk_Trueprop concl)
+          Goal.prove_sorry lthy vars prems (HOLogic.mk_Trueprop concl)
             (fn {context = ctxt, prems} =>
                mk_set_induct0_tac ctxt (map (Thm.cterm_of ctxt'') Ps) prems dtor_set_inducts exhausts
                  set_pre_defs ctor_defs dtor_ctors Abs_pre_inverses)
-          |> singleton (Proof_Context.export ctxt'' ctxt)
           |> Thm.close_derivation;
 
         val case_names_attr =
@@ -1694,7 +1722,7 @@ fun mk_coinduct_strong_thm coind rel_eqs rel_monos mk_vimage2p ctxt =
 fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, _), cqgsss), _))
     dtor_coinduct dtor_injects dtor_ctors dtor_corec_thms live_nesting_bnfs fpTs Cs Xs ctrXs_Tsss
     kss mss ns fp_abs_inverses abs_inverses mk_vimage2p ctr_defss (ctr_sugars : ctr_sugar list)
-    corecs corec_defs export_args lthy =
+    corecs corec_defs lthy =
   let
     fun mk_ctor_dtor_corec_thm dtor_inject dtor_ctor corec =
       iffD1 OF [dtor_inject, trans OF [corec, dtor_ctor RS sym]];
@@ -1719,7 +1747,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
     val discIss = map #discIs ctr_sugars;
     val sel_thmsss = map #sel_thmss ctr_sugars;
 
-    val (((rs, us'), vs'), names_lthy) =
+    val (((rs, us'), vs'), _) =
       lthy
       |> mk_Frees "R" (map (fn T => mk_pred2T T T) fpTs)
       ||>> Variable.variant_fixes fp_b_names
@@ -1775,12 +1803,12 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
             ctrXs_Tsss, concl);
 
         val goals = map mk_goal [rs, strong_rs];
+        val varss = map (fn goal => Variable.add_free_names lthy goal []) goals;
 
-        fun prove dtor_coinduct' goal =
-          Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+        fun prove dtor_coinduct' goal vars =
+          Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
             mk_coinduct_tac ctxt live_nesting_rel_eqs nn ns dtor_coinduct' pre_rel_defs
               fp_abs_inverses abs_inverses dtor_ctors exhausts ctr_defss disc_thmsss sel_thmsss)
-          |> singleton (Proof_Context.export names_lthy lthy)
           |> Thm.close_derivation;
 
         val rel_eqs = map rel_eq_of_bnf pre_bnfs;
@@ -1788,7 +1816,7 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
         val dtor_coinducts =
           [dtor_coinduct, mk_coinduct_strong_thm dtor_coinduct rel_eqs rel_monos mk_vimage2p lthy]
       in
-        map2 (postproc_co_induct lthy nn mp mp_conj oo prove) dtor_coinducts goals
+        @{map 3} (postproc_co_induct lthy nn mp mp_conj ooo prove) dtor_coinducts goals varss
       end;
 
     fun mk_maybe_not pos = not pos ? HOLogic.mk_not;
@@ -1855,9 +1883,8 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, (((pgss, _, _, 
         val tacss = @{map 3} (map oo mk_corec_disc_iff_tac) case_splitss' corec_thmss disc_thmsss;
 
         fun prove goal tac =
-          Goal.prove_sorry lthy [] [] goal (tac o #context)
-          |> singleton export_args
-          |> singleton (Proof_Context.export names_lthy lthy)
+          Variable.add_free_names lthy goal []
+          |> (fn vars => Goal.prove_sorry lthy vars [] goal (tac o #context))
           |> Thm.close_derivation;
 
         fun proves [_] [_] = []
@@ -1923,7 +1950,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val set_boss = map (map fst o type_args_named_constrained_of_spec) specs;
     val set_bss = map (map (the_default Binding.empty)) set_boss;
 
-    val ((((Bs0, Cs), Es), Xs), names_no_defs_lthy) =
+    val ((((Bs0, Cs), Es), Xs), _) =
       no_defs_lthy
       |> fold (Variable.declare_typ o resort_tfree_or_tvar dummyS) unsorted_As
       |> mk_TFrees num_As
@@ -2170,17 +2197,16 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
                     val goal =
                       fold_rev Logic.all [w, u]
                         (mk_Trueprop_eq (HOLogic.mk_eq (u, ctor $ w), HOLogic.mk_eq (dtor $ u, w)));
+                    val vars = Variable.add_free_names lthy goal [];
                   in
-                    Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+                    Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
                       mk_ctor_iff_dtor_tac ctxt (map (SOME o Thm.ctyp_of lthy) [ctr_absT, fpT])
                         (Thm.cterm_of lthy ctor) (Thm.cterm_of lthy dtor) ctor_dtor dtor_ctor)
-                    |> Morphism.thm phi
                     |> Thm.close_derivation
                   end;
 
                 val sumEN_thm' =
-                  unfold_thms lthy @{thms unit_all_eq1} (mk_absumprodE type_definition ms)
-                  |> Morphism.thm phi;
+                  unfold_thms lthy @{thms unit_all_eq1} (mk_absumprodE type_definition ms);
               in
                 mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor_thm sumEN_thm'
               end;
@@ -2261,14 +2287,17 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
       end;
 
     fun derive_rec_transfer_thms lthy recs rec_defs (SOME (_, _, _, xsssss)) =
-      let val (Rs, Ss, goals, names_lthy) = mk_co_rec_transfer_goals lthy recs in
-        Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+      let
+        val (Rs, Ss, goals, _) = mk_co_rec_transfer_goals lthy recs;
+        val goal = Logic.mk_conjunction_balanced goals;
+        val vars = Variable.add_free_names lthy goal [];
+      in
+        Goal.prove_sorry lthy vars [] goal
           (fn {context = ctxt, prems = _} =>
              mk_rec_transfer_tac ctxt nn ns (map (Thm.cterm_of ctxt) Ss) (map (Thm.cterm_of ctxt) Rs) xsssss
                rec_defs xtor_co_rec_transfers pre_rel_defs live_nesting_rel_eqs)
         |> Thm.close_derivation
         |> Conjunction.elim_balanced nn
-        |> Proof_Context.export names_lthy lthy
       end;
 
     fun derive_rec_o_map_thmss lthy recs rec_defs =
@@ -2410,17 +2439,18 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
 
     fun derive_corec_transfer_thms lthy corecs corec_defs =
       let
-        val (Rs, Ss, goals, names_lthy) = mk_co_rec_transfer_goals lthy corecs;
+        val (Rs, Ss, goals, _) = mk_co_rec_transfer_goals lthy corecs;
         val (_, _, _, (((pgss, pss, qssss, gssss), _), _)) = the corecs_args_types;
+        val goal = Logic.mk_conjunction_balanced goals;
+        val vars = Variable.add_free_names lthy goal [];
       in
-        Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+        Goal.prove_sorry lthy vars [] goal
           (fn {context = ctxt, prems = _} =>
              mk_corec_transfer_tac ctxt (map (Thm.cterm_of ctxt) Ss) (map (Thm.cterm_of ctxt) Rs)
                type_definitions corec_defs xtor_co_rec_transfers pre_rel_defs
                live_nesting_rel_eqs (flat pgss) pss qssss gssss)
         |> Thm.close_derivation
         |> Conjunction.elim_balanced (length goals)
-        |> Proof_Context.export names_lthy lthy
       end;
 
     fun derive_map_o_corec_thmss lthy0 lthy2 corecs corec_defs =
@@ -2495,8 +2525,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
              (corec_disc_iff_thmss, corec_disc_iff_attrs), (corec_sel_thmsss, corec_sel_attrs)) =
           derive_coinduct_corecs_thms_for_types pre_bnfs (the corecs_args_types) xtor_co_induct
             dtor_injects dtor_ctors xtor_co_rec_thms live_nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss
-            ns abs_inverses abs_inverses I ctr_defss ctr_sugars corecs corec_defs
-            (Proof_Context.export lthy' names_no_defs_lthy) lthy;
+            ns abs_inverses abs_inverses I ctr_defss ctr_sugars corecs corec_defs lthy;
 
         fun distinct_prems ctxt thm =
           Goal.prove (*no sorry*) ctxt [] []

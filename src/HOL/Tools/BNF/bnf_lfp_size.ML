@@ -269,15 +269,15 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         if exists rhs_is_zero size_thms then []
         else
           let
-            val (xs, names_lthy2) = mk_Frees "x" (binder_types (fastype_of size)) lthy2;
+            val (xs, _) = mk_Frees "x" (binder_types (fastype_of size)) lthy2;
             val goal =
               HOLogic.mk_Trueprop (BNF_LFP_Util.mk_not_eq (list_comb (size, xs)) HOLogic.zero);
+            val vars = Variable.add_free_names lthy2 goal [];
             val thm =
-              Goal.prove_sorry lthy2 [] [] goal (fn {context = ctxt, ...} =>
+              Goal.prove_sorry lthy2 vars [] goal (fn {context = ctxt, ...} =>
                 mk_size_neq ctxt (map (Thm.cterm_of lthy2) xs)
                 (#exhaust (#ctr_sugar (#fp_ctr_sugar fp_sugar))) size_thms)
               |> single
-              |> Proof_Context.export names_lthy2 lthy2
               |> map Thm.close_derivation;
           in thm end) fp_sugars overloaded_size_consts overloaded_size_simpss
 

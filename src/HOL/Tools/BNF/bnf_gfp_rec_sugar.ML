@@ -1107,7 +1107,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
         (ctr, map (K []) sels))) basic_ctr_specss);
 
     val (corec_specs0, _, coinduct_thm, coinduct_strong_thm, coinduct_thms, coinduct_strong_thms,
-         (coinduct_attrs, common_coinduct_attrs), n2m, lthy') =
+         (coinduct_attrs, common_coinduct_attrs), n2m, lthy) =
       corec_specs_of bs arg_Ts res_Ts frees callssss lthy;
     val corec_specs = take actual_nn corec_specs0;
     val ctr_specss = map #ctr_specs corec_specs;
@@ -1144,7 +1144,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val disc_eqnss = @{map 6} mk_actual_disc_eqns bs arg_Tss exhaustives corec_specs sel_eqnss
       disc_eqnss0;
     val (defs, excludess') =
-      build_defs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
+      build_defs lthy bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
     val tac_opts =
       map (fn {code_rhs_opt, ...} :: _ =>
@@ -1558,7 +1558,7 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
 
     fun after_qed thmss' = fold_map Local_Theory.define defs #-> prove thmss';
   in
-    (goalss, after_qed, lthy')
+    (goalss, after_qed, lthy)
   end;
 
 fun primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =

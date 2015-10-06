@@ -159,7 +159,7 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
     val unsortAT = Term.typ_subst_atomic (As ~~ unsorted_As);
     val unsorted_fpTs = map unsortAT fpTs;
 
-    val ((Cs, Xs), names_lthy) =
+    val ((Cs, Xs), _) =
       no_defs_lthy
       |> fold Variable.declare_typ As
       |> mk_TFrees nn
@@ -281,15 +281,15 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
             derive_coinduct_corecs_thms_for_types pre_bnfs (the corecs_args_types)
               xtor_co_induct dtor_injects dtor_ctors xtor_co_rec_thms live_nesting_bnfs fpTs Cs Xs
               ctrXs_Tsss kss mss ns fp_abs_inverses abs_inverses
-              (fn thm => thm RS @{thm vimage2p_refl}) ctr_defss ctr_sugars co_recs co_rec_defs
-              (Proof_Context.export lthy no_defs_lthy) lthy
+              (fn thm => thm RS @{thm vimage2p_refl}) ctr_defss ctr_sugars co_recs co_rec_defs lthy
             |> `(fn ((coinduct_thms_pairs, _), corec_thmss, corec_disc_thmss, _,
                      (corec_sel_thmsss, _)) =>
               (map snd coinduct_thms_pairs, map fst coinduct_thms_pairs, corec_thmss,
                corec_disc_thmss, corec_sel_thmsss))
             ||> (fn info => (NONE, SOME info));
 
-        val phi = Proof_Context.export_morphism names_lthy no_defs_lthy;
+        val names_lthy = lthy |> fold Variable.declare_typ (As @ Cs @ Xs);
+        val phi = Proof_Context.export_morphism names_lthy lthy;
 
         fun mk_target_fp_sugar T X kk pre_bnf absT_info ctrXs_Tss ctr_defs ctr_sugar co_rec
             co_rec_def map_thms co_inducts co_rec_thms co_rec_disc_thms co_rec_sel_thmss

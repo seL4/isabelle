@@ -673,7 +673,7 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     fun after_qed ([exhaust_thm] :: thmss) lthy =
       let
-        val ((((((((xss, xss'), fs), gs), h), (u, u')), v), p), names_lthy) =
+        val ((((((((xss, xss'), fs), gs), h), (u, u')), v), p), _) =
           lthy
           |> mk_Freess' "x" ctr_Tss
           ||>> mk_Frees "f" case_Ts
@@ -754,12 +754,14 @@ fun prepare_free_constructors kind prep_plugins prep_term
               Logic.list_implies (uv_eq :: @{map 4} mk_prem xctrs xss xfs xgs,
                  mk_Trueprop_eq (eta_ufcase, eta_vgcase));
             val weak_goal = Logic.mk_implies (uv_eq, mk_Trueprop_eq (ufcase, vfcase));
+            val vars = Variable.add_free_names lthy goal [];
+            val weak_vars = Variable.add_free_names lthy weak_goal [];
           in
-            (Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+            (Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
                mk_case_cong_tac ctxt uexhaust_thm case_thms),
-             Goal.prove_sorry lthy [] [] weak_goal (fn {context = ctxt, prems = _} =>
+             Goal.prove_sorry lthy weak_vars [] weak_goal (fn {context = ctxt, prems = _} =>
                etac ctxt arg_cong 1))
-            |> apply2 (Thm.close_derivation #> singleton (Proof_Context.export names_lthy lthy))
+            |> apply2 (Thm.close_derivation)
           end;
 
         val split_lhs = q $ ufcase;
@@ -778,15 +780,15 @@ fun prepare_free_constructors kind prep_plugins prep_term
             (@{map 3} mk_split_disjunct xctrs xss xfs)));
 
         fun prove_split selss goal =
-          Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
-            mk_split_tac ctxt ms uexhaust_thm case_thms selss inject_thmss distinct_thmsss)
-          |> singleton (Proof_Context.export names_lthy lthy)
+          Variable.add_free_names lthy goal []
+          |> (fn vars => Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
+            mk_split_tac ctxt ms uexhaust_thm case_thms selss inject_thmss distinct_thmsss))
           |> Thm.close_derivation;
 
         fun prove_split_asm asm_goal split_thm =
-          Goal.prove_sorry lthy [] [] asm_goal (fn {context = ctxt, ...} =>
-            mk_split_asm_tac ctxt split_thm)
-          |> singleton (Proof_Context.export names_lthy lthy)
+          Variable.add_free_names lthy asm_goal []
+          |> (fn vars => Goal.prove_sorry lthy vars [] asm_goal (fn {context = ctxt, ...} =>
+            mk_split_asm_tac ctxt split_thm))
           |> Thm.close_derivation;
 
         val (split_thm, split_asm_thm) =
@@ -842,10 +844,10 @@ fun prepare_free_constructors kind prep_plugins prep_term
                 let
                   val m = the_single ms;
                   val goal = mk_Trueprop_eq (mk_uu_eq (), the_single exist_xs_u_eq_ctrs);
+                  val vars = Variable.add_free_names lthy goal [];
                 in
-                  Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+                  Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
                     mk_unique_disc_def_tac ctxt m uexhaust_thm)
-                  |> singleton (Proof_Context.export names_lthy lthy)
                   |> Thm.close_derivation
                 end;
 
@@ -854,11 +856,11 @@ fun prepare_free_constructors kind prep_plugins prep_term
                   val goal =
                     mk_Trueprop_eq (alternate_disc_lhs (K (nth udiscs)) (3 - k),
                       nth exist_xs_u_eq_ctrs (k - 1));
+                  val vars = Variable.add_free_names lthy goal [];
                 in
-                  Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+                  Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
                     mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k))
                       (nth distinct_thms (2 - k)) uexhaust_thm)
-                  |> singleton (Proof_Context.export names_lthy lthy)
                   |> Thm.close_derivation
                 end;
 
@@ -991,12 +993,12 @@ fun prepare_free_constructors kind prep_plugins prep_term
                       (@{map 5} mk_prems ks udiscs uselss vdiscs vselss, uv_eq);
                   val uncollapse_thms =
                     map2 (fn thm => fn [] => thm | _ => thm RS sym) all_collapse_thms uselss;
+                  val vars = Variable.add_free_names lthy goal [];
                 in
-                  Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, prems = _} =>
+                  Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, prems = _} =>
                     mk_expand_tac ctxt n ms (inst_thm u exhaust_disc_thm)
                       (inst_thm v exhaust_disc_thm) uncollapse_thms distinct_disc_thmsss
                       distinct_disc_thmsss')
-                  |> singleton (Proof_Context.export names_lthy lthy)
                   |> Thm.close_derivation
                 end;
 
@@ -1015,10 +1017,10 @@ fun prepare_free_constructors kind prep_plugins prep_term
               val case_eq_if_thm =
                 let
                   val goal = mk_Trueprop_eq (ufcase, mk_IfN B udiscs usel_fs);
+                  val vars = Variable.add_free_names lthy goal [];
                 in
-                  Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+                  Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
                     mk_case_eq_if_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)
-                  |> singleton (Proof_Context.export names_lthy lthy)
                   |> Thm.close_derivation
                 end;
 
@@ -1029,13 +1031,14 @@ fun prepare_free_constructors kind prep_plugins prep_term
                     fold_rev Term.absdummy argTs (const_of_bool (n = k))) ctr_Tss;
                   val goals = map_index (fn (n, udisc) =>
                     mk_Trueprop_eq (udisc, list_comb (casexBool, mk_case_args n) $ u)) udiscs;
+                  val goal = Logic.mk_conjunction_balanced goals;
+                  val vars = Variable.add_free_names lthy goal [];
                 in
-                  Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced goals)
+                  Goal.prove_sorry lthy vars [] goal
                     (fn {context = ctxt, ...} => mk_disc_eq_case_tac ctxt (Thm.cterm_of ctxt u)
                        exhaust_thm (flat nontriv_disc_thmss) distinct_thms case_thms)
                   |> Thm.close_derivation
                   |> Conjunction.elim_balanced (length goals)
-                  |> Proof_Context.export names_lthy lthy
                 end;
             in
               (sel_defs, all_sel_thms, sel_thmss, disc_defs, disc_thmss, nontriv_disc_thmss,
@@ -1052,10 +1055,10 @@ fun prepare_free_constructors kind prep_plugins prep_term
                 fold_rev Term.lambda args (h $ list_comb (f, args))
               end) fs ctr_Tss;
             val goal = mk_Trueprop_eq (h $ ufcase, list_comb (casexC, args) $ u);
+            val vars = Variable.add_free_names lthy goal [];
           in
-            Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+            Goal.prove_sorry lthy vars [] goal (fn {context = ctxt, ...} =>
               mk_case_distrib_tac ctxt (Thm.cterm_of ctxt u) exhaust_thm case_thms)
-            |> singleton (Proof_Context.export names_lthy lthy)
             |> Thm.close_derivation
           end;
 
