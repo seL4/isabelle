@@ -3,13 +3,13 @@
     Author:     Marc Bezem, Institutt for Informatikk, Universitetet i Bergen 
 *)
 
-section {* Coherent Logic Problems *}
+section \<open>Coherent Logic Problems\<close>
 
 theory Coherent
 imports Main
 begin
 
-subsection {* Equivalence of two versions of Pappus' Axiom *}
+subsection \<open>Equivalence of two versions of Pappus' Axiom\<close>
 
 no_notation
   comp (infixl "o" 55) and
@@ -79,7 +79,7 @@ lemma p2p1:
   by coherent
 
 
-subsection {* Preservation of the Diamond Property under reflexive closure *}
+subsection \<open>Preservation of the Diamond Property under reflexive closure\<close>
 
 lemma diamond:
   assumes

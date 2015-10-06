@@ -8,23 +8,23 @@ Hence we do them here in HOL, not in the main test suite for locales,
 which is FOL/ex/LocaleTest.thy
 *)
 
-section {* Test of Locale Interpretation *}
+section \<open>Test of Locale Interpretation\<close>
 
 theory LocaleTest2
 imports Main GCD
 begin
 
-section {* Interpretation of Defined Concepts *}
+section \<open>Interpretation of Defined Concepts\<close>
 
-text {* Naming convention for global objects: prefixes D and d *}
-
-
-subsection {* Lattices *}
-
-text {* Much of the lattice proofs are from HOL/Lattice. *}
+text \<open>Naming convention for global objects: prefixes D and d\<close>
 
 
-subsubsection {* Definitions *}
+subsection \<open>Lattices\<close>
+
+text \<open>Much of the lattice proofs are from HOL/Lattice.\<close>
+
+
+subsubsection \<open>Definitions\<close>
 
 locale dpo =
   fixes le :: "['a, 'a] => bool" (infixl "\<sqsubseteq>" 50)
@@ -116,7 +116,7 @@ lemma meet_equality [elim?]: "is_inf x y i \<Longrightarrow> x \<sqinter> y = i"
 proof (unfold meet_def)
   assume "is_inf x y i"
   then show "(THE i. is_inf x y i) = i"
-    by (rule the_equality) (rule is_inf_uniq [OF _ `is_inf x y i`])
+    by (rule the_equality) (rule is_inf_uniq [OF _ \<open>is_inf x y i\<close>])
 qed
 
 lemma meetI [intro?]:
@@ -127,7 +127,7 @@ lemma is_inf_meet [intro?]: "is_inf x y (x \<sqinter> y)"
 proof (unfold meet_def)
   from ex_inf obtain i where "is_inf x y i" ..
   then show "is_inf x y (THE i. is_inf x y i)"
-    by (rule theI) (rule is_inf_uniq [OF _ `is_inf x y i`])
+    by (rule theI) (rule is_inf_uniq [OF _ \<open>is_inf x y i\<close>])
 qed
 
 lemma meet_left [intro?]:
@@ -189,7 +189,7 @@ lemma join_equality [elim?]: "is_sup x y s \<Longrightarrow> x \<squnion> y = s"
 proof (unfold join_def)
   assume "is_sup x y s"
   then show "(THE s. is_sup x y s) = s"
-    by (rule the_equality) (rule is_sup_uniq [OF _ `is_sup x y s`])
+    by (rule the_equality) (rule is_sup_uniq [OF _ \<open>is_sup x y s\<close>])
 qed
 
 lemma joinI [intro?]: "x \<sqsubseteq> s \<Longrightarrow> y \<sqsubseteq> s \<Longrightarrow>
@@ -200,7 +200,7 @@ lemma is_sup_join [intro?]: "is_sup x y (x \<squnion> y)"
 proof (unfold join_def)
   from ex_sup obtain s where "is_sup x y s" ..
   then show "is_sup x y (THE s. is_sup x y s)"
-    by (rule theI) (rule is_sup_uniq [OF _ `is_sup x y s`])
+    by (rule theI) (rule is_sup_uniq [OF _ \<open>is_sup x y s\<close>])
 qed
 
 lemma join_left [intro?]:
@@ -359,7 +359,7 @@ theorem join_related2 [elim?]: "y \<sqsubseteq> x \<Longrightarrow> x \<squnion>
   by (drule join_related) (simp add: join_commute)
 
 
-text {* Additional theorems *}
+text \<open>Additional theorems\<close>
 
 theorem meet_connection: "(x \<sqsubseteq> y) = (x \<sqinter> y = x)"
 proof
@@ -390,7 +390,7 @@ theorem join_connection2: "(x \<sqsubseteq> y) = (x \<squnion> y = y)"
   using join_commute join_connection by simp
 
 
-text {* Naming according to Jacobson I, p.\ 459. *}
+text \<open>Naming according to Jacobson I, p.\ 459.\<close>
 
 lemmas L1 = join_commute meet_commute
 lemmas L2 = join_assoc meet_assoc
@@ -408,7 +408,7 @@ begin
 
 lemma join_distr:
   "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
-  txt {* Jacobson I, p.\ 462 *}
+  txt \<open>Jacobson I, p.\ 462\<close>
 proof -
   have "x \<squnion> (y \<sqinter> z) = (x \<squnion> (x \<sqinter> z)) \<squnion> (y \<sqinter> z)" by (simp add: L4)
   also have "... = x \<squnion> ((x \<sqinter> z) \<squnion> (y \<sqinter> z))" by (simp add: L2)
@@ -447,7 +447,7 @@ sublocale dlo < ddlat
 proof
   fix x y z
   show "x \<sqinter> (y \<squnion> z) = x \<sqinter> y \<squnion> x \<sqinter> z" (is "?l = ?r")
-    txt {* Jacobson I, p.\ 462 *}
+    txt \<open>Jacobson I, p.\ 462\<close>
   proof -
     { assume c: "y \<sqsubseteq> x" "z \<sqsubseteq> x"
       from c have "?l = y \<squnion> z"
@@ -466,16 +466,16 @@ proof
   qed
 qed
 
-subsubsection {* Total order @{text "<="} on @{typ int} *}
+subsubsection \<open>Total order @{text "<="} on @{typ int}\<close>
 
 interpretation int: dpo "op <= :: [int, int] => bool"
   where "(dpo.less (op <=) (x::int) y) = (x < y)"
-  txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
+  txt \<open>We give interpretation for less, but not @{text is_inf} and @{text is_sub}.\<close>
 proof -
   show "dpo (op <= :: [int, int] => bool)"
     proof qed auto
   then interpret int: dpo "op <= :: [int, int] => bool" .
-    txt {* Gives interpreted version of @{text less_def} (without condition). *}
+    txt \<open>Gives interpreted version of @{text less_def} (without condition).\<close>
   show "(dpo.less (op <=) (x::int) y) = (x < y)"
     by (unfold int.less_def) auto
 qed
@@ -497,8 +497,8 @@ proof -
     apply arith+
     done
   then interpret int: dlat "op <= :: [int, int] => bool" .
-  txt {* Interpretation to ease use of definitions, which are
-    conditional in general but unconditional after interpretation. *}
+  txt \<open>Interpretation to ease use of definitions, which are
+    conditional in general but unconditional after interpretation.\<close>
   show "dlat.meet (op <=) (x::int) y = min x y"
     apply (unfold int.meet_def)
     apply (rule the_equality)
@@ -514,24 +514,24 @@ qed
 interpretation int: dlo "op <= :: [int, int] => bool"
   proof qed arith
 
-text {* Interpreted theorems from the locales, involving defined terms. *}
+text \<open>Interpreted theorems from the locales, involving defined terms.\<close>
 
-thm int.less_def text {* from dpo *}
-thm int.meet_left text {* from dlat *}
-thm int.meet_distr text {* from ddlat *}
-thm int.less_total text {* from dlo *}
+thm int.less_def text \<open>from dpo\<close>
+thm int.meet_left text \<open>from dlat\<close>
+thm int.meet_distr text \<open>from ddlat\<close>
+thm int.less_total text \<open>from dlo\<close>
 
 
-subsubsection {* Total order @{text "<="} on @{typ nat} *}
+subsubsection \<open>Total order @{text "<="} on @{typ nat}\<close>
 
 interpretation nat: dpo "op <= :: [nat, nat] => bool"
   where "dpo.less (op <=) (x::nat) y = (x < y)"
-  txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
+  txt \<open>We give interpretation for less, but not @{text is_inf} and @{text is_sub}.\<close>
 proof -
   show "dpo (op <= :: [nat, nat] => bool)"
     proof qed auto
   then interpret nat: dpo "op <= :: [nat, nat] => bool" .
-    txt {* Gives interpreted version of @{text less_def} (without condition). *}
+    txt \<open>Gives interpreted version of @{text less_def} (without condition).\<close>
   show "dpo.less (op <=) (x::nat) y = (x < y)"
     apply (unfold nat.less_def)
     apply auto
@@ -548,8 +548,8 @@ proof -
     apply arith+
     done
   then interpret nat: dlat "op <= :: [nat, nat] => bool" .
-  txt {* Interpretation to ease use of definitions, which are
-    conditional in general but unconditional after interpretation. *}
+  txt \<open>Interpretation to ease use of definitions, which are
+    conditional in general but unconditional after interpretation.\<close>
   show "dlat.meet (op <=) (x::nat) y = min x y"
     apply (unfold nat.meet_def)
     apply (rule the_equality)
@@ -565,24 +565,24 @@ qed
 interpretation nat: dlo "op <= :: [nat, nat] => bool"
   proof qed arith
 
-text {* Interpreted theorems from the locales, involving defined terms. *}
+text \<open>Interpreted theorems from the locales, involving defined terms.\<close>
 
-thm nat.less_def text {* from dpo *}
-thm nat.meet_left text {* from dlat *}
-thm nat.meet_distr text {* from ddlat *}
-thm nat.less_total text {* from ldo *}
+thm nat.less_def text \<open>from dpo\<close>
+thm nat.meet_left text \<open>from dlat\<close>
+thm nat.meet_distr text \<open>from ddlat\<close>
+thm nat.less_total text \<open>from ldo\<close>
 
 
-subsubsection {* Lattice @{text "dvd"} on @{typ nat} *}
+subsubsection \<open>Lattice @{text "dvd"} on @{typ nat}\<close>
 
 interpretation nat_dvd: dpo "op dvd :: [nat, nat] => bool"
   where "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
-  txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
+  txt \<open>We give interpretation for less, but not @{text is_inf} and @{text is_sub}.\<close>
 proof -
   show "dpo (op dvd :: [nat, nat] => bool)"
     proof qed (auto simp: dvd_def)
   then interpret nat_dvd: dpo "op dvd :: [nat, nat] => bool" .
-    txt {* Gives interpreted version of @{text less_def} (without condition). *}
+    txt \<open>Gives interpreted version of @{text less_def} (without condition).\<close>
   show "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
     apply (unfold nat_dvd.less_def)
     apply auto
@@ -602,8 +602,8 @@ proof -
     apply (auto intro: lcm_dvd1_nat lcm_dvd2_nat lcm_least_nat)
     done
   then interpret nat_dvd: dlat "op dvd :: [nat, nat] => bool" .
-  txt {* Interpretation to ease use of definitions, which are
-    conditional in general but unconditional after interpretation. *}
+  txt \<open>Interpretation to ease use of definitions, which are
+    conditional in general but unconditional after interpretation.\<close>
   show "dlat.meet (op dvd) (x::nat) y = gcd x y"
     apply (unfold nat_dvd.meet_def)
     apply (rule the_equality)
@@ -616,19 +616,19 @@ proof -
     by (auto intro: lcm_dvd1_nat lcm_dvd2_nat lcm_least_nat)
 qed
 
-text {* Interpreted theorems from the locales, involving defined terms. *}
+text \<open>Interpreted theorems from the locales, involving defined terms.\<close>
 
-thm nat_dvd.less_def text {* from dpo *}
+thm nat_dvd.less_def text \<open>from dpo\<close>
 lemma "((x::nat) dvd y & x ~= y) = (x dvd y & x ~= y)"
   apply (rule nat_dvd.less_def) done
-thm nat_dvd.meet_left text {* from dlat *}
+thm nat_dvd.meet_left text \<open>from dlat\<close>
 lemma "gcd x y dvd (x::nat)"
   apply (rule nat_dvd.meet_left) done
 
 
-subsection {* Group example with defined operations @{text inv} and @{text unit} *}
+subsection \<open>Group example with defined operations @{text inv} and @{text unit}\<close>
 
-subsubsection {* Locale declarations and lemmas *}
+subsubsection \<open>Locale declarations and lemmas\<close>
 
 locale Dsemi =
   fixes prod (infixl "**" 65)
@@ -832,7 +832,7 @@ qed
 end
 
 
-subsubsection {* Interpretation of Functions *}
+subsubsection \<open>Interpretation of Functions\<close>
 
 interpretation Dfun: Dmonoid "op o" "id :: 'a => 'a"
   where "Dmonoid.unit (op o) id f = bij (f::'a => 'a)"

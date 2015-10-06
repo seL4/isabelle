@@ -8,7 +8,7 @@ theory Pythagoras
 imports Complex_Main
 begin
 
-text {* Expressed in real numbers: *}
+text \<open>Expressed in real numbers:\<close>
 
 lemma pythagoras_verbose:
   "((A1::real) - B1) * (C1 - B1) + (A2 - B2) * (C2 - B2) = 0 \<Longrightarrow> 
@@ -17,7 +17,7 @@ lemma pythagoras_verbose:
   by algebra
 
 
-text {* Expressed in vectors: *}
+text \<open>Expressed in vectors:\<close>
 
 type_synonym point = "real \<times> real"
 

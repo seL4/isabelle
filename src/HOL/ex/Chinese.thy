@@ -4,17 +4,17 @@ Example theory involving Unicode characters (UTF-8 encoding) -- both
 formal and informal ones.
 *)
 
-section {* A Chinese theory *}
+section \<open>A Chinese theory\<close>
 
 theory Chinese imports Main begin
 
-text{* 数学家能把咖啡变成理论,如今中国的数学家也可
+text\<open>数学家能把咖啡变成理论,如今中国的数学家也可
        以在伊莎贝拉的帮助下把茶变成理论.  
 
        伊莎贝拉-世界数学家的新宠,现今能识别中文,成为
        中国数学家理论推导的得力助手.
 
-    *}
+\<close>
 
 datatype shuzi =
     One   ("一")

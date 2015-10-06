@@ -3,18 +3,18 @@
     Copyright   2001  University of Cambridge
 *)
 
-section {* Square roots of primes are irrational (script version) *}
+section \<open>Square roots of primes are irrational (script version)\<close>
 
 theory Sqrt_Script
 imports Complex_Main "~~/src/HOL/Number_Theory/Primes"
 begin
 
-text {*
+text \<open>
   \medskip Contrast this linear Isabelle/Isar script with Markus
   Wenzel's more mathematical version.
-*}
+\<close>
 
-subsection {* Preliminaries *}
+subsection \<open>Preliminaries\<close>
 
 lemma prime_nonzero:  "prime (p::nat) \<Longrightarrow> p \<noteq> 0"
   by (force simp add: prime_nat_def)
@@ -49,12 +49,12 @@ lemma prime_not_square:
   done
 
 
-subsection {* Main theorem *}
+subsection \<open>Main theorem\<close>
 
-text {*
+text \<open>
   The square root of any prime number (including @{text 2}) is
   irrational.
-*}
+\<close>
 
 theorem prime_sqrt_irrational:
     "prime (p::nat) \<Longrightarrow> x * x = real p \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<notin> \<rat>"

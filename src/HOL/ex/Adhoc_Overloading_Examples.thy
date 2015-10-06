@@ -2,7 +2,7 @@
     Author:     Christian Sternagel
 *)
 
-section {* Ad Hoc Overloading *}
+section \<open>Ad Hoc Overloading\<close>
 
 theory Adhoc_Overloading_Examples
 imports
@@ -11,30 +11,30 @@ imports
   "~~/src/HOL/Library/Infinite_Set"
 begin
 
-text {*Adhoc overloading allows to overload a constant depending on
+text \<open>Adhoc overloading allows to overload a constant depending on
 its type. Typically this involves to introduce an uninterpreted
 constant (used for input and output) and then add some variants (used
-internally).*}
+internally).\<close>
 
-subsection {* Plain Ad Hoc Overloading *}
+subsection \<open>Plain Ad Hoc Overloading\<close>
 
-text {*Consider the type of first-order terms.*}
+text \<open>Consider the type of first-order terms.\<close>
 datatype ('a, 'b) "term" =
   Var 'b |
   Fun 'a "('a, 'b) term list"
 
-text {*The set of variables of a term might be computed as follows.*}
+text \<open>The set of variables of a term might be computed as follows.\<close>
 fun term_vars :: "('a, 'b) term \<Rightarrow> 'b set" where
   "term_vars (Var x) = {x}" |
   "term_vars (Fun f ts) = \<Union>set (map term_vars ts)"
 
-text {*However, also for \emph{rules} (i.e., pairs of terms) and term
+text \<open>However, also for \emph{rules} (i.e., pairs of terms) and term
 rewrite systems (i.e., sets of rules), the set of variables makes
-sense. Thus we introduce an unspecified constant @{text vars}.*}
+sense. Thus we introduce an unspecified constant @{text vars}.\<close>
 
 consts vars :: "'a \<Rightarrow> 'b set"
 
-text {*Which is then overloaded with variants for terms, rules, and TRSs.*}
+text \<open>Which is then overloaded with variants for terms, rules, and TRSs.\<close>
 adhoc_overloading
   vars term_vars
 
@@ -56,20 +56,20 @@ adhoc_overloading
 
 value "vars {(Var 1, Var 0)}"
 
-text {*Sometimes it is necessary to add explicit type constraints
-before a variant can be determined.*}
+text \<open>Sometimes it is necessary to add explicit type constraints
+before a variant can be determined.\<close>
 (*value "vars R" (*has multiple instances*)*)
 value "vars (R :: (('a, 'b) term \<times> ('a, 'b) term) set)"
 
-text {*It is also possible to remove variants.*}
+text \<open>It is also possible to remove variants.\<close>
 no_adhoc_overloading
   vars term_vars rule_vars 
 
 (*value "vars (Var 1)" (*does not have an instance*)*)
 
-text {*As stated earlier, the overloaded constant is only used for
+text \<open>As stated earlier, the overloaded constant is only used for
 input and output. Internally, always a variant is used, as can be
-observed by the configuration option @{text show_variants}.*}
+observed by the configuration option @{text show_variants}.\<close>
 
 adhoc_overloading
   vars term_vars
@@ -79,10 +79,10 @@ declare [[show_variants]]
 term "vars (Var 1)" (*which yields: "term_vars (Var 1)"*)
 
 
-subsection {* Adhoc Overloading inside Locales *}
+subsection \<open>Adhoc Overloading inside Locales\<close>
 
-text {*As example we use permutations that are parametrized over an
-atom type @{typ "'a"}.*}
+text \<open>As example we use permutations that are parametrized over an
+atom type @{typ "'a"}.\<close>
 
 definition perms :: "('a \<Rightarrow> 'a) set" where
   "perms = {f. bij f \<and> finite {x. f x \<noteq> x}}"
@@ -90,7 +90,7 @@ definition perms :: "('a \<Rightarrow> 'a) set" where
 typedef 'a perm = "perms :: ('a \<Rightarrow> 'a) set"
   by standard (auto simp: perms_def)
 
-text {*First we need some auxiliary lemmas.*}
+text \<open>First we need some auxiliary lemmas.\<close>
 lemma permsI [Pure.intro]:
   assumes "bij f" and "MOST x. f x = x"
   shows "f \<in> perms"
@@ -170,16 +170,16 @@ lemmas Rep_perm_simps =
   Rep_perm_uminus
 
 
-section {* Permutation Types *}
+section \<open>Permutation Types\<close>
 
-text {*We want to be able to apply permutations to arbitrary types. To
+text \<open>We want to be able to apply permutations to arbitrary types. To
 this end we introduce a constant @{text PERMUTE} together with
-convenient infix syntax.*}
+convenient infix syntax.\<close>
 
 consts PERMUTE :: "'a perm \<Rightarrow> 'b \<Rightarrow> 'b" (infixr "\<bullet>" 75)
 
-text {*Then we add a locale for types @{typ 'b} that support
-appliciation of permutations.*}
+text \<open>Then we add a locale for types @{typ 'b} that support
+appliciation of permutations.\<close>
 locale permute =
   fixes permute :: "'a perm \<Rightarrow> 'b \<Rightarrow> 'b"
   assumes permute_zero [simp]: "permute 0 x = x"
@@ -191,7 +191,7 @@ adhoc_overloading
 
 end
 
-text {*Permuting atoms.*}
+text \<open>Permuting atoms.\<close>
 definition permute_atom :: "'a perm \<Rightarrow> 'a \<Rightarrow> 'a" where
   "permute_atom p a = (Rep_perm p) a"
 
@@ -201,7 +201,7 @@ adhoc_overloading
 interpretation atom_permute: permute permute_atom
   by standard (simp_all add: permute_atom_def Rep_perm_simps)
 
-text {*Permuting permutations.*}
+text \<open>Permuting permutations.\<close>
 definition permute_perm :: "'a perm \<Rightarrow> 'a perm \<Rightarrow> 'a perm" where
   "permute_perm p q = p + q - p"
 
@@ -215,7 +215,7 @@ interpretation perm_permute: permute permute_perm
   apply (simp only: diff_conv_add_uminus minus_add add.assoc)
   done
 
-text {*Permuting functions.*}
+text \<open>Permuting functions.\<close>
 locale fun_permute =
   dom: permute perm1 + ran: permute perm2
   for perm1 :: "'a perm \<Rightarrow> 'b \<Rightarrow> 'b"

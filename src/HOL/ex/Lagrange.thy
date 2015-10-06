@@ -3,24 +3,24 @@
     Copyright   1996 TU Muenchen
 *)
 
-section {* A lemma for Lagrange's theorem *}
+section \<open>A lemma for Lagrange's theorem\<close>
 
 theory Lagrange imports Main begin
 
-text {* This theory only contains a single theorem, which is a lemma
+text \<open>This theory only contains a single theorem, which is a lemma
 in Lagrange's proof that every natural number is the sum of 4 squares.
 Its sole purpose is to demonstrate ordered rewriting for commutative
 rings.
 
 The enterprising reader might consider proving all of Lagrange's
-theorem.  *}
+theorem.\<close>
 
 definition sq :: "'a::times => 'a" where "sq x == x*x"
 
-text {* The following lemma essentially shows that every natural
+text \<open>The following lemma essentially shows that every natural
 number is the sum of four squares, provided all prime numbers are.
 However, this is an abstract theorem about commutative rings.  It has,
-a priori, nothing to do with nat. *}
+a priori, nothing to do with nat.\<close>
 
 lemma Lagrange_lemma: fixes x1 :: "'a::comm_ring" shows
   "(sq x1 + sq x2 + sq x3 + sq x4) * (sq y1 + sq y2 + sq y3 + sq y4) =
@@ -31,7 +31,7 @@ lemma Lagrange_lemma: fixes x1 :: "'a::comm_ring" shows
 by (simp only: sq_def algebra_simps)
 
 
-text {* A challenge by John Harrison. Takes about 12s on a 1.6GHz machine. *}
+text \<open>A challenge by John Harrison. Takes about 12s on a 1.6GHz machine.\<close>
 
 lemma fixes p1 :: "'a::comm_ring" shows
   "(sq p1 + sq q1 + sq r1 + sq s1 + sq t1 + sq u1 + sq v1 + sq w1) * 

@@ -3,7 +3,7 @@
     Copyright   2002 TU Muenchen
 *)
 
-section{*Merge Sort*}
+section\<open>Merge Sort\<close>
 
 theory MergeSort
 imports "~~/src/HOL/Library/Multiset"

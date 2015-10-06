@@ -3,7 +3,7 @@
     Copyright   2012 TU Muenchen
 *)
 
-section {* Examples for the set comprehension to pointfree simproc *}
+section \<open>Examples for the set comprehension to pointfree simproc\<close>
 
 theory Set_Comprehension_Pointfree_Examples
 imports Main
@@ -119,7 +119,7 @@ schematic_goal (* check interaction with schematics *)
 declare [[simproc del: finite_Collect]]
 
 
-section {* Testing simproc in code generation *}
+section \<open>Testing simproc in code generation\<close>
 
 definition union :: "nat set => nat set => nat set"
 where

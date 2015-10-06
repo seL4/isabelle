@@ -4,13 +4,13 @@ Example theory involving Unicode characters (UTF-8 encoding) --
 Conversion between Serbian cyrillic and latin letters (српска ћирилица и латиница)
 *)
 
-section {* A Serbian theory *}
+section \<open>A Serbian theory\<close>
 
 theory Serbian
 imports Main
 begin
 
-text{* Serbian cyrillic letters *}
+text\<open>Serbian cyrillic letters\<close>
 datatype azbuka =
   azbA   ("А")
 | azbB   ("Б")
@@ -46,7 +46,7 @@ datatype azbuka =
 
 thm azbuka.induct
 
-text{* Serbian latin letters *}
+text\<open>Serbian latin letters\<close>
 datatype abeceda =
   abcA   ("A")
 | abcB   ("B")
@@ -79,8 +79,8 @@ datatype abeceda =
 thm abeceda.induct
 
 
-text{* Conversion from cyrillic to latin - 
-       this conversion is valid in all cases *}
+text\<open>Conversion from cyrillic to latin - 
+       this conversion is valid in all cases\<close>
 primrec azb2abc_aux :: "azbuka \<Rightarrow> abeceda list"
 where
   "azb2abc_aux А = [A]"
@@ -123,8 +123,8 @@ where
 value "azb2abc [Д, О, Б, А, Р, azbSpc, Д, А, Н, azbSpc, С, В, И, М, А]"
 value "azb2abc [Љ, У, Б, И, Ч, И, Ц, А, azbSpc, Н, А, azbSpc, П, О, Љ, У]"
 
-text{* The conversion from latin to cyrillic - 
-       this conversion is valid in most cases but there are some exceptions *}
+text\<open>The conversion from latin to cyrillic - 
+       this conversion is valid in most cases but there are some exceptions\<close>
 primrec abc2azb_aux :: "abeceda \<Rightarrow> azbuka"
 where
    "abc2azb_aux A = А"
@@ -175,18 +175,18 @@ where
 value "abc2azb [D, O, B, A, R, abcSpc, D, A, N, abcSpc, S, V, I, M, A]"
 value "abc2azb [L, J, U, B, I, Č, I, C, A, abcSpc, N, A, abcSpc, P, O, L, J, U]"
 
-text{* Here are some invalid conversions *}
+text\<open>Here are some invalid conversions\<close>
 lemma "abc2azb [N, A, D, Ž, I, V, E, T, I] = [Н, А, Џ, И, В, Е, Т, И]"
   by simp
-text{* but it should be: НАДЖИВЕТИ *}
+text\<open>but it should be: НАДЖИВЕТИ\<close>
 lemma "abc2azb [I, N, J, E, K, C, I, J, A] = [И, Њ, Е, К, Ц, И, Ј, А]"
   by simp
-text{* but it should be: ИНЈЕКЦИЈА *}
+text\<open>but it should be: ИНЈЕКЦИЈА\<close>
 
-text{* The conversion fails for all cyrrilic words that contain НЈ ЛЈ ДЈ ДЖ *}
+text\<open>The conversion fails for all cyrrilic words that contain НЈ ЛЈ ДЈ ДЖ\<close>
 
 
-text{* Idempotency in one direction *}
+text\<open>Idempotency in one direction\<close>
 lemma [simp]: "azb2abc_aux (abc2azb_aux x) = [x]"
   by (cases x) auto
 
@@ -203,14 +203,14 @@ proof (induct x)
   proof (cases xs)
     case (Cons x2 xss)
     thus ?thesis
-      using `azb2abc (abc2azb xs) = xs`
+      using \<open>azb2abc (abc2azb xs) = xs\<close>
       by auto
   qed simp
 qed simp
 
-text{* Idempotency in the other direction does not hold *}
+text\<open>Idempotency in the other direction does not hold\<close>
 lemma "abc2azb (azb2abc [И, Н, Ј, Е, К, Ц, И, Ј, А]) \<noteq> [И, Н, Ј, Е, К, Ц, И, Ј, А]"
   by simp
-text{* It fails for all cyrrilic words that contain НЈ ЛЈ ДЈ ДЖ *}
+text\<open>It fails for all cyrrilic words that contain НЈ ЛЈ ДЈ ДЖ\<close>
 
 end

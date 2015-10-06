@@ -3,7 +3,7 @@
     Copyright   2005-2009
 *)
 
-section {* Examples for proof methods "sat" and "satx" *}
+section \<open>Examples for proof methods "sat" and "satx"\<close>
 
 theory SAT_Examples
 imports Main
@@ -74,7 +74,7 @@ e | f | (a & d) ;
 ~(c | (~p & (p | (q & ~q)))) |] ==> False"
 by satx
 
-text {* eta-Equivalence *}
+text \<open>eta-Equivalence\<close>
 
 lemma "(ALL x. P x) | ~ All P"
 by sat
@@ -82,9 +82,9 @@ by sat
 declare [[sat_trace = false]]
 declare [[quick_and_dirty = false]]
 
-method_setup rawsat = {*
+method_setup rawsat = \<open>
   Scan.succeed (SIMPLE_METHOD' o SAT.rawsat_tac)
-*} "SAT solver (no preprocessing)"
+\<close> "SAT solver (no preprocessing)"
 
 (* Translated from TPTP problem library: PUZ015-2.006.dimacs *)
 
@@ -277,7 +277,7 @@ using assms
 (*
 by sat
 *)
-by rawsat  -- {* this is without CNF conversion *}
+by rawsat  -- \<open>this is without CNF conversion\<close>
 
 (* Translated from TPTP problem library: MSC007-1.008.dimacs *)
 
@@ -490,7 +490,7 @@ using assms
 (*
 by sat
 *)
-by rawsat  -- {* this is without CNF conversion *}
+by rawsat  -- \<open>this is without CNF conversion\<close>
 
 (* Old sequent clause representation ("[c_i, p, ~q, \<dots>] \<turnstile> False"):
    sat, zchaff_with_proofs: 8705 resolution steps in
@@ -512,21 +512,21 @@ by rawsat  -- {* this is without CNF conversion *}
    (as of 2006-08-30, on a 2.5 GHz Pentium 4)
 *)
 
-text {*
+text \<open>
 Function {\tt benchmark} takes the name of an existing DIMACS CNF
 file, parses this file, passes the problem to a SAT solver, and checks
 the proof of unsatisfiability found by the solver.  The function
 measures the time spent on proof reconstruction (at least real time
 also includes time spent in the SAT solver), and additionally returns
 the number of resolution steps in the proof.
-*}
+\<close>
 
 (*
 declare [[sat_solver = zchaff_with_proofs]]
 declare [[sat_trace = false]]
 declare [[quick_and_dirty = false]]
 *)
-ML {*
+ML \<open>
   fun benchmark dimacsfile =
     let
       val prop_fm = SAT_Solver.read_dimacs_cnf_file (Path.explode dimacsfile)
@@ -540,6 +540,6 @@ ML {*
     in
       (Timing.result start, ! SAT.counter)
     end;
-*}
+\<close>
 
 end

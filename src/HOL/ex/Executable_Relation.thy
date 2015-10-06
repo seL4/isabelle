@@ -2,9 +2,9 @@ theory Executable_Relation
 imports Main
 begin
 
-subsection {* A dedicated type for relations *}
+subsection \<open>A dedicated type for relations\<close>
 
-subsubsection {* Definition of the dedicated type for relations *}
+subsubsection \<open>Definition of the dedicated type for relations\<close>
 
 typedef 'a rel = "UNIV :: (('a * 'a) set) set"
 morphisms set_of_rel rel_of_set by simp
@@ -13,7 +13,7 @@ setup_lifting type_definition_rel
 
 lift_definition Rel :: "'a set => ('a * 'a) set => 'a rel" is "\<lambda> X R. Id_on X Un R" .
 
-subsubsection {* Constant definitions on relations *}
+subsubsection \<open>Constant definitions on relations\<close>
 
 hide_const (open) converse relcomp rtrancl Image
 
@@ -29,7 +29,7 @@ lift_definition rtrancl :: "'a rel => 'a rel" is "Transitive_Closure.rtrancl" .
 
 lift_definition Image :: "'a rel => 'a set => 'a set" is "Relation.Image" .
 
-subsubsection {* Code generation *}
+subsubsection \<open>Code generation\<close>
 
 code_datatype Rel
 

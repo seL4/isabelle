@@ -2,13 +2,13 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-section {* Examples of function definitions *}
+section \<open>Examples of function definitions\<close>
 
 theory Fundefs 
 imports Main "~~/src/HOL/Library/Monad_Syntax"
 begin
 
-subsection {* Very basic *}
+subsection \<open>Very basic\<close>
 
 fun fib :: "nat \<Rightarrow> nat"
 where
@@ -16,22 +16,22 @@ where
 | "fib (Suc 0) = 1"
 | "fib (Suc (Suc n)) = fib n + fib (Suc n)"
 
-text {* partial simp and induction rules: *}
+text \<open>partial simp and induction rules:\<close>
 thm fib.psimps
 thm fib.pinduct
 
-text {* There is also a cases rule to distinguish cases along the definition *}
+text \<open>There is also a cases rule to distinguish cases along the definition\<close>
 thm fib.cases
 
 
-text {* total simp and induction rules: *}
+text \<open>total simp and induction rules:\<close>
 thm fib.simps
 thm fib.induct
 
-text {* elimination rules *}
+text \<open>elimination rules\<close>
 thm fib.elims
 
-subsection {* Currying *}
+subsection \<open>Currying\<close>
 
 fun add
 where
@@ -39,10 +39,10 @@ where
 | "add (Suc x) y = Suc (add x y)"
 
 thm add.simps
-thm add.induct -- {* Note the curried induction predicate *}
+thm add.induct -- \<open>Note the curried induction predicate\<close>
 
 
-subsection {* Nested recursion *}
+subsection \<open>Nested recursion\<close>
 
 function nz 
 where
@@ -50,7 +50,7 @@ where
 | "nz (Suc x) = nz (nz x)"
 by pat_completeness auto
 
-lemma nz_is_zero: -- {* A lemma we need to prove termination *}
+lemma nz_is_zero: -- \<open>A lemma we need to prove termination\<close>
   assumes trm: "nz_dom x"
   shows "nz x = 0"
 using trm
@@ -62,7 +62,7 @@ termination nz
 thm nz.simps
 thm nz.induct
 
-text {* Here comes McCarthy's 91-function *}
+text \<open>Here comes McCarthy's 91-function\<close>
 
 
 function f91 :: "nat => nat"
@@ -86,21 +86,21 @@ proof
 
   assume inner_trm: "f91_dom (n + 11)" (* Outer call *)
   with f91_estimate have "n + 11 < f91 (n + 11) + 11" .
-  with `~ 100 < n` show "(f91 (n + 11), n) : ?R" by simp 
+  with \<open>~ 100 < n\<close> show "(f91 (n + 11), n) : ?R" by simp 
 qed
 
-text{* Now trivial (even though it does not belong here): *}
+text\<open>Now trivial (even though it does not belong here):\<close>
 lemma "f91 n = (if 100 < n then n - 10 else 91)"
 by (induct n rule:f91.induct) auto
 
 
-subsection {* More general patterns *}
+subsection \<open>More general patterns\<close>
 
-subsubsection {* Overlapping patterns *}
+subsubsection \<open>Overlapping patterns\<close>
 
-text {* Currently, patterns must always be compatible with each other, since
+text \<open>Currently, patterns must always be compatible with each other, since
 no automatic splitting takes place. But the following definition of
-gcd is ok, although patterns overlap: *}
+gcd is ok, although patterns overlap:\<close>
 
 fun gcd2 :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -112,9 +112,9 @@ where
 thm gcd2.simps
 thm gcd2.induct
 
-subsubsection {* Guards *}
+subsubsection \<open>Guards\<close>
 
-text {* We can reformulate the above example using guarded patterns *}
+text \<open>We can reformulate the above example using guarded patterns\<close>
 
 function gcd3 :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -131,13 +131,13 @@ thm gcd3.simps
 thm gcd3.induct
 
 
-text {* General patterns allow even strange definitions: *}
+text \<open>General patterns allow even strange definitions:\<close>
 
 function ev :: "nat \<Rightarrow> bool"
 where
   "ev (2 * n) = True"
 | "ev (2 * n + 1) = False"
-proof -  -- {* completeness is more difficult here \dots *}
+proof -  -- \<open>completeness is more difficult here \dots\<close>
   fix P :: bool
     and x :: nat
   assume c1: "\<And>n. x = 2 * n \<Longrightarrow> P"
@@ -154,7 +154,7 @@ proof -  -- {* completeness is more difficult here \dots *}
     with divmod have "x = 2 * (x div 2) + 1" by simp
     with c2 show "P" .
   qed
-qed presburger+ -- {* solve compatibility with presburger *} 
+qed presburger+ -- \<open>solve compatibility with presburger\<close> 
 termination by lexicographic_order
 
 thm ev.simps
@@ -162,7 +162,7 @@ thm ev.induct
 thm ev.cases
 
 
-subsection {* Mutual Recursion *}
+subsection \<open>Mutual Recursion\<close>
 
 fun evn od :: "nat \<Rightarrow> bool"
 where
@@ -180,7 +180,7 @@ thm evn_od.termination
 thm evn.elims
 thm od.elims
 
-subsection {* Definitions in local contexts *}
+subsection \<open>Definitions in local contexts\<close>
 
 locale my_monoid = 
 fixes opr :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -213,9 +213,9 @@ end
 thm my_monoid.foldL.simps
 thm my_monoid.foldR_foldL
 
-subsection {* @{text fun_cases} *}
+subsection \<open>@{text fun_cases}\<close>
 
-subsubsection {* Predecessor *}
+subsubsection \<open>Predecessor\<close>
 
 fun pred :: "nat \<Rightarrow> nat" where
 "pred 0 = 0" |
@@ -227,7 +227,7 @@ lemma assumes "pred x = y"
 obtains "x = 0" "y = 0" | "n" where "x = Suc n" "y = n"
 by (fact pred.elims[OF assms])
 
-text {* If the predecessor of a number is 0, that number must be 0 or 1. *}
+text \<open>If the predecessor of a number is 0, that number must be 0 or 1.\<close>
 
 fun_cases pred0E[elim]: "pred n = 0"
 
@@ -235,16 +235,16 @@ lemma "pred n = 0 \<Longrightarrow> n = 0 \<or> n = Suc 0"
 by (erule pred0E) metis+
 
 
-text {* Other expressions on the right-hand side also work, but whether the
+text \<open>Other expressions on the right-hand side also work, but whether the
         generated rule is useful depends on how well the simplifier can
-        simplify it. This example works well: *}
+        simplify it. This example works well:\<close>
 
 fun_cases pred42E[elim]: "pred n = 42"
 
 lemma "pred n = 42 \<Longrightarrow> n = 43"
 by (erule pred42E)
 
-subsubsection {* List to option *}
+subsubsection \<open>List to option\<close>
 
 fun list_to_option :: "'a list \<Rightarrow> 'a option" where
 "list_to_option [x] = Some x" |
@@ -256,7 +256,7 @@ fun_cases list_to_option_NoneE: "list_to_option xs = None"
 lemma "list_to_option xs = Some y \<Longrightarrow> xs = [y]"
 by (erule list_to_option_SomeE)
 
-subsubsection {* Boolean Functions *}
+subsubsection \<open>Boolean Functions\<close>
 
 fun xor :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 "xor False False = False" |
@@ -265,13 +265,13 @@ fun xor :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 
 thm xor.elims
 
-text {* @{text fun_cases} does not only recognise function equations, but also works with
-   functions that return a boolean, e.g.: *}
+text \<open>@{text fun_cases} does not only recognise function equations, but also works with
+   functions that return a boolean, e.g.:\<close>
 
 fun_cases xor_TrueE: "xor a b" and xor_FalseE: "\<not>xor a b"
 print_theorems
 
-subsubsection {* Many parameters *}
+subsubsection \<open>Many parameters\<close>
 
 fun sum4 :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
 "sum4 a b c d = a + b + c + d"
@@ -282,9 +282,9 @@ lemma "sum4 a b c d = 0 \<Longrightarrow> a = 0"
 by (erule sum40E)
 
 
-subsection {* Partial Function Definitions *}
+subsection \<open>Partial Function Definitions\<close>
 
-text {* Partial functions in the option monad: *}
+text \<open>Partial functions in the option monad:\<close>
 
 partial_function (option)
   collatz :: "nat \<Rightarrow> nat list option"
@@ -299,17 +299,17 @@ declare collatz.simps[code]
 value "collatz 23"
 
 
-text {* Tail-recursive functions: *}
+text \<open>Tail-recursive functions:\<close>
 
 partial_function (tailrec) fixpoint :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
 where
   "fixpoint f x = (if f x = x then x else fixpoint f (f x))"
 
 
-subsection {* Regression tests *}
+subsection \<open>Regression tests\<close>
 
-text {* The following examples mainly serve as tests for the 
-  function package *}
+text \<open>The following examples mainly serve as tests for the 
+  function package\<close>
 
 fun listlen :: "'a list \<Rightarrow> nat"
 where

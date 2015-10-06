@@ -5,7 +5,7 @@
 See HOL/Refute.thy for help.
 *)
 
-section {* Examples for the 'refute' command *}
+section \<open>Examples for the 'refute' command\<close>
 
 theory Refute_Examples
 imports "~~/src/HOL/Library/Refute"
@@ -15,20 +15,20 @@ refute_params [satsolver = "cdclite"]
 
 lemma "P \<and> Q"
 apply (rule conjI)
-refute [expect = genuine] 1  -- {* refutes @{term "P"} *}
-refute [expect = genuine] 2  -- {* refutes @{term "Q"} *}
-refute [expect = genuine]    -- {* equivalent to 'refute 1' *}
-  -- {* here 'refute 3' would cause an exception, since we only have 2 subgoals *}
-refute [maxsize = 5, expect = genuine]   -- {* we can override parameters ... *}
+refute [expect = genuine] 1  -- \<open>refutes @{term "P"}\<close>
+refute [expect = genuine] 2  -- \<open>refutes @{term "Q"}\<close>
+refute [expect = genuine]    -- \<open>equivalent to 'refute 1'\<close>
+  -- \<open>here 'refute 3' would cause an exception, since we only have 2 subgoals\<close>
+refute [maxsize = 5, expect = genuine]   -- \<open>we can override parameters ...\<close>
 refute [satsolver = "cdclite", expect = genuine] 2
-  -- {* ... and specify a subgoal at the same time *}
+  -- \<open>... and specify a subgoal at the same time\<close>
 oops
 
 (*****************************************************************************)
 
-subsection {* Examples and Test Cases *}
+subsection \<open>Examples and Test Cases\<close>
 
-subsubsection {* Propositional logic *}
+subsubsection \<open>Propositional logic\<close>
 
 lemma "True"
 refute [expect = none]
@@ -68,7 +68,7 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* Predicate logic *}
+subsubsection \<open>Predicate logic\<close>
 
 lemma "P x y z"
 refute [expect = genuine]
@@ -84,7 +84,7 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* Equality *}
+subsubsection \<open>Equality\<close>
 
 lemma "P = True"
 refute [expect = genuine]
@@ -118,7 +118,7 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* First-Order Logic *}
+subsubsection \<open>First-Order Logic\<close>
 
 lemma "\<exists>x. P x"
 refute [expect = genuine]
@@ -156,13 +156,13 @@ lemma "(\<exists>x. P x) \<longrightarrow> (EX! x. P x)"
 refute [expect = genuine]
 oops
 
-text {* A true statement (also testing names of free and bound variables being identical) *}
+text \<open>A true statement (also testing names of free and bound variables being identical)\<close>
 
 lemma "(\<forall>x y. P x y \<longrightarrow> P y x) \<longrightarrow> (\<forall>x. P x y) \<longrightarrow> P y x"
 refute [maxsize = 4, expect = none]
 by fast
 
-text {* "A type has at most 4 elements." *}
+text \<open>"A type has at most 4 elements."\<close>
 
 lemma "a=b | a=c | a=d | a=e | b=c | b=d | b=e | c=d | c=e | d=e"
 refute [expect = genuine]
@@ -172,37 +172,37 @@ lemma "\<forall>a b c d e. a=b | a=c | a=d | a=e | b=c | b=d | b=e | c=d | c=e |
 refute [expect = genuine]
 oops
 
-text {* "Every reflexive and symmetric relation is transitive." *}
+text \<open>"Every reflexive and symmetric relation is transitive."\<close>
 
 lemma "\<lbrakk> \<forall>x. P x x; \<forall>x y. P x y \<longrightarrow> P y x \<rbrakk> \<Longrightarrow> P x y \<longrightarrow> P y z \<longrightarrow> P x z"
 refute [expect = genuine]
 oops
 
-text {* The "Drinker's theorem" ... *}
+text \<open>The "Drinker's theorem" ...\<close>
 
 lemma "\<exists>x. f x = g x \<longrightarrow> f = g"
 refute [maxsize = 4, expect = none]
 by (auto simp add: ext)
 
-text {* ... and an incorrect version of it *}
+text \<open>... and an incorrect version of it\<close>
 
 lemma "(\<exists>x. f x = g x) \<longrightarrow> f = g"
 refute [expect = genuine]
 oops
 
-text {* "Every function has a fixed point." *}
+text \<open>"Every function has a fixed point."\<close>
 
 lemma "\<exists>x. f x = x"
 refute [expect = genuine]
 oops
 
-text {* "Function composition is commutative." *}
+text \<open>"Function composition is commutative."\<close>
 
 lemma "f (g x) = g (f x)"
 refute [expect = genuine]
 oops
 
-text {* "Two functions that are equivalent wrt.\ the same predicate 'P' are equal." *}
+text \<open>"Two functions that are equivalent wrt.\ the same predicate 'P' are equal."\<close>
 
 lemma "((P::('a\<Rightarrow>'b)\<Rightarrow>bool) f = P g) \<longrightarrow> (f x = g x)"
 refute [expect = genuine]
@@ -210,7 +210,7 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* Higher-Order Logic *}
+subsubsection \<open>Higher-Order Logic\<close>
 
 lemma "\<exists>P. P"
 refute [expect = none]
@@ -244,7 +244,7 @@ lemma "x \<noteq> Ex1"
 refute [expect = genuine]
 oops
 
-text {* "The transitive closure 'T' of an arbitrary relation 'P' is non-empty." *}
+text \<open>"The transitive closure 'T' of an arbitrary relation 'P' is non-empty."\<close>
 
 definition "trans" :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "trans P == (ALL x y z. P x y \<longrightarrow> P y z \<longrightarrow> P x z)"
@@ -259,32 +259,32 @@ lemma "trans_closure T P \<longrightarrow> (\<exists>x y. T x y)"
 refute [expect = genuine]
 oops
 
-text {* "Every surjective function is invertible." *}
+text \<open>"Every surjective function is invertible."\<close>
 
 lemma "(\<forall>y. \<exists>x. y = f x) \<longrightarrow> (\<exists>g. \<forall>x. g (f x) = x)"
 refute [expect = genuine]
 oops
 
-text {* "Every invertible function is surjective." *}
+text \<open>"Every invertible function is surjective."\<close>
 
 lemma "(\<exists>g. \<forall>x. g (f x) = x) \<longrightarrow> (\<forall>y. \<exists>x. y = f x)"
 refute [expect = genuine]
 oops
 
-text {* Every point is a fixed point of some function. *}
+text \<open>Every point is a fixed point of some function.\<close>
 
 lemma "\<exists>f. f x = x"
 refute [maxsize = 4, expect = none]
 apply (rule_tac x="\<lambda>x. x" in exI)
 by simp
 
-text {* Axiom of Choice: first an incorrect version ... *}
+text \<open>Axiom of Choice: first an incorrect version ...\<close>
 
 lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (EX!f. \<forall>x. P x (f x))"
 refute [expect = genuine]
 oops
 
-text {* ... and now two correct ones *}
+text \<open>... and now two correct ones\<close>
 
 lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>f. \<forall>x. P x (f x))"
 refute [maxsize = 4, expect = none]
@@ -298,7 +298,7 @@ by (fast intro: ext)
 
 (*****************************************************************************)
 
-subsubsection {* Meta-logic *}
+subsubsection \<open>Meta-logic\<close>
 
 lemma "!!x. P x"
 refute [expect = genuine]
@@ -330,7 +330,7 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* Schematic variables *}
+subsubsection \<open>Schematic variables\<close>
 
 schematic_goal "?P"
 refute [expect = none]
@@ -342,7 +342,7 @@ by auto
 
 (******************************************************************************)
 
-subsubsection {* Abstractions *}
+subsubsection \<open>Abstractions\<close>
 
 lemma "(\<lambda>x. x) = (\<lambda>x. y)"
 refute [expect = genuine]
@@ -358,7 +358,7 @@ by simp
 
 (*****************************************************************************)
 
-subsubsection {* Sets *}
+subsubsection \<open>Sets\<close>
 
 lemma "P (A::'a set)"
 refute
@@ -402,7 +402,7 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* undefined *}
+subsubsection \<open>undefined\<close>
 
 lemma "undefined"
 refute [expect = genuine]
@@ -422,7 +422,7 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* The *}
+subsubsection \<open>The\<close>
 
 lemma "The P"
 refute [expect = genuine]
@@ -446,7 +446,7 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* Eps *}
+subsubsection \<open>Eps\<close>
 
 lemma "Eps P"
 refute [expect = genuine]
@@ -470,9 +470,9 @@ by (auto simp add: someI)
 
 (*****************************************************************************)
 
-subsubsection {* Subtypes (typedef), typedecl *}
+subsubsection \<open>Subtypes (typedef), typedecl\<close>
 
-text {* A completely unspecified non-empty subset of @{typ "'a"}: *}
+text \<open>A completely unspecified non-empty subset of @{typ "'a"}:\<close>
 
 definition "myTdef = insert (undefined::'a) (undefined::'a set)"
 
@@ -496,9 +496,9 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* Inductive datatypes *}
+subsubsection \<open>Inductive datatypes\<close>
 
-text {* unit *}
+text \<open>unit\<close>
 
 lemma "P (x::unit)"
 refute [expect = genuine]
@@ -516,7 +516,7 @@ lemma "P (case x of () \<Rightarrow> u)"
 refute [expect = genuine]
 oops
 
-text {* option *}
+text \<open>option\<close>
 
 lemma "P (x::'a option)"
 refute [expect = genuine]
@@ -538,7 +538,7 @@ lemma "P (case x of None \<Rightarrow> n | Some u \<Rightarrow> s u)"
 refute [expect = genuine]
 oops
 
-text {* * *}
+text \<open>*\<close>
 
 lemma "P (x::'a*'b)"
 refute [expect = genuine]
@@ -568,7 +568,7 @@ lemma "P (case x of Pair a b \<Rightarrow> p a b)"
 refute [expect = genuine]
 oops
 
-text {* + *}
+text \<open>+\<close>
 
 lemma "P (x::'a+'b)"
 refute [expect = genuine]
@@ -594,7 +594,7 @@ lemma "P (case x of Inl a \<Rightarrow> l a | Inr b \<Rightarrow> r b)"
 refute [expect = genuine]
 oops
 
-text {* Non-recursive datatypes *}
+text \<open>Non-recursive datatypes\<close>
 
 datatype T1 = A | B
 
@@ -686,9 +686,9 @@ lemma "P (case x of E f \<Rightarrow> e f)"
 refute [expect = genuine]
 oops
 
-text {* Recursive datatypes *}
+text \<open>Recursive datatypes\<close>
 
-text {* nat *}
+text \<open>nat\<close>
 
 lemma "P (x::nat)"
 refute [expect = potential]
@@ -704,9 +704,9 @@ oops
 
 lemma "P Suc"
 refute [maxsize = 3, expect = none]
--- {* @{term Suc} is a partial function (regardless of the size
+-- \<open>@{term Suc} is a partial function (regardless of the size
       of the model), hence @{term "P Suc"} is undefined and no
-      model will be found *}
+      model will be found\<close>
 oops
 
 lemma "rec_nat zero suc 0 = zero"
@@ -725,7 +725,7 @@ lemma "P (case x of 0 \<Rightarrow> zero | Suc n \<Rightarrow> suc n)"
 refute [expect = potential]
 oops
 
-text {* 'a list *}
+text \<open>'a list\<close>
 
 lemma "P (xs::'a list)"
 refute [expect = potential]
@@ -795,14 +795,14 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* Examples involving special functions *}
+subsubsection \<open>Examples involving special functions\<close>
 
 lemma "card x = 0"
 refute [expect = potential]
 oops
 
 lemma "finite x"
-refute -- {* no finite countermodel exists *}
+refute -- \<open>no finite countermodel exists\<close>
 oops
 
 lemma "(x::nat) + y = 0"
@@ -835,9 +835,9 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* Type classes and overloading *}
+subsubsection \<open>Type classes and overloading\<close>
 
-text {* A type class without axioms: *}
+text \<open>A type class without axioms:\<close>
 
 class classA
 
@@ -845,7 +845,7 @@ lemma "P (x::'a::classA)"
 refute [expect = genuine]
 oops
 
-text {* An axiom with a type variable (denoting types which have at least two elements): *}
+text \<open>An axiom with a type variable (denoting types which have at least two elements):\<close>
 
 class classC =
   assumes classC_ax: "\<exists>x y. x \<noteq> y"
@@ -858,7 +858,7 @@ lemma "\<exists>x y. (x::'a::classC) \<noteq> y"
 (* refute [expect = none] FIXME *)
 oops
 
-text {* A type class for which a constant is defined: *}
+text \<open>A type class for which a constant is defined:\<close>
 
 class classD =
   fixes classD_const :: "'a \<Rightarrow> 'a"
@@ -868,7 +868,7 @@ lemma "P (x::'a::classD)"
 refute [expect = genuine]
 oops
 
-text {* A type class with multiple superclasses: *}
+text \<open>A type class with multiple superclasses:\<close>
 
 class classE = classC + classD
 
@@ -876,7 +876,7 @@ lemma "P (x::'a::classE)"
 refute [expect = genuine]
 oops
 
-text {* OFCLASS: *}
+text \<open>OFCLASS:\<close>
 
 lemma "OFCLASS('a::type, type_class)"
 refute [expect = none]
@@ -890,7 +890,7 @@ lemma "OFCLASS('a::type, classC_class)"
 refute [expect = genuine]
 oops
 
-text {* Overloading: *}
+text \<open>Overloading:\<close>
 
 consts inverse :: "'a \<Rightarrow> 'a"
 
@@ -911,7 +911,7 @@ lemma "P (inverse (p::'a\<times>'b))"
 refute [expect = genuine]
 oops
 
-text {* Structured proofs *}
+text \<open>Structured proofs\<close>
 
 lemma "x = y"
 proof cases

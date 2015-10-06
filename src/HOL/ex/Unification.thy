@@ -4,13 +4,13 @@
     Author:     Alexander Krauss, TUM
 *)
 
-section {* Substitution and Unification *}
+section \<open>Substitution and Unification\<close>
 
 theory Unification
 imports Main
 begin
 
-text {* 
+text \<open>
   Implements Manna \& Waldinger's formalization, with Paulson's
   simplifications, and some new simplifications by Slind and Krauss.
 
@@ -25,12 +25,12 @@ text {*
 
   A Krauss, Partial and Nested Recursive Function Definitions in
   Higher-Order Logic, JAR 44(4):303-336, 2010. Sect. 6.3
-*}
+\<close>
 
 
-subsection {* Terms *}
+subsection \<open>Terms\<close>
 
-text {* Binary trees with leaves that are constants or variables. *}
+text \<open>Binary trees with leaves that are constants or variables.\<close>
 
 datatype 'a trm = 
   Var 'a 
@@ -60,7 +60,7 @@ lemma occs_vars_subset: "M \<prec> N \<Longrightarrow> vars_of M \<subseteq> var
   by (induct N) auto
 
 
-subsection {* Substitutions *}
+subsection \<open>Substitutions\<close>
 
 type_synonym 'a subst = "('a \<times> 'a trm) list"
 
@@ -143,7 +143,7 @@ lemma var_same[simp]: "[(v, t)] \<doteq> [] \<longleftrightarrow> t = Var v"
 by (metis assoc.simps(2) subst.simps(1) subst_eq_def var_self)
 
 
-subsection {* Unifiers and Most General Unifiers *}
+subsection \<open>Unifiers and Most General Unifiers\<close>
 
 definition Unifier :: "'a subst \<Rightarrow> 'a trm \<Rightarrow> 'a trm \<Rightarrow> bool"
 where "Unifier \<sigma> t u \<longleftrightarrow> (t \<lhd> \<sigma> = u \<lhd> \<sigma>)"
@@ -183,7 +183,7 @@ lemma MGU_Const: "MGU [] (Const c) (Const d) \<longleftrightarrow> c = d"
   by (auto simp: MGU_def Unifier_def)
   
 
-subsection {* The unification algorithm *}
+subsection \<open>The unification algorithm\<close>
 
 function unify :: "'a trm \<Rightarrow> 'a trm \<Rightarrow> 'a subst option"
 where
@@ -204,9 +204,9 @@ where
                                          Some \<sigma> \<Rightarrow> Some (\<theta> \<lozenge> \<sigma>)))"
   by pat_completeness auto
 
-subsection {* Properties used in termination proof *}
+subsection \<open>Properties used in termination proof\<close>
 
-text {* Elimination of variables by a substitution: *}
+text \<open>Elimination of variables by a substitution:\<close>
 
 definition
   "elim \<sigma> v \<equiv> \<forall>t. v \<notin> vars_of (t \<lhd> \<sigma>)"
@@ -224,7 +224,7 @@ lemma occs_elim: "\<not> Var v \<prec> t
   \<Longrightarrow> elim [(v,t)] v \<or> [(v,t)] \<doteq> []"
 by (metis elim_intro remove_var var_same vars_iff_occseq)
 
-text {* The result of a unification never introduces new variables: *}
+text \<open>The result of a unification never introduces new variables:\<close>
 
 declare unify.psimps[simp]
 
@@ -288,8 +288,8 @@ next
 qed (auto split: split_if_asm)
 
 
-text {* The result of a unification is either the identity
-substitution or it eliminates a variable from one of the terms: *}
+text \<open>The result of a unification is either the identity
+substitution or it eliminates a variable from one of the terms:\<close>
 
 lemma unify_eliminates: 
   assumes "unify_dom (M, N)"
@@ -332,12 +332,12 @@ next
     and ih2: "?P (N\<lhd>\<theta>1) (N'\<lhd>\<theta>1) \<theta>2"
     by (auto split:option.split_asm)
 
-  from `unify_dom (M \<cdot> N, M' \<cdot> N')`
+  from \<open>unify_dom (M \<cdot> N, M' \<cdot> N')\<close>
   have "unify_dom (M, M')"
     by (rule accp_downward) (rule unify_rel.intros)
   hence no_new_vars: 
     "\<And>t. vars_of (t \<lhd> \<theta>1) \<subseteq> vars_of M \<union> vars_of M' \<union> vars_of t"
-    by (rule unify_vars) (rule `unify M M' = Some \<theta>1`)
+    by (rule unify_vars) (rule \<open>unify M M' = Some \<theta>1\<close>)
 
   from ih2 show ?case 
   proof 
@@ -358,10 +358,10 @@ next
     from ih1 show ?thesis
     proof
       assume "\<exists>v\<in>vars_of M \<union> vars_of M'. elim \<theta>1 v"
-      with elim_eq[OF `\<sigma> \<doteq> \<theta>1`]
+      with elim_eq[OF \<open>\<sigma> \<doteq> \<theta>1\<close>]
       show ?thesis by auto
     next
-      note `\<sigma> \<doteq> \<theta>1`
+      note \<open>\<sigma> \<doteq> \<theta>1\<close>
       also assume "\<theta>1 \<doteq> []"
       finally show ?thesis ..
     qed
@@ -370,7 +370,7 @@ qed
 
 declare unify.psimps[simp del]
 
-subsection {* Termination proof *}
+subsection \<open>Termination proof\<close>
 
 termination unify
 proof 
@@ -389,7 +389,7 @@ proof
   from unify_eliminates[OF inner]
   show "((N \<lhd> \<theta>, N' \<lhd> \<theta>), (M \<cdot> N, M' \<cdot> N')) \<in>?R"
   proof
-    -- {* Either a variable is eliminated \ldots *}
+    -- \<open>Either a variable is eliminated \ldots\<close>
     assume "(\<exists>v\<in>vars_of M \<union> vars_of M'. elim \<theta> v)"
     then obtain v 
       where "elim \<theta> v" 
@@ -402,7 +402,7 @@ proof
     thus ?thesis
       by (auto intro!: measures_less intro: psubset_card_mono)
   next
-    -- {* Or the substitution is empty *}
+    -- \<open>Or the substitution is empty\<close>
     assume "\<theta> \<doteq> []"
     hence "N \<lhd> \<theta> = N" 
       and "N' \<lhd> \<theta> = N'" by auto
@@ -412,7 +412,7 @@ proof
 qed
 
 
-subsection {* Unification returns a Most General Unifier *}
+subsection \<open>Unification returns a Most General Unifier\<close>
 
 lemma unify_computes_MGU:
   "unify M N = Some \<sigma> \<Longrightarrow> MGU \<sigma> M N"
@@ -461,7 +461,7 @@ proof (induct M N arbitrary: \<sigma> rule: unify.induct)
 qed (auto simp: MGU_Const intro: MGU_Var MGU_Var[symmetric] split: split_if_asm)
 
 
-subsection {* Unification returns Idempotent Substitution *}
+subsection \<open>Unification returns Idempotent Substitution\<close>
 
 definition Idem :: "'a subst \<Rightarrow> bool"
 where "Idem s \<longleftrightarrow> (s \<lozenge> s) \<doteq> s"
@@ -509,7 +509,7 @@ proof (induct M N arbitrary: \<sigma> rule: unify.induct)
   from \<theta>2 have "Unifier \<theta>2 (M' \<lhd> \<theta>1) (N' \<lhd> \<theta>1)"
     by (rule unify_computes_MGU[THEN MGU_is_Unifier])
 
-  with `Idem \<theta>1`
+  with \<open>Idem \<theta>1\<close>
   show "Idem \<sigma>" unfolding \<sigma>
   proof (rule Idem_comp)
     fix \<sigma> assume "Unifier \<sigma> (M' \<lhd> \<theta>1) (N' \<lhd> \<theta>1)"
@@ -518,7 +518,7 @@ proof (induct M N arbitrary: \<sigma> rule: unify.induct)
 
     have "\<theta>2 \<lozenge> \<sigma> \<doteq> \<theta>2 \<lozenge> (\<theta>2 \<lozenge> \<gamma>)" by (rule subst_cong) (auto simp: \<sigma>)
     also have "... \<doteq> (\<theta>2 \<lozenge> \<theta>2) \<lozenge> \<gamma>" by (rule comp_assoc[symmetric])
-    also have "... \<doteq> \<theta>2 \<lozenge> \<gamma>" by (rule subst_cong) (auto simp: `Idem \<theta>2`[unfolded Idem_def])
+    also have "... \<doteq> \<theta>2 \<lozenge> \<gamma>" by (rule subst_cong) (auto simp: \<open>Idem \<theta>2\<close>[unfolded Idem_def])
     also have "... \<doteq> \<sigma>" by (rule \<sigma>[symmetric])
     finally show "\<theta>2 \<lozenge> \<sigma> \<doteq> \<sigma>" .
   qed

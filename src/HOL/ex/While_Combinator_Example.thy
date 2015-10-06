@@ -3,14 +3,14 @@
     Copyright   2000 TU Muenchen
 *)
 
-section {* An application of the While combinator *}
+section \<open>An application of the While combinator\<close>
 
 theory While_Combinator_Example
 imports "~~/src/HOL/Library/While_Combinator"
 begin
 
-text {* Computation of the @{term lfp} on finite sets via 
-  iteration. *}
+text \<open>Computation of the @{term lfp} on finite sets via 
+  iteration.\<close>
 
 theorem lfp_conv_while:
   "[| mono f; finite U; f U = U |] ==>
@@ -32,11 +32,11 @@ apply (blast dest: monoD)
 done
 
 
-subsection {* Example *}
+subsection \<open>Example\<close>
 
-text{* Cannot use @{thm[source]set_eq_subset} because it leads to
+text\<open>Cannot use @{thm[source]set_eq_subset} because it leads to
 looping because the antisymmetry simproc turns the subset relationship
-back into equality. *}
+back into equality.\<close>
 
 theorem "P (lfp (\<lambda>N::int set. {0} \<union> {(n + 2) mod 6 | n. n \<in> N})) =
   P {0, 4, 2}"
@@ -52,7 +52,7 @@ proof -
       apply blast
      apply simp
     apply (simp add: aux set_eq_subset)
-    txt {* The fixpoint computation is performed purely by rewriting: *}
+    txt \<open>The fixpoint computation is performed purely by rewriting:\<close>
     apply (simp add: while_unfold aux seteq del: subset_empty)
     done
 qed

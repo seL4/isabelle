@@ -2,7 +2,7 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-section {* Some examples for Presburger Arithmetic *}
+section \<open>Some examples for Presburger Arithmetic\<close>
 
 theory PresburgerEx
 imports Presburger
@@ -28,7 +28,7 @@ theorem "!! (y::int) (z::int) n. Suc(n::nat) < 6 ==>  3 dvd z ==>
 theorem "\<forall>(x::nat). \<exists>(y::nat). (0::nat) \<le> 5 --> y = 5 + x "
   by presburger
 
-text{*Slow: about 7 seconds on a 1.6GHz machine.*}
+text\<open>Slow: about 7 seconds on a 1.6GHz machine.\<close>
 theorem "\<forall>(x::nat). \<exists>(y::nat). y = 5 + x | x div 6 + 1= 2"
   by presburger
 
@@ -88,17 +88,17 @@ theorem "\<exists>(j::int). \<forall>i. j \<le> i --> (\<exists>x y. 0 \<le> x &
 theorem "~ (\<forall>j (i::int). j \<le> i --> (\<exists>x y. 0 \<le> x & 0 \<le> y & 3 * x + 5 * y = i))"
   by presburger
 
-text{*Slow: about 5 seconds on a 1.6GHz machine.*}
+text\<open>Slow: about 5 seconds on a 1.6GHz machine.\<close>
 theorem "(\<exists>m::nat. n = 2 * m) --> (n + 1) div 2 = n div 2"
   by presburger
 
-text{* This following theorem proves that all solutions to the
+text\<open>This following theorem proves that all solutions to the
 recurrence relation $x_{i+2} = |x_{i+1}| - x_i$ are periodic with
 period 9.  The example was brought to our attention by John
 Harrison. It does does not require Presburger arithmetic but merely
 quantifier-free linear arithmetic and holds for the rationals as well.
 
-Warning: it takes (in 2006) over 4.2 minutes! *}
+Warning: it takes (in 2006) over 4.2 minutes!\<close>
 
 lemma "\<lbrakk> x3 = abs x2 - x1; x4 = abs x3 - x2; x5 = abs x4 - x3;
          x6 = abs x5 - x4; x7 = abs x6 - x5; x8 = abs x7 - x6;

@@ -1,23 +1,23 @@
-section {* A simple example demonstrating parallelism for code generated towards Isabelle/ML *}
+section \<open>A simple example demonstrating parallelism for code generated towards Isabelle/ML\<close>
 
 theory Parallel_Example
 imports Complex_Main "~~/src/HOL/Library/Parallel" "~~/src/HOL/Library/Debug"
 begin
 
-subsection {* Compute-intensive examples. *}
+subsection \<open>Compute-intensive examples.\<close>
 
-subsubsection {* Fragments of the harmonic series *}
+subsubsection \<open>Fragments of the harmonic series\<close>
 
 definition harmonic :: "nat \<Rightarrow> rat" where
   "harmonic n = listsum (map (\<lambda>n. 1 / of_nat n) [1..<n])"
 
 
-subsubsection {* The sieve of Erathostenes *}
+subsubsection \<open>The sieve of Erathostenes\<close>
 
-text {*
+text \<open>
   The attentive reader may relate this ad-hoc implementation to the
   arithmetic notion of prime numbers as a little exercise.
-*}
+\<close>
 
 primrec mark :: "nat \<Rightarrow> nat \<Rightarrow> bool list \<Rightarrow> bool list" where
   "mark _ _ [] = []"
@@ -34,7 +34,7 @@ function sieve :: "nat \<Rightarrow> bool list \<Rightarrow> bool list" where
     | p#ps' \<Rightarrow> let n = m - length ps' in takeWhile Not ps @ p # sieve m (mark n n ps'))"
 by pat_completeness auto
 
-termination -- {* tuning of this proof is left as an exercise to the reader *}
+termination -- \<open>tuning of this proof is left as an exercise to the reader\<close>
   apply (relation "measure (length \<circ> snd)")
   apply rule
   apply (auto simp add: length_dropWhile_le)
@@ -56,7 +56,7 @@ primrec list_primes where
   "list_primes (Suc n) = natify 1 (sieve n (False # replicate n True))"
 
 
-subsubsection {* Naive factorisation *}
+subsubsection \<open>Naive factorisation\<close>
 
 function factorise_from :: "nat \<Rightarrow> nat \<Rightarrow> nat list" where
   "factorise_from k n = (if 1 < k \<and> k \<le> n
@@ -67,7 +67,7 @@ function factorise_from :: "nat \<Rightarrow> nat \<Rightarrow> nat list" where
     else [])" 
 by pat_completeness auto
 
-termination factorise_from -- {* tuning of this proof is left as an exercise to the reader *}
+termination factorise_from -- \<open>tuning of this proof is left as an exercise to the reader\<close>
 term measure
 apply (relation "measure (\<lambda>(k, n). 2 * n - k)")
 apply (auto simp add: prod_eq_iff)
@@ -80,7 +80,7 @@ definition factorise :: "nat \<Rightarrow> nat list" where
   "factorise n = factorise_from 2 n"
 
 
-subsection {* Concurrent computation via futures *}
+subsection \<open>Concurrent computation via futures\<close>
 
 definition computation_harmonic :: "unit \<Rightarrow> rat" where
   "computation_harmonic _ = Debug.timing (STR ''harmonic example'') harmonic 300"

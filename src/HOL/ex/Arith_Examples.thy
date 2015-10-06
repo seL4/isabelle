@@ -2,13 +2,13 @@
     Author: Tjark Weber
 *)
 
-section {* Arithmetic *}
+section \<open>Arithmetic\<close>
 
 theory Arith_Examples
 imports Main
 begin
 
-text {*
+text \<open>
   The @{text arith} method is used frequently throughout the Isabelle
   distribution.  This file merely contains some additional tests and special
   corner cases.  Some rather technical remarks:
@@ -26,12 +26,12 @@ text {*
   at the moment (namely inequalities only).  (On the other hand, it
   does take apart conjunctions, which @{ML Lin_Arith.simple_tac} currently
   does not do.)
-*}
+\<close>
 
 
-subsection {* Splitting of Operators: @{term max}, @{term min}, @{term abs},
+subsection \<open>Splitting of Operators: @{term max}, @{term min}, @{term abs},
            @{term minus}, @{term nat}, @{term Divides.mod},
-           @{term divide} *}
+           @{term divide}\<close>
 
 lemma "(i::nat) <= max i j"
   by linarith
@@ -72,7 +72,7 @@ lemma "(i::int) <= abs i"
 lemma "abs (abs (i::int)) = abs i"
   by linarith
 
-text {* Also testing subgoals with bound variables. *}
+text \<open>Also testing subgoals with bound variables.\<close>
 
 lemma "!!x. (x::nat) <= y ==> x - y = 0"
   by linarith
@@ -131,7 +131,7 @@ lemma "[| (0::int) < abs i; abs i * 1 < abs i * j |] ==> 1 < abs i * j"
   by linarith
 
 
-subsection {* Meta-Logic *}
+subsection \<open>Meta-Logic\<close>
 
 lemma "x < Suc y == x <= y"
   by linarith
@@ -140,7 +140,7 @@ lemma "((x::nat) == z ==> x ~= y) ==> x ~= y | z ~= y"
   by linarith
 
 
-subsection {* Various Other Examples *}
+subsection \<open>Various Other Examples\<close>
 
 lemma "(x < Suc y) = (x <= y)"
   by linarith
@@ -151,8 +151,8 @@ lemma "[| (x::nat) < y; y < z |] ==> x < z"
 lemma "(x::nat) < y & y < z ==> x < z"
   by linarith
 
-text {* This example involves no arithmetic at all, but is solved by
-  preprocessing (i.e. NNF normalization) alone. *}
+text \<open>This example involves no arithmetic at all, but is solved by
+  preprocessing (i.e. NNF normalization) alone.\<close>
 
 lemma "(P::bool) = Q ==> Q = P"
   by linarith
@@ -210,7 +210,7 @@ lemma "2 * (x::nat) ~= 1"
 (* by (tactic {* Lin_Arith.simple_tac 1 *}) *)
 oops
 
-text {* Constants. *}
+text \<open>Constants.\<close>
 
 lemma "(0::nat) < 1"
   by linarith
@@ -224,13 +224,13 @@ lemma "(47::nat) + 11 < 8 * 15"
 lemma "(47::int) + 11 < 8 * 15"
   by linarith
 
-text {* Splitting of inequalities of different type. *}
+text \<open>Splitting of inequalities of different type.\<close>
 
 lemma "[| (a::nat) ~= b; (i::int) ~= j; a < 2; b < 2 |] ==>
   a + b <= nat (max (abs i) (abs j))"
   by linarith
 
-text {* Again, but different order. *}
+text \<open>Again, but different order.\<close>
 
 lemma "[| (i::int) ~= j; (a::nat) ~= b; a < 2; b < 2 |] ==>
   a + b <= nat (max (abs i) (abs j))"

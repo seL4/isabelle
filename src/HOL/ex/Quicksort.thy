@@ -2,7 +2,7 @@
     Copyright   1994 TU Muenchen
 *)
 
-section {* Quicksort with function package *}
+section \<open>Quicksort with function package\<close>
 
 theory Quicksort
 imports "~~/src/HOL/Library/Multiset"

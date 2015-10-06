@@ -2,7 +2,7 @@ theory Simps_Case_Conv_Examples imports
   "~~/src/HOL/Library/Simps_Case_Conv"
 begin
 
-section {* Tests for the Simps<->Case conversion tools *}
+section \<open>Tests for the Simps<->Case conversion tools\<close>
 
 fun foo where
   "foo (x # xs) Nil = 0" |
@@ -26,7 +26,7 @@ definition test where "test x y = (case x of None => (case y of [] => 1 | _ # _ 
 definition nosplit where "nosplit x = x @ (case x of [] \<Rightarrow> [1] | xs \<Rightarrow> xs)"
 
 
-text {* Function with complete, non-overlapping patterns *}
+text \<open>Function with complete, non-overlapping patterns\<close>
 case_of_simps foo_cases1: foo.simps
 lemma
   fixes xs :: "'a list" and ys :: "'b list"
@@ -37,7 +37,7 @@ lemma
     | (x # xs, y # ys) \<Rightarrow> foo ([] :: 'a list) ([] :: 'b list))"
   by (fact foo_cases1)
 
-text {* Redundant equations are ignored *}
+text \<open>Redundant equations are ignored\<close>
 case_of_simps foo_cases2: foo.simps foo.simps
 lemma
   fixes xs :: "'a list" and ys :: "'b list"
@@ -48,11 +48,11 @@ lemma
     | (x # xs, y # ys) \<Rightarrow> foo ([] :: 'a list) ([] :: 'b list))"
   by (fact foo_cases2)
 
-text {* Variable patterns *}
+text \<open>Variable patterns\<close>
 case_of_simps bar_cases: bar.simps
 print_theorems
 
-text {* Case expression not at top level *}
+text \<open>Case expression not at top level\<close>
 simps_of_case split_rule_test_simps: split_rule_test_def
 lemma
   "split_rule_test (Inl x) f = f (x 1)"
@@ -60,14 +60,14 @@ lemma
   "split_rule_test (Inr (x, Some y)) f = f (y x)"
   by (fact split_rule_test_simps)+
 
-text {* Argument occurs both as case parameter and seperately*}
+text \<open>Argument occurs both as case parameter and seperately\<close>
 simps_of_case nosplit_simps1: nosplit_def
 lemma
   "nosplit [] = [] @ [1]"
   "nosplit (x # xs) = (x # xs) @ x # xs"
   by (fact nosplit_simps1)+
 
-text {* Nested case expressions *}
+text \<open>Nested case expressions\<close>
 simps_of_case test_simps1: test_def
 lemma
   "test None [] = 1"
@@ -75,12 +75,12 @@ lemma
   "test (Some x) y = x"
   by (fact test_simps1)+
 
-text {* Single-constructor patterns*}
+text \<open>Single-constructor patterns\<close>
 case_of_simps fst_conv_simps: fst_conv
 lemma "fst x = (case x of (a,b) \<Rightarrow> a)"
   by (fact fst_conv_simps)
 
-text {* Partial split of case *}
+text \<open>Partial split of case\<close>
 simps_of_case nosplit_simps2: nosplit_def (splits: list.split)
 lemma
   "nosplit [] = [] @ [1]"
@@ -93,7 +93,7 @@ lemma
   "test (Some x) y = x"
   by (fact test_simps2)+
 
-text {* Reversal *}
+text \<open>Reversal\<close>
 case_of_simps test_def1: test_simps1
 lemma
   "test x y = (case (x,y) of
@@ -102,12 +102,12 @@ lemma
   | (Some x, _) \<Rightarrow> x)"
   by (fact test_def1)
 
-text {* Case expressions on RHS *}
+text \<open>Case expressions on RHS\<close>
 case_of_simps test_def2: test_simps2
 lemma "test xs y = (case (xs, y) of (None, []) \<Rightarrow> 1 | (None, x # xa) \<Rightarrow> 2 | (Some x, y) \<Rightarrow> x)"
   by (fact test_def2)
 
-text {* Partial split of simps *}
+text \<open>Partial split of simps\<close>
 case_of_simps foo_cons_def: foo.simps(1,2)
 lemma
   fixes xs :: "'a list" and ys :: "'b list"

@@ -1,12 +1,12 @@
 (* Author: Florian Haftmann, TU Muenchen *)
 
-section {* Small examples for evaluation mechanisms *}
+section \<open>Small examples for evaluation mechanisms\<close>
 
 theory Eval_Examples
 imports Complex_Main
 begin
 
-text {* evaluation oracle *}
+text \<open>evaluation oracle\<close>
 
 lemma "True \<or> False" by eval
 lemma "Suc 0 \<noteq> Suc 1" by eval
@@ -14,7 +14,7 @@ lemma "[] = ([] :: int list)" by eval
 lemma "[()] = [()]" by eval
 lemma "fst ([] :: nat list, Suc 0) = []" by eval
 
-text {* normalization *}
+text \<open>normalization\<close>
 
 lemma "True \<or> False" by normalization
 lemma "Suc 0 \<noteq> Suc 1" by normalization
@@ -22,7 +22,7 @@ lemma "[] = ([] :: int list)" by normalization
 lemma "[()] = [()]" by normalization
 lemma "fst ([] :: nat list, Suc 0) = []" by normalization
 
-text {* term evaluation *}
+text \<open>term evaluation\<close>
 
 value "(Suc 2 + 1) * 4"
 
@@ -40,7 +40,7 @@ value "[] :: nat list"
 
 value "[(nat 100, ())]"
 
-text {* a fancy datatype *}
+text \<open>a fancy datatype\<close>
 
 datatype ('a, 'b) foo =
     Foo "'a::order" 'b

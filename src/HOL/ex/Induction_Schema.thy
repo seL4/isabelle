@@ -2,13 +2,13 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-section {* Examples of automatically derived induction rules *}
+section \<open>Examples of automatically derived induction rules\<close>
 
 theory Induction_Schema
 imports Main
 begin
 
-subsection {* Some simple induction principles on nat *}
+subsection \<open>Some simple induction principles on nat\<close>
 
 lemma nat_standard_induct: (* cf. Nat.thy *)
   "\<lbrakk>P 0; \<And>n. P n \<Longrightarrow> P (Suc n)\<rbrakk> \<Longrightarrow> P x"

@@ -3,18 +3,18 @@
     Copyright   2011 TU Muenchen
 *)
 
-section {* Examples for the list comprehension to set comprehension simproc *}
+section \<open>Examples for the list comprehension to set comprehension simproc\<close>
 
 theory List_to_Set_Comprehension_Examples
 imports Main
 begin
 
-text {*
+text \<open>
 Examples that show and test the simproc that rewrites list comprehensions
 applied to List.set to set comprehensions.
-*}
+\<close>
 
-subsection {* Some own examples for set (case ..) simpproc *}
+subsection \<open>Some own examples for set (case ..) simpproc\<close>
 
 lemma "set [(x, xs). x # xs <- as] = {(x, xs). x # xs \<in> set as}"
 by auto
@@ -31,7 +31,7 @@ by auto
 lemma "set [(x, y). x # y <- zs, x = x'] = {(x, y). x # y \<in> set zs & x = x'}"
 by auto
 
-subsection {* Existing examples from the List theory *}
+subsection \<open>Existing examples from the List theory\<close>
 
 lemma "set [(x,y,z). b] = {(x', y', z'). x = x' & y = y' & z = z' & b}"
 by auto

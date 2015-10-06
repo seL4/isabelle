@@ -1,6 +1,6 @@
 (*  Authors:  Klaus Aehlig, Tobias Nipkow *)
 
-section {* Testing implementation of normalization by evaluation *}
+section \<open>Testing implementation of normalization by evaluation\<close>
 
 theory Normalization_by_Evaluation
 imports Complex_Main

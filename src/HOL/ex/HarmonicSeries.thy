@@ -2,15 +2,15 @@
     Author:     Benjamin Porter, 2006
 *)
 
-section {* Divergence of the Harmonic Series *}
+section \<open>Divergence of the Harmonic Series\<close>
 
 theory HarmonicSeries
 imports Complex_Main
 begin
 
-subsection {* Abstract *}
+subsection \<open>Abstract\<close>
 
-text {* The following document presents a proof of the Divergence of
+text \<open>The following document presents a proof of the Divergence of
 Harmonic Series theorem formalised in the Isabelle/Isar theorem
 proving system.
 
@@ -33,21 +33,21 @@ converge to any number.
   $\sum_{n=1}^{2^N} \frac{1}{n} > s$. This leads to a contradiction
   and hence $\sum_{n=1}^{\infty} \frac{1}{n}$ is not summable.
   QED.
-*}
+\<close>
 
-subsection {* Formal Proof *}
+subsection \<open>Formal Proof\<close>
 
 lemma two_pow_sub:
   "0 < m \<Longrightarrow> (2::nat)^m - 2^(m - 1) = 2^(m - 1)"
   by (induct m) auto
 
-text {* We first prove the following auxillary lemma. This lemma
+text \<open>We first prove the following auxillary lemma. This lemma
 simply states that the finite sums: $\frac{1}{2}$, $\frac{1}{3} +
 \frac{1}{4}$, $\frac{1}{5} + \frac{1}{6} + \frac{1}{7} + \frac{1}{8}$
 etc. are all greater than or equal to $\frac{1}{2}$. We do this by
 observing that each term in the sum is greater than or equal to the
 last term, e.g. $\frac{1}{3} > \frac{1}{4}$ and thus $\frac{1}{3} +
-\frac{1}{4} > \frac{1}{4} + \frac{1}{4} = \frac{1}{2}$. *}
+\frac{1}{4} > \frac{1}{4} + \frac{1}{4} = \frac{1}{2}$.\<close>
 
 lemma harmonic_aux:
   "\<forall>m>0. (\<Sum>n\<in>{(2::nat)^(m - 1)+1..2^m}. 1/real n) \<ge> 1/2"
@@ -122,12 +122,12 @@ proof
   thus "0 < m \<longrightarrow> 1 / 2 \<le> (\<Sum>n\<in>(?S m). 1 / real n)" by simp
 qed
 
-text {* We then show that the sum of a finite number of terms from the
+text \<open>We then show that the sum of a finite number of terms from the
 harmonic series can be regrouped in increasing powers of 2. For
 example: $1 + \frac{1}{2} + \frac{1}{3} + \frac{1}{4} + \frac{1}{5} +
 \frac{1}{6} + \frac{1}{7} + \frac{1}{8} = 1 + (\frac{1}{2}) +
 (\frac{1}{3} + \frac{1}{4}) + (\frac{1}{5} + \frac{1}{6} + \frac{1}{7}
-+ \frac{1}{8})$. *}
++ \frac{1}{8})$.\<close>
 
 lemma harmonic_aux2 [rule_format]:
   "0<M \<Longrightarrow> (\<Sum>n\<in>{1..(2::nat)^M}. 1/real n) =
@@ -219,10 +219,10 @@ next
   thus ?case by simp
 qed
 
-text {* Using @{thm [source] harmonic_aux} and @{thm [source] harmonic_aux2} we now show
+text \<open>Using @{thm [source] harmonic_aux} and @{thm [source] harmonic_aux2} we now show
 that each group sum is greater than or equal to $\frac{1}{2}$ and thus
 the finite sum is bounded below by a value proportional to the number
-of elements we choose. *}
+of elements we choose.\<close>
 
 lemma harmonic_aux3 [rule_format]:
   shows "\<forall>(M::nat). (\<Sum>n\<in>{1..(2::nat)^M}. 1 / real n) \<ge> 1 + (real M)/2"
@@ -266,12 +266,12 @@ next
   ultimately show "(?P M) \<ge> (1 + (real M)/2)" by simp
 qed
 
-text {* The final theorem shows that as we take more and more elements
+text \<open>The final theorem shows that as we take more and more elements
 (see @{thm [source] harmonic_aux3}) we get an ever increasing sum. By assuming
 the sum converges, the lemma @{thm [source] setsum_less_suminf} ( @{thm
 setsum_less_suminf} ) states that each sum is bounded above by the
 series' limit. This contradicts our first statement and thus we prove
-that the harmonic series is divergent. *}
+that the harmonic series is divergent.\<close>
 
 theorem DivergenceOfHarmonicSeries:
   shows "\<not>summable (\<lambda>n. 1/real (Suc n))"

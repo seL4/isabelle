@@ -1,12 +1,12 @@
 (* Author: Tobias Nipkow *)
 
-section {* Bubblesort *}
+section \<open>Bubblesort\<close>
 
 theory Bubblesort
 imports "~~/src/HOL/Library/Multiset"
 begin
 
-text{* This is \emph{a} version of bubblesort. *}
+text\<open>This is \emph{a} version of bubblesort.\<close>
 
 context linorder
 begin

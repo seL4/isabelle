@@ -2,23 +2,23 @@
     Author:     Brian Huffman, TU Muenchen
 *)
 
-section {* Using the transfer method between nat and int *}
+section \<open>Using the transfer method between nat and int\<close>
 
 theory Transfer_Int_Nat
 imports GCD
 begin
 
-subsection {* Correspondence relation *}
+subsection \<open>Correspondence relation\<close>
 
 definition ZN :: "int \<Rightarrow> nat \<Rightarrow> bool"
   where "ZN = (\<lambda>z n. z = of_nat n)"
 
-subsection {* Transfer domain rules *}
+subsection \<open>Transfer domain rules\<close>
 
 lemma Domainp_ZN [transfer_domain_rule]: "Domainp ZN = (\<lambda>x. x \<ge> 0)" 
   unfolding ZN_def Domainp_iff[abs_def] by (auto intro: zero_le_imp_eq_int)
 
-subsection {* Transfer rules *}
+subsection \<open>Transfer rules\<close>
 
 context
 begin
@@ -114,15 +114,15 @@ lemma ZN_setsum [transfer_rule]:
   apply simp_all
   done
 
-text {* For derived operations, we can use the @{text "transfer_prover"}
-  method to help generate transfer rules. *}
+text \<open>For derived operations, we can use the @{text "transfer_prover"}
+  method to help generate transfer rules.\<close>
 
 lemma ZN_listsum [transfer_rule]: "(list_all2 ZN ===> ZN) listsum listsum"
   by transfer_prover
 
 end
 
-subsection {* Transfer examples *}
+subsection \<open>Transfer examples\<close>
 
 lemma
   assumes "\<And>i::int. 0 \<le> i \<Longrightarrow> i + 0 = i"
@@ -159,8 +159,8 @@ apply transfer
 apply fact
 done
 
-text {* The @{text "fixing"} option prevents generalization over the free
-  variable @{text "n"}, allowing the local transfer rule to be used. *}
+text \<open>The @{text "fixing"} option prevents generalization over the free
+  variable @{text "n"}, allowing the local transfer rule to be used.\<close>
 
 lemma
   assumes [transfer_rule]: "ZN x n"
@@ -185,8 +185,8 @@ apply transfer
 apply fact
 done
 
-text {* Quantifiers over higher types (e.g. @{text "nat list"}) are
-  transferred to a readable formula thanks to the transfer domain rule @{thm Domainp_ZN} *}
+text \<open>Quantifiers over higher types (e.g. @{text "nat list"}) are
+  transferred to a readable formula thanks to the transfer domain rule @{thm Domainp_ZN}\<close>
 
 lemma
   assumes "\<And>xs::int list. list_all (\<lambda>x. x \<ge> 0) xs \<Longrightarrow>
@@ -196,8 +196,8 @@ apply transfer
 apply fact
 done
 
-text {* Equality on a higher type can be transferred if the relations
-  involved are bi-unique. *}
+text \<open>Equality on a higher type can be transferred if the relations
+  involved are bi-unique.\<close>
 
 lemma
   assumes "\<And>xs::int list. \<lbrakk>list_all (\<lambda>x. x \<ge> 0) xs; xs \<noteq> []\<rbrakk> \<Longrightarrow>

@@ -2,13 +2,13 @@
      Author: Lukas Bulwahn <lukas.bulwahn-at-gmail.com>
 *)
 
-section {* The Erdoes-Szekeres Theorem *}
+section \<open>The Erdoes-Szekeres Theorem\<close>
 
 theory Erdoes_Szekeres
 imports Main
 begin
 
-subsection {* Addition to @{theory Lattices_Big} Theory *}
+subsection \<open>Addition to @{theory Lattices_Big} Theory\<close>
 
 lemma Max_gr:
   assumes "finite A"
@@ -16,7 +16,7 @@ lemma Max_gr:
   shows "x < Max A"
 using assms Max_ge less_le_trans by blast
 
-subsection {* Additions to @{theory Finite_Set} Theory *}
+subsection \<open>Additions to @{theory Finite_Set} Theory\<close>
 
 lemma obtain_subset_with_card_n:
   assumes "n \<le> card S"
@@ -43,12 +43,12 @@ proof (induct S rule: finite.induct)
     from this insertI.hyps(2) obtain s where s: "s \<in> S'" "card s = Max (card ` S')" by auto
     from this(1) have that: "(if card s \<ge> card s' then s else s') \<in> insert s' S'" by auto
     have "card (if card s \<ge> card s' then s else s') = Max (card ` insert s' S')"
-      using insertI(1) `S' \<noteq> {}` s by auto
+      using insertI(1) \<open>S' \<noteq> {}\<close> s by auto
     from this that show ?thesis by blast
   qed (auto)
 qed (auto)
 
-subsection {* Definition of Monotonicity over a Carrier Set *}
+subsection \<open>Definition of Monotonicity over a Carrier Set\<close>
 
 definition
   "mono_on f R S = (\<forall>i\<in>S. \<forall>j\<in>S. i \<le> j \<longrightarrow> R (f i) (f j))"
@@ -72,7 +72,7 @@ lemma [simp]:
   "transp (op \<ge> :: 'a::order \<Rightarrow> _ \<Rightarrow> bool)"
 unfolding reflp_def transp_def by auto
 
-subsection {* The Erdoes-Szekeres Theorem following Seidenberg's (1959) argument *}
+subsection \<open>The Erdoes-Szekeres Theorem following Seidenberg's (1959) argument\<close>
 
 lemma Erdoes_Szekeres:
   fixes f :: "_ \<Rightarrow> 'a::linorder"
@@ -98,7 +98,7 @@ proof (rule ccontr)
     {
       fix S
       assume "S \<subseteq> {0..m * n}" "card S \<ge> b + 1"
-      moreover from `card S \<ge> b + 1` obtain T where "T \<subseteq> S \<and> card T = Suc b"
+      moreover from \<open>card S \<ge> b + 1\<close> obtain T where "T \<subseteq> S \<and> card T = Suc b"
         using obtain_subset_with_card_n by (metis Suc_eq_plus1)
       ultimately have "\<not> mono_on f R S" using not_mono_at by (auto dest: not_mono_on_subset)
     }
@@ -131,19 +131,19 @@ proof (rule ccontr)
     {
       fix R
       assume R: "reflp (R :: 'a::linorder \<Rightarrow> _)" "transp R" "R (f i) (f j)"
-      from one_member[OF `reflp R`, of "i"] have
+      from one_member[OF \<open>reflp R\<close>, of "i"] have
         "\<exists>S \<in> {S. S \<subseteq> {0..i} \<and> mono_on f R S \<and> i \<in> S}. card S = ?max_subseq R i"
         by (intro exists_set_with_max_card) auto
       from this obtain S where S: "S \<subseteq> {0..i} \<and> mono_on f R S \<and> i \<in> S" "card S = ?max_subseq R i" by auto
-      from S `i < j` finite_subset have "j \<notin> S" "finite S" "insert j S \<subseteq> {0..j}" by auto
-      from S(1) R `i < j` this have "mono_on f R (insert j S)"
+      from S \<open>i < j\<close> finite_subset have "j \<notin> S" "finite S" "insert j S \<subseteq> {0..j}" by auto
+      from S(1) R \<open>i < j\<close> this have "mono_on f R (insert j S)"
         unfolding mono_on_def reflp_def transp_def
         by (metis atLeastAtMost_iff insert_iff le_antisym subsetCE)
       from this have d: "insert j S \<in> {S. S \<subseteq> {0..j} \<and> mono_on f R S \<and> j \<in> S}"
-        using `insert j S \<subseteq> {0..j}` by blast
-      from this `j \<notin> S` S(1) have "card (insert j S) \<in>
+        using \<open>insert j S \<subseteq> {0..j}\<close> by blast
+      from this \<open>j \<notin> S\<close> S(1) have "card (insert j S) \<in>
         card ` {S. S \<subseteq> {0..j} \<and> mono_on f R S \<and> j \<in> S} \<and> card S < card (insert j S)"
-        by (auto intro!: imageI) (auto simp add: `finite S`)
+        by (auto intro!: imageI) (auto simp add: \<open>finite S\<close>)
       from this S(2) have "?max_subseq R i < ?max_subseq R j" by (auto intro: Max_gr)
     } note max_subseq_increase = this
     have "?max_subseq (op \<le>) i < ?max_subseq (op \<le>) j \<or> ?max_subseq (op \<ge>) i < ?max_subseq (op \<ge>) j"

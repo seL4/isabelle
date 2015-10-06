@@ -2,13 +2,13 @@
     Author: Lukas Bulwahn, TU Muenchen, 2007
 *)
 
-section {* A Formulation of the Birthday Paradox *}
+section \<open>A Formulation of the Birthday Paradox\<close>
 
 theory Birthday_Paradox
 imports Main "~~/src/HOL/Binomial" "~~/src/HOL/Library/FuncSet"
 begin
 
-section {* Cardinality *}
+section \<open>Cardinality\<close>
 
 lemma card_product_dependent:
   assumes "finite S"
@@ -26,8 +26,8 @@ proof (induct S arbitrary: T rule: finite_induct)
 next
   case (insert x S)
   { fix x
-    from `finite T` have "finite (T - {x})" by auto
-    from `finite S` this have "finite (extensional_funcset S (T - {x}))"
+    from \<open>finite T\<close> have "finite (T - {x})" by auto
+    from \<open>finite S\<close> this have "finite (extensional_funcset S (T - {x}))"
       by (rule finite_PiE)
     moreover
     have "{f : extensional_funcset S (T - {x}). inj_on f S} \<subseteq> (extensional_funcset S (T - {x}))" by auto
@@ -35,15 +35,15 @@ next
       by (auto intro: finite_subset)
   } note finite_delete = this
   from insert have hyps: "\<forall>y \<in> T. card ({g. g \<in> extensional_funcset S (T - {y}) \<and> inj_on g S}) = fact (card T - 1) div fact ((card T - 1) - card S)"(is "\<forall> _ \<in> T. _ = ?k") by auto
-  from extensional_funcset_extend_domain_inj_on_eq[OF `x \<notin> S`]
+  from extensional_funcset_extend_domain_inj_on_eq[OF \<open>x \<notin> S\<close>]
   have "card {f. f : extensional_funcset (insert x S) T & inj_on f (insert x S)} =
     card ((%(y, g). g(x := y)) ` {(y, g). y : T & g : extensional_funcset S (T - {y}) & inj_on g S})"
     by metis
-  also from extensional_funcset_extend_domain_inj_onI[OF `x \<notin> S`, of T] have "... =  card {(y, g). y : T & g : extensional_funcset S (T - {y}) & inj_on g S}"
+  also from extensional_funcset_extend_domain_inj_onI[OF \<open>x \<notin> S\<close>, of T] have "... =  card {(y, g). y : T & g : extensional_funcset S (T - {y}) & inj_on g S}"
     by (simp add: card_image)
   also have "card {(y, g). y \<in> T \<and> g \<in> extensional_funcset S (T - {y}) \<and> inj_on g S} =
     card {(y, g). y \<in> T \<and> g \<in> {f \<in> extensional_funcset S (T - {y}). inj_on f S}}" by auto
-  also from `finite T` finite_delete have "... = (\<Sum>y \<in> T. card {g. g \<in> extensional_funcset S (T - {y}) \<and>  inj_on g S})"
+  also from \<open>finite T\<close> finite_delete have "... = (\<Sum>y \<in> T. card {g. g \<in> extensional_funcset S (T - {y}) \<and>  inj_on g S})"
     by (subst card_product_dependent) auto
   also from hyps have "... = (card T) * ?k"
     by auto
@@ -71,16 +71,16 @@ lemma setprod_upto_nat_unfold:
   "setprod f {m..(n::nat)} = (if n < m then 1 else (if n = 0 then f 0 else f n * setprod f {m..(n - 1)}))"
   by auto (auto simp add: gr0_conv_Suc atLeastAtMostSuc_conv)
 
-section {* Birthday paradox *}
+section \<open>Birthday paradox\<close>
 
 lemma birthday_paradox:
   assumes "card S = 23" "card T = 365"
   shows "2 * card {f \<in> extensional_funcset S T. \<not> inj_on f S} \<ge> card (extensional_funcset S T)"
 proof -
-  from `card S = 23` `card T = 365` have "finite S" "finite T" "card S <= card T" by (auto intro: card_ge_0_finite)
+  from \<open>card S = 23\<close> \<open>card T = 365\<close> have "finite S" "finite T" "card S <= card T" by (auto intro: card_ge_0_finite)
   from assms show ?thesis
-    using card_PiE[OF `finite S`, of "\<lambda>i. T"] `finite S`
-      card_extensional_funcset_not_inj_on[OF `finite S` `finite T` `card S <= card T`]
+    using card_PiE[OF \<open>finite S\<close>, of "\<lambda>i. T"] \<open>finite S\<close>
+      card_extensional_funcset_not_inj_on[OF \<open>finite S\<close> \<open>finite T\<close> \<open>card S <= card T\<close>]
     by (simp add: fact_div_fact setprod_upto_nat_unfold setprod_constant)
 qed
 

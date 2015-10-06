@@ -2,33 +2,33 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-section {* Groebner Basis Examples *}
+section \<open>Groebner Basis Examples\<close>
 
 theory Groebner_Examples
 imports "~~/src/HOL/Groebner_Basis"
 begin
 
-subsection {* Basic examples *}
+subsection \<open>Basic examples\<close>
 
 lemma
   fixes x :: int
   shows "x ^ 3 = x ^ 3"
-  apply (tactic {* ALLGOALS (CONVERSION
-    (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context})))) *})
+  apply (tactic \<open>ALLGOALS (CONVERSION
+    (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context}))))\<close>)
   by (rule refl)
 
 lemma
   fixes x :: int
   shows "(x - (-2))^5 = x ^ 5 + (10 * x ^ 4 + (40 * x ^ 3 + (80 * x\<^sup>2 + (80 * x + 32))))" 
-  apply (tactic {* ALLGOALS (CONVERSION
-    (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context})))) *})
+  apply (tactic \<open>ALLGOALS (CONVERSION
+    (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context}))))\<close>)
   by (rule refl)
 
 schematic_goal
   fixes x :: int
   shows "(x - (-2))^5  * (y - 78) ^ 8 = ?X" 
-  apply (tactic {* ALLGOALS (CONVERSION
-    (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context})))) *})
+  apply (tactic \<open>ALLGOALS (CONVERSION
+    (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context}))))\<close>)
   by (rule refl)
 
 lemma "((-3) ^ (Suc (Suc (Suc 0)))) == (X::'a::{comm_ring_1})"
@@ -63,7 +63,7 @@ lemma
   shows "x\<^sup>2*y = x\<^sup>2 & x*y\<^sup>2 = y\<^sup>2 \<longleftrightarrow>  x = 1 & y = 1 | x = 0 & y = 0"
   by algebra
 
-subsection {* Lemmas for Lagrange's theorem *}
+subsection \<open>Lemmas for Lagrange's theorem\<close>
 
 definition
   sq :: "'a::times => 'a" where
@@ -95,7 +95,7 @@ lemma
   by (algebra add: sq_def)
 
 
-subsection {* Colinearity is invariant by rotation *}
+subsection \<open>Colinearity is invariant by rotation\<close>
 
 type_synonym point = "int \<times> int"
 

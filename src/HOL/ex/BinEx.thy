@@ -3,13 +3,13 @@
     Copyright   1998  University of Cambridge
 *)
 
-section {* Binary arithmetic examples *}
+section \<open>Binary arithmetic examples\<close>
 
 theory BinEx
 imports Complex_Main
 begin
 
-subsection {* Regression Testing for Cancellation Simprocs *}
+subsection \<open>Regression Testing for Cancellation Simprocs\<close>
 
 lemma "l + 2 + 2 + 2 + (l + 2) + (oo + 2) = (uu::int)"
 apply simp  oops
@@ -83,7 +83,7 @@ lemma "(pi * (real u * 2) = pi * (real (xa v) * - 2))"
 apply simp oops
 
 
-subsection {* Arithmetic Method Tests *}
+subsection \<open>Arithmetic Method Tests\<close>
 
 
 lemma "!!a::int. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d"
@@ -129,9 +129,9 @@ by arith
 
 
 
-subsection {* The Integers *}
+subsection \<open>The Integers\<close>
 
-text {* Addition *}
+text \<open>Addition\<close>
 
 lemma "(13::int) + 19 = 32"
   by simp
@@ -146,7 +146,7 @@ lemma "(93746::int) + -46375 = 47371"
   by simp
 
 
-text {* \medskip Negation *}
+text \<open>\medskip Negation\<close>
 
 lemma "- (65745::int) = -65745"
   by simp
@@ -155,7 +155,7 @@ lemma "- (-54321::int) = 54321"
   by simp
 
 
-text {* \medskip Multiplication *}
+text \<open>\medskip Multiplication\<close>
 
 lemma "(13::int) * 19 = 247"
   by simp
@@ -187,12 +187,12 @@ lemma "(999999::int) \<le> (1000001 + 1) - 2"
 lemma "(1234567::int) \<le> 1234567"
   by simp
 
-text{*No integer overflow!*}
+text\<open>No integer overflow!\<close>
 lemma "1234567 * (1234567::int) < 1234567*1234567*1234567"
   by simp
 
 
-text {* \medskip Quotient and Remainder *}
+text \<open>\medskip Quotient and Remainder\<close>
 
 lemma "(10::int) div 3 = 3"
   by simp
@@ -200,7 +200,7 @@ lemma "(10::int) div 3 = 3"
 lemma "(10::int) mod 3 = 1"
   by simp
 
-text {* A negative divisor *}
+text \<open>A negative divisor\<close>
 
 lemma "(10::int) div -3 = -4"
   by simp
@@ -208,10 +208,10 @@ lemma "(10::int) div -3 = -4"
 lemma "(10::int) mod -3 = -2"
   by simp
 
-text {*
+text \<open>
   A negative dividend\footnote{The definition agrees with mathematical
   convention and with ML, but not with the hardware of most computers}
-*}
+\<close>
 
 lemma "(-10::int) div 3 = -4"
   by simp
@@ -219,7 +219,7 @@ lemma "(-10::int) div 3 = -4"
 lemma "(-10::int) mod 3 = 2"
   by simp
 
-text {* A negative dividend \emph{and} divisor *}
+text \<open>A negative dividend \emph{and} divisor\<close>
 
 lemma "(-10::int) div -3 = 3"
   by simp
@@ -227,7 +227,7 @@ lemma "(-10::int) div -3 = 3"
 lemma "(-10::int) mod -3 = -1"
   by simp
 
-text {* A few bigger examples *}
+text \<open>A few bigger examples\<close>
 
 lemma "(8452::int) mod 3 = 1"
   by simp
@@ -239,7 +239,7 @@ lemma "(1000006::int) mod 10 = 6"
   by simp
 
 
-text {* \medskip Division by shifting *}
+text \<open>\medskip Division by shifting\<close>
 
 lemma "10000000 div 2 = (5000000::int)"
   by simp
@@ -260,7 +260,7 @@ lemma "100094 mod 144 = (14::int)"
   by simp
 
 
-text {* \medskip Powers *}
+text \<open>\medskip Powers\<close>
 
 lemma "2 ^ 10 = (1024::int)"
   by simp
@@ -278,15 +278,15 @@ lemma "(- 5) ^ 11 = (-48828125::int)"
   by simp
 
 
-subsection {* The Natural Numbers *}
+subsection \<open>The Natural Numbers\<close>
 
-text {* Successor *}
+text \<open>Successor\<close>
 
 lemma "Suc 99999 = 100000"
   by simp
 
 
-text {* \medskip Addition *}
+text \<open>\medskip Addition\<close>
 
 lemma "(13::nat) + 19 = 32"
   by simp
@@ -298,7 +298,7 @@ lemma "(973646::nat) + 6475 = 980121"
   by simp
 
 
-text {* \medskip Subtraction *}
+text \<open>\medskip Subtraction\<close>
 
 lemma "(32::nat) - 14 = 18"
   by simp
@@ -313,7 +313,7 @@ lemma "(48273776::nat) - 3873737 = 44400039"
   by simp
 
 
-text {* \medskip Multiplication *}
+text \<open>\medskip Multiplication\<close>
 
 lemma "(12::nat) * 11 = 132"
   by simp
@@ -322,7 +322,7 @@ lemma "(647::nat) * 3643 = 2357021"
   by simp
 
 
-text {* \medskip Quotient and Remainder *}
+text \<open>\medskip Quotient and Remainder\<close>
 
 lemma "(10::nat) div 3 = 3"
   by simp
@@ -343,7 +343,7 @@ lemma "(10000::nat) mod 16 = 0"
   by simp
 
 
-text {* \medskip Powers *}
+text \<open>\medskip Powers\<close>
 
 lemma "2 ^ 12 = (4096::nat)"
   by simp
@@ -361,7 +361,7 @@ lemma "5 ^ 11 = (48828125::nat)"
   by simp
 
 
-text {* \medskip Testing the cancellation of complementary terms *}
+text \<open>\medskip Testing the cancellation of complementary terms\<close>
 
 lemma "y + (x + -x) = (0::int) + y"
   by simp
@@ -391,9 +391,9 @@ lemma "x + y - x + z - x - y - z + x < (1::int)"
   by simp
 
 
-subsection{*Real Arithmetic*}
+subsection\<open>Real Arithmetic\<close>
 
-subsubsection {*Addition *}
+subsubsection \<open>Addition\<close>
 
 lemma "(1359::real) + -2468 = -1109"
 by simp
@@ -402,7 +402,7 @@ lemma "(93746::real) + -46375 = 47371"
 by simp
 
 
-subsubsection {*Negation *}
+subsubsection \<open>Negation\<close>
 
 lemma "- (65745::real) = -65745"
 by simp
@@ -411,7 +411,7 @@ lemma "- (-54321::real) = 54321"
 by simp
 
 
-subsubsection {*Multiplication *}
+subsubsection \<open>Multiplication\<close>
 
 lemma "(-84::real) * 51 = -4284"
 by simp
@@ -423,7 +423,7 @@ lemma "(1359::real) * -2468 = -3354012"
 by simp
 
 
-subsubsection {*Inequalities *}
+subsubsection \<open>Inequalities\<close>
 
 lemma "(89::real) * 10 \<noteq> 889"
 by simp
@@ -444,7 +444,7 @@ lemma "(1234567::real) \<le> 1234567"
 by simp
 
 
-subsubsection {*Powers *}
+subsubsection \<open>Powers\<close>
 
 lemma "2 ^ 15 = (32768::real)"
 by simp
@@ -462,7 +462,7 @@ lemma "(- 5) ^ 11 = (-48828125::real)"
 by simp
 
 
-subsubsection {*Tests *}
+subsubsection \<open>Tests\<close>
 
 lemma "(x + y = x) = (y = (0::real))"
 by arith
@@ -748,7 +748,7 @@ lemma "!!a::real. a + b + c + d \<le> i + j + k + l ==> a \<le> b ==> b \<le> c
 by linarith
 
 
-subsection{*Complex Arithmetic*}
+subsection\<open>Complex Arithmetic\<close>
 
 lemma "(1359 + 93746*ii) - (2468 + 46375*ii) = -1109 + 47371*ii"
 by simp
@@ -756,8 +756,8 @@ by simp
 lemma "- (65745 + -47371*ii) = -65745 + 47371*ii"
 by simp
 
-text{*Multiplication requires distributive laws.  Perhaps versions instantiated
-to literal constants should be added to the simpset.*}
+text\<open>Multiplication requires distributive laws.  Perhaps versions instantiated
+to literal constants should be added to the simpset.\<close>
 
 lemma "(1 + ii) * (1 - ii) = 2"
 by (simp add: ring_distribs)
@@ -768,8 +768,8 @@ by (simp add: ring_distribs)
 lemma "(-84 + 255*ii) + (51 * 255*ii) = -84 + 13260 * ii"
 by (simp add: ring_distribs)
 
-text{*No inequalities or linear arithmetic: the complex numbers are unordered!*}
+text\<open>No inequalities or linear arithmetic: the complex numbers are unordered!\<close>
 
-text{*No powers (not supported yet)*}
+text\<open>No powers (not supported yet)\<close>
 
 end

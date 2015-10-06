@@ -2,7 +2,7 @@
     Author:     Makarius
 *)
 
-section {* Proof by guessing *}
+section \<open>Proof by guessing\<close>
 
 theory Guess
 imports Main

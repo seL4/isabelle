@@ -3,14 +3,14 @@
    Author:      Alexander Krauss, TU Muenchen
 *)
 
-section {* Examples and regression tests for automated termination proofs *}
+section \<open>Examples and regression tests for automated termination proofs\<close>
  
 theory Termination
 imports Main "~~/src/HOL/Library/Multiset"
 begin
 
-subsection {* Manually giving termination relations using @{text relation} and
-@{term measure} *}
+subsection \<open>Manually giving termination relations using @{text relation} and
+@{term measure}\<close>
 
 function sum :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -29,12 +29,12 @@ by pat_completeness auto
 termination by (relation "measures [\<lambda>(i, N). N, \<lambda>(i,N). N + 1 - i]") auto
 
 
-subsection {* @{text lexicographic_order}: Trivial examples *}
+subsection \<open>@{text lexicographic_order}: Trivial examples\<close>
 
-text {*
+text \<open>
   The @{text fun} command uses the method @{text lexicographic_order} by default,
   so it is not explicitly invoked.
-*}
+\<close>
 
 fun identity :: "nat \<Rightarrow> nat"
 where
@@ -46,7 +46,7 @@ where
 | "yaSuc (Suc n) = Suc (yaSuc n)"
 
 
-subsection {* Examples on natural numbers *}
+subsection \<open>Examples on natural numbers\<close>
 
 fun bin :: "(nat * nat) \<Rightarrow> nat"
 where
@@ -116,7 +116,7 @@ where
 | "blowup (Suc a) b c d e f g h i = Suc (blowup a b c d e f g h i)"
 
   
-subsection {* Simple examples with other datatypes than nat, e.g. trees and lists *}
+subsection \<open>Simple examples with other datatypes than nat, e.g. trees and lists\<close>
 
 datatype tree = Node | Branch tree tree
 
@@ -135,7 +135,7 @@ where
 |  "acklist ((n#ns), (m#ms)) = acklist (ns, acklist ((n#ns), ms))"
 
 
-subsection {* Examples with mutual recursion *}
+subsection \<open>Examples with mutual recursion\<close>
 
 fun evn od :: "nat \<Rightarrow> bool"
 where
@@ -168,9 +168,9 @@ where
 
 
 
-subsection {* Refined analysis: The @{text size_change} method *}
+subsection \<open>Refined analysis: The @{text size_change} method\<close>
 
-text {* Unsolvable for @{text lexicographic_order} *}
+text \<open>Unsolvable for @{text lexicographic_order}\<close>
 
 function fun1 :: "nat * nat \<Rightarrow> nat"
 where
@@ -182,9 +182,9 @@ by pat_completeness auto
 termination by size_change
 
 
-text {* 
+text \<open>
   @{text lexicographic_order} can do the following, but it is much slower. 
-*}
+\<close>
 
 function
   prod :: "nat => nat => nat => nat" and
@@ -197,9 +197,9 @@ where
 by pat_completeness auto
 termination by size_change
 
-text {* 
+text \<open>
   Permutations of arguments:
-*}
+\<close>
 
 function perm :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -209,9 +209,9 @@ where
 by auto
 termination by size_change
 
-text {*
+text \<open>
   Artificial examples and regression tests:
-*}
+\<close>
 
 function
   fun2 :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -227,7 +227,7 @@ where
            0
       )"
 by pat_completeness auto
-termination by size_change -- {* requires Multiset *}
+termination by size_change -- \<open>requires Multiset\<close>
 
 definition negate :: "int \<Rightarrow> int"
 where "negate i = - i"

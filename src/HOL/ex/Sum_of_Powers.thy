@@ -2,13 +2,13 @@
     Author:     Lukas Bulwahn <lukas.bulwahn-at-gmail.com>
 *)
 
-section {* Sum of Powers *}
+section \<open>Sum of Powers\<close>
 
 theory Sum_of_Powers
 imports Complex_Main
 begin
 
-subsection {* Additions to @{theory Binomial} Theory *}
+subsection \<open>Additions to @{theory Binomial} Theory\<close>
 
 lemma of_nat_binomial_eq_mult_binomial_Suc:
   assumes "k \<le> n"
@@ -51,7 +51,7 @@ proof -
     by (metis (no_types, lifting) assms le_add1 le_trans of_nat_diff real_of_nat_1 real_of_nat_add real_of_nat_def)
 qed
 
-subsection {* Preliminaries *}
+subsection \<open>Preliminaries\<close>
 
 lemma integrals_eq:
   assumes "f 0 = g 0"
@@ -71,7 +71,7 @@ by (induct n) (auto simp add: field_simps)
 
 declare One_nat_def [simp del]
 
-subsection {* Bernoulli Numbers and Bernoulli Polynomials  *}
+subsection \<open>Bernoulli Numbers and Bernoulli Polynomials\<close>
 
 declare setsum.cong [fundef_cong]
 
@@ -85,7 +85,7 @@ declare bernoulli.simps[simp del]
 definition
   "bernpoly n = (\<lambda>x. \<Sum>k \<le> n. (n choose k) * bernoulli k * x ^ (n - k))"
 
-subsection {* Basic Observations on Bernoulli Polynomials *}
+subsection \<open>Basic Observations on Bernoulli Polynomials\<close>
 
 lemma bernpoly_0: "bernpoly n 0 = bernoulli n"
 proof (cases n)
@@ -112,7 +112,7 @@ next
     (simp add: field_simps add_2_eq_Suc'[symmetric] del: add_2_eq_Suc add_2_eq_Suc')
 qed
 
-subsection {* Sum of Powers with Bernoulli Polynomials *}
+subsection \<open>Sum of Powers with Bernoulli Polynomials\<close>
 
 lemma bernpoly_derivative [derivative_intros]:
   "(bernpoly (Suc n) has_real_derivative ((n + 1) * bernpoly n x)) (at x)"
@@ -154,7 +154,7 @@ proof -
   finally show ?thesis by (auto simp add: field_simps intro!: eq_divide_imp)
 qed
 
-subsection {* Instances for Square And Cubic Numbers *}
+subsection \<open>Instances for Square And Cubic Numbers\<close>
 
 lemma binomial_unroll:
   "n > 0 \<Longrightarrow> (n choose k) = (if k = 0 then 1 else (n - 1) choose (k - 1) + ((n - 1) choose k))"

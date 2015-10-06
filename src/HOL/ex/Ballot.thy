@@ -3,7 +3,7 @@
      Author: Johannes Hölzl <hoelzl@in.tum.de>
 *)
 
-section {* Bertrand's Ballot Theorem *}
+section \<open>Bertrand's Ballot Theorem\<close>
 
 theory Ballot
 imports
@@ -11,7 +11,7 @@ imports
   "~~/src/HOL/Library/FuncSet"
 begin
 
-subsection {* Preliminaries *}
+subsection \<open>Preliminaries\<close>
 
 lemma card_bij':
   assumes "f \<in> A \<rightarrow> B" "\<And>x. x \<in> A \<Longrightarrow> g (f x) = x"
@@ -22,9 +22,9 @@ lemma card_bij':
   apply fact+
   done
 
-subsection {* Formalization of Problem Statement *}
+subsection \<open>Formalization of Problem Statement\<close>
 
-subsubsection {* Basic Definitions *}
+subsubsection \<open>Basic Definitions\<close>
 
 datatype vote = A | B
 
@@ -38,7 +38,7 @@ definition
       card {x\<in>{1..a+b}. f x = A} = a \<and> card {x\<in>{1..a+b}. f x = B} = b \<and>
       (\<forall>m\<in>{1..a+b}. card {x\<in>{1..m}. f x = A} > card {x\<in>{1..m}. f x = B})}"
 
-subsubsection {* Equivalence with Set Cardinality *}
+subsubsection \<open>Equivalence with Set Cardinality\<close>
 
 lemma Collect_on_transfer:
   assumes "rel_set R X Y"
@@ -139,9 +139,9 @@ qed
 lemma all_countings: "all_countings a b = (a + b) choose a"
   unfolding all_countings_set by (simp add: n_subsets)
 
-subsection {* Facts About @{term valid_countings} *}
+subsection \<open>Facts About @{term valid_countings}\<close>
 
-subsubsection {* Non-Recursive Cases *}
+subsubsection \<open>Non-Recursive Cases\<close>
 
 lemma card_V_eq_a: "V \<subseteq> {0..<a} \<Longrightarrow> card V = a \<longleftrightarrow> V = {0..<a}"
   using card_subset_eq[of "{0..<a}" V] by auto
@@ -187,7 +187,7 @@ proof -
         if "m \<le> Suc ?l" for m
         using that by auto }
     then show "insert ?l \<in> {V \<in> Pow {0..<a + Suc b}. card V = a \<and> ?Q V (a + Suc b)} \<rightarrow> ?V (\<lambda>V. ?l \<in> V)"
-      using `b < a` by auto
+      using \<open>b < a\<close> by auto
   qed auto
   also have "card (?V (\<lambda>V. ?l \<notin> V)) = valid_countings (Suc a) b"
     unfolding valid_countings_set
@@ -196,7 +196,7 @@ proof -
     then have [simp]: "V \<subseteq> {0..<Suc ?l}"
       by auto
     show "?Q V (Suc ?l) = ?Q V (Suc a + b)"
-      using `b<a` by (simp add: Int_absorb1 Icc_Suc2)
+      using \<open>b<a\<close> by (simp add: Int_absorb1 Icc_Suc2)
   qed (auto simp: subset_eq less_Suc_eq)
   finally show ?thesis
     by simp
@@ -224,9 +224,9 @@ next
         (Suc a * a - Suc a * Suc b) + (Suc a * Suc b - Suc b * b)"
         by (simp add: sign_simps)
       also have "\<dots> = (Suc a * a + (Suc a * Suc b - Suc b * b)) - Suc a * Suc b"
-        using `b<a` by (intro add_diff_assoc2 mult_mono) auto
+        using \<open>b<a\<close> by (intro add_diff_assoc2 mult_mono) auto
       also have "\<dots> = (Suc a * a + Suc a * Suc b) - Suc b * b - Suc a * Suc b"
-        using `b<a` by (intro arg_cong2[where f="op -"] add_diff_assoc mult_mono) auto
+        using \<open>b<a\<close> by (intro arg_cong2[where f="op -"] add_diff_assoc mult_mono) auto
       also have "\<dots> = (Suc a * Suc (a + b)) - (Suc b * Suc (a + b))"
         by (simp add: sign_simps)
       finally have rearrange: "Suc a * (a - Suc b) + (Suc a - b) * Suc b = (Suc a - Suc b) * Suc (a + b)"
@@ -234,7 +234,7 @@ next
 
       have "(Suc a * Suc (a + b)) * ((Suc a + Suc b) * valid_countings (Suc a) (Suc b)) =
         (Suc a + Suc b) * Suc a * ((a + Suc b) * valid_countings a (Suc b) + (Suc a + b) * valid_countings (Suc a) b)"
-        unfolding valid_countings_Suc_Suc[OF `b < a`] by (simp add: field_simps)
+        unfolding valid_countings_Suc_Suc[OF \<open>b < a\<close>] by (simp add: field_simps)
       also have "... = (Suc a + Suc b) * ((a - Suc b) * (Suc a * (Suc (a + b) choose a)) +
         (Suc a - b) * (Suc a * (Suc (a + b) choose Suc a)))"
         unfolding Suc_a Suc_b by (simp add: field_simps)
@@ -254,7 +254,7 @@ lemma valid_countings_eq[code]:
   "valid_countings a b = (if a + b = 0 then 1 else ((a - b) * ((a + b) choose a)) div (a + b))"
   by (simp add: valid_countings[symmetric] valid_countings_a_0)
 
-subsection {* Relation Between @{term valid_countings} and @{term all_countings} *}
+subsection \<open>Relation Between @{term valid_countings} and @{term all_countings}\<close>
 
 lemma main_nat: "(a + b) * valid_countings a b = (a - b) * all_countings a b"
   unfolding valid_countings all_countings ..
@@ -264,10 +264,10 @@ lemma main_real:
   shows "valid_countings a b = (a - b) / (a + b) * all_countings a b"
 using assms
 proof -
-  from main_nat[of a b] `b < a` have
+  from main_nat[of a b] \<open>b < a\<close> have
     "(real a + real b) * real (valid_countings a b) = (real a - real b) * real (all_countings a b)"
     by (simp only: real_of_nat_add[symmetric] real_of_nat_mult[symmetric]) auto
-  from this `b < a` show ?thesis
+  from this \<open>b < a\<close> show ?thesis
     by (subst mult_left_cancel[of "real a + real b", symmetric]) auto
 qed
 
@@ -282,7 +282,7 @@ next
       by (auto simp add: valid_countings_a_0 all_countings valid_countings_eq_zero)
 qed
 
-subsubsection {* Executable Definition *}
+subsubsection \<open>Executable Definition\<close>
 
 declare all_countings_def [code del]
 declare all_countings[code]
@@ -295,7 +295,7 @@ value "all_countings 1 2"
 value "all_countings 2 4"
 value "all_countings 4 2"
 
-subsubsection {* Executable Definition *}
+subsubsection \<open>Executable Definition\<close>
 
 declare valid_countings_def [code del]
 

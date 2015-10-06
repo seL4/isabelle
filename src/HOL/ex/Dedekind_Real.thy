@@ -11,9 +11,9 @@ theory Dedekind_Real
 imports Complex_Main
 begin
 
-section {* Positive real numbers *}
+section \<open>Positive real numbers\<close>
 
-text{*Could be generalized and moved to @{text Groups}*}
+text\<open>Could be generalized and moved to @{text Groups}\<close>
 lemma add_eq_exists: "\<exists>x. a+x = (b::rat)"
 by (rule_tac x="b-a" in exI, simp)
 
@@ -113,7 +113,7 @@ instance ..
 end
 
 
-text{*Reduces equality on abstractions to equality on representatives*}
+text\<open>Reduces equality on abstractions to equality on representatives\<close>
 declare Abs_preal_inject [simp]
 declare Abs_preal_inverse [simp]
 
@@ -142,15 +142,15 @@ lemma preal_exists_greater: "[| cut A; y \<in> A |] ==> \<exists>u \<in> A. y < 
 lemma preal_downwards_closed: "[| cut A; y \<in> A; 0 < z; z < y |] ==> z \<in> A"
   unfolding cut_def [abs_def] by blast
 
-text{*Relaxing the final premise*}
+text\<open>Relaxing the final premise\<close>
 lemma preal_downwards_closed':
      "[| cut A; y \<in> A; 0 < z; z \<le> y |] ==> z \<in> A"
 apply (simp add: order_le_less)
 apply (blast intro: preal_downwards_closed)
 done
 
-text{*A positive fraction not in a positive real is an upper bound.
- Gleason p. 122 - Remark (1)*}
+text\<open>A positive fraction not in a positive real is an upper bound.
+ Gleason p. 122 - Remark (1)\<close>
 
 lemma not_in_preal_ub:
   assumes A: "cut A"
@@ -170,7 +170,7 @@ next
   thus ?thesis .
 qed
 
-text {* preal lemmas instantiated to @{term "Rep_preal X"} *}
+text \<open>preal lemmas instantiated to @{term "Rep_preal X"}\<close>
 
 lemma mem_Rep_preal_Ex: "\<exists>x. x \<in> Rep_preal X"
 thm preal_Ex_mem
@@ -182,7 +182,7 @@ by (rule preal_exists_bound [OF Rep_preal])
 lemmas not_in_Rep_preal_ub = not_in_preal_ub [OF Rep_preal]
 
 
-subsection{*Properties of Ordering*}
+subsection\<open>Properties of Ordering\<close>
 
 instance preal :: order
 proof
@@ -231,7 +231,7 @@ instance
 
 end
 
-subsection{*Properties of Addition*}
+subsection\<open>Properties of Addition\<close>
 
 lemma preal_add_commute: "(x::preal) + y = y + x"
 apply (unfold preal_add_def add_set_def)
@@ -239,18 +239,18 @@ apply (rule_tac f = Abs_preal in arg_cong)
 apply (force simp add: add.commute)
 done
 
-text{*Lemmas for proving that addition of two positive reals gives
- a positive real*}
+text\<open>Lemmas for proving that addition of two positive reals gives
+ a positive real\<close>
 
-text{*Part 1 of Dedekind sections definition*}
+text\<open>Part 1 of Dedekind sections definition\<close>
 lemma add_set_not_empty:
      "[|cut A; cut B|] ==> {} \<subset> add_set A B"
 apply (drule preal_nonempty)+
 apply (auto simp add: add_set_def)
 done
 
-text{*Part 2 of Dedekind sections definition.  A structured version of
-this proof is @{text preal_not_mem_mult_set_Ex} below.*}
+text\<open>Part 2 of Dedekind sections definition.  A structured version of
+this proof is @{text preal_not_mem_mult_set_Ex} below.\<close>
 lemma preal_not_mem_add_set_Ex:
      "[|cut A; cut B|] ==> \<exists>q>0. q \<notin> add_set A B"
 apply (insert preal_exists_bound [of A] preal_exists_bound [of B], auto) 
@@ -272,7 +272,7 @@ next
     by (insert preal_not_mem_add_set_Ex [OF A B], blast) 
 qed
 
-text{*Part 3 of Dedekind sections definition*}
+text\<open>Part 3 of Dedekind sections definition\<close>
 lemma add_set_lemma3:
      "[|cut A; cut B; u \<in> add_set A B; 0 < z; z < u|] 
       ==> z \<in> add_set A B"
@@ -315,7 +315,7 @@ proof (unfold add_set_def, clarify)
   qed
 qed
 
-text{*Part 4 of Dedekind sections definition*}
+text\<open>Part 4 of Dedekind sections definition\<close>
 lemma add_set_lemma4:
      "[|cut A; cut B; y \<in> add_set A B|] ==> \<exists>u \<in> add_set A B. y < u"
 apply (auto simp add: add_set_def)
@@ -344,9 +344,9 @@ proof
 qed
 
 
-subsection{*Properties of Multiplication*}
+subsection\<open>Properties of Multiplication\<close>
 
-text{*Proofs essentially same as for addition*}
+text\<open>Proofs essentially same as for addition\<close>
 
 lemma preal_mult_commute: "(x::preal) * y = y * x"
 apply (unfold preal_mult_def mult_set_def)
@@ -354,18 +354,18 @@ apply (rule_tac f = Abs_preal in arg_cong)
 apply (force simp add: mult.commute)
 done
 
-text{*Multiplication of two positive reals gives a positive real.*}
+text\<open>Multiplication of two positive reals gives a positive real.\<close>
 
-text{*Lemmas for proving positive reals multiplication set in @{typ preal}*}
+text\<open>Lemmas for proving positive reals multiplication set in @{typ preal}\<close>
 
-text{*Part 1 of Dedekind sections definition*}
+text\<open>Part 1 of Dedekind sections definition\<close>
 lemma mult_set_not_empty:
      "[|cut A; cut B|] ==> {} \<subset> mult_set A B"
 apply (insert preal_nonempty [of A] preal_nonempty [of B]) 
 apply (auto simp add: mult_set_def)
 done
 
-text{*Part 2 of Dedekind sections definition*}
+text\<open>Part 2 of Dedekind sections definition\<close>
 lemma preal_not_mem_mult_set_Ex:
   assumes A: "cut A" 
     and B: "cut B"
@@ -386,7 +386,7 @@ proof -
         from A B 1 2 u v have "0\<le>v"
           by (blast intro: preal_imp_pos [OF B] order_less_imp_le)
         moreover
-        from A B 1 `u < x` `v < y` `0 \<le> v`
+        from A B 1 \<open>u < x\<close> \<open>v < y\<close> \<open>0 \<le> v\<close>
         have "u*v < x*y" by (blast intro: mult_strict_mono)
         ultimately have False by force
       }
@@ -409,7 +409,7 @@ qed
 
 
 
-text{*Part 3 of Dedekind sections definition*}
+text\<open>Part 3 of Dedekind sections definition\<close>
 lemma mult_set_lemma3:
      "[|cut A; cut B; u \<in> mult_set A B; 0 < z; z < u|] 
       ==> z \<in> mult_set A B"
@@ -441,7 +441,7 @@ proof (unfold mult_set_def, clarify)
   qed
 qed
 
-text{*Part 4 of Dedekind sections definition*}
+text\<open>Part 4 of Dedekind sections definition\<close>
 lemma mult_set_lemma4:
      "[|cut A; cut B; y \<in> mult_set A B|] ==> \<exists>u \<in> mult_set A B. y < u"
 apply (auto simp add: mult_set_def)
@@ -472,7 +472,7 @@ proof
 qed
 
 
-text{* Positive real 1 is the multiplicative identity element *}
+text\<open>Positive real 1 is the multiplicative identity element\<close>
 
 lemma preal_mult_1: "(1::preal) * z = z"
 proof (induct z)
@@ -485,7 +485,7 @@ proof (induct z)
       fix x::rat and u::rat and v::rat
       assume upos: "0<u" and "u<1" and v: "v \<in> A"
       have vpos: "0<v" by (rule preal_imp_pos [OF A v])
-      hence "u*v < 1*v" by (simp only: mult_strict_right_mono upos `u < 1` v)
+      hence "u*v < 1*v" by (simp only: mult_strict_right_mono upos \<open>u < 1\<close> v)
       thus "u * v \<in> A"
         by (force intro: preal_downwards_closed [OF A v] mult_pos_pos 
           upos vpos)
@@ -524,7 +524,7 @@ instance preal :: comm_monoid_mult
 by intro_classes (rule preal_mult_1)
 
 
-subsection{*Distribution of Multiplication across Addition*}
+subsection\<open>Distribution of Multiplication across Addition\<close>
 
 lemma mem_Rep_preal_add_iff:
       "(z \<in> Rep_preal(R+S)) = (\<exists>x \<in> Rep_preal R. \<exists>y \<in> Rep_preal S. z = x + y)"
@@ -592,7 +592,7 @@ instance preal :: comm_semiring
 by intro_classes (rule preal_add_mult_distrib)
 
 
-subsection{*Existence of Inverse, a Positive Real*}
+subsection\<open>Existence of Inverse, a Positive Real\<close>
 
 lemma mem_inv_set_ex:
   assumes A: "cut A" shows "\<exists>x y. 0 < x & x < y & inverse y \<notin> A"
@@ -610,14 +610,14 @@ proof -
   qed
 qed
 
-text{*Part 1 of Dedekind sections definition*}
+text\<open>Part 1 of Dedekind sections definition\<close>
 lemma inverse_set_not_empty:
      "cut A ==> {} \<subset> inverse_set A"
 apply (insert mem_inv_set_ex [of A])
 apply (auto simp add: inverse_set_def)
 done
 
-text{*Part 2 of Dedekind sections definition*}
+text\<open>Part 2 of Dedekind sections definition\<close>
 
 lemma preal_not_mem_inverse_set_Ex:
    assumes A: "cut A"  shows "\<exists>q. 0 < q & q \<notin> inverse_set A"
@@ -650,7 +650,7 @@ next
     by (insert preal_not_mem_inverse_set_Ex [OF A], blast)
 qed
 
-text{*Part 3 of Dedekind sections definition*}
+text\<open>Part 3 of Dedekind sections definition\<close>
 lemma inverse_set_lemma3:
      "[|cut A; u \<in> inverse_set A; 0 < z; z < u|] 
       ==> z \<in> inverse_set A"
@@ -658,7 +658,7 @@ apply (auto simp add: inverse_set_def)
 apply (auto intro: order_less_trans)
 done
 
-text{*Part 4 of Dedekind sections definition*}
+text\<open>Part 4 of Dedekind sections definition\<close>
 lemma inverse_set_lemma4:
      "[|cut A; y \<in> inverse_set A|] ==> \<exists>u \<in> inverse_set A. y < u"
 apply (auto simp add: inverse_set_def)
@@ -675,7 +675,7 @@ apply (blast intro!: inverse_set_not_empty inverse_set_not_rat_set
 done
 
 
-subsection{*Gleason's Lemma 9-3.4, page 122*}
+subsection\<open>Gleason's Lemma 9-3.4, page 122\<close>
 
 lemma Gleason9_34_exists:
   assumes A: "cut A"
@@ -754,7 +754,7 @@ qed
 
 
 
-subsection{*Gleason's Lemma 9-3.6*}
+subsection\<open>Gleason's Lemma 9-3.6\<close>
 
 lemma lemma_gleason9_36:
   assumes A: "cut A"
@@ -800,7 +800,7 @@ proof -
   qed  
 qed
 
-subsection{*Existence of Inverse: Part 2*}
+subsection\<open>Existence of Inverse: Part 2\<close>
 
 lemma mem_Rep_preal_inverse_iff:
       "(z \<in> Rep_preal(inverse R)) = 
@@ -882,7 +882,7 @@ apply (rule preal_mult_inverse)
 done
 
 
-text{*Theorems needing @{text Gleason9_34}*}
+text\<open>Theorems needing @{text Gleason9_34}\<close>
 
 lemma Rep_preal_self_subset: "Rep_preal (R) \<subseteq> Rep_preal(R + S)"
 proof 
@@ -913,19 +913,19 @@ qed
 lemma Rep_preal_sum_not_eq: "Rep_preal (R + S) \<noteq> Rep_preal(R)"
 by (insert Rep_preal_sum_not_subset, blast)
 
-text{*at last, Gleason prop. 9-3.5(iii) page 123*}
+text\<open>at last, Gleason prop. 9-3.5(iii) page 123\<close>
 lemma preal_self_less_add_left: "(R::preal) < R + S"
 apply (unfold preal_less_def less_le)
 apply (simp add: Rep_preal_self_subset Rep_preal_sum_not_eq [THEN not_sym])
 done
 
 
-subsection{*Subtraction for Positive Reals*}
+subsection\<open>Subtraction for Positive Reals\<close>
 
-text{*Gleason prop. 9-3.5(iv), page 123: proving @{prop "A < B ==> \<exists>D. A + D =
-B"}. We define the claimed @{term D} and show that it is a positive real*}
+text\<open>Gleason prop. 9-3.5(iv), page 123: proving @{prop "A < B ==> \<exists>D. A + D =
+B"}. We define the claimed @{term D} and show that it is a positive real\<close>
 
-text{*Part 1 of Dedekind sections definition*}
+text\<open>Part 1 of Dedekind sections definition\<close>
 lemma diff_set_not_empty:
      "R < S ==> {} \<subset> diff_set (Rep_preal S) (Rep_preal R)"
 apply (auto simp add: preal_less_def diff_set_def elim!: equalityE) 
@@ -934,7 +934,7 @@ apply (drule preal_imp_pos [OF Rep_preal], clarify)
 apply (cut_tac a=x and b=u in add_eq_exists, force) 
 done
 
-text{*Part 2 of Dedekind sections definition*}
+text\<open>Part 2 of Dedekind sections definition\<close>
 lemma diff_set_nonempty:
      "\<exists>q. 0 < q & q \<notin> diff_set (Rep_preal S) (Rep_preal R)"
 apply (cut_tac X = S in Rep_preal_exists_bound)
@@ -951,7 +951,7 @@ proof
   show "?lhs \<noteq> ?rhs" using diff_set_nonempty by blast
 qed
 
-text{*Part 3 of Dedekind sections definition*}
+text\<open>Part 3 of Dedekind sections definition\<close>
 lemma diff_set_lemma3:
      "[|R < S; u \<in> diff_set (Rep_preal S) (Rep_preal R); 0 < z; z < u|] 
       ==> z \<in> diff_set (Rep_preal S) (Rep_preal R)"
@@ -960,7 +960,7 @@ apply (rule_tac x=x in exI)
 apply (drule Rep_preal [THEN preal_downwards_closed], auto)
 done
 
-text{*Part 4 of Dedekind sections definition*}
+text\<open>Part 4 of Dedekind sections definition\<close>
 lemma diff_set_lemma4:
      "[|R < S; y \<in> diff_set (Rep_preal S) (Rep_preal R)|] 
       ==> \<exists>u \<in> diff_set (Rep_preal S) (Rep_preal R). y < u"
@@ -987,7 +987,7 @@ apply (force simp add: diff_set_def)
 done
 
 
-text{*proving that @{term "R + D \<le> S"}*}
+text\<open>proving that @{term "R + D \<le> S"}\<close>
 
 lemma less_add_left_lemma:
   assumes Rless: "R < S"
@@ -1012,7 +1012,7 @@ apply (auto simp add: Bex_def preal_le_def mem_Rep_preal_add_iff
 apply (blast intro: less_add_left_lemma) 
 done
 
-subsection{*proving that @{term "S \<le> R + D"} --- trickier*}
+subsection\<open>proving that @{term "S \<le> R + D"} --- trickier\<close>
 
 lemma lemma_sum_mem_Rep_preal_ex:
      "x \<in> Rep_preal S ==> \<exists>e. 0 < e & x + e \<in> Rep_preal S"
@@ -1106,11 +1106,11 @@ proof
 qed
 
 
-subsection{*Completeness of type @{typ preal}*}
+subsection\<open>Completeness of type @{typ preal}\<close>
 
-text{*Prove that supremum is a cut*}
+text\<open>Prove that supremum is a cut\<close>
 
-text{*Part 1 of Dedekind sections definition*}
+text\<open>Part 1 of Dedekind sections definition\<close>
 
 lemma preal_sup_set_not_empty:
      "P \<noteq> {} ==> {} \<subset> (\<Union>X \<in> P. Rep_preal(X))"
@@ -1119,7 +1119,7 @@ apply (cut_tac X = x in mem_Rep_preal_Ex, auto)
 done
 
 
-text{*Part 2 of Dedekind sections definition*}
+text\<open>Part 2 of Dedekind sections definition\<close>
 
 lemma preal_sup_not_exists:
      "\<forall>X \<in> P. X \<le> Y ==> \<exists>q. 0 < q & q \<notin> (\<Union>X \<in> P. Rep_preal(X))"
@@ -1133,13 +1133,13 @@ apply (drule preal_sup_not_exists)
 apply (blast intro: preal_imp_pos [OF Rep_preal])  
 done
 
-text{*Part 3 of Dedekind sections definition*}
+text\<open>Part 3 of Dedekind sections definition\<close>
 lemma preal_sup_set_lemma3:
      "[|P \<noteq> {}; \<forall>X \<in> P. X \<le> Y; u \<in> (\<Union>X \<in> P. Rep_preal(X)); 0 < z; z < u|]
       ==> z \<in> (\<Union>X \<in> P. Rep_preal(X))"
 by (auto elim: Rep_preal [THEN preal_downwards_closed])
 
-text{*Part 4 of Dedekind sections definition*}
+text\<open>Part 4 of Dedekind sections definition\<close>
 lemma preal_sup_set_lemma4:
      "[|P \<noteq> {}; \<forall>X \<in> P. X \<le> Y; y \<in> (\<Union>X \<in> P. Rep_preal(X)) |]
           ==> \<exists>u \<in> (\<Union>X \<in> P. Rep_preal(X)). y < u"
@@ -1165,7 +1165,7 @@ apply (simp add: psup_def preal_sup)
 apply (auto simp add: preal_le_def)
 done
 
-text{*Supremum property*}
+text\<open>Supremum property\<close>
 lemma preal_complete:
      "[| P \<noteq> {}; \<forall>X \<in> P. X \<le> Y |] ==> (\<exists>X \<in> P. Z < X) = (Z < psup P)"
 apply (simp add: preal_less_def psup_def preal_sup)
@@ -1175,7 +1175,7 @@ apply (cut_tac x = U and y = Z in linorder_less_linear)
 apply (auto simp add: preal_less_def)
 done
 
-section {*Defining the Reals from the Positive Reals*}
+section \<open>Defining the Reals from the Positive Reals\<close>
 
 definition
   realrel   ::  "((preal * preal) * (preal * preal)) set" where
@@ -1241,7 +1241,7 @@ instance ..
 
 end
 
-subsection {* Equivalence relation over positive reals *}
+subsection \<open>Equivalence relation over positive reals\<close>
 
 lemma preal_trans_lemma:
   assumes "x + y1 = x1 + y"
@@ -1266,8 +1266,8 @@ apply (auto simp add: equiv_def refl_on_def sym_def trans_def realrel_def)
 apply (blast dest: preal_trans_lemma) 
 done
 
-text{*Reduces equality of equivalence classes to the @{term realrel} relation:
-  @{term "(realrel `` {x} = realrel `` {y}) = ((x,y) \<in> realrel)"} *}
+text\<open>Reduces equality of equivalence classes to the @{term realrel} relation:
+  @{term "(realrel `` {x} = realrel `` {y}) = ((x,y) \<in> realrel)"}\<close>
 lemmas equiv_realrel_iff = 
        eq_equiv_class_iff [OF equiv_realrel UNIV_I UNIV_I]
 
@@ -1281,8 +1281,8 @@ declare Abs_Real_inject [simp]
 declare Abs_Real_inverse [simp]
 
 
-text{*Case analysis on the representation of a real number as an equivalence
-      class of pairs of positive reals.*}
+text\<open>Case analysis on the representation of a real number as an equivalence
+      class of pairs of positive reals.\<close>
 lemma eq_Abs_Real [case_names Abs_Real, cases type: real]: 
      "(!!x y. z = Abs_Real(realrel``{(x,y)}) ==> P) ==> P"
 apply (rule Rep_Real [of z, unfolded Real_def, THEN quotientE])
@@ -1291,7 +1291,7 @@ apply (auto simp add: Rep_Real_inverse)
 done
 
 
-subsection {* Addition and Subtraction *}
+subsection \<open>Addition and Subtraction\<close>
 
 lemma real_add_congruent2_lemma:
      "[|a + ba = aa + b; ab + bc = ac + bb|]
@@ -1338,7 +1338,7 @@ proof
 qed
 
 
-subsection {* Multiplication *}
+subsection \<open>Multiplication\<close>
 
 lemma real_mult_congruent2_lemma:
      "!!(x1::preal). [| x1 + y2 = x2 + y1 |] ==>
@@ -1383,7 +1383,7 @@ apply (cases z1, cases z2, cases w)
 apply (simp add: real_add real_mult algebra_simps)
 done
 
-text{*one and zero are distinct*}
+text\<open>one and zero are distinct\<close>
 lemma real_zero_not_eq_one: "0 \<noteq> (1::real)"
 proof -
   have "(1::preal) < 1 + 1"
@@ -1402,13 +1402,13 @@ proof
   show "0 \<noteq> (1::real)" by (rule real_zero_not_eq_one)
 qed
 
-subsection {* Inverse and Division *}
+subsection \<open>Inverse and Division\<close>
 
 lemma real_zero_iff: "Abs_Real (realrel `` {(x, x)}) = 0"
 by (simp add: real_zero_def add.commute)
 
-text{*Instead of using an existential quantifier and constructing the inverse
-within the proof, we could define the inverse explicitly.*}
+text\<open>Instead of using an existential quantifier and constructing the inverse
+within the proof, we could define the inverse explicitly.\<close>
 
 lemma real_mult_inverse_left_ex: "x \<noteq> 0 ==> \<exists>y. y*x = (1::real)"
 apply (simp add: real_zero_def real_one_def, cases x)
@@ -1433,7 +1433,7 @@ apply (rule mult.assoc)
 done
 
 
-subsection{*The Real Numbers form a Field*}
+subsection\<open>The Real Numbers form a Field\<close>
 
 instance real :: field
 proof
@@ -1444,14 +1444,14 @@ proof
 qed
 
 
-subsection{*The @{text "\<le>"} Ordering*}
+subsection\<open>The @{text "\<le>"} Ordering\<close>
 
 lemma real_le_refl: "w \<le> (w::real)"
 by (cases w, force simp add: real_le_def)
 
-text{*The arithmetic decision procedure is not set up for type preal.
+text\<open>The arithmetic decision procedure is not set up for type preal.
   This lemma is currently unused, but it could simplify the proofs of the
-  following two lemmas.*}
+  following two lemmas.\<close>
 lemma preal_eq_le_imp_le:
   assumes eq: "a+b = c+d" and le: "c \<le> a"
   shows "b \<le> (d::preal)"
@@ -1545,7 +1545,7 @@ apply (cases x, cases y)
 apply (simp add: linorder_not_le [where 'a = real, symmetric] 
                  linorder_not_le [where 'a = preal] 
                   real_zero_def real_le real_mult)
-  --{*Reduce to the (simpler) @{text "\<le>"} relation *}
+  --\<open>Reduce to the (simpler) @{text "\<le>"} relation\<close>
 apply (auto dest!: less_add_left_Ex
      simp add: algebra_simps preal_self_less_add_left)
 done
@@ -1572,7 +1572,7 @@ instance
 end
 
 
-subsection{*The Reals Form an Ordered Field*}
+subsection\<open>The Reals Form an Ordered Field\<close>
 
 instance real :: linordered_field
 proof
@@ -1584,9 +1584,9 @@ proof
     by (simp only: real_sgn_def)
 qed
 
-text{*The function @{term real_of_preal} requires many proofs, but it seems
+text\<open>The function @{term real_of_preal} requires many proofs, but it seems
 to be essential for proving completeness of the reals from that of the
-positive reals.*}
+positive reals.\<close>
 
 lemma real_of_preal_add:
      "real_of_preal ((x::preal) + y) = real_of_preal x + real_of_preal y"
@@ -1597,7 +1597,7 @@ lemma real_of_preal_mult:
 by (simp add: real_of_preal_def real_mult algebra_simps)
 
 
-text{*Gleason prop 9-4.4 p 127*}
+text\<open>Gleason prop 9-4.4 p 127\<close>
 lemma real_of_preal_trichotomy:
       "\<exists>m. (x::real) = real_of_preal m | x = 0 | x = -(real_of_preal m)"
 apply (simp add: real_of_preal_def real_zero_def, cases x)
@@ -1641,7 +1641,7 @@ proof -
 qed
 
 
-subsection{*Theorems About the Ordering*}
+subsection\<open>Theorems About the Ordering\<close>
 
 lemma real_gt_zero_preal_Ex: "(0 < x) = (\<exists>y. x = real_of_preal y)"
 apply (auto simp add: real_of_preal_zero_less)
@@ -1666,9 +1666,9 @@ by (auto elim: order_le_imp_less_or_eq [THEN disjE]
 lemma real_less_all_real2: "~ 0 < y ==> \<forall>x. y < real_of_preal x"
 by (blast intro!: real_less_all_preal linorder_not_less [THEN iffD1])
 
-subsection {* Completeness of Positive Reals *}
+subsection \<open>Completeness of Positive Reals\<close>
 
-text {*
+text \<open>
   Supremum property for the set of positive reals
 
   Let @{text "P"} be a non-empty set of positive reals, with an upper
@@ -1676,7 +1676,7 @@ text {*
   (written @{text "S"}).
 
   FIXME: Can the premise be weakened to @{text "\<forall>x \<in> P. x\<le> y"}?
-*}
+\<close>
 
 lemma posreal_complete:
   assumes positive_P: "\<forall>x \<in> P. (0::real) < x"
@@ -1713,12 +1713,12 @@ proof (rule exI, rule allI)
     with positive_P have a_pos: "0 < a" ..
     then obtain pa where "a = real_of_preal pa"
       by (auto simp add: real_gt_zero_preal_Ex)
-    hence "pa \<in> ?pP" using `a \<in> P` by auto
+    hence "pa \<in> ?pP" using \<open>a \<in> P\<close> by auto
     hence pP_not_empty: "?pP \<noteq> {}" by auto
 
     obtain sup where sup: "\<forall>x \<in> P. x < sup"
       using upper_bound_Ex ..
-    from this and `a \<in> P` have "a < sup" ..
+    from this and \<open>a \<in> P\<close> have "a < sup" ..
     hence "0 < sup" using a_pos by arith
     then obtain possup where "sup = real_of_preal possup"
       by (auto simp add: real_gt_zero_preal_Ex)
@@ -1766,9 +1766,9 @@ proof (rule exI, rule allI)
   qed
 qed
 
-text {*
+text \<open>
   \medskip Completeness
-*}
+\<close>
 
 lemma reals_complete:
   fixes S :: "real set"
@@ -1860,7 +1860,7 @@ proof -
   qed
 qed
 
-subsection {* The Archimedean Property of the Reals *}
+subsection \<open>The Archimedean Property of the Reals\<close>
 
 theorem reals_Archimedean:
   fixes x :: real
@@ -1908,10 +1908,10 @@ proof (rule ccontr)
   thus False using x_pos by arith
 qed
 
-text {*
+text \<open>
   There must be other proofs, e.g. @{text Suc} of the largest
   integer in the cut representing @{text "x"}.
-*}
+\<close>
 
 lemma reals_Archimedean2: "\<exists>n. (x::real) < of_nat (n::nat)"
 proof cases

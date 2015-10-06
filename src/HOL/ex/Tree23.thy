@@ -2,13 +2,13 @@
     Author:     Tobias Nipkow, TU Muenchen
 *)
 
-section {* 2-3 Trees *}
+section \<open>2-3 Trees\<close>
 
 theory Tree23
 imports Main
 begin
 
-text{* This is a very direct translation of some of the functions in table.ML
+text\<open>This is a very direct translation of some of the functions in table.ML
 in the Isabelle source code. That source is due to Makarius Wenzel and Stefan
 Berghofer.
 
@@ -17,9 +17,9 @@ free to have a go at the latter!
 
 Note that because of complicated patterns and mutual recursion, these
 function definitions take a few minutes and can also be seen as stress tests
-for the function definition facility.  *}
+for the function definition facility.\<close>
 
-type_synonym key = int -- {*for simplicity, should be a type class*}
+type_synonym key = int -- \<open>for simplicity, should be a type class\<close>
 
 datatype ord = LESS | EQUAL | GREATER
 
@@ -136,7 +136,7 @@ where
 definition del0 :: "key \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree23" where
 "del0 k t = (case del (Some k) t of None \<Rightarrow> t | Some(_,(_,t')) \<Rightarrow> t')"
 
-text {* Ordered trees *}
+text \<open>Ordered trees\<close>
 
 definition opt_less :: "key option \<Rightarrow> key option \<Rightarrow> bool" where
   "opt_less x y = (case x of None \<Rightarrow> True | Some a \<Rightarrow> (case y of None \<Rightarrow> True | Some b \<Rightarrow> a < b))"
@@ -155,7 +155,7 @@ primrec ord' :: "key option \<Rightarrow> 'a tree23 \<Rightarrow> key option \<R
 definition ord0 :: "'a tree23 \<Rightarrow> bool" where
   "ord0 t = ord' None t None"
 
-text {* Balanced trees *}
+text \<open>Balanced trees\<close>
 
 inductive full :: "nat \<Rightarrow> 'a tree23 \<Rightarrow> bool" where
 "full 0 Empty" |
@@ -189,7 +189,7 @@ fun height :: "'a tree23 \<Rightarrow> nat" where
 "height (Branch2 l _ r) = Suc(max (height l) (height r))" |
 "height (Branch3 l _ m _ r) = Suc(max (height l) (max (height m) (height r)))"
 
-text{* Is a tree balanced? *}
+text\<open>Is a tree balanced?\<close>
 fun bal :: "'a tree23 \<Rightarrow> bool" where
 "bal Empty = True" |
 "bal (Branch2 l _ r) = (bal l & bal r & height l = height r)" |
@@ -207,11 +207,11 @@ lemma bal_imp_full: "bal t \<Longrightarrow> full (height t) t"
 lemma bal_iff_full: "bal t \<longleftrightarrow> (\<exists>n. full n t)"
   by (auto elim!: bal_imp_full full_imp_bal)
 
-text {* The @{term "add0"} function either preserves the height of the
+text \<open>The @{term "add0"} function either preserves the height of the
 tree, or increases it by one. The constructor returned by the @{term
 "add"} function determines which: A return value of the form @{term
 "Stay t"} indicates that the height will be the same. A value of the
-form @{term "Sprout l p r"} indicates an increase in height. *}
+form @{term "Sprout l p r"} indicates an increase in height.\<close>
 
 primrec gfull :: "nat \<Rightarrow> 'a growth \<Rightarrow> bool" where
 "gfull n (Stay t) \<longleftrightarrow> full n t" |
@@ -220,7 +220,7 @@ primrec gfull :: "nat \<Rightarrow> 'a growth \<Rightarrow> bool" where
 lemma gfull_add: "full n t \<Longrightarrow> gfull n (add k y t)"
 by (induct set: full, auto split: ord.split growth.split)
 
-text {* The @{term "add0"} operation preserves balance. *}
+text \<open>The @{term "add0"} operation preserves balance.\<close>
 
 lemma bal_add0: "bal t \<Longrightarrow> bal (add0 k y t)"
 unfolding bal_iff_full add0_def
@@ -230,7 +230,7 @@ apply (cases "add k y t")
 apply (auto intro: full.intros)
 done
 
-text {* The @{term "add0"} operation preserves order. *}
+text \<open>The @{term "add0"} operation preserves order.\<close>
 
 lemma ord_cases:
   fixes a b :: int obtains
@@ -279,7 +279,7 @@ done
 lemma ord0_add0: "ord0 t \<Longrightarrow> ord0 (add0 k y t)"
   by (simp add: ord0_def ord'_add0)
 
-text {* The @{term "del"} function preserves balance. *}
+text \<open>The @{term "del"} function preserves balance.\<close>
 
 lemma del_extra_simps:
 "l \<noteq> Empty \<or> r \<noteq> Empty \<Longrightarrow>
@@ -409,8 +409,8 @@ apply (cases "del (Some k) t", force)
 apply (rename_tac a, case_tac "a", rename_tac b t', case_tac "b", auto)
 done
 
-text{* This is a little test harness and should be commented out once the
-above functions have been proved correct. *}
+text\<open>This is a little test harness and should be commented out once the
+above functions have been proved correct.\<close>
 
 datatype 'a act = Add int 'a | Del int
 
@@ -419,7 +419,7 @@ fun exec where
 "exec (Add k x # as) t = exec as (add0 k x t)" |
 "exec (Del k # as) t = exec as (del0 k t)"
 
-text{* Some quick checks: *}
+text\<open>Some quick checks:\<close>
 
 lemma bal_exec: "bal t \<Longrightarrow> bal (exec as t)"
   by (induct as t arbitrary: t rule: exec.induct,

@@ -2,15 +2,15 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-section {* Examples for generic reflection and reification *}
+section \<open>Examples for generic reflection and reification\<close>
 
 theory Reflection_Examples
 imports Complex_Main "~~/src/HOL/Library/Reflection"
 begin
 
-text {* This theory presents two methods: reify and reflection *}
+text \<open>This theory presents two methods: reify and reflection\<close>
 
-text {* 
+text \<open>
 Consider an HOL type @{text \<sigma>}, the structure of which is not recongnisable
 on the theory level.  This is the case of @{typ bool}, arithmetical terms such as @{typ int},
 @{typ real} etc \dots  In order to implement a simplification on terms of type @{text \<sigma>} we
@@ -41,10 +41,10 @@ The method @{text reflection} applies reification and hence the theorem @{prop "
 and hence using @{text corr_thm} derives @{prop "t = I xs (f s)"}.  It then uses
 normalization by equational rewriting to prove @{prop "f s = s'"} which almost finishes
 the proof of @{prop "t = t'"} where @{prop "I xs s' = t'"}.
-*}
+\<close>
 
-text {* Example 1 : Propositional formulae and NNF. *}
-text {* The type @{text fm} represents simple propositional formulae: *}
+text \<open>Example 1 : Propositional formulae and NNF.\<close>
+text \<open>The type @{text fm} represents simple propositional formulae:\<close>
 
 datatype form = TrueF | FalseF | Less nat nat
   | And form form | Or form form | Neg form | ExQ form
@@ -81,15 +81,15 @@ lemma "Q \<longrightarrow> (D \<and> F \<and> ((\<not> D) \<and> (\<not> F)))"
   apply (reify Ifm.simps)
 oops
 
-text {* Method @{text reify} maps a @{typ bool} to an @{typ fm}.  For this it needs the 
-semantics of @{text fm}, i.e.\ the rewrite rules in @{text Ifm.simps}. *}
+text \<open>Method @{text reify} maps a @{typ bool} to an @{typ fm}.  For this it needs the 
+semantics of @{text fm}, i.e.\ the rewrite rules in @{text Ifm.simps}.\<close>
 
-text {* You can also just pick up a subterm to reify. *}
+text \<open>You can also just pick up a subterm to reify.\<close>
 lemma "Q \<longrightarrow> (D \<and> F \<and> ((\<not> D) \<and> (\<not> F)))"
   apply (reify Ifm.simps ("((\<not> D) \<and> (\<not> F))"))
 oops
 
-text {* Let's perform NNF. This is a version that tends to generate disjunctions *}
+text \<open>Let's perform NNF. This is a version that tends to generate disjunctions\<close>
 primrec fmsize :: "fm \<Rightarrow> nat"
 where
   "fmsize (At n) = 1"
@@ -115,29 +115,29 @@ where
 | "nnf (NOT (NOT p)) = nnf p"
 | "nnf (NOT p) = NOT p"
 
-text {* The correctness theorem of @{const nnf}: it preserves the semantics of @{typ fm} *}
+text \<open>The correctness theorem of @{const nnf}: it preserves the semantics of @{typ fm}\<close>
 lemma nnf [reflection]:
   "Ifm (nnf p) vs = Ifm p vs"
   by (induct p rule: nnf.induct) auto
 
-text {* Now let's perform NNF using our @{const nnf} function defined above.  First to the
-  whole subgoal. *}
+text \<open>Now let's perform NNF using our @{const nnf} function defined above.  First to the
+  whole subgoal.\<close>
 lemma "A \<noteq> B \<and> (B \<longrightarrow> A \<noteq> (B \<or> C \<and> (B \<longrightarrow> A \<or> D))) \<longrightarrow> A \<or> B \<and> D"
   apply (reflection Ifm.simps)
 oops
 
-text {* Now we specify on which subterm it should be applied *}
+text \<open>Now we specify on which subterm it should be applied\<close>
 lemma "A \<noteq> B \<and> (B \<longrightarrow> A \<noteq> (B \<or> C \<and> (B \<longrightarrow> A \<or> D))) \<longrightarrow> A \<or> B \<and> D"
   apply (reflection Ifm.simps only: "B \<or> C \<and> (B \<longrightarrow> A \<or> D)")
 oops
 
 
-text {* Example 2: Simple arithmetic formulae *}
+text \<open>Example 2: Simple arithmetic formulae\<close>
 
-text {* The type @{text num} reflects linear expressions over natural number *}
+text \<open>The type @{text num} reflects linear expressions over natural number\<close>
 datatype num = C nat | Add num num | Mul nat num | Var nat | CN nat nat num
 
-text {* This is just technical to make recursive definitions easier. *}
+text \<open>This is just technical to make recursive definitions easier.\<close>
 primrec num_size :: "num \<Rightarrow> nat" 
 where
   "num_size (C c) = 1"
@@ -148,7 +148,7 @@ where
 
 lemma [measure_function]: "is_measure num_size" ..
 
-text {* The semantics of num *}
+text \<open>The semantics of num\<close>
 primrec Inum:: "num \<Rightarrow> nat list \<Rightarrow> nat"
 where
   Inum_C  : "Inum (C i) vs = i"
@@ -157,50 +157,50 @@ where
 | Inum_Mul: "Inum (Mul c t) vs = c * Inum t vs "
 | Inum_CN : "Inum (CN n c t) vs = c*(vs!n) + Inum t vs "
 
-text {* Let's reify some nat expressions \dots *}
+text \<open>Let's reify some nat expressions \dots\<close>
 lemma "4 * (2 * x + (y::nat)) + f a \<noteq> 0"
   apply (reify Inum.simps ("4 * (2 * x + (y::nat)) + f a"))
 oops
-text {* We're in a bad situation! @{text x}, @{text y} and @{text f} have been recongnized
+text \<open>We're in a bad situation! @{text x}, @{text y} and @{text f} have been recongnized
 as constants, which is correct but does not correspond to our intuition of the constructor C.
-It should encapsulate constants, i.e. numbers, i.e. numerals. *}
+It should encapsulate constants, i.e. numbers, i.e. numerals.\<close>
 
-text {* So let's leave the @{text "Inum_C"} equation at the end and see what happens \dots*}
+text \<open>So let's leave the @{text "Inum_C"} equation at the end and see what happens \dots\<close>
 lemma "4 * (2 * x + (y::nat)) \<noteq> 0"
   apply (reify Inum_Var Inum_Add Inum_Mul Inum_CN Inum_C ("4 * (2 * x + (y::nat))"))
 oops
-text {* Hm, let's specialize @{text Inum_C} with numerals.*}
+text \<open>Hm, let's specialize @{text Inum_C} with numerals.\<close>
 
 lemma Inum_number: "Inum (C (numeral t)) vs = numeral t" by simp
 lemmas Inum_eqs = Inum_Var Inum_Add Inum_Mul Inum_CN Inum_number
 
-text {* Second attempt *}
+text \<open>Second attempt\<close>
 lemma "1 * (2 * x + (y::nat)) \<noteq> 0"
   apply (reify Inum_eqs ("1 * (2 * x + (y::nat))"))
 oops
 
-text{* That was fine, so let's try another one \dots *}
+text\<open>That was fine, so let's try another one \dots\<close>
 
 lemma "1 * (2 * x + (y::nat) + 0 + 1) \<noteq> 0"
   apply (reify Inum_eqs ("1 * (2 * x + (y::nat) + 0 + 1)"))
 oops
 
-text {* Oh!! 0 is not a variable \dots\ Oh! 0 is not a @{text "numeral"} \dots\ thing.
-The same for 1. So let's add those equations, too. *}
+text \<open>Oh!! 0 is not a variable \dots\ Oh! 0 is not a @{text "numeral"} \dots\ thing.
+The same for 1. So let's add those equations, too.\<close>
 
 lemma Inum_01: "Inum (C 0) vs = 0" "Inum (C 1) vs = 1" "Inum (C(Suc n)) vs = Suc n"
   by simp_all
 
 lemmas Inum_eqs'= Inum_eqs Inum_01
 
-text{* Third attempt: *}
+text\<open>Third attempt:\<close>
 
 lemma "1 * (2 * x + (y::nat) + 0 + 1) \<noteq> 0"
   apply (reify Inum_eqs' ("1 * (2 * x + (y::nat) + 0 + 1)"))
 oops
 
-text {* Okay, let's try reflection. Some simplifications on @{typ num} follow. You can
-  skim until the main theorem @{text linum}. *}
+text \<open>Okay, let's try reflection. Some simplifications on @{typ num} follow. You can
+  skim until the main theorem @{text linum}.\<close>
   
 fun lin_add :: "num \<Rightarrow> num \<Rightarrow> num"
 where
@@ -244,13 +244,13 @@ lemma linum [reflection]:
   "Inum (linum t) bs = Inum t bs"
   by (induct t rule: linum.induct) (simp_all add: lin_mul lin_add)
 
-text {* Now we can use linum to simplify nat terms using reflection *}
+text \<open>Now we can use linum to simplify nat terms using reflection\<close>
 
 lemma "Suc (Suc 1) * (x + Suc 1 * y) = 3 * x + 6 * y"
   apply (reflection Inum_eqs' only: "Suc (Suc 1) * (x + Suc 1 * y)")
 oops
 
-text {* Let's lift this to formulae and see what happens *}
+text \<open>Let's lift this to formulae and see what happens\<close>
 
 datatype aform = Lt num num  | Eq num num | Ge num num | NEq num num | 
   Conj aform aform | Disj aform aform | NEG aform | T | F
@@ -281,17 +281,17 @@ where
 | "is_aform (Conj p q) vs = (is_aform p vs \<and> is_aform q vs)"
 | "is_aform (Disj p q) vs = (is_aform p vs \<or> is_aform q vs)"
 
-text{* Let's reify and do reflection *}
+text\<open>Let's reify and do reflection\<close>
 lemma "(3::nat) * x + t < 0 \<and> (2 * x + y \<noteq> 17)"
   apply (reify Inum_eqs' is_aform.simps) 
 oops
 
-text {* Note that reification handles several interpretations at the same time*}
+text \<open>Note that reification handles several interpretations at the same time\<close>
 lemma "(3::nat) * x + t < 0 \<and> x * x + t * x + 3 + 1 = z * t * 4 * z \<or> x + x + 1 < 0"
   apply (reflection Inum_eqs' is_aform.simps only: "x + x + 1") 
 oops
 
-text {* For reflection we now define a simple transformation on aform: NNF + linum on atoms *}
+text \<open>For reflection we now define a simple transformation on aform: NNF + linum on atoms\<close>
 
 fun linaform:: "aform \<Rightarrow> aform"
 where
@@ -327,9 +327,9 @@ lemma "(Suc (Suc (Suc 0)) * ((x::nat) + Suc (Suc 0)) + Suc (Suc (Suc 0)) *
   apply (reflection Inum_eqs' is_aform.simps)
 oops
 
-text {* We now give an example where interpretaions have zero or more than only
+text \<open>We now give an example where interpretaions have zero or more than only
   one envornement of different types and show that automatic reification also deals with
-  bindings *}
+  bindings\<close>
   
 datatype rb = BC bool | BAnd rb rb | BOr rb rb
 
@@ -449,7 +449,7 @@ lemma " \<forall>x. \<exists>n. ((Suc n) * length (([(3::int) * x + f t * y - 9 
   apply (reify Irifm.simps Irnat_simps Irlist.simps Irint_simps)
 oops
 
-text {* An example for equations containing type variables *}
+text \<open>An example for equations containing type variables\<close>
 
 datatype prod = Zero | One | Var nat | Mul prod prod 
   | Pw prod nat | PNM nat nat prod

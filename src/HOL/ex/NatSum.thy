@@ -2,51 +2,51 @@
     Author: Tobias Nipkow
 *)
 
-section {* Summing natural numbers *}
+section \<open>Summing natural numbers\<close>
 
 theory NatSum imports Main begin
 
-text {*
+text \<open>
   Summing natural numbers, squares, cubes, etc.
 
   Thanks to Sloane's On-Line Encyclopedia of Integer Sequences,
   @{url "http://www.research.att.com/~njas/sequences/"}.
-*}
+\<close>
 
 lemmas [simp] =
   ring_distribs
-  diff_mult_distrib diff_mult_distrib2 --{*for type nat*}
+  diff_mult_distrib diff_mult_distrib2 --\<open>for type nat\<close>
 
-text {*
+text \<open>
   \medskip The sum of the first @{text n} odd numbers equals @{text n}
   squared.
-*}
+\<close>
 
 lemma sum_of_odds: "(\<Sum>i=0..<n. Suc (i + i)) = n * n"
   by (induct n) auto
 
 
-text {*
+text \<open>
   \medskip The sum of the first @{text n} odd squares.
-*}
+\<close>
 
 lemma sum_of_odd_squares:
   "3 * (\<Sum>i=0..<n. Suc(2*i) * Suc(2*i)) = n * (4 * n * n - 1)"
   by (induct n) auto
 
 
-text {*
+text \<open>
   \medskip The sum of the first @{text n} odd cubes
-*}
+\<close>
 
 lemma sum_of_odd_cubes:
   "(\<Sum>i=0..<n. Suc (2*i) * Suc (2*i) * Suc (2*i)) =
     n * n * (2 * n * n - 1)"
   by (induct n) auto
 
-text {*
+text \<open>
   \medskip The sum of the first @{text n} positive integers equals
-  @{text "n (n + 1) / 2"}.*}
+  @{text "n (n + 1) / 2"}.\<close>
 
 lemma sum_of_naturals:
     "2 * (\<Sum>i=0..n. i) = n * Suc n"
@@ -60,7 +60,7 @@ lemma sum_of_cubes:
     "4 * (\<Sum>i=0..n. i * i * i) = n * n * Suc n * Suc n"
   by (induct n) auto
 
-text{* \medskip A cute identity: *}
+text\<open>\medskip A cute identity:\<close>
 
 lemma sum_squared: "(\<Sum>i=0..n. i)^2 = (\<Sum>i=0..n::nat. i^3)"
 proof(induct n)
@@ -77,22 +77,22 @@ next
   finally show ?case .
 qed
 
-text {*
+text \<open>
   \medskip Sum of fourth powers: three versions.
-*}
+\<close>
 
 lemma sum_of_fourth_powers:
   "30 * (\<Sum>i=0..n. i * i * i * i) =
     n * Suc n * Suc (2 * n) * (3 * n * n + 3 * n - 1)"
   apply (induct n)
    apply simp_all
-  apply (case_tac n)  -- {* eliminates the subtraction *} 
+  apply (case_tac n)  -- \<open>eliminates the subtraction\<close> 
    apply (simp_all (no_asm_simp))
   done
 
-text {*
+text \<open>
   Two alternative proofs, with a change of variables and much more
-  subtraction, performed using the integers. *}
+  subtraction, performed using the integers.\<close>
 
 lemma int_sum_of_fourth_powers:
   "30 * int (\<Sum>i=0..<m. i * i * i * i) =
@@ -107,10 +107,10 @@ lemma of_nat_sum_of_fourth_powers:
   by (induct m) (simp_all add: of_nat_mult)
 
 
-text {*
+text \<open>
   \medskip Sums of geometric series: @{text 2}, @{text 3} and the
   general case.
-*}
+\<close>
 
 lemma sum_of_2_powers: "(\<Sum>i=0..<n. 2^i) = 2^n - (1::nat)"
   by (induct n) (auto split: nat_diff_split)

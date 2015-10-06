@@ -1,6 +1,6 @@
 (* Author: Stefan Berghofer, Lukas Bulwahn, TU Muenchen *)
 
-section {* Simple example for table-based implementation of the reflexive transitive closure *}
+section \<open>Simple example for table-based implementation of the reflexive transitive closure\<close>
 
 theory Transitive_Closure_Table_Ex
 imports "~~/src/HOL/Library/Transitive_Closure_Table"
@@ -15,7 +15,7 @@ where
 | "test B C"
 
 
-text {* Invoking with the predicate compiler and the generic code generator *}
+text \<open>Invoking with the predicate compiler and the generic code generator\<close>
 
 code_pred test .
 

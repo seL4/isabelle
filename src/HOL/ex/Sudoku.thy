@@ -3,19 +3,19 @@
     Copyright   2005-2014
 *)
 
-section {* A SAT-based Sudoku Solver *}
+section \<open>A SAT-based Sudoku Solver\<close>
 
 theory Sudoku
 imports Main
 begin
 
-text {*
+text \<open>
   See the paper ``A SAT-based Sudoku Solver'' (Tjark Weber, published at
   LPAR'05) for further explanations.  (The paper describes an older version of
   this theory that used the model finder @{text refute} to find Sudoku
   solutions.  The @{text refute} tool has since been superseded by
   @{text nitpick}, which is used below.)
-*}
+\<close>
 
 no_notation Groups.one_class.one ("1")
 
@@ -83,9 +83,9 @@ definition sudoku :: "digit => digit => digit => digit => digit => digit => digi
      \<and> valid x74 x75 x76 x84 x85 x86 x94 x95 x96
      \<and> valid x77 x78 x79 x87 x88 x89 x97 x98 x99"
 
-text {*
+text \<open>
   Just an arbitrary Sudoku grid:
-*}
+\<close>
 
 theorem "\<not> sudoku
     x11 x12 x13 x14 x15 x16 x17 x18 x19
@@ -100,9 +100,9 @@ theorem "\<not> sudoku
   nitpick [expect=genuine]
 oops
 
-text {*
+text \<open>
   An ``easy'' Sudoku:
-*}
+\<close>
 
 theorem "\<not> sudoku
      5   3  x13 x14  7  x16 x17 x18 x19
@@ -117,9 +117,9 @@ theorem "\<not> sudoku
   nitpick [expect=genuine]
 oops
 
-text {*
+text \<open>
   A ``hard'' Sudoku:
-*}
+\<close>
 
 theorem "\<not> sudoku
     x11  2  x13 x14 x15 x16 x17 x18 x19
@@ -134,13 +134,13 @@ theorem "\<not> sudoku
   nitpick [expect=genuine]
 oops
 
-text {*
+text \<open>
   Some ``exceptionally difficult'' Sudokus, taken from
   @{url "http://en.wikipedia.org/w/index.php?title=Algorithmics_of_sudoku&oldid=254685903"}
   (accessed December~2, 2008).
-*}
+\<close>
 
-text {*
+text \<open>
 \begin{verbatim}
 Rating Program: gsf's sudoku q1 (rating) 
 Rating: 99408 
@@ -159,7 +159,7 @@ Label: Easter Monster
 . 3 . | . . 9 | . 8 .  
 . . 2 | . . . | . . 1  
 \end{verbatim}
-*}
+\<close>
 
 theorem "\<not> sudoku
      1  x12 x13 x14 x15 x16 x17 x18  2 
@@ -174,7 +174,7 @@ theorem "\<not> sudoku
   nitpick [expect=genuine]
 oops
 
-text {*
+text \<open>
 \begin{verbatim}
 Rating Program: gsf's sudoku q1 (Processing time) 
 Rating: 4m19s@2 GHz 
@@ -193,7 +193,7 @@ Label: tarek071223170000-052
 . . 9 | 2 . . | . . .  
 . 4 . | . . 1 | . . .  
 \end{verbatim}
-*}
+\<close>
 
 theorem "\<not> sudoku
     x11 x12  1  x14 x15  4  x17 x18 x19
@@ -208,7 +208,7 @@ theorem "\<not> sudoku
   nitpick [expect=genuine]
 oops
 
-text {*
+text \<open>
 \begin{verbatim}
 Rating Program: Nicolas Juillerat's Sudoku explainer 1.2.1 
 Rating: 11.9 
@@ -227,7 +227,7 @@ Label: golden nugget
 . 2 . | . . . | 6 . .  
 4 . . | 7 . . | . . .  
 \end{verbatim}
-*}
+\<close>
 
 theorem "\<not> sudoku
     x11 x12 x13 x14 x15 x16 x17  3   9 
@@ -242,7 +242,7 @@ theorem "\<not> sudoku
   nitpick [expect=genuine]
 oops
 
-text {*
+text \<open>
 \begin{verbatim}
 Rating Program: dukuso's suexrat9 
 Rating: 4483 
@@ -261,7 +261,7 @@ Label: col-02-08-071
 . 3 . | 9 . . | . . 7  
 . . 1 | . . 8 | 6 . .  
 \end{verbatim}
-*}
+\<close>
 
 theorem "\<not> sudoku
     x11  2  x13  4  x15  3   7  x18 x19
@@ -276,7 +276,7 @@ theorem "\<not> sudoku
   nitpick [expect=genuine]
 oops
 
-text {*
+text \<open>
 \begin{verbatim}
 Rating Program: dukuso's suexratt (10000 2 option) 
 Rating: 2141 
@@ -295,7 +295,7 @@ Label: golden nugget
 . 2 . | . . . | 6 . .  
 4 . . | 7 . . | . . .
 \end{verbatim}
-*}
+\<close>
 
 theorem "\<not> sudoku
     x11 x12 x13 x14 x15 x16 x17  3   9 

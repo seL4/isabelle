@@ -1,12 +1,12 @@
 (*  Author:     Andreas Lochbihler *)
 
-section {*
+section \<open>
   Predicates modelled as FinFuns
-*}
+\<close>
 
 theory FinFunPred imports "~~/src/HOL/Library/FinFun_Syntax" begin
 
-text {* Instantiate FinFun predicates just like predicates *}
+text \<open>Instantiate FinFun predicates just like predicates\<close>
 
 type_synonym 'a pred\<^sub>f = "'a \<Rightarrow>f bool"
 
@@ -97,9 +97,9 @@ instance "finfun" :: (type, boolean_algebra) boolean_algebra
 by(intro_classes)
   (simp_all add: uminus_finfun_def inf_finfun_def expand_finfun_eq sup_fun_def inf_fun_def fun_Compl_def o_def inf_compl_bot sup_compl_top diff_eq)
 
-text {*
+text \<open>
   Replicate predicate operations for FinFuns
-*}
+\<close>
 
 abbreviation finfun_empty :: "'a pred\<^sub>f" ("{}\<^sub>f")
 where "{}\<^sub>f \<equiv> bot"
@@ -125,9 +125,9 @@ by(simp add: le_finfun_def)
 lemma finfun_leD [elim]: "\<lbrakk> A \<le> B; A $ x \<rbrakk> \<Longrightarrow> B $ x"
 by(simp add: le_finfun_def)
 
-text {* Bounded quantification.
+text \<open>Bounded quantification.
   Warning: @{text "finfun_Ball"} and @{text "finfun_Ex"} may raise an exception, they should not be used for quickcheck
-*}
+\<close>
 
 definition finfun_Ball_except :: "'a list \<Rightarrow> 'a pred\<^sub>f \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
 where [code del]: "finfun_Ball_except xs A P = (\<forall>a. A $ a \<longrightarrow> a \<in> set xs \<or> P a)"
@@ -183,7 +183,7 @@ lemma finfun_Bex_code [code]: "finfun_Bex = finfun_Bex_except []"
 by(auto intro!: ext simp add: finfun_Bex_except_def finfun_Bex_def)
 
 
-text {* Automatically replace predicate operations by finfun predicate operations where possible *}
+text \<open>Automatically replace predicate operations by finfun predicate operations where possible\<close>
 
 lemma iso_finfun_le [code_unfold]:
   "op $ A \<le> op $ B \<longleftrightarrow> A \<le> B"
@@ -236,11 +236,11 @@ lemma iso_finfun_minus [code_unfold]:
   shows "op $ A - op $ B = op $ (A - B)"
 by(simp)
 
-text {*
+text \<open>
   Do not declare the following two theorems as @{text "[code_unfold]"},
   because this causes quickcheck to fail frequently when bounded quantification is used which raises an exception.
   For code generation, the same problems occur, but then, no randomly generated FinFun is usually around.
-*}
+\<close>
 
 lemma iso_finfun_Ball_Ball:
   "(\<forall>x. A $ x \<longrightarrow> P x) \<longleftrightarrow> finfun_Ball A P"
@@ -250,7 +250,7 @@ lemma iso_finfun_Bex_Bex:
   "(\<exists>x. A $ x \<and> P x) \<longleftrightarrow> finfun_Bex A P"
 by(simp add: finfun_Bex_def)
 
-text {* Test code setup *}
+text \<open>Test code setup\<close>
 
 notepad begin
 have "inf ((\<lambda>_ :: nat. False)(1 := True, 2 := True)) ((\<lambda>_. True)(3 := False)) \<le> 

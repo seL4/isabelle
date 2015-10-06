@@ -2,15 +2,15 @@
     Author:     Benjamin Porter, 2005
 *)
 
-section {* Three Divides Theorem *}
+section \<open>Three Divides Theorem\<close>
 
 theory ThreeDivides
 imports Main "~~/src/HOL/Library/LaTeXsugar"
 begin
 
-subsection {* Abstract *}
+subsection \<open>Abstract\<close>
 
-text {*
+text \<open>
 The following document presents a proof of the Three Divides N theorem
 formalised in the Isabelle/Isar theorem proving system.
 
@@ -24,15 +24,15 @@ sum ranges over all digits. Then $$ (n - \sum{n_j}) = \sum{n_j * (10^j
 - 1)} $$ We know $\forall j\; 3|(10^j - 1) $ and hence $3|LHS$,
 therefore $$\forall n\; 3|n \Longleftrightarrow 3|\sum{n_j}$$
 @{text "\<box>"}
-*}
+\<close>
 
 
-subsection {* Formal proof *}
+subsection \<open>Formal proof\<close>
 
-subsubsection {* Miscellaneous summation lemmas *}
+subsubsection \<open>Miscellaneous summation lemmas\<close>
 
-text {* If $a$ divides @{text "A x"} for all x then $a$ divides any
-sum over terms of the form @{text "(A x)*(P x)"} for arbitrary $P$. *}
+text \<open>If $a$ divides @{text "A x"} for all x then $a$ divides any
+sum over terms of the form @{text "(A x)*(P x)"} for arbitrary $P$.\<close>
 
 lemma div_sum:
   fixes a::nat and n::nat
@@ -49,16 +49,16 @@ next
 qed
 
 
-subsubsection {* Generalised Three Divides *}
+subsubsection \<open>Generalised Three Divides\<close>
 
-text {* This section solves a generalised form of the three divides
+text \<open>This section solves a generalised form of the three divides
 problem. Here we show that for any sequence of numbers the theorem
 holds. In the next section we specialise this theorem to apply
-directly to the decimal expansion of the natural numbers. *}
+directly to the decimal expansion of the natural numbers.\<close>
 
-text {* Here we show that the first statement in the informal proof is
+text \<open>Here we show that the first statement in the informal proof is
 true for all natural numbers. Note we are using @{term "D i"} to
-denote the $i$'th element in a sequence of numbers. *}
+denote the $i$'th element in a sequence of numbers.\<close>
 
 lemma digit_diff_split:
   fixes n::nat and nd::nat and x::nat
@@ -66,7 +66,7 @@ lemma digit_diff_split:
              (n - (\<Sum>x<nd. (D x))) = (\<Sum>x<nd. (D x)*(10^x - 1))"
 by (simp add: sum_diff_distrib diff_mult_distrib2)
 
-text {* Now we prove that 3 always divides numbers of the form $10^x - 1$. *}
+text \<open>Now we prove that 3 always divides numbers of the form $10^x - 1$.\<close>
 lemma three_divs_0:
   shows "(3::nat) dvd (10^x - 1)"
 proof (induct x)
@@ -84,15 +84,15 @@ next
   thus ?case by simp
 qed
 
-text {* Expanding on the previous lemma and lemma @{text "div_sum"}. *}
+text \<open>Expanding on the previous lemma and lemma @{text "div_sum"}.\<close>
 lemma three_divs_1:
   fixes D :: "nat \<Rightarrow> nat"
   shows "3 dvd (\<Sum>x<nd. D x * (10^x - 1))"
   by (subst mult.commute, rule div_sum) (simp add: three_divs_0 [simplified])
 
-text {* Using lemmas @{text "digit_diff_split"} and 
+text \<open>Using lemmas @{text "digit_diff_split"} and 
 @{text "three_divs_1"} we now prove the following lemma. 
-*}
+\<close>
 lemma three_divs_2:
   fixes nd::nat and D::"nat\<Rightarrow>nat"
   shows "3 dvd ((\<Sum>x<nd. (D x)*(10^x)) - (\<Sum>x<nd. (D x)))"
@@ -101,21 +101,21 @@ proof -
   thus ?thesis by (simp only: digit_diff_split)
 qed
 
-text {* 
+text \<open>
 We now present the final theorem of this section. For any
 sequence of numbers (defined by a function @{term "D :: (nat\<Rightarrow>nat)"}),
 we show that 3 divides the expansive sum $\sum{(D\;x)*10^x}$ over $x$
 if and only if 3 divides the sum of the individual numbers
 $\sum{D\;x}$. 
-*}
+\<close>
 lemma three_div_general:
   fixes D :: "nat \<Rightarrow> nat"
   shows "(3 dvd (\<Sum>x<nd. D x * 10^x)) = (3 dvd (\<Sum>x<nd. D x))"
 proof
   have mono: "(\<Sum>x<nd. D x) \<le> (\<Sum>x<nd. D x * 10^x)"
     by (rule setsum_mono) simp
-  txt {* This lets us form the term
-         @{term "(\<Sum>x<nd. D x * 10^x) - (\<Sum>x<nd. D x)"} *}
+  txt \<open>This lets us form the term
+         @{term "(\<Sum>x<nd. D x * 10^x) - (\<Sum>x<nd. D x)"}\<close>
 
   {
     assume "3 dvd (\<Sum>x<nd. D x)"
@@ -132,36 +132,36 @@ proof
 qed
 
 
-subsubsection {* Three Divides Natural *}
+subsubsection \<open>Three Divides Natural\<close>
 
-text {* This section shows that for all natural numbers we can
+text \<open>This section shows that for all natural numbers we can
 generate a sequence of digits less than ten that represent the decimal
 expansion of the number. We then use the lemma @{text
-"three_div_general"} to prove our final theorem. *}
+"three_div_general"} to prove our final theorem.\<close>
 
 
-text {* \medskip Definitions of length and digit sum. *}
+text \<open>\medskip Definitions of length and digit sum.\<close>
 
-text {* This section introduces some functions to calculate the
+text \<open>This section introduces some functions to calculate the
 required properties of natural numbers. We then proceed to prove some
 properties of these functions.
 
 The function @{text "nlen"} returns the number of digits in a natural
-number n. *}
+number n.\<close>
 
 fun nlen :: "nat \<Rightarrow> nat"
 where
   "nlen 0 = 0"
 | "nlen x = 1 + nlen (x div 10)"
 
-text {* The function @{text "sumdig"} returns the sum of all digits in
-some number n. *}
+text \<open>The function @{text "sumdig"} returns the sum of all digits in
+some number n.\<close>
 
 definition
   sumdig :: "nat \<Rightarrow> nat" where
   "sumdig n = (\<Sum>x < nlen n. n div 10^x mod 10)"
 
-text {* Some properties of these functions follow. *}
+text \<open>Some properties of these functions follow.\<close>
 
 lemma nlen_zero:
   "0 = nlen x \<Longrightarrow> x = 0"
@@ -172,9 +172,9 @@ lemma nlen_suc:
   by (induct n rule: nlen.induct) simp_all
 
 
-text {* The following lemma is the principle lemma required to prove
+text \<open>The following lemma is the principle lemma required to prove
 our theorem. It states that an expansion of some natural number $n$
-into a sequence of its individual digits is always possible. *}
+into a sequence of its individual digits is always possible.\<close>
 
 lemma exp_exists:
   "m = (\<Sum>x<nlen m. (m div (10::nat)^x mod 10) * 10^x)"
@@ -186,7 +186,7 @@ next
     and cdef: "c = m mod 10" by simp
   show "m = (\<Sum>x<nlen m. m div 10^x mod 10 * 10^x)"
   proof -
-    from `Suc nd = nlen m`
+    from \<open>Suc nd = nlen m\<close>
     have "nd = nlen (m div 10)" by (rule nlen_suc)
     with Suc have
       "m div 10 = (\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x)" by simp
@@ -205,18 +205,18 @@ next
     also have
       "\<dots> = (\<Sum>x<Suc nd. m div 10^x mod 10 * 10^x)"
       by (simp add: atLeast0LessThan[symmetric] setsum_head_upt_Suc cdef)
-    also note `Suc nd = nlen m`
+    also note \<open>Suc nd = nlen m\<close>
     finally
     show "m = (\<Sum>x<nlen m. m div 10^x mod 10 * 10^x)" .
   qed
 qed
 
 
-text {* \medskip Final theorem. *}
+text \<open>\medskip Final theorem.\<close>
 
-text {* We now combine the general theorem @{text "three_div_general"}
+text \<open>We now combine the general theorem @{text "three_div_general"}
 and existence result of @{text "exp_exists"} to prove our final
-theorem. *}
+theorem.\<close>
 
 theorem three_divides_nat:
   shows "(3 dvd n) = (3 dvd sumdig n)"

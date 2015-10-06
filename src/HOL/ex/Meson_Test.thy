@@ -1,36 +1,36 @@
 
-section {* Meson test cases *}
+section \<open>Meson test cases\<close>
 
 theory Meson_Test
 imports Main
 begin
 
-text {*
+text \<open>
   WARNING: there are many potential conflicts between variables used
   below and constants declared in HOL!
-*}
+\<close>
 
 hide_const (open) implies union inter subset quotient
 
-text {*
+text \<open>
   Test data for the MESON proof procedure
   (Excludes the equality problems 51, 52, 56, 58)
-*}
+\<close>
 
 
-subsection {* Interactive examples *}
+subsection \<open>Interactive examples\<close>
 
 lemma problem_25:
   "(\<exists>x. P x) & (\<forall>x. L x --> ~ (M x & R x)) & (\<forall>x. P x --> (M x & L x)) & ((\<forall>x. P x --> Q x) | (\<exists>x. P x & R x)) --> (\<exists>x. Q x & P x)"
   apply (rule ccontr)
-  ML_prf {*
+  ML_prf \<open>
     val ctxt = @{context};
     val prem25 = Thm.assume @{cprop "\<not> ?thesis"};
     val nnf25 = Meson.make_nnf ctxt prem25;
     val xsko25 = Meson.skolemize ctxt nnf25;
-  *}
-  apply (tactic {* cut_tac xsko25 1 THEN REPEAT (eresolve_tac @{context} [exE] 1) *})
-  ML_val {*
+\<close>
+  apply (tactic \<open>cut_tac xsko25 1 THEN REPEAT (eresolve_tac @{context} [exE] 1)\<close>)
+  ML_val \<open>
     val ctxt = @{context};
     val [_, sko25] = #prems (#1 (Subgoal.focus ctxt 1 NONE (#goal @{Isar.goal})));
     val clauses25 = Meson.make_clauses ctxt [sko25];   (*7 clauses*)
@@ -41,20 +41,20 @@ lemma problem_25:
     Goal.prove ctxt' [] [] @{prop False} (fn _ =>
       resolve_tac ctxt' [go25] 1 THEN
       Meson.depth_prolog_tac ctxt' horns25);
-  *}
+\<close>
   oops
 
 lemma problem_26:
   "((\<exists>x. p x) = (\<exists>x. q x)) & (\<forall>x. \<forall>y. p x & q y --> (r x = s y)) --> ((\<forall>x. p x --> r x) = (\<forall>x. q x --> s x))"
   apply (rule ccontr)
-  ML_prf {*
+  ML_prf \<open>
     val ctxt = @{context};
     val prem26 = Thm.assume @{cprop "\<not> ?thesis"}
     val nnf26 = Meson.make_nnf ctxt prem26;
     val xsko26 = Meson.skolemize ctxt nnf26;
-  *}
-  apply (tactic {* cut_tac xsko26 1 THEN REPEAT (eresolve_tac @{context} [exE] 1) *})
-  ML_val {*
+\<close>
+  apply (tactic \<open>cut_tac xsko26 1 THEN REPEAT (eresolve_tac @{context} [exE] 1)\<close>)
+  ML_val \<open>
     val ctxt = @{context};
     val [_, sko26] = #prems (#1 (Subgoal.focus ctxt 1 NONE (#goal @{Isar.goal})));
     val clauses26 = Meson.make_clauses ctxt [sko26];
@@ -68,20 +68,20 @@ lemma problem_26:
       resolve_tac ctxt' [go26] 1 THEN
       Meson.depth_prolog_tac ctxt' horns26);  (*7 ms*)
     (*Proof is of length 107!!*)
-  *}
+\<close>
   oops
 
 lemma problem_43:  -- "NOW PROVED AUTOMATICALLY!!"  (*16 Horn clauses*)
   "(\<forall>x. \<forall>y. q x y = (\<forall>z. p z x = (p z y::bool))) --> (\<forall>x. (\<forall>y. q x y = (q y x::bool)))"
   apply (rule ccontr)
-  ML_prf {*
+  ML_prf \<open>
     val ctxt = @{context};
     val prem43 = Thm.assume @{cprop "\<not> ?thesis"};
     val nnf43 = Meson.make_nnf ctxt prem43;
     val xsko43 = Meson.skolemize ctxt nnf43;
-  *}
-  apply (tactic {* cut_tac xsko43 1 THEN REPEAT (eresolve_tac @{context} [exE] 1) *})
-  ML_val {*
+\<close>
+  apply (tactic \<open>cut_tac xsko43 1 THEN REPEAT (eresolve_tac @{context} [exE] 1)\<close>)
+  ML_val \<open>
     val ctxt = @{context};
     val [_, sko43] = #prems (#1 (Subgoal.focus ctxt 1 NONE (#goal @{Isar.goal})));
     val clauses43 = Meson.make_clauses ctxt [sko43];
@@ -94,7 +94,7 @@ lemma problem_43:  -- "NOW PROVED AUTOMATICALLY!!"  (*16 Horn clauses*)
     Goal.prove ctxt' [] [] @{prop False} (fn _ =>
       resolve_tac ctxt' [go43] 1 THEN
       Meson.best_prolog_tac ctxt' Meson.size_of_subgoals horns43);   (*7ms*)
-    *}
+\<close>
   oops
 
 (*
@@ -133,10 +133,10 @@ And here is the proof! (Unkn is the start state after use of goal clause)
 *)
 
 
-text {*
+text \<open>
   MORE and MUCH HARDER test data for the MESON proof procedure
   (courtesy John Harrison).
-*}
+\<close>
 
 (* ========================================================================= *)
 (* 100 problems selected from the TPTP library                               *)
