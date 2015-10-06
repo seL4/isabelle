@@ -1102,7 +1102,7 @@ fun derive_map_set_rel_thms plugins fp live As Bs C E abs_inverses ctr_defs' fp_
            (rel_injectN, rel_inject_thms, K simp_attrs),
            (rel_introsN, rel_intro_thms, K []),
            (rel_selN, rel_sel_thms, K []),
-           (setN, set_thms, K (code_attrs @ nitpicksimp_attrs @ simp_attrs)),
+           (setN, set_thms, K (code_attrs @ case_fp fp nitpicksimp_attrs [] @ simp_attrs)),
            (set_casesN, set_cases_thms, nth set_cases_attrss),
            (set_introsN, set_intros_thms, K []),
            (set_selN, set_sel_thms, K [])]
