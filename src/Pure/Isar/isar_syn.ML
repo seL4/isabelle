@@ -502,6 +502,7 @@ fun theorem spec schematic descr =
 val _ = theorem @{command_keyword theorem} false "theorem";
 val _ = theorem @{command_keyword lemma} false "lemma";
 val _ = theorem @{command_keyword corollary} false "corollary";
+val _ = theorem @{command_keyword proposition} false "proposition";
 val _ = theorem @{command_keyword schematic_goal} true "schematic goal";
 
 

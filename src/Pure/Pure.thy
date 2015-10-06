@@ -43,7 +43,7 @@ theory Pure
   and "instance" :: thy_goal
   and "overloading" :: thy_decl_block
   and "code_datatype" :: thy_decl
-  and "theorem" "lemma" "corollary" :: thy_goal
+  and "theorem" "lemma" "corollary" "proposition" :: thy_goal
   and "schematic_goal" :: thy_goal
   and "notepad" :: thy_decl_block
   and "have" :: prf_goal % "proof"

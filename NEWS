@@ -19,6 +19,9 @@ New in this Isabelle version
 Command-line tool "isabelle update_theorems" updates theory sources
 accordingly.
 
+* Toplevel theorem statement 'proposition' is another alias for
+'theorem'.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
