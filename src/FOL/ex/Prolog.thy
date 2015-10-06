@@ -23,18 +23,18 @@ where
   revNil:  "rev(Nil,Nil)" and
   revCons: "[| rev(xs,ys);  app(ys, x:Nil, zs) |] ==> rev(x:xs, zs)"
 
-schematic_lemma "app(a:b:c:Nil, d:e:Nil, ?x)"
+schematic_goal "app(a:b:c:Nil, d:e:Nil, ?x)"
 apply (rule appNil appCons)
 apply (rule appNil appCons)
 apply (rule appNil appCons)
 apply (rule appNil appCons)
 done
 
-schematic_lemma "app(?x, c:d:Nil, a:b:c:d:Nil)"
+schematic_goal "app(?x, c:d:Nil, a:b:c:d:Nil)"
 apply (rule appNil appCons)+
 done
 
-schematic_lemma "app(?x, ?y, a:b:c:d:Nil)"
+schematic_goal "app(?x, ?y, a:b:c:d:Nil)"
 apply (rule appNil appCons)+
 back
 back
@@ -47,15 +47,15 @@ done
 
 lemmas rules = appNil appCons revNil revCons
 
-schematic_lemma "rev(a:b:c:d:Nil, ?x)"
+schematic_goal "rev(a:b:c:d:Nil, ?x)"
 apply (rule rules)+
 done
 
-schematic_lemma "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:Nil, ?w)"
+schematic_goal "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:Nil, ?w)"
 apply (rule rules)+
 done
 
-schematic_lemma "rev(?x, a:b:c:Nil)"
+schematic_goal "rev(?x, a:b:c:Nil)"
 apply (rule rules)+  -- \<open>does not solve it directly!\<close>
 back
 back
@@ -67,23 +67,23 @@ fun prolog_tac ctxt =
   DEPTH_FIRST (has_fewer_prems 1) (resolve_tac ctxt @{thms rules} 1)
 \<close>
 
-schematic_lemma "rev(?x, a:b:c:Nil)"
+schematic_goal "rev(?x, a:b:c:Nil)"
 apply (tactic \<open>prolog_tac @{context}\<close>)
 done
 
-schematic_lemma "rev(a:?x:c:?y:Nil, d:?z:b:?u)"
+schematic_goal "rev(a:?x:c:?y:Nil, d:?z:b:?u)"
 apply (tactic \<open>prolog_tac @{context}\<close>)
 done
 
 (*rev([a..p], ?w) requires 153 inferences *)
-schematic_lemma "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil, ?w)"
+schematic_goal "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil, ?w)"
 apply (tactic \<open>
   DEPTH_SOLVE (resolve_tac @{context} ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1)\<close>)
 done
 
 (*?x has 16, ?y has 32;  rev(?y,?w) requires 561 (rather large) inferences
   total inferences = 2 + 1 + 17 + 561 = 581*)
-schematic_lemma "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil = ?x & app(?x,?x,?y) & rev(?y,?w)"
+schematic_goal "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil = ?x & app(?x,?x,?y) & rev(?y,?w)"
 apply (tactic \<open>
   DEPTH_SOLVE (resolve_tac @{context} ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1)\<close>)
 done

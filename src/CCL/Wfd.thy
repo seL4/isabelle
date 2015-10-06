@@ -568,29 +568,29 @@ lemma V_rls [eval]:
 
 subsection \<open>Factorial\<close>
 
-schematic_lemma
+schematic_goal
   "letrec f n be ncase(n,succ(zero),\<lambda>x. nrec(n,zero,\<lambda>y g. nrec(f(x),g,\<lambda>z h. succ(h))))  
    in f(succ(succ(zero))) ---> ?a"
   by eval
 
-schematic_lemma
+schematic_goal
   "letrec f n be ncase(n,succ(zero),\<lambda>x. nrec(n,zero,\<lambda>y g. nrec(f(x),g,\<lambda>z h. succ(h))))  
    in f(succ(succ(succ(zero)))) ---> ?a"
   by eval
 
 subsection \<open>Less Than Or Equal\<close>
 
-schematic_lemma
+schematic_goal
   "letrec f p be split(p,\<lambda>m n. ncase(m,true,\<lambda>x. ncase(n,false,\<lambda>y. f(<x,y>))))
    in f(<succ(zero), succ(zero)>) ---> ?a"
   by eval
 
-schematic_lemma
+schematic_goal
   "letrec f p be split(p,\<lambda>m n. ncase(m,true,\<lambda>x. ncase(n,false,\<lambda>y. f(<x,y>))))
    in f(<succ(zero), succ(succ(succ(succ(zero))))>) ---> ?a"
   by eval
 
-schematic_lemma
+schematic_goal
   "letrec f p be split(p,\<lambda>m n. ncase(m,true,\<lambda>x. ncase(n,false,\<lambda>y. f(<x,y>))))
    in f(<succ(succ(succ(succ(succ(zero))))), succ(succ(succ(succ(zero))))>) ---> ?a"
   by eval
@@ -598,12 +598,12 @@ schematic_lemma
 
 subsection \<open>Reverse\<close>
 
-schematic_lemma
+schematic_goal
   "letrec id l be lcase(l,[],\<lambda>x xs. x$id(xs))  
    in id(zero$succ(zero)$[]) ---> ?a"
   by eval
 
-schematic_lemma
+schematic_goal
   "letrec rev l be lcase(l,[],\<lambda>x xs. lrec(rev(xs),x$[],\<lambda>y ys g. y$g))  
    in rev(zero$succ(zero)$(succ((lam x. x)`succ(zero)))$([])) ---> ?a"
   by eval

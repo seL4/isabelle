@@ -228,7 +228,7 @@ text \<open>
 \<close>
 
 ML (*<*) \<open>\<close>
-schematic_lemma "thm": fixes x y z :: "'a::order" shows "x < y \<and> x < z \<equiv> ?P"
+schematic_goal "thm": fixes x y z :: "'a::order" shows "x < y \<and> x < z \<equiv> ?P"
 ML_prf 
 (*>*) \<open>val thm =
   Reification.conv @{context} @{thms interp.simps} @{cterm "x < y \<and> x < z"}\<close> (*<*)

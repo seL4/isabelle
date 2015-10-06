@@ -90,13 +90,13 @@ lemma "|- (EX x. Q(x))  -->  (ALL x. Q(x))"
   oops
 
 (*INVALID*)
-schematic_lemma "|- P(?a) --> (ALL x. P(x))"
+schematic_goal "|- P(?a) --> (ALL x. P(x))"
   apply fast?
   apply (rule _)
   oops
 
 (*INVALID*)
-schematic_lemma "|- (P(?a) --> (ALL x. Q(x))) --> (ALL x. P(x) --> Q(x))"
+schematic_goal "|- (P(?a) --> (ALL x. Q(x))) --> (ALL x. P(x) --> Q(x))"
   apply fast?
   apply (rule _)
   oops
@@ -114,7 +114,7 @@ lemma "|- (P--> (EX x. Q(x))) & P--> (EX x. Q(x))"
 
 text "Solving for a Var"
 
-schematic_lemma "|- (ALL x. P(x)-->Q(f(x))) & (ALL x. Q(x)-->R(g(x))) & P(d) --> R(?a)"
+schematic_goal "|- (ALL x. P(x)-->Q(f(x))) & (ALL x. Q(x)-->R(g(x))) & P(d) --> R(?a)"
   by fast
 
 

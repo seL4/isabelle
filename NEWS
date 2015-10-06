@@ -7,6 +7,19 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Toplevel theorem statements have been simplified as follows:
+
+  theorems             ~>  lemmas
+  schematic_lemma      ~>  schematic_goal
+  schematic_theorem    ~>  schematic_goal
+  schematic_corollary  ~>  schematic_goal
+
+Command-line tool "isabelle update_theorems" updates theory sources
+accordingly.
+
+
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
 * Improved scheduling for urgent print tasks (e.g. command state output,

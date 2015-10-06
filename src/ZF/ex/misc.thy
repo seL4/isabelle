@@ -44,7 +44,7 @@ lemma "(X = Y \<inter> Z) \<longleftrightarrow> (X \<subseteq> Y & X \<subseteq>
 by (blast intro!: equalityI)
 
 text\<open>trivial example of term synthesis: apparently hard for some provers!\<close>
-schematic_lemma "a \<noteq> b ==> a:?X & b \<notin> ?X"
+schematic_goal "a \<noteq> b ==> a:?X & b \<notin> ?X"
 by blast
 
 text\<open>Nice blast benchmark.  Proved in 0.3s; old tactics can't manage it!\<close>

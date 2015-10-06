@@ -379,9 +379,7 @@ text \<open>
     @{command_def "lemma"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "theorem"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "corollary"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
-    @{command_def "schematic_lemma"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
-    @{command_def "schematic_theorem"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
-    @{command_def "schematic_corollary"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def "schematic_goal"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "have"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
     @{command_def "show"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
     @{command_def "hence"} & : & @{text "proof(state) \<rightarrow> proof(prove)"} \\
@@ -423,8 +421,7 @@ text \<open>
 
   @{rail \<open>
     (@@{command lemma} | @@{command theorem} | @@{command corollary} |
-     @@{command schematic_lemma} | @@{command schematic_theorem} |
-     @@{command schematic_corollary}) (stmt | statement)
+     @@{command schematic_goal}) (stmt | statement)
     ;
     (@@{command have} | @@{command show} | @@{command hence} | @@{command thus})
       stmt cond_stmt @{syntax for_fixes}
@@ -463,10 +460,8 @@ text \<open>
   being of a different kind.  This discrimination acts like a formal
   comment.
 
-  \item @{command "schematic_lemma"}, @{command "schematic_theorem"},
-  @{command "schematic_corollary"} are similar to @{command "lemma"},
-  @{command "theorem"}, @{command "corollary"}, respectively but allow
-  the statement to contain unbound schematic variables.
+  \item @{command "schematic_goal"} is similar to @{command "theorem"},
+  but allows the statement to contain unbound schematic variables.
 
   Under normal circumstances, an Isar proof text needs to specify
   claims explicitly.  Schematic goals are more like goals in Prolog,

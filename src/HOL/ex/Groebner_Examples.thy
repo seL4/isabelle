@@ -24,7 +24,7 @@ lemma
     (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context})))) *})
   by (rule refl)
 
-schematic_lemma
+schematic_goal
   fixes x :: int
   shows "(x - (-2))^5  * (y - 78) ^ 8 = ?X" 
   apply (tactic {* ALLGOALS (CONVERSION

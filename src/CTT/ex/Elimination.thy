@@ -14,41 +14,41 @@ begin
 
 text "This finds the functions fst and snd!"
 
-schematic_lemma [folded basic_defs]: "A type \<Longrightarrow> ?a : (A*A) --> A"
+schematic_goal [folded basic_defs]: "A type \<Longrightarrow> ?a : (A*A) --> A"
 apply pc
 done
 
-schematic_lemma [folded basic_defs]: "A type \<Longrightarrow> ?a : (A*A) --> A"
+schematic_goal [folded basic_defs]: "A type \<Longrightarrow> ?a : (A*A) --> A"
 apply pc
 back
 done
 
 text "Double negation of the Excluded Middle"
-schematic_lemma "A type \<Longrightarrow> ?a : ((A + (A-->F)) --> F) --> F"
+schematic_goal "A type \<Longrightarrow> ?a : ((A + (A-->F)) --> F) --> F"
 apply intr
 apply (rule ProdE)
 apply assumption
 apply pc
 done
 
-schematic_lemma "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : (A*B) \<longrightarrow> (B*A)"
+schematic_goal "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : (A*B) \<longrightarrow> (B*A)"
 apply pc
 done
 (*The sequent version (ITT) could produce an interesting alternative
   by backtracking.  No longer.*)
 
 text "Binary sums and products"
-schematic_lemma "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A+B --> C) --> (A-->C) * (B-->C)"
+schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A+B --> C) --> (A-->C) * (B-->C)"
 apply pc
 done
 
 (*A distributive law*)
-schematic_lemma "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : A * (B+C)  -->  (A*B + A*C)"
+schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : A * (B+C)  -->  (A*B + A*C)"
 apply pc
 done
 
 (*more general version, same proof*)
-schematic_lemma
+schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>x. x:A \<Longrightarrow> C(x) type"
@@ -57,12 +57,12 @@ apply (pc assms)
 done
 
 text "Construction of the currying functional"
-schematic_lemma "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A*B --> C) --> (A--> (B-->C))"
+schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A*B --> C) --> (A--> (B-->C))"
 apply pc
 done
 
 (*more general goal with same proof*)
-schematic_lemma
+schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>z. z: (SUM x:A. B(x)) \<Longrightarrow> C(z) type"
@@ -72,12 +72,12 @@ apply (pc assms)
 done
 
 text "Martin-Lof (1984), page 48: axiom of sum-elimination (uncurry)"
-schematic_lemma "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A --> (B-->C)) --> (A*B --> C)"
+schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A --> (B-->C)) --> (A*B --> C)"
 apply pc
 done
 
 (*more general goal with same proof*)
-schematic_lemma
+schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>z. z: (SUM x:A . B(x)) \<Longrightarrow> C(z) type"
@@ -87,12 +87,12 @@ apply (pc assms)
 done
 
 text "Function application"
-schematic_lemma "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : ((A --> B) * A) --> B"
+schematic_goal "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : ((A --> B) * A) --> B"
 apply pc
 done
 
 text "Basic test of quantifier reasoning"
-schematic_lemma
+schematic_goal
   assumes "A type"
     and "B type"
     and "\<And>x y. \<lbrakk>x:A; y:B\<rbrakk> \<Longrightarrow> C(x,y) type"
@@ -103,7 +103,7 @@ apply (pc assms)
 done
 
 text "Martin-Lof (1984) pages 36-7: the combinator S"
-schematic_lemma
+schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
@@ -113,7 +113,7 @@ apply (pc assms)
 done
 
 text "Martin-Lof (1984) page 58: the axiom of disjunction elimination"
-schematic_lemma
+schematic_goal
   assumes "A type"
     and "B type"
     and "\<And>z. z: A+B \<Longrightarrow> C(z) type"
@@ -123,7 +123,7 @@ apply (pc assms)
 done
 
 (*towards AXIOM OF CHOICE*)
-schematic_lemma [folded basic_defs]:
+schematic_goal [folded basic_defs]:
   "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A --> B*C) --> (A-->B) * (A-->C)"
 apply pc
 done
@@ -131,7 +131,7 @@ done
 
 (*Martin-Lof (1984) page 50*)
 text "AXIOM OF CHOICE!  Delicate use of elimination rules"
-schematic_lemma
+schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
@@ -149,7 +149,7 @@ apply (typechk SumE_fst assms)
 done
 
 text "Axiom of choice.  Proof without fst, snd.  Harder still!"
-schematic_lemma [folded basic_defs]:
+schematic_goal [folded basic_defs]:
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
@@ -176,7 +176,7 @@ done
 text "Example of sequent_style deduction"
 (*When splitting z:A*B, the assumption C(z) is affected;  ?a becomes
     lam u. split(u,\<lambda>v w.split(v,\<lambda>x y.lam z. <x,<y,z>>) ` w)     *)
-schematic_lemma
+schematic_goal
   assumes "A type"
     and "B type"
     and "\<And>z. z:A*B \<Longrightarrow> C(z) type"

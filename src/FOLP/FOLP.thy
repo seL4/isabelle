@@ -15,7 +15,7 @@ axiomatization cla :: "[p=>p]=>p"
 
 (*** Classical introduction rules for | and EX ***)
 
-schematic_lemma disjCI:
+schematic_goal disjCI:
   assumes "!!x. x:~Q ==> f(x):P"
   shows "?p : P|Q"
   apply (rule classical)
@@ -24,7 +24,7 @@ schematic_lemma disjCI:
   done
 
 (*introduction rule involving only EX*)
-schematic_lemma ex_classical:
+schematic_goal ex_classical:
   assumes "!!u. u:~(EX x. P(x)) ==> f(u):P(a)"
   shows "?p : EX x. P(x)"
   apply (rule classical)
@@ -32,7 +32,7 @@ schematic_lemma ex_classical:
   done
 
 (*version of above, simplifying ~EX to ALL~ *)
-schematic_lemma exCI:
+schematic_goal exCI:
   assumes "!!u. u:ALL x. ~P(x) ==> f(u):P(a)"
   shows "?p : EX x. P(x)"
   apply (rule ex_classical)
@@ -41,7 +41,7 @@ schematic_lemma exCI:
   apply (erule exI)
   done
 
-schematic_lemma excluded_middle: "?p : ~P | P"
+schematic_goal excluded_middle: "?p : ~P | P"
   apply (rule disjCI)
   apply assumption
   done
@@ -50,7 +50,7 @@ schematic_lemma excluded_middle: "?p : ~P | P"
 (*** Special elimination rules *)
 
 (*Classical implies (-->) elimination. *)
-schematic_lemma impCE:
+schematic_goal impCE:
   assumes major: "p:P-->Q"
     and r1: "!!x. x:~P ==> f(x):R"
     and r2: "!!y. y:Q ==> g(y):R"
@@ -61,7 +61,7 @@ schematic_lemma impCE:
   done
 
 (*Double negation law*)
-schematic_lemma notnotD: "p:~~P ==> ?p : P"
+schematic_goal notnotD: "p:~~P ==> ?p : P"
   apply (rule classical)
   apply (erule notE)
   apply assumption
@@ -72,7 +72,7 @@ schematic_lemma notnotD: "p:~~P ==> ?p : P"
 
 (*Classical <-> elimination.  Proof substitutes P=Q in
     ~P ==> ~Q    and    P ==> Q  *)
-schematic_lemma iffCE:
+schematic_goal iffCE:
   assumes major: "p:P<->Q"
     and r1: "!!x y.[| x:P; y:Q |] ==> f(x,y):R"
     and r2: "!!x y.[| x:~P; y:~Q |] ==> g(x,y):R"
@@ -88,7 +88,7 @@ schematic_lemma iffCE:
 
 
 (*Should be used as swap since ~P becomes redundant*)
-schematic_lemma swap:
+schematic_goal swap:
   assumes major: "p:~P"
     and r: "!!x. x:~Q ==> f(x):P"
   shows "?p : Q"
@@ -130,7 +130,7 @@ val FOLP_dup_cs =
     addSEs [@{thm exE}, @{thm ex1E}] addEs [@{thm all_dupE}];
 \<close>
 
-schematic_lemma cla_rews:
+schematic_goal cla_rews:
   "?p1 : P | ~P"
   "?p2 : ~P | P"
   "?p3 : ~ ~ P <-> P"

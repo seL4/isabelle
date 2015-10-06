@@ -266,7 +266,7 @@ lemma add_0_right: "\<lbrakk>c : N; 0 : N; c : N\<rbrakk> \<Longrightarrow> c #+
 (*Addition is the inverse of subtraction: if b<=x then b#+(x-b) = x.
   An example of induction over a quantified formula (a product).
   Uses rewriting with a quantified, implicative inductive hypothesis.*)
-schematic_lemma add_diff_inverse_lemma:
+schematic_goal add_diff_inverse_lemma:
   "b:N \<Longrightarrow> ?a : PROD x:N. Eq(N, b-x, 0) --> Eq(N, b #+ (x-b), x)"
 apply (NE b)
 (*strip one "universal quantifier" but not the "implication"*)
@@ -337,7 +337,7 @@ apply (typechk diff_typing)
 done
 
 (*If a+b=0 then a=0.   Surprisingly tedious*)
-schematic_lemma add_eq0_lemma: "\<lbrakk>a:N; b:N\<rbrakk> \<Longrightarrow> ?c : PROD u: Eq(N,a#+b,0) .  Eq(N,a,0)"
+schematic_goal add_eq0_lemma: "\<lbrakk>a:N; b:N\<rbrakk> \<Longrightarrow> ?c : PROD u: Eq(N,a#+b,0) .  Eq(N,a,0)"
 apply (NE a)
 apply (rule_tac [3] replace_type)
 apply arith_rew
@@ -357,7 +357,7 @@ apply typechk
 done
 
 (*Here is a lemma to infer a-b=0 and b-a=0 from a|-|b=0, below. *)
-schematic_lemma absdiff_eq0_lem:
+schematic_goal absdiff_eq0_lem:
   "\<lbrakk>a:N; b:N; a |-| b = 0 : N\<rbrakk> \<Longrightarrow> ?a : SUM v: Eq(N, a-b, 0) . Eq(N, b-a, 0)"
 apply (unfold absdiff_def)
 apply intr

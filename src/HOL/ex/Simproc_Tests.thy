@@ -41,7 +41,7 @@ notepad begin
   }
 end
 
-schematic_lemma "\<And>(y::?'b::size). size (?x::?'a::size) \<le> size y + size ?x"
+schematic_goal "\<And>(y::?'b::size). size (?x::?'a::size) \<le> size y + size ?x"
   by (tactic {* test @{context} [@{simproc natle_cancel_sums}] *}) (rule le0)
 (* TODO: test more simprocs with schematic variables *)
 

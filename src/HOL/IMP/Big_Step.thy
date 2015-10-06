@@ -26,7 +26,7 @@ WhileTrue:
 text_raw{*}%endsnip*}
 
 text_raw{*\snip{BigStepEx}{1}{2}{% *}
-schematic_lemma ex: "(''x'' ::= N 5;; ''y'' ::= V ''x'', s) \<Rightarrow> ?t"
+schematic_goal ex: "(''x'' ::= N 5;; ''y'' ::= V ''x'', s) \<Rightarrow> ?t"
 apply(rule Seq)
 apply(rule Assign)
 apply simp

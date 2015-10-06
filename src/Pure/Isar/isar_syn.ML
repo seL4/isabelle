@@ -152,15 +152,10 @@ val _ =
 
 (* theorems *)
 
-val theorems =
-  Parse_Spec.name_facts -- Parse.for_fixes
-    >> (fn (facts, fixes) => #2 oo Specification.theorems_cmd Thm.theoremK facts fixes);
-
 val _ =
-  Outer_Syntax.local_theory' @{command_keyword theorems} "define theorems" theorems;
-
-val _ =
-  Outer_Syntax.local_theory' @{command_keyword lemmas} "define lemmas" theorems;
+  Outer_Syntax.local_theory' @{command_keyword lemmas} "define theorems"
+    (Parse_Spec.name_facts -- Parse.for_fixes >>
+      (fn (facts, fixes) => #2 oo Specification.theorems_cmd Thm.theoremK facts fixes));
 
 val _ =
   Outer_Syntax.local_theory' @{command_keyword declare} "declare theorems"
@@ -507,9 +502,7 @@ fun theorem spec schematic descr =
 val _ = theorem @{command_keyword theorem} false "theorem";
 val _ = theorem @{command_keyword lemma} false "lemma";
 val _ = theorem @{command_keyword corollary} false "corollary";
-val _ = theorem @{command_keyword schematic_theorem} true "schematic goal";
-val _ = theorem @{command_keyword schematic_lemma} true "schematic goal";
-val _ = theorem @{command_keyword schematic_corollary} true "schematic goal";
+val _ = theorem @{command_keyword schematic_goal} true "schematic goal";
 
 
 val structured_statement =

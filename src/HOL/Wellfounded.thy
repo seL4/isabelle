@@ -558,7 +558,7 @@ theorem accp_induct:
   apply fast
   done
 
-theorems accp_induct_rule = accp_induct [rule_format, induct set: accp]
+lemmas accp_induct_rule = accp_induct [rule_format, induct set: accp]
 
 theorem accp_downward: "accp r b ==> r a b ==> accp r a"
   apply (erule accp.cases)

@@ -111,7 +111,7 @@ lemma
 using assms by (auto intro!: finite_vimageI simp add: inj_on_def)
   (* injectivity to be automated with further rules and automation *)
 
-schematic_lemma (* check interaction with schematics *)
+schematic_goal (* check interaction with schematics *)
   "finite {x :: ?'A \<Rightarrow> ?'B \<Rightarrow> bool. \<exists>a b. x = Pair_Rep a b}
    = finite ((\<lambda>(b :: ?'B, a:: ?'A). Pair_Rep a b) ` (UNIV \<times> UNIV))"
   by simp

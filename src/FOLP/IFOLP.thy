@@ -171,7 +171,7 @@ NORM_iff:        "NRM : NORM(P) <-> P"
 
 (*** Sequent-style elimination rules for & --> and ALL ***)
 
-schematic_lemma conjE:
+schematic_goal conjE:
   assumes "p:P&Q"
     and "!!x y.[| x:P; y:Q |] ==> f(x,y):R"
   shows "?a:R"
@@ -180,7 +180,7 @@ schematic_lemma conjE:
   apply (rule conjunct2 [OF assms(1)])
   done
 
-schematic_lemma impE:
+schematic_goal impE:
   assumes "p:P-->Q"
     and "q:P"
     and "!!x. x:Q ==> r(x):R"
@@ -188,7 +188,7 @@ schematic_lemma impE:
   apply (rule assms mp)+
   done
 
-schematic_lemma allE:
+schematic_goal allE:
   assumes "p:ALL x. P(x)"
     and "!!y. y:P(x) ==> q(y):R"
   shows "?p:R"
@@ -196,7 +196,7 @@ schematic_lemma allE:
   done
 
 (*Duplicates the quantifier; for use with eresolve_tac*)
-schematic_lemma all_dupE:
+schematic_goal all_dupE:
   assumes "p:ALL x. P(x)"
     and "!!y z.[| y:P(x); z:ALL x. P(x) |] ==> q(y,z):R"
   shows "?p:R"
@@ -206,21 +206,21 @@ schematic_lemma all_dupE:
 
 (*** Negation rules, which translate between ~P and P-->False ***)
 
-schematic_lemma notI:
+schematic_goal notI:
   assumes "!!x. x:P ==> q(x):False"
   shows "?p:~P"
   unfolding not_def
   apply (assumption | rule assms impI)+
   done
 
-schematic_lemma notE: "p:~P \<Longrightarrow> q:P \<Longrightarrow> ?p:R"
+schematic_goal notE: "p:~P \<Longrightarrow> q:P \<Longrightarrow> ?p:R"
   unfolding not_def
   apply (drule (1) mp)
   apply (erule FalseE)
   done
 
 (*This is useful with the special implication rules for each kind of P. *)
-schematic_lemma not_to_imp:
+schematic_goal not_to_imp:
   assumes "p:~P"
     and "!!x. x:(P-->False) ==> q(x):Q"
   shows "?p:Q"
@@ -229,13 +229,13 @@ schematic_lemma not_to_imp:
 
 (* For substitution int an assumption P, reduce Q to P-->Q, substitute into
    this implication, then apply impI to move P back into the assumptions.*)
-schematic_lemma rev_mp: "[| p:P;  q:P --> Q |] ==> ?p:Q"
+schematic_goal rev_mp: "[| p:P;  q:P --> Q |] ==> ?p:Q"
   apply (assumption | rule mp)+
   done
 
 
 (*Contrapositive of an inference rule*)
-schematic_lemma contrapos:
+schematic_goal contrapos:
   assumes major: "p:~Q"
     and minor: "!!y. y:P==>q(y):Q"
   shows "?a:~P"
@@ -286,7 +286,7 @@ ML \<open>
 
 (*** If-and-only-if ***)
 
-schematic_lemma iffI:
+schematic_goal iffI:
   assumes "!!x. x:P ==> q(x):Q"
     and "!!x. x:Q ==> r(x):P"
   shows "?p:P<->Q"
@@ -295,7 +295,7 @@ schematic_lemma iffI:
   done
 
 
-schematic_lemma iffE:
+schematic_goal iffE:
   assumes "p:P <-> Q"
     and "!!x y.[| x:P-->Q; y:Q-->P |] ==> q(x,y):R"
   shows "?p:R"
@@ -307,28 +307,28 @@ schematic_lemma iffE:
 
 (* Destruct rules for <-> similar to Modus Ponens *)
 
-schematic_lemma iffD1: "[| p:P <-> Q; q:P |] ==> ?p:Q"
+schematic_goal iffD1: "[| p:P <-> Q; q:P |] ==> ?p:Q"
   unfolding iff_def
   apply (rule conjunct1 [THEN mp], assumption+)
   done
 
-schematic_lemma iffD2: "[| p:P <-> Q; q:Q |] ==> ?p:P"
+schematic_goal iffD2: "[| p:P <-> Q; q:Q |] ==> ?p:P"
   unfolding iff_def
   apply (rule conjunct2 [THEN mp], assumption+)
   done
 
-schematic_lemma iff_refl: "?p:P <-> P"
+schematic_goal iff_refl: "?p:P <-> P"
   apply (rule iffI)
    apply assumption+
   done
 
-schematic_lemma iff_sym: "p:Q <-> P ==> ?p:P <-> Q"
+schematic_goal iff_sym: "p:Q <-> P ==> ?p:P <-> Q"
   apply (erule iffE)
   apply (rule iffI)
    apply (erule (1) mp)+
   done
 
-schematic_lemma iff_trans: "[| p:P <-> Q; q:Q<-> R |] ==> ?p:P <-> R"
+schematic_goal iff_trans: "[| p:P <-> Q; q:Q<-> R |] ==> ?p:P <-> R"
   apply (rule iffI)
    apply (assumption | erule iffE | erule (1) impE)+
   done
@@ -339,7 +339,7 @@ schematic_lemma iff_trans: "[| p:P <-> Q; q:Q<-> R |] ==> ?p:P <-> R"
  do NOT mean the same thing.  The parser treats EX!x y.P(x,y) as sequential.
 ***)
 
-schematic_lemma ex1I:
+schematic_goal ex1I:
   assumes "p:P(a)"
     and "!!x u. u:P(x) ==> f(u) : x=a"
   shows "?p:EX! x. P(x)"
@@ -347,7 +347,7 @@ schematic_lemma ex1I:
   apply (assumption | rule assms exI conjI allI impI)+
   done
 
-schematic_lemma ex1E:
+schematic_goal ex1E:
   assumes "p:EX! x. P(x)"
     and "!!x u v. [| u:P(x);  v:ALL y. P(y) --> y=x |] ==> f(x,u,v):R"
   shows "?a : R"
@@ -369,7 +369,7 @@ fun iff_tac ctxt prems i =
 method_setup iff =
   \<open>Attrib.thms >> (fn prems => fn ctxt => SIMPLE_METHOD' (iff_tac ctxt prems))\<close>
 
-schematic_lemma conj_cong:
+schematic_goal conj_cong:
   assumes "p:P <-> P'"
     and "!!x. x:P' ==> q(x):Q <-> Q'"
   shows "?p:(P&Q) <-> (P'&Q')"
@@ -377,12 +377,12 @@ schematic_lemma conj_cong:
   apply (assumption | rule iffI conjI | erule iffE conjE mp | iff assms)+
   done
 
-schematic_lemma disj_cong:
+schematic_goal disj_cong:
   "[| p:P <-> P'; q:Q <-> Q' |] ==> ?p:(P|Q) <-> (P'|Q')"
   apply (erule iffE disjE disjI1 disjI2 | assumption | rule iffI | mp)+
   done
 
-schematic_lemma imp_cong:
+schematic_goal imp_cong:
   assumes "p:P <-> P'"
     and "!!x. x:P' ==> q(x):Q <-> Q'"
   shows "?p:(P-->Q) <-> (P'-->Q')"
@@ -390,23 +390,23 @@ schematic_lemma imp_cong:
   apply (assumption | rule iffI impI | erule iffE | mp | iff assms)+
   done
 
-schematic_lemma iff_cong:
+schematic_goal iff_cong:
   "[| p:P <-> P'; q:Q <-> Q' |] ==> ?p:(P<->Q) <-> (P'<->Q')"
   apply (erule iffE | assumption | rule iffI | mp)+
   done
 
-schematic_lemma not_cong:
+schematic_goal not_cong:
   "p:P <-> P' ==> ?p:~P <-> ~P'"
   apply (assumption | rule iffI notI | mp | erule iffE notE)+
   done
 
-schematic_lemma all_cong:
+schematic_goal all_cong:
   assumes "!!x. f(x):P(x) <-> Q(x)"
   shows "?p:(ALL x. P(x)) <-> (ALL x. Q(x))"
   apply (assumption | rule iffI allI | mp | erule allE | iff assms)+
   done
 
-schematic_lemma ex_cong:
+schematic_goal ex_cong:
   assumes "!!x. f(x):P(x) <-> Q(x)"
   shows "?p:(EX x. P(x)) <-> (EX x. Q(x))"
   apply (erule exE | assumption | rule iffI exI | mp | iff assms)+
@@ -425,7 +425,7 @@ ML_Thms.bind_thm ("ex1_cong", prove_goal (the_context ())
 
 lemmas refl = ieqI
 
-schematic_lemma subst:
+schematic_goal subst:
   assumes prem1: "p:a=b"
     and prem2: "q:P(a)"
   shows "?p : P(b)"
@@ -435,29 +435,29 @@ schematic_lemma subst:
   apply assumption
   done
 
-schematic_lemma sym: "q:a=b ==> ?c:b=a"
+schematic_goal sym: "q:a=b ==> ?c:b=a"
   apply (erule subst)
   apply (rule refl)
   done
 
-schematic_lemma trans: "[| p:a=b;  q:b=c |] ==> ?d:a=c"
+schematic_goal trans: "[| p:a=b;  q:b=c |] ==> ?d:a=c"
   apply (erule (1) subst)
   done
 
 (** ~ b=a ==> ~ a=b **)
-schematic_lemma not_sym: "p:~ b=a ==> ?q:~ a=b"
+schematic_goal not_sym: "p:~ b=a ==> ?q:~ a=b"
   apply (erule contrapos)
   apply (erule sym)
   done
 
-schematic_lemma ssubst: "p:b=a \<Longrightarrow> q:P(a) \<Longrightarrow> ?p:P(b)"
+schematic_goal ssubst: "p:b=a \<Longrightarrow> q:P(a) \<Longrightarrow> ?p:P(b)"
   apply (drule sym)
   apply (erule subst)
   apply assumption
   done
 
 (*A special case of ex1E that would otherwise need quantifier expansion*)
-schematic_lemma ex1_equalsE: "[| p:EX! x. P(x);  q:P(a);  r:P(b) |] ==> ?d:a=b"
+schematic_goal ex1_equalsE: "[| p:EX! x. P(x);  q:P(a);  r:P(b) |] ==> ?d:a=b"
   apply (erule ex1E)
   apply (rule trans)
    apply (rule_tac [2] sym)
@@ -466,17 +466,17 @@ schematic_lemma ex1_equalsE: "[| p:EX! x. P(x);  q:P(a);  r:P(b) |] ==> ?d:a=b"
 
 (** Polymorphic congruence rules **)
 
-schematic_lemma subst_context: "[| p:a=b |]  ==>  ?d:t(a)=t(b)"
+schematic_goal subst_context: "[| p:a=b |]  ==>  ?d:t(a)=t(b)"
   apply (erule ssubst)
   apply (rule refl)
   done
 
-schematic_lemma subst_context2: "[| p:a=b;  q:c=d |]  ==>  ?p:t(a,c)=t(b,d)"
+schematic_goal subst_context2: "[| p:a=b;  q:c=d |]  ==>  ?p:t(a,c)=t(b,d)"
   apply (erule ssubst)+
   apply (rule refl)
   done
 
-schematic_lemma subst_context3: "[| p:a=b;  q:c=d;  r:e=f |]  ==>  ?p:t(a,c,e)=t(b,d,f)"
+schematic_goal subst_context3: "[| p:a=b;  q:c=d;  r:e=f |]  ==>  ?p:t(a,c,e)=t(b,d,f)"
   apply (erule ssubst)+
   apply (rule refl)
   done
@@ -485,7 +485,7 @@ schematic_lemma subst_context3: "[| p:a=b;  q:c=d;  r:e=f |]  ==>  ?p:t(a,c,e)=t
         a = b
         |   |
         c = d   *)
-schematic_lemma box_equals: "[| p:a=b;  q:a=c;  r:b=d |] ==> ?p:c=d"
+schematic_goal box_equals: "[| p:a=b;  q:a=c;  r:b=d |] ==> ?p:c=d"
   apply (rule trans)
    apply (rule trans)
     apply (rule sym)
@@ -493,7 +493,7 @@ schematic_lemma box_equals: "[| p:a=b;  q:a=c;  r:b=d |] ==> ?p:c=d"
   done
 
 (*Dual of box_equals: for proving equalities backwards*)
-schematic_lemma simp_equals: "[| p:a=c;  q:b=d;  r:c=d |] ==> ?p:a=b"
+schematic_goal simp_equals: "[| p:a=c;  q:b=d;  r:c=d |] ==> ?p:a=b"
   apply (rule trans)
    apply (rule trans)
     apply (assumption | rule sym)+
@@ -501,19 +501,19 @@ schematic_lemma simp_equals: "[| p:a=c;  q:b=d;  r:c=d |] ==> ?p:a=b"
 
 (** Congruence rules for predicate letters **)
 
-schematic_lemma pred1_cong: "p:a=a' ==> ?p:P(a) <-> P(a')"
+schematic_goal pred1_cong: "p:a=a' ==> ?p:P(a) <-> P(a')"
   apply (rule iffI)
    apply (tactic \<open>
      DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1)\<close>)
   done
 
-schematic_lemma pred2_cong: "[| p:a=a';  q:b=b' |] ==> ?p:P(a,b) <-> P(a',b')"
+schematic_goal pred2_cong: "[| p:a=a';  q:b=b' |] ==> ?p:P(a,b) <-> P(a',b')"
   apply (rule iffI)
    apply (tactic \<open>
      DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1)\<close>)
   done
 
-schematic_lemma pred3_cong: "[| p:a=a';  q:b=b';  r:c=c' |] ==> ?p:P(a,b,c) <-> P(a',b',c')"
+schematic_goal pred3_cong: "[| p:a=a';  q:b=b';  r:c=c' |] ==> ?p:P(a,b,c) <-> P(a',b',c')"
   apply (rule iffI)
    apply (tactic \<open>
      DEPTH_SOLVE (assume_tac @{context} 1 ORELSE eresolve_tac @{context} [@{thm subst}, @{thm ssubst}] 1)\<close>)
@@ -532,14 +532,14 @@ lemmas eq_cong = pred2_cong [where P = "op ="]
    R. Dyckhoff, Contraction-free sequent calculi for intuitionistic logic
     (preprint, University of St Andrews, 1991)  ***)
 
-schematic_lemma conj_impE:
+schematic_goal conj_impE:
   assumes major: "p:(P&Q)-->S"
     and minor: "!!x. x:P-->(Q-->S) ==> q(x):R"
   shows "?p:R"
   apply (assumption | rule conjI impI major [THEN mp] minor)+
   done
 
-schematic_lemma disj_impE:
+schematic_goal disj_impE:
   assumes major: "p:(P|Q)-->S"
     and minor: "!!x y.[| x:P-->S; y:Q-->S |] ==> q(x,y):R"
   shows "?p:R"
@@ -550,7 +550,7 @@ schematic_lemma disj_impE:
 
 (*Simplifies the implication.  Classical version is stronger.
   Still UNSAFE since Q must be provable -- backtracking needed.  *)
-schematic_lemma imp_impE:
+schematic_goal imp_impE:
   assumes major: "p:(P-->Q)-->S"
     and r1: "!!x y.[| x:P; y:Q-->S |] ==> q(x,y):Q"
     and r2: "!!x. x:S ==> r(x):R"
@@ -560,7 +560,7 @@ schematic_lemma imp_impE:
 
 (*Simplifies the implication.  Classical version is stronger.
   Still UNSAFE since ~P must be provable -- backtracking needed.  *)
-schematic_lemma not_impE:
+schematic_goal not_impE:
   assumes major: "p:~P --> S"
     and r1: "!!y. y:P ==> q(y):False"
     and r2: "!!y. y:S ==> r(y):R"
@@ -569,7 +569,7 @@ schematic_lemma not_impE:
   done
 
 (*Simplifies the implication.   UNSAFE.  *)
-schematic_lemma iff_impE:
+schematic_goal iff_impE:
   assumes major: "p:(P<->Q)-->S"
     and r1: "!!x y.[| x:P; y:Q-->S |] ==> q(x,y):Q"
     and r2: "!!x y.[| x:Q; y:P-->S |] ==> r(x,y):P"
@@ -579,7 +579,7 @@ schematic_lemma iff_impE:
   done
 
 (*What if (ALL x.~~P(x)) --> ~~(ALL x.P(x)) is an assumption? UNSAFE*)
-schematic_lemma all_impE:
+schematic_goal all_impE:
   assumes major: "p:(ALL x. P(x))-->S"
     and r1: "!!x. q:P(x)"
     and r2: "!!y. y:S ==> r(y):R"
@@ -588,7 +588,7 @@ schematic_lemma all_impE:
   done
 
 (*Unsafe: (EX x.P(x))-->S  is equivalent to  ALL x.P(x)-->S.  *)
-schematic_lemma ex_impE:
+schematic_goal ex_impE:
   assumes major: "p:(EX x. P(x))-->S"
     and r: "!!y. y:P(a)-->S ==> q(y):R"
   shows "?p:R"
@@ -596,7 +596,7 @@ schematic_lemma ex_impE:
   done
 
 
-schematic_lemma rev_cut_eq:
+schematic_goal rev_cut_eq:
   assumes "p:a=b"
     and "!!x. x:a=b ==> f(x):R"
   shows "?p:R"
@@ -632,7 +632,7 @@ ML_file "intprover.ML"
 
 (*** Rewrite rules ***)
 
-schematic_lemma conj_rews:
+schematic_goal conj_rews:
   "?p1 : P & True <-> P"
   "?p2 : True & P <-> P"
   "?p3 : P & False <-> False"
@@ -644,7 +644,7 @@ schematic_lemma conj_rews:
   apply (tactic \<open>fn st => IntPr.fast_tac @{context} 1 st\<close>)+
   done
 
-schematic_lemma disj_rews:
+schematic_goal disj_rews:
   "?p1 : P | True <-> True"
   "?p2 : True | P <-> True"
   "?p3 : P | False <-> P"
@@ -654,13 +654,13 @@ schematic_lemma disj_rews:
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
-schematic_lemma not_rews:
+schematic_goal not_rews:
   "?p1 : ~ False <-> True"
   "?p2 : ~ True <-> False"
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
-schematic_lemma imp_rews:
+schematic_goal imp_rews:
   "?p1 : (P --> False) <-> ~P"
   "?p2 : (P --> True) <-> True"
   "?p3 : (False --> P) <-> True"
@@ -670,7 +670,7 @@ schematic_lemma imp_rews:
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
-schematic_lemma iff_rews:
+schematic_goal iff_rews:
   "?p1 : (True <-> P) <-> P"
   "?p2 : (P <-> True) <-> P"
   "?p3 : (P <-> P) <-> True"
@@ -679,14 +679,14 @@ schematic_lemma iff_rews:
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
-schematic_lemma quant_rews:
+schematic_goal quant_rews:
   "?p1 : (ALL x. P) <-> P"
   "?p2 : (EX x. P) <-> P"
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
 (*These are NOT supplied by default!*)
-schematic_lemma distrib_rews1:
+schematic_goal distrib_rews1:
   "?p1 : ~(P|Q) <-> ~P & ~Q"
   "?p2 : P & (Q | R) <-> P&Q | P&R"
   "?p3 : (Q | R) & P <-> Q&P | R&P"
@@ -694,7 +694,7 @@ schematic_lemma distrib_rews1:
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)+
   done
 
-schematic_lemma distrib_rews2:
+schematic_goal distrib_rews2:
   "?p1 : ~(EX x. NORM(P(x))) <-> (ALL x. ~NORM(P(x)))"
   "?p2 : ((EX x. NORM(P(x))) --> Q) <-> (ALL x. NORM(P(x)) --> Q)"
   "?p3 : (EX x. NORM(P(x))) & NORM(Q) <-> (EX x. NORM(P(x)) & NORM(Q))"
@@ -704,11 +704,11 @@ schematic_lemma distrib_rews2:
 
 lemmas distrib_rews = distrib_rews1 distrib_rews2
 
-schematic_lemma P_Imp_P_iff_T: "p:P ==> ?p:(P <-> True)"
+schematic_goal P_Imp_P_iff_T: "p:P ==> ?p:(P <-> True)"
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
   done
 
-schematic_lemma not_P_imp_P_iff_F: "p:~P ==> ?p:(P <-> False)"
+schematic_goal not_P_imp_P_iff_F: "p:~P ==> ?p:(P <-> False)"
   apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
   done
 

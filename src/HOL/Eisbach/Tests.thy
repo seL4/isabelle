@@ -224,7 +224,7 @@ end
    by retrofitting. This needs to be done more carefully to avoid smashing
    legitimate pairs.*)
 
-schematic_lemma "?A x \<Longrightarrow> A x"
+schematic_goal "?A x \<Longrightarrow> A x"
   apply (match conclusion in "H" for H \<Rightarrow> \<open>match conclusion in Y for Y \<Rightarrow> \<open>print_term Y\<close>\<close>)
   apply assumption
   done
