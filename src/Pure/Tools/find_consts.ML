@@ -31,8 +31,8 @@ datatype criterion =
 fun matches_subtype thy typat =
   Term.exists_subtype (fn ty => Sign.typ_instance thy (ty, typat));
 
-fun check_const pred (nm, (ty, _)) =
-  if pred (nm, ty) then SOME (Term.size_of_typ ty) else NONE;
+fun check_const pred (c, (ty, _)) =
+  if pred (c, ty) then SOME (Term.size_of_typ ty) else NONE;
 
 fun opt_not f (c as (_, (ty, _))) =
   if is_some (f c) then NONE else SOME (Term.size_of_typ ty);
@@ -60,8 +60,7 @@ fun pretty_criterion (b, c) =
 fun pretty_const ctxt (c, ty) =
   let
     val ty' = Logic.unvarifyT_global ty;
-    val const_space = Consts.space_of (Sign.consts_of (Proof_Context.theory_of ctxt));
-    val markup = Name_Space.markup const_space c;
+    val markup = Name_Space.markup (Proof_Context.const_space ctxt) c;
   in
     Pretty.block
      [Pretty.mark markup (Pretty.str c), Pretty.str " ::", Pretty.brk 1,
@@ -75,9 +74,6 @@ fun pretty_consts ctxt raw_criteria =
   let
     val thy = Proof_Context.theory_of ctxt;
     val low_ranking = 10000;
-
-    fun user_visible consts (nm, _) =
-      if Consts.is_concealed consts nm then NONE else SOME low_ranking;
 
     fun make_pattern crit =
       let
@@ -104,11 +100,14 @@ fun pretty_consts ctxt raw_criteria =
     fun make_criterion (b, crit) = (if b then I else opt_not) (make_match crit);
     val criteria = map make_criterion raw_criteria;
 
-    val consts = Sign.consts_of thy;
-    val {constants, ...} = Consts.dest consts;
-    fun eval_entry c =
-      fold (filter_const c) (user_visible consts :: criteria) (SOME low_ranking);
+    fun user_visible (c, _) =
+      if Consts.is_concealed (Proof_Context.consts_of ctxt) c
+      then NONE else SOME low_ranking;
 
+    fun eval_entry c =
+      fold (filter_const c) (user_visible :: criteria) (SOME low_ranking);
+
+    val {constants, ...} = Consts.dest (Sign.consts_of thy);
     val matches =
       fold (fn c => (case eval_entry c of NONE => I | SOME rank => cons (rank, c))) constants []
       |> sort (prod_ord (rev_order o int_ord) (string_ord o apply2 fst))
@@ -125,7 +124,7 @@ fun pretty_consts ctxt raw_criteria =
      else
        Pretty.str ("found " ^ string_of_int (length matches) ^ " constant(s):") ::
        grouped 10 Par_List.map (Pretty.item o single o pretty_const ctxt) matches)
-  end |> Pretty.fbreaks |> curry Pretty.blk 0;
+  end |> Pretty.chunks;
 
 fun find_consts ctxt args = Pretty.writeln (pretty_consts ctxt args);
 
@@ -175,4 +174,3 @@ val _ =
       | NONE => error "Unknown context"));
 
 end;
-
