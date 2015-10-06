@@ -23,6 +23,7 @@ sig
 
   val irrelevant : string
   val unknown : string
+  val unrep_mixfix : unit -> string
   val register_term_postprocessor :
     typ -> term_postprocessor -> morphism -> Context.generic -> Context.generic
   val register_term_postprocessor_global :
