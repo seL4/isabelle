@@ -86,10 +86,6 @@ val ex1_implies_iff = @{thm Fun_Def.fundef_ex1_iff}
 
 val acc_downward = @{thm accp_downward}
 val accI = @{thm accp.accI}
-val case_split = @{thm HOL.case_split}
-val fundef_default_value = @{thm Fun_Def.fundef_default_value}
-val not_acc_down = @{thm not_accp_down}
-
 
 
 fun find_calls tree =
@@ -259,8 +255,7 @@ fun get_compat_thm ctxt cts i j ctxi ctxj =
 (* Generates the replacement lemma in fully quantified form. *)
 fun mk_replacement_lemma ctxt h ih_elim clause =
   let
-    val ClauseInfo {cdata=ClauseContext {qs, lhs, cqs, ags, case_hyp, ...},
-      RCs, tree, ...} = clause
+    val ClauseInfo {cdata=ClauseContext {qs, cqs, ags, case_hyp, ...}, RCs, tree, ...} = clause
     local open Conv in
       val ih_conv = arg1_conv o arg_conv o arg_conv
     end
@@ -784,50 +779,51 @@ fun mk_nest_term_rule ctxt globals R R_cases clauses =
     val Globals { domT, x, z, ... } = globals
     val acc_R = mk_acc domT R
 
-    val R' = Free ("R", fastype_of R)
+    val ([Rn], ctxt') = Variable.variant_fixes ["R"] ctxt
+    val R' = Free (Rn, fastype_of R)
 
-    val Rrel = Free ("R", HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)))
+    val Rrel = Free (Rn, HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)))
     val inrel_R = Const (@{const_name Fun_Def.in_rel},
       HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)) --> fastype_of R) $ Rrel
 
     val wfR' = HOLogic.mk_Trueprop (Const (@{const_name Wellfounded.wfP},
       (domT --> domT --> boolT) --> boolT) $ R')
-      |> Thm.cterm_of ctxt (* "wf R'" *)
+      |> Thm.cterm_of ctxt' (* "wf R'" *)
 
     (* Inductive Hypothesis: !!z. (z,x):R' ==> z : acc R *)
     val ihyp = Logic.all_const domT $ Abs ("z", domT,
       Logic.mk_implies (HOLogic.mk_Trueprop (R' $ Bound 0 $ x),
         HOLogic.mk_Trueprop (acc_R $ Bound 0)))
-      |> Thm.cterm_of ctxt
+      |> Thm.cterm_of ctxt'
 
     val ihyp_a = Thm.assume ihyp |> Thm.forall_elim_vars 0
 
-    val R_z_x = Thm.cterm_of ctxt (HOLogic.mk_Trueprop (R $ z $ x))
+    val R_z_x = Thm.cterm_of ctxt' (HOLogic.mk_Trueprop (R $ z $ x))
 
-    val (hyps, cases) = fold (mk_nest_term_case ctxt globals R' ihyp_a) clauses ([], [])
+    val (hyps, cases) = fold (mk_nest_term_case ctxt' globals R' ihyp_a) clauses ([], [])
   in
     R_cases
-    |> Thm.forall_elim (Thm.cterm_of ctxt z)
-    |> Thm.forall_elim (Thm.cterm_of ctxt x)
-    |> Thm.forall_elim (Thm.cterm_of ctxt (acc_R $ z))
+    |> Thm.forall_elim (Thm.cterm_of ctxt' z)
+    |> Thm.forall_elim (Thm.cterm_of ctxt' x)
+    |> Thm.forall_elim (Thm.cterm_of ctxt' (acc_R $ z))
     |> curry op COMP (Thm.assume R_z_x)
     |> fold_rev (curry op COMP) cases
     |> Thm.implies_intr R_z_x
-    |> Thm.forall_intr (Thm.cterm_of ctxt z)
+    |> Thm.forall_intr (Thm.cterm_of ctxt' z)
     |> (fn it => it COMP accI)
     |> Thm.implies_intr ihyp
-    |> Thm.forall_intr (Thm.cterm_of ctxt x)
+    |> Thm.forall_intr (Thm.cterm_of ctxt' x)
     |> (fn it => Drule.compose (it, 2, wf_induct_rule))
     |> curry op RS (Thm.assume wfR')
     |> forall_intr_vars
     |> (fn it => it COMP allI)
     |> fold Thm.implies_intr hyps
     |> Thm.implies_intr wfR'
-    |> Thm.forall_intr (Thm.cterm_of ctxt R')
-    |> Thm.forall_elim (Thm.cterm_of ctxt (inrel_R))
+    |> Thm.forall_intr (Thm.cterm_of ctxt' R')
+    |> Thm.forall_elim (Thm.cterm_of ctxt' inrel_R)
     |> curry op RS wf_in_rel
-    |> full_simplify (put_simpset HOL_basic_ss ctxt addsimps [in_rel_def])
-    |> Thm.forall_intr (Thm.cterm_of ctxt Rrel)
+    |> full_simplify (put_simpset HOL_basic_ss ctxt' addsimps [in_rel_def])
+    |> Thm.forall_intr_name ("R", Thm.cterm_of ctxt' Rrel)
   end
 
 
