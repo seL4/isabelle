@@ -64,6 +64,7 @@ sig
   val undeclared_hyps: Context.generic -> thm -> term list
   val check_hyps: Context.generic -> thm -> thm
   val elim_implies: thm -> thm -> thm
+  val forall_intr_name: string * cterm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
@@ -317,6 +318,15 @@ fun check_hyps context th =
         B
 *)
 fun elim_implies thA thAB = Thm.implies_elim thAB thA;
+
+
+(* forall_intr_name *)
+
+fun forall_intr_name (a, x) th =
+  let
+    val th' = Thm.forall_intr x th;
+    val prop' = (case Thm.prop_of th' of all $ Abs (_, T, b) => all $ Abs (a, T, b));
+  in Thm.renamed_prop prop' th' end;
 
 
 (* forall_elim_var(s) *)
