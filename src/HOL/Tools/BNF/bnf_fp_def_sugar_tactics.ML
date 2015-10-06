@@ -40,7 +40,7 @@ sig
     tactic
   val mk_rec_transfer_tac: Proof.context -> int -> int list -> cterm list -> cterm list ->
     term list list list list -> thm list -> thm list -> thm list -> thm list -> tactic
-  val mk_rel_cases_tac:  Proof.context -> cterm -> cterm -> thm -> thm list -> thm list ->
+  val mk_rel_cases_tac: Proof.context -> cterm -> cterm -> thm -> thm list -> thm list ->
     thm list -> thm list -> thm list -> tactic
   val mk_rel_coinduct0_tac: Proof.context -> thm -> cterm list -> thm list -> thm list ->
     thm list list -> thm list list -> thm list list -> thm list -> thm list -> thm list ->
@@ -405,19 +405,20 @@ fun mk_map_sel_tac ctxt ct exhaust discs maps sels map_id0s =
     unfold_thms_tac ctxt (@{thm id_apply} :: maps @ sels @ map_id0s) THEN
     ALLGOALS (rtac ctxt refl);
 
-fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_distincts rel_eqs=
+fun mk_rel_cases_tac ctxt ct1 ct2 exhaust injects rel_injects distincts rel_distincts rel_eqs =
   HEADGOAL (rtac ctxt (infer_instantiate' ctxt [SOME ct1] exhaust) THEN_ALL_NEW
     rtac ctxt (infer_instantiate' ctxt [SOME ct2] exhaust) THEN_ALL_NEW
       hyp_subst_tac ctxt) THEN
-  unfold_thms_tac ctxt (rel_eqs @ injects @ rel_injects @ @{thms conj_imp_eq_imp_imp simp_thms(6)
-    True_implies_equals conj_imp_eq_imp_imp} @
+  unfold_thms_tac ctxt (rel_eqs @ injects @ rel_injects @
+    @{thms conj_imp_eq_imp_imp simp_thms(6) True_implies_equals} @
     map (fn thm => thm RS eqFalseI) (distincts @ rel_distincts) @
     map (fn thm => thm RS eqTrueI) rel_injects) THEN
   TRYALL (assume_tac ctxt ORELSE' etac ctxt FalseE ORELSE'
-    (REPEAT_DETERM o dtac ctxt @{thm meta_spec} THEN'
+    (REPEAT_DETERM o dtac ctxt meta_spec THEN'
      TRY o filter_prems_tac ctxt
        (forall (curry (op <>) (HOLogic.mk_Trueprop @{term False})) o Logic.strip_imp_prems) THEN'
-     REPEAT_DETERM o (dtac ctxt @{thm meta_mp} THEN' rtac ctxt refl) THEN' Goal.assume_rule_tac ctxt));
+     REPEAT_DETERM o (dtac ctxt meta_mp THEN' rtac ctxt refl) THEN'
+     (assume_tac ctxt ORELSE' Goal.assume_rule_tac ctxt)));
 
 fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss ctor_defss
     dtor_ctors ctor_injects abs_injects rel_pre_defs abs_inverses nesting_rel_eqs =
