@@ -316,8 +316,8 @@ fun defcnf fm =
 (*      truth value of a propositional formula 'fm' is computed              *)
 (* ------------------------------------------------------------------------- *)
 
-fun eval a True = true
-  | eval a False = false
+fun eval _ True = true
+  | eval _ False = false
   | eval a (BoolVar i) = (a i)
   | eval a (Not fm) = not (eval a fm)
   | eval a (Or (fm1, fm2)) = (eval a fm1) orelse (eval a fm2)
