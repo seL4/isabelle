@@ -111,7 +111,7 @@ fun add_equality fcT fcT_name As ctrs inject_thms distinct_thms =
     #-> Class.prove_instantiation_exit_result (map o Morphism.thm) tac o single
     #-> fold Code.del_eqn
     #> `(mk_free_ctr_equations fcT ctrs inject_thms distinct_thms)
-    #-> (fn (thms, thm) => Global_Theory.note_thmss Thm.lemmaK
+    #-> (fn (thms, thm) => Global_Theory.note_thmss Thm.theoremK
       [((qualify reflN, [Code.add_nbe_default_eqn_attribute]), [([thm], [])]),
         ((qualify simpsN, [Code.add_default_eqn_attribute]), [(rev thms, [])])])
     #> snd

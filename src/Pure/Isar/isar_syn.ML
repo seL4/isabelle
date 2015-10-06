@@ -152,16 +152,15 @@ val _ =
 
 (* theorems *)
 
-fun theorems kind =
+val theorems =
   Parse_Spec.name_facts -- Parse.for_fixes
-    >> (fn (facts, fixes) => #2 oo Specification.theorems_cmd kind facts fixes);
+    >> (fn (facts, fixes) => #2 oo Specification.theorems_cmd Thm.theoremK facts fixes);
 
 val _ =
-  Outer_Syntax.local_theory' @{command_keyword theorems} "define theorems"
-    (theorems Thm.theoremK);
+  Outer_Syntax.local_theory' @{command_keyword theorems} "define theorems" theorems;
 
 val _ =
-  Outer_Syntax.local_theory' @{command_keyword lemmas} "define lemmas" (theorems Thm.lemmaK);
+  Outer_Syntax.local_theory' @{command_keyword lemmas} "define lemmas" theorems;
 
 val _ =
   Outer_Syntax.local_theory' @{command_keyword declare} "declare theorems"
@@ -494,23 +493,23 @@ val _ =
 
 (* statements *)
 
-fun theorem spec schematic kind =
+fun theorem spec schematic descr =
   Outer_Syntax.local_theory_to_proof' spec
-    ("state " ^ (if schematic then "schematic " ^ kind else kind))
+    ("state " ^ descr)
     (Scan.optional (Parse_Spec.opt_thm_name ":" --|
       Scan.ahead (Parse_Spec.includes >> K "" ||
         Parse_Spec.locale_keyword || Parse_Spec.statement_keyword)) Attrib.empty_binding --
       Scan.optional Parse_Spec.includes [] --
       Parse_Spec.general_statement >> (fn ((a, includes), (elems, concl)) =>
         ((if schematic then Specification.schematic_theorem_cmd else Specification.theorem_cmd)
-          kind NONE (K I) a includes elems concl)));
+          Thm.theoremK NONE (K I) a includes elems concl)));
 
-val _ = theorem @{command_keyword theorem} false Thm.theoremK;
-val _ = theorem @{command_keyword lemma} false Thm.lemmaK;
-val _ = theorem @{command_keyword corollary} false Thm.corollaryK;
-val _ = theorem @{command_keyword schematic_theorem} true Thm.theoremK;
-val _ = theorem @{command_keyword schematic_lemma} true Thm.lemmaK;
-val _ = theorem @{command_keyword schematic_corollary} true Thm.corollaryK;
+val _ = theorem @{command_keyword theorem} false "theorem";
+val _ = theorem @{command_keyword lemma} false "lemma";
+val _ = theorem @{command_keyword corollary} false "corollary";
+val _ = theorem @{command_keyword schematic_theorem} true "schematic goal";
+val _ = theorem @{command_keyword schematic_lemma} true "schematic goal";
+val _ = theorem @{command_keyword schematic_corollary} true "schematic goal";
 
 
 val structured_statement =
