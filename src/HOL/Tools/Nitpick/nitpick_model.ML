@@ -23,7 +23,6 @@ sig
 
   val irrelevant : string
   val unknown : string
-  val unrep : unit -> string
   val register_term_postprocessor :
     typ -> term_postprocessor -> morphism -> Context.generic -> Context.generic
   val register_term_postprocessor_global :
@@ -73,7 +72,7 @@ fun xsym s s' () = if print_mode_active Symbol.xsymbolsN then s else s'
 
 val irrelevant = "_"
 val unknown = "?"
-val unrep = xsym "\<dots>" "..."
+val unrep_mixfix = xsym "\<dots>" "..."
 val maybe_mixfix = xsym "_\<^sup>?" "_?"
 val base_mixfix = xsym "_\<^bsub>base\<^esub>" "_.base"
 val step_mixfix = xsym "_\<^bsub>step\<^esub>" "_.step"
@@ -91,20 +90,28 @@ fun add_wacky_syntax ctxt =
   let
     val name_of = fst o dest_Const
     val thy = Proof_Context.theory_of ctxt
-    val (maybe_t, thy) =
-      Sign.declare_const_global ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
-                          Mixfix (maybe_mixfix (), [1000], 1000)) thy
-    val (abs_t, thy) =
-      Sign.declare_const_global ((@{binding nitpick_abs}, @{typ "'a => 'b"}),
-                          Mixfix (abs_mixfix (), [40], 40)) thy
-    val (base_t, thy) =
-      Sign.declare_const_global ((@{binding nitpick_base}, @{typ "'a => 'a"}),
-                          Mixfix (base_mixfix (), [1000], 1000)) thy
-    val (step_t, thy) =
-      Sign.declare_const_global ((@{binding nitpick_step}, @{typ "'a => 'a"}),
-                          Mixfix (step_mixfix (), [1000], 1000)) thy
+    val (unrep_s, thy) = thy
+      |> Sign.declare_const_global ((@{binding nitpick_unrep}, @{typ 'a}),
+        Mixfix (unrep_mixfix (), [], 1000))
+      |>> name_of
+    val (maybe_s, thy) = thy
+      |> Sign.declare_const_global ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
+        Mixfix (maybe_mixfix (), [1000], 1000))
+      |>> name_of
+    val (abs_s, thy) = thy
+      |> Sign.declare_const_global ((@{binding nitpick_abs}, @{typ "'a => 'b"}),
+        Mixfix (abs_mixfix (), [40], 40))
+      |>> name_of
+    val (base_s, thy) = thy
+      |> Sign.declare_const_global ((@{binding nitpick_base}, @{typ "'a => 'a"}),
+        Mixfix (base_mixfix (), [1000], 1000))
+      |>> name_of
+    val (step_s, thy) = thy
+      |> Sign.declare_const_global ((@{binding nitpick_step}, @{typ "'a => 'a"}),
+        Mixfix (step_mixfix (), [1000], 1000))
+      |>> name_of
   in
-    (apply2 (apply2 name_of) ((maybe_t, abs_t), (base_t, step_t)),
+    (((unrep_s, maybe_s, abs_s), (base_s, step_s)),
      Proof_Context.transfer thy ctxt)
   end
 
@@ -362,7 +369,7 @@ fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
       end
   in index_seq 0 card |> map nth_value_of_type |> sort nice_term_ord end
 and reconstruct_term maybe_opt unfold pool
-        (wacky_names as ((maybe_name, abs_name), _))
+        (wacky_names as ((unrep_name, maybe_name, abs_name), _))
         (scope as {hol_ctxt as {thy, ctxt, ...}, binarize, card_assigns, bits,
                    data_types, ofs, ...})
         atomss sel_names rel_table bounds =
@@ -401,7 +408,7 @@ and reconstruct_term maybe_opt unfold pool
         val insert_const = Const (@{const_name insert}, T --> set_T --> set_T)
         fun aux [] =
             if maybe_opt andalso not (is_complete_type data_types false T) then
-              insert_const $ Const (unrep (), T) $ empty_const
+              insert_const $ Const (unrep_name, T) $ empty_const
             else
               empty_const
           | aux ((t1, t2) :: zs) =
@@ -430,7 +437,7 @@ and reconstruct_term maybe_opt unfold pool
              | _ => update_const $ aux' tps $ t1 $ t2)
         fun aux tps =
           if maybe_opt andalso not (is_complete_type data_types false T1) then
-            update_const $ aux' tps $ Const (unrep (), T1)
+            update_const $ aux' tps $ Const (unrep_name, T1)
             $ (Const (@{const_name Some}, T2' --> T2) $ Const (unknown, T2'))
           else
             aux' tps
@@ -979,7 +986,7 @@ fun reconstruct_hol_model {show_types, show_skolems, show_consts}
             Pretty.enum "," "{" "}"
                 (map (pretty_term_auto_global ctxt) (all_values card typ) @
                  (if fun_from_pair complete false then []
-                  else [Pretty.str (unrep ())]))]))
+                  else [Pretty.str (unrep_mixfix ())]))]))
     fun integer_data_type T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
         self_rec = true, complete = (false, false), concrete = (true, true),
