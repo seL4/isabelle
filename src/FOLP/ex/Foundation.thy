@@ -9,7 +9,7 @@ theory Foundation
 imports IFOLP
 begin
 
-schematic_lemma "?p : A&B  --> (C-->A&C)"
+schematic_goal "?p : A&B  --> (C-->A&C)"
 apply (rule impI)
 apply (rule impI)
 apply (rule conjI)
@@ -19,7 +19,7 @@ apply assumption
 done
 
 text \<open>A form of conj-elimination\<close>
-schematic_lemma
+schematic_goal
   assumes "p : A & B"
     and "!!x y. x : A ==> y : B ==> f(x, y) : C"
   shows "?p : C"
@@ -30,7 +30,7 @@ apply (rule conjunct2)
 apply (rule assms)
 done
 
-schematic_lemma
+schematic_goal
   assumes "!!A x. x : ~ ~A ==> cla(x) : A"
   shows "?p : B | ~B"
 apply (rule assms)
@@ -48,7 +48,7 @@ apply (rule disjI2)
 apply assumption
 done
 
-schematic_lemma
+schematic_goal
   assumes "!!A x. x : ~ ~A ==> cla(x) : A"
   shows "?p : B | ~B"
 apply (rule assms)
@@ -63,7 +63,7 @@ apply (erule disjI2)
 done
 
 
-schematic_lemma
+schematic_goal
   assumes "p : A | ~A"
     and "q : ~ ~A"
   shows "?p : A"
@@ -79,7 +79,7 @@ done
 
 subsection "Examples with quantifiers"
 
-schematic_lemma
+schematic_goal
   assumes "p : ALL z. G(z)"
   shows "?p : ALL z. G(z)|H(z)"
 apply (rule allI)
@@ -87,20 +87,20 @@ apply (rule disjI1)
 apply (rule assms [THEN spec])
 done
 
-schematic_lemma "?p : ALL x. EX y. x=y"
+schematic_goal "?p : ALL x. EX y. x=y"
 apply (rule allI)
 apply (rule exI)
 apply (rule refl)
 done
 
-schematic_lemma "?p : EX y. ALL x. x=y"
+schematic_goal "?p : EX y. ALL x. x=y"
 apply (rule exI)
 apply (rule allI)
 apply (rule refl)?
 oops
 
 text \<open>Parallel lifting example.\<close>
-schematic_lemma "?p : EX u. ALL x. EX v. ALL y. EX w. P(u,x,v,y,w)"
+schematic_goal "?p : EX u. ALL x. EX v. ALL y. EX w. P(u,x,v,y,w)"
 apply (rule exI allI)
 apply (rule exI allI)
 apply (rule exI allI)
@@ -108,7 +108,7 @@ apply (rule exI allI)
 apply (rule exI allI)
 oops
 
-schematic_lemma
+schematic_goal
   assumes "p : (EX z. F(z)) & B"
   shows "?p : EX z. F(z) & B"
 apply (rule conjE)
@@ -122,7 +122,7 @@ apply assumption
 done
 
 text \<open>A bigger demonstration of quantifiers -- not in the paper.\<close>
-schematic_lemma "?p : (EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))"
+schematic_goal "?p : (EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))"
 apply (rule impI)
 apply (rule allI)
 apply (rule exE, assumption)

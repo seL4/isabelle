@@ -127,7 +127,7 @@ theorem set_plus_rearrange4: "C + ((a::'a::comm_monoid_add) +o D) = a +o (C + D)
    apply (auto simp add: ac_simps)
   done
 
-theorems set_plus_rearranges = set_plus_rearrange set_plus_rearrange2
+lemmas set_plus_rearranges = set_plus_rearrange set_plus_rearrange2
   set_plus_rearrange3 set_plus_rearrange4
 
 lemma set_plus_mono [intro!]: "C \<subseteq> D \<Longrightarrow> a +o C \<subseteq> a +o D"
@@ -237,7 +237,7 @@ theorem set_times_rearrange4:
    apply (auto simp add: ac_simps)
   done
 
-theorems set_times_rearranges = set_times_rearrange set_times_rearrange2
+lemmas set_times_rearranges = set_times_rearrange set_times_rearrange2
   set_times_rearrange3 set_times_rearrange4
 
 lemma set_times_mono [intro]: "C \<subseteq> D \<Longrightarrow> a *o C \<subseteq> a *o D"
@@ -303,7 +303,7 @@ lemma set_times_plus_distrib3: "((a::'a::semiring) +o C) * D \<subseteq> a *o D 
   apply auto
   done
 
-theorems set_times_plus_distribs =
+lemmas set_times_plus_distribs =
   set_times_plus_distrib
   set_times_plus_distrib2
 

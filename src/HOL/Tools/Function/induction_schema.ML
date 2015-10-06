@@ -142,12 +142,12 @@ fun mk_completeness ctxt (IndScheme {cases, branches, ...}) bidx =
 fun mk_wf R (IndScheme {T, ...}) =
   HOLogic.Trueprop $ (Const (@{const_name wf}, mk_relT T --> HOLogic.boolT) $ R)
 
-fun mk_ineqs R (IndScheme {T, cases, branches}) =
+fun mk_ineqs R thesisn (IndScheme {T, cases, branches}) =
   let
     fun inject i ts =
        Sum_Tree.mk_inj T (length branches) (i + 1) (foldr1 HOLogic.mk_prod ts)
 
-    val thesis = Free ("thesis", HOLogic.boolT) (* FIXME *)
+    val thesis = Free (thesisn, HOLogic.boolT)
 
     fun mk_pres bdx args =
       let
@@ -349,12 +349,12 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
   let
     val (ctxt', _, cases, concl) = dest_hhf ctxt t
     val scheme as IndScheme {T=ST, branches, ...} = mk_scheme' ctxt' cases concl
-    val ([Rn, xn], ctxt'') = Variable.variant_fixes ["R", "x"] ctxt'
+    val ([Rn, xn, thesisn], ctxt'') = Variable.variant_fixes ["R", "x", "thesis"] ctxt'
     val R = Free (Rn, mk_relT ST)
     val x = Free (xn, ST)
 
     val ineqss =
-      mk_ineqs R scheme
+      mk_ineqs R thesisn scheme
       |> map (map (apply2 (Thm.assume o Thm.cterm_of ctxt'')))
     val complete =
       map_range (mk_completeness ctxt'' scheme #> Thm.cterm_of ctxt'' #> Thm.assume)

@@ -40,7 +40,7 @@ definition add :: "[nat, nat] => nat"    (infixl "+" 60)
 
 subsection \<open>Proofs about the natural numbers\<close>
 
-schematic_lemma Suc_n_not_n: "?p : ~ (Suc(k) = k)"
+schematic_goal Suc_n_not_n: "?p : ~ (Suc(k) = k)"
 apply (rule_tac n = k in induct)
 apply (rule notI)
 apply (erule Suc_neq_0)
@@ -49,7 +49,7 @@ apply (erule notE)
 apply (erule Suc_inject)
 done
 
-schematic_lemma "?p : (k+m)+n = k+(m+n)"
+schematic_goal "?p : (k+m)+n = k+(m+n)"
 apply (rule induct)
 back
 back
@@ -59,23 +59,23 @@ back
 back
 oops
 
-schematic_lemma add_0 [simp]: "?p : 0+n = n"
+schematic_goal add_0 [simp]: "?p : 0+n = n"
 apply (unfold add_def)
 apply (rule rec_0)
 done
 
-schematic_lemma add_Suc [simp]: "?p : Suc(m)+n = Suc(m+n)"
+schematic_goal add_Suc [simp]: "?p : Suc(m)+n = Suc(m+n)"
 apply (unfold add_def)
 apply (rule rec_Suc)
 done
 
 
-schematic_lemma Suc_cong: "p : x = y \<Longrightarrow> ?p : Suc(x) = Suc(y)"
+schematic_goal Suc_cong: "p : x = y \<Longrightarrow> ?p : Suc(x) = Suc(y)"
   apply (erule subst)
   apply (rule refl)
   done
 
-schematic_lemma Plus_cong: "[| p : a = x;  q: b = y |] ==> ?p : a + b = x + y"
+schematic_goal Plus_cong: "[| p : a = x;  q: b = y |] ==> ?p : a + b = x + y"
   apply (erule subst, erule subst, rule refl)
   done
 
@@ -87,19 +87,19 @@ ML \<open>
     |> fold (addrew @{context}) @{thms add_0 add_Suc}
 \<close>
 
-schematic_lemma add_assoc: "?p : (k+m)+n = k+(m+n)"
+schematic_goal add_assoc: "?p : (k+m)+n = k+(m+n)"
 apply (rule_tac n = k in induct)
 apply (tactic \<open>SIMP_TAC @{context} add_ss 1\<close>)
 apply (tactic \<open>ASM_SIMP_TAC @{context} add_ss 1\<close>)
 done
 
-schematic_lemma add_0_right: "?p : m+0 = m"
+schematic_goal add_0_right: "?p : m+0 = m"
 apply (rule_tac n = m in induct)
 apply (tactic \<open>SIMP_TAC @{context} add_ss 1\<close>)
 apply (tactic \<open>ASM_SIMP_TAC @{context} add_ss 1\<close>)
 done
 
-schematic_lemma add_Suc_right: "?p : m+Suc(n) = Suc(m+n)"
+schematic_goal add_Suc_right: "?p : m+Suc(n) = Suc(m+n)"
 apply (rule_tac n = m in induct)
 apply (tactic \<open>ALLGOALS (ASM_SIMP_TAC @{context} add_ss)\<close>)
 done

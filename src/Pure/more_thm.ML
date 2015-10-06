@@ -64,6 +64,7 @@ sig
   val undeclared_hyps: Context.generic -> thm -> term list
   val check_hyps: Context.generic -> thm -> thm
   val elim_implies: thm -> thm -> thm
+  val forall_intr_name: string * cterm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
   val instantiate': ctyp option list -> cterm option list -> thm -> thm
@@ -101,8 +102,6 @@ sig
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
   val theoremK: string
-  val lemmaK: string
-  val corollaryK: string
   val legacy_get_kind: thm -> string
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
@@ -319,6 +318,15 @@ fun check_hyps context th =
         B
 *)
 fun elim_implies thA thAB = Thm.implies_elim thAB thA;
+
+
+(* forall_intr_name *)
+
+fun forall_intr_name (a, x) th =
+  let
+    val th' = Thm.forall_intr x th;
+    val prop' = (case Thm.prop_of th' of all $ Abs (_, T, b) => all $ Abs (a, T, b));
+  in Thm.renamed_prop prop' th' end;
 
 
 (* forall_elim_var(s) *)
@@ -576,8 +584,6 @@ fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name
 (* theorem kinds *)
 
 val theoremK = "theorem";
-val lemmaK = "lemma";
-val corollaryK = "corollary";
 
 fun legacy_get_kind thm = the_default "" (Properties.get (Thm.get_tags thm) Markup.kindN);
 

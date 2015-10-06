@@ -373,7 +373,7 @@ apply (auto simp add: appl_methds_foo_Base)
 done
 
 lemmas t = ty_expr_ty_exprs_wt_stmt.intros
-schematic_lemma wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>  
+schematic_goal wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>  
   Expr(e::=NewC Ext);; Expr({Base}LAcc e..foo({?pTs'}[Lit Null]))\<surd>"
 apply (rule ty_expr_ty_exprs_wt_stmt.intros) -- ";;"
 apply  (rule t) -- "Expr"
@@ -402,7 +402,7 @@ done
 lemmas e = NewCI eval_evals_exec.intros
 declare split_if [split del]
 declare init_vars_def [simp] c_hupd_def [simp] cast_ok_def [simp]
-schematic_lemma exec_test: 
+schematic_goal exec_test: 
 " [|new_Addr (heap (snd s0)) = (a, None)|] ==>  
   tprg\<turnstile>s0 -test-> ?s"
 apply (unfold test_def)

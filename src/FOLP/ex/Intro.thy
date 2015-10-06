@@ -13,7 +13,7 @@ begin
 
 subsubsection \<open>Some simple backward proofs\<close>
 
-schematic_lemma mythm: "?p : P|P --> P"
+schematic_goal mythm: "?p : P|P --> P"
 apply (rule impI)
 apply (rule disjE)
 prefer 3 apply (assumption)
@@ -21,7 +21,7 @@ prefer 2 apply (assumption)
 apply assumption
 done
 
-schematic_lemma "?p : (P & Q) | R --> (P | R)"
+schematic_goal "?p : (P & Q) | R --> (P | R)"
 apply (rule impI)
 apply (erule disjE)
 apply (drule conjunct1)
@@ -31,7 +31,7 @@ apply assumption+
 done
 
 (*Correct version, delaying use of "spec" until last*)
-schematic_lemma "?p : (ALL x y. P(x,y)) --> (ALL z w. P(w,z))"
+schematic_goal "?p : (ALL x y. P(x,y)) --> (ALL z w. P(w,z))"
 apply (rule impI)
 apply (rule allI)
 apply (rule allI)
@@ -43,13 +43,13 @@ done
 
 subsubsection \<open>Demonstration of @{text "fast"}\<close>
 
-schematic_lemma "?p : (EX y. ALL x. J(y,x) <-> ~J(x,x))
+schematic_goal "?p : (EX y. ALL x. J(y,x) <-> ~J(x,x))
         -->  ~ (ALL x. EX y. ALL z. J(z,y) <-> ~ J(z,x))"
 apply (tactic \<open>fast_tac @{context} FOLP_cs 1\<close>)
 done
 
 
-schematic_lemma "?p : ALL x. P(x,f(x)) <->
+schematic_goal "?p : ALL x. P(x,f(x)) <->
         (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))"
 apply (tactic \<open>fast_tac @{context} FOLP_cs 1\<close>)
 done
@@ -57,7 +57,7 @@ done
 
 subsubsection \<open>Derivation of conjunction elimination rule\<close>
 
-schematic_lemma
+schematic_goal
   assumes major: "p : P&Q"
     and minor: "!!x y. [| x : P; y : Q |] ==> f(x, y) : R"
   shows "?p : R"
@@ -71,7 +71,7 @@ subsection \<open>Derived rules involving definitions\<close>
 
 text \<open>Derivation of negation introduction\<close>
 
-schematic_lemma
+schematic_goal
   assumes "!!x. x : P ==> f(x) : False"
   shows "?p : ~ P"
 apply (unfold not_def)
@@ -80,7 +80,7 @@ apply (rule assms)
 apply assumption
 done
 
-schematic_lemma
+schematic_goal
   assumes major: "p : ~P"
     and minor: "q : P"
   shows "?p : R"
@@ -91,7 +91,7 @@ apply (rule minor)
 done
 
 text \<open>Alternative proof of the result above\<close>
-schematic_lemma
+schematic_goal
   assumes major: "p : ~P"
     and minor: "q : P"
   shows "?p : R"

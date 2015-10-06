@@ -332,11 +332,11 @@ oops
 
 subsubsection {* Schematic variables *}
 
-schematic_lemma "?P"
+schematic_goal "?P"
 refute [expect = none]
 by auto
 
-schematic_lemma "x = ?y"
+schematic_goal "x = ?y"
 refute [expect = none]
 by auto
 

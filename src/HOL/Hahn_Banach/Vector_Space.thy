@@ -75,7 +75,7 @@ proof -
   finally show ?thesis .
 qed
 
-theorems add_ac = add_assoc add_commute add_left_commute
+lemmas add_ac = add_assoc add_commute add_left_commute
 
 
 text \<open>The existence of the zero element of a vector space

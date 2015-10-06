@@ -343,13 +343,13 @@ subsection \<open>Inductive predicates and sets\<close>
 
 text \<open>Package setup.\<close>
 
-theorems basic_monos =
+lemmas basic_monos =
   subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
   Collect_mono in_mono vimage_mono
 
 ML_file "Tools/inductive.ML"
 
-theorems [mono] =
+lemmas [mono] =
   imp_refl disj_mono conj_mono ex_mono all_mono if_bool_eq_conj
   imp_mono not_mono
   Ball_def Bex_def

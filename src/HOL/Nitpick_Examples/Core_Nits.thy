@@ -266,27 +266,27 @@ by auto
 
 subsection {* Schematic Variables *}
 
-schematic_lemma "x = ?x"
+schematic_goal "x = ?x"
 nitpick [expect = none]
 by auto
 
-schematic_lemma "\<forall>x. x = ?x"
+schematic_goal "\<forall>x. x = ?x"
 nitpick [expect = genuine]
 oops
 
-schematic_lemma "\<exists>x. x = ?x"
+schematic_goal "\<exists>x. x = ?x"
 nitpick [expect = none]
 by auto
 
-schematic_lemma "\<exists>x::'a \<Rightarrow> 'b. x = ?x"
+schematic_goal "\<exists>x::'a \<Rightarrow> 'b. x = ?x"
 nitpick [expect = none]
 by auto
 
-schematic_lemma "\<forall>x. ?x = ?y"
+schematic_goal "\<forall>x. ?x = ?y"
 nitpick [expect = none]
 by auto
 
-schematic_lemma "\<exists>x. ?x = ?y"
+schematic_goal "\<exists>x. ?x = ?y"
 nitpick [expect = none]
 by auto
 

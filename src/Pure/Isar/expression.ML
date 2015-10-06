@@ -888,7 +888,7 @@ fun note_eqns_register note activate deps witss eqns attrss export export' ctxt 
     val facts = map2 (fn attrs => fn eqn =>
       (attrs, [([Morphism.thm (export' $> export) eqn], [])])) attrss eqns;
     val (eqns', ctxt') = ctxt
-      |> note Thm.lemmaK facts
+      |> note Thm.theoremK facts
       |> (fn (eqns, ctxt') => (meta_rewrite ctxt' eqns, ctxt'));
     val dep_morphs =
       map2 (fn (dep, morph) => fn wits =>

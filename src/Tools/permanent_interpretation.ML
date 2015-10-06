@@ -59,7 +59,7 @@ fun note_eqns_register note activate deps witss def_eqns eqns attrss export expo
     val facts = (Attrib.empty_binding, [(map (Morphism.thm (export' $> export)) def_eqns, [])])
       :: map2 (fn attrs => fn eqn => (attrs, [([Morphism.thm (export' $> export) eqn], [])])) attrss eqns;
     val (eqns', ctxt') = ctxt
-      |> note Thm.lemmaK facts
+      |> note Thm.theoremK facts
       |-> meta_rewrite;
     val dep_morphs = map2 (fn (dep, morph) => fn wits =>
       (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))) deps witss;
@@ -71,9 +71,9 @@ fun note_eqns_register note activate deps witss def_eqns eqns attrss export expo
   end;
 
 fun generic_interpretation prep_interpretation setup_proof note add_registration
-    expression raw_defs raw_eqns initial_ctxt = 
+    expression raw_defs raw_eqns initial_ctxt =
   let
-    val (((propss, deps, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) = 
+    val (((propss, deps, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) =
       prep_interpretation expression raw_defs raw_eqns initial_ctxt;
     fun after_qed witss eqns =
       note_eqns_register note add_registration deps witss def_eqns eqns attrss export export';

@@ -379,9 +379,8 @@ text \<open>
     @{command_def "lemma"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "theorem"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "corollary"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
-    @{command_def "schematic_lemma"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
-    @{command_def "schematic_theorem"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
-    @{command_def "schematic_corollary"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def "proposition"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def "schematic_goal"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "have"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
     @{command_def "show"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
     @{command_def "hence"} & : & @{text "proof(state) \<rightarrow> proof(prove)"} \\
@@ -389,13 +388,10 @@ text \<open>
     @{command_def "print_statement"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
-  From a theory context, proof mode is entered by an initial goal
-  command such as @{command "lemma"}, @{command "theorem"}, or
-  @{command "corollary"}.  Within a proof, new claims may be
-  introduced locally as well; four variants are available here to
-  indicate whether forward chaining of facts should be performed
-  initially (via @{command_ref "then"}), and whether the final result
-  is meant to solve some pending goal.
+  From a theory context, proof mode is entered by an initial goal command
+  such as @{command "lemma"}. Within a proof context, new claims may be
+  introduced locally; there are variants to interact with the overall proof
+  structure specifically, such as @{command have} or @{command show}.
 
   Goals may consist of multiple statements, resulting in a list of
   facts eventually.  A pending multi-goal is internally represented as
@@ -423,8 +419,7 @@ text \<open>
 
   @{rail \<open>
     (@@{command lemma} | @@{command theorem} | @@{command corollary} |
-     @@{command schematic_lemma} | @@{command schematic_theorem} |
-     @@{command schematic_corollary}) (stmt | statement)
+     @@{command proposition} | @@{command schematic_goal}) (stmt | statement)
     ;
     (@@{command have} | @@{command show} | @@{command hence} | @@{command thus})
       stmt cond_stmt @{syntax for_fixes}
@@ -457,16 +452,12 @@ text \<open>
   well, see also @{syntax "includes"} in \secref{sec:bundle} and
   @{syntax context_elem} in \secref{sec:locale}.
 
-  \item @{command "theorem"}~@{text "a: \<phi>"} and @{command
-  "corollary"}~@{text "a: \<phi>"} are essentially the same as @{command
-  "lemma"}~@{text "a: \<phi>"}, but the facts are internally marked as
-  being of a different kind.  This discrimination acts like a formal
-  comment.
+  \item @{command "theorem"}, @{command "corollary"}, and @{command
+  "proposition"} are the same as @{command "lemma"}. The different command
+  names merely serve as a formal comment in the theory source.
 
-  \item @{command "schematic_lemma"}, @{command "schematic_theorem"},
-  @{command "schematic_corollary"} are similar to @{command "lemma"},
-  @{command "theorem"}, @{command "corollary"}, respectively but allow
-  the statement to contain unbound schematic variables.
+  \item @{command "schematic_goal"} is similar to @{command "theorem"},
+  but allows the statement to contain unbound schematic variables.
 
   Under normal circumstances, an Isar proof text needs to specify
   claims explicitly.  Schematic goals are more like goals in Prolog,

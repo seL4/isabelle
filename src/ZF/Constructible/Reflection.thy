@@ -268,7 +268,7 @@ subsection\<open>Simple Examples of Reflection\<close>
 text\<open>Example 1: reflecting a simple formula.  The reflecting class is first
 given as the variable @{text ?Cl} and later retrieved from the final
 proof state.\<close>
-schematic_lemma (in reflection)
+schematic_goal (in reflection)
      "Reflects(?Cl,
                \<lambda>x. \<exists>y. M(y) & x \<in> y,
                \<lambda>a x. \<exists>y\<in>Mset(a). x \<in> y)"
@@ -285,7 +285,7 @@ by fast
 
 
 text\<open>Example 2\<close>
-schematic_lemma (in reflection)
+schematic_goal (in reflection)
      "Reflects(?Cl,
                \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) \<longrightarrow> z \<subseteq> x \<longrightarrow> z \<in> y),
                \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). z \<subseteq> x \<longrightarrow> z \<in> y)"
@@ -302,14 +302,14 @@ lemma (in reflection)
 by fast
 
 text\<open>Example 2''.  We expand the subset relation.\<close>
-schematic_lemma (in reflection)
+schematic_goal (in reflection)
   "Reflects(?Cl,
         \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) \<longrightarrow> (\<forall>w. M(w) \<longrightarrow> w\<in>z \<longrightarrow> w\<in>x) \<longrightarrow> z\<in>y),
         \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). (\<forall>w\<in>Mset(a). w\<in>z \<longrightarrow> w\<in>x) \<longrightarrow> z\<in>y)"
 by fast
 
 text\<open>Example 2'''.  Single-step version, to reveal the reflecting class.\<close>
-schematic_lemma (in reflection)
+schematic_goal (in reflection)
      "Reflects(?Cl,
                \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) \<longrightarrow> z \<subseteq> x \<longrightarrow> z \<in> y),
                \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). z \<subseteq> x \<longrightarrow> z \<in> y)"
@@ -329,21 +329,21 @@ done
 
 text\<open>Example 3.  Warning: the following examples make sense only
 if @{term P} is quantifier-free, since it is not being relativized.\<close>
-schematic_lemma (in reflection)
+schematic_goal (in reflection)
      "Reflects(?Cl,
                \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) \<longrightarrow> z \<in> y \<longleftrightarrow> z \<in> x & P(z)),
                \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). z \<in> y \<longleftrightarrow> z \<in> x & P(z))"
 by fast
 
 text\<open>Example 3'\<close>
-schematic_lemma (in reflection)
+schematic_goal (in reflection)
      "Reflects(?Cl,
                \<lambda>x. \<exists>y. M(y) & y = Collect(x,P),
                \<lambda>a x. \<exists>y\<in>Mset(a). y = Collect(x,P))"
 by fast
 
 text\<open>Example 3''\<close>
-schematic_lemma (in reflection)
+schematic_goal (in reflection)
      "Reflects(?Cl,
                \<lambda>x. \<exists>y. M(y) & y = Replace(x,P),
                \<lambda>a x. \<exists>y\<in>Mset(a). y = Replace(x,P))"
@@ -351,7 +351,7 @@ by fast
 
 text\<open>Example 4: Axiom of Choice.  Possibly wrong, since @{text \<Pi>} needs
 to be relativized.\<close>
-schematic_lemma (in reflection)
+schematic_goal (in reflection)
      "Reflects(?Cl,
                \<lambda>A. 0\<notin>A \<longrightarrow> (\<exists>f. M(f) & f \<in> (\<Pi> X \<in> A. X)),
                \<lambda>a A. 0\<notin>A \<longrightarrow> (\<exists>f\<in>Mset(a). f \<in> (\<Pi> X \<in> A. X)))"

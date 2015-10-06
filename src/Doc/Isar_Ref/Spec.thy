@@ -446,9 +446,9 @@ text \<open>
 
   \item @{command "declare"}~@{text thms} declares theorems to the
   current local theory context.  No theorem binding is involved here,
-  unlike @{command "theorems"} or @{command "lemmas"} (cf.\
-  \secref{sec:theorems}), so @{command "declare"} only has the effect
-  of applying attributes as included in the theorem specification.
+  unlike @{command "lemmas"} (cf.\ \secref{sec:theorems}), so
+  @{command "declare"} only has the effect of applying attributes as
+  included in the theorem specification.
 
   \end{description}
 \<close>
@@ -1441,12 +1441,11 @@ section \<open>Naming existing theorems \label{sec:theorems}\<close>
 text \<open>
   \begin{matharray}{rcll}
     @{command_def "lemmas"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "theorems"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "named_theorems"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   @{rail \<open>
-    (@@{command lemmas} | @@{command theorems}) (@{syntax thmdef}? @{syntax thmrefs} + @'and')
+    @@{command lemmas} (@{syntax thmdef}? @{syntax thmrefs} + @'and')
       @{syntax for_fixes}
     ;
     @@{command named_theorems} (@{syntax name} @{syntax text}? + @'and')
@@ -1459,9 +1458,6 @@ text \<open>
   the current context, which may be augmented by local variables.
   Results are standardized before being stored, i.e.\ schematic
   variables are renamed to enforce index @{text "0"} uniformly.
-
-  \item @{command "theorems"} is the same as @{command "lemmas"}, but
-  marks the result as a different kind of facts.
 
   \item @{command "named_theorems"}~@{text "name description"} declares a
   dynamic fact within the context. The same @{text name} is used to define

@@ -19,7 +19,7 @@ theory Pure
   and "typedecl" "type_synonym" "nonterminal" "judgment"
     "consts" "syntax" "no_syntax" "translations" "no_translations" "defs"
     "definition" "abbreviation" "type_notation" "no_type_notation" "notation"
-    "no_notation" "axiomatization" "theorems" "lemmas" "declare"
+    "no_notation" "axiomatization" "lemmas" "declare"
     "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
   and "SML_file" "SML_file_debug" "SML_file_no_debug" :: thy_load % "ML"
   and "SML_import" "SML_export" :: thy_decl % "ML"
@@ -43,8 +43,8 @@ theory Pure
   and "instance" :: thy_goal
   and "overloading" :: thy_decl_block
   and "code_datatype" :: thy_decl
-  and "theorem" "lemma" "corollary" :: thy_goal
-  and "schematic_theorem" "schematic_lemma" "schematic_corollary" :: thy_goal
+  and "theorem" "lemma" "corollary" "proposition" :: thy_goal
+  and "schematic_goal" :: thy_goal
   and "notepad" :: thy_decl_block
   and "have" :: prf_goal % "proof"
   and "hence" :: prf_goal % "proof" == "then have"

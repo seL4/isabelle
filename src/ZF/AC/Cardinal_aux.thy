@@ -57,7 +57,7 @@ next
   finally show "i \<lesssim> A \<union> B" .
 qed
 
-schematic_lemma paired_bij: "?f \<in> bij({{y,z}. y \<in> x}, x)"
+schematic_goal paired_bij: "?f \<in> bij({{y,z}. y \<in> x}, x)"
 apply (rule RepFun_bijective)
 apply (simp add: doubleton_eq_iff, blast)
 done

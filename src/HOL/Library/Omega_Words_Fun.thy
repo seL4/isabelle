@@ -560,7 +560,7 @@ proof -
   thus ?thesis ..
 qed
 
-theorems limit_is_suffixE = limit_is_suffix[THEN exE]
+lemmas limit_is_suffixE = limit_is_suffix[THEN exE]
 
 
 text \<open>
