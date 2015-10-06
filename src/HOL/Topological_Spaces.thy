@@ -1867,7 +1867,7 @@ proof (rule connectedI)
   obtain x where x: "\<And>s. s \<in> S \<Longrightarrow> x \<in> s"
     using ne by auto
   then have "x \<in> \<Union>S"
-    using `sa \<in> S` by blast
+    using \<open>sa \<in> S\<close> by blast
   then have "x \<in> A \<or> x \<in> B"
     using cover by auto
   then show False
