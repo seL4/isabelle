@@ -151,12 +151,8 @@ fun nth_atom_name thy atomss pool prefix T j =
     | _ => raise TYPE ("Nitpick_Model.nth_atom_name", [T], [])
   end
 
-fun nth_atom thy atomss pool for_auto T j =
-  if for_auto then
-    Free (nth_atom_name thy atomss pool (hd (Long_Name.explode nitpick_prefix))
-                        T j, T)
-  else
-    Const (nth_atom_name thy atomss pool "" T j, T)
+fun nth_atom thy atomss pool T j =
+  Const (nth_atom_name thy atomss pool "" T j, T)
 
 fun extract_real_number (Const (@{const_name divide}, _) $ t1 $ t2) =
     real (snd (HOLogic.dest_number t1)) / real (snd (HOLogic.dest_number t2))
@@ -375,7 +371,6 @@ and reconstruct_term maybe_opt unfold pool
                    data_types, ofs, ...})
         atomss sel_names rel_table bounds =
   let
-    val for_auto = (maybe_name = "")
     fun value_of_bits jss =
       let
         val j0 = offset_of_type ofs @{typ unsigned_bit}
@@ -530,15 +525,14 @@ and reconstruct_term maybe_opt unfold pool
         else if T = @{typ bisim_iterator} then
           HOLogic.mk_number nat_T j
         else case data_type_spec data_types T of
-          NONE => nth_atom thy atomss pool for_auto T j
-        | SOME {deep = false, ...} => nth_atom thy atomss pool for_auto T j
+          NONE => nth_atom thy atomss pool T j
+        | SOME {deep = false, ...} => nth_atom thy atomss pool T j
         | SOME {co, constrs, ...} =>
           let
             fun tuples_for_const (s, T) =
               tuple_list_for_name rel_table bounds (ConstName (s, T, Any))
             fun cyclic_atom () =
-              nth_atom thy atomss pool for_auto (Type (cyclic_type_name (), []))
-                       j
+              nth_atom thy atomss pool (Type (cyclic_type_name (), [])) j
             fun cyclic_var () =
               Var ((nth_atom_name thy atomss pool "" T j, 0), T)
             val discr_jsss = map (tuples_for_const o discr_for_constr o #const)
@@ -593,9 +587,8 @@ and reconstruct_term maybe_opt unfold pool
                       frac_from_term_pair (body_type T) t1 t2
                     | _ => raise TERM ("Nitpick_Model.reconstruct_term.\
                                        \term_for_atom (Abs_Frac)", ts)
-                  else if not for_auto andalso
-                          (is_abs_fun ctxt constr_x orelse
-                           constr_s = @{const_name Quot}) then
+                  else if is_abs_fun ctxt constr_x orelse
+                          constr_s = @{const_name Quot} then
                     Const (abs_name, constr_T) $ the_single ts
                   else
                     list_comb (Const constr_x, ts)
