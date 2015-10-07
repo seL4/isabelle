@@ -1010,27 +1010,27 @@ fun add_const prfx (s, ty) ((tab, ctxt), thy) =
 
 fun add_def prfx types pfuns consts (id, (s, e)) (ids as (tab, ctxt), thy) =
   (case lookup consts s of
-     SOME ty =>
-       let
-         val (t, ty') = term_of_expr thy prfx types pfuns ids e;
-         val T = mk_type thy prfx ty;
-         val T' = mk_type thy prfx ty';
-         val _ = T = T' orelse
-           error ("Declared type " ^ ty ^ " of " ^ s ^
-             "\ndoes not match type " ^ ty' ^ " in definition");
-         val id' = mk_rulename id;
-         val lthy = Named_Target.theory_init thy;
-         val ((t', (_, th)), lthy') = Specification.definition
-           (NONE, ((id', []), HOLogic.mk_Trueprop (HOLogic.mk_eq
-             (Free (s, T), t)))) lthy;
-         val phi = Proof_Context.export_morphism lthy' lthy
-       in
-         ((id', Morphism.thm phi th),
-          ((Symtab.update (s, (Morphism.term phi t', ty)) tab,
-            Name.declare s ctxt),
-           Local_Theory.exit_global lthy'))
+    SOME ty =>
+      let
+        val (t, ty') = term_of_expr thy prfx types pfuns ids e;
+        val T = mk_type thy prfx ty;
+        val T' = mk_type thy prfx ty';
+        val _ = T = T' orelse
+          error ("Declared type " ^ ty ^ " of " ^ s ^
+            "\ndoes not match type " ^ ty' ^ " in definition");
+        val id' = mk_rulename id;
+        val ((t', (_, th)), lthy') = Named_Target.theory_init thy
+          |> Specification.definition
+            (NONE, ((id', []), HOLogic.mk_Trueprop (HOLogic.mk_eq (Free (s, T), t))));
+        val phi =
+          Proof_Context.export_morphism lthy'
+            (Proof_Context.init_global (Proof_Context.theory_of lthy'));
+      in
+        ((id', Morphism.thm phi th),
+          ((Symtab.update (s, (Morphism.term phi t', ty)) tab, Name.declare s ctxt),
+            Local_Theory.exit_global lthy'))
        end
-   | NONE => error ("Undeclared constant " ^ s));
+  | NONE => error ("Undeclared constant " ^ s));
 
 fun add_var prfx (s, ty) (ids, thy) =
   let val ([Free p], ids') = mk_variables thy prfx [s] ty ids
