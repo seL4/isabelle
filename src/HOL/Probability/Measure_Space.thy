@@ -555,6 +555,53 @@ proof -
     unfolding ereal_minus_eq_minus_iff using finite A0 by auto
 qed
 
+lemma emeasure_INT_decseq_subset:
+  fixes F :: "nat \<Rightarrow> 'a set"
+  assumes I: "I \<noteq> {}" and F: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> i \<le> j \<Longrightarrow> F j \<subseteq> F i"
+  assumes F_sets[measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> sets M"
+    and fin: "\<And>i. i \<in> I \<Longrightarrow> emeasure M (F i) \<noteq> \<infinity>"
+  shows "emeasure M (\<Inter>i\<in>I. F i) = (INF i:I. emeasure M (F i))"
+proof cases
+  assume "finite I"
+  have "(\<Inter>i\<in>I. F i) = F (Max I)"
+    using I \<open>finite I\<close> by (intro antisym INF_lower INF_greatest F) auto
+  moreover have "(INF i:I. emeasure M (F i)) = emeasure M (F (Max I))"
+    using I \<open>finite I\<close> by (intro antisym INF_lower INF_greatest F emeasure_mono) auto
+  ultimately show ?thesis
+    by simp
+next
+  assume "infinite I"
+  def L \<equiv> "\<lambda>n. LEAST i. i \<in> I \<and> i \<ge> n"
+  have L: "L n \<in> I \<and> n \<le> L n" for n
+    unfolding L_def
+  proof (rule LeastI_ex)
+    show "\<exists>x. x \<in> I \<and> n \<le> x"
+      using \<open>infinite I\<close> finite_subset[of I "{..< n}"]
+      by (rule_tac ccontr) (auto simp: not_le)
+  qed
+  have L_eq[simp]: "i \<in> I \<Longrightarrow> L i = i" for i
+    unfolding L_def by (intro Least_equality) auto
+  have L_mono: "i \<le> j \<Longrightarrow> L i \<le> L j" for i j
+    using L[of j] unfolding L_def by (intro Least_le) (auto simp: L_def)
+
+  have "emeasure M (\<Inter>i. F (L i)) = (INF i. emeasure M (F (L i)))"
+  proof (intro INF_emeasure_decseq[symmetric])
+    show "decseq (\<lambda>i. F (L i))"
+      using L by (intro antimonoI F L_mono) auto
+  qed (insert L fin, auto)
+  also have "\<dots> = (INF i:I. emeasure M (F i))"
+  proof (intro antisym INF_greatest)
+    show "i \<in> I \<Longrightarrow> (INF i. emeasure M (F (L i))) \<le> emeasure M (F i)" for i
+      by (intro INF_lower2[of i]) auto
+  qed (insert L, auto intro: INF_lower)
+  also have "(\<Inter>i. F (L i)) = (\<Inter>i\<in>I. F i)"
+  proof (intro antisym INF_greatest)
+    show "i \<in> I \<Longrightarrow> (\<Inter>i. F (L i)) \<subseteq> F i" for i
+      by (intro INF_lower2[of i]) auto
+  qed (insert L, auto)
+  finally show ?thesis .
+qed
+
 lemma Lim_emeasure_decseq:
   assumes A: "range A \<subseteq> sets M" "decseq A" and fin: "\<And>i. emeasure M (A i) \<noteq> \<infinity>"
   shows "(\<lambda>i. emeasure M (A i)) ----> emeasure M (\<Inter>i. A i)"

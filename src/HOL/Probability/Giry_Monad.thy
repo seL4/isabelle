@@ -1405,6 +1405,10 @@ lemma bind_return_distr:
   apply (auto intro!: return_measurable simp: distr_distr[symmetric] join_return')
   done
 
+lemma bind_return_distr':
+  "space M \<noteq> {} \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> bind M (\<lambda>x. return N (f x)) = distr M N f"
+  using bind_return_distr[of M f N] by (simp add: comp_def)
+
 lemma bind_assoc:
   fixes f :: "'a \<Rightarrow> 'b measure" and g :: "'b \<Rightarrow> 'c measure"
   assumes M1: "f \<in> measurable M (subprob_algebra N)" and M2: "g \<in> measurable N (subprob_algebra R)"

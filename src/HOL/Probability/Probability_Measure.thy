@@ -43,6 +43,16 @@ proof (rule prob_spaceI)
     by (auto simp: emeasure_distr emeasure_space_1)
 qed
 
+lemma prob_space_distrD:
+  assumes f: "f \<in> measurable M N" and M: "prob_space (distr M N f)" shows "prob_space M"
+proof
+  interpret M!: prob_space "distr M N f" by fact
+  have "f -` space N \<inter> space M = space M"
+    using f[THEN measurable_space] by auto
+  then show "emeasure M (space M) = 1"
+    using M.emeasure_space_1 by (simp add: emeasure_distr[OF f])
+qed
+
 lemma (in prob_space) prob_space: "prob (space M) = 1"
   using emeasure_space_1 unfolding measure_def by (simp add: one_ereal_def)
 
@@ -1151,5 +1161,54 @@ qed (auto simp add: emeasure_eq_measure cond_prob_def intro!: arg_cong[where f=p
 lemma prob_space_point_measure:
   "finite S \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> 0 \<le> p s) \<Longrightarrow> (\<Sum>s\<in>S. p s) = 1 \<Longrightarrow> prob_space (point_measure S p)"
   by (rule prob_spaceI) (simp add: space_point_measure emeasure_point_measure_finite)
+
+lemma (in prob_space) distr_pair_fst: "distr (N \<Otimes>\<^sub>M M) N fst = N"
+proof (intro measure_eqI)
+  fix A assume A: "A \<in> sets (distr (N \<Otimes>\<^sub>M M) N fst)"
+  from A have "emeasure (distr (N \<Otimes>\<^sub>M M) N fst) A = emeasure (N \<Otimes>\<^sub>M M) (A \<times> space M)"
+    by (auto simp add: emeasure_distr space_pair_measure dest: sets.sets_into_space intro!: arg_cong2[where f=emeasure])
+  with A show "emeasure (distr (N \<Otimes>\<^sub>M M) N fst) A = emeasure N A"
+    by (simp add: emeasure_pair_measure_Times emeasure_space_1)
+qed simp
+
+lemma (in product_prob_space) distr_reorder:
+  assumes "inj_on t J" "t \<in> J \<rightarrow> K" "finite K"
+  shows "distr (PiM K M) (Pi\<^sub>M J (\<lambda>x. M (t x))) (\<lambda>\<omega>. \<lambda>n\<in>J. \<omega> (t n)) = PiM J (\<lambda>x. M (t x))"
+proof (rule product_sigma_finite.PiM_eqI)
+  show "product_sigma_finite (\<lambda>x. M (t x))" ..
+  have "t`J \<subseteq> K" using assms by auto
+  then show [simp]: "finite J"
+    by (rule finite_imageD[OF finite_subset]) fact+
+  fix A assume A: "\<And>i. i \<in> J \<Longrightarrow> A i \<in> sets (M (t i))"
+  moreover have "((\<lambda>\<omega>. \<lambda>n\<in>J. \<omega> (t n)) -` Pi\<^sub>E J A \<inter> space (Pi\<^sub>M K M)) =
+    (\<Pi>\<^sub>E i\<in>K. if i \<in> t`J then A (the_inv_into J t i) else space (M i))"
+    using A A[THEN sets.sets_into_space] \<open>t \<in> J \<rightarrow> K\<close> \<open>inj_on t J\<close>
+    by (subst prod_emb_Pi[symmetric]) (auto simp: space_PiM PiE_iff the_inv_into_f_f prod_emb_def)
+  ultimately show "distr (Pi\<^sub>M K M) (Pi\<^sub>M J (\<lambda>x. M (t x))) (\<lambda>\<omega>. \<lambda>n\<in>J. \<omega> (t n)) (Pi\<^sub>E J A) = (\<Prod>i\<in>J. M (t i) (A i))"
+    using assms
+    apply (subst emeasure_distr)
+    apply (auto intro!: sets_PiM_I_finite simp: Pi_iff)
+    apply (subst emeasure_PiM)
+    apply (auto simp: the_inv_into_f_f \<open>inj_on t J\<close> setprod.reindex[OF \<open>inj_on t J\<close>]
+      if_distrib[where f="emeasure (M _)"] setprod.If_cases emeasure_space_1 Int_absorb1 \<open>t`J \<subseteq> K\<close>)
+    done
+qed simp
+
+lemma (in product_prob_space) distr_restrict:
+  "J \<subseteq> K \<Longrightarrow> finite K \<Longrightarrow> (\<Pi>\<^sub>M i\<in>J. M i) = distr (\<Pi>\<^sub>M i\<in>K. M i) (\<Pi>\<^sub>M i\<in>J. M i) (\<lambda>f. restrict f J)"
+  using distr_reorder[of "\<lambda>x. x" J K] by (simp add: Pi_iff subset_eq)
+
+lemma (in product_prob_space) emeasure_prod_emb[simp]:
+  assumes L: "J \<subseteq> L" "finite L" and X: "X \<in> sets (Pi\<^sub>M J M)"
+  shows "emeasure (Pi\<^sub>M L M) (prod_emb L M J X) = emeasure (Pi\<^sub>M J M) X"
+  by (subst distr_restrict[OF L])
+     (simp add: prod_emb_def space_PiM emeasure_distr measurable_restrict_subset L X)
+
+lemma emeasure_distr_restrict:
+  assumes "I \<subseteq> K" and Q[measurable_cong]: "sets Q = sets (PiM K M)" and A[measurable]: "A \<in> sets (PiM I M)"
+  shows "emeasure (distr Q (PiM I M) (\<lambda>\<omega>. restrict \<omega> I)) A = emeasure Q (prod_emb K M I A)"
+  using \<open>I\<subseteq>K\<close> sets_eq_imp_space_eq[OF Q]
+  by (subst emeasure_distr)
+     (auto simp: measurable_cong_sets[OF Q] prod_emb_def space_PiM[symmetric] intro!: measurable_restrict)
 
 end

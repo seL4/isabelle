@@ -1263,7 +1263,7 @@ proof cases
   note rv_Y = this[measurable]
     
   interpret Y: prob_space "distr M borel (Y i)" for i
-    using I(2) by (cases "i \<in> I") (auto intro!: prob_space_distr simp: Y_def indep_vars_def)
+    using I(2) by (cases "i \<in> I") (auto intro!: prob_space_distr simp: indep_vars_def prob_space_return)
   interpret product_sigma_finite "\<lambda>i. distr M borel (Y i)"
     ..
   
@@ -1305,7 +1305,7 @@ proof (induct rule: case_split)
   note int_Y = this
     
   interpret Y: prob_space "distr M borel (Y i)" for i
-    using I(2) by (cases "i \<in> I") (auto intro!: prob_space_distr simp: Y_def indep_vars_def)
+    using I(2) by (cases "i \<in> I") (auto intro!: prob_space_distr simp: indep_vars_def prob_space_return)
   interpret product_sigma_finite "\<lambda>i. distr M borel (Y i)"
     ..
   

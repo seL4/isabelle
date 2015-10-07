@@ -12,9 +12,7 @@ imports
   Probability_Mass_Function
   Stream_Space
   Embed_Measure
-  Interval_Integral
-  Set_Integral
-  Giry_Monad
 begin
 
 end
+

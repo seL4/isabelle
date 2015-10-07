@@ -184,6 +184,9 @@ lemma surj_compose: "f ` A = B \<Longrightarrow> g ` B = C \<Longrightarrow> com
 
 subsection \<open>Bounded Abstraction: @{term restrict}\<close>
 
+lemma restrict_cong: "I = J \<Longrightarrow> (\<And>i. i \<in> J =simp=> f i = g i) \<Longrightarrow> restrict f I = restrict g J"
+  by (auto simp: restrict_def fun_eq_iff simp_implies_def)
+
 lemma restrict_in_funcset: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> B) \<Longrightarrow> (\<lambda>x\<in>A. f x) \<in> A \<rightarrow> B"
   by (simp add: Pi_def restrict_def)
 

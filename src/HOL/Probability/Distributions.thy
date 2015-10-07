@@ -973,11 +973,7 @@ proof -
         by (intro integral_cong) auto
       finally have "Suc k * (\<integral>x. indicator {0..b} x *\<^sub>R ?M k x \<partial>lborel) =
         exp (- b\<^sup>2) * b ^ (Suc k) + 2 * (\<integral>x. indicator {0..b} x *\<^sub>R ?M (k + 2) x \<partial>lborel)"
-        apply (simp del: real_scaleR_def integral_mult_right add: integral_mult_right[symmetric])
-        apply (subst integral_mult_right_zero[symmetric])
-        apply (intro integral_cong)
-        apply simp_all
-        done
+        by (simp del: real_scaleR_def integral_mult_right add: integral_mult_right[symmetric])
       then show "(k + 1) / 2 * (\<integral>x. indicator {..b} x *\<^sub>R (indicator {0..} x *\<^sub>R ?M k x)\<partial>lborel) - exp (- b\<^sup>2) * b ^ (k + 1) / 2 = ?f b"
         by (simp add: field_simps atLeastAtMost_def indicator_inter_arith)
     qed

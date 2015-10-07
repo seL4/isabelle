@@ -1511,8 +1511,10 @@ proof (rule LIMSEQ_unique)
 qed
 
 lemma nn_integral_monotone_convergence_INF:
-  assumes f: "decseq f" and [measurable]: "\<And>i. f i \<in> borel_measurable M"
-  assumes fin: "(\<integral>\<^sup>+ x. f i x \<partial>M) < \<infinity>"
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> ereal"
+  assumes f: "\<And>i j x. i \<le> j \<Longrightarrow> x \<in> space M \<Longrightarrow> f j x \<le> f i x"
+    and [measurable]: "\<And>i. f i \<in> borel_measurable M"
+    and fin: "(\<integral>\<^sup>+ x. f i x \<partial>M) < \<infinity>"
   shows "(\<integral>\<^sup>+ x. (INF i. f i x) \<partial>M) = (INF i. integral\<^sup>N M (f i))"
 proof -
   { fix f :: "nat \<Rightarrow> ereal" and j assume "decseq f"
@@ -1523,27 +1525,32 @@ proof -
       done }
   note INF_shift = this
 
-  have dec: "\<And>f::nat \<Rightarrow> 'a \<Rightarrow> ereal. decseq f \<Longrightarrow> decseq (\<lambda>j x. max 0 (f (j + i) x))"
-    by (intro antimonoI le_funI max.mono) (auto simp: decseq_def le_fun_def)
+  have dec: "decseq (\<lambda>j x. max 0 (restrict (f (j + i)) (space M) x))"
+    using f by (intro antimonoI le_funI max.mono) (auto simp: decseq_def le_fun_def)
 
-  have "(\<integral>\<^sup>+ x. max 0 (INF i. f i x) \<partial>M) = (\<integral>\<^sup>+ x. (INF i. max 0 (f i x)) \<partial>M)"
+  have "(\<integral>\<^sup>+ x. max 0 (INF i. f i x) \<partial>M) = (\<integral>\<^sup>+ x. (INF i. max 0 (restrict (f i) (space M) x)) \<partial>M)"
     by (intro nn_integral_cong)
        (simp add: sup_ereal_def[symmetric] sup_INF del: sup_ereal_def)
-  also have "\<dots> = (\<integral>\<^sup>+ x. (INF j. max 0 (f (j + i) x)) \<partial>M)"
+  also have "\<dots> = (\<integral>\<^sup>+ x. (INF j. max 0 (restrict (f (j + i)) (space M) x)) \<partial>M)"
     using f by (intro nn_integral_cong INF_shift antimonoI le_funI max.mono) 
                (auto simp: decseq_def le_fun_def)
-  also have "\<dots> = (INF j. (\<integral>\<^sup>+ x. max 0 (f (j + i) x) \<partial>M))"
+  also have "\<dots> = (INF j. (\<integral>\<^sup>+ x. max 0 (restrict (f (j + i)) (space M) x) \<partial>M))"
   proof (rule nn_integral_monotone_convergence_INF')
-    show "\<And>j. (\<lambda>x. max 0 (f (j + i) x)) \<in> borel_measurable M"
-      by measurable
-    show "(\<integral>\<^sup>+ x. max 0 (f (0 + i) x) \<partial>M) < \<infinity>"
-      using fin by (simp add: nn_integral_max_0)
+    show "(\<lambda>x. max 0 (restrict (f (j + i)) (space M) x)) \<in> borel_measurable M" for j
+      by (subst measurable_cong[where g="\<lambda>x. max 0 (f (j + i) x)"]) measurable
+    show "(\<integral>\<^sup>+ x. max 0 (restrict (f (0 + i)) (space M) x) \<partial>M) < \<infinity>"
+      using fin by (simp add: nn_integral_max_0 cong: nn_integral_cong)
   qed (intro max.cobounded1 dec f)+
-  also have "\<dots> = (INF j. (\<integral>\<^sup>+ x. max 0 (f j x) \<partial>M))"
+  also have "\<dots> = (INF j. (\<integral>\<^sup>+ x. max 0 (restrict (f j) (space M) x) \<partial>M))"
     using f by (intro INF_shift[symmetric] nn_integral_mono antimonoI le_funI max.mono) 
                (auto simp: decseq_def le_fun_def)
-  finally show ?thesis unfolding nn_integral_max_0 .
+  finally show ?thesis unfolding nn_integral_max_0 by (simp cong: nn_integral_cong)
 qed
+
+lemma nn_integral_monotone_convergence_INF_decseq:
+  assumes f: "decseq f" and *: "\<And>i. f i \<in> borel_measurable M" "(\<integral>\<^sup>+ x. f i x \<partial>M) < \<infinity>"
+  shows "(\<integral>\<^sup>+ x. (INF i. f i x) \<partial>M) = (INF i. integral\<^sup>N M (f i))"
+  using nn_integral_monotone_convergence_INF[of M f i, OF _ *] f by (auto simp: antimono_def le_fun_def)
 
 lemma sup_continuous_nn_integral[order_continuous_intros]:
   assumes f: "\<And>y. sup_continuous (f y)"
@@ -1771,7 +1778,7 @@ proof (subst gfp_transfer_bounded[where \<alpha>="\<lambda>F s. \<integral>\<^su
   fix C :: "nat \<Rightarrow> 'b \<Rightarrow> ereal" assume "decseq C" "\<And>i. C i \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) (C i) < \<infinity>)"
   then show "(\<lambda>s. \<integral>\<^sup>+x. (INF i. C i) x \<partial>M s) = (INF i. (\<lambda>s. \<integral>\<^sup>+x. C i x \<partial>M s))"
     unfolding INF_apply[abs_def]
-    by (subst nn_integral_monotone_convergence_INF)
+    by (subst nn_integral_monotone_convergence_INF_decseq)
        (auto simp: mono_def fun_eq_iff intro!: arg_cong2[where f=emeasure] cong: measurable_cong_sets)
 next
   show "\<And>x. g x \<le> (\<lambda>s. integral\<^sup>N (M s) (f top))"
@@ -1782,7 +1789,7 @@ next
   fix C assume "\<And>i::nat. C i \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) (C i) < \<infinity>)" "decseq C"
   with bound show "INFIMUM UNIV C \<in> borel_measurable N \<and> (\<forall>s. integral\<^sup>N (M s) (INFIMUM UNIV C) < \<infinity>)"
     unfolding INF_apply[abs_def]
-    by (subst nn_integral_monotone_convergence_INF)
+    by (subst nn_integral_monotone_convergence_INF_decseq)
        (auto cong: measurable_cong_sets intro!: borel_measurable_INF
              simp: INF_less_iff simp del: ereal_infty_less(1))
 next
