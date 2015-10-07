@@ -883,8 +883,8 @@ fun pretty_term_auto_global ctxt t0 =
       if s = irrelevant orelse s = unknown then Term.dummy else t | t => t) t0
 
     fun add_fake_const s =
-      Sign.declare_const_global ((Binding.name s, @{typ 'a}), NoSyn)
-      #> #2
+      Symbol_Pos.is_identifier s
+      ? (#2 o Sign.declare_const_global ((Binding.name s, @{typ 'a}), NoSyn))
 
     val globals = Term.add_const_names t []
       |> filter_out (String.isSubstring Long_Name.separator)
