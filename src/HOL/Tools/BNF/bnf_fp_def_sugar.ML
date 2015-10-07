@@ -64,6 +64,8 @@ sig
      fp_bnf_sugar: fp_bnf_sugar,
      fp_co_induct_sugar: fp_co_induct_sugar}
 
+  val transfer_plugin: string
+
   val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a
 
@@ -253,6 +255,8 @@ type fp_sugar =
    fp_ctr_sugar: fp_ctr_sugar,
    fp_bnf_sugar: fp_bnf_sugar,
    fp_co_induct_sugar: fp_co_induct_sugar};
+
+val transfer_plugin = Plugin_Name.declare_setup @{binding transfer};
 
 fun co_induct_of (i :: _) = i;
 fun strong_co_induct_of [_, s] = s;
@@ -636,24 +640,27 @@ fun derive_map_set_rel_thms plugins fp live As Bs C E abs_inverses ctr_defs' fp_
       end;
   in
     if live = 0 then
-      let
-        val relAsBs = HOLogic.eq_const fpT;
-        val rel_cases_thm = derive_rel_cases relAsBs [] [];
+      if plugins transfer_plugin then
+        let
+          val relAsBs = HOLogic.eq_const fpT;
+          val rel_cases_thm = derive_rel_cases relAsBs [] [];
 
-        val case_transfer_thm = derive_case_transfer rel_cases_thm;
+          val case_transfer_thm = derive_case_transfer rel_cases_thm;
 
-        val notes =
-          [(case_transferN, [case_transfer_thm], K [])]
-          |> massage_simple_notes fp_b_name;
+          val notes =
+            [(case_transferN, [case_transfer_thm], K [])]
+            |> massage_simple_notes fp_b_name;
 
-        val (noted, lthy') = lthy
-          |> Local_Theory.notes notes;
+          val (noted, lthy') = lthy
+            |> Local_Theory.notes notes;
 
-        val subst = Morphism.thm (substitute_noted_thm noted);
-      in
-        (([], [], [], [], [], [], [], [], [], [], [], [], [], [subst case_transfer_thm], [], []),
-         lthy')
-      end
+          val subst = Morphism.thm (substitute_noted_thm noted);
+        in
+          (([], [], [], [], [], [], [], [], [], [], [], [], [], [subst case_transfer_thm], [], []),
+           lthy')
+        end
+      else
+        (([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []), lthy)
     else
       let
         val mapx = mk_map live As Bs (map_of_bnf fp_bnf);

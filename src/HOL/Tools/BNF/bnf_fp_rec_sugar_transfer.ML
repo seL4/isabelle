@@ -154,7 +154,7 @@ val gfp_rec_sugar_transfer_interpretation = fp_rec_sugar_transfer_interpretation
        |> Thm.close_derivation
      end);
 
-val _ = Theory.setup (lfp_rec_sugar_interpretation Transfer_BNF.transfer_plugin
+val _ = Theory.setup (lfp_rec_sugar_interpretation transfer_plugin
   lfp_rec_sugar_transfer_interpretation);
 
 end;

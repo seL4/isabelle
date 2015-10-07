@@ -1604,7 +1604,7 @@ val _ = Outer_Syntax.local_theory @{command_keyword primcorec}
       --| @{keyword ")"}) []) --
     (Parse.fixes -- where_alt_props_of_parser) >> uncurry primcorec_cmd);
 
-val _ = Theory.setup (gfp_rec_sugar_interpretation Transfer_BNF.transfer_plugin
+val _ = Theory.setup (gfp_rec_sugar_interpretation transfer_plugin
   gfp_rec_sugar_transfer_interpretation);
 
 end;

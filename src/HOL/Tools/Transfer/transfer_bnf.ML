@@ -8,7 +8,6 @@ signature TRANSFER_BNF =
 sig
   exception NO_PRED_DATA of unit
 
-  val transfer_plugin: string
   val base_name_of_bnf: BNF_Def.bnf -> binding
   val type_name_of_bnf: BNF_Def.bnf -> string
   val lookup_defined_pred_data: Proof.context -> string -> Transfer.pred_data
@@ -24,8 +23,6 @@ open BNF_FP_Util
 open BNF_FP_Def_Sugar
 
 exception NO_PRED_DATA of unit
-
-val transfer_plugin = Plugin_Name.declare_setup @{binding transfer}
 
 (* util functions *)
 

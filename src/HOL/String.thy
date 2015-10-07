@@ -8,7 +8,7 @@ begin
 
 subsection \<open>Characters and strings\<close>
 
-datatype nibble =
+datatype (plugins del: transfer) nibble =
     Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 | Nibble6 | Nibble7
   | Nibble8 | Nibble9 | NibbleA | NibbleB | NibbleC | NibbleD | NibbleE | NibbleF
 
