@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* Conformity Relations for Type Soundness Proof *}
+section \<open>Conformity Relations for Type Soundness Proof\<close>
 
 theory Conform imports State WellType Exceptions begin
 

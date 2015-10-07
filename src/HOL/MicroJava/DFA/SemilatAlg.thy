@@ -3,7 +3,7 @@
     Copyright   2002 Technische Universitaet Muenchen
 *)
 
-section {* More on Semilattices *}
+section \<open>More on Semilattices\<close>
 
 theory SemilatAlg
 imports Typing_Framework Product

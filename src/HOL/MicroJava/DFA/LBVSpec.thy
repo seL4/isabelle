@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* The Lightweight Bytecode Verifier *}
+section \<open>The Lightweight Bytecode Verifier\<close>
 
 theory LBVSpec
 imports SemilatAlg Opt

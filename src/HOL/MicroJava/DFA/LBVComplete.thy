@@ -3,7 +3,7 @@
     Copyright   2000 Technische Universitaet Muenchen
 *)
 
-section {* Completeness of the LBV *}
+section \<open>Completeness of the LBV\<close>
 
 theory LBVComplete
 imports LBVSpec Typing_Framework

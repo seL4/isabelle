@@ -2,16 +2,16 @@
     Author:     Stefan Berghofer
 *)
 
-section {* Example for generating executable code from JVM semantics \label{sec:JVMListExample} *}
+section \<open>Example for generating executable code from JVM semantics \label{sec:JVMListExample}\<close>
 
 theory JVMListExample
 imports "../J/SystemClasses" JVMExec
 begin
 
-text {*
+text \<open>
   Since the types @{typ cnam}, @{text vnam}, and @{text mname} are 
   anonymous, we describe distinctness of names in the example by axioms:
-*}
+\<close>
 axiomatization list_nam test_nam :: cnam
   where distinct_classes: "list_nam \<noteq> test_nam"
 
@@ -136,7 +136,7 @@ code_datatype Unit Null Bool Intg Addr undefined_val
 definition
   "test = exec (E, start_state E test_name makelist_name)"
 
-ML_val {*
+ML_val \<open>
   @{code test}; 
   @{code exec} (@{code E}, @{code the} it);
   @{code exec} (@{code E}, @{code the} it);
@@ -191,6 +191,6 @@ ML_val {*
   @{code exec} (@{code E}, @{code the} it);
   @{code exec} (@{code E}, @{code the} it);
   @{code exec} (@{code E}, @{code the} it);
-*}
+\<close>
 
 end

@@ -4,7 +4,7 @@
 *)
 
 
-section {* JVM Instruction Semantics *}
+section \<open>JVM Instruction Semantics\<close>
 
 
 theory JVMExecInstr imports JVMInstructions JVMState begin

@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-section {* More about Options *}
+section \<open>More about Options\<close>
 
 theory Opt
 imports Err

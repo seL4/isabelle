@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* BV Type Safety Invariant *}
+section \<open>BV Type Safety Invariant\<close>
 
 theory Correct
 imports BVSpec "../JVM/JVMExec"
@@ -64,7 +64,7 @@ lemma sup_ty_opt_OK:
   by (cases X) auto
 
 
-subsection {* approx-val *}
+subsection \<open>approx-val\<close>
 
 lemma approx_val_Err [simp,intro!]:
   "approx_val G hp x Err"
@@ -92,7 +92,7 @@ lemma approx_val_widen:
   \<Longrightarrow> approx_val G hp v T'"
   by (cases T') (auto simp add: sup_ty_opt_OK intro: conf_widen)
 
-subsection {* approx-loc *}
+subsection \<open>approx-loc\<close>
 
 lemma approx_loc_Nil [simp,intro!]:
   "approx_loc G hp [] []"
@@ -166,7 +166,7 @@ lemma approx_loc_append:
   apply blast
   done
 
-subsection {* approx-stk *}
+subsection \<open>approx-stk\<close>
 
 lemma approx_stk_rev_lem:
   "approx_stk G hp (rev s) (rev t) = approx_stk G hp s t"
@@ -217,7 +217,7 @@ apply (erule allE, erule impE, assumption)
 apply (erule conf_widen, assumption+)
 done
 
-subsection {* oconf *}
+subsection \<open>oconf\<close>
 
 lemma oconf_field_update:
   "\<lbrakk>map_of (fields (G, oT)) FD = Some T; G,hp\<turnstile>v::\<preceq>T; G,hp\<turnstile>(oT,fs)\<surd> \<rbrakk>
@@ -238,7 +238,7 @@ lemma oconf_heap_update:
   apply (fastforce intro: approx_val_heap_update)
   done
 
-subsection {* hconf *}
+subsection \<open>hconf\<close>
 
 lemma hconf_newref:
   "\<lbrakk> hp oref = None; G\<turnstile>h hp\<surd>; G,hp\<turnstile>obj\<surd> \<rbrakk> \<Longrightarrow> G\<turnstile>h hp(oref\<mapsto>obj)\<surd>"
@@ -255,7 +255,7 @@ lemma hconf_field_update:
                   simp add: obj_ty_def)
   done
 
-subsection {* preallocated *}
+subsection \<open>preallocated\<close>
 
 lemma preallocated_field_update:
   "\<lbrakk> map_of (fields (G, oT)) X = Some T; hp a = Some(oT,fs); 
@@ -285,7 +285,7 @@ next
   with alloc show ?thesis by (simp add: preallocated_def)
 qed
   
-subsection {* correct-frames *}
+subsection \<open>correct-frames\<close>
 
 lemmas [simp del] = fun_upd_apply
 

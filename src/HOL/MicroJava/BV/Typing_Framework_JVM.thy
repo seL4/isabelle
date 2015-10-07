@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-section {* The Typing Framework for the JVM \label{sec:JVM} *}
+section \<open>The Typing Framework for the JVM \label{sec:JVM}\<close>
 
 theory Typing_Framework_JVM
 imports "../DFA/Abstract_BV" JVMType EffectMono BVSpec
@@ -17,7 +17,7 @@ definition opt_states :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarr
   "opt_states G maxs maxr \<equiv> opt (\<Union>{list n (types G) |n. n \<le> maxs} \<times> list maxr (err (types G)))"
 
 
-subsection {*  Executability of @{term check_bounded} *}
+subsection \<open>Executability of @{term check_bounded}\<close>
 
 primrec list_all'_rec :: "('a \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> bool"
 where
@@ -46,7 +46,7 @@ lemma [code]:
   by (simp add: list_all_iff check_bounded_def)
   
 
-subsection {* Connecting JVM and Framework *}
+subsection \<open>Connecting JVM and Framework\<close>
 
 lemma check_bounded_is_bounded:
   "check_bounded ins et \<Longrightarrow> bounded (\<lambda>pc. eff (ins!pc) G pc et) (length ins)"  

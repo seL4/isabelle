@@ -3,7 +3,7 @@
     Copyright   2000 Technische Universitaet Muenchen
 *)
 
-section {* Effect of Instructions on the State Type *}
+section \<open>Effect of Instructions on the State Type\<close>
 
 theory Effect 
 imports JVMType "../JVM/JVMExceptions"
@@ -11,7 +11,7 @@ begin
 
 type_synonym succ_type = "(p_count \<times> state_type option) list"
 
-text {* Program counter of successor instructions: *}
+text \<open>Program counter of successor instructions:\<close>
 primrec succs :: "instr \<Rightarrow> p_count \<Rightarrow> p_count list" where
   "succs (Load idx) pc         = [pc+1]"
 | "succs (Store idx) pc        = [pc+1]"
@@ -226,10 +226,10 @@ qed
 
 lemmas [simp] = app_def xcpt_app_def
 
-text {* 
+text \<open>
 \medskip
 simp rules for @{term app}
-*}
+\<close>
 lemma appNone[simp]: "app i G maxs rT pc et None = True" by simp
 
 

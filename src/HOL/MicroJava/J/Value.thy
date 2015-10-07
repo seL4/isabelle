@@ -2,7 +2,7 @@
     Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
-section {* Java Values *}
+section \<open>Java Values\<close>
 
 theory Value imports Type begin
 

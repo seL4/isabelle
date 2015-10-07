@@ -2,15 +2,15 @@
     Author:     Gerwin Klein
 *)
 
-section {* A Defensive JVM *}
+section \<open>A Defensive JVM\<close>
 
 theory JVMDefensive
 imports JVMExec
 begin
 
-text {*
+text \<open>
   Extend the state space by one element indicating a type error (or
-  other abnormal termination) *}
+  other abnormal termination)\<close>
 datatype 'a type_error = TypeError | Normal 'a
 
 

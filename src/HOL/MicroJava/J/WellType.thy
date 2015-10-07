@@ -3,11 +3,11 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* Well-typedness Constraints *}
+section \<open>Well-typedness Constraints\<close>
 
 theory WellType imports Term WellForm begin
 
-text {*
+text \<open>
 the formulation of well-typedness of method calls given below (as well as
 the Java Specification 1.0) is a little too restrictive: Is does not allow
 methods of class Object to be called upon references of interface type.
@@ -19,7 +19,7 @@ methods of class Object to be called upon references of interface type.
   e.g.\ definedness of names (of parameters, locals, fields, methods)
 \end{itemize}
 \end{description}
-*}
+\<close>
 
 text "local variables, including method parameters and This:"
 type_synonym lenv = "vname \<rightharpoonup> ty"

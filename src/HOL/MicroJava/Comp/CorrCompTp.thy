@@ -1276,7 +1276,7 @@ lemma bc_mt_corresp_Invoke:
     apply assumption
    apply (simp add: max_ssize_def max_of_list_elem ssize_sto_def)
 
-  -- {* @{text "<=s"} *}
+  -- \<open>@{text "<=s"}\<close>
   apply (frule max_spec2mheads, (erule exE)+, (erule conjE)+)
   apply (simp add: wf_prog_ws_prog [THEN comp_method])
   apply (simp add: max_spec_preserves_length [symmetric])

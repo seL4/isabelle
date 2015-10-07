@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-section {* The JVM Type System as Semilattice *}
+section \<open>The JVM Type System as Semilattice\<close>
 
 theory JVMType
 imports JType

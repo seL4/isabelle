@@ -2,7 +2,7 @@
     Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
-section {* Type Safety Proof *}
+section \<open>Type Safety Proof\<close>
 
 theory JTypeSafe imports Eval Conform begin
 
@@ -176,12 +176,12 @@ declare fun_upd_apply [simp del]
 declare fun_upd_same [simp]
 declare wf_prog_ws_prog [simp]
 
-ML{*
+ML\<open>
 fun forward_hyp_tac ctxt =
   ALLGOALS (TRY o (EVERY' [dresolve_tac ctxt [spec], mp_tac ctxt,
     (mp_tac ctxt ORELSE' (dresolve_tac ctxt [spec] THEN' mp_tac ctxt)),
     REPEAT o (eresolve_tac ctxt [conjE])]))
-*}
+\<close>
 
 
 theorem eval_evals_exec_type_sound: 
@@ -201,8 +201,8 @@ apply( unfold c_hupd_def)
 -- "several simplifications, XcptE, XcptEs, XcptS, Skip, Nil??"
 apply( simp_all)
 apply( tactic "ALLGOALS (REPEAT o resolve_tac @{context} [impI, allI])")
-apply( tactic {* ALLGOALS (eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
-  THEN_ALL_NEW (full_simp_tac (put_simpset (simpset_of @{theory_context Conform}) @{context}))) *})
+apply( tactic \<open>ALLGOALS (eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
+  THEN_ALL_NEW (full_simp_tac (put_simpset (simpset_of @{theory_context Conform}) @{context})))\<close>)
 apply(tactic "ALLGOALS (EVERY' [REPEAT o (eresolve_tac @{context} [conjE]), REPEAT o hyp_subst_tac @{context}])")
 
 -- "Level 7"
@@ -241,12 +241,12 @@ apply simp
 apply( fast elim: conforms_localD [THEN lconfD])
 
 -- "for FAss"
-apply( tactic {* EVERY'[eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
-       THEN_ALL_NEW (full_simp_tac @{context}), REPEAT o (eresolve_tac @{context} [conjE]), hyp_subst_tac @{context}] 3*})
+apply( tactic \<open>EVERY'[eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
+       THEN_ALL_NEW (full_simp_tac @{context}), REPEAT o (eresolve_tac @{context} [conjE]), hyp_subst_tac @{context}] 3\<close>)
 
 -- "for if"
-apply( tactic {* (Induct_Tacs.case_tac @{context} "the_Bool v" [] NONE THEN_ALL_NEW
-  (asm_full_simp_tac @{context})) 7*})
+apply( tactic \<open>(Induct_Tacs.case_tac @{context} "the_Bool v" [] NONE THEN_ALL_NEW
+  (asm_full_simp_tac @{context})) 7\<close>)
 
 apply (tactic "forward_hyp_tac @{context}")
 
@@ -277,8 +277,8 @@ apply (rule conjI)
 
 -- "7 LAss"
 apply (fold fun_upd_def)
-apply( tactic {* (eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
-                 THEN_ALL_NEW (full_simp_tac @{context})) 1 *})
+apply( tactic \<open>(eresolve_tac @{context} [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
+                 THEN_ALL_NEW (full_simp_tac @{context})) 1\<close>)
 apply (intro strip)
 apply (case_tac E)
 apply (simp)

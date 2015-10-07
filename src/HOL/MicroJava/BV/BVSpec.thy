@@ -3,17 +3,17 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* The Bytecode Verifier \label{sec:BVSpec} *}
+section \<open>The Bytecode Verifier \label{sec:BVSpec}\<close>
 
 theory BVSpec
 imports Effect
 begin
 
-text {*
+text \<open>
   This theory contains a specification of the BV. The specification
   describes correct typings of method bodies; it corresponds 
   to type \emph{checking}.
-*}
+\<close>
 
 definition
   -- "The program counter will always be inside the method:"
@@ -37,7 +37,7 @@ definition
   (\<forall>(pc',s') \<in> set (eff i G pc et (phi!pc)). pc' < max_pc \<and> G \<turnstile> s' <=' phi!pc')"
 
 definition
-  -- {* The type at @{text "pc=0"} conforms to the method calling convention: *}
+  -- \<open>The type at @{text "pc=0"} conforms to the method calling convention:\<close>
   wt_start :: "[jvm_prog,cname,ty list,nat,method_type] \<Rightarrow> bool" where
   "wt_start G C pTs mxl phi \<longleftrightarrow>
   G \<turnstile> Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err)) <=' phi!0"
@@ -96,10 +96,10 @@ lemma wt_jvm_prog_impl_wt_instr:
   by (unfold wt_jvm_prog_def, drule method_wf_mdecl, 
       simp, simp, simp add: wf_mdecl_def wt_method_def)
 
-text {*
+text \<open>
   We could leave out the check @{term "pc' < max_pc"} in the 
   definition of @{term wt_instr} in the context of @{term wt_method}.
-*}
+\<close>
 lemma wt_instr_def2:
   "\<lbrakk> wt_jvm_prog G Phi; is_class G C;
       method (G,C) sig = Some (C,rT,maxs,maxl,ins,et); pc < length ins; 

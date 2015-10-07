@@ -3,11 +3,11 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* Example MicroJava Program *}
+section \<open>Example MicroJava Program\<close>
 
 theory Example imports SystemClasses Eval begin
 
-text {* 
+text \<open>
 The following example MicroJava program includes:
  class declarations with inheritance, hiding of fields, and overriding of
   methods (with refined result type), 
@@ -34,15 +34,15 @@ class Example {
   }
 }
 \end{verbatim}
-*}
+\<close>
 
 datatype cnam' = Base' | Ext'
 datatype vnam' = vee' | x' | e'
 
-text {*
+text \<open>
   @{text cnam'} and @{text vnam'} are intended to be isomorphic 
   to @{text cnam} and @{text vnam}
-*}
+\<close>
 
 axiomatization cnam' :: "cnam' => cname"
 where
@@ -378,7 +378,7 @@ schematic_goal wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>
 apply (rule ty_expr_ty_exprs_wt_stmt.intros) -- ";;"
 apply  (rule t) -- "Expr"
 apply  (rule t) -- "LAss"
-apply    simp -- {* @{text "e \<noteq> This"} *}
+apply    simp -- \<open>@{text "e \<noteq> This"}\<close>
 apply    (rule t) -- "LAcc"
 apply     (simp (no_asm))
 apply    (simp (no_asm))

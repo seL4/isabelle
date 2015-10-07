@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* Java types *}
+section \<open>Java types\<close>
 
 theory Type imports JBasis begin
 
@@ -17,7 +17,7 @@ instance by standard (simp add: equal_cnam_def)
 
 end
 
-text {* These instantiations only ensure that the merge in theory @{text "MicroJava"} succeeds. FIXME *}
+text \<open>These instantiations only ensure that the merge in theory @{text "MicroJava"} succeeds. FIXME\<close>
 
 instantiation cnam :: typerep
 begin

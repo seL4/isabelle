@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* Program State *}
+section \<open>Program State\<close>
 
 theory State
 imports TypeRel Value
@@ -21,7 +21,7 @@ definition obj_ty :: "obj => ty" where
 definition init_vars :: "('a \<times> ty) list => ('a \<rightharpoonup> val)" where
  "init_vars == map_of o map (\<lambda>(n,T). (n,default_val T))"
 
-type_synonym aheap = "loc \<rightharpoonup> obj"    -- {* "@{text heap}" used in a translation below *}
+type_synonym aheap = "loc \<rightharpoonup> obj"    -- \<open>"@{text heap}" used in a translation below\<close>
 type_synonym locals = "vname \<rightharpoonup> val"  -- "simple state, i.e. variable contents"
 
 type_synonym state = "aheap \<times> locals"      -- "heap, local parameter including This"
@@ -52,7 +52,7 @@ abbreviation
 definition raise_if :: "bool \<Rightarrow> xcpt \<Rightarrow> val option \<Rightarrow> val option" where
   "raise_if b x xo \<equiv> if b \<and>  (xo = None) then Some (Addr (XcptRef x)) else xo"
 
-text {* Make @{text new_Addr} completely specified (at least for the code generator) *}
+text \<open>Make @{text new_Addr} completely specified (at least for the code generator)\<close>
 (*
 definition new_Addr  :: "aheap => loc \<times> val option" where
   "new_Addr h \<equiv> SOME (a,x). (h a = None \<and>  x = None) |  x = Some (Addr (XcptRef OutOfMemory))"
@@ -154,7 +154,7 @@ done
 lemma c_hupd_fst [simp]: "fst (c_hupd h (x, s)) = x"
 by (simp add: c_hupd_def split_beta)
 
-text {* Naive implementation for @{term "new_Addr"} by exhaustive search *}
+text \<open>Naive implementation for @{term "new_Addr"} by exhaustive search\<close>
 
 definition gen_new_Addr :: "aheap => nat \<Rightarrow> loc \<times> val option" where
   "gen_new_Addr h n \<equiv> 

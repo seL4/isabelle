@@ -2,7 +2,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* Correctness of the LBV *}
+section \<open>Correctness of the LBV\<close>
 
 theory LBVCorrect
 imports LBVSpec Typing_Framework

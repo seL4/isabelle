@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-section {* The Error Type *}
+section \<open>The Error Type\<close>
 
 theory Err
 imports Semilat
@@ -166,7 +166,7 @@ lemma Err_in_err [iff]: "Err : err A"
 lemma Ok_in_err [iff]: "(OK x : err A) = (x:A)"
   by (auto simp add: err_def)
 
-subsection {* lift *}
+subsection \<open>lift\<close>
 
 lemma lift_in_errI:
   "\<lbrakk> e : err S; !x:S. e = OK x \<longrightarrow> f x : err S \<rbrakk> \<Longrightarrow> lift f e : err S"
@@ -188,7 +188,7 @@ lemma OK_lift2_OK [simp]:
   by (simp add: lift2_def plussub_def split: err.split)
 
 
-subsection {* sup *}
+subsection \<open>sup\<close>
 
 lemma Err_sup_Err [simp]:
   "Err +_(Err.sup f) x = Err"
@@ -217,7 +217,7 @@ apply (unfold Err.sup_def lift2_def plussub_def)
 apply (simp split: err.split)
 done 
 
-subsection {* semilat (err A) (le r) f *}
+subsection \<open>semilat (err A) (le r) f\<close>
 
 lemma semilat_le_err_Err_plus [simp]:
   "\<lbrakk> x: err A; semilat(err A, le r, f) \<rbrakk> \<Longrightarrow> Err +_f x = Err"
@@ -283,7 +283,7 @@ proof -
   done 
 qed
 
-subsection {* semilat (err(Union AS)) *}
+subsection \<open>semilat (err(Union AS))\<close>
 
 (* FIXME? *)
 lemma all_bex_swap_lemma [iff]:
@@ -301,11 +301,11 @@ apply simp
 apply fast
 done 
 
-text {* 
+text \<open>
   If @{term "AS = {}"} the thm collapses to
   @{prop "order r & closed {Err} f & Err +_f Err = Err"}
   which may not hold 
-*}
+\<close>
 lemma err_semilat_UnionI:
   "\<lbrakk> !A:AS. err_semilat(A, r, f); AS ~= {}; 
       !A:AS.!B:AS. A~=B \<longrightarrow> (!a:A.!b:B. ~ a <=_r b & a +_f b = Err) \<rbrakk> 

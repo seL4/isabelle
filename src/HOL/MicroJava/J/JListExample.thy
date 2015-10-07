@@ -2,7 +2,7 @@
     Author:     Stefan Berghofer
 *)
 
-section {* Example for generating executable code from Java semantics *}
+section \<open>Example for generating executable code from Java semantics\<close>
 
 theory JListExample
 imports Eval
@@ -151,7 +151,7 @@ lemma test_code [code]:
   "test = exec_i_i_i_o example_prg (Norm (empty, empty)) E"
 by(auto intro: exec_i_i_i_oI intro!: pred_eqI elim: exec_i_i_i_oE simp add: test_def)
 
-ML_val {* 
+ML_val \<open>
   val SOME ((_, (heap, locs)), _) = Predicate.yield @{code test};
   locs @{code l1_name};
   locs @{code l2_name};
@@ -177,6 +177,6 @@ ML_val {*
 
   val_field (Suc (Suc (Suc @{code "0 :: nat"})));
   next_field (Suc (Suc (Suc @{code "0 :: nat"})));
-*}
+\<close>
 
 end

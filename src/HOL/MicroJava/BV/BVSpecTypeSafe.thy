@@ -3,22 +3,22 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* BV Type Safety Proof \label{sec:BVSpecTypeSafe} *}
+section \<open>BV Type Safety Proof \label{sec:BVSpecTypeSafe}\<close>
 
 theory BVSpecTypeSafe
 imports Correct
 begin
 
-text {*
+text \<open>
   This theory contains proof that the specification of the bytecode
   verifier only admits type safe programs.  
-*}
+\<close>
 
-subsection {* Preliminaries *}
+subsection \<open>Preliminaries\<close>
 
-text {*
+text \<open>
   Simp and intro setup for the type safety proof:
-*}
+\<close>
 lemmas defs1 = sup_state_conv correct_state_def correct_frame_def 
                wt_instr_def eff_def norm_eff_def 
 
@@ -27,10 +27,10 @@ lemmas widen_rules[intro] = approx_val_widen approx_loc_widen approx_stk_widen
 lemmas [simp del] = split_paired_All
 
 
-text {*
+text \<open>
   If we have a welltyped program and a conforming state, we
   can directly infer that the current instruction is well typed:
-*}
+\<close>
 lemma wt_jvm_prog_impl_wt_instr_cor:
   "\<lbrakk> wt_jvm_prog G phi; method (G,C) sig = Some (C,rT,maxs,maxl,ins,et); 
       G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
@@ -41,11 +41,11 @@ apply (blast intro: wt_jvm_prog_impl_wt_instr)
 done
 
 
-subsection {* Exception Handling *}
+subsection \<open>Exception Handling\<close>
 
-text {*
+text \<open>
   Exceptions don't touch anything except the stack:
-*}
+\<close>
 lemma exec_instr_xcpt:
   "(fst (exec_instr i G hp stk vars Cl sig pc frs) = Some xcp)
   = (\<exists>stk'. exec_instr i G hp stk vars Cl sig pc frs = 
@@ -53,10 +53,10 @@ lemma exec_instr_xcpt:
   by (cases i, auto simp add: split_beta split: split_if_asm)
 
 
-text {*
+text \<open>
   Relates @{text match_any} from the Bytecode Verifier with 
   @{text match_exception_table} from the operational semantics:
-*}
+\<close>
 lemma in_match_any:
   "match_exception_table G xcpt pc et = Some pc' \<Longrightarrow> 
   \<exists>C. C \<in> set (match_any G pc et) \<and> G \<turnstile> xcpt \<preceq>C C \<and> 
@@ -123,14 +123,14 @@ lemma match_et_imp_match:
   apply (auto split: split_if_asm)
   done
 
-text {*
+text \<open>
   We can prove separately that the recursive search for exception
   handlers (@{text find_handler}) in the frame stack results in 
   a conforming state (if there was no matching exception handler 
   in the current frame). We require that the exception is a valid
   heap address, and that the state before the exception occured
   conforms. 
-*}
+\<close>
 lemma uncaught_xcpt_correct:
   "\<And>f. \<lbrakk> wt_jvm_prog G phi; xcp = Addr adr; hp adr = Some T;
       G,phi \<turnstile>JVM (None, hp, f#frs)\<surd> \<rbrakk>
@@ -244,11 +244,11 @@ proof (induct frs)
 qed
 
 declare raise_if_def [simp]
-text {*
+text \<open>
   The requirement of lemma @{text uncaught_xcpt_correct} (that
   the exception is a valid reference on the heap) is always met
   for welltyped instructions and conformant states:
-*}
+\<close>
 lemma exec_instr_xcpt_hp:
   "\<lbrakk>  fst (exec_instr (ins!pc) G hp stk vars Cl sig pc frs) = Some xcp;
        wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) et pc;
@@ -280,10 +280,10 @@ lemma cname_of_xcp [intro]:
   by (auto elim: preallocatedE [of hp x])
 
 
-text {*
+text \<open>
   Finally we can state that, whenever an exception occurs, the
   resulting next state always conforms:
-*}
+\<close>
 lemma xcpt_correct:
   "\<lbrakk> wt_jvm_prog G phi;
       method (G,C) sig = Some (C,rT,maxs,maxl,ins,et); 
@@ -582,14 +582,14 @@ qed
 
 
 
-subsection {* Single Instructions *}
+subsection \<open>Single Instructions\<close>
 
-text {*
+text \<open>
   In this section we look at each single (welltyped) instruction, and
   prove that the state after execution of the instruction still conforms.
   Since we have already handled exceptions above, we can now assume, that
   on exception occurs for this (single step) execution.
-*}
+\<close>
 
 lemmas [iff] = not_Err_eq
 
@@ -1220,13 +1220,13 @@ lemma Throw_correct:
   by simp
 
 
-text {*
+text \<open>
   The next theorem collects the results of the sections above,
   i.e.~exception handling and the execution step for each 
   instruction. It states type safety for single step execution:
   in welltyped programs, a conforming state is transformed
   into another conforming state when one instruction is executed.
-*}
+\<close>
 theorem instr_correct:
 "\<lbrakk> wt_jvm_prog G phi;
   method (G,C) sig = Some (C,rT,maxs,maxl,ins,et);
@@ -1265,7 +1265,7 @@ apply (rule Ifcmpeq_correct, assumption+)
 apply (rule Throw_correct, assumption+)
 done
 
-subsection {* Main *}
+subsection \<open>Main\<close>
 
 lemma correct_state_impl_Some_method:
   "G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> 

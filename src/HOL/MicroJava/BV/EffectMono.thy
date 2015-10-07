@@ -3,7 +3,7 @@
     Copyright   2000 Technische Universitaet Muenchen
 *)
 
-section {* Monotonicity of eff and app *}
+section \<open>Monotonicity of eff and app\<close>
 
 theory EffectMono
 imports Effect

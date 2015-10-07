@@ -3,7 +3,7 @@
     Copyright   2003 TUM
 *)
 
-section {* Semilattices *}
+section \<open>Semilattices\<close>
 
 (*<*)
 theory Semilattices

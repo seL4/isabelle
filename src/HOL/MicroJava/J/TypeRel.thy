@@ -2,7 +2,7 @@
     Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
-section {* Relations between Java Types *}
+section \<open>Relations between Java Types\<close>
 
 theory TypeRel
 imports Decl
@@ -74,7 +74,7 @@ definition
 
 
 
-text {* Code generator setup *}
+text \<open>Code generator setup\<close>
 
 code_pred 
   (modes: i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool, i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> bool)
@@ -134,10 +134,10 @@ proof
     assume "(C, D, fs, ms) \<in> set G"
       and "C \<noteq> Object"
       and subcls: "G \<turnstile> fst (the (class G C)) \<preceq>C C"
-    from `(C, D, fs, ms) \<in> set G` obtain D' fs' ms'
+    from \<open>(C, D, fs, ms) \<in> set G\<close> obtain D' fs' ms'
       where "class": "class G C = Some (D', fs', ms')"
       unfolding class_def by(auto dest!: weak_map_of_SomeI)
-    hence "G \<turnstile> C \<prec>C1 D'" using `C \<noteq> Object` ..
+    hence "G \<turnstile> C \<prec>C1 D'" using \<open>C \<noteq> Object\<close> ..
     hence *: "(C, D') \<in> (subcls1 G)^+" ..
     also from * acyc have "C \<noteq> D'" by(auto simp add: acyclic_def)
     with subcls "class" have "(D', C) \<in> (subcls1 G)^+" by(auto dest: rtranclD)
@@ -154,20 +154,20 @@ next
       case base
       then obtain rest where "class G C = Some (C, rest)"
         and "C \<noteq> Object" by cases
-      from `class G C = Some (C, rest)` have "(C, C, rest) \<in> set G"
+      from \<open>class G C = Some (C, rest)\<close> have "(C, C, rest) \<in> set G"
         unfolding class_def by(rule map_of_SomeD)
-      with `C \<noteq> Object` `class G C = Some (C, rest)`
+      with \<open>C \<noteq> Object\<close> \<open>class G C = Some (C, rest)\<close>
       have "\<not> G \<turnstile> C \<preceq>C C" by(auto dest: rhs)
       thus False by simp
     next
       case (step D)
-      from `G \<turnstile> D \<prec>C1 C` obtain rest where "class G D = Some (C, rest)"
+      from \<open>G \<turnstile> D \<prec>C1 C\<close> obtain rest where "class G D = Some (C, rest)"
         and "D \<noteq> Object" by cases
-      from `class G D = Some (C, rest)` have "(D, C, rest) \<in> set G"
+      from \<open>class G D = Some (C, rest)\<close> have "(D, C, rest) \<in> set G"
         unfolding class_def by(rule map_of_SomeD)
-      with `D \<noteq> Object` `class G D = Some (C, rest)`
+      with \<open>D \<noteq> Object\<close> \<open>class G D = Some (C, rest)\<close>
       have "\<not> G \<turnstile> C \<preceq>C D" by(auto dest: rhs)
-      moreover from `(C, D) \<in> (subcls1 G)\<^sup>+`
+      moreover from \<open>(C, D) \<in> (subcls1 G)\<^sup>+\<close>
       have "G \<turnstile> C \<preceq>C D" by(rule trancl_into_rtrancl)
       ultimately show False by contradiction
     qed

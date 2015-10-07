@@ -3,7 +3,7 @@
     Copyright   2000 TUM
 *)
 
-section {* Lifting the Typing Framework to err, app, and eff *}
+section \<open>Lifting the Typing Framework to err, app, and eff\<close>
 
 theory Typing_Framework_err
 imports Typing_Framework SemilatAlg
@@ -158,12 +158,12 @@ done
 
 
 
-text {*
+text \<open>
   There used to be a condition here that each instruction must have a
   successor. This is not needed any more, because the definition of
   @{term error} trivially ensures that there is a successor for
   the critical case where @{term app} does not hold. 
-*}
+\<close>
 lemma wt_err_imp_wt_app_eff:
   assumes wt: "wt_err_step r (err_step (size ts) app step) ts"
   assumes b:  "bounded (err_step (size ts) app step) (size ts)"

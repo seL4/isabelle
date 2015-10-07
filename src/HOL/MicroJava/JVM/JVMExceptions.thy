@@ -3,7 +3,7 @@
     Copyright   2001 Technische Universitaet Muenchen
 *)
 
-section {* Exception handling in the JVM *}
+section \<open>Exception handling in the JVM\<close>
 
 theory JVMExceptions imports JVMInstructions begin
 
@@ -41,15 +41,15 @@ where
         | Some handler_pc \<Rightarrow> (None, hp, ([xc], loc, C, sig, handler_pc)#frs)))"
 
 
-text {*
+text \<open>
   System exceptions are allocated in all heaps:
-*}
+\<close>
 
 
-text {*
+text \<open>
   Only program counters that are mentioned in the exception table
   can be returned by @{term match_exception_table}:
-*}
+\<close>
 lemma match_exception_table_in_et:
   "match_exception_table G C pc et = Some pc' \<Longrightarrow> \<exists>e \<in> set et. pc' = fst (snd (snd e))"
   by (induct et) (auto split: split_if_asm)

@@ -5,7 +5,7 @@
 
 theory Exceptions imports State begin
 
-text {* a new, blank object with default values in all fields: *}
+text \<open>a new, blank object with default values in all fields:\<close>
 definition blank :: "'c prog \<Rightarrow> cname \<Rightarrow> obj" where
   "blank G C \<equiv> (C,init_vars (fields(G,C)))" 
 

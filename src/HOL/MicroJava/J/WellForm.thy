@@ -3,13 +3,13 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* Well-formedness of Java programs *}
+section \<open>Well-formedness of Java programs\<close>
 
 theory WellForm
 imports TypeRel SystemClasses
 begin
 
-text {*
+text \<open>
 for static checks on expressions and statements, see WellType.
 
 \begin{description}
@@ -24,7 +24,7 @@ that widens to the result type of the other method (instead of identical type)
 \item for uniformity, Object is assumed to be declared like any other class
 \end{itemize}
 \end{description}
-*}
+\<close>
 type_synonym 'c wf_mb = "'c prog => cname => 'c mdecl => bool"
 
 definition wf_syscls :: "'c prog => bool" where

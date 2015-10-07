@@ -3,14 +3,14 @@
     Copyright   2002 Technische Universitaet Muenchen
 *)
 
-section {* System Classes *}
+section \<open>System Classes\<close>
 
 theory SystemClasses imports Decl begin
 
-text {*
+text \<open>
   This theory provides definitions for the @{text Object} class,
   and the system exceptions.
-*}
+\<close>
 
 definition ObjectC :: "'c cdecl" where
   [code_unfold]: "ObjectC \<equiv> (Object, (undefined,[],[]))"

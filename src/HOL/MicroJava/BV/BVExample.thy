@@ -2,7 +2,7 @@
     Author:     Gerwin Klein
 *)
 
-section {* Example Welltypings \label{sec:BVExample} *}
+section \<open>Example Welltypings \label{sec:BVExample}\<close>
 
 theory BVExample
 imports
@@ -11,26 +11,26 @@ imports
   JVM
 begin
 
-text {*
+text \<open>
   This theory shows type correctness of the example program in section 
   \ref{sec:JVMListExample} (p. \pageref{sec:JVMListExample}) by
   explicitly providing a welltyping. It also shows that the start
   state of the program conforms to the welltyping; hence type safe
   execution is guaranteed.
-*}
+\<close>
 
 subsection "Setup"
 
-text {* Abbreviations for definitions we will have to use often in the
-proofs below: *}
+text \<open>Abbreviations for definitions we will have to use often in the
+proofs below:\<close>
 lemmas name_defs   = list_name_def test_name_def val_name_def next_name_def 
 lemmas system_defs = SystemClasses_def ObjectC_def NullPointerC_def 
                      OutOfMemoryC_def ClassCastC_def
 lemmas class_defs  = list_class_def test_class_def
 
-text {* These auxiliary proofs are for efficiency: class lookup,
+text \<open>These auxiliary proofs are for efficiency: class lookup,
 subclass relation, method and field lookup are computed only once:
-*}
+\<close>
 lemma class_Object [simp]:
   "class E Object = Some (undefined, [],[])"
   by (simp add: class_def system_defs E_def)
@@ -60,7 +60,7 @@ lemma E_classes [simp]:
                         Xcpt ClassCast, Xcpt OutOfMemory, Object}"
   by (auto simp add: is_class_def class_def system_defs E_def name_defs class_defs)
 
-text {* The subclass releation spelled out: *}
+text \<open>The subclass releation spelled out:\<close>
 lemma subcls1:
   "subcls1 E = {(list_name,Object), (test_name,Object), (Xcpt NullPointer, Object),
                 (Xcpt ClassCast, Object), (Xcpt OutOfMemory, Object)}"
@@ -70,7 +70,7 @@ apply (simp add: Sigma_def)
 apply auto
 done
 
-text {* The subclass relation is acyclic; hence its converse is well founded: *}
+text \<open>The subclass relation is acyclic; hence its converse is well founded:\<close>
 lemma notin_rtrancl:
   "(a, b) \<in> r\<^sup>* \<Longrightarrow> a \<noteq> b \<Longrightarrow> (\<And>y. (a, y) \<notin> r) \<Longrightarrow> False"
   by (auto elim: converse_rtranclE)
@@ -88,7 +88,7 @@ lemma wf_subcls1_E: "wf ((subcls1 E)\<inverse>)"
   apply (rule acyclic_subcls1_E)
   done  
 
-text {* Method and field lookup: *}
+text \<open>Method and field lookup:\<close>
 lemma method_Object [simp]:
   "method (E, Object) = Map.empty"
   by (simp add: method_rec_lemma [OF class_Object wf_subcls1_E])
@@ -150,7 +150,7 @@ lemma [simp]: "fields (E, test_name) = []"
 
 lemmas [simp] = is_class_def
 
-text {*
+text \<open>
   The next definition and three proof rules implement an algorithm to
   enumarate natural numbers. The command @{text "apply (elim pc_end pc_next pc_0"} 
   transforms a goal of the form
@@ -162,7 +162,7 @@ text {*
   @{text "\<dots>"}
 
   @{prop [display] "P n"} 
-*}
+\<close>
 definition intervall :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" ("_ \<in> [_, _')") where
   "x \<in> [a, b) \<equiv> a \<le> x \<and> x < b"
 
@@ -180,9 +180,9 @@ lemma pc_end: "x \<in> [n,n) \<Longrightarrow> P x"
 
 subsection "Program structure"
 
-text {*
+text \<open>
   The program is structurally wellformed:
-*}
+\<close>
 
 lemma wf_struct:
   "wf_prog (\<lambda>G C mb. True) E" (is "wf_prog ?mb E")
@@ -226,10 +226,10 @@ proof -
 qed
 
 subsection "Welltypings"
-text {*
+text \<open>
   We show welltypings of the methods @{term append_name} in class @{term list_name}, 
   and @{term makelist_name} in class @{term test_name}:
-*}
+\<close>
 lemmas eff_simps [simp] = eff_def norm_eff_def xcpt_eff_def
 declare appInvoke [simp del]
 
@@ -289,7 +289,7 @@ lemma wt_append [simp]:
   apply simp
   done
 
-text {* Some abbreviations for readability *} 
+text \<open>Some abbreviations for readability\<close> 
 abbreviation Clist :: ty 
   where "Clist == Class list_name"
 abbreviation Ctest :: ty
@@ -368,7 +368,7 @@ lemma wt_makelist [simp]:
   apply simp
   done
 
-text {* The whole program is welltyped: *}
+text \<open>The whole program is welltyped:\<close>
 definition Phi :: prog_type ("\<Phi>") where
   "\<Phi> C sg \<equiv> if C = test_name \<and> sg = (makelist_name, []) then \<phi>\<^sub>m else          
              if C = list_name \<and> sg = (append_name, [Class list_name]) then \<phi>\<^sub>a else []"
@@ -386,8 +386,8 @@ lemma wf_prog:
 
 
 subsection "Conformance"
-text {* Execution of the program will be typesafe, because its
-  start state conforms to the welltyping: *}
+text \<open>Execution of the program will be typesafe, because its
+  start state conforms to the welltyping:\<close>
 
 lemma "E,\<Phi> \<turnstile>JVM start_state E test_name makelist_name \<surd>"
   apply (rule BV_correct_initial)
@@ -437,7 +437,7 @@ definition some_elem :: "'a set \<Rightarrow> 'a" where [code del]:
 code_printing
   constant some_elem \<rightharpoonup> (SML) "(case/ _ of/ Set/ xs/ =>/ hd/ xs)"
 
-text {* This code setup is just a demonstration and \emph{not} sound! *}
+text \<open>This code setup is just a demonstration and \emph{not} sound!\<close>
 
 lemma False
 proof -
@@ -480,10 +480,10 @@ definition test1 where
 definition test2 where
   "test2 = test_kil E test_name [] (PrimT Void) 3 2 [] make_list_ins"
 
-ML_val {* 
+ML_val \<open>
   @{code test1}; 
   @{code test2};
-*}
+\<close>
 
 end
 

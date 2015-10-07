@@ -2,7 +2,7 @@
     Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
-section {* Expressions and Statements *}
+section \<open>Expressions and Statements\<close>
 
 theory Term imports Value begin
 

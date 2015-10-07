@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* Program Execution in the JVM *}
+section \<open>Program Execution in the JVM\<close>
 
 theory JVMExec imports JVMExecInstr JVMExceptions begin
 
@@ -28,12 +28,12 @@ definition exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"
   "G \<turnstile> s \<midarrow>jvm\<rightarrow> t == (s,t) \<in> {(s,t). exec(G,s) = Some t}^*"
 
 
-text {*
+text \<open>
   The start configuration of the JVM: in the start heap, we call a 
   method @{text m} of class @{text C} in program @{text G}. The 
   @{text this} pointer of the frame is set to @{text Null} to simulate
   a static method invokation.
-*}
+\<close>
 definition start_state :: "jvm_prog \<Rightarrow> cname \<Rightarrow> mname \<Rightarrow> jvm_state" where
   "start_state G C m \<equiv>
   let (C',rT,mxs,mxl,i,et) = the (method (G,C) (m,[])) in

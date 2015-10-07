@@ -3,7 +3,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-section {* Operational Evaluation (big step) Semantics *}
+section \<open>Operational Evaluation (big step) Semantics\<close>
 
 theory Eval imports State WellType begin
 

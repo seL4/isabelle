@@ -2,9 +2,9 @@
     Author:     David von Oheimb, TU Muenchen
 *)
 
-chapter {* Java Source Language \label{cha:j} *}
+chapter \<open>Java Source Language \label{cha:j}\<close>
 
-section {* Some Auxiliary Definitions *}
+section \<open>Some Auxiliary Definitions\<close>
 
 theory JBasis imports Main "~~/src/HOL/Library/Transitive_Closure_Table" begin 
 
