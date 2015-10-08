@@ -905,7 +905,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                                  scope = n
                      ? Integer.add 1) (!generated_scopes) 0
       in
-        (if mode = TPTP then "% SZS status Unknown\n" else "") ^
+        (if mode = TPTP then "% SZS status GaveUp\n" else "") ^
         "Nitpick " ^ did_so_and_so ^
         (if is_some (!checked_problems) andalso total > 0 then
            " " ^ string_of_int unsat ^ " of " ^ string_of_int total ^ " scope"
@@ -934,7 +934,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           (print_nt (fn () => excipit "checked"); unknownN)
         else if max_genuine = original_max_genuine then
           if max_potential = original_max_potential then
-            (print_t (K "% SZS status Unknown");
+            (print_t (K "% SZS status GaveUp");
              print_nt (fn () => "Nitpick found no " ^ das_wort_model ^ ".");
              if skipped > 0 then unknownN else noneN)
           else
@@ -991,13 +991,13 @@ fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
               (pick_them_nits_in_term deadline state params mode i n step subst
                                       def_assm_ts nondef_assm_ts) orig_t
           handle TOO_LARGE (_, details) =>
-                 (print_t "% SZS status Unknown";
+                 (print_t "% SZS status GaveUp";
                   print_nt ("Limit reached: " ^ details ^ "."); unknown_outcome)
                | TOO_SMALL (_, details) =>
-                 (print_t "% SZS status Unknown";
+                 (print_t "% SZS status GaveUp";
                   print_nt ("Limit reached: " ^ details ^ "."); unknown_outcome)
                | Kodkod.SYNTAX (_, details) =>
-                 (print_t "% SZS status Unknown";
+                 (print_t "% SZS status GaveUp";
                   print_nt ("Malformed Kodkodi output: " ^ details ^ ".");
                   unknown_outcome)
                | TimeLimit.TimeOut =>
