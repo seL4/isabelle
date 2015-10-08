@@ -632,8 +632,8 @@ fun eq_rules_tac ctxt eq_rules =
 fun eq_tac ctxt = eq_rules_tac ctxt (get_relator_eq_raw ctxt)
 
 fun transfer_step_tac ctxt =
-  REPEAT_ALL_NEW (resolve_tac ctxt (get_transfer_raw ctxt)
-  THEN_ALL_NEW (DETERM o eq_rules_tac ctxt (get_relator_eq_raw ctxt)))
+  REPEAT_ALL_NEW (resolve_tac ctxt (get_transfer_raw ctxt))
+  THEN_ALL_NEW (DETERM o eq_rules_tac ctxt (get_relator_eq_raw ctxt))
 
 fun transfer_tac equiv ctxt i =
   let
