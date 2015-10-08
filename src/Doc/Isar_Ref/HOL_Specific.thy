@@ -1603,6 +1603,11 @@ text \<open>
     @{method_def (HOL) "transfer_prover"} & : & @{text method} \\
     @{attribute_def (HOL) "Transfer.transferred"} & : & @{text attribute} \\
     @{attribute_def (HOL) "untransferred"} & : & @{text attribute} \\
+    @{method_def (HOL) "transfer_start"} & : & @{text method} \\
+    @{method_def (HOL) "transfer_prover_start"} & : & @{text method} \\
+    @{method_def (HOL) "transfer_step"} & : & @{text method} \\
+    @{method_def (HOL) "transfer_end"} & : & @{text method} \\
+    @{method_def (HOL) "transfer_prover_end"} & : & @{text method} \\
     @{attribute_def (HOL) "transfer_rule"} & : & @{text attribute} \\
     @{attribute_def (HOL) "transfer_domain_rule"} & : & @{text attribute} \\
     @{attribute_def (HOL) "relator_eq"} & : & @{text attribute} \\
@@ -1628,6 +1633,17 @@ text \<open>
   transfer rule for a new constant, provided the constant is defined in
   terms of other constants that already have transfer rules. It should be
   applied after unfolding the constant definitions.
+
+  \item @{method (HOL) "transfer_start"}, @{method (HOL) "transfer_step"},
+  @{method (HOL) "transfer_end"}, @{method (HOL) "transfer_prover_start"}
+  and @{method (HOL) "transfer_prover_end"} methods are meant to be used
+  for debugging of @{method (HOL) "transfer"} and @{method (HOL) "transfer_prover"},
+  which we can decompose as follows:
+  @{method (HOL) "transfer"} = (@{method (HOL) "transfer_start"}, 
+  @{method (HOL) "transfer_step"}+, @{method (HOL) "transfer_end"}) and
+  @{method (HOL) "transfer_prover"} = (@{method (HOL) "transfer_prover_start"}, 
+  @{method (HOL) "transfer_step"}+, @{method (HOL) "transfer_prover_end"}).
+  For usage examples see @{file "~~/src/HOL/ex/Transfer_Debug.thy"} 
 
   \item @{attribute (HOL) "untransferred"} proves the same equivalent
   theorem as @{method (HOL) "transfer"} internally does.
