@@ -102,41 +102,14 @@ proof (rule measure_eqI[symmetric])
 qed simp
 
 lemma (in product_prob_space) PiM_eq:
-  assumes "sets M' = sets (PiM I M)"
+  assumes M': "sets M' = sets (PiM I M)"
   assumes eq: "\<And>J F. finite J \<Longrightarrow> J \<subseteq> I \<Longrightarrow> (\<And>j. j \<in> J \<Longrightarrow> F j \<in> sets (M j)) \<Longrightarrow>
     emeasure M' (prod_emb I M J (\<Pi>\<^sub>E j\<in>J. F j)) = (\<Prod>j\<in>J. emeasure (M j) (F j))"
   shows "M' = (PiM I M)"
-proof (rule measure_eqI_generator_eq[symmetric, OF Int_stable_prod_algebra prod_algebra_sets_into_space])
-  show "sets (PiM I M) = sigma_sets (\<Pi>\<^sub>E i\<in>I. space (M i)) (prod_algebra I M)"
-    by (rule sets_PiM)
-  then show "sets M' = sigma_sets (\<Pi>\<^sub>E i\<in>I. space (M i)) (prod_algebra I M)"
-    unfolding `sets M' = sets (PiM I M)` by simp
-
-  def i \<equiv> "SOME i. i \<in> I"
-  have i: "I \<noteq> {} \<Longrightarrow> i \<in> I"
-    unfolding i_def by (rule someI_ex) auto
-
-  def A \<equiv> "\<lambda>n::nat. if I = {} then prod_emb I M {} (\<Pi>\<^sub>E i\<in>{}. {}) else prod_emb I M {i} (\<Pi>\<^sub>E i\<in>{i}. space (M i))"
-  then show "range A \<subseteq> prod_algebra I M"
-    using prod_algebraI[of "{}" I "\<lambda>i. space (M i)" M] by (auto intro!: prod_algebraI i)
-
-  have A_eq: "\<And>i. A i = space (PiM I M)"
-    by (auto simp: prod_emb_def space_PiM PiE_iff A_def i ex_in_conv[symmetric] exI)
-  show "(\<Union>i. A i) = (\<Pi>\<^sub>E i\<in>I. space (M i))"
-    unfolding A_eq by (auto simp: space_PiM)
-  show "\<And>i. emeasure (PiM I M) (A i) \<noteq> \<infinity>"
-    unfolding A_eq P.emeasure_space_1 by simp
-next
-  fix X assume X: "X \<in> prod_algebra I M"
-  then obtain J E where X: "X = prod_emb I M J (PIE j:J. E j)"
-    and J: "finite J" "J \<subseteq> I" "\<And>j. j \<in> J \<Longrightarrow> E j \<in> sets (M j)"
-    by (force elim!: prod_algebraE)
-  from eq[OF J] have "emeasure M' X = (\<Prod>j\<in>J. emeasure (M j) (E j))"
-    by (simp add: X)
-  also have "\<dots> = emeasure (PiM I M) X"
-    unfolding X using J by (intro emeasure_PiM_emb[symmetric]) auto
-  finally show "emeasure (PiM I M) X = emeasure M' X" ..
-qed
+proof (rule measure_eqI_PiM_infinite[symmetric, OF refl M'])
+  show "finite_measure (Pi\<^sub>M I M)"
+    by standard (simp add: P.emeasure_space_1)
+qed (simp add: eq emeasure_PiM_emb)
 
 lemma (in product_prob_space) AE_component: "i \<in> I \<Longrightarrow> AE x in M i. P x \<Longrightarrow> AE x in PiM I M. P (x i)"
   apply (rule AE_distrD[of "\<lambda>\<omega>. \<omega> i" "PiM I M" "M i" P])
