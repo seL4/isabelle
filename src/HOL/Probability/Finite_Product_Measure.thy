@@ -740,6 +740,53 @@ lemma sets_in_extensional[measurable (raw)]:
   unfolding pred_def
   by (rule measurable_sets_Collect[of f N "PiM I M", OF _ sets_in_extensional_aux]) auto
 
+lemma sets_PiM_I_countable:
+  assumes I: "countable I" and E: "\<And>i. i \<in> I \<Longrightarrow> E i \<in> sets (M i)" shows "Pi\<^sub>E I E \<in> sets (Pi\<^sub>M I M)"
+proof cases
+  assume "I \<noteq> {}"
+  then have "PiE I E = (\<Inter>i\<in>I. prod_emb I M {i} (PiE {i} E))"
+    using E[THEN sets.sets_into_space] by (auto simp: PiE_iff prod_emb_def fun_eq_iff)
+  also have "\<dots> \<in> sets (PiM I M)"
+    using I \<open>I \<noteq> {}\<close> by (safe intro!: sets.countable_INT' measurable_prod_emb sets_PiM_I_finite E)
+  finally show ?thesis .
+qed (simp add: sets_PiM_empty)
+
+lemma sets_PiM_D_countable:
+  assumes A: "A \<in> PiM I M"
+  shows "\<exists>J\<subseteq>I. \<exists>X\<in>PiM J M. countable J \<and> A = prod_emb I M J X"
+  using A[unfolded sets_PiM_single]
+proof induction
+  case (Basic A)
+  then obtain i X where *: "i \<in> I" "X \<in> sets (M i)" and "A = {f \<in> \<Pi>\<^sub>E i\<in>I. space (M i). f i \<in> X}"
+    by auto
+  then have A: "A = prod_emb I M {i} (\<Pi>\<^sub>E _\<in>{i}. X)"
+    by (auto simp: prod_emb_def)
+  then show ?case
+    by (intro exI[of _ "{i}"] conjI bexI[of _ "\<Pi>\<^sub>E _\<in>{i}. X"])
+       (auto intro: countable_finite * sets_PiM_I_finite)
+next
+  case Empty then show ?case
+    by (intro exI[of _ "{}"] conjI bexI[of _ "{}"]) auto
+next
+  case (Compl A)
+  then obtain J X where "J \<subseteq> I" "X \<in> sets (Pi\<^sub>M J M)" "countable J" "A = prod_emb I M J X"
+    by auto
+  then show ?case
+    by (intro exI[of _ J] bexI[of _ "space (PiM J M) - X"] conjI)
+       (auto simp add: space_PiM prod_emb_PiE intro!: sets_PiM_I_countable)
+next
+  case (Union K)
+  obtain J X where J: "\<And>i. J i \<subseteq> I" "\<And>i. countable (J i)" and X: "\<And>i. X i \<in> sets (Pi\<^sub>M (J i) M)"
+    and K: "\<And>i. K i = prod_emb I M (J i) (X i)"
+    by (metis Union.IH)
+  show ?case
+  proof (intro exI[of _ "\<Union>i. J i"] bexI[of _ "\<Union>i. prod_emb (\<Union>i. J i) M (J i) (X i)"] conjI)
+    show "(\<Union>i. J i) \<subseteq> I" "countable (\<Union>i. J i)" using J by auto
+    with J show "UNION UNIV K = prod_emb I M (\<Union>i. J i) (\<Union>i. prod_emb (\<Union>i. J i) M (J i) (X i))" 
+      by (simp add: K[abs_def] SUP_upper)
+  qed(auto intro: X)
+qed
+
 lemma measure_eqI_PiM_finite:
   assumes [simp]: "finite I" "sets P = PiM I M" "sets Q = PiM I M"
   assumes eq: "\<And>A. (\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i)) \<Longrightarrow> P (Pi\<^sub>E I A) = Q (Pi\<^sub>E I A)"
