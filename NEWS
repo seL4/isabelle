@@ -279,6 +279,11 @@ been removed. INCOMPATIBILITY.
     structure on the raw type to an abstract type defined using typedef.
   - Always generate "case_transfer" theorem.
 
+* Transfer:
+  - new methods for interactive debugging of 'transfer' and 
+    'transfer_prover': 'transfer_start', 'transfer_step', 'transfer_end',
+    'transfer_prover_start' and 'transfer_prover_end'.
+
 * Division on integers is bootstrapped directly from division on
 naturals and uses generic numeral algorithm for computations.
 Slight INCOMPATIBILITY, simproc numeral_divmod replaces and generalizes
