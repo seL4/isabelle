@@ -43,7 +43,11 @@ sig
   val transfer_rule_of_term: Proof.context -> bool -> term -> thm
   val transfer_rule_of_lhs: Proof.context -> term -> thm
   val eq_tac: Proof.context -> int -> tactic
+  val transfer_start_tac: bool -> Proof.context -> int -> tactic
+  val transfer_prover_start_tac: Proof.context -> int -> tactic
   val transfer_step_tac: Proof.context -> int -> tactic
+  val transfer_end_tac: Proof.context -> int -> tactic
+  val transfer_prover_end_tac: Proof.context -> int -> tactic
   val transfer_tac: bool -> Proof.context -> int -> tactic
   val transfer_prover_tac: Proof.context -> int -> tactic
   val gen_frees_tac: (string * typ) list -> Proof.context -> int -> tactic
@@ -635,52 +639,84 @@ fun transfer_step_tac ctxt =
   REPEAT_ALL_NEW (resolve_tac ctxt (get_transfer_raw ctxt))
   THEN_ALL_NEW (DETERM o eq_rules_tac ctxt (get_relator_eq_raw ctxt))
 
-fun transfer_tac equiv ctxt i =
-  let
-    val pre_simps = @{thms transfer_forall_eq transfer_implies_eq}
-    val start_rule =
-      if equiv then @{thm transfer_start} else @{thm transfer_start'}
-    val rules = get_transfer_raw ctxt
-    val eq_rules = get_relator_eq_raw ctxt
-    (* allow unsolved subgoals only for standard transfer method, not for transfer' *)
-    val end_tac = if equiv then K all_tac else K no_tac
-    val err_msg = "Transfer failed to convert goal to an object-logic formula"
-    fun main_tac (t, i) =
-      resolve_tac ctxt [start_rule] i THEN
-      (resolve_tac ctxt [transfer_rule_of_term ctxt equiv (HOLogic.dest_Trueprop t)]
-        THEN_ALL_NEW
-          (SOLVED'
-            (REPEAT_ALL_NEW (resolve_tac ctxt rules) THEN_ALL_NEW
-              (DETERM o eq_rules_tac ctxt eq_rules))
-            ORELSE' end_tac)) (i + 1)
-        handle TERM (_, ts) => raise TERM (err_msg, ts)
-  in
-    EVERY
-      [rewrite_goal_tac ctxt pre_simps i THEN
-       SUBGOAL main_tac i,
-       (* FIXME: rewrite_goal_tac does unwanted eta-contraction *)
-       rewrite_goal_tac ctxt post_simps i,
-       Goal.norm_hhf_tac ctxt i]
-  end
+fun transfer_start_tac equiv ctxt i =
+    let
+      val pre_simps = @{thms transfer_forall_eq transfer_implies_eq}
+      val start_rule =
+        if equiv then @{thm transfer_start} else @{thm transfer_start'}
+      val err_msg = "Transfer failed to convert goal to an object-logic formula"
+      fun main_tac (t, i) =
+        resolve_tac ctxt [start_rule] i THEN
+        (resolve_tac ctxt [transfer_rule_of_term ctxt equiv (HOLogic.dest_Trueprop t)]) (i + 1)
+          handle TERM (_, ts) => raise TERM (err_msg, ts)
+    in
+      EVERY
+        [rewrite_goal_tac ctxt pre_simps i THEN
+         SUBGOAL main_tac i]
+    end;
 
-fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
+fun transfer_prover_start_tac ctxt = SUBGOAL (fn (t, i) =>
   let
     val rhs = (snd o Term.dest_comb o HOLogic.dest_Trueprop) t
     val rule1 = transfer_rule_of_term ctxt false rhs
-    val rules = get_transfer_raw ctxt
-    val eq_rules = get_relator_eq_raw ctxt
     val expand_eq_in_rel = transfer_rel_conv (top_rewr_conv [@{thm rel_fun_eq[symmetric,THEN eq_reflection]}])
   in
     EVERY
       [CONVERSION prep_conv i,
        resolve_tac ctxt @{thms transfer_prover_start} i,
-       ((resolve_tac ctxt [rule1] ORELSE'
-         (CONVERSION expand_eq_in_rel THEN' resolve_tac ctxt [rule1]))
-        THEN_ALL_NEW
-         (REPEAT_ALL_NEW (resolve_tac ctxt rules) THEN_ALL_NEW
-           (DETERM o eq_rules_tac ctxt eq_rules))) (i + 1),
-       resolve_tac ctxt @{thms refl} i]
-  end)
+       (resolve_tac ctxt [rule1] ORELSE'
+         (CONVERSION expand_eq_in_rel THEN' resolve_tac ctxt [rule1])) (i + 1)]
+  end);
+
+fun transfer_end_tac ctxt i =
+  let
+    val post_simps = @{thms transfer_forall_eq [symmetric]
+      transfer_implies_eq [symmetric] transfer_bforall_unfold}
+  in
+    EVERY [rewrite_goal_tac ctxt post_simps i,
+           Goal.norm_hhf_tac ctxt i]
+  end;
+
+fun transfer_prover_end_tac ctxt i = resolve_tac ctxt @{thms refl} i
+
+local 
+  infix 1 THEN_ALL_BUT_FIRST_NEW
+  fun (tac1 THEN_ALL_BUT_FIRST_NEW tac2) i st =
+    st |> (tac1 i THEN (fn st' =>
+      Seq.INTERVAL tac2 (i + 1) (i + Thm.nprems_of st' - Thm.nprems_of st) st'));
+in
+  fun transfer_tac equiv ctxt i =
+    let
+      val rules = get_transfer_raw ctxt
+      val eq_rules = get_relator_eq_raw ctxt
+      (* allow unsolved subgoals only for standard transfer method, not for transfer' *)
+      val end_tac = if equiv then K all_tac else K no_tac
+  
+      fun transfer_search_tac i =
+        (SOLVED'
+          (REPEAT_ALL_NEW (resolve_tac ctxt rules) THEN_ALL_NEW
+            (DETERM o eq_rules_tac ctxt eq_rules))
+          ORELSE' end_tac) i
+     in
+       (transfer_start_tac equiv ctxt 
+        THEN_ALL_BUT_FIRST_NEW transfer_search_tac
+        THEN' transfer_end_tac ctxt) i
+     end
+
+  fun transfer_prover_tac ctxt i = 
+    let
+      val rules = get_transfer_raw ctxt
+      val eq_rules = get_relator_eq_raw ctxt
+  
+      fun transfer_prover_search_tac i = 
+        (REPEAT_ALL_NEW (resolve_tac ctxt rules) THEN_ALL_NEW
+          (DETERM o eq_rules_tac ctxt eq_rules)) i
+    in
+      (transfer_prover_start_tac ctxt 
+       THEN_ALL_BUT_FIRST_NEW transfer_prover_search_tac
+       THEN' transfer_prover_end_tac ctxt) i
+    end
+end;
 
 (** Transfer attribute **)
 
@@ -766,9 +802,20 @@ val free = Args.context -- Args.term >> (fn (_, Free v) => v | (ctxt, t) =>
 val fixing = Scan.optional (Scan.lift (Args.$$$ "fixing" -- Args.colon)
   |-- Scan.repeat free) []
 
+val reverse_prems = fn _ => PRIMITIVE (fn thm => fold_rev (fn i => Thm.permute_prems i 1) 
+    (0 upto Thm.nprems_of thm - 1) thm);
+  
+fun transfer_start_method equiv : (Proof.context -> Proof.method) context_parser =
+  fixing >> (fn vs => fn ctxt =>
+    SIMPLE_METHOD' (gen_frees_tac vs ctxt THEN' transfer_start_tac equiv ctxt
+    THEN' reverse_prems));
+
 fun transfer_method equiv : (Proof.context -> Proof.method) context_parser =
   fixing >> (fn vs => fn ctxt =>
     SIMPLE_METHOD' (gen_frees_tac vs ctxt THEN' transfer_tac equiv ctxt))
+
+val transfer_prover_start_method : (Proof.context -> Proof.method) context_parser =
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_prover_start_tac ctxt THEN' reverse_prems))
 
 val transfer_prover_method : (Proof.context -> Proof.method) context_parser =
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_prover_tac ctxt))
@@ -887,11 +934,25 @@ val _ =
        "abstract theorem transferred to raw theorem using transfer rules"
     #> Global_Theory.add_thms_dynamic
        (@{binding relator_eq_raw}, Item_Net.content o #relator_eq_raw o Data.get)
+    #> Method.setup @{binding transfer_start} (transfer_start_method true)
+       "firtst step in the transfer algorithm (for debugging transfer)"
+    #> Method.setup @{binding transfer_start'} (transfer_start_method false)
+       "firtst step in the transfer algorithm (for debugging transfer)"
+    #> Method.setup @{binding transfer_prover_start} transfer_prover_start_method
+       "firtst step in the transfer_prover algorithm (for debugging transfer_prover)"
+    #> Method.setup @{binding transfer_step}
+       (Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_step_tac ctxt)))
+       "step in the search for transfer rules (for debugging transfer and transfer_prover)"
+    #> Method.setup @{binding transfer_end}
+       (Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_end_tac ctxt)))
+       "last step in the transfer algorithm (for debugging transfer)"
+    #> Method.setup @{binding transfer_prover_end}
+       (Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_prover_end_tac ctxt)))
+       "last step in the transfer_prover algorithm (for debugging transfer_prover)"
     #> Method.setup @{binding transfer} (transfer_method true)
        "generic theorem transfer method"
     #> Method.setup @{binding transfer'} (transfer_method false)
        "generic theorem transfer method"
     #> Method.setup @{binding transfer_prover} transfer_prover_method
        "for proving transfer rules")
-
 end
