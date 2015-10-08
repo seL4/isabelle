@@ -583,6 +583,7 @@ session "HOL-ex" in ex = HOL +
     Reflection_Examples
     Sqrt
     Sqrt_Script
+    Transfer_Debug
     Transfer_Ex
     Transfer_Int_Nat
     Transitive_Closure_Table_Ex
