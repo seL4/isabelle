@@ -494,6 +494,7 @@ class Session(val resources: Resources)
               accumulate(state_id, output.message)
 
             case _ if output.is_init =>
+              prover.get.init_symbols()
               phase = Session.Ready
 
             case Markup.Return_Code(rc) if output.is_exit =>
@@ -501,7 +502,8 @@ class Session(val resources: Resources)
               else phase = Session.Failed
               prover.reset
 
-            case _ => raw_output_messages.post(output)
+            case _ =>
+              raw_output_messages.post(output)
           }
         }
     }

@@ -336,29 +336,32 @@ object Symbol
           ("abbrev", a) <- props.reverse
         } yield sym -> a): _*)
 
+    val codes: List[(String, Int)] =
+    {
+      val Code = new Properties.String("code")
+      for {
+        (sym, props) <- symbols
+        code =
+          props match {
+            case Code(s) =>
+              try { Integer.decode(s).intValue }
+              catch { case _: NumberFormatException => error("Bad code for symbol " + sym) }
+            case _ => error("Missing code for symbol " + sym)
+          }
+      } yield {
+        if (code < 128) error("Illegal ASCII code for symbol " + sym)
+        else (sym, code)
+      }
+    }
+
 
     /* recoding */
 
-    private val Code = new Properties.String("code")
     private val (decoder, encoder) =
     {
       val mapping =
-        for {
-          (sym, props) <- symbols
-          code =
-            props match {
-              case Code(s) =>
-                try { Integer.decode(s).intValue }
-                catch { case _: NumberFormatException => error("Bad code for symbol " + sym) }
-              case _ => error("Missing code for symbol " + sym)
-            }
-          ch = new String(Character.toChars(code))
-        } yield {
-          if (code < 128) error("Illegal ASCII code for symbol " + sym)
-          else (sym, ch)
-        }
-      (new Recoder(mapping),
-       new Recoder(mapping map { case (x, y) => (y, x) }))
+        for ((sym, code) <- codes) yield (sym, new String(Character.toChars(code)))
+      (new Recoder(mapping), new Recoder(for ((x, y) <- mapping) yield (y, x)))
     }
 
     def decode(text: String): String = decoder.recode(text)
@@ -457,6 +460,7 @@ object Symbol
   def names: Map[Symbol, String] = symbols.names
   def groups: List[(String, List[Symbol])] = symbols.groups
   def abbrevs: Multi_Map[Symbol, String] = symbols.abbrevs
+  def codes: List[(String, Int)] = symbols.codes
 
   def decode(text: String): String = symbols.decode(text)
   def encode(text: String): String = symbols.encode(text)

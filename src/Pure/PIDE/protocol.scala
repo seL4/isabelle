@@ -308,6 +308,19 @@ trait Protocol
   def protocol_command(name: String, args: String*): Unit
 
 
+  /* symbols */
+
+  def init_symbols(): Unit =
+  {
+    val codes_yxml =
+    {
+      import XML.Encode._
+      YXML.string_of_body(list(pair(string, int))(Symbol.codes))
+    }
+    protocol_command("Prover.init_symbols", codes_yxml)
+  }
+
+
   /* options */
 
   def options(opts: Options): Unit =
@@ -322,7 +335,8 @@ trait Protocol
   def define_command(command: Command)
   {
     val blobs_yxml =
-    { import XML.Encode._
+    {
+      import XML.Encode._
       val encode_blob: T[Command.Blob] =
         variant(List(
           { case Exn.Res((a, b)) =>
@@ -334,7 +348,8 @@ trait Protocol
 
     val toks = command.span.content
     val toks_yxml =
-    { import XML.Encode._
+    {
+      import XML.Encode._
       val encode_tok: T[Token] =
         (tok => pair(int, int)((tok.kind.id, Symbol.iterator(tok.source).length)))
       YXML.string_of_body(list(encode_tok)(toks))
@@ -361,7 +376,8 @@ trait Protocol
     edits: List[Document.Edit_Command])
   {
     val edits_yxml =
-    { import XML.Encode._
+    {
+      import XML.Encode._
       def id: T[Command] = (cmd => long(cmd.id))
       def encode_edit(name: Document.Node.Name)
           : T[Document.Node.Edit[Command.Edit, Command.Perspective]] =

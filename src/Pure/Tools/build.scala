@@ -553,12 +553,14 @@ object Build
         {
           val theories = info.theories.map(x => (x._2, x._3))
           import XML.Encode._
-              pair(list(properties), pair(bool, pair(Options.encode, pair(bool, pair(Path.encode,
-                pair(list(pair(Path.encode, Path.encode)), pair(string, pair(string,
-                pair(string, pair(string, list(pair(Options.encode, list(Path.encode)))))))))))))(
-              (command_timings, (do_output, (info.options, (verbose, (browser_info,
-                (info.document_files, (File.standard_path(graph_file), (parent,
-                (info.chapter, (name, theories)))))))))))
+          pair(list(pair(string, int)), pair(list(properties), pair(bool, pair(Options.encode,
+            pair(bool, pair(Path.encode, pair(list(pair(Path.encode, Path.encode)), pair(string,
+            pair(string, pair(string, pair(string,
+            list(pair(Options.encode, list(Path.encode))))))))))))))(
+          (Symbol.codes, (command_timings, (do_output, (info.options,
+            (verbose, (browser_info, (info.document_files, (File.standard_path(graph_file),
+            (parent, (info.chapter, (name,
+            theories))))))))))))
         }))
 
     private val env =

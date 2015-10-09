@@ -123,15 +123,17 @@ fun build args_file = Command_Line.tool0 (fn () =>
     let
       val _ = SHA1_Samples.test ();
 
-      val (command_timings, (do_output, (options, (verbose, (browser_info,
-          (document_files, (graph_file, (parent_name, (chapter, (name, theories)))))))))) =
+      val (symbol_codes, (command_timings, (do_output, (options, (verbose, (browser_info,
+          (document_files, (graph_file, (parent_name, (chapter, (name, theories))))))))))) =
         File.read (Path.explode args_file) |> YXML.parse_body |>
           let open XML.Decode in
-            pair (list properties) (pair bool (pair Options.decode (pair bool (pair string
-              (pair (list (pair string string)) (pair string (pair string (pair string (pair string
-                ((list (pair Options.decode (list (string #> rpair Position.none))))))))))))))
+            pair (list (pair string int)) (pair (list properties) (pair bool (pair Options.decode
+              (pair bool (pair string (pair (list (pair string string)) (pair string
+                (pair string (pair string (pair string
+                ((list (pair Options.decode (list (string #> rpair Position.none)))))))))))))))
           end;
 
+      val _ = HTML.init_symbols symbol_codes;
       val _ = Options.set_default options;
 
       val _ = writeln ("\fSession.name = " ^ name);
@@ -159,6 +161,7 @@ fun build args_file = Command_Line.tool0 (fn () =>
       val res2 = Exn.capture Session.finish ();
       val _ = Par_Exn.release_all [res1, res2];
 
+      val _ = HTML.reset_symbols ();
       val _ = Options.reset_default ();
       val _ = if do_output then () else exit 0;
     in () end);
