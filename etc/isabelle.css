@@ -1,9 +1,25 @@
 /* style file for Isabelle XHTML/XML output */
 
+@font-face {
+  font-family: 'IsabelleText';
+  src: url('IsabelleText.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'IsabelleText';
+  src: url('IsabelleTextBold.ttf') format('truetype');
+  font-weight: bold;
+}
+
 body { background-color: #FFFFFF; }
 
 .head     { background-color: #FFFFFF; }
-.source   { background-color: #FFFFFF; padding: 10px; }
+.source   {
+  background-color: #FFFFFF;
+  padding: 10px;
+  font-family: IsabelleText;
+  line-height: 120%;
+}
 
 .external_source { background-color: #FFFFFF; padding: 10px; }
 .external_footer { background-color: #FFFFFF; }

@@ -16,8 +16,6 @@ sig
   val href_path: Url.T -> text -> text
   val href_opt_path: Url.T option -> text -> text
   val para: text -> text
-  val preform: text -> text
-  val verbatim: string -> text
   val begin_document: string -> text
   val end_document: text
   val begin_session_index: string -> Url.T -> (Url.T * string) list -> text
@@ -253,8 +251,6 @@ fun href_opt_path NONE txt = txt
   | href_opt_path (SOME p) txt = href_path p txt;
 
 fun para txt = "\n<p>" ^ txt ^ "</p>\n";
-fun preform txt = "<pre>" ^ txt ^ "</pre>";
-val verbatim = preform o output;
 
 
 (* document *)
@@ -295,7 +291,7 @@ fun theory A Bs txt =
   command "theory" ^ " " ^ name A ^ "<br/>\n" ^
   keyword "imports" ^ " " ^ space_implode " " (map (uncurry href_opt_path o apsnd name) Bs) ^
   "<br/>\n" ^
-  enclose "\n</div>\n<div class=\"source\">\n<pre>" "</pre>\n" txt ^
+  enclose "\n</div>\n<div class=\"source\">\n<pre class=\"source\">" "</pre>\n" txt ^
   end_document;
 
 end;

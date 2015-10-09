@@ -105,6 +105,8 @@ object Present
       Isabelle_System.mkdirs(session_prefix)
       File.copy(graph_file, (session_prefix + Path.basic("session_graph.pdf")).file)
       File.copy(Path.explode("~~/etc/isabelle.css"), session_prefix)
+      File.copy(Path.explode("~~/lib/fonts/IsabelleText.ttf"), session_prefix)
+      File.copy(Path.explode("~~/lib/fonts/IsabelleTextBold.ttf"), session_prefix)
     }
   }
 }
