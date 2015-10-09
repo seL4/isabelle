@@ -219,10 +219,12 @@ object File
 
   def copy(src: JFile, dst: JFile)
   {
-    if (!eq(src, dst)) {
+    val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
+
+    if (!eq(src, target)) {
       val in = new FileInputStream(src)
       try {
-        val out = new FileOutputStream(dst)
+        val out = new FileOutputStream(target)
         try {
           val buf = new Array[Byte](65536)
           var m = 0
