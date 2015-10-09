@@ -102,13 +102,8 @@ definition Pi' :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a set) \<Rightarrow> 
 
 syntax
   "_Pi'"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PI' _:_./ _)" 10)
-
 syntax (xsymbols)
   "_Pi'" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>' _\<in>_./ _)"   10)
-
-syntax (HTML output)
-  "_Pi'" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>' _\<in>_./ _)"   10)
-
 translations
   "PI' x:A. B" == "CONST Pi' A (%x. B)"
 
@@ -616,13 +611,8 @@ abbreviation
 
 syntax
   "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3PIF _:_./ _)" 10)
-
 syntax (xsymbols)
   "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3\<Pi>\<^sub>F _\<in>_./ _)"  10)
-
-syntax (HTML output)
-  "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3\<Pi>\<^sub>F _\<in>_./ _)"  10)
-
 translations
   "PIF x:I. M" == "CONST PiF I (%x. M)"
 

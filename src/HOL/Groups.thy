@@ -1206,9 +1206,6 @@ begin
 notation (xsymbols)
   abs  ("\<bar>_\<bar>")
 
-notation (HTML output)
-  abs  ("\<bar>_\<bar>")
-
 end
 
 class sgn =

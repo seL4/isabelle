@@ -493,8 +493,6 @@ syntax
   "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(3SUM _:_./ _)" [0, 51, 10] 10)
 syntax (xsymbols)
   "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(2\<Sum>_\<in>_./ _)" [0, 51, 10] 10)
-syntax (HTML output)
-  "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(2\<Sum>_\<in>_./ _)" [0, 51, 10] 10)
 
 translations -- \<open>Beware of argument permutation!\<close>
   "SUM i:A. b" == "CONST setsum (%i. b) A"
@@ -506,8 +504,6 @@ text\<open>Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter
 syntax
   "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SUM _ |/ _./ _)" [0,0,10] 10)
 syntax (xsymbols)
-  "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(2\<Sum>_ | (_)./ _)" [0,0,10] 10)
-syntax (HTML output)
   "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(2\<Sum>_ | (_)./ _)" [0,0,10] 10)
 
 translations
@@ -1077,8 +1073,6 @@ syntax
   "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(4PROD _:_./ _)" [0, 51, 10] 10)
 syntax (xsymbols)
   "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>_\<in>_./ _)" [0, 51, 10] 10)
-syntax (HTML output)
-  "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>_\<in>_./ _)" [0, 51, 10] 10)
 
 translations -- \<open>Beware of argument permutation!\<close>
   "PROD i:A. b" == "CONST setprod (%i. b) A" 
@@ -1090,8 +1084,6 @@ text\<open>Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter
 syntax
   "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(4PROD _ |/ _./ _)" [0,0,10] 10)
 syntax (xsymbols)
-  "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(2\<Prod>_ | (_)./ _)" [0,0,10] 10)
-syntax (HTML output)
   "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(2\<Prod>_ | (_)./ _)" [0,0,10] 10)
 
 translations

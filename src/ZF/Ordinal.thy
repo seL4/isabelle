@@ -34,9 +34,6 @@ abbreviation
 notation (xsymbols)
   le  (infixl "\<le>" 50)
 
-notation (HTML output)
-  le  (infixl "\<le>" 50)
-
 
 subsection\<open>Rules for Transset\<close>
 

@@ -59,14 +59,6 @@ notation (xsymbols)
   trancl  ("(_\<^sup>+)" [1000] 999) and
   reflcl  ("(_\<^sup>=)" [1000] 999)
 
-notation (HTML output)
-  rtranclp  ("(_\<^sup>*\<^sup>*)" [1000] 1000) and
-  tranclp  ("(_\<^sup>+\<^sup>+)" [1000] 1000) and
-  reflclp  ("(_\<^sup>=\<^sup>=)" [1000] 1000) and
-  rtrancl  ("(_\<^sup>*)" [1000] 999) and
-  trancl  ("(_\<^sup>+)" [1000] 999) and
-  reflcl  ("(_\<^sup>=)" [1000] 999)
-
 
 subsection \<open>Reflexive closure\<close>
 

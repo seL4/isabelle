@@ -51,14 +51,6 @@ notation (xsymbols)
   Ex  (binder "\<exists>" 10) and
   not_equal  (infixl "\<noteq>" 50)
 
-notation (HTML output)
-  Not  ("\<not> _" [40] 40) and
-  conj  (infixr "\<and>" 35) and
-  disj  (infixr "\<or>" 30) and
-  All  (binder "\<forall>" 10) and
-  Ex  (binder "\<exists>" 10) and
-  not_equal  (infixl "\<noteq>" 50)
-
 axiomatization where
 
   (*Structural rules: contraction, thinning, exchange [Soren Heilmann] *)

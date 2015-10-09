@@ -27,8 +27,6 @@ by (rule typedef_chfin [OF type_definition_ssum below_ssum_def])
 
 type_notation (xsymbols)
   ssum  ("(_ \<oplus>/ _)" [21, 20] 20)
-type_notation (HTML output)
-  ssum  ("(_ \<oplus>/ _)" [21, 20] 20)
 
 
 subsection {* Definitions of constructors *}

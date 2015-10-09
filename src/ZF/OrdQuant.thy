@@ -36,10 +36,6 @@ syntax (xsymbols)
   "_oall"     :: "[idt, i, o] => o"        ("(3\<forall>_<_./ _)" 10)
   "_oex"      :: "[idt, i, o] => o"        ("(3\<exists>_<_./ _)" 10)
   "_OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
-syntax (HTML output)
-  "_oall"     :: "[idt, i, o] => o"        ("(3\<forall>_<_./ _)" 10)
-  "_oex"      :: "[idt, i, o] => o"        ("(3\<exists>_<_./ _)" 10)
-  "_OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
 
 
 subsubsection \<open>simplification of the new quantifiers\<close>
@@ -206,9 +202,6 @@ syntax
   "_rex"      :: "[pttrn, i=>o, o] => o"        ("(3EX _[_]./ _)" 10)
 
 syntax (xsymbols)
-  "_rall"     :: "[pttrn, i=>o, o] => o"        ("(3\<forall>_[_]./ _)" 10)
-  "_rex"      :: "[pttrn, i=>o, o] => o"        ("(3\<exists>_[_]./ _)" 10)
-syntax (HTML output)
   "_rall"     :: "[pttrn, i=>o, o] => o"        ("(3\<forall>_[_]./ _)" 10)
   "_rex"      :: "[pttrn, i=>o, o] => o"        ("(3\<exists>_[_]./ _)" 10)
 

@@ -19,8 +19,6 @@ definition
 
 notation (xsymbols)
   iterates_omega  ("(_^\<omega> '(_'))" [60,1000] 60)
-notation (HTML output)
-  iterates_omega  ("(_^\<omega> '(_'))" [60,1000] 60)
 
 lemma iterates_triv:
      "[| n\<in>nat;  F(x) = x |] ==> F^n (x) = x"

@@ -33,12 +33,6 @@ notation (xsymbols)
   not_member  ("op \<notin>") and
   not_member  ("(_/ \<notin> _)" [51, 51] 50)
 
-notation (HTML output)
-  member      ("op \<in>") and
-  member      ("(_/ \<in> _)" [51, 51] 50) and
-  not_member  ("op \<notin>") and
-  not_member  ("(_/ \<notin> _)" [51, 51] 50)
-
 
 text \<open>Set comprehensions\<close>
 
@@ -167,12 +161,6 @@ notation (xsymbols)
   subset_eq  ("op \<subseteq>") and
   subset_eq  ("(_/ \<subseteq> _)" [51, 51] 50)
 
-notation (HTML output)
-  subset  ("op \<subset>") and
-  subset  ("(_/ \<subset> _)" [51, 51] 50) and
-  subset_eq  ("op \<subseteq>") and
-  subset_eq  ("(_/ \<subseteq> _)" [51, 51] 50)
-
 abbreviation (input)
   supset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
   "supset \<equiv> greater"
@@ -210,11 +198,6 @@ syntax (xsymbols)
   "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3\<exists>!_\<in>_./ _)" [0, 0, 10] 10)
   "_Bleast"     :: "id => 'a set => bool => 'a"           ("(3LEAST_\<in>_./ _)" [0, 0, 10] 10)
 
-syntax (HTML output)
-  "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3\<forall>_\<in>_./ _)" [0, 0, 10] 10)
-  "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3\<exists>_\<in>_./ _)" [0, 0, 10] 10)
-  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3\<exists>!_\<in>_./ _)" [0, 0, 10] 10)
-
 translations
   "ALL x:A. P" == "CONST Ball A (%x. P)"
   "EX x:A. P" == "CONST Bex A (%x. P)"
@@ -241,13 +224,6 @@ syntax (HOL output)
   "_setleAll"   :: "[idt, 'a, bool] => bool"   ("(3! _<=_./ _)" [0, 0, 10] 10)
   "_setleEx"    :: "[idt, 'a, bool] => bool"   ("(3? _<=_./ _)" [0, 0, 10] 10)
   "_setleEx1"   :: "[idt, 'a, bool] => bool"   ("(3?! _<=_./ _)" [0, 0, 10] 10)
-
-syntax (HTML output)
-  "_setlessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<subset>_./ _)"  [0, 0, 10] 10)
-  "_setlessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<subset>_./ _)"  [0, 0, 10] 10)
-  "_setleAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<subseteq>_./ _)" [0, 0, 10] 10)
-  "_setleEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<subseteq>_./ _)" [0, 0, 10] 10)
-  "_setleEx1"   :: "[idt, 'a, bool] => bool"   ("(3\<exists>!_\<subseteq>_./ _)" [0, 0, 10] 10)
 
 translations
  "\<forall>A\<subset>B. P"   =>  "ALL A. A \<subset> B --> P"
@@ -701,9 +677,6 @@ abbreviation inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl
 notation (xsymbols)
   inter  (infixl "\<inter>" 70)
 
-notation (HTML output)
-  inter  (infixl "\<inter>" 70)
-
 lemma Int_def:
   "A \<inter> B = {x. x \<in> A \<and> x \<in> B}"
   by (simp add: inf_set_def inf_fun_def)
@@ -733,9 +706,6 @@ abbreviation union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl
   "union \<equiv> sup"
 
 notation (xsymbols)
-  union  (infixl "\<union>" 65)
-
-notation (HTML output)
   union  (infixl "\<union>" 65)
 
 lemma Un_def:

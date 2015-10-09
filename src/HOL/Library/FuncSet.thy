@@ -29,9 +29,6 @@ syntax
 syntax (xsymbols)
   "_Pi" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3\<Pi> _\<in>_./ _)"   10)
   "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
-syntax (HTML output)
-  "_Pi" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3\<Pi> _\<in>_./ _)"   10)
-  "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
 translations
   "\<Pi> x\<in>A. B" \<rightleftharpoons> "CONST Pi A (\<lambda>x. B)"
   "\<lambda>x\<in>A. f" \<rightleftharpoons> "CONST restrict (\<lambda>x. f) A"
@@ -356,8 +353,6 @@ abbreviation "Pi\<^sub>E A B \<equiv> PiE A B"
 syntax
   "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3PIE _:_./ _)" 10)
 syntax (xsymbols)
-  "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3\<Pi>\<^sub>E _\<in>_./ _)" 10)
-syntax (HTML output)
   "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3\<Pi>\<^sub>E _\<in>_./ _)" 10)
 translations "\<Pi>\<^sub>E x\<in>A. B" \<rightleftharpoons> "CONST Pi\<^sub>E A (\<lambda>x. B)"
 

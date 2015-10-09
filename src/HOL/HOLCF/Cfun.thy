@@ -27,8 +27,6 @@ notation
 notation (xsymbols)
   Rep_cfun  ("(_\<cdot>/_)" [999,1000] 999)
 
-notation (HTML output)
-  Rep_cfun  ("(_\<cdot>/_)" [999,1000] 999)
 
 subsection {* Syntax for continuous lambda abstraction *}
 

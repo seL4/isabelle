@@ -48,9 +48,6 @@ definition comp :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<
 notation (xsymbols)
   comp  (infixl "\<circ>" 55)
 
-notation (HTML output)
-  comp  (infixl "\<circ>" 55)
-
 lemma comp_apply [simp]: "(f o g) x = f (g x)"
   by (simp add: comp_def)
 

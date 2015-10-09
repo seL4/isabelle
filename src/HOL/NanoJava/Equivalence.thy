@@ -165,8 +165,6 @@ definition MGTe   :: "expr => state => etriple" where
 
 notation (xsymbols)
   MGTe  ("MGT\<^sub>e")
-notation (HTML output)
-  MGTe  ("MGT\<^sub>e")
 
 lemma MGF_implies_complete:
  "\<forall>Z. {} |\<turnstile> { MGT c Z} \<Longrightarrow> \<Turnstile>  {P} c {Q} \<Longrightarrow> {} \<turnstile>  {P} c {Q}"

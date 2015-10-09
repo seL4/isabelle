@@ -43,10 +43,6 @@ notation (xsymbols)
   cadd  (infixl "\<oplus>" 65) and
   cmult  (infixl "\<otimes>" 70)
 
-notation (HTML)
-  cadd  (infixl "\<oplus>" 65) and
-  cmult  (infixl "\<otimes>" 70)
-
 
 lemma Card_Union [simp,intro,TC]:
   assumes A: "\<And>x. x\<in>A \<Longrightarrow> Card(x)" shows "Card(\<Union>(A))"

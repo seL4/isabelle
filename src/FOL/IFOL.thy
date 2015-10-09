@@ -96,12 +96,7 @@ abbreviation not_equal :: "['a, 'a] => o"  (infixl "~=" 50)
   where "x ~= y == ~ (x = y)"
 
 notation (xsymbols)
-  not_equal  (infixl "\<noteq>" 50)
-
-notation (HTML output)
-  not_equal  (infixl "\<noteq>" 50)
-
-notation (xsymbols)
+  not_equal  (infixl "\<noteq>" 50) and
   Not  ("\<not> _" [40] 40) and
   conj  (infixr "\<and>" 35) and
   disj  (infixr "\<or>" 30) and
@@ -110,14 +105,6 @@ notation (xsymbols)
   Ex1  (binder "\<exists>!" 10) and
   imp  (infixr "\<longrightarrow>" 25) and
   iff  (infixr "\<longleftrightarrow>" 25)
-
-notation (HTML output)
-  Not  ("\<not> _" [40] 40) and
-  conj  (infixr "\<and>" 35) and
-  disj  (infixr "\<or>" 30) and
-  All  (binder "\<forall>" 10) and
-  Ex  (binder "\<exists>" 10) and
-  Ex1  (binder "\<exists>!" 10)
 
 
 subsection \<open>Lemmas and proof tools\<close>

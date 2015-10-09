@@ -39,11 +39,6 @@ notation (xsymbols output)
 notation (xsymbols)
   satisfies  ("_ \<Turnstile> _" [100,9] 8)
 
-notation (HTML output)
-  NOT  ("\<not> _" [40] 40) and
-  AND  (infixr "\<and>" 35) and
-  OR  (infixr "\<or>" 30)
-
 
 defs
 

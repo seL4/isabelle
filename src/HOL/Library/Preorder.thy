@@ -20,10 +20,6 @@ notation (xsymbols)
   equiv ("op \<approx>") and
   equiv ("(_/ \<approx> _)"  [51, 51] 50)
 
-notation (HTML output)
-  equiv ("op \<approx>") and
-  equiv ("(_/ \<approx> _)"  [51, 51] 50)
-
 lemma refl [iff]:
   "x \<approx> x"
   unfolding equiv_def by simp

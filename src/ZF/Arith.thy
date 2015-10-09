@@ -75,9 +75,6 @@ definition
 notation (xsymbols)
   mult  (infixr "#\<times>" 70)
 
-notation (HTML output)
-  mult  (infixr "#\<times>" 70)
-
 declare rec_type [simp]
         nat_0_le [simp]
 

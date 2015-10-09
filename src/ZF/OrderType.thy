@@ -52,9 +52,6 @@ definition
 notation (xsymbols)
   omult  (infixl "\<times>\<times>" 70)
 
-notation (HTML output)
-  omult  (infixl "\<times>\<times>" 70)
-
 
 subsection\<open>Proofs needing the combination of Ordinal.thy and Order.thy\<close>
 

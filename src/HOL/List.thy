@@ -80,14 +80,10 @@ primrec filter:: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a
 syntax
   -- \<open>Special syntax for filter\<close>
   "_filter" :: "[pttrn, 'a list, bool] => 'a list"    ("(1[_<-_./ _])")
-
-translations
-  "[x<-xs . P]"== "CONST filter (%x. P) xs"
-
 syntax (xsymbols)
   "_filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
-syntax (HTML output)
-  "_filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
+translations
+  "[x<-xs . P]"== "CONST filter (%x. P) xs"
 
 primrec fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
 fold_Nil:  "fold f [] = id" |
@@ -420,8 +416,6 @@ translations
 *)
 
 syntax (xsymbols)
-  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ \<leftarrow> _")
-syntax (HTML output)
   "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ \<leftarrow> _")
 
 parse_translation \<open>

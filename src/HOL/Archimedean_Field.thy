@@ -144,9 +144,6 @@ class floor_ceiling = archimedean_field +
 notation (xsymbols)
   floor  ("\<lfloor>_\<rfloor>")
 
-notation (HTML output)
-  floor  ("\<lfloor>_\<rfloor>")
-
 lemma floor_unique: "\<lbrakk>of_int z \<le> x; x < of_int z + 1\<rbrakk> \<Longrightarrow> floor x = z"
   using floor_correct [of x] floor_exists1 [of x] by auto
 
@@ -381,9 +378,6 @@ definition
   "ceiling x = - floor (- x)"
 
 notation (xsymbols)
-  ceiling  ("\<lceil>_\<rceil>")
-
-notation (HTML output)
   ceiling  ("\<lceil>_\<rceil>")
 
 lemma ceiling_correct: "of_int (ceiling x) - 1 < x \<and> x \<le> of_int (ceiling x)"

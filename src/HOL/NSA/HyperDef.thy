@@ -34,10 +34,6 @@ notation (xsymbols)
   omega  ("\<omega>") and
   epsilon  ("\<epsilon>")
 
-notation (HTML output)
-  omega  ("\<omega>") and
-  epsilon  ("\<epsilon>")
-
 
 subsection {* Real vector class instances *}
 

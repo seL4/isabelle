@@ -112,12 +112,6 @@ notation (xsymbols)
 notation (xsymbols output)
   not_equal  (infix "\<noteq>" 50)
 
-notation (HTML output)
-  Not  ("\<not> _" [40] 40) and
-  conj  (infixr "\<and>" 35) and
-  disj  (infixr "\<or>" 30) and
-  not_equal  (infix "\<noteq>" 50)
-
 abbreviation (iff)
   iff :: "[bool, bool] \<Rightarrow> bool"  (infixr "<->" 25) where
   "A <-> B \<equiv> A = B"
@@ -150,11 +144,6 @@ syntax (xsymbols)
   "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  ("(2_ \<Rightarrow>/ _)" 10)
 
 notation (xsymbols)
-  All  (binder "\<forall>" 10) and
-  Ex  (binder "\<exists>" 10) and
-  Ex1  (binder "\<exists>!" 10)
-
-notation (HTML output)
   All  (binder "\<forall>" 10) and
   Ex  (binder "\<exists>" 10) and
   Ex1  (binder "\<exists>!" 10)

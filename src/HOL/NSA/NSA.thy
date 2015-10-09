@@ -46,9 +46,6 @@ definition
 notation (xsymbols)
   approx  (infixl "\<approx>" 50)
 
-notation (HTML output)
-  approx  (infixl "\<approx>" 50)
-
 lemma SReal_def: "\<real> == {x. \<exists>r. x = hypreal_of_real r}"
 by (simp add: Reals_def image_def)
 

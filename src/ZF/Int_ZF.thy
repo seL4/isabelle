@@ -95,10 +95,6 @@ notation (xsymbols)
   zmult  (infixl "$\<times>" 70) and
   zle  (infixl "$\<le>" 50)  --\<open>less than or equals\<close>
 
-notation (HTML output)
-  zmult  (infixl "$\<times>" 70) and
-  zle  (infixl "$\<le>" 50)
-
 
 declare quotientE [elim!]
 

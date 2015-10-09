@@ -15,8 +15,6 @@ class infinity =
 notation (xsymbols)
   infinity  ("\<infinity>")
 
-notation (HTML output)
-  infinity  ("\<infinity>")
 
 subsection \<open>Type definition\<close>
 

@@ -79,17 +79,7 @@ notation (xsymbols)
   Arrow  (infixr "\<longrightarrow>" 30) and
   Times  (infixr "\<times>" 50)
 
-notation (HTML output)
-  lambda  (binder "\<lambda>\<lambda>" 10) and
-  Elem  ("(_ /\<in> _)" [10,10] 5) and
-  Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5) and
-  Times  (infixr "\<times>" 50)
-
 syntax (xsymbols)
-  "_PROD"   :: "[idt,t,t] \<Rightarrow> t"     ("(3\<Pi> _\<in>_./ _)"    10)
-  "_SUM"    :: "[idt,t,t] \<Rightarrow> t"     ("(3\<Sigma> _\<in>_./ _)" 10)
-
-syntax (HTML output)
   "_PROD"   :: "[idt,t,t] \<Rightarrow> t"     ("(3\<Pi> _\<in>_./ _)"    10)
   "_SUM"    :: "[idt,t,t] \<Rightarrow> t"     ("(3\<Sigma> _\<in>_./ _)" 10)
 

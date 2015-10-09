@@ -107,8 +107,6 @@ syntax
   "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3SUM _<-_. _)" [0, 51, 10] 10)
 syntax (xsymbols)
   "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
-syntax (HTML output)
-  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
 
 translations -- \<open>Beware of argument permutation!\<close>
   "SUM x<-xs. b" == "CONST listsum (CONST map (%x. b) xs)"
@@ -375,8 +373,6 @@ text \<open>Some syntactic sugar:\<close>
 syntax
   "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3PROD _<-_. _)" [0, 51, 10] 10)
 syntax (xsymbols)
-  "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
-syntax (HTML output)
   "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
 
 translations -- \<open>Beware of argument permutation!\<close>

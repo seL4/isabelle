@@ -42,10 +42,6 @@ notation (xsymbols)
   lesspoll  (infixl "\<prec>" 50) and
   Least     (binder "\<mu>" 10)
 
-notation (HTML)
-  eqpoll    (infixl "\<approx>" 50) and
-  Least     (binder "\<mu>" 10)
-
 
 subsection\<open>The Schroeder-Bernstein Theorem\<close>
 text\<open>See Davey and Priestly, page 106\<close>

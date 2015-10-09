@@ -39,9 +39,6 @@ definition
 notation (xsymbols)
   mult  (infixr "#\<times>" 70)
 
-notation (HTML output)
-  mult (infixr "#\<times>" 70)
-
 
 lemmas arith_defs = add_def diff_def absdiff_def mult_def mod_def div_def
 

@@ -1268,15 +1268,9 @@ lemma in_Union_mset_iff[iff]: "x \<in># \<Union># MM \<longleftrightarrow> (\<ex
 syntax
   "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"
       ("(3SUM _:#_. _)" [0, 51, 10] 10)
-
 syntax (xsymbols)
   "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"
       ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
-
-syntax (HTML output)
-  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"
-      ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
-
 translations
   "SUM i :# A. b" == "CONST msetsum (CONST image_mset (\<lambda>i. b) A)"
 
@@ -1322,15 +1316,9 @@ end
 syntax
   "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"
       ("(3PROD _:#_. _)" [0, 51, 10] 10)
-
 syntax (xsymbols)
   "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"
       ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
-
-syntax (HTML output)
-  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"
-      ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
-
 translations
   "PROD i :# A. b" == "CONST msetprod (CONST image_mset (\<lambda>i. b) A)"
 

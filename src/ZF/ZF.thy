@@ -171,31 +171,6 @@ syntax (xsymbols)
   "_Tuple"    :: "[i, is] => i"              ("\<langle>(_,/ _)\<rangle>")
   "_pattern"  :: "patterns => pttrn"         ("\<langle>_\<rangle>")
 
-notation (HTML output)
-  cart_prod       (infixr "\<times>" 80) and
-  Int             (infixl "\<inter>" 70) and
-  Un              (infixl "\<union>" 65) and
-  Subset          (infixl "\<subseteq>" 50) and
-  mem             (infixl "\<in>" 50) and
-  not_mem         (infixl "\<notin>" 50) and
-  Union           ("\<Union>_" [90] 90) and
-  Inter           ("\<Inter>_" [90] 90)
-
-syntax (HTML output)
-  "_Collect"  :: "[pttrn, i, o] => i"        ("(1{_ \<in> _ ./ _})")
-  "_Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _ \<in> _, _})")
-  "_RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _ \<in> _})" [51,0,51])
-  "_UNION"    :: "[pttrn, i, i] => i"        ("(3\<Union>_\<in>_./ _)" 10)
-  "_INTER"    :: "[pttrn, i, i] => i"        ("(3\<Inter>_\<in>_./ _)" 10)
-  "_PROD"     :: "[pttrn, i, i] => i"        ("(3\<Pi>_\<in>_./ _)" 10)
-  "_SUM"      :: "[pttrn, i, i] => i"        ("(3\<Sigma>_\<in>_./ _)" 10)
-  "_lam"      :: "[pttrn, i, i] => i"        ("(3\<lambda>_\<in>_./ _)" 10)
-  "_Ball"     :: "[pttrn, i, o] => o"        ("(3\<forall>_\<in>_./ _)" 10)
-  "_Bex"      :: "[pttrn, i, o] => o"        ("(3\<exists>_\<in>_./ _)" 10)
-  "_Tuple"    :: "[i, is] => i"              ("\<langle>(_,/ _)\<rangle>")
-  "_pattern"  :: "patterns => pttrn"         ("\<langle>_\<rangle>")
-
-
 defs  (* Bounded Quantifiers *)
   Ball_def:      "Ball(A, P) == \<forall>x. x\<in>A \<longrightarrow> P(x)"
   Bex_def:       "Bex(A, P) == \<exists>x. x\<in>A & P(x)"

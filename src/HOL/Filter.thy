@@ -698,10 +698,6 @@ notation (xsymbols)
   Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
   Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
 
-notation (HTML output)
-  Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
-  Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
-
 lemma eventually_cofinite: "eventually P cofinite \<longleftrightarrow> finite {x. \<not> P x}"
   unfolding cofinite_def
 proof (rule eventually_Abs_filter, rule is_filter.intro)

@@ -231,8 +231,6 @@ typedef ('a, 'b) prod (infixr "*" 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarr
 
 type_notation (xsymbols)
   "prod"  ("(_ \<times>/ _)" [21, 20] 20)
-type_notation (HTML output)
-  "prod"  ("(_ \<times>/ _)" [21, 20] 20)
 
 definition Pair :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b" where
   "Pair a b = Abs_prod (Pair_Rep a b)"
@@ -1007,9 +1005,6 @@ abbreviation
   "A <*> B == Sigma A (%_. B)"
 
 notation (xsymbols)
-  Times  (infixr "\<times>" 80)
-
-notation (HTML output)
   Times  (infixr "\<times>" 80)
 
 hide_const (open) Times

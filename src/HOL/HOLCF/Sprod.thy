@@ -23,8 +23,7 @@ by (rule typedef_chfin [OF type_definition_sprod below_sprod_def])
 
 type_notation (xsymbols)
   sprod  ("(_ \<otimes>/ _)" [21,20] 20)
-type_notation (HTML output)
-  sprod  ("(_ \<otimes>/ _)" [21,20] 20)
+
 
 subsection {* Definitions of constants *}
 

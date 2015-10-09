@@ -34,9 +34,6 @@ primrec power :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infixr "^" 80) where
 notation (latex output)
   power ("(_\<^bsup>_\<^esup>)" [1000] 1000)
 
-notation (HTML output)
-  power ("(_\<^bsup>_\<^esup>)" [1000] 1000)
-
 text \<open>Special syntax for squares.\<close>
 
 abbreviation (xsymbols)
@@ -44,9 +41,6 @@ abbreviation (xsymbols)
   "x\<^sup>2 \<equiv> x ^ 2"
 
 notation (latex output)
-  power2  ("(_\<^sup>2)" [1000] 999)
-
-notation (HTML output)
   power2  ("(_\<^sup>2)" [1000] 999)
 
 end

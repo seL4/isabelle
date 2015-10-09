@@ -17,9 +17,6 @@ definition
 notation (xsymbols)
   shift  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
 
-notation (HTML output)
-  shift  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
-
 lemma shift_eq [simp]: "i = j \<Longrightarrow> (e\<langle>i:T\<rangle>) j = T"
   by (simp add: shift_def)
 
