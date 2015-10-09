@@ -6,9 +6,9 @@ HTML presentation elements.
 
 signature HTML =
 sig
-  val html_mode: ('a -> 'b) -> 'a -> 'b
   val reset_symbols: unit -> unit
   val init_symbols: (string * int) list -> unit
+  val present_span: Keyword.keywords -> Command_Span.span -> Output.output
   type text = string
   val plain: string -> text
   val name: string -> text
@@ -29,26 +29,16 @@ structure HTML: HTML =
 struct
 
 
-(** HTML print modes **)
-
-(* mode *)
-
-val htmlN = "HTML";
-fun html_mode f x = Print_Mode.with_modes [htmlN] f x;
-
-
 (* common markup *)
 
 fun span class = ("<span class=" ^ quote (XML.text class) ^ ">", "</span>");
 
-val _ = Markup.add_mode htmlN (span o fst);
+val hidden = span Markup.hiddenN |-> enclose;
 
 
 (* symbol output *)
 
 local
-
-val hidden = span Markup.hiddenN |-> enclose;
 
 val symbols =
   Synchronized.var "HTML.symbols" (NONE: (int * string) Symtab.table option);
@@ -87,9 +77,6 @@ in
 fun output_width str = output_syms (Symbol.explode str) ([], 0);
 val output = #1 o output_width;
 
-val _ = Output.add_mode htmlN output_width Symbol.encode_raw;
-
-
 fun reset_symbols () = Synchronized.change symbols (K NONE);
 
 fun init_symbols codes =
@@ -105,6 +92,16 @@ fun init_symbols codes =
   in Synchronized.change symbols (K (SOME (fold Symtab.update mapping Symtab.empty))) end;
 
 end;
+
+
+(* presentation *)
+
+fun present_token keywords tok =
+  fold_rev (uncurry enclose o span o #1)
+    (Token.markups keywords tok) (output (Token.unparse tok));
+
+fun present_span keywords =
+  implode o map (present_token keywords) o Command_Span.content;
 
 
 

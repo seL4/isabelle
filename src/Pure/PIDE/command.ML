@@ -109,6 +109,17 @@ fun resolve_files keywords master_dir (blobs, blobs_index) toks =
       | NONE => toks)
   | _ => toks);
 
+fun reports_of_token keywords tok =
+  let
+    val malformed_symbols =
+      Input.source_explode (Token.input_of tok)
+      |> map_filter (fn (sym, pos) =>
+          if Symbol.is_malformed sym
+          then SOME ((pos, Markup.bad), "Malformed symbolic character") else NONE);
+    val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
+    val reports = Token.reports keywords tok @ Token.completion_report tok @ malformed_symbols;
+  in (is_malformed, reports) end;
+
 in
 
 fun read_thy st = Toplevel.theory_of st
@@ -124,10 +135,10 @@ fun read keywords thy master_dir init blobs_info span =
         SOME tok => Token.pos_of tok
       | NONE => #1 proper_range);
 
-    val (is_malformed, token_reports) = Thy_Syntax.reports_of_tokens keywords span;
-    val _ = Position.reports_text (token_reports @ maps command_reports span);
+    val token_reports = map (reports_of_token keywords) span;
+    val _ = Position.reports_text (maps #2 token_reports @ maps command_reports span);
   in
-    if is_malformed then Toplevel.malformed pos "Malformed command syntax"
+    if exists #1 token_reports then Toplevel.malformed pos "Malformed command syntax"
     else
       (case Outer_Syntax.parse_tokens thy (resolve_files keywords master_dir blobs_info span) of
         [tr] => Toplevel.modify_init init tr

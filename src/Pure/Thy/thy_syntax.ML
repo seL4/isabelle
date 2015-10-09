@@ -1,14 +1,11 @@
 (*  Title:      Pure/Thy/thy_syntax.ML
     Author:     Makarius
 
-Superficial theory syntax: tokens and spans.
+Theory syntax elements.
 *)
 
 signature THY_SYNTAX =
 sig
-  val reports_of_tokens: Keyword.keywords -> Token.T list -> bool * Position.report_text list
-  val present_token: Keyword.keywords -> Token.T -> Output.output
-  val present_span: Keyword.keywords -> Command_Span.span -> Output.output
   datatype 'a element = Element of 'a * ('a element list * 'a) option
   val atom: 'a -> 'a element
   val map_element: ('a -> 'b) -> 'a element -> 'b element
@@ -20,37 +17,7 @@ end;
 structure Thy_Syntax: THY_SYNTAX =
 struct
 
-(** presentation **)
-
-local
-
-fun reports_of_token keywords tok =
-  let
-    val malformed_symbols =
-      Input.source_explode (Token.input_of tok)
-      |> map_filter (fn (sym, pos) =>
-          if Symbol.is_malformed sym
-          then SOME ((pos, Markup.bad), "Malformed symbolic character") else NONE);
-    val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
-    val reports = Token.reports keywords tok @ Token.completion_report tok @ malformed_symbols;
-  in (is_malformed, reports) end;
-
-in
-
-fun reports_of_tokens keywords toks =
-  let val results = map (reports_of_token keywords) toks
-  in (exists fst results, maps snd results) end;
-
-end;
-
-fun present_token keywords tok =
-  fold_rev Markup.enclose (Token.markups keywords tok) (Output.output (Token.unparse tok));
-
-fun present_span keywords = implode o map (present_token keywords) o Command_Span.content;
-
-
-
-(** specification elements: commands with optional proof **)
+(* datatype element: command with optional proof *)
 
 datatype 'a element = Element of 'a * ('a element list * 'a) option;
 
