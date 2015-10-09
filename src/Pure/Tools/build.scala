@@ -952,7 +952,7 @@ object Build
       val browser_chapters =
         (for {
           (name, result) <- results.iterator
-          if result.rc == 0
+          if result.rc == 0 && !is_pure(name)
           info = full_tree(name)
           if info.options.bool("browser_info")
         } yield (info.chapter, (name, info.description))).toList.groupBy(_._1).
