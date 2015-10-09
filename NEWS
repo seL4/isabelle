@@ -22,6 +22,10 @@ accordingly.
 * Toplevel theorem statement 'proposition' is another alias for
 'theorem'.
 
+* HTML presentation uses the standard IsabelleText font and Unicode
+rendering of Isabelle symbols like Isabelle/Scala/jEdit.  The former
+print mode "HTML" looses its special meaning.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
