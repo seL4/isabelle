@@ -10,6 +10,7 @@ package isabelle
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   OutputStream, InputStream, FileInputStream, BufferedInputStream, BufferedReader,
   InputStreamReader, File => JFile, IOException}
+import java.nio.file.{StandardCopyOption, Files}
 import java.net.{URL, URLDecoder, MalformedURLException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import java.util.regex.Pattern
@@ -220,23 +221,10 @@ object File
   def copy(src: JFile, dst: JFile)
   {
     val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
-
-    if (!eq(src, target)) {
-      val in = new FileInputStream(src)
-      try {
-        val out = new FileOutputStream(target)
-        try {
-          val buf = new Array[Byte](65536)
-          var m = 0
-          do {
-            m = in.read(buf, 0, buf.length)
-            if (m != -1) out.write(buf, 0, m)
-          } while (m != -1)
-        }
-        finally { out.close }
-      }
-      finally { in.close }
-    }
+    if (!eq(src, target))
+      Files.copy(src.toPath, target.toPath,
+        StandardCopyOption.COPY_ATTRIBUTES,
+        StandardCopyOption.REPLACE_EXISTING)
   }
 
   def copy(path1: Path, path2: Path): Unit = copy(path1.file, path2.file)
