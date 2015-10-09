@@ -7,6 +7,8 @@ Theory presentation: HTML.
 package isabelle
 
 
+import java.io.{File => JFile}
+
 import scala.collection.immutable.SortedMap
 
 
@@ -59,9 +61,9 @@ object Present
     File.write(dir + sessions_path, YXML.string_of_body(list(pair(string, string))(sessions)))
   }
 
-  def update_chapter_index(info_path: Path, chapter: String, new_sessions: List[(String, String)])
+  def update_chapter_index(browser_info: Path, chapter: String, new_sessions: List[(String, String)])
   {
-    val dir = info_path + Path.basic(chapter)
+    val dir = browser_info + Path.basic(chapter)
     Isabelle_System.mkdirs(dir)
 
     val sessions0 =
@@ -72,5 +74,37 @@ object Present
 
     write_sessions(dir, sessions)
     File.write(dir + index_path, HTML.chapter_index(chapter, sessions))
+  }
+
+  def make_global_index(browser_info: Path)
+  {
+    if (!(browser_info + Path.explode("index.html")).is_file) {
+      Isabelle_System.mkdirs(browser_info)
+      File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
+        browser_info + Path.explode("isabelle.gif"))
+      File.write(browser_info + Path.explode("index.html"),
+        File.read(Path.explode("~~/lib/html/library_index_header.template")) +
+        File.read(Path.explode("~~/lib/html/library_index_content.template")) +
+        File.read(Path.explode("~~/lib/html/library_index_footer.template")))
+    }
+  }
+
+
+  /* finish session */
+
+  def finish(
+    progress: Progress,
+    browser_info: Path,
+    graph_file: JFile,
+    info: Build.Session_Info,
+    name: String)
+  {
+    val session_prefix = browser_info + Path.basic(info.chapter) + Path.basic(name)
+
+    if (info.options.bool("browser_info")) {
+      Isabelle_System.mkdirs(session_prefix)
+      File.copy(graph_file, (session_prefix + Path.basic("session_graph.pdf")).file)
+      File.copy(Path.explode("~~/etc/isabelle.css"), session_prefix)
+    }
   }
 }

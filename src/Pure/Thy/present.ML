@@ -246,8 +246,8 @@ fun finish () =
     val {theories, tex_index, html_index} = Synchronized.value browser_info;
     val thys = Symtab.dest theories;
 
-    val chapter_prefix = Path.append info_path (Path.basic chapter);
-    val session_prefix = Path.append chapter_prefix (Path.basic name);
+    val session_prefix =
+      Path.append (Path.append info_path (Path.basic chapter)) (Path.basic name);
 
     fun finish_html (a, {html_source, ...}: theory_info) =
       File.write (Path.append session_prefix (html_path a)) html_source;
@@ -257,9 +257,7 @@ fun finish () =
        (Isabelle_System.mkdirs session_prefix;
         File.write_buffer (Path.append session_prefix index_path)
           (index_buffer html_index |> Buffer.add HTML.end_document);
-        Isabelle_System.copy_file graph_file (Path.append session_prefix session_graph_path);
         (case readme of NONE => () | SOME path => Isabelle_System.copy_file path session_prefix);
-        Isabelle_System.copy_file (Path.explode "~~/etc/isabelle.css") session_prefix;
         List.app finish_html thys;
         if verbose
         then Output.physical_stderr ("Browser info at " ^ show_path session_prefix ^ "\n")

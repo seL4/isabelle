@@ -628,6 +628,9 @@ object Build
     {
       val res = result.join
 
+      if (res.rc == 0 && !is_pure(name))
+        Present.finish(progress, browser_info, graph_file, info, name)
+
       graph_file.delete
       args_file.delete
       timeout_request.foreach(_.cancel)
@@ -958,16 +961,7 @@ object Build
       for ((chapter, entries) <- browser_chapters)
         Present.update_chapter_index(browser_info, chapter, entries)
 
-      if (browser_chapters.nonEmpty && !(browser_info + Path.explode("index.html")).is_file)
-      {
-        Isabelle_System.mkdirs(browser_info)
-        File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
-          browser_info + Path.explode("isabelle.gif"))
-        File.write(browser_info + Path.explode("index.html"),
-          File.read(Path.explode("~~/lib/html/library_index_header.template")) +
-          File.read(Path.explode("~~/lib/html/library_index_content.template")) +
-          File.read(Path.explode("~~/lib/html/library_index_footer.template")))
-      }
+      if (browser_chapters.nonEmpty) Present.make_global_index(browser_info)
     }
 
 
