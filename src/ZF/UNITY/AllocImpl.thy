@@ -248,7 +248,7 @@ lemma alloc_prog_NbR_LeadsTo_lemma:
          alloc_prog \<squnion> G \<in> Incr(lift(rel)); k\<in>nat |]
       ==> alloc_prog \<squnion> G \<in>
             {s\<in>state. k \<le> length(s`rel)} \<inter> {s\<in>state. succ(s`NbR) = k}
-            LeadsTo {s\<in>state. k \<le> s`NbR}"
+            \<longmapsto>w {s\<in>state. k \<le> s`NbR}"
 apply (subgoal_tac "alloc_prog \<squnion> G \<in> Stable ({s\<in>state. k \<le> length (s`rel)})")
 apply (drule_tac [2] a = k and g1 = length in imp_Increasing_comp [THEN Increasing_imp_Stable])
 apply (rule_tac [2] mono_length)
@@ -268,7 +268,7 @@ lemma alloc_prog_NbR_LeadsTo_lemma2 [rule_format]:
         k\<in>nat; n \<in> nat; n < k |]
       ==> alloc_prog \<squnion> G \<in>
             {s\<in>state . k \<le> length(s ` rel)} \<inter> {s\<in>state . s ` NbR = n}
-               LeadsTo {x \<in> state. k \<le> length(x`rel)} \<inter>
+               \<longmapsto>w {x \<in> state. k \<le> length(x`rel)} \<inter>
                  (\<Union>m \<in> greater_than(n). {x \<in> state. x ` NbR=m})"
 apply (unfold greater_than_def)
 apply (rule_tac A' = "{x \<in> state. k \<le> length(x`rel)} \<inter> {x \<in> state. n < x`NbR}"
@@ -301,7 +301,7 @@ lemma alloc_prog_NbR_LeadsTo_lemma3:
   "[|G \<in> program; alloc_prog ok G; alloc_prog \<squnion> G \<in> Incr(lift(rel));
      k\<in>nat|]
    ==> alloc_prog \<squnion> G \<in>
-           {s\<in>state. k \<le> length(s`rel)} LeadsTo {s\<in>state. k \<le> s`NbR}"
+           {s\<in>state. k \<le> length(s`rel)} \<longmapsto>w {s\<in>state. k \<le> s`NbR}"
 (* Proof by induction over the difference between k and n *)
 apply (rule_tac f = "\<lambda>s\<in>state. k #- s`NbR" in LessThan_induct)
 apply (simp_all add: lam_def, auto)
@@ -376,8 +376,8 @@ lemma alloc_prog_giv_LeadsTo_lemma:
         {s\<in>state. nth(length(s`giv), s`ask) \<le> s`available_tok} \<inter>
         {s\<in>state.  k < length(s`ask)} \<inter>
         {s\<in>state. length(s`giv) = k}
-        LeadsTo {s\<in>state. k < length(s`giv)}"
-apply (subgoal_tac "alloc_prog \<squnion> G \<in> {s\<in>state. nth (length(s`giv), s`ask) \<le> s`available_tok} \<inter> {s\<in>state. k < length(s`ask) } \<inter> {s\<in>state. length(s`giv) = k} LeadsTo {s\<in>state. ~ k <length(s`ask) } \<union> {s\<in>state. length(s`giv) \<noteq> k}")
+        \<longmapsto>w {s\<in>state. k < length(s`giv)}"
+apply (subgoal_tac "alloc_prog \<squnion> G \<in> {s\<in>state. nth (length(s`giv), s`ask) \<le> s`available_tok} \<inter> {s\<in>state. k < length(s`ask) } \<inter> {s\<in>state. length(s`giv) = k} \<longmapsto>w {s\<in>state. ~ k <length(s`ask) } \<union> {s\<in>state. length(s`giv) \<noteq> k}")
 prefer 2 apply (blast intro: alloc_prog_giv_Ensures_lemma [THEN LeadsTo_Basis])
 apply (subgoal_tac "alloc_prog \<squnion> G \<in> Stable ({s\<in>state. k < length(s`ask) }) ")
 apply (drule PSP_Stable, assumption)
@@ -424,12 +424,12 @@ done
 subsubsection\<open>Main lemmas towards proving property (31)\<close>
 
 lemma LeadsTo_strength_R:
-    "[|  F \<in> C LeadsTo B'; F \<in> A-C LeadsTo B; B'<=B |] ==> F \<in> A LeadsTo  B"
+    "[|  F \<in> C \<longmapsto>w B'; F \<in> A-C \<longmapsto>w B; B'<=B |] ==> F \<in> A \<longmapsto>w  B"
 by (blast intro: LeadsTo_weaken LeadsTo_Un_Un)
 
 lemma PSP_StableI:
-"[| F \<in> Stable(C); F \<in> A - C LeadsTo B;
-   F \<in> A \<inter> C LeadsTo B \<union> (state - C) |] ==> F \<in> A LeadsTo  B"
+"[| F \<in> Stable(C); F \<in> A - C \<longmapsto>w B;
+   F \<in> A \<inter> C \<longmapsto>w B \<union> (state - C) |] ==> F \<in> A \<longmapsto>w  B"
 apply (rule_tac A = " (A-C) \<union> (A \<inter> C)" in LeadsTo_weaken_L)
  prefer 2 apply blast
 apply (rule LeadsTo_Un, assumption)
@@ -453,7 +453,7 @@ locale alloc_progress =
      and safety:   "alloc_prog \<squnion> G
                       \<in> Always(\<Inter>k \<in> nat. {s\<in>state. nth(k, s`ask) \<le> NbT})"
      and progress: "alloc_prog \<squnion> G
-                      \<in> (\<Inter>k\<in>nat. {s\<in>state. k \<le> tokens(s`giv)} LeadsTo
+                      \<in> (\<Inter>k\<in>nat. {s\<in>state. k \<le> tokens(s`giv)} \<longmapsto>w
                         {s\<in>state. k \<le> tokens(s`rel)})"
 
 (*First step in proof of (31) -- the corrected version from Charpentier.
@@ -463,7 +463,7 @@ lemma (in alloc_progress) tokens_take_NbR_lemma:
  "k \<in> tokbag
   ==> alloc_prog \<squnion> G \<in>
         {s\<in>state. k \<le> tokens(s`rel)}
-        LeadsTo {s\<in>state. k \<le> tokens(take(s`NbR, s`rel))}"
+        \<longmapsto>w {s\<in>state. k \<le> tokens(take(s`NbR, s`rel))}"
 apply (rule single_LeadsTo_I, safe)
 apply (rule_tac a1 = "s`rel" in Increasing_imp_Stable [THEN PSP_StableI])
 apply (rule_tac [4] k1 = "length(s`rel)" in alloc_prog_NbR_LeadsTo_lemma3 [THEN LeadsTo_strength_R])
@@ -477,12 +477,12 @@ done
 (*** Rest of proofs done by lcp ***)
 
 (*Second step in proof of (31): by LHS of the guarantee and transivity of
-  LeadsTo *)
+  \<longmapsto>w *)
 lemma (in alloc_progress) tokens_take_NbR_lemma2:
      "k \<in> tokbag
       ==> alloc_prog \<squnion> G \<in>
             {s\<in>state. tokens(s`giv) = k}
-            LeadsTo {s\<in>state. k \<le> tokens(take(s`NbR, s`rel))}"
+            \<longmapsto>w {s\<in>state. k \<le> tokens(take(s`NbR, s`rel))}"
 apply (rule LeadsTo_Trans)
  apply (rule_tac [2] tokens_take_NbR_lemma)
  prefer 2 apply assumption
@@ -495,7 +495,7 @@ lemma (in alloc_progress) length_giv_disj:
      "[| k \<in> tokbag; n \<in> nat |]
       ==> alloc_prog \<squnion> G \<in>
             {s\<in>state. length(s`giv) = n & tokens(s`giv) = k}
-            LeadsTo
+            \<longmapsto>w
               {s\<in>state. (length(s`giv) = n & tokens(s`giv) = k &
                          k \<le> tokens(take(s`NbR, s`rel))) | n < length(s`giv)}"
 apply (rule single_LeadsTo_I, safe)
@@ -515,7 +515,7 @@ lemma (in alloc_progress) length_giv_disj2:
      "[|k \<in> tokbag; n \<in> nat|]
       ==> alloc_prog \<squnion> G \<in>
             {s\<in>state. length(s`giv) = n & tokens(s`giv) = k}
-            LeadsTo
+            \<longmapsto>w
               {s\<in>state. (length(s`giv) = n & NbT \<le> s`available_tok) |
                         n < length(s`giv)}"
 apply (rule LeadsTo_weaken_R)
@@ -528,7 +528,7 @@ lemma (in alloc_progress) length_giv_disj3:
      "n \<in> nat
       ==> alloc_prog \<squnion> G \<in>
             {s\<in>state. length(s`giv) = n}
-            LeadsTo
+            \<longmapsto>w
               {s\<in>state. (length(s`giv) = n & NbT \<le> s`available_tok) |
                         n < length(s`giv)}"
 apply (rule LeadsTo_weaken_L)
@@ -543,7 +543,7 @@ lemma (in alloc_progress) length_ask_giv:
  "[|k \<in> nat;  n < k|]
   ==> alloc_prog \<squnion> G \<in>
         {s\<in>state. length(s`ask) = k & length(s`giv) = n}
-        LeadsTo
+        \<longmapsto>w
           {s\<in>state. (NbT \<le> s`available_tok & length(s`giv) < length(s`ask) &
                      length(s`giv) = n) |
                     n < length(s`giv)}"
@@ -566,7 +566,7 @@ lemma (in alloc_progress) length_ask_giv2:
      "[|k \<in> nat;  n < k|]
       ==> alloc_prog \<squnion> G \<in>
             {s\<in>state. length(s`ask) = k & length(s`giv) = n}
-            LeadsTo
+            \<longmapsto>w
               {s\<in>state. (nth(length(s`giv), s`ask) \<le> s`available_tok &
                          length(s`giv) < length(s`ask) & length(s`giv) = n) |
                         n < length(s`giv)}"
@@ -583,7 +583,7 @@ lemma (in alloc_progress) extend_giv:
      "[| k \<in> nat;  n < k|]
       ==> alloc_prog \<squnion> G \<in>
             {s\<in>state. length(s`ask) = k & length(s`giv) = n}
-            LeadsTo {s\<in>state. n < length(s`giv)}"
+            \<longmapsto>w {s\<in>state. n < length(s`giv)}"
 apply (rule LeadsTo_Un_duplicate)
 apply (rule LeadsTo_cancel1)
 apply (rule_tac [2] alloc_prog_giv_LeadsTo_lemma)
@@ -598,7 +598,7 @@ done
 lemma (in alloc_progress) alloc_prog_ask_LeadsTo_giv:
  "k \<in> nat
   ==> alloc_prog \<squnion> G \<in>
-        {s\<in>state. k \<le> length(s`ask)} LeadsTo {s\<in>state. k \<le> length(s`giv)}"
+        {s\<in>state. k \<le> length(s`ask)} \<longmapsto>w {s\<in>state. k \<le> length(s`giv)}"
 (* Proof by induction over the difference between k and n *)
 apply (rule_tac f = "\<lambda>s\<in>state. k #- length(s`giv)" in LessThan_induct)
 apply (auto simp add: lam_def Collect_vimage_eq)
@@ -623,7 +623,7 @@ done
 lemma (in alloc_progress) final:
      "h \<in> list(tokbag)
       ==> alloc_prog \<squnion> G
-            \<in> {s\<in>state. <h, s`ask> \<in> prefix(tokbag)} LeadsTo
+            \<in> {s\<in>state. <h, s`ask> \<in> prefix(tokbag)} \<longmapsto>w
               {s\<in>state. <h, s`giv> \<in> prefix(tokbag)}"
 apply (rule single_LeadsTo_I)
  prefer 2 apply simp
@@ -647,10 +647,10 @@ theorem alloc_prog_progress:
 "alloc_prog \<in>
     Incr(lift(ask)) \<inter> Incr(lift(rel)) \<inter>
     Always(\<Inter>k \<in> nat. {s\<in>state. nth(k, s`ask) \<le> NbT}) \<inter>
-    (\<Inter>k\<in>nat. {s\<in>state. k \<le> tokens(s`giv)} LeadsTo
+    (\<Inter>k\<in>nat. {s\<in>state. k \<le> tokens(s`giv)} \<longmapsto>w
               {s\<in>state. k \<le> tokens(s`rel)})
   guarantees (\<Inter>h \<in> list(tokbag).
-              {s\<in>state. <h, s`ask> \<in> prefix(tokbag)} LeadsTo
+              {s\<in>state. <h, s`ask> \<in> prefix(tokbag)} \<longmapsto>w
               {s\<in>state. <h, s`giv> \<in> prefix(tokbag)})"
 apply (rule guaranteesI)
 apply (rule INT_I)

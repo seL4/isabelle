@@ -206,15 +206,15 @@ lemma U_F0: "Mutex \<in> {s \<in> state. s`m=#2} Unless {s \<in> state. s`m=#3}"
 by (unfold op_Unless_def Mutex_def, safety)
 
 lemma U_F1:
-     "Mutex \<in> {s \<in> state. s`m=#1} LeadsTo {s \<in> state. s`p = s`v & s`m = #2}"
+     "Mutex \<in> {s \<in> state. s`m=#1} \<longmapsto>w {s \<in> state. s`p = s`v & s`m = #2}"
 by (unfold Mutex_def, ensures U1)
 
-lemma U_F2: "Mutex \<in> {s \<in> state. s`p =0 & s`m = #2} LeadsTo {s \<in> state. s`m = #3}"
+lemma U_F2: "Mutex \<in> {s \<in> state. s`p =0 & s`m = #2} \<longmapsto>w {s \<in> state. s`m = #3}"
 apply (cut_tac IU)
 apply (unfold Mutex_def, ensures U2)
 done
 
-lemma U_F3: "Mutex \<in> {s \<in> state. s`m = #3} LeadsTo {s \<in> state. s`p=1}"
+lemma U_F3: "Mutex \<in> {s \<in> state. s`m = #3} \<longmapsto>w {s \<in> state. s`p=1}"
 apply (rule_tac B = "{s \<in> state. s`m = #4}" in LeadsTo_Trans)
  apply (unfold Mutex_def)
  apply (ensures U3)
@@ -222,14 +222,14 @@ apply (ensures U4)
 done
 
 
-lemma U_lemma2: "Mutex \<in> {s \<in> state. s`m = #2} LeadsTo {s \<in> state. s`p=1}"
+lemma U_lemma2: "Mutex \<in> {s \<in> state. s`m = #2} \<longmapsto>w {s \<in> state. s`p=1}"
 apply (rule LeadsTo_Diff [OF LeadsTo_weaken_L
                              Int_lower2 [THEN subset_imp_LeadsTo]])
 apply (rule LeadsTo_Trans [OF U_F2 U_F3], auto)
 apply (auto dest!: p_value_type simp add: bool_def)
 done
 
-lemma U_lemma1: "Mutex \<in> {s \<in> state. s`m = #1} LeadsTo {s \<in> state. s`p =1}"
+lemma U_lemma1: "Mutex \<in> {s \<in> state. s`m = #1} \<longmapsto>w {s \<in> state. s`p =1}"
 by (rule LeadsTo_Trans [OF U_F1 [THEN LeadsTo_weaken_R] U_lemma2], blast)
 
 lemma eq_123: "i \<in> int ==> (#1 $<= i & i $<= #3) \<longleftrightarrow> (i=#1 | i=#2 | i=#3)"
@@ -243,12 +243,12 @@ apply (simp_all (no_asm_simp) add: zless_add1_iff_zle [THEN iff_sym])
 done
 
 
-lemma U_lemma123: "Mutex \<in> {s \<in> state. #1 $<= s`m & s`m $<= #3} LeadsTo {s \<in> state. s`p=1}"
+lemma U_lemma123: "Mutex \<in> {s \<in> state. #1 $<= s`m & s`m $<= #3} \<longmapsto>w {s \<in> state. s`p=1}"
 by (simp add: eq_123 Collect_disj_eq LeadsTo_Un_distrib U_lemma1 U_lemma2 U_F3)
 
 
 (*Misra's F4*)
-lemma u_Leadsto_p: "Mutex \<in> {s \<in> state. s`u = 1} LeadsTo {s \<in> state. s`p=1}"
+lemma u_Leadsto_p: "Mutex \<in> {s \<in> state. s`u = 1} \<longmapsto>w {s \<in> state. s`p=1}"
 by (rule Always_LeadsTo_weaken [OF IU U_lemma123], auto)
 
 
@@ -257,43 +257,43 @@ by (rule Always_LeadsTo_weaken [OF IU U_lemma123], auto)
 lemma V_F0: "Mutex \<in> {s \<in> state. s`n=#2} Unless {s \<in> state. s`n=#3}"
 by (unfold op_Unless_def Mutex_def, safety)
 
-lemma V_F1: "Mutex \<in> {s \<in> state. s`n=#1} LeadsTo {s \<in> state. s`p = not(s`u) & s`n = #2}"
+lemma V_F1: "Mutex \<in> {s \<in> state. s`n=#1} \<longmapsto>w {s \<in> state. s`p = not(s`u) & s`n = #2}"
 by (unfold Mutex_def, ensures "V1")
 
-lemma V_F2: "Mutex \<in> {s \<in> state. s`p=1 & s`n = #2} LeadsTo {s \<in> state. s`n = #3}"
+lemma V_F2: "Mutex \<in> {s \<in> state. s`p=1 & s`n = #2} \<longmapsto>w {s \<in> state. s`n = #3}"
 apply (cut_tac IV)
 apply (unfold Mutex_def, ensures "V2")
 done
 
-lemma V_F3: "Mutex \<in> {s \<in> state. s`n = #3} LeadsTo {s \<in> state. s`p=0}"
+lemma V_F3: "Mutex \<in> {s \<in> state. s`n = #3} \<longmapsto>w {s \<in> state. s`p=0}"
 apply (rule_tac B = "{s \<in> state. s`n = #4}" in LeadsTo_Trans)
  apply (unfold Mutex_def)
  apply (ensures V3)
 apply (ensures V4)
 done
 
-lemma V_lemma2: "Mutex \<in> {s \<in> state. s`n = #2} LeadsTo {s \<in> state. s`p=0}"
+lemma V_lemma2: "Mutex \<in> {s \<in> state. s`n = #2} \<longmapsto>w {s \<in> state. s`p=0}"
 apply (rule LeadsTo_Diff [OF LeadsTo_weaken_L
                              Int_lower2 [THEN subset_imp_LeadsTo]])
 apply (rule LeadsTo_Trans [OF V_F2 V_F3], auto)
 apply (auto dest!: p_value_type simp add: bool_def)
 done
 
-lemma V_lemma1: "Mutex \<in> {s \<in> state. s`n = #1} LeadsTo {s \<in> state. s`p = 0}"
+lemma V_lemma1: "Mutex \<in> {s \<in> state. s`n = #1} \<longmapsto>w {s \<in> state. s`p = 0}"
 by (rule LeadsTo_Trans [OF V_F1 [THEN LeadsTo_weaken_R] V_lemma2], blast)
 
-lemma V_lemma123: "Mutex \<in> {s \<in> state. #1 $<= s`n & s`n $<= #3} LeadsTo {s \<in> state. s`p = 0}"
+lemma V_lemma123: "Mutex \<in> {s \<in> state. #1 $<= s`n & s`n $<= #3} \<longmapsto>w {s \<in> state. s`p = 0}"
 by (simp add: eq_123 Collect_disj_eq LeadsTo_Un_distrib V_lemma1 V_lemma2 V_F3)
 
 (*Misra's F4*)
-lemma v_Leadsto_not_p: "Mutex \<in> {s \<in> state. s`v = 1} LeadsTo {s \<in> state. s`p = 0}"
+lemma v_Leadsto_not_p: "Mutex \<in> {s \<in> state. s`v = 1} \<longmapsto>w {s \<in> state. s`p = 0}"
 by (rule Always_LeadsTo_weaken [OF IV V_lemma123], auto)
 
 
 (** Absence of starvation **)
 
 (*Misra's F6*)
-lemma m1_Leadsto_3: "Mutex \<in> {s \<in> state. s`m = #1} LeadsTo {s \<in> state. s`m = #3}"
+lemma m1_Leadsto_3: "Mutex \<in> {s \<in> state. s`m = #1} \<longmapsto>w {s \<in> state. s`m = #3}"
 apply (rule LeadsTo_cancel2 [THEN LeadsTo_Un_duplicate])
 apply (rule_tac [2] U_F2)
 apply (simp add: Collect_conj_eq)
@@ -306,7 +306,7 @@ done
 
 
 (*The same for V*)
-lemma n1_Leadsto_3: "Mutex \<in> {s \<in> state. s`n = #1} LeadsTo {s \<in> state. s`n = #3}"
+lemma n1_Leadsto_3: "Mutex \<in> {s \<in> state. s`n = #1} \<longmapsto>w {s \<in> state. s`n = #3}"
 apply (rule LeadsTo_cancel2 [THEN LeadsTo_Un_duplicate])
 apply (rule_tac [2] V_F2)
 apply (simp add: Collect_conj_eq)

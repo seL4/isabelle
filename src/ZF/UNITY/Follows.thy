@@ -15,7 +15,7 @@ definition
             Increasing(A, r, g) Int
             Increasing(A, r,f) Int
             Always({s \<in> state. <f(s), g(s)>:r}) Int
-           (\<Inter>k \<in> A. {s \<in> state. <k, g(s)>:r} LeadsTo {s \<in> state. <k,f(s)>:r})"
+           (\<Inter>k \<in> A. {s \<in> state. <k, g(s)>:r} \<longmapsto>w {s \<in> state. <k,f(s)>:r})"
 
 abbreviation
   Incr :: "[i=>i]=>i" where
@@ -79,8 +79,8 @@ done
 lemma subset_LeadsTo_comp:
 "[| mono1(A, r, B, s, h); refl(A,r); trans[B](s);
         \<forall>x \<in> state. f(x):A & g(x):A |] ==>
-  (\<Inter>j \<in> A. {s \<in> state. <j, g(s)> \<in> r} LeadsTo {s \<in> state. <j,f(s)> \<in> r}) <=
- (\<Inter>k \<in> B. {x \<in> state. <k, (h comp g)(x)> \<in> s} LeadsTo {x \<in> state. <k, (h comp f)(x)> \<in> s})"
+  (\<Inter>j \<in> A. {s \<in> state. <j, g(s)> \<in> r} \<longmapsto>w {s \<in> state. <j,f(s)> \<in> r}) <=
+ (\<Inter>k \<in> B. {x \<in> state. <k, (h comp g)(x)> \<in> s} \<longmapsto>w {x \<in> state. <k, (h comp f)(x)> \<in> s})"
 
 apply (unfold mono1_def metacomp_def, clarify)
 apply (simp_all (no_asm_use) add: INT_iff)
@@ -97,19 +97,19 @@ apply auto
 done
 
 lemma imp_LeadsTo_comp:
-"[| F:(\<Inter>j \<in> A. {s \<in> state. <j, g(s)> \<in> r} LeadsTo {s \<in> state. <j,f(s)> \<in> r});
+"[| F:(\<Inter>j \<in> A. {s \<in> state. <j, g(s)> \<in> r} \<longmapsto>w {s \<in> state. <j,f(s)> \<in> r});
     mono1(A, r, B, s, h); refl(A,r); trans[B](s);
     \<forall>x \<in> state. f(x):A & g(x):A |] ==>
-   F:(\<Inter>k \<in> B. {x \<in> state. <k, (h comp g)(x)> \<in> s} LeadsTo {x \<in> state. <k, (h comp f)(x)> \<in> s})"
+   F:(\<Inter>k \<in> B. {x \<in> state. <k, (h comp g)(x)> \<in> s} \<longmapsto>w {x \<in> state. <k, (h comp f)(x)> \<in> s})"
 apply (rule subset_LeadsTo_comp [THEN subsetD], auto)
 done
 
 lemma imp_LeadsTo_comp_right:
 "[| F \<in> Increasing(B, s, g);
-  \<forall>j \<in> A. F: {s \<in> state. <j, f(s)> \<in> r} LeadsTo {s \<in> state. <j,f1(s)> \<in> r};
+  \<forall>j \<in> A. F: {s \<in> state. <j, f(s)> \<in> r} \<longmapsto>w {s \<in> state. <j,f1(s)> \<in> r};
   mono2(A, r, B, s, C, t, h); refl(A, r); refl(B, s); trans[C](t);
   \<forall>x \<in> state. f1(x):A & f(x):A & g(x):B; k \<in> C |] ==>
-  F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} LeadsTo {x \<in> state. <k, h(f1(x), g(x))> \<in> t}"
+  F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} \<longmapsto>w {x \<in> state. <k, h(f1(x), g(x))> \<in> t}"
 apply (unfold mono2_def Increasing_def)
 apply (rule single_LeadsTo_I, auto)
 apply (drule_tac x = "g (sa) " and A = B in bspec)
@@ -129,10 +129,10 @@ done
 
 lemma imp_LeadsTo_comp_left:
 "[| F \<in> Increasing(A, r, f);
-  \<forall>j \<in> B. F: {x \<in> state. <j, g(x)> \<in> s} LeadsTo {x \<in> state. <j,g1(x)> \<in> s};
+  \<forall>j \<in> B. F: {x \<in> state. <j, g(x)> \<in> s} \<longmapsto>w {x \<in> state. <j,g1(x)> \<in> s};
   mono2(A, r, B, s, C, t, h); refl(A,r); refl(B, s); trans[C](t);
   \<forall>x \<in> state. f(x):A & g1(x):B & g(x):B; k \<in> C |] ==>
-  F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} LeadsTo {x \<in> state. <k, h(f(x), g1(x))> \<in> t}"
+  F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} \<longmapsto>w {x \<in> state. <k, h(f(x), g1(x))> \<in> t}"
 apply (unfold mono2_def Increasing_def)
 apply (rule single_LeadsTo_I, auto)
 apply (drule_tac x = "f (sa) " and P = "%k. F \<in> Stable (X (k))" for X in bspec)
@@ -153,11 +153,11 @@ done
 (**  This general result is used to prove Follows Un, munion, etc. **)
 lemma imp_LeadsTo_comp2:
 "[| F \<in> Increasing(A, r, f1) \<inter>  Increasing(B, s, g);
-  \<forall>j \<in> A. F: {s \<in> state. <j, f(s)> \<in> r} LeadsTo {s \<in> state. <j,f1(s)> \<in> r};
-  \<forall>j \<in> B. F: {x \<in> state. <j, g(x)> \<in> s} LeadsTo {x \<in> state. <j,g1(x)> \<in> s};
+  \<forall>j \<in> A. F: {s \<in> state. <j, f(s)> \<in> r} \<longmapsto>w {s \<in> state. <j,f1(s)> \<in> r};
+  \<forall>j \<in> B. F: {x \<in> state. <j, g(x)> \<in> s} \<longmapsto>w {x \<in> state. <j,g1(x)> \<in> s};
   mono2(A, r, B, s, C, t, h); refl(A,r); refl(B, s); trans[C](t);
   \<forall>x \<in> state. f(x):A & g1(x):B & f1(x):A &g(x):B; k \<in> C |]
-  ==> F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} LeadsTo {x \<in> state. <k, h(f1(x), g1(x))> \<in> t}"
+  ==> F:{x \<in> state. <k, h(f(x), g(x))> \<in> t} \<longmapsto>w {x \<in> state. <k, h(f1(x), g1(x))> \<in> t}"
 apply (rule_tac B = "{x \<in> state. <k, h (f1 (x), g (x))> \<in> t}" in LeadsTo_Trans)
 apply (blast intro: imp_LeadsTo_comp_right)
 apply (blast intro: imp_LeadsTo_comp_left)
@@ -259,17 +259,17 @@ by (unfold Follows_def, blast)
 
 lemma Follows_imp_LeadsTo:
  "[| F \<in> Follows(A, r, f, g); k \<in> A |]  ==>
-  F: {s \<in> state. <k,g(s)> \<in> r } LeadsTo {s \<in> state. <k,f(s)> \<in> r}"
+  F: {s \<in> state. <k,g(s)> \<in> r } \<longmapsto>w {s \<in> state. <k,f(s)> \<in> r}"
 by (unfold Follows_def, blast)
 
 lemma Follows_LeadsTo_pfixLe:
      "[| F \<in> Follows(list(nat), gen_prefix(nat, Le), f, g); k \<in> list(nat) |]
-   ==> F \<in> {s \<in> state. k pfixLe g(s)} LeadsTo {s \<in> state. k pfixLe f(s)}"
+   ==> F \<in> {s \<in> state. k pfixLe g(s)} \<longmapsto>w {s \<in> state. k pfixLe f(s)}"
 by (blast intro: Follows_imp_LeadsTo)
 
 lemma Follows_LeadsTo_pfixGe:
      "[| F \<in> Follows(list(nat), gen_prefix(nat, Ge), f, g); k \<in> list(nat) |]
-   ==> F \<in> {s \<in> state. k pfixGe g(s)} LeadsTo {s \<in> state. k pfixGe f(s)}"
+   ==> F \<in> {s \<in> state. k pfixGe g(s)} \<longmapsto>w {s \<in> state. k pfixGe f(s)}"
 by (blast intro: Follows_imp_LeadsTo)
 
 lemma Always_Follows1:

@@ -219,7 +219,7 @@ lemma induct_lemma:
   ==> client_prog \<squnion> G \<in>
   {s \<in> state. s`rel = k & <k,h> \<in> strict_prefix(nat)
    & <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}
-        LeadsTo {s \<in> state. <k, s`rel> \<in> strict_prefix(nat)
+        \<longmapsto>w {s \<in> state. <k, s`rel> \<in> strict_prefix(nat)
                           & <s`rel, s`giv> \<in> prefix(nat) &
                                   <h, s`giv> \<in> prefix(nat) &
                 h pfixGe s`ask}"
@@ -248,7 +248,7 @@ lemma rel_progress_lemma:
   ==> client_prog \<squnion> G  \<in>
      {s \<in> state. <s`rel, h> \<in> strict_prefix(nat)
            & <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}
-                      LeadsTo {s \<in> state. <h, s`rel> \<in> prefix(nat)}"
+                      \<longmapsto>w {s \<in> state. <h, s`rel> \<in> prefix(nat)}"
 apply (rule_tac f = "\<lambda>x \<in> state. length(h) #- length(x`rel)"
        in LessThan_induct)
 apply (auto simp add: vimage_def)
@@ -276,7 +276,7 @@ lemma progress_lemma:
 "[| client_prog \<squnion> G \<in> Incr(lift(giv)); client_prog ok G; G \<in> program |]
  ==> client_prog \<squnion> G
        \<in> {s \<in> state. <h, s`giv> \<in> prefix(nat) & h pfixGe s`ask}
-         LeadsTo  {s \<in> state. <h, s`rel> \<in> prefix(nat)}"
+         \<longmapsto>w  {s \<in> state. <h, s`rel> \<in> prefix(nat)}"
 apply (rule client_prog_Join_Always_rel_le_giv [THEN Always_LeadsToI],
        assumption)
 apply (force simp add: client_prog_ok_iff)
@@ -291,7 +291,7 @@ done
 lemma client_prog_progress:
 "client_prog \<in> Incr(lift(giv))  guarantees
       (\<Inter>h \<in> list(nat). {s \<in> state. <h, s`giv> \<in> prefix(nat) &
-              h pfixGe s`ask} LeadsTo {s \<in> state. <h, s`rel> \<in> prefix(nat)})"
+              h pfixGe s`ask} \<longmapsto>w {s \<in> state. <h, s`rel> \<in> prefix(nat)})"
 apply (rule guaranteesI)
 apply (blast intro: progress_lemma, auto)
 done

@@ -43,16 +43,13 @@ inductive
 
 definition
   (* The Visible version of the LEADS-TO relation*)
-  leadsTo :: "[i, i] => i"       (infixl "leadsTo" 60)  where
-  "A leadsTo B == {F \<in> program. <A,B>:leads(state, F)}"
+  leadsTo :: "[i, i] => i"       (infixl "\<longmapsto>" 60)  where
+  "A \<longmapsto> B == {F \<in> program. <A,B>:leads(state, F)}"
 
 definition
   (* wlt(F, B) is the largest set that leads to B*)
   wlt :: "[i, i] => i"  where
-    "wlt(F, B) == \<Union>({A \<in> Pow(state). F \<in> A leadsTo B})"
-
-notation (xsymbols)
-  leadsTo  (infixl "\<longmapsto>" 60)
+    "wlt(F, B) == \<Union>({A \<in> Pow(state). F \<in> A \<longmapsto> B})"
 
 (** Ad-hoc set-theory rules **)
 
@@ -163,17 +160,17 @@ by (auto simp add: ensures_def constrains_def transient_def st_set_def)
 lemmas leads_left = leads.dom_subset [THEN subsetD, THEN SigmaD1]
 lemmas leads_right = leads.dom_subset [THEN subsetD, THEN SigmaD2]
 
-lemma leadsTo_type: "A leadsTo B \<subseteq> program"
+lemma leadsTo_type: "A \<longmapsto> B \<subseteq> program"
 by (unfold leadsTo_def, auto)
 
 lemma leadsToD2:
-"F \<in> A leadsTo B ==> F \<in> program & st_set(A) & st_set(B)"
+"F \<in> A \<longmapsto> B ==> F \<in> program & st_set(A) & st_set(B)"
 apply (unfold leadsTo_def st_set_def)
 apply (blast dest: leads_left leads_right)
 done
 
 lemma leadsTo_Basis:
-    "[|F \<in> A ensures B; st_set(A); st_set(B)|] ==> F \<in> A leadsTo B"
+    "[|F \<in> A ensures B; st_set(A); st_set(B)|] ==> F \<in> A \<longmapsto> B"
 apply (unfold leadsTo_def st_set_def)
 apply (cut_tac ensures_type)
 apply (auto intro: leads.Basis)
@@ -181,152 +178,152 @@ done
 declare leadsTo_Basis [intro]
 
 (* Added by Sidi, from Misra's notes, Progress chapter, exercise number 4 *)
-(* [| F \<in> program; A<=B;  st_set(A); st_set(B) |] ==> A leadsTo B *)
+(* [| F \<in> program; A<=B;  st_set(A); st_set(B) |] ==> A \<longmapsto> B *)
 lemmas subset_imp_leadsTo = subset_imp_ensures [THEN leadsTo_Basis]
 
-lemma leadsTo_Trans: "[|F \<in> A leadsTo B;  F \<in> B leadsTo C |]==>F \<in> A leadsTo C"
+lemma leadsTo_Trans: "[|F \<in> A \<longmapsto> B;  F \<in> B \<longmapsto> C |]==>F \<in> A \<longmapsto> C"
 apply (unfold leadsTo_def)
 apply (auto intro: leads.Trans)
 done
 
 (* Better when used in association with leadsTo_weaken_R *)
-lemma transient_imp_leadsTo: "F \<in> transient(A) ==> F \<in> A leadsTo (state-A)"
+lemma transient_imp_leadsTo: "F \<in> transient(A) ==> F \<in> A \<longmapsto> (state-A)"
 apply (unfold transient_def)
 apply (blast intro: ensuresI [THEN leadsTo_Basis] constrains_weaken transientI)
 done
 
 (*Useful with cancellation, disjunction*)
-lemma leadsTo_Un_duplicate: "F \<in> A leadsTo (A' \<union> A') ==> F \<in> A leadsTo A'"
+lemma leadsTo_Un_duplicate: "F \<in> A \<longmapsto> (A' \<union> A') ==> F \<in> A \<longmapsto> A'"
 by simp
 
 lemma leadsTo_Un_duplicate2:
-     "F \<in> A leadsTo (A' \<union> C \<union> C) ==> F \<in> A leadsTo (A' \<union> C)"
+     "F \<in> A \<longmapsto> (A' \<union> C \<union> C) ==> F \<in> A \<longmapsto> (A' \<union> C)"
 by (simp add: Un_ac)
 
 (*The Union introduction rule as we should have liked to state it*)
 lemma leadsTo_Union:
-    "[|!!A. A \<in> S ==> F \<in> A leadsTo B; F \<in> program; st_set(B)|]
-     ==> F \<in> \<Union>(S) leadsTo B"
+    "[|!!A. A \<in> S ==> F \<in> A \<longmapsto> B; F \<in> program; st_set(B)|]
+     ==> F \<in> \<Union>(S) \<longmapsto> B"
 apply (unfold leadsTo_def st_set_def)
 apply (blast intro: leads.Union dest: leads_left)
 done
 
 lemma leadsTo_Union_Int:
-    "[|!!A. A \<in> S ==>F \<in> (A \<inter> C) leadsTo B; F \<in> program; st_set(B)|]
-     ==> F \<in> (\<Union>(S)Int C)leadsTo B"
+    "[|!!A. A \<in> S ==>F \<in> (A \<inter> C) \<longmapsto> B; F \<in> program; st_set(B)|]
+     ==> F \<in> (\<Union>(S)Int C)\<longmapsto> B"
 apply (unfold leadsTo_def st_set_def)
 apply (simp only: Int_Union_Union)
 apply (blast dest: leads_left intro: leads.Union)
 done
 
 lemma leadsTo_UN:
-    "[| !!i. i \<in> I ==> F \<in> A(i) leadsTo B; F \<in> program; st_set(B)|]
-     ==> F:(\<Union>i \<in> I. A(i)) leadsTo B"
+    "[| !!i. i \<in> I ==> F \<in> A(i) \<longmapsto> B; F \<in> program; st_set(B)|]
+     ==> F:(\<Union>i \<in> I. A(i)) \<longmapsto> B"
 apply (simp add: Int_Union_Union leadsTo_def st_set_def)
 apply (blast dest: leads_left intro: leads.Union)
 done
 
 (* Binary union introduction rule *)
 lemma leadsTo_Un:
-     "[| F \<in> A leadsTo C; F \<in> B leadsTo C |] ==> F \<in> (A \<union> B) leadsTo C"
+     "[| F \<in> A \<longmapsto> C; F \<in> B \<longmapsto> C |] ==> F \<in> (A \<union> B) \<longmapsto> C"
 apply (subst Un_eq_Union)
 apply (blast intro: leadsTo_Union dest: leadsToD2)
 done
 
 lemma single_leadsTo_I:
-    "[|!!x. x \<in> A==> F:{x} leadsTo B; F \<in> program; st_set(B) |]
-     ==> F \<in> A leadsTo B"
+    "[|!!x. x \<in> A==> F:{x} \<longmapsto> B; F \<in> program; st_set(B) |]
+     ==> F \<in> A \<longmapsto> B"
 apply (rule_tac b = A in UN_singleton [THEN subst])
 apply (rule leadsTo_UN, auto)
 done
 
-lemma leadsTo_refl: "[| F \<in> program; st_set(A) |] ==> F \<in> A leadsTo A"
+lemma leadsTo_refl: "[| F \<in> program; st_set(A) |] ==> F \<in> A \<longmapsto> A"
 by (blast intro: subset_imp_leadsTo)
 
-lemma leadsTo_refl_iff: "F \<in> A leadsTo A \<longleftrightarrow> F \<in> program & st_set(A)"
+lemma leadsTo_refl_iff: "F \<in> A \<longmapsto> A \<longleftrightarrow> F \<in> program & st_set(A)"
 by (auto intro: leadsTo_refl dest: leadsToD2)
 
-lemma empty_leadsTo: "F \<in> 0 leadsTo B \<longleftrightarrow> (F \<in> program & st_set(B))"
+lemma empty_leadsTo: "F \<in> 0 \<longmapsto> B \<longleftrightarrow> (F \<in> program & st_set(B))"
 by (auto intro: subset_imp_leadsTo dest: leadsToD2)
 declare empty_leadsTo [iff]
 
-lemma leadsTo_state: "F \<in> A leadsTo state \<longleftrightarrow> (F \<in> program & st_set(A))"
+lemma leadsTo_state: "F \<in> A \<longmapsto> state \<longleftrightarrow> (F \<in> program & st_set(A))"
 by (auto intro: subset_imp_leadsTo dest: leadsToD2 st_setD)
 declare leadsTo_state [iff]
 
-lemma leadsTo_weaken_R: "[| F \<in> A leadsTo A'; A'<=B'; st_set(B') |] ==> F \<in> A leadsTo B'"
+lemma leadsTo_weaken_R: "[| F \<in> A \<longmapsto> A'; A'<=B'; st_set(B') |] ==> F \<in> A \<longmapsto> B'"
 by (blast dest: leadsToD2 intro: subset_imp_leadsTo leadsTo_Trans)
 
-lemma leadsTo_weaken_L: "[| F \<in> A leadsTo A'; B<=A |] ==> F \<in> B leadsTo A'"
+lemma leadsTo_weaken_L: "[| F \<in> A \<longmapsto> A'; B<=A |] ==> F \<in> B \<longmapsto> A'"
 apply (frule leadsToD2)
 apply (blast intro: leadsTo_Trans subset_imp_leadsTo st_set_subset)
 done
 
-lemma leadsTo_weaken: "[| F \<in> A leadsTo A'; B<=A; A'<=B'; st_set(B')|]==> F \<in> B leadsTo B'"
+lemma leadsTo_weaken: "[| F \<in> A \<longmapsto> A'; B<=A; A'<=B'; st_set(B')|]==> F \<in> B \<longmapsto> B'"
 apply (frule leadsToD2)
 apply (blast intro: leadsTo_weaken_R leadsTo_weaken_L leadsTo_Trans leadsTo_refl)
 done
 
 (* This rule has a nicer conclusion *)
-lemma transient_imp_leadsTo2: "[| F \<in> transient(A); state-A<=B; st_set(B)|] ==> F \<in> A leadsTo B"
+lemma transient_imp_leadsTo2: "[| F \<in> transient(A); state-A<=B; st_set(B)|] ==> F \<in> A \<longmapsto> B"
 apply (frule transientD2)
 apply (rule leadsTo_weaken_R)
 apply (auto simp add: transient_imp_leadsTo)
 done
 
 (*Distributes over binary unions*)
-lemma leadsTo_Un_distrib: "F:(A \<union> B) leadsTo C  \<longleftrightarrow>  (F \<in> A leadsTo C & F \<in> B leadsTo C)"
+lemma leadsTo_Un_distrib: "F:(A \<union> B) \<longmapsto> C  \<longleftrightarrow>  (F \<in> A \<longmapsto> C & F \<in> B \<longmapsto> C)"
 by (blast intro: leadsTo_Un leadsTo_weaken_L)
 
 lemma leadsTo_UN_distrib:
-"(F:(\<Union>i \<in> I. A(i)) leadsTo B)\<longleftrightarrow> ((\<forall>i \<in> I. F \<in> A(i) leadsTo B) & F \<in> program & st_set(B))"
+"(F:(\<Union>i \<in> I. A(i)) \<longmapsto> B)\<longleftrightarrow> ((\<forall>i \<in> I. F \<in> A(i) \<longmapsto> B) & F \<in> program & st_set(B))"
 apply (blast dest: leadsToD2 intro: leadsTo_UN leadsTo_weaken_L)
 done
 
-lemma leadsTo_Union_distrib: "(F \<in> \<Union>(S) leadsTo B) \<longleftrightarrow>  (\<forall>A \<in> S. F \<in> A leadsTo B) & F \<in> program & st_set(B)"
+lemma leadsTo_Union_distrib: "(F \<in> \<Union>(S) \<longmapsto> B) \<longleftrightarrow>  (\<forall>A \<in> S. F \<in> A \<longmapsto> B) & F \<in> program & st_set(B)"
 by (blast dest: leadsToD2 intro: leadsTo_Union leadsTo_weaken_L)
 
 text\<open>Set difference: maybe combine with @{text leadsTo_weaken_L}??\<close>
 lemma leadsTo_Diff:
-     "[| F: (A-B) leadsTo C; F \<in> B leadsTo C; st_set(C) |]
-      ==> F \<in> A leadsTo C"
+     "[| F: (A-B) \<longmapsto> C; F \<in> B \<longmapsto> C; st_set(C) |]
+      ==> F \<in> A \<longmapsto> C"
 by (blast intro: leadsTo_Un leadsTo_weaken dest: leadsToD2)
 
 lemma leadsTo_UN_UN:
-    "[|!!i. i \<in> I ==> F \<in> A(i) leadsTo A'(i); F \<in> program |]
-     ==> F: (\<Union>i \<in> I. A(i)) leadsTo (\<Union>i \<in> I. A'(i))"
+    "[|!!i. i \<in> I ==> F \<in> A(i) \<longmapsto> A'(i); F \<in> program |]
+     ==> F: (\<Union>i \<in> I. A(i)) \<longmapsto> (\<Union>i \<in> I. A'(i))"
 apply (rule leadsTo_Union)
 apply (auto intro: leadsTo_weaken_R dest: leadsToD2)
 done
 
 (*Binary union version*)
-lemma leadsTo_Un_Un: "[| F \<in> A leadsTo A'; F \<in> B leadsTo B' |] ==> F \<in> (A \<union> B) leadsTo (A' \<union> B')"
+lemma leadsTo_Un_Un: "[| F \<in> A \<longmapsto> A'; F \<in> B \<longmapsto> B' |] ==> F \<in> (A \<union> B) \<longmapsto> (A' \<union> B')"
 apply (subgoal_tac "st_set (A) & st_set (A') & st_set (B) & st_set (B') ")
 prefer 2 apply (blast dest: leadsToD2)
 apply (blast intro: leadsTo_Un leadsTo_weaken_R)
 done
 
 (** The cancellation law **)
-lemma leadsTo_cancel2: "[|F \<in> A leadsTo (A' \<union> B); F \<in> B leadsTo B'|] ==> F \<in> A leadsTo (A' \<union> B')"
+lemma leadsTo_cancel2: "[|F \<in> A \<longmapsto> (A' \<union> B); F \<in> B \<longmapsto> B'|] ==> F \<in> A \<longmapsto> (A' \<union> B')"
 apply (subgoal_tac "st_set (A) & st_set (A') & st_set (B) & st_set (B') &F \<in> program")
 prefer 2 apply (blast dest: leadsToD2)
 apply (blast intro: leadsTo_Trans leadsTo_Un_Un leadsTo_refl)
 done
 
-lemma leadsTo_cancel_Diff2: "[|F \<in> A leadsTo (A' \<union> B); F \<in> (B-A') leadsTo B'|]==> F \<in> A leadsTo (A' \<union> B')"
+lemma leadsTo_cancel_Diff2: "[|F \<in> A \<longmapsto> (A' \<union> B); F \<in> (B-A') \<longmapsto> B'|]==> F \<in> A \<longmapsto> (A' \<union> B')"
 apply (rule leadsTo_cancel2)
 prefer 2 apply assumption
 apply (blast dest: leadsToD2 intro: leadsTo_weaken_R)
 done
 
 
-lemma leadsTo_cancel1: "[| F \<in> A leadsTo (B \<union> A'); F \<in> B leadsTo B' |] ==> F \<in> A leadsTo (B' \<union> A')"
+lemma leadsTo_cancel1: "[| F \<in> A \<longmapsto> (B \<union> A'); F \<in> B \<longmapsto> B' |] ==> F \<in> A \<longmapsto> (B' \<union> A')"
 apply (simp add: Un_commute)
 apply (blast intro!: leadsTo_cancel2)
 done
 
 lemma leadsTo_cancel_Diff1:
-     "[|F \<in> A leadsTo (B \<union> A'); F: (B-A') leadsTo B'|]==> F \<in> A leadsTo (B' \<union> A')"
+     "[|F \<in> A \<longmapsto> (B \<union> A'); F: (B-A') \<longmapsto> B'|]==> F \<in> A \<longmapsto> (B' \<union> A')"
 apply (rule leadsTo_cancel1)
 prefer 2 apply assumption
 apply (blast intro: leadsTo_weaken_R dest: leadsToD2)
@@ -334,11 +331,11 @@ done
 
 (*The INDUCTION rule as we should have liked to state it*)
 lemma leadsTo_induct:
-  assumes major: "F \<in> za leadsTo zb"
+  assumes major: "F \<in> za \<longmapsto> zb"
       and basis: "!!A B. [|F \<in> A ensures B; st_set(A); st_set(B)|] ==> P(A,B)"
-      and trans: "!!A B C. [| F \<in> A leadsTo B; P(A, B);
-                              F \<in> B leadsTo C; P(B, C) |] ==> P(A,C)"
-      and union: "!!B S. [| \<forall>A \<in> S. F \<in> A leadsTo B; \<forall>A \<in> S. P(A,B);
+      and trans: "!!A B C. [| F \<in> A \<longmapsto> B; P(A, B);
+                              F \<in> B \<longmapsto> C; P(B, C) |] ==> P(A,C)"
+      and union: "!!B S. [| \<forall>A \<in> S. F \<in> A \<longmapsto> B; \<forall>A \<in> S. P(A,B);
                            st_set(B); \<forall>A \<in> S. st_set(A)|] ==> P(\<Union>(S), B)"
   shows "P(za, zb)"
 apply (cut_tac major)
@@ -352,13 +349,13 @@ done
 
 (* Added by Sidi, an induction rule without ensures *)
 lemma leadsTo_induct2:
-  assumes major: "F \<in> za leadsTo zb"
+  assumes major: "F \<in> za \<longmapsto> zb"
       and basis1: "!!A B. [| A<=B; st_set(B) |] ==> P(A, B)"
       and basis2: "!!A B. [| F \<in> A co A \<union> B; F \<in> transient(A); st_set(B) |]
                           ==> P(A, B)"
-      and trans: "!!A B C. [| F \<in> A leadsTo B; P(A, B);
-                              F \<in> B leadsTo C; P(B, C) |] ==> P(A,C)"
-      and union: "!!B S. [| \<forall>A \<in> S. F \<in> A leadsTo B; \<forall>A \<in> S. P(A,B);
+      and trans: "!!A B C. [| F \<in> A \<longmapsto> B; P(A, B);
+                              F \<in> B \<longmapsto> C; P(B, C) |] ==> P(A,C)"
+      and union: "!!B S. [| \<forall>A \<in> S. F \<in> A \<longmapsto> B; \<forall>A \<in> S. P(A,B);
                            st_set(B); \<forall>A \<in> S. st_set(A)|] ==> P(\<Union>(S), B)"
   shows "P(za, zb)"
 apply (cut_tac major)
@@ -382,7 +379,7 @@ done
 (** Variant induction rule: on the preconditions for B **)
 (*Lemma is the weak version: can't see how to do it in one step*)
 lemma leadsTo_induct_pre_aux:
-  "[| F \<in> za leadsTo zb;
+  "[| F \<in> za \<longmapsto> zb;
       P(zb);
       !!A B. [| F \<in> A ensures B;  P(B); st_set(A); st_set(B) |] ==> P(A);
       !!S. [| \<forall>A \<in> S. P(A); \<forall>A \<in> S. st_set(A) |] ==> P(\<Union>(S))
@@ -397,12 +394,12 @@ done
 
 
 lemma leadsTo_induct_pre:
-  "[| F \<in> za leadsTo zb;
+  "[| F \<in> za \<longmapsto> zb;
       P(zb);
-      !!A B. [| F \<in> A ensures B;  F \<in> B leadsTo zb;  P(B); st_set(A) |] ==> P(A);
-      !!S. \<forall>A \<in> S. F \<in> A leadsTo zb & P(A) & st_set(A) ==> P(\<Union>(S))
+      !!A B. [| F \<in> A ensures B;  F \<in> B \<longmapsto> zb;  P(B); st_set(A) |] ==> P(A);
+      !!S. \<forall>A \<in> S. F \<in> A \<longmapsto> zb & P(A) & st_set(A) ==> P(\<Union>(S))
    |] ==> P(za)"
-apply (subgoal_tac " (F \<in> za leadsTo zb) & P (za) ")
+apply (subgoal_tac " (F \<in> za \<longmapsto> zb) & P (za) ")
 apply (erule conjunct2)
 apply (frule leadsToD2)
 apply (erule leadsTo_induct_pre_aux)
@@ -413,7 +410,7 @@ done
 
 (** The impossibility law **)
 lemma leadsTo_empty:
-   "F \<in> A leadsTo 0 ==> A=0"
+   "F \<in> A \<longmapsto> 0 ==> A=0"
 apply (erule leadsTo_induct_pre)
 apply (auto simp add: ensures_def constrains_def transient_def st_set_def)
 apply (drule bspec, assumption)+
@@ -426,7 +423,7 @@ subsection\<open>PSP: Progress-Safety-Progress\<close>
 text\<open>Special case of PSP: Misra's "stable conjunction"\<close>
 
 lemma psp_stable:
-   "[| F \<in> A leadsTo A'; F \<in> stable(B) |] ==> F:(A \<inter> B) leadsTo (A' \<inter> B)"
+   "[| F \<in> A \<longmapsto> A'; F \<in> stable(B) |] ==> F:(A \<inter> B) \<longmapsto> (A' \<inter> B)"
 apply (unfold stable_def)
 apply (frule leadsToD2)
 apply (erule leadsTo_induct)
@@ -438,7 +435,7 @@ apply (auto intro: transient_strengthen constrains_Int)
 done
 
 
-lemma psp_stable2: "[|F \<in> A leadsTo A'; F \<in> stable(B) |]==>F: (B \<inter> A) leadsTo (B \<inter> A')"
+lemma psp_stable2: "[|F \<in> A \<longmapsto> A'; F \<in> stable(B) |]==>F: (B \<inter> A) \<longmapsto> (B \<inter> A')"
 apply (simp (no_asm_simp) add: psp_stable Int_ac)
 done
 
@@ -451,7 +448,7 @@ apply (blast intro: transient_strengthen)
 done
 
 lemma psp:
-"[|F \<in> A leadsTo A'; F \<in> B co B'; st_set(B')|]==> F:(A \<inter> B') leadsTo ((A' \<inter> B) \<union> (B' - B))"
+"[|F \<in> A \<longmapsto> A'; F \<in> B co B'; st_set(B')|]==> F:(A \<inter> B') \<longmapsto> ((A' \<inter> B) \<union> (B' - B))"
 apply (subgoal_tac "F \<in> program & st_set (A) & st_set (A') & st_set (B) ")
 prefer 2 apply (blast dest!: constrainsD2 leadsToD2)
 apply (erule leadsTo_induct)
@@ -466,13 +463,13 @@ apply (blast intro: leadsTo_weaken_L dest: constrains_imp_subset)
 done
 
 
-lemma psp2: "[| F \<in> A leadsTo A'; F \<in> B co B'; st_set(B') |]
-    ==> F \<in> (B' \<inter> A) leadsTo ((B \<inter> A') \<union> (B' - B))"
+lemma psp2: "[| F \<in> A \<longmapsto> A'; F \<in> B co B'; st_set(B') |]
+    ==> F \<in> (B' \<inter> A) \<longmapsto> ((B \<inter> A') \<union> (B' - B))"
 by (simp (no_asm_simp) add: psp Int_ac)
 
 lemma psp_unless:
-   "[| F \<in> A leadsTo A';  F \<in> B unless B'; st_set(B); st_set(B') |]
-    ==> F \<in> (A \<inter> B) leadsTo ((A' \<inter> B) \<union> B')"
+   "[| F \<in> A \<longmapsto> A';  F \<in> B unless B'; st_set(B); st_set(B') |]
+    ==> F \<in> (A \<inter> B) \<longmapsto> ((A' \<inter> B) \<union> B')"
 apply (unfold unless_def)
 apply (subgoal_tac "st_set (A) &st_set (A') ")
 prefer 2 apply (blast dest: leadsToD2)
@@ -488,11 +485,11 @@ lemma leadsTo_wf_induct_aux: "[| wf(r);
          m \<in> I;
          field(r)<=I;
          F \<in> program; st_set(B);
-         \<forall>m \<in> I. F \<in> (A \<inter> f-``{m}) leadsTo
+         \<forall>m \<in> I. F \<in> (A \<inter> f-``{m}) \<longmapsto>
                     ((A \<inter> f-``(converse(r)``{m})) \<union> B) |]
-      ==> F \<in> (A \<inter> f-``{m}) leadsTo B"
+      ==> F \<in> (A \<inter> f-``{m}) \<longmapsto> B"
 apply (erule_tac a = m in wf_induct2, simp_all)
-apply (subgoal_tac "F \<in> (A \<inter> (f-`` (converse (r) ``{x}))) leadsTo B")
+apply (subgoal_tac "F \<in> (A \<inter> (f-`` (converse (r) ``{x}))) \<longmapsto> B")
  apply (blast intro: leadsTo_cancel1 leadsTo_Un_duplicate)
 apply (subst vimage_eq_UN)
 apply (simp del: UN_simps add: Int_UN_distrib)
@@ -504,9 +501,9 @@ lemma leadsTo_wf_induct: "[| wf(r);
          field(r)<=I;
          A<=f-``I;
          F \<in> program; st_set(A); st_set(B);
-         \<forall>m \<in> I. F \<in> (A \<inter> f-``{m}) leadsTo
+         \<forall>m \<in> I. F \<in> (A \<inter> f-``{m}) \<longmapsto>
                     ((A \<inter> f-``(converse(r)``{m})) \<union> B) |]
-      ==> F \<in> A leadsTo B"
+      ==> F \<in> A \<longmapsto> B"
 apply (rule_tac b = A in subst)
  defer 1
  apply (rule_tac I = I in leadsTo_UN)
@@ -535,12 +532,12 @@ apply (simp add: lt_Ord lt_Ord2 Ord_mem_iff_lt)
 apply (blast intro: lt_trans)
 done
 
-(*Alternative proof is via the lemma F \<in> (A \<inter> f-`(lessThan m)) leadsTo B*)
+(*Alternative proof is via the lemma F \<in> (A \<inter> f-`(lessThan m)) \<longmapsto> B*)
 lemma lessThan_induct:
  "[| A<=f-``nat;
      F \<in> program; st_set(A); st_set(B);
-     \<forall>m \<in> nat. F:(A \<inter> f-``{m}) leadsTo ((A \<inter> f -`` m) \<union> B) |]
-      ==> F \<in> A leadsTo B"
+     \<forall>m \<in> nat. F:(A \<inter> f-``{m}) \<longmapsto> ((A \<inter> f -`` m) \<union> B) |]
+      ==> F \<in> A \<longmapsto> B"
 apply (rule_tac A1 = nat and f1 = "%x. x" in wf_measure [THEN leadsTo_wf_induct])
 apply (simp_all add: nat_measure_field)
 apply (simp add: ltI Image_inverse_lessThan vimage_def [symmetric])
@@ -559,22 +556,22 @@ apply (rule wlt_type)
 done
 declare wlt_st_set [iff]
 
-lemma wlt_leadsTo_iff: "F \<in> wlt(F, B) leadsTo B \<longleftrightarrow> (F \<in> program & st_set(B))"
+lemma wlt_leadsTo_iff: "F \<in> wlt(F, B) \<longmapsto> B \<longleftrightarrow> (F \<in> program & st_set(B))"
 apply (unfold wlt_def)
 apply (blast dest: leadsToD2 intro!: leadsTo_Union)
 done
 
-(* [| F \<in> program;  st_set(B) |] ==> F \<in> wlt(F, B) leadsTo B  *)
+(* [| F \<in> program;  st_set(B) |] ==> F \<in> wlt(F, B) \<longmapsto> B  *)
 lemmas wlt_leadsTo = conjI [THEN wlt_leadsTo_iff [THEN iffD2]]
 
-lemma leadsTo_subset: "F \<in> A leadsTo B ==> A \<subseteq> wlt(F, B)"
+lemma leadsTo_subset: "F \<in> A \<longmapsto> B ==> A \<subseteq> wlt(F, B)"
 apply (unfold wlt_def)
 apply (frule leadsToD2)
 apply (auto simp add: st_set_def)
 done
 
 (*Misra's property W2*)
-lemma leadsTo_eq_subset_wlt: "F \<in> A leadsTo B \<longleftrightarrow> (A \<subseteq> wlt(F,B) & F \<in> program & st_set(B))"
+lemma leadsTo_eq_subset_wlt: "F \<in> A \<longmapsto> B \<longleftrightarrow> (A \<subseteq> wlt(F,B) & F \<in> program & st_set(B))"
 apply auto
 apply (blast dest: leadsToD2 leadsTo_subset intro: leadsTo_weaken_L wlt_leadsTo)+
 done
@@ -596,8 +593,8 @@ done
 
 (*Lemma (1,2,3) of Misra's draft book, Chapter 4, "Progress"*)
 (* slightly different from the HOL one \<in> B here is bounded *)
-lemma leadsTo_123: "F \<in> A leadsTo A'
-      ==> \<exists>B \<in> Pow(state). A<=B & F \<in> B leadsTo A' & F \<in> (B-A') co (B \<union> A')"
+lemma leadsTo_123: "F \<in> A \<longmapsto> A'
+      ==> \<exists>B \<in> Pow(state). A<=B & F \<in> B \<longmapsto> A' & F \<in> (B-A') co (B \<union> A')"
 apply (frule leadsToD2)
 apply (erule leadsTo_induct)
   txt\<open>Basis\<close>
@@ -608,7 +605,7 @@ apply (erule leadsTo_induct)
  apply (blast intro: leadsTo_123_aux leadsTo_Un_Un leadsTo_cancel1 leadsTo_Un_duplicate, blast)
 txt\<open>Union\<close>
 apply (clarify dest!: ball_conj_distrib [THEN iffD1])
-apply (subgoal_tac "\<exists>y. y \<in> Pi (S, %A. {Ba \<in> Pow (state) . A<=Ba & F \<in> Ba leadsTo B & F \<in> Ba - B co Ba \<union> B}) ")
+apply (subgoal_tac "\<exists>y. y \<in> Pi (S, %A. {Ba \<in> Pow (state) . A<=Ba & F \<in> Ba \<longmapsto> B & F \<in> Ba - B co Ba \<union> B}) ")
 defer 1
 apply (rule AC_ball_Pi, safe)
 apply (rotate_tac 1)
@@ -634,9 +631,9 @@ done
 subsection\<open>Completion: Binary and General Finite versions\<close>
 
 lemma completion_aux: "[| W = wlt(F, (B' \<union> C));
-       F \<in> A leadsTo (A' \<union> C);  F \<in> A' co (A' \<union> C);
-       F \<in> B leadsTo (B' \<union> C);  F \<in> B' co (B' \<union> C) |]
-    ==> F \<in> (A \<inter> B) leadsTo ((A' \<inter> B') \<union> C)"
+       F \<in> A \<longmapsto> (A' \<union> C);  F \<in> A' co (A' \<union> C);
+       F \<in> B \<longmapsto> (B' \<union> C);  F \<in> B' co (B' \<union> C) |]
+    ==> F \<in> (A \<inter> B) \<longmapsto> ((A' \<inter> B') \<union> C)"
 apply (subgoal_tac "st_set (C) &st_set (W) &st_set (W-C) &st_set (A') &st_set (A) & st_set (B) & st_set (B') & F \<in> program")
  prefer 2
  apply simp
@@ -647,10 +644,10 @@ apply (subgoal_tac "F \<in> (W-C) co (W \<union> B' \<union> C) ")
 apply (subgoal_tac "F \<in> (W-C) co W")
  prefer 2
  apply (simp add: wlt_increasing [THEN subset_Un_iff2 [THEN iffD1]] Un_assoc)
-apply (subgoal_tac "F \<in> (A \<inter> W - C) leadsTo (A' \<inter> W \<union> C) ")
+apply (subgoal_tac "F \<in> (A \<inter> W - C) \<longmapsto> (A' \<inter> W \<union> C) ")
  prefer 2 apply (blast intro: wlt_leadsTo psp [THEN leadsTo_weaken])
 (** step 13 **)
-apply (subgoal_tac "F \<in> (A' \<inter> W \<union> C) leadsTo (A' \<inter> B' \<union> C) ")
+apply (subgoal_tac "F \<in> (A' \<inter> W \<union> C) \<longmapsto> (A' \<inter> B' \<union> C) ")
 apply (drule leadsTo_Diff)
 apply (blast intro: subset_imp_leadsTo dest: leadsToD2 constrainsD2)
 apply (force simp add: st_set_def)
@@ -669,9 +666,9 @@ lemmas completion = refl [THEN completion_aux]
 
 lemma finite_completion_aux:
      "[| I \<in> Fin(X); F \<in> program; st_set(C) |] ==>
-       (\<forall>i \<in> I. F \<in> (A(i)) leadsTo (A'(i) \<union> C)) \<longrightarrow>
+       (\<forall>i \<in> I. F \<in> (A(i)) \<longmapsto> (A'(i) \<union> C)) \<longrightarrow>
                      (\<forall>i \<in> I. F \<in> (A'(i)) co (A'(i) \<union> C)) \<longrightarrow>
-                   F \<in> (\<Inter>i \<in> I. A(i)) leadsTo ((\<Inter>i \<in> I. A'(i)) \<union> C)"
+                   F \<in> (\<Inter>i \<in> I. A(i)) \<longmapsto> ((\<Inter>i \<in> I. A'(i)) \<union> C)"
 apply (erule Fin_induct)
 apply (auto simp add: Inter_0)
 apply (rule completion)
@@ -681,15 +678,15 @@ done
 
 lemma finite_completion:
      "[| I \<in> Fin(X);
-         !!i. i \<in> I ==> F \<in> A(i) leadsTo (A'(i) \<union> C);
+         !!i. i \<in> I ==> F \<in> A(i) \<longmapsto> (A'(i) \<union> C);
          !!i. i \<in> I ==> F \<in> A'(i) co (A'(i) \<union> C); F \<in> program; st_set(C)|]
-      ==> F \<in> (\<Inter>i \<in> I. A(i)) leadsTo ((\<Inter>i \<in> I. A'(i)) \<union> C)"
+      ==> F \<in> (\<Inter>i \<in> I. A(i)) \<longmapsto> ((\<Inter>i \<in> I. A'(i)) \<union> C)"
 by (blast intro: finite_completion_aux [THEN mp, THEN mp])
 
 lemma stable_completion:
-     "[| F \<in> A leadsTo A';  F \<in> stable(A');
-         F \<in> B leadsTo B';  F \<in> stable(B') |]
-    ==> F \<in> (A \<inter> B) leadsTo (A' \<inter> B')"
+     "[| F \<in> A \<longmapsto> A';  F \<in> stable(A');
+         F \<in> B \<longmapsto> B';  F \<in> stable(B') |]
+    ==> F \<in> (A \<inter> B) \<longmapsto> (A' \<inter> B')"
 apply (unfold stable_def)
 apply (rule_tac C1 = 0 in completion [THEN leadsTo_weaken_R], simp+)
 apply (blast dest: leadsToD2)
@@ -698,9 +695,9 @@ done
 
 lemma finite_stable_completion:
      "[| I \<in> Fin(X);
-         (!!i. i \<in> I ==> F \<in> A(i) leadsTo A'(i));
+         (!!i. i \<in> I ==> F \<in> A(i) \<longmapsto> A'(i));
          (!!i. i \<in> I ==> F \<in> stable(A'(i)));  F \<in> program |]
-      ==> F \<in> (\<Inter>i \<in> I. A(i)) leadsTo (\<Inter>i \<in> I. A'(i))"
+      ==> F \<in> (\<Inter>i \<in> I. A(i)) \<longmapsto> (\<Inter>i \<in> I. A'(i))"
 apply (unfold stable_def)
 apply (subgoal_tac "st_set (\<Inter>i \<in> I. A' (i))")
 prefer 2 apply (blast dest: leadsToD2)

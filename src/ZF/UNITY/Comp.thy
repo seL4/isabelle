@@ -19,7 +19,7 @@ theory Comp imports Union Increasing begin
 
 definition
   component :: "[i,i]=>o"  (infixl "component" 65)  where
-  "F component H == (\<exists>G. F Join G = H)"
+  "F component H == (\<exists>G. F \<squnion> G = H)"
 
 definition
   strict_component :: "[i,i]=>o" (infixl "strict'_component" 65)  where
@@ -28,7 +28,7 @@ definition
 definition
   (* A stronger form of the component relation *)
   component_of :: "[i,i]=>o"   (infixl "component'_of" 65)  where
-  "F component_of H  == (\<exists>G. F ok G & F Join G = H)"
+  "F component_of H  == (\<exists>G. F ok G & F \<squnion> G = H)"
   
 definition
   strict_component_of :: "[i,i]=>o" (infixl "strict'_component'_of" 65)  where
@@ -52,10 +52,10 @@ definition
 (*** component and strict_component relations ***)
 
 lemma componentI: 
-     "H component F | H component G ==> H component (F Join G)"
+     "H component F | H component G ==> H component (F \<squnion> G)"
 apply (unfold component_def, auto)
-apply (rule_tac x = "Ga Join G" in exI)
-apply (rule_tac [2] x = "G Join F" in exI)
+apply (rule_tac x = "Ga \<squnion> G" in exI)
+apply (rule_tac [2] x = "G \<squnion> F" in exI)
 apply (auto simp add: Join_ac)
 done
 
@@ -84,22 +84,22 @@ apply (rule program_equalityI)
 apply (simp_all add: component_eq_subset, blast)
 done
 
-lemma component_Join1: "F component (F Join G)"
+lemma component_Join1: "F component (F \<squnion> G)"
 by (unfold component_def, blast)
 
-lemma component_Join2: "G component (F Join G)"
+lemma component_Join2: "G component (F \<squnion> G)"
 apply (unfold component_def)
 apply (simp (no_asm) add: Join_commute)
 apply blast
 done
 
-lemma Join_absorb1: "F component G ==> F Join G = G"
+lemma Join_absorb1: "F component G ==> F \<squnion> G = G"
 by (auto simp add: component_def Join_left_absorb)
 
-lemma Join_absorb2: "G component F ==> F Join G = F"
+lemma Join_absorb2: "G component F ==> F \<squnion> G = F"
 by (auto simp add: Join_ac component_def)
 
-lemma JN_component_iff:
+lemma JOIN_component_iff:
      "H \<in> program==>(JOIN(I,F) component H) \<longleftrightarrow> (\<forall>i \<in> I. F(i) component H)"
 apply (case_tac "I=0", force)
 apply (simp (no_asm_simp) add: component_eq_subset)
@@ -110,9 +110,9 @@ apply (drule_tac c = y and A = "AllowedActs (H)" in subsetD)
 apply (blast elim!: not_emptyE)+
 done
 
-lemma component_JN: "i \<in> I ==> F(i) component (\<Squnion>i \<in> I. (F(i)))"
+lemma component_JOIN: "i \<in> I ==> F(i) component (\<Squnion>i \<in> I. (F(i)))"
 apply (unfold component_def)
-apply (blast intro: JN_absorb)
+apply (blast intro: JOIN_absorb)
 done
 
 lemma component_trans: "[| F component G; G component H |] ==> F component H"
@@ -129,7 +129,7 @@ done
 
 lemma Join_component_iff:
      "H \<in> program ==> 
-      ((F Join G) component H) \<longleftrightarrow> (F component H & G component H)"
+      ((F \<squnion> G) component H) \<longleftrightarrow> (F component H & G component H)"
 apply (simp (no_asm_simp) add: component_eq_subset)
 apply blast
 done
@@ -163,13 +163,13 @@ apply (subgoal_tac "s \<in> state & t \<in> state")
 done
 
 lemma Join_preserves [iff]: 
-"(F Join G \<in> preserves(v)) \<longleftrightarrow>   
+"(F \<squnion> G \<in> preserves(v)) \<longleftrightarrow>   
       (programify(F) \<in> preserves(v) & programify(G) \<in> preserves(v))"
 by (auto simp add: preserves_def INT_iff)
  
-lemma JN_preserves [iff]:
+lemma JOIN_preserves [iff]:
      "(JOIN(I,F): preserves(v)) \<longleftrightarrow> (\<forall>i \<in> I. programify(F(i)):preserves(v))"
-by (auto simp add: JN_stable preserves_def INT_iff)
+by (auto simp add: JOIN_stable preserves_def INT_iff)
 
 lemma SKIP_preserves [iff]: "SKIP \<in> preserves(v)"
 by (auto simp add: preserves_def INT_iff)
@@ -286,7 +286,7 @@ done
 
 lemma stable_localTo_stable2: 
  "[| F \<in> stable({s \<in> state. P(f(s), g(s))});  G \<in> preserves(f);  G \<in> preserves(g) |]  
-      ==> F Join G \<in> stable({s \<in> state. P(f(s), g(s))})"
+      ==> F \<squnion> G \<in> stable({s \<in> state. P(f(s), g(s))})"
 apply (auto dest: ActsD preserves_into_program simp add: stable_def constrains_def)
 apply (case_tac "act \<in> Acts (F) ")
 apply auto
@@ -296,9 +296,9 @@ done
 
 lemma Increasing_preserves_Stable:
      "[| F \<in> stable({s \<in> state. <f(s), g(s)>:r});  G \<in> preserves(f);    
-         F Join G \<in> Increasing(A, r, g);  
+         F \<squnion> G \<in> Increasing(A, r, g);  
          \<forall>x \<in> state. f(x):A & g(x):A |]      
-      ==> F Join G \<in> Stable({s \<in> state. <f(s), g(s)>:r})"
+      ==> F \<squnion> G \<in> Stable({s \<in> state. <f(s), g(s)>:r})"
 apply (auto simp add: stable_def Stable_def Increasing_def Constrains_def all_conj_distrib)
 apply (simp_all add: constrains_type [THEN subsetD] preserves_type [THEN subsetD])
 apply (blast intro: constrains_weaken)
@@ -321,9 +321,9 @@ by (unfold Constrains_def constrains_def, auto)
 
 lemma stable_Join_Stable: 
  "[| F \<in> stable({s \<in> state. P(f(s), g(s))});  
-     \<forall>k \<in> A. F Join G \<in> Stable({s \<in> state. P(k, g(s))});  
+     \<forall>k \<in> A. F \<squnion> G \<in> Stable({s \<in> state. P(k, g(s))});  
      G \<in> preserves(f); \<forall>s \<in> state. f(s):A|]
-  ==> F Join G \<in> Stable({s \<in> state. P(f(s), g(s))})"
+  ==> F \<squnion> G \<in> Stable({s \<in> state. P(f(s), g(s))})"
 apply (unfold stable_def Stable_def preserves_def)
 apply (rule_tac A = "(\<Union>k \<in> A. {s \<in> state. f(s)=k} \<inter> {s \<in> state. P (f (s), g (s))})" in Constrains_weaken_L)
 prefer 2 apply blast

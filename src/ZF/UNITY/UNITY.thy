@@ -27,7 +27,7 @@ definition
               cons(id(state), allowed \<inter> Pow(state*state))>"
 
 definition
-  SKIP :: i  where
+  SKIP :: i  ("\<bottom>") where
   "SKIP == mk_program(state, 0, Pow(state*state))"
 
   (* Coercion from anything to program *)
