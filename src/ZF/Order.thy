@@ -49,8 +49,8 @@ definition
               {f \<in> A->B. \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r \<longrightarrow> <f`x,f`y>:s}"
 
 definition
-  ord_iso  :: "[i,i,i,i]=>i"            (*Order isomorphisms*)  where
-   "ord_iso(A,r,B,s) ==
+  ord_iso  :: "[i,i,i,i]=>i"  ("(\<langle>_, _\<rangle> \<cong>/ \<langle>_, _\<rangle>)" 51)  (*Order isomorphisms*)  where
+   "\<langle>A,r\<rangle> \<cong> \<langle>B,s\<rangle> ==
               {f \<in> bij(A,B). \<forall>x\<in>A. \<forall>y\<in>A. <x,y>:r \<longleftrightarrow> <f`x,f`y>:s}"
 
 definition
@@ -65,11 +65,6 @@ definition
 definition
   first :: "[i, i, i] => o"  where
     "first(u, X, R) == u \<in> X & (\<forall>v\<in>X. v\<noteq>u \<longrightarrow> <u,v> \<in> R)"
-
-
-notation (xsymbols)
-  ord_iso  ("(\<langle>_, _\<rangle> \<cong>/ \<langle>_, _\<rangle>)" 51)
-
 
 subsection\<open>Immediate Consequences of the Definitions\<close>
 
