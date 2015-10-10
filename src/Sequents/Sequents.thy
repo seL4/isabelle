@@ -21,8 +21,8 @@ subsection \<open>Sequences\<close>
 
 typedecl seq'
 consts
- SeqO'         :: "[o,seq']=>seq'"
- Seq1'         :: "o=>seq'"
+ SeqO'         :: "[o,seq']\<Rightarrow>seq'"
+ Seq1'         :: "o\<Rightarrow>seq'"
 
 
 subsection \<open>Concrete syntax\<close>
@@ -31,28 +31,28 @@ nonterminal seq and seqobj and seqcont
 
 syntax
  "_SeqEmp"         :: seq                                  ("")
- "_SeqApp"         :: "[seqobj,seqcont] => seq"            ("__")
+ "_SeqApp"         :: "[seqobj,seqcont] \<Rightarrow> seq"            ("__")
 
  "_SeqContEmp"     :: seqcont                              ("")
- "_SeqContApp"     :: "[seqobj,seqcont] => seqcont"        (",/ __")
+ "_SeqContApp"     :: "[seqobj,seqcont] \<Rightarrow> seqcont"        (",/ __")
 
- "_SeqO"           :: "o => seqobj"                        ("_")
- "_SeqId"          :: "'a => seqobj"                       ("$_")
+ "_SeqO"           :: "o \<Rightarrow> seqobj"                        ("_")
+ "_SeqId"          :: "'a \<Rightarrow> seqobj"                       ("$_")
 
-type_synonym single_seqe = "[seq,seqobj] => prop"
-type_synonym single_seqi = "[seq'=>seq',seq'=>seq'] => prop"
-type_synonym two_seqi = "[seq'=>seq', seq'=>seq'] => prop"
-type_synonym two_seqe = "[seq, seq] => prop"
-type_synonym three_seqi = "[seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
-type_synonym three_seqe = "[seq, seq, seq] => prop"
-type_synonym four_seqi = "[seq'=>seq', seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
-type_synonym four_seqe = "[seq, seq, seq, seq] => prop"
-type_synonym sequence_name = "seq'=>seq'"
+type_synonym single_seqe = "[seq,seqobj] \<Rightarrow> prop"
+type_synonym single_seqi = "[seq'\<Rightarrow>seq',seq'\<Rightarrow>seq'] \<Rightarrow> prop"
+type_synonym two_seqi = "[seq'\<Rightarrow>seq', seq'\<Rightarrow>seq'] \<Rightarrow> prop"
+type_synonym two_seqe = "[seq, seq] \<Rightarrow> prop"
+type_synonym three_seqi = "[seq'\<Rightarrow>seq', seq'\<Rightarrow>seq', seq'\<Rightarrow>seq'] \<Rightarrow> prop"
+type_synonym three_seqe = "[seq, seq, seq] \<Rightarrow> prop"
+type_synonym four_seqi = "[seq'\<Rightarrow>seq', seq'\<Rightarrow>seq', seq'\<Rightarrow>seq', seq'\<Rightarrow>seq'] \<Rightarrow> prop"
+type_synonym four_seqe = "[seq, seq, seq, seq] \<Rightarrow> prop"
+type_synonym sequence_name = "seq'\<Rightarrow>seq'"
 
 
 syntax
   (*Constant to allow definitions of SEQUENCES of formulas*)
-  "_Side"        :: "seq=>(seq'=>seq')"     ("<<(_)>>")
+  "_Side"        :: "seq\<Rightarrow>(seq'\<Rightarrow>seq')"     ("<<(_)>>")
 
 ML \<open>
 

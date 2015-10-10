@@ -23,12 +23,12 @@ axiomatization where
 
   boxR:
    "\<lbrakk>$E |L> $E';  $F |R> $F';  $G |R> $G';
-               $E'        |- $F', P, $G'\<rbrakk> \<Longrightarrow> $E          |- $F, []P, $G" and
-  boxL:     "$E, P, $F  |-         $G    \<Longrightarrow> $E, []P, $F |-          $G" and
-  diaR:     "$E         |- $F, P,  $G    \<Longrightarrow> $E          |- $F, <>P, $G" and
+               $E'        \<turnstile> $F', P, $G'\<rbrakk> \<Longrightarrow> $E          \<turnstile> $F, []P, $G" and
+  boxL:     "$E, P, $F  \<turnstile>         $G    \<Longrightarrow> $E, []P, $F \<turnstile>          $G" and
+  diaR:     "$E         \<turnstile> $F, P,  $G    \<Longrightarrow> $E          \<turnstile> $F, <>P, $G" and
   diaL:
    "\<lbrakk>$E |L> $E';  $F |L> $F';  $G |R> $G';
-               $E', P, $F'|-         $G'\<rbrakk> \<Longrightarrow> $E, <>P, $F |-          $G"
+               $E', P, $F'\<turnstile>         $G'\<rbrakk> \<Longrightarrow> $E, <>P, $F \<turnstile>          $G"
 
 ML \<open>
 structure T_Prover = Modal_ProverFun
@@ -47,28 +47,28 @@ method_setup T_solve = \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (T_Prover.s
 
 (* Theorems of system T from Hughes and Cresswell and Hailpern, LNCS 129 *)
 
-lemma "|- []P \<longrightarrow> P" by T_solve
-lemma "|- [](P \<longrightarrow> Q) \<longrightarrow> ([]P \<longrightarrow> []Q)" by T_solve   (* normality*)
-lemma "|- (P --< Q) \<longrightarrow> []P \<longrightarrow> []Q" by T_solve
-lemma "|- P \<longrightarrow> <>P" by T_solve
+lemma "\<turnstile> []P \<longrightarrow> P" by T_solve
+lemma "\<turnstile> [](P \<longrightarrow> Q) \<longrightarrow> ([]P \<longrightarrow> []Q)" by T_solve   (* normality*)
+lemma "\<turnstile> (P --< Q) \<longrightarrow> []P \<longrightarrow> []Q" by T_solve
+lemma "\<turnstile> P \<longrightarrow> <>P" by T_solve
 
-lemma "|-  [](P \<and> Q) \<longleftrightarrow> []P \<and> []Q" by T_solve
-lemma "|-  <>(P \<or> Q) \<longleftrightarrow> <>P \<or> <>Q" by T_solve
-lemma "|-  [](P \<longleftrightarrow> Q) \<longleftrightarrow> (P >-< Q)" by T_solve
-lemma "|-  <>(P \<longrightarrow> Q) \<longleftrightarrow> ([]P \<longrightarrow> <>Q)" by T_solve
-lemma "|-        []P \<longleftrightarrow> \<not> <>(\<not> P)" by T_solve
-lemma "|-     [](\<not> P) \<longleftrightarrow> \<not> <>P" by T_solve
-lemma "|-       \<not> []P \<longleftrightarrow> <>(\<not> P)" by T_solve
-lemma "|-      [][]P \<longleftrightarrow> \<not> <><>(\<not> P)" by T_solve
-lemma "|- \<not> <>(P \<or> Q) \<longleftrightarrow> \<not> <>P \<and> \<not> <>Q" by T_solve
+lemma "\<turnstile>  [](P \<and> Q) \<longleftrightarrow> []P \<and> []Q" by T_solve
+lemma "\<turnstile>  <>(P \<or> Q) \<longleftrightarrow> <>P \<or> <>Q" by T_solve
+lemma "\<turnstile>  [](P \<longleftrightarrow> Q) \<longleftrightarrow> (P >-< Q)" by T_solve
+lemma "\<turnstile>  <>(P \<longrightarrow> Q) \<longleftrightarrow> ([]P \<longrightarrow> <>Q)" by T_solve
+lemma "\<turnstile>        []P \<longleftrightarrow> \<not> <>(\<not> P)" by T_solve
+lemma "\<turnstile>     [](\<not> P) \<longleftrightarrow> \<not> <>P" by T_solve
+lemma "\<turnstile>       \<not> []P \<longleftrightarrow> <>(\<not> P)" by T_solve
+lemma "\<turnstile>      [][]P \<longleftrightarrow> \<not> <><>(\<not> P)" by T_solve
+lemma "\<turnstile> \<not> <>(P \<or> Q) \<longleftrightarrow> \<not> <>P \<and> \<not> <>Q" by T_solve
 
-lemma "|- []P \<or> []Q \<longrightarrow> [](P \<or> Q)" by T_solve
-lemma "|- <>(P \<and> Q) \<longrightarrow> <>P \<and> <>Q" by T_solve
-lemma "|- [](P \<or> Q) \<longrightarrow> []P \<or> <>Q" by T_solve
-lemma "|- <>P \<and> []Q \<longrightarrow> <>(P \<and> Q)" by T_solve
-lemma "|- [](P \<or> Q) \<longrightarrow> <>P \<or> []Q" by T_solve
-lemma "|- <>(P \<longrightarrow> (Q \<and> R)) \<longrightarrow> ([]P \<longrightarrow> <>Q) \<and> ([]P \<longrightarrow> <>R)" by T_solve
-lemma "|- (P --< Q) \<and> (Q --< R ) \<longrightarrow> (P --< R)" by T_solve
-lemma "|- []P \<longrightarrow> <>Q \<longrightarrow> <>(P \<and> Q)" by T_solve
+lemma "\<turnstile> []P \<or> []Q \<longrightarrow> [](P \<or> Q)" by T_solve
+lemma "\<turnstile> <>(P \<and> Q) \<longrightarrow> <>P \<and> <>Q" by T_solve
+lemma "\<turnstile> [](P \<or> Q) \<longrightarrow> []P \<or> <>Q" by T_solve
+lemma "\<turnstile> <>P \<and> []Q \<longrightarrow> <>(P \<and> Q)" by T_solve
+lemma "\<turnstile> [](P \<or> Q) \<longrightarrow> <>P \<or> []Q" by T_solve
+lemma "\<turnstile> <>(P \<longrightarrow> (Q \<and> R)) \<longrightarrow> ([]P \<longrightarrow> <>Q) \<and> ([]P \<longrightarrow> <>R)" by T_solve
+lemma "\<turnstile> (P --< Q) \<and> (Q --< R ) \<longrightarrow> (P --< R)" by T_solve
+lemma "\<turnstile> []P \<longrightarrow> <>Q \<longrightarrow> <>(P \<and> Q)" by T_solve
 
 end

@@ -43,12 +43,12 @@ defs
 
 lemmas rewrite_rls = strimp_def streqv_def
 
-lemma iffR: "\<lbrakk>$H,P |- $E,Q,$F;  $H,Q |- $E,P,$F\<rbrakk> \<Longrightarrow> $H |- $E, P \<longleftrightarrow> Q, $F"
+lemma iffR: "\<lbrakk>$H,P \<turnstile> $E,Q,$F;  $H,Q \<turnstile> $E,P,$F\<rbrakk> \<Longrightarrow> $H \<turnstile> $E, P \<longleftrightarrow> Q, $F"
   apply (unfold iff_def)
   apply (assumption | rule conjR impR)+
   done
 
-lemma iffL: "\<lbrakk>$H,$G |- $E,P,Q;  $H,Q,P,$G |- $E \<rbrakk> \<Longrightarrow> $H, P \<longleftrightarrow> Q, $G |- $E"
+lemma iffL: "\<lbrakk>$H,$G \<turnstile> $E,P,Q;  $H,Q,P,$G \<turnstile> $E \<rbrakk> \<Longrightarrow> $H, P \<longleftrightarrow> Q, $G \<turnstile> $E"
   apply (unfold iff_def)
   apply (assumption | rule conjL impL basic)+
   done

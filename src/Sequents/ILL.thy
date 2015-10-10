@@ -31,7 +31,7 @@ consts
   PromAux :: "three_seqi"
 
 syntax
-  "_Trueprop" :: "single_seqe" ("((_)/ |- (_))" [6,6] 5)
+  "_Trueprop" :: "single_seqe" ("((_)/ \<turnstile> (_))" [6,6] 5)
   "_Context"  :: "two_seqe"   ("((_)/ :=: (_))" [6,6] 5)
   "_PromAux"  :: "three_seqe" ("promaux {_||_||_}")
 
@@ -56,63 +56,63 @@ aneg_def:        "~A == A -o 0"
 
 axiomatization where
 
-identity:        "P |- P" and
+identity:        "P \<turnstile> P" and
 
-zerol:           "$G, 0, $H |- A" and
+zerol:           "$G, 0, $H \<turnstile> A" and
 
   (* RULES THAT DO NOT DIVIDE CONTEXT *)
 
-derelict:   "$F, A, $G |- C \<Longrightarrow> $F, !A, $G |- C" and
+derelict:   "$F, A, $G \<turnstile> C \<Longrightarrow> $F, !A, $G \<turnstile> C" and
   (* unfortunately, this one removes !A  *)
 
-contract:  "$F, !A, !A, $G |- C \<Longrightarrow> $F, !A, $G |- C" and
+contract:  "$F, !A, !A, $G \<turnstile> C \<Longrightarrow> $F, !A, $G \<turnstile> C" and
 
-weaken:     "$F, $G |- C \<Longrightarrow> $G, !A, $F |- C" and
+weaken:     "$F, $G \<turnstile> C \<Longrightarrow> $G, !A, $F \<turnstile> C" and
   (* weak form of weakening, in practice just to clean context *)
   (* weaken and contract not needed (CHECK)  *)
 
-promote2:        "promaux{ || $H || B} \<Longrightarrow> $H |- !B" and
+promote2:        "promaux{ || $H || B} \<Longrightarrow> $H \<turnstile> !B" and
 promote1:        "promaux{!A, $G || $H || B}
                   \<Longrightarrow> promaux {$G || $H, !A || B}" and
-promote0:        "$G |- A \<Longrightarrow> promaux {$G || || A}" and
+promote0:        "$G \<turnstile> A \<Longrightarrow> promaux {$G || || A}" and
 
 
 
-tensl:     "$H, A, B, $G |- C \<Longrightarrow> $H, A >< B, $G |- C" and
+tensl:     "$H, A, B, $G \<turnstile> C \<Longrightarrow> $H, A >< B, $G \<turnstile> C" and
 
-impr:      "A, $F |- B \<Longrightarrow> $F |- A -o B" and
+impr:      "A, $F \<turnstile> B \<Longrightarrow> $F \<turnstile> A -o B" and
 
-conjr:           "\<lbrakk>$F |- A ;
-                 $F |- B\<rbrakk>
-                \<Longrightarrow> $F |- (A && B)" and
+conjr:           "\<lbrakk>$F \<turnstile> A ;
+                 $F \<turnstile> B\<rbrakk>
+                \<Longrightarrow> $F \<turnstile> (A && B)" and
 
-conjll:          "$G, A, $H |- C \<Longrightarrow> $G, A && B, $H |- C" and
+conjll:          "$G, A, $H \<turnstile> C \<Longrightarrow> $G, A && B, $H \<turnstile> C" and
 
-conjlr:          "$G, B, $H |- C \<Longrightarrow> $G, A && B, $H |- C" and
+conjlr:          "$G, B, $H \<turnstile> C \<Longrightarrow> $G, A && B, $H \<turnstile> C" and
 
-disjrl:          "$G |- A \<Longrightarrow> $G |- A ++ B" and
-disjrr:          "$G |- B \<Longrightarrow> $G |- A ++ B" and
-disjl:           "\<lbrakk>$G, A, $H |- C ;
-                   $G, B, $H |- C\<rbrakk>
-                 \<Longrightarrow> $G, A ++ B, $H |- C" and
+disjrl:          "$G \<turnstile> A \<Longrightarrow> $G \<turnstile> A ++ B" and
+disjrr:          "$G \<turnstile> B \<Longrightarrow> $G \<turnstile> A ++ B" and
+disjl:           "\<lbrakk>$G, A, $H \<turnstile> C ;
+                   $G, B, $H \<turnstile> C\<rbrakk>
+                 \<Longrightarrow> $G, A ++ B, $H \<turnstile> C" and
 
 
       (* RULES THAT DIVIDE CONTEXT *)
 
 tensr:           "\<lbrakk>$F, $J :=: $G;
-                   $F |- A ;
-                   $J |- B\<rbrakk>
-                     \<Longrightarrow> $G |- A >< B" and
+                   $F \<turnstile> A ;
+                   $J \<turnstile> B\<rbrakk>
+                     \<Longrightarrow> $G \<turnstile> A >< B" and
 
 impl:            "\<lbrakk>$G, $F :=: $J, $H ;
-                   B, $F |- C ;
-                   $G |- A\<rbrakk>
-                     \<Longrightarrow> $J, A -o B, $H |- C" and
+                   B, $F \<turnstile> C ;
+                   $G \<turnstile> A\<rbrakk>
+                     \<Longrightarrow> $J, A -o B, $H \<turnstile> C" and
 
 
 cut: "\<lbrakk> $J1, $H1, $J2, $H3, $J3, $H2, $J4, $H4 :=: $F ;
-        $H1, $H2, $H3, $H4 |- A ;
-        $J1, $J2, A, $J3, $J4 |- B\<rbrakk> \<Longrightarrow> $F |- B" and
+        $H1, $H2, $H3, $H4 \<turnstile> A ;
+        $J1, $J2, A, $J3, $J4 \<turnstile> B\<rbrakk> \<Longrightarrow> $F \<turnstile> B" and
 
 
   (* CONTEXT RULES *)
@@ -150,7 +150,7 @@ lemmas [unsafe] =
   zerol
   identity
 
-lemma aux_impl: "$F, $G |- A \<Longrightarrow> $F, !(A -o B), $G |- B"
+lemma aux_impl: "$F, $G \<turnstile> A \<Longrightarrow> $F, !(A -o B), $G \<turnstile> B"
   apply (rule derelict)
   apply (rule impl)
   apply (rule_tac [2] identity)
@@ -158,16 +158,16 @@ lemma aux_impl: "$F, $G |- A \<Longrightarrow> $F, !(A -o B), $G |- B"
   apply assumption
   done
 
-lemma conj_lemma: " $F, !A, !B, $G |- C \<Longrightarrow> $F, !(A && B), $G |- C"
+lemma conj_lemma: " $F, !A, !B, $G \<turnstile> C \<Longrightarrow> $F, !(A && B), $G \<turnstile> C"
   apply (rule contract)
   apply (rule_tac A = " (!A) >< (!B) " in cut)
   apply (rule_tac [2] tensr)
   prefer 3
-  apply (subgoal_tac "! (A && B) |- !A")
+  apply (subgoal_tac "! (A && B) \<turnstile> !A")
   apply assumption
   apply best
   prefer 3
-  apply (subgoal_tac "! (A && B) |- !B")
+  apply (subgoal_tac "! (A && B) \<turnstile> !B")
   apply assumption
   apply best
   apply (rule_tac [2] context1)
@@ -178,20 +178,20 @@ lemma conj_lemma: " $F, !A, !B, $G |- C \<Longrightarrow> $F, !(A && B), $G |- C
   apply (rule context1)
   done
 
-lemma impr_contract: "!A, !A, $G |- B \<Longrightarrow> $G |- (!A) -o B"
+lemma impr_contract: "!A, !A, $G \<turnstile> B \<Longrightarrow> $G \<turnstile> (!A) -o B"
   apply (rule impr)
   apply (rule contract)
   apply assumption
   done
 
-lemma impr_contr_der: "A, !A, $G |- B \<Longrightarrow> $G |- (!A) -o B"
+lemma impr_contr_der: "A, !A, $G \<turnstile> B \<Longrightarrow> $G \<turnstile> (!A) -o B"
   apply (rule impr)
   apply (rule contract)
   apply (rule derelict)
   apply assumption
   done
 
-lemma contrad1: "$F, (!B) -o 0, $G, !B, $H |- A"
+lemma contrad1: "$F, (!B) -o 0, $G, !B, $H \<turnstile> A"
   apply (rule impl)
   apply (rule_tac [3] identity)
   apply (rule context3)
@@ -200,7 +200,7 @@ lemma contrad1: "$F, (!B) -o 0, $G, !B, $H |- A"
   done
 
 
-lemma contrad2: "$F, !B, $G, (!B) -o 0, $H |- A"
+lemma contrad2: "$F, !B, $G, (!B) -o 0, $H \<turnstile> A"
   apply (rule impl)
   apply (rule_tac [3] identity)
   apply (rule context3)
@@ -208,14 +208,14 @@ lemma contrad2: "$F, !B, $G, (!B) -o 0, $H |- A"
   apply (rule zerol)
   done
 
-lemma ll_mp: "A -o B, A |- B"
+lemma ll_mp: "A -o B, A \<turnstile> B"
   apply (rule impl)
   apply (rule_tac [2] identity)
   apply (rule_tac [2] identity)
   apply (rule context1)
   done
 
-lemma mp_rule1: "$F, B, $G, $H |- C \<Longrightarrow> $F, A, $G, A -o B, $H |- C"
+lemma mp_rule1: "$F, B, $G, $H \<turnstile> C \<Longrightarrow> $F, A, $G, A -o B, $H \<turnstile> C"
   apply (rule_tac A = "B" in cut)
   apply (rule_tac [2] ll_mp)
   prefer 2 apply (assumption)
@@ -224,7 +224,7 @@ lemma mp_rule1: "$F, B, $G, $H |- C \<Longrightarrow> $F, A, $G, A -o B, $H |- C
   apply (rule context1)
   done
 
-lemma mp_rule2: "$F, B, $G, $H |- C \<Longrightarrow> $F, A -o B, $G, A, $H |- C"
+lemma mp_rule2: "$F, B, $G, $H \<turnstile> C \<Longrightarrow> $F, A -o B, $G, A, $H \<turnstile> C"
   apply (rule_tac A = "B" in cut)
   apply (rule_tac [2] ll_mp)
   prefer 2 apply (assumption)
@@ -233,11 +233,11 @@ lemma mp_rule2: "$F, B, $G, $H |- C \<Longrightarrow> $F, A -o B, $G, A, $H |- C
   apply (rule context1)
   done
 
-lemma or_to_and: "!((!(A ++ B)) -o 0) |- !( ((!A) -o 0) && ((!B) -o 0))"
+lemma or_to_and: "!((!(A ++ B)) -o 0) \<turnstile> !( ((!A) -o 0) && ((!B) -o 0))"
   by best
 
-lemma o_a_rule: "$F, !( ((!A) -o 0) && ((!B) -o 0)), $G |- C \<Longrightarrow>
-          $F, !((!(A ++ B)) -o 0), $G |- C"
+lemma o_a_rule: "$F, !( ((!A) -o 0) && ((!B) -o 0)), $G \<turnstile> C \<Longrightarrow>
+          $F, !((!(A ++ B)) -o 0), $G \<turnstile> C"
   apply (rule cut)
   apply (rule_tac [2] or_to_and)
   prefer 2 apply (assumption)
@@ -245,17 +245,17 @@ lemma o_a_rule: "$F, !( ((!A) -o 0) && ((!B) -o 0)), $G |- C \<Longrightarrow>
   apply (rule context1)
   done
 
-lemma conj_imp: "((!A) -o C) ++ ((!B) -o C) |- (!(A && B)) -o C"
+lemma conj_imp: "((!A) -o C) ++ ((!B) -o C) \<turnstile> (!(A && B)) -o C"
   apply (rule impr)
   apply (rule conj_lemma)
   apply (rule disjl)
   apply (rule mp_rule1, best)+
   done
 
-lemma not_imp: "!A, !((!B) -o 0) |- (!((!A) -o B)) -o 0"
+lemma not_imp: "!A, !((!B) -o 0) \<turnstile> (!((!A) -o B)) -o 0"
   by best
 
-lemma a_not_a: "!A -o (!A -o 0) |- !A -o 0"
+lemma a_not_a: "!A -o (!A -o 0) \<turnstile> !A -o 0"
   apply (rule impr)
   apply (rule contract)
   apply (rule impl)
@@ -264,7 +264,7 @@ lemma a_not_a: "!A -o (!A -o 0) |- !A -o 0"
   apply best
   done
 
-lemma a_not_a_rule: "$J1, !A -o 0, $J2 |- B \<Longrightarrow> $J1, !A -o (!A -o 0), $J2 |- B"
+lemma a_not_a_rule: "$J1, !A -o 0, $J2 \<turnstile> B \<Longrightarrow> $J1, !A -o (!A -o 0), $J2 \<turnstile> B"
   apply (rule_tac A = "!A -o 0" in cut)
   apply (rule_tac [2] a_not_a)
   prefer 2 apply assumption
@@ -294,17 +294,17 @@ method_setup best_power =
 
 (* Some examples from Troelstra and van Dalen *)
 
-lemma "!((!A) -o ((!B) -o 0)) |- (!(A && B)) -o 0"
+lemma "!((!A) -o ((!B) -o 0)) \<turnstile> (!(A && B)) -o 0"
   by best_safe
 
-lemma "!((!(A && B)) -o 0) |- !((!A) -o ((!B) -o 0))"
+lemma "!((!(A && B)) -o 0) \<turnstile> !((!A) -o ((!B) -o 0))"
   by best_safe
 
-lemma "!( (!((! ((!A) -o B) ) -o 0)) -o 0) |-
+lemma "!( (!((! ((!A) -o B) ) -o 0)) -o 0) \<turnstile>
         (!A) -o ( (!  ((!B) -o 0)) -o 0)"
   by best_safe
 
-lemma "!(  (!A) -o ( (!  ((!B) -o 0)) -o 0) ) |-
+lemma "!(  (!A) -o ( (!  ((!B) -o 0)) -o 0) ) \<turnstile>
           (!((! ((!A) -o B) ) -o 0)) -o 0"
   by best_power
 

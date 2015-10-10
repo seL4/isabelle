@@ -30,100 +30,100 @@ translations
 
 (* from [kleene 52] pp 118,119 *)
 
-lemma k49a: "|- [* A > ( - ( - A)) *]"
+lemma k49a: "\<turnstile> [* A > ( - ( - A)) *]"
   by best_safe
 
-lemma k49b: "|- [*( - ( - ( - A))) = ( - A)*]"
+lemma k49b: "\<turnstile> [*( - ( - ( - A))) = ( - A)*]"
   by best_safe
 
-lemma k49c: "|- [* (A | - A) > ( - - A = A) *]"
+lemma k49c: "\<turnstile> [* (A | - A) > ( - - A = A) *]"
   by best_safe
 
-lemma k50a: "|- [* - (A = - A) *]"
+lemma k50a: "\<turnstile> [* - (A = - A) *]"
   by best_power
 
-lemma k51a: "|- [* - - (A | - A) *]"
+lemma k51a: "\<turnstile> [* - - (A | - A) *]"
   by best_safe
 
-lemma k51b: "|- [* - - (- - A > A) *]"
+lemma k51b: "\<turnstile> [* - - (- - A > A) *]"
   by best_power
 
-lemma k56a: "|- [* (A | B) > - (- A & - B) *]"
+lemma k56a: "\<turnstile> [* (A | B) > - (- A & - B) *]"
   by best_safe
 
-lemma k56b: "|- [* (-A | B) > - (A & -B) *]"
+lemma k56b: "\<turnstile> [* (-A | B) > - (A & -B) *]"
   by best_safe
 
-lemma k57a: "|- [* (A & B) > - (-A | -B) *]"
+lemma k57a: "\<turnstile> [* (A & B) > - (-A | -B) *]"
   by best_safe
 
-lemma k57b: "|- [* (A & -B) > -(-A | B) *]"
+lemma k57b: "\<turnstile> [* (A & -B) > -(-A | B) *]"
   by best_power
 
-lemma k58a: "|- [* (A > B) > - (A & -B) *]"
+lemma k58a: "\<turnstile> [* (A > B) > - (A & -B) *]"
   by best_safe
 
-lemma k58b: "|- [* (A > -B) = -(A & B) *]"
+lemma k58b: "\<turnstile> [* (A > -B) = -(A & B) *]"
   by best_safe
 
-lemma k58c: "|- [* - (A & B) = (- - A > - B) *]"
+lemma k58c: "\<turnstile> [* - (A & B) = (- - A > - B) *]"
   by best_safe
 
-lemma k58d: "|- [* (- - A > - B) = - - (-A | -B) *]"
+lemma k58d: "\<turnstile> [* (- - A > - B) = - - (-A | -B) *]"
   by best_safe
 
-lemma k58e: "! [* - -B > B *] |- [* (- -A > B) = (A > B) *]"
+lemma k58e: "! [* - -B > B *] \<turnstile> [* (- -A > B) = (A > B) *]"
   by best_safe
 
-lemma k58f: "! [* - -B > B *] |- [* (A > B) = - (A & -B) *]"
+lemma k58f: "! [* - -B > B *] \<turnstile> [* (A > B) = - (A & -B) *]"
   by best_safe
 
-lemma k58g: "|- [* (- -A > B) > - (A & -B) *]"
+lemma k58g: "\<turnstile> [* (- -A > B) > - (A & -B) *]"
   by best_safe
 
-lemma k59a: "|- [* (-A | B) > (A > B) *]"
+lemma k59a: "\<turnstile> [* (-A | B) > (A > B) *]"
   by best_safe
 
-lemma k59b: "|- [* (A > B) > - - (-A | B) *]"
+lemma k59b: "\<turnstile> [* (A > B) > - - (-A | B) *]"
   by best_power
 
-lemma k59c: "|- [* (-A > B) > - -(A | B) *]"
+lemma k59c: "\<turnstile> [* (-A > B) > - -(A | B) *]"
   by best_power
 
-lemma k60a: "|- [* (A & B) > - (A > -B) *]"
+lemma k60a: "\<turnstile> [* (A & B) > - (A > -B) *]"
   by best_safe
 
-lemma k60b: "|- [* (A & -B) > - (A > B) *]"
+lemma k60b: "\<turnstile> [* (A & -B) > - (A > B) *]"
   by best_safe
 
-lemma k60c: "|- [* ( - - A & B) > - (A > -B) *]"
+lemma k60c: "\<turnstile> [* ( - - A & B) > - (A > -B) *]"
   by best_safe
 
-lemma k60d: "|- [* (- - A & - B) = - (A > B) *]"
+lemma k60d: "\<turnstile> [* (- - A & - B) = - (A > B) *]"
   by best_safe
 
-lemma k60e: "|- [* - (A > B) = - (-A | B) *]"
+lemma k60e: "\<turnstile> [* - (A > B) = - (-A | B) *]"
   by best_safe
 
-lemma k60f: "|- [* - (-A | B) = - - (A & -B) *]"
+lemma k60f: "\<turnstile> [* - (-A | B) = - - (A & -B) *]"
   by best_safe
 
-lemma k60g: "|- [* - - (A > B) = - (A & -B) *]"
+lemma k60g: "\<turnstile> [* - - (A > B) = - (A & -B) *]"
   by best_power
 
-lemma k60h: "|- [* - (A & -B) = (A > - -B) *]"
+lemma k60h: "\<turnstile> [* - (A & -B) = (A > - -B) *]"
   by best_safe
 
-lemma k60i: "|- [* (A > - -B) = (- -A > - -B) *]"
+lemma k60i: "\<turnstile> [* (A > - -B) = (- -A > - -B) *]"
   by best_safe
 
-lemma k61a: "|- [* (A | B) > (-A > B) *]"
+lemma k61a: "\<turnstile> [* (A | B) > (-A > B) *]"
   by best_safe
 
-lemma k61b: "|- [* - (A | B) = - (-A > B) *]"
+lemma k61b: "\<turnstile> [* - (A | B) = - (-A > B) *]"
   by best_power
 
-lemma k62a: "|- [* (-A | -B) > - (A & B) *]"
+lemma k62a: "\<turnstile> [* (-A | -B) > - (A & B) *]"
   by best_safe
 
 end
