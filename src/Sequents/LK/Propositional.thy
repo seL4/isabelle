@@ -9,75 +9,75 @@ theory Propositional
 imports "../LK"
 begin
 
-text "absorptive laws of & and | "
+text "absorptive laws of \<and> and \<or>"
 
-lemma "|- P & P <-> P"
+lemma "|- P \<and> P \<longleftrightarrow> P"
   by fast_prop
 
-lemma "|- P | P <-> P"
-  by fast_prop
-
-
-text "commutative laws of & and | "
-
-lemma "|- P & Q  <->  Q & P"
-  by fast_prop
-
-lemma "|- P | Q  <->  Q | P"
+lemma "|- P \<or> P \<longleftrightarrow> P"
   by fast_prop
 
 
-text "associative laws of & and | "
+text "commutative laws of \<and> and \<or>"
 
-lemma "|- (P & Q) & R  <->  P & (Q & R)"
+lemma "|- P \<and> Q \<longleftrightarrow> Q \<and> P"
   by fast_prop
 
-lemma "|- (P | Q) | R  <->  P | (Q | R)"
+lemma "|- P \<or> Q \<longleftrightarrow> Q \<or> P"
   by fast_prop
 
 
-text "distributive laws of & and | "
+text "associative laws of \<and> and \<or>"
 
-lemma "|- (P & Q) | R  <-> (P | R) & (Q | R)"
+lemma "|- (P \<and> Q) \<and> R \<longleftrightarrow> P \<and> (Q \<and> R)"
   by fast_prop
 
-lemma "|- (P | Q) & R  <-> (P & R) | (Q & R)"
+lemma "|- (P \<or> Q) \<or> R \<longleftrightarrow> P \<or> (Q \<or> R)"
+  by fast_prop
+
+
+text "distributive laws of \<and> and \<or>"
+
+lemma "|- (P \<and> Q) \<or> R \<longleftrightarrow> (P \<or> R) \<and> (Q \<or> R)"
+  by fast_prop
+
+lemma "|- (P \<or> Q) \<and> R \<longleftrightarrow> (P \<and> R) \<or> (Q \<and> R)"
   by fast_prop
 
 
 text "Laws involving implication"
 
-lemma "|- (P|Q --> R) <-> (P-->R) & (Q-->R)"
+lemma "|- (P \<or> Q \<longrightarrow> R) \<longleftrightarrow> (P \<longrightarrow> R) \<and> (Q \<longrightarrow> R)"
   by fast_prop
 
-lemma "|- (P & Q --> R) <-> (P--> (Q-->R))"
+lemma "|- (P \<and> Q \<longrightarrow> R) \<longleftrightarrow> (P \<longrightarrow> (Q \<longrightarrow> R))"
   by fast_prop
 
-lemma "|- (P --> Q & R) <-> (P-->Q)  &  (P-->R)"
+lemma "|- (P \<longrightarrow> Q \<and> R) \<longleftrightarrow> (P \<longrightarrow> Q) \<and> (P \<longrightarrow> R)"
   by fast_prop
 
 
 text "Classical theorems"
 
-lemma "|- P|Q --> P| ~P&Q"
+lemma "|- P \<or> Q \<longrightarrow> P \<or> \<not> P \<and> Q"
   by fast_prop
 
-lemma "|- (P-->Q)&(~P-->R)  -->  (P&Q | R)"
+lemma "|- (P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> R) \<longrightarrow> (P \<and> Q \<or> R)"
   by fast_prop
 
-lemma "|- P&Q | ~P&R  <->  (P-->Q)&(~P-->R)"
+lemma "|- P \<and> Q \<or> \<not> P \<and> R \<longleftrightarrow> (P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> R)"
   by fast_prop
 
-lemma "|- (P-->Q) | (P-->R)  <->  (P --> Q | R)"
+lemma "|- (P \<longrightarrow> Q) \<or> (P \<longrightarrow> R) \<longleftrightarrow> (P \<longrightarrow> Q \<or> R)"
   by fast_prop
 
 
 (*If and only if*)
 
-lemma "|- (P<->Q) <-> (Q<->P)"
+lemma "|- (P \<longleftrightarrow> Q) \<longleftrightarrow> (Q \<longleftrightarrow> P)"
   by fast_prop
 
-lemma "|- ~ (P <-> ~P)"
+lemma "|- \<not> (P \<longleftrightarrow> \<not> P)"
   by fast_prop
 
 
@@ -89,71 +89,71 @@ lemma "|- ~ (P <-> ~P)"
 *)
 
 (*1*)
-lemma "|- (P-->Q)  <->  (~Q --> ~P)"
+lemma "|- (P \<longrightarrow> Q) \<longleftrightarrow> (\<not> Q \<longrightarrow> \<not> P)"
   by fast_prop
 
 (*2*)
-lemma "|- ~ ~ P  <->  P"
+lemma "|- \<not> \<not> P \<longleftrightarrow> P"
   by fast_prop
 
 (*3*)
-lemma "|- ~(P-->Q) --> (Q-->P)"
+lemma "|- \<not> (P \<longrightarrow> Q) \<longrightarrow> (Q \<longrightarrow> P)"
   by fast_prop
 
 (*4*)
-lemma "|- (~P-->Q)  <->  (~Q --> P)"
+lemma "|- (\<not> P \<longrightarrow> Q) \<longleftrightarrow> (\<not> Q \<longrightarrow> P)"
   by fast_prop
 
 (*5*)
-lemma "|- ((P|Q)-->(P|R)) --> (P|(Q-->R))"
+lemma "|- ((P \<or> Q) \<longrightarrow> (P \<or> R)) \<longrightarrow> (P \<or> (Q \<longrightarrow> R))"
   by fast_prop
 
 (*6*)
-lemma "|- P | ~ P"
+lemma "|- P \<or> \<not> P"
   by fast_prop
 
 (*7*)
-lemma "|- P | ~ ~ ~ P"
+lemma "|- P \<or> \<not> \<not> \<not> P"
   by fast_prop
 
 (*8.  Peirce's law*)
-lemma "|- ((P-->Q) --> P)  -->  P"
+lemma "|- ((P \<longrightarrow> Q) \<longrightarrow> P) \<longrightarrow> P"
   by fast_prop
 
 (*9*)
-lemma "|- ((P|Q) & (~P|Q) & (P| ~Q)) --> ~ (~P | ~Q)"
+lemma "|- ((P \<or> Q) \<and> (\<not> P \<or> Q) \<and> (P \<or> \<not> Q)) \<longrightarrow> \<not> (\<not> P \<or> \<not> Q)"
   by fast_prop
 
 (*10*)
-lemma "Q-->R, R-->P&Q, P-->(Q|R) |- P<->Q"
+lemma "Q \<longrightarrow> R, R \<longrightarrow> P \<and> Q, P \<longrightarrow> (Q \<or> R) |- P \<longleftrightarrow> Q"
   by fast_prop
 
 (*11.  Proved in each direction (incorrectly, says Pelletier!!)  *)
-lemma "|- P<->P"
+lemma "|- P \<longleftrightarrow> P"
   by fast_prop
 
 (*12.  "Dijkstra's law"*)
-lemma "|- ((P <-> Q) <-> R)  <->  (P <-> (Q <-> R))"
+lemma "|- ((P \<longleftrightarrow> Q) \<longleftrightarrow> R) \<longleftrightarrow> (P \<longleftrightarrow> (Q \<longleftrightarrow> R))"
   by fast_prop
 
 (*13.  Distributive law*)
-lemma "|- P | (Q & R)  <-> (P | Q) & (P | R)"
+lemma "|- P \<or> (Q \<and> R) \<longleftrightarrow> (P \<or> Q) \<and> (P \<or> R)"
   by fast_prop
 
 (*14*)
-lemma "|- (P <-> Q) <-> ((Q | ~P) & (~Q|P))"
+lemma "|- (P \<longleftrightarrow> Q) \<longleftrightarrow> ((Q \<or> \<not> P) \<and> (\<not> Q \<or> P))"
   by fast_prop
 
 (*15*)
-lemma "|- (P --> Q) <-> (~P | Q)"
+lemma "|- (P \<longrightarrow> Q) \<longleftrightarrow> (\<not> P \<or> Q)"
   by fast_prop
 
 (*16*)
-lemma "|- (P-->Q) | (Q-->P)"
+lemma "|- (P \<longrightarrow> Q) \<or> (Q \<longrightarrow> P)"
   by fast_prop
 
 (*17*)
-lemma "|- ((P & (Q-->R))-->S) <-> ((~P | Q | S) & (~P | ~R | S))"
+lemma "|- ((P \<and> (Q \<longrightarrow> R)) \<longrightarrow> S) \<longleftrightarrow> ((\<not> P \<or> Q \<or> S) \<and> (\<not> P \<or> \<not> R \<or> S))"
   by fast_prop
 
 end

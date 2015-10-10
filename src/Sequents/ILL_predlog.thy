@@ -5,26 +5,25 @@ begin
 typedecl plf
 
 consts
-  conj :: "[plf,plf] => plf"   (infixr "&" 35)
-  disj :: "[plf,plf] => plf"   (infixr "|" 35)
-  impl :: "[plf,plf] => plf"   (infixr ">" 35)
-  eq :: "[plf,plf] => plf"   (infixr "=" 35)
+  conj :: "[plf,plf] \<Rightarrow> plf"   (infixr "&" 35)
+  disj :: "[plf,plf] \<Rightarrow> plf"   (infixr "|" 35)
+  impl :: "[plf,plf] \<Rightarrow> plf"   (infixr ">" 35)
+  eq :: "[plf,plf] \<Rightarrow> plf"   (infixr "=" 35)
   ff :: "plf"    ("ff")
 
-  PL    :: "plf => o"      ("[* / _ / *]" [] 100)
+  PL    :: "plf \<Rightarrow> o"      ("[* / _ / *]" [] 100)
 
 syntax
-  "_NG" :: "plf => plf"   ("- _ " [50] 55)
+  "_NG" :: "plf \<Rightarrow> plf"   ("- _ " [50] 55)
 
 translations
+  "[* A & B *]" \<rightleftharpoons> "[*A*] && [*B*]"
+  "[* A | B *]" \<rightleftharpoons> "![*A*] ++ ![*B*]"
+  "[* - A *]" \<rightleftharpoons> "[*A > ff*]"
+  "[* ff *]" \<rightleftharpoons> "0"
+  "[* A = B *]" \<rightharpoonup> "[* (A > B) & (B > A) *]"
 
-  "[* A & B *]" == "[*A*] && [*B*]"
-  "[* A | B *]" == "![*A*] ++ ![*B*]"
-  "[* - A *]" == "[*A > ff*]"
-  "[* ff *]" == "0"
-  "[* A = B *]" => "[* (A > B) & (B > A) *]"
-
-  "[* A > B *]" == "![*A*] -o [*B*]"
+  "[* A > B *]" \<rightleftharpoons> "![*A*] -o [*B*]"
 
 (* another translations for linear implication:
   "[* A > B *]" == "!([*A*] -o [*B*])" *)

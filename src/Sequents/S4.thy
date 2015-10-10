@@ -13,23 +13,23 @@ axiomatization where
 (*                 delta * == {<>P | <>P : delta}               *)
 
   lstar0:         "|L>" and
-  lstar1:         "$G |L> $H ==> []P, $G |L> []P, $H" and
-  lstar2:         "$G |L> $H ==>   P, $G |L>      $H" and
+  lstar1:         "$G |L> $H \<Longrightarrow> []P, $G |L> []P, $H" and
+  lstar2:         "$G |L> $H \<Longrightarrow>   P, $G |L>      $H" and
   rstar0:         "|R>" and
-  rstar1:         "$G |R> $H ==> <>P, $G |R> <>P, $H" and
-  rstar2:         "$G |R> $H ==>   P, $G |R>      $H" and
+  rstar1:         "$G |R> $H \<Longrightarrow> <>P, $G |R> <>P, $H" and
+  rstar2:         "$G |R> $H \<Longrightarrow>   P, $G |R>      $H" and
 
 (* Rules for [] and <> *)
 
   boxR:
-   "[| $E |L> $E';  $F |R> $F';  $G |R> $G';
-           $E'         |- $F', P, $G'|] ==> $E          |- $F, []P, $G" and
-  boxL:     "$E,P,$F,[]P |-         $G    ==> $E, []P, $F |-          $G" and
+   "\<lbrakk>$E |L> $E';  $F |R> $F';  $G |R> $G';
+           $E'         |- $F', P, $G'\<rbrakk> \<Longrightarrow> $E          |- $F, []P, $G" and
+  boxL:     "$E,P,$F,[]P |-         $G    \<Longrightarrow> $E, []P, $F |-          $G" and
 
-  diaR:     "$E          |- $F,P,$G,<>P   ==> $E          |- $F, <>P, $G" and
+  diaR:     "$E          |- $F,P,$G,<>P   \<Longrightarrow> $E          |- $F, <>P, $G" and
   diaL:
-   "[| $E |L> $E';  $F |L> $F';  $G |R> $G';
-           $E', P, $F' |-         $G'|] ==> $E, <>P, $F |- $G"
+   "\<lbrakk>$E |L> $E';  $F |L> $F';  $G |R> $G';
+           $E', P, $F' |-         $G'\<rbrakk> \<Longrightarrow> $E, <>P, $F |- $G"
 
 ML \<open>
 structure S4_Prover = Modal_ProverFun
@@ -49,63 +49,63 @@ method_setup S4_solve =
 
 (* Theorems of system T from Hughes and Cresswell and Hailpern, LNCS 129 *)
 
-lemma "|- []P --> P" by S4_solve
-lemma "|- [](P-->Q) --> ([]P-->[]Q)" by S4_solve   (* normality*)
-lemma "|- (P--<Q) --> []P --> []Q" by S4_solve
-lemma "|- P --> <>P" by S4_solve
+lemma "|- []P \<longrightarrow> P" by S4_solve
+lemma "|- [](P \<longrightarrow> Q) \<longrightarrow> ([]P \<longrightarrow> []Q)" by S4_solve   (* normality*)
+lemma "|- (P --< Q) \<longrightarrow> []P \<longrightarrow> []Q" by S4_solve
+lemma "|- P \<longrightarrow> <>P" by S4_solve
 
-lemma "|-  [](P & Q) <-> []P & []Q" by S4_solve
-lemma "|-  <>(P | Q) <-> <>P | <>Q" by S4_solve
-lemma "|-  [](P<->Q) <-> (P>-<Q)" by S4_solve
-lemma "|-  <>(P-->Q) <-> ([]P--><>Q)" by S4_solve
-lemma "|-        []P <-> ~<>(~P)" by S4_solve
-lemma "|-     [](~P) <-> ~<>P" by S4_solve
-lemma "|-       ~[]P <-> <>(~P)" by S4_solve
-lemma "|-      [][]P <-> ~<><>(~P)" by S4_solve
-lemma "|- ~<>(P | Q) <-> ~<>P & ~<>Q" by S4_solve
+lemma "|-  [](P \<and> Q) \<longleftrightarrow> []P \<and> []Q" by S4_solve
+lemma "|-  <>(P \<or> Q) \<longleftrightarrow> <>P \<or> <>Q" by S4_solve
+lemma "|-  [](P \<longleftrightarrow> Q) \<longleftrightarrow> (P >-< Q)" by S4_solve
+lemma "|-  <>(P \<longrightarrow> Q) \<longleftrightarrow> ([]P \<longrightarrow> <>Q)" by S4_solve
+lemma "|-        []P \<longleftrightarrow> \<not> <>(\<not> P)" by S4_solve
+lemma "|-     [](\<not> P) \<longleftrightarrow> \<not> <>P" by S4_solve
+lemma "|-       \<not> []P \<longleftrightarrow> <>(\<not> P)" by S4_solve
+lemma "|-      [][]P \<longleftrightarrow> \<not> <><>(\<not> P)" by S4_solve
+lemma "|- \<not> <>(P \<or> Q) \<longleftrightarrow> \<not> <>P \<and> \<not> <>Q" by S4_solve
 
-lemma "|- []P | []Q --> [](P | Q)" by S4_solve
-lemma "|- <>(P & Q) --> <>P & <>Q" by S4_solve
-lemma "|- [](P | Q) --> []P | <>Q" by S4_solve
-lemma "|- <>P & []Q --> <>(P & Q)" by S4_solve
-lemma "|- [](P | Q) --> <>P | []Q" by S4_solve
-lemma "|- <>(P-->(Q & R)) --> ([]P --> <>Q) & ([]P--><>R)" by S4_solve
-lemma "|- (P--<Q) & (Q--<R) --> (P--<R)" by S4_solve
-lemma "|- []P --> <>Q --> <>(P & Q)" by S4_solve
+lemma "|- []P \<or> []Q \<longrightarrow> [](P \<or> Q)" by S4_solve
+lemma "|- <>(P \<and> Q) \<longrightarrow> <>P \<and> <>Q" by S4_solve
+lemma "|- [](P \<or> Q) \<longrightarrow> []P \<or> <>Q" by S4_solve
+lemma "|- <>P \<and> []Q \<longrightarrow> <>(P \<and> Q)" by S4_solve
+lemma "|- [](P \<or> Q) \<longrightarrow> <>P \<or> []Q" by S4_solve
+lemma "|- <>(P \<longrightarrow> (Q \<and> R)) \<longrightarrow> ([]P \<longrightarrow> <>Q) \<and> ([]P \<longrightarrow> <>R)" by S4_solve
+lemma "|- (P --< Q) \<and> (Q --< R) \<longrightarrow> (P --< R)" by S4_solve
+lemma "|- []P \<longrightarrow> <>Q \<longrightarrow> <>(P \<and> Q)" by S4_solve
 
 
 (* Theorems of system S4 from Hughes and Cresswell, p.46 *)
 
-lemma "|- []A --> A" by S4_solve             (* refexivity *)
-lemma "|- []A --> [][]A" by S4_solve         (* transitivity *)
-lemma "|- []A --> <>A" by S4_solve           (* seriality *)
-lemma "|- <>[](<>A --> []<>A)" by S4_solve
-lemma "|- <>[](<>[]A --> []A)" by S4_solve
-lemma "|- []P <-> [][]P" by S4_solve
-lemma "|- <>P <-> <><>P" by S4_solve
-lemma "|- <>[]<>P --> <>P" by S4_solve
-lemma "|- []<>P <-> []<>[]<>P" by S4_solve
-lemma "|- <>[]P <-> <>[]<>[]P" by S4_solve
+lemma "|- []A \<longrightarrow> A" by S4_solve             (* refexivity *)
+lemma "|- []A \<longrightarrow> [][]A" by S4_solve         (* transitivity *)
+lemma "|- []A \<longrightarrow> <>A" by S4_solve           (* seriality *)
+lemma "|- <>[](<>A \<longrightarrow> []<>A)" by S4_solve
+lemma "|- <>[](<>[]A \<longrightarrow> []A)" by S4_solve
+lemma "|- []P \<longleftrightarrow> [][]P" by S4_solve
+lemma "|- <>P \<longleftrightarrow> <><>P" by S4_solve
+lemma "|- <>[]<>P \<longrightarrow> <>P" by S4_solve
+lemma "|- []<>P \<longleftrightarrow> []<>[]<>P" by S4_solve
+lemma "|- <>[]P \<longleftrightarrow> <>[]<>[]P" by S4_solve
 
 (* Theorems for system S4 from Hughes and Cresswell, p.60 *)
 
-lemma "|- []P | []Q <-> []([]P | []Q)" by S4_solve
-lemma "|- ((P>-<Q) --< R) --> ((P>-<Q) --< []R)" by S4_solve
+lemma "|- []P \<or> []Q \<longleftrightarrow> []([]P \<or> []Q)" by S4_solve
+lemma "|- ((P >-< Q) --< R) \<longrightarrow> ((P >-< Q) --< []R)" by S4_solve
 
 (* These are from Hailpern, LNCS 129 *)
 
-lemma "|- [](P & Q) <-> []P & []Q" by S4_solve
-lemma "|- <>(P | Q) <-> <>P | <>Q" by S4_solve
-lemma "|- <>(P --> Q) <-> ([]P --> <>Q)" by S4_solve
+lemma "|- [](P \<and> Q) \<longleftrightarrow> []P \<and> []Q" by S4_solve
+lemma "|- <>(P \<or> Q) \<longleftrightarrow> <>P \<or> <>Q" by S4_solve
+lemma "|- <>(P \<longrightarrow> Q) \<longleftrightarrow> ([]P \<longrightarrow> <>Q)" by S4_solve
 
-lemma "|- [](P --> Q) --> (<>P --> <>Q)" by S4_solve
-lemma "|- []P --> []<>P" by S4_solve
-lemma "|- <>[]P --> <>P" by S4_solve
+lemma "|- [](P \<longrightarrow> Q) \<longrightarrow> (<>P \<longrightarrow> <>Q)" by S4_solve
+lemma "|- []P \<longrightarrow> []<>P" by S4_solve
+lemma "|- <>[]P \<longrightarrow> <>P" by S4_solve
 
-lemma "|- []P | []Q --> [](P | Q)" by S4_solve
-lemma "|- <>(P & Q) --> <>P & <>Q" by S4_solve
-lemma "|- [](P | Q) --> []P | <>Q" by S4_solve
-lemma "|- <>P & []Q --> <>(P & Q)" by S4_solve
-lemma "|- [](P | Q) --> <>P | []Q" by S4_solve
+lemma "|- []P \<or> []Q \<longrightarrow> [](P \<or> Q)" by S4_solve
+lemma "|- <>(P \<and> Q) \<longrightarrow> <>P \<and> <>Q" by S4_solve
+lemma "|- [](P \<or> Q) \<longrightarrow> []P \<or> <>Q" by S4_solve
+lemma "|- <>P \<and> []Q \<longrightarrow> <>(P \<and> Q)" by S4_solve
+lemma "|- [](P \<or> Q) \<longrightarrow> <>P \<or> []Q" by S4_solve
 
 end

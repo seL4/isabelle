@@ -10,16 +10,16 @@ begin
 consts
   Trueprop       :: "two_seqi"
 
-  tens :: "[o, o] => o"        (infixr "><" 35)
-  limp :: "[o, o] => o"        (infixr "-o" 45)
-  liff :: "[o, o] => o"        (infixr "o-o" 45)
-  FShriek :: "o => o"          ("! _" [100] 1000)
-  lconj :: "[o, o] => o"       (infixr "&&" 35)
-  ldisj :: "[o, o] => o"       (infixr "++" 35)
+  tens :: "[o, o] \<Rightarrow> o"        (infixr "><" 35)
+  limp :: "[o, o] \<Rightarrow> o"        (infixr "-o" 45)
+  liff :: "[o, o] \<Rightarrow> o"        (infixr "o-o" 45)
+  FShriek :: "o \<Rightarrow> o"          ("! _" [100] 1000)
+  lconj :: "[o, o] \<Rightarrow> o"       (infixr "&&" 35)
+  ldisj :: "[o, o] \<Rightarrow> o"       (infixr "++" 35)
   zero :: "o"                  ("0")
   top :: "o"                   ("1")
   eye :: "o"                   ("I")
-  aneg :: "o=>o"               ("~_")
+  aneg :: "o\<Rightarrow>o"               ("~_")
 
 
   (* context manipulation *)
@@ -62,67 +62,67 @@ zerol:           "$G, 0, $H |- A" and
 
   (* RULES THAT DO NOT DIVIDE CONTEXT *)
 
-derelict:   "$F, A, $G |- C ==> $F, !A, $G |- C" and
+derelict:   "$F, A, $G |- C \<Longrightarrow> $F, !A, $G |- C" and
   (* unfortunately, this one removes !A  *)
 
-contract:  "$F, !A, !A, $G |- C ==> $F, !A, $G |- C" and
+contract:  "$F, !A, !A, $G |- C \<Longrightarrow> $F, !A, $G |- C" and
 
-weaken:     "$F, $G |- C ==> $G, !A, $F |- C" and
+weaken:     "$F, $G |- C \<Longrightarrow> $G, !A, $F |- C" and
   (* weak form of weakening, in practice just to clean context *)
   (* weaken and contract not needed (CHECK)  *)
 
-promote2:        "promaux{ || $H || B} ==> $H |- !B" and
+promote2:        "promaux{ || $H || B} \<Longrightarrow> $H |- !B" and
 promote1:        "promaux{!A, $G || $H || B}
-                  ==> promaux {$G || $H, !A || B}" and
-promote0:        "$G |- A ==> promaux {$G || || A}" and
+                  \<Longrightarrow> promaux {$G || $H, !A || B}" and
+promote0:        "$G |- A \<Longrightarrow> promaux {$G || || A}" and
 
 
 
-tensl:     "$H, A, B, $G |- C ==> $H, A >< B, $G |- C" and
+tensl:     "$H, A, B, $G |- C \<Longrightarrow> $H, A >< B, $G |- C" and
 
-impr:      "A, $F |- B ==> $F |- A -o B" and
+impr:      "A, $F |- B \<Longrightarrow> $F |- A -o B" and
 
-conjr:           "[| $F |- A ;
-                 $F |- B |]
-                ==> $F |- (A && B)" and
+conjr:           "\<lbrakk>$F |- A ;
+                 $F |- B\<rbrakk>
+                \<Longrightarrow> $F |- (A && B)" and
 
-conjll:          "$G, A, $H |- C ==> $G, A && B, $H |- C" and
+conjll:          "$G, A, $H |- C \<Longrightarrow> $G, A && B, $H |- C" and
 
-conjlr:          "$G, B, $H |- C ==> $G, A && B, $H |- C" and
+conjlr:          "$G, B, $H |- C \<Longrightarrow> $G, A && B, $H |- C" and
 
-disjrl:          "$G |- A ==> $G |- A ++ B" and
-disjrr:          "$G |- B ==> $G |- A ++ B" and
-disjl:           "[| $G, A, $H |- C ;
-                     $G, B, $H |- C |]
-                 ==> $G, A ++ B, $H |- C" and
+disjrl:          "$G |- A \<Longrightarrow> $G |- A ++ B" and
+disjrr:          "$G |- B \<Longrightarrow> $G |- A ++ B" and
+disjl:           "\<lbrakk>$G, A, $H |- C ;
+                   $G, B, $H |- C\<rbrakk>
+                 \<Longrightarrow> $G, A ++ B, $H |- C" and
 
 
       (* RULES THAT DIVIDE CONTEXT *)
 
-tensr:           "[| $F, $J :=: $G;
-                     $F |- A ;
-                     $J |- B     |]
-                     ==> $G |- A >< B" and
+tensr:           "\<lbrakk>$F, $J :=: $G;
+                   $F |- A ;
+                   $J |- B\<rbrakk>
+                     \<Longrightarrow> $G |- A >< B" and
 
-impl:            "[| $G, $F :=: $J, $H ;
-                     B, $F |- C ;
-                        $G |- A |]
-                     ==> $J, A -o B, $H |- C" and
+impl:            "\<lbrakk>$G, $F :=: $J, $H ;
+                   B, $F |- C ;
+                   $G |- A\<rbrakk>
+                     \<Longrightarrow> $J, A -o B, $H |- C" and
 
 
-cut: " [| $J1, $H1, $J2, $H3, $J3, $H2, $J4, $H4 :=: $F ;
-          $H1, $H2, $H3, $H4 |- A ;
-          $J1, $J2, A, $J3, $J4 |- B |]  ==> $F |- B" and
+cut: "\<lbrakk> $J1, $H1, $J2, $H3, $J3, $H2, $J4, $H4 :=: $F ;
+        $H1, $H2, $H3, $H4 |- A ;
+        $J1, $J2, A, $J3, $J4 |- B\<rbrakk> \<Longrightarrow> $F |- B" and
 
 
   (* CONTEXT RULES *)
 
 context1:     "$G :=: $G" and
-context2:     "$F, $G :=: $H, !A, $G ==> $F, A, $G :=: $H, !A, $G" and
-context3:     "$F, $G :=: $H, $J ==> $F, A, $G :=: $H, A, $J" and
-context4a:    "$F :=: $H, $G ==> $F :=: $H, !A, $G" and
-context4b:    "$F, $H :=: $G ==> $F, !A, $H :=: $G" and
-context5:     "$F, $G :=: $H ==> $G, $F :=: $H"
+context2:     "$F, $G :=: $H, !A, $G \<Longrightarrow> $F, A, $G :=: $H, !A, $G" and
+context3:     "$F, $G :=: $H, $J \<Longrightarrow> $F, A, $G :=: $H, A, $J" and
+context4a:    "$F :=: $H, $G \<Longrightarrow> $F :=: $H, !A, $G" and
+context4b:    "$F, $H :=: $G \<Longrightarrow> $F, !A, $H :=: $G" and
+context5:     "$F, $G :=: $H \<Longrightarrow> $G, $F :=: $H"
 
 text "declarations for lazy classical reasoning:"
 lemmas [safe] =

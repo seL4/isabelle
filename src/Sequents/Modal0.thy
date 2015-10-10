@@ -10,10 +10,10 @@ begin
 ML_file "modal.ML"
 
 consts
-  box           :: "o=>o"       ("[]_" [50] 50)
-  dia           :: "o=>o"       ("<>_" [50] 50)
-  strimp        :: "[o,o]=>o"   (infixr "--<" 25)
-  streqv        :: "[o,o]=>o"   (infixr ">-<" 25)
+  box           :: "o\<Rightarrow>o"       ("[]_" [50] 50)
+  dia           :: "o\<Rightarrow>o"       ("<>_" [50] 50)
+  strimp        :: "[o,o]\<Rightarrow>o"   (infixr "--<" 25)
+  streqv        :: "[o,o]\<Rightarrow>o"   (infixr ">-<" 25)
   Lstar         :: "two_seqi"
   Rstar         :: "two_seqi"
 
@@ -37,20 +37,18 @@ print_translation \<open>
 \<close>
 
 defs
-  strimp_def:    "P --< Q == [](P --> Q)"
-  streqv_def:    "P >-< Q == (P --< Q) & (Q --< P)"
+  strimp_def:    "P --< Q == [](P \<longrightarrow> Q)"
+  streqv_def:    "P >-< Q == (P --< Q) \<and> (Q --< P)"
 
 
 lemmas rewrite_rls = strimp_def streqv_def
 
-lemma iffR:
-    "[| $H,P |- $E,Q,$F;  $H,Q |- $E,P,$F |] ==> $H |- $E, P <-> Q, $F"
+lemma iffR: "\<lbrakk>$H,P |- $E,Q,$F;  $H,Q |- $E,P,$F\<rbrakk> \<Longrightarrow> $H |- $E, P \<longleftrightarrow> Q, $F"
   apply (unfold iff_def)
   apply (assumption | rule conjR impR)+
   done
 
-lemma iffL:
-    "[| $H,$G |- $E,P,Q;  $H,Q,P,$G |- $E |] ==> $H, P <-> Q, $G |- $E"
+lemma iffL: "\<lbrakk>$H,$G |- $E,P,Q;  $H,Q,P,$G |- $E \<rbrakk> \<Longrightarrow> $H, P \<longleftrightarrow> Q, $G |- $E"
   apply (unfold iff_def)
   apply (assumption | rule conjL impL basic)+
   done

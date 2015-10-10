@@ -19,9 +19,7 @@ typedecl o
 
 subsection \<open>Sequences\<close>
 
-typedecl
- seq'
-
+typedecl seq'
 consts
  SeqO'         :: "[o,seq']=>seq'"
  Seq1'         :: "o=>seq'"
@@ -149,4 +147,3 @@ subsection \<open>Proof tools\<close>
 ML_file "prover.ML"
 
 end
-

@@ -21,15 +21,15 @@ consts
 
   True         :: o
   False        :: o
-  equal        :: "['a,'a] => o"     (infixl "=" 50)
-  Not          :: "o => o"           ("~ _" [40] 40)
-  conj         :: "[o,o] => o"       (infixr "&" 35)
-  disj         :: "[o,o] => o"       (infixr "|" 30)
-  imp          :: "[o,o] => o"       (infixr "-->" 25)
-  iff          :: "[o,o] => o"       (infixr "<->" 25)
-  The          :: "('a => o) => 'a"  (binder "THE " 10)
-  All          :: "('a => o) => o"   (binder "ALL " 10)
-  Ex           :: "('a => o) => o"   (binder "EX " 10)
+  equal        :: "['a,'a] \<Rightarrow> o"     (infixl "=" 50)
+  Not          :: "o \<Rightarrow> o"           ("\<not> _" [40] 40)
+  conj         :: "[o,o] \<Rightarrow> o"       (infixr "\<and>" 35)
+  disj         :: "[o,o] \<Rightarrow> o"       (infixr "\<or>" 30)
+  imp          :: "[o,o] \<Rightarrow> o"       (infixr "\<longrightarrow>" 25)
+  iff          :: "[o,o] \<Rightarrow> o"       (infixr "\<longleftrightarrow>" 25)
+  The          :: "('a \<Rightarrow> o) \<Rightarrow> 'a"  (binder "THE " 10)
+  All          :: "('a \<Rightarrow> o) \<Rightarrow> o"   (binder "\<forall>" 10)
+  Ex           :: "('a \<Rightarrow> o) \<Rightarrow> o"   (binder "\<exists>" 10)
 
 syntax
  "_Trueprop"    :: "two_seqe" ("((_)/ |- (_))" [6,6] 5)
@@ -38,108 +38,98 @@ parse_translation \<open>[(@{syntax_const "_Trueprop"}, K (two_seq_tr @{const_sy
 print_translation \<open>[(@{const_syntax Trueprop}, K (two_seq_tr' @{syntax_const "_Trueprop"}))]\<close>
 
 abbreviation
-  not_equal  (infixl "~=" 50) where
-  "x ~= y == ~ (x = y)"
-
-notation (xsymbols)
-  Not  ("\<not> _" [40] 40) and
-  conj  (infixr "\<and>" 35) and
-  disj  (infixr "\<or>" 30) and
-  imp  (infixr "\<longrightarrow>" 25) and
-  iff  (infixr "\<longleftrightarrow>" 25) and
-  All  (binder "\<forall>" 10) and
-  Ex  (binder "\<exists>" 10) and
-  not_equal  (infixl "\<noteq>" 50)
+  not_equal  (infixl "\<noteq>" 50) where
+  "x \<noteq> y \<equiv> \<not> (x = y)"
 
 axiomatization where
 
   (*Structural rules: contraction, thinning, exchange [Soren Heilmann] *)
 
-  contRS: "$H |- $E, $S, $S, $F ==> $H |- $E, $S, $F" and
-  contLS: "$H, $S, $S, $G |- $E ==> $H, $S, $G |- $E" and
+  contRS: "$H |- $E, $S, $S, $F \<Longrightarrow> $H |- $E, $S, $F" and
+  contLS: "$H, $S, $S, $G |- $E \<Longrightarrow> $H, $S, $G |- $E" and
 
-  thinRS: "$H |- $E, $F ==> $H |- $E, $S, $F" and
-  thinLS: "$H, $G |- $E ==> $H, $S, $G |- $E" and
+  thinRS: "$H |- $E, $F \<Longrightarrow> $H |- $E, $S, $F" and
+  thinLS: "$H, $G |- $E \<Longrightarrow> $H, $S, $G |- $E" and
 
-  exchRS: "$H |- $E, $R, $S, $F ==> $H |- $E, $S, $R, $F" and
-  exchLS: "$H, $R, $S, $G |- $E ==> $H, $S, $R, $G |- $E" and
+  exchRS: "$H |- $E, $R, $S, $F \<Longrightarrow> $H |- $E, $S, $R, $F" and
+  exchLS: "$H, $R, $S, $G |- $E \<Longrightarrow> $H, $S, $R, $G |- $E" and
 
-  cut:   "[| $H |- $E, P;  $H, P |- $E |] ==> $H |- $E" and
+  cut:   "\<lbrakk>$H |- $E, P;  $H, P |- $E\<rbrakk> \<Longrightarrow> $H |- $E" and
 
   (*Propositional rules*)
 
   basic: "$H, P, $G |- $E, P, $F" and
 
-  conjR: "[| $H|- $E, P, $F;  $H|- $E, Q, $F |] ==> $H|- $E, P&Q, $F" and
-  conjL: "$H, P, Q, $G |- $E ==> $H, P & Q, $G |- $E" and
+  conjR: "\<lbrakk>$H|- $E, P, $F;  $H|- $E, Q, $F\<rbrakk> \<Longrightarrow> $H|- $E, P \<and> Q, $F" and
+  conjL: "$H, P, Q, $G |- $E \<Longrightarrow> $H, P \<and> Q, $G |- $E" and
 
-  disjR: "$H |- $E, P, Q, $F ==> $H |- $E, P|Q, $F" and
-  disjL: "[| $H, P, $G |- $E;  $H, Q, $G |- $E |] ==> $H, P|Q, $G |- $E" and
+  disjR: "$H |- $E, P, Q, $F \<Longrightarrow> $H |- $E, P \<or> Q, $F" and
+  disjL: "\<lbrakk>$H, P, $G |- $E;  $H, Q, $G |- $E\<rbrakk> \<Longrightarrow> $H, P \<or> Q, $G |- $E" and
 
-  impR:  "$H, P |- $E, Q, $F ==> $H |- $E, P-->Q, $F" and
-  impL:  "[| $H,$G |- $E,P;  $H, Q, $G |- $E |] ==> $H, P-->Q, $G |- $E" and
+  impR:  "$H, P |- $E, Q, $F \<Longrightarrow> $H |- $E, P \<longrightarrow> Q, $F" and
+  impL:  "\<lbrakk>$H,$G |- $E,P;  $H, Q, $G |- $E\<rbrakk> \<Longrightarrow> $H, P \<longrightarrow> Q, $G |- $E" and
 
-  notR:  "$H, P |- $E, $F ==> $H |- $E, ~P, $F" and
-  notL:  "$H, $G |- $E, P ==> $H, ~P, $G |- $E" and
+  notR:  "$H, P |- $E, $F \<Longrightarrow> $H |- $E, \<not> P, $F" and
+  notL:  "$H, $G |- $E, P \<Longrightarrow> $H, \<not> P, $G |- $E" and
 
   FalseL: "$H, False, $G |- $E" and
 
-  True_def: "True == False-->False" and
-  iff_def:  "P<->Q == (P-->Q) & (Q-->P)"
+  True_def: "True \<equiv> False \<longrightarrow> False" and
+  iff_def:  "P \<longleftrightarrow> Q \<equiv> (P \<longrightarrow> Q) \<and> (Q \<longrightarrow> P)"
 
 axiomatization where
   (*Quantifiers*)
 
-  allR:  "(!!x.$H |- $E, P(x), $F) ==> $H |- $E, ALL x. P(x), $F" and
-  allL:  "$H, P(x), $G, ALL x. P(x) |- $E ==> $H, ALL x. P(x), $G |- $E" and
+  allR:  "(\<And>x. $H |- $E, P(x), $F) \<Longrightarrow> $H |- $E, \<forall>x. P(x), $F" and
+  allL:  "$H, P(x), $G, \<forall>x. P(x) |- $E \<Longrightarrow> $H, \<forall>x. P(x), $G |- $E" and
 
-  exR:   "$H |- $E, P(x), $F, EX x. P(x) ==> $H |- $E, EX x. P(x), $F" and
-  exL:   "(!!x.$H, P(x), $G |- $E) ==> $H, EX x. P(x), $G |- $E" and
+  exR:   "$H |- $E, P(x), $F, \<exists>x. P(x) \<Longrightarrow> $H |- $E, \<exists>x. P(x), $F" and
+  exL:   "(\<And>x. $H, P(x), $G |- $E) \<Longrightarrow> $H, \<exists>x. P(x), $G |- $E" and
 
   (*Equality*)
-  refl:  "$H |- $E, a=a, $F" and
-  subst: "\<And>G H E. $H(a), $G(a) |- $E(a) ==> $H(b), a=b, $G(b) |- $E(b)"
+  refl:  "$H |- $E, a = a, $F" and
+  subst: "\<And>G H E. $H(a), $G(a) |- $E(a) \<Longrightarrow> $H(b), a=b, $G(b) |- $E(b)"
 
   (* Reflection *)
 
 axiomatization where
-  eq_reflection:  "|- x=y ==> (x==y)" and
-  iff_reflection: "|- P<->Q ==> (P==Q)"
+  eq_reflection:  "|- x = y \<Longrightarrow> (x \<equiv> y)" and
+  iff_reflection: "|- P \<longleftrightarrow> Q \<Longrightarrow> (P \<equiv> Q)"
 
   (*Descriptions*)
 
 axiomatization where
-  The: "[| $H |- $E, P(a), $F;  !!x.$H, P(x) |- $E, x=a, $F |] ==>
-          $H |- $E, P(THE x. P(x)), $F"
+  The: "\<lbrakk>$H |- $E, P(a), $F;  \<And>x.$H, P(x) |- $E, x=a, $F\<rbrakk> \<Longrightarrow>
+         $H |- $E, P(THE x. P(x)), $F"
 
-definition If :: "[o, 'a, 'a] => 'a" ("(if (_)/ then (_)/ else (_))" 10)
-  where "If(P,x,y) == THE z::'a. (P --> z=x) & (~P --> z=y)"
+definition If :: "[o, 'a, 'a] \<Rightarrow> 'a" ("(if (_)/ then (_)/ else (_))" 10)
+  where "If(P,x,y) \<equiv> THE z::'a. (P \<longrightarrow> z = x) \<and> (\<not> P \<longrightarrow> z = y)"
 
 
 (** Structural Rules on formulas **)
 
 (*contraction*)
 
-lemma contR: "$H |- $E, P, P, $F ==> $H |- $E, P, $F"
+lemma contR: "$H |- $E, P, P, $F \<Longrightarrow> $H |- $E, P, $F"
   by (rule contRS)
 
-lemma contL: "$H, P, P, $G |- $E ==> $H, P, $G |- $E"
+lemma contL: "$H, P, P, $G |- $E \<Longrightarrow> $H, P, $G |- $E"
   by (rule contLS)
 
 (*thinning*)
 
-lemma thinR: "$H |- $E, $F ==> $H |- $E, P, $F"
+lemma thinR: "$H |- $E, $F \<Longrightarrow> $H |- $E, P, $F"
   by (rule thinRS)
 
-lemma thinL: "$H, $G |- $E ==> $H, P, $G |- $E"
+lemma thinL: "$H, $G |- $E \<Longrightarrow> $H, P, $G |- $E"
   by (rule thinLS)
 
 (*exchange*)
 
-lemma exchR: "$H |- $E, Q, P, $F ==> $H |- $E, P, Q, $F"
+lemma exchR: "$H |- $E, Q, P, $F \<Longrightarrow> $H |- $E, P, Q, $F"
   by (rule exchRS)
 
-lemma exchL: "$H, Q, P, $G |- $E ==> $H, P, Q, $G |- $E"
+lemma exchL: "$H, Q, P, $G |- $E \<Longrightarrow> $H, P, Q, $G |- $E"
   by (rule exchLS)
 
 ML \<open>
@@ -156,19 +146,17 @@ fun cutL_tac ctxt s i =
 
 
 (** If-and-only-if rules **)
-lemma iffR:
-    "[| $H,P |- $E,Q,$F;  $H,Q |- $E,P,$F |] ==> $H |- $E, P <-> Q, $F"
+lemma iffR: "\<lbrakk>$H,P |- $E,Q,$F;  $H,Q |- $E,P,$F\<rbrakk> \<Longrightarrow> $H |- $E, P \<longleftrightarrow> Q, $F"
   apply (unfold iff_def)
   apply (assumption | rule conjR impR)+
   done
 
-lemma iffL:
-    "[| $H,$G |- $E,P,Q;  $H,Q,P,$G |- $E |] ==> $H, P <-> Q, $G |- $E"
+lemma iffL: "\<lbrakk>$H,$G |- $E,P,Q;  $H,Q,P,$G |- $E\<rbrakk> \<Longrightarrow> $H, P \<longleftrightarrow> Q, $G |- $E"
   apply (unfold iff_def)
   apply (assumption | rule conjL impL basic)+
   done
 
-lemma iff_refl: "$H |- $E, (P <-> P), $F"
+lemma iff_refl: "$H |- $E, (P \<longleftrightarrow> P), $F"
   apply (rule iffR basic)+
   done
 
@@ -181,7 +169,7 @@ lemma TrueR: "$H |- $E, True, $F"
 (*Descriptions*)
 lemma the_equality:
   assumes p1: "$H |- $E, P(a), $F"
-    and p2: "!!x. $H, P(x) |- $E, x=a, $F"
+    and p2: "\<And>x. $H, P(x) |- $E, x=a, $F"
   shows "$H |- $E, (THE x. P(x)) = a, $F"
   apply (rule cut)
    apply (rule_tac [2] p2)
@@ -192,12 +180,12 @@ lemma the_equality:
 
 (** Weakened quantifier rules.  Incomplete, they let the search terminate.**)
 
-lemma allL_thin: "$H, P(x), $G |- $E ==> $H, ALL x. P(x), $G |- $E"
+lemma allL_thin: "$H, P(x), $G |- $E \<Longrightarrow> $H, \<forall>x. P(x), $G |- $E"
   apply (rule allL)
   apply (erule thinL)
   done
 
-lemma exR_thin: "$H |- $E, P(x), $F ==> $H |- $E, EX x. P(x), $F"
+lemma exR_thin: "$H |- $E, P(x), $F \<Longrightarrow> $H |- $E, \<exists>x. P(x), $F"
   apply (rule exR)
   apply (erule thinR)
   done
@@ -245,7 +233,7 @@ method_setup lem = \<open>
 
 
 lemma mp_R:
-  assumes major: "$H |- $E, $F, P --> Q"
+  assumes major: "$H |- $E, $F, P \<longrightarrow> Q"
     and minor: "$H |- $E, $F, P"
   shows "$H |- $E, Q, $F"
   apply (rule thinRS [THEN cut], rule major)
@@ -254,7 +242,7 @@ lemma mp_R:
   done
 
 lemma mp_L:
-  assumes major: "$H, $G |- $E, P --> Q"
+  assumes major: "$H, $G |- $E, P \<longrightarrow> Q"
     and minor: "$H, $G, Q |- $E"
   shows "$H, P, $G |- $E"
   apply (rule thinL [THEN cut], rule major)
@@ -266,7 +254,7 @@ lemma mp_L:
 (** Two rules to generate left- and right- rules from implications **)
 
 lemma R_of_imp:
-  assumes major: "|- P --> Q"
+  assumes major: "|- P \<longrightarrow> Q"
     and minor: "$H |- $E, $F, P"
   shows "$H |- $E, Q, $F"
   apply (rule mp_R)
@@ -275,7 +263,7 @@ lemma R_of_imp:
   done
 
 lemma L_of_imp:
-  assumes major: "|- P --> Q"
+  assumes major: "|- P \<longrightarrow> Q"
     and minor: "$H, $G, Q |- $E"
   shows "$H, P, $G |- $E"
   apply (rule mp_L)
@@ -285,24 +273,24 @@ lemma L_of_imp:
 
 (*Can be used to create implications in a subgoal*)
 lemma backwards_impR:
-  assumes prem: "$H, $G |- $E, $F, P --> Q"
+  assumes prem: "$H, $G |- $E, $F, P \<longrightarrow> Q"
   shows "$H, P, $G |- $E, Q, $F"
   apply (rule mp_L)
    apply (rule_tac [2] basic)
   apply (rule thinR, rule prem)
   done
 
-lemma conjunct1: "|-P&Q ==> |-P"
+lemma conjunct1: "|-P \<and> Q \<Longrightarrow> |-P"
   apply (erule thinR [THEN cut])
   apply fast
   done
 
-lemma conjunct2: "|-P&Q ==> |-Q"
+lemma conjunct2: "|-P \<and> Q \<Longrightarrow> |-Q"
   apply (erule thinR [THEN cut])
   apply fast
   done
 
-lemma spec: "|- (ALL x. P(x)) ==> |- P(x)"
+lemma spec: "|- (\<forall>x. P(x)) \<Longrightarrow> |- P(x)"
   apply (erule thinR [THEN cut])
   apply fast
   done
@@ -310,10 +298,10 @@ lemma spec: "|- (ALL x. P(x)) ==> |- P(x)"
 
 (** Equality **)
 
-lemma sym: "|- a=b --> b=a"
+lemma sym: "|- a = b \<longrightarrow> b = a"
   by (safe add!: subst)
 
-lemma trans: "|- a=b --> b=c --> a=c"
+lemma trans: "|- a = b \<longrightarrow> b = c \<longrightarrow> a = c"
   by (safe add!: subst)
 
 (* Symmetry of equality in hypotheses *)
@@ -322,18 +310,18 @@ lemmas symL = sym [THEN L_of_imp]
 (* Symmetry of equality in hypotheses *)
 lemmas symR = sym [THEN R_of_imp]
 
-lemma transR: "[| $H|- $E, $F, a=b;  $H|- $E, $F, b=c |] ==> $H|- $E, a=c, $F"
+lemma transR: "\<lbrakk>$H|- $E, $F, a = b;  $H|- $E, $F, b=c\<rbrakk> \<Longrightarrow> $H|- $E, a = c, $F"
   by (rule trans [THEN R_of_imp, THEN mp_R])
 
 (* Two theorms for rewriting only one instance of a definition:
    the first for definitions of formulae and the second for terms *)
 
-lemma def_imp_iff: "(A == B) ==> |- A <-> B"
+lemma def_imp_iff: "(A \<equiv> B) \<Longrightarrow> |- A \<longleftrightarrow> B"
   apply unfold
   apply (rule iff_refl)
   done
 
-lemma meta_eq_to_obj_eq: "(A == B) ==> |- A = B"
+lemma meta_eq_to_obj_eq: "(A \<equiv> B) \<Longrightarrow> |- A = B"
   apply unfold
   apply (rule refl)
   done
@@ -347,13 +335,13 @@ lemma if_True: "|- (if True then x else y) = x"
 lemma if_False: "|- (if False then x else y) = y"
   unfolding If_def by fast
 
-lemma if_P: "|- P ==> |- (if P then x else y) = x"
+lemma if_P: "|- P \<Longrightarrow> |- (if P then x else y) = x"
   apply (unfold If_def)
   apply (erule thinR [THEN cut])
   apply fast
   done
 
-lemma if_not_P: "|- ~P ==> |- (if P then x else y) = y"
+lemma if_not_P: "|- \<not> P \<Longrightarrow> |- (if P then x else y) = y"
   apply (unfold If_def)
   apply (erule thinR [THEN cut])
   apply fast

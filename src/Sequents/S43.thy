@@ -10,10 +10,10 @@ imports Modal0
 begin
 
 consts
-  S43pi :: "[seq'=>seq', seq'=>seq', seq'=>seq',
-             seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
+  S43pi :: "[seq'\<Rightarrow>seq', seq'\<Rightarrow>seq', seq'\<Rightarrow>seq',
+             seq'\<Rightarrow>seq', seq'\<Rightarrow>seq', seq'\<Rightarrow>seq'] \<Rightarrow> prop"
 syntax
-  "_S43pi" :: "[seq, seq, seq, seq, seq, seq] => prop"
+  "_S43pi" :: "[seq, seq, seq, seq, seq, seq] \<Rightarrow> prop"
                          ("S43pi((_);(_);(_);(_);(_);(_))" [] 5)
 
 parse_translation \<open>
@@ -38,11 +38,11 @@ axiomatization where
 (*                 delta * == {<>P | <>P : delta}                *)
 
   lstar0:         "|L>" and
-  lstar1:         "$G |L> $H ==> []P, $G |L> []P, $H" and
-  lstar2:         "$G |L> $H ==>   P, $G |L>      $H" and
+  lstar1:         "$G |L> $H \<Longrightarrow> []P, $G |L> []P, $H" and
+  lstar2:         "$G |L> $H \<Longrightarrow>   P, $G |L>      $H" and
   rstar0:         "|R>" and
-  rstar1:         "$G |R> $H ==> <>P, $G |R> <>P, $H" and
-  rstar2:         "$G |R> $H ==>   P, $G |R>      $H" and
+  rstar1:         "$G |R> $H \<Longrightarrow> <>P, $G |R> <>P, $H" and
+  rstar2:         "$G |R> $H \<Longrightarrow>   P, $G |R>      $H" and
 
 (* Set of Horn clauses to generate the antecedents for the S43 pi rule       *)
 (* ie                                                                        *)
@@ -56,23 +56,23 @@ axiomatization where
 
   S43pi0:         "S43pi $L;; $R;; $Lbox; $Rdia" and
   S43pi1:
-   "[| (S43pi <>P,$L';     $L;; $R; $Lbox;$Rdia);   $L',P,$L,$Lbox |- $R,$Rdia |] ==>
+   "\<lbrakk>(S43pi <>P,$L';     $L;; $R; $Lbox;$Rdia);   $L',P,$L,$Lbox |- $R,$Rdia\<rbrakk> \<Longrightarrow>
        S43pi     $L'; <>P,$L;; $R; $Lbox;$Rdia" and
   S43pi2:
-   "[| (S43pi $L';; []P,$R';     $R; $Lbox;$Rdia);  $L',$Lbox |- $R',P,$R,$Rdia |] ==>
+   "\<lbrakk>(S43pi $L';; []P,$R';     $R; $Lbox;$Rdia);  $L',$Lbox |- $R',P,$R,$Rdia\<rbrakk> \<Longrightarrow>
        S43pi $L';;     $R'; []P,$R; $Lbox;$Rdia" and
 
 (* Rules for [] and <> for S43 *)
 
-  boxL:           "$E, P, $F, []P |- $G ==> $E, []P, $F |- $G" and
-  diaR:           "$E |- $F, P, $G, <>P ==> $E |- $F, <>P, $G" and
+  boxL:           "$E, P, $F, []P |- $G \<Longrightarrow> $E, []P, $F |- $G" and
+  diaR:           "$E |- $F, P, $G, <>P \<Longrightarrow> $E |- $F, <>P, $G" and
   pi1:
-   "[| $L1,<>P,$L2 |L> $Lbox;  $L1,<>P,$L2 |R> $Ldia;  $R |L> $Rbox;  $R |R> $Rdia;
-      S43pi ; $Ldia;; $Rbox; $Lbox; $Rdia |] ==>
+   "\<lbrakk>$L1,<>P,$L2 |L> $Lbox;  $L1,<>P,$L2 |R> $Ldia;  $R |L> $Rbox;  $R |R> $Rdia;
+      S43pi ; $Ldia;; $Rbox; $Lbox; $Rdia\<rbrakk> \<Longrightarrow>
    $L1, <>P, $L2 |- $R" and
   pi2:
-   "[| $L |L> $Lbox;  $L |R> $Ldia;  $R1,[]P,$R2 |L> $Rbox;  $R1,[]P,$R2 |R> $Rdia;
-      S43pi ; $Ldia;; $Rbox; $Lbox; $Rdia |] ==>
+   "\<lbrakk>$L |L> $Lbox;  $L |R> $Ldia;  $R1,[]P,$R2 |L> $Rbox;  $R1,[]P,$R2 |R> $Rdia;
+      S43pi ; $Ldia;; $Rbox; $Lbox; $Rdia\<rbrakk> \<Longrightarrow>
    $L |- $R1, []P, $R2"
 
 
@@ -97,108 +97,108 @@ method_setup S43_solve = \<open>
 
 (* Theorems of system T from Hughes and Cresswell and Hailpern, LNCS 129 *)
 
-lemma "|- []P --> P" by S43_solve
-lemma "|- [](P-->Q) --> ([]P-->[]Q)" by S43_solve   (* normality*)
-lemma "|- (P--<Q) --> []P --> []Q" by S43_solve
-lemma "|- P --> <>P" by S43_solve
+lemma "|- []P \<longrightarrow> P" by S43_solve
+lemma "|- [](P \<longrightarrow> Q) \<longrightarrow> ([]P \<longrightarrow> []Q)" by S43_solve   (* normality*)
+lemma "|- (P--<Q) \<longrightarrow> []P \<longrightarrow> []Q" by S43_solve
+lemma "|- P \<longrightarrow> <>P" by S43_solve
 
-lemma "|-  [](P & Q) <-> []P & []Q" by S43_solve
-lemma "|-  <>(P | Q) <-> <>P | <>Q" by S43_solve
-lemma "|-  [](P<->Q) <-> (P>-<Q)" by S43_solve
-lemma "|-  <>(P-->Q) <-> ([]P--><>Q)" by S43_solve
-lemma "|-        []P <-> ~<>(~P)" by S43_solve
-lemma "|-     [](~P) <-> ~<>P" by S43_solve
-lemma "|-       ~[]P <-> <>(~P)" by S43_solve
-lemma "|-      [][]P <-> ~<><>(~P)" by S43_solve
-lemma "|- ~<>(P | Q) <-> ~<>P & ~<>Q" by S43_solve
+lemma "|-  [](P \<and> Q) \<longleftrightarrow> []P \<and> []Q" by S43_solve
+lemma "|-  <>(P \<or> Q) \<longleftrightarrow> <>P \<or> <>Q" by S43_solve
+lemma "|-  [](P \<longleftrightarrow> Q) \<longleftrightarrow> (P>-<Q)" by S43_solve
+lemma "|-  <>(P \<longrightarrow> Q) \<longleftrightarrow> ([]P \<longrightarrow> <>Q)" by S43_solve
+lemma "|-        []P \<longleftrightarrow> \<not> <>(\<not> P)" by S43_solve
+lemma "|-     [](\<not>P) \<longleftrightarrow> \<not> <>P" by S43_solve
+lemma "|-       \<not> []P \<longleftrightarrow> <>(\<not> P)" by S43_solve
+lemma "|-      [][]P \<longleftrightarrow> \<not> <><>(\<not> P)" by S43_solve
+lemma "|- \<not> <>(P \<or> Q) \<longleftrightarrow> \<not> <>P \<and> \<not> <>Q" by S43_solve
 
-lemma "|- []P | []Q --> [](P | Q)" by S43_solve
-lemma "|- <>(P & Q) --> <>P & <>Q" by S43_solve
-lemma "|- [](P | Q) --> []P | <>Q" by S43_solve
-lemma "|- <>P & []Q --> <>(P & Q)" by S43_solve
-lemma "|- [](P | Q) --> <>P | []Q" by S43_solve
-lemma "|- <>(P-->(Q & R)) --> ([]P --> <>Q) & ([]P--><>R)" by S43_solve
-lemma "|- (P--<Q) & (Q--<R) --> (P--<R)" by S43_solve
-lemma "|- []P --> <>Q --> <>(P & Q)" by S43_solve
+lemma "|- []P \<or> []Q \<longrightarrow> [](P \<or> Q)" by S43_solve
+lemma "|- <>(P \<and> Q) \<longrightarrow> <>P \<and> <>Q" by S43_solve
+lemma "|- [](P \<or> Q) \<longrightarrow> []P \<or> <>Q" by S43_solve
+lemma "|- <>P \<and> []Q \<longrightarrow> <>(P \<and> Q)" by S43_solve
+lemma "|- [](P \<or> Q) \<longrightarrow> <>P \<or> []Q" by S43_solve
+lemma "|- <>(P \<longrightarrow> (Q \<and> R)) \<longrightarrow> ([]P \<longrightarrow> <>Q) \<and> ([]P \<longrightarrow> <>R)" by S43_solve
+lemma "|- (P --< Q) \<and> (Q --<R ) \<longrightarrow> (P --< R)" by S43_solve
+lemma "|- []P \<longrightarrow> <>Q \<longrightarrow> <>(P \<and> Q)" by S43_solve
 
 
 (* Theorems of system S4 from Hughes and Cresswell, p.46 *)
 
-lemma "|- []A --> A" by S43_solve             (* refexivity *)
-lemma "|- []A --> [][]A" by S43_solve         (* transitivity *)
-lemma "|- []A --> <>A" by S43_solve           (* seriality *)
-lemma "|- <>[](<>A --> []<>A)" by S43_solve
-lemma "|- <>[](<>[]A --> []A)" by S43_solve
-lemma "|- []P <-> [][]P" by S43_solve
-lemma "|- <>P <-> <><>P" by S43_solve
-lemma "|- <>[]<>P --> <>P" by S43_solve
-lemma "|- []<>P <-> []<>[]<>P" by S43_solve
-lemma "|- <>[]P <-> <>[]<>[]P" by S43_solve
+lemma "|- []A \<longrightarrow> A" by S43_solve             (* refexivity *)
+lemma "|- []A \<longrightarrow> [][]A" by S43_solve         (* transitivity *)
+lemma "|- []A \<longrightarrow> <>A" by S43_solve           (* seriality *)
+lemma "|- <>[](<>A \<longrightarrow> []<>A)" by S43_solve
+lemma "|- <>[](<>[]A \<longrightarrow> []A)" by S43_solve
+lemma "|- []P \<longleftrightarrow> [][]P" by S43_solve
+lemma "|- <>P \<longleftrightarrow> <><>P" by S43_solve
+lemma "|- <>[]<>P \<longrightarrow> <>P" by S43_solve
+lemma "|- []<>P \<longleftrightarrow> []<>[]<>P" by S43_solve
+lemma "|- <>[]P \<longleftrightarrow> <>[]<>[]P" by S43_solve
 
 (* Theorems for system S4 from Hughes and Cresswell, p.60 *)
 
-lemma "|- []P | []Q <-> []([]P | []Q)" by S43_solve
-lemma "|- ((P>-<Q) --< R) --> ((P>-<Q) --< []R)" by S43_solve
+lemma "|- []P \<or> []Q \<longleftrightarrow> []([]P \<or> []Q)" by S43_solve
+lemma "|- ((P >-< Q) --< R) \<longrightarrow> ((P >-< Q) --< []R)" by S43_solve
 
 (* These are from Hailpern, LNCS 129 *)
 
-lemma "|- [](P & Q) <-> []P & []Q" by S43_solve
-lemma "|- <>(P | Q) <-> <>P | <>Q" by S43_solve
-lemma "|- <>(P --> Q) <-> ([]P --> <>Q)" by S43_solve
+lemma "|- [](P \<and> Q) \<longleftrightarrow> []P \<and> []Q" by S43_solve
+lemma "|- <>(P \<or> Q) \<longleftrightarrow> <>P \<or> <>Q" by S43_solve
+lemma "|- <>(P \<longrightarrow> Q) \<longleftrightarrow> ([]P \<longrightarrow> <>Q)" by S43_solve
 
-lemma "|- [](P --> Q) --> (<>P --> <>Q)" by S43_solve
-lemma "|- []P --> []<>P" by S43_solve
-lemma "|- <>[]P --> <>P" by S43_solve
+lemma "|- [](P \<longrightarrow> Q) \<longrightarrow> (<>P \<longrightarrow> <>Q)" by S43_solve
+lemma "|- []P \<longrightarrow> []<>P" by S43_solve
+lemma "|- <>[]P \<longrightarrow> <>P" by S43_solve
 
-lemma "|- []P | []Q --> [](P | Q)" by S43_solve
-lemma "|- <>(P & Q) --> <>P & <>Q" by S43_solve
-lemma "|- [](P | Q) --> []P | <>Q" by S43_solve
-lemma "|- <>P & []Q --> <>(P & Q)" by S43_solve
-lemma "|- [](P | Q) --> <>P | []Q" by S43_solve
+lemma "|- []P \<or> []Q \<longrightarrow> [](P \<or> Q)" by S43_solve
+lemma "|- <>(P \<and> Q) \<longrightarrow> <>P \<and> <>Q" by S43_solve
+lemma "|- [](P \<or> Q) \<longrightarrow> []P \<or> <>Q" by S43_solve
+lemma "|- <>P \<and> []Q \<longrightarrow> <>(P \<and> Q)" by S43_solve
+lemma "|- [](P \<or> Q) \<longrightarrow> <>P \<or> []Q" by S43_solve
 
 
 (* Theorems of system S43 *)
 
-lemma "|- <>[]P --> []<>P" by S43_solve
-lemma "|- <>[]P --> [][]<>P" by S43_solve
-lemma "|- [](<>P | <>Q) --> []<>P | []<>Q" by S43_solve
-lemma "|- <>[]P & <>[]Q --> <>([]P & []Q)" by S43_solve
-lemma "|- []([]P --> []Q) | []([]Q --> []P)" by S43_solve
-lemma "|- [](<>P --> <>Q) | [](<>Q --> <>P)" by S43_solve
-lemma "|- []([]P --> Q) | []([]Q --> P)" by S43_solve
-lemma "|- [](P --> <>Q) | [](Q --> <>P)" by S43_solve
-lemma "|- [](P --> []Q-->R) | [](P | ([]R --> Q))" by S43_solve
-lemma "|- [](P | (Q --> <>C)) | [](P --> C --> <>Q)" by S43_solve
-lemma "|- []([]P | Q) & [](P | []Q) --> []P | []Q" by S43_solve
-lemma "|- <>P & <>Q --> <>(<>P & Q) | <>(P & <>Q)" by S43_solve
-lemma "|- [](P | Q) & []([]P | Q) & [](P | []Q) --> []P | []Q" by S43_solve
-lemma "|- <>P & <>Q --> <>(P & Q) | <>(<>P & Q) | <>(P & <>Q)" by S43_solve
-lemma "|- <>[]<>P <-> []<>P" by S43_solve
-lemma "|- []<>[]P <-> <>[]P" by S43_solve
+lemma "|- <>[]P \<longrightarrow> []<>P" by S43_solve
+lemma "|- <>[]P \<longrightarrow> [][]<>P" by S43_solve
+lemma "|- [](<>P \<or> <>Q) \<longrightarrow> []<>P \<or> []<>Q" by S43_solve
+lemma "|- <>[]P \<and> <>[]Q \<longrightarrow> <>([]P \<and> []Q)" by S43_solve
+lemma "|- []([]P \<longrightarrow> []Q) \<or> []([]Q \<longrightarrow> []P)" by S43_solve
+lemma "|- [](<>P \<longrightarrow> <>Q) \<or> [](<>Q \<longrightarrow> <>P)" by S43_solve
+lemma "|- []([]P \<longrightarrow> Q) \<or> []([]Q \<longrightarrow> P)" by S43_solve
+lemma "|- [](P \<longrightarrow> <>Q) \<or> [](Q \<longrightarrow> <>P)" by S43_solve
+lemma "|- [](P \<longrightarrow> []Q \<longrightarrow> R) \<or> [](P \<or> ([]R \<longrightarrow> Q))" by S43_solve
+lemma "|- [](P \<or> (Q \<longrightarrow> <>C)) \<or> [](P \<longrightarrow> C \<longrightarrow> <>Q)" by S43_solve
+lemma "|- []([]P \<or> Q) \<and> [](P \<or> []Q) \<longrightarrow> []P \<or> []Q" by S43_solve
+lemma "|- <>P \<and> <>Q \<longrightarrow> <>(<>P \<and> Q) \<or> <>(P \<and> <>Q)" by S43_solve
+lemma "|- [](P \<or> Q) \<and> []([]P \<or> Q) \<and> [](P \<or> []Q) \<longrightarrow> []P \<or> []Q" by S43_solve
+lemma "|- <>P \<and> <>Q \<longrightarrow> <>(P \<and> Q) \<or> <>(<>P \<and> Q) \<or> <>(P \<and> <>Q)" by S43_solve
+lemma "|- <>[]<>P \<longleftrightarrow> []<>P" by S43_solve
+lemma "|- []<>[]P \<longleftrightarrow> <>[]P" by S43_solve
 
 (* These are from Hailpern, LNCS 129 *)
 
-lemma "|- [](P & Q) <-> []P & []Q" by S43_solve
-lemma "|- <>(P | Q) <-> <>P | <>Q" by S43_solve
-lemma "|- <>(P --> Q) <-> []P --> <>Q" by S43_solve
+lemma "|- [](P \<and> Q) \<longleftrightarrow> []P \<and> []Q" by S43_solve
+lemma "|- <>(P \<or> Q) \<longleftrightarrow> <>P \<or> <>Q" by S43_solve
+lemma "|- <>(P \<longrightarrow> Q) \<longleftrightarrow> []P \<longrightarrow> <>Q" by S43_solve
 
-lemma "|- [](P --> Q) --> <>P --> <>Q" by S43_solve
-lemma "|- []P --> []<>P" by S43_solve
-lemma "|- <>[]P --> <>P" by S43_solve
-lemma "|- []<>[]P --> []<>P" by S43_solve
-lemma "|- <>[]P --> <>[]<>P" by S43_solve
-lemma "|- <>[]P --> []<>P" by S43_solve
-lemma "|- []<>[]P <-> <>[]P" by S43_solve
-lemma "|- <>[]<>P <-> []<>P" by S43_solve
+lemma "|- [](P \<longrightarrow> Q) \<longrightarrow> <>P \<longrightarrow> <>Q" by S43_solve
+lemma "|- []P \<longrightarrow> []<>P" by S43_solve
+lemma "|- <>[]P \<longrightarrow> <>P" by S43_solve
+lemma "|- []<>[]P \<longrightarrow> []<>P" by S43_solve
+lemma "|- <>[]P \<longrightarrow> <>[]<>P" by S43_solve
+lemma "|- <>[]P \<longrightarrow> []<>P" by S43_solve
+lemma "|- []<>[]P \<longleftrightarrow> <>[]P" by S43_solve
+lemma "|- <>[]<>P \<longleftrightarrow> []<>P" by S43_solve
 
-lemma "|- []P | []Q --> [](P | Q)" by S43_solve
-lemma "|- <>(P & Q) --> <>P & <>Q" by S43_solve
-lemma "|- [](P | Q) --> []P | <>Q" by S43_solve
-lemma "|- <>P & []Q --> <>(P & Q)" by S43_solve
-lemma "|- [](P | Q) --> <>P | []Q" by S43_solve
-lemma "|- [](P | Q) --> []<>P | []<>Q" by S43_solve
-lemma "|- <>[]P & <>[]Q --> <>(P & Q)" by S43_solve
-lemma "|- <>[](P & Q) <-> <>[]P & <>[]Q" by S43_solve
-lemma "|- []<>(P | Q) <-> []<>P | []<>Q" by S43_solve
+lemma "|- []P \<or> []Q \<longrightarrow> [](P \<or> Q)" by S43_solve
+lemma "|- <>(P \<and> Q) \<longrightarrow> <>P \<and> <>Q" by S43_solve
+lemma "|- [](P \<or> Q) \<longrightarrow> []P \<or> <>Q" by S43_solve
+lemma "|- <>P \<and> []Q \<longrightarrow> <>(P \<and> Q)" by S43_solve
+lemma "|- [](P \<or> Q) \<longrightarrow> <>P \<or> []Q" by S43_solve
+lemma "|- [](P \<or> Q) \<longrightarrow> []<>P \<or> []<>Q" by S43_solve
+lemma "|- <>[]P \<and> <>[]Q \<longrightarrow> <>(P \<and> Q)" by S43_solve
+lemma "|- <>[](P \<and> Q) \<longleftrightarrow> <>[]P \<and> <>[]Q" by S43_solve
+lemma "|- []<>(P \<or> Q) \<longleftrightarrow> []<>P \<or> []<>Q" by S43_solve
 
 end

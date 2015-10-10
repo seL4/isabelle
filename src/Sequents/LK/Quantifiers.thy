@@ -9,94 +9,94 @@ theory Quantifiers
 imports "../LK"
 begin
 
-lemma "|- (ALL x. P)  <->  P"
+lemma "|- (\<forall>x. P) \<longleftrightarrow> P"
   by fast
 
-lemma "|- (ALL x y. P(x,y))  <->  (ALL y x. P(x,y))"
+lemma "|- (\<forall>x y. P(x,y)) \<longleftrightarrow> (\<forall>y x. P(x,y))"
   by fast
 
-lemma "ALL u. P(u), ALL v. Q(v) |- ALL u v. P(u) & Q(v)"
+lemma "\<forall>u. P(u), \<forall>v. Q(v) |- \<forall>u v. P(u) \<and> Q(v)"
   by fast
 
 
 text "Permutation of existential quantifier."
 
-lemma "|- (EX x y. P(x,y)) <-> (EX y x. P(x,y))"
+lemma "|- (\<exists>x y. P(x,y)) \<longleftrightarrow> (\<exists>y x. P(x,y))"
   by fast
 
-lemma "|- (ALL x. P(x) & Q(x)) <-> (ALL x. P(x)) & (ALL x. Q(x))"
-  by fast
-
-(*Converse is invalid*)
-lemma "|- (ALL x. P(x)) | (ALL x. Q(x)) --> (ALL x. P(x)|Q(x))"
-  by fast
-
-
-text "Pushing ALL into an implication."
-
-lemma "|- (ALL x. P --> Q(x))  <->  (P --> (ALL x. Q(x)))"
-  by fast
-
-lemma "|- (ALL x. P(x)-->Q)  <->  ((EX x. P(x)) --> Q)"
-  by fast
-
-lemma "|- (EX x. P)  <->  P"
-  by fast
-
-
-text "Distribution of EX over disjunction."
-
-lemma "|- (EX x. P(x) | Q(x)) <-> (EX x. P(x))  |  (EX x. Q(x))"
+lemma "|- (\<forall>x. P(x) \<and> Q(x)) \<longleftrightarrow> (\<forall>x. P(x)) \<and> (\<forall>x. Q(x))"
   by fast
 
 (*Converse is invalid*)
-lemma "|- (EX x. P(x) & Q(x))  -->  (EX x. P(x))  &  (EX x. Q(x))"
+lemma "|- (\<forall>x. P(x)) \<or> (\<forall>x. Q(x)) \<longrightarrow> (\<forall>x. P(x) \<or> Q(x))"
+  by fast
+
+
+text "Pushing \<forall>into an implication."
+
+lemma "|- (\<forall>x. P \<longrightarrow> Q(x)) \<longleftrightarrow> (P \<longrightarrow> (\<forall>x. Q(x)))"
+  by fast
+
+lemma "|- (\<forall>x. P(x) \<longrightarrow> Q) \<longleftrightarrow> ((\<exists>x. P(x)) \<longrightarrow> Q)"
+  by fast
+
+lemma "|- (\<exists>x. P)  \<longleftrightarrow>  P"
+  by fast
+
+
+text "Distribution of \<exists>over disjunction."
+
+lemma "|- (\<exists>x. P(x) \<or> Q(x)) \<longleftrightarrow> (\<exists>x. P(x)) \<or> (\<exists>x. Q(x))"
+  by fast
+
+(*Converse is invalid*)
+lemma "|- (\<exists>x. P(x) \<and> Q(x)) \<longrightarrow> (\<exists>x. P(x)) \<and> (\<exists>x. Q(x))"
   by fast
 
 
 text "Harder examples: classical theorems."
 
-lemma "|- (EX x. P-->Q(x))  <->  (P --> (EX x. Q(x)))"
+lemma "|- (\<exists>x. P \<longrightarrow> Q(x)) \<longleftrightarrow> (P \<longrightarrow> (\<exists>x. Q(x)))"
   by fast
 
-lemma "|- (EX x. P(x)-->Q)  <->  (ALL x. P(x)) --> Q"
+lemma "|- (\<exists>x. P(x) \<longrightarrow> Q) \<longleftrightarrow> (\<forall>x. P(x)) \<longrightarrow> Q"
   by fast
 
-lemma "|- (ALL x. P(x)) | Q  <->  (ALL x. P(x) | Q)"
+lemma "|- (\<forall>x. P(x)) \<or> Q \<longleftrightarrow> (\<forall>x. P(x) \<or> Q)"
   by fast
 
 
 text "Basic test of quantifier reasoning"
 
-lemma "|- (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))"
+lemma "|- (\<exists>y. \<forall>x. Q(x,y)) \<longrightarrow> (\<forall>x. \<exists>y. Q(x,y))"
   by fast
 
-lemma "|- (ALL x. Q(x))  -->  (EX x. Q(x))"
+lemma "|- (\<forall>x. Q(x)) \<longrightarrow> (\<exists>x. Q(x))"
   by fast
 
 
 text "The following are invalid!"
 
 (*INVALID*)
-lemma "|- (ALL x. EX y. Q(x,y))  -->  (EX y. ALL x. Q(x,y))"
+lemma "|- (\<forall>x. \<exists>y. Q(x,y)) \<longrightarrow> (\<exists>y. \<forall>x. Q(x,y))"
   apply fast?
   apply (rule _)
   oops
 
 (*INVALID*)
-lemma "|- (EX x. Q(x))  -->  (ALL x. Q(x))"
+lemma "|- (\<exists>x. Q(x)) \<longrightarrow> (\<forall>x. Q(x))"
   apply fast?
   apply (rule _)
   oops
 
 (*INVALID*)
-schematic_goal "|- P(?a) --> (ALL x. P(x))"
+schematic_goal "|- P(?a) \<longrightarrow> (\<forall>x. P(x))"
   apply fast?
   apply (rule _)
   oops
 
 (*INVALID*)
-schematic_goal "|- (P(?a) --> (ALL x. Q(x))) --> (ALL x. P(x) --> Q(x))"
+schematic_goal "|- (P(?a) \<longrightarrow> (\<forall>x. Q(x))) \<longrightarrow> (\<forall>x. P(x) \<longrightarrow> Q(x))"
   apply fast?
   apply (rule _)
   oops
@@ -104,35 +104,35 @@ schematic_goal "|- (P(?a) --> (ALL x. Q(x))) --> (ALL x. P(x) --> Q(x))"
 
 text "Back to things that are provable..."
 
-lemma "|- (ALL x. P(x)-->Q(x)) & (EX x. P(x)) --> (EX x. Q(x))"
+lemma "|- (\<forall>x. P(x) \<longrightarrow> Q(x)) \<and> (\<exists>x. P(x)) \<longrightarrow> (\<exists>x. Q(x))"
   by fast
 
 (*An example of why exR should be delayed as long as possible*)
-lemma "|- (P--> (EX x. Q(x))) & P--> (EX x. Q(x))"
+lemma "|- (P \<longrightarrow> (\<exists>x. Q(x))) \<and> P \<longrightarrow> (\<exists>x. Q(x))"
   by fast
 
 
 text "Solving for a Var"
 
-schematic_goal "|- (ALL x. P(x)-->Q(f(x))) & (ALL x. Q(x)-->R(g(x))) & P(d) --> R(?a)"
+schematic_goal "|- (\<forall>x. P(x) \<longrightarrow> Q(f(x))) \<and> (\<forall>x. Q(x) \<longrightarrow> R(g(x))) \<and> P(d) \<longrightarrow> R(?a)"
   by fast
 
 
 text "Principia Mathematica *11.53"
 
-lemma "|- (ALL x y. P(x) --> Q(y)) <-> ((EX x. P(x)) --> (ALL y. Q(y)))"
+lemma "|- (\<forall>x y. P(x) \<longrightarrow> Q(y)) \<longleftrightarrow> ((\<exists>x. P(x)) \<longrightarrow> (\<forall>y. Q(y)))"
   by fast
 
 
 text "Principia Mathematica *11.55"
 
-lemma "|- (EX x y. P(x) & Q(x,y)) <-> (EX x. P(x) & (EX y. Q(x,y)))"
+lemma "|- (\<exists>x y. P(x) \<and> Q(x,y)) \<longleftrightarrow> (\<exists>x. P(x) \<and> (\<exists>y. Q(x,y)))"
   by fast
 
 
 text "Principia Mathematica *11.61"
 
-lemma "|- (EX y. ALL x. P(x) --> Q(x,y)) --> (ALL x. P(x) --> (EX y. Q(x,y)))"
+lemma "|- (\<exists>y. \<forall>x. P(x) \<longrightarrow> Q(x,y)) \<longrightarrow> (\<forall>x. P(x) \<longrightarrow> (\<exists>y. Q(x,y)))"
   by fast
 
 
