@@ -49,13 +49,13 @@ subsection \<open>Second-order types\<close>
 schematic_goal (in L2) "\<turnstile> \<^bold>\<lambda>A:*. \<^bold>\<lambda>a:A. a : ?T"
   by (depth_solve rules)
 
-schematic_goal (in L2) "A:* \<turnstile> (\<^bold>\<lambda>B:*.\<^bold>\<lambda>b:B. b)\<cdot>A : ?T"
+schematic_goal (in L2) "A:* \<turnstile> (\<^bold>\<lambda>B:*. \<^bold>\<lambda>b:B. b)\<cdot>A : ?T"
   by (depth_solve rules)
 
-schematic_goal (in L2) "A:* b:A \<turnstile> (\<^bold>\<lambda>B:*.\<^bold>\<lambda>b:B. b) \<cdot> A \<cdot> b: ?T"
+schematic_goal (in L2) "A:* b:A \<turnstile> (\<^bold>\<lambda>B:*. \<^bold>\<lambda>b:B. b) \<cdot> A \<cdot> b: ?T"
   by (depth_solve rules)
 
-schematic_goal (in L2) "\<turnstile> \<^bold>\<lambda>B:*.\<^bold>\<lambda>a:(\<Prod>A:*.A).a \<cdot> ((\<Prod>A:*.A)\<rightarrow>B) \<cdot> a: ?T"
+schematic_goal (in L2) "\<turnstile> \<^bold>\<lambda>B:*. \<^bold>\<lambda>a:(\<Prod>A:*.A).a \<cdot> ((\<Prod>A:*.A)\<rightarrow>B) \<cdot> a: ?T"
   by (depth_solve rules)
 
 
@@ -110,10 +110,10 @@ subsection \<open>Omega-order types\<close>
 schematic_goal (in L2) "A:* B:* \<turnstile> \<Prod>C:*.(A\<rightarrow>B\<rightarrow>C)\<rightarrow>C : ?T"
   by (depth_solve rules)
 
-schematic_goal (in Lomega2) "\<turnstile> \<^bold>\<lambda>A:*.\<^bold>\<lambda>B:*.\<Prod>C:*.(A\<rightarrow>B\<rightarrow>C)\<rightarrow>C : ?T"
+schematic_goal (in Lomega2) "\<turnstile> \<^bold>\<lambda>A:*. \<^bold>\<lambda>B:*.\<Prod>C:*.(A\<rightarrow>B\<rightarrow>C)\<rightarrow>C : ?T"
   by (depth_solve rules)
 
-schematic_goal (in Lomega2) "\<turnstile> \<^bold>\<lambda>A:*.\<^bold>\<lambda>B:*.\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x : ?T"
+schematic_goal (in Lomega2) "\<turnstile> \<^bold>\<lambda>A:*. \<^bold>\<lambda>B:*. \<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x : ?T"
   by (depth_solve rules)
 
 schematic_goal (in Lomega2) "A:* B:* \<turnstile> ?p : (A\<rightarrow>B) \<rightarrow> ((B\<rightarrow>\<Prod>P:*.P)\<rightarrow>(A\<rightarrow>\<Prod>P:*.P))"
@@ -169,19 +169,19 @@ schematic_goal (in LP2) "A:* P:A\<rightarrow>A\<rightarrow>* \<turnstile>
 
 subsection \<open>LPomega\<close>
 
-schematic_goal (in LPomega) "A:* \<turnstile> \<^bold>\<lambda>P:A\<rightarrow>A\<rightarrow>*.\<^bold>\<lambda>a:A. P\<cdot>a\<cdot>a : ?T"
+schematic_goal (in LPomega) "A:* \<turnstile> \<^bold>\<lambda>P:A\<rightarrow>A\<rightarrow>*. \<^bold>\<lambda>a:A. P\<cdot>a\<cdot>a : ?T"
   by (depth_solve rules)
 
-schematic_goal (in LPomega) "\<turnstile> \<^bold>\<lambda>A:*.\<^bold>\<lambda>P:A\<rightarrow>A\<rightarrow>*.\<^bold>\<lambda>a:A. P\<cdot>a\<cdot>a : ?T"
+schematic_goal (in LPomega) "\<turnstile> \<^bold>\<lambda>A:*. \<^bold>\<lambda>P:A\<rightarrow>A\<rightarrow>*. \<^bold>\<lambda>a:A. P\<cdot>a\<cdot>a : ?T"
   by (depth_solve rules)
 
 
 subsection \<open>Constructions\<close>
 
-schematic_goal (in CC) "\<turnstile> \<^bold>\<lambda>A:*.\<^bold>\<lambda>P:A\<rightarrow>*.\<^bold>\<lambda>a:A. P\<cdot>a\<rightarrow>\<Prod>P:*.P: ?T"
+schematic_goal (in CC) "\<turnstile> \<^bold>\<lambda>A:*. \<^bold>\<lambda>P:A\<rightarrow>*. \<^bold>\<lambda>a:A. P\<cdot>a\<rightarrow>\<Prod>P:*.P: ?T"
   by (depth_solve rules)
 
-schematic_goal (in CC) "\<turnstile> \<^bold>\<lambda>A:*.\<^bold>\<lambda>P:A\<rightarrow>*.\<Prod>a:A. P\<cdot>a: ?T"
+schematic_goal (in CC) "\<turnstile> \<^bold>\<lambda>A:*. \<^bold>\<lambda>P:A\<rightarrow>*.\<Prod>a:A. P\<cdot>a: ?T"
   by (depth_solve rules)
 
 schematic_goal (in CC) "A:* P:A\<rightarrow>* a:A \<turnstile> ?p : (\<Prod>a:A. P\<cdot>a)\<rightarrow>P\<cdot>a"
@@ -200,7 +200,7 @@ schematic_goal (in LP2) "A:* c:A f:A\<rightarrow>A \<turnstile>
     \<^bold>\<lambda>a:A. \<Prod>P:A\<rightarrow>*.P\<cdot>c \<rightarrow> (\<Prod>x:A. P\<cdot>x\<rightarrow>P\<cdot>(f\<cdot>x)) \<rightarrow> P\<cdot>a : ?T"
   by (depth_solve rules)
 
-schematic_goal (in CC) "\<^bold>\<lambda>A:*.\<^bold>\<lambda>c:A. \<^bold>\<lambda>f:A\<rightarrow>A.
+schematic_goal (in CC) "\<^bold>\<lambda>A:*. \<^bold>\<lambda>c:A. \<^bold>\<lambda>f:A\<rightarrow>A.
     \<^bold>\<lambda>a:A. \<Prod>P:A\<rightarrow>*.P\<cdot>c \<rightarrow> (\<Prod>x:A. P\<cdot>x\<rightarrow>P\<cdot>(f\<cdot>x)) \<rightarrow> P\<cdot>a : ?T"
   by (depth_solve rules)
 
