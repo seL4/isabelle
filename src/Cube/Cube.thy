@@ -48,9 +48,6 @@ translations
   "\<^bold>\<lambda>x:A. B" \<rightleftharpoons> "CONST Abs(A, \<lambda>x. B)"
   "\<Prod>x:A. B" \<rightharpoonup> "CONST Prod(A, \<lambda>x. B)"
   "A \<rightarrow> B" \<rightharpoonup> "CONST Prod(A, \<lambda>_. B)"
-
-syntax
-  "_Pi" :: "[idt, term, term] \<Rightarrow> term"    ("(3\<Prod>_:_./ _)" [0, 0] 10)
 print_translation \<open>
   [(@{const_syntax Prod},
     fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"}))]

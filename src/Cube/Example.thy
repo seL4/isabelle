@@ -19,7 +19,7 @@ method_setup depth_solve1 =
 
 method_setup strip_asms =
   \<open>Attrib.thms >> (fn thms => fn ctxt => METHOD (fn facts =>
-    REPEAT (resolve_tac ctxt [@{thm strip_b}, @{thm strip_s}] 1 THEN
+    REPEAT (resolve_tac ctxt @{thms strip_b strip_s} 1 THEN
     DEPTH_SOLVE_1 (assume_tac ctxt 1 ORELSE resolve_tac ctxt (facts @ thms) 1))))\<close>
 
 
