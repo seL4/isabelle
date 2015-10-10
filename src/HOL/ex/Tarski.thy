@@ -84,7 +84,7 @@ definition
 definition
   CLF_set :: "('a potype * ('a => 'a)) set" where
   "CLF_set = (SIGMA cl: CompleteLattice.
-            {f. f: pset cl -> pset cl & monotone f (pset cl) (order cl)})"
+            {f. f: pset cl \<rightarrow> pset cl & monotone f (pset cl) (order cl)})"
 
 definition
   induced :: "['a set, ('a * 'a) set] => ('a *'a)set" where
@@ -445,7 +445,7 @@ text \<open>
 \<close>
 
 lemma (in CLF) [simp]:
-    "f: pset cl -> pset cl & monotone f (pset cl) (order cl)"
+    "f: pset cl \<rightarrow> pset cl & monotone f (pset cl) (order cl)"
 apply (insert f_cl)
 apply (simp add: CLF_set_def)
 done
@@ -453,7 +453,7 @@ done
 declare (in CLF) f_cl [simp]
 
 
-lemma (in CLF) f_in_funcset: "f \<in> A -> A"
+lemma (in CLF) f_in_funcset: "f \<in> A \<rightarrow> A"
 by (simp add: A_def)
 
 lemma (in CLF) monotone_f: "monotone f A r"

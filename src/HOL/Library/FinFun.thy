@@ -76,7 +76,7 @@ subsection \<open>The finfun type\<close>
 
 definition "finfun = {f::'a\<Rightarrow>'b. \<exists>b. finite {a. f a \<noteq> b}}"
 
-typedef ('a,'b) finfun  ("(_ =>f /_)" [22, 21] 21) = "finfun :: ('a => 'b) set"
+typedef ('a,'b) finfun  ("(_ \<Rightarrow>f /_)" [22, 21] 21) = "finfun :: ('a => 'b) set"
   morphisms finfun_apply Abs_finfun
 proof -
   have "\<exists>f. finite {x. f x \<noteq> undefined}"
@@ -1528,9 +1528,6 @@ end
 text \<open>Deactivate syntax again. Import theory @{text FinFun_Syntax} to reactivate it again\<close>
 
 no_type_notation
-  finfun ("(_ =>f /_)" [22, 21] 21)
-
-no_type_notation (xsymbols)
   finfun ("(_ \<Rightarrow>f /_)" [22, 21] 21)
 
 no_notation

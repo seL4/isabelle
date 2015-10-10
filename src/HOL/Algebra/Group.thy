@@ -576,7 +576,7 @@ subsection \<open>Homomorphisms and Isomorphisms\<close>
 definition
   hom :: "_ => _ => ('a => 'b) set" where
   "hom G H =
-    {h. h \<in> carrier G -> carrier H &
+    {h. h \<in> carrier G \<rightarrow> carrier H &
       (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y)}"
 
 lemma (in group) hom_compose:

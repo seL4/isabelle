@@ -251,6 +251,16 @@ simplify porting old theories:
   type_notation Map.map  (infixr "~=>" 0)
   notation Map.map_comp  (infixl "o'_m" 55)
 
+  type_notation FinFun.finfun ("(_ =>f /_)" [22, 21] 21)
+
+  notation FuncSet.funcset  (infixr "->" 60)
+  notation FuncSet.extensional_funcset  (infixr "->\<^sub>E" 60)
+
+  notation Omega_Words_Fun.conc (infixr "conc" 65)
+
+  notation Preorder.equiv ("op ~~")
+    and Preorder.equiv ("(_/ ~~ _)" [51, 51] 50)
+
 * The alternative notation "\<Colon>" for type and sort constraints has been
 removed: in LaTeX document output it looks the same as "::".
 INCOMPATIBILITY, use plain "::" instead.

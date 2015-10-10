@@ -142,8 +142,8 @@ apply (induct xs)
 by auto
 
 lemma
-  "map (\<lambda>w. (w -> w, w \<times> w)) xs =
-   zip (map (\<lambda>w. w -> w) xs) (map (\<lambda>w. w \<times> w) xs)"
+  "map (\<lambda>w. (w \<rightarrow> w, w \<times> w)) xs =
+   zip (map (\<lambda>w. w \<rightarrow> w) xs) (map (\<lambda>w. w \<times> w) xs)"
 apply (induct xs)
  apply (metis list.map(1) zip_Nil)
 by auto

@@ -1697,7 +1697,7 @@ lemma sigma_eqI:
 subsubsection {* Measurable functions *}
 
 definition measurable :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) set" where
-  "measurable A B = {f \<in> space A -> space B. \<forall>y \<in> sets B. f -` y \<inter> space A \<in> sets A}"
+  "measurable A B = {f \<in> space A \<rightarrow> space B. \<forall>y \<in> sets B. f -` y \<inter> space A \<in> sets A}"
 
 lemma measurableI:
   "(\<And>x. x \<in> space M \<Longrightarrow> f x \<in> space N) \<Longrightarrow> (\<And>A. A \<in> sets N \<Longrightarrow> f -` A \<inter> space M \<in> sets M) \<Longrightarrow>

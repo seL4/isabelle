@@ -7,9 +7,6 @@ imports FinFun
 begin
 
 type_notation
-  finfun ("(_ =>f /_)" [22, 21] 21)
-
-type_notation (xsymbols)
   finfun ("(_ \<Rightarrow>f /_)" [22, 21] 21)
 
 notation

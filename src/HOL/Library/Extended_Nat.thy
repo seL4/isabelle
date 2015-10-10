@@ -10,10 +10,7 @@ imports Main Countable Order_Continuity
 begin
 
 class infinity =
-  fixes infinity :: "'a"
-
-notation (xsymbols)
-  infinity  ("\<infinity>")
+  fixes infinity :: "'a"  ("\<infinity>")
 
 
 subsection \<open>Type definition\<close>

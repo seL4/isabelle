@@ -315,7 +315,7 @@ declare funcsetI [intro]
 context comm_monoid begin
 
 lemma finprod_insert [simp]:
-  "[| finite F; a \<notin> F; f \<in> F -> carrier G; f a \<in> carrier G |] ==>
+  "[| finite F; a \<notin> F; f \<in> F \<rightarrow> carrier G; f a \<in> carrier G |] ==>
    finprod G f (insert a F) = f a \<otimes> finprod G f F"
   apply (rule trans)
    apply (simp add: finprod_def)
@@ -337,13 +337,13 @@ proof (induct A rule: infinite_finite_induct)
   case empty show ?case by simp
 next
   case (insert a A)
-  have "(%i. \<one>) \<in> A -> carrier G" by auto
+  have "(%i. \<one>) \<in> A \<rightarrow> carrier G" by auto
   with insert show ?case by simp
 qed simp
 
 lemma finprod_closed [simp]:
   fixes A
-  assumes f: "f \<in> A -> carrier G" 
+  assumes f: "f \<in> A \<rightarrow> carrier G" 
   shows "finprod G f A \<in> carrier G"
 using f
 proof (induct A rule: infinite_finite_induct)
@@ -351,20 +351,20 @@ proof (induct A rule: infinite_finite_induct)
 next
   case (insert a A)
   then have a: "f a \<in> carrier G" by fast
-  from insert have A: "f \<in> A -> carrier G" by fast
+  from insert have A: "f \<in> A \<rightarrow> carrier G" by fast
   from insert A a show ?case by simp
 qed simp
 
 lemma funcset_Int_left [simp, intro]:
-  "[| f \<in> A -> C; f \<in> B -> C |] ==> f \<in> A Int B -> C"
+  "[| f \<in> A \<rightarrow> C; f \<in> B \<rightarrow> C |] ==> f \<in> A Int B \<rightarrow> C"
   by fast
 
 lemma funcset_Un_left [iff]:
-  "(f \<in> A Un B -> C) = (f \<in> A -> C & f \<in> B -> C)"
+  "(f \<in> A Un B \<rightarrow> C) = (f \<in> A \<rightarrow> C & f \<in> B \<rightarrow> C)"
   by fast
 
 lemma finprod_Un_Int:
-  "[| finite A; finite B; g \<in> A -> carrier G; g \<in> B -> carrier G |] ==>
+  "[| finite A; finite B; g \<in> A \<rightarrow> carrier G; g \<in> B \<rightarrow> carrier G |] ==>
      finprod G g (A Un B) \<otimes> finprod G g (A Int B) =
      finprod G g A \<otimes> finprod G g B"
 -- \<open>The reversed orientation looks more natural, but LOOPS as a simprule!\<close>
@@ -373,46 +373,46 @@ proof (induct set: finite)
 next
   case (insert a A)
   then have a: "g a \<in> carrier G" by fast
-  from insert have A: "g \<in> A -> carrier G" by fast
+  from insert have A: "g \<in> A \<rightarrow> carrier G" by fast
   from insert A a show ?case
     by (simp add: m_ac Int_insert_left insert_absorb Int_mono2) 
 qed
 
 lemma finprod_Un_disjoint:
   "[| finite A; finite B; A Int B = {};
-      g \<in> A -> carrier G; g \<in> B -> carrier G |]
+      g \<in> A \<rightarrow> carrier G; g \<in> B \<rightarrow> carrier G |]
    ==> finprod G g (A Un B) = finprod G g A \<otimes> finprod G g B"
   apply (subst finprod_Un_Int [symmetric])
       apply auto
   done
 
 lemma finprod_multf:
-  "[| f \<in> A -> carrier G; g \<in> A -> carrier G |] ==>
+  "[| f \<in> A \<rightarrow> carrier G; g \<in> A \<rightarrow> carrier G |] ==>
    finprod G (%x. f x \<otimes> g x) A = (finprod G f A \<otimes> finprod G g A)"
 proof (induct A rule: infinite_finite_induct)
   case empty show ?case by simp
 next
   case (insert a A) then
-  have fA: "f \<in> A -> carrier G" by fast
+  have fA: "f \<in> A \<rightarrow> carrier G" by fast
   from insert have fa: "f a \<in> carrier G" by fast
-  from insert have gA: "g \<in> A -> carrier G" by fast
+  from insert have gA: "g \<in> A \<rightarrow> carrier G" by fast
   from insert have ga: "g a \<in> carrier G" by fast
-  from insert have fgA: "(%x. f x \<otimes> g x) \<in> A -> carrier G"
+  from insert have fgA: "(%x. f x \<otimes> g x) \<in> A \<rightarrow> carrier G"
     by (simp add: Pi_def)
   show ?case
     by (simp add: insert fA fa gA ga fgA m_ac)
 qed simp
 
 lemma finprod_cong':
-  "[| A = B; g \<in> B -> carrier G;
+  "[| A = B; g \<in> B \<rightarrow> carrier G;
       !!i. i \<in> B ==> f i = g i |] ==> finprod G f A = finprod G g B"
 proof -
-  assume prems: "A = B" "g \<in> B -> carrier G"
+  assume prems: "A = B" "g \<in> B \<rightarrow> carrier G"
     "!!i. i \<in> B ==> f i = g i"
   show ?thesis
   proof (cases "finite B")
     case True
-    then have "!!A. [| A = B; g \<in> B -> carrier G;
+    then have "!!A. [| A = B; g \<in> B \<rightarrow> carrier G;
       !!i. i \<in> B ==> f i = g i |] ==> finprod G f A = finprod G g B"
     proof induct
       case empty thus ?case by simp
@@ -427,7 +427,7 @@ proof -
       next
         assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
           "g \<in> insert x B \<rightarrow> carrier G"
-        thus "f \<in> B -> carrier G" by fastforce
+        thus "f \<in> B \<rightarrow> carrier G" by fastforce
       next
         assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
           "g \<in> insert x B \<rightarrow> carrier G"
@@ -445,13 +445,13 @@ proof -
 qed
 
 lemma finprod_cong:
-  "[| A = B; f \<in> B -> carrier G = True;
+  "[| A = B; f \<in> B \<rightarrow> carrier G = True;
       !!i. i \<in> B =simp=> f i = g i |] ==> finprod G f A = finprod G g B"
   (* This order of prems is slightly faster (3%) than the last two swapped. *)
   by (rule finprod_cong') (auto simp add: simp_implies_def)
 
 text \<open>Usually, if this rule causes a failed congruence proof error,
-  the reason is that the premise @{text "g \<in> B -> carrier G"} cannot be shown.
+  the reason is that the premise @{text "g \<in> B \<rightarrow> carrier G"} cannot be shown.
   Adding @{thm [source] Pi_def} to the simpset is often useful.
   For this reason, @{thm [source] finprod_cong}
   is not added to the simpset by default.
@@ -465,16 +465,16 @@ declare funcsetI [rule del]
 context comm_monoid begin
 
 lemma finprod_0 [simp]:
-  "f \<in> {0::nat} -> carrier G ==> finprod G f {..0} = f 0"
+  "f \<in> {0::nat} \<rightarrow> carrier G ==> finprod G f {..0} = f 0"
 by (simp add: Pi_def)
 
 lemma finprod_Suc [simp]:
-  "f \<in> {..Suc n} -> carrier G ==>
+  "f \<in> {..Suc n} \<rightarrow> carrier G ==>
    finprod G f {..Suc n} = (f (Suc n) \<otimes> finprod G f {..n})"
 by (simp add: Pi_def atMost_Suc)
 
 lemma finprod_Suc2:
-  "f \<in> {..Suc n} -> carrier G ==>
+  "f \<in> {..Suc n} \<rightarrow> carrier G ==>
    finprod G f {..Suc n} = (finprod G (%i. f (Suc i)) {..n} \<otimes> f 0)"
 proof (induct n)
   case 0 thus ?case by (simp add: Pi_def)
@@ -483,7 +483,7 @@ next
 qed
 
 lemma finprod_mult [simp]:
-  "[| f \<in> {..n} -> carrier G; g \<in> {..n} -> carrier G |] ==>
+  "[| f \<in> {..n} \<rightarrow> carrier G; g \<in> {..n} \<rightarrow> carrier G |] ==>
      finprod G (%i. f i \<otimes> g i) {..n::nat} =
      finprod G f {..n} \<otimes> finprod G g {..n}"
   by (induct n) (simp_all add: m_ac Pi_def)

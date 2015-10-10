@@ -97,7 +97,7 @@ locale CL = PO +
 
 definition CLF_set :: "('a potype * ('a => 'a)) set" where
   "CLF_set = (SIGMA cl: CompleteLattice.
-            {f. f: pset cl -> pset cl & monotone f (pset cl) (order cl)})"
+            {f. f: pset cl \<rightarrow> pset cl & monotone f (pset cl) (order cl)})"
 
 locale CLF = CL +
   fixes f :: "'a => 'a"
@@ -402,7 +402,7 @@ text {*
 declare (in CLF) f_cl [simp]
 
 lemma (in CLF) [simp]:
-    "f: pset cl -> pset cl & monotone f (pset cl) (order cl)"
+    "f: pset cl \<rightarrow> pset cl & monotone f (pset cl) (order cl)"
 proof -
   have "\<forall>u v. (v, u) \<in> CLF_set \<longrightarrow> u \<in> {R \<in> pset v \<rightarrow> pset v. monotone R (pset v) (order v)}"
     unfolding CLF_set_def using SigmaE2 by blast
@@ -415,7 +415,7 @@ proof -
     using F1 by metis
 qed
 
-lemma (in CLF) f_in_funcset: "f \<in> A -> A"
+lemma (in CLF) f_in_funcset: "f \<in> A \<rightarrow> A"
 by (simp add: A_def)
 
 lemma (in CLF) monotone_f: "monotone f A r"
@@ -904,7 +904,7 @@ apply (simp add: intY1_def interval_def  intY1_elem)
 done
 
 
-lemma (in Tarski) intY1_func: "(%x: intY1. f x) \<in> intY1 -> intY1"
+lemma (in Tarski) intY1_func: "(%x: intY1. f x) \<in> intY1 \<rightarrow> intY1"
 apply (rule restrict_in_funcset)
 apply (metis intY1_f_closed restrict_in_funcset)
 done

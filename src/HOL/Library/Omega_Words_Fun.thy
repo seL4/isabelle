@@ -44,16 +44,12 @@ text \<open>
 \<close>
 
 definition
-  conc :: "['a list, 'a word] \<Rightarrow> 'a word"    (infixr "conc" 65)
-  where "w conc x == \<lambda>n. if n < length w then w!n else x (n - length w)"
+  conc :: "['a list, 'a word] \<Rightarrow> 'a word"  (infixr "\<frown>" 65)
+  where "w \<frown> x == \<lambda>n. if n < length w then w!n else x (n - length w)"
 
 definition
-  iter :: "'a list \<Rightarrow> 'a word"
+  iter :: "'a list \<Rightarrow> 'a word"  ("(_\<^sup>\<omega>)" [1000])
   where "iter w == if w = [] then undefined else (\<lambda>n. w!(n mod (length w)))"
-
-notation (xsymbols)
-  conc (infixr "\<frown>" 65) and
-  iter ("(_\<^sup>\<omega>)" [1000])
 
 lemma conc_empty[simp]: "[] \<frown> w = w"
   unfolding conc_def by auto

@@ -54,7 +54,7 @@ record ('a, 'p) up_ring = "('a, 'p) module" +
 
 definition
   up :: "('a, 'm) ring_scheme => (nat => 'a) set"
-  where "up R = {f. f \<in> UNIV -> carrier R & (EX n. bound \<zero>\<^bsub>R\<^esub> n f)}"
+  where "up R = {f. f \<in> UNIV \<rightarrow> carrier R & (EX n. bound \<zero>\<^bsub>R\<^esub> n f)}"
 
 definition UP :: "('a, 'm) ring_scheme => ('a, nat => 'a) up_ring"
   where "UP R = \<lparr>
@@ -309,8 +309,8 @@ proof (rule up_eqI)
   fix n
   {
     fix k and a b c :: "nat=>'a"
-    assume R: "a \<in> UNIV -> carrier R" "b \<in> UNIV -> carrier R"
-      "c \<in> UNIV -> carrier R"
+    assume R: "a \<in> UNIV \<rightarrow> carrier R" "b \<in> UNIV \<rightarrow> carrier R"
+      "c \<in> UNIV \<rightarrow> carrier R"
     then have "k <= n ==>
       (\<Oplus>j \<in> {..k}. (\<Oplus>i \<in> {..j}. a i \<otimes> b (j-i)) \<otimes> c (n-j)) =
       (\<Oplus>j \<in> {..k}. a j \<otimes> (\<Oplus>i \<in> {..k-j}. b i \<otimes> c (n-j-i)))"
@@ -409,7 +409,7 @@ proof (rule up_eqI)
   fix n
   {
     fix k and a b :: "nat=>'a"
-    assume R: "a \<in> UNIV -> carrier R" "b \<in> UNIV -> carrier R"
+    assume R: "a \<in> UNIV \<rightarrow> carrier R" "b \<in> UNIV \<rightarrow> carrier R"
     then have "k <= n ==>
       (\<Oplus>i \<in> {..k}. a i \<otimes> b (n-i)) = (\<Oplus>i \<in> {..k}. a (k-i) \<otimes> b (i+n-k))"
       (is "_ \<Longrightarrow> ?eq k")
@@ -956,7 +956,7 @@ begin
 
 lemma coeff_finsum:
   assumes fin: "finite A"
-  shows "p \<in> A -> carrier P ==>
+  shows "p \<in> A \<rightarrow> carrier P ==>
     coeff P (finsum P p A) k = (\<Oplus>i \<in> A. coeff P (p i) k)"
   using fin by induct (auto simp: Pi_def)
 
@@ -1095,11 +1095,11 @@ context ring
 begin
 
 theorem diagonal_sum:
-  "[| f \<in> {..n + m::nat} -> carrier R; g \<in> {..n + m} -> carrier R |] ==>
+  "[| f \<in> {..n + m::nat} \<rightarrow> carrier R; g \<in> {..n + m} \<rightarrow> carrier R |] ==>
   (\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..k}. f i \<otimes> g (k - i)) =
   (\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..n + m - k}. f k \<otimes> g i)"
 proof -
-  assume Rf: "f \<in> {..n + m} -> carrier R" and Rg: "g \<in> {..n + m} -> carrier R"
+  assume Rf: "f \<in> {..n + m} \<rightarrow> carrier R" and Rg: "g \<in> {..n + m} \<rightarrow> carrier R"
   {
     fix j
     have "j <= n + m ==>
@@ -1129,7 +1129,7 @@ qed
 
 theorem cauchy_product:
   assumes bf: "bound \<zero> n f" and bg: "bound \<zero> m g"
-    and Rf: "f \<in> {..n} -> carrier R" and Rg: "g \<in> {..m} -> carrier R"
+    and Rf: "f \<in> {..n} \<rightarrow> carrier R" and Rg: "g \<in> {..m} \<rightarrow> carrier R"
   shows "(\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..k}. f i \<otimes> g (k - i)) =
     (\<Oplus>i \<in> {..n}. f i) \<otimes> (\<Oplus>i \<in> {..m}. g i)"      (* State reverse direction? *)
 proof -
@@ -1208,7 +1208,7 @@ text\<open>JE: I was considering using it in @{text eval_ring_hom}, but that pro
   maybe it is not that necessary.\<close>
 
 lemma (in ring_hom_ring) hom_finsum [simp]:
-  "f \<in> A -> carrier R ==>
+  "f \<in> A \<rightarrow> carrier R ==>
   h (finsum R f A) = finsum S (h o f) A"
   by (induct A rule: infinite_finite_induct, auto simp: Pi_def)
 

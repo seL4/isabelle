@@ -141,7 +141,7 @@ lemmas finsum_infinite = add.finprod_infinite
 
 lemmas finsum_cong = add.finprod_cong
 text \<open>Usually, if this rule causes a failed congruence proof error,
-   the reason is that the premise @{text "g \<in> B -> carrier G"} cannot be shown.
+   the reason is that the premise @{text "g \<in> B \<rightarrow> carrier G"} cannot be shown.
    Adding @{thm [source] Pi_def} to the simpset is often useful.\<close>
 
 lemmas finsum_reindex = add.finprod_reindex
@@ -490,7 +490,7 @@ qed
 subsubsection \<open>Sums over Finite Sets\<close>
 
 lemma (in semiring) finsum_ldistr:
-  "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
+  "[| finite A; a \<in> carrier R; f \<in> A \<rightarrow> carrier R |] ==>
    finsum R f A \<otimes> a = finsum R (%i. f i \<otimes> a) A"
 proof (induct set: finite)
   case empty then show ?case by simp
@@ -499,7 +499,7 @@ next
 qed
 
 lemma (in semiring) finsum_rdistr:
-  "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
+  "[| finite A; a \<in> carrier R; f \<in> A \<rightarrow> carrier R |] ==>
    a \<otimes> finsum R f A = finsum R (%i. a \<otimes> f i) A"
 proof (induct set: finite)
   case empty then show ?case by simp
@@ -609,7 +609,7 @@ subsection \<open>Morphisms\<close>
 definition
   ring_hom :: "[('a, 'm) ring_scheme, ('b, 'n) ring_scheme] => ('a => 'b) set"
   where "ring_hom R S =
-    {h. h \<in> carrier R -> carrier S &
+    {h. h \<in> carrier R \<rightarrow> carrier S &
       (ALL x y. x \<in> carrier R & y \<in> carrier R -->
         h (x \<otimes>\<^bsub>R\<^esub> y) = h x \<otimes>\<^bsub>S\<^esub> h y & h (x \<oplus>\<^bsub>R\<^esub> y) = h x \<oplus>\<^bsub>S\<^esub> h y) &
       h \<one>\<^bsub>R\<^esub> = \<one>\<^bsub>S\<^esub>}"
@@ -675,12 +675,12 @@ proof -
 qed
 
 lemma (in ring_hom_cring) hom_finsum [simp]:
-  "f \<in> A -> carrier R ==>
+  "f \<in> A \<rightarrow> carrier R ==>
   h (finsum R f A) = finsum S (h o f) A"
   by (induct A rule: infinite_finite_induct, auto simp: Pi_def)
 
 lemma (in ring_hom_cring) hom_finprod:
-  "f \<in> A -> carrier R ==>
+  "f \<in> A \<rightarrow> carrier R ==>
   h (finprod R f A) = finprod S (h o f) A"
   by (induct A rule: infinite_finite_induct, auto simp: Pi_def)
 

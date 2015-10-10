@@ -17,11 +17,8 @@ definition extensional :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) set"
 definition "restrict" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b"
   where "restrict f A = (\<lambda>x. if x \<in> A then f x else undefined)"
 
-abbreviation funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  (infixr "->" 60)
-  where "A -> B \<equiv> Pi A (\<lambda>_. B)"
-
-notation (xsymbols)
-  funcset  (infixr "\<rightarrow>" 60)
+abbreviation funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  (infixr "\<rightarrow>" 60)
+  where "A \<rightarrow> B \<equiv> Pi A (\<lambda>_. B)"
 
 syntax
   "_Pi"  :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3PI _:_./ _)" 10)
@@ -356,11 +353,8 @@ syntax (xsymbols)
   "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3\<Pi>\<^sub>E _\<in>_./ _)" 10)
 translations "\<Pi>\<^sub>E x\<in>A. B" \<rightleftharpoons> "CONST Pi\<^sub>E A (\<lambda>x. B)"
 
-abbreviation extensional_funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set" (infixr "->\<^sub>E" 60)
-  where "A ->\<^sub>E B \<equiv> (\<Pi>\<^sub>E i\<in>A. B)"
-
-notation (xsymbols)
-  extensional_funcset  (infixr "\<rightarrow>\<^sub>E" 60)
+abbreviation extensional_funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set" (infixr "\<rightarrow>\<^sub>E" 60)
+  where "A \<rightarrow>\<^sub>E B \<equiv> (\<Pi>\<^sub>E i\<in>A. B)"
 
 lemma extensional_funcset_def: "extensional_funcset S T = (S \<rightarrow> T) \<inter> extensional S"
   by (simp add: PiE_def)
