@@ -49,10 +49,6 @@ definition
     "i -- j == ordertype(i-j, Memrel(i))"
 
 
-notation (xsymbols)
-  omult  (infixl "\<times>\<times>" 70)
-
-
 subsection\<open>Proofs needing the combination of Ordinal.thy and Order.thy\<close>
 
 lemma le_well_ord_Memrel: "j \<le> i ==> well_ord(j, Memrel(i))"
@@ -973,7 +969,7 @@ proof -
       by simp
   next
     case (succ i)
-    have "j \<times>\<times> i ++ 0 < j \<times>\<times> i ++ j"
+    have "j ** i ++ 0 < j ** i ++ j"
       by (rule oadd_lt_mono2 [OF j])
     with succ.hyps show ?case
       by (simp add: oj j omult_succ ) (rule lt_trans1)
