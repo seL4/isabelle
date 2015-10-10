@@ -339,7 +339,7 @@ done
 
 
 lemma setsum_zneg_or_0 [rule_format (no_asm)]:
-     "Finite(A) ==> (\<forall>x\<in>A. g(x) $<= #0) \<longrightarrow> setsum(g, A) $<= #0"
+     "Finite(A) ==> (\<forall>x\<in>A. g(x) $\<le> #0) \<longrightarrow> setsum(g, A) $\<le> #0"
 apply (erule Finite_induct)
 apply (auto intro: zneg_or_0_add_zneg_or_0_imp_zneg_or_0)
 done
@@ -349,12 +349,12 @@ lemma setsum_succD_lemma [rule_format]:
       ==> \<forall>n\<in>nat. setsum(f,A) = $# succ(n) \<longrightarrow> (\<exists>a\<in>A. #0 $< f(a))"
 apply (erule Finite_induct)
 apply (auto simp del: int_of_0 int_of_succ simp add: not_zless_iff_zle int_of_0 [symmetric])
-apply (subgoal_tac "setsum (f, B) $<= #0")
+apply (subgoal_tac "setsum (f, B) $\<le> #0")
 apply simp_all
 prefer 2 apply (blast intro: setsum_zneg_or_0)
-apply (subgoal_tac "$# 1 $<= f (x) $+ setsum (f, B) ")
+apply (subgoal_tac "$# 1 $\<le> f (x) $+ setsum (f, B) ")
 apply (drule zdiff_zle_iff [THEN iffD2])
-apply (subgoal_tac "$# 1 $<= $# 1 $- setsum (f,B) ")
+apply (subgoal_tac "$# 1 $\<le> $# 1 $- setsum (f,B) ")
 apply (drule_tac x = "$# 1" in zle_trans)
 apply (rule_tac [2] j = "#1" in zless_zle_trans, auto)
 done
@@ -368,14 +368,14 @@ apply (auto simp del: int_of_0 int_of_succ simp add: int_succ_int_1 [symmetric] 
 done
 
 lemma g_zpos_imp_setsum_zpos [rule_format]:
-     "Finite(A) ==> (\<forall>x\<in>A. #0 $<= g(x)) \<longrightarrow> #0 $<= setsum(g, A)"
+     "Finite(A) ==> (\<forall>x\<in>A. #0 $\<le> g(x)) \<longrightarrow> #0 $\<le> setsum(g, A)"
 apply (erule Finite_induct)
 apply (simp (no_asm))
 apply (auto intro: zpos_add_zpos_imp_zpos)
 done
 
 lemma g_zpos_imp_setsum_zpos2 [rule_format]:
-     "[| Finite(A); \<forall>x. #0 $<= g(x) |] ==> #0 $<= setsum(g, A)"
+     "[| Finite(A); \<forall>x. #0 $\<le> g(x) |] ==> #0 $\<le> setsum(g, A)"
 apply (erule Finite_induct)
 apply (auto intro: zpos_add_zpos_imp_zpos)
 done

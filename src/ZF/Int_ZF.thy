@@ -87,13 +87,8 @@ definition
      "z1 $< z2 == znegative(z1 $- z2)"
 
 definition
-  zle          ::      "[i,i]=>o"      (infixl "$<=" 50)  where
-     "z1 $<= z2 == z1 $< z2 | intify(z1)=intify(z2)"
-
-
-notation (xsymbols)
-  zmult  (infixl "$\<times>" 70) and
-  zle  (infixl "$\<le>" 50)  --\<open>less than or equals\<close>
+  zle          ::      "[i,i]=>o"      (infixl "$\<le>" 50)  where
+     "z1 $\<le> z2 == z1 $< z2 | intify(z1)=intify(z2)"
 
 
 declare quotientE [elim!]
@@ -204,10 +199,10 @@ by (simp add: zless_def)
 lemma zless_intify2 [simp]:"x $< intify(y) \<longleftrightarrow> x $< y"
 by (simp add: zless_def)
 
-lemma zle_intify1 [simp]:"intify(x) $<= y \<longleftrightarrow> x $<= y"
+lemma zle_intify1 [simp]:"intify(x) $\<le> y \<longleftrightarrow> x $\<le> y"
 by (simp add: zle_def)
 
-lemma zle_intify2 [simp]:"x $<= intify(y) \<longleftrightarrow> x $<= y"
+lemma zle_intify2 [simp]:"x $\<le> intify(y) \<longleftrightarrow> x $\<le> y"
 by (simp add: zle_def)
 
 
@@ -716,10 +711,10 @@ by (blast dest: zless_trans)
 (* [| z $< w; ~ P ==> w $< z |] ==> P *)
 lemmas zless_asym = zless_not_sym [THEN swap]
 
-lemma zless_imp_zle: "z $< w ==> z $<= w"
+lemma zless_imp_zle: "z $< w ==> z $\<le> w"
 by (simp add: zle_def)
 
-lemma zle_linear: "z $<= w | w $<= z"
+lemma zle_linear: "z $\<le> w | w $\<le> z"
 apply (simp add: zle_def)
 apply (cut_tac zless_linear, blast)
 done
@@ -727,51 +722,51 @@ done
 
 subsection\<open>Less Than or Equals\<close>
 
-lemma zle_refl: "z $<= z"
+lemma zle_refl: "z $\<le> z"
 by (simp add: zle_def)
 
-lemma zle_eq_refl: "x=y ==> x $<= y"
+lemma zle_eq_refl: "x=y ==> x $\<le> y"
 by (simp add: zle_refl)
 
-lemma zle_anti_sym_intify: "[| x $<= y; y $<= x |] ==> intify(x) = intify(y)"
+lemma zle_anti_sym_intify: "[| x $\<le> y; y $\<le> x |] ==> intify(x) = intify(y)"
 apply (simp add: zle_def, auto)
 apply (blast dest: zless_trans)
 done
 
-lemma zle_anti_sym: "[| x $<= y; y $<= x; x \<in> int; y \<in> int |] ==> x=y"
+lemma zle_anti_sym: "[| x $\<le> y; y $\<le> x; x \<in> int; y \<in> int |] ==> x=y"
 by (drule zle_anti_sym_intify, auto)
 
 lemma zle_trans_lemma:
-     "[| x \<in> int; y \<in> int; z \<in> int; x $<= y; y $<= z |] ==> x $<= z"
+     "[| x \<in> int; y \<in> int; z \<in> int; x $\<le> y; y $\<le> z |] ==> x $\<le> z"
 apply (simp add: zle_def, auto)
 apply (blast intro: zless_trans)
 done
 
-lemma zle_trans [trans]: "[| x $<= y; y $<= z |] ==> x $<= z"
-apply (subgoal_tac "intify (x) $<= intify (z) ")
+lemma zle_trans [trans]: "[| x $\<le> y; y $\<le> z |] ==> x $\<le> z"
+apply (subgoal_tac "intify (x) $\<le> intify (z) ")
 apply (rule_tac [2] y = "intify (y) " in zle_trans_lemma)
 apply auto
 done
 
-lemma zle_zless_trans [trans]: "[| i $<= j; j $< k |] ==> i $< k"
+lemma zle_zless_trans [trans]: "[| i $\<le> j; j $< k |] ==> i $< k"
 apply (auto simp add: zle_def)
 apply (blast intro: zless_trans)
 apply (simp add: zless_def zdiff_def zadd_def)
 done
 
-lemma zless_zle_trans [trans]: "[| i $< j; j $<= k |] ==> i $< k"
+lemma zless_zle_trans [trans]: "[| i $< j; j $\<le> k |] ==> i $< k"
 apply (auto simp add: zle_def)
 apply (blast intro: zless_trans)
 apply (simp add: zless_def zdiff_def zminus_def)
 done
 
-lemma not_zless_iff_zle: "~ (z $< w) \<longleftrightarrow> (w $<= z)"
+lemma not_zless_iff_zle: "~ (z $< w) \<longleftrightarrow> (w $\<le> z)"
 apply (cut_tac z = z and w = w in zless_linear)
 apply (auto dest: zless_trans simp add: zle_def)
 apply (auto dest!: zless_imp_intify_neq)
 done
 
-lemma not_zle_iff_zless: "~ (z $<= w) \<longleftrightarrow> (w $< z)"
+lemma not_zle_iff_zless: "~ (z $\<le> w) \<longleftrightarrow> (w $< z)"
 by (simp add: not_zless_iff_zle [THEN iff_sym])
 
 
@@ -796,19 +791,19 @@ lemma eq_zdiff_iff: "[| x \<in> int; z \<in> int |] ==> (x = z$-y) \<longleftrig
 by (auto simp add: zdiff_def zadd_assoc)
 
 lemma zdiff_zle_iff_lemma:
-     "[| x \<in> int; z \<in> int |] ==> (x$-y $<= z) \<longleftrightarrow> (x $<= z $+ y)"
+     "[| x \<in> int; z \<in> int |] ==> (x$-y $\<le> z) \<longleftrightarrow> (x $\<le> z $+ y)"
 by (auto simp add: zle_def zdiff_eq_iff zdiff_zless_iff)
 
-lemma zdiff_zle_iff: "(x$-y $<= z) \<longleftrightarrow> (x $<= z $+ y)"
+lemma zdiff_zle_iff: "(x$-y $\<le> z) \<longleftrightarrow> (x $\<le> z $+ y)"
 by (cut_tac zdiff_zle_iff_lemma [OF intify_in_int intify_in_int], simp)
 
 lemma zle_zdiff_iff_lemma:
-     "[| x \<in> int; z \<in> int |] ==>(x $<= z$-y) \<longleftrightarrow> (x $+ y $<= z)"
+     "[| x \<in> int; z \<in> int |] ==>(x $\<le> z$-y) \<longleftrightarrow> (x $+ y $\<le> z)"
 apply (auto simp add: zle_def zdiff_eq_iff zless_zdiff_iff)
 apply (auto simp add: zdiff_def zadd_assoc)
 done
 
-lemma zle_zdiff_iff: "(x $<= z$-y) \<longleftrightarrow> (x $+ y $<= z)"
+lemma zle_zdiff_iff: "(x $\<le> z$-y) \<longleftrightarrow> (x $+ y $\<le> z)"
 by (cut_tac zle_zdiff_iff_lemma [ OF intify_in_int intify_in_int], simp)
 
 text\<open>This list of rewrites simplifies (in)equalities by bringing subtractions
@@ -856,29 +851,29 @@ by (simp add: zdiff_zless_iff [THEN iff_sym] zdiff_def zadd_assoc)
 lemma zadd_left_cancel_zless [simp]: "(z $+ w' $< z $+ w) \<longleftrightarrow> (w' $< w)"
 by (simp add: zadd_commute [of z] zadd_right_cancel_zless)
 
-lemma zadd_right_cancel_zle [simp]: "(w' $+ z $<= w $+ z) \<longleftrightarrow> w' $<= w"
+lemma zadd_right_cancel_zle [simp]: "(w' $+ z $\<le> w $+ z) \<longleftrightarrow> w' $\<le> w"
 by (simp add: zle_def)
 
-lemma zadd_left_cancel_zle [simp]: "(z $+ w' $<= z $+ w) \<longleftrightarrow>  w' $<= w"
+lemma zadd_left_cancel_zle [simp]: "(z $+ w' $\<le> z $+ w) \<longleftrightarrow>  w' $\<le> w"
 by (simp add: zadd_commute [of z]  zadd_right_cancel_zle)
 
 
-(*"v $<= w ==> v$+z $<= w$+z"*)
+(*"v $\<le> w ==> v$+z $\<le> w$+z"*)
 lemmas zadd_zless_mono1 = zadd_right_cancel_zless [THEN iffD2]
 
-(*"v $<= w ==> z$+v $<= z$+w"*)
+(*"v $\<le> w ==> z$+v $\<le> z$+w"*)
 lemmas zadd_zless_mono2 = zadd_left_cancel_zless [THEN iffD2]
 
-(*"v $<= w ==> v$+z $<= w$+z"*)
+(*"v $\<le> w ==> v$+z $\<le> w$+z"*)
 lemmas zadd_zle_mono1 = zadd_right_cancel_zle [THEN iffD2]
 
-(*"v $<= w ==> z$+v $<= z$+w"*)
+(*"v $\<le> w ==> z$+v $\<le> z$+w"*)
 lemmas zadd_zle_mono2 = zadd_left_cancel_zle [THEN iffD2]
 
-lemma zadd_zle_mono: "[| w' $<= w; z' $<= z |] ==> w' $+ z' $<= w $+ z"
+lemma zadd_zle_mono: "[| w' $\<le> w; z' $\<le> z |] ==> w' $+ z' $\<le> w $+ z"
 by (erule zadd_zle_mono1 [THEN zle_trans], simp)
 
-lemma zadd_zless_mono: "[| w' $< w; z' $<= z |] ==> w' $+ z' $< w $+ z"
+lemma zadd_zless_mono: "[| w' $< w; z' $\<le> z |] ==> w' $+ z' $< w $+ z"
 by (erule zadd_zless_mono1 [THEN zless_zle_trans], simp)
 
 
@@ -887,7 +882,7 @@ subsection\<open>Comparison laws\<close>
 lemma zminus_zless_zminus [simp]: "($- x $< $- y) \<longleftrightarrow> (y $< x)"
 by (simp add: zless_def zdiff_def zadd_ac)
 
-lemma zminus_zle_zminus [simp]: "($- x $<= $- y) \<longleftrightarrow> (y $<= x)"
+lemma zminus_zle_zminus [simp]: "($- x $\<le> $- y) \<longleftrightarrow> (y $\<le> x)"
 by (simp add: not_zless_iff_zle [THEN iff_sym])
 
 subsubsection\<open>More inequality lemmas\<close>
@@ -917,10 +912,10 @@ by (simp add: zless_def zdiff_def zadd_ac)
 lemma zminus_zless: "($- x $< y) \<longleftrightarrow> ($- y $< x)"
 by (simp add: zless_def zdiff_def zadd_ac)
 
-lemma zle_zminus: "(x $<= $- y) \<longleftrightarrow> (y $<= $- x)"
+lemma zle_zminus: "(x $\<le> $- y) \<longleftrightarrow> (y $\<le> $- x)"
 by (simp add: not_zless_iff_zle [THEN iff_sym] zminus_zless)
 
-lemma zminus_zle: "($- x $<= y) \<longleftrightarrow> ($- y $<= x)"
+lemma zminus_zle: "($- x $\<le> y) \<longleftrightarrow> ($- y $\<le> x)"
 by (simp add: not_zless_iff_zle [THEN iff_sym] zless_zminus)
 
 end

@@ -91,13 +91,13 @@ by (force simp add: INT_iff)
 
 lemma setsum_fun_mono [rule_format]:
      "n\<in>nat ==>  
-      (\<forall>i\<in>nat. i<n \<longrightarrow> f(i) $<= g(i)) \<longrightarrow>  
-      setsum(f, n) $<= setsum(g,n)"
+      (\<forall>i\<in>nat. i<n \<longrightarrow> f(i) $\<le> g(i)) \<longrightarrow>  
+      setsum(f, n) $\<le> setsum(g,n)"
 apply (induct_tac "n", simp_all)
 apply (subgoal_tac "Finite(x) & x\<notin>x")
  prefer 2 apply (simp add: nat_into_Finite mem_not_refl, clarify)
 apply (simp (no_asm_simp) add: succ_def)
-apply (subgoal_tac "\<forall>i\<in>nat. i<x\<longrightarrow> f(i) $<= g(i) ")
+apply (subgoal_tac "\<forall>i\<in>nat. i<x\<longrightarrow> f(i) $\<le> g(i) ")
  prefer 2 apply (force dest: leI) 
 apply (rule zadd_zle_mono, simp_all)
 done

@@ -221,9 +221,9 @@ val cancel_numerals =
     proc = K LessCancelNumerals.proc, identifier = []},
   Simplifier.make_simproc @{context} "intle_cancel_numerals"
    {lhss =
-     [@{term "l $+ m $<= n"}, @{term "l $<= m $+ n"},
-      @{term "l $- m $<= n"}, @{term "l $<= m $- n"},
-      @{term "l $* m $<= n"}, @{term "l $<= m $* n"}],
+     [@{term "l $+ m $\<le> n"}, @{term "l $\<le> m $+ n"},
+      @{term "l $- m $\<le> n"}, @{term "l $\<le> m $- n"},
+      @{term "l $* m $\<le> n"}, @{term "l $\<le> m $* n"}],
     proc = K LeCancelNumerals.proc, identifier = []}];
 
 

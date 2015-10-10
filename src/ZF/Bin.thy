@@ -428,7 +428,7 @@ done
 (** Less-than-or-equals (<=) **)
 
 lemma le_integ_of_eq_not_less:
-     "(integ_of(x) $<= (integ_of(w))) \<longleftrightarrow> ~ (integ_of(w) $< (integ_of(x)))"
+     "(integ_of(x) $\<le> (integ_of(w))) \<longleftrightarrow> ~ (integ_of(w) $< (integ_of(x)))"
 by (simp add: not_zless_iff_zle [THEN iff_sym])
 
 
@@ -527,16 +527,16 @@ by (simp add: zless_def)
 lemma zero_zless_imp_znegative_zminus: "[|#0 $< k; k \<in> int|] ==> znegative($-k)"
 by (simp add: zless_def)
 
-lemma zero_zle_int_of [simp]: "#0 $<= $# n"
+lemma zero_zle_int_of [simp]: "#0 $\<le> $# n"
 by (simp add: not_zless_iff_zle [THEN iff_sym] znegative_iff_zless_0 [THEN iff_sym])
 
 lemma nat_of_0 [simp]: "nat_of(#0) = 0"
 by (simp only: natify_0 int_of_0 [symmetric] nat_of_int_of)
 
-lemma nat_le_int0_lemma: "[| z $<= $#0; z \<in> int |] ==> nat_of(z) = 0"
+lemma nat_le_int0_lemma: "[| z $\<le> $#0; z \<in> int |] ==> nat_of(z) = 0"
 by (auto simp add: znegative_iff_zless_0 [THEN iff_sym] zle_def zneg_nat_of)
 
-lemma nat_le_int0: "z $<= $#0 ==> nat_of(z) = 0"
+lemma nat_le_int0: "z $\<le> $#0 ==> nat_of(z) = 0"
 apply (subgoal_tac "nat_of (intify (z)) = 0")
 apply (rule_tac [2] nat_le_int0_lemma, auto)
 done
@@ -547,14 +547,14 @@ by (rule not_znegative_imp_zero, auto)
 lemma nat_of_zminus_int_of: "nat_of($- $# n) = 0"
 by (simp add: nat_of_def int_of_def raw_nat_of zminus image_intrel_int)
 
-lemma int_of_nat_of: "#0 $<= z ==> $# nat_of(z) = intify(z)"
+lemma int_of_nat_of: "#0 $\<le> z ==> $# nat_of(z) = intify(z)"
 apply (rule not_zneg_nat_of_intify)
 apply (simp add: znegative_iff_zless_0 not_zless_iff_zle)
 done
 
 declare int_of_nat_of [simp] nat_of_zminus_int_of [simp]
 
-lemma int_of_nat_of_if: "$# nat_of(z) = (if #0 $<= z then intify(z) else #0)"
+lemma int_of_nat_of_if: "$# nat_of(z) = (if #0 $\<le> z then intify(z) else #0)"
 by (simp add: int_of_nat_of znegative_iff_zless_0 not_zle_iff_zless)
 
 lemma zless_nat_iff_int_zless: "[| m \<in> nat; z \<in> int |] ==> (m < nat_of(z)) \<longleftrightarrow> ($#m $< z)"
@@ -640,7 +640,7 @@ lemma zless_iff_zdiff_zless_0: "(x $< y) \<longleftrightarrow> (x$-y $< #0)"
 lemma eq_iff_zdiff_eq_0: "[| x \<in> int; y \<in> int |] ==> (x = y) \<longleftrightarrow> (x$-y = #0)"
   by (simp add: zcompare_rls)
 
-lemma zle_iff_zdiff_zle_0: "(x $<= y) \<longleftrightarrow> (x$-y $<= #0)"
+lemma zle_iff_zdiff_zle_0: "(x $\<le> y) \<longleftrightarrow> (x$-y $\<le> #0)"
   by (simp add: zcompare_rls)
 
 
@@ -681,13 +681,13 @@ lemma less_add_iff2: "(i$*u $+ m $< j$*u $+ n) \<longleftrightarrow> (m $< (j$-i
   apply (simp add: zdiff_def zadd_zmult_distrib zadd_ac rel_iff_rel_0_rls)
   done
 
-lemma le_add_iff1: "(i$*u $+ m $<= j$*u $+ n) \<longleftrightarrow> ((i$-j)$*u $+ m $<= n)"
+lemma le_add_iff1: "(i$*u $+ m $\<le> j$*u $+ n) \<longleftrightarrow> ((i$-j)$*u $+ m $\<le> n)"
   apply (simp add: zdiff_def zadd_zmult_distrib)
   apply (simp add: zcompare_rls)
   apply (simp add: zadd_ac)
   done
 
-lemma le_add_iff2: "(i$*u $+ m $<= j$*u $+ n) \<longleftrightarrow> (m $<= (j$-i)$*u $+ n)"
+lemma le_add_iff2: "(i$*u $+ m $\<le> j$*u $+ n) \<longleftrightarrow> (m $\<le> (j$-i)$*u $+ n)"
   apply (simp add: zdiff_def zadd_zmult_distrib)
   apply (simp add: zcompare_rls)
   apply (simp add: zadd_ac)
@@ -712,9 +712,9 @@ lemma "x : int ==> y $+ (z $+ x) = z $+ x" apply simp oops
 lemma "z : int ==> x $+ y $+ z = (z $+ y) $+ (x $+ w)" apply simp oops
 lemma "z : int ==> x$*y $+ z = (z $+ y) $+ (y$*x $+ w)" apply simp oops
 
-lemma "#-3 $* x $+ y $<= x $* #2 $+ z" apply simp oops
-lemma "y $+ x $<= x $+ z" apply simp oops
-lemma "x $+ y $+ z $<= x $+ z" apply simp oops
+lemma "#-3 $* x $+ y $\<le> x $* #2 $+ z" apply simp oops
+lemma "y $+ x $\<le> x $+ z" apply simp oops
+lemma "x $+ y $+ z $\<le> x $+ z" apply simp oops
 
 lemma "y $+ (z $+ x) $< z $+ x" apply simp oops
 lemma "x $+ y $+ z $< (z $+ y) $+ (x $+ w)" apply simp oops

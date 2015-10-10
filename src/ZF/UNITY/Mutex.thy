@@ -75,18 +75,18 @@ definition
   (** The correct invariants **)
 
 definition
-  "IU == {s:state. (s`u = 1\<longleftrightarrow>(#1 $<= s`m & s`m $<= #3))
+  "IU == {s:state. (s`u = 1\<longleftrightarrow>(#1 $\<le> s`m & s`m $\<le> #3))
                      & (s`m = #3 \<longrightarrow> s`p=0)}"
 
 definition
-  "IV == {s:state. (s`v = 1 \<longleftrightarrow> (#1 $<= s`n & s`n $<= #3))
+  "IV == {s:state. (s`v = 1 \<longleftrightarrow> (#1 $\<le> s`n & s`n $\<le> #3))
                       & (s`n = #3 \<longrightarrow> s`p=1)}"
 
   (** The faulty invariant (for U alone) **)
 
 definition
-  "bad_IU == {s:state. (s`u = 1 \<longleftrightarrow> (#1 $<= s`m & s`m  $<= #3))&
-                   (#3 $<= s`m & s`m $<= #4 \<longrightarrow> s`p=0)}"
+  "bad_IU == {s:state. (s`u = 1 \<longleftrightarrow> (#1 $\<le> s`m & s`m  $\<le> #3))&
+                   (#3 $\<le> s`m & s`m $\<le> #4 \<longrightarrow> s`p=0)}"
 
 
 (** Variables' types **)
@@ -181,7 +181,7 @@ done
 
 (*The bad invariant FAILS in V1*)
 
-lemma less_lemma: "[| x$<#1; #3 $<= x |] ==> P"
+lemma less_lemma: "[| x$<#1; #3 $\<le> x |] ==> P"
 apply (drule_tac j = "#1" and k = "#3" in zless_zle_trans)
 apply (drule_tac [2] j = x in zle_zless_trans, auto)
 done
@@ -189,7 +189,7 @@ done
 lemma "Mutex \<in> Always(bad_IU)"
 apply (rule AlwaysI, force)
 apply (unfold Mutex_def, safety, auto)
-apply (subgoal_tac "#1 $<= #3")
+apply (subgoal_tac "#1 $\<le> #3")
 apply (drule_tac x = "#1" and y = "#3" in zle_trans, auto)
 apply (simp (no_asm) add: not_zless_iff_zle [THEN iff_sym])
 apply auto
@@ -232,7 +232,7 @@ done
 lemma U_lemma1: "Mutex \<in> {s \<in> state. s`m = #1} \<longmapsto>w {s \<in> state. s`p =1}"
 by (rule LeadsTo_Trans [OF U_F1 [THEN LeadsTo_weaken_R] U_lemma2], blast)
 
-lemma eq_123: "i \<in> int ==> (#1 $<= i & i $<= #3) \<longleftrightarrow> (i=#1 | i=#2 | i=#3)"
+lemma eq_123: "i \<in> int ==> (#1 $\<le> i & i $\<le> #3) \<longleftrightarrow> (i=#1 | i=#2 | i=#3)"
 apply auto
 apply (auto simp add: neq_iff_zless)
 apply (drule_tac [4] j = "#3" and i = i in zle_zless_trans)
@@ -243,7 +243,7 @@ apply (simp_all (no_asm_simp) add: zless_add1_iff_zle [THEN iff_sym])
 done
 
 
-lemma U_lemma123: "Mutex \<in> {s \<in> state. #1 $<= s`m & s`m $<= #3} \<longmapsto>w {s \<in> state. s`p=1}"
+lemma U_lemma123: "Mutex \<in> {s \<in> state. #1 $\<le> s`m & s`m $\<le> #3} \<longmapsto>w {s \<in> state. s`p=1}"
 by (simp add: eq_123 Collect_disj_eq LeadsTo_Un_distrib U_lemma1 U_lemma2 U_F3)
 
 
@@ -282,7 +282,7 @@ done
 lemma V_lemma1: "Mutex \<in> {s \<in> state. s`n = #1} \<longmapsto>w {s \<in> state. s`p = 0}"
 by (rule LeadsTo_Trans [OF V_F1 [THEN LeadsTo_weaken_R] V_lemma2], blast)
 
-lemma V_lemma123: "Mutex \<in> {s \<in> state. #1 $<= s`n & s`n $<= #3} \<longmapsto>w {s \<in> state. s`p = 0}"
+lemma V_lemma123: "Mutex \<in> {s \<in> state. #1 $\<le> s`n & s`n $\<le> #3} \<longmapsto>w {s \<in> state. s`p = 0}"
 by (simp add: eq_123 Collect_disj_eq LeadsTo_Un_distrib V_lemma1 V_lemma2 V_F3)
 
 (*Misra's F4*)
