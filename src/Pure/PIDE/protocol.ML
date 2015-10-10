@@ -12,13 +12,6 @@ val _ =
     (fn args => List.app writeln args);
 
 val _ =
-  Isabelle_Process.protocol_command "Prover.init_symbols"
-    (fn [codes_yxml] =>
-      YXML.parse_body codes_yxml
-      |> let open XML.Decode in list (pair string int) end
-      |> HTML.init_symbols);
-
-val _ =
   Isabelle_Process.protocol_command "Prover.options"
     (fn [options_yxml] =>
       let val options = Options.decode (YXML.parse_body options_yxml) in

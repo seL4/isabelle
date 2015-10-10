@@ -97,7 +97,7 @@ fun protocol_message props output =
 
 (* build *)
 
-fun build_theories last_timing master_dir (options, thys) =
+fun build_theories symbols last_timing master_dir (options, thys) =
   let
     val condition = space_explode "," (Options.string options "condition");
     val conds = filter_out (can getenv_strict) condition;
@@ -106,6 +106,7 @@ fun build_theories last_timing master_dir (options, thys) =
       (Options.set_default options;
         (Thy_Info.use_theories {
           document = Present.document_enabled (Options.string options "document"),
+          symbols = symbols,
           last_timing = last_timing,
           master_dir = master_dir}
         |> Unsynchronized.setmp print_mode
@@ -133,12 +134,14 @@ fun build args_file = Command_Line.tool0 (fn () =>
                 ((list (pair Options.decode (list (string #> rpair Position.none)))))))))))))))
           end;
 
-      val _ = HTML.init_symbols symbol_codes;
+      val symbols = HTML.make_symbols symbol_codes;
       val _ = Options.set_default options;
 
       val _ = writeln ("\fSession.name = " ^ name);
       val _ =
-        Session.init do_output
+        Session.init
+          symbols
+          do_output
           (Options.bool options "browser_info")
           (Path.explode browser_info)
           (Options.string options "document")
@@ -153,7 +156,7 @@ fun build args_file = Command_Line.tool0 (fn () =>
 
       val res1 =
         theories |>
-          (List.app (build_theories last_timing Path.current)
+          (List.app (build_theories symbols last_timing Path.current)
             |> session_timing name verbose
             |> Unsynchronized.setmp Output.protocol_message_fn protocol_message
             |> Multithreading.max_threads_setmp (Options.int options "threads")
@@ -161,7 +164,6 @@ fun build args_file = Command_Line.tool0 (fn () =>
       val res2 = Exn.capture Session.finish ();
       val _ = Par_Exn.release_all [res1, res2];
 
-      val _ = HTML.reset_symbols ();
       val _ = Options.reset_default ();
       val _ = if do_output then () else exit 0;
     in () end);
@@ -171,15 +173,19 @@ fun build args_file = Command_Line.tool0 (fn () =>
 
 val _ =
   Isabelle_Process.protocol_command "build_theories"
-    (fn [id, master_dir, theories_yxml] =>
+    (fn [id, symbol_codes_yxml, master_dir, theories_yxml] =>
       let
+        val symbols =
+          YXML.parse_body symbol_codes_yxml
+          |> let open XML.Decode in list (pair string int) end
+          |> HTML.make_symbols;
         val theories =
           YXML.parse_body theories_yxml |>
             let open XML.Decode
             in list (pair Options.decode (list (string #> rpair Position.none))) end;
         val res1 =
           Exn.capture (fn () =>
-            theories |> List.app (build_theories (K NONE) (Path.explode master_dir))) ();
+            theories |> List.app (build_theories symbols (K NONE) (Path.explode master_dir))) ();
         val res2 = Exn.capture Session.shutdown ();
         val result =
           (Par_Exn.release_all [res1, res2]; "") handle exn =>

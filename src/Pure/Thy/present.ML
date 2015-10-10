@@ -10,7 +10,7 @@ sig
   val session_graph: string -> (string -> bool) -> theory -> Graph_Display.entry list
   val document_enabled: string -> bool
   val document_variants: string -> (string * string) list
-  val init: bool -> bool -> Path.T -> string -> string -> (string * string) list ->
+  val init: HTML.symbols -> bool -> bool -> Path.T -> string -> string -> (string * string) list ->
     (Path.T * Path.T) list -> Path.T -> string * string -> bool -> unit
   val finish: unit -> unit
   val theory_output: string -> string -> unit
@@ -138,15 +138,15 @@ fun add_html_index txt =
 (* session_info *)
 
 type session_info =
-  {name: string, chapter: string, info_path: Path.T, info: bool, doc_format: string,
-    doc_output: Path.T option, doc_files: (Path.T * Path.T) list, graph_file: Path.T,
-    documents: (string * string) list, verbose: bool, readme: Path.T option};
+  {symbols: HTML.symbols, name: string, chapter: string, info_path: Path.T, info: bool,
+    doc_format: string, doc_output: Path.T option, doc_files: (Path.T * Path.T) list,
+    graph_file: Path.T, documents: (string * string) list, verbose: bool, readme: Path.T option};
 
 fun make_session_info
-  (name, chapter, info_path, info, doc_format, doc_output, doc_files,
+  (symbols, name, chapter, info_path, info, doc_format, doc_output, doc_files,
     graph_file, documents, verbose, readme) =
-  {name = name, chapter = chapter, info_path = info_path, info = info, doc_format = doc_format,
-    doc_output = doc_output, doc_files = doc_files, graph_file = graph_file,
+  {symbols = symbols, name = name, chapter = chapter, info_path = info_path, info = info,
+    doc_format = doc_format, doc_output = doc_output, doc_files = doc_files, graph_file = graph_file,
     documents = documents, verbose = verbose, readme = readme}: session_info;
 
 
@@ -181,7 +181,7 @@ fun document_variants str =
 
 (* init session *)
 
-fun init build info info_path doc document_output doc_variants doc_files graph_file
+fun init symbols build info info_path doc document_output doc_variants doc_files graph_file
     (chapter, name) verbose =
   if not build andalso not info andalso doc = "" then
     (Synchronized.change browser_info (K empty_browser_info); session_info := NONE)
@@ -204,10 +204,10 @@ fun init build info info_path doc document_output doc_variants doc_files graph_f
           map (fn (name, _) => (Url.File (Path.ext doc (Path.basic name)), name)) documents;
     in
       session_info :=
-        SOME (make_session_info (name, chapter, info_path, info, doc,
+        SOME (make_session_info (symbols, name, chapter, info_path, info, doc,
           doc_output, doc_files, graph_file, documents, verbose, readme));
       Synchronized.change browser_info (K empty_browser_info);
-      add_html_index (0, HTML.begin_session_index name (Url.File session_graph_path) docs)
+      add_html_index (0, HTML.begin_session_index symbols name (Url.File session_graph_path) docs)
     end;
 
 
@@ -320,7 +320,7 @@ fun theory_link (curr_chapter, curr_session) thy =
   end;
 
 fun begin_theory update_time mk_text thy =
-  with_session_info thy (fn {name = session_name, chapter, ...} =>
+  with_session_info thy (fn {symbols, name = session_name, chapter, ...} =>
     let
       val name = Context.theory_name thy;
       val parents = Theory.parents_of thy;
@@ -328,10 +328,10 @@ fun begin_theory update_time mk_text thy =
       val parent_specs = parents |> map (fn parent =>
         (Option.map Url.File (theory_link (chapter, session_name) parent),
           (Context.theory_name parent)));
-      val html_source = HTML.theory name parent_specs (mk_text ());
+      val html_source = HTML.theory symbols name parent_specs (mk_text ());
     in
       init_theory_info name (make_theory_info ("", html_source));
-      add_html_index (update_time, HTML.theory_entry (Url.File (html_path name), name));
+      add_html_index (update_time, HTML.theory_entry symbols (Url.File (html_path name), name));
       add_tex_index (update_time, Latex.theory_entry name);
       Browser_Info.put {chapter = chapter, name = session_name} thy
     end);

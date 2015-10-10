@@ -9,7 +9,7 @@ sig
   val get_name: unit -> string
   val welcome: unit -> string
   val get_keywords: unit -> Keyword.keywords
-  val init: bool -> bool -> Path.T -> string -> string -> (string * string) list ->
+  val init: HTML.symbols -> bool -> bool -> Path.T -> string -> string -> (string * string) list ->
     (Path.T * Path.T) list -> Path.T -> string -> string * string -> bool -> unit
   val shutdown: unit -> unit
   val finish: unit -> unit
@@ -44,7 +44,7 @@ fun get_keywords () = ! keywords;
 
 (* init *)
 
-fun init build info info_path doc doc_output doc_variants doc_files graph_file
+fun init symbols build info info_path doc doc_output doc_variants doc_files graph_file
     parent (chapter, name) verbose =
   if get_name () <> parent orelse not (! session_finished) then
     error ("Unfinished parent session " ^ quote parent ^ " for " ^ quote name)
@@ -53,7 +53,7 @@ fun init build info info_path doc doc_output doc_variants doc_files graph_file
       val _ = session := {chapter = chapter, name = name};
       val _ = session_finished := false;
     in
-      Present.init build info info_path (if doc = "false" then "" else doc)
+      Present.init symbols build info info_path (if doc = "false" then "" else doc)
         doc_output doc_variants doc_files graph_file (chapter, name) verbose
     end;
 

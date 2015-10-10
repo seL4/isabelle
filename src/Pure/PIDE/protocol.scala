@@ -308,19 +308,6 @@ trait Protocol
   def protocol_command(name: String, args: String*): Unit
 
 
-  /* symbols */
-
-  def init_symbols(): Unit =
-  {
-    val codes_yxml =
-    {
-      import XML.Encode._
-      YXML.string_of_body(list(pair(string, int))(Symbol.codes))
-    }
-    protocol_command("Prover.init_symbols", codes_yxml)
-  }
-
-
   /* options */
 
   def options(opts: Options): Unit =
@@ -425,6 +412,9 @@ trait Protocol
 
   def build_theories(id: String, master_dir: Path, theories: List[(Options, List[Path])])
   {
+    val symbol_codes_yxml =
+    { import XML.Encode._
+      YXML.string_of_body(list(pair(string, int))(Symbol.codes)) }
     val theories_yxml =
     { import XML.Encode._
       YXML.string_of_body(list(pair(Options.encode, list(Path.encode)))(theories)) }
