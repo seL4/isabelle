@@ -21,10 +21,7 @@ consts comb :: i
 datatype comb =
     K
   | S
-  | app ("p \<in> comb", "q \<in> comb")    (infixl "@@" 90)
-
-notation (xsymbols)
-  app  (infixl "\<bullet>" 90)
+  | app ("p \<in> comb", "q \<in> comb")    (infixl "\<bullet>" 90)
 
 text \<open>
   Inductive definition of contractions, @{text "-1->"} and

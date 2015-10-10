@@ -6,17 +6,14 @@ section\<open>The meta-existential quantifier\<close>
 
 theory MetaExists imports Main begin
 
-text\<open>Allows quantification over any term having sort @{text logic}.  Used to
-quantify over classes.  Yields a proposition rather than a FOL formula.\<close>
+text\<open>Allows quantification over any term.  Used to quantify over classes.
+Yields a proposition rather than a FOL formula.\<close>
 
 definition
-  ex :: "(('a::{}) => prop) => prop"  (binder "?? " 0) where
-  "ex(P) == (!!Q. (!!x. PROP P(x) ==> PROP Q) ==> PROP Q)"
+  ex :: "(('a::{}) \<Rightarrow> prop) \<Rightarrow> prop"  (binder "\<Or>" 0) where
+  "ex(P) == (\<And>Q. (\<And>x. PROP P(x) \<Longrightarrow> PROP Q) \<Longrightarrow> PROP Q)"
 
-notation (xsymbols)
-  ex  (binder "\<Or>" 0)
-
-lemma meta_exI: "PROP P(x) ==> (?? x. PROP P(x))"
+lemma meta_exI: "PROP P(x) ==> (\<Or>x. PROP P(x))"
 proof (unfold ex_def)
   assume P: "PROP P(x)"
   fix Q
@@ -24,7 +21,7 @@ proof (unfold ex_def)
   from P show "PROP Q" by (rule PQ)
 qed 
 
-lemma meta_exE: "[| ?? x. PROP P(x);  !!x. PROP P(x) ==> PROP R |] ==> PROP R"
+lemma meta_exE: "[|\<Or>x. PROP P(x);  \<And>x. PROP P(x) ==> PROP R |] ==> PROP R"
 proof (unfold ex_def)
   assume QPQ: "\<And>Q. (\<And>x. PROP P(x) \<Longrightarrow> PROP Q) \<Longrightarrow> PROP Q"
   assume PR: "\<And>x. PROP P(x) \<Longrightarrow> PROP R"

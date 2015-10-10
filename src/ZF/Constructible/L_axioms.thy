@@ -131,7 +131,7 @@ text\<open>We must use the meta-existential quantifier; otherwise the reflection
       terms become enormous!\<close>
 definition
   L_Reflects :: "[i=>o,[i,i]=>o] => prop"  ("(3REFLECTS/ [_,/ _])") where
-    "REFLECTS[P,Q] == (??Cl. Closed_Unbounded(Cl) &
+    "REFLECTS[P,Q] == (\<Or>Cl. Closed_Unbounded(Cl) &
                            (\<forall>a. Cl(a) \<longrightarrow> (\<forall>x \<in> Lset(a). P(x) \<longleftrightarrow> Q(a,x))))"
 
 

@@ -75,10 +75,8 @@ abbreviation
 
 syntax
   "_MColl" :: "[pttrn, i, o] => i" ("(1{# _ \<in> _./ _#})")
-syntax (xsymbols)
-  "_MColl" :: "[pttrn, i, o] => i" ("(1{# _ \<in> _./ _#})")
 translations
-  "{#x \<in> M. P#}" == "CONST MCollect(M, %x. P)"
+  "{#x \<in> M. P#}" == "CONST MCollect(M, \<lambda>x. P)"
 
   (* multiset orderings *)
 
