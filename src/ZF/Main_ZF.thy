@@ -14,11 +14,8 @@ primrec
     "F^(succ(n)) (x) = F(F^n (x))"
 
 definition
-  iterates_omega :: "[i=>i,i] => i"  where
-    "iterates_omega(F,x) == \<Union>n\<in>nat. F^n (x)"
-
-notation (xsymbols)
-  iterates_omega  ("(_^\<omega> '(_'))" [60,1000] 60)
+  iterates_omega :: "[i=>i,i] => i" ("(_^\<omega> '(_'))" [60,1000] 60) where
+    "F^\<omega> (x) == \<Union>n\<in>nat. F^n (x)"
 
 lemma iterates_triv:
      "[| n\<in>nat;  F(x) = x |] ==> F^n (x) = x"
