@@ -23,19 +23,13 @@ definition
     "OUnion(i,B) == {z: \<Union>x\<in>i. B(x). Ord(i)}"
 
 syntax
-  "_oall"     :: "[idt, i, o] => o"        ("(3ALL _<_./ _)" 10)
-  "_oex"      :: "[idt, i, o] => o"        ("(3EX _<_./ _)" 10)
-  "_OUNION"   :: "[idt, i, i] => i"        ("(3UN _<_./ _)" 10)
-
-translations
-  "ALL x<a. P"  == "CONST oall(a, %x. P)"
-  "EX x<a. P"   == "CONST oex(a, %x. P)"
-  "UN x<a. B"   == "CONST OUnion(a, %x. B)"
-
-syntax (xsymbols)
   "_oall"     :: "[idt, i, o] => o"        ("(3\<forall>_<_./ _)" 10)
   "_oex"      :: "[idt, i, o] => o"        ("(3\<exists>_<_./ _)" 10)
   "_OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
+translations
+  "\<forall>x<a. P" \<rightleftharpoons> "CONST oall(a, \<lambda>x. P)"
+  "\<exists>x<a. P" \<rightleftharpoons> "CONST oex(a, \<lambda>x. P)"
+  "\<Union>x<a. B" \<rightleftharpoons> "CONST OUnion(a, \<lambda>x. B)"
 
 
 subsubsection \<open>simplification of the new quantifiers\<close>
@@ -198,16 +192,11 @@ definition
     "rex(M, P) == \<exists>x. M(x) & P(x)"
 
 syntax
-  "_rall"     :: "[pttrn, i=>o, o] => o"        ("(3ALL _[_]./ _)" 10)
-  "_rex"      :: "[pttrn, i=>o, o] => o"        ("(3EX _[_]./ _)" 10)
-
-syntax (xsymbols)
   "_rall"     :: "[pttrn, i=>o, o] => o"        ("(3\<forall>_[_]./ _)" 10)
   "_rex"      :: "[pttrn, i=>o, o] => o"        ("(3\<exists>_[_]./ _)" 10)
-
 translations
-  "ALL x[M]. P"  == "CONST rall(M, %x. P)"
-  "EX x[M]. P"   == "CONST rex(M, %x. P)"
+  "\<forall>x[M]. P" \<rightleftharpoons> "CONST rall(M, \<lambda>x. P)"
+  "\<exists>x[M]. P" \<rightleftharpoons> "CONST rex(M, \<lambda>x. P)"
 
 
 subsubsection\<open>Relativized universal quantifier\<close>
@@ -226,8 +215,8 @@ by (simp add: rall_def, blast)
 lemma rallE: "[| \<forall>x[M]. P(x);  P(x) ==> Q;  ~ M(x) ==> Q |] ==> Q"
 by blast
 
-(*Trival rewrite rule;   (ALL x[M].P)<->P holds only if A is nonempty!*)
-lemma rall_triv [simp]: "(ALL x[M]. P) <-> ((EX x. M(x)) --> P)"
+(*Trival rewrite rule;   (\<forall>x[M].P)<->P holds only if A is nonempty!*)
+lemma rall_triv [simp]: "(\<forall>x[M]. P) \<longleftrightarrow> ((\<exists>x. M(x)) \<longrightarrow> P)"
 by (simp add: rall_def)
 
 (*Congruence rule for rewriting*)
@@ -252,8 +241,8 @@ by blast
 lemma rexE [elim!]: "[| \<exists>x[M]. P(x);  !!x. [| M(x); P(x) |] ==> Q |] ==> Q"
 by (simp add: rex_def, blast)
 
-(*We do not even have (EX x[M]. True) <-> True unless A is nonempty!!*)
-lemma rex_triv [simp]: "(EX x[M]. P) <-> ((EX x. M(x)) & P)"
+(*We do not even have (\<exists>x[M]. True) <-> True unless A is nonempty!!*)
+lemma rex_triv [simp]: "(\<exists>x[M]. P) \<longleftrightarrow> ((\<exists>x. M(x)) \<and> P)"
 by (simp add: rex_def)
 
 lemma rex_cong [cong]:
