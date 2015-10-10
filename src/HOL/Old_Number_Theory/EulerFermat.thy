@@ -3,20 +3,20 @@
     Copyright   2000  University of Cambridge
 *)
 
-section {* Fermat's Little Theorem extended to Euler's Totient function *}
+section \<open>Fermat's Little Theorem extended to Euler's Totient function\<close>
 
 theory EulerFermat
 imports BijectionRel IntFact
 begin
 
-text {*
+text \<open>
   Fermat's Little Theorem extended to Euler's Totient function. More
   abstract approach than Boyer-Moore (which seems necessary to achieve
   the extended version).
-*}
+\<close>
 
 
-subsection {* Definitions and lemmas *}
+subsection \<open>Definitions and lemmas\<close>
 
 inductive_set RsetR :: "int => int set set" for m :: int
 where
@@ -54,11 +54,11 @@ definition zcongm :: "int => int => int => bool"
   where "zcongm m = (\<lambda>a b. zcong a b m)"
 
 lemma abs_eq_1_iff [iff]: "(abs z = (1::int)) = (z = 1 \<or> z = -1)"
-  -- {* LCP: not sure why this lemma is needed now *}
+  -- \<open>LCP: not sure why this lemma is needed now\<close>
   by (auto simp add: abs_if)
 
 
-text {* \medskip @{text norRRset} *}
+text \<open>\medskip @{text norRRset}\<close>
 
 declare BnorRset.simps [simp del]
 
@@ -146,7 +146,7 @@ lemma norR_mem_unique:
   done
 
 
-text {* \medskip @{term noXRRset} *}
+text \<open>\medskip @{term noXRRset}\<close>
 
 lemma RRset_gcd [rule_format]:
     "is_RRset A m ==> a \<in> A --> zgcd a m = 1"
@@ -249,7 +249,7 @@ lemma Bnor_prod_power [rule_format]:
       \<Prod>(BnorRset a m) * x^card (BnorRset a m)"
   apply (induct a m rule: BnorRset_induct)
    prefer 2
-   apply (simplesubst BnorRset.simps)  --{*multiple redexes*}
+   apply (simplesubst BnorRset.simps)  --\<open>multiple redexes\<close>
    apply (unfold Let_def, auto)
   apply (simp add: Bnor_fin Bnor_mem_zle_swap)
   apply (subst setprod.insert)
@@ -259,7 +259,7 @@ lemma Bnor_prod_power [rule_format]:
   done
 
 
-subsection {* Fermat *}
+subsection \<open>Fermat\<close>
 
 lemma bijzcong_zcong_prod:
     "(A, B) \<in> bijR (zcongm m) ==> [\<Prod>A = \<Prod>B] (mod m)"

@@ -2,19 +2,19 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-section {*Finite Sets and Finite Sums*}
+section \<open>Finite Sets and Finite Sums\<close>
 
 theory Finite2
 imports IntFact "~~/src/HOL/Library/Infinite_Set"
 begin
 
-text{*
+text\<open>
   These are useful for combinatorial and number-theoretic counting
   arguments.
-*}
+\<close>
 
 
-subsection {* Useful properties of sums and products *}
+subsection \<open>Useful properties of sums and products\<close>
 
 lemma setsum_same_function_zcong:
   assumes a: "\<forall>x \<in> S. [f x = g x](mod m)"
@@ -48,7 +48,7 @@ lemma setsum_const_mult: "finite A ==> setsum (%x. c * ((f x)::int)) A =
   by (induct set: finite) (auto simp add: distrib_left)
 
 
-subsection {* Cardinality of explicit finite sets *}
+subsection \<open>Cardinality of explicit finite sets\<close>
 
 lemma finite_surjI: "[| B \<subseteq> f ` A; finite A |] ==> finite B"
 by (simp add: finite_subset)
@@ -104,7 +104,7 @@ next
   also have "... = Suc (card {y. y < n})"
     by (rule card_insert_disjoint) (auto simp add: bdd_nat_set_l_finite)
   finally show "card {y. y < Suc n} = Suc n"
-    using `card {y. y < n} = n` by simp
+    using \<open>card {y. y < n} = n\<close> by simp
 qed
 
 lemma card_bdd_nat_set_le: "card { y::nat. y \<le> x} = Suc x"
@@ -121,7 +121,7 @@ proof -
     by (auto simp add: inj_on_def)
   hence "card (int ` {y. y < nat n}) = card {y. y < nat n}"
     by (rule card_image)
-  also from `0 \<le> n` have "int ` {y. y < nat n} = {y. 0 \<le> y & y < n}"
+  also from \<open>0 \<le> n\<close> have "int ` {y. y < nat n} = {y. 0 \<le> y & y < n}"
     apply (auto simp add: zless_nat_eq_int_zless image_def)
     apply (rule_tac x = "nat x" in exI)
     apply (auto simp add: nat_0_le)
@@ -150,7 +150,7 @@ proof -
   hence "card ((%x. x+1) ` {x. 0 \<le> x & x < n}) =
      card {x. 0 \<le> x & x < n}"
     by (rule card_image)
-  also from `0 \<le> n` have "... = nat n"
+  also from \<open>0 \<le> n\<close> have "... = nat n"
     by (rule card_bdd_int_set_l)
   also have "(%x. x + 1) ` {x. 0 \<le> x & x < n} = {x. 0 < x & x<= n}"
     apply (auto simp add: image_def)

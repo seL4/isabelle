@@ -3,18 +3,18 @@
     Copyright   2000  University of Cambridge
 *)
 
-section {* Wilson's Theorem according to Russinoff *}
+section \<open>Wilson's Theorem according to Russinoff\<close>
 
 theory WilsonRuss
 imports EulerFermat
 begin
 
-text {*
+text \<open>
   Wilson's Theorem following quite closely Russinoff's approach
   using Boyer-Moore (using finite sets instead of lists, though).
-*}
+\<close>
 
-subsection {* Definitions and lemmas *}
+subsection \<open>Definitions and lemmas\<close>
 
 definition inv :: "int => int => int"
   where "inv p a = (a^(nat (p - 2))) mod p"
@@ -26,7 +26,7 @@ fun wset :: "int \<Rightarrow> int => int set" where
       in (if a \<in> ws then ws else insert a (insert (inv p a) ws)) else {})"
 
 
-text {* \medskip @{term [source] inv} *}
+text \<open>\medskip @{term [source] inv}\<close>
 
 lemma inv_is_inv_aux: "1 < m ==> Suc (nat (m - 2)) = nat (m - 1)"
   by (subst int_int_eq [symmetric]) auto
@@ -149,7 +149,7 @@ lemma inv_inv: "zprime p \<Longrightarrow>
   done
 
 
-text {* \medskip @{term wset} *}
+text \<open>\medskip @{term wset}\<close>
 
 declare wset.simps [simp del]
 
@@ -252,7 +252,7 @@ lemma wset_zcong_prod_1 [rule_format]:
    apply (subst wset.simps)
    apply (auto, unfold Let_def, auto)
   apply (subst setprod.insert)
-    apply (tactic {* stac @{context} @{thm setprod.insert} 3 *})
+    apply (tactic \<open>stac @{context} @{thm setprod.insert} 3\<close>)
       apply (subgoal_tac [5]
         "zcong (a * inv p a * (\<Prod>x\<in>wset (a - 1) p. x)) (1 * 1) p")
        prefer 5
@@ -281,7 +281,7 @@ lemma d22set_eq_wset: "zprime p ==> d22set (p - 2) = wset (p - 2) p"
   done
 
 
-subsection {* Wilson *}
+subsection \<open>Wilson\<close>
 
 lemma prime_g_5: "zprime p \<Longrightarrow> p \<noteq> 2 \<Longrightarrow> p \<noteq> 3 ==> 5 \<le> p"
   apply (unfold zprime_def dvd_def)

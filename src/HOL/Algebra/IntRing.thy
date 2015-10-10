@@ -7,9 +7,9 @@ theory IntRing
 imports QuotRing Lattice Int "~~/src/HOL/Number_Theory/Primes"
 begin
 
-section {* The Ring of Integers *}
+section \<open>The Ring of Integers\<close>
 
-subsection {* Some properties of @{typ int} *}
+subsection \<open>Some properties of @{typ int}\<close>
 
 lemma dvds_eq_abseq:
   fixes k :: int
@@ -20,7 +20,7 @@ apply (simp add: dvd_if_abs_eq)
 done
 
 
-subsection {* @{text "\<Z>"}: The Set of Integers as Algebraic Structure *}
+subsection \<open>@{text "\<Z>"}: The Set of Integers as Algebraic Structure\<close>
 
 abbreviation int_ring :: "int ring" ("\<Z>")
   where "int_ring \<equiv> \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
@@ -47,11 +47,11 @@ done
 *)
 
 
-subsection {* Interpretations *}
+subsection \<open>Interpretations\<close>
 
-text {* Since definitions of derived operations are global, their
+text \<open>Since definitions of derived operations are global, their
   interpretation needs to be done as early as possible --- that is,
-  with as few assumptions as possible. *}
+  with as few assumptions as possible.\<close>
 
 interpretation int: monoid \<Z>
   where "carrier \<Z> = UNIV"
@@ -159,8 +159,8 @@ proof -
 qed (simp add: int_carrier_eq int_zero_eq int_add_eq int_finsum_eq int_a_inv_eq int_a_minus_eq)+
 
 
-text {* Removal of occurrences of @{term UNIV} in interpretation result
-  --- experimental. *}
+text \<open>Removal of occurrences of @{term UNIV} in interpretation result
+  --- experimental.\<close>
 
 lemma UNIV:
   "x \<in> UNIV \<longleftrightarrow> True"
@@ -218,7 +218,7 @@ interpretation int (* [unfolded UNIV] *) :
   by standard clarsimp
 
 
-subsection {* Generated Ideals of @{text "\<Z>"} *}
+subsection \<open>Generated Ideals of @{text "\<Z>"}\<close>
 
 lemma int_Idl: "Idl\<^bsub>\<Z>\<^esub> {a} = {x * a | x. True}"
   apply (subst int.cgenideal_eq_genideal[symmetric]) apply simp
@@ -255,7 +255,7 @@ next
 qed
 
 
-subsection {* Ideals and Divisibility *}
+subsection \<open>Ideals and Divisibility\<close>
 
 lemma int_Idl_subset_ideal: "Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l} = (k \<in> Idl\<^bsub>\<Z>\<^esub> {l})"
   by (rule int.Idl_subset_ideal') simp_all
@@ -287,7 +287,7 @@ lemma Idl_eq_abs: "Idl\<^bsub>\<Z>\<^esub> {k} = Idl\<^bsub>\<Z>\<^esub> {l} \<l
   done
 
 
-subsection {* Ideals and the Modulus *}
+subsection \<open>Ideals and the Modulus\<close>
 
 definition ZMod :: "int \<Rightarrow> int \<Rightarrow> int set"
   where "ZMod k r = (Idl\<^bsub>\<Z>\<^esub> {k}) +>\<^bsub>\<Z>\<^esub> r"
@@ -370,7 +370,7 @@ corollary ZMod_eq_mod: "ZMod m a = ZMod m b \<longleftrightarrow> a mod m = b mo
   done
 
 
-subsection {* Factorization *}
+subsection \<open>Factorization\<close>
 
 definition ZFact :: "int \<Rightarrow> int set ring"
   where "ZFact k = \<Z> Quot (Idl\<^bsub>\<Z>\<^esub> {k})"

@@ -3,19 +3,19 @@
     Copyright   1997  University of Cambridge
 *)
 
-section {* The Fibonacci function *}
+section \<open>The Fibonacci function\<close>
 
 theory Fib
 imports Primes
 begin
 
-text {*
+text \<open>
   Fibonacci numbers: proofs of laws taken from:
   R. L. Graham, D. E. Knuth, O. Patashnik.  Concrete Mathematics.
   (Addison-Wesley, 1989)
 
   \bigskip
-*}
+\<close>
 
 fun fib :: "nat \<Rightarrow> nat"
 where
@@ -23,21 +23,21 @@ where
 | "fib (Suc 0) = 1"
 | fib_2: "fib (Suc (Suc n)) = fib n + fib (Suc n)"
 
-text {*
+text \<open>
   \medskip The difficulty in these proofs is to ensure that the
   induction hypotheses are applied before the definition of @{term
   fib}.  Towards this end, the @{term fib} equations are not declared
   to the Simplifier and are applied very selectively at first.
-*}
+\<close>
 
-text{*We disable @{text fib.fib_2fib_2} for simplification ...*}
+text\<open>We disable @{text fib.fib_2fib_2} for simplification ...\<close>
 declare fib_2 [simp del]
 
-text{*...then prove a version that has a more restrictive pattern.*}
+text\<open>...then prove a version that has a more restrictive pattern.\<close>
 lemma fib_Suc3: "fib (Suc (Suc (Suc n))) = fib (Suc n) + fib (Suc (Suc n))"
   by (rule fib_2)
 
-text {* \medskip Concrete Mathematics, page 280 *}
+text \<open>\medskip Concrete Mathematics, page 280\<close>
 
 lemma fib_add: "fib (Suc (n + k)) = fib (Suc k) * fib (Suc n) + fib k * fib n"
 proof (induct n rule: fib.induct)
@@ -60,10 +60,10 @@ lemma fib_gr_0: "0 < n ==> 0 < fib n"
   by (case_tac n, auto simp add: fib_Suc_gr_0) 
 
 
-text {*
+text \<open>
   \medskip Concrete Mathematics, page 278: Cassini's identity.  The proof is
   much easier using integers, not natural numbers!
-*}
+\<close>
 
 lemma fib_Cassini_int:
  "int (fib (Suc (Suc n)) * fib n) =
@@ -79,8 +79,8 @@ next
   with "3.hyps" show ?case by (simp add: fib.simps add_mult_distrib add_mult_distrib2)
 qed
 
-text{*We now obtain a version for the natural numbers via the coercion 
-   function @{term int}.*}
+text\<open>We now obtain a version for the natural numbers via the coercion 
+   function @{term int}.\<close>
 theorem fib_Cassini:
  "fib (Suc (Suc n)) * fib n =
   (if n mod 2 = 0 then fib (Suc n) * fib (Suc n) - 1
@@ -92,7 +92,7 @@ theorem fib_Cassini:
   done
 
 
-text {* \medskip Toward Law 6.111 of Concrete Mathematics *}
+text \<open>\medskip Toward Law 6.111 of Concrete Mathematics\<close>
 
 lemma gcd_fib_Suc_eq_1: "gcd (fib n) (fib (Suc n)) = Suc 0"
   apply (induct n rule: fib.induct)
@@ -135,7 +135,7 @@ proof (induct n rule: less_induct)
   qed
 qed
 
-lemma fib_gcd: "fib (gcd m n) = gcd (fib m) (fib n)"  -- {* Law 6.111 *}
+lemma fib_gcd: "fib (gcd m n) = gcd (fib m) (fib n)"  -- \<open>Law 6.111\<close>
   apply (induct m n rule: gcd_induct)
   apply (simp_all add: gcd_non_0 gcd_commute gcd_fib_mod)
   done

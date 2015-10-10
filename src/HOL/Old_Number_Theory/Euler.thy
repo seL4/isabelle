@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-section {* Euler's criterion *}
+section \<open>Euler's criterion\<close>
 
 theory Euler
 imports Residues EvenOdd
@@ -15,7 +15,7 @@ definition SetS :: "int => int => int set set"
   where "SetS a p = MultInvPair a p ` SRStar p"
 
 
-subsection {* Property for MultInvPair *}
+subsection \<open>Property for MultInvPair\<close>
 
 lemma MultInvPair_prop1a:
   "[| zprime p; 2 < p; ~([a = 0](mod p));
@@ -89,7 +89,7 @@ lemma MultInvPair_card_two: "[| zprime p; 2 < p; ~([a = 0] (mod p));
   done
 
 
-subsection {* Properties of SetS *}
+subsection \<open>Properties of SetS\<close>
 
 lemma SetS_finite: "2 < p ==> finite (SetS a p)"
   by (auto simp add: SetS_def SRStar_finite [of p])
@@ -223,14 +223,14 @@ lemma zfact_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>
   apply (auto simp add: Union_SetS_setprod_prop2)
   done
 
-text {* \medskip Prove the first part of Euler's Criterion: *}
+text \<open>\medskip Prove the first part of Euler's Criterion:\<close>
 
 lemma Euler_part1: "[| 2 < p; zprime p; ~([x = 0](mod p)); 
     ~(QuadRes p x) |] ==> 
       [x^(nat (((p) - 1) div 2)) = -1](mod p)"
   by (metis Wilson_Russ zcong_sym zcong_trans zfact_prop)
 
-text {* \medskip Prove another part of Euler Criterion: *}
+text \<open>\medskip Prove another part of Euler Criterion:\<close>
 
 lemma aux_1: "0 < p ==> (a::int) ^ nat (p) = a * a ^ (nat (p) - 1)"
 proof -
@@ -251,7 +251,7 @@ proof -
     by (auto simp add: zEven_def zOdd_def)
   then have aux_1: "2 * ((p - 1) div 2) = (p - 1)"
     by (auto simp add: even_div_2_prop2)
-  with `2 < p` have "1 < (p - 1)"
+  with \<open>2 < p\<close> have "1 < (p - 1)"
     by auto
   then have " 1 < (2 * ((p - 1) div 2))"
     by (auto simp add: aux_1)
@@ -268,7 +268,7 @@ lemma Euler_part2:
   apply (frule zcong_zmult_prop1, auto)
   done
 
-text {* \medskip Prove the final part of Euler's Criterion: *}
+text \<open>\medskip Prove the final part of Euler's Criterion:\<close>
 
 lemma aux__1: "[| ~([x = 0] (mod p)); [y\<^sup>2 = x] (mod p)|] ==> ~(p dvd y)"
   by (metis dvdI power2_eq_square zcong_sym zcong_trans zcong_zero_equiv_div dvd_trans)
@@ -291,7 +291,7 @@ lemma Euler_part3: "[| 2 < p; zprime p; ~([x = 0](mod p)); QuadRes p x |] ==>
   done
 
 
-text {* \medskip Finally show Euler's Criterion: *}
+text \<open>\medskip Finally show Euler's Criterion:\<close>
 
 theorem Euler_Criterion: "[| 2 < p; zprime p |] ==> [(Legendre a p) =
     a^(nat (((p) - 1) div 2))] (mod p)"

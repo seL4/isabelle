@@ -6,11 +6,11 @@ theory Bij
 imports Group
 begin
 
-section {* Bijections of a Set, Permutation and Automorphism Groups *}
+section \<open>Bijections of a Set, Permutation and Automorphism Groups\<close>
 
 definition
   Bij :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) set"
-    --{*Only extensional functions, since otherwise we get too many.*}
+    --\<open>Only extensional functions, since otherwise we get too many.\<close>
    where "Bij S = extensional S \<inter> {f. bij_betw f S S}"
 
 definition
@@ -30,7 +30,7 @@ lemma Bij_imp_funcset: "f \<in> Bij S \<Longrightarrow> f \<in> S \<rightarrow> 
   by (auto simp add: Bij_def bij_betw_imp_funcset)
 
 
-subsection {*Bijections Form a Group *}
+subsection \<open>Bijections Form a Group\<close>
 
 lemma restrict_inv_into_Bij: "f \<in> Bij S \<Longrightarrow> (\<lambda>x \<in> S. (inv_into S f) x) \<in> Bij S"
   by (simp add: Bij_def bij_betw_inv_into)
@@ -57,7 +57,7 @@ apply (blast intro: Bij_compose_restrict_eq restrict_inv_into_Bij)
 done
 
 
-subsection{*Automorphisms Form a Group*}
+subsection\<open>Automorphisms Form a Group\<close>
 
 lemma Bij_inv_into_mem: "\<lbrakk> f \<in> Bij S;  x \<in> S\<rbrakk> \<Longrightarrow> inv_into S f x \<in> S"
 by (simp add: Bij_def bij_betw_def inv_into_into)

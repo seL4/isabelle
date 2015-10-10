@@ -2,15 +2,15 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-section {* Residue Sets *}
+section \<open>Residue Sets\<close>
 
 theory Residues
 imports Int2
 begin
 
-text {*
+text \<open>
   \medskip Define the residue of a set, the standard residue,
-  quadratic residues, and prove some basic properties. *}
+  quadratic residues, and prove some basic properties.\<close>
 
 definition ResSet :: "int => int set => bool"
   where "ResSet m X = (\<forall>y1 y2. (y1 \<in> X & y2 \<in> X & [y1 = y2] (mod m) --> y1 = y2))"
@@ -33,7 +33,7 @@ definition SRStar :: "int => int set"
   where "SRStar p = {x. (0 < x) & (x < p)}"
 
 
-subsection {* Some useful properties of StandardRes *}
+subsection \<open>Some useful properties of StandardRes\<close>
 
 lemma StandardRes_prop1: "[x = StandardRes m x] (mod m)"
   by (auto simp add: StandardRes_def zcong_zmod)
@@ -61,7 +61,7 @@ lemma StandardRes_eq_zcong:
   by (auto simp add: StandardRes_def zcong_eq_zdvd_prop dvd_def) 
 
 
-subsection {* Relations between StandardRes, SRStar, and SR *}
+subsection \<open>Relations between StandardRes, SRStar, and SR\<close>
 
 lemma SRStar_SR_prop: "x \<in> SRStar p ==> x \<in> SR p"
   by (auto simp add: SRStar_def SR_def)
@@ -115,7 +115,7 @@ lemma SRStar_finite: "2 < p ==> finite( SRStar p)"
   by (auto simp add: SRStar_def bdd_int_set_l_l_finite)
 
 
-subsection {* Properties relating ResSets with StandardRes *}
+subsection \<open>Properties relating ResSets with StandardRes\<close>
 
 lemma aux: "x mod m = y mod m ==> [x = y] (mod m)"
   apply (subgoal_tac "x = y ==> [x = y](mod m)")
@@ -158,7 +158,7 @@ lemma ResSet_image:
   by (auto simp add: ResSet_def)
 
 
-subsection {* Property for SRStar *}
+subsection \<open>Property for SRStar\<close>
 
 lemma ResSet_SRStar_prop: "ResSet p (SRStar p)"
   by (auto simp add: SRStar_def ResSet_def zcong_zless_imp_eq)

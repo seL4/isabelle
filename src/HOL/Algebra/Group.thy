@@ -8,13 +8,13 @@ theory Group
 imports Lattice "~~/src/HOL/Library/FuncSet"
 begin
 
-section {* Monoids and Groups *}
+section \<open>Monoids and Groups\<close>
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
-text {*
+text \<open>
   Definitions follow @{cite "Jacobson:1985"}.
-*}
+\<close>
 
 record 'a monoid =  "'a partial_object" +
   mult    :: "['a, 'a] \<Rightarrow> 'a" (infixl "\<otimes>\<index>" 70)
@@ -26,7 +26,7 @@ definition
 
 definition
   Units :: "_ => 'a set"
-  --{*The set of invertible elements*}
+  --\<open>The set of invertible elements\<close>
   where "Units G = {y. y \<in> carrier G & (\<exists>x \<in> carrier G. x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> & y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)}"
 
 consts
@@ -187,7 +187,7 @@ proof -
   with G show ?thesis by (simp del: r_one add: m_assoc Units_closed)
 qed
 
-text {* Power *}
+text \<open>Power\<close>
 
 lemma (in monoid) nat_pow_closed [intro, simp]:
   "x \<in> carrier G ==> x (^) (n::nat) \<in> carrier G"
@@ -218,11 +218,11 @@ lemma (in monoid) nat_pow_pow:
 (* Jacobson defines the order of a monoid here. *)
 
 
-subsection {* Groups *}
+subsection \<open>Groups\<close>
 
-text {*
+text \<open>
   A group is a monoid all of whose elements are invertible.
-*}
+\<close>
 
 locale group = monoid +
   assumes Units: "carrier G <= Units G"
@@ -321,7 +321,7 @@ lemma (in group) l_inv [simp]:
   using Units_l_inv by simp
 
 
-subsection {* Cancellation Laws and Basic Properties *}
+subsection \<open>Cancellation Laws and Basic Properties\<close>
 
 lemma (in group) l_cancel [simp]:
   "[| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
@@ -397,7 +397,7 @@ lemma (in group) inv_solve_right:
   "\<lbrakk> a \<in> carrier G; b \<in> carrier G; c \<in> carrier G \<rbrakk> \<Longrightarrow> a = b \<otimes> inv c \<longleftrightarrow> b = a \<otimes> c"
   by (metis inv_equality l_inv_ex l_one m_assoc r_inv)
 
-text {* Power *}
+text \<open>Power\<close>
 
 lemma (in group) int_pow_def2:
   "a (^) (z::int) = (if z < 0 then inv (a (^) (nat (-z))) else a (^) (nat z))"
@@ -435,7 +435,7 @@ proof -
 qed
 
  
-subsection {* Subgroups *}
+subsection \<open>Subgroups\<close>
 
 locale subgroup =
   fixes H and G (structure)
@@ -469,18 +469,18 @@ proof -
     done
 qed
 
-text {*
+text \<open>
   Since @{term H} is nonempty, it contains some element @{term x}.  Since
   it is closed under inverse, it contains @{text "inv x"}.  Since
   it is closed under product, it contains @{text "x \<otimes> inv x = \<one>"}.
-*}
+\<close>
 
 lemma (in group) one_in_subset:
   "[| H \<subseteq> carrier G; H \<noteq> {}; \<forall>a \<in> H. inv a \<in> H; \<forall>a\<in>H. \<forall>b\<in>H. a \<otimes> b \<in> H |]
    ==> \<one> \<in> H"
 by force
 
-text {* A characterization of subgroups: closed, non-empty subset. *}
+text \<open>A characterization of subgroups: closed, non-empty subset.\<close>
 
 lemma (in group) subgroupI:
   assumes subset: "H \<subseteq> carrier G" and non_empty: "H \<noteq> {}"
@@ -513,7 +513,7 @@ lemma (in monoid) Units_subgroup:
 *)
 
 
-subsection {* Direct Products *}
+subsection \<open>Direct Products\<close>
 
 definition
   DirProd :: "_ \<Rightarrow> _ \<Rightarrow> ('a \<times> 'b) monoid" (infixr "\<times>\<times>" 80) where
@@ -533,7 +533,7 @@ proof -
 qed
 
 
-text{*Does not use the previous result because it's easier just to use auto.*}
+text\<open>Does not use the previous result because it's easier just to use auto.\<close>
 lemma DirProd_group:
   assumes "group G" and "group H"
   shows "group (G \<times>\<times> H)"
@@ -571,7 +571,7 @@ proof -
 qed
 
 
-subsection {* Homomorphisms and Isomorphisms *}
+subsection \<open>Homomorphisms and Isomorphisms\<close>
 
 definition
   hom :: "_ => _ => ('a => 'b) set" where
@@ -611,8 +611,8 @@ lemma DirProd_assoc_iso:
 by (auto simp add: iso_def hom_def inj_on_def bij_betw_def)
 
 
-text{*Basis for homomorphism proofs: we assume two groups @{term G} and
-  @{term H}, with a homomorphism @{term h} between them*}
+text\<open>Basis for homomorphism proofs: we assume two groups @{term G} and
+  @{term H}, with a homomorphism @{term h} between them\<close>
 locale group_hom = G: group G + H: group H for G (structure) and H (structure) +
   fixes h
   assumes homh: "h \<in> hom G H"
@@ -665,13 +665,13 @@ lemma (in group) int_pow_is_hom:
   unfolding hom_def by (simp add: int_pow_mult)
 
 
-subsection {* Commutative Structures *}
+subsection \<open>Commutative Structures\<close>
 
-text {*
+text \<open>
   Naming convention: multiplicative structures that are commutative
   are called \emph{commutative}, additive structures are called
   \emph{Abelian}.
-*}
+\<close>
 
 locale comm_monoid = monoid +
   assumes m_comm: "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk> \<Longrightarrow> x \<otimes> y = y \<otimes> x"
@@ -753,9 +753,9 @@ lemma (in comm_group) inv_mult:
   by (simp add: m_ac inv_mult_group)
 
 
-subsection {* The Lattice of Subgroups of a Group *}
+subsection \<open>The Lattice of Subgroups of a Group\<close>
 
-text_raw {* \label{sec:subgroup-lattice} *}
+text_raw \<open>\label{sec:subgroup-lattice}\<close>
 
 theorem (in group) subgroups_partial_order:
   "partial_order \<lparr>carrier = {H. subgroup H G}, eq = op =, le = op \<subseteq>\<rparr>"

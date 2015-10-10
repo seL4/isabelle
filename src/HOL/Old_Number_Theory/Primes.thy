@@ -3,7 +3,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-section {* Primality on nat *}
+section \<open>Primality on nat\<close>
 
 theory Primes
 imports Complex_Main Legacy_GCD
@@ -27,11 +27,11 @@ lemma prime_imp_relprime: "prime p ==> \<not> p dvd n ==> gcd p n = 1"
   apply (metis gcd_dvd1 gcd_dvd2)
   done
 
-text {*
+text \<open>
   This theorem leads immediately to a proof of the uniqueness of
   factorization.  If @{term p} divides a product of primes then it is
   one of those primes.
-*}
+\<close>
 
 lemma prime_dvd_mult: "prime p ==> p dvd m * n ==> p dvd m \<or> p dvd n"
   by (blast intro: relprime_dvd_mult prime_imp_relprime)
@@ -92,7 +92,7 @@ proof-
   ultimately show ?thesis by blast  
 qed
 
-text {* Elementary theory of divisibility *}
+text \<open>Elementary theory of divisibility\<close>
 lemma divides_ge: "(a::nat) dvd b \<Longrightarrow> b = 0 \<or> a \<le> b" unfolding dvd_def by auto
 lemma divides_antisym: "(x::nat) dvd y \<and> y dvd x \<longleftrightarrow> x = y"
   using dvd_antisym[of x y] by auto
@@ -176,7 +176,7 @@ declare dvd_triv_right[presburger]
 lemma divides_rexp: 
   "x dvd y \<Longrightarrow> (x::nat) dvd (y^(Suc n))" by (simp add: dvd_mult2[of x y])
 
-text {* Coprimality *}
+text \<open>Coprimality\<close>
 
 lemma coprime: "coprime a b \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> d = 1)"
 using gcd_unique[of 1 a b, simplified] by (auto simp add: coprime_def)
@@ -379,7 +379,7 @@ proof-
 qed
 
 
-text {* A binary form of the Chinese Remainder Theorem. *}
+text \<open>A binary form of the Chinese Remainder Theorem.\<close>
 
 lemma chinese_remainder: assumes ab: "coprime a b" and a:"a \<noteq> 0" and b:"b \<noteq> 0"
   shows "\<exists>x q1 q2. x = u + q1 * a \<and> x = v + q2 * b"
@@ -397,9 +397,9 @@ proof-
   thus ?thesis by blast
 qed
 
-text {* Primality *}
+text \<open>Primality\<close>
 
-text {* A few useful theorems about primes *}
+text \<open>A few useful theorems about primes\<close>
 
 lemma prime_0[simp]: "~prime 0" by (simp add: prime_def)
 lemma prime_1[simp]: "~ prime 1"  by (simp add: prime_def)
@@ -591,7 +591,7 @@ qed
 lemma prime_odd: "prime p \<Longrightarrow> p = 2 \<or> odd p" unfolding prime_def by auto
 
 
-text {* One property of coprimality is easier to prove via prime factors. *}
+text \<open>One property of coprimality is easier to prove via prime factors.\<close>
 
 lemma prime_divprod_pow: 
   assumes p: "prime p" and ab: "coprime a b" and pab: "p^n dvd a * b"
@@ -714,7 +714,7 @@ proof(induct c arbitrary: a b rule: nat_less_induct)
 ultimately show ?ths by blast
 qed
 
-text {* More useful lemmas. *}
+text \<open>More useful lemmas.\<close>
 lemma prime_product: 
   assumes "prime (p * q)"
   shows "p = 1 \<or> q = 1"
@@ -722,7 +722,7 @@ proof -
   from assms have 
     "1 < p * q" and P: "\<And>m. m dvd p * q \<Longrightarrow> m = 1 \<or> m = p * q"
     unfolding prime_def by auto
-  from `1 < p * q` have "p \<noteq> 0" by (cases p) auto
+  from \<open>1 < p * q\<close> have "p \<noteq> 0" by (cases p) auto
   then have Q: "p = p * q \<longleftrightarrow> q = 1" by auto
   have "p dvd p * q" by simp
   then have "p = 1 \<or> p = p * q" by (rule P)

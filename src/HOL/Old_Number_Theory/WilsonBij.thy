@@ -3,20 +3,20 @@
     Copyright   2000  University of Cambridge
 *)
 
-section {* Wilson's Theorem using a more abstract approach *}
+section \<open>Wilson's Theorem using a more abstract approach\<close>
 
 theory WilsonBij
 imports BijectionRel IntFact
 begin
 
-text {*
+text \<open>
   Wilson's Theorem using a more ``abstract'' approach based on
   bijections between sets.  Does not use Fermat's Little Theorem
   (unlike Russinoff).
-*}
+\<close>
 
 
-subsection {* Definitions and lemmas *}
+subsection \<open>Definitions and lemmas\<close>
 
 definition reciR :: "int => int => int => bool"
   where "reciR p = (\<lambda>a b. zcong (a * b) 1 p \<and> 1 < a \<and> a < p - 1 \<and> 1 < b \<and> b < p - 1)"
@@ -28,7 +28,7 @@ definition inv :: "int => int => int" where
      else 0)"
 
 
-text {* \medskip Inverse *}
+text \<open>\medskip Inverse\<close>
 
 lemma inv_correct:
   "zprime p ==> 0 < a ==> a < p
@@ -47,7 +47,7 @@ lemmas inv_is_inv = inv_correct [THEN conjunct2, THEN conjunct2]
 
 lemma inv_not_0:
   "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> 0"
-  -- {* same as @{text WilsonRuss} *}
+  -- \<open>same as @{text WilsonRuss}\<close>
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      apply (unfold zcong_def)
@@ -56,7 +56,7 @@ lemma inv_not_0:
 
 lemma inv_not_1:
   "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> 1"
-  -- {* same as @{text WilsonRuss} *}
+  -- \<open>same as @{text WilsonRuss}\<close>
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      prefer 4
@@ -67,7 +67,7 @@ lemma inv_not_1:
   done
 
 lemma aux: "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
-  -- {* same as @{text WilsonRuss} *}
+  -- \<open>same as @{text WilsonRuss}\<close>
   apply (unfold zcong_def)
   apply (simp add: diff_diff_eq diff_diff_eq2 right_diff_distrib)
   apply (rule_tac s = "p dvd -((a + 1) + (p * -a))" in trans)
@@ -81,7 +81,7 @@ lemma aux: "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
 
 lemma inv_not_p_minus_1:
   "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a \<noteq> p - 1"
-  -- {* same as @{text WilsonRuss} *}
+  -- \<open>same as @{text WilsonRuss}\<close>
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      apply auto
@@ -91,10 +91,10 @@ lemma inv_not_p_minus_1:
        apply auto
   done
 
-text {*
+text \<open>
   Below is slightly different as we don't expand @{term [source] inv}
   but use ``@{text correct}'' theorems.
-*}
+\<close>
 
 lemma inv_g_1: "zprime p ==> 1 < a ==> a < p - 1 ==> 1 < inv p a"
   apply (subgoal_tac "inv p a \<noteq> 1")
@@ -111,13 +111,13 @@ lemma inv_g_1: "zprime p ==> 1 < a ==> a < p - 1 ==> 1 < inv p a"
 
 lemma inv_less_p_minus_1:
   "zprime p ==> 1 < a ==> a < p - 1 ==> inv p a < p - 1"
-  -- {* ditto *}
+  -- \<open>ditto\<close>
   apply (subst order_less_le)
   apply (simp add: inv_not_p_minus_1 inv_less)
   done
 
 
-text {* \medskip Bijection *}
+text \<open>\medskip Bijection\<close>
 
 lemma aux1: "1 < x ==> 0 \<le> (x::int)"
   apply auto
@@ -139,9 +139,9 @@ lemma inv_inj: "zprime p ==> inj_on (inv p) (d22set (p - 2))"
   apply (unfold inj_on_def)
   apply auto
   apply (rule zcong_zless_imp_eq)
-      apply (tactic {* stac @{context} (@{thm zcong_cancel} RS sym) 5 *})
+      apply (tactic \<open>stac @{context} (@{thm zcong_cancel} RS sym) 5\<close>)
         apply (rule_tac [7] zcong_trans)
-         apply (tactic {* stac @{context} @{thm zcong_sym} 8 *})
+         apply (tactic \<open>stac @{context} @{thm zcong_sym} 8\<close>)
          apply (erule_tac [7] inv_is_inv)
           apply (tactic "asm_simp_tac @{context} 9")
           apply (erule_tac [9] inv_is_inv)
@@ -192,15 +192,15 @@ lemma reciP_uniq: "zprime p ==> uniqP (reciR p)"
   apply (unfold reciR_def uniqP_def)
   apply auto
    apply (rule zcong_zless_imp_eq)
-       apply (tactic {* stac @{context} (@{thm zcong_cancel2} RS sym) 5 *})
+       apply (tactic \<open>stac @{context} (@{thm zcong_cancel2} RS sym) 5\<close>)
          apply (rule_tac [7] zcong_trans)
-          apply (tactic {* stac @{context} @{thm zcong_sym} 8 *})
+          apply (tactic \<open>stac @{context} @{thm zcong_sym} 8\<close>)
           apply (rule_tac [6] zless_zprime_imp_zrelprime)
             apply auto
   apply (rule zcong_zless_imp_eq)
-      apply (tactic {* stac @{context} (@{thm zcong_cancel} RS sym) 5 *})
+      apply (tactic \<open>stac @{context} (@{thm zcong_cancel} RS sym) 5\<close>)
         apply (rule_tac [7] zcong_trans)
-         apply (tactic {* stac @{context} @{thm zcong_sym} 8 *})
+         apply (tactic \<open>stac @{context} @{thm zcong_sym} 8\<close>)
          apply (rule_tac [6] zless_zprime_imp_zrelprime)
            apply auto
   done
@@ -220,7 +220,7 @@ lemma bijER_d22set: "zprime p ==> d22set (p - 2) \<in> bijER (reciR p)"
   done
 
 
-subsection {* Wilson *}
+subsection \<open>Wilson\<close>
 
 lemma bijER_zcong_prod_1:
     "zprime p ==> A \<in> bijER (reciR p) ==> [\<Prod>A = 1] (mod p)"

@@ -3,22 +3,22 @@
     Copyright   2000  University of Cambridge
 *)
 
-section {* The Chinese Remainder Theorem *}
+section \<open>The Chinese Remainder Theorem\<close>
 
 theory Chinese 
 imports IntPrimes
 begin
 
-text {*
+text \<open>
   The Chinese Remainder Theorem for an arbitrary finite number of
   equations.  (The one-equation case is included in theory @{text
   IntPrimes}.  Uses functions for indexing.\footnote{Maybe @{term
   funprod} and @{term funsum} should be based on general @{term fold}
   on indices?}
-*}
+\<close>
 
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
 primrec funprod :: "(nat => int) => nat => nat => int"
 where
@@ -65,7 +65,7 @@ definition
   "x_sol n kf bf mf = funsum (\<lambda>i. xilin_sol i n kf bf mf * mhf mf n i) 0 n"
 
 
-text {* \medskip @{term funprod} and @{term funsum} *}
+text \<open>\medskip @{term funprod} and @{term funsum}\<close>
 
 lemma funprod_pos: "(\<forall>i. i \<le> n --> 0 < mf i) ==> 0 < funprod mf 0 n"
 by (induct n) auto
@@ -126,7 +126,7 @@ lemma funsum_oneelem [rule_format (no_asm)]:
   done
 
 
-subsection {* Chinese: uniqueness *}
+subsection \<open>Chinese: uniqueness\<close>
 
 lemma zcong_funprod_aux:
   "m_cond n mf ==> km_cond n kf mf
@@ -160,17 +160,17 @@ lemma zcong_funprod [rule_format]:
   done
 
 
-subsection {* Chinese: existence *}
+subsection \<open>Chinese: existence\<close>
 
 lemma unique_xi_sol:
   "0 < n ==> i \<le> n ==> m_cond n mf ==> km_cond n kf mf
     ==> \<exists>!x. 0 \<le> x \<and> x < mf i \<and> [kf i * mhf mf n i * x = bf i] (mod mf i)"
   apply (rule zcong_lineq_unique)
-   apply (tactic {* stac @{context} @{thm zgcd_zmult_cancel} 2 *})
+   apply (tactic \<open>stac @{context} @{thm zgcd_zmult_cancel} 2\<close>)
     apply (unfold m_cond_def km_cond_def mhf_def)
     apply (simp_all (no_asm_simp))
   apply safe
-    apply (tactic {* stac @{context} @{thm zgcd_zmult_cancel} 3 *})
+    apply (tactic \<open>stac @{context} @{thm zgcd_zmult_cancel} 3\<close>)
      apply (rule_tac [!] funprod_zgcd)
      apply safe
      apply simp_all
@@ -216,7 +216,7 @@ lemma x_sol_lin:
   done
 
 
-subsection {* Chinese *}
+subsection \<open>Chinese\<close>
 
 lemma chinese_remainder:
   "0 < n ==> m_cond n mf ==> km_cond n kf mf
@@ -228,19 +228,19 @@ lemma chinese_remainder:
   apply (rule_tac x = "x_sol n kf bf mf mod funprod mf 0 n" in exI)
   apply (unfold lincong_sol_def)
   apply safe
-    apply (tactic {* stac @{context} @{thm zcong_zmod} 3 *})
-    apply (tactic {* stac @{context} @{thm mod_mult_eq} 3 *})
-    apply (tactic {* stac @{context} @{thm mod_mod_cancel} 3 *})
-      apply (tactic {* stac @{context} @{thm x_sol_lin} 4 *})
-        apply (tactic {* stac @{context} (@{thm mod_mult_eq} RS sym) 6 *})
-        apply (tactic {* stac @{context} (@{thm zcong_zmod} RS sym) 6 *})
+    apply (tactic \<open>stac @{context} @{thm zcong_zmod} 3\<close>)
+    apply (tactic \<open>stac @{context} @{thm mod_mult_eq} 3\<close>)
+    apply (tactic \<open>stac @{context} @{thm mod_mod_cancel} 3\<close>)
+      apply (tactic \<open>stac @{context} @{thm x_sol_lin} 4\<close>)
+        apply (tactic \<open>stac @{context} (@{thm mod_mult_eq} RS sym) 6\<close>)
+        apply (tactic \<open>stac @{context} (@{thm zcong_zmod} RS sym) 6\<close>)
         apply (subgoal_tac [6]
           "0 \<le> xilin_sol i n kf bf mf \<and> xilin_sol i n kf bf mf < mf i
           \<and> [kf i * mhf mf n i * xilin_sol i n kf bf mf = bf i] (mod mf i)")
          prefer 6
          apply (simp add: ac_simps)
         apply (unfold xilin_sol_def)
-        apply (tactic {* asm_simp_tac @{context} 6 *})
+        apply (tactic \<open>asm_simp_tac @{context} 6\<close>)
         apply (rule_tac [6] ex1_implies_ex [THEN someI_ex])
         apply (rule_tac [6] unique_xi_sol)
            apply (rule_tac [3] funprod_zdvd)

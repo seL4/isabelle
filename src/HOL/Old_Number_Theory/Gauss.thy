@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-section {* Gauss' Lemma *}
+section \<open>Gauss' Lemma\<close>
 
 theory Gauss
 imports Euler
@@ -26,7 +26,7 @@ definition "E = C \<inter> {x. ((p - 1) div 2) < x}"
 definition "F = (%x. (p - x)) ` E"
 
 
-subsection {* Basic properties of p *}
+subsection \<open>Basic properties of p\<close>
 
 lemma p_odd: "p \<in> zOdd"
   by (auto simp add: p_prime p_g_2 zprime_zOdd_eq_grt_2)
@@ -64,7 +64,7 @@ lemma p_eq2: "p = (2 * ((p - 1) div 2)) + 1"
   done
 
 
-subsection {* Basic Properties of the Gauss Sets *}
+subsection \<open>Basic Properties of the Gauss Sets\<close>
 
 lemma finite_A: "finite (A)"
 by (auto simp add: A_def)
@@ -272,7 +272,7 @@ lemma A_prod_relprime: "zgcd (setprod id A) p = 1"
 by(rule all_relprime_prod_relprime[OF finite_A all_A_relprime])
 
 
-subsection {* Relationships Between Gauss Sets *}
+subsection \<open>Relationships Between Gauss Sets\<close>
 
 lemma B_card_eq_A: "card B = card A"
   using finite_A by (simp add: finite_A B_def inj_on_xa_A card_image)
@@ -434,7 +434,7 @@ proof -
 qed
 
 
-subsection {* Gauss' Lemma *}
+subsection \<open>Gauss' Lemma\<close>
 
 lemma aux: "setprod id A * (- 1) ^ card E * a ^ card A * (- 1) ^ card E = setprod id A * a ^ card A"
   by (auto simp add: finite_E neg_one_special)

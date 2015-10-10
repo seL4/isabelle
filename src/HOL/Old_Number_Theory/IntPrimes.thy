@@ -3,22 +3,22 @@
     Copyright   2000  University of Cambridge
 *)
 
-section {* Divisibility and prime numbers (on integers) *}
+section \<open>Divisibility and prime numbers (on integers)\<close>
 
 theory IntPrimes
 imports Primes
 begin
 
-text {*
+text \<open>
   The @{text dvd} relation, GCD, Euclid's extended algorithm, primes,
   congruences (all on the Integers).  Comparable to theory @{text
   Primes}, but @{text dvd} is included here as it is not present in
   main HOL.  Also includes extended GCD and congruences not present in
   @{text Primes}.
-*}
+\<close>
 
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
 fun xzgcda :: "int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int => (int * int * int)"
 where
@@ -38,7 +38,7 @@ definition zcong :: "int => int => int => bool"  ("(1[_ = _] '(mod _'))")
   where "[a = b] (mod m) = (m dvd (a - b))"
 
 
-subsection {* Euclid's Algorithm and GCD *}
+subsection \<open>Euclid's Algorithm and GCD\<close>
 
 
 lemma zrelprime_zdvd_zmult_aux:
@@ -55,8 +55,8 @@ lemma zrelprime_zdvd_zmult: "zgcd n k = 1 ==> k dvd m * n ==> k dvd m"
 lemma zgcd_geq_zero: "0 <= zgcd x y"
   by (auto simp add: zgcd_def)
 
-text{*This is merely a sanity check on zprime, since the previous version
-      denoted the empty set.*}
+text\<open>This is merely a sanity check on zprime, since the previous version
+      denoted the empty set.\<close>
 lemma "zprime 2"
   apply (auto simp add: zprime_def) 
   apply (frule zdvd_imp_le, simp) 
@@ -109,7 +109,7 @@ lemma zdvd_iff_zgcd: "0 < m ==> m dvd n \<longleftrightarrow> zgcd n m = m"
 
 
 
-subsection {* Congruences *}
+subsection \<open>Congruences\<close>
 
 lemma zcong_1 [simp]: "[a = b] (mod 1)"
   by (unfold zcong_def, auto)
@@ -281,7 +281,7 @@ lemma "[a = b] (mod m) = (a mod m = b mod m)"
   apply (simp add: linorder_neq_iff)
   apply (erule disjE)  
    prefer 2 apply (simp add: zcong_zmod_eq)
-  txt{*Remainding case: @{term "m<0"}*}
+  txt\<open>Remainding case: @{term "m<0"}\<close>
   apply (rule_tac t = m in minus_minus [THEN subst])
   apply (subst zcong_zminus)
   apply (subst zcong_zmod_eq, arith)
@@ -289,14 +289,14 @@ lemma "[a = b] (mod m) = (a mod m = b mod m)"
   apply (simp add: zmod_zminus2_eq_if del: neg_mod_bound)
   done
 
-subsection {* Modulo *}
+subsection \<open>Modulo\<close>
 
 lemma zmod_zdvd_zmod:
     "0 < (m::int) ==> m dvd b ==> (a mod b mod m) = (a mod m)"
   by (rule mod_mod_cancel) 
 
 
-subsection {* Extended GCD *}
+subsection \<open>Extended GCD\<close>
 
 declare xzgcda.simps [simp del]
 
@@ -336,7 +336,7 @@ lemma xzgcd_correct:
   done
 
 
-text {* \medskip @{term xzgcd} linear *}
+text \<open>\medskip @{term xzgcd} linear\<close>
 
 lemma xzgcda_linear_aux1:
   "(a - r * b) * m + (c - r * d) * (n::int) =
@@ -399,7 +399,7 @@ lemma zcong_lineq_unique:
     zgcd a n = 1 ==> \<exists>!x. 0 \<le> x \<and> x < n \<and> [a * x = b] (mod n)"
   apply auto
    apply (rule_tac [2] zcong_zless_imp_eq)
-       apply (tactic {* stac @{context} (@{thm zcong_cancel2} RS sym) 6 *})
+       apply (tactic \<open>stac @{context} (@{thm zcong_cancel2} RS sym) 6\<close>)
          apply (rule_tac [8] zcong_trans)
           apply (simp_all (no_asm_simp))
    prefer 2

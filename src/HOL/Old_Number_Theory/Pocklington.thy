@@ -2,7 +2,7 @@
     Author:     Amine Chaieb
 *)
 
-section {* Pocklington's Theorem for Primes *}
+section \<open>Pocklington's Theorem for Primes\<close>
 
 theory Pocklington
 imports Primes

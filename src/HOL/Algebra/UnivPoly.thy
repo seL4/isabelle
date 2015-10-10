@@ -9,9 +9,9 @@ theory UnivPoly
 imports Module RingHom
 begin
 
-section {* Univariate Polynomials *}
+section \<open>Univariate Polynomials\<close>
 
-text {*
+text \<open>
   Polynomials are formalised as modules with additional operations for
   extracting coefficients from polynomials and for obtaining monomials
   from coefficients and exponents (record @{text "up_ring"}).  The
@@ -21,14 +21,14 @@ text {*
   formalisation of polynomials in the PhD thesis @{cite "Ballarin:1999"},
   which was implemented with axiomatic type classes.  This was later
   ported to Locales.
-*}
+\<close>
 
 
-subsection {* The Constructor for Univariate Polynomials *}
+subsection \<open>The Constructor for Univariate Polynomials\<close>
 
-text {*
+text \<open>
   Functions with finite support.
-*}
+\<close>
 
 locale bound =
   fixes z :: 'a
@@ -67,9 +67,9 @@ definition UP :: "('a, 'm) ring_scheme => ('a, nat => 'a) up_ring"
    monom = (%a:carrier R. %n i. if i=n then a else \<zero>\<^bsub>R\<^esub>),
    coeff = (%p:up R. %n. p n)\<rparr>"
 
-text {*
+text \<open>
   Properties of the set of polynomials @{term up}.
-*}
+\<close>
 
 lemma mem_upI [intro]:
   "[| !!n. f n \<in> carrier R; EX n. bound (zero R) n f |] ==> f \<in> up R"
@@ -168,7 +168,7 @@ qed
 end
 
 
-subsection {* Effect of Operations on Coefficients *}
+subsection \<open>Effect of Operations on Coefficients\<close>
 
 locale UP =
   fixes R (structure) and P (structure)
@@ -189,7 +189,7 @@ sublocale UP_domain < UP_cring
 context UP
 begin
 
-text {*Temporarily declare @{thm P_def} as simp rule.*}
+text \<open>Temporarily declare @{thm P_def} as simp rule.\<close>
 
 declare P_def [simp]
 
@@ -240,12 +240,12 @@ lemma coeff_mult [simp]:
 end
 
 
-subsection {* Polynomials Form a Ring. *}
+subsection \<open>Polynomials Form a Ring.\<close>
 
 context UP_ring
 begin
 
-text {* Operations are closed over @{term P}. *}
+text \<open>Operations are closed over @{term P}.\<close>
 
 lemma UP_mult_closed [simp]:
   "[| p \<in> carrier P; q \<in> carrier P |] ==> p \<otimes>\<^bsub>P\<^esub> q \<in> carrier P" by (simp add: UP_def up_mult_closed)
@@ -269,7 +269,7 @@ end
 
 declare (in UP) P_def [simp del]
 
-text {* Algebraic ring properties *}
+text \<open>Algebraic ring properties\<close>
 
 context UP_ring
 begin
@@ -398,7 +398,7 @@ theorem UP_ring: "ring P"
 end
 
 
-subsection {* Polynomials Form a Commutative Ring. *}
+subsection \<open>Polynomials Form a Commutative Ring.\<close>
 
 context UP_cring
 begin
@@ -428,7 +428,7 @@ proof (rule up_eqI)
 qed (simp_all add: R1 R2)
 
 
-subsection {*Polynomials over a commutative ring for a commutative ring*}
+subsection \<open>Polynomials over a commutative ring for a commutative ring\<close>
 
 theorem UP_cring:
   "cring P" using UP_ring unfolding cring_def by (auto intro!: comm_monoidI UP_m_assoc UP_m_comm)
@@ -461,7 +461,7 @@ sublocale UP_ring < P: ring P using UP_ring .
 sublocale UP_cring < P: cring P using UP_cring .
 
 
-subsection {* Polynomials Form an Algebra *}
+subsection \<open>Polynomials Form an Algebra\<close>
 
 context UP_ring
 begin
@@ -496,9 +496,9 @@ lemma UP_smult_assoc2:
 
 end
 
-text {*
+text \<open>
   Interpretation of lemmas from @{term algebra}.
-*}
+\<close>
 
 lemma (in cring) cring:
   "cring R" ..
@@ -510,7 +510,7 @@ lemma (in UP_cring) UP_algebra:
 sublocale UP_cring < algebra R P using UP_algebra .
 
 
-subsection {* Further Lemmas Involving Monomials *}
+subsection \<open>Further Lemmas Involving Monomials\<close>
 
 context UP_ring
 begin
@@ -637,8 +637,8 @@ next
   }
 qed
 
-text{*The following corollary follows from lemmas @{thm "monom_one_Suc"} 
-  and @{thm "monom_one_Suc2"}, and is trivial in @{term UP_cring}*}
+text\<open>The following corollary follows from lemmas @{thm "monom_one_Suc"} 
+  and @{thm "monom_one_Suc2"}, and is trivial in @{term UP_cring}\<close>
 
 corollary monom_one_comm: shows "monom P \<one> k \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 = monom P \<one> 1 \<otimes>\<^bsub>P\<^esub> monom P \<one> k"
   unfolding monom_one_Suc [symmetric] monom_one_Suc2 [symmetric] ..
@@ -709,7 +709,7 @@ qed
 end
 
 
-subsection {* The Degree Function *}
+subsection \<open>The Degree Function\<close>
 
 definition
   deg :: "[('a, 'm) ring_scheme, nat => 'a] => nat"
@@ -743,19 +743,19 @@ lemma deg_aboveD:
   assumes "deg R p < m" and "p \<in> carrier P"
   shows "coeff P p m = \<zero>"
 proof -
-  from `p \<in> carrier P` obtain n where "bound \<zero> n (coeff P p)"
+  from \<open>p \<in> carrier P\<close> obtain n where "bound \<zero> n (coeff P p)"
     by (auto simp add: UP_def P_def)
   then have "bound \<zero> (deg R p) (coeff P p)"
     by (auto simp: deg_def P_def dest: LeastI)
-  from this and `deg R p < m` show ?thesis ..
+  from this and \<open>deg R p < m\<close> show ?thesis ..
 qed
 
 lemma deg_belowI:
   assumes non_zero: "n ~= 0 ==> coeff P p n ~= \<zero>"
     and R: "p \<in> carrier P"
   shows "n <= deg R p"
--- {* Logically, this is a slightly stronger version of
-   @{thm [source] deg_aboveD} *}
+-- \<open>Logically, this is a slightly stronger version of
+   @{thm [source] deg_aboveD}\<close>
 proof (cases "n=0")
   case True then show ?thesis by simp
 next
@@ -814,7 +814,7 @@ lemma deg_eqI:
       !!n. n ~= 0 ==> coeff P p n ~= \<zero>; p \<in> carrier P |] ==> deg R p = n"
 by (fast intro: le_antisym deg_aboveI deg_belowI)
 
-text {* Degree and polynomial operations *}
+text \<open>Degree and polynomial operations\<close>
 
 lemma deg_add [simp]:
   "p \<in> carrier P \<Longrightarrow> q \<in> carrier P \<Longrightarrow>
@@ -863,8 +863,8 @@ next
       inj_on_iff [OF R.a_inv_inj, of _ "\<zero>", simplified] R)
 qed
 
-text{*The following lemma is later \emph{overwritten} by the most
-  specific one for domains, @{text deg_smult}.*}
+text\<open>The following lemma is later \emph{overwritten} by the most
+  specific one for domains, @{text deg_smult}.\<close>
 
 lemma deg_smult_ring [simp]:
   "[| a \<in> carrier R; p \<in> carrier P |] ==>
@@ -949,7 +949,7 @@ qed
 
 end
 
-text{*The following lemmas also can be lifted to @{term UP_ring}.*}
+text\<open>The following lemmas also can be lifted to @{term UP_ring}.\<close>
 
 context UP_ring
 begin
@@ -1013,7 +1013,7 @@ qed
 end
 
 
-subsection {* Polynomials over Integral Domains *}
+subsection \<open>Polynomials over Integral Domains\<close>
 
 lemma domainI:
   assumes cring: "cring R"
@@ -1071,15 +1071,15 @@ theorem UP_domain:
 
 end
 
-text {*
+text \<open>
   Interpretation of theorems from @{term domain}.
-*}
+\<close>
 
 sublocale UP_domain < "domain" P
   by intro_locales (rule domain.axioms UP_domain)+
 
 
-subsection {* The Evaluation Homomorphism and Universal Property*}
+subsection \<open>The Evaluation Homomorphism and Universal Property\<close>
 
 (* alternative congruence rule (possibly more efficient)
 lemma (in abelian_monoid) finsum_cong2:
@@ -1192,7 +1192,7 @@ lemma eval_extensional:
 
 end
 
-text {* The universal property of the polynomial ring *}
+text \<open>The universal property of the polynomial ring\<close>
 
 locale UP_pre_univ_prop = ring_hom_cring + UP_cring
 
@@ -1203,9 +1203,9 @@ locale UP_univ_prop = UP_pre_univ_prop +
   assumes indet_img_carrier [simp, intro]: "s \<in> carrier S"
   defines Eval_def: "Eval == eval R S h s"
 
-text{*JE: I have moved the following lemma from Ring.thy and lifted then to the locale @{term ring_hom_ring} from @{term ring_hom_cring}.*}
-text{*JE: I was considering using it in @{text eval_ring_hom}, but that property does not hold for non commutative rings, so 
-  maybe it is not that necessary.*}
+text\<open>JE: I have moved the following lemma from Ring.thy and lifted then to the locale @{term ring_hom_ring} from @{term ring_hom_cring}.\<close>
+text\<open>JE: I was considering using it in @{text eval_ring_hom}, but that property does not hold for non commutative rings, so 
+  maybe it is not that necessary.\<close>
 
 lemma (in ring_hom_ring) hom_finsum [simp]:
   "f \<in> A -> carrier R ==>
@@ -1296,18 +1296,18 @@ next
   qed
 qed
 
-text {*
+text \<open>
   The following lemma could be proved in @{text UP_cring} with the additional
-  assumption that @{text h} is closed. *}
+  assumption that @{text h} is closed.\<close>
 
 lemma (in UP_pre_univ_prop) eval_const:
   "[| s \<in> carrier S; r \<in> carrier R |] ==> eval R S h s (monom P r 0) = h r"
   by (simp only: eval_on_carrier monom_closed) simp
 
-text {* Further properties of the evaluation homomorphism. *}
+text \<open>Further properties of the evaluation homomorphism.\<close>
 
-text {* The following proof is complicated by the fact that in arbitrary
-  rings one might have @{term "one R = zero R"}. *}
+text \<open>The following proof is complicated by the fact that in arbitrary
+  rings one might have @{term "one R = zero R"}.\<close>
 
 (* TODO: simplify by cases "one R = zero R" *)
 
@@ -1336,7 +1336,7 @@ qed
 
 end
 
-text {* Interpretation of ring homomorphism lemmas. *}
+text \<open>Interpretation of ring homomorphism lemmas.\<close>
 
 sublocale UP_univ_prop < ring_hom_cring P S Eval
   unfolding Eval_def
@@ -1442,7 +1442,7 @@ theorem UP_universal_property:
 
 end
 
-text{*JE: The following lemma was added by me; it might be even lifted to a simpler locale*}
+text\<open>JE: The following lemma was added by me; it might be even lifted to a simpler locale\<close>
 
 context monoid
 begin
@@ -1461,7 +1461,7 @@ lemma lcoeff_nonzero2: assumes p_in_R: "p \<in> carrier P" and p_not_zero: "p \<
   using lcoeff_nonzero [OF p_not_zero p_in_R] .
 
 
-subsection{*The long division algorithm: some previous facts.*}
+subsection\<open>The long division algorithm: some previous facts.\<close>
 
 lemma coeff_minus [simp]:
   assumes p: "p \<in> carrier P" and q: "q \<in> carrier P" shows "coeff P (p \<ominus>\<^bsub>P\<^esub> q) n = coeff P p n \<ominus> coeff P q n" 
@@ -1538,7 +1538,7 @@ lemma deg_zero_impl_monom:
 end
 
 
-subsection {* The long division proof for commutative rings *}
+subsection \<open>The long division proof for commutative rings\<close>
 
 context UP_cring
 begin
@@ -1547,7 +1547,7 @@ lemma exI3: assumes exist: "Pred x y z"
   shows "\<exists> x y z. Pred x y z"
   using exist by blast
 
-text {* Jacobson's Theorem 2.14 *}
+text \<open>Jacobson's Theorem 2.14\<close>
 
 lemma long_div_theorem: 
   assumes g_in_P [simp]: "g \<in> carrier P" and f_in_P [simp]: "f \<in> carrier P"
@@ -1648,7 +1648,7 @@ qed
 end
 
 
-text {*The remainder theorem as corollary of the long division theorem.*}
+text \<open>The remainder theorem as corollary of the long division theorem.\<close>
 
 context UP_cring
 begin
@@ -1797,7 +1797,7 @@ qed
 end
 
 
-subsection {* Sample Application of Evaluation Homomorphism *}
+subsection \<open>Sample Application of Evaluation Homomorphism\<close>
 
 lemma UP_pre_univ_propI:
   assumes "cring R"
@@ -1820,11 +1820,11 @@ lemma INTEG_id_eval:
   "UP_pre_univ_prop INTEG INTEG id"
   by (fast intro: UP_pre_univ_propI INTEG_cring id_ring_hom)
 
-text {*
+text \<open>
   Interpretation now enables to import all theorems and lemmas
   valid in the context of homomorphisms between @{term INTEG} and @{term
   "UP INTEG"} globally.
-*}
+\<close>
 
 interpretation INTEG: UP_pre_univ_prop INTEG INTEG id "UP INTEG"
   using INTEG_id_eval by simp_all

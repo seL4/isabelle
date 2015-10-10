@@ -6,11 +6,11 @@ theory Sylow
 imports Coset Exponent
 begin
 
-text {*
+text \<open>
   See also @{cite "Kammueller-Paulson:1999"}.
-*}
+\<close>
 
-text{*The combinatorial argument is in theory Exponent*}
+text\<open>The combinatorial argument is in theory Exponent\<close>
 
 locale sylow = group +
   fixes p and a and m and calM and RelM
@@ -49,7 +49,7 @@ apply (blast elim!: quotientE)
 done
 
 
-subsection{*Main Part of the Proof*}
+subsection\<open>Main Part of the Proof\<close>
 
 locale sylow_central = sylow +
   fixes H and M1 and M
@@ -107,7 +107,7 @@ lemma (in sylow_central) M1_inj_H: "\<exists>f \<in> H\<rightarrow>M1. inj_on f 
   qed
 
 
-subsection{*Discharging the Assumptions of @{text sylow_central}*}
+subsection\<open>Discharging the Assumptions of @{text sylow_central}\<close>
 
 lemma (in sylow) EmptyNotInEquivSet: "{} \<notin> calM // RelM"
 by (blast elim!: quotientE dest: RelM_equiv [THEN equiv_class_self])
@@ -155,7 +155,7 @@ apply (simp add: finite_calM equiv_imp_dvd_card [OF _ RelM_equiv])
 done
 
 
-subsubsection{*Introduction and Destruct Rules for @{term H}*}
+subsubsection\<open>Introduction and Destruct Rules for @{term H}\<close>
 
 lemma (in sylow_central) H_I: "[|g \<in> carrier G; M1 #> g = M1|] ==> g \<in> H"
 by (simp add: H_def)
@@ -216,10 +216,10 @@ apply (metis M1_subset_G coset_mult_assoc coset_mult_one r_inv_ex)
 done
 
 
-subsection{*Equal Cardinalities of @{term M} and the Set of Cosets*}
+subsection\<open>Equal Cardinalities of @{term M} and the Set of Cosets\<close>
 
-text{*Injections between @{term M} and @{term "rcosets\<^bsub>G\<^esub> H"} show that
- their cardinalities are equal.*}
+text\<open>Injections between @{term M} and @{term "rcosets\<^bsub>G\<^esub> H"} show that
+ their cardinalities are equal.\<close>
 
 lemma ElemClassEquiv:
      "[| equiv A r; C \<in> A // r |] ==> \<forall>x \<in> C. \<forall>y \<in> C. (x,y)\<in>r"
@@ -259,7 +259,7 @@ apply (simp add: coset_mult_inv2 H_def M_elem_map_carrier subset_eq)
 done
 
 
-subsubsection{*The Opposite Injection*}
+subsubsection\<open>The Opposite Injection\<close>
 
 lemma (in sylow_central) H_elem_map:
      "H1 \<in> rcosets H ==> \<exists>g. g \<in> carrier G & H #> g = H1"
@@ -278,7 +278,7 @@ apply (fast intro: someI2
             intro!: M1_in_M in_quotient_imp_closed [OF RelM_equiv M_in_quot _  M1_RelM_rcosetGM1g])
 done
 
-text{*close to a duplicate of @{text inj_M_GmodH}*}
+text\<open>close to a duplicate of @{text inj_M_GmodH}\<close>
 lemma (in sylow_central) inj_GmodH_M:
      "\<exists>g \<in> rcosets H\<rightarrow>M. inj_on g (rcosets H)"
 apply (rule bexI)
@@ -340,14 +340,14 @@ apply (subgoal_tac "sylow_central G p a m M1 M")
 apply (simp add: sylow_central_def sylow_central_axioms_def sylow_axioms calM_def RelM_def)
 done
 
-text{*Needed because the locale's automatic definition refers to
+text\<open>Needed because the locale's automatic definition refers to
    @{term "semigroup G"} and @{term "group_axioms G"} rather than
-  simply to @{term "group G"}.*}
+  simply to @{term "group G"}.\<close>
 lemma sylow_eq: "sylow G p a m = (group G & sylow_axioms G p a m)"
 by (simp add: sylow_def group_def)
 
 
-subsection {* Sylow's Theorem *}
+subsection \<open>Sylow's Theorem\<close>
 
 theorem sylow_thm:
      "[| prime p;  group(G);  order(G) = (p^a) * m; finite (carrier G)|]

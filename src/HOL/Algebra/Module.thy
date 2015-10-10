@@ -7,9 +7,9 @@ theory Module
 imports Ring
 begin
 
-section {* Modules over an Abelian Group *}
+section \<open>Modules over an Abelian Group\<close>
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
 record ('a, 'b) module = "'b ring" +
   smult :: "['a, 'b] => 'b" (infixl "\<odot>\<index>" 70)
@@ -103,7 +103,7 @@ lemma (in algebra) module:
     smult_l_distr smult_r_distr smult_assoc1)
 
 
-subsection {* Basic Properties of Algebras *}
+subsection \<open>Basic Properties of Algebras\<close>
 
 lemma (in algebra) smult_l_null [simp]:
   "x \<in> carrier M ==> \<zero> \<odot>\<^bsub>M\<^esub> x = \<zero>\<^bsub>M\<^esub>"

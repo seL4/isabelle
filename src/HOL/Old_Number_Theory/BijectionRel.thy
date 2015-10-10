@@ -3,18 +3,18 @@
     Copyright   2000  University of Cambridge
 *)
 
-section {* Bijections between sets *}
+section \<open>Bijections between sets\<close>
 
 theory BijectionRel
 imports Main
 begin
 
-text {*
+text \<open>
   Inductive definitions of bijections between two different sets and
   between the same set.  Theorem for relating the two definitions.
 
   \bigskip
-*}
+\<close>
 
 inductive_set
   bijR :: "('a => 'b => bool) => ('a set * 'b set) set"
@@ -24,10 +24,10 @@ where
 | insert: "P a b ==> a \<notin> A ==> b \<notin> B ==> (A, B) \<in> bijR P
     ==> (insert a A, insert b B) \<in> bijR P"
 
-text {*
+text \<open>
   Add extra condition to @{term insert}: @{term "\<forall>b \<in> B. \<not> P a b"}
   (and similar for @{term A}).
-*}
+\<close>
 
 definition
   bijP :: "('a => 'a => bool) => 'a set => bool" where
@@ -51,7 +51,7 @@ where
     ==> insert a (insert b A) \<in> bijER P"
 
 
-text {* \medskip @{term bijR} *}
+text \<open>\medskip @{term bijR}\<close>
 
 lemma fin_bijRl: "(A, B) \<in> bijR P ==> finite A"
   apply (erule bijR.induct)
@@ -100,7 +100,7 @@ lemma inj_func_bijR:
   done
 
 
-text {* \medskip @{term bijER} *}
+text \<open>\medskip @{term bijER}\<close>
 
 lemma fin_bijER: "A \<in> bijER P ==> finite A"
   apply (erule bijER.induct)

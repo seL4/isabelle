@@ -2,16 +2,16 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-section {* The law of Quadratic reciprocity *}
+section \<open>The law of Quadratic reciprocity\<close>
 
 theory Quadratic_Reciprocity
 imports Gauss
 begin
 
-text {*
+text \<open>
   Lemmas leading up to the proof of theorem 3.3 in Niven and
   Zuckerman's presentation.
-*}
+\<close>
 
 context GAUSS
 begin
@@ -153,7 +153,7 @@ lemma MainQRLemma: "[| a \<in> zOdd; 0 < a; ~([a = 0] (mod p)); zprime p; 2 < p;
   done
 
 
-subsection {* Stuff about S, S1 and S2 *}
+subsection \<open>Stuff about S, S1 and S2\<close>
 
 locale QRTEMP =
   fixes p     :: "int"

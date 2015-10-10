@@ -9,9 +9,9 @@ theory Lattice
 imports Congruence
 begin
 
-section {* Orders and Lattices *}
+section \<open>Orders and Lattices\<close>
 
-subsection {* Partial Orders *}
+subsection \<open>Partial Orders\<close>
 
 record 'a gorder = "'a eq_object" +
   le :: "['a, 'a] => bool" (infixl "\<sqsubseteq>\<index>" 50)
@@ -32,7 +32,7 @@ definition
   where "x \<sqsubset>\<^bsub>L\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> y & x .\<noteq>\<^bsub>L\<^esub> y"
 
 
-subsubsection {* The order relation *}
+subsubsection \<open>The order relation\<close>
 
 context weak_partial_order
 begin
@@ -103,7 +103,7 @@ lemma (in weak_partial_order) lless_trans [trans]:
   using assms unfolding lless_def by (blast dest: le_trans intro: sym)
 
 
-subsubsection {* Upper and lower bounds of a set *}
+subsubsection \<open>Upper and lower bounds of a set\<close>
 
 definition
   Upper :: "[_, 'a set] => 'a set"
@@ -276,7 +276,7 @@ next
 qed
 
 
-subsubsection {* Least and greatest, as predicate *}
+subsubsection \<open>Least and greatest, as predicate\<close>
 
 definition
   least :: "[_, 'a, 'a set] => bool"
@@ -286,8 +286,8 @@ definition
   greatest :: "[_, 'a, 'a set] => bool"
   where "greatest L g A \<longleftrightarrow> A \<subseteq> carrier L & g \<in> A & (ALL x : A. x \<sqsubseteq>\<^bsub>L\<^esub> g)"
 
-text (in weak_partial_order) {* Could weaken these to @{term "l \<in> carrier L \<and> l
-  .\<in> A"} and @{term "g \<in> carrier L \<and> g .\<in> A"}. *}
+text (in weak_partial_order) \<open>Could weaken these to @{term "l \<in> carrier L \<and> l
+  .\<in> A"} and @{term "g \<in> carrier L \<and> g .\<in> A"}.\<close>
 
 lemma least_closed [intro, simp]:
   "least L l A ==> l \<in> carrier L"
@@ -310,8 +310,8 @@ lemma (in weak_partial_order) least_cong:
   "[| x .= x'; x \<in> carrier L; x' \<in> carrier L; is_closed A |] ==> least L x A = least L x' A"
   by (unfold least_def) (auto dest: sym)
 
-text (in weak_partial_order) {* @{const least} is not congruent in the second parameter for 
-  @{term "A {.=} A'"} *}
+text (in weak_partial_order) \<open>@{const least} is not congruent in the second parameter for 
+  @{term "A {.=} A'"}\<close>
 
 lemma (in weak_partial_order) least_Upper_cong_l:
   assumes "x .= x'"
@@ -367,8 +367,8 @@ lemma (in weak_partial_order) greatest_cong:
   greatest L x A = greatest L x' A"
   by (unfold greatest_def) (auto dest: sym)
 
-text (in weak_partial_order) {* @{const greatest} is not congruent in the second parameter for 
-  @{term "A {.=} A'"} *}
+text (in weak_partial_order) \<open>@{const greatest} is not congruent in the second parameter for 
+  @{term "A {.=} A'"}\<close>
 
 lemma (in weak_partial_order) greatest_Lower_cong_l:
   assumes "x .= x'"
@@ -402,7 +402,7 @@ lemma greatest_Lower_below:
   shows "[| greatest L i (Lower L A); x \<in> A; A \<subseteq> carrier L |] ==> i \<sqsubseteq> x"
   by (unfold greatest_def) blast
 
-text {* Supremum and infimum *}
+text \<open>Supremum and infimum\<close>
 
 definition
   sup :: "[_, 'a set] => 'a" ("\<Squnion>\<index>_" [90] 90)
@@ -421,7 +421,7 @@ definition
   where "x \<sqinter>\<^bsub>L\<^esub> y = \<Sqinter>\<^bsub>L\<^esub>{x, y}"
 
 
-subsection {* Lattices *}
+subsection \<open>Lattices\<close>
 
 locale weak_upper_semilattice = weak_partial_order +
   assumes sup_of_two_exists:
@@ -434,7 +434,7 @@ locale weak_lower_semilattice = weak_partial_order +
 locale weak_lattice = weak_upper_semilattice + weak_lower_semilattice
 
 
-subsubsection {* Supremum *}
+subsubsection \<open>Supremum\<close>
 
 lemma (in weak_upper_semilattice) joinI:
   "[| !!l. least L l (Upper L {x, y}) ==> P l; x \<in> carrier L; y \<in> carrier L |]
@@ -507,7 +507,7 @@ lemma (in weak_partial_order) sup_of_singleton_closed [simp]:
   unfolding sup_def
   by (rule someI2) (auto intro: sup_of_singletonI)
 
-text {* Condition on @{text A}: supremum exists. *}
+text \<open>Condition on @{text A}: supremum exists.\<close>
 
 lemma (in weak_upper_semilattice) sup_insertI:
   "[| !!s. least L s (Upper L (insert x A)) ==> P s;
@@ -638,7 +638,7 @@ lemma (in weak_upper_semilattice) weak_join_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "x \<squnion> (y \<squnion> z) .= \<Squnion>{x, y, z}"
 proof (rule finite_sup_insertI)
-  -- {* The textbook argument in Jacobson I, p 457 *}
+  -- \<open>The textbook argument in Jacobson I, p 457\<close>
   fix s
   assume sup: "least L s (Upper L {x, y, z})"
   show "x \<squnion> (y \<squnion> z) .= s"
@@ -652,7 +652,7 @@ proof (rule finite_sup_insertI)
   qed (simp_all add: L least_closed [OF sup])
 qed (simp_all add: L)
 
-text {* Commutativity holds for @{text "="}. *}
+text \<open>Commutativity holds for @{text "="}.\<close>
 
 lemma join_comm:
   fixes L (structure)
@@ -673,7 +673,7 @@ proof -
 qed
 
 
-subsubsection {* Infimum *}
+subsubsection \<open>Infimum\<close>
 
 lemma (in weak_lower_semilattice) meetI:
   "[| !!i. greatest L i (Lower L {x, y}) ==> P i;
@@ -747,7 +747,7 @@ lemma (in weak_partial_order) inf_of_singleton_closed:
   unfolding inf_def
   by (rule someI2) (auto intro: inf_of_singletonI)
 
-text {* Condition on @{text A}: infimum exists. *}
+text \<open>Condition on @{text A}: infimum exists.\<close>
 
 lemma (in weak_lower_semilattice) inf_insertI:
   "[| !!i. greatest L i (Lower L (insert x A)) ==> P i;
@@ -879,7 +879,7 @@ lemma (in weak_lower_semilattice) weak_meet_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "x \<sqinter> (y \<sqinter> z) .= \<Sqinter>{x, y, z}"
 proof (rule finite_inf_insertI)
-  txt {* The textbook argument in Jacobson I, p 457 *}
+  txt \<open>The textbook argument in Jacobson I, p 457\<close>
   fix i
   assume inf: "greatest L i (Lower L {x, y, z})"
   show "x \<sqinter> (y \<sqinter> z) .= i"
@@ -911,19 +911,19 @@ proof -
 qed
 
 
-subsection {* Total Orders *}
+subsection \<open>Total Orders\<close>
 
 locale weak_total_order = weak_partial_order +
   assumes total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
 
-text {* Introduction rule: the usual definition of total order *}
+text \<open>Introduction rule: the usual definition of total order\<close>
 
 lemma (in weak_partial_order) weak_total_orderI:
   assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
   shows "weak_total_order L"
   by standard (rule total)
 
-text {* Total orders are lattices. *}
+text \<open>Total orders are lattices.\<close>
 
 sublocale weak_total_order < weak: weak_lattice
 proof
@@ -969,7 +969,7 @@ next
 qed
 
 
-subsection {* Complete Lattices *}
+subsection \<open>Complete Lattices\<close>
 
 locale weak_complete_lattice = weak_lattice +
   assumes sup_exists:
@@ -977,7 +977,7 @@ locale weak_complete_lattice = weak_lattice +
     and inf_exists:
     "[| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
 
-text {* Introduction rule: the usual definition of complete lattice *}
+text \<open>Introduction rule: the usual definition of complete lattice\<close>
 
 lemma (in weak_partial_order) weak_complete_latticeI:
   assumes sup_exists:
@@ -1034,7 +1034,7 @@ lemma (in weak_complete_lattice) bottom_closed [simp, intro]:
   "\<bottom> \<in> carrier L"
   by (unfold bottom_def) simp
 
-text {* Jacobson: Theorem 8.1 *}
+text \<open>Jacobson: Theorem 8.1\<close>
 
 lemma Lower_empty [simp]:
   "Lower L {} = carrier L"
@@ -1090,7 +1090,7 @@ qed
 (* TODO: prove dual version *)
 
 
-subsection {* Orders and Lattices where @{text eq} is the Equality *}
+subsection \<open>Orders and Lattices where @{text eq} is the Equality\<close>
 
 locale partial_order = weak_partial_order +
   assumes eq_is_equal: "op .= = op ="
@@ -1115,7 +1115,7 @@ lemma lless_asym:
 end
 
 
-text {* Least and greatest, as predicate *}
+text \<open>Least and greatest, as predicate\<close>
 
 lemma (in partial_order) least_unique:
   "[| least L x A; least L y A |] ==> x = y"
@@ -1126,7 +1126,7 @@ lemma (in partial_order) greatest_unique:
   using weak_greatest_unique unfolding eq_is_equal .
 
 
-text {* Lattices *}
+text \<open>Lattices\<close>
 
 locale upper_semilattice = partial_order +
   assumes sup_of_two_exists:
@@ -1145,7 +1145,7 @@ sublocale lower_semilattice < weak: weak_lower_semilattice
 locale lattice = upper_semilattice + lower_semilattice
 
 
-text {* Supremum *}
+text \<open>Supremum\<close>
 
 declare (in partial_order) weak_sup_of_singleton [simp del]
 
@@ -1164,7 +1164,7 @@ lemma (in upper_semilattice) join_assoc:
   using weak_join_assoc L unfolding eq_is_equal .
 
 
-text {* Infimum *}
+text \<open>Infimum\<close>
 
 declare (in partial_order) weak_inf_of_singleton [simp del]
 
@@ -1172,7 +1172,7 @@ lemma (in partial_order) inf_of_singleton [simp]:
   "x \<in> carrier L ==> \<Sqinter>{x} = x"
   using weak_inf_of_singleton unfolding eq_is_equal .
 
-text {* Condition on @{text A}: infimum exists. *}
+text \<open>Condition on @{text A}: infimum exists.\<close>
 
 lemma (in lower_semilattice) meet_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
@@ -1185,7 +1185,7 @@ lemma (in lower_semilattice) meet_assoc:
   using weak_meet_assoc L unfolding eq_is_equal .
 
 
-text {* Total Orders *}
+text \<open>Total Orders\<close>
 
 locale total_order = partial_order +
   assumes total_order_total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
@@ -1193,20 +1193,20 @@ locale total_order = partial_order +
 sublocale total_order < weak: weak_total_order
   by standard (rule total_order_total)
 
-text {* Introduction rule: the usual definition of total order *}
+text \<open>Introduction rule: the usual definition of total order\<close>
 
 lemma (in partial_order) total_orderI:
   assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
   shows "total_order L"
   by standard (rule total)
 
-text {* Total orders are lattices. *}
+text \<open>Total orders are lattices.\<close>
 
 sublocale total_order < weak: lattice
   by standard (auto intro: sup_of_two_exists inf_of_two_exists)
 
 
-text {* Complete lattices *}
+text \<open>Complete lattices\<close>
 
 locale complete_lattice = lattice +
   assumes sup_exists:
@@ -1217,7 +1217,7 @@ locale complete_lattice = lattice +
 sublocale complete_lattice < weak: weak_complete_lattice
   by standard (auto intro: sup_exists inf_exists)
 
-text {* Introduction rule: the usual definition of complete lattice *}
+text \<open>Introduction rule: the usual definition of complete lattice\<close>
 
 lemma (in partial_order) complete_latticeI:
   assumes sup_exists:
@@ -1273,9 +1273,9 @@ qed
 (* TODO: prove dual version *)
 
 
-subsection {* Examples *}
+subsection \<open>Examples\<close>
 
-subsubsection {* The Powerset of a Set is a Complete Lattice *}
+subsubsection \<open>The Powerset of a Set is a Complete Lattice\<close>
 
 theorem powerset_is_complete_lattice:
   "complete_lattice \<lparr>carrier = Pow A, eq = op =, le = op \<subseteq>\<rparr>"
@@ -1293,13 +1293,13 @@ next
   fix B
   assume "B \<subseteq> carrier ?L"
   then have "greatest ?L (\<Inter>B \<inter> A) (Lower ?L B)"
-    txt {* @{term "\<Inter>B"} is not the infimum of @{term B}:
-      @{term "\<Inter>{} = UNIV"} which is in general bigger than @{term "A"}! *}
+    txt \<open>@{term "\<Inter>B"} is not the infimum of @{term B}:
+      @{term "\<Inter>{} = UNIV"} which is in general bigger than @{term "A"}!\<close>
     by (fastforce intro!: greatest_LowerI simp: Lower_def)
   then show "EX i. greatest ?L i (Lower ?L B)" ..
 qed
 
-text {* An other example, that of the lattice of subgroups of a group,
-  can be found in Group theory (Section~\ref{sec:subgroup-lattice}). *}
+text \<open>An other example, that of the lattice of subgroups of a group,
+  can be found in Group theory (Section~\ref{sec:subgroup-lattice}).\<close>
 
 end

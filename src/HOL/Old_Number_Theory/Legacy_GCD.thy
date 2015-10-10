@@ -3,40 +3,40 @@
     Copyright   1996  University of Cambridge
 *)
 
-section {* The Greatest Common Divisor *}
+section \<open>The Greatest Common Divisor\<close>
 
 theory Legacy_GCD
 imports Main
 begin
 
-text {*
+text \<open>
   See @{cite davenport92}. \bigskip
-*}
+\<close>
 
-subsection {* Specification of GCD on nats *}
+subsection \<open>Specification of GCD on nats\<close>
 
 definition
-  is_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where -- {* @{term gcd} as a relation *}
+  is_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where -- \<open>@{term gcd} as a relation\<close>
   "is_gcd m n p \<longleftrightarrow> p dvd m \<and> p dvd n \<and>
     (\<forall>d. d dvd m \<longrightarrow> d dvd n \<longrightarrow> d dvd p)"
 
-text {* Uniqueness *}
+text \<open>Uniqueness\<close>
 
 lemma is_gcd_unique: "is_gcd a b m \<Longrightarrow> is_gcd a b n \<Longrightarrow> m = n"
   by (simp add: is_gcd_def) (blast intro: dvd_antisym)
 
-text {* Connection to divides relation *}
+text \<open>Connection to divides relation\<close>
 
 lemma is_gcd_dvd: "is_gcd a b m \<Longrightarrow> k dvd a \<Longrightarrow> k dvd b \<Longrightarrow> k dvd m"
   by (auto simp add: is_gcd_def)
 
-text {* Commutativity *}
+text \<open>Commutativity\<close>
 
 lemma is_gcd_commute: "is_gcd m n k = is_gcd n m k"
   by (auto simp add: is_gcd_def)
 
 
-subsection {* GCD on nat by Euclid's algorithm *}
+subsection \<open>GCD on nat by Euclid's algorithm\<close>
 
 fun gcd :: "nat => nat => nat"
   where "gcd m n = (if n = 0 then m else gcd n (m mod n))"
@@ -68,10 +68,10 @@ lemma nat_gcd_1_right [simp, algebra]: "gcd m 1 = 1"
 
 declare gcd.simps [simp del]
 
-text {*
+text \<open>
   \medskip @{term "gcd m n"} divides @{text m} and @{text n}.  The
   conjunctions don't seem provable separately.
-*}
+\<close>
 
 lemma gcd_dvd1 [iff, algebra]: "gcd m n dvd m"
   and gcd_dvd2 [iff, algebra]: "gcd m n dvd n"
@@ -80,24 +80,24 @@ lemma gcd_dvd1 [iff, algebra]: "gcd m n dvd m"
   apply (blast dest: dvd_mod_imp_dvd)
   done
 
-text {*
+text \<open>
   \medskip Maximality: for all @{term m}, @{term n}, @{term k}
   naturals, if @{term k} divides @{term m} and @{term k} divides
   @{term n} then @{term k} divides @{term "gcd m n"}.
-*}
+\<close>
 
 lemma gcd_greatest: "k dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd gcd m n"
   by (induct m n rule: gcd_induct) (simp_all add: gcd_non_0 dvd_mod)
 
-text {*
+text \<open>
   \medskip Function gcd yields the Greatest Common Divisor.
-*}
+\<close>
 
 lemma is_gcd: "is_gcd m n (gcd m n) "
   by (simp add: is_gcd_def gcd_greatest)
 
 
-subsection {* Derived laws for GCD *}
+subsection \<open>Derived laws for GCD\<close>
 
 lemma gcd_greatest_iff [iff, algebra]: "k dvd gcd m n \<longleftrightarrow> k dvd m \<and> k dvd n"
   by (blast intro!: gcd_greatest intro: dvd_trans)
@@ -125,12 +125,12 @@ lemma gcd_1_left [simp, algebra]: "gcd (Suc 0) m = Suc 0"
 lemma nat_gcd_1_left [simp, algebra]: "gcd 1 m = 1"
   unfolding One_nat_def by (rule gcd_1_left)
 
-text {*
+text \<open>
   \medskip Multiplication laws
-*}
+\<close>
 
 lemma gcd_mult_distrib2: "k * gcd m n = gcd (k * m) (k * n)"
-    -- {* @{cite \<open>page 27\<close> davenport92} *}
+    -- \<open>@{cite \<open>page 27\<close> davenport92}\<close>
   apply (induct m n rule: gcd_induct)
    apply simp
   apply (case_tac "k = 0")
@@ -165,7 +165,7 @@ lemma gcd_mult_cancel: "gcd k n = 1 ==> gcd (k * m) n = gcd m n"
   done
 
 
-text {* \medskip Addition laws *}
+text \<open>\medskip Addition laws\<close>
 
 lemma gcd_add1 [simp, algebra]: "gcd (m + n) n = gcd m n"
   by (cases "n = 0") (auto simp add: gcd_non_0)
@@ -190,9 +190,9 @@ lemma gcd_add_mult[algebra]: "gcd m (k * m + n) = gcd m n"
 lemma gcd_dvd_prod: "gcd m n dvd m * n" 
   using mult_dvd_mono [of 1] by auto
 
-text {*
+text \<open>
   \medskip Division by gcd yields rrelatively primes.
-*}
+\<close>
 
 lemma div_gcd_relprime:
   assumes nz: "a \<noteq> 0 \<or> b \<noteq> 0"
@@ -313,7 +313,7 @@ apply auto
 done
 
 
-text {* We can get a stronger version with a nonzeroness assumption. *}
+text \<open>We can get a stronger version with a nonzeroness assumption.\<close>
 lemma divides_le: "m dvd n ==> m <= n \<or> n = (0::nat)" by (auto simp add: dvd_def)
 
 lemma bezout_add_strong: assumes nz: "a \<noteq> (0::nat)"
@@ -449,7 +449,7 @@ next
 qed
 
 
-subsection {* LCM defined by GCD *}
+subsection \<open>LCM defined by GCD\<close>
 
 
 definition
@@ -562,7 +562,7 @@ lemma gcd_diff2: "m \<le> n ==> gcd n (n - m) = gcd n m"
   done
 
 
-subsection {* GCD and LCM on integers *}
+subsection \<open>GCD and LCM on integers\<close>
 
 definition
   zgcd :: "int \<Rightarrow> int \<Rightarrow> int" where
@@ -595,7 +595,7 @@ lemma zrelprime_dvd_mult: "zgcd i j = 1 \<Longrightarrow> i dvd k * j \<Longrigh
 proof -
   assume "int (gcd (nat \<bar>i\<bar>) (nat \<bar>j\<bar>)) = 1" "i dvd k * j"
   then have g: "gcd (nat \<bar>i\<bar>) (nat \<bar>j\<bar>) = 1" by simp
-  from `i dvd k * j` obtain h where h: "k*j = i*h" unfolding dvd_def by blast
+  from \<open>i dvd k * j\<close> obtain h where h: "k*j = i*h" unfolding dvd_def by blast
   have th: "nat \<bar>i\<bar> dvd nat \<bar>k\<bar> * nat \<bar>j\<bar>"
     unfolding dvd_def
     by (rule_tac x= "nat \<bar>h\<bar>" in exI, simp add: h nat_abs_mult_distrib [symmetric])
@@ -620,7 +620,7 @@ proof -
   let ?k' = "nat \<bar>k\<bar>"
   let ?m' = "nat \<bar>m\<bar>"
   let ?n' = "nat \<bar>n\<bar>"
-  from `k dvd m` and `k dvd n` have dvd': "?k' dvd ?m'" "?k' dvd ?n'"
+  from \<open>k dvd m\<close> and \<open>k dvd n\<close> have dvd': "?k' dvd ?m'" "?k' dvd ?n'"
     unfolding zdvd_int by (simp_all only: int_nat_abs abs_dvd_iff dvd_abs_iff)
   from gcd_greatest [OF dvd'] have "int (nat \<bar>k\<bar>) dvd zgcd m n"
     unfolding zgcd_def by (simp only: zdvd_int)
@@ -696,7 +696,7 @@ lemma zgcd_left_commute: "zgcd k (zgcd m n) = zgcd m (zgcd k n)"
   done
 
 lemmas zgcd_ac = zgcd_assoc zgcd_commute zgcd_left_commute
-  -- {* addition is an AC-operator *}
+  -- \<open>addition is an AC-operator\<close>
 
 lemma zgcd_zmult_distrib2: "0 \<le> k ==> k * zgcd m n = zgcd (k * m) (k * n)"
   by (simp del: minus_mult_right [symmetric]
@@ -728,7 +728,7 @@ by(simp add:zlcm_def dvd_int_iff)
 lemma dvd_imp_dvd_zlcm1:
   assumes "k dvd i" shows "k dvd (zlcm i j)"
 proof -
-  have "nat(abs k) dvd nat(abs i)" using `k dvd i`
+  have "nat(abs k) dvd nat(abs i)" using \<open>k dvd i\<close>
     by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric])
   thus ?thesis by(simp add:zlcm_def dvd_int_iff)(blast intro: dvd_trans)
 qed
@@ -736,7 +736,7 @@ qed
 lemma dvd_imp_dvd_zlcm2:
   assumes "k dvd j" shows "k dvd (zlcm i j)"
 proof -
-  have "nat(abs k) dvd nat(abs j)" using `k dvd j`
+  have "nat(abs k) dvd nat(abs j)" using \<open>k dvd j\<close>
     by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric])
   thus ?thesis by(simp add:zlcm_def dvd_int_iff)(blast intro: dvd_trans)
 qed

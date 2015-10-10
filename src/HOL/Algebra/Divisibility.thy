@@ -3,15 +3,15 @@
     Author:     Stephan Hohe
 *)
 
-section {* Divisibility in monoids and rings *}
+section \<open>Divisibility in monoids and rings\<close>
 
 theory Divisibility
 imports "~~/src/HOL/Library/Permutation" Coset Group
 begin
 
-section {* Factorial Monoids *}
+section \<open>Factorial Monoids\<close>
 
-subsection {* Monoids with Cancellation Law *}
+subsection \<open>Monoids with Cancellation Law\<close>
 
 locale monoid_cancel = monoid +
   assumes l_cancel: 
@@ -57,7 +57,7 @@ sublocale comm_group \<subseteq> comm_monoid_cancel
   ..
 
 
-subsection {* Products of Units in Monoids *}
+subsection \<open>Products of Units in Monoids\<close>
 
 lemma (in monoid) Units_m_closed[simp, intro]:
   assumes h1unit: "h1 \<in> Units G" and h2unit: "h2 \<in> Units G"
@@ -144,9 +144,9 @@ proof clarsimp
 qed
 
 
-subsection {* Divisibility and Association *}
+subsection \<open>Divisibility and Association\<close>
 
-subsubsection {* Function definitions *}
+subsubsection \<open>Function definitions\<close>
 
 definition
   factor :: "[_, 'a, 'a] \<Rightarrow> bool" (infix "divides\<index>" 65)
@@ -174,7 +174,7 @@ definition
     (\<forall>a\<in>carrier G. \<forall>b\<in>carrier G. p divides\<^bsub>G\<^esub> (a \<otimes>\<^bsub>G\<^esub> b) \<longrightarrow> p divides\<^bsub>G\<^esub> a \<or> p divides\<^bsub>G\<^esub> b)"
 
 
-subsubsection {* Divisibility *}
+subsubsection \<open>Divisibility\<close>
 
 lemma dividesI:
   fixes G (structure)
@@ -309,7 +309,7 @@ using ucarr
 by (fast dest: divides_unit intro: unit_divides)
 
 
-subsubsection {* Association *}
+subsubsection \<open>Association\<close>
 
 lemma associatedI:
   fixes G (structure)
@@ -449,7 +449,7 @@ lemma (in monoid) division_equiv [intro, simp]:
   done
 
 
-subsubsection {* Division and associativity *}
+subsubsection \<open>Division and associativity\<close>
 
 lemma divides_antisym:
   fixes G (structure)
@@ -497,7 +497,7 @@ lemma (in monoid) division_weak_partial_order [simp, intro!]:
   done
 
     
-subsubsection {* Multiplication and associativity *}
+subsubsection \<open>Multiplication and associativity\<close>
 
 lemma (in monoid_cancel) mult_cong_r:
   assumes "b \<sim> b'"
@@ -545,7 +545,7 @@ apply (elim associatedE2, intro associatedI2)
 done
 
 
-subsubsection {* Units *}
+subsubsection \<open>Units\<close>
 
 lemma (in monoid_cancel) assoc_unit_l [trans]:
   assumes asc: "a \<sim> b" and bunit: "b \<in> Units G"
@@ -604,7 +604,7 @@ apply (metis Unit_eq_dividesone Units_r_inv_ex m_ac(2) one_closed)
 done
 
 
-subsubsection {* Proper factors *}
+subsubsection \<open>Proper factors\<close>
 
 lemma properfactorI:
   fixes G (structure)
@@ -785,9 +785,9 @@ lemma (in comm_monoid) properfactor_prod_l:
 by (intro properfactor_trans2[OF ab] divides_prod_l, simp+)
 
 
-subsection {* Irreducible Elements and Primes *}
+subsection \<open>Irreducible Elements and Primes\<close>
 
-subsubsection {* Irreducible elements *}
+subsubsection \<open>Irreducible elements\<close>
 
 lemma irreducibleI:
   fixes G (structure)
@@ -903,7 +903,7 @@ proof (elim irreducibleE)
 qed
 
 
-subsubsection {* Prime elements *}
+subsubsection \<open>Prime elements\<close>
 
 lemma primeI:
   fixes G (structure)
@@ -943,9 +943,9 @@ apply (metis assms(2) assms(3) assoc_unit_l)
 apply (metis assms(2) assms(3) assms(4) associated_sym divides_cong_l m_closed)
 done
 
-subsection {* Factorization and Factorial Monoids *}
+subsection \<open>Factorization and Factorial Monoids\<close>
 
-subsubsection {* Function definitions *}
+subsubsection \<open>Function definitions\<close>
 
 definition
   factors :: "[_, 'a list, 'a] \<Rightarrow> bool"
@@ -972,9 +972,9 @@ locale factorial_monoid = comm_monoid_cancel +
             set fs \<subseteq> carrier G; set fs' \<subseteq> carrier G\<rbrakk> \<Longrightarrow> essentially_equal G fs fs'"
 
 
-subsubsection {* Comparing lists of elements *}
+subsubsection \<open>Comparing lists of elements\<close>
 
-text {* Association on lists *}
+text \<open>Association on lists\<close>
 
 lemma (in monoid) listassoc_refl [simp, intro]:
   assumes "set as \<subseteq> carrier G"
@@ -1019,7 +1019,7 @@ apply (blast intro: irreducible_cong)
 done
 
 
-text {* Permutations *}
+text \<open>Permutations\<close>
 
 lemma perm_map [intro]:
   assumes p: "a <~~> b"
@@ -1077,7 +1077,7 @@ lemmas (in monoid) irrlist_perm_cong =
     perm_setP[of _ _ "\<lambda>as. \<forall>a\<in>as. irreducible G a"]
 
 
-text {* Essentially equal factorizations *}
+text \<open>Essentially equal factorizations\<close>
 
 lemma (in monoid) essentially_equalI:
   assumes ex: "fs1 <~~> fs1'"  "fs1' [\<sim>] fs2"
@@ -1149,9 +1149,9 @@ proof (elim essentially_equalE)
 qed
 
 
-subsubsection {* Properties of lists of elements *}
+subsubsection \<open>Properties of lists of elements\<close>
 
-text {* Multiplication of factors in a list *}
+text \<open>Multiplication of factors in a list\<close>
 
 lemma (in monoid) multlist_closed [simp, intro]:
   assumes ascarr: "set fs \<subseteq> carrier G"
@@ -1224,7 +1224,7 @@ apply (simp add: multlist_perm_cong multlist_listassoc_cong perm_closed)
 done
 
 
-subsubsection {* Factorization in irreducible elements *}
+subsubsection \<open>Factorization in irreducible elements\<close>
 
 lemma wfactorsI:
   fixes G (structure)
@@ -1328,7 +1328,7 @@ proof (rule ccontr, cases fs, simp)
 qed
 
 
-text {* Comparing wfactors *}
+text \<open>Comparing wfactors\<close>
 
 lemma (in comm_monoid_cancel) wfactors_listassoc_cong_l:
   assumes fact: "wfactors G fs a"
@@ -1389,7 +1389,7 @@ proof (elim wfactorsE, intro wfactorsI)
 qed
 
 
-subsubsection {* Essentially equal factorizations *}
+subsubsection \<open>Essentially equal factorizations\<close>
 
 lemma (in comm_monoid_cancel) unitfactor_ee:
   assumes uunit: "u \<in> Units G"
@@ -1719,7 +1719,7 @@ proof -
 qed
 
 
-subsubsection {* Factorial monoids and wfactors *}
+subsubsection \<open>Factorial monoids and wfactors\<close>
 
 lemma (in comm_monoid_cancel) factorial_monoidI:
   assumes wfactors_exists: 
@@ -1782,9 +1782,9 @@ proof
 qed (blast intro: factors_wfactors wfactors_unique)
 
 
-subsection {* Factorizations as Multisets *}
+subsection \<open>Factorizations as Multisets\<close>
 
-text {* Gives useful operations like intersection *}
+text \<open>Gives useful operations like intersection\<close>
 
 (* FIXME: use class_of x instead of closure_of {x} *)
 
@@ -1795,7 +1795,7 @@ definition
   "fmset G as = mset (map (\<lambda>a. assocs G a) as)"
 
 
-text {* Helper lemmas *}
+text \<open>Helper lemmas\<close>
 
 lemma (in monoid) assocs_repr_independence:
   assumes "y \<in> assocs G x"
@@ -1834,7 +1834,7 @@ lemmas (in comm_monoid) assocs_eqD =
     assocs_repr_independenceD[THEN assocs_assoc]
 
 
-subsubsection {* Comparing multisets *}
+subsubsection \<open>Comparing multisets\<close>
 
 lemma (in monoid) fmset_perm_cong:
   assumes prm: "as <~~> bs"
@@ -2022,7 +2022,7 @@ using assms
 by (fast intro: ee_fmset fmset_ee)
 
 
-subsubsection {* Interpreting multisets as factorizations *}
+subsubsection \<open>Interpreting multisets as factorizations\<close>
 
 lemma (in monoid) mset_fmsetEx:
   assumes elems: "\<And>X. X \<in> set_mset Cs \<Longrightarrow> \<exists>x. P x \<and> X = assocs G x"
@@ -2089,7 +2089,7 @@ proof -
 qed
 
 
-subsubsection {* Multiplication on multisets *}
+subsubsection \<open>Multiplication on multisets\<close>
 
 lemma (in factorial_monoid) mult_wfactors_fmset:
   assumes afs: "wfactors G as a" and bfs: "wfactors G bs b" and cfs: "wfactors G cs (a \<otimes> b)"
@@ -2131,7 +2131,7 @@ proof -
 qed
 
 
-subsubsection {* Divisibility on multisets *}
+subsubsection \<open>Divisibility on multisets\<close>
 
 lemma (in factorial_monoid) divides_fmsubset:
   assumes ab: "a divides b"
@@ -2215,7 +2215,7 @@ using assms
 by (blast intro: divides_fmsubset fmsubset_divides)
 
 
-text {* Proper factors on multisets *}
+text \<open>Proper factors on multisets\<close>
 
 lemma (in factorial_monoid) fmset_properfactor:
   assumes asubb: "fmset G as \<le># fmset G bs"
@@ -2250,7 +2250,7 @@ apply rule
 apply (metis assms divides_fmsubset fmsubset_divides)
 done
 
-subsection {* Irreducible Elements are Prime *}
+subsection \<open>Irreducible Elements are Prime\<close>
 
 lemma (in factorial_monoid) irreducible_is_prime:
   assumes pirr: "irreducible G p"
@@ -2490,9 +2490,9 @@ proof -
 qed
 
 
-subsection {* Greatest Common Divisors and Lowest Common Multiples *}
+subsection \<open>Greatest Common Divisors and Lowest Common Multiples\<close>
 
-subsubsection {* Definitions *}
+subsubsection \<open>Definitions\<close>
 
 definition
   isgcd :: "[('a,_) monoid_scheme, 'a, 'a, 'a] \<Rightarrow> bool"  ("(_ gcdof\<index> _ _)" [81,81,81] 80)
@@ -2529,7 +2529,7 @@ locale divisor_chain_condition_monoid = comm_monoid_cancel +
           "wf {(x, y). x \<in> carrier G \<and> y \<in> carrier G \<and> properfactor G x y}"
 
 
-subsubsection {* Connections to \texttt{Lattice.thy} *}
+subsubsection \<open>Connections to \texttt{Lattice.thy}\<close>
 
 lemma gcdof_greatestLower:
   fixes G (structure)
@@ -2571,7 +2571,7 @@ unfolding isgcd_def
 by fast
 
 
-subsubsection {* Existence of gcd and lcm *}
+subsubsection \<open>Existence of gcd and lcm\<close>
 
 lemma (in factorial_monoid) gcdof_exists:
   assumes acarr: "a \<in> carrier G" and bcarr: "b \<in> carrier G"
@@ -2753,9 +2753,9 @@ proof -
 qed
 
 
-subsection {* Conditions for Factoriality *}
+subsection \<open>Conditions for Factoriality\<close>
 
-subsubsection {* Gcd condition *}
+subsubsection \<open>Gcd condition\<close>
 
 lemma (in gcd_condition_monoid) division_weak_lower_semilattice [simp]:
   shows "weak_lower_semilattice (division_rel G)"
@@ -3153,7 +3153,7 @@ sublocale gcd_condition_monoid \<subseteq> primeness_condition_monoid
   by (rule primeness_condition)
 
 
-subsubsection {* Divisor chain condition *}
+subsubsection \<open>Divisor chain condition\<close>
 
 lemma (in divisor_chain_condition_monoid) wfactors_exist:
   assumes acarr: "a \<in> carrier G"
@@ -3243,7 +3243,7 @@ proof -
 qed
 
 
-subsubsection {* Primeness condition *}
+subsubsection \<open>Primeness condition\<close>
 
 lemma (in comm_monoid_cancel) multlist_prime_pos:
   assumes carr: "a \<in> carrier G"  "set as \<subseteq> carrier G"
@@ -3481,9 +3481,9 @@ apply (simp add: assms)
 done
 
 
-subsubsection {* Application to factorial monoids *}
+subsubsection \<open>Application to factorial monoids\<close>
 
-text {* Number of factors for wellfoundedness *}
+text \<open>Number of factors for wellfoundedness\<close>
 
 definition
   factorcount :: "_ \<Rightarrow> 'a \<Rightarrow> nat" where
@@ -3678,7 +3678,7 @@ proof -
 qed
 
 
-subsection {* Factoriality Theorems *}
+subsection \<open>Factoriality Theorems\<close>
 
 theorem factorial_condition_one: (* Jacobson theorem 2.21 *)
   shows "(divisor_chain_condition_monoid G \<and> primeness_condition_monoid G) = 

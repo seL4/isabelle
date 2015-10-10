@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-section {*Integers: Divisibility and Congruences*}
+section \<open>Integers: Divisibility and Congruences\<close>
 
 theory Int2
 imports Finite2 WilsonRuss
@@ -12,7 +12,7 @@ definition MultInv :: "int => int => int"
   where "MultInv p x = x ^ nat (p - 2)"
 
 
-subsection {* Useful lemmas about dvd and powers *}
+subsection \<open>Useful lemmas about dvd and powers\<close>
 
 lemma zpower_zdvd_prop1:
   "0 < n \<Longrightarrow> p dvd y \<Longrightarrow> p dvd ((y::int) ^ n)"
@@ -47,12 +47,12 @@ lemma div_prop1:
   assumes "0 < z" and "(x::int) < y * z"
   shows "x div z < y"
 proof -
-  from `0 < z` have modth: "x mod z \<ge> 0" by simp
+  from \<open>0 < z\<close> have modth: "x mod z \<ge> 0" by simp
   have "(x div z) * z \<le> (x div z) * z" by simp
   then have "(x div z) * z \<le> (x div z) * z + x mod z" using modth by arith 
   also have "\<dots> = x"
     by (auto simp add: zmod_zdiv_equality [symmetric] ac_simps)
-  also note `x < y * z`
+  also note \<open>x < y * z\<close>
   finally show ?thesis
     apply (auto simp add: mult_less_cancel_right)
     using assms apply arith
@@ -66,7 +66,7 @@ proof -
   from assms have "x < (y + 1) * z" by (auto simp add: int_distrib)
   then have "x div z < y + 1"
     apply (rule_tac y = "y + 1" in div_prop1)
-    apply (auto simp add: `0 < z`)
+    apply (auto simp add: \<open>0 < z\<close>)
     done
   then show ?thesis by auto
 qed
@@ -79,7 +79,7 @@ proof-
 qed
 
 
-subsection {* Useful properties of congruences *}
+subsection \<open>Useful properties of congruences\<close>
 
 lemma zcong_eq_zdvd_prop: "[x = 0](mod p) = (p dvd x)"
   by (auto simp add: zcong_def)
@@ -142,7 +142,7 @@ proof
     by auto
   then have "p dvd 2"
     by (auto simp add: dvd_def zcong_def)
-  with `2 < p` show False
+  with \<open>2 < p\<close> show False
     by (auto simp add: zdvd_not_zless)
 qed
 
@@ -174,7 +174,7 @@ lemma all_relprime_prod_relprime: "[| finite A; \<forall>x \<in> A. zgcd x y = 1
   by (induct set: finite) (auto simp add: zgcd_zgcd_zmult)
 
 
-subsection {* Some properties of MultInv *}
+subsection \<open>Some properties of MultInv\<close>
 
 lemma MultInv_prop1: "[| 2 < p; [x = y] (mod p) |] ==>
     [(MultInv p x) = (MultInv p y)] (mod p)"

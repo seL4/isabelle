@@ -7,15 +7,15 @@ theory Ring
 imports FiniteProduct
 begin
 
-section {* The Algebraic Hierarchy of Rings *}
+section \<open>The Algebraic Hierarchy of Rings\<close>
 
-subsection {* Abelian Groups *}
+subsection \<open>Abelian Groups\<close>
 
 record 'a ring = "'a monoid" +
   zero :: 'a ("\<zero>\<index>")
   add :: "['a, 'a] => 'a" (infixl "\<oplus>\<index>" 65)
 
-text {* Derived operations. *}
+text \<open>Derived operations.\<close>
 
 definition
   a_inv :: "[('a, 'm) ring_scheme, 'a ] => 'a" ("\<ominus>\<index> _" [81] 80)
@@ -39,7 +39,7 @@ syntax
       ("(3\<Oplus>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
   "\<Oplus>\<index>i\<in>A. b" \<rightleftharpoons> "CONST finsum \<struct>\<index> (%i. b) A"
-  -- {* Beware of argument permutation! *}
+  -- \<open>Beware of argument permutation!\<close>
 
 
 locale abelian_group = abelian_monoid +
@@ -47,7 +47,7 @@ locale abelian_group = abelian_monoid +
      "comm_group \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
 
-subsection {* Basic Properties *}
+subsection \<open>Basic Properties\<close>
 
 lemma abelian_monoidI:
   fixes R (structure)
@@ -91,7 +91,7 @@ lemma (in abelian_group) a_group:
 
 lemmas monoid_record_simps = partial_object.simps monoid.simps
 
-text {* Transfer facts from multiplicative structures via interpretation. *}
+text \<open>Transfer facts from multiplicative structures via interpretation.\<close>
 
 sublocale abelian_monoid <
   add!: monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
@@ -140,9 +140,9 @@ lemmas finsum_add = add.finprod_mult
 lemmas finsum_infinite = add.finprod_infinite
 
 lemmas finsum_cong = add.finprod_cong
-text {*Usually, if this rule causes a failed congruence proof error,
+text \<open>Usually, if this rule causes a failed congruence proof error,
    the reason is that the premise @{text "g \<in> B -> carrier G"} cannot be shown.
-   Adding @{thm [source] Pi_def} to the simpset is often useful. *}
+   Adding @{thm [source] Pi_def} to the simpset is often useful.\<close>
 
 lemmas finsum_reindex = add.finprod_reindex
 
@@ -206,7 +206,7 @@ sublocale abelian_group <
 
 lemmas (in abelian_group) minus_add = add.inv_mult
  
-text {* Derive an @{text "abelian_group"} from a @{text "comm_group"} *}
+text \<open>Derive an @{text "abelian_group"} from a @{text "comm_group"}\<close>
 
 lemma comm_group_abelian_groupI:
   fixes G (structure)
@@ -219,7 +219,7 @@ proof -
 qed
 
 
-subsection {* Rings: Basic Definitions *}
+subsection \<open>Rings: Basic Definitions\<close>
 
 locale semiring = abelian_monoid R + monoid R for R (structure) +
   assumes l_distr: "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
@@ -246,7 +246,7 @@ locale field = "domain" +
   assumes field_Units: "Units R = carrier R - {\<zero>}"
 
 
-subsection {* Rings *}
+subsection \<open>Rings\<close>
 
 lemma ringI:
   fixes R (structure)
@@ -283,8 +283,8 @@ lemma cringI:
   shows "cring R"
 proof (intro cring.intro ring.intro)
   show "ring_axioms R"
-    -- {* Right-distributivity follows from left-distributivity and
-          commutativity. *}
+    -- \<open>Right-distributivity follows from left-distributivity and
+          commutativity.\<close>
   proof (rule ring_axioms.intro)
     fix x y z
     assume R: "x \<in> carrier R" "y \<in> carrier R" "z \<in> carrier R"
@@ -312,7 +312,7 @@ lemma (in cring) is_cring:
   "cring R" by (rule cring_axioms)
 
 
-subsubsection {* Normaliser for Rings *}
+subsubsection \<open>Normaliser for Rings\<close>
 
 lemma (in abelian_group) r_neg2:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> x \<oplus> (\<ominus> x \<oplus> y) = y"
@@ -335,9 +335,9 @@ qed
 
 context ring begin
 
-text {* 
+text \<open>
   The following proofs are from Jacobson, Basic Algebra I, pp.~88--89.
-*}
+\<close>
 
 sublocale semiring
 proof -
@@ -387,20 +387,20 @@ lemma (in abelian_group) minus_eq:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> x \<ominus> y = x \<oplus> \<ominus> y"
   by (simp only: a_minus_def)
 
-text {* Setup algebra method:
-  compute distributive normal form in locale contexts *}
+text \<open>Setup algebra method:
+  compute distributive normal form in locale contexts\<close>
 
 ML_file "ringsimp.ML"
 
-attribute_setup algebra = {*
+attribute_setup algebra = \<open>
   Scan.lift ((Args.add >> K true || Args.del >> K false) --| Args.colon || Scan.succeed true)
     -- Scan.lift Args.name -- Scan.repeat Args.term
     >> (fn ((b, n), ts) => if b then Ringsimp.add_struct (n, ts) else Ringsimp.del_struct (n, ts))
-*} "theorems controlling algebra method"
+\<close> "theorems controlling algebra method"
 
-method_setup algebra = {*
+method_setup algebra = \<open>
   Scan.succeed (SIMPLE_METHOD' o Ringsimp.algebra_tac)
-*} "normalisation of algebraic structure"
+\<close> "normalisation of algebraic structure"
 
 lemmas (in semiring) semiring_simprules
   [algebra ring "zero R" "add R" "a_inv R" "a_minus R" "one R" "mult R"] =
@@ -463,7 +463,7 @@ lemma carrier_one_not_zero: "(carrier R \<noteq> {\<zero>}) = (\<one> \<noteq> \
 
 end
 
-text {* Two examples for use of method algebra *}
+text \<open>Two examples for use of method algebra\<close>
 
 lemma
   fixes R (structure) and S (structure)
@@ -487,7 +487,7 @@ proof -
 qed
 
 
-subsubsection {* Sums over Finite Sets *}
+subsubsection \<open>Sums over Finite Sets\<close>
 
 lemma (in semiring) finsum_ldistr:
   "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
@@ -508,7 +508,7 @@ next
 qed
 
 
-subsection {* Integral Domains *}
+subsection \<open>Integral Domains\<close>
 
 context "domain" begin
 
@@ -554,10 +554,10 @@ qed
 end
 
 
-subsection {* Fields *}
+subsection \<open>Fields\<close>
 
-text {* Field would not need to be derived from domain, the properties
-  for domain follow from the assumptions of field *}
+text \<open>Field would not need to be derived from domain, the properties
+  for domain follow from the assumptions of field\<close>
 lemma (in cring) cring_fieldI:
   assumes field_Units: "Units R = carrier R - {\<zero>}"
   shows "field R"
@@ -585,7 +585,7 @@ next
   qed
 qed (rule field_Units)
 
-text {* Another variant to show that something is a field *}
+text \<open>Another variant to show that something is a field\<close>
 lemma (in cring) cring_fieldI2:
   assumes notzero: "\<zero> \<noteq> \<one>"
   and invex: "\<And>a. \<lbrakk>a \<in> carrier R; a \<noteq> \<zero>\<rbrakk> \<Longrightarrow> \<exists>b\<in>carrier R. a \<otimes> b = \<one>"
@@ -604,7 +604,7 @@ proof (clarsimp)
 qed
 
 
-subsection {* Morphisms *}
+subsection \<open>Morphisms\<close>
 
 definition
   ring_hom :: "[('a, 'm) ring_scheme, ('b, 'n) ring_scheme] => ('a => 'b) set"

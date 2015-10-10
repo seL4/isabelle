@@ -3,14 +3,14 @@
     Copyright   2000  University of Cambridge
 *)
 
-section {* Fundamental Theorem of Arithmetic (unique factorization into primes) *}
+section \<open>Fundamental Theorem of Arithmetic (unique factorization into primes)\<close>
 
 theory Factorization
 imports Primes "~~/src/HOL/Library/Permutation"
 begin
 
 
-subsection {* Definitions *}
+subsection \<open>Definitions\<close>
 
 definition primel :: "nat list => bool"
   where "primel xs = (\<forall>p \<in> set xs. prime p)"
@@ -36,7 +36,7 @@ where
 | "sort (x # xs) = oinsert x (sort xs)"
 
 
-subsection {* Arithmetic *}
+subsection \<open>Arithmetic\<close>
 
 lemma one_less_m: "(m::nat) \<noteq> m * k ==> m \<noteq> Suc 0 ==> Suc 0 < m"
   apply (cases m)
@@ -64,7 +64,7 @@ lemma prod_mn_less_k:
   done
 
 
-subsection {* Prime list and product *}
+subsection \<open>Prime list and product\<close>
 
 lemma prod_append: "prod (xs @ ys) = prod xs * prod ys"
   apply (induct xs)
@@ -137,7 +137,7 @@ lemma primel_prod_gz: "primel xs ==> 0 < prod xs"
   done
 
 
-subsection {* Sorting *}
+subsection \<open>Sorting\<close>
 
 lemma nondec_oinsert: "nondec xs \<Longrightarrow> nondec (oinsert x xs)"
   apply (induct xs)
@@ -174,7 +174,7 @@ lemma oinsert_x_y: "oinsert x (oinsert y l) = oinsert y (oinsert x l)"
   done
 
 
-subsection {* Permutation *}
+subsection \<open>Permutation\<close>
 
 lemma perm_primel [rule_format]: "xs <~~> ys ==> primel xs --> primel ys"
   apply (unfold primel_def)
@@ -212,7 +212,7 @@ lemma perm_sort_eq: "xs <~~> ys ==> sort xs = sort ys"
   done
 
 
-subsection {* Existence *}
+subsection \<open>Existence\<close>
 
 lemma ex_nondec_lemma:
     "primel xs ==> \<exists>ys. primel ys \<and> nondec ys \<and> prod ys = prod xs"
@@ -250,7 +250,7 @@ lemma nondec_factor_exists: "Suc 0 < n ==> \<exists>l. primel l \<and> nondec l 
   done
 
 
-subsection {* Uniqueness *}
+subsection \<open>Uniqueness\<close>
 
 lemma prime_dvd_mult_list [rule_format]:
     "prime p ==> p dvd (prod xs) --> (\<exists>m. m:set xs \<and> p dvd m)"

@@ -3,19 +3,19 @@
     Copyright   2000  University of Cambridge
 *)
 
-section {* Factorial on integers *}
+section \<open>Factorial on integers\<close>
 
 theory IntFact
 imports IntPrimes
 begin
 
-text {*
+text \<open>
   Factorial on integers and recursively defined set including all
   Integers from @{text 2} up to @{text a}.  Plus definition of product
   of finite set.
 
   \bigskip
-*}
+\<close>
 
 fun zfact :: "int => int"
   where "zfact n = (if n \<le> 0 then 1 else n * zfact (n - 1))"
@@ -24,10 +24,10 @@ fun d22set :: "int => int set"
   where "d22set a = (if 1 < a then insert a (d22set (a - 1)) else {})"
 
 
-text {*
+text \<open>
   \medskip @{term d22set} --- recursively defined set including all
   integers from @{text 2} up to @{text a}
-*}
+\<close>
 
 declare d22set.simps [simp del]
 

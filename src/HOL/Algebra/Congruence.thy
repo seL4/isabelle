@@ -7,15 +7,15 @@ theory Congruence
 imports Main
 begin
 
-section {* Objects *}
+section \<open>Objects\<close>
 
-subsection {* Structure with Carrier Set. *}
+subsection \<open>Structure with Carrier Set.\<close>
 
 record 'a partial_object =
   carrier :: "'a set"
 
 
-subsection {* Structure with Carrier and Equivalence Relation @{text eq} *}
+subsection \<open>Structure with Carrier and Equivalence Relation @{text eq}\<close>
 
 record 'a eq_object = "'a partial_object" +
   eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".=\<index>" 50)

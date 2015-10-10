@@ -6,9 +6,9 @@ theory RingHom
 imports Ideal
 begin
 
-section {* Homomorphisms of Non-Commutative Rings *}
+section \<open>Homomorphisms of Non-Commutative Rings\<close>
 
-text {* Lifting existing lemmas in a @{text ring_hom_ring} locale *}
+text \<open>Lifting existing lemmas in a @{text ring_hom_ring} locale\<close>
 locale ring_hom_ring = R: ring R + S: ring S
     for R (structure) and S (structure) +
   fixes h
@@ -100,7 +100,7 @@ proof -
 qed
 
 
-subsection {* The Kernel of a Ring Homomorphism *}
+subsection \<open>The Kernel of a Ring Homomorphism\<close>
 
 --"the kernel of a ring homomorphism is an ideal"
 lemma (in ring_hom_ring) kernel_is_ideal:
@@ -111,15 +111,15 @@ apply (rule idealI)
  apply (unfold a_kernel_def', simp+)
 done
 
-text {* Elements of the kernel are mapped to zero *}
+text \<open>Elements of the kernel are mapped to zero\<close>
 lemma (in abelian_group_hom) kernel_zero [simp]:
   "i \<in> a_kernel R S h \<Longrightarrow> h i = \<zero>\<^bsub>S\<^esub>"
 by (simp add: a_kernel_defs)
 
 
-subsection {* Cosets *}
+subsection \<open>Cosets\<close>
 
-text {* Cosets of the kernel correspond to the elements of the image of the homomorphism *}
+text \<open>Cosets of the kernel correspond to the elements of the image of the homomorphism\<close>
 lemma (in ring_hom_ring) rcos_imp_homeq:
   assumes acarr: "a \<in> carrier R"
       and xrcos: "x \<in> a_kernel R S h +> a"

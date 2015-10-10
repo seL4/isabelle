@@ -9,16 +9,16 @@ theory Exponent
 imports Main "~~/src/HOL/Number_Theory/Primes"
 begin
 
-section {*Sylow's Theorem*}
+section \<open>Sylow's Theorem\<close>
 
-subsection {*The Combinatorial Argument Underlying the First Sylow Theorem*}
+subsection \<open>The Combinatorial Argument Underlying the First Sylow Theorem\<close>
 
 definition
   exponent :: "nat => nat => nat"
   where "exponent p s = (if prime p then (GREATEST r. p^r dvd s) else 0)"
 
 
-text{*Prime Theorems*}
+text\<open>Prime Theorems\<close>
 
 lemma prime_iff:
   "(prime p) = (Suc 0 < p & (\<forall>a b. p dvd a*b --> (p dvd a) | (p dvd b)))"
@@ -100,7 +100,7 @@ apply (drule_tac [2] n = n in Suc_le_power, auto)
 done
 
 
-text{*Exponent Theorems*}
+text\<open>Exponent Theorems\<close>
 
 lemma exponent_ge [rule_format]:
   "[|p^k dvd n;  prime p;  0<n|] ==> k <= exponent p n"
@@ -182,7 +182,7 @@ apply (simp add: prime_iff not_divides_exponent_0)
 done
 
 
-text{*Main Combinatorial Argument*}
+text\<open>Main Combinatorial Argument\<close>
 
 lemma gcd_mult': fixes a::nat shows "gcd b (a * b) = b"
 by (simp add: mult.commute[of a b])
@@ -236,7 +236,7 @@ lemma exponent_p_a_m_k_equation: "[| m>0; k>0; (p::nat)\<noteq>0;  k < p^a |]
 apply (blast intro: exponent_equalityI p_fac_forw p_fac_backw)
 done
 
-text{*Suc rules that we have to delete from the simpset*}
+text\<open>Suc rules that we have to delete from the simpset\<close>
 lemmas bad_Sucs = binomial_Suc_Suc mult_Suc mult_Suc_right
 
 (*The bound K is needed; otherwise it's too weak to be used.*)
@@ -252,9 +252,9 @@ apply (subgoal_tac "(Suc (j+k) choose Suc k) > 0")
  prefer 2 apply (simp, clarify)
 apply (subgoal_tac "exponent p ((Suc (j+k) choose Suc k) * Suc k) =
                     exponent p (Suc k)")
- txt{*First, use the assumed equation.  We simplify the LHS to
+ txt\<open>First, use the assumed equation.  We simplify the LHS to
   @{term "exponent p (Suc (j + k) choose Suc k) + exponent p (Suc k)"}
-  the common terms cancel, proving the conclusion.*}
+  the common terms cancel, proving the conclusion.\<close>
  apply (simp del: bad_Sucs add: exponent_mult_add)
 apply (simp del: bad_Sucs add: mult_ac Suc_times_binomial exponent_mult_add)
 
@@ -297,14 +297,14 @@ apply (case_tac "prime p")
  prefer 2 apply simp
 apply (subgoal_tac "0 < p^a * m & p^a <= p^a * m")
  prefer 2 apply (force simp add: prime_iff)
-txt{*A similar trick to the one used in @{text p_not_div_choose_lemma}:
+txt\<open>A similar trick to the one used in @{text p_not_div_choose_lemma}:
   insert an equation; use @{text exponent_mult_add} on the LHS; on the RHS,
   first
-  transform the binomial coefficient, then use @{text exponent_mult_add}.*}
+  transform the binomial coefficient, then use @{text exponent_mult_add}.\<close>
 apply (subgoal_tac "exponent p ((( (p^a) * m) choose p^a) * p^a) =
                     a + exponent p m")
  apply (simp add: exponent_mult_add)
-txt{*one subgoal left!*}
+txt\<open>one subgoal left!\<close>
 apply (auto simp: mult_ac)
 apply (subst times_binomial_minus1_eq, simp)
 apply (simp add: diff_le_mono exponent_mult_add)

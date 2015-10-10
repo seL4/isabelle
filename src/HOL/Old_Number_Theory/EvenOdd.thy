@@ -2,7 +2,7 @@
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
-section {*Parity: Even and Odd Integers*}
+section \<open>Parity: Even and Odd Integers\<close>
 
 theory EvenOdd
 imports Int2
@@ -14,7 +14,7 @@ definition zOdd :: "int set"
 definition zEven :: "int set"
   where "zEven = {x. \<exists>k. x = 2 * k}"
 
-subsection {* Some useful properties about even and odd *}
+subsection \<open>Some useful properties about even and odd\<close>
 
 lemma zOddI [intro?]: "x = 2 * k + 1 \<Longrightarrow> x \<in> zOdd"
   and zOddE [elim?]: "x \<in> zOdd \<Longrightarrow> (!!k. x = 2 * k + 1 \<Longrightarrow> C) \<Longrightarrow> C"
@@ -167,11 +167,11 @@ qed
 lemma neg_one_even_power: "[| x \<in> zEven; 0 \<le> x |] ==> (-1::int)^(nat x) = 1"
 proof -
   assume "x \<in> zEven" and "0 \<le> x"
-  from `x \<in> zEven` obtain a where "x = 2 * a" ..
-  with `0 \<le> x` have "0 \<le> a" by simp
-  from `0 \<le> x` and `x = 2 * a` have "nat x = nat (2 * a)"
+  from \<open>x \<in> zEven\<close> obtain a where "x = 2 * a" ..
+  with \<open>0 \<le> x\<close> have "0 \<le> a" by simp
+  from \<open>0 \<le> x\<close> and \<open>x = 2 * a\<close> have "nat x = nat (2 * a)"
     by simp
-  also from `x = 2 * a` have "nat (2 * a) = 2 * nat a"
+  also from \<open>x = 2 * a\<close> have "nat (2 * a) = 2 * nat a"
     by (simp add: nat_mult_distrib)
   finally have "(-1::int)^nat x = (-1)^(2 * nat a)"
     by simp
@@ -186,9 +186,9 @@ qed
 lemma neg_one_odd_power: "[| x \<in> zOdd; 0 \<le> x |] ==> (-1::int)^(nat x) = -1"
 proof -
   assume "x \<in> zOdd" and "0 \<le> x"
-  from `x \<in> zOdd` obtain a where "x = 2 * a + 1" ..
-  with `0 \<le> x` have a: "0 \<le> a" by simp
-  with `0 \<le> x` and `x = 2 * a + 1` have "nat x = nat (2 * a + 1)"
+  from \<open>x \<in> zOdd\<close> obtain a where "x = 2 * a + 1" ..
+  with \<open>0 \<le> x\<close> have a: "0 \<le> a" by simp
+  with \<open>0 \<le> x\<close> and \<open>x = 2 * a + 1\<close> have "nat x = nat (2 * a + 1)"
     by simp
   also from a have "nat (2 * a + 1) = 2 * nat a + 1"
     by (auto simp add: nat_mult_distrib nat_add_distrib)
@@ -214,8 +214,8 @@ lemma one_not_neg_one_mod_m: "2 < m ==> ~([1 = -1] (mod m))"
 lemma even_div_2_l: "[| y \<in> zEven; x < y |] ==> x div 2 < y div 2"
 proof -
   assume "y \<in> zEven" and "x < y"
-  from `y \<in> zEven` obtain k where k: "y = 2 * k" ..
-  with `x < y` have "x < 2 * k" by simp
+  from \<open>y \<in> zEven\<close> obtain k where k: "y = 2 * k" ..
+  with \<open>x < y\<close> have "x < 2 * k" by simp
   then have "x div 2 < k" by (auto simp add: div_prop1)
   also have "k = (2 * k) div 2" by simp
   finally have "x div 2 < 2 * k div 2" by simp
