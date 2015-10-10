@@ -12,12 +12,12 @@ definition
     "InfCard(i) == Card(i) & nat \<le> i"
 
 definition
-  cmult         :: "[i,i]=>i"       (infixl "|*|" 70)  where
-    "i |*| j == |i*j|"
+  cmult         :: "[i,i]=>i"       (infixl "\<otimes>" 70)  where
+    "i \<otimes> j == |i*j|"
 
 definition
-  cadd          :: "[i,i]=>i"       (infixl "|+|" 65)  where
-    "i |+| j == |i+j|"
+  cadd          :: "[i,i]=>i"       (infixl "\<oplus>" 65)  where
+    "i \<oplus> j == |i+j|"
 
 definition
   csquare_rel   :: "i=>i"  where
@@ -38,10 +38,6 @@ definition
     --\<open>needed because @{term "jump_cardinal(K)"} might not be the successor
         of @{term K}\<close>
     "csucc(K) == \<mu> L. Card(L) & K<L"
-
-notation (xsymbols)
-  cadd  (infixl "\<oplus>" 65) and
-  cmult  (infixl "\<otimes>" 70)
 
 
 lemma Card_Union [simp,intro,TC]:
