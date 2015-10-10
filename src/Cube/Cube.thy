@@ -17,43 +17,40 @@ typedecl "context"
 typedecl typing
 
 axiomatization
-  Abs :: "[term, term => term] => term" and
-  Prod :: "[term, term => term] => term" and
-  Trueprop :: "[context, typing] => prop" and
+  Abs :: "[term, term \<Rightarrow> term] \<Rightarrow> term" and
+  Prod :: "[term, term \<Rightarrow> term] \<Rightarrow> term" and
+  Trueprop :: "[context, typing] \<Rightarrow> prop" and
   MT_context :: "context" and
-  Context :: "[typing, context] => context" and
+  Context :: "[typing, context] \<Rightarrow> context" and
   star :: "term"  ("*") and
   box :: "term"  ("\<box>") and
-  app :: "[term, term] => term"  (infixl "^" 20) and
-  Has_type :: "[term, term] => typing"
+  app :: "[term, term] \<Rightarrow> term"  (infixl "^" 20) and
+  Has_type :: "[term, term] \<Rightarrow> typing"
 
 nonterminal context' and typing'
+syntax
+  "_Trueprop" :: "[context', typing'] \<Rightarrow> prop"  ("(_/ \<turnstile> _)")
+  "_Trueprop1" :: "typing' \<Rightarrow> prop"  ("(_)")
+  "" :: "id \<Rightarrow> context'"  ("_")
+  "" :: "var \<Rightarrow> context'"  ("_")
+  "_MT_context" :: "context'"  ("")
+  "_Context" :: "[typing', context'] \<Rightarrow> context'"  ("_ _")
+  "_Has_type" :: "[term, term] \<Rightarrow> typing'"  ("(_:/ _)" [0, 0] 5)
+  "_Lam" :: "[idt, term, term] \<Rightarrow> term"  ("(3\<Lambda> _:_./ _)" [0, 0, 0] 10)
+  "_Pi" :: "[idt, term, term] \<Rightarrow> term"  ("(3\<Pi> _:_./ _)" [0, 0] 10)
+  "_arrow" :: "[term, term] \<Rightarrow> term"  (infixr "\<rightarrow>" 10)
+translations
+  "_Trueprop(G, t)" \<rightleftharpoons> "CONST Trueprop(G, t)"
+  ("prop") "x:X" \<rightleftharpoons> ("prop") "\<turnstile> x:X"
+  "_MT_context" \<rightleftharpoons> "CONST MT_context"
+  "_Context" \<rightleftharpoons> "CONST Context"
+  "_Has_type" \<rightleftharpoons> "CONST Has_type"
+  "\<Lambda> x:A. B" \<rightleftharpoons> "CONST Abs(A, \<lambda>x. B)"
+  "\<Pi> x:A. B" \<rightharpoonup> "CONST Prod(A, \<lambda>x. B)"
+  "A \<rightarrow> B" \<rightharpoonup> "CONST Prod(A, \<lambda>_. B)"
 
 syntax
-  "_Trueprop" :: "[context', typing'] => prop"  ("(_/ \<turnstile> _)")
-  "_Trueprop1" :: "typing' => prop"  ("(_)")
-  "" :: "id => context'"  ("_")
-  "" :: "var => context'"  ("_")
-  "_MT_context" :: "context'"  ("")
-  "_Context" :: "[typing', context'] => context'"  ("_ _")
-  "_Has_type" :: "[term, term] => typing'"  ("(_:/ _)" [0, 0] 5)
-  "_Lam" :: "[idt, term, term] => term"  ("(3\<Lambda> _:_./ _)" [0, 0, 0] 10)
-  "_Pi" :: "[idt, term, term] => term"  ("(3\<Pi> _:_./ _)" [0, 0] 10)
-  "_arrow" :: "[term, term] => term"  (infixr "\<rightarrow>" 10)
-
-translations
-  "_Trueprop(G, t)" == "CONST Trueprop(G, t)"
-  ("prop") "x:X" == ("prop") "\<turnstile> x:X"
-  "_MT_context" == "CONST MT_context"
-  "_Context" == "CONST Context"
-  "_Has_type" == "CONST Has_type"
-  "\<Lambda> x:A. B" == "CONST Abs(A, %x. B)"
-  "\<Pi> x:A. B" => "CONST Prod(A, %x. B)"
-  "A \<rightarrow> B" => "CONST Prod(A, %_. B)"
-
-syntax (xsymbols)
-  "_Pi" :: "[idt, term, term] => term"    ("(3\<Pi> _:_./ _)" [0, 0] 10)
-
+  "_Pi" :: "[idt, term, term] \<Rightarrow> term"    ("(3\<Pi> _:_./ _)" [0, 0] 10)
 print_translation \<open>
   [(@{const_syntax Prod},
     fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"}))]
@@ -62,33 +59,33 @@ print_translation \<open>
 axiomatization where
   s_b: "*: \<box>"  and
 
-  strip_s: "[| A:*;  a:A ==> G \<turnstile> x:X |] ==> a:A G \<turnstile> x:X" and
-  strip_b: "[| A:\<box>; a:A ==> G \<turnstile> x:X |] ==> a:A G \<turnstile> x:X" and
+  strip_s: "\<lbrakk>A:*; a:A \<Longrightarrow> G \<turnstile> x:X\<rbrakk> \<Longrightarrow> a:A G \<turnstile> x:X" and
+  strip_b: "\<lbrakk>A:\<box>; a:A \<Longrightarrow> G \<turnstile> x:X\<rbrakk> \<Longrightarrow> a:A G \<turnstile> x:X" and
 
-  app: "[| F:Prod(A, B); C:A |] ==> F^C: B(C)" and
+  app: "\<lbrakk>F:Prod(A, B); C:A\<rbrakk> \<Longrightarrow> F^C: B(C)" and
 
-  pi_ss: "[| A:*; !!x. x:A ==> B(x):* |] ==> Prod(A, B):*" and
+  pi_ss: "\<lbrakk>A:*; \<And>x. x:A \<Longrightarrow> B(x):*\<rbrakk> \<Longrightarrow> Prod(A, B):*" and
 
-  lam_ss: "[| A:*; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):* |]
-            ==> Abs(A, f) : Prod(A, B)" and
+  lam_ss: "\<lbrakk>A:*; \<And>x. x:A \<Longrightarrow> f(x):B(x); \<And>x. x:A \<Longrightarrow> B(x):* \<rbrakk>
+            \<Longrightarrow> Abs(A, f) : Prod(A, B)" and
 
-  beta: "Abs(A, f)^a == f(a)"
+  beta: "Abs(A, f)^a \<equiv> f(a)"
 
 lemmas [rules] = s_b strip_s strip_b app lam_ss pi_ss
 
 lemma imp_elim:
-  assumes "f:A\<rightarrow>B" and "a:A" and "f^a:B ==> PROP P"
+  assumes "f:A\<rightarrow>B" and "a:A" and "f^a:B \<Longrightarrow> PROP P"
   shows "PROP P" by (rule app assms)+
 
 lemma pi_elim:
-  assumes "F:Prod(A,B)" and "a:A" and "F^a:B(a) ==> PROP P"
+  assumes "F:Prod(A,B)" and "a:A" and "F^a:B(a) \<Longrightarrow> PROP P"
   shows "PROP P" by (rule app assms)+
 
 
 locale L2 =
-  assumes pi_bs: "[| A:\<box>; !!x. x:A ==> B(x):* |] ==> Prod(A,B):*"
-    and lam_bs: "[| A:\<box>; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):* |]
-                   ==> Abs(A,f) : Prod(A,B)"
+  assumes pi_bs: "\<lbrakk>A:\<box>; \<And>x. x:A \<Longrightarrow> B(x):*\<rbrakk> \<Longrightarrow> Prod(A,B):*"
+    and lam_bs: "\<lbrakk>A:\<box>; \<And>x. x:A \<Longrightarrow> f(x):B(x); \<And>x. x:A \<Longrightarrow> B(x):*\<rbrakk>
+                   \<Longrightarrow> Abs(A,f) : Prod(A,B)"
 begin
 
 lemmas [rules] = lam_bs pi_bs
@@ -98,9 +95,9 @@ end
 
 locale Lomega =
   assumes
-    pi_bb: "[| A:\<box>; !!x. x:A ==> B(x):\<box> |] ==> Prod(A,B):\<box>"
-    and lam_bb: "[| A:\<box>; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):\<box> |]
-                   ==> Abs(A,f) : Prod(A,B)"
+    pi_bb: "\<lbrakk>A:\<box>; \<And>x. x:A \<Longrightarrow> B(x):\<box>\<rbrakk> \<Longrightarrow> Prod(A,B):\<box>"
+    and lam_bb: "\<lbrakk>A:\<box>; \<And>x. x:A \<Longrightarrow> f(x):B(x); \<And>x. x:A \<Longrightarrow> B(x):\<box>\<rbrakk>
+                   \<Longrightarrow> Abs(A,f) : Prod(A,B)"
 begin
 
 lemmas [rules] = lam_bb pi_bb
@@ -109,9 +106,9 @@ end
 
 
 locale LP =
-  assumes pi_sb: "[| A:*; !!x. x:A ==> B(x):\<box> |] ==> Prod(A,B):\<box>"
-    and lam_sb: "[| A:*; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):\<box> |]
-                   ==> Abs(A,f) : Prod(A,B)"
+  assumes pi_sb: "\<lbrakk>A:*; \<And>x. x:A \<Longrightarrow> B(x):\<box>\<rbrakk> \<Longrightarrow> Prod(A,B):\<box>"
+    and lam_sb: "\<lbrakk>A:*; \<And>x. x:A \<Longrightarrow> f(x):B(x); \<And>x. x:A \<Longrightarrow> B(x):\<box>\<rbrakk>
+                   \<Longrightarrow> Abs(A,f) : Prod(A,B)"
 begin
 
 lemmas [rules] = lam_sb pi_sb
