@@ -18,18 +18,18 @@ consts
   Sreg  :: "i"
 
 abbreviation
-  Ssub_rel  (infixl "<==" 70) where
-  "a<==b == <a,b> \<in> Ssub"
+  Ssub_rel  (infixl "\<Longleftarrow>" 70) where
+  "a \<Longleftarrow> b == <a,b> \<in> Ssub"
 
 abbreviation
-  Scomp_rel  (infixl "~" 70) where
-  "a ~ b == <a,b> \<in> Scomp"
+  Scomp_rel  (infixl "\<sim>" 70) where
+  "a \<sim> b == <a,b> \<in> Scomp"
 
 abbreviation
   "regular(a) == a \<in> Sreg"
 
 consts union_aux        :: "i=>i"
-primrec (*explicit lambda is required because both arguments of "un" vary*)
+primrec (*explicit lambda is required because both arguments of "\<squnion>" vary*)
   "union_aux(Var(n)) =
      (\<lambda>t \<in> redexes. redexes_case(%j. Var(n), %x. 0, %b x y.0, t))"
 
@@ -43,32 +43,27 @@ primrec (*explicit lambda is required because both arguments of "un" vary*)
                      %c z u. App(b or c, union_aux(f)`z, union_aux(a)`u), t))"
 
 definition
-  union  (infixl "un" 70) where
-  "u un v == union_aux(u)`v"
-
-notation (xsymbols)
-  union  (infixl "\<squnion>" 70) and
-  Ssub_rel  (infixl "\<Longleftarrow>" 70) and
-  Scomp_rel  (infixl "\<sim>" 70)
+  union  (infixl "\<squnion>" 70) where
+  "u \<squnion> v == union_aux(u)`v"
 
 
 inductive
   domains       "Ssub" \<subseteq> "redexes*redexes"
   intros
-    Sub_Var:     "n \<in> nat ==> Var(n)<== Var(n)"
-    Sub_Fun:     "[|u<== v|]==> Fun(u)<== Fun(v)"
-    Sub_App1:    "[|u1<== v1; u2<== v2; b \<in> bool|]==>   
-                     App(0,u1,u2)<== App(b,v1,v2)"
-    Sub_App2:    "[|u1<== v1; u2<== v2|]==> App(1,u1,u2)<== App(1,v1,v2)"
+    Sub_Var:     "n \<in> nat ==> Var(n) \<Longleftarrow> Var(n)"
+    Sub_Fun:     "[|u \<Longleftarrow> v|]==> Fun(u) \<Longleftarrow> Fun(v)"
+    Sub_App1:    "[|u1 \<Longleftarrow> v1; u2 \<Longleftarrow> v2; b \<in> bool|]==>   
+                     App(0,u1,u2) \<Longleftarrow> App(b,v1,v2)"
+    Sub_App2:    "[|u1 \<Longleftarrow> v1; u2 \<Longleftarrow> v2|]==> App(1,u1,u2) \<Longleftarrow> App(1,v1,v2)"
   type_intros    redexes.intros bool_typechecks
 
 inductive
   domains       "Scomp" \<subseteq> "redexes*redexes"
   intros
-    Comp_Var:    "n \<in> nat ==> Var(n) ~ Var(n)"
-    Comp_Fun:    "[|u ~ v|]==> Fun(u) ~ Fun(v)"
-    Comp_App:    "[|u1 ~ v1; u2 ~ v2; b1 \<in> bool; b2 \<in> bool|]
-                  ==> App(b1,u1,u2) ~ App(b2,v1,v2)"
+    Comp_Var:    "n \<in> nat ==> Var(n) \<sim> Var(n)"
+    Comp_Fun:    "[|u \<sim> v|]==> Fun(u) \<sim> Fun(v)"
+    Comp_App:    "[|u1 \<sim> v1; u2 \<sim> v2; b1 \<in> bool; b2 \<in> bool|]
+                  ==> App(b1,u1,u2) \<sim> App(b2,v1,v2)"
   type_intros    redexes.intros bool_typechecks
 
 inductive
@@ -95,15 +90,15 @@ lemmas regD [simp] = Sreg.dom_subset [THEN subsetD]
 (*    Equality rules for union                                               *)
 (* ------------------------------------------------------------------------- *)
 
-lemma union_Var [simp]: "n \<in> nat ==> Var(n) un Var(n)=Var(n)"
+lemma union_Var [simp]: "n \<in> nat ==> Var(n) \<squnion> Var(n)=Var(n)"
 by (simp add: union_def)
 
-lemma union_Fun [simp]: "v \<in> redexes ==> Fun(u) un Fun(v) = Fun(u un v)"
+lemma union_Fun [simp]: "v \<in> redexes ==> Fun(u) \<squnion> Fun(v) = Fun(u \<squnion> v)"
 by (simp add: union_def)
  
 lemma union_App [simp]:
      "[|b2 \<in> bool; u2 \<in> redexes; v2 \<in> redexes|]
-      ==> App(b1,u1,v1) un App(b2,u2,v2)=App(b1 or b2,u1 un u2,v1 un v2)"
+      ==> App(b1,u1,v1) \<squnion> App(b2,u2,v2)=App(b1 or b2,u1 \<squnion> u2,v1 \<squnion> v2)"
 by (simp add: union_def)
 
 
@@ -126,13 +121,13 @@ inductive_cases [elim!]:
   "regular(App(b,f,a))"
   "regular(Fun(b))"
   "regular(Var(b))"
-  "Fun(u) ~ Fun(t)"
-  "u ~ Fun(t)"
-  "u ~ Var(n)"
-  "u ~ App(b,t,a)"
-  "Fun(t) ~ v"
-  "App(b,f,a) ~ v"
-  "Var(n) ~ u"
+  "Fun(u) \<sim> Fun(t)"
+  "u \<sim> Fun(t)"
+  "u \<sim> Var(n)"
+  "u \<sim> App(b,t,a)"
+  "Fun(t) \<sim> v"
+  "App(b,f,a) \<sim> v"
+  "Var(n) \<sim> u"
 
 
 
@@ -140,33 +135,33 @@ inductive_cases [elim!]:
 (*    comp proofs                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-lemma comp_refl [simp]: "u \<in> redexes ==> u ~ u"
+lemma comp_refl [simp]: "u \<in> redexes ==> u \<sim> u"
 by (erule redexes.induct, blast+)
 
-lemma comp_sym: "u ~ v ==> v ~ u"
+lemma comp_sym: "u \<sim> v ==> v \<sim> u"
 by (erule Scomp.induct, blast+)
 
-lemma comp_sym_iff: "u ~ v \<longleftrightarrow> v ~ u"
+lemma comp_sym_iff: "u \<sim> v \<longleftrightarrow> v \<sim> u"
 by (blast intro: comp_sym)
 
-lemma comp_trans [rule_format]: "u ~ v ==> \<forall>w. v ~ w\<longrightarrow>u ~ w"
+lemma comp_trans [rule_format]: "u \<sim> v ==> \<forall>w. v \<sim> w\<longrightarrow>u \<sim> w"
 by (erule Scomp.induct, blast+)
 
 (* ------------------------------------------------------------------------- *)
 (*   union proofs                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-lemma union_l: "u ~ v ==> u <== (u un v)"
+lemma union_l: "u \<sim> v \<Longrightarrow> u \<Longleftarrow> (u \<squnion> v)"
 apply (erule Scomp.induct)
 apply (erule_tac [3] boolE, simp_all)
 done
 
-lemma union_r: "u ~ v ==> v <== (u un v)"
+lemma union_r: "u \<sim> v \<Longrightarrow> v \<Longleftarrow> (u \<squnion> v)"
 apply (erule Scomp.induct)
 apply (erule_tac [3] c = b2 in boolE, simp_all)
 done
 
-lemma union_sym: "u ~ v ==> u un v = v un u"
+lemma union_sym: "u \<sim> v \<Longrightarrow> u \<squnion> v = v \<squnion> u"
 by (erule Scomp.induct, simp_all add: or_commute)
 
 (* ------------------------------------------------------------------------- *)
@@ -174,7 +169,7 @@ by (erule Scomp.induct, simp_all add: or_commute)
 (* ------------------------------------------------------------------------- *)
 
 lemma union_preserve_regular [rule_format]:
-     "u ~ v ==> regular(u)\<longrightarrow>regular(v)\<longrightarrow>regular(u un v)"
+     "u \<sim> v \<Longrightarrow> regular(u) \<longrightarrow> regular(v) \<longrightarrow> regular(u \<squnion> v)"
   by (erule Scomp.induct, auto)
 
 end

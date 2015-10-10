@@ -214,7 +214,7 @@ done
 (*      Simulation                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-lemma simulation: "m=1=>n ==> \<exists>v. m|>v = n & m~v & regular(v)"
+lemma simulation: "m=1=>n ==> \<exists>v. m|>v = n & m \<sim> v & regular(v)"
 by (erule Spar_red1.induct, force+)
 
 
@@ -237,12 +237,12 @@ by (erule redexes.induct, simp_all add: unmmark_lift_rec subst_Var)
 (* ------------------------------------------------------------------------- *)
 
 lemma completeness_l [rule_format]:
-     "u~v ==> regular(v) \<longrightarrow> unmark(u) =1=> unmark(u|>v)"
+     "u \<sim> v ==> regular(v) \<longrightarrow> unmark(u) =1=> unmark(u|>v)"
 apply (erule Scomp.induct)
 apply (auto simp add: unmmark_subst_rec)
 done
 
-lemma completeness: "[|u \<in> lambda; u~v; regular(v)|] ==> u =1=> unmark(u|>v)"
+lemma completeness: "[|u \<in> lambda; u \<sim> v; regular(v)|] ==> u =1=> unmark(u|>v)"
 by (drule completeness_l, simp_all add: lambda_unmark)
 
 end

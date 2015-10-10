@@ -249,12 +249,12 @@ by (simp add: subst_rec_subst_rec)
 
 
 lemma lift_rec_preserve_comp [rule_format, simp]:
-     "u ~ v ==> \<forall>m \<in> nat. lift_rec(u,m) ~ lift_rec(v,m)"
+     "u \<sim> v ==> \<forall>m \<in> nat. lift_rec(u,m) \<sim> lift_rec(v,m)"
 by (erule Scomp.induct, simp_all add: comp_refl)
 
 lemma subst_rec_preserve_comp [rule_format, simp]:
-     "u2 ~ v2 ==> \<forall>m \<in> nat. \<forall>u1 \<in> redexes. \<forall>v1 \<in> redexes.
-                  u1 ~ v1\<longrightarrow> subst_rec(u1,u2,m) ~ subst_rec(v1,v2,m)"
+     "u2 \<sim> v2 ==> \<forall>m \<in> nat. \<forall>u1 \<in> redexes. \<forall>v1 \<in> redexes.
+                  u1 \<sim> v1\<longrightarrow> subst_rec(u1,u2,m) \<sim> subst_rec(v1,v2,m)"
 by (erule Scomp.induct,
     simp_all add: subst_Var lift_rec_preserve_comp comp_refl)
 
