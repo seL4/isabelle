@@ -11,19 +11,19 @@ begin
 
 definition
   Bool :: "t" where
-  "Bool == T+T"
+  "Bool \<equiv> T+T"
 
 definition
   true :: "i" where
-  "true == inl(tt)"
+  "true \<equiv> inl(tt)"
 
 definition
   false :: "i" where
-  "false == inr(tt)"
+  "false \<equiv> inr(tt)"
 
 definition
   cond :: "[i,i,i]\<Rightarrow>i" where
-  "cond(a,b,c) == when(a, \<lambda>u. b, \<lambda>u. c)"
+  "cond(a,b,c) \<equiv> when(a, \<lambda>u. b, \<lambda>u. c)"
 
 lemmas bool_defs = Bool_def true_def false_def cond_def
 

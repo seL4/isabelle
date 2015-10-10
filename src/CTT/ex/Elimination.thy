@@ -14,36 +14,36 @@ begin
 
 text "This finds the functions fst and snd!"
 
-schematic_goal [folded basic_defs]: "A type \<Longrightarrow> ?a : (A*A) --> A"
+schematic_goal [folded basic_defs]: "A type \<Longrightarrow> ?a : (A \<times> A) \<longrightarrow> A"
 apply pc
 done
 
-schematic_goal [folded basic_defs]: "A type \<Longrightarrow> ?a : (A*A) --> A"
+schematic_goal [folded basic_defs]: "A type \<Longrightarrow> ?a : (A \<times> A) \<longrightarrow> A"
 apply pc
 back
 done
 
 text "Double negation of the Excluded Middle"
-schematic_goal "A type \<Longrightarrow> ?a : ((A + (A-->F)) --> F) --> F"
+schematic_goal "A type \<Longrightarrow> ?a : ((A + (A\<longrightarrow>F)) \<longrightarrow> F) \<longrightarrow> F"
 apply intr
 apply (rule ProdE)
 apply assumption
 apply pc
 done
 
-schematic_goal "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : (A*B) \<longrightarrow> (B*A)"
+schematic_goal "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : (A \<times> B) \<longrightarrow> (B \<times> A)"
 apply pc
 done
 (*The sequent version (ITT) could produce an interesting alternative
   by backtracking.  No longer.*)
 
 text "Binary sums and products"
-schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A+B --> C) --> (A-->C) * (B-->C)"
+schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A + B \<longrightarrow> C) \<longrightarrow> (A \<longrightarrow> C) \<times> (B \<longrightarrow> C)"
 apply pc
 done
 
 (*A distributive law*)
-schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : A * (B+C)  -->  (A*B + A*C)"
+schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : A \<times> (B + C) \<longrightarrow> (A \<times> B + A \<times> C)"
 apply pc
 done
 
@@ -52,12 +52,12 @@ schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>x. x:A \<Longrightarrow> C(x) type"
-  shows "?a : (SUM x:A. B(x) + C(x)) --> (SUM x:A. B(x)) + (SUM x:A. C(x))"
+  shows "?a : (\<Sum>x:A. B(x) + C(x)) \<longrightarrow> (\<Sum>x:A. B(x)) + (\<Sum>x:A. C(x))"
 apply (pc assms)
 done
 
 text "Construction of the currying functional"
-schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A*B --> C) --> (A--> (B-->C))"
+schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A \<times> B \<longrightarrow> C) \<longrightarrow> (A \<longrightarrow> (B \<longrightarrow> C))"
 apply pc
 done
 
@@ -65,14 +65,14 @@ done
 schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
-    and "\<And>z. z: (SUM x:A. B(x)) \<Longrightarrow> C(z) type"
-  shows "?a : PROD f: (PROD z : (SUM x:A . B(x)) . C(z)).
-                      (PROD x:A . PROD y:B(x) . C(<x,y>))"
+    and "\<And>z. z: (\<Sum>x:A. B(x)) \<Longrightarrow> C(z) type"
+  shows "?a : \<Prod>f: (\<Prod>z : (\<Sum>x:A . B(x)) . C(z)).
+                      (\<Prod>x:A . \<Prod>y:B(x) . C(<x,y>))"
 apply (pc assms)
 done
 
-text "Martin-Lof (1984), page 48: axiom of sum-elimination (uncurry)"
-schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A --> (B-->C)) --> (A*B --> C)"
+text "Martin-Löf (1984), page 48: axiom of sum-elimination (uncurry)"
+schematic_goal "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A \<longrightarrow> (B \<longrightarrow> C)) \<longrightarrow> (A \<times> B \<longrightarrow> C)"
 apply pc
 done
 
@@ -80,14 +80,14 @@ done
 schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
-    and "\<And>z. z: (SUM x:A . B(x)) \<Longrightarrow> C(z) type"
-  shows "?a : (PROD x:A . PROD y:B(x) . C(<x,y>))
-        --> (PROD z : (SUM x:A . B(x)) . C(z))"
+    and "\<And>z. z: (\<Sum>x:A . B(x)) \<Longrightarrow> C(z) type"
+  shows "?a : (\<Prod>x:A . \<Prod>y:B(x) . C(<x,y>))
+        \<longrightarrow> (\<Prod>z : (\<Sum>x:A . B(x)) . C(z))"
 apply (pc assms)
 done
 
 text "Function application"
-schematic_goal "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : ((A --> B) * A) --> B"
+schematic_goal "\<lbrakk>A type; B type\<rbrakk> \<Longrightarrow> ?a : ((A \<longrightarrow> B) \<times> A) \<longrightarrow> B"
 apply pc
 done
 
@@ -97,46 +97,46 @@ schematic_goal
     and "B type"
     and "\<And>x y. \<lbrakk>x:A; y:B\<rbrakk> \<Longrightarrow> C(x,y) type"
   shows
-    "?a :     (SUM y:B . PROD x:A . C(x,y))
-          --> (PROD x:A . SUM y:B . C(x,y))"
+    "?a :     (\<Sum>y:B . \<Prod>x:A . C(x,y))
+          \<longrightarrow> (\<Prod>x:A . \<Sum>y:B . C(x,y))"
 apply (pc assms)
 done
 
-text "Martin-Lof (1984) pages 36-7: the combinator S"
+text "Martin-Löf (1984) pages 36-7: the combinator S"
 schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
-  shows "?a :    (PROD x:A. PROD y:B(x). C(x,y))
-             --> (PROD f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
+  shows "?a :    (\<Prod>x:A. \<Prod>y:B(x). C(x,y))
+             \<longrightarrow> (\<Prod>f: (\<Prod>x:A. B(x)). \<Prod>x:A. C(x, f`x))"
 apply (pc assms)
 done
 
-text "Martin-Lof (1984) page 58: the axiom of disjunction elimination"
+text "Martin-Löf (1984) page 58: the axiom of disjunction elimination"
 schematic_goal
   assumes "A type"
     and "B type"
     and "\<And>z. z: A+B \<Longrightarrow> C(z) type"
-  shows "?a : (PROD x:A. C(inl(x))) --> (PROD y:B. C(inr(y)))
-          --> (PROD z: A+B. C(z))"
+  shows "?a : (\<Prod>x:A. C(inl(x))) \<longrightarrow> (\<Prod>y:B. C(inr(y)))
+          \<longrightarrow> (\<Prod>z: A+B. C(z))"
 apply (pc assms)
 done
 
 (*towards AXIOM OF CHOICE*)
 schematic_goal [folded basic_defs]:
-  "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A --> B*C) --> (A-->B) * (A-->C)"
+  "\<lbrakk>A type; B type; C type\<rbrakk> \<Longrightarrow> ?a : (A \<longrightarrow> B \<times> C) \<longrightarrow> (A \<longrightarrow> B) \<times> (A \<longrightarrow> C)"
 apply pc
 done
 
 
-(*Martin-Lof (1984) page 50*)
+(*Martin-Löf (1984) page 50*)
 text "AXIOM OF CHOICE!  Delicate use of elimination rules"
 schematic_goal
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
-  shows "?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).
-                         (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
+  shows "?a : \<Prod>h: (\<Prod>x:A. \<Sum>y:B(x). C(x,y)).
+                         (\<Sum>f: (\<Prod>x:A. B(x)). \<Prod>x:A. C(x, f`x))"
 apply (intr assms)
 prefer 2 apply add_mp
 prefer 2 apply add_mp
@@ -153,8 +153,8 @@ schematic_goal [folded basic_defs]:
   assumes "A type"
     and "\<And>x. x:A \<Longrightarrow> B(x) type"
     and "\<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> C(x,y) type"
-  shows "?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).
-                         (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
+  shows "?a : \<Prod>h: (\<Prod>x:A. \<Sum>y:B(x). C(x,y)).
+                         (\<Sum>f: (\<Prod>x:A. B(x)). \<Prod>x:A. C(x, f`x))"
 apply (intr assms)
 (*Must not use add_mp as subst_prodE hides the construction.*)
 apply (rule ProdE [THEN SumE])
@@ -174,13 +174,13 @@ apply assumption
 done
 
 text "Example of sequent_style deduction"
-(*When splitting z:A*B, the assumption C(z) is affected;  ?a becomes
-    lam u. split(u,\<lambda>v w.split(v,\<lambda>x y.lam z. <x,<y,z>>) ` w)     *)
+(*When splitting z:A \<times> B, the assumption C(z) is affected;  ?a becomes
+    \<^bold>\<lambda>u. split(u,\<lambda>v w.split(v,\<lambda>x y.\<^bold> \<lambda>z. <x,<y,z>>) ` w)     *)
 schematic_goal
   assumes "A type"
     and "B type"
-    and "\<And>z. z:A*B \<Longrightarrow> C(z) type"
-  shows "?a : (SUM z:A*B. C(z)) --> (SUM u:A. SUM v:B. C(<u,v>))"
+    and "\<And>z. z:A \<times> B \<Longrightarrow> C(z) type"
+  shows "?a : (\<Sum>z:A \<times> B. C(z)) \<longrightarrow> (\<Sum>u:A. \<Sum>v:B. C(<u,v>))"
 apply (rule intr_rls)
 apply (tactic \<open>biresolve_tac @{context} safe_brls 2\<close>)
 (*Now must convert assumption C(z) into antecedent C(<kd,ke>) *)

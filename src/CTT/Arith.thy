@@ -13,31 +13,27 @@ subsection \<open>Arithmetic operators and their definitions\<close>
 
 definition
   add :: "[i,i]\<Rightarrow>i"   (infixr "#+" 65) where
-  "a#+b == rec(a, b, \<lambda>u v. succ(v))"
+  "a#+b \<equiv> rec(a, b, \<lambda>u v. succ(v))"
 
 definition
   diff :: "[i,i]\<Rightarrow>i"   (infixr "-" 65) where
-  "a-b == rec(b, a, \<lambda>u v. rec(v, 0, \<lambda>x y. x))"
+  "a-b \<equiv> rec(b, a, \<lambda>u v. rec(v, 0, \<lambda>x y. x))"
 
 definition
   absdiff :: "[i,i]\<Rightarrow>i"   (infixr "|-|" 65) where
-  "a|-|b == (a-b) #+ (b-a)"
+  "a|-|b \<equiv> (a-b) #+ (b-a)"
 
 definition
   mult :: "[i,i]\<Rightarrow>i"   (infixr "#*" 70) where
-  "a#*b == rec(a, 0, \<lambda>u v. b #+ v)"
+  "a#*b \<equiv> rec(a, 0, \<lambda>u v. b #+ v)"
 
 definition
   mod :: "[i,i]\<Rightarrow>i"   (infixr "mod" 70) where
-  "a mod b == rec(a, 0, %u v. rec(succ(v) |-| b, 0, %x y. succ(v)))"
+  "a mod b \<equiv> rec(a, 0, \<lambda>u v. rec(succ(v) |-| b, 0, \<lambda>x y. succ(v)))"
 
 definition
   div :: "[i,i]\<Rightarrow>i"   (infixr "div" 70) where
-  "a div b == rec(a, 0, \<lambda>u v. rec(succ(u) mod b, succ(v), \<lambda>x y. v))"
-
-
-notation (xsymbols)
-  mult  (infixr "#\<times>" 70)
+  "a div b \<equiv> rec(a, 0, \<lambda>u v. rec(succ(u) mod b, succ(v), \<lambda>x y. v))"
 
 
 lemmas arith_defs = add_def diff_def absdiff_def mult_def mod_def div_def
@@ -264,12 +260,12 @@ lemma add_0_right: "\<lbrakk>c : N; 0 : N; c : N\<rbrakk> \<Longrightarrow> c #+
   An example of induction over a quantified formula (a product).
   Uses rewriting with a quantified, implicative inductive hypothesis.*)
 schematic_goal add_diff_inverse_lemma:
-  "b:N \<Longrightarrow> ?a : PROD x:N. Eq(N, b-x, 0) --> Eq(N, b #+ (x-b), x)"
+  "b:N \<Longrightarrow> ?a : \<Prod>x:N. Eq(N, b-x, 0) \<longrightarrow> Eq(N, b #+ (x-b), x)"
 apply (NE b)
 (*strip one "universal quantifier" but not the "implication"*)
 apply (rule_tac [3] intr_rls)
 (*case analysis on x in
-    (succ(u) <= x) --> (succ(u)#+(x-succ(u)) = x) *)
+    (succ(u) <= x) \<longrightarrow> (succ(u)#+(x-succ(u)) = x) *)
 prefer 4
 apply (NE x)
 apply assumption
@@ -334,7 +330,7 @@ apply (typechk diff_typing)
 done
 
 (*If a+b=0 then a=0.   Surprisingly tedious*)
-schematic_goal add_eq0_lemma: "\<lbrakk>a:N; b:N\<rbrakk> \<Longrightarrow> ?c : PROD u: Eq(N,a#+b,0) .  Eq(N,a,0)"
+schematic_goal add_eq0_lemma: "\<lbrakk>a:N; b:N\<rbrakk> \<Longrightarrow> ?c : \<Prod>u: Eq(N,a#+b,0) .  Eq(N,a,0)"
 apply (NE a)
 apply (rule_tac [3] replace_type)
 apply arith_rew
@@ -355,7 +351,7 @@ done
 
 (*Here is a lemma to infer a-b=0 and b-a=0 from a|-|b=0, below. *)
 schematic_goal absdiff_eq0_lem:
-  "\<lbrakk>a:N; b:N; a |-| b = 0 : N\<rbrakk> \<Longrightarrow> ?a : SUM v: Eq(N, a-b, 0) . Eq(N, b-a, 0)"
+  "\<lbrakk>a:N; b:N; a |-| b = 0 : N\<rbrakk> \<Longrightarrow> ?a : \<Sum>v: Eq(N, a-b, 0) . Eq(N, b-a, 0)"
 apply (unfold absdiff_def)
 apply intr
 apply eqintr
@@ -446,7 +442,7 @@ done
 
 (*for case analysis on whether a number is 0 or a successor*)
 lemma iszero_decidable: "a:N \<Longrightarrow> rec(a, inl(eq), \<lambda>ka kb. inr(<ka, eq>)) :
-                      Eq(N,a,0) + (SUM x:N. Eq(N,a, succ(x)))"
+                      Eq(N,a,0) + (\<Sum>x:N. Eq(N,a, succ(x)))"
 apply (NE a)
 apply (rule_tac [3] PlusI_inr)
 apply (rule_tac [2] PlusI_inl)

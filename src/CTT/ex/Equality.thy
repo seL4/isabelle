@@ -43,20 +43,20 @@ apply (NE a)
 apply hyp_rew
 done
 
-(*Martin-Lof (1984) page 62: pairing is surjective*)
+(*Martin-Löf (1984) page 62: pairing is surjective*)
 lemma "p : Sum(A,B) \<Longrightarrow> <split(p,\<lambda>x y. x), split(p,\<lambda>x y. y)> = p : Sum(A,B)"
 apply (rule EqE)
 apply (rule elim_rls, assumption)
 apply (tactic \<open>DEPTH_SOLVE_1 (rew_tac @{context} [])\<close>) (*!!!!!!!*)
 done
 
-lemma "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (lam u. split(u, \<lambda>v w.<w,v>)) ` <a,b> = <b,a> : SUM x:B. A"
+lemma "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>u. split(u, \<lambda>v w.<w,v>)) ` <a,b> = <b,a> : \<Sum>x:B. A"
 apply rew
 done
 
 (*a contrived, complicated simplication, requires sum-elimination also*)
-lemma "(lam f. lam x. f`(f`x)) ` (lam u. split(u, \<lambda>v w.<w,v>)) =
-      lam x. x  :  PROD x:(SUM y:N. N). (SUM y:N. N)"
+lemma "(\<^bold>\<lambda>f. \<^bold>\<lambda>x. f`(f`x)) ` (\<^bold>\<lambda>u. split(u, \<lambda>v w.<w,v>)) =
+      \<^bold>\<lambda>x. x  :  \<Prod>x:(\<Sum>y:N. N). (\<Sum>y:N. N)"
 apply (rule reduction_rls)
 apply (rule_tac [3] intrL_rls)
 apply (rule_tac [4] EqE)

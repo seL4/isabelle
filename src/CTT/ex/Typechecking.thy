@@ -22,7 +22,7 @@ apply (rule form_rls)
 apply (rule form_rls)
 done
 
-schematic_goal "PROD z:?A . N + ?B(z) type"
+schematic_goal "\<Prod>z:?A . N + ?B(z) type"
 apply (rule form_rls)
 apply (rule form_rls)
 apply (rule form_rls)
@@ -33,7 +33,7 @@ done
 
 subsection \<open>Multi-step proofs: Type inference\<close>
 
-lemma "PROD w:N. N + N type"
+lemma "\<Prod>w:N. N + N type"
 apply form
 done
 
@@ -41,26 +41,26 @@ schematic_goal "<0, succ(0)> : ?A"
 apply intr
 done
 
-schematic_goal "PROD w:N . Eq(?A,w,w) type"
+schematic_goal "\<Prod>w:N . Eq(?A,w,w) type"
 apply typechk
 done
 
-schematic_goal "PROD x:N . PROD y:N . Eq(?A,x,y) type"
+schematic_goal "\<Prod>x:N . \<Prod>y:N . Eq(?A,x,y) type"
 apply typechk
 done
 
 text "typechecking an application of fst"
-schematic_goal "(lam u. split(u, \<lambda>v w. v)) ` <0, succ(0)> : ?A"
+schematic_goal "(\<^bold>\<lambda>u. split(u, \<lambda>v w. v)) ` <0, succ(0)> : ?A"
 apply typechk
 done
 
 text "typechecking the predecessor function"
-schematic_goal "lam n. rec(n, 0, \<lambda>x y. x) : ?A"
+schematic_goal "\<^bold>\<lambda>n. rec(n, 0, \<lambda>x y. x) : ?A"
 apply typechk
 done
 
 text "typechecking the addition function"
-schematic_goal "lam n. lam m. rec(n, m, \<lambda>x y. succ(y)) : ?A"
+schematic_goal "\<^bold>\<lambda>n. \<^bold>\<lambda>m. rec(n, m, \<lambda>x y. succ(y)) : ?A"
 apply typechk
 done
 
@@ -69,18 +69,18 @@ done
 method_setup N =
   \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (TRYALL (resolve_tac ctxt @{thms NF})))\<close>
 
-schematic_goal "lam w. <w,w> : ?A"
+schematic_goal "\<^bold>\<lambda>w. <w,w> : ?A"
 apply typechk
 apply N
 done
 
-schematic_goal "lam x. lam y. x : ?A"
+schematic_goal "\<^bold>\<lambda>x. \<^bold>\<lambda>y. x : ?A"
 apply typechk
 apply N
 done
 
 text "typechecking fst (as a function object)"
-schematic_goal "lam i. split(i, \<lambda>j k. j) : ?A"
+schematic_goal "\<^bold>\<lambda>i. split(i, \<lambda>j k. j) : ?A"
 apply typechk
 apply N
 done

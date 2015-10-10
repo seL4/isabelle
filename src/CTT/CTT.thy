@@ -51,7 +51,7 @@ consts
   (*Types*)
 
   (*Functions*)
-  lambda    :: "(i \<Rightarrow> i) \<Rightarrow> i"      (binder "lam " 10)
+  lambda    :: "(i \<Rightarrow> i) \<Rightarrow> i"      (binder "\<^bold>\<lambda>" 10)
   app       :: "[i,i]\<Rightarrow>i"           (infixl "`" 60)
   (*Natural numbers*)
   Zero      :: "i"                  ("0")
@@ -59,29 +59,18 @@ consts
   pair      :: "[i,i]\<Rightarrow>i"           ("(1<_,/_>)")
 
 syntax
-  "_PROD"   :: "[idt,t,t]\<Rightarrow>t"       ("(3PROD _:_./ _)" 10)
-  "_SUM"    :: "[idt,t,t]\<Rightarrow>t"       ("(3SUM _:_./ _)" 10)
+  "_PROD"   :: "[idt,t,t]\<Rightarrow>t"       ("(3\<Prod>_:_./ _)" 10)
+  "_SUM"    :: "[idt,t,t]\<Rightarrow>t"       ("(3\<Sum>_:_./ _)" 10)
 translations
-  "PROD x:A. B" == "CONST Prod(A, \<lambda>x. B)"
-  "SUM x:A. B"  == "CONST Sum(A, \<lambda>x. B)"
+  "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod(A, \<lambda>x. B)"
+  "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum(A, \<lambda>x. B)"
 
 abbreviation
-  Arrow     :: "[t,t]\<Rightarrow>t"  (infixr "-->" 30) where
-  "A --> B == PROD _:A. B"
+  Arrow     :: "[t,t]\<Rightarrow>t"  (infixr "\<longrightarrow>" 30) where
+  "A \<longrightarrow> B \<equiv> \<Prod>_:A. B"
 abbreviation
-  Times     :: "[t,t]\<Rightarrow>t"  (infixr "*" 50) where
-  "A * B == SUM _:A. B"
-
-notation (xsymbols)
-  lambda  (binder "\<lambda>\<lambda>" 10) and
-  Elem  ("(_ /\<in> _)" [10,10] 5) and
-  Eqelem  ("(2_ =/ _ \<in>/ _)" [10,10,10] 5) and
-  Arrow  (infixr "\<longrightarrow>" 30) and
-  Times  (infixr "\<times>" 50)
-
-syntax (xsymbols)
-  "_PROD"   :: "[idt,t,t] \<Rightarrow> t"     ("(3\<Pi> _\<in>_./ _)"    10)
-  "_SUM"    :: "[idt,t,t] \<Rightarrow> t"     ("(3\<Sigma> _\<in>_./ _)" 10)
+  Times     :: "[t,t]\<Rightarrow>t"  (infixr "\<times>" 50) where
+  "A \<times> B \<equiv> \<Sum>_:A. B"
 
   (*Reduction: a weaker notion than equality;  a hack for simplification.
     Reduce[a,b] means either that  a=b:A  for some A or else that "a" and "b"
@@ -146,51 +135,51 @@ axiomatization where
    "\<And>p a b C. \<lbrakk>p: N;  a: C(0); \<And>u v. \<lbrakk>u: N; v: C(u)\<rbrakk> \<Longrightarrow> b(u,v): C(succ(u))\<rbrakk> \<Longrightarrow>
    rec(succ(p), a, \<lambda>u v. b(u,v)) = b(p, rec(p, a, \<lambda>u v. b(u,v))) : C(succ(p))" and
 
-  (*The fourth Peano axiom.  See page 91 of Martin-Lof's book*)
+  (*The fourth Peano axiom.  See page 91 of Martin-Löf's book*)
   zero_ne_succ: "\<And>a. \<lbrakk>a: N; 0 = succ(a) : N\<rbrakk> \<Longrightarrow> 0: F" and
 
 
   (*The Product of a family of types*)
 
-  ProdF: "\<And>A B. \<lbrakk>A type; \<And>x. x:A \<Longrightarrow> B(x) type\<rbrakk> \<Longrightarrow> PROD x:A. B(x) type" and
+  ProdF: "\<And>A B. \<lbrakk>A type; \<And>x. x:A \<Longrightarrow> B(x) type\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x) type" and
 
   ProdFL:
-    "\<And>A B C D. \<lbrakk>A = C; \<And>x. x:A \<Longrightarrow> B(x) = D(x)\<rbrakk> \<Longrightarrow> PROD x:A. B(x) = PROD x:C. D(x)" and
+    "\<And>A B C D. \<lbrakk>A = C; \<And>x. x:A \<Longrightarrow> B(x) = D(x)\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x) = \<Prod>x:C. D(x)" and
 
   ProdI:
-    "\<And>b A B. \<lbrakk>A type; \<And>x. x:A \<Longrightarrow> b(x):B(x)\<rbrakk> \<Longrightarrow> lam x. b(x) : PROD x:A. B(x)" and
+    "\<And>b A B. \<lbrakk>A type; \<And>x. x:A \<Longrightarrow> b(x):B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b(x) : \<Prod>x:A. B(x)" and
 
   ProdIL: "\<And>b c A B. \<lbrakk>A type; \<And>x. x:A \<Longrightarrow> b(x) = c(x) : B(x)\<rbrakk> \<Longrightarrow>
-    lam x. b(x) = lam x. c(x) : PROD x:A. B(x)" and
+    \<^bold>\<lambda>x. b(x) = \<^bold>\<lambda>x. c(x) : \<Prod>x:A. B(x)" and
 
-  ProdE:  "\<And>p a A B. \<lbrakk>p : PROD x:A. B(x); a : A\<rbrakk> \<Longrightarrow> p`a : B(a)" and
-  ProdEL: "\<And>p q a b A B. \<lbrakk>p = q: PROD x:A. B(x); a = b : A\<rbrakk> \<Longrightarrow> p`a = q`b : B(a)" and
+  ProdE:  "\<And>p a A B. \<lbrakk>p : \<Prod>x:A. B(x); a : A\<rbrakk> \<Longrightarrow> p`a : B(a)" and
+  ProdEL: "\<And>p q a b A B. \<lbrakk>p = q: \<Prod>x:A. B(x); a = b : A\<rbrakk> \<Longrightarrow> p`a = q`b : B(a)" and
 
-  ProdC: "\<And>a b A B. \<lbrakk>a : A; \<And>x. x:A \<Longrightarrow> b(x) : B(x)\<rbrakk> \<Longrightarrow> (lam x. b(x)) ` a = b(a) : B(a)" and
+  ProdC: "\<And>a b A B. \<lbrakk>a : A; \<And>x. x:A \<Longrightarrow> b(x) : B(x)\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b(x)) ` a = b(a) : B(a)" and
 
-  ProdC2: "\<And>p A B. p : PROD x:A. B(x) \<Longrightarrow> (lam x. p`x) = p : PROD x:A. B(x)" and
+  ProdC2: "\<And>p A B. p : \<Prod>x:A. B(x) \<Longrightarrow> (\<^bold>\<lambda>x. p`x) = p : \<Prod>x:A. B(x)" and
 
 
   (*The Sum of a family of types*)
 
-  SumF:  "\<And>A B. \<lbrakk>A type; \<And>x. x:A \<Longrightarrow> B(x) type\<rbrakk> \<Longrightarrow> SUM x:A. B(x) type" and
-  SumFL: "\<And>A B C D. \<lbrakk>A = C; \<And>x. x:A \<Longrightarrow> B(x) = D(x)\<rbrakk> \<Longrightarrow> SUM x:A. B(x) = SUM x:C. D(x)" and
+  SumF:  "\<And>A B. \<lbrakk>A type; \<And>x. x:A \<Longrightarrow> B(x) type\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x) type" and
+  SumFL: "\<And>A B C D. \<lbrakk>A = C; \<And>x. x:A \<Longrightarrow> B(x) = D(x)\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x) = \<Sum>x:C. D(x)" and
 
-  SumI:  "\<And>a b A B. \<lbrakk>a : A; b : B(a)\<rbrakk> \<Longrightarrow> <a,b> : SUM x:A. B(x)" and
-  SumIL: "\<And>a b c d A B. \<lbrakk> a = c : A; b = d : B(a)\<rbrakk> \<Longrightarrow> <a,b> = <c,d> : SUM x:A. B(x)" and
+  SumI:  "\<And>a b A B. \<lbrakk>a : A; b : B(a)\<rbrakk> \<Longrightarrow> <a,b> : \<Sum>x:A. B(x)" and
+  SumIL: "\<And>a b c d A B. \<lbrakk> a = c : A; b = d : B(a)\<rbrakk> \<Longrightarrow> <a,b> = <c,d> : \<Sum>x:A. B(x)" and
 
-  SumE: "\<And>p c A B C. \<lbrakk>p: SUM x:A. B(x); \<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> c(x,y): C(<x,y>)\<rbrakk>
+  SumE: "\<And>p c A B C. \<lbrakk>p: \<Sum>x:A. B(x); \<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> c(x,y): C(<x,y>)\<rbrakk>
     \<Longrightarrow> split(p, \<lambda>x y. c(x,y)) : C(p)" and
 
-  SumEL: "\<And>p q c d A B C. \<lbrakk>p = q : SUM x:A. B(x);
+  SumEL: "\<And>p q c d A B C. \<lbrakk>p = q : \<Sum>x:A. B(x);
       \<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> c(x,y)=d(x,y): C(<x,y>)\<rbrakk>
     \<Longrightarrow> split(p, \<lambda>x y. c(x,y)) = split(q, \<lambda>x y. d(x,y)) : C(p)" and
 
   SumC: "\<And>a b c A B C. \<lbrakk>a: A;  b: B(a); \<And>x y. \<lbrakk>x:A; y:B(x)\<rbrakk> \<Longrightarrow> c(x,y): C(<x,y>)\<rbrakk>
     \<Longrightarrow> split(<a,b>, \<lambda>x y. c(x,y)) = c(a,b) : C(<a,b>)" and
 
-  fst_def:   "\<And>a. fst(a) == split(a, \<lambda>x y. x)" and
-  snd_def:   "\<And>a. snd(a) == split(a, \<lambda>x y. y)" and
+  fst_def:   "\<And>a. fst(a) \<equiv> split(a, \<lambda>x y. x)" and
+  snd_def:   "\<And>a. snd(a) \<equiv> split(a, \<lambda>x y. y)" and
 
 
   (*The sum of two types*)
@@ -245,7 +234,7 @@ axiomatization where
   FEL: "\<And>p q C. \<lbrakk>p = q : F; C type\<rbrakk> \<Longrightarrow> contr(p) = contr(q) : C" and
 
   (*The type T
-     Martin-Lof's book (page 68) discusses elimination and computation.
+     Martin-Löf's book (page 68) discusses elimination and computation.
      Elimination can be derived by computation and equality of types,
      but with an extra premise C(x) type x:T.
      Also computation can be derived from elimination. *)
@@ -428,7 +417,7 @@ fun PlusE_tac ctxt sp i =
 fun add_mp_tac ctxt i =
   resolve_tac ctxt @{thms subst_prodE} i  THEN  assume_tac ctxt i  THEN  assume_tac ctxt i
 
-(*Finds P-->Q and P in the assumptions, replaces implication by Q *)
+(*Finds P\<longrightarrow>Q and P in the assumptions, replaces implication by Q *)
 fun mp_tac ctxt i = eresolve_tac ctxt @{thms subst_prodE} i  THEN  assume_tac ctxt i
 
 (*"safe" when regarded as predicate calculus rules*)
