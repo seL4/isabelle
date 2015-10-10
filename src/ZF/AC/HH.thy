@@ -116,11 +116,11 @@ apply (fast del: DiffE
             elim!: Hartog_lepoll_selfE)
 done
 
-lemma HH_Least_eq_x: "HH(f, x, LEAST i. HH(f, x, i) = {x}) = {x}"
+lemma HH_Least_eq_x: "HH(f, x, \<mu> i. HH(f, x, i) = {x}) = {x}"
 by (fast intro!: Ord_Hartog HH_Hartog_is_x LeastI)
 
 lemma less_Least_subset_x:
-     "a \<in> (LEAST i. HH(f,x,i)={x}) ==> HH(f,x,a) \<in> Pow(x)-{0}"
+     "a \<in> (\<mu> i. HH(f,x,i)={x}) ==> HH(f,x,a) \<in> Pow(x)-{0}"
 apply (rule HH_values [THEN disjE], assumption)
 apply (rule less_LeastE)
 apply (erule_tac [2] ltI [OF _ Ord_Least], assumption)
@@ -129,17 +129,17 @@ done
 subsection\<open>Lemmas used in the proofs of AC1 ==> WO2 and AC17 ==> AC1\<close>
 
 lemma lam_Least_HH_inj_Pow: 
-        "(\<lambda>a \<in> (LEAST i. HH(f,x,i)={x}). HH(f,x,a))   
-         \<in> inj(LEAST i. HH(f,x,i)={x}, Pow(x)-{0})"
+        "(\<lambda>a \<in> (\<mu> i. HH(f,x,i)={x}). HH(f,x,a))   
+         \<in> inj(\<mu> i. HH(f,x,i)={x}, Pow(x)-{0})"
 apply (unfold inj_def, simp)
 apply (fast intro!: lam_type dest: less_Least_subset_x 
             elim!: HH_eq_imp_arg_eq Ord_Least [THEN Ord_in_Ord])
 done
 
 lemma lam_Least_HH_inj:
-     "\<forall>a \<in> (LEAST i. HH(f,x,i)={x}). \<exists>z \<in> x. HH(f,x,a) = {z}   
-      ==> (\<lambda>a \<in> (LEAST i. HH(f,x,i)={x}). HH(f,x,a))   
-          \<in> inj(LEAST i. HH(f,x,i)={x}, {{y}. y \<in> x})"
+     "\<forall>a \<in> (\<mu> i. HH(f,x,i)={x}). \<exists>z \<in> x. HH(f,x,a) = {z}   
+      ==> (\<lambda>a \<in> (\<mu> i. HH(f,x,i)={x}). HH(f,x,a))   
+          \<in> inj(\<mu> i. HH(f,x,i)={x}, {{y}. y \<in> x})"
 by (rule lam_Least_HH_inj_Pow [THEN inj_strengthen_type], simp)
 
 lemma lam_surj_sing: 
@@ -161,7 +161,7 @@ done
 
 lemma f_subsets_imp_UN_HH_eq_x:
      "\<forall>z \<in> Pow(x)-{0}. f`z \<in> Pow(z)-{0}
-      ==> x - (\<Union>j \<in> (LEAST i. HH(f,x,i)={x}). HH(f,x,j)) = 0"
+      ==> x - (\<Union>j \<in> (\<mu> i. HH(f,x,i)={x}). HH(f,x,j)) = 0"
 apply (case_tac "P \<in> {0}" for P, fast)
 apply (drule Diff_subset [THEN PowI, THEN DiffI])
 apply (drule bspec, assumption) 
@@ -183,7 +183,7 @@ done
 
 lemma f_sing_imp_HH_sing:
      "[| f \<in> (Pow(x)-{0}) -> {{z}. z \<in> x};   
-         a \<in> (LEAST i. HH(f,x,i)={x}) |] ==> \<exists>z \<in> x. HH(f,x,a) = {z}"
+         a \<in> (\<mu> i. HH(f,x,i)={x}) |] ==> \<exists>z \<in> x. HH(f,x,a) = {z}"
 apply (drule less_Least_subset_x)
 apply (frule HH_subset_imp_eq)
 apply (drule apply_type)
@@ -192,10 +192,10 @@ apply (fast dest!: HH_subset_x_imp_subset_Diff_UN [THEN not_emptyI2], force)
 done
 
 lemma f_sing_lam_bij: 
-     "[| x - (\<Union>j \<in> (LEAST i. HH(f,x,i)={x}). HH(f,x,j)) = 0;   
+     "[| x - (\<Union>j \<in> (\<mu> i. HH(f,x,i)={x}). HH(f,x,j)) = 0;   
          f \<in> (Pow(x)-{0}) -> {{z}. z \<in> x} |]   
-      ==> (\<lambda>a \<in> (LEAST i. HH(f,x,i)={x}). HH(f,x,a))   
-          \<in> bij(LEAST i. HH(f,x,i)={x}, {{y}. y \<in> x})"
+      ==> (\<lambda>a \<in> (\<mu> i. HH(f,x,i)={x}). HH(f,x,a))   
+          \<in> bij(\<mu> i. HH(f,x,i)={x}, {{y}. y \<in> x})"
 apply (unfold bij_def)
 apply (fast intro!: lam_Least_HH_inj lam_surj_sing f_sing_imp_HH_sing)
 done
@@ -219,13 +219,13 @@ subsection\<open>The proof of AC1 ==> WO2\<close>
 converse
  (converse(\<lambda>x\<in>x. {x}) O
   Lambda
-   (LEAST i. HH(\<lambda>X\<in>Pow(x) - {0}. {f ` X}, x, i) = {x},
+   (\<mu> i. HH(\<lambda>X\<in>Pow(x) - {0}. {f ` X}, x, i) = {x},
     HH(\<lambda>X\<in>Pow(x) - {0}. {f ` X}, x)))
 Perhaps it could be simplified. *)
 
 lemma bijection:
      "f \<in> (\<Pi> X \<in> Pow(x) - {0}. X) 
-      ==> \<exists>g. g \<in> bij(x, LEAST i. HH(\<lambda>X \<in> Pow(x)-{0}. {f`X}, x, i) = {x})"
+      ==> \<exists>g. g \<in> bij(x, \<mu> i. HH(\<lambda>X \<in> Pow(x)-{0}. {f`X}, x, i) = {x})"
 apply (rule exI) 
 apply (rule bij_Least_HH_x [THEN bij_converse_bij])
 apply (rule f_subsets_imp_UN_HH_eq_x)

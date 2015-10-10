@@ -60,7 +60,7 @@ apply (rule eqpoll_RepFun_sing [THEN eqpoll_sym])
 done
 
 lemma InfCard_Least_in:
-     "[| InfCard(x); y \<subseteq> x; y \<approx> succ(z) |] ==> (LEAST i. i \<in> y) \<in> y"
+     "[| InfCard(x); y \<subseteq> x; y \<approx> succ(z) |] ==> (\<mu> i. i \<in> y) \<in> y"
 apply (erule eqpoll_sym [THEN eqpoll_imp_lepoll, 
                          THEN succ_lepoll_imp_not_empty, THEN not_emptyE])
 apply (fast intro: LeastI 
@@ -73,7 +73,7 @@ lemma subsets_lepoll_lemma1:
       ==> {y \<in> Pow(x). y\<approx>succ(succ(n))} \<lesssim> x*{y \<in> Pow(x). y\<approx>succ(n)}"
 apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>y \<in> {y \<in> Pow(x) . y\<approx>succ (succ (n))}. 
-                      <LEAST i. i \<in> y, y-{LEAST i. i \<in> y}>" in exI)
+                      <\<mu> i. i \<in> y, y-{\<mu> i. i \<in> y}>" in exI)
 apply (rule_tac d = "%z. cons (fst(z), snd(z))" in lam_injective)
  apply (blast intro!: Diff_sing_eqpoll intro: InfCard_Least_in)
 apply (simp, blast intro: InfCard_Least_in)

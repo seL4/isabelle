@@ -55,7 +55,7 @@ done
 (* *********************************************************************** *)
 
 lemma UN_eq_imp_well_ord:
-     "[| x - (\<Union>j \<in> LEAST i. HH(\<lambda>X \<in> Pow(x)-{0}. {f`X}, x, i) = {x}.  
+     "[| x - (\<Union>j \<in> \<mu> i. HH(\<lambda>X \<in> Pow(x)-{0}. {f`X}, x, i) = {x}.  
         HH(\<lambda>X \<in> Pow(x)-{0}. {f`X}, x, j)) = 0;   
         f \<in> Pow(x)-{0} -> x |]   
         ==> \<exists>r. well_ord(x,r)"
@@ -82,7 +82,7 @@ done
 lemma AC17_AC1_aux1:
      "[| \<forall>f \<in> Pow(x) - {0} -> x. \<exists>u \<in> Pow(x) - {0}. f`u\<notin>u;   
          \<exists>f \<in> Pow(x)-{0}->x.  
-            x - (\<Union>a \<in> (LEAST i. HH(\<lambda>X \<in> Pow(x)-{0}. {f`X},x,i)={x}).   
+            x - (\<Union>a \<in> (\<mu> i. HH(\<lambda>X \<in> Pow(x)-{0}. {f`X},x,i)={x}).   
             HH(\<lambda>X \<in> Pow(x)-{0}. {f`X},x,a)) = 0 |]  
         ==> P"
 apply (erule bexE)
@@ -117,7 +117,7 @@ apply (rule classical)
 apply (erule not_AC1_imp_ex [THEN exE])
 apply (case_tac 
        "\<exists>f \<in> Pow(x)-{0} -> x. 
-        x - (\<Union>a \<in> (LEAST i. HH (\<lambda>X \<in> Pow (x) -{0}. {f`X},x,i) ={x}) . HH (\<lambda>X \<in> Pow (x) -{0}. {f`X},x,a)) = 0")
+        x - (\<Union>a \<in> (\<mu> i. HH (\<lambda>X \<in> Pow (x) -{0}. {f`X},x,i) ={x}) . HH (\<lambda>X \<in> Pow (x) -{0}. {f`X},x,a)) = 0")
 apply (erule AC17_AC1_aux1, assumption)
 apply (drule AC17_AC1_aux2)
 apply (erule allE)

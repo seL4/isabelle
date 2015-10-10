@@ -196,7 +196,7 @@ lemma lepoll_m_imp_domain_lepoll_m:
      "[| m \<in> nat; u \<lesssim> m |] ==> domain(u) \<lesssim> m"
 apply (unfold lepoll_def)
 apply (erule exE)
-apply (rule_tac x = "\<lambda>x \<in> domain(u). LEAST i. \<exists>y. <x,y> \<in> u & f`<x,y> = i" 
+apply (rule_tac x = "\<lambda>x \<in> domain(u). \<mu> i. \<exists>y. <x,y> \<in> u & f`<x,y> = i" 
        in exI)
 apply (rule_tac d = "%y. fst (converse(f) ` y) " in lam_injective)
 apply (fast intro: LeastI2 nat_into_Ord [THEN Ord_in_Ord] 

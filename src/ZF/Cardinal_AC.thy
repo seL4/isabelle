@@ -152,16 +152,16 @@ proof (simp add: K InfCard_is_Card le_Card_iff)
     assume z: "z \<in> (\<Union>i\<in>K. X(i))"
     then obtain i where i: "i \<in> K" "Ord(i)" "z \<in> X(i)"
       by (blast intro: Ord_in_Ord [of K]) 
-    hence "(LEAST i. z \<in> X(i)) \<le> i" by (fast intro: Least_le) 
-    hence "(LEAST i. z \<in> X(i)) < K" by (best intro: lt_trans1 ltI i) 
-    hence "(LEAST i. z \<in> X(i)) \<in> K" and "z \<in> X(LEAST i. z \<in> X(i))"  
+    hence "(\<mu> i. z \<in> X(i)) \<le> i" by (fast intro: Least_le) 
+    hence "(\<mu> i. z \<in> X(i)) < K" by (best intro: lt_trans1 ltI i) 
+    hence "(\<mu> i. z \<in> X(i)) \<in> K" and "z \<in> X(\<mu> i. z \<in> X(i))"  
       by (auto intro: LeastI ltD i) 
   } note mems = this
   have "(\<Union>i\<in>K. X(i)) \<lesssim> K \<times> K" 
     proof (unfold lepoll_def)
       show "\<exists>f. f \<in> inj(\<Union>RepFun(K, X), K \<times> K)"
         apply (rule exI) 
-        apply (rule_tac c = "%z. \<langle>LEAST i. z \<in> X(i), f ` (LEAST i. z \<in> X(i)) ` z\<rangle>"
+        apply (rule_tac c = "%z. \<langle>\<mu> i. z \<in> X(i), f ` (\<mu> i. z \<in> X(i)) ` z\<rangle>"
                     and d = "%\<langle>i,j\<rangle>. converse (f`i) ` j" in lam_injective) 
         apply (force intro: f inj_is_fun mems apply_type Perm.left_inverse)+
         done

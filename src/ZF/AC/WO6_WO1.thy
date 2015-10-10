@@ -29,9 +29,9 @@ definition
 definition
   vv1 :: "[i, i, i] => i"  where
      "vv1(f,m,b) ==                                                
-           let g = LEAST g. (\<exists>d. Ord(d) & (domain(uu(f,b,g,d)) \<noteq> 0 & 
+           let g = \<mu> g. (\<exists>d. Ord(d) & (domain(uu(f,b,g,d)) \<noteq> 0 & 
                                  domain(uu(f,b,g,d)) \<lesssim> m));      
-               d = LEAST d. domain(uu(f,b,g,d)) \<noteq> 0 &                  
+               d = \<mu> d. domain(uu(f,b,g,d)) \<noteq> 0 &                  
                             domain(uu(f,b,g,d)) \<lesssim> m         
            in  if f`b \<noteq> 0 then domain(uu(f,b,g,d)) else 0"
 
@@ -48,7 +48,7 @@ definition
 definition
   vv2 :: "[i, i, i, i] => i"  where
      "vv2(f,b,g,s) ==   
-           if f`g \<noteq> 0 then {uu(f, b, g, LEAST d. uu(f,b,g,d) \<noteq> 0)`s} else 0"
+           if f`g \<noteq> 0 then {uu(f, b, g, \<mu> d. uu(f,b,g,d) \<noteq> 0)`s} else 0"
 
 definition
   ww2 :: "[i, i, i, i] => i"  where
@@ -210,10 +210,10 @@ by (simp add: lam_funtype [THEN domain_of_fun] gg1_def)
 (* ********************************************************************** *)
 lemma nested_LeastI:
      "[| P(a, b);  Ord(a);  Ord(b);   
-         Least_a = (LEAST a. \<exists>x. Ord(x) & P(a, x)) |]   
-      ==> P(Least_a, LEAST b. P(Least_a, b))"
+         Least_a = (\<mu> a. \<exists>x. Ord(x) & P(a, x)) |]   
+      ==> P(Least_a, \<mu> b. P(Least_a, b))"
 apply (erule ssubst)
-apply (rule_tac Q = "%z. P (z, LEAST b. P (z, b))" in LeastI2)
+apply (rule_tac Q = "%z. P (z, \<mu> b. P (z, b))" in LeastI2)
 apply (fast elim!: LeastI)+
 done
 
@@ -260,7 +260,7 @@ by (unfold uu_def, blast)
 
 lemma uu_not_empty:
      "[| b<a; g<a; f`b\<noteq>0; f`g\<noteq>0;  y*y \<subseteq> y; (\<Union>b<a. f`b)=y |]   
-      ==> uu(f,b,g,LEAST d. (uu(f,b,g,d) \<noteq> 0)) \<noteq> 0"
+      ==> uu(f,b,g,\<mu> d. (uu(f,b,g,d) \<noteq> 0)) \<noteq> 0"
 apply (drule ex_d_uu_not_empty, assumption+)
 apply (fast elim!: LeastI lt_Ord)
 done
@@ -270,7 +270,7 @@ by blast
 
 lemma Least_uu_not_empty_lt_a:
      "[| b<a; g<a; f`b\<noteq>0; f`g\<noteq>0; y*y \<subseteq> y; (\<Union>b<a. f`b)=y |]   
-      ==> (LEAST d. uu(f,b,g,d) \<noteq> 0) < a"
+      ==> (\<mu> d. uu(f,b,g,d) \<noteq> 0) < a"
 apply (erule ex_d_uu_not_empty [THEN oexE], assumption+)
 apply (blast intro: Least_le [THEN lt_trans1] lt_Ord)
 done
@@ -298,7 +298,7 @@ lemma uu_Least_is_fun:
           \<forall>b<a. f`b \<lesssim> succ(m);  y*y \<subseteq> y;                        
           (\<Union>b<a. f`b)=y;  b<a;  g<a;  d<a;                             
           f`b\<noteq>0;  f`g\<noteq>0;  m \<in> nat;  s \<in> f`b |] 
-      ==> uu(f, b, g, LEAST d. uu(f,b,g,d)\<noteq>0) \<in> f`b -> f`g"
+      ==> uu(f, b, g, \<mu> d. uu(f,b,g,d)\<noteq>0) \<in> f`b -> f`g"
 apply (drule_tac x2=g in ospec [THEN ospec, THEN mp])
    apply (rule_tac [3] not_empty_rel_imp_domain [OF uu_subset1 uu_not_empty])
         apply (rule_tac [2] Least_uu_not_empty_lt_a, assumption+)
@@ -466,7 +466,7 @@ by (fast elim!: lepoll_1_is_sing)
 
 lemma lemma2:
      "[| (\<Union>b<a. f`b)=y; x \<in> y; \<forall>b<a. f`b \<lesssim> 1; Ord(a) |]   
-      ==> f` (LEAST i. f`i = {x}) = {x}"
+      ==> f` (\<mu> i. f`i = {x}) = {x}"
 apply (drule lemma1, assumption+)
 apply (fast elim!: lt_Ord intro: LeastI)
 done
@@ -475,7 +475,7 @@ lemma NN_imp_ex_inj: "1 \<in> NN(y) ==> \<exists>a f. Ord(a) & f \<in> inj(y, a)
 apply (unfold NN_def)
 apply (elim CollectE exE conjE)
 apply (rule_tac x = a in exI)
-apply (rule_tac x = "\<lambda>x \<in> y. LEAST i. f`i = {x}" in exI)
+apply (rule_tac x = "\<lambda>x \<in> y. \<mu> i. f`i = {x}" in exI)
 apply (rule conjI, assumption)
 apply (rule_tac d = "%i. THE x. x \<in> f`i" in lam_injective)
 apply (drule lemma1, assumption+)

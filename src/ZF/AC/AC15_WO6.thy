@@ -67,7 +67,7 @@ done
 lemma lemma4: "[| A \<lesssim> i; Ord(i) |] ==> {P(a). a \<in> A} \<lesssim> i"
 apply (unfold lepoll_def)
 apply (erule exE)
-apply (rule_tac x = "\<lambda>x \<in> RepFun(A,P). LEAST j. \<exists>a\<in>A. x=P(a) & f`a=j" 
+apply (rule_tac x = "\<lambda>x \<in> RepFun(A,P). \<mu> j. \<exists>a\<in>A. x=P(a) & f`a=j" 
        in exI)
 apply (rule_tac d = "%y. P (converse (f) `y) " in lam_injective)
 apply (erule RepFunE)
@@ -148,7 +148,7 @@ by (fast intro!: ltI dest!: ltD)
 
 lemma AC15_WO6_aux1:
      "\<forall>x \<in> Pow(A)-{0}. f`x\<noteq>0 & f`x \<subseteq> x & f`x \<lesssim> m 
-      ==> (\<Union>i<LEAST x. HH(f,A,x)={A}. HH(f,A,i)) = A"
+      ==> (\<Union>i<\<mu> x. HH(f,A,x)={A}. HH(f,A,i)) = A"
 apply (simp add: Ord_Least [THEN OUN_eq_UN])
 apply (rule equalityI)
 apply (fast dest!: less_Least_subset_x)
@@ -158,7 +158,7 @@ done
 
 lemma AC15_WO6_aux2:
      "\<forall>x \<in> Pow(A)-{0}. f`x\<noteq>0 & f`x \<subseteq> x & f`x \<lesssim> m 
-      ==> \<forall>x < (LEAST x. HH(f,A,x)={A}). HH(f,A,x) \<lesssim> m"
+      ==> \<forall>x < (\<mu> x. HH(f,A,x)={A}). HH(f,A,x) \<lesssim> m"
 apply (rule oallI)
 apply (drule ltD [THEN less_Least_subset_x])
 apply (frule HH_subset_imp_eq)
@@ -175,8 +175,8 @@ apply (erule impE, fast)
 apply (elim bexE conjE exE)
 apply (rule bexI)
  apply (rule conjI, assumption)
- apply (rule_tac x = "LEAST i. HH (f,A,i) ={A}" in exI)
- apply (rule_tac x = "\<lambda>j \<in> (LEAST i. HH (f,A,i) ={A}) . HH (f,A,j) " in exI)
+ apply (rule_tac x = "\<mu> i. HH (f,A,i) ={A}" in exI)
+ apply (rule_tac x = "\<lambda>j \<in> (\<mu> i. HH (f,A,i) ={A}) . HH (f,A,j) " in exI)
  apply (simp_all add: ltD)
 apply (fast intro!: Ord_Least lam_type [THEN domain_of_fun]
             elim!: less_Least_subset_x AC15_WO6_aux1 AC15_WO6_aux2) 

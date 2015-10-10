@@ -72,9 +72,6 @@ definition
   mod  :: "[i,i]=>i"                    (infixl "mod" 70)  where
     "m mod n == raw_mod (natify(m), natify(n))"
 
-notation (xsymbols)
-  mult  (infixr "#\<times>" 70)
-
 declare rec_type [simp]
         nat_0_le [simp]
 

@@ -22,7 +22,7 @@ definition
     "recfunAC16(f,h,i,a) == 
          transrec2(i, 0, 
               %g r. if (\<exists>y \<in> r. h`g \<subseteq> y) then r
-                    else r \<union> {f`(LEAST i. h`g \<subseteq> f`i & 
+                    else r \<union> {f`(\<mu> i. h`g \<subseteq> f`i & 
                          (\<forall>b<a. (h`b \<subseteq> f`i \<longrightarrow> (\<forall>t \<in> r. ~ h`b \<subseteq> t))))})"
 
 (* ********************************************************************** *)
@@ -36,7 +36,7 @@ lemma recfunAC16_succ:
      "recfunAC16(f,h,succ(i),a) =   
       (if (\<exists>y \<in> recfunAC16(f,h,i,a). h ` i \<subseteq> y) then recfunAC16(f,h,i,a)  
        else recfunAC16(f,h,i,a) \<union>  
-            {f ` (LEAST j. h ` i \<subseteq> f ` j &   
+            {f ` (\<mu> j. h ` i \<subseteq> f ` j &   
              (\<forall>b<a. (h`b \<subseteq> f`j   
               \<longrightarrow> (\<forall>t \<in> recfunAC16(f,h,i,a). ~ h`b \<subseteq> t))))})"
 apply (simp add: recfunAC16_def)
@@ -232,11 +232,11 @@ done
 
 lemma in_Least_Diff:
      "[| z \<in> F(x); Ord(x) |]   
-      ==> z \<in> F(LEAST i. z \<in> F(i)) - (\<Union>j<(LEAST i. z \<in> F(i)). F(j))"
+      ==> z \<in> F(\<mu> i. z \<in> F(i)) - (\<Union>j<(\<mu> i. z \<in> F(i)). F(j))"
 by (fast elim: less_LeastE elim!: LeastI)
 
 lemma Least_eq_imp_ex:
-     "[| (LEAST i. w \<in> F(i)) = (LEAST i. z \<in> F(i));   
+     "[| (\<mu> i. w \<in> F(i)) = (\<mu> i. z \<in> F(i));   
          w \<in> (\<Union>i<a. F(i)); z \<in> (\<Union>i<a. F(i)) |]   
       ==> \<exists>b<a. w \<in> (F(b) - (\<Union>c<b. F(c))) & z \<in> (F(b) - (\<Union>c<b. F(c)))"
 apply (elim OUN_E)
@@ -255,7 +255,7 @@ lemma UN_lepoll_index:
      "[| \<forall>i<a. F(i)-(\<Union>j<i. F(j)) \<lesssim> 1; Limit(a) |]   
       ==> (\<Union>x<a. F(x)) \<lesssim> a"
 apply (rule lepoll_def [THEN def_imp_iff [THEN iffD2]])
-apply (rule_tac x = "\<lambda>z \<in> (\<Union>x<a. F (x)). LEAST i. z \<in> F (i) " in exI)
+apply (rule_tac x = "\<lambda>z \<in> (\<Union>x<a. F (x)). \<mu> i. z \<in> F (i) " in exI)
 apply (unfold inj_def)
 apply (rule CollectI)
 apply (rule lam_type)

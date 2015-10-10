@@ -9,38 +9,32 @@ theory Cardinal imports OrderType Finite Nat_ZF Sum begin
 
 definition
   (*least ordinal operator*)
-   Least    :: "(i=>o) => i"    (binder "LEAST " 10)  where
+   Least    :: "(i=>o) => i"    (binder "\<mu> " 10)  where
      "Least(P) == THE i. Ord(i) & P(i) & (\<forall>j. j<i \<longrightarrow> ~P(j))"
 
 definition
-  eqpoll   :: "[i,i] => o"     (infixl "eqpoll" 50)  where
-    "A eqpoll B == \<exists>f. f \<in> bij(A,B)"
+  eqpoll   :: "[i,i] => o"     (infixl "\<approx>" 50)  where
+    "A \<approx> B == \<exists>f. f \<in> bij(A,B)"
 
 definition
-  lepoll   :: "[i,i] => o"     (infixl "lepoll" 50)  where
-    "A lepoll B == \<exists>f. f \<in> inj(A,B)"
+  lepoll   :: "[i,i] => o"     (infixl "\<lesssim>" 50)  where
+    "A \<lesssim> B == \<exists>f. f \<in> inj(A,B)"
 
 definition
-  lesspoll :: "[i,i] => o"     (infixl "lesspoll" 50)  where
-    "A lesspoll B == A lepoll B & ~(A eqpoll B)"
+  lesspoll :: "[i,i] => o"     (infixl "\<prec>" 50)  where
+    "A \<prec> B == A \<lesssim> B & ~(A \<approx> B)"
 
 definition
   cardinal :: "i=>i"           ("|_|")  where
-    "|A| == (LEAST i. i eqpoll A)"
+    "|A| == (\<mu> i. i \<approx> A)"
 
 definition
   Finite   :: "i=>o"  where
-    "Finite(A) == \<exists>n\<in>nat. A eqpoll n"
+    "Finite(A) == \<exists>n\<in>nat. A \<approx> n"
 
 definition
   Card     :: "i=>o"  where
     "Card(i) == (i = |i|)"
-
-notation (xsymbols)
-  eqpoll    (infixl "\<approx>" 50) and
-  lepoll    (infixl "\<lesssim>" 50) and
-  lesspoll  (infixl "\<prec>" 50) and
-  Least     (binder "\<mu>" 10)
 
 
 subsection\<open>The Schroeder-Bernstein Theorem\<close>
@@ -89,7 +83,7 @@ apply (unfold eqpoll_def)
 apply (erule exI)
 done
 
-(*A eqpoll A*)
+(*A \<approx> A*)
 lemmas eqpoll_refl = id_bij [THEN bij_imp_eqpoll, simp]
 
 lemma eqpoll_sym: "X \<approx> Y ==> Y \<approx> X"
@@ -160,7 +154,7 @@ apply (unfold lepoll_def)
 apply (blast intro: inj_disjoint_Un)
 done
 
-(*A eqpoll 0 ==> A=0*)
+(*A \<approx> 0 ==> A=0*)
 lemmas eqpoll_0_is_0 = eqpoll_imp_lepoll [THEN lepoll_0_is_0]
 
 lemma eqpoll_0_iff: "A \<approx> 0 \<longleftrightarrow> A=0"
@@ -239,7 +233,7 @@ lemma lesspoll_eq_trans [trans]:
   by (blast intro: eqpoll_imp_lepoll lesspoll_trans2)
 
 
-(** LEAST -- the least number operator [from HOL/Univ.ML] **)
+(** \<mu> -- the least number operator [from HOL/Univ.ML] **)
 
 lemma Least_equality:
     "[| P(i);  Ord(i);  !!x. x<i ==> ~P(x) |] ==> (\<mu> x. P(x)) = i"
@@ -296,7 +290,7 @@ proof -
   thus ?thesis using P .
 qed
 
-(*LEAST really is the smallest*)
+(*\<mu> really is the smallest*)
 lemma less_LeastE: "[| P(i);  i < (\<mu> x. P(x)) |] ==> Q"
 apply (rule Least_le [THEN [2] lt_trans2, THEN lt_irrefl], assumption+)
 apply (simp add: lt_Ord)
@@ -307,7 +301,7 @@ lemma LeastI2:
     "[| P(i);  Ord(i);  !!j. P(j) ==> Q(j) |] ==> Q(\<mu> j. P(j))"
 by (blast intro: LeastI )
 
-(*If there is no such P then LEAST is vacuously 0*)
+(*If there is no such P then \<mu> is vacuously 0*)
 lemma Least_0:
     "[| ~ (\<exists>i. Ord(i) & P(i)) |] ==> (\<mu> x. P(x)) = 0"
 apply (unfold Least_def)
@@ -636,7 +630,7 @@ apply (fast del: subsetI subsetCE
 done
 
 
-(** lepoll, \<prec> and natural numbers **)
+(** \<lesssim>, \<prec> and natural numbers **)
 
 lemma lepoll_succ: "i \<lesssim> succ(i)"
   by (blast intro: subset_imp_lepoll)

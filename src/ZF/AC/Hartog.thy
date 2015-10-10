@@ -10,7 +10,7 @@ begin
 
 definition
   Hartog :: "i => i"  where
-   "Hartog(X) == LEAST i. ~ i \<lesssim> X"
+   "Hartog(X) == \<mu> i. ~ i \<lesssim> X"
 
 lemma Ords_in_set: "\<forall>a. Ord(a) \<longrightarrow> a \<in> X ==> P"
 apply (rule_tac X = "{y \<in> X. Ord (y) }" in ON_class [elim_format])

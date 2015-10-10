@@ -10,7 +10,7 @@ begin
 
 lemma RepFun_lepoll: "Ord(a) ==> {P(b). b \<in> a} \<lesssim> a"
 apply (unfold lepoll_def)
-apply (rule_tac x = "\<lambda>z \<in> RepFun (a,P) . LEAST i. z=P (i) " in exI)
+apply (rule_tac x = "\<lambda>z \<in> RepFun (a,P) . \<mu> i. z=P (i) " in exI)
 apply (rule_tac d="%z. P (z)" in lam_injective)
  apply (fast intro!: Least_in_Ord)
 apply (rule sym) 
@@ -20,7 +20,7 @@ done
 text\<open>Trivial in the presence of AC, but here we need a wellordering of X\<close>
 lemma image_Ord_lepoll: "[| f \<in> X->Y; Ord(X) |] ==> f``X \<lesssim> X"
 apply (unfold lepoll_def)
-apply (rule_tac x = "\<lambda>x \<in> f``X. LEAST y. f`y = x" in exI)
+apply (rule_tac x = "\<lambda>x \<in> f``X. \<mu> y. f`y = x" in exI)
 apply (rule_tac d = "%z. f`z" in lam_injective)
 apply (fast intro!: Least_in_Ord apply_equality, clarify) 
 apply (rule LeastI) 

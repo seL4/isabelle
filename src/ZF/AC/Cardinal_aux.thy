@@ -79,7 +79,7 @@ apply (rule Un_lepoll_Un [THEN lepoll_trans], (assumption+))
 apply (blast intro: eqpoll_refl Un_eqpoll_Inf_Ord eqpoll_imp_lepoll)
 done
 
-lemma Least_in_Ord: "[| P(i); i \<in> j; Ord(j) |] ==> (LEAST i. P(i)) \<in> j"
+lemma Least_in_Ord: "[| P(i); i \<in> j; Ord(j) |] ==> (\<mu> i. P(i)) \<in> j"
 apply (erule Least_le [THEN leE])
 apply (erule Ord_in_Ord, assumption)
 apply (erule ltE)
@@ -100,7 +100,7 @@ by blast
 
 lemma UN_sing_lepoll: "Ord(a) ==> (\<Union>x \<in> a. {P(x)}) \<lesssim> a"
 apply (unfold lepoll_def)
-apply (rule_tac x = "\<lambda>z \<in> (\<Union>x \<in> a. {P (x) }) . (LEAST i. P (i) =z) " in exI)
+apply (rule_tac x = "\<lambda>z \<in> (\<Union>x \<in> a. {P (x) }) . (\<mu> i. P (i) =z) " in exI)
 apply (rule_tac d = "%z. P (z) " in lam_injective)
 apply (fast intro!: Least_in_Ord)
 apply (fast intro: LeastI elim!: Ord_in_Ord)

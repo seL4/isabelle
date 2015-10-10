@@ -37,7 +37,7 @@ definition
   csucc         :: "i=>i"  where
     --\<open>needed because @{term "jump_cardinal(K)"} might not be the successor
         of @{term K}\<close>
-    "csucc(K) == LEAST L. Card(L) & K<L"
+    "csucc(K) == \<mu> L. Card(L) & K<L"
 
 notation (xsymbols)
   cadd  (infixl "\<oplus>" 65) and
