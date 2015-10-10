@@ -24,7 +24,7 @@ axiomatization
   Context :: "[typing, context] \<Rightarrow> context" and
   star :: "term"  ("*") and
   box :: "term"  ("\<box>") and
-  app :: "[term, term] \<Rightarrow> term"  (infixl "^" 20) and
+  app :: "[term, term] \<Rightarrow> term"  (infixl "\<cdot>" 20) and
   Has_type :: "[term, term] \<Rightarrow> typing"
 
 nonterminal context' and typing'
@@ -36,8 +36,8 @@ syntax
   "_MT_context" :: "context'"  ("")
   "_Context" :: "[typing', context'] \<Rightarrow> context'"  ("_ _")
   "_Has_type" :: "[term, term] \<Rightarrow> typing'"  ("(_:/ _)" [0, 0] 5)
-  "_Lam" :: "[idt, term, term] \<Rightarrow> term"  ("(3\<Lambda> _:_./ _)" [0, 0, 0] 10)
-  "_Pi" :: "[idt, term, term] \<Rightarrow> term"  ("(3\<Pi> _:_./ _)" [0, 0] 10)
+  "_Lam" :: "[idt, term, term] \<Rightarrow> term"  ("(3\<^bold>\<lambda>_:_./ _)" [0, 0, 0] 10)
+  "_Pi" :: "[idt, term, term] \<Rightarrow> term"  ("(3\<Prod>_:_./ _)" [0, 0] 10)
   "_arrow" :: "[term, term] \<Rightarrow> term"  (infixr "\<rightarrow>" 10)
 translations
   "_Trueprop(G, t)" \<rightleftharpoons> "CONST Trueprop(G, t)"
@@ -45,12 +45,12 @@ translations
   "_MT_context" \<rightleftharpoons> "CONST MT_context"
   "_Context" \<rightleftharpoons> "CONST Context"
   "_Has_type" \<rightleftharpoons> "CONST Has_type"
-  "\<Lambda> x:A. B" \<rightleftharpoons> "CONST Abs(A, \<lambda>x. B)"
-  "\<Pi> x:A. B" \<rightharpoonup> "CONST Prod(A, \<lambda>x. B)"
+  "\<^bold>\<lambda>x:A. B" \<rightleftharpoons> "CONST Abs(A, \<lambda>x. B)"
+  "\<Prod>x:A. B" \<rightharpoonup> "CONST Prod(A, \<lambda>x. B)"
   "A \<rightarrow> B" \<rightharpoonup> "CONST Prod(A, \<lambda>_. B)"
 
 syntax
-  "_Pi" :: "[idt, term, term] \<Rightarrow> term"    ("(3\<Pi> _:_./ _)" [0, 0] 10)
+  "_Pi" :: "[idt, term, term] \<Rightarrow> term"    ("(3\<Prod>_:_./ _)" [0, 0] 10)
 print_translation \<open>
   [(@{const_syntax Prod},
     fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"}))]
@@ -62,23 +62,23 @@ axiomatization where
   strip_s: "\<lbrakk>A:*; a:A \<Longrightarrow> G \<turnstile> x:X\<rbrakk> \<Longrightarrow> a:A G \<turnstile> x:X" and
   strip_b: "\<lbrakk>A:\<box>; a:A \<Longrightarrow> G \<turnstile> x:X\<rbrakk> \<Longrightarrow> a:A G \<turnstile> x:X" and
 
-  app: "\<lbrakk>F:Prod(A, B); C:A\<rbrakk> \<Longrightarrow> F^C: B(C)" and
+  app: "\<lbrakk>F:Prod(A, B); C:A\<rbrakk> \<Longrightarrow> F\<cdot>C: B(C)" and
 
   pi_ss: "\<lbrakk>A:*; \<And>x. x:A \<Longrightarrow> B(x):*\<rbrakk> \<Longrightarrow> Prod(A, B):*" and
 
   lam_ss: "\<lbrakk>A:*; \<And>x. x:A \<Longrightarrow> f(x):B(x); \<And>x. x:A \<Longrightarrow> B(x):* \<rbrakk>
             \<Longrightarrow> Abs(A, f) : Prod(A, B)" and
 
-  beta: "Abs(A, f)^a \<equiv> f(a)"
+  beta: "Abs(A, f)\<cdot>a \<equiv> f(a)"
 
 lemmas [rules] = s_b strip_s strip_b app lam_ss pi_ss
 
 lemma imp_elim:
-  assumes "f:A\<rightarrow>B" and "a:A" and "f^a:B \<Longrightarrow> PROP P"
+  assumes "f:A\<rightarrow>B" and "a:A" and "f\<cdot>a:B \<Longrightarrow> PROP P"
   shows "PROP P" by (rule app assms)+
 
 lemma pi_elim:
-  assumes "F:Prod(A,B)" and "a:A" and "F^a:B(a) \<Longrightarrow> PROP P"
+  assumes "F:Prod(A,B)" and "a:A" and "F\<cdot>a:B(a) \<Longrightarrow> PROP P"
   shows "PROP P" by (rule app assms)+
 
 
