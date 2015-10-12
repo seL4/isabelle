@@ -270,7 +270,7 @@ text \<open>The @{tool_def build} tool invokes the build process for
   images.  Accordingly, it runs instances of the prover process with
   optional document preparation.  Its command-line usage
   is:\footnote{Isabelle/Scala provides the same functionality via
-  \texttt{isabelle.Build.build}.}
+  @{verbatim "isabelle.Build.build"}.}
   @{verbatim [display]
 \<open>Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
@@ -307,7 +307,7 @@ text \<open>The @{tool_def build} tool invokes the build process for
   component directories (\secref{sec:components}), augmented by more
   directories given via options @{verbatim "-d"}~@{text "DIR"} on the
   command line.  Each such directory may contain a session
-  \texttt{ROOT} file with several session specifications.
+  @{verbatim ROOT} file with several session specifications.
 
   Any session root directory may refer recursively to further
   directories of the same kind, by listing them in a catalog file
@@ -347,7 +347,7 @@ text \<open>The @{tool_def build} tool invokes the build process for
   (\secref{sec:system-options}) that are passed to the prover
   eventually.  The settings variable @{setting_ref
   ISABELLE_BUILD_OPTIONS} allows to provide additional defaults, e.g.\
-  \texttt{ISABELLE_BUILD_OPTIONS="document=pdf threads=4"}. Moreover,
+  @{verbatim \<open>ISABELLE_BUILD_OPTIONS="document=pdf threads=4"\<close>}. Moreover,
   the environment of system build options may be augmented on the
   command line via @{verbatim "-o"}~@{text "name"}@{verbatim
   "="}@{text "value"} or @{verbatim "-o"}~@{text "name"}, which

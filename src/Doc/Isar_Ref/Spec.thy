@@ -516,9 +516,9 @@ text \<open>
   Instances have an optional qualifier which applies to names in
   declarations.  Names include local definitions and theorem names.
   If present, the qualifier itself is either optional
-  (``\texttt{?}''), which means that it may be omitted on input of the
-  qualified name, or mandatory (``\texttt{!}'').  If neither
-  ``\texttt{?}'' nor ``\texttt{!}'' are present, the command's default
+  (``@{verbatim "?"}''), which means that it may be omitted on input of the
+  qualified name, or mandatory (``@{verbatim "!"}'').  If neither
+  ``@{verbatim "?"}'' nor ``@{verbatim "!"}'' are present, the command's default
   is used.  For @{command "interpretation"} and @{command "interpret"}
   the default is ``mandatory'', for @{command "locale"} and @{command
   "sublocale"} the default is ``optional''.  Qualifiers play no role
