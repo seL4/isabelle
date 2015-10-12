@@ -359,3 +359,8 @@
 \<^esub>                code: 0x0021d9  group: control_block  font: IsabelleText  abbrev: =_)
 \<^bsup>                code: 0x0021d7  group: control_block  font: IsabelleText  abbrev: =^(
 \<^esup>                code: 0x0021d6  group: control_block  font: IsabelleText  abbrev: =^)
+\<^smallskip>           code: 0x002508  group: control
+\<^medskip>             code: 0x002509  group: control
+\<^bigskip>             code: 0x002501  group: control
+\<^item>                code: 0x0025aa  group: control
+\<^enum>                code: 0x0025b8  group: control
