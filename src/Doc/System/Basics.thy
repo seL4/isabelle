@@ -192,7 +192,7 @@ text \<open>
   Note that the following bash expression (including the quotes)
   prefers the 64 bit platform, if that is available:
 
-  @{verbatim [display] "\"${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}\""}
+  @{verbatim [display] \<open>"${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"\<close>}
 
   \item[@{setting_def ISABELLE_PROCESS}@{text "\<^sup>*"}, @{setting
   ISABELLE_TOOL}@{text "\<^sup>*"}] are automatically set to the full path
@@ -298,19 +298,13 @@ text \<open>Any directory may be registered as an explicit \emph{Isabelle
 
   For example, the following setting allows to refer to files within
   the component later on, without having to hardwire absolute paths:
-
-\begin{ttbox}
-MY_COMPONENT_HOME="$COMPONENT"
-\end{ttbox}
+  @{verbatim [display] \<open>MY_COMPONENT_HOME="$COMPONENT"\<close>}
 
   Components can also add to existing Isabelle settings such as
   @{setting_def ISABELLE_TOOLS}, in order to provide
   component-specific tools that can be invoked by end-users.  For
   example:
-
-\begin{ttbox}
-ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
-\end{ttbox}
+  @{verbatim [display] \<open>ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"\<close>}
 
   \<^item> @{verbatim "etc/components"} holds a list of further
   sub-components of the same structure.  The directory specifications
@@ -328,9 +322,7 @@ ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
   @{verbatim init_component} shell function in the @{verbatim "etc/settings"}
   script of @{verbatim "$ISABELLE_HOME_USER"} (or any other component
   directory).  For example:
-\begin{ttbox}
-init_component "$HOME/screwdriver-2.0"
-\end{ttbox}
+  @{verbatim [display] \<open>init_component "$HOME/screwdriver-2.0"\<close>}
 
   This is tolerant wrt.\ missing component directories, but might
   produce a warning.
@@ -339,10 +331,7 @@ init_component "$HOME/screwdriver-2.0"
   More complex situations may be addressed by initializing
   components listed in a given catalog file, relatively to some base
   directory:
-
-\begin{ttbox}
-init_components "$HOME/my_component_store" "some_catalog_file"
-\end{ttbox}
+  @{verbatim [display] \<open>init_components "$HOME/my_component_store" "some_catalog_file"\<close>}
 
   The component directories listed in the catalog file are treated as
   relative to the given base directory.
@@ -360,9 +349,8 @@ text \<open>
   Isabelle logic sessions --- either interactively or in batch mode.
   It provides an abstraction over the underlying ML system, and over
   the actual heap file locations.  Its usage is:
-
-\begin{ttbox}
-Usage: isabelle_process [OPTIONS] [INPUT] [OUTPUT]
+  @{verbatim [display]
+\<open>Usage: isabelle_process [OPTIONS] [INPUT] [OUTPUT]
 
   Options are:
     -O           system options from given YXML file
@@ -375,11 +363,10 @@ Usage: isabelle_process [OPTIONS] [INPUT] [OUTPUT]
     -r           open heap file read-only
     -w           reset write permissions on OUTPUT
 
-  INPUT (default "\$ISABELLE_LOGIC") and OUTPUT specify in/out heaps.
+  INPUT (default "$ISABELLE_LOGIC") and OUTPUT specify in/out heaps.
   These are either names to be searched in the Isabelle path, or
   actual file names (containing at least one /).
-  If INPUT is "RAW_ML_SYSTEM", just start the bare bones ML system.
-\end{ttbox}
+  If INPUT is "RAW_ML_SYSTEM", just start the bare bones ML system.\<close>}
 
   Input files without path specifications are looked up in the
   @{setting ISABELLE_PATH} setting, which may consist of multiple
@@ -460,40 +447,32 @@ subsubsection \<open>Examples\<close>
 text \<open>
   Run an interactive session of the default object-logic (as specified
   by the @{setting ISABELLE_LOGIC} setting) like this:
-\begin{ttbox}
-isabelle_process
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle_process\<close>}
 
   Usually @{setting ISABELLE_LOGIC} refers to one of the standard
   logic images, which are read-only by default.  A writable session
   --- based on @{verbatim HOL}, but output to @{verbatim Test} (in the
   directory specified by the @{setting ISABELLE_OUTPUT} setting) ---
   may be invoked as follows:
-\begin{ttbox}
-isabelle_process HOL Test
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle_process HOL Test\<close>}
+
   Ending this session normally (e.g.\ by typing control-D) dumps the
   whole ML system state into @{verbatim Test} (be prepared for more
   than 100\,MB):
 
   The @{verbatim Test} session may be continued later (still in
-  writable state) by:
-\begin{ttbox}
-isabelle_process Test
-\end{ttbox}
+  writable state) by: @{verbatim [display] \<open>isabelle_process Test\<close>}
+
   A read-only @{verbatim Test} session may be started by:
-\begin{ttbox}
-isabelle_process -r Test
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle_process -r Test\<close>}
 
   \<^bigskip>
   The next example demonstrates batch execution of Isabelle.
   We retrieve the @{verbatim Main} theory value from the theory loader
   within ML (observe the delicate quoting rules for the Bash shell
   vs.\ ML):
-\begin{ttbox}
-isabelle_process -e 'Thy_Info.get_theory "Main";' -q -r HOL
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle_process -e 'Thy_Info.get_theory "Main";' -q -r HOL\<close>}
+
   Note that the output text will be interspersed with additional junk
   messages by the ML runtime environment.  The @{verbatim "-W"} option
   allows to communicate with the Isabelle process via an external
@@ -506,15 +485,13 @@ section \<open>The Isabelle tool wrapper \label{sec:isabelle-tool}\<close>
 text \<open>
   All Isabelle related tools and interfaces are called via a common
   wrapper --- @{executable isabelle}:
-
-\begin{ttbox}
-Usage: isabelle TOOL [ARGS ...]
+  @{verbatim [display]
+\<open>Usage: isabelle TOOL [ARGS ...]
 
   Start Isabelle tool NAME with ARGS; pass "-?" for tool specific help.
 
 Available tools:
-  \dots
-\end{ttbox}
+  ...\<close>}
 
   In principle, Isabelle tools are ordinary executable scripts that
   are run within the Isabelle settings environment, see
@@ -530,20 +507,13 @@ subsubsection \<open>Examples\<close>
 
 text \<open>Show the list of available documentation of the Isabelle
   distribution:
-
-\begin{ttbox}
-  isabelle doc
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle doc\<close>}
 
   View a certain document as follows:
-\begin{ttbox}
-  isabelle doc system
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle doc system\<close>}
 
   Query the Isabelle settings environment:
-\begin{ttbox}
-  isabelle getenv ISABELLE_HOME_USER
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle getenv ISABELLE_HOME_USER\<close>}
 \<close>
 
 end

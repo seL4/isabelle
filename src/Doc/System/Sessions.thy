@@ -233,8 +233,8 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
 
   The @{tool_def options} tool prints Isabelle system options.  Its
   command-line usage is:
-\begin{ttbox}
-Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
+  @{verbatim [display]
+\<open>Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
   Options are:
     -b           include $ISABELLE_BUILD_OPTIONS
@@ -243,8 +243,7 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
     -x FILE      export to FILE in YXML format
 
   Report Isabelle system options, augmented by MORE_OPTIONS given as
-  arguments NAME=VAL or NAME.
-\end{ttbox}
+  arguments NAME=VAL or NAME.\<close>}
 
   The command line arguments provide additional system options of the
   form @{text "name"}@{verbatim "="}@{text "value"} or @{text name}
@@ -272,8 +271,8 @@ text \<open>The @{tool_def build} tool invokes the build process for
   optional document preparation.  Its command-line usage
   is:\footnote{Isabelle/Scala provides the same functionality via
   \texttt{isabelle.Build.build}.}
-\begin{ttbox}
-Usage: isabelle build [OPTIONS] [SESSIONS ...]
+  @{verbatim [display]
+\<open>Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   Options are:
     -D DIR       include session directory and select its sessions
@@ -299,8 +298,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   ML_PLATFORM="..."
   ML_HOME="..."
   ML_SYSTEM="..."
-  ML_OPTIONS="..."
-\end{ttbox}
+  ML_OPTIONS="..."\<close>}
 
   \<^medskip>
   Isabelle sessions are defined via session ROOT files as
@@ -402,64 +400,46 @@ subsubsection \<open>Examples\<close>
 
 text \<open>
   Build a specific logic image:
-\begin{ttbox}
-isabelle build -b HOLCF
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle build -b HOLCF\<close>}
 
   \<^smallskip>
   Build the main group of logic images:
-\begin{ttbox}
-isabelle build -b -g main
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle build -b -g main\<close>}
 
   \<^smallskip>
   Provide a general overview of the status of all Isabelle
   sessions, without building anything:
-\begin{ttbox}
-isabelle build -a -n -v
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle build -a -n -v\<close>}
 
   \<^smallskip>
   Build all sessions with HTML browser info and PDF
   document preparation:
-\begin{ttbox}
-isabelle build -a -o browser_info -o document=pdf
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle build -a -o browser_info -o document=pdf\<close>}
 
   \<^smallskip>
   Build all sessions with a maximum of 8 parallel prover
   processes and 4 worker threads each (on a machine with many cores):
-\begin{ttbox}
-isabelle build -a -j8 -o threads=4
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle build -a -j8 -o threads=4\<close>}
 
   \<^smallskip>
   Build some session images with cleanup of their
   descendants, while retaining their ancestry:
-\begin{ttbox}
-isabelle build -b -c HOL-Algebra HOL-Word
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle build -b -c HOL-Algebra HOL-Word\<close>}
 
   \<^smallskip>
   Clean all sessions without building anything:
-\begin{ttbox}
-isabelle build -a -n -c
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle build -a -n -c\<close>}
 
   \<^smallskip>
   Build all sessions from some other directory hierarchy,
   according to the settings variable @{verbatim "AFP"} that happens to
   be defined inside the Isabelle environment:
-\begin{ttbox}
-isabelle build -D '$AFP'
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle build -D '$AFP'\<close>}
 
   \<^smallskip>
   Inform about the status of all sessions required for AFP,
   without building anything yet:
-\begin{ttbox}
-isabelle build -D '$AFP' -R -v -n
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle build -D '$AFP' -R -v -n\<close>}
 \<close>
 
 end

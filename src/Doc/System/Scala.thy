@@ -30,9 +30,7 @@ text \<open>The @{tool_def java} tool is a direct wrapper for the Java
   For example, the following command-line invokes the main method of
   class @{verbatim isabelle.GUI_Setup}, which opens a windows with
   some diagnostic information about the Isabelle environment:
-\begin{alltt}
-  isabelle java isabelle.GUI_Setup
-\end{alltt}
+  @{verbatim [display] \<open>isabelle java isabelle.GUI_Setup\<close>}
 \<close>
 
 
@@ -43,13 +41,12 @@ text \<open>The @{tool_def scala} tool is a direct wrapper for the Scala
   are that of the underlying Scala version.
 
   This allows to interact with Isabelle/Scala in TTY mode like this:
-\begin{alltt}
-  isabelle scala
-  scala> isabelle.Isabelle_System.getenv("ISABELLE_HOME")
-  scala> val options = isabelle.Options.init()
-  scala> options.bool("browser_info")
-  scala> options.string("document")
-\end{alltt}
+  @{verbatim [display]
+\<open>isabelle scala
+scala> isabelle.Isabelle_System.getenv("ISABELLE_HOME")
+scala> val options = isabelle.Options.init()
+scala> options.bool("browser_info")
+scala> options.string("document")\<close>}
 \<close>
 
 
@@ -81,14 +78,12 @@ text \<open>The executable @{executable
   The subsequent example assumes that the main Isabelle binaries have
   been installed in some directory that is included in @{setting PATH}
   (see also @{tool "install"}):
-
-\begin{alltt}
-#!/usr/bin/env isabelle_scala_script
+  @{verbatim [display]
+\<open>#!/usr/bin/env isabelle_scala_script
 
 val options = isabelle.Options.init()
 Console.println("browser_info = " + options.bool("browser_info"))
-Console.println("document = " + options.string("document"))
-\end{alltt}
+Console.println("document = " + options.string("document"))\<close>}
 
   Alternatively the full @{file
   "$ISABELLE_HOME/bin/isabelle_scala_script"} may be specified in

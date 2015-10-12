@@ -24,14 +24,14 @@ subsection \<open>Invoking the graph browser\<close>
 
 text \<open>The stand-alone version of the graph browser is wrapped up as
   @{tool_def browser}:
-\begin{ttbox}
-Usage: isabelle browser [OPTIONS] [GRAPHFILE]
+  @{verbatim [display]
+\<open>Usage: isabelle browser [OPTIONS] [GRAPHFILE]
 
   Options are:
     -b           Admin/build only
     -c           cleanup -- remove GRAPHFILE after use
-    -o FILE      output to FILE (ps, eps, pdf)
-\end{ttbox}
+    -o FILE      output to FILE (ps, eps, pdf)\<close>}
+
   When no file name is specified, the browser automatically changes to
   the directory @{setting ISABELLE_BROWSER_INFO}.
 
@@ -186,8 +186,8 @@ section \<open>Resolving Isabelle components \label{sec:tool-components}\<close>
 
 text \<open>
   The @{tool_def components} tool resolves Isabelle components:
-\begin{ttbox}
-Usage: isabelle components [OPTIONS] [COMPONENTS ...]
+  @{verbatim [display]
+\<open>Usage: isabelle components [OPTIONS] [COMPONENTS ...]
 
   Options are:
     -I           init user settings
@@ -199,8 +199,7 @@ Usage: isabelle components [OPTIONS] [COMPONENTS ...]
   Resolve Isabelle components via download and installation.
   COMPONENTS are identified via base name.
 
-  ISABELLE_COMPONENT_REPOSITORY="http://isabelle.in.tum.de/components"
-\end{ttbox}
+  ISABELLE_COMPONENT_REPOSITORY="http://isabelle.in.tum.de/components"\<close>}
 
   Components are initialized as described in \secref{sec:components}
   in a permissive manner, which can mark components as ``missing''.
@@ -236,8 +235,8 @@ section \<open>Raw ML console\<close>
 
 text \<open>
   The @{tool_def console} tool runs the Isabelle process with raw ML console:
-\begin{ttbox}
-Usage: isabelle console [OPTIONS]
+  @{verbatim [display]
+\<open>Usage: isabelle console [OPTIONS]
 
   Options are:
     -d DIR       include session directory
@@ -248,8 +247,7 @@ Usage: isabelle console [OPTIONS]
     -s           system build mode for session image
 
   Run Isabelle process with raw ML console and line editor
-  (default ISABELLE_LINE_EDITOR).
-\end{ttbox}
+  (default ISABELLE_LINE_EDITOR).\<close>}
 
   The @{verbatim "-l"} option specifies the logic session name. By default,
   its heap image is checked and built on demand, but the option @{verbatim
@@ -277,11 +275,10 @@ section \<open>Displaying documents \label{sec:tool-display}\<close>
 
 text \<open>The @{tool_def display} tool displays documents in DVI or PDF
   format:
-\begin{ttbox}
-Usage: isabelle display DOCUMENT
+  @{verbatim [display]
+\<open>Usage: isabelle display DOCUMENT
 
-  Display DOCUMENT (in DVI or PDF format).
-\end{ttbox}
+  Display DOCUMENT (in DVI or PDF format).\<close>}
 
   \<^medskip>
   The settings @{setting DVI_VIEWER} and @{setting
@@ -296,11 +293,11 @@ section \<open>Viewing documentation \label{sec:tool-doc}\<close>
 
 text \<open>
   The @{tool_def doc} tool displays Isabelle documentation:
-\begin{ttbox}
-Usage: isabelle doc [DOC ...]
+  @{verbatim [display]
+\<open>Usage: isabelle doc [DOC ...]
 
-  View Isabelle documentation.
-\end{ttbox}
+  View Isabelle documentation.\<close>}
+
   If called without arguments, it lists all available documents. Each
   line starts with an identifier, followed by a short description. Any
   of these identifiers may be specified as arguments, in order to
@@ -322,9 +319,7 @@ text \<open>The @{tool_def env} tool is a direct wrapper for the standard
   The command-line arguments are that of the underlying version of
   @{verbatim env}.  For example, the following invokes an instance of
   the GNU Bash shell within the Isabelle environment:
-\begin{alltt}
-  isabelle env bash
-\end{alltt}
+  @{verbatim [display] \<open>isabelle env bash\<close>}
 \<close>
 
 
@@ -333,8 +328,8 @@ section \<open>Inspecting the settings environment \label{sec:tool-getenv}\<clos
 text \<open>The Isabelle settings environment --- as provided by the
   site-default and user-specific settings files --- can be inspected
   with the @{tool_def getenv} tool:
-\begin{ttbox}
-Usage: isabelle getenv [OPTIONS] [VARNAMES ...]
+  @{verbatim [display]
+\<open>Usage: isabelle getenv [OPTIONS] [VARNAMES ...]
 
   Options are:
     -a           display complete environment
@@ -342,8 +337,7 @@ Usage: isabelle getenv [OPTIONS] [VARNAMES ...]
     -d FILE      dump complete environment to FILE
                  (null terminated entries)
 
-  Get value of VARNAMES from the Isabelle settings.
-\end{ttbox}
+  Get value of VARNAMES from the Isabelle settings.\<close>}
 
   With the @{verbatim "-a"} option, one may inspect the full process
   environment that Isabelle related programs are run in. This usually
@@ -362,16 +356,12 @@ subsubsection \<open>Examples\<close>
 
 text \<open>Get the location of @{setting ISABELLE_HOME_USER} where
   user-specific information is stored:
-\begin{ttbox}
-isabelle getenv ISABELLE_HOME_USER
-\end{ttbox}
+  @{verbatim [display] \<open>isabelle getenv ISABELLE_HOME_USER\<close>}
 
   \<^medskip>
   Get the value only of the same settings variable, which is
-particularly useful in shell scripts:
-\begin{ttbox}
-isabelle getenv -b ISABELLE_OUTPUT
-\end{ttbox}
+  particularly useful in shell scripts:
+  @{verbatim [display] \<open>isabelle getenv -b ISABELLE_OUTPUT\<close>}
 \<close>
 
 
@@ -382,16 +372,15 @@ text \<open>By default, the main Isabelle binaries (@{executable
   distribution directory, probably indirectly by the shell through its
   @{setting PATH}.  Other schemes of installation are supported by the
   @{tool_def install} tool:
-\begin{ttbox}
-Usage: isabelle install [OPTIONS] BINDIR
+  @{verbatim [display]
+\<open>Usage: isabelle install [OPTIONS] BINDIR
 
   Options are:
     -d DISTDIR   refer to DISTDIR as Isabelle distribution
                  (default ISABELLE_HOME)
 
   Install Isabelle executables with absolute references to the
-  distribution directory.
-\end{ttbox}
+  distribution directory.\<close>}
 
   The @{verbatim "-d"} option overrides the current Isabelle
   distribution directory as determined by @{setting ISABELLE_HOME}.
@@ -411,15 +400,14 @@ section \<open>Creating instances of the Isabelle logo\<close>
 
 text \<open>The @{tool_def logo} tool creates instances of the generic
   Isabelle logo as EPS and PDF, for inclusion in {\LaTeX} documents.
-\begin{ttbox}
-Usage: isabelle logo [OPTIONS] XYZ
+  @{verbatim [display]
+\<open>Usage: isabelle logo [OPTIONS] XYZ
 
   Create instance XYZ of the Isabelle logo (as EPS and PDF).
 
   Options are:
     -n NAME      alternative output base name (default "isabelle_xyx")
-    -q           quiet mode
-\end{ttbox}
+    -q           quiet mode\<close>}
 
   Option @{verbatim "-n"} specifies an altenative (base) name for the
   generated files.  The default is @{verbatim "isabelle_"}@{text xyz}
@@ -437,14 +425,13 @@ section \<open>Output the version identifier of the Isabelle distribution\<close
 
 text \<open>
   The @{tool_def version} tool displays Isabelle version information:
-\begin{ttbox}
-Usage: isabelle version [OPTIONS]
+  @{verbatim [display]
+\<open>Usage: isabelle version [OPTIONS]
 
   Options are:
     -i           short identification (derived from Mercurial id)
 
-  Display Isabelle version information.
-\end{ttbox}
+  Display Isabelle version information.\<close>}
 
   \<^medskip>
   The default is to output the full version string of the
