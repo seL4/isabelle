@@ -1,7 +1,7 @@
 (*:wrap=hard:maxLineLen=78:*)
 
 theory Manual
-imports Base "../Eisbach_Tools"
+imports Base "~~/src/HOL/Eisbach/Eisbach_Tools"
 begin
 
 chapter \<open>The method command\<close>
@@ -13,7 +13,8 @@ text \<open>
   basic methods accordingly. Method definitions may abstract over parameters:
   terms, facts, or other methods.
 
-  \medskip The syntax diagram below refers to some syntactic categories that
+  \<^medskip>
+  The syntax diagram below refers to some syntactic categories that
   are further defined in @{cite "isabelle-isar-ref"}.
 
   @{rail \<open>
@@ -177,7 +178,7 @@ text \<open>
   @{text method\<^sub>1}. This is useful to handle cases where the number of
   subgoals produced by a method is determined dynamically at run-time.
 \<close>
-text_raw\<open>\vbox{\<close>
+
     method conj_with uses rule =
       (intro conjI ; intro rule)
 
@@ -185,7 +186,7 @@ text_raw\<open>\vbox{\<close>
       assumes A: "P"
       shows "P \<and> P \<and> P"
       by (conj_with rule: A)
-text_raw\<open>}\<close>
+
 text \<open>
   Method definitions may take other methods as arguments, and thus implement
   method combinators with prefix syntax. For example, to more usefully exploit
@@ -243,7 +244,8 @@ text \<open>
   call to @{method prop_solver} and, more generally, any invocation of a
   method which declares these named theorems.
 
-  \medskip After declaring some standard rules to the context, the @{method
+  \<^medskip>
+  After declaring some standard rules to the context, the @{method
   prop_solver} becomes capable of solving non-trivial propositional
   tautologies.\<close>
 
@@ -278,7 +280,8 @@ text \<open>
   Isabelle/ML), and thus can be directly applied to proofs, however it is most
   useful when applied in the context of writing Eisbach method definitions.
 
-  \medskip The syntax diagram below refers to some syntactic categories that
+  \<^medskip>
+  The syntax diagram below refers to some syntactic categories that
   are further defined in @{cite "isabelle-isar-ref"}.
 
   @{rail \<open>
@@ -363,7 +366,8 @@ text \<open>
   variables, but the result of the match is not bound, and thus cannot be used
   in the inner method body.
 
-  \medskip In the following example we extract the predicate of an
+  \<^medskip>
+  In the following example we extract the predicate of an
   existentially quantified conclusion in the current subgoal and search the
   current premises for a matching fact. If both matches are successful, we
   then instantiate the existential introduction rule with both the witness and
@@ -526,13 +530,13 @@ text \<open>
   forming a static closure, allowing the @{attribute "where"} attribute to
   perform an instantiation at run-time.
 \<close>
-text_raw\<open>\vbox{\<close>
+
     lemma
       assumes A: "Q \<Longrightarrow> False"
       shows "\<not> Q"
       by (match intros in X: "\<And>P. (P \<Longrightarrow> False) \<Longrightarrow> \<not> P" \<Rightarrow>
             \<open>rule X [where P = Q, OF A]\<close>)
-text_raw\<open>}\<close>
+
 text \<open>
   Subgoal focusing converts the outermost quantifiers of premises into
   schematics when lifting them to hypothetical facts. This allows us to
@@ -713,7 +717,7 @@ subsection \<open>Cut\<close>
 
 text \<open>
   Backtracking may be controlled more precisely by marking individual patterns
-  as \emph{cut}. This causes backtracking to not progress beyond this pattern:
+  as @{text cut}. This causes backtracking to not progress beyond this pattern:
   once a match is found no others will be considered.
 \<close>
 
@@ -806,12 +810,11 @@ text \<open>
   via meta-implication @{text "_ \<Longrightarrow> _"}.
 \<close>
 
-text_raw \<open>\vbox{\<close>
     lemma
       assumes asms: "D \<Longrightarrow> B \<Longrightarrow> C"  "D \<Longrightarrow> A"
       shows "D \<Longrightarrow> B \<Longrightarrow> C \<and> A"
       by (match asms in H: "D \<Longrightarrow> _" (multi) \<Rightarrow> \<open>prop_solver elims: H\<close>)
-text_raw \<open>}\<close>
+
 text \<open>
   For the first member of @{text asms} the dummy pattern successfully matches
   against @{term "B \<Longrightarrow> C"} and so the proof is successful.

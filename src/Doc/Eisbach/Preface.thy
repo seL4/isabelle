@@ -1,7 +1,7 @@
 (*:wrap=hard:maxLineLen=78:*)
 
 theory Preface
-imports Base "../Eisbach_Tools"
+imports Base "~~/src/HOL/Eisbach/Eisbach_Tools"
 begin
 
 text \<open>
@@ -26,7 +26,8 @@ text \<open>
   Traditionally proof methods have been written in Isabelle/ML, which poses a
   high barrier-to-entry for many users.
 
-  \medskip This manual is written for users familiar with Isabelle/Isar, but
+  \<^medskip>
+  This manual is written for users familiar with Isabelle/Isar, but
   not necessarily Isabelle/ML. It covers the usage of the @{command method} as
   well as the @{method match} method, as well as discussing their integration
   with existing Isar concepts such as @{command named_theorems}.
