@@ -25,7 +25,8 @@ text \<open>Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} 
   users. Beginners often stumble over unexpectedly general types inferred by
   the system.}
 
-  \medskip The main inner syntax operations are \emph{read} for
+  \<^medskip>
+  The main inner syntax operations are \emph{read} for
   parsing together with type-checking, and \emph{pretty} for formatted
   output.  See also \secref{sec:read-print}.
 
@@ -37,9 +38,9 @@ text \<open>Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} 
 
   \begin{itemize}
 
-  \item @{text "read = parse; check"}
+  \<^item> @{text "read = parse; check"}
 
-  \item @{text "pretty = uncheck; unparse"}
+  \<^item> @{text "pretty = uncheck; unparse"}
 
   \end{itemize}
 
@@ -49,7 +50,8 @@ text \<open>Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} 
   "check"}. Note that the formal status of bound variables, versus free
   variables, versus constants must not be changed between these phases.
 
-  \medskip In general, @{text check} and @{text uncheck} operate
+  \<^medskip>
+  In general, @{text check} and @{text uncheck} operate
   simultaneously on a list of terms. This is particular important for
   type-checking, to reconstruct types for several terms of the same context
   and scope. In contrast, @{text parse} and @{text unparse} operate separately
@@ -131,7 +133,8 @@ text %mlref \<open>
   @{ML Syntax.read_term}, @{ML Syntax.read_prop}, and @{ML
   Syntax.string_of_term} are the most important operations in practice.
 
-  \medskip Note that the string values that are passed in and out are
+  \<^medskip>
+  Note that the string values that are passed in and out are
   annotated by the system, to carry further markup that is relevant for the
   Prover IDE @{cite "isabelle-jedit"}. User code should neither compose its
   own input strings, nor try to analyze the output strings. Conceptually this
@@ -223,7 +226,8 @@ text \<open>These operations define the transition from pre-terms and
   contracted during the @{text "uncheck"} phase, without affecting the
   type-assignment of the given terms.
 
-  \medskip The precise meaning of type checking depends on the context ---
+  \<^medskip>
+  The precise meaning of type checking depends on the context ---
   additional check/uncheck modules might be defined in user space.
 
   For example, the @{command class} command defines a context where

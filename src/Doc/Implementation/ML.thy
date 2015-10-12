@@ -95,7 +95,8 @@ text \<open>Isabelle source files have a certain standardized header
   section headings that are adjacent to plain text, but not other headings
   as in the example above.
 
-  \medskip The precise wording of the prose text given in these
+  \<^medskip>
+  The precise wording of the prose text given in these
   headings is chosen carefully to introduce the main theme of the
   subsequent formal ML text.
 \<close>
@@ -111,14 +112,14 @@ text \<open>Since ML is the primary medium to express the meaning of the
   variants concerning upper or lower case letters, which are used for
   certain ML categories as follows:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{lll}
   variant & example & ML categories \\\hline
   lower-case & @{ML_text foo_bar} & values, types, record fields \\
   capitalized & @{ML_text Foo_Bar} & datatype constructors, structures, functors \\
   upper-case & @{ML_text FOO_BAR} & special values, exception constructors, signatures \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   For historical reasons, many capitalized names omit underscores,
   e.g.\ old-style @{ML_text FooBar} instead of @{ML_text Foo_Bar}.
@@ -188,15 +189,15 @@ text \<open>Since ML is the primary medium to express the meaning of the
 
   \begin{itemize}
 
-  \item A function that maps @{ML_text foo} to @{ML_text bar} is
+  \<^item> A function that maps @{ML_text foo} to @{ML_text bar} is
   called @{ML_text foo_to_bar} or @{ML_text bar_of_foo} (never
   @{ML_text foo2bar}, nor @{ML_text bar_from_foo}, nor @{ML_text
   bar_for_foo}, nor @{ML_text bar4foo}).
 
-  \item The name component @{ML_text legacy} means that the operation
+  \<^item> The name component @{ML_text legacy} means that the operation
   is about to be discontinued soon.
 
-  \item The name component @{ML_text global} means that this works
+  \<^item> The name component @{ML_text global} means that this works
   with the background theory instead of the regular local context
   (\secref{sec:context}), sometimes for historical reasons, sometimes
   due a genuine lack of locality of the concept involved, sometimes as
@@ -205,21 +206,21 @@ text \<open>Since ML is the primary medium to express the meaning of the
   application should be migrated to use it with a proper local
   context.
 
-  \item Variables of the main context types of the Isabelle/Isar
+  \<^item> Variables of the main context types of the Isabelle/Isar
   framework (\secref{sec:context} and \chref{ch:local-theory}) have
   firm naming conventions as follows:
 
   \begin{itemize}
 
-  \item theories are called @{ML_text thy}, rarely @{ML_text theory}
+  \<^item> theories are called @{ML_text thy}, rarely @{ML_text theory}
   (never @{ML_text thry})
 
-  \item proof contexts are called @{ML_text ctxt}, rarely @{ML_text
+  \<^item> proof contexts are called @{ML_text ctxt}, rarely @{ML_text
   context} (never @{ML_text ctx})
 
-  \item generic contexts are called @{ML_text context}
+  \<^item> generic contexts are called @{ML_text context}
 
-  \item local theories are called @{ML_text lthy}, except for local
+  \<^item> local theories are called @{ML_text lthy}, except for local
   theories that are treated as proof context (which is a semantic
   super-type)
 
@@ -231,26 +232,26 @@ text \<open>Since ML is the primary medium to express the meaning of the
   This allows to emphasize their data flow via plain regular
   expressions in the text editor.
 
-  \item The main logical entities (\secref{ch:logic}) have established
+  \<^item> The main logical entities (\secref{ch:logic}) have established
   naming convention as follows:
 
   \begin{itemize}
 
-  \item sorts are called @{ML_text S}
+  \<^item> sorts are called @{ML_text S}
 
-  \item types are called @{ML_text T}, @{ML_text U}, or @{ML_text
+  \<^item> types are called @{ML_text T}, @{ML_text U}, or @{ML_text
   ty} (never @{ML_text t})
 
-  \item terms are called @{ML_text t}, @{ML_text u}, or @{ML_text
+  \<^item> terms are called @{ML_text t}, @{ML_text u}, or @{ML_text
   tm} (never @{ML_text trm})
 
-  \item certified types are called @{ML_text cT}, rarely @{ML_text
+  \<^item> certified types are called @{ML_text cT}, rarely @{ML_text
   T}, with variants as for types
 
-  \item certified terms are called @{ML_text ct}, rarely @{ML_text
+  \<^item> certified terms are called @{ML_text ct}, rarely @{ML_text
   t}, with variants as for terms (never @{ML_text ctrm})
 
-  \item theorems are called @{ML_text th}, or @{ML_text thm}
+  \<^item> theorems are called @{ML_text th}, or @{ML_text thm}
 
   \end{itemize}
 
@@ -379,7 +380,8 @@ text \<open>
   to changes of the initial text (working against
   \emph{maintainability}) etc.
 
-  \medskip For similar reasons, any kind of two-dimensional or tabular
+  \<^medskip>
+  For similar reasons, any kind of two-dimensional or tabular
   layouts, ASCII-art with lines or boxes of asterisks etc.\ should be
   avoided.
 
@@ -447,12 +449,13 @@ text \<open>
   but help to analyse the nesting based on character matching in the
   text editor.
 
-  \medskip There are two main exceptions to the overall principle of
+  \<^medskip>
+  There are two main exceptions to the overall principle of
   compositionality in the layout of complex expressions.
 
   \begin{enumerate}
 
-  \item @{ML_text "if"} expressions are iterated as if ML had multi-branch
+  \<^enum> @{ML_text "if"} expressions are iterated as if ML had multi-branch
   conditionals, e.g.
 
   \begin{verbatim}
@@ -463,7 +466,7 @@ text \<open>
   else e3
   \end{verbatim}
 
-  \item @{ML_text fn} abstractions are often layed-out as if they
+  \<^enum> @{ML_text fn} abstractions are often layed-out as if they
   would lack any structure by themselves.  This traditional form is
   motivated by the possibility to shift function arguments back and
   forth wrt.\ additional combinators.  Example:
@@ -515,7 +518,8 @@ text \<open>
       ... end
   \end{verbatim}
 
-  \medskip In general the source layout is meant to emphasize the
+  \<^medskip>
+  In general the source layout is meant to emphasize the
   structure of complex language expressions, not to pretend that SML
   had a completely different syntax (say that of Haskell, Scala, Java).
 \<close>
@@ -584,10 +588,11 @@ text \<open>Here the ML environment is already managed by Isabelle, i.e.\
   compilation within independent nodes of the implicit theory development
   graph.}
 
-  \medskip The next example shows how to embed ML into Isar proofs, using
+  \<^medskip>
+  The next example shows how to embed ML into Isar proofs, using
   @{command_ref "ML_prf"} instead of @{command_ref "ML"}. As illustrated
   below, the effect on the ML environment is local to the whole proof body,
-  but ignoring the block structure. \<close>
+  but ignoring the block structure.\<close>
 
 notepad
 begin
@@ -603,7 +608,8 @@ text \<open>By side-stepping the normal scoping rules for Isar proof
   manipulate corresponding entities, e.g.\ export a fact from a block
   context.
 
-  \medskip Two further ML commands are useful in certain situations:
+  \<^medskip>
+  Two further ML commands are useful in certain situations:
   @{command_ref ML_val} and @{command_ref ML_command} are \emph{diagnostic} in
   the sense that there is no effect on the underlying environment, and can
   thus be used anywhere. The examples below produce long strings of digits by
@@ -681,7 +687,8 @@ text \<open>A very important consequence of embedding ML into Isar is the
   Here @{syntax nameref} and @{syntax args} are outer syntax categories, as
   defined in @{cite "isabelle-isar-ref"}.
 
-  \medskip A regular antiquotation @{text "@{name args}"} processes
+  \<^medskip>
+  A regular antiquotation @{text "@{name args}"} processes
   its arguments by the usual means of the Isar source language, and
   produces corresponding ML source text, either as literal
   \emph{inline} text (e.g.\ @{text "@{term t}"}) or abstract
@@ -781,7 +788,8 @@ text \<open>Standard ML is a language in the tradition of @{text
   \<alpha>"} or @{text "C: (\<alpha> \<rightarrow> \<beta> \<rightarrow> \<gamma>) \<rightarrow> (\<beta> \<rightarrow> \<alpha> \<rightarrow> \<gamma>)"} (the latter is not
   present in the Isabelle/ML library).
 
-  \medskip The main idea is that arguments that vary less are moved
+  \<^medskip>
+  The main idea is that arguments that vary less are moved
   further to the left than those that vary more.  Two particularly
   important categories of functions are \emph{selectors} and
   \emph{updates}.
@@ -830,27 +838,28 @@ text \<open>Regular function application and infix notation works best for
   improved by introducing \emph{forward} versions of application and
   composition as follows:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{lll}
   @{text "x |> f"} & @{text "\<equiv>"} & @{text "f x"} \\
   @{text "(f #> g) x"} & @{text "\<equiv>"} & @{text "x |> f |> g"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   This enables to write conveniently @{text "x |> f\<^sub>1 |> \<dots> |> f\<^sub>n"} or
   @{text "f\<^sub>1 #> \<dots> #> f\<^sub>n"} for its functional abstraction over @{text
   "x"}.
 
-  \medskip There is an additional set of combinators to accommodate
+  \<^medskip>
+  There is an additional set of combinators to accommodate
   multiple results (via pairs) that are passed on as multiple
   arguments (via currying).
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{lll}
   @{text "(x, y) |-> f"} & @{text "\<equiv>"} & @{text "f x y"} \\
   @{text "(f #-> g) x"} & @{text "\<equiv>"} & @{text "x |> f |-> g"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 \<close>
 
 text %mlref \<open>
@@ -944,7 +953,8 @@ text \<open>Note how @{ML "fold (Buffer.add o string_of_int)"} above saves
   memory (``deforestation''), but it requires some practice to read
   and write fluently.
 
-  \medskip The next example elaborates the idea of canonical
+  \<^medskip>
+  The next example elaborates the idea of canonical
   iteration, demonstrating fast accumulation of tree content using a
   text buffer.
 \<close>
@@ -1094,7 +1104,8 @@ ML_command \<open>
 \<close>
 
 text \<open>
-  \medskip An alternative is to make a paragraph of freely-floating words as
+  \<^medskip>
+  An alternative is to make a paragraph of freely-floating words as
   follows.
 \<close>
 
@@ -1154,7 +1165,8 @@ text \<open>The Standard ML semantics of strict functional evaluation
   ML runtime system attaches detailed source position stemming from the
   corresponding @{ML_text raise} keyword.
 
-  \medskip User modules can always introduce their own custom
+  \<^medskip>
+  User modules can always introduce their own custom
   exceptions locally, e.g.\ to organize internal failures robustly
   without overlapping with existing exceptions.  Exceptions that are
   exposed in module signatures require extra care, though, and should
@@ -1266,23 +1278,23 @@ text \<open>A \emph{symbol} constitutes the smallest textual unit in
 
   \begin{enumerate}
 
-  \item a single ASCII character ``@{text "c"}'', for example
+  \<^enum> a single ASCII character ``@{text "c"}'', for example
   ``@{verbatim a}'',
 
-  \item a codepoint according to UTF-8 (non-ASCII byte sequence),
+  \<^enum> a codepoint according to UTF-8 (non-ASCII byte sequence),
 
-  \item a regular symbol ``@{verbatim \<open>\\<close>}@{verbatim "<"}@{text
+  \<^enum> a regular symbol ``@{verbatim \<open>\\<close>}@{verbatim "<"}@{text
   "ident"}@{verbatim ">"}'', for example ``@{verbatim "\<alpha>"}'',
 
-  \item a control symbol ``@{verbatim \<open>\\<close>}@{verbatim "<^"}@{text
+  \<^enum> a control symbol ``@{verbatim \<open>\\<close>}@{verbatim "<^"}@{text
   "ident"}@{verbatim ">"}'', for example ``@{verbatim "\<^bold>"}'',
 
-  \item a raw symbol ``@{verbatim \<open>\\<close>}@{verbatim "<^raw:"}@{text
+  \<^enum> a raw symbol ``@{verbatim \<open>\\<close>}@{verbatim "<^raw:"}@{text
   text}@{verbatim ">"}'' where @{text text} consists of printable characters
   excluding ``@{verbatim "."}'' and ``@{verbatim ">"}'', for example
   ``@{verbatim "\<^raw:$\sum_{i = 1}^n$>"}'',
 
-  \item a numbered raw control symbol ``@{verbatim \<open>\\<close>}@{verbatim
+  \<^enum> a numbered raw control symbol ``@{verbatim \<open>\\<close>}@{verbatim
   "<^raw"}@{text n}@{verbatim ">"}, where @{text n} consists of digits, for
   example ``@{verbatim "\<^raw42>"}''.
 
@@ -1303,7 +1315,8 @@ text \<open>A \emph{symbol} constitutes the smallest textual unit in
   mathematical symbols, but within the core Isabelle/ML world there is no link
   to the standard collection of Isabelle regular symbols.
 
-  \medskip Output of Isabelle symbols depends on the print mode. For example,
+  \<^medskip>
+  Output of Isabelle symbols depends on the print mode. For example,
   the standard {\LaTeX} setup of the Isabelle document preparation system
   would present ``@{verbatim "\<alpha>"}'' as @{text "\<alpha>"}, and ``@{verbatim
   "\<^bold>\<alpha>"}'' as @{text "\<^bold>\<alpha>"}. On-screen rendering usually works by mapping a
@@ -1415,10 +1428,10 @@ text %mlref \<open>
 
   \begin{enumerate}
 
-  \item sequence of Isabelle symbols (see also \secref{sec:symbols}),
+  \<^enum> sequence of Isabelle symbols (see also \secref{sec:symbols}),
   with @{ML Symbol.explode} as key operation;
 
-  \item XML tree structure via YXML (see also @{cite "isabelle-system"}),
+  \<^enum> XML tree structure via YXML (see also @{cite "isabelle-system"}),
   with @{ML YXML.parse_body} as key operation.
 
   \end{enumerate}
@@ -1710,7 +1723,8 @@ text \<open>Multiple threads help to organize advanced operations of the
   speedup-factor of 3.5 on 4 cores and 6.5 on 8 cores can be expected
   @{cite "Wenzel:2013:ITP"}.
 
-  \medskip ML threads lack the memory protection of separate
+  \<^medskip>
+  ML threads lack the memory protection of separate
   processes, and operate concurrently on shared heap memory.  This has
   the advantage that results of independent computations are directly
   available to other threads: abstract values can be passed without
@@ -1750,15 +1764,15 @@ text \<open>Thread-safeness is mainly concerned about concurrent
 
   \begin{itemize}
 
-  \item Global references (or arrays), i.e.\ mutable memory cells that
+  \<^item> Global references (or arrays), i.e.\ mutable memory cells that
   persist over several invocations of associated
   operations.\footnote{This is independent of the visibility of such
   mutable values in the toplevel scope.}
 
-  \item Global state of the running Isabelle/ML process, i.e.\ raw I/O
+  \<^item> Global state of the running Isabelle/ML process, i.e.\ raw I/O
   channels, environment variables, current working directory.
 
-  \item Writable resources in the file-system that are shared among
+  \<^item> Writable resources in the file-system that are shared among
   different threads or external processes.
 
   \end{itemize}
@@ -1771,7 +1785,7 @@ text \<open>Thread-safeness is mainly concerned about concurrent
 
   \begin{itemize}
 
-  \item Avoid global references altogether.  Isabelle/Isar maintains a
+  \<^item> Avoid global references altogether.  Isabelle/Isar maintains a
   uniform context that incorporates arbitrary data declared by user
   programs (\secref{sec:context-data}).  This context is passed as
   plain value and user tools can get/map their own data in a purely
@@ -1779,7 +1793,7 @@ text \<open>Thread-safeness is mainly concerned about concurrent
   (\secref{sec:config-options}) provide simple drop-in replacements
   for historic reference variables.
 
-  \item Keep components with local state information re-entrant.
+  \<^item> Keep components with local state information re-entrant.
   Instead of poking initial values into (private) global references, a
   new state record can be created on each invocation, and passed
   through any auxiliary functions of the component.  The state record
@@ -1787,7 +1801,7 @@ text \<open>Thread-safeness is mainly concerned about concurrent
   synchronization, as long as each invocation gets its own copy and the
   tool itself is single-threaded.
 
-  \item Avoid raw output on @{text "stdout"} or @{text "stderr"}.  The
+  \<^item> Avoid raw output on @{text "stdout"} or @{text "stderr"}.  The
   Poly/ML library is thread-safe for each individual output operation,
   but the ordering of parallel invocations is arbitrary.  This means
   raw output will appear on some system console with unpredictable
@@ -1801,10 +1815,10 @@ text \<open>Thread-safeness is mainly concerned about concurrent
   only happen when commands use parallelism internally (and only at
   message boundaries).
 
-  \item Treat environment variables and the current working directory
+  \<^item> Treat environment variables and the current working directory
   of the running process as read-only.
 
-  \item Restrict writing to the file-system to unique temporary files.
+  \<^item> Restrict writing to the file-system to unique temporary files.
   Isabelle already provides a temporary directory that is unique for
   the running process, and there is a centralized source of unique
   serial numbers in Isabelle/ML.  Thus temporary files that are passed
@@ -1913,7 +1927,9 @@ ML_val \<open>
   @{assert} (a <> b);
 \<close>
 
-text \<open>\medskip See @{file "~~/src/Pure/Concurrent/mailbox.ML"} how
+text \<open>
+  \<^medskip>
+  See @{file "~~/src/Pure/Concurrent/mailbox.ML"} how
   to implement a mailbox as synchronized variable over a purely
   functional list.\<close>
 
@@ -1933,7 +1949,8 @@ text \<open>Execution of Standard ML follows the model of strict
   evaluation via futures, asynchronous evaluation via promises,
   evaluation with time limit etc.
 
-  \medskip An \emph{unevaluated expression} is represented either as
+  \<^medskip>
+  An \emph{unevaluated expression} is represented either as
   unit abstraction @{verbatim "fn () => a"} of type
   @{verbatim "unit -> 'a"} or as regular function
   @{verbatim "fn a => b"} of type @{verbatim "'a -> 'b"}.  Both forms
@@ -1948,7 +1965,8 @@ text \<open>Execution of Standard ML follows the model of strict
   be cascaded to modify a given function, before it is ultimately
   applied to some argument.
 
-  \medskip \emph{Reified results} make the disjoint sum of regular
+  \<^medskip>
+  \emph{Reified results} make the disjoint sum of regular
   values versions exceptional situations explicit as ML datatype:
   @{text "'a result = Res of 'a | Exn of exn"}.  This is typically
   used for administrative purposes, to store the overall outcome of an
@@ -2158,7 +2176,8 @@ text \<open>
   threads that get activated in certain explicit wait conditions, after a
   timeout.
 
-  \medskip Each future task belongs to some \emph{task group}, which
+  \<^medskip>
+  Each future task belongs to some \emph{task group}, which
   represents the hierarchic structure of related tasks, together with the
   exception status a that point. By default, the task group of a newly created
   future is a new sub-group of the presently running one, but it is also
@@ -2173,7 +2192,8 @@ text \<open>
   tasks that lack regular result information, will pick up parallel exceptions
   from the cumulative group status.
 
-  \medskip A \emph{passive future} or \emph{promise} is a future with slightly
+  \<^medskip>
+  A \emph{passive future} or \emph{promise} is a future with slightly
   different evaluation policies: there is only a single-assignment variable
   and some expression to evaluate for the \emph{failed} case (e.g.\ to clean
   up resources when canceled). A regular result is produced by external means,
@@ -2217,19 +2237,19 @@ text %mlref \<open>
 
   \begin{itemize}
 
-  \item @{text "name : string"} (default @{ML "\"\""}) specifies a common name
+  \<^item> @{text "name : string"} (default @{ML "\"\""}) specifies a common name
   for the tasks of the forked futures, which serves diagnostic purposes.
 
-  \item @{text "group : Future.group option"} (default @{ML NONE}) specifies
+  \<^item> @{text "group : Future.group option"} (default @{ML NONE}) specifies
   an optional task group for the forked futures. @{ML NONE} means that a new
   sub-group of the current worker-thread task context is created. If this is
   not a worker thread, the group will be a new root in the group hierarchy.
 
-  \item @{text "deps : Future.task list"} (default @{ML "[]"}) specifies
+  \<^item> @{text "deps : Future.task list"} (default @{ML "[]"}) specifies
   dependencies on other future tasks, i.e.\ the adjacency relation in the
   global task queue. Dependencies on already finished tasks are ignored.
 
-  \item @{text "pri : int"} (default @{ML 0}) specifies a priority within the
+  \<^item> @{text "pri : int"} (default @{ML 0}) specifies a priority within the
   task queue.
 
   Typically there is only little deviation from the default priority @{ML 0}.
@@ -2242,7 +2262,7 @@ text %mlref \<open>
   priority tasks that are queued later need to wait until this (or another)
   worker thread becomes free again.
 
-  \item @{text "interrupts : bool"} (default @{ML true}) tells whether the
+  \<^item> @{text "interrupts : bool"} (default @{ML true}) tells whether the
   worker thread that processes the corresponding task is initially put into
   interruptible state. This state may change again while running, by modifying
   the thread attributes.

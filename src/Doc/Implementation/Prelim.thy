@@ -22,17 +22,18 @@ text \<open>
   @{text "\<Gamma> \<turnstile> \<phi>"} is strictly limited to Simple Type Theory (with
   fixed type variables in the assumptions).
 
-  \medskip Contexts and derivations are linked by the following key
+  \<^medskip>
+  Contexts and derivations are linked by the following key
   principles:
 
   \begin{itemize}
 
-  \item Transfer: monotonicity of derivations admits results to be
+  \<^item> Transfer: monotonicity of derivations admits results to be
   transferred into a \emph{larger} context, i.e.\ @{text "\<Gamma> \<turnstile>\<^sub>\<Theta>
   \<phi>"} implies @{text "\<Gamma>' \<turnstile>\<^sub>\<Theta>\<^sub>' \<phi>"} for contexts @{text "\<Theta>'
   \<supseteq> \<Theta>"} and @{text "\<Gamma>' \<supseteq> \<Gamma>"}.
 
-  \item Export: discharge of hypotheses admits results to be exported
+  \<^item> Export: discharge of hypotheses admits results to be exported
   into a \emph{smaller} context, i.e.\ @{text "\<Gamma>' \<turnstile>\<^sub>\<Theta> \<phi>"}
   implies @{text "\<Gamma> \<turnstile>\<^sub>\<Theta> \<Delta> \<Longrightarrow> \<phi>"} where @{text "\<Gamma>' \<supseteq> \<Gamma>"} and
   @{text "\<Delta> = \<Gamma>' - \<Gamma>"}.  Note that @{text "\<Theta>"} remains unchanged here,
@@ -40,7 +41,8 @@ text \<open>
 
   \end{itemize}
 
-  \medskip By modeling the main characteristics of the primitive
+  \<^medskip>
+  By modeling the main characteristics of the primitive
   @{text "\<Theta>"} and @{text "\<Gamma>"} above, and abstracting over any
   particular logical content, we arrive at the fundamental notions of
   \emph{theory context} and \emph{proof context} in Isabelle/Isar.
@@ -60,7 +62,8 @@ text \<open>
   standard proof steps implicitly (cf.\ the @{text "rule"} method
   @{cite "isabelle-isar-ref"}).
 
-  \medskip Thus Isabelle/Isar is able to bring forth more and more
+  \<^medskip>
+  Thus Isabelle/Isar is able to bring forth more and more
   concepts successively.  In particular, an object-logic like
   Isabelle/HOL continues the Isabelle/Pure setup by adding specific
   components for automated reasoning (classical reasoner, tableau
@@ -85,7 +88,8 @@ text \<open>A \emph{theory} is a data container with explicit name and
   nameless incremental updates, until the final @{text "end"} operation is
   performed.
 
-  \medskip The example in \figref{fig:ex-theory} below shows a theory
+  \<^medskip>
+  The example in \figref{fig:ex-theory} below shows a theory
   graph derived from @{text "Pure"}, with theory @{text "Length"}
   importing @{text "Nat"} and @{text "List"}.  The body of @{text
   "Length"} consists of a sequence of updates, resulting in locally a
@@ -109,7 +113,8 @@ text \<open>A \emph{theory} is a data container with explicit name and
   \end{center}
   \end{figure}
 
-  \medskip Derived formal entities may retain a reference to the
+  \<^medskip>
+  Derived formal entities may retain a reference to the
   background theory in order to indicate the formal context from which
   they were produced.  This provides an immutable certificate of the
   background theory.\<close>
@@ -303,14 +308,14 @@ text \<open>The main purpose of theory and proof contexts is to manage
   \paragraph{Theory data} declarations need to implement the following
   ML signature:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{ll}
   @{text "\<type> T"} & representing type \\
   @{text "\<val> empty: T"} & empty default value \\
   @{text "\<val> extend: T \<rightarrow> T"} & re-initialize on import \\
   @{text "\<val> merge: T \<times> T \<rightarrow> T"} & join on import \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   The @{text "empty"} value acts as initial default for \emph{any}
   theory that does not declare actual data content; @{text "extend"}
@@ -329,12 +334,12 @@ text \<open>The main purpose of theory and proof contexts is to manage
   \paragraph{Proof context data} declarations need to implement the
   following ML signature:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{ll}
   @{text "\<type> T"} & representing type \\
   @{text "\<val> init: theory \<rightarrow> T"} & produce initial value \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   The @{text "init"} operation is supposed to produce a pure value
   from the given background theory and should be somehow
@@ -352,16 +357,17 @@ text \<open>The main purpose of theory and proof contexts is to manage
   predefined to select the current data value from the background
   theory.
 
-  \bigskip Any of the above data declarations over type @{text "T"}
+  \<^bigskip>
+  Any of the above data declarations over type @{text "T"}
   result in an ML structure with the following signature:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{ll}
   @{text "get: context \<rightarrow> T"} \\
   @{text "put: T \<rightarrow> context \<rightarrow> context"} \\
   @{text "map: (T \<rightarrow> T) \<rightarrow> context \<rightarrow> context"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   These other operations provide exclusive access for the particular
   kind of context (theory, proof, or generic context).  This interface
@@ -448,13 +454,14 @@ text \<open>Type @{ML_type "term Ord_List.T"} is used for reasonably
   exponential blowup.  Plain list append etc.\ must never be used for
   theory data merges!
 
-  \medskip Our intended invariant is achieved as follows:
+  \<^medskip>
+  Our intended invariant is achieved as follows:
   \begin{enumerate}
 
-  \item @{ML Wellformed_Terms.add} only admits terms that have passed
+  \<^enum> @{ML Wellformed_Terms.add} only admits terms that have passed
   the @{ML Sign.cert_term} check of the given theory at that point.
 
-  \item Wellformedness in the sense of @{ML Sign.cert_term} is
+  \<^enum> Wellformedness in the sense of @{ML Sign.cert_term} is
   monotonic wrt.\ the sub-theory relation.  So our data can move
   upwards in the hierarchy (via extension or merges), and maintain
   wellformedness without further checks.
@@ -610,17 +617,18 @@ text \<open>In principle, a name is just a string, but there are various
   e.g.\ the string ``@{verbatim \<alpha>}'' encodes as a single
   symbol (\secref{sec:symbols}).
 
-  \medskip Subsequently, we shall introduce specific categories of
+  \<^medskip>
+  Subsequently, we shall introduce specific categories of
   names.  Roughly speaking these correspond to logical entities as
   follows:
   \begin{itemize}
 
-  \item Basic names (\secref{sec:basic-name}): free and bound
+  \<^item> Basic names (\secref{sec:basic-name}): free and bound
   variables.
 
-  \item Indexed names (\secref{sec:indexname}): schematic variables.
+  \<^item> Indexed names (\secref{sec:indexname}): schematic variables.
 
-  \item Long names (\secref{sec:long-name}): constants of any kind
+  \<^item> Long names (\secref{sec:long-name}): constants of any kind
   (type constructors, term constants, other concepts defined in user
   space).  Such entities are typically managed via name spaces
   (\secref{sec:name-space}).
@@ -648,7 +656,8 @@ text \<open>
   as internal, which prevents mysterious names like @{text "xaa"} to
   appear in human-readable text.
 
-  \medskip Manipulating binding scopes often requires on-the-fly
+  \<^medskip>
+  Manipulating binding scopes often requires on-the-fly
   renamings.  A \emph{name context} contains a collection of already
   used names.  The @{text "declare"} operation adds names to the
   context.
@@ -725,8 +734,9 @@ ML_val \<open>
   @{assert} (list2 = ["x", "xa", "a", "aa", "'a", "'aa"]);
 \<close>
 
-text \<open>\medskip The same works relatively to the formal context as
-  follows.\<close>
+text \<open>
+  \<^medskip>
+  The same works relatively to the formal context as follows.\<close>
 
 experiment fixes a b c :: 'a
 begin
@@ -761,16 +771,17 @@ text \<open>
   indexed names: then @{text "(x, -1)"} is used to encode the basic
   name @{text "x"}.
 
-  \medskip Isabelle syntax observes the following rules for
+  \<^medskip>
+  Isabelle syntax observes the following rules for
   representing an indexname @{text "(x, i)"} as a packed string:
 
   \begin{itemize}
 
-  \item @{text "?x"} if @{text "x"} does not end with a digit and @{text "i = 0"},
+  \<^item> @{text "?x"} if @{text "x"} does not end with a digit and @{text "i = 0"},
 
-  \item @{text "?xi"} if @{text "x"} does not end with a digit,
+  \<^item> @{text "?xi"} if @{text "x"} does not end with a digit,
 
-  \item @{text "?x.i"} otherwise.
+  \<^item> @{text "?x.i"} otherwise.
 
   \end{itemize}
 
@@ -861,13 +872,15 @@ text \<open>A @{text "name space"} manages a collection of long names,
   "declare"} operation augments a name space according to the accesses
   determined by a given binding, and a naming policy from the context.
 
-  \medskip A @{text "binding"} specifies details about the prospective
+  \<^medskip>
+  A @{text "binding"} specifies details about the prospective
   long name of a newly introduced formal entity.  It consists of a
   base name, prefixes for qualification (separate ones for system
   infrastructure and user-space mechanisms), a slot for the original
   source position, and some additional flags.
 
-  \medskip A @{text "naming"} provides some additional details for
+  \<^medskip>
+  A @{text "naming"} provides some additional details for
   producing a long name from a binding.  Normally, the naming is
   implicit in the theory or proof context.  The @{text "full"}
   operation (and its variants for different context types) produces a
@@ -875,12 +888,13 @@ text \<open>A @{text "name space"} manages a collection of long names,
   main equation of this ``chemical reaction'' when binding new
   entities in a context is as follows:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{l}
   @{text "binding + naming \<longrightarrow> long name + name space accesses"}
   \end{tabular}
 
-  \bigskip As a general principle, there is a separate name space for
+  \<^bigskip>
+  As a general principle, there is a separate name space for
   each kind of formal entity, e.g.\ fact, logical constant, type
   constructor, type class.  It is usually clear from the occurrence in
   concrete syntax (or from the scope) which kind of entity a name
@@ -897,7 +911,7 @@ text \<open>A @{text "name space"} manages a collection of long names,
   qualification.  This leads to the following conventions for derived
   names:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{ll}
   logical entity & fact name \\\hline
   constant @{text "c"} & @{text "c.intro"} \\
@@ -1041,8 +1055,9 @@ text %mlex \<open>The following example yields the source position of some
 
 ML_val \<open>Binding.pos_of @{binding here}\<close>
 
-text \<open>\medskip That position can be also printed in a message as
-  follows:\<close>
+text \<open>
+  \<^medskip>
+  That position can be also printed in a message as follows:\<close>
 
 ML_command
   \<open>writeln
@@ -1053,7 +1068,8 @@ text \<open>This illustrates a key virtue of formalized bindings as
   additional information for feedback given to the user (error
   messages etc.).
 
-  \medskip The following example refers to its source position
+  \<^medskip>
+  The following example refers to its source position
   directly, which is occasionally useful for experimentation and
   diagnostic purposes:\<close>
 

@@ -36,7 +36,8 @@ text \<open>
   The language of types is an uninterpreted order-sorted first-order
   algebra; types are qualified by ordered type classes.
 
-  \medskip A \emph{type class} is an abstract syntactic entity
+  \<^medskip>
+  A \emph{type class} is an abstract syntactic entity
   declared in the theory context.  The \emph{subclass relation} @{text
   "c\<^sub>1 \<subseteq> c\<^sub>2"} is specified by stating an acyclic
   generating relation; the transitive closure is maintained
@@ -55,7 +56,8 @@ text \<open>
   empty one!  The intersection of all (finitely many) classes declared
   in the current theory is the least element wrt.\ the sort ordering.
 
-  \medskip A \emph{fixed type variable} is a pair of a basic name
+  \<^medskip>
+  A \emph{fixed type variable} is a pair of a basic name
   (starting with a @{text "'"} character) and a sort constraint, e.g.\
   @{text "('a, s)"} which is usually printed as @{text "\<alpha>\<^sub>s"}.
   A \emph{schematic type variable} is a pair of an indexname and a
@@ -96,7 +98,8 @@ text \<open>
   completed, i.e.\ @{text "\<kappa> :: (\<^vec>s)c"} entails @{text "\<kappa> ::
   (\<^vec>s)c'"} for any @{text "c' \<supseteq> c"}.
 
-  \medskip The sort algebra is always maintained as \emph{coregular},
+  \<^medskip>
+  The sort algebra is always maintained as \emph{coregular},
   which means that type arities are consistent with the subclass
   relation: for any type constructor @{text "\<kappa>"}, and classes @{text
   "c\<^sub>1 \<subseteq> c\<^sub>2"}, and arities @{text "\<kappa> ::
@@ -242,7 +245,8 @@ text \<open>
   corresponding binders.  In contrast, free variables and constants
   have an explicit name and type in each occurrence.
 
-  \medskip A \emph{bound variable} is a natural number @{text "b"},
+  \<^medskip>
+  A \emph{bound variable} is a natural number @{text "b"},
   which accounts for the number of intermediate binders between the
   variable occurrence in the body and its binding position.  For
   example, the de-Bruijn term @{text "\<lambda>\<^bsub>bool\<^esub>. \<lambda>\<^bsub>bool\<^esub>. 1 \<and> 0"} would
@@ -263,7 +267,8 @@ text \<open>
   e.g.\ @{text "((x, 0), \<tau>)"} which is likewise printed as @{text
   "?x\<^sub>\<tau>"}.
 
-  \medskip A \emph{constant} is a pair of a basic name and a type,
+  \<^medskip>
+  A \emph{constant} is a pair of a basic name and a type,
   e.g.\ @{text "(c, \<tau>)"} which is usually printed as @{text "c\<^sub>\<tau>"}
   here.  Constants are declared in the context as polymorphic families
   @{text "c :: \<sigma>"}, meaning that all substitution instances @{text
@@ -287,7 +292,8 @@ text \<open>
   polymorphic constants that the user-level type-checker would reject
   due to violation of type class restrictions.
 
-  \medskip An \emph{atomic term} is either a variable or constant.
+  \<^medskip>
+  An \emph{atomic term} is either a variable or constant.
   The logical category \emph{term} is defined inductively over atomic
   terms, with abstraction and application as follows: @{text "t = b |
   x\<^sub>\<tau> | ?x\<^sub>\<tau> | c\<^sub>\<tau> | \<lambda>\<^sub>\<tau>. t | t\<^sub>1 t\<^sub>2"}.  Parsing and printing takes care of
@@ -320,7 +326,8 @@ text \<open>
   name, but different types.  In contrast, mixed instances of
   polymorphic constants occur routinely.
 
-  \medskip The \emph{hidden polymorphism} of a term @{text "t :: \<sigma>"}
+  \<^medskip>
+  The \emph{hidden polymorphism} of a term @{text "t :: \<sigma>"}
   is the set of type variables occurring in @{text "t"}, but not in
   its type @{text "\<sigma>"}.  This means that the term implicitly depends
   on type arguments that are not accounted in the result type, i.e.\
@@ -328,14 +335,16 @@ text \<open>
   @{text "t\<vartheta>' :: \<sigma>"} with the same type.  This slightly
   pathological situation notoriously demands additional care.
 
-  \medskip A \emph{term abbreviation} is a syntactic definition @{text
+  \<^medskip>
+  A \emph{term abbreviation} is a syntactic definition @{text
   "c\<^sub>\<sigma> \<equiv> t"} of a closed term @{text "t"} of type @{text "\<sigma>"},
   without any hidden polymorphism.  A term abbreviation looks like a
   constant in the syntax, but is expanded before entering the logical
   core.  Abbreviations are usually reverted when printing terms, using
   @{text "t \<rightarrow> c\<^sub>\<sigma>"} as rules for higher-order rewriting.
 
-  \medskip Canonical operations on @{text "\<lambda>"}-terms include @{text
+  \<^medskip>
+  Canonical operations on @{text "\<lambda>"}-terms include @{text
   "\<alpha>\<beta>\<eta>"}-conversion: @{text "\<alpha>"}-conversion refers to capture-free
   renaming of bound variables; @{text "\<beta>"}-conversion contracts an
   abstraction applied to an argument term, substituting the argument
@@ -569,7 +578,8 @@ text \<open>
   the PTS framework @{cite "Barendregt-Geuvers:2001"}, where hypotheses
   @{text "x : A"} are treated uniformly for propositions and types.}
 
-  \medskip The axiomatization of a theory is implicitly closed by
+  \<^medskip>
+  The axiomatization of a theory is implicitly closed by
   forming all instances of type and term variables: @{text "\<turnstile>
   A\<vartheta>"} holds for any substitution instance of an axiom
   @{text "\<turnstile> A"}.  By pushing substitutions through derivations
@@ -602,7 +612,8 @@ text \<open>
   correct, but @{text "\<Gamma>\<vartheta> \<supseteq> \<Gamma>"} does not necessarily hold:
   the result belongs to a different proof context.
 
-  \medskip An \emph{oracle} is a function that produces axioms on the
+  \<^medskip>
+  An \emph{oracle} is a function that produces axioms on the
   fly.  Logically, this is an instance of the @{text "axiom"} rule
   (\figref{fig:prim-rules}), but there is an operational difference.
   The system always records oracle invocations within derivations of
@@ -1036,13 +1047,13 @@ text \<open>
   Formulae} in the literature @{cite "Miller:1991"}.  Here we give an
   inductive characterization as follows:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{ll}
   @{text "\<^bold>x"} & set of variables \\
   @{text "\<^bold>A"} & set of atomic propositions \\
   @{text "\<^bold>H  =  \<And>\<^bold>x\<^sup>*. \<^bold>H\<^sup>* \<Longrightarrow> \<^bold>A"} & set of Hereditary Harrop Formulas \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   Thus we essentially impose nesting levels on propositions formed
   from @{text "\<And>"} and @{text "\<Longrightarrow>"}.  At each level there is a prefix
@@ -1054,17 +1065,18 @@ text \<open>
   already marks the limit of rule complexity that is usually seen in
   practice.
 
-  \medskip Regular user-level inferences in Isabelle/Pure always
+  \<^medskip>
+  Regular user-level inferences in Isabelle/Pure always
   maintain the following canonical form of results:
 
   \begin{itemize}
 
-  \item Normalization by @{text "(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)"},
+  \<^item> Normalization by @{text "(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)"},
   which is a theorem of Pure, means that quantifiers are pushed in
   front of implication at each level of nesting.  The normal form is a
   Hereditary Harrop Formula.
 
-  \item The outermost prefix of parameters is represented via
+  \<^item> The outermost prefix of parameters is represented via
   schematic variables: instead of @{text "\<And>\<^vec>x. \<^vec>H \<^vec>x
   \<Longrightarrow> A \<^vec>x"} we have @{text "\<^vec>H ?\<^vec>x \<Longrightarrow> A ?\<^vec>x"}.
   Note that this representation looses information about the order of
@@ -1225,7 +1237,8 @@ text \<open>The Isabelle/Pure inference kernel can record the proof of
   @{cite "Barendregt-Geuvers:2001"}, if some fine points like schematic
   polymorphism and type classes are ignored.
 
-  \medskip\emph{Proof abstractions} of the form @{text "\<^bold>\<lambda>x :: \<alpha>. prf"}
+  \<^medskip>
+  \emph{Proof abstractions} of the form @{text "\<^bold>\<lambda>x :: \<alpha>. prf"}
   or @{text "\<^bold>\<lambda>p : A. prf"} correspond to introduction of @{text
   "\<And>"}/@{text "\<Longrightarrow>"}, and \emph{proof applications} of the form @{text
   "p \<cdot> t"} or @{text "p \<bullet> q"} correspond to elimination of @{text
@@ -1233,7 +1246,8 @@ text \<open>The Isabelle/Pure inference kernel can record the proof of
   "A"}, and terms @{text "t"} might be suppressed and reconstructed
   from the overall proof term.
 
-  \medskip Various atomic proofs indicate special situations within
+  \<^medskip>
+  Various atomic proofs indicate special situations within
   the proof construction as follows.
 
   A \emph{bound proof variable} is a natural number @{text "b"} that
@@ -1326,7 +1340,8 @@ text \<open>The concrete syntax of proof terms is a slight extension of
   using @{text "p \<cdot> TYPE(type)"} (they must appear before any other
   term argument of a theorem or axiom, but may be omitted altogether).
 
-  \medskip There are separate read and print operations for proof
+  \<^medskip>
+  There are separate read and print operations for proof
   terms, in order to avoid conflicts with the regular term language.
 \<close>
 
@@ -1436,7 +1451,8 @@ text \<open>The result refers to various basic facts of Isabelle/HOL:
   recursively explores the graph of the proofs of all theorems being
   used here.
 
-  \medskip Alternatively, we may produce a proof term manually, and
+  \<^medskip>
+  Alternatively, we may produce a proof term manually, and
   turn it into a theorem as follows:\<close>
 
 ML_val \<open>
@@ -1454,7 +1470,9 @@ ML_val \<open>
     |> Drule.export_without_context;
 \<close>
 
-text \<open>\medskip See also @{file "~~/src/HOL/Proofs/ex/XML_Data.thy"}
+text \<open>
+  \<^medskip>
+  See also @{file "~~/src/HOL/Proofs/ex/XML_Data.thy"}
   for further examples, with export and import of proof terms via
   XML/ML data representation.
 \<close>

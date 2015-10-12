@@ -41,7 +41,8 @@ text \<open>
   "#C"} here.  This ensures that the decomposition into subgoals and
   main conclusion is well-defined for arbitrarily structured claims.
 
-  \medskip Basic goal management is performed via the following
+  \<^medskip>
+  Basic goal management is performed via the following
   Isabelle/Pure rules:
 
   \[
@@ -49,7 +50,8 @@ text \<open>
   \infer[@{text "(finish)"}]{@{text "C"}}{@{text "#C"}}
   \]
 
-  \medskip The following low-level variants admit general reasoning
+  \<^medskip>
+  The following low-level variants admit general reasoning
   with protected propositions:
 
   \[
@@ -115,7 +117,8 @@ text \<open>A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^s
   combinators for building proof tools that involve search
   systematically, see also \secref{sec:tacticals}.
 
-  \medskip As explained before, a goal state essentially consists of a
+  \<^medskip>
+  As explained before, a goal state essentially consists of a
   list of subgoals that imply the main goal (conclusion).  Tactics may
   operate on all subgoals or on a particularly specified subgoal, but
   must not change the main conclusion (apart from instantiating
@@ -143,22 +146,23 @@ text \<open>A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^s
   index as @{text "int"} argument in full generality; a hardwired
   subgoal 1 is not acceptable.
   
-  \medskip The main well-formedness conditions for proper tactics are
+  \<^medskip>
+  The main well-formedness conditions for proper tactics are
   summarized as follows.
 
   \begin{itemize}
 
-  \item General tactic failure is indicated by an empty result, only
+  \<^item> General tactic failure is indicated by an empty result, only
   serious faults may produce an exception.
 
-  \item The main conclusion must not be changed, apart from
+  \<^item> The main conclusion must not be changed, apart from
   instantiating schematic variables.
 
-  \item A tactic operates either uniformly on all subgoals, or
+  \<^item> A tactic operates either uniformly on all subgoals, or
   specifically on a selected subgoal (without bumping into unrelated
   subgoals).
 
-  \item Range errors in subgoal addressing produce an empty result.
+  \<^item> Range errors in subgoal addressing produce an empty result.
 
   \end{itemize}
 
@@ -251,7 +255,8 @@ text \<open>\emph{Resolution} is the most basic mechanism for refining a
   Assumption tactics close a subgoal by unifying some of its premises
   against its conclusion.
 
-  \medskip All the tactics in this section operate on a subgoal
+  \<^medskip>
+  All the tactics in this section operate on a subgoal
   designated by a positive integer.  Other subgoals might be affected
   indirectly, due to instantiation of schematic variables.
 
@@ -261,12 +266,12 @@ text \<open>\emph{Resolution} is the most basic mechanism for refining a
 
   \begin{enumerate}
 
-  \item selecting one of the rules given as argument to the tactic;
+  \<^enum> selecting one of the rules given as argument to the tactic;
 
-  \item selecting a subgoal premise to eliminate, unifying it against
+  \<^enum> selecting a subgoal premise to eliminate, unifying it against
   the first premise of the rule;
 
-  \item unifying the conclusion of the subgoal to the conclusion of
+  \<^enum> unifying the conclusion of the subgoal to the conclusion of
   the rule.
 
   \end{enumerate}
@@ -366,7 +371,8 @@ text \<open>The main resolution tactics (\secref{sec:resolve-assume-tac})
   "?P"}, according to the shape of the given subgoal.  This is
   sufficiently well-behaved in most practical situations.
 
-  \medskip Isabelle provides separate versions of the standard @{text
+  \<^medskip>
+  Isabelle provides separate versions of the standard @{text
   "r/e/d/f"} resolution tactics that allow to provide explicit
   instantiations of unknowns of the given rule, wrt.\ terms that refer
   to the implicit context of the selected subgoal.
@@ -675,15 +681,15 @@ text %mlex \<open>The basic tactics and tacticals considered above follow
 
   \begin{itemize}
 
-  \item @{ML all_tac} is the identity element of the tactical @{ML_op
+  \<^item> @{ML all_tac} is the identity element of the tactical @{ML_op
   "THEN"}.
 
-  \item @{ML no_tac} is the identity element of @{ML_op "ORELSE"} and
+  \<^item> @{ML no_tac} is the identity element of @{ML_op "ORELSE"} and
   @{ML_op "APPEND"}.  Also, it is a zero element for @{ML_op "THEN"},
   which means that @{text "tac"}~@{ML_op THEN}~@{ML no_tac} is
   equivalent to @{ML no_tac}.
 
-  \item @{ML TRY} and @{ML REPEAT} can be expressed as (recursive)
+  \<^item> @{ML TRY} and @{ML REPEAT} can be expressed as (recursive)
   functions over more basic combinators (ignoring some internal
   implementation tricks):
 

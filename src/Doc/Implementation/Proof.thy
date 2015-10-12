@@ -30,7 +30,8 @@ text \<open>
   @{text "\<turnstile> B(?\<alpha>)"} represents the idea of ``@{text "\<turnstile> \<forall>\<alpha>. B(\<alpha>)"}''
   without demanding a truly polymorphic framework.
 
-  \medskip Additional care is required to treat type variables in a
+  \<^medskip>
+  Additional care is required to treat type variables in a
   way that facilitates type-inference.  In principle, term variables
   depend on type variables, which means that type variables would have
   to be declared first.  For example, a raw type-theoretic framework
@@ -237,7 +238,8 @@ text \<open>
   A\<^sub>n \<turnstile> B"} where @{text "A\<^sub>1, \<dots>, A\<^sub>n"} needs to
   be covered by the assumptions of the current context.
 
-  \medskip The @{text "add_assms"} operation augments the context by
+  \<^medskip>
+  The @{text "add_assms"} operation augments the context by
   local assumptions, which are parameterized by an arbitrary @{text
   "export"} rule (see below).
 
@@ -249,7 +251,8 @@ text \<open>
   separate flag to indicate a goal context, where the result is meant
   to refine an enclosing sub-goal of a structured proof state.
 
-  \medskip The most basic export rule discharges assumptions directly
+  \<^medskip>
+  The most basic export rule discharges assumptions directly
   by means of the @{text "\<Longrightarrow>"} introduction rule:
   \[
   \infer[(@{text "\<Longrightarrow>\<hyphen>intro"})]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
@@ -262,7 +265,8 @@ text \<open>
   \infer[(@{text "#\<Longrightarrow>\<hyphen>intro"})]{@{text "\<Gamma> - A \<turnstile> #A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
   \]
 
-  \medskip Alternative versions of assumptions may perform arbitrary
+  \<^medskip>
+  Alternative versions of assumptions may perform arbitrary
   transformations on export, as long as the corresponding portion of
   hypotheses is removed from the given facts.  For example, a local
   definition works by fixing @{text "x"} and assuming @{text "x \<equiv> t"},
@@ -354,7 +358,8 @@ text \<open>
   references to free variables or assumptions not present in the proof
   context.
 
-  \medskip The @{text "SUBPROOF"} combinator allows to structure a
+  \<^medskip>
+  The @{text "SUBPROOF"} combinator allows to structure a
   tactical proof recursively by decomposing a selected sub-goal:
   @{text "(\<And>x. A(x) \<Longrightarrow> B(x)) \<Longrightarrow> \<dots>"} is turned into @{text "B(x) \<Longrightarrow> \<dots>"}
   after fixing @{text "x"} and assuming @{text "A(x)"}.  This means
@@ -482,7 +487,9 @@ begin
     sorry
 end
 
-text \<open>\medskip The next example demonstrates forward-elimination in
+text \<open>
+  \<^medskip>
+  The next example demonstrates forward-elimination in
   a local context, using @{ML Obtain.result}.\<close>
 
 notepad

@@ -10,7 +10,7 @@ text \<open>The Isar proof language (see also
 
   \begin{enumerate}
 
-  \item Proof \emph{commands} define the primary language of
+  \<^enum> Proof \emph{commands} define the primary language of
   transactions of the underlying Isar/VM interpreter.  Typical
   examples are @{command "fix"}, @{command "assume"}, @{command
   "show"}, @{command "proof"}, and @{command "qed"}.
@@ -19,7 +19,7 @@ text \<open>The Isar proof language (see also
   to expressions of structured proof text, such that both the machine
   and the human reader can give it a meaning as formal reasoning.
 
-  \item Proof \emph{methods} define a secondary language of mixed
+  \<^enum> Proof \emph{methods} define a secondary language of mixed
   forward-backward refinement steps involving facts and goals.
   Typical examples are @{method rule}, @{method unfold}, and @{method
   simp}.
@@ -28,7 +28,7 @@ text \<open>The Isar proof language (see also
   language, say as arguments to @{command "proof"}, @{command "qed"},
   or @{command "by"}.
 
-  \item \emph{Attributes} define a tertiary language of small
+  \<^enum> \emph{Attributes} define a tertiary language of small
   annotations to theorems being defined or referenced.  Attributes can
   modify both the context and the theorem.
 
@@ -191,14 +191,14 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
 
   \begin{itemize}
 
-  \item Goal addressing is further limited either to operate
+  \<^item> Goal addressing is further limited either to operate
   uniformly on \emph{all} subgoals, or specifically on the
   \emph{first} subgoal.
 
   Exception: old-style tactic emulations that are embedded into the
   method space, e.g.\ @{method rule_tac}.
 
-  \item A non-trivial method always needs to make progress: an
+  \<^item> A non-trivial method always needs to make progress: an
   identical follow-up goal state has to be avoided.\footnote{This
   enables the user to write method expressions like @{text "meth\<^sup>+"}
   without looping, while the trivial do-nothing case can be recovered
@@ -207,13 +207,14 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   Exception: trivial stuttering steps, such as ``@{method -}'' or
   @{method succeed}.
 
-  \item Goal facts passed to the method must not be ignored.  If there
+  \<^item> Goal facts passed to the method must not be ignored.  If there
   is no sensible use of facts outside the goal state, facts should be
   inserted into the subgoals that are addressed by the method.
 
   \end{itemize}
 
-  \medskip Syntactically, the language of proof methods appears as
+  \<^medskip>
+  Syntactically, the language of proof methods appears as
   arguments to Isar commands like @{command "by"} or @{command apply}.
   User-space additions are reasonably easy by plugging suitable
   method-valued parser functions into the framework, using the
@@ -223,14 +224,14 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   following Isar proof schemes.  This is the general form of
   structured proof text:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{l}
   @{command from}~@{text "facts\<^sub>1"}~@{command have}~@{text "props"}~@{command using}~@{text "facts\<^sub>2"} \\
   @{command proof}~@{text "(initial_method)"} \\
   \quad@{text "body"} \\
   @{command qed}~@{text "(terminal_method)"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   The goal configuration consists of @{text "facts\<^sub>1"} and
   @{text "facts\<^sub>2"} appended in that order, and various @{text
@@ -240,9 +241,10 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   "terminal_method"} has another chance to finish any remaining
   subgoals, but it does not see the facts of the initial step.
 
-  \medskip This pattern illustrates unstructured proof scripts:
+  \<^medskip>
+  This pattern illustrates unstructured proof scripts:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{l}
   @{command have}~@{text "props"} \\
   \quad@{command using}~@{text "facts\<^sub>1"}~@{command apply}~@{text "method\<^sub>1"} \\
@@ -250,7 +252,7 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   \quad@{command using}~@{text "facts\<^sub>3"}~@{command apply}~@{text "method\<^sub>3"} \\
   \quad@{command done} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   The @{text "method\<^sub>1"} operates on the original claim while
   using @{text "facts\<^sub>1"}.  Since the @{command apply} command
@@ -259,12 +261,13 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   "method\<^sub>3"} will see again a collection of @{text
   "facts\<^sub>3"} that has been inserted into the script explicitly.
 
-  \medskip Empirically, any Isar proof method can be categorized as
+  \<^medskip>
+  Empirically, any Isar proof method can be categorized as
   follows.
 
   \begin{enumerate}
 
-  \item \emph{Special method with cases} with named context additions
+  \<^enum> \emph{Special method with cases} with named context additions
   associated with the follow-up goal state.
 
   Example: @{method "induct"}, which is also a ``raw'' method since it
@@ -272,18 +275,18 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   Pure conjunction (\secref{sec:logic-aux}), instead of separate
   subgoals (\secref{sec:tactical-goals}).
 
-  \item \emph{Structured method} with strong emphasis on facts outside
+  \<^enum> \emph{Structured method} with strong emphasis on facts outside
   the goal state.
 
   Example: @{method "rule"}, which captures the key ideas behind
   structured reasoning in Isar in its purest form.
 
-  \item \emph{Simple method} with weaker emphasis on facts, which are
+  \<^enum> \emph{Simple method} with weaker emphasis on facts, which are
   inserted into subgoals to emulate old-style tactical ``premises''.
 
   Examples: @{method "simp"}, @{method "blast"}, @{method "auto"}.
 
-  \item \emph{Old-style tactic emulation} with detailed numeric goal
+  \<^enum> \emph{Old-style tactic emulation} with detailed numeric goal
   addressing and explicit references to entities of the internal goal
   state (which are otherwise invisible from proper Isar proof text).
   The naming convention @{text "foo_tac"} makes this special
@@ -353,7 +356,8 @@ text %mlref \<open>
 text %mlex \<open>See also @{command method_setup} in
   @{cite "isabelle-isar-ref"} which includes some abstract examples.
 
-  \medskip The following toy examples illustrate how the goal facts
+  \<^medskip>
+  The following toy examples illustrate how the goal facts
   and state are passed to proof methods.  The predefined proof method
   called ``@{method tactic}'' wraps ML source of type @{ML_type
   tactic} (abstracted over @{ML_text facts}).  This allows immediate
@@ -378,7 +382,9 @@ begin
     done
 end
 
-text \<open>\medskip The next example implements a method that simplifies
+text \<open>
+  \<^medskip>
+  The next example implements a method that simplifies
   the first subgoal by rewrite rules that are given as arguments.\<close>
 
 method_setup my_simp =
@@ -404,8 +410,8 @@ text \<open>The concrete syntax wrapping of @{command method_setup} always
   states are filtered out explicitly to make the raw tactic conform to
   standard Isar method behaviour.
 
-  \medskip Method @{method my_simp} can be used in Isar proofs like
-  this:
+  \<^medskip>
+  Method @{method my_simp} can be used in Isar proofs like this:
 \<close>
 
 notepad
@@ -435,7 +441,9 @@ begin
   have "a = c" and "c = b" by (my_simp_all a b)
 end
 
-text \<open>\medskip Apart from explicit arguments, common proof methods
+text \<open>
+  \<^medskip>
+  Apart from explicit arguments, common proof methods
   typically work with a default configuration provided by the context. As a
   shortcut to rule management we use a cheap solution via the @{command
   named_theorems} command to declare a dynamic fact in the context.\<close>
@@ -458,7 +466,8 @@ method_setup my_simp' =
   "rewrite subgoal by given rules and my_simp rules from the context"
 
 text \<open>
-  \medskip Method @{method my_simp'} can be used in Isar proofs
+  \<^medskip>
+  Method @{method my_simp'} can be used in Isar proofs
   like this:
 \<close>
 
@@ -470,7 +479,9 @@ begin
   have "a \<equiv> c" by my_simp'
 end
 
-text \<open>\medskip The @{method my_simp} variants defined above are
+text \<open>
+  \<^medskip>
+  The @{method my_simp} variants defined above are
   ``simple'' methods, i.e.\ the goal facts are merely inserted as goal
   premises by the @{ML SIMPLE_METHOD'} or @{ML SIMPLE_METHOD} wrapper.
   For proof methods that are similar to the standard collection of
@@ -485,7 +496,8 @@ text \<open>\medskip The @{method my_simp} variants defined above are
   "by"}~@{text "my_simp"}'' where @{text "foo"} is not used would
   deceive the reader.
 
-  \medskip The technical treatment of rules from the context requires
+  \<^medskip>
+  The technical treatment of rules from the context requires
   further attention.  Above we rebuild a fresh @{ML_type simpset} from
   the arguments and \emph{all} rules retrieved from the context on
   every invocation of the method.  This does not scale to really large
