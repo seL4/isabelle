@@ -10,6 +10,7 @@ sig
   val output_known_symbols: (string -> bool) * (string -> bool) ->
     Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
+  val output_ctrl_symbols: Symbol.symbol list -> string
   val output_basic: Token.T -> string
   val output_markup: string -> string -> string
   val output_markup_env: string -> string -> string
@@ -102,6 +103,11 @@ fun output_known_sym (known_sym, known_ctrl) sym =
   | Symbol.Malformed s => error (Symbol.malformed_msg s)
   | Symbol.EOF => error "Bad EOF symbol");
 
+fun output_ctrl_sym sym =
+  (case Symbol.decode sym of
+    Symbol.Ctrl s => enclose "\\isactrl" " " s
+  | _ => sym);
+
 in
 
 val output_known_symbols = implode oo (map o output_known_sym);
@@ -113,6 +119,8 @@ val output_syms_antiq =
     | Antiquote.Antiq (ss, _) =>
         enclose "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n"
           (output_symbols (map Symbol_Pos.symbol ss)));
+
+val output_ctrl_symbols = implode o map output_ctrl_sym;
 
 end;
 
@@ -138,13 +146,16 @@ fun output_basic tok =
     else if Token.is_kind Token.Cartouche tok then
       enclose "{\\isacartoucheopen}" "{\\isacartoucheclose}" (output_syms s)
     else output_syms s
-  end;
+  end handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
-fun output_markup cmd txt = "%\n\\isamarkup" ^ cmd ^ "{" ^ Symbol.strip_blanks txt ^ "%\n}\n";
+val output_text =
+  Symbol.strip_blanks #> Symbol.explode #> output_ctrl_symbols;
+
+fun output_markup cmd txt = "%\n\\isamarkup" ^ cmd ^ "{" ^ output_text txt ^ "%\n}\n";
 
 fun output_markup_env cmd txt =
   "%\n\\begin{isamarkup" ^ cmd ^ "}%\n" ^
-  Symbol.strip_blanks txt ^
+  output_text txt ^
   "%\n\\end{isamarkup" ^ cmd ^ "}%\n";
 
 fun output_verbatim txt = "%\n" ^ Symbol.strip_blanks txt ^ "\n";
