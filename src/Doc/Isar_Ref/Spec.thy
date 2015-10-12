@@ -45,7 +45,8 @@ text \<open>
   refer to local parameters and assumptions that are discharged later. See
   \secref{sec:target} for more details.
 
-  \medskip A theory is commenced by the @{command "theory"} command, which
+  \<^medskip>
+  A theory is commenced by the @{command "theory"} command, which
   indicates imports of previous theories, according to an acyclic
   foundational order. Before the initial @{command "theory"} command, there
   may be optional document header material (like @{command section} or
@@ -199,7 +200,8 @@ text \<open>
   "("}@{keyword "in"}~@{text "c)"}, but individual syntax diagrams omit that
   aspect for clarity.
 
-  \medskip The exact meaning of results produced within a local theory
+  \<^medskip>
+  The exact meaning of results produced within a local theory
   context depends on the underlying target infrastructure (locale, type
   class etc.). The general idea is as follows, considering a context named
   @{text c} with parameter @{text x} and assumption @{text "A[x]"}.
@@ -628,7 +630,8 @@ text \<open>
   \secref{sec:goals}, term bindings may be included as expected,
   though.
   
-  \medskip Locale specifications are ``closed up'' by
+  \<^medskip>
+  Locale specifications are ``closed up'' by
   turning the given text into a predicate definition @{text
   loc_axioms} and deriving the original assumptions as local lemmas
   (modulo local definitions).  The predicate statement covers only the
@@ -847,9 +850,13 @@ text \<open>
   of @{command "interpretation"} and @{command "sublocale"}.  It is
   available by importing theory @{file "~~/src/Tools/Permanent_Interpretation.thy"}
   and provides
+
   \begin{enumerate}
-    \item a unified view on arbitrary suitable local theories as interpretation target; 
-    \item rewrite morphisms by means of \emph{rewrite definitions}. 
+
+  \<^enum> a unified view on arbitrary suitable local theories as interpretation target;
+
+  \<^enum> rewrite morphisms by means of \emph{rewrite definitions}.
+
   \end{enumerate}
   
   \begin{matharray}{rcl}
@@ -860,7 +867,6 @@ text \<open>
     @@{command permanent_interpretation} @{syntax locale_expr} \<newline>
       definitions? equations?
     ;
-
     definitions: @'defining' (@{syntax thmdecl}? @{syntax name} \<newline>
       @{syntax mixfix}? @'=' @{syntax term} + @'and');
     equations: @'where' (@{syntax thmdecl}? @{syntax prop} + @'and')
@@ -894,11 +900,11 @@ text \<open>
   
   \begin{itemize}
   
-    \item produces a corresponding definition in
-      the local theory's underlying target \emph{and}
-    
-    \item augments the rewrite morphism with the equation
-      stemming from the symmetric of the corresponding definition.
+  \<^item> produces a corresponding definition in
+  the local theory's underlying target \emph{and}
+  
+  \<^item> augments the rewrite morphism with the equation
+  stemming from the symmetric of the corresponding definition.
   
   \end{itemize}
   
@@ -907,11 +913,11 @@ text \<open>
   
   \begin{itemize}
   
-    \item Definitions are parsed in the syntactic interpretation
-      context, just like equations.
-  
-    \item The proof needs not consider the equations stemming from
-      definitions -- they are proved implicitly by construction.
+  \<^item> Definitions are parsed in the syntactic interpretation
+  context, just like equations.
+
+  \<^item> The proof needs not consider the equations stemming from
+  definitions -- they are proved implicitly by construction.
       
   \end{itemize}
   
@@ -1054,14 +1060,14 @@ text \<open>
 
   \begin{itemize}
 
-  \item Local constant declarations @{text "g[\<alpha>]"} referring to the
+  \<^item> Local constant declarations @{text "g[\<alpha>]"} referring to the
   local type parameter @{text \<alpha>} and local parameters @{text "f[\<alpha>]"}
   are accompanied by theory-level constants @{text "g[?\<alpha> :: c]"}
   referring to theory-level class operations @{text "f[?\<alpha> :: c]"}.
 
-  \item Local theorem bindings are lifted as are assumptions.
+  \<^item> Local theorem bindings are lifted as are assumptions.
 
-  \item Local syntax refers to local operations @{text "g[\<alpha>]"} and
+  \<^item> Local syntax refers to local operations @{text "g[\<alpha>]"} and
   global operations @{text "g[?\<alpha> :: c]"} uniformly.  Type inference
   resolves ambiguities.  In rare cases, manual type annotations are
   needed.
@@ -1076,7 +1082,8 @@ text \<open>The class relation together with the collection of
   type-constructor arities must obey the principle of
   \emph{co-regularity} as defined below.
 
-  \medskip For the subsequent formulation of co-regularity we assume
+  \<^medskip>
+  For the subsequent formulation of co-regularity we assume
   that the class relation is closed by transitivity and reflexivity.
   Moreover the collection of arities @{text "t :: (\<^vec>s)c"} is
   completed such that @{text "t :: (\<^vec>s)c"} and @{text "c \<subseteq> c'"}
@@ -1092,7 +1099,8 @@ text \<open>The class relation together with the collection of
   This relation on sorts is further extended to tuples of sorts (of
   the same length) in the component-wise way.
 
-  \smallskip Co-regularity of the class relation together with the
+  \<^medskip>
+  Co-regularity of the class relation together with the
   arities relation means:
   \[
     @{text "t :: (\<^vec>s\<^sub>1)c\<^sub>1 \<Longrightarrow> t :: (\<^vec>s\<^sub>2)c\<^sub>2 \<Longrightarrow> c\<^sub>1 \<subseteq> c\<^sub>2 \<Longrightarrow> \<^vec>s\<^sub>1 \<subseteq> \<^vec>s\<^sub>2"}
@@ -1101,7 +1109,8 @@ text \<open>The class relation together with the collection of
   classes of some type-constructor arities are related, then the
   argument sorts need to be related in the same way.
 
-  \medskip Co-regularity is a very fundamental property of the
+  \<^medskip>
+  Co-regularity is a very fundamental property of the
   order-sorted algebra of types.  For example, it entails principle
   types and most general unifiers, e.g.\ see @{cite "nipkow-prehofer"}.
 \<close>
@@ -1376,21 +1385,22 @@ text \<open>
   definitions may be weakened by adding arbitrary pre-conditions:
   @{text "A \<Longrightarrow> c x y \<equiv> t"}.
 
-  \medskip The built-in well-formedness conditions for definitional
+  \<^medskip>
+  The built-in well-formedness conditions for definitional
   specifications are:
 
   \begin{itemize}
 
-  \item Arguments (on the left-hand side) must be distinct variables.
+  \<^item> Arguments (on the left-hand side) must be distinct variables.
 
-  \item All variables on the right-hand side must also appear on the
+  \<^item> All variables on the right-hand side must also appear on the
   left-hand side.
 
-  \item All type variables on the right-hand side must also appear on
+  \<^item> All type variables on the right-hand side must also appear on
   the left-hand side; this prohibits @{text "0 :: nat \<equiv> length ([] ::
   \<alpha> list)"} for example.
 
-  \item The definition must not be recursive.  Most object-logics
+  \<^item> The definition must not be recursive.  Most object-logics
   provide definitional principles that can be used to express
   recursion safely.
 

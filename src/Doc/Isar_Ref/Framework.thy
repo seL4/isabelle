@@ -52,7 +52,8 @@ text \<open>
   @{cite "isabelle-ZF"} is less extensively developed, although it would
   probably fit better for classical mathematics.
 
-  \medskip In order to illustrate natural deduction in Isar, we shall
+  \<^medskip>
+  In order to illustrate natural deduction in Isar, we shall
   refer to the background theory and library of Isabelle/HOL.  This
   includes common notions of predicate logic, naive set-theory etc.\
   using fairly standard mathematical notation.  From the perspective
@@ -69,7 +70,8 @@ text \<open>
   examples shall refer to set-theory, to minimize the danger of
   understanding connectives of predicate logic as something special.
 
-  \medskip The following deduction performs @{text "\<inter>"}-introduction,
+  \<^medskip>
+  The following deduction performs @{text "\<inter>"}-introduction,
   working forwards from assumptions towards the conclusion.  We give
   both the Isar text, and depict the primitive rule involved, as
   determined by unification of the problem against rules that are
@@ -97,7 +99,8 @@ text \<open>
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
-  \medskip Note that @{command assume} augments the proof
+  \<^medskip>
+  Note that @{command assume} augments the proof
   context, @{command then} indicates that the current fact shall be
   used in the next step, and @{command have} states an intermediate
   goal.  The two dots ``@{command ".."}'' refer to a complete proof of
@@ -152,7 +155,8 @@ text \<open>
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
-  \medskip This Isar reasoning pattern again refers to the
+  \<^medskip>
+  This Isar reasoning pattern again refers to the
   primitive rule depicted above.  The system determines it in the
   ``@{command proof}'' step, which could have been spelled out more
   explicitly as ``@{command proof}~@{text "(rule InterI)"}''.  Note
@@ -166,7 +170,8 @@ text \<open>
   refinement of the enclosing claim, using the rule derived from the
   proof body.
 
-  \medskip The next example involves @{term "\<Union>\<A>"}, which can be
+  \<^medskip>
+  The next example involves @{term "\<Union>\<A>"}, which can be
   characterized as the set of all @{term "x"} such that @{prop "\<exists>A. x
   \<in> A \<and> A \<in> \<A>"}.  The elimination rule for @{prop "x \<in> \<Union>\<A>"} does
   not mention @{text "\<exists>"} and @{text "\<and>"} at all, but admits to obtain
@@ -201,7 +206,8 @@ text \<open>
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
-  \medskip Although the Isar proof follows the natural
+  \<^medskip>
+  Although the Isar proof follows the natural
   deduction rule closely, the text reads not as natural as
   anticipated.  There is a double occurrence of an arbitrary
   conclusion @{prop "C"}, which represents the final result, but is
@@ -236,13 +242,13 @@ text \<open>
   parlance, there are three levels of @{text "\<lambda>"}-calculus with
   corresponding arrows @{text "\<Rightarrow>"}/@{text "\<And>"}/@{text "\<Longrightarrow>"}:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{ll}
   @{text "\<alpha> \<Rightarrow> \<beta>"} & syntactic function space (terms depending on terms) \\
   @{text "\<And>x. B(x)"} & universal quantification (proofs depending on terms) \\
   @{text "A \<Longrightarrow> B"} & implication (proofs depending on proofs) \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   Here only the types of syntactic terms, and the
   propositions of proof terms have been shown.  The @{text
@@ -298,7 +304,8 @@ text \<open>
   prop"} with axioms for reflexivity, substitution, extensionality,
   and @{text "\<alpha>\<beta>\<eta>"}-conversion on @{text "\<lambda>"}-terms.
 
-  \medskip An object-logic introduces another layer on top of Pure,
+  \<^medskip>
+  An object-logic introduces another layer on top of Pure,
   e.g.\ with types @{text "i"} for individuals and @{text "o"} for
   propositions, term constants @{text "Trueprop :: o \<Rightarrow> prop"} as
   (implicit) derivability judgment and connectives like @{text "\<and> :: o
@@ -348,7 +355,8 @@ text \<open>
   @{text "InterI:"}~@{prop "(\<And>A. A \<in> \<A> \<Longrightarrow> x \<in> A) \<Longrightarrow> x \<in> \<Inter>\<A>"}
   \]
 
-  \medskip Goals are also represented as rules: @{text "A\<^sub>1 \<Longrightarrow>
+  \<^medskip>
+  Goals are also represented as rules: @{text "A\<^sub>1 \<Longrightarrow>
   \<dots> A\<^sub>n \<Longrightarrow> C"} states that the sub-goals @{text "A\<^sub>1, \<dots>,
   A\<^sub>n"} entail the result @{text "C"}; for @{text "n = 0"} the
   goal is finished.  To allow @{text "C"} being a rule statement
@@ -384,7 +392,7 @@ text \<open>
    \end{tabular}}
   \]
 
-  \medskip
+  \<^medskip>
 
   \[
   \infer[(@{inference_def assumption})]{@{text "C\<vartheta>"}}
@@ -399,7 +407,7 @@ text \<open>
   Isabelle/Pure:
 
   {\footnotesize
-  \medskip
+  \<^medskip>
   \begin{tabular}{r@ {\quad}l}
   @{text "(A \<and> B \<Longrightarrow> B \<and> A) \<Longrightarrow> #(A \<and> B \<Longrightarrow> B \<and> A)"} & @{text "(init)"} \\
   @{text "(A \<and> B \<Longrightarrow> B) \<Longrightarrow> (A \<and> B \<Longrightarrow> A) \<Longrightarrow> #\<dots>"} & @{text "(resolution B \<Longrightarrow> A \<Longrightarrow> B \<and> A)"} \\
@@ -409,7 +417,7 @@ text \<open>
   @{text "#\<dots>"} & @{text "(assumption)"} \\
   @{text "A \<and> B \<Longrightarrow> B \<and> A"} & @{text "(finish)"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
   }
 
   Compositions of @{inference assumption} after @{inference
@@ -464,7 +472,7 @@ text \<open>
   \secref{sec:framework-stmt} for the separate category @{text
   "statement"}.
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{rcl}
     @{text "theory\<hyphen>stmt"} & = & @{command "theorem"}~@{text "statement proof  |"}~~@{command "definition"}~@{text "\<dots>  |  \<dots>"} \\[1ex]
 
@@ -484,15 +492,18 @@ text \<open>
     & @{text "|"} & @{command "show"}~@{text "name: props proof"} \\
   \end{tabular}
 
-  \medskip Simultaneous propositions or facts may be separated by the
+  \<^medskip>
+  Simultaneous propositions or facts may be separated by the
   @{keyword "and"} keyword.
 
-  \medskip The syntax for terms and propositions is inherited from
+  \<^medskip>
+  The syntax for terms and propositions is inherited from
   Pure (and the object-logic).  A @{text "pattern"} is a @{text
   "term"} with schematic variables, to be bound by higher-order
   matching.
 
-  \medskip Facts may be referenced by name or proposition.  For
+  \<^medskip>
+  Facts may be referenced by name or proposition.  For
   example, the result of ``@{command have}~@{text "a: A \<langle>proof\<rangle>"}''
   becomes available both as @{text "a"} and
   \isacharbackquoteopen@{text "A"}\isacharbackquoteclose.  Moreover,
@@ -509,12 +520,12 @@ text \<open>
   frequently together with @{command then} we provide some
   abbreviations:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{rcl}
     @{command from}~@{text a} & @{text "\<equiv>"} & @{command note}~@{text a}~@{command then} \\
     @{command with}~@{text a} & @{text "\<equiv>"} & @{command from}~@{text "a \<AND> this"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   The @{text "method"} category is essentially a parameter and may be
   populated later.  Methods use the facts indicated by @{command
@@ -541,7 +552,8 @@ text \<open>
   "by"}~@{method this}''.  The @{command unfolding} element operates
   directly on the current facts and goal by applying equalities.
 
-  \medskip Block structure can be indicated explicitly by ``@{command
+  \<^medskip>
+  Block structure can be indicated explicitly by ``@{command
   "{"}~@{text "\<dots>"}~@{command "}"}'', although the body of a sub-proof
   already involves implicit nesting.  In any case, @{command next}
   jumps into the next section of a block, i.e.\ it acts like closing
@@ -580,12 +592,12 @@ text \<open>
   @{inference discharge} as given below.  The additional variants
   @{command presume} and @{command def} are defined as follows:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{rcl}
     @{command presume}~@{text A} & @{text "\<equiv>"} & @{command assume}~@{text "\<guillemotleft>weak\<hyphen>discharge\<guillemotright> A"} \\
     @{command def}~@{text "x \<equiv> a"} & @{text "\<equiv>"} & @{command fix}~@{text x}~@{command assume}~@{text "\<guillemotleft>expansion\<guillemotright> x \<equiv> a"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   \[
   \infer[(@{inference_def discharge})]{@{text "\<strut>\<Gamma> - A \<turnstile> #A \<Longrightarrow> B"}}{@{text "\<strut>\<Gamma> \<turnstile> B"}}
@@ -597,7 +609,8 @@ text \<open>
   \infer[(@{inference_def expansion})]{@{text "\<strut>\<Gamma> - (x \<equiv> a) \<turnstile> B a"}}{@{text "\<strut>\<Gamma> \<turnstile> B x"}}
   \]
 
-  \medskip Note that @{inference discharge} and @{inference
+  \<^medskip>
+  Note that @{inference discharge} and @{inference
   "weak\<hyphen>discharge"} differ in the marker for @{prop A}, which is
   relevant when the result of a @{command fix}-@{command
   assume}-@{command show} outline is composed with a pending goal,
@@ -611,7 +624,7 @@ text \<open>
   with a proof of a case rule stating that this extension is
   conservative (i.e.\ may be removed from closed results later on):
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{l}
   @{text "\<langle>facts\<rangle>"}~~@{command obtain}~@{text "\<^vec>x \<WHERE> \<^vec>A \<^vec>x  \<langle>proof\<rangle> \<equiv>"} \\[0.5ex]
   \quad @{command have}~@{text "case: \<And>thesis. (\<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis) \<Longrightarrow> thesis\<rangle>"} \\
@@ -622,7 +635,7 @@ text \<open>
   \quad @{command qed} \\
   \quad @{command fix}~@{text "\<^vec>x"}~@{command assume}~@{text "\<guillemotleft>elimination case\<guillemotright> \<^vec>A \<^vec>x"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   \[
   \infer[(@{inference elimination})]{@{text "\<Gamma> \<turnstile> B"}}{
@@ -644,7 +657,8 @@ text \<open>
   is similar to ``@{command have}~@{text "A \<AND> B"}'', but the
   latter involves multiple sub-goals.
 
-  \medskip The subsequent Isar proof texts explain all context
+  \<^medskip>
+  The subsequent Isar proof texts explain all context
   elements introduced above using the formal proof language itself.
   After finishing a local proof within a block, we indicate the
   exported result via @{command note}.
@@ -684,9 +698,11 @@ qed
 (*>*)
 
 text \<open>
-  \bigskip This illustrates the meaning of Isar context
+  \<^bigskip>
+  This illustrates the meaning of Isar context
   elements without goals getting in between.
 \<close>
+
 
 subsection \<open>Structured statements \label{sec:framework-stmt}\<close>
 
@@ -694,7 +710,7 @@ text \<open>
   The category @{text "statement"} of top-level theorem specifications
   is defined as follows:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{rcl}
   @{text "statement"} & @{text "\<equiv>"} & @{text "name: props \<AND> \<dots>"} \\
   & @{text "|"} & @{text "context\<^sup>* conclusion"} \\[0.5ex]
@@ -707,7 +723,8 @@ text \<open>
   & & \quad @{text "\<BBAR> \<dots>"} \\
   \end{tabular}
 
-  \medskip A simple @{text "statement"} consists of named
+  \<^medskip>
+  A simple @{text "statement"} consists of named
   propositions.  The full form admits local context elements followed
   by the actual conclusions, such as ``@{keyword "fixes"}~@{text
   x}~@{keyword "assumes"}~@{text "A x"}~@{keyword "shows"}~@{text "B
@@ -721,14 +738,14 @@ text \<open>
   parameters (@{text "vars"}) and several premises (@{text "props"}).
   This specifies multi-branch elimination rules.
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{l}
   @{text "\<OBTAINS> \<^vec>x \<WHERE> \<^vec>A \<^vec>x   \<BBAR>   \<dots>   \<equiv>"} \\[0.5ex]
   \quad @{text "\<FIXES> thesis"} \\
   \quad @{text "\<ASSUMES> [intro]: \<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis  \<AND>  \<dots>"} \\
   \quad @{text "\<SHOWS> thesis"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   Presenting structured statements in such an ``open'' format usually
   simplifies the subsequent proof, because the outer structure of the
@@ -761,7 +778,8 @@ qed
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
-  \medskip Here local facts \isacharbackquoteopen@{text "A
+  \<^medskip>
+  Here local facts \isacharbackquoteopen@{text "A
   x"}\isacharbackquoteclose\ and \isacharbackquoteopen@{text "B
   y"}\isacharbackquoteclose\ are referenced immediately; there is no
   need to decompose the logical rule structure again.  In the second
@@ -789,7 +807,8 @@ text \<open>
   In Isar the algebraic values are facts or goals, and the operations
   are inferences.
 
-  \medskip The Isar/VM state maintains a stack of nodes, each node
+  \<^medskip>
+  The Isar/VM state maintains a stack of nodes, each node
   contains the local proof context, the linguistic mode, and a pending
   goal (optional).  The mode determines the type of transition that
   may be performed next, it essentially alternates between forward and
@@ -927,12 +946,14 @@ end
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
-  \medskip Such ``peephole optimizations'' of Isar texts are
+  \<^medskip>
+  Such ``peephole optimizations'' of Isar texts are
   practically important to improve readability, by rearranging
   contexts elements according to the natural flow of reasoning in the
   body, while still observing the overall scoping rules.
 
-  \medskip This illustrates the basic idea of structured proof
+  \<^medskip>
+  This illustrates the basic idea of structured proof
   processing in Isar.  The main mechanisms are based on natural
   deduction rule composition within the Pure framework.  In
   particular, there are no direct operations on goal states within the
@@ -1005,7 +1026,8 @@ text \<open>
   the calculational chain, but the exact correspondence is dependent
   on the transitivity rules being involved.
 
-  \medskip Symmetry rules such as @{prop "x = y \<Longrightarrow> y = x"} are like
+  \<^medskip>
+  Symmetry rules such as @{prop "x = y \<Longrightarrow> y = x"} are like
   transitivities with only one premise.  Isar maintains a separate
   rule collection declared via the @{attribute sym} attribute, to be
   used in fact expressions ``@{text "a [symmetric]"}'', or single-step

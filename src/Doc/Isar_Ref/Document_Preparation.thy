@@ -75,7 +75,8 @@ text \<open>
   antiquotations}, see also \secref{sec:antiq}. These are interpreted in the
   present theory or proof context.
 
-  \medskip The proof markup commands closely resemble those for theory
+  \<^medskip>
+  The proof markup commands closely resemble those for theory
   specifications, but have a different formal status and produce
   different {\LaTeX} macros.
 \<close>
@@ -426,14 +427,15 @@ text \<open>Each Isabelle/Isar command may be decorated by additional
   Some tags are pre-declared for certain classes of commands, serving
   as default markup if no tags are given in the text:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{ll}
     @{text "theory"} & theory begin/end \\
     @{text "proof"} & all proof commands \\
     @{text "ML"} & all commands involving ML code \\
   \end{tabular}
+  \<^medskip>
 
-  \medskip The Isabelle document preparation system
+  The Isabelle document preparation system
   @{cite "isabelle-system"} allows tagged command regions to be presented
   specifically, e.g.\ to fold proof texts, or drop parts of the text
   completely.
@@ -451,7 +453,8 @@ text \<open>Each Isabelle/Isar command may be decorated by additional
   sub-proof to be typeset as @{text visible} (unless some of its parts
   are tagged differently).
 
-  \medskip Command tags merely produce certain markup environments for
+  \<^medskip>
+  Command tags merely produce certain markup environments for
   type-setting.  The meaning of these is determined by {\LaTeX}
   macros, as defined in @{file "~~/lib/texinputs/isabelle.sty"} or
   by the document author.  The Isabelle document preparation tools
@@ -513,62 +516,62 @@ text \<open>
 
   \begin{itemize}
 
-  \item Empty @{verbatim "()"}
+  \<^item> Empty @{verbatim "()"}
 
   @{rail \<open>()\<close>}
 
-  \item Nonterminal @{verbatim "A"}
+  \<^item> Nonterminal @{verbatim "A"}
 
   @{rail \<open>A\<close>}
 
-  \item Nonterminal via Isabelle antiquotation
+  \<^item> Nonterminal via Isabelle antiquotation
   @{verbatim "@{syntax method}"}
 
   @{rail \<open>@{syntax method}\<close>}
 
-  \item Terminal @{verbatim "'xyz'"}
+  \<^item> Terminal @{verbatim "'xyz'"}
 
   @{rail \<open>'xyz'\<close>}
 
-  \item Terminal in keyword style @{verbatim "@'xyz'"}
+  \<^item> Terminal in keyword style @{verbatim "@'xyz'"}
 
   @{rail \<open>@'xyz'\<close>}
 
-  \item Terminal via Isabelle antiquotation
+  \<^item> Terminal via Isabelle antiquotation
   @{verbatim "@@{method rule}"}
 
   @{rail \<open>@@{method rule}\<close>}
 
-  \item Concatenation @{verbatim "A B C"}
+  \<^item> Concatenation @{verbatim "A B C"}
 
   @{rail \<open>A B C\<close>}
 
-  \item Newline inside concatenation
+  \<^item> Newline inside concatenation
   @{verbatim "A B C \<newline> D E F"}
 
   @{rail \<open>A B C \<newline> D E F\<close>}
 
-  \item Variants @{verbatim "A | B | C"}
+  \<^item> Variants @{verbatim "A | B | C"}
 
   @{rail \<open>A | B | C\<close>}
 
-  \item Option @{verbatim "A ?"}
+  \<^item> Option @{verbatim "A ?"}
 
   @{rail \<open>A ?\<close>}
 
-  \item Repetition @{verbatim "A *"}
+  \<^item> Repetition @{verbatim "A *"}
 
   @{rail \<open>A *\<close>}
 
-  \item Repetition with separator @{verbatim "A * sep"}
+  \<^item> Repetition with separator @{verbatim "A * sep"}
 
   @{rail \<open>A * sep\<close>}
 
-  \item Strict repetition @{verbatim "A +"}
+  \<^item> Strict repetition @{verbatim "A +"}
 
   @{rail \<open>A +\<close>}
 
-  \item Strict repetition with separator @{verbatim "A + sep"}
+  \<^item> Strict repetition with separator @{verbatim "A + sep"}
 
   @{rail \<open>A + sep\<close>}
 

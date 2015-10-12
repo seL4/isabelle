@@ -138,7 +138,7 @@ text \<open>
     @{attribute_def show_tags} & : & @{text attribute} & default @{text false} \\
     @{attribute_def show_question_marks} & : & @{text attribute} & default @{text true} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   These configuration options control the detail of information that
   is displayed for types, terms, theorems, goals etc.  See also
@@ -273,7 +273,8 @@ text \<open>
 
   \end{description}
 
-  \medskip The pretty printer for inner syntax maintains alternative
+  \<^medskip>
+  The pretty printer for inner syntax maintains alternative
   mixfix productions for any print mode name invented by the user, say
   in commands like @{command notation} or @{command abbreviation}.
   Mode names can be arbitrary, but the following ones have a specific
@@ -281,24 +282,24 @@ text \<open>
 
   \begin{itemize}
 
-  \item @{verbatim \<open>""\<close>} (the empty string): default mode;
+  \<^item> @{verbatim \<open>""\<close>} (the empty string): default mode;
   implicitly active as last element in the list of modes.
 
-  \item @{verbatim input}: dummy print mode that is never active; may
+  \<^item> @{verbatim input}: dummy print mode that is never active; may
   be used to specify notation that is only available for input.
 
-  \item @{verbatim internal} dummy print mode that is never active;
+  \<^item> @{verbatim internal} dummy print mode that is never active;
   used internally in Isabelle/Pure.
 
-  \item @{verbatim xsymbols}: enable proper mathematical symbols
+  \<^item> @{verbatim xsymbols}: enable proper mathematical symbols
   instead of ASCII art.\footnote{This traditional mode name stems from
   the ``X-Symbol'' package for classic Proof~General with XEmacs.}
 
-  \item @{verbatim HTML}: additional mode that is active in HTML
+  \<^item> @{verbatim HTML}: additional mode that is active in HTML
   presentation of Isabelle theory sources; allows to provide
   alternative output notation.
 
-  \item @{verbatim latex}: additional mode that is active in {\LaTeX}
+  \<^item> @{verbatim latex}: additional mode that is active in {\LaTeX}
   document preparation of Isabelle theory sources; allows to provide
   alternative output notation.
 
@@ -370,7 +371,8 @@ text \<open>In full generality, mixfix declarations work as follows.
   instead.  If a term has fewer arguments than specified in the mixfix
   template, the concrete syntax is ignored.
 
-  \medskip A mixfix template may also contain additional directives
+  \<^medskip>
+  A mixfix template may also contain additional directives
   for pretty printing, notably spaces, blocks, and breaks.  The
   general template format is a sequence over any of the following
   entities.
@@ -380,7 +382,7 @@ text \<open>In full generality, mixfix declarations work as follows.
   \item @{text "d"} is a delimiter, namely a non-empty sequence of
   characters other than the following special characters:
 
-  \smallskip
+  \<^medskip>
   \begin{tabular}{ll}
     @{verbatim "'"} & single quote \\
     @{verbatim "_"} & underscore \\
@@ -389,7 +391,7 @@ text \<open>In full generality, mixfix declarations work as follows.
     @{verbatim ")"} & close parenthesis \\
     @{verbatim "/"} & slash \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   \item @{verbatim "'"} escapes the special meaning of these
   meta-characters, producing a literal version of the following
@@ -565,11 +567,11 @@ text \<open>The inner lexical syntax vaguely resembles the outer one
 
   \begin{enumerate}
 
-  \item \emph{delimiters} --- the literal tokens occurring in
+  \<^enum> \emph{delimiters} --- the literal tokens occurring in
   productions of the given priority grammar (cf.\
   \secref{sec:priority-grammar});
 
-  \item \emph{named tokens} --- various categories of identifiers etc.
+  \<^enum> \emph{named tokens} --- various categories of identifiers etc.
 
   \end{enumerate}
 
@@ -578,7 +580,8 @@ text \<open>The inner lexical syntax vaguely resembles the outer one
   alternative ways to refer to the same entity, potentially via
   qualified names.
 
-  \medskip The categories for named tokens are defined once and for
+  \<^medskip>
+  The categories for named tokens are defined once and for
   all as follows, reusing some categories of the outer token syntax
   (\secref{sec:outer-lex}).
 
@@ -628,13 +631,15 @@ text \<open>A context-free grammar consists of a set of \emph{terminal
   priority grammar can be translated into a normal context-free
   grammar by introducing new nonterminals and productions.
 
-  \medskip Formally, a set of context free productions @{text G}
+  \<^medskip>
+  Formally, a set of context free productions @{text G}
   induces a derivation relation @{text "\<longrightarrow>\<^sub>G"} as follows.  Let @{text
   \<alpha>} and @{text \<beta>} denote strings of terminal or nonterminal symbols.
   Then @{text "\<alpha> A\<^sup>(\<^sup>p\<^sup>) \<beta> \<longrightarrow>\<^sub>G \<alpha> \<gamma> \<beta>"} holds if and only if @{text G}
   contains some production @{text "A\<^sup>(\<^sup>q\<^sup>) = \<gamma>"} for @{text "p \<le> q"}.
 
-  \medskip The following grammar for arithmetic expressions
+  \<^medskip>
+  The following grammar for arithmetic expressions
   demonstrates how binding power and associativity of operators can be
   enforced by priorities.
 
@@ -652,21 +657,22 @@ text \<open>A context-free grammar consists of a set of \emph{terminal
   "+"}.  Furthermore @{verbatim "+"} associates to the left and
   @{verbatim "*"} to the right.
 
-  \medskip For clarity, grammars obey these conventions:
+  \<^medskip>
+  For clarity, grammars obey these conventions:
   \begin{itemize}
 
-  \item All priorities must lie between 0 and 1000.
+  \<^item> All priorities must lie between 0 and 1000.
 
-  \item Priority 0 on the right-hand side and priority 1000 on the
+  \<^item> Priority 0 on the right-hand side and priority 1000 on the
   left-hand side may be omitted.
 
-  \item The production @{text "A\<^sup>(\<^sup>p\<^sup>) = \<alpha>"} is written as @{text "A = \<alpha>
+  \<^item> The production @{text "A\<^sup>(\<^sup>p\<^sup>) = \<alpha>"} is written as @{text "A = \<alpha>
   (p)"}, i.e.\ the priority of the left-hand side actually appears in
   a column on the far right.
 
-  \item Alternatives are separated by @{text "|"}.
+  \<^item> Alternatives are separated by @{text "|"}.
 
-  \item Repetition is indicated by dots @{text "(\<dots>)"} in an informal
+  \<^item> Repetition is indicated by dots @{text "(\<dots>)"} in an informal
   but obvious way.
 
   \end{itemize}
@@ -759,7 +765,8 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
   \end{supertabular}
   \end{center}
 
-  \medskip Here literal terminals are printed @{verbatim "verbatim"};
+  \<^medskip>
+  Here literal terminals are printed @{verbatim "verbatim"};
   see also \secref{sec:inner-lex} for further token categories of the
   inner syntax.  The meaning of the nonterminals defined by the above
   grammar is as follows:
@@ -823,23 +830,23 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
 
   \begin{itemize}
 
-  \item In @{syntax (inner) idts}, note that @{text "x :: nat y"} is
+  \<^item> In @{syntax (inner) idts}, note that @{text "x :: nat y"} is
   parsed as @{text "x :: (nat y)"}, treating @{text y} like a type
   constructor applied to @{text nat}.  To avoid this interpretation,
   write @{text "(x :: nat) y"} with explicit parentheses.
 
-  \item Similarly, @{text "x :: nat y :: nat"} is parsed as @{text "x ::
+  \<^item> Similarly, @{text "x :: nat y :: nat"} is parsed as @{text "x ::
   (nat y :: nat)"}.  The correct form is @{text "(x :: nat) (y ::
   nat)"}, or @{text "(x :: nat) y :: nat"} if @{text y} is last in the
   sequence of identifiers.
 
-  \item Type constraints for terms bind very weakly.  For example,
+  \<^item> Type constraints for terms bind very weakly.  For example,
   @{text "x < y :: nat"} is normally parsed as @{text "(x < y) ::
   nat"}, unless @{text "<"} has a very low priority, in which case the
   input is likely to be ambiguous.  The correct form is @{text "x < (y
   :: nat)"}.
 
-  \item Dummy variables (written as underscore) may occur in different
+  \<^item> Dummy variables (written as underscore) may occur in different
   roles.
 
   \begin{description}
@@ -1053,7 +1060,8 @@ text \<open>The ML datatype @{ML_type Ast.ast} explicitly represents the
   @{verbatim "()"} and @{verbatim "(x)"} are excluded as ASTs, because
   they have too few subtrees.
 
-  \medskip AST application is merely a pro-forma mechanism to indicate
+  \<^medskip>
+  AST application is merely a pro-forma mechanism to indicate
   certain syntactic structures.  Thus @{verbatim "(c a b)"} could mean
   either term application or type application, depending on the
   syntactic context.
@@ -1090,7 +1098,8 @@ text \<open>Depending on the situation --- input syntax, output syntax,
   variables (free or schematic) into @{ML Ast.Variable}.  This
   information is precise when printing fully formal @{text "\<lambda>"}-terms.
 
-  \medskip AST translation patterns (\secref{sec:syn-trans}) that
+  \<^medskip>
+  AST translation patterns (\secref{sec:syn-trans}) that
   represent terms cannot distinguish constants and variables
   syntactically.  Explicit indication of @{text "CONST c"} inside the
   term language is required, unless @{text "c"} is known as special
@@ -1126,16 +1135,16 @@ text \<open>Naming constant entities within ASTs is another delicate
 
   \begin{itemize}
 
-  \item Input of term constants (or fixed variables) that are
+  \<^item> Input of term constants (or fixed variables) that are
   introduced by concrete syntax via @{command notation}: the
   correspondence of a particular grammar production to some known term
   entity is preserved.
 
-  \item Input of type constants (constructors) and type classes ---
+  \<^item> Input of type constants (constructors) and type classes ---
   thanks to explicit syntactic distinction independently on the
   context.
 
-  \item Output of term constants, type constants, type classes ---
+  \<^item> Output of term constants, type constants, type classes ---
   this information is already available from the internal term to be
   printed.
 
@@ -1159,8 +1168,7 @@ text \<open>
     @{attribute_def syntax_ast_trace} & : & @{text attribute} & default @{text false} \\
     @{attribute_def syntax_ast_stats} & : & @{text attribute} & default @{text false} \\
   \end{tabular}
-
-  \medskip
+  \<^medskip>
 
   Unlike mixfix notation for existing formal entities
   (\secref{sec:notation}), raw syntax declarations provide full access
@@ -1207,14 +1215,14 @@ text \<open>
   follows:
   \begin{itemize}
 
-  \item @{text "prop"} if @{text "\<tau>\<^sub>i = prop"}
+  \<^item> @{text "prop"} if @{text "\<tau>\<^sub>i = prop"}
 
-  \item @{text "logic"} if @{text "\<tau>\<^sub>i = (\<dots>)\<kappa>"} for logical type
+  \<^item> @{text "logic"} if @{text "\<tau>\<^sub>i = (\<dots>)\<kappa>"} for logical type
   constructor @{text "\<kappa> \<noteq> prop"}
 
-  \item @{text any} if @{text "\<tau>\<^sub>i = \<alpha>"} for type variables
+  \<^item> @{text any} if @{text "\<tau>\<^sub>i = \<alpha>"} for type variables
 
-  \item @{text "\<kappa>"} if @{text "\<tau>\<^sub>i = \<kappa>"} for nonterminal @{text "\<kappa>"}
+  \<^item> @{text "\<kappa>"} if @{text "\<tau>\<^sub>i = \<kappa>"} for nonterminal @{text "\<kappa>"}
   (syntactic type constructor)
 
   \end{itemize}
@@ -1225,7 +1233,8 @@ text \<open>
   The resulting nonterminal of the production is determined similarly
   from type @{text "\<tau>"}, with priority @{text "q"} and default 1000.
 
-  \medskip Parsing via this production produces parse trees @{text
+  \<^medskip>
+  Parsing via this production produces parse trees @{text
   "t\<^sub>1, \<dots>, t\<^sub>n"} for the argument slots.  The resulting parse tree is
   composed as @{text "c t\<^sub>1 \<dots> t\<^sub>n"}, by using the syntax constant @{text
   "c"} of the syntax declaration.
@@ -1236,7 +1245,8 @@ text \<open>
   "_foobar"}).  Names should be chosen with care, to avoid clashes
   with other syntax declarations.
 
-  \medskip The special case of copy production is specified by @{text
+  \<^medskip>
+  The special case of copy production is specified by @{text
   "c = "}@{verbatim \<open>""\<close>} (empty string).  It means that the
   resulting parse tree @{text "t"} is copied directly, without any
   further decoration.
@@ -1281,13 +1291,13 @@ text \<open>
 
   \begin{itemize}
 
-  \item Rules must be left linear: @{text "lhs"} must not contain
+  \<^item> Rules must be left linear: @{text "lhs"} must not contain
   repeated variables.\footnote{The deeper reason for this is that AST
   equality is not well-defined: different occurrences of the ``same''
   AST could be decorated differently by accidental type-constraints or
   source position information, for example.}
 
-  \item Every variable in @{text "rhs"} must also occur in @{text
+  \<^item> Every variable in @{text "rhs"} must also occur in @{text
   "lhs"}.
 
   \end{itemize}
@@ -1312,11 +1322,11 @@ text \<open>
 
   \begin{itemize}
 
-  \item Iterated replacement via recursive @{command translations}.
+  \<^item> Iterated replacement via recursive @{command translations}.
   For example, consider list enumeration @{term "[a, b, c, d]"} as
   defined in theory @{theory List} in Isabelle/HOL.
 
-  \item Change of binding status of variables: anything beyond the
+  \<^item> Change of binding status of variables: anything beyond the
   built-in @{keyword "binder"} mixfix annotation requires explicit
   syntax translations.  For example, consider list filter
   comprehension @{term "[x \<leftarrow> xs . P]"} as defined in theory @{theory
@@ -1348,21 +1358,21 @@ text \<open>As a term is being parsed or printed, an AST is generated as
 
   \begin{itemize}
 
-  \item Objects of the form @{ML Ast.Variable}~@{text "x"} or @{ML
+  \<^item> Objects of the form @{ML Ast.Variable}~@{text "x"} or @{ML
   Ast.Constant}~@{text "x"} are matched by pattern @{ML
   Ast.Constant}~@{text "x"}.  Thus all atomic ASTs in the object are
   treated as (potential) constants, and a successful match makes them
   actual constants even before name space resolution (see also
   \secref{sec:ast}).
 
-  \item Object @{text "u"} is matched by pattern @{ML
+  \<^item> Object @{text "u"} is matched by pattern @{ML
   Ast.Variable}~@{text "x"}, binding @{text "x"} to @{text "u"}.
 
-  \item Object @{ML Ast.Appl}~@{text "us"} is matched by @{ML
+  \<^item> Object @{ML Ast.Appl}~@{text "us"} is matched by @{ML
   Ast.Appl}~@{text "ts"} if @{text "us"} and @{text "ts"} have the
   same length and each corresponding subtree matches.
 
-  \item In every other case, matching fails.
+  \<^item> In every other case, matching fails.
 
   \end{itemize}
 
@@ -1436,7 +1446,7 @@ text \<open>
   @{syntax text} argument that refers to an ML expression of
   appropriate type as follows:
 
-  \medskip
+  \<^medskip>
   {\footnotesize
   \begin{tabular}{l}
   @{command parse_ast_translation} : \\
@@ -1450,7 +1460,7 @@ text \<open>
   @{command print_ast_translation} : \\
   \quad @{ML_type "(string * (Proof.context -> Ast.ast list -> Ast.ast)) list"} \\
   \end{tabular}}
-  \medskip
+  \<^medskip>
 
   The argument list consists of @{text "(c, tr)"} pairs, where @{text
   "c"} is the syntax name of the formal entity involved, and @{text
@@ -1627,7 +1637,8 @@ text \<open>The output phase is essentially the inverse of the input
   finally pretty-printed.  The built-in print AST translations reverse
   the corresponding parse AST translations.
 
-  \medskip For the actual printing process, the priority grammar
+  \<^medskip>
+  For the actual printing process, the priority grammar
   (\secref{sec:priority-grammar}) plays a vital role: productions are
   used as templates for pretty printing, with argument slots stemming
   from nonterminals, and syntactic sugar stemming from literal tokens.
@@ -1655,7 +1666,8 @@ text \<open>The output phase is essentially the inverse of the input
   in order of appearance within the grammar.  An occurrence of some
   AST variable @{text "x"} is printed as @{text "x"} outright.
 
-  \medskip White space is \emph{not} inserted automatically.  If
+  \<^medskip>
+  White space is \emph{not} inserted automatically.  If
   blanks (or breaks) are required to separate tokens, they need to be
   specified in the mixfix declaration (\secref{sec:mixfix}).
 \<close>

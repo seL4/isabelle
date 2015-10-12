@@ -293,7 +293,7 @@ text \<open>
     @{method_def simp_all} & : & @{text method} \\
     @{attribute_def simp_depth_limit} & : & @{text attribute} & default @{text 100} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   @{rail \<open>
     (@@{method simp} | @@{method simp_all}) opt? (@{syntax simpmod} * )
@@ -321,7 +321,8 @@ text \<open>
   either case, which might be required precisely like that in some
   boundary situations to perform the intended simplification step!
 
-  \medskip The @{text only} modifier first removes all other rewrite
+  \<^medskip>
+  The @{text only} modifier first removes all other rewrite
   rules, looper tactics (including split rules), congruence rules, and
   then behaves like @{text add}.  Implicit solvers remain, which means
   that trivial rules like reflexivity or introduction of @{text
@@ -330,7 +331,8 @@ text \<open>
   lead to some surprise of the meaning of ``only'' in Isabelle/HOL
   compared to English!
 
-  \medskip The @{text split} modifiers add or delete rules for the
+  \<^medskip>
+  The @{text split} modifiers add or delete rules for the
   Splitter (see also \secref{sec:simp-strategies} on the looper).
   This works only if the Simplifier method has been properly setup to
   include the Splitter (all major object logics such HOL, HOLCF, FOL,
@@ -341,7 +343,8 @@ text \<open>
   @{text "(split thms)"} can be imitated by ``@{text "(simp only:
   split: thms)"}''.
 
-  \medskip The @{text cong} modifiers add or delete Simplifier
+  \<^medskip>
+  The @{text cong} modifiers add or delete Simplifier
   congruence rules (see also \secref{sec:simp-rules}); the default is
   to add.
 
@@ -421,7 +424,8 @@ lemma fixes x :: int shows "0 + (x + 0) = x + 0 + 0" by simp
 lemma fixes x :: "'a :: monoid_add" shows "0 + (x + 0) = x + 0 + 0" by simp
 
 text \<open>
-  \medskip In many cases, assumptions of a subgoal are also needed in
+  \<^medskip>
+  In many cases, assumptions of a subgoal are also needed in
   the simplification process.  For example:
 \<close>
 
@@ -467,7 +471,9 @@ begin
   have "f 0 = f 0 + 0" by simp
 end
 
-text \<open>\medskip Because assumptions may simplify each other, there
+text \<open>
+  \<^medskip>
+  Because assumptions may simplify each other, there
   can be very subtle cases of nontermination. For example, the regular
   @{method simp} method applied to @{prop "P (f x) \<Longrightarrow> y = x \<Longrightarrow> f x = f y
   \<Longrightarrow> Q"} gives rise to the infinite reduction sequence
@@ -518,11 +524,12 @@ text \<open>
   @{text "?P \<and> ?P \<longleftrightarrow> ?P"} \\
   @{text "?A \<union> ?B \<equiv> {x. x \<in> ?A \<or> x \<in> ?B}"}
 
-  \smallskip
+  \<^medskip>
   Conditional rewrites such as @{text "?m < ?n \<Longrightarrow> ?m div ?n = 0"} are
   also permitted; the conditions can be arbitrary formulas.
 
-  \medskip Internally, all rewrite rules are translated into Pure
+  \<^medskip>
+  Internally, all rewrite rules are translated into Pure
   equalities, theorems with conclusion @{text "lhs \<equiv> rhs"}. The
   simpset contains a function for extracting equalities from arbitrary
   theorems, which is usually installed when the object-logic is
@@ -536,7 +543,7 @@ text \<open>
 
   \begin{enumerate}
 
-  \item First-order patterns, considering the sublanguage of
+  \<^enum> First-order patterns, considering the sublanguage of
   application of constant operators to variable operands, without
   @{text "\<lambda>"}-abstractions or functional variables.
   For example:
@@ -544,7 +551,7 @@ text \<open>
   @{text "(?x + ?y) + ?z \<equiv> ?x + (?y + ?z)"} \\
   @{text "f (f ?x ?y) ?z \<equiv> f ?x (f ?y ?z)"}
 
-  \item Higher-order patterns in the sense of @{cite "nipkow-patterns"}.
+  \<^enum> Higher-order patterns in the sense of @{cite "nipkow-patterns"}.
   These are terms in @{text "\<beta>"}-normal form (this will always be the
   case unless you have done something strange) where each occurrence
   of an unknown is of the form @{text "?F x\<^sub>1 \<dots> x\<^sub>n"}, where the
@@ -554,7 +561,7 @@ text \<open>
   or its symmetric form, since the @{text "rhs"} is also a
   higher-order pattern.
 
-  \item Physical first-order patterns over raw @{text "\<lambda>"}-term
+  \<^enum> Physical first-order patterns over raw @{text "\<lambda>"}-term
   structure without @{text "\<alpha>\<beta>\<eta>"}-equality; abstractions and bound
   variables are treated like quasi-constant term material.
 
@@ -591,12 +598,14 @@ text \<open>
   %The local assumptions are also provided as theorems to the solver;
   %see \secref{sec:simp-solver} below.
 
-  \medskip The following congruence rule for bounded quantifiers also
+  \<^medskip>
+  The following congruence rule for bounded quantifiers also
   supplies contextual information --- about the bound variable:
   @{text [display] "(?A = ?B) \<Longrightarrow> (\<And>x. x \<in> ?B \<Longrightarrow> ?P x \<longleftrightarrow> ?Q x) \<Longrightarrow>
     (\<forall>x \<in> ?A. ?P x) \<longleftrightarrow> (\<forall>x \<in> ?B. ?Q x)"}
 
-  \medskip This congruence rule for conditional expressions can
+  \<^medskip>
+  This congruence rule for conditional expressions can
   supply contextual information for simplifying the arms:
   @{text [display] "?p = ?q \<Longrightarrow> (?q \<Longrightarrow> ?a = ?c) \<Longrightarrow> (\<not> ?q \<Longrightarrow> ?b = ?d) \<Longrightarrow>
     (if ?p then ?a else ?b) = (if ?q then ?c else ?d)"}
@@ -636,7 +645,8 @@ text \<open>
   @{command "definition"} is an exception in \emph{not} declaring
   anything.
 
-  \medskip It is up the user to manipulate the current simpset further
+  \<^medskip>
+  It is up the user to manipulate the current simpset further
   by explicitly adding or deleting theorems as simplification rules,
   or installing other tools via simplification procedures
   (\secref{sec:simproc}).  Good simpsets are hard to design.  Rules
@@ -682,7 +692,8 @@ text \<open>A rewrite rule is \emph{permutative} if the left-hand side and
   could be also changed locally for special applications via
   @{index_ML Simplifier.set_termless} in Isabelle/ML.
 
-  \medskip Permutative rewrite rules are declared to the Simplifier
+  \<^medskip>
+  Permutative rewrite rules are declared to the Simplifier
   just like other rewrite rules.  Their special status is recognized
   automatically, and their application is guarded by the term ordering
   accordingly.\<close>
@@ -697,12 +708,12 @@ text \<open>Ordered rewriting is particularly effective in the case of
 
   \begin{itemize}
 
-  \item The associative law must always be oriented from left to
+  \<^item> The associative law must always be oriented from left to
   right, namely @{text "f (f x y) z = f x (f y z)"}.  The opposite
   orientation, if used with commutativity, leads to looping in
   conjunction with the standard term order.
 
-  \item To complete your set of rewrite rules, you must add not just
+  \<^item> To complete your set of rewrite rules, you must add not just
   associativity (A) and commutativity (C) but also a derived rule
   \emph{left-commutativity} (LC): @{text "f x (f y z) = f y (f x z)"}.
 
@@ -769,7 +780,7 @@ text \<open>
     @{attribute_def simp_trace_new} & : & @{text attribute} \\
     @{attribute_def simp_break} & : & @{text attribute} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   @{rail \<open>
     @@{attribute simp_trace_new} ('interactive')? \<newline>
@@ -983,7 +994,8 @@ text \<open>
   Solvers are packaged up in abstract type @{ML_type solver}, with
   @{ML Simplifier.mk_solver} as the only operation to create a solver.
 
-  \medskip Rewriting does not instantiate unknowns.  For example,
+  \<^medskip>
+  Rewriting does not instantiate unknowns.  For example,
   rewriting alone cannot prove @{text "a \<in> ?A"} since this requires
   instantiating @{text "?A"}.  The solver, however, is an arbitrary
   tactic and may instantiate unknowns as it pleases.  This is the only
@@ -1024,7 +1036,8 @@ text \<open>
 
   \end{description}
 
-  \medskip The solver tactic is invoked with the context of the
+  \<^medskip>
+  The solver tactic is invoked with the context of the
   running Simplifier.  Further operations
   may be used to retrieve relevant information, such as the list of
   local Simplifier premises via @{ML Simplifier.prems_of} --- this
@@ -1035,7 +1048,8 @@ text \<open>
   assume_tac}), even if the Simplifier proper happens to ignore local
   premises at the moment.
 
-  \medskip As explained before, the subgoaler is also used to solve
+  \<^medskip>
+  As explained before, the subgoaler is also used to solve
   the premises of congruence rules.  These are usually of the form
   @{text "s = ?x"}, where @{text "s"} needs to be simplified and
   @{text "?x"} needs to be instantiated with the result.  Typically,
@@ -1051,8 +1065,7 @@ text \<open>
   try resolving with the theorem @{text "\<not> False"} of the
   object-logic.
 
-  \medskip
-
+  \<^medskip>
   \begin{warn}
   If a premise of a congruence rule cannot be proved, then the
   congruence is ignored.  This should only happen if the rule is
@@ -1563,21 +1576,21 @@ text \<open>
 
   \begin{itemize}
 
-  \item It does not use the classical wrapper tacticals, such as the
+  \<^item> It does not use the classical wrapper tacticals, such as the
   integration with the Simplifier of @{method fastforce}.
 
-  \item It does not perform higher-order unification, as needed by the
+  \<^item> It does not perform higher-order unification, as needed by the
   rule @{thm [source=false] rangeI} in HOL.  There are often
   alternatives to such rules, for example @{thm [source=false]
   range_eqI}.
 
-  \item Function variables may only be applied to parameters of the
+  \<^item> Function variables may only be applied to parameters of the
   subgoal.  (This restriction arises because the prover does not use
   higher-order unification.)  If other function variables are present
   then the prover will fail with the message
   @{verbatim [display] \<open>Function unknown's argument not a bound variable\<close>}
 
-  \item Its proof strategy is more general than @{method fast} but can
+  \<^item> Its proof strategy is more general than @{method fast} but can
   be slower.  If @{method blast} fails or seems to be running forever,
   try @{method fast} and the other proof tools described below.
 
@@ -1909,7 +1922,7 @@ text \<open>
     @{attribute_def unify_trace_bound} & : & @{text "attribute"} & default @{text "50"} \\
     @{attribute_def unify_search_bound} & : & @{text "attribute"} & default @{text "60"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   Higher-order unification works well in most practical situations,
   but sometimes needs extra care to identify problems.  These tracing

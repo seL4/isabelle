@@ -35,7 +35,8 @@ text \<open>Isabelle/HOL is based on Higher-Order Logic, a polymorphic
   mathematics, but for most applications this does not matter.  If you
   prefer ML to Lisp, you will probably prefer HOL to ZF.
 
-  \medskip The syntax of HOL follows @{text "\<lambda>"}-calculus and
+  \<^medskip>
+  The syntax of HOL follows @{text "\<lambda>"}-calculus and
   functional programming.  Function application is curried.  To apply
   the function @{text f} of type @{text "\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> \<tau>\<^sub>3"} to the
   arguments @{text a} and @{text b} in HOL, you simply write @{text "f
@@ -47,7 +48,8 @@ text \<open>Isabelle/HOL is based on Higher-Order Logic, a polymorphic
   be avoided by currying functions by default.  Explicit tuples are as
   infrequent in HOL formalizations as in good ML or Haskell programs.
 
-  \medskip Isabelle/HOL has a distinct feel, compared to other
+  \<^medskip>
+  Isabelle/HOL has a distinct feel, compared to other
   object-logics like Isabelle/ZF.  It identifies object-level types
   with meta-level types, taking advantage of the default
   type-inference mechanism of Isabelle/Pure.  HOL fully identifies
@@ -192,25 +194,25 @@ text \<open>The context maintains a default set of theorems that are used
 
   \begin{itemize}
 
-  \item Theorems of the form @{text "A \<le> B \<Longrightarrow> \<M> A \<le> \<M> B"}, for proving
+  \<^item> Theorems of the form @{text "A \<le> B \<Longrightarrow> \<M> A \<le> \<M> B"}, for proving
   monotonicity of inductive definitions whose introduction rules have
   premises involving terms such as @{text "\<M> R t"}.
 
-  \item Monotonicity theorems for logical operators, which are of the
+  \<^item> Monotonicity theorems for logical operators, which are of the
   general form @{text "(\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> (\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> \<longrightarrow> \<dots>"}.  For example, in
   the case of the operator @{text "\<or>"}, the corresponding theorem is
   \[
   \infer{@{text "P\<^sub>1 \<or> P\<^sub>2 \<longrightarrow> Q\<^sub>1 \<or> Q\<^sub>2"}}{@{text "P\<^sub>1 \<longrightarrow> Q\<^sub>1"} & @{text "P\<^sub>2 \<longrightarrow> Q\<^sub>2"}}
   \]
 
-  \item De Morgan style equations for reasoning about the ``polarity''
+  \<^item> De Morgan style equations for reasoning about the ``polarity''
   of expressions, e.g.
   \[
   @{prop "\<not> \<not> P \<longleftrightarrow> P"} \qquad\qquad
   @{prop "\<not> (P \<and> Q) \<longleftrightarrow> \<not> P \<or> \<not> Q"}
   \]
 
-  \item Equations for reducing complex operators to more primitive
+  \<^item> Equations for reducing complex operators to more primitive
   ones whose monotonicity can easily be proved, e.g.
   \[
   @{prop "(P \<longrightarrow> Q) \<longleftrightarrow> \<not> P \<or> Q"} \qquad\qquad
@@ -395,8 +397,7 @@ and 'a bexp =
   | And "'a bexp"  "'a bexp"
   | Neg "'a bexp"
 
-
-text \<open>\medskip Evaluation of arithmetic and boolean expressions\<close>
+text \<open>\<^medskip> Evaluation of arithmetic and boolean expressions\<close>
 
 primrec evala :: "('a \<Rightarrow> nat) \<Rightarrow> 'a aexp \<Rightarrow> nat"
   and evalb :: "('a \<Rightarrow> nat) \<Rightarrow> 'a bexp \<Rightarrow> bool"
@@ -415,7 +416,8 @@ text \<open>Since the value of an expression depends on the value of its
   additional parameter, an \emph{environment} that maps variables to their
   values.
 
-  \medskip Substitution on expressions can be defined similarly. The mapping
+  \<^medskip>
+  Substitution on expressions can be defined similarly. The mapping
   @{text f} of type @{typ "'a \<Rightarrow> 'a aexp"} given as a parameter is lifted
   canonically on the types @{typ "'a aexp"} and @{typ "'a bexp"},
   respectively.
@@ -501,7 +503,8 @@ text \<open>Note that all occurrences of functions such as @{text ts} above must
   be applied to an argument. In particular, @{term "map_tree f \<circ> ts"} is not
   allowed here.
 
-  \medskip Here is a simple composition lemma for @{term map_tree}:
+  \<^medskip>
+  Here is a simple composition lemma for @{term map_tree}:
 \<close>
 
 lemma "map_tree g (map_tree f t) = map_tree (g \<circ> f) t"
@@ -683,7 +686,8 @@ text \<open>
 
   \end{description}
 
-  \medskip Hints for @{command (HOL) "recdef"} may be also declared
+  \<^medskip>
+  Hints for @{command (HOL) "recdef"} may be also declared
   globally, using the following attributes.
 
   \begin{matharray}{rcl}
@@ -708,8 +712,7 @@ text \<open>
   @{attribute_def "show_variants"} & : & @{text "attribute"} & default @{text false} \\
   \end{tabular}
 
-  \medskip
-
+  \<^medskip>
   Adhoc overloading allows to overload a constant depending on
   its type. Typically this involves the introduction of an
   uninterpreted constant (used for input and output) and the addition
@@ -899,20 +902,22 @@ text \<open>
   element.  In fact, @{text "\<lparr>x = a, y = b\<rparr>"} is just an abbreviation
   for @{text "\<lparr>x = a, y = b, \<dots> = ()\<rparr>"}.
 
-  \medskip Two key observations make extensible records in a simply
+  \<^medskip>
+  Two key observations make extensible records in a simply
   typed language like HOL work out:
 
   \begin{enumerate}
 
-  \item the more part is internalized, as a free term or type
+  \<^enum> the more part is internalized, as a free term or type
   variable,
 
-  \item field names are externalized, they cannot be accessed within
+  \<^enum> field names are externalized, they cannot be accessed within
   the logic as first-class values.
 
   \end{enumerate}
 
-  \medskip In Isabelle/HOL record types have to be defined explicitly,
+  \<^medskip>
+  In Isabelle/HOL record types have to be defined explicitly,
   fixing their field names and types, and their (optional) parent
   record.  Afterwards, records may be formed using above syntax, while
   obeying the canonical order of fields as given by their declaration.
@@ -980,7 +985,8 @@ text \<open>Any record definition of the form presented above produces certain
   assume for now that @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"} is a root record with fields
   @{text "c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n"}.
 
-  \medskip \textbf{Selectors} and \textbf{updates} are available for any
+  \<^medskip>
+  \textbf{Selectors} and \textbf{updates} are available for any
   field (including ``@{text more}''):
 
   \begin{matharray}{lll}
@@ -998,14 +1004,16 @@ text \<open>Any record definition of the form presented above produces certain
   equality is concerned. Thus commutativity of independent updates can be
   proven within the logic for any two fields, but not as a general theorem.
 
-  \medskip The \textbf{make} operation provides a cumulative record
+  \<^medskip>
+  The \textbf{make} operation provides a cumulative record
   constructor function:
 
   \begin{matharray}{lll}
     @{text "t.make"} & @{text "::"} & @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
   \end{matharray}
 
-  \medskip We now reconsider the case of non-root records, which are derived
+  \<^medskip>
+  We now reconsider the case of non-root records, which are derived
   of some parent. In general, the latter may depend on another parent as
   well, resulting in a list of \emph{ancestor records}. Appending the lists
   of fields of all ancestors results in a certain field prefix. The record
@@ -1014,7 +1022,7 @@ text \<open>Any record definition of the form presented above produces certain
   ancestor fields @{text "b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k"}, the above record
   operations will get the following types:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{lll}
     @{text "c\<^sub>i"} & @{text "::"} & @{text "\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i"} \\
     @{text "c\<^sub>i_update"} & @{text "::"} & @{text "\<sigma>\<^sub>i \<Rightarrow>
@@ -1023,7 +1031,7 @@ text \<open>Any record definition of the form presented above produces certain
     @{text "t.make"} & @{text "::"} & @{text "\<rho>\<^sub>1 \<Rightarrow> \<dots> \<rho>\<^sub>k \<Rightarrow> \<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow>
       \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   Some further operations address the extension aspect of a
   derived record scheme specifically: @{text "t.fields"} produces a record
@@ -1032,14 +1040,14 @@ text \<open>Any record definition of the form presented above produces certain
   record and adds a given more part; @{text "t.truncate"} restricts a record
   scheme to a fixed record.
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{lll}
     @{text "t.fields"} & @{text "::"} & @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
     @{text "t.extend"} & @{text "::"} & @{text "\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr> \<Rightarrow>
       \<zeta> \<Rightarrow> \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>"} \\
     @{text "t.truncate"} & @{text "::"} & @{text "\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   Note that @{text "t.make"} and @{text "t.fields"} coincide for
   root records.
@@ -1056,26 +1064,26 @@ text \<open>
 
   \begin{enumerate}
 
-  \item Standard conversions for selectors or updates applied to record
+  \<^enum> Standard conversions for selectors or updates applied to record
   constructor terms are made part of the default Simplifier context; thus
   proofs by reduction of basic operations merely require the @{method simp}
   method without further arguments. These rules are available as @{text
   "t.simps"}, too.
 
-  \item Selectors applied to updated records are automatically reduced by an
+  \<^enum> Selectors applied to updated records are automatically reduced by an
   internal simplification procedure, which is also part of the standard
   Simplifier setup.
 
-  \item Inject equations of a form analogous to @{prop "(x, y) = (x', y') \<equiv>
+  \<^enum> Inject equations of a form analogous to @{prop "(x, y) = (x', y') \<equiv>
   x = x' \<and> y = y'"} are declared to the Simplifier and Classical Reasoner as
   @{attribute iff} rules. These rules are available as @{text "t.iffs"}.
 
-  \item The introduction rule for record equality analogous to @{text "x r =
+  \<^enum> The introduction rule for record equality analogous to @{text "x r =
   x r' \<Longrightarrow> y r = y r' \<dots> \<Longrightarrow> r = r'"} is declared to the Simplifier, and as the
   basic rule context as ``@{attribute intro}@{text "?"}''. The rule is
   called @{text "t.equality"}.
 
-  \item Representations of arbitrary record expressions as canonical
+  \<^enum> Representations of arbitrary record expressions as canonical
   constructor terms are provided both in @{method cases} and @{method
   induct} format (cf.\ the generic proof methods of the same name,
   \secref{sec:cases-induct}). Several variations are available, for fixed
@@ -1086,7 +1094,7 @@ text \<open>
   need to apply something like ``@{text "(cases r)"}'' to a certain proof
   problem.
 
-  \item The derived record operations @{text "t.make"}, @{text "t.fields"},
+  \<^enum> The derived record operations @{text "t.make"}, @{text "t.fields"},
   @{text "t.extend"}, @{text "t.truncate"} are \emph{not} treated
   automatically, but usually need to be expanded by hand, using the
   collective fact @{text "t.defs"}.
@@ -1135,7 +1143,8 @@ text \<open>
   virtues'' of this relatively simple family of logics. STT has only ground
   types, without polymorphism and without type definitions.
 
-  \medskip M. Gordon @{cite "Gordon:1985:HOL"} augmented Church's STT by
+  \<^medskip>
+  M. Gordon @{cite "Gordon:1985:HOL"} augmented Church's STT by
   adding schematic polymorphism (type variables and type constructors) and a
   facility to introduce new types as semantic subtypes from existing types.
   This genuine extension of the logic was explained semantically by A. Pitts
@@ -1145,7 +1154,8 @@ text \<open>
   interpretations is closed by forming subsets (via predicates taken from
   the logic).
 
-  \medskip Isabelle/HOL goes beyond Gordon-style HOL by admitting overloaded
+  \<^medskip>
+  Isabelle/HOL goes beyond Gordon-style HOL by admitting overloaded
   constant definitions @{cite "Wenzel:1997:TPHOL" and
   "Haftmann-Wenzel:2006:classes"}, which are actually a concept of
   Isabelle/Pure and do not depend on particular set-theoretic semantics of
@@ -1402,7 +1412,7 @@ text \<open>
 
   \begin{enumerate}
 
-  \item The first one is a low-level mode when the user must provide as a
+  \<^enum> The first one is a low-level mode when the user must provide as a
   first argument of @{command (HOL) "setup_lifting"} a quotient theorem
   @{term "Quotient R Abs Rep T"}. The package configures a transfer rule for
   equality, a domain transfer rules and sets up the @{command_def (HOL)
@@ -1416,7 +1426,7 @@ text \<open>
   Users generally will not prove the @{text Quotient} theorem manually for
   new types, as special commands exist to automate the process.
 
-  \item When a new subtype is defined by @{command (HOL) typedef}, @{command
+  \<^enum> When a new subtype is defined by @{command (HOL) typedef}, @{command
   (HOL) "lift_definition"} can be used in its second mode, where only the
   @{term type_definition} theorem @{term "type_definition Rep Abs A"} is
   used as an argument of the command. The command internally proves the
@@ -1430,7 +1440,8 @@ text \<open>
   the corresponding Quotient theorem is proved and registered by @{command
   (HOL) setup_lifting}.
 
-  \medskip The command @{command (HOL) "setup_lifting"} also sets up the
+  \<^medskip>
+  The command @{command (HOL) "setup_lifting"} also sets up the
   code generator for the new type. Later on, when a new constant is defined
   by @{command (HOL) "lift_definition"}, the Lifting package proves and
   registers a code equation (if there is one) for the new constant.
@@ -1463,7 +1474,8 @@ text \<open>
   unconditional for total quotients. The equation defines @{text f} using
   the abstraction function.
 
-  \medskip Integration with [@{attribute code} abstract]: For subtypes
+  \<^medskip>
+  Integration with [@{attribute code} abstract]: For subtypes
   (e.g.\ corresponding to a datatype invariant, such as @{typ "'a dlist"}),
   @{command (HOL) "lift_definition"} uses a code certificate theorem @{text
   f.rep_eq} as a code equation. Because of the limitation of the code
@@ -2292,7 +2304,7 @@ text \<open>
 
   \begin{enumerate}
 
-  \item Universal problems over multivariate polynomials in a
+  \<^enum> Universal problems over multivariate polynomials in a
   (semi)-ring/field/idom; the capabilities of the method are augmented
   according to properties of these structures. For this problem class
   the method is only complete for algebraically closed fields, since
@@ -2302,7 +2314,7 @@ text \<open>
   The problems can contain equations @{text "p = 0"} or inequations
   @{text "q \<noteq> 0"} anywhere within a universal problem statement.
 
-  \item All-exists problems of the following restricted (but useful)
+  \<^enum> All-exists problems of the following restricted (but useful)
   form:
 
   @{text [display] "\<forall>x\<^sub>1 \<dots> x\<^sub>n.

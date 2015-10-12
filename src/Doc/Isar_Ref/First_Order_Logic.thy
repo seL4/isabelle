@@ -231,7 +231,8 @@ text \<open>
   ``@{text "\<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B"}'' coincides with
   the original axiomatization of @{thm disjE}.
 
-  \medskip We continue propositional logic by introducing absurdity
+  \<^medskip>
+  We continue propositional logic by introducing absurdity
   with its characteristic elimination.  Plain truth may then be
   defined as a proposition that is trivially true.
 \<close>
@@ -248,8 +249,8 @@ theorem trueI [intro]: \<top>
   unfolding true_def ..
 
 text \<open>
-  \medskip Now negation represents an implication towards
-  absurdity:
+  \<^medskip>
+  Now negation represents an implication towards absurdity:
 \<close>
 
 definition
@@ -374,7 +375,7 @@ text \<open>
   can now be summarized as follows, using the native Isar statement
   format of \secref{sec:framework-stmt}.
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{l}
   @{text "impI: \<ASSUMES> A \<Longrightarrow> B \<SHOWS> A \<longrightarrow> B"} \\
   @{text "impD: \<ASSUMES> A \<longrightarrow> B \<AND> A \<SHOWS> B"} \\[1ex]
@@ -398,7 +399,7 @@ text \<open>
   @{text "exI: \<ASSUMES> B a \<SHOWS> \<exists>x. B x"} \\
   @{text "exE: \<ASSUMES> \<exists>x. B x \<OBTAINS> a \<WHERE> B a"}
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   This essentially provides a declarative reading of Pure
   rules as Isar reasoning patterns: the rule statements tells how a
@@ -511,7 +512,8 @@ qed
 (*>*)
 
 text \<open>
-  \bigskip Of course, these proofs are merely examples.  As
+  \<^bigskip>
+  Of course, these proofs are merely examples.  As
   sketched in \secref{sec:framework-subproof}, there is a fair amount
   of flexibility in expressing Pure deductions in Isar.  Here the user
   is asked to express himself adequately, aiming at proof texts of

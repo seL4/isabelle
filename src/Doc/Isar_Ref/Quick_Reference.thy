@@ -25,7 +25,7 @@ text \<open>
     @{command "write"}~@{text "c  (mx)"} & declare local mixfix syntax \\
   \end{tabular}
 
-  \medskip
+  \<^medskip>
 
   \begin{tabular}{rcl}
     @{text "proof"} & = & @{text "prfx\<^sup>*"}~@{command "proof"}~@{text "method\<^sup>? stmt\<^sup>*"}~@{command "qed"}~@{text "method\<^sup>?"} \\

@@ -247,7 +247,8 @@ text \<open>
   incremental type-inference, as the user proceeds to build up the
   Isar proof text from left to right.
 
-  \medskip Term abbreviations are quite different from local
+  \<^medskip>
+  Term abbreviations are quite different from local
   definitions as introduced via @{command "def"} (see
   \secref{sec:proof-context}).  The latter are visible within the
   logic as actual equations, while abbreviations disappear during the
@@ -554,7 +555,8 @@ text \<open>
   calculations, there is no separate \emph{begin-calculation} command
   required.
 
-  \medskip The Isar calculation proof commands may be defined as
+  \<^medskip>
+  The Isar calculation proof commands may be defined as
   follows:\footnote{We suppress internal bookkeeping such as proper
   handling of block-structure.}
 
@@ -651,7 +653,8 @@ text \<open>Proof methods are either basic ones, or expressions composed of
   the subsequent mechanisms allow to imitate the effect of subgoal
   addressing that is known from ML tactics.
 
-  \medskip Goal \emph{restriction} means the proof state is wrapped-up in a
+  \<^medskip>
+  Goal \emph{restriction} means the proof state is wrapped-up in a
   way that certain subgoals are exposed, and other subgoals are ``parked''
   elsewhere. Thus a proof method has no other chance than to operate on the
   subgoals that are presently exposed.
@@ -671,7 +674,8 @@ text \<open>Proof methods are either basic ones, or expressions composed of
   "(rule r, simp_all)[]"}'' simplifies all new goals that emerge from
   applying rule @{text "r"} to the originally first one.
 
-  \medskip Improper methods, notably tactic emulations, offer low-level goal
+  \<^medskip>
+  Improper methods, notably tactic emulations, offer low-level goal
   addressing as explicit argument to the individual tactic being involved.
   Here ``@{text "[!]"}'' refers to all goals, and ``@{text "[n-]"}'' to all
   goals starting from @{text "n"}.
@@ -702,13 +706,13 @@ text \<open>
 
   \begin{enumerate}
 
-  \item An \emph{initial} refinement step @{command_ref
+  \<^enum> An \emph{initial} refinement step @{command_ref
   "proof"}~@{text "m\<^sub>1"} reduces a newly stated goal to a number
   of sub-goals that are to be solved later.  Facts are passed to
   @{text "m\<^sub>1"} for forward chaining, if so indicated by @{text
   "proof(chain)"} mode.
 
-  \item A \emph{terminal} conclusion step @{command_ref "qed"}~@{text
+  \<^enum> A \emph{terminal} conclusion step @{command_ref "qed"}~@{text
   "m\<^sub>2"} is intended to solve remaining goals.  No facts are
   passed to @{text "m\<^sub>2"}.
 
@@ -720,7 +724,8 @@ text \<open>
   problem of unstructured tactic scripts that consist of numerous
   consecutive goal transformations, with invisible effects.
 
-  \medskip As a general rule of thumb for good proof style, initial
+  \<^medskip>
+  As a general rule of thumb for good proof style, initial
   proof methods should either solve the goal completely, or constitute
   some well-understood reduction to new sub-goals.  Arbitrary
   automatic proof tools that are prone leave a large number of badly
@@ -1053,7 +1058,8 @@ text \<open>
   y\<^sub>1 \<dots> y\<^sub>m)"}'' instead, the proof author is able to
   chose local names that fit nicely into the current context.
 
-  \medskip It is important to note that proper use of @{command
+  \<^medskip>
+  It is important to note that proper use of @{command
   "case"} does not provide means to peek at the current goal state,
   which is not directly observable in Isar!  Nonetheless, goal
   refinement commands do provide named cases @{text "goal\<^sub>i"}
@@ -1068,7 +1074,8 @@ text \<open>
   previous theory specifications in a canonical way (say from
   @{command "inductive"} definitions).
 
-  \medskip Proper cases are only available if both the proof method
+  \<^medskip>
+  Proper cases are only available if both the proof method
   and the rules involved support this.  By using appropriate
   attributes, case names, conclusions, and parameters may be also
   declared by hand.  Thus variant versions of rules that have been
@@ -1217,7 +1224,7 @@ text \<open>
   The rule is determined as follows, according to the facts and
   arguments passed to the @{method cases} method:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{llll}
     facts           &                 & arguments   & rule \\\hline
     @{text "\<turnstile> R"}   & @{method cases} &             & implicit rule @{text R} \\
@@ -1226,7 +1233,7 @@ text \<open>
     @{text "\<turnstile> A t"} & @{method cases} & @{text "\<dots>"} & inductive predicate/set elimination (of @{text A}) \\
     @{text "\<dots>"}     & @{method cases} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   Several instantiations may be given, referring to the \emph{suffix}
   of premises of the case rule; within each premise, the \emph{prefix}
@@ -1241,14 +1248,14 @@ text \<open>
   @{method cases} method, but refer to induction rules, which are
   determined as follows:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{llll}
     facts           &                  & arguments            & rule \\\hline
                     & @{method induct} & @{text "P x"}        & datatype induction (type of @{text x}) \\
     @{text "\<turnstile> A x"} & @{method induct} & @{text "\<dots>"}          & predicate/set induction (of @{text A}) \\
     @{text "\<dots>"}     & @{method induct} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   Several instantiations may be given, each referring to some part of
   a mutual inductive definition or datatype --- only related partial
@@ -1297,13 +1304,14 @@ text \<open>
   @{method induct} method, but refers to coinduction rules, which are
   determined as follows:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{llll}
     goal          &                    & arguments & rule \\\hline
                   & @{method coinduct} & @{text x} & type coinduction (type of @{text x}) \\
     @{text "A x"} & @{method coinduct} & @{text "\<dots>"} & predicate/set coinduction (of @{text A}) \\
     @{text "\<dots>"}   & @{method coinduct} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
   \end{tabular}
+  \<^medskip>
 
   Coinduction is the dual of induction.  Induction essentially
   eliminates @{text "A x"} towards a generic result @{text "P x"},
@@ -1333,7 +1341,8 @@ text \<open>
   The @{command "print_cases"} command prints all named cases present
   in the current proof state.
 
-  \medskip Despite the additional infrastructure, both @{method cases}
+  \<^medskip>
+  Despite the additional infrastructure, both @{method cases}
   and @{method coinduct} merely apply a certain rule, after
   instantiation, while conforming due to the usual way of monotonic
   natural deduction: the context of a structured statement @{text
@@ -1363,7 +1372,8 @@ text \<open>
   @{text c.IH}, @{text c.hyps} and @{text c.prems}, as above.
 
 
-  \medskip Facts presented to either method are consumed according to
+  \<^medskip>
+  Facts presented to either method are consumed according to
   the number of ``major premises'' of the rule involved, which is
   usually 0 for plain cases and induction rules of datatypes etc.\ and
   1 for rules of inductive predicates or sets and the like.  The
@@ -1438,13 +1448,13 @@ text \<open>
   soundness of this temporary context extension. As representative examples,
   one may think of standard rules from Isabelle/HOL like this:
 
-  \medskip
+  \<^medskip>
   \begin{tabular}{ll}
   @{text "\<exists>x. B x \<Longrightarrow> (\<And>x. B x \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\
   @{text "A \<and> B \<Longrightarrow> (A \<Longrightarrow> B \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\
   @{text "A \<or> B \<Longrightarrow> (A \<Longrightarrow> thesis) \<Longrightarrow> (B \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\
   \end{tabular}
-  \medskip
+  \<^medskip>
 
   In general, these particular rules and connectives need to get involved at
   all: this concept works directly in Isabelle/Pure via Isar commands
@@ -1474,7 +1484,8 @@ text \<open>
   the rule this is a fact name, in the resulting rule it is used as
   annotation with the @{attribute_ref case_names} attribute.
 
-  \medskip Formally, the command @{command consider} is defined as derived
+  \<^medskip>
+  Formally, the command @{command consider} is defined as derived
   Isar language element as follows:
 
   \begin{matharray}{l}
@@ -1503,7 +1514,8 @@ text \<open>
   export will fail! This restriction conforms to the usual manner of
   existential reasoning in Natural Deduction.
 
-  \medskip Formally, the command @{command obtain} is defined as derived
+  \<^medskip>
+  Formally, the command @{command obtain} is defined as derived
   Isar language element as follows, using an instrumented variant of
   @{command assume}:
 

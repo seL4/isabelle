@@ -26,7 +26,8 @@ text \<open>
   Isabelle/jEdit Prover IDE @{cite "Wenzel:2012"} emphasizes the
   document-oriented approach of Isabelle/Isar again more explicitly.
 
-  \medskip Apart from the technical advances over bare-bones ML
+  \<^medskip>
+  Apart from the technical advances over bare-bones ML
   programming, the main purpose of the Isar language is to provide a
   conceptually different view on machine-checked proofs
   @{cite "Wenzel:1999:TPHOL" and "Wenzel-PhD"}.  \emph{Isar} stands for
@@ -49,7 +50,8 @@ text \<open>
   structured proofs.  Isabelle/Isar supports a broad range of proof
   styles, both readable and unreadable ones.
 
-  \medskip The generic Isabelle/Isar framework (see
+  \<^medskip>
+  The generic Isabelle/Isar framework (see
   \chref{ch:isar-framework}) works reasonably well for any Isabelle
   object-logic that conforms to the natural deduction view of the
   Isabelle/Pure framework.  Specific language elements introduced by
@@ -58,7 +60,8 @@ text \<open>
   framework, examples given in the generic parts will usually refer to
   Isabelle/HOL.
 
-  \medskip Isar commands may be either \emph{proper} document
+  \<^medskip>
+  Isar commands may be either \emph{proper} document
   constructors, or \emph{improper commands}.  Some proof methods and
   attributes introduced later are classified as improper as well.
   Improper Isar language elements, which are marked by ``@{text

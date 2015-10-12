@@ -131,18 +131,18 @@ subsubsection \<open>Naming conventions\<close>
 text \<open>
   \begin{itemize}
 
-  \item Lower-case identifiers are usually preferred.
+  \<^item> Lower-case identifiers are usually preferred.
 
-  \item Facts can be named after the main term within the proposition.
+  \<^item> Facts can be named after the main term within the proposition.
 
-  \item Facts should \emph{not} be named after the command that
+  \<^item> Facts should \emph{not} be named after the command that
   introduced them (@{command "assume"}, @{command "have"}).  This is
   misleading and hard to maintain.
 
-  \item Natural numbers can be used as ``meaningless'' names (more
+  \<^item> Natural numbers can be used as ``meaningless'' names (more
   appropriate than @{text "a1"}, @{text "a2"} etc.)
 
-  \item Symbolic identifiers are supported (e.g. @{text "*"}, @{text
+  \<^item> Symbolic identifiers are supported (e.g. @{text "*"}, @{text
   "**"}, @{text "***"}).
 
   \end{itemize}
@@ -226,13 +226,13 @@ subsection \<open>Special names in Isar proofs\<close>
 text \<open>
   \begin{itemize}
 
-  \item term @{text "?thesis"} --- the main conclusion of the
+  \<^item> term @{text "?thesis"} --- the main conclusion of the
   innermost pending claim
 
-  \item term @{text "\<dots>"} --- the argument of the last explicitly
-    stated result (for infix application this is the right-hand side)
+  \<^item> term @{text "\<dots>"} --- the argument of the last explicitly
+  stated result (for infix application this is the right-hand side)
 
-  \item fact @{text "this"} --- the last result produced in the text
+  \<^item> fact @{text "this"} --- the last result produced in the text
 
   \end{itemize}
 \<close>
@@ -315,10 +315,10 @@ subsubsection \<open>Notes\<close>
 text \<open>
   \begin{itemize}
 
-  \item The notion of @{text trans} rule is very general due to the
+  \<^item> The notion of @{text trans} rule is very general due to the
   flexibility of Isabelle/Pure rule composition.
 
-  \item User applications may declare their own rules, with some care
+  \<^item> User applications may declare their own rules, with some care
   about the operational details of higher-order unification.
 
   \end{itemize}
@@ -393,12 +393,12 @@ text \<open>
   The proof method @{method induct} provides:
   \begin{itemize}
 
-  \item implicit rule selection and robust instantiation
+  \<^item> implicit rule selection and robust instantiation
 
-  \item context elements via symbolic case names
+  \<^item> context elements via symbolic case names
 
-  \item support for rule-structured induction statements, with local
-    parameters, premises, etc.
+  \<^item> support for rule-structured induction statements, with local
+  parameters, premises, etc.
 
   \end{itemize}
 \<close>
@@ -423,13 +423,13 @@ text \<open>
   The subsequent example combines the following proof patterns:
   \begin{itemize}
 
-  \item outermost induction (over the datatype structure of natural
+  \<^item> outermost induction (over the datatype structure of natural
   numbers), to decompose the proof problem in top-down manner
 
-  \item calculational reasoning (\secref{sec:calculations-synopsis})
+  \<^item> calculational reasoning (\secref{sec:calculations-synopsis})
   to compose the result in each case
 
-  \item solving local claims within the calculation by simplification
+  \<^item> solving local claims within the calculation by simplification
 
   \end{itemize}
 \<close>
@@ -684,9 +684,9 @@ text \<open>
 
   \begin{itemize}
 
-    \item backward-chaining of rules by @{inference resolution}
+  \<^item> backward-chaining of rules by @{inference resolution}
 
-    \item closing of branches by @{inference assumption}
+  \<^item> closing of branches by @{inference assumption}
 
   \end{itemize}
 
@@ -974,10 +974,10 @@ text \<open>
 
   \begin{itemize}
 
-  \item prefix of assumptions (or ``major premises'')
+  \<^item> prefix of assumptions (or ``major premises'')
 
-  \item one or more cases that enable to establish the main conclusion
-    in an augmented context
+  \<^item> one or more cases that enable to establish the main conclusion
+  in an augmented context
 
   \end{itemize}
 \<close>
@@ -1017,11 +1017,11 @@ text \<open>
 
   \begin{itemize}
 
-  \item native language elements to state eliminations
+  \<^item> native language elements to state eliminations
 
-  \item symbolic case names
+  \<^item> symbolic case names
 
-  \item method @{method cases} to recover this structure in a
+  \<^item> method @{method cases} to recover this structure in a
   sub-proof
 
   \end{itemize}

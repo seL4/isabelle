@@ -15,7 +15,8 @@ text \<open>
   Concrete theory and proof language elements will be introduced later
   on.
 
-  \medskip In order to get started with writing well-formed
+  \<^medskip>
+  In order to get started with writing well-formed
   Isabelle/Isar documents, the most important aspect to be noted is
   the difference of \emph{inner} versus \emph{outer} syntax.  Inner
   syntax is that of Isabelle types and terms of the logic, while outer
@@ -74,13 +75,13 @@ text \<open>The outer lexical syntax consists of three main categories of
 
   \begin{enumerate}
 
-  \item \emph{major keywords} --- the command names that are available
+  \<^enum> \emph{major keywords} --- the command names that are available
   in the present logic session;
 
-  \item \emph{minor keywords} --- additional literal tokens required
+  \<^enum> \emph{minor keywords} --- additional literal tokens required
   by the syntax of commands;
 
-  \item \emph{named tokens} --- various categories of identifiers etc.
+  \<^enum> \emph{named tokens} --- various categories of identifiers etc.
 
   \end{enumerate}
 
@@ -102,8 +103,8 @@ text \<open>The outer lexical syntax consists of three main categories of
   tabs, newlines and formfeeds between tokens serve as explicit
   separators.
 
-  \medskip The categories for named tokens are defined once and for
-  all as follows.
+  \<^medskip>
+  The categories for named tokens are defined once and for all as follows.
 
   \begin{center}
   \begin{supertabular}{rcl}
@@ -341,7 +342,8 @@ text \<open>Wherever explicit propositions (or term fragments) occur in a
     @{syntax_def prop_pat}: '(' (@'is' @{syntax prop} +) ')'
   \<close>}
 
-  \medskip Declarations of local variables @{text "x :: \<tau>"} and
+  \<^medskip>
+  Declarations of local variables @{text "x :: \<tau>"} and
   logical propositions @{text "a : \<phi>"} represent different views on
   the same principle of introducing a local scope.  In practice, one
   may usually omit the typing of @{syntax vars} (due to
@@ -412,11 +414,11 @@ text \<open>Attributes have their own ``semi-inner'' syntax, in the sense
   There are three forms of theorem references:
   \begin{enumerate}
 
-  \item named facts @{text "a"},
+  \<^enum> named facts @{text "a"},
 
-  \item selections from named facts @{text "a(i)"} or @{text "a(j - k)"},
+  \<^enum> selections from named facts @{text "a(i)"} or @{text "a(j - k)"},
 
-  \item literal fact propositions using token syntax @{syntax_ref altstring}
+  \<^enum> literal fact propositions using token syntax @{syntax_ref altstring}
   @{verbatim "`"}@{text "\<phi>"}@{verbatim "`"} or @{syntax_ref cartouche}
   @{text "\<open>\<phi>\<close>"} (see also method @{method_ref fact}).
 
