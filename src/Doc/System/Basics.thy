@@ -155,7 +155,7 @@ text \<open>
   @{setting HOME}, but on Windows it is the regular home directory of
   the user, not the one of within the Cygwin root
   file-system.\footnote{Cygwin itself offers another choice whether
-  its HOME should point to the \texttt{/home} directory tree or the
+  its HOME should point to the @{file_unchecked "/home"} directory tree or the
   Windows user home.}
 
   \item[@{setting_def ISABELLE_HOME}@{text "\<^sup>*"}] is the location of the
