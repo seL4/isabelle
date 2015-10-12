@@ -607,7 +607,7 @@ text %quotetypewriter {*
 
 
 text {*
-  \noindent In Scala, implicts are used as dictionaries:
+  \noindent In Scala, implicits are used as dictionaries:
 *}
 text %quotetypewriter {*
   @{code_stmts example (Scala)}
