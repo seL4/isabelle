@@ -15,9 +15,9 @@ text {* The following presentation will use notation of
 *}
 *)
 
-section {* Introduction *}
+section \<open>Introduction\<close>
 
-text {*
+text \<open>
   Locales are based on contexts.  A \emph{context} can be seen as a
   formula schema
 \[
@@ -38,17 +38,17 @@ text {*
   have been made persistent.  To the user, though, they provide
   powerful means for declaring and combining contexts, and for the
   reuse of theorems proved in these contexts.
-  *}
+\<close>
 
-section {* Simple Locales *}
+section \<open>Simple Locales\<close>
 
-text {*
+text \<open>
   In its simplest form, a
   \emph{locale declaration} consists of a sequence of context elements
   declaring parameters (keyword \isakeyword{fixes}) and assumptions
   (keyword \isakeyword{assumes}).  The following is the specification of
   partial orders, as locale @{text partial_order}.
-  *}
+\<close>
 
   locale partial_order =
     fixes le :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
@@ -56,7 +56,7 @@ text {*
       and anti_sym [intro]: "\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> x \<rbrakk> \<Longrightarrow> x = y"
       and trans [trans]: "\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
 
-text (in partial_order) {* The parameter of this locale is~@{text le},
+text (in partial_order) \<open>The parameter of this locale is~@{text le},
   which is a binary predicate with infix syntax~@{text \<sqsubseteq>}.  The
   parameter syntax is available in the subsequent
   assumptions, which are the familiar partial order axioms.
@@ -107,11 +107,11 @@ text (in partial_order) {* The parameter of this locale is~@{text le},
   of context and conclusion.  For the transitivity theorem, this is
   @{thm [source] partial_order.trans}:
   @{thm [display, indent=2] partial_order.trans}
-*}
+\<close>
 
-subsection {* Targets: Extending Locales *}
+subsection \<open>Targets: Extending Locales\<close>
 
-text {*
+text \<open>
   The specification of a locale is fixed, but its list of conclusions
   may be extended through Isar commands that take a \emph{target} argument.
   In the following, \isakeyword{definition} and 
@@ -140,13 +140,13 @@ text {*
 \caption{Isar commands that accept a target.}
 \label{tab:commands-with-target}
 \end{table}
-  *}
+\<close>
 
   definition (in partial_order)
     less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubset>" 50)
     where "(x \<sqsubset> y) = (x \<sqsubseteq> y \<and> x \<noteq> y)"
 
-text (in partial_order) {* The strict order @{text less} with infix
+text (in partial_order) \<open>The strict order @{text less} with infix
   syntax~@{text \<sqsubset>} is
   defined in terms of the locale parameter~@{text le} and the general
   equality of the object logic we work in.  The definition generates a
@@ -161,25 +161,25 @@ text (in partial_order) {* The strict order @{text less} with infix
   and parsed as infix~@{text \<sqsubset>}.  Finally, the conclusion @{thm [source]
   less_def} is added to the locale:
   @{thm [display, indent=2] less_def}
-*}
+\<close>
 
-text {* The treatment of theorem statements is more straightforward.
+text \<open>The treatment of theorem statements is more straightforward.
   As an example, here is the derivation of a transitivity law for the
-  strict order relation. *}
+  strict order relation.\<close>
 
   lemma (in partial_order) less_le_trans [trans]:
     "\<lbrakk> x \<sqsubset> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubset> z"
     unfolding %visible less_def by %visible (blast intro: trans)
 
-text {* In the context of the proof, conclusions of the
+text \<open>In the context of the proof, conclusions of the
   locale may be used like theorems.  Attributes are effective: @{text
   anti_sym} was
   declared as introduction rule, hence it is in the context's set of
-  rules used by the classical reasoner by default.  *}
+  rules used by the classical reasoner by default.\<close>
 
-subsection {* Context Blocks *}
+subsection \<open>Context Blocks\<close>
 
-text {* When working with locales, sequences of commands with the same
+text \<open>When working with locales, sequences of commands with the same
   target are frequent.  A block of commands, delimited by
   \isakeyword{begin} and \isakeyword{end}, makes a theory-like style
   of working possible.  All commands inside the block refer to the
@@ -190,7 +190,7 @@ text {* When working with locales, sequences of commands with the same
 
   This style of working is illustrated in the block below, where
   notions of infimum and supremum for partial orders are introduced,
-  together with theorems about their uniqueness.  *}
+  together with theorems about their uniqueness.\<close>
 
   context partial_order
   begin
@@ -290,37 +290,37 @@ text {* When working with locales, sequences of commands with the same
 
   end
 
-text {* The syntax of the locale commands discussed in this tutorial is
+text \<open>The syntax of the locale commands discussed in this tutorial is
   shown in Table~\ref{tab:commands}.  The grammar is complete with the
   exception of the context elements \isakeyword{constrains} and
   \isakeyword{defines}, which are provided for backward
   compatibility.  See the Isabelle/Isar Reference
-  Manual @{cite IsarRef} for full documentation.  *}
+  Manual @{cite IsarRef} for full documentation.\<close>
 
 
-section {* Import \label{sec:import} *}
+section \<open>Import \label{sec:import}\<close>
 
-text {* 
+text \<open>
   Algebraic structures are commonly defined by adding operations and
   properties to existing structures.  For example, partial orders
   are extended to lattices and total orders.  Lattices are extended to
-  distributive lattices. *}
+  distributive lattices.\<close>
 
-text {*
+text \<open>
   With locales, this kind of inheritance is achieved through
   \emph{import} of locales.  The import part of a locale declaration,
   if present, precedes the context elements.  Here is an example,
   where partial orders are extended to lattices.
-  *}
+\<close>
 
   locale lattice = partial_order +
     assumes ex_inf: "\<exists>inf. is_inf x y inf"
       and ex_sup: "\<exists>sup. is_sup x y sup"
   begin
 
-text {* These assumptions refer to the predicates for infimum
+text \<open>These assumptions refer to the predicates for infimum
   and supremum defined for @{text partial_order} in the previous
-  section.  We now introduce the notions of meet and join.  *}
+  section.  We now introduce the notions of meet and join.\<close>
 
   definition
     meet (infixl "\<sqinter>" 70) where "x \<sqinter> y = (THE inf. is_inf x y inf)"
@@ -331,7 +331,7 @@ text {* These assumptions refer to the predicates for infimum
   proof (unfold meet_def)
     assume "is_inf x y i"
     then show "(THE i. is_inf x y i) = i"
-      by (rule the_equality) (rule is_inf_uniq [OF _ `is_inf x y i`])
+      by (rule the_equality) (rule is_inf_uniq [OF _ \<open>is_inf x y i\<close>])
   qed
 
   lemma %invisible meetI [intro?]:
@@ -342,7 +342,7 @@ text {* These assumptions refer to the predicates for infimum
   proof (unfold meet_def)
     from ex_inf obtain i where "is_inf x y i" ..
     then show "is_inf x y (THE i. is_inf x y i)"
-      by (rule theI) (rule is_inf_uniq [OF _ `is_inf x y i`])
+      by (rule theI) (rule is_inf_uniq [OF _ \<open>is_inf x y i\<close>])
   qed
 
   lemma %invisible meet_left [intro?]:
@@ -361,7 +361,7 @@ text {* These assumptions refer to the predicates for infimum
   proof (unfold join_def)
     assume "is_sup x y s"
     then show "(THE s. is_sup x y s) = s"
-      by (rule the_equality) (rule is_sup_uniq [OF _ `is_sup x y s`])
+      by (rule the_equality) (rule is_sup_uniq [OF _ \<open>is_sup x y s\<close>])
   qed
 
   lemma %invisible joinI [intro?]: "x \<sqsubseteq> s \<Longrightarrow> y \<sqsubseteq> s \<Longrightarrow>
@@ -372,7 +372,7 @@ text {* These assumptions refer to the predicates for infimum
   proof (unfold join_def)
     from ex_sup obtain s where "is_sup x y s" ..
     then show "is_sup x y (THE s. is_sup x y s)"
-      by (rule theI) (rule is_sup_uniq [OF _ `is_sup x y s`])
+      by (rule theI) (rule is_sup_uniq [OF _ \<open>is_sup x y s\<close>])
   qed
 
   lemma %invisible join_left [intro?]:
@@ -558,7 +558,7 @@ text {* These assumptions refer to the predicates for infimum
   theorem %invisible join_connection2: "(x \<sqsubseteq> y) = (x \<squnion> y = y)"
     using join_commute join_connection by simp
 
-  text %invisible {* Naming according to Jacobson I, p.\ 459. *}
+  text %invisible \<open>Naming according to Jacobson I, p.\ 459.\<close>
   lemmas %invisible L1 = join_commute meet_commute
   lemmas %invisible L2 = join_assoc meet_assoc
   (* lemmas L3 = join_idem meet_idem *)
@@ -566,10 +566,10 @@ text {* These assumptions refer to the predicates for infimum
 
   end
 
-text {* Locales for total orders and distributive lattices follow to
+text \<open>Locales for total orders and distributive lattices follow to
   establish a sufficiently rich landscape of locales for
   further examples in this tutorial.  Each comes with an example
-  theorem. *}
+  theorem.\<close>
 
   locale total_order = partial_order +
     assumes total: "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
@@ -592,7 +592,7 @@ text {* Locales for total orders and distributive lattices follow to
     finally show ?thesis .
   qed
 
-text {*
+text \<open>
   The locale hierarchy obtained through these declarations is shown in
   Figure~\ref{fig:lattices}(a).
 
@@ -639,12 +639,12 @@ text {*
 \caption{Hierarchy of Lattice Locales.}
 \label{fig:lattices}
 \end{figure}
-  *}
+\<close>
 
-section {* Changing the Locale Hierarchy
-  \label{sec:changing-the-hierarchy} *}
+section \<open>Changing the Locale Hierarchy
+  \label{sec:changing-the-hierarchy}\<close>
 
-text {*
+text \<open>
   Locales enable to prove theorems abstractly, relative to
   sets of assumptions.  These theorems can then be used in other
   contexts where the assumptions themselves, or
@@ -676,11 +676,11 @@ text {*
   lattices.  Therefore the \isakeyword{sublocale} command generates a
   goal, which must be discharged by the user.  This is illustrated in
   the following paragraphs.  First the sublocale relation is stated.
-*}
+\<close>
 
   sublocale %visible total_order \<subseteq> lattice
 
-txt {* \normalsize
+txt \<open>\normalsize
   This enters the context of locale @{text total_order}, in
   which the goal @{subgoals [display]} must be shown.
   Now the
@@ -699,40 +699,40 @@ txt {* \normalsize
 
   For the current goal, we would like to get hold of
   the assumptions of @{text lattice}, which need to be shown, hence
-  @{text unfold_locales} is appropriate. *}
+  @{text unfold_locales} is appropriate.\<close>
 
   proof unfold_locales
 
-txt {* \normalsize
+txt \<open>\normalsize
   Since the fact that both lattices and total orders are partial
   orders is already reflected in the locale hierarchy, the assumptions
   of @{text partial_order} are discharged automatically, and only the
   assumptions introduced in @{text lattice} remain as subgoals
   @{subgoals [display]}
   The proof for the first subgoal is obtained by constructing an
-  infimum, whose existence is implied by totality. *}
+  infimum, whose existence is implied by totality.\<close>
 
     fix x y
     from total have "is_inf x y (if x \<sqsubseteq> y then x else y)"
       by (auto simp: is_inf_def)
     then show "\<exists>inf. is_inf x y inf" ..
-txt {* \normalsize
+txt \<open>\normalsize
    The proof for the second subgoal is analogous and not
-  reproduced here. *}
+  reproduced here.\<close>
   next %invisible
     fix x y
     from total have "is_sup x y (if x \<sqsubseteq> y then y else x)"
       by (auto simp: is_sup_def)
     then show "\<exists>sup. is_sup x y sup" .. qed %visible
 
-text {* Similarly, we may establish that total orders are distributive
-  lattices with a second \isakeyword{sublocale} statement. *}
+text \<open>Similarly, we may establish that total orders are distributive
+  lattices with a second \isakeyword{sublocale} statement.\<close>
 
   sublocale total_order \<subseteq> distrib_lattice
     proof unfold_locales
     fix %"proof" x y z
     show "x \<sqinter> (y \<squnion> z) = x \<sqinter> y \<squnion> x \<sqinter> z" (is "?l = ?r")
-      txt {* Jacobson I, p.\ 462 *}
+      txt \<open>Jacobson I, p.\ 462\<close>
     proof -
       { assume c: "y \<sqsubseteq> x" "z \<sqsubseteq> x"
         from c have "?l = y \<squnion> z"
@@ -751,10 +751,10 @@ text {* Similarly, we may establish that total orders are distributive
     qed
   qed
 
-text {* The locale hierarchy is now as shown in
-  Figure~\ref{fig:lattices}(c). *}
+text \<open>The locale hierarchy is now as shown in
+  Figure~\ref{fig:lattices}(c).\<close>
 
-text {*
+text \<open>
   Locale interpretation is \emph{dynamic}.  The statement
   \isakeyword{sublocale} $l_1 \subseteq l_2$ will not just add the
   current conclusions of $l_2$ to $l_1$.  Rather the dependency is
@@ -764,6 +764,6 @@ text {*
   effect along chains of sublocales.  Even cycles in the sublocale relation are
   supported, as long as these cycles do not lead to infinite chains.
   Details are discussed in the technical report @{cite Ballarin2006a}.
-  See also Section~\ref{sec:infinite-chains} of this tutorial.  *}
+  See also Section~\ref{sec:infinite-chains} of this tutorial.\<close>
 
 end

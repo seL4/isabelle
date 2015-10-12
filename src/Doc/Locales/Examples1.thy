@@ -2,10 +2,10 @@ theory Examples1
 imports Examples
 begin
 
-section {* Use of Locales in Theories and Proofs
-  \label{sec:interpretation} *}
+section \<open>Use of Locales in Theories and Proofs
+  \label{sec:interpretation}\<close>
 
-text {*
+text \<open>
   Locales can be interpreted in the contexts of theories and
   structured proofs.  These interpretations are dynamic, too.
   Conclusions of locales will be propagated to the current theory or
@@ -23,21 +23,21 @@ text {*
   with the interpretation that @{term "op \<le>"} is a partial order.  The
   facilities of the interpretation command are explored gradually in
   three versions.
-  *}
+\<close>
 
 
-subsection {* First Version: Replacement of Parameters Only
-  \label{sec:po-first} *}
+subsection \<open>First Version: Replacement of Parameters Only
+  \label{sec:po-first}\<close>
 
-text {*
+text \<open>
   The command \isakeyword{interpretation} is for the interpretation of
   locale in theories.  In the following example, the parameter of locale
   @{text partial_order} is replaced by @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow>
   bool"} and the locale instance is interpreted in the current
-  theory. *}
+  theory.\<close>
 
   interpretation %visible int: partial_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
-txt {* \normalsize
+txt \<open>\normalsize
   The argument of the command is a simple \emph{locale expression}
   consisting of the name of the interpreted locale, which is
   preceded by the qualifier @{text "int:"} and succeeded by a
@@ -50,10 +50,10 @@ txt {* \normalsize
 
   The command creates the goal
   @{subgoals [display]} which can be shown easily:
- *}
+\<close>
     by unfold_locales auto
 
-text {*  The effect of the command is that instances of all
+text \<open>The effect of the command is that instances of all
   conclusions of the locale are available in the theory, where names
   are prefixed by the qualifier.  For example, transitivity for @{typ
   int} is named @{thm [source] int.trans} and is the following
@@ -61,12 +61,12 @@ text {*  The effect of the command is that instances of all
   @{thm [display, indent=2] int.trans}
   It is not possible to reference this theorem simply as @{text
   trans}.  This prevents unwanted hiding of existing theorems of the
-  theory by an interpretation. *}
+  theory by an interpretation.\<close>
 
 
-subsection {* Second Version: Replacement of Definitions *}
+subsection \<open>Second Version: Replacement of Definitions\<close>
 
-text {* Not only does the above interpretation qualify theorem names.
+text \<open>Not only does the above interpretation qualify theorem names.
   The prefix @{text int} is applied to all names introduced in locale
   conclusions including names introduced in definitions.  The
   qualified name @{text int.less} is short for
@@ -85,5 +85,5 @@ text {* Not only does the above interpretation qualify theorem names.
   accepts \emph{equations} in addition to the parameter instantiation.
   These follow the locale expression and are indicated with the
   keyword \isakeyword{where}.  This is the revised interpretation:
-  *}
+\<close>
 end

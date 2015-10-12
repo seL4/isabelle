@@ -2,10 +2,10 @@ theory Examples3
 imports Examples
 begin
 
-subsection {* Third Version: Local Interpretation
-  \label{sec:local-interpretation} *}
+subsection \<open>Third Version: Local Interpretation
+  \label{sec:local-interpretation}\<close>
 
-text {* In the above example, the fact that @{term "op \<le>"} is a partial
+text \<open>In the above example, the fact that @{term "op \<le>"} is a partial
   order for the integers was used in the second goal to
   discharge the premise in the definition of @{text "op \<sqsubset>"}.  In
   general, proofs of the equations not only may involve definitions
@@ -14,7 +14,7 @@ text {* In the above example, the fact that @{term "op \<le>"} is a partial
   interpreted locale conclusions temporarily available in the proof.
   This can be achieved by a locale interpretation in the proof body.
   The command for local interpretations is \isakeyword{interpret}.  We
-  repeat the example from the previous section to illustrate this. *}
+  repeat the example from the previous section to illustrate this.\<close>
 
   interpretation %visible int: partial_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
     where "int.less x y = (x < y)"
@@ -26,48 +26,48 @@ text {* In the above example, the fact that @{term "op \<le>"} is a partial
       unfolding int.less_def by auto
   qed
 
-text {* The inner interpretation is immediate from the preceding fact
+text \<open>The inner interpretation is immediate from the preceding fact
   and proved by assumption (Isar short hand ``.'').  It enriches the
   local proof context by the theorems
   also obtained in the interpretation from Section~\ref{sec:po-first},
   and @{text int.less_def} may directly be used to unfold the
   definition.  Theorems from the local interpretation disappear after
   leaving the proof context --- that is, after the succeeding
-  \isakeyword{next} or \isakeyword{qed} statement. *}
+  \isakeyword{next} or \isakeyword{qed} statement.\<close>
 
 
-subsection {* Further Interpretations *}
+subsection \<open>Further Interpretations\<close>
 
-text {* Further interpretations are necessary for
+text \<open>Further interpretations are necessary for
   the other locales.  In @{text lattice} the operations~@{text \<sqinter>}
   and~@{text \<squnion>} are substituted by @{term "min :: int \<Rightarrow> int \<Rightarrow> int"}
   and @{term "max :: int \<Rightarrow> int \<Rightarrow> int"}.  The entire proof for the
   interpretation is reproduced to give an example of a more
   elaborate interpretation proof.  Note that the equations are named
-  so they can be used in a later example.  *}
+  so they can be used in a later example.\<close>
 
   interpretation %visible int: lattice "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
     where int_min_eq: "int.meet x y = min x y"
       and int_max_eq: "int.join x y = max x y"
   proof -
     show "lattice (op \<le> :: int \<Rightarrow> int \<Rightarrow> bool)"
-      txt {* \normalsize We have already shown that this is a partial
-        order, *}
+      txt \<open>\normalsize We have already shown that this is a partial
+        order,\<close>
       apply unfold_locales
-      txt {* \normalsize hence only the lattice axioms remain to be
+      txt \<open>\normalsize hence only the lattice axioms remain to be
         shown.
         @{subgoals [display]}
-        By @{text is_inf} and @{text is_sup}, *}
+        By @{text is_inf} and @{text is_sup},\<close>
       apply (unfold int.is_inf_def int.is_sup_def)
-      txt {* \normalsize the goals are transformed to these
+      txt \<open>\normalsize the goals are transformed to these
         statements:
         @{subgoals [display]}
         This is Presburger arithmetic, which can be solved by the
-        method @{text arith}. *}
+        method @{text arith}.\<close>
       by arith+
-    txt {* \normalsize In order to show the equations, we put ourselves
+    txt \<open>\normalsize In order to show the equations, we put ourselves
       in a situation where the lattice theorems can be used in a
-      convenient way. *}
+      convenient way.\<close>
     then interpret int: lattice "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool" .
     show "int.meet x y = min x y"
       by (bestsimp simp: int.meet_def int.is_inf_def)
@@ -75,13 +75,13 @@ text {* Further interpretations are necessary for
       by (bestsimp simp: int.join_def int.is_sup_def)
   qed
 
-text {* Next follows that @{text "op \<le>"} is a total order, again for
-  the integers. *}
+text \<open>Next follows that @{text "op \<le>"} is a total order, again for
+  the integers.\<close>
 
   interpretation %visible int: total_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
     by unfold_locales arith
 
-text {* Theorems that are available in the theory at this point are shown in
+text \<open>Theorems that are available in the theory at this point are shown in
   Table~\ref{tab:int-lattice}.  Two points are worth noting:
 
 \begin{table}
@@ -123,9 +123,9 @@ text {* Theorems that are available in the theory at this point are shown in
   related interpretations --- that is, for interpretations that share
   the instances of parameters they have in common.
 \end{itemize}
-  *}
+\<close>
 
-text {* The interpretations for a locale $n$ within the current
+text \<open>The interpretations for a locale $n$ within the current
   theory may be inspected with \isakeyword{print\_interps}~$n$.  This
   prints the list of instances of $n$, for which interpretations exist.
   For example, \isakeyword{print\_interps} @{term partial_order}
@@ -144,12 +144,12 @@ text {* The interpretations for a locale $n$ within the current
   prevent accidental hiding of names, while optional qualifiers can be
   more convenient to use.  For \isakeyword{interpretation}, the
   default is ``!''.
-*}
+\<close>
 
 
-section {* Locale Expressions \label{sec:expressions} *}
+section \<open>Locale Expressions \label{sec:expressions}\<close>
 
-text {*
+text \<open>
   A map~@{term \<phi>} between partial orders~@{text \<sqsubseteq>} and~@{text \<preceq>}
   is called order preserving if @{text "x \<sqsubseteq> y"} implies @{text "\<phi> x \<preceq>
   \<phi> y"}.  This situation is more complex than those encountered so
@@ -206,7 +206,7 @@ text {*
 
   Two context elements for the map parameter~@{text \<phi>} and the
   assumptions that it is order preserving complete the locale
-  declaration. *}
+  declaration.\<close>
 
   locale order_preserving =
     le: partial_order le + le': partial_order le'
@@ -214,7 +214,7 @@ text {*
     fixes \<phi>
     assumes hom_le: "x \<sqsubseteq> y \<Longrightarrow> \<phi> x \<preceq> \<phi> y"
 
-text (in order_preserving) {* Here are examples of theorems that are
+text (in order_preserving) \<open>Here are examples of theorems that are
   available in the locale:
 
   \hspace*{1em}@{thm [source] hom_le}: @{thm hom_le}
@@ -228,34 +228,34 @@ text (in order_preserving) {* Here are examples of theorems that are
   "op \<preceq>"}.  The abbreviation @{text less} with its infix syntax is only
   available for the original instance it was declared for.  We may
   introduce the abbreviation @{text less'} with infix syntax~@{text \<prec>}
-  with the following declaration: *}
+  with the following declaration:\<close>
 
   abbreviation (in order_preserving)
     less' (infixl "\<prec>" 50) where "less' \<equiv> partial_order.less le'"
 
-text (in order_preserving) {* Now the theorem is displayed nicely as
+text (in order_preserving) \<open>Now the theorem is displayed nicely as
   @{thm [source]  le'.less_le_trans}:
-  @{thm [display, indent=2] le'.less_le_trans} *}
+  @{thm [display, indent=2] le'.less_le_trans}\<close>
 
-text {* There are short notations for locale expressions.  These are
-  discussed in the following. *}
+text \<open>There are short notations for locale expressions.  These are
+  discussed in the following.\<close>
 
 
-subsection {* Default Instantiations *}
+subsection \<open>Default Instantiations\<close>
 
-text {* 
+text \<open>
   It is possible to omit parameter instantiations.  The
   instantiation then defaults to the name of
   the parameter itself.  For example, the locale expression @{text
   partial_order} is short for @{text "partial_order le"}, since the
   locale's single parameter is~@{text le}.  We took advantage of this
   in the \isakeyword{sublocale} declarations of
-  Section~\ref{sec:changing-the-hierarchy}. *}
+  Section~\ref{sec:changing-the-hierarchy}.\<close>
 
 
-subsection {* Implicit Parameters \label{sec:implicit-parameters} *}
+subsection \<open>Implicit Parameters \label{sec:implicit-parameters}\<close>
 
-text {* In a locale expression that occurs within a locale
+text \<open>In a locale expression that occurs within a locale
   declaration, omitted parameters additionally extend the (possibly
   empty) \isakeyword{for} clause.
 
@@ -281,12 +281,12 @@ text {* In a locale expression that occurs within a locale
 \end{small}
   This short hand was used in the locale declarations throughout
   Section~\ref{sec:import}.
- *}
+\<close>
 
-text{*
+text\<open>
   The following locale declarations provide more examples.  A
   map~@{text \<phi>} is a lattice homomorphism if it preserves meet and
-  join. *}
+  join.\<close>
 
   locale lattice_hom =
     le: lattice + le': lattice le' for le' (infixl "\<preceq>" 50) +
@@ -294,7 +294,7 @@ text{*
     assumes hom_meet: "\<phi> (x \<sqinter> y) = le'.meet (\<phi> x) (\<phi> y)"
       and hom_join: "\<phi> (x \<squnion> y) = le'.join (\<phi> x) (\<phi> y)"
 
-text {* The parameter instantiation in the first instance of @{term
+text \<open>The parameter instantiation in the first instance of @{term
   lattice} is omitted.  This causes the parameter~@{text le} to be
   added to the \isakeyword{for} clause, and the locale has
   parameters~@{text le},~@{text le'} and, of course,~@{text \<phi>}.
@@ -302,7 +302,7 @@ text {* The parameter instantiation in the first instance of @{term
   Before turning to the second example, we complete the locale by
   providing infix syntax for the meet and join operations of the
   second lattice.
-*}
+\<close>
 
   context lattice_hom
   begin
@@ -310,20 +310,20 @@ text {* The parameter instantiation in the first instance of @{term
   abbreviation join' (infixl "\<squnion>''" 50) where "join' \<equiv> le'.join"
   end
 
-text {* The next example makes radical use of the short hand
+text \<open>The next example makes radical use of the short hand
   facilities.  A homomorphism is an endomorphism if both orders
-  coincide. *}
+  coincide.\<close>
 
   locale lattice_end = lattice_hom _ le
 
-text {* The notation~@{text _} enables to omit a parameter in a
+text \<open>The notation~@{text _} enables to omit a parameter in a
   positional instantiation.  The omitted parameter,~@{text le} becomes
   the parameter of the declared locale and is, in the following
   position, used to instantiate the second parameter of @{text
   lattice_hom}.  The effect is that of identifying the first in second
-  parameter of the homomorphism locale. *}
+  parameter of the homomorphism locale.\<close>
 
-text {* The inheritance diagram of the situation we have now is shown
+text \<open>The inheritance diagram of the situation we have now is shown
   in Figure~\ref{fig:hom}, where the dashed line depicts an
   interpretation which is introduced below.  Parameter instantiations
   are indicated by $\sqsubseteq \mapsto \preceq$ etc.  By looking at
@@ -364,11 +364,11 @@ text {* The inheritance diagram of the situation we have now is shown
 \caption{Hierarchy of Homomorphism Locales.}
 \label{fig:hom}
 \end{figure}
-  *}
+\<close>
 
-text {* It can be shown easily that a lattice homomorphism is order
+text \<open>It can be shown easily that a lattice homomorphism is order
   preserving.  As the final example of this section, a locale
-  interpretation is used to assert this: *}
+  interpretation is used to assert this:\<close>
 
   sublocale lattice_hom \<subseteq> order_preserving
   proof unfold_locales
@@ -379,19 +379,19 @@ text {* It can be shown easily that a lattice homomorphism is order
     then show "\<phi> x \<preceq> \<phi> y" by (simp add: le'.join_connection)
   qed
 
-text (in lattice_hom) {*
+text (in lattice_hom) \<open>
   Theorems and other declarations --- syntax, in particular --- from
   the locale @{text order_preserving} are now active in @{text
   lattice_hom}, for example
   @{thm [source] hom_le}:
   @{thm [display, indent=2] hom_le}
   This theorem will be useful in the following section.
-  *}
+\<close>
 
 
-section {* Conditional Interpretation *}
+section \<open>Conditional Interpretation\<close>
 
-text {* There are situations where an interpretation is not possible
+text \<open>There are situations where an interpretation is not possible
   in the general case since the desired property is only valid if
   certain conditions are fulfilled.  Take, for example, the function
   @{text "\<lambda>i. n * i"} that scales its argument by a constant factor.
@@ -407,58 +407,58 @@ text {* There are situations where an interpretation is not possible
   contexts.  What is
   required is an interpretation that depends on the condition --- and
   this can be done with the \isakeyword{sublocale} command.  For this
-  purpose, we introduce a locale for the condition. *}
+  purpose, we introduce a locale for the condition.\<close>
 
   locale non_negative =
     fixes n :: int
     assumes non_neg: "0 \<le> n"
 
-text {* It is again convenient to make the interpretation in an
+text \<open>It is again convenient to make the interpretation in an
   incremental fashion, first for order preserving maps, the for
-  lattice endomorphisms. *}
+  lattice endomorphisms.\<close>
 
   sublocale non_negative \<subseteq>
       order_preserving "op \<le>" "op \<le>" "\<lambda>i. n * i"
     using non_neg by unfold_locales (rule mult_left_mono)
 
-text {* While the proof of the previous interpretation
+text \<open>While the proof of the previous interpretation
   is straightforward from monotonicity lemmas for~@{term "op *"}, the
-  second proof follows a useful pattern. *}
+  second proof follows a useful pattern.\<close>
 
   sublocale %visible non_negative \<subseteq> lattice_end "op \<le>" "\<lambda>i. n * i"
   proof (unfold_locales, unfold int_min_eq int_max_eq)
-    txt {* \normalsize Unfolding the locale predicates \emph{and} the
+    txt \<open>\normalsize Unfolding the locale predicates \emph{and} the
       interpretation equations immediately yields two subgoals that
       reflect the core conjecture.
       @{subgoals [display]}
       It is now necessary to show, in the context of @{term
       non_negative}, that multiplication by~@{term n} commutes with
-      @{term min} and @{term max}. *}
+      @{term min} and @{term max}.\<close>
   qed (auto simp: hom_le)
 
-text (in order_preserving) {* The lemma @{thm [source] hom_le}
+text (in order_preserving) \<open>The lemma @{thm [source] hom_le}
   simplifies a proof that would have otherwise been lengthy and we may
-  consider making it a default rule for the simplifier: *}
+  consider making it a default rule for the simplifier:\<close>
 
   lemmas (in order_preserving) hom_le [simp]
 
 
-subsection {* Avoiding Infinite Chains of Interpretations
-  \label{sec:infinite-chains} *}
+subsection \<open>Avoiding Infinite Chains of Interpretations
+  \label{sec:infinite-chains}\<close>
 
-text {* Similar situations arise frequently in formalisations of
+text \<open>Similar situations arise frequently in formalisations of
   abstract algebra where it is desirable to express that certain
   constructions preserve certain properties.  For example, polynomials
   over rings are rings, or --- an example from the domain where the
   illustrations of this tutorial are taken from --- a partial order
   may be obtained for a function space by point-wise lifting of the
   partial order of the co-domain.  This corresponds to the following
-  interpretation: *}
+  interpretation:\<close>
 
   sublocale %visible partial_order \<subseteq> f: partial_order "\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x"
     oops
 
-text {* Unfortunately this is a cyclic interpretation that leads to an
+text \<open>Unfortunately this is a cyclic interpretation that leads to an
   infinite chain, namely
   @{text [display, indent=2] "partial_order \<subseteq> partial_order (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x) \<subseteq>
   partial_order (\<lambda>f g. \<forall>x y. f x y \<sqsubseteq> g x y) \<subseteq>  \<dots>"}
@@ -467,7 +467,7 @@ text {* Unfortunately this is a cyclic interpretation that leads to an
   Instead it is necessary to declare a locale that is logically
   equivalent to @{term partial_order} but serves to collect facts
   about functions spaces where the co-domain is a partial order, and
-  to make the interpretation in its context: *}
+  to make the interpretation in its context:\<close>
 
   locale fun_partial_order = partial_order
 
@@ -475,10 +475,10 @@ text {* Unfortunately this is a cyclic interpretation that leads to an
       f: partial_order "\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x"
     by unfold_locales (fast,rule,fast,blast intro: trans)
 
-text {* It is quite common in abstract algebra that such a construction
+text \<open>It is quite common in abstract algebra that such a construction
   maps a hierarchy of algebraic structures (or specifications) to a
   related hierarchy.  By means of the same lifting, a function space
-  is a lattice if its co-domain is a lattice: *}
+  is a lattice if its co-domain is a lattice:\<close>
 
   locale fun_lattice = fun_partial_order + lattice
 
@@ -498,9 +498,9 @@ text {* It is quite common in abstract algebra that such a construction
   qed
 
 
-section {* Further Reading *}
+section \<open>Further Reading\<close>
 
-text {* More information on locales and their interpretation is
+text \<open>More information on locales and their interpretation is
   available.  For the locale hierarchy of import and interpretation
   dependencies see~@{cite Ballarin2006a}; interpretations in theories
   and proofs are covered in~@{cite Ballarin2006b}.  In the latter, I
@@ -532,9 +532,9 @@ text {* More information on locales and their interpretation is
   The sources of this tutorial, which include all proofs, are
   available with the Isabelle distribution at
   @{url "http://isabelle.in.tum.de"}.
-  *}
+\<close>
 
-text {*
+text \<open>
 \begin{table}
 \hrule
 \vspace{2ex}
@@ -635,18 +635,18 @@ text {*
 \caption{Syntax of Locale Commands.}
 \label{tab:commands}
 \end{table}
-  *}
+\<close>
 
-text {* \textbf{Revision History.}  For the present third revision of
+text \<open>\textbf{Revision History.}  For the present third revision of
   the tutorial, much of the explanatory text
   was rewritten.  Inheritance of interpretation equations is
   available with the forthcoming release of Isabelle, which at the
   time of editing these notes is expected for the end of 2009.
   The second revision accommodates changes introduced by the locales
   reimplementation for Isabelle 2009.  Most notably locale expressions
-  have been generalised from renaming to instantiation.  *}
+  have been generalised from renaming to instantiation.\<close>
 
-text {* \textbf{Acknowledgements.}  Alexander Krauss, Tobias Nipkow,
+text \<open>\textbf{Acknowledgements.}  Alexander Krauss, Tobias Nipkow,
   Randy Pollack, Andreas Schropp, Christian Sternagel and Makarius Wenzel
   have made
   useful comments on earlier versions of this document.  The section
@@ -654,6 +654,6 @@ text {* \textbf{Acknowledgements.}  Alexander Krauss, Tobias Nipkow,
   enquiries the author received from locale users, and which suggested
   that this use case is important enough to deserve explicit
   explanation.  The term \emph{conditional interpretation} is due to
-  Larry Paulson. *}
+  Larry Paulson.\<close>
 
 end

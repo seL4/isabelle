@@ -8,11 +8,11 @@ theory Functions
 imports Main
 begin
 
-section {* Function Definitions for Dummies *}
+section \<open>Function Definitions for Dummies\<close>
 
-text {*
+text \<open>
   In most cases, defining a recursive function is just as simple as other definitions:
-*}
+\<close>
 
 fun fib :: "nat \<Rightarrow> nat"
 where
@@ -20,7 +20,7 @@ where
 | "fib (Suc 0) = 1"
 | "fib (Suc (Suc n)) = fib n + fib (Suc n)"
 
-text {*
+text \<open>
   The syntax is rather self-explanatory: We introduce a function by
   giving its name, its type, 
   and a set of defining recursive equations.
@@ -28,9 +28,9 @@ text {*
   inferred, which can sometimes lead to surprises: Since both @{term
   "1::nat"} and @{text "+"} are overloaded, we would end up
   with @{text "fib :: nat \<Rightarrow> 'a::{one,plus}"}.
-*}
+\<close>
 
-text {*
+text \<open>
   The function always terminates, since its argument gets smaller in
   every recursive call. 
   Since HOL is a logic of total functions, termination is a
@@ -40,11 +40,11 @@ text {*
   Isabelle tries to prove termination automatically when a definition
   is made. In \S\ref{termination}, we will look at cases where this
   fails and see what to do then.
-*}
+\<close>
 
-subsection {* Pattern matching *}
+subsection \<open>Pattern matching\<close>
 
-text {* \label{patmatch}
+text \<open>\label{patmatch}
   Like in functional programming, we can use pattern matching to
   define functions. At the moment we will only consider \emph{constructor
   patterns}, which only consist of datatype constructors and
@@ -55,35 +55,35 @@ text {* \label{patmatch}
   If patterns overlap, the order of the equations is taken into
   account. The following function inserts a fixed element between any
   two elements of a list:
-*}
+\<close>
 
 fun sep :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
   "sep a (x#y#xs) = x # a # sep a (y # xs)"
 | "sep a xs       = xs"
 
-text {* 
+text \<open>
   Overlapping patterns are interpreted as \qt{increments} to what is
   already there: The second equation is only meant for the cases where
   the first one does not match. Consequently, Isabelle replaces it
   internally by the remaining cases, making the patterns disjoint:
-*}
+\<close>
 
 thm sep.simps
 
-text {* @{thm [display] sep.simps[no_vars]} *}
+text \<open>@{thm [display] sep.simps[no_vars]}\<close>
 
-text {* 
+text \<open>
   \noindent The equations from function definitions are automatically used in
   simplification:
-*}
+\<close>
 
 lemma "sep 0 [1, 2, 3] = [1, 0, 2, 0, 3]"
 by simp
 
-subsection {* Induction *}
+subsection \<open>Induction\<close>
 
-text {*
+text \<open>
 
   Isabelle provides customized induction rules for recursive
   functions. These rules follow the recursive structure of the
@@ -95,30 +95,30 @@ text {*
   We have a step case for list with at least two elements, and two
   base cases for the zero- and the one-element list. Here is a simple
   proof about @{const sep} and @{const map}
-*}
+\<close>
 
 lemma "map f (sep x ys) = sep (f x) (map f ys)"
 apply (induct x ys rule: sep.induct)
 
-text {*
+text \<open>
   We get three cases, like in the definition.
 
   @{subgoals [display]}
-*}
+\<close>
 
 apply auto 
 done
-text {*
+text \<open>
 
   With the \cmd{fun} command, you can define about 80\% of the
   functions that occur in practice. The rest of this tutorial explains
   the remaining 20\%.
-*}
+\<close>
 
 
-section {* fun vs.\ function *}
+section \<open>fun vs.\ function\<close>
 
-text {* 
+text \<open>
   The \cmd{fun} command provides a
   convenient shorthand notation for simple function definitions. In
   this mode, Isabelle tries to solve all the necessary proof obligations
@@ -171,32 +171,32 @@ text {*
   Whenever a \cmd{fun} command fails, it is usually a good idea to
   expand the syntax to the more verbose \cmd{function} form, to see
   what is actually going on.
- *}
+\<close>
 
 
-section {* Termination *}
+section \<open>Termination\<close>
 
-text {*\label{termination}
+text \<open>\label{termination}
   The method @{text "lexicographic_order"} is the default method for
   termination proofs. It can prove termination of a
   certain class of functions by searching for a suitable lexicographic
   combination of size measures. Of course, not all functions have such
   a simple termination argument. For them, we can specify the termination
   relation manually.
-*}
+\<close>
 
-subsection {* The {\tt relation} method *}
-text{*
+subsection \<open>The {\tt relation} method\<close>
+text\<open>
   Consider the following function, which sums up natural numbers up to
   @{text "N"}, using a counter @{text "i"}:
-*}
+\<close>
 
 function sum :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
   "sum i N = (if i > N then 0 else i + sum (Suc i) N)"
 by pat_completeness auto
 
-text {*
+text \<open>
   \noindent The @{text "lexicographic_order"} method fails on this example, because none of the
   arguments decreases in the recursive call, with respect to the standard size ordering.
   To prove termination manually, we must provide a custom wellfounded relation.
@@ -208,12 +208,12 @@ text {*
   @{text "N + 1 - i"} always decreases.
 
   We can use this expression as a measure function suitable to prove termination.
-*}
+\<close>
 
 termination sum
 apply (relation "measure (\<lambda>(i,N). N + 1 - i)")
 
-text {*
+text \<open>
   The \cmd{termination} command sets up the termination goal for the
   specified function @{text "sum"}. If the function name is omitted, it
   implicitly refers to the last function definition.
@@ -236,15 +236,15 @@ text {*
   @{subgoals[display,indent=0]}
 
   These goals are all solved by @{text "auto"}:
-*}
+\<close>
 
 apply auto
 done
 
-text {*
+text \<open>
   Let us complicate the function a little, by adding some more
   recursive calls: 
-*}
+\<close>
 
 function foo :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -253,7 +253,7 @@ where
               else i + foo (Suc i) N)"
 by pat_completeness auto
 
-text {*
+text \<open>
   When @{text "i"} has reached @{text "N"}, it starts at zero again
   and @{text "N"} is decremented.
   This corresponds to a nested
@@ -262,12 +262,12 @@ text {*
   the value of @{text "N"} and the above difference. The @{const
   "measures"} combinator generalizes @{text "measure"} by taking a
   list of measure functions.  
-*}
+\<close>
 
 termination 
 by (relation "measures [\<lambda>(i, N). N, \<lambda>(i,N). N + 1 - i]") auto
 
-subsection {* How @{text "lexicographic_order"} works *}
+subsection \<open>How @{text "lexicographic_order"} works\<close>
 
 (*fun fails :: "nat \<Rightarrow> nat list \<Rightarrow> nat"
 where
@@ -275,7 +275,7 @@ where
 | "fails a (x#xs) = fails (x + a) (x # xs)"
 *)
 
-text {*
+text \<open>
   To see how the automatic termination proofs work, let's look at an
   example where it fails\footnote{For a detailed discussion of the
   termination prover, see @{cite bulwahnKN07}}:
@@ -308,8 +308,8 @@ text {*
 *** Could not find lexicographic termination order.\newline
 *** At command "fun".\newline
 \end{isabelle}
-*}
-text {*
+\<close>
+text \<open>
   The key to this error message is the matrix at the bottom. The rows
   of that matrix correspond to the different recursive calls (In our
   case, there is just one). The columns are the function's arguments 
@@ -324,11 +324,11 @@ text {*
 
   For the failed proof attempts, the unfinished subgoals are also
   printed. Looking at these will often point to a missing lemma.
-*}
+\<close>
 
-subsection {* The @{text size_change} method *}
+subsection \<open>The @{text size_change} method\<close>
 
-text {*
+text \<open>
   Some termination goals that are beyond the powers of
   @{text lexicographic_order} can be solved automatically by the
   more powerful @{text size_change} method, which uses a variant of
@@ -347,14 +347,14 @@ text {*
 
   Loading the theory @{text Multiset} makes the @{text size_change}
   method a bit stronger: it can then use multiset orders internally.
-*}
+\<close>
 
-section {* Mutual Recursion *}
+section \<open>Mutual Recursion\<close>
 
-text {*
+text \<open>
   If two or more functions call one another mutually, they have to be defined
   in one step. Here are @{text "even"} and @{text "odd"}:
-*}
+\<close>
 
 function even :: "nat \<Rightarrow> bool"
     and odd  :: "nat \<Rightarrow> bool"
@@ -365,93 +365,93 @@ where
 | "odd (Suc n) = even n"
 by pat_completeness auto
 
-text {*
+text \<open>
   To eliminate the mutual dependencies, Isabelle internally
   creates a single function operating on the sum
   type @{typ "nat + nat"}. Then, @{const even} and @{const odd} are
   defined as projections. Consequently, termination has to be proved
   simultaneously for both functions, by specifying a measure on the
   sum type: 
-*}
+\<close>
 
 termination 
 by (relation "measure (\<lambda>x. case x of Inl n \<Rightarrow> n | Inr n \<Rightarrow> n)") auto
 
-text {* 
+text \<open>
   We could also have used @{text lexicographic_order}, which
   supports mutual recursive termination proofs to a certain extent.
-*}
+\<close>
 
-subsection {* Induction for mutual recursion *}
+subsection \<open>Induction for mutual recursion\<close>
 
-text {*
+text \<open>
 
   When functions are mutually recursive, proving properties about them
   generally requires simultaneous induction. The induction rule @{thm [source] "even_odd.induct"}
   generated from the above definition reflects this.
 
   Let us prove something about @{const even} and @{const odd}:
-*}
+\<close>
 
 lemma even_odd_mod2:
   "even n = (n mod 2 = 0)"
   "odd n = (n mod 2 = 1)"
 
-text {* 
+text \<open>
   We apply simultaneous induction, specifying the induction variable
-  for both goals, separated by \cmd{and}:  *}
+  for both goals, separated by \cmd{and}:\<close>
 
 apply (induct n and n rule: even_odd.induct)
 
-text {* 
+text \<open>
   We get four subgoals, which correspond to the clauses in the
   definition of @{const even} and @{const odd}:
   @{subgoals[display,indent=0]}
   Simplification solves the first two goals, leaving us with two
   statements about the @{text "mod"} operation to prove:
-*}
+\<close>
 
 apply simp_all
 
-text {* 
+text \<open>
   @{subgoals[display,indent=0]} 
 
   \noindent These can be handled by Isabelle's arithmetic decision procedures.
   
-*}
+\<close>
 
 apply arith
 apply arith
 done
 
-text {*
+text \<open>
   In proofs like this, the simultaneous induction is really essential:
   Even if we are just interested in one of the results, the other
   one is necessary to strengthen the induction hypothesis. If we leave
   out the statement about @{const odd} and just write @{term True} instead,
   the same proof fails:
-*}
+\<close>
 
 lemma failed_attempt:
   "even n = (n mod 2 = 0)"
   "True"
 apply (induct n rule: even_odd.induct)
 
-text {*
+text \<open>
   \noindent Now the third subgoal is a dead end, since we have no
   useful induction hypothesis available:
 
   @{subgoals[display,indent=0]} 
-*}
+\<close>
 
 oops
 
-section {* Elimination *}
+section \<open>Elimination\<close>
 
-text {* 
+text \<open>
   A definition of function @{text f} gives rise to two kinds of elimination rules. Rule @{text f.cases}
   simply describes case analysis according to the patterns used in the definition:
-*}
+\<close>
 
 fun list_to_option :: "'a list \<Rightarrow> 'a option"
 where
@@ -459,21 +459,21 @@ where
 | "list_to_option _ = None"
 
 thm list_to_option.cases
-text {*
+text \<open>
   @{thm[display] list_to_option.cases}
 
   Note that this rule does not mention the function at all, but only describes the cases used for
   defining it. In contrast, the rule @{thm[source] list_to_option.elims} also tell us what the function
   value will be in each case:
-*}
+\<close>
 thm list_to_option.elims
-text {*
+text \<open>
   @{thm[display] list_to_option.elims}
 
   \noindent
   This lets us eliminate an assumption of the form @{prop "list_to_option xs = y"} and replace it
   with the two cases, e.g.:
-*}
+\<close>
 
 lemma "list_to_option xs = y \<Longrightarrow> P"
 proof (erule list_to_option.elims)
@@ -485,28 +485,28 @@ next
 qed
 
 
-text {*
+text \<open>
   Sometimes it is convenient to derive specialized versions of the @{text elim} rules above and
   keep them around as facts explicitly. For example, it is natural to show that if 
   @{prop "list_to_option xs = Some y"}, then @{term xs} must be a singleton. The command 
   \cmd{fun\_cases} derives such facts automatically, by instantiating and simplifying the general 
   elimination rules given some pattern:
-*}
+\<close>
 
 fun_cases list_to_option_SomeE[elim]: "list_to_option xs = Some y"
 
 thm list_to_option_SomeE
-text {*
+text \<open>
   @{thm[display] list_to_option_SomeE}
-*}
+\<close>
 
 
-section {* General pattern matching *}
-text{*\label{genpats} *}
+section \<open>General pattern matching\<close>
+text\<open>\label{genpats}\<close>
 
-subsection {* Avoiding automatic pattern splitting *}
+subsection \<open>Avoiding automatic pattern splitting\<close>
 
-text {*
+text \<open>
 
   Up to now, we used pattern matching only on datatypes, and the
   patterns were always disjoint and complete, and if they weren't,
@@ -520,11 +520,11 @@ text {*
   Suppose we are modeling incomplete knowledge about the world by a
   three-valued datatype, which has values @{term "T"}, @{term "F"}
   and @{term "X"} for true, false and uncertain propositions, respectively. 
-*}
+\<close>
 
 datatype P3 = T | F | X
 
-text {* \noindent Then the conjunction of such values can be defined as follows: *}
+text \<open>\noindent Then the conjunction of such values can be defined as follows:\<close>
 
 fun And :: "P3 \<Rightarrow> P3 \<Rightarrow> P3"
 where
@@ -535,17 +535,17 @@ where
 | "And X X = X"
 
 
-text {* 
+text \<open>
   This definition is useful, because the equations can directly be used
   as simplification rules. But the patterns overlap: For example,
   the expression @{term "And T T"} is matched by both the first and
   the second equation. By default, Isabelle makes the patterns disjoint by
   splitting them up, producing instances:
-*}
+\<close>
 
 thm And.simps
 
-text {*
+text \<open>
   @{thm[indent=4] And.simps}
   
   \vspace*{1em}
@@ -575,7 +575,7 @@ text {*
   prove that our pattern matching is consistent\footnote{This prevents
   us from defining something like @{term "f x = True"} and @{term "f x
   = False"} simultaneously.}:
-*}
+\<close>
 
 function And2 :: "P3 \<Rightarrow> P3 \<Rightarrow> P3"
 where
@@ -585,7 +585,7 @@ where
 | "And2 F p = F"
 | "And2 X X = X"
 
-text {*
+text \<open>
   \noindent Now let's look at the proof obligations generated by a
   function definition. In this case, they are:
 
@@ -599,26 +599,26 @@ text {*
   (\<exists>p. x = (F, p)) \<or> (x = (X, X))"}, and you can use the method @{text atomize_elim} to get that form instead.}. If the patterns just involve
   datatypes, we can solve it with the @{text "pat_completeness"}
   method:
-*}
+\<close>
 
 apply pat_completeness
 
-text {*
+text \<open>
   The remaining subgoals express \emph{pattern compatibility}. We do
   allow that an input value matches multiple patterns, but in this
   case, the result (i.e.~the right hand sides of the equations) must
   also be equal. For each pair of two patterns, there is one such
   subgoal. Usually this needs injectivity of the constructors, which
   is used automatically by @{text "auto"}.
-*}
+\<close>
 
 by auto
 termination by (relation "{}") simp
 
 
-subsection {* Non-constructor patterns *}
+subsection \<open>Non-constructor patterns\<close>
 
-text {*
+text \<open>
   Most of Isabelle's basic types take the form of inductive datatypes,
   and usually pattern matching works on the constructors of such types. 
   However, this need not be always the case, and the \cmd{function}
@@ -628,7 +628,7 @@ text {*
   so-called \emph{$n+k$-patterns}, which are a little controversial in
   the functional programming world. Here is the initial fibonacci
   example with $n+k$-patterns:
-*}
+\<close>
 
 function fib2 :: "nat \<Rightarrow> nat"
 where
@@ -636,7 +636,7 @@ where
 | "fib2 1 = 1"
 | "fib2 (n + 2) = fib2 n + fib2 (Suc n)"
 
-text {*
+text \<open>
   This kind of matching is again justified by the proof of pattern
   completeness and compatibility. 
   The proof obligation for pattern completeness states that every natural number is
@@ -651,17 +651,17 @@ text {*
   "atomize_elim"} to do an ad-hoc conversion to a disjunction of
   existentials, which can then be solved by the arithmetic decision procedure.
   Pattern compatibility and termination are automatic as usual.
-*}
+\<close>
 apply atomize_elim
 apply arith
 apply auto
 done
 termination by lexicographic_order
-text {*
+text \<open>
   We can stretch the notion of pattern matching even more. The
   following function is not a sensible functional program, but a
   perfectly valid mathematical definition:
-*}
+\<close>
 
 function ev :: "nat \<Rightarrow> bool"
 where
@@ -671,7 +671,7 @@ apply atomize_elim
 by arith+
 termination by (relation "{}") simp
 
-text {*
+text \<open>
   This general notion of pattern matching gives you a certain freedom
   in writing down specifications. However, as always, such freedom should
   be used with care:
@@ -682,17 +682,17 @@ text {*
   code generator, and expect it to generate ML code for our
   definitions. Also, such a specification might not work very well together with
   simplification. Your mileage may vary.
-*}
+\<close>
 
 
-subsection {* Conditional equations *}
+subsection \<open>Conditional equations\<close>
 
-text {* 
+text \<open>
   The function package also supports conditional equations, which are
   similar to guards in a language like Haskell. Here is Euclid's
   algorithm written with conditional patterns\footnote{Note that the
   patterns are also overlapping in the base case}:
-*}
+\<close>
 
 function gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
@@ -703,18 +703,18 @@ where
 by (atomize_elim, auto, arith)
 termination by lexicographic_order
 
-text {*
+text \<open>
   By now, you can probably guess what the proof obligations for the
   pattern completeness and compatibility look like. 
 
   Again, functions with conditional patterns are not supported by the
   code generator.
-*}
+\<close>
 
 
-subsection {* Pattern matching on strings *}
+subsection \<open>Pattern matching on strings\<close>
 
-text {*
+text \<open>
   As strings (as lists of characters) are normal datatypes, pattern
   matching on them is possible, but somewhat problematic. Consider the
   following definition:
@@ -734,7 +734,7 @@ text {*
 
   There are two things we can do here. Either we write an explicit
   @{text "if"} on the right hand side, or we can use conditional patterns:
-*}
+\<close>
 
 function check :: "string \<Rightarrow> bool"
 where
@@ -744,9 +744,9 @@ by auto
 termination by (relation "{}") simp
 
 
-section {* Partiality *}
+section \<open>Partiality\<close>
 
-text {* 
+text \<open>
   In HOL, all functions are total. A function @{term "f"} applied to
   @{term "x"} always has the value @{term "f x"}, and there is no notion
   of undefinedness. 
@@ -757,22 +757,22 @@ text {*
   However, the \cmd{function} package does support partiality to a
   certain extent. Let's look at the following function which looks
   for a zero of a given function f. 
-*}
+\<close>
 
 function (*<*)(domintros)(*>*)findzero :: "(nat \<Rightarrow> nat) \<Rightarrow> nat \<Rightarrow> nat"
 where
   "findzero f n = (if f n = 0 then n else findzero f (Suc n))"
 by pat_completeness auto
 
-text {*
+text \<open>
   \noindent Clearly, any attempt of a termination proof must fail. And without
   that, we do not get the usual rules @{text "findzero.simps"} and 
   @{text "findzero.induct"}. So what was the definition good for at all?
-*}
+\<close>
 
-subsection {* Domain predicates *}
+subsection \<open>Domain predicates\<close>
 
-text {*
+text \<open>
   The trick is that Isabelle has not only defined the function @{const findzero}, but also
   a predicate @{term "findzero_dom"} that characterizes the values where the function
   terminates: the \emph{domain} of the function. If we treat a
@@ -781,18 +781,18 @@ text {*
   induction rules as we do for total functions. They are guarded
   by domain conditions and are called @{text psimps} and @{text
   pinduct}: 
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent\begin{minipage}{0.79\textwidth}@{thm[display,margin=85] findzero.psimps}\end{minipage}
   \hfill(@{thm [source] "findzero.psimps"})
   \vspace{1em}
 
   \noindent\begin{minipage}{0.79\textwidth}@{thm[display,margin=85] findzero.pinduct}\end{minipage}
   \hfill(@{thm [source] "findzero.pinduct"})
-*}
+\<close>
 
-text {*
+text \<open>
   Remember that all we
   are doing here is use some tricks to make a total function appear
   as if it was partial. We can still write the term @{term "findzero
@@ -803,16 +803,16 @@ text {*
   But it is defined enough to prove something interesting about it. We
   can prove that if @{term "findzero f n"}
   terminates, it indeed returns a zero of @{term f}:
-*}
+\<close>
 
 lemma findzero_zero: "findzero_dom (f, n) \<Longrightarrow> f (findzero f n) = 0"
 
-text {* \noindent We apply induction as usual, but using the partial induction
-  rule: *}
+text \<open>\noindent We apply induction as usual, but using the partial induction
+  rule:\<close>
 
 apply (induct f n rule: findzero.pinduct)
 
-text {* \noindent This gives the following subgoals:
+text \<open>\noindent This gives the following subgoals:
 
   @{subgoals[display,indent=0]}
 
@@ -821,26 +821,26 @@ text {* \noindent This gives the following subgoals:
   "findzero_dom (f, n)"} as a local assumption in the induction step. This
   allows unfolding @{term "findzero f n"} using the @{text psimps}
   rule, and the rest is trivial.
- *}
+\<close>
 apply (simp add: findzero.psimps)
 done
 
-text {*
+text \<open>
   Proofs about partial functions are often not harder than for total
   functions. Fig.~\ref{findzero_isar} shows a slightly more
   complicated proof written in Isar. It is verbose enough to show how
   partiality comes into play: From the partial induction, we get an
   additional domain condition hypothesis. Observe how this condition
   is applied when calls to @{term findzero} are unfolded.
-*}
+\<close>
 
-text_raw {*
+text_raw \<open>
 \begin{figure}
 \hrule\vspace{6pt}
 \begin{minipage}{0.8\textwidth}
 \isabellestyle{it}
 \isastyle\isamarkuptrue
-*}
+\<close>
 lemma "\<lbrakk>findzero_dom (f, n); x \<in> {n ..< findzero f n}\<rbrakk> \<Longrightarrow> f x \<noteq> 0"
 proof (induct rule: findzero.pinduct)
   fix f n assume dom: "findzero_dom (f, n)"
@@ -857,24 +857,24 @@ proof (induct rule: findzero.pinduct)
   thus "f x \<noteq> 0"
   proof
     assume "x = n"
-    with `f n \<noteq> 0` show ?thesis by simp
+    with \<open>f n \<noteq> 0\<close> show ?thesis by simp
   next
     assume "x \<in> {Suc n ..< findzero f n}"
-    with dom and `f n \<noteq> 0` have "x \<in> {Suc n ..< findzero f (Suc n)}" by (simp add: findzero.psimps)
-    with IH and `f n \<noteq> 0`
+    with dom and \<open>f n \<noteq> 0\<close> have "x \<in> {Suc n ..< findzero f (Suc n)}" by (simp add: findzero.psimps)
+    with IH and \<open>f n \<noteq> 0\<close>
     show ?thesis by simp
   qed
 qed
-text_raw {*
+text_raw \<open>
 \isamarkupfalse\isabellestyle{tt}
 \end{minipage}\vspace{6pt}\hrule
 \caption{A proof about a partial function}\label{findzero_isar}
 \end{figure}
-*}
+\<close>
 
-subsection {* Partial termination proofs *}
+subsection \<open>Partial termination proofs\<close>
 
-text {*
+text \<open>
   Now that we have proved some interesting properties about our
   function, we should turn to the domain predicate and see if it is
   actually true for some values. Otherwise we would have just proved
@@ -894,11 +894,11 @@ text {*
 \ \ \ldots\\
 
   \noindent Now the package has proved an introduction rule for @{text findzero_dom}:
-*}
+\<close>
 
 thm findzero.domintros
 
-text {*
+text \<open>
   @{thm[display] findzero.domintros}
 
   Domain introduction rules allow to show that a given value lies in the
@@ -921,27 +921,27 @@ text {*
   induction is then straightforward, except for the unusual induction
   principle.
 
-*}
+\<close>
 
-text_raw {*
+text_raw \<open>
 \begin{figure}
 \hrule\vspace{6pt}
 \begin{minipage}{0.8\textwidth}
 \isabellestyle{it}
 \isastyle\isamarkuptrue
-*}
+\<close>
 lemma findzero_termination:
   assumes "x \<ge> n" and "f x = 0"
   shows "findzero_dom (f, n)"
 proof - 
   have base: "findzero_dom (f, x)"
-    by (rule findzero.domintros) (simp add:`f x = 0`)
+    by (rule findzero.domintros) (simp add:\<open>f x = 0\<close>)
 
   have step: "\<And>i. findzero_dom (f, Suc i) 
     \<Longrightarrow> findzero_dom (f, i)"
     by (rule findzero.domintros) simp
 
-  from `x \<ge> n` show ?thesis
+  from \<open>x \<ge> n\<close> show ?thesis
   proof (induct rule:inc_induct)
     show "findzero_dom (f, x)" by (rule base)
   next
@@ -949,18 +949,18 @@ proof -
     thus "findzero_dom (f, i)" by (rule step)
   qed
 qed      
-text_raw {*
+text_raw \<open>
 \isamarkupfalse\isabellestyle{tt}
 \end{minipage}\vspace{6pt}\hrule
 \caption{Termination proof for @{text findzero}}\label{findzero_term}
 \end{figure}
-*}
+\<close>
       
-text {*
+text \<open>
   Again, the proof given in Fig.~\ref{findzero_term} has a lot of
   detail in order to explain the principles. Using more automation, we
   can also have a short proof:
-*}
+\<close>
 
 lemma findzero_termination_short:
   assumes zero: "x >= n" 
@@ -969,18 +969,18 @@ lemma findzero_termination_short:
 using zero
 by (induct rule:inc_induct) (auto intro: findzero.domintros)
     
-text {*
+text \<open>
   \noindent It is simple to combine the partial correctness result with the
   termination lemma:
-*}
+\<close>
 
 lemma findzero_total_correctness:
   "f x = 0 \<Longrightarrow> f (findzero f 0) = 0"
 by (blast intro: findzero_zero findzero_termination)
 
-subsection {* Definition of the domain predicate *}
+subsection \<open>Definition of the domain predicate\<close>
 
-text {*
+text \<open>
   Sometimes it is useful to know what the definition of the domain
   predicate looks like. Actually, @{text findzero_dom} is just an
   abbreviation:
@@ -1014,17 +1014,17 @@ text {*
   accp_downward}, and of course the introduction and elimination rules
   for the recursion relation @{thm [source] "findzero_rel.intros"} and @{thm
   [source] "findzero_rel.cases"}.
-*}
+\<close>
 
-section {* Nested recursion *}
+section \<open>Nested recursion\<close>
 
-text {*
+text \<open>
   Recursive calls which are nested in one another frequently cause
   complications, since their termination proof can depend on a partial
   correctness property of the function itself. 
 
   As a small example, we define the \qt{nested zero} function:
-*}
+\<close>
 
 function nz :: "nat \<Rightarrow> nat"
 where
@@ -1032,16 +1032,16 @@ where
 | "nz (Suc n) = nz (nz n)"
 by pat_completeness auto
 
-text {*
+text \<open>
   If we attempt to prove termination using the identity measure on
   naturals, this fails:
-*}
+\<close>
 
 termination
   apply (relation "measure (\<lambda>n. n)")
   apply auto
 
-text {*
+text \<open>
   We get stuck with the subgoal
 
   @{subgoals[display]}
@@ -1049,36 +1049,36 @@ text {*
   Of course this statement is true, since we know that @{const nz} is
   the zero function. And in fact we have no problem proving this
   property by induction.
-*}
+\<close>
 (*<*)oops(*>*)
 lemma nz_is_zero: "nz_dom n \<Longrightarrow> nz n = 0"
   by (induct rule:nz.pinduct) (auto simp: nz.psimps)
 
-text {*
+text \<open>
   We formulate this as a partial correctness lemma with the condition
   @{term "nz_dom n"}. This allows us to prove it with the @{text
   pinduct} rule before we have proved termination. With this lemma,
   the termination proof works as expected:
-*}
+\<close>
 
 termination
   by (relation "measure (\<lambda>n. n)") (auto simp: nz_is_zero)
 
-text {*
+text \<open>
   As a general strategy, one should prove the statements needed for
   termination as a partial property first. Then they can be used to do
   the termination proof. This also works for less trivial
   examples. Figure \ref{f91} defines the 91-function, a well-known
   challenge problem due to John McCarthy, and proves its termination.
-*}
+\<close>
 
-text_raw {*
+text_raw \<open>
 \begin{figure}
 \hrule\vspace{6pt}
 \begin{minipage}{0.8\textwidth}
 \isabellestyle{it}
 \isastyle\isamarkuptrue
-*}
+\<close>
 
 function f91 :: "nat \<Rightarrow> nat"
 where
@@ -1101,46 +1101,46 @@ proof
 
   assume inner_trm: "f91_dom (n + 11)" -- "Outer call"
   with f91_estimate have "n + 11 < f91 (n + 11) + 11" .
-  with `\<not> 100 < n` show "(f91 (n + 11), n) \<in> ?R" by simp
+  with \<open>\<not> 100 < n\<close> show "(f91 (n + 11), n) \<in> ?R" by simp
 qed
 
-text_raw {*
+text_raw \<open>
 \isamarkupfalse\isabellestyle{tt}
 \end{minipage}
 \vspace{6pt}\hrule
 \caption{McCarthy's 91-function}\label{f91}
 \end{figure}
-*}
+\<close>
 
 
-section {* Higher-Order Recursion *}
+section \<open>Higher-Order Recursion\<close>
 
-text {*
+text \<open>
   Higher-order recursion occurs when recursive calls
   are passed as arguments to higher-order combinators such as @{const
   map}, @{term filter} etc.
   As an example, imagine a datatype of n-ary trees:
-*}
+\<close>
 
 datatype 'a tree = 
   Leaf 'a 
 | Branch "'a tree list"
 
 
-text {* \noindent We can define a function which swaps the left and right subtrees recursively, using the 
-  list functions @{const rev} and @{const map}: *}
+text \<open>\noindent We can define a function which swaps the left and right subtrees recursively, using the 
+  list functions @{const rev} and @{const map}:\<close>
 
 fun mirror :: "'a tree \<Rightarrow> 'a tree"
 where
   "mirror (Leaf n) = Leaf n"
 | "mirror (Branch l) = Branch (rev (map mirror l))"
 
-text {*
+text \<open>
   Although the definition is accepted without problems, let us look at the termination proof:
-*}
+\<close>
 
 termination proof
-  text {*
+  text \<open>
 
   As usual, we have to give a wellfounded relation, such that the
   arguments of the recursive calls get smaller. But what exactly are
@@ -1184,12 +1184,12 @@ termination proof
   But if you define your own higher-order functions, you may have to
   state and prove the required congruence rules yourself, if you want to use your
   functions in recursive definitions. 
-*}
+\<close>
 (*<*)oops(*>*)
 
-subsection {* Congruence Rules and Evaluation Order *}
+subsection \<open>Congruence Rules and Evaluation Order\<close>
 
-text {* 
+text \<open>
   Higher order logic differs from functional programming languages in
   that it has no built-in notion of evaluation order. A program is
   just a set of equations, and it is not specified how they must be
@@ -1201,14 +1201,14 @@ text {*
   consistent with the logical definition. 
 
   Consider the following function.
-*}
+\<close>
 
 function f :: "nat \<Rightarrow> bool"
 where
   "f n = (n = 0 \<or> f (n - 1))"
 (*<*)by pat_completeness auto(*>*)
 
-text {*
+text \<open>
   For this definition, the termination proof fails. The default configuration
   specifies no congruence rule for disjunction. We have to add a
   congruence rule that specifies left-to-right evaluation order:
@@ -1224,7 +1224,7 @@ text {*
   However, as evaluation is not a hard-wired concept, we
   could just turn everything around by declaring a different
   congruence rule. Then we can make the reverse definition:
-*}
+\<close>
 
 lemma disj_cong2[fundef_cong]: 
   "(\<not> Q' \<Longrightarrow> P = P') \<Longrightarrow> (Q = Q') \<Longrightarrow> (P \<or> Q) = (P' \<or> Q')"
@@ -1234,13 +1234,13 @@ fun f' :: "nat \<Rightarrow> bool"
 where
   "f' n = (f' (n - 1) \<or> n = 0)"
 
-text {*
+text \<open>
   \noindent These examples show that, in general, there is no \qt{best} set of
   congruence rules.
 
   However, such tweaking should rarely be necessary in
   practice, as most of the time, the default set of congruence rules
   works well.
-*}
+\<close>
 
 end

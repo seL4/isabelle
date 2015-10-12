@@ -13,7 +13,7 @@ syntax
   "_beta" :: "type"  ("\<beta>")
   "_beta_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>()::_" [0] 1000)
 
-parse_ast_translation {*
+parse_ast_translation \<open>
   let
     fun alpha_ast_tr [] = Ast.Variable "'a"
       | alpha_ast_tr asts = raise Ast.AST ("alpha_ast_tr", asts);
@@ -31,6 +31,6 @@ parse_ast_translation {*
     (@{syntax_const "_beta"}, K beta_ast_tr),
     (@{syntax_const "_beta_ofsort"}, K beta_ofsort_ast_tr)]
   end
-*}
+\<close>
 
 end

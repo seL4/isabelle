@@ -2,9 +2,9 @@ theory Classes
 imports Main Setup
 begin
 
-section {* Introduction *}
+section \<open>Introduction\<close>
 
-text {*
+text \<open>
   Type classes were introduced by Wadler and Blott @{cite wadler89how}
   into the Haskell language to allow for a reasonable implementation
   of overloading\footnote{throughout this tutorial, we are referring
@@ -89,23 +89,23 @@ text {*
   algebraic hierarchy of semigroups, monoids and groups.  Our
   background theory is that of Isabelle/HOL @{cite "isa-tutorial"}, for
   which some familiarity is assumed.
-*}
+\<close>
 
-section {* A simple algebra example \label{sec:example} *}
+section \<open>A simple algebra example \label{sec:example}\<close>
 
-subsection {* Class definition *}
+subsection \<open>Class definition\<close>
 
-text {*
+text \<open>
   Depending on an arbitrary type @{text "\<alpha>"}, class @{text
   "semigroup"} introduces a binary operator @{text "(\<otimes>)"} that is
   assumed to be associative:
-*}
+\<close>
 
 class %quote semigroup =
   fixes mult :: "\<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"    (infixl "\<otimes>" 70)
   assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
 
-text {*
+text \<open>
   \noindent This @{command class} specification consists of two parts:
   the \qn{operational} part names the class parameter (@{element
   "fixes"}), the \qn{logical} part specifies properties on them
@@ -114,17 +114,17 @@ text {*
   parameter @{term [source] "mult :: \<alpha>::semigroup \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"} and the
   global theorem @{fact "semigroup.assoc:"}~@{prop [source] "\<And>x y z ::
   \<alpha>::semigroup. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"}.
-*}
+\<close>
 
 
-subsection {* Class instantiation \label{sec:class_inst} *}
+subsection \<open>Class instantiation \label{sec:class_inst}\<close>
 
-text {*
+text \<open>
   The concrete type @{typ int} is made a @{class semigroup} instance
   by providing a suitable definition for the class parameter @{text
   "(\<otimes>)"} and a proof for the specification of @{fact assoc}.  This is
   accomplished by the @{command instantiation} target:
-*}
+\<close>
 
 instantiation %quote int :: semigroup
 begin
@@ -140,7 +140,7 @@ qed
 
 end %quote
 
-text {*
+text \<open>
   \noindent @{command instantiation} defines class parameters at a
   particular instance using common specification tools (here,
   @{command definition}).  The concluding @{command instance} opens a
@@ -157,7 +157,7 @@ text {*
 
   \medskip Another instance of @{class semigroup} yields the natural
   numbers:
-*}
+\<close>
 
 instantiation %quote nat :: semigroup
 begin
@@ -174,21 +174,21 @@ qed
 
 end %quote
 
-text {*
+text \<open>
   \noindent Note the occurrence of the name @{text mult_nat} in the
   primrec declaration; by default, the local name of a class operation
   @{text f} to be instantiated on type constructor @{text \<kappa>} is
   mangled as @{text f_\<kappa>}.  In case of uncertainty, these names may be
   inspected using the @{command "print_context"} command.
-*}
+\<close>
 
-subsection {* Lifting and parametric types *}
+subsection \<open>Lifting and parametric types\<close>
 
-text {*
+text \<open>
   Overloaded definitions given at a class instantiation may include
   recursion over the syntactic structure of types.  As a canonical
   example, we model product semigroups using our simple algebra:
-*}
+\<close>
 
 instantiation %quote prod :: (semigroup, semigroup) semigroup
 begin
@@ -204,34 +204,34 @@ qed
 
 end %quote
 
-text {*
+text \<open>
   \noindent Associativity of product semigroups is established using
   the definition of @{text "(\<otimes>)"} on products and the hypothetical
   associativity of the type components; these hypotheses are
   legitimate due to the @{class semigroup} constraints imposed on the
   type components by the @{command instance} proposition.  Indeed,
   this pattern often occurs with parametric types and type classes.
-*}
+\<close>
 
 
-subsection {* Subclassing *}
+subsection \<open>Subclassing\<close>
 
-text {*
+text \<open>
   We define a subclass @{text monoidl} (a semigroup with a left-hand
   neutral) by extending @{class semigroup} with one additional
   parameter @{text neutral} together with its characteristic property:
-*}
+\<close>
 
 class %quote monoidl = semigroup +
   fixes neutral :: "\<alpha>" ("\<one>")
   assumes neutl: "\<one> \<otimes> x = x"
 
-text {*
+text \<open>
   \noindent Again, we prove some instances, by providing suitable
   parameter definitions and proofs for the additional specifications.
   Observe that instantiations for types with the same arity may be
   simultaneous:
-*}
+\<close>
 
 instantiation %quote nat and int :: monoidl
 begin
@@ -268,10 +268,10 @@ qed
 
 end %quote
 
-text {*
+text \<open>
   \noindent Fully-fledged monoids are modelled by another subclass,
   which does not add new parameters but tightens the specification:
-*}
+\<close>
 
 class %quote monoid = monoidl +
   assumes neutr: "x \<otimes> \<one> = x"
@@ -302,10 +302,10 @@ qed
 
 end %quote
 
-text {*
+text \<open>
   \noindent To finish our small algebra example, we add a @{text
   group} class with a corresponding instance:
-*}
+\<close>
 
 class %quote group = monoidl +
   fixes inverse :: "\<alpha> \<Rightarrow> \<alpha>"    ("(_\<div>)" [1000] 999)
@@ -327,57 +327,57 @@ qed
 end %quote
 
 
-section {* Type classes as locales *}
+section \<open>Type classes as locales\<close>
 
-subsection {* A look behind the scenes *}
+subsection \<open>A look behind the scenes\<close>
 
-text {*
+text \<open>
   The example above gives an impression how Isar type classes work in
   practice.  As stated in the introduction, classes also provide a
   link to Isar's locale system.  Indeed, the logical core of a class
   is nothing other than a locale:
-*}
+\<close>
 
 class %quote idem =
   fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
   assumes idem: "f (f x) = f x"
 
-text {*
+text \<open>
   \noindent essentially introduces the locale
-*} (*<*)setup %invisible {* Sign.add_path "foo" *}
+\<close> (*<*)setup %invisible \<open>Sign.add_path "foo"\<close>
 (*>*)
 locale %quote idem =
   fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
   assumes idem: "f (f x) = f x"
 
-text {* \noindent together with corresponding constant(s): *}
+text \<open>\noindent together with corresponding constant(s):\<close>
 
 consts %quote f :: "\<alpha> \<Rightarrow> \<alpha>"
 
-text {*
+text \<open>
   \noindent The connection to the type system is done by means of a
   primitive type class @{text "idem"}, together with a corresponding
   interpretation:
-*}
+\<close>
 
 interpretation %quote idem_class:
   idem "f :: (\<alpha>::idem) \<Rightarrow> \<alpha>"
 (*<*)sorry(*>*)
 
-text {*
+text \<open>
   \noindent This gives you the full power of the Isabelle module system;
   conclusions in locale @{text idem} are implicitly propagated
   to class @{text idem}.
-*} (*<*)setup %invisible {* Sign.parent_path *}
+\<close> (*<*)setup %invisible \<open>Sign.parent_path\<close>
 (*>*)
-subsection {* Abstract reasoning *}
+subsection \<open>Abstract reasoning\<close>
 
-text {*
+text \<open>
   Isabelle locales enable reasoning at a general level, while results
   are implicitly transferred to all instances.  For example, we can
   now establish the @{text "left_cancel"} lemma for groups, which
   states that the function @{text "(x \<otimes>)"} is injective:
-*}
+\<close>
 
 lemma %quote (in group) left_cancel: "x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"
 proof
@@ -390,7 +390,7 @@ next
   then show "x \<otimes> y = x \<otimes> z" by simp
 qed
 
-text {*
+text \<open>
   \noindent Here the \qt{@{keyword "in"} @{class group}} target
   specification indicates that the result is recorded within that
   context for later use.  This local theorem is also lifted to the
@@ -399,20 +399,20 @@ text {*
   made an instance of @{text "group"} before, we may refer to that
   fact as well: @{prop [source] "\<And>x y z :: int. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y =
   z"}.
-*}
+\<close>
 
 
-subsection {* Derived definitions *}
+subsection \<open>Derived definitions\<close>
 
-text {*
+text \<open>
   Isabelle locales are targets which support local definitions:
-*}
+\<close>
 
 primrec %quote (in monoid) pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
   "pow_nat 0 x = \<one>"
   | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
 
-text {*
+text \<open>
   \noindent If the locale @{text group} is also a class, this local
   definition is propagated onto a global definition of @{term [source]
   "pow_nat :: nat \<Rightarrow> \<alpha>::monoid \<Rightarrow> \<alpha>::monoid"} with corresponding theorems
@@ -423,12 +423,12 @@ text {*
   you may use any specification tool which works together with
   locales, such as Krauss's recursive function package
   @{cite krauss2006}.
-*}
+\<close>
 
 
-subsection {* A functor analogy *}
+subsection \<open>A functor analogy\<close>
 
-text {*
+text \<open>
   We introduced Isar classes by analogy to type classes in functional
   programming; if we reconsider this in the context of what has been
   said about type classes and locales, we can drive this analogy
@@ -440,18 +440,18 @@ text {*
   lists the same operations as for genuinely algebraic types.  In such
   a case, we can simply make a particular interpretation of monoids
   for lists:
-*}
+\<close>
 
 interpretation %quote list_monoid: monoid append "[]"
   proof qed auto
 
-text {*
+text \<open>
   \noindent This enables us to apply facts on monoids
   to lists, e.g. @{thm list_monoid.neutl [no_vars]}.
 
   When using this interpretation pattern, it may also
   be appropriate to map derived definitions accordingly:
-*}
+\<close>
 
 primrec %quote replicate :: "nat \<Rightarrow> \<alpha> list \<Rightarrow> \<alpha> list" where
   "replicate 0 _ = []"
@@ -469,7 +469,7 @@ proof -
   qed
 qed intro_locales
 
-text {*
+text \<open>
   \noindent This pattern is also helpful to reuse abstract
   specifications on the \emph{same} type.  For example, think of a
   class @{text preorder}; for type @{typ nat}, there are at least two
@@ -478,15 +478,15 @@ text {*
   @{command instantiation}; using the locale behind the class @{text
   preorder}, it is still possible to utilise the same abstract
   specification again using @{command interpretation}.
-*}
+\<close>
 
-subsection {* Additional subclass relations *}
+subsection \<open>Additional subclass relations\<close>
 
-text {*
+text \<open>
   Any @{text "group"} is also a @{text "monoid"}; this can be made
   explicit by claiming an additional subclass relation, together with
   a proof of the logical difference:
-*}
+\<close>
 
 subclass %quote (in group) monoid
 proof
@@ -496,7 +496,7 @@ proof
   with left_cancel show "x \<otimes> \<one> = x" by simp
 qed
 
-text {*
+text \<open>
   The logical proof is carried out on the locale level.  Afterwards it
   is propagated to the type system, making @{text group} an instance
   of @{text monoid} by adding an additional edge to the graph of
@@ -534,50 +534,50 @@ text {*
 
   For illustration, a derived definition in @{text group} using @{text
   pow_nat}
-*}
+\<close>
 
 definition %quote (in group) pow_int :: "int \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
   "pow_int k x = (if k >= 0
     then pow_nat (nat k) x
     else (pow_nat (nat (- k)) x)\<div>)"
 
-text {*
+text \<open>
   \noindent yields the global definition of @{term [source] "pow_int ::
   int \<Rightarrow> \<alpha>::group \<Rightarrow> \<alpha>::group"} with the corresponding theorem @{thm
   pow_int_def [no_vars]}.
-*}
+\<close>
 
-subsection {* A note on syntax *}
+subsection \<open>A note on syntax\<close>
 
-text {*
+text \<open>
   As a convenience, class context syntax allows references to local
   class operations and their global counterparts uniformly; type
   inference resolves ambiguities.  For example:
-*}
+\<close>
 
 context %quote semigroup
 begin
 
-term %quote "x \<otimes> y" -- {* example 1 *}
-term %quote "(x::nat) \<otimes> y" -- {* example 2 *}
+term %quote "x \<otimes> y" -- \<open>example 1\<close>
+term %quote "(x::nat) \<otimes> y" -- \<open>example 2\<close>
 
 end  %quote
 
-term %quote "x \<otimes> y" -- {* example 3 *}
+term %quote "x \<otimes> y" -- \<open>example 3\<close>
 
-text {*
+text \<open>
   \noindent Here in example 1, the term refers to the local class
   operation @{text "mult [\<alpha>]"}, whereas in example 2 the type
   constraint enforces the global class operation @{text "mult [nat]"}.
   In the global context in example 3, the reference is to the
   polymorphic global class operation @{text "mult [?\<alpha> :: semigroup]"}.
-*}
+\<close>
 
-section {* Further issues *}
+section \<open>Further issues\<close>
 
-subsection {* Type classes and code generation *}
+subsection \<open>Type classes and code generation\<close>
 
-text {*
+text \<open>
   Turning back to the first motivation for type classes, namely
   overloading, it is obvious that overloading stemming from @{command
   class} statements and @{command instantiation} targets naturally
@@ -586,37 +586,37 @@ text {*
   language (e.g.~SML) lacks type classes, then they are implemented by
   an explicit dictionary construction.  As example, let's go back to
   the power function:
-*}
+\<close>
 
 definition %quote example :: int where
   "example = pow_int 10 (-2)"
 
-text {*
+text \<open>
   \noindent This maps to Haskell as follows:
-*}
-text %quotetypewriter {*
+\<close>
+text %quotetypewriter \<open>
   @{code_stmts example (Haskell)}
-*}
+\<close>
 
-text {*
+text \<open>
   \noindent The code in SML has explicit dictionary passing:
-*}
-text %quotetypewriter {*
+\<close>
+text %quotetypewriter \<open>
   @{code_stmts example (SML)}
-*}
+\<close>
 
 
-text {*
+text \<open>
   \noindent In Scala, implicits are used as dictionaries:
-*}
-text %quotetypewriter {*
+\<close>
+text %quotetypewriter \<open>
   @{code_stmts example (Scala)}
-*}
+\<close>
 
 
-subsection {* Inspecting the type class universe *}
+subsection \<open>Inspecting the type class universe\<close>
 
-text {*
+text \<open>
   To facilitate orientation in complex subclass structures, two
   diagnostics commands are provided:
 
@@ -631,7 +631,7 @@ text {*
       an optional second sort argument to all superclasses of this sort.
 
   \end{description}
-*}
+\<close>
 
 end
 
