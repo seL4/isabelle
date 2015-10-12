@@ -171,15 +171,15 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
 
   \begin{itemize}
 
-  \item @{system_option_def "browser_info"} controls output of HTML
+  \<^item> @{system_option_def "browser_info"} controls output of HTML
   browser info, see also \secref{sec:info}.
 
-  \item @{system_option_def "document"} specifies the document output
+  \<^item> @{system_option_def "document"} specifies the document output
   format, see @{tool document} option @{verbatim "-o"} in
   \secref{sec:tool-document}.  In practice, the most relevant values
   are @{verbatim "document=false"} or @{verbatim "document=pdf"}.
 
-  \item @{system_option_def "document_output"} specifies an
+  \<^item> @{system_option_def "document_output"} specifies an
   alternative directory for generated output of the document
   preparation system; the default is within the @{setting
   "ISABELLE_BROWSER_INFO"} hierarchy as explained in
@@ -187,7 +187,7 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   default configuration with output readily available to the author of
   the document.
 
-  \item @{system_option_def "document_variants"} specifies document
+  \<^item> @{system_option_def "document_variants"} specifies document
   variants as a colon-separated list of @{text "name=tags"} entries,
   corresponding to @{tool document} options @{verbatim "-n"} and
   @{verbatim "-t"}.
@@ -203,7 +203,7 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   different document root entries, see also
   \secref{sec:tool-document}.
 
-  \item @{system_option_def "threads"} determines the number of worker
+  \<^item> @{system_option_def "threads"} determines the number of worker
   threads for parallel checking of theories and proofs.  The default
   @{text "0"} means that a sensible maximum value is determined by the
   underlying hardware.  For machines with many cores or with
@@ -211,7 +211,7 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   command-line or within personal settings or preferences, not within
   a session @{verbatim ROOT}).
 
-  \item @{system_option_def "condition"} specifies a comma-separated
+  \<^item> @{system_option_def "condition"} specifies a comma-separated
   list of process environment variables (or Isabelle settings) that
   are required for the subsequent theories to be processed.
   Conditions are considered ``true'' if the corresponding environment
@@ -222,7 +222,7 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   explicitly via some shell prefix @{verbatim "env ISABELLE_FULL_TEST=true"}
   before invoking @{tool build}.
 
-  \item @{system_option_def "timeout"} specifies a real wall-clock
+  \<^item> @{system_option_def "timeout"} specifies a real wall-clock
   timeout (in seconds) for the session as a whole.  The timer is
   controlled outside the ML process by the JVM that runs
   Isabelle/Scala.  Thus it is relatively reliable in canceling
@@ -302,7 +302,8 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   ML_OPTIONS="..."
 \end{ttbox}
 
-  \medskip Isabelle sessions are defined via session ROOT files as
+  \<^medskip>
+  Isabelle sessions are defined via session ROOT files as
   described in (\secref{sec:session-root}).  The totality of sessions
   is determined by collecting such specifications from all Isabelle
   component directories (\secref{sec:components}), augmented by more
@@ -317,29 +318,34 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   command line options persistent (say within @{verbatim
   "$ISABELLE_HOME_USER/ROOTS"}).
 
-  \medskip The subset of sessions to be managed is determined via
+  \<^medskip>
+  The subset of sessions to be managed is determined via
   individual @{text "SESSIONS"} given as command-line arguments, or
   session groups that are given via one or more options @{verbatim
   "-g"}~@{text "NAME"}.  Option @{verbatim "-a"} selects all sessions.
   The build tool takes session dependencies into account: the set of
   selected sessions is completed by including all ancestors.
 
-  \medskip One or more options @{verbatim "-x"}~@{text NAME} specify
+  \<^medskip>
+  One or more options @{verbatim "-x"}~@{text NAME} specify
   sessions to be excluded. All descendents of excluded sessions are removed
   from the selection as specified above. Option @{verbatim "-X"} is
   analogous to this, but excluded sessions are specified by session group
   membership.
 
-  \medskip Option @{verbatim "-R"} reverses the selection in the sense
+  \<^medskip>
+  Option @{verbatim "-R"} reverses the selection in the sense
   that it refers to its requirements: all ancestor sessions excluding
   the original selection.  This allows to prepare the stage for some
   build process with different options, before running the main build
   itself (without option @{verbatim "-R"}).
 
-  \medskip Option @{verbatim "-D"} is similar to @{verbatim "-d"}, but
+  \<^medskip>
+  Option @{verbatim "-D"} is similar to @{verbatim "-d"}, but
   selects all sessions that are defined in the given directories.
 
-  \medskip The build process depends on additional options
+  \<^medskip>
+  The build process depends on additional options
   (\secref{sec:system-options}) that are passed to the prover
   eventually.  The settings variable @{setting_ref
   ISABELLE_BUILD_OPTIONS} allows to provide additional defaults, e.g.\
@@ -351,35 +357,42 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   Boolean options.  Multiple occurrences of @{verbatim "-o"} on the
   command-line are applied in the given order.
 
-  \medskip Option @{verbatim "-b"} ensures that heap images are
+  \<^medskip>
+  Option @{verbatim "-b"} ensures that heap images are
   produced for all selected sessions.  By default, images are only
   saved for inner nodes of the hierarchy of sessions, as required for
   other sessions to continue later on.
 
-  \medskip Option @{verbatim "-c"} cleans all descendants of the
+  \<^medskip>
+  Option @{verbatim "-c"} cleans all descendants of the
   selected sessions before performing the specified build operation.
 
-  \medskip Option @{verbatim "-n"} omits the actual build process
+  \<^medskip>
+  Option @{verbatim "-n"} omits the actual build process
   after the preparatory stage (including optional cleanup).  Note that
   the return code always indicates the status of the set of selected
   sessions.
 
-  \medskip Option @{verbatim "-j"} specifies the maximum number of
+  \<^medskip>
+  Option @{verbatim "-j"} specifies the maximum number of
   parallel build jobs (prover processes).  Each prover process is
   subject to a separate limit of parallel worker threads, cf.\ system
   option @{system_option_ref threads}.
 
-  \medskip Option @{verbatim "-s"} enables \emph{system mode}, which
+  \<^medskip>
+  Option @{verbatim "-s"} enables \emph{system mode}, which
   means that resulting heap images and log files are stored in
   @{file_unchecked "$ISABELLE_HOME/heaps"} instead of the default location
   @{setting ISABELLE_OUTPUT} (which is normally in @{setting
   ISABELLE_HOME_USER}, i.e.\ the user's home directory).
 
-  \medskip Option @{verbatim "-v"} increases the general level of
+  \<^medskip>
+  Option @{verbatim "-v"} increases the general level of
   verbosity.  Option @{verbatim "-l"} lists the source files that
   contribute to a session.
 
-  \medskip Option @{verbatim "-k"} specifies a newly proposed keyword for
+  \<^medskip>
+  Option @{verbatim "-k"} specifies a newly proposed keyword for
   outer syntax (multiple uses allowed). The theory sources are checked for
   conflicts wrt.\ this hypothetical change of syntax, e.g.\ to reveal
   occurrences of identifiers that need to be quoted.\<close>
@@ -393,48 +406,56 @@ text \<open>
 isabelle build -b HOLCF
 \end{ttbox}
 
-  \smallskip Build the main group of logic images:
+  \<^smallskip>
+  Build the main group of logic images:
 \begin{ttbox}
 isabelle build -b -g main
 \end{ttbox}
 
-  \smallskip Provide a general overview of the status of all Isabelle
+  \<^smallskip>
+  Provide a general overview of the status of all Isabelle
   sessions, without building anything:
 \begin{ttbox}
 isabelle build -a -n -v
 \end{ttbox}
 
-  \smallskip Build all sessions with HTML browser info and PDF
+  \<^smallskip>
+  Build all sessions with HTML browser info and PDF
   document preparation:
 \begin{ttbox}
 isabelle build -a -o browser_info -o document=pdf
 \end{ttbox}
 
-  \smallskip Build all sessions with a maximum of 8 parallel prover
+  \<^smallskip>
+  Build all sessions with a maximum of 8 parallel prover
   processes and 4 worker threads each (on a machine with many cores):
 \begin{ttbox}
 isabelle build -a -j8 -o threads=4
 \end{ttbox}
 
-  \smallskip Build some session images with cleanup of their
+  \<^smallskip>
+  Build some session images with cleanup of their
   descendants, while retaining their ancestry:
 \begin{ttbox}
 isabelle build -b -c HOL-Algebra HOL-Word
 \end{ttbox}
 
-  \smallskip Clean all sessions without building anything:
+  \<^smallskip>
+  Clean all sessions without building anything:
 \begin{ttbox}
 isabelle build -a -n -c
 \end{ttbox}
 
-  \smallskip Build all sessions from some other directory hierarchy,
+  \<^smallskip>
+  Build all sessions from some other directory hierarchy,
   according to the settings variable @{verbatim "AFP"} that happens to
   be defined inside the Isabelle environment:
 \begin{ttbox}
 isabelle build -D '$AFP'
 \end{ttbox}
 
-  \smallskip Inform about the status of all sessions required for AFP,
+  \<^smallskip>
+  Inform about the status of all sessions required for AFP,
   without building anything yet:
 \begin{ttbox}
 isabelle build -D '$AFP' -R -v -n

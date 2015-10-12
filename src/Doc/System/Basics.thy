@@ -12,22 +12,23 @@ text \<open>This manual describes Isabelle together with related tools and
   Manual} @{cite "isabelle-implementation"} for the main concepts of the
   underlying implementation in Isabelle/ML.
 
-  \medskip The Isabelle system environment provides the following
+  \<^medskip>
+  The Isabelle system environment provides the following
   basic infrastructure to integrate tools smoothly.
 
   \begin{enumerate}
 
-  \item The \emph{Isabelle settings} mechanism provides process
+  \<^enum> The \emph{Isabelle settings} mechanism provides process
   environment variables to all Isabelle executables (including tools
   and user interfaces).
 
-  \item The raw \emph{Isabelle process} (@{executable_ref
+  \<^enum> The raw \emph{Isabelle process} (@{executable_ref
   "isabelle_process"}) runs logic sessions either interactively or in
   batch mode.  In particular, this view abstracts over the invocation
   of the actual ML system to be used.  Regular users rarely need to
   care about the low-level process.
 
-  \item The main \emph{Isabelle tool wrapper} (@{executable_ref
+  \<^enum> The main \emph{Isabelle tool wrapper} (@{executable_ref
   isabelle}) provides a generic startup environment Isabelle related
   utilities, user interfaces etc.  Such tools automatically benefit
   from the settings mechanism.
@@ -73,7 +74,7 @@ text \<open>Isabelle executables need to be run within a proper settings
 
   \begin{enumerate}
 
-  \item The special variable @{setting_def ISABELLE_HOME} is
+  \<^enum> The special variable @{setting_def ISABELLE_HOME} is
   determined automatically from the location of the binary that has
   been run.
   
@@ -84,7 +85,7 @@ text \<open>Isabelle executables need to be run within a proper settings
   links are admissible, but a plain copy of the @{file
   "$ISABELLE_HOME/bin"} files will not work!
 
-  \item The file @{file "$ISABELLE_HOME/etc/settings"} is run as a
+  \<^enum> The file @{file "$ISABELLE_HOME/etc/settings"} is run as a
   @{executable_ref bash} shell script with the auto-export option for
   variables enabled.
   
@@ -95,7 +96,7 @@ text \<open>Isabelle executables need to be run within a proper settings
   of these may have to be adapted (probably @{setting ML_SYSTEM}
   etc.).
   
-  \item The file @{file_unchecked "$ISABELLE_HOME_USER/etc/settings"} (if it
+  \<^enum> The file @{file_unchecked "$ISABELLE_HOME_USER/etc/settings"} (if it
   exists) is run in the same way as the site default settings. Note
   that the variable @{setting ISABELLE_HOME_USER} has already been set
   before --- usually to something like @{verbatim
@@ -116,23 +117,25 @@ text \<open>Isabelle executables need to be run within a proper settings
   particular, external environment references should be kept at a
   minimum.
 
-  \medskip A few variables are somewhat special:
+  \<^medskip>
+  A few variables are somewhat special:
 
   \begin{itemize}
 
-  \item @{setting_def ISABELLE_PROCESS} and @{setting_def ISABELLE_TOOL} are set
+  \<^item> @{setting_def ISABELLE_PROCESS} and @{setting_def ISABELLE_TOOL} are set
   automatically to the absolute path names of the @{executable
   "isabelle_process"} and @{executable isabelle} executables,
   respectively.
   
-  \item @{setting_ref ISABELLE_OUTPUT} will have the identifiers of
+  \<^item> @{setting_ref ISABELLE_OUTPUT} will have the identifiers of
   the Isabelle distribution (cf.\ @{setting ISABELLE_IDENTIFIER}) and
   the ML system (cf.\ @{setting ML_IDENTIFIER}) appended automatically
   to its value.
 
   \end{itemize}
 
-  \medskip Note that the settings environment may be inspected with
+  \<^medskip>
+  Note that the settings environment may be inspected with
   the @{tool getenv} tool.  This might help to figure out the effect
   of complex settings scripts.\<close>
 
@@ -155,7 +158,7 @@ text \<open>
   its HOME should point to the \texttt{/home} directory tree or the
   Windows user home.}
 
- \item[@{setting_def ISABELLE_HOME}@{text "\<^sup>*"}] is the location of the
+  \item[@{setting_def ISABELLE_HOME}@{text "\<^sup>*"}] is the location of the
   top-level Isabelle distribution directory. This is automatically
   determined from the Isabelle executable that has been invoked.  Do
   not attempt to set @{setting ISABELLE_HOME} yourself from the shell!
@@ -287,7 +290,7 @@ text \<open>Any directory may be registered as an explicit \emph{Isabelle
 
   \begin{itemize}
 
-  \item @{verbatim "etc/settings"} holds additional settings that are
+  \<^item> @{verbatim "etc/settings"} holds additional settings that are
   initialized when bootstrapping the overall Isabelle environment,
   cf.\ \secref{sec:boot}.  As usual, the content is interpreted as a
   @{verbatim bash} script.  It may refer to the component's enclosing
@@ -309,7 +312,7 @@ MY_COMPONENT_HOME="$COMPONENT"
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
 \end{ttbox}
 
-  \item @{verbatim "etc/components"} holds a list of further
+  \<^item> @{verbatim "etc/components"} holds a list of further
   sub-components of the same structure.  The directory specifications
   given here can be either absolute (with leading @{verbatim "/"}) or
   relative to the component's main directory.
@@ -332,7 +335,8 @@ init_component "$HOME/screwdriver-2.0"
   This is tolerant wrt.\ missing component directories, but might
   produce a warning.
 
-  \medskip More complex situations may be addressed by initializing
+  \<^medskip>
+  More complex situations may be addressed by initializing
   components listed in a given catalog file, relatively to some base
   directory:
 
@@ -406,39 +410,46 @@ text \<open>
   Users are responsible for themselves to dispose their heap files
   when they are no longer needed.
 
-  \medskip The @{verbatim "-w"} option makes the output heap file
+  \<^medskip>
+  The @{verbatim "-w"} option makes the output heap file
   read-only after terminating.  Thus subsequent invocations cause the
   logic image to be read-only automatically.
 
-  \medskip Using the @{verbatim "-e"} option, arbitrary ML code may be
+  \<^medskip>
+  Using the @{verbatim "-e"} option, arbitrary ML code may be
   passed to the Isabelle session from the command line. Multiple
   @{verbatim "-e"}'s are evaluated in the given order. Strange things
   may happen when erroneous ML code is provided. Also make sure that
   the ML commands are terminated properly by semicolon.
 
-  \medskip The @{verbatim "-m"} option adds identifiers of print modes
+  \<^medskip>
+  The @{verbatim "-m"} option adds identifiers of print modes
   to be made active for this session. Typically, this is used by some
   user interface, e.g.\ to enable output of proper mathematical
   symbols.
 
-  \medskip Isabelle normally enters an interactive top-level loop
+  \<^medskip>
+  Isabelle normally enters an interactive top-level loop
   (after processing the @{verbatim "-e"} texts). The @{verbatim "-q"}
   option inhibits interaction, thus providing a pure batch mode
   facility.
 
-  \medskip Option @{verbatim "-o"} allows to override Isabelle system
+  \<^medskip>
+  Option @{verbatim "-o"} allows to override Isabelle system
   options for this process, see also \secref{sec:system-options}.
   Alternatively, option @{verbatim "-O"} specifies the full environment of
   system options as a file in YXML format (according to the Isabelle/Scala
   function @{verbatim isabelle.Options.encode}).
 
-  \medskip The @{verbatim "-P"} option starts the Isabelle process wrapper
+  \<^medskip>
+  The @{verbatim "-P"} option starts the Isabelle process wrapper
   for Isabelle/Scala, with a private protocol running over the specified TCP
   socket. Isabelle/ML and Isabelle/Scala provide various programming
   interfaces to invoke protocol functions over untyped strings and XML
   trees.
 
-  \medskip The @{verbatim "-S"} option makes the Isabelle process more
+  \<^medskip>
+  The @{verbatim "-S"} option makes the Isabelle process more
   secure by disabling some critical operations, notably runtime
   compilation and evaluation of ML source code.
 \<close>
@@ -475,7 +486,8 @@ isabelle_process Test
 isabelle_process -r Test
 \end{ttbox}
 
-  \bigskip The next example demonstrates batch execution of Isabelle.
+  \<^bigskip>
+  The next example demonstrates batch execution of Isabelle.
   We retrieve the @{verbatim Main} theory value from the theory loader
   within ML (observe the delicate quoting rules for the Bash shell
   vs.\ ML):

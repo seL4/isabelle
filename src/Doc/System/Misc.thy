@@ -35,7 +35,8 @@ Usage: isabelle browser [OPTIONS] [GRAPHFILE]
   When no file name is specified, the browser automatically changes to
   the directory @{setting ISABELLE_BROWSER_INFO}.
 
-  \medskip The @{verbatim "-b"} option indicates that this is for
+  \<^medskip>
+  The @{verbatim "-b"} option indicates that this is for
   administrative build only, i.e.\ no browser popup if no files are
   given.
 
@@ -46,7 +47,8 @@ Usage: isabelle browser [OPTIONS] [GRAPHFILE]
   output written to the indicated file; note that @{verbatim pdf}
   produces an @{verbatim eps} copy as well.
 
-  \medskip The applet version of the browser is part of the standard
+  \<^medskip>
+  The applet version of the browser is part of the standard
   WWW theory presentation, see the link ``theory dependencies'' within
   each session index.
 \<close>
@@ -75,20 +77,20 @@ text \<open>
 
   \begin{itemize}
 
-  \item A red arrow before a directory name indicates that the
+  \<^item> A red arrow before a directory name indicates that the
   directory is currently ``folded'', i.e.~the nodes in this directory
   are collapsed to one single node. In the right sub-window, the names
   of nodes corresponding to folded directories are enclosed in square
   brackets and displayed in red color.
 
-  \item A green downward arrow before a directory name indicates that
+  \<^item> A green downward arrow before a directory name indicates that
   the directory is currently ``unfolded''. It can be folded by
   clicking on the directory name.  Clicking on the name for a second
   time unfolds the directory again.  Alternatively, a directory can
   also be unfolded by clicking on the corresponding node in the right
   sub-window.
 
-  \item Blue arrows stand before ordinary node names. When clicking on
+  \<^item> Blue arrows stand before ordinary node names. When clicking on
   such a name (i.e.\ that of a theory), the graph display window
   focuses to the corresponding node. Double clicking invokes a text
   viewer window in which the contents of the theory file are
@@ -281,7 +283,8 @@ Usage: isabelle display DOCUMENT
   Display DOCUMENT (in DVI or PDF format).
 \end{ttbox}
 
-  \medskip The settings @{setting DVI_VIEWER} and @{setting
+  \<^medskip>
+  The settings @{setting DVI_VIEWER} and @{setting
   PDF_VIEWER} determine the programs for viewing the corresponding
   file formats.  Normally this opens the document via the desktop
   environment, potentially in an asynchronous manner with re-use of
@@ -304,7 +307,8 @@ Usage: isabelle doc [DOC ...]
   display the corresponding document (see also
   \secref{sec:tool-display}).
 
-  \medskip The @{setting ISABELLE_DOCS} setting specifies the list of
+  \<^medskip>
+  The @{setting ISABELLE_DOCS} setting specifies the list of
   directories (separated by colons) to be scanned for documentations.
 \<close>
 
@@ -362,7 +366,8 @@ text \<open>Get the location of @{setting ISABELLE_HOME_USER} where
 isabelle getenv ISABELLE_HOME_USER
 \end{ttbox}
 
-  \medskip Get the value only of the same settings variable, which is
+  \<^medskip>
+  Get the value only of the same settings variable, which is
 particularly useful in shell scripts:
 \begin{ttbox}
 isabelle getenv -b ISABELLE_OUTPUT
@@ -396,7 +401,8 @@ Usage: isabelle install [OPTIONS] BINDIR
   should be placed, which is typically a directory in the shell's
   @{setting PATH}, such as @{verbatim "$HOME/bin"}.
 
-  \medskip It is also possible to make symbolic links of the main
+  \<^medskip>
+  It is also possible to make symbolic links of the main
   Isabelle executables manually, but making separate copies outside
   the Isabelle distribution directory will not work!\<close>
 
@@ -421,7 +427,8 @@ Usage: isabelle logo [OPTIONS] XYZ
 
   Option @{verbatim "-q"} omits printing of the result file name.
 
-  \medskip Implementors of Isabelle tools and applications are
+  \<^medskip>
+  Implementors of Isabelle tools and applications are
   encouraged to make derived Isabelle logos for their own projects
   using this template.\<close>
 
@@ -439,7 +446,8 @@ Usage: isabelle version [OPTIONS]
   Display Isabelle version information.
 \end{ttbox}
 
-  \medskip The default is to output the full version string of the
+  \<^medskip>
+  The default is to output the full version string of the
   Isabelle distribution, e.g.\ ``@{verbatim "Isabelle2012: May 2012"}.
 
   The @{verbatim "-i"} option produces a short identification derived
@@ -456,13 +464,13 @@ text \<open>
 
   \begin{enumerate}
 
-  \item The encoding is always UTF-8.
+  \<^enum> The encoding is always UTF-8.
 
-  \item Body text is represented verbatim (no escaping, no special
+  \<^enum> Body text is represented verbatim (no escaping, no special
   treatment of white space, no named entities, no CDATA chunks, no
   comments).
 
-  \item Markup elements are represented via ASCII control characters
+  \<^enum> Markup elements are represented via ASCII control characters
   @{text "\<^bold>X = 5"} and @{text "\<^bold>Y = 6"} as follows:
 
   \begin{tabular}{ll}
