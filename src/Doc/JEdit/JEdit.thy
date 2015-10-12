@@ -222,8 +222,8 @@ text \<open>
   Nonetheless it is occasionally useful to invoke the Prover IDE on the
   command-line, with some extra options and environment settings as explained
   below. The command-line usage of @{tool_def jedit} is as follows:
-\begin{ttbox}
-  Usage: isabelle jedit [OPTIONS] [FILES ...]
+  @{verbatim [display]
+\<open>Usage: isabelle jedit [OPTIONS] [FILES ...]
 
   Options are:
     -J OPTION    add JVM runtime option
@@ -237,8 +237,7 @@ text \<open>
     -s           system build mode for session image
 
   Start jEdit with Isabelle plugin setup and open theory FILES
-  (default "\$USER_HOME/Scratch.thy").
-\end{ttbox}
+  (default "$USER_HOME/Scratch.thy").\<close>}
 
   The @{verbatim "-l"} option specifies the session name of the logic
   image to be used for proof processing.  Additional session root

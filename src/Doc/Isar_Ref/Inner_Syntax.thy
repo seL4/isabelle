@@ -1036,12 +1036,11 @@ subsection \<open>Abstract syntax trees \label{sec:ast}\<close>
 text \<open>The ML datatype @{ML_type Ast.ast} explicitly represents the
   intermediate AST format that is used for syntax rewriting
   (\secref{sec:syn-trans}).  It is defined in ML as follows:
-  \begin{ttbox}
-  datatype ast =
-    Constant of string |
-    Variable of string |
-    Appl of ast list
-  \end{ttbox}
+  @{verbatim [display]
+\<open>datatype ast =
+  Constant of string |
+  Variable of string |
+  Appl of ast list\<close>}
 
   An AST is either an atom (constant or variable) or a list of (at
   least two) subtrees.  Occasional diagnostic output of ASTs uses

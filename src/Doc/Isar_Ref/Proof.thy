@@ -484,11 +484,7 @@ text \<open>
   of @{command "show"} predicts potential failure and displays the
   resulting error as a warning beforehand.  Watch out for the
   following message:
-
-  %FIXME proper antiquotation
-  \begin{ttbox}
-  Problem! Local statement will fail to solve any pending goal
-  \end{ttbox}
+  @{verbatim [display] \<open>Local statement fails to refine any pending goal\<close>}
 
   \item @{command "hence"} abbreviates ``@{command "then"}~@{command
   "have"}'', i.e.\ claims a local goal to be proven by forward
