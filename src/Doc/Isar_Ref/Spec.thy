@@ -1097,7 +1097,7 @@ text \<open>The class relation together with the collection of
   \[
     @{text "t :: (\<^vec>s\<^sub>1)c\<^sub>1 \<Longrightarrow> t :: (\<^vec>s\<^sub>2)c\<^sub>2 \<Longrightarrow> c\<^sub>1 \<subseteq> c\<^sub>2 \<Longrightarrow> \<^vec>s\<^sub>1 \<subseteq> \<^vec>s\<^sub>2"}
   \]
-  \noindent for all such arities.  In other words, whenever the result
+  for all such arities.  In other words, whenever the result
   classes of some type-constructor arities are related, then the
   argument sorts need to be related in the same way.
 

@@ -6,7 +6,7 @@ imports Base  (* FIXME Pure!? *)
 begin
 
 text \<open>
-  \noindent In order to commence a new object-logic within
+  In order to commence a new object-logic within
   Isabelle/Pure we introduce abstract syntactic categories @{text "i"}
   for individuals and @{text "o"} for object-propositions.  The latter
   is embedded into the language of Pure propositions by means of a
@@ -20,7 +20,7 @@ judgment
   Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
 
 text \<open>
-  \noindent Note that the object-logic judgment is implicit in the
+  Note that the object-logic judgment is implicit in the
   syntax: writing @{prop A} produces @{term "Trueprop A"} internally.
   From the Pure perspective this means ``@{prop A} is derivable in the
   object-logic''.
@@ -45,7 +45,7 @@ where
   subst [elim]: "x = y \<Longrightarrow> B x \<Longrightarrow> B y"
 
 text \<open>
-  \noindent Substitution is very powerful, but also hard to control in
+  Substitution is very powerful, but also hard to control in
   full generality.  We derive some common symmetry~/ transitivity
   schemes of @{term equal} as particular consequences.
 \<close>
@@ -124,7 +124,7 @@ proof -
 qed
 
 text \<open>
-  \noindent Reasoning from basic axioms is often tedious.  Our proofs
+  Reasoning from basic axioms is often tedious.  Our proofs
   work by producing various instances of the given rules (potentially
   the symmetric form) using the pattern ``@{command have}~@{text
   eq}~@{command "by"}~@{text "(rule r)"}'' and composing the chain of
@@ -157,7 +157,7 @@ qed
 (*>*)
 
 text \<open>
-  \noindent Here we have re-used the built-in mechanism for unfolding
+  Here we have re-used the built-in mechanism for unfolding
   definitions in order to normalize each equational problem.  A more
   realistic object-logic would include proper setup for the Simplifier
   (\secref{sec:simplifier}), the main automated tool for equational
@@ -195,7 +195,7 @@ axiomatization
   conjD\<^sub>2: "A \<and> B \<Longrightarrow> B"
 
 text \<open>
-  \noindent The conjunctive destructions have the disadvantage that
+  The conjunctive destructions have the disadvantage that
   decomposing @{prop "A \<and> B"} involves an immediate decision which
   component should be projected.  The more convenient simultaneous
   elimination @{prop "A \<and> B \<Longrightarrow> (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C"} can be derived as
@@ -211,7 +211,7 @@ proof
 qed
 
 text \<open>
-  \noindent Here is an example of swapping conjuncts with a single
+  Here is an example of swapping conjuncts with a single
   intermediate elimination step:
 \<close>
 
@@ -227,7 +227,7 @@ qed
 (*>*)
 
 text \<open>
-  \noindent Note that the analogous elimination rule for disjunction
+  Note that the analogous elimination rule for disjunction
   ``@{text "\<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B"}'' coincides with
   the original axiomatization of @{thm disjE}.
 
@@ -248,7 +248,7 @@ theorem trueI [intro]: \<top>
   unfolding true_def ..
 
 text \<open>
-  \medskip\noindent Now negation represents an implication towards
+  \medskip Now negation represents an implication towards
   absurdity:
 \<close>
 
@@ -312,7 +312,7 @@ proof (rule double_negation)
 qed
 
 text \<open>
-  \noindent These examples illustrate both classical reasoning and
+  These examples illustrate both classical reasoning and
   non-trivial propositional proofs in general.  All three rules
   characterize classical logic independently, but the original rule is
   already the most convenient to use, because it leaves the conclusion
@@ -350,7 +350,7 @@ axiomatization
   exE [elim]: "(\<exists>x. B x) \<Longrightarrow> (\<And>x. B x \<Longrightarrow> C) \<Longrightarrow> C"
 
 text \<open>
-  \noindent The statement of @{thm exE} corresponds to ``@{text
+  The statement of @{thm exE} corresponds to ``@{text
   "\<ASSUMES> \<exists>x. B x \<OBTAINS> x \<WHERE> B x"}'' in Isar.  In the
   subsequent example we illustrate quantifier reasoning involving all
   four rules:
@@ -400,7 +400,7 @@ text \<open>
   \end{tabular}
   \medskip
 
-  \noindent This essentially provides a declarative reading of Pure
+  This essentially provides a declarative reading of Pure
   rules as Isar reasoning patterns: the rule statements tells how a
   canonical proof outline shall look like.  Since the above rules have
   already been declared as @{attribute (Pure) intro}, @{attribute
@@ -511,7 +511,7 @@ qed
 (*>*)
 
 text \<open>
-  \bigskip\noindent Of course, these proofs are merely examples.  As
+  \bigskip Of course, these proofs are merely examples.  As
   sketched in \secref{sec:framework-subproof}, there is a fair amount
   of flexibility in expressing Pure deductions in Isar.  Here the user
   is asked to express himself adequately, aiming at proof texts of

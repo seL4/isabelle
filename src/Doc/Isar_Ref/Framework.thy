@@ -97,7 +97,7 @@ text \<open>
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
-  \medskip\noindent Note that @{command assume} augments the proof
+  \medskip Note that @{command assume} augments the proof
   context, @{command then} indicates that the current fact shall be
   used in the next step, and @{command have} states an intermediate
   goal.  The two dots ``@{command ".."}'' refer to a complete proof of
@@ -117,7 +117,7 @@ end
 (*>*)
 
 text \<open>
-  \noindent The format of the @{text "\<inter>"}-introduction rule represents
+  The format of the @{text "\<inter>"}-introduction rule represents
   the most basic inference, which proceeds from given premises to a
   conclusion, without any nested proof context involved.
 
@@ -152,7 +152,7 @@ text \<open>
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
-  \medskip\noindent This Isar reasoning pattern again refers to the
+  \medskip This Isar reasoning pattern again refers to the
   primitive rule depicted above.  The system determines it in the
   ``@{command proof}'' step, which could have been spelled out more
   explicitly as ``@{command proof}~@{text "(rule InterI)"}''.  Note
@@ -201,7 +201,7 @@ text \<open>
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
-  \medskip\noindent Although the Isar proof follows the natural
+  \medskip Although the Isar proof follows the natural
   deduction rule closely, the text reads not as natural as
   anticipated.  There is a double occurrence of an arbitrary
   conclusion @{prop "C"}, which represents the final result, but is
@@ -222,7 +222,7 @@ end
 (*>*)
 
 text \<open>
-  \noindent Here we avoid to mention the final conclusion @{prop "C"}
+  Here we avoid to mention the final conclusion @{prop "C"}
   and return to plain forward reasoning.  The rule involved in the
   ``@{command ".."}'' proof is the same as before.
 \<close>
@@ -244,7 +244,7 @@ text \<open>
   \end{tabular}
   \medskip
 
-  \noindent Here only the types of syntactic terms, and the
+  Here only the types of syntactic terms, and the
   propositions of proof terms have been shown.  The @{text
   "\<lambda>"}-structure of proofs can be recorded as an optional feature of
   the Pure inference kernel @{cite "Berghofer-Nipkow:2000:TPHOL"}, but
@@ -340,7 +340,7 @@ text \<open>
   @{text "IntI:"}~@{prop "x \<in> A \<Longrightarrow> x \<in> B \<Longrightarrow> x \<in> A \<inter> B"}
   \]
 
-  \noindent This is a plain Horn clause, since no further nesting on
+  This is a plain Horn clause, since no further nesting on
   the left is involved.  The general @{text "\<Inter>"}-introduction
   corresponds to a Hereditary Harrop Formula with one additional level
   of nesting:
@@ -363,7 +363,7 @@ text \<open>
   \end{array}
   \]
 
-  \noindent Goal states are refined in intermediate proof steps until
+  Goal states are refined in intermediate proof steps until
   a finished form is achieved.  Here the two main reasoning principles
   are @{inference resolution}, for back-chaining a rule against a
   sub-goal (replacing it by zero or more sub-goals), and @{inference
@@ -436,7 +436,7 @@ text \<open>
    \end{tabular}}
   \]
 
-  \noindent Here the @{text "sub\<hyphen>proof"} rule stems from the
+  Here the @{text "sub\<hyphen>proof"} rule stems from the
   main @{command fix}-@{command assume}-@{command show} outline of
   Isar (cf.\ \secref{sec:framework-subproof}): each assumption
   indicated in the text results in a marked premise @{text "G"} above.
@@ -634,7 +634,7 @@ text \<open>
     \end{tabular}}
   \]
 
-  \noindent Here the name ``@{text thesis}'' is a specific convention
+  Here the name ``@{text thesis}'' is a specific convention
   for an arbitrary-but-fixed proposition; in the primitive natural
   deduction rules shown before we have occasionally used @{text C}.
   The whole statement of ``@{command obtain}~@{text x}~@{keyword
@@ -684,7 +684,7 @@ qed
 (*>*)
 
 text \<open>
-  \bigskip\noindent This illustrates the meaning of Isar context
+  \bigskip This illustrates the meaning of Isar context
   elements without goals getting in between.
 \<close>
 
@@ -707,7 +707,7 @@ text \<open>
   & & \quad @{text "\<BBAR> \<dots>"} \\
   \end{tabular}
 
-  \medskip\noindent A simple @{text "statement"} consists of named
+  \medskip A simple @{text "statement"} consists of named
   propositions.  The full form admits local context elements followed
   by the actual conclusions, such as ``@{keyword "fixes"}~@{text
   x}~@{keyword "assumes"}~@{text "A x"}~@{keyword "shows"}~@{text "B
@@ -761,7 +761,7 @@ qed
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
-  \medskip\noindent Here local facts \isacharbackquoteopen@{text "A
+  \medskip Here local facts \isacharbackquoteopen@{text "A
   x"}\isacharbackquoteclose\ and \isacharbackquoteopen@{text "B
   y"}\isacharbackquoteclose\ are referenced immediately; there is no
   need to decompose the logical rule structure again.  In the second
@@ -863,7 +863,7 @@ end
 text_raw \<open>\endgroup\<close>
 
 text \<open>
-  \noindent Here the @{inference refinement} inference from
+  Here the @{inference refinement} inference from
   \secref{sec:framework-resolution} mediates composition of Isar
   sub-proofs nicely.  Observe that this principle incorporates some
   degree of freedom in proof composition.  In particular, the proof
@@ -927,7 +927,7 @@ end
 text_raw \<open>\end{minipage}\<close>
 
 text \<open>
-  \medskip\noindent Such ``peephole optimizations'' of Isar texts are
+  \medskip Such ``peephole optimizations'' of Isar texts are
   practically important to improve readability, by rearranging
   contexts elements according to the natural flow of reasoning in the
   body, while still observing the overall scoping rules.
@@ -974,7 +974,7 @@ text \<open>
     @{command "finally"} & \equiv & @{command "also"}~@{command "from"}~@{text calculation} \\
   \end{matharray}
 
-  \noindent The start of a calculation is determined implicitly in the
+  The start of a calculation is determined implicitly in the
   text: here @{command also} sets @{fact calculation} to the current
   result; any subsequent occurrence will update @{fact calculation} by
   combination with the next result and a transitivity rule.  The
@@ -998,7 +998,7 @@ end
 (*>*)
 
 text \<open>
-  \noindent The term ``@{text "\<dots>"}'' above is a special abbreviation
+  The term ``@{text "\<dots>"}'' above is a special abbreviation
   provided by the Isabelle/Isar syntax layer: it statically refers to
   the right-hand side argument of the previous statement given in the
   text.  Thus it happens to coincide with relevant sub-expressions in

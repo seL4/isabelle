@@ -876,7 +876,7 @@ text \<open>
   \end{tabular}
   \end{center}
 
-  \noindent The ASCII representation of @{text "\<lparr>x = a\<rparr>"} is @{text
+  The ASCII representation of @{text "\<lparr>x = a\<rparr>"} is @{text
   "(| x = a |)"}.
 
   A fixed record @{text "\<lparr>x = a, y = b\<rparr>"} has field @{text x} of value
@@ -1025,7 +1025,7 @@ text \<open>Any record definition of the form presented above produces certain
   \end{tabular}
   \medskip
 
-  \noindent Some further operations address the extension aspect of a
+  Some further operations address the extension aspect of a
   derived record scheme specifically: @{text "t.fields"} produces a record
   fragment consisting of exactly the new fields introduced here (the result
   may serve as a more part elsewhere); @{text "t.extend"} takes a fixed
@@ -1041,7 +1041,7 @@ text \<open>Any record definition of the form presented above produces certain
   \end{tabular}
   \medskip
 
-  \noindent Note that @{text "t.make"} and @{text "t.fields"} coincide for
+  Note that @{text "t.make"} and @{text "t.fields"} coincide for
   root records.
 \<close>
 
@@ -1281,7 +1281,7 @@ text \<open>
       @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>k \<Rightarrow> (\<^vec>\<alpha>\<^sub>n) t \<Rightarrow> (\<^vec>\<beta>\<^sub>n) t"} \\
   \end{matharray}
 
-  \noindent where @{text t} is the type constructor, @{text "\<^vec>\<alpha>\<^sub>n"}
+  where @{text t} is the type constructor, @{text "\<^vec>\<alpha>\<^sub>n"}
   and @{text "\<^vec>\<beta>\<^sub>n"} are distinct type variables free in the local
   theory and @{text "\<sigma>\<^sub>1"}, \ldots, @{text "\<sigma>\<^sub>k"} is a subsequence of @{text
   "\<alpha>\<^sub>1 \<Rightarrow> \<beta>\<^sub>1"}, @{text "\<beta>\<^sub>1 \<Rightarrow> \<alpha>\<^sub>1"}, \ldots, @{text "\<alpha>\<^sub>n \<Rightarrow> \<beta>\<^sub>n"}, @{text
