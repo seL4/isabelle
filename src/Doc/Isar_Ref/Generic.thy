@@ -1574,8 +1574,8 @@ text \<open>
   \item Function variables may only be applied to parameters of the
   subgoal.  (This restriction arises because the prover does not use
   higher-order unification.)  If other function variables are present
-  then the prover will fail with the message \texttt{Function Var's
-  argument not a bound variable}.
+  then the prover will fail with the message
+  @{verbatim [display] \<open>Function unknown's argument not a bound variable\<close>}
 
   \item Its proof strategy is more general than @{method fast} but can
   be slower.  If @{method blast} fails or seems to be running forever,

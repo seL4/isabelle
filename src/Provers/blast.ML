@@ -18,7 +18,7 @@ Blast_tac...
   * ignores elimination rules that don't have the correct format
         (conclusion must be a formula variable)
   * rules must not require higher-order unification, e.g. apply_type in ZF
-    + message "Function Var's argument not a bound variable" relates to this
+    + message "Function unknown's argument not a bound variable" relates to this
   * its proof strategy is more general but can actually be slower
 
 Known problems:
