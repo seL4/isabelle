@@ -353,6 +353,47 @@ typed_print_translation \<open>
   in [(@{const_syntax case_prod}, K case_prod_guess_names_tr')] end
 \<close>
 
+text \<open>reconstruct pattern from (nested) @{const case_prod}s,
+  avoiding eta-contraction of body; required for enclosing "let",
+  if "let" does not avoid eta-contraction, which has been observed to occur\<close>
+
+print_translation \<open>
+  let
+    fun case_prod_tr' [Abs (x, T, t as (Abs abs))] =
+          (* case_prod (\<lambda>x y. t) \<Rightarrow> \<lambda>(x, y) t *)
+          let
+            val (y, t') = Syntax_Trans.atomic_abs_tr' abs;
+            val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
+          in
+            Syntax.const @{syntax_const "_abs"} $
+              (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+          end
+      | case_prod_tr' [Abs (x, T, (s as Const (@{const_syntax case_prod}, _) $ t))] =
+          (* case_prod (\<lambda>x. (case_prod (\<lambda>y z. t))) \<Rightarrow> \<lambda>(x, y, z). t *)
+          let
+            val Const (@{syntax_const "_abs"}, _) $
+              (Const (@{syntax_const "_pattern"}, _) $ y $ z) $ t' =
+                case_prod_tr' [t];
+            val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
+          in
+            Syntax.const @{syntax_const "_abs"} $
+              (Syntax.const @{syntax_const "_pattern"} $ x' $
+                (Syntax.const @{syntax_const "_patterns"} $ y $ z)) $ t''
+          end
+      | case_prod_tr' [Const (@{const_syntax case_prod}, _) $ t] =
+          (* case_prod (case_prod (\<lambda>x y z. t)) \<Rightarrow> \<lambda>((x, y), z). t *)
+          case_prod_tr' [(case_prod_tr' [t])]
+            (* inner case_prod_tr' creates next pattern *)
+      | case_prod_tr' [Const (@{syntax_const "_abs"}, _) $ x_y $ Abs abs] =
+          (* case_prod (\<lambda>pttrn z. t) \<Rightarrow> \<lambda>(pttrn, z). t *)
+          let val (z, t) = Syntax_Trans.atomic_abs_tr' abs in
+            Syntax.const @{syntax_const "_abs"} $
+              (Syntax.const @{syntax_const "_pattern"} $ x_y $ z) $ t
+          end
+      | case_prod_tr' _ = raise Match;
+  in [(@{const_syntax case_prod}, K case_prod_tr')] end
+\<close>
+
 
 subsubsection \<open>Code generator setup\<close>
 
