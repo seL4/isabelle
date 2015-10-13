@@ -298,7 +298,7 @@ fun massage_let_if_case ctxt has_call massage_leaf unexpected_call bound_Ts t0 =
           | (_, branches') =>
             Term.list_comb (If_const (typof (hd branches')) $ tap (check_no_call bound_Ts) obj,
               branches'))
-        | (c as Const (@{const_name uncurry}, _), arg :: args) =>
+        | (c as Const (@{const_name case_prod}, _), arg :: args) =>
           massage_rec bound_Ts
             (unfold_splits_lets (Term.list_comb (c $ Envir.eta_long bound_Ts arg, args)))
         | (Const (c, _), args as _ :: _ :: _) =>
@@ -402,12 +402,12 @@ fun massage_nested_corec_call ctxt has_call massage_call massage_noncall bound_T
               end
             | NONE =>
               (case t of
-                Const (@{const_name uncurry}, _) $ t' =>
+                Const (@{const_name case_prod}, _) $ t' =>
                 let
                   val U' = curried_type U;
                   val T' = curried_type T;
                 in
-                  Const (@{const_name uncurry}, U' --> U) $ massage_any_call bound_Ts U' T' t'
+                  Const (@{const_name case_prod}, U' --> U) $ massage_any_call bound_Ts U' T' t'
                 end
               | t1 $ t2 =>
                 (if has_call t2 then
@@ -931,9 +931,9 @@ fun build_corec_arg_nested_call ctxt has_call (sel_eqns : coeqn_data_sel list) s
               let val (u, vs) = strip_comb t in
                 if is_Free u andalso has_call u then
                   Inr_const T U2 $ mk_tuple1_balanced bound_Ts vs
-                else if try (fst o dest_Const) u = SOME @{const_name uncurry} then
+                else if try (fst o dest_Const) u = SOME @{const_name case_prod} then
                   map (rewrite bound_Ts) vs |> chop 1
-                  |>> HOLogic.mk_split o the_single
+                  |>> HOLogic.mk_case_prod o the_single
                   |> Term.list_comb
                 else
                   Term.list_comb (rewrite bound_Ts u, map (rewrite bound_Ts) vs)

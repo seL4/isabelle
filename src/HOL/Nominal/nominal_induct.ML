@@ -18,7 +18,7 @@ fun tupleT Ts = HOLogic.unitT |> fold (fn T => fn U => HOLogic.mk_prodT (U, T)) 
 fun tuple ts = HOLogic.unit |> fold (fn t => fn u => HOLogic.mk_prod (u, t)) ts;
 
 fun tuple_fun Ts (xi, T) =
-  Library.funpow (length Ts) HOLogic.mk_split
+  Library.funpow (length Ts) HOLogic.mk_case_prod
     (Var (xi, (HOLogic.unitT :: Ts) ---> Term.range_type T));
 
 fun split_all_tuples ctxt =

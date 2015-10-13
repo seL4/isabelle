@@ -417,7 +417,7 @@ proof (simp add: countably_subadditive_def, safe)
       and Ble: "\<And>n. (\<Sum>i. f (B n i)) \<le> ?O (A n) + e * (1/2)^(Suc n)"
       by auto blast
 
-    def C \<equiv> "split B o prod_decode"
+    def C \<equiv> "case_prod B o prod_decode"
     from B have B_in_M: "\<And>i j. B i j \<in> M"
       by (rule range_subsetD)
     then have C: "range C \<subseteq> M"
@@ -800,24 +800,24 @@ proof -
           by blast
       qed
       from choice[OF this] guess f .. note f = this
-      then have UN_f_eq: "(\<Union>i. split f (prod_decode i)) = (\<Union>i. A i)"
+      then have UN_f_eq: "(\<Union>i. case_prod f (prod_decode i)) = (\<Union>i. A i)"
         unfolding UN_extend_simps surj_prod_decode by (auto simp: set_eq_iff)
 
-      have d: "disjoint_family (\<lambda>i. split f (prod_decode i))"
+      have d: "disjoint_family (\<lambda>i. case_prod f (prod_decode i))"
         unfolding disjoint_family_on_def
       proof (intro ballI impI)
         fix m n :: nat assume "m \<noteq> n"
         then have neq: "prod_decode m \<noteq> prod_decode n"
           using inj_prod_decode[of UNIV] by (auto simp: inj_on_def)
-        show "split f (prod_decode m) \<inter> split f (prod_decode n) = {}"
+        show "case_prod f (prod_decode m) \<inter> case_prod f (prod_decode n) = {}"
         proof cases
           assume "fst (prod_decode m) = fst (prod_decode n)"
           then show ?thesis
             using neq f by (fastforce simp: disjoint_family_on_def)
         next
           assume neq: "fst (prod_decode m) \<noteq> fst (prod_decode n)"
-          have "split f (prod_decode m) \<subseteq> A (fst (prod_decode m))"
-            "split f (prod_decode n) \<subseteq> A (fst (prod_decode n))"
+          have "case_prod f (prod_decode m) \<subseteq> A (fst (prod_decode m))"
+            "case_prod f (prod_decode n) \<subseteq> A (fst (prod_decode n))"
             using f[THEN spec, of "fst (prod_decode m)"]
             using f[THEN spec, of "fst (prod_decode n)"]
             by (auto simp: set_eq_iff)
@@ -825,12 +825,12 @@ proof -
             by (fastforce simp: disjoint_family_on_def subset_eq set_eq_iff)
         qed
       qed
-      from f have "(\<Sum>n. \<mu>_r (A n)) = (\<Sum>n. \<mu>_r (split f (prod_decode n)))"
+      from f have "(\<Sum>n. \<mu>_r (A n)) = (\<Sum>n. \<mu>_r (case_prod f (prod_decode n)))"
         by (intro suminf_ereal_2dimen[symmetric] positiveD2[OF pos] generated_ringI_Basic)
          (auto split: prod.split)
-      also have "\<dots> = (\<Sum>n. \<mu> (split f (prod_decode n)))"
+      also have "\<dots> = (\<Sum>n. \<mu> (case_prod f (prod_decode n)))"
         using f V(2) by (auto intro!: arg_cong[where f=suminf] split: prod.split)
-      also have "\<dots> = \<mu> (\<Union>i. split f (prod_decode i))"
+      also have "\<dots> = \<mu> (\<Union>i. case_prod f (prod_decode i))"
         using f `c \<in> C'` C'
         by (intro ca[unfolded countably_additive_def, rule_format])
            (auto split: prod.split simp: UN_f_eq d UN_eq)

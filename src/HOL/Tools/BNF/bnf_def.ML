@@ -943,7 +943,7 @@ fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_b
     val CR = mk_bnf_T Ds RTs Calpha;
     val setRs =
       @{map 3} (fn R => fn T => fn U =>
-          HOLogic.Collect_const (HOLogic.mk_prodT (T, U)) $ HOLogic.mk_split R) Rs As Bs;
+          HOLogic.Collect_const (HOLogic.mk_prodT (T, U)) $ HOLogic.mk_case_prod R) Rs As Bs;
 
     (*Grp (in (Collect (split R1) .. Collect (split Rn))) (map fst .. fst)^--1 OO
       Grp (in (Collect (split R1) .. Collect (split Rn))) (map snd .. snd)*)
@@ -1301,7 +1301,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                 val ran_bnfT = mk_bnf_T ranTs Calpha;
                 val (revTs, Ts) = `rev (bd_bnfT :: funTs);
                 val cTs = map (SOME o Thm.ctyp_of lthy) [ran_bnfT, Library.foldr1 HOLogic.mk_prodT Ts];
-                val tinst = fold (fn T => fn t => HOLogic.mk_split (Term.absdummy T t)) (tl revTs)
+                val tinst = fold (fn T => fn t => HOLogic.mk_case_prod (Term.absdummy T t)) (tl revTs)
                   (Term.absdummy (hd revTs) (Term.list_comb (mk_bnf_map bdTs ranTs,
                     map Bound (live - 1 downto 0)) $ Bound live));
                 val cts = [NONE, SOME (Thm.cterm_of lthy tinst)];

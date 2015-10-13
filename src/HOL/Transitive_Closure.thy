@@ -898,7 +898,7 @@ qed
 lemma rtranclp_imp_Sup_relpowp:
   assumes "(P^**) x y"
   shows "(\<Squnion>n. P ^^ n) x y"
-  using assms and rtrancl_imp_UN_relpow [to_pred] by blast
+  using assms and rtrancl_imp_UN_relpow [of "(x, y)", to_pred] by simp
 
 lemma relpow_imp_rtrancl:
   assumes "p \<in> R ^^ n"
@@ -918,7 +918,7 @@ qed
 lemma relpowp_imp_rtranclp:
   assumes "(P ^^ n) x y"
   shows "(P^**) x y"
-  using assms and relpow_imp_rtrancl [to_pred] by blast
+  using assms and relpow_imp_rtrancl [of "(x, y)", to_pred] by simp
 
 lemma rtrancl_is_UN_relpow:
   "R^* = (\<Union>n. R ^^ n)"

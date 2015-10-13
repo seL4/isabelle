@@ -688,7 +688,7 @@ fun gen_domain_isomorphism
         val map_ID_thms = Domain_Take_Proofs.get_map_ID_thms thy
         val start_rules =
             @{thms lub_Pair [symmetric] ch2ch_Pair} @ chain_take_thms
-            @ @{thms pair_collapse split_def}
+            @ @{thms prod.collapse split_def}
             @ map_apply_thms @ map_ID_thms
         val rules0 =
             @{thms iterate_0 Pair_strict} @ take_0_thms

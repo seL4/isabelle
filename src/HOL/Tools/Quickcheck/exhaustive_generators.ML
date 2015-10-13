@@ -152,7 +152,7 @@ fun mk_bounded_forall_equations functerms =
 fun mk_full_equations functerms =
   let
     fun test_function T = Free ("f", termifyT T --> resultT)
-    fun split_const T = HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"}, resultT)
+    fun case_prod_const T = HOLogic.case_prod_const (T, @{typ "unit => Code_Evaluation.term"}, resultT)
     fun mk_call T =
       let
         val full_exhaustive =
@@ -160,7 +160,7 @@ fun mk_full_equations functerms =
             full_exhaustiveT T)
       in                                   
         (T, fn t => full_exhaustive $
-          (split_const T $ absdummy T (absdummy @{typ "unit => Code_Evaluation.term"} t)) $ size_pred)
+          (case_prod_const T $ absdummy T (absdummy @{typ "unit => Code_Evaluation.term"} t)) $ size_pred)
       end
     fun mk_aux_call fTs (k, _) (tyco, Ts) =
       let
@@ -168,7 +168,7 @@ fun mk_full_equations functerms =
         val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
       in
         (T, fn t => nth functerms k $
-          (split_const T $ absdummy T (absdummy @{typ "unit => Code_Evaluation.term"} t)) $ size_pred)
+          (case_prod_const T $ absdummy T (absdummy @{typ "unit => Code_Evaluation.term"} t)) $ size_pred)
       end
     fun mk_consexpr simpleT (c, xs) =
       let
@@ -387,11 +387,11 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     fun mk_exhaustive_closure (free as Free (_, T), term_var) t =
       if Sign.of_sort thy (T, @{sort check_all}) then
         Const (@{const_name "Quickcheck_Exhaustive.check_all_class.check_all"}, check_allT T)
-          $ (HOLogic.split_const (T, @{typ "unit => term"}, resultT)
+          $ (HOLogic.case_prod_const (T, @{typ "unit => term"}, resultT)
             $ lambda free (lambda term_var t))
       else
         Const (@{const_name "Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive"}, full_exhaustiveT T)
-          $ (HOLogic.split_const (T, @{typ "unit => term"}, resultT)
+          $ (HOLogic.case_prod_const (T, @{typ "unit => term"}, resultT)
             $ lambda free (lambda term_var t)) $ depth
     val none_t = Const (@{const_name "None"}, resultT)
     val mk_if = Quickcheck_Common.mk_safe_if genuine_only none_t

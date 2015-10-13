@@ -55,7 +55,7 @@ fun strong_ind_simproc tab =
         fun mk_collect p T t =
           let val U = HOLogic.dest_setT T
           in HOLogic.Collect_const U $
-            HOLogic.mk_psplits (HOLogic.flat_tuple_paths p) U HOLogic.boolT t
+            HOLogic.mk_ptupleabs (HOLogic.flat_tuple_paths p) U HOLogic.boolT t
           end;
         fun decomp (Const (s, _) $ ((m as Const (@{const_name Set.member},
               Type (_, [_, Type (_, [T, _])]))) $ p $ S) $ u) =
@@ -66,7 +66,7 @@ fun strong_ind_simproc tab =
           | decomp _ = NONE;
         val simp =
           full_simp_tac
-            (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm split_conv}]) 1;
+            (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm case_prod_conv}]) 1;
         fun mk_rew t = (case strip_abs_vars t of
             [] => NONE
           | xs => (case decomp (strip_abs_body t) of
@@ -211,7 +211,7 @@ fun mk_to_pred_inst ctxt fs =
       (dest_Var x,
        Thm.cterm_of ctxt (fold_rev (Term.abs o pair "x") Ts
          (HOLogic.Collect_const U $
-            HOLogic.mk_psplits ps U HOLogic.boolT
+            HOLogic.mk_ptupleabs ps U HOLogic.boolT
               (list_comb (x', map Bound (length Ts - 1 downto 0))))))
     end) fs;
 
@@ -232,11 +232,11 @@ fun mk_to_pred_eq ctxt p fs optfs' T thm =
           in
             thm' RS (infer_instantiate ctxt [(arg_cong_f,
               Thm.cterm_of ctxt (Abs ("P", Ts ---> HOLogic.boolT,
-                HOLogic.Collect_const U $ HOLogic.mk_psplits fs' U
+                HOLogic.Collect_const U $ HOLogic.mk_ptupleabs fs' U
                   HOLogic.boolT (Bound 0))))] arg_cong' RS sym)
           end)
   in
-    Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm split_conv}]
+    Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm case_prod_conv}]
       addsimprocs [@{simproc Collect_mem}]) thm'' |>
         zero_var_indexes |> eta_contract_thm ctxt (equal p)
   end;
@@ -344,7 +344,7 @@ fun to_pred thms context thm =
     thm |>
     Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimprocs
-      [to_pred_simproc (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps)]) |>
+      [to_pred_simproc (mem_Collect_eq :: @{thm case_prod_conv} :: to_pred_simps)]) |>
     eta_contract_thm ctxt (is_pred pred_arities) |>
     Rule_Cases.save thm
   end;
@@ -415,7 +415,7 @@ fun add_ind_set_def
           in
             (x, (x',
               (HOLogic.Collect_const T $
-                 HOLogic.mk_psplits fs T HOLogic.boolT x',
+                 HOLogic.mk_ptupleabs fs T HOLogic.boolT x',
                fold_rev (Term.abs o pair "x") Ts
                  (HOLogic.mk_mem
                    (HOLogic.mk_ptuple fs T (map Bound (length fs downto 0)), x)))))
@@ -442,12 +442,12 @@ fun add_ind_set_def
       in
         ((c', (fs, U, Ts)),
          (list_comb (c, params2),
-          HOLogic.Collect_const U $ HOLogic.mk_psplits fs U HOLogic.boolT
+          HOLogic.Collect_const U $ HOLogic.mk_ptupleabs fs U HOLogic.boolT
             (list_comb (c', params1))))
       end) |> split_list |>> split_list;
     val eqns' = eqns @
       map (Thm.prop_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq)
-        (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps);
+        (mem_Collect_eq :: @{thm case_prod_conv} :: to_pred_simps);
 
     (* predicate version of the introduction rules *)
     val intros' =
@@ -472,7 +472,7 @@ fun add_ind_set_def
       |> fold_map Local_Theory.define
         (map (fn (((c, syn), (fs, U, _)), p) => ((c, syn), ((Thm.def_binding c, []),
            fold_rev lambda params (HOLogic.Collect_const U $
-             HOLogic.mk_psplits fs U HOLogic.boolT (list_comb (p, params3))))))
+             HOLogic.mk_ptupleabs fs U HOLogic.boolT (list_comb (p, params3))))))
            (cnames_syn ~~ cs_info ~~ preds));
 
     (* prove theorems for converting predicate to set notation *)
@@ -487,7 +487,7 @@ fun add_ind_set_def
                   list_comb (c, params))))))
             (K (REPEAT (resolve_tac lthy @{thms ext} 1) THEN
               simp_tac (put_simpset HOL_basic_ss lthy addsimps
-                [def, mem_Collect_eq, @{thm split_conv}]) 1))
+                [def, mem_Collect_eq, @{thm case_prod_conv}]) 1))
         in
           lthy |> Local_Theory.note ((Binding.name (s ^ "p_" ^ s ^ "_eq"),
             [Attrib.internal (K pred_set_conv_att)]),
@@ -542,7 +542,7 @@ val _ =
       "declare of monotonicity rule for set operators");
 
 
-(* commands *)
+(* commands *)                           
 
 val ind_set_decl = Inductive.gen_ind_decl add_ind_set_def;
 

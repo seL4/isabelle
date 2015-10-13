@@ -349,7 +349,7 @@ proof -
     by (rule while_option_rule[OF _ assms[unfolded rtrancl_while_def]])
   { assume "ws = []"
     hence ?thesis using I
-      by (auto simp del:Image_Collect_split dest: Image_closed_trancl)
+      by (auto simp del:Image_Collect_case_prod dest: Image_closed_trancl)
   } moreover
   { assume "ws \<noteq> []"
     hence ?thesis using I while_option_stop[OF assms[unfolded rtrancl_while_def]]

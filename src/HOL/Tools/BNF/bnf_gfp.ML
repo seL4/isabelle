@@ -958,7 +958,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val (fTs1, fTs2) = apsnd tl (chop (i - 1) (map (fn T => T --> FT) bdFTs));
         val fs = map mk_undefined fTs1 @ (f :: map mk_undefined fTs2);
       in
-        HOLogic.mk_split (Term.absfree Kl' (Term.absfree lab'
+        HOLogic.mk_case_prod (Term.absfree Kl' (Term.absfree lab'
           (mk_case_sumN fs $ (lab $ HOLogic.mk_list sum_sbdT []))))
       end;
 
@@ -2280,7 +2280,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         ||>> mk_Frees' "z" zip_zTs;
 
       val Iphi_sets =
-        map2 (fn phi => fn T => HOLogic.Collect_const T $ HOLogic.mk_split phi) allJphis zip_ranTs;
+        map2 (fn phi => fn T => HOLogic.Collect_const T $ HOLogic.mk_case_prod phi) allJphis zip_ranTs;
       val in_phis = map2 (mk_in Iphi_sets) (mk_setss zip_ranTs) zipFTs;
       val fstABs = map fst_const passiveABs;
       val all_fsts = fstABs @ fstsTsTs';
@@ -2295,7 +2295,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         Term.list_comb (mk_map_of_bnf Ds zip_ranTs (passiveBs @ Ts') bnf, all_snds)) Dss bnfs;
       val Jmap_snds = map2 (fn map => fn T => if m = 0 then HOLogic.id_const T
         else Term.list_comb (map, sndABs)) (mk_Jmaps passiveABs passiveBs) Ts;
-      val zip_unfolds = map (mk_unfold zip_zTs (map HOLogic.mk_split zips)) ks;
+      val zip_unfolds = map (mk_unfold zip_zTs (map HOLogic.mk_case_prod zips)) ks;
       val zip_setss = mk_Jsetss passiveABs |> transpose;
 
       fun Jrel_coinduct_tac {context = ctxt, prems = CIHs} =

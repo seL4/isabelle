@@ -698,7 +698,7 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
               (fn (active_set_map0, in_Irel) => EVERY' [rtac ctxt ord_eq_le_trans,
                 rtac ctxt @{thm SUP_cong[OF _ refl]}, rtac ctxt active_set_map0, rtac ctxt @{thm UN_least},
                 dtac ctxt set_rev_mp, etac ctxt @{thm image_mono}, etac ctxt imageE,
-                dtac ctxt @{thm ssubst_mem[OF pair_collapse]},
+                dtac ctxt @{thm ssubst_mem[OF prod.collapse]},
                 REPEAT_DETERM o eresolve_tac ctxt (CollectE :: conjE ::
                   @{thms case_prodE iffD1[OF prod.inject, elim_format]}),
                 hyp_subst_tac ctxt,
@@ -712,7 +712,7 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
           REPEAT_DETERM_N m o rtac ctxt @{thm fun_cong[OF comp_id]},
           EVERY' (map (fn in_Irel => EVERY' [rtac ctxt trans, rtac ctxt o_apply,
             dtac ctxt set_rev_mp, assume_tac ctxt,
-            dtac ctxt @{thm ssubst_mem[OF pair_collapse]},
+            dtac ctxt @{thm ssubst_mem[OF prod.collapse]},
             REPEAT_DETERM o eresolve_tac ctxt (CollectE :: conjE ::
               @{thms case_prodE iffD1[OF prod.inject, elim_format]}),
             hyp_subst_tac ctxt,

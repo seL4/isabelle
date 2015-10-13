@@ -78,7 +78,7 @@ instance "finfun" :: (type, distrib_lattice) distrib_lattice
 by(intro_classes)(simp add: sup_finfun_def inf_finfun_def expand_finfun_eq o_def sup_inf_distrib1)
 
 instantiation "finfun" :: (type, minus) minus begin
-definition "f - g = split (op -) \<circ>$ ($f, g$)"
+definition "f - g = case_prod (op -) \<circ>$ ($f, g$)"
 instance ..
 end
 

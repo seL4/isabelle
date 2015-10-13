@@ -559,12 +559,12 @@ lemma return_restrict_space:
   by (auto intro!: measure_eqI simp: sets_restrict_space emeasure_restrict_space)
 
 lemma measurable_distr2:
-  assumes f[measurable]: "split f \<in> measurable (L \<Otimes>\<^sub>M M) N"
+  assumes f[measurable]: "case_prod f \<in> measurable (L \<Otimes>\<^sub>M M) N"
   assumes g[measurable]: "g \<in> measurable L (subprob_algebra M)"
   shows "(\<lambda>x. distr (g x) N (f x)) \<in> measurable L (subprob_algebra N)"
 proof -
   have "(\<lambda>x. distr (g x) N (f x)) \<in> measurable L (subprob_algebra N)
-    \<longleftrightarrow> (\<lambda>x. distr (return L x \<Otimes>\<^sub>M g x) N (split f)) \<in> measurable L (subprob_algebra N)"
+    \<longleftrightarrow> (\<lambda>x. distr (return L x \<Otimes>\<^sub>M g x) N (case_prod f)) \<in> measurable L (subprob_algebra N)"
   proof (rule measurable_cong)
     fix x assume x: "x \<in> space L"
     have gx: "g x \<in> space (subprob_algebra M)"
@@ -580,7 +580,7 @@ proof -
       using gx by (simp add: space_subprob_algebra)
     have space_pair_M'[simp]: "\<And>X. space (X \<Otimes>\<^sub>M g x) = space (X \<Otimes>\<^sub>M M)"
       by (simp add: space_pair_measure)
-    show "distr (g x) N (f x) = distr (?R \<Otimes>\<^sub>M g x) N (split f)" (is "?l = ?r")
+    show "distr (g x) N (f x) = distr (?R \<Otimes>\<^sub>M g x) N (case_prod f)" (is "?l = ?r")
     proof (rule measure_eqI)
       show "sets ?l = sets ?r"
         by simp
@@ -1150,7 +1150,7 @@ qed
 
 lemma measurable_bind':
   assumes M1: "f \<in> measurable M (subprob_algebra N)" and
-          M2: "split g \<in> measurable (M \<Otimes>\<^sub>M N) (subprob_algebra R)"
+          M2: "case_prod g \<in> measurable (M \<Otimes>\<^sub>M N) (subprob_algebra R)"
   shows "(\<lambda>x. bind (f x) (g x)) \<in> measurable M (subprob_algebra R)"
 proof (subst measurable_cong)
   fix x assume x_in_M: "x \<in> space M"
@@ -1445,7 +1445,7 @@ qed (simp add: bind_empty)
 lemma double_bind_assoc:
   assumes Mg: "g \<in> measurable N (subprob_algebra N')"
   assumes Mf: "f \<in> measurable M (subprob_algebra M')"
-  assumes Mh: "split h \<in> measurable (M \<Otimes>\<^sub>M M') N"
+  assumes Mh: "case_prod h \<in> measurable (M \<Otimes>\<^sub>M M') N"
   shows "do {x \<leftarrow> M; y \<leftarrow> f x; g (h x y)} = do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y)} \<guillemotright>= g"
 proof-
   have "do {x \<leftarrow> M; y \<leftarrow> f x; return N (h x y)} \<guillemotright>= g = 

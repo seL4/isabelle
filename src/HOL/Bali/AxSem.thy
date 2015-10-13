@@ -969,7 +969,7 @@ apply (fast intro: ax_derivs.weaken)
 done
 
 lemma ax_methods_spec: 
-"\<lbrakk>G,(A::'a triple set)|\<turnstile>split f ` ms; (C,sig) \<in> ms\<rbrakk>\<Longrightarrow> G,A\<turnstile>((f C sig)::'a triple)"
+"\<lbrakk>G,(A::'a triple set)|\<turnstile>case_prod f ` ms; (C,sig) \<in> ms\<rbrakk>\<Longrightarrow> G,A\<turnstile>((f C sig)::'a triple)"
 apply (erule ax_derivs.weaken)
 apply (force del: image_eqI intro: rev_image_eqI)
 done
@@ -977,7 +977,7 @@ done
 (* this version is used to avoid using the cut rule *)
 lemma ax_finite_pointwise_lemma [rule_format]: "\<lbrakk>F \<subseteq> ms; finite ms\<rbrakk> \<Longrightarrow>  
   ((\<forall>(C,sig)\<in>F. G,(A::'a triple set)\<turnstile>(f C sig::'a triple)) \<longrightarrow> (\<forall>(C,sig)\<in>ms. G,A\<turnstile>(g C sig::'a triple))) \<longrightarrow>  
-      G,A|\<turnstile>split f ` F \<longrightarrow> G,A|\<turnstile>split g ` F"
+      G,A|\<turnstile>case_prod f ` F \<longrightarrow> G,A|\<turnstile>case_prod g ` F"
 apply (frule (1) finite_subset)
 apply (erule rev_mp)
 apply (erule thin_rl)

@@ -2775,12 +2775,12 @@ text {* \blankline *}
     next
       fix R :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
       show "rel_fn R =
-            (BNF_Def.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn fst))\<inverse>\<inverse> OO
-             BNF_Def.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn snd)"
+            (BNF_Def.Grp {x. set_fn x \<subseteq> {(x, y). R x y}} (map_fn fst))\<inverse>\<inverse> OO
+             BNF_Def.Grp {x. set_fn x \<subseteq> {(x, y). R x y}} (map_fn snd)"
         unfolding Grp_def fun_eq_iff relcompp.simps conversep.simps
         apply transfer
         unfolding rel_fun_def subset_iff image_iff
-        by auto (force, metis pair_collapse)
+        by auto (force, metis prod.collapse)
     qed
 
 text {* \blankline *}

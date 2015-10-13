@@ -581,7 +581,7 @@ lemma smap2_unfold[code]:
   by (subst smap2.ctr) simp
 
 lemma smap2_szip:
-  "smap2 f s1 s2 = smap (split f) (szip s1 s2)"
+  "smap2 f s1 s2 = smap (case_prod f) (szip s1 s2)"
   by (coinduction arbitrary: s1 s2) auto
 
 lemma smap_smap2[simp]:
@@ -597,7 +597,7 @@ lemma snth_smap2[simp]:
   by (induct n arbitrary: s1 s2) auto
 
 lemma stake_smap2[simp]:
-  "stake n (smap2 f s1 s2) = map (split f) (zip (stake n s1) (stake n s2))"
+  "stake n (smap2 f s1 s2) = map (case_prod f) (zip (stake n s1) (stake n s2))"
   by (induct n arbitrary: s1 s2) auto
 
 lemma sdrop_smap2[simp]:

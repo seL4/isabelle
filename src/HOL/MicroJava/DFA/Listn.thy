@@ -26,7 +26,7 @@ abbreviation
   where "x <[r] y == x <_(le r) y"
 
 definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list" where
-"map2 f == (%xs ys. map (split f) (zip xs ys))"
+"map2 f == (%xs ys. map (case_prod f) (zip xs ys))"
 
 abbreviation
   plussublist_syntax :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b list \<Rightarrow> 'c list"

@@ -169,7 +169,7 @@ unfolding inst_prod_pcpo by (rule snd_conv)
 lemma Pair_strict [simp]: "(\<bottom>, \<bottom>) = \<bottom>"
 by simp
 
-lemma split_strict [simp]: "split f \<bottom> = f \<bottom> \<bottom>"
+lemma split_strict [simp]: "case_prod f \<bottom> = f \<bottom> \<bottom>"
 unfolding split_def by simp
 
 subsection {* Continuity of \emph{Pair}, \emph{fst}, \emph{snd} *}
@@ -235,7 +235,7 @@ proof -
   have "cont (\<lambda>(x, y). f (x, y))"
     by (intro cont2cont_case_prod f1 f2 cont2cont)
   thus "cont f"
-    by (simp only: split_eta)
+    by (simp only: case_prod_eta)
 qed
 
 lemma prod_cont_iff:

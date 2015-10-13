@@ -2085,9 +2085,9 @@ qed
 
 lemma [code]:
   "mset xs #\<union> mset ys =
-    mset (split append (fold (\<lambda>x (ys, zs). (remove1 x ys, x # zs)) xs (ys, [])))"
+    mset (case_prod append (fold (\<lambda>x (ys, zs). (remove1 x ys, x # zs)) xs (ys, [])))"
 proof -
-  have "\<And>zs. mset (split append (fold (\<lambda>x (ys, zs). (remove1 x ys, x # zs)) xs (ys, zs))) =
+  have "\<And>zs. mset (case_prod append (fold (\<lambda>x (ys, zs). (remove1 x ys, x # zs)) xs (ys, zs))) =
       (mset xs #\<union> mset ys) + mset zs"
     by (induct xs arbitrary: ys) (simp_all add: multiset_eq_iff)
   then show ?thesis by simp

@@ -35,7 +35,7 @@ fun assert_tac ctxt pos pred =
 
 val HOL_basic_ss' =
   simpset_of (put_simpset HOL_basic_ss @{context}
-    addsimps @{thms simp_thms Pair_eq}
+    addsimps @{thms simp_thms prod.inject}
     setSolver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
     setSolver (mk_solver "True_solver" (fn ctxt => resolve_tac ctxt @{thms TrueI})))
 
@@ -62,8 +62,8 @@ fun prove_param options ctxt nargs t deriv =
       (case f of
         Const (name, _) => simp_tac (put_simpset HOL_basic_ss ctxt addsimps
            [@{thm eval_pred}, Core_Data.predfun_definition_of ctxt name mode,
-           @{thm split_eta}, @{thm split_beta}, @{thm fst_conv},
-           @{thm snd_conv}, @{thm pair_collapse}, @{thm Product_Type.split_conv}]) 1
+           @{thm case_prod_eta}, @{thm case_prod_beta}, @{thm fst_conv},
+           @{thm snd_conv}, @{thm prod.collapse}, @{thm Product_Type.split_conv}]) 1
       | Free _ =>
         Subgoal.FOCUS_PREMS (fn {context = ctxt', prems, ...} =>
           let
@@ -232,8 +232,8 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
               in
                 trace_tac ctxt options "before prove_neg_expr:"
                 THEN full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
-                  [@{thm split_eta}, @{thm split_beta}, @{thm fst_conv},
-                   @{thm snd_conv}, @{thm pair_collapse}, @{thm Product_Type.split_conv}]) 1
+                  [@{thm case_prod_eta}, @{thm case_prod_beta}, @{thm fst_conv},
+                   @{thm snd_conv}, @{thm prod.collapse}, @{thm Product_Type.split_conv}]) 1
                 THEN (if (is_some name) then
                     trace_tac ctxt options "before applying not introduction rule"
                     THEN Subgoal.FOCUS_PREMS (fn {prems, ...} =>
@@ -392,8 +392,8 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
     val (in_ts, _) = split_mode mode ts;
     val split_simpset =
       put_simpset HOL_basic_ss' ctxt
-      addsimps [@{thm split_eta}, @{thm split_beta},
-        @{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
+      addsimps [@{thm case_prod_eta}, @{thm case_prod_beta},
+        @{thm fst_conv}, @{thm snd_conv}, @{thm prod.collapse}]
     fun prove_prems2 out_ts [] =
       trace_tac ctxt options "before prove_match2 - last call:"
       THEN prove_match2 options ctxt out_ts

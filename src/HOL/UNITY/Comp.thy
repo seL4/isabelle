@@ -186,7 +186,7 @@ lemma stable_localTo_stable2:
 apply simp
 apply (subgoal_tac "G \<in> preserves (funPair v w) ")
  prefer 2 apply simp
-apply (drule_tac P1 = "split Q" for Q in preserves_subset_stable [THEN subsetD], 
+apply (drule_tac P1 = "case_prod Q" for Q in preserves_subset_stable [THEN subsetD], 
        auto)
 done
 

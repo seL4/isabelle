@@ -12,7 +12,7 @@ lemma PiE_choice: "(\<exists>f\<in>PiE I F. \<forall>i\<in>I. P i (f i)) \<longl
   by (auto simp: Bex_def PiE_iff Ball_def dest!: choice_iff'[THEN iffD1])
      (force intro: exI[of _ "restrict f I" for f])
 
-lemma split_const: "(\<lambda>(i, j). c) = (\<lambda>_. c)"
+lemma case_prod_const: "(\<lambda>(i, j). c) = (\<lambda>_. c)"
   by auto
 
 subsubsection {* More about Function restricted by @{const extensional}  *}
@@ -1110,7 +1110,7 @@ using assms proof induct
 qed (simp add: space_PiM)
 
 lemma (in product_sigma_finite) product_nn_integral_pair:
-  assumes [measurable]: "split f \<in> borel_measurable (M x \<Otimes>\<^sub>M M y)"
+  assumes [measurable]: "case_prod f \<in> borel_measurable (M x \<Otimes>\<^sub>M M y)"
   assumes xy: "x \<noteq> y"
   shows "(\<integral>\<^sup>+\<sigma>. f (\<sigma> x) (\<sigma> y) \<partial>PiM {x, y} M) = (\<integral>\<^sup>+z. f (fst z) (snd z) \<partial>(M x \<Otimes>\<^sub>M M y))"
 proof-

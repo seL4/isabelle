@@ -139,7 +139,7 @@ lemma var_assign_eval [intro!]: "(X x, s(x:=n)) -|-> (n, s(x:=n))"
 text\<open>Make the induction rule look nicer -- though @{text eta_contract} makes the new
     version look worse than it is...\<close>
 
-lemma split_lemma: "{((e,s),(n,s')). P e s n s'} = Collect (split (%v. split (split P v)))"
+lemma split_lemma: "{((e,s),(n,s')). P e s n s'} = Collect (case_prod (%v. case_prod (case_prod P v)))"
   by auto
 
 text\<open>New induction rule.  Note the form of the VALOF induction hypothesis\<close>

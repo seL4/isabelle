@@ -546,10 +546,10 @@ text\<open>Looping simprule\<close>
 lemma split_paired_Eps: "(SOME x. P x) = (SOME (a,b). P(a,b))"
   by simp
 
-lemma Eps_split: "Eps (case_prod P) = (SOME xy. P (fst xy) (snd xy))"
+lemma Eps_case_prod: "Eps (case_prod P) = (SOME xy. P (fst xy) (snd xy))"
   by (simp add: split_def)
 
-lemma Eps_split_eq [simp]: "(@(x',y'). x = x' & y = y') = (x,y)"
+lemma Eps_case_prod_eq [simp]: "(@(x',y'). x = x' & y = y') = (x,y)"
   by blast
 
 

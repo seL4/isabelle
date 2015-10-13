@@ -196,7 +196,7 @@ next
       by (auto intro: card_ge_0_finite)
     then have pF'f: "finite ?pF'"
       using H0 \<open>finite F\<close>
-      apply (simp only: Collect_split Collect_mem_eq)
+      apply (simp only: Collect_case_prod Collect_mem_eq)
       apply (rule finite_cartesian_product)
       apply simp_all
       done
@@ -246,7 +246,7 @@ next
     from pFs H0 have xFc: "card ?xF = fact n"
       unfolding xfgpF' card_image[OF ginj]
       using \<open>finite F\<close> \<open>finite ?pF\<close>
-      apply (simp only: Collect_split Collect_mem_eq card_cartesian_product)
+      apply (simp only: Collect_case_prod Collect_mem_eq card_cartesian_product)
       apply simp
       done
     from finite_imageI[OF pF'f, of ?g] have xFf: "finite ?xF"

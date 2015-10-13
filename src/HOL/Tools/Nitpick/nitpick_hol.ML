@@ -2210,7 +2210,7 @@ val is_linear_inductive_pred_def =
 fun n_ptuple_paths 0 = []
   | n_ptuple_paths 1 = []
   | n_ptuple_paths n = [] :: map (cons 2) (n_ptuple_paths (n - 1))
-val ap_n_split = HOLogic.mk_psplits o n_ptuple_paths
+val ap_n_split = HOLogic.mk_ptupleabs o n_ptuple_paths
 
 val linear_pred_base_and_step_rhss =
   let
@@ -2287,7 +2287,7 @@ fun starred_linear_pred_const (hol_ctxt as {simp_table, ...}) (s, T) def =
       HOLogic.Collect_const tuple_T $ list_comb (Const base_x, outer_bounds)
     val step_set =
       HOLogic.Collect_const prod_T
-      $ (Const (@{const_name uncurry}, curried_T --> uncurried_T)
+      $ (Const (@{const_name case_prod}, curried_T --> uncurried_T)
                 $ list_comb (Const step_x, outer_bounds))
     val image_set =
       image_const $ (rtrancl_const $ step_set) $ base_set

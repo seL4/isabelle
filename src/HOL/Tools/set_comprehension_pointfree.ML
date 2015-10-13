@@ -85,14 +85,14 @@ fun mk_prod1 Ts (t1, t2) =
 
 fun mk_split_abs vs (Bound i) t = let val (x, T) = nth vs i in Abs (x, T, t) end
   | mk_split_abs vs (Const (@{const_name Product_Type.Pair}, _) $ u $ v) t =
-      HOLogic.mk_split (mk_split_abs vs u (mk_split_abs vs v t))
+      HOLogic.mk_case_prod (mk_split_abs vs u (mk_split_abs vs v t))
   | mk_split_abs _ t _ = raise TERM ("mk_split_abs: bad term", [t]);
 
-(* a variant of HOLogic.strip_psplits *)
-val strip_psplits =
+(* a variant of HOLogic.strip_ptupleabs *)
+val strip_ptupleabs =
   let
     fun strip [] qs vs t = (t, rev vs, qs)
-      | strip (p :: ps) qs vs (Const (@{const_name uncurry}, _) $ t) =
+      | strip (p :: ps) qs vs (Const (@{const_name case_prod}, _) $ t) =
           strip ((1 :: p) :: (2 :: p) :: ps) (p :: qs) vs t
       | strip (_ :: ps) qs vs (Abs (s, T, t)) = strip ps qs ((s, T) :: vs) t
       | strip (_ :: ps) qs vs t = strip ps qs
@@ -129,11 +129,11 @@ fun is_collect_atom (Atom (_, Const(@{const_name Collect}, _) $ _)) = true
   | is_collect_atom (Atom (_, Const (@{const_name "Groups.uminus_class.uminus"}, _) $ (Const(@{const_name Collect}, _) $ _))) = true
   | is_collect_atom _ = false
 
-fun mk_split _ [(x, T)] t = (T, Abs (x, T, t))
-  | mk_split rT ((x, T) :: vs) t =
+fun mk_case_prod _ [(x, T)] t = (T, Abs (x, T, t))
+  | mk_case_prod rT ((x, T) :: vs) t =
     let
-      val (T', t') = mk_split rT vs t
-      val t'' = HOLogic.split_const (T, T', rT) $ (Abs (x, T, t'))
+      val (T', t') = mk_case_prod rT vs t
+      val t'' = HOLogic.case_prod_const (T, T', rT) $ (Abs (x, T, t'))
     in (domain_type (fastype_of t''), t'') end
 
 fun mk_term vs t =
@@ -151,7 +151,7 @@ fun default_atom vs t =
   let
     val (tuple, (vs', t')) = mk_term vs t
     val T = HOLogic.mk_tupleT (map snd vs')
-    val s = HOLogic.Collect_const T $ (snd (mk_split @{typ bool} vs' t'))
+    val s = HOLogic.Collect_const T $ (snd (mk_case_prod @{typ bool} vs' t'))
   in
     (tuple, Atom (tuple, s))
   end
@@ -166,7 +166,7 @@ fun mk_atom vs (t as Const (@{const_name "Set.member"}, _) $ x $ s) =
         let
           val (tuple, (vs', x')) = mk_term vs x 
           val rT = HOLogic.dest_setT (fastype_of s)
-          val s = mk_vimage (snd (mk_split rT vs' x')) s
+          val s = mk_vimage (snd (mk_case_prod rT vs' x')) s
         in (tuple, Atom (tuple, s)) end)
   | mk_atom vs (Const (@{const_name "HOL.Not"}, _) $ t) = apsnd (map_atom (apsnd mk_Compl)) (mk_atom vs t)
   | mk_atom vs t = default_atom vs t
@@ -219,7 +219,7 @@ fun rearrange vs (pat, pat') t =
     val bs = map (fn b => the (AList.lookup (op =) subst b)) pat'
     val rt = term_of_pattern Ts' (Pattern bs)
     val rT = type_of_pattern Ts' (Pattern bs)
-    val (_, f) = mk_split rT vs' rt
+    val (_, f) = mk_case_prod rT vs' rt
   in
     mk_image f t
   end;
@@ -269,7 +269,7 @@ fun reorder_bounds pats t =
   end;
 
 fun is_reordering t =
-  let val (t', _, _) = HOLogic.strip_psplits t
+  let val (t', _, _) = HOLogic.strip_ptupleabs t
   in forall (fn Bound _ => true) (HOLogic.strip_tuple t') end
 
 fun mk_pointfree_expr t =
@@ -305,7 +305,7 @@ val rewrite_term = try mk_pointfree_expr
 
 (* proof tactic *)
 
-val case_prod_distrib = @{lemma "(uncurry g x) z = uncurry (\<lambda>x y. (g x y) z) x" by (simp add: case_prod_beta)}
+val case_prod_beta = @{lemma "case_prod g x z = case_prod (\<lambda>x y. (g x y) z) x" by (simp add: case_prod_beta)}
 
 val vimageI2' = @{lemma "f a \<notin> A ==> a \<notin> f -` A" by simp}
 val vimageE' =
@@ -327,7 +327,7 @@ fun intro_image_tac ctxt =
       ORELSE' resolve_tac ctxt @{thms arg_cong2 [OF refl, where f = "op =", OF prod.case, THEN iffD2]}
       ORELSE' CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1
         (HOLogic.Trueprop_conv
-          (HOLogic.eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq case_prod_distrib)))))) ctxt)))
+          (HOLogic.eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq case_prod_beta)))))) ctxt)))
 
 fun elim_image_tac ctxt =
   eresolve_tac ctxt @{thms imageE}
@@ -421,7 +421,7 @@ fun comprehension_conv ctxt ct =
     fun mk_term t =
       let
         val (T, t') = dest_Collect t
-        val (t'', vs, fp) = case strip_psplits t' of
+        val (t'', vs, fp) = case strip_ptupleabs t' of
             (_, [_], _) => raise TERM("mk_term", [t'])
           | (t'', vs, fp) => (t'', vs, fp)
         val Ts = map snd vs

@@ -1129,7 +1129,7 @@ where
   by pat_completeness auto
 termination rsplit0 by (relation "measure num_size") simp_all
 
-lemma rsplit0: "Inum bs ((split (CN 0)) (rsplit0 t)) = Inum bs t \<and> numbound0 (snd (rsplit0 t))"
+lemma rsplit0: "Inum bs ((case_prod (CN 0)) (rsplit0 t)) = Inum bs t \<and> numbound0 (snd (rsplit0 t))"
 proof (induct t rule: rsplit0.induct)
   case (2 a b)
   let ?sa = "rsplit0 a"
@@ -1140,8 +1140,8 @@ proof (induct t rule: rsplit0.induct)
   let ?tb = "snd ?sb"
   from 2 have nb: "numbound0 (snd(rsplit0 (Add a b)))"
     by (cases "rsplit0 a") (auto simp add: Let_def split_def)
-  have "Inum bs ((split (CN 0)) (rsplit0 (Add a b))) =
-    Inum bs ((split (CN 0)) ?sa)+Inum bs ((split (CN 0)) ?sb)"
+  have "Inum bs ((case_prod (CN 0)) (rsplit0 (Add a b))) =
+    Inum bs ((case_prod (CN 0)) ?sa)+Inum bs ((case_prod (CN 0)) ?sb)"
     by (simp add: Let_def split_def algebra_simps)
   also have "\<dots> = Inum bs a + Inum bs b"
     using 2 by (cases "rsplit0 a") auto
@@ -1180,38 +1180,38 @@ where
   "neq c t = (if c = 0 then (NEq t) else if c > 0 then (NEq (CN 0 c t))
     else (NEq (CN 0 (-c) (Neg t))))"
 
-lemma lt: "numnoabs t \<Longrightarrow> Ifm bs (split lt (rsplit0 t)) =
-  Ifm bs (Lt t) \<and> isrlfm (split lt (rsplit0 t))"
+lemma lt: "numnoabs t \<Longrightarrow> Ifm bs (case_prod lt (rsplit0 t)) =
+  Ifm bs (Lt t) \<and> isrlfm (case_prod lt (rsplit0 t))"
   using rsplit0[where bs = "bs" and t="t"]
   by (auto simp add: lt_def split_def, cases "snd(rsplit0 t)", auto,
     rename_tac nat a b, case_tac "nat", auto)
 
-lemma le: "numnoabs t \<Longrightarrow> Ifm bs (split le (rsplit0 t)) =
-  Ifm bs (Le t) \<and> isrlfm (split le (rsplit0 t))"
+lemma le: "numnoabs t \<Longrightarrow> Ifm bs (case_prod le (rsplit0 t)) =
+  Ifm bs (Le t) \<and> isrlfm (case_prod le (rsplit0 t))"
   using rsplit0[where bs = "bs" and t="t"]
   by (auto simp add: le_def split_def, cases "snd(rsplit0 t)", auto,
     rename_tac nat a b, case_tac "nat", auto)
 
-lemma gt: "numnoabs t \<Longrightarrow> Ifm bs (split gt (rsplit0 t)) =
-  Ifm bs (Gt t) \<and> isrlfm (split gt (rsplit0 t))"
+lemma gt: "numnoabs t \<Longrightarrow> Ifm bs (case_prod gt (rsplit0 t)) =
+  Ifm bs (Gt t) \<and> isrlfm (case_prod gt (rsplit0 t))"
   using rsplit0[where bs = "bs" and t="t"]
   by (auto simp add: gt_def split_def, cases "snd(rsplit0 t)", auto,
     rename_tac nat a b, case_tac "nat", auto)
 
-lemma ge: "numnoabs t \<Longrightarrow> Ifm bs (split ge (rsplit0 t)) =
-  Ifm bs (Ge t) \<and> isrlfm (split ge (rsplit0 t))"
+lemma ge: "numnoabs t \<Longrightarrow> Ifm bs (case_prod ge (rsplit0 t)) =
+  Ifm bs (Ge t) \<and> isrlfm (case_prod ge (rsplit0 t))"
   using rsplit0[where bs = "bs" and t="t"]
   by (auto simp add: ge_def split_def, cases "snd(rsplit0 t)", auto,
     rename_tac nat a b, case_tac "nat", auto)
 
-lemma eq: "numnoabs t \<Longrightarrow> Ifm bs (split eq (rsplit0 t)) =
-  Ifm bs (Eq t) \<and> isrlfm (split eq (rsplit0 t))"
+lemma eq: "numnoabs t \<Longrightarrow> Ifm bs (case_prod eq (rsplit0 t)) =
+  Ifm bs (Eq t) \<and> isrlfm (case_prod eq (rsplit0 t))"
   using rsplit0[where bs = "bs" and t="t"]
   by (auto simp add: eq_def split_def, cases "snd(rsplit0 t)", auto,
     rename_tac nat a b, case_tac "nat", auto)
 
-lemma neq: "numnoabs t \<Longrightarrow> Ifm bs (split neq (rsplit0 t)) =
-  Ifm bs (NEq t) \<and> isrlfm (split neq (rsplit0 t))"
+lemma neq: "numnoabs t \<Longrightarrow> Ifm bs (case_prod neq (rsplit0 t)) =
+  Ifm bs (NEq t) \<and> isrlfm (case_prod neq (rsplit0 t))"
   using rsplit0[where bs = "bs" and t="t"]
   by (auto simp add: neq_def split_def, cases "snd(rsplit0 t)", auto,
     rename_tac nat a b, case_tac "nat", auto)
@@ -1228,12 +1228,12 @@ recdef rlfm "measure fmsize"
   "rlfm (Or p q) = disj (rlfm p) (rlfm q)"
   "rlfm (Imp p q) = disj (rlfm (NOT p)) (rlfm q)"
   "rlfm (Iff p q) = disj (conj (rlfm p) (rlfm q)) (conj (rlfm (NOT p)) (rlfm (NOT q)))"
-  "rlfm (Lt a) = split lt (rsplit0 a)"
-  "rlfm (Le a) = split le (rsplit0 a)"
-  "rlfm (Gt a) = split gt (rsplit0 a)"
-  "rlfm (Ge a) = split ge (rsplit0 a)"
-  "rlfm (Eq a) = split eq (rsplit0 a)"
-  "rlfm (NEq a) = split neq (rsplit0 a)"
+  "rlfm (Lt a) = case_prod lt (rsplit0 a)"
+  "rlfm (Le a) = case_prod le (rsplit0 a)"
+  "rlfm (Gt a) = case_prod gt (rsplit0 a)"
+  "rlfm (Ge a) = case_prod ge (rsplit0 a)"
+  "rlfm (Eq a) = case_prod eq (rsplit0 a)"
+  "rlfm (NEq a) = case_prod neq (rsplit0 a)"
   "rlfm (NOT (And p q)) = disj (rlfm (NOT p)) (rlfm (NOT q))"
   "rlfm (NOT (Or p q)) = conj (rlfm (NOT p)) (rlfm (NOT q))"
   "rlfm (NOT (Imp p q)) = conj (rlfm p) (rlfm (NOT q))"
@@ -2430,7 +2430,7 @@ proof -
     using uset_cong[OF lq YU U_l Y_l] by (simp only: split_def fst_conv snd_conv simpfm)
   also have "\<dots> = (Ifm (x#bs) ?res)"
     using evaldjf_ex[where ps="?Y" and bs = "x#bs" and f="simpfm \<circ> (usubst ?q)",symmetric]
-    by (simp add: split_def pair_collapse)
+    by (simp add: split_def prod.collapse)
   finally have lheq: "?lhs = Ifm bs (decr ?res)"
     using decr[OF nbth] by blast
   then have lr: "?lhs = ?rhs"

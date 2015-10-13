@@ -16,13 +16,13 @@ struct
 
 (** split rules **)
 
-fun internal_split_const (Ta, Tb, Tc) =
-  Const (@{const_name Product_Type.internal_split},
+fun internal_case_prod_const (Ta, Tb, Tc) =
+  Const (@{const_name Product_Type.internal_case_prod},
     [[Ta, Tb] ---> Tc, HOLogic.mk_prodT (Ta, Tb)] ---> Tc);
 
 fun eval_internal_split ctxt =
-  hol_simplify ctxt @{thms internal_split_def} o
-  hol_simplify ctxt @{thms internal_split_conv};
+  hol_simplify ctxt @{thms internal_case_prod_def} o
+  hol_simplify ctxt @{thms internal_case_prod_conv};
 
 fun remove_internal_split ctxt = eval_internal_split ctxt o split_all ctxt;
 
@@ -31,7 +31,7 @@ fun remove_internal_split ctxt = eval_internal_split ctxt o split_all ctxt;
   with result type T.  The call creates a new term expecting one argument
   of type S.*)
 fun ap_split (Type (@{type_name Product_Type.prod}, [T1, T2])) T3 u =
-      internal_split_const (T1, T2, T3) $
+      internal_case_prod_const (T1, T2, T3) $
       Abs ("v", T1,
           ap_split T2 T3
              ((ap_split T1 (HOLogic.flatten_tupleT T2 ---> T3) (incr_boundvars 1 u)) $

@@ -5072,7 +5072,7 @@ proof-
     by (simp only: split_def fst_conv snd_conv) 
   also have "\<dots> = (Ifm (x#bs) ?ep)" 
     using evaldjf_ex[where ps="?Y" and bs = "x#bs" and f="\<upsilon> ?q",symmetric]
-    by (simp only: split_def pair_collapse)
+    by (simp only: split_def prod.collapse)
   also have "\<dots> = (Ifm bs (decr ?ep))" using decr[OF ep_nb] by blast
   finally have lr: "?lhs = ?rhs" by (simp only: ferrack01_def Let_def)
   from decr_qf[OF ep_nb] have "qfree (ferrack01 p)" by (simp only: Let_def ferrack01_def)

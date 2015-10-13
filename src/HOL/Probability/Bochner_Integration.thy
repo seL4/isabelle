@@ -2453,7 +2453,7 @@ subsection {* Product measure *}
 
 lemma (in sigma_finite_measure) borel_measurable_lebesgue_integrable[measurable (raw)]:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _::{banach, second_countable_topology}"
-  assumes [measurable]: "split f \<in> borel_measurable (N \<Otimes>\<^sub>M M)"
+  assumes [measurable]: "case_prod f \<in> borel_measurable (N \<Otimes>\<^sub>M M)"
   shows "Measurable.pred N (\<lambda>x. integrable M (f x))"
 proof -
   have [simp]: "\<And>x. x \<in> space N \<Longrightarrow> integrable M (f x) \<longleftrightarrow> (\<integral>\<^sup>+y. norm (f x y) \<partial>M) < \<infinity>"
@@ -2472,7 +2472,7 @@ lemma Collect_subset [simp]: "{x\<in>A. P x} \<subseteq> A" by auto
 
 lemma (in sigma_finite_measure) borel_measurable_lebesgue_integral[measurable (raw)]:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _::{banach, second_countable_topology}"
-  assumes f[measurable]: "split f \<in> borel_measurable (N \<Otimes>\<^sub>M M)"
+  assumes f[measurable]: "case_prod f \<in> borel_measurable (N \<Otimes>\<^sub>M M)"
   shows "(\<lambda>x. \<integral>y. f x y \<partial>M) \<in> borel_measurable N"
 proof -
   from borel_measurable_implies_sequence_metric[OF f, of 0] guess s ..
@@ -2738,7 +2738,7 @@ qed
 
 lemma (in pair_sigma_finite)
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _::{banach, second_countable_topology}"
-  assumes f: "integrable (M1 \<Otimes>\<^sub>M M2) (split f)"
+  assumes f: "integrable (M1 \<Otimes>\<^sub>M M2) (case_prod f)"
   shows AE_integrable_fst: "AE x in M1. integrable M2 (\<lambda>y. f x y)" (is "?AE")
     and integrable_fst: "integrable M1 (\<lambda>x. \<integral>y. f x y \<partial>M2)" (is "?INT")
     and integral_fst: "(\<integral>x. (\<integral>y. f x y \<partial>M2) \<partial>M1) = integral\<^sup>L (M1 \<Otimes>\<^sub>M M2) (\<lambda>(x, y). f x y)" (is "?EQ")
@@ -2746,10 +2746,10 @@ lemma (in pair_sigma_finite)
 
 lemma (in pair_sigma_finite)
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _::{banach, second_countable_topology}"
-  assumes f[measurable]: "integrable (M1 \<Otimes>\<^sub>M M2) (split f)"
+  assumes f[measurable]: "integrable (M1 \<Otimes>\<^sub>M M2) (case_prod f)"
   shows AE_integrable_snd: "AE y in M2. integrable M1 (\<lambda>x. f x y)" (is "?AE")
     and integrable_snd: "integrable M2 (\<lambda>y. \<integral>x. f x y \<partial>M1)" (is "?INT")
-    and integral_snd: "(\<integral>y. (\<integral>x. f x y \<partial>M1) \<partial>M2) = integral\<^sup>L (M1 \<Otimes>\<^sub>M M2) (split f)" (is "?EQ")
+    and integral_snd: "(\<integral>y. (\<integral>x. f x y \<partial>M1) \<partial>M2) = integral\<^sup>L (M1 \<Otimes>\<^sub>M M2) (case_prod f)" (is "?EQ")
 proof -
   interpret Q: pair_sigma_finite M2 M1 ..
   have Q_int: "integrable (M2 \<Otimes>\<^sub>M M1) (\<lambda>(x, y). f y x)"
@@ -2757,12 +2757,12 @@ proof -
   show ?AE  using Q.AE_integrable_fst'[OF Q_int] by simp
   show ?INT using Q.integrable_fst'[OF Q_int] by simp
   show ?EQ using Q.integral_fst'[OF Q_int]
-    using integral_product_swap[of "split f"] by simp
+    using integral_product_swap[of "case_prod f"] by simp
 qed
 
 lemma (in pair_sigma_finite) Fubini_integral:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: {banach, second_countable_topology}"
-  assumes f: "integrable (M1 \<Otimes>\<^sub>M M2) (split f)"
+  assumes f: "integrable (M1 \<Otimes>\<^sub>M M2) (case_prod f)"
   shows "(\<integral>y. (\<integral>x. f x y \<partial>M1) \<partial>M2) = (\<integral>x. (\<integral>y. f x y \<partial>M2) \<partial>M1)"
   unfolding integral_snd[OF assms] integral_fst[OF assms] ..
 

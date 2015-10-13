@@ -193,7 +193,7 @@ code_printing
   constant Realfract \<rightharpoonup> (SML) "Real.fromInt _/ '// Real.fromInt _"
 
 lemma [code]:
-  "Ratreal r = split Realfract (quotient_of r)"
+  "Ratreal r = case_prod Realfract (quotient_of r)"
   by (cases r) (simp add: Realfract_def quotient_of_Fract of_rat_rat)
 
 lemma [code, code del]:

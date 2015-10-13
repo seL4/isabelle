@@ -50,7 +50,7 @@ lemma rel_bset_aux_infinite:
     BNF_Def.Grp {a. set_bset a \<subseteq> {(a, b). R a b}} (map_bset snd)) a b" (is "?L \<longleftrightarrow> ?R")
 proof
   assume ?L
-  def R' \<equiv> "the_inv set_bset (Collect (split R) \<inter> (set_bset a \<times> set_bset b)) :: ('a \<times> 'b) set['k]"
+  def R' \<equiv> "the_inv set_bset (Collect (case_prod R) \<inter> (set_bset a \<times> set_bset b)) :: ('a \<times> 'b) set['k]"
     (is "the_inv set_bset ?L'")
   have "|?L'| <o natLeq +c |UNIV :: 'k set|"
     unfolding csum_def Field_natLeq

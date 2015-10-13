@@ -506,7 +506,7 @@ lemma
   "p1 = (x, y) \<and> p2 = (y, x) \<longrightarrow> fst p1 = snd p2"
   "(fst (x, y) = snd (x, y)) = (x = y)"
   "(fst p = snd p) = (p = (snd p, fst p))"
-  using fst_conv snd_conv pair_collapse
+  using fst_conv snd_conv prod.collapse
   by smt+
 
 lemma
@@ -525,7 +525,7 @@ lemma
 lemma
   "fst (hd [(a, b)]) = a"
   "snd (hd [(a, b)]) = b"
-  using fst_conv snd_conv pair_collapse list.sel(1,3) list.simps
+  using fst_conv snd_conv prod.collapse list.sel(1,3) list.simps
   by smt+
 
 
@@ -627,7 +627,7 @@ lemma
   "p1 = (x, y) \<and> p2 = (y, x) \<longrightarrow> fst p1 = snd p2"
   "(fst (x, y) = snd (x, y)) = (x = y)"
   "(fst p = snd p) = (p = (snd p, fst p))"
-  using fst_conv snd_conv pair_collapse
+  using fst_conv snd_conv prod.collapse
   using [[smt_oracle, z3_extensions]]
   by smt+
 
@@ -648,7 +648,7 @@ lemma
 lemma
   "fst (hd [(a, b)]) = a"
   "snd (hd [(a, b)]) = b"
-  using fst_conv snd_conv pair_collapse list.sel(1,3)
+  using fst_conv snd_conv prod.collapse list.sel(1,3)
   using [[smt_oracle, z3_extensions]]
   by smt+
 

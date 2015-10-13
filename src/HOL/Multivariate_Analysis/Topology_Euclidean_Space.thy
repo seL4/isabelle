@@ -6294,7 +6294,7 @@ lemma diameter_bounded_bound:
 proof -
   from s obtain z d where z: "\<And>x. x \<in> s \<Longrightarrow> dist z x \<le> d"
     unfolding bounded_def by auto
-  have "bdd_above (split dist ` (s\<times>s))"
+  have "bdd_above (case_prod dist ` (s\<times>s))"
   proof (intro bdd_aboveI, safe)
     fix a b
     assume "a \<in> s" "b \<in> s"

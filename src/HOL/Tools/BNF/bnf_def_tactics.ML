@@ -108,10 +108,10 @@ fun mk_rel_Grp_tac ctxt rel_OO_Grps map_id0 map_cong0 map_id map_comp set_maps =
           eresolve_tac ctxt [CollectE, exE, conjE, @{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
         hyp_subst_tac ctxt, rtac ctxt @{thm GrpI}, rtac ctxt trans, rtac ctxt map_comp, rtac ctxt map_cong0,
         REPEAT_DETERM_N n o
-          EVERY' [rtac ctxt @{thm Collect_split_Grp_eqD}, etac ctxt @{thm set_mp}, assume_tac ctxt],
+          EVERY' [rtac ctxt @{thm Collect_case_prod_Grp_eqD}, etac ctxt @{thm set_mp}, assume_tac ctxt],
         rtac ctxt CollectI,
         CONJ_WRAP' (fn thm => EVERY' [rtac ctxt (thm RS ord_eq_le_trans),
-          rtac ctxt @{thm image_subsetI}, rtac ctxt @{thm Collect_split_Grp_inD},
+          rtac ctxt @{thm image_subsetI}, rtac ctxt @{thm Collect_case_prod_Grp_in},
           etac ctxt @{thm set_mp}, assume_tac ctxt])
         set_maps,
         rtac ctxt @{thm predicate2I}, REPEAT_DETERM o eresolve_tac ctxt [@{thm GrpE}, exE, conjE],
@@ -165,8 +165,8 @@ fun mk_rel_mono_tac ctxt rel_OO_Grps in_mono =
         rtac ctxt (hd rel_OO_Grps RS sym RSN (2, ord_le_eq_trans));
   in
     EVERY' [rel_OO_Grps_tac, rtac ctxt @{thm relcompp_mono}, rtac ctxt @{thm iffD2[OF conversep_mono]},
-      rtac ctxt @{thm Grp_mono}, rtac ctxt in_mono, REPEAT_DETERM o etac ctxt @{thm Collect_split_mono},
-      rtac ctxt @{thm Grp_mono}, rtac ctxt in_mono, REPEAT_DETERM o etac ctxt @{thm Collect_split_mono}] 1
+      rtac ctxt @{thm Grp_mono}, rtac ctxt in_mono, REPEAT_DETERM o etac ctxt @{thm Collect_case_prod_mono},
+      rtac ctxt @{thm Grp_mono}, rtac ctxt in_mono, REPEAT_DETERM o etac ctxt @{thm Collect_case_prod_mono}] 1
   end;
 
 fun mk_rel_conversep_le_tac ctxt rel_OO_Grps rel_eq map_cong0 map_comp set_maps =

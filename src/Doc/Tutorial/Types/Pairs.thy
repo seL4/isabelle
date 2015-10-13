@@ -36,7 +36,7 @@ stick to @{term fst} and @{term snd} and write @{term"%p. fst p + snd p"}
 instead of @{text"\<lambda>(x,y). x+y"}.  These terms are distinct even though they
 denote the same function.
 
-Internally, @{term"%(x,y). t"} becomes @{text"split (\<lambda>x y. t)"}, where
+Internally, @{term"%(x,y). t"} becomes @{text"case_prod (\<lambda>x y. t)"}, where
 \cdx{split} is the uncurrying function of type @{text"('a \<Rightarrow> 'b
 \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c"} defined as
 \begin{center}
@@ -71,13 +71,13 @@ equation would simplify to @{term a} by the simplification rules
 @{thm split_conv[no_vars]} and @{thm fst_conv[no_vars]}.  
 To reason about tuple patterns requires some way of
 converting a variable of product type into a pair.
-In case of a subterm of the form @{term"split f p"} this is easy: the split
-rule @{thm[source]split_split} replaces @{term p} by a pair:%
+In case of a subterm of the form @{term"case_prod f p"} this is easy: the split
+rule @{thm[source]prod.split} replaces @{term p} by a pair:%
 \index{*split (method)}
 *}
 
 lemma "(\<lambda>(x,y).y) p = snd p"
-apply(split split_split)
+apply(split prod.split)
 
 txt{*
 @{subgoals[display,indent=0]}
@@ -87,7 +87,7 @@ simplification and splitting in one command that proves the goal outright:
 (*<*)
 by simp
 lemma "(\<lambda>(x,y).y) p = snd p"(*>*)
-by(simp split: split_split)
+by(simp split: prod.split)
 
 text{*
 Let us look at a second example:
@@ -102,30 +102,30 @@ A paired @{text let} reduces to a paired $\lambda$-abstraction, which
 can be split as above. The same is true for paired set comprehension:
 *}
 
-(*<*)by(simp split: split_split)(*>*)
+(*<*)by(simp split: prod.split)(*>*)
 lemma "p \<in> {(x,y). x=y} \<longrightarrow> fst p = snd p"
 apply simp
 
 txt{*
 @{subgoals[display,indent=0]}
-Again, simplification produces a term suitable for @{thm[source]split_split}
+Again, simplification produces a term suitable for @{thm[source]prod.split}
 as above. If you are worried about the strange form of the premise:
-@{text"split (op =)"} is short for @{term"\<lambda>(x,y). x=y"}.
+@{text"case_prod (op =)"} is short for @{term"\<lambda>(x,y). x=y"}.
 The same proof procedure works for
 *}
 
-(*<*)by(simp split: split_split)(*>*)
+(*<*)by(simp split: prod.split)(*>*)
 lemma "p \<in> {(x,y). x=y} \<Longrightarrow> fst p = snd p"
 
 txt{*\noindent
-except that we now have to use @{thm[source]split_split_asm}, because
+except that we now have to use @{thm[source]prod.split_asm}, because
 @{term split} occurs in the assumptions.
 
 However, splitting @{term split} is not always a solution, as no @{term split}
 may be present in the goal. Consider the following function:
 *}
 
-(*<*)by(simp split: split_split_asm)(*>*)
+(*<*)by(simp split: prod.split_asm)(*>*)
 primrec swap :: "'a \<times> 'b \<Rightarrow> 'b \<times> 'a" where "swap (x,y) = (y,x)"
 
 text{*\noindent

@@ -1247,7 +1247,7 @@ abbreviation "s8' == Norm s8"
 abbreviation "s9' == (Some (Xcpt (Std IndOutBound)), s8)"
 
 
-declare Pair_eq [simp del]
+declare prod.inject [simp del]
 schematic_goal exec_test: 
 "\<lbrakk>the (new_Addr (heap  s1)) = a;  
   the (new_Addr (heap ?s2)) = b;  
@@ -1377,6 +1377,6 @@ apply   (rule eval_Is (* Lit *))
 apply  (simp (no_asm_simp))
 apply (auto simp add: in_bounds_def)
 done
-declare Pair_eq [simp]
+declare prod.inject [simp]
 
 end

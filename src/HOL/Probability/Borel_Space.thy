@@ -632,7 +632,7 @@ proof -
     finally show "a < x" .
   qed
   show "?set \<in> ?SIGMA" unfolding *
-    by (auto del: Diff intro!: Diff i)
+    by (auto intro!: Diff sigma_sets_Inter i)
 qed
 
 lemma borel_eq_halfspace_less:

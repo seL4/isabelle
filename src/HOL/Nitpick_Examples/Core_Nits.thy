@@ -16,23 +16,23 @@ nitpick_params [verbose, card = 1-6, unary_ints, max_potential = 0,
 
 subsection {* Curry in a Hurry *}
 
-lemma "(\<lambda>f x y. (curry o split) f x y) = (\<lambda>f x y. (\<lambda>x. x) f x y)"
+lemma "(\<lambda>f x y. (curry o case_prod) f x y) = (\<lambda>f x y. (\<lambda>x. x) f x y)"
 nitpick [card = 1-12, expect = none]
 by auto
 
-lemma "(\<lambda>f p. (split o curry) f p) = (\<lambda>f p. (\<lambda>x. x) f p)"
+lemma "(\<lambda>f p. (case_prod o curry) f p) = (\<lambda>f p. (\<lambda>x. x) f p)"
 nitpick [card = 1-12, expect = none]
 by auto
 
-lemma "split (curry f) = f"
+lemma "case_prod (curry f) = f"
 nitpick [card = 1-12, expect = none]
 by auto
 
-lemma "curry (split f) = f"
+lemma "curry (case_prod f) = f"
 nitpick [card = 1-12, expect = none]
 by auto
 
-lemma "split (\<lambda>x y. f (x, y)) = f"
+lemma "case_prod (\<lambda>x y. f (x, y)) = f"
 nitpick [card = 1-12, expect = none]
 by auto
 
@@ -139,7 +139,7 @@ lemma "\<exists>F. F a b = G a b"
 nitpick [card = 2, expect = none]
 by auto
 
-lemma "f = split"
+lemma "f = case_prod"
 nitpick [card = 2, expect = genuine]
 oops
 

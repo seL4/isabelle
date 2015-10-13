@@ -1446,7 +1446,7 @@ done
 
 lemma MGF_simult_Methd: "wf_prog G \<Longrightarrow> 
    G,({}::state triple set)|\<turnstile>(\<lambda>(C,sig). {Normal \<doteq>} \<langle>Methd C sig\<rangle>\<^sub>e\<succ> {G\<rightarrow>}) 
-   ` Collect (split (is_methd G)) "
+   ` Collect (case_prod (is_methd G)) "
 apply (frule finite_is_methd [OF wf_ws_prog])
 apply (rule MGF_simult_Methd_lemma)
 apply  assumption

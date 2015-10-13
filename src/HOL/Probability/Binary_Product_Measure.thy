@@ -62,7 +62,7 @@ lemma measurable_pair_measureI:
   by (intro measurable_measure_of) (auto dest: sets.sets_into_space)
 
 lemma measurable_split_replace[measurable (raw)]:
-  "(\<lambda>x. f x (fst (g x)) (snd (g x))) \<in> measurable M N \<Longrightarrow> (\<lambda>x. split (f x) (g x)) \<in> measurable M N"
+  "(\<lambda>x. f x (fst (g x)) (snd (g x))) \<in> measurable M N \<Longrightarrow> (\<lambda>x. case_prod (f x) (g x)) \<in> measurable M N"
   unfolding split_beta' .
 
 lemma measurable_Pair[measurable (raw)]:
@@ -88,7 +88,7 @@ lemma measurable_snd[intro!, simp, measurable]: "snd \<in> measurable (M1 \<Otim
     measurable_def)
 
 lemma measurable_Pair_compose_split[measurable_dest]:
-  assumes f: "split f \<in> measurable (M1 \<Otimes>\<^sub>M M2) N"
+  assumes f: "case_prod f \<in> measurable (M1 \<Otimes>\<^sub>M M2) N"
   assumes g: "g \<in> measurable M M1" and h: "h \<in> measurable M M2"
   shows "(\<lambda>x. f (g x) (h x)) \<in> measurable M N"
   using measurable_compose[OF measurable_Pair f, OF g h] by simp
@@ -571,8 +571,8 @@ lemma (in sigma_finite_measure) nn_integral_fst:
   unfolding nn_integral_max_0 by auto
 
 lemma (in sigma_finite_measure) borel_measurable_nn_integral[measurable (raw)]:
-  "split f \<in> borel_measurable (N \<Otimes>\<^sub>M M) \<Longrightarrow> (\<lambda>x. \<integral>\<^sup>+ y. f x y \<partial>M) \<in> borel_measurable N"
-  using borel_measurable_nn_integral_fst'[of "\<lambda>x. max 0 (split f x)" N]
+  "case_prod f \<in> borel_measurable (N \<Otimes>\<^sub>M M) \<Longrightarrow> (\<lambda>x. \<integral>\<^sup>+ y. f x y \<partial>M) \<in> borel_measurable N"
+  using borel_measurable_nn_integral_fst'[of "\<lambda>x. max 0 (case_prod f x)" N]
   by (simp add: nn_integral_max_0)
 
 lemma (in pair_sigma_finite) nn_integral_snd:
@@ -595,7 +595,7 @@ lemma (in pair_sigma_finite) Fubini:
   unfolding nn_integral_snd[OF assms] M2.nn_integral_fst[OF assms] ..
 
 lemma (in pair_sigma_finite) Fubini':
-  assumes f: "split f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
+  assumes f: "case_prod f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f x y \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f x y \<partial>M2) \<partial>M1)"
   using Fubini[OF f] by simp
 

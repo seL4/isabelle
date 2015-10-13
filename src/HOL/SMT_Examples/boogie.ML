@@ -243,7 +243,7 @@ fun build_proof_context thy (tds, fds, axs, vcs) =
   end
 
 val boogie_rules =
-  [@{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}] @
+  [@{thm fst_conv}, @{thm snd_conv}, @{thm prod.collapse}] @
   [@{thm fun_upd_same}, @{thm fun_upd_apply}]
 
 fun boogie_tac ctxt axioms =

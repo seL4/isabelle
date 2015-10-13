@@ -163,7 +163,7 @@ proof -
 
   show ?thesis
     by (intro measurable_compose_countable'[where f="\<lambda>a b. f (fst b, a)" and g=snd and I=A,
-                                            unfolded pair_collapse] assms)
+                                            unfolded prod.collapse] assms)
         measurable
 qed
 
@@ -177,7 +177,7 @@ proof -
 
   show ?thesis
     by (intro measurable_compose_countable'[where f="\<lambda>a b. f (a, snd b)" and g=fst and I=A,
-                                            unfolded pair_collapse] assms)
+                                            unfolded prod.collapse] assms)
         measurable
 qed
 

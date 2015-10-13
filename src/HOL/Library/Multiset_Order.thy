@@ -230,7 +230,7 @@ interpretation multiset_linorder: linorder
 interpretation multiset_wellorder: wellorder
   "le_multiset :: ('a :: wellorder) multiset \<Rightarrow> ('a :: wellorder) multiset \<Rightarrow> bool"
   "less_multiset :: ('a :: wellorder) multiset \<Rightarrow> ('a :: wellorder) multiset \<Rightarrow> bool"
-  by unfold_locales (blast intro: wf_less_multiset[unfolded wf_def, rule_format])
+  by unfold_locales (blast intro: wf_less_multiset [unfolded wf_def, simplified, rule_format])
 
 lemma le_multiset_total:
   fixes M N :: "('a :: linorder) multiset"

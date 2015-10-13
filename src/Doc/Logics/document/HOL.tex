@@ -1013,22 +1013,22 @@ types in general.  The most important type construction, the
         $[\alpha\,set, \alpha\To\beta\,set]\To(\alpha\times\beta)set$ &
         & general sum of sets
 \end{constants}
-%\tdx{fst_def}      fst p     == @a. ? b. p = (a,b)
-%\tdx{snd_def}      snd p     == @b. ? a. p = (a,b)
-%\tdx{split_def}    split c p == c (fst p) (snd p)
+%\tdx{fst_def}      fst p         == @a. ? b. p = (a,b)
+%\tdx{snd_def}      snd p         == @b. ? a. p = (a,b)
+%\tdx{split_def}    case_prod c p == c (fst p) (snd p)
 \begin{ttbox}\makeatletter
 \tdx{Sigma_def}    Sigma A B == UN x:A. UN y:B x. {\ttlbrace}(x,y){\ttrbrace}
 
-\tdx{Pair_eq}      ((a,b) = (a',b')) = (a=a' & b=b')
+\tdx{prod.inject}      ((a,b) = (a',b')) = (a=a' & b=b')
 \tdx{Pair_inject}  [| (a, b) = (a',b');  [| a=a';  b=b' |] ==> R |] ==> R
-\tdx{PairE}        [| !!x y. p = (x,y) ==> Q |] ==> Q
+\tdx{prod.exhaust}        [| !!x y. p = (x,y) ==> Q |] ==> Q
 
 \tdx{fst_conv}     fst (a,b) = a
 \tdx{snd_conv}     snd (a,b) = b
 \tdx{surjective_pairing}  p = (fst p,snd p)
 
-\tdx{split}        split c (a,b) = c a b
-\tdx{split_split}  R(split c p) = (! x y. p = (x,y) --> R(c x y))
+\tdx{split}        case_prod c (a,b) = c a b
+\tdx{prod.split}  R(case_prod c p) = (! x y. p = (x,y) --> R(c x y))
 
 \tdx{SigmaI}    [| a:A;  b:B a |] ==> (a,b) : Sigma A B
 
@@ -1059,8 +1059,8 @@ Nested patterns are also supported.  They are translated stepwise:
 \begin{eqnarray*}
 \hbox{\tt\%($x$,$y$,$z$).\ $t$} 
    & \leadsto & \hbox{\tt\%($x$,($y$,$z$)).\ $t$} \\
-   & \leadsto & \hbox{\tt split(\%$x$.\%($y$,$z$).\ $t$)}\\
-   & \leadsto & \hbox{\tt split(\%$x$.\ split(\%$y$ $z$.\ $t$))}
+   & \leadsto & \hbox{\tt case_prod(\%$x$.\%($y$,$z$).\ $t$)}\\
+   & \leadsto & \hbox{\tt case_prod(\%$x$.\ case_prod(\%$y$ $z$.\ $t$))}
 \end{eqnarray*}
 The reverse translation is performed upon printing.
 \begin{warn}

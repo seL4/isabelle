@@ -143,7 +143,7 @@ translations
 definition
   fields_table :: "prog \<Rightarrow> qtname \<Rightarrow> (fspec \<Rightarrow> field \<Rightarrow> bool)  \<Rightarrow> (fspec, ty) table" where
   "fields_table G C P =
-    map_option type \<circ> table_of (filter (split P) (DeclConcepts.fields G C))"
+    map_option type \<circ> table_of (filter (case_prod P) (DeclConcepts.fields G C))"
 
 lemma fields_table_SomeI: 
 "\<lbrakk>table_of (DeclConcepts.fields G C) n = Some f; P n f\<rbrakk> 

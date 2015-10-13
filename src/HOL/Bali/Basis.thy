@@ -16,7 +16,7 @@ setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all
 declare if_weak_cong [cong del] option.case_cong_weak [cong del]
 declare length_Suc_conv [iff]
 
-lemma Collect_split_eq: "{p. P (split f p)} = {(a,b). P (f a b)}"
+lemma Collect_split_eq: "{p. P (case_prod f p)} = {(a,b). P (f a b)}"
   by auto
 
 lemma subset_insertD: "A \<subseteq> insert x B \<Longrightarrow> A \<subseteq> B \<and> x \<notin> A \<or> (\<exists>B'. A = insert x B' \<and> B' \<subseteq> B)"

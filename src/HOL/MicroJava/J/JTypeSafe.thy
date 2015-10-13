@@ -104,7 +104,7 @@ done
 lemma Call_lemma2: "[| wf_prog wf_mb G; list_all2 (conf G h) pvs pTs;  
    list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') pTs pTs'; wf_mhead G (mn,pTs') rT;  
   length pTs' = length pns; distinct pns;  
-  Ball (set lvars) (split (\<lambda>vn. is_type G))  
+  Ball (set lvars) (case_prod (\<lambda>vn. is_type G))  
   |] ==> G,h\<turnstile>init_vars lvars(pns[\<mapsto>]pvs)[::\<preceq>]map_of lvars(pns[\<mapsto>]pTs')"
 apply (unfold wf_mhead_def)
 apply( clarsimp)

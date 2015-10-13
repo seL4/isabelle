@@ -116,7 +116,7 @@ qed
 
 context
   fixes EXP :: "(real \<Rightarrow> bool) measure"
-  assumes eq: "\<And>P. split P \<in> measurable (POW \<Otimes>\<^sub>M COCOUNT) BOOL \<longleftrightarrow> P \<in> measurable POW EXP"
+  assumes eq: "\<And>P. case_prod P \<in> measurable (POW \<Otimes>\<^sub>M COCOUNT) BOOL \<longleftrightarrow> P \<in> measurable POW EXP"
 begin
 
 lemma space_EXP: "space EXP = measurable COCOUNT BOOL"
@@ -164,7 +164,7 @@ qed
 
 end
 
-corollary "\<not> (\<exists>EXP. \<forall>P. split P \<in> measurable (POW \<Otimes>\<^sub>M COCOUNT) BOOL \<longleftrightarrow> P \<in> measurable POW EXP)"
+corollary "\<not> (\<exists>EXP. \<forall>P. case_prod P \<in> measurable (POW \<Otimes>\<^sub>M COCOUNT) BOOL \<longleftrightarrow> P \<in> measurable POW EXP)"
   using ce by blast
 
 end

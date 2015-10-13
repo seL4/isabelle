@@ -22,7 +22,7 @@ setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name Let}]\<close>
 
 section \<open>Pairs\<close>
 
-setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name fst}, @{const_name snd}, @{const_name uncurry}]\<close>
+setup \<open>Predicate_Compile_Data.ignore_consts [@{const_name fst}, @{const_name snd}, @{const_name case_prod}]\<close>
 
 section \<open>Filters\<close>
 

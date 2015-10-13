@@ -48,7 +48,7 @@ lemma map_list_update [simp]:
 
 
 lemma split_compose: 
-  "(split f) \<circ> (\<lambda> (a,b). ((fa a), (fb b))) = (\<lambda> (a,b). (f (fa a) (fb b)))"
+  "(case_prod f) \<circ> (\<lambda> (a,b). ((fa a), (fb b))) = (\<lambda> (a,b). (f (fa a) (fb b)))"
   by (simp add: split_def o_def)
 
 lemma split_iter:

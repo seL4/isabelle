@@ -178,15 +178,15 @@ lemma parallel_fix_ind:
   assumes step: "\<And>x y. P x y \<Longrightarrow> P (F\<cdot>x) (G\<cdot>y)"
   shows "P (fix\<cdot>F) (fix\<cdot>G)"
 proof -
-  from adm have adm': "adm (split P)"
+  from adm have adm': "adm (case_prod P)"
     unfolding split_def .
   have "\<And>i. P (iterate i\<cdot>F\<cdot>\<bottom>) (iterate i\<cdot>G\<cdot>\<bottom>)"
     by (induct_tac i, simp add: base, simp add: step)
-  hence "\<And>i. split P (iterate i\<cdot>F\<cdot>\<bottom>, iterate i\<cdot>G\<cdot>\<bottom>)"
+  hence "\<And>i. case_prod P (iterate i\<cdot>F\<cdot>\<bottom>, iterate i\<cdot>G\<cdot>\<bottom>)"
     by simp
-  hence "split P (\<Squnion>i. (iterate i\<cdot>F\<cdot>\<bottom>, iterate i\<cdot>G\<cdot>\<bottom>))"
+  hence "case_prod P (\<Squnion>i. (iterate i\<cdot>F\<cdot>\<bottom>, iterate i\<cdot>G\<cdot>\<bottom>))"
     by - (rule admD [OF adm'], simp, assumption)
-  hence "split P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>, \<Squnion>i. iterate i\<cdot>G\<cdot>\<bottom>)"
+  hence "case_prod P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>, \<Squnion>i. iterate i\<cdot>G\<cdot>\<bottom>)"
     by (simp add: lub_Pair)
   hence "P (\<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>) (\<Squnion>i. iterate i\<cdot>G\<cdot>\<bottom>)"
     by simp

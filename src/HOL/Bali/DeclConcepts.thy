@@ -2178,14 +2178,14 @@ apply (rule ws_subcls1_induct, assumption, assumption)
 apply (subst fields_rec, assumption)
 apply clarify
 apply (simp only: map_of_append)
-apply (case_tac "table_of (map (split (\<lambda>fn. Pair (fn, Ca))) (cfields c)) efn") 
+apply (case_tac "table_of (map (case_prod (\<lambda>fn. Pair (fn, Ca))) (cfields c)) efn") 
 apply   (force intro:rtrancl_into_rtrancl2 simp add: map_add_def)
 
 apply   (frule_tac fd="Ca" in fields_norec)
 apply     assumption
 apply     blast
 apply   (frule table_of_fieldsD)  
-apply   (frule_tac n="table_of (map (split (\<lambda>fn. Pair (fn, Ca))) (cfields c))"
+apply   (frule_tac n="table_of (map (case_prod (\<lambda>fn. Pair (fn, Ca))) (cfields c))"
               and  m="table_of (if Ca = Object then [] else fields G (super c))"
          in map_add_find_right)
 apply   (case_tac "efn")
@@ -2272,9 +2272,9 @@ apply auto
 done
 
 lemma finite_is_methd: 
- "ws_prog G \<Longrightarrow> finite (Collect (split (is_methd G)))"
+ "ws_prog G \<Longrightarrow> finite (Collect (case_prod (is_methd G)))"
 apply (unfold is_methd_def)
-apply (subst SetCompr_Sigma_eq)
+apply (subst Collect_case_prod_Sigma)
 apply (rule finite_is_class [THEN finite_SigmaI])
 apply (simp only: mem_Collect_eq)
 apply (fold dom_def)

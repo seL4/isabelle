@@ -324,7 +324,7 @@ lemma xzgcd_correct_aux2:
   apply (case_tac "r' mod r = 0")
    prefer 2
    apply (frule_tac a = "r'" in pos_mod_sign, auto)
-  apply (metis Pair_eq xzgcda.simps order_refl)
+  apply (metis prod.inject xzgcda.simps order_refl)
   done
 
 lemma xzgcd_correct:

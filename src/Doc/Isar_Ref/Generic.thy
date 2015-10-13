@@ -1130,9 +1130,9 @@ text \<open>
   @{text [display] "?P (if ?Q ?x ?y) \<longleftrightarrow> (?Q \<longrightarrow> ?P ?x) \<and> (\<not> ?Q \<longrightarrow> ?P ?y)"}
 
   Another example is the elimination operator for Cartesian products
-  (which happens to be called @{text split} in Isabelle/HOL:
+  (which happens to be called @{const case_prod} in Isabelle/HOL:
 
-  @{text [display] "?P (split ?f ?p) \<longleftrightarrow> (\<forall>a b. ?p = (a, b) \<longrightarrow> ?P (f a b))"}
+  @{text [display] "?P (case_prod ?f ?p) \<longleftrightarrow> (\<forall>a b. ?p = (a, b) \<longrightarrow> ?P (f a b))"}
 
   For technical reasons, there is a distinction between case splitting
   in the conclusion and in the premises of a subgoal.  The former is

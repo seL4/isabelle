@@ -288,7 +288,7 @@ print_translation {*
             in
               go ((x, 0) :: pattern) (bound_dummyT $ tx :: elem) t
             end
-        | go pattern elem (Const (@{const_syntax uncurry}, _) $ t) =
+        | go pattern elem (Const (@{const_syntax case_prod}, _) $ t) =
             go 
               ((Syntax.const @{syntax_const "_pattern"}, 2) :: pattern)
               (Syntax.const @{const_syntax Pair} :: elem)

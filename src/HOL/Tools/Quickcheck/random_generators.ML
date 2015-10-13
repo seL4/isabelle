@@ -315,11 +315,11 @@ fun mk_generator_expr ctxt (t, _) =
     fun mk_termtyp T = HOLogic.mk_prodT (T, @{typ "unit => term"});
     fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
       liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
-    fun mk_split T = Sign.mk_const thy
-      (@{const_name uncurry}, [T, @{typ "unit => term"}, liftT resultT @{typ Random.seed}]);
+    fun mk_case_prod T = Sign.mk_const thy
+      (@{const_name case_prod}, [T, @{typ "unit => term"}, liftT resultT @{typ Random.seed}]);
     fun mk_scomp_split T t t' =
       mk_scomp (mk_termtyp T) resultT @{typ Random.seed} t
-        (mk_split T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
+        (mk_case_prod T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
     fun mk_bindclause (_, _, i, T) = mk_scomp_split T
       (Sign.mk_const thy (@{const_name Quickcheck_Random.random}, [T]) $ Bound i);
   in
@@ -361,11 +361,11 @@ fun mk_reporting_generator_expr ctxt (t, _) =
     fun mk_termtyp T = HOLogic.mk_prodT (T, @{typ "unit => term"});
     fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
       liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
-    fun mk_split T = Sign.mk_const thy
-      (@{const_name uncurry}, [T, @{typ "unit => term"}, liftT resultT @{typ Random.seed}]);
+    fun mk_case_prod T = Sign.mk_const thy
+      (@{const_name case_prod}, [T, @{typ "unit => term"}, liftT resultT @{typ Random.seed}]);
     fun mk_scomp_split T t t' =
       mk_scomp (mk_termtyp T) resultT @{typ Random.seed} t
-        (mk_split T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
+        (mk_case_prod T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
     fun mk_bindclause (_, _, i, T) = mk_scomp_split T
       (Sign.mk_const thy (@{const_name Quickcheck_Random.random}, [T]) $ Bound i);
   in

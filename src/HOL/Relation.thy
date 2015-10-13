@@ -951,10 +951,10 @@ lemma Range_converse [simp]: "Range (r\<inverse>) = Domain r"
 lemma Field_converse [simp]: "Field (r\<inverse>) = Field r"
   by (auto simp: Field_def)
 
-lemma Domain_Collect_split [simp]: "Domain {(x, y). P x y} = {x. EX y. P x y}"
+lemma Domain_Collect_case_prod [simp]: "Domain {(x, y). P x y} = {x. EX y. P x y}"
   by auto
 
-lemma Range_Collect_split [simp]: "Range {(x, y). P x y} = {y. EX x. P x y}"
+lemma Range_Collect_case_prod [simp]: "Range {(x, y). P x y} = {y. EX x. P x y}"
   by auto
 
 lemma finite_Domain: "finite r \<Longrightarrow> finite (Domain r)"
@@ -1058,7 +1058,7 @@ done
 lemma Image_subset_eq: "(r``A \<subseteq> B) = (A \<subseteq> - ((r^-1) `` (-B)))"
   by blast
 
-lemma Image_Collect_split [simp]: "{(x, y). P x y} `` A = {y. EX x:A. P x y}"
+lemma Image_Collect_case_prod [simp]: "{(x, y). P x y} `` A = {y. EX x:A. P x y}"
   by auto
 
 lemma Sigma_Image: "(SIGMA x:A. B x) `` X = (\<Union>x\<in>X \<inter> A. B x)"

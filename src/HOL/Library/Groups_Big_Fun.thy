@@ -183,7 +183,7 @@ proof -
   have bij: "bij (\<lambda>(a, b, c). ((a, b), c))"
     by (auto intro!: bijI injI simp add: image_def)
   have "{p. \<exists>c. g (fst p) (snd p) c \<noteq> 1} \<times> {c. \<exists>p. g (fst p) (snd p) c \<noteq> 1} \<subseteq> D"
-    by auto (insert subset, auto)
+    by auto (insert subset, blast)
   with fin have "G (\<lambda>p. G (g (fst p) (snd p))) = G (\<lambda>(p, c). g (fst p) (snd p) c)"
     by (rule cartesian_product)
   then have "G (\<lambda>(a, b). G (g a b)) = G (\<lambda>((a, b), c). g a b c)"

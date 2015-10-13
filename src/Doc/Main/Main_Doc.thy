@@ -218,7 +218,7 @@ Types @{typ unit} and @{text"\<times>"}.
 @{const Pair} & @{typeof Pair}\\
 @{const fst} & @{typeof fst}\\
 @{const snd} & @{typeof snd}\\
-@{const split} & @{typeof split}\\
+@{const case_prod} & @{typeof case_prod}\\
 @{const curry} & @{typeof curry}\\
 @{const Product_Type.Sigma} & @{term_type_only Product_Type.Sigma "'a set\<Rightarrow>('a\<Rightarrow>'b set)\<Rightarrow>('a*'b)set"}\\
 \end{supertabular}
@@ -227,7 +227,7 @@ Types @{typ unit} and @{text"\<times>"}.
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} ll @ {}}
 @{term"Pair a b"} & @{term[source]"Pair a b"}\\
-@{term"split (\<lambda>x y. t)"} & @{term[source]"split (\<lambda>x y. t)"}\\
+@{term"case_prod (\<lambda>x y. t)"} & @{term[source]"case_prod (\<lambda>x y. t)"}\\
 @{term"A <*> B"} &  @{text"Sigma A (\<lambda>\<^raw:\_>. B)"} & (\verb$<*>$)
 \end{tabular}
 

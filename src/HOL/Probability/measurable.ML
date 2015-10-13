@@ -255,7 +255,7 @@ fun measurable_tac ctxt facts =
               (map (Option.map (Thm.ctyp_of ctxt)) Ts)
               (map (Option.map (Thm.cterm_of ctxt)) ts)
               @{thm measurable_compose_countable}
-        in r_tac "split countable" (cnt_prefixes ctxt f |> map inst) i end
+        in r_tac "case_prod countable" (cnt_prefixes ctxt f |> map inst) i end
         handle TERM _ => no_tac) 1)
 
     val splitter = if Config.get ctxt split then split_countable_tac ctxt else K no_tac

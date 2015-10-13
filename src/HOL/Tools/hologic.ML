@@ -67,8 +67,8 @@ sig
   val dest_prod: term -> term * term
   val mk_fst: term -> term
   val mk_snd: term -> term
-  val split_const: typ * typ * typ -> term
-  val mk_split: term -> term
+  val case_prod_const: typ * typ * typ -> term
+  val mk_case_prod: term -> term
   val flatten_tupleT: typ -> typ list
   val tupled_lambda: term -> term -> term
   val mk_tupleT: typ list -> typ
@@ -81,8 +81,8 @@ sig
   val mk_ptuple: int list list -> typ -> term list -> term
   val strip_ptuple: int list list -> term -> term list
   val flat_tuple_paths: term -> int list list
-  val mk_psplits: int list list -> typ -> typ -> term -> term
-  val strip_psplits: term -> term * typ list * int list list
+  val mk_ptupleabs: int list list -> typ -> typ -> term -> term
+  val strip_ptupleabs: term -> term * typ list * int list list
   val natT: typ
   val zero: term
   val is_zero: term -> bool
@@ -348,14 +348,14 @@ fun mk_snd p =
     Const ("Product_Type.prod.snd", pT --> snd (dest_prodT pT)) $ p
   end;
 
-fun split_const (A, B, C) =
-  Const ("Product_Type.prod.uncurry", (A --> B --> C) --> mk_prodT (A, B) --> C);
+fun case_prod_const (A, B, C) =
+  Const ("Product_Type.prod.case_prod", (A --> B --> C) --> mk_prodT (A, B) --> C);
 
-fun mk_split t =
+fun mk_case_prod t =
   (case Term.fastype_of t of
     T as (Type ("fun", [A, Type ("fun", [B, C])])) =>
-      Const ("Product_Type.prod.uncurry", T --> mk_prodT (A, B) --> C) $ t
-  | _ => raise TERM ("mk_split: bad body type", [t]));
+      Const ("Product_Type.prod.case_prod", T --> mk_prodT (A, B) --> C) $ t
+  | _ => raise TERM ("mk_case_prod: bad body type", [t]));
 
 (*Maps the type T1 * ... * Tn to [T1, ..., Tn], however nested*)
 fun flatten_tupleT (Type ("Product_Type.prod", [T1, T2])) = flatten_tupleT T1 @ flatten_tupleT T2
@@ -365,7 +365,7 @@ fun flatten_tupleT (Type ("Product_Type.prod", [T1, T2])) = flatten_tupleT T1 @ 
 fun tupled_lambda (x as Free _) b = lambda x b
   | tupled_lambda (x as Var _) b = lambda x b
   | tupled_lambda (Const ("Product_Type.Pair", _) $ u $ v) b =
-      mk_split (tupled_lambda u (tupled_lambda v b))
+      mk_case_prod (tupled_lambda u (tupled_lambda v b))
   | tupled_lambda (Const ("Product_Type.Unity", _)) b =
       Abs ("x", unitT, b)
   | tupled_lambda t _ = raise TERM ("tupled_lambda: bad tuple", [t]);
@@ -450,27 +450,27 @@ val flat_tuple_paths =
       | factors p _ = []
   in factors [] end;
 
-(*In mk_psplits ps S T u, term u expects separate arguments for the factors of S,
+(*In mk_ptupleabs ps S T u, term u expects separate arguments for the factors of S,
   with result type T.  The call creates a new term expecting one argument
   of type S.*)
-fun mk_psplits ps T T3 u =
+fun mk_ptupleabs ps T T3 u =
   let
     fun ap ((p, T) :: pTs) =
           if member (op =) ps p then (case T of
               Type ("Product_Type.prod", [T1, T2]) =>
-                split_const (T1, T2, map snd pTs ---> T3) $
+                case_prod_const (T1, T2, map snd pTs ---> T3) $
                   ap ((1::p, T1) :: (2::p, T2) :: pTs)
-            | _ => ptuple_err "mk_psplits")
+            | _ => ptuple_err "mk_ptupleabs")
           else Abs ("x", T, ap pTs)
       | ap [] =
           let val k = length ps
           in list_comb (incr_boundvars (k + 1) u, map Bound (k downto 0)) end
   in ap [([], T)] end;
 
-val strip_psplits =
+val strip_ptupleabs =
   let
     fun strip [] qs Ts t = (t, rev Ts, qs)
-      | strip (p :: ps) qs Ts (Const ("Product_Type.prod.uncurry", _) $ t) =
+      | strip (p :: ps) qs Ts (Const ("Product_Type.prod.case_prod", _) $ t) =
           strip ((1 :: p) :: (2 :: p) :: ps) (p :: qs) Ts t
       | strip (p :: ps) qs Ts (Abs (s, T, t)) = strip ps qs (T :: Ts) t
       | strip (p :: ps) qs Ts t = strip ps qs

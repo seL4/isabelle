@@ -146,11 +146,11 @@ fun mk_curry f =
 (* iterated versions. Nonstandard left-nested tuples arise naturally
 from "split o split o split"*)
 fun curry_n arity = funpow (arity - 1) mk_curry;
-fun uncurry_n arity = funpow (arity - 1) HOLogic.mk_split;
+fun uncurry_n arity = funpow (arity - 1) HOLogic.mk_case_prod;
 
 val curry_uncurry_ss =
   simpset_of (put_simpset HOL_basic_ss @{context}
-    addsimps [@{thm Product_Type.curry_split}, @{thm Product_Type.split_curry}])
+    addsimps [@{thm Product_Type.curry_case_prod}, @{thm Product_Type.case_prod_curry}])
 
 val split_conv_ss =
   simpset_of (put_simpset HOL_basic_ss @{context}
@@ -177,7 +177,7 @@ fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rul
        THEN Simplifier.full_simp_tac (put_simpset curry_uncurry_ss ctxt) 5) (* simplify induction step *)
     |> (fn thm => thm OF [mono_thm, f_def])
     |> Conv.fconv_rule (Conv.concl_conv ~1    (* simplify conclusion *)
-         (Raw_Simplifier.rewrite ctxt false [mk_meta_eq @{thm Product_Type.curry_split}]))
+         (Raw_Simplifier.rewrite ctxt false [mk_meta_eq @{thm Product_Type.curry_case_prod}]))
     |> singleton (Variable.export ctxt' ctxt)
   end
 

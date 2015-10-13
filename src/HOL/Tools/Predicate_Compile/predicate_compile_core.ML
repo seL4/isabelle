@@ -610,7 +610,7 @@ fun mk_Eval_of (P as (Free _), T) mode =
       | mk_tuple tTs = foldr1 mk_prod tTs
     fun mk_split_abs (T as Type (@{type_name Product_Type.prod}, [T1, T2])) t =
           absdummy T
-            (HOLogic.split_const (T1, T2, @{typ bool}) $ (mk_split_abs T1 (mk_split_abs T2 t)))
+            (HOLogic.case_prod_const (T1, T2, @{typ bool}) $ (mk_split_abs T1 (mk_split_abs T2 t)))
       | mk_split_abs T t = absdummy T t
     val args = rev (fst (fold_map mk_bounds (rev (binder_types T)) 0))
     val (inargs, outargs) = split_mode mode args
@@ -1023,7 +1023,7 @@ fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mo
 
 (* Definition of executable functions and their intro and elim rules *)
 
-fun strip_split_abs (Const (@{const_name uncurry}, _) $ t) = strip_split_abs t
+fun strip_split_abs (Const (@{const_name case_prod}, _) $ t) = strip_split_abs t
   | strip_split_abs (Abs (_, _, t)) = strip_split_abs t
   | strip_split_abs t = t
 
@@ -1086,7 +1086,7 @@ fun create_intro_elim_rule ctxt mode defthm mode_id funT pred =
     val introtrm = Logic.list_implies (predpropI :: param_eqs, funpropI)
     val simprules =
       [defthm, @{thm eval_pred},
-        @{thm "split_beta"}, @{thm "fst_conv"}, @{thm "snd_conv"}, @{thm pair_collapse}]
+        @{thm "split_beta"}, @{thm "fst_conv"}, @{thm "snd_conv"}, @{thm prod.collapse}]
     val unfolddef_tac =
       Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simprules) 1
     val introthm = Goal.prove ctxt
@@ -1748,7 +1748,7 @@ fun dest_general_compr ctxt t_compr =
       (case t_compr of
         (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term ctxt t_compr))
-    val (body, Ts, fp) = HOLogic.strip_psplits inner_t;
+    val (body, Ts, fp) = HOLogic.strip_ptupleabs inner_t;
     val output_names = Name.variant_list (Term.add_free_names body [])
       (map (fn i => "x" ^ string_of_int i) (1 upto length Ts))
     val output_frees = map2 (curry Free) output_names (rev Ts)

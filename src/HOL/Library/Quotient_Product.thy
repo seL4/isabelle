@@ -76,14 +76,14 @@ lemma snd_prs [quot_preserve]:
   shows "(map_prod Rep1 Rep2 ---> Abs2) snd = snd"
   by (simp add: fun_eq_iff Quotient3_abs_rep[OF q2])
 
-lemma split_rsp [quot_respect]:
-  shows "((R1 ===> R2 ===> (op =)) ===> (rel_prod R1 R2) ===> (op =)) split split"
+lemma case_prod_rsp [quot_respect]:
+  shows "((R1 ===> R2 ===> (op =)) ===> (rel_prod R1 R2) ===> (op =)) case_prod case_prod"
   by (rule case_prod_transfer)
 
 lemma split_prs [quot_preserve]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   and     q2: "Quotient3 R2 Abs2 Rep2"
-  shows "(((Abs1 ---> Abs2 ---> id) ---> map_prod Rep1 Rep2 ---> id) split) = split"
+  shows "(((Abs1 ---> Abs2 ---> id) ---> map_prod Rep1 Rep2 ---> id) case_prod) = case_prod"
   by (simp add: fun_eq_iff Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2])
 
 lemma [quot_respect]:
@@ -103,6 +103,6 @@ lemma [quot_preserve]:
   (l1, l2) (r1, r2)) = (R1 (rep1 l1) (rep1 r1) \<and> R2 (rep2 l2) (rep2 r2))"
   by simp
 
-declare Pair_eq[quot_preserve]
+declare prod.inject[quot_preserve]
 
 end

@@ -229,6 +229,52 @@ INCOMPATIBILITY in exotic situations.
 
 *** HOL ***
 
+* Combinator to represent case distinction on products is named "case_prod",
+uniformly, discontinuing any input aliasses.  Very popular theorem aliasses
+have been retained.
+Consolidated facts:
+  PairE ~> prod.exhaust
+  Pair_eq ~> prod.inject
+  pair_collapse ~> prod.collapse
+  Pair_fst_snd_eq ~> prod_eq_iff
+  split_twice ~> prod.case_distrib
+  split_weak_cong ~> prod.case_cong_weak
+  split_split ~> prod.split
+  split_split_asm ~> prod.split_asm
+  splitI ~> case_prodI
+  splitD ~> case_prodD
+  splitI2 ~> case_prodI2
+  splitI2' ~> case_prodI2'
+  splitE ~> case_prodE
+  splitE' ~> case_prodE'
+  split_pair ~> case_prod_Pair
+  split_eta ~> case_prod_eta
+  split_comp ~> case_prod_comp
+  mem_splitI ~> mem_case_prodI
+  mem_splitI2 ~> mem_case_prodI2
+  mem_splitE ~> mem_case_prodE
+  The_split ~> The_case_prod
+  cond_split_eta ~> cond_case_prod_eta
+  Collect_split_in_rel_leE ~> Collect_case_prod_in_rel_leE
+  Collect_split_in_rel_leI ~> Collect_case_prod_in_rel_leI
+  in_rel_Collect_split_eq ~> in_rel_Collect_case_prod_eq
+  Collect_split_Grp_eqD ~> Collect_case_prod_Grp_eqD
+  Collect_split_Grp_inD ~> Collect_case_prod_Grp_in
+  Domain_Collect_split ~> Domain_Collect_case_prod
+  Image_Collect_split ~> Image_Collect_case_prod
+  Range_Collect_split ~> Range_Collect_case_prod
+  Eps_split ~> Eps_case_prod
+  Eps_split_eq ~> Eps_case_prod_eq
+  split_rsp ~> case_prod_rsp
+  curry_split ~> curry_case_prod
+  split_curry ~> case_prod_curry
+Changes in structure HOLogic:
+  split_const ~> case_prod_const
+  mk_split ~> mk_case_prod
+  mk_psplits ~> mk_ptupleabs
+  strip_psplits ~> strip_ptupleabs
+INCOMPATIBILITY.
+
 * Commands 'inductive' and 'inductive_set' work better when names for
 intro rules are omitted: the "cases" and "induct" rules no longer
 declare empty case_names, but no case_names at all. This allows to use
@@ -246,14 +292,6 @@ uniformly via "context begin qualified definition ... end" instead of
 old-style "hide_const (open) ...". Consequently, both the defined
 constant and its defining fact become qualified, e.g. Option.is_none and
 Option.is_none_def. Occasional INCOMPATIBILITY in applications.
-
-* Combinator to represent case distinction on products is named "uncurry",
-with "split" and "prod_case" retained as input abbreviations.
-Hence, the "uncurry"-expressions are printed the following way:
-a) fully applied "uncurry f p": explicit case-expression;
-b) partially applied "uncurry f": explicit paired abstraction;
-c) unapplied "uncurry": as it is.
-INCOMPATIBILITY.
 
 * Some old and rarely used ASCII replacement syntax has been removed.
 INCOMPATIBILITY, standard syntax with symbols should be used instead.

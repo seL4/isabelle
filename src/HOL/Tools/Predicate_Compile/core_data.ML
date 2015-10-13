@@ -228,7 +228,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
     val thy = Proof_Context.theory_of ctxt
     val nargs = length (binder_types (fastype_of pred))
     fun meta_eq_of th = th RS @{thm eq_reflection}
-    val tuple_rew_rules = map meta_eq_of [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}]
+    val tuple_rew_rules = map meta_eq_of [@{thm fst_conv}, @{thm snd_conv}, @{thm prod.inject}]
 
     fun instantiate i n ({context = ctxt2, prems, ...}: Subgoal.focus) =
       let

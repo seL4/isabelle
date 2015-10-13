@@ -2608,7 +2608,7 @@ qed
 section \<open>First implementation : Naive by encoding all case splits locally\<close>
 
 definition "msubsteq c t d s a r =
-  evaldjf (split conj)
+  evaldjf (case_prod conj)
   [(let cd = c *\<^sub>p d
     in (NEq (CP cd), Eq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
    (conj (Eq (CP c)) (NEq (CP d)), Eq (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
@@ -2626,7 +2626,7 @@ proof -
       in (NEq (CP cd), Eq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
      (conj (Eq (CP c)) (NEq (CP d)), Eq (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
      (conj (NEq (CP c)) (Eq (CP d)), Eq (Add (Mul (~\<^sub>p a) t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
-     (conj (Eq (CP c)) (Eq (CP d)), Eq r)]. bound0 (split conj x)"
+     (conj (Eq (CP c)) (Eq (CP d)), Eq r)]. bound0 (case_prod conj x)"
     using lp by (simp add: Let_def t s)
   from evaldjf_bound0[OF th] show ?thesis
     by (simp add: msubsteq_def)
@@ -2715,7 +2715,7 @@ qed
 
 
 definition "msubstneq c t d s a r =
-  evaldjf (split conj)
+  evaldjf (case_prod conj)
   [(let cd = c *\<^sub>p d
     in (NEq (CP cd), NEq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
    (conj (Eq (CP c)) (NEq (CP d)), NEq (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
@@ -2733,7 +2733,7 @@ proof -
      in (NEq (CP cd), NEq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
     (conj (Eq (CP c)) (NEq (CP d)), NEq (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
     (conj (NEq (CP c)) (Eq (CP d)), NEq (Add (Mul (~\<^sub>p a) t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
-    (conj (Eq (CP c)) (Eq (CP d)), NEq r)]. bound0 (split conj x)"
+    (conj (Eq (CP c)) (Eq (CP d)), NEq r)]. bound0 (case_prod conj x)"
     using lp by (simp add: Let_def t s)
   from evaldjf_bound0[OF th] show ?thesis
     by (simp add: msubstneq_def)
@@ -2821,7 +2821,7 @@ proof -
 qed
 
 definition "msubstlt c t d s a r =
-  evaldjf (split conj)
+  evaldjf (case_prod conj)
   [(let cd = c *\<^sub>p d
     in (lt (CP (~\<^sub>p cd)), Lt (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
    (let cd = c *\<^sub>p d
@@ -2847,7 +2847,7 @@ proof -
    (conj (lt (CP c)) (Eq (CP d)), Lt (Sub (Mul a t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
    (conj (lt (CP (~\<^sub>p d))) (Eq (CP c)), Lt (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
    (conj (lt (CP d)) (Eq (CP c)), Lt (Sub (Mul a s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
-   (conj (Eq (CP c)) (Eq (CP d)), Lt r)]. bound0 (split conj x)"
+   (conj (Eq (CP c)) (Eq (CP d)), Lt r)]. bound0 (case_prod conj x)"
     using lp by (simp add: Let_def t s lt_nb)
   from evaldjf_bound0[OF th] show ?thesis
     by (simp add: msubstlt_def)
@@ -3027,7 +3027,7 @@ proof -
 qed
 
 definition "msubstle c t d s a r =
-  evaldjf (split conj)
+  evaldjf (case_prod conj)
    [(let cd = c *\<^sub>p d
      in (lt (CP (~\<^sub>p cd)), Le (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
     (let cd = c *\<^sub>p d
@@ -3053,7 +3053,7 @@ proof -
     (conj (lt (CP c)) (Eq (CP d)) , Le (Sub (Mul a t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
     (conj (lt (CP (~\<^sub>p d))) (Eq (CP c)) , Le (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
     (conj (lt (CP d)) (Eq (CP c)) , Le (Sub (Mul a s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
-    (conj (Eq (CP c)) (Eq (CP d)) , Le r)]. bound0 (split conj x)"
+    (conj (Eq (CP c)) (Eq (CP d)) , Le r)]. bound0 (case_prod conj x)"
     using lp by (simp add: Let_def t s lt_nb)
   from evaldjf_bound0[OF th] show ?thesis
     by (simp add: msubstle_def)

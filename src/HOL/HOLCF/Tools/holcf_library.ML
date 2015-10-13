@@ -149,7 +149,7 @@ fun mk_tuple [] = HOLogic.unit
 fun lambda_tuple [] rhs = Term.lambda (Free("unit", HOLogic.unitT)) rhs
   | lambda_tuple (v::[]) rhs = Term.lambda v rhs
   | lambda_tuple (v::vs) rhs =
-      HOLogic.mk_split (Term.lambda v (lambda_tuple vs rhs))
+      HOLogic.mk_case_prod (Term.lambda v (lambda_tuple vs rhs))
 
 
 (*** Lifted cpo type ***)

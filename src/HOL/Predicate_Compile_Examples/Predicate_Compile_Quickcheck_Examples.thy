@@ -338,7 +338,7 @@ definition
   "jad = apsnd transpose o length_permutate o map sparsify"
 
 definition
-  "jad_mv v = inflate o split zip o apsnd (map listsum o transpose o map (map (\<lambda> (i, x). v ! i * x)))"
+  "jad_mv v = inflate o case_prod zip o apsnd (map listsum o transpose o map (map (\<lambda> (i, x). v ! i * x)))"
 
 lemma "matrix (M::int list list) rs cs \<Longrightarrow> False"
 quickcheck[tester = smart_exhaustive, size = 6]

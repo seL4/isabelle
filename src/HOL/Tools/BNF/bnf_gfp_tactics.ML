@@ -108,7 +108,7 @@ val ordIso_ordLeq_trans = @{thm ordIso_ordLeq_trans};
 val snd_convol_fun_cong_sym = @{thm snd_convol[unfolded convol_def]} RS fun_cong RS sym;
 val sum_case_cong_weak = @{thm sum.case_cong_weak};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
-val Collect_splitD_set_mp = @{thm Collect_splitD[OF set_mp]};
+val Collect_splitD_set_mp = @{thm Collect_case_prodD[OF set_mp]};
 val rev_bspec = Drule.rotate_prems 1 bspec;
 val Un_cong = @{thm arg_cong2[of _ _ _ _ "op \<union>"]};
 val converse_shift = @{thm converse_subset_swap} RS iffD1;
@@ -239,7 +239,7 @@ fun mk_bis_rel_tac ctxt m bis_def in_rels map_comp0s map_cong0s set_map0ss =
             etac ctxt @{thm image_mono}, rtac ctxt @{thm image_subsetI}, rtac ctxt CollectI,
             rtac ctxt @{thm case_prodI}, rtac ctxt refl]
           else EVERY' [rtac ctxt ord_eq_le_trans, rtac ctxt trans, rtac ctxt thm,
-            rtac ctxt trans_fun_cong_image_id_id_apply, etac ctxt @{thm Collect_split_in_rel_leI}])
+            rtac ctxt trans_fun_cong_image_id_id_apply, etac ctxt @{thm Collect_case_prod_in_rel_leI}])
         (1 upto (m + n) ~~ set_map0s)];
 
     fun mk_only_if_tac ((((i, map_comp0), map_cong0), set_map0s), in_rel) =
@@ -247,7 +247,7 @@ fun mk_bis_rel_tac ctxt m bis_def in_rels map_comp0s map_cong0s set_map0ss =
         etac ctxt allE, etac ctxt allE, etac ctxt impE, assume_tac ctxt,
         dtac ctxt (in_rel RS @{thm iffD1}),
         REPEAT_DETERM o eresolve_tac ctxt ([CollectE, conjE, exE] @
-          @{thms CollectE Collect_split_in_rel_leE}),
+          @{thms CollectE Collect_case_prod_in_rel_leE}),
         rtac ctxt bexI, rtac ctxt conjI, rtac ctxt trans, rtac ctxt map_comp0, rtac ctxt trans, rtac ctxt map_cong0,
         REPEAT_DETERM_N m o rtac ctxt (@{thm id_comp} RS fun_cong),
         REPEAT_DETERM_N n o rtac ctxt (@{thm comp_id} RS fun_cong),
@@ -255,7 +255,7 @@ fun mk_bis_rel_tac ctxt m bis_def in_rels map_comp0s map_cong0s set_map0ss =
         REPEAT_DETERM_N m o rtac ctxt (@{thm id_comp} RS fun_cong),
         REPEAT_DETERM_N n o rtac ctxt (@{thm comp_id} RS fun_cong),
         rtac ctxt trans, rtac ctxt map_cong0,
-        REPEAT_DETERM_N m o EVERY' [rtac ctxt @{thm Collect_splitD}, etac ctxt set_mp, assume_tac ctxt],
+        REPEAT_DETERM_N m o EVERY' [rtac ctxt @{thm Collect_case_prodD}, etac ctxt set_mp, assume_tac ctxt],
         REPEAT_DETERM_N n o rtac ctxt refl,
         assume_tac ctxt, rtac ctxt CollectI,
         CONJ_WRAP' (fn (i, thm) =>
@@ -772,8 +772,8 @@ fun mk_dtor_coinduct_tac ctxt m raw_coind bis_rel rel_congs =
     CONJ_WRAP' (fn rel_cong => EVERY' [rtac ctxt allI, rtac ctxt allI, rtac ctxt impI,
       REPEAT_DETERM o etac ctxt allE, rtac ctxt (rel_cong RS @{thm eq_refl} RS @{thm predicate2D}),
       REPEAT_DETERM_N m o rtac ctxt refl,
-      REPEAT_DETERM_N (length rel_congs) o rtac ctxt @{thm in_rel_Collect_split_eq[symmetric]},
-      etac ctxt mp, etac ctxt CollectE, etac ctxt @{thm splitD}])
+      REPEAT_DETERM_N (length rel_congs) o rtac ctxt @{thm in_rel_Collect_case_prod_eq[symmetric]},
+      etac ctxt mp, etac ctxt CollectE, etac ctxt @{thm case_prodD}])
     rel_congs,
     rtac ctxt impI, REPEAT_DETERM o etac ctxt conjE,
     CONJ_WRAP' (K (EVERY' [rtac ctxt impI, rtac ctxt @{thm IdD}, etac ctxt set_mp,
@@ -994,7 +994,7 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_set
                 rtac ctxt @{thm SUP_cong[OF _ refl]}, rtac ctxt @{thm box_equals[OF _ _ refl]},
                 rtac ctxt active_set_map0, rtac ctxt (dtor_ctor RS sym RS arg_cong), rtac ctxt @{thm UN_least},
                 dtac ctxt set_rev_mp, etac ctxt @{thm image_mono}, etac ctxt imageE,
-                dtac ctxt @{thm ssubst_mem[OF pair_collapse]},
+                dtac ctxt @{thm ssubst_mem[OF prod.collapse]},
                 REPEAT_DETERM o eresolve_tac ctxt (CollectE :: conjE ::
                   @{thms case_prodE iffD1[OF prod.inject, elim_format]}),
                 hyp_subst_tac ctxt,
@@ -1008,7 +1008,7 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_set
           rtac ctxt @{thm box_equals}, rtac ctxt map_comp0, rtac ctxt (dtor_ctor RS sym RS arg_cong), rtac ctxt trans,
           rtac ctxt map_cong0, REPEAT_DETERM_N m o rtac ctxt @{thm fun_cong[OF comp_id]},
           EVERY' (map (fn in_Jrel => EVERY' [rtac ctxt trans, rtac ctxt o_apply, dtac ctxt set_rev_mp, assume_tac ctxt,
-            dtac ctxt @{thm ssubst_mem[OF pair_collapse]},
+            dtac ctxt @{thm ssubst_mem[OF prod.collapse]},
             REPEAT_DETERM o eresolve_tac ctxt (CollectE :: conjE ::
               @{thms case_prodE iffD1[OF prod.inject, elim_format]}),
             hyp_subst_tac ctxt, dtac ctxt (in_Jrel RS iffD1),

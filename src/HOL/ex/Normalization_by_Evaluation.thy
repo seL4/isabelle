@@ -54,7 +54,7 @@ lemma "mul (S(S(S(S(S Z))))) (S(S(S Z))) = S(S(S(S(S(S(S(S(S(S(S(S(S(S(S Z))))))
 lemma "exp (S(S Z)) (S(S(S(S Z)))) = exp (S(S(S(S Z)))) (S(S Z))" by normalization
 
 lemma "(let ((x,y),(u,v)) = ((Z,Z),(Z,Z)) in add (add x y) (add u v)) = Z" by normalization
-lemma "split (%x y. x) (a, b) = a" by normalization
+lemma "case_prod (%x y. x) (a, b) = a" by normalization
 lemma "(%((x,y),(u,v)). add (add x y) (add u v)) ((Z,Z),(Z,Z)) = Z" by normalization
 
 lemma "case Z of Z \<Rightarrow> True | S x \<Rightarrow> False" by normalization

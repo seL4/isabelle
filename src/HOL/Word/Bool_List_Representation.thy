@@ -14,7 +14,7 @@ begin
 
 definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
 where
-  "map2 f as bs = map (split f) (zip as bs)"
+  "map2 f as bs = map (case_prod f) (zip as bs)"
 
 lemma map2_Nil [simp, code]:
   "map2 f [] ys = []"

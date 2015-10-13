@@ -3962,7 +3962,7 @@ proof -
         moreover
         from upd normal_s2
         have "{vn} \<subseteq> dom (locals (store (assign upd v s2)))"
-          by (auto simp add: assign_def Let_def lvar_def upd split: split_split)
+          by (auto simp add: assign_def Let_def lvar_def upd split: prod.split)
         ultimately
         show "nrm A \<subseteq> \<dots>"
           by (rule Un_least [elim_format]) (simp add: nrm_A)

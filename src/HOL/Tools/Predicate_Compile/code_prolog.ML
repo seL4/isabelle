@@ -956,7 +956,7 @@ fun values ctxt soln t_compr =
       (case t_compr of
         (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term ctxt t_compr))
-    val (body, Ts, fp) = HOLogic.strip_psplits split
+    val (body, Ts, fp) = HOLogic.strip_ptupleabs split
     val output_names = Name.variant_list (Term.add_free_names body [])
       (map (fn i => "x" ^ string_of_int i) (1 upto length Ts))
     val output_frees = rev (map2 (curry Free) output_names Ts)

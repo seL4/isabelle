@@ -15,7 +15,7 @@ keywords
   "bnf" :: thy_goal
 begin
 
-lemma Collect_splitD: "x \<in> Collect (case_prod A) \<Longrightarrow> A (fst x) (snd x)"
+lemma Collect_case_prodD: "x \<in> Collect (case_prod A) \<Longrightarrow> A (fst x) (snd x)"
   by auto
 
 inductive
@@ -61,7 +61,7 @@ lemma rel_setI:
 lemma predicate2_transferD:
    "\<lbrakk>rel_fun R1 (rel_fun R2 (op =)) P Q; a \<in> A; b \<in> B; A \<subseteq> {(x, y). R1 x y}; B \<subseteq> {(x, y). R2 x y}\<rbrakk> \<Longrightarrow>
    P (fst a) (fst b) \<longleftrightarrow> Q (snd a) (snd b)"
-  unfolding rel_fun_def by (blast dest!: Collect_splitD)
+  unfolding rel_fun_def by (blast dest!: Collect_case_prodD)
 
 definition collect where
   "collect F x = (\<Union>f \<in> F. f x)"
@@ -131,10 +131,10 @@ lemma GrpI: "\<lbrakk>f x = y; x \<in> A\<rbrakk> \<Longrightarrow> Grp A f x y"
 lemma GrpE: "Grp A f x y \<Longrightarrow> (\<lbrakk>f x = y; x \<in> A\<rbrakk> \<Longrightarrow> R) \<Longrightarrow> R"
   unfolding Grp_def by auto
 
-lemma Collect_split_Grp_eqD: "z \<in> Collect (case_prod (Grp A f)) \<Longrightarrow> (f \<circ> fst) z = snd z"
+lemma Collect_case_prod_Grp_eqD: "z \<in> Collect (case_prod (Grp A f)) \<Longrightarrow> (f \<circ> fst) z = snd z"
   unfolding Grp_def comp_def by auto
 
-lemma Collect_split_Grp_inD: "z \<in> Collect (case_prod (Grp A f)) \<Longrightarrow> fst z \<in> A"
+lemma Collect_case_prod_Grp_in: "z \<in> Collect (case_prod (Grp A f)) \<Longrightarrow> fst z \<in> A"
   unfolding Grp_def comp_def by auto
 
 definition "pick_middlep P Q a c = (SOME b. P a b \<and> Q b c)"

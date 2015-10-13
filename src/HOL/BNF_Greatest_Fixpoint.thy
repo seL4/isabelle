@@ -82,13 +82,13 @@ lemma subset_Collect_iff: "B \<subseteq> A \<Longrightarrow> (B \<subseteq> {x \
 lemma subset_CollectI: "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> Q x \<Longrightarrow> P x) \<Longrightarrow> ({x \<in> B. Q x} \<subseteq> {x \<in> A. P x})"
   by blast
 
-lemma in_rel_Collect_split_eq: "in_rel (Collect (case_prod X)) = X"
+lemma in_rel_Collect_case_prod_eq: "in_rel (Collect (case_prod X)) = X"
   unfolding fun_eq_iff by auto
 
-lemma Collect_split_in_rel_leI: "X \<subseteq> Y \<Longrightarrow> X \<subseteq> Collect (case_prod (in_rel Y))"
+lemma Collect_case_prod_in_rel_leI: "X \<subseteq> Y \<Longrightarrow> X \<subseteq> Collect (case_prod (in_rel Y))"
   by auto
 
-lemma Collect_split_in_rel_leE: "X \<subseteq> Collect (case_prod (in_rel Y)) \<Longrightarrow> (X \<subseteq> Y \<Longrightarrow> R) \<Longrightarrow> R"
+lemma Collect_case_prod_in_rel_leE: "X \<subseteq> Collect (case_prod (in_rel Y)) \<Longrightarrow> (X \<subseteq> Y \<Longrightarrow> R) \<Longrightarrow> R"
   by force
 
 lemma conversep_in_rel: "(in_rel R)\<inverse>\<inverse> = in_rel (R\<inverse>)"

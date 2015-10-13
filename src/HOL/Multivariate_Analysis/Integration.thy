@@ -1593,7 +1593,7 @@ proof -
     obtain a b where ab: "snd x = cbox a b"
       using assm(4)[of "fst x" "snd x"] \<open>x\<in>p\<close> by auto
     have "(fst x, snd y) \<in> p" "(fst x, snd y) \<noteq> y"
-      by (metis pair_collapse \<open>x\<in>p\<close> \<open>snd x = snd y\<close> \<open>x \<noteq> y\<close>)+
+      by (metis prod.collapse \<open>x\<in>p\<close> \<open>snd x = snd y\<close> \<open>x \<noteq> y\<close>)+
     with \<open>x\<in>p\<close> \<open>y\<in>p\<close> have "interior (snd x) \<inter> interior (snd y) = {}"
       by (intro assm(5)[of "fst x" _ "fst y"]) auto
     then have "content (cbox a b) = 0"
@@ -3211,7 +3211,7 @@ proof (unfold has_integral, rule, rule, goal_cases)
         unfolding p(8)[symmetric] by auto
       fix x l
       assume xl: "(x, l) \<in> ?M1"
-      then guess x' l' unfolding mem_Collect_eq unfolding Pair_eq by (elim exE conjE) note xl'=this
+      then guess x' l' unfolding mem_Collect_eq unfolding prod.inject by (elim exE conjE) note xl'=this
       show "x \<in> l" "l \<subseteq> cbox a b \<inter> {x. x \<bullet> k \<le> c}"
         unfolding xl'
         using p(4-6)[OF xl'(3)] using xl'(4)
@@ -3223,7 +3223,7 @@ proof (unfold has_integral, rule, rule, goal_cases)
       fix y r
       let ?goal = "interior l \<inter> interior r = {}"
       assume yr: "(y, r) \<in> ?M1"
-      then guess y' r' unfolding mem_Collect_eq unfolding Pair_eq by (elim exE conjE) note yr'=this
+      then guess y' r' unfolding mem_Collect_eq unfolding prod.inject by (elim exE conjE) note yr'=this
       assume as: "(x, l) \<noteq> (y, r)"
       show "interior l \<inter> interior r = {}"
       proof (cases "l' = r' \<longrightarrow> x' = y'")
@@ -3250,7 +3250,7 @@ proof (unfold has_integral, rule, rule, goal_cases)
         unfolding p(8)[symmetric] by auto
       fix x l
       assume xl: "(x, l) \<in> ?M2"
-      then guess x' l' unfolding mem_Collect_eq unfolding Pair_eq by (elim exE conjE) note xl'=this
+      then guess x' l' unfolding mem_Collect_eq unfolding prod.inject by (elim exE conjE) note xl'=this
       show "x \<in> l" "l \<subseteq> cbox a b \<inter> {x. x \<bullet> k \<ge> c}"
         unfolding xl'
         using p(4-6)[OF xl'(3)] xl'(4) xk_ge_c[OF xl'(3-4)]
@@ -3262,7 +3262,7 @@ proof (unfold has_integral, rule, rule, goal_cases)
       fix y r
       let ?goal = "interior l \<inter> interior r = {}"
       assume yr: "(y, r) \<in> ?M2"
-      then guess y' r' unfolding mem_Collect_eq unfolding Pair_eq by (elim exE conjE) note yr'=this
+      then guess y' r' unfolding mem_Collect_eq unfolding prod.inject by (elim exE conjE) note yr'=this
       assume as: "(x, l) \<noteq> (y, r)"
       show "interior l \<inter> interior r = {}"
       proof (cases "l' = r' \<longrightarrow> x' = y'")
@@ -10793,7 +10793,7 @@ proof -
           using p'(1)
           apply auto
           done
-        also have "\<dots> = (\<Sum>x\<in>{(i, l) |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral (split op \<inter> x) f))"
+        also have "\<dots> = (\<Sum>x\<in>{(i, l) |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral (case_prod op \<inter> x) f))"
           unfolding split_def ..
         also have "\<dots> = (\<Sum>k\<in>{i \<inter> l |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral k f))"
           unfolding *
@@ -10898,7 +10898,7 @@ proof -
           apply (subst setsum.reindex_nontrivial)
           apply fact
           unfolding split_paired_all
-          unfolding o_def split_def snd_conv fst_conv mem_Sigma_iff Pair_eq
+          unfolding o_def split_def snd_conv fst_conv mem_Sigma_iff prod.inject
           apply (elim conjE)
         proof -
           fix x1 l1 k1 x2 l2 k2
@@ -11116,9 +11116,8 @@ proof (rule absolutely_integrable_onI, fact, rule)
           by auto
         from henstock_lemma [OF f(1) \<open>e/2>0\<close>] obtain d2 where
           d2: "gauge d2" "\<forall>p. p tagged_partial_division_of (cbox a b) \<and> d2 fine p \<longrightarrow>
-            (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e / 2"
-          by blast
-        obtain p where
+            (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e / 2" .
+         obtain p where
           p: "p tagged_division_of (cbox a b)" "d1 fine p" "d2 fine p"
           by (rule fine_division_exists [OF gauge_inter [OF d1(1) d2(1)], of a b])
             (auto simp add: fine_inter)
