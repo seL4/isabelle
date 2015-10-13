@@ -43,7 +43,7 @@ proof
     unfolding convex_def by auto
 qed (auto simp: convex_def)
 
-lemma mem_convex:
+lemma convexD_alt:
   assumes "convex s" "a \<in> s" "b \<in> s" "0 \<le> u" "u \<le> 1"
   shows "((1 - u) *\<^sub>R a + u *\<^sub>R b) \<in> s"
   using assms unfolding convex_alt by auto

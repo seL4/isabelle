@@ -836,6 +836,9 @@ lemma ball_max_Un: "ball a (max r s) = ball a r \<union> ball a s"
 lemma ball_min_Int: "ball a (min r s) = ball a r \<inter> ball a s"
   by (simp add: set_eq_iff)
 
+lemma cball_diff_eq_sphere: "cball a r - ball a r =  {x. dist x a = r}"
+  by (auto simp: cball_def ball_def dist_commute)
+
 lemma diff_less_iff:
   "(a::real) - b > 0 \<longleftrightarrow> a > b"
   "(a::real) - b < 0 \<longleftrightarrow> a < b"
@@ -1805,6 +1808,10 @@ definition
 
 abbreviation
    "connected_component_set s x \<equiv> Collect (connected_component s x)"
+
+lemma connected_componentI:
+    "\<lbrakk>connected t; t \<subseteq> s; x \<in> t; y \<in> t\<rbrakk> \<Longrightarrow> connected_component s x y"
+  by (auto simp: connected_component_def)
 
 lemma connected_component_in: "connected_component s x y \<Longrightarrow> x \<in> s \<and> y \<in> s"
   by (auto simp: connected_component_def)
@@ -3086,8 +3093,21 @@ subsection \<open>Boundedness\<close>
 definition (in metric_space) bounded :: "'a set \<Rightarrow> bool"
   where "bounded S \<longleftrightarrow> (\<exists>x e. \<forall>y\<in>S. dist x y \<le> e)"
 
-lemma bounded_subset_cball: "bounded S \<longleftrightarrow> (\<exists>e x. S \<subseteq> cball x e)"
-  unfolding bounded_def subset_eq by auto
+lemma bounded_subset_cball: "bounded S \<longleftrightarrow> (\<exists>e x. S \<subseteq> cball x e \<and> 0 \<le> e)"
+  unfolding bounded_def subset_eq  by auto (meson order_trans zero_le_dist)
+
+lemma bounded_subset_ballD:
+  assumes "bounded S" shows "\<exists>r. 0 < r \<and> S \<subseteq> ball x r"
+proof -
+  obtain e::real and y where "S \<subseteq> cball y e"  "0 \<le> e"
+    using assms by (auto simp: bounded_subset_cball)
+  then show ?thesis
+    apply (rule_tac x="dist x y + e + 1" in exI)
+    apply (simp add: add.commute add_pos_nonneg)
+    apply (erule subset_trans)
+    apply (clarsimp simp add: cball_def)
+    by (metis add_le_cancel_right add_strict_increasing dist_commute dist_triangle_le zero_less_one)
+qed
 
 lemma bounded_any_center: "bounded S \<longleftrightarrow> (\<exists>e. \<forall>y\<in>S. dist a y \<le> e)"
   unfolding bounded_def
@@ -3206,6 +3226,11 @@ proof (auto simp add: bounded_pos not_le)
     by (simp add: norm_sgn)
   then show "\<exists>x::'a. b < norm x" ..
 qed
+
+corollary cobounded_imp_unbounded:
+    fixes S :: "'a::{real_normed_vector, perfect_space} set"
+    shows "bounded (- S) \<Longrightarrow> ~ (bounded S)"
+  using bounded_Un [of S "-S"]  by (simp add: sup_compl_top)
 
 lemma bounded_linear_image:
   assumes "bounded S"

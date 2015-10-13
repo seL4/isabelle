@@ -1393,11 +1393,15 @@ lemma continuous_on_closed_vimage:
   unfolding continuous_on_closed_invariant
   by (metis closed_Int Int_absorb Int_commute[of s] Int_assoc[of _ _ s])
 
+corollary closed_vimage_Int[continuous_intros]:
+  assumes "closed s" and "continuous_on t f" and t: "closed t"
+  shows "closed (f -` s \<inter> t)"
+  using assms unfolding continuous_on_closed_vimage [OF t]  by simp
+
 corollary closed_vimage[continuous_intros]:
   assumes "closed s" and "continuous_on UNIV f"
   shows "closed (f -` s)"
-  using assms unfolding continuous_on_closed_vimage [OF closed_UNIV]
-  by simp
+  using closed_vimage_Int [OF assms] by simp
 
 lemma continuous_on_open_Union:
   "(\<And>s. s \<in> S \<Longrightarrow> open s) \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> continuous_on s f) \<Longrightarrow> continuous_on (\<Union>S) f"

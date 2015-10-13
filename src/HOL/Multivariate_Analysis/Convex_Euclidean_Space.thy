@@ -1305,7 +1305,7 @@ subsection \<open>Connectedness of convex sets\<close>
 
 lemma connectedD:
   "connected S \<Longrightarrow> open A \<Longrightarrow> open B \<Longrightarrow> S \<subseteq> A \<union> B \<Longrightarrow> A \<inter> B \<inter> S = {} \<Longrightarrow> A \<inter> S = {} \<or> B \<inter> S = {}"
-  by (metis connected_def)
+  by (rule Topological_Spaces.topological_space_class.connectedD)
 
 lemma convex_connected:
   fixes s :: "'a::real_normed_vector set"
@@ -1332,10 +1332,8 @@ proof (rule connectedI)
   ultimately show False by auto
 qed
 
-text \<open>One rather trivial consequence.\<close>
-
-lemma connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)"
-  by(simp add: convex_connected convex_UNIV)
+corollary connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)"
+  by(simp add: convex_connected)
 
 text \<open>Balls, being convex, are connected.\<close>
 
@@ -3318,7 +3316,7 @@ proof -
   moreover have c: "c \<in> S"
     using assms rel_interior_subset by auto
   moreover from c have "x - e *\<^sub>R (x - c) \<in> S"
-    using mem_convex[of S x c e]
+    using convexD_alt[of S x c e]
     apply (simp add: algebra_simps)
     using assms
     apply auto
@@ -3920,7 +3918,7 @@ next
           "0 \<le> c \<and> c \<le> 1" "u \<in> s" "finite t" "t \<subseteq> s" "card t \<le> n"  "v \<in> convex hull t"
           by auto
         moreover have "(1 - c) *\<^sub>R u + c *\<^sub>R v \<in> convex hull insert u t"
-          apply (rule mem_convex)
+          apply (rule convexD_alt)
           using obt(2) and convex_convex_hull and hull_subset[of "insert u t" convex]
           using obt(7) and hull_mono[of t "insert u t"]
           apply auto
@@ -4263,7 +4261,7 @@ proof (rule ccontr)
     using closer_point_lemma[of a x y] by auto
   let ?z = "(1 - u) *\<^sub>R x + u *\<^sub>R y"
   have "?z \<in> s"
-    using mem_convex[OF assms(1,3,4), of u] using u by auto
+    using convexD_alt[OF assms(1,3,4), of u] using u by auto
   then show False
     using assms(5)[THEN bspec[where x="?z"]] and u(3)
     by (auto simp add: dist_commute algebra_simps)
@@ -5486,7 +5484,7 @@ proof (rule starlike_compact_projective[OF assms(2-3)], clarify)
       by (simp add: dist_norm inverse_eq_divide norm_minus_commute)
     with assms(3) have "inverse (1 - u) *\<^sub>R (y - u *\<^sub>R x) \<in> s" ..
     with assms(1) have "(1 - u) *\<^sub>R ((y - u *\<^sub>R x) /\<^sub>R (1 - u)) + u *\<^sub>R x \<in> s"
-      using \<open>x \<in> s\<close> \<open>0 \<le> u\<close> \<open>u < 1\<close> [THEN less_imp_le] by (rule mem_convex)
+      using \<open>x \<in> s\<close> \<open>0 \<le> u\<close> \<open>u < 1\<close> [THEN less_imp_le] by (rule convexD_alt)
     then show "y \<in> s" using \<open>u < 1\<close>
       by simp
   qed
@@ -6345,10 +6343,15 @@ proof -
     done
 qed
 
-lemma convex_segment: "convex (closed_segment a b)"
+lemma convex_segment [iff]: "convex (closed_segment a b)"
   unfolding segment_convex_hull by(rule convex_convex_hull)
 
-lemma ends_in_segment: "a \<in> closed_segment a b" "b \<in> closed_segment a b"
+lemma connected_segment [iff]:
+  fixes x :: "'a :: real_normed_vector"
+  shows "connected (closed_segment x y)"
+  by (simp add: convex_connected)
+
+lemma ends_in_segment [iff]: "a \<in> closed_segment a b" "b \<in> closed_segment a b"
   unfolding segment_convex_hull
   apply (rule_tac[!] hull_subset[unfolded subset_eq, rule_format])
   apply auto

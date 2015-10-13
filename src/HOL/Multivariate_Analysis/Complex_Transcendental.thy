@@ -522,9 +522,6 @@ proof -
   proof (rule complex_taylor [of "closed_segment 0 z" n 
                                  "\<lambda>k x. (-1)^(k div 2) * (if even k then sin x else cos x)" 
                                  "exp\<bar>Im z\<bar>" 0 z,  simplified])
-  show "convex (closed_segment 0 z)"
-    by (rule convex_segment [of 0 z])
-  next
     fix k x
     show "((\<lambda>x. (- 1) ^ (k div 2) * (if even k then sin x else cos x)) has_field_derivative
             (- 1) ^ (Suc k div 2) * (if odd k then sin x else cos x))
@@ -537,13 +534,6 @@ proof -
     assume "x \<in> closed_segment 0 z"
     then show "cmod ((- 1) ^ (Suc n div 2) * (if odd n then sin x else cos x)) \<le> exp \<bar>Im z\<bar>"
       by (auto simp: closed_segment_def norm_mult norm_power cmod_sin_le_exp cmod_cos_le_exp)
-  next
-    show "0 \<in> closed_segment 0 z"
-      by (auto simp: closed_segment_def)
-  next
-    show "z \<in> closed_segment 0 z"
-      apply (simp add: closed_segment_def scaleR_conv_of_real)
-      using of_real_1 zero_le_one by blast
   qed
   have **: "\<And>k. complex_of_real (sin_coeff k) * z ^ k
             = (-1)^(k div 2) * (if even k then sin 0 else cos 0) * z^k / of_nat (fact k)"
@@ -565,9 +555,6 @@ proof -
            \<le> exp \<bar>Im z\<bar> * cmod z ^ Suc n / (fact n)"
   proof (rule complex_taylor [of "closed_segment 0 z" n "\<lambda>k x. (-1)^(Suc k div 2) * (if even k then cos x else sin x)" "exp\<bar>Im z\<bar>" 0 z,
 simplified])
-  show "convex (closed_segment 0 z)"
-    by (rule convex_segment [of 0 z])
-  next
     fix k x
     assume "x \<in> closed_segment 0 z" "k \<le> n"
     show "((\<lambda>x. (- 1) ^ (Suc k div 2) * (if even k then cos x else sin x)) has_field_derivative
@@ -581,13 +568,6 @@ simplified])
     assume "x \<in> closed_segment 0 z"
     then show "cmod ((- 1) ^ Suc (n div 2) * (if odd n then cos x else sin x)) \<le> exp \<bar>Im z\<bar>"
       by (auto simp: closed_segment_def norm_mult norm_power cmod_sin_le_exp cmod_cos_le_exp)
-  next
-    show "0 \<in> closed_segment 0 z"
-      by (auto simp: closed_segment_def)
-  next
-    show "z \<in> closed_segment 0 z"
-      apply (simp add: closed_segment_def scaleR_conv_of_real)
-      using of_real_1 zero_le_one by blast
   qed
   have **: "\<And>k. complex_of_real (cos_coeff k) * z ^ k
             = (-1)^(Suc k div 2) * (if even k then cos 0 else sin 0) * z^k / of_nat (fact k)"

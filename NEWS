@@ -344,7 +344,7 @@ been removed. INCOMPATIBILITY.
   - Always generate "case_transfer" theorem.
 
 * Transfer:
-  - new methods for interactive debugging of 'transfer' and 
+  - new methods for interactive debugging of 'transfer' and
     'transfer_prover': 'transfer_start', 'transfer_step', 'transfer_end',
     'transfer_prover_start' and 'transfer_prover_end'.
 
@@ -408,8 +408,11 @@ not available during instantiation.
     less_eq_multiset_def
     INCOMPATIBILITY
 
-* Multivariate_Analysis/Cauchy_Integral_Thm: Complex path integrals and Cauchy's integral theorem,
-    ported from HOL Light
+* Multivariate_Analysis/Cauchy_Integral_Thm: Complex path integrals and Cauchy's
+integral theorem, ported from HOL Light
+
+* Multivariate_Analysis: Added topological concepts such as connected components
+and the inside or outside of a set.
 
 * Theory Library/Old_Recdef: discontinued obsolete 'defer_recdef'
 command. Minor INCOMPATIBILITY, use 'function' instead.

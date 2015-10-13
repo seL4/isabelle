@@ -1259,7 +1259,7 @@ lemma midpoints_in_convex_hull:
     shows "midpoint x y \<in> convex hull s"
 proof -
   have "(1 - inverse(2)) *\<^sub>R x + inverse(2) *\<^sub>R y \<in> convex hull s"
-    apply (rule mem_convex)
+    apply (rule convexD_alt)
     using assms
     apply (auto simp: convex_convex_hull)
     done
@@ -1649,7 +1649,7 @@ proof -
     apply (simp add: segment_convex_hull)
     apply (rule convex_hull_subset)
     using assms
-    apply (auto simp: hull_inc c' Convex.mem_convex)
+    apply (auto simp: hull_inc c' Convex.convexD_alt)
     done
 qed
 
@@ -1666,7 +1666,7 @@ proof -
     apply (simp_all add: segment_convex_hull)
     apply (rule_tac [!] convex_hull_subset)
     using assms
-    apply (auto simp: hull_inc c' Convex.mem_convex)
+    apply (auto simp: hull_inc c' Convex.convexD_alt)
     done
   show ?thesis
     apply (rule path_integral_unique)
