@@ -1084,6 +1084,19 @@ lemma Collect_split [simp]:
   "{(a, b). P a \<and> Q b} = Collect P \<times> Collect Q "
   by (fact SetCompr_Sigma_eq)
 
+lemma Collect_splitD:
+  "x \<in> Collect (uncurry A) \<Longrightarrow> A (fst x) (snd x)"
+  by auto
+
+lemma Collect_split_mono:
+  "A \<le> B \<Longrightarrow> Collect (uncurry A) \<subseteq> Collect (uncurry B)"
+  by auto (auto elim!: le_funE)
+
+lemma Collect_split_mono_strong: 
+  "X = fst ` A \<Longrightarrow> Y = snd ` A \<Longrightarrow> \<forall>a\<in>X. \<forall>b \<in> Y. P a b \<longrightarrow> Q a b
+    \<Longrightarrow> A \<subseteq> Collect (uncurry P) \<Longrightarrow> A \<subseteq> Collect (uncurry Q)"
+  by fastforce
+  
 lemma UN_Times_distrib:
   "(\<Union>(a, b)\<in>A \<times> B. E a \<times> F b) = UNION A E \<times> UNION B F"
   -- \<open>Suggested by Pierre Chartier\<close>

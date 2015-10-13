@@ -176,15 +176,6 @@ lemma fst_snd_flip: "fst xy = (snd \<circ> (%(x, y). (y, x))) xy"
 lemma flip_pred: "A \<subseteq> Collect (case_prod (R ^--1)) \<Longrightarrow> (%(x, y). (y, x)) ` A \<subseteq> Collect (case_prod R)"
   by auto
 
-lemma Collect_split_mono: "A \<le> B \<Longrightarrow> Collect (case_prod A) \<subseteq> Collect (case_prod B)"
-  by auto
-
-lemma Collect_split_mono_strong: 
-  "\<lbrakk>X = fst ` A; Y = snd ` A; \<forall>a\<in>X. \<forall>b \<in> Y. P a b \<longrightarrow> Q a b; A \<subseteq> Collect (case_prod P)\<rbrakk> \<Longrightarrow>
-   A \<subseteq> Collect (case_prod Q)"
-  by fastforce
-
-
 lemma predicate2_eqD: "A = B \<Longrightarrow> A a b \<longleftrightarrow> B a b"
   by simp
 
