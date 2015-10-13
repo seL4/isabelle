@@ -77,8 +77,6 @@ next
   case 3 thus ?case by(simp add: inorder_insert)
 next
   case 4 thus ?case by(simp add: inorder_delete)
-next
-  case 5 thus ?case ..
-qed
+qed (rule TrueI)+
 
 end

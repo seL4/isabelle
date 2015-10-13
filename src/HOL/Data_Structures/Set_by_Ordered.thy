@@ -17,6 +17,7 @@ assumes "set empty = {}"
 assumes "invar s \<Longrightarrow> isin s a = (a \<in> set s)"
 assumes "invar s \<Longrightarrow> set(insert a s) = Set.insert a (set s)"
 assumes "invar s \<Longrightarrow> set(delete a s) = set s - {a}"
+assumes "invar empty"
 assumes "invar s \<Longrightarrow> invar(insert a s)"
 assumes "invar s \<Longrightarrow> invar(delete a s)"
 
@@ -34,6 +35,7 @@ assumes insert: "wf t \<and> sorted(inorder t) \<Longrightarrow>
   inorder(insert a t) = ins_list a (inorder t)"
 assumes delete: "wf t \<and> sorted(inorder t) \<Longrightarrow>
   inorder(delete a t) = del_list a (inorder t)"
+assumes wf_empty:  "wf empty"
 assumes wf_insert: "wf t \<and> sorted(inorder t) \<Longrightarrow> wf(insert a t)"
 assumes wf_delete: "wf t \<and> sorted(inorder t) \<Longrightarrow> wf(delete a t)"
 begin
@@ -50,9 +52,11 @@ next
   case (4 s a) show ?case
     using delete[OF 4, of a] 4 by (auto simp: distinct_if_sorted)
 next
-  case 5 thus ?case by(simp add: insert wf_insert sorted_ins_list)
+  case 5 thus ?case by(simp add: empty wf_empty)
 next
-  case 6 thus ?case by (auto simp: delete wf_delete sorted_del_list)
+  case 6 thus ?case by(simp add: insert wf_insert sorted_ins_list)
+next
+  case 7 thus ?case by (auto simp: delete wf_delete sorted_del_list)
 qed
 
 end

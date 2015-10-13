@@ -15,6 +15,7 @@ fixes invar :: "'m \<Rightarrow> bool"
 assumes "map_of empty = (\<lambda>_. None)"
 assumes "invar m \<Longrightarrow> map_of(update a b m) = (map_of m)(a := Some b)"
 assumes "invar m \<Longrightarrow> map_of(delete a m) = (map_of m)(a := None)"
+assumes "invar empty"
 assumes "invar m \<Longrightarrow> invar(update a b m)"
 assumes "invar m \<Longrightarrow> invar(delete a m)"
 
@@ -32,6 +33,7 @@ assumes update: "wf t \<and> sorted1 (inorder t) \<Longrightarrow>
   inorder(update a b t) = upd_list a b (inorder t)"
 assumes delete: "wf t \<and> sorted1 (inorder t) \<Longrightarrow>
   inorder(delete a t) = del_list a (inorder t)"
+assumes wf_empty:  "wf empty"
 assumes wf_insert: "wf t \<and> sorted1 (inorder t) \<Longrightarrow> wf(update a b t)"
 assumes wf_delete: "wf t \<and> sorted1 (inorder t) \<Longrightarrow> wf(delete a t)"
 begin
@@ -45,9 +47,11 @@ next
 next
   case 3 thus ?case by(simp add: delete map_of_del_list)
 next
-  case 4 thus ?case by(simp add: update wf_insert sorted_upd_list)
+  case 4 thus ?case by(simp add: empty wf_empty)
 next
-  case 5 thus ?case by (auto simp: delete wf_delete sorted_del_list)
+  case 5 thus ?case by(simp add: update wf_insert sorted_upd_list)
+next
+  case 6 thus ?case by (auto simp: delete wf_delete sorted_del_list)
 qed
 
 end
