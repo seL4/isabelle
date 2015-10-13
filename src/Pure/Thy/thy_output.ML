@@ -487,11 +487,11 @@ val _ = Theory.setup
 
 (* basic pretty printing *)
 
-fun tweak_line ctxt s =
-  if Config.get ctxt display then s else Symbol.strip_blanks s;
+fun perhaps_trim ctxt =
+  not (Config.get ctxt display) ? Symbol.trim_blanks;
 
 fun pretty_text ctxt =
-  Pretty.chunks o map Pretty.str o map (tweak_line ctxt) o split_lines;
+  Pretty.chunks o map Pretty.str o map (perhaps_trim ctxt) o split_lines;
 
 fun pretty_text_report ctxt source =
  (Context_Position.report ctxt (Input.pos_of source)

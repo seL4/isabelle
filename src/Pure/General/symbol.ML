@@ -59,7 +59,7 @@ sig
   val scanner: string -> (string list -> 'a * string list) -> symbol list -> 'a
   val split_words: symbol list -> string list
   val explode_words: string -> string list
-  val strip_blanks: string -> string
+  val trim_blanks: string -> string
   val bump_init: string -> string
   val bump_string: string -> string
   val length: symbol list -> int
@@ -503,7 +503,7 @@ val explode_words = split_words o sym_explode;
 
 (* blanks *)
 
-fun strip_blanks s =
+fun trim_blanks s =
   sym_explode s
   |> take_prefix is_blank |> #2
   |> take_suffix is_blank |> #1

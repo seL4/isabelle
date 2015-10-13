@@ -149,7 +149,7 @@ fun output_basic tok =
   end handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
 val output_text =
-  Symbol.strip_blanks #> Symbol.explode #> output_ctrl_symbols;
+  Symbol.trim_blanks #> Symbol.explode #> output_ctrl_symbols;
 
 fun output_markup cmd txt = "%\n\\isamarkup" ^ cmd ^ "{" ^ output_text txt ^ "%\n}\n";
 
@@ -158,7 +158,7 @@ fun output_markup_env cmd txt =
   output_text txt ^
   "%\n\\end{isamarkup" ^ cmd ^ "}%\n";
 
-fun output_verbatim txt = "%\n" ^ Symbol.strip_blanks txt ^ "\n";
+fun output_verbatim txt = "%\n" ^ Symbol.trim_blanks txt ^ "\n";
 
 val markup_true = "\\isamarkuptrue%\n";
 val markup_false = "\\isamarkupfalse%\n";
