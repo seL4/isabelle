@@ -164,7 +164,7 @@ lemma sndOp_in: "ac \<in> Collect (case_prod (P OO Q)) \<Longrightarrow> sndOp P
   by (subst (asm) surjective_pairing, unfold prod.case) (erule pick_middlep[THEN conjunct2])
 
 lemma csquare_fstOp_sndOp:
-  "csquare (Collect (split (P OO Q))) snd fst (fstOp P Q) (sndOp P Q)"
+  "csquare (Collect (f (P OO Q))) snd fst (fstOp P Q) (sndOp P Q)"
   unfolding csquare_def fstOp_def sndOp_def using pick_middlep by simp
 
 lemma snd_fst_flip: "snd xy = (fst \<circ> (%(x, y). (y, x))) xy"
