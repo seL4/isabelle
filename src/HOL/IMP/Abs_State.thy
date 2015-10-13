@@ -18,8 +18,9 @@ definition eq_st :: "('a::top) st_rep \<Rightarrow> 'a st_rep \<Rightarrow> bool
 "eq_st S1 S2 = (fun_rep S1 = fun_rep S2)"
 
 hide_type st  --"hide previous def to avoid long names"
+declare [[typedef_overloaded]] --"allow quotient types to depend on classes"
 
-quotient_type (overloaded) 'a st = "('a::top) st_rep" / eq_st
+quotient_type 'a st = "('a::top) st_rep" / eq_st
 morphisms rep_st St
 by (metis eq_st_def equivpI reflpI sympI transpI)
 
