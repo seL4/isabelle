@@ -649,7 +649,7 @@ proof -
     with \<mu>'_spec[THEN bspec, of "\<Union>C"]
     obtain D where
       D: "D \<subseteq> M" "finite D" "disjoint D" "\<Union>C = \<Union>D" and "\<mu>' (\<Union>C) = (\<Sum>d\<in>D. \<mu> d)"
-      by blast
+      by auto
     with sum_eq[OF C D] have "\<mu>' (\<Union>C) = (\<Sum>c\<in>C. \<mu> c)" by simp }
   note \<mu>' = this
 
