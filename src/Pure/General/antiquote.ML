@@ -8,12 +8,14 @@ signature ANTIQUOTE =
 sig
   type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range}
   datatype 'a antiquote = Text of 'a | Antiq of antiq
+  type text_antiquote = Symbol_Pos.T list antiquote
+  val split_lines: text_antiquote list -> text_antiquote list list
   val antiq_reports: antiq -> Position.report list
   val antiquote_reports: ('a -> Position.report_text list) ->
     'a antiquote list -> Position.report_text list
   val scan_antiq: Symbol_Pos.T list -> antiq * Symbol_Pos.T list
-  val scan_antiquote: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
-  val read: Input.source -> Symbol_Pos.T list antiquote list
+  val scan_antiquote: Symbol_Pos.T list -> text_antiquote * Symbol_Pos.T list
+  val read: Input.source -> text_antiquote list
 end;
 
 structure Antiquote: ANTIQUOTE =
@@ -23,6 +25,24 @@ struct
 
 type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range};
 datatype 'a antiquote = Text of 'a | Antiq of antiq;
+
+type text_antiquote = Symbol_Pos.T list antiquote;
+
+
+(* split lines *)
+
+fun split_lines input =
+  let
+    fun add a (line, lines) = (a :: line, lines);
+    fun flush (line, lines) = ([], rev line :: lines);
+    fun split (a as Text ss) =
+          (case take_prefix (fn ("\n", _) => false | _ => true) ss of
+            ([], []) => I
+          | (_, []) => add a
+          | ([], _ :: rest) => flush #> split (Text rest)
+          | (prefix, _ :: rest) => add (Text prefix) #> flush #> split (Text rest))
+      | split a = add a;
+  in rev (#2 (flush (fold split input ([], [])))) end;
 
 
 (* reports *)
