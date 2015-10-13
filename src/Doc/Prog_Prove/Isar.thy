@@ -809,12 +809,12 @@ inductive ev :: "nat \<Rightarrow> bool" where
 ev0: "ev 0" |
 evSS: "ev n \<Longrightarrow> ev(Suc(Suc n))"
 
-fun even :: "nat \<Rightarrow> bool" where
-"even 0 = True" |
-"even (Suc 0) = False" |
-"even (Suc(Suc n)) = even n"
+fun evn :: "nat \<Rightarrow> bool" where
+"evn 0 = True" |
+"evn (Suc 0) = False" |
+"evn (Suc(Suc n)) = evn n"
 
-text{* We recast the proof of @{prop"ev n \<Longrightarrow> even n"} in Isar. The
+text{* We recast the proof of @{prop"ev n \<Longrightarrow> evn n"} in Isar. The
 left column shows the actual proof text, the right column shows
 the implicit effect of the two \isacom{case} commands:*}text_raw{*
 \begin{tabular}{@ {}l@ {\qquad}l@ {}}
@@ -822,7 +822,7 @@ the implicit effect of the two \isacom{case} commands:*}text_raw{*
 \isa{%
 *}
 
-lemma "ev n \<Longrightarrow> even n"
+lemma "ev n \<Longrightarrow> evn n"
 proof(induction rule: ev.induct)
   case ev0
   show ?case by simp
@@ -840,13 +840,13 @@ text_raw {* }
 \begin{minipage}[t]{.5\textwidth}
 ~\\
 ~\\
-\isacom{let} @{text"?case = \"even 0\""}\\
+\isacom{let} @{text"?case = \"evn 0\""}\\
 ~\\
 ~\\
 \isacom{fix} @{text n}\\
 \isacom{assume} @{text"evSS:"}
-  \begin{tabular}[t]{l} @{text"\"ev n\""}\\@{text"\"even n\""}\end{tabular}\\
-\isacom{let} @{text"?case = \"even(Suc(Suc n))\""}\\
+  \begin{tabular}[t]{l} @{text"\"ev n\""}\\@{text"\"evn n\""}\end{tabular}\\
+\isacom{let} @{text"?case = \"evn(Suc(Suc n))\""}\\
 \end{minipage}
 \end{tabular}
 \medskip
@@ -857,7 +857,7 @@ explicitly and the names of the cases are the names of the rules in the
 inductive definition.
 Let us examine the two assumptions named @{thm[source]evSS}:
 @{prop "ev n"} is the premise of rule @{thm[source]evSS}, which we may assume
-because we are in the case where that rule was used; @{prop"even n"}
+because we are in the case where that rule was used; @{prop"evn n"}
 is the induction hypothesis.
 \begin{warn}
 Because each \isacom{case} command introduces a list of assumptions
@@ -881,13 +881,13 @@ rule @{thm[source] evSS}: @{text"ev m \<Longrightarrow> ev(Suc(Suc m))"}.
 Here is an example with a (contrived) intermediate step that refers to @{text m}:
 *}
 
-lemma "ev n \<Longrightarrow> even n"
+lemma "ev n \<Longrightarrow> evn n"
 proof(induction rule: ev.induct)
   case ev0 show ?case by simp
 next
   case (evSS m)
-  have "even(Suc(Suc m)) = even m" by simp
-  thus ?case using `even m` by blast
+  have "evn(Suc(Suc m)) = evn m" by simp
+  thus ?case using `evn m` by blast
 qed
 
 text{*
