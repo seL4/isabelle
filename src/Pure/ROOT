@@ -229,6 +229,7 @@ session Pure =
     "System/system_channel.ML"
     "Thy/html.ML"
     "Thy/latex.ML"
+    "Thy/markdown.ML"
     "Thy/present.ML"
     "Thy/term_style.ML"
     "Thy/thy_header.ML"
