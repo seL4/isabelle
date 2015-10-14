@@ -6,14 +6,17 @@ Minimal support for Markdown documents (see also http://commonmark.org).
 
 signature MARKDOWN =
 sig
+  datatype kind = Itemize | Enumerate | Description
   type line
-  val read: Input.source -> line list list
+  val line_content: line -> Antiquote.text_antiquote list
+  datatype block = Paragraph of line list | List of kind * block list list
+  val read_document: Input.source -> block list
 end;
 
 structure Markdown: MARKDOWN =
 struct
 
-(* line with optional item marker *)
+(* document structure *)
 
 datatype kind = Itemize | Enumerate | Description;
 
@@ -28,6 +31,11 @@ fun line_content (Line {content, ...}) = content;
 fun line_is_empty (Line {is_empty, ...}) = is_empty;
 fun line_indent (Line {indent, ...}) = indent;
 fun line_marker (Line {marker, ...}) = marker;
+
+datatype block = Paragraph of line list | List of kind * block list list;
+
+
+(* make line *)
 
 local
 
@@ -65,7 +73,12 @@ fun make_line content =
 end;
 
 
-(* spans of related lines *)
+(* make blocks *)
+
+fun make_blocks spans = map Paragraph spans;
+
+
+(* read document *)
 
 local
 
@@ -78,24 +91,22 @@ fun plain_line line =
   not (line_is_empty line) andalso is_none (line_marker line) andalso line <> eof;
 
 val parse_span =
-  Scan.many1 plain_line ||
-  Scan.one (is_some o line_marker) -- Scan.many plain_line >> op :: ||
-  Scan.many1 line_is_empty;
+  Scan.many1 plain_line || Scan.one (is_some o line_marker) -- Scan.many plain_line >> op ::;
+
+val parse_document =
+  parse_span ::: Scan.repeat (Scan.one line_is_empty |-- parse_span) >> make_blocks;
+
+val parse_documents =
+  (Scan.many line_is_empty |-- parse_document) :::
+    (Scan.repeat (Scan.many1 line_is_empty |-- parse_document) --| Scan.many line_is_empty)
+  >> flat;
 
 in
 
-fun read_spans lines =
-  the_default [] (Scan.read stopper (Scan.repeat parse_span) lines);
+val read_document =
+  Antiquote.read #> Antiquote.split_lines #> map make_line #>
+  Scan.read stopper parse_documents #> the_default [];
 
 end;
-
-
-(* document structure *)
-
-fun read input =
-  Antiquote.read input
-  |> Antiquote.split_lines
-  |> map make_line
-  |> read_spans;
 
 end;
