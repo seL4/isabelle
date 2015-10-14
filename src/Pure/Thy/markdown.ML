@@ -43,29 +43,23 @@ fun check_blanks content =
 fun is_space ((s, _): Symbol_Pos.T) = s = Symbol.space;
 val is_empty = forall (fn Antiquote.Text ss => forall is_space ss | _ => false);
 
-fun line_kind (Antiquote.Text ss :: _) =
-      let
-        val (spaces, rest) = take_prefix is_space ss;
-        fun make_marker kind =
-          (case rest of
-            [(_, pos)] => (kind, pos)
-          | (_, pos) :: (" ", _) :: _ => (kind, pos)
-          | (_, pos) :: _ => error ("Missing space after item marker" ^ Position.here pos));
-        val marker =
-          (case rest of
-            ("\<^item>", _) :: _ => SOME (make_marker Itemize)
-          | ("\<^enum>", _) :: _ => SOME (make_marker Enumerate)
-          | ("\<^descr>", _) :: _ => SOME (make_marker Description)
-          | _ => NONE);
-      in (length spaces, marker) end
-  | line_kind _ = (0, NONE);
+val scan_prefix =
+  (Scan.many is_space >> length) --
+  Scan.option
+    ((Symbol_Pos.$$ "\<^item>" >> K Itemize ||
+      Symbol_Pos.$$ "\<^enum>" >> K Enumerate ||
+      Symbol_Pos.$$ "\<^descr>" >> K Description) -- Symbol_Pos.scan_pos);
+
+fun scan_line (Antiquote.Text ss :: _) =
+      the_default (0, NONE) (Scan.read Symbol_Pos.stopper scan_prefix ss)
+  | scan_line _ = (0, NONE);
 
 in
 
 fun make_line content =
   let
     val _ = check_blanks content;
-    val (indent, marker) = line_kind content;
+    val (indent, marker) = scan_line content;
   in Line {content = content, is_empty = is_empty content, indent = indent, marker = marker} end;
 
 end;
@@ -75,15 +69,17 @@ end;
 
 local
 
-val eof = make_line [Antiquote.Text [(Symbol.eof, Position.none)]];
+val eof =
+  Line {content = [Antiquote.Text [(Symbol.eof, Position.none)]],
+    is_empty = false, indent = 0, marker = NONE};
 val stopper = Scan.stopper (K eof) (fn line => line = eof);
 
-fun item_line line = is_some (line_marker line);
-fun plain_line line = is_none (line_marker line) andalso line <> eof;
+fun plain_line line =
+  not (line_is_empty line) andalso is_none (line_marker line) andalso line <> eof;
 
 val parse_span =
-  Scan.one item_line -- Scan.many plain_line >> op :: ||
   Scan.many1 plain_line ||
+  Scan.one (is_some o line_marker) -- Scan.many plain_line >> op :: ||
   Scan.many1 line_is_empty;
 
 in
