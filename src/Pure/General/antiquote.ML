@@ -42,7 +42,7 @@ fun split_lines input =
           | ([], _ :: rest) => flush #> split (Text rest)
           | (prefix, _ :: rest) => add (Text prefix) #> flush #> split (Text rest))
       | split a = add a;
-  in rev (#2 (flush (fold split input ([], [])))) end;
+  in if null input then [] else rev (#2 (flush (fold split input ([], [])))) end;
 
 
 (* reports *)
