@@ -126,17 +126,17 @@ text \<open>
 
   \begin{description}
 
-  \item[Open \dots] Open a new graph file.
+  \<^descr>[Open \dots] Open a new graph file.
 
-  \item[Export to PostScript] Outputs the current graph in Postscript
+  \<^descr>[Export to PostScript] Outputs the current graph in Postscript
   format, appropriately scaled to fit on one single sheet of A4 paper.
   The resulting file can be printed directly.
 
-  \item[Export to EPS] Outputs the current graph in Encapsulated
+  \<^descr>[Export to EPS] Outputs the current graph in Encapsulated
   Postscript format. The resulting file can be included in other
   documents.
 
-  \item[Quit] Quit the graph browser.
+  \<^descr>[Quit] Quit the graph browser.
 
   \end{description}
 \<close>
@@ -158,21 +158,21 @@ text \<open>
 
   \begin{description}
 
-  \item[@{text vertex_name}] The name of the vertex.
+  \<^descr>[@{text vertex_name}] The name of the vertex.
 
-  \item[@{text vertex_ID}] The vertex identifier. Note that there may
+  \<^descr>[@{text vertex_ID}] The vertex identifier. Note that there may
   be several vertices with equal names, whereas identifiers must be
   unique.
 
-  \item[@{text dir_name}] The name of the ``directory'' the vertex
+  \<^descr>[@{text dir_name}] The name of the ``directory'' the vertex
   should be placed in.  A ``@{verbatim "+"}'' sign after @{text
   dir_name} indicates that the nodes in the directory are initially
   visible. Directories are initially invisible by default.
 
-  \item[@{text path}] The path of the corresponding theory file. This
+  \<^descr>[@{text path}] The path of the corresponding theory file. This
   is specified relatively to the path of the graph definition file.
 
-  \item[List of successor/predecessor nodes] A ``@{verbatim "<"}''
+  \<^descr>[List of successor/predecessor nodes] A ``@{verbatim "<"}''
   sign before the list means that successor nodes are listed, a
   ``@{verbatim ">"}'' sign means that predecessor nodes are listed. If
   neither ``@{verbatim "<"}'' nor ``@{verbatim ">"}'' is found, the

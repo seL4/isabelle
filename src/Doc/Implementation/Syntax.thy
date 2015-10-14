@@ -90,10 +90,10 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML Syntax.read_typs}~@{text "ctxt strs"} parses and checks a
+  \<^descr> @{ML Syntax.read_typs}~@{text "ctxt strs"} parses and checks a
   simultaneous list of source strings as types of the logic.
 
-  \item @{ML Syntax.read_terms}~@{text "ctxt strs"} parses and checks a
+  \<^descr> @{ML Syntax.read_terms}~@{text "ctxt strs"} parses and checks a
   simultaneous list of source strings as terms of the logic.
   Type-reconstruction puts all parsed terms into the same scope: types of
   free variables ultimately need to coincide.
@@ -103,26 +103,26 @@ text %mlref \<open>
   is possible to use @{ML Type.constraint} on the intermediate pre-terms
   (\secref{sec:term-check}).
 
-  \item @{ML Syntax.read_props}~@{text "ctxt strs"} parses and checks a
+  \<^descr> @{ML Syntax.read_props}~@{text "ctxt strs"} parses and checks a
   simultaneous list of source strings as terms of the logic, with an implicit
   type-constraint for each argument to enforce type @{typ prop}; this also
   affects the inner syntax for parsing. The remaining type-reconstruction
   works as for @{ML Syntax.read_terms}.
 
-  \item @{ML Syntax.read_typ}, @{ML Syntax.read_term}, @{ML Syntax.read_prop}
+  \<^descr> @{ML Syntax.read_typ}, @{ML Syntax.read_term}, @{ML Syntax.read_prop}
   are like the simultaneous versions, but operate on a single argument only.
   This convenient shorthand is adequate in situations where a single item in
   its own scope is processed. Do not use @{ML "map o Syntax.read_term"} where
   @{ML Syntax.read_terms} is actually intended!
 
-  \item @{ML Syntax.pretty_typ}~@{text "ctxt T"} and @{ML
+  \<^descr> @{ML Syntax.pretty_typ}~@{text "ctxt T"} and @{ML
   Syntax.pretty_term}~@{text "ctxt t"} uncheck and pretty-print the given type
   or term, respectively. Although the uncheck phase acts on a simultaneous
   list as well, this is rarely used in practice, so only the singleton case is
   provided as combined pretty operation. There is no distinction of term vs.\
   proposition.
 
-  \item @{ML Syntax.string_of_typ} and @{ML Syntax.string_of_term} are
+  \<^descr> @{ML Syntax.string_of_typ} and @{ML Syntax.string_of_term} are
   convenient compositions of @{ML Syntax.pretty_typ} and @{ML
   Syntax.pretty_term} with @{ML Pretty.string_of} for output. The result may
   be concatenated with other strings, as long as there is no further
@@ -181,22 +181,22 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML Syntax.parse_typ}~@{text "ctxt str"} parses a source string as
+  \<^descr> @{ML Syntax.parse_typ}~@{text "ctxt str"} parses a source string as
   pre-type that is ready to be used with subsequent check operations.
 
-  \item @{ML Syntax.parse_term}~@{text "ctxt str"} parses a source string as
+  \<^descr> @{ML Syntax.parse_term}~@{text "ctxt str"} parses a source string as
   pre-term that is ready to be used with subsequent check operations.
 
-  \item @{ML Syntax.parse_prop}~@{text "ctxt str"} parses a source string as
+  \<^descr> @{ML Syntax.parse_prop}~@{text "ctxt str"} parses a source string as
   pre-term that is ready to be used with subsequent check operations. The
   inner syntax category is @{typ prop} and a suitable type-constraint is
   included to ensure that this information is observed in subsequent type
   reconstruction.
 
-  \item @{ML Syntax.unparse_typ}~@{text "ctxt T"} unparses a type after
+  \<^descr> @{ML Syntax.unparse_typ}~@{text "ctxt T"} unparses a type after
   uncheck operations, to turn it into a pretty tree.
 
-  \item @{ML Syntax.unparse_term}~@{text "ctxt T"} unparses a term after
+  \<^descr> @{ML Syntax.unparse_term}~@{text "ctxt T"} unparses a term after
   uncheck operations, to turn it into a pretty tree. There is no distinction
   for propositions here.
 
@@ -249,11 +249,11 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML Syntax.check_typs}~@{text "ctxt Ts"} checks a simultaneous list
+  \<^descr> @{ML Syntax.check_typs}~@{text "ctxt Ts"} checks a simultaneous list
   of pre-types as types of the logic.  Typically, this involves normalization
   of type synonyms.
 
-  \item @{ML Syntax.check_terms}~@{text "ctxt ts"} checks a simultaneous list
+  \<^descr> @{ML Syntax.check_terms}~@{text "ctxt ts"} checks a simultaneous list
   of pre-terms as terms of the logic. Typically, this involves type-inference
   and normalization term abbreviations. The types within the given terms are
   treated in the same way as for @{ML Syntax.check_typs}.
@@ -264,15 +264,15 @@ text %mlref \<open>
   is checked; afterwards the type arguments are recovered with @{ML
   Logic.dest_type}.
 
-  \item @{ML Syntax.check_props}~@{text "ctxt ts"} checks a simultaneous list
+  \<^descr> @{ML Syntax.check_props}~@{text "ctxt ts"} checks a simultaneous list
   of pre-terms as terms of the logic, such that all terms are constrained by
   type @{typ prop}. The remaining check operation works as @{ML
   Syntax.check_terms} above.
 
-  \item @{ML Syntax.uncheck_typs}~@{text "ctxt Ts"} unchecks a simultaneous
+  \<^descr> @{ML Syntax.uncheck_typs}~@{text "ctxt Ts"} unchecks a simultaneous
   list of types of the logic, in preparation of pretty printing.
 
-  \item @{ML Syntax.uncheck_terms}~@{text "ctxt ts"} unchecks a simultaneous
+  \<^descr> @{ML Syntax.uncheck_terms}~@{text "ctxt ts"} unchecks a simultaneous
   list of terms of the logic, in preparation of pretty printing. There is no
   distinction for propositions here.
 

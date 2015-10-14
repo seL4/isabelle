@@ -79,7 +79,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
 
   \begin{description}
 
-  \item \isakeyword{session}~@{text "A = B + body"} defines a new
+  \<^descr> \isakeyword{session}~@{text "A = B + body"} defines a new
   session @{text "A"} based on parent session @{text "B"}, with its
   content given in @{text body} (theories and auxiliary source files).
   Note that a parent (like @{text "HOL"}) is mandatory in practical
@@ -90,7 +90,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
   @{text "A"} should be sufficiently long and descriptive to stand on
   its own in a potentially large library.
 
-  \item \isakeyword{session}~@{text "A (groups)"} indicates a
+  \<^descr> \isakeyword{session}~@{text "A (groups)"} indicates a
   collection of groups where the new session is a member.  Group names
   are uninterpreted and merely follow certain conventions.  For
   example, the Isabelle distribution tags some important sessions by
@@ -98,7 +98,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
   their own conventions, but this requires some care to avoid clashes
   within this unchecked name space.
 
-  \item \isakeyword{session}~@{text "A"}~\isakeyword{in}~@{text "dir"}
+  \<^descr> \isakeyword{session}~@{text "A"}~\isakeyword{in}~@{text "dir"}
   specifies an explicit directory for this session; by default this is
   the current directory of the @{verbatim ROOT} file.
 
@@ -106,30 +106,30 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
   the session directory.  The prover process is run within the same as
   its current working directory.
 
-  \item \isakeyword{description}~@{text "text"} is a free-form
+  \<^descr> \isakeyword{description}~@{text "text"} is a free-form
   annotation for this session.
 
-  \item \isakeyword{options}~@{text "[x = a, y = b, z]"} defines
+  \<^descr> \isakeyword{options}~@{text "[x = a, y = b, z]"} defines
   separate options (\secref{sec:system-options}) that are used when
   processing this session, but \emph{without} propagation to child
   sessions.  Note that @{text "z"} abbreviates @{text "z = true"} for
   Boolean options.
 
-  \item \isakeyword{theories}~@{text "options names"} specifies a
+  \<^descr> \isakeyword{theories}~@{text "options names"} specifies a
   block of theories that are processed within an environment that is
   augmented by the given options, in addition to the global session
   options given before.  Any number of blocks of \isakeyword{theories}
   may be given.  Options are only active for each
   \isakeyword{theories} block separately.
 
-  \item \isakeyword{files}~@{text "files"} lists additional source
+  \<^descr> \isakeyword{files}~@{text "files"} lists additional source
   files that are involved in the processing of this session.  This
   should cover anything outside the formal content of the theory
   sources.  In contrast, files that are loaded formally
   within a theory, e.g.\ via @{command "ML_file"}, need not be
   declared again.
 
-  \item \isakeyword{document_files}~@{text "("}\isakeyword{in}~@{text
+  \<^descr> \isakeyword{document_files}~@{text "("}\isakeyword{in}~@{text
   "base_dir) files"} lists source files for document preparation,
   typically @{verbatim ".tex"} and @{verbatim ".sty"} for {\LaTeX}.
   Only these explicitly given files are copied from the base directory
@@ -138,7 +138,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
   structure of the @{text files} is preserved, which allows to
   reconstruct the original directory hierarchy of @{text "base_dir"}.
 
-  \item \isakeyword{document_files}~@{text "files"} abbreviates
+  \<^descr> \isakeyword{document_files}~@{text "files"} abbreviates
   \isakeyword{document_files}~@{text "("}\isakeyword{in}~@{text
   "document) files"}, i.e.\ document sources are taken from the base
   directory @{verbatim document} within the session root directory.

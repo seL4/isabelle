@@ -81,7 +81,7 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item Type @{ML_type Proof.state} represents Isar proof states.
+  \<^descr> Type @{ML_type Proof.state} represents Isar proof states.
   This is a block-structured configuration with proof context,
   linguistic mode, and optional goal.  The latter consists of goal
   context, goal facts (``@{text "using"}''), and tactical goal state
@@ -91,7 +91,7 @@ text %mlref \<open>
   refinement of some parts of the tactical goal --- how exactly is
   defined by the proof method that is applied in that situation.
 
-  \item @{ML Proof.assert_forward}, @{ML Proof.assert_chain}, @{ML
+  \<^descr> @{ML Proof.assert_forward}, @{ML Proof.assert_chain}, @{ML
   Proof.assert_backward} are partial identity functions that fail
   unless a certain linguistic mode is active, namely ``@{text
   "proof(state)"}'', ``@{text "proof(chain)"}'', ``@{text
@@ -101,24 +101,24 @@ text %mlref \<open>
   It is advisable study the implementations of existing proof commands
   for suitable modes to be asserted.
 
-  \item @{ML Proof.simple_goal}~@{text "state"} returns the structured
+  \<^descr> @{ML Proof.simple_goal}~@{text "state"} returns the structured
   Isar goal (if available) in the form seen by ``simple'' methods
   (like @{method simp} or @{method blast}).  The Isar goal facts are
   already inserted as premises into the subgoals, which are presented
   individually as in @{ML Proof.goal}.
 
-  \item @{ML Proof.goal}~@{text "state"} returns the structured Isar
+  \<^descr> @{ML Proof.goal}~@{text "state"} returns the structured Isar
   goal (if available) in the form seen by regular methods (like
   @{method rule}).  The auxiliary internal encoding of Pure
   conjunctions is split into individual subgoals as usual.
 
-  \item @{ML Proof.raw_goal}~@{text "state"} returns the structured
+  \<^descr> @{ML Proof.raw_goal}~@{text "state"} returns the structured
   Isar goal (if available) in the raw internal form seen by ``raw''
   methods (like @{method induct}).  This form is rarely appropriate
   for diagnostic tools; @{ML Proof.simple_goal} or @{ML Proof.goal}
   should be used in most situations.
 
-  \item @{ML Proof.theorem}~@{text "before_qed after_qed statement ctxt"}
+  \<^descr> @{ML Proof.theorem}~@{text "before_qed after_qed statement ctxt"}
   initializes a toplevel Isar proof state within a given context.
 
   The optional @{text "before_qed"} method is applied at the end of
@@ -150,7 +150,7 @@ text %mlantiq \<open>
 
   \begin{description}
 
-  \item @{text "@{Isar.goal}"} refers to the regular goal state (if
+  \<^descr> @{text "@{Isar.goal}"} refers to the regular goal state (if
   available) of the current proof state managed by the Isar toplevel
   --- as abstract value.
 
@@ -320,33 +320,33 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item Type @{ML_type Proof.method} represents proof methods as
+  \<^descr> Type @{ML_type Proof.method} represents proof methods as
   abstract type.
 
-  \item @{ML METHOD_CASES}~@{text "(fn facts => cases_tactic)"} wraps
+  \<^descr> @{ML METHOD_CASES}~@{text "(fn facts => cases_tactic)"} wraps
   @{text cases_tactic} depending on goal facts as proof method with
   cases; the goal context is passed via method syntax.
 
-  \item @{ML METHOD}~@{text "(fn facts => tactic)"} wraps @{text
+  \<^descr> @{ML METHOD}~@{text "(fn facts => tactic)"} wraps @{text
   tactic} depending on goal facts as regular proof method; the goal
   context is passed via method syntax.
 
-  \item @{ML SIMPLE_METHOD}~@{text "tactic"} wraps a tactic that
+  \<^descr> @{ML SIMPLE_METHOD}~@{text "tactic"} wraps a tactic that
   addresses all subgoals uniformly as simple proof method.  Goal facts
   are already inserted into all subgoals before @{text "tactic"} is
   applied.
 
-  \item @{ML SIMPLE_METHOD'}~@{text "tactic"} wraps a tactic that
+  \<^descr> @{ML SIMPLE_METHOD'}~@{text "tactic"} wraps a tactic that
   addresses a specific subgoal as simple proof method that operates on
   subgoal 1.  Goal facts are inserted into the subgoal then the @{text
   "tactic"} is applied.
 
-  \item @{ML Method.insert_tac}~@{text "facts i"} inserts @{text
+  \<^descr> @{ML Method.insert_tac}~@{text "facts i"} inserts @{text
   "facts"} into subgoal @{text "i"}.  This is convenient to reproduce
   part of the @{ML SIMPLE_METHOD} or @{ML SIMPLE_METHOD'} wrapping
   within regular @{ML METHOD}, for example.
 
-  \item @{ML Method.setup}~@{text "name parser description"} provides
+  \<^descr> @{ML Method.setup}~@{text "name parser description"} provides
   the functionality of the Isar command @{command method_setup} as ML
   function.
 
@@ -548,17 +548,17 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item Type @{ML_type attribute} represents attributes as concrete
+  \<^descr> Type @{ML_type attribute} represents attributes as concrete
   type alias.
 
-  \item @{ML Thm.rule_attribute}~@{text "(fn context => rule)"} wraps
+  \<^descr> @{ML Thm.rule_attribute}~@{text "(fn context => rule)"} wraps
   a context-dependent rule (mapping on @{ML_type thm}) as attribute.
 
-  \item @{ML Thm.declaration_attribute}~@{text "(fn thm => decl)"}
+  \<^descr> @{ML Thm.declaration_attribute}~@{text "(fn thm => decl)"}
   wraps a theorem-dependent declaration (mapping on @{ML_type
   Context.generic}) as attribute.
 
-  \item @{ML Attrib.setup}~@{text "name parser description"} provides
+  \<^descr> @{ML Attrib.setup}~@{text "name parser description"} provides
   the functionality of the Isar command @{command attribute_setup} as
   ML function.
 
@@ -576,7 +576,7 @@ text %mlantiq \<open>
 
   \begin{description}
 
-  \item @{text "@{attributes [\<dots>]}"} embeds attribute source
+  \<^descr> @{text "@{attributes [\<dots>]}"} embeds attribute source
   representation into the ML text, which is particularly useful with
   declarations like @{ML Local_Theory.note}.  Attribute names are
   internalized at compile time, but the source is unevaluated.  This

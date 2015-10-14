@@ -150,7 +150,7 @@ text \<open>
 
   \begin{description}
 
-  \item[@{setting_def USER_HOME}@{text "\<^sup>*"}] Is the cross-platform
+  \<^descr>[@{setting_def USER_HOME}@{text "\<^sup>*"}] Is the cross-platform
   user home directory.  On Unix systems this is usually the same as
   @{setting HOME}, but on Windows it is the regular home directory of
   the user, not the one of within the Cygwin root
@@ -158,12 +158,12 @@ text \<open>
   its HOME should point to the @{file_unchecked "/home"} directory tree or the
   Windows user home.}
 
-  \item[@{setting_def ISABELLE_HOME}@{text "\<^sup>*"}] is the location of the
+  \<^descr>[@{setting_def ISABELLE_HOME}@{text "\<^sup>*"}] is the location of the
   top-level Isabelle distribution directory. This is automatically
   determined from the Isabelle executable that has been invoked.  Do
   not attempt to set @{setting ISABELLE_HOME} yourself from the shell!
   
-  \item[@{setting_def ISABELLE_HOME_USER}] is the user-specific
+  \<^descr>[@{setting_def ISABELLE_HOME_USER}] is the user-specific
   counterpart of @{setting ISABELLE_HOME}. The default value is
   relative to @{file_unchecked "$USER_HOME/.isabelle"}, under rare
   circumstances this may be changed in the global setting file.
@@ -172,21 +172,21 @@ text \<open>
   defaults may be overridden by a private @{verbatim
   "$ISABELLE_HOME_USER/etc/settings"}.
 
-  \item[@{setting_def ISABELLE_PLATFORM_FAMILY}@{text "\<^sup>*"}] is
+  \<^descr>[@{setting_def ISABELLE_PLATFORM_FAMILY}@{text "\<^sup>*"}] is
   automatically set to the general platform family: @{verbatim linux},
   @{verbatim macos}, @{verbatim windows}.  Note that
   platform-dependent tools usually need to refer to the more specific
   identification according to @{setting ISABELLE_PLATFORM}, @{setting
   ISABELLE_PLATFORM32}, @{setting ISABELLE_PLATFORM64}.
 
-  \item[@{setting_def ISABELLE_PLATFORM}@{text "\<^sup>*"}] is automatically
+  \<^descr>[@{setting_def ISABELLE_PLATFORM}@{text "\<^sup>*"}] is automatically
   set to a symbolic identifier for the underlying hardware and
   operating system.  The Isabelle platform identification always
   refers to the 32 bit variant, even this is a 64 bit machine.  Note
   that the ML or Java runtime may have a different idea, depending on
   which binaries are actually run.
 
-  \item[@{setting_def ISABELLE_PLATFORM64}@{text "\<^sup>*"}] is similar to
+  \<^descr>[@{setting_def ISABELLE_PLATFORM64}@{text "\<^sup>*"}] is similar to
   @{setting ISABELLE_PLATFORM} but refers to the proper 64 bit variant
   on a platform that supports this; the value is empty for 32 bit.
   Note that the following bash expression (including the quotes)
@@ -194,18 +194,18 @@ text \<open>
 
   @{verbatim [display] \<open>"${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"\<close>}
 
-  \item[@{setting_def ISABELLE_PROCESS}@{text "\<^sup>*"}, @{setting
+  \<^descr>[@{setting_def ISABELLE_PROCESS}@{text "\<^sup>*"}, @{setting
   ISABELLE_TOOL}@{text "\<^sup>*"}] are automatically set to the full path
   names of the @{executable "isabelle_process"} and @{executable
   isabelle} executables, respectively.  Thus other tools and scripts
   need not assume that the @{file "$ISABELLE_HOME/bin"} directory is
   on the current search path of the shell.
   
-  \item[@{setting_def ISABELLE_IDENTIFIER}@{text "\<^sup>*"}] refers
+  \<^descr>[@{setting_def ISABELLE_IDENTIFIER}@{text "\<^sup>*"}] refers
   to the name of this Isabelle distribution, e.g.\ ``@{verbatim
   Isabelle2012}''.
 
-  \item[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME},
+  \<^descr>[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME},
   @{setting_def ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def
   ML_IDENTIFIER}@{text "\<^sup>*"}] specify the underlying ML system
   to be used for Isabelle.  There is only a fixed set of admissable
@@ -220,60 +220,60 @@ text \<open>
   automatically obtained by composing the values of @{setting
   ML_SYSTEM}, @{setting ML_PLATFORM} and the Isabelle version values.
 
-  \item[@{setting_def ML_SYSTEM_POLYML}@{text "\<^sup>*"}] is @{verbatim true}
+  \<^descr>[@{setting_def ML_SYSTEM_POLYML}@{text "\<^sup>*"}] is @{verbatim true}
   for @{setting ML_SYSTEM} values derived from Poly/ML, as opposed to
   SML/NJ where it is empty.  This is particularly useful with the
   build option @{system_option condition}
   (\secref{sec:system-options}) to restrict big sessions to something
   that SML/NJ can still handle.
 
-  \item[@{setting_def ISABELLE_JDK_HOME}] needs to point to a full JDK
+  \<^descr>[@{setting_def ISABELLE_JDK_HOME}] needs to point to a full JDK
   (Java Development Kit) installation with @{verbatim javac} and
   @{verbatim jar} executables.  This is essential for Isabelle/Scala
   and other JVM-based tools to work properly.  Note that conventional
   @{verbatim JAVA_HOME} usually points to the JRE (Java Runtime
   Environment), not JDK.
   
-  \item[@{setting_def ISABELLE_PATH}] is a list of directories
+  \<^descr>[@{setting_def ISABELLE_PATH}] is a list of directories
   (separated by colons) where Isabelle logic images may reside.  When
   looking up heaps files, the value of @{setting ML_IDENTIFIER} is
   appended to each component internally.
   
-  \item[@{setting_def ISABELLE_OUTPUT}@{text "\<^sup>*"}] is a
+  \<^descr>[@{setting_def ISABELLE_OUTPUT}@{text "\<^sup>*"}] is a
   directory where output heap files should be stored by default. The
   ML system and Isabelle version identifier is appended here, too.
   
-  \item[@{setting_def ISABELLE_BROWSER_INFO}] is the directory where
+  \<^descr>[@{setting_def ISABELLE_BROWSER_INFO}] is the directory where
   theory browser information (HTML text, graph data, and printable
   documents) is stored (see also \secref{sec:info}).  The default
   value is @{file_unchecked "$ISABELLE_HOME_USER/browser_info"}.
   
-  \item[@{setting_def ISABELLE_LOGIC}] specifies the default logic to
+  \<^descr>[@{setting_def ISABELLE_LOGIC}] specifies the default logic to
   load if none is given explicitely by the user.  The default value is
   @{verbatim HOL}.
   
-  \item[@{setting_def ISABELLE_LINE_EDITOR}] specifies the
+  \<^descr>[@{setting_def ISABELLE_LINE_EDITOR}] specifies the
   line editor for the @{tool_ref console} interface.
 
-  \item[@{setting_def ISABELLE_LATEX}, @{setting_def
+  \<^descr>[@{setting_def ISABELLE_LATEX}, @{setting_def
   ISABELLE_PDFLATEX}, @{setting_def ISABELLE_BIBTEX}] refer to {\LaTeX}
   related tools for Isabelle document preparation (see also
   \secref{sec:tool-latex}).
   
-  \item[@{setting_def ISABELLE_TOOLS}] is a colon separated list of
+  \<^descr>[@{setting_def ISABELLE_TOOLS}] is a colon separated list of
   directories that are scanned by @{executable isabelle} for external
   utility programs (see also \secref{sec:isabelle-tool}).
   
-  \item[@{setting_def ISABELLE_DOCS}] is a colon separated list of
+  \<^descr>[@{setting_def ISABELLE_DOCS}] is a colon separated list of
   directories with documentation files.
 
-  \item[@{setting_def PDF_VIEWER}] specifies the program to be used
+  \<^descr>[@{setting_def PDF_VIEWER}] specifies the program to be used
   for displaying @{verbatim pdf} files.
 
-  \item[@{setting_def DVI_VIEWER}] specifies the program to be used
+  \<^descr>[@{setting_def DVI_VIEWER}] specifies the program to be used
   for displaying @{verbatim dvi} files.
   
-  \item[@{setting_def ISABELLE_TMP_PREFIX}@{text "\<^sup>*"}] is the
+  \<^descr>[@{setting_def ISABELLE_TMP_PREFIX}@{text "\<^sup>*"}] is the
   prefix from which any running @{executable "isabelle_process"}
   derives an individual directory for temporary files.
   

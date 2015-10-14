@@ -64,41 +64,41 @@ text \<open>
 
   \begin{description}
 
-  \item @{command "typ"}~@{text \<tau>} reads and prints a type expression
+  \<^descr> @{command "typ"}~@{text \<tau>} reads and prints a type expression
   according to the current context.
 
-  \item @{command "typ"}~@{text "\<tau> :: s"} uses type-inference to
+  \<^descr> @{command "typ"}~@{text "\<tau> :: s"} uses type-inference to
   determine the most general way to make @{text "\<tau>"} conform to sort
   @{text "s"}.  For concrete @{text "\<tau>"} this checks if the type
   belongs to that sort.  Dummy type parameters ``@{text "_"}''
   (underscore) are assigned to fresh type variables with most general
   sorts, according the the principles of type-inference.
 
-  \item @{command "term"}~@{text t} and @{command "prop"}~@{text \<phi>}
+  \<^descr> @{command "term"}~@{text t} and @{command "prop"}~@{text \<phi>}
   read, type-check and print terms or propositions according to the
   current theory or proof context; the inferred type of @{text t} is
   output as well.  Note that these commands are also useful in
   inspecting the current environment of term abbreviations.
 
-  \item @{command "thm"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} retrieves
+  \<^descr> @{command "thm"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} retrieves
   theorems from the current theory or proof context.  Note that any
   attributes included in the theorem specifications are applied to a
   temporary context derived from the current theory or proof; the
   result is discarded, i.e.\ attributes involved in @{text "a\<^sub>1,
   \<dots>, a\<^sub>n"} do not have any permanent effect.
 
-  \item @{command "prf"} displays the (compact) proof term of the
+  \<^descr> @{command "prf"} displays the (compact) proof term of the
   current proof state (if present), or of the given theorems. Note
   that this requires proof terms to be switched on for the current
   object logic (see the ``Proof terms'' section of the Isabelle
   reference manual for information on how to do this).
 
-  \item @{command "full_prf"} is like @{command "prf"}, but displays
+  \<^descr> @{command "full_prf"} is like @{command "prf"}, but displays
   the full proof term, i.e.\ also displays information omitted in the
   compact proof term, which is denoted by ``@{text _}'' placeholders
   there.
 
-  \item @{command "print_state"} prints the current proof state (if
+  \<^descr> @{command "print_state"} prints the current proof state (if
   present), including current facts and goals.
 
   \end{description}
@@ -146,14 +146,14 @@ text \<open>
 
   \begin{description}
 
-  \item @{attribute show_markup} controls direct inlining of markup
+  \<^descr> @{attribute show_markup} controls direct inlining of markup
   into the printed representation of formal entities --- notably type
   and sort constraints.  This enables Prover IDE users to retrieve
   that information via tooltips or popups while hovering with the
   mouse over the output window, for example.  Consequently, this
   option is enabled by default for Isabelle/jEdit.
 
-  \item @{attribute show_types} and @{attribute show_sorts} control
+  \<^descr> @{attribute show_types} and @{attribute show_sorts} control
   printing of type constraints for term variables, and sort
   constraints for type variables.  By default, neither of these are
   shown in output.  If @{attribute show_sorts} is enabled, types are
@@ -165,29 +165,29 @@ text \<open>
   inference rule fails to resolve with some goal, or why a rewrite
   rule does not apply as expected.
 
-  \item @{attribute show_consts} controls printing of types of
+  \<^descr> @{attribute show_consts} controls printing of types of
   constants when displaying a goal state.
 
   Note that the output can be enormous, because polymorphic constants
   often occur at several different type instances.
 
-  \item @{attribute show_abbrevs} controls folding of constant
+  \<^descr> @{attribute show_abbrevs} controls folding of constant
   abbreviations.
 
-  \item @{attribute show_brackets} controls bracketing in pretty
+  \<^descr> @{attribute show_brackets} controls bracketing in pretty
   printed output.  If enabled, all sub-expressions of the pretty
   printing tree will be parenthesized, even if this produces malformed
   term syntax!  This crude way of showing the internal structure of
   pretty printed entities may occasionally help to diagnose problems
   with operator priorities, for example.
 
-  \item @{attribute names_long}, @{attribute names_short}, and
+  \<^descr> @{attribute names_long}, @{attribute names_short}, and
   @{attribute names_unique} control the way of printing fully
   qualified internal names in external form.  See also
   \secref{sec:antiq} for the document antiquotation options of the
   same names.
 
-  \item @{attribute eta_contract} controls @{text "\<eta>"}-contracted
+  \<^descr> @{attribute eta_contract} controls @{text "\<eta>"}-contracted
   printing of terms.
 
   The @{text \<eta>}-contraction law asserts @{prop "(\<lambda>x. f x) \<equiv> f"},
@@ -207,15 +207,15 @@ text \<open>
   rewriting operate modulo @{text "\<alpha>\<beta>\<eta>"}-conversion, some other tools
   might look at terms more discretely.
 
-  \item @{attribute goals_limit} controls the maximum number of
+  \<^descr> @{attribute goals_limit} controls the maximum number of
   subgoals to be printed.
 
-  \item @{attribute show_main_goal} controls whether the main result
+  \<^descr> @{attribute show_main_goal} controls whether the main result
   to be proven should be displayed.  This information might be
   relevant for schematic goals, to inspect the current claim that has
   been synthesized so far.
 
-  \item @{attribute show_hyps} controls printing of implicit
+  \<^descr> @{attribute show_hyps} controls printing of implicit
   hypotheses of local facts.  Normally, only those hypotheses are
   displayed that are \emph{not} covered by the assumptions of the
   current context: this situation indicates a fault in some tool being
@@ -225,7 +225,7 @@ text \<open>
   can be enforced, which is occasionally useful for diagnostic
   purposes.
 
-  \item @{attribute show_tags} controls printing of extra annotations
+  \<^descr> @{attribute show_tags} controls printing of extra annotations
   within theorems, such as internal position information, or the case
   names being attached by the attribute @{attribute case_names}.
 
@@ -233,7 +233,7 @@ text \<open>
   attributes provide low-level access to the collection of tags
   associated with a theorem.
 
-  \item @{attribute show_question_marks} controls printing of question
+  \<^descr> @{attribute show_question_marks} controls printing of question
   marks for schematic variables, such as @{text ?x}.  Only the leading
   question mark is affected, the remaining text is unchanged
   (including proper markup for schematic variables that might be
@@ -259,12 +259,12 @@ text \<open>
 
   \begin{description}
 
-  \item @{ML "print_mode_value ()"} yields the list of currently
+  \<^descr> @{ML "print_mode_value ()"} yields the list of currently
   active print mode names.  This should be understood as symbolic
   representation of certain individual features for printing (with
   precedence from left to right).
 
-  \item @{ML Print_Mode.with_modes}~@{text "modes f x"} evaluates
+  \<^descr> @{ML Print_Mode.with_modes}~@{text "modes f x"} evaluates
   @{text "f x"} in an execution context where the print mode is
   prepended by the given @{text "modes"}.  This provides a thread-safe
   way to augment print modes.  It is also monotonic in the set of mode
@@ -379,7 +379,7 @@ text \<open>In full generality, mixfix declarations work as follows.
 
   \begin{description}
 
-  \item @{text "d"} is a delimiter, namely a non-empty sequence of
+  \<^descr> @{text "d"} is a delimiter, namely a non-empty sequence of
   characters other than the following special characters:
 
   \<^medskip>
@@ -393,7 +393,7 @@ text \<open>In full generality, mixfix declarations work as follows.
   \end{tabular}
   \<^medskip>
 
-  \item @{verbatim "'"} escapes the special meaning of these
+  \<^descr> @{verbatim "'"} escapes the special meaning of these
   meta-characters, producing a literal version of the following
   character, unless that is a blank.
 
@@ -401,26 +401,26 @@ text \<open>In full generality, mixfix declarations work as follows.
   affecting printing, but input tokens may have additional white space
   here.
 
-  \item @{verbatim "_"} is an argument position, which stands for a
+  \<^descr> @{verbatim "_"} is an argument position, which stands for a
   certain syntactic category in the underlying grammar.
 
-  \item @{text "\<index>"} is an indexed argument position; this is the place
+  \<^descr> @{text "\<index>"} is an indexed argument position; this is the place
   where implicit structure arguments can be attached.
 
-  \item @{text "s"} is a non-empty sequence of spaces for printing.
+  \<^descr> @{text "s"} is a non-empty sequence of spaces for printing.
   This and the following specifications do not affect parsing at all.
 
-  \item @{verbatim "("}@{text n} opens a pretty printing block.  The
+  \<^descr> @{verbatim "("}@{text n} opens a pretty printing block.  The
   optional number specifies how much indentation to add when a line
   break occurs within the block.  If the parenthesis is not followed
   by digits, the indentation defaults to 0.  A block specified via
   @{verbatim "(00"} is unbreakable.
 
-  \item @{verbatim ")"} closes a pretty printing block.
+  \<^descr> @{verbatim ")"} closes a pretty printing block.
 
-  \item @{verbatim "//"} forces a line break.
+  \<^descr> @{verbatim "//"} forces a line break.
 
-  \item @{verbatim "/"}@{text s} allows a line break.  Here @{text s}
+  \<^descr> @{verbatim "/"}@{text s} allows a line break.  Here @{text s}
   stands for the string of spaces (zero or more) right after the
   slash.  These spaces are printed if the break is \emph{not} taken.
 
@@ -534,23 +534,23 @@ text \<open>
 
   \begin{description}
 
-  \item @{command "type_notation"}~@{text "c (mx)"} associates mixfix
+  \<^descr> @{command "type_notation"}~@{text "c (mx)"} associates mixfix
   syntax with an existing type constructor.  The arity of the
   constructor is retrieved from the context.
 
-  \item @{command "no_type_notation"} is similar to @{command
+  \<^descr> @{command "no_type_notation"} is similar to @{command
   "type_notation"}, but removes the specified syntax annotation from
   the present context.
 
-  \item @{command "notation"}~@{text "c (mx)"} associates mixfix
+  \<^descr> @{command "notation"}~@{text "c (mx)"} associates mixfix
   syntax with an existing constant or fixed variable.  The type
   declaration of the given entity is retrieved from the context.
 
-  \item @{command "no_notation"} is similar to @{command "notation"},
+  \<^descr> @{command "no_notation"} is similar to @{command "notation"},
   but removes the specified syntax annotation from the present
   context.
 
-  \item @{command "write"} is similar to @{command "notation"}, but
+  \<^descr> @{command "write"} is similar to @{command "notation"}, but
   works within an Isar proof body.
 
   \end{description}
@@ -773,15 +773,15 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
 
   \begin{description}
 
-  \item @{syntax_ref (inner) any} denotes any term.
+  \<^descr> @{syntax_ref (inner) any} denotes any term.
 
-  \item @{syntax_ref (inner) prop} denotes meta-level propositions,
+  \<^descr> @{syntax_ref (inner) prop} denotes meta-level propositions,
   which are terms of type @{typ prop}.  The syntax of such formulae of
   the meta-logic is carefully distinguished from usual conventions for
   object-logics.  In particular, plain @{text "\<lambda>"}-term notation is
   \emph{not} recognized as @{syntax (inner) prop}.
 
-  \item @{syntax_ref (inner) aprop} denotes atomic propositions, which
+  \<^descr> @{syntax_ref (inner) aprop} denotes atomic propositions, which
   are embedded into regular @{syntax (inner) prop} by means of an
   explicit @{verbatim PROP} token.
 
@@ -791,7 +791,7 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
   the printed version will appear like @{syntax (inner) logic} and
   cannot be parsed again as @{syntax (inner) prop}.
 
-  \item @{syntax_ref (inner) logic} denotes arbitrary terms of a
+  \<^descr> @{syntax_ref (inner) logic} denotes arbitrary terms of a
   logical type, excluding type @{typ prop}.  This is the main
   syntactic category of object-logic entities, covering plain @{text
   \<lambda>}-term notation (variables, abstraction, application), plus
@@ -801,28 +801,28 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
   (excluding @{typ prop}) are \emph{collapsed} to this single category
   of @{syntax (inner) logic}.
 
-  \item @{syntax_ref (inner) index} denotes an optional index term for
+  \<^descr> @{syntax_ref (inner) index} denotes an optional index term for
   indexed syntax.  If omitted, it refers to the first @{keyword_ref
   "structure"} variable in the context.  The special dummy ``@{text
   "\<index>"}'' serves as pattern variable in mixfix annotations that
   introduce indexed notation.
 
-  \item @{syntax_ref (inner) idt} denotes identifiers, possibly
+  \<^descr> @{syntax_ref (inner) idt} denotes identifiers, possibly
   constrained by types.
 
-  \item @{syntax_ref (inner) idts} denotes a sequence of @{syntax_ref
+  \<^descr> @{syntax_ref (inner) idts} denotes a sequence of @{syntax_ref
   (inner) idt}.  This is the most basic category for variables in
   iterated binders, such as @{text "\<lambda>"} or @{text "\<And>"}.
 
-  \item @{syntax_ref (inner) pttrn} and @{syntax_ref (inner) pttrns}
+  \<^descr> @{syntax_ref (inner) pttrn} and @{syntax_ref (inner) pttrns}
   denote patterns for abstraction, cases bindings etc.  In Pure, these
   categories start as a merely copy of @{syntax (inner) idt} and
   @{syntax (inner) idts}, respectively.  Object-logics may add
   additional productions for binding forms.
 
-  \item @{syntax_ref (inner) type} denotes types of the meta-logic.
+  \<^descr> @{syntax_ref (inner) type} denotes types of the meta-logic.
 
-  \item @{syntax_ref (inner) sort} denotes meta-level sorts.
+  \<^descr> @{syntax_ref (inner) sort} denotes meta-level sorts.
 
   \end{description}
 
@@ -851,20 +851,20 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
 
   \begin{description}
 
-  \item A type ``@{text "_"}'' or ``@{text "_ :: sort"}'' acts like an
+  \<^descr> A type ``@{text "_"}'' or ``@{text "_ :: sort"}'' acts like an
   anonymous inference parameter, which is filled-in according to the
   most general type produced by the type-checking phase.
 
-  \item A bound ``@{text "_"}'' refers to a vacuous abstraction, where
+  \<^descr> A bound ``@{text "_"}'' refers to a vacuous abstraction, where
   the body does not refer to the binding introduced here.  As in the
   term @{term "\<lambda>x _. x"}, which is @{text "\<alpha>"}-equivalent to @{text
   "\<lambda>x y. x"}.
 
-  \item A free ``@{text "_"}'' refers to an implicit outer binding.
+  \<^descr> A free ``@{text "_"}'' refers to an implicit outer binding.
   Higher definitional packages usually allow forms like @{text "f x _
   = x"}.
 
-  \item A schematic ``@{text "_"}'' (within a term pattern, see
+  \<^descr> A schematic ``@{text "_"}'' (within a term pattern, see
   \secref{sec:term-decls}) refers to an anonymous variable that is
   implicitly abstracted over its context of locally bound variables.
   For example, this allows pattern matching of @{text "{x. f x = g
@@ -873,18 +873,18 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
 
   \end{description}
 
-  \item The three literal dots ``@{verbatim "..."}'' may be also
+  \<^descr> The three literal dots ``@{verbatim "..."}'' may be also
   written as ellipsis symbol @{verbatim "\<dots>"}.  In both cases this
   refers to a special schematic variable, which is bound in the
   context.  This special term abbreviation works nicely with
   calculational reasoning (\secref{sec:calculation}).
 
-  \item @{verbatim CONST} ensures that the given identifier is treated
+  \<^descr> @{verbatim CONST} ensures that the given identifier is treated
   as constant term, and passed through the parse tree in fully
   internalized form.  This is particularly relevant for translation
   rules (\secref{sec:syn-trans}), notably on the RHS.
 
-  \item @{verbatim XCONST} is similar to @{verbatim CONST}, but
+  \<^descr> @{verbatim XCONST} is similar to @{verbatim CONST}, but
   retains the constant name as given.  This is only relevant to
   translation rules (\secref{sec:syn-trans}), notably on the LHS.
 
@@ -901,16 +901,16 @@ text \<open>
 
   \begin{description}
 
-  \item @{command "print_syntax"} prints the inner syntax of the
+  \<^descr> @{command "print_syntax"} prints the inner syntax of the
   current context.  The output can be quite large; the most important
   sections are explained below.
 
   \begin{description}
 
-  \item @{text "lexicon"} lists the delimiters of the inner token
+  \<^descr> @{text "lexicon"} lists the delimiters of the inner token
   language; see \secref{sec:inner-lex}.
 
-  \item @{text "prods"} lists the productions of the underlying
+  \<^descr> @{text "prods"} lists the productions of the underlying
   priority grammar; see \secref{sec:priority-grammar}.
 
   The nonterminal @{text "A\<^sup>(\<^sup>p\<^sup>)"} is rendered in plain text as @{text
@@ -931,18 +931,18 @@ text \<open>
   Priority information attached to chain productions is ignored; only
   the dummy value @{text "-1"} is displayed.
 
-  \item @{text "print modes"} lists the alternative print modes
+  \<^descr> @{text "print modes"} lists the alternative print modes
   provided by this grammar; see \secref{sec:print-modes}.
 
-  \item @{text "parse_rules"} and @{text "print_rules"} relate to
+  \<^descr> @{text "parse_rules"} and @{text "print_rules"} relate to
   syntax translations (macros); see \secref{sec:syn-trans}.
 
-  \item @{text "parse_ast_translation"} and @{text
+  \<^descr> @{text "parse_ast_translation"} and @{text
   "print_ast_translation"} list sets of constants that invoke
   translation functions for abstract syntax trees, which are only
   required in very special situations; see \secref{sec:tr-funs}.
 
-  \item @{text "parse_translation"} and @{text "print_translation"}
+  \<^descr> @{text "parse_translation"} and @{text "print_translation"}
   list the sets of constants that invoke regular translation
   functions; see \secref{sec:tr-funs}.
 
@@ -976,10 +976,10 @@ text \<open>
 
   \begin{description}
 
-  \item @{attribute syntax_ambiguity_warning} controls output of
+  \<^descr> @{attribute syntax_ambiguity_warning} controls output of
   explicit warning messages about syntax ambiguity.
 
-  \item @{attribute syntax_ambiguity_limit} determines the number of
+  \<^descr> @{attribute syntax_ambiguity_limit} determines the number of
   resulting parse trees that are shown as part of the printed message
   in case of an ambiguity.
 
@@ -1197,11 +1197,11 @@ text \<open>
 
   \begin{description}
 
-  \item @{command "nonterminal"}~@{text c} declares a type
+  \<^descr> @{command "nonterminal"}~@{text c} declares a type
   constructor @{text c} (without arguments) to act as purely syntactic
   type: a nonterminal symbol of the inner syntax.
 
-  \item @{command "syntax"}~@{text "(mode) c :: \<sigma> (mx)"} augments the
+  \<^descr> @{command "syntax"}~@{text "(mode) c :: \<sigma> (mx)"} augments the
   priority grammar and the pretty printer table for the given print
   mode (default @{verbatim \<open>""\<close>}). An optional keyword @{keyword_ref
   "output"} means that only the pretty printer table is affected.
@@ -1251,11 +1251,11 @@ text \<open>
   resulting parse tree @{text "t"} is copied directly, without any
   further decoration.
 
-  \item @{command "no_syntax"}~@{text "(mode) decls"} removes grammar
+  \<^descr> @{command "no_syntax"}~@{text "(mode) decls"} removes grammar
   declarations (and translations) resulting from @{text decls}, which
   are interpreted in the same manner as for @{command "syntax"} above.
 
-  \item @{command "translations"}~@{text rules} specifies syntactic
+  \<^descr> @{command "translations"}~@{text rules} specifies syntactic
   translation rules (i.e.\ macros) as first-order rewrite rules on
   ASTs (\secref{sec:ast}).  The theory context maintains two
   independent lists translation rules: parse rules (@{verbatim "=>"}
@@ -1302,11 +1302,11 @@ text \<open>
 
   \end{itemize}
 
-  \item @{command "no_translations"}~@{text rules} removes syntactic
+  \<^descr> @{command "no_translations"}~@{text rules} removes syntactic
   translation rules, which are interpreted in the same manner as for
   @{command "translations"} above.
 
-  \item @{attribute syntax_ast_trace} and @{attribute
+  \<^descr> @{attribute syntax_ast_trace} and @{attribute
   syntax_ast_stats} control diagnostic output in the AST normalization
   process, when translation rules are applied to concrete input or
   output.
@@ -1441,7 +1441,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command parse_translation} etc. declare syntax translation
+  \<^descr> @{command parse_translation} etc. declare syntax translation
   functions to the theory.  Any of these commands have a single
   @{syntax text} argument that refers to an ML expression of
   appropriate type as follows:
@@ -1473,14 +1473,14 @@ text \<open>
   associated with the translation functions of a theory under @{text
   "parse_ast_translation"} etc.
 
-  \item @{text "@{class_syntax c}"}, @{text "@{type_syntax c}"},
+  \<^descr> @{text "@{class_syntax c}"}, @{text "@{type_syntax c}"},
   @{text "@{const_syntax c}"} inline the authentic syntax name of the
   given formal entities into the ML source.  This is the
   fully-qualified logical name prefixed by a special marker to
   indicate its kind: thus different logical name spaces are properly
   distinguished within parse trees.
 
-  \item @{text "@{const_syntax c}"} inlines the name @{text "c"} of
+  \<^descr> @{text "@{const_syntax c}"} inlines the name @{text "c"} of
   the given syntax constant, having checked that it has been declared
   via some @{command syntax} commands within the theory context.  Note
   that the usual naming convention makes syntax constants start with
@@ -1517,12 +1517,12 @@ text \<open>The different kinds of translation functions are invoked during
 
   \begin{description}
 
-  \item [Parse translations] are applied bottom-up.  The arguments are
+  \<^descr>[Parse translations] are applied bottom-up.  The arguments are
   already in translated form.  The translations must not fail;
   exceptions trigger an error message.  There may be at most one
   function associated with any syntactic name.
 
-  \item [Print translations] are applied top-down.  They are supplied
+  \<^descr>[Print translations] are applied top-down.  They are supplied
   with arguments that are partly still in internal form.  The result
   again undergoes translation; therefore a print translation should
   not introduce as head the very constant that invoked it.  The

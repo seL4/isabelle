@@ -20,32 +20,32 @@ text \<open>
 
   \begin{description}
 
-  \item [PIDE] is a general framework for Prover IDEs based on Isabelle/Scala.
+  \<^descr>[PIDE] is a general framework for Prover IDEs based on Isabelle/Scala.
   It is built around a concept of parallel and asynchronous document
   processing, which is supported natively by the parallel proof engine that is
   implemented in Isabelle/ML. The traditional prover command loop is given up;
   instead there is direct support for editing of source text, with rich formal
   markup for GUI rendering.
 
-  \item [Isabelle/ML] is the implementation and extension language of
+  \<^descr>[Isabelle/ML] is the implementation and extension language of
   Isabelle, see also @{cite "isabelle-implementation"}. It is integrated
   into the logical context of Isabelle/Isar and allows to manipulate
   logical entities directly. Arbitrary add-on tools may be implemented
   for object-logics such as Isabelle/HOL.
 
-  \item [Isabelle/Scala] is the system programming language of
+  \<^descr>[Isabelle/Scala] is the system programming language of
   Isabelle. It extends the pure logical environment of Isabelle/ML
   towards the ``real world'' of graphical user interfaces, text
   editors, IDE frameworks, web services etc.  Special infrastructure
   allows to transfer algebraic datatypes and formatted text easily
   between ML and Scala, using asynchronous protocol commands.
 
-  \item [jEdit] is a sophisticated text editor implemented in
+  \<^descr>[jEdit] is a sophisticated text editor implemented in
   Java.\footnote{@{url "http://www.jedit.org"}} It is easily extensible
   by plugins written in languages that work on the JVM, e.g.\
   Scala\footnote{@{url "http://www.scala-lang.org"}}.
 
-  \item [Isabelle/jEdit] is the main example application of the PIDE
+  \<^descr>[Isabelle/jEdit] is the main example application of the PIDE
   framework and the default user-interface for Isabelle. It targets
   both beginners and experts. Technically, Isabelle/jEdit combines a
   slightly modified version of the jEdit code base with a special
@@ -288,7 +288,7 @@ text \<open>
 
   \begin{description}
 
-  \item[Linux:] The platform-independent \emph{Nimbus} is used by
+  \<^descr>[Linux:] The platform-independent \emph{Nimbus} is used by
   default.
 
   \emph{GTK+} also works under the side-condition that the overall GTK theme
@@ -300,10 +300,10 @@ text \<open>
   ``4K'' or ``UHD'' models), because the rendering by the external library is
   subject to global system settings for font scaling.}
 
-  \item[Windows:] Regular \emph{Windows} is used by default, but
+  \<^descr>[Windows:] Regular \emph{Windows} is used by default, but
   \emph{Windows Classic} also works.
 
-  \item[Mac OS X:] Regular \emph{Mac OS X} is used by default.
+  \<^descr>[Mac OS X:] Regular \emph{Mac OS X} is used by default.
 
   The bundled \emph{MacOSX} plugin provides various functions that are
   expected from applications on that particular platform: quit from menu or
@@ -1156,14 +1156,14 @@ text \<open>
 
   \begin{description}
 
-  \item[] @{verbatim "`"} (single ASCII back-quote) supports \emph{quotations}
+  \<^descr> @{verbatim "`"} (single ASCII back-quote) supports \emph{quotations}
   via text cartouches. There are three selections, which are always presented
   in the same order and do not depend on any context information. The default
   choice produces a template ``@{text "\<open>\<box>\<close>"}'', where the box indicates the
   cursor position after insertion; the other choices help to repair the block
   structure of unbalanced text cartouches.
 
-  \item[] @{verbatim "@{"} is completed to the template ``@{text "@{\<box>}"}'',
+  \<^descr> @{verbatim "@{"} is completed to the template ``@{text "@{\<box>}"}'',
   where the box indicates the cursor position after insertion. Here it is
   convenient to use the wildcard ``@{verbatim __}'' or a more specific name
   prefix to let semantic completion of name-space entries propose
@@ -1344,18 +1344,18 @@ text \<open>
 
   \begin{description}
 
-  \item[Explicit completion] works via action @{action_ref
+  \<^descr>[Explicit completion] works via action @{action_ref
   "isabelle.complete"} with keyboard shortcut @{verbatim "C+b"}. This
   overrides the shortcut for @{action_ref "complete-word"} in jEdit, but it is
   possible to restore the original jEdit keyboard mapping of @{action
   "complete-word"} via \emph{Global Options~/ Shortcuts} and invent a
   different one for @{action "isabelle.complete"}.
 
-  \item[Explicit spell-checker completion] works via @{action_ref
+  \<^descr>[Explicit spell-checker completion] works via @{action_ref
   "isabelle.complete-word"}, which is exposed in the jEdit context menu, if
   the mouse points to a word that the spell-checker can complete.
 
-  \item[Implicit completion] works via regular keyboard input of the editor.
+  \<^descr>[Implicit completion] works via regular keyboard input of the editor.
   It depends on further side-conditions:
 
   \begin{enumerate}
@@ -1436,15 +1436,15 @@ text \<open>
 
   \begin{description}
 
-  \item[No selection.] The original is removed and the replacement inserted,
+  \<^descr>[No selection.] The original is removed and the replacement inserted,
   depending on the caret position.
 
-  \item[Rectangular selection of zero width.] This special case is treated by
+  \<^descr>[Rectangular selection of zero width.] This special case is treated by
   jEdit as ``tall caret'' and insertion of completion imitates its normal
   behaviour: separate copies of the replacement are inserted for each line of
   the selection.
 
-  \item[Other rectangular selection or multiple selections.] Here the original
+  \<^descr>[Other rectangular selection or multiple selections.] Here the original
   is removed and the replacement is inserted for each line (or segment) of the
   selection.
 

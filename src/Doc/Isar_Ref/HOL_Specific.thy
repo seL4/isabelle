@@ -118,7 +118,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "inductive"} and @{command (HOL)
+  \<^descr> @{command (HOL) "inductive"} and @{command (HOL)
   "coinductive"} define (co)inductive predicates from the introduction
   rules.
 
@@ -139,15 +139,15 @@ text \<open>
   \emph{monotonicity theorems}, which are required for each operator
   applied to a recursive set in the introduction rules.
 
-  \item @{command (HOL) "inductive_set"} and @{command (HOL)
+  \<^descr> @{command (HOL) "inductive_set"} and @{command (HOL)
   "coinductive_set"} are wrappers for to the previous commands for
   native HOL predicates.  This allows to define (co)inductive sets,
   where multiple arguments are simulated via tuples.
 
-  \item @{command "print_inductives"} prints (co)inductive definitions and
+  \<^descr> @{command "print_inductives"} prints (co)inductive definitions and
   monotonicity rules; the ``@{text "!"}'' option indicates extra verbosity.
 
-  \item @{attribute (HOL) mono} declares monotonicity rules in the
+  \<^descr> @{attribute (HOL) mono} declares monotonicity rules in the
   context.  These rule are involved in the automated monotonicity
   proof of the above inductive and coinductive definitions.
 
@@ -162,17 +162,17 @@ text \<open>A (co)inductive definition of @{text R} provides the following
 
   \begin{description}
 
-  \item @{text R.intros} is the list of introduction rules as proven
+  \<^descr> @{text R.intros} is the list of introduction rules as proven
   theorems, for the recursive predicates (or sets).  The rules are
   also available individually, using the names given them in the
   theory file;
 
-  \item @{text R.cases} is the case analysis (or elimination) rule;
+  \<^descr> @{text R.cases} is the case analysis (or elimination) rule;
 
-  \item @{text R.induct} or @{text R.coinduct} is the (co)induction
+  \<^descr> @{text R.induct} or @{text R.coinduct} is the (co)induction
   rule;
 
-  \item @{text R.simps} is the equation unrolling the fixpoint of the
+  \<^descr> @{text R.simps} is the equation unrolling the fixpoint of the
   predicate one step.
 
   \end{description}
@@ -292,7 +292,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "primrec"} defines primitive recursive functions
+  \<^descr> @{command (HOL) "primrec"} defines primitive recursive functions
   over datatypes (see also @{command_ref (HOL) datatype}). The given @{text
   equations} specify reduction rules that are produced by instantiating the
   generic combinator for primitive recursion that is available for each
@@ -315,7 +315,7 @@ text \<open>
   normalize expressions of @{text "f"} applied to datatype constructions, by
   simulating symbolic computation via rewriting.
 
-  \item @{command (HOL) "function"} defines functions by general wellfounded
+  \<^descr> @{command (HOL) "function"} defines functions by general wellfounded
   recursion. A detailed description with examples can be found in @{cite
   "isabelle-function"}. The function is specified by a set of (possibly
   conditional) recursive equations with arbitrary pattern matching. The
@@ -328,18 +328,18 @@ text \<open>
   "f_dom"}. The @{command (HOL) "termination"} command can then be used to
   establish that the function is total.
 
-  \item @{command (HOL) "fun"} is a shorthand notation for ``@{command (HOL)
+  \<^descr> @{command (HOL) "fun"} is a shorthand notation for ``@{command (HOL)
   "function"}~@{text "(sequential)"}'', followed by automated proof attempts
   regarding pattern matching and termination. See @{cite
   "isabelle-function"} for further details.
 
-  \item @{command (HOL) "termination"}~@{text f} commences a termination
+  \<^descr> @{command (HOL) "termination"}~@{text f} commences a termination
   proof for the previously defined function @{text f}. If this is omitted,
   the command refers to the most recent function definition. After the proof
   is closed, the recursive equations and the induction principle is
   established.
 
-  \item @{command (HOL) "fun_cases"} generates specialized elimination rules
+  \<^descr> @{command (HOL) "fun_cases"} generates specialized elimination rules
   for function equations. It expects one or more function equations and
   produces rules that eliminate the given equalities, following the cases
   given in the function definition.
@@ -362,7 +362,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{text sequential} enables a preprocessor which disambiguates
+  \<^descr> @{text sequential} enables a preprocessor which disambiguates
   overlapping patterns by making them mutually disjoint. Earlier equations
   take precedence over later ones. This allows to give the specification in
   a format very similar to functional programming. Note that the resulting
@@ -371,7 +371,7 @@ text \<open>
   equation given by the user may result in several theorems. Also note that
   this automatic transformation only works for ML-style datatype patterns.
 
-  \item @{text domintros} enables the automated generation of introduction
+  \<^descr> @{text domintros} enables the automated generation of introduction
   rules for the domain predicate. While mostly not needed, they can be
   helpful in some proofs about partial functions.
 
@@ -537,19 +537,19 @@ text \<open>
 
   \begin{description}
 
-  \item @{method (HOL) pat_completeness} is a specialized method to
+  \<^descr> @{method (HOL) pat_completeness} is a specialized method to
   solve goals regarding the completeness of pattern matching, as
   required by the @{command (HOL) "function"} package (cf.\
   @{cite "isabelle-function"}).
 
-  \item @{method (HOL) relation}~@{text R} introduces a termination
+  \<^descr> @{method (HOL) relation}~@{text R} introduces a termination
   proof using the relation @{text R}.  The resulting proof state will
   contain goals expressing that @{text R} is wellfounded, and that the
   arguments of recursive calls decrease with respect to @{text R}.
   Usually, this method is used as the initial proof step of manual
   termination proofs.
 
-  \item @{method (HOL) "lexicographic_order"} attempts a fully
+  \<^descr> @{method (HOL) "lexicographic_order"} attempts a fully
   automated termination proof by searching for a lexicographic
   combination of size measures on the arguments of the function. The
   method accepts the same arguments as the @{method auto} method,
@@ -559,7 +559,7 @@ text \<open>
   In case of failure, extensive information is printed, which can help
   to analyse the situation (cf.\ @{cite "isabelle-function"}).
 
-  \item @{method (HOL) "size_change"} also works on termination goals,
+  \<^descr> @{method (HOL) "size_change"} also works on termination goals,
   using a variation of the size-change principle, together with a
   graph decomposition technique (see @{cite krauss_phd} for details).
   Three kinds of orders are used internally: @{text max}, @{text min},
@@ -571,7 +571,7 @@ text \<open>
   For local descent proofs, the @{syntax clasimpmod} modifiers are
   accepted (as for @{method auto}).
 
-  \item @{method (HOL) induction_schema} derives user-specified
+  \<^descr> @{method (HOL) induction_schema} derives user-specified
   induction rules from well-founded induction and completeness of
   patterns. This factors out some operations that are done internally
   by the function package and makes them available separately. See
@@ -596,7 +596,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "partial_function"}~@{text "(mode)"} defines
+  \<^descr> @{command (HOL) "partial_function"}~@{text "(mode)"} defines
   recursive functions based on fixpoints in complete partial
   orders. No termination proof is required from the user or
   constructed internally. Instead, the possibility of non-termination
@@ -621,14 +621,14 @@ text \<open>
 
   \begin{description}
 
-  \item @{text option} defines functions that map into the @{type
+  \<^descr> @{text option} defines functions that map into the @{type
   option} type. Here, the value @{term None} is used to model a
   non-terminating computation. Monotonicity requires that if @{term
   None} is returned by a recursive call, then the overall result must
   also be @{term None}. This is best achieved through the use of the
   monadic operator @{const "Option.bind"}.
 
-  \item @{text tailrec} defines functions with an arbitrary result
+  \<^descr> @{text tailrec} defines functions with an arbitrary result
   type and uses the slightly degenerated partial order where @{term
   "undefined"} is the bottom element.  Now, monotonicity requires that
   if @{term undefined} is returned by a recursive call, then the
@@ -642,7 +642,7 @@ text \<open>
   Experienced users may define new modes by instantiating the locale
   @{const "partial_function_definitions"} appropriately.
 
-  \item @{attribute (HOL) partial_function_mono} declares rules for
+  \<^descr> @{attribute (HOL) partial_function_mono} declares rules for
   use in the internal monotonicity proofs of partial function
   definitions.
 
@@ -673,7 +673,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "recdef"} defines general well-founded
+  \<^descr> @{command (HOL) "recdef"} defines general well-founded
   recursive functions (using the TFL package), see also
   @{cite "isabelle-HOL"}.  The ``@{text "(permissive)"}'' option tells
   TFL to recover from failed proof attempts, returning unfinished
@@ -727,14 +727,14 @@ text \<open>
 
   \begin{description}
 
-  \item @{command "adhoc_overloading"}~@{text "c v\<^sub>1 ... v\<^sub>n"}
+  \<^descr> @{command "adhoc_overloading"}~@{text "c v\<^sub>1 ... v\<^sub>n"}
   associates variants with an existing constant.
 
-  \item @{command "no_adhoc_overloading"} is similar to
+  \<^descr> @{command "no_adhoc_overloading"} is similar to
   @{command "adhoc_overloading"}, but removes the specified variants
   from the present context.
 
-  \item @{attribute "show_variants"} controls printing of variants
+  \<^descr> @{attribute "show_variants"} controls printing of variants
   of overloaded constants. If enabled, the internally used variants
   are printed instead of their respective overloaded constants. This
   is occasionally useful to check whether the system agrees with a
@@ -760,7 +760,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "specification"}~@{text "decls \<phi>"} sets up a
+  \<^descr> @{command (HOL) "specification"}~@{text "decls \<phi>"} sets up a
   goal stating the existence of terms with the properties specified to
   hold for the constants given in @{text decls}.  After finishing the
   proof, the theory will be augmented with definitions for the given
@@ -797,10 +797,10 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "old_datatype"} defines old-style inductive
+  \<^descr> @{command (HOL) "old_datatype"} defines old-style inductive
   datatypes in HOL.
 
-  \item @{command (HOL) "old_rep_datatype"} represents existing types as
+  \<^descr> @{command (HOL) "old_rep_datatype"} represents existing types as
   old-style datatypes.
 
   \end{description}
@@ -945,7 +945,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "record"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t = \<tau> + c\<^sub>1 :: \<sigma>\<^sub>1
+  \<^descr> @{command (HOL) "record"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t = \<tau> + c\<^sub>1 :: \<sigma>\<^sub>1
   \<dots> c\<^sub>n :: \<sigma>\<^sub>n"} defines extensible record type @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"},
   derived from the optional parent record @{text "\<tau>"} by adding new
   field components @{text "c\<^sub>i :: \<sigma>\<^sub>i"} etc.
@@ -1179,7 +1179,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"} defines a
+  \<^descr> @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"} defines a
   new type @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} from the set @{text A} over an existing
   type. The set @{text A} may contain type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"}
   as specified on the LHS, but no term variables. Non-emptiness of @{text A}
@@ -1274,7 +1274,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "functor"}~@{text "prefix: m"} allows to prove and
+  \<^descr> @{command (HOL) "functor"}~@{text "prefix: m"} allows to prove and
   register properties about the functorial structure of type constructors.
   These properties then can be used by other packages to deal with those
   type constructors in certain type constructions. Characteristic theorems
@@ -1332,7 +1332,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "quotient_type"} defines a new quotient type @{text
+  \<^descr> @{command (HOL) "quotient_type"} defines a new quotient type @{text
   \<tau>}. The injection from a quotient type to a raw type is called @{text
   rep_\<tau>}, its inverse @{text abs_\<tau>} unless explicit @{keyword (HOL)
   "morphisms"} specification provides alternative names. @{command (HOL)
@@ -1407,7 +1407,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "setup_lifting"} Sets up the Lifting package to work
+  \<^descr> @{command (HOL) "setup_lifting"} Sets up the Lifting package to work
   with a user-defined type. The command supports two modes.
 
   \begin{enumerate}
@@ -1446,7 +1446,7 @@ text \<open>
   by @{command (HOL) "lift_definition"}, the Lifting package proves and
   registers a code equation (if there is one) for the new constant.
 
-  \item @{command (HOL) "lift_definition"} @{text "f :: \<tau>"} @{keyword (HOL)
+  \<^descr> @{command (HOL) "lift_definition"} @{text "f :: \<tau>"} @{keyword (HOL)
   "is"} @{text t} Defines a new function @{text f} with an abstract type
   @{text \<tau>} in terms of a corresponding operation @{text t} on a
   representation type. More formally, if @{text "t :: \<sigma>"}, then the command
@@ -1490,12 +1490,14 @@ text \<open>
 
   \begin{description}
 
-  \item @{text "\<tau>"} is a type variable \item @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"},
+  \<^descr> @{text "\<tau>"} is a type variable
+
+  \<^descr> @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"},
   where @{text "\<kappa>"} is an abstract type constructor and @{text "\<tau>\<^sub>1 \<dots> \<tau>\<^sub>n"}
   do not contain abstract types (i.e.\ @{typ "int dlist"} is allowed whereas
   @{typ "int dlist dlist"} not)
 
-  \item @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"}, @{text "\<kappa>"} is a type constructor that
+  \<^descr> @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"}, @{text "\<kappa>"} is a type constructor that
   was defined as a (co)datatype whose constructor argument types do not
   contain either non-free datatypes or the function type.
 
@@ -1505,7 +1507,7 @@ text \<open>
   @{command (HOL) "lift_definition"} uses @{text f.abs_eq} as a code
   equation.
 
-  \item @{command (HOL) lifting_forget} and @{command (HOL) lifting_update}
+  \<^descr> @{command (HOL) lifting_forget} and @{command (HOL) lifting_update}
   These two commands serve for storing and deleting the set-up of the
   Lifting package and corresponding transfer rules defined by this package.
   This is useful for hiding of type construction details of an abstract type
@@ -1528,19 +1530,19 @@ text \<open>
   including a bundle (@{command "include"}, @{keyword "includes"} and
   @{command "including"}).
 
-  \item @{command (HOL) "print_quot_maps"} prints stored quotient map
+  \<^descr> @{command (HOL) "print_quot_maps"} prints stored quotient map
   theorems.
 
-  \item @{command (HOL) "print_quotients"} prints stored quotient theorems.
+  \<^descr> @{command (HOL) "print_quotients"} prints stored quotient theorems.
 
-  \item @{attribute (HOL) quot_map} registers a quotient map theorem, a
+  \<^descr> @{attribute (HOL) quot_map} registers a quotient map theorem, a
   theorem showing how to ``lift'' quotients over type constructors. E.g.\
   @{term "Quotient R Abs Rep T \<Longrightarrow> Quotient (rel_set R) (image Abs) (image
   Rep) (rel_set T)"}. For examples see @{file "~~/src/HOL/Lifting_Set.thy"}
   or @{file "~~/src/HOL/Lifting.thy"}. This property is proved automatically
   if the involved type is BNF without dead variables.
 
-  \item @{attribute (HOL) relator_eq_onp} registers a theorem that shows
+  \<^descr> @{attribute (HOL) relator_eq_onp} registers a theorem that shows
   that a relator applied to an equality restricted by a predicate @{term P}
   (i.e.\ @{term "eq_onp P"}) is equal to a predicator applied to the @{term
   P}. The combinator @{const eq_onp} is used for internal encoding of proper
@@ -1550,7 +1552,7 @@ text \<open>
   This property is proved automatically if the involved type is BNF without
   dead variables.
 
-  \item @{attribute (HOL) "relator_mono"} registers a property describing a
+  \<^descr> @{attribute (HOL) "relator_mono"} registers a property describing a
   monotonicity of a relator. E.g.\ @{prop "A \<le> B \<Longrightarrow> rel_set A \<le> rel_set B"}.
   This property is needed for proving a stronger transfer rule in
   @{command_def (HOL) "lift_definition"} when a parametricity theorem for
@@ -1559,7 +1561,7 @@ text \<open>
   "~~/src/HOL/Lifting.thy"}. This property is proved automatically if the
   involved type is BNF without dead variables.
 
-  \item @{attribute (HOL) "relator_distr"} registers a property describing a
+  \<^descr> @{attribute (HOL) "relator_distr"} registers a property describing a
   distributivity of the relation composition and a relator. E.g.\ @{text
   "rel_set R \<circ>\<circ> rel_set S = rel_set (R \<circ>\<circ> S)"}. This property is needed for
   proving a stronger transfer rule in @{command_def (HOL) "lift_definition"}
@@ -1573,14 +1575,14 @@ text \<open>
   property is proved automatically if the involved type is BNF without dead
   variables.
 
-  \item @{attribute (HOL) quot_del} deletes a corresponding Quotient theorem
+  \<^descr> @{attribute (HOL) quot_del} deletes a corresponding Quotient theorem
   from the Lifting infrastructure and thus de-register the corresponding
   quotient. This effectively causes that @{command (HOL) lift_definition}
   will not do any lifting for the corresponding type. This attribute is
   rather used for low-level manipulation with set-up of the Lifting package
   because @{command (HOL) lifting_forget} is preferred for normal usage.
 
-  \item @{attribute (HOL) lifting_restore} @{text "Quotient_thm pcr_def
+  \<^descr> @{attribute (HOL) lifting_restore} @{text "Quotient_thm pcr_def
   pcr_cr_eq_thm"} registers the Quotient theorem @{text Quotient_thm} in the
   Lifting infrastructure and thus sets up lifting for an abstract type
   @{text \<tau>} (that is defined by @{text Quotient_thm}). Optional theorems
@@ -1593,7 +1595,7 @@ text \<open>
   together with the commands @{command (HOL) lifting_forget} and @{command
   (HOL) lifting_update} is preferred for normal usage.
 
-  \item Integration with the BNF package @{cite "isabelle-datatypes"}: As
+  \<^descr> Integration with the BNF package @{cite "isabelle-datatypes"}: As
   already mentioned, the theorems that are registered by the following
   attributes are proved and registered automatically if the involved type is
   BNF without dead variables: @{attribute (HOL) quot_map}, @{attribute (HOL)
@@ -1628,25 +1630,25 @@ text \<open>
 
   \begin{description}
 
-  \item @{method (HOL) "transfer"} method replaces the current subgoal with
+  \<^descr> @{method (HOL) "transfer"} method replaces the current subgoal with
   a logically equivalent one that uses different types and constants. The
   replacement of types and constants is guided by the database of transfer
   rules. Goals are generalized over all free variables by default; this is
   necessary for variables whose types change, but can be overridden for
   specific variables with e.g. @{text "transfer fixing: x y z"}.
 
-  \item @{method (HOL) "transfer'"} is a variant of @{method (HOL) transfer}
+  \<^descr> @{method (HOL) "transfer'"} is a variant of @{method (HOL) transfer}
   that allows replacing a subgoal with one that is logically stronger
   (rather than equivalent). For example, a subgoal involving equality on a
   quotient type could be replaced with a subgoal involving equality (instead
   of the corresponding equivalence relation) on the underlying raw type.
 
-  \item @{method (HOL) "transfer_prover"} method assists with proving a
+  \<^descr> @{method (HOL) "transfer_prover"} method assists with proving a
   transfer rule for a new constant, provided the constant is defined in
   terms of other constants that already have transfer rules. It should be
   applied after unfolding the constant definitions.
 
-  \item @{method (HOL) "transfer_start"}, @{method (HOL) "transfer_step"},
+  \<^descr> @{method (HOL) "transfer_start"}, @{method (HOL) "transfer_step"},
   @{method (HOL) "transfer_end"}, @{method (HOL) "transfer_prover_start"}
   and @{method (HOL) "transfer_prover_end"} methods are meant to be used
   for debugging of @{method (HOL) "transfer"} and @{method (HOL) "transfer_prover"},
@@ -1657,17 +1659,17 @@ text \<open>
   @{method (HOL) "transfer_step"}+, @{method (HOL) "transfer_prover_end"}).
   For usage examples see @{file "~~/src/HOL/ex/Transfer_Debug.thy"} 
 
-  \item @{attribute (HOL) "untransferred"} proves the same equivalent
+  \<^descr> @{attribute (HOL) "untransferred"} proves the same equivalent
   theorem as @{method (HOL) "transfer"} internally does.
 
-  \item @{attribute (HOL) Transfer.transferred} works in the opposite
+  \<^descr> @{attribute (HOL) Transfer.transferred} works in the opposite
   direction than @{method (HOL) "transfer'"}. E.g.\ given the transfer
   relation @{text "ZN x n \<equiv> (x = int n)"}, corresponding transfer rules and
   the theorem @{text "\<forall>x::int \<in> {0..}. x < x + 1"}, the attribute would
   prove @{text "\<forall>n::nat. n < n + 1"}. The attribute is still in experimental
   phase of development.
 
-  \item @{attribute (HOL) "transfer_rule"} attribute maintains a collection
+  \<^descr> @{attribute (HOL) "transfer_rule"} attribute maintains a collection
   of transfer rules, which relate constants at two different types. Typical
   transfer rules may relate different type instances of the same polymorphic
   constant, or they may relate an operation on a raw type to a corresponding
@@ -1687,14 +1689,14 @@ text \<open>
   a relator is proved automatically if the involved type is BNF @{cite
   "isabelle-datatypes"} without dead variables.
 
-  \item @{attribute (HOL) "transfer_domain_rule"} attribute maintains a
+  \<^descr> @{attribute (HOL) "transfer_domain_rule"} attribute maintains a
   collection of rules, which specify a domain of a transfer relation by a
   predicate. E.g.\ given the transfer relation @{text "ZN x n \<equiv> (x = int
   n)"}, one can register the following transfer domain rule: @{text "Domainp
   ZN = (\<lambda>x. x \<ge> 0)"}. The rules allow the package to produce more readable
   transferred goals, e.g.\ when quantifiers are transferred.
 
-  \item @{attribute (HOL) relator_eq} attribute collects identity laws for
+  \<^descr> @{attribute (HOL) relator_eq} attribute collects identity laws for
   relators of various type constructors, e.g. @{term "rel_set (op =) = (op
   =)"}. The @{method (HOL) transfer} method uses these lemmas to infer
   transfer rules for non-polymorphic constants on the fly. For examples see
@@ -1702,7 +1704,7 @@ text \<open>
   This property is proved automatically if the involved type is BNF without
   dead variables.
 
-  \item @{attribute_def (HOL) "relator_domain"} attribute collects rules
+  \<^descr> @{attribute_def (HOL) "relator_domain"} attribute collects rules
   describing domains of relators by predicators. E.g.\ @{term "Domainp
   (rel_set T) = (\<lambda>A. Ball A (Domainp T))"}. This allows the package to lift
   transfer domain rules through type constructors. For examples see @{file
@@ -1753,16 +1755,16 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "quotient_definition"} defines a constant on the
+  \<^descr> @{command (HOL) "quotient_definition"} defines a constant on the
   quotient type.
 
-  \item @{command (HOL) "print_quotmapsQ3"} prints quotient map functions.
+  \<^descr> @{command (HOL) "print_quotmapsQ3"} prints quotient map functions.
 
-  \item @{command (HOL) "print_quotientsQ3"} prints quotients.
+  \<^descr> @{command (HOL) "print_quotientsQ3"} prints quotients.
 
-  \item @{command (HOL) "print_quotconsts"} prints quotient constants.
+  \<^descr> @{command (HOL) "print_quotconsts"} prints quotient constants.
 
-  \item @{method (HOL) "lifting"} and @{method (HOL) "lifting_setup"}
+  \<^descr> @{method (HOL) "lifting"} and @{method (HOL) "lifting_setup"}
   methods match the current goal with the given raw theorem to be lifted
   producing three new subgoals: regularization, injection and cleaning
   subgoals. @{method (HOL) "lifting"} tries to apply the heuristics for
@@ -1770,7 +1772,7 @@ text \<open>
   unsolved by the heuristics to the user as opposed to @{method (HOL)
   "lifting_setup"} which leaves the three subgoals unsolved.
 
-  \item @{method (HOL) "descending"} and @{method (HOL) "descending_setup"}
+  \<^descr> @{method (HOL) "descending"} and @{method (HOL) "descending_setup"}
   try to guess a raw statement that would lift to the current subgoal. Such
   statement is assumed as a new subgoal and @{method (HOL) "descending"}
   continues in the same way as @{method (HOL) "lifting"} does. @{method
@@ -1778,34 +1780,34 @@ text \<open>
   and cleaning subgoals with the analogous method @{method (HOL)
   "descending_setup"} which leaves the four unsolved subgoals.
 
-  \item @{method (HOL) "partiality_descending"} finds the regularized
+  \<^descr> @{method (HOL) "partiality_descending"} finds the regularized
   theorem that would lift to the current subgoal, lifts it and leaves as a
   subgoal. This method can be used with partial equivalence quotients where
   the non regularized statements would not be true. @{method (HOL)
   "partiality_descending_setup"} leaves the injection and cleaning subgoals
   unchanged.
 
-  \item @{method (HOL) "regularize"} applies the regularization heuristics
+  \<^descr> @{method (HOL) "regularize"} applies the regularization heuristics
   to the current subgoal.
 
-  \item @{method (HOL) "injection"} applies the injection heuristics to the
+  \<^descr> @{method (HOL) "injection"} applies the injection heuristics to the
   current goal using the stored quotient respectfulness theorems.
 
-  \item @{method (HOL) "cleaning"} applies the injection cleaning heuristics
+  \<^descr> @{method (HOL) "cleaning"} applies the injection cleaning heuristics
   to the current subgoal using the stored quotient preservation theorems.
 
-  \item @{attribute (HOL) quot_lifted} attribute tries to automatically
+  \<^descr> @{attribute (HOL) quot_lifted} attribute tries to automatically
   transport the theorem to the quotient type. The attribute uses all the
   defined quotients types and quotient constants often producing undesired
   results or theorems that cannot be lifted.
 
-  \item @{attribute (HOL) quot_respect} and @{attribute (HOL) quot_preserve}
+  \<^descr> @{attribute (HOL) quot_respect} and @{attribute (HOL) quot_preserve}
   attributes declare a theorem as a respectfulness and preservation theorem
   respectively. These are stored in the local theory store and used by the
   @{method (HOL) "injection"} and @{method (HOL) "cleaning"} methods
   respectively.
 
-  \item @{attribute (HOL) quot_thm} declares that a certain theorem is a
+  \<^descr> @{attribute (HOL) quot_thm} declares that a certain theorem is a
   quotient extension theorem. Quotient extension theorems allow for
   quotienting inside container types. Given a polymorphic type that serves
   as a container, a map function defined for this container using @{command
@@ -1855,28 +1857,28 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "solve_direct"} checks whether the current
+  \<^descr> @{command (HOL) "solve_direct"} checks whether the current
   subgoals can be solved directly by an existing theorem. Duplicate
   lemmas can be detected in this way.
 
-  \item @{command (HOL) "try0"} attempts to prove a subgoal
+  \<^descr> @{command (HOL) "try0"} attempts to prove a subgoal
   using a combination of standard proof methods (@{method auto},
   @{method simp}, @{method blast}, etc.).  Additional facts supplied
   via @{text "simp:"}, @{text "intro:"}, @{text "elim:"}, and @{text
   "dest:"} are passed to the appropriate proof methods.
 
-  \item @{command (HOL) "try"} attempts to prove or disprove a subgoal
+  \<^descr> @{command (HOL) "try"} attempts to prove or disprove a subgoal
   using a combination of provers and disprovers (@{command (HOL)
   "solve_direct"}, @{command (HOL) "quickcheck"}, @{command (HOL)
   "try0"}, @{command (HOL) "sledgehammer"}, @{command (HOL)
   "nitpick"}).
 
-  \item @{command (HOL) "sledgehammer"} attempts to prove a subgoal
+  \<^descr> @{command (HOL) "sledgehammer"} attempts to prove a subgoal
   using external automatic provers (resolution provers and SMT
   solvers). See the Sledgehammer manual @{cite "isabelle-sledgehammer"}
   for details.
 
-  \item @{command (HOL) "sledgehammer_params"} changes @{command (HOL)
+  \<^descr> @{command (HOL) "sledgehammer_params"} changes @{command (HOL)
   "sledgehammer"} configuration options persistently.
 
   \end{description}
@@ -1929,7 +1931,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{command (HOL) "value"}~@{text t} evaluates and prints a
+  \<^descr> @{command (HOL) "value"}~@{text t} evaluates and prints a
   term; optionally @{text modes} can be specified, which are appended
   to the current print mode; see \secref{sec:print-modes}.
   Evaluation is tried first using ML, falling
@@ -1940,13 +1942,13 @@ text \<open>
   using the simplifier, @{text nbe} for \emph{normalization by
   evaluation} and \emph{code} for code generation in SML.
 
-  \item @{command (HOL) "values"}~@{text t} enumerates a set
+  \<^descr> @{command (HOL) "values"}~@{text t} enumerates a set
   comprehension by evaluation and prints its values up to the given
   number of solutions; optionally @{text modes} can be specified,
   which are appended to the current print mode; see
   \secref{sec:print-modes}.
 
-  \item @{command (HOL) "quickcheck"} tests the current goal for
+  \<^descr> @{command (HOL) "quickcheck"} tests the current goal for
   counterexamples using a series of assignments for its free
   variables; by default the first subgoal is tested, an other can be
   selected explicitly using an optional goal index.  Assignments can
@@ -1958,7 +1960,7 @@ text \<open>
 
     \begin{description}
 
-    \item[@{text tester}] specifies which testing approach to apply.
+    \<^descr>[@{text tester}] specifies which testing approach to apply.
     There are three testers, @{text exhaustive}, @{text random}, and
     @{text narrowing}.  An unknown configuration option is treated as
     an argument to tester, making @{text "tester ="} optional.  When
@@ -1969,31 +1971,31 @@ text \<open>
     quickcheck_random_active}, @{attribute
     quickcheck_narrowing_active} are set to true.
 
-    \item[@{text size}] specifies the maximum size of the search space
+    \<^descr>[@{text size}] specifies the maximum size of the search space
     for assignment values.
 
-    \item[@{text genuine_only}] sets quickcheck only to return genuine
+    \<^descr>[@{text genuine_only}] sets quickcheck only to return genuine
     counterexample, but not potentially spurious counterexamples due
     to underspecified functions.
 
-    \item[@{text abort_potential}] sets quickcheck to abort once it
+    \<^descr>[@{text abort_potential}] sets quickcheck to abort once it
     found a potentially spurious counterexample and to not continue
     to search for a further genuine counterexample.
     For this option to be effective, the @{text genuine_only} option
     must be set to false.
 
-    \item[@{text eval}] takes a term or a list of terms and evaluates
+    \<^descr>[@{text eval}] takes a term or a list of terms and evaluates
     these terms under the variable assignment found by quickcheck.
     This option is currently only supported by the default
     (exhaustive) tester.
 
-    \item[@{text iterations}] sets how many sets of assignments are
+    \<^descr>[@{text iterations}] sets how many sets of assignments are
     generated for each particular size.
 
-    \item[@{text no_assms}] specifies whether assumptions in
+    \<^descr>[@{text no_assms}] specifies whether assumptions in
     structured proofs should be ignored.
 
-    \item[@{text locale}] specifies how to process conjectures in
+    \<^descr>[@{text locale}] specifies how to process conjectures in
     a locale context, i.e.\ they can be interpreted or expanded.
     The option is a whitespace-separated list of the two words
     @{text interpret} and @{text expand}. The list determines the
@@ -2002,25 +2004,25 @@ text \<open>
     The option is only provided as attribute declaration, but not
     as parameter to the command.
 
-    \item[@{text timeout}] sets the time limit in seconds.
+    \<^descr>[@{text timeout}] sets the time limit in seconds.
 
-    \item[@{text default_type}] sets the type(s) generally used to
+    \<^descr>[@{text default_type}] sets the type(s) generally used to
     instantiate type variables.
 
-    \item[@{text report}] if set quickcheck reports how many tests
+    \<^descr>[@{text report}] if set quickcheck reports how many tests
     fulfilled the preconditions.
 
-    \item[@{text use_subtype}] if set quickcheck automatically lifts
+    \<^descr>[@{text use_subtype}] if set quickcheck automatically lifts
     conjectures to registered subtypes if possible, and tests the
     lifted conjecture.
 
-    \item[@{text quiet}] if set quickcheck does not output anything
+    \<^descr>[@{text quiet}] if set quickcheck does not output anything
     while testing.
 
-    \item[@{text verbose}] if set quickcheck informs about the current
+    \<^descr>[@{text verbose}] if set quickcheck informs about the current
     size and cardinality while testing.
 
-    \item[@{text expect}] can be used to check if the user's
+    \<^descr>[@{text expect}] can be used to check if the user's
     expectation was met (@{text no_expectation}, @{text
     no_counterexample}, or @{text counterexample}).
 
@@ -2030,8 +2032,10 @@ text \<open>
 
   Using the following type classes, the testers generate values and convert
   them back into Isabelle terms for displaying counterexamples.
+
     \begin{description}
-    \item[@{text exhaustive}] The parameters of the type classes @{class exhaustive}
+
+    \<^descr>[@{text exhaustive}] The parameters of the type classes @{class exhaustive}
       and @{class full_exhaustive} implement the testing. They take a
       testing function as a parameter, which takes a value of type @{typ "'a"}
       and optionally produces a counterexample, and a size parameter for the test values.
@@ -2043,13 +2047,13 @@ text \<open>
       testing function on all values up to the given size and stops as soon
       as a counterexample is found.
 
-    \item[@{text random}] The operation @{const Quickcheck_Random.random}
+    \<^descr>[@{text random}] The operation @{const Quickcheck_Random.random}
       of the type class @{class random} generates a pseudo-random
       value of the given size and a lazy term reconstruction of the value
       in the type @{typ Code_Evaluation.term}. A pseudo-randomness generator
       is defined in theory @{theory Random}.
 
-    \item[@{text narrowing}] implements Haskell's Lazy Smallcheck @{cite "runciman-naylor-lindblad"}
+    \<^descr>[@{text narrowing}] implements Haskell's Lazy Smallcheck @{cite "runciman-naylor-lindblad"}
       using the type classes @{class narrowing} and @{class partial_term_of}.
       Variables in the current goal are initially represented as symbolic variables.
       If the execution of the goal tries to evaluate one of them, the test engine
@@ -2086,22 +2090,22 @@ text \<open>
       but it does not ensures consistency with @{const narrowing}.
     \end{description}
 
-  \item @{command (HOL) "quickcheck_params"} changes @{command (HOL)
+  \<^descr> @{command (HOL) "quickcheck_params"} changes @{command (HOL)
   "quickcheck"} configuration options persistently.
 
-  \item @{command (HOL) "quickcheck_generator"} creates random and
+  \<^descr> @{command (HOL) "quickcheck_generator"} creates random and
   exhaustive value generators for a given type and operations.  It
   generates values by using the operations as if they were
   constructors of that type.
 
-  \item @{command (HOL) "nitpick"} tests the current goal for
+  \<^descr> @{command (HOL) "nitpick"} tests the current goal for
   counterexamples using a reduction to first-order relational
   logic. See the Nitpick manual @{cite "isabelle-nitpick"} for details.
 
-  \item @{command (HOL) "nitpick_params"} changes @{command (HOL)
+  \<^descr> @{command (HOL) "nitpick_params"} changes @{command (HOL)
   "nitpick"} configuration options persistently.
 
-  \item @{command (HOL) "find_unused_assms"} finds potentially superfluous
+  \<^descr> @{command (HOL) "find_unused_assms"} finds potentially superfluous
   assumptions in theorems using quickcheck.
   It takes the theory name to be checked for superfluous assumptions as
   optional argument. If not provided, it checks the current theory.
@@ -2140,18 +2144,18 @@ text \<open>
 
   \begin{description}
 
-  \item @{attribute (HOL) "coercion"}~@{text "f"} registers a new
+  \<^descr> @{attribute (HOL) "coercion"}~@{text "f"} registers a new
   coercion function @{text "f :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2"} where @{text "\<sigma>\<^sub>1"} and
   @{text "\<sigma>\<^sub>2"} are type constructors without arguments.  Coercions are
   composed by the inference algorithm if needed.  Note that the type
   inference algorithm is complete only if the registered coercions
   form a lattice.
 
-  \item @{attribute (HOL) "coercion_delete"}~@{text "f"} deletes a
+  \<^descr> @{attribute (HOL) "coercion_delete"}~@{text "f"} deletes a
   preceding declaration (using @{attribute (HOL) "coercion"}) of the
   function @{text "f :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2"} as a coercion.
 
-  \item @{attribute (HOL) "coercion_map"}~@{text "map"} registers a
+  \<^descr> @{attribute (HOL) "coercion_map"}~@{text "map"} registers a
   new map function to lift coercions through type constructors. The
   function @{text "map"} must conform to the following type pattern
 
@@ -2165,7 +2169,7 @@ text \<open>
   overwrites any existing map function for this particular type
   constructor.
 
-  \item @{attribute (HOL) "coercion_args"} can be used to disallow
+  \<^descr> @{attribute (HOL) "coercion_args"} can be used to disallow
   coercions to be inserted in certain positions in a term. For example,
   given the constant @{text "c :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2 \<Rightarrow> \<sigma>\<^sub>3 \<Rightarrow> \<sigma>\<^sub>4"} and the list
   of policies @{text "- + 0"} as arguments, coercions will not be
@@ -2180,7 +2184,7 @@ text \<open>
   insertion of coercions (see, for example, the setup for the case syntax
   in @{theory Ctr_Sugar}). 
 
-  \item @{attribute (HOL) "coercion_enabled"} enables the coercion
+  \<^descr> @{attribute (HOL) "coercion_enabled"} enables the coercion
   inference algorithm.
 
   \end{description}
@@ -2198,14 +2202,14 @@ text \<open>
 
   \begin{description}
 
-  \item @{method (HOL) arith} decides linear arithmetic problems (on
+  \<^descr> @{method (HOL) arith} decides linear arithmetic problems (on
   types @{text nat}, @{text int}, @{text real}).  Any current facts
   are inserted into the goal before running the procedure.
 
-  \item @{attribute (HOL) arith} declares facts that are supplied to
+  \<^descr> @{attribute (HOL) arith} declares facts that are supplied to
   the arithmetic provers implicitly.
 
-  \item @{attribute (HOL) arith_split} attribute declares case split
+  \<^descr> @{attribute (HOL) arith_split} attribute declares case split
   rules to be expanded before @{method (HOL) arith} is invoked.
 
   \end{description}
@@ -2228,7 +2232,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{method (HOL) iprover} performs intuitionistic proof search,
+  \<^descr> @{method (HOL) iprover} performs intuitionistic proof search,
   depending on specifically declared rules from the context, or given
   as explicit arguments.  Chained facts are inserted into the goal
   before commencing proof search.
@@ -2264,11 +2268,11 @@ text \<open>
 
   \begin{description}
 
-  \item @{method (HOL) meson} implements Loveland's model elimination
+  \<^descr> @{method (HOL) meson} implements Loveland's model elimination
   procedure @{cite "loveland-78"}.  See @{file
   "~~/src/HOL/ex/Meson_Test.thy"} for examples.
 
-  \item @{method (HOL) metis} combines ordered resolution and ordered
+  \<^descr> @{method (HOL) metis} combines ordered resolution and ordered
   paramodulation to find first-order (or mildly higher-order) proofs.
   The first optional argument specifies a type encoding; see the
   Sledgehammer manual @{cite "isabelle-sledgehammer"} for details.  The
@@ -2297,7 +2301,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{method (HOL) algebra} performs algebraic reasoning via
+  \<^descr> @{method (HOL) algebra} performs algebraic reasoning via
   Gr\"obner bases, see also @{cite "Chaieb-Wenzel:2007"} and
   @{cite \<open>\S3.2\<close> "Chaieb-thesis"}. The method handles deals with two main
   classes of problems:
@@ -2334,7 +2338,7 @@ text \<open>
   This acts like declarations for the Simplifier
   (\secref{sec:simplifier}) on a private simpset for this tool.
 
-  \item @{attribute algebra} (as attribute) manages the default
+  \<^descr> @{attribute algebra} (as attribute) manages the default
   collection of pre-simplification rules of the above proof method.
 
   \end{description}
@@ -2378,7 +2382,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{method (HOL) coherent} solves problems of \emph{Coherent
+  \<^descr> @{method (HOL) coherent} solves problems of \emph{Coherent
   Logic} @{cite "Bezem-Coquand:2005"}, which covers applications in
   confluence theory, lattice theory and projective geometry.  See
   @{file "~~/src/HOL/ex/Coherent.thy"} for some examples.
@@ -2415,7 +2419,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{method (HOL) case_tac} and @{method (HOL) induct_tac} admit
+  \<^descr> @{method (HOL) case_tac} and @{method (HOL) induct_tac} admit
   to reason about inductive types.  Rules are selected according to
   the declarations by the @{attribute cases} and @{attribute induct}
   attributes, cf.\ \secref{sec:cases-induct}.  The @{command (HOL)
@@ -2429,7 +2433,7 @@ text \<open>
   statements, only the compact object-logic conclusion of the subgoal
   being addressed.
 
-  \item @{method (HOL) ind_cases} and @{command (HOL)
+  \<^descr> @{method (HOL) ind_cases} and @{command (HOL)
   "inductive_cases"} provide an interface to the internal @{ML_text
   mk_cases} operation.  Rules are simplified in an unrestricted
   forward manner.
@@ -2459,7 +2463,7 @@ text \<open>
 
   \begin{description}
 
-  \item @{attribute (HOL) split_format}\ @{text "(complete)"} causes
+  \<^descr> @{attribute (HOL) split_format}\ @{text "(complete)"} causes
   arguments in function applications to be represented canonically
   according to their tuple type structure.
 
@@ -2599,7 +2603,7 @@ text \<open>For validation purposes, it is often useful to \emph{execute}
 
   \begin{description}
 
-  \item @{command (HOL) "export_code"} generates code for a given list of
+  \<^descr> @{command (HOL) "export_code"} generates code for a given list of
   constants in the specified target language(s). If no serialization
   instruction is given, only abstract code is generated internally.
 
@@ -2627,7 +2631,7 @@ text \<open>For validation purposes, it is often useful to \emph{execute}
   "deriving (Read, Show)"}'' clause to each appropriate datatype
   declaration.
 
-  \item @{attribute (HOL) code} declare code equations for code generation.
+  \<^descr> @{attribute (HOL) code} declare code equations for code generation.
   Variant @{text "code equation"} declares a conventional equation as code
   equation. Variants @{text "code abstype"} and @{text "code abstract"}
   declare abstract datatype certificates or code equations on abstract
@@ -2645,49 +2649,49 @@ text \<open>For validation purposes, it is often useful to \emph{execute}
   Usually packages introducing code equations provide a reasonable default
   setup for selection.
 
-  \item @{command (HOL) "code_datatype"} specifies a constructor set for a
+  \<^descr> @{command (HOL) "code_datatype"} specifies a constructor set for a
   logical type.
 
-  \item @{command (HOL) "print_codesetup"} gives an overview on selected
+  \<^descr> @{command (HOL) "print_codesetup"} gives an overview on selected
   code equations and code generator datatypes.
 
-  \item @{attribute (HOL) code_unfold} declares (or with option ``@{text
+  \<^descr> @{attribute (HOL) code_unfold} declares (or with option ``@{text
   "del"}'' removes) theorems which during preprocessing are applied as
   rewrite rules to any code equation or evaluation input.
 
-  \item @{attribute (HOL) code_post} declares (or with option ``@{text
+  \<^descr> @{attribute (HOL) code_post} declares (or with option ``@{text
   "del"}'' removes) theorems which are applied as rewrite rules to any
   result of an evaluation.
 
-  \item @{attribute (HOL) code_abbrev} declares (or with option ``@{text
+  \<^descr> @{attribute (HOL) code_abbrev} declares (or with option ``@{text
   "del"}'' removes) equations which are applied as rewrite rules to any
   result of an evaluation and symmetrically during preprocessing to any code
   equation or evaluation input.
 
-  \item @{command (HOL) "print_codeproc"} prints the setup of the code
+  \<^descr> @{command (HOL) "print_codeproc"} prints the setup of the code
   generator preprocessor.
 
-  \item @{command (HOL) "code_thms"} prints a list of theorems representing
+  \<^descr> @{command (HOL) "code_thms"} prints a list of theorems representing
   the corresponding program containing all given constants after
   preprocessing.
 
-  \item @{command (HOL) "code_deps"} visualizes dependencies of theorems
+  \<^descr> @{command (HOL) "code_deps"} visualizes dependencies of theorems
   representing the corresponding program containing all given constants
   after preprocessing.
 
-  \item @{command (HOL) "code_reserved"} declares a list of names as
+  \<^descr> @{command (HOL) "code_reserved"} declares a list of names as
   reserved for a given target, preventing it to be shadowed by any generated
   code.
 
-  \item @{command (HOL) "code_printing"} associates a series of symbols
+  \<^descr> @{command (HOL) "code_printing"} associates a series of symbols
   (constants, type constructors, classes, class relations, instances, module
   names) with target-specific serializations; omitting a serialization
   deletes an existing serialization.
 
-  \item @{command (HOL) "code_monad"} provides an auxiliary mechanism to
+  \<^descr> @{command (HOL) "code_monad"} provides an auxiliary mechanism to
   generate monadic code for Haskell.
 
-  \item @{command (HOL) "code_identifier"} associates a a series of symbols
+  \<^descr> @{command (HOL) "code_identifier"} associates a a series of symbols
   (constants, type constructors, classes, class relations, instances, module
   names) with target-specific hints how these symbols shall be named. These
   hints gain precedence over names for symbols with no hints at all.
@@ -2696,7 +2700,7 @@ text \<open>For validation purposes, it is often useful to \emph{execute}
   identifiers in compound statements like type classes or datatypes are
   still the same.
 
-  \item @{command (HOL) "code_reflect"} without a ``@{text "file"}''
+  \<^descr> @{command (HOL) "code_reflect"} without a ``@{text "file"}''
   argument compiles code into the system runtime environment and modifies
   the code generator setup that future invocations of system runtime code
   generation referring to one of the ``@{text "datatypes"}'' or ``@{text
@@ -2704,7 +2708,7 @@ text \<open>For validation purposes, it is often useful to \emph{execute}
   "file"}'' argument, the corresponding code is generated into that
   specified file without modifying the code generator setup.
 
-  \item @{command (HOL) "code_pred"} creates code equations for a predicate
+  \<^descr> @{command (HOL) "code_pred"} creates code equations for a predicate
   given a set of introduction rules. Optional mode annotations determine
   which arguments are supposed to be input or output. If alternative
   introduction rules are declared, one must prove a corresponding

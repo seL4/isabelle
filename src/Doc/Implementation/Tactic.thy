@@ -72,19 +72,19 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML "Goal.init"}~@{text C} initializes a tactical goal from
+  \<^descr> @{ML "Goal.init"}~@{text C} initializes a tactical goal from
   the well-formed proposition @{text C}.
 
-  \item @{ML "Goal.finish"}~@{text "ctxt thm"} checks whether theorem
+  \<^descr> @{ML "Goal.finish"}~@{text "ctxt thm"} checks whether theorem
   @{text "thm"} is a solved goal (no subgoals), and concludes the
   result by removing the goal protection.  The context is only
   required for printing error messages.
 
-  \item @{ML "Goal.protect"}~@{text "n thm"} protects the statement
+  \<^descr> @{ML "Goal.protect"}~@{text "n thm"} protects the statement
   of theorem @{text "thm"}.  The parameter @{text n} indicates the
   number of premises to be retained.
 
-  \item @{ML "Goal.conclude"}~@{text "thm"} removes the goal
+  \<^descr> @{ML "Goal.conclude"}~@{text "thm"} removes the goal
   protection, even if there are pending subgoals.
 
   \end{description}
@@ -189,48 +189,48 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item Type @{ML_type tactic} represents tactics.  The
+  \<^descr> Type @{ML_type tactic} represents tactics.  The
   well-formedness conditions described above need to be observed.  See
   also @{file "~~/src/Pure/General/seq.ML"} for the underlying
   implementation of lazy sequences.
 
-  \item Type @{ML_type "int -> tactic"} represents tactics with
+  \<^descr> Type @{ML_type "int -> tactic"} represents tactics with
   explicit subgoal addressing, with well-formedness conditions as
   described above.
 
-  \item @{ML no_tac} is a tactic that always fails, returning the
+  \<^descr> @{ML no_tac} is a tactic that always fails, returning the
   empty sequence.
 
-  \item @{ML all_tac} is a tactic that always succeeds, returning a
+  \<^descr> @{ML all_tac} is a tactic that always succeeds, returning a
   singleton sequence with unchanged goal state.
 
-  \item @{ML print_tac}~@{text "ctxt message"} is like @{ML all_tac}, but
+  \<^descr> @{ML print_tac}~@{text "ctxt message"} is like @{ML all_tac}, but
   prints a message together with the goal state on the tracing
   channel.
 
-  \item @{ML PRIMITIVE}~@{text rule} turns a primitive inference rule
+  \<^descr> @{ML PRIMITIVE}~@{text rule} turns a primitive inference rule
   into a tactic with unique result.  Exception @{ML THM} is considered
   a regular tactic failure and produces an empty result; other
   exceptions are passed through.
 
-  \item @{ML SUBGOAL}~@{text "(fn (subgoal, i) => tactic)"} is the
+  \<^descr> @{ML SUBGOAL}~@{text "(fn (subgoal, i) => tactic)"} is the
   most basic form to produce a tactic with subgoal addressing.  The
   given abstraction over the subgoal term and subgoal number allows to
   peek at the relevant information of the full goal state.  The
   subgoal range is checked as required above.
 
-  \item @{ML CSUBGOAL} is similar to @{ML SUBGOAL}, but passes the
+  \<^descr> @{ML CSUBGOAL} is similar to @{ML SUBGOAL}, but passes the
   subgoal as @{ML_type cterm} instead of raw @{ML_type term}.  This
   avoids expensive re-certification in situations where the subgoal is
   used directly for primitive inferences.
 
-  \item @{ML SELECT_GOAL}~@{text "tac i"} confines a tactic to the
+  \<^descr> @{ML SELECT_GOAL}~@{text "tac i"} confines a tactic to the
   specified subgoal @{text "i"}.  This rearranges subgoals and the
   main goal protection (\secref{sec:tactical-goals}), while retaining
   the syntactic context of the overall goal state (concerning
   schematic variables etc.).
 
-  \item @{ML PREFER_GOAL}~@{text "tac i"} rearranges subgoals to put
+  \<^descr> @{ML PREFER_GOAL}~@{text "tac i"} rearranges subgoals to put
   @{text "i"} in front.  This is similar to @{ML SELECT_GOAL}, but
   without changing the main goal protection.
 
@@ -297,29 +297,29 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML resolve_tac}~@{text "ctxt thms i"} refines the goal state
+  \<^descr> @{ML resolve_tac}~@{text "ctxt thms i"} refines the goal state
   using the given theorems, which should normally be introduction
   rules.  The tactic resolves a rule's conclusion with subgoal @{text
   i}, replacing it by the corresponding versions of the rule's
   premises.
 
-  \item @{ML eresolve_tac}~@{text "ctxt thms i"} performs elim-resolution
+  \<^descr> @{ML eresolve_tac}~@{text "ctxt thms i"} performs elim-resolution
   with the given theorems, which are normally be elimination rules.
 
   Note that @{ML_text "eresolve_tac ctxt [asm_rl]"} is equivalent to @{ML_text
   "assume_tac ctxt"}, which facilitates mixing of assumption steps with
   genuine eliminations.
 
-  \item @{ML dresolve_tac}~@{text "ctxt thms i"} performs
+  \<^descr> @{ML dresolve_tac}~@{text "ctxt thms i"} performs
   destruct-resolution with the given theorems, which should normally
   be destruction rules.  This replaces an assumption by the result of
   applying one of the rules.
 
-  \item @{ML forward_tac} is like @{ML dresolve_tac} except that the
+  \<^descr> @{ML forward_tac} is like @{ML dresolve_tac} except that the
   selected assumption is not deleted.  It applies a rule to an
   assumption, adding the result as a new assumption.
 
-  \item @{ML biresolve_tac}~@{text "ctxt brls i"} refines the proof state
+  \<^descr> @{ML biresolve_tac}~@{text "ctxt brls i"} refines the proof state
   by resolution or elim-resolution on each rule, as indicated by its
   flag.  It affects subgoal @{text "i"} of the proof state.
 
@@ -329,16 +329,16 @@ text %mlref \<open>
   elimination rules, which is useful to organize the search process
   systematically in proof tools.
 
-  \item @{ML assume_tac}~@{text "ctxt i"} attempts to solve subgoal @{text i}
+  \<^descr> @{ML assume_tac}~@{text "ctxt i"} attempts to solve subgoal @{text i}
   by assumption (modulo higher-order unification).
 
-  \item @{ML eq_assume_tac} is similar to @{ML assume_tac}, but checks
+  \<^descr> @{ML eq_assume_tac} is similar to @{ML assume_tac}, but checks
   only for immediate @{text "\<alpha>"}-convertibility instead of using
   unification.  It succeeds (with a unique next state) if one of the
   assumptions is equal to the subgoal's conclusion.  Since it does not
   instantiate variables, it cannot make other subgoals unprovable.
 
-  \item @{ML match_tac}, @{ML ematch_tac}, @{ML dmatch_tac}, and @{ML
+  \<^descr> @{ML match_tac}, @{ML ematch_tac}, @{ML dmatch_tac}, and @{ML
   bimatch_tac} are similar to @{ML resolve_tac}, @{ML eresolve_tac},
   @{ML dresolve_tac}, and @{ML biresolve_tac}, respectively, but do
   not instantiate schematic variables in the goal state.%
@@ -421,31 +421,31 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML Rule_Insts.res_inst_tac}~@{text "ctxt insts thm i"} instantiates the
+  \<^descr> @{ML Rule_Insts.res_inst_tac}~@{text "ctxt insts thm i"} instantiates the
   rule @{text thm} with the instantiations @{text insts}, as described
   above, and then performs resolution on subgoal @{text i}.
   
-  \item @{ML Rule_Insts.eres_inst_tac} is like @{ML Rule_Insts.res_inst_tac},
+  \<^descr> @{ML Rule_Insts.eres_inst_tac} is like @{ML Rule_Insts.res_inst_tac},
   but performs elim-resolution.
 
-  \item @{ML Rule_Insts.dres_inst_tac} is like @{ML Rule_Insts.res_inst_tac},
+  \<^descr> @{ML Rule_Insts.dres_inst_tac} is like @{ML Rule_Insts.res_inst_tac},
   but performs destruct-resolution.
 
-  \item @{ML Rule_Insts.forw_inst_tac} is like @{ML Rule_Insts.dres_inst_tac}
+  \<^descr> @{ML Rule_Insts.forw_inst_tac} is like @{ML Rule_Insts.dres_inst_tac}
   except that the selected assumption is not deleted.
 
-  \item @{ML Rule_Insts.subgoal_tac}~@{text "ctxt \<phi> i"} adds the proposition
+  \<^descr> @{ML Rule_Insts.subgoal_tac}~@{text "ctxt \<phi> i"} adds the proposition
   @{text "\<phi>"} as local premise to subgoal @{text "i"}, and poses the
   same as a new subgoal @{text "i + 1"} (in the original context).
 
-  \item @{ML Rule_Insts.thin_tac}~@{text "ctxt \<phi> i"} deletes the specified
+  \<^descr> @{ML Rule_Insts.thin_tac}~@{text "ctxt \<phi> i"} deletes the specified
   premise from subgoal @{text i}.  Note that @{text \<phi>} may contain
   schematic variables, to abbreviate the intended proposition; the
   first matching subgoal premise will be deleted.  Removing useless
   premises from a subgoal increases its readability and can make
   search tactics run faster.
 
-  \item @{ML rename_tac}~@{text "names i"} renames the innermost
+  \<^descr> @{ML rename_tac}~@{text "names i"} renames the innermost
   parameters of subgoal @{text i} according to the provided @{text
   names} (which need to be distinct identifiers).
 
@@ -475,14 +475,14 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML rotate_tac}~@{text "n i"} rotates the premises of subgoal
+  \<^descr> @{ML rotate_tac}~@{text "n i"} rotates the premises of subgoal
   @{text i} by @{text n} positions: from right to left if @{text n} is
   positive, and from left to right if @{text n} is negative.
 
-  \item @{ML distinct_subgoals_tac} removes duplicate subgoals from a
+  \<^descr> @{ML distinct_subgoals_tac} removes duplicate subgoals from a
   proof state.  This is potentially inefficient.
 
-  \item @{ML flexflex_tac} removes all flex-flex pairs from the proof
+  \<^descr> @{ML flexflex_tac} removes all flex-flex pairs from the proof
   state by applying the trivial unifier.  This drastic step loses
   information.  It is already part of the Isar infrastructure for
   facts resulting from goals, and rarely needs to be invoked manually.
@@ -515,7 +515,7 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML compose_tac}~@{text "ctxt (flag, rule, m) i"} refines subgoal
+  \<^descr> @{ML compose_tac}~@{text "ctxt (flag, rule, m) i"} refines subgoal
   @{text "i"} using @{text "rule"}, without lifting.  The @{text
   "rule"} is taken to have the form @{text "\<psi>\<^sub>1 \<Longrightarrow> \<dots> \<psi>\<^sub>m \<Longrightarrow> \<psi>"}, where
   @{text "\<psi>"} need not be atomic; thus @{text "m"} determines the
@@ -523,7 +523,7 @@ text %mlref \<open>
   performs elim-resolution --- it solves the first premise of @{text
   "rule"} by assumption and deletes that assumption.
 
-  \item @{ML Drule.compose}~@{text "(thm\<^sub>1, i, thm\<^sub>2)"} uses @{text "thm\<^sub>1"},
+  \<^descr> @{ML Drule.compose}~@{text "(thm\<^sub>1, i, thm\<^sub>2)"} uses @{text "thm\<^sub>1"},
   regarded as an atomic formula, to solve premise @{text "i"} of
   @{text "thm\<^sub>2"}.  Let @{text "thm\<^sub>1"} and @{text "thm\<^sub>2"} be @{text
   "\<psi>"} and @{text "\<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<phi>"}.  The unique @{text "s"} that
@@ -531,7 +531,7 @@ text %mlref \<open>
   \<dots> \<phi>\<^sub>i\<^sub>-\<^sub>1 \<Longrightarrow> \<phi>\<^sub>i\<^sub>+\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<phi>)s"}.  Multiple results are considered as
   error (exception @{ML THM}).
 
-  \item @{text "thm\<^sub>1 COMP thm\<^sub>2"} is the same as @{text "Drule.compose
+  \<^descr> @{text "thm\<^sub>1 COMP thm\<^sub>2"} is the same as @{text "Drule.compose
   (thm\<^sub>1, 1, thm\<^sub>2)"}.
 
   \end{description}
@@ -583,7 +583,7 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{text "tac\<^sub>1"}~@{ML_op THEN}~@{text "tac\<^sub>2"} is the sequential
+  \<^descr> @{text "tac\<^sub>1"}~@{ML_op THEN}~@{text "tac\<^sub>2"} is the sequential
   composition of @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a goal
   state, it returns all states reachable in two steps by applying
   @{text "tac\<^sub>1"} followed by @{text "tac\<^sub>2"}.  First, it applies @{text
@@ -592,30 +592,30 @@ text %mlref \<open>
   concatenates the results to produce again one flat sequence of
   states.
 
-  \item @{text "tac\<^sub>1"}~@{ML_op ORELSE}~@{text "tac\<^sub>2"} makes a choice
+  \<^descr> @{text "tac\<^sub>1"}~@{ML_op ORELSE}~@{text "tac\<^sub>2"} makes a choice
   between @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a state, it
   tries @{text "tac\<^sub>1"} and returns the result if non-empty; if @{text
   "tac\<^sub>1"} fails then it uses @{text "tac\<^sub>2"}.  This is a deterministic
   choice: if @{text "tac\<^sub>1"} succeeds then @{text "tac\<^sub>2"} is excluded
   from the result.
 
-  \item @{text "tac\<^sub>1"}~@{ML_op APPEND}~@{text "tac\<^sub>2"} concatenates the
+  \<^descr> @{text "tac\<^sub>1"}~@{ML_op APPEND}~@{text "tac\<^sub>2"} concatenates the
   possible results of @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Unlike
   @{ML_op "ORELSE"} there is \emph{no commitment} to either tactic, so
   @{ML_op "APPEND"} helps to avoid incompleteness during search, at
   the cost of potential inefficiencies.
 
-  \item @{ML EVERY}~@{text "[tac\<^sub>1, \<dots>, tac\<^sub>n]"} abbreviates @{text
+  \<^descr> @{ML EVERY}~@{text "[tac\<^sub>1, \<dots>, tac\<^sub>n]"} abbreviates @{text
   "tac\<^sub>1"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op THEN}~@{text "tac\<^sub>n"}.
   Note that @{ML "EVERY []"} is the same as @{ML all_tac}: it always
   succeeds.
 
-  \item @{ML FIRST}~@{text "[tac\<^sub>1, \<dots>, tac\<^sub>n]"} abbreviates @{text
+  \<^descr> @{ML FIRST}~@{text "[tac\<^sub>1, \<dots>, tac\<^sub>n]"} abbreviates @{text
   "tac\<^sub>1"}~@{ML_op ORELSE}~@{text "\<dots>"}~@{ML_op "ORELSE"}~@{text
   "tac\<^sub>n"}.  Note that @{ML "FIRST []"} is the same as @{ML no_tac}: it
   always fails.
 
-  \item @{ML_op "THEN'"} is the lifted version of @{ML_op "THEN"}, for
+  \<^descr> @{ML_op "THEN'"} is the lifted version of @{ML_op "THEN"}, for
   tactics with explicit subgoal addressing.  So @{text
   "(tac\<^sub>1"}~@{ML_op THEN'}~@{text "tac\<^sub>2) i"} is the same as @{text
   "(tac\<^sub>1 i"}~@{ML_op THEN}~@{text "tac\<^sub>2 i)"}.
@@ -643,7 +643,7 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML TRY}~@{text "tac"} applies @{text "tac"} to the goal
+  \<^descr> @{ML TRY}~@{text "tac"} applies @{text "tac"} to the goal
   state and returns the resulting sequence, if non-empty; otherwise it
   returns the original state.  Thus, it applies @{text "tac"} at most
   once.
@@ -652,7 +652,7 @@ text %mlref \<open>
   applied via functional composition: @{ML "TRY"}~@{ML_op o}~@{text
   "tac"}.  There is no need for @{verbatim TRY'}.
 
-  \item @{ML REPEAT}~@{text "tac"} applies @{text "tac"} to the goal
+  \<^descr> @{ML REPEAT}~@{text "tac"} applies @{text "tac"} to the goal
   state and, recursively, to each element of the resulting sequence.
   The resulting sequence consists of those states that make @{text
   "tac"} fail.  Thus, it applies @{text "tac"} as many times as
@@ -660,16 +660,16 @@ text %mlref \<open>
   invocation of @{text "tac"}.  @{ML REPEAT} is more general than @{ML
   REPEAT_DETERM}, but requires more space.
 
-  \item @{ML REPEAT1}~@{text "tac"} is like @{ML REPEAT}~@{text "tac"}
+  \<^descr> @{ML REPEAT1}~@{text "tac"} is like @{ML REPEAT}~@{text "tac"}
   but it always applies @{text "tac"} at least once, failing if this
   is impossible.
 
-  \item @{ML REPEAT_DETERM}~@{text "tac"} applies @{text "tac"} to the
+  \<^descr> @{ML REPEAT_DETERM}~@{text "tac"} applies @{text "tac"} to the
   goal state and, recursively, to the head of the resulting sequence.
   It returns the first state to make @{text "tac"} fail.  It is
   deterministic, discarding alternative outcomes.
 
-  \item @{ML REPEAT_DETERM_N}~@{text "n tac"} is like @{ML
+  \<^descr> @{ML REPEAT_DETERM_N}~@{text "n tac"} is like @{ML
   REPEAT_DETERM}~@{text "tac"} but the number of repetitions is bound
   by @{text "n"} (where @{ML "~1"} means @{text "\<infinity>"}).
 
@@ -749,28 +749,28 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML ALLGOALS}~@{text "tac"} is equivalent to @{text "tac
+  \<^descr> @{ML ALLGOALS}~@{text "tac"} is equivalent to @{text "tac
   n"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op THEN}~@{text "tac 1"}.  It
   applies the @{text tac} to all the subgoals, counting downwards.
 
-  \item @{ML SOMEGOAL}~@{text "tac"} is equivalent to @{text "tac
+  \<^descr> @{ML SOMEGOAL}~@{text "tac"} is equivalent to @{text "tac
   n"}~@{ML_op ORELSE}~@{text "\<dots>"}~@{ML_op ORELSE}~@{text "tac 1"}.  It
   applies @{text "tac"} to one subgoal, counting downwards.
 
-  \item @{ML FIRSTGOAL}~@{text "tac"} is equivalent to @{text "tac
+  \<^descr> @{ML FIRSTGOAL}~@{text "tac"} is equivalent to @{text "tac
   1"}~@{ML_op ORELSE}~@{text "\<dots>"}~@{ML_op ORELSE}~@{text "tac n"}.  It
   applies @{text "tac"} to one subgoal, counting upwards.
 
-  \item @{ML HEADGOAL}~@{text "tac"} is equivalent to @{text "tac 1"}.
+  \<^descr> @{ML HEADGOAL}~@{text "tac"} is equivalent to @{text "tac 1"}.
   It applies @{text "tac"} unconditionally to the first subgoal.
 
-  \item @{ML REPEAT_SOME}~@{text "tac"} applies @{text "tac"} once or
+  \<^descr> @{ML REPEAT_SOME}~@{text "tac"} applies @{text "tac"} once or
   more to a subgoal, counting downwards.
 
-  \item @{ML REPEAT_FIRST}~@{text "tac"} applies @{text "tac"} once or
+  \<^descr> @{ML REPEAT_FIRST}~@{text "tac"} applies @{text "tac"} once or
   more to a subgoal, counting upwards.
 
-  \item @{ML RANGE}~@{text "[tac\<^sub>1, \<dots>, tac\<^sub>k] i"} is equivalent to
+  \<^descr> @{ML RANGE}~@{text "[tac\<^sub>1, \<dots>, tac\<^sub>k] i"} is equivalent to
   @{text "tac\<^sub>k (i + k - 1)"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op
   THEN}~@{text "tac\<^sub>1 i"}.  It applies the given list of tactics to the
   corresponding range of subgoals, counting downwards.
@@ -802,11 +802,11 @@ text \<open>
 
   \begin{description}
 
-  \item @{ML FILTER}~@{text "sat tac"} applies @{text "tac"} to the
+  \<^descr> @{ML FILTER}~@{text "sat tac"} applies @{text "tac"} to the
   goal state and returns a sequence consisting of those result goal
   states that are satisfactory in the sense of @{text "sat"}.
 
-  \item @{ML CHANGED}~@{text "tac"} applies @{text "tac"} to the goal
+  \<^descr> @{ML CHANGED}~@{text "tac"} applies @{text "tac"} to the goal
   state and returns precisely those states that differ from the
   original state (according to @{ML Thm.eq_thm}).  Thus @{ML
   CHANGED}~@{text "tac"} always has some effect on the state.
@@ -826,17 +826,17 @@ text \<open>
 
   \begin{description}
 
-  \item @{ML DEPTH_FIRST}~@{text "sat tac"} returns the goal state if
+  \<^descr> @{ML DEPTH_FIRST}~@{text "sat tac"} returns the goal state if
   @{text "sat"} returns true.  Otherwise it applies @{text "tac"},
   then recursively searches from each element of the resulting
   sequence.  The code uses a stack for efficiency, in effect applying
   @{text "tac"}~@{ML_op THEN}~@{ML DEPTH_FIRST}~@{text "sat tac"} to
   the state.
 
-  \item @{ML DEPTH_SOLVE}@{text "tac"} uses @{ML DEPTH_FIRST} to
+  \<^descr> @{ML DEPTH_SOLVE}@{text "tac"} uses @{ML DEPTH_FIRST} to
   search for states having no subgoals.
 
-  \item @{ML DEPTH_SOLVE_1}~@{text "tac"} uses @{ML DEPTH_FIRST} to
+  \<^descr> @{ML DEPTH_SOLVE_1}~@{text "tac"} uses @{ML DEPTH_FIRST} to
   search for states having fewer subgoals than the given state.  Thus,
   it insists upon solving at least one subgoal.
 
@@ -859,11 +859,11 @@ text \<open>
 
   \begin{description}
 
-  \item @{ML BREADTH_FIRST}~@{text "sat tac"} uses breadth-first
+  \<^descr> @{ML BREADTH_FIRST}~@{text "sat tac"} uses breadth-first
   search to find states for which @{text "sat"} is true.  For most
   applications, it is too slow.
 
-  \item @{ML BEST_FIRST}~@{text "(sat, dist) tac"} does a heuristic
+  \<^descr> @{ML BEST_FIRST}~@{text "(sat, dist) tac"} does a heuristic
   search, using @{text "dist"} to estimate the distance from a
   satisfactory state (in the sense of @{text "sat"}).  It maintains a
   list of states ordered by distance.  It applies @{text "tac"} to the
@@ -875,7 +875,7 @@ text \<open>
   the size of the state.  The smaller the state, the fewer and simpler
   subgoals it has.
 
-  \item @{ML THEN_BEST_FIRST}~@{text "tac\<^sub>0 (sat, dist) tac"} is like
+  \<^descr> @{ML THEN_BEST_FIRST}~@{text "tac\<^sub>0 (sat, dist) tac"} is like
   @{ML BEST_FIRST}, except that the priority queue initially contains
   the result of applying @{text "tac\<^sub>0"} to the goal state.  This
   tactical permits separate tactics for starting the search and
@@ -897,22 +897,22 @@ text \<open>
 
   \begin{description}
 
-  \item @{ML COND}~@{text "sat tac\<^sub>1 tac\<^sub>2"} applies @{text "tac\<^sub>1"} to
+  \<^descr> @{ML COND}~@{text "sat tac\<^sub>1 tac\<^sub>2"} applies @{text "tac\<^sub>1"} to
   the goal state if it satisfies predicate @{text "sat"}, and applies
   @{text "tac\<^sub>2"}.  It is a conditional tactical in that only one of
   @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"} is applied to a goal state.
   However, both @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"} are evaluated
   because ML uses eager evaluation.
 
-  \item @{ML IF_UNSOLVED}~@{text "tac"} applies @{text "tac"} to the
+  \<^descr> @{ML IF_UNSOLVED}~@{text "tac"} applies @{text "tac"} to the
   goal state if it has any subgoals, and simply returns the goal state
   otherwise.  Many common tactics, such as @{ML resolve_tac}, fail if
   applied to a goal state that has no subgoals.
 
-  \item @{ML SOLVE}~@{text "tac"} applies @{text "tac"} to the goal
+  \<^descr> @{ML SOLVE}~@{text "tac"} applies @{text "tac"} to the goal
   state and then fails iff there are subgoals left.
 
-  \item @{ML DETERM}~@{text "tac"} applies @{text "tac"} to the goal
+  \<^descr> @{ML DETERM}~@{text "tac"} applies @{text "tac"} to the goal
   state and returns the head of the resulting sequence.  @{ML DETERM}
   limits the search space by making its argument deterministic.
 
@@ -932,19 +932,19 @@ text \<open>
 
   \begin{description}
 
-  \item @{ML has_fewer_prems}~@{text "n thm"} reports whether @{text
+  \<^descr> @{ML has_fewer_prems}~@{text "n thm"} reports whether @{text
   "thm"} has fewer than @{text "n"} premises.
 
-  \item @{ML Thm.eq_thm}~@{text "(thm\<^sub>1, thm\<^sub>2)"} reports whether @{text
+  \<^descr> @{ML Thm.eq_thm}~@{text "(thm\<^sub>1, thm\<^sub>2)"} reports whether @{text
   "thm\<^sub>1"} and @{text "thm\<^sub>2"} are equal.  Both theorems must have the
   same conclusions, the same set of hypotheses, and the same set of sort
   hypotheses.  Names of bound variables are ignored as usual.
 
-  \item @{ML Thm.eq_thm_prop}~@{text "(thm\<^sub>1, thm\<^sub>2)"} reports whether
+  \<^descr> @{ML Thm.eq_thm_prop}~@{text "(thm\<^sub>1, thm\<^sub>2)"} reports whether
   the propositions of @{text "thm\<^sub>1"} and @{text "thm\<^sub>2"} are equal.
   Names of bound variables are ignored.
 
-  \item @{ML size_of_thm}~@{text "thm"} computes the size of @{text
+  \<^descr> @{ML size_of_thm}~@{text "thm"} computes the size of @{text
   "thm"}, namely the number of variables, constants and abstractions
   in its conclusion.  It may serve as a distance function for
   @{ML BEST_FIRST}.

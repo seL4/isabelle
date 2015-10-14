@@ -140,50 +140,50 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item Type @{ML_type class} represents type classes.
+  \<^descr> Type @{ML_type class} represents type classes.
 
-  \item Type @{ML_type sort} represents sorts, i.e.\ finite
+  \<^descr> Type @{ML_type sort} represents sorts, i.e.\ finite
   intersections of classes.  The empty list @{ML "[]: sort"} refers to
   the empty class intersection, i.e.\ the ``full sort''.
 
-  \item Type @{ML_type arity} represents type arities.  A triple
+  \<^descr> Type @{ML_type arity} represents type arities.  A triple
   @{text "(\<kappa>, \<^vec>s, s) : arity"} represents @{text "\<kappa> ::
   (\<^vec>s)s"} as described above.
 
-  \item Type @{ML_type typ} represents types; this is a datatype with
+  \<^descr> Type @{ML_type typ} represents types; this is a datatype with
   constructors @{ML TFree}, @{ML TVar}, @{ML Type}.
 
-  \item @{ML Term.map_atyps}~@{text "f \<tau>"} applies the mapping @{text
+  \<^descr> @{ML Term.map_atyps}~@{text "f \<tau>"} applies the mapping @{text
   "f"} to all atomic types (@{ML TFree}, @{ML TVar}) occurring in
   @{text "\<tau>"}.
 
-  \item @{ML Term.fold_atyps}~@{text "f \<tau>"} iterates the operation
+  \<^descr> @{ML Term.fold_atyps}~@{text "f \<tau>"} iterates the operation
   @{text "f"} over all occurrences of atomic types (@{ML TFree}, @{ML
   TVar}) in @{text "\<tau>"}; the type structure is traversed from left to
   right.
 
-  \item @{ML Sign.subsort}~@{text "thy (s\<^sub>1, s\<^sub>2)"}
+  \<^descr> @{ML Sign.subsort}~@{text "thy (s\<^sub>1, s\<^sub>2)"}
   tests the subsort relation @{text "s\<^sub>1 \<subseteq> s\<^sub>2"}.
 
-  \item @{ML Sign.of_sort}~@{text "thy (\<tau>, s)"} tests whether type
+  \<^descr> @{ML Sign.of_sort}~@{text "thy (\<tau>, s)"} tests whether type
   @{text "\<tau>"} is of sort @{text "s"}.
 
-  \item @{ML Sign.add_type}~@{text "ctxt (\<kappa>, k, mx)"} declares a
+  \<^descr> @{ML Sign.add_type}~@{text "ctxt (\<kappa>, k, mx)"} declares a
   new type constructors @{text "\<kappa>"} with @{text "k"} arguments and
   optional mixfix syntax.
 
-  \item @{ML Sign.add_type_abbrev}~@{text "ctxt (\<kappa>, \<^vec>\<alpha>, \<tau>)"}
+  \<^descr> @{ML Sign.add_type_abbrev}~@{text "ctxt (\<kappa>, \<^vec>\<alpha>, \<tau>)"}
   defines a new type abbreviation @{text "(\<^vec>\<alpha>)\<kappa> = \<tau>"}.
 
-  \item @{ML Sign.primitive_class}~@{text "(c, [c\<^sub>1, \<dots>,
+  \<^descr> @{ML Sign.primitive_class}~@{text "(c, [c\<^sub>1, \<dots>,
   c\<^sub>n])"} declares a new class @{text "c"}, together with class
   relations @{text "c \<subseteq> c\<^sub>i"}, for @{text "i = 1, \<dots>, n"}.
 
-  \item @{ML Sign.primitive_classrel}~@{text "(c\<^sub>1,
+  \<^descr> @{ML Sign.primitive_classrel}~@{text "(c\<^sub>1,
   c\<^sub>2)"} declares the class relation @{text "c\<^sub>1 \<subseteq>
   c\<^sub>2"}.
 
-  \item @{ML Sign.primitive_arity}~@{text "(\<kappa>, \<^vec>s, s)"} declares
+  \<^descr> @{ML Sign.primitive_arity}~@{text "(\<kappa>, \<^vec>s, s)"} declares
   the arity @{text "\<kappa> :: (\<^vec>s)s"}.
 
   \end{description}
@@ -213,23 +213,23 @@ text %mlantiq \<open>
 
   \begin{description}
 
-  \item @{text "@{class c}"} inlines the internalized class @{text
+  \<^descr> @{text "@{class c}"} inlines the internalized class @{text
   "c"} --- as @{ML_type string} literal.
 
-  \item @{text "@{sort s}"} inlines the internalized sort @{text "s"}
+  \<^descr> @{text "@{sort s}"} inlines the internalized sort @{text "s"}
   --- as @{ML_type "string list"} literal.
 
-  \item @{text "@{type_name c}"} inlines the internalized type
+  \<^descr> @{text "@{type_name c}"} inlines the internalized type
   constructor @{text "c"} --- as @{ML_type string} literal.
 
-  \item @{text "@{type_abbrev c}"} inlines the internalized type
+  \<^descr> @{text "@{type_abbrev c}"} inlines the internalized type
   abbreviation @{text "c"} --- as @{ML_type string} literal.
 
-  \item @{text "@{nonterminal c}"} inlines the internalized syntactic
+  \<^descr> @{text "@{nonterminal c}"} inlines the internalized syntactic
   type~/ grammar nonterminal @{text "c"} --- as @{ML_type string}
   literal.
 
-  \item @{text "@{typ \<tau>}"} inlines the internalized type @{text "\<tau>"}
+  \<^descr> @{text "@{typ \<tau>}"} inlines the internalized type @{text "\<tau>"}
   --- as constructor term for datatype @{ML_type typ}.
 
   \end{description}
@@ -385,58 +385,58 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item Type @{ML_type term} represents de-Bruijn terms, with comments
+  \<^descr> Type @{ML_type term} represents de-Bruijn terms, with comments
   in abstractions, and explicitly named free variables and constants;
   this is a datatype with constructors @{index_ML Bound}, @{index_ML
   Free}, @{index_ML Var}, @{index_ML Const}, @{index_ML Abs},
   @{index_ML_op "$"}.
 
-  \item @{text "t"}~@{ML_text aconv}~@{text "u"} checks @{text
+  \<^descr> @{text "t"}~@{ML_text aconv}~@{text "u"} checks @{text
   "\<alpha>"}-equivalence of two terms.  This is the basic equality relation
   on type @{ML_type term}; raw datatype equality should only be used
   for operations related to parsing or printing!
 
-  \item @{ML Term.map_types}~@{text "f t"} applies the mapping @{text
+  \<^descr> @{ML Term.map_types}~@{text "f t"} applies the mapping @{text
   "f"} to all types occurring in @{text "t"}.
 
-  \item @{ML Term.fold_types}~@{text "f t"} iterates the operation
+  \<^descr> @{ML Term.fold_types}~@{text "f t"} iterates the operation
   @{text "f"} over all occurrences of types in @{text "t"}; the term
   structure is traversed from left to right.
 
-  \item @{ML Term.map_aterms}~@{text "f t"} applies the mapping @{text
+  \<^descr> @{ML Term.map_aterms}~@{text "f t"} applies the mapping @{text
   "f"} to all atomic terms (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML
   Const}) occurring in @{text "t"}.
 
-  \item @{ML Term.fold_aterms}~@{text "f t"} iterates the operation
+  \<^descr> @{ML Term.fold_aterms}~@{text "f t"} iterates the operation
   @{text "f"} over all occurrences of atomic terms (@{ML Bound}, @{ML
   Free}, @{ML Var}, @{ML Const}) in @{text "t"}; the term structure is
   traversed from left to right.
 
-  \item @{ML fastype_of}~@{text "t"} determines the type of a
+  \<^descr> @{ML fastype_of}~@{text "t"} determines the type of a
   well-typed term.  This operation is relatively slow, despite the
   omission of any sanity checks.
 
-  \item @{ML lambda}~@{text "a b"} produces an abstraction @{text
+  \<^descr> @{ML lambda}~@{text "a b"} produces an abstraction @{text
   "\<lambda>a. b"}, where occurrences of the atomic term @{text "a"} in the
   body @{text "b"} are replaced by bound variables.
 
-  \item @{ML betapply}~@{text "(t, u)"} produces an application @{text
+  \<^descr> @{ML betapply}~@{text "(t, u)"} produces an application @{text
   "t u"}, with topmost @{text "\<beta>"}-conversion if @{text "t"} is an
   abstraction.
 
-  \item @{ML incr_boundvars}~@{text "j"} increments a term's dangling
+  \<^descr> @{ML incr_boundvars}~@{text "j"} increments a term's dangling
   bound variables by the offset @{text "j"}.  This is required when
   moving a subterm into a context where it is enclosed by a different
   number of abstractions.  Bound variables with a matching abstraction
   are unaffected.
 
-  \item @{ML Sign.declare_const}~@{text "ctxt ((c, \<sigma>), mx)"} declares
+  \<^descr> @{ML Sign.declare_const}~@{text "ctxt ((c, \<sigma>), mx)"} declares
   a new constant @{text "c :: \<sigma>"} with optional mixfix syntax.
 
-  \item @{ML Sign.add_abbrev}~@{text "print_mode (c, t)"}
+  \<^descr> @{ML Sign.add_abbrev}~@{text "print_mode (c, t)"}
   introduces a new term abbreviation @{text "c \<equiv> t"}.
 
-  \item @{ML Sign.const_typargs}~@{text "thy (c, \<tau>)"} and @{ML
+  \<^descr> @{ML Sign.const_typargs}~@{text "thy (c, \<tau>)"} and @{ML
   Sign.const_instance}~@{text "thy (c, [\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>n])"}
   convert between two representations of polymorphic constants: full
   type instance vs.\ compact type arguments form.
@@ -466,22 +466,22 @@ text %mlantiq \<open>
 
   \begin{description}
 
-  \item @{text "@{const_name c}"} inlines the internalized logical
+  \<^descr> @{text "@{const_name c}"} inlines the internalized logical
   constant name @{text "c"} --- as @{ML_type string} literal.
 
-  \item @{text "@{const_abbrev c}"} inlines the internalized
+  \<^descr> @{text "@{const_abbrev c}"} inlines the internalized
   abbreviated constant name @{text "c"} --- as @{ML_type string}
   literal.
 
-  \item @{text "@{const c(\<^vec>\<tau>)}"} inlines the internalized
+  \<^descr> @{text "@{const c(\<^vec>\<tau>)}"} inlines the internalized
   constant @{text "c"} with precise type instantiation in the sense of
   @{ML Sign.const_instance} --- as @{ML Const} constructor term for
   datatype @{ML_type term}.
 
-  \item @{text "@{term t}"} inlines the internalized term @{text "t"}
+  \<^descr> @{text "@{term t}"} inlines the internalized term @{text "t"}
   --- as constructor term for datatype @{ML_type term}.
 
-  \item @{text "@{prop \<phi>}"} inlines the internalized proposition
+  \<^descr> @{text "@{prop \<phi>}"} inlines the internalized proposition
   @{text "\<phi>"} --- as constructor term for datatype @{ML_type term}.
 
   \end{description}
@@ -683,7 +683,7 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML Thm.peek_status}~@{text "thm"} informs about the current
+  \<^descr> @{ML Thm.peek_status}~@{text "thm"} informs about the current
   status of the derivation object behind the given theorem.  This is a
   snapshot of a potentially ongoing (parallel) evaluation of proofs.
   The three Boolean values indicate the following: @{verbatim oracle}
@@ -692,15 +692,15 @@ text %mlref \<open>
   failed} if some future proof has failed, rendering the theorem
   invalid!
 
-  \item @{ML Logic.all}~@{text "a B"} produces a Pure quantification
+  \<^descr> @{ML Logic.all}~@{text "a B"} produces a Pure quantification
   @{text "\<And>a. B"}, where occurrences of the atomic term @{text "a"} in
   the body proposition @{text "B"} are replaced by bound variables.
   (See also @{ML lambda} on terms.)
 
-  \item @{ML Logic.mk_implies}~@{text "(A, B)"} produces a Pure
+  \<^descr> @{ML Logic.mk_implies}~@{text "(A, B)"} produces a Pure
   implication @{text "A \<Longrightarrow> B"}.
 
-  \item Types @{ML_type ctyp} and @{ML_type cterm} represent certified
+  \<^descr> Types @{ML_type ctyp} and @{ML_type cterm} represent certified
   types and terms, respectively.  These are abstract datatypes that
   guarantee that its values have passed the full well-formedness (and
   well-typedness) checks, relative to the declarations of type
@@ -711,7 +711,7 @@ text %mlref \<open>
   are located in the @{ML_structure Thm} module, even though theorems are
   not yet involved at that stage.
 
-  \item @{ML Thm.ctyp_of}~@{text "ctxt \<tau>"} and @{ML
+  \<^descr> @{ML Thm.ctyp_of}~@{text "ctxt \<tau>"} and @{ML
   Thm.cterm_of}~@{text "ctxt t"} explicitly check types and terms,
   respectively.  This also involves some basic normalizations, such
   expansion of type and term abbreviations from the underlying
@@ -719,7 +719,7 @@ text %mlref \<open>
   Full re-certification is relatively slow and should be avoided in
   tight reasoning loops.
 
-  \item @{ML Thm.apply}, @{ML Thm.lambda}, @{ML Thm.all}, @{ML
+  \<^descr> @{ML Thm.apply}, @{ML Thm.lambda}, @{ML Thm.all}, @{ML
   Drule.mk_implies} etc.\ compose certified terms (or propositions)
   incrementally.  This is equivalent to @{ML Thm.cterm_of} after
   unchecked @{ML_op "$"}, @{ML lambda}, @{ML Logic.all}, @{ML
@@ -728,53 +728,53 @@ text %mlref \<open>
   constructions on top.  There are separate operations to decompose
   certified terms and theorems to produce certified terms again.
 
-  \item Type @{ML_type thm} represents proven propositions.  This is
+  \<^descr> Type @{ML_type thm} represents proven propositions.  This is
   an abstract datatype that guarantees that its values have been
   constructed by basic principles of the @{ML_structure Thm} module.
   Every @{ML_type thm} value refers its background theory,
   cf.\ \secref{sec:context-theory}.
 
-  \item @{ML Thm.transfer}~@{text "thy thm"} transfers the given
+  \<^descr> @{ML Thm.transfer}~@{text "thy thm"} transfers the given
   theorem to a \emph{larger} theory, see also \secref{sec:context}.
   This formal adjustment of the background context has no logical
   significance, but is occasionally required for formal reasons, e.g.\
   when theorems that are imported from more basic theories are used in
   the current situation.
 
-  \item @{ML Thm.assume}, @{ML Thm.forall_intr}, @{ML
+  \<^descr> @{ML Thm.assume}, @{ML Thm.forall_intr}, @{ML
   Thm.forall_elim}, @{ML Thm.implies_intr}, and @{ML Thm.implies_elim}
   correspond to the primitive inferences of \figref{fig:prim-rules}.
 
-  \item @{ML Thm.generalize}~@{text "(\<^vec>\<alpha>, \<^vec>x)"}
+  \<^descr> @{ML Thm.generalize}~@{text "(\<^vec>\<alpha>, \<^vec>x)"}
   corresponds to the @{text "generalize"} rules of
   \figref{fig:subst-rules}.  Here collections of type and term
   variables are generalized simultaneously, specified by the given
   basic names.
 
-  \item @{ML Thm.instantiate}~@{text "(\<^vec>\<alpha>\<^sub>s,
+  \<^descr> @{ML Thm.instantiate}~@{text "(\<^vec>\<alpha>\<^sub>s,
   \<^vec>x\<^sub>\<tau>)"} corresponds to the @{text "instantiate"} rules
   of \figref{fig:subst-rules}.  Type variables are substituted before
   term variables.  Note that the types in @{text "\<^vec>x\<^sub>\<tau>"}
   refer to the instantiated versions.
 
-  \item @{ML Thm.add_axiom}~@{text "ctxt (name, A)"} declares an
+  \<^descr> @{ML Thm.add_axiom}~@{text "ctxt (name, A)"} declares an
   arbitrary proposition as axiom, and retrieves it as a theorem from
   the resulting theory, cf.\ @{text "axiom"} in
   \figref{fig:prim-rules}.  Note that the low-level representation in
   the axiom table may differ slightly from the returned theorem.
 
-  \item @{ML Thm.add_oracle}~@{text "(binding, oracle)"} produces a named
+  \<^descr> @{ML Thm.add_oracle}~@{text "(binding, oracle)"} produces a named
   oracle rule, essentially generating arbitrary axioms on the fly,
   cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
 
-  \item @{ML Thm.add_def}~@{text "ctxt unchecked overloaded (name, c
+  \<^descr> @{ML Thm.add_def}~@{text "ctxt unchecked overloaded (name, c
   \<^vec>x \<equiv> t)"} states a definitional axiom for an existing constant
   @{text "c"}.  Dependencies are recorded via @{ML Theory.add_deps},
   unless the @{text "unchecked"} option is set.  Note that the
   low-level representation in the axiom table may differ slightly from
   the returned theorem.
 
-  \item @{ML Theory.add_deps}~@{text "ctxt name c\<^sub>\<tau> \<^vec>d\<^sub>\<sigma>"}
+  \<^descr> @{ML Theory.add_deps}~@{text "ctxt name c\<^sub>\<tau> \<^vec>d\<^sub>\<sigma>"}
   declares dependencies of a named specification for constant @{text
   "c\<^sub>\<tau>"}, relative to existing specifications for constants @{text
   "\<^vec>d\<^sub>\<sigma>"}.  This also works for type constructors.
@@ -810,21 +810,21 @@ text %mlantiq \<open>
 
   \begin{description}
 
-  \item @{text "@{ctyp \<tau>}"} produces a certified type wrt.\ the
+  \<^descr> @{text "@{ctyp \<tau>}"} produces a certified type wrt.\ the
   current background theory --- as abstract value of type @{ML_type
   ctyp}.
 
-  \item @{text "@{cterm t}"} and @{text "@{cprop \<phi>}"} produce a
+  \<^descr> @{text "@{cterm t}"} and @{text "@{cprop \<phi>}"} produce a
   certified term wrt.\ the current background theory --- as abstract
   value of type @{ML_type cterm}.
 
-  \item @{text "@{thm a}"} produces a singleton fact --- as abstract
+  \<^descr> @{text "@{thm a}"} produces a singleton fact --- as abstract
   value of type @{ML_type thm}.
 
-  \item @{text "@{thms a}"} produces a general fact --- as abstract
+  \<^descr> @{text "@{thms a}"} produces a general fact --- as abstract
   value of type @{ML_type "thm list"}.
 
-  \item @{text "@{lemma \<phi> by meth}"} produces a fact that is proven on
+  \<^descr> @{text "@{lemma \<phi> by meth}"} produces a fact that is proven on
   the spot according to the minimal proof, which imitates a terminal
   Isar proof.  The result is an abstract value of type @{ML_type thm}
   or @{ML_type "thm list"}, depending on the number of propositions
@@ -917,21 +917,21 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML Conjunction.intr} derives @{text "A &&& B"} from @{text
+  \<^descr> @{ML Conjunction.intr} derives @{text "A &&& B"} from @{text
   "A"} and @{text "B"}.
 
-  \item @{ML Conjunction.elim} derives @{text "A"} and @{text "B"}
+  \<^descr> @{ML Conjunction.elim} derives @{text "A"} and @{text "B"}
   from @{text "A &&& B"}.
 
-  \item @{ML Drule.mk_term} derives @{text "TERM t"}.
+  \<^descr> @{ML Drule.mk_term} derives @{text "TERM t"}.
 
-  \item @{ML Drule.dest_term} recovers term @{text "t"} from @{text
+  \<^descr> @{ML Drule.dest_term} recovers term @{text "t"} from @{text
   "TERM t"}.
 
-  \item @{ML Logic.mk_type}~@{text "\<tau>"} produces the term @{text
+  \<^descr> @{ML Logic.mk_type}~@{text "\<tau>"} produces the term @{text
   "TYPE(\<tau>)"}.
 
-  \item @{ML Logic.dest_type}~@{text "TYPE(\<tau>)"} recovers the type
+  \<^descr> @{ML Logic.dest_type}~@{text "TYPE(\<tau>)"} recovers the type
   @{text "\<tau>"}.
 
   \end{description}
@@ -974,11 +974,11 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML Thm.extra_shyps}~@{text "thm"} determines the extraneous
+  \<^descr> @{ML Thm.extra_shyps}~@{text "thm"} determines the extraneous
   sort hypotheses of the given theorem, i.e.\ the sorts that are not
   present within type variables of the statement.
 
-  \item @{ML Thm.strip_shyps}~@{text "thm"} removes any extraneous
+  \<^descr> @{ML Thm.strip_shyps}~@{text "thm"} removes any extraneous
   sort hypotheses that can be witnessed from the type signature.
 
   \end{description}
@@ -1092,7 +1092,7 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{ML Simplifier.norm_hhf}~@{text "ctxt thm"} normalizes the given
+  \<^descr> @{ML Simplifier.norm_hhf}~@{text "ctxt thm"} normalizes the given
   theorem according to the canonical form specified above.  This is
   occasionally helpful to repair some low-level tools that do not
   handle Hereditary Harrop Formulae properly.
@@ -1176,7 +1176,7 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item @{text "rule\<^sub>1 RSN (i, rule\<^sub>2)"} resolves the conclusion of
+  \<^descr> @{text "rule\<^sub>1 RSN (i, rule\<^sub>2)"} resolves the conclusion of
   @{text "rule\<^sub>1"} with the @{text i}-th premise of @{text "rule\<^sub>2"},
   according to the @{inference resolution} principle explained above.
   Unless there is precisely one resolvent it raises exception @{ML
@@ -1185,10 +1185,10 @@ text %mlref \<open>
   This corresponds to the rule attribute @{attribute THEN} in Isar
   source language.
 
-  \item @{text "rule\<^sub>1 RS rule\<^sub>2"} abbreviates @{text "rule\<^sub>1 RSN (1,
+  \<^descr> @{text "rule\<^sub>1 RS rule\<^sub>2"} abbreviates @{text "rule\<^sub>1 RSN (1,
   rule\<^sub>2)"}.
 
-  \item @{text "rules\<^sub>1 RLN (i, rules\<^sub>2)"} joins lists of rules.  For
+  \<^descr> @{text "rules\<^sub>1 RLN (i, rules\<^sub>2)"} joins lists of rules.  For
   every @{text "rule\<^sub>1"} in @{text "rules\<^sub>1"} and @{text "rule\<^sub>2"} in
   @{text "rules\<^sub>2"}, it resolves the conclusion of @{text "rule\<^sub>1"} with
   the @{text "i"}-th premise of @{text "rule\<^sub>2"}, accumulating multiple
@@ -1196,15 +1196,15 @@ text %mlref \<open>
   higher-order unifications can be inefficient compared to the lazy
   variant seen in elementary tactics like @{ML resolve_tac}.
 
-  \item @{text "rules\<^sub>1 RL rules\<^sub>2"} abbreviates @{text "rules\<^sub>1 RLN (1,
+  \<^descr> @{text "rules\<^sub>1 RL rules\<^sub>2"} abbreviates @{text "rules\<^sub>1 RLN (1,
   rules\<^sub>2)"}.
 
-  \item @{text "[rule\<^sub>1, \<dots>, rule\<^sub>n] MRS rule"} resolves @{text "rule\<^sub>i"}
+  \<^descr> @{text "[rule\<^sub>1, \<dots>, rule\<^sub>n] MRS rule"} resolves @{text "rule\<^sub>i"}
   against premise @{text "i"} of @{text "rule"}, for @{text "i = n, \<dots>,
   1"}.  By working from right to left, newly emerging premises are
   concatenated in the result, without interfering.
 
-  \item @{text "rule OF rules"} is an alternative notation for @{text
+  \<^descr> @{text "rule OF rules"} is an alternative notation for @{text
   "rules MRS rule"}, which makes rule composition look more like
   function application.  Note that the argument @{text "rules"} need
   not be atomic.
@@ -1361,21 +1361,21 @@ text %mlref \<open>
 
   \begin{description}
 
-  \item Type @{ML_type proof} represents proof terms; this is a
+  \<^descr> Type @{ML_type proof} represents proof terms; this is a
   datatype with constructors @{index_ML Abst}, @{index_ML AbsP},
   @{index_ML_op "%"}, @{index_ML_op "%%"}, @{index_ML PBound},
   @{index_ML MinProof}, @{index_ML Hyp}, @{index_ML PAxm}, @{index_ML
   Oracle}, @{index_ML Promise}, @{index_ML PThm} as explained above.
   %FIXME OfClass (!?)
 
-  \item Type @{ML_type proof_body} represents the nested proof
+  \<^descr> Type @{ML_type proof_body} represents the nested proof
   information of a named theorem, consisting of a digest of oracles
   and named theorem over some proof term.  The digest only covers the
   directly visible part of the proof: in order to get the full
   information, the implicit graph of nested theorems needs to be
   traversed (e.g.\ using @{ML Proofterm.fold_body_thms}).
 
-  \item @{ML Thm.proof_of}~@{text "thm"} and @{ML
+  \<^descr> @{ML Thm.proof_of}~@{text "thm"} and @{ML
   Thm.proof_body_of}~@{text "thm"} produce the proof term or proof
   body (with digest of oracles and theorems) from a given theorem.
   Note that this involves a full join of internal futures that fulfill
@@ -1384,14 +1384,14 @@ text %mlref \<open>
   Parallel performance may suffer by inspecting proof terms at
   run-time.
 
-  \item @{ML proofs} specifies the detail of proof recording within
+  \<^descr> @{ML proofs} specifies the detail of proof recording within
   @{ML_type thm} values produced by the inference kernel: @{ML 0}
   records only the names of oracles, @{ML 1} records oracle names and
   propositions, @{ML 2} additionally records full proof terms.
   Officially named theorems that contribute to a result are recorded
   in any case.
 
-  \item @{ML Reconstruct.reconstruct_proof}~@{text "thy prop prf"}
+  \<^descr> @{ML Reconstruct.reconstruct_proof}~@{text "thy prop prf"}
   turns the implicit proof term @{text "prf"} into a full proof of the
   given proposition.
 
@@ -1401,21 +1401,21 @@ text %mlref \<open>
   constructed manually, but not for those produced automatically by
   the inference kernel.
 
-  \item @{ML Reconstruct.expand_proof}~@{text "thy [thm\<^sub>1, \<dots>, thm\<^sub>n]
+  \<^descr> @{ML Reconstruct.expand_proof}~@{text "thy [thm\<^sub>1, \<dots>, thm\<^sub>n]
   prf"} expands and reconstructs the proofs of all specified theorems,
   with the given (full) proof.  Theorems that are not unique specified
   via their name may be disambiguated by giving their proposition.
 
-  \item @{ML Proof_Checker.thm_of_proof}~@{text "thy prf"} turns the
+  \<^descr> @{ML Proof_Checker.thm_of_proof}~@{text "thy prf"} turns the
   given (full) proof into a theorem, by replaying it using only
   primitive rules of the inference kernel.
 
-  \item @{ML Proof_Syntax.read_proof}~@{text "thy b\<^sub>1 b\<^sub>2 s"} reads in a
+  \<^descr> @{ML Proof_Syntax.read_proof}~@{text "thy b\<^sub>1 b\<^sub>2 s"} reads in a
   proof term. The Boolean flags indicate the use of sort and type
   information.  Usually, typing information is left implicit and is
   inferred during proof reconstruction.  %FIXME eliminate flags!?
 
-  \item @{ML Proof_Syntax.pretty_proof}~@{text "ctxt prf"}
+  \<^descr> @{ML Proof_Syntax.pretty_proof}~@{text "ctxt prf"}
   pretty-prints the given proof term.
 
   \end{description}
