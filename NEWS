@@ -59,12 +59,14 @@ requirements of prover time and GUI space.
 
 * Isabelle control symbols for markup and formatting:
 
+  \<^noindent>   \noindent
   \<^smallskip>   \smallskip
   \<^medskip>   \medskip
   \<^bigskip>   \bigskip
 
   \<^item>  \item  (itemize)
-  \<^enum>  \item  (enumeration)
+  \<^enum>  \item  (enumerate)
+  \<^descr>  \item  (description)
 
 
 *** Isar ***
