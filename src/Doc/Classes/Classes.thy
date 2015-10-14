@@ -19,25 +19,25 @@ text \<open>
 
   \begin{quote}
 
-  \noindent@{text "class eq where"} \\
+  \<^noindent>@{text "class eq where"} \\
   \hspace*{2ex}@{text "eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
 
-  \medskip\noindent@{text "instance nat :: eq where"} \\
+  \<^medskip>\<^noindent>@{text "instance nat :: eq where"} \\
   \hspace*{2ex}@{text "eq 0 0 = True"} \\
   \hspace*{2ex}@{text "eq 0 _ = False"} \\
   \hspace*{2ex}@{text "eq _ 0 = False"} \\
   \hspace*{2ex}@{text "eq (Suc n) (Suc m) = eq n m"}
 
-  \medskip\noindent@{text "instance (\<alpha>::eq, \<beta>::eq) pair :: eq where"} \\
+  \<^medskip>\<^noindent>@{text "instance (\<alpha>::eq, \<beta>::eq) pair :: eq where"} \\
   \hspace*{2ex}@{text "eq (x1, y1) (x2, y2) = eq x1 x2 \<and> eq y1 y2"}
 
-  \medskip\noindent@{text "class ord extends eq where"} \\
+  \<^medskip>\<^noindent>@{text "class ord extends eq where"} \\
   \hspace*{2ex}@{text "less_eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
   \hspace*{2ex}@{text "less :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
 
   \end{quote}
 
-  \noindent Type variables are annotated with (finitely many) classes;
+  \<^noindent> Type variables are annotated with (finitely many) classes;
   these annotations are assertions that a particular polymorphic type
   provides definitions for overloaded functions.
 
@@ -56,7 +56,7 @@ text \<open>
 
   \begin{quote}
 
-  \noindent@{text "class eq where"} \\
+  \<^noindent>@{text "class eq where"} \\
   \hspace*{2ex}@{text "eq :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
   @{text "satisfying"} \\
   \hspace*{2ex}@{text "refl: eq x x"} \\
@@ -65,7 +65,7 @@ text \<open>
 
   \end{quote}
 
-  \noindent From a theoretical point of view, type classes are
+  \<^noindent> From a theoretical point of view, type classes are
   lightweight modules; Haskell type classes may be emulated by SML
   functors @{cite classes_modules}.  Isabelle/Isar offers a discipline
   of type classes which brings all those aspects together:
@@ -80,7 +80,7 @@ text \<open>
       locales @{cite "kammueller-locales"}.
   \end{enumerate}
 
-  \noindent Isar type classes also directly support code generation in
+  \<^noindent> Isar type classes also directly support code generation in
   a Haskell like fashion. Internally, they are mapped to more
   primitive Isabelle concepts @{cite "Haftmann-Wenzel:2006:classes"}.
 
@@ -106,7 +106,7 @@ class %quote semigroup =
   assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
 
 text \<open>
-  \noindent This @{command class} specification consists of two parts:
+  \<^noindent> This @{command class} specification consists of two parts:
   the \qn{operational} part names the class parameter (@{element
   "fixes"}), the \qn{logical} part specifies properties on them
   (@{element "assumes"}).  The local @{element "fixes"} and @{element
@@ -141,7 +141,7 @@ qed
 end %quote
 
 text \<open>
-  \noindent @{command instantiation} defines class parameters at a
+  \<^noindent> @{command instantiation} defines class parameters at a
   particular instance using common specification tools (here,
   @{command definition}).  The concluding @{command instance} opens a
   proof that the given parameters actually conform to the class
@@ -155,7 +155,7 @@ text \<open>
   semigroup} automatically, i.e.\ any general results are immediately
   available on concrete instances.
 
-  \medskip Another instance of @{class semigroup} yields the natural
+  \<^medskip> Another instance of @{class semigroup} yields the natural
   numbers:
 \<close>
 
@@ -175,7 +175,7 @@ qed
 end %quote
 
 text \<open>
-  \noindent Note the occurrence of the name @{text mult_nat} in the
+  \<^noindent> Note the occurrence of the name @{text mult_nat} in the
   primrec declaration; by default, the local name of a class operation
   @{text f} to be instantiated on type constructor @{text \<kappa>} is
   mangled as @{text f_\<kappa>}.  In case of uncertainty, these names may be
@@ -205,7 +205,7 @@ qed
 end %quote
 
 text \<open>
-  \noindent Associativity of product semigroups is established using
+  \<^noindent> Associativity of product semigroups is established using
   the definition of @{text "(\<otimes>)"} on products and the hypothetical
   associativity of the type components; these hypotheses are
   legitimate due to the @{class semigroup} constraints imposed on the
@@ -227,7 +227,7 @@ class %quote monoidl = semigroup +
   assumes neutl: "\<one> \<otimes> x = x"
 
 text \<open>
-  \noindent Again, we prove some instances, by providing suitable
+  \<^noindent> Again, we prove some instances, by providing suitable
   parameter definitions and proofs for the additional specifications.
   Observe that instantiations for types with the same arity may be
   simultaneous:
@@ -269,7 +269,7 @@ qed
 end %quote
 
 text \<open>
-  \noindent Fully-fledged monoids are modelled by another subclass,
+  \<^noindent> Fully-fledged monoids are modelled by another subclass,
   which does not add new parameters but tightens the specification:
 \<close>
 
@@ -303,7 +303,7 @@ qed
 end %quote
 
 text \<open>
-  \noindent To finish our small algebra example, we add a @{text
+  \<^noindent> To finish our small algebra example, we add a @{text
   group} class with a corresponding instance:
 \<close>
 
@@ -343,19 +343,19 @@ class %quote idem =
   assumes idem: "f (f x) = f x"
 
 text \<open>
-  \noindent essentially introduces the locale
+  \<^noindent> essentially introduces the locale
 \<close> (*<*)setup %invisible \<open>Sign.add_path "foo"\<close>
 (*>*)
 locale %quote idem =
   fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
   assumes idem: "f (f x) = f x"
 
-text \<open>\noindent together with corresponding constant(s):\<close>
+text \<open>\<^noindent> together with corresponding constant(s):\<close>
 
 consts %quote f :: "\<alpha> \<Rightarrow> \<alpha>"
 
 text \<open>
-  \noindent The connection to the type system is done by means of a
+  \<^noindent> The connection to the type system is done by means of a
   primitive type class @{text "idem"}, together with a corresponding
   interpretation:
 \<close>
@@ -365,7 +365,7 @@ interpretation %quote idem_class:
 (*<*)sorry(*>*)
 
 text \<open>
-  \noindent This gives you the full power of the Isabelle module system;
+  \<^noindent> This gives you the full power of the Isabelle module system;
   conclusions in locale @{text idem} are implicitly propagated
   to class @{text idem}.
 \<close> (*<*)setup %invisible \<open>Sign.parent_path\<close>
@@ -391,7 +391,7 @@ next
 qed
 
 text \<open>
-  \noindent Here the \qt{@{keyword "in"} @{class group}} target
+  \<^noindent> Here the \qt{@{keyword "in"} @{class group}} target
   specification indicates that the result is recorded within that
   context for later use.  This local theorem is also lifted to the
   global one @{fact "group.left_cancel:"} @{prop [source] "\<And>x y z ::
@@ -413,13 +413,13 @@ primrec %quote (in monoid) pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> 
   | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
 
 text \<open>
-  \noindent If the locale @{text group} is also a class, this local
+  \<^noindent> If the locale @{text group} is also a class, this local
   definition is propagated onto a global definition of @{term [source]
   "pow_nat :: nat \<Rightarrow> \<alpha>::monoid \<Rightarrow> \<alpha>::monoid"} with corresponding theorems
 
   @{thm pow_nat.simps [no_vars]}.
 
-  \noindent As you can see from this example, for local definitions
+  \<^noindent> As you can see from this example, for local definitions
   you may use any specification tool which works together with
   locales, such as Krauss's recursive function package
   @{cite krauss2006}.
@@ -446,7 +446,7 @@ interpretation %quote list_monoid: monoid append "[]"
   proof qed auto
 
 text \<open>
-  \noindent This enables us to apply facts on monoids
+  \<^noindent> This enables us to apply facts on monoids
   to lists, e.g. @{thm list_monoid.neutl [no_vars]}.
 
   When using this interpretation pattern, it may also
@@ -470,7 +470,7 @@ proof -
 qed intro_locales
 
 text \<open>
-  \noindent This pattern is also helpful to reuse abstract
+  \<^noindent> This pattern is also helpful to reuse abstract
   specifications on the \emph{same} type.  For example, think of a
   class @{text preorder}; for type @{typ nat}, there are at least two
   possible instances: the natural order or the order induced by the
@@ -542,7 +542,7 @@ definition %quote (in group) pow_int :: "int \<Rightarrow> \<alpha> \<Rightarrow
     else (pow_nat (nat (- k)) x)\<div>)"
 
 text \<open>
-  \noindent yields the global definition of @{term [source] "pow_int ::
+  \<^noindent> yields the global definition of @{term [source] "pow_int ::
   int \<Rightarrow> \<alpha>::group \<Rightarrow> \<alpha>::group"} with the corresponding theorem @{thm
   pow_int_def [no_vars]}.
 \<close>
@@ -566,7 +566,7 @@ end  %quote
 term %quote "x \<otimes> y" -- \<open>example 3\<close>
 
 text \<open>
-  \noindent Here in example 1, the term refers to the local class
+  \<^noindent> Here in example 1, the term refers to the local class
   operation @{text "mult [\<alpha>]"}, whereas in example 2 the type
   constraint enforces the global class operation @{text "mult [nat]"}.
   In the global context in example 3, the reference is to the
@@ -592,14 +592,14 @@ definition %quote example :: int where
   "example = pow_int 10 (-2)"
 
 text \<open>
-  \noindent This maps to Haskell as follows:
+  \<^noindent> This maps to Haskell as follows:
 \<close>
 text %quotetypewriter \<open>
   @{code_stmts example (Haskell)}
 \<close>
 
 text \<open>
-  \noindent The code in SML has explicit dictionary passing:
+  \<^noindent> The code in SML has explicit dictionary passing:
 \<close>
 text %quotetypewriter \<open>
   @{code_stmts example (SML)}
@@ -607,7 +607,7 @@ text %quotetypewriter \<open>
 
 
 text \<open>
-  \noindent In Scala, implicits are used as dictionaries:
+  \<^noindent> In Scala, implicits are used as dictionaries:
 \<close>
 text %quotetypewriter \<open>
   @{code_stmts example (Scala)}
