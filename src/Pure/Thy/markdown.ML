@@ -126,7 +126,7 @@ fun add_span (opt_marker, body) document =
       if marker = list_marker then
         List (list_marker, body @ list_body) :: rest
       else if #indent marker < #indent list_marker then
-        List (marker, body @ [list]) :: rest
+        add_span (opt_marker, body @ [list]) rest
       else
         List (marker, body) :: document
   | (SOME marker, _) => List (marker, body) :: document
