@@ -23,7 +23,7 @@ sig
       theory -> theory
   val boolean: string -> bool
   val integer: string -> int
-  val eval_antiq: Toplevel.state -> Antiquote.antiq -> string
+  val eval_antiquote: Toplevel.state -> Antiquote.text_antiquote -> string
   val report_text: Input.source -> unit
   val check_text: Input.source -> Toplevel.state -> unit
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
@@ -160,40 +160,39 @@ val antiq =
 end;
 
 
-(* eval_antiq *)
+(* eval antiquotes *)
 
-fun eval_antiq state ((ss, {range = (pos, _), ...}): Antiquote.antiq) =
+fun read_antiquotes state source =
   let
-    val keywords =
-      (case try Toplevel.presentation_context_of state of
-        SOME ctxt => Thy_Header.get_keywords' ctxt
-      | NONE =>
-          error ("Unknown context -- cannot expand document antiquotations" ^
-            Position.here pos));
+    val ants =
+      Antiquote.read' (Input.pos_of source) (Symbol_Pos.trim_blanks (Input.source_explode source));
 
-    val (opts, src) = Token.read_antiq keywords antiq (ss, pos);
-    fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
+    fun words (Antiquote.Text ss) = [(#1 (Symbol_Pos.range ss), Markup.words)]
+      | words (Antiquote.Antiq _) = [];
+    val _ = Position.reports (maps words ants);
+  in ants end;
 
-    val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
-    val print_ctxt = Context_Position.set_visible false preview_ctxt;
-    val _ = cmd preview_ctxt;
-    val print_modes = space_explode "," (Config.get print_ctxt modes) @ Latex.modes;
-  in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
+fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
+  | eval_antiquote state (Antiquote.Antiq (ss, {range = (pos, _), ...})) =
+      let
+        val keywords =
+          (case try Toplevel.presentation_context_of state of
+            SOME ctxt => Thy_Header.get_keywords' ctxt
+          | NONE =>
+              error ("Unknown context -- cannot expand document antiquotations" ^
+                Position.here pos));
+
+        val (opts, src) = Token.read_antiq keywords antiq (ss, pos);
+        fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
+
+        val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
+        val print_ctxt = Context_Position.set_visible false preview_ctxt;
+        val _ = cmd preview_ctxt;
+        val print_modes = space_explode "," (Config.get print_ctxt modes) @ Latex.modes;
+      in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
 
 
 (* check_text *)
-
-fun eval_antiquote state source =
-  let
-    fun words (Antiquote.Text ss) = [(#1 (Symbol_Pos.range ss), Markup.words)]
-      | words (Antiquote.Antiq _) = [];
-
-    fun expand (Antiquote.Text ss) = Symbol_Pos.content ss
-      | expand (Antiquote.Antiq antiq) = eval_antiq state antiq;
-
-    val ants = Antiquote.read source;
-    val _ = Position.reports (maps words ants);
-  in implode (map expand ants) end;
 
 fun report_text source =
   Position.report (Input.pos_of source) (Markup.language_document (Input.is_delimited source));
@@ -201,7 +200,10 @@ fun report_text source =
 fun check_text source state =
  (report_text source;
   if Toplevel.is_skipped_proof state then ()
-  else ignore (eval_antiquote state source));
+  else
+    source
+    |> read_antiquotes state
+    |> List.app (ignore o eval_antiquote state));
 
 
 
@@ -216,7 +218,7 @@ datatype token =
   | Basic_Token of Token.T
   | Markup_Token of string * Input.source
   | Markup_Env_Token of string * Input.source
-  | Verbatim_Token of Input.source;
+  | Raw_Token of Input.source;
 
 
 fun basic_token pred (Basic_Token tok) = pred tok
@@ -230,22 +232,20 @@ val newline_token = basic_token Token.is_newline;
 
 (* output token *)
 
-val output_text =
-  Symbol.trim_blanks #> Symbol.explode #> Latex.output_ctrl_symbols;
-
 fun output_token state =
   let
-    val eval = eval_antiquote state;
+    val make_text = read_antiquotes state #> map (eval_antiquote state) #> implode;
+    val output_text = make_text #> Symbol.explode #> Latex.output_ctrl_symbols;
     fun output No_Token = ""
       | output (Basic_Token tok) = Latex.output_token tok
       | output (Markup_Token (cmd, source)) =
-          "%\n\\isamarkup" ^ cmd ^ "{" ^ output_text (eval source) ^ "%\n}\n"
+          "%\n\\isamarkup" ^ cmd ^ "{" ^ output_text source ^ "%\n}\n"
       | output (Markup_Env_Token (cmd, source)) =
           "%\n\\begin{isamarkup" ^ cmd ^ "}%\n" ^
-          output_text (eval source) ^
+          output_text source ^
           "%\n\\end{isamarkup" ^ cmd ^ "}%\n"
-      | output (Verbatim_Token source) =
-          "%\n" ^ Symbol.trim_blanks (eval source) ^ "\n";
+      | output (Raw_Token source) =
+          "%\n" ^ output_text source ^ "\n";
   in output end;
 
 
@@ -422,7 +422,7 @@ fun present_thy thy command_results toks =
       (ignored ||
         markup Keyword.is_document_heading Markup_Token markup_true ||
         markup Keyword.is_document_body Markup_Env_Token markup_true ||
-        markup Keyword.is_document_raw (Verbatim_Token o #2) "") >> single ||
+        markup Keyword.is_document_raw (Raw_Token o #2) "") >> single ||
       command ||
       (cmt || other) >> single;
 

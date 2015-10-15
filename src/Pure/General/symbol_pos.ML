@@ -14,6 +14,7 @@ sig
   val ~$$$ : Symbol.symbol -> T list -> T list * T list
   val content: T list -> string
   val range: T list -> Position.range
+  val trim_blanks: T list -> T list
   val is_eof: T -> bool
   val stopper: T Scan.stopper
   val !!! : Scan.message -> (T list -> 'a) -> T list -> 'a
@@ -58,6 +59,10 @@ fun range (syms as (_, pos) :: _) =
       let val pos' = List.last syms |-> Position.advance
       in Position.range pos pos' end
   | range [] = Position.no_range;
+
+val trim_blanks =
+  take_prefix (Symbol.is_blank o symbol) #> #2 #>
+  take_suffix (Symbol.is_blank o symbol) #> #1;
 
 
 (* stopper *)
