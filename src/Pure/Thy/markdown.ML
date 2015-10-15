@@ -104,6 +104,10 @@ end;
 
 datatype block = Paragraph of line list | List of marker * block list;
 
+fun block_lines (Paragraph lines) = lines
+  | block_lines (List (_, blocks)) = maps block_lines blocks;
+
+
 fun add_span (opt_marker, body) document =
   (case (opt_marker, document) of
     (SOME marker, (list as List (list_marker, list_body)) :: rest) =>
@@ -154,15 +158,22 @@ val read = Antiquote.read #> Antiquote.split_lines #> map make_line #> read_line
 local
 
 fun line_reports depth (Line {marker = SOME (_, pos), ...}) =
-      Position.is_reported pos ? cons (pos, Markup.markdown_item depth)
+      cons (pos, Markup.markdown_item depth)
   | line_reports _ _ = I;
 
-fun block_reports depth (Paragraph lines) = fold (line_reports depth) lines
-  | block_reports depth (List (_, body)) = fold (block_reports (depth + 1)) body;
+val lines_pos = #1 o Antiquote.range o maps line_content;
+
+fun block_reports depth (Paragraph lines) =
+      cons (lines_pos lines, Markup.markdown_paragraph) #>
+      fold (line_reports depth) lines
+  | block_reports depth (List ({kind, ...}, body)) =
+      cons (lines_pos (maps block_lines body), Markup.markdown_list (print_kind kind)) #>
+      fold (block_reports (depth + 1)) body;
 
 in
 
-fun reports blocks = fold (block_reports 0) blocks [];
+fun reports blocks =
+  filter (Position.is_reported o #1) (fold (block_reports 0) blocks []);
 
 end;
 

@@ -9,6 +9,7 @@ sig
   type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range}
   datatype 'a antiquote = Text of 'a | Antiq of antiq
   type text_antiquote = Symbol_Pos.T list antiquote
+  val range: text_antiquote list -> Position.range
   val split_lines: text_antiquote list -> text_antiquote list list
   val antiq_reports: antiq -> Position.report list
   val antiquote_reports: ('a -> Position.report_text list) ->
@@ -27,6 +28,13 @@ type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Po
 datatype 'a antiquote = Text of 'a | Antiq of antiq;
 
 type text_antiquote = Symbol_Pos.T list antiquote;
+
+fun antiquote_range (Text ss) = Symbol_Pos.range ss
+  | antiquote_range (Antiq (_, {range, ...})) = range;
+
+fun range ants =
+  if null ants then Position.no_range
+  else Position.range (#1 (antiquote_range (hd ants))) (#2 (antiquote_range (List.last ants)));
 
 
 (* split lines *)
