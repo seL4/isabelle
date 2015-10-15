@@ -23,6 +23,7 @@ sig
   val print_kind: kind -> string
   type marker = {indent: int, kind: kind}
   type line
+  val line_source: line -> Antiquote.text_antiquote list
   val line_content: line -> Antiquote.text_antiquote list
   val make_line: Antiquote.text_antiquote list -> line
   val empty_line: line
@@ -47,14 +48,16 @@ type marker = {indent: int, kind: kind};
 
 datatype line =
   Line of
-   {content: Antiquote.text_antiquote list,
+   {source: Antiquote.text_antiquote list,
+    content: Antiquote.text_antiquote list,
     is_empty: bool,
     marker: (marker * Position.T) option};
 
 val eof_line =
-  Line {content = [Antiquote.Text [(Symbol.eof, Position.none)]],
-    is_empty = false, marker = NONE};
+  Line {source = [Antiquote.Text [(Symbol.eof, Position.none)]],
+    content = [], is_empty = false, marker = NONE};
 
+fun line_source (Line {source, ...}) = source;
 fun line_content (Line {content, ...}) = content;
 fun line_is_empty (Line {is_empty, ...}) = is_empty;
 fun line_marker (Line {marker, ...}) = marker;
@@ -67,8 +70,8 @@ local
 fun bad_blank ((s, _): Symbol_Pos.T) = Symbol.is_ascii_blank s andalso s <> Symbol.space;
 val bad_blanks = maps (fn Antiquote.Text ss => filter bad_blank ss | _ => []);
 
-fun check_blanks content =
-  (case bad_blanks content of
+fun check_blanks source =
+  (case bad_blanks source of
     [] => ()
   | (c, pos) :: _ =>
       error ("Bad blank character " ^ quote (ML_Syntax.print_char c) ^ Position.here pos));
@@ -83,17 +86,19 @@ val scan_marker =
    Symbol_Pos.$$ "\<^descr>" >> K Description)
   >> (fn ((spaces, pos), kind) => ({indent = length spaces, kind = kind}, pos));
 
-fun read_marker (Antiquote.Text ss :: _) =
-      #1 (Scan.finite Symbol_Pos.stopper (Scan.option scan_marker) ss)
-  | read_marker _ = NONE;
+fun read_marker (Antiquote.Text ss :: rest) =
+      (case Scan.finite Symbol_Pos.stopper (Scan.option scan_marker --| Scan.many is_space) ss of
+        (marker, []) => (marker, rest)
+      | (marker, ss') => (marker, Antiquote.Text ss' :: rest))
+  | read_marker source = (NONE, source);
 
 in
 
-fun make_line content =
+fun make_line source =
   let
-    val _ = check_blanks content;
-    val marker = read_marker content;
-  in Line {content = content, is_empty = is_empty content, marker = marker} end;
+    val _ = check_blanks source;
+    val (marker, content) = read_marker source;
+  in Line {source = source, content = content, is_empty = is_empty source, marker = marker} end;
 
 val empty_line = make_line [];
 
@@ -161,13 +166,12 @@ fun line_reports depth (Line {marker = SOME (_, pos), ...}) =
       cons (pos, Markup.markdown_item depth)
   | line_reports _ _ = I;
 
-val lines_pos = #1 o Antiquote.range o maps line_content;
-
 fun block_reports depth (Paragraph lines) =
-      cons (lines_pos lines, Markup.markdown_paragraph) #>
+      cons (#1 (Antiquote.range (maps line_content lines)), Markup.markdown_paragraph) #>
       fold (line_reports depth) lines
   | block_reports depth (List ({kind, ...}, body)) =
-      cons (lines_pos (maps block_lines body), Markup.markdown_list (print_kind kind)) #>
+      cons (#1 (Antiquote.range (maps line_source (maps block_lines body))),
+        Markup.markdown_list (print_kind kind)) #>
       fold (block_reports (depth + 1)) body;
 
 in
