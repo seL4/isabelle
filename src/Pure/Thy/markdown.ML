@@ -112,6 +112,13 @@ datatype block = Paragraph of line list | List of marker * block list;
 fun block_lines (Paragraph lines) = lines
   | block_lines (List (_, blocks)) = maps block_lines blocks;
 
+fun block_range (Paragraph lines) = Antiquote.range (maps line_content lines)
+  | block_range (List (_, blocks)) = Antiquote.range (maps line_source (maps block_lines blocks));
+
+
+(* read document *)
+
+local
 
 fun add_span (opt_marker, body) document =
   (case (opt_marker, document) of
@@ -124,11 +131,6 @@ fun add_span (opt_marker, body) document =
         List (marker, body) :: document
   | (SOME marker, _) => List (marker, body) :: document
   | (NONE, _) => body @ document);
-
-
-(* read document *)
-
-local
 
 fun plain_line line =
   not (line_is_empty line) andalso is_none (line_marker line) andalso line <> eof_line;
@@ -166,13 +168,14 @@ fun line_reports depth (Line {marker = SOME (_, pos), ...}) =
       cons (pos, Markup.markdown_item depth)
   | line_reports _ _ = I;
 
-fun block_reports depth (Paragraph lines) =
-      cons (#1 (Antiquote.range (maps line_content lines)), Markup.markdown_paragraph) #>
+fun block_reports depth block =
+  (case block of
+    Paragraph lines =>
+      cons (#1 (block_range block), Markup.markdown_paragraph) #>
       fold (line_reports depth) lines
-  | block_reports depth (List ({kind, ...}, body)) =
-      cons (#1 (Antiquote.range (maps line_source (maps block_lines body))),
-        Markup.markdown_list (print_kind kind)) #>
-      fold (block_reports (depth + 1)) body;
+  | List ({kind, ...}, body) =>
+      cons (#1 (block_range block), Markup.markdown_list (print_kind kind)) #>
+      fold (block_reports (depth + 1)) body);
 
 in
 
