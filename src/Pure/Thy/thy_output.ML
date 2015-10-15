@@ -218,14 +218,6 @@ datatype token =
   | Markup_Env_Token of string * Input.source
   | Verbatim_Token of Input.source;
 
-fun output_token state =
-  let val eval = eval_antiquote state in
-    fn No_Token => ""
-     | Basic_Token tok => Latex.output_basic tok
-     | Markup_Token (cmd, source) => Latex.output_markup cmd (eval source)
-     | Markup_Env_Token (cmd, source) => Latex.output_markup_env cmd (eval source)
-     | Verbatim_Token source => Latex.output_verbatim (eval source)
-  end;
 
 fun basic_token pred (Basic_Token tok) = pred tok
   | basic_token _ _ = false;
@@ -234,6 +226,27 @@ val improper_token = basic_token Token.is_improper;
 val comment_token = basic_token Token.is_comment;
 val blank_token = basic_token Token.is_blank;
 val newline_token = basic_token Token.is_newline;
+
+
+(* output token *)
+
+val output_text =
+  Symbol.trim_blanks #> Symbol.explode #> Latex.output_ctrl_symbols;
+
+fun output_token state =
+  let
+    val eval = eval_antiquote state;
+    fun output No_Token = ""
+      | output (Basic_Token tok) = Latex.output_token tok
+      | output (Markup_Token (cmd, source)) =
+          "%\n\\isamarkup" ^ cmd ^ "{" ^ output_text (eval source) ^ "%\n}\n"
+      | output (Markup_Env_Token (cmd, source)) =
+          "%\n\\begin{isamarkup" ^ cmd ^ "}%\n" ^
+          output_text (eval source) ^
+          "%\n\\end{isamarkup" ^ cmd ^ "}%\n"
+      | output (Verbatim_Token source) =
+          "%\n" ^ Symbol.trim_blanks (eval source) ^ "\n";
+  in output end;
 
 
 (* command spans *)
@@ -342,6 +355,9 @@ end;
 
 local
 
+val markup_true = "\\isamarkuptrue%\n";
+val markup_false = "\\isamarkupfalse%\n";
+
 val space_proper =
   Scan.one Token.is_blank -- Scan.many Token.is_comment -- Scan.one Token.is_proper;
 
@@ -393,7 +409,7 @@ fun present_thy thy command_results toks =
       >> (fn ((cmd_mod, cmd), tags) =>
         map (fn tok => (NONE, (Basic_Token tok, ("", d)))) cmd_mod @
           [(SOME (Token.content_of cmd, Token.pos_of cmd, tags),
-            (Basic_Token cmd, (Latex.markup_false, d)))]));
+            (Basic_Token cmd, (markup_false, d)))]));
 
     val cmt = Scan.peek (fn d =>
       Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.document_source) >>
@@ -404,8 +420,8 @@ fun present_thy thy command_results toks =
 
     val tokens =
       (ignored ||
-        markup Keyword.is_document_heading Markup_Token Latex.markup_true ||
-        markup Keyword.is_document_body Markup_Env_Token Latex.markup_true ||
+        markup Keyword.is_document_heading Markup_Token markup_true ||
+        markup Keyword.is_document_body Markup_Env_Token markup_true ||
         markup Keyword.is_document_raw (Verbatim_Token o #2) "") >> single ||
       command ||
       (cmt || other) >> single;

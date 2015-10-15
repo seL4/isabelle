@@ -11,12 +11,7 @@ sig
     Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
   val output_ctrl_symbols: Symbol.symbol list -> string
-  val output_basic: Token.T -> string
-  val output_markup: string -> string -> string
-  val output_markup_env: string -> string -> string
-  val output_verbatim: string -> string
-  val markup_true: string
-  val markup_false: string
+  val output_token: Token.T -> string
   val begin_delim: string -> string
   val end_delim: string -> string
   val begin_tag: string -> string
@@ -32,7 +27,7 @@ end;
 structure Latex: LATEX =
 struct
 
-(* literal ASCII *)
+(* output verbatim ASCII *)
 
 val output_ascii =
   translate_string
@@ -44,7 +39,7 @@ val output_ascii =
           then enclose "{\\char`\\" "}" s else s);
 
 
-(* symbol output *)
+(* output symbols *)
 
 local
 
@@ -125,9 +120,9 @@ val output_ctrl_symbols = implode o map output_ctrl_sym;
 end;
 
 
-(* token output *)
+(* output token *)
 
-fun output_basic tok =
+fun output_token tok =
   let val s = Token.content_of tok in
     if Token.is_kind Token.Comment tok then ""
     else if Token.is_command tok then
@@ -148,20 +143,8 @@ fun output_basic tok =
     else output_syms s
   end handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok));
 
-val output_text =
-  Symbol.trim_blanks #> Symbol.explode #> output_ctrl_symbols;
 
-fun output_markup cmd txt = "%\n\\isamarkup" ^ cmd ^ "{" ^ output_text txt ^ "%\n}\n";
-
-fun output_markup_env cmd txt =
-  "%\n\\begin{isamarkup" ^ cmd ^ "}%\n" ^
-  output_text txt ^
-  "%\n\\end{isamarkup" ^ cmd ^ "}%\n";
-
-fun output_verbatim txt = "%\n" ^ Symbol.trim_blanks txt ^ "\n";
-
-val markup_true = "\\isamarkuptrue%\n";
-val markup_false = "\\isamarkupfalse%\n";
+(* tags *)
 
 val begin_delim = enclose "%\n\\isadelim" "\n";
 val end_delim = enclose "%\n\\endisadelim" "\n";
