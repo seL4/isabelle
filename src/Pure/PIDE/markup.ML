@@ -117,6 +117,9 @@ sig
   val document_antiquotation_optionN: string
   val paragraphN: string val paragraph: T
   val text_foldN: string val text_fold: T
+  val markdown_paragraphN: string val markdown_paragraph: T
+  val markdown_listN: string val markdown_list: string -> T
+  val markdown_itemN: string val markdown_item: int -> T
   val inputN: string val input: bool -> Properties.T -> T
   val command_keywordN: string val command_keyword: T
   val commandN: string val command: T
@@ -463,6 +466,13 @@ val document_antiquotation_optionN = "document_antiquotation_option";
 
 val (paragraphN, paragraph) = markup_elem "paragraph";
 val (text_foldN, text_fold) = markup_elem "text_fold";
+
+
+(* Markdown document structure *)
+
+val (markdown_paragraphN, markdown_paragraph) = markup_elem "markdown_paragraph";
+val (markdown_listN, markdown_list) = markup_string "markdown_list" kindN;
+val (markdown_itemN, markdown_item) = markup_int "markdown_item" "depth";
 
 
 (* formal input *)

@@ -20,6 +20,7 @@ Notable differences to official Markdown:
 signature MARKDOWN =
 sig
   datatype kind = Itemize | Enumerate | Description
+  val print_kind: kind -> string
   type marker = {indent: int, kind: kind}
   type line
   val line_content: line -> Antiquote.text_antiquote list
@@ -28,6 +29,7 @@ sig
   datatype block = Paragraph of line list | List of marker * block list
   val read_lines: line list -> block list
   val read: Input.source -> block list
+  val reports: block list -> Position.report list
 end;
 
 structure Markdown: MARKDOWN =
@@ -36,6 +38,11 @@ struct
 (* document lines *)
 
 datatype kind = Itemize | Enumerate | Description;
+
+fun print_kind Itemize = "itemize"
+  | print_kind Enumerate = "enumerate"
+  | print_kind Description = "description";
+
 type marker = {indent: int, kind: kind};
 
 datatype line =
@@ -70,13 +77,14 @@ fun is_space ((s, _): Symbol_Pos.T) = s = Symbol.space;
 val is_empty = forall (fn Antiquote.Text ss => forall is_space ss | _ => false);
 
 val scan_marker =
-  Scan.many is_space --
+  Scan.many is_space -- Symbol_Pos.scan_pos --
   (Symbol_Pos.$$ "\<^item>" >> K Itemize ||
    Symbol_Pos.$$ "\<^enum>" >> K Enumerate ||
-   Symbol_Pos.$$ "\<^descr>" >> K Description) >> (fn (a, b) => {indent = length a, kind = b});
+   Symbol_Pos.$$ "\<^descr>" >> K Description)
+  >> (fn ((spaces, pos), kind) => ({indent = length spaces, kind = kind}, pos));
 
 fun read_marker (Antiquote.Text ss :: _) =
-      #1 (Scan.finite Symbol_Pos.stopper (Scan.option (scan_marker -- Symbol_Pos.scan_pos)) ss)
+      #1 (Scan.finite Symbol_Pos.stopper (Scan.option scan_marker) ss)
   | read_marker _ = NONE;
 
 in
@@ -139,5 +147,23 @@ val read_lines =
 end;
 
 val read = Antiquote.read #> Antiquote.split_lines #> map make_line #> read_lines;
+
+
+(* PIDE reports *)
+
+local
+
+fun line_reports depth (Line {marker = SOME (_, pos), ...}) =
+      Position.is_reported pos ? cons (pos, Markup.markdown_item depth)
+  | line_reports _ _ = I;
+
+fun block_reports depth (Paragraph lines) = fold (line_reports depth) lines
+  | block_reports depth (List (_, body)) = fold (block_reports (depth + 1)) body;
+
+in
+
+fun reports blocks = fold (block_reports 0) blocks [];
+
+end;
 
 end;

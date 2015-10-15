@@ -243,6 +243,13 @@ object Markup
   val TEXT_FOLD = "text_fold"
 
 
+  /* Markdown document structure */
+
+  val MARKDOWN_PARAGRAPH = "markdown_paragraph"
+  val Markdown_List = new Markup_String("markdown_list", "kind")
+  val Markdown_Item = new Markup_Int("markdown_item", "depth")
+
+
   /* ML */
 
   val ML_KEYWORD1 = "ML_keyword1"

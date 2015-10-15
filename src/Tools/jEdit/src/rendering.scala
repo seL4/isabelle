@@ -204,7 +204,7 @@ object Rendering
       Markup.STATE_MESSAGE + Markup.INFORMATION_MESSAGE +
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
       Markup.LEGACY_MESSAGE + Markup.ERROR_MESSAGE +
-      Markup.BAD + Markup.INTENSIFY ++ active_elements
+      Markup.BAD + Markup.INTENSIFY + Markup.Markdown_Item.name ++ active_elements
 
   private val foreground_elements =
     Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
@@ -281,6 +281,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val inner_cartouche_color = color_value("inner_cartouche_color")
   val inner_comment_color = color_value("inner_comment_color")
   val dynamic_color = color_value("dynamic_color")
+
+  val markdown_item_color1 = color_value("markdown_item_color1")
+  val markdown_item_color2 = color_value("markdown_item_color2")
+  val markdown_item_color3 = color_value("markdown_item_color3")
+  val markdown_item_color4 = color_value("markdown_item_color4")
 
 
   /* completion */
@@ -679,6 +684,15 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                   Some((Nil, Some(bad_color)))
                 case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                   Some((Nil, Some(intensify_color)))
+                case (_, Text.Info(_, XML.Elem(Markup.Markdown_Item(depth), _))) =>
+                  val color =
+                    depth match {
+                      case 1 => markdown_item_color1
+                      case 2 => markdown_item_color2
+                      case 3 => markdown_item_color3
+                      case _ => markdown_item_color4
+                    }
+                  Some((Nil, Some(color)))
                 case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
                   command_states.collectFirst(
                     { case st if st.results.defined(serial) => st.results.get(serial).get }) match
