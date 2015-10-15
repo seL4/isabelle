@@ -1,7 +1,20 @@
 (*  Title:      Pure/Thy/markdown.ML
     Author:     Makarius
 
-Minimal support for Markdown documents (see also http://commonmark.org).
+Minimal support for Markdown documents (see also http://commonmark.org)
+that consist only of paragraphs and (nested) lists:
+
+  * list items start with marker \<^item> (itemize), \<^enum> (enumerate), \<^descr> (description)
+  * adjacent list items with same indentation and same marker are grouped
+    into a single list
+  * singleton blank lines separate paragraphs
+  * multiple blank lines escape from the current list hierarchy
+
+Notable differences to official Markdown:
+
+  * indentation of list items needs to match exactly
+  * indentation is unlimited (Markdown interprets 4 spaces as block quote)
+  * list items always consist of paragraphs -- no notion of "tight" list
 *)
 
 signature MARKDOWN =
