@@ -85,9 +85,13 @@ datatype block = Paragraph of line list | List of marker * block list;
 
 fun add_span (opt_marker, body) document =
   (case (opt_marker, document) of
-    (SOME marker, List (list_marker, list_body) :: rest) =>
-      if marker = list_marker then List (list_marker, body @ list_body) :: rest
-      else List (marker, body) :: document
+    (SOME marker, (list as List (list_marker, list_body)) :: rest) =>
+      if marker = list_marker then
+        List (list_marker, body @ list_body) :: rest
+      else if #indent marker < #indent list_marker then
+        List (marker, body @ [list]) :: rest
+      else
+        List (marker, body) :: document
   | (SOME marker, _) => List (marker, body) :: document
   | (NONE, _) => body @ document);
 
