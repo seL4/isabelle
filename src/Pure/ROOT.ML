@@ -236,6 +236,7 @@ use "Isar/local_theory.ML";
 use "Thy/thy_header.ML";
 use "PIDE/command_span.ML";
 use "Thy/thy_syntax.ML";
+use "Thy/markdown.ML";
 use "Thy/html.ML";
 use "Thy/latex.ML";
 

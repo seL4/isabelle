@@ -81,9 +81,9 @@ val is_empty = forall (fn Antiquote.Text ss => forall is_space ss | _ => false);
 
 val scan_marker =
   Scan.many is_space -- Symbol_Pos.scan_pos --
-  (Symbol_Pos.$$ "\<^item>" >> K Itemize ||
-   Symbol_Pos.$$ "\<^enum>" >> K Enumerate ||
-   Symbol_Pos.$$ "\<^descr>" >> K Description)
+  (Symbol_Pos.$$ "\\<^item>" >> K Itemize ||
+   Symbol_Pos.$$ "\\<^enum>" >> K Enumerate ||
+   Symbol_Pos.$$ "\\<^descr>" >> K Description)
   >> (fn ((spaces, pos), kind) => ({indent = length spaces, kind = kind}, pos));
 
 fun read_marker (Antiquote.Text ss :: rest) =
