@@ -11,9 +11,7 @@ sig
   type text_antiquote = Symbol_Pos.T list antiquote
   val range: text_antiquote list -> Position.range
   val split_lines: text_antiquote list -> text_antiquote list list
-  val antiq_reports: antiq -> Position.report list
-  val antiquote_reports: ('a -> Position.report_text list) ->
-    'a antiquote list -> Position.report_text list
+  val antiq_reports: 'a antiquote list -> Position.report list
   val scan_antiq: Symbol_Pos.T list -> antiq * Symbol_Pos.T list
   val scan_antiquote: Symbol_Pos.T list -> text_antiquote * Symbol_Pos.T list
   val read': Position.T -> Symbol_Pos.T list -> text_antiquote list
@@ -56,12 +54,13 @@ fun split_lines input =
 
 (* reports *)
 
-fun antiq_reports ((_, {start, stop, range = (pos, _)}): antiq) =
-  [(start, Markup.antiquote), (stop, Markup.antiquote),
-   (pos, Markup.antiquoted), (pos, Markup.language_antiquotation)];
-
-fun antiquote_reports text =
-  maps (fn Text x => text x | Antiq antiq => map (rpair "") (antiq_reports antiq));
+fun antiq_reports ants = ants |> maps
+  (fn Antiq (_, {start, stop, range = (pos, _)}) =>
+      [(start, Markup.antiquote),
+       (stop, Markup.antiquote),
+       (pos, Markup.antiquoted),
+       (pos, Markup.language_antiquotation)]
+    | _ => []);
 
 
 (* scan *)
@@ -102,7 +101,7 @@ end;
 
 fun read' pos syms =
   (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_antiquote) syms of
-    SOME xs => (Position.reports_text (antiquote_reports (K []) xs); xs)
+    SOME ants => (Position.reports (antiq_reports ants); ants)
   | NONE => error ("Malformed quotation/antiquotation source" ^ Position.here pos));
 
 fun read source = read' (Input.pos_of source) (Input.source_explode source);

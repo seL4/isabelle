@@ -24,8 +24,7 @@ sig
   val boolean: string -> bool
   val integer: string -> int
   val eval_antiquote: Toplevel.state -> Antiquote.text_antiquote -> string
-  val report_text: Input.source -> unit
-  val check_text: Input.source -> Toplevel.state -> unit
+  val output_text: Toplevel.state -> {markdown: bool} -> Input.source -> string
   val present_thy: theory -> (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
   val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
@@ -37,7 +36,7 @@ sig
   val output: Proof.context -> Pretty.T list -> string
   val verbatim_text: Proof.context -> string -> string
   val old_header_command: Input.source -> Toplevel.transition -> Toplevel.transition
-  val document_command: (xstring * Position.T) option * Input.source ->
+  val document_command: {markdown: bool} -> (xstring * Position.T) option * Input.source ->
     Toplevel.transition -> Toplevel.transition
 end;
 
@@ -160,17 +159,7 @@ val antiq =
 end;
 
 
-(* eval antiquotes *)
-
-fun read_antiquotes state source =
-  let
-    val ants =
-      Antiquote.read' (Input.pos_of source) (Symbol_Pos.trim_blanks (Input.source_explode source));
-
-    fun words (Antiquote.Text ss) = [(#1 (Symbol_Pos.range ss), Markup.words)]
-      | words (Antiquote.Antiq _) = [];
-    val _ = Position.reports (maps words ants);
-  in ants end;
+(* eval antiquote *)
 
 fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
   | eval_antiquote state (Antiquote.Antiq (ss, {range = (pos, _), ...})) =
@@ -192,18 +181,42 @@ fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
       in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
 
 
-(* check_text *)
+(* output text *)
 
-fun report_text source =
-  Position.report (Input.pos_of source) (Markup.language_document (Input.is_delimited source));
+fun output_text state {markdown} source =
+  let
+    val pos = Input.pos_of source;
+    val _ = Position.report pos (Markup.language_document (Input.is_delimited source));
+    val syms = Input.source_explode source;
 
-fun check_text source state =
- (report_text source;
-  if Toplevel.is_skipped_proof state then ()
-  else
-    source
-    |> read_antiquotes state
-    |> List.app (ignore o eval_antiquote state));
+    val output_antiquote = eval_antiquote state #> Symbol.explode #> Latex.output_ctrl_symbols;
+    val output_antiquotes = map output_antiquote #> implode;
+
+    fun output_blocks blocks = space_implode "\n\n" (map output_block blocks)
+    and output_block (Markdown.Paragraph lines) =
+          cat_lines (map (output_antiquotes o Markdown.line_source) lines)
+      | output_block (Markdown.List (marker, body)) =
+          let val env = Markdown.print_kind (#kind marker) in
+            "%\n\\begin{" ^ env ^ "}%\n" ^
+            output_blocks body ^
+            "%\n\\end{" ^ env ^ "}%\n"
+          end;
+  in
+    if Toplevel.is_skipped_proof state then ""
+    else if markdown andalso exists (Markdown.is_control o Symbol_Pos.symbol) syms
+      andalso false (* FIXME *)
+    then
+      let
+        val ants = Antiquote.read' pos syms;
+        val blocks = Markdown.read_antiquotes ants;
+        val _ = Position.reports (Markdown.reports blocks);
+      in output_blocks blocks end
+    else
+      let
+        val ants = Antiquote.read' pos (Symbol_Pos.trim_blanks syms);
+        val _ = Position.reports (Markdown.text_reports ants);
+      in output_antiquotes ants end
+  end;
 
 
 
@@ -232,21 +245,18 @@ val newline_token = basic_token Token.is_newline;
 
 (* output token *)
 
-fun output_token state =
-  let
-    val make_text = read_antiquotes state #> map (eval_antiquote state) #> implode;
-    val output_text = make_text #> Symbol.explode #> Latex.output_ctrl_symbols;
-    fun output No_Token = ""
-      | output (Basic_Token tok) = Latex.output_token tok
-      | output (Markup_Token (cmd, source)) =
-          "%\n\\isamarkup" ^ cmd ^ "{" ^ output_text source ^ "%\n}\n"
-      | output (Markup_Env_Token (cmd, source)) =
-          "%\n\\begin{isamarkup" ^ cmd ^ "}%\n" ^
-          output_text source ^
-          "%\n\\end{isamarkup" ^ cmd ^ "}%\n"
-      | output (Raw_Token source) =
-          "%\n" ^ output_text source ^ "\n";
-  in output end;
+fun output_token state tok =
+  (case tok of
+    No_Token => ""
+  | Basic_Token tok => Latex.output_token tok
+  | Markup_Token (cmd, source) =>
+      "%\n\\isamarkup" ^ cmd ^ "{" ^ output_text state {markdown = false} source ^ "%\n}\n"
+  | Markup_Env_Token (cmd, source) =>
+      "%\n\\begin{isamarkup" ^ cmd ^ "}%\n" ^
+      output_text state {markdown = true} source ^
+      "%\n\\end{isamarkup" ^ cmd ^ "}%\n"
+  | Raw_Token source =>
+      "%\n" ^ output_text state {markdown = true} source ^ "\n");
 
 
 (* command spans *)
@@ -729,15 +739,15 @@ fun old_header_command txt =
   Toplevel.keep (fn state =>
     if Toplevel.is_toplevel state then
      (legacy_feature "Obsolete 'header' command -- use 'chapter', 'section' etc. instead";
-      check_text txt state)
+      ignore (output_text state {markdown = false} txt))
     else raise Toplevel.UNDEF);
 
-fun document_command (loc, txt) =
+fun document_command markdown (loc, txt) =
   Toplevel.keep (fn state =>
     (case loc of
-      NONE => check_text txt state
+      NONE => ignore (output_text state markdown txt)
     | SOME (_, pos) =>
         error ("Illegal target specification -- not a theory context" ^ Position.here pos))) o
-  Toplevel.present_local_theory loc (check_text txt);
+  Toplevel.present_local_theory loc (fn state => ignore (output_text state markdown txt));
 
 end;

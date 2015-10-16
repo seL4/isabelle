@@ -19,31 +19,31 @@ val _ =
 
 val _ =
   Outer_Syntax.command ("chapter", @{here}) "chapter heading"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command);
+    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
 
 val _ =
   Outer_Syntax.command ("section", @{here}) "section heading"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command);
+    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
 
 val _ =
   Outer_Syntax.command ("subsection", @{here}) "subsection heading"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command);
+    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
 
 val _ =
   Outer_Syntax.command ("subsubsection", @{here}) "subsubsection heading"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command);
+    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
 
 val _ =
   Outer_Syntax.command ("text", @{here}) "formal comment (primary style)"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command);
+    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = true});
 
 val _ =
   Outer_Syntax.command ("txt", @{here}) "formal comment (secondary style)"
-    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command);
+    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = true});
 
 val _ =
   Outer_Syntax.command ("text_raw", @{here}) "raw LaTeX text"
-    (Parse.document_source >> (fn s => Toplevel.keep (fn _ => Thy_Output.report_text s)));
+    (Parse.document_source >> (fn s => Thy_Output.document_command {markdown = true} (NONE, s)));
 
 val _ =
   Outer_Syntax.command ("theory", @{here}) "begin theory"

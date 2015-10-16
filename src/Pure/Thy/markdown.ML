@@ -19,6 +19,7 @@ Notable differences to official Markdown:
 
 signature MARKDOWN =
 sig
+  val is_control: Symbol.symbol -> bool
   datatype kind = Itemize | Enumerate | Description
   val print_kind: kind -> string
   type marker = {indent: int, kind: kind}
@@ -29,7 +30,9 @@ sig
   val empty_line: line
   datatype block = Paragraph of line list | List of marker * block list
   val read_lines: line list -> block list
-  val read: Input.source -> block list
+  val read_antiquotes: Antiquote.text_antiquote list -> block list
+  val read_source: Input.source -> block list
+  val text_reports: Antiquote.text_antiquote list -> Position.report list
   val reports: block list -> Position.report list
 end;
 
@@ -37,6 +40,8 @@ structure Markdown: MARKDOWN =
 struct
 
 (* document lines *)
+
+val is_control = member (op =) ["\\<^item>", "\\<^enum>", "\\<^descr>"];
 
 datatype kind = Itemize | Enumerate | Description;
 
@@ -155,17 +160,22 @@ val read_lines =
     (Scan.repeat (Scan.many line_is_empty |-- parse_document) --| Scan.many line_is_empty) #>
   the_default [] #> flat;
 
-end;
+val read_antiquotes = Antiquote.split_lines #> map make_line #> read_lines;
+val read_source = Antiquote.read #> read_antiquotes;
 
-val read = Antiquote.read #> Antiquote.split_lines #> map make_line #> read_lines;
+end;
 
 
 (* PIDE reports *)
 
+val text_reports =
+  maps (fn Antiquote.Text ss => [(#1 (Symbol_Pos.range ss), Markup.words)] | _ => []);
+
 local
 
-fun line_reports depth (Line {marker = SOME (_, pos), ...}) =
-      cons (pos, Markup.markdown_item depth)
+fun line_reports depth (Line {marker = SOME (_, pos), content, ...}) =
+      cons (pos, Markup.markdown_item depth) #>
+      append (text_reports content)
   | line_reports _ _ = I;
 
 fun block_reports depth block =
