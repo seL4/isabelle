@@ -11,8 +11,6 @@ text \<open>
   facts, and open goals.  Isar/VM transitions are typed according to
   the following three different modes of operation:
 
-  \begin{description}
-
   \<^descr> @{text "proof(prove)"} means that a new goal has just been
   stated that is now to be \emph{proven}; the next command may refine
   it by some proof method, and enter a sub-proof to establish the
@@ -27,7 +25,6 @@ text \<open>
   contents of the special @{fact_ref this} register) have been just picked
   up in order to be used when refining the goal claimed next.
 
-  \end{description}
 
   The proof mode indicator may be understood as an instruction to the
   writer, telling what kind of operation may be performed next.  The
@@ -58,13 +55,9 @@ text \<open>
     @@{command end}
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "notepad"}~@{keyword "begin"} opens a proof state without
   any goal statement. This allows to experiment with Isar, without producing
   any persistent result. The notepad is closed by @{command "end"}.
-
-  \end{description}
 \<close>
 
 
@@ -91,8 +84,6 @@ text \<open>
   parentheses as well.  These typically achieve a stronger forward
   style of reasoning.
 
-  \begin{description}
-
   \<^descr> @{command "next"} switches to a fresh block within a
   sub-proof, resetting the local context to the initial one.
 
@@ -105,8 +96,6 @@ text \<open>
   of @{command "assume"} and @{command "presume"} in this mode of
   forward reasoning --- in contrast to plain backward reasoning with
   the result exported at @{command "show"} time.
-
-  \end{description}
 \<close>
 
 
@@ -190,8 +179,6 @@ text \<open>
       @{syntax name} ('==' | '\<equiv>') @{syntax term} @{syntax term_pat}?
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "fix"}~@{text x} introduces a local variable @{text
   x} that is \emph{arbitrary, but fixed.}
 
@@ -215,8 +202,6 @@ text \<open>
 
   The default name for the definitional equation is @{text x_def}.
   Several simultaneous definitions may be given at the same time.
-
-  \end{description}
 \<close>
 
 
@@ -262,8 +247,6 @@ text \<open>
   The syntax of @{keyword "is"} patterns follows @{syntax term_pat} or
   @{syntax prop_pat} (see \secref{sec:term-decls}).
 
-  \begin{description}
-
   \<^descr> @{command "let"}~@{text "p\<^sub>1 = t\<^sub>1 \<AND> \<dots> p\<^sub>n = t\<^sub>n"} binds any
   text variables in patterns @{text "p\<^sub>1, \<dots>, p\<^sub>n"} by simultaneous
   higher-order matching against terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"}.
@@ -273,7 +256,6 @@ text \<open>
   note that @{keyword "is"} is not a separate command, but part of
   others (such as @{command "assume"}, @{command "have"} etc.).
 
-  \end{description}
 
   Some \emph{implicit} term abbreviations\index{term abbreviations}
   for goals and facts are available as well.  For any open goal,
@@ -318,8 +300,6 @@ text \<open>
       (@{syntax thmrefs} + @'and')
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "note"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"} recalls existing facts
   @{text "b\<^sub>1, \<dots>, b\<^sub>n"}, binding the result as @{text a}.  Note that
   attributes may be involved as well, both on the left and right hand
@@ -351,7 +331,6 @@ text \<open>
   similar to @{command "using"}, but unfolds definitional equations
   @{text "b\<^sub>1, \<dots> b\<^sub>n"} throughout the goal state and facts.
 
-  \end{description}
 
   Forward chaining with an empty list of theorems is the same as not
   chaining at all.  Thus ``@{command "from"}~@{text nothing}'' has no
@@ -443,8 +422,6 @@ text \<open>
       (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "lemma"}~@{text "a: \<phi>"} enters proof mode with
   @{text \<phi>} as main goal, eventually resulting in some fact @{text "\<turnstile>
   \<phi>"} to be put back into the target context.  An additional @{syntax
@@ -500,7 +477,6 @@ text \<open>
   current theory or proof context in long statement form, according to
   the syntax for @{command "lemma"} given above.
 
-  \end{description}
 
   Any goal statement causes some term abbreviations (such as
   @{variable_ref "?thesis"}) to be bound automatically, see also
@@ -574,8 +550,6 @@ text \<open>
     @@{attribute trans} (() | 'add' | 'del')
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "also"}~@{text "(a\<^sub>1 \<dots> a\<^sub>n)"} maintains the auxiliary
   @{fact calculation} register as follows.  The first occurrence of
   @{command "also"} in some calculational thread initializes @{fact
@@ -620,8 +594,6 @@ text \<open>
   explicit single-step elimination proof, such as ``@{command
   "assume"}~@{text "x = y"}~@{command "then"}~@{command "have"}~@{text
   "y = x"}~@{command ".."}''.
-
-  \end{description}
 \<close>
 
 
@@ -704,8 +676,6 @@ text \<open>
   Structured proof composition in Isar admits proof methods to be
   invoked in two places only.
 
-  \begin{enumerate}
-
   \<^enum> An \emph{initial} refinement step @{command_ref
   "proof"}~@{text "m\<^sub>1"} reduces a newly stated goal to a number
   of sub-goals that are to be solved later.  Facts are passed to
@@ -716,7 +686,6 @@ text \<open>
   "m\<^sub>2"} is intended to solve remaining goals.  No facts are
   passed to @{text "m\<^sub>2"}.
 
-  \end{enumerate}
 
   The only other (proper) way to affect pending goals in a proof body
   is by @{command_ref "show"}, which involves an explicit statement of
@@ -748,8 +717,6 @@ text \<open>
     ;
     (@@{command "."} | @@{command ".."} | @@{command sorry})
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{command "proof"}~@{text "m\<^sub>1"} refines the goal by proof
   method @{text "m\<^sub>1"}; facts for forward chaining are passed if so
@@ -808,8 +775,6 @@ text \<open>
 
   In Isabelle/HOL, @{method standard} also takes classical rules into
   account (cf.\ \secref{sec:classical}).
-
-  \end{description}
 \<close>
 
 
@@ -859,8 +824,6 @@ text \<open>
     ;
     @@{attribute "where"} @{syntax named_insts} @{syntax for_fixes}
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{command "print_rules"} prints rules declared via attributes
   @{attribute (Pure) intro}, @{attribute (Pure) elim}, @{attribute
@@ -970,8 +933,6 @@ text \<open>
 
   An optional context of local variables @{text "\<FOR> x\<^sub>1 \<dots> x\<^sub>m"} may
   be specified as for @{attribute "of"} above.
-
-  \end{description}
 \<close>
 
 
@@ -986,8 +947,6 @@ text \<open>
     @@{command method_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "method_setup"}~@{text "name = text description"}
   defines a proof method in the current context.  The given @{text
   "text"} has to be an ML expression of type
@@ -999,8 +958,6 @@ text \<open>
   addressing.
 
   Here are some example method definitions:
-
-  \end{description}
 \<close>
 
 (*<*)experiment begin(*>*)
@@ -1094,8 +1051,6 @@ text \<open>
     @@{attribute consumes} @{syntax int}?
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "case"}~@{text "a: (c x\<^sub>1 \<dots> x\<^sub>m)"} invokes a named local
   context @{text "c: x\<^sub>1, \<dots>, x\<^sub>m, \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>m"}, as provided by an
   appropriate proof method (such as @{method_ref cases} and @{method_ref
@@ -1158,8 +1113,6 @@ text \<open>
   rarely needed; this is already taken care of automatically by the
   higher-level @{attribute cases}, @{attribute induct}, and
   @{attribute coinduct} declarations.
-
-  \end{description}
 \<close>
 
 
@@ -1213,8 +1166,6 @@ text \<open>
     ;
     taking: 'taking' ':' @{syntax insts}
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{method cases}~@{text "insts R"} applies method @{method
   rule} with an appropriate case distinction theorem, instantiated to
@@ -1327,7 +1278,6 @@ text \<open>
   specification may be required in order to specify the bisimulation
   to be used in the coinduction step.
 
-  \end{description}
 
   Above methods produce named local contexts, as determined by the
   instantiated rule as given in the text.  Beyond that, the @{method
@@ -1404,8 +1354,6 @@ text \<open>
     spec: (('type' | 'pred' | 'set') ':' @{syntax nameref}) | 'del'
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "print_induct_rules"} prints cases and induct rules
   for predicates (or sets) and types of the current context.
 
@@ -1428,8 +1376,6 @@ text \<open>
   declaration is taken care of automatically: @{attribute
   consumes}~@{text 0} is specified for ``type'' rules and @{attribute
   consumes}~@{text 1} for ``predicate'' / ``set'' rules.
-
-  \end{description}
 \<close>
 
 
@@ -1469,8 +1415,6 @@ text \<open>
     ;
     @@{command guess} (@{syntax "fixes"} + @'and')
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{command consider}~@{text "(a) \<^vec>x \<WHERE> \<^vec>A \<^vec>x
   | (b) \<^vec>y \<WHERE> \<^vec>B \<^vec>y | \<dots> "} states a rule for case
@@ -1543,7 +1487,6 @@ text \<open>
   The variable names and type constraints given as arguments for @{command
   "guess"} specify a prefix of accessible parameters.
 
-  \end{description}
 
   In the proof of @{command consider} and @{command obtain} the local
   premises are always bound to the fact name @{fact_ref that}, according to

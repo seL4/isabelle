@@ -114,8 +114,6 @@ text %mlref \<open>
   ((string * (string * typ)) list * term) * Proof.context"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Variable.add_fixes}~@{text "xs ctxt"} fixes term
   variables @{text "xs"}, returning the resulting internal names.  By
   default, the internal representation coincides with the external
@@ -156,8 +154,6 @@ text %mlref \<open>
 
   \<^descr> @{ML Variable.focus}~@{text "bindings B"} decomposes the outermost @{text
   "\<And>"} prefix of proposition @{text "B"}, using the given name bindings.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following example shows how to work with fixed term
@@ -291,8 +287,6 @@ text %mlref \<open>
   @{index_ML Assumption.export: "bool -> Proof.context -> Proof.context -> thm -> thm"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type Assumption.export} represents arbitrary export
   rules, which is any function of type @{ML_type "bool -> cterm list
   -> thm -> thm"}, where the @{ML_type "bool"} indicates goal mode,
@@ -319,8 +313,6 @@ text %mlref \<open>
   this is a goal context.  The result is in HHF normal form.  Note
   that @{ML "Proof_Context.export"} combines @{ML "Variable.export"}
   and @{ML "Assumption.export"} in the canonical way.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following example demonstrates how rules can be
@@ -419,8 +411,6 @@ text %mlref \<open>
   Proof.context -> ((string * cterm) list * thm list) * Proof.context"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML SUBPROOF}~@{text "tac ctxt i"} decomposes the structure
   of the specified sub-goal, producing an extended context and a
   reduced goal, which needs to be solved by the given tactic.  All
@@ -466,8 +456,6 @@ text %mlref \<open>
   given facts using a tactic, which results in additional fixed
   variables and assumptions in the context.  Final results need to be
   exported explicitly.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following minimal example illustrates how to access

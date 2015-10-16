@@ -204,7 +204,6 @@ fun output_text state {markdown} source =
   in
     if Toplevel.is_skipped_proof state then ""
     else if markdown andalso exists (Markdown.is_control o Symbol_Pos.symbol) syms
-      andalso false (* FIXME *)
     then
       let
         val ants = Antiquote.read' pos syms;

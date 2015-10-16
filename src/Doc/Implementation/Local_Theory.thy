@@ -103,8 +103,6 @@ text %mlref \<open>
     local_theory -> (string * thm list) * local_theory"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type local_theory} represents local theories.
   Although this is merely an alias for @{ML_type Proof.context}, it is
   semantically a subtype of the same: a @{ML_type local_theory} holds
@@ -149,8 +147,6 @@ text %mlref \<open>
 
   This is essentially the internal version of the @{command lemmas}
   command, or @{command declare} if an empty name binding is given.
-
-  \end{description}
 \<close>
 
 

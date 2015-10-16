@@ -36,13 +36,10 @@ text \<open>Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} 
   \secref{sec:term-check}, respectively.  This results in the
   following decomposition of the main operations:
 
-  \begin{itemize}
-
   \<^item> @{text "read = parse; check"}
 
   \<^item> @{text "pretty = uncheck; unparse"}
 
-  \end{itemize}
 
   For example, some specification package might thus intercept syntax
   processing at a well-defined stage after @{text "parse"}, to a augment the
@@ -88,8 +85,6 @@ text %mlref \<open>
   @{index_ML Syntax.string_of_term: "Proof.context -> term -> string"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Syntax.read_typs}~@{text "ctxt strs"} parses and checks a
   simultaneous list of source strings as types of the logic.
 
@@ -128,7 +123,6 @@ text %mlref \<open>
   be concatenated with other strings, as long as there is no further
   formatting and line-breaking involved.
 
-  \end{description}
 
   @{ML Syntax.read_term}, @{ML Syntax.read_prop}, and @{ML
   Syntax.string_of_term} are the most important operations in practice.
@@ -179,8 +173,6 @@ text %mlref \<open>
   @{index_ML Syntax.unparse_term: "Proof.context -> term -> Pretty.T"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Syntax.parse_typ}~@{text "ctxt str"} parses a source string as
   pre-type that is ready to be used with subsequent check operations.
 
@@ -200,7 +192,6 @@ text %mlref \<open>
   uncheck operations, to turn it into a pretty tree. There is no distinction
   for propositions here.
 
-  \end{description}
 
   These operations always operate on a single item; use the combinator @{ML
   map} to apply them to a list.
@@ -247,8 +238,6 @@ text %mlref \<open>
   @{index_ML Syntax.uncheck_terms: "Proof.context -> term list -> term list"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Syntax.check_typs}~@{text "ctxt Ts"} checks a simultaneous list
   of pre-types as types of the logic.  Typically, this involves normalization
   of type synonyms.
@@ -276,7 +265,6 @@ text %mlref \<open>
   list of terms of the logic, in preparation of pretty printing. There is no
   distinction for propositions here.
 
-  \end{description}
 
   These operations always operate simultaneously on a list; use the combinator
   @{ML singleton} to apply them to a single item.

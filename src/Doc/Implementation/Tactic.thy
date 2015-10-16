@@ -70,8 +70,6 @@ text %mlref \<open>
   @{index_ML Goal.conclude: "thm -> thm"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML "Goal.init"}~@{text C} initializes a tactical goal from
   the well-formed proposition @{text C}.
 
@@ -86,8 +84,6 @@ text %mlref \<open>
 
   \<^descr> @{ML "Goal.conclude"}~@{text "thm"} removes the goal
   protection, even if there are pending subgoals.
-
-  \end{description}
 \<close>
 
 
@@ -150,8 +146,6 @@ text \<open>A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^s
   The main well-formedness conditions for proper tactics are
   summarized as follows.
 
-  \begin{itemize}
-
   \<^item> General tactic failure is indicated by an empty result, only
   serious faults may produce an exception.
 
@@ -164,7 +158,6 @@ text \<open>A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^s
 
   \<^item> Range errors in subgoal addressing produce an empty result.
 
-  \end{itemize}
 
   Some of these conditions are checked by higher-level goal
   infrastructure (\secref{sec:struct-goals}); others are not checked
@@ -186,8 +179,6 @@ text %mlref \<open>
   @{index_ML SELECT_GOAL: "tactic -> int -> tactic"} \\
   @{index_ML PREFER_GOAL: "tactic -> int -> tactic"} \\
   \end{mldecls}
-
-  \begin{description}
 
   \<^descr> Type @{ML_type tactic} represents tactics.  The
   well-formedness conditions described above need to be observed.  See
@@ -233,8 +224,6 @@ text %mlref \<open>
   \<^descr> @{ML PREFER_GOAL}~@{text "tac i"} rearranges subgoals to put
   @{text "i"} in front.  This is similar to @{ML SELECT_GOAL}, but
   without changing the main goal protection.
-
-  \end{description}
 \<close>
 
 
@@ -264,8 +253,6 @@ text \<open>\emph{Resolution} is the most basic mechanism for refining a
   sequence enumerates all possibilities of the following choices (if
   applicable):
 
-  \begin{enumerate}
-
   \<^enum> selecting one of the rules given as argument to the tactic;
 
   \<^enum> selecting a subgoal premise to eliminate, unifying it against
@@ -274,7 +261,6 @@ text \<open>\emph{Resolution} is the most basic mechanism for refining a
   \<^enum> unifying the conclusion of the subgoal to the conclusion of
   the rule.
 
-  \end{enumerate}
 
   Recall that higher-order unification may produce multiple results
   that are enumerated here.
@@ -294,8 +280,6 @@ text %mlref \<open>
   @{index_ML dmatch_tac: "Proof.context -> thm list -> int -> tactic"} \\
   @{index_ML bimatch_tac: "Proof.context -> (bool * thm) list -> int -> tactic"} \\
   \end{mldecls}
-
-  \begin{description}
 
   \<^descr> @{ML resolve_tac}~@{text "ctxt thms i"} refines the goal state
   using the given theorems, which should normally be introduction
@@ -350,7 +334,6 @@ text %mlref \<open>
   These tactics were written for a specific application within the classical reasoner.
 
   Flexible subgoals are not updated at will, but are left alone.
-  \end{description}
 \<close>
 
 
@@ -419,8 +402,6 @@ text %mlref \<open>
   @{index_ML rename_tac: "string list -> int -> tactic"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Rule_Insts.res_inst_tac}~@{text "ctxt insts thm i"} instantiates the
   rule @{text thm} with the instantiations @{text insts}, as described
   above, and then performs resolution on subgoal @{text i}.
@@ -449,7 +430,6 @@ text %mlref \<open>
   parameters of subgoal @{text i} according to the provided @{text
   names} (which need to be distinct identifiers).
 
-  \end{description}
 
   For historical reasons, the above instantiation tactics take
   unparsed string arguments, which makes them hard to use in general
@@ -473,8 +453,6 @@ text %mlref \<open>
   @{index_ML flexflex_tac: "Proof.context -> tactic"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML rotate_tac}~@{text "n i"} rotates the premises of subgoal
   @{text i} by @{text n} positions: from right to left if @{text n} is
   positive, and from left to right if @{text n} is negative.
@@ -491,8 +469,6 @@ text %mlref \<open>
   unification.  To prevent this, use @{ML Rule_Insts.res_inst_tac} to
   instantiate some variables in a rule.  Normally flex-flex constraints
   can be ignored; they often disappear as unknowns get instantiated.
-
-  \end{description}
 \<close>
 
 
@@ -513,8 +489,6 @@ text %mlref \<open>
   @{index_ML_op COMP: "thm * thm -> thm"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML compose_tac}~@{text "ctxt (flag, rule, m) i"} refines subgoal
   @{text "i"} using @{text "rule"}, without lifting.  The @{text
   "rule"} is taken to have the form @{text "\<psi>\<^sub>1 \<Longrightarrow> \<dots> \<psi>\<^sub>m \<Longrightarrow> \<psi>"}, where
@@ -534,7 +508,6 @@ text %mlref \<open>
   \<^descr> @{text "thm\<^sub>1 COMP thm\<^sub>2"} is the same as @{text "Drule.compose
   (thm\<^sub>1, 1, thm\<^sub>2)"}.
 
-  \end{description}
 
   \begin{warn}
   These low-level operations are stepping outside the structure
@@ -581,8 +554,6 @@ text %mlref \<open>
   @{index_ML "FIRST'": "('a -> tactic) list -> 'a -> tactic"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{text "tac\<^sub>1"}~@{ML_op THEN}~@{text "tac\<^sub>2"} is the sequential
   composition of @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Applied to a goal
   state, it returns all states reachable in two steps by applying
@@ -621,8 +592,6 @@ text %mlref \<open>
   "(tac\<^sub>1 i"}~@{ML_op THEN}~@{text "tac\<^sub>2 i)"}.
 
   The other primed tacticals work analogously.
-
-  \end{description}
 \<close>
 
 
@@ -640,8 +609,6 @@ text %mlref \<open>
   @{index_ML "REPEAT_DETERM": "tactic -> tactic"} \\
   @{index_ML "REPEAT_DETERM_N": "int -> tactic -> tactic"} \\
   \end{mldecls}
-
-  \begin{description}
 
   \<^descr> @{ML TRY}~@{text "tac"} applies @{text "tac"} to the goal
   state and returns the resulting sequence, if non-empty; otherwise it
@@ -672,14 +639,10 @@ text %mlref \<open>
   \<^descr> @{ML REPEAT_DETERM_N}~@{text "n tac"} is like @{ML
   REPEAT_DETERM}~@{text "tac"} but the number of repetitions is bound
   by @{text "n"} (where @{ML "~1"} means @{text "\<infinity>"}).
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The basic tactics and tacticals considered above follow
   some algebraic laws:
-
-  \begin{itemize}
 
   \<^item> @{ML all_tac} is the identity element of the tactical @{ML_op
   "THEN"}.
@@ -692,8 +655,6 @@ text %mlex \<open>The basic tactics and tacticals considered above follow
   \<^item> @{ML TRY} and @{ML REPEAT} can be expressed as (recursive)
   functions over more basic combinators (ignoring some internal
   implementation tricks):
-
-  \end{itemize}
 \<close>
 
 ML \<open>
@@ -747,8 +708,6 @@ text %mlref \<open>
   @{index_ML RANGE: "(int -> tactic) list -> int -> tactic"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML ALLGOALS}~@{text "tac"} is equivalent to @{text "tac
   n"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op THEN}~@{text "tac 1"}.  It
   applies the @{text tac} to all the subgoals, counting downwards.
@@ -774,8 +733,6 @@ text %mlref \<open>
   @{text "tac\<^sub>k (i + k - 1)"}~@{ML_op THEN}~@{text "\<dots>"}~@{ML_op
   THEN}~@{text "tac\<^sub>1 i"}.  It applies the given list of tactics to the
   corresponding range of subgoals, counting downwards.
-
-  \end{description}
 \<close>
 
 
@@ -800,8 +757,6 @@ text \<open>
   @{index_ML CHANGED: "tactic -> tactic"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML FILTER}~@{text "sat tac"} applies @{text "tac"} to the
   goal state and returns a sequence consisting of those result goal
   states that are satisfactory in the sense of @{text "sat"}.
@@ -810,8 +765,6 @@ text \<open>
   state and returns precisely those states that differ from the
   original state (according to @{ML Thm.eq_thm}).  Thus @{ML
   CHANGED}~@{text "tac"} always has some effect on the state.
-
-  \end{description}
 \<close>
 
 
@@ -823,8 +776,6 @@ text \<open>
   @{index_ML DEPTH_SOLVE: "tactic -> tactic"} \\
   @{index_ML DEPTH_SOLVE_1: "tactic -> tactic"} \\
   \end{mldecls}
-
-  \begin{description}
 
   \<^descr> @{ML DEPTH_FIRST}~@{text "sat tac"} returns the goal state if
   @{text "sat"} returns true.  Otherwise it applies @{text "tac"},
@@ -839,8 +790,6 @@ text \<open>
   \<^descr> @{ML DEPTH_SOLVE_1}~@{text "tac"} uses @{ML DEPTH_FIRST} to
   search for states having fewer subgoals than the given state.  Thus,
   it insists upon solving at least one subgoal.
-
-  \end{description}
 \<close>
 
 
@@ -856,8 +805,6 @@ text \<open>
   These search strategies will find a solution if one exists.
   However, they do not enumerate all solutions; they terminate after
   the first satisfactory result from @{text "tac"}.
-
-  \begin{description}
 
   \<^descr> @{ML BREADTH_FIRST}~@{text "sat tac"} uses breadth-first
   search to find states for which @{text "sat"} is true.  For most
@@ -880,8 +827,6 @@ text \<open>
   the result of applying @{text "tac\<^sub>0"} to the goal state.  This
   tactical permits separate tactics for starting the search and
   continuing the search.
-
-  \end{description}
 \<close>
 
 
@@ -894,8 +839,6 @@ text \<open>
   @{index_ML SOLVE: "tactic -> tactic"} \\
   @{index_ML DETERM: "tactic -> tactic"} \\
   \end{mldecls}
-
-  \begin{description}
 
   \<^descr> @{ML COND}~@{text "sat tac\<^sub>1 tac\<^sub>2"} applies @{text "tac\<^sub>1"} to
   the goal state if it satisfies predicate @{text "sat"}, and applies
@@ -915,8 +858,6 @@ text \<open>
   \<^descr> @{ML DETERM}~@{text "tac"} applies @{text "tac"} to the goal
   state and returns the head of the resulting sequence.  @{ML DETERM}
   limits the search space by making its argument deterministic.
-
-  \end{description}
 \<close>
 
 
@@ -929,8 +870,6 @@ text \<open>
   @{index_ML Thm.eq_thm_prop: "thm * thm -> bool"} \\
   @{index_ML size_of_thm: "thm -> int"} \\
   \end{mldecls}
-
-  \begin{description}
 
   \<^descr> @{ML has_fewer_prems}~@{text "n thm"} reports whether @{text
   "thm"} has fewer than @{text "n"} premises.
@@ -948,8 +887,6 @@ text \<open>
   "thm"}, namely the number of variables, constants and abstractions
   in its conclusion.  It may serve as a distance function for
   @{ML BEST_FIRST}.
-
-  \end{description}
 \<close>
 
 end

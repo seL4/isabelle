@@ -98,8 +98,6 @@ text %mlref \<open>
   @{index_ML fold_goals_tac: "Proof.context -> thm list -> tactic"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML rewrite_rule}~@{text "ctxt rules thm"} rewrites the whole
   theorem by the given rules.
 
@@ -119,8 +117,6 @@ text %mlref \<open>
   "rules"}, re-ordered to fold longer expression first.  This supports
   to idea to fold primitive definitions that appear in expended form
   in the proof state.
-
-  \end{description}
 \<close>
 
 end

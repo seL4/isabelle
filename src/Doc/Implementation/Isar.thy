@@ -8,8 +8,6 @@ text \<open>The Isar proof language (see also
   @{cite \<open>\S2\<close> "isabelle-isar-ref"}) consists of three main categories of
   language elements:
 
-  \begin{enumerate}
-
   \<^enum> Proof \emph{commands} define the primary language of
   transactions of the underlying Isar/VM interpreter.  Typical
   examples are @{command "fix"}, @{command "assume"}, @{command
@@ -34,8 +32,6 @@ text \<open>The Isar proof language (see also
 
   Typical examples are @{attribute intro} (which affects the context),
   and @{attribute symmetric} (which affects the theorem).
-
-  \end{enumerate}
 \<close>
 
 
@@ -78,8 +74,6 @@ text %mlref \<open>
   (thm list list -> Proof.context -> Proof.context) ->
   (term * term list) list list -> Proof.context -> Proof.state"} \\
   \end{mldecls}
-
-  \begin{description}
 
   \<^descr> Type @{ML_type Proof.state} represents Isar proof states.
   This is a block-structured configuration with proof context,
@@ -138,8 +132,6 @@ text %mlref \<open>
   Isar source language.  The original nested list structure over terms
   is turned into one over theorems when @{text "after_qed"} is
   invoked.
-
-  \end{description}
 \<close>
 
 
@@ -148,16 +140,12 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "Isar.goal"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{description}
-
   \<^descr> @{text "@{Isar.goal}"} refers to the regular goal state (if
   available) of the current proof state managed by the Isar toplevel
   --- as abstract value.
 
   This only works for diagnostic ML commands, such as @{command
   ML_val} or @{command ML_command}.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following example peeks at a certain goal configuration.\<close>
@@ -189,8 +177,6 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   tactics need to hold for methods accordingly, with the following
   additions.
 
-  \begin{itemize}
-
   \<^item> Goal addressing is further limited either to operate
   uniformly on \emph{all} subgoals, or specifically on the
   \emph{first} subgoal.
@@ -211,7 +197,6 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   is no sensible use of facts outside the goal state, facts should be
   inserted into the subgoals that are addressed by the method.
 
-  \end{itemize}
 
   \<^medskip>
   Syntactically, the language of proof methods appears as
@@ -265,8 +250,6 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   Empirically, any Isar proof method can be categorized as
   follows.
 
-  \begin{enumerate}
-
   \<^enum> \emph{Special method with cases} with named context additions
   associated with the follow-up goal state.
 
@@ -294,7 +277,6 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
 
   Example: @{method "rule_tac"}.
 
-  \end{enumerate}
 
   When implementing proof methods, it is advisable to study existing
   implementations carefully and imitate the typical ``boiler plate''
@@ -317,8 +299,6 @@ text %mlref \<open>
   @{index_ML Method.setup: "binding -> (Proof.context -> Proof.method) context_parser ->
   string -> theory -> theory"} \\
   \end{mldecls}
-
-  \begin{description}
 
   \<^descr> Type @{ML_type Proof.method} represents proof methods as
   abstract type.
@@ -349,8 +329,6 @@ text %mlref \<open>
   \<^descr> @{ML Method.setup}~@{text "name parser description"} provides
   the functionality of the Isar command @{command method_setup} as ML
   function.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>See also @{command method_setup} in
@@ -546,8 +524,6 @@ text %mlref \<open>
   string -> theory -> theory"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type attribute} represents attributes as concrete
   type alias.
 
@@ -561,8 +537,6 @@ text %mlref \<open>
   \<^descr> @{ML Attrib.setup}~@{text "name parser description"} provides
   the functionality of the Isar command @{command attribute_setup} as
   ML function.
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -574,16 +548,12 @@ text %mlantiq \<open>
   @@{ML_antiquotation attributes} attributes
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{text "@{attributes [\<dots>]}"} embeds attribute source
   representation into the ML text, which is particularly useful with
   declarations like @{ML Local_Theory.note}.  Attribute names are
   internalized at compile time, but the source is unevaluated.  This
   means attributes with formal arguments (types, terms, theorems) may
   be subject to odd effects of dynamic scoping!
-
-  \end{description}
 \<close>
 
 text %mlex \<open>See also @{command attribute_setup} in

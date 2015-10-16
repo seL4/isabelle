@@ -77,8 +77,6 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
     document_files: @'document_files' ('(' dir ')')? (@{syntax name}+)
   \<close>}
 
-  \begin{description}
-
   \<^descr> \isakeyword{session}~@{text "A = B + body"} defines a new
   session @{text "A"} based on parent session @{text "B"}, with its
   content given in @{text body} (theories and auxiliary source files).
@@ -142,8 +140,6 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
   \isakeyword{document_files}~@{text "("}\isakeyword{in}~@{text
   "document) files"}, i.e.\ document sources are taken from the base
   directory @{verbatim document} within the session root directory.
-
-  \end{description}
 \<close>
 
 
@@ -168,8 +164,6 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   The following options are particularly relevant to build Isabelle
   sessions, in particular with document preparation
   (\chref{ch:present}).
-
-  \begin{itemize}
 
   \<^item> @{system_option_def "browser_info"} controls output of HTML
   browser info, see also \secref{sec:info}.
@@ -229,7 +223,6 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   processes that get out of control, even if there is a deadlock
   without CPU time usage.
 
-  \end{itemize}
 
   The @{tool_def options} tool prints Isabelle system options.  Its
   command-line usage is:

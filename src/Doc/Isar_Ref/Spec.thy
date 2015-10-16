@@ -72,8 +72,6 @@ text \<open>
     thy_bounds: @{syntax name} | '(' (@{syntax name} + @'|') ')'
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "theory"}~@{text "A \<IMPORTS> B\<^sub>1 \<dots> B\<^sub>n \<BEGIN>"}
   starts a new theory @{text A} based on the merge of existing
   theories @{text "B\<^sub>1 \<dots> B\<^sub>n"}.  Due to the possibility to import more
@@ -115,8 +113,6 @@ text \<open>
   base session as a starting point. Alternatively, it is possibly to
   restrict the full theory graph by giving bounds, analogously to
   @{command_ref class_deps}.
-
-  \end{description}
 \<close>
 
 
@@ -153,8 +149,6 @@ text \<open>
     @{syntax_def target}: '(' @'in' @{syntax nameref} ')'
   \<close>}
 
-  \begin{description}
-  
   \<^descr> @{command "context"}~@{text "c \<BEGIN>"} opens a named
   context, by recommencing an existing locale or class @{text c}.
   Note that locale and class definitions allow to include the
@@ -193,7 +187,6 @@ text \<open>
   ``@{text "(\<IN> -)"}'' will always produce a global result independently
   of the current target context.
 
-  \end{description}
 
   Any specification element that operates on @{text local_theory} according
   to this manual implicitly allows the above target syntax @{text
@@ -256,8 +249,6 @@ text \<open>
     @{syntax_def "includes"}: @'includes' (@{syntax nameref}+)
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command bundle}~@{text "b = decls"} defines a bundle of
   declarations in the current context.  The RHS is similar to the one
   of the @{command declare} command.  Bundles defined in local theory
@@ -284,10 +275,10 @@ text \<open>
   context is constructed, notably for @{command context} and long
   statements of @{command theorem} etc.
 
-  \end{description}
 
   Here is an artificial example of bundling various configuration
-  options:\<close>
+  options:
+\<close>
 
 (*<*)experiment begin(*>*)
 bundle trace = [[simp_trace, linarith_trace, metis_trace, smt_trace]]
@@ -324,8 +315,6 @@ text \<open>
     @@{command print_abbrevs} ('!'?)
   \<close>}
 
-  \begin{description}
-  
   \<^descr> @{command "definition"}~@{text "c \<WHERE> eq"} produces an
   internal definition @{text "c \<equiv> t"} according to the specification
   given as @{text eq}, which is then turned into a proven fact.  The
@@ -362,8 +351,6 @@ text \<open>
   
   \<^descr> @{command "print_abbrevs"} prints all constant abbreviations of the
   current context; the ``@{text "!"}'' option indicates extra verbosity.
-  
-  \end{description}
 \<close>
 
 
@@ -379,8 +366,6 @@ text \<open>
     ;
     specs: (@{syntax thmdecl}? @{syntax props} + @'and')
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{command "axiomatization"}~@{text "c\<^sub>1 \<dots> c\<^sub>m \<WHERE> \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
   introduces several constants simultaneously and states axiomatic
@@ -400,8 +385,6 @@ text \<open>
   within Isabelle/Pure, but in an application environment like Isabelle/HOL
   the user normally stays within definitional mechanisms provided by the
   logic and its libraries.
-
-  \end{description}
 \<close>
 
 
@@ -430,8 +413,6 @@ text \<open>
     @@{command declare} (@{syntax thmrefs} + @'and')
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "declaration"}~@{text d} adds the declaration
   function @{text d} of ML type @{ML_type declaration}, to the current
   local theory under construction.  In later application contexts, the
@@ -451,8 +432,6 @@ text \<open>
   unlike @{command "lemmas"} (cf.\ \secref{sec:theorems}), so
   @{command "declare"} only has the effect of applying attributes as
   included in the theorem specification.
-
-  \end{description}
 \<close>
 
 
@@ -563,8 +542,6 @@ text \<open>
       @'notes' (@{syntax thmdef}? @{syntax thmrefs} + @'and')
   \<close>}
 
-  \begin{description}
-  
   \<^descr> @{command "locale"}~@{text "loc = import + body"} defines a
   new locale @{text loc} as a context consisting of a certain view of
   existing locales (@{text import}) plus some additional elements
@@ -590,32 +567,32 @@ text \<open>
 
   \begin{description}
 
-  \<^descr> @{element "fixes"}~@{text "x :: \<tau> (mx)"} declares a local
-  parameter of type @{text \<tau>} and mixfix annotation @{text mx} (both
-  are optional).  The special syntax declaration ``@{text
-  "("}@{keyword_ref "structure"}@{text ")"}'' means that @{text x} may
-  be referenced implicitly in this context.
+    \item @{element "fixes"}~@{text "x :: \<tau> (mx)"} declares a local
+    parameter of type @{text \<tau>} and mixfix annotation @{text mx} (both
+    are optional).  The special syntax declaration ``@{text
+    "("}@{keyword_ref "structure"}@{text ")"}'' means that @{text x} may
+    be referenced implicitly in this context.
 
-  \<^descr> @{element "constrains"}~@{text "x :: \<tau>"} introduces a type
-  constraint @{text \<tau>} on the local parameter @{text x}.  This
-  element is deprecated.  The type constraint should be introduced in
-  the @{keyword "for"} clause or the relevant @{element "fixes"} element.
+    \item @{element "constrains"}~@{text "x :: \<tau>"} introduces a type
+    constraint @{text \<tau>} on the local parameter @{text x}.  This
+    element is deprecated.  The type constraint should be introduced in
+    the @{keyword "for"} clause or the relevant @{element "fixes"} element.
 
-  \<^descr> @{element "assumes"}~@{text "a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
-  introduces local premises, similar to @{command "assume"} within a
-  proof (cf.\ \secref{sec:proof-context}).
+    \item @{element "assumes"}~@{text "a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
+    introduces local premises, similar to @{command "assume"} within a
+    proof (cf.\ \secref{sec:proof-context}).
 
-  \<^descr> @{element "defines"}~@{text "a: x \<equiv> t"} defines a previously
-  declared parameter.  This is similar to @{command "def"} within a
-  proof (cf.\ \secref{sec:proof-context}), but @{element "defines"}
-  takes an equational proposition instead of variable-term pair.  The
-  left-hand side of the equation may have additional arguments, e.g.\
-  ``@{element "defines"}~@{text "f x\<^sub>1 \<dots> x\<^sub>n \<equiv> t"}''.
+    \item @{element "defines"}~@{text "a: x \<equiv> t"} defines a previously
+    declared parameter.  This is similar to @{command "def"} within a
+    proof (cf.\ \secref{sec:proof-context}), but @{element "defines"}
+    takes an equational proposition instead of variable-term pair.  The
+    left-hand side of the equation may have additional arguments, e.g.\
+    ``@{element "defines"}~@{text "f x\<^sub>1 \<dots> x\<^sub>n \<equiv> t"}''.
 
-  \<^descr> @{element "notes"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}
-  reconsiders facts within a local context.  Most notably, this may
-  include arbitrary declarations in any attribute specifications
-  included here, e.g.\ a local @{attribute simp} rule.
+    \item @{element "notes"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}
+    reconsiders facts within a local context.  Most notably, this may
+    include arbitrary declarations in any attribute specifications
+    included here, e.g.\ a local @{attribute simp} rule.
 
   \end{description}
 
@@ -676,8 +653,6 @@ text \<open>
   specifications entailed by the context, both from target statements,
   and from interpretations (see below).  New goals that are entailed
   by the current context are discharged automatically.
-
-  \end{description}
 \<close>
 
 
@@ -715,8 +690,6 @@ text \<open>
 
     equations: @'where' (@{syntax thmdecl}? @{syntax prop} + @'and')
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{command "interpretation"}~@{text "expr \<WHERE> eqns"}
   interprets @{text expr} in a global or local theory.  The command
@@ -814,7 +787,6 @@ text \<open>
   "interpretation"} or @{command "interpret"} and one or several
   @{command "sublocale"} declarations.
 
-  \end{description}
 
   \begin{warn}
     If a global theory inherits declarations (body elements) for a
@@ -851,13 +823,10 @@ text \<open>
   available by importing theory @{file "~~/src/Tools/Permanent_Interpretation.thy"}
   and provides
 
-  \begin{enumerate}
-
   \<^enum> a unified view on arbitrary suitable local theories as interpretation target;
 
   \<^enum> rewrite morphisms by means of \emph{rewrite definitions}.
 
-  \end{enumerate}
   
   \begin{matharray}{rcl}
     @{command_def "permanent_interpretation"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
@@ -871,8 +840,6 @@ text \<open>
       @{syntax mixfix}? @'=' @{syntax term} + @'and');
     equations: @'where' (@{syntax thmdecl}? @{syntax prop} + @'and')
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{command "permanent_interpretation"}~@{text "expr \<DEFINING> defs \<WHERE> eqns"}
   interprets @{text expr} in the current local theory.  The command
@@ -900,12 +867,12 @@ text \<open>
   
   \begin{itemize}
   
-  \<^item> produces a corresponding definition in
-  the local theory's underlying target \emph{and}
-  
-  \<^item> augments the rewrite morphism with the equation
-  stemming from the symmetric of the corresponding definition.
-  
+    \item produces a corresponding definition in
+    the local theory's underlying target \emph{and}
+
+    \item augments the rewrite morphism with the equation
+    stemming from the symmetric of the corresponding definition.
+
   \end{itemize}
   
   This is technically different to to a naive combination
@@ -913,18 +880,16 @@ text \<open>
   
   \begin{itemize}
   
-  \<^item> Definitions are parsed in the syntactic interpretation
-  context, just like equations.
+    \item Definitions are parsed in the syntactic interpretation
+    context, just like equations.
 
-  \<^item> The proof needs not consider the equations stemming from
-  definitions -- they are proved implicitly by construction.
+    \item The proof needs not consider the equations stemming from
+    definitions -- they are proved implicitly by construction.
       
   \end{itemize}
   
   Rewrite definitions yield a pattern for introducing new explicit
   operations for existing terms after interpretation.
-  
-  \end{description}
 \<close>
 
 
@@ -969,8 +934,6 @@ text \<open>
     ;
     class_bounds: @{syntax sort} | '(' (@{syntax sort} + @'|') ')'
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{command "class"}~@{text "c = superclasses + body"} defines
   a new class @{text c}, inheriting from @{text superclasses}.  This
@@ -1044,8 +1007,6 @@ text \<open>
   default proof step (e.g.\ of @{command "proof"}).  In particular,
   instantiation of trivial (syntactic) classes may be performed by a
   single ``@{command ".."}'' proof step.
-
-  \end{description}
 \<close>
 
 
@@ -1058,8 +1019,6 @@ text \<open>
   If this locale is also a class @{text c}, apart from the common
   locale target behaviour the following happens.
 
-  \begin{itemize}
-
   \<^item> Local constant declarations @{text "g[\<alpha>]"} referring to the
   local type parameter @{text \<alpha>} and local parameters @{text "f[\<alpha>]"}
   are accompanied by theory-level constants @{text "g[?\<alpha> :: c]"}
@@ -1071,8 +1030,6 @@ text \<open>
   global operations @{text "g[?\<alpha> :: c]"} uniformly.  Type inference
   resolves ambiguities.  In rare cases, manual type annotations are
   needed.
-  
-  \end{itemize}
 \<close>
 
 
@@ -1141,8 +1098,6 @@ text \<open>
     spec: @{syntax name} ( '==' | '\<equiv>' ) @{syntax term} ( '(' @'unchecked' ')' )?
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "overloading"}~@{text "x\<^sub>1 \<equiv> c\<^sub>1 :: \<tau>\<^sub>1 \<AND> \<dots> x\<^sub>n \<equiv> c\<^sub>n :: \<tau>\<^sub>n \<BEGIN>"}
   opens a theory target (cf.\ \secref{sec:target}) which allows to
   specify constants with overloaded definitions.  These are identified
@@ -1158,8 +1113,6 @@ text \<open>
   exotic overloading (see \secref{sec:consts} for a precise description).
   It is at the discretion of the user to avoid
   malformed theory specifications!
-
-  \end{description}
 \<close>
 
 
@@ -1191,8 +1144,6 @@ text \<open>
     ;
     @@{command attribute_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{command "SML_file"}~@{text "name"} reads and evaluates the
   given Standard ML file.  Top-level SML bindings are stored within
@@ -1245,8 +1196,6 @@ text \<open>
   In principle, attributes can operate both on a given theorem and the
   implicit context, although in practice only one is modified and the
   other serves as parameter.  Here are examples for these two cases:
-
-  \end{description}
 \<close>
 
 (*<*)experiment begin(*>*)
@@ -1266,8 +1215,6 @@ text \<open>
 (*<*)end(*>*)
 
 text \<open>
-  \begin{description}
-
   \<^descr> @{attribute ML_print_depth} controls the printing depth of the ML
   toplevel pretty printer; the precise effect depends on the ML compiler and
   run-time system. Typically the limit should be less than 10. Bigger values
@@ -1288,8 +1235,6 @@ text \<open>
   Runtime.exn_trace} into ML code for debugging @{cite
   "isabelle-implementation"}, closer to the point where it actually
   happens.
-
-  \end{description}
 \<close>
 
 
@@ -1306,8 +1251,6 @@ text \<open>
     @@{command default_sort} @{syntax sort}
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "default_sort"}~@{text s} makes sort @{text s} the
   new default sort for any type variable that is given explicitly in
   the text, but lacks a sort constraint (wrt.\ the current context).
@@ -1320,8 +1263,6 @@ text \<open>
   When merging theories, the default sorts of the parents are
   logically intersected, i.e.\ the representations as lists of classes
   are joined.
-
-  \end{description}
 \<close>
 
 
@@ -1339,8 +1280,6 @@ text \<open>
     @@{command typedecl} @{syntax typespec} @{syntax mixfix}?
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "type_synonym"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = \<tau>"} introduces a
   \emph{type synonym} @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} for the existing type @{text
   "\<tau>"}. Unlike the semantic type definitions in Isabelle/HOL, type synonyms
@@ -1352,7 +1291,6 @@ text \<open>
   @{text s}, then the constructor is declared to operate on that, via
   the axiomatic type-class instance @{text "t :: (s, \<dots>, s)s"}.
 
-  \end{description}
 
   \begin{warn}
   If you introduce a new type axiomatically, i.e.\ via @{command_ref
@@ -1389,8 +1327,6 @@ text \<open>
   The built-in well-formedness conditions for definitional
   specifications are:
 
-  \begin{itemize}
-
   \<^item> Arguments (on the left-hand side) must be distinct variables.
 
   \<^item> All variables on the right-hand side must also appear on the
@@ -1404,7 +1340,6 @@ text \<open>
   provide definitional principles that can be used to express
   recursion safely.
 
-  \end{itemize}
 
   The right-hand side of overloaded definitions may mention overloaded constants
   recursively at type instances corresponding to the immediate
@@ -1421,8 +1356,6 @@ text \<open>
     ;
     opt: '(' @'unchecked'? @'overloaded'? ')'
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{command "consts"}~@{text "c :: \<sigma>"} declares constant @{text
   c} to have any instance of type scheme @{text \<sigma>}.  The optional
@@ -1441,8 +1374,6 @@ text \<open>
   potentially overloaded.  Unless this option is given, a warning
   message would be issued for any definitional equation with a more
   special type than that of the corresponding constant declaration.
-  
-  \end{description}
 \<close>
 
 
@@ -1461,8 +1392,6 @@ text \<open>
     @@{command named_theorems} (@{syntax name} @{syntax text}? + @'and')
   \<close>}
 
-  \begin{description}
-  
   \<^descr> @{command "lemmas"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}~@{keyword_def
   "for"}~@{text "x\<^sub>1 \<dots> x\<^sub>m"} evaluates given facts (with attributes) in
   the current context, which may be augmented by local variables.
@@ -1474,8 +1403,6 @@ text \<open>
   an attribute with the usual @{text add}/@{text del} syntax (e.g.\ see
   \secref{sec:simp-rules}) to maintain the content incrementally, in
   canonical declaration order of the text structure.
-
-  \end{description}
 \<close>
 
 
@@ -1505,8 +1432,6 @@ text \<open>
     @@{command oracle} @{syntax name} '=' @{syntax text}
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "oracle"}~@{text "name = text"} turns the given ML
   expression @{text "text"} of type @{ML_text "'a -> cterm"} into an
   ML function of type @{ML_text "'a -> thm"}, which is bound to the
@@ -1514,7 +1439,6 @@ text \<open>
   specification of axioms!  Invoking the oracle only works within the
   scope of the resulting theory.
 
-  \end{description}
 
   See @{file "~~/src/HOL/ex/Iff_Oracle.thy"} for a worked example of
   defining a new primitive rule as oracle, and turning it into a proof
@@ -1543,8 +1467,6 @@ text \<open>
   name spaces by hand, yet the following commands provide some way to
   do so.
 
-  \begin{description}
-
   \<^descr> @{command "hide_class"}~@{text names} fully removes class
   declarations from a given name space; with the @{text "(open)"}
   option, only the unqualified base name is hidden.
@@ -1557,8 +1479,6 @@ text \<open>
   \<^descr> @{command "hide_type"}, @{command "hide_const"}, and @{command
   "hide_fact"} are similar to @{command "hide_class"}, but hide types,
   constants, and facts, respectively.
-  
-  \end{description}
 \<close>
 
 end

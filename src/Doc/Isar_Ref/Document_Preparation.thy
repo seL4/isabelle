@@ -49,8 +49,6 @@ text \<open>
     @@{command text_raw} @{syntax text}
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command chapter}, @{command section}, @{command subsection}, and
   @{command subsubsection} mark chapter and section headings within the
   theory source; this works in any context, even before the initial
@@ -68,7 +66,6 @@ text \<open>
   manipulations becomes available, at the risk of messing up document
   output.
 
-  \end{description}
 
   Except for @{command "text_raw"}, the text passed to any of the above
   markup commands may refer to formal entities via \emph{document
@@ -187,8 +184,6 @@ text \<open>
   comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} nor verbatim
   text @{verbatim "{*"}~@{text "\<dots>"}~@{verbatim "*}"}.
 
-  \begin{description}
-
   \<^descr> @{command "print_antiquotations"} prints all document antiquotations
   that are defined in the current context; the ``@{text "!"}'' option
   indicates extra verbosity.
@@ -290,8 +285,6 @@ text \<open>
   @{antiquotation_option_def cite_macro}, or the configuration option
   @{attribute cite_macro} in the context. For example, @{text "@{cite
   [cite_macro = nocite] foobar}"} produces @{verbatim \<open>\nocite{foobar}\<close>}.
-
-  \end{description}
 \<close>
 
 
@@ -303,8 +296,6 @@ text \<open>The antiquotations @{text thm}, @{text prop} and @{text
   empty number of arguments;  multiple styles can be sequenced with
   commas.  The following standard styles are available:
 
-  \begin{description}
-  
   \<^descr> @{text lhs} extracts the first argument of any application
   form with at least two arguments --- typically meta-level or
   object-level equality, or any other binary relation.
@@ -318,8 +309,6 @@ text \<open>The antiquotations @{text thm}, @{text prop} and @{text
   \<^descr> @{text "prem"} @{text n} extract premise number
   @{text "n"} from from a rule in Horn-clause
   normal form @{text "A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C"}
-
-  \end{description}
 \<close>
 
 
@@ -328,8 +317,6 @@ subsection \<open>General options\<close>
 text \<open>The following options are available to tune the printed output
   of antiquotations.  Note that many of these coincide with system and
   configuration options of the same names.
-
-  \begin{description}
 
   \<^descr> @{antiquotation_option_def show_types}~@{text "= bool"} and
   @{antiquotation_option_def show_sorts}~@{text "= bool"} control
@@ -404,12 +391,12 @@ text \<open>The following options are available to tune the printed output
   well-formedness check in the background, but without modification of
   the printed text.
 
-  \end{description}
 
   For Boolean flags, ``@{text "name = true"}'' may be abbreviated as
   ``@{text name}''.  All of the above flags are disabled by default,
   unless changed specifically for a logic session in the corresponding
-  @{verbatim "ROOT"} file.\<close>
+  @{verbatim "ROOT"} file.
+\<close>
 
 
 section \<open>Markup via command tags \label{sec:tags}\<close>
@@ -514,8 +501,6 @@ text \<open>
   recursion.  The meaning and visual appearance of these rail language
   elements is illustrated by the following representative examples.
 
-  \begin{itemize}
-
   \<^item> Empty @{verbatim "()"}
 
   @{rail \<open>()\<close>}
@@ -574,8 +559,6 @@ text \<open>
   \<^item> Strict repetition with separator @{verbatim "A + sep"}
 
   @{rail \<open>A + sep\<close>}
-
-  \end{itemize}
 \<close>
 
 
@@ -590,14 +573,10 @@ text \<open>
     @@{command display_drafts} (@{syntax name} +)
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "display_drafts"}~@{text paths} performs simple output of a
   given list of raw source files. Only those symbols that do not require
   additional {\LaTeX} packages are displayed properly, everything else is left
   verbatim.
-
-  \end{description}
 \<close>
 
 end

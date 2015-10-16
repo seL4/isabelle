@@ -62,8 +62,6 @@ text \<open>
     @{syntax_def modes}: '(' (@{syntax name} + ) ')'
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "typ"}~@{text \<tau>} reads and prints a type expression
   according to the current context.
 
@@ -101,7 +99,6 @@ text \<open>
   \<^descr> @{command "print_state"} prints the current proof state (if
   present), including current facts and goals.
 
-  \end{description}
 
   All of the diagnostic commands above admit a list of @{text modes}
   to be specified, which is appended to the current print mode; see
@@ -143,8 +140,6 @@ text \<open>
   These configuration options control the detail of information that
   is displayed for types, terms, theorems, goals etc.  See also
   \secref{sec:config}.
-
-  \begin{description}
 
   \<^descr> @{attribute show_markup} controls direct inlining of markup
   into the printed representation of formal entities --- notably type
@@ -238,8 +233,6 @@ text \<open>
   question mark is affected, the remaining text is unchanged
   (including proper markup for schematic variables that might be
   relevant for user interfaces).
-
-  \end{description}
 \<close>
 
 
@@ -257,8 +250,6 @@ text \<open>
   modes as optional argument.  The underlying ML operations are as
   follows.
 
-  \begin{description}
-
   \<^descr> @{ML "print_mode_value ()"} yields the list of currently
   active print mode names.  This should be understood as symbolic
   representation of certain individual features for printing (with
@@ -271,7 +262,6 @@ text \<open>
   names: it retains the default print mode that certain
   user-interfaces might have installed for their proper functioning!
 
-  \end{description}
 
   \<^medskip>
   The pretty printer for inner syntax maintains alternative
@@ -279,8 +269,6 @@ text \<open>
   in commands like @{command notation} or @{command abbreviation}.
   Mode names can be arbitrary, but the following ones have a specific
   meaning by convention:
-
-  \begin{itemize}
 
   \<^item> @{verbatim \<open>""\<close>} (the empty string): default mode;
   implicitly active as last element in the list of modes.
@@ -302,8 +290,6 @@ text \<open>
   \<^item> @{verbatim latex}: additional mode that is active in {\LaTeX}
   document preparation of Isabelle theory sources; allows to provide
   alternative output notation.
-
-  \end{itemize}
 \<close>
 
 
@@ -377,8 +363,6 @@ text \<open>In full generality, mixfix declarations work as follows.
   general template format is a sequence over any of the following
   entities.
 
-  \begin{description}
-
   \<^descr> @{text "d"} is a delimiter, namely a non-empty sequence of
   characters other than the following special characters:
 
@@ -424,7 +408,6 @@ text \<open>In full generality, mixfix declarations work as follows.
   stands for the string of spaces (zero or more) right after the
   slash.  These spaces are printed if the break is \emph{not} taken.
 
-  \end{description}
 
   The general idea of pretty printing with blocks and breaks is also
   described in @{cite "paulson-ml2"}; it goes back to @{cite "Oppen:1980"}.
@@ -532,8 +515,6 @@ text \<open>
     @@{command write} @{syntax mode}? (@{syntax nameref} @{syntax mixfix} + @'and')
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "type_notation"}~@{text "c (mx)"} associates mixfix
   syntax with an existing type constructor.  The arity of the
   constructor is retrieved from the context.
@@ -552,8 +533,6 @@ text \<open>
 
   \<^descr> @{command "write"} is similar to @{command "notation"}, but
   works within an Isar proof body.
-
-  \end{description}
 \<close>
 
 
@@ -565,15 +544,12 @@ text \<open>The inner lexical syntax vaguely resembles the outer one
   (\secref{sec:outer-lex}), but some details are different.  There are
   two main categories of inner syntax tokens:
 
-  \begin{enumerate}
-
   \<^enum> \emph{delimiters} --- the literal tokens occurring in
   productions of the given priority grammar (cf.\
   \secref{sec:priority-grammar});
 
   \<^enum> \emph{named tokens} --- various categories of identifiers etc.
 
-  \end{enumerate}
 
   Delimiters override named tokens and may thus render certain
   identifiers inaccessible.  Sometimes the logical context admits
@@ -659,7 +635,6 @@ text \<open>A context-free grammar consists of a set of \emph{terminal
 
   \<^medskip>
   For clarity, grammars obey these conventions:
-  \begin{itemize}
 
   \<^item> All priorities must lie between 0 and 1000.
 
@@ -675,7 +650,6 @@ text \<open>A context-free grammar consists of a set of \emph{terminal
   \<^item> Repetition is indicated by dots @{text "(\<dots>)"} in an informal
   but obvious way.
 
-  \end{itemize}
 
   Using these conventions, the example grammar specification above
   takes the form:
@@ -771,8 +745,6 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
   inner syntax.  The meaning of the nonterminals defined by the above
   grammar is as follows:
 
-  \begin{description}
-
   \<^descr> @{syntax_ref (inner) any} denotes any term.
 
   \<^descr> @{syntax_ref (inner) prop} denotes meta-level propositions,
@@ -824,11 +796,8 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
 
   \<^descr> @{syntax_ref (inner) sort} denotes meta-level sorts.
 
-  \end{description}
 
   Here are some further explanations of certain syntax features.
-
-  \begin{itemize}
 
   \<^item> In @{syntax (inner) idts}, note that @{text "x :: nat y"} is
   parsed as @{text "x :: (nat y)"}, treating @{text y} like a type
@@ -851,25 +820,25 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
 
   \begin{description}
 
-  \<^descr> A type ``@{text "_"}'' or ``@{text "_ :: sort"}'' acts like an
-  anonymous inference parameter, which is filled-in according to the
-  most general type produced by the type-checking phase.
+    \item A type ``@{text "_"}'' or ``@{text "_ :: sort"}'' acts like an
+    anonymous inference parameter, which is filled-in according to the
+    most general type produced by the type-checking phase.
 
-  \<^descr> A bound ``@{text "_"}'' refers to a vacuous abstraction, where
-  the body does not refer to the binding introduced here.  As in the
-  term @{term "\<lambda>x _. x"}, which is @{text "\<alpha>"}-equivalent to @{text
-  "\<lambda>x y. x"}.
+    \item A bound ``@{text "_"}'' refers to a vacuous abstraction, where
+    the body does not refer to the binding introduced here.  As in the
+    term @{term "\<lambda>x _. x"}, which is @{text "\<alpha>"}-equivalent to @{text
+    "\<lambda>x y. x"}.
 
-  \<^descr> A free ``@{text "_"}'' refers to an implicit outer binding.
-  Higher definitional packages usually allow forms like @{text "f x _
-  = x"}.
+    \item A free ``@{text "_"}'' refers to an implicit outer binding.
+    Higher definitional packages usually allow forms like @{text "f x _
+    = x"}.
 
-  \<^descr> A schematic ``@{text "_"}'' (within a term pattern, see
-  \secref{sec:term-decls}) refers to an anonymous variable that is
-  implicitly abstracted over its context of locally bound variables.
-  For example, this allows pattern matching of @{text "{x. f x = g
-  x}"} against @{text "{x. _ = _}"}, or even @{text "{_. _ = _}"} by
-  using both bound and schematic dummies.
+    \item A schematic ``@{text "_"}'' (within a term pattern, see
+    \secref{sec:term-decls}) refers to an anonymous variable that is
+    implicitly abstracted over its context of locally bound variables.
+    For example, this allows pattern matching of @{text "{x. f x = g
+    x}"} against @{text "{x. _ = _}"}, or even @{text "{_. _ = _}"} by
+    using both bound and schematic dummies.
 
   \end{description}
 
@@ -887,8 +856,6 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
   \<^descr> @{verbatim XCONST} is similar to @{verbatim CONST}, but
   retains the constant name as given.  This is only relevant to
   translation rules (\secref{sec:syn-trans}), notably on the LHS.
-
-  \end{itemize}
 \<close>
 
 
@@ -899,54 +866,50 @@ text \<open>
     @{command_def "print_syntax"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
-  \begin{description}
-
   \<^descr> @{command "print_syntax"} prints the inner syntax of the
   current context.  The output can be quite large; the most important
   sections are explained below.
 
   \begin{description}
 
-  \<^descr> @{text "lexicon"} lists the delimiters of the inner token
-  language; see \secref{sec:inner-lex}.
+    \item @{text "lexicon"} lists the delimiters of the inner token
+    language; see \secref{sec:inner-lex}.
 
-  \<^descr> @{text "prods"} lists the productions of the underlying
-  priority grammar; see \secref{sec:priority-grammar}.
+    \item @{text "prods"} lists the productions of the underlying
+    priority grammar; see \secref{sec:priority-grammar}.
 
-  The nonterminal @{text "A\<^sup>(\<^sup>p\<^sup>)"} is rendered in plain text as @{text
-  "A[p]"}; delimiters are quoted.  Many productions have an extra
-  @{text "\<dots> => name"}.  These names later become the heads of parse
-  trees; they also guide the pretty printer.
+    The nonterminal @{text "A\<^sup>(\<^sup>p\<^sup>)"} is rendered in plain text as @{text
+    "A[p]"}; delimiters are quoted.  Many productions have an extra
+    @{text "\<dots> => name"}.  These names later become the heads of parse
+    trees; they also guide the pretty printer.
 
-  Productions without such parse tree names are called \emph{copy
-  productions}.  Their right-hand side must have exactly one
-  nonterminal symbol (or named token).  The parser does not create a
-  new parse tree node for copy productions, but simply returns the
-  parse tree of the right-hand symbol.
+    Productions without such parse tree names are called \emph{copy
+    productions}.  Their right-hand side must have exactly one
+    nonterminal symbol (or named token).  The parser does not create a
+    new parse tree node for copy productions, but simply returns the
+    parse tree of the right-hand symbol.
 
-  If the right-hand side of a copy production consists of a single
-  nonterminal without any delimiters, then it is called a \emph{chain
-  production}.  Chain productions act as abbreviations: conceptually,
-  they are removed from the grammar by adding new productions.
-  Priority information attached to chain productions is ignored; only
-  the dummy value @{text "-1"} is displayed.
+    If the right-hand side of a copy production consists of a single
+    nonterminal without any delimiters, then it is called a \emph{chain
+    production}.  Chain productions act as abbreviations: conceptually,
+    they are removed from the grammar by adding new productions.
+    Priority information attached to chain productions is ignored; only
+    the dummy value @{text "-1"} is displayed.
 
-  \<^descr> @{text "print modes"} lists the alternative print modes
-  provided by this grammar; see \secref{sec:print-modes}.
+    \item @{text "print modes"} lists the alternative print modes
+    provided by this grammar; see \secref{sec:print-modes}.
 
-  \<^descr> @{text "parse_rules"} and @{text "print_rules"} relate to
-  syntax translations (macros); see \secref{sec:syn-trans}.
+    \item @{text "parse_rules"} and @{text "print_rules"} relate to
+    syntax translations (macros); see \secref{sec:syn-trans}.
 
-  \<^descr> @{text "parse_ast_translation"} and @{text
-  "print_ast_translation"} list sets of constants that invoke
-  translation functions for abstract syntax trees, which are only
-  required in very special situations; see \secref{sec:tr-funs}.
+    \item @{text "parse_ast_translation"} and @{text
+    "print_ast_translation"} list sets of constants that invoke
+    translation functions for abstract syntax trees, which are only
+    required in very special situations; see \secref{sec:tr-funs}.
 
-  \<^descr> @{text "parse_translation"} and @{text "print_translation"}
-  list the sets of constants that invoke regular translation
-  functions; see \secref{sec:tr-funs}.
-
-  \end{description}
+    \item @{text "parse_translation"} and @{text "print_translation"}
+    list the sets of constants that invoke regular translation
+    functions; see \secref{sec:tr-funs}.
 
   \end{description}
 \<close>
@@ -974,16 +937,12 @@ text \<open>
   situation and the given configuration options.  Parsing ultimately
   fails, if multiple results remain after the filtering phase.
 
-  \begin{description}
-
   \<^descr> @{attribute syntax_ambiguity_warning} controls output of
   explicit warning messages about syntax ambiguity.
 
   \<^descr> @{attribute syntax_ambiguity_limit} determines the number of
   resulting parse trees that are shown as part of the printed message
   in case of an ambiguity.
-
-  \end{description}
 \<close>
 
 
@@ -1133,8 +1092,6 @@ text \<open>Naming constant entities within ASTs is another delicate
   bound variables is excluded as well.  Authentic syntax names work
   implicitly in the following situations:
 
-  \begin{itemize}
-
   \<^item> Input of term constants (or fixed variables) that are
   introduced by concrete syntax via @{command notation}: the
   correspondence of a particular grammar production to some known term
@@ -1148,7 +1105,6 @@ text \<open>Naming constant entities within ASTs is another delicate
   this information is already available from the internal term to be
   printed.
 
-  \end{itemize}
 
   In other words, syntax transformations that operate on input terms
   written as prefix applications are difficult to make robust.
@@ -1195,8 +1151,6 @@ text \<open>
     transpat: ('(' @{syntax nameref} ')')? @{syntax string}
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "nonterminal"}~@{text c} declares a type
   constructor @{text c} (without arguments) to act as purely syntactic
   type: a nonterminal symbol of the inner syntax.
@@ -1215,15 +1169,15 @@ text \<open>
   follows:
   \begin{itemize}
 
-  \<^item> @{text "prop"} if @{text "\<tau>\<^sub>i = prop"}
+    \item @{text "prop"} if @{text "\<tau>\<^sub>i = prop"}
 
-  \<^item> @{text "logic"} if @{text "\<tau>\<^sub>i = (\<dots>)\<kappa>"} for logical type
-  constructor @{text "\<kappa> \<noteq> prop"}
+    \item @{text "logic"} if @{text "\<tau>\<^sub>i = (\<dots>)\<kappa>"} for logical type
+    constructor @{text "\<kappa> \<noteq> prop"}
 
-  \<^item> @{text any} if @{text "\<tau>\<^sub>i = \<alpha>"} for type variables
+    \item @{text any} if @{text "\<tau>\<^sub>i = \<alpha>"} for type variables
 
-  \<^item> @{text "\<kappa>"} if @{text "\<tau>\<^sub>i = \<kappa>"} for nonterminal @{text "\<kappa>"}
-  (syntactic type constructor)
+    \item @{text "\<kappa>"} if @{text "\<tau>\<^sub>i = \<kappa>"} for nonterminal @{text "\<kappa>"}
+    (syntactic type constructor)
 
   \end{itemize}
 
@@ -1291,14 +1245,14 @@ text \<open>
 
   \begin{itemize}
 
-  \<^item> Rules must be left linear: @{text "lhs"} must not contain
-  repeated variables.\footnote{The deeper reason for this is that AST
-  equality is not well-defined: different occurrences of the ``same''
-  AST could be decorated differently by accidental type-constraints or
-  source position information, for example.}
+    \item Rules must be left linear: @{text "lhs"} must not contain
+    repeated variables.\footnote{The deeper reason for this is that AST
+    equality is not well-defined: different occurrences of the ``same''
+    AST could be decorated differently by accidental type-constraints or
+    source position information, for example.}
 
-  \<^item> Every variable in @{text "rhs"} must also occur in @{text
-  "lhs"}.
+    \item Every variable in @{text "rhs"} must also occur in @{text
+    "lhs"}.
 
   \end{itemize}
 
@@ -1311,7 +1265,6 @@ text \<open>
   process, when translation rules are applied to concrete input or
   output.
 
-  \end{description}
 
   Raw syntax and translations provides a slightly more low-level
   access to the grammar and the form of resulting parse trees.  It is
@@ -1319,8 +1272,6 @@ text \<open>
   type-safe @{command abbreviation} or @{command notation} instead.
   Some important situations where @{command syntax} and @{command
   translations} are really need are as follows:
-
-  \begin{itemize}
 
   \<^item> Iterated replacement via recursive @{command translations}.
   For example, consider list enumeration @{term "[a, b, c, d]"} as
@@ -1331,9 +1282,8 @@ text \<open>
   syntax translations.  For example, consider list filter
   comprehension @{term "[x \<leftarrow> xs . P]"} as defined in theory @{theory
   List} in Isabelle/HOL.
-
-  \end{itemize}
 \<close>
+
 
 subsubsection \<open>Applying translation rules\<close>
 
@@ -1356,8 +1306,6 @@ text \<open>As a term is being parsed or printed, an AST is generated as
   More precisely, the matching of the object @{text "u"} against the
   pattern @{text "lhs"} is performed as follows:
 
-  \begin{itemize}
-
   \<^item> Objects of the form @{ML Ast.Variable}~@{text "x"} or @{ML
   Ast.Constant}~@{text "x"} are matched by pattern @{ML
   Ast.Constant}~@{text "x"}.  Thus all atomic ASTs in the object are
@@ -1374,7 +1322,6 @@ text \<open>As a term is being parsed or printed, an AST is generated as
 
   \<^item> In every other case, matching fails.
 
-  \end{itemize}
 
   A successful match yields a substitution that is applied to @{text
   "rhs"}, generating the instance that replaces @{text "u"}.
@@ -1439,8 +1386,6 @@ text \<open>
    @@{ML_antiquotation syntax_const}) name
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command parse_translation} etc. declare syntax translation
   functions to the theory.  Any of these commands have a single
   @{syntax text} argument that refers to an ML expression of
@@ -1486,8 +1431,6 @@ text \<open>
   that the usual naming convention makes syntax constants start with
   underscore, to reduce the chance of accidental clashes with other
   names occurring in parse trees (unqualified constants etc.).
-
-  \end{description}
 \<close>
 
 
@@ -1515,8 +1458,6 @@ text \<open>The different kinds of translation functions are invoked during
   functions called during the parsing process differ from those for
   printing in their overall behaviour:
 
-  \begin{description}
-
   \<^descr>[Parse translations] are applied bottom-up.  The arguments are
   already in translated form.  The translations must not fail;
   exceptions trigger an error message.  There may be at most one
@@ -1531,7 +1472,6 @@ text \<open>The different kinds of translation functions are invoked during
   some syntactic name are tried in the order of declaration in the
   theory.
 
-  \end{description}
 
   Only constant atoms --- constructor @{ML Ast.Constant} for ASTs and
   @{ML Const} for terms --- can invoke translation functions.  This

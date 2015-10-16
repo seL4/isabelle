@@ -41,8 +41,6 @@ text \<open>
     @@{command prefer} @{syntax nat}
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "supply"} supports fact definitions during goal
   refinement: it is similar to @{command "note"}, but it operates in
   backwards mode and does not have any impact on chained facts.
@@ -83,8 +81,6 @@ text \<open>
   results, and this command explores the possibilities step-by-step.
   It is mainly useful for experimentation and interactive exploration,
   and should be avoided in finished proofs.
-
-  \end{description}
 \<close>
 
 
@@ -102,8 +98,6 @@ text \<open>
     ;
     params: @'for' '\<dots>'? (('_' | @{syntax name})+)
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{command "subgoal"} allows to impose some structure on backward
   refinements, to avoid proof scripts degenerating into long of @{command
@@ -133,7 +127,6 @@ text \<open>
   of a proven subgoal. Thus it may be re-used in further reasoning, similar
   to the result of @{command show} in structured Isar proofs.
 
-  \end{description}
 
   Here are some abstract examples:
 \<close>
@@ -245,8 +238,6 @@ text \<open>
     (@@{method tactic} | @@{method raw_tactic}) @{syntax text}
   \<close>}
 
-\begin{description}
-
   \<^descr> @{method rule_tac} etc. do resolution of rules with explicit
   instantiation.  This works the same way as the ML tactics @{ML
   Rule_Insts.res_inst_tac} etc.\ (see @{cite "isabelle-implementation"}).
@@ -294,8 +285,6 @@ text \<open>
   the usual split into several subgoals.  While feature this is useful
   for debugging of complex method definitions, it should not never
   appear in production theories.
-
-  \end{description}
 \<close>
 
 end

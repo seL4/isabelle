@@ -38,8 +38,6 @@ text \<open>
     @{syntax name} ('=' ('true' | 'false' | @{syntax int} | @{syntax float} | @{syntax name}))?
   \<close>}
 
-  \begin{description}
-  
   \<^descr> @{command "print_options"} prints the available configuration
   options, with names, types, and current values; the ``@{text "!"}'' option
   indicates extra verbosity.
@@ -48,8 +46,6 @@ text \<open>
   named option, with the syntax of the value depending on the option's
   type.  For @{ML_type bool} the default value is @{text true}.  Any
   attempt to change a global option in a local context is ignored.
-
-  \end{description}
 \<close>
 
 
@@ -83,8 +79,6 @@ text \<open>
     @@{method sleep} @{syntax real}
   \<close>}
 
-  \begin{description}
-  
   \<^descr> @{method unfold}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} and @{method fold}~@{text
   "a\<^sub>1 \<dots> a\<^sub>n"} expand (or fold back) the given definitions throughout
   all goals; any chained facts provided are inserted into the goal and
@@ -129,7 +123,6 @@ text \<open>
   s} seconds. This is occasionally useful for demonstration and testing
   purposes.
 
-  \end{description}
 
   \begin{matharray}{rcl}
     @{attribute_def tagged} & : & @{text attribute} \\
@@ -154,8 +147,6 @@ text \<open>
     ;
     @@{attribute rotated} @{syntax int}?
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{attribute tagged}~@{text "name value"} and @{attribute
   untagged}~@{text name} add and remove \emph{tags} of some theorem.
@@ -189,8 +180,6 @@ text \<open>
 
   \<^descr> @{attribute no_vars} replaces schematic variables by free
   ones; this is mainly for tuning output of pretty printed theorems.
-
-  \end{description}
 \<close>
 
 
@@ -215,8 +204,6 @@ text \<open>
   (see also \secref{sec:calculation}), while the Simplifier methods
   provide the canonical way for automated normalization (see
   \secref{sec:simplifier}).
-
-  \begin{description}
 
   \<^descr> @{method subst}~@{text eq} performs a single substitution step
   using rule @{text eq}, which may be either a meta or object
@@ -257,8 +244,6 @@ text \<open>
   Note that the @{method simp} method already involves repeated
   application of split rules as declared in the current context, using
   @{attribute split}, for example.
-
-  \end{description}
 \<close>
 
 
@@ -304,8 +289,6 @@ text \<open>
     @{syntax_def simpmod}: ('add' | 'del' | 'only' | 'split' (() | 'add' | 'del') |
       'cong' (() | 'add' | 'del')) ':' @{syntax thmrefs}
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{method simp} invokes the Simplifier on the first subgoal,
   after inserting chained facts as additional goal premises; further
@@ -364,7 +347,6 @@ text \<open>
   \<^descr> @{attribute simp_depth_limit} limits the number of recursive
   invocations of the Simplifier during conditional rewriting.
 
-  \end{description}
 
   By default the Simplifier methods above take local assumptions fully
   into account, using equational assumptions in the subsequent
@@ -513,8 +495,6 @@ text \<open>
     @@{command print_simpset} ('!'?)
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{attribute simp} declares rewrite rules, by adding or
   deleting them from the simpset within the theory or proof context.
   Rewrite rules are theorems expressing some form of equality, for
@@ -543,36 +523,36 @@ text \<open>
 
   \begin{enumerate}
 
-  \<^enum> First-order patterns, considering the sublanguage of
-  application of constant operators to variable operands, without
-  @{text "\<lambda>"}-abstractions or functional variables.
-  For example:
+    \item First-order patterns, considering the sublanguage of
+    application of constant operators to variable operands, without
+    @{text "\<lambda>"}-abstractions or functional variables.
+    For example:
 
-  @{text "(?x + ?y) + ?z \<equiv> ?x + (?y + ?z)"} \\
-  @{text "f (f ?x ?y) ?z \<equiv> f ?x (f ?y ?z)"}
+    @{text "(?x + ?y) + ?z \<equiv> ?x + (?y + ?z)"} \\
+    @{text "f (f ?x ?y) ?z \<equiv> f ?x (f ?y ?z)"}
 
-  \<^enum> Higher-order patterns in the sense of @{cite "nipkow-patterns"}.
-  These are terms in @{text "\<beta>"}-normal form (this will always be the
-  case unless you have done something strange) where each occurrence
-  of an unknown is of the form @{text "?F x\<^sub>1 \<dots> x\<^sub>n"}, where the
-  @{text "x\<^sub>i"} are distinct bound variables.
+    \item Higher-order patterns in the sense of @{cite "nipkow-patterns"}.
+    These are terms in @{text "\<beta>"}-normal form (this will always be the
+    case unless you have done something strange) where each occurrence
+    of an unknown is of the form @{text "?F x\<^sub>1 \<dots> x\<^sub>n"}, where the
+    @{text "x\<^sub>i"} are distinct bound variables.
 
-  For example, @{text "(\<forall>x. ?P x \<and> ?Q x) \<equiv> (\<forall>x. ?P x) \<and> (\<forall>x. ?Q x)"}
-  or its symmetric form, since the @{text "rhs"} is also a
-  higher-order pattern.
+    For example, @{text "(\<forall>x. ?P x \<and> ?Q x) \<equiv> (\<forall>x. ?P x) \<and> (\<forall>x. ?Q x)"}
+    or its symmetric form, since the @{text "rhs"} is also a
+    higher-order pattern.
 
-  \<^enum> Physical first-order patterns over raw @{text "\<lambda>"}-term
-  structure without @{text "\<alpha>\<beta>\<eta>"}-equality; abstractions and bound
-  variables are treated like quasi-constant term material.
+    \item Physical first-order patterns over raw @{text "\<lambda>"}-term
+    structure without @{text "\<alpha>\<beta>\<eta>"}-equality; abstractions and bound
+    variables are treated like quasi-constant term material.
 
-  For example, the rule @{text "?f ?x \<in> range ?f = True"} rewrites the
-  term @{text "g a \<in> range g"} to @{text "True"}, but will fail to
-  match @{text "g (h b) \<in> range (\<lambda>x. g (h x))"}. However, offending
-  subterms (in our case @{text "?f ?x"}, which is not a pattern) can
-  be replaced by adding new variables and conditions like this: @{text
-  "?y = ?f ?x \<Longrightarrow> ?y \<in> range ?f = True"} is acceptable as a conditional
-  rewrite rule of the second category since conditions can be
-  arbitrary terms.
+    For example, the rule @{text "?f ?x \<in> range ?f = True"} rewrites the
+    term @{text "g a \<in> range g"} to @{text "True"}, but will fail to
+    match @{text "g (h b) \<in> range (\<lambda>x. g (h x))"}. However, offending
+    subterms (in our case @{text "?f ?x"}, which is not a pattern) can
+    be replaced by adding new variables and conditions like this: @{text
+    "?y = ?f ?x \<Longrightarrow> ?y \<in> range ?f = True"} is acceptable as a conditional
+    rewrite rule of the second category since conditions can be
+    arbitrary terms.
 
   \end{enumerate}
 
@@ -634,7 +614,6 @@ text \<open>
   simpset and the context of the problem being simplified may lead to
   unexpected results.
 
-  \end{description}
 
   The implicit simpset of the theory context is propagated
   monotonically through the theory hierarchy: forming a new theory,
@@ -706,8 +685,6 @@ text \<open>Ordered rewriting is particularly effective in the case of
   permutative.)  When dealing with an AC-operator @{text "f"}, keep
   the following points in mind:
 
-  \begin{itemize}
-
   \<^item> The associative law must always be oriented from left to
   right, namely @{text "f (f x y) z = f x (f y z)"}.  The opposite
   orientation, if used with commutativity, leads to looping in
@@ -717,7 +694,6 @@ text \<open>Ordered rewriting is particularly effective in the case of
   associativity (A) and commutativity (C) but also a derived rule
   \emph{left-commutativity} (LC): @{text "f x (f y z) = f y (f x z)"}.
 
-  \end{itemize}
 
   Ordered rewriting with the combination of A, C, and LC sorts a term
   lexicographically --- the rewriting engine imitates bubble-sort.
@@ -794,8 +770,6 @@ text \<open>
   These attributes and configurations options control various aspects of
   Simplifier tracing and debugging.
 
-  \begin{description}
-
   \<^descr> @{attribute simp_trace} makes the Simplifier output internal
   operations.  This includes rewrite steps, but also bookkeeping like
   modifications of the simpset.
@@ -825,8 +799,6 @@ text \<open>
   patterns which are checked for matches on the redex of a rule application.
   Theorem breakpoints trigger when the corresponding theorem is applied in a
   rewrite step. For example:
-
-  \end{description}
 \<close>
 
 (*<*)experiment begin(*>*)
@@ -866,8 +838,6 @@ text \<open>Simplification procedures are ML functions that produce proven
     @@{attribute simproc} (('add' ':')? | 'del' ':') (@{syntax name}+)
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "simproc_setup"} defines a named simplification
   procedure that is invoked by the Simplifier whenever any of the
   given term patterns match the current redex.  The implementation,
@@ -891,8 +861,6 @@ text \<open>Simplification procedures are ML functions that produce proven
   add or delete named simprocs to the current Simplifier context.  The
   default is to add a simproc.  Note that @{command "simproc_setup"}
   already adds the new simproc to the subsequent context.
-
-  \end{description}
 \<close>
 
 
@@ -944,8 +912,6 @@ text \<open>
   rule is an instance of its conclusion, as in @{text "Suc ?m < ?n \<Longrightarrow>
   ?m < ?n"}, the default strategy could loop.  % FIXME !??
 
-  \begin{description}
-
   \<^descr> @{ML Simplifier.set_subgoaler}~@{text "tac ctxt"} sets the
   subgoaler of the context to @{text "tac"}.  The tactic will
   be applied to the context of the running Simplifier instance.
@@ -955,7 +921,6 @@ text \<open>
   the Simplifier has been told to utilize local assumptions in the
   first place (cf.\ the options in \secref{sec:simp-meth}).
 
-  \end{description}
 
   As an example, consider the following alternative subgoaler:
 \<close>
@@ -1014,8 +979,6 @@ text \<open>
   tactic is not totally safe: it may instantiate unknowns that appear
   also in other subgoals.
 
-  \begin{description}
-
   \<^descr> @{ML Simplifier.mk_solver}~@{text "name tac"} turns @{text
   "tac"} into a solver; the @{text "name"} is only attached as a
   comment and has no further significance.
@@ -1034,7 +997,6 @@ text \<open>
   additional unsafe solver; it will be tried after the solvers which
   had already been present in @{text "ctxt"}.
 
-  \end{description}
 
   \<^medskip>
   The solver tactic is invoked with the context of the
@@ -1100,8 +1062,6 @@ text \<open>
   conditional.  Another possibility is to apply an elimination rule on
   the assumptions.  More adventurous loopers could start an induction.
 
-  \begin{description}
-
   \<^descr> @{text "ctxt setloop tac"} installs @{text "tac"} as the only
   looper tactic of @{text "ctxt"}.
 
@@ -1121,7 +1081,6 @@ text \<open>
   tactic corresponding to @{text thm} from the looper tactics of
   @{text "ctxt"}.
 
-  \end{description}
 
   The splitter replaces applications of a given function; the
   right-hand side of the replacement can be anything.  For example,
@@ -1174,8 +1133,6 @@ text \<open>
     opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use') ')'
   \<close>}
 
-  \begin{description}
-  
   \<^descr> @{attribute simplified}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} causes a theorem to
   be simplified, either by exactly the specified rules @{text "a\<^sub>1, \<dots>,
   a\<^sub>n"}, or the implicit Simplifier context if no arguments are given.
@@ -1188,8 +1145,6 @@ text \<open>
   (\secref{sec:simp-strategies}) are \emph{not} involved here.  The
   @{attribute simplified} attribute should be only rarely required
   under normal circumstances.
-
-  \end{description}
 \<close>
 
 
@@ -1436,8 +1391,6 @@ text \<open>The proof tools of the Classical Reasoner depend on
     @@{attribute iff} (((() | 'add') '?'?) | 'del')
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "print_claset"} prints the collection of rules
   declared to the Classical Reasoner, i.e.\ the @{ML_type claset}
   within the context.
@@ -1487,8 +1440,6 @@ text \<open>The proof tools of the Classical Reasoner depend on
   "\<not> P \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> R"} in the second position.  This is mainly for
   illustrative purposes: the Classical Reasoner already swaps rules
   internally as explained above.
-
-  \end{description}
 \<close>
 
 
@@ -1504,8 +1455,6 @@ text \<open>
     @@{method rule} @{syntax thmrefs}?
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{method rule} as offered by the Classical Reasoner is a
   refinement over the Pure one (see \secref{sec:pure-meth-att}).  Both
   versions work the same, but the classical version observes the
@@ -1520,8 +1469,6 @@ text \<open>
   deriving any result from both @{text "\<not> A"} and @{text A}.  Chained
   facts, which are guaranteed to participate, may appear in either
   order.
-
-  \end{description}
 \<close>
 
 
@@ -1564,8 +1511,6 @@ text \<open>
       (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' @{syntax thmrefs}
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{method blast} is a separate classical tableau prover that
   uses the same classical rule declarations as explained before.
 
@@ -1576,23 +1521,23 @@ text \<open>
 
   \begin{itemize}
 
-  \<^item> It does not use the classical wrapper tacticals, such as the
-  integration with the Simplifier of @{method fastforce}.
+    \item It does not use the classical wrapper tacticals, such as the
+    integration with the Simplifier of @{method fastforce}.
 
-  \<^item> It does not perform higher-order unification, as needed by the
-  rule @{thm [source=false] rangeI} in HOL.  There are often
-  alternatives to such rules, for example @{thm [source=false]
-  range_eqI}.
+    \item It does not perform higher-order unification, as needed by the
+    rule @{thm [source=false] rangeI} in HOL.  There are often
+    alternatives to such rules, for example @{thm [source=false]
+    range_eqI}.
 
-  \<^item> Function variables may only be applied to parameters of the
-  subgoal.  (This restriction arises because the prover does not use
-  higher-order unification.)  If other function variables are present
-  then the prover will fail with the message
-  @{verbatim [display] \<open>Function unknown's argument not a bound variable\<close>}
+    \item Function variables may only be applied to parameters of the
+    subgoal.  (This restriction arises because the prover does not use
+    higher-order unification.)  If other function variables are present
+    then the prover will fail with the message
+    @{verbatim [display] \<open>Function unknown's argument not a bound variable\<close>}
 
-  \<^item> Its proof strategy is more general than @{method fast} but can
-  be slower.  If @{method blast} fails or seems to be running forever,
-  try @{method fast} and the other proof tools described below.
+    \item Its proof strategy is more general than @{method fast} but can
+    be slower.  If @{method blast} fails or seems to be running forever,
+    try @{method fast} and the other proof tools described below.
 
   \end{itemize}
 
@@ -1649,7 +1594,6 @@ text \<open>
   slower, for example if the assumptions have many universal
   quantifiers.
 
-  \end{description}
 
   Any of the above methods support additional modifiers of the context
   of classical (and simplifier) rules, but the ones related to the
@@ -1679,8 +1623,6 @@ text \<open>These proof methods may help in situations when the
     @@{method clarsimp} (@{syntax clasimpmod} * )
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{method safe} repeatedly performs safe steps on all subgoals.
   It is deterministic, with at most one outcome.
 
@@ -1690,8 +1632,6 @@ text \<open>These proof methods may help in situations when the
   \<^descr> @{method clarsimp} acts like @{method clarify}, but also does
   simplification.  Note that if the Simplifier context includes a
   splitter for the premises, the subgoal may still be split.
-
-  \end{description}
 \<close>
 
 
@@ -1709,8 +1649,6 @@ text \<open>
   These are the primitive tactics behind the automated proof methods
   of the Classical Reasoner.  By calling them yourself, you can
   execute these procedures one step at a time.
-
-  \begin{description}
 
   \<^descr> @{method safe_step} performs a safe step on the first subgoal.
   The safe wrapper tacticals are applied to a tactic that may include
@@ -1736,8 +1674,6 @@ text \<open>
   Modus Ponens, etc., may be performed provided they do not
   instantiate unknowns.  Assumptions of the form @{text "x = t"} may
   be eliminated.  The safe wrapper tactical is applied.
-
-  \end{description}
 \<close>
 
 
@@ -1790,8 +1726,6 @@ text \<open>
   wrapper names.  These names may be used to selectively delete
   wrappers.
 
-  \begin{description}
-
   \<^descr> @{text "ctxt addSWrapper (name, wrapper)"} adds a new wrapper,
   which should yield a safe tactic, to modify the existing safe step
   tactic.
@@ -1828,8 +1762,6 @@ text \<open>
   \<^descr> @{text "addss"} adds the simpset of the context to its
   classical set. The assumptions and goal will be simplified, before
   the each unsafe step of the search.
-
-  \end{description}
 \<close>
 
 
@@ -1872,8 +1804,6 @@ text \<open>
     @@{attribute rule_format} ('(' 'noasm' ')')?
   \<close>}
 
-  \begin{description}
-  
   \<^descr> @{command "judgment"}~@{text "c :: \<sigma> (mx)"} declares constant
   @{text c} as the truth judgment of the current object-logic.  Its
   type @{text \<sigma>} should specify a coercion of the category of
@@ -1908,8 +1838,6 @@ text \<open>
   rule_format} is to replace (bounded) universal quantification
   (@{text "\<forall>"}) and implication (@{text "\<longrightarrow>"}) by the corresponding
   rule statements over @{text "\<And>"} and @{text "\<Longrightarrow>"}.
-
-  \end{description}
 \<close>
 
 
@@ -1927,8 +1855,6 @@ text \<open>
   Higher-order unification works well in most practical situations,
   but sometimes needs extra care to identify problems.  These tracing
   options may help.
-
-  \begin{description}
 
   \<^descr> @{attribute unify_trace_simp} controls tracing of the
   simplification phase of higher-order unification.
@@ -1949,7 +1875,6 @@ text \<open>
   value in practice.  If the search is cut off, unification prints a
   warning ``Unification bound exceeded''.
 
-  \end{description}
 
   \begin{warn}
   Options for unification cannot be modified in a local context.  Only

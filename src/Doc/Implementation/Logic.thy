@@ -138,8 +138,6 @@ text %mlref \<open>
   @{index_ML Sign.primitive_arity: "arity -> theory -> theory"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type class} represents type classes.
 
   \<^descr> Type @{ML_type sort} represents sorts, i.e.\ finite
@@ -185,8 +183,6 @@ text %mlref \<open>
 
   \<^descr> @{ML Sign.primitive_arity}~@{text "(\<kappa>, \<^vec>s, s)"} declares
   the arity @{text "\<kappa> :: (\<^vec>s)s"}.
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -211,8 +207,6 @@ text %mlantiq \<open>
   @@{ML_antiquotation typ} type
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{text "@{class c}"} inlines the internalized class @{text
   "c"} --- as @{ML_type string} literal.
 
@@ -231,8 +225,6 @@ text %mlantiq \<open>
 
   \<^descr> @{text "@{typ \<tau>}"} inlines the internalized type @{text "\<tau>"}
   --- as constructor term for datatype @{ML_type typ}.
-
-  \end{description}
 \<close>
 
 
@@ -383,8 +375,6 @@ text %mlref \<open>
   @{index_ML Sign.const_instance: "theory -> string * typ list -> typ"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type term} represents de-Bruijn terms, with comments
   in abstractions, and explicitly named free variables and constants;
   this is a datatype with constructors @{index_ML Bound}, @{index_ML
@@ -440,8 +430,6 @@ text %mlref \<open>
   Sign.const_instance}~@{text "thy (c, [\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>n])"}
   convert between two representations of polymorphic constants: full
   type instance vs.\ compact type arguments form.
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -464,8 +452,6 @@ text %mlantiq \<open>
   @@{ML_antiquotation prop} prop
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{text "@{const_name c}"} inlines the internalized logical
   constant name @{text "c"} --- as @{ML_type string} literal.
 
@@ -483,8 +469,6 @@ text %mlantiq \<open>
 
   \<^descr> @{text "@{prop \<phi>}"} inlines the internalized proposition
   @{text "\<phi>"} --- as constructor term for datatype @{ML_type term}.
-
-  \end{description}
 \<close>
 
 
@@ -681,8 +665,6 @@ text %mlref \<open>
   Defs.entry -> Defs.entry list -> theory -> theory"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Thm.peek_status}~@{text "thm"} informs about the current
   status of the derivation object behind the given theorem.  This is a
   snapshot of a potentially ongoing (parallel) evaluation of proofs.
@@ -778,8 +760,6 @@ text %mlref \<open>
   declares dependencies of a named specification for constant @{text
   "c\<^sub>\<tau>"}, relative to existing specifications for constants @{text
   "\<^vec>d\<^sub>\<sigma>"}.  This also works for type constructors.
-
-  \end{description}
 \<close>
 
 
@@ -807,8 +787,6 @@ text %mlantiq \<open>
   @@{ML_antiquotation lemma} ('(' @'open' ')')? ((prop +) + @'and') \<newline>
     @'by' method method?
   \<close>}
-
-  \begin{description}
 
   \<^descr> @{text "@{ctyp \<tau>}"} produces a certified type wrt.\ the
   current background theory --- as abstract value of type @{ML_type
@@ -840,9 +818,6 @@ text %mlantiq \<open>
   "by"} step.  More complex Isar proofs should be done in regular
   theory source, before compiling the corresponding ML text that uses
   the result.
-
-  \end{description}
-
 \<close>
 
 
@@ -915,8 +890,6 @@ text %mlref \<open>
   @{index_ML Logic.dest_type: "term -> typ"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Conjunction.intr} derives @{text "A &&& B"} from @{text
   "A"} and @{text "B"}.
 
@@ -933,8 +906,6 @@ text %mlref \<open>
 
   \<^descr> @{ML Logic.dest_type}~@{text "TYPE(\<tau>)"} recovers the type
   @{text "\<tau>"}.
-
-  \end{description}
 \<close>
 
 
@@ -972,16 +943,12 @@ text %mlref \<open>
   @{index_ML Thm.strip_shyps: "thm -> thm"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Thm.extra_shyps}~@{text "thm"} determines the extraneous
   sort hypotheses of the given theorem, i.e.\ the sorts that are not
   present within type variables of the statement.
 
   \<^descr> @{ML Thm.strip_shyps}~@{text "thm"} removes any extraneous
   sort hypotheses that can be witnessed from the type signature.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following artificial example demonstrates the
@@ -1069,8 +1036,6 @@ text \<open>
   Regular user-level inferences in Isabelle/Pure always
   maintain the following canonical form of results:
 
-  \begin{itemize}
-
   \<^item> Normalization by @{text "(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)"},
   which is a theorem of Pure, means that quantifiers are pushed in
   front of implication at each level of nesting.  The normal form is a
@@ -1081,8 +1046,6 @@ text \<open>
   \<Longrightarrow> A \<^vec>x"} we have @{text "\<^vec>H ?\<^vec>x \<Longrightarrow> A ?\<^vec>x"}.
   Note that this representation looses information about the order of
   parameters, and vacuous quantifiers vanish automatically.
-
-  \end{itemize}
 \<close>
 
 text %mlref \<open>
@@ -1090,14 +1053,10 @@ text %mlref \<open>
   @{index_ML Simplifier.norm_hhf: "Proof.context -> thm -> thm"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Simplifier.norm_hhf}~@{text "ctxt thm"} normalizes the given
   theorem according to the canonical form specified above.  This is
   occasionally helpful to repair some low-level tools that do not
   handle Hereditary Harrop Formulae properly.
-
-  \end{description}
 \<close>
 
 
@@ -1174,8 +1133,6 @@ text %mlref \<open>
   @{index_ML_op "OF": "thm * thm list -> thm"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{text "rule\<^sub>1 RSN (i, rule\<^sub>2)"} resolves the conclusion of
   @{text "rule\<^sub>1"} with the @{text i}-th premise of @{text "rule\<^sub>2"},
   according to the @{inference resolution} principle explained above.
@@ -1211,8 +1168,6 @@ text %mlref \<open>
 
   This corresponds to the rule attribute @{attribute OF} in Isar
   source language.
-
-  \end{description}
 \<close>
 
 
@@ -1359,8 +1314,6 @@ text %mlref \<open>
   @{index_ML Proof_Syntax.pretty_proof: "Proof.context -> proof -> Pretty.T"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type proof} represents proof terms; this is a
   datatype with constructors @{index_ML Abst}, @{index_ML AbsP},
   @{index_ML_op "%"}, @{index_ML_op "%%"}, @{index_ML PBound},
@@ -1417,8 +1370,6 @@ text %mlref \<open>
 
   \<^descr> @{ML Proof_Syntax.pretty_proof}~@{text "ctxt prf"}
   pretty-prints the given proof term.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>Detailed proof information of a theorem may be retrieved

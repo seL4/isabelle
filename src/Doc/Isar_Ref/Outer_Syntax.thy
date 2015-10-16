@@ -47,15 +47,11 @@ text \<open>
     @@{command help} (@{syntax name} * )
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{command "print_commands"} prints all outer syntax keywords
   and commands.
 
   \<^descr> @{command "help"}~@{text "pats"} retrieves outer syntax
   commands according to the specified name patterns.
-
-  \end{description}
 \<close>
 
 
@@ -73,8 +69,6 @@ section \<open>Lexical matters \label{sec:outer-lex}\<close>
 text \<open>The outer lexical syntax consists of three main categories of
   syntax tokens:
 
-  \begin{enumerate}
-
   \<^enum> \emph{major keywords} --- the command names that are available
   in the present logic session;
 
@@ -83,7 +77,6 @@ text \<open>The outer lexical syntax consists of three main categories of
 
   \<^enum> \emph{named tokens} --- various categories of identifiers etc.
 
-  \end{enumerate}
 
   Major keywords and minor keywords are guaranteed to be disjoint.
   This helps user-interfaces to determine the overall structure of a
@@ -412,7 +405,6 @@ text \<open>Attributes have their own ``semi-inner'' syntax, in the sense
   result.
 
   There are three forms of theorem references:
-  \begin{enumerate}
 
   \<^enum> named facts @{text "a"},
 
@@ -422,7 +414,6 @@ text \<open>Attributes have their own ``semi-inner'' syntax, in the sense
   @{verbatim "`"}@{text "\<phi>"}@{verbatim "`"} or @{syntax_ref cartouche}
   @{text "\<open>\<phi>\<close>"} (see also method @{method_ref fact}).
 
-  \end{enumerate}
 
   Any kind of theorem specification may include lists of attributes
   both on the left and right hand sides; attributes are applied to any
@@ -503,8 +494,6 @@ text \<open>
   Note that there are some further ones available, such as for the set
   of rules declared for simplifications.
 
-  \begin{description}
-
   \<^descr> @{command "print_theory"} prints the main logical content of the
   background theory; the ``@{text "!"}'' option indicates extra verbosity.
 
@@ -575,8 +564,6 @@ text \<open>
   If @{text n} is @{text 0}, the end of the range of theories
   defaults to the current theory. If no range is specified,
   only the unused theorems in the current theory are displayed.
-
-  \end{description}
 \<close>
 
 end

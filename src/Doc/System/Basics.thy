@@ -16,8 +16,6 @@ text \<open>This manual describes Isabelle together with related tools and
   The Isabelle system environment provides the following
   basic infrastructure to integrate tools smoothly.
 
-  \begin{enumerate}
-
   \<^enum> The \emph{Isabelle settings} mechanism provides process
   environment variables to all Isabelle executables (including tools
   and user interfaces).
@@ -32,8 +30,6 @@ text \<open>This manual describes Isabelle together with related tools and
   isabelle}) provides a generic startup environment Isabelle related
   utilities, user interfaces etc.  Such tools automatically benefit
   from the settings mechanism.
-
-  \end{enumerate}
 \<close>
 
 
@@ -72,8 +68,6 @@ text \<open>Isabelle executables need to be run within a proper settings
   process tree, i.e.\ the environment is passed to subprocesses
   according to regular Unix conventions.
 
-  \begin{enumerate}
-
   \<^enum> The special variable @{setting_def ISABELLE_HOME} is
   determined automatically from the location of the binary that has
   been run.
@@ -106,8 +100,7 @@ text \<open>Isabelle executables need to be run within a proper settings
   Typically, a user settings file contains only a few lines, with some
   assignments that are actually changed.  Never copy the central
   @{file "$ISABELLE_HOME/etc/settings"} file!
-  
-  \end{enumerate}
+
 
   Since settings files are regular GNU @{executable_def bash} scripts,
   one may use complex shell commands, such as @{verbatim "if"} or
@@ -120,8 +113,6 @@ text \<open>Isabelle executables need to be run within a proper settings
   \<^medskip>
   A few variables are somewhat special:
 
-  \begin{itemize}
-
   \<^item> @{setting_def ISABELLE_PROCESS} and @{setting_def ISABELLE_TOOL} are set
   automatically to the absolute path names of the @{executable
   "isabelle_process"} and @{executable isabelle} executables,
@@ -132,7 +123,6 @@ text \<open>Isabelle executables need to be run within a proper settings
   the ML system (cf.\ @{setting ML_IDENTIFIER}) appended automatically
   to its value.
 
-  \end{itemize}
 
   \<^medskip>
   Note that the settings environment may be inspected with
@@ -147,8 +137,6 @@ text \<open>
   the list is somewhat open-ended. Third-party utilities or interfaces
   may add their own selection. Variables that are special in some
   sense are marked with @{text "\<^sup>*"}.
-
-  \begin{description}
 
   \<^descr>[@{setting_def USER_HOME}@{text "\<^sup>*"}] Is the cross-platform
   user home directory.  On Unix systems this is usually the same as
@@ -276,8 +264,6 @@ text \<open>
   \<^descr>[@{setting_def ISABELLE_TMP_PREFIX}@{text "\<^sup>*"}] is the
   prefix from which any running @{executable "isabelle_process"}
   derives an individual directory for temporary files.
-  
-  \end{description}
 \<close>
 
 
@@ -287,8 +273,6 @@ text \<open>Any directory may be registered as an explicit \emph{Isabelle
   component}.  The general layout conventions are that of the main
   Isabelle distribution itself, and the following two files (both
   optional) have a special meaning:
-
-  \begin{itemize}
 
   \<^item> @{verbatim "etc/settings"} holds additional settings that are
   initialized when bootstrapping the overall Isabelle environment,
@@ -311,7 +295,6 @@ text \<open>Any directory may be registered as an explicit \emph{Isabelle
   given here can be either absolute (with leading @{verbatim "/"}) or
   relative to the component's main directory.
 
-  \end{itemize}
 
   The root of component initialization is @{setting ISABELLE_HOME}
   itself.  After initializing all of its sub-components recursively,

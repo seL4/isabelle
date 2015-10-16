@@ -75,8 +75,6 @@ text \<open>
   We describe the usage of the directory browser and the meaning of
   the different items in the browser window.
 
-  \begin{itemize}
-
   \<^item> A red arrow before a directory name indicates that the
   directory is currently ``folded'', i.e.~the nodes in this directory
   are collapsed to one single node. In the right sub-window, the names
@@ -95,8 +93,6 @@ text \<open>
   focuses to the corresponding node. Double clicking invokes a text
   viewer window in which the contents of the theory file are
   displayed.
-
-  \end{itemize}
 \<close>
 
 
@@ -124,8 +120,6 @@ text \<open>
   in the full application version. The meaning of the menu items is as
   follows:
 
-  \begin{description}
-
   \<^descr>[Open \dots] Open a new graph file.
 
   \<^descr>[Export to PostScript] Outputs the current graph in Postscript
@@ -137,8 +131,6 @@ text \<open>
   documents.
 
   \<^descr>[Quit] Quit the graph browser.
-
-  \end{description}
 \<close>
 
 
@@ -155,8 +147,6 @@ text \<open>
   \end{center}
 
   The meaning of the items in a vertex description is as follows:
-
-  \begin{description}
 
   \<^descr>[@{text vertex_name}] The name of the vertex.
 
@@ -177,8 +167,6 @@ text \<open>
   ``@{verbatim ">"}'' sign means that predecessor nodes are listed. If
   neither ``@{verbatim "<"}'' nor ``@{verbatim ">"}'' is found, the
   browser assumes that successor nodes are listed.
-
-  \end{description}
 \<close>
 
 
@@ -449,8 +437,6 @@ text \<open>
   to the much simpler and more efficient YXML format of Isabelle
   (stdout).  The YXML format is defined as follows.
 
-  \begin{enumerate}
-
   \<^enum> The encoding is always UTF-8.
 
   \<^enum> Body text is represented verbatim (no escaping, no special
@@ -472,7 +458,6 @@ text \<open>
   @{text "\<^bold>X"} and @{text "\<^bold>Y"} may never occur in
   well-formed XML documents.
 
-  \end{enumerate}
 
   Parsing YXML is pretty straight-forward: split the text into chunks
   separated by @{text "\<^bold>X"}, then split each chunk into

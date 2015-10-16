@@ -26,8 +26,6 @@ text \<open>
   Contexts and derivations are linked by the following key
   principles:
 
-  \begin{itemize}
-
   \<^item> Transfer: monotonicity of derivations admits results to be
   transferred into a \emph{larger} context, i.e.\ @{text "\<Gamma> \<turnstile>\<^sub>\<Theta>
   \<phi>"} implies @{text "\<Gamma>' \<turnstile>\<^sub>\<Theta>\<^sub>' \<phi>"} for contexts @{text "\<Theta>'
@@ -39,7 +37,6 @@ text \<open>
   @{text "\<Delta> = \<Gamma>' - \<Gamma>"}.  Note that @{text "\<Theta>"} remains unchanged here,
   only the @{text "\<Gamma>"} part is affected.
 
-  \end{itemize}
 
   \<^medskip>
   By modeling the main characteristics of the primitive
@@ -129,8 +126,6 @@ text %mlref \<open>
   @{index_ML Theory.ancestors_of: "theory -> theory list"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type theory} represents theory contexts.
 
   \<^descr> @{ML "Context.eq_thy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} check strict
@@ -151,8 +146,6 @@ text %mlref \<open>
 
   \<^descr> @{ML "Theory.ancestors_of"}~@{text "thy"} returns all
   ancestors of @{text thy} (not including @{text thy} itself).
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -167,8 +160,6 @@ text %mlantiq \<open>
   @@{ML_antiquotation theory_context} nameref
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{text "@{theory}"} refers to the background theory of the
   current context --- as abstract value.
 
@@ -179,8 +170,6 @@ text %mlantiq \<open>
   \<^descr> @{text "@{theory_context A}"} is similar to @{text "@{theory
   A}"}, but presents the result as initial @{ML_type Proof.context}
   (see also @{ML Proof_Context.init_global}).
-
-  \end{description}
 \<close>
 
 
@@ -220,8 +209,6 @@ text %mlref \<open>
   @{index_ML Proof_Context.transfer: "theory -> Proof.context -> Proof.context"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type Proof.context} represents proof contexts.
 
   \<^descr> @{ML Proof_Context.init_global}~@{text "thy"} produces a proof
@@ -233,8 +220,6 @@ text %mlref \<open>
   \<^descr> @{ML Proof_Context.transfer}~@{text "thy ctxt"} promotes the
   background theory of @{text "ctxt"} to the super theory @{text
   "thy"}.
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -242,16 +227,12 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "context"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{description}
-
   \<^descr> @{text "@{context}"} refers to \emph{the} context at
   compile-time --- as abstract value.  Independently of (local) theory
   or proof mode, this always produces a meaningful result.
 
   This is probably the most common antiquotation in interactive
   experimentation with ML inside Isar.
-
-  \end{description}
 \<close>
 
 
@@ -279,8 +260,6 @@ text %mlref \<open>
   @{index_ML Context.proof_of: "Context.generic -> Proof.context"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type Context.generic} is the direct sum of @{ML_type
   "theory"} and @{ML_type "Proof.context"}, with the datatype
   constructors @{ML "Context.Theory"} and @{ML "Context.Proof"}.
@@ -293,8 +272,6 @@ text %mlref \<open>
   proof context from the generic @{text "context"}, using @{ML
   "Proof_Context.init_global"} as required (note that this re-initializes the
   context data with each invocation).
-
-  \end{description}
 \<close>
 
 
@@ -383,8 +360,6 @@ text %mlref \<open>
   @{index_ML_functor Generic_Data} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML_functor Theory_Data}@{text "(spec)"} declares data for
   type @{ML_type theory} according to the specification provided as
   argument structure.  The resulting structure provides data init and
@@ -395,8 +370,6 @@ text %mlref \<open>
 
   \<^descr> @{ML_functor Generic_Data}@{text "(spec)"} is analogous to
   @{ML_functor Theory_Data} for type @{ML_type Context.generic}.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>
@@ -456,7 +429,6 @@ text \<open>Type @{ML_type "term Ord_List.T"} is used for reasonably
 
   \<^medskip>
   Our intended invariant is achieved as follows:
-  \begin{enumerate}
 
   \<^enum> @{ML Wellformed_Terms.add} only admits terms that have passed
   the @{ML Sign.cert_term} check of the given theory at that point.
@@ -466,7 +438,6 @@ text \<open>Type @{ML_type "term Ord_List.T"} is used for reasonably
   upwards in the hierarchy (via extension or merges), and maintain
   wellformedness without further checks.
 
-  \end{enumerate}
 
   Note that all basic operations of the inference kernel (which
   includes @{ML Sign.cert_term}) observe this monotonicity principle,
@@ -544,8 +515,6 @@ text %mlref \<open>
   string Config.T"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Config.get}~@{text "ctxt config"} gets the value of
   @{text "config"} in the given context.
 
@@ -563,8 +532,6 @@ text %mlref \<open>
   \<^descr> @{ML Attrib.config_int}, @{ML Attrib.config_real}, and @{ML
   Attrib.config_string} work like @{ML Attrib.config_bool}, but for
   types @{ML_type int} and @{ML_type string}, respectively.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following example shows how to declare and use a
@@ -621,7 +588,6 @@ text \<open>In principle, a name is just a string, but there are various
   Subsequently, we shall introduce specific categories of
   names.  Roughly speaking these correspond to logical entities as
   follows:
-  \begin{itemize}
 
   \<^item> Basic names (\secref{sec:basic-name}): free and bound
   variables.
@@ -632,8 +598,6 @@ text \<open>In principle, a name is just a string, but there are various
   (type constructors, term constants, other concepts defined in user
   space).  Such entities are typically managed via name spaces
   (\secref{sec:name-space}).
-
-  \end{itemize}
 \<close>
 
 
@@ -690,8 +654,6 @@ text %mlref \<open>
   @{index_ML Variable.names_of: "Proof.context -> Name.context"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Name.internal}~@{text "name"} produces an internal name
   by adding one underscore.
 
@@ -718,8 +680,6 @@ text %mlref \<open>
   Variable}, which is also able to provide an official status of
   ``locally fixed variable'' within the logical environment (cf.\
   \secref{sec:variables}).
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following simple examples demonstrate how to produce
@@ -775,15 +735,12 @@ text \<open>
   Isabelle syntax observes the following rules for
   representing an indexname @{text "(x, i)"} as a packed string:
 
-  \begin{itemize}
-
   \<^item> @{text "?x"} if @{text "x"} does not end with a digit and @{text "i = 0"},
 
   \<^item> @{text "?xi"} if @{text "x"} does not end with a digit,
 
   \<^item> @{text "?x.i"} otherwise.
 
-  \end{itemize}
 
   Indexnames may acquire large index numbers after several maxidx
   shifts have been applied.  Results are usually normalized towards
@@ -798,15 +755,11 @@ text %mlref \<open>
   @{index_ML_type indexname: "string * int"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type indexname} represents indexed names.  This is
   an abbreviation for @{ML_type "string * int"}.  The second component
   is usually non-negative, except for situations where @{text "(x,
   -1)"} is used to inject basic names into this type.  Other negative
   indexes should not be used.
-
-  \end{description}
 \<close>
 
 
@@ -843,8 +796,6 @@ text %mlref \<open>
   @{index_ML Long_Name.explode: "string -> string list"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Long_Name.base_name}~@{text "name"} returns the base name
   of a long name.
 
@@ -857,8 +808,6 @@ text %mlref \<open>
   \<^descr> @{ML Long_Name.implode}~@{text "names"} and @{ML
   Long_Name.explode}~@{text "name"} convert between the packed string
   representation and the explicit list form of long names.
-
-  \end{description}
 \<close>
 
 
@@ -947,8 +896,6 @@ text %mlref \<open>
   @{index_ML Name_Space.is_concealed: "Name_Space.T -> string -> bool"}
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type binding} represents the abstract concept of
   name bindings.
 
@@ -1026,8 +973,6 @@ text %mlref \<open>
   \<^descr> @{ML Name_Space.is_concealed}~@{text "space name"} indicates
   whether @{text "name"} refers to a strictly private entity that
   other tools are supposed to ignore!
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -1039,14 +984,10 @@ text %mlantiq \<open>
   @@{ML_antiquotation binding} name
   \<close>}
 
-  \begin{description}
-
   \<^descr> @{text "@{binding name}"} produces a binding with base name
   @{text "name"} and the source position taken from the concrete
   syntax of this antiquotation.  In many situations this is more
   appropriate than the more basic @{ML Binding.name} function.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following example yields the source position of some

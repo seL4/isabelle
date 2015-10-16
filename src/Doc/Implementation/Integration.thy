@@ -44,8 +44,6 @@ text %mlref \<open>
   @{index_ML Toplevel.proof_of: "Toplevel.state -> Proof.state"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> Type @{ML_type Toplevel.state} represents Isar toplevel
   states, which are normally manipulated through the concept of
   toplevel transitions only (\secref{sec:toplevel-transition}).
@@ -63,8 +61,6 @@ text %mlref \<open>
 
   \<^descr> @{ML Toplevel.proof_of}~@{text "state"} selects the Isar proof
   state if available, otherwise it raises an error.
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -72,15 +68,11 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "Isar.state"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{description}
-
   \<^descr> @{text "@{Isar.state}"} refers to Isar toplevel state at that
   point --- as abstract value.
 
   This only works for diagnostic ML commands, such as @{command
   ML_val} or @{command ML_command}.
-
-  \end{description}
 \<close>
 
 
@@ -121,8 +113,6 @@ text %mlref \<open>
   Toplevel.transition -> Toplevel.transition"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML Toplevel.keep}~@{text "tr"} adjoins a diagnostic
   function.
 
@@ -146,8 +136,6 @@ text %mlref \<open>
   \<^descr> @{ML Toplevel.end_proof}~@{text "tr"} adjoins a concluding
   proof command, that returns the resulting theory, after applying the
   resulting facts to the target context.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The file @{"file" "~~/src/HOL/ex/Commands.thy"} shows some example
@@ -175,8 +163,6 @@ text %mlref \<open>
   @{index_ML Thy_Info.register_thy: "theory -> unit"} \\
   \end{mldecls}
 
-  \begin{description}
-
   \<^descr> @{ML use_thy}~@{text A} ensures that theory @{text A} is fully
   up-to-date wrt.\ the external file store; outdated ancestors are reloaded on
   demand.
@@ -199,8 +185,6 @@ text %mlref \<open>
   \<^descr> @{ML Thy_Info.register_thy}~@{text "text thy"} registers an existing
   theory value with the theory loader database and updates source version
   information according to the file store.
-
-  \end{description}
 \<close>
 
 end
