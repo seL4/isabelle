@@ -521,9 +521,7 @@ text \<open>
   The Simplifier accepts the following formats for the @{text "lhs"}
   term:
 
-  \begin{enumerate}
-
-    \item First-order patterns, considering the sublanguage of
+    \<^enum> First-order patterns, considering the sublanguage of
     application of constant operators to variable operands, without
     @{text "\<lambda>"}-abstractions or functional variables.
     For example:
@@ -531,7 +529,7 @@ text \<open>
     @{text "(?x + ?y) + ?z \<equiv> ?x + (?y + ?z)"} \\
     @{text "f (f ?x ?y) ?z \<equiv> f ?x (f ?y ?z)"}
 
-    \item Higher-order patterns in the sense of @{cite "nipkow-patterns"}.
+    \<^enum> Higher-order patterns in the sense of @{cite "nipkow-patterns"}.
     These are terms in @{text "\<beta>"}-normal form (this will always be the
     case unless you have done something strange) where each occurrence
     of an unknown is of the form @{text "?F x\<^sub>1 \<dots> x\<^sub>n"}, where the
@@ -541,7 +539,7 @@ text \<open>
     or its symmetric form, since the @{text "rhs"} is also a
     higher-order pattern.
 
-    \item Physical first-order patterns over raw @{text "\<lambda>"}-term
+    \<^enum> Physical first-order patterns over raw @{text "\<lambda>"}-term
     structure without @{text "\<alpha>\<beta>\<eta>"}-equality; abstractions and bound
     variables are treated like quasi-constant term material.
 
@@ -553,8 +551,6 @@ text \<open>
     "?y = ?f ?x \<Longrightarrow> ?y \<in> range ?f = True"} is acceptable as a conditional
     rewrite rule of the second category since conditions can be
     arbitrary terms.
-
-  \end{enumerate}
 
   \<^descr> @{attribute split} declares case split rules.
 
@@ -1519,27 +1515,23 @@ text \<open>
   inferences.  It is faster and more powerful than the other classical
   reasoning tools, but has major limitations too.
 
-  \begin{itemize}
-
-    \item It does not use the classical wrapper tacticals, such as the
+    \<^item> It does not use the classical wrapper tacticals, such as the
     integration with the Simplifier of @{method fastforce}.
 
-    \item It does not perform higher-order unification, as needed by the
+    \<^item> It does not perform higher-order unification, as needed by the
     rule @{thm [source=false] rangeI} in HOL.  There are often
     alternatives to such rules, for example @{thm [source=false]
     range_eqI}.
 
-    \item Function variables may only be applied to parameters of the
+    \<^item> Function variables may only be applied to parameters of the
     subgoal.  (This restriction arises because the prover does not use
     higher-order unification.)  If other function variables are present
     then the prover will fail with the message
     @{verbatim [display] \<open>Function unknown's argument not a bound variable\<close>}
 
-    \item Its proof strategy is more general than @{method fast} but can
+    \<^item> Its proof strategy is more general than @{method fast} but can
     be slower.  If @{method blast} fails or seems to be running forever,
     try @{method fast} and the other proof tools described below.
-
-  \end{itemize}
 
   The optional integer argument specifies a bound for the number of
   unsafe steps used in a proof.  By default, @{method blast} starts

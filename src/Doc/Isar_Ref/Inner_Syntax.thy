@@ -818,29 +818,25 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
   \<^item> Dummy variables (written as underscore) may occur in different
   roles.
 
-  \begin{description}
-
-    \item A type ``@{text "_"}'' or ``@{text "_ :: sort"}'' acts like an
+    \<^descr> A type ``@{text "_"}'' or ``@{text "_ :: sort"}'' acts like an
     anonymous inference parameter, which is filled-in according to the
     most general type produced by the type-checking phase.
 
-    \item A bound ``@{text "_"}'' refers to a vacuous abstraction, where
+    \<^descr> A bound ``@{text "_"}'' refers to a vacuous abstraction, where
     the body does not refer to the binding introduced here.  As in the
     term @{term "\<lambda>x _. x"}, which is @{text "\<alpha>"}-equivalent to @{text
     "\<lambda>x y. x"}.
 
-    \item A free ``@{text "_"}'' refers to an implicit outer binding.
+    \<^descr> A free ``@{text "_"}'' refers to an implicit outer binding.
     Higher definitional packages usually allow forms like @{text "f x _
     = x"}.
 
-    \item A schematic ``@{text "_"}'' (within a term pattern, see
+    \<^descr> A schematic ``@{text "_"}'' (within a term pattern, see
     \secref{sec:term-decls}) refers to an anonymous variable that is
     implicitly abstracted over its context of locally bound variables.
     For example, this allows pattern matching of @{text "{x. f x = g
     x}"} against @{text "{x. _ = _}"}, or even @{text "{_. _ = _}"} by
     using both bound and schematic dummies.
-
-  \end{description}
 
   \<^descr> The three literal dots ``@{verbatim "..."}'' may be also
   written as ellipsis symbol @{verbatim "\<dots>"}.  In both cases this
@@ -870,12 +866,10 @@ text \<open>
   current context.  The output can be quite large; the most important
   sections are explained below.
 
-  \begin{description}
-
-    \item @{text "lexicon"} lists the delimiters of the inner token
+    \<^descr> @{text "lexicon"} lists the delimiters of the inner token
     language; see \secref{sec:inner-lex}.
 
-    \item @{text "prods"} lists the productions of the underlying
+    \<^descr> @{text "prods"} lists the productions of the underlying
     priority grammar; see \secref{sec:priority-grammar}.
 
     The nonterminal @{text "A\<^sup>(\<^sup>p\<^sup>)"} is rendered in plain text as @{text
@@ -896,22 +890,20 @@ text \<open>
     Priority information attached to chain productions is ignored; only
     the dummy value @{text "-1"} is displayed.
 
-    \item @{text "print modes"} lists the alternative print modes
+    \<^descr> @{text "print modes"} lists the alternative print modes
     provided by this grammar; see \secref{sec:print-modes}.
 
-    \item @{text "parse_rules"} and @{text "print_rules"} relate to
+    \<^descr> @{text "parse_rules"} and @{text "print_rules"} relate to
     syntax translations (macros); see \secref{sec:syn-trans}.
 
-    \item @{text "parse_ast_translation"} and @{text
+    \<^descr> @{text "parse_ast_translation"} and @{text
     "print_ast_translation"} list sets of constants that invoke
     translation functions for abstract syntax trees, which are only
     required in very special situations; see \secref{sec:tr-funs}.
 
-    \item @{text "parse_translation"} and @{text "print_translation"}
+    \<^descr> @{text "parse_translation"} and @{text "print_translation"}
     list the sets of constants that invoke regular translation
     functions; see \secref{sec:tr-funs}.
-
-  \end{description}
 \<close>
 
 
@@ -1167,19 +1159,16 @@ text \<open>
   (@{verbatim "_"}).  The latter correspond to nonterminal symbols
   @{text "A\<^sub>i"} derived from the argument types @{text "\<tau>\<^sub>i"} as
   follows:
-  \begin{itemize}
 
-    \item @{text "prop"} if @{text "\<tau>\<^sub>i = prop"}
+    \<^item> @{text "prop"} if @{text "\<tau>\<^sub>i = prop"}
 
-    \item @{text "logic"} if @{text "\<tau>\<^sub>i = (\<dots>)\<kappa>"} for logical type
+    \<^item> @{text "logic"} if @{text "\<tau>\<^sub>i = (\<dots>)\<kappa>"} for logical type
     constructor @{text "\<kappa> \<noteq> prop"}
 
-    \item @{text any} if @{text "\<tau>\<^sub>i = \<alpha>"} for type variables
+    \<^item> @{text any} if @{text "\<tau>\<^sub>i = \<alpha>"} for type variables
 
-    \item @{text "\<kappa>"} if @{text "\<tau>\<^sub>i = \<kappa>"} for nonterminal @{text "\<kappa>"}
+    \<^item> @{text "\<kappa>"} if @{text "\<tau>\<^sub>i = \<kappa>"} for nonterminal @{text "\<kappa>"}
     (syntactic type constructor)
-
-  \end{itemize}
 
   Each @{text "A\<^sub>i"} is decorated by priority @{text "p\<^sub>i"} from the
   given list @{text "ps"}; missing priorities default to 0.
@@ -1243,18 +1232,14 @@ text \<open>
   AST rewrite rules @{text "(lhs, rhs)"} need to obey the following
   side-conditions:
 
-  \begin{itemize}
-
-    \item Rules must be left linear: @{text "lhs"} must not contain
+    \<^item> Rules must be left linear: @{text "lhs"} must not contain
     repeated variables.\footnote{The deeper reason for this is that AST
     equality is not well-defined: different occurrences of the ``same''
     AST could be decorated differently by accidental type-constraints or
     source position information, for example.}
 
-    \item Every variable in @{text "rhs"} must also occur in @{text
+    \<^item> Every variable in @{text "rhs"} must also occur in @{text
     "lhs"}.
-
-  \end{itemize}
 
   \<^descr> @{command "no_translations"}~@{text rules} removes syntactic
   translation rules, which are interpreted in the same manner as for

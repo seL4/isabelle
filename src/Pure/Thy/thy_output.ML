@@ -195,8 +195,8 @@ fun output_text state {markdown} source =
     fun output_blocks blocks = space_implode "\n\n" (map output_block blocks)
     and output_block (Markdown.Paragraph lines) =
           cat_lines (map (output_antiquotes o Markdown.line_source) lines)
-      | output_block (Markdown.List (marker, body)) =
-          let val env = Markdown.print_kind (#kind marker) in
+      | output_block (Markdown.List {kind, body, ...}) =
+          let val env = Markdown.print_kind kind in
             "%\n\\begin{" ^ env ^ "}%\n" ^
             output_blocks body ^
             "%\n\\end{" ^ env ^ "}%\n"

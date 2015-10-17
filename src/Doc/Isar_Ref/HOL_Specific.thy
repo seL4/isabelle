@@ -595,16 +595,14 @@ text \<open>
   order on the result type. By default, the following modes are
   defined:
 
-  \begin{description}
-
-    \item @{text option} defines functions that map into the @{type
+    \<^descr> @{text option} defines functions that map into the @{type
     option} type. Here, the value @{term None} is used to model a
     non-terminating computation. Monotonicity requires that if @{term
     None} is returned by a recursive call, then the overall result must
     also be @{term None}. This is best achieved through the use of the
     monadic operator @{const "Option.bind"}.
 
-    \item @{text tailrec} defines functions with an arbitrary result
+    \<^descr> @{text tailrec} defines functions with an arbitrary result
     type and uses the slightly degenerated partial order where @{term
     "undefined"} is the bottom element.  Now, monotonicity requires that
     if @{term undefined} is returned by a recursive call, then the
@@ -612,8 +610,6 @@ text \<open>
     only satisfied when each recursive call is a tail call, whose result
     is directly returned. Thus, this mode of operation allows the
     definition of arbitrary tail-recursive functions.
-
-  \end{description}
 
   Experienced users may define new modes by instantiating the locale
   @{const "partial_function_definitions"} appropriately.
@@ -1345,9 +1341,7 @@ text \<open>
   \<^descr> @{command (HOL) "setup_lifting"} Sets up the Lifting package to work
   with a user-defined type. The command supports two modes.
 
-  \begin{enumerate}
-
-    \item The first one is a low-level mode when the user must provide as a
+    \<^enum> The first one is a low-level mode when the user must provide as a
     first argument of @{command (HOL) "setup_lifting"} a quotient theorem
     @{term "Quotient R Abs Rep T"}. The package configures a transfer rule for
     equality, a domain transfer rules and sets up the @{command_def (HOL)
@@ -1361,14 +1355,12 @@ text \<open>
     Users generally will not prove the @{text Quotient} theorem manually for
     new types, as special commands exist to automate the process.
 
-    \item When a new subtype is defined by @{command (HOL) typedef}, @{command
+    \<^enum> When a new subtype is defined by @{command (HOL) typedef}, @{command
     (HOL) "lift_definition"} can be used in its second mode, where only the
     @{term type_definition} theorem @{term "type_definition Rep Abs A"} is
     used as an argument of the command. The command internally proves the
     corresponding @{term Quotient} theorem and registers it with @{command
     (HOL) setup_lifting} using its first mode.
-
-  \end{enumerate}
 
   For quotients, the command @{command (HOL) quotient_type} can be used. The
   command defines a new quotient type and similarly to the previous case,
@@ -1423,20 +1415,16 @@ text \<open>
   code execution through series of internal type and lifting definitions if
   the return type @{text "\<tau>"} meets the following inductive conditions:
 
-  \begin{description}
+    \<^descr> @{text "\<tau>"} is a type variable
 
-    \item @{text "\<tau>"} is a type variable
-
-    \item @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"},
+    \<^descr> @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"},
     where @{text "\<kappa>"} is an abstract type constructor and @{text "\<tau>\<^sub>1 \<dots> \<tau>\<^sub>n"}
     do not contain abstract types (i.e.\ @{typ "int dlist"} is allowed whereas
     @{typ "int dlist dlist"} not)
 
-    \item @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"}, @{text "\<kappa>"} is a type constructor that
+    \<^descr> @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"}, @{text "\<kappa>"} is a type constructor that
     was defined as a (co)datatype whose constructor argument types do not
     contain either non-free datatypes or the function type.
-
-  \end{description}
 
   Integration with [@{attribute code} equation]: For total quotients,
   @{command (HOL) "lift_definition"} uses @{text f.abs_eq} as a code
@@ -1878,9 +1866,7 @@ text \<open>
   quickcheck uses exhaustive testing.  A number of configuration
   options are supported for @{command (HOL) "quickcheck"}, notably:
 
-    \begin{description}
-
-    \item[@{text tester}] specifies which testing approach to apply.
+    \<^descr>[@{text tester}] specifies which testing approach to apply.
     There are three testers, @{text exhaustive}, @{text random}, and
     @{text narrowing}.  An unknown configuration option is treated as
     an argument to tester, making @{text "tester ="} optional.  When
@@ -1891,31 +1877,31 @@ text \<open>
     quickcheck_random_active}, @{attribute
     quickcheck_narrowing_active} are set to true.
 
-    \item[@{text size}] specifies the maximum size of the search space
+    \<^descr>[@{text size}] specifies the maximum size of the search space
     for assignment values.
 
-    \item[@{text genuine_only}] sets quickcheck only to return genuine
+    \<^descr>[@{text genuine_only}] sets quickcheck only to return genuine
     counterexample, but not potentially spurious counterexamples due
     to underspecified functions.
 
-    \item[@{text abort_potential}] sets quickcheck to abort once it
+    \<^descr>[@{text abort_potential}] sets quickcheck to abort once it
     found a potentially spurious counterexample and to not continue
     to search for a further genuine counterexample.
     For this option to be effective, the @{text genuine_only} option
     must be set to false.
 
-    \item[@{text eval}] takes a term or a list of terms and evaluates
+    \<^descr>[@{text eval}] takes a term or a list of terms and evaluates
     these terms under the variable assignment found by quickcheck.
     This option is currently only supported by the default
     (exhaustive) tester.
 
-    \item[@{text iterations}] sets how many sets of assignments are
+    \<^descr>[@{text iterations}] sets how many sets of assignments are
     generated for each particular size.
 
-    \item[@{text no_assms}] specifies whether assumptions in
+    \<^descr>[@{text no_assms}] specifies whether assumptions in
     structured proofs should be ignored.
 
-    \item[@{text locale}] specifies how to process conjectures in
+    \<^descr>[@{text locale}] specifies how to process conjectures in
     a locale context, i.e.\ they can be interpreted or expanded.
     The option is a whitespace-separated list of the two words
     @{text interpret} and @{text expand}. The list determines the
@@ -1924,91 +1910,86 @@ text \<open>
     The option is only provided as attribute declaration, but not
     as parameter to the command.
 
-    \item[@{text timeout}] sets the time limit in seconds.
+    \<^descr>[@{text timeout}] sets the time limit in seconds.
 
-    \item[@{text default_type}] sets the type(s) generally used to
+    \<^descr>[@{text default_type}] sets the type(s) generally used to
     instantiate type variables.
 
-    \item[@{text report}] if set quickcheck reports how many tests
+    \<^descr>[@{text report}] if set quickcheck reports how many tests
     fulfilled the preconditions.
 
-    \item[@{text use_subtype}] if set quickcheck automatically lifts
+    \<^descr>[@{text use_subtype}] if set quickcheck automatically lifts
     conjectures to registered subtypes if possible, and tests the
     lifted conjecture.
 
-    \item[@{text quiet}] if set quickcheck does not output anything
+    \<^descr>[@{text quiet}] if set quickcheck does not output anything
     while testing.
 
-    \item[@{text verbose}] if set quickcheck informs about the current
+    \<^descr>[@{text verbose}] if set quickcheck informs about the current
     size and cardinality while testing.
 
-    \item[@{text expect}] can be used to check if the user's
+    \<^descr>[@{text expect}] can be used to check if the user's
     expectation was met (@{text no_expectation}, @{text
     no_counterexample}, or @{text counterexample}).
-
-    \end{description}
 
   These option can be given within square brackets.
 
   Using the following type classes, the testers generate values and convert
   them back into Isabelle terms for displaying counterexamples.
 
-    \begin{description}
+    \<^descr>[@{text exhaustive}] The parameters of the type classes @{class exhaustive}
+    and @{class full_exhaustive} implement the testing. They take a
+    testing function as a parameter, which takes a value of type @{typ "'a"}
+    and optionally produces a counterexample, and a size parameter for the test values.
+    In @{class full_exhaustive}, the testing function parameter additionally
+    expects a lazy term reconstruction in the type @{typ Code_Evaluation.term}
+    of the tested value.
 
-    \item[@{text exhaustive}] The parameters of the type classes @{class exhaustive}
-      and @{class full_exhaustive} implement the testing. They take a
-      testing function as a parameter, which takes a value of type @{typ "'a"}
-      and optionally produces a counterexample, and a size parameter for the test values.
-      In @{class full_exhaustive}, the testing function parameter additionally
-      expects a lazy term reconstruction in the type @{typ Code_Evaluation.term}
-      of the tested value.
+    The canonical implementation for @{text exhaustive} testers calls the given
+    testing function on all values up to the given size and stops as soon
+    as a counterexample is found.
 
-      The canonical implementation for @{text exhaustive} testers calls the given
-      testing function on all values up to the given size and stops as soon
-      as a counterexample is found.
+    \<^descr>[@{text random}] The operation @{const Quickcheck_Random.random}
+    of the type class @{class random} generates a pseudo-random
+    value of the given size and a lazy term reconstruction of the value
+    in the type @{typ Code_Evaluation.term}. A pseudo-randomness generator
+    is defined in theory @{theory Random}.
 
-    \item[@{text random}] The operation @{const Quickcheck_Random.random}
-      of the type class @{class random} generates a pseudo-random
-      value of the given size and a lazy term reconstruction of the value
-      in the type @{typ Code_Evaluation.term}. A pseudo-randomness generator
-      is defined in theory @{theory Random}.
+    \<^descr>[@{text narrowing}] implements Haskell's Lazy Smallcheck @{cite "runciman-naylor-lindblad"}
+    using the type classes @{class narrowing} and @{class partial_term_of}.
+    Variables in the current goal are initially represented as symbolic variables.
+    If the execution of the goal tries to evaluate one of them, the test engine
+    replaces it with refinements provided by @{const narrowing}.
+    Narrowing views every value as a sum-of-products which is expressed using the operations
+    @{const Quickcheck_Narrowing.cons} (embedding a value),
+    @{const Quickcheck_Narrowing.apply} (product) and @{const Quickcheck_Narrowing.sum} (sum).
+    The refinement should enable further evaluation of the goal.
 
-    \item[@{text narrowing}] implements Haskell's Lazy Smallcheck @{cite "runciman-naylor-lindblad"}
-      using the type classes @{class narrowing} and @{class partial_term_of}.
-      Variables in the current goal are initially represented as symbolic variables.
-      If the execution of the goal tries to evaluate one of them, the test engine
-      replaces it with refinements provided by @{const narrowing}.
-      Narrowing views every value as a sum-of-products which is expressed using the operations
-      @{const Quickcheck_Narrowing.cons} (embedding a value),
-      @{const Quickcheck_Narrowing.apply} (product) and @{const Quickcheck_Narrowing.sum} (sum).
-      The refinement should enable further evaluation of the goal.
-
-      For example, @{const narrowing} for the list type @{typ "'a :: narrowing list"}
-      can be recursively defined as
-      @{term "Quickcheck_Narrowing.sum (Quickcheck_Narrowing.cons [])
+    For example, @{const narrowing} for the list type @{typ "'a :: narrowing list"}
+    can be recursively defined as
+    @{term "Quickcheck_Narrowing.sum (Quickcheck_Narrowing.cons [])
+              (Quickcheck_Narrowing.apply
                 (Quickcheck_Narrowing.apply
-                  (Quickcheck_Narrowing.apply
-                    (Quickcheck_Narrowing.cons (op #))
-                    narrowing)
-                  narrowing)"}.
-      If a symbolic variable of type @{typ "_ list"} is evaluated, it is replaced by (i)~the empty
-      list @{term "[]"} and (ii)~by a non-empty list whose head and tail can then be recursively
-      refined if needed.
+                  (Quickcheck_Narrowing.cons (op #))
+                  narrowing)
+                narrowing)"}.
+    If a symbolic variable of type @{typ "_ list"} is evaluated, it is replaced by (i)~the empty
+    list @{term "[]"} and (ii)~by a non-empty list whose head and tail can then be recursively
+    refined if needed.
 
-      To reconstruct counterexamples, the operation @{const partial_term_of} transforms
-      @{text narrowing}'s deep representation of terms to the type @{typ Code_Evaluation.term}.
-      The deep representation models symbolic variables as
-      @{const Quickcheck_Narrowing.Narrowing_variable}, which are normally converted to
-      @{const Code_Evaluation.Free}, and refined values as
-      @{term "Quickcheck_Narrowing.Narrowing_constructor i args"}, where @{term "i :: integer"}
-      denotes the index in the sum of refinements. In the above example for lists,
-      @{term "0"} corresponds to @{term "[]"} and @{term "1"}
-      to @{term "op #"}.
+    To reconstruct counterexamples, the operation @{const partial_term_of} transforms
+    @{text narrowing}'s deep representation of terms to the type @{typ Code_Evaluation.term}.
+    The deep representation models symbolic variables as
+    @{const Quickcheck_Narrowing.Narrowing_variable}, which are normally converted to
+    @{const Code_Evaluation.Free}, and refined values as
+    @{term "Quickcheck_Narrowing.Narrowing_constructor i args"}, where @{term "i :: integer"}
+    denotes the index in the sum of refinements. In the above example for lists,
+    @{term "0"} corresponds to @{term "[]"} and @{term "1"}
+    to @{term "op #"}.
 
-      The command @{command (HOL) "code_datatype"} sets up @{const partial_term_of}
-      such that the @{term "i"}-th refinement is interpreted as the @{term "i"}-th constructor,
-      but it does not ensures consistency with @{const narrowing}.
-    \end{description}
+    The command @{command (HOL) "code_datatype"} sets up @{const partial_term_of}
+    such that the @{term "i"}-th refinement is interpreted as the @{term "i"}-th constructor,
+    but it does not ensures consistency with @{const narrowing}.
 
   \<^descr> @{command (HOL) "quickcheck_params"} changes @{command (HOL)
   "quickcheck"} configuration options persistently.
@@ -2207,9 +2188,7 @@ text \<open>
   @{cite \<open>\S3.2\<close> "Chaieb-thesis"}. The method handles deals with two main
   classes of problems:
 
-  \begin{enumerate}
-
-    \item Universal problems over multivariate polynomials in a
+    \<^enum> Universal problems over multivariate polynomials in a
     (semi)-ring/field/idom; the capabilities of the method are augmented
     according to properties of these structures. For this problem class
     the method is only complete for algebraically closed fields, since
@@ -2219,7 +2198,7 @@ text \<open>
     The problems can contain equations @{text "p = 0"} or inequations
     @{text "q \<noteq> 0"} anywhere within a universal problem statement.
 
-    \item All-exists problems of the following restricted (but useful)
+    \<^enum> All-exists problems of the following restricted (but useful)
     form:
 
     @{text [display] "\<forall>x\<^sub>1 \<dots> x\<^sub>n.
@@ -2231,8 +2210,6 @@ text \<open>
 
     Here @{text "e\<^sub>1, \<dots>, e\<^sub>n"} and the @{text "p\<^sub>i\<^sub>j"} are multivariate
     polynomials only in the variables mentioned as arguments.
-
-  \end{enumerate}
 
   The proof method is preceded by a simplification step, which may be
   modified by using the form @{text "(algebra add: ths\<^sub>1 del: ths\<^sub>2)"}.

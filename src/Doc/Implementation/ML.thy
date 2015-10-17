@@ -206,21 +206,17 @@ text \<open>Since ML is the primary medium to express the meaning of the
   framework (\secref{sec:context} and \chref{ch:local-theory}) have
   firm naming conventions as follows:
 
-  \begin{itemize}
-
-    \item theories are called @{ML_text thy}, rarely @{ML_text theory}
+    \<^item> theories are called @{ML_text thy}, rarely @{ML_text theory}
     (never @{ML_text thry})
 
-    \item proof contexts are called @{ML_text ctxt}, rarely @{ML_text
+    \<^item> proof contexts are called @{ML_text ctxt}, rarely @{ML_text
     context} (never @{ML_text ctx})
 
-    \item generic contexts are called @{ML_text context}
+    \<^item> generic contexts are called @{ML_text context}
 
-    \item local theories are called @{ML_text lthy}, except for local
+    \<^item> local theories are called @{ML_text lthy}, except for local
     theories that are treated as proof context (which is a semantic
     super-type)
-
-  \end{itemize}
 
   Variations with primed or decimal numbers are always possible, as
   well as semantic prefixes like @{ML_text foo_thy} or @{ML_text
@@ -231,25 +227,21 @@ text \<open>Since ML is the primary medium to express the meaning of the
   \<^item> The main logical entities (\secref{ch:logic}) have established
   naming convention as follows:
 
-  \begin{itemize}
+    \<^item> sorts are called @{ML_text S}
 
-    \item sorts are called @{ML_text S}
-
-    \item types are called @{ML_text T}, @{ML_text U}, or @{ML_text
+    \<^item> types are called @{ML_text T}, @{ML_text U}, or @{ML_text
     ty} (never @{ML_text t})
 
-    \item terms are called @{ML_text t}, @{ML_text u}, or @{ML_text
+    \<^item> terms are called @{ML_text t}, @{ML_text u}, or @{ML_text
     tm} (never @{ML_text trm})
 
-    \item certified types are called @{ML_text cT}, rarely @{ML_text
+    \<^item> certified types are called @{ML_text cT}, rarely @{ML_text
     T}, with variants as for types
 
-    \item certified terms are called @{ML_text ct}, rarely @{ML_text
+    \<^item> certified terms are called @{ML_text ct}, rarely @{ML_text
     t}, with variants as for terms (never @{ML_text ctrm})
 
-    \item theorems are called @{ML_text th}, or @{ML_text thm}
-
-  \end{itemize}
+    \<^item> theorems are called @{ML_text th}, or @{ML_text thm}
 
   Proper semantic names override these conventions completely.  For
   example, the left-hand side of an equation (as a term) can be called
@@ -1376,15 +1368,11 @@ text %mlref \<open>
   Isabelle-specific purposes with the following implicit substructures
   packed into the string content:
 
-  \begin{enumerate}
-
-    \item sequence of Isabelle symbols (see also \secref{sec:symbols}),
+    \<^enum> sequence of Isabelle symbols (see also \secref{sec:symbols}),
     with @{ML Symbol.explode} as key operation;
   
-    \item XML tree structure via YXML (see also @{cite "isabelle-system"}),
+    \<^enum> XML tree structure via YXML (see also @{cite "isabelle-system"}),
     with @{ML YXML.parse_body} as key operation.
-  
-  \end{enumerate}
 
   Note that Isabelle/ML string literals may refer Isabelle symbols like
   ``@{verbatim \<alpha>}'' natively, \emph{without} escaping the backslash. This is a
@@ -2140,21 +2128,19 @@ text %mlref \<open>
   fork several futures simultaneously. The @{text params} consist of the
   following fields:
 
-  \begin{itemize}
-
-    \item @{text "name : string"} (default @{ML "\"\""}) specifies a common name
+    \<^item> @{text "name : string"} (default @{ML "\"\""}) specifies a common name
     for the tasks of the forked futures, which serves diagnostic purposes.
 
-    \item @{text "group : Future.group option"} (default @{ML NONE}) specifies
+    \<^item> @{text "group : Future.group option"} (default @{ML NONE}) specifies
     an optional task group for the forked futures. @{ML NONE} means that a new
     sub-group of the current worker-thread task context is created. If this is
     not a worker thread, the group will be a new root in the group hierarchy.
 
-    \item @{text "deps : Future.task list"} (default @{ML "[]"}) specifies
+    \<^item> @{text "deps : Future.task list"} (default @{ML "[]"}) specifies
     dependencies on other future tasks, i.e.\ the adjacency relation in the
     global task queue. Dependencies on already finished tasks are ignored.
 
-    \item @{text "pri : int"} (default @{ML 0}) specifies a priority within the
+    \<^item> @{text "pri : int"} (default @{ML 0}) specifies a priority within the
     task queue.
 
     Typically there is only little deviation from the default priority @{ML 0}.
@@ -2167,7 +2153,7 @@ text %mlref \<open>
     priority tasks that are queued later need to wait until this (or another)
     worker thread becomes free again.
 
-    \item @{text "interrupts : bool"} (default @{ML true}) tells whether the
+    \<^item> @{text "interrupts : bool"} (default @{ML true}) tells whether the
     worker thread that processes the corresponding task is initially put into
     interruptible state. This state may change again while running, by modifying
     the thread attributes.
@@ -2175,8 +2161,6 @@ text %mlref \<open>
     With interrupts disabled, a running future task cannot be canceled.  It is
     the responsibility of the programmer that this special state is retained
     only briefly.
-
-  \end{itemize}
 
   \<^descr> @{ML Future.join}~@{text x} retrieves the value of an already finished
   future, which may lead to an exception, according to the result of its

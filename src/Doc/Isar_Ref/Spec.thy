@@ -565,36 +565,32 @@ text \<open>
 
   The @{text body} consists of context elements.
 
-  \begin{description}
-
-    \item @{element "fixes"}~@{text "x :: \<tau> (mx)"} declares a local
+    \<^descr> @{element "fixes"}~@{text "x :: \<tau> (mx)"} declares a local
     parameter of type @{text \<tau>} and mixfix annotation @{text mx} (both
     are optional).  The special syntax declaration ``@{text
     "("}@{keyword_ref "structure"}@{text ")"}'' means that @{text x} may
     be referenced implicitly in this context.
 
-    \item @{element "constrains"}~@{text "x :: \<tau>"} introduces a type
+    \<^descr> @{element "constrains"}~@{text "x :: \<tau>"} introduces a type
     constraint @{text \<tau>} on the local parameter @{text x}.  This
     element is deprecated.  The type constraint should be introduced in
     the @{keyword "for"} clause or the relevant @{element "fixes"} element.
 
-    \item @{element "assumes"}~@{text "a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
+    \<^descr> @{element "assumes"}~@{text "a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
     introduces local premises, similar to @{command "assume"} within a
     proof (cf.\ \secref{sec:proof-context}).
 
-    \item @{element "defines"}~@{text "a: x \<equiv> t"} defines a previously
+    \<^descr> @{element "defines"}~@{text "a: x \<equiv> t"} defines a previously
     declared parameter.  This is similar to @{command "def"} within a
     proof (cf.\ \secref{sec:proof-context}), but @{element "defines"}
     takes an equational proposition instead of variable-term pair.  The
     left-hand side of the equation may have additional arguments, e.g.\
     ``@{element "defines"}~@{text "f x\<^sub>1 \<dots> x\<^sub>n \<equiv> t"}''.
 
-    \item @{element "notes"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}
+    \<^descr> @{element "notes"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}
     reconsiders facts within a local context.  Most notably, this may
     include arbitrary declarations in any attribute specifications
     included here, e.g.\ a local @{attribute simp} rule.
-
-  \end{description}
 
   Both @{element "assumes"} and @{element "defines"} elements
   contribute to the locale specification.  When defining an operation
@@ -865,28 +861,20 @@ text \<open>
   also \emph{rewrite definitions} may be specified.  Semantically, a
   rewrite definition
   
-  \begin{itemize}
-  
-    \item produces a corresponding definition in
+    \<^item> produces a corresponding definition in
     the local theory's underlying target \emph{and}
 
-    \item augments the rewrite morphism with the equation
+    \<^item> augments the rewrite morphism with the equation
     stemming from the symmetric of the corresponding definition.
-
-  \end{itemize}
   
   This is technically different to to a naive combination
   of a conventional definition and an explicit rewrite equation:
   
-  \begin{itemize}
-  
-    \item Definitions are parsed in the syntactic interpretation
+    \<^item> Definitions are parsed in the syntactic interpretation
     context, just like equations.
 
-    \item The proof needs not consider the equations stemming from
+    \<^item> The proof needs not consider the equations stemming from
     definitions -- they are proved implicitly by construction.
-      
-  \end{itemize}
   
   Rewrite definitions yield a pattern for introducing new explicit
   operations for existing terms after interpretation.

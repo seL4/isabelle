@@ -22,13 +22,12 @@ sig
   val is_control: Symbol.symbol -> bool
   datatype kind = Itemize | Enumerate | Description
   val print_kind: kind -> string
-  type marker = {indent: int, kind: kind}
   type line
   val line_source: line -> Antiquote.text_antiquote list
   val line_content: line -> Antiquote.text_antiquote list
   val make_line: Antiquote.text_antiquote list -> line
   val empty_line: line
-  datatype block = Paragraph of line list | List of marker * block list
+  datatype block = Paragraph of line list | List of {indent: int, kind: kind, body: block list}
   val read_lines: line list -> block list
   val read_antiquotes: Antiquote.text_antiquote list -> block list
   val read_source: Input.source -> block list
@@ -49,23 +48,25 @@ fun print_kind Itemize = "itemize"
   | print_kind Enumerate = "enumerate"
   | print_kind Description = "description";
 
-type marker = {indent: int, kind: kind};
-
 datatype line =
   Line of
    {source: Antiquote.text_antiquote list,
-    content: Antiquote.text_antiquote list,
     is_empty: bool,
-    marker: (marker * Position.T) option};
+    indent: int,
+    item: kind option,
+    item_pos: Position.T,
+    content: Antiquote.text_antiquote list};
 
 val eof_line =
   Line {source = [Antiquote.Text [(Symbol.eof, Position.none)]],
-    content = [], is_empty = false, marker = NONE};
+    is_empty = false, indent = 0, item = NONE, item_pos = Position.none, content = []};
 
 fun line_source (Line {source, ...}) = source;
-fun line_content (Line {content, ...}) = content;
 fun line_is_empty (Line {is_empty, ...}) = is_empty;
-fun line_marker (Line {marker, ...}) = marker;
+fun line_indent (Line {indent, ...}) = indent;
+fun line_item (Line {item, ...}) = item;
+fun line_item_pos (Line {item_pos, ...}) = item_pos;
+fun line_content (Line {content, ...}) = content;
 
 
 (* make line *)
@@ -86,24 +87,28 @@ val is_empty = forall (fn Antiquote.Text ss => forall is_space ss | _ => false);
 
 val scan_marker =
   Scan.many is_space -- Symbol_Pos.scan_pos --
-  (Symbol_Pos.$$ "\\<^item>" >> K Itemize ||
-   Symbol_Pos.$$ "\\<^enum>" >> K Enumerate ||
-   Symbol_Pos.$$ "\\<^descr>" >> K Description)
-  >> (fn ((spaces, pos), kind) => ({indent = length spaces, kind = kind}, pos));
+  Scan.option
+   (Symbol_Pos.$$ "\\<^item>" >> K Itemize ||
+    Symbol_Pos.$$ "\\<^enum>" >> K Enumerate ||
+    Symbol_Pos.$$ "\\<^descr>" >> K Description) --| Scan.many is_space
+  >> (fn ((sp, pos), item) => (length sp, item, if is_some item then pos else Position.none));
 
 fun read_marker (Antiquote.Text ss :: rest) =
-      (case Scan.finite Symbol_Pos.stopper (Scan.option scan_marker --| Scan.many is_space) ss of
+      (case Scan.finite Symbol_Pos.stopper scan_marker ss of
         (marker, []) => (marker, rest)
       | (marker, ss') => (marker, Antiquote.Text ss' :: rest))
-  | read_marker source = (NONE, source);
+  | read_marker source = ((0, NONE, Position.none), source);
 
 in
 
 fun make_line source =
   let
     val _ = check_blanks source;
-    val (marker, content) = read_marker source;
-  in Line {source = source, content = content, is_empty = is_empty source, marker = marker} end;
+    val ((indent, item, item_pos), content) = read_marker source;
+  in
+    Line {source = source, is_empty = is_empty source, indent = indent,
+      item = item, item_pos = item_pos, content = content}
+  end;
 
 val empty_line = make_line [];
 
@@ -112,46 +117,53 @@ end;
 
 (* document blocks *)
 
-datatype block = Paragraph of line list | List of marker * block list;
+datatype block =
+  Paragraph of line list | List of {indent: int, kind: kind, body: block list};
 
 fun block_lines (Paragraph lines) = lines
-  | block_lines (List (_, blocks)) = maps block_lines blocks;
+  | block_lines (List {body, ...}) = maps block_lines body;
 
 fun block_range (Paragraph lines) = Antiquote.range (maps line_content lines)
-  | block_range (List (_, blocks)) = Antiquote.range (maps line_source (maps block_lines blocks));
+  | block_range (List {body, ...}) = Antiquote.range (maps line_source (maps block_lines body));
+
+fun block_indent (List {indent, ...}) = indent
+  | block_indent (Paragraph (line :: _)) = line_indent line
+  | block_indent _ = 0;
+
+fun block_list indent0 kind0 (List {indent, kind, body}) =
+      if indent0 = indent andalso kind0 = kind then SOME body else NONE
+  | block_list _ _ _ = NONE;
+
+val is_list = fn List _ => true | _ => false;
 
 
 (* read document *)
 
 local
 
-fun add_span (opt_marker, body) document =
-  (case (opt_marker, document) of
-    (SOME marker, (list as List (list_marker, list_body)) :: rest) =>
-      if marker = list_marker then
-        List (list_marker, body @ list_body) :: rest
-      else if #indent marker < #indent list_marker then
-        add_span (opt_marker, body @ [list]) rest
-      else
-        List (marker, body) :: document
-  | (SOME marker, _) => List (marker, body) :: document
-  | (NONE, _) => body @ document);
+fun build (indent, item, rev_body) document =
+  (case (item, document) of
+    (SOME kind, block :: blocks) =>
+      (case block_list indent kind block of
+        SOME list => List {indent = indent, kind = kind, body = fold cons rev_body list} :: blocks
+      | NONE =>
+          if (if is_list block then indent < block_indent block else indent <= block_indent block)
+          then build (indent, item, block :: rev_body) blocks
+          else List {indent = indent, kind = kind, body = rev rev_body} :: document)
+  | (SOME kind, []) => [List {indent = indent, kind = kind, body = rev rev_body}]
+  | (NONE, _) => fold cons rev_body document);
 
 fun plain_line line =
-  not (line_is_empty line) andalso is_none (line_marker line) andalso line <> eof_line;
+  not (line_is_empty line) andalso is_none (line_item line) andalso line <> eof_line;
 
-val parse_paragraph = Scan.many1 plain_line >> Paragraph;
-
-val parse_span =
-  parse_paragraph >> (fn par => (NONE, [par])) ||
-  Scan.one (is_some o line_marker) -- Scan.many plain_line --
-    Scan.repeat (Scan.one line_is_empty |-- parse_paragraph) >>
-      (fn ((line, lines), pars) =>
-        (Option.map #1 (line_marker line), Paragraph (line :: lines) :: pars));
+val parse_paragraph =
+  Scan.one (fn line => line <> eof_line) -- Scan.many plain_line >> (fn (line, lines) =>
+    let val block = Paragraph (line :: lines)
+    in (line_indent line, line_item line, [block]) end);
 
 val parse_document =
-  parse_span ::: Scan.repeat (Scan.option (Scan.one line_is_empty) |-- parse_span)
-    >> (fn spans => fold_rev add_span spans []);
+  parse_paragraph ::: Scan.repeat (Scan.option (Scan.one line_is_empty) |-- parse_paragraph)
+    >> (fn pars => fold_rev build pars []);
 
 in
 
@@ -173,17 +185,16 @@ val text_reports =
 
 local
 
-fun line_reports depth (Line {marker = SOME (_, pos), content, ...}) =
-      cons (pos, Markup.markdown_item depth) #>
-      append (text_reports content)
-  | line_reports _ _ = I;
+fun line_reports depth line =
+  cons (line_item_pos line, Markup.markdown_item depth) #>
+  append (text_reports (line_content line));
 
 fun block_reports depth block =
   (case block of
     Paragraph lines =>
       cons (#1 (block_range block), Markup.markdown_paragraph) #>
       fold (line_reports depth) lines
-  | List ({kind, ...}, body) =>
+  | List {kind, body, ...} =>
       cons (#1 (block_range block), Markup.markdown_list (print_kind kind)) #>
       fold (block_reports (depth + 1)) body);
 
