@@ -354,11 +354,7 @@ fun output_rules state rules =
         output "" rail' ^
         "\\rail@end\n"
       end;
-  in
-    "\\begin{railoutput}\n" ^
-    implode (map output_rule rules) ^
-    "\\end{railoutput}\n"
-  end;
+  in Latex.environment "railoutput" (implode (map output_rule rules)) end;
 
 in
 

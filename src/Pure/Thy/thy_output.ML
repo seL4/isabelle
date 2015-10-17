@@ -199,11 +199,7 @@ fun output_text state {markdown} source =
     fun output_blocks blocks = space_implode "\n\n" (map output_block blocks)
     and output_block (Markdown.Paragraph lines) = cat_lines (map output_line lines)
       | output_block (Markdown.List {kind, body, ...}) =
-          let val env = Markdown.print_kind kind in
-            "%\n\\begin{" ^ env ^ "}%\n" ^
-            output_blocks body ^
-            "%\n\\end{" ^ env ^ "}%\n"
-          end;
+          Latex.environment (Markdown.print_kind kind) (output_blocks body);
   in
     if Toplevel.is_skipped_proof state then ""
     else if markdown andalso exists (Markdown.is_control o Symbol_Pos.symbol) syms
@@ -254,9 +250,7 @@ fun output_token state tok =
   | Markup_Token (cmd, source) =>
       "%\n\\isamarkup" ^ cmd ^ "{" ^ output_text state {markdown = false} source ^ "%\n}\n"
   | Markup_Env_Token (cmd, source) =>
-      "%\n\\begin{isamarkup" ^ cmd ^ "}%\n" ^
-      output_text state {markdown = true} source ^
-      "%\n\\end{isamarkup" ^ cmd ^ "}%\n"
+      Latex.environment ("isamarkup" ^ cmd) (output_text state {markdown = true} source)
   | Raw_Token source =>
       "%\n" ^ output_text state {markdown = true} source ^ "\n");
 
@@ -591,7 +585,7 @@ fun output ctxt prts =
   |> (if Config.get ctxt display then
         map (Pretty.indent (Config.get ctxt indent) #> string_of_margin ctxt #> Output.output)
         #> space_implode "\\isasep\\isanewline%\n"
-        #> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+        #> Latex.environment "isabelle"
       else
         map ((if Config.get ctxt break then string_of_margin ctxt else Pretty.str_of) #>
           Output.output)
@@ -682,8 +676,7 @@ val _ = Theory.setup
 
 fun verbatim_text ctxt =
   if Config.get ctxt display then
-    Latex.output_ascii #>
-    enclose "\\begin{isabellett}%\n" "%\n\\end{isabellett}"
+    Latex.output_ascii #> Latex.environment "isabellett"
   else
     split_lines #>
     map (Latex.output_ascii #> enclose "\\isatt{" "}") #>

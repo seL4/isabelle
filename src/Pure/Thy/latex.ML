@@ -16,6 +16,7 @@ sig
   val end_delim: string -> string
   val begin_tag: string -> string
   val end_tag: string -> string
+  val environment: string -> string -> string
   val tex_trailer: string
   val isabelle_theory: string -> string -> string
   val symbol_source: (string -> bool) * (string -> bool) ->
@@ -154,6 +155,9 @@ fun end_tag tg = enclose "%\n\\endisatag" "\n" tg ^ enclose "{\\isafold" "}%\n" 
 
 (* theory presentation *)
 
+fun environment name =
+  enclose ("%\n\\begin{" ^ name ^ "}%\n") ("%\n\\end{" ^ name ^ "}%\n");
+
 val tex_trailer =
   "%%% Local Variables:\n\
   \%%% mode: latex\n\
@@ -163,7 +167,7 @@ val tex_trailer =
 fun isabelle_theory name txt =
   "%\n\\begin{isabellebody}%\n\
   \\\setisabellecontext{" ^ output_syms name ^ "}%\n" ^ txt ^
-  "\\end{isabellebody}%\n" ^ tex_trailer;
+  "%\n\\end{isabellebody}%\n" ^ tex_trailer;
 
 fun symbol_source known name syms =
   isabelle_theory name
