@@ -50,8 +50,8 @@ val _ =
     (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = true});
 
 val _ =
-  Outer_Syntax.command ("text_raw", @{here}) "raw LaTeX text"
-    (Parse.document_source >> (fn s => Thy_Output.document_command {markdown = true} (NONE, s)));
+  Outer_Syntax.command ("text_raw", @{here}) "LaTeX text (without surrounding environment)"
+    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = true});
 
 val _ =
   Outer_Syntax.command ("theory", @{here}) "begin theory"
