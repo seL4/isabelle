@@ -25,15 +25,19 @@ object Update_Header
 
   /* command line entry point */
 
+  private val headings =
+    Set("chapter", "section", "subsection", "subsubsection", "paragraph", "subparagraph")
+
   def main(args: Array[String])
   {
     Command_Line.tool0 {
       args.toList match {
         case section :: files =>
-          if (!Set("chapter", "section", "subsection", "subsubsection").contains(section))
+          if (!headings.contains(section))
             error("Bad heading command: " + quote(section))
           files.foreach(file => update_header(section, Path.explode(file)))
-        case _ => error("Bad arguments:\n" + cat_lines(args))
+        case _ =>
+            error("Bad arguments:\n" + cat_lines(args))
       }
     }
   }

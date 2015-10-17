@@ -240,9 +240,11 @@ final class Outer_Syntax private(
       case Thy_Header.SECTION | Thy_Header.HEADER => Some(1)
       case Thy_Header.SUBSECTION => Some(2)
       case Thy_Header.SUBSUBSECTION => Some(3)
+      case Thy_Header.PARAGRAPH => Some(4)
+      case Thy_Header.SUBPARAGRAPH => Some(5)
       case _ =>
         keywords.command_kind(name) match {
-          case Some(kind) if Keyword.theory(kind) && !Keyword.theory_end(kind) => Some(4)
+          case Some(kind) if Keyword.theory(kind) && !Keyword.theory_end(kind) => Some(6)
           case _ => None
         }
     }

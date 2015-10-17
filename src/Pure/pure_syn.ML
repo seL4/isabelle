@@ -34,6 +34,14 @@ val _ =
     (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
 
 val _ =
+  Outer_Syntax.command ("paragraph", @{here}) "paragraph heading"
+    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
+
+val _ =
+  Outer_Syntax.command ("subparagraph", @{here}) "subparagraph heading"
+    (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = false});
+
+val _ =
   Outer_Syntax.command ("text", @{here}) "formal comment (primary style)"
     (Parse.opt_target -- Parse.document_source >> Thy_Output.document_command {markdown = true});
 

@@ -26,6 +26,8 @@ text \<open>
     @{command_def "section"} & : & @{text "any \<rightarrow> any"} \\
     @{command_def "subsection"} & : & @{text "any \<rightarrow> any"} \\
     @{command_def "subsubsection"} & : & @{text "any \<rightarrow> any"} \\
+    @{command_def "paragraph"} & : & @{text "any \<rightarrow> any"} \\
+    @{command_def "subparagraph"} & : & @{text "any \<rightarrow> any"} \\
     @{command_def "text"} & : & @{text "any \<rightarrow> any"} \\
     @{command_def "txt"} & : & @{text "any \<rightarrow> any"} \\
     @{command_def "text_raw"} & : & @{text "any \<rightarrow> any"} \\
@@ -44,33 +46,29 @@ text \<open>
 
   @{rail \<open>
     (@@{command chapter} | @@{command section} | @@{command subsection} |
-      @@{command subsubsection} | @@{command text} | @@{command txt}) @{syntax text}
-    ;
-    @@{command text_raw} @{syntax text}
+      @@{command subsubsection} | @@{command paragraph} | @@{command subparagraph} |
+      @@{command text} | @@{command txt} | @@{command text_raw}) @{syntax text}
   \<close>}
 
-  \<^descr> @{command chapter}, @{command section}, @{command subsection}, and
-  @{command subsubsection} mark chapter and section headings within the
-  theory source; this works in any context, even before the initial
-  @{command theory} command. The corresponding {\LaTeX} macros are
-  @{verbatim \<open>\isamarkupchapter\<close>}, @{verbatim \<open>\isamarkupsection\<close>},
-  @{verbatim \<open>\isamarkupsubsection\<close>}, @{verbatim \<open>\isamarkupsubsubsection\<close>}.
+  \<^descr> @{command chapter}, @{command section}, @{command subsection} etc.\ mark
+  section headings within the theory source. This works in any context, even
+  before the initial @{command theory} command. The corresponding {\LaTeX}
+  macros are @{verbatim \<open>\isamarkupchapter\<close>}, @{verbatim
+  \<open>\isamarkupsection\<close>}, @{verbatim \<open>\isamarkupsubsection\<close>} etc.\
 
   \<^descr> @{command text} and @{command txt} specify paragraphs of plain text.
   This corresponds to a {\LaTeX} environment @{verbatim
   \<open>\begin{isamarkuptext}\<close>} @{text "\<dots>"} @{verbatim \<open>\end{isamarkuptext}\<close>}
   etc.
 
-  \<^descr> @{command text_raw} inserts {\LaTeX} source directly into the
-  output, without additional markup. Thus the full range of document
-  manipulations becomes available, at the risk of messing up document
-  output.
+  \<^descr> @{command text_raw} is similar to @{command text}, but without
+  any surrounding markup environment. This allows to inject arbitrary
+  {\LaTeX} source into the generated document.
 
 
-  Except for @{command "text_raw"}, the text passed to any of the above
-  markup commands may refer to formal entities via \emph{document
-  antiquotations}, see also \secref{sec:antiq}. These are interpreted in the
-  present theory or proof context.
+  All text passed to any of the above markup commands may refer to formal
+  entities via \emph{document antiquotations}, see also \secref{sec:antiq}.
+  These are interpreted in the present theory or proof context.
 
   \<^medskip>
   The proof markup commands closely resemble those for theory

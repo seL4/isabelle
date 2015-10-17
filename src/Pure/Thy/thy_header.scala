@@ -19,11 +19,14 @@ object Thy_Header extends Parse.Parser
 
   type Keywords = List[(String, Option[Keyword.Spec], Option[String])]
 
-  val HEADER = "header"
+  val HEADER = "header"  /* FIXME legacy */
+
   val CHAPTER = "chapter"
   val SECTION = "section"
   val SUBSECTION = "subsection"
   val SUBSUBSECTION = "subsubsection"
+  val PARAGRAPH = "paragraph"
+  val SUBPARAGRAPH = "subparagraph"
   val TEXT = "text"
   val TXT = "txt"
   val TEXT_RAW = "text_raw"
@@ -51,6 +54,8 @@ object Thy_Header extends Parse.Parser
       (SECTION, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
       (SUBSECTION, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
       (SUBSUBSECTION, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (PARAGRAPH, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
+      (SUBPARAGRAPH, Some(((Keyword.DOCUMENT_HEADING, Nil), Nil)), None),
       (TEXT, Some(((Keyword.DOCUMENT_BODY, Nil), Nil)), None),
       (TXT, Some(((Keyword.DOCUMENT_BODY, Nil), Nil)), None),
       (TEXT_RAW, Some(((Keyword.DOCUMENT_RAW, Nil), Nil)), None),
@@ -115,6 +120,8 @@ object Thy_Header extends Parse.Parser
         command(SECTION) |
         command(SUBSECTION) |
         command(SUBSUBSECTION) |
+        command(PARAGRAPH) |
+        command(SUBPARAGRAPH) |
         command(TEXT) |
         command(TXT) |
         command(TEXT_RAW)) ~
