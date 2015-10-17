@@ -63,9 +63,6 @@ val eof_line =
 
 fun line_source (Line {source, ...}) = source;
 fun line_is_empty (Line {is_empty, ...}) = is_empty;
-fun line_indent (Line {indent, ...}) = indent;
-fun line_item (Line {item, ...}) = item;
-fun line_item_pos (Line {item_pos, ...}) = item_pos;
 fun line_content (Line {content, ...}) = content;
 
 
@@ -127,7 +124,7 @@ fun block_range (Paragraph lines) = Antiquote.range (maps line_content lines)
   | block_range (List {body, ...}) = Antiquote.range (maps line_source (maps block_lines body));
 
 fun block_indent (List {indent, ...}) = indent
-  | block_indent (Paragraph (line :: _)) = line_indent line
+  | block_indent (Paragraph (Line {indent, ...} :: _)) = indent
   | block_indent _ = 0;
 
 fun block_list indent0 kind0 (List {indent, kind, body}) =
@@ -153,13 +150,15 @@ fun build (indent, item, rev_body) document =
   | (SOME kind, []) => [List {indent = indent, kind = kind, body = rev rev_body}]
   | (NONE, _) => fold cons rev_body document);
 
-fun plain_line line =
-  not (line_is_empty line) andalso is_none (line_item line) andalso line <> eof_line;
+fun plain_line (line as Line {is_empty, item, ...}) =
+  not is_empty andalso is_none item andalso line <> eof_line;
 
 val parse_paragraph =
   Scan.one (fn line => line <> eof_line) -- Scan.many plain_line >> (fn (line, lines) =>
-    let val block = Paragraph (line :: lines)
-    in (line_indent line, line_item line, [block]) end);
+    let
+      val Line {indent, item, ...} = line;
+      val block = Paragraph (line :: lines);
+    in (indent, item, [block]) end);
 
 val parse_document =
   parse_paragraph ::: Scan.repeat (Scan.option (Scan.one line_is_empty) |-- parse_paragraph)
@@ -185,9 +184,8 @@ val text_reports =
 
 local
 
-fun line_reports depth line =
-  cons (line_item_pos line, Markup.markdown_item depth) #>
-  append (text_reports (line_content line));
+fun line_reports depth (Line {item_pos, content, ...}) =
+  cons (item_pos, Markup.markdown_item depth) #> append (text_reports content);
 
 fun block_reports depth block =
   (case block of
