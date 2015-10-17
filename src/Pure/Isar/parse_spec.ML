@@ -63,7 +63,7 @@ val constdecl =
     (Parse.where_ >> K (NONE, NoSyn) ||
       Parse.$$$ "::" |-- Parse.!!! ((Parse.typ >> SOME) -- Parse.opt_mixfix' --| Parse.where_) ||
       Scan.ahead (Parse.$$$ "(") |-- Parse.!!! (Parse.mixfix' --| Parse.where_ >> pair NONE))
-  >> Parse.triple2;
+  >> Scan.triple2;
 
 val constdef = Scan.option constdecl -- (opt_thm_name ":" -- Parse.prop);
 
@@ -74,7 +74,7 @@ val includes = Parse.$$$ "includes" |-- Parse.!!! (Scan.repeat1 (Parse.position 
 
 val locale_fixes =
   Parse.and_list1 (Parse.binding -- Scan.option (Parse.$$$ "::" |-- Parse.typ) -- Parse.mixfix
-    >> (single o Parse.triple1) ||
+    >> (single o Scan.triple1) ||
   Parse.params) >> flat;
 
 val locale_insts =

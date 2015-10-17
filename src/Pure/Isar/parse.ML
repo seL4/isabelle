@@ -9,9 +9,6 @@ sig
   val group: (unit -> string) -> (Token.T list -> 'a) -> Token.T list -> 'a
   val !!! : (Token.T list -> 'a) -> Token.T list -> 'a
   val !!!! : (Token.T list -> 'a) -> Token.T list -> 'a
-  val triple1: ('a * 'b) * 'c -> 'a * 'b * 'c
-  val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
-  val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
   val not_eof: Token.T parser
   val token: 'a parser -> Token.T parser
   val range: 'a parser -> ('a * Position.range) parser
@@ -160,13 +157,6 @@ fun !!!! scan = cut "Corrupted outer syntax in presentation" scan;
 
 (** basic parsers **)
 
-(* utils *)
-
-fun triple1 ((x, y), z) = (x, y, z);
-fun triple2 (x, (y, z)) = (x, y, z);
-fun triple_swap ((x, y), z) = ((x, z), y);
-
-
 (* tokens *)
 
 fun RESET_VALUE atom = (*required for all primitive parsers*)
@@ -300,10 +290,10 @@ val sort = group (fn () => "sort") (inner_syntax xname);
 val type_const = inner_syntax (group (fn () => "type constructor") xname);
 
 val arity = type_const -- ($$$ "::" |-- !!!
-  (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> triple2;
+  (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> Scan.triple2;
 
 val multi_arity = and_list1 type_const -- ($$$ "::" |-- !!!
-  (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> triple2;
+  (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> Scan.triple2;
 
 
 (* types *)
@@ -329,7 +319,7 @@ local
 
 val mfix = string --
   !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] --
-    Scan.optional nat 1000) >> (Mixfix o triple2);
+    Scan.optional nat 1000) >> (Mixfix o Scan.triple2);
 
 val infx = $$$ "infix" |-- !!! (string -- nat >> Infix);
 val infxl = $$$ "infixl" |-- !!! (string -- nat >> Infixl);
@@ -338,7 +328,7 @@ val strcture = $$$ "structure" >> K Structure;
 
 val binder = $$$ "binder" |--
   !!! (string -- ($$$ "[" |-- nat --| $$$ "]" -- nat || nat >> (fn n => (n, n))))
-  >> (Binder o triple2);
+  >> (Binder o Scan.triple2);
 
 val mixfix_body = mfix || strcture || binder || infxl || infxr || infx;
 
@@ -359,10 +349,10 @@ end;
 
 val where_ = $$$ "where";
 
-val const_decl = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
-val const_binding = binding -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
+val const_decl = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> Scan.triple1;
+val const_binding = binding -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> Scan.triple1;
 
-val param_mixfix = binding -- Scan.option ($$$ "::" |-- typ) -- mixfix' >> (single o triple1);
+val param_mixfix = binding -- Scan.option ($$$ "::" |-- typ) -- mixfix' >> (single o Scan.triple1);
 val params =
   Scan.repeat1 binding -- Scan.option ($$$ "::" |-- !!! typ)
     >> (fn (xs, T) => map (fn x => (x, T, NoSyn)) xs);

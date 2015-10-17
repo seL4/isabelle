@@ -423,7 +423,7 @@ fun mk_datatype ((((dom, dts), monos), type_intrs), type_elims) =
 
 val con_decl =
   Parse.name -- Scan.optional (@{keyword "("} |-- Parse.list1 Parse.term --| @{keyword ")"}) [] --
-    Parse.opt_mixfix >> Parse.triple1;
+    Parse.opt_mixfix >> Scan.triple1;
 
 val coind_prefix = if coind then "co" else "";
 

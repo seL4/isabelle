@@ -199,7 +199,7 @@ fun primrec args thy =
 val _ =
   Outer_Syntax.command @{command_keyword primrec} "define primitive recursive functions on datatypes"
     (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)
-      >> (Toplevel.theory o (#1 oo (primrec o map Parse.triple_swap))));
+      >> (Toplevel.theory o (#1 oo (primrec o map (fn ((x, y), z) => ((x, z), y))))));
 
 end;
 

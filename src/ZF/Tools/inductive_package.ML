@@ -579,7 +579,8 @@ fun add_inductive (srec_tms, sdom_sum) intr_srcs
 (* outer syntax *)
 
 fun mk_ind (((((doms, intrs), monos), con_defs), type_intrs), type_elims) =
-  #1 o add_inductive doms (map Parse.triple_swap intrs) (monos, con_defs, type_intrs, type_elims);
+  #1 o add_inductive doms (map (fn ((x, y), z) => ((x, z), y)) intrs)
+    (monos, con_defs, type_intrs, type_elims);
 
 val ind_decl =
   (@{keyword "domains"} |-- Parse.!!! (Parse.enum1 "+" Parse.term --

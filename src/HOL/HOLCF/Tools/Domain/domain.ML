@@ -229,7 +229,7 @@ val add_new_domain_cmd =
 
 val dest_decl : (bool * binding option * string) parser =
   @{keyword "("} |-- Scan.optional (@{keyword "lazy"} >> K true) false --
-    (Parse.binding >> SOME) -- (@{keyword "::"} |-- Parse.typ)  --| @{keyword ")"} >> Parse.triple1
+    (Parse.binding >> SOME) -- (@{keyword "::"} |-- Parse.typ)  --| @{keyword ")"} >> Scan.triple1
     || @{keyword "("} |-- @{keyword "lazy"} |-- Parse.typ --| @{keyword ")"}
     >> (fn t => (true, NONE, t))
     || Parse.typ >> (fn t => (false, NONE, t))

@@ -209,7 +209,7 @@ fun abstract_term (t as _ $ _) = abstract_sub t (mk_fresh_free t)
 fun abstract_bin abs f t t1 t2 = abstract_sub t (abs t1 ##>> abs t2 #>> f)
 
 fun abstract_ter abs f t t1 t2 t3 =
-  abstract_sub t (abs t1 ##>> abs t2 ##>> abs t3 #>> (Parse.triple1 #> f))
+  abstract_sub t (abs t1 ##>> abs t2 ##>> abs t3 #>> (Scan.triple1 #> f))
 
 fun abstract_lit (@{const HOL.Not} $ t) = abstract_term t #>> HOLogic.mk_not
   | abstract_lit t = abstract_term t

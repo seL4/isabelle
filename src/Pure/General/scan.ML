@@ -42,6 +42,8 @@ sig
   val error: ('a -> 'b) -> 'a -> 'b
   val catch: ('a -> 'b) -> 'a -> 'b    (*exception Fail*)
   val recover: ('a -> 'b) -> (string -> 'a -> 'b) -> 'a -> 'b
+  val triple1: ('a * 'b) * 'c -> 'a * 'b * 'c
+  val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
   val fail: 'a -> 'b
   val fail_with: ('a -> message) -> 'a -> 'b
   val succeed: 'a -> 'b -> 'a * 'b
@@ -113,6 +115,12 @@ fun catch scan xs = scan xs
 
 fun recover scan1 scan2 xs =
   catch scan1 xs handle Fail msg => scan2 msg xs;
+
+
+(* utils *)
+
+fun triple1 ((x, y), z) = (x, y, z);
+fun triple2 (x, (y, z)) = (x, y, z);
 
 
 (* scanner combinators *)

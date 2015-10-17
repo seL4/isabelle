@@ -810,9 +810,9 @@ val _ =
     "definition for constants over the quotient type"
     (parse_params --
       (((Parse.binding -- (@{keyword "::"} |-- (Parse.typ >> SOME) -- Parse.opt_mixfix')
-          >> Parse.triple2) --
+          >> Scan.triple2) --
         (@{keyword "is"} |-- Parse.term) --
-        Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse.xthms1) []) >> Parse.triple1)
+        Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse.xthms1) []) >> Scan.triple1)
      >> lift_def_cmd_with_err_handling);
 
 end

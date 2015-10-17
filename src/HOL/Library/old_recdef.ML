@@ -2881,7 +2881,8 @@ val recdef_decl =
     (@{keyword "("} -- Parse.!!! (@{keyword "permissive"} -- @{keyword ")"}) >> K false) true --
   Parse.name -- Parse.term -- Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)
     -- Scan.option hints
-  >> (fn ((((p, f), R), eqs), src) => #1 o add_recdef p f R (map Parse.triple_swap eqs) src);
+  >> (fn ((((p, f), R), eqs), src) =>
+      #1 o add_recdef p f R (map (fn ((x, y), z) => ((x, z), y)) eqs) src);
 
 val _ =
   Outer_Syntax.command @{command_keyword recdef} "define general recursive functions (obsolete TFL)"
