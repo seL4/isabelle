@@ -192,9 +192,12 @@ fun output_text state {markdown} source =
     val output_antiquote = eval_antiquote state #> Symbol.explode #> Latex.output_ctrl_symbols;
     val output_antiquotes = map output_antiquote #> implode;
 
+    fun output_line line =
+      (if Markdown.line_is_item line then "\\item " else "") ^
+        output_antiquotes (Markdown.line_content line);
+
     fun output_blocks blocks = space_implode "\n\n" (map output_block blocks)
-    and output_block (Markdown.Paragraph lines) =
-          cat_lines (map (output_antiquotes o Markdown.line_source) lines)
+    and output_block (Markdown.Paragraph lines) = cat_lines (map output_line lines)
       | output_block (Markdown.List {kind, body, ...}) =
           let val env = Markdown.print_kind kind in
             "%\n\\begin{" ^ env ^ "}%\n" ^

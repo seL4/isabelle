@@ -24,6 +24,7 @@ sig
   val print_kind: kind -> string
   type line
   val line_source: line -> Antiquote.text_antiquote list
+  val line_is_item: line -> bool
   val line_content: line -> Antiquote.text_antiquote list
   val make_line: Antiquote.text_antiquote list -> line
   val empty_line: line
@@ -63,6 +64,7 @@ val eof_line =
 
 fun line_source (Line {source, ...}) = source;
 fun line_is_empty (Line {is_empty, ...}) = is_empty;
+fun line_is_item (Line {item, ...}) = is_some item;
 fun line_content (Line {content, ...}) = content;
 
 

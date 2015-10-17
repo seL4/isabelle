@@ -64,9 +64,12 @@ requirements of prover time and GUI space.
   \<^medskip>   \medskip
   \<^bigskip>   \bigskip
 
-  \<^item>  \item  (itemize)
-  \<^enum>  \item  (enumerate)
-  \<^descr>  \item  (description)
+* Paragraphs and nested lists may be specified similarly to Markdown,
+with control symbols to indicate list items as follows:
+
+  \<^item>  itemize
+  \<^enum>  enumerate
+  \<^descr>  description
 
 
 *** Isar ***
