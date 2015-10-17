@@ -129,8 +129,6 @@ end
 subsubsection \<open>Naming conventions\<close>
 
 text \<open>
-  \begin{itemize}
-
   \<^item> Lower-case identifiers are usually preferred.
 
   \<^item> Facts can be named after the main term within the proposition.
@@ -144,8 +142,6 @@ text \<open>
 
   \<^item> Symbolic identifiers are supported (e.g. @{text "*"}, @{text
   "**"}, @{text "***"}).
-
-  \end{itemize}
 \<close>
 
 
@@ -224,8 +220,6 @@ text \<open>
 subsection \<open>Special names in Isar proofs\<close>
 
 text \<open>
-  \begin{itemize}
-
   \<^item> term @{text "?thesis"} --- the main conclusion of the
   innermost pending claim
 
@@ -233,8 +227,6 @@ text \<open>
   stated result (for infix application this is the right-hand side)
 
   \<^item> fact @{text "this"} --- the last result produced in the text
-
-  \end{itemize}
 \<close>
 
 notepad
@@ -313,15 +305,11 @@ end
 subsubsection \<open>Notes\<close>
 
 text \<open>
-  \begin{itemize}
-
   \<^item> The notion of @{text trans} rule is very general due to the
   flexibility of Isabelle/Pure rule composition.
 
   \<^item> User applications may declare their own rules, with some care
   about the operational details of higher-order unification.
-
-  \end{itemize}
 \<close>
 
 
@@ -391,7 +379,6 @@ text \<open>
   In practice, much more proof infrastructure is required.
 
   The proof method @{method induct} provides:
-  \begin{itemize}
 
   \<^item> implicit rule selection and robust instantiation
 
@@ -399,8 +386,6 @@ text \<open>
 
   \<^item> support for rule-structured induction statements, with local
   parameters, premises, etc.
-
-  \end{itemize}
 \<close>
 
 notepad
@@ -421,7 +406,6 @@ subsubsection \<open>Example\<close>
 
 text \<open>
   The subsequent example combines the following proof patterns:
-  \begin{itemize}
 
   \<^item> outermost induction (over the datatype structure of natural
   numbers), to decompose the proof problem in top-down manner
@@ -430,8 +414,6 @@ text \<open>
   to compose the result in each case
 
   \<^item> solving local claims within the calculation by simplification
-
-  \end{itemize}
 \<close>
 
 lemma
@@ -682,16 +664,14 @@ subsection \<open>Pure rule composition\<close>
 text \<open>
   The Pure framework provides means for:
 
-  \begin{itemize}
-
   \<^item> backward-chaining of rules by @{inference resolution}
 
   \<^item> closing of branches by @{inference assumption}
 
-  \end{itemize}
 
   Both principles involve higher-order unification of @{text \<lambda>}-terms
-  modulo @{text "\<alpha>\<beta>\<eta>"}-equivalence (cf.\ Huet and Miller).\<close>
+  modulo @{text "\<alpha>\<beta>\<eta>"}-equivalence (cf.\ Huet and Miller).
+\<close>
 
 notepad
 begin
@@ -972,14 +952,10 @@ text \<open>
   Combining these characteristics leads to the following general scheme
   for elimination rules with cases:
 
-  \begin{itemize}
-
   \<^item> prefix of assumptions (or ``major premises'')
 
   \<^item> one or more cases that enable to establish the main conclusion
   in an augmented context
-
-  \end{itemize}
 \<close>
 
 notepad
@@ -1015,16 +991,12 @@ text \<open>
 
   Isar provides some infrastructure to support this:
 
-  \begin{itemize}
-
   \<^item> native language elements to state eliminations
 
   \<^item> symbolic case names
 
   \<^item> method @{method cases} to recover this structure in a
   sub-proof
-
-  \end{itemize}
 \<close>
 
 print_statement exE

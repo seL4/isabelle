@@ -39,11 +39,10 @@
 \DeclareRobustCommand{\isactrlesup}{\egroup\egroup\endmath\egroup}
 \newcommand{\isactrlbold}[1]{{\bfseries\upshape\boldmath#1}}
 
+\def\isactrlnoindent{\noindent}
 \def\isactrlsmallskip{\smallskip}
 \def\isactrlmedskip{\medskip}
 \def\isactrlbigskip{\bigskip}
-\def\isactrlitem{\item}
-\def\isactrlenum{\item}
 
 \newenvironment{isaantiq}{{\isacharat\isacharbraceleft}}{{\isacharbraceright}}
 
@@ -134,6 +133,8 @@
 \newcommand{\isamarkupsection}[1]{\section{#1}}
 \newcommand{\isamarkupsubsection}[1]{\subsection{#1}}
 \newcommand{\isamarkupsubsubsection}[1]{\subsubsection{#1}}
+\newcommand{\isamarkupparagraph}[1]{\paragraph{#1}}
+\newcommand{\isamarkupsubparagraph}[1]{\subparagraph{#1}}
 
 \newif\ifisamarkup
 \newcommand{\isabeginpar}{\par\ifisamarkup\relax\else\medskip\fi}

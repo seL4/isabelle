@@ -75,8 +75,6 @@ text \<open>
   We describe the usage of the directory browser and the meaning of
   the different items in the browser window.
 
-  \begin{itemize}
-
   \<^item> A red arrow before a directory name indicates that the
   directory is currently ``folded'', i.e.~the nodes in this directory
   are collapsed to one single node. In the right sub-window, the names
@@ -95,8 +93,6 @@ text \<open>
   focuses to the corresponding node. Double clicking invokes a text
   viewer window in which the contents of the theory file are
   displayed.
-
-  \end{itemize}
 \<close>
 
 
@@ -124,21 +120,17 @@ text \<open>
   in the full application version. The meaning of the menu items is as
   follows:
 
-  \begin{description}
+  \<^descr>[Open \dots] Open a new graph file.
 
-  \item[Open \dots] Open a new graph file.
-
-  \item[Export to PostScript] Outputs the current graph in Postscript
+  \<^descr>[Export to PostScript] Outputs the current graph in Postscript
   format, appropriately scaled to fit on one single sheet of A4 paper.
   The resulting file can be printed directly.
 
-  \item[Export to EPS] Outputs the current graph in Encapsulated
+  \<^descr>[Export to EPS] Outputs the current graph in Encapsulated
   Postscript format. The resulting file can be included in other
   documents.
 
-  \item[Quit] Quit the graph browser.
-
-  \end{description}
+  \<^descr>[Quit] Quit the graph browser.
 \<close>
 
 
@@ -156,29 +148,25 @@ text \<open>
 
   The meaning of the items in a vertex description is as follows:
 
-  \begin{description}
+  \<^descr>[@{text vertex_name}] The name of the vertex.
 
-  \item[@{text vertex_name}] The name of the vertex.
-
-  \item[@{text vertex_ID}] The vertex identifier. Note that there may
+  \<^descr>[@{text vertex_ID}] The vertex identifier. Note that there may
   be several vertices with equal names, whereas identifiers must be
   unique.
 
-  \item[@{text dir_name}] The name of the ``directory'' the vertex
+  \<^descr>[@{text dir_name}] The name of the ``directory'' the vertex
   should be placed in.  A ``@{verbatim "+"}'' sign after @{text
   dir_name} indicates that the nodes in the directory are initially
   visible. Directories are initially invisible by default.
 
-  \item[@{text path}] The path of the corresponding theory file. This
+  \<^descr>[@{text path}] The path of the corresponding theory file. This
   is specified relatively to the path of the graph definition file.
 
-  \item[List of successor/predecessor nodes] A ``@{verbatim "<"}''
+  \<^descr>[List of successor/predecessor nodes] A ``@{verbatim "<"}''
   sign before the list means that successor nodes are listed, a
   ``@{verbatim ">"}'' sign means that predecessor nodes are listed. If
   neither ``@{verbatim "<"}'' nor ``@{verbatim ">"}'' is found, the
   browser assumes that successor nodes are listed.
-
-  \end{description}
 \<close>
 
 
@@ -449,8 +437,6 @@ text \<open>
   to the much simpler and more efficient YXML format of Isabelle
   (stdout).  The YXML format is defined as follows.
 
-  \begin{enumerate}
-
   \<^enum> The encoding is always UTF-8.
 
   \<^enum> Body text is represented verbatim (no escaping, no special
@@ -472,7 +458,6 @@ text \<open>
   @{text "\<^bold>X"} and @{text "\<^bold>Y"} may never occur in
   well-formed XML documents.
 
-  \end{enumerate}
 
   Parsing YXML is pretty straight-forward: split the text into chunks
   separated by @{text "\<^bold>X"}, then split each chunk into

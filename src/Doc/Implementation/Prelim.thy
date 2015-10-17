@@ -26,8 +26,6 @@ text \<open>
   Contexts and derivations are linked by the following key
   principles:
 
-  \begin{itemize}
-
   \<^item> Transfer: monotonicity of derivations admits results to be
   transferred into a \emph{larger} context, i.e.\ @{text "\<Gamma> \<turnstile>\<^sub>\<Theta>
   \<phi>"} implies @{text "\<Gamma>' \<turnstile>\<^sub>\<Theta>\<^sub>' \<phi>"} for contexts @{text "\<Theta>'
@@ -39,7 +37,6 @@ text \<open>
   @{text "\<Delta> = \<Gamma>' - \<Gamma>"}.  Note that @{text "\<Theta>"} remains unchanged here,
   only the @{text "\<Gamma>"} part is affected.
 
-  \end{itemize}
 
   \<^medskip>
   By modeling the main characteristics of the primitive
@@ -129,30 +126,26 @@ text %mlref \<open>
   @{index_ML Theory.ancestors_of: "theory -> theory list"} \\
   \end{mldecls}
 
-  \begin{description}
+  \<^descr> Type @{ML_type theory} represents theory contexts.
 
-  \item Type @{ML_type theory} represents theory contexts.
-
-  \item @{ML "Context.eq_thy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} check strict
+  \<^descr> @{ML "Context.eq_thy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} check strict
   identity of two theories.
 
-  \item @{ML "Context.subthy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} compares theories
+  \<^descr> @{ML "Context.subthy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} compares theories
   according to the intrinsic graph structure of the construction.
   This sub-theory relation is a nominal approximation of inclusion
   (@{text "\<subseteq>"}) of the corresponding content (according to the
   semantics of the ML modules that implement the data).
 
-  \item @{ML "Theory.begin_theory"}~@{text "name parents"} constructs
+  \<^descr> @{ML "Theory.begin_theory"}~@{text "name parents"} constructs
   a new theory based on the given parents.  This ML function is
   normally not invoked directly.
 
-  \item @{ML "Theory.parents_of"}~@{text "thy"} returns the direct
+  \<^descr> @{ML "Theory.parents_of"}~@{text "thy"} returns the direct
   ancestors of @{text thy}.
 
-  \item @{ML "Theory.ancestors_of"}~@{text "thy"} returns all
+  \<^descr> @{ML "Theory.ancestors_of"}~@{text "thy"} returns all
   ancestors of @{text thy} (not including @{text thy} itself).
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -167,20 +160,16 @@ text %mlantiq \<open>
   @@{ML_antiquotation theory_context} nameref
   \<close>}
 
-  \begin{description}
-
-  \item @{text "@{theory}"} refers to the background theory of the
+  \<^descr> @{text "@{theory}"} refers to the background theory of the
   current context --- as abstract value.
 
-  \item @{text "@{theory A}"} refers to an explicitly named ancestor
+  \<^descr> @{text "@{theory A}"} refers to an explicitly named ancestor
   theory @{text "A"} of the background theory of the current context
   --- as abstract value.
 
-  \item @{text "@{theory_context A}"} is similar to @{text "@{theory
+  \<^descr> @{text "@{theory_context A}"} is similar to @{text "@{theory
   A}"}, but presents the result as initial @{ML_type Proof.context}
   (see also @{ML Proof_Context.init_global}).
-
-  \end{description}
 \<close>
 
 
@@ -220,21 +209,17 @@ text %mlref \<open>
   @{index_ML Proof_Context.transfer: "theory -> Proof.context -> Proof.context"} \\
   \end{mldecls}
 
-  \begin{description}
+  \<^descr> Type @{ML_type Proof.context} represents proof contexts.
 
-  \item Type @{ML_type Proof.context} represents proof contexts.
-
-  \item @{ML Proof_Context.init_global}~@{text "thy"} produces a proof
+  \<^descr> @{ML Proof_Context.init_global}~@{text "thy"} produces a proof
   context derived from @{text "thy"}, initializing all data.
 
-  \item @{ML Proof_Context.theory_of}~@{text "ctxt"} selects the
+  \<^descr> @{ML Proof_Context.theory_of}~@{text "ctxt"} selects the
   background theory from @{text "ctxt"}.
 
-  \item @{ML Proof_Context.transfer}~@{text "thy ctxt"} promotes the
+  \<^descr> @{ML Proof_Context.transfer}~@{text "thy ctxt"} promotes the
   background theory of @{text "ctxt"} to the super theory @{text
   "thy"}.
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -242,16 +227,12 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "context"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{description}
-
-  \item @{text "@{context}"} refers to \emph{the} context at
+  \<^descr> @{text "@{context}"} refers to \emph{the} context at
   compile-time --- as abstract value.  Independently of (local) theory
   or proof mode, this always produces a meaningful result.
 
   This is probably the most common antiquotation in interactive
   experimentation with ML inside Isar.
-
-  \end{description}
 \<close>
 
 
@@ -279,22 +260,18 @@ text %mlref \<open>
   @{index_ML Context.proof_of: "Context.generic -> Proof.context"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type Context.generic} is the direct sum of @{ML_type
+  \<^descr> Type @{ML_type Context.generic} is the direct sum of @{ML_type
   "theory"} and @{ML_type "Proof.context"}, with the datatype
   constructors @{ML "Context.Theory"} and @{ML "Context.Proof"}.
 
-  \item @{ML Context.theory_of}~@{text "context"} always produces a
+  \<^descr> @{ML Context.theory_of}~@{text "context"} always produces a
   theory from the generic @{text "context"}, using @{ML
   "Proof_Context.theory_of"} as required.
 
-  \item @{ML Context.proof_of}~@{text "context"} always produces a
+  \<^descr> @{ML Context.proof_of}~@{text "context"} always produces a
   proof context from the generic @{text "context"}, using @{ML
   "Proof_Context.init_global"} as required (note that this re-initializes the
   context data with each invocation).
-
-  \end{description}
 \<close>
 
 
@@ -383,20 +360,16 @@ text %mlref \<open>
   @{index_ML_functor Generic_Data} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML_functor Theory_Data}@{text "(spec)"} declares data for
+  \<^descr> @{ML_functor Theory_Data}@{text "(spec)"} declares data for
   type @{ML_type theory} according to the specification provided as
   argument structure.  The resulting structure provides data init and
   access operations as described above.
 
-  \item @{ML_functor Proof_Data}@{text "(spec)"} is analogous to
+  \<^descr> @{ML_functor Proof_Data}@{text "(spec)"} is analogous to
   @{ML_functor Theory_Data} for type @{ML_type Proof.context}.
 
-  \item @{ML_functor Generic_Data}@{text "(spec)"} is analogous to
+  \<^descr> @{ML_functor Generic_Data}@{text "(spec)"} is analogous to
   @{ML_functor Theory_Data} for type @{ML_type Context.generic}.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>
@@ -456,7 +429,6 @@ text \<open>Type @{ML_type "term Ord_List.T"} is used for reasonably
 
   \<^medskip>
   Our intended invariant is achieved as follows:
-  \begin{enumerate}
 
   \<^enum> @{ML Wellformed_Terms.add} only admits terms that have passed
   the @{ML Sign.cert_term} check of the given theory at that point.
@@ -466,7 +438,6 @@ text \<open>Type @{ML_type "term Ord_List.T"} is used for reasonably
   upwards in the hierarchy (via extension or merges), and maintain
   wellformedness without further checks.
 
-  \end{enumerate}
 
   Note that all basic operations of the inference kernel (which
   includes @{ML Sign.cert_term}) observe this monotonicity principle,
@@ -544,15 +515,13 @@ text %mlref \<open>
   string Config.T"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML Config.get}~@{text "ctxt config"} gets the value of
+  \<^descr> @{ML Config.get}~@{text "ctxt config"} gets the value of
   @{text "config"} in the given context.
 
-  \item @{ML Config.map}~@{text "config f ctxt"} updates the context
+  \<^descr> @{ML Config.map}~@{text "config f ctxt"} updates the context
   by updating the value of @{text "config"}.
 
-  \item @{text "config ="}~@{ML Attrib.setup_config_bool}~@{text "name
+  \<^descr> @{text "config ="}~@{ML Attrib.setup_config_bool}~@{text "name
   default"} creates a named configuration option of type @{ML_type
   bool}, with the given @{text "default"} depending on the application
   context.  The resulting @{text "config"} can be used to get/map its
@@ -560,11 +529,9 @@ text %mlref \<open>
   background theory that registers the option as attribute with some
   concrete syntax.
 
-  \item @{ML Attrib.config_int}, @{ML Attrib.config_real}, and @{ML
+  \<^descr> @{ML Attrib.config_int}, @{ML Attrib.config_real}, and @{ML
   Attrib.config_string} work like @{ML Attrib.config_bool}, but for
   types @{ML_type int} and @{ML_type string}, respectively.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following example shows how to declare and use a
@@ -621,7 +588,6 @@ text \<open>In principle, a name is just a string, but there are various
   Subsequently, we shall introduce specific categories of
   names.  Roughly speaking these correspond to logical entities as
   follows:
-  \begin{itemize}
 
   \<^item> Basic names (\secref{sec:basic-name}): free and bound
   variables.
@@ -632,8 +598,6 @@ text \<open>In principle, a name is just a string, but there are various
   (type constructors, term constants, other concepts defined in user
   space).  Such entities are typically managed via name spaces
   (\secref{sec:name-space}).
-
-  \end{itemize}
 \<close>
 
 
@@ -690,27 +654,25 @@ text %mlref \<open>
   @{index_ML Variable.names_of: "Proof.context -> Name.context"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML Name.internal}~@{text "name"} produces an internal name
+  \<^descr> @{ML Name.internal}~@{text "name"} produces an internal name
   by adding one underscore.
 
-  \item @{ML Name.skolem}~@{text "name"} produces a Skolem name by
+  \<^descr> @{ML Name.skolem}~@{text "name"} produces a Skolem name by
   adding two underscores.
 
-  \item Type @{ML_type Name.context} represents the context of already
+  \<^descr> Type @{ML_type Name.context} represents the context of already
   used names; the initial value is @{ML "Name.context"}.
 
-  \item @{ML Name.declare}~@{text "name"} enters a used name into the
+  \<^descr> @{ML Name.declare}~@{text "name"} enters a used name into the
   context.
 
-  \item @{ML Name.invent}~@{text "context name n"} produces @{text
+  \<^descr> @{ML Name.invent}~@{text "context name n"} produces @{text
   "n"} fresh names derived from @{text "name"}.
 
-  \item @{ML Name.variant}~@{text "name context"} produces a fresh
+  \<^descr> @{ML Name.variant}~@{text "name context"} produces a fresh
   variant of @{text "name"}; the result is declared to the context.
 
-  \item @{ML Variable.names_of}~@{text "ctxt"} retrieves the context
+  \<^descr> @{ML Variable.names_of}~@{text "ctxt"} retrieves the context
   of declared type and term variable names.  Projecting a proof
   context down to a primitive name context is occasionally useful when
   invoking lower-level operations.  Regular management of ``fresh
@@ -718,8 +680,6 @@ text %mlref \<open>
   Variable}, which is also able to provide an official status of
   ``locally fixed variable'' within the logical environment (cf.\
   \secref{sec:variables}).
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following simple examples demonstrate how to produce
@@ -775,15 +735,12 @@ text \<open>
   Isabelle syntax observes the following rules for
   representing an indexname @{text "(x, i)"} as a packed string:
 
-  \begin{itemize}
-
   \<^item> @{text "?x"} if @{text "x"} does not end with a digit and @{text "i = 0"},
 
   \<^item> @{text "?xi"} if @{text "x"} does not end with a digit,
 
   \<^item> @{text "?x.i"} otherwise.
 
-  \end{itemize}
 
   Indexnames may acquire large index numbers after several maxidx
   shifts have been applied.  Results are usually normalized towards
@@ -798,15 +755,11 @@ text %mlref \<open>
   @{index_ML_type indexname: "string * int"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type indexname} represents indexed names.  This is
+  \<^descr> Type @{ML_type indexname} represents indexed names.  This is
   an abbreviation for @{ML_type "string * int"}.  The second component
   is usually non-negative, except for situations where @{text "(x,
   -1)"} is used to inject basic names into this type.  Other negative
   indexes should not be used.
-
-  \end{description}
 \<close>
 
 
@@ -843,22 +796,18 @@ text %mlref \<open>
   @{index_ML Long_Name.explode: "string -> string list"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML Long_Name.base_name}~@{text "name"} returns the base name
+  \<^descr> @{ML Long_Name.base_name}~@{text "name"} returns the base name
   of a long name.
 
-  \item @{ML Long_Name.qualifier}~@{text "name"} returns the qualifier
+  \<^descr> @{ML Long_Name.qualifier}~@{text "name"} returns the qualifier
   of a long name.
 
-  \item @{ML Long_Name.append}~@{text "name\<^sub>1 name\<^sub>2"} appends two long
+  \<^descr> @{ML Long_Name.append}~@{text "name\<^sub>1 name\<^sub>2"} appends two long
   names.
 
-  \item @{ML Long_Name.implode}~@{text "names"} and @{ML
+  \<^descr> @{ML Long_Name.implode}~@{text "names"} and @{ML
   Long_Name.explode}~@{text "name"} convert between the packed string
   representation and the explicit list form of long names.
-
-  \end{description}
 \<close>
 
 
@@ -947,68 +896,66 @@ text %mlref \<open>
   @{index_ML Name_Space.is_concealed: "Name_Space.T -> string -> bool"}
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type binding} represents the abstract concept of
+  \<^descr> Type @{ML_type binding} represents the abstract concept of
   name bindings.
 
-  \item @{ML Binding.empty} is the empty binding.
+  \<^descr> @{ML Binding.empty} is the empty binding.
 
-  \item @{ML Binding.name}~@{text "name"} produces a binding with base
+  \<^descr> @{ML Binding.name}~@{text "name"} produces a binding with base
   name @{text "name"}.  Note that this lacks proper source position
   information; see also the ML antiquotation @{ML_antiquotation
   binding}.
 
-  \item @{ML Binding.qualify}~@{text "mandatory name binding"}
+  \<^descr> @{ML Binding.qualify}~@{text "mandatory name binding"}
   prefixes qualifier @{text "name"} to @{text "binding"}.  The @{text
   "mandatory"} flag tells if this name component always needs to be
   given in name space accesses --- this is mostly @{text "false"} in
   practice.  Note that this part of qualification is typically used in
   derived specification mechanisms.
 
-  \item @{ML Binding.prefix} is similar to @{ML Binding.qualify}, but
+  \<^descr> @{ML Binding.prefix} is similar to @{ML Binding.qualify}, but
   affects the system prefix.  This part of extra qualification is
   typically used in the infrastructure for modular specifications,
   notably ``local theory targets'' (see also \chref{ch:local-theory}).
 
-  \item @{ML Binding.concealed}~@{text "binding"} indicates that the
+  \<^descr> @{ML Binding.concealed}~@{text "binding"} indicates that the
   binding shall refer to an entity that serves foundational purposes
   only.  This flag helps to mark implementation details of
   specification mechanism etc.  Other tools should not depend on the
   particulars of concealed entities (cf.\ @{ML
   Name_Space.is_concealed}).
 
-  \item @{ML Binding.print}~@{text "binding"} produces a string
+  \<^descr> @{ML Binding.print}~@{text "binding"} produces a string
   representation for human-readable output, together with some formal
   markup that might get used in GUI front-ends, for example.
 
-  \item Type @{ML_type Name_Space.naming} represents the abstract
+  \<^descr> Type @{ML_type Name_Space.naming} represents the abstract
   concept of a naming policy.
 
-  \item @{ML Name_Space.global_naming} is the default naming policy: it is
+  \<^descr> @{ML Name_Space.global_naming} is the default naming policy: it is
   global and lacks any path prefix.  In a regular theory context this is
   augmented by a path prefix consisting of the theory name.
 
-  \item @{ML Name_Space.add_path}~@{text "path naming"} augments the
+  \<^descr> @{ML Name_Space.add_path}~@{text "path naming"} augments the
   naming policy by extending its path component.
 
-  \item @{ML Name_Space.full_name}~@{text "naming binding"} turns a
+  \<^descr> @{ML Name_Space.full_name}~@{text "naming binding"} turns a
   name binding (usually a basic name) into the fully qualified
   internal name, according to the given naming policy.
 
-  \item Type @{ML_type Name_Space.T} represents name spaces.
+  \<^descr> Type @{ML_type Name_Space.T} represents name spaces.
 
-  \item @{ML Name_Space.empty}~@{text "kind"} and @{ML Name_Space.merge}~@{text
+  \<^descr> @{ML Name_Space.empty}~@{text "kind"} and @{ML Name_Space.merge}~@{text
   "(space\<^sub>1, space\<^sub>2)"} are the canonical operations for
   maintaining name spaces according to theory data management
   (\secref{sec:context-data}); @{text "kind"} is a formal comment
   to characterize the purpose of a name space.
 
-  \item @{ML Name_Space.declare}~@{text "context strict binding
+  \<^descr> @{ML Name_Space.declare}~@{text "context strict binding
   space"} enters a name binding as fully qualified internal name into
   the name space, using the naming of the context.
 
-  \item @{ML Name_Space.intern}~@{text "space name"} internalizes a
+  \<^descr> @{ML Name_Space.intern}~@{text "space name"} internalizes a
   (partially qualified) external name.
 
   This operation is mostly for parsing!  Note that fully qualified
@@ -1017,17 +964,15 @@ text %mlref \<open>
   (or their derivatives for @{ML_type theory} and
   @{ML_type Proof.context}).
 
-  \item @{ML Name_Space.extern}~@{text "ctxt space name"} externalizes a
+  \<^descr> @{ML Name_Space.extern}~@{text "ctxt space name"} externalizes a
   (fully qualified) internal name.
 
   This operation is mostly for printing!  User code should not rely on
   the precise result too much.
 
-  \item @{ML Name_Space.is_concealed}~@{text "space name"} indicates
+  \<^descr> @{ML Name_Space.is_concealed}~@{text "space name"} indicates
   whether @{text "name"} refers to a strictly private entity that
   other tools are supposed to ignore!
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -1039,14 +984,10 @@ text %mlantiq \<open>
   @@{ML_antiquotation binding} name
   \<close>}
 
-  \begin{description}
-
-  \item @{text "@{binding name}"} produces a binding with base name
+  \<^descr> @{text "@{binding name}"} produces a binding with base name
   @{text "name"} and the source position taken from the concrete
   syntax of this antiquotation.  In many situations this is more
   appropriate than the more basic @{ML Binding.name} function.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following example yields the source position of some

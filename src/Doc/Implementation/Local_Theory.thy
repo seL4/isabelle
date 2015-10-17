@@ -103,9 +103,7 @@ text %mlref \<open>
     local_theory -> (string * thm list) * local_theory"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type local_theory} represents local theories.
+  \<^descr> Type @{ML_type local_theory} represents local theories.
   Although this is merely an alias for @{ML_type Proof.context}, it is
   semantically a subtype of the same: a @{ML_type local_theory} holds
   target information as special context data.  Subtyping means that
@@ -113,7 +111,7 @@ text %mlref \<open>
   with operations on expecting a regular @{text "ctxt:"}~@{ML_type
   Proof.context}.
 
-  \item @{ML Named_Target.init}~@{text "before_exit name thy"}
+  \<^descr> @{ML Named_Target.init}~@{text "before_exit name thy"}
   initializes a local theory derived from the given background theory.
   An empty name refers to a \emph{global theory} context, and a
   non-empty name refers to a @{command locale} or @{command class}
@@ -121,7 +119,7 @@ text %mlref \<open>
   useful for experimentation --- normally the Isar toplevel already
   takes care to initialize the local theory context.
 
-  \item @{ML Local_Theory.define}~@{text "((b, mx), (a, rhs))
+  \<^descr> @{ML Local_Theory.define}~@{text "((b, mx), (a, rhs))
   lthy"} defines a local entity according to the specification that is
   given relatively to the current @{text "lthy"} context.  In
   particular the term of the RHS may refer to earlier local entities
@@ -141,7 +139,7 @@ text %mlref \<open>
   declarations such as @{attribute simp}, while non-trivial rules like
   @{attribute simplified} are better avoided.
 
-  \item @{ML Local_Theory.note}~@{text "(a, ths) lthy"} is
+  \<^descr> @{ML Local_Theory.note}~@{text "(a, ths) lthy"} is
   analogous to @{ML Local_Theory.define}, but defines facts instead of
   terms.  There is also a slightly more general variant @{ML
   Local_Theory.notes} that defines several facts (with attribute
@@ -149,8 +147,6 @@ text %mlref \<open>
 
   This is essentially the internal version of the @{command lemmas}
   command, or @{command declare} if an empty name binding is given.
-
-  \end{description}
 \<close>
 
 

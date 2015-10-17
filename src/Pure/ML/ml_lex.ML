@@ -157,7 +157,7 @@ fun token_kind_markup SML =
 
 in
 
-fun report_of_token SML (tok as Token ((pos, _), (kind, x))) =
+fun token_report SML (tok as Token ((pos, _), (kind, x))) =
   let
     val (markup, txt) =
       if not (is_keyword tok) then token_kind_markup SML kind
@@ -328,7 +328,8 @@ fun gen_read SML pos text =
         (Scan.recover (Scan.bulk (!!! "bad input" scan))
           (fn msg => recover msg >> map Antiquote.Text))
       |> Source.exhaust
-      |> tap (Position.reports_text o Antiquote.antiquote_reports (single o report_of_token SML))
+      |> tap (Position.reports o Antiquote.antiq_reports)
+      |> tap (Position.reports_text o maps (fn Antiquote.Text t => [token_report SML t] | _ => []))
       |> tap (List.app check);
   in input @ termination end;
 

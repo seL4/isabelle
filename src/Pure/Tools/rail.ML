@@ -63,7 +63,7 @@ fun print_keyword x = print_kind Keyword ^ " " ^ quote x;
 fun reports_of_token (Token ((pos, _), (String, _))) = [(pos, Markup.inner_string)]
   | reports_of_token (Token ((pos, _), (Keyword, x))) =
       map (pair pos) (the_list (Symtab.lookup keywords x) @ Completion.suppress_abbrevs x)
-  | reports_of_token (Token (_, (Antiq antiq, _))) = Antiquote.antiq_reports antiq
+  | reports_of_token (Token (_, (Antiq antiq, _))) = Antiquote.antiq_reports [Antiquote.Antiq antiq]
   | reports_of_token _ = [];
 
 
@@ -315,7 +315,7 @@ and vertical_range (Bar cats) y =
 
 fun output_rules state rules =
   let
-    val output_antiq = Thy_Output.eval_antiq state;
+    val output_antiq = Thy_Output.eval_antiquote state o Antiquote.Antiq;
     fun output_text b s =
       Output.output s
       |> b ? enclose "\\isakeyword{" "}"
@@ -354,11 +354,7 @@ fun output_rules state rules =
         output "" rail' ^
         "\\rail@end\n"
       end;
-  in
-    "\\begin{railoutput}\n" ^
-    implode (map output_rule rules) ^
-    "\\end{railoutput}\n"
-  end;
+  in Latex.environment "railoutput" (implode (map output_rule rules)) end;
 
 in
 

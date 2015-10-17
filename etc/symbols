@@ -352,15 +352,18 @@
 \<open>                 code: 0x002039  group: punctuation  font: IsabelleText  abbrev: <<
 \<close>                code: 0x00203a  group: punctuation  font: IsabelleText  abbrev: >>
 \<here>                 code: 0x002302  font: IsabelleText
+\<^noindent>            code: 0x0021e4  group: control  font: IsabelleText
+\<^smallskip>           code: 0x002508  group: control  font: IsabelleText
+\<^medskip>             code: 0x002509  group: control  font: IsabelleText
+\<^bigskip>             code: 0x002501  group: control  font: IsabelleText
+\<^item>                code: 0x0025aa  group: control  font: IsabelleText
+\<^enum>                code: 0x0025b8  group: control  font: IsabelleText
+\<^descr>               code: 0x0027a7  group: control  font: IsabelleText
+#\<^emph>                code: 0x002217  group: control  font: IsabelleText
+\<^bold>                code: 0x002759  group: control  font: IsabelleText
 \<^sub>                 code: 0x0021e9  group: control  font: IsabelleText
 \<^sup>                 code: 0x0021e7  group: control  font: IsabelleText
-\<^bold>                code: 0x002759  group: control  font: IsabelleText
 \<^bsub>                code: 0x0021d8  group: control_block  font: IsabelleText  abbrev: =_(
 \<^esub>                code: 0x0021d9  group: control_block  font: IsabelleText  abbrev: =_)
 \<^bsup>                code: 0x0021d7  group: control_block  font: IsabelleText  abbrev: =^(
 \<^esup>                code: 0x0021d6  group: control_block  font: IsabelleText  abbrev: =^)
-\<^smallskip>           code: 0x002508  group: control
-\<^medskip>             code: 0x002509  group: control
-\<^bigskip>             code: 0x002501  group: control
-\<^item>                code: 0x0025aa  group: control
-\<^enum>                code: 0x0025b8  group: control

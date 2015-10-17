@@ -155,7 +155,8 @@ object Rendering
     Markup.Elements(Markup.EXPRESSION, Markup.CITATION, Markup.LANGUAGE, Markup.ML_TYPING,
       Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
       Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
-      Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_BREAKPOINT)
+      Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_BREAKPOINT,
+      Markup.MARKDOWN_PARAGRAPH, Markup.Markdown_List.name)
 
   private val hyperlink_elements =
     Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION, Markup.URL)
@@ -182,7 +183,8 @@ object Rendering
 
   private val tooltip_elements =
     Markup.Elements(Markup.LANGUAGE, Markup.TIMING, Markup.ENTITY, Markup.SORTING,
-      Markup.TYPING, Markup.ML_TYPING, Markup.ML_BREAKPOINT, Markup.PATH, Markup.URL) ++
+      Markup.TYPING, Markup.ML_TYPING, Markup.ML_BREAKPOINT, Markup.PATH, Markup.URL,
+      Markup.MARKDOWN_PARAGRAPH, Markup.Markdown_List.name) ++
     Markup.Elements(tooltip_descriptions.keySet)
 
   private val gutter_elements =
@@ -204,7 +206,7 @@ object Rendering
       Markup.STATE_MESSAGE + Markup.INFORMATION_MESSAGE +
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
       Markup.LEGACY_MESSAGE + Markup.ERROR_MESSAGE +
-      Markup.BAD + Markup.INTENSIFY ++ active_elements
+      Markup.BAD + Markup.INTENSIFY + Markup.Markdown_Item.name ++ active_elements
 
   private val foreground_elements =
     Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
@@ -281,6 +283,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val inner_cartouche_color = color_value("inner_cartouche_color")
   val inner_comment_color = color_value("inner_comment_color")
   val dynamic_color = color_value("dynamic_color")
+
+  val markdown_item_color1 = color_value("markdown_item_color1")
+  val markdown_item_color2 = color_value("markdown_item_color2")
+  val markdown_item_color3 = color_value("markdown_item_color3")
+  val markdown_item_color4 = color_value("markdown_item_color4")
 
 
   /* completion */
@@ -514,6 +521,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         {
           case (Text.Info(r, (t1, info)), Text.Info(_, XML.Elem(Markup.Timing(t2), _))) =>
             Some(Text.Info(r, (t1 + t2, info)))
+
           case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _))) =>
             val kind1 = Word.implode(Word.explode('_', kind))
             val txt1 =
@@ -525,19 +533,24 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 "\n" + t.message
               else ""
             Some(add(prev, r, (true, XML.Text(txt1 + txt2))))
+
           case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _))) =>
             val file = jedit_file(name)
             val text =
               if (name == file) "file " + quote(file)
               else "path " + quote(name) + "\nfile " + quote(file)
             Some(add(prev, r, (true, XML.Text(text))))
+
           case (prev, Text.Info(r, XML.Elem(Markup.Url(name), _))) =>
             Some(add(prev, r, (true, XML.Text("URL " + quote(name)))))
+
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), body)))
           if name == Markup.SORTING || name == Markup.TYPING =>
             Some(add(prev, r, (true, pretty_typing("::", body))))
+
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             Some(add(prev, r, (false, pretty_typing("ML:", body))))
+
           case (prev, Text.Info(r, Protocol.ML_Breakpoint(breakpoint))) =>
             val text =
               if (Debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
@@ -545,6 +558,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(add(prev, r, (true, XML.Text(text))))
           case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _, _, _), _))) =>
             Some(add(prev, r, (true, XML.Text("language: " + language))))
+
+          case (prev, Text.Info(r, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
+            Some(add(prev, r, (true, XML.Text("Markdown: paragraph"))))
+          case (prev, Text.Info(r, XML.Elem(Markup.Markdown_List(kind), _))) =>
+            Some(add(prev, r, (true, XML.Text("Markdown: " + kind))))
+
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _))) =>
             Rendering.tooltip_descriptions.get(name).
               map(descr => add(prev, r, (true, XML.Text(descr))))
@@ -679,6 +698,15 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                   Some((Nil, Some(bad_color)))
                 case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                   Some((Nil, Some(intensify_color)))
+                case (_, Text.Info(_, XML.Elem(Markup.Markdown_Item(depth), _))) =>
+                  val color =
+                    depth match {
+                      case 1 => markdown_item_color1
+                      case 2 => markdown_item_color2
+                      case 3 => markdown_item_color3
+                      case _ => markdown_item_color4
+                    }
+                  Some((Nil, Some(color)))
                 case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
                   command_states.collectFirst(
                     { case st if st.results.defined(serial) => st.results.get(serial).get }) match

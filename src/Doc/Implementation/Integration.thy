@@ -44,27 +44,23 @@ text %mlref \<open>
   @{index_ML Toplevel.proof_of: "Toplevel.state -> Proof.state"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type Toplevel.state} represents Isar toplevel
+  \<^descr> Type @{ML_type Toplevel.state} represents Isar toplevel
   states, which are normally manipulated through the concept of
   toplevel transitions only (\secref{sec:toplevel-transition}).
 
-  \item @{ML Toplevel.UNDEF} is raised for undefined toplevel
+  \<^descr> @{ML Toplevel.UNDEF} is raised for undefined toplevel
   operations.  Many operations work only partially for certain cases,
   since @{ML_type Toplevel.state} is a sum type.
 
-  \item @{ML Toplevel.is_toplevel}~@{text "state"} checks for an empty
+  \<^descr> @{ML Toplevel.is_toplevel}~@{text "state"} checks for an empty
   toplevel state.
 
-  \item @{ML Toplevel.theory_of}~@{text "state"} selects the
+  \<^descr> @{ML Toplevel.theory_of}~@{text "state"} selects the
   background theory of @{text "state"}, it raises @{ML Toplevel.UNDEF}
   for an empty toplevel state.
 
-  \item @{ML Toplevel.proof_of}~@{text "state"} selects the Isar proof
+  \<^descr> @{ML Toplevel.proof_of}~@{text "state"} selects the Isar proof
   state if available, otherwise it raises an error.
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -72,15 +68,11 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "Isar.state"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{description}
-
-  \item @{text "@{Isar.state}"} refers to Isar toplevel state at that
+  \<^descr> @{text "@{Isar.state}"} refers to Isar toplevel state at that
   point --- as abstract value.
 
   This only works for diagnostic ML commands, such as @{command
   ML_val} or @{command ML_command}.
-
-  \end{description}
 \<close>
 
 
@@ -121,33 +113,29 @@ text %mlref \<open>
   Toplevel.transition -> Toplevel.transition"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML Toplevel.keep}~@{text "tr"} adjoins a diagnostic
+  \<^descr> @{ML Toplevel.keep}~@{text "tr"} adjoins a diagnostic
   function.
 
-  \item @{ML Toplevel.theory}~@{text "tr"} adjoins a theory
+  \<^descr> @{ML Toplevel.theory}~@{text "tr"} adjoins a theory
   transformer.
 
-  \item @{ML Toplevel.theory_to_proof}~@{text "tr"} adjoins a global
+  \<^descr> @{ML Toplevel.theory_to_proof}~@{text "tr"} adjoins a global
   goal function, which turns a theory into a proof state.  The theory
   may be changed before entering the proof; the generic Isar goal
   setup includes an @{verbatim after_qed} argument that specifies how to
   apply the proven result to the enclosing context, when the proof
   is finished.
 
-  \item @{ML Toplevel.proof}~@{text "tr"} adjoins a deterministic
+  \<^descr> @{ML Toplevel.proof}~@{text "tr"} adjoins a deterministic
   proof command, with a singleton result.
 
-  \item @{ML Toplevel.proofs}~@{text "tr"} adjoins a general proof
+  \<^descr> @{ML Toplevel.proofs}~@{text "tr"} adjoins a general proof
   command, with zero or more result states (represented as a lazy
   list).
 
-  \item @{ML Toplevel.end_proof}~@{text "tr"} adjoins a concluding
+  \<^descr> @{ML Toplevel.end_proof}~@{text "tr"} adjoins a concluding
   proof command, that returns the resulting theory, after applying the
   resulting facts to the target context.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The file @{"file" "~~/src/HOL/ex/Commands.thy"} shows some example
@@ -175,13 +163,11 @@ text %mlref \<open>
   @{index_ML Thy_Info.register_thy: "theory -> unit"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML use_thy}~@{text A} ensures that theory @{text A} is fully
+  \<^descr> @{ML use_thy}~@{text A} ensures that theory @{text A} is fully
   up-to-date wrt.\ the external file store; outdated ancestors are reloaded on
   demand.
 
-  \item @{ML use_thys} is similar to @{ML use_thy}, but handles several
+  \<^descr> @{ML use_thys} is similar to @{ML use_thy}, but handles several
   theories simultaneously. Thus it acts like processing the import header of a
   theory, without performing the merge of the result. By loading a whole
   sub-graph of theories, the intrinsic parallelism can be exploited by the
@@ -189,18 +175,16 @@ text %mlref \<open>
 
   This variant is used by default in @{tool build} @{cite "isabelle-system"}.
 
-  \item @{ML Thy_Info.get_theory}~@{text A} retrieves the theory value
+  \<^descr> @{ML Thy_Info.get_theory}~@{text A} retrieves the theory value
   presently associated with name @{text A}. Note that the result might be
   outdated wrt.\ the file-system content.
 
-  \item @{ML Thy_Info.remove_thy}~@{text A} deletes theory @{text A} and all
+  \<^descr> @{ML Thy_Info.remove_thy}~@{text A} deletes theory @{text A} and all
   descendants from the theory database.
 
-  \item @{ML Thy_Info.register_thy}~@{text "text thy"} registers an existing
+  \<^descr> @{ML Thy_Info.register_thy}~@{text "text thy"} registers an existing
   theory value with the theory loader database and updates source version
   information according to the file store.
-
-  \end{description}
 \<close>
 
 end

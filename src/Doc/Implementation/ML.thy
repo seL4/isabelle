@@ -76,8 +76,8 @@ text \<open>Isabelle source files have a certain standardized header
   subsubsections, paragraphs etc.\ using a simple layout via ML
   comments as follows.
 
-  \begin{verbatim}
-  (*** section ***)
+  @{verbatim [display]
+\<open>  (*** section ***)
 
   (** subsection **)
 
@@ -88,8 +88,7 @@ text \<open>Isabelle source files have a certain standardized header
   (*
     long paragraph,
     with more text
-  *)
-  \end{verbatim}
+  *)\<close>}
 
   As in regular typography, there is some extra space \emph{before}
   section headings that are adjacent to plain text, but not other headings
@@ -155,8 +154,8 @@ text \<open>Since ML is the primary medium to express the meaning of the
 
   Example:
 
-  \begin{verbatim}
-  (* RIGHT *)
+  @{verbatim [display]
+\<open>  (* RIGHT *)
 
   fun print_foo ctxt foo =
     let
@@ -180,14 +179,11 @@ text \<open>Since ML is the primary medium to express the meaning of the
   fun print_foo ctxt foo =
     let
       fun aux t = ... string_of_term ctxt t ...
-    in ... end;
-  \end{verbatim}
+    in ... end;\<close>}
 
 
   \paragraph{Specific conventions.} Here are some specific name forms
   that occur frequently in the sources.
-
-  \begin{itemize}
 
   \<^item> A function that maps @{ML_text foo} to @{ML_text bar} is
   called @{ML_text foo_to_bar} or @{ML_text bar_of_foo} (never
@@ -210,21 +206,17 @@ text \<open>Since ML is the primary medium to express the meaning of the
   framework (\secref{sec:context} and \chref{ch:local-theory}) have
   firm naming conventions as follows:
 
-  \begin{itemize}
+    \<^item> theories are called @{ML_text thy}, rarely @{ML_text theory}
+    (never @{ML_text thry})
 
-  \<^item> theories are called @{ML_text thy}, rarely @{ML_text theory}
-  (never @{ML_text thry})
+    \<^item> proof contexts are called @{ML_text ctxt}, rarely @{ML_text
+    context} (never @{ML_text ctx})
 
-  \<^item> proof contexts are called @{ML_text ctxt}, rarely @{ML_text
-  context} (never @{ML_text ctx})
+    \<^item> generic contexts are called @{ML_text context}
 
-  \<^item> generic contexts are called @{ML_text context}
-
-  \<^item> local theories are called @{ML_text lthy}, except for local
-  theories that are treated as proof context (which is a semantic
-  super-type)
-
-  \end{itemize}
+    \<^item> local theories are called @{ML_text lthy}, except for local
+    theories that are treated as proof context (which is a semantic
+    super-type)
 
   Variations with primed or decimal numbers are always possible, as
   well as semantic prefixes like @{ML_text foo_thy} or @{ML_text
@@ -235,32 +227,28 @@ text \<open>Since ML is the primary medium to express the meaning of the
   \<^item> The main logical entities (\secref{ch:logic}) have established
   naming convention as follows:
 
-  \begin{itemize}
+    \<^item> sorts are called @{ML_text S}
 
-  \<^item> sorts are called @{ML_text S}
+    \<^item> types are called @{ML_text T}, @{ML_text U}, or @{ML_text
+    ty} (never @{ML_text t})
 
-  \<^item> types are called @{ML_text T}, @{ML_text U}, or @{ML_text
-  ty} (never @{ML_text t})
+    \<^item> terms are called @{ML_text t}, @{ML_text u}, or @{ML_text
+    tm} (never @{ML_text trm})
 
-  \<^item> terms are called @{ML_text t}, @{ML_text u}, or @{ML_text
-  tm} (never @{ML_text trm})
+    \<^item> certified types are called @{ML_text cT}, rarely @{ML_text
+    T}, with variants as for types
 
-  \<^item> certified types are called @{ML_text cT}, rarely @{ML_text
-  T}, with variants as for types
+    \<^item> certified terms are called @{ML_text ct}, rarely @{ML_text
+    t}, with variants as for terms (never @{ML_text ctrm})
 
-  \<^item> certified terms are called @{ML_text ct}, rarely @{ML_text
-  t}, with variants as for terms (never @{ML_text ctrm})
-
-  \<^item> theorems are called @{ML_text th}, or @{ML_text thm}
-
-  \end{itemize}
+    \<^item> theorems are called @{ML_text th}, or @{ML_text thm}
 
   Proper semantic names override these conventions completely.  For
   example, the left-hand side of an equation (as a term) can be called
   @{ML_text lhs} (not @{ML_text lhs_tm}).  Or a term that is known
   to be a variable can be called @{ML_text v} or @{ML_text x}.
 
-  \item Tactics (\secref{sec:tactics}) are sufficiently important to
+  \<^item> Tactics (\secref{sec:tactics}) are sufficiently important to
   have specific naming conventions.  The name of a basic tactic
   definition always has a @{ML_text "_tac"} suffix, the subgoal index
   (if applicable) is always called @{ML_text i}, and the goal state
@@ -269,9 +257,7 @@ text \<open>Since ML is the primary medium to express the meaning of the
   before the latter two, and the general context is given first.
   Example:
 
-  \begin{verbatim}
-  fun my_tac ctxt arg1 arg2 i st = ...
-  \end{verbatim}
+  @{verbatim [display] \<open>  fun my_tac ctxt arg1 arg2 i st = ...\<close>}
 
   Note that the goal state @{ML_text st} above is rarely made
   explicit, if tactic combinators (tacticals) are used as usual.
@@ -280,8 +266,6 @@ text \<open>Since ML is the primary medium to express the meaning of the
   in the @{verbatim ctxt} argument above. Do not refer to the background
   theory of @{verbatim st} -- it is not a proper context, but merely a formal
   certificate.
-
-  \end{itemize}
 \<close>
 
 
@@ -307,16 +291,16 @@ text \<open>
   defines positioning of spaces for parentheses, punctuation, and
   infixes as illustrated here:
 
-  \begin{verbatim}
-  val x = y + z * (a + b);
+  @{verbatim [display]
+\<open>  val x = y + z * (a + b);
   val pair = (a, b);
-  val record = {foo = 1, bar = 2};
-  \end{verbatim}
+  val record = {foo = 1, bar = 2};\<close>}
 
   Lines are normally broken \emph{after} an infix operator or
   punctuation character.  For example:
 
-  \begin{verbatim}
+  @{verbatim [display]
+\<open>
   val x =
     a +
     b +
@@ -326,7 +310,7 @@ text \<open>
    (a,
     b,
     c);
-  \end{verbatim}
+\<close>}
 
   Some special infixes (e.g.\ @{ML_text "|>"}) work better at the
   start of the line, but punctuation is always at the end.
@@ -354,8 +338,8 @@ text \<open>
   nesting depth, not the accidental length of the text that initiates
   a level of nesting.  Example:
 
-  \begin{verbatim}
-  (* RIGHT *)
+  @{verbatim [display]
+\<open>  (* RIGHT *)
 
   if b then
     expr1_part1
@@ -370,8 +354,7 @@ text \<open>
   if b then expr1_part1
             expr1_part2
   else expr2_part1
-       expr2_part2
-  \end{verbatim}
+       expr2_part2\<close>}
 
   The second form has many problems: it assumes a fixed-width font
   when viewing the sources, it uses more space on the line and thus
@@ -395,8 +378,8 @@ text \<open>
   @{ML_text case} get extra indentation to indicate the nesting
   clearly.  Example:
 
-  \begin{verbatim}
-  (* RIGHT *)
+  @{verbatim [display]
+\<open>  (* RIGHT *)
 
   fun foo p1 =
         expr1
@@ -409,16 +392,15 @@ text \<open>
   fun foo p1 =
     expr1
     | foo p2 =
-    expr2
-  \end{verbatim}
+    expr2\<close>}
 
   Body expressions consisting of @{ML_text case} or @{ML_text let}
   require care to maintain compositionality, to prevent loss of
   logical indentation where it is especially important to see the
   structure of the text.  Example:
 
-  \begin{verbatim}
-  (* RIGHT *)
+  @{verbatim [display]
+\<open>  (* RIGHT *)
 
   fun foo p1 =
         (case e of
@@ -442,8 +424,7 @@ text \<open>
       ...
     in
       ...
-    end
-  \end{verbatim}
+    end\<close>}
 
   Extra parentheses around @{ML_text case} expressions are optional,
   but help to analyse the nesting based on character matching in the
@@ -453,41 +434,36 @@ text \<open>
   There are two main exceptions to the overall principle of
   compositionality in the layout of complex expressions.
 
-  \begin{enumerate}
-
   \<^enum> @{ML_text "if"} expressions are iterated as if ML had multi-branch
   conditionals, e.g.
 
-  \begin{verbatim}
-  (* RIGHT *)
+  @{verbatim [display]
+\<open>  (* RIGHT *)
 
   if b1 then e1
   else if b2 then e2
-  else e3
-  \end{verbatim}
+  else e3\<close>}
 
   \<^enum> @{ML_text fn} abstractions are often layed-out as if they
   would lack any structure by themselves.  This traditional form is
   motivated by the possibility to shift function arguments back and
   forth wrt.\ additional combinators.  Example:
 
-  \begin{verbatim}
-  (* RIGHT *)
+  @{verbatim [display]
+\<open>  (* RIGHT *)
 
   fun foo x y = fold (fn z =>
-    expr)
-  \end{verbatim}
+    expr)\<close>}
 
   Here the visual appearance is that of three arguments @{ML_text x},
   @{ML_text y}, @{ML_text z} in a row.
 
-  \end{enumerate}
 
   Such weakly structured layout should be use with great care.  Here
   are some counter-examples involving @{ML_text let} expressions:
 
-  \begin{verbatim}
-  (* WRONG *)
+  @{verbatim [display]
+\<open>  (* WRONG *)
 
   fun foo x = let
       val y = ...
@@ -515,8 +491,7 @@ text \<open>
     let
       val y = ...
     in
-      ... end
-  \end{verbatim}
+      ... end\<close>}
 
   \<^medskip>
   In general the source layout is meant to emphasize the
@@ -646,25 +621,22 @@ text %mlref \<open>
   @{index_ML ML_Thms.bind_thm: "string * thm -> unit"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML "ML_Context.the_generic_context ()"} refers to the theory
+  \<^descr> @{ML "ML_Context.the_generic_context ()"} refers to the theory
   context of the ML toplevel --- at compile time.  ML code needs to
   take care to refer to @{ML "ML_Context.the_generic_context ()"}
   correctly.  Recall that evaluation of a function body is delayed
   until actual run-time.
 
-  \item @{ML "Context.>>"}~@{text f} applies context transformation
+  \<^descr> @{ML "Context.>>"}~@{text f} applies context transformation
   @{text f} to the implicit context of the ML toplevel.
 
-  \item @{ML ML_Thms.bind_thms}~@{text "(name, thms)"} stores a list of
+  \<^descr> @{ML ML_Thms.bind_thms}~@{text "(name, thms)"} stores a list of
   theorems produced in ML both in the (global) theory context and the
   ML toplevel, associating it with the provided name.
 
-  \item @{ML ML_Thms.bind_thm} is similar to @{ML ML_Thms.bind_thms} but
+  \<^descr> @{ML ML_Thms.bind_thm} is similar to @{ML ML_Thms.bind_thms} but
   refers to a singleton fact.
 
-  \end{description}
 
   It is important to note that the above functions are really
   restricted to the compile time, even though the ML compiler is
@@ -725,19 +697,15 @@ text %mlantiq \<open>
   @@{ML_antiquotation print} @{syntax name}?
   \<close>}
 
-  \begin{description}
-
-  \item @{text "@{make_string}"} inlines a function to print arbitrary values
+  \<^descr> @{text "@{make_string}"} inlines a function to print arbitrary values
   similar to the ML toplevel. The result is compiler dependent and may fall
   back on "?" in certain situations. The value of configuration option
   @{attribute_ref ML_print_depth} determines further details of output.
 
-  \item @{text "@{print f}"} uses the ML function @{text "f: string ->
+  \<^descr> @{text "@{print f}"} uses the ML function @{text "f: string ->
   unit"} to output the result of @{text "@{make_string}"} above,
   together with the source position of the antiquotation.  The default
   output function is @{ML writeln}.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following artificial examples show how to produce
@@ -907,19 +875,16 @@ text %mlref \<open>
   @{index_ML fold_map: "('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML fold}~@{text f} lifts the parametrized update function
+  \<^descr> @{ML fold}~@{text f} lifts the parametrized update function
   @{text "f"} to a list of parameters.
 
-  \item @{ML fold_rev}~@{text "f"} is similar to @{ML fold}~@{text
+  \<^descr> @{ML fold_rev}~@{text "f"} is similar to @{ML fold}~@{text
   "f"}, but works inside-out, as if the list would be reversed.
 
-  \item @{ML fold_map}~@{text "f"} lifts the parametrized update
+  \<^descr> @{ML fold_map}~@{text "f"} lifts the parametrized update
   function @{text "f"} (with side-result) to a list of parameters and
   cumulative side-results.
 
-  \end{description}
 
   \begin{warn}
   The literature on functional programming provides a confusing multitude of
@@ -1033,13 +998,11 @@ text %mlref \<open>
   @{index_ML error: "string -> 'a"} % FIXME Output.error_message (!?) \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML writeln}~@{text "text"} outputs @{text "text"} as regular
+  \<^descr> @{ML writeln}~@{text "text"} outputs @{text "text"} as regular
   message.  This is the primary message output operation of Isabelle
   and should be used by default.
 
-  \item @{ML tracing}~@{text "text"} outputs @{text "text"} as special
+  \<^descr> @{ML tracing}~@{text "text"} outputs @{text "text"} as special
   tracing message, indicating potential high-volume output to the
   front-end (hundreds or thousands of messages issued by a single
   command).  The idea is to allow the user-interface to downgrade the
@@ -1049,11 +1012,11 @@ text %mlref \<open>
   output, e.g.\ switch to a different output window.  So this channel
   should not be used for regular output.
 
-  \item @{ML warning}~@{text "text"} outputs @{text "text"} as
+  \<^descr> @{ML warning}~@{text "text"} outputs @{text "text"} as
   warning, which typically means some extra emphasis on the front-end
   side (color highlighting, icons, etc.).
 
-  \item @{ML error}~@{text "text"} raises exception @{ML ERROR}~@{text
+  \<^descr> @{ML error}~@{text "text"} raises exception @{ML ERROR}~@{text
   "text"} and thus lets the Isar toplevel print @{text "text"} on the
   error channel, which typically means some extra emphasis on the
   front-end side (color highlighting, icons, etc.).
@@ -1068,7 +1031,6 @@ text %mlref \<open>
   this is normally not used directly in user code.
   \end{warn}
 
-  \end{description}
 
   \begin{warn}
   Regular Isabelle/ML code should output messages exclusively by the
@@ -1215,40 +1177,36 @@ text %mlref \<open>
   @{index_ML Runtime.exn_trace: "(unit -> 'a) -> 'a"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML try}~@{text "f x"} makes the partiality of evaluating
+  \<^descr> @{ML try}~@{text "f x"} makes the partiality of evaluating
   @{text "f x"} explicit via the option datatype.  Interrupts are
   \emph{not} handled here, i.e.\ this form serves as safe replacement
   for the \emph{unsafe} version @{ML_text "(SOME"}~@{text "f
   x"}~@{ML_text "handle _ => NONE)"} that is occasionally seen in
   books about SML97, but not in Isabelle/ML.
 
-  \item @{ML can} is similar to @{ML try} with more abstract result.
+  \<^descr> @{ML can} is similar to @{ML try} with more abstract result.
 
-  \item @{ML ERROR}~@{text "msg"} represents user errors; this
+  \<^descr> @{ML ERROR}~@{text "msg"} represents user errors; this
   exception is normally raised indirectly via the @{ML error} function
   (see \secref{sec:message-channels}).
 
-  \item @{ML Fail}~@{text "msg"} represents general program failures.
+  \<^descr> @{ML Fail}~@{text "msg"} represents general program failures.
 
-  \item @{ML Exn.is_interrupt} identifies interrupts robustly, without
+  \<^descr> @{ML Exn.is_interrupt} identifies interrupts robustly, without
   mentioning concrete exception constructors in user code.  Handled
   interrupts need to be re-raised promptly!
 
-  \item @{ML reraise}~@{text "exn"} raises exception @{text "exn"}
+  \<^descr> @{ML reraise}~@{text "exn"} raises exception @{text "exn"}
   while preserving its implicit position information (if possible,
   depending on the ML platform).
 
-  \item @{ML Runtime.exn_trace}~@{ML_text "(fn () =>"}~@{text
+  \<^descr> @{ML Runtime.exn_trace}~@{ML_text "(fn () =>"}~@{text
   "e"}@{ML_text ")"} evaluates expression @{text "e"} while printing
   a full trace of its stack of nested exceptions (if possible,
   depending on the ML platform).
 
   Inserting @{ML Runtime.exn_trace} into ML code temporarily is
   useful for debugging, but not suitable for production code.
-
-  \end{description}
 \<close>
 
 text %mlantiq \<open>
@@ -1256,14 +1214,10 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "assert"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{description}
-
-  \item @{text "@{assert}"} inlines a function
+  \<^descr> @{text "@{assert}"} inlines a function
   @{ML_type "bool -> unit"} that raises @{ML Fail} if the argument is
   @{ML false}.  Due to inlining the source position of failed
   assertions is included in the error output.
-
-  \end{description}
 \<close>
 
 
@@ -1275,8 +1229,6 @@ text \<open>A \emph{symbol} constitutes the smallest textual unit in
   as a packed string or an exploded list of strings.  Each symbol is
   in itself a small string, which has either one of the following
   forms:
-
-  \begin{enumerate}
 
   \<^enum> a single ASCII character ``@{text "c"}'', for example
   ``@{verbatim a}'',
@@ -1298,7 +1250,6 @@ text \<open>A \emph{symbol} constitutes the smallest textual unit in
   "<^raw"}@{text n}@{verbatim ">"}, where @{text n} consists of digits, for
   example ``@{verbatim "\<^raw42>"}''.
 
-  \end{enumerate}
 
   The @{text "ident"} syntax for symbol names is @{text "letter
   (letter | digit)\<^sup>*"}, where @{text "letter = A..Za..z"} and @{text
@@ -1337,33 +1288,30 @@ text %mlref \<open>
   @{index_ML Symbol.decode: "Symbol.symbol -> Symbol.sym"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type "Symbol.symbol"} represents individual Isabelle
+  \<^descr> Type @{ML_type "Symbol.symbol"} represents individual Isabelle
   symbols.
 
-  \item @{ML "Symbol.explode"}~@{text "str"} produces a symbol list
+  \<^descr> @{ML "Symbol.explode"}~@{text "str"} produces a symbol list
   from the packed form.  This function supersedes @{ML
   "String.explode"} for virtually all purposes of manipulating text in
   Isabelle!\footnote{The runtime overhead for exploded strings is
   mainly that of the list structure: individual symbols that happen to
   be a singleton string do not require extra memory in Poly/ML.}
 
-  \item @{ML "Symbol.is_letter"}, @{ML "Symbol.is_digit"}, @{ML
+  \<^descr> @{ML "Symbol.is_letter"}, @{ML "Symbol.is_digit"}, @{ML
   "Symbol.is_quasi"}, @{ML "Symbol.is_blank"} classify standard
   symbols according to fixed syntactic conventions of Isabelle, cf.\
   @{cite "isabelle-isar-ref"}.
 
-  \item Type @{ML_type "Symbol.sym"} is a concrete datatype that
+  \<^descr> Type @{ML_type "Symbol.sym"} is a concrete datatype that
   represents the different kinds of symbols explicitly, with
   constructors @{ML "Symbol.Char"}, @{ML "Symbol.UTF8"},
   @{ML "Symbol.Sym"}, @{ML "Symbol.Ctrl"}, @{ML "Symbol.Raw"},
   @{ML "Symbol.Malformed"}.
 
-  \item @{ML "Symbol.decode"} converts the string representation of a
+  \<^descr> @{ML "Symbol.decode"} converts the string representation of a
   symbol into the datatype version.
 
-  \end{description}
 
   \paragraph{Historical note.} In the original SML90 standard the
   primitive ML type @{ML_type char} did not exists, and @{ML_text
@@ -1399,13 +1347,9 @@ text %mlref \<open>
   @{index_ML_type char} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type char} is \emph{not} used.  The smallest textual
+  \<^descr> Type @{ML_type char} is \emph{not} used.  The smallest textual
   unit in Isabelle is represented as a ``symbol'' (see
   \secref{sec:symbols}).
-
-  \end{description}
 \<close>
 
 
@@ -1416,9 +1360,7 @@ text %mlref \<open>
   @{index_ML_type string} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type string} represents immutable vectors of 8-bit
+  \<^descr> Type @{ML_type string} represents immutable vectors of 8-bit
   characters.  There are operations in SML to convert back and forth
   to actual byte vectors, which are seldom used.
 
@@ -1426,22 +1368,16 @@ text %mlref \<open>
   Isabelle-specific purposes with the following implicit substructures
   packed into the string content:
 
-  \begin{enumerate}
-
-  \<^enum> sequence of Isabelle symbols (see also \secref{sec:symbols}),
-  with @{ML Symbol.explode} as key operation;
-
-  \<^enum> XML tree structure via YXML (see also @{cite "isabelle-system"}),
-  with @{ML YXML.parse_body} as key operation.
-
-  \end{enumerate}
+    \<^enum> sequence of Isabelle symbols (see also \secref{sec:symbols}),
+    with @{ML Symbol.explode} as key operation;
+  
+    \<^enum> XML tree structure via YXML (see also @{cite "isabelle-system"}),
+    with @{ML YXML.parse_body} as key operation.
 
   Note that Isabelle/ML string literals may refer Isabelle symbols like
   ``@{verbatim \<alpha>}'' natively, \emph{without} escaping the backslash. This is a
   consequence of Isabelle treating all source text as strings of symbols,
   instead of raw characters.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The subsequent example illustrates the difference of
@@ -1471,9 +1407,7 @@ text %mlref \<open>
   @{index_ML_type int} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type int} represents regular mathematical integers, which
+  \<^descr> Type @{ML_type int} represents regular mathematical integers, which
   are \emph{unbounded}. Overflow is treated properly, but should never happen
   in practice.\footnote{The size limit for integer bit patterns in memory is
   64\,MB for 32-bit Poly/ML, and much higher for 64-bit systems.} This works
@@ -1486,8 +1420,6 @@ text %mlref \<open>
   @{ML_structure Int}.  Structure @{ML_structure Integer} in @{file
   "~~/src/Pure/General/integer.ML"} provides some additional
   operations.
-
-  \end{description}
 \<close>
 
 
@@ -1499,19 +1431,15 @@ text %mlref \<open>
   @{index_ML seconds: "real -> Time.time"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type Time.time} represents time abstractly according
+  \<^descr> Type @{ML_type Time.time} represents time abstractly according
   to the SML97 basis library definition.  This is adequate for
   internal ML operations, but awkward in concrete time specifications.
 
-  \item @{ML seconds}~@{text "s"} turns the concrete scalar @{text
+  \<^descr> @{ML seconds}~@{text "s"} turns the concrete scalar @{text
   "s"} (measured in seconds) into an abstract time value.  Floating
   point numbers are easy to use as configuration options in the
   context (see \secref{sec:config-options}) or system options that
   are maintained externally.
-
-  \end{description}
 \<close>
 
 
@@ -1551,15 +1479,13 @@ text %mlref \<open>
   @{index_ML update: "('a * 'a -> bool) -> 'a -> 'a list -> 'a list"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML cons}~@{text "x xs"} evaluates to @{text "x :: xs"}.
+  \<^descr> @{ML cons}~@{text "x xs"} evaluates to @{text "x :: xs"}.
 
   Tupled infix operators are a historical accident in Standard ML.
   The curried @{ML cons} amends this, but it should be only used when
   partial application is required.
 
-  \item @{ML member}, @{ML insert}, @{ML remove}, @{ML update} treat
+  \<^descr> @{ML member}, @{ML insert}, @{ML remove}, @{ML update} treat
   lists as a set-like container that maintains the order of elements.
   See @{file "~~/src/Pure/library.ML"} for the full specifications
   (written in ML).  There are some further derived operations like
@@ -1571,8 +1497,6 @@ text %mlref \<open>
   often more appropriate in declarations of context data
   (\secref{sec:context-data}) that are issued by the user in Isar
   source: later declarations take precedence over earlier ones.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>Using canonical @{ML fold} together with @{ML cons} (or
@@ -1627,9 +1551,7 @@ text \<open>
   @{index_ML AList.update: "('a * 'a -> bool) -> 'a * 'b -> ('a * 'b) list -> ('a * 'b) list"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML AList.lookup}, @{ML AList.defined}, @{ML AList.update}
+  \<^descr> @{ML AList.lookup}, @{ML AList.defined}, @{ML AList.update}
   implement the main ``framework operations'' for mappings in
   Isabelle/ML, following standard conventions for their names and
   types.
@@ -1644,7 +1566,6 @@ text \<open>
   justify its independent existence.  This also gives the
   implementation some opportunity for peep-hole optimization.
 
-  \end{description}
 
   Association lists are adequate as simple implementation of finite mappings
   in many practical situations. A more advanced table structure is defined in
@@ -1762,8 +1683,6 @@ text \<open>Thread-safeness is mainly concerned about concurrent
   read/write access to shared resources, which are outside the purely
   functional world of ML.  This covers the following in particular.
 
-  \begin{itemize}
-
   \<^item> Global references (or arrays), i.e.\ mutable memory cells that
   persist over several invocations of associated
   operations.\footnote{This is independent of the visibility of such
@@ -1775,15 +1694,12 @@ text \<open>Thread-safeness is mainly concerned about concurrent
   \<^item> Writable resources in the file-system that are shared among
   different threads or external processes.
 
-  \end{itemize}
 
   Isabelle/ML provides various mechanisms to avoid critical shared
   resources in most situations.  As last resort there are some
   mechanisms for explicit synchronization.  The following guidelines
   help to make Isabelle/ML programs work smoothly in a concurrent
   environment.
-
-  \begin{itemize}
 
   \<^item> Avoid global references altogether.  Isabelle/Isar maintains a
   uniform context that incorporates arbitrary data declared by user
@@ -1824,8 +1740,6 @@ text \<open>Thread-safeness is mainly concerned about concurrent
   serial numbers in Isabelle/ML.  Thus temporary files that are passed
   to to some external process will be always disjoint, and thus
   thread-safe.
-
-  \end{itemize}
 \<close>
 
 text %mlref \<open>
@@ -1834,16 +1748,12 @@ text %mlref \<open>
   @{index_ML serial_string: "unit -> string"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML File.tmp_path}~@{text "path"} relocates the base
+  \<^descr> @{ML File.tmp_path}~@{text "path"} relocates the base
   component of @{text "path"} into the unique temporary directory of
   the running Isabelle/ML process.
 
-  \item @{ML serial_string}~@{text "()"} creates a new serial number
+  \<^descr> @{ML serial_string}~@{text "()"} creates a new serial number
   that is unique over the runtime of the Isabelle/ML process.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following example shows how to create unique
@@ -1881,16 +1791,14 @@ text %mlref \<open>
   ('a -> ('b * 'a) option) -> 'b"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type "'a Synchronized.var"} represents synchronized
+  \<^descr> Type @{ML_type "'a Synchronized.var"} represents synchronized
   variables with state of type @{ML_type 'a}.
 
-  \item @{ML Synchronized.var}~@{text "name x"} creates a synchronized
+  \<^descr> @{ML Synchronized.var}~@{text "name x"} creates a synchronized
   variable that is initialized with value @{text "x"}.  The @{text
   "name"} is used for tracing.
 
-  \item @{ML Synchronized.guarded_access}~@{text "var f"} lets the
+  \<^descr> @{ML Synchronized.guarded_access}~@{text "var f"} lets the
   function @{text "f"} operate within a critical section on the state
   @{text "x"} as follows: if @{text "f x"} produces @{ML NONE}, it
   continues to wait on the internal condition variable, expecting that
@@ -1900,7 +1808,6 @@ text %mlref \<open>
   signal to all waiting threads on the associated condition variable,
   and returns the result @{text "y"}.
 
-  \end{description}
 
   There are some further variants of the @{ML
   Synchronized.guarded_access} combinator, see @{file
@@ -1994,40 +1901,36 @@ text %mlref \<open>
   @{index_ML Par_Exn.release_first: "'a Exn.result list -> 'a list"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type "'a Exn.result"} represents the disjoint sum of
+  \<^descr> Type @{ML_type "'a Exn.result"} represents the disjoint sum of
   ML results explicitly, with constructor @{ML Exn.Res} for regular
   values and @{ML "Exn.Exn"} for exceptions.
 
-  \item @{ML Exn.capture}~@{text "f x"} manages the evaluation of
+  \<^descr> @{ML Exn.capture}~@{text "f x"} manages the evaluation of
   @{text "f x"} such that exceptions are made explicit as @{ML
   "Exn.Exn"}.  Note that this includes physical interrupts (see also
   \secref{sec:exceptions}), so the same precautions apply to user
   code: interrupts must not be absorbed accidentally!
 
-  \item @{ML Exn.interruptible_capture} is similar to @{ML
+  \<^descr> @{ML Exn.interruptible_capture} is similar to @{ML
   Exn.capture}, but interrupts are immediately re-raised as required
   for user code.
 
-  \item @{ML Exn.release}~@{text "result"} releases the original
+  \<^descr> @{ML Exn.release}~@{text "result"} releases the original
   runtime result, exposing its regular value or raising the reified
   exception.
 
-  \item @{ML Par_Exn.release_all}~@{text "results"} combines results
+  \<^descr> @{ML Par_Exn.release_all}~@{text "results"} combines results
   that were produced independently (e.g.\ by parallel evaluation).  If
   all results are regular values, that list is returned.  Otherwise,
   the collection of all exceptions is raised, wrapped-up as collective
   parallel exception.  Note that the latter prevents access to
   individual exceptions by conventional @{verbatim "handle"} of ML.
 
-  \item @{ML Par_Exn.release_first} is similar to @{ML
+  \<^descr> @{ML Par_Exn.release_first} is similar to @{ML
   Par_Exn.release_all}, but only the first (meaningful) exception that has
   occurred in the original evaluation process is raised again, the others are
   ignored.  That single exception may get handled by conventional
   means in ML.
-
-  \end{description}
 \<close>
 
 
@@ -2055,9 +1958,7 @@ text %mlref \<open>
   @{index_ML Par_List.get_some: "('a -> 'b option) -> 'a list -> 'b option"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML Par_List.map}~@{text "f [x\<^sub>1, \<dots>, x\<^sub>n]"} is like @{ML
+  \<^descr> @{ML Par_List.map}~@{text "f [x\<^sub>1, \<dots>, x\<^sub>n]"} is like @{ML
   "map"}~@{text "f [x\<^sub>1, \<dots>, x\<^sub>n]"}, but the evaluation of @{text "f x\<^sub>i"}
   for @{text "i = 1, \<dots>, n"} is performed in parallel.
 
@@ -2067,7 +1968,7 @@ text %mlref \<open>
   program exception that happened to occur in the parallel evaluation
   is propagated, and all other failures are ignored.
 
-  \item @{ML Par_List.get_some}~@{text "f [x\<^sub>1, \<dots>, x\<^sub>n]"} produces some
+  \<^descr> @{ML Par_List.get_some}~@{text "f [x\<^sub>1, \<dots>, x\<^sub>n]"} produces some
   @{text "f x\<^sub>i"} that is of the form @{text "SOME y\<^sub>i"}, if that
   exists, otherwise @{text "NONE"}.  Thus it is similar to @{ML
   Library.get_first}, but subject to a non-deterministic parallel
@@ -2078,8 +1979,6 @@ text %mlref \<open>
   This generic parallel choice combinator is the basis for derived
   forms, such as @{ML Par_List.find_some}, @{ML Par_List.exists}, @{ML
   Par_List.forall}.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>Subsequently, the Ackermann function is evaluated in
@@ -2128,25 +2027,21 @@ text %mlref \<open>
   @{index_ML Lazy.force: "'a lazy -> 'a"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type "'a lazy"} represents lazy values over type @{verbatim
+  \<^descr> Type @{ML_type "'a lazy"} represents lazy values over type @{verbatim
   "'a"}.
 
-  \item @{ML Lazy.lazy}~@{text "(fn () => e)"} wraps the unevaluated
+  \<^descr> @{ML Lazy.lazy}~@{text "(fn () => e)"} wraps the unevaluated
   expression @{text e} as unfinished lazy value.
 
-  \item @{ML Lazy.value}~@{text a} wraps the value @{text a} as finished lazy
+  \<^descr> @{ML Lazy.value}~@{text a} wraps the value @{text a} as finished lazy
   value.  When forced, it returns @{text a} without any further evaluation.
 
   There is very low overhead for this proforma wrapping of strict values as
   lazy values.
 
-  \item @{ML Lazy.force}~@{text x} produces the result of the lazy value in a
+  \<^descr> @{ML Lazy.force}~@{text x} produces the result of the lazy value in a
   thread-safe manner as explained above. Thus it may cause the current thread
   to wait on a pending evaluation attempt by another thread.
-
-  \end{description}
 \<close>
 
 
@@ -2221,59 +2116,53 @@ text %mlref \<open>
   @{index_ML Future.fulfill: "'a future -> 'a -> unit"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type "'a future"} represents future values over type
+  \<^descr> Type @{ML_type "'a future"} represents future values over type
   @{verbatim "'a"}.
 
-  \item @{ML Future.fork}~@{text "(fn () => e)"} registers the unevaluated
+  \<^descr> @{ML Future.fork}~@{text "(fn () => e)"} registers the unevaluated
   expression @{text e} as unfinished future value, to be evaluated eventually
   on the parallel worker-thread farm. This is a shorthand for @{ML
   Future.forks} below, with default parameters and a single expression.
 
-  \item @{ML Future.forks}~@{text "params exprs"} is the general interface to
+  \<^descr> @{ML Future.forks}~@{text "params exprs"} is the general interface to
   fork several futures simultaneously. The @{text params} consist of the
   following fields:
 
-  \begin{itemize}
+    \<^item> @{text "name : string"} (default @{ML "\"\""}) specifies a common name
+    for the tasks of the forked futures, which serves diagnostic purposes.
 
-  \<^item> @{text "name : string"} (default @{ML "\"\""}) specifies a common name
-  for the tasks of the forked futures, which serves diagnostic purposes.
+    \<^item> @{text "group : Future.group option"} (default @{ML NONE}) specifies
+    an optional task group for the forked futures. @{ML NONE} means that a new
+    sub-group of the current worker-thread task context is created. If this is
+    not a worker thread, the group will be a new root in the group hierarchy.
 
-  \<^item> @{text "group : Future.group option"} (default @{ML NONE}) specifies
-  an optional task group for the forked futures. @{ML NONE} means that a new
-  sub-group of the current worker-thread task context is created. If this is
-  not a worker thread, the group will be a new root in the group hierarchy.
+    \<^item> @{text "deps : Future.task list"} (default @{ML "[]"}) specifies
+    dependencies on other future tasks, i.e.\ the adjacency relation in the
+    global task queue. Dependencies on already finished tasks are ignored.
 
-  \<^item> @{text "deps : Future.task list"} (default @{ML "[]"}) specifies
-  dependencies on other future tasks, i.e.\ the adjacency relation in the
-  global task queue. Dependencies on already finished tasks are ignored.
+    \<^item> @{text "pri : int"} (default @{ML 0}) specifies a priority within the
+    task queue.
 
-  \<^item> @{text "pri : int"} (default @{ML 0}) specifies a priority within the
-  task queue.
+    Typically there is only little deviation from the default priority @{ML 0}.
+    As a rule of thumb, @{ML "~1"} means ``low priority" and @{ML 1} means
+    ``high priority''.
 
-  Typically there is only little deviation from the default priority @{ML 0}.
-  As a rule of thumb, @{ML "~1"} means ``low priority" and @{ML 1} means
-  ``high priority''.
+    Note that the task priority only affects the position in the queue, not the
+    thread priority. When a worker thread picks up a task for processing, it
+    runs with the normal thread priority to the end (or until canceled). Higher
+    priority tasks that are queued later need to wait until this (or another)
+    worker thread becomes free again.
 
-  Note that the task priority only affects the position in the queue, not the
-  thread priority. When a worker thread picks up a task for processing, it
-  runs with the normal thread priority to the end (or until canceled). Higher
-  priority tasks that are queued later need to wait until this (or another)
-  worker thread becomes free again.
+    \<^item> @{text "interrupts : bool"} (default @{ML true}) tells whether the
+    worker thread that processes the corresponding task is initially put into
+    interruptible state. This state may change again while running, by modifying
+    the thread attributes.
 
-  \<^item> @{text "interrupts : bool"} (default @{ML true}) tells whether the
-  worker thread that processes the corresponding task is initially put into
-  interruptible state. This state may change again while running, by modifying
-  the thread attributes.
+    With interrupts disabled, a running future task cannot be canceled.  It is
+    the responsibility of the programmer that this special state is retained
+    only briefly.
 
-  With interrupts disabled, a running future task cannot be canceled.  It is
-  the responsibility of the programmer that this special state is retained
-  only briefly.
-
-  \end{itemize}
-
-  \item @{ML Future.join}~@{text x} retrieves the value of an already finished
+  \<^descr> @{ML Future.join}~@{text x} retrieves the value of an already finished
   future, which may lead to an exception, according to the result of its
   previous evaluation.
 
@@ -2295,7 +2184,7 @@ text %mlref \<open>
   explicitly when forked (see @{text deps} above). Thus the evaluation can
   work from the bottom up, without join conflicts and wait states.
 
-  \item @{ML Future.joins}~@{text xs} joins the given list of futures
+  \<^descr> @{ML Future.joins}~@{text xs} joins the given list of futures
   simultaneously, which is more efficient than @{ML "map Future.join"}~@{text
   xs}.
 
@@ -2305,23 +2194,23 @@ text %mlref \<open>
   presently evaluated on other threads only happens as last resort, when no
   other unfinished futures are left over.
 
-  \item @{ML Future.value}~@{text a} wraps the value @{text a} as finished
+  \<^descr> @{ML Future.value}~@{text a} wraps the value @{text a} as finished
   future value, bypassing the worker-thread farm. When joined, it returns
   @{text a} without any further evaluation.
 
   There is very low overhead for this proforma wrapping of strict values as
   futures.
 
-  \item @{ML Future.map}~@{text "f x"} is a fast-path implementation of @{ML
+  \<^descr> @{ML Future.map}~@{text "f x"} is a fast-path implementation of @{ML
   Future.fork}~@{text "(fn () => f ("}@{ML Future.join}~@{text "x))"}, which
   avoids the full overhead of the task queue and worker-thread farm as far as
   possible. The function @{text f} is supposed to be some trivial
   post-processing or projection of the future result.
 
-  \item @{ML Future.cancel}~@{text "x"} cancels the task group of the given
+  \<^descr> @{ML Future.cancel}~@{text "x"} cancels the task group of the given
   future, using @{ML Future.cancel_group} below.
 
-  \item @{ML Future.cancel_group}~@{text "group"} cancels all tasks of the
+  \<^descr> @{ML Future.cancel_group}~@{text "group"} cancels all tasks of the
   given task group for all time. Threads that are presently processing a task
   of the given group are interrupted: it may take some time until they are
   actually terminated. Tasks that are queued but not yet processed are
@@ -2329,15 +2218,13 @@ text %mlref \<open>
   invalidated, any further attempt to fork a future that belongs to it will
   yield a canceled result as well.
 
-  \item @{ML Future.promise}~@{text abort} registers a passive future with the
+  \<^descr> @{ML Future.promise}~@{text abort} registers a passive future with the
   given @{text abort} operation: it is invoked when the future task group is
   canceled.
 
-  \item @{ML Future.fulfill}~@{text "x a"} finishes the passive future @{text
+  \<^descr> @{ML Future.fulfill}~@{text "x a"} finishes the passive future @{text
   x} by the given value @{text a}. If the promise has already been canceled,
   the attempt to fulfill it causes an exception.
-
-  \end{description}
 \<close>
 
 end

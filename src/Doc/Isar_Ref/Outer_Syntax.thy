@@ -47,15 +47,11 @@ text \<open>
     @@{command help} (@{syntax name} * )
   \<close>}
 
-  \begin{description}
-
-  \item @{command "print_commands"} prints all outer syntax keywords
+  \<^descr> @{command "print_commands"} prints all outer syntax keywords
   and commands.
 
-  \item @{command "help"}~@{text "pats"} retrieves outer syntax
+  \<^descr> @{command "help"}~@{text "pats"} retrieves outer syntax
   commands according to the specified name patterns.
-
-  \end{description}
 \<close>
 
 
@@ -73,8 +69,6 @@ section \<open>Lexical matters \label{sec:outer-lex}\<close>
 text \<open>The outer lexical syntax consists of three main categories of
   syntax tokens:
 
-  \begin{enumerate}
-
   \<^enum> \emph{major keywords} --- the command names that are available
   in the present logic session;
 
@@ -83,7 +77,6 @@ text \<open>The outer lexical syntax consists of three main categories of
 
   \<^enum> \emph{named tokens} --- various categories of identifiers etc.
 
-  \end{enumerate}
 
   Major keywords and minor keywords are guaranteed to be disjoint.
   This helps user-interfaces to determine the overall structure of a
@@ -412,7 +405,6 @@ text \<open>Attributes have their own ``semi-inner'' syntax, in the sense
   result.
 
   There are three forms of theorem references:
-  \begin{enumerate}
 
   \<^enum> named facts @{text "a"},
 
@@ -422,7 +414,6 @@ text \<open>Attributes have their own ``semi-inner'' syntax, in the sense
   @{verbatim "`"}@{text "\<phi>"}@{verbatim "`"} or @{syntax_ref cartouche}
   @{text "\<open>\<phi>\<close>"} (see also method @{method_ref fact}).
 
-  \end{enumerate}
 
   Any kind of theorem specification may include lists of attributes
   both on the left and right hand sides; attributes are applied to any
@@ -503,37 +494,35 @@ text \<open>
   Note that there are some further ones available, such as for the set
   of rules declared for simplifications.
 
-  \begin{description}
-
-  \item @{command "print_theory"} prints the main logical content of the
+  \<^descr> @{command "print_theory"} prints the main logical content of the
   background theory; the ``@{text "!"}'' option indicates extra verbosity.
 
-  \item @{command "print_definitions"} prints dependencies of definitional
+  \<^descr> @{command "print_definitions"} prints dependencies of definitional
   specifications within the background theory, which may be constants
   \secref{sec:consts} or types (\secref{sec:types-pure},
   \secref{sec:hol-typedef}); the ``@{text "!"}'' option indicates extra
   verbosity.
 
-  \item @{command "print_methods"} prints all proof methods available in the
+  \<^descr> @{command "print_methods"} prints all proof methods available in the
   current theory context; the ``@{text "!"}'' option indicates extra
   verbosity.
 
-  \item @{command "print_attributes"} prints all attributes available in the
+  \<^descr> @{command "print_attributes"} prints all attributes available in the
   current theory context; the ``@{text "!"}'' option indicates extra
   verbosity.
 
-  \item @{command "print_theorems"} prints theorems of the background theory
+  \<^descr> @{command "print_theorems"} prints theorems of the background theory
   resulting from the last command; the ``@{text "!"}'' option indicates
   extra verbosity.
 
-  \item @{command "print_facts"} prints all local facts of the current
+  \<^descr> @{command "print_facts"} prints all local facts of the current
   context, both named and unnamed ones; the ``@{text "!"}'' option indicates
   extra verbosity.
 
-  \item @{command "print_term_bindings"} prints all term bindings that
+  \<^descr> @{command "print_term_bindings"} prints all term bindings that
   are present in the context.
 
-  \item @{command "find_theorems"}~@{text criteria} retrieves facts
+  \<^descr> @{command "find_theorems"}~@{text criteria} retrieves facts
   from the theory or proof context matching all of given search
   criteria.  The criterion @{text "name: p"} selects all theorems
   whose fully qualified name matches pattern @{text p}, which may
@@ -555,7 +544,7 @@ text \<open>
   default, duplicates are removed from the search result. Use
   @{text with_dups} to display duplicates.
 
-  \item @{command "find_consts"}~@{text criteria} prints all constants
+  \<^descr> @{command "find_consts"}~@{text criteria} prints all constants
   whose type meets all of the given criteria. The criterion @{text
   "strict: ty"} is met by any type that matches the type pattern
   @{text ty}.  Patterns may contain both the dummy type ``@{text _}''
@@ -564,19 +553,17 @@ text \<open>
   the prefix ``@{text "-"}'' function as described for @{command
   "find_theorems"}.
 
-  \item @{command "thm_deps"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}
+  \<^descr> @{command "thm_deps"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}
   visualizes dependencies of facts, using Isabelle's graph browser
   tool (see also @{cite "isabelle-system"}).
 
-  \item @{command "unused_thms"}~@{text "A\<^sub>1 \<dots> A\<^sub>m - B\<^sub>1 \<dots> B\<^sub>n"}
+  \<^descr> @{command "unused_thms"}~@{text "A\<^sub>1 \<dots> A\<^sub>m - B\<^sub>1 \<dots> B\<^sub>n"}
   displays all theorems that are proved in theories @{text "B\<^sub>1 \<dots> B\<^sub>n"}
   or their parents but not in @{text "A\<^sub>1 \<dots> A\<^sub>m"} or their parents and
   that are never used.
   If @{text n} is @{text 0}, the end of the range of theories
   defaults to the current theory. If no range is specified,
   only the unused theorems in the current theory are displayed.
-
-  \end{description}
 \<close>
 
 end

@@ -114,50 +114,46 @@ text %mlref \<open>
   ((string * (string * typ)) list * term) * Proof.context"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML Variable.add_fixes}~@{text "xs ctxt"} fixes term
+  \<^descr> @{ML Variable.add_fixes}~@{text "xs ctxt"} fixes term
   variables @{text "xs"}, returning the resulting internal names.  By
   default, the internal representation coincides with the external
   one, which also means that the given variables must not be fixed
   already.  There is a different policy within a local proof body: the
   given names are just hints for newly invented Skolem variables.
 
-  \item @{ML Variable.variant_fixes} is similar to @{ML
+  \<^descr> @{ML Variable.variant_fixes} is similar to @{ML
   Variable.add_fixes}, but always produces fresh variants of the given
   names.
 
-  \item @{ML Variable.declare_term}~@{text "t ctxt"} declares term
+  \<^descr> @{ML Variable.declare_term}~@{text "t ctxt"} declares term
   @{text "t"} to belong to the context.  This automatically fixes new
   type variables, but not term variables.  Syntactic constraints for
   type and term variables are declared uniformly, though.
 
-  \item @{ML Variable.declare_constraints}~@{text "t ctxt"} declares
+  \<^descr> @{ML Variable.declare_constraints}~@{text "t ctxt"} declares
   syntactic constraints from term @{text "t"}, without making it part
   of the context yet.
 
-  \item @{ML Variable.export}~@{text "inner outer thms"} generalizes
+  \<^descr> @{ML Variable.export}~@{text "inner outer thms"} generalizes
   fixed type and term variables in @{text "thms"} according to the
   difference of the @{text "inner"} and @{text "outer"} context,
   following the principles sketched above.
 
-  \item @{ML Variable.polymorphic}~@{text "ctxt ts"} generalizes type
+  \<^descr> @{ML Variable.polymorphic}~@{text "ctxt ts"} generalizes type
   variables in @{text "ts"} as far as possible, even those occurring
   in fixed term variables.  The default policy of type-inference is to
   fix newly introduced type variables, which is essentially reversed
   with @{ML Variable.polymorphic}: here the given terms are detached
   from the context as far as possible.
 
-  \item @{ML Variable.import}~@{text "open thms ctxt"} invents fixed
+  \<^descr> @{ML Variable.import}~@{text "open thms ctxt"} invents fixed
   type and term variables for the schematic ones occurring in @{text
   "thms"}.  The @{text "open"} flag indicates whether the fixed names
   should be accessible to the user, otherwise newly introduced names
   are marked as ``internal'' (\secref{sec:names}).
 
-  \item @{ML Variable.focus}~@{text "bindings B"} decomposes the outermost @{text
+  \<^descr> @{ML Variable.focus}~@{text "bindings B"} decomposes the outermost @{text
   "\<And>"} prefix of proposition @{text "B"}, using the given name bindings.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following example shows how to work with fixed term
@@ -291,36 +287,32 @@ text %mlref \<open>
   @{index_ML Assumption.export: "bool -> Proof.context -> Proof.context -> thm -> thm"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item Type @{ML_type Assumption.export} represents arbitrary export
+  \<^descr> Type @{ML_type Assumption.export} represents arbitrary export
   rules, which is any function of type @{ML_type "bool -> cterm list
   -> thm -> thm"}, where the @{ML_type "bool"} indicates goal mode,
   and the @{ML_type "cterm list"} the collection of assumptions to be
   discharged simultaneously.
 
-  \item @{ML Assumption.assume}~@{text "ctxt A"} turns proposition @{text
+  \<^descr> @{ML Assumption.assume}~@{text "ctxt A"} turns proposition @{text
   "A"} into a primitive assumption @{text "A \<turnstile> A'"}, where the
   conclusion @{text "A'"} is in HHF normal form.
 
-  \item @{ML Assumption.add_assms}~@{text "r As"} augments the context
+  \<^descr> @{ML Assumption.add_assms}~@{text "r As"} augments the context
   by assumptions @{text "As"} with export rule @{text "r"}.  The
   resulting facts are hypothetical theorems as produced by the raw
   @{ML Assumption.assume}.
 
-  \item @{ML Assumption.add_assumes}~@{text "As"} is a special case of
+  \<^descr> @{ML Assumption.add_assumes}~@{text "As"} is a special case of
   @{ML Assumption.add_assms} where the export rule performs @{text
   "\<Longrightarrow>\<hyphen>intro"} or @{text "#\<Longrightarrow>\<hyphen>intro"}, depending on goal
   mode.
 
-  \item @{ML Assumption.export}~@{text "is_goal inner outer thm"}
+  \<^descr> @{ML Assumption.export}~@{text "is_goal inner outer thm"}
   exports result @{text "thm"} from the the @{text "inner"} context
   back into the @{text "outer"} one; @{text "is_goal = true"} means
   this is a goal context.  The result is in HHF normal form.  Note
   that @{ML "Proof_Context.export"} combines @{ML "Variable.export"}
   and @{ML "Assumption.export"} in the canonical way.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following example demonstrates how rules can be
@@ -419,33 +411,31 @@ text %mlref \<open>
   Proof.context -> ((string * cterm) list * thm list) * Proof.context"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item @{ML SUBPROOF}~@{text "tac ctxt i"} decomposes the structure
+  \<^descr> @{ML SUBPROOF}~@{text "tac ctxt i"} decomposes the structure
   of the specified sub-goal, producing an extended context and a
   reduced goal, which needs to be solved by the given tactic.  All
   schematic parameters of the goal are imported into the context as
   fixed ones, which may not be instantiated in the sub-proof.
 
-  \item @{ML Subgoal.FOCUS}, @{ML Subgoal.FOCUS_PREMS}, and @{ML
+  \<^descr> @{ML Subgoal.FOCUS}, @{ML Subgoal.FOCUS_PREMS}, and @{ML
   Subgoal.FOCUS_PARAMS} are similar to @{ML SUBPROOF}, but are
   slightly more flexible: only the specified parts of the subgoal are
   imported into the context, and the body tactic may introduce new
   subgoals and schematic variables.
 
-  \item @{ML Subgoal.focus}, @{ML Subgoal.focus_prems}, @{ML
+  \<^descr> @{ML Subgoal.focus}, @{ML Subgoal.focus_prems}, @{ML
   Subgoal.focus_params} extract the focus information from a goal
   state in the same way as the corresponding tacticals above.  This is
   occasionally useful to experiment without writing actual tactics
   yet.
 
-  \item @{ML Goal.prove}~@{text "ctxt xs As C tac"} states goal @{text
+  \<^descr> @{ML Goal.prove}~@{text "ctxt xs As C tac"} states goal @{text
   "C"} in the context augmented by fixed variables @{text "xs"} and
   assumptions @{text "As"}, and applies tactic @{text "tac"} to solve
   it.  The latter may depend on the local assumptions being presented
   as facts.  The result is in HHF normal form.
 
-  \item @{ML Goal.prove_common}~@{text "ctxt fork_pri"} is the common form
+  \<^descr> @{ML Goal.prove_common}~@{text "ctxt fork_pri"} is the common form
   to state and prove a simultaneous goal statement, where @{ML Goal.prove}
   is a convenient shorthand that is most frequently used in applications.
 
@@ -462,12 +452,10 @@ text %mlref \<open>
   transaction. Thus the system is able to expose error messages ultimately
   to the end-user, even though the subsequent ML code misses them.
 
-  \item @{ML Obtain.result}~@{text "tac thms ctxt"} eliminates the
+  \<^descr> @{ML Obtain.result}~@{text "tac thms ctxt"} eliminates the
   given facts using a tactic, which results in additional fixed
   variables and assumptions in the context.  Final results need to be
   exported explicitly.
-
-  \end{description}
 \<close>
 
 text %mlex \<open>The following minimal example illustrates how to access

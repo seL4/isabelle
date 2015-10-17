@@ -57,14 +57,27 @@ requirements of prover time and GUI space.
 
 *** Document preparation ***
 
-* Isabelle control symbols for markup and formatting:
+* Commands 'paragraph' and 'subparagraph' provide additional section
+headings. Thus there are 6 levels of standard headings, as in HTML.
 
+* Text is structured in paragraphs and nested lists, using notation that
+is similar to Markdown. The control symbols for list items are as
+follows:
+
+  \<^item>  itemize
+  \<^enum>  enumerate
+  \<^descr>  description
+
+* Text may contain control symbols for markup and formatting as follows:
+
+  \<^noindent>   \noindent
   \<^smallskip>   \smallskip
   \<^medskip>   \medskip
   \<^bigskip>   \bigskip
 
-  \<^item>  \item  (itemize)
-  \<^enum>  \item  (enumeration)
+* Command 'text_raw' has been clarified: input text is processed as in
+'text' (with antiquotations and control symbols). The key difference is
+the lack of the surrounding isabelle markup environment in output.
 
 
 *** Isar ***

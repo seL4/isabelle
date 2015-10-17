@@ -8,12 +8,14 @@ signature ANTIQUOTE =
 sig
   type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range}
   datatype 'a antiquote = Text of 'a | Antiq of antiq
-  val antiq_reports: antiq -> Position.report list
-  val antiquote_reports: ('a -> Position.report_text list) ->
-    'a antiquote list -> Position.report_text list
+  type text_antiquote = Symbol_Pos.T list antiquote
+  val range: text_antiquote list -> Position.range
+  val split_lines: text_antiquote list -> text_antiquote list list
+  val antiq_reports: 'a antiquote list -> Position.report list
   val scan_antiq: Symbol_Pos.T list -> antiq * Symbol_Pos.T list
-  val scan_antiquote: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
-  val read: Input.source -> Symbol_Pos.T list antiquote list
+  val scan_antiquote: Symbol_Pos.T list -> text_antiquote * Symbol_Pos.T list
+  val read': Position.T -> Symbol_Pos.T list -> text_antiquote list
+  val read: Input.source -> text_antiquote list
 end;
 
 structure Antiquote: ANTIQUOTE =
@@ -24,15 +26,41 @@ struct
 type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range};
 datatype 'a antiquote = Text of 'a | Antiq of antiq;
 
+type text_antiquote = Symbol_Pos.T list antiquote;
+
+fun antiquote_range (Text ss) = Symbol_Pos.range ss
+  | antiquote_range (Antiq (_, {range, ...})) = range;
+
+fun range ants =
+  if null ants then Position.no_range
+  else Position.range (#1 (antiquote_range (hd ants))) (#2 (antiquote_range (List.last ants)));
+
+
+(* split lines *)
+
+fun split_lines input =
+  let
+    fun add a (line, lines) = (a :: line, lines);
+    fun flush (line, lines) = ([], rev line :: lines);
+    fun split (a as Text ss) =
+          (case take_prefix (fn ("\n", _) => false | _ => true) ss of
+            ([], []) => I
+          | (_, []) => add a
+          | ([], _ :: rest) => flush #> split (Text rest)
+          | (prefix, _ :: rest) => add (Text prefix) #> flush #> split (Text rest))
+      | split a = add a;
+  in if null input then [] else rev (#2 (flush (fold split input ([], [])))) end;
+
 
 (* reports *)
 
-fun antiq_reports ((_, {start, stop, range = (pos, _)}): antiq) =
-  [(start, Markup.antiquote), (stop, Markup.antiquote),
-   (pos, Markup.antiquoted), (pos, Markup.language_antiquotation)];
-
-fun antiquote_reports text =
-  maps (fn Text x => text x | Antiq antiq => map (rpair "") (antiq_reports antiq));
+fun antiq_reports ants = ants |> maps
+  (fn Antiq (_, {start, stop, range = (pos, _)}) =>
+      [(start, Markup.antiquote),
+       (stop, Markup.antiquote),
+       (pos, Markup.antiquoted),
+       (pos, Markup.language_antiquotation)]
+    | _ => []);
 
 
 (* scan *)
@@ -71,10 +99,11 @@ end;
 
 (* read *)
 
-fun read source =
-  (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_antiquote) (Input.source_explode source) of
-    SOME xs => (Position.reports_text (antiquote_reports (K []) xs); xs)
-  | NONE =>
-      error ("Malformed quotation/antiquotation source" ^ Position.here (Input.pos_of source)));
+fun read' pos syms =
+  (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_antiquote) syms of
+    SOME ants => (Position.reports (antiq_reports ants); ants)
+  | NONE => error ("Malformed quotation/antiquotation source" ^ Position.here pos));
+
+fun read source = read' (Input.pos_of source) (Input.source_explode source);
 
 end;

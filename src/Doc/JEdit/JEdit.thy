@@ -18,41 +18,38 @@ text \<open>
   components are fit together in order to make this work. The main building
   blocks are as follows.
 
-  \begin{description}
-
-  \item [PIDE] is a general framework for Prover IDEs based on Isabelle/Scala.
+  \<^descr>[PIDE] is a general framework for Prover IDEs based on Isabelle/Scala.
   It is built around a concept of parallel and asynchronous document
   processing, which is supported natively by the parallel proof engine that is
   implemented in Isabelle/ML. The traditional prover command loop is given up;
   instead there is direct support for editing of source text, with rich formal
   markup for GUI rendering.
 
-  \item [Isabelle/ML] is the implementation and extension language of
+  \<^descr>[Isabelle/ML] is the implementation and extension language of
   Isabelle, see also @{cite "isabelle-implementation"}. It is integrated
   into the logical context of Isabelle/Isar and allows to manipulate
   logical entities directly. Arbitrary add-on tools may be implemented
   for object-logics such as Isabelle/HOL.
 
-  \item [Isabelle/Scala] is the system programming language of
+  \<^descr>[Isabelle/Scala] is the system programming language of
   Isabelle. It extends the pure logical environment of Isabelle/ML
   towards the ``real world'' of graphical user interfaces, text
   editors, IDE frameworks, web services etc.  Special infrastructure
   allows to transfer algebraic datatypes and formatted text easily
   between ML and Scala, using asynchronous protocol commands.
 
-  \item [jEdit] is a sophisticated text editor implemented in
+  \<^descr>[jEdit] is a sophisticated text editor implemented in
   Java.\footnote{@{url "http://www.jedit.org"}} It is easily extensible
   by plugins written in languages that work on the JVM, e.g.\
   Scala\footnote{@{url "http://www.scala-lang.org"}}.
 
-  \item [Isabelle/jEdit] is the main example application of the PIDE
+  \<^descr>[Isabelle/jEdit] is the main example application of the PIDE
   framework and the default user-interface for Isabelle. It targets
   both beginners and experts. Technically, Isabelle/jEdit combines a
   slightly modified version of the jEdit code base with a special
   plugin for Isabelle, integrated as standalone application for the
   main operating system platforms: Linux, Windows, Mac OS X.
 
-  \end{description}
 
   The subtle differences of Isabelle/ML versus Standard ML,
   Isabelle/Scala versus Scala, Isabelle/jEdit versus jEdit need to be
@@ -286,9 +283,7 @@ text \<open>
   Isabelle/jEdit enables platform-specific look-and-feel by default as
   follows.
 
-  \begin{description}
-
-  \item[Linux:] The platform-independent \emph{Nimbus} is used by
+  \<^descr>[Linux:] The platform-independent \emph{Nimbus} is used by
   default.
 
   \emph{GTK+} also works under the side-condition that the overall GTK theme
@@ -300,10 +295,10 @@ text \<open>
   ``4K'' or ``UHD'' models), because the rendering by the external library is
   subject to global system settings for font scaling.}
 
-  \item[Windows:] Regular \emph{Windows} is used by default, but
+  \<^descr>[Windows:] Regular \emph{Windows} is used by default, but
   \emph{Windows Classic} also works.
 
-  \item[Mac OS X:] Regular \emph{Mac OS X} is used by default.
+  \<^descr>[Mac OS X:] Regular \emph{Mac OS X} is used by default.
 
   The bundled \emph{MacOSX} plugin provides various functions that are
   expected from applications on that particular platform: quit from menu or
@@ -311,7 +306,6 @@ text \<open>
   full-screen mode for main editor windows. It is advisable to have the
   \emph{MacOSX} plugin enabled all the time on that platform.
 
-  \end{description}
 
   Users may experiment with different look-and-feels, but need to keep
   in mind that this extra variance of GUI functionality is unlikely to
@@ -349,8 +343,6 @@ text \<open>
   The Isabelle/jEdit \textbf{application} and its plugins provide
   various font properties that are summarized below.
 
-  \begin{itemize}
-
   \<^item> \emph{Global Options / Text Area / Text font}: the main text area
   font, which is also used as reference point for various derived font sizes,
   e.g.\ the Output panel (\secref{sec:output}).
@@ -372,7 +364,6 @@ text \<open>
   \<^item> \emph{Plugin Options / Console / General / Font}: the console window
   font, e.g.\ relevant for Isabelle/Scala command-line.
 
-  \end{itemize}
 
   In \figref{fig:isabelle-jedit-hdpi} the \emph{Metal} look-and-feel is
   configured with custom fonts at 30 pixels, and the main text area and
@@ -419,8 +410,6 @@ text \<open>
   Compared to plain jEdit, dockable window management in Isabelle/jEdit is
   slightly augmented according to the the following principles:
 
-  \begin{itemize}
-
   \<^item> Floating windows are dependent on the main window as \emph{dialog} in
   the sense of Java/AWT/Swing. Dialog windows always stay on top of the view,
   which is particularly important in full-screen mode. The desktop environment
@@ -441,8 +430,6 @@ text \<open>
   independently of ongoing changes of the PIDE document-model. Note that
   Isabelle/jEdit popup windows (\secref{sec:tooltips-hyperlinks}) provide a
   similar \emph{Detach} operation as an icon.
-
-  \end{itemize}
 \<close>
 
 
@@ -518,8 +505,6 @@ text \<open>
   This is a summary for practically relevant input methods for Isabelle
   symbols.
 
-  \begin{enumerate}
-
   \<^enum> The \emph{Symbols} panel: some GUI buttons allow to insert
   certain symbols in the text buffer.  There are also tooltips to
   reveal the official Isabelle representation with some additional
@@ -579,7 +564,6 @@ text \<open>
   explicit completion (see also @{verbatim "C+b"} explained in
   \secref{sec:completion}).
 
-  \end{enumerate}
 
   \paragraph{Control symbols.} There are some special control symbols
   to modify the display style of a single symbol (without
@@ -753,8 +737,6 @@ text \<open>
   \emph{document nodes}. The overall document structure is defined by the
   theory nodes in two dimensions:
 
-  \begin{enumerate}
-
   \<^enum> via \textbf{theory imports} that are specified in the \emph{theory
   header} using concrete syntax of the @{command_ref theory} command
   @{cite "isabelle-isar-ref"};
@@ -763,7 +745,6 @@ text \<open>
   \emph{load commands}, notably @{command_ref ML_file} and @{command_ref
   SML_file} @{cite "isabelle-isar-ref"}.
 
-  \end{enumerate}
 
   In any case, source files are managed by the PIDE infrastructure: the
   physical file-system only plays a subordinate role. The relevant version of
@@ -985,7 +966,6 @@ text \<open>
 
   \<^medskip>
   The following GUI elements are common to all query modes:
-  \begin{itemize}
 
   \<^item> The spinning wheel provides feedback about the status of a pending
   query wrt.\ the evaluation of its context and its own operation.
@@ -1001,7 +981,6 @@ text \<open>
 
   \<^item> The \emph{Zoom} box controls the font size of the output area.
 
-  \end{itemize}
 
   All query operations are asynchronous: there is no need to wait for the
   evaluation of the document for the query context, nor for the query
@@ -1154,22 +1133,19 @@ text \<open>
   kinds and purposes. The completion mechanism supports this by the following
   built-in templates:
 
-  \begin{description}
-
-  \item[] @{verbatim "`"} (single ASCII back-quote) supports \emph{quotations}
+  \<^descr> @{verbatim "`"} (single ASCII back-quote) supports \emph{quotations}
   via text cartouches. There are three selections, which are always presented
   in the same order and do not depend on any context information. The default
   choice produces a template ``@{text "\<open>\<box>\<close>"}'', where the box indicates the
   cursor position after insertion; the other choices help to repair the block
   structure of unbalanced text cartouches.
 
-  \item[] @{verbatim "@{"} is completed to the template ``@{text "@{\<box>}"}'',
+  \<^descr> @{verbatim "@{"} is completed to the template ``@{text "@{\<box>}"}'',
   where the box indicates the cursor position after insertion. Here it is
   convenient to use the wildcard ``@{verbatim __}'' or a more specific name
   prefix to let semantic completion of name-space entries propose
   antiquotation names.
 
-  \end{description}
 
   With some practice, input of quoted sub-languages and antiquotations of
   embedded languages should work fluently. Note that national keyboard layouts
@@ -1342,48 +1318,40 @@ text \<open>
   optional delay after keyboard input according to @{system_option
   jedit_completion_delay}.
 
-  \begin{description}
-
-  \item[Explicit completion] works via action @{action_ref
+  \<^descr>[Explicit completion] works via action @{action_ref
   "isabelle.complete"} with keyboard shortcut @{verbatim "C+b"}. This
   overrides the shortcut for @{action_ref "complete-word"} in jEdit, but it is
   possible to restore the original jEdit keyboard mapping of @{action
   "complete-word"} via \emph{Global Options~/ Shortcuts} and invent a
   different one for @{action "isabelle.complete"}.
 
-  \item[Explicit spell-checker completion] works via @{action_ref
+  \<^descr>[Explicit spell-checker completion] works via @{action_ref
   "isabelle.complete-word"}, which is exposed in the jEdit context menu, if
   the mouse points to a word that the spell-checker can complete.
 
-  \item[Implicit completion] works via regular keyboard input of the editor.
+  \<^descr>[Implicit completion] works via regular keyboard input of the editor.
   It depends on further side-conditions:
 
-  \begin{enumerate}
+    \<^enum> The system option @{system_option_ref jedit_completion} needs to
+    be enabled (default).
 
-  \<^enum> The system option @{system_option_ref jedit_completion} needs to
-  be enabled (default).
+    \<^enum> Completion of syntax keywords requires at least 3 relevant
+    characters in the text.
 
-  \<^enum> Completion of syntax keywords requires at least 3 relevant
-  characters in the text.
+    \<^enum> The system option @{system_option_ref jedit_completion_delay}
+    determines an additional delay (0.5 by default), before opening a completion
+    popup.  The delay gives the prover a chance to provide semantic completion
+    information, notably the context (\secref{sec:completion-context}).
 
-  \<^enum> The system option @{system_option_ref jedit_completion_delay}
-  determines an additional delay (0.5 by default), before opening a completion
-  popup.  The delay gives the prover a chance to provide semantic completion
-  information, notably the context (\secref{sec:completion-context}).
+    \<^enum> The system option @{system_option_ref jedit_completion_immediate}
+    (enabled by default) controls whether replacement text should be inserted
+    immediately without popup, regardless of @{system_option
+    jedit_completion_delay}. This aggressive mode of completion is restricted to
+    Isabelle symbols and their abbreviations (\secref{sec:symbols}).
 
-  \<^enum> The system option @{system_option_ref jedit_completion_immediate}
-  (enabled by default) controls whether replacement text should be inserted
-  immediately without popup, regardless of @{system_option
-  jedit_completion_delay}. This aggressive mode of completion is restricted to
-  Isabelle symbols and their abbreviations (\secref{sec:symbols}).
-
-  \<^enum> Completion of symbol abbreviations with only one relevant
-  character in the text always enforces an explicit popup,
-  regardless of @{system_option_ref jedit_completion_immediate}.
-
-  \end{enumerate}
-
-  \end{description}
+    \<^enum> Completion of symbol abbreviations with only one relevant
+    character in the text always enforces an explicit popup,
+    regardless of @{system_option_ref jedit_completion_immediate}.
 \<close>
 
 
@@ -1434,21 +1402,18 @@ text \<open>
   all combinations make sense. At least the following important cases are
   well-defined:
 
-  \begin{description}
-
-  \item[No selection.] The original is removed and the replacement inserted,
+  \<^descr>[No selection.] The original is removed and the replacement inserted,
   depending on the caret position.
 
-  \item[Rectangular selection of zero width.] This special case is treated by
+  \<^descr>[Rectangular selection of zero width.] This special case is treated by
   jEdit as ``tall caret'' and insertion of completion imitates its normal
   behaviour: separate copies of the replacement are inserted for each line of
   the selection.
 
-  \item[Other rectangular selection or multiple selections.] Here the original
+  \<^descr>[Other rectangular selection or multiple selections.] Here the original
   is removed and the replacement is inserted for each line (or segment) of the
   selection.
 
-  \end{description}
 
   Support for multiple selections is particularly useful for
   \emph{HyperSearch}: clicking on one of the items in the \emph{HyperSearch
@@ -1472,8 +1437,6 @@ text \<open>
   This is a summary of Isabelle/Scala system options that are relevant for
   completion. They may be configured in \emph{Plugin Options~/ Isabelle~/
   General} as usual.
-
-  \begin{itemize}
 
   \<^item> @{system_option_def completion_limit} specifies the maximum number of
   items for various semantic completion operations (name-space entries etc.)
@@ -1520,8 +1483,6 @@ text \<open>
   \<^item> @{system_option_def spell_checker_elements} specifies a
   comma-separated list of markup elements that delimit words in the source
   that is subject to spell-checking, including various forms of comments.
-
-  \end{itemize}
 \<close>
 
 
@@ -1560,8 +1521,6 @@ text \<open>
   of automatically tried tools (see also the jEdit dialog window
   \emph{Plugin Options~/ Isabelle~/ General~/ Automatically tried
   tools}):
-
-  \begin{itemize}
 
   \<^item> @{system_option_ref auto_methods} controls automatic use of a
   combination of standard proof methods (@{method auto}, @{method
@@ -1603,12 +1562,9 @@ text \<open>
 
   This tool is \emph{enabled} by default.
 
-  \end{itemize}
 
   Invocation of automatically tried tools is subject to some global
   policies of parallel execution, which may be configured as follows:
-
-  \begin{itemize}
 
   \<^item> @{system_option_ref auto_time_limit} (default 2.0) determines the
   timeout (in seconds) for each tool execution.
@@ -1617,7 +1573,6 @@ text \<open>
   start delay (in seconds) for automatically tried tools, after the
   main command evaluation is finished.
 
-  \end{itemize}
 
   Each tool is submitted independently to the pool of parallel
   execution tasks in Isabelle/ML, using hardwired priorities according
@@ -1782,8 +1737,6 @@ text \<open>Prover output is normally shown directly in the main text area
   Beyond this, it is occasionally useful to inspect low-level output
   channels via some of the following additional panels:
 
-  \begin{itemize}
-
   \<^item> \emph{Protocol} shows internal messages between the
   Isabelle/Scala and Isabelle/ML side of the PIDE document editing protocol.
   Recording of messages starts with the first activation of the
@@ -1823,16 +1776,12 @@ text \<open>Prover output is normally shown directly in the main text area
 
   Under normal situations, such low-level system output can be
   ignored.
-
-  \end{itemize}
 \<close>
 
 
 chapter \<open>Known problems and workarounds \label{sec:problems}\<close>
 
 text \<open>
-  \begin{itemize}
-
   \<^item> \textbf{Problem:} Odd behavior of some diagnostic commands with
   global side-effects, like writing a physical file.
 
@@ -1899,8 +1848,6 @@ text \<open>
 
   \textbf{Workaround:} Use native full-screen control of the window
   manager (notably on Mac OS X).
-
-  \end{itemize}
 \<close>
 
 end

@@ -193,7 +193,7 @@ fun check_cmts span tr st' =
   Toplevel.setmp_thread_position tr
     (fn () =>
       Outer_Syntax.side_comments span |> maps (fn cmt =>
-        (Thy_Output.check_text (Token.input_of cmt) st'; [])
+        (Thy_Output.output_text st' {markdown = false} (Token.input_of cmt); [])
           handle exn =>
             if Exn.is_interrupt exn then reraise exn
             else Runtime.exn_messages_ids exn)) ();
