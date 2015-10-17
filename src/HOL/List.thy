@@ -6389,6 +6389,15 @@ lemma map_filter_map_filter [code_unfold]:
   "map f (filter P xs) = map_filter (\<lambda>x. if P x then Some (f x) else None) xs"
   by (simp add: map_filter_def)
 
+definition map_range :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a list"
+where
+  [code_abbrev]: "map_range f n = map f [0..<n]"
+
+lemma map_range_simps [simp, code]:
+  "map_range f 0 = []"
+  "map_range f (Suc n) = map_range f n @ [f n]"
+  by (simp_all add: map_range_def)
+
 text \<open>Optimized code for @{text"\<forall>i\<in>{a..b::int}"} and @{text"\<forall>n:{a..<b::nat}"}
 and similiarly for @{text"\<exists>"}.\<close>
 
