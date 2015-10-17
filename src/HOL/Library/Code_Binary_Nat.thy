@@ -134,12 +134,12 @@ lemma less_nat_code [code]:
   by (simp_all add: nat_of_num_numeral)
 
 lemma [code, code del]:
-  "divmod_nat = divmod_nat" ..
+  "Divides.divmod_nat = Divides.divmod_nat" ..
   
 lemma divmod_nat_code [code]:
-  "divmod_nat (nat_of_num k) (nat_of_num l) = divmod k l"
-  "divmod_nat m 0 = (0, m)"
-  "divmod_nat 0 n = (0, 0)"
+  "Divides.divmod_nat (nat_of_num k) (nat_of_num l) = divmod k l"
+  "Divides.divmod_nat m 0 = (0, m)"
+  "Divides.divmod_nat 0 n = (0, 0)"
   by (simp_all add: prod_eq_iff nat_of_num_numeral)
 
 end

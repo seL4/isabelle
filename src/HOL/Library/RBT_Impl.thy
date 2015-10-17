@@ -1166,7 +1166,7 @@ lemma rbtreeify_f_code [code]:
     else if n = 1 then
       case kvs of (k, v) # kvs' \<Rightarrow> 
         (Branch R Empty k v Empty, kvs')
-    else let (n', r) = divmod_nat n 2 in
+    else let (n', r) = Divides.divmod_nat n 2 in
       if r = 0 then
         case rbtreeify_f n' kvs of (t1, (k, v) # kvs') \<Rightarrow>
           apfst (Branch B t1 k v) (rbtreeify_g n' kvs')
@@ -1177,7 +1177,7 @@ by (subst rbtreeify_f.simps) (simp only: Let_def divmod_nat_div_mod prod.case)
 lemma rbtreeify_g_code [code]:
   "rbtreeify_g n kvs =
    (if n = 0 \<or> n = 1 then (Empty, kvs)
-    else let (n', r) = divmod_nat n 2 in
+    else let (n', r) = Divides.divmod_nat n 2 in
       if r = 0 then
         case rbtreeify_g n' kvs of (t1, (k, v) # kvs') \<Rightarrow>
           apfst (Branch B t1 k v) (rbtreeify_g n' kvs')

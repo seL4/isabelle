@@ -813,6 +813,9 @@ end
 
 subsection \<open>Division on @{typ nat}\<close>
 
+context
+begin
+
 text \<open>
   We define @{const divide} and @{const mod} on @{typ nat} by means
   of a characteristic relation with two input arguments
@@ -827,7 +830,7 @@ definition divmod_nat_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> n
 
 text \<open>@{const divmod_nat_rel} is total:\<close>
 
-lemma divmod_nat_rel_ex:
+qualified lemma divmod_nat_rel_ex:
   obtains q r where "divmod_nat_rel m n (q, r)"
 proof (cases "n = 0")
   case True  with that show thesis
@@ -860,7 +863,7 @@ qed
 
 text \<open>@{const divmod_nat_rel} is injective:\<close>
 
-lemma divmod_nat_rel_unique:
+qualified lemma divmod_nat_rel_unique:
   assumes "divmod_nat_rel m n qr"
     and "divmod_nat_rel m n qr'"
   shows "qr = qr'"
@@ -887,10 +890,10 @@ text \<open>
   means of @{const divmod_nat_rel}:
 \<close>
 
-definition divmod_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat" where
+qualified definition divmod_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat" where
   "divmod_nat m n = (THE qr. divmod_nat_rel m n qr)"
 
-lemma divmod_nat_rel_divmod_nat:
+qualified lemma divmod_nat_rel_divmod_nat:
   "divmod_nat_rel m n (divmod_nat m n)"
 proof -
   from divmod_nat_rel_ex
@@ -899,63 +902,65 @@ proof -
   by (auto simp add: divmod_nat_def intro: theI elim: divmod_nat_rel_unique)
 qed
 
-lemma divmod_nat_unique:
+qualified lemma divmod_nat_unique:
   assumes "divmod_nat_rel m n qr"
   shows "divmod_nat m n = qr"
   using assms by (auto intro: divmod_nat_rel_unique divmod_nat_rel_divmod_nat)
 
+qualified lemma divmod_nat_zero: "divmod_nat m 0 = (0, m)"
+  by (simp add: Divides.divmod_nat_unique divmod_nat_rel_def)
+
+qualified lemma divmod_nat_zero_left: "divmod_nat 0 n = (0, 0)"
+  by (simp add: Divides.divmod_nat_unique divmod_nat_rel_def)
+
+qualified lemma divmod_nat_base: "m < n \<Longrightarrow> divmod_nat m n = (0, m)"
+  by (simp add: divmod_nat_unique divmod_nat_rel_def)
+
+qualified lemma divmod_nat_step:
+  assumes "0 < n" and "n \<le> m"
+  shows "divmod_nat m n = apfst Suc (divmod_nat (m - n) n)"
+proof (rule divmod_nat_unique)
+  have "divmod_nat_rel (m - n) n (divmod_nat (m - n) n)"
+    by (fact divmod_nat_rel_divmod_nat)
+  then show "divmod_nat_rel m n (apfst Suc (divmod_nat (m - n) n))"
+    unfolding divmod_nat_rel_def using assms by auto
+qed
+
+end
+  
 instantiation nat :: semiring_div
 begin
 
 definition divide_nat where
-  div_nat_def: "m div n = fst (divmod_nat m n)"
+  div_nat_def: "m div n = fst (Divides.divmod_nat m n)"
 
 definition mod_nat where
-  "m mod n = snd (divmod_nat m n)"
+  "m mod n = snd (Divides.divmod_nat m n)"
 
 lemma fst_divmod_nat [simp]:
-  "fst (divmod_nat m n) = m div n"
+  "fst (Divides.divmod_nat m n) = m div n"
   by (simp add: div_nat_def)
 
 lemma snd_divmod_nat [simp]:
-  "snd (divmod_nat m n) = m mod n"
+  "snd (Divides.divmod_nat m n) = m mod n"
   by (simp add: mod_nat_def)
 
 lemma divmod_nat_div_mod:
-  "divmod_nat m n = (m div n, m mod n)"
+  "Divides.divmod_nat m n = (m div n, m mod n)"
   by (simp add: prod_eq_iff)
 
 lemma div_nat_unique:
   assumes "divmod_nat_rel m n (q, r)"
   shows "m div n = q"
-  using assms by (auto dest!: divmod_nat_unique simp add: prod_eq_iff)
+  using assms by (auto dest!: Divides.divmod_nat_unique simp add: prod_eq_iff)
 
 lemma mod_nat_unique:
   assumes "divmod_nat_rel m n (q, r)"
   shows "m mod n = r"
-  using assms by (auto dest!: divmod_nat_unique simp add: prod_eq_iff)
+  using assms by (auto dest!: Divides.divmod_nat_unique simp add: prod_eq_iff)
 
 lemma divmod_nat_rel: "divmod_nat_rel m n (m div n, m mod n)"
-  using divmod_nat_rel_divmod_nat by (simp add: divmod_nat_div_mod)
-
-lemma divmod_nat_zero: "divmod_nat m 0 = (0, m)"
-  by (simp add: divmod_nat_unique divmod_nat_rel_def)
-
-lemma divmod_nat_zero_left: "divmod_nat 0 n = (0, 0)"
-  by (simp add: divmod_nat_unique divmod_nat_rel_def)
-
-lemma divmod_nat_base: "m < n \<Longrightarrow> divmod_nat m n = (0, m)"
-  by (simp add: divmod_nat_unique divmod_nat_rel_def)
-
-lemma divmod_nat_step:
-  assumes "0 < n" and "n \<le> m"
-  shows "divmod_nat m n = (Suc ((m - n) div n), (m - n) mod n)"
-proof (rule divmod_nat_unique)
-  have "divmod_nat_rel (m - n) n ((m - n) div n, (m - n) mod n)"
-    by (rule divmod_nat_rel)
-  thus "divmod_nat_rel m n (Suc ((m - n) div n), (m - n) mod n)"
-    unfolding divmod_nat_rel_def using assms by auto
-qed
+  using Divides.divmod_nat_rel_divmod_nat by (simp add: divmod_nat_div_mod)
 
 text \<open>The ''recursion'' equations for @{const divide} and @{const mod}\<close>
 
@@ -963,25 +968,25 @@ lemma div_less [simp]:
   fixes m n :: nat
   assumes "m < n"
   shows "m div n = 0"
-  using assms divmod_nat_base by (simp add: prod_eq_iff)
+  using assms Divides.divmod_nat_base by (simp add: prod_eq_iff)
 
 lemma le_div_geq:
   fixes m n :: nat
   assumes "0 < n" and "n \<le> m"
   shows "m div n = Suc ((m - n) div n)"
-  using assms divmod_nat_step by (simp add: prod_eq_iff)
+  using assms Divides.divmod_nat_step by (simp add: prod_eq_iff)
 
 lemma mod_less [simp]:
   fixes m n :: nat
   assumes "m < n"
   shows "m mod n = m"
-  using assms divmod_nat_base by (simp add: prod_eq_iff)
+  using assms Divides.divmod_nat_base by (simp add: prod_eq_iff)
 
 lemma le_mod_geq:
   fixes m n :: nat
   assumes "n \<le> m"
   shows "m mod n = (m - n) mod n"
-  using assms divmod_nat_step by (cases "n = 0") (simp_all add: prod_eq_iff)
+  using assms Divides.divmod_nat_step by (cases "n = 0") (simp_all add: prod_eq_iff)
 
 instance proof
   fix m n :: nat
@@ -1003,10 +1008,10 @@ next
   thus "(m * n) div (m * q) = n div q" by (rule div_nat_unique)
 next
   fix n :: nat show "n div 0 = 0"
-    by (simp add: div_nat_def divmod_nat_zero)
+    by (simp add: div_nat_def Divides.divmod_nat_zero)
 next
   fix n :: nat show "0 div n = 0"
-    by (simp add: div_nat_def divmod_nat_zero_left)
+    by (simp add: div_nat_def Divides.divmod_nat_zero_left)
 qed
 
 end
@@ -1030,8 +1035,9 @@ instance
   
 end
 
-lemma divmod_nat_if [code]: "divmod_nat m n = (if n = 0 \<or> m < n then (0, m) else
-  let (q, r) = divmod_nat (m - n) n in (Suc q, r))"
+lemma divmod_nat_if [code]:
+  "Divides.divmod_nat m n = (if n = 0 \<or> m < n then (0, m) else
+    let (q, r) = Divides.divmod_nat (m - n) n in (Suc q, r))"
   by (simp add: prod_eq_iff case_prod_beta not_less le_div_geq le_mod_geq)
 
 text \<open>Simproc for cancelling @{const divide} and @{const mod}\<close>
@@ -1347,15 +1353,15 @@ next
   assume P: ?lhs
   then have "divmod_nat_rel m n (q, m - n * q)"
     unfolding divmod_nat_rel_def by (auto simp add: ac_simps)
-  with divmod_nat_rel_unique divmod_nat_rel [of m n]
-  have "(q, m - n * q) = (m div n, m mod n)" by auto
+  then have "m div n = q"
+    by (rule div_nat_unique)
   then show ?rhs by simp
 qed
 
 theorem split_div':
   "P ((m::nat) div n) = ((n = 0 \<and> P 0) \<or>
    (\<exists>q. (n * q \<le> m \<and> m < n * (Suc q)) \<and> P q))"
-  apply (case_tac "0 < n")
+  apply (cases "0 < n")
   apply (simp only: add: split_div_lemma)
   apply simp_all
   done

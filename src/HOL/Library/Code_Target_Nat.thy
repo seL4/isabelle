@@ -111,7 +111,7 @@ end
 lemma (in semiring_1) of_nat_code_if:
   "of_nat n = (if n = 0 then 0
      else let
-       (m, q) = divmod_nat n 2;
+       (m, q) = Divides.divmod_nat n 2;
        m' = 2 * of_nat m
      in if q = 0 then m' else m' + 1)"
 proof -

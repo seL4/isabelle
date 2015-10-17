@@ -61,7 +61,7 @@ subsubsection \<open>Naive factorisation\<close>
 function factorise_from :: "nat \<Rightarrow> nat \<Rightarrow> nat list" where
   "factorise_from k n = (if 1 < k \<and> k \<le> n
     then
-      let (q, r) = divmod_nat n k 
+      let (q, r) = Divides.divmod_nat n k 
       in if r = 0 then k # factorise_from k q
         else factorise_from (Suc k) n
     else [])" 
@@ -105,4 +105,3 @@ definition computation_parallel :: "unit \<Rightarrow> nat list list" where
 value "computation_parallel ()"
 
 end
-
