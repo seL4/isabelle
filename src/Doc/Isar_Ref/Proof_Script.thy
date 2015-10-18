@@ -6,8 +6,8 @@ chapter \<open>Proof scripts\<close>
 
 text \<open>
   Interactive theorem proving is traditionally associated with ``proof
-  scripts'', but Isabelle/Isar is centered around structured \emph{proof
-  documents} instead (see also \chref{ch:proofs}).
+  scripts'', but Isabelle/Isar is centered around structured \<^emph>\<open>proof
+  documents\<close> instead (see also \chref{ch:proofs}).
 
   Nonetheless, it is possible to emulate proof scripts by sequential
   refinements of a proof state in backwards mode, notably with the @{command
@@ -51,7 +51,7 @@ text \<open>
   given just as in tactic scripts.
 
   Facts are passed to @{text m} as indicated by the goal's
-  forward-chain mode, and are \emph{consumed} afterwards.  Thus any
+  forward-chain mode, and are \<^emph>\<open>consumed\<close> afterwards.  Thus any
   further @{command "apply"} command would always work in a purely
   backward manner.
 
@@ -111,8 +111,8 @@ text \<open>
 
   Goal parameters may be specified separately, in order to allow referring
   to them in the proof body: ``@{command subgoal}~@{keyword "for"}~@{text "x
-  y z"}'' names a \emph{prefix}, and ``@{command subgoal}~@{keyword
-  "for"}~@{text "\<dots> x y z"}'' names a \emph{suffix} of goal parameters. The
+  y z"}'' names a \<^emph>\<open>prefix\<close>, and ``@{command subgoal}~@{keyword
+  "for"}~@{text "\<dots> x y z"}'' names a \<^emph>\<open>suffix\<close> of goal parameters. The
   latter uses a literal @{verbatim "\<dots>"} symbol as notation. Parameter
   positions may be skipped via dummies (underscore). Unspecified names
   remain internal, and thus inaccessible in the proof text.
@@ -266,7 +266,7 @@ text \<open>
 
   \<^descr> @{method rename_tac}~@{text "x\<^sub>1 \<dots> x\<^sub>n"} renames parameters of a
   goal according to the list @{text "x\<^sub>1, \<dots>, x\<^sub>n"}, which refers to the
-  \emph{suffix} of variables.
+  \<^emph>\<open>suffix\<close> of variables.
 
   \<^descr> @{method rotate_tac}~@{text n} rotates the premises of a
   subgoal by @{text n} positions: from right to left if @{text n} is

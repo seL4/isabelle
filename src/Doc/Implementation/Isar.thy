@@ -8,7 +8,7 @@ text \<open>The Isar proof language (see also
   @{cite \<open>\S2\<close> "isabelle-isar-ref"}) consists of three main categories of
   language elements:
 
-  \<^enum> Proof \emph{commands} define the primary language of
+  \<^enum> Proof \<^emph>\<open>commands\<close> define the primary language of
   transactions of the underlying Isar/VM interpreter.  Typical
   examples are @{command "fix"}, @{command "assume"}, @{command
   "show"}, @{command "proof"}, and @{command "qed"}.
@@ -17,7 +17,7 @@ text \<open>The Isar proof language (see also
   to expressions of structured proof text, such that both the machine
   and the human reader can give it a meaning as formal reasoning.
 
-  \<^enum> Proof \emph{methods} define a secondary language of mixed
+  \<^enum> Proof \<^emph>\<open>methods\<close> define a secondary language of mixed
   forward-backward refinement steps involving facts and goals.
   Typical examples are @{method rule}, @{method unfold}, and @{method
   simp}.
@@ -26,7 +26,7 @@ text \<open>The Isar proof language (see also
   language, say as arguments to @{command "proof"}, @{command "qed"},
   or @{command "by"}.
 
-  \<^enum> \emph{Attributes} define a tertiary language of small
+  \<^enum> \<^emph>\<open>Attributes\<close> define a tertiary language of small
   annotations to theorems being defined or referenced.  Attributes can
   modify both the context and the theorem.
 
@@ -37,7 +37,7 @@ text \<open>The Isar proof language (see also
 
 section \<open>Proof commands\<close>
 
-text \<open>A \emph{proof command} is state transition of the Isar/VM
+text \<open>A \<^emph>\<open>proof command\<close> is state transition of the Isar/VM
   proof interpreter.
 
   In principle, Isar proof commands could be defined in user-space as
@@ -50,7 +50,7 @@ text \<open>A \emph{proof command} is state transition of the Isar/VM
   What can be done realistically is to define some diagnostic commands
   that inspect the general state of the Isar/VM, and report some
   feedback to the user.  Typically this involves checking of the
-  linguistic \emph{mode} of a proof state, or peeking at the pending
+  linguistic \<^emph>\<open>mode\<close> of a proof state, or peeking at the pending
   goals (if available).
 
   Another common application is to define a toplevel command that
@@ -169,7 +169,7 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   \<rightarrow> (cases \<times> goal)\<^sup>*\<^sup>*"} that operates on the full Isar goal
   configuration with context, goal facts, and tactical goal state and
   enumerates possible follow-up goal states, with the potential
-  addition of named extensions of the proof context (\emph{cases}).
+  addition of named extensions of the proof context (\<^emph>\<open>cases\<close>).
   The latter feature is rarely used.
 
   This means a proof method is like a structurally enhanced tactic
@@ -178,8 +178,8 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   additions.
 
   \<^item> Goal addressing is further limited either to operate
-  uniformly on \emph{all} subgoals, or specifically on the
-  \emph{first} subgoal.
+  uniformly on \<^emph>\<open>all\<close> subgoals, or specifically on the
+  \<^emph>\<open>first\<close> subgoal.
 
   Exception: old-style tactic emulations that are embedded into the
   method space, e.g.\ @{method rule_tac}.
@@ -250,7 +250,7 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   Empirically, any Isar proof method can be categorized as
   follows.
 
-  \<^enum> \emph{Special method with cases} with named context additions
+  \<^enum> \<^emph>\<open>Special method with cases\<close> with named context additions
   associated with the follow-up goal state.
 
   Example: @{method "induct"}, which is also a ``raw'' method since it
@@ -258,18 +258,18 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   Pure conjunction (\secref{sec:logic-aux}), instead of separate
   subgoals (\secref{sec:tactical-goals}).
 
-  \<^enum> \emph{Structured method} with strong emphasis on facts outside
+  \<^enum> \<^emph>\<open>Structured method\<close> with strong emphasis on facts outside
   the goal state.
 
   Example: @{method "rule"}, which captures the key ideas behind
   structured reasoning in Isar in its purest form.
 
-  \<^enum> \emph{Simple method} with weaker emphasis on facts, which are
+  \<^enum> \<^emph>\<open>Simple method\<close> with weaker emphasis on facts, which are
   inserted into subgoals to emulate old-style tactical ``premises''.
 
   Examples: @{method "simp"}, @{method "blast"}, @{method "auto"}.
 
-  \<^enum> \emph{Old-style tactic emulation} with detailed numeric goal
+  \<^enum> \<^emph>\<open>Old-style tactic emulation\<close> with detailed numeric goal
   addressing and explicit references to entities of the internal goal
   state (which are otherwise invisible from proper Isar proof text).
   The naming convention @{text "foo_tac"} makes this special
@@ -477,7 +477,7 @@ text \<open>
   \<^medskip>
   The technical treatment of rules from the context requires
   further attention.  Above we rebuild a fresh @{ML_type simpset} from
-  the arguments and \emph{all} rules retrieved from the context on
+  the arguments and \<^emph>\<open>all\<close> rules retrieved from the context on
   every invocation of the method.  This does not scale to really large
   collections of rules, which easily emerges in the context of a big
   theory library, for example.
@@ -495,12 +495,12 @@ text \<open>
 
 section \<open>Attributes \label{sec:attributes}\<close>
 
-text \<open>An \emph{attribute} is a function @{text "context \<times> thm \<rightarrow>
+text \<open>An \<^emph>\<open>attribute\<close> is a function @{text "context \<times> thm \<rightarrow>
   context \<times> thm"}, which means both a (generic) context and a theorem
   can be modified simultaneously.  In practice this mixed form is very
-  rare, instead attributes are presented either as \emph{declaration
-  attribute:} @{text "thm \<rightarrow> context \<rightarrow> context"} or \emph{rule
-  attribute:} @{text "context \<rightarrow> thm \<rightarrow> thm"}.
+  rare, instead attributes are presented either as \<^emph>\<open>declaration
+  attribute:\<close> @{text "thm \<rightarrow> context \<rightarrow> context"} or \<^emph>\<open>rule
+  attribute:\<close> @{text "context \<rightarrow> thm \<rightarrow> thm"}.
 
   Attributes can have additional arguments via concrete syntax.  There
   is a collection of context-sensitive parsers for various logical

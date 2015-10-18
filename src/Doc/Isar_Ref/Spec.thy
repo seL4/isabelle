@@ -37,11 +37,11 @@ text \<open>
   theorem} or @{command lemma} are merely a special case of that, defining a
   theorem from a given proposition and its proof.
 
-  The theory body may be sub-structured by means of \emph{local theory
-  targets}, such as @{command "locale"} and @{command "class"}. It is also
+  The theory body may be sub-structured by means of \<^emph>\<open>local theory
+  targets\<close>, such as @{command "locale"} and @{command "class"}. It is also
   possible to use @{command context}~@{keyword "begin"}~\dots~@{command end}
-  blocks to delimited a local theory context: a \emph{named context} to
-  augment a locale or class specification, or an \emph{unnamed context} to
+  blocks to delimited a local theory context: a \<^emph>\<open>named context\<close> to
+  augment a locale or class specification, or an \<^emph>\<open>unnamed context\<close> to
   refer to local parameters and assumptions that are discharged later. See
   \secref{sec:target} for more details.
 
@@ -131,11 +131,11 @@ text \<open>
   (fixed variables) and assumptions (hypotheses). Definitions and theorems
   depending on the context may be added incrementally later on.
 
-  \emph{Named contexts} refer to locales (cf.\ \secref{sec:locale}) or
+  \<^emph>\<open>Named contexts\<close> refer to locales (cf.\ \secref{sec:locale}) or
   type classes (cf.\ \secref{sec:class}); the name ``@{text "-"}''
   signifies the global theory context.
 
-  \emph{Unnamed contexts} may introduce additional parameters and
+  \<^emph>\<open>Unnamed contexts\<close> may introduce additional parameters and
   assumptions, and results produced in the context are generalized
   accordingly.  Such auxiliary contexts may be nested within other
   targets, like @{command "locale"}, @{command "class"}, @{command
@@ -233,8 +233,8 @@ text \<open>
   attributes that operate on the context without a theorem, as in
   @{text "[[show_types = false]]"} for example.
 
-  Expressions of this form may be defined as \emph{bundled
-  declarations} in the context, and included in other situations later
+  Expressions of this form may be defined as \<^emph>\<open>bundled
+  declarations\<close> in the context, and included in other situations later
   on.  Including declaration bundles augments a local context casually
   without logical dependencies, which is in contrast to locales and
   locale interpretation (\secref{sec:locale}).
@@ -453,7 +453,7 @@ text \<open>
   A locale may be opened with the purpose of appending to its list of
   declarations (cf.\ \secref{sec:target}).  When opening a locale
   declarations from all dependencies are collected and are presented
-  as a local theory.  In this process, which is called \emph{roundup},
+  as a local theory.  In this process, which is called \<^emph>\<open>roundup\<close>,
   redundant locale instances are omitted.  A locale instance is
   redundant if it is subsumed by an instance encountered earlier.  A
   more detailed description of this process is available elsewhere
@@ -464,7 +464,7 @@ text \<open>
 subsection \<open>Locale expressions \label{sec:locale-expr}\<close>
 
 text \<open>
-  A \emph{locale expression} denotes a context composed of instances
+  A \<^emph>\<open>locale expression\<close> denotes a context composed of instances
   of existing locales.  The context consists of the declaration
   elements from the locale instances.  Redundant locale instances are
   omitted according to roundup.
@@ -665,8 +665,8 @@ text \<open>
 
   Locales may be instantiated, and the resulting instantiated
   declarations added to the current context.  This requires proof (of
-  the instantiated specification) and is called \emph{locale
-  interpretation}.  Interpretation is possible in locales (@{command
+  the instantiated specification) and is called \<^emph>\<open>locale
+  interpretation\<close>.  Interpretation is possible in locales (@{command
   "sublocale"}), global and local theories (@{command
   "interpretation"}) and also within proof bodies (@{command
   "interpret"}).
@@ -723,7 +723,7 @@ text \<open>
   context --- for example, because a constant of that name exists ---
   add it to the @{keyword "for"} clause.
 
-  The equations @{text eqns} yield \emph{rewrite morphisms}, which are
+  The equations @{text eqns} yield \<^emph>\<open>rewrite morphisms\<close>, which are
   unfolded during post-processing and are useful for interpreting
   concepts introduced through definitions.  The equations must be
   proved.
@@ -795,7 +795,7 @@ text \<open>
     Since attributes are applied to interpreted theorems,
     interpretation may modify the context of common proof tools, e.g.\
     the Simplifier or Classical Reasoner.  As the behavior of such
-    tools is \emph{not} stable under interpretation morphisms, manual
+    tools is \<^emph>\<open>not\<close> stable under interpretation morphisms, manual
     declarations might have to be added to the target context of the
     interpretation to revert such declarations.
   \end{warn}
@@ -821,7 +821,7 @@ text \<open>
 
   \<^enum> a unified view on arbitrary suitable local theories as interpretation target;
 
-  \<^enum> rewrite morphisms by means of \emph{rewrite definitions}.
+  \<^enum> rewrite morphisms by means of \<^emph>\<open>rewrite definitions\<close>.
 
   
   \begin{matharray}{rcl}
@@ -857,12 +857,12 @@ text \<open>
   (see \secref{sec:target}) are not admissible since they are
   non-permanent due to their very nature.  
 
-  In additions to \emph{rewrite morphisms} specified by @{text eqns},
-  also \emph{rewrite definitions} may be specified.  Semantically, a
+  In additions to \<^emph>\<open>rewrite morphisms\<close> specified by @{text eqns},
+  also \<^emph>\<open>rewrite definitions\<close> may be specified.  Semantically, a
   rewrite definition
   
     \<^item> produces a corresponding definition in
-    the local theory's underlying target \emph{and}
+    the local theory's underlying target \<^emph>\<open>and\<close>
 
     \<^item> augments the rewrite morphism with the equation
     stemming from the symmetric of the corresponding definition.
@@ -895,7 +895,7 @@ text \<open>
     @{method_def intro_classes} & : & @{text method} \\
   \end{matharray}
 
-  A class is a particular locale with \emph{exactly one} type variable
+  A class is a particular locale with \<^emph>\<open>exactly one\<close> type variable
   @{text \<alpha>}.  Beyond the underlying locale, a corresponding type class
   is established which is interpreted logically as axiomatic type
   class @{cite "Wenzel:1997:TPHOL"} whose logical content are the
@@ -929,7 +929,7 @@ text \<open>
   superclasses}.
 
   Any @{element "fixes"} in @{text body} are lifted to the global
-  theory level (\emph{class operations} @{text "f\<^sub>1, \<dots>,
+  theory level (\<^emph>\<open>class operations\<close> @{text "f\<^sub>1, \<dots>,
   f\<^sub>n"} of class @{text c}), mapping the local type parameter
   @{text \<alpha>} to a schematic type variable @{text "?\<alpha> :: c"}.
 
@@ -1025,7 +1025,7 @@ subsection \<open>Co-regularity of type classes and arities\<close>
 
 text \<open>The class relation together with the collection of
   type-constructor arities must obey the principle of
-  \emph{co-regularity} as defined below.
+  \<^emph>\<open>co-regularity\<close> as defined below.
 
   \<^medskip>
   For the subsequent formulation of co-regularity we assume
@@ -1269,7 +1269,7 @@ text \<open>
   \<close>}
 
   \<^descr> @{command "type_synonym"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = \<tau>"} introduces a
-  \emph{type synonym} @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} for the existing type @{text
+  \<^emph>\<open>type synonym\<close> @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} for the existing type @{text
   "\<tau>"}. Unlike the semantic type definitions in Isabelle/HOL, type synonyms
   are merely syntactic abbreviations without any logical significance.
   Internally, type synonyms are fully expanded.

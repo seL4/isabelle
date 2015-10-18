@@ -6,10 +6,10 @@ chapter \<open>Outer syntax --- the theory language \label{ch:outer-syntax}\<clo
 
 text \<open>
   The rather generic framework of Isabelle/Isar syntax emerges from
-  three main syntactic categories: \emph{commands} of the top-level
-  Isar engine (covering theory and proof elements), \emph{methods} for
+  three main syntactic categories: \<^emph>\<open>commands\<close> of the top-level
+  Isar engine (covering theory and proof elements), \<^emph>\<open>methods\<close> for
   general goal refinements (analogous to traditional ``tactics''), and
-  \emph{attributes} for operations on facts (within a certain
+  \<^emph>\<open>attributes\<close> for operations on facts (within a certain
   context).  Subsequently we give a reference of basic syntactic
   entities underlying Isabelle/Isar syntax in a bottom-up manner.
   Concrete theory and proof language elements will be introduced later
@@ -18,11 +18,11 @@ text \<open>
   \<^medskip>
   In order to get started with writing well-formed
   Isabelle/Isar documents, the most important aspect to be noted is
-  the difference of \emph{inner} versus \emph{outer} syntax.  Inner
+  the difference of \<^emph>\<open>inner\<close> versus \<^emph>\<open>outer\<close> syntax.  Inner
   syntax is that of Isabelle types and terms of the logic, while outer
   syntax is that of Isabelle/Isar theory sources (specifications and
   proofs).  As a general rule, inner syntax entities may occur only as
-  \emph{atomic entities} within outer syntax.  For example, the string
+  \<^emph>\<open>atomic entities\<close> within outer syntax.  For example, the string
   @{verbatim \<open>"x + y"\<close>} and identifier @{verbatim z} are legal term
   specifications within a theory, while @{verbatim "x + y"} without
   quotes is not.
@@ -69,13 +69,13 @@ section \<open>Lexical matters \label{sec:outer-lex}\<close>
 text \<open>The outer lexical syntax consists of three main categories of
   syntax tokens:
 
-  \<^enum> \emph{major keywords} --- the command names that are available
+  \<^enum> \<^emph>\<open>major keywords\<close> --- the command names that are available
   in the present logic session;
 
-  \<^enum> \emph{minor keywords} --- additional literal tokens required
+  \<^enum> \<^emph>\<open>minor keywords\<close> --- additional literal tokens required
   by the syntax of commands;
 
-  \<^enum> \emph{named tokens} --- various categories of identifiers etc.
+  \<^enum> \<^emph>\<open>named tokens\<close> --- various categories of identifiers etc.
 
 
   Major keywords and minor keywords are guaranteed to be disjoint.
@@ -163,7 +163,7 @@ text \<open>The outer lexical syntax consists of three main categories of
   "\<dots>"}~@{verbatim "*)"} and may be nested, although the user-interface
   might prevent this.  Note that this form indicates source comments
   only, which are stripped after lexical analysis of the input.  The
-  Isar syntax also provides proper \emph{document comments} that are
+  Isar syntax also provides proper \<^emph>\<open>document comments\<close> that are
   considered as part of the text (see \secref{sec:comments}).
 
   Common mathematical symbols such as @{text \<forall>} are represented in
@@ -188,8 +188,8 @@ text \<open>
 subsection \<open>Names\<close>
 
 text \<open>Entity @{syntax name} usually refers to any name of types,
-  constants, theorems etc.\ that are to be \emph{declared} or
-  \emph{defined} (so qualified identifiers are excluded here).  Quoted
+  constants, theorems etc.\ that are to be \<^emph>\<open>declared\<close> or
+  \<^emph>\<open>defined\<close> (so qualified identifiers are excluded here).  Quoted
   strings provide an escape for non-identifier names or those ruled
   out by outer syntax keywords (e.g.\ quoted @{verbatim \<open>"let"\<close>}).
   Already existing objects are usually referenced by @{syntax
@@ -538,8 +538,8 @@ text \<open>
   variables, and type constraints.
 
   Criteria can be preceded by ``@{text "-"}'' to select theorems that
-  do \emph{not} match. Note that giving the empty list of criteria
-  yields \emph{all} currently known facts.  An optional limit for the
+  do \<^emph>\<open>not\<close> match. Note that giving the empty list of criteria
+  yields \<^emph>\<open>all\<close> currently known facts.  An optional limit for the
   number of printed facts may be given; the default is 40.  By
   default, duplicates are removed from the search result. Use
   @{text with_dups} to display duplicates.

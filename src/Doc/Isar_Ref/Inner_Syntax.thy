@@ -23,8 +23,8 @@ text \<open>The inner syntax of Isabelle provides concrete notation for
 
   Further details of the syntax engine involves the classical
   distinction of lexical language versus context-free grammar (see
-  \secref{sec:pure-syntax}), and various mechanisms for \emph{syntax
-  transformations} (see \secref{sec:syntax-transformations}).
+  \secref{sec:pure-syntax}), and various mechanisms for \<^emph>\<open>syntax
+  transformations\<close> (see \secref{sec:syntax-transformations}).
 \<close>
 
 
@@ -187,7 +187,7 @@ text \<open>
 
   The @{text \<eta>}-contraction law asserts @{prop "(\<lambda>x. f x) \<equiv> f"},
   provided @{text x} is not free in @{text f}.  It asserts
-  \emph{extensionality} of functions: @{prop "f \<equiv> g"} if @{prop "f x \<equiv>
+  \<^emph>\<open>extensionality\<close> of functions: @{prop "f \<equiv> g"} if @{prop "f x \<equiv>
   g x"} for all @{text x}.  Higher-order unification frequently puts
   terms into a fully @{text \<eta>}-expanded form.  For example, if @{text
   F} has type @{text "(\<tau> \<Rightarrow> \<tau>) \<Rightarrow> \<tau>"} then its expanded form is @{term
@@ -212,11 +212,11 @@ text \<open>
 
   \<^descr> @{attribute show_hyps} controls printing of implicit
   hypotheses of local facts.  Normally, only those hypotheses are
-  displayed that are \emph{not} covered by the assumptions of the
+  displayed that are \<^emph>\<open>not\<close> covered by the assumptions of the
   current context: this situation indicates a fault in some tool being
   used.
 
-  By enabling @{attribute show_hyps}, output of \emph{all} hypotheses
+  By enabling @{attribute show_hyps}, output of \<^emph>\<open>all\<close> hypotheses
   can be enforced, which is occasionally useful for diagnostic
   purposes.
 
@@ -244,7 +244,7 @@ text \<open>
     @{index_ML Print_Mode.with_modes: "string list -> ('a -> 'b) -> 'a -> 'b"} \\
   \end{mldecls}
 
-  The \emph{print mode} facility allows to modify various operations
+  The \<^emph>\<open>print mode\<close> facility allows to modify various operations
   for printing.  Commands like @{command typ}, @{command term},
   @{command thm} (see \secref{sec:print-diag}) take additional print
   modes as optional argument.  The underlying ML operations are as
@@ -295,7 +295,7 @@ text \<open>
 
 section \<open>Mixfix annotations \label{sec:mixfix}\<close>
 
-text \<open>Mixfix annotations specify concrete \emph{inner syntax} of
+text \<open>Mixfix annotations specify concrete \<^emph>\<open>inner syntax\<close> of
   Isabelle types and terms.  Locally fixed parameters in toplevel
   theorem statements, locale and class specifications also admit
   mixfix annotations in a fairly uniform manner.  A mixfix annotation
@@ -406,7 +406,7 @@ text \<open>In full generality, mixfix declarations work as follows.
 
   \<^descr> @{verbatim "/"}@{text s} allows a line break.  Here @{text s}
   stands for the string of spaces (zero or more) right after the
-  slash.  These spaces are printed if the break is \emph{not} taken.
+  slash.  These spaces are printed if the break is \<^emph>\<open>not\<close> taken.
 
 
   The general idea of pretty printing with blocks and breaks is also
@@ -448,7 +448,7 @@ text \<open>Infix operators are specified by convenient short forms that
 
 subsection \<open>Binders\<close>
 
-text \<open>A \emph{binder} is a variable-binding construct such as a
+text \<open>A \<^emph>\<open>binder\<close> is a variable-binding construct such as a
   quantifier.  The idea to formalize @{text "\<forall>x. b"} as @{text "All
   (\<lambda>x. b)"} for @{text "All :: ('a \<Rightarrow> bool) \<Rightarrow> bool"} already goes back
   to @{cite church40}.  Isabelle declarations of certain higher-order
@@ -544,11 +544,11 @@ text \<open>The inner lexical syntax vaguely resembles the outer one
   (\secref{sec:outer-lex}), but some details are different.  There are
   two main categories of inner syntax tokens:
 
-  \<^enum> \emph{delimiters} --- the literal tokens occurring in
+  \<^enum> \<^emph>\<open>delimiters\<close> --- the literal tokens occurring in
   productions of the given priority grammar (cf.\
   \secref{sec:priority-grammar});
 
-  \<^enum> \emph{named tokens} --- various categories of identifiers etc.
+  \<^enum> \<^emph>\<open>named tokens\<close> --- various categories of identifiers etc.
 
 
   Delimiters override named tokens and may thus render certain
@@ -591,17 +591,17 @@ text \<open>The inner lexical syntax vaguely resembles the outer one
 
 subsection \<open>Priority grammars \label{sec:priority-grammar}\<close>
 
-text \<open>A context-free grammar consists of a set of \emph{terminal
-  symbols}, a set of \emph{nonterminal symbols} and a set of
-  \emph{productions}.  Productions have the form @{text "A = \<gamma>"},
+text \<open>A context-free grammar consists of a set of \<^emph>\<open>terminal
+  symbols\<close>, a set of \<^emph>\<open>nonterminal symbols\<close> and a set of
+  \<^emph>\<open>productions\<close>.  Productions have the form @{text "A = \<gamma>"},
   where @{text A} is a nonterminal and @{text \<gamma>} is a string of
   terminals and nonterminals.  One designated nonterminal is called
-  the \emph{root symbol}.  The language defined by the grammar
+  the \<^emph>\<open>root symbol\<close>.  The language defined by the grammar
   consists of all strings of terminals that can be derived from the
   root symbol by applying productions as rewrite rules.
 
-  The standard Isabelle parser for inner syntax uses a \emph{priority
-  grammar}.  Each nonterminal is decorated by an integer priority:
+  The standard Isabelle parser for inner syntax uses a \<^emph>\<open>priority
+  grammar\<close>.  Each nonterminal is decorated by an integer priority:
   @{text "A\<^sup>(\<^sup>p\<^sup>)"}.  In a derivation, @{text "A\<^sup>(\<^sup>p\<^sup>)"} may be rewritten
   using a production @{text "A\<^sup>(\<^sup>q\<^sup>) = \<gamma>"} only if @{text "p \<le> q"}.  Any
   priority grammar can be translated into a normal context-free
@@ -751,7 +751,7 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
   which are terms of type @{typ prop}.  The syntax of such formulae of
   the meta-logic is carefully distinguished from usual conventions for
   object-logics.  In particular, plain @{text "\<lambda>"}-term notation is
-  \emph{not} recognized as @{syntax (inner) prop}.
+  \<^emph>\<open>not\<close> recognized as @{syntax (inner) prop}.
 
   \<^descr> @{syntax_ref (inner) aprop} denotes atomic propositions, which
   are embedded into regular @{syntax (inner) prop} by means of an
@@ -770,7 +770,7 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
   anything defined by the user.
 
   When specifying notation for logical entities, all logical types
-  (excluding @{typ prop}) are \emph{collapsed} to this single category
+  (excluding @{typ prop}) are \<^emph>\<open>collapsed\<close> to this single category
   of @{syntax (inner) logic}.
 
   \<^descr> @{syntax_ref (inner) index} denotes an optional index term for
@@ -877,15 +877,15 @@ text \<open>
     @{text "\<dots> => name"}.  These names later become the heads of parse
     trees; they also guide the pretty printer.
 
-    Productions without such parse tree names are called \emph{copy
-    productions}.  Their right-hand side must have exactly one
+    Productions without such parse tree names are called \<^emph>\<open>copy
+    productions\<close>.  Their right-hand side must have exactly one
     nonterminal symbol (or named token).  The parser does not create a
     new parse tree node for copy productions, but simply returns the
     parse tree of the right-hand symbol.
 
     If the right-hand side of a copy production consists of a single
-    nonterminal without any delimiters, then it is called a \emph{chain
-    production}.  Chain productions act as abbreviations: conceptually,
+    nonterminal without any delimiters, then it is called a \<^emph>\<open>chain
+    production\<close>.  Chain productions act as abbreviations: conceptually,
     they are removed from the grammar by adding new productions.
     Priority information attached to chain productions is ignored; only
     the dummy value @{text "-1"} is displayed.
@@ -976,8 +976,8 @@ text \<open>The inner syntax engine of Isabelle provides separate
   the user, or implicit position information by the system --- both
   need to be passed-through carefully by syntax transformations.
 
-  Pre-terms are further processed by the so-called \emph{check} and
-  \emph{uncheck} phases that are intertwined with type-inference (see
+  Pre-terms are further processed by the so-called \<^emph>\<open>check\<close> and
+  \<^emph>\<open>uncheck\<close> phases that are intertwined with type-inference (see
   also @{cite "isabelle-implementation"}).  The latter allows to operate
   on higher-order abstract syntax with proper binding and type
   information already available.
@@ -1054,7 +1054,7 @@ text \<open>Depending on the situation --- input syntax, output syntax,
   represent terms cannot distinguish constants and variables
   syntactically.  Explicit indication of @{text "CONST c"} inside the
   term language is required, unless @{text "c"} is known as special
-  \emph{syntax constant} (see also @{command syntax}).  It is also
+  \<^emph>\<open>syntax constant\<close> (see also @{command syntax}).  It is also
   possible to use @{command syntax} declarations (without mixfix
   annotation) to enforce that certain unqualified names are always
   treated as constant within the syntax machinery.
@@ -1076,7 +1076,7 @@ text \<open>Naming constant entities within ASTs is another delicate
   Since syntax transformations do not know about this later name
   resolution, there can be surprises in boundary cases.
 
-  \emph{Authentic syntax names} for @{ML Ast.Constant} avoid this
+  \<^emph>\<open>Authentic syntax names\<close> for @{ML Ast.Constant} avoid this
   problem: the fully-qualified constant name with a special prefix for
   its formal category (@{text "class"}, @{text "type"}, @{text
   "const"}, @{text "fixed"}) represents the information faithfully
@@ -1212,7 +1212,7 @@ text \<open>
   rule undergo parsing and parse AST translations
   \secref{sec:tr-funs}, in order to perform some fundamental
   normalization like @{text "\<lambda>x y. b \<leadsto> \<lambda>x. \<lambda>y. b"}, but other AST
-  translation rules are \emph{not} applied recursively here.
+  translation rules are \<^emph>\<open>not\<close> applied recursively here.
 
   When processing AST patterns, the inner syntax lexer runs in a
   different mode that allows identifiers to start with underscore.
@@ -1280,12 +1280,12 @@ text \<open>As a term is being parsed or printed, an AST is generated as
 
   Let @{text "t"} be the abstract syntax tree to be normalized and
   @{text "(lhs, rhs)"} some translation rule.  A subtree @{text "u"}
-  of @{text "t"} is called \emph{redex} if it is an instance of @{text
+  of @{text "t"} is called \<^emph>\<open>redex\<close> if it is an instance of @{text
   "lhs"}; in this case the pattern @{text "lhs"} is said to match the
   object @{text "u"}.  A redex matched by @{text "lhs"} may be
   replaced by the corresponding instance of @{text "rhs"}, thus
-  \emph{rewriting} the AST @{text "t"}.  Matching requires some notion
-  of \emph{place-holders} in rule patterns: @{ML Ast.Variable} serves
+  \<^emph>\<open>rewriting\<close> the AST @{text "t"}.  Matching requires some notion
+  of \<^emph>\<open>place-holders\<close> in rule patterns: @{ML Ast.Variable} serves
   this purpose.
 
   More precisely, the matching of the object @{text "u"} against the
@@ -1322,7 +1322,7 @@ text \<open>As a term is being parsed or printed, an AST is generated as
 
   \begin{warn}
   If syntax translation rules work incorrectly, the output of
-  @{command_ref print_syntax} with its \emph{rules} sections reveals the
+  @{command_ref print_syntax} with its \<^emph>\<open>rules\<close> sections reveals the
   actual internal forms of AST pattern, without potentially confusing
   concrete syntax.  Recall that AST constants appear as quoted strings
   and variables without quotes.
@@ -1330,7 +1330,7 @@ text \<open>As a term is being parsed or printed, an AST is generated as
 
   \begin{warn}
   If @{attribute_ref eta_contract} is set to @{text "true"}, terms
-  will be @{text "\<eta>"}-contracted \emph{before} the AST rewriter sees
+  will be @{text "\<eta>"}-contracted \<^emph>\<open>before\<close> the AST rewriter sees
   them.  Thus some abstraction nodes needed for print rules to match
   may vanish.  For example, @{text "Ball A (\<lambda>x. P x)"} would contract
   to @{text "Ball A P"} and the standard print rule would fail to
@@ -1435,7 +1435,7 @@ text \<open>The different kinds of translation functions are invoked during
   the form @{ML Const}~@{text "(c, \<tau>)"} or @{ML Const}~@{text "(c, \<tau>)
   $ x\<^sub>1 $ \<dots> $ x\<^sub>n"}.  Terms allow more sophisticated transformations
   than ASTs do, typically involving abstractions and bound
-  variables. \emph{Typed} print translations may even peek at the type
+  variables. \<^emph>\<open>Typed\<close> print translations may even peek at the type
   @{text "\<tau>"} of the constant they are invoked on, although some
   information might have been suppressed for term output already.
 
@@ -1575,7 +1575,7 @@ text \<open>The output phase is essentially the inverse of the input
   syntax priority of the argument slot is given by its nonterminal
   @{text "A\<^sup>(\<^sup>p\<^sup>)"}.  The argument @{text "t\<^sub>i"} that corresponds to the
   position of @{text "A\<^sup>(\<^sup>p\<^sup>)"} is printed recursively, and then put in
-  parentheses \emph{if} its priority @{text "p"} requires this.  The
+  parentheses \<^emph>\<open>if\<close> its priority @{text "p"} requires this.  The
   resulting output is concatenated with the syntactic sugar according
   to the grammar production.
 
@@ -1592,7 +1592,7 @@ text \<open>The output phase is essentially the inverse of the input
   AST variable @{text "x"} is printed as @{text "x"} outright.
 
   \<^medskip>
-  White space is \emph{not} inserted automatically.  If
+  White space is \<^emph>\<open>not\<close> inserted automatically.  If
   blanks (or breaks) are required to separate tokens, they need to be
   specified in the mixfix declaration (\secref{sec:mixfix}).
 \<close>

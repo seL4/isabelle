@@ -112,7 +112,7 @@ section \<open>Proof methods\<close>
 
 text \<open>
   \begin{tabular}{ll}
-    \multicolumn{2}{l}{\textbf{Single steps (forward-chaining facts)}} \\[0.5ex]
+    \multicolumn{2}{l}{\<^bold>\<open>Single steps (forward-chaining facts)\<close>} \\[0.5ex]
     @{method assumption} & apply some assumption \\
     @{method this} & apply current facts \\
     @{method rule}~@{text a} & apply some rule  \\
@@ -121,14 +121,14 @@ text \<open>
     @{method cases}~@{text t} & case analysis (provides cases) \\
     @{method induct}~@{text x} & proof by induction (provides cases) \\[2ex]
 
-    \multicolumn{2}{l}{\textbf{Repeated steps (inserting facts)}} \\[0.5ex]
+    \multicolumn{2}{l}{\<^bold>\<open>Repeated steps (inserting facts)\<close>} \\[0.5ex]
     @{method "-"} & no rules \\
     @{method intro}~@{text a} & introduction rules \\
     @{method intro_classes} & class introduction rules \\
     @{method elim}~@{text a} & elimination rules \\
     @{method unfold}~@{text a} & definitional rewrite rules \\[2ex]
 
-    \multicolumn{2}{l}{\textbf{Automated proof tools (inserting facts)}} \\[0.5ex]
+    \multicolumn{2}{l}{\<^bold>\<open>Automated proof tools (inserting facts)\<close>} \\[0.5ex]
     @{method iprover} & intuitionistic proof search \\
     @{method blast}, @{method fast} & Classical Reasoner \\
     @{method simp}, @{method simp_all} & Simplifier (+ Splitter) \\
@@ -142,7 +142,7 @@ section \<open>Attributes\<close>
 
 text \<open>
   \begin{tabular}{ll}
-    \multicolumn{2}{l}{\textbf{Rules}} \\[0.5ex]
+    \multicolumn{2}{l}{\<^bold>\<open>Rules\<close>} \\[0.5ex]
     @{attribute OF}~@{text a} & rule resolved with facts (skipping ``@{text _}'') \\
     @{attribute of}~@{text t} & rule instantiated with terms (skipping ``@{text _}'') \\
     @{attribute "where"}~@{text "x = t"} & rule instantiated with terms, by variable name \\
@@ -151,7 +151,7 @@ text \<open>
     @{attribute rule_format} & result put into standard rule format \\
     @{attribute elim_format} & destruct rule turned into elimination rule format \\[1ex]
 
-    \multicolumn{2}{l}{\textbf{Declarations}} \\[0.5ex]
+    \multicolumn{2}{l}{\<^bold>\<open>Declarations\<close>} \\[0.5ex]
     @{attribute simp} & Simplifier rule \\
     @{attribute intro}, @{attribute elim}, @{attribute dest} & Pure or Classical Reasoner rule \\
     @{attribute iff} & Simplifier + Classical Reasoner rule \\

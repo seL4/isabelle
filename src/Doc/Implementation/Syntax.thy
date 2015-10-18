@@ -8,10 +8,10 @@ chapter \<open>Concrete syntax and type-checking\<close>
 
 text \<open>Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} is
   an adequate foundation for logical languages --- in the tradition of
-  \emph{higher-order abstract syntax} --- but end-users require
+  \<^emph>\<open>higher-order abstract syntax\<close> --- but end-users require
   additional means for reading and printing of terms and types.  This
-  important add-on outside the logical core is called \emph{inner
-  syntax} in Isabelle jargon, as opposed to the \emph{outer syntax} of
+  important add-on outside the logical core is called \<^emph>\<open>inner
+  syntax\<close> in Isabelle jargon, as opposed to the \<^emph>\<open>outer syntax\<close> of
   the theory and proof language @{cite "isabelle-isar-ref"}.
 
   For example, according to @{cite church40} quantifiers are represented as
@@ -26,13 +26,13 @@ text \<open>Pure @{text "\<lambda>"}-calculus as introduced in \chref{ch:logic} 
   the system.}
 
   \<^medskip>
-  The main inner syntax operations are \emph{read} for
-  parsing together with type-checking, and \emph{pretty} for formatted
+  The main inner syntax operations are \<^emph>\<open>read\<close> for
+  parsing together with type-checking, and \<^emph>\<open>pretty\<close> for formatted
   output.  See also \secref{sec:read-print}.
 
   Furthermore, the input and output syntax layers are sub-divided into
-  separate phases for \emph{concrete syntax} versus \emph{abstract
-  syntax}, see also \secref{sec:parse-unparse} and
+  separate phases for \<^emph>\<open>concrete syntax\<close> versus \<^emph>\<open>abstract
+  syntax\<close>, see also \secref{sec:parse-unparse} and
   \secref{sec:term-check}, respectively.  This results in the
   following decomposition of the main operations:
 
@@ -147,16 +147,16 @@ section \<open>Parsing and unparsing \label{sec:parse-unparse}\<close>
 
 text \<open>
   Parsing and unparsing converts between actual source text and a certain
-  \emph{pre-term} format, where all bindings and scopes are already resolved
+  \<^emph>\<open>pre-term\<close> format, where all bindings and scopes are already resolved
   faithfully. Thus the names of free variables or constants are determined in
   the sense of the logical context, but type information might be still
-  missing. Pre-terms support an explicit language of \emph{type constraints}
-  that may be augmented by user code to guide the later \emph{check} phase.
+  missing. Pre-terms support an explicit language of \<^emph>\<open>type constraints\<close>
+  that may be augmented by user code to guide the later \<^emph>\<open>check\<close> phase.
 
   Actual parsing is based on traditional lexical analysis and Earley parsing
   for arbitrary context-free grammars. The user can specify the grammar
-  declaratively via mixfix annotations. Moreover, there are \emph{syntax
-  translations} that can be augmented by the user, either declaratively via
+  declaratively via mixfix annotations. Moreover, there are \<^emph>\<open>syntax
+  translations\<close> that can be augmented by the user, either declaratively via
   @{command translations} or programmatically via @{command
   parse_translation}, @{command print_translation} @{cite
   "isabelle-isar-ref"}. The final scope-resolution is performed by the system,
@@ -204,10 +204,10 @@ text \<open>These operations define the transition from pre-terms and
   fully-annotated terms in the sense of the logical core
   (\chref{ch:logic}).
 
-  The \emph{check} phase is meant to subsume a variety of mechanisms
+  The \<^emph>\<open>check\<close> phase is meant to subsume a variety of mechanisms
   in the manner of ``type-inference'' or ``type-reconstruction'' or
   ``type-improvement'', not just type-checking in the narrow sense.
-  The \emph{uncheck} phase is roughly dual, it prunes type-information
+  The \<^emph>\<open>uncheck\<close> phase is roughly dual, it prunes type-information
   before pretty printing.
 
   A typical add-on for the check/uncheck syntax layer is the @{command

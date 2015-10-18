@@ -37,14 +37,14 @@ text \<open>
   algebra; types are qualified by ordered type classes.
 
   \<^medskip>
-  A \emph{type class} is an abstract syntactic entity
-  declared in the theory context.  The \emph{subclass relation} @{text
+  A \<^emph>\<open>type class\<close> is an abstract syntactic entity
+  declared in the theory context.  The \<^emph>\<open>subclass relation\<close> @{text
   "c\<^sub>1 \<subseteq> c\<^sub>2"} is specified by stating an acyclic
   generating relation; the transitive closure is maintained
   internally.  The resulting relation is an ordering: reflexive,
   transitive, and antisymmetric.
 
-  A \emph{sort} is a list of type classes written as @{text "s = {c\<^sub>1,
+  A \<^emph>\<open>sort\<close> is a list of type classes written as @{text "s = {c\<^sub>1,
   \<dots>, c\<^sub>m}"}, it represents symbolic intersection.  Notationally, the
   curly braces are omitted for singleton intersections, i.e.\ any
   class @{text "c"} may be read as a sort @{text "{c}"}.  The ordering
@@ -57,20 +57,20 @@ text \<open>
   in the current theory is the least element wrt.\ the sort ordering.
 
   \<^medskip>
-  A \emph{fixed type variable} is a pair of a basic name
+  A \<^emph>\<open>fixed type variable\<close> is a pair of a basic name
   (starting with a @{text "'"} character) and a sort constraint, e.g.\
   @{text "('a, s)"} which is usually printed as @{text "\<alpha>\<^sub>s"}.
-  A \emph{schematic type variable} is a pair of an indexname and a
+  A \<^emph>\<open>schematic type variable\<close> is a pair of an indexname and a
   sort constraint, e.g.\ @{text "(('a, 0), s)"} which is usually
   printed as @{text "?\<alpha>\<^sub>s"}.
 
-  Note that \emph{all} syntactic components contribute to the identity
+  Note that \<^emph>\<open>all\<close> syntactic components contribute to the identity
   of type variables: basic name, index, and sort constraint.  The core
   logic handles type variables with the same name but different sorts
   as different, although the type-inference layer (which is outside
   the core) rejects anything like that.
 
-  A \emph{type constructor} @{text "\<kappa>"} is a @{text "k"}-ary operator
+  A \<^emph>\<open>type constructor\<close> @{text "\<kappa>"} is a @{text "k"}-ary operator
   on types declared in the theory.  Type constructor application is
   written postfix as @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>k)\<kappa>"}.  For
   @{text "k = 0"} the argument tuple is omitted, e.g.\ @{text "prop"}
@@ -80,17 +80,17 @@ text \<open>
   right-associative infix @{text "\<alpha> \<Rightarrow> \<beta>"} instead of @{text "(\<alpha>,
   \<beta>)fun"}.
   
-  The logical category \emph{type} is defined inductively over type
+  The logical category \<^emph>\<open>type\<close> is defined inductively over type
   variables and type constructors as follows: @{text "\<tau> = \<alpha>\<^sub>s | ?\<alpha>\<^sub>s |
   (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)\<kappa>"}.
 
-  A \emph{type abbreviation} is a syntactic definition @{text
+  A \<^emph>\<open>type abbreviation\<close> is a syntactic definition @{text
   "(\<^vec>\<alpha>)\<kappa> = \<tau>"} of an arbitrary type expression @{text "\<tau>"} over
   variables @{text "\<^vec>\<alpha>"}.  Type abbreviations appear as type
   constructors in the syntax, but are expanded before entering the
   logical core.
 
-  A \emph{type arity} declares the image behavior of a type
+  A \<^emph>\<open>type arity\<close> declares the image behavior of a type
   constructor wrt.\ the algebra of sorts: @{text "\<kappa> :: (s\<^sub>1, \<dots>,
   s\<^sub>k)s"} means that @{text "(\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)\<kappa>"} is
   of sort @{text "s"} if every argument type @{text "\<tau>\<^sub>i"} is
@@ -99,7 +99,7 @@ text \<open>
   (\<^vec>s)c'"} for any @{text "c' \<supseteq> c"}.
 
   \<^medskip>
-  The sort algebra is always maintained as \emph{coregular},
+  The sort algebra is always maintained as \<^emph>\<open>coregular\<close>,
   which means that type arities are consistent with the subclass
   relation: for any type constructor @{text "\<kappa>"}, and classes @{text
   "c\<^sub>1 \<subseteq> c\<^sub>2"}, and arities @{text "\<kappa> ::
@@ -238,7 +238,7 @@ text \<open>
   have an explicit name and type in each occurrence.
 
   \<^medskip>
-  A \emph{bound variable} is a natural number @{text "b"},
+  A \<^emph>\<open>bound variable\<close> is a natural number @{text "b"},
   which accounts for the number of intermediate binders between the
   variable occurrence in the body and its binding position.  For
   example, the de-Bruijn term @{text "\<lambda>\<^bsub>bool\<^esub>. \<lambda>\<^bsub>bool\<^esub>. 1 \<and> 0"} would
@@ -247,26 +247,26 @@ text \<open>
   different de-Bruijn indices at different occurrences, depending on
   the nesting of abstractions.
 
-  A \emph{loose variable} is a bound variable that is outside the
+  A \<^emph>\<open>loose variable\<close> is a bound variable that is outside the
   scope of local binders.  The types (and names) for loose variables
   can be managed as a separate context, that is maintained as a stack
   of hypothetical binders.  The core logic operates on closed terms,
   without any loose variables.
 
-  A \emph{fixed variable} is a pair of a basic name and a type, e.g.\
+  A \<^emph>\<open>fixed variable\<close> is a pair of a basic name and a type, e.g.\
   @{text "(x, \<tau>)"} which is usually printed @{text "x\<^sub>\<tau>"} here.  A
-  \emph{schematic variable} is a pair of an indexname and a type,
+  \<^emph>\<open>schematic variable\<close> is a pair of an indexname and a type,
   e.g.\ @{text "((x, 0), \<tau>)"} which is likewise printed as @{text
   "?x\<^sub>\<tau>"}.
 
   \<^medskip>
-  A \emph{constant} is a pair of a basic name and a type,
+  A \<^emph>\<open>constant\<close> is a pair of a basic name and a type,
   e.g.\ @{text "(c, \<tau>)"} which is usually printed as @{text "c\<^sub>\<tau>"}
   here.  Constants are declared in the context as polymorphic families
   @{text "c :: \<sigma>"}, meaning that all substitution instances @{text
   "c\<^sub>\<tau>"} for @{text "\<tau> = \<sigma>\<vartheta>"} are valid.
 
-  The vector of \emph{type arguments} of constant @{text "c\<^sub>\<tau>"} wrt.\
+  The vector of \<^emph>\<open>type arguments\<close> of constant @{text "c\<^sub>\<tau>"} wrt.\
   the declaration @{text "c :: \<sigma>"} is defined as the codomain of the
   matcher @{text "\<vartheta> = {?\<alpha>\<^sub>1 \<mapsto> \<tau>\<^sub>1, \<dots>, ?\<alpha>\<^sub>n \<mapsto> \<tau>\<^sub>n}"} presented in
   canonical order @{text "(\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>n)"}, corresponding to the
@@ -279,14 +279,14 @@ text \<open>
 
   Constant declarations @{text "c :: \<sigma>"} may contain sort constraints
   for type variables in @{text "\<sigma>"}.  These are observed by
-  type-inference as expected, but \emph{ignored} by the core logic.
+  type-inference as expected, but \<^emph>\<open>ignored\<close> by the core logic.
   This means the primitive logic is able to reason with instances of
   polymorphic constants that the user-level type-checker would reject
   due to violation of type class restrictions.
 
   \<^medskip>
-  An \emph{atomic term} is either a variable or constant.
-  The logical category \emph{term} is defined inductively over atomic
+  An \<^emph>\<open>atomic term\<close> is either a variable or constant.
+  The logical category \<^emph>\<open>term\<close> is defined inductively over atomic
   terms, with abstraction and application as follows: @{text "t = b |
   x\<^sub>\<tau> | ?x\<^sub>\<tau> | c\<^sub>\<tau> | \<lambda>\<^sub>\<tau>. t | t\<^sub>1 t\<^sub>2"}.  Parsing and printing takes care of
   converting between an external representation with named bound
@@ -303,7 +303,7 @@ text \<open>
   \qquad
   \infer{@{text "t u :: \<sigma>"}}{@{text "t :: \<tau> \<Rightarrow> \<sigma>"} & @{text "u :: \<tau>"}}
   \]
-  A \emph{well-typed term} is a term that can be typed according to these rules.
+  A \<^emph>\<open>well-typed term\<close> is a term that can be typed according to these rules.
 
   Typing information can be omitted: type-inference is able to
   reconstruct the most general type of a raw term, while assigning
@@ -319,7 +319,7 @@ text \<open>
   polymorphic constants occur routinely.
 
   \<^medskip>
-  The \emph{hidden polymorphism} of a term @{text "t :: \<sigma>"}
+  The \<^emph>\<open>hidden polymorphism\<close> of a term @{text "t :: \<sigma>"}
   is the set of type variables occurring in @{text "t"}, but not in
   its type @{text "\<sigma>"}.  This means that the term implicitly depends
   on type arguments that are not accounted in the result type, i.e.\
@@ -328,7 +328,7 @@ text \<open>
   pathological situation notoriously demands additional care.
 
   \<^medskip>
-  A \emph{term abbreviation} is a syntactic definition @{text
+  A \<^emph>\<open>term abbreviation\<close> is a syntactic definition @{text
   "c\<^sub>\<sigma> \<equiv> t"} of a closed term @{text "t"} of type @{text "\<sigma>"},
   without any hidden polymorphism.  A term abbreviation looks like a
   constant in the syntax, but is expanded before entering the logical
@@ -475,8 +475,8 @@ text %mlantiq \<open>
 section \<open>Theorems \label{sec:thms}\<close>
 
 text \<open>
-  A \emph{proposition} is a well-typed term of type @{text "prop"}, a
-  \emph{theorem} is a proven proposition (depending on a context of
+  A \<^emph>\<open>proposition\<close> is a well-typed term of type @{text "prop"}, a
+  \<^emph>\<open>theorem\<close> is a proven proposition (depending on a context of
   hypotheses and the background theory).  Primitive inferences include
   plain Natural Deduction rules for the primary connectives @{text
   "\<And>"} and @{text "\<Longrightarrow>"} of the framework.  There is also a builtin
@@ -493,7 +493,7 @@ text \<open>
   derivability judgment @{text "A\<^sub>1, \<dots>, A\<^sub>n \<turnstile> B"} is
   defined inductively by the primitive inferences given in
   \figref{fig:prim-rules}, with the global restriction that the
-  hypotheses must \emph{not} contain any schematic variables.  The
+  hypotheses must \<^emph>\<open>not\<close> contain any schematic variables.  The
   builtin equality is conceptually axiomatized as shown in
   \figref{fig:pure-equality}, although the implementation works
   directly with derived inferences.
@@ -597,7 +597,7 @@ text \<open>
   the result belongs to a different proof context.
 
   \<^medskip>
-  An \emph{oracle} is a function that produces axioms on the
+  An \<^emph>\<open>oracle\<close> is a function that produces axioms on the
   fly.  Logically, this is an instance of the @{text "axiom"} rule
   (\figref{fig:prim-rules}), but there is an operational difference.
   The system always records oracle invocations within derivations of
@@ -608,14 +608,14 @@ text \<open>
   Later on, theories are usually developed in a strictly definitional
   fashion, by stating only certain equalities over new constants.
 
-  A \emph{simple definition} consists of a constant declaration @{text
+  A \<^emph>\<open>simple definition\<close> consists of a constant declaration @{text
   "c :: \<sigma>"} together with an axiom @{text "\<turnstile> c \<equiv> t"}, where @{text "t
   :: \<sigma>"} is a closed term without any hidden polymorphism.  The RHS
   may depend on further defined constants, but not @{text "c"} itself.
   Definitions of functions may be presented as @{text "c \<^vec>x \<equiv>
   t"} instead of the puristic @{text "c \<equiv> \<lambda>\<^vec>x. t"}.
 
-  An \emph{overloaded definition} consists of a collection of axioms
+  An \<^emph>\<open>overloaded definition\<close> consists of a collection of axioms
   for the same constant, with zero or one equations @{text
   "c((\<^vec>\<alpha>)\<kappa>) \<equiv> t"} for each type constructor @{text "\<kappa>"} (for
   distinct variables @{text "\<^vec>\<alpha>"}).  The RHS may mention
@@ -717,7 +717,7 @@ text %mlref \<open>
   cf.\ \secref{sec:context-theory}.
 
   \<^descr> @{ML Thm.transfer}~@{text "thy thm"} transfers the given
-  theorem to a \emph{larger} theory, see also \secref{sec:context}.
+  theorem to a \<^emph>\<open>larger\<close> theory, see also \secref{sec:context}.
   This formal adjustment of the background context has no logical
   significance, but is occasionally required for formal reasons, e.g.\
   when theorems that are imported from more basic theories are used in
@@ -920,7 +920,7 @@ text \<open>Type variables are decorated with sorts, as explained in
   "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} cover the propositions @{text "\<Gamma>"}, @{text "\<phi>"}, as
   well as the proof of @{text "\<Gamma> \<turnstile> \<phi>"}.
 
-  These \emph{sort hypothesis} of a theorem are passed monotonically
+  These \<^emph>\<open>sort hypothesis\<close> of a theorem are passed monotonically
   through further derivations.  They are redundant, as long as the
   statement of a theorem still contains the type variables that are
   accounted here.  The logical significance of sort hypotheses is
@@ -965,7 +965,7 @@ ML_val \<open>@{assert} (Thm.extra_shyps @{thm false} = [@{sort empty}])\<close>
 
 text \<open>Thanks to the inference kernel managing sort hypothesis
   according to their logical significance, this example is merely an
-  instance of \emph{ex falso quodlibet consequitur} --- not a collapse
+  instance of \<^emph>\<open>ex falso quodlibet consequitur\<close> --- not a collapse
   of the logical framework!\<close>
 
 
@@ -975,9 +975,9 @@ text \<open>
   The primitive inferences covered so far mostly serve foundational
   purposes.  User-level reasoning usually works via object-level rules
   that are represented as theorems of Pure.  Composition of rules
-  involves \emph{backchaining}, \emph{higher-order unification} modulo
+  involves \<^emph>\<open>backchaining\<close>, \<^emph>\<open>higher-order unification\<close> modulo
   @{text "\<alpha>\<beta>\<eta>"}-conversion of @{text "\<lambda>"}-terms, and so-called
-  \emph{lifting} of rules into a context of @{text "\<And>"} and @{text
+  \<^emph>\<open>lifting\<close> of rules into a context of @{text "\<And>"} and @{text
   "\<Longrightarrow>"} connectives.  Thus the full power of higher-order Natural
   Deduction in Isabelle/Pure becomes readily available.
 \<close>
@@ -989,7 +989,7 @@ text \<open>
   The idea of object-level rules is to model Natural Deduction
   inferences in the style of Gentzen @{cite "Gentzen:1935"}, but we allow
   arbitrary nesting similar to @{cite extensions91}.  The most basic
-  rule format is that of a \emph{Horn Clause}:
+  rule format is that of a \<^emph>\<open>Horn Clause\<close>:
   \[
   \infer{@{text "A"}}{@{text "A\<^sub>1"} & @{text "\<dots>"} & @{text "A\<^sub>n"}}
   \]
@@ -1010,8 +1010,8 @@ text \<open>
 
   Nesting of rules means that the positions of @{text "A\<^sub>i"} may
   again hold compound rules, not just atomic propositions.
-  Propositions of this format are called \emph{Hereditary Harrop
-  Formulae} in the literature @{cite "Miller:1991"}.  Here we give an
+  Propositions of this format are called \<^emph>\<open>Hereditary Harrop
+  Formulae\<close> in the literature @{cite "Miller:1991"}.  Here we give an
   inductive characterization as follows:
 
   \<^medskip>
@@ -1180,7 +1180,7 @@ text \<open>The Isabelle/Pure inference kernel can record the proof of
   logical framework.  The proof term can be inspected by a separate
   proof-checker, for example.
 
-  According to the well-known \emph{Curry-Howard isomorphism}, a proof
+  According to the well-known \<^emph>\<open>Curry-Howard isomorphism\<close>, a proof
   can be viewed as a @{text "\<lambda>"}-term. Following this idea, proofs in
   Isabelle are internally represented by a datatype similar to the one
   for terms described in \secref{sec:terms}.  On top of these
@@ -1193,9 +1193,9 @@ text \<open>The Isabelle/Pure inference kernel can record the proof of
   polymorphism and type classes are ignored.
 
   \<^medskip>
-  \emph{Proof abstractions} of the form @{text "\<^bold>\<lambda>x :: \<alpha>. prf"}
+  \<^emph>\<open>Proof abstractions\<close> of the form @{text "\<^bold>\<lambda>x :: \<alpha>. prf"}
   or @{text "\<^bold>\<lambda>p : A. prf"} correspond to introduction of @{text
-  "\<And>"}/@{text "\<Longrightarrow>"}, and \emph{proof applications} of the form @{text
+  "\<And>"}/@{text "\<Longrightarrow>"}, and \<^emph>\<open>proof applications\<close> of the form @{text
   "p \<cdot> t"} or @{text "p \<bullet> q"} correspond to elimination of @{text
   "\<And>"}/@{text "\<Longrightarrow>"}.  Actual types @{text "\<alpha>"}, propositions @{text
   "A"}, and terms @{text "t"} might be suppressed and reconstructed
@@ -1205,10 +1205,10 @@ text \<open>The Isabelle/Pure inference kernel can record the proof of
   Various atomic proofs indicate special situations within
   the proof construction as follows.
 
-  A \emph{bound proof variable} is a natural number @{text "b"} that
+  A \<^emph>\<open>bound proof variable\<close> is a natural number @{text "b"} that
   acts as de-Bruijn index for proof term abstractions.
 
-  A \emph{minimal proof} ``@{text "?"}'' is a dummy proof term.  This
+  A \<^emph>\<open>minimal proof\<close> ``@{text "?"}'' is a dummy proof term.  This
   indicates some unrecorded part of the proof.
 
   @{text "Hyp A"} refers to some pending hypothesis by giving its
@@ -1216,26 +1216,26 @@ text \<open>The Isabelle/Pure inference kernel can record the proof of
   similar to loose bound variables or free variables within a term
   (\secref{sec:terms}).
 
-  An \emph{axiom} or \emph{oracle} @{text "a : A[\<^vec>\<tau>]"} refers
+  An \<^emph>\<open>axiom\<close> or \<^emph>\<open>oracle\<close> @{text "a : A[\<^vec>\<tau>]"} refers
   some postulated @{text "proof constant"}, which is subject to
   schematic polymorphism of theory content, and the particular type
   instantiation may be given explicitly.  The vector of types @{text
   "\<^vec>\<tau>"} refers to the schematic type variables in the generic
   proposition @{text "A"} in canonical order.
 
-  A \emph{proof promise} @{text "a : A[\<^vec>\<tau>]"} is a placeholder
+  A \<^emph>\<open>proof promise\<close> @{text "a : A[\<^vec>\<tau>]"} is a placeholder
   for some proof of polymorphic proposition @{text "A"}, with explicit
   type instantiation as given by the vector @{text "\<^vec>\<tau>"}, as
   above.  Unlike axioms or oracles, proof promises may be
-  \emph{fulfilled} eventually, by substituting @{text "a"} by some
+  \<^emph>\<open>fulfilled\<close> eventually, by substituting @{text "a"} by some
   particular proof @{text "q"} at the corresponding type instance.
   This acts like Hindley-Milner @{text "let"}-polymorphism: a generic
   local proof definition may get used at different type instances, and
   is replaced by the concrete instance eventually.
 
-  A \emph{named theorem} wraps up some concrete proof as a closed
+  A \<^emph>\<open>named theorem\<close> wraps up some concrete proof as a closed
   formal entity, in the manner of constant definitions for proof
-  terms.  The \emph{proof body} of such boxed theorems involves some
+  terms.  The \<^emph>\<open>proof body\<close> of such boxed theorems involves some
   digest about oracles and promises occurring in the original proof.
   This allows the inference kernel to manage this critical information
   without the full overhead of explicit proof terms.
@@ -1247,15 +1247,15 @@ subsection \<open>Reconstructing and checking proof terms\<close>
 text \<open>Fully explicit proof terms can be large, but most of this
   information is redundant and can be reconstructed from the context.
   Therefore, the Isabelle/Pure inference kernel records only
-  \emph{implicit} proof terms, by omitting all typing information in
+  \<^emph>\<open>implicit\<close> proof terms, by omitting all typing information in
   terms, all term and type labels of proof abstractions, and some
   argument terms of applications @{text "p \<cdot> t"} (if possible).
 
   There are separate operations to reconstruct the full proof term
-  later on, using \emph{higher-order pattern unification}
+  later on, using \<^emph>\<open>higher-order pattern unification\<close>
   @{cite "nipkow-patterns" and "Berghofer-Nipkow:2000:TPHOL"}.
 
-  The \emph{proof checker} expects a fully reconstructed proof term,
+  The \<^emph>\<open>proof checker\<close> expects a fully reconstructed proof term,
   and can turn it into a theorem by replaying its primitive inferences
   within the kernel.\<close>
 

@@ -3,14 +3,14 @@ imports Base Main
 begin
 
 text \<open>
-  The \emph{Isabelle} system essentially provides a generic
+  The \<^emph>\<open>Isabelle\<close> system essentially provides a generic
   infrastructure for building deductive systems (programmed in
   Standard ML), with a special focus on interactive theorem proving in
   higher-order logics.  Many years ago, even end-users would refer to
   certain ML functions (goal commands, tactics, tacticals etc.) to
   pursue their everyday theorem proving tasks.
   
-  In contrast \emph{Isar} provides an interpreted language environment
+  In contrast \<^emph>\<open>Isar\<close> provides an interpreted language environment
   of its own, which has been specifically tailored for the needs of
   theory and proof development.  Compared to raw ML, the Isabelle/Isar
   top-level provides a more robust and comfortable development
@@ -18,7 +18,7 @@ text \<open>
   transactions with unlimited undo etc.
 
   In its pioneering times, the Isabelle/Isar version of the
-  \emph{Proof~General} user interface @{cite proofgeneral and
+  \<^emph>\<open>Proof~General\<close> user interface @{cite proofgeneral and
   "Aspinall:TACAS:2000"} has contributed to the
   success of for interactive theory and proof development in this
   advanced theorem proving environment, even though it was somewhat
@@ -30,8 +30,8 @@ text \<open>
   Apart from the technical advances over bare-bones ML
   programming, the main purpose of the Isar language is to provide a
   conceptually different view on machine-checked proofs
-  @{cite "Wenzel:1999:TPHOL" and "Wenzel-PhD"}.  \emph{Isar} stands for
-  \emph{Intelligible semi-automated reasoning}.  Drawing from both the
+  @{cite "Wenzel:1999:TPHOL" and "Wenzel-PhD"}.  \<^emph>\<open>Isar\<close> stands for
+  \<^emph>\<open>Intelligible semi-automated reasoning\<close>.  Drawing from both the
   traditions of informal mathematical proof texts and high-level
   programming languages, Isar offers a versatile environment for
   structured formal proof documents.  Thus properly written Isar
@@ -61,8 +61,8 @@ text \<open>
   Isabelle/HOL.
 
   \<^medskip>
-  Isar commands may be either \emph{proper} document
-  constructors, or \emph{improper commands}.  Some proof methods and
+  Isar commands may be either \<^emph>\<open>proper\<close> document
+  constructors, or \<^emph>\<open>improper commands\<close>.  Some proof methods and
   attributes introduced later are classified as improper as well.
   Improper Isar language elements, which are marked by ``@{text
   "\<^sup>*"}'' in the subsequent chapters; they are often helpful

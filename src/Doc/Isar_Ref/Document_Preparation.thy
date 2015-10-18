@@ -9,8 +9,8 @@ text \<open>Isabelle/Isar provides a simple document preparation system
   within that format.  This allows to produce papers, books, theses
   etc.\ from Isabelle theory sources.
 
-  {\LaTeX} output is generated while processing a \emph{session} in
-  batch mode, as explained in the \emph{The Isabelle System Manual}
+  {\LaTeX} output is generated while processing a \<^emph>\<open>session\<close> in
+  batch mode, as explained in the \<^emph>\<open>The Isabelle System Manual\<close>
   @{cite "isabelle-system"}.  The main Isabelle tools to get started with
   document preparation are @{tool_ref mkroot} and @{tool_ref build}.
 
@@ -67,7 +67,7 @@ text \<open>
 
 
   All text passed to any of the above markup commands may refer to formal
-  entities via \emph{document antiquotations}, see also \secref{sec:antiq}.
+  entities via \<^emph>\<open>document antiquotations\<close>, see also \secref{sec:antiq}.
   These are interpreted in the present theory or proof context.
 
   \<^medskip>
@@ -118,7 +118,7 @@ text \<open>
   (\secref{sec:markup}) or document comments (\secref{sec:comments}).
   The argument of markup commands quotes informal text to be printed
   in the resulting document, but may again refer to formal entities
-  via \emph{document antiquotations}.
+  via \<^emph>\<open>document antiquotations\<close>.
 
   For example, embedding @{verbatim \<open>@{term [show_types] "f x = a + x"}\<close>}
   within a text block makes
@@ -194,7 +194,7 @@ text \<open>
     @@{command print_antiquotations} ('!'?)
   \<close>}
 
-  Note that the syntax of antiquotations may \emph{not} include source
+  Note that the syntax of antiquotations may \<^emph>\<open>not\<close> include source
   comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} nor verbatim
   text @{verbatim "{*"}~@{text "\<dots>"}~@{verbatim "*}"}.
 
@@ -242,7 +242,7 @@ text \<open>
   e.g.\ small pieces of terms that should not be parsed or
   type-checked yet.
 
-  \<^descr> @{text "@{goals}"} prints the current \emph{dynamic} goal
+  \<^descr> @{text "@{goals}"} prints the current \<^emph>\<open>dynamic\<close> goal
   state.  This is mainly for support of tactic-emulation scripts
   within Isar.  Presentation of goal states does not conform to the
   idea of human-readable proof documents!
@@ -270,7 +270,7 @@ text \<open>
   and functor respectively.  The source is printed verbatim.
 
   \<^descr> @{text "@{emph s}"} prints document source recursively, with {\LaTeX}
-  markup @{verbatim \<open>\emph{\<close>}@{text "\<dots>"}@{verbatim \<open>}\<close>}.
+  markup @{verbatim \<open>\emph\<close>}@{text "\<dots>"}@{verbatim \<open>}\<close>}.
 
   \<^descr> @{text "@{bold s}"} prints document source recursively, with {\LaTeX}
   markup @{verbatim \<open>\textbf{\<close>}@{text "\<dots>"}@{verbatim \<open>}\<close>}.
@@ -311,7 +311,7 @@ text \<open>
 subsection \<open>Styled antiquotations\<close>
 
 text \<open>The antiquotations @{text thm}, @{text prop} and @{text
-  term} admit an extra \emph{style} specification to modify the
+  term} admit an extra \<^emph>\<open>style\<close> specification to modify the
   printed result.  A style is specified by a name with a possibly
   empty number of arguments;  multiple styles can be sequenced with
   commas.  The following standard styles are available:

@@ -12,11 +12,11 @@ text \<open>Isabelle/ML is best understood as a certain culture based on
   environment.  This covers a variety of aspects that are geared
   towards an efficient and robust platform for applications of formal
   logic with fully foundational proof construction --- according to
-  the well-known \emph{LCF principle}.  There is specific
+  the well-known \<^emph>\<open>LCF principle\<close>.  There is specific
   infrastructure with library modules to address the needs of this
   difficult task.  For example, the raw parallel programming model of
   Poly/ML is presented as considerably more abstract concept of
-  \emph{futures}, which is then used to augment the inference
+  \<^emph>\<open>futures\<close>, which is then used to augment the inference
   kernel, Isar theory and proof interpreter, and PIDE document management.
 
   The main aspects of Isabelle/ML are introduced below.  These
@@ -26,14 +26,14 @@ text \<open>Isabelle/ML is best understood as a certain culture based on
   history of changes.\footnote{See
   @{url "http://isabelle.in.tum.de/repos/isabelle"} for the full
   Mercurial history.  There are symbolic tags to refer to official
-  Isabelle releases, as opposed to arbitrary \emph{tip} versions that
+  Isabelle releases, as opposed to arbitrary \<^emph>\<open>tip\<close> versions that
   merely reflect snapshots that are never really up-to-date.}\<close>
 
 
 section \<open>Style and orthography\<close>
 
 text \<open>The sources of Isabelle/Isar are optimized for
-  \emph{readability} and \emph{maintainability}.  The main purpose is
+  \<^emph>\<open>readability\<close> and \<^emph>\<open>maintainability\<close>.  The main purpose is
   to tell an informed reader what is really going on and how things
   really work.  This is a non-trivial aim, but it is supported by a
   certain style of writing Isabelle/ML that has emerged from long
@@ -42,7 +42,7 @@ text \<open>The sources of Isabelle/Isar are optimized for
   @{url "http://caml.inria.fr/resources/doc/guides/guidelines.en.html"}
   which shares many of our means and ends.}
 
-  The main principle behind any coding style is \emph{consistency}.
+  The main principle behind any coding style is \<^emph>\<open>consistency\<close>.
   For a single author of a small program this merely means ``choose
   your style and stick to it''.  A complex project like Isabelle, with
   long years of development and different contributors, requires more
@@ -53,7 +53,7 @@ text \<open>The sources of Isabelle/Isar are optimized for
   of modules and sub-systems, without deviating from some general
   principles how to write Isabelle/ML.
 
-  In a sense, good coding style is like an \emph{orthography} for the
+  In a sense, good coding style is like an \<^emph>\<open>orthography\<close> for the
   sources: it helps to read quickly over the text and see through the
   main points, without getting distracted by accidental presentation
   of free-style code.
@@ -90,7 +90,7 @@ text \<open>Isabelle source files have a certain standardized header
     with more text
   *)\<close>}
 
-  As in regular typography, there is some extra space \emph{before}
+  As in regular typography, there is some extra space \<^emph>\<open>before\<close>
   section headings that are adjacent to plain text, but not other headings
   as in the example above.
 
@@ -106,7 +106,7 @@ subsection \<open>Naming conventions\<close>
 text \<open>Since ML is the primary medium to express the meaning of the
   source text, naming of ML entities requires special care.
 
-  \paragraph{Notation.}  A name consists of 1--3 \emph{words} (rarely
+  \paragraph{Notation.}  A name consists of 1--3 \<^emph>\<open>words\<close> (rarely
   4, but not more) that are separated by underscore.  There are three
   variants concerning upper or lower case letters, which are used for
   certain ML categories as follows:
@@ -122,7 +122,7 @@ text \<open>Since ML is the primary medium to express the meaning of the
 
   For historical reasons, many capitalized names omit underscores,
   e.g.\ old-style @{ML_text FooBar} instead of @{ML_text Foo_Bar}.
-  Genuine mixed-case names are \emph{not} used, because clear division
+  Genuine mixed-case names are \<^emph>\<open>not\<close> used, because clear division
   of words is essential for readability.\footnote{Camel-case was
   invented to workaround the lack of underscore in some early
   non-ASCII character sets.  Later it became habitual in some language
@@ -296,7 +296,7 @@ text \<open>
   val pair = (a, b);
   val record = {foo = 1, bar = 2};\<close>}
 
-  Lines are normally broken \emph{after} an infix operator or
+  Lines are normally broken \<^emph>\<open>after\<close> an infix operator or
   punctuation character.  For example:
 
   @{verbatim [display]
@@ -320,7 +320,7 @@ text \<open>
   curried function, or @{ML_text "g (a, b)"} for a tupled function.
   Note that the space between @{ML_text g} and the pair @{ML_text
   "(a, b)"} follows the important principle of
-  \emph{compositionality}: the layout of @{ML_text "g p"} does not
+  \<^emph>\<open>compositionality\<close>: the layout of @{ML_text "g p"} does not
   change when @{ML_text "p"} is refined to the concrete pair
   @{ML_text "(a, b)"}.
 
@@ -359,9 +359,9 @@ text \<open>
   The second form has many problems: it assumes a fixed-width font
   when viewing the sources, it uses more space on the line and thus
   makes it hard to observe its strict length limit (working against
-  \emph{readability}), it requires extra editing to adapt the layout
+  \<^emph>\<open>readability\<close>), it requires extra editing to adapt the layout
   to changes of the initial text (working against
-  \emph{maintainability}) etc.
+  \<^emph>\<open>maintainability\<close>) etc.
 
   \<^medskip>
   For similar reasons, any kind of two-dimensional or tabular
@@ -557,7 +557,7 @@ text \<open>Here the ML environment is already managed by Isabelle, i.e.\
 
   Removing the above ML declaration from the source text will remove any trace
   of this definition, as expected. The Isabelle/ML toplevel environment is
-  managed in a \emph{stateless} way: in contrast to the raw ML toplevel, there
+  managed in a \<^emph>\<open>stateless\<close> way: in contrast to the raw ML toplevel, there
   are no global side-effects involved here.\footnote{Such a stateless
   compilation environment is also a prerequisite for robust parallel
   compilation within independent nodes of the implicit theory development
@@ -585,7 +585,7 @@ text \<open>By side-stepping the normal scoping rules for Isar proof
 
   \<^medskip>
   Two further ML commands are useful in certain situations:
-  @{command_ref ML_val} and @{command_ref ML_command} are \emph{diagnostic} in
+  @{command_ref ML_val} and @{command_ref ML_command} are \<^emph>\<open>diagnostic\<close> in
   the sense that there is no effect on the underlying environment, and can
   thus be used anywhere. The examples below produce long strings of digits by
   invoking @{ML factorial}: @{command ML_val} takes care of printing the ML
@@ -649,7 +649,7 @@ text %mlref \<open>
 subsection \<open>Antiquotations \label{sec:ML-antiq}\<close>
 
 text \<open>A very important consequence of embedding ML into Isar is the
-  concept of \emph{ML antiquotation}.  The standard token language of
+  concept of \<^emph>\<open>ML antiquotation\<close>.  The standard token language of
   ML is augmented by special syntactic entities of the following form:
 
   @{rail \<open>
@@ -663,8 +663,8 @@ text \<open>A very important consequence of embedding ML into Isar is the
   A regular antiquotation @{text "@{name args}"} processes
   its arguments by the usual means of the Isar source language, and
   produces corresponding ML source text, either as literal
-  \emph{inline} text (e.g.\ @{text "@{term t}"}) or abstract
-  \emph{value} (e.g. @{text "@{thm th}"}).  This pre-compilation
+  \<^emph>\<open>inline\<close> text (e.g.\ @{text "@{term t}"}) or abstract
+  \<^emph>\<open>value\<close> (e.g. @{text "@{thm th}"}).  This pre-compilation
   scheme allows to refer to formal entities in a robust manner, with
   proper static scoping and with some degree of logical checking of
   small portions of the code.
@@ -725,13 +725,13 @@ ML_val \<open>
 section \<open>Canonical argument order \label{sec:canonical-argument-order}\<close>
 
 text \<open>Standard ML is a language in the tradition of @{text
-  "\<lambda>"}-calculus and \emph{higher-order functional programming},
+  "\<lambda>"}-calculus and \<^emph>\<open>higher-order functional programming\<close>,
   similar to OCaml, Haskell, or Isabelle/Pure and HOL as logical
   languages.  Getting acquainted with the native style of representing
   functions in that setting can save a lot of extra boiler-plate of
   redundant shuffling of arguments, auxiliary abstractions etc.
 
-  Functions are usually \emph{curried}: the idea of turning arguments
+  Functions are usually \<^emph>\<open>curried\<close>: the idea of turning arguments
   of type @{text "\<tau>\<^sub>i"} (for @{text "i \<in> {1, \<dots> n}"}) into a result of
   type @{text "\<tau>"} is represented by the iterated function space
   @{text "\<tau>\<^sub>1 \<rightarrow> \<dots> \<rightarrow> \<tau>\<^sub>n \<rightarrow> \<tau>"}.  This is isomorphic to the well-known
@@ -740,7 +740,7 @@ text \<open>Standard ML is a language in the tradition of @{text
   difference is even more significant in HOL, because the redundant
   tuple structure needs to be accommodated extraneous proof steps.}
 
-  Currying gives some flexibility due to \emph{partial application}.  A
+  Currying gives some flexibility due to \<^emph>\<open>partial application\<close>.  A
   function @{text "f: \<tau>\<^sub>1 \<rightarrow> \<tau>\<^sub>2 \<rightarrow> \<tau>"} can be applied to @{text "x: \<tau>\<^sub>1"}
   and the remaining @{text "(f x): \<tau>\<^sub>2 \<rightarrow> \<tau>"} passed to another function
   etc.  How well this works in practice depends on the order of
@@ -749,7 +749,7 @@ text \<open>Standard ML is a language in the tradition of @{text
   glue code.  Thus we would get exponentially many opportunities to
   decorate the code with meaningless permutations of arguments.
 
-  This can be avoided by \emph{canonical argument order}, which
+  This can be avoided by \<^emph>\<open>canonical argument order\<close>, which
   observes certain standard patterns and minimizes adhoc permutations
   in their application.  In Isabelle/ML, large portions of text can be
   written without auxiliary operations like @{text "swap: \<alpha> \<times> \<beta> \<rightarrow> \<beta> \<times>
@@ -759,8 +759,8 @@ text \<open>Standard ML is a language in the tradition of @{text
   \<^medskip>
   The main idea is that arguments that vary less are moved
   further to the left than those that vary more.  Two particularly
-  important categories of functions are \emph{selectors} and
-  \emph{updates}.
+  important categories of functions are \<^emph>\<open>selectors\<close> and
+  \<^emph>\<open>updates\<close>.
 
   The subsequent scheme is based on a hypothetical set-like container
   of type @{text "\<beta>"} that manages elements of type @{text "\<alpha>"}.  Both
@@ -799,11 +799,11 @@ subsection \<open>Forward application and composition\<close>
 
 text \<open>Regular function application and infix notation works best for
   relatively deeply structured expressions, e.g.\ @{text "h (f x y + g
-  z)"}.  The important special case of \emph{linear transformation}
+  z)"}.  The important special case of \<^emph>\<open>linear transformation\<close>
   applies a cascade of functions @{text "f\<^sub>n (\<dots> (f\<^sub>1 x))"}.  This
   becomes hard to read and maintain if the functions are themselves
   given as complex expressions.  The notation can be significantly
-  improved by introducing \emph{forward} versions of application and
+  improved by introducing \<^emph>\<open>forward\<close> versions of application and
   composition as follows:
 
   \<^medskip>
@@ -1034,7 +1034,7 @@ text %mlref \<open>
 
   \begin{warn}
   Regular Isabelle/ML code should output messages exclusively by the
-  official channels.  Using raw I/O on \emph{stdout} or \emph{stderr}
+  official channels.  Using raw I/O on \<^emph>\<open>stdout\<close> or \<^emph>\<open>stderr\<close>
   instead (e.g.\ via @{ML TextIO.output}) is apt to cause problems in
   the presence of parallel and asynchronous processing of Isabelle
   theories.  Such raw output might be displayed by the front-end in
@@ -1097,7 +1097,7 @@ text \<open>The Standard ML semantics of strict functional evaluation
   \paragraph{Regular user errors.}  These are meant to provide
   informative feedback about malformed input etc.
 
-  The \emph{error} function raises the corresponding @{ML ERROR}
+  The \<^emph>\<open>error\<close> function raises the corresponding @{ML ERROR}
   exception, with a plain text message as argument.  @{ML ERROR}
   exceptions can be handled internally, in order to be ignored, turned
   into other exceptions, or cascaded by appending messages.  If the
@@ -1110,7 +1110,7 @@ text \<open>The Standard ML semantics of strict functional evaluation
   @{text "@{make_string}"} nor @{text "@{here}"}!
 
   Grammatical correctness of error messages can be improved by
-  \emph{omitting} final punctuation: messages are often concatenated
+  \<^emph>\<open>omitting\<close> final punctuation: messages are often concatenated
   or put into a larger context (e.g.\ augmented with source position).
   Note that punctuation after formal entities (types, terms, theorems) is
   particularly prone to user confusion.
@@ -1132,7 +1132,7 @@ text \<open>The Standard ML semantics of strict functional evaluation
   exceptions locally, e.g.\ to organize internal failures robustly
   without overlapping with existing exceptions.  Exceptions that are
   exposed in module signatures require extra care, though, and should
-  \emph{not} be introduced by default.  Surprise by users of a module
+  \<^emph>\<open>not\<close> be introduced by default.  Surprise by users of a module
   can be often minimized by using plain user errors instead.
 
   \paragraph{Interrupts.}  These indicate arbitrary system events:
@@ -1179,8 +1179,8 @@ text %mlref \<open>
 
   \<^descr> @{ML try}~@{text "f x"} makes the partiality of evaluating
   @{text "f x"} explicit via the option datatype.  Interrupts are
-  \emph{not} handled here, i.e.\ this form serves as safe replacement
-  for the \emph{unsafe} version @{ML_text "(SOME"}~@{text "f
+  \<^emph>\<open>not\<close> handled here, i.e.\ this form serves as safe replacement
+  for the \<^emph>\<open>unsafe\<close> version @{ML_text "(SOME"}~@{text "f
   x"}~@{ML_text "handle _ => NONE)"} that is occasionally seen in
   books about SML97, but not in Isabelle/ML.
 
@@ -1223,7 +1223,7 @@ text %mlantiq \<open>
 
 section \<open>Strings of symbols \label{sec:symbols}\<close>
 
-text \<open>A \emph{symbol} constitutes the smallest textual unit in
+text \<open>A \<^emph>\<open>symbol\<close> constitutes the smallest textual unit in
   Isabelle/ML --- raw ML characters are normally not encountered at
   all.  Isabelle strings consist of a sequence of symbols, represented
   as a packed string or an exploded list of strings.  Each symbol is
@@ -1347,7 +1347,7 @@ text %mlref \<open>
   @{index_ML_type char} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type char} is \emph{not} used.  The smallest textual
+  \<^descr> Type @{ML_type char} is \<^emph>\<open>not\<close> used.  The smallest textual
   unit in Isabelle is represented as a ``symbol'' (see
   \secref{sec:symbols}).
 \<close>
@@ -1375,7 +1375,7 @@ text %mlref \<open>
     with @{ML YXML.parse_body} as key operation.
 
   Note that Isabelle/ML string literals may refer Isabelle symbols like
-  ``@{verbatim \<alpha>}'' natively, \emph{without} escaping the backslash. This is a
+  ``@{verbatim \<alpha>}'' natively, \<^emph>\<open>without\<close> escaping the backslash. This is a
   consequence of Isabelle treating all source text as strings of symbols,
   instead of raw characters.
 \<close>
@@ -1408,7 +1408,7 @@ text %mlref \<open>
   \end{mldecls}
 
   \<^descr> Type @{ML_type int} represents regular mathematical integers, which
-  are \emph{unbounded}. Overflow is treated properly, but should never happen
+  are \<^emph>\<open>unbounded\<close>. Overflow is treated properly, but should never happen
   in practice.\footnote{The size limit for integer bit patterns in memory is
   64\,MB for 32-bit Poly/ML, and much higher for 64-bit systems.} This works
   uniformly for all supported ML platforms (Poly/ML and SML/NJ).
@@ -1517,7 +1517,7 @@ ML_val \<open>
   @{assert} (list2 = items);
 \<close>
 
-text \<open>The subsequent example demonstrates how to \emph{merge} two
+text \<open>The subsequent example demonstrates how to \<^emph>\<open>merge\<close> two
   lists in a natural way.\<close>
 
 ML_val \<open>
@@ -1588,7 +1588,7 @@ text %mlref \<open>
 text \<open>Due to ubiquitous parallelism in Isabelle/ML (see also
   \secref{sec:multi-threading}), the mutable reference cells of
   Standard ML are notorious for causing problems.  In a highly
-  parallel system, both correctness \emph{and} performance are easily
+  parallel system, both correctness \<^emph>\<open>and\<close> performance are easily
   degraded when using mutable data.
 
   The unwieldy name of @{ML Unsynchronized.ref} for the constructor
@@ -1637,7 +1637,7 @@ text \<open>Multiple threads help to organize advanced operations of the
   @{cite "Sutter:2005"}.}
 
   Isabelle/Isar exploits the inherent structure of theories and proofs to
-  support \emph{implicit parallelism} to a large extent. LCF-style theorem
+  support \<^emph>\<open>implicit parallelism\<close> to a large extent. LCF-style theorem
   proving provides almost ideal conditions for that, see also
   @{cite "Wenzel:2009"}. This means, significant parts of theory and proof
   checking is parallelized by default. In Isabelle2013, a maximum
@@ -1777,10 +1777,10 @@ text \<open>Isabelle/ML provides explicit synchronization for mutable variables 
   Isabelle environment. User code should not break this abstraction, but stay
   within the confines of concurrent Isabelle/ML.
 
-  A \emph{synchronized variable} is an explicit state component associated
+  A \<^emph>\<open>synchronized variable\<close> is an explicit state component associated
   with mechanisms for locking and signaling. There are operations to await a
   condition, change the state, and signal the change to all other waiting
-  threads. Synchronized access to the state variable is \emph{not} re-entrant:
+  threads. Synchronized access to the state variable is \<^emph>\<open>not\<close> re-entrant:
   direct or indirect nesting within the same thread will cause a deadlock!\<close>
 
 text %mlref \<open>
@@ -1849,7 +1849,7 @@ text \<open>Execution of Standard ML follows the model of strict
   arguments. The result is either an explicit value or an implicit
   exception.
 
-  \emph{Managed evaluation} in Isabelle/ML organizes expressions and
+  \<^emph>\<open>Managed evaluation\<close> in Isabelle/ML organizes expressions and
   results to control certain physical side-conditions, to say more
   specifically when and how evaluation happens.  For example, the
   Isabelle/ML library supports lazy evaluation with memoing, parallel
@@ -1857,7 +1857,7 @@ text \<open>Execution of Standard ML follows the model of strict
   evaluation with time limit etc.
 
   \<^medskip>
-  An \emph{unevaluated expression} is represented either as
+  An \<^emph>\<open>unevaluated expression\<close> is represented either as
   unit abstraction @{verbatim "fn () => a"} of type
   @{verbatim "unit -> 'a"} or as regular function
   @{verbatim "fn a => b"} of type @{verbatim "'a -> 'b"}.  Both forms
@@ -1873,13 +1873,13 @@ text \<open>Execution of Standard ML follows the model of strict
   applied to some argument.
 
   \<^medskip>
-  \emph{Reified results} make the disjoint sum of regular
+  \<^emph>\<open>Reified results\<close> make the disjoint sum of regular
   values versions exceptional situations explicit as ML datatype:
   @{text "'a result = Res of 'a | Exn of exn"}.  This is typically
   used for administrative purposes, to store the overall outcome of an
   evaluation process.
 
-  \emph{Parallel exceptions} aggregate reified results, such that
+  \<^emph>\<open>Parallel exceptions\<close> aggregate reified results, such that
   multiple exceptions are digested as a collection in canonical form
   that identifies exceptions according to their original occurrence.
   This is particular important for parallel evaluation via futures
@@ -1944,7 +1944,7 @@ text \<open>
   programming interfaces that resemble the sequential versions.
 
   What remains is the application-specific problem to present
-  expressions with suitable \emph{granularity}: each list element
+  expressions with suitable \<^emph>\<open>granularity\<close>: each list element
   corresponds to one evaluation task.  If the granularity is too
   coarse, the available CPUs are not saturated.  If it is too
   fine-grained, CPU cycles are wasted due to the overhead of
@@ -2005,7 +2005,7 @@ text \<open>
   multi-threading, synchronous program exceptions and asynchronous interrupts.
 
   The first thread that invokes @{text force} on an unfinished lazy value
-  changes its state into a \emph{promise} of the eventual result and starts
+  changes its state into a \<^emph>\<open>promise\<close> of the eventual result and starts
   evaluating it. Any other threads that @{text force} the same lazy value in
   the meantime need to wait for it to finish, by producing a regular result or
   program exception. If the evaluation attempt is interrupted, this event is
@@ -2015,7 +2015,7 @@ text \<open>
   This means a lazy value is completely evaluated at most once, in a
   thread-safe manner. There might be multiple interrupted evaluation attempts,
   and multiple receivers of intermediate interrupt events. Interrupts are
-  \emph{not} made persistent: later evaluation attempts start again from the
+  \<^emph>\<open>not\<close> made persistent: later evaluation attempts start again from the
   original expression.
 \<close>
 
@@ -2059,8 +2059,8 @@ text \<open>
   above).
 
   Technically, a future is a single-assignment variable together with a
-  \emph{task} that serves administrative purposes, notably within the
-  \emph{task queue} where new futures are registered for eventual evaluation
+  \<^emph>\<open>task\<close> that serves administrative purposes, notably within the
+  \<^emph>\<open>task queue\<close> where new futures are registered for eventual evaluation
   and the worker threads retrieve their work.
 
   The pool of worker threads is limited, in correlation with the number of
@@ -2072,7 +2072,7 @@ text \<open>
   timeout.
 
   \<^medskip>
-  Each future task belongs to some \emph{task group}, which
+  Each future task belongs to some \<^emph>\<open>task group\<close>, which
   represents the hierarchic structure of related tasks, together with the
   exception status a that point. By default, the task group of a newly created
   future is a new sub-group of the presently running one, but it is also
@@ -2082,17 +2082,17 @@ text \<open>
   all its sub-groups. Thus interrupts are propagated down the group hierarchy.
   Regular program exceptions are treated likewise: failure of the evaluation
   of some future task affects its own group and all sub-groups. Given a
-  particular task group, its \emph{group status} cumulates all relevant
+  particular task group, its \<^emph>\<open>group status\<close> cumulates all relevant
   exceptions according to its position within the group hierarchy. Interrupted
   tasks that lack regular result information, will pick up parallel exceptions
   from the cumulative group status.
 
   \<^medskip>
-  A \emph{passive future} or \emph{promise} is a future with slightly
+  A \<^emph>\<open>passive future\<close> or \<^emph>\<open>promise\<close> is a future with slightly
   different evaluation policies: there is only a single-assignment variable
-  and some expression to evaluate for the \emph{failed} case (e.g.\ to clean
+  and some expression to evaluate for the \<^emph>\<open>failed\<close> case (e.g.\ to clean
   up resources when canceled). A regular result is produced by external means,
-  using a separate \emph{fulfill} operation.
+  using a separate \<^emph>\<open>fulfill\<close> operation.
 
   Promises are managed in the same task queue, so regular futures may depend
   on them. This allows a form of reactive programming, where some promises are

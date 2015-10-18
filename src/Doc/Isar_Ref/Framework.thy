@@ -254,8 +254,8 @@ text \<open>
   propositions of proof terms have been shown.  The @{text
   "\<lambda>"}-structure of proofs can be recorded as an optional feature of
   the Pure inference kernel @{cite "Berghofer-Nipkow:2000:TPHOL"}, but
-  the formal system can never depend on them due to \emph{proof
-  irrelevance}.
+  the formal system can never depend on them due to \<^emph>\<open>proof
+  irrelevance\<close>.
 
   On top of this most primitive layer of proofs, Pure implements a
   generic calculus for nested natural deduction rules, similar to
@@ -333,7 +333,7 @@ text \<open>
   that rule statements always observe the normal form where
   quantifiers are pulled in front of implications at each level of
   nesting.  This means that any Pure proposition may be presented as a
-  \emph{Hereditary Harrop Formula} @{cite "Miller:1991"} which is of the
+  \<^emph>\<open>Hereditary Harrop Formula\<close> @{cite "Miller:1991"} which is of the
   form @{text "\<And>x\<^sub>1 \<dots> x\<^sub>m. H\<^sub>1 \<Longrightarrow> \<dots> H\<^sub>n \<Longrightarrow>
   A"} for @{text "m, n \<ge> 0"}, and @{text "A"} atomic, and @{text
   "H\<^sub>1, \<dots>, H\<^sub>n"} being recursively of the same format.
