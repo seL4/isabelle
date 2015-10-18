@@ -270,7 +270,7 @@ text \<open>
   and functor respectively.  The source is printed verbatim.
 
   \<^descr> @{text "@{emph s}"} prints document source recursively, with {\LaTeX}
-  markup @{verbatim \<open>\emph\<close>}@{text "\<dots>"}@{verbatim \<open>}\<close>}.
+  markup @{verbatim \<open>\emph{\<close>}@{text "\<dots>"}@{verbatim \<open>}\<close>}.
 
   \<^descr> @{text "@{bold s}"} prints document source recursively, with {\LaTeX}
   markup @{verbatim \<open>\textbf{\<close>}@{text "\<dots>"}@{verbatim \<open>}\<close>}.
