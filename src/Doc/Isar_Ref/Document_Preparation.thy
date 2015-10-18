@@ -129,15 +129,24 @@ text \<open>
   antiquotations are checked within the current theory or proof
   context.
 
+  \<^medskip>
+  Antiquotations are in general written @{verbatim "@{"}@{text "name
+  [options] arguments"}@{verbatim "}"}. The short form @{verbatim
+  "\<^control>"}@{text "\<open>argument\<close>"} (without surrounding @{verbatim
+  "@{"}@{text "\<dots>"}@{verbatim "}"}) works where the name is a single control
+  symbol and the argument a single cartouche.
+
   @{rail \<open>
     @@{command print_antiquotations} ('!'?)
+    ;
+    @{syntax_def antiquotation}:
+      '@{' antiquotation_body '}' |
+      @{syntax_ref control_symbol} @{syntax_ref cartouche}
   \<close>}
 
   %% FIXME less monolithic presentation, move to individual sections!?
   @{rail \<open>
-    '@{' antiquotation '}'
-    ;
-    @{syntax_def antiquotation}:
+    @{syntax_def antiquotation_body}:
       @@{antiquotation theory} options @{syntax name} |
       @@{antiquotation thm} options styles @{syntax thmrefs} |
       @@{antiquotation lemma} options @{syntax prop} @'by' @{syntax method} @{syntax method}? |
