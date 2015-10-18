@@ -134,15 +134,18 @@ text \<open>
   \<^medskip>
   Antiquotations are in general written @{verbatim "@{"}@{text "name
   [options] arguments"}@{verbatim "}"}. The short form @{verbatim
-  "\<^name>"}@{text "\<open>argument\<close>"} (without surrounding @{verbatim
-  "@{"}@{text "\<dots>"}@{verbatim "}"}) works for a single argument that is a
-  cartouche.
+  \<open>\\<close>}@{verbatim "<^"}@{text name}@{verbatim ">"}@{text
+  "\<open>argument_content\<close>"} (without surrounding @{verbatim "@{"}@{text
+  "\<dots>"}@{verbatim "}"}) works for a single argument that is a cartouche.
 
+  \begingroup
+  \def\isasymcontrolstart{\isatt{\isacharbackslash\isacharless\isacharcircum}}
   @{rail \<open>
     @{syntax_def antiquotation}:
-      '@' '{' antiquotation_body '}' |
-      '\\' '<' '^' @{syntax_ref name} '>' @{syntax_ref cartouche}
+      '@{' antiquotation_body '}' |
+      '\<controlstart>' @{syntax_ref name} '>' @{syntax_ref cartouche}
   \<close>}
+  \endgroup
 
   %% FIXME less monolithic presentation, move to individual sections!?
   @{rail \<open>
@@ -492,7 +495,7 @@ text \<open>
   below.
 
   \begingroup
-  \def\isasymnewline{\isatext{\tt\isacharbackslash<newline>}}
+  \def\isasymnewline{\isatt{\isacharbackslash\isacharless newline\isachargreater}}
   @{rail \<open>
   rule? + ';'
   ;
