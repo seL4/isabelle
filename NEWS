@@ -22,8 +22,8 @@ accordingly.
 * Toplevel theorem statement 'proposition' is another alias for
 'theorem'.
 
-* There is a new short form of antiquotations: \<^foo>\<open>...\<close> is
-equivalent to @{"\<^foo>" \<open>...\<close>} for control symbols.
+* There is a new short form for antiquotations with a single argument
+that is a cartouche: \<^name>\<open>...\<close> is equivalent to @{name \<open>...\<close>}.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
@@ -81,6 +81,10 @@ follows:
 * Command 'text_raw' has been clarified: input text is processed as in
 'text' (with antiquotations and control symbols). The key difference is
 the lack of the surrounding isabelle markup environment in output.
+
+* Document antiquotations @{emph} and @{bold} output LaTeX source
+recursively, adding appropriate text style markup. These are typically
+used in the short form \<^emph>\<open>...\<close> and \<^bold>\<open>...\<close>.
 
 
 *** Isar ***

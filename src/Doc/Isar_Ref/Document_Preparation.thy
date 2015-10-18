@@ -81,7 +81,6 @@ section \<open>Document antiquotations \label{sec:antiq}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def "print_antiquotations"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
     @{antiquotation_def "theory"} & : & @{text antiquotation} \\
     @{antiquotation_def "thm"} & : & @{text antiquotation} \\
     @{antiquotation_def "lemma"} & : & @{text antiquotation} \\
@@ -104,10 +103,13 @@ text \<open>
     @{antiquotation_def ML_type} & : & @{text antiquotation} \\
     @{antiquotation_def ML_structure} & : & @{text antiquotation} \\
     @{antiquotation_def ML_functor} & : & @{text antiquotation} \\
+    @{antiquotation_def emph} & : & @{text antiquotation} \\
+    @{antiquotation_def bold} & : & @{text antiquotation} \\
     @{antiquotation_def verbatim} & : & @{text antiquotation} \\
     @{antiquotation_def "file"} & : & @{text antiquotation} \\
     @{antiquotation_def "url"} & : & @{text antiquotation} \\
     @{antiquotation_def "cite"} & : & @{text antiquotation} \\
+    @{command_def "print_antiquotations"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
   \end{matharray}
 
   The overall content of an Isabelle/Isar theory may alternate between
@@ -132,16 +134,14 @@ text \<open>
   \<^medskip>
   Antiquotations are in general written @{verbatim "@{"}@{text "name
   [options] arguments"}@{verbatim "}"}. The short form @{verbatim
-  "\<^control>"}@{text "\<open>argument\<close>"} (without surrounding @{verbatim
-  "@{"}@{text "\<dots>"}@{verbatim "}"}) works where the name is a single control
-  symbol and the argument a single cartouche.
+  "\<^name>"}@{text "\<open>argument\<close>"} (without surrounding @{verbatim
+  "@{"}@{text "\<dots>"}@{verbatim "}"}) works for a single argument that is a
+  cartouche.
 
   @{rail \<open>
-    @@{command print_antiquotations} ('!'?)
-    ;
     @{syntax_def antiquotation}:
-      '@{' antiquotation_body '}' |
-      @{syntax_ref control_symbol} @{syntax_ref cartouche}
+      '@' '{' antiquotation_body '}' |
+      '\\' '<' '^' @{syntax_ref name} '>' @{syntax_ref cartouche}
   \<close>}
 
   %% FIXME less monolithic presentation, move to individual sections!?
@@ -172,6 +172,8 @@ text \<open>
       @@{antiquotation ML_type} options @{syntax text} |
       @@{antiquotation ML_structure} options @{syntax text} |
       @@{antiquotation ML_functor} options @{syntax text} |
+      @@{antiquotation emph} options @{syntax text} |
+      @@{antiquotation bold} options @{syntax text} |
       @@{antiquotation verbatim} options @{syntax text} |
       @@{antiquotation "file"} options @{syntax name} |
       @@{antiquotation file_unchecked} options @{syntax name} |
@@ -185,15 +187,13 @@ text \<open>
     styles: '(' (style + ',') ')'
     ;
     style: (@{syntax name} +)
+    ;
+    @@{command print_antiquotations} ('!'?)
   \<close>}
 
   Note that the syntax of antiquotations may \emph{not} include source
   comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} nor verbatim
   text @{verbatim "{*"}~@{text "\<dots>"}~@{verbatim "*}"}.
-
-  \<^descr> @{command "print_antiquotations"} prints all document antiquotations
-  that are defined in the current context; the ``@{text "!"}'' option
-  indicates extra verbosity.
 
   \<^descr> @{text "@{theory A}"} prints the name @{text "A"}, which is
   guaranteed to refer to a valid ancestor theory in the current
@@ -266,6 +266,12 @@ text \<open>
   check text @{text s} as ML value, infix operator, type, structure,
   and functor respectively.  The source is printed verbatim.
 
+  \<^descr> @{text "@{emph s}"} prints document source recursively, with {\LaTeX}
+  markup @{verbatim \<open>\emph{\<close>}@{text "\<dots>"}@{verbatim \<open>}\<close>}.
+
+  \<^descr> @{text "@{bold s}"} prints document source recursively, with {\LaTeX}
+  markup @{verbatim \<open>\textbf{\<close>}@{text "\<dots>"}@{verbatim \<open>}\<close>}.
+
   \<^descr> @{text "@{verbatim s}"} prints uninterpreted source text literally
   as ASCII characters, using some type-writer font style.
 
@@ -292,6 +298,10 @@ text \<open>
   @{antiquotation_option_def cite_macro}, or the configuration option
   @{attribute cite_macro} in the context. For example, @{text "@{cite
   [cite_macro = nocite] foobar}"} produces @{verbatim \<open>\nocite{foobar}\<close>}.
+
+  \<^descr> @{command "print_antiquotations"} prints all document antiquotations
+  that are defined in the current context; the ``@{text "!"}'' option
+  indicates extra verbosity.
 \<close>
 
 

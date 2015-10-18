@@ -169,12 +169,11 @@ fun eval_antiquotes (ants, pos) opt_context =
                           ML_Syntax.atomic (ML_Syntax.print_range range)) ctxt;
                   in (decl #> tokenize range, ctxt') end
                 else (K ([], [tok]), ctxt)
-            | expand (Antiquote.Control (s, ss)) ctxt =
-                let val range = Symbol_Pos.range (s :: ss)
-                in expand_src range (Token.src s [Token.read_cartouche ss]) ctxt end
-            | expand (Antiquote.Antiq (ss, {range, ...})) ctxt =
-                let val keywords = Thy_Header.get_keywords' ctxt
-                in expand_src range (Token.read_antiq keywords antiq (ss, #1 range)) ctxt end;
+            | expand (Antiquote.Control {name, range, body}) ctxt =
+                expand_src range (Token.src name [Token.read_cartouche body]) ctxt
+            | expand (Antiquote.Antiq {range, body, ...}) ctxt =
+                expand_src range
+                  (Token.read_antiq (Thy_Header.get_keywords' ctxt) antiq (body, #1 range)) ctxt;
 
           val ctxt =
             (case opt_ctxt of

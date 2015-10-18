@@ -112,10 +112,12 @@ val output_syms = output_symbols o Symbol.explode;
 
 val output_syms_antiq =
   (fn Antiquote.Text ss => output_symbols (map Symbol_Pos.symbol ss)
-    | Antiquote.Control (s, ss) => output_symbols (map Symbol_Pos.symbol (s :: ss))
-    | Antiquote.Antiq (ss, _) =>
+    | Antiquote.Control {name = (name, _), body, ...} =>
+        "\\isaantiqcontrol{" ^ output_symbols (Symbol.explode name) ^ "}" ^
+        output_symbols (map Symbol_Pos.symbol body)
+    | Antiquote.Antiq {body, ...} =>
         enclose "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n"
-          (output_symbols (map Symbol_Pos.symbol ss)));
+          (output_symbols (map Symbol_Pos.symbol body)));
 
 val output_ctrl_symbols = implode o map output_ctrl_sym;
 

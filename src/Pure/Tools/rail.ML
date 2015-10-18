@@ -85,8 +85,8 @@ local
 
 fun token k ss = [Token (Symbol_Pos.range ss, (k, Symbol_Pos.content ss))];
 
-fun antiq_token (antiq as (ss, {range, ...})) =
-  [Token (range, (Antiq antiq, Symbol_Pos.content ss))];
+fun antiq_token antiq =
+  [Token (#range antiq, (Antiq antiq, Symbol_Pos.content (#body antiq)))];
 
 val scan_space = Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol);
 

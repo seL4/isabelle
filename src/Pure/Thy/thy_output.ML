@@ -176,9 +176,9 @@ fun eval_antiq state (opts, src) =
 in
 
 fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
-  | eval_antiquote state (Antiquote.Control (control, arg)) =
-      eval_antiq state ([], Token.src control [Token.read_cartouche arg])
-  | eval_antiquote state (Antiquote.Antiq (ss, {range = (pos, _), ...})) =
+  | eval_antiquote state (Antiquote.Control {name, body, ...}) =
+      eval_antiq state ([], Token.src name [Token.read_cartouche body])
+  | eval_antiquote state (Antiquote.Antiq {range = (pos, _), body, ...}) =
       let
         val keywords =
           (case try Toplevel.presentation_context_of state of
@@ -186,7 +186,7 @@ fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
           | NONE =>
               error ("Unknown context -- cannot expand document antiquotations" ^
                 Position.here pos));
-      in eval_antiq state (Token.read_antiq keywords antiq (ss, pos)) end;
+      in eval_antiq state (Token.read_antiq keywords antiq (body, pos)) end;
 
 end;
 
@@ -240,7 +240,6 @@ datatype token =
   | Markup_Token of string * Input.source
   | Markup_Env_Token of string * Input.source
   | Raw_Token of Input.source;
-
 
 fun basic_token pred (Basic_Token tok) = pred tok
   | basic_token _ _ = false;
@@ -605,6 +604,24 @@ fun output ctxt prts =
 
 
 (** concrete antiquotations **)
+
+(* control style *)
+
+local
+
+fun control_antiquotation name s1 s2 =
+  antiquotation name (Scan.lift Args.cartouche_input)
+    (fn {state, ...} => enclose s1 s2 o output_text state {markdown = false});
+
+in
+
+val _ =
+  Theory.setup
+   (control_antiquotation @{binding "emph"} "\\emph{" "}" #>
+    control_antiquotation @{binding "bold"} "\\textbf{" "}");
+
+end;
+
 
 (* basic entities *)
 

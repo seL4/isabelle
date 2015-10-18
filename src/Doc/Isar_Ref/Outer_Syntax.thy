@@ -114,7 +114,6 @@ text \<open>The outer lexical syntax consists of three main categories of
     @{syntax_def cartouche} & = & @{verbatim "\<open>"} @{text "\<dots>"} @{verbatim "\<close>"} \\
     @{syntax_def verbatim} & = & @{verbatim "{*"} @{text "\<dots>"} @{verbatim "*}"} \\[1ex]
 
-    @{text control_symbol} & = & @{verbatim \<open>\\<close>}@{verbatim "<^"}@{text ident}@{verbatim ">"} \\
     @{text letter} & = & @{text "latin  |  "}@{verbatim \<open>\\<close>}@{verbatim "<"}@{text latin}@{verbatim ">"}@{text "  |  "}@{verbatim \<open>\\<close>}@{verbatim "<"}@{text "latin latin"}@{verbatim ">"}@{text "  |  greek  |"} \\
     @{text subscript} & = & @{verbatim "\<^sub>"} \\
     @{text quasiletter} & = & @{text "letter  |  digit  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "'"} \\
