@@ -1306,7 +1306,7 @@ text %mlref \<open>
   \<^descr> Type @{ML_type "Symbol.sym"} is a concrete datatype that
   represents the different kinds of symbols explicitly, with
   constructors @{ML "Symbol.Char"}, @{ML "Symbol.UTF8"},
-  @{ML "Symbol.Sym"}, @{ML "Symbol.Ctrl"}, @{ML "Symbol.Raw"},
+  @{ML "Symbol.Sym"}, @{ML "Symbol.Control"}, @{ML "Symbol.Raw"},
   @{ML "Symbol.Malformed"}.
 
   \<^descr> @{ML "Symbol.decode"} converts the string representation of a

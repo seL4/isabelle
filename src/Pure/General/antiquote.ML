@@ -94,7 +94,7 @@ val scan_control =
   Scan.trace (Symbol_Pos.scan_cartouche err_prefix) >>
     (fn ((control, pos), (_, body)) =>
       let
-        val Symbol.Ctrl name = Symbol.decode control;
+        val Symbol.Control name = Symbol.decode control;
         val range = Symbol_Pos.range ((control, pos) :: body);
       in {name = (name, pos), range = range, body = body} end);
 

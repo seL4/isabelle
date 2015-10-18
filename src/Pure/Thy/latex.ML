@@ -94,14 +94,14 @@ fun output_known_sym (known_sym, known_ctrl) sym =
     Symbol.Char s => output_chr s
   | Symbol.UTF8 s => s
   | Symbol.Sym s => if known_sym s then enclose "{\\isasym" "}" s else output_chrs sym
-  | Symbol.Ctrl s => if known_ctrl s then enclose "\\isactrl" " " s else output_chrs sym
+  | Symbol.Control s => if known_ctrl s then enclose "\\isactrl" " " s else output_chrs sym
   | Symbol.Raw s => s
   | Symbol.Malformed s => error (Symbol.malformed_msg s)
   | Symbol.EOF => error "Bad EOF symbol");
 
 fun output_ctrl_sym sym =
   (case Symbol.decode sym of
-    Symbol.Ctrl s => enclose "\\isactrl" " " s
+    Symbol.Control s => enclose "\\isactrl" " " s
   | _ => sym);
 
 in

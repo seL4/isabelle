@@ -40,7 +40,7 @@ sig
   val decode_raw: symbol -> string
   val encode_raw: string -> string
   datatype sym =
-    Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string |
+    Char of string | UTF8 of string | Sym of string | Control of string | Raw of string |
     Malformed of string | EOF
   val decode: symbol -> sym
   datatype kind = Letter | Digit | Quasi | Blank | Other
@@ -223,7 +223,7 @@ fun decode_raw s =
 (* symbol variants *)
 
 datatype sym =
-  Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string |
+  Char of string | UTF8 of string | Sym of string | Control of string | Raw of string |
   Malformed of string | EOF;
 
 fun decode s =
@@ -232,7 +232,7 @@ fun decode s =
   else if is_utf8 s then UTF8 s
   else if is_raw s then Raw (decode_raw s)
   else if is_malformed s then Malformed s
-  else if is_control s then Ctrl (String.substring (s, 3, size s - 4))
+  else if is_control s then Control (String.substring (s, 3, size s - 4))
   else Sym (String.substring (s, 2, size s - 3));
 
 
