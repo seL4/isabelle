@@ -93,14 +93,14 @@ text \<open>A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^s
   maps a given goal state (represented as a theorem, cf.\
   \secref{sec:tactical-goals}) to a lazy sequence of potential
   successor states.  The underlying sequence implementation is lazy
-  both in head and tail, and is purely functional in \emph{not}
+  both in head and tail, and is purely functional in \<^emph>\<open>not\<close>
   supporting memoing.\footnote{The lack of memoing and the strict
   nature of ML requires some care when working with low-level
   sequence operations, to avoid duplicate or premature evaluation of
   results.  It also means that modified runtime behavior, such as
   timeout, is very hard to achieve for general tactics.}
 
-  An \emph{empty result sequence} means that the tactic has failed: in
+  An \<^emph>\<open>empty result sequence\<close> means that the tactic has failed: in
   a compound tactic expression other tactics might be tried instead,
   or the whole refinement step might fail outright, producing a
   toplevel error message in the end.  When implementing tactics from
@@ -108,7 +108,7 @@ text \<open>A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^s
   mapping regular error conditions to an empty result; only serious
   faults should emerge as exceptions.
 
-  By enumerating \emph{multiple results}, a tactic can easily express
+  By enumerating \<^emph>\<open>multiple results\<close>, a tactic can easily express
   the potential outcome of an internal search process.  There are also
   combinators for building proof tools that involve search
   systematically, see also \secref{sec:tacticals}.
@@ -120,7 +120,7 @@ text \<open>A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^s
   must not change the main conclusion (apart from instantiating
   schematic goal variables).
 
-  Tactics with explicit \emph{subgoal addressing} are of the form
+  Tactics with explicit \<^emph>\<open>subgoal addressing\<close> are of the form
   @{text "int \<rightarrow> tactic"} and may be applied to a particular subgoal
   (counting from 1).  If the subgoal number is out of range, the
   tactic should fail with an empty result sequence, but must not raise
@@ -229,14 +229,14 @@ text %mlref \<open>
 
 subsection \<open>Resolution and assumption tactics \label{sec:resolve-assume-tac}\<close>
 
-text \<open>\emph{Resolution} is the most basic mechanism for refining a
+text \<open>\<^emph>\<open>Resolution\<close> is the most basic mechanism for refining a
   subgoal using a theorem as object-level rule.
-  \emph{Elim-resolution} is particularly suited for elimination rules:
+  \<^emph>\<open>Elim-resolution\<close> is particularly suited for elimination rules:
   it resolves with a rule, proves its first premise by assumption, and
   finally deletes that assumption from any new subgoals.
-  \emph{Destruct-resolution} is like elim-resolution, but the given
+  \<^emph>\<open>Destruct-resolution\<close> is like elim-resolution, but the given
   destruction rules are first turned into canonical elimination
-  format.  \emph{Forward-resolution} is like destruct-resolution, but
+  format.  \<^emph>\<open>Forward-resolution\<close> is like destruct-resolution, but
   without deleting the selected assumption.  The @{text "r/e/d/f"}
   naming convention is maintained for several different kinds of
   resolution rules and tactics.
@@ -520,7 +520,7 @@ text %mlref \<open>
 
 section \<open>Tacticals \label{sec:tacticals}\<close>
 
-text \<open>A \emph{tactical} is a functional combinator for building up
+text \<open>A \<^emph>\<open>tactical\<close> is a functional combinator for building up
   complex tactics from simpler ones.  Common tacticals perform
   sequential composition, disjunctive choice, iteration, or goal
   addressing.  Various search strategies may be expressed via
@@ -572,7 +572,7 @@ text %mlref \<open>
 
   \<^descr> @{text "tac\<^sub>1"}~@{ML_op APPEND}~@{text "tac\<^sub>2"} concatenates the
   possible results of @{text "tac\<^sub>1"} and @{text "tac\<^sub>2"}.  Unlike
-  @{ML_op "ORELSE"} there is \emph{no commitment} to either tactic, so
+  @{ML_op "ORELSE"} there is \<^emph>\<open>no commitment\<close> to either tactic, so
   @{ML_op "APPEND"} helps to avoid incompleteness during search, at
   the cost of potential inefficiencies.
 
@@ -688,7 +688,7 @@ text \<open>Tactics with explicit subgoal addressing
   @{ML_type "int -> tactic"} can be used together with tacticals that
   act like ``subgoal quantifiers'': guided by success of the body
   tactic a certain range of subgoals is covered.  Thus the body tactic
-  is applied to \emph{all} subgoals, \emph{some} subgoal etc.
+  is applied to \<^emph>\<open>all\<close> subgoals, \<^emph>\<open>some\<close> subgoal etc.
 
   Suppose that the goal state has @{text "n \<ge> 0"} subgoals.  Many of
   these tacticals address subgoal ranges counting downwards from

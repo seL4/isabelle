@@ -5,12 +5,12 @@ begin
 chapter \<open>Local theory specifications \label{ch:local-theory}\<close>
 
 text \<open>
-  A \emph{local theory} combines aspects of both theory and proof
+  A \<^emph>\<open>local theory\<close> combines aspects of both theory and proof
   context (cf.\ \secref{sec:context}), such that definitional
   specifications may be given relatively to parameters and
   assumptions.  A local theory is represented as a regular proof
-  context, augmented by administrative data about the \emph{target
-  context}.
+  context, augmented by administrative data about the \<^emph>\<open>target
+  context\<close>.
 
   The target is usually derived from the background theory by adding
   local @{text "\<FIX>"} and @{text "\<ASSUME>"} elements, plus
@@ -45,7 +45,7 @@ text \<open>
   \secref{sec:variables}).  These definitional primitives essentially
   act like @{text "let"}-bindings within a local context that may
   already contain earlier @{text "let"}-bindings and some initial
-  @{text "\<lambda>"}-bindings.  Thus we gain \emph{dependent definitions}
+  @{text "\<lambda>"}-bindings.  Thus we gain \<^emph>\<open>dependent definitions\<close>
   that are relative to an initial axiomatic context.  The following
   diagram illustrates this idea of axiomatic elements versus
   definitional elements:
@@ -72,7 +72,7 @@ text \<open>
 
   The cumulative sequence of @{text "\<DEFINE>"} and @{text "\<NOTE>"}
   produced at package runtime is managed by the local theory
-  infrastructure by means of an \emph{auxiliary context}.  Thus the
+  infrastructure by means of an \<^emph>\<open>auxiliary context\<close>.  Thus the
   system holds up the impression of working within a fully abstract
   situation with hypothetical entities: @{text "\<DEFINE> c \<equiv> t"}
   always results in a literal fact @{text "\<^BG>c \<equiv> t\<^EN>"}, where
@@ -113,7 +113,7 @@ text %mlref \<open>
 
   \<^descr> @{ML Named_Target.init}~@{text "before_exit name thy"}
   initializes a local theory derived from the given background theory.
-  An empty name refers to a \emph{global theory} context, and a
+  An empty name refers to a \<^emph>\<open>global theory\<close> context, and a
   non-empty name refers to a @{command locale} or @{command class}
   context (a fully-qualified internal name is expected here).  This is
   useful for experimentation --- normally the Isar toplevel already
@@ -132,7 +132,7 @@ text %mlref \<open>
   Unless an explicit name binding is given for the RHS, the resulting
   fact will be called @{text "b_def"}.  Any given attributes are
   applied to that same fact --- immediately in the auxiliary context
-  \emph{and} in any transformed versions stemming from target-specific
+  \<^emph>\<open>and\<close> in any transformed versions stemming from target-specific
   policies or any later interpretations of results from the target
   context (think of @{command locale} and @{command interpretation},
   for example).  This means that attributes should be usually plain

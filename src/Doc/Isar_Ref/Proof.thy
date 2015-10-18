@@ -12,12 +12,12 @@ text \<open>
   the following three different modes of operation:
 
   \<^descr> @{text "proof(prove)"} means that a new goal has just been
-  stated that is now to be \emph{proven}; the next command may refine
+  stated that is now to be \<^emph>\<open>proven\<close>; the next command may refine
   it by some proof method, and enter a sub-proof to establish the
   actual result.
 
   \<^descr> @{text "proof(state)"} is like a nested theory mode: the
-  context may be augmented by \emph{stating} additional assumptions,
+  context may be augmented by \<^emph>\<open>stating\<close> additional assumptions,
   intermediate results etc.
 
   \<^descr> @{text "proof(chain)"} is intermediate between @{text
@@ -73,7 +73,7 @@ text \<open>
   While Isar is inherently block-structured, opening and closing
   blocks is mostly handled rather casually, with little explicit
   user-intervention.  Any local goal statement automatically opens
-  \emph{two} internal blocks, which are closed again when concluding
+  \<^emph>\<open>two\<close> internal blocks, which are closed again when concluding
   the sub-proof (by @{command "qed"} etc.).  Sections of different
   context within a sub-proof may be switched via @{command "next"},
   which is just a single block-close followed by block-open again.
@@ -90,7 +90,7 @@ text \<open>
   \<^descr> @{command "{"} and @{command "}"} explicitly open and close
   blocks.  Any current facts pass through ``@{command "{"}''
   unchanged, while ``@{command "}"}'' causes any result to be
-  \emph{exported} into the enclosing context.  Thus fixed variables
+  \<^emph>\<open>exported\<close> into the enclosing context.  Thus fixed variables
   are generalized, assumptions discharged, and local definitions
   unfolded (cf.\ \secref{sec:proof-context}).  There is no difference
   of @{command "assume"} and @{command "presume"} in this mode of
@@ -117,7 +117,7 @@ text \<open>
   in any way.
 
   A typical application of @{command "oops"} is to explain Isar proofs
-  \emph{within} the system itself, in conjunction with the document
+  \<^emph>\<open>within\<close> the system itself, in conjunction with the document
   preparation tools of Isabelle described in \chref{ch:document-prep}.
   Thus partial or even wrong proof attempts can be discussed in a
   logically sound manner.  Note that the Isabelle {\LaTeX} macros can
@@ -141,7 +141,7 @@ text \<open>
   The logical proof context consists of fixed variables and
   assumptions.  The former closely correspond to Skolem constants, or
   meta-level universal quantification as provided by the Isabelle/Pure
-  logical framework.  Introducing some \emph{arbitrary, but fixed}
+  logical framework.  Introducing some \<^emph>\<open>arbitrary, but fixed\<close>
   variable via ``@{command "fix"}~@{text x}'' results in a local value
   that may be used in the subsequent proof as any other variable or
   constant.  Furthermore, any result @{text "\<turnstile> \<phi>[x]"} exported from
@@ -180,7 +180,7 @@ text \<open>
   \<close>}
 
   \<^descr> @{command "fix"}~@{text x} introduces a local variable @{text
-  x} that is \emph{arbitrary, but fixed.}
+  x} that is \<^emph>\<open>arbitrary, but fixed\<close>.
 
   \<^descr> @{command "assume"}~@{text "a: \<phi>"} and @{command
   "presume"}~@{text "a: \<phi>"} introduce a local fact @{text "\<phi> \<turnstile> \<phi>"} by
@@ -225,8 +225,8 @@ text \<open>
 
   Polymorphism of term bindings is handled in Hindley-Milner style,
   similar to ML.  Type variables referring to local assumptions or
-  open goal statements are \emph{fixed}, while those of finished
-  results or bound by @{command "let"} may occur in \emph{arbitrary}
+  open goal statements are \<^emph>\<open>fixed\<close>, while those of finished
+  results or bound by @{command "let"} may occur in \<^emph>\<open>arbitrary\<close>
   instances later.  Even though actual polymorphism should be rarely
   used in practice, this mechanism is essential to achieve proper
   incremental type-inference, as the user proceeds to build up the
@@ -257,7 +257,7 @@ text \<open>
   others (such as @{command "assume"}, @{command "have"} etc.).
 
 
-  Some \emph{implicit} term abbreviations\index{term abbreviations}
+  Some \<^emph>\<open>implicit\<close> term abbreviations\index{term abbreviations}
   for goals and facts are available as well.  For any open goal,
   @{variable_ref thesis} refers to its object-level statement,
   abstracted over any meta-level parameters (if present).  Likewise,
@@ -288,9 +288,9 @@ text \<open>
   chaining towards the next goal via @{command "then"} (and variants);
   @{command "from"} and @{command "with"} are composite forms
   involving @{command "note"}.  The @{command "using"} elements
-  augments the collection of used facts \emph{after} a goal has been
+  augments the collection of used facts \<^emph>\<open>after\<close> a goal has been
   stated.  Note that the special theorem name @{fact_ref this} refers
-  to the most recently established facts, but only \emph{before}
+  to the most recently established facts, but only \<^emph>\<open>before\<close>
   issuing a follow-up claim.
 
   @{rail \<open>
@@ -528,7 +528,7 @@ text \<open>
   in the sense that new threads of calculational reasoning are
   commenced for any new block (as opened by a local goal, for
   example).  This means that, apart from being able to nest
-  calculations, there is no separate \emph{begin-calculation} command
+  calculations, there is no separate \<^emph>\<open>begin-calculation\<close> command
   required.
 
   \<^medskip>
@@ -620,13 +620,13 @@ text \<open>Proof methods are either basic ones, or expressions composed of
     methods: (@{syntax nameref} @{syntax args} | @{syntax method}) + (',' | ';' | '|')
   \<close>}
 
-  Regular Isar proof methods do \emph{not} admit direct goal addressing, but
+  Regular Isar proof methods do \<^emph>\<open>not\<close> admit direct goal addressing, but
   refer to the first subgoal or to all subgoals uniformly. Nonetheless,
   the subsequent mechanisms allow to imitate the effect of subgoal
   addressing that is known from ML tactics.
 
   \<^medskip>
-  Goal \emph{restriction} means the proof state is wrapped-up in a
+  Goal \<^emph>\<open>restriction\<close> means the proof state is wrapped-up in a
   way that certain subgoals are exposed, and other subgoals are ``parked''
   elsewhere. Thus a proof method has no other chance than to operate on the
   subgoals that are presently exposed.
@@ -676,13 +676,13 @@ text \<open>
   Structured proof composition in Isar admits proof methods to be
   invoked in two places only.
 
-  \<^enum> An \emph{initial} refinement step @{command_ref
+  \<^enum> An \<^emph>\<open>initial\<close> refinement step @{command_ref
   "proof"}~@{text "m\<^sub>1"} reduces a newly stated goal to a number
   of sub-goals that are to be solved later.  Facts are passed to
   @{text "m\<^sub>1"} for forward chaining, if so indicated by @{text
   "proof(chain)"} mode.
 
-  \<^enum> A \emph{terminal} conclusion step @{command_ref "qed"}~@{text
+  \<^enum> A \<^emph>\<open>terminal\<close> conclusion step @{command_ref "qed"}~@{text
   "m\<^sub>2"} is intended to solve remaining goals.  No facts are
   passed to @{text "m\<^sub>2"}.
 
@@ -726,7 +726,7 @@ text \<open>
   proof method @{text "m\<^sub>2"} and concludes the sub-proof by assumption.
   If the goal had been @{text "show"} (or @{text "thus"}), some
   pending sub-goal is solved as well by the rule resulting from the
-  result \emph{exported} into the enclosing goal context.  Thus @{text
+  result \<^emph>\<open>exported\<close> into the enclosing goal context.  Thus @{text
   "qed"} may fail for two reasons: either @{text "m\<^sub>2"} fails, or the
   resulting rule does not fit to any pending goal\footnote{This
   includes any additional ``strong'' assumptions as introduced by
@@ -735,8 +735,8 @@ text \<open>
   @{command "have"}, or weakening the local context by replacing
   occurrences of @{command "assume"} by @{command "presume"}.
 
-  \<^descr> @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} is a \emph{terminal
-  proof}\index{proof!terminal}; it abbreviates @{command
+  \<^descr> @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} is a \<^emph>\<open>terminal
+  proof\<close>\index{proof!terminal}; it abbreviates @{command
   "proof"}~@{text "m\<^sub>1"}~@{command "qed"}~@{text "m\<^sub>2"}, but with
   backtracking across both methods.  Debugging an unsuccessful
   @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} command can be done by expanding its
@@ -744,15 +744,15 @@ text \<open>
   @{text "apply"}~@{text "m\<^sub>1"}) is already sufficient to see the
   problem.
 
-  \<^descr> ``@{command ".."}'' is a \emph{standard
-  proof}\index{proof!standard}; it abbreviates @{command "by"}~@{text
+  \<^descr> ``@{command ".."}'' is a \<^emph>\<open>standard
+  proof\<close>\index{proof!standard}; it abbreviates @{command "by"}~@{text
   "standard"}.
 
-  \<^descr> ``@{command "."}'' is a \emph{trivial
-  proof}\index{proof!trivial}; it abbreviates @{command "by"}~@{text
+  \<^descr> ``@{command "."}'' is a \<^emph>\<open>trivial
+  proof\<close>\index{proof!trivial}; it abbreviates @{command "by"}~@{text
   "this"}.
 
-  \<^descr> @{command "sorry"} is a \emph{fake proof}\index{proof!fake}
+  \<^descr> @{command "sorry"} is a \<^emph>\<open>fake proof\<close>\index{proof!fake}
   pretending to solve the pending claim without further ado.  This
   only works in interactive development, or if the @{attribute
   quick_and_dirty} is enabled.  Facts emerging from fake
@@ -765,7 +765,7 @@ text \<open>
 
   \<^descr> @{method standard} refers to the default refinement step of some
   Isar language elements (notably @{command proof} and ``@{command ".."}'').
-  It is \emph{dynamically scoped}, so the behaviour depends on the
+  It is \<^emph>\<open>dynamically scoped\<close>, so the behaviour depends on the
   application environment.
 
   In Isabelle/Pure, @{method standard} performs elementary introduction~/
@@ -838,7 +838,7 @@ text \<open>
 
   Note that command @{command_ref "proof"} without any method actually
   performs a single reduction step using the @{method_ref (Pure) rule}
-  method; thus a plain \emph{do-nothing} proof step would be ``@{command
+  method; thus a plain \<^emph>\<open>do-nothing\<close> proof step would be ``@{command
   "proof"}~@{text "-"}'' rather than @{command "proof"} alone.
 
   \<^descr> @{method "goal_cases"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} turns the current subgoals
@@ -1069,7 +1069,7 @@ text \<open>
 
   \<^descr> @{attribute case_names}~@{text "c\<^sub>1 \<dots> c\<^sub>k"} declares names for
   the local contexts of premises of a theorem; @{text "c\<^sub>1, \<dots>, c\<^sub>k"}
-  refers to the \emph{prefix} of the list of premises. Each of the
+  refers to the \<^emph>\<open>prefix\<close> of the list of premises. Each of the
   cases @{text "c\<^sub>i"} can be of the form @{text "c[h\<^sub>1 \<dots> h\<^sub>n]"} where
   the @{text "h\<^sub>1 \<dots> h\<^sub>n"} are the names of the hypotheses in case @{text "c\<^sub>i"}
   from left to right.
@@ -1089,7 +1089,7 @@ text \<open>
   theorem.  An empty list of names may be given to skip positions,
   leaving the present parameters unchanged.
 
-  Note that the default usage of case rules does \emph{not} directly
+  Note that the default usage of case rules does \<^emph>\<open>not\<close> directly
   expose parameters to the proof context.
 
   \<^descr> @{attribute consumes}~@{text n} declares the number of ``major
@@ -1186,8 +1186,8 @@ text \<open>
   \end{tabular}
   \<^medskip>
 
-  Several instantiations may be given, referring to the \emph{suffix}
-  of premises of the case rule; within each premise, the \emph{prefix}
+  Several instantiations may be given, referring to the \<^emph>\<open>suffix\<close>
+  of premises of the case rule; within each premise, the \<^emph>\<open>prefix\<close>
   of variables is instantiated.  In most situations, only a single
   term needs to be specified; this refers to the first variable of the
   last premise (it is usually the same for all cases).  The @{text
@@ -1211,7 +1211,7 @@ text \<open>
   Several instantiations may be given, each referring to some part of
   a mutual inductive definition or datatype --- only related partial
   induction rules may be used together, though.  Any of the lists of
-  terms @{text "P, x, \<dots>"} refers to the \emph{suffix} of variables
+  terms @{text "P, x, \<dots>"} refers to the \<^emph>\<open>suffix\<close> of variables
   present in the induction rule.  This enables the writer to specify
   only induction variables, or both predicates and variables, for
   example.
@@ -1272,7 +1272,7 @@ text \<open>
   covered, while the conclusions consist of several alternatives being
   named after the individual destructor patterns.
 
-  The given instantiation refers to the \emph{suffix} of variables
+  The given instantiation refers to the \<^emph>\<open>suffix\<close> of variables
   occurring in the rule's major premise, or conclusion if unavailable.
   An additional ``@{text "taking: t\<^sub>1 \<dots> t\<^sub>n"}''
   specification may be required in order to specify the bisimulation
@@ -1454,7 +1454,7 @@ text \<open>
   later results by discharging these assumptions again.
 
   Note that according to the parameter scopes within the elimination rule,
-  results \emph{must not} refer to hypothetical parameters; otherwise the
+  results \<^emph>\<open>must not\<close> refer to hypothetical parameters; otherwise the
   export will fail! This restriction conforms to the usual manner of
   existential reasoning in Natural Deduction.
 
@@ -1476,7 +1476,7 @@ text \<open>
   \<^descr> @{command guess} is similar to @{command obtain}, but it derives the
   obtained context elements from the course of tactical reasoning in the
   proof. Thus it can considerably obscure the proof: it is classified as
-  \emph{improper}.
+  \<^emph>\<open>improper\<close>.
 
   A proof with @{command guess} starts with a fixed goal @{text thesis}. The
   subsequent refinement steps may turn this to anything of the form @{text

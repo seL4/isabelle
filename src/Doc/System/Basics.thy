@@ -6,27 +6,27 @@ chapter \<open>The Isabelle system environment\<close>
 
 text \<open>This manual describes Isabelle together with related tools and
   user interfaces as seen from a system oriented view.  See also the
-  \emph{Isabelle/Isar Reference Manual} @{cite "isabelle-isar-ref"} for
+  \<^emph>\<open>Isabelle/Isar Reference Manual\<close> @{cite "isabelle-isar-ref"} for
   the actual Isabelle input language and related concepts, and
-  \emph{The Isabelle/Isar Implementation
-  Manual} @{cite "isabelle-implementation"} for the main concepts of the
+  \<^emph>\<open>The Isabelle/Isar Implementation
+  Manual\<close> @{cite "isabelle-implementation"} for the main concepts of the
   underlying implementation in Isabelle/ML.
 
   \<^medskip>
   The Isabelle system environment provides the following
   basic infrastructure to integrate tools smoothly.
 
-  \<^enum> The \emph{Isabelle settings} mechanism provides process
+  \<^enum> The \<^emph>\<open>Isabelle settings\<close> mechanism provides process
   environment variables to all Isabelle executables (including tools
   and user interfaces).
 
-  \<^enum> The raw \emph{Isabelle process} (@{executable_ref
+  \<^enum> The raw \<^emph>\<open>Isabelle process\<close> (@{executable_ref
   "isabelle_process"}) runs logic sessions either interactively or in
   batch mode.  In particular, this view abstracts over the invocation
   of the actual ML system to be used.  Regular users rarely need to
   care about the low-level process.
 
-  \<^enum> The main \emph{Isabelle tool wrapper} (@{executable_ref
+  \<^enum> The main \<^emph>\<open>Isabelle tool wrapper\<close> (@{executable_ref
   isabelle}) provides a generic startup environment Isabelle related
   utilities, user interfaces etc.  Such tools automatically benefit
   from the settings mechanism.
@@ -36,13 +36,13 @@ text \<open>This manual describes Isabelle together with related tools and
 section \<open>Isabelle settings \label{sec:settings}\<close>
 
 text \<open>
-  The Isabelle system heavily depends on the \emph{settings
-  mechanism}\indexbold{settings}.  Essentially, this is a statically
+  The Isabelle system heavily depends on the \<^emph>\<open>settings
+  mechanism\<close>\indexbold{settings}.  Essentially, this is a statically
   scoped collection of environment variables, such as @{setting
   ISABELLE_HOME}, @{setting ML_SYSTEM}, @{setting ML_HOME}.  These
-  variables are \emph{not} intended to be set directly from the shell,
+  variables are \<^emph>\<open>not\<close> intended to be set directly from the shell,
   though.  Isabelle employs a somewhat more sophisticated scheme of
-  \emph{settings files} --- one for site-wide defaults, another for
+  \<^emph>\<open>settings files\<close> --- one for site-wide defaults, another for
   additional user-specific modifications.  With all configuration
   variables in clearly defined places, this scheme is more
   maintainable and user-friendly than global shell environment
@@ -269,8 +269,8 @@ text \<open>
 
 subsection \<open>Additional components \label{sec:components}\<close>
 
-text \<open>Any directory may be registered as an explicit \emph{Isabelle
-  component}.  The general layout conventions are that of the main
+text \<open>Any directory may be registered as an explicit \<^emph>\<open>Isabelle
+  component\<close>.  The general layout conventions are that of the main
   Isabelle distribution itself, and the following two files (both
   optional) have a special meaning:
 

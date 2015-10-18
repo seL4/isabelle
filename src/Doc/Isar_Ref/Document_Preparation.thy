@@ -9,8 +9,8 @@ text \<open>Isabelle/Isar provides a simple document preparation system
   within that format.  This allows to produce papers, books, theses
   etc.\ from Isabelle theory sources.
 
-  {\LaTeX} output is generated while processing a \emph{session} in
-  batch mode, as explained in the \emph{The Isabelle System Manual}
+  {\LaTeX} output is generated while processing a \<^emph>\<open>session\<close> in
+  batch mode, as explained in the \<^emph>\<open>The Isabelle System Manual\<close>
   @{cite "isabelle-system"}.  The main Isabelle tools to get started with
   document preparation are @{tool_ref mkroot} and @{tool_ref build}.
 
@@ -67,7 +67,7 @@ text \<open>
 
 
   All text passed to any of the above markup commands may refer to formal
-  entities via \emph{document antiquotations}, see also \secref{sec:antiq}.
+  entities via \<^emph>\<open>document antiquotations\<close>, see also \secref{sec:antiq}.
   These are interpreted in the present theory or proof context.
 
   \<^medskip>
@@ -81,7 +81,6 @@ section \<open>Document antiquotations \label{sec:antiq}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def "print_antiquotations"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
     @{antiquotation_def "theory"} & : & @{text antiquotation} \\
     @{antiquotation_def "thm"} & : & @{text antiquotation} \\
     @{antiquotation_def "lemma"} & : & @{text antiquotation} \\
@@ -104,10 +103,13 @@ text \<open>
     @{antiquotation_def ML_type} & : & @{text antiquotation} \\
     @{antiquotation_def ML_structure} & : & @{text antiquotation} \\
     @{antiquotation_def ML_functor} & : & @{text antiquotation} \\
+    @{antiquotation_def emph} & : & @{text antiquotation} \\
+    @{antiquotation_def bold} & : & @{text antiquotation} \\
     @{antiquotation_def verbatim} & : & @{text antiquotation} \\
     @{antiquotation_def "file"} & : & @{text antiquotation} \\
     @{antiquotation_def "url"} & : & @{text antiquotation} \\
     @{antiquotation_def "cite"} & : & @{text antiquotation} \\
+    @{command_def "print_antiquotations"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
   \end{matharray}
 
   The overall content of an Isabelle/Isar theory may alternate between
@@ -116,7 +118,7 @@ text \<open>
   (\secref{sec:markup}) or document comments (\secref{sec:comments}).
   The argument of markup commands quotes informal text to be printed
   in the resulting document, but may again refer to formal entities
-  via \emph{document antiquotations}.
+  via \<^emph>\<open>document antiquotations\<close>.
 
   For example, embedding @{verbatim \<open>@{term [show_types] "f x = a + x"}\<close>}
   within a text block makes
@@ -129,15 +131,25 @@ text \<open>
   antiquotations are checked within the current theory or proof
   context.
 
+  \<^medskip>
+  Antiquotations are in general written @{verbatim "@{"}@{text "name
+  [options] arguments"}@{verbatim "}"}. The short form @{verbatim
+  \<open>\\<close>}@{verbatim "<^"}@{text name}@{verbatim ">"}@{text
+  "\<open>argument_content\<close>"} (without surrounding @{verbatim "@{"}@{text
+  "\<dots>"}@{verbatim "}"}) works for a single argument that is a cartouche.
+
+  \begingroup
+  \def\isasymcontrolstart{\isatt{\isacharbackslash\isacharless\isacharcircum}}
   @{rail \<open>
-    @@{command print_antiquotations} ('!'?)
+    @{syntax_def antiquotation}:
+      '@{' antiquotation_body '}' |
+      '\<controlstart>' @{syntax_ref name} '>' @{syntax_ref cartouche}
   \<close>}
+  \endgroup
 
   %% FIXME less monolithic presentation, move to individual sections!?
   @{rail \<open>
-    '@{' antiquotation '}'
-    ;
-    @{syntax_def antiquotation}:
+    @{syntax_def antiquotation_body}:
       @@{antiquotation theory} options @{syntax name} |
       @@{antiquotation thm} options styles @{syntax thmrefs} |
       @@{antiquotation lemma} options @{syntax prop} @'by' @{syntax method} @{syntax method}? |
@@ -163,6 +175,8 @@ text \<open>
       @@{antiquotation ML_type} options @{syntax text} |
       @@{antiquotation ML_structure} options @{syntax text} |
       @@{antiquotation ML_functor} options @{syntax text} |
+      @@{antiquotation emph} options @{syntax text} |
+      @@{antiquotation bold} options @{syntax text} |
       @@{antiquotation verbatim} options @{syntax text} |
       @@{antiquotation "file"} options @{syntax name} |
       @@{antiquotation file_unchecked} options @{syntax name} |
@@ -176,15 +190,13 @@ text \<open>
     styles: '(' (style + ',') ')'
     ;
     style: (@{syntax name} +)
+    ;
+    @@{command print_antiquotations} ('!'?)
   \<close>}
 
-  Note that the syntax of antiquotations may \emph{not} include source
+  Note that the syntax of antiquotations may \<^emph>\<open>not\<close> include source
   comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} nor verbatim
   text @{verbatim "{*"}~@{text "\<dots>"}~@{verbatim "*}"}.
-
-  \<^descr> @{command "print_antiquotations"} prints all document antiquotations
-  that are defined in the current context; the ``@{text "!"}'' option
-  indicates extra verbosity.
 
   \<^descr> @{text "@{theory A}"} prints the name @{text "A"}, which is
   guaranteed to refer to a valid ancestor theory in the current
@@ -230,7 +242,7 @@ text \<open>
   e.g.\ small pieces of terms that should not be parsed or
   type-checked yet.
 
-  \<^descr> @{text "@{goals}"} prints the current \emph{dynamic} goal
+  \<^descr> @{text "@{goals}"} prints the current \<^emph>\<open>dynamic\<close> goal
   state.  This is mainly for support of tactic-emulation scripts
   within Isar.  Presentation of goal states does not conform to the
   idea of human-readable proof documents!
@@ -256,6 +268,12 @@ text \<open>
   s}"}, @{text "@{ML_structure s}"}, and @{text "@{ML_functor s}"}
   check text @{text s} as ML value, infix operator, type, structure,
   and functor respectively.  The source is printed verbatim.
+
+  \<^descr> @{text "@{emph s}"} prints document source recursively, with {\LaTeX}
+  markup @{verbatim \<open>\emph\<close>}@{text "\<dots>"}@{verbatim \<open>}\<close>}.
+
+  \<^descr> @{text "@{bold s}"} prints document source recursively, with {\LaTeX}
+  markup @{verbatim \<open>\textbf{\<close>}@{text "\<dots>"}@{verbatim \<open>}\<close>}.
 
   \<^descr> @{text "@{verbatim s}"} prints uninterpreted source text literally
   as ASCII characters, using some type-writer font style.
@@ -283,13 +301,17 @@ text \<open>
   @{antiquotation_option_def cite_macro}, or the configuration option
   @{attribute cite_macro} in the context. For example, @{text "@{cite
   [cite_macro = nocite] foobar}"} produces @{verbatim \<open>\nocite{foobar}\<close>}.
+
+  \<^descr> @{command "print_antiquotations"} prints all document antiquotations
+  that are defined in the current context; the ``@{text "!"}'' option
+  indicates extra verbosity.
 \<close>
 
 
 subsection \<open>Styled antiquotations\<close>
 
 text \<open>The antiquotations @{text thm}, @{text prop} and @{text
-  term} admit an extra \emph{style} specification to modify the
+  term} admit an extra \<^emph>\<open>style\<close> specification to modify the
   printed result.  A style is specified by a name with a possibly
   empty number of arguments;  multiple styles can be sequenced with
   commas.  The following standard styles are available:
@@ -473,7 +495,7 @@ text \<open>
   below.
 
   \begingroup
-  \def\isasymnewline{\isatext{\tt\isacharbackslash<newline>}}
+  \def\isasymnewline{\isatt{\isacharbackslash\isacharless newline\isachargreater}}
   @{rail \<open>
   rule? + ';'
   ;

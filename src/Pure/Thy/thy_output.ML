@@ -161,8 +161,24 @@ end;
 
 (* eval antiquote *)
 
+local
+
+fun eval_antiq state (opts, src) =
+  let
+    val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
+    val print_ctxt = Context_Position.set_visible false preview_ctxt;
+
+    fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
+    val _ = cmd preview_ctxt;
+    val print_modes = space_explode "," (Config.get print_ctxt modes) @ Latex.modes;
+  in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
+
+in
+
 fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
-  | eval_antiquote state (Antiquote.Antiq (ss, {range = (pos, _), ...})) =
+  | eval_antiquote state (Antiquote.Control {name, body, ...}) =
+      eval_antiq state ([], Token.src name [Token.read_cartouche body])
+  | eval_antiquote state (Antiquote.Antiq {range = (pos, _), body, ...}) =
       let
         val keywords =
           (case try Toplevel.presentation_context_of state of
@@ -170,15 +186,9 @@ fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
           | NONE =>
               error ("Unknown context -- cannot expand document antiquotations" ^
                 Position.here pos));
+      in eval_antiq state (Token.read_antiq keywords antiq (body, pos)) end;
 
-        val (opts, src) = Token.read_antiq keywords antiq (ss, pos);
-        fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
-
-        val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
-        val print_ctxt = Context_Position.set_visible false preview_ctxt;
-        val _ = cmd preview_ctxt;
-        val print_modes = space_explode "," (Config.get print_ctxt modes) @ Latex.modes;
-      in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
+end;
 
 
 (* output text *)
@@ -230,7 +240,6 @@ datatype token =
   | Markup_Token of string * Input.source
   | Markup_Env_Token of string * Input.source
   | Raw_Token of Input.source;
-
 
 fun basic_token pred (Basic_Token tok) = pred tok
   | basic_token _ _ = false;
@@ -595,6 +604,24 @@ fun output ctxt prts =
 
 
 (** concrete antiquotations **)
+
+(* control style *)
+
+local
+
+fun control_antiquotation name s1 s2 =
+  antiquotation name (Scan.lift Args.cartouche_input)
+    (fn {state, ...} => enclose s1 s2 o output_text state {markdown = false});
+
+in
+
+val _ =
+  Theory.setup
+   (control_antiquotation @{binding "emph"} "\\emph{" "}" #>
+    control_antiquotation @{binding "bold"} "\\textbf{" "}");
+
+end;
+
 
 (* basic entities *)
 

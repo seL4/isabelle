@@ -58,7 +58,7 @@ text \<open>
 text \<open>
   In this example, the facts @{text impI} and @{text conjE} are static. They
   are evaluated once when the method is defined and cannot be changed later.
-  This makes the method stable in the sense of \emph{static scoping}: naming
+  This makes the method stable in the sense of \<^emph>\<open>static scoping\<close>: naming
   another fact @{text impI} in a later context won't affect the behaviour of
   @{text "prop_solver\<^sub>1"}.
 \<close>
@@ -103,7 +103,7 @@ text \<open>
   A @{text "named theorem"} is a fact whose contents are produced dynamically
   within the current proof context. The Isar command @{command_ref
   "named_theorems"} provides simple access to this concept: it declares a
-  dynamic fact with corresponding \emph{attribute} for managing
+  dynamic fact with corresponding \<^emph>\<open>attribute\<close> for managing
   this particular data slot in the context.
 \<close>
 
@@ -171,10 +171,10 @@ text \<open>
 section \<open>Higher-order methods\<close>
 
 text \<open>
-  The \emph{structured concatenation} combinator ``@{text "method\<^sub>1 ;
+  The \<^emph>\<open>structured concatenation\<close> combinator ``@{text "method\<^sub>1 ;
   method\<^sub>2"}'' was introduced in Isabelle2015, motivated by development of
   Eisbach. It is similar to ``@{text "method\<^sub>1, method\<^sub>2"}'', but @{text
-  method\<^sub>2} is invoked on on \emph{all} subgoals that have newly emerged from
+  method\<^sub>2} is invoked on on \<^emph>\<open>all\<close> subgoals that have newly emerged from
   @{text method\<^sub>1}. This is useful to handle cases where the number of
   subgoals produced by a method is determined dynamically at run-time.
 \<close>
@@ -192,7 +192,7 @@ text \<open>
   method combinators with prefix syntax. For example, to more usefully exploit
   Isabelle's backtracking, the explicit requirement that a method solve all
   produced subgoals is frequently useful. This can easily be written as a
-  \emph{higher-order method} using ``@{text ";"}''. The @{keyword "methods"}
+  \<^emph>\<open>higher-order method\<close> using ``@{text ";"}''. The @{keyword "methods"}
   keyword denotes method parameters that are other proof methods to be invoked
   by the method being defined.
 \<close>
@@ -300,9 +300,9 @@ text \<open>
 
   Matching allows methods to introspect the goal state, and to implement more
   explicit control flow. In the basic case, a term or fact @{text ts} is given
-  to match against as a \emph{match target}, along with a collection of
+  to match against as a \<^emph>\<open>match target\<close>, along with a collection of
   pattern-method pairs @{text "(p, m)"}: roughly speaking, when the pattern
-  @{text p} matches any member of @{text ts}, the \emph{inner} method @{text
+  @{text p} matches any member of @{text ts}, the \<^emph>\<open>inner\<close> method @{text
   m} will be executed.
 \<close>
 
@@ -327,8 +327,8 @@ section \<open>Subgoal focus\<close>
 text\<open>
   In the previous example we were able to match against an assumption out of
   the Isar proof state. In general, however, proof subgoals can be
-  \emph{unstructured}, with goal parameters and premises arising from rule
-  application. To address this, @{method match} uses \emph{subgoal focusing}
+  \<^emph>\<open>unstructured\<close>, with goal parameters and premises arising from rule
+  application. To address this, @{method match} uses \<^emph>\<open>subgoal focusing\<close>
   to produce structured goals out of
   unstructured ones. In place of fact or term, we may give the
   keyword @{keyword_def "premises"} as the match target. This causes a subgoal
@@ -467,11 +467,11 @@ text \<open>
 subsubsection \<open>Inner focusing\<close>
 
 text \<open>
-  Premises are \emph{accumulated} for the purposes of subgoal focusing.
+  Premises are \<^emph>\<open>accumulated\<close> for the purposes of subgoal focusing.
   In contrast to using standard methods like @{method frule} within
   focused match, another @{method match} will have access to all the premises
   of the outer focus.
-  \<close>
+\<close>
 
     lemma "A \<Longrightarrow> B \<Longrightarrow> A \<and> B"
       by (match premises in H: A \<Rightarrow> \<open>intro conjI, rule H,
@@ -551,8 +551,8 @@ text \<open>
 text \<open>
   The @{attribute of} attribute behaves similarly. It is worth noting,
   however, that the positional instantiation of @{attribute of} occurs against
-  the position of the variables as they are declared \emph{in the match
-  pattern}.
+  the position of the variables as they are declared \<^emph>\<open>in the match
+  pattern\<close>.
 \<close>
 
     lemma
@@ -569,7 +569,7 @@ text \<open>
   declared the @{typ 'a} slot first and the @{typ 'b} slot second.
 
   To get the dynamic behaviour of @{attribute of} we can choose to invoke it
-  \emph{unchecked}. This avoids trying to do any type inference for the
+  \<^emph>\<open>unchecked\<close>. This avoids trying to do any type inference for the
   provided parameters, instead storing them as their most general type and
   doing type matching at run-time. This, like @{attribute OF}, will throw
   errors if the expected slots don't exist or there is a type mismatch.
@@ -605,7 +605,7 @@ section \<open>Multi-match \label{sec:multi}\<close>
 text \<open>
   In all previous examples, @{method match} was only ever searching for a
   single rule or premise. Each local fact would therefore always have a length
-  of exactly one. We may, however, wish to find \emph{all} matching results.
+  of exactly one. We may, however, wish to find \<^emph>\<open>all\<close> matching results.
   To achieve this, we can simply mark a given pattern with the @{text
   "(multi)"} argument.
 \<close>
@@ -806,7 +806,7 @@ section \<open>Uncurrying\<close>
 text \<open>
   The @{method match} method is not aware of the logical content of match
   targets. Each pattern is simply matched against the shallow structure of a
-  fact or term. Most facts are in \emph{normal form}, which curries premises
+  fact or term. Most facts are in \<^emph>\<open>normal form\<close>, which curries premises
   via meta-implication @{text "_ \<Longrightarrow> _"}.
 \<close>
 
@@ -835,11 +835,11 @@ text \<open>
   to @{term "A"} and @{term Q} to @{term "B \<Longrightarrow> C"}. Our pattern, with a
   concrete @{term "C"} in the conclusion, will fail to match this fact.
 
-  To express our desired match, we may \emph{uncurry} our rules before
+  To express our desired match, we may \<^emph>\<open>uncurry\<close> our rules before
   matching against them. This forms a meta-conjunction of all premises in a
   fact, so that only one implication remains. For example the uncurried
   version of @{term "A \<Longrightarrow> B \<Longrightarrow> C"} is @{term "A &&& B \<Longrightarrow> C"}. This will now match
-  our desired pattern @{text "_ \<Longrightarrow> C"}, and can be \emph{curried} after the
+  our desired pattern @{text "_ \<Longrightarrow> C"}, and can be \<^emph>\<open>curried\<close> after the
   match to put it back into normal form.
 \<close>
 

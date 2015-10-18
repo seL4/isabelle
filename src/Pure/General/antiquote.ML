@@ -6,12 +6,14 @@ Antiquotations within plain text.
 
 signature ANTIQUOTE =
 sig
-  type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range}
-  datatype 'a antiquote = Text of 'a | Antiq of antiq
+  type control = {range: Position.range, name: string * Position.T, body: Symbol_Pos.T list}
+  type antiq = {start: Position.T, stop: Position.T, range: Position.range, body: Symbol_Pos.T list}
+  datatype 'a antiquote = Text of 'a | Control of control | Antiq of antiq
   type text_antiquote = Symbol_Pos.T list antiquote
   val range: text_antiquote list -> Position.range
   val split_lines: text_antiquote list -> text_antiquote list list
   val antiq_reports: 'a antiquote list -> Position.report list
+  val scan_control: Symbol_Pos.T list -> control * Symbol_Pos.T list
   val scan_antiq: Symbol_Pos.T list -> antiq * Symbol_Pos.T list
   val scan_antiquote: Symbol_Pos.T list -> text_antiquote * Symbol_Pos.T list
   val read': Position.T -> Symbol_Pos.T list -> text_antiquote list
@@ -23,13 +25,15 @@ struct
 
 (* datatype antiquote *)
 
-type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range};
-datatype 'a antiquote = Text of 'a | Antiq of antiq;
+type control = {range: Position.range, name: string * Position.T, body: Symbol_Pos.T list};
+type antiq = {start: Position.T, stop: Position.T, range: Position.range, body: Symbol_Pos.T list};
+datatype 'a antiquote = Text of 'a | Control of control | Antiq of antiq;
 
 type text_antiquote = Symbol_Pos.T list antiquote;
 
 fun antiquote_range (Text ss) = Symbol_Pos.range ss
-  | antiquote_range (Antiq (_, {range, ...})) = range;
+  | antiquote_range (Control {range, ...}) = range
+  | antiquote_range (Antiq {range, ...}) = range;
 
 fun range ants =
   if null ants then Position.no_range
@@ -55,12 +59,13 @@ fun split_lines input =
 (* reports *)
 
 fun antiq_reports ants = ants |> maps
-  (fn Antiq (_, {start, stop, range = (pos, _)}) =>
-      [(start, Markup.antiquote),
-       (stop, Markup.antiquote),
-       (pos, Markup.antiquoted),
-       (pos, Markup.language_antiquotation)]
-    | _ => []);
+  (fn Text _ => []
+    | Control {range = (pos, _), ...} => [(pos, Markup.antiquoted)]
+    | Antiq {start, stop, range = (pos, _), ...} =>
+        [(start, Markup.antiquote),
+         (stop, Markup.antiquote),
+         (pos, Markup.antiquoted),
+         (pos, Markup.language_antiquotation)]);
 
 
 (* scan *)
@@ -72,8 +77,10 @@ local
 val err_prefix = "Antiquotation lexical error: ";
 
 val scan_txt =
-  Scan.repeat1 ($$$ "@" --| Scan.ahead (~$$ "{") ||
-    Scan.many1 (fn (s, _) => s <> "@" andalso Symbol.not_eof s)) >> flat;
+  Scan.repeats1
+   (Scan.many1 (fn (s, _) => not (Symbol.is_control s) andalso s <> "@" andalso Symbol.not_eof s) ||
+    Scan.one (fn (s, _) => Symbol.is_control s) --| Scan.ahead (~$$ "\\<open>") >> single ||
+    $$$ "@" --| Scan.ahead (~$$ "{"));
 
 val scan_antiq_body =
   Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
@@ -82,17 +89,27 @@ val scan_antiq_body =
 
 in
 
+val scan_control =
+  Scan.one (Symbol.is_control o Symbol_Pos.symbol) --
+  Scan.trace (Symbol_Pos.scan_cartouche err_prefix) >>
+    (fn ((control, pos), (_, body)) =>
+      let
+        val Symbol.Control name = Symbol.decode control;
+        val range = Symbol_Pos.range ((control, pos) :: body);
+      in {name = (name, pos), range = range, body = body} end);
+
 val scan_antiq =
   Symbol_Pos.scan_pos -- ($$ "@" |-- $$ "{" |-- Symbol_Pos.scan_pos --
     Symbol_Pos.!!! (fn () => err_prefix ^ "missing closing brace")
-      (Scan.repeat scan_antiq_body -- Symbol_Pos.scan_pos -- ($$ "}" |-- Symbol_Pos.scan_pos)))
-  >> (fn (pos1, (pos2, ((body, pos3), pos4))) =>
-      (flat body,
-        {start = Position.set_range (pos1, pos2),
-         stop = Position.set_range (pos3, pos4),
-         range = Position.range pos1 pos4}));
+      (Scan.repeats scan_antiq_body -- Symbol_Pos.scan_pos -- ($$ "}" |-- Symbol_Pos.scan_pos))) >>
+    (fn (pos1, (pos2, ((body, pos3), pos4))) =>
+      {start = Position.set_range (pos1, pos2),
+       stop = Position.set_range (pos3, pos4),
+       range = Position.range pos1 pos4,
+       body = body});
 
-val scan_antiquote = scan_antiq >> Antiq || scan_txt >> Text;
+val scan_antiquote =
+  scan_control >> Control || scan_antiq >> Antiq || scan_txt >> Text;
 
 end;
 

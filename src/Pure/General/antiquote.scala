@@ -14,6 +14,7 @@ object Antiquote
 {
   sealed abstract class Antiquote
   case class Text(source: String) extends Antiquote
+  case class Control(source: String) extends Antiquote
   case class Antiq(source: String) extends Antiquote
 
 
@@ -24,7 +25,12 @@ object Antiquote
   trait Parsers extends Scan.Parsers
   {
     private val txt: Parser[String] =
-      rep1("@" ~ guard(one(s => s != "{")) | many1(s => s != "@")) ^^ (x => x.mkString)
+      rep1(many1(s => !Symbol.is_control(s) && s != "@") |
+        one(Symbol.is_control) <~ guard(opt_term(one(s => !Symbol.is_open(s)))) |
+        "@" <~ guard(opt_term(one(s => s != "{")))) ^^ (x => x.mkString)
+
+    val control: Parser[String] =
+      one(Symbol.is_control) ~ cartouche ^^ { case x ~ y => x + y }
 
     val antiq_other: Parser[String] =
       many1(s => s != "\"" && s != "`" && s != "}" && !Symbol.is_open(s) && !Symbol.is_close(s))
@@ -36,7 +42,7 @@ object Antiquote
       "@{" ~ rep(antiq_body) ~ "}" ^^ { case x ~ y ~ z => x + y.mkString + z }
 
     val antiquote: Parser[Antiquote] =
-      antiq ^^ (x => Antiq(x)) | txt ^^ (x => Text(x))
+      control ^^ (x => Control(x)) | (antiq ^^ (x => Antiq(x)) | txt ^^ (x => Text(x)))
   }
 
 

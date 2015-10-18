@@ -11,7 +11,7 @@ text \<open>
   is considered as ``free''.  Logically, free variables act like
   outermost universal quantification at the sequent level: @{text
   "A\<^sub>1(x), \<dots>, A\<^sub>n(x) \<turnstile> B(x)"} means that the result
-  holds \emph{for all} values of @{text "x"}.  Free variables for
+  holds \<^emph>\<open>for all\<close> values of @{text "x"}.  Free variables for
   terms (not types) can be fully internalized into the logic: @{text
   "\<turnstile> B(x)"} and @{text "\<turnstile> \<And>x. B(x)"} are interchangeable, provided
   that @{text "x"} does not occur elsewhere in the context.
@@ -22,8 +22,8 @@ text \<open>
 
   The Pure logic represents the idea of variables being either inside
   or outside the current scope by providing separate syntactic
-  categories for \emph{fixed variables} (e.g.\ @{text "x"}) vs.\
-  \emph{schematic variables} (e.g.\ @{text "?x"}).  Incidently, a
+  categories for \<^emph>\<open>fixed variables\<close> (e.g.\ @{text "x"}) vs.\
+  \<^emph>\<open>schematic variables\<close> (e.g.\ @{text "?x"}).  Incidently, a
   universal result @{text "\<turnstile> \<And>x. B(x)"} has the HHF normal form @{text
   "\<turnstile> B(?x)"}, which represents its generality without requiring an
   explicit quantifier.  The same principle works for type variables:
@@ -40,12 +40,12 @@ text \<open>
 
   We allow a slightly less formalistic mode of operation: term
   variables @{text "x"} are fixed without specifying a type yet
-  (essentially \emph{all} potential occurrences of some instance
+  (essentially \<^emph>\<open>all\<close> potential occurrences of some instance
   @{text "x\<^sub>\<tau>"} are fixed); the first occurrence of @{text "x"}
   within a specific term assigns its most general type, which is then
   maintained consistently in the context.  The above example becomes
   @{text "\<Gamma> = x: term, \<alpha>: type, A(x\<^sub>\<alpha>)"}, where type @{text
-  "\<alpha>"} is fixed \emph{after} term @{text "x"}, and the constraint
+  "\<alpha>"} is fixed \<^emph>\<open>after\<close> term @{text "x"}, and the constraint
   @{text "x :: \<alpha>"} is an implicit consequence of the occurrence of
   @{text "x\<^sub>\<alpha>"} in the subsequent proposition.
 
@@ -219,7 +219,7 @@ text \<open>In this situation @{ML Variable.add_fixes} and @{ML
 section \<open>Assumptions \label{sec:assumptions}\<close>
 
 text \<open>
-  An \emph{assumption} is a proposition that it is postulated in the
+  An \<^emph>\<open>assumption\<close> is a proposition that it is postulated in the
   current context.  Local conclusions may use assumptions as
   additional facts, but this imposes implicit hypotheses that weaken
   the overall statement.

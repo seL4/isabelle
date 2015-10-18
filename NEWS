@@ -22,9 +22,8 @@ accordingly.
 * Toplevel theorem statement 'proposition' is another alias for
 'theorem'.
 
-* HTML presentation uses the standard IsabelleText font and Unicode
-rendering of Isabelle symbols like Isabelle/Scala/jEdit.  The former
-print mode "HTML" looses its special meaning.
+* There is a new short form for antiquotations with a single argument
+that is a cartouche: \<^name>\<open>...\<close> is equivalent to @{name \<open>...\<close>}.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
@@ -57,6 +56,10 @@ requirements of prover time and GUI space.
 
 *** Document preparation ***
 
+* HTML presentation uses the standard IsabelleText font and Unicode
+rendering of Isabelle symbols like Isabelle/Scala/jEdit.  The former
+print mode "HTML" looses its special meaning.
+
 * Commands 'paragraph' and 'subparagraph' provide additional section
 headings. Thus there are 6 levels of standard headings, as in HTML.
 
@@ -78,6 +81,10 @@ follows:
 * Command 'text_raw' has been clarified: input text is processed as in
 'text' (with antiquotations and control symbols). The key difference is
 the lack of the surrounding isabelle markup environment in output.
+
+* Document antiquotations @{emph} and @{bold} output LaTeX source
+recursively, adding appropriate text style markup. These are typically
+used in the short form \<^emph>\<open>...\<close> and \<^bold>\<open>...\<close>.
 
 
 *** Isar ***

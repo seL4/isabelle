@@ -41,7 +41,7 @@ method_setup algebra = \<open>
     val addN = "add"
     val delN = "del"
     val any_keyword = keyword addN || keyword delN
-    val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+    val thms = Scan.repeats (Scan.unless any_keyword Attrib.multi_thm);
   in
     Scan.optional (keyword addN |-- thms) [] --
      Scan.optional (keyword delN |-- thms) [] >>

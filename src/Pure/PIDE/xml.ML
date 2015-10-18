@@ -239,12 +239,12 @@ val parse_string = Scan.read Symbol.stopper parse_chars o raw_explode;
 
 fun parse_content xs =
   (parse_optional_text @@@
-    (Scan.repeat
+    Scan.repeats
       ((parse_element >> single ||
         parse_cdata >> (single o Text) ||
         parse_processing_instruction ||
         parse_comment)
-      @@@ parse_optional_text) >> flat)) xs
+      @@@ parse_optional_text)) xs
 
 and parse_element xs =
   ($$ "<" |-- parse_name -- Scan.repeat (blanks |-- parse_att) --| blanks :--

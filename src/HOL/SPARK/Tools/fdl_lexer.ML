@@ -171,7 +171,7 @@ val identifier =
    Scan.optional (Scan.one (is_tilde o symbol) >> single) [];
 
 val long_identifier =
-  identifier @@@ (Scan.repeat1 ($$$ "." @@@ identifier) >> flat);
+  identifier @@@ Scan.repeats1 ($$$ "." @@@ identifier);
 
 val whitespace = Scan.many (is_whitespace o symbol);
 val whitespace1 = Scan.many1 (is_whitespace o symbol);

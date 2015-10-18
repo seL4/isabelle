@@ -526,7 +526,7 @@ val old_section_parser =
 local
 
 fun thms ss =
-  Scan.repeat (Scan.unless (Scan.lift (Scan.first ss)) Attrib.multi_thm) >> flat;
+  Scan.repeats (Scan.unless (Scan.lift (Scan.first ss)) Attrib.multi_thm);
 
 fun app {init, attribute, pos = _} ths context =
   fold_map (Thm.apply_attribute attribute) ths (Context.map_proof init context);

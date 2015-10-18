@@ -30,7 +30,7 @@ text \<open>Isabelle/HOL is based on Higher-Order Logic, a polymorphic
   logic is widely applicable in many areas of mathematics and computer
   science.  In a sense, Higher-Order Logic is simpler than First-Order
   Logic, because there are fewer restrictions and special cases.  Note
-  that HOL is \emph{weaker} than FOL with axioms for ZF set theory,
+  that HOL is \<^emph>\<open>weaker\<close> than FOL with axioms for ZF set theory,
   which is traditionally considered the standard foundation of regular
   mathematics, but for most applications this does not matter.  If you
   prefer ML to Lisp, you will probably prefer HOL to ZF.
@@ -77,13 +77,13 @@ text \<open>
     @{attribute_def (HOL) mono} & : & @{text attribute} \\
   \end{matharray}
 
-  An \emph{inductive definition} specifies the least predicate or set
+  An \<^emph>\<open>inductive definition\<close> specifies the least predicate or set
   @{text R} closed under given rules: applying a rule to elements of
   @{text R} yields a result within @{text R}.  For example, a
   structural operational semantics is an inductive definition of an
   evaluation relation.
 
-  Dually, a \emph{coinductive definition} specifies the greatest
+  Dually, a \<^emph>\<open>coinductive definition\<close> specifies the greatest
   predicate or set @{text R} that is consistent with given rules:
   every element of @{text R} can be seen as arising by applying a rule
   to elements of @{text R}.  An important example is using
@@ -134,7 +134,7 @@ text \<open>
   in each occurrence within the given @{text "clauses"}.
 
   The optional @{keyword "monos"} declaration contains additional
-  \emph{monotonicity theorems}, which are required for each operator
+  \<^emph>\<open>monotonicity theorems\<close>, which are required for each operator
   applied to a recursive set in the introduction rules.
 
   \<^descr> @{command (HOL) "inductive_set"} and @{command (HOL)
@@ -395,7 +395,7 @@ where
 
 text \<open>Since the value of an expression depends on the value of its
   variables, the functions @{const evala} and @{const evalb} take an
-  additional parameter, an \emph{environment} that maps variables to their
+  additional parameter, an \<^emph>\<open>environment\<close> that maps variables to their
   values.
 
   \<^medskip>
@@ -823,7 +823,7 @@ text \<open>
 subsection \<open>Basic concepts\<close>
 
 text \<open>
-  Isabelle/HOL supports both \emph{fixed} and \emph{schematic} records
+  Isabelle/HOL supports both \<^emph>\<open>fixed\<close> and \<^emph>\<open>schematic\<close> records
   at the level of terms and types.  The notation is as follows:
 
   \begin{center}
@@ -847,7 +847,7 @@ text \<open>
   @{text x} and @{text y} as before, but also possibly further fields
   as indicated by the ``@{text "\<dots>"}'' notation (which is actually part
   of the syntax).  The improper field ``@{text "\<dots>"}'' of a record
-  scheme is called the \emph{more part}.  Logically it is just a free
+  scheme is called the \<^emph>\<open>more part\<close>.  Logically it is just a free
   variable, which is occasionally referred to as ``row variable'' in
   the literature.  The more part of a record scheme may be
   instantiated by zero or more further components.  For example, the
@@ -935,7 +935,7 @@ text \<open>Any record definition of the form presented above produces certain
   @{text "c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n"}.
 
   \<^medskip>
-  \textbf{Selectors} and \textbf{updates} are available for any
+  \<^bold>\<open>Selectors\<close> and \<^bold>\<open>updates\<close> are available for any
   field (including ``@{text more}''):
 
   \begin{matharray}{lll}
@@ -954,7 +954,7 @@ text \<open>Any record definition of the form presented above produces certain
   proven within the logic for any two fields, but not as a general theorem.
 
   \<^medskip>
-  The \textbf{make} operation provides a cumulative record
+  The \<^bold>\<open>make\<close> operation provides a cumulative record
   constructor function:
 
   \begin{matharray}{lll}
@@ -964,7 +964,7 @@ text \<open>Any record definition of the form presented above produces certain
   \<^medskip>
   We now reconsider the case of non-root records, which are derived
   of some parent. In general, the latter may depend on another parent as
-  well, resulting in a list of \emph{ancestor records}. Appending the lists
+  well, resulting in a list of \<^emph>\<open>ancestor records\<close>. Appending the lists
   of fields of all ancestors results in a certain field prefix. The record
   package automatically takes care of this by lifting operations over this
   context of ancestor fields. Assuming that @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"} has
@@ -1042,7 +1042,7 @@ text \<open>
   problem.
 
   \<^enum> The derived record operations @{text "t.make"}, @{text "t.fields"},
-  @{text "t.extend"}, @{text "t.truncate"} are \emph{not} treated
+  @{text "t.extend"}, @{text "t.truncate"} are \<^emph>\<open>not\<close> treated
   automatically, but usually need to be expanded by hand, using the
   collective fact @{text "t.defs"}.
 \<close>
@@ -1221,7 +1221,7 @@ text \<open>
   the base name of the type constructor, an explicit prefix can be given
   alternatively.
 
-  The given term @{text "m"} is considered as \emph{mapper} for the
+  The given term @{text "m"} is considered as \<^emph>\<open>mapper\<close> for the
   corresponding type constructor and must conform to the following type
   pattern:
 
@@ -1847,8 +1847,8 @@ text \<open>
   Alternatively a specific evaluator can be selected using square
   brackets; typical evaluators use the current set of code equations
   to normalize and include @{text simp} for fully symbolic evaluation
-  using the simplifier, @{text nbe} for \emph{normalization by
-  evaluation} and \emph{code} for code generation in SML.
+  using the simplifier, @{text nbe} for \<^emph>\<open>normalization by
+  evaluation\<close> and \<^emph>\<open>code\<close> for code generation in SML.
 
   \<^descr> @{command (HOL) "values"}~@{text t} enumerates a set
   comprehension by evaluation and prints its values up to the given
@@ -2027,7 +2027,7 @@ text \<open>
   \end{matharray}
 
   Coercive subtyping allows the user to omit explicit type
-  conversions, also called \emph{coercions}.  Type inference will add
+  conversions, also called \<^emph>\<open>coercions\<close>.  Type inference will add
   them as necessary when parsing a term. See
   @{cite "traytel-berghofer-nipkow-2011"} for details.
 
@@ -2256,8 +2256,8 @@ text \<open>
     @@{method (HOL) coherent} @{syntax thmrefs}?
   \<close>}
 
-  \<^descr> @{method (HOL) coherent} solves problems of \emph{Coherent
-  Logic} @{cite "Bezem-Coquand:2005"}, which covers applications in
+  \<^descr> @{method (HOL) coherent} solves problems of \<^emph>\<open>Coherent
+  Logic\<close> @{cite "Bezem-Coquand:2005"}, which covers applications in
   confluence theory, lattice theory and projective geometry.  See
   @{file "~~/src/HOL/ex/Coherent.thy"} for some examples.
 \<close>
@@ -2296,7 +2296,7 @@ text \<open>
   datatype} package already takes care of this.
 
   These unstructured tactics feature both goal addressing and dynamic
-  instantiation.  Note that named rule cases are \emph{not} provided
+  instantiation.  Note that named rule cases are \<^emph>\<open>not\<close> provided
   as would be by the proper @{method cases} and @{method induct} proof
   methods (see \secref{sec:cases-induct}).  Unlike the @{method
   induct} method, @{method induct_tac} does not handle structured rule
@@ -2339,7 +2339,7 @@ text \<open>
 
 chapter \<open>Executable code\<close>
 
-text \<open>For validation purposes, it is often useful to \emph{execute}
+text \<open>For validation purposes, it is often useful to \<^emph>\<open>execute\<close>
   specifications. In principle, execution could be simulated by Isabelle's
   inference kernel, i.e. by a combination of resolution and simplification.
   Unfortunately, this approach is rather inefficient. A more efficient way
@@ -2352,9 +2352,9 @@ text \<open>For validation purposes, it is often useful to \emph{execute}
   functional programs (including overloading using type classes) targeting
   SML @{cite SML}, OCaml @{cite OCaml}, Haskell @{cite
   "haskell-revised-report"} and Scala @{cite "scala-overview-tech-report"}.
-  Conceptually, code generation is split up in three steps: \emph{selection}
-  of code theorems, \emph{translation} into an abstract executable view and
-  \emph{serialization} to a specific \emph{target language}. Inductive
+  Conceptually, code generation is split up in three steps: \<^emph>\<open>selection\<close>
+  of code theorems, \<^emph>\<open>translation\<close> into an abstract executable view and
+  \<^emph>\<open>serialization\<close> to a specific \<^emph>\<open>target language\<close>. Inductive
   specifications can be executed using the predicate compiler which operates
   within HOL. See @{cite "isabelle-codegen"} for an introduction.
 
@@ -2470,7 +2470,7 @@ text \<open>For validation purposes, it is often useful to \emph{execute}
 
   Constants may be specified by giving them literally, referring to all
   executable constants within a certain theory by giving @{text "name._"},
-  or referring to \emph{all} executable constants currently available by
+  or referring to \<^emph>\<open>all\<close> executable constants currently available by
   giving @{text "_"}.
 
   By default, exported identifiers are minimized per module. This can be
@@ -2478,16 +2478,16 @@ text \<open>For validation purposes, it is often useful to \emph{execute}
 
   By default, for each involved theory one corresponding name space module
   is generated. Alternatively, a module name may be specified after the
-  @{keyword "module_name"} keyword; then \emph{all} code is placed in this
+  @{keyword "module_name"} keyword; then \<^emph>\<open>all\<close> code is placed in this
   module.
 
-  For \emph{SML}, \emph{OCaml} and \emph{Scala} the file specification
-  refers to a single file; for \emph{Haskell}, it refers to a whole
+  For \<^emph>\<open>SML\<close>, \<^emph>\<open>OCaml\<close> and \<^emph>\<open>Scala\<close> the file specification
+  refers to a single file; for \<^emph>\<open>Haskell\<close>, it refers to a whole
   directory, where code is generated in multiple files reflecting the module
   hierarchy. Omitting the file specification denotes standard output.
 
   Serializers take an optional list of arguments in parentheses. For
-  \emph{Haskell} a module name prefix may be given using the ``@{text
+  \<^emph>\<open>Haskell\<close> a module name prefix may be given using the ``@{text
   "root:"}'' argument; ``@{text string_classes}'' adds a ``@{verbatim
   "deriving (Read, Show)"}'' clause to each appropriate datatype
   declaration.
@@ -2556,7 +2556,7 @@ text \<open>For validation purposes, it is often useful to \emph{execute}
   (constants, type constructors, classes, class relations, instances, module
   names) with target-specific hints how these symbols shall be named. These
   hints gain precedence over names for symbols with no hints at all.
-  Conflicting hints are subject to name disambiguation. \emph{Warning:} It
+  Conflicting hints are subject to name disambiguation. \<^emph>\<open>Warning:\<close> It
   is at the discretion of the user to ensure that name prefixes of
   identifiers in compound statements like type classes or datatypes are
   still the same.

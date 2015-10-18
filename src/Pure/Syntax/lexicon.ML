@@ -94,7 +94,7 @@ val err_prefix = "Inner lexical error: ";
 fun !!! msg = Symbol_Pos.!!! (fn () => err_prefix ^ msg);
 
 val scan_id = Symbol_Pos.scan_ident;
-val scan_longid = scan_id @@@ (Scan.repeat1 ($$$ "." @@@ scan_id) >> flat);
+val scan_longid = scan_id @@@ Scan.repeats1 ($$$ "." @@@ scan_id);
 val scan_tid = $$$ "'" @@@ scan_id;
 
 val scan_nat = Scan.many1 (Symbol.is_digit o Symbol_Pos.symbol);
@@ -238,12 +238,12 @@ val scan_chr =
 val scan_str =
   Scan.ahead ($$ "'" -- $$ "'") |--
     !!! "unclosed string literal"
-      ($$$ "'" @@@ $$$ "'" @@@ (Scan.repeat scan_chr >> flat) @@@ $$$ "'" @@@ $$$ "'");
+      ($$$ "'" @@@ $$$ "'" @@@ Scan.repeats scan_chr @@@ $$$ "'" @@@ $$$ "'");
 
 val scan_str_body =
   Scan.ahead ($$ "'" |-- $$ "'") |--
     !!! "unclosed string literal"
-      ($$ "'" |-- $$ "'" |-- (Scan.repeat scan_chr >> flat) --| $$ "'" --| $$ "'");
+      ($$ "'" |-- $$ "'" |-- Scan.repeats scan_chr --| $$ "'" --| $$ "'");
 
 fun implode_str ss = enclose "''" "''" (implode (map (fn "'" => "\\'" | s => s) ss));
 val explode_str = explode_literal scan_str_body;

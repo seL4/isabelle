@@ -4,10 +4,10 @@ begin
 
 chapter \<open>Isabelle sessions and build management \label{ch:session}\<close>
 
-text \<open>An Isabelle \emph{session} consists of a collection of related
+text \<open>An Isabelle \<^emph>\<open>session\<close> consists of a collection of related
   theories that may be associated with formal documents
-  (\chref{ch:present}).  There is also a notion of \emph{persistent
-  heap} image to capture the state of a session, similar to
+  (\chref{ch:present}).  There is also a notion of \<^emph>\<open>persistent
+  heap\<close> image to capture the state of a session, similar to
   object-code in compiled programming languages.  Thus the concept of
   session resembles that of a ``project'' in common IDE environments,
   but the specific name emphasizes the connection to interactive
@@ -35,7 +35,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
   user.
 
   The ROOT file format follows the lexical conventions of the
-  \emph{outer syntax} of Isabelle/Isar, see also
+  \<^emph>\<open>outer syntax\<close> of Isabelle/Isar, see also
   @{cite "isabelle-isar-ref"}.  This defines common forms like
   identifiers, names, quoted strings, verbatim text, nested comments
   etc.  The grammar for @{syntax session_chapter} and @{syntax
@@ -109,7 +109,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
 
   \<^descr> \isakeyword{options}~@{text "[x = a, y = b, z]"} defines
   separate options (\secref{sec:system-options}) that are used when
-  processing this session, but \emph{without} propagation to child
+  processing this session, but \<^emph>\<open>without\<close> propagation to child
   sessions.  Note that @{text "z"} abbreviates @{text "z = true"} for
   Boolean options.
 
@@ -371,7 +371,7 @@ text \<open>The @{tool_def build} tool invokes the build process for
   option @{system_option_ref threads}.
 
   \<^medskip>
-  Option @{verbatim "-s"} enables \emph{system mode}, which
+  Option @{verbatim "-s"} enables \<^emph>\<open>system mode\<close>, which
   means that resulting heap images and log files are stored in
   @{file_unchecked "$ISABELLE_HOME/heaps"} instead of the default location
   @{setting ISABELLE_OUTPUT} (which is normally in @{setting

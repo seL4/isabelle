@@ -85,8 +85,8 @@ local
 
 fun token k ss = [Token (Symbol_Pos.range ss, (k, Symbol_Pos.content ss))];
 
-fun antiq_token (antiq as (ss, {range, ...})) =
-  [Token (range, (Antiq antiq, Symbol_Pos.content ss))];
+fun antiq_token antiq =
+  [Token (#range antiq, (Antiq antiq, Symbol_Pos.content (#body antiq)))];
 
 val scan_space = Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol);
 
@@ -104,7 +104,7 @@ val scan_token =
     [Token (Position.range pos1 pos2, (String, Symbol_Pos.content ss))]);
 
 val scan =
-  (Scan.repeat scan_token >> flat) --|
+  Scan.repeats scan_token --|
     Symbol_Pos.!!! (fn () => err_prefix ^ "bad input")
       (Scan.ahead (Scan.one Symbol_Pos.is_eof));
 

@@ -343,7 +343,7 @@ val _ =
           | append_default (For x :: (ps as In :: Term _:: _)) = For x :: Concl :: ps
           | append_default ps = ps
 
-      in Scan.repeat sep_atom >> (flat #> rev #> append_default) end
+      in Scan.repeats sep_atom >> (rev #> append_default) end
 
     fun context_lift (scan : 'a parser) f = fn (context : Context.generic, toks) =>
       let

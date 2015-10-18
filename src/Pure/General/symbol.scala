@@ -521,7 +521,7 @@ object Symbol
   /* control symbols */
 
   def is_control(sym: Symbol): Boolean =
-    sym.startsWith("\\<^") || symbols.control_decoded.contains(sym)
+    (sym.startsWith("\\<^") && sym.endsWith(">")) || symbols.control_decoded.contains(sym)
 
   def is_controllable(sym: Symbol): Boolean =
     !is_blank(sym) && !is_control(sym) && !is_open(sym) && !is_close(sym) && !is_malformed(sym)

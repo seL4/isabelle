@@ -94,14 +94,14 @@ fun output_known_sym (known_sym, known_ctrl) sym =
     Symbol.Char s => output_chr s
   | Symbol.UTF8 s => s
   | Symbol.Sym s => if known_sym s then enclose "{\\isasym" "}" s else output_chrs sym
-  | Symbol.Ctrl s => if known_ctrl s then enclose "\\isactrl" " " s else output_chrs sym
+  | Symbol.Control s => if known_ctrl s then enclose "\\isactrl" " " s else output_chrs sym
   | Symbol.Raw s => s
   | Symbol.Malformed s => error (Symbol.malformed_msg s)
   | Symbol.EOF => error "Bad EOF symbol");
 
 fun output_ctrl_sym sym =
   (case Symbol.decode sym of
-    Symbol.Ctrl s => enclose "\\isactrl" " " s
+    Symbol.Control s => enclose "\\isactrl" " " s
   | _ => sym);
 
 in
@@ -112,9 +112,12 @@ val output_syms = output_symbols o Symbol.explode;
 
 val output_syms_antiq =
   (fn Antiquote.Text ss => output_symbols (map Symbol_Pos.symbol ss)
-    | Antiquote.Antiq (ss, _) =>
+    | Antiquote.Control {name = (name, _), body, ...} =>
+        "\\isaantiqcontrol{" ^ output_symbols (Symbol.explode name) ^ "}" ^
+        output_symbols (map Symbol_Pos.symbol body)
+    | Antiquote.Antiq {body, ...} =>
         enclose "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n"
-          (output_symbols (map Symbol_Pos.symbol ss)));
+          (output_symbols (map Symbol_Pos.symbol body)));
 
 val output_ctrl_symbols = implode o map output_ctrl_sym;
 

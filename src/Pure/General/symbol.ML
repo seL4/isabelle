@@ -15,6 +15,7 @@ sig
   val is_symbolic: symbol -> bool
   val is_symbolic_char: symbol -> bool
   val is_printable: symbol -> bool
+  val is_control: symbol -> bool
   val eof: symbol
   val is_eof: symbol -> bool
   val not_eof: symbol -> bool
@@ -39,7 +40,7 @@ sig
   val decode_raw: symbol -> string
   val encode_raw: string -> string
   datatype sym =
-    Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string |
+    Char of string | UTF8 of string | Sym of string | Control of string | Raw of string |
     Malformed of string | EOF
   val decode: symbol -> sym
   datatype kind = Letter | Digit | Quasi | Blank | Other
@@ -107,6 +108,9 @@ val is_symbolic_char = member (op =) (raw_explode "!#$%&*+-/<=>?@^_|~");
 fun is_printable s =
   if is_char s then ord space <= ord s andalso ord s <= ord "~"
   else is_utf8 s orelse raw_symbolic s;
+
+fun is_control s =
+  String.isPrefix "\\<^" s andalso String.isSuffix ">" s;
 
 
 (* input source control *)
@@ -219,7 +223,7 @@ fun decode_raw s =
 (* symbol variants *)
 
 datatype sym =
-  Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string |
+  Char of string | UTF8 of string | Sym of string | Control of string | Raw of string |
   Malformed of string | EOF;
 
 fun decode s =
@@ -228,7 +232,7 @@ fun decode s =
   else if is_utf8 s then UTF8 s
   else if is_raw s then Raw (decode_raw s)
   else if is_malformed s then Malformed s
-  else if String.isPrefix "\\<^" s then Ctrl (String.substring (s, 3, size s - 4))
+  else if is_control s then Control (String.substring (s, 3, size s - 4))
   else Sym (String.substring (s, 2, size s - 3));
 
 

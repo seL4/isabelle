@@ -84,7 +84,7 @@ local
   fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
   val any_keyword = keyword qeN || keyword gatherN || keyword atomsN;
 
-  val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+  val thms = Scan.repeats (Scan.unless any_keyword Attrib.multi_thm);
   val terms = thms >> map Drule.dest_term;
 in
 

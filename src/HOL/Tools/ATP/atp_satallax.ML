@@ -405,7 +405,7 @@ fun parse_proof local_name problem =
   #>
     (if local_name <> satallaxN then
       (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-        (Scan.finite Symbol.stopper (Scan.repeat1 (parse_line local_name problem) >> flat)))
+        (Scan.finite Symbol.stopper (Scan.repeats1 (parse_line local_name problem))))
          #> fst)
     else
       (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())

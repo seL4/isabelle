@@ -7,7 +7,7 @@ chapter \<open>Presenting theories \label{ch:present}\<close>
 text \<open>Isabelle provides several ways to present the outcome of
   formal developments, including WWW-based browsable libraries or
   actual printable documents.  Presentation is centered around the
-  concept of \emph{sessions} (\chref{ch:session}).  The global session
+  concept of \<^emph>\<open>sessions\<close> (\chref{ch:session}).  The global session
   structure is that of a tree, with Isabelle Pure at its root, further
   object-logics derived (e.g.\ HOLCF from HOL, and HOL from Pure), and
   application sessions further on in the hierarchy.
@@ -59,8 +59,8 @@ text \<open>
   descendants.  Besides the HTML file that is generated for every
   theory, Isabelle stores links to all theories of a session in an
   index file.  As a second hierarchy, groups of sessions are organized
-  as \emph{chapters}, with a separate index.  Note that the implicit
-  tree structure of the session build hierarchy is \emph{not} relevant
+  as \<^emph>\<open>chapters\<close>, with a separate index.  Note that the implicit
+  tree structure of the session build hierarchy is \<^emph>\<open>not\<close> relevant
   for the presentation.
 
   Isabelle also generates graph files that represent the theory

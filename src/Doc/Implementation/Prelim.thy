@@ -27,12 +27,12 @@ text \<open>
   principles:
 
   \<^item> Transfer: monotonicity of derivations admits results to be
-  transferred into a \emph{larger} context, i.e.\ @{text "\<Gamma> \<turnstile>\<^sub>\<Theta>
+  transferred into a \<^emph>\<open>larger\<close> context, i.e.\ @{text "\<Gamma> \<turnstile>\<^sub>\<Theta>
   \<phi>"} implies @{text "\<Gamma>' \<turnstile>\<^sub>\<Theta>\<^sub>' \<phi>"} for contexts @{text "\<Theta>'
   \<supseteq> \<Theta>"} and @{text "\<Gamma>' \<supseteq> \<Gamma>"}.
 
   \<^item> Export: discharge of hypotheses admits results to be exported
-  into a \emph{smaller} context, i.e.\ @{text "\<Gamma>' \<turnstile>\<^sub>\<Theta> \<phi>"}
+  into a \<^emph>\<open>smaller\<close> context, i.e.\ @{text "\<Gamma>' \<turnstile>\<^sub>\<Theta> \<phi>"}
   implies @{text "\<Gamma> \<turnstile>\<^sub>\<Theta> \<Delta> \<Longrightarrow> \<phi>"} where @{text "\<Gamma>' \<supseteq> \<Gamma>"} and
   @{text "\<Delta> = \<Gamma>' - \<Gamma>"}.  Note that @{text "\<Theta>"} remains unchanged here,
   only the @{text "\<Gamma>"} part is affected.
@@ -42,9 +42,9 @@ text \<open>
   By modeling the main characteristics of the primitive
   @{text "\<Theta>"} and @{text "\<Gamma>"} above, and abstracting over any
   particular logical content, we arrive at the fundamental notions of
-  \emph{theory context} and \emph{proof context} in Isabelle/Isar.
-  These implement a certain policy to manage arbitrary \emph{context
-  data}.  There is a strongly-typed mechanism to declare new kinds of
+  \<^emph>\<open>theory context\<close> and \<^emph>\<open>proof context\<close> in Isabelle/Isar.
+  These implement a certain policy to manage arbitrary \<^emph>\<open>context
+  data\<close>.  There is a strongly-typed mechanism to declare new kinds of
   data at compile time.
 
   The internal bootstrap process of Isabelle/Pure eventually reaches a
@@ -73,7 +73,7 @@ text \<open>
 
 subsection \<open>Theory context \label{sec:context-theory}\<close>
 
-text \<open>A \emph{theory} is a data container with explicit name and
+text \<open>A \<^emph>\<open>theory\<close> is a data container with explicit name and
   unique identifier.  Theories are related by a (nominal) sub-theory
   relation, which corresponds to the dependency graph of the original
   construction; each theory is derived from a certain sub-graph of
@@ -227,7 +227,7 @@ text %mlantiq \<open>
   @{ML_antiquotation_def "context"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \<^descr> @{text "@{context}"} refers to \emph{the} context at
+  \<^descr> @{text "@{context}"} refers to \<^emph>\<open>the\<close> context at
   compile-time --- as abstract value.  Independently of (local) theory
   or proof mode, this always produces a meaningful result.
 
@@ -294,7 +294,7 @@ text \<open>The main purpose of theory and proof contexts is to manage
   \end{tabular}
   \<^medskip>
 
-  The @{text "empty"} value acts as initial default for \emph{any}
+  The @{text "empty"} value acts as initial default for \<^emph>\<open>any\<close>
   theory that does not declare actual data content; @{text "extend"}
   is acts like a unitary version of @{text "merge"}.
 
@@ -322,7 +322,7 @@ text \<open>The main purpose of theory and proof contexts is to manage
   from the given background theory and should be somehow
   ``immediate''.  Whenever a proof context is initialized, which
   happens frequently, the the system invokes the @{text "init"}
-  operation of \emph{all} theory data slots ever declared.  This also
+  operation of \<^emph>\<open>all\<close> theory data slots ever declared.  This also
   means that one needs to be economic about the total number of proof
   data declarations in the system, i.e.\ each ML module should declare
   at most one, sometimes two data slots for its internal use.
@@ -456,7 +456,7 @@ text \<open>Type @{ML_type "term Ord_List.T"} is used for reasonably
 
 subsection \<open>Configuration options \label{sec:config-options}\<close>
 
-text \<open>A \emph{configuration option} is a named optional value of
+text \<open>A \<^emph>\<open>configuration option\<close> is a named optional value of
   some basic type (Boolean, integer, string) that is stored in the
   context.  It is a simple application of general context data
   (\secref{sec:context-data}) that is sufficiently common to justify
@@ -604,11 +604,11 @@ text \<open>In principle, a name is just a string, but there are various
 subsection \<open>Basic names \label{sec:basic-name}\<close>
 
 text \<open>
-  A \emph{basic name} essentially consists of a single Isabelle
+  A \<^emph>\<open>basic name\<close> essentially consists of a single Isabelle
   identifier.  There are conventions to mark separate classes of basic
   names, by attaching a suffix of underscores: one underscore means
-  \emph{internal name}, two underscores means \emph{Skolem name},
-  three underscores means \emph{internal Skolem name}.
+  \<^emph>\<open>internal name\<close>, two underscores means \<^emph>\<open>Skolem name\<close>,
+  three underscores means \<^emph>\<open>internal Skolem name\<close>.
 
   For example, the basic name @{text "foo"} has the internal version
   @{text "foo_"}, with Skolem versions @{text "foo__"} and @{text
@@ -622,7 +622,7 @@ text \<open>
 
   \<^medskip>
   Manipulating binding scopes often requires on-the-fly
-  renamings.  A \emph{name context} contains a collection of already
+  renamings.  A \<^emph>\<open>name context\<close> contains a collection of already
   used names.  The @{text "declare"} operation adds names to the
   context.
 
@@ -718,7 +718,7 @@ end
 subsection \<open>Indexed names \label{sec:indexname}\<close>
 
 text \<open>
-  An \emph{indexed name} (or @{text "indexname"}) is a pair of a basic
+  An \<^emph>\<open>indexed name\<close> (or @{text "indexname"}) is a pair of a basic
   name and a natural number.  This representation allows efficient
   renaming by incrementing the second component only.  The canonical
   way to rename two collections of indexnames apart from each other is
@@ -765,10 +765,10 @@ text %mlref \<open>
 
 subsection \<open>Long names \label{sec:long-name}\<close>
 
-text \<open>A \emph{long name} consists of a sequence of non-empty name
+text \<open>A \<^emph>\<open>long name\<close> consists of a sequence of non-empty name
   components.  The packed representation uses a dot as separator, as
-  in ``@{text "A.b.c"}''.  The last component is called \emph{base
-  name}, the remaining prefix is called \emph{qualifier} (which may be
+  in ``@{text "A.b.c"}''.  The last component is called \<^emph>\<open>base
+  name\<close>, the remaining prefix is called \<^emph>\<open>qualifier\<close> (which may be
   empty).  The qualifier can be understood as the access path to the
   named entity while passing through some nested block-structure,
   although our free-form long names do not really enforce any strict

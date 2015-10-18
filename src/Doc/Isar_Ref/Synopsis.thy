@@ -133,7 +133,7 @@ text \<open>
 
   \<^item> Facts can be named after the main term within the proposition.
 
-  \<^item> Facts should \emph{not} be named after the command that
+  \<^item> Facts should \<^emph>\<open>not\<close> be named after the command that
   introduced them (@{command "assume"}, @{command "have"}).  This is
   misleading and hard to maintain.
 
