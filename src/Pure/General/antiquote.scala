@@ -42,7 +42,7 @@ object Antiquote
       "@{" ~ rep(antiq_body) ~ "}" ^^ { case x ~ y ~ z => x + y.mkString + z }
 
     val antiquote: Parser[Antiquote] =
-      control ^^ (x => Control(x)) | (antiq ^^ (x => Antiq(x)) | txt ^^ (x => Text(x)))
+      txt ^^ (x => Text(x)) | (control ^^ (x => Control(x)) | antiq ^^ (x => Antiq(x)))
   }
 
 
