@@ -897,7 +897,7 @@ fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
 
 val constsN = "consts";
 val any_keyword = keyword constsN
-val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+val thms = Scan.repeats (Scan.unless any_keyword Attrib.multi_thm);
 val terms = thms >> map (Thm.term_of o Drule.dest_term);
 
 fun optional scan = Scan.optional scan [];

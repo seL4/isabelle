@@ -57,6 +57,8 @@ sig
   val option: ('a -> 'b * 'a) -> 'a -> 'b option * 'a
   val repeat: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   val repeat1: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
+  val repeats: ('a -> 'b list * 'a) -> 'a -> 'b list * 'a
+  val repeats1: ('a -> 'b list * 'a) -> 'a -> 'b list * 'a
   val single: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   val bulk: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   val max: ('a * 'a -> bool) -> ('b -> 'a * 'b) -> ('b -> 'a * 'b) -> 'b -> 'a * 'b
@@ -190,6 +192,9 @@ fun repeat scan =
   in rep [] end;
 
 fun repeat1 scan = scan ::: repeat scan;
+
+fun repeats scan = repeat scan >> flat;
+fun repeats1 scan = repeat1 scan >> flat;
 
 fun single scan = scan >> (fn x => [x]);
 fun bulk scan = scan -- repeat (permissive scan) >> (op ::);

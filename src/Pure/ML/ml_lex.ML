@@ -198,7 +198,7 @@ in
 val scan_ident = scan_alphanumeric || scan_symbolic;
 
 val scan_long_ident =
-  (Scan.repeat1 (scan_alphanumeric @@@ $$$ ".") >> flat) @@@ (scan_ident || $$$ "=");
+  Scan.repeats1 (scan_alphanumeric @@@ $$$ ".") @@@ (scan_ident || $$$ "=");
 
 val scan_type_var = $$$ "'" @@@ scan_letdigs;
 
@@ -249,7 +249,7 @@ val scan_str =
   $$$ "\\" @@@ !!! "bad escape character in string" scan_escape;
 
 val scan_gap = $$$ "\\" @@@ scan_blanks1 @@@ $$$ "\\";
-val scan_gaps = Scan.repeat scan_gap >> flat;
+val scan_gaps = Scan.repeats scan_gap;
 
 in
 
@@ -262,10 +262,10 @@ val recover_char =
 val scan_string =
   Scan.ahead ($$ "\"") |--
     !!! "unclosed string literal"
-      ($$$ "\"" @@@ (Scan.repeat (scan_gap || scan_str) >> flat) @@@ $$$ "\"");
+      ($$$ "\"" @@@ Scan.repeats (scan_gap || scan_str) @@@ $$$ "\"");
 
 val recover_string =
-  $$$ "\"" @@@ (Scan.repeat (scan_gap || Scan.permissive scan_str) >> flat);
+  $$$ "\"" @@@ Scan.repeats (scan_gap || Scan.permissive scan_str);
 
 end;
 

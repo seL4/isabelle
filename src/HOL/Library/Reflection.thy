@@ -22,7 +22,7 @@ let
   val onlyN = "only";
   val rulesN = "rules";
   val any_keyword = keyword onlyN || keyword rulesN;
-  val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+  val thms = Scan.repeats (Scan.unless any_keyword Attrib.multi_thm);
   val terms = thms >> map (Thm.term_of o Drule.dest_term);
 in
   thms -- Scan.optional (keyword rulesN |-- thms) [] --

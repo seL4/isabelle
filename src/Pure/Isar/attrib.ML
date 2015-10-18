@@ -281,7 +281,7 @@ in
 
 val thm = gen_thm Facts.the_single;
 val multi_thm = gen_thm (K I);
-val thms = Scan.repeat multi_thm >> flat;
+val thms = Scan.repeats multi_thm;
 
 end;
 

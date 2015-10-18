@@ -294,11 +294,10 @@ fun default_params thy =
 
 val parse_key = Scan.repeat1 Parse.typ_group >> space_implode " "
 val parse_value =
-  Scan.repeat1 (Parse.minus >> single
+  Scan.repeats1 (Parse.minus >> single
                 || Scan.repeat1 (Scan.unless Parse.minus
                                              (Parse.name || Parse.float_number))
                 || @{keyword ","} |-- Parse.number >> prefix "," >> single)
-  >> flat
 val parse_param = parse_key -- Scan.optional (@{keyword "="} |-- parse_value) []
 val parse_params =
   Scan.optional (@{keyword "["} |-- Parse.list parse_param --| @{keyword "]"}) []

@@ -217,7 +217,7 @@ val any_keyword = keyword_colon addN || keyword_colon delN || keyword_colon keyN
   || keyword_colon congN || keyword_colon labelsN
   || keyword_colon leavingN || keyword_colon directionN;
 
-val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+val thms = Scan.repeats (Scan.unless any_keyword Attrib.multi_thm);
 val names = Scan.repeat (Scan.unless any_keyword (Scan.lift Args.name))
 
 val mode = keyword_colon modeN |-- ((Scan.lift (Args.$$$ manualN) >> K false)

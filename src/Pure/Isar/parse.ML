@@ -421,10 +421,7 @@ fun arguments is_symid =
 
     fun args blk x = Scan.optional (args1 blk) [] x
     and args1 blk x =
-      ((Scan.repeat1
-        (Scan.repeat1 (argument blk) ||
-          argsp "(" ")" ||
-          argsp "[" "]")) >> flat) x
+      (Scan.repeats1 (Scan.repeat1 (argument blk) || argsp "(" ")" || argsp "[" "]")) x
     and argsp l r x = (token ($$$ l) ::: !!! (args true @@@ (token ($$$ r) >> single))) x;
   in (args, args1) end;
 

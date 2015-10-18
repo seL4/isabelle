@@ -104,7 +104,7 @@ val scan_token =
     [Token (Position.range pos1 pos2, (String, Symbol_Pos.content ss))]);
 
 val scan =
-  (Scan.repeat scan_token >> flat) --|
+  Scan.repeats scan_token --|
     Symbol_Pos.!!! (fn () => err_prefix ^ "bad input")
       (Scan.ahead (Scan.one Symbol_Pos.is_eof));
 

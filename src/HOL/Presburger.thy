@@ -400,7 +400,7 @@ method_setup presburger = \<open>
     val delN = "del"
     val elimN = "elim"
     val any_keyword = keyword addN || keyword delN || simple_keyword elimN
-    val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+    val thms = Scan.repeats (Scan.unless any_keyword Attrib.multi_thm)
   in
     Scan.optional (simple_keyword elimN >> K false) true --
     Scan.optional (keyword addN |-- thms) [] --

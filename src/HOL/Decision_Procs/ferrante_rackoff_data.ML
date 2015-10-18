@@ -114,7 +114,7 @@ val any_keyword =
 || keyword npiN || keyword lin_denseN || keyword qeN 
 || keyword atomsN || keyword simpsN;
 
-val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+val thms = Scan.repeats (Scan.unless any_keyword Attrib.multi_thm);
 val terms = thms >> map Drule.dest_term;
 in
 

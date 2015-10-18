@@ -118,11 +118,10 @@ fun scan_str q err_prefix =
 fun scan_strs q err_prefix =
   Scan.ahead ($$ q) |--
     !!! (fn () => err_prefix ^ "unclosed string literal")
-      ((scan_pos --| $$$ q) --
-        ((Scan.repeat (scan_str q err_prefix) >> flat) -- ($$$ q |-- scan_pos)));
+      ((scan_pos --| $$$ q) -- (Scan.repeats (scan_str q err_prefix) -- ($$$ q |-- scan_pos)));
 
 fun recover_strs q =
-  $$$ q @@@ (Scan.repeat (Scan.permissive (scan_str q "")) >> flat);
+  $$$ q @@@ Scan.repeats (Scan.permissive (scan_str q ""));
 
 in
 
@@ -202,7 +201,7 @@ val scan_cmt =
   Scan.lift ($$$ "*" --| Scan.ahead (~$$$ ")")) ||
   Scan.lift (Scan.one (fn (s, _) => s <> "*" andalso Symbol.not_eof s)) >> single;
 
-val scan_cmts = Scan.pass 0 (Scan.repeat scan_cmt >> flat);
+val scan_cmts = Scan.pass 0 (Scan.repeats scan_cmt);
 
 in
 
@@ -266,7 +265,7 @@ val sub = Scan.one (symbol #> (fn s => s = "\\<^sub>"));
 
 in
 
-val scan_ident = letter ::: (Scan.repeat (letdigs1 || sub ::: letdigs1) >> flat);
+val scan_ident = letter ::: Scan.repeats (letdigs1 || sub ::: letdigs1);
 
 end;
 

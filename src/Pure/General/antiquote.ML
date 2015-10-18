@@ -77,10 +77,10 @@ local
 val err_prefix = "Antiquotation lexical error: ";
 
 val scan_txt =
-  Scan.repeat1
+  Scan.repeats1
    (Scan.many1 (fn (s, _) => not (Symbol.is_control s) andalso s <> "@" andalso Symbol.not_eof s) ||
     Scan.one (fn (s, _) => Symbol.is_control s) --| Scan.ahead (~$$ "\\<open>") >> single ||
-    $$$ "@" --| Scan.ahead (~$$ "{")) >> flat;
+    $$$ "@" --| Scan.ahead (~$$ "{"));
 
 val scan_antiq_body =
   Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
@@ -101,12 +101,12 @@ val scan_control =
 val scan_antiq =
   Symbol_Pos.scan_pos -- ($$ "@" |-- $$ "{" |-- Symbol_Pos.scan_pos --
     Symbol_Pos.!!! (fn () => err_prefix ^ "missing closing brace")
-      (Scan.repeat scan_antiq_body -- Symbol_Pos.scan_pos -- ($$ "}" |-- Symbol_Pos.scan_pos))) >>
+      (Scan.repeats scan_antiq_body -- Symbol_Pos.scan_pos -- ($$ "}" |-- Symbol_Pos.scan_pos))) >>
     (fn (pos1, (pos2, ((body, pos3), pos4))) =>
       {start = Position.set_range (pos1, pos2),
        stop = Position.set_range (pos3, pos4),
        range = Position.range pos1 pos4,
-       body = flat body});
+       body = body});
 
 val scan_antiquote =
   scan_control >> Control || scan_antiq >> Antiq || scan_txt >> Text;
