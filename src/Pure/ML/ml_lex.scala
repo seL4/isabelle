@@ -52,6 +52,7 @@ object ML_Lex
     val SPACE = Value("white space")
     val CARTOUCHE = Value("text cartouche")
     val COMMENT = Value("comment text")
+    val CONTROL = Value("control symbol antiquotation")
     val ANTIQ = Value("antiquotation")
     val ANTIQ_START = Value("antiquotation: start")
     val ANTIQ_STOP = Value("antiquotation: stop")
@@ -211,12 +212,13 @@ object ML_Lex
 
       val keyword = literal(lexicon) ^^ (x => Token(Kind.KEYWORD, x))
 
+      val ml_control = control ^^ (x => Token(Kind.CONTROL, x))
       val ml_antiq = antiq ^^ (x => Token(Kind.ANTIQ, x))
 
       val bad = one(_ => true) ^^ (x => Token(Kind.ERROR, x))
 
-      space | (recover_delimited | (ml_antiq |
-        (((word | (real | (int | (long_ident | (ident | type_var))))) ||| keyword) | bad)))
+      space | (recover_delimited | (ml_control | (ml_antiq |
+        (((word | (real | (int | (long_ident | (ident | type_var))))) ||| keyword) | bad))))
     }
 
 

@@ -96,6 +96,7 @@ sig
   val source_strict: Keyword.keywords ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
+  val read_cartouche: Symbol_Pos.T list -> T
   val explode: Keyword.keywords -> Position.T -> string -> T list
   val make: (int * int) * string -> Position.T -> T * Position.T
   type 'a parser = T list -> 'a * T list
@@ -633,6 +634,11 @@ fun source' strict keywords =
 fun source keywords pos src = Symbol_Pos.source pos src |> source' false keywords;
 fun source_strict keywords pos src = Symbol_Pos.source pos src |> source' true keywords;
 
+fun read_cartouche syms =
+  (case Scan.read Symbol_Pos.stopper (scan_cartouche >> token_range Cartouche) syms of
+    SOME tok => tok
+  | NONE => error ("Single cartouche expected" ^ Position.here (#1 (Symbol_Pos.range syms))));
+
 end;
 
 
@@ -668,7 +674,7 @@ type 'a parser = T list -> 'a * T list;
 type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list);
 
 
-(* read source *)
+(* read antiquotation source *)
 
 fun read_no_commands keywords scan syms =
   Source.of_list syms

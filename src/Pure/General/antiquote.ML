@@ -7,11 +7,13 @@ Antiquotations within plain text.
 signature ANTIQUOTE =
 sig
   type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range}
-  datatype 'a antiquote = Text of 'a | Antiq of antiq
+  datatype 'a antiquote =
+    Text of 'a | Control of Symbol_Pos.T * Symbol_Pos.T list | Antiq of antiq
   type text_antiquote = Symbol_Pos.T list antiquote
   val range: text_antiquote list -> Position.range
   val split_lines: text_antiquote list -> text_antiquote list list
   val antiq_reports: 'a antiquote list -> Position.report list
+  val scan_control: Symbol_Pos.T list -> (Symbol_Pos.T * Symbol_Pos.T list) * Symbol_Pos.T list
   val scan_antiq: Symbol_Pos.T list -> antiq * Symbol_Pos.T list
   val scan_antiquote: Symbol_Pos.T list -> text_antiquote * Symbol_Pos.T list
   val read': Position.T -> Symbol_Pos.T list -> text_antiquote list
@@ -24,11 +26,13 @@ struct
 (* datatype antiquote *)
 
 type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range};
-datatype 'a antiquote = Text of 'a | Antiq of antiq;
+datatype 'a antiquote =
+  Text of 'a | Control of Symbol_Pos.T * Symbol_Pos.T list | Antiq of antiq;
 
 type text_antiquote = Symbol_Pos.T list antiquote;
 
 fun antiquote_range (Text ss) = Symbol_Pos.range ss
+  | antiquote_range (Control (s, ss)) = Symbol_Pos.range (s :: ss)
   | antiquote_range (Antiq (_, {range, ...})) = range;
 
 fun range ants =
@@ -55,12 +59,13 @@ fun split_lines input =
 (* reports *)
 
 fun antiq_reports ants = ants |> maps
-  (fn Antiq (_, {start, stop, range = (pos, _)}) =>
-      [(start, Markup.antiquote),
-       (stop, Markup.antiquote),
-       (pos, Markup.antiquoted),
-       (pos, Markup.language_antiquotation)]
-    | _ => []);
+  (fn Text _ => []
+    | Control (s, ss) => [(#1 (Symbol_Pos.range (s :: ss)), Markup.antiquoted)]
+    | Antiq (_, {start, stop, range = (pos, _)}) =>
+        [(start, Markup.antiquote),
+         (stop, Markup.antiquote),
+         (pos, Markup.antiquoted),
+         (pos, Markup.language_antiquotation)]);
 
 
 (* scan *)
@@ -72,8 +77,10 @@ local
 val err_prefix = "Antiquotation lexical error: ";
 
 val scan_txt =
-  Scan.repeat1 ($$$ "@" --| Scan.ahead (~$$ "{") ||
-    Scan.many1 (fn (s, _) => s <> "@" andalso Symbol.not_eof s)) >> flat;
+  Scan.repeat1
+   (Scan.many1 (fn (s, _) => not (Symbol.is_control s) andalso s <> "@" andalso Symbol.not_eof s) ||
+    Scan.one (fn (s, _) => Symbol.is_control s) --| Scan.ahead (~$$ "\\<open>") >> single ||
+    $$$ "@" --| Scan.ahead (~$$ "{")) >> flat;
 
 val scan_antiq_body =
   Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
@@ -81,6 +88,10 @@ val scan_antiq_body =
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.not_eof s) >> single;
 
 in
+
+val scan_control =
+  Scan.one (Symbol.is_control o Symbol_Pos.symbol) --
+  (Scan.trace (Symbol_Pos.scan_cartouche err_prefix) >> #2);
 
 val scan_antiq =
   Symbol_Pos.scan_pos -- ($$ "@" |-- $$ "{" |-- Symbol_Pos.scan_pos --
@@ -92,7 +103,8 @@ val scan_antiq =
          stop = Position.set_range (pos3, pos4),
          range = Position.range pos1 pos4}));
 
-val scan_antiquote = scan_antiq >> Antiq || scan_txt >> Text;
+val scan_antiquote =
+  scan_control >> Control || scan_antiq >> Antiq || scan_txt >> Text;
 
 end;
 

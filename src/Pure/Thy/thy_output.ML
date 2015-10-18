@@ -161,7 +161,23 @@ end;
 
 (* eval antiquote *)
 
+local
+
+fun eval_antiq state (opts, src) =
+  let
+    val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
+    val print_ctxt = Context_Position.set_visible false preview_ctxt;
+
+    fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
+    val _ = cmd preview_ctxt;
+    val print_modes = space_explode "," (Config.get print_ctxt modes) @ Latex.modes;
+  in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
+
+in
+
 fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
+  | eval_antiquote state (Antiquote.Control (control, arg)) =
+      eval_antiq state ([], Token.src control [Token.read_cartouche arg])
   | eval_antiquote state (Antiquote.Antiq (ss, {range = (pos, _), ...})) =
       let
         val keywords =
@@ -170,15 +186,9 @@ fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
           | NONE =>
               error ("Unknown context -- cannot expand document antiquotations" ^
                 Position.here pos));
+      in eval_antiq state (Token.read_antiq keywords antiq (ss, pos)) end;
 
-        val (opts, src) = Token.read_antiq keywords antiq (ss, pos);
-        fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
-
-        val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
-        val print_ctxt = Context_Position.set_visible false preview_ctxt;
-        val _ = cmd preview_ctxt;
-        val print_modes = space_explode "," (Config.get print_ctxt modes) @ Latex.modes;
-      in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
+end;
 
 
 (* output text *)

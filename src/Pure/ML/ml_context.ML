@@ -133,6 +133,7 @@ fun make_env name visible =
 fun reset_env name = ML_Lex.tokenize ("structure " ^ name ^ " = struct end");
 
 fun expanding (Antiquote.Text tok) = ML_Lex.is_cartouche tok
+  | expanding (Antiquote.Control _) = true
   | expanding (Antiquote.Antiq _) = true;
 
 fun eval_antiquotes (ants, pos) opt_context =
@@ -150,13 +151,11 @@ fun eval_antiquotes (ants, pos) opt_context =
         let
           fun tokenize range = apply2 (ML_Lex.tokenize #> map (ML_Lex.set_range range));
 
-          fun expand (Antiquote.Antiq (ss, {range, ...})) ctxt =
-                let
-                  val keywords = Thy_Header.get_keywords' ctxt;
-                  val (decl, ctxt') =
-                    apply_antiquotation (Token.read_antiq keywords antiq (ss, #1 range)) ctxt;
-                in (decl #> tokenize range, ctxt') end
-            | expand (Antiquote.Text tok) ctxt =
+          fun expand_src range src ctxt =
+            let val (decl, ctxt') = apply_antiquotation src ctxt
+            in (decl #> tokenize range, ctxt') end;
+
+          fun expand (Antiquote.Text tok) ctxt =
                 if ML_Lex.is_cartouche tok then
                   let
                     val range = ML_Lex.range_of tok;
@@ -169,7 +168,13 @@ fun eval_antiquotes (ants, pos) opt_context =
                         ("Input.source true " ^ ML_Syntax.print_string text  ^ " " ^
                           ML_Syntax.atomic (ML_Syntax.print_range range)) ctxt;
                   in (decl #> tokenize range, ctxt') end
-                else (K ([], [tok]), ctxt);
+                else (K ([], [tok]), ctxt)
+            | expand (Antiquote.Control (s, ss)) ctxt =
+                let val range = Symbol_Pos.range (s :: ss)
+                in expand_src range (Token.src s [Token.read_cartouche ss]) ctxt end
+            | expand (Antiquote.Antiq (ss, {range, ...})) ctxt =
+                let val keywords = Thy_Header.get_keywords' ctxt
+                in expand_src range (Token.read_antiq keywords antiq (ss, #1 range)) ctxt end;
 
           val ctxt =
             (case opt_ctxt of
