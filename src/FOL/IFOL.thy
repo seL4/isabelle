@@ -443,7 +443,7 @@ lemma subst_context3: "\<lbrakk>a = b; c = d; e = f\<rbrakk> \<Longrightarrow> t
   done
 
 text \<open>
-  Useful with @{ML eresolve_tac} for proving equalties from known
+  Useful with @{ML eresolve_tac} for proving equalities from known
   equalities.
 
         a = b
@@ -457,7 +457,7 @@ lemma box_equals: "\<lbrakk>a = b; a = c; b = d\<rbrakk> \<Longrightarrow> c = d
     apply assumption+
   done
 
-text \<open>Dual of box_equals: for proving equalities backwards.\<close>
+text \<open>Dual of @{text box_equals}: for proving equalities backwards.\<close>
 lemma simp_equals: "\<lbrakk>a = c; b = d; c = d\<rbrakk> \<Longrightarrow> a = b"
   apply (rule trans)
    apply (rule trans)

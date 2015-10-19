@@ -136,11 +136,11 @@ lemma
 
 subsection \<open>Intuitionistic FOL: propositional problems based on Pelletier.\<close>
 
-text\<open>\<not>\<not>1\<close>
+text\<open>@{text "\<not>\<not>"}1\<close>
 lemma "\<not> \<not> ((P \<longrightarrow> Q) \<longleftrightarrow> (\<not> Q \<longrightarrow> \<not> P))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>2\<close>
+text\<open>@{text "\<not>\<not>"}2\<close>
 lemma "\<not> \<not> (\<not> \<not> P \<longleftrightarrow> P)"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
@@ -148,23 +148,23 @@ text\<open>3\<close>
 lemma "\<not> (P \<longrightarrow> Q) \<longrightarrow> (Q \<longrightarrow> P)"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>4\<close>
+text\<open>@{text "\<not>\<not>"}4\<close>
 lemma "\<not> \<not> ((\<not> P \<longrightarrow> Q) \<longleftrightarrow> (\<not> Q \<longrightarrow> P))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>5\<close>
-lemma "\<not>\<not>((P \<or> Q \<longrightarrow> P \<or> R) \<longrightarrow> P \<or> (Q \<longrightarrow> R))"
+text\<open>@{text "\<not>\<not>"}5\<close>
+lemma "\<not> \<not> ((P \<or> Q \<longrightarrow> P \<or> R) \<longrightarrow> P \<or> (Q \<longrightarrow> R))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>6\<close>
+text\<open>@{text "\<not>\<not>"}6\<close>
 lemma "\<not> \<not> (P \<or> \<not> P)"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>7\<close>
+text\<open>@{text "\<not>\<not>"}7\<close>
 lemma "\<not> \<not> (P \<or> \<not> \<not> \<not> P)"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>8. Peirce's law\<close>
+text\<open>@{text "\<not>\<not>"}8. Peirce's law\<close>
 lemma "\<not> \<not> (((P \<longrightarrow> Q) \<longrightarrow> P) \<longrightarrow> P)"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
@@ -182,7 +182,7 @@ subsection\<open>11. Proved in each direction (incorrectly, says Pelletier!!)\<c
 lemma "P \<longleftrightarrow> P"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>12. Dijkstra's law\<close>
+text\<open>@{text "\<not>\<not>"}12. Dijkstra's law\<close>
 lemma "\<not> \<not> (((P \<longleftrightarrow> Q) \<longleftrightarrow> R) \<longleftrightarrow> (P \<longleftrightarrow> (Q \<longleftrightarrow> R)))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
@@ -193,19 +193,19 @@ text\<open>13. Distributive law\<close>
 lemma "P \<or> (Q \<and> R) \<longleftrightarrow> (P \<or> Q) \<and> (P \<or> R)"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>14\<close>
+text\<open>@{text "\<not>\<not>"}14\<close>
 lemma "\<not> \<not> ((P \<longleftrightarrow> Q) \<longleftrightarrow> ((Q \<or> \<not> P) \<and> (\<not> Q \<or> P)))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>15\<close>
+text\<open>@{text "\<not>\<not>"}15\<close>
 lemma "\<not> \<not> ((P \<longrightarrow> Q) \<longleftrightarrow> (\<not> P \<or> Q))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>16\<close>
+text\<open>@{text "\<not>\<not>"}16\<close>
 lemma "\<not> \<not> ((P \<longrightarrow> Q) \<or> (Q \<longrightarrow> P))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>17\<close>
+text\<open>@{text "\<not>\<not>"}17\<close>
 lemma "\<not> \<not> (((P \<and> (Q \<longrightarrow> R)) \<longrightarrow> S) \<longleftrightarrow> ((\<not> P \<or> Q \<or> S) \<and> (\<not> P \<or> \<not> R \<or> S)))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
@@ -271,11 +271,11 @@ text \<open>
   require quantifier duplication -- not currently available.
 \<close>
 
-text\<open>\<not>\<not>18\<close>
+text\<open>@{text "\<not>\<not>"}18\<close>
 lemma "\<not> \<not> (\<exists>y. \<forall>x. P(y) \<longrightarrow> P(x))"
   oops  -- \<open>NOT PROVED\<close>
 
-text\<open>\<not>\<not>19\<close>
+text\<open>@{text "\<not>\<not>"}19\<close>
 lemma "\<not> \<not> (\<exists>x. \<forall>y z. (P(y) \<longrightarrow> Q(z)) \<longrightarrow> (P(x) \<longrightarrow> Q(x)))"
   oops  -- \<open>NOT PROVED\<close>
 
@@ -293,7 +293,7 @@ text\<open>22\<close>
 lemma "(\<forall>x. P \<longleftrightarrow> Q(x)) \<longrightarrow> (P \<longleftrightarrow> (\<forall>x. Q(x)))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>23\<close>
+text\<open>@{text "\<not>\<not>"}23\<close>
 lemma "\<not> \<not> ((\<forall>x. P \<or> Q(x)) \<longleftrightarrow> (P \<or> (\<forall>x. Q(x))))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
@@ -321,7 +321,7 @@ lemma
     \<longrightarrow> (\<exists>x. Q(x) \<and> P(x))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>26\<close>
+text\<open>@{text "\<not>\<not>"}26\<close>
 lemma
   "(\<not> \<not> (\<exists>x. p(x)) \<longleftrightarrow> \<not> \<not> (\<exists>x. q(x))) \<and>
     (\<forall>x. \<forall>y. p(x) \<and> q(y) \<longrightarrow> (r(x) \<longleftrightarrow> s(y)))
@@ -337,7 +337,7 @@ lemma
   \<longrightarrow> (\<forall>x. M(x) \<longrightarrow> \<not> L(x))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>28. AMENDED\<close>
+text\<open>@{text "\<not>\<not>"}28. AMENDED\<close>
 lemma
   "(\<forall>x. P(x) \<longrightarrow> (\<forall>x. Q(x))) \<and>
       (\<not> \<not> (\<forall>x. Q(x) \<or> R(x)) \<longrightarrow> (\<exists>x. Q(x) \<and> S(x))) \<and>
@@ -352,7 +352,7 @@ lemma
       (\<forall>x y. P(x) \<and> Q(y) \<longrightarrow> R(x) \<and> S(y)))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>30\<close>
+text\<open>@{text "\<not>\<not>"}30\<close>
 lemma
   "(\<forall>x. (P(x) \<or> Q(x)) \<longrightarrow> \<not> R(x)) \<and>
       (\<forall>x. (Q(x) \<longrightarrow> \<not> S(x)) \<longrightarrow> P(x) \<and> R(x))
@@ -375,7 +375,7 @@ lemma
   \<longrightarrow> (\<forall>x. P(x) \<and> M(x) \<longrightarrow> L(x))"
   by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>\<not>\<not>33\<close>
+text\<open>@{text "\<not>\<not>"}33\<close>
 lemma
   "(\<forall>x. \<not> \<not> (P(a) \<and> (P(x) \<longrightarrow> P(b)) \<longrightarrow> P(c))) \<longleftrightarrow>
     (\<forall>x. \<not> \<not> ((\<not> P(a) \<or> P(x) \<or> P(c)) \<and> (\<not> P(a) \<or> \<not> P(b) \<or> P(c))))"

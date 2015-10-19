@@ -322,8 +322,8 @@ lemma
 
 text \<open>
   Other proofs: Can use @{text auto}, which cheats by using rewriting!
-  Deepen_tac alone requires 253 secs.  Or
-  by (mini_tac 1 THEN Deepen_tac 5 1)
+  @{text Deepen_tac} alone requires 253 secs.  Or
+  @{text \<open>by (mini_tac 1 THEN Deepen_tac 5 1)\<close>}.
 \<close>
 
 text\<open>44\<close>
