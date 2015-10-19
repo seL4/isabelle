@@ -65,7 +65,7 @@ instead of former C+e LEFT.
 
 * HTML presentation uses the standard IsabelleText font and Unicode
 rendering of Isabelle symbols like Isabelle/Scala/jEdit.  The former
-print mode "HTML" looses its special meaning.
+print mode "HTML" loses its special meaning.
 
 * Commands 'paragraph' and 'subparagraph' provide additional section
 headings. Thus there are 6 levels of standard headings, as in HTML.
