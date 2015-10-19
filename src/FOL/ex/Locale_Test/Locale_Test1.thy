@@ -162,8 +162,8 @@ ML \<open>
 declare [[show_hyps]]
 
 ML \<open>
-  check_syntax @{context} @{thm d1_def} "d1(?x) <-> ~ p2(p1(?x))";
-  check_syntax @{context} @{thm d2_def} "d2(?x) <-> ~ p2(?x)";
+  check_syntax @{context} @{thm d1_def} "d1(?x) \<longleftrightarrow> \<not> p2(p1(?x))";
+  check_syntax @{context} @{thm d2_def} "d2(?x) \<longleftrightarrow> \<not> p2(?x)";
 \<close>
 
 end
@@ -175,8 +175,8 @@ thm d1_def d2_def
   (* should print as "syntax.d1(p3, p2, ?x) <-> ..." and "d2(?x) <-> ..." *)
 
 ML \<open>
-  check_syntax @{context} @{thm d1_def} "syntax.d1(p3, p2, ?x) <-> ~ p2(p3(?x))";
-  check_syntax @{context} @{thm d2_def} "d2(?x) <-> ~ p2(?x)";
+  check_syntax @{context} @{thm d1_def} "syntax.d1(p3, p2, ?x) \<longleftrightarrow> \<not> p2(p3(?x))";
+  check_syntax @{context} @{thm d2_def} "d2(?x) \<longleftrightarrow> \<not> p2(?x)";
 \<close>
 
 end
