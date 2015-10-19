@@ -53,6 +53,13 @@ to cursor position. Option "editor_output_state" controls implicit proof
 state output in the Output panel: suppressing this reduces resource
 requirements of prover time and GUI space.
 
+* Action "isabelle-emph" (with keyboard shortcut C+e LEFT) controls
+emphasized text style; the effect is visible in document output, not in
+the editor.
+
+* Action "isabelle-reset" now uses keyboard shortcut C+e BACK_SPACE,
+instead of former C+e LEFT.
+
 
 *** Document preparation ***
 

@@ -579,13 +579,19 @@ text \<open>
     superscript & @{verbatim "\<^sup>"} & @{verbatim "C+e UP"} & @{action_ref "isabelle.control-sup"} \\
     subscript & @{verbatim "\<^sub>"} & @{verbatim "C+e DOWN"} & @{action_ref "isabelle.control-sub"} \\
     bold face & @{verbatim "\<^bold>"} & @{verbatim "C+e RIGHT"} & @{action_ref "isabelle.control-bold"} \\
-    reset & & @{verbatim "C+e LEFT"} & @{action_ref "isabelle.control-reset"} \\
+    emphasized & @{verbatim "\<^emph>"} & @{verbatim "C+e LEF"} & @{action_ref "isabelle.control-emph"} \\
+    reset & & @{verbatim "C+e BACK_SPACE"} & @{action_ref "isabelle.control-reset"} \\
   \end{tabular}
   \<^medskip>
- 
-  To produce a single control symbol, it is also possible to complete
-  on @{verbatim "\\"}@{verbatim sup}, @{verbatim "\\"}@{verbatim sub},
-  @{verbatim "\\"}@{verbatim bold} as for regular symbols.\<close>
+
+  To produce a single control symbol, it is also possible to complete on
+  @{verbatim "\\"}@{verbatim sup}, @{verbatim "\\"}@{verbatim sub}, @{verbatim
+  "\\"}@{verbatim bold}, @{verbatim "\\"}@{verbatim emph} as for regular
+  symbols.
+
+  The emphasized style only takes effect in document output, not in the
+  editor.
+\<close>
 
 
 section \<open>SideKick parsers \label{sec:sidekick}\<close>
