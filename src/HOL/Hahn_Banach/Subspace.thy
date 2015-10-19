@@ -12,7 +12,7 @@ subsection \<open>Definition\<close>
 
 text \<open>
   A non-empty subset @{text U} of a vector space @{text V} is a
-  \emph{subspace} of @{text V}, iff @{text U} is closed under addition
+  \<^emph>\<open>subspace\<close> of @{text V}, iff @{text U} is closed under addition
   and scalar multiplication.
 \<close>
 
@@ -50,7 +50,8 @@ proof -
 qed
 
 text \<open>
-  \medskip Similar as for linear spaces, the existence of the zero
+  \<^medskip>
+  Similar as for linear spaces, the existence of the zero
   element in every subspace follows from the non-emptiness of the
   carrier set and by vector space laws.
 \<close>
@@ -76,7 +77,7 @@ proof -
   from x show ?thesis by (simp add: negate_eq1)
 qed
 
-text \<open>\medskip Further derived laws: every subspace is a vector space.\<close>
+text \<open>\<^medskip> Further derived laws: every subspace is a vector space.\<close>
 
 lemma (in subspace) vectorspace [iff]:
   assumes "vectorspace V"
@@ -139,7 +140,7 @@ qed
 subsection \<open>Linear closure\<close>
 
 text \<open>
-  The \emph{linear closure} of a vector @{text x} is the set of all
+  The \<^emph>\<open>linear closure\<close> of a vector @{text x} is the set of all
   scalar multiples of @{text x}.
 \<close>
 
@@ -226,7 +227,7 @@ qed
 subsection \<open>Sum of two vectorspaces\<close>
 
 text \<open>
-  The \emph{sum} of two vectorspaces @{text U} and @{text V} is the
+  The \<^emph>\<open>sum\<close> of two vectorspaces @{text U} and @{text V} is the
   set of all sums of elements from @{text U} and @{text V}.
 \<close>
 
@@ -328,7 +329,7 @@ lemma sum_vs [intro?]:
 subsection \<open>Direct sums\<close>
 
 text \<open>
-  The sum of @{text U} and @{text V} is called \emph{direct}, iff the
+  The sum of @{text U} and @{text V} is called \<^emph>\<open>direct\<close>, iff the
   zero element is the only common element of @{text U} and @{text
   V}. For every element @{text x} of the direct sum of @{text U} and
   @{text V} the decomposition in @{text "x = u + v"} with

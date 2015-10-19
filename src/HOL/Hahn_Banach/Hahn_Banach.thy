@@ -15,42 +15,36 @@ text \<open>
 
 subsection \<open>The Hahn-Banach Theorem for vector spaces\<close>
 
+paragraph \<open>Hahn-Banach Theorem.\<close>
 text \<open>
-  \textbf{Hahn-Banach Theorem.} Let @{text F} be a subspace of a real
-  vector space @{text E}, let @{text p} be a semi-norm on @{text E},
-  and @{text f} be a linear form defined on @{text F} such that @{text
-  f} is bounded by @{text p}, i.e.  @{text "\<forall>x \<in> F. f x \<le> p x"}.  Then
-  @{text f} can be extended to a linear form @{text h} on @{text E}
-  such that @{text h} is norm-preserving, i.e. @{text h} is also
-  bounded by @{text p}.
+  Let @{text F} be a subspace of a real vector space @{text E}, let @{text
+  p} be a semi-norm on @{text E}, and @{text f} be a linear form defined on
+  @{text F} such that @{text f} is bounded by @{text p}, i.e. @{text "\<forall>x \<in>
+  F. f x \<le> p x"}. Then @{text f} can be extended to a linear form @{text h}
+  on @{text E} such that @{text h} is norm-preserving, i.e. @{text h} is
+  also bounded by @{text p}.
+\<close>
 
-  \bigskip
-  \textbf{Proof Sketch.}
-  \begin{enumerate}
-
-  \item Define @{text M} as the set of norm-preserving extensions of
+paragraph \<open>Proof Sketch.\<close>
+text \<open>
+  \<^enum> Define @{text M} as the set of norm-preserving extensions of
   @{text f} to subspaces of @{text E}. The linear forms in @{text M}
   are ordered by domain extension.
 
-  \item We show that every non-empty chain in @{text M} has an upper
+  \<^enum> We show that every non-empty chain in @{text M} has an upper
   bound in @{text M}.
 
-  \item With Zorn's Lemma we conclude that there is a maximal function
+  \<^enum> With Zorn's Lemma we conclude that there is a maximal function
   @{text g} in @{text M}.
 
-  \item The domain @{text H} of @{text g} is the whole space @{text
+  \<^enum> The domain @{text H} of @{text g} is the whole space @{text
   E}, as shown by classical contradiction:
 
-  \begin{itemize}
+    \<^item> Assuming @{text g} is not defined on whole @{text E}, it can
+    still be extended in a norm-preserving way to a super-space @{text
+    H'} of @{text H}.
 
-  \item Assuming @{text g} is not defined on whole @{text E}, it can
-  still be extended in a norm-preserving way to a super-space @{text
-  H'} of @{text H}.
-
-  \item Thus @{text g} can not be maximal. Contradiction!
-
-  \end{itemize}
-  \end{enumerate}
+    \<^item> Thus @{text g} can not be maximal. Contradiction!
 \<close>
 
 theorem Hahn_Banach:
@@ -60,7 +54,7 @@ theorem Hahn_Banach:
   shows "\<exists>h. linearform E h \<and> (\<forall>x \<in> F. h x = f x) \<and> (\<forall>x \<in> E. h x \<le> p x)"
     -- \<open>Let @{text E} be a vector space, @{text F} a subspace of @{text E}, @{text p} a seminorm on @{text E},\<close>
     -- \<open>and @{text f} a linear form on @{text F} such that @{text f} is bounded by @{text p},\<close>
-    -- \<open>then @{text f} can be extended to a linear form @{text h} on @{text E} in a norm-preserving way. \skp\<close>
+    -- \<open>then @{text f} can be extended to a linear form @{text h} on @{text E} in a norm-preserving way. \<^smallskip>\<close>
 proof -
   interpret vectorspace E by fact
   interpret subspace F E by fact
@@ -104,7 +98,7 @@ proof -
     qed
   }
   then have "\<exists>g \<in> M. \<forall>x \<in> M. g \<subseteq> x \<longrightarrow> x = g"
-  -- \<open>With Zorn's Lemma we can conclude that there is a maximal element in @{text M}. \skp\<close>
+  -- \<open>With Zorn's Lemma we can conclude that there is a maximal element in @{text M}. \<^smallskip>\<close>
   proof (rule Zorn's_Lemma)
       -- \<open>We show that @{text M} is non-empty:\<close>
     show "graph F f \<in> M"
@@ -127,16 +121,16 @@ proof -
     and hp: "\<forall>x \<in> H. h x \<le> p x" unfolding M_def ..
       -- \<open>@{text g} is a norm-preserving extension of @{text f}, in other words:\<close>
       -- \<open>@{text g} is the graph of some linear form @{text h} defined on a subspace @{text H} of @{text E},\<close>
-      -- \<open>and @{text h} is an extension of @{text f} that is again bounded by @{text p}. \skp\<close>
+      -- \<open>and @{text h} is an extension of @{text f} that is again bounded by @{text p}. \<^smallskip>\<close>
   from HE E have H: "vectorspace H"
     by (rule subspace.vectorspace)
 
   have HE_eq: "H = E"
-    -- \<open>We show that @{text h} is defined on whole @{text E} by classical contradiction. \skp\<close>
+    -- \<open>We show that @{text h} is defined on whole @{text E} by classical contradiction. \<^smallskip>\<close>
   proof (rule classical)
     assume neq: "H \<noteq> E"
       -- \<open>Assume @{text h} is not defined on whole @{text E}. Then show that @{text h} can be extended\<close>
-      -- \<open>in a norm-preserving way to a function @{text h'} with the graph @{text g'}. \skp\<close>
+      -- \<open>in a norm-preserving way to a function @{text h'} with the graph @{text g'}. \<^smallskip>\<close>
     have "\<exists>g' \<in> M. g \<subseteq> g' \<and> g \<noteq> g'"
     proof -
       from HE have "H \<subseteq> E" ..
@@ -152,7 +146,7 @@ proof -
       qed
 
       def H' \<equiv> "H + lin x'"
-        -- \<open>Define @{text H'} as the direct sum of @{text H} and the linear closure of @{text x'}. \skp\<close>
+        -- \<open>Define @{text H'} as the direct sum of @{text H} and the linear closure of @{text x'}. \<^smallskip>\<close>
       have HH': "H \<unlhd> H'"
       proof (unfold H'_def)
         from x'E have "vectorspace (lin x')" ..
@@ -164,7 +158,7 @@ proof -
           \<and> xi \<le> p (y + x') - h y"
         -- \<open>Pick a real number @{text \<xi>} that fulfills certain inequations; this will\<close>
         -- \<open>be used to establish that @{text h'} is a norm-preserving extension of @{text h}.
-           \label{ex-xi-use}\skp\<close>
+           \label{ex-xi-use}\<^smallskip>\<close>
       proof -
         from H have "\<exists>xi. \<forall>y \<in> H. - p (y + x') - h y \<le> xi
             \<and> xi \<le> p (y + x') - h y"
@@ -191,10 +185,10 @@ proof -
 
       def h' \<equiv> "\<lambda>x. let (y, a) =
           SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H in h y + a * xi"
-        -- \<open>Define the extension @{text h'} of @{text h} to @{text H'} using @{text \<xi>}. \skp\<close>
+        -- \<open>Define the extension @{text h'} of @{text h} to @{text H'} using @{text \<xi>}. \<^smallskip>\<close>
 
       have "g \<subseteq> graph H' h' \<and> g \<noteq> graph H' h'"
-        -- \<open>@{text h'} is an extension of @{text h} \dots \skp\<close>
+        -- \<open>@{text h'} is an extension of @{text h} \dots \<^smallskip>\<close>
       proof
         show "g \<subseteq> graph H' h'"
         proof -
@@ -231,7 +225,7 @@ proof -
         qed
       qed
       moreover have "graph H' h' \<in> M"
-        -- \<open>and @{text h'} is norm-preserving. \skp\<close>
+        -- \<open>and @{text h'} is norm-preserving. \<^smallskip>\<close>
       proof (unfold M_def)
         show "graph H' h' \<in> norm_pres_extensions E p F f"
         proof (rule norm_pres_extensionI2)
@@ -279,7 +273,7 @@ proof -
       ultimately show ?thesis ..
     qed
     then have "\<not> (\<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x)" by simp
-      -- \<open>So the graph @{text g} of @{text h} cannot be maximal. Contradiction! \skp\<close>
+      -- \<open>So the graph @{text g} of @{text h} cannot be maximal. Contradiction! \<^smallskip>\<close>
     with gx show "H = E" by contradiction
   qed
 

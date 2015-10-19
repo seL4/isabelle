@@ -11,7 +11,7 @@ begin
 subsection \<open>Quasinorms\<close>
 
 text \<open>
-  A \emph{seminorm} @{text "\<parallel>\<cdot>\<parallel>"} is a function on a real vector space
+  A \<^emph>\<open>seminorm\<close> @{text "\<parallel>\<cdot>\<parallel>"} is a function on a real vector space
   into the reals that has the following properties: it is positive
   definite, absolute homogeneous and subadditive.
 \<close>
@@ -57,7 +57,7 @@ qed
 subsection \<open>Norms\<close>
 
 text \<open>
-  A \emph{norm} @{text "\<parallel>\<cdot>\<parallel>"} is a seminorm that maps only the
+  A \<^emph>\<open>norm\<close> @{text "\<parallel>\<cdot>\<parallel>"} is a seminorm that maps only the
   @{text 0} vector to @{text 0}.
 \<close>
 
@@ -68,8 +68,8 @@ locale norm = seminorm +
 subsection \<open>Normed vector spaces\<close>
 
 text \<open>
-  A vector space together with a norm is called a \emph{normed
-  space}.
+  A vector space together with a norm is called a \<^emph>\<open>normed
+  space\<close>.
 \<close>
 
 locale normed_vectorspace = vectorspace + norm

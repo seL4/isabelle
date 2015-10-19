@@ -9,7 +9,7 @@ imports Vector_Space
 begin
 
 text \<open>
-  A \emph{linear form} is a function on a vector space into the reals
+  A \<^emph>\<open>linear form\<close> is a function on a vector space into the reals
   that is additive and multiplicative.
 \<close>
 

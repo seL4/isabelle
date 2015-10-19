@@ -12,7 +12,7 @@ subsection \<open>Continuous linear forms\<close>
 
 text \<open>
   A linear form @{text f} on a normed vector space @{text "(V, \<parallel>\<cdot>\<parallel>)"}
-  is \emph{continuous}, iff it is bounded, i.e.
+  is \<^emph>\<open>continuous\<close>, iff it is bounded, i.e.
   \begin{center}
   @{text "\<exists>c \<in> R. \<forall>x \<in> V. \<bar>f x\<bar> \<le> c \<cdot> \<parallel>x\<parallel>"}
   \end{center}
@@ -46,7 +46,7 @@ text \<open>
   \begin{center}
   @{text "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c \<cdot> \<parallel>x\<parallel>"}
   \end{center}
-  is called the \emph{norm} of @{text f}.
+  is called the \<^emph>\<open>norm\<close> of @{text f}.
 
   For non-trivial vector spaces @{text "V \<noteq> {0}"} the norm can be
   defined as
@@ -194,7 +194,8 @@ proof -
 qed
 
 text \<open>
-  \medskip The fundamental property of function norms is:
+  \<^medskip>
+  The fundamental property of function norms is:
   \begin{center}
   @{text "\<bar>f x\<bar> \<le> \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>"}
   \end{center}
@@ -235,7 +236,8 @@ proof -
 qed
 
 text \<open>
-  \medskip The function norm is the least positive real number for
+  \<^medskip>
+  The function norm is the least positive real number for
   which the following inequation holds:
   \begin{center}
     @{text "\<bar>f x\<bar> \<le> c \<cdot> \<parallel>x\<parallel>"}

@@ -24,7 +24,8 @@ text \<open>
   Subsequently we show some properties of this extension @{text h'} of
   @{text h}.
 
-  \medskip This lemma will be used to show the existence of a linear
+  \<^medskip>
+  This lemma will be used to show the existence of a linear
   extension of @{text f} (see page \pageref{ex-xi-use}). It is a
   consequence of the completeness of @{text \<real>}. To show
   \begin{center}
@@ -84,7 +85,8 @@ proof -
 qed
 
 text \<open>
-  \medskip The function @{text h'} is defined as a @{text "h' x = h y
+  \<^medskip>
+  The function @{text h'} is defined as a @{text "h' x = h y
   + a \<cdot> \<xi>"} where @{text "x = y + a \<cdot> \<xi>"} is a linear extension of
   @{text h} to @{text H'}.
 \<close>
@@ -190,7 +192,9 @@ proof -
   qed
 qed
 
-text \<open>\medskip The linear extension @{text h'} of @{text h}
+text \<open>
+  \<^medskip>
+  The linear extension @{text h'} of @{text h}
   is bounded by the seminorm @{text p}.\<close>
 
 lemma h'_norm_pres:

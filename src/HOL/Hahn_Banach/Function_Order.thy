@@ -11,7 +11,7 @@ begin
 subsection \<open>The graph of a function\<close>
 
 text \<open>
-  We define the \emph{graph} of a (real) function @{text f} with
+  We define the \<^emph>\<open>graph\<close> of a (real) function @{text f} with
   domain @{text F} as the set
   \begin{center}
   @{text "{(x, f x). x \<in> F}"}

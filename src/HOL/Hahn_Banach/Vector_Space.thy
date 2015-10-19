@@ -23,7 +23,7 @@ consts
 subsection \<open>Vector space laws\<close>
 
 text \<open>
-  A \emph{vector space} is a non-empty set @{text V} of elements from
+  A \<^emph>\<open>vector space\<close> is a non-empty set @{text V} of elements from
   @{typ 'a} with the following vector space laws: The set @{text V} is
   closed under addition and scalar multiplication, addition is
   associative and commutative; @{text "- x"} is the inverse of @{text
@@ -122,7 +122,7 @@ lemmas distrib =
   diff_mult_distrib1 diff_mult_distrib2
 
 
-text \<open>\medskip Further derived laws:\<close>
+text \<open>\<^medskip> Further derived laws:\<close>
 
 lemma mult_zero_left [simp]: "x \<in> V \<Longrightarrow> 0 \<cdot> x = 0"
 proof -

@@ -18,11 +18,13 @@ text \<open>
   graph H h"}.  We will show some properties about the limit function
   @{text h}, i.e.\ the supremum of the chain @{text c}.
 
-  \medskip Let @{text c} be a chain of norm-preserving extensions of
+  \<^medskip>
+  Let @{text c} be a chain of norm-preserving extensions of
   the function @{text f} and let @{text "graph H h"} be the supremum
   of @{text c}.  Every element in @{text H} is member of one of the
   elements of the chain.
 \<close>
+
 lemmas [dest?] = chainsD
 lemmas chainsE2 [elim?] = chainsD2 [elim_format]
 
@@ -54,7 +56,8 @@ proof -
 qed
 
 text \<open>
-  \medskip Let @{text c} be a chain of norm-preserving extensions of
+  \<^medskip>
+  Let @{text c} be a chain of norm-preserving extensions of
   the function @{text f} and let @{text "graph H h"} be the supremum
   of @{text c}.  Every element in the domain @{text H} of the supremum
   function is member of the domain @{text H'} of some function @{text
@@ -82,7 +85,8 @@ proof -
 qed
 
 text \<open>
-  \medskip Any two elements @{text x} and @{text y} in the domain
+  \<^medskip>
+  Any two elements @{text x} and @{text y} in the domain
   @{text H} of the supremum function @{text h} are both in the domain
   @{text H'} of some function @{text h'}, such that @{text h} extends
   @{text h'}.
@@ -154,7 +158,8 @@ proof -
 qed
 
 text \<open>
-  \medskip The relation induced by the graph of the supremum of a
+  \<^medskip>
+  The relation induced by the graph of the supremum of a
   chain @{text c} is definite, i.~e.~t is the graph of a function.
 \<close>
 
@@ -204,7 +209,8 @@ proof -
 qed
 
 text \<open>
-  \medskip The limit function @{text h} is linear. Every element
+  \<^medskip>
+  The limit function @{text h} is linear. Every element
   @{text x} in the domain of @{text h} is in the domain of a function
   @{text h'} in the chain of norm preserving extensions.  Furthermore,
   @{text h} is an extension of @{text h'} so the function values of
@@ -259,7 +265,8 @@ next
 qed
 
 text \<open>
-  \medskip The limit of a non-empty chain of norm preserving
+  \<^medskip>
+  The limit of a non-empty chain of norm preserving
   extensions of @{text f} is an extension of @{text f}, since every
   element of the chain is an extension of @{text f} and the supremum
   is an extension for every element of the chain.
@@ -285,7 +292,8 @@ proof -
 qed
 
 text \<open>
-  \medskip The domain @{text H} of the limit function is a superspace
+  \<^medskip>
+  The domain @{text H} of the limit function is a superspace
   of @{text F}, since @{text F} is a subset of @{text H}. The
   existence of the @{text 0} element in @{text F} and the closure
   properties follow from the fact that @{text F} is a vector space.
@@ -310,7 +318,8 @@ next
 qed
 
 text \<open>
-  \medskip The domain @{text H} of the limit function is a subspace of
+  \<^medskip>
+  The domain @{text H} of the limit function is a subspace of
   @{text E}.
 \<close>
 
@@ -366,7 +375,8 @@ next
 qed
 
 text \<open>
-  \medskip The limit function is bounded by the norm @{text p} as
+  \<^medskip>
+  The limit function is bounded by the norm @{text p} as
   well, since all elements in the chain are bounded by @{text p}.
 \<close>
 
@@ -387,7 +397,8 @@ proof
 qed
 
 text \<open>
-  \medskip The following lemma is a property of linear forms on real
+  \<^medskip>
+  The following lemma is a property of linear forms on real
   vector spaces. It will be used for the lemma @{text abs_Hahn_Banach}
   (see page \pageref{abs-Hahn_Banach}). \label{abs-ineq-iff} For real
   vector spaces the following inequations are equivalent:
