@@ -9,11 +9,11 @@ imports Locale_Test1
 begin
 
 interpretation le2: mixin_thy_merge gle gle'
-  where "reflexive.less(gle', x, y) <-> gless'(x, y)"
+  where "reflexive.less(gle', x, y) \<longleftrightarrow> gless'(x, y)"
 proof -
   show "mixin_thy_merge(gle, gle')" by unfold_locales
   note reflexive = this[unfolded mixin_thy_merge_def, THEN conjunct2]
-  show "reflexive.less(gle', x, y) <-> gless'(x, y)"
+  show "reflexive.less(gle', x, y) \<longleftrightarrow> gless'(x, y)"
     by (simp add: reflexive.less_def[OF reflexive] gless'_def)
 qed
 

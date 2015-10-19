@@ -83,7 +83,7 @@ done
 
 (*?x has 16, ?y has 32;  rev(?y,?w) requires 561 (rather large) inferences
   total inferences = 2 + 1 + 17 + 561 = 581*)
-schematic_goal "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil = ?x & app(?x,?x,?y) & rev(?y,?w)"
+schematic_goal "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil = ?x \<and> app(?x,?x,?y) \<and> rev(?y,?w)"
 apply (tactic \<open>
   DEPTH_SOLVE (resolve_tac @{context} ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1)\<close>)
 done

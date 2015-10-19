@@ -114,8 +114,8 @@ locale extra_type =
     and P :: "'a => 'b => o"
 begin
 
-definition test :: "'a => o" where
-  "test(x) <-> (ALL b. P(x, b))"
+definition test :: "'a => o"
+  where "test(x) \<longleftrightarrow> (\<forall>b. P(x, b))"
 
 end
 
@@ -133,8 +133,8 @@ locale "syntax" =
     and p2 :: "'b => o"
 begin
 
-definition d1 :: "'a => o" where "d1(x) <-> ~ p2(p1(x))"
-definition d2 :: "'b => o" where "d2(x) <-> ~ p2(x)"
+definition d1 :: "'a => o" where "d1(x) \<longleftrightarrow> \<not> p2(p1(x))"
+definition d2 :: "'b => o" where "d2(x) \<longleftrightarrow> \<not> p2(x)"
 
 thm d1_def d2_def
 
@@ -222,10 +222,10 @@ section \<open>Notes\<close>
 (* A somewhat arcane homomorphism example *)
 
 definition semi_hom where
-  "semi_hom(prod, sum, h) <-> (ALL x y. h(prod(x, y)) = sum(h(x), h(y)))"
+  "semi_hom(prod, sum, h) \<longleftrightarrow> (\<forall>x y. h(prod(x, y)) = sum(h(x), h(y)))"
 
 lemma semi_hom_mult:
-  "semi_hom(prod, sum, h) ==> h(prod(x, y)) = sum(h(x), h(y))"
+  "semi_hom(prod, sum, h) \<Longrightarrow> h(prod(x, y)) = sum(h(x), h(y))"
   by (simp add: semi_hom_def)
 
 locale semi_hom_loc = prod: semi prod + sum: semi sum
@@ -242,7 +242,7 @@ lemma (in semi_hom_loc) "h(prod(x, y)) = sum(h(x), h(y))"
 (* Referring to facts from within a context specification *)
 
 lemma
-  assumes x: "P <-> P"
+  assumes x: "P \<longleftrightarrow> P"
   notes y = x
   shows True ..
 
@@ -250,7 +250,7 @@ lemma
 section \<open>Theorem statements\<close>
 
 lemma (in lgrp) lcancel:
-  "x ** y = x ** z <-> y = z"
+  "x ** y = x ** z \<longleftrightarrow> y = z"
 proof
   assume "x ** y = x ** z"
   then have "inv(x) ** x ** y = inv(x) ** x ** z" by (simp add: assoc)
@@ -266,7 +266,7 @@ locale rgrp = semi +
 begin
 
 lemma rcancel:
-  "y ** x = z ** x <-> y = z"
+  "y ** x = z ** x \<longleftrightarrow> y = z"
 proof
   assume "y ** x = z ** x"
   then have "y ** (x ** inv(x)) = z ** (x ** inv(x))"
@@ -322,7 +322,7 @@ print_locale! lgrp
 (* use of derived theorem *)
 
 lemma (in lgrp)
-  "y ** x = z ** x <-> y = z"
+  "y ** x = z ** x \<longleftrightarrow> y = z"
   apply (rule rcancel)
   done
 
@@ -372,7 +372,7 @@ locale order_with_def = order'
 begin
 
 definition greater :: "'a => 'a => o" (infix ">>" 50) where
-  "x >> y <-> y << x"
+  "x >> y \<longleftrightarrow> y << x"
 
 end
 
@@ -392,7 +392,7 @@ print_locale! order_with_def
 
 locale A5 =
   fixes A and B and C and D and E
-  assumes eq: "A <-> B <-> C <-> D <-> E"
+  assumes eq: "A \<longleftrightarrow> B \<longleftrightarrow> C \<longleftrightarrow> D \<longleftrightarrow> E"
 
 sublocale A5 < 1: A5 _ _ D E C
 print_facts
@@ -415,7 +415,7 @@ print_locale! A5
 
 locale trivial =
   fixes P and Q :: o
-  assumes Q: "P <-> P <-> Q"
+  assumes Q: "P \<longleftrightarrow> P \<longleftrightarrow> Q"
 begin
 
 lemma Q_triv: "Q" using Q by fast
@@ -494,28 +494,28 @@ subsection \<open>Rewrite morphism\<close>
 locale logic_o =
   fixes land (infixl "&&" 55)
     and lnot ("-- _" [60] 60)
-  assumes assoc_o: "(x && y) && z <-> x && (y && z)"
-    and notnot_o: "-- (-- x) <-> x"
+  assumes assoc_o: "(x && y) && z \<longleftrightarrow> x && (y && z)"
+    and notnot_o: "-- (-- x) \<longleftrightarrow> x"
 begin
 
 definition lor_o (infixl "||" 50) where
-  "x || y <-> --(-- x && -- y)"
+  "x || y \<longleftrightarrow> --(-- x && -- y)"
 
 end
 
-interpretation x: logic_o "op &" "Not"
-  where bool_logic_o: "x.lor_o(x, y) <-> x | y"
+interpretation x: logic_o "op \<and>" "Not"
+  where bool_logic_o: "x.lor_o(x, y) \<longleftrightarrow> x \<or> y"
 proof -
-  show bool_logic_o: "PROP logic_o(op &, Not)" by unfold_locales fast+
-  show "logic_o.lor_o(op &, Not, x, y) <-> x | y"
+  show bool_logic_o: "PROP logic_o(op \<and>, Not)" by unfold_locales fast+
+  show "logic_o.lor_o(op \<and>, Not, x, y) \<longleftrightarrow> x \<or> y"
     by (unfold logic_o.lor_o_def [OF bool_logic_o]) fast
 qed
 
 thm x.lor_o_def bool_logic_o
 
-lemma lor_triv: "z <-> z" ..
+lemma lor_triv: "z \<longleftrightarrow> z" ..
 
-lemma (in logic_o) lor_triv: "x || y <-> x || y" by fast
+lemma (in logic_o) lor_triv: "x || y \<longleftrightarrow> x || y" by fast
 
 thm lor_triv [where z = True] (* Check strict prefix. *)
   x.lor_triv
@@ -528,7 +528,7 @@ locale reflexive =
   assumes refl: "x \<sqsubseteq> x"
 begin
 
-definition less (infix "\<sqsubset>" 50) where "x \<sqsubset> y <-> x \<sqsubseteq> y & x ~= y"
+definition less (infix "\<sqsubset>" 50) where "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<noteq> y"
 
 end
 
@@ -536,8 +536,8 @@ axiomatization
   gle :: "'a => 'a => o" and gless :: "'a => 'a => o" and
   gle' :: "'a => 'a => o" and gless' :: "'a => 'a => o"
 where
-  grefl: "gle(x, x)" and gless_def: "gless(x, y) <-> gle(x, y) & x ~= y" and
-  grefl': "gle'(x, x)" and gless'_def: "gless'(x, y) <-> gle'(x, y) & x ~= y"
+  grefl: "gle(x, x)" and gless_def: "gless(x, y) \<longleftrightarrow> gle(x, y) \<and> x \<noteq> y" and
+  grefl': "gle'(x, x)" and gless'_def: "gless'(x, y) \<longleftrightarrow> gle'(x, y) \<and> x \<noteq> y"
 
 text \<open>Setup\<close>
 
@@ -546,11 +546,11 @@ begin
 lemmas less_thm = less_def
 end
 
-interpretation le: mixin gle where "reflexive.less(gle, x, y) <-> gless(x, y)"
+interpretation le: mixin gle where "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
 proof -
   show "mixin(gle)" by unfold_locales (rule grefl)
   note reflexive = this[unfolded mixin_def]
-  show "reflexive.less(gle, x, y) <-> gless(x, y)"
+  show "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
     by (simp add: reflexive.less_def[OF reflexive] gless_def)
 qed
 
@@ -565,7 +565,7 @@ interpretation le: mixin2 gle
   by unfold_locales
 
 thm le.less_thm2  (* rewrite morphism applied *)
-lemma "gless(x, y) <-> gle(x, y) & x ~= y"
+lemma "gless(x, y) \<longleftrightarrow> gle(x, y) \<and> x \<noteq> y"
   by (rule le.less_thm2)
 
 text \<open>Rewrite morphism does not leak to a side branch.\<close>
@@ -579,7 +579,7 @@ interpretation le: mixin3 gle
   by unfold_locales
 
 thm le.less_thm3  (* rewrite morphism not applied *)
-lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y" by (rule le.less_thm3)
+lemma "reflexive.less(gle, x, y) \<longleftrightarrow> gle(x, y) \<and> x \<noteq> y" by (rule le.less_thm3)
 
 text \<open>Rewrite morphism only available in original context\<close>
 
@@ -588,11 +588,11 @@ locale mixin4_base = reflexive
 locale mixin4_mixin = mixin4_base
 
 interpretation le: mixin4_mixin gle
-  where "reflexive.less(gle, x, y) <-> gless(x, y)"
+  where "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
 proof -
   show "mixin4_mixin(gle)" by unfold_locales (rule grefl)
   note reflexive = this[unfolded mixin4_mixin_def mixin4_base_def mixin_def]
-  show "reflexive.less(gle, x, y) <-> gless(x, y)"
+  show "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
     by (simp add: reflexive.less_def[OF reflexive] gless_def)
 qed
 
@@ -610,7 +610,7 @@ interpretation le4: mixin4_combined gle' gle
   by unfold_locales (rule grefl')
 
 thm le4.less_thm4' (* rewrite morphism not applied *)
-lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y"
+lemma "reflexive.less(gle, x, y) \<longleftrightarrow> gle(x, y) \<and> x \<noteq> y"
   by (rule le4.less_thm4')
 
 text \<open>Inherited rewrite morphism applied to new theorem\<close>
@@ -620,11 +620,11 @@ locale mixin5_base = reflexive
 locale mixin5_inherited = mixin5_base
 
 interpretation le5: mixin5_base gle
-  where "reflexive.less(gle, x, y) <-> gless(x, y)"
+  where "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
 proof -
   show "mixin5_base(gle)" by unfold_locales
   note reflexive = this[unfolded mixin5_base_def mixin_def]
-  show "reflexive.less(gle, x, y) <-> gless(x, y)"
+  show "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
     by (simp add: reflexive.less_def[OF reflexive] gless_def)
 qed
 
@@ -634,7 +634,7 @@ interpretation le5: mixin5_inherited gle
 lemmas (in mixin5_inherited) less_thm5 = less_def
 
 thm le5.less_thm5  (* rewrite morphism applied *)
-lemma "gless(x, y) <-> gle(x, y) & x ~= y"
+lemma "gless(x, y) \<longleftrightarrow> gle(x, y) \<and> x \<noteq> y"
   by (rule le5.less_thm5)
 
 text \<open>Rewrite morphism pushed down to existing inherited locale\<close>
@@ -648,18 +648,18 @@ interpretation le6: mixin6_base gle
 interpretation le6: mixin6_inherited gle
   by unfold_locales
 interpretation le6: mixin6_base gle
-  where "reflexive.less(gle, x, y) <-> gless(x, y)"
+  where "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
 proof -
   show "mixin6_base(gle)" by unfold_locales
   note reflexive = this[unfolded mixin6_base_def mixin_def]
-  show "reflexive.less(gle, x, y) <-> gless(x, y)"
+  show "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
     by (simp add: reflexive.less_def[OF reflexive] gless_def)
 qed
 
 lemmas (in mixin6_inherited) less_thm6 = less_def
 
 thm le6.less_thm6  (* mixin applied *)
-lemma "gless(x, y) <-> gle(x, y) & x ~= y"
+lemma "gless(x, y) \<longleftrightarrow> gle(x, y) \<and> x \<noteq> y"
   by (rule le6.less_thm6)
 
 text \<open>Existing rewrite morphism inherited through sublocale relation\<close>
@@ -669,11 +669,11 @@ locale mixin7_base = reflexive
 locale mixin7_inherited = reflexive
 
 interpretation le7: mixin7_base gle
-  where "reflexive.less(gle, x, y) <-> gless(x, y)"
+  where "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
 proof -
   show "mixin7_base(gle)" by unfold_locales
   note reflexive = this[unfolded mixin7_base_def mixin_def]
-  show "reflexive.less(gle, x, y) <-> gless(x, y)"
+  show "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
     by (simp add: reflexive.less_def[OF reflexive] gless_def)
 qed
 
@@ -683,7 +683,7 @@ interpretation le7: mixin7_inherited gle
 lemmas (in mixin7_inherited) less_thm7 = less_def
 
 thm le7.less_thm7  (* before, rewrite morphism not applied *)
-lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y"
+lemma "reflexive.less(gle, x, y) \<longleftrightarrow> gle(x, y) \<and> x \<noteq> y"
   by (rule le7.less_thm7)
 
 sublocale mixin7_inherited < mixin7_base
@@ -692,7 +692,7 @@ sublocale mixin7_inherited < mixin7_base
 lemmas (in mixin7_inherited) less_thm7b = less_def
 
 thm le7.less_thm7b  (* after, mixin applied *)
-lemma "gless(x, y) <-> gle(x, y) & x ~= y"
+lemma "gless(x, y) \<longleftrightarrow> gle(x, y) \<and> x \<noteq> y"
   by (rule le7.less_thm7b)
 
 
@@ -764,11 +764,11 @@ lemma "- x = glob_inv(op +, x)" by (rule int.def.inv_def)
 
 text \<open>Roundup applies rewrite morphisms at declaration level in DFS tree\<close>
 
-locale roundup = fixes x assumes true: "x <-> True"
+locale roundup = fixes x assumes true: "x \<longleftrightarrow> True"
 
-sublocale roundup \<subseteq> sub: roundup x where "x <-> True & True"
+sublocale roundup \<subseteq> sub: roundup x where "x \<longleftrightarrow> True \<and> True"
   apply unfold_locales apply (simp add: true) done
-lemma (in roundup) "True & True <-> True" by (rule sub.true)
+lemma (in roundup) "True \<and> True \<longleftrightarrow> True" by (rule sub.true)
 
 
 section \<open>Interpretation in named contexts\<close>
@@ -812,19 +812,19 @@ lemma True
 proof
   {
     fix pand and pnot and por
-    assume passoc: "!!x y z. pand(pand(x, y), z) <-> pand(x, pand(y, z))"
-      and pnotnot: "!!x. pnot(pnot(x)) <-> x"
-      and por_def: "!!x y. por(x, y) <-> pnot(pand(pnot(x), pnot(y)))"
+    assume passoc: "\<And>x y z. pand(pand(x, y), z) \<longleftrightarrow> pand(x, pand(y, z))"
+      and pnotnot: "\<And>x. pnot(pnot(x)) \<longleftrightarrow> x"
+      and por_def: "\<And>x y. por(x, y) \<longleftrightarrow> pnot(pand(pnot(x), pnot(y)))"
     interpret loc: logic_o pand pnot
-      where por_eq: "!!x y. logic_o.lor_o(pand, pnot, x, y) <-> por(x, y)"  (* FIXME *)
+      where por_eq: "\<And>x y. logic_o.lor_o(pand, pnot, x, y) \<longleftrightarrow> por(x, y)"  (* FIXME *)
     proof -
       show logic_o: "PROP logic_o(pand, pnot)" using passoc pnotnot by unfold_locales
       fix x y
-      show "logic_o.lor_o(pand, pnot, x, y) <-> por(x, y)"
+      show "logic_o.lor_o(pand, pnot, x, y) \<longleftrightarrow> por(x, y)"
         by (unfold logic_o.lor_o_def [OF logic_o]) (rule por_def [symmetric])
     qed
     print_interps logic_o
-    have "!!x y. por(x, y) <-> pnot(pand(pnot(x), pnot(y)))" by (rule loc.lor_o_def)
+    have "\<And>x y. por(x, y) \<longleftrightarrow> pnot(pand(pnot(x), pnot(y)))" by (rule loc.lor_o_def)
   }
 qed
 

@@ -29,7 +29,7 @@ definition add :: "[nat, nat] => nat"  (infixl "+" 60)
 
 subsection \<open>Proofs about the natural numbers\<close>
 
-lemma Suc_n_not_n: "Suc(k) ~= k"
+lemma Suc_n_not_n: "Suc(k) \<noteq> k"
 apply (rule_tac n = k in induct)
 apply (rule notI)
 apply (erule Suc_neq_0)

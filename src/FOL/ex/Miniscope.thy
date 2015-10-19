@@ -11,7 +11,6 @@ theory Miniscope
 imports FOL
 begin
 
-
 lemmas ccontr = FalseE [THEN classical]
 
 subsection \<open>Negation Normal Form\<close>
@@ -19,20 +18,20 @@ subsection \<open>Negation Normal Form\<close>
 subsubsection \<open>de Morgan laws\<close>
 
 lemma demorgans:
-  "~(P&Q) <-> ~P | ~Q"
-  "~(P|Q) <-> ~P & ~Q"
-  "~~P <-> P"
-  "!!P. ~(ALL x. P(x)) <-> (EX x. ~P(x))"
-  "!!P. ~(EX x. P(x)) <-> (ALL x. ~P(x))"
+  "\<not> (P \<and> Q) \<longleftrightarrow> \<not> P \<or> \<not> Q"
+  "\<not> (P \<or> Q) \<longleftrightarrow> \<not> P \<and> \<not> Q"
+  "\<not> \<not> P \<longleftrightarrow> P"
+  "\<And>P. \<not> (\<forall>x. P(x)) \<longleftrightarrow> (\<exists>x. \<not> P(x))"
+  "\<And>P. \<not> (\<exists>x. P(x)) \<longleftrightarrow> (\<forall>x. \<not> P(x))"
   by blast+
 
 (*** Removal of --> and <-> (positive and negative occurrences) ***)
 (*Last one is important for computing a compact CNF*)
 lemma nnf_simps:
-  "(P-->Q) <-> (~P | Q)"
-  "~(P-->Q) <-> (P & ~Q)"
-  "(P<->Q) <-> (~P | Q) & (~Q | P)"
-  "~(P<->Q) <-> (P | Q) & (~P | ~Q)"
+  "(P \<longrightarrow> Q) \<longleftrightarrow> (\<not> P \<or> Q)"
+  "\<not> (P \<longrightarrow> Q) \<longleftrightarrow> (P \<and> \<not> Q)"
+  "(P \<longleftrightarrow> Q) \<longleftrightarrow> (\<not> P \<or> Q) \<and> (\<not> Q \<or> P)"
+  "\<not> (P \<longleftrightarrow> Q) \<longleftrightarrow> (P \<or> Q) \<and> (\<not> P \<or> \<not> Q)"
   by blast+
 
 
@@ -41,24 +40,24 @@ lemma nnf_simps:
 subsubsection \<open>Pushing in the existential quantifiers\<close>
 
 lemma ex_simps:
-  "(EX x. P) <-> P"
-  "!!P Q. (EX x. P(x) & Q) <-> (EX x. P(x)) & Q"
-  "!!P Q. (EX x. P & Q(x)) <-> P & (EX x. Q(x))"
-  "!!P Q. (EX x. P(x) | Q(x)) <-> (EX x. P(x)) | (EX x. Q(x))"
-  "!!P Q. (EX x. P(x) | Q) <-> (EX x. P(x)) | Q"
-  "!!P Q. (EX x. P | Q(x)) <-> P | (EX x. Q(x))"
+  "(\<exists>x. P) \<longleftrightarrow> P"
+  "\<And>P Q. (\<exists>x. P(x) \<and> Q) \<longleftrightarrow> (\<exists>x. P(x)) \<and> Q"
+  "\<And>P Q. (\<exists>x. P \<and> Q(x)) \<longleftrightarrow> P \<and> (\<exists>x. Q(x))"
+  "\<And>P Q. (\<exists>x. P(x) \<or> Q(x)) \<longleftrightarrow> (\<exists>x. P(x)) \<or> (\<exists>x. Q(x))"
+  "\<And>P Q. (\<exists>x. P(x) \<or> Q) \<longleftrightarrow> (\<exists>x. P(x)) \<or> Q"
+  "\<And>P Q. (\<exists>x. P \<or> Q(x)) \<longleftrightarrow> P \<or> (\<exists>x. Q(x))"
   by blast+
 
 
 subsubsection \<open>Pushing in the universal quantifiers\<close>
 
 lemma all_simps:
-  "(ALL x. P) <-> P"
-  "!!P Q. (ALL x. P(x) & Q(x)) <-> (ALL x. P(x)) & (ALL x. Q(x))"
-  "!!P Q. (ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q"
-  "!!P Q. (ALL x. P & Q(x)) <-> P & (ALL x. Q(x))"
-  "!!P Q. (ALL x. P(x) | Q) <-> (ALL x. P(x)) | Q"
-  "!!P Q. (ALL x. P | Q(x)) <-> P | (ALL x. Q(x))"
+  "(\<forall>x. P) \<longleftrightarrow> P"
+  "\<And>P Q. (\<forall>x. P(x) \<and> Q(x)) \<longleftrightarrow> (\<forall>x. P(x)) \<and> (\<forall>x. Q(x))"
+  "\<And>P Q. (\<forall>x. P(x) \<and> Q) \<longleftrightarrow> (\<forall>x. P(x)) \<and> Q"
+  "\<And>P Q. (\<forall>x. P \<and> Q(x)) \<longleftrightarrow> P \<and> (\<forall>x. Q(x))"
+  "\<And>P Q. (\<forall>x. P(x) \<or> Q) \<longleftrightarrow> (\<forall>x. P(x)) \<or> Q"
+  "\<And>P Q. (\<forall>x. P \<or> Q(x)) \<longleftrightarrow> P \<or> (\<forall>x. Q(x))"
   by blast+
 
 lemmas mini_simps = demorgans nnf_simps ex_simps all_simps

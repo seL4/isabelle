@@ -36,390 +36,417 @@ Q\rightarrow\neg\neg P$, hence to $\neg\neg P$, since $\neg\neg Q$ is
 intuitionistically provable.  Finally, if $P$ is a negation then $\neg\neg P$
 is intuitionstically equivalent to $P$.  [Andy Pitts]\<close>
 
-lemma "~~(P&Q) <-> ~~P & ~~Q"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "\<not> \<not> (P \<and> Q) \<longleftrightarrow> \<not> \<not> P \<and> \<not> \<not> Q"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-lemma "~~ ((~P --> Q) --> (~P --> ~Q) --> P)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "\<not> \<not> ((\<not> P \<longrightarrow> Q) \<longrightarrow> (\<not> P \<longrightarrow> \<not> Q) \<longrightarrow> P)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>Double-negation does NOT distribute over disjunction\<close>
+text \<open>Double-negation does NOT distribute over disjunction.\<close>
 
-lemma "~~(P-->Q)  <-> (~~P --> ~~Q)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "\<not> \<not> (P \<longrightarrow> Q) \<longleftrightarrow> (\<not> \<not> P \<longrightarrow> \<not> \<not> Q)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-lemma "~~~P <-> ~P"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "\<not> \<not> \<not> P \<longleftrightarrow> \<not> P"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-lemma "~~((P --> Q | R)  -->  (P-->Q) | (P-->R))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "\<not> \<not> ((P \<longrightarrow> Q \<or> R) \<longrightarrow> (P \<longrightarrow> Q) \<or> (P \<longrightarrow> R))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-lemma "(P<->Q) <-> (Q<->P)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "(P \<longleftrightarrow> Q) \<longleftrightarrow> (Q \<longleftrightarrow> P)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-lemma "((P --> (Q | (Q-->R))) --> R) --> R"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "((P \<longrightarrow> (Q \<or> (Q \<longrightarrow> R))) \<longrightarrow> R) \<longrightarrow> R"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-lemma "(((G-->A) --> J) --> D --> E) --> (((H-->B)-->I)-->C-->J)
-      --> (A-->H) --> F --> G --> (((C-->B)-->I)-->D)-->(A-->C)
-      --> (((F-->A)-->B) --> I) --> E"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-
-text\<open>Lemmas for the propositional double-negation translation\<close>
-
-lemma "P --> ~~P"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-lemma "~~(~~P --> P)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-lemma "~~P & ~~(P --> Q) --> ~~Q"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma
+  "(((G \<longrightarrow> A) \<longrightarrow> J) \<longrightarrow> D \<longrightarrow> E) \<longrightarrow> (((H \<longrightarrow> B) \<longrightarrow> I) \<longrightarrow> C \<longrightarrow> J)
+    \<longrightarrow> (A \<longrightarrow> H) \<longrightarrow> F \<longrightarrow> G \<longrightarrow> (((C \<longrightarrow> B) \<longrightarrow> I) \<longrightarrow> D) \<longrightarrow> (A \<longrightarrow> C)
+    \<longrightarrow> (((F \<longrightarrow> A) \<longrightarrow> B) \<longrightarrow> I) \<longrightarrow> E"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 
-text\<open>The following are classically but not constructively valid.
-      The attempt to prove them terminates quickly!\<close>
-lemma "((P-->Q) --> P)  -->  P"
-apply (tactic\<open>IntPr.fast_tac @{context} 1\<close> | -)
+subsection \<open>Lemmas for the propositional double-negation translation\<close>
+
+lemma "P \<longrightarrow> \<not> \<not> P"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+lemma "\<not> \<not> (\<not> \<not> P \<longrightarrow> P)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+lemma "\<not> \<not> P \<and> \<not> \<not> (P \<longrightarrow> Q) \<longrightarrow> \<not> \<not> Q"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+
+text \<open>The following are classically but not constructively valid.
+  The attempt to prove them terminates quickly!\<close>
+lemma "((P \<longrightarrow> Q) \<longrightarrow> P) \<longrightarrow> P"
+apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
 apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
 oops
 
-lemma "(P&Q-->R)  -->  (P-->R) | (Q-->R)"
-apply (tactic\<open>IntPr.fast_tac @{context} 1\<close> | -)
+lemma "(P \<and> Q \<longrightarrow> R) \<longrightarrow> (P \<longrightarrow> R) \<or> (Q \<longrightarrow> R)"
+apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
 apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
 oops
 
 
-subsection\<open>de Bruijn formulae\<close>
+subsection \<open>de Bruijn formulae\<close>
 
-text\<open>de Bruijn formula with three predicates\<close>
-lemma "((P<->Q) --> P&Q&R) &
-               ((Q<->R) --> P&Q&R) &
-               ((R<->P) --> P&Q&R) --> P&Q&R"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-
-text\<open>de Bruijn formula with five predicates\<close>
-lemma "((P<->Q) --> P&Q&R&S&T) &
-               ((Q<->R) --> P&Q&R&S&T) &
-               ((R<->S) --> P&Q&R&S&T) &
-               ((S<->T) --> P&Q&R&S&T) &
-               ((T<->P) --> P&Q&R&S&T) --> P&Q&R&S&T"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text \<open>de Bruijn formula with three predicates\<close>
+lemma
+  "((P \<longleftrightarrow> Q) \<longrightarrow> P \<and> Q \<and> R) \<and>
+    ((Q \<longleftrightarrow> R) \<longrightarrow> P \<and> Q \<and> R) \<and>
+    ((R \<longleftrightarrow> P) \<longrightarrow> P \<and> Q \<and> R) \<longrightarrow> P \<and> Q \<and> R"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 
-(*** Problems from of Sahlin, Franzen and Haridi,
-     An Intuitionistic Predicate Logic Theorem Prover.
-     J. Logic and Comp. 2 (5), October 1992, 619-656.
-***)
+text \<open>de Bruijn formula with five predicates\<close>
+lemma
+  "((P \<longleftrightarrow> Q) \<longrightarrow> P \<and> Q \<and> R \<and> S \<and> T) \<and>
+    ((Q \<longleftrightarrow> R) \<longrightarrow> P \<and> Q \<and> R \<and> S \<and> T) \<and>
+    ((R \<longleftrightarrow> S) \<longrightarrow> P \<and> Q \<and> R \<and> S \<and> T) \<and>
+    ((S \<longleftrightarrow> T) \<longrightarrow> P \<and> Q \<and> R \<and> S \<and> T) \<and>
+    ((T \<longleftrightarrow> P) \<longrightarrow> P \<and> Q \<and> R \<and> S \<and> T) \<longrightarrow> P \<and> Q \<and> R \<and> S \<and> T"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+
+text \<open>
+  Problems from of Sahlin, Franzen and Haridi,
+  An Intuitionistic Predicate Logic Theorem Prover.
+  J. Logic and Comp. 2 (5), October 1992, 619-656.
+\<close>
 
 text\<open>Problem 1.1\<close>
-lemma "(ALL x. EX y. ALL z. p(x) & q(y) & r(z)) <->
-      (ALL z. EX y. ALL x. p(x) & q(y) & r(z))"
-by (tactic\<open>IntPr.best_dup_tac @{context} 1\<close>)  --\<open>SLOW\<close>
+lemma
+  "(\<forall>x. \<exists>y. \<forall>z. p(x) \<and> q(y) \<and> r(z)) \<longleftrightarrow>
+    (\<forall>z. \<exists>y. \<forall>x. p(x) \<and> q(y) \<and> r(z))"
+  by (tactic \<open>IntPr.best_dup_tac @{context} 1\<close>)  --\<open>SLOW\<close>
 
 text\<open>Problem 3.1\<close>
-lemma "~ (EX x. ALL y. mem(y,x) <-> ~ mem(x,x))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "\<not> (\<exists>x. \<forall>y. mem(y,x) \<longleftrightarrow> \<not> mem(x,x))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>Problem 4.1: hopeless!\<close>
-lemma "(ALL x. p(x) --> p(h(x)) | p(g(x))) & (EX x. p(x)) & (ALL x. ~p(h(x)))
-      --> (EX x. p(g(g(g(g(g(x)))))))"
-oops
+lemma
+  "(\<forall>x. p(x) \<longrightarrow> p(h(x)) \<or> p(g(x))) \<and> (\<exists>x. p(x)) \<and> (\<forall>x. \<not> p(h(x)))
+    \<longrightarrow> (\<exists>x. p(g(g(g(g(g(x)))))))"
+  oops
 
 
-subsection\<open>Intuitionistic FOL: propositional problems based on Pelletier.\<close>
+subsection \<open>Intuitionistic FOL: propositional problems based on Pelletier.\<close>
 
-text\<open>~~1\<close>
-lemma "~~((P-->Q)  <->  (~Q --> ~P))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>\<not>\<not>1\<close>
+lemma "\<not> \<not> ((P \<longrightarrow> Q) \<longleftrightarrow> (\<not> Q \<longrightarrow> \<not> P))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>~~2\<close>
-lemma "~~(~~P  <->  P)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>\<not>\<not>2\<close>
+lemma "\<not> \<not> (\<not> \<not> P \<longleftrightarrow> P)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>3\<close>
-lemma "~(P-->Q) --> (Q-->P)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "\<not> (P \<longrightarrow> Q) \<longrightarrow> (Q \<longrightarrow> P)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>~~4\<close>
-lemma "~~((~P-->Q)  <->  (~Q --> P))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>\<not>\<not>4\<close>
+lemma "\<not> \<not> ((\<not> P \<longrightarrow> Q) \<longleftrightarrow> (\<not> Q \<longrightarrow> P))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>~~5\<close>
-lemma "~~((P|Q-->P|R) --> P|(Q-->R))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>\<not>\<not>5\<close>
+lemma "\<not>\<not>((P \<or> Q \<longrightarrow> P \<or> R) \<longrightarrow> P \<or> (Q \<longrightarrow> R))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>~~6\<close>
-lemma "~~(P | ~P)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>\<not>\<not>6\<close>
+lemma "\<not> \<not> (P \<or> \<not> P)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>~~7\<close>
-lemma "~~(P | ~~~P)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>\<not>\<not>7\<close>
+lemma "\<not> \<not> (P \<or> \<not> \<not> \<not> P)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>~~8.  Peirce's law\<close>
-lemma "~~(((P-->Q) --> P)  -->  P)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>\<not>\<not>8. Peirce's law\<close>
+lemma "\<not> \<not> (((P \<longrightarrow> Q) \<longrightarrow> P) \<longrightarrow> P)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>9\<close>
-lemma "((P|Q) & (~P|Q) & (P| ~Q)) --> ~ (~P | ~Q)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "((P \<or> Q) \<and> (\<not> P \<or> Q) \<and> (P \<or> \<not> Q)) \<longrightarrow> \<not> (\<not> P \<or> \<not> Q)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>10\<close>
-lemma "(Q-->R) --> (R-->P&Q) --> (P-->(Q|R)) --> (P<->Q)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-subsection\<open>11.  Proved in each direction (incorrectly, says Pelletier!!)\<close>
-lemma "P<->P"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-text\<open>~~12.  Dijkstra's law\<close>
-lemma "~~(((P <-> Q) <-> R)  <->  (P <-> (Q <-> R)))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-lemma "((P <-> Q) <-> R)  -->  ~~(P <-> (Q <-> R))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-text\<open>13.  Distributive law\<close>
-lemma "P | (Q & R)  <-> (P | Q) & (P | R)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-text\<open>~~14\<close>
-lemma "~~((P <-> Q) <-> ((Q | ~P) & (~Q|P)))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-text\<open>~~15\<close>
-lemma "~~((P --> Q) <-> (~P | Q))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-text\<open>~~16\<close>
-lemma "~~((P-->Q) | (Q-->P))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-text\<open>~~17\<close>
-lemma "~~(((P & (Q-->R))-->S) <-> ((~P | Q | S) & (~P | ~R | S)))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-
-text\<open>Dijkstra's "Golden Rule"\<close>
-lemma "(P&Q) <-> P <-> Q <-> (P|Q)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "(Q \<longrightarrow> R) \<longrightarrow> (R \<longrightarrow> P \<and> Q) \<longrightarrow> (P \<longrightarrow> (Q \<or> R)) \<longrightarrow> (P \<longleftrightarrow> Q)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 
-subsection\<open>****Examples with quantifiers****\<close>
+subsection\<open>11. Proved in each direction (incorrectly, says Pelletier!!)\<close>
+
+lemma "P \<longleftrightarrow> P"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+text\<open>\<not>\<not>12. Dijkstra's law\<close>
+lemma "\<not> \<not> (((P \<longleftrightarrow> Q) \<longleftrightarrow> R) \<longleftrightarrow> (P \<longleftrightarrow> (Q \<longleftrightarrow> R)))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+lemma "((P \<longleftrightarrow> Q) \<longleftrightarrow> R) \<longrightarrow> \<not> \<not> (P \<longleftrightarrow> (Q \<longleftrightarrow> R))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+text\<open>13. Distributive law\<close>
+lemma "P \<or> (Q \<and> R) \<longleftrightarrow> (P \<or> Q) \<and> (P \<or> R)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+text\<open>\<not>\<not>14\<close>
+lemma "\<not> \<not> ((P \<longleftrightarrow> Q) \<longleftrightarrow> ((Q \<or> \<not> P) \<and> (\<not> Q \<or> P)))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+text\<open>\<not>\<not>15\<close>
+lemma "\<not> \<not> ((P \<longrightarrow> Q) \<longleftrightarrow> (\<not> P \<or> Q))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+text\<open>\<not>\<not>16\<close>
+lemma "\<not> \<not> ((P \<longrightarrow> Q) \<or> (Q \<longrightarrow> P))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+text\<open>\<not>\<not>17\<close>
+lemma "\<not> \<not> (((P \<and> (Q \<longrightarrow> R)) \<longrightarrow> S) \<longleftrightarrow> ((\<not> P \<or> Q \<or> S) \<and> (\<not> P \<or> \<not> R \<or> S)))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+
+text \<open>Dijkstra's ``Golden Rule''\<close>
+lemma "(P \<and> Q) \<longleftrightarrow> P \<longleftrightarrow> Q \<longleftrightarrow> (P \<or> Q)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 
-subsection\<open>The converse is classical in the following implications...\<close>
+section \<open>Examples with quantifiers\<close>
 
-lemma "(EX x. P(x)-->Q)  -->  (ALL x. P(x)) --> Q"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+subsection \<open>The converse is classical in the following implications \dots\<close>
 
-lemma "((ALL x. P(x))-->Q) --> ~ (ALL x. P(x) & ~Q)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "(\<exists>x. P(x) \<longrightarrow> Q) \<longrightarrow> (\<forall>x. P(x)) \<longrightarrow> Q"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-lemma "((ALL x. ~P(x))-->Q)  -->  ~ (ALL x. ~ (P(x)|Q))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "((\<forall>x. P(x)) \<longrightarrow> Q) \<longrightarrow> \<not> (\<forall>x. P(x) \<and> \<not> Q)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-lemma "(ALL x. P(x)) | Q  -->  (ALL x. P(x) | Q)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "((\<forall>x. \<not> P(x)) \<longrightarrow> Q) \<longrightarrow> \<not> (\<forall>x. \<not> (P(x) \<or> Q))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-lemma "(EX x. P --> Q(x)) --> (P --> (EX x. Q(x)))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "(\<forall>x. P(x)) \<or> Q \<longrightarrow> (\<forall>x. P(x) \<or> Q)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-
-
-
-subsection\<open>The following are not constructively valid!\<close>
-text\<open>The attempt to prove them terminates quickly!\<close>
-
-lemma "((ALL x. P(x))-->Q) --> (EX x. P(x)-->Q)"
-apply (tactic\<open>IntPr.fast_tac @{context} 1\<close> | -)
-apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
-oops
-
-lemma "(P --> (EX x. Q(x))) --> (EX x. P-->Q(x))"
-apply (tactic\<open>IntPr.fast_tac @{context} 1\<close> | -)
-apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
-oops
-
-lemma "(ALL x. P(x) | Q) --> ((ALL x. P(x)) | Q)"
-apply (tactic\<open>IntPr.fast_tac @{context} 1\<close> | -)
-apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
-oops
-
-lemma "(ALL x. ~~P(x)) --> ~~(ALL x. P(x))"
-apply (tactic\<open>IntPr.fast_tac @{context} 1\<close> | -)
-apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
-oops
-
-text\<open>Classically but not intuitionistically valid.  Proved by a bug in 1986!\<close>
-lemma "EX x. Q(x) --> (ALL x. Q(x))"
-apply (tactic\<open>IntPr.fast_tac @{context} 1\<close> | -)
-apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
-oops
+lemma "(\<exists>x. P \<longrightarrow> Q(x)) \<longrightarrow> (P \<longrightarrow> (\<exists>x. Q(x)))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 
-subsection\<open>Hard examples with quantifiers\<close>
+subsection \<open>The following are not constructively valid!\<close>
+text \<open>The attempt to prove them terminates quickly!\<close>
 
-text\<open>The ones that have not been proved are not known to be valid!
-  Some will require quantifier duplication -- not currently available\<close>
+lemma "((\<forall>x. P(x)) \<longrightarrow> Q) \<longrightarrow> (\<exists>x. P(x) \<longrightarrow> Q)"
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
+  apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
+  oops
 
-text\<open>~~18\<close>
-lemma "~~(EX y. ALL x. P(y)-->P(x))"
-oops  --\<open>NOT PROVED\<close>
+lemma "(P \<longrightarrow> (\<exists>x. Q(x))) \<longrightarrow> (\<exists>x. P \<longrightarrow> Q(x))"
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
+  apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
+  oops
 
-text\<open>~~19\<close>
-lemma "~~(EX x. ALL y z. (P(y)-->Q(z)) --> (P(x)-->Q(x)))"
-oops  --\<open>NOT PROVED\<close>
+lemma "(\<forall>x. P(x) \<or> Q) \<longrightarrow> ((\<forall>x. P(x)) \<or> Q)"
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
+  apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
+  oops
+
+lemma "(\<forall>x. \<not> \<not> P(x)) \<longrightarrow> \<not> \<not> (\<forall>x. P(x))"
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
+  apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
+  oops
+
+text \<open>Classically but not intuitionistically valid.  Proved by a bug in 1986!\<close>
+lemma "\<exists>x. Q(x) \<longrightarrow> (\<forall>x. Q(x))"
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)?
+  apply (rule asm_rl) --\<open>Checks that subgoals remain: proof failed.\<close>
+  oops
+
+
+subsection \<open>Hard examples with quantifiers\<close>
+
+text \<open>
+  The ones that have not been proved are not known to be valid! Some will
+  require quantifier duplication -- not currently available.
+\<close>
+
+text\<open>\<not>\<not>18\<close>
+lemma "\<not> \<not> (\<exists>y. \<forall>x. P(y) \<longrightarrow> P(x))"
+  oops  -- \<open>NOT PROVED\<close>
+
+text\<open>\<not>\<not>19\<close>
+lemma "\<not> \<not> (\<exists>x. \<forall>y z. (P(y) \<longrightarrow> Q(z)) \<longrightarrow> (P(x) \<longrightarrow> Q(x)))"
+  oops  -- \<open>NOT PROVED\<close>
 
 text\<open>20\<close>
-lemma "(ALL x y. EX z. ALL w. (P(x)&Q(y)-->R(z)&S(w)))
-    --> (EX x y. P(x) & Q(y)) --> (EX z. R(z))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma
+  "(\<forall>x y. \<exists>z. \<forall>w. (P(x) \<and> Q(y) \<longrightarrow> R(z) \<and> S(w)))
+    \<longrightarrow> (\<exists>x y. P(x) \<and> Q(y)) \<longrightarrow> (\<exists>z. R(z))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>21\<close>
-lemma "(EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> ~~(EX x. P<->Q(x))"
-oops --\<open>NOT PROVED; needs quantifier duplication\<close>
+lemma "(\<exists>x. P \<longrightarrow> Q(x)) \<and> (\<exists>x. Q(x) \<longrightarrow> P) \<longrightarrow> \<not> \<not> (\<exists>x. P \<longleftrightarrow> Q(x))"
+  oops -- \<open>NOT PROVED; needs quantifier duplication\<close>
 
 text\<open>22\<close>
-lemma "(ALL x. P <-> Q(x))  -->  (P <-> (ALL x. Q(x)))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "(\<forall>x. P \<longleftrightarrow> Q(x)) \<longrightarrow> (P \<longleftrightarrow> (\<forall>x. Q(x)))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>~~23\<close>
-lemma "~~ ((ALL x. P | Q(x))  <->  (P | (ALL x. Q(x))))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>\<not>\<not>23\<close>
+lemma "\<not> \<not> ((\<forall>x. P \<or> Q(x)) \<longleftrightarrow> (P \<or> (\<forall>x. Q(x))))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>24\<close>
-lemma "~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &
-     (~(EX x. P(x)) --> (EX x. Q(x))) & (ALL x. Q(x)|R(x) --> S(x))
-    --> ~~(EX x. P(x)&R(x))"
-txt\<open>Not clear why @{text fast_tac}, @{text best_tac}, @{text ASTAR} and 
-    @{text ITER_DEEPEN} all take forever\<close>
-apply (tactic\<open>IntPr.safe_tac @{context}\<close>)
-apply (erule impE)
-apply (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma
+  "\<not> (\<exists>x. S(x) \<and> Q(x)) \<and> (\<forall>x. P(x) \<longrightarrow> Q(x) \<or> R(x)) \<and>
+    (\<not> (\<exists>x. P(x)) \<longrightarrow> (\<exists>x. Q(x))) \<and> (\<forall>x. Q(x) \<or> R(x) \<longrightarrow> S(x))
+    \<longrightarrow> \<not> \<not> (\<exists>x. P(x) \<and> R(x))"
+text \<open>
+  Not clear why @{text fast_tac}, @{text best_tac}, @{text ASTAR} and
+  @{text ITER_DEEPEN} all take forever.
+\<close>
+  apply (tactic \<open>IntPr.safe_tac @{context}\<close>)
+  apply (erule impE)
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+  apply (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
+  done
 
 text\<open>25\<close>
-lemma "(EX x. P(x)) &
-        (ALL x. L(x) --> ~ (M(x) & R(x))) &
-        (ALL x. P(x) --> (M(x) & L(x))) &
-        ((ALL x. P(x)-->Q(x)) | (EX x. P(x)&R(x)))
-    --> (EX x. Q(x)&P(x))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma
+  "(\<exists>x. P(x)) \<and>
+      (\<forall>x. L(x) \<longrightarrow> \<not> (M(x) \<and> R(x))) \<and>
+      (\<forall>x. P(x) \<longrightarrow> (M(x) \<and> L(x))) \<and>
+      ((\<forall>x. P(x) \<longrightarrow> Q(x)) \<or> (\<exists>x. P(x) \<and> R(x)))
+    \<longrightarrow> (\<exists>x. Q(x) \<and> P(x))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>~~26\<close>
-lemma "(~~(EX x. p(x)) <-> ~~(EX x. q(x))) &
-      (ALL x. ALL y. p(x) & q(y) --> (r(x) <-> s(y)))
-  --> ((ALL x. p(x)-->r(x)) <-> (ALL x. q(x)-->s(x)))"
-oops  --\<open>NOT PROVED\<close>
+text\<open>\<not>\<not>26\<close>
+lemma
+  "(\<not> \<not> (\<exists>x. p(x)) \<longleftrightarrow> \<not> \<not> (\<exists>x. q(x))) \<and>
+    (\<forall>x. \<forall>y. p(x) \<and> q(y) \<longrightarrow> (r(x) \<longleftrightarrow> s(y)))
+  \<longrightarrow> ((\<forall>x. p(x) \<longrightarrow> r(x)) \<longleftrightarrow> (\<forall>x. q(x) \<longrightarrow> s(x)))"
+  oops  --\<open>NOT PROVED\<close>
 
 text\<open>27\<close>
-lemma "(EX x. P(x) & ~Q(x)) &
-              (ALL x. P(x) --> R(x)) &
-              (ALL x. M(x) & L(x) --> P(x)) &
-              ((EX x. R(x) & ~ Q(x)) --> (ALL x. L(x) --> ~ R(x)))
-          --> (ALL x. M(x) --> ~L(x))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma
+  "(\<exists>x. P(x) \<and> \<not> Q(x)) \<and>
+    (\<forall>x. P(x) \<longrightarrow> R(x)) \<and>
+    (\<forall>x. M(x) \<and> L(x) \<longrightarrow> P(x)) \<and>
+    ((\<exists>x. R(x) \<and> \<not> Q(x)) \<longrightarrow> (\<forall>x. L(x) \<longrightarrow> \<not> R(x)))
+  \<longrightarrow> (\<forall>x. M(x) \<longrightarrow> \<not> L(x))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>~~28.  AMENDED\<close>
-lemma "(ALL x. P(x) --> (ALL x. Q(x))) &
-        (~~(ALL x. Q(x)|R(x)) --> (EX x. Q(x)&S(x))) &
-        (~~(EX x. S(x)) --> (ALL x. L(x) --> M(x)))
-    --> (ALL x. P(x) & L(x) --> M(x))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>\<not>\<not>28. AMENDED\<close>
+lemma
+  "(\<forall>x. P(x) \<longrightarrow> (\<forall>x. Q(x))) \<and>
+      (\<not> \<not> (\<forall>x. Q(x) \<or> R(x)) \<longrightarrow> (\<exists>x. Q(x) \<and> S(x))) \<and>
+      (\<not> \<not> (\<exists>x. S(x)) \<longrightarrow> (\<forall>x. L(x) \<longrightarrow> M(x)))
+    \<longrightarrow> (\<forall>x. P(x) \<and> L(x) \<longrightarrow> M(x))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>29.  Essentially the same as Principia Mathematica *11.71\<close>
-lemma "(EX x. P(x)) & (EX y. Q(y))
-    --> ((ALL x. P(x)-->R(x)) & (ALL y. Q(y)-->S(y))   <->
-         (ALL x y. P(x) & Q(y) --> R(x) & S(y)))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>29. Essentially the same as Principia Mathematica *11.71\<close>
+lemma
+  "(\<exists>x. P(x)) \<and> (\<exists>y. Q(y))
+    \<longrightarrow> ((\<forall>x. P(x) \<longrightarrow> R(x)) \<and> (\<forall>y. Q(y) \<longrightarrow> S(y)) \<longleftrightarrow>
+      (\<forall>x y. P(x) \<and> Q(y) \<longrightarrow> R(x) \<and> S(y)))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>~~30\<close>
-lemma "(ALL x. (P(x) | Q(x)) --> ~ R(x)) &
-        (ALL x. (Q(x) --> ~ S(x)) --> P(x) & R(x))
-    --> (ALL x. ~~S(x))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>\<not>\<not>30\<close>
+lemma
+  "(\<forall>x. (P(x) \<or> Q(x)) \<longrightarrow> \<not> R(x)) \<and>
+      (\<forall>x. (Q(x) \<longrightarrow> \<not> S(x)) \<longrightarrow> P(x) \<and> R(x))
+    \<longrightarrow> (\<forall>x. \<not> \<not> S(x))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>31\<close>
-lemma "~(EX x. P(x) & (Q(x) | R(x))) &
-        (EX x. L(x) & P(x)) &
-        (ALL x. ~ R(x) --> M(x))
-    --> (EX x. L(x) & M(x))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma
+  "\<not> (\<exists>x. P(x) \<and> (Q(x) \<or> R(x))) \<and>
+      (\<exists>x. L(x) \<and> P(x)) \<and>
+      (\<forall>x. \<not> R(x) \<longrightarrow> M(x))
+  \<longrightarrow> (\<exists>x. L(x) \<and> M(x))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>32\<close>
-lemma "(ALL x. P(x) & (Q(x)|R(x))-->S(x)) &
-        (ALL x. S(x) & R(x) --> L(x)) &
-        (ALL x. M(x) --> R(x))
-    --> (ALL x. P(x) & M(x) --> L(x))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma
+  "(\<forall>x. P(x) \<and> (Q(x) \<or> R(x)) \<longrightarrow> S(x)) \<and>
+    (\<forall>x. S(x) \<and> R(x) \<longrightarrow> L(x)) \<and>
+    (\<forall>x. M(x) \<longrightarrow> R(x))
+  \<longrightarrow> (\<forall>x. P(x) \<and> M(x) \<longrightarrow> L(x))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>~~33\<close>
-lemma "(ALL x. ~~(P(a) & (P(x)-->P(b))-->P(c)))  <->
-      (ALL x. ~~((~P(a) | P(x) | P(c)) & (~P(a) | ~P(b) | P(c))))"
-apply (tactic\<open>IntPr.best_tac @{context} 1\<close>)
-done
+text\<open>\<not>\<not>33\<close>
+lemma
+  "(\<forall>x. \<not> \<not> (P(a) \<and> (P(x) \<longrightarrow> P(b)) \<longrightarrow> P(c))) \<longleftrightarrow>
+    (\<forall>x. \<not> \<not> ((\<not> P(a) \<or> P(x) \<or> P(c)) \<and> (\<not> P(a) \<or> \<not> P(b) \<or> P(c))))"
+  apply (tactic \<open>IntPr.best_tac @{context} 1\<close>)
+  done
 
 
 text\<open>36\<close>
-lemma "(ALL x. EX y. J(x,y)) &
-      (ALL x. EX y. G(x,y)) &
-      (ALL x y. J(x,y) | G(x,y) --> (ALL z. J(y,z) | G(y,z) --> H(x,z)))
-  --> (ALL x. EX y. H(x,y))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma
+  "(\<forall>x. \<exists>y. J(x,y)) \<and>
+    (\<forall>x. \<exists>y. G(x,y)) \<and>
+    (\<forall>x y. J(x,y) \<or> G(x,y) \<longrightarrow> (\<forall>z. J(y,z) \<or> G(y,z) \<longrightarrow> H(x,z)))
+  \<longrightarrow> (\<forall>x. \<exists>y. H(x,y))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>37\<close>
-lemma "(ALL z. EX w. ALL x. EX y.
-           ~~(P(x,z)-->P(y,w)) & P(y,z) & (P(y,w) --> (EX u. Q(u,w)))) &
-        (ALL x z. ~P(x,z) --> (EX y. Q(y,z))) &
-        (~~(EX x y. Q(x,y)) --> (ALL x. R(x,x)))
-    --> ~~(ALL x. EX y. R(x,y))"
-oops  --\<open>NOT PROVED\<close>
+lemma
+  "(\<forall>z. \<exists>w. \<forall>x. \<exists>y.
+      \<not> \<not> (P(x,z) \<longrightarrow> P(y,w)) \<and> P(y,z) \<and> (P(y,w) \<longrightarrow> (\<exists>u. Q(u,w)))) \<and>
+        (\<forall>x z. \<not> P(x,z) \<longrightarrow> (\<exists>y. Q(y,z))) \<and>
+        (\<not> \<not> (\<exists>x y. Q(x,y)) \<longrightarrow> (\<forall>x. R(x,x)))
+    \<longrightarrow> \<not> \<not> (\<forall>x. \<exists>y. R(x,y))"
+  oops  --\<open>NOT PROVED\<close>
 
 text\<open>39\<close>
-lemma "~ (EX x. ALL y. F(y,x) <-> ~F(y,y))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "\<not> (\<exists>x. \<forall>y. F(y,x) \<longleftrightarrow> \<not> F(y,y))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
-text\<open>40.  AMENDED\<close>
-lemma "(EX y. ALL x. F(x,y) <-> F(x,x)) -->
-              ~(ALL x. EX y. ALL z. F(z,y) <-> ~ F(z,x))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text\<open>40. AMENDED\<close>
+lemma
+  "(\<exists>y. \<forall>x. F(x,y) \<longleftrightarrow> F(x,x)) \<longrightarrow>
+    \<not> (\<forall>x. \<exists>y. \<forall>z. F(z,y) \<longleftrightarrow> \<not> F(z,x))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>44\<close>
-lemma "(ALL x. f(x) -->
-              (EX y. g(y) & h(x,y) & (EX y. g(y) & ~ h(x,y))))  &
-              (EX x. j(x) & (ALL y. g(y) --> h(x,y)))
-              --> (EX x. j(x) & ~f(x))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma
+  "(\<forall>x. f(x) \<longrightarrow>
+    (\<exists>y. g(y) \<and> h(x,y) \<and> (\<exists>y. g(y) \<and> \<not> h(x,y)))) \<and>
+    (\<exists>x. j(x) \<and> (\<forall>y. g(y) \<longrightarrow> h(x,y)))
+    \<longrightarrow> (\<exists>x. j(x) \<and> \<not> f(x))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>48\<close>
-lemma "(a=b | c=d) & (a=c | b=d) --> a=d | b=c"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "(a = b \<or> c = d) \<and> (a = c \<or> b = d) \<longrightarrow> a = d \<or> b = c"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>51\<close>
-lemma "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->
-     (EX z. ALL x. EX w. (ALL y. P(x,y) <-> y=w) <-> x=z)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma
+  "(\<exists>z w. \<forall>x y. P(x,y) \<longleftrightarrow> (x = z \<and> y = w)) \<longrightarrow>
+    (\<exists>z. \<forall>x. \<exists>w. (\<forall>y. P(x,y) \<longleftrightarrow> y = w) \<longleftrightarrow> x = z)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>52\<close>
-text\<open>Almost the same as 51.\<close>
-lemma "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->
-     (EX w. ALL y. EX z. (ALL x. P(x,y) <-> x=z) <-> y=w)"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+text \<open>Almost the same as 51.\<close>
+lemma
+  "(\<exists>z w. \<forall>x y. P(x,y) \<longleftrightarrow> (x = z \<and> y = w)) \<longrightarrow>
+    (\<exists>w. \<forall>y. \<exists>z. (\<forall>x. P(x,y) \<longleftrightarrow> x = z) \<longleftrightarrow> y = w)"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>56\<close>
-lemma "(ALL x. (EX y. P(y) & x=f(y)) --> P(x)) <-> (ALL x. P(x) --> P(f(x)))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "(\<forall>x. (\<exists>y. P(y) \<and> x = f(y)) \<longrightarrow> P(x)) \<longleftrightarrow> (\<forall>x. P(x) \<longrightarrow> P(f(x)))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>57\<close>
-lemma "P(f(a,b), f(b,c)) & P(f(b,c), f(a,c)) &
-     (ALL x y z. P(x,y) & P(y,z) --> P(x,z))    -->   P(f(a,b), f(a,c))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma
+  "P(f(a,b), f(b,c)) \<and> P(f(b,c), f(a,c)) \<and>
+    (\<forall>x y z. P(x,y) \<and> P(y,z) \<longrightarrow> P(x,z)) \<longrightarrow> P(f(a,b), f(a,c))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 text\<open>60\<close>
-lemma "ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))"
-by (tactic\<open>IntPr.fast_tac @{context} 1\<close>)
+lemma "\<forall>x. P(x,f(x)) \<longleftrightarrow> (\<exists>y. (\<forall>z. P(z,y) \<longrightarrow> P(z,f(x))) \<and> P(x,y))"
+  by (tactic \<open>IntPr.fast_tac @{context} 1\<close>)
 
 end
-

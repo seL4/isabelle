@@ -9,109 +9,112 @@ theory Propositional_Int
 imports IFOL
 begin
 
-text \<open>commutative laws of @{text "&"} and @{text "|"}\<close>
+text \<open>commutative laws of @{text "\<and>"} and @{text "\<or>"}\<close>
 
-lemma "P & Q  -->  Q & P"
+lemma "P \<and> Q \<longrightarrow> Q \<and> P"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma "P | Q  -->  Q | P"
-  by (tactic "IntPr.fast_tac @{context} 1")
-
-
-text \<open>associative laws of @{text "&"} and @{text "|"}\<close>
-lemma "(P & Q) & R  -->  P & (Q & R)"
-  by (tactic "IntPr.fast_tac @{context} 1")
-
-lemma "(P | Q) | R  -->  P | (Q | R)"
+lemma "P \<or> Q \<longrightarrow> Q \<or> P"
   by (tactic "IntPr.fast_tac @{context} 1")
 
 
-text \<open>distributive laws of @{text "&"} and @{text "|"}\<close>
-lemma "(P & Q) | R  --> (P | R) & (Q | R)"
+text \<open>associative laws of @{text "\<and>"} and @{text "\<or>"}\<close>
+lemma "(P \<and> Q) \<and> R \<longrightarrow> P \<and> (Q \<and> R)"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma "(P | R) & (Q | R)  --> (P & Q) | R"
+lemma "(P \<or> Q) \<or> R \<longrightarrow> P \<or> (Q \<or> R)"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma "(P | Q) & R  --> (P & R) | (Q & R)"
+
+text \<open>distributive laws of @{text "\<and>"} and @{text "\<or>"}\<close>
+lemma "(P \<and> Q) \<or> R \<longrightarrow> (P \<or> R) \<and> (Q \<or> R)"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma "(P & R) | (Q & R)  --> (P | Q) & R"
+lemma "(P \<or> R) \<and> (Q \<or> R) \<longrightarrow> (P \<and> Q) \<or> R"
+  by (tactic "IntPr.fast_tac @{context} 1")
+
+lemma "(P \<or> Q) \<and> R \<longrightarrow> (P \<and> R) \<or> (Q \<and> R)"
+  by (tactic "IntPr.fast_tac @{context} 1")
+
+lemma "(P \<and> R) \<or> (Q \<and> R) \<longrightarrow> (P \<or> Q) \<and> R"
   by (tactic "IntPr.fast_tac @{context} 1")
 
 
 text \<open>Laws involving implication\<close>
 
-lemma "(P-->R) & (Q-->R) <-> (P|Q --> R)"
+lemma "(P \<longrightarrow> R) \<and> (Q \<longrightarrow> R) \<longleftrightarrow> (P \<or> Q \<longrightarrow> R)"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma "(P & Q --> R) <-> (P--> (Q-->R))"
+lemma "(P \<and> Q \<longrightarrow> R) \<longleftrightarrow> (P \<longrightarrow> (Q \<longrightarrow> R))"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma "((P-->R)-->R) --> ((Q-->R)-->R) --> (P&Q-->R) --> R"
+lemma "((P \<longrightarrow> R) \<longrightarrow> R) \<longrightarrow> ((Q \<longrightarrow> R) \<longrightarrow> R) \<longrightarrow> (P \<and> Q \<longrightarrow> R) \<longrightarrow> R"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma "~(P-->R) --> ~(Q-->R) --> ~(P&Q-->R)"
+lemma "\<not> (P \<longrightarrow> R) \<longrightarrow> \<not> (Q \<longrightarrow> R) \<longrightarrow> \<not> (P \<and> Q \<longrightarrow> R)"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma "(P --> Q & R) <-> (P-->Q)  &  (P-->R)"
+lemma "(P \<longrightarrow> Q \<and> R) \<longleftrightarrow> (P \<longrightarrow> Q) \<and> (P \<longrightarrow> R)"
   by (tactic "IntPr.fast_tac @{context} 1")
 
 
 text \<open>Propositions-as-types\<close>
 
 -- \<open>The combinator K\<close>
-lemma "P --> (Q --> P)"
+lemma "P \<longrightarrow> (Q \<longrightarrow> P)"
   by (tactic "IntPr.fast_tac @{context} 1")
 
 -- \<open>The combinator S\<close>
-lemma "(P-->Q-->R)  --> (P-->Q) --> (P-->R)"
+lemma "(P \<longrightarrow> Q \<longrightarrow> R) \<longrightarrow> (P \<longrightarrow> Q) \<longrightarrow> (P \<longrightarrow> R)"
   by (tactic "IntPr.fast_tac @{context} 1")
 
 
 -- \<open>Converse is classical\<close>
-lemma "(P-->Q) | (P-->R)  -->  (P --> Q | R)"
+lemma "(P \<longrightarrow> Q) \<or> (P \<longrightarrow> R) \<longrightarrow> (P \<longrightarrow> Q \<or> R)"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma "(P-->Q)  -->  (~Q --> ~P)"
+lemma "(P \<longrightarrow> Q) \<longrightarrow> (\<not> Q \<longrightarrow> \<not> P)"
   by (tactic "IntPr.fast_tac @{context} 1")
 
 
 text \<open>Schwichtenberg's examples (via T. Nipkow)\<close>
 
-lemma stab_imp: "(((Q-->R)-->R)-->Q) --> (((P-->Q)-->R)-->R)-->P-->Q"
+lemma stab_imp: "(((Q \<longrightarrow> R) \<longrightarrow> R) \<longrightarrow> Q) \<longrightarrow> (((P \<longrightarrow> Q) \<longrightarrow> R) \<longrightarrow> R) \<longrightarrow> P \<longrightarrow> Q"
   by (tactic "IntPr.fast_tac @{context} 1")
 
 lemma stab_to_peirce:
-  "(((P --> R) --> R) --> P) --> (((Q --> R) --> R) --> Q)  
-                              --> ((P --> Q) --> P) --> P"
+  "(((P \<longrightarrow> R) \<longrightarrow> R) \<longrightarrow> P) \<longrightarrow> (((Q \<longrightarrow> R) \<longrightarrow> R) \<longrightarrow> Q)
+    \<longrightarrow> ((P \<longrightarrow> Q) \<longrightarrow> P) \<longrightarrow> P"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma peirce_imp1: "(((Q --> R) --> Q) --> Q)  
-                --> (((P --> Q) --> R) --> P --> Q) --> P --> Q"
-  by (tactic "IntPr.fast_tac @{context} 1")
-  
-lemma peirce_imp2: "(((P --> R) --> P) --> P) --> ((P --> Q --> R) --> P) --> P"
+lemma peirce_imp1:
+  "(((Q \<longrightarrow> R) \<longrightarrow> Q) \<longrightarrow> Q)
+    \<longrightarrow> (((P \<longrightarrow> Q) \<longrightarrow> R) \<longrightarrow> P \<longrightarrow> Q) \<longrightarrow> P \<longrightarrow> Q"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma mints: "((((P --> Q) --> P) --> P) --> Q) --> Q"
+lemma peirce_imp2: "(((P \<longrightarrow> R) \<longrightarrow> P) \<longrightarrow> P) \<longrightarrow> ((P \<longrightarrow> Q \<longrightarrow> R) \<longrightarrow> P) \<longrightarrow> P"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma mints_solovev: "(P --> (Q --> R) --> Q) --> ((P --> Q) --> R) --> R"
+lemma mints: "((((P \<longrightarrow> Q) \<longrightarrow> P) \<longrightarrow> P) \<longrightarrow> Q) \<longrightarrow> Q"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma tatsuta: "(((P7 --> P1) --> P10) --> P4 --> P5)  
-  --> (((P8 --> P2) --> P9) --> P3 --> P10)  
-  --> (P1 --> P8) --> P6 --> P7  
-  --> (((P3 --> P2) --> P9) --> P4)  
-  --> (P1 --> P3) --> (((P6 --> P1) --> P2) --> P9) --> P5"
+lemma mints_solovev: "(P \<longrightarrow> (Q \<longrightarrow> R) \<longrightarrow> Q) \<longrightarrow> ((P \<longrightarrow> Q) \<longrightarrow> R) \<longrightarrow> R"
   by (tactic "IntPr.fast_tac @{context} 1")
 
-lemma tatsuta1: "(((P8 --> P2) --> P9) --> P3 --> P10)  
-  --> (((P3 --> P2) --> P9) --> P4)  
-  --> (((P6 --> P1) --> P2) --> P9)  
-  --> (((P7 --> P1) --> P10) --> P4 --> P5)  
-  --> (P1 --> P3) --> (P1 --> P8) --> P6 --> P7 --> P5"
+lemma tatsuta:
+  "(((P7 \<longrightarrow> P1) \<longrightarrow> P10) \<longrightarrow> P4 \<longrightarrow> P5)
+  \<longrightarrow> (((P8 \<longrightarrow> P2) \<longrightarrow> P9) \<longrightarrow> P3 \<longrightarrow> P10)
+  \<longrightarrow> (P1 \<longrightarrow> P8) \<longrightarrow> P6 \<longrightarrow> P7
+  \<longrightarrow> (((P3 \<longrightarrow> P2) \<longrightarrow> P9) \<longrightarrow> P4)
+  \<longrightarrow> (P1 \<longrightarrow> P3) \<longrightarrow> (((P6 \<longrightarrow> P1) \<longrightarrow> P2) \<longrightarrow> P9) \<longrightarrow> P5"
+  by (tactic "IntPr.fast_tac @{context} 1")
+
+lemma tatsuta1:
+  "(((P8 \<longrightarrow> P2) \<longrightarrow> P9) \<longrightarrow> P3 \<longrightarrow> P10)
+  \<longrightarrow> (((P3 \<longrightarrow> P2) \<longrightarrow> P9) \<longrightarrow> P4)
+  \<longrightarrow> (((P6 \<longrightarrow> P1) \<longrightarrow> P2) \<longrightarrow> P9)
+  \<longrightarrow> (((P7 \<longrightarrow> P1) \<longrightarrow> P10) \<longrightarrow> P4 \<longrightarrow> P5)
+  \<longrightarrow> (P1 \<longrightarrow> P3) \<longrightarrow> (P1 \<longrightarrow> P8) \<longrightarrow> P6 \<longrightarrow> P7 \<longrightarrow> P5"
   by (tactic "IntPr.fast_tac @{context} 1")
 
 end
