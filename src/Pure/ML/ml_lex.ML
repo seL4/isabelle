@@ -328,10 +328,11 @@ fun gen_read SML pos text =
       |> Source.source Symbol_Pos.stopper
         (Scan.recover (Scan.bulk (!!! "bad input" scan))
           (fn msg => recover msg >> map Antiquote.Text))
-      |> Source.exhaust
-      |> tap (Position.reports o Antiquote.antiq_reports)
-      |> tap (Position.reports_text o maps (fn Antiquote.Text t => [token_report SML t] | _ => []))
-      |> tap (List.app check);
+      |> Source.exhaust;
+    val _ = Position.reports (Antiquote.antiq_reports input);
+    val _ =
+      Position.reports_text (maps (fn Antiquote.Text t => [token_report SML t] | _ => []) input);
+    val _ = List.app check input;
   in input @ termination end;
 
 in

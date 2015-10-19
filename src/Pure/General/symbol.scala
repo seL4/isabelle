@@ -451,6 +451,7 @@ object Symbol
     val bsup_decoded = decode("\\<^bsup>")
     val esup_decoded = decode("\\<^esup>")
     val bold_decoded = decode("\\<^bold>")
+    val emph_decoded = decode("\\<^emph>")
   }
 
 
@@ -533,4 +534,5 @@ object Symbol
   def bsup_decoded: Symbol = symbols.bsup_decoded
   def esup_decoded: Symbol = symbols.esup_decoded
   def bold_decoded: Symbol = symbols.bold_decoded
+  def emph_decoded: Symbol = symbols.emph_decoded
 }

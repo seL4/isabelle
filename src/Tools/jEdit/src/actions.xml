@@ -87,6 +87,11 @@
 	    isabelle.jedit.Isabelle.control_bold(textArea);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.control-emph">
+	  <CODE>
+	    isabelle.jedit.Isabelle.control_emph(textArea);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.control-reset">
 	  <CODE>
 	    isabelle.jedit.Isabelle.control_reset(textArea);

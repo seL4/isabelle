@@ -312,6 +312,9 @@ object Isabelle
   def control_bold(text_area: JEditTextArea)
   { Token_Markup.edit_control_style(text_area, Symbol.bold_decoded) }
 
+  def control_emph(text_area: JEditTextArea)
+  { Token_Markup.edit_control_style(text_area, Symbol.emph_decoded) }
+
   def control_reset(text_area: JEditTextArea)
   { Token_Markup.edit_control_style(text_area, "") }
 

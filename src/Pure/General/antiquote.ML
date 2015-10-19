@@ -84,15 +84,15 @@ val scan_txt =
 
 val scan_antiq_body =
   Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
-  Scan.trace (Symbol_Pos.scan_cartouche err_prefix) >> #2 ||
+  Symbol_Pos.scan_cartouche err_prefix ||
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.not_eof s) >> single;
 
 in
 
 val scan_control =
   Scan.one (Symbol.is_control o Symbol_Pos.symbol) --
-  Scan.trace (Symbol_Pos.scan_cartouche err_prefix) >>
-    (fn ((control, pos), (_, body)) =>
+  Symbol_Pos.scan_cartouche err_prefix >>
+    (fn ((control, pos), body) =>
       let
         val Symbol.Control name = Symbol.decode control;
         val range = Symbol_Pos.range ((control, pos) :: body);
@@ -109,7 +109,7 @@ val scan_antiq =
        body = body});
 
 val scan_antiquote =
-  scan_control >> Control || scan_antiq >> Antiq || scan_txt >> Text;
+  scan_txt >> Text || scan_control >> Control || scan_antiq >> Antiq;
 
 end;
 
