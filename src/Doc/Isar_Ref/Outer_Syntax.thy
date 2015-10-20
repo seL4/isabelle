@@ -39,8 +39,8 @@ section \<open>Commands\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def "print_commands"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
-    @{command_def "help"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def "print_commands"}\<open>\<^sup>*\<close> & : & \<open>any \<rightarrow>\<close> \\
+    @{command_def "help"}\<open>\<^sup>*\<close> & : & \<open>any \<rightarrow>\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -50,7 +50,7 @@ text \<open>
   \<^descr> @{command "print_commands"} prints all outer syntax keywords
   and commands.
 
-  \<^descr> @{command "help"}~@{text "pats"} retrieves outer syntax
+  \<^descr> @{command "help"}~\<open>pats\<close> retrieves outer syntax
   commands according to the specified name patterns.
 \<close>
 
@@ -101,50 +101,49 @@ text \<open>The outer lexical syntax consists of three main categories of
 
   \begin{center}
   \begin{supertabular}{rcl}
-    @{syntax_def ident} & = & @{text "letter (subscript\<^sup>? quasiletter)\<^sup>*"} \\
-    @{syntax_def longident} & = & @{text "ident("}@{verbatim "."}@{text "ident)\<^sup>+"} \\
-    @{syntax_def symident} & = & @{text "sym\<^sup>+  |  "}@{verbatim \<open>\\<close>}@{verbatim "<"}@{text ident}@{verbatim ">"} \\
-    @{syntax_def nat} & = & @{text "digit\<^sup>+"} \\
-    @{syntax_def float} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
-    @{syntax_def var} & = & @{verbatim "?"}@{text "ident  |  "}@{verbatim "?"}@{text ident}@{verbatim "."}@{text nat} \\
-    @{syntax_def typefree} & = & @{verbatim "'"}@{text ident} \\
-    @{syntax_def typevar} & = & @{verbatim "?"}@{text "typefree  |  "}@{verbatim "?"}@{text typefree}@{verbatim "."}@{text nat} \\
-    @{syntax_def string} & = & @{verbatim \<open>"\<close>} @{text "\<dots>"} @{verbatim \<open>"\<close>} \\
-    @{syntax_def altstring} & = & @{verbatim "`"} @{text "\<dots>"} @{verbatim "`"} \\
-    @{syntax_def cartouche} & = & @{verbatim "\<open>"} @{text "\<dots>"} @{verbatim "\<close>"} \\
-    @{syntax_def verbatim} & = & @{verbatim "{*"} @{text "\<dots>"} @{verbatim "*}"} \\[1ex]
+    @{syntax_def ident} & = & \<open>letter (subscript\<^sup>? quasiletter)\<^sup>*\<close> \\
+    @{syntax_def longident} & = & \<open>ident(\<close>@{verbatim "."}\<open>ident)\<^sup>+\<close> \\
+    @{syntax_def symident} & = & \<open>sym\<^sup>+  |  \<close>@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>ident\<close>@{verbatim ">"} \\
+    @{syntax_def nat} & = & \<open>digit\<^sup>+\<close> \\
+    @{syntax_def float} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}\<open>  |  \<close>@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
+    @{syntax_def var} & = & @{verbatim "?"}\<open>ident  |  \<close>@{verbatim "?"}\<open>ident\<close>@{verbatim "."}\<open>nat\<close> \\
+    @{syntax_def typefree} & = & @{verbatim "'"}\<open>ident\<close> \\
+    @{syntax_def typevar} & = & @{verbatim "?"}\<open>typefree  |  \<close>@{verbatim "?"}\<open>typefree\<close>@{verbatim "."}\<open>nat\<close> \\
+    @{syntax_def string} & = & @{verbatim \<open>"\<close>} \<open>\<dots>\<close> @{verbatim \<open>"\<close>} \\
+    @{syntax_def altstring} & = & @{verbatim "`"} \<open>\<dots>\<close> @{verbatim "`"} \\
+    @{syntax_def cartouche} & = & @{verbatim "\<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\
+    @{syntax_def verbatim} & = & @{verbatim "{*"} \<open>\<dots>\<close> @{verbatim "*}"} \\[1ex]
 
-    @{text letter} & = & @{text "latin  |  "}@{verbatim \<open>\\<close>}@{verbatim "<"}@{text latin}@{verbatim ">"}@{text "  |  "}@{verbatim \<open>\\<close>}@{verbatim "<"}@{text "latin latin"}@{verbatim ">"}@{text "  |  greek  |"} \\
-    @{text subscript} & = & @{verbatim "\<^sub>"} \\
-    @{text quasiletter} & = & @{text "letter  |  digit  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "'"} \\
-    @{text latin} & = & @{verbatim a}@{text "  | \<dots> |  "}@{verbatim z}@{text "  |  "}@{verbatim A}@{text "  |  \<dots> |  "}@{verbatim Z} \\
-    @{text digit} & = & @{verbatim "0"}@{text "  |  \<dots> |  "}@{verbatim "9"} \\
-    @{text sym} & = & @{verbatim "!"}@{text "  |  "}@{verbatim "#"}@{text "  |  "}@{verbatim "$"}@{text "  |  "}@{verbatim "%"}@{text "  |  "}@{verbatim "&"}@{text "  |  "}@{verbatim "*"}@{text "  |  "}@{verbatim "+"}@{text "  |  "}@{verbatim "-"}@{text "  |  "}@{verbatim "/"}@{text "  |"} \\
-    & & @{verbatim "<"}@{text "  |  "}@{verbatim "="}@{text "  |  "}@{verbatim ">"}@{text "  |  "}@{verbatim "?"}@{text "  |  "}@{verbatim "@"}@{text "  |  "}@{verbatim "^"}@{text "  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "|"}@{text "  |  "}@{verbatim "~"} \\
-    @{text greek} & = & @{verbatim "\<alpha>"}@{text "  |  "}@{verbatim "\<beta>"}@{text "  |  "}@{verbatim "\<gamma>"}@{text "  |  "}@{verbatim "\<delta>"}@{text "  |"} \\
-          &   & @{verbatim "\<epsilon>"}@{text "  |  "}@{verbatim "\<zeta>"}@{text "  |  "}@{verbatim "\<eta>"}@{text "  |  "}@{verbatim "\<theta>"}@{text "  |"} \\
-          &   & @{verbatim "\<iota>"}@{text "  |  "}@{verbatim "\<kappa>"}@{text "  |  "}@{verbatim "\<mu>"}@{text "  |  "}@{verbatim "\<nu>"}@{text "  |"} \\
-          &   & @{verbatim "\<xi>"}@{text "  |  "}@{verbatim "\<pi>"}@{text "  |  "}@{verbatim "\<rho>"}@{text "  |  "}@{verbatim "\<sigma>"}@{text "  |  "}@{verbatim "\<tau>"}@{text "  |"} \\
-          &   & @{verbatim "\<upsilon>"}@{text "  |  "}@{verbatim "\<phi>"}@{text "  |  "}@{verbatim "\<chi>"}@{text "  |  "}@{verbatim "\<psi>"}@{text "  |"} \\
-          &   & @{verbatim "\<omega>"}@{text "  |  "}@{verbatim "\<Gamma>"}@{text "  |  "}@{verbatim "\<Delta>"}@{text "  |  "}@{verbatim "\<Theta>"}@{text "  |"} \\
-          &   & @{verbatim "\<Lambda>"}@{text "  |  "}@{verbatim "\<Xi>"}@{text "  |  "}@{verbatim "\<Pi>"}@{text "  |  "}@{verbatim "\<Sigma>"}@{text "  |"} \\
-          &   & @{verbatim "\<Upsilon>"}@{text "  |  "}@{verbatim "\<Phi>"}@{text "  |  "}@{verbatim "\<Psi>"}@{text "  |  "}@{verbatim "\<Omega>"} \\
+    \<open>letter\<close> & = & \<open>latin  |  \<close>@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>latin\<close>@{verbatim ">"}\<open>  |  \<close>@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>latin latin\<close>@{verbatim ">"}\<open>  |  greek  |\<close> \\
+    \<open>subscript\<close> & = & @{verbatim "\<^sub>"} \\
+    \<open>quasiletter\<close> & = & \<open>letter  |  digit  |  \<close>@{verbatim "_"}\<open>  |  \<close>@{verbatim "'"} \\
+    \<open>latin\<close> & = & @{verbatim a}\<open>  | \<dots> |  \<close>@{verbatim z}\<open>  |  \<close>@{verbatim A}\<open>  |  \<dots> |  \<close>@{verbatim Z} \\
+    \<open>digit\<close> & = & @{verbatim "0"}\<open>  |  \<dots> |  \<close>@{verbatim "9"} \\
+    \<open>sym\<close> & = & @{verbatim "!"}\<open>  |  \<close>@{verbatim "#"}\<open>  |  \<close>@{verbatim "$"}\<open>  |  \<close>@{verbatim "%"}\<open>  |  \<close>@{verbatim "&"}\<open>  |  \<close>@{verbatim "*"}\<open>  |  \<close>@{verbatim "+"}\<open>  |  \<close>@{verbatim "-"}\<open>  |  \<close>@{verbatim "/"}\<open>  |\<close> \\
+    & & @{verbatim "<"}\<open>  |  \<close>@{verbatim "="}\<open>  |  \<close>@{verbatim ">"}\<open>  |  \<close>@{verbatim "?"}\<open>  |  \<close>@{verbatim "@"}\<open>  |  \<close>@{verbatim "^"}\<open>  |  \<close>@{verbatim "_"}\<open>  |  \<close>@{verbatim "|"}\<open>  |  \<close>@{verbatim "~"} \\
+    \<open>greek\<close> & = & @{verbatim "\<alpha>"}\<open>  |  \<close>@{verbatim "\<beta>"}\<open>  |  \<close>@{verbatim "\<gamma>"}\<open>  |  \<close>@{verbatim "\<delta>"}\<open>  |\<close> \\
+          &   & @{verbatim "\<epsilon>"}\<open>  |  \<close>@{verbatim "\<zeta>"}\<open>  |  \<close>@{verbatim "\<eta>"}\<open>  |  \<close>@{verbatim "\<theta>"}\<open>  |\<close> \\
+          &   & @{verbatim "\<iota>"}\<open>  |  \<close>@{verbatim "\<kappa>"}\<open>  |  \<close>@{verbatim "\<mu>"}\<open>  |  \<close>@{verbatim "\<nu>"}\<open>  |\<close> \\
+          &   & @{verbatim "\<xi>"}\<open>  |  \<close>@{verbatim "\<pi>"}\<open>  |  \<close>@{verbatim "\<rho>"}\<open>  |  \<close>@{verbatim "\<sigma>"}\<open>  |  \<close>@{verbatim "\<tau>"}\<open>  |\<close> \\
+          &   & @{verbatim "\<upsilon>"}\<open>  |  \<close>@{verbatim "\<phi>"}\<open>  |  \<close>@{verbatim "\<chi>"}\<open>  |  \<close>@{verbatim "\<psi>"}\<open>  |\<close> \\
+          &   & @{verbatim "\<omega>"}\<open>  |  \<close>@{verbatim "\<Gamma>"}\<open>  |  \<close>@{verbatim "\<Delta>"}\<open>  |  \<close>@{verbatim "\<Theta>"}\<open>  |\<close> \\
+          &   & @{verbatim "\<Lambda>"}\<open>  |  \<close>@{verbatim "\<Xi>"}\<open>  |  \<close>@{verbatim "\<Pi>"}\<open>  |  \<close>@{verbatim "\<Sigma>"}\<open>  |\<close> \\
+          &   & @{verbatim "\<Upsilon>"}\<open>  |  \<close>@{verbatim "\<Phi>"}\<open>  |  \<close>@{verbatim "\<Psi>"}\<open>  |  \<close>@{verbatim "\<Omega>"} \\
   \end{supertabular}
   \end{center}
 
   A @{syntax_ref var} or @{syntax_ref typevar} describes an unknown,
   which is internally a pair of base name and index (ML type @{ML_type
   indexname}).  These components are either separated by a dot as in
-  @{text "?x.1"} or @{text "?x7.3"} or run together as in @{text
-  "?x1"}.  The latter form is possible if the base name does not end
+  \<open>?x.1\<close> or \<open>?x7.3\<close> or run together as in \<open>?x1\<close>.  The latter form is possible if the base name does not end
   with digits.  If the index is 0, it may be dropped altogether:
-  @{text "?x"} and @{text "?x0"} and @{text "?x.0"} all refer to the
-  same unknown, with basename @{text "x"} and index 0.
+  \<open>?x\<close> and \<open>?x0\<close> and \<open>?x.0\<close> all refer to the
+  same unknown, with basename \<open>x\<close> and index 0.
 
   The syntax of @{syntax_ref string} admits any characters, including
   newlines; ``@{verbatim \<open>"\<close>}'' (double-quote) and ``@{verbatim \<open>\\<close>}''
   (backslash) need to be escaped by a backslash; arbitrary
-  character codes may be specified as ``@{verbatim \<open>\\<close>}@{text ddd}'',
+  character codes may be specified as ``@{verbatim \<open>\\<close>}\<open>ddd\<close>'',
   with three decimal digits.  Alternative strings according to
   @{syntax_ref altstring} are analogous, using single back-quotes
   instead.
@@ -155,24 +154,23 @@ text \<open>The outer lexical syntax consists of three main categories of
   do not have this limitation.
 
   A @{syntax_ref cartouche} consists of arbitrary text, with properly
-  balanced blocks of ``@{verbatim "\<open>"}~@{text "\<dots>"}~@{verbatim
+  balanced blocks of ``@{verbatim "\<open>"}~\<open>\<dots>\<close>~@{verbatim
   "\<close>"}''.  Note that the rendering of cartouche delimiters is
-  usually like this: ``@{text "\<open> \<dots> \<close>"}''.
+  usually like this: ``\<open>\<open> \<dots> \<close>\<close>''.
 
-  Source comments take the form @{verbatim "(*"}~@{text
-  "\<dots>"}~@{verbatim "*)"} and may be nested, although the user-interface
+  Source comments take the form @{verbatim "(*"}~\<open>\<dots>\<close>~@{verbatim "*)"} and may be nested, although the user-interface
   might prevent this.  Note that this form indicates source comments
   only, which are stripped after lexical analysis of the input.  The
   Isar syntax also provides proper \<^emph>\<open>document comments\<close> that are
   considered as part of the text (see \secref{sec:comments}).
 
-  Common mathematical symbols such as @{text \<forall>} are represented in
+  Common mathematical symbols such as \<open>\<forall>\<close> are represented in
   Isabelle as @{verbatim \<forall>}.  There are infinitely many Isabelle
   symbols like this, although proper presentation is left to front-end
   tools such as {\LaTeX} or Isabelle/jEdit.  A list of
   predefined Isabelle symbols that work well with these tools is given
   in \appref{app:symbols}.  Note that @{verbatim "\<lambda>"} does not belong
-  to the @{text letter} category, since it is already used differently
+  to the \<open>letter\<close> category, since it is already used differently
   in the Pure term language.\<close>
 
 
@@ -226,8 +224,8 @@ text \<open>The outer lexical syntax (\secref{sec:outer-lex}) admits
 subsection \<open>Comments \label{sec:comments}\<close>
 
 text \<open>Large chunks of plain @{syntax text} are usually given @{syntax
-  verbatim}, i.e.\ enclosed in @{verbatim "{*"}~@{text "\<dots>"}~@{verbatim "*}"},
-  or as @{syntax cartouche} @{text "\<open>\<dots>\<close>"}. For convenience, any of the
+  verbatim}, i.e.\ enclosed in @{verbatim "{*"}~\<open>\<dots>\<close>~@{verbatim "*}"},
+  or as @{syntax cartouche} \<open>\<open>\<dots>\<close>\<close>. For convenience, any of the
   smaller text units conforming to @{syntax nameref} are admitted as well. A
   marginal @{syntax comment} is of the form @{verbatim "--"}~@{syntax text}.
   Any number of these may occur within Isabelle/Isar commands.
@@ -244,8 +242,8 @@ subsection \<open>Type classes, sorts and arities\<close>
 
 text \<open>
   Classes are specified by plain names.  Sorts have a very simple
-  inner syntax, which is either a single class name @{text c} or a
-  list @{text "{c\<^sub>1, \<dots>, c\<^sub>n}"} referring to the
+  inner syntax, which is either a single class name \<open>c\<close> or a
+  list \<open>{c\<^sub>1, \<dots>, c\<^sub>n}\<close> referring to the
   intersection of these classes.  The syntax of type arities is given
   directly at the outer level.
 
@@ -270,8 +268,7 @@ text \<open>
   liberal convention is adopted: quotes may be omitted for any type or
   term that is already atomic at the outer level.  For example, one
   may just write @{verbatim x} instead of quoted @{verbatim \<open>"x"\<close>}.
-  Note that symbolic identifiers (e.g.\ @{verbatim "++"} or @{text
-  "\<forall>"} are available as well, provided these have not been superseded
+  Note that symbolic identifiers (e.g.\ @{verbatim "++"} or \<open>\<forall>\<close> are available as well, provided these have not been superseded
   by commands or other keywords already (such as @{verbatim "="} or
   @{verbatim "+"}).
 
@@ -285,7 +282,7 @@ text \<open>
   \<close>}
 
   Positional instantiations are specified as a sequence of terms, or the
-  placeholder ``@{text _}'' (underscore), which means to skip a position.
+  placeholder ``\<open>_\<close>'' (underscore), which means to skip a position.
 
   @{rail \<open>
     @{syntax_def inst}: '_' | @{syntax term}
@@ -293,8 +290,8 @@ text \<open>
     @{syntax_def insts}: (@{syntax inst} *)
   \<close>}
 
-  Named instantiations are specified as pairs of assignments @{text "v =
-  t"}, which refer to schematic variables in some theorem that is
+  Named instantiations are specified as pairs of assignments \<open>v =
+  t\<close>, which refer to schematic variables in some theorem that is
   instantiated. Both type and terms instantiations are admitted, and
   distinguished by the usual syntax of variable names.
 
@@ -326,7 +323,7 @@ subsection \<open>Term patterns and declarations \label{sec:term-decls}\<close>
 
 text \<open>Wherever explicit propositions (or term fragments) occur in a
   proof text, casual binding of schematic term variables may be given
-  specified via patterns of the form ``@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}''.
+  specified via patterns of the form ``\<open>(\<IS> p\<^sub>1 \<dots> p\<^sub>n)\<close>''.
   This works both for @{syntax term} and @{syntax prop}.
 
   @{rail \<open>
@@ -336,8 +333,8 @@ text \<open>Wherever explicit propositions (or term fragments) occur in a
   \<close>}
 
   \<^medskip>
-  Declarations of local variables @{text "x :: \<tau>"} and
-  logical propositions @{text "a : \<phi>"} represent different views on
+  Declarations of local variables \<open>x :: \<tau>\<close> and
+  logical propositions \<open>a : \<phi>\<close> represent different views on
   the same principle of introducing a local scope.  In practice, one
   may usually omit the typing of @{syntax vars} (due to
   type-inference), and the naming of propositions (due to implicit
@@ -352,8 +349,8 @@ text \<open>Wherever explicit propositions (or term fragments) occur in a
 
   The treatment of multiple declarations corresponds to the
   complementary focus of @{syntax vars} versus @{syntax props}.  In
-  ``@{text "x\<^sub>1 \<dots> x\<^sub>n :: \<tau>"}'' the typing refers to all variables, while
-  in @{text "a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"} the naming refers to all propositions
+  ``\<open>x\<^sub>1 \<dots> x\<^sub>n :: \<tau>\<close>'' the typing refers to all variables, while
+  in \<open>a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n\<close> the naming refers to all propositions
   collectively.  Isar language elements that refer to @{syntax vars}
   or @{syntax props} typically admit separate typings or namings via
   another level of iteration, with explicit @{keyword_ref "and"}
@@ -369,7 +366,7 @@ text \<open>Wherever explicit propositions (or term fragments) occur in a
 
   The category @{syntax "fixes"} is a richer variant of @{syntax vars}: it
   admits specification of mixfix syntax for the entities that are introduced
-  into the context. An optional suffix ``@{keyword "for"}~@{text "fixes"}''
+  into the context. An optional suffix ``@{keyword "for"}~\<open>fixes\<close>''
   is admitted in many situations to indicate a so-called ``eigen-context''
   of a formal element: the result will be exported and thus generalized over
   the given variables.\<close>
@@ -406,13 +403,13 @@ text \<open>Attributes have their own ``semi-inner'' syntax, in the sense
 
   There are three forms of theorem references:
 
-  \<^enum> named facts @{text "a"},
+  \<^enum> named facts \<open>a\<close>,
 
-  \<^enum> selections from named facts @{text "a(i)"} or @{text "a(j - k)"},
+  \<^enum> selections from named facts \<open>a(i)\<close> or \<open>a(j - k)\<close>,
 
   \<^enum> literal fact propositions using token syntax @{syntax_ref altstring}
-  @{verbatim "`"}@{text "\<phi>"}@{verbatim "`"} or @{syntax_ref cartouche}
-  @{text "\<open>\<phi>\<close>"} (see also method @{method_ref fact}).
+  @{verbatim "`"}\<open>\<phi>\<close>@{verbatim "`"} or @{syntax_ref cartouche}
+  \<open>\<open>\<phi>\<close>\<close> (see also method @{method_ref fact}).
 
 
   Any kind of theorem specification may include lists of attributes
@@ -421,8 +418,7 @@ text \<open>Attributes have their own ``semi-inner'' syntax, in the sense
   not stored within the theorem database of the theory or proof
   context, but any given attributes are applied nonetheless.
 
-  An extra pair of brackets around attributes (like ``@{text
-  "[[simproc a]]"}'') abbreviates a theorem reference involving an
+  An extra pair of brackets around attributes (like ``\<open>[[simproc a]]\<close>'') abbreviates a theorem reference involving an
   internal dummy fact, which will be ignored later on.  So only the
   effect of the attribute on the background context will persist.
   This form of in-place declarations is particularly useful with
@@ -454,17 +450,17 @@ section \<open>Diagnostic commands\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def "print_theory"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "print_definitions"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "print_methods"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "print_attributes"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "print_theorems"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "find_theorems"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "find_consts"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "thm_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "unused_thms"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "print_facts"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "print_term_bindings"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_theory"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "print_definitions"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "print_methods"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "print_attributes"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "print_theorems"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "find_theorems"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "find_consts"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "thm_deps"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "unused_thms"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "print_facts"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "print_term_bindings"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -495,73 +491,72 @@ text \<open>
   of rules declared for simplifications.
 
   \<^descr> @{command "print_theory"} prints the main logical content of the
-  background theory; the ``@{text "!"}'' option indicates extra verbosity.
+  background theory; the ``\<open>!\<close>'' option indicates extra verbosity.
 
   \<^descr> @{command "print_definitions"} prints dependencies of definitional
   specifications within the background theory, which may be constants
   \secref{sec:consts} or types (\secref{sec:types-pure},
-  \secref{sec:hol-typedef}); the ``@{text "!"}'' option indicates extra
+  \secref{sec:hol-typedef}); the ``\<open>!\<close>'' option indicates extra
   verbosity.
 
   \<^descr> @{command "print_methods"} prints all proof methods available in the
-  current theory context; the ``@{text "!"}'' option indicates extra
+  current theory context; the ``\<open>!\<close>'' option indicates extra
   verbosity.
 
   \<^descr> @{command "print_attributes"} prints all attributes available in the
-  current theory context; the ``@{text "!"}'' option indicates extra
+  current theory context; the ``\<open>!\<close>'' option indicates extra
   verbosity.
 
   \<^descr> @{command "print_theorems"} prints theorems of the background theory
-  resulting from the last command; the ``@{text "!"}'' option indicates
+  resulting from the last command; the ``\<open>!\<close>'' option indicates
   extra verbosity.
 
   \<^descr> @{command "print_facts"} prints all local facts of the current
-  context, both named and unnamed ones; the ``@{text "!"}'' option indicates
+  context, both named and unnamed ones; the ``\<open>!\<close>'' option indicates
   extra verbosity.
 
   \<^descr> @{command "print_term_bindings"} prints all term bindings that
   are present in the context.
 
-  \<^descr> @{command "find_theorems"}~@{text criteria} retrieves facts
+  \<^descr> @{command "find_theorems"}~\<open>criteria\<close> retrieves facts
   from the theory or proof context matching all of given search
-  criteria.  The criterion @{text "name: p"} selects all theorems
-  whose fully qualified name matches pattern @{text p}, which may
-  contain ``@{text "*"}'' wildcards.  The criteria @{text intro},
-  @{text elim}, and @{text dest} select theorems that match the
+  criteria.  The criterion \<open>name: p\<close> selects all theorems
+  whose fully qualified name matches pattern \<open>p\<close>, which may
+  contain ``\<open>*\<close>'' wildcards.  The criteria \<open>intro\<close>,
+  \<open>elim\<close>, and \<open>dest\<close> select theorems that match the
   current goal as introduction, elimination or destruction rules,
-  respectively.  The criterion @{text "solves"} returns all rules
+  respectively.  The criterion \<open>solves\<close> returns all rules
   that would directly solve the current goal.  The criterion
-  @{text "simp: t"} selects all rewrite rules whose left-hand side
-  matches the given term.  The criterion term @{text t} selects all
-  theorems that contain the pattern @{text t} -- as usual, patterns
-  may contain occurrences of the dummy ``@{text _}'', schematic
+  \<open>simp: t\<close> selects all rewrite rules whose left-hand side
+  matches the given term.  The criterion term \<open>t\<close> selects all
+  theorems that contain the pattern \<open>t\<close> -- as usual, patterns
+  may contain occurrences of the dummy ``\<open>_\<close>'', schematic
   variables, and type constraints.
 
-  Criteria can be preceded by ``@{text "-"}'' to select theorems that
+  Criteria can be preceded by ``\<open>-\<close>'' to select theorems that
   do \<^emph>\<open>not\<close> match. Note that giving the empty list of criteria
   yields \<^emph>\<open>all\<close> currently known facts.  An optional limit for the
   number of printed facts may be given; the default is 40.  By
   default, duplicates are removed from the search result. Use
-  @{text with_dups} to display duplicates.
+  \<open>with_dups\<close> to display duplicates.
 
-  \<^descr> @{command "find_consts"}~@{text criteria} prints all constants
-  whose type meets all of the given criteria. The criterion @{text
-  "strict: ty"} is met by any type that matches the type pattern
-  @{text ty}.  Patterns may contain both the dummy type ``@{text _}''
-  and sort constraints. The criterion @{text ty} is similar, but it
-  also matches against subtypes. The criterion @{text "name: p"} and
-  the prefix ``@{text "-"}'' function as described for @{command
+  \<^descr> @{command "find_consts"}~\<open>criteria\<close> prints all constants
+  whose type meets all of the given criteria. The criterion \<open>strict: ty\<close> is met by any type that matches the type pattern
+  \<open>ty\<close>.  Patterns may contain both the dummy type ``\<open>_\<close>''
+  and sort constraints. The criterion \<open>ty\<close> is similar, but it
+  also matches against subtypes. The criterion \<open>name: p\<close> and
+  the prefix ``\<open>-\<close>'' function as described for @{command
   "find_theorems"}.
 
-  \<^descr> @{command "thm_deps"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}
+  \<^descr> @{command "thm_deps"}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close>
   visualizes dependencies of facts, using Isabelle's graph browser
   tool (see also @{cite "isabelle-system"}).
 
-  \<^descr> @{command "unused_thms"}~@{text "A\<^sub>1 \<dots> A\<^sub>m - B\<^sub>1 \<dots> B\<^sub>n"}
-  displays all theorems that are proved in theories @{text "B\<^sub>1 \<dots> B\<^sub>n"}
-  or their parents but not in @{text "A\<^sub>1 \<dots> A\<^sub>m"} or their parents and
+  \<^descr> @{command "unused_thms"}~\<open>A\<^sub>1 \<dots> A\<^sub>m - B\<^sub>1 \<dots> B\<^sub>n\<close>
+  displays all theorems that are proved in theories \<open>B\<^sub>1 \<dots> B\<^sub>n\<close>
+  or their parents but not in \<open>A\<^sub>1 \<dots> A\<^sub>m\<close> or their parents and
   that are never used.
-  If @{text n} is @{text 0}, the end of the range of theories
+  If \<open>n\<close> is \<open>0\<close>, the end of the range of theories
   defaults to the current theory. If no range is specified,
   only the unused theorems in the current theory are displayed.
 \<close>

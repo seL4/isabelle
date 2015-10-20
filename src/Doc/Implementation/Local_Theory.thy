@@ -13,11 +13,11 @@ text \<open>
   context\<close>.
 
   The target is usually derived from the background theory by adding
-  local @{text "\<FIX>"} and @{text "\<ASSUME>"} elements, plus
+  local \<open>\<FIX>\<close> and \<open>\<ASSUME>\<close> elements, plus
   suitable modifications of non-logical context data (e.g.\ a special
   type-checking discipline).  Once initialized, the target is ready to
-  absorb definitional primitives: @{text "\<DEFINE>"} for terms and
-  @{text "\<NOTE>"} for theorems.  Such definitions may get
+  absorb definitional primitives: \<open>\<DEFINE>\<close> for terms and
+  \<open>\<NOTE>\<close> for theorems.  Such definitions may get
   transformed in a target-specific way, but the programming interface
   hides such details.
 
@@ -39,13 +39,13 @@ text \<open>
 section \<open>Definitional elements\<close>
 
 text \<open>
-  There are separate elements @{text "\<DEFINE> c \<equiv> t"} for terms, and
-  @{text "\<NOTE> b = thm"} for theorems.  Types are treated
+  There are separate elements \<open>\<DEFINE> c \<equiv> t\<close> for terms, and
+  \<open>\<NOTE> b = thm\<close> for theorems.  Types are treated
   implicitly, according to Hindley-Milner discipline (cf.\
   \secref{sec:variables}).  These definitional primitives essentially
-  act like @{text "let"}-bindings within a local context that may
-  already contain earlier @{text "let"}-bindings and some initial
-  @{text "\<lambda>"}-bindings.  Thus we gain \<^emph>\<open>dependent definitions\<close>
+  act like \<open>let\<close>-bindings within a local context that may
+  already contain earlier \<open>let\<close>-bindings and some initial
+  \<open>\<lambda>\<close>-bindings.  Thus we gain \<^emph>\<open>dependent definitions\<close>
   that are relative to an initial axiomatic context.  The following
   diagram illustrates this idea of axiomatic elements versus
   definitional elements:
@@ -53,30 +53,29 @@ text \<open>
   \begin{center}
   \begin{tabular}{|l|l|l|}
   \hline
-  & @{text "\<lambda>"}-binding & @{text "let"}-binding \\
+  & \<open>\<lambda>\<close>-binding & \<open>let\<close>-binding \\
   \hline
-  types & fixed @{text "\<alpha>"} & arbitrary @{text "\<beta>"} \\
-  terms & @{text "\<FIX> x :: \<tau>"} & @{text "\<DEFINE> c \<equiv> t"} \\
-  theorems & @{text "\<ASSUME> a: A"} & @{text "\<NOTE> b = \<^BG>B\<^EN>"} \\
+  types & fixed \<open>\<alpha>\<close> & arbitrary \<open>\<beta>\<close> \\
+  terms & \<open>\<FIX> x :: \<tau>\<close> & \<open>\<DEFINE> c \<equiv> t\<close> \\
+  theorems & \<open>\<ASSUME> a: A\<close> & \<open>\<NOTE> b = \<^BG>B\<^EN>\<close> \\
   \hline
   \end{tabular}
   \end{center}
 
-  A user package merely needs to produce suitable @{text "\<DEFINE>"}
-  and @{text "\<NOTE>"} elements according to the application.  For
-  example, a package for inductive definitions might first @{text
-  "\<DEFINE>"} a certain predicate as some fixed-point construction,
-  then @{text "\<NOTE>"} a proven result about monotonicity of the
+  A user package merely needs to produce suitable \<open>\<DEFINE>\<close>
+  and \<open>\<NOTE>\<close> elements according to the application.  For
+  example, a package for inductive definitions might first \<open>\<DEFINE>\<close> a certain predicate as some fixed-point construction,
+  then \<open>\<NOTE>\<close> a proven result about monotonicity of the
   functor involved here, and then produce further derived concepts via
-  additional @{text "\<DEFINE>"} and @{text "\<NOTE>"} elements.
+  additional \<open>\<DEFINE>\<close> and \<open>\<NOTE>\<close> elements.
 
-  The cumulative sequence of @{text "\<DEFINE>"} and @{text "\<NOTE>"}
+  The cumulative sequence of \<open>\<DEFINE>\<close> and \<open>\<NOTE>\<close>
   produced at package runtime is managed by the local theory
   infrastructure by means of an \<^emph>\<open>auxiliary context\<close>.  Thus the
   system holds up the impression of working within a fully abstract
-  situation with hypothetical entities: @{text "\<DEFINE> c \<equiv> t"}
-  always results in a literal fact @{text "\<^BG>c \<equiv> t\<^EN>"}, where
-  @{text "c"} is a fixed variable @{text "c"}.  The details about
+  situation with hypothetical entities: \<open>\<DEFINE> c \<equiv> t\<close>
+  always results in a literal fact \<open>\<^BG>c \<equiv> t\<^EN>\<close>, where
+  \<open>c\<close> is a fixed variable \<open>c\<close>.  The details about
   global constants, name spaces etc. are handled internally.
 
   So the general structure of a local theory is a sandwich of three
@@ -88,8 +87,7 @@ text \<open>
 
   When a definitional package is finished, the auxiliary context is
   reset to the target context.  The target now holds definitions for
-  terms and theorems that stem from the hypothetical @{text
-  "\<DEFINE>"} and @{text "\<NOTE>"} elements, transformed by the
+  terms and theorems that stem from the hypothetical \<open>\<DEFINE>\<close> and \<open>\<NOTE>\<close> elements, transformed by the
   particular target policy (see @{cite \<open>\S4--5\<close> "Haftmann-Wenzel:2009"}
   for details).\<close>
 
@@ -107,11 +105,11 @@ text %mlref \<open>
   Although this is merely an alias for @{ML_type Proof.context}, it is
   semantically a subtype of the same: a @{ML_type local_theory} holds
   target information as special context data.  Subtyping means that
-  any value @{text "lthy:"}~@{ML_type local_theory} can be also used
-  with operations on expecting a regular @{text "ctxt:"}~@{ML_type
+  any value \<open>lthy:\<close>~@{ML_type local_theory} can be also used
+  with operations on expecting a regular \<open>ctxt:\<close>~@{ML_type
   Proof.context}.
 
-  \<^descr> @{ML Named_Target.init}~@{text "before_exit name thy"}
+  \<^descr> @{ML Named_Target.init}~\<open>before_exit name thy\<close>
   initializes a local theory derived from the given background theory.
   An empty name refers to a \<^emph>\<open>global theory\<close> context, and a
   non-empty name refers to a @{command locale} or @{command class}
@@ -119,9 +117,9 @@ text %mlref \<open>
   useful for experimentation --- normally the Isar toplevel already
   takes care to initialize the local theory context.
 
-  \<^descr> @{ML Local_Theory.define}~@{text "((b, mx), (a, rhs))
-  lthy"} defines a local entity according to the specification that is
-  given relatively to the current @{text "lthy"} context.  In
+  \<^descr> @{ML Local_Theory.define}~\<open>((b, mx), (a, rhs))
+  lthy\<close> defines a local entity according to the specification that is
+  given relatively to the current \<open>lthy\<close> context.  In
   particular the term of the RHS may refer to earlier local entities
   from the auxiliary context, or hypothetical parameters from the
   target context.  The result is the newly defined term (which is
@@ -130,7 +128,7 @@ text %mlref \<open>
   definition as a hypothetical fact.
 
   Unless an explicit name binding is given for the RHS, the resulting
-  fact will be called @{text "b_def"}.  Any given attributes are
+  fact will be called \<open>b_def\<close>.  Any given attributes are
   applied to that same fact --- immediately in the auxiliary context
   \<^emph>\<open>and\<close> in any transformed versions stemming from target-specific
   policies or any later interpretations of results from the target
@@ -139,7 +137,7 @@ text %mlref \<open>
   declarations such as @{attribute simp}, while non-trivial rules like
   @{attribute simplified} are better avoided.
 
-  \<^descr> @{ML Local_Theory.note}~@{text "(a, ths) lthy"} is
+  \<^descr> @{ML Local_Theory.note}~\<open>(a, ths) lthy\<close> is
   analogous to @{ML Local_Theory.define}, but defines facts instead of
   terms.  There is also a slightly more general variant @{ML
   Local_Theory.notes} that defines several facts (with attribute

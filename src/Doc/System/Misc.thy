@@ -141,25 +141,24 @@ text \<open>
 
   \begin{center}\small
   \begin{tabular}{rcl}
-    @{text graph} & @{text "="} & @{text "{ vertex"}~@{verbatim ";"}~@{text "}+"} \\
-    @{text vertex} & @{text "="} & @{text "vertex_name vertex_ID dir_name ["}~@{verbatim "+"}~@{text "] path ["}~@{verbatim "<"}~@{text "|"}~@{verbatim ">"}~@{text "] { vertex_ID }*"}
+    \<open>graph\<close> & \<open>=\<close> & \<open>{ vertex\<close>~@{verbatim ";"}~\<open>}+\<close> \\
+    \<open>vertex\<close> & \<open>=\<close> & \<open>vertex_name vertex_ID dir_name [\<close>~@{verbatim "+"}~\<open>] path [\<close>~@{verbatim "<"}~\<open>|\<close>~@{verbatim ">"}~\<open>] { vertex_ID }*\<close>
   \end{tabular}
   \end{center}
 
   The meaning of the items in a vertex description is as follows:
 
-  \<^descr>[@{text vertex_name}] The name of the vertex.
+  \<^descr>[\<open>vertex_name\<close>] The name of the vertex.
 
-  \<^descr>[@{text vertex_ID}] The vertex identifier. Note that there may
+  \<^descr>[\<open>vertex_ID\<close>] The vertex identifier. Note that there may
   be several vertices with equal names, whereas identifiers must be
   unique.
 
-  \<^descr>[@{text dir_name}] The name of the ``directory'' the vertex
-  should be placed in.  A ``@{verbatim "+"}'' sign after @{text
-  dir_name} indicates that the nodes in the directory are initially
+  \<^descr>[\<open>dir_name\<close>] The name of the ``directory'' the vertex
+  should be placed in.  A ``@{verbatim "+"}'' sign after \<open>dir_name\<close> indicates that the nodes in the directory are initially
   visible. Directories are initially invisible by default.
 
-  \<^descr>[@{text path}] The path of the corresponding theory file. This
+  \<^descr>[\<open>path\<close>] The path of the corresponding theory file. This
   is specified relatively to the path of the graph definition file.
 
   \<^descr>[List of successor/predecessor nodes] A ``@{verbatim "<"}''
@@ -330,8 +329,7 @@ text \<open>The Isabelle settings environment --- as provided by the
   With the @{verbatim "-a"} option, one may inspect the full process
   environment that Isabelle related programs are run in. This usually
   contains much more variables than are actually Isabelle settings.
-  Normally, output is a list of lines of the form @{text
-  name}@{verbatim "="}@{text value}. The @{verbatim "-b"} option
+  Normally, output is a list of lines of the form \<open>name\<close>@{verbatim "="}\<open>value\<close>. The @{verbatim "-b"} option
   causes only the values to be printed.
 
   Option @{verbatim "-d"} produces a dump of the complete environment
@@ -373,7 +371,7 @@ text \<open>By default, the main Isabelle binaries (@{executable
   The @{verbatim "-d"} option overrides the current Isabelle
   distribution directory as determined by @{setting ISABELLE_HOME}.
 
-  The @{text BINDIR} argument tells where executable wrapper scripts
+  The \<open>BINDIR\<close> argument tells where executable wrapper scripts
   for @{executable "isabelle_process"} and @{executable isabelle}
   should be placed, which is typically a directory in the shell's
   @{setting PATH}, such as @{verbatim "$HOME/bin"}.
@@ -398,7 +396,7 @@ text \<open>The @{tool_def logo} tool creates instances of the generic
     -q           quiet mode\<close>}
 
   Option @{verbatim "-n"} specifies an altenative (base) name for the
-  generated files.  The default is @{verbatim "isabelle_"}@{text xyz}
+  generated files.  The default is @{verbatim "isabelle_"}\<open>xyz\<close>
   in lower-case.
 
   Option @{verbatim "-q"} omits printing of the result file name.
@@ -444,31 +442,31 @@ text \<open>
   comments).
 
   \<^enum> Markup elements are represented via ASCII control characters
-  @{text "\<^bold>X = 5"} and @{text "\<^bold>Y = 6"} as follows:
+  \<open>\<^bold>X = 5\<close> and \<open>\<^bold>Y = 6\<close> as follows:
 
   \begin{tabular}{ll}
     XML & YXML \\\hline
-    @{verbatim "<"}@{text "name attribute"}@{verbatim "="}@{text "value \<dots>"}@{verbatim ">"} &
-    @{text "\<^bold>X\<^bold>Yname\<^bold>Yattribute"}@{verbatim "="}@{text "value\<dots>\<^bold>X"} \\
-    @{verbatim "</"}@{text name}@{verbatim ">"} & @{text "\<^bold>X\<^bold>Y\<^bold>X"} \\
+    @{verbatim "<"}\<open>name attribute\<close>@{verbatim "="}\<open>value \<dots>\<close>@{verbatim ">"} &
+    \<open>\<^bold>X\<^bold>Yname\<^bold>Yattribute\<close>@{verbatim "="}\<open>value\<dots>\<^bold>X\<close> \\
+    @{verbatim "</"}\<open>name\<close>@{verbatim ">"} & \<open>\<^bold>X\<^bold>Y\<^bold>X\<close> \\
   \end{tabular}
 
   There is no special case for empty body text, i.e.\ @{verbatim
   "<foo/>"} is treated like @{verbatim "<foo></foo>"}.  Also note that
-  @{text "\<^bold>X"} and @{text "\<^bold>Y"} may never occur in
+  \<open>\<^bold>X\<close> and \<open>\<^bold>Y\<close> may never occur in
   well-formed XML documents.
 
 
   Parsing YXML is pretty straight-forward: split the text into chunks
-  separated by @{text "\<^bold>X"}, then split each chunk into
-  sub-chunks separated by @{text "\<^bold>Y"}.  Markup chunks start
+  separated by \<open>\<^bold>X\<close>, then split each chunk into
+  sub-chunks separated by \<open>\<^bold>Y\<close>.  Markup chunks start
   with an empty sub-chunk, and a second empty sub-chunk indicates
   close of an element.  Any other non-empty chunk consists of plain
   text.  For example, see @{file "~~/src/Pure/PIDE/yxml.ML"} or
   @{file "~~/src/Pure/PIDE/yxml.scala"}.
 
   YXML documents may be detected quickly by checking that the first
-  two characters are @{text "\<^bold>X\<^bold>Y"}.
+  two characters are \<open>\<^bold>X\<^bold>Y\<close>.
 \<close>
 
 end

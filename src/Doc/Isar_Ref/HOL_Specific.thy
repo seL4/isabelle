@@ -36,15 +36,15 @@ text \<open>Isabelle/HOL is based on Higher-Order Logic, a polymorphic
   prefer ML to Lisp, you will probably prefer HOL to ZF.
 
   \<^medskip>
-  The syntax of HOL follows @{text "\<lambda>"}-calculus and
+  The syntax of HOL follows \<open>\<lambda>\<close>-calculus and
   functional programming.  Function application is curried.  To apply
-  the function @{text f} of type @{text "\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> \<tau>\<^sub>3"} to the
-  arguments @{text a} and @{text b} in HOL, you simply write @{text "f
-  a b"} (as in ML or Haskell).  There is no ``apply'' operator; the
-  existing application of the Pure @{text "\<lambda>"}-calculus is re-used.
-  Note that in HOL @{text "f (a, b)"} means ``@{text "f"} applied to
-  the pair @{text "(a, b)"} (which is notation for @{text "Pair a
-  b"}).  The latter typically introduces extra formal efforts that can
+  the function \<open>f\<close> of type \<open>\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> \<tau>\<^sub>3\<close> to the
+  arguments \<open>a\<close> and \<open>b\<close> in HOL, you simply write \<open>f
+  a b\<close> (as in ML or Haskell).  There is no ``apply'' operator; the
+  existing application of the Pure \<open>\<lambda>\<close>-calculus is re-used.
+  Note that in HOL \<open>f (a, b)\<close> means ``\<open>f\<close> applied to
+  the pair \<open>(a, b)\<close> (which is notation for \<open>Pair a
+  b\<close>).  The latter typically introduces extra formal efforts that can
   be avoided by currying functions by default.  Explicit tuples are as
   infrequent in HOL formalizations as in good ML or Haskell programs.
 
@@ -69,24 +69,24 @@ section \<open>Inductive and coinductive definitions \label{sec:hol-inductive}\<
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "inductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "inductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "coinductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "coinductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "print_inductives"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{attribute_def (HOL) mono} & : & @{text attribute} \\
+    @{command_def (HOL) "inductive"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def (HOL) "inductive_set"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def (HOL) "coinductive"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def (HOL) "coinductive_set"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "print_inductives"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{attribute_def (HOL) mono} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   An \<^emph>\<open>inductive definition\<close> specifies the least predicate or set
-  @{text R} closed under given rules: applying a rule to elements of
-  @{text R} yields a result within @{text R}.  For example, a
+  \<open>R\<close> closed under given rules: applying a rule to elements of
+  \<open>R\<close> yields a result within \<open>R\<close>.  For example, a
   structural operational semantics is an inductive definition of an
   evaluation relation.
 
   Dually, a \<^emph>\<open>coinductive definition\<close> specifies the greatest
-  predicate or set @{text R} that is consistent with given rules:
-  every element of @{text R} can be seen as arising by applying a rule
-  to elements of @{text R}.  An important example is using
+  predicate or set \<open>R\<close> that is consistent with given rules:
+  every element of \<open>R\<close> can be seen as arising by applying a rule
+  to elements of \<open>R\<close>.  An important example is using
   bisimulation relations to formalise equivalence of processes and
   infinite data structures.
 
@@ -99,7 +99,7 @@ text \<open>
   works by pushing inclusion through logical connectives and any other
   operator that might be wrapped around recursive occurrences of the
   defined relation: there must be a monotonicity theorem of the form
-  @{text "A \<le> B \<Longrightarrow> \<M> A \<le> \<M> B"}, for each premise @{text "\<M> R t"} in an
+  \<open>A \<le> B \<Longrightarrow> \<M> A \<le> \<M> B\<close>, for each premise \<open>\<M> R t\<close> in an
   introduction rule.  The default rule declarations of Isabelle/HOL
   already take care of most common situations.
 
@@ -120,9 +120,9 @@ text \<open>
   "coinductive"} define (co)inductive predicates from the introduction
   rules.
 
-  The propositions given as @{text "clauses"} in the @{keyword
-  "where"} part are either rules of the usual @{text "\<And>/\<Longrightarrow>"} format
-  (with arbitrary nesting), or equalities using @{text "\<equiv>"}.  The
+  The propositions given as \<open>clauses\<close> in the @{keyword
+  "where"} part are either rules of the usual \<open>\<And>/\<Longrightarrow>\<close> format
+  (with arbitrary nesting), or equalities using \<open>\<equiv>\<close>.  The
   latter specifies extra-logical abbreviations in the sense of
   @{command_ref abbreviation}.  Introducing abstract syntax
   simultaneously with the actual introduction rules is occasionally
@@ -131,7 +131,7 @@ text \<open>
   The optional @{keyword "for"} part contains a list of parameters of
   the (co)inductive predicates that remain fixed throughout the
   definition, in contrast to arguments of the relation that may vary
-  in each occurrence within the given @{text "clauses"}.
+  in each occurrence within the given \<open>clauses\<close>.
 
   The optional @{keyword "monos"} declaration contains additional
   \<^emph>\<open>monotonicity theorems\<close>, which are required for each operator
@@ -143,7 +143,7 @@ text \<open>
   where multiple arguments are simulated via tuples.
 
   \<^descr> @{command "print_inductives"} prints (co)inductive definitions and
-  monotonicity rules; the ``@{text "!"}'' option indicates extra verbosity.
+  monotonicity rules; the ``\<open>!\<close>'' option indicates extra verbosity.
 
   \<^descr> @{attribute (HOL) mono} declares monotonicity rules in the
   context.  These rule are involved in the automated monotonicity
@@ -153,27 +153,27 @@ text \<open>
 
 subsection \<open>Derived rules\<close>
 
-text \<open>A (co)inductive definition of @{text R} provides the following
+text \<open>A (co)inductive definition of \<open>R\<close> provides the following
   main theorems:
 
-  \<^descr> @{text R.intros} is the list of introduction rules as proven
+  \<^descr> \<open>R.intros\<close> is the list of introduction rules as proven
   theorems, for the recursive predicates (or sets).  The rules are
   also available individually, using the names given them in the
   theory file;
 
-  \<^descr> @{text R.cases} is the case analysis (or elimination) rule;
+  \<^descr> \<open>R.cases\<close> is the case analysis (or elimination) rule;
 
-  \<^descr> @{text R.induct} or @{text R.coinduct} is the (co)induction
+  \<^descr> \<open>R.induct\<close> or \<open>R.coinduct\<close> is the (co)induction
   rule;
 
-  \<^descr> @{text R.simps} is the equation unrolling the fixpoint of the
+  \<^descr> \<open>R.simps\<close> is the equation unrolling the fixpoint of the
   predicate one step.
 
 
-  When several predicates @{text "R\<^sub>1, \<dots>, R\<^sub>n"} are defined simultaneously,
-  the list of introduction rules is called @{text "R\<^sub>1_\<dots>_R\<^sub>n.intros"}, the
-  case analysis rules are called @{text "R\<^sub>1.cases, \<dots>, R\<^sub>n.cases"}, and the
-  list of mutual induction rules is called @{text "R\<^sub>1_\<dots>_R\<^sub>n.inducts"}.
+  When several predicates \<open>R\<^sub>1, \<dots>, R\<^sub>n\<close> are defined simultaneously,
+  the list of introduction rules is called \<open>R\<^sub>1_\<dots>_R\<^sub>n.intros\<close>, the
+  case analysis rules are called \<open>R\<^sub>1.cases, \<dots>, R\<^sub>n.cases\<close>, and the
+  list of mutual induction rules is called \<open>R\<^sub>1_\<dots>_R\<^sub>n.inducts\<close>.
 \<close>
 
 
@@ -185,15 +185,15 @@ text \<open>The context maintains a default set of theorems that are used
   sources for some examples.  The general format of such monotonicity
   theorems is as follows:
 
-  \<^item> Theorems of the form @{text "A \<le> B \<Longrightarrow> \<M> A \<le> \<M> B"}, for proving
+  \<^item> Theorems of the form \<open>A \<le> B \<Longrightarrow> \<M> A \<le> \<M> B\<close>, for proving
   monotonicity of inductive definitions whose introduction rules have
-  premises involving terms such as @{text "\<M> R t"}.
+  premises involving terms such as \<open>\<M> R t\<close>.
 
   \<^item> Monotonicity theorems for logical operators, which are of the
-  general form @{text "(\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> (\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> \<longrightarrow> \<dots>"}.  For example, in
-  the case of the operator @{text "\<or>"}, the corresponding theorem is
+  general form \<open>(\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> (\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> \<longrightarrow> \<dots>\<close>.  For example, in
+  the case of the operator \<open>\<or>\<close>, the corresponding theorem is
   \[
-  \infer{@{text "P\<^sub>1 \<or> P\<^sub>2 \<longrightarrow> Q\<^sub>1 \<or> Q\<^sub>2"}}{@{text "P\<^sub>1 \<longrightarrow> Q\<^sub>1"} & @{text "P\<^sub>2 \<longrightarrow> Q\<^sub>2"}}
+  \infer{\<open>P\<^sub>1 \<or> P\<^sub>2 \<longrightarrow> Q\<^sub>1 \<or> Q\<^sub>2\<close>}{\<open>P\<^sub>1 \<longrightarrow> Q\<^sub>1\<close> & \<open>P\<^sub>2 \<longrightarrow> Q\<^sub>2\<close>}
   \]
 
   \<^item> De Morgan style equations for reasoning about the ``polarity''
@@ -244,7 +244,7 @@ inductive EXISTS for B :: "'a \<Rightarrow> bool"
 where "B a \<Longrightarrow> EXISTS B"
 (*<*)end(*>*)
 
-text \<open>Here the @{text "cases"} or @{text "induct"} rules produced by the
+text \<open>Here the \<open>cases\<close> or \<open>induct\<close> rules produced by the
   @{command inductive} package coincide with the expected elimination rules
   for Natural Deduction. Already in the original article by Gerhard Gentzen
   @{cite "Gentzen:1935"} there is a hint that each connective can be
@@ -256,11 +256,11 @@ section \<open>Recursive functions \label{sec:recursion}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "primrec"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "fun"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "function"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
-    @{command_def (HOL) "termination"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
-    @{command_def (HOL) "fun_cases"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "primrec"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def (HOL) "fun"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def (HOL) "function"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close> \\
+    @{command_def (HOL) "termination"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close> \\
+    @{command_def (HOL) "fun_cases"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -280,8 +280,7 @@ text \<open>
   \<close>}
 
   \<^descr> @{command (HOL) "primrec"} defines primitive recursive functions
-  over datatypes (see also @{command_ref (HOL) datatype}). The given @{text
-  equations} specify reduction rules that are produced by instantiating the
+  over datatypes (see also @{command_ref (HOL) datatype}). The given \<open>equations\<close> specify reduction rules that are produced by instantiating the
   generic combinator for primitive recursion that is available for each
   datatype.
 
@@ -289,17 +288,17 @@ text \<open>
 
   @{text [display] "f x\<^sub>1 \<dots> x\<^sub>m (C y\<^sub>1 \<dots> y\<^sub>k) z\<^sub>1 \<dots> z\<^sub>n = rhs"}
 
-  such that @{text C} is a datatype constructor, @{text rhs} contains only
+  such that \<open>C\<close> is a datatype constructor, \<open>rhs\<close> contains only
   the free variables on the left-hand side (or from the context), and all
-  recursive occurrences of @{text "f"} in @{text "rhs"} are of the form
-  @{text "f \<dots> y\<^sub>i \<dots>"} for some @{text i}. At most one reduction rule for
+  recursive occurrences of \<open>f\<close> in \<open>rhs\<close> are of the form
+  \<open>f \<dots> y\<^sub>i \<dots>\<close> for some \<open>i\<close>. At most one reduction rule for
   each constructor can be given. The order does not matter. For missing
   constructors, the function is defined to return a default value, but this
   equation is made difficult to access for users.
 
   The reduction rules are declared as @{attribute simp} by default, which
   enables standard proof methods like @{method simp} and @{method auto} to
-  normalize expressions of @{text "f"} applied to datatype constructions, by
+  normalize expressions of \<open>f\<close> applied to datatype constructions, by
   simulating symbolic computation via rewriting.
 
   \<^descr> @{command (HOL) "function"} defines functions by general wellfounded
@@ -310,18 +309,17 @@ text \<open>
   compatibility of patterns.
 
   The defined function is considered partial, and the resulting
-  simplification rules (named @{text "f.psimps"}) and induction rule (named
-  @{text "f.pinduct"}) are guarded by a generated domain predicate @{text
-  "f_dom"}. The @{command (HOL) "termination"} command can then be used to
+  simplification rules (named \<open>f.psimps\<close>) and induction rule (named
+  \<open>f.pinduct\<close>) are guarded by a generated domain predicate \<open>f_dom\<close>. The @{command (HOL) "termination"} command can then be used to
   establish that the function is total.
 
   \<^descr> @{command (HOL) "fun"} is a shorthand notation for ``@{command (HOL)
-  "function"}~@{text "(sequential)"}'', followed by automated proof attempts
+  "function"}~\<open>(sequential)\<close>'', followed by automated proof attempts
   regarding pattern matching and termination. See @{cite
   "isabelle-function"} for further details.
 
-  \<^descr> @{command (HOL) "termination"}~@{text f} commences a termination
-  proof for the previously defined function @{text f}. If this is omitted,
+  \<^descr> @{command (HOL) "termination"}~\<open>f\<close> commences a termination
+  proof for the previously defined function \<open>f\<close>. If this is omitted,
   the command refers to the most recent function definition. After the proof
   is closed, the recursive equations and the induction principle is
   established.
@@ -334,19 +332,19 @@ text \<open>
 
   Recursive definitions introduced by the @{command (HOL) "function"}
   command accommodate reasoning by induction (cf.\ @{method induct}): rule
-  @{text "f.induct"} refers to a specific induction rule, with parameters
+  \<open>f.induct\<close> refers to a specific induction rule, with parameters
   named according to the user-specified equations. Cases are numbered
   starting from 1. For @{command (HOL) "primrec"}, the induction principle
   coincides with structural recursion on the datatype where the recursion is
   carried out.
 
   The equations provided by these packages may be referred later as theorem
-  list @{text "f.simps"}, where @{text f} is the (collective) name of the
+  list \<open>f.simps\<close>, where \<open>f\<close> is the (collective) name of the
   functions defined. Individual equations may be named explicitly as well.
 
   The @{command (HOL) "function"} command accepts the following options.
 
-  \<^descr> @{text sequential} enables a preprocessor which disambiguates
+  \<^descr> \<open>sequential\<close> enables a preprocessor which disambiguates
   overlapping patterns by making them mutually disjoint. Earlier equations
   take precedence over later ones. This allows to give the specification in
   a format very similar to functional programming. Note that the resulting
@@ -355,7 +353,7 @@ text \<open>
   equation given by the user may result in several theorems. Also note that
   this automatic transformation only works for ML-style datatype patterns.
 
-  \<^descr> @{text domintros} enables the automated generation of introduction
+  \<^descr> \<open>domintros\<close> enables the automated generation of introduction
   rules for the domain predicate. While mostly not needed, they can be
   helpful in some proofs about partial functions.
 \<close>
@@ -400,7 +398,7 @@ text \<open>Since the value of an expression depends on the value of its
 
   \<^medskip>
   Substitution on expressions can be defined similarly. The mapping
-  @{text f} of type @{typ "'a \<Rightarrow> 'a aexp"} given as a parameter is lifted
+  \<open>f\<close> of type @{typ "'a \<Rightarrow> 'a aexp"} given as a parameter is lifted
   canonically on the types @{typ "'a aexp"} and @{typ "'a bexp"},
   respectively.
 \<close>
@@ -481,7 +479,7 @@ where
   "map_tree f (Atom a) = Atom (f a)"
 | "map_tree f (Branch ts) = Branch (\<lambda>x. map_tree f (ts x))"
 
-text \<open>Note that all occurrences of functions such as @{text ts} above must
+text \<open>Note that all occurrences of functions such as \<open>ts\<close> above must
   be applied to an argument. In particular, @{term "map_tree f \<circ> ts"} is not
   allowed here.
 
@@ -498,11 +496,11 @@ subsection \<open>Proof methods related to recursive definitions\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{method_def (HOL) pat_completeness} & : & @{text method} \\
-    @{method_def (HOL) relation} & : & @{text method} \\
-    @{method_def (HOL) lexicographic_order} & : & @{text method} \\
-    @{method_def (HOL) size_change} & : & @{text method} \\
-    @{method_def (HOL) induction_schema} & : & @{text method} \\
+    @{method_def (HOL) pat_completeness} & : & \<open>method\<close> \\
+    @{method_def (HOL) relation} & : & \<open>method\<close> \\
+    @{method_def (HOL) lexicographic_order} & : & \<open>method\<close> \\
+    @{method_def (HOL) size_change} & : & \<open>method\<close> \\
+    @{method_def (HOL) induction_schema} & : & \<open>method\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -522,10 +520,10 @@ text \<open>
   required by the @{command (HOL) "function"} package (cf.\
   @{cite "isabelle-function"}).
 
-  \<^descr> @{method (HOL) relation}~@{text R} introduces a termination
-  proof using the relation @{text R}.  The resulting proof state will
-  contain goals expressing that @{text R} is wellfounded, and that the
-  arguments of recursive calls decrease with respect to @{text R}.
+  \<^descr> @{method (HOL) relation}~\<open>R\<close> introduces a termination
+  proof using the relation \<open>R\<close>.  The resulting proof state will
+  contain goals expressing that \<open>R\<close> is wellfounded, and that the
+  arguments of recursive calls decrease with respect to \<open>R\<close>.
   Usually, this method is used as the initial proof step of manual
   termination proofs.
 
@@ -542,9 +540,9 @@ text \<open>
   \<^descr> @{method (HOL) "size_change"} also works on termination goals,
   using a variation of the size-change principle, together with a
   graph decomposition technique (see @{cite krauss_phd} for details).
-  Three kinds of orders are used internally: @{text max}, @{text min},
-  and @{text ms} (multiset), which is only available when the theory
-  @{text Multiset} is loaded. When no order kinds are given, they are
+  Three kinds of orders are used internally: \<open>max\<close>, \<open>min\<close>,
+  and \<open>ms\<close> (multiset), which is only available when the theory
+  \<open>Multiset\<close> is loaded. When no order kinds are given, they are
   tried in order. The search for a termination proof uses SAT solving
   internally.
 
@@ -563,8 +561,8 @@ subsection \<open>Functions with explicit partiality\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "partial_function"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{attribute_def (HOL) "partial_function_mono"} & : & @{text attribute} \\
+    @{command_def (HOL) "partial_function"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{attribute_def (HOL) "partial_function_mono"} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -572,7 +570,7 @@ text \<open>
       @'where' @{syntax thmdecl}? @{syntax prop}
   \<close>}
 
-  \<^descr> @{command (HOL) "partial_function"}~@{text "(mode)"} defines
+  \<^descr> @{command (HOL) "partial_function"}~\<open>(mode)\<close> defines
   recursive functions based on fixpoints in complete partial
   orders. No termination proof is required from the user or
   constructed internally. Instead, the possibility of non-termination
@@ -590,19 +588,19 @@ text \<open>
   can be influenced by declaring hints using the
   @{attribute (HOL) partial_function_mono} attribute.
 
-  The mandatory @{text mode} argument specifies the mode of operation
+  The mandatory \<open>mode\<close> argument specifies the mode of operation
   of the command, which directly corresponds to a complete partial
   order on the result type. By default, the following modes are
   defined:
 
-    \<^descr> @{text option} defines functions that map into the @{type
+    \<^descr> \<open>option\<close> defines functions that map into the @{type
     option} type. Here, the value @{term None} is used to model a
     non-terminating computation. Monotonicity requires that if @{term
     None} is returned by a recursive call, then the overall result must
     also be @{term None}. This is best achieved through the use of the
     monadic operator @{const "Option.bind"}.
 
-    \<^descr> @{text tailrec} defines functions with an arbitrary result
+    \<^descr> \<open>tailrec\<close> defines functions with an arbitrary result
     type and uses the slightly degenerated partial order where @{term
     "undefined"} is the bottom element.  Now, monotonicity requires that
     if @{term undefined} is returned by a recursive call, then the
@@ -624,7 +622,7 @@ subsection \<open>Old-style recursive function definitions (TFL)\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "recdef"} & : & @{text "theory \<rightarrow> theory)"} \\
+    @{command_def (HOL) "recdef"} & : & \<open>theory \<rightarrow> theory)\<close> \\
   \end{matharray}
 
   The old TFL command @{command (HOL) "recdef"} for defining recursive is
@@ -643,10 +641,9 @@ text \<open>
 
   \<^descr> @{command (HOL) "recdef"} defines general well-founded
   recursive functions (using the TFL package), see also
-  @{cite "isabelle-HOL"}.  The ``@{text "(permissive)"}'' option tells
+  @{cite "isabelle-HOL"}.  The ``\<open>(permissive)\<close>'' option tells
   TFL to recover from failed proof attempts, returning unfinished
-  results.  The @{text recdef_simp}, @{text recdef_cong}, and @{text
-  recdef_wf} hints refer to auxiliary rules to be used in the internal
+  results.  The \<open>recdef_simp\<close>, \<open>recdef_cong\<close>, and \<open>recdef_wf\<close> hints refer to auxiliary rules to be used in the internal
   automated proof process of TFL.  Additional @{syntax clasimpmod}
   declarations may be given to tune the context of the Simplifier
   (cf.\ \secref{sec:simplifier}) and Classical reasoner (cf.\
@@ -658,9 +655,9 @@ text \<open>
   globally, using the following attributes.
 
   \begin{matharray}{rcl}
-    @{attribute_def (HOL) recdef_simp} & : & @{text attribute} \\
-    @{attribute_def (HOL) recdef_cong} & : & @{text attribute} \\
-    @{attribute_def (HOL) recdef_wf} & : & @{text attribute} \\
+    @{attribute_def (HOL) recdef_simp} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) recdef_cong} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) recdef_wf} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -674,9 +671,9 @@ section \<open>Adhoc overloading of constants\<close>
 
 text \<open>
   \begin{tabular}{rcll}
-  @{command_def "adhoc_overloading"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-  @{command_def "no_adhoc_overloading"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-  @{attribute_def "show_variants"} & : & @{text "attribute"} & default @{text false} \\
+  @{command_def "adhoc_overloading"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+  @{command_def "no_adhoc_overloading"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+  @{attribute_def "show_variants"} & : & \<open>attribute\<close> & default \<open>false\<close> \\
   \end{tabular}
 
   \<^medskip>
@@ -692,7 +689,7 @@ text \<open>
       (@{syntax nameref} (@{syntax term} + ) + @'and')
   \<close>}
 
-  \<^descr> @{command "adhoc_overloading"}~@{text "c v\<^sub>1 ... v\<^sub>n"}
+  \<^descr> @{command "adhoc_overloading"}~\<open>c v\<^sub>1 ... v\<^sub>n\<close>
   associates variants with an existing constant.
 
   \<^descr> @{command "no_adhoc_overloading"} is similar to
@@ -711,7 +708,7 @@ section \<open>Definition by specification \label{sec:hol-specification}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+    @{command_def (HOL) "specification"} & : & \<open>theory \<rightarrow> proof(prove)\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -721,16 +718,16 @@ text \<open>
     decl: (@{syntax name} ':')? @{syntax term} ('(' @'overloaded' ')')?
   \<close>}
 
-  \<^descr> @{command (HOL) "specification"}~@{text "decls \<phi>"} sets up a
+  \<^descr> @{command (HOL) "specification"}~\<open>decls \<phi>\<close> sets up a
   goal stating the existence of terms with the properties specified to
-  hold for the constants given in @{text decls}.  After finishing the
+  hold for the constants given in \<open>decls\<close>.  After finishing the
   proof, the theory will be augmented with definitions for the given
   constants, as well as with theorems stating the properties for these
   constants.
 
-  @{text decl} declares a constant to be defined by the
-  specification given.  The definition for the constant @{text c} is
-  bound to the name @{text c_def} unless a theorem name is given in
+  \<open>decl\<close> declares a constant to be defined by the
+  specification given.  The definition for the constant \<open>c\<close> is
+  bound to the name \<open>c_def\<close> unless a theorem name is given in
   the declaration.  Overloaded constants should be declared as such.
 \<close>
 
@@ -739,8 +736,8 @@ section \<open>Old-style datatypes \label{sec:hol-datatype}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "old_datatype"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "old_rep_datatype"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+    @{command_def (HOL) "old_datatype"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (HOL) "old_rep_datatype"} & : & \<open>theory \<rightarrow> proof(prove)\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -829,34 +826,33 @@ text \<open>
   \begin{center}
   \begin{tabular}{l|l|l}
     & record terms & record types \\ \hline
-    fixed & @{text "\<lparr>x = a, y = b\<rparr>"} & @{text "\<lparr>x :: A, y :: B\<rparr>"} \\
-    schematic & @{text "\<lparr>x = a, y = b, \<dots> = m\<rparr>"} &
-      @{text "\<lparr>x :: A, y :: B, \<dots> :: M\<rparr>"} \\
+    fixed & \<open>\<lparr>x = a, y = b\<rparr>\<close> & \<open>\<lparr>x :: A, y :: B\<rparr>\<close> \\
+    schematic & \<open>\<lparr>x = a, y = b, \<dots> = m\<rparr>\<close> &
+      \<open>\<lparr>x :: A, y :: B, \<dots> :: M\<rparr>\<close> \\
   \end{tabular}
   \end{center}
 
-  The ASCII representation of @{text "\<lparr>x = a\<rparr>"} is @{text
-  "(| x = a |)"}.
+  The ASCII representation of \<open>\<lparr>x = a\<rparr>\<close> is \<open>(| x = a |)\<close>.
 
-  A fixed record @{text "\<lparr>x = a, y = b\<rparr>"} has field @{text x} of value
-  @{text a} and field @{text y} of value @{text b}.  The corresponding
-  type is @{text "\<lparr>x :: A, y :: B\<rparr>"}, assuming that @{text "a :: A"}
-  and @{text "b :: B"}.
+  A fixed record \<open>\<lparr>x = a, y = b\<rparr>\<close> has field \<open>x\<close> of value
+  \<open>a\<close> and field \<open>y\<close> of value \<open>b\<close>.  The corresponding
+  type is \<open>\<lparr>x :: A, y :: B\<rparr>\<close>, assuming that \<open>a :: A\<close>
+  and \<open>b :: B\<close>.
 
-  A record scheme like @{text "\<lparr>x = a, y = b, \<dots> = m\<rparr>"} contains fields
-  @{text x} and @{text y} as before, but also possibly further fields
-  as indicated by the ``@{text "\<dots>"}'' notation (which is actually part
-  of the syntax).  The improper field ``@{text "\<dots>"}'' of a record
+  A record scheme like \<open>\<lparr>x = a, y = b, \<dots> = m\<rparr>\<close> contains fields
+  \<open>x\<close> and \<open>y\<close> as before, but also possibly further fields
+  as indicated by the ``\<open>\<dots>\<close>'' notation (which is actually part
+  of the syntax).  The improper field ``\<open>\<dots>\<close>'' of a record
   scheme is called the \<^emph>\<open>more part\<close>.  Logically it is just a free
   variable, which is occasionally referred to as ``row variable'' in
   the literature.  The more part of a record scheme may be
   instantiated by zero or more further components.  For example, the
-  previous scheme may get instantiated to @{text "\<lparr>x = a, y = b, z =
-  c, \<dots> = m'\<rparr>"}, where @{text m'} refers to a different more part.
+  previous scheme may get instantiated to \<open>\<lparr>x = a, y = b, z =
+  c, \<dots> = m'\<rparr>\<close>, where \<open>m'\<close> refers to a different more part.
   Fixed records are special instances of record schemes, where
-  ``@{text "\<dots>"}'' is properly terminated by the @{text "() :: unit"}
-  element.  In fact, @{text "\<lparr>x = a, y = b\<rparr>"} is just an abbreviation
-  for @{text "\<lparr>x = a, y = b, \<dots> = ()\<rparr>"}.
+  ``\<open>\<dots>\<close>'' is properly terminated by the \<open>() :: unit\<close>
+  element.  In fact, \<open>\<lparr>x = a, y = b\<rparr>\<close> is just an abbreviation
+  for \<open>\<lparr>x = a, y = b, \<dots> = ()\<rparr>\<close>.
 
   \<^medskip>
   Two key observations make extensible records in a simply
@@ -886,7 +882,7 @@ subsection \<open>Record specifications\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "record"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "record"} & : & \<open>theory \<rightarrow> theory\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -896,32 +892,30 @@ text \<open>
     constdecl: @{syntax name} '::' @{syntax type} @{syntax mixfix}?
   \<close>}
 
-  \<^descr> @{command (HOL) "record"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t = \<tau> + c\<^sub>1 :: \<sigma>\<^sub>1
-  \<dots> c\<^sub>n :: \<sigma>\<^sub>n"} defines extensible record type @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"},
-  derived from the optional parent record @{text "\<tau>"} by adding new
-  field components @{text "c\<^sub>i :: \<sigma>\<^sub>i"} etc.
+  \<^descr> @{command (HOL) "record"}~\<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t = \<tau> + c\<^sub>1 :: \<sigma>\<^sub>1
+  \<dots> c\<^sub>n :: \<sigma>\<^sub>n\<close> defines extensible record type \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t\<close>,
+  derived from the optional parent record \<open>\<tau>\<close> by adding new
+  field components \<open>c\<^sub>i :: \<sigma>\<^sub>i\<close> etc.
 
-  The type variables of @{text "\<tau>"} and @{text "\<sigma>\<^sub>i"} need to be
-  covered by the (distinct) parameters @{text "\<alpha>\<^sub>1, \<dots>,
-  \<alpha>\<^sub>m"}.  Type constructor @{text t} has to be new, while @{text
-  \<tau>} needs to specify an instance of an existing record type.  At
-  least one new field @{text "c\<^sub>i"} has to be specified.
+  The type variables of \<open>\<tau>\<close> and \<open>\<sigma>\<^sub>i\<close> need to be
+  covered by the (distinct) parameters \<open>\<alpha>\<^sub>1, \<dots>,
+  \<alpha>\<^sub>m\<close>.  Type constructor \<open>t\<close> has to be new, while \<open>\<tau>\<close> needs to specify an instance of an existing record type.  At
+  least one new field \<open>c\<^sub>i\<close> has to be specified.
   Basically, field names need to belong to a unique record.  This is
   not a real restriction in practice, since fields are qualified by
   the record name internally.
 
-  The parent record specification @{text \<tau>} is optional; if omitted
-  @{text t} becomes a root record.  The hierarchy of all records
+  The parent record specification \<open>\<tau>\<close> is optional; if omitted
+  \<open>t\<close> becomes a root record.  The hierarchy of all records
   declared within a theory context forms a forest structure, i.e.\ a
   set of trees starting with a root record each.  There is no way to
   merge multiple parent records!
 
-  For convenience, @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"} is made a
-  type abbreviation for the fixed record type @{text "\<lparr>c\<^sub>1 ::
-  \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n\<rparr>"}, likewise is @{text
-  "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m, \<zeta>) t_scheme"} made an abbreviation for
-  @{text "\<lparr>c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> ::
-  \<zeta>\<rparr>"}.
+  For convenience, \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t\<close> is made a
+  type abbreviation for the fixed record type \<open>\<lparr>c\<^sub>1 ::
+  \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n\<rparr>\<close>, likewise is \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m, \<zeta>) t_scheme\<close> made an abbreviation for
+  \<open>\<lparr>c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> ::
+  \<zeta>\<rparr>\<close>.
 \<close>
 
 
@@ -929,27 +923,27 @@ subsection \<open>Record operations\<close>
 
 text \<open>Any record definition of the form presented above produces certain
   standard operations. Selectors and updates are provided for any field,
-  including the improper one ``@{text more}''. There are also cumulative
+  including the improper one ``\<open>more\<close>''. There are also cumulative
   record constructor functions. To simplify the presentation below, we
-  assume for now that @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"} is a root record with fields
-  @{text "c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n"}.
+  assume for now that \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t\<close> is a root record with fields
+  \<open>c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n\<close>.
 
   \<^medskip>
   \<^bold>\<open>Selectors\<close> and \<^bold>\<open>updates\<close> are available for any
-  field (including ``@{text more}''):
+  field (including ``\<open>more\<close>''):
 
   \begin{matharray}{lll}
-    @{text "c\<^sub>i"} & @{text "::"} & @{text "\<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i"} \\
-    @{text "c\<^sub>i_update"} & @{text "::"} & @{text "\<sigma>\<^sub>i \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>"} \\
+    \<open>c\<^sub>i\<close> & \<open>::\<close> & \<open>\<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i\<close> \\
+    \<open>c\<^sub>i_update\<close> & \<open>::\<close> & \<open>\<sigma>\<^sub>i \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>\<close> \\
   \end{matharray}
 
-  There is special syntax for application of updates: @{text "r\<lparr>x := a\<rparr>"}
-  abbreviates term @{text "x_update a r"}. Further notation for repeated
-  updates is also available: @{text "r\<lparr>x := a\<rparr>\<lparr>y := b\<rparr>\<lparr>z := c\<rparr>"} may be
-  written @{text "r\<lparr>x := a, y := b, z := c\<rparr>"}. Note that because of postfix
+  There is special syntax for application of updates: \<open>r\<lparr>x := a\<rparr>\<close>
+  abbreviates term \<open>x_update a r\<close>. Further notation for repeated
+  updates is also available: \<open>r\<lparr>x := a\<rparr>\<lparr>y := b\<rparr>\<lparr>z := c\<rparr>\<close> may be
+  written \<open>r\<lparr>x := a, y := b, z := c\<rparr>\<close>. Note that because of postfix
   notation the order of fields shown here is reverse than in the actual
   term. Since repeated updates are just function applications, fields may be
-  freely permuted in @{text "\<lparr>x := a, y := b, z := c\<rparr>"}, as far as logical
+  freely permuted in \<open>\<lparr>x := a, y := b, z := c\<rparr>\<close>, as far as logical
   equality is concerned. Thus commutativity of independent updates can be
   proven within the logic for any two fields, but not as a general theorem.
 
@@ -958,7 +952,7 @@ text \<open>Any record definition of the form presented above produces certain
   constructor function:
 
   \begin{matharray}{lll}
-    @{text "t.make"} & @{text "::"} & @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
+    \<open>t.make\<close> & \<open>::\<close> & \<open>\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>\<rparr>\<close> \\
   \end{matharray}
 
   \<^medskip>
@@ -967,38 +961,38 @@ text \<open>Any record definition of the form presented above produces certain
   well, resulting in a list of \<^emph>\<open>ancestor records\<close>. Appending the lists
   of fields of all ancestors results in a certain field prefix. The record
   package automatically takes care of this by lifting operations over this
-  context of ancestor fields. Assuming that @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"} has
-  ancestor fields @{text "b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k"}, the above record
+  context of ancestor fields. Assuming that \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t\<close> has
+  ancestor fields \<open>b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k\<close>, the above record
   operations will get the following types:
 
   \<^medskip>
   \begin{tabular}{lll}
-    @{text "c\<^sub>i"} & @{text "::"} & @{text "\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i"} \\
-    @{text "c\<^sub>i_update"} & @{text "::"} & @{text "\<sigma>\<^sub>i \<Rightarrow>
+    \<open>c\<^sub>i\<close> & \<open>::\<close> & \<open>\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i\<close> \\
+    \<open>c\<^sub>i_update\<close> & \<open>::\<close> & \<open>\<sigma>\<^sub>i \<Rightarrow>
       \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow>
-      \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>"} \\
-    @{text "t.make"} & @{text "::"} & @{text "\<rho>\<^sub>1 \<Rightarrow> \<dots> \<rho>\<^sub>k \<Rightarrow> \<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow>
-      \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
+      \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>\<close> \\
+    \<open>t.make\<close> & \<open>::\<close> & \<open>\<rho>\<^sub>1 \<Rightarrow> \<dots> \<rho>\<^sub>k \<Rightarrow> \<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow>
+      \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr>\<close> \\
   \end{tabular}
   \<^medskip>
 
   Some further operations address the extension aspect of a
-  derived record scheme specifically: @{text "t.fields"} produces a record
+  derived record scheme specifically: \<open>t.fields\<close> produces a record
   fragment consisting of exactly the new fields introduced here (the result
-  may serve as a more part elsewhere); @{text "t.extend"} takes a fixed
-  record and adds a given more part; @{text "t.truncate"} restricts a record
+  may serve as a more part elsewhere); \<open>t.extend\<close> takes a fixed
+  record and adds a given more part; \<open>t.truncate\<close> restricts a record
   scheme to a fixed record.
 
   \<^medskip>
   \begin{tabular}{lll}
-    @{text "t.fields"} & @{text "::"} & @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
-    @{text "t.extend"} & @{text "::"} & @{text "\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr> \<Rightarrow>
-      \<zeta> \<Rightarrow> \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>"} \\
-    @{text "t.truncate"} & @{text "::"} & @{text "\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
+    \<open>t.fields\<close> & \<open>::\<close> & \<open>\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>\<rparr>\<close> \\
+    \<open>t.extend\<close> & \<open>::\<close> & \<open>\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr> \<Rightarrow>
+      \<zeta> \<Rightarrow> \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>\<close> \\
+    \<open>t.truncate\<close> & \<open>::\<close> & \<open>\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr>\<close> \\
   \end{tabular}
   \<^medskip>
 
-  Note that @{text "t.make"} and @{text "t.fields"} coincide for
+  Note that \<open>t.make\<close> and \<open>t.fields\<close> coincide for
   root records.
 \<close>
 
@@ -1009,13 +1003,12 @@ text \<open>
   The record package proves several results internally, declaring
   these facts to appropriate proof tools.  This enables users to
   reason about record structures quite conveniently.  Assume that
-  @{text t} is a record type as specified above.
+  \<open>t\<close> is a record type as specified above.
 
   \<^enum> Standard conversions for selectors or updates applied to record
   constructor terms are made part of the default Simplifier context; thus
   proofs by reduction of basic operations merely require the @{method simp}
-  method without further arguments. These rules are available as @{text
-  "t.simps"}, too.
+  method without further arguments. These rules are available as \<open>t.simps\<close>, too.
 
   \<^enum> Selectors applied to updated records are automatically reduced by an
   internal simplification procedure, which is also part of the standard
@@ -1023,12 +1016,12 @@ text \<open>
 
   \<^enum> Inject equations of a form analogous to @{prop "(x, y) = (x', y') \<equiv>
   x = x' \<and> y = y'"} are declared to the Simplifier and Classical Reasoner as
-  @{attribute iff} rules. These rules are available as @{text "t.iffs"}.
+  @{attribute iff} rules. These rules are available as \<open>t.iffs\<close>.
 
-  \<^enum> The introduction rule for record equality analogous to @{text "x r =
-  x r' \<Longrightarrow> y r = y r' \<dots> \<Longrightarrow> r = r'"} is declared to the Simplifier, and as the
-  basic rule context as ``@{attribute intro}@{text "?"}''. The rule is
-  called @{text "t.equality"}.
+  \<^enum> The introduction rule for record equality analogous to \<open>x r =
+  x r' \<Longrightarrow> y r = y r' \<dots> \<Longrightarrow> r = r'\<close> is declared to the Simplifier, and as the
+  basic rule context as ``@{attribute intro}\<open>?\<close>''. The rule is
+  called \<open>t.equality\<close>.
 
   \<^enum> Representations of arbitrary record expressions as canonical
   constructor terms are provided both in @{method cases} and @{method
@@ -1038,13 +1031,13 @@ text \<open>
 
   The generic proof methods are sufficiently smart to pick the most sensible
   rule according to the type of the indicated record expression: users just
-  need to apply something like ``@{text "(cases r)"}'' to a certain proof
+  need to apply something like ``\<open>(cases r)\<close>'' to a certain proof
   problem.
 
-  \<^enum> The derived record operations @{text "t.make"}, @{text "t.fields"},
-  @{text "t.extend"}, @{text "t.truncate"} are \<^emph>\<open>not\<close> treated
+  \<^enum> The derived record operations \<open>t.make\<close>, \<open>t.fields\<close>,
+  \<open>t.extend\<close>, \<open>t.truncate\<close> are \<^emph>\<open>not\<close> treated
   automatically, but usually need to be expanded by hand, using the
-  collective fact @{text "t.defs"}.
+  collective fact \<open>t.defs\<close>.
 \<close>
 
 
@@ -1057,18 +1050,18 @@ section \<open>Semantic subtype definitions \label{sec:hol-typedef}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "typedef"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def (HOL) "typedef"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close> \\
   \end{matharray}
 
   A type definition identifies a new type with a non-empty subset of an
   existing type. More precisely, the new type is defined by exhibiting an
-  existing type @{text \<tau>}, a set @{text "A :: \<tau> set"}, and proving @{prop
-  "\<exists>x. x \<in> A"}. Thus @{text A} is a non-empty subset of @{text \<tau>}, and the
+  existing type \<open>\<tau>\<close>, a set \<open>A :: \<tau> set\<close>, and proving @{prop
+  "\<exists>x. x \<in> A"}. Thus \<open>A\<close> is a non-empty subset of \<open>\<tau>\<close>, and the
   new type denotes this subset. New functions are postulated that establish
   an isomorphism between the new type and the subset. In general, the type
-  @{text \<tau>} may involve type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} which means
-  that the type definition produces a type constructor @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n)
-  t"} depending on those type arguments.
+  \<open>\<tau>\<close> may involve type variables \<open>\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n\<close> which means
+  that the type definition produces a type constructor \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n)
+  t\<close> depending on those type arguments.
 
   @{rail \<open>
     @@{command (HOL) typedef} @{syntax "overloaded"}? abs_type '=' rep_set
@@ -1122,14 +1115,14 @@ text \<open>
   dependent type: the meaning relies on the operations provided by different
   type-class instances.
 
-  \<^descr> @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"} defines a
-  new type @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} from the set @{text A} over an existing
-  type. The set @{text A} may contain type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"}
-  as specified on the LHS, but no term variables. Non-emptiness of @{text A}
+  \<^descr> @{command (HOL) "typedef"}~\<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A\<close> defines a
+  new type \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t\<close> from the set \<open>A\<close> over an existing
+  type. The set \<open>A\<close> may contain type variables \<open>\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n\<close>
+  as specified on the LHS, but no term variables. Non-emptiness of \<open>A\<close>
   needs to be proven on the spot, in order to turn the internal conditional
   characterization into usable theorems.
 
-  The ``@{text "(overloaded)"}'' option allows the @{command
+  The ``\<open>(overloaded)\<close>'' option allows the @{command
   "typedef"} specification to depend on constants that are not (yet)
   specified and thus left open as parameters, e.g.\ type-class parameters.
 
@@ -1138,11 +1131,10 @@ text \<open>
   syntactically impossible in HOL. The non-emptiness proof may formally
   depend on local assumptions, but this has little practical relevance.
 
-  For @{command (HOL) "typedef"}~@{text "t = A"} the newly introduced
-  type @{text t} is accompanied by a pair of morphisms to relate it to
+  For @{command (HOL) "typedef"}~\<open>t = A\<close> the newly introduced
+  type \<open>t\<close> is accompanied by a pair of morphisms to relate it to
   the representing set over the old type.  By default, the injection
-  from type to set is called @{text Rep_t} and its inverse @{text
-  Abs_t}: An explicit @{keyword (HOL) "morphisms"} specification
+  from type to set is called \<open>Rep_t\<close> and its inverse \<open>Abs_t\<close>: An explicit @{keyword (HOL) "morphisms"} specification
   allows to provide alternative names.
 
   The logical characterization of @{command typedef} uses the predicate of
@@ -1150,7 +1142,7 @@ text \<open>
   basic consequences of that are instantiated accordingly, re-using the
   locale facts with names derived from the new type constructor. Thus the
   generic theorem @{thm type_definition.Rep} is turned into the specific
-  @{text "Rep_t"}, for example.
+  \<open>Rep_t\<close>, for example.
 
   Theorems @{thm type_definition.Rep}, @{thm
   type_definition.Rep_inverse}, and @{thm type_definition.Abs_inverse}
@@ -1206,14 +1198,14 @@ section \<open>Functorial structure of types\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "functor"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+    @{command_def (HOL) "functor"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>
   \end{matharray}
 
   @{rail \<open>
     @@{command (HOL) functor} (@{syntax name} ':')? @{syntax term}
   \<close>}
 
-  \<^descr> @{command (HOL) "functor"}~@{text "prefix: m"} allows to prove and
+  \<^descr> @{command (HOL) "functor"}~\<open>prefix: m\<close> allows to prove and
   register properties about the functorial structure of type constructors.
   These properties then can be used by other packages to deal with those
   type constructors in certain type constructions. Characteristic theorems
@@ -1221,20 +1213,18 @@ text \<open>
   the base name of the type constructor, an explicit prefix can be given
   alternatively.
 
-  The given term @{text "m"} is considered as \<^emph>\<open>mapper\<close> for the
+  The given term \<open>m\<close> is considered as \<^emph>\<open>mapper\<close> for the
   corresponding type constructor and must conform to the following type
   pattern:
 
   \begin{matharray}{lll}
-    @{text "m"} & @{text "::"} &
-      @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>k \<Rightarrow> (\<^vec>\<alpha>\<^sub>n) t \<Rightarrow> (\<^vec>\<beta>\<^sub>n) t"} \\
+    \<open>m\<close> & \<open>::\<close> &
+      \<open>\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>k \<Rightarrow> (\<^vec>\<alpha>\<^sub>n) t \<Rightarrow> (\<^vec>\<beta>\<^sub>n) t\<close> \\
   \end{matharray}
 
-  where @{text t} is the type constructor, @{text "\<^vec>\<alpha>\<^sub>n"}
-  and @{text "\<^vec>\<beta>\<^sub>n"} are distinct type variables free in the local
-  theory and @{text "\<sigma>\<^sub>1"}, \ldots, @{text "\<sigma>\<^sub>k"} is a subsequence of @{text
-  "\<alpha>\<^sub>1 \<Rightarrow> \<beta>\<^sub>1"}, @{text "\<beta>\<^sub>1 \<Rightarrow> \<alpha>\<^sub>1"}, \ldots, @{text "\<alpha>\<^sub>n \<Rightarrow> \<beta>\<^sub>n"}, @{text
-  "\<beta>\<^sub>n \<Rightarrow> \<alpha>\<^sub>n"}.
+  where \<open>t\<close> is the type constructor, \<open>\<^vec>\<alpha>\<^sub>n\<close>
+  and \<open>\<^vec>\<beta>\<^sub>n\<close> are distinct type variables free in the local
+  theory and \<open>\<sigma>\<^sub>1\<close>, \ldots, \<open>\<sigma>\<^sub>k\<close> is a subsequence of \<open>\<alpha>\<^sub>1 \<Rightarrow> \<beta>\<^sub>1\<close>, \<open>\<beta>\<^sub>1 \<Rightarrow> \<alpha>\<^sub>1\<close>, \ldots, \<open>\<alpha>\<^sub>n \<Rightarrow> \<beta>\<^sub>n\<close>, \<open>\<beta>\<^sub>n \<Rightarrow> \<alpha>\<^sub>n\<close>.
 \<close>
 
 
@@ -1252,7 +1242,7 @@ subsection \<open>Quotient type definition \label{sec:quotient-type}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "quotient_type"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
+    @{command_def (HOL) "quotient_type"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>\\
   \end{matharray}
 
   @{rail \<open>
@@ -1267,14 +1257,11 @@ text \<open>
     quot_parametric: @'parametric' @{syntax thmref}
   \<close>}
 
-  \<^descr> @{command (HOL) "quotient_type"} defines a new quotient type @{text
-  \<tau>}. The injection from a quotient type to a raw type is called @{text
-  rep_\<tau>}, its inverse @{text abs_\<tau>} unless explicit @{keyword (HOL)
+  \<^descr> @{command (HOL) "quotient_type"} defines a new quotient type \<open>\<tau>\<close>. The injection from a quotient type to a raw type is called \<open>rep_\<tau>\<close>, its inverse \<open>abs_\<tau>\<close> unless explicit @{keyword (HOL)
   "morphisms"} specification provides alternative names. @{command (HOL)
   "quotient_type"} requires the user to prove that the relation is an
-  equivalence relation (predicate @{text equivp}), unless the user specifies
-  explicitly @{text partial} in which case the obligation is @{text
-  part_equivp}. A quotient defined with @{text partial} is weaker in the
+  equivalence relation (predicate \<open>equivp\<close>), unless the user specifies
+  explicitly \<open>partial\<close> in which case the obligation is \<open>part_equivp\<close>. A quotient defined with \<open>partial\<close> is weaker in the
   sense that less things can be proved automatically.
 
   The command internally proves a Quotient theorem and sets up the Lifting
@@ -1308,18 +1295,18 @@ text \<open>
   "Huffman-Kuncar:2013:lifting_transfer"}.
 
   \begin{matharray}{rcl}
-    @{command_def (HOL) "setup_lifting"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
-    @{command_def (HOL) "lift_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
-    @{command_def (HOL) "lifting_forget"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
-    @{command_def (HOL) "lifting_update"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
-    @{command_def (HOL) "print_quot_maps"} & : & @{text "context \<rightarrow>"}\\
-    @{command_def (HOL) "print_quotients"} & : & @{text "context \<rightarrow>"}\\
-    @{attribute_def (HOL) "quot_map"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "relator_eq_onp"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "relator_mono"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "relator_distr"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_del"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "lifting_restore"} & : & @{text attribute} \\
+    @{command_def (HOL) "setup_lifting"} & : & \<open>local_theory \<rightarrow> local_theory\<close>\\
+    @{command_def (HOL) "lift_definition"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>\\
+    @{command_def (HOL) "lifting_forget"} & : & \<open>local_theory \<rightarrow> local_theory\<close>\\
+    @{command_def (HOL) "lifting_update"} & : & \<open>local_theory \<rightarrow> local_theory\<close>\\
+    @{command_def (HOL) "print_quot_maps"} & : & \<open>context \<rightarrow>\<close>\\
+    @{command_def (HOL) "print_quotients"} & : & \<open>context \<rightarrow>\<close>\\
+    @{attribute_def (HOL) "quot_map"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "relator_eq_onp"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "relator_mono"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "relator_distr"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "quot_del"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "lifting_restore"} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -1352,7 +1339,7 @@ text \<open>
     for @{term R} can be provided as a third argument. This allows the package
     to generate a stronger transfer rule for equality.
 
-    Users generally will not prove the @{text Quotient} theorem manually for
+    Users generally will not prove the \<open>Quotient\<close> theorem manually for
     new types, as special commands exist to automate the process.
 
     \<^enum> When a new subtype is defined by @{command (HOL) typedef}, @{command
@@ -1373,61 +1360,60 @@ text \<open>
   by @{command (HOL) "lift_definition"}, the Lifting package proves and
   registers a code equation (if there is one) for the new constant.
 
-  \<^descr> @{command (HOL) "lift_definition"} @{text "f :: \<tau>"} @{keyword (HOL)
-  "is"} @{text t} Defines a new function @{text f} with an abstract type
-  @{text \<tau>} in terms of a corresponding operation @{text t} on a
-  representation type. More formally, if @{text "t :: \<sigma>"}, then the command
-  builds a term @{text "F"} as a corresponding combination of abstraction
-  and representation functions such that @{text "F :: \<sigma> \<Rightarrow> \<tau>" } and defines
-  @{text "f \<equiv> F t"}. The term @{text t} does not have to be necessarily a
+  \<^descr> @{command (HOL) "lift_definition"} \<open>f :: \<tau>\<close> @{keyword (HOL)
+  "is"} \<open>t\<close> Defines a new function \<open>f\<close> with an abstract type
+  \<open>\<tau>\<close> in terms of a corresponding operation \<open>t\<close> on a
+  representation type. More formally, if \<open>t :: \<sigma>\<close>, then the command
+  builds a term \<open>F\<close> as a corresponding combination of abstraction
+  and representation functions such that \<open>F :: \<sigma> \<Rightarrow> \<tau>\<close> and defines
+  \<open>f \<equiv> F t\<close>. The term \<open>t\<close> does not have to be necessarily a
   constant but it can be any term.
 
   The command opens a proof and the user must discharge a respectfulness
-  proof obligation. For a type copy, i.e.\ a typedef with @{text UNIV}, the
+  proof obligation. For a type copy, i.e.\ a typedef with \<open>UNIV\<close>, the
   obligation is discharged automatically. The proof goal is presented in a
   user-friendly, readable form. A respectfulness theorem in the standard
-  format @{text f.rsp} and a transfer rule @{text f.transfer} for the
+  format \<open>f.rsp\<close> and a transfer rule \<open>f.transfer\<close> for the
   Transfer package are generated by the package.
 
-  The user can specify a parametricity theorems for @{text t} after the
+  The user can specify a parametricity theorems for \<open>t\<close> after the
   keyword @{keyword "parametric"}, which allows the command to generate
-  parametric transfer rules for @{text f}.
+  parametric transfer rules for \<open>f\<close>.
 
   For each constant defined through trivial quotients (type copies or
-  subtypes) @{text f.rep_eq} is generated. The equation is a code
-  certificate that defines @{text f} using the representation function.
+  subtypes) \<open>f.rep_eq\<close> is generated. The equation is a code
+  certificate that defines \<open>f\<close> using the representation function.
 
-  For each constant @{text f.abs_eq} is generated. The equation is
-  unconditional for total quotients. The equation defines @{text f} using
+  For each constant \<open>f.abs_eq\<close> is generated. The equation is
+  unconditional for total quotients. The equation defines \<open>f\<close> using
   the abstraction function.
 
   \<^medskip>
   Integration with [@{attribute code} abstract]: For subtypes
   (e.g.\ corresponding to a datatype invariant, such as @{typ "'a dlist"}),
-  @{command (HOL) "lift_definition"} uses a code certificate theorem @{text
-  f.rep_eq} as a code equation. Because of the limitation of the code
-  generator, @{text f.rep_eq} cannot be used as a code equation if the
+  @{command (HOL) "lift_definition"} uses a code certificate theorem \<open>f.rep_eq\<close> as a code equation. Because of the limitation of the code
+  generator, \<open>f.rep_eq\<close> cannot be used as a code equation if the
   subtype occurs inside the result type rather than at the top level (e.g.\
   function returning @{typ "'a dlist option"} vs. @{typ "'a dlist"}).
 
   In this case, an extension of @{command (HOL) "lift_definition"} can be
-  invoked by specifying the flag @{text "code_dt"}. This extension enables
+  invoked by specifying the flag \<open>code_dt\<close>. This extension enables
   code execution through series of internal type and lifting definitions if
-  the return type @{text "\<tau>"} meets the following inductive conditions:
+  the return type \<open>\<tau>\<close> meets the following inductive conditions:
 
-    \<^descr> @{text "\<tau>"} is a type variable
+    \<^descr> \<open>\<tau>\<close> is a type variable
 
-    \<^descr> @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"},
-    where @{text "\<kappa>"} is an abstract type constructor and @{text "\<tau>\<^sub>1 \<dots> \<tau>\<^sub>n"}
+    \<^descr> \<open>\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>\<close>,
+    where \<open>\<kappa>\<close> is an abstract type constructor and \<open>\<tau>\<^sub>1 \<dots> \<tau>\<^sub>n\<close>
     do not contain abstract types (i.e.\ @{typ "int dlist"} is allowed whereas
     @{typ "int dlist dlist"} not)
 
-    \<^descr> @{text "\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>"}, @{text "\<kappa>"} is a type constructor that
+    \<^descr> \<open>\<tau> = \<tau>\<^sub>1 \<dots> \<tau>\<^sub>n \<kappa>\<close>, \<open>\<kappa>\<close> is a type constructor that
     was defined as a (co)datatype whose constructor argument types do not
     contain either non-free datatypes or the function type.
 
   Integration with [@{attribute code} equation]: For total quotients,
-  @{command (HOL) "lift_definition"} uses @{text f.abs_eq} as a code
+  @{command (HOL) "lift_definition"} uses \<open>f.abs_eq\<close> as a code
   equation.
 
   \<^descr> @{command (HOL) lifting_forget} and @{command (HOL) lifting_update}
@@ -1437,17 +1423,16 @@ text \<open>
   when the construction is finished but it still allows additions to this
   construction when this is later necessary.
 
-  Whenever the Lifting package is set up with a new abstract type @{text
-  "\<tau>"} by @{command_def (HOL) "lift_definition"}, the package defines a new
-  bundle that is called @{text "\<tau>.lifting"}. This bundle already includes
+  Whenever the Lifting package is set up with a new abstract type \<open>\<tau>\<close> by @{command_def (HOL) "lift_definition"}, the package defines a new
+  bundle that is called \<open>\<tau>.lifting\<close>. This bundle already includes
   set-up for the Lifting package. The new transfer rules introduced by
   @{command (HOL) "lift_definition"} can be stored in the bundle by the
-  command @{command (HOL) "lifting_update"} @{text "\<tau>.lifting"}.
+  command @{command (HOL) "lifting_update"} \<open>\<tau>.lifting\<close>.
 
-  The command @{command (HOL) "lifting_forget"} @{text "\<tau>.lifting"} deletes
-  set-up of the Lifting package for @{text \<tau>} and deletes all the transfer
+  The command @{command (HOL) "lifting_forget"} \<open>\<tau>.lifting\<close> deletes
+  set-up of the Lifting package for \<open>\<tau>\<close> and deletes all the transfer
   rules that were introduced by @{command (HOL) "lift_definition"} using
-  @{text \<tau>} as an abstract type.
+  \<open>\<tau>\<close> as an abstract type.
 
   The stored set-up in a bundle can be reintroduced by the Isar commands for
   including a bundle (@{command "include"}, @{keyword "includes"} and
@@ -1469,7 +1454,7 @@ text \<open>
   that a relator applied to an equality restricted by a predicate @{term P}
   (i.e.\ @{term "eq_onp P"}) is equal to a predicator applied to the @{term
   P}. The combinator @{const eq_onp} is used for internal encoding of proper
-  subtypes. Such theorems allows the package to hide @{text eq_onp} from a
+  subtypes. Such theorems allows the package to hide \<open>eq_onp\<close> from a
   user in a user-readable form of a respectfulness theorem. For examples see
   @{file "~~/src/HOL/Lifting_Set.thy"} or @{file "~~/src/HOL/Lifting.thy"}.
   This property is proved automatically if the involved type is BNF without
@@ -1485,8 +1470,7 @@ text \<open>
   involved type is BNF without dead variables.
 
   \<^descr> @{attribute (HOL) "relator_distr"} registers a property describing a
-  distributivity of the relation composition and a relator. E.g.\ @{text
-  "rel_set R \<circ>\<circ> rel_set S = rel_set (R \<circ>\<circ> S)"}. This property is needed for
+  distributivity of the relation composition and a relator. E.g.\ \<open>rel_set R \<circ>\<circ> rel_set S = rel_set (R \<circ>\<circ> S)\<close>. This property is needed for
   proving a stronger transfer rule in @{command_def (HOL) "lift_definition"}
   when a parametricity theorem for the raw term is specified. When this
   equality does not hold unconditionally (e.g.\ for the function type), the
@@ -1505,16 +1489,16 @@ text \<open>
   rather used for low-level manipulation with set-up of the Lifting package
   because @{command (HOL) lifting_forget} is preferred for normal usage.
 
-  \<^descr> @{attribute (HOL) lifting_restore} @{text "Quotient_thm pcr_def
-  pcr_cr_eq_thm"} registers the Quotient theorem @{text Quotient_thm} in the
+  \<^descr> @{attribute (HOL) lifting_restore} \<open>Quotient_thm pcr_def
+  pcr_cr_eq_thm\<close> registers the Quotient theorem \<open>Quotient_thm\<close> in the
   Lifting infrastructure and thus sets up lifting for an abstract type
-  @{text \<tau>} (that is defined by @{text Quotient_thm}). Optional theorems
-  @{text pcr_def} and @{text pcr_cr_eq_thm} can be specified to register the
-  parametrized correspondence relation for @{text \<tau>}. E.g.\ for @{typ "'a
-  dlist"}, @{text pcr_def} is @{text "pcr_dlist A \<equiv> list_all2 A \<circ>\<circ>
-  cr_dlist"} and @{text pcr_cr_eq_thm} is @{text "pcr_dlist (op =) = (op
-  =)"}. This attribute is rather used for low-level manipulation with set-up
-  of the Lifting package because using of the bundle @{text \<tau>.lifting}
+  \<open>\<tau>\<close> (that is defined by \<open>Quotient_thm\<close>). Optional theorems
+  \<open>pcr_def\<close> and \<open>pcr_cr_eq_thm\<close> can be specified to register the
+  parametrized correspondence relation for \<open>\<tau>\<close>. E.g.\ for @{typ "'a
+  dlist"}, \<open>pcr_def\<close> is \<open>pcr_dlist A \<equiv> list_all2 A \<circ>\<circ>
+  cr_dlist\<close> and \<open>pcr_cr_eq_thm\<close> is \<open>pcr_dlist (op =) = (op
+  =)\<close>. This attribute is rather used for low-level manipulation with set-up
+  of the Lifting package because using of the bundle \<open>\<tau>.lifting\<close>
   together with the commands @{command (HOL) lifting_forget} and @{command
   (HOL) lifting_update} is preferred for normal usage.
 
@@ -1533,20 +1517,20 @@ subsection \<open>Transfer package \label{sec:transfer}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{method_def (HOL) "transfer"} & : & @{text method} \\
-    @{method_def (HOL) "transfer'"} & : & @{text method} \\
-    @{method_def (HOL) "transfer_prover"} & : & @{text method} \\
-    @{attribute_def (HOL) "Transfer.transferred"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "untransferred"} & : & @{text attribute} \\
-    @{method_def (HOL) "transfer_start"} & : & @{text method} \\
-    @{method_def (HOL) "transfer_prover_start"} & : & @{text method} \\
-    @{method_def (HOL) "transfer_step"} & : & @{text method} \\
-    @{method_def (HOL) "transfer_end"} & : & @{text method} \\
-    @{method_def (HOL) "transfer_prover_end"} & : & @{text method} \\
-    @{attribute_def (HOL) "transfer_rule"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "transfer_domain_rule"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "relator_eq"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "relator_domain"} & : & @{text attribute} \\
+    @{method_def (HOL) "transfer"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "transfer'"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "transfer_prover"} & : & \<open>method\<close> \\
+    @{attribute_def (HOL) "Transfer.transferred"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "untransferred"} & : & \<open>attribute\<close> \\
+    @{method_def (HOL) "transfer_start"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "transfer_prover_start"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "transfer_step"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "transfer_end"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "transfer_prover_end"} & : & \<open>method\<close> \\
+    @{attribute_def (HOL) "transfer_rule"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "transfer_domain_rule"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "relator_eq"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "relator_domain"} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   \<^descr> @{method (HOL) "transfer"} method replaces the current subgoal with
@@ -1554,7 +1538,7 @@ text \<open>
   replacement of types and constants is guided by the database of transfer
   rules. Goals are generalized over all free variables by default; this is
   necessary for variables whose types change, but can be overridden for
-  specific variables with e.g. @{text "transfer fixing: x y z"}.
+  specific variables with e.g. \<open>transfer fixing: x y z\<close>.
 
   \<^descr> @{method (HOL) "transfer'"} is a variant of @{method (HOL) transfer}
   that allows replacing a subgoal with one that is logically stronger
@@ -1583,9 +1567,9 @@ text \<open>
 
   \<^descr> @{attribute (HOL) Transfer.transferred} works in the opposite
   direction than @{method (HOL) "transfer'"}. E.g.\ given the transfer
-  relation @{text "ZN x n \<equiv> (x = int n)"}, corresponding transfer rules and
-  the theorem @{text "\<forall>x::int \<in> {0..}. x < x + 1"}, the attribute would
-  prove @{text "\<forall>n::nat. n < n + 1"}. The attribute is still in experimental
+  relation \<open>ZN x n \<equiv> (x = int n)\<close>, corresponding transfer rules and
+  the theorem \<open>\<forall>x::int \<in> {0..}. x < x + 1\<close>, the attribute would
+  prove \<open>\<forall>n::nat. n < n + 1\<close>. The attribute is still in experimental
   phase of development.
 
   \<^descr> @{attribute (HOL) "transfer_rule"} attribute maintains a collection
@@ -1594,25 +1578,25 @@ text \<open>
   constant, or they may relate an operation on a raw type to a corresponding
   operation on an abstract type (quotient or subtype). For example:
 
-    @{text "((A ===> B) ===> list_all2 A ===> list_all2 B) map map"} \\
-    @{text "(cr_int ===> cr_int ===> cr_int) (\<lambda>(x,y) (u,v). (x+u, y+v)) plus"}
+    \<open>((A ===> B) ===> list_all2 A ===> list_all2 B) map map\<close> \\
+    \<open>(cr_int ===> cr_int ===> cr_int) (\<lambda>(x,y) (u,v). (x+u, y+v)) plus\<close>
 
   Lemmas involving predicates on relations can also be registered using the
   same attribute. For example:
 
-    @{text "bi_unique A \<Longrightarrow> (list_all2 A ===> op =) distinct distinct"} \\
-    @{text "\<lbrakk>bi_unique A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (rel_prod A B)"}
+    \<open>bi_unique A \<Longrightarrow> (list_all2 A ===> op =) distinct distinct\<close> \\
+    \<open>\<lbrakk>bi_unique A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (rel_prod A B)\<close>
 
-  Preservation of predicates on relations (@{text "bi_unique, bi_total,
-  right_unique, right_total, left_unique, left_total"}) with the respect to
+  Preservation of predicates on relations (\<open>bi_unique, bi_total,
+  right_unique, right_total, left_unique, left_total\<close>) with the respect to
   a relator is proved automatically if the involved type is BNF @{cite
   "isabelle-datatypes"} without dead variables.
 
   \<^descr> @{attribute (HOL) "transfer_domain_rule"} attribute maintains a
   collection of rules, which specify a domain of a transfer relation by a
-  predicate. E.g.\ given the transfer relation @{text "ZN x n \<equiv> (x = int
-  n)"}, one can register the following transfer domain rule: @{text "Domainp
-  ZN = (\<lambda>x. x \<ge> 0)"}. The rules allow the package to produce more readable
+  predicate. E.g.\ given the transfer relation \<open>ZN x n \<equiv> (x = int
+  n)\<close>, one can register the following transfer domain rule: \<open>Domainp
+  ZN = (\<lambda>x. x \<ge> 0)\<close>. The rules allow the package to produce more readable
   transferred goals, e.g.\ when quantifiers are transferred.
 
   \<^descr> @{attribute (HOL) relator_eq} attribute collects identity laws for
@@ -1641,23 +1625,23 @@ subsection \<open>Old-style definitions for quotient types \label{sec:old-quotie
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def (HOL) "quotient_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
-    @{command_def (HOL) "print_quotmapsQ3"} & : & @{text "context \<rightarrow>"}\\
-    @{command_def (HOL) "print_quotientsQ3"} & : & @{text "context \<rightarrow>"}\\
-    @{command_def (HOL) "print_quotconsts"} & : & @{text "context \<rightarrow>"}\\
-    @{method_def (HOL) "lifting"} & : & @{text method} \\
-    @{method_def (HOL) "lifting_setup"} & : & @{text method} \\
-    @{method_def (HOL) "descending"} & : & @{text method} \\
-    @{method_def (HOL) "descending_setup"} & : & @{text method} \\
-    @{method_def (HOL) "partiality_descending"} & : & @{text method} \\
-    @{method_def (HOL) "partiality_descending_setup"} & : & @{text method} \\
-    @{method_def (HOL) "regularize"} & : & @{text method} \\
-    @{method_def (HOL) "injection"} & : & @{text method} \\
-    @{method_def (HOL) "cleaning"} & : & @{text method} \\
-    @{attribute_def (HOL) "quot_thm"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_lifted"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_respect"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_preserve"} & : & @{text attribute} \\
+    @{command_def (HOL) "quotient_definition"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close>\\
+    @{command_def (HOL) "print_quotmapsQ3"} & : & \<open>context \<rightarrow>\<close>\\
+    @{command_def (HOL) "print_quotientsQ3"} & : & \<open>context \<rightarrow>\<close>\\
+    @{command_def (HOL) "print_quotconsts"} & : & \<open>context \<rightarrow>\<close>\\
+    @{method_def (HOL) "lifting"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "lifting_setup"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "descending"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "descending_setup"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "partiality_descending"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "partiality_descending_setup"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "regularize"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "injection"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "cleaning"} & : & \<open>method\<close> \\
+    @{attribute_def (HOL) "quot_thm"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "quot_lifted"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "quot_respect"} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) "quot_preserve"} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -1744,11 +1728,11 @@ text \<open>
   These tools are available via the following commands.
 
   \begin{matharray}{rcl}
-    @{command_def (HOL) "solve_direct"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
-    @{command_def (HOL) "try"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
-    @{command_def (HOL) "try0"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
-    @{command_def (HOL) "sledgehammer"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
-    @{command_def (HOL) "sledgehammer_params"} & : & @{text "theory \<rightarrow> theory"}
+    @{command_def (HOL) "solve_direct"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow>\<close> \\
+    @{command_def (HOL) "try"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow>\<close> \\
+    @{command_def (HOL) "try0"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow>\<close> \\
+    @{command_def (HOL) "sledgehammer"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow>\<close> \\
+    @{command_def (HOL) "sledgehammer_params"} & : & \<open>theory \<rightarrow> theory\<close>
   \end{matharray}
 
   @{rail \<open>
@@ -1776,8 +1760,7 @@ text \<open>
   \<^descr> @{command (HOL) "try0"} attempts to prove a subgoal
   using a combination of standard proof methods (@{method auto},
   @{method simp}, @{method blast}, etc.).  Additional facts supplied
-  via @{text "simp:"}, @{text "intro:"}, @{text "elim:"}, and @{text
-  "dest:"} are passed to the appropriate proof methods.
+  via \<open>simp:\<close>, \<open>intro:\<close>, \<open>elim:\<close>, and \<open>dest:\<close> are passed to the appropriate proof methods.
 
   \<^descr> @{command (HOL) "try"} attempts to prove or disprove a subgoal
   using a combination of provers and disprovers (@{command (HOL)
@@ -1803,14 +1786,14 @@ text \<open>
   is supported by the following commands.
 
   \begin{matharray}{rcl}
-    @{command_def (HOL) "value"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def (HOL) "values"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def (HOL) "quickcheck"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
-    @{command_def (HOL) "nitpick"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
-    @{command_def (HOL) "quickcheck_params"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "nitpick_params"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "quickcheck_generator"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "find_unused_assms"} & : & @{text "context \<rightarrow>"}
+    @{command_def (HOL) "value"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def (HOL) "values"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def (HOL) "quickcheck"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow>\<close> \\
+    @{command_def (HOL) "nitpick"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow>\<close> \\
+    @{command_def (HOL) "quickcheck_params"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (HOL) "nitpick_params"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (HOL) "quickcheck_generator"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (HOL) "find_unused_assms"} & : & \<open>context \<rightarrow>\<close>
   \end{matharray}
 
   @{rail \<open>
@@ -1839,20 +1822,20 @@ text \<open>
     args: ( @{syntax name} '=' value + ',' )
   \<close>} % FIXME check "value"
 
-  \<^descr> @{command (HOL) "value"}~@{text t} evaluates and prints a
-  term; optionally @{text modes} can be specified, which are appended
+  \<^descr> @{command (HOL) "value"}~\<open>t\<close> evaluates and prints a
+  term; optionally \<open>modes\<close> can be specified, which are appended
   to the current print mode; see \secref{sec:print-modes}.
   Evaluation is tried first using ML, falling
   back to normalization by evaluation if this fails.
   Alternatively a specific evaluator can be selected using square
   brackets; typical evaluators use the current set of code equations
-  to normalize and include @{text simp} for fully symbolic evaluation
-  using the simplifier, @{text nbe} for \<^emph>\<open>normalization by
+  to normalize and include \<open>simp\<close> for fully symbolic evaluation
+  using the simplifier, \<open>nbe\<close> for \<^emph>\<open>normalization by
   evaluation\<close> and \<^emph>\<open>code\<close> for code generation in SML.
 
-  \<^descr> @{command (HOL) "values"}~@{text t} enumerates a set
+  \<^descr> @{command (HOL) "values"}~\<open>t\<close> enumerates a set
   comprehension by evaluation and prints its values up to the given
-  number of solutions; optionally @{text modes} can be specified,
+  number of solutions; optionally \<open>modes\<close> can be specified,
   which are appended to the current print mode; see
   \secref{sec:print-modes}.
 
@@ -1866,10 +1849,10 @@ text \<open>
   quickcheck uses exhaustive testing.  A number of configuration
   options are supported for @{command (HOL) "quickcheck"}, notably:
 
-    \<^descr>[@{text tester}] specifies which testing approach to apply.
-    There are three testers, @{text exhaustive}, @{text random}, and
-    @{text narrowing}.  An unknown configuration option is treated as
-    an argument to tester, making @{text "tester ="} optional.  When
+    \<^descr>[\<open>tester\<close>] specifies which testing approach to apply.
+    There are three testers, \<open>exhaustive\<close>, \<open>random\<close>, and
+    \<open>narrowing\<close>.  An unknown configuration option is treated as
+    an argument to tester, making \<open>tester =\<close> optional.  When
     multiple testers are given, these are applied in parallel.  If no
     tester is specified, quickcheck uses the testers that are set
     active, i.e.\ configurations @{attribute
@@ -1877,67 +1860,66 @@ text \<open>
     quickcheck_random_active}, @{attribute
     quickcheck_narrowing_active} are set to true.
 
-    \<^descr>[@{text size}] specifies the maximum size of the search space
+    \<^descr>[\<open>size\<close>] specifies the maximum size of the search space
     for assignment values.
 
-    \<^descr>[@{text genuine_only}] sets quickcheck only to return genuine
+    \<^descr>[\<open>genuine_only\<close>] sets quickcheck only to return genuine
     counterexample, but not potentially spurious counterexamples due
     to underspecified functions.
 
-    \<^descr>[@{text abort_potential}] sets quickcheck to abort once it
+    \<^descr>[\<open>abort_potential\<close>] sets quickcheck to abort once it
     found a potentially spurious counterexample and to not continue
     to search for a further genuine counterexample.
-    For this option to be effective, the @{text genuine_only} option
+    For this option to be effective, the \<open>genuine_only\<close> option
     must be set to false.
 
-    \<^descr>[@{text eval}] takes a term or a list of terms and evaluates
+    \<^descr>[\<open>eval\<close>] takes a term or a list of terms and evaluates
     these terms under the variable assignment found by quickcheck.
     This option is currently only supported by the default
     (exhaustive) tester.
 
-    \<^descr>[@{text iterations}] sets how many sets of assignments are
+    \<^descr>[\<open>iterations\<close>] sets how many sets of assignments are
     generated for each particular size.
 
-    \<^descr>[@{text no_assms}] specifies whether assumptions in
+    \<^descr>[\<open>no_assms\<close>] specifies whether assumptions in
     structured proofs should be ignored.
 
-    \<^descr>[@{text locale}] specifies how to process conjectures in
+    \<^descr>[\<open>locale\<close>] specifies how to process conjectures in
     a locale context, i.e.\ they can be interpreted or expanded.
     The option is a whitespace-separated list of the two words
-    @{text interpret} and @{text expand}. The list determines the
+    \<open>interpret\<close> and \<open>expand\<close>. The list determines the
     order they are employed. The default setting is to first use
     interpretations and then test the expanded conjecture.
     The option is only provided as attribute declaration, but not
     as parameter to the command.
 
-    \<^descr>[@{text timeout}] sets the time limit in seconds.
+    \<^descr>[\<open>timeout\<close>] sets the time limit in seconds.
 
-    \<^descr>[@{text default_type}] sets the type(s) generally used to
+    \<^descr>[\<open>default_type\<close>] sets the type(s) generally used to
     instantiate type variables.
 
-    \<^descr>[@{text report}] if set quickcheck reports how many tests
+    \<^descr>[\<open>report\<close>] if set quickcheck reports how many tests
     fulfilled the preconditions.
 
-    \<^descr>[@{text use_subtype}] if set quickcheck automatically lifts
+    \<^descr>[\<open>use_subtype\<close>] if set quickcheck automatically lifts
     conjectures to registered subtypes if possible, and tests the
     lifted conjecture.
 
-    \<^descr>[@{text quiet}] if set quickcheck does not output anything
+    \<^descr>[\<open>quiet\<close>] if set quickcheck does not output anything
     while testing.
 
-    \<^descr>[@{text verbose}] if set quickcheck informs about the current
+    \<^descr>[\<open>verbose\<close>] if set quickcheck informs about the current
     size and cardinality while testing.
 
-    \<^descr>[@{text expect}] can be used to check if the user's
-    expectation was met (@{text no_expectation}, @{text
-    no_counterexample}, or @{text counterexample}).
+    \<^descr>[\<open>expect\<close>] can be used to check if the user's
+    expectation was met (\<open>no_expectation\<close>, \<open>no_counterexample\<close>, or \<open>counterexample\<close>).
 
   These option can be given within square brackets.
 
   Using the following type classes, the testers generate values and convert
   them back into Isabelle terms for displaying counterexamples.
 
-    \<^descr>[@{text exhaustive}] The parameters of the type classes @{class exhaustive}
+    \<^descr>[\<open>exhaustive\<close>] The parameters of the type classes @{class exhaustive}
     and @{class full_exhaustive} implement the testing. They take a
     testing function as a parameter, which takes a value of type @{typ "'a"}
     and optionally produces a counterexample, and a size parameter for the test values.
@@ -1945,17 +1927,17 @@ text \<open>
     expects a lazy term reconstruction in the type @{typ Code_Evaluation.term}
     of the tested value.
 
-    The canonical implementation for @{text exhaustive} testers calls the given
+    The canonical implementation for \<open>exhaustive\<close> testers calls the given
     testing function on all values up to the given size and stops as soon
     as a counterexample is found.
 
-    \<^descr>[@{text random}] The operation @{const Quickcheck_Random.random}
+    \<^descr>[\<open>random\<close>] The operation @{const Quickcheck_Random.random}
     of the type class @{class random} generates a pseudo-random
     value of the given size and a lazy term reconstruction of the value
     in the type @{typ Code_Evaluation.term}. A pseudo-randomness generator
     is defined in theory @{theory Random}.
 
-    \<^descr>[@{text narrowing}] implements Haskell's Lazy Smallcheck @{cite "runciman-naylor-lindblad"}
+    \<^descr>[\<open>narrowing\<close>] implements Haskell's Lazy Smallcheck @{cite "runciman-naylor-lindblad"}
     using the type classes @{class narrowing} and @{class partial_term_of}.
     Variables in the current goal are initially represented as symbolic variables.
     If the execution of the goal tries to evaluate one of them, the test engine
@@ -1978,7 +1960,7 @@ text \<open>
     refined if needed.
 
     To reconstruct counterexamples, the operation @{const partial_term_of} transforms
-    @{text narrowing}'s deep representation of terms to the type @{typ Code_Evaluation.term}.
+    \<open>narrowing\<close>'s deep representation of terms to the type @{typ Code_Evaluation.term}.
     The deep representation models symbolic variables as
     @{const Quickcheck_Narrowing.Narrowing_variable}, which are normally converted to
     @{const Code_Evaluation.Free}, and refined values as
@@ -2019,11 +2001,11 @@ section \<open>Coercive subtyping\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{attribute_def (HOL) coercion} & : & @{text attribute} \\
-    @{attribute_def (HOL) coercion_delete} & : & @{text attribute} \\
-    @{attribute_def (HOL) coercion_enabled} & : & @{text attribute} \\
-    @{attribute_def (HOL) coercion_map} & : & @{text attribute} \\
-    @{attribute_def (HOL) coercion_args} & : & @{text attribute} \\
+    @{attribute_def (HOL) coercion} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) coercion_delete} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) coercion_enabled} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) coercion_map} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) coercion_args} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   Coercive subtyping allows the user to omit explicit type
@@ -2041,41 +2023,41 @@ text \<open>
     @@{attribute (HOL) coercion_args} (@{syntax const}) (('+' | '0' | '-')+)
   \<close>}
 
-  \<^descr> @{attribute (HOL) "coercion"}~@{text "f"} registers a new
-  coercion function @{text "f :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2"} where @{text "\<sigma>\<^sub>1"} and
-  @{text "\<sigma>\<^sub>2"} are type constructors without arguments.  Coercions are
+  \<^descr> @{attribute (HOL) "coercion"}~\<open>f\<close> registers a new
+  coercion function \<open>f :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2\<close> where \<open>\<sigma>\<^sub>1\<close> and
+  \<open>\<sigma>\<^sub>2\<close> are type constructors without arguments.  Coercions are
   composed by the inference algorithm if needed.  Note that the type
   inference algorithm is complete only if the registered coercions
   form a lattice.
 
-  \<^descr> @{attribute (HOL) "coercion_delete"}~@{text "f"} deletes a
+  \<^descr> @{attribute (HOL) "coercion_delete"}~\<open>f\<close> deletes a
   preceding declaration (using @{attribute (HOL) "coercion"}) of the
-  function @{text "f :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2"} as a coercion.
+  function \<open>f :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2\<close> as a coercion.
 
-  \<^descr> @{attribute (HOL) "coercion_map"}~@{text "map"} registers a
+  \<^descr> @{attribute (HOL) "coercion_map"}~\<open>map\<close> registers a
   new map function to lift coercions through type constructors. The
-  function @{text "map"} must conform to the following type pattern
+  function \<open>map\<close> must conform to the following type pattern
 
   \begin{matharray}{lll}
-    @{text "map"} & @{text "::"} &
-      @{text "f\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> f\<^sub>n \<Rightarrow> (\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t \<Rightarrow> (\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n) t"} \\
+    \<open>map\<close> & \<open>::\<close> &
+      \<open>f\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> f\<^sub>n \<Rightarrow> (\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t \<Rightarrow> (\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n) t\<close> \\
   \end{matharray}
 
-  where @{text "t"} is a type constructor and @{text "f\<^sub>i"} is of type
-  @{text "\<alpha>\<^sub>i \<Rightarrow> \<beta>\<^sub>i"} or @{text "\<beta>\<^sub>i \<Rightarrow> \<alpha>\<^sub>i"}.  Registering a map function
+  where \<open>t\<close> is a type constructor and \<open>f\<^sub>i\<close> is of type
+  \<open>\<alpha>\<^sub>i \<Rightarrow> \<beta>\<^sub>i\<close> or \<open>\<beta>\<^sub>i \<Rightarrow> \<alpha>\<^sub>i\<close>.  Registering a map function
   overwrites any existing map function for this particular type
   constructor.
 
   \<^descr> @{attribute (HOL) "coercion_args"} can be used to disallow
   coercions to be inserted in certain positions in a term. For example,
-  given the constant @{text "c :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2 \<Rightarrow> \<sigma>\<^sub>3 \<Rightarrow> \<sigma>\<^sub>4"} and the list
-  of policies @{text "- + 0"} as arguments, coercions will not be
-  inserted in the first argument of @{text "c"} (policy @{text "-"});
-  they may be inserted in the second argument (policy @{text "+"})
-  even if the constant @{text "c"} itself is in a position where
+  given the constant \<open>c :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2 \<Rightarrow> \<sigma>\<^sub>3 \<Rightarrow> \<sigma>\<^sub>4\<close> and the list
+  of policies \<open>- + 0\<close> as arguments, coercions will not be
+  inserted in the first argument of \<open>c\<close> (policy \<open>-\<close>);
+  they may be inserted in the second argument (policy \<open>+\<close>)
+  even if the constant \<open>c\<close> itself is in a position where
   coercions are disallowed; the third argument inherits the allowance
-  of coercsion insertion from the position of the constant @{text "c"}
-  (policy @{text "0"}). The standard usage of policies is the definition
+  of coercsion insertion from the position of the constant \<open>c\<close>
+  (policy \<open>0\<close>). The standard usage of policies is the definition
   of syntatic constructs (usually extralogical, i.e., processed and
   stripped during type inference), that should not be destroyed by the
   insertion of coercions (see, for example, the setup for the case syntax
@@ -2090,13 +2072,13 @@ section \<open>Arithmetic proof support\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{method_def (HOL) arith} & : & @{text method} \\
-    @{attribute_def (HOL) arith} & : & @{text attribute} \\
-    @{attribute_def (HOL) arith_split} & : & @{text attribute} \\
+    @{method_def (HOL) arith} & : & \<open>method\<close> \\
+    @{attribute_def (HOL) arith} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) arith_split} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   \<^descr> @{method (HOL) arith} decides linear arithmetic problems (on
-  types @{text nat}, @{text int}, @{text real}).  Any current facts
+  types \<open>nat\<close>, \<open>int\<close>, \<open>real\<close>).  Any current facts
   are inserted into the goal before running the procedure.
 
   \<^descr> @{attribute (HOL) arith} declares facts that are supplied to
@@ -2115,7 +2097,7 @@ section \<open>Intuitionistic proof search\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{method_def (HOL) iprover} & : & @{text method} \\
+    @{method_def (HOL) iprover} & : & \<open>method\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -2129,9 +2111,9 @@ text \<open>
 
   Rules need to be classified as @{attribute (Pure) intro},
   @{attribute (Pure) elim}, or @{attribute (Pure) dest}; here the
-  ``@{text "!"}'' indicator refers to ``safe'' rules, which may be
+  ``\<open>!\<close>'' indicator refers to ``safe'' rules, which may be
   applied aggressively (without considering back-tracking later).
-  Rules declared with ``@{text "?"}'' are ignored in proof search (the
+  Rules declared with ``\<open>?\<close>'' are ignored in proof search (the
   single-step @{method (Pure) rule} method still observes these).  An
   explicit weight annotation may be given as well; otherwise the
   number of rule premises will be taken into account here.
@@ -2142,8 +2124,8 @@ section \<open>Model Elimination and Resolution\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{method_def (HOL) "meson"} & : & @{text method} \\
-    @{method_def (HOL) "metis"} & : & @{text method} \\
+    @{method_def (HOL) "meson"} & : & \<open>method\<close> \\
+    @{method_def (HOL) "metis"} & : & \<open>method\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -2171,8 +2153,8 @@ section \<open>Algebraic reasoning via Gr\"obner bases\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{method_def (HOL) "algebra"} & : & @{text method} \\
-    @{attribute_def (HOL) algebra} & : & @{text attribute} \\
+    @{method_def (HOL) "algebra"} & : & \<open>method\<close> \\
+    @{attribute_def (HOL) algebra} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -2195,8 +2177,8 @@ text \<open>
     the underlying method is based on Hilbert's Nullstellensatz, where
     the equivalence only holds for algebraically closed fields.
 
-    The problems can contain equations @{text "p = 0"} or inequations
-    @{text "q \<noteq> 0"} anywhere within a universal problem statement.
+    The problems can contain equations \<open>p = 0\<close> or inequations
+    \<open>q \<noteq> 0\<close> anywhere within a universal problem statement.
 
     \<^enum> All-exists problems of the following restricted (but useful)
     form:
@@ -2208,11 +2190,11 @@ text \<open>
         \<dots> \<and>
         p\<^sub>t\<^sub>1(x\<^sub>1, \<dots>, x\<^sub>n) * y\<^sub>1 + \<dots> + p\<^sub>t\<^sub>k(x\<^sub>1, \<dots>, x\<^sub>n) * y\<^sub>k = 0)"}
 
-    Here @{text "e\<^sub>1, \<dots>, e\<^sub>n"} and the @{text "p\<^sub>i\<^sub>j"} are multivariate
+    Here \<open>e\<^sub>1, \<dots>, e\<^sub>n\<close> and the \<open>p\<^sub>i\<^sub>j\<close> are multivariate
     polynomials only in the variables mentioned as arguments.
 
   The proof method is preceded by a simplification step, which may be
-  modified by using the form @{text "(algebra add: ths\<^sub>1 del: ths\<^sub>2)"}.
+  modified by using the form \<open>(algebra add: ths\<^sub>1 del: ths\<^sub>2)\<close>.
   This acts like declarations for the Simplifier
   (\secref{sec:simplifier}) on a private simpset for this tool.
 
@@ -2249,7 +2231,7 @@ section \<open>Coherent Logic\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{method_def (HOL) "coherent"} & : & @{text method} \\
+    @{method_def (HOL) "coherent"} & : & \<open>method\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -2271,10 +2253,10 @@ text \<open>
   \secref{sec:cases-induct} for proper Isar versions of similar ideas.
 
   \begin{matharray}{rcl}
-    @{method_def (HOL) case_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def (HOL) induct_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def (HOL) ind_cases}@{text "\<^sup>*"} & : & @{text method} \\
-    @{command_def (HOL) "inductive_cases"}@{text "\<^sup>*"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{method_def (HOL) case_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def (HOL) induct_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def (HOL) ind_cases}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{command_def (HOL) "inductive_cases"}\<open>\<^sup>*\<close> & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -2321,14 +2303,14 @@ section \<open>Adhoc tuples\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{attribute_def (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
+    @{attribute_def (HOL) split_format}\<open>\<^sup>*\<close> & : & \<open>attribute\<close> \\
   \end{matharray}
 
   @{rail \<open>
     @@{attribute (HOL) split_format} ('(' 'complete' ')')?
   \<close>}
 
-  \<^descr> @{attribute (HOL) split_format}\ @{text "(complete)"} causes
+  \<^descr> @{attribute (HOL) split_format}\ \<open>(complete)\<close> causes
   arguments in function applications to be represented canonically
   according to their tuple type structure.
 
@@ -2359,22 +2341,22 @@ text \<open>For validation purposes, it is often useful to \<^emph>\<open>execut
   within HOL. See @{cite "isabelle-codegen"} for an introduction.
 
   \begin{matharray}{rcl}
-    @{command_def (HOL) "export_code"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{attribute_def (HOL) code} & : & @{text attribute} \\
-    @{command_def (HOL) "code_datatype"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "print_codesetup"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{attribute_def (HOL) code_unfold} & : & @{text attribute} \\
-    @{attribute_def (HOL) code_post} & : & @{text attribute} \\
-    @{attribute_def (HOL) code_abbrev} & : & @{text attribute} \\
-    @{command_def (HOL) "print_codeproc"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def (HOL) "code_thms"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def (HOL) "code_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def (HOL) "code_reserved"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_printing"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_identifier"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_monad"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_reflect"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_pred"} & : & @{text "theory \<rightarrow> proof(prove)"}
+    @{command_def (HOL) "export_code"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{attribute_def (HOL) code} & : & \<open>attribute\<close> \\
+    @{command_def (HOL) "code_datatype"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (HOL) "print_codesetup"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{attribute_def (HOL) code_unfold} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) code_post} & : & \<open>attribute\<close> \\
+    @{attribute_def (HOL) code_abbrev} & : & \<open>attribute\<close> \\
+    @{command_def (HOL) "print_codeproc"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def (HOL) "code_thms"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def (HOL) "code_deps"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def (HOL) "code_reserved"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (HOL) "code_printing"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (HOL) "code_identifier"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (HOL) "code_monad"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (HOL) "code_reflect"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def (HOL) "code_pred"} & : & \<open>theory \<rightarrow> proof(prove)\<close>
   \end{matharray}
 
   @{rail \<open>
@@ -2469,9 +2451,9 @@ text \<open>For validation purposes, it is often useful to \<^emph>\<open>execut
   instruction is given, only abstract code is generated internally.
 
   Constants may be specified by giving them literally, referring to all
-  executable constants within a certain theory by giving @{text "name._"},
+  executable constants within a certain theory by giving \<open>name._\<close>,
   or referring to \<^emph>\<open>all\<close> executable constants currently available by
-  giving @{text "_"}.
+  giving \<open>_\<close>.
 
   By default, exported identifiers are minimized per module. This can be
   suppressed by prepending @{keyword "open"} before the list of constants.
@@ -2487,21 +2469,20 @@ text \<open>For validation purposes, it is often useful to \<^emph>\<open>execut
   hierarchy. Omitting the file specification denotes standard output.
 
   Serializers take an optional list of arguments in parentheses. For
-  \<^emph>\<open>Haskell\<close> a module name prefix may be given using the ``@{text
-  "root:"}'' argument; ``@{text string_classes}'' adds a ``@{verbatim
+  \<^emph>\<open>Haskell\<close> a module name prefix may be given using the ``\<open>root:\<close>'' argument; ``\<open>string_classes\<close>'' adds a ``@{verbatim
   "deriving (Read, Show)"}'' clause to each appropriate datatype
   declaration.
 
   \<^descr> @{attribute (HOL) code} declare code equations for code generation.
-  Variant @{text "code equation"} declares a conventional equation as code
-  equation. Variants @{text "code abstype"} and @{text "code abstract"}
+  Variant \<open>code equation\<close> declares a conventional equation as code
+  equation. Variants \<open>code abstype\<close> and \<open>code abstract\<close>
   declare abstract datatype certificates or code equations on abstract
-  datatype representations respectively. Vanilla @{text "code"} falls back
-  to @{text "code equation"} or @{text "code abstype"} depending on the
-  syntactic shape of the underlying equation. Variant @{text "code del"}
+  datatype representations respectively. Vanilla \<open>code\<close> falls back
+  to \<open>code equation\<close> or \<open>code abstype\<close> depending on the
+  syntactic shape of the underlying equation. Variant \<open>code del\<close>
   deselects a code equation for code generation.
 
-  Variants @{text "code drop:"} and @{text "code abort:"} take a list of
+  Variants \<open>code drop:\<close> and \<open>code abort:\<close> take a list of
   constant as arguments and drop all code equations declared for them. In
   the case of {text abort}, these constants then are are not required to
   have a definition by means of code equations; if needed these are
@@ -2516,16 +2497,13 @@ text \<open>For validation purposes, it is often useful to \<^emph>\<open>execut
   \<^descr> @{command (HOL) "print_codesetup"} gives an overview on selected
   code equations and code generator datatypes.
 
-  \<^descr> @{attribute (HOL) code_unfold} declares (or with option ``@{text
-  "del"}'' removes) theorems which during preprocessing are applied as
+  \<^descr> @{attribute (HOL) code_unfold} declares (or with option ``\<open>del\<close>'' removes) theorems which during preprocessing are applied as
   rewrite rules to any code equation or evaluation input.
 
-  \<^descr> @{attribute (HOL) code_post} declares (or with option ``@{text
-  "del"}'' removes) theorems which are applied as rewrite rules to any
+  \<^descr> @{attribute (HOL) code_post} declares (or with option ``\<open>del\<close>'' removes) theorems which are applied as rewrite rules to any
   result of an evaluation.
 
-  \<^descr> @{attribute (HOL) code_abbrev} declares (or with option ``@{text
-  "del"}'' removes) equations which are applied as rewrite rules to any
+  \<^descr> @{attribute (HOL) code_abbrev} declares (or with option ``\<open>del\<close>'' removes) equations which are applied as rewrite rules to any
   result of an evaluation and symmetrically during preprocessing to any code
   equation or evaluation input.
 
@@ -2561,12 +2539,10 @@ text \<open>For validation purposes, it is often useful to \<^emph>\<open>execut
   identifiers in compound statements like type classes or datatypes are
   still the same.
 
-  \<^descr> @{command (HOL) "code_reflect"} without a ``@{text "file"}''
+  \<^descr> @{command (HOL) "code_reflect"} without a ``\<open>file\<close>''
   argument compiles code into the system runtime environment and modifies
   the code generator setup that future invocations of system runtime code
-  generation referring to one of the ``@{text "datatypes"}'' or ``@{text
-  "functions"}'' entities use these precompiled entities. With a ``@{text
-  "file"}'' argument, the corresponding code is generated into that
+  generation referring to one of the ``\<open>datatypes\<close>'' or ``\<open>functions\<close>'' entities use these precompiled entities. With a ``\<open>file\<close>'' argument, the corresponding code is generated into that
   specified file without modifying the code generator setup.
 
   \<^descr> @{command (HOL) "code_pred"} creates code equations for a predicate

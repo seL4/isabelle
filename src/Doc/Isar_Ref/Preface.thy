@@ -64,8 +64,7 @@ text \<open>
   Isar commands may be either \<^emph>\<open>proper\<close> document
   constructors, or \<^emph>\<open>improper commands\<close>.  Some proof methods and
   attributes introduced later are classified as improper as well.
-  Improper Isar language elements, which are marked by ``@{text
-  "\<^sup>*"}'' in the subsequent chapters; they are often helpful
+  Improper Isar language elements, which are marked by ``\<open>\<^sup>*\<close>'' in the subsequent chapters; they are often helpful
   when developing proof documents, but their use is discouraged for
   the final human-readable outcome.  Typical examples are diagnostic
   commands that print terms or theorems according to the current

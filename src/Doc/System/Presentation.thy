@@ -115,7 +115,7 @@ text \<open>The @{tool_def mkroot} tool configures a given directory as
 
   Prepare session root DIR (default: current directory).\<close>}
 
-  The results are placed in the given directory @{text dir}, which
+  The results are placed in the given directory \<open>dir\<close>, which
   refers to the current directory by default.  The @{tool mkroot} tool
   is conservative in the sense that it does not overwrite existing
   files or directories.  Earlier attempts to generate a session root
@@ -123,7 +123,7 @@ text \<open>The @{tool_def mkroot} tool configures a given directory as
 
   \<^medskip>
   Option @{verbatim "-d"} indicates that the session shall be
-  accompanied by a formal document, with @{text DIR}@{verbatim
+  accompanied by a formal document, with \<open>DIR\<close>@{verbatim
   "/document/root.tex"} as its {\LaTeX} entry point (see also
   \chref{ch:present}).
 
@@ -188,10 +188,9 @@ text \<open>The @{tool_def document} tool prepares logic session
   \<^medskip>
   The @{verbatim "-t"} option tells {\LaTeX} how to interpret
   tagged Isabelle command regions.  Tags are specified as a comma
-  separated list of modifier/name pairs: ``@{verbatim "+"}@{text
-  foo}'' (or just ``@{text foo}'') means to keep, ``@{verbatim
-  "-"}@{text foo}'' to drop, and ``@{verbatim "/"}@{text foo}'' to
-  fold text tagged as @{text foo}.  The builtin default is equivalent
+  separated list of modifier/name pairs: ``@{verbatim "+"}\<open>foo\<close>'' (or just ``\<open>foo\<close>'') means to keep, ``@{verbatim
+  "-"}\<open>foo\<close>'' to drop, and ``@{verbatim "/"}\<open>foo\<close>'' to
+  fold text tagged as \<open>foo\<close>.  The builtin default is equivalent
   to the tag specification ``@{verbatim
   "+theory,+proof,+ML,+visible,-invisible"}''; see also the {\LaTeX}
   macros @{verbatim "\\isakeeptag"}, @{verbatim "\\isadroptag"}, and
@@ -225,9 +224,8 @@ text \<open>The @{tool_def document} tool prepares logic session
   When running the session, Isabelle copies the content of
   the original @{verbatim document} directory into its proper place
   within @{setting ISABELLE_BROWSER_INFO}, according to the session
-  path and document variant.  Then, for any processed theory @{text A}
-  some {\LaTeX} source is generated and put there as @{text
-  A}@{verbatim ".tex"}.  Furthermore, a list of all generated theory
+  path and document variant.  Then, for any processed theory \<open>A\<close>
+  some {\LaTeX} source is generated and put there as \<open>A\<close>@{verbatim ".tex"}.  Furthermore, a list of all generated theory
   files is put into @{verbatim session.tex}.  Typically, the root
   {\LaTeX} file provided by the user would include @{verbatim
   session.tex} to get a document containing all the theories.
@@ -242,8 +240,8 @@ text \<open>The @{tool_def document} tool prepares logic session
   @{verbatim "\\"}@{verbatim "<forall>"}) then @{verbatim
   "isabellesym.sty"} should be included as well.  This package
   contains a standard set of {\LaTeX} macro definitions @{verbatim
-  "\\isasym"}@{text foo} corresponding to @{verbatim "\\"}@{verbatim
-  "<"}@{text foo}@{verbatim ">"}, see @{cite "isabelle-implementation"} for a
+  "\\isasym"}\<open>foo\<close> corresponding to @{verbatim "\\"}@{verbatim
+  "<"}\<open>foo\<close>@{verbatim ">"}, see @{cite "isabelle-implementation"} for a
   complete list of predefined Isabelle symbols.  Users may invent
   further symbols as well, just by providing {\LaTeX} macros in a
   similar fashion as in @{file "~~/lib/texinputs/isabellesym.sty"} of

@@ -17,7 +17,7 @@ text \<open>An Isabelle \<^emph>\<open>session\<close> consists of a collection 
   Application sessions are built on a given parent session, which may
   be built recursively on other parents.  Following this path in the
   hierarchy eventually leads to some major object-logic session like
-  @{text "HOL"}, which itself is based on @{text "Pure"} as the common
+  \<open>HOL\<close>, which itself is based on \<open>Pure\<close> as the common
   root of all sessions.
 
   Processing sessions may take considerable time.  Isabelle build
@@ -42,7 +42,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
   session_entry} is given as syntax diagram below; each ROOT file may
   contain multiple specifications like this.  Chapters help to
   organize browser info (\secref{sec:info}), but have no formal
-  meaning.  The default chapter is ``@{text "Unsorted"}''.
+  meaning.  The default chapter is ``\<open>Unsorted\<close>''.
 
   Isabelle/jEdit @{cite "isabelle-jedit"} includes a simple editing
   mode @{verbatim "isabelle-root"} for session ROOT files, which is
@@ -77,26 +77,26 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
     document_files: @'document_files' ('(' dir ')')? (@{syntax name}+)
   \<close>}
 
-  \<^descr> \isakeyword{session}~@{text "A = B + body"} defines a new
-  session @{text "A"} based on parent session @{text "B"}, with its
-  content given in @{text body} (theories and auxiliary source files).
-  Note that a parent (like @{text "HOL"}) is mandatory in practical
+  \<^descr> \isakeyword{session}~\<open>A = B + body\<close> defines a new
+  session \<open>A\<close> based on parent session \<open>B\<close>, with its
+  content given in \<open>body\<close> (theories and auxiliary source files).
+  Note that a parent (like \<open>HOL\<close>) is mandatory in practical
   applications: only Isabelle/Pure can bootstrap itself from nothing.
 
   All such session specifications together describe a hierarchy (tree)
   of sessions, with globally unique names.  The new session name
-  @{text "A"} should be sufficiently long and descriptive to stand on
+  \<open>A\<close> should be sufficiently long and descriptive to stand on
   its own in a potentially large library.
 
-  \<^descr> \isakeyword{session}~@{text "A (groups)"} indicates a
+  \<^descr> \isakeyword{session}~\<open>A (groups)\<close> indicates a
   collection of groups where the new session is a member.  Group names
   are uninterpreted and merely follow certain conventions.  For
   example, the Isabelle distribution tags some important sessions by
-  the group name called ``@{text "main"}''.  Other projects may invent
+  the group name called ``\<open>main\<close>''.  Other projects may invent
   their own conventions, but this requires some care to avoid clashes
   within this unchecked name space.
 
-  \<^descr> \isakeyword{session}~@{text "A"}~\isakeyword{in}~@{text "dir"}
+  \<^descr> \isakeyword{session}~\<open>A\<close>~\isakeyword{in}~\<open>dir\<close>
   specifies an explicit directory for this session; by default this is
   the current directory of the @{verbatim ROOT} file.
 
@@ -104,41 +104,39 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
   the session directory.  The prover process is run within the same as
   its current working directory.
 
-  \<^descr> \isakeyword{description}~@{text "text"} is a free-form
+  \<^descr> \isakeyword{description}~\<open>text\<close> is a free-form
   annotation for this session.
 
-  \<^descr> \isakeyword{options}~@{text "[x = a, y = b, z]"} defines
+  \<^descr> \isakeyword{options}~\<open>[x = a, y = b, z]\<close> defines
   separate options (\secref{sec:system-options}) that are used when
   processing this session, but \<^emph>\<open>without\<close> propagation to child
-  sessions.  Note that @{text "z"} abbreviates @{text "z = true"} for
+  sessions.  Note that \<open>z\<close> abbreviates \<open>z = true\<close> for
   Boolean options.
 
-  \<^descr> \isakeyword{theories}~@{text "options names"} specifies a
+  \<^descr> \isakeyword{theories}~\<open>options names\<close> specifies a
   block of theories that are processed within an environment that is
   augmented by the given options, in addition to the global session
   options given before.  Any number of blocks of \isakeyword{theories}
   may be given.  Options are only active for each
   \isakeyword{theories} block separately.
 
-  \<^descr> \isakeyword{files}~@{text "files"} lists additional source
+  \<^descr> \isakeyword{files}~\<open>files\<close> lists additional source
   files that are involved in the processing of this session.  This
   should cover anything outside the formal content of the theory
   sources.  In contrast, files that are loaded formally
   within a theory, e.g.\ via @{command "ML_file"}, need not be
   declared again.
 
-  \<^descr> \isakeyword{document_files}~@{text "("}\isakeyword{in}~@{text
-  "base_dir) files"} lists source files for document preparation,
+  \<^descr> \isakeyword{document_files}~\<open>(\<close>\isakeyword{in}~\<open>base_dir) files\<close> lists source files for document preparation,
   typically @{verbatim ".tex"} and @{verbatim ".sty"} for {\LaTeX}.
   Only these explicitly given files are copied from the base directory
   to the document output directory, before formal document processing
   is started (see also \secref{sec:tool-document}).  The local path
-  structure of the @{text files} is preserved, which allows to
-  reconstruct the original directory hierarchy of @{text "base_dir"}.
+  structure of the \<open>files\<close> is preserved, which allows to
+  reconstruct the original directory hierarchy of \<open>base_dir\<close>.
 
-  \<^descr> \isakeyword{document_files}~@{text "files"} abbreviates
-  \isakeyword{document_files}~@{text "("}\isakeyword{in}~@{text
-  "document) files"}, i.e.\ document sources are taken from the base
+  \<^descr> \isakeyword{document_files}~\<open>files\<close> abbreviates
+  \isakeyword{document_files}~\<open>(\<close>\isakeyword{in}~\<open>document) files\<close>, i.e.\ document sources are taken from the base
   directory @{verbatim document} within the session root directory.
 \<close>
 
@@ -147,8 +145,8 @@ subsubsection \<open>Examples\<close>
 
 text \<open>See @{file "~~/src/HOL/ROOT"} for a diversity of practically
   relevant situations, although it uses relatively complex
-  quasi-hierarchic naming conventions like @{text "HOL\<dash>SPARK"},
-  @{text "HOL\<dash>SPARK\<dash>Examples"}.  An alternative is to use
+  quasi-hierarchic naming conventions like \<open>HOL\<dash>SPARK\<close>,
+  \<open>HOL\<dash>SPARK\<dash>Examples\<close>.  An alternative is to use
   unqualified names that are relatively long and descriptive, as in
   the Archive of Formal Proofs (@{url "http://afp.sourceforge.net"}), for
   example.\<close>
@@ -182,7 +180,7 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   the document.
 
   \<^item> @{system_option_def "document_variants"} specifies document
-  variants as a colon-separated list of @{text "name=tags"} entries,
+  variants as a colon-separated list of \<open>name=tags\<close> entries,
   corresponding to @{tool document} options @{verbatim "-n"} and
   @{verbatim "-t"}.
 
@@ -199,7 +197,7 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
 
   \<^item> @{system_option_def "threads"} determines the number of worker
   threads for parallel checking of theories and proofs.  The default
-  @{text "0"} means that a sensible maximum value is determined by the
+  \<open>0\<close> means that a sensible maximum value is determined by the
   underlying hardware.  For machines with many cores or with
   hyperthreading, this is often requires manual adjustment (on the
   command-line or within personal settings or preferences, not within
@@ -239,7 +237,7 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   arguments NAME=VAL or NAME.\<close>}
 
   The command line arguments provide additional system options of the
-  form @{text "name"}@{verbatim "="}@{text "value"} or @{text name}
+  form \<open>name\<close>@{verbatim "="}\<open>value\<close> or \<open>name\<close>
   for Boolean options.
 
   Option @{verbatim "-b"} augments the implicit environment of system
@@ -298,7 +296,7 @@ text \<open>The @{tool_def build} tool invokes the build process for
   described in (\secref{sec:session-root}).  The totality of sessions
   is determined by collecting such specifications from all Isabelle
   component directories (\secref{sec:components}), augmented by more
-  directories given via options @{verbatim "-d"}~@{text "DIR"} on the
+  directories given via options @{verbatim "-d"}~\<open>DIR\<close> on the
   command line.  Each such directory may contain a session
   @{verbatim ROOT} file with several session specifications.
 
@@ -311,14 +309,14 @@ text \<open>The @{tool_def build} tool invokes the build process for
 
   \<^medskip>
   The subset of sessions to be managed is determined via
-  individual @{text "SESSIONS"} given as command-line arguments, or
+  individual \<open>SESSIONS\<close> given as command-line arguments, or
   session groups that are given via one or more options @{verbatim
-  "-g"}~@{text "NAME"}.  Option @{verbatim "-a"} selects all sessions.
+  "-g"}~\<open>NAME\<close>.  Option @{verbatim "-a"} selects all sessions.
   The build tool takes session dependencies into account: the set of
   selected sessions is completed by including all ancestors.
 
   \<^medskip>
-  One or more options @{verbatim "-x"}~@{text NAME} specify
+  One or more options @{verbatim "-x"}~\<open>NAME\<close> specify
   sessions to be excluded. All descendents of excluded sessions are removed
   from the selection as specified above. Option @{verbatim "-X"} is
   analogous to this, but excluded sessions are specified by session group
@@ -342,9 +340,9 @@ text \<open>The @{tool_def build} tool invokes the build process for
   ISABELLE_BUILD_OPTIONS} allows to provide additional defaults, e.g.\
   @{verbatim \<open>ISABELLE_BUILD_OPTIONS="document=pdf threads=4"\<close>}. Moreover,
   the environment of system build options may be augmented on the
-  command line via @{verbatim "-o"}~@{text "name"}@{verbatim
-  "="}@{text "value"} or @{verbatim "-o"}~@{text "name"}, which
-  abbreviates @{verbatim "-o"}~@{text "name"}@{verbatim"=true"} for
+  command line via @{verbatim "-o"}~\<open>name\<close>@{verbatim
+  "="}\<open>value\<close> or @{verbatim "-o"}~\<open>name\<close>, which
+  abbreviates @{verbatim "-o"}~\<open>name\<close>@{verbatim"=true"} for
   Boolean options.  Multiple occurrences of @{verbatim "-o"} on the
   command-line are applied in the given order.
 

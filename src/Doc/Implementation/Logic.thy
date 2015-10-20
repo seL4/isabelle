@@ -7,23 +7,20 @@ chapter \<open>Primitive logic \label{ch:logic}\<close>
 text \<open>
   The logical foundations of Isabelle/Isar are that of the Pure logic,
   which has been introduced as a Natural Deduction framework in
-  @{cite paulson700}.  This is essentially the same logic as ``@{text
-  "\<lambda>HOL"}'' in the more abstract setting of Pure Type Systems (PTS)
+  @{cite paulson700}.  This is essentially the same logic as ``\<open>\<lambda>HOL\<close>'' in the more abstract setting of Pure Type Systems (PTS)
   @{cite "Barendregt-Geuvers:2001"}, although there are some key
   differences in the specific treatment of simple types in
   Isabelle/Pure.
 
   Following type-theoretic parlance, the Pure logic consists of three
-  levels of @{text "\<lambda>"}-calculus with corresponding arrows, @{text
-  "\<Rightarrow>"} for syntactic function space (terms depending on terms), @{text
-  "\<And>"} for universal quantification (proofs depending on terms), and
-  @{text "\<Longrightarrow>"} for implication (proofs depending on proofs).
+  levels of \<open>\<lambda>\<close>-calculus with corresponding arrows, \<open>\<Rightarrow>\<close> for syntactic function space (terms depending on terms), \<open>\<And>\<close> for universal quantification (proofs depending on terms), and
+  \<open>\<Longrightarrow>\<close> for implication (proofs depending on proofs).
 
   Derivations are relative to a logical theory, which declares type
   constructors, constants, and axioms.  Theory declarations support
   schematic polymorphism, which is strictly speaking outside the
   logic.\footnote{This is the deeper logical reason, why the theory
-  context @{text "\<Theta>"} is separate from the proof context @{text "\<Gamma>"}
+  context \<open>\<Theta>\<close> is separate from the proof context \<open>\<Gamma>\<close>
   of the core calculus: type constructors, term constants, and facts
   (proof constants) may involve arbitrary type schemes, but the type
   of a locally fixed term parameter is also fixed!}
@@ -38,31 +35,29 @@ text \<open>
 
   \<^medskip>
   A \<^emph>\<open>type class\<close> is an abstract syntactic entity
-  declared in the theory context.  The \<^emph>\<open>subclass relation\<close> @{text
-  "c\<^sub>1 \<subseteq> c\<^sub>2"} is specified by stating an acyclic
+  declared in the theory context.  The \<^emph>\<open>subclass relation\<close> \<open>c\<^sub>1 \<subseteq> c\<^sub>2\<close> is specified by stating an acyclic
   generating relation; the transitive closure is maintained
   internally.  The resulting relation is an ordering: reflexive,
   transitive, and antisymmetric.
 
-  A \<^emph>\<open>sort\<close> is a list of type classes written as @{text "s = {c\<^sub>1,
-  \<dots>, c\<^sub>m}"}, it represents symbolic intersection.  Notationally, the
+  A \<^emph>\<open>sort\<close> is a list of type classes written as \<open>s = {c\<^sub>1,
+  \<dots>, c\<^sub>m}\<close>, it represents symbolic intersection.  Notationally, the
   curly braces are omitted for singleton intersections, i.e.\ any
-  class @{text "c"} may be read as a sort @{text "{c}"}.  The ordering
+  class \<open>c\<close> may be read as a sort \<open>{c}\<close>.  The ordering
   on type classes is extended to sorts according to the meaning of
-  intersections: @{text "{c\<^sub>1, \<dots> c\<^sub>m} \<subseteq> {d\<^sub>1, \<dots>, d\<^sub>n}"} iff @{text
-  "\<forall>j. \<exists>i. c\<^sub>i \<subseteq> d\<^sub>j"}.  The empty intersection @{text "{}"} refers to
+  intersections: \<open>{c\<^sub>1, \<dots> c\<^sub>m} \<subseteq> {d\<^sub>1, \<dots>, d\<^sub>n}\<close> iff \<open>\<forall>j. \<exists>i. c\<^sub>i \<subseteq> d\<^sub>j\<close>.  The empty intersection \<open>{}\<close> refers to
   the universal sort, which is the largest element wrt.\ the sort
-  order.  Thus @{text "{}"} represents the ``full sort'', not the
+  order.  Thus \<open>{}\<close> represents the ``full sort'', not the
   empty one!  The intersection of all (finitely many) classes declared
   in the current theory is the least element wrt.\ the sort ordering.
 
   \<^medskip>
   A \<^emph>\<open>fixed type variable\<close> is a pair of a basic name
-  (starting with a @{text "'"} character) and a sort constraint, e.g.\
-  @{text "('a, s)"} which is usually printed as @{text "\<alpha>\<^sub>s"}.
+  (starting with a \<open>'\<close> character) and a sort constraint, e.g.\
+  \<open>('a, s)\<close> which is usually printed as \<open>\<alpha>\<^sub>s\<close>.
   A \<^emph>\<open>schematic type variable\<close> is a pair of an indexname and a
-  sort constraint, e.g.\ @{text "(('a, 0), s)"} which is usually
-  printed as @{text "?\<alpha>\<^sub>s"}.
+  sort constraint, e.g.\ \<open>(('a, 0), s)\<close> which is usually
+  printed as \<open>?\<alpha>\<^sub>s\<close>.
 
   Note that \<^emph>\<open>all\<close> syntactic components contribute to the identity
   of type variables: basic name, index, and sort constraint.  The core
@@ -70,49 +65,47 @@ text \<open>
   as different, although the type-inference layer (which is outside
   the core) rejects anything like that.
 
-  A \<^emph>\<open>type constructor\<close> @{text "\<kappa>"} is a @{text "k"}-ary operator
+  A \<^emph>\<open>type constructor\<close> \<open>\<kappa>\<close> is a \<open>k\<close>-ary operator
   on types declared in the theory.  Type constructor application is
-  written postfix as @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>k)\<kappa>"}.  For
-  @{text "k = 0"} the argument tuple is omitted, e.g.\ @{text "prop"}
-  instead of @{text "()prop"}.  For @{text "k = 1"} the parentheses
-  are omitted, e.g.\ @{text "\<alpha> list"} instead of @{text "(\<alpha>)list"}.
+  written postfix as \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>k)\<kappa>\<close>.  For
+  \<open>k = 0\<close> the argument tuple is omitted, e.g.\ \<open>prop\<close>
+  instead of \<open>()prop\<close>.  For \<open>k = 1\<close> the parentheses
+  are omitted, e.g.\ \<open>\<alpha> list\<close> instead of \<open>(\<alpha>)list\<close>.
   Further notation is provided for specific constructors, notably the
-  right-associative infix @{text "\<alpha> \<Rightarrow> \<beta>"} instead of @{text "(\<alpha>,
-  \<beta>)fun"}.
+  right-associative infix \<open>\<alpha> \<Rightarrow> \<beta>\<close> instead of \<open>(\<alpha>,
+  \<beta>)fun\<close>.
   
   The logical category \<^emph>\<open>type\<close> is defined inductively over type
-  variables and type constructors as follows: @{text "\<tau> = \<alpha>\<^sub>s | ?\<alpha>\<^sub>s |
-  (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)\<kappa>"}.
+  variables and type constructors as follows: \<open>\<tau> = \<alpha>\<^sub>s | ?\<alpha>\<^sub>s |
+  (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)\<kappa>\<close>.
 
-  A \<^emph>\<open>type abbreviation\<close> is a syntactic definition @{text
-  "(\<^vec>\<alpha>)\<kappa> = \<tau>"} of an arbitrary type expression @{text "\<tau>"} over
-  variables @{text "\<^vec>\<alpha>"}.  Type abbreviations appear as type
+  A \<^emph>\<open>type abbreviation\<close> is a syntactic definition \<open>(\<^vec>\<alpha>)\<kappa> = \<tau>\<close> of an arbitrary type expression \<open>\<tau>\<close> over
+  variables \<open>\<^vec>\<alpha>\<close>.  Type abbreviations appear as type
   constructors in the syntax, but are expanded before entering the
   logical core.
 
   A \<^emph>\<open>type arity\<close> declares the image behavior of a type
-  constructor wrt.\ the algebra of sorts: @{text "\<kappa> :: (s\<^sub>1, \<dots>,
-  s\<^sub>k)s"} means that @{text "(\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)\<kappa>"} is
-  of sort @{text "s"} if every argument type @{text "\<tau>\<^sub>i"} is
-  of sort @{text "s\<^sub>i"}.  Arity declarations are implicitly
-  completed, i.e.\ @{text "\<kappa> :: (\<^vec>s)c"} entails @{text "\<kappa> ::
-  (\<^vec>s)c'"} for any @{text "c' \<supseteq> c"}.
+  constructor wrt.\ the algebra of sorts: \<open>\<kappa> :: (s\<^sub>1, \<dots>,
+  s\<^sub>k)s\<close> means that \<open>(\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)\<kappa>\<close> is
+  of sort \<open>s\<close> if every argument type \<open>\<tau>\<^sub>i\<close> is
+  of sort \<open>s\<^sub>i\<close>.  Arity declarations are implicitly
+  completed, i.e.\ \<open>\<kappa> :: (\<^vec>s)c\<close> entails \<open>\<kappa> ::
+  (\<^vec>s)c'\<close> for any \<open>c' \<supseteq> c\<close>.
 
   \<^medskip>
   The sort algebra is always maintained as \<^emph>\<open>coregular\<close>,
   which means that type arities are consistent with the subclass
-  relation: for any type constructor @{text "\<kappa>"}, and classes @{text
-  "c\<^sub>1 \<subseteq> c\<^sub>2"}, and arities @{text "\<kappa> ::
-  (\<^vec>s\<^sub>1)c\<^sub>1"} and @{text "\<kappa> ::
-  (\<^vec>s\<^sub>2)c\<^sub>2"} holds @{text "\<^vec>s\<^sub>1 \<subseteq>
-  \<^vec>s\<^sub>2"} component-wise.
+  relation: for any type constructor \<open>\<kappa>\<close>, and classes \<open>c\<^sub>1 \<subseteq> c\<^sub>2\<close>, and arities \<open>\<kappa> ::
+  (\<^vec>s\<^sub>1)c\<^sub>1\<close> and \<open>\<kappa> ::
+  (\<^vec>s\<^sub>2)c\<^sub>2\<close> holds \<open>\<^vec>s\<^sub>1 \<subseteq>
+  \<^vec>s\<^sub>2\<close> component-wise.
 
   The key property of a coregular order-sorted algebra is that sort
   constraints can be solved in a most general fashion: for each type
-  constructor @{text "\<kappa>"} and sort @{text "s"} there is a most general
-  vector of argument sorts @{text "(s\<^sub>1, \<dots>, s\<^sub>k)"} such
-  that a type scheme @{text "(\<alpha>\<^bsub>s\<^sub>1\<^esub>, \<dots>,
-  \<alpha>\<^bsub>s\<^sub>k\<^esub>)\<kappa>"} is of sort @{text "s"}.
+  constructor \<open>\<kappa>\<close> and sort \<open>s\<close> there is a most general
+  vector of argument sorts \<open>(s\<^sub>1, \<dots>, s\<^sub>k)\<close> such
+  that a type scheme \<open>(\<alpha>\<^bsub>s\<^sub>1\<^esub>, \<dots>,
+  \<alpha>\<^bsub>s\<^sub>k\<^esub>)\<kappa>\<close> is of sort \<open>s\<close>.
   Consequently, type unification has most general solutions (modulo
   equivalence of sorts), so type-inference produces primary types as
   expected @{cite "nipkow-prehofer"}.
@@ -145,54 +138,53 @@ text %mlref \<open>
   the empty class intersection, i.e.\ the ``full sort''.
 
   \<^descr> Type @{ML_type arity} represents type arities.  A triple
-  @{text "(\<kappa>, \<^vec>s, s) : arity"} represents @{text "\<kappa> ::
-  (\<^vec>s)s"} as described above.
+  \<open>(\<kappa>, \<^vec>s, s) : arity\<close> represents \<open>\<kappa> ::
+  (\<^vec>s)s\<close> as described above.
 
   \<^descr> Type @{ML_type typ} represents types; this is a datatype with
   constructors @{ML TFree}, @{ML TVar}, @{ML Type}.
 
-  \<^descr> @{ML Term.map_atyps}~@{text "f \<tau>"} applies the mapping @{text
-  "f"} to all atomic types (@{ML TFree}, @{ML TVar}) occurring in
-  @{text "\<tau>"}.
+  \<^descr> @{ML Term.map_atyps}~\<open>f \<tau>\<close> applies the mapping \<open>f\<close> to all atomic types (@{ML TFree}, @{ML TVar}) occurring in
+  \<open>\<tau>\<close>.
 
-  \<^descr> @{ML Term.fold_atyps}~@{text "f \<tau>"} iterates the operation
-  @{text "f"} over all occurrences of atomic types (@{ML TFree}, @{ML
-  TVar}) in @{text "\<tau>"}; the type structure is traversed from left to
+  \<^descr> @{ML Term.fold_atyps}~\<open>f \<tau>\<close> iterates the operation
+  \<open>f\<close> over all occurrences of atomic types (@{ML TFree}, @{ML
+  TVar}) in \<open>\<tau>\<close>; the type structure is traversed from left to
   right.
 
-  \<^descr> @{ML Sign.subsort}~@{text "thy (s\<^sub>1, s\<^sub>2)"}
-  tests the subsort relation @{text "s\<^sub>1 \<subseteq> s\<^sub>2"}.
+  \<^descr> @{ML Sign.subsort}~\<open>thy (s\<^sub>1, s\<^sub>2)\<close>
+  tests the subsort relation \<open>s\<^sub>1 \<subseteq> s\<^sub>2\<close>.
 
-  \<^descr> @{ML Sign.of_sort}~@{text "thy (\<tau>, s)"} tests whether type
-  @{text "\<tau>"} is of sort @{text "s"}.
+  \<^descr> @{ML Sign.of_sort}~\<open>thy (\<tau>, s)\<close> tests whether type
+  \<open>\<tau>\<close> is of sort \<open>s\<close>.
 
-  \<^descr> @{ML Sign.add_type}~@{text "ctxt (\<kappa>, k, mx)"} declares a
-  new type constructors @{text "\<kappa>"} with @{text "k"} arguments and
+  \<^descr> @{ML Sign.add_type}~\<open>ctxt (\<kappa>, k, mx)\<close> declares a
+  new type constructors \<open>\<kappa>\<close> with \<open>k\<close> arguments and
   optional mixfix syntax.
 
-  \<^descr> @{ML Sign.add_type_abbrev}~@{text "ctxt (\<kappa>, \<^vec>\<alpha>, \<tau>)"}
-  defines a new type abbreviation @{text "(\<^vec>\<alpha>)\<kappa> = \<tau>"}.
+  \<^descr> @{ML Sign.add_type_abbrev}~\<open>ctxt (\<kappa>, \<^vec>\<alpha>, \<tau>)\<close>
+  defines a new type abbreviation \<open>(\<^vec>\<alpha>)\<kappa> = \<tau>\<close>.
 
-  \<^descr> @{ML Sign.primitive_class}~@{text "(c, [c\<^sub>1, \<dots>,
-  c\<^sub>n])"} declares a new class @{text "c"}, together with class
-  relations @{text "c \<subseteq> c\<^sub>i"}, for @{text "i = 1, \<dots>, n"}.
+  \<^descr> @{ML Sign.primitive_class}~\<open>(c, [c\<^sub>1, \<dots>,
+  c\<^sub>n])\<close> declares a new class \<open>c\<close>, together with class
+  relations \<open>c \<subseteq> c\<^sub>i\<close>, for \<open>i = 1, \<dots>, n\<close>.
 
-  \<^descr> @{ML Sign.primitive_classrel}~@{text "(c\<^sub>1,
-  c\<^sub>2)"} declares the class relation @{text "c\<^sub>1 \<subseteq>
-  c\<^sub>2"}.
+  \<^descr> @{ML Sign.primitive_classrel}~\<open>(c\<^sub>1,
+  c\<^sub>2)\<close> declares the class relation \<open>c\<^sub>1 \<subseteq>
+  c\<^sub>2\<close>.
 
-  \<^descr> @{ML Sign.primitive_arity}~@{text "(\<kappa>, \<^vec>s, s)"} declares
-  the arity @{text "\<kappa> :: (\<^vec>s)s"}.
+  \<^descr> @{ML Sign.primitive_arity}~\<open>(\<kappa>, \<^vec>s, s)\<close> declares
+  the arity \<open>\<kappa> :: (\<^vec>s)s\<close>.
 \<close>
 
 text %mlantiq \<open>
   \begin{matharray}{rcl}
-  @{ML_antiquotation_def "class"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "sort"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "type_name"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "type_abbrev"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "nonterminal"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "typ"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "class"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "sort"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "type_name"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "type_abbrev"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "nonterminal"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "typ"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -207,23 +199,22 @@ text %mlantiq \<open>
   @@{ML_antiquotation typ} type
   \<close>}
 
-  \<^descr> @{text "@{class c}"} inlines the internalized class @{text
-  "c"} --- as @{ML_type string} literal.
+  \<^descr> \<open>@{class c}\<close> inlines the internalized class \<open>c\<close> --- as @{ML_type string} literal.
 
-  \<^descr> @{text "@{sort s}"} inlines the internalized sort @{text "s"}
+  \<^descr> \<open>@{sort s}\<close> inlines the internalized sort \<open>s\<close>
   --- as @{ML_type "string list"} literal.
 
-  \<^descr> @{text "@{type_name c}"} inlines the internalized type
-  constructor @{text "c"} --- as @{ML_type string} literal.
+  \<^descr> \<open>@{type_name c}\<close> inlines the internalized type
+  constructor \<open>c\<close> --- as @{ML_type string} literal.
 
-  \<^descr> @{text "@{type_abbrev c}"} inlines the internalized type
-  abbreviation @{text "c"} --- as @{ML_type string} literal.
+  \<^descr> \<open>@{type_abbrev c}\<close> inlines the internalized type
+  abbreviation \<open>c\<close> --- as @{ML_type string} literal.
 
-  \<^descr> @{text "@{nonterminal c}"} inlines the internalized syntactic
-  type~/ grammar nonterminal @{text "c"} --- as @{ML_type string}
+  \<^descr> \<open>@{nonterminal c}\<close> inlines the internalized syntactic
+  type~/ grammar nonterminal \<open>c\<close> --- as @{ML_type string}
   literal.
 
-  \<^descr> @{text "@{typ \<tau>}"} inlines the internalized type @{text "\<tau>"}
+  \<^descr> \<open>@{typ \<tau>}\<close> inlines the internalized type \<open>\<tau>\<close>
   --- as constructor term for datatype @{ML_type typ}.
 \<close>
 
@@ -231,18 +222,18 @@ text %mlantiq \<open>
 section \<open>Terms \label{sec:terms}\<close>
 
 text \<open>
-  The language of terms is that of simply-typed @{text "\<lambda>"}-calculus
+  The language of terms is that of simply-typed \<open>\<lambda>\<close>-calculus
   with de-Bruijn indices for bound variables (cf.\ @{cite debruijn72}
   or @{cite "paulson-ml2"}), with the types being determined by the
   corresponding binders.  In contrast, free variables and constants
   have an explicit name and type in each occurrence.
 
   \<^medskip>
-  A \<^emph>\<open>bound variable\<close> is a natural number @{text "b"},
+  A \<^emph>\<open>bound variable\<close> is a natural number \<open>b\<close>,
   which accounts for the number of intermediate binders between the
   variable occurrence in the body and its binding position.  For
-  example, the de-Bruijn term @{text "\<lambda>\<^bsub>bool\<^esub>. \<lambda>\<^bsub>bool\<^esub>. 1 \<and> 0"} would
-  correspond to @{text "\<lambda>x\<^bsub>bool\<^esub>. \<lambda>y\<^bsub>bool\<^esub>. x \<and> y"} in a named
+  example, the de-Bruijn term \<open>\<lambda>\<^bsub>bool\<^esub>. \<lambda>\<^bsub>bool\<^esub>. 1 \<and> 0\<close> would
+  correspond to \<open>\<lambda>x\<^bsub>bool\<^esub>. \<lambda>y\<^bsub>bool\<^esub>. x \<and> y\<close> in a named
   representation.  Note that a bound variable may be represented by
   different de-Bruijn indices at different occurrences, depending on
   the nesting of abstractions.
@@ -254,31 +245,29 @@ text \<open>
   without any loose variables.
 
   A \<^emph>\<open>fixed variable\<close> is a pair of a basic name and a type, e.g.\
-  @{text "(x, \<tau>)"} which is usually printed @{text "x\<^sub>\<tau>"} here.  A
+  \<open>(x, \<tau>)\<close> which is usually printed \<open>x\<^sub>\<tau>\<close> here.  A
   \<^emph>\<open>schematic variable\<close> is a pair of an indexname and a type,
-  e.g.\ @{text "((x, 0), \<tau>)"} which is likewise printed as @{text
-  "?x\<^sub>\<tau>"}.
+  e.g.\ \<open>((x, 0), \<tau>)\<close> which is likewise printed as \<open>?x\<^sub>\<tau>\<close>.
 
   \<^medskip>
   A \<^emph>\<open>constant\<close> is a pair of a basic name and a type,
-  e.g.\ @{text "(c, \<tau>)"} which is usually printed as @{text "c\<^sub>\<tau>"}
+  e.g.\ \<open>(c, \<tau>)\<close> which is usually printed as \<open>c\<^sub>\<tau>\<close>
   here.  Constants are declared in the context as polymorphic families
-  @{text "c :: \<sigma>"}, meaning that all substitution instances @{text
-  "c\<^sub>\<tau>"} for @{text "\<tau> = \<sigma>\<vartheta>"} are valid.
+  \<open>c :: \<sigma>\<close>, meaning that all substitution instances \<open>c\<^sub>\<tau>\<close> for \<open>\<tau> = \<sigma>\<vartheta>\<close> are valid.
 
-  The vector of \<^emph>\<open>type arguments\<close> of constant @{text "c\<^sub>\<tau>"} wrt.\
-  the declaration @{text "c :: \<sigma>"} is defined as the codomain of the
-  matcher @{text "\<vartheta> = {?\<alpha>\<^sub>1 \<mapsto> \<tau>\<^sub>1, \<dots>, ?\<alpha>\<^sub>n \<mapsto> \<tau>\<^sub>n}"} presented in
-  canonical order @{text "(\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>n)"}, corresponding to the
-  left-to-right occurrences of the @{text "\<alpha>\<^sub>i"} in @{text "\<sigma>"}.
+  The vector of \<^emph>\<open>type arguments\<close> of constant \<open>c\<^sub>\<tau>\<close> wrt.\
+  the declaration \<open>c :: \<sigma>\<close> is defined as the codomain of the
+  matcher \<open>\<vartheta> = {?\<alpha>\<^sub>1 \<mapsto> \<tau>\<^sub>1, \<dots>, ?\<alpha>\<^sub>n \<mapsto> \<tau>\<^sub>n}\<close> presented in
+  canonical order \<open>(\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>n)\<close>, corresponding to the
+  left-to-right occurrences of the \<open>\<alpha>\<^sub>i\<close> in \<open>\<sigma>\<close>.
   Within a given theory context, there is a one-to-one correspondence
-  between any constant @{text "c\<^sub>\<tau>"} and the application @{text "c(\<tau>\<^sub>1,
-  \<dots>, \<tau>\<^sub>n)"} of its type arguments.  For example, with @{text "plus :: \<alpha>
-  \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"}, the instance @{text "plus\<^bsub>nat \<Rightarrow> nat \<Rightarrow> nat\<^esub>"} corresponds to
-  @{text "plus(nat)"}.
+  between any constant \<open>c\<^sub>\<tau>\<close> and the application \<open>c(\<tau>\<^sub>1,
+  \<dots>, \<tau>\<^sub>n)\<close> of its type arguments.  For example, with \<open>plus :: \<alpha>
+  \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>\<close>, the instance \<open>plus\<^bsub>nat \<Rightarrow> nat \<Rightarrow> nat\<^esub>\<close> corresponds to
+  \<open>plus(nat)\<close>.
 
-  Constant declarations @{text "c :: \<sigma>"} may contain sort constraints
-  for type variables in @{text "\<sigma>"}.  These are observed by
+  Constant declarations \<open>c :: \<sigma>\<close> may contain sort constraints
+  for type variables in \<open>\<sigma>\<close>.  These are observed by
   type-inference as expected, but \<^emph>\<open>ignored\<close> by the core logic.
   This means the primitive logic is able to reason with instances of
   polymorphic constants that the user-level type-checker would reject
@@ -287,21 +276,21 @@ text \<open>
   \<^medskip>
   An \<^emph>\<open>atomic term\<close> is either a variable or constant.
   The logical category \<^emph>\<open>term\<close> is defined inductively over atomic
-  terms, with abstraction and application as follows: @{text "t = b |
-  x\<^sub>\<tau> | ?x\<^sub>\<tau> | c\<^sub>\<tau> | \<lambda>\<^sub>\<tau>. t | t\<^sub>1 t\<^sub>2"}.  Parsing and printing takes care of
+  terms, with abstraction and application as follows: \<open>t = b |
+  x\<^sub>\<tau> | ?x\<^sub>\<tau> | c\<^sub>\<tau> | \<lambda>\<^sub>\<tau>. t | t\<^sub>1 t\<^sub>2\<close>.  Parsing and printing takes care of
   converting between an external representation with named bound
   variables.  Subsequently, we shall use the latter notation instead
   of internal de-Bruijn representation.
 
-  The inductive relation @{text "t :: \<tau>"} assigns a (unique) type to a
+  The inductive relation \<open>t :: \<tau>\<close> assigns a (unique) type to a
   term according to the structure of atomic terms, abstractions, and
   applications:
   \[
-  \infer{@{text "a\<^sub>\<tau> :: \<tau>"}}{}
+  \infer{\<open>a\<^sub>\<tau> :: \<tau>\<close>}{}
   \qquad
-  \infer{@{text "(\<lambda>x\<^sub>\<tau>. t) :: \<tau> \<Rightarrow> \<sigma>"}}{@{text "t :: \<sigma>"}}
+  \infer{\<open>(\<lambda>x\<^sub>\<tau>. t) :: \<tau> \<Rightarrow> \<sigma>\<close>}{\<open>t :: \<sigma>\<close>}
   \qquad
-  \infer{@{text "t u :: \<sigma>"}}{@{text "t :: \<tau> \<Rightarrow> \<sigma>"} & @{text "u :: \<tau>"}}
+  \infer{\<open>t u :: \<sigma>\<close>}{\<open>t :: \<tau> \<Rightarrow> \<sigma>\<close> & \<open>u :: \<tau>\<close>}
   \]
   A \<^emph>\<open>well-typed term\<close> is a term that can be typed according to these rules.
 
@@ -312,43 +301,38 @@ text \<open>
   variables, and declarations for polymorphic constants.
 
   The identity of atomic terms consists both of the name and the type
-  component.  This means that different variables @{text
-  "x\<^bsub>\<tau>\<^sub>1\<^esub>"} and @{text "x\<^bsub>\<tau>\<^sub>2\<^esub>"} may become the same after
+  component.  This means that different variables \<open>x\<^bsub>\<tau>\<^sub>1\<^esub>\<close> and \<open>x\<^bsub>\<tau>\<^sub>2\<^esub>\<close> may become the same after
   type instantiation.  Type-inference rejects variables of the same
   name, but different types.  In contrast, mixed instances of
   polymorphic constants occur routinely.
 
   \<^medskip>
-  The \<^emph>\<open>hidden polymorphism\<close> of a term @{text "t :: \<sigma>"}
-  is the set of type variables occurring in @{text "t"}, but not in
-  its type @{text "\<sigma>"}.  This means that the term implicitly depends
+  The \<^emph>\<open>hidden polymorphism\<close> of a term \<open>t :: \<sigma>\<close>
+  is the set of type variables occurring in \<open>t\<close>, but not in
+  its type \<open>\<sigma>\<close>.  This means that the term implicitly depends
   on type arguments that are not accounted in the result type, i.e.\
-  there are different type instances @{text "t\<vartheta> :: \<sigma>"} and
-  @{text "t\<vartheta>' :: \<sigma>"} with the same type.  This slightly
+  there are different type instances \<open>t\<vartheta> :: \<sigma>\<close> and
+  \<open>t\<vartheta>' :: \<sigma>\<close> with the same type.  This slightly
   pathological situation notoriously demands additional care.
 
   \<^medskip>
-  A \<^emph>\<open>term abbreviation\<close> is a syntactic definition @{text
-  "c\<^sub>\<sigma> \<equiv> t"} of a closed term @{text "t"} of type @{text "\<sigma>"},
+  A \<^emph>\<open>term abbreviation\<close> is a syntactic definition \<open>c\<^sub>\<sigma> \<equiv> t\<close> of a closed term \<open>t\<close> of type \<open>\<sigma>\<close>,
   without any hidden polymorphism.  A term abbreviation looks like a
   constant in the syntax, but is expanded before entering the logical
   core.  Abbreviations are usually reverted when printing terms, using
-  @{text "t \<rightarrow> c\<^sub>\<sigma>"} as rules for higher-order rewriting.
+  \<open>t \<rightarrow> c\<^sub>\<sigma>\<close> as rules for higher-order rewriting.
 
   \<^medskip>
-  Canonical operations on @{text "\<lambda>"}-terms include @{text
-  "\<alpha>\<beta>\<eta>"}-conversion: @{text "\<alpha>"}-conversion refers to capture-free
-  renaming of bound variables; @{text "\<beta>"}-conversion contracts an
+  Canonical operations on \<open>\<lambda>\<close>-terms include \<open>\<alpha>\<beta>\<eta>\<close>-conversion: \<open>\<alpha>\<close>-conversion refers to capture-free
+  renaming of bound variables; \<open>\<beta>\<close>-conversion contracts an
   abstraction applied to an argument term, substituting the argument
-  in the body: @{text "(\<lambda>x. b)a"} becomes @{text "b[a/x]"}; @{text
-  "\<eta>"}-conversion contracts vacuous application-abstraction: @{text
-  "\<lambda>x. f x"} becomes @{text "f"}, provided that the bound variable
-  does not occur in @{text "f"}.
+  in the body: \<open>(\<lambda>x. b)a\<close> becomes \<open>b[a/x]\<close>; \<open>\<eta>\<close>-conversion contracts vacuous application-abstraction: \<open>\<lambda>x. f x\<close> becomes \<open>f\<close>, provided that the bound variable
+  does not occur in \<open>f\<close>.
 
-  Terms are normally treated modulo @{text "\<alpha>"}-conversion, which is
+  Terms are normally treated modulo \<open>\<alpha>\<close>-conversion, which is
   implicit in the de-Bruijn representation.  Names for bound variables
   in abstractions are maintained separately as (meaningless) comments,
-  mostly for parsing and printing.  Full @{text "\<alpha>\<beta>\<eta>"}-conversion is
+  mostly for parsing and printing.  Full \<open>\<alpha>\<beta>\<eta>\<close>-conversion is
   commonplace in various standard operations (\secref{sec:obj-rules})
   that are based on higher-order unification and matching.
 \<close>
@@ -381,64 +365,59 @@ text %mlref \<open>
   Free}, @{index_ML Var}, @{index_ML Const}, @{index_ML Abs},
   @{index_ML_op "$"}.
 
-  \<^descr> @{text "t"}~@{ML_text aconv}~@{text "u"} checks @{text
-  "\<alpha>"}-equivalence of two terms.  This is the basic equality relation
+  \<^descr> \<open>t\<close>~@{ML_text aconv}~\<open>u\<close> checks \<open>\<alpha>\<close>-equivalence of two terms.  This is the basic equality relation
   on type @{ML_type term}; raw datatype equality should only be used
   for operations related to parsing or printing!
 
-  \<^descr> @{ML Term.map_types}~@{text "f t"} applies the mapping @{text
-  "f"} to all types occurring in @{text "t"}.
+  \<^descr> @{ML Term.map_types}~\<open>f t\<close> applies the mapping \<open>f\<close> to all types occurring in \<open>t\<close>.
 
-  \<^descr> @{ML Term.fold_types}~@{text "f t"} iterates the operation
-  @{text "f"} over all occurrences of types in @{text "t"}; the term
+  \<^descr> @{ML Term.fold_types}~\<open>f t\<close> iterates the operation
+  \<open>f\<close> over all occurrences of types in \<open>t\<close>; the term
   structure is traversed from left to right.
 
-  \<^descr> @{ML Term.map_aterms}~@{text "f t"} applies the mapping @{text
-  "f"} to all atomic terms (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML
-  Const}) occurring in @{text "t"}.
+  \<^descr> @{ML Term.map_aterms}~\<open>f t\<close> applies the mapping \<open>f\<close> to all atomic terms (@{ML Bound}, @{ML Free}, @{ML Var}, @{ML
+  Const}) occurring in \<open>t\<close>.
 
-  \<^descr> @{ML Term.fold_aterms}~@{text "f t"} iterates the operation
-  @{text "f"} over all occurrences of atomic terms (@{ML Bound}, @{ML
-  Free}, @{ML Var}, @{ML Const}) in @{text "t"}; the term structure is
+  \<^descr> @{ML Term.fold_aterms}~\<open>f t\<close> iterates the operation
+  \<open>f\<close> over all occurrences of atomic terms (@{ML Bound}, @{ML
+  Free}, @{ML Var}, @{ML Const}) in \<open>t\<close>; the term structure is
   traversed from left to right.
 
-  \<^descr> @{ML fastype_of}~@{text "t"} determines the type of a
+  \<^descr> @{ML fastype_of}~\<open>t\<close> determines the type of a
   well-typed term.  This operation is relatively slow, despite the
   omission of any sanity checks.
 
-  \<^descr> @{ML lambda}~@{text "a b"} produces an abstraction @{text
-  "\<lambda>a. b"}, where occurrences of the atomic term @{text "a"} in the
-  body @{text "b"} are replaced by bound variables.
+  \<^descr> @{ML lambda}~\<open>a b\<close> produces an abstraction \<open>\<lambda>a. b\<close>, where occurrences of the atomic term \<open>a\<close> in the
+  body \<open>b\<close> are replaced by bound variables.
 
-  \<^descr> @{ML betapply}~@{text "(t, u)"} produces an application @{text
-  "t u"}, with topmost @{text "\<beta>"}-conversion if @{text "t"} is an
+  \<^descr> @{ML betapply}~\<open>(t, u)\<close> produces an application \<open>t u\<close>, with topmost \<open>\<beta>\<close>-conversion if \<open>t\<close> is an
   abstraction.
 
-  \<^descr> @{ML incr_boundvars}~@{text "j"} increments a term's dangling
-  bound variables by the offset @{text "j"}.  This is required when
+  \<^descr> @{ML incr_boundvars}~\<open>j\<close> increments a term's dangling
+  bound variables by the offset \<open>j\<close>.  This is required when
   moving a subterm into a context where it is enclosed by a different
   number of abstractions.  Bound variables with a matching abstraction
   are unaffected.
 
-  \<^descr> @{ML Sign.declare_const}~@{text "ctxt ((c, \<sigma>), mx)"} declares
-  a new constant @{text "c :: \<sigma>"} with optional mixfix syntax.
+  \<^descr> @{ML Sign.declare_const}~\<open>ctxt ((c, \<sigma>), mx)\<close> declares
+  a new constant \<open>c :: \<sigma>\<close> with optional mixfix syntax.
 
-  \<^descr> @{ML Sign.add_abbrev}~@{text "print_mode (c, t)"}
-  introduces a new term abbreviation @{text "c \<equiv> t"}.
+  \<^descr> @{ML Sign.add_abbrev}~\<open>print_mode (c, t)\<close>
+  introduces a new term abbreviation \<open>c \<equiv> t\<close>.
 
-  \<^descr> @{ML Sign.const_typargs}~@{text "thy (c, \<tau>)"} and @{ML
-  Sign.const_instance}~@{text "thy (c, [\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>n])"}
+  \<^descr> @{ML Sign.const_typargs}~\<open>thy (c, \<tau>)\<close> and @{ML
+  Sign.const_instance}~\<open>thy (c, [\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>n])\<close>
   convert between two representations of polymorphic constants: full
   type instance vs.\ compact type arguments form.
 \<close>
 
 text %mlantiq \<open>
   \begin{matharray}{rcl}
-  @{ML_antiquotation_def "const_name"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "const_abbrev"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "const"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "term"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "prop"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "const_name"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "const_abbrev"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "const"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "term"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "prop"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -452,45 +431,44 @@ text %mlantiq \<open>
   @@{ML_antiquotation prop} prop
   \<close>}
 
-  \<^descr> @{text "@{const_name c}"} inlines the internalized logical
-  constant name @{text "c"} --- as @{ML_type string} literal.
+  \<^descr> \<open>@{const_name c}\<close> inlines the internalized logical
+  constant name \<open>c\<close> --- as @{ML_type string} literal.
 
-  \<^descr> @{text "@{const_abbrev c}"} inlines the internalized
-  abbreviated constant name @{text "c"} --- as @{ML_type string}
+  \<^descr> \<open>@{const_abbrev c}\<close> inlines the internalized
+  abbreviated constant name \<open>c\<close> --- as @{ML_type string}
   literal.
 
-  \<^descr> @{text "@{const c(\<^vec>\<tau>)}"} inlines the internalized
-  constant @{text "c"} with precise type instantiation in the sense of
+  \<^descr> \<open>@{const c(\<^vec>\<tau>)}\<close> inlines the internalized
+  constant \<open>c\<close> with precise type instantiation in the sense of
   @{ML Sign.const_instance} --- as @{ML Const} constructor term for
   datatype @{ML_type term}.
 
-  \<^descr> @{text "@{term t}"} inlines the internalized term @{text "t"}
+  \<^descr> \<open>@{term t}\<close> inlines the internalized term \<open>t\<close>
   --- as constructor term for datatype @{ML_type term}.
 
-  \<^descr> @{text "@{prop \<phi>}"} inlines the internalized proposition
-  @{text "\<phi>"} --- as constructor term for datatype @{ML_type term}.
+  \<^descr> \<open>@{prop \<phi>}\<close> inlines the internalized proposition
+  \<open>\<phi>\<close> --- as constructor term for datatype @{ML_type term}.
 \<close>
 
 
 section \<open>Theorems \label{sec:thms}\<close>
 
 text \<open>
-  A \<^emph>\<open>proposition\<close> is a well-typed term of type @{text "prop"}, a
+  A \<^emph>\<open>proposition\<close> is a well-typed term of type \<open>prop\<close>, a
   \<^emph>\<open>theorem\<close> is a proven proposition (depending on a context of
   hypotheses and the background theory).  Primitive inferences include
-  plain Natural Deduction rules for the primary connectives @{text
-  "\<And>"} and @{text "\<Longrightarrow>"} of the framework.  There is also a builtin
-  notion of equality/equivalence @{text "\<equiv>"}.
+  plain Natural Deduction rules for the primary connectives \<open>\<And>\<close> and \<open>\<Longrightarrow>\<close> of the framework.  There is also a builtin
+  notion of equality/equivalence \<open>\<equiv>\<close>.
 \<close>
 
 
 subsection \<open>Primitive connectives and rules \label{sec:prim-rules}\<close>
 
 text \<open>
-  The theory @{text "Pure"} contains constant declarations for the
-  primitive connectives @{text "\<And>"}, @{text "\<Longrightarrow>"}, and @{text "\<equiv>"} of
+  The theory \<open>Pure\<close> contains constant declarations for the
+  primitive connectives \<open>\<And>\<close>, \<open>\<Longrightarrow>\<close>, and \<open>\<equiv>\<close> of
   the logical framework, see \figref{fig:pure-connectives}.  The
-  derivability judgment @{text "A\<^sub>1, \<dots>, A\<^sub>n \<turnstile> B"} is
+  derivability judgment \<open>A\<^sub>1, \<dots>, A\<^sub>n \<turnstile> B\<close> is
   defined inductively by the primitive inferences given in
   \figref{fig:prim-rules}, with the global restriction that the
   hypotheses must \<^emph>\<open>not\<close> contain any schematic variables.  The
@@ -501,9 +479,9 @@ text \<open>
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
-  @{text "all :: (\<alpha> \<Rightarrow> prop) \<Rightarrow> prop"} & universal quantification (binder @{text "\<And>"}) \\
-  @{text "\<Longrightarrow> :: prop \<Rightarrow> prop \<Rightarrow> prop"} & implication (right associative infix) \\
-  @{text "\<equiv> :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> prop"} & equality relation (infix) \\
+  \<open>all :: (\<alpha> \<Rightarrow> prop) \<Rightarrow> prop\<close> & universal quantification (binder \<open>\<And>\<close>) \\
+  \<open>\<Longrightarrow> :: prop \<Rightarrow> prop \<Rightarrow> prop\<close> & implication (right associative infix) \\
+  \<open>\<equiv> :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> prop\<close> & equality relation (infix) \\
   \end{tabular}
   \caption{Primitive connectives of Pure}\label{fig:pure-connectives}
   \end{center}
@@ -512,19 +490,19 @@ text \<open>
   \begin{figure}[htb]
   \begin{center}
   \[
-  \infer[@{text "(axiom)"}]{@{text "\<turnstile> A"}}{@{text "A \<in> \<Theta>"}}
+  \infer[\<open>(axiom)\<close>]{\<open>\<turnstile> A\<close>}{\<open>A \<in> \<Theta>\<close>}
   \qquad
-  \infer[@{text "(assume)"}]{@{text "A \<turnstile> A"}}{}
+  \infer[\<open>(assume)\<close>]{\<open>A \<turnstile> A\<close>}{}
   \]
   \[
-  \infer[@{text "(\<And>\<hyphen>intro)"}]{@{text "\<Gamma> \<turnstile> \<And>x. B[x]"}}{@{text "\<Gamma> \<turnstile> B[x]"} & @{text "x \<notin> \<Gamma>"}}
+  \infer[\<open>(\<And>\<hyphen>intro)\<close>]{\<open>\<Gamma> \<turnstile> \<And>x. B[x]\<close>}{\<open>\<Gamma> \<turnstile> B[x]\<close> & \<open>x \<notin> \<Gamma>\<close>}
   \qquad
-  \infer[@{text "(\<And>\<hyphen>elim)"}]{@{text "\<Gamma> \<turnstile> B[a]"}}{@{text "\<Gamma> \<turnstile> \<And>x. B[x]"}}
+  \infer[\<open>(\<And>\<hyphen>elim)\<close>]{\<open>\<Gamma> \<turnstile> B[a]\<close>}{\<open>\<Gamma> \<turnstile> \<And>x. B[x]\<close>}
   \]
   \[
-  \infer[@{text "(\<Longrightarrow>\<hyphen>intro)"}]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
+  \infer[\<open>(\<Longrightarrow>\<hyphen>intro)\<close>]{\<open>\<Gamma> - A \<turnstile> A \<Longrightarrow> B\<close>}{\<open>\<Gamma> \<turnstile> B\<close>}
   \qquad
-  \infer[@{text "(\<Longrightarrow>\<hyphen>elim)"}]{@{text "\<Gamma>\<^sub>1 \<union> \<Gamma>\<^sub>2 \<turnstile> B"}}{@{text "\<Gamma>\<^sub>1 \<turnstile> A \<Longrightarrow> B"} & @{text "\<Gamma>\<^sub>2 \<turnstile> A"}}
+  \infer[\<open>(\<Longrightarrow>\<hyphen>elim)\<close>]{\<open>\<Gamma>\<^sub>1 \<union> \<Gamma>\<^sub>2 \<turnstile> B\<close>}{\<open>\<Gamma>\<^sub>1 \<turnstile> A \<Longrightarrow> B\<close> & \<open>\<Gamma>\<^sub>2 \<turnstile> A\<close>}
   \]
   \caption{Primitive inferences of Pure}\label{fig:prim-rules}
   \end{center}
@@ -533,72 +511,66 @@ text \<open>
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
-  @{text "\<turnstile> (\<lambda>x. b[x]) a \<equiv> b[a]"} & @{text "\<beta>"}-conversion \\
-  @{text "\<turnstile> x \<equiv> x"} & reflexivity \\
-  @{text "\<turnstile> x \<equiv> y \<Longrightarrow> P x \<Longrightarrow> P y"} & substitution \\
-  @{text "\<turnstile> (\<And>x. f x \<equiv> g x) \<Longrightarrow> f \<equiv> g"} & extensionality \\
-  @{text "\<turnstile> (A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<equiv> B"} & logical equivalence \\
+  \<open>\<turnstile> (\<lambda>x. b[x]) a \<equiv> b[a]\<close> & \<open>\<beta>\<close>-conversion \\
+  \<open>\<turnstile> x \<equiv> x\<close> & reflexivity \\
+  \<open>\<turnstile> x \<equiv> y \<Longrightarrow> P x \<Longrightarrow> P y\<close> & substitution \\
+  \<open>\<turnstile> (\<And>x. f x \<equiv> g x) \<Longrightarrow> f \<equiv> g\<close> & extensionality \\
+  \<open>\<turnstile> (A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<equiv> B\<close> & logical equivalence \\
   \end{tabular}
   \caption{Conceptual axiomatization of Pure equality}\label{fig:pure-equality}
   \end{center}
   \end{figure}
 
-  The introduction and elimination rules for @{text "\<And>"} and @{text
-  "\<Longrightarrow>"} are analogous to formation of dependently typed @{text
-  "\<lambda>"}-terms representing the underlying proof objects.  Proof terms
+  The introduction and elimination rules for \<open>\<And>\<close> and \<open>\<Longrightarrow>\<close> are analogous to formation of dependently typed \<open>\<lambda>\<close>-terms representing the underlying proof objects.  Proof terms
   are irrelevant in the Pure logic, though; they cannot occur within
   propositions.  The system provides a runtime option to record
   explicit proof terms for primitive inferences, see also
-  \secref{sec:proof-terms}.  Thus all three levels of @{text
-  "\<lambda>"}-calculus become explicit: @{text "\<Rightarrow>"} for terms, and @{text
-  "\<And>/\<Longrightarrow>"} for proofs (cf.\ @{cite "Berghofer-Nipkow:2000:TPHOL"}).
+  \secref{sec:proof-terms}.  Thus all three levels of \<open>\<lambda>\<close>-calculus become explicit: \<open>\<Rightarrow>\<close> for terms, and \<open>\<And>/\<Longrightarrow>\<close> for proofs (cf.\ @{cite "Berghofer-Nipkow:2000:TPHOL"}).
 
-  Observe that locally fixed parameters (as in @{text
-  "\<And>\<hyphen>intro"}) need not be recorded in the hypotheses, because
+  Observe that locally fixed parameters (as in \<open>\<And>\<hyphen>intro\<close>) need not be recorded in the hypotheses, because
   the simple syntactic types of Pure are always inhabitable.
-  ``Assumptions'' @{text "x :: \<tau>"} for type-membership are only
-  present as long as some @{text "x\<^sub>\<tau>"} occurs in the statement
-  body.\footnote{This is the key difference to ``@{text "\<lambda>HOL"}'' in
+  ``Assumptions'' \<open>x :: \<tau>\<close> for type-membership are only
+  present as long as some \<open>x\<^sub>\<tau>\<close> occurs in the statement
+  body.\footnote{This is the key difference to ``\<open>\<lambda>HOL\<close>'' in
   the PTS framework @{cite "Barendregt-Geuvers:2001"}, where hypotheses
-  @{text "x : A"} are treated uniformly for propositions and types.}
+  \<open>x : A\<close> are treated uniformly for propositions and types.}
 
   \<^medskip>
   The axiomatization of a theory is implicitly closed by
-  forming all instances of type and term variables: @{text "\<turnstile>
-  A\<vartheta>"} holds for any substitution instance of an axiom
-  @{text "\<turnstile> A"}.  By pushing substitutions through derivations
-  inductively, we also get admissible @{text "generalize"} and @{text
-  "instantiate"} rules as shown in \figref{fig:subst-rules}.
+  forming all instances of type and term variables: \<open>\<turnstile>
+  A\<vartheta>\<close> holds for any substitution instance of an axiom
+  \<open>\<turnstile> A\<close>.  By pushing substitutions through derivations
+  inductively, we also get admissible \<open>generalize\<close> and \<open>instantiate\<close> rules as shown in \figref{fig:subst-rules}.
 
   \begin{figure}[htb]
   \begin{center}
   \[
-  \infer{@{text "\<Gamma> \<turnstile> B[?\<alpha>]"}}{@{text "\<Gamma> \<turnstile> B[\<alpha>]"} & @{text "\<alpha> \<notin> \<Gamma>"}}
+  \infer{\<open>\<Gamma> \<turnstile> B[?\<alpha>]\<close>}{\<open>\<Gamma> \<turnstile> B[\<alpha>]\<close> & \<open>\<alpha> \<notin> \<Gamma>\<close>}
   \quad
-  \infer[\quad@{text "(generalize)"}]{@{text "\<Gamma> \<turnstile> B[?x]"}}{@{text "\<Gamma> \<turnstile> B[x]"} & @{text "x \<notin> \<Gamma>"}}
+  \infer[\quad\<open>(generalize)\<close>]{\<open>\<Gamma> \<turnstile> B[?x]\<close>}{\<open>\<Gamma> \<turnstile> B[x]\<close> & \<open>x \<notin> \<Gamma>\<close>}
   \]
   \[
-  \infer{@{text "\<Gamma> \<turnstile> B[\<tau>]"}}{@{text "\<Gamma> \<turnstile> B[?\<alpha>]"}}
+  \infer{\<open>\<Gamma> \<turnstile> B[\<tau>]\<close>}{\<open>\<Gamma> \<turnstile> B[?\<alpha>]\<close>}
   \quad
-  \infer[\quad@{text "(instantiate)"}]{@{text "\<Gamma> \<turnstile> B[t]"}}{@{text "\<Gamma> \<turnstile> B[?x]"}}
+  \infer[\quad\<open>(instantiate)\<close>]{\<open>\<Gamma> \<turnstile> B[t]\<close>}{\<open>\<Gamma> \<turnstile> B[?x]\<close>}
   \]
   \caption{Admissible substitution rules}\label{fig:subst-rules}
   \end{center}
   \end{figure}
 
-  Note that @{text "instantiate"} does not require an explicit
-  side-condition, because @{text "\<Gamma>"} may never contain schematic
+  Note that \<open>instantiate\<close> does not require an explicit
+  side-condition, because \<open>\<Gamma>\<close> may never contain schematic
   variables.
 
   In principle, variables could be substituted in hypotheses as well,
   but this would disrupt the monotonicity of reasoning: deriving
-  @{text "\<Gamma>\<vartheta> \<turnstile> B\<vartheta>"} from @{text "\<Gamma> \<turnstile> B"} is
-  correct, but @{text "\<Gamma>\<vartheta> \<supseteq> \<Gamma>"} does not necessarily hold:
+  \<open>\<Gamma>\<vartheta> \<turnstile> B\<vartheta>\<close> from \<open>\<Gamma> \<turnstile> B\<close> is
+  correct, but \<open>\<Gamma>\<vartheta> \<supseteq> \<Gamma>\<close> does not necessarily hold:
   the result belongs to a different proof context.
 
   \<^medskip>
   An \<^emph>\<open>oracle\<close> is a function that produces axioms on the
-  fly.  Logically, this is an instance of the @{text "axiom"} rule
+  fly.  Logically, this is an instance of the \<open>axiom\<close> rule
   (\figref{fig:prim-rules}), but there is an operational difference.
   The system always records oracle invocations within derivations of
   theorems by a unique tag.
@@ -608,20 +580,16 @@ text \<open>
   Later on, theories are usually developed in a strictly definitional
   fashion, by stating only certain equalities over new constants.
 
-  A \<^emph>\<open>simple definition\<close> consists of a constant declaration @{text
-  "c :: \<sigma>"} together with an axiom @{text "\<turnstile> c \<equiv> t"}, where @{text "t
-  :: \<sigma>"} is a closed term without any hidden polymorphism.  The RHS
-  may depend on further defined constants, but not @{text "c"} itself.
-  Definitions of functions may be presented as @{text "c \<^vec>x \<equiv>
-  t"} instead of the puristic @{text "c \<equiv> \<lambda>\<^vec>x. t"}.
+  A \<^emph>\<open>simple definition\<close> consists of a constant declaration \<open>c :: \<sigma>\<close> together with an axiom \<open>\<turnstile> c \<equiv> t\<close>, where \<open>t
+  :: \<sigma>\<close> is a closed term without any hidden polymorphism.  The RHS
+  may depend on further defined constants, but not \<open>c\<close> itself.
+  Definitions of functions may be presented as \<open>c \<^vec>x \<equiv>
+  t\<close> instead of the puristic \<open>c \<equiv> \<lambda>\<^vec>x. t\<close>.
 
   An \<^emph>\<open>overloaded definition\<close> consists of a collection of axioms
-  for the same constant, with zero or one equations @{text
-  "c((\<^vec>\<alpha>)\<kappa>) \<equiv> t"} for each type constructor @{text "\<kappa>"} (for
-  distinct variables @{text "\<^vec>\<alpha>"}).  The RHS may mention
-  previously defined constants as above, or arbitrary constants @{text
-  "d(\<alpha>\<^sub>i)"} for some @{text "\<alpha>\<^sub>i"} projected from @{text
-  "\<^vec>\<alpha>"}.  Thus overloaded definitions essentially work by
+  for the same constant, with zero or one equations \<open>c((\<^vec>\<alpha>)\<kappa>) \<equiv> t\<close> for each type constructor \<open>\<kappa>\<close> (for
+  distinct variables \<open>\<^vec>\<alpha>\<close>).  The RHS may mention
+  previously defined constants as above, or arbitrary constants \<open>d(\<alpha>\<^sub>i)\<close> for some \<open>\<alpha>\<^sub>i\<close> projected from \<open>\<^vec>\<alpha>\<close>.  Thus overloaded definitions essentially work by
   primitive recursion over the syntactic structure of a single type
   argument.  See also @{cite \<open>\S4.3\<close> "Haftmann-Wenzel:2006:classes"}.
 \<close>
@@ -665,7 +633,7 @@ text %mlref \<open>
   Defs.entry -> Defs.entry list -> theory -> theory"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Thm.peek_status}~@{text "thm"} informs about the current
+  \<^descr> @{ML Thm.peek_status}~\<open>thm\<close> informs about the current
   status of the derivation object behind the given theorem.  This is a
   snapshot of a potentially ongoing (parallel) evaluation of proofs.
   The three Boolean values indicate the following: @{verbatim oracle}
@@ -674,13 +642,13 @@ text %mlref \<open>
   failed} if some future proof has failed, rendering the theorem
   invalid!
 
-  \<^descr> @{ML Logic.all}~@{text "a B"} produces a Pure quantification
-  @{text "\<And>a. B"}, where occurrences of the atomic term @{text "a"} in
-  the body proposition @{text "B"} are replaced by bound variables.
+  \<^descr> @{ML Logic.all}~\<open>a B\<close> produces a Pure quantification
+  \<open>\<And>a. B\<close>, where occurrences of the atomic term \<open>a\<close> in
+  the body proposition \<open>B\<close> are replaced by bound variables.
   (See also @{ML lambda} on terms.)
 
-  \<^descr> @{ML Logic.mk_implies}~@{text "(A, B)"} produces a Pure
-  implication @{text "A \<Longrightarrow> B"}.
+  \<^descr> @{ML Logic.mk_implies}~\<open>(A, B)\<close> produces a Pure
+  implication \<open>A \<Longrightarrow> B\<close>.
 
   \<^descr> Types @{ML_type ctyp} and @{ML_type cterm} represent certified
   types and terms, respectively.  These are abstract datatypes that
@@ -693,8 +661,8 @@ text %mlref \<open>
   are located in the @{ML_structure Thm} module, even though theorems are
   not yet involved at that stage.
 
-  \<^descr> @{ML Thm.ctyp_of}~@{text "ctxt \<tau>"} and @{ML
-  Thm.cterm_of}~@{text "ctxt t"} explicitly check types and terms,
+  \<^descr> @{ML Thm.ctyp_of}~\<open>ctxt \<tau>\<close> and @{ML
+  Thm.cterm_of}~\<open>ctxt t\<close> explicitly check types and terms,
   respectively.  This also involves some basic normalizations, such
   expansion of type and term abbreviations from the underlying
   theory context.
@@ -716,7 +684,7 @@ text %mlref \<open>
   Every @{ML_type thm} value refers its background theory,
   cf.\ \secref{sec:context-theory}.
 
-  \<^descr> @{ML Thm.transfer}~@{text "thy thm"} transfers the given
+  \<^descr> @{ML Thm.transfer}~\<open>thy thm\<close> transfers the given
   theorem to a \<^emph>\<open>larger\<close> theory, see also \secref{sec:context}.
   This formal adjustment of the background context has no logical
   significance, but is occasionally required for formal reasons, e.g.\
@@ -727,50 +695,48 @@ text %mlref \<open>
   Thm.forall_elim}, @{ML Thm.implies_intr}, and @{ML Thm.implies_elim}
   correspond to the primitive inferences of \figref{fig:prim-rules}.
 
-  \<^descr> @{ML Thm.generalize}~@{text "(\<^vec>\<alpha>, \<^vec>x)"}
-  corresponds to the @{text "generalize"} rules of
+  \<^descr> @{ML Thm.generalize}~\<open>(\<^vec>\<alpha>, \<^vec>x)\<close>
+  corresponds to the \<open>generalize\<close> rules of
   \figref{fig:subst-rules}.  Here collections of type and term
   variables are generalized simultaneously, specified by the given
   basic names.
 
-  \<^descr> @{ML Thm.instantiate}~@{text "(\<^vec>\<alpha>\<^sub>s,
-  \<^vec>x\<^sub>\<tau>)"} corresponds to the @{text "instantiate"} rules
+  \<^descr> @{ML Thm.instantiate}~\<open>(\<^vec>\<alpha>\<^sub>s,
+  \<^vec>x\<^sub>\<tau>)\<close> corresponds to the \<open>instantiate\<close> rules
   of \figref{fig:subst-rules}.  Type variables are substituted before
-  term variables.  Note that the types in @{text "\<^vec>x\<^sub>\<tau>"}
+  term variables.  Note that the types in \<open>\<^vec>x\<^sub>\<tau>\<close>
   refer to the instantiated versions.
 
-  \<^descr> @{ML Thm.add_axiom}~@{text "ctxt (name, A)"} declares an
+  \<^descr> @{ML Thm.add_axiom}~\<open>ctxt (name, A)\<close> declares an
   arbitrary proposition as axiom, and retrieves it as a theorem from
-  the resulting theory, cf.\ @{text "axiom"} in
+  the resulting theory, cf.\ \<open>axiom\<close> in
   \figref{fig:prim-rules}.  Note that the low-level representation in
   the axiom table may differ slightly from the returned theorem.
 
-  \<^descr> @{ML Thm.add_oracle}~@{text "(binding, oracle)"} produces a named
+  \<^descr> @{ML Thm.add_oracle}~\<open>(binding, oracle)\<close> produces a named
   oracle rule, essentially generating arbitrary axioms on the fly,
-  cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
+  cf.\ \<open>axiom\<close> in \figref{fig:prim-rules}.
 
-  \<^descr> @{ML Thm.add_def}~@{text "ctxt unchecked overloaded (name, c
-  \<^vec>x \<equiv> t)"} states a definitional axiom for an existing constant
-  @{text "c"}.  Dependencies are recorded via @{ML Theory.add_deps},
-  unless the @{text "unchecked"} option is set.  Note that the
+  \<^descr> @{ML Thm.add_def}~\<open>ctxt unchecked overloaded (name, c
+  \<^vec>x \<equiv> t)\<close> states a definitional axiom for an existing constant
+  \<open>c\<close>.  Dependencies are recorded via @{ML Theory.add_deps},
+  unless the \<open>unchecked\<close> option is set.  Note that the
   low-level representation in the axiom table may differ slightly from
   the returned theorem.
 
-  \<^descr> @{ML Theory.add_deps}~@{text "ctxt name c\<^sub>\<tau> \<^vec>d\<^sub>\<sigma>"}
-  declares dependencies of a named specification for constant @{text
-  "c\<^sub>\<tau>"}, relative to existing specifications for constants @{text
-  "\<^vec>d\<^sub>\<sigma>"}.  This also works for type constructors.
+  \<^descr> @{ML Theory.add_deps}~\<open>ctxt name c\<^sub>\<tau> \<^vec>d\<^sub>\<sigma>\<close>
+  declares dependencies of a named specification for constant \<open>c\<^sub>\<tau>\<close>, relative to existing specifications for constants \<open>\<^vec>d\<^sub>\<sigma>\<close>.  This also works for type constructors.
 \<close>
 
 
 text %mlantiq \<open>
   \begin{matharray}{rcl}
-  @{ML_antiquotation_def "ctyp"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "cterm"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "cprop"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "thm"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "thms"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "lemma"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "ctyp"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "cterm"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "cprop"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "thm"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "thms"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "lemma"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -788,28 +754,28 @@ text %mlantiq \<open>
     @'by' method method?
   \<close>}
 
-  \<^descr> @{text "@{ctyp \<tau>}"} produces a certified type wrt.\ the
+  \<^descr> \<open>@{ctyp \<tau>}\<close> produces a certified type wrt.\ the
   current background theory --- as abstract value of type @{ML_type
   ctyp}.
 
-  \<^descr> @{text "@{cterm t}"} and @{text "@{cprop \<phi>}"} produce a
+  \<^descr> \<open>@{cterm t}\<close> and \<open>@{cprop \<phi>}\<close> produce a
   certified term wrt.\ the current background theory --- as abstract
   value of type @{ML_type cterm}.
 
-  \<^descr> @{text "@{thm a}"} produces a singleton fact --- as abstract
+  \<^descr> \<open>@{thm a}\<close> produces a singleton fact --- as abstract
   value of type @{ML_type thm}.
 
-  \<^descr> @{text "@{thms a}"} produces a general fact --- as abstract
+  \<^descr> \<open>@{thms a}\<close> produces a general fact --- as abstract
   value of type @{ML_type "thm list"}.
 
-  \<^descr> @{text "@{lemma \<phi> by meth}"} produces a fact that is proven on
+  \<^descr> \<open>@{lemma \<phi> by meth}\<close> produces a fact that is proven on
   the spot according to the minimal proof, which imitates a terminal
   Isar proof.  The result is an abstract value of type @{ML_type thm}
   or @{ML_type "thm list"}, depending on the number of propositions
   given here.
 
   The internal derivation object lacks a proper theorem name, but it
-  is formally closed, unless the @{text "(open)"} option is specified
+  is formally closed, unless the \<open>(open)\<close> option is specified
   (this may impact performance of applications with proof terms).
 
   Since ML antiquotations are always evaluated at compile-time, there
@@ -823,7 +789,7 @@ text %mlantiq \<open>
 
 subsection \<open>Auxiliary connectives \label{sec:logic-aux}\<close>
 
-text \<open>Theory @{text "Pure"} provides a few auxiliary connectives
+text \<open>Theory \<open>Pure\<close> provides a few auxiliary connectives
   that are defined on top of the primitive ones, see
   \figref{fig:pure-aux}.  These special constants are useful in
   certain internal encodings, and are normally not directly exposed to
@@ -832,51 +798,49 @@ text \<open>Theory @{text "Pure"} provides a few auxiliary connectives
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{ll}
-  @{text "conjunction :: prop \<Rightarrow> prop \<Rightarrow> prop"} & (infix @{text "&&&"}) \\
-  @{text "\<turnstile> A &&& B \<equiv> (\<And>C. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)"} \\[1ex]
-  @{text "prop :: prop \<Rightarrow> prop"} & (prefix @{text "#"}, suppressed) \\
-  @{text "#A \<equiv> A"} \\[1ex]
-  @{text "term :: \<alpha> \<Rightarrow> prop"} & (prefix @{text "TERM"}) \\
-  @{text "term x \<equiv> (\<And>A. A \<Longrightarrow> A)"} \\[1ex]
-  @{text "type :: \<alpha> itself"} & (prefix @{text "TYPE"}) \\
-  @{text "(unspecified)"} \\
+  \<open>conjunction :: prop \<Rightarrow> prop \<Rightarrow> prop\<close> & (infix \<open>&&&\<close>) \\
+  \<open>\<turnstile> A &&& B \<equiv> (\<And>C. (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C)\<close> \\[1ex]
+  \<open>prop :: prop \<Rightarrow> prop\<close> & (prefix \<open>#\<close>, suppressed) \\
+  \<open>#A \<equiv> A\<close> \\[1ex]
+  \<open>term :: \<alpha> \<Rightarrow> prop\<close> & (prefix \<open>TERM\<close>) \\
+  \<open>term x \<equiv> (\<And>A. A \<Longrightarrow> A)\<close> \\[1ex]
+  \<open>type :: \<alpha> itself\<close> & (prefix \<open>TYPE\<close>) \\
+  \<open>(unspecified)\<close> \\
   \end{tabular}
   \caption{Definitions of auxiliary connectives}\label{fig:pure-aux}
   \end{center}
   \end{figure}
 
-  The introduction @{text "A \<Longrightarrow> B \<Longrightarrow> A &&& B"}, and eliminations
-  (projections) @{text "A &&& B \<Longrightarrow> A"} and @{text "A &&& B \<Longrightarrow> B"} are
+  The introduction \<open>A \<Longrightarrow> B \<Longrightarrow> A &&& B\<close>, and eliminations
+  (projections) \<open>A &&& B \<Longrightarrow> A\<close> and \<open>A &&& B \<Longrightarrow> B\<close> are
   available as derived rules.  Conjunction allows to treat
   simultaneous assumptions and conclusions uniformly, e.g.\ consider
-  @{text "A \<Longrightarrow> B \<Longrightarrow> C &&& D"}.  In particular, the goal mechanism
+  \<open>A \<Longrightarrow> B \<Longrightarrow> C &&& D\<close>.  In particular, the goal mechanism
   represents multiple claims as explicit conjunction internally, but
   this is refined (via backwards introduction) into separate sub-goals
   before the user commences the proof; the final result is projected
   into a list of theorems using eliminations (cf.\
   \secref{sec:tactical-goals}).
 
-  The @{text "prop"} marker (@{text "#"}) makes arbitrarily complex
-  propositions appear as atomic, without changing the meaning: @{text
-  "\<Gamma> \<turnstile> A"} and @{text "\<Gamma> \<turnstile> #A"} are interchangeable.  See
+  The \<open>prop\<close> marker (\<open>#\<close>) makes arbitrarily complex
+  propositions appear as atomic, without changing the meaning: \<open>\<Gamma> \<turnstile> A\<close> and \<open>\<Gamma> \<turnstile> #A\<close> are interchangeable.  See
   \secref{sec:tactical-goals} for specific operations.
 
-  The @{text "term"} marker turns any well-typed term into a derivable
-  proposition: @{text "\<turnstile> TERM t"} holds unconditionally.  Although
+  The \<open>term\<close> marker turns any well-typed term into a derivable
+  proposition: \<open>\<turnstile> TERM t\<close> holds unconditionally.  Although
   this is logically vacuous, it allows to treat terms and proofs
   uniformly, similar to a type-theoretic framework.
 
-  The @{text "TYPE"} constructor is the canonical representative of
-  the unspecified type @{text "\<alpha> itself"}; it essentially injects the
+  The \<open>TYPE\<close> constructor is the canonical representative of
+  the unspecified type \<open>\<alpha> itself\<close>; it essentially injects the
   language of types into that of terms.  There is specific notation
-  @{text "TYPE(\<tau>)"} for @{text "TYPE\<^bsub>\<tau> itself\<^esub>"}.
-  Although being devoid of any particular meaning, the term @{text
-  "TYPE(\<tau>)"} accounts for the type @{text "\<tau>"} within the term
-  language.  In particular, @{text "TYPE(\<alpha>)"} may be used as formal
+  \<open>TYPE(\<tau>)\<close> for \<open>TYPE\<^bsub>\<tau> itself\<^esub>\<close>.
+  Although being devoid of any particular meaning, the term \<open>TYPE(\<tau>)\<close> accounts for the type \<open>\<tau>\<close> within the term
+  language.  In particular, \<open>TYPE(\<alpha>)\<close> may be used as formal
   argument in primitive definitions, in order to circumvent hidden
-  polymorphism (cf.\ \secref{sec:terms}).  For example, @{text "c
-  TYPE(\<alpha>) \<equiv> A[\<alpha>]"} defines @{text "c :: \<alpha> itself \<Rightarrow> prop"} in terms of
-  a proposition @{text "A"} that depends on an additional type
+  polymorphism (cf.\ \secref{sec:terms}).  For example, \<open>c
+  TYPE(\<alpha>) \<equiv> A[\<alpha>]\<close> defines \<open>c :: \<alpha> itself \<Rightarrow> prop\<close> in terms of
+  a proposition \<open>A\<close> that depends on an additional type
   argument, which is essentially a predicate on types.
 \<close>
 
@@ -890,22 +854,19 @@ text %mlref \<open>
   @{index_ML Logic.dest_type: "term -> typ"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Conjunction.intr} derives @{text "A &&& B"} from @{text
-  "A"} and @{text "B"}.
+  \<^descr> @{ML Conjunction.intr} derives \<open>A &&& B\<close> from \<open>A\<close> and \<open>B\<close>.
 
-  \<^descr> @{ML Conjunction.elim} derives @{text "A"} and @{text "B"}
-  from @{text "A &&& B"}.
+  \<^descr> @{ML Conjunction.elim} derives \<open>A\<close> and \<open>B\<close>
+  from \<open>A &&& B\<close>.
 
-  \<^descr> @{ML Drule.mk_term} derives @{text "TERM t"}.
+  \<^descr> @{ML Drule.mk_term} derives \<open>TERM t\<close>.
 
-  \<^descr> @{ML Drule.dest_term} recovers term @{text "t"} from @{text
-  "TERM t"}.
+  \<^descr> @{ML Drule.dest_term} recovers term \<open>t\<close> from \<open>TERM t\<close>.
 
-  \<^descr> @{ML Logic.mk_type}~@{text "\<tau>"} produces the term @{text
-  "TYPE(\<tau>)"}.
+  \<^descr> @{ML Logic.mk_type}~\<open>\<tau>\<close> produces the term \<open>TYPE(\<tau>)\<close>.
 
-  \<^descr> @{ML Logic.dest_type}~@{text "TYPE(\<tau>)"} recovers the type
-  @{text "\<tau>"}.
+  \<^descr> @{ML Logic.dest_type}~\<open>TYPE(\<tau>)\<close> recovers the type
+  \<open>\<tau>\<close>.
 \<close>
 
 
@@ -913,29 +874,26 @@ subsection \<open>Sort hypotheses\<close>
 
 text \<open>Type variables are decorated with sorts, as explained in
   \secref{sec:types}.  This constrains type instantiation to certain
-  ranges of types: variable @{text "\<alpha>\<^sub>s"} may only be assigned to types
-  @{text "\<tau>"} that belong to sort @{text "s"}.  Within the logic, sort
-  constraints act like implicit preconditions on the result @{text
-  "\<lparr>\<alpha>\<^sub>1 : s\<^sub>1\<rparr>, \<dots>, \<lparr>\<alpha>\<^sub>n : s\<^sub>n\<rparr>, \<Gamma> \<turnstile> \<phi>"} where the type variables @{text
-  "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} cover the propositions @{text "\<Gamma>"}, @{text "\<phi>"}, as
-  well as the proof of @{text "\<Gamma> \<turnstile> \<phi>"}.
+  ranges of types: variable \<open>\<alpha>\<^sub>s\<close> may only be assigned to types
+  \<open>\<tau>\<close> that belong to sort \<open>s\<close>.  Within the logic, sort
+  constraints act like implicit preconditions on the result \<open>\<lparr>\<alpha>\<^sub>1 : s\<^sub>1\<rparr>, \<dots>, \<lparr>\<alpha>\<^sub>n : s\<^sub>n\<rparr>, \<Gamma> \<turnstile> \<phi>\<close> where the type variables \<open>\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n\<close> cover the propositions \<open>\<Gamma>\<close>, \<open>\<phi>\<close>, as
+  well as the proof of \<open>\<Gamma> \<turnstile> \<phi>\<close>.
 
   These \<^emph>\<open>sort hypothesis\<close> of a theorem are passed monotonically
   through further derivations.  They are redundant, as long as the
   statement of a theorem still contains the type variables that are
   accounted here.  The logical significance of sort hypotheses is
   limited to the boundary case where type variables disappear from the
-  proposition, e.g.\ @{text "\<lparr>\<alpha>\<^sub>s : s\<rparr> \<turnstile> \<phi>"}.  Since such dangling type
+  proposition, e.g.\ \<open>\<lparr>\<alpha>\<^sub>s : s\<rparr> \<turnstile> \<phi>\<close>.  Since such dangling type
   variables can be renamed arbitrarily without changing the
-  proposition @{text "\<phi>"}, the inference kernel maintains sort
-  hypotheses in anonymous form @{text "s \<turnstile> \<phi>"}.
+  proposition \<open>\<phi>\<close>, the inference kernel maintains sort
+  hypotheses in anonymous form \<open>s \<turnstile> \<phi>\<close>.
 
   In most practical situations, such extra sort hypotheses may be
   stripped in a final bookkeeping step, e.g.\ at the end of a proof:
   they are typically left over from intermediate reasoning with type
-  classes that can be satisfied by some concrete type @{text "\<tau>"} of
-  sort @{text "s"} to replace the hypothetical type variable @{text
-  "\<alpha>\<^sub>s"}.\<close>
+  classes that can be satisfied by some concrete type \<open>\<tau>\<close> of
+  sort \<open>s\<close> to replace the hypothetical type variable \<open>\<alpha>\<^sub>s\<close>.\<close>
 
 text %mlref \<open>
   \begin{mldecls}
@@ -943,11 +901,11 @@ text %mlref \<open>
   @{index_ML Thm.strip_shyps: "thm -> thm"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Thm.extra_shyps}~@{text "thm"} determines the extraneous
+  \<^descr> @{ML Thm.extra_shyps}~\<open>thm\<close> determines the extraneous
   sort hypotheses of the given theorem, i.e.\ the sorts that are not
   present within type variables of the statement.
 
-  \<^descr> @{ML Thm.strip_shyps}~@{text "thm"} removes any extraneous
+  \<^descr> @{ML Thm.strip_shyps}~\<open>thm\<close> removes any extraneous
   sort hypotheses that can be witnessed from the type signature.
 \<close>
 
@@ -976,9 +934,8 @@ text \<open>
   purposes.  User-level reasoning usually works via object-level rules
   that are represented as theorems of Pure.  Composition of rules
   involves \<^emph>\<open>backchaining\<close>, \<^emph>\<open>higher-order unification\<close> modulo
-  @{text "\<alpha>\<beta>\<eta>"}-conversion of @{text "\<lambda>"}-terms, and so-called
-  \<^emph>\<open>lifting\<close> of rules into a context of @{text "\<And>"} and @{text
-  "\<Longrightarrow>"} connectives.  Thus the full power of higher-order Natural
+  \<open>\<alpha>\<beta>\<eta>\<close>-conversion of \<open>\<lambda>\<close>-terms, and so-called
+  \<^emph>\<open>lifting\<close> of rules into a context of \<open>\<And>\<close> and \<open>\<Longrightarrow>\<close> connectives.  Thus the full power of higher-order Natural
   Deduction in Isabelle/Pure becomes readily available.
 \<close>
 
@@ -991,24 +948,24 @@ text \<open>
   arbitrary nesting similar to @{cite extensions91}.  The most basic
   rule format is that of a \<^emph>\<open>Horn Clause\<close>:
   \[
-  \infer{@{text "A"}}{@{text "A\<^sub>1"} & @{text "\<dots>"} & @{text "A\<^sub>n"}}
+  \infer{\<open>A\<close>}{\<open>A\<^sub>1\<close> & \<open>\<dots>\<close> & \<open>A\<^sub>n\<close>}
   \]
-  where @{text "A, A\<^sub>1, \<dots>, A\<^sub>n"} are atomic propositions
-  of the framework, usually of the form @{text "Trueprop B"}, where
-  @{text "B"} is a (compound) object-level statement.  This
+  where \<open>A, A\<^sub>1, \<dots>, A\<^sub>n\<close> are atomic propositions
+  of the framework, usually of the form \<open>Trueprop B\<close>, where
+  \<open>B\<close> is a (compound) object-level statement.  This
   object-level inference corresponds to an iterated implication in
   Pure like this:
   \[
-  @{text "A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> A"}
+  \<open>A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> A\<close>
   \]
-  As an example consider conjunction introduction: @{text "A \<Longrightarrow> B \<Longrightarrow> A \<and>
-  B"}.  Any parameters occurring in such rule statements are
+  As an example consider conjunction introduction: \<open>A \<Longrightarrow> B \<Longrightarrow> A \<and>
+  B\<close>.  Any parameters occurring in such rule statements are
   conceptionally treated as arbitrary:
   \[
-  @{text "\<And>x\<^sub>1 \<dots> x\<^sub>m. A\<^sub>1 x\<^sub>1 \<dots> x\<^sub>m \<Longrightarrow> \<dots> A\<^sub>n x\<^sub>1 \<dots> x\<^sub>m \<Longrightarrow> A x\<^sub>1 \<dots> x\<^sub>m"}
+  \<open>\<And>x\<^sub>1 \<dots> x\<^sub>m. A\<^sub>1 x\<^sub>1 \<dots> x\<^sub>m \<Longrightarrow> \<dots> A\<^sub>n x\<^sub>1 \<dots> x\<^sub>m \<Longrightarrow> A x\<^sub>1 \<dots> x\<^sub>m\<close>
   \]
 
-  Nesting of rules means that the positions of @{text "A\<^sub>i"} may
+  Nesting of rules means that the positions of \<open>A\<^sub>i\<close> may
   again hold compound rules, not just atomic propositions.
   Propositions of this format are called \<^emph>\<open>Hereditary Harrop
   Formulae\<close> in the literature @{cite "Miller:1991"}.  Here we give an
@@ -1016,19 +973,18 @@ text \<open>
 
   \<^medskip>
   \begin{tabular}{ll}
-  @{text "\<^bold>x"} & set of variables \\
-  @{text "\<^bold>A"} & set of atomic propositions \\
-  @{text "\<^bold>H  =  \<And>\<^bold>x\<^sup>*. \<^bold>H\<^sup>* \<Longrightarrow> \<^bold>A"} & set of Hereditary Harrop Formulas \\
+  \<open>\<^bold>x\<close> & set of variables \\
+  \<open>\<^bold>A\<close> & set of atomic propositions \\
+  \<open>\<^bold>H  =  \<And>\<^bold>x\<^sup>*. \<^bold>H\<^sup>* \<Longrightarrow> \<^bold>A\<close> & set of Hereditary Harrop Formulas \\
   \end{tabular}
   \<^medskip>
 
   Thus we essentially impose nesting levels on propositions formed
-  from @{text "\<And>"} and @{text "\<Longrightarrow>"}.  At each level there is a prefix
+  from \<open>\<And>\<close> and \<open>\<Longrightarrow>\<close>.  At each level there is a prefix
   of parameters and compound premises, concluding an atomic
-  proposition.  Typical examples are @{text "\<longrightarrow>"}-introduction @{text
-  "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B"} or mathematical induction @{text "P 0 \<Longrightarrow> (\<And>n. P n
-  \<Longrightarrow> P (Suc n)) \<Longrightarrow> P n"}.  Even deeper nesting occurs in well-founded
-  induction @{text "(\<And>x. (\<And>y. y \<prec> x \<Longrightarrow> P y) \<Longrightarrow> P x) \<Longrightarrow> P x"}, but this
+  proposition.  Typical examples are \<open>\<longrightarrow>\<close>-introduction \<open>(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B\<close> or mathematical induction \<open>P 0 \<Longrightarrow> (\<And>n. P n
+  \<Longrightarrow> P (Suc n)) \<Longrightarrow> P n\<close>.  Even deeper nesting occurs in well-founded
+  induction \<open>(\<And>x. (\<And>y. y \<prec> x \<Longrightarrow> P y) \<Longrightarrow> P x) \<Longrightarrow> P x\<close>, but this
   already marks the limit of rule complexity that is usually seen in
   practice.
 
@@ -1036,14 +992,14 @@ text \<open>
   Regular user-level inferences in Isabelle/Pure always
   maintain the following canonical form of results:
 
-  \<^item> Normalization by @{text "(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)"},
+  \<^item> Normalization by \<open>(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)\<close>,
   which is a theorem of Pure, means that quantifiers are pushed in
   front of implication at each level of nesting.  The normal form is a
   Hereditary Harrop Formula.
 
   \<^item> The outermost prefix of parameters is represented via
-  schematic variables: instead of @{text "\<And>\<^vec>x. \<^vec>H \<^vec>x
-  \<Longrightarrow> A \<^vec>x"} we have @{text "\<^vec>H ?\<^vec>x \<Longrightarrow> A ?\<^vec>x"}.
+  schematic variables: instead of \<open>\<And>\<^vec>x. \<^vec>H \<^vec>x
+  \<Longrightarrow> A \<^vec>x\<close> we have \<open>\<^vec>H ?\<^vec>x \<Longrightarrow> A ?\<^vec>x\<close>.
   Note that this representation looses information about the order of
   parameters, and vacuous quantifiers vanish automatically.
 \<close>
@@ -1053,7 +1009,7 @@ text %mlref \<open>
   @{index_ML Simplifier.norm_hhf: "Proof.context -> thm -> thm"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Simplifier.norm_hhf}~@{text "ctxt thm"} normalizes the given
+  \<^descr> @{ML Simplifier.norm_hhf}~\<open>ctxt thm\<close> normalizes the given
   theorem according to the canonical form specified above.  This is
   occasionally helpful to repair some low-level tools that do not
   handle Hereditary Harrop Formulae properly.
@@ -1071,41 +1027,40 @@ text \<open>
 
   To understand the all-important @{inference resolution} principle,
   we first consider raw @{inference_def composition} (modulo
-  higher-order unification with substitution @{text "\<vartheta>"}):
+  higher-order unification with substitution \<open>\<vartheta>\<close>):
   \[
-  \infer[(@{inference_def composition})]{@{text "\<^vec>A\<vartheta> \<Longrightarrow> C\<vartheta>"}}
-  {@{text "\<^vec>A \<Longrightarrow> B"} & @{text "B' \<Longrightarrow> C"} & @{text "B\<vartheta> = B'\<vartheta>"}}
+  \infer[(@{inference_def composition})]{\<open>\<^vec>A\<vartheta> \<Longrightarrow> C\<vartheta>\<close>}
+  {\<open>\<^vec>A \<Longrightarrow> B\<close> & \<open>B' \<Longrightarrow> C\<close> & \<open>B\<vartheta> = B'\<vartheta>\<close>}
   \]
   Here the conclusion of the first rule is unified with the premise of
   the second; the resulting rule instance inherits the premises of the
-  first and conclusion of the second.  Note that @{text "C"} can again
+  first and conclusion of the second.  Note that \<open>C\<close> can again
   consist of iterated implications.  We can also permute the premises
-  of the second rule back-and-forth in order to compose with @{text
-  "B'"} in any position (subsequently we shall always refer to
+  of the second rule back-and-forth in order to compose with \<open>B'\<close> in any position (subsequently we shall always refer to
   position 1 w.l.o.g.).
 
   In @{inference composition} the internal structure of the common
-  part @{text "B"} and @{text "B'"} is not taken into account.  For
-  proper @{inference resolution} we require @{text "B"} to be atomic,
-  and explicitly observe the structure @{text "\<And>\<^vec>x. \<^vec>H
-  \<^vec>x \<Longrightarrow> B' \<^vec>x"} of the premise of the second rule.  The
+  part \<open>B\<close> and \<open>B'\<close> is not taken into account.  For
+  proper @{inference resolution} we require \<open>B\<close> to be atomic,
+  and explicitly observe the structure \<open>\<And>\<^vec>x. \<^vec>H
+  \<^vec>x \<Longrightarrow> B' \<^vec>x\<close> of the premise of the second rule.  The
   idea is to adapt the first rule by ``lifting'' it into this context,
   by means of iterated application of the following inferences:
   \[
-  \infer[(@{inference_def imp_lift})]{@{text "(\<^vec>H \<Longrightarrow> \<^vec>A) \<Longrightarrow> (\<^vec>H \<Longrightarrow> B)"}}{@{text "\<^vec>A \<Longrightarrow> B"}}
+  \infer[(@{inference_def imp_lift})]{\<open>(\<^vec>H \<Longrightarrow> \<^vec>A) \<Longrightarrow> (\<^vec>H \<Longrightarrow> B)\<close>}{\<open>\<^vec>A \<Longrightarrow> B\<close>}
   \]
   \[
-  \infer[(@{inference_def all_lift})]{@{text "(\<And>\<^vec>x. \<^vec>A (?\<^vec>a \<^vec>x)) \<Longrightarrow> (\<And>\<^vec>x. B (?\<^vec>a \<^vec>x))"}}{@{text "\<^vec>A ?\<^vec>a \<Longrightarrow> B ?\<^vec>a"}}
+  \infer[(@{inference_def all_lift})]{\<open>(\<And>\<^vec>x. \<^vec>A (?\<^vec>a \<^vec>x)) \<Longrightarrow> (\<And>\<^vec>x. B (?\<^vec>a \<^vec>x))\<close>}{\<open>\<^vec>A ?\<^vec>a \<Longrightarrow> B ?\<^vec>a\<close>}
   \]
   By combining raw composition with lifting, we get full @{inference
   resolution} as follows:
   \[
   \infer[(@{inference_def resolution})]
-  {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> \<^vec>A (?\<^vec>a \<^vec>x))\<vartheta> \<Longrightarrow> C\<vartheta>"}}
+  {\<open>(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> \<^vec>A (?\<^vec>a \<^vec>x))\<vartheta> \<Longrightarrow> C\<vartheta>\<close>}
   {\begin{tabular}{l}
-    @{text "\<^vec>A ?\<^vec>a \<Longrightarrow> B ?\<^vec>a"} \\
-    @{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> B' \<^vec>x) \<Longrightarrow> C"} \\
-    @{text "(\<lambda>\<^vec>x. B (?\<^vec>a \<^vec>x))\<vartheta> = B'\<vartheta>"} \\
+    \<open>\<^vec>A ?\<^vec>a \<Longrightarrow> B ?\<^vec>a\<close> \\
+    \<open>(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> B' \<^vec>x) \<Longrightarrow> C\<close> \\
+    \<open>(\<lambda>\<^vec>x. B (?\<^vec>a \<^vec>x))\<vartheta> = B'\<vartheta>\<close> \\
    \end{tabular}}
   \]
 
@@ -1114,8 +1069,8 @@ text \<open>
   a rule of 0 premises, or by producing a ``short-circuit'' within a
   solved situation (again modulo unification):
   \[
-  \infer[(@{inference_def assumption})]{@{text "C\<vartheta>"}}
-  {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C"} & @{text "A\<vartheta> = H\<^sub>i\<vartheta>"}~~\text{(for some~@{text i})}}
+  \infer[(@{inference_def assumption})]{\<open>C\<vartheta>\<close>}
+  {\<open>(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C\<close> & \<open>A\<vartheta> = H\<^sub>i\<vartheta>\<close>~~\text{(for some~\<open>i\<close>)}}
   \]
 
   %FIXME @{inference_def elim_resolution}, @{inference_def dest_resolution}
@@ -1133,8 +1088,8 @@ text %mlref \<open>
   @{index_ML_op "OF": "thm * thm list -> thm"} \\
   \end{mldecls}
 
-  \<^descr> @{text "rule\<^sub>1 RSN (i, rule\<^sub>2)"} resolves the conclusion of
-  @{text "rule\<^sub>1"} with the @{text i}-th premise of @{text "rule\<^sub>2"},
+  \<^descr> \<open>rule\<^sub>1 RSN (i, rule\<^sub>2)\<close> resolves the conclusion of
+  \<open>rule\<^sub>1\<close> with the \<open>i\<close>-th premise of \<open>rule\<^sub>2\<close>,
   according to the @{inference resolution} principle explained above.
   Unless there is precisely one resolvent it raises exception @{ML
   THM}.
@@ -1142,28 +1097,27 @@ text %mlref \<open>
   This corresponds to the rule attribute @{attribute THEN} in Isar
   source language.
 
-  \<^descr> @{text "rule\<^sub>1 RS rule\<^sub>2"} abbreviates @{text "rule\<^sub>1 RSN (1,
-  rule\<^sub>2)"}.
+  \<^descr> \<open>rule\<^sub>1 RS rule\<^sub>2\<close> abbreviates \<open>rule\<^sub>1 RSN (1,
+  rule\<^sub>2)\<close>.
 
-  \<^descr> @{text "rules\<^sub>1 RLN (i, rules\<^sub>2)"} joins lists of rules.  For
-  every @{text "rule\<^sub>1"} in @{text "rules\<^sub>1"} and @{text "rule\<^sub>2"} in
-  @{text "rules\<^sub>2"}, it resolves the conclusion of @{text "rule\<^sub>1"} with
-  the @{text "i"}-th premise of @{text "rule\<^sub>2"}, accumulating multiple
+  \<^descr> \<open>rules\<^sub>1 RLN (i, rules\<^sub>2)\<close> joins lists of rules.  For
+  every \<open>rule\<^sub>1\<close> in \<open>rules\<^sub>1\<close> and \<open>rule\<^sub>2\<close> in
+  \<open>rules\<^sub>2\<close>, it resolves the conclusion of \<open>rule\<^sub>1\<close> with
+  the \<open>i\<close>-th premise of \<open>rule\<^sub>2\<close>, accumulating multiple
   results in one big list.  Note that such strict enumerations of
   higher-order unifications can be inefficient compared to the lazy
   variant seen in elementary tactics like @{ML resolve_tac}.
 
-  \<^descr> @{text "rules\<^sub>1 RL rules\<^sub>2"} abbreviates @{text "rules\<^sub>1 RLN (1,
-  rules\<^sub>2)"}.
+  \<^descr> \<open>rules\<^sub>1 RL rules\<^sub>2\<close> abbreviates \<open>rules\<^sub>1 RLN (1,
+  rules\<^sub>2)\<close>.
 
-  \<^descr> @{text "[rule\<^sub>1, \<dots>, rule\<^sub>n] MRS rule"} resolves @{text "rule\<^sub>i"}
-  against premise @{text "i"} of @{text "rule"}, for @{text "i = n, \<dots>,
-  1"}.  By working from right to left, newly emerging premises are
+  \<^descr> \<open>[rule\<^sub>1, \<dots>, rule\<^sub>n] MRS rule\<close> resolves \<open>rule\<^sub>i\<close>
+  against premise \<open>i\<close> of \<open>rule\<close>, for \<open>i = n, \<dots>,
+  1\<close>.  By working from right to left, newly emerging premises are
   concatenated in the result, without interfering.
 
-  \<^descr> @{text "rule OF rules"} is an alternative notation for @{text
-  "rules MRS rule"}, which makes rule composition look more like
-  function application.  Note that the argument @{text "rules"} need
+  \<^descr> \<open>rule OF rules\<close> is an alternative notation for \<open>rules MRS rule\<close>, which makes rule composition look more like
+  function application.  Note that the argument \<open>rules\<close> need
   not be atomic.
 
   This corresponds to the rule attribute @{attribute OF} in Isar
@@ -1181,55 +1135,50 @@ text \<open>The Isabelle/Pure inference kernel can record the proof of
   proof-checker, for example.
 
   According to the well-known \<^emph>\<open>Curry-Howard isomorphism\<close>, a proof
-  can be viewed as a @{text "\<lambda>"}-term. Following this idea, proofs in
+  can be viewed as a \<open>\<lambda>\<close>-term. Following this idea, proofs in
   Isabelle are internally represented by a datatype similar to the one
   for terms described in \secref{sec:terms}.  On top of these
-  syntactic terms, two more layers of @{text "\<lambda>"}-calculus are added,
-  which correspond to @{text "\<And>x :: \<alpha>. B x"} and @{text "A \<Longrightarrow> B"}
+  syntactic terms, two more layers of \<open>\<lambda>\<close>-calculus are added,
+  which correspond to \<open>\<And>x :: \<alpha>. B x\<close> and \<open>A \<Longrightarrow> B\<close>
   according to the propositions-as-types principle.  The resulting
-  3-level @{text "\<lambda>"}-calculus resembles ``@{text "\<lambda>HOL"}'' in the
+  3-level \<open>\<lambda>\<close>-calculus resembles ``\<open>\<lambda>HOL\<close>'' in the
   more abstract setting of Pure Type Systems (PTS)
   @{cite "Barendregt-Geuvers:2001"}, if some fine points like schematic
   polymorphism and type classes are ignored.
 
   \<^medskip>
-  \<^emph>\<open>Proof abstractions\<close> of the form @{text "\<^bold>\<lambda>x :: \<alpha>. prf"}
-  or @{text "\<^bold>\<lambda>p : A. prf"} correspond to introduction of @{text
-  "\<And>"}/@{text "\<Longrightarrow>"}, and \<^emph>\<open>proof applications\<close> of the form @{text
-  "p \<cdot> t"} or @{text "p \<bullet> q"} correspond to elimination of @{text
-  "\<And>"}/@{text "\<Longrightarrow>"}.  Actual types @{text "\<alpha>"}, propositions @{text
-  "A"}, and terms @{text "t"} might be suppressed and reconstructed
+  \<^emph>\<open>Proof abstractions\<close> of the form \<open>\<^bold>\<lambda>x :: \<alpha>. prf\<close>
+  or \<open>\<^bold>\<lambda>p : A. prf\<close> correspond to introduction of \<open>\<And>\<close>/\<open>\<Longrightarrow>\<close>, and \<^emph>\<open>proof applications\<close> of the form \<open>p \<cdot> t\<close> or \<open>p \<bullet> q\<close> correspond to elimination of \<open>\<And>\<close>/\<open>\<Longrightarrow>\<close>.  Actual types \<open>\<alpha>\<close>, propositions \<open>A\<close>, and terms \<open>t\<close> might be suppressed and reconstructed
   from the overall proof term.
 
   \<^medskip>
   Various atomic proofs indicate special situations within
   the proof construction as follows.
 
-  A \<^emph>\<open>bound proof variable\<close> is a natural number @{text "b"} that
+  A \<^emph>\<open>bound proof variable\<close> is a natural number \<open>b\<close> that
   acts as de-Bruijn index for proof term abstractions.
 
-  A \<^emph>\<open>minimal proof\<close> ``@{text "?"}'' is a dummy proof term.  This
+  A \<^emph>\<open>minimal proof\<close> ``\<open>?\<close>'' is a dummy proof term.  This
   indicates some unrecorded part of the proof.
 
-  @{text "Hyp A"} refers to some pending hypothesis by giving its
+  \<open>Hyp A\<close> refers to some pending hypothesis by giving its
   proposition.  This indicates an open context of implicit hypotheses,
   similar to loose bound variables or free variables within a term
   (\secref{sec:terms}).
 
-  An \<^emph>\<open>axiom\<close> or \<^emph>\<open>oracle\<close> @{text "a : A[\<^vec>\<tau>]"} refers
-  some postulated @{text "proof constant"}, which is subject to
+  An \<^emph>\<open>axiom\<close> or \<^emph>\<open>oracle\<close> \<open>a : A[\<^vec>\<tau>]\<close> refers
+  some postulated \<open>proof constant\<close>, which is subject to
   schematic polymorphism of theory content, and the particular type
-  instantiation may be given explicitly.  The vector of types @{text
-  "\<^vec>\<tau>"} refers to the schematic type variables in the generic
-  proposition @{text "A"} in canonical order.
+  instantiation may be given explicitly.  The vector of types \<open>\<^vec>\<tau>\<close> refers to the schematic type variables in the generic
+  proposition \<open>A\<close> in canonical order.
 
-  A \<^emph>\<open>proof promise\<close> @{text "a : A[\<^vec>\<tau>]"} is a placeholder
-  for some proof of polymorphic proposition @{text "A"}, with explicit
-  type instantiation as given by the vector @{text "\<^vec>\<tau>"}, as
+  A \<^emph>\<open>proof promise\<close> \<open>a : A[\<^vec>\<tau>]\<close> is a placeholder
+  for some proof of polymorphic proposition \<open>A\<close>, with explicit
+  type instantiation as given by the vector \<open>\<^vec>\<tau>\<close>, as
   above.  Unlike axioms or oracles, proof promises may be
-  \<^emph>\<open>fulfilled\<close> eventually, by substituting @{text "a"} by some
-  particular proof @{text "q"} at the corresponding type instance.
-  This acts like Hindley-Milner @{text "let"}-polymorphism: a generic
+  \<^emph>\<open>fulfilled\<close> eventually, by substituting \<open>a\<close> by some
+  particular proof \<open>q\<close> at the corresponding type instance.
+  This acts like Hindley-Milner \<open>let\<close>-polymorphism: a generic
   local proof definition may get used at different type instances, and
   is replaced by the concrete instance eventually.
 
@@ -1249,7 +1198,7 @@ text \<open>Fully explicit proof terms can be large, but most of this
   Therefore, the Isabelle/Pure inference kernel records only
   \<^emph>\<open>implicit\<close> proof terms, by omitting all typing information in
   terms, all term and type labels of proof abstractions, and some
-  argument terms of applications @{text "p \<cdot> t"} (if possible).
+  argument terms of applications \<open>p \<cdot> t\<close> (if possible).
 
   There are separate operations to reconstruct the full proof term
   later on, using \<^emph>\<open>higher-order pattern unification\<close>
@@ -1270,29 +1219,28 @@ text \<open>The concrete syntax of proof terms is a slight extension of
   \begin{center}
   \begin{supertabular}{rclr}
 
-  @{syntax_def (inner) proof} & = & @{verbatim Lam} @{text params} @{verbatim "."} @{text proof} \\
-    & @{text "|"} & @{text "\<^bold>\<lambda>"} @{text "params"} @{verbatim "."} @{text proof} \\
-    & @{text "|"} & @{text proof} @{verbatim "%"} @{text any} \\
-    & @{text "|"} & @{text proof} @{text "\<cdot>"} @{text any} \\
-    & @{text "|"} & @{text proof} @{verbatim "%%"} @{text proof} \\
-    & @{text "|"} & @{text proof} @{text "\<bullet>"} @{text proof} \\
-    & @{text "|"} & @{text "id  |  longid"} \\
+  @{syntax_def (inner) proof} & = & @{verbatim Lam} \<open>params\<close> @{verbatim "."} \<open>proof\<close> \\
+    & \<open>|\<close> & \<open>\<^bold>\<lambda>\<close> \<open>params\<close> @{verbatim "."} \<open>proof\<close> \\
+    & \<open>|\<close> & \<open>proof\<close> @{verbatim "%"} \<open>any\<close> \\
+    & \<open>|\<close> & \<open>proof\<close> \<open>\<cdot>\<close> \<open>any\<close> \\
+    & \<open>|\<close> & \<open>proof\<close> @{verbatim "%%"} \<open>proof\<close> \\
+    & \<open>|\<close> & \<open>proof\<close> \<open>\<bullet>\<close> \<open>proof\<close> \\
+    & \<open>|\<close> & \<open>id  |  longid\<close> \\
   \\
 
-  @{text param} & = & @{text idt} \\
-    & @{text "|"} & @{text idt} @{verbatim ":"} @{text prop} \\
-    & @{text "|"} & @{verbatim "("} @{text param} @{verbatim ")"} \\
+  \<open>param\<close> & = & \<open>idt\<close> \\
+    & \<open>|\<close> & \<open>idt\<close> @{verbatim ":"} \<open>prop\<close> \\
+    & \<open>|\<close> & @{verbatim "("} \<open>param\<close> @{verbatim ")"} \\
   \\
 
-  @{text params} & = & @{text param} \\
-    & @{text "|"} & @{text param} @{text params} \\
+  \<open>params\<close> & = & \<open>param\<close> \\
+    & \<open>|\<close> & \<open>param\<close> \<open>params\<close> \\
 
   \end{supertabular}
   \end{center}
 
-  Implicit term arguments in partial proofs are indicated by ``@{text
-  "_"}''.  Type arguments for theorems and axioms may be specified
-  using @{text "p \<cdot> TYPE(type)"} (they must appear before any other
+  Implicit term arguments in partial proofs are indicated by ``\<open>_\<close>''.  Type arguments for theorems and axioms may be specified
+  using \<open>p \<cdot> TYPE(type)\<close> (they must appear before any other
   term argument of a theorem or axiom, but may be omitted altogether).
 
   \<^medskip>
@@ -1328,8 +1276,8 @@ text %mlref \<open>
   information, the implicit graph of nested theorems needs to be
   traversed (e.g.\ using @{ML Proofterm.fold_body_thms}).
 
-  \<^descr> @{ML Thm.proof_of}~@{text "thm"} and @{ML
-  Thm.proof_body_of}~@{text "thm"} produce the proof term or proof
+  \<^descr> @{ML Thm.proof_of}~\<open>thm\<close> and @{ML
+  Thm.proof_body_of}~\<open>thm\<close> produce the proof term or proof
   body (with digest of oracles and theorems) from a given theorem.
   Note that this involves a full join of internal futures that fulfill
   pending proof promises, and thus disrupts the natural bottom-up
@@ -1344,31 +1292,30 @@ text %mlref \<open>
   Officially named theorems that contribute to a result are recorded
   in any case.
 
-  \<^descr> @{ML Reconstruct.reconstruct_proof}~@{text "thy prop prf"}
-  turns the implicit proof term @{text "prf"} into a full proof of the
+  \<^descr> @{ML Reconstruct.reconstruct_proof}~\<open>thy prop prf\<close>
+  turns the implicit proof term \<open>prf\<close> into a full proof of the
   given proposition.
 
-  Reconstruction may fail if @{text "prf"} is not a proof of @{text
-  "prop"}, or if it does not contain sufficient information for
+  Reconstruction may fail if \<open>prf\<close> is not a proof of \<open>prop\<close>, or if it does not contain sufficient information for
   reconstruction.  Failure may only happen for proofs that are
   constructed manually, but not for those produced automatically by
   the inference kernel.
 
-  \<^descr> @{ML Reconstruct.expand_proof}~@{text "thy [thm\<^sub>1, \<dots>, thm\<^sub>n]
-  prf"} expands and reconstructs the proofs of all specified theorems,
+  \<^descr> @{ML Reconstruct.expand_proof}~\<open>thy [thm\<^sub>1, \<dots>, thm\<^sub>n]
+  prf\<close> expands and reconstructs the proofs of all specified theorems,
   with the given (full) proof.  Theorems that are not unique specified
   via their name may be disambiguated by giving their proposition.
 
-  \<^descr> @{ML Proof_Checker.thm_of_proof}~@{text "thy prf"} turns the
+  \<^descr> @{ML Proof_Checker.thm_of_proof}~\<open>thy prf\<close> turns the
   given (full) proof into a theorem, by replaying it using only
   primitive rules of the inference kernel.
 
-  \<^descr> @{ML Proof_Syntax.read_proof}~@{text "thy b\<^sub>1 b\<^sub>2 s"} reads in a
+  \<^descr> @{ML Proof_Syntax.read_proof}~\<open>thy b\<^sub>1 b\<^sub>2 s\<close> reads in a
   proof term. The Boolean flags indicate the use of sort and type
   information.  Usually, typing information is left implicit and is
   inferred during proof reconstruction.  %FIXME eliminate flags!?
 
-  \<^descr> @{ML Proof_Syntax.pretty_proof}~@{text "ctxt prf"}
+  \<^descr> @{ML Proof_Syntax.pretty_proof}~\<open>ctxt prf\<close>
   pretty-prints the given proof term.
 \<close>
 

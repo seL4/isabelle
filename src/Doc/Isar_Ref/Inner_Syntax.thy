@@ -5,13 +5,12 @@ begin
 chapter \<open>Inner syntax --- the term language \label{ch:inner-syntax}\<close>
 
 text \<open>The inner syntax of Isabelle provides concrete notation for
-  the main entities of the logical framework, notably @{text
-  "\<lambda>"}-terms with types and type classes.  Applications may either
+  the main entities of the logical framework, notably \<open>\<lambda>\<close>-terms with types and type classes.  Applications may either
   extend existing syntactic categories by additional notation, or
   define new sub-languages that are linked to the standard term
   language via some explicit markers.  For example @{verbatim
-  FOO}~@{text "foo"} could embed the syntax corresponding for some
-  user-defined nonterminal @{text "foo"} --- within the bounds of the
+  FOO}~\<open>foo\<close> could embed the syntax corresponding for some
+  user-defined nonterminal \<open>foo\<close> --- within the bounds of the
   given lexical syntax of Isabelle/Pure.
 
   The most basic way to specify concrete syntax for logical entities
@@ -34,13 +33,13 @@ subsection \<open>Diagnostic commands \label{sec:print-diag}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def "typ"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "term"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "prop"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "thm"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "prf"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "full_prf"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "print_state"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def "typ"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "term"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "prop"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "thm"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "prf"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "full_prf"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
+    @{command_def "print_state"}\<open>\<^sup>*\<close> & : & \<open>any \<rightarrow>\<close> \\
   \end{matharray}
 
   These diagnostic commands assist interactive development by printing
@@ -62,28 +61,28 @@ text \<open>
     @{syntax_def modes}: '(' (@{syntax name} + ) ')'
   \<close>}
 
-  \<^descr> @{command "typ"}~@{text \<tau>} reads and prints a type expression
+  \<^descr> @{command "typ"}~\<open>\<tau>\<close> reads and prints a type expression
   according to the current context.
 
-  \<^descr> @{command "typ"}~@{text "\<tau> :: s"} uses type-inference to
-  determine the most general way to make @{text "\<tau>"} conform to sort
-  @{text "s"}.  For concrete @{text "\<tau>"} this checks if the type
-  belongs to that sort.  Dummy type parameters ``@{text "_"}''
+  \<^descr> @{command "typ"}~\<open>\<tau> :: s\<close> uses type-inference to
+  determine the most general way to make \<open>\<tau>\<close> conform to sort
+  \<open>s\<close>.  For concrete \<open>\<tau>\<close> this checks if the type
+  belongs to that sort.  Dummy type parameters ``\<open>_\<close>''
   (underscore) are assigned to fresh type variables with most general
   sorts, according the the principles of type-inference.
 
-  \<^descr> @{command "term"}~@{text t} and @{command "prop"}~@{text \<phi>}
+  \<^descr> @{command "term"}~\<open>t\<close> and @{command "prop"}~\<open>\<phi>\<close>
   read, type-check and print terms or propositions according to the
-  current theory or proof context; the inferred type of @{text t} is
+  current theory or proof context; the inferred type of \<open>t\<close> is
   output as well.  Note that these commands are also useful in
   inspecting the current environment of term abbreviations.
 
-  \<^descr> @{command "thm"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} retrieves
+  \<^descr> @{command "thm"}~\<open>a\<^sub>1 \<dots> a\<^sub>n\<close> retrieves
   theorems from the current theory or proof context.  Note that any
   attributes included in the theorem specifications are applied to a
   temporary context derived from the current theory or proof; the
-  result is discarded, i.e.\ attributes involved in @{text "a\<^sub>1,
-  \<dots>, a\<^sub>n"} do not have any permanent effect.
+  result is discarded, i.e.\ attributes involved in \<open>a\<^sub>1,
+  \<dots>, a\<^sub>n\<close> do not have any permanent effect.
 
   \<^descr> @{command "prf"} displays the (compact) proof term of the
   current proof state (if present), or of the given theorems. Note
@@ -93,18 +92,18 @@ text \<open>
 
   \<^descr> @{command "full_prf"} is like @{command "prf"}, but displays
   the full proof term, i.e.\ also displays information omitted in the
-  compact proof term, which is denoted by ``@{text _}'' placeholders
+  compact proof term, which is denoted by ``\<open>_\<close>'' placeholders
   there.
 
   \<^descr> @{command "print_state"} prints the current proof state (if
   present), including current facts and goals.
 
 
-  All of the diagnostic commands above admit a list of @{text modes}
+  All of the diagnostic commands above admit a list of \<open>modes\<close>
   to be specified, which is appended to the current print mode; see
   also \secref{sec:print-modes}.  Thus the output behavior may be
   modified according particular print mode features.  For example,
-  @{command "print_state"}~@{text "(latex xsymbols)"} prints the
+  @{command "print_state"}~\<open>(latex xsymbols)\<close> prints the
   current proof state with mathematical symbols and special characters
   represented in {\LaTeX} source, according to the Isabelle style
   @{cite "isabelle-system"}.
@@ -119,21 +118,21 @@ subsection \<open>Details of printed content\<close>
 
 text \<open>
   \begin{tabular}{rcll}
-    @{attribute_def show_markup} & : & @{text attribute} \\
-    @{attribute_def show_types} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def show_sorts} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def show_consts} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def show_abbrevs} & : & @{text attribute} & default @{text true} \\
-    @{attribute_def show_brackets} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def names_long} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def names_short} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def names_unique} & : & @{text attribute} & default @{text true} \\
-    @{attribute_def eta_contract} & : & @{text attribute} & default @{text true} \\
-    @{attribute_def goals_limit} & : & @{text attribute} & default @{text 10} \\
-    @{attribute_def show_main_goal} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def show_hyps} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def show_tags} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def show_question_marks} & : & @{text attribute} & default @{text true} \\
+    @{attribute_def show_markup} & : & \<open>attribute\<close> \\
+    @{attribute_def show_types} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def show_sorts} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def show_consts} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def show_abbrevs} & : & \<open>attribute\<close> & default \<open>true\<close> \\
+    @{attribute_def show_brackets} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def names_long} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def names_short} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def names_unique} & : & \<open>attribute\<close> & default \<open>true\<close> \\
+    @{attribute_def eta_contract} & : & \<open>attribute\<close> & default \<open>true\<close> \\
+    @{attribute_def goals_limit} & : & \<open>attribute\<close> & default \<open>10\<close> \\
+    @{attribute_def show_main_goal} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def show_hyps} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def show_tags} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def show_question_marks} & : & \<open>attribute\<close> & default \<open>true\<close> \\
   \end{tabular}
   \<^medskip>
 
@@ -182,24 +181,22 @@ text \<open>
   \secref{sec:antiq} for the document antiquotation options of the
   same names.
 
-  \<^descr> @{attribute eta_contract} controls @{text "\<eta>"}-contracted
+  \<^descr> @{attribute eta_contract} controls \<open>\<eta>\<close>-contracted
   printing of terms.
 
-  The @{text \<eta>}-contraction law asserts @{prop "(\<lambda>x. f x) \<equiv> f"},
-  provided @{text x} is not free in @{text f}.  It asserts
+  The \<open>\<eta>\<close>-contraction law asserts @{prop "(\<lambda>x. f x) \<equiv> f"},
+  provided \<open>x\<close> is not free in \<open>f\<close>.  It asserts
   \<^emph>\<open>extensionality\<close> of functions: @{prop "f \<equiv> g"} if @{prop "f x \<equiv>
-  g x"} for all @{text x}.  Higher-order unification frequently puts
-  terms into a fully @{text \<eta>}-expanded form.  For example, if @{text
-  F} has type @{text "(\<tau> \<Rightarrow> \<tau>) \<Rightarrow> \<tau>"} then its expanded form is @{term
+  g x"} for all \<open>x\<close>.  Higher-order unification frequently puts
+  terms into a fully \<open>\<eta>\<close>-expanded form.  For example, if \<open>F\<close> has type \<open>(\<tau> \<Rightarrow> \<tau>) \<Rightarrow> \<tau>\<close> then its expanded form is @{term
   "\<lambda>h. F (\<lambda>x. h x)"}.
 
-  Enabling @{attribute eta_contract} makes Isabelle perform @{text
-  \<eta>}-contractions before printing, so that @{term "\<lambda>h. F (\<lambda>x. h x)"}
-  appears simply as @{text F}.
+  Enabling @{attribute eta_contract} makes Isabelle perform \<open>\<eta>\<close>-contractions before printing, so that @{term "\<lambda>h. F (\<lambda>x. h x)"}
+  appears simply as \<open>F\<close>.
 
-  Note that the distinction between a term and its @{text \<eta>}-expanded
+  Note that the distinction between a term and its \<open>\<eta>\<close>-expanded
   form occasionally matters.  While higher-order resolution and
-  rewriting operate modulo @{text "\<alpha>\<beta>\<eta>"}-conversion, some other tools
+  rewriting operate modulo \<open>\<alpha>\<beta>\<eta>\<close>-conversion, some other tools
   might look at terms more discretely.
 
   \<^descr> @{attribute goals_limit} controls the maximum number of
@@ -229,7 +226,7 @@ text \<open>
   associated with a theorem.
 
   \<^descr> @{attribute show_question_marks} controls printing of question
-  marks for schematic variables, such as @{text ?x}.  Only the leading
+  marks for schematic variables, such as \<open>?x\<close>.  Only the leading
   question mark is affected, the remaining text is unchanged
   (including proper markup for schematic variables that might be
   relevant for user interfaces).
@@ -255,9 +252,9 @@ text \<open>
   representation of certain individual features for printing (with
   precedence from left to right).
 
-  \<^descr> @{ML Print_Mode.with_modes}~@{text "modes f x"} evaluates
-  @{text "f x"} in an execution context where the print mode is
-  prepended by the given @{text "modes"}.  This provides a thread-safe
+  \<^descr> @{ML Print_Mode.with_modes}~\<open>modes f x\<close> evaluates
+  \<open>f x\<close> in an execution context where the print mode is
+  prepended by the given \<open>modes\<close>.  This provides a thread-safe
   way to augment print modes.  It is also monotonic in the set of mode
   names: it retains the default print mode that certain
   user-interfaces might have installed for their proper functioning!
@@ -319,9 +316,9 @@ text \<open>Mixfix annotations specify concrete \<^emph>\<open>inner syntax\<clo
     prios: '[' (@{syntax nat} + ',') ']'
   \<close>}
 
-  The string given as @{text template} may include literal text,
-  spacing, blocks, and arguments (denoted by ``@{text _}''); the
-  special symbol ``@{verbatim "\<index>"}'' (printed as ``@{text "\<index>"}'')
+  The string given as \<open>template\<close> may include literal text,
+  spacing, blocks, and arguments (denoted by ``\<open>_\<close>''); the
+  special symbol ``@{verbatim "\<index>"}'' (printed as ``\<open>\<index>\<close>'')
   represents an index argument that specifies an implicit @{keyword
   "structure"} reference (see also \secref{sec:locale}).  Only locally
   fixed variables may be declared as @{keyword "structure"}.
@@ -335,25 +332,24 @@ text \<open>Mixfix annotations specify concrete \<^emph>\<open>inner syntax\<clo
 subsection \<open>The general mixfix form\<close>
 
 text \<open>In full generality, mixfix declarations work as follows.
-  Suppose a constant @{text "c :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<tau>\<^sub>n \<Rightarrow> \<tau>"} is annotated by
-  @{text "(mixfix [p\<^sub>1, \<dots>, p\<^sub>n] p)"}, where @{text "mixfix"} is a string
-  @{text "d\<^sub>0 _ d\<^sub>1 _ \<dots> _ d\<^sub>n"} consisting of delimiters that surround
+  Suppose a constant \<open>c :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<tau>\<^sub>n \<Rightarrow> \<tau>\<close> is annotated by
+  \<open>(mixfix [p\<^sub>1, \<dots>, p\<^sub>n] p)\<close>, where \<open>mixfix\<close> is a string
+  \<open>d\<^sub>0 _ d\<^sub>1 _ \<dots> _ d\<^sub>n\<close> consisting of delimiters that surround
   argument positions as indicated by underscores.
 
   Altogether this determines a production for a context-free priority
-  grammar, where for each argument @{text "i"} the syntactic category
-  is determined by @{text "\<tau>\<^sub>i"} (with priority @{text "p\<^sub>i"}), and the
-  result category is determined from @{text "\<tau>"} (with priority @{text
-  "p"}).  Priority specifications are optional, with default 0 for
+  grammar, where for each argument \<open>i\<close> the syntactic category
+  is determined by \<open>\<tau>\<^sub>i\<close> (with priority \<open>p\<^sub>i\<close>), and the
+  result category is determined from \<open>\<tau>\<close> (with priority \<open>p\<close>).  Priority specifications are optional, with default 0 for
   arguments and 1000 for the result.\footnote{Omitting priorities is
   prone to syntactic ambiguities unless the delimiter tokens determine
-  fully bracketed notation, as in @{text "if _ then _ else _ fi"}.}
+  fully bracketed notation, as in \<open>if _ then _ else _ fi\<close>.}
 
-  Since @{text "\<tau>"} may be again a function type, the constant
+  Since \<open>\<tau>\<close> may be again a function type, the constant
   type scheme may have more argument positions than the mixfix
-  pattern.  Printing a nested application @{text "c t\<^sub>1 \<dots> t\<^sub>m"} for
-  @{text "m > n"} works by attaching concrete notation only to the
-  innermost part, essentially by printing @{text "(c t\<^sub>1 \<dots> t\<^sub>n) \<dots> t\<^sub>m"}
+  pattern.  Printing a nested application \<open>c t\<^sub>1 \<dots> t\<^sub>m\<close> for
+  \<open>m > n\<close> works by attaching concrete notation only to the
+  innermost part, essentially by printing \<open>(c t\<^sub>1 \<dots> t\<^sub>n) \<dots> t\<^sub>m\<close>
   instead.  If a term has fewer arguments than specified in the mixfix
   template, the concrete syntax is ignored.
 
@@ -363,14 +359,14 @@ text \<open>In full generality, mixfix declarations work as follows.
   general template format is a sequence over any of the following
   entities.
 
-  \<^descr> @{text "d"} is a delimiter, namely a non-empty sequence of
+  \<^descr> \<open>d\<close> is a delimiter, namely a non-empty sequence of
   characters other than the following special characters:
 
   \<^medskip>
   \begin{tabular}{ll}
     @{verbatim "'"} & single quote \\
     @{verbatim "_"} & underscore \\
-    @{text "\<index>"} & index symbol \\
+    \<open>\<index>\<close> & index symbol \\
     @{verbatim "("} & open parenthesis \\
     @{verbatim ")"} & close parenthesis \\
     @{verbatim "/"} & slash \\
@@ -388,13 +384,13 @@ text \<open>In full generality, mixfix declarations work as follows.
   \<^descr> @{verbatim "_"} is an argument position, which stands for a
   certain syntactic category in the underlying grammar.
 
-  \<^descr> @{text "\<index>"} is an indexed argument position; this is the place
+  \<^descr> \<open>\<index>\<close> is an indexed argument position; this is the place
   where implicit structure arguments can be attached.
 
-  \<^descr> @{text "s"} is a non-empty sequence of spaces for printing.
+  \<^descr> \<open>s\<close> is a non-empty sequence of spaces for printing.
   This and the following specifications do not affect parsing at all.
 
-  \<^descr> @{verbatim "("}@{text n} opens a pretty printing block.  The
+  \<^descr> @{verbatim "("}\<open>n\<close> opens a pretty printing block.  The
   optional number specifies how much indentation to add when a line
   break occurs within the block.  If the parenthesis is not followed
   by digits, the indentation defaults to 0.  A block specified via
@@ -404,7 +400,7 @@ text \<open>In full generality, mixfix declarations work as follows.
 
   \<^descr> @{verbatim "//"} forces a line break.
 
-  \<^descr> @{verbatim "/"}@{text s} allows a line break.  Here @{text s}
+  \<^descr> @{verbatim "/"}\<open>s\<close> allows a line break.  Here \<open>s\<close>
   stands for the string of spaces (zero or more) right after the
   slash.  These spaces are printed if the break is \<^emph>\<open>not\<close> taken.
 
@@ -422,25 +418,25 @@ text \<open>Infix operators are specified by convenient short forms that
   \begin{center}
   \begin{tabular}{lll}
 
-  @{verbatim "("}@{keyword_def "infix"}~@{verbatim \<open>"\<close>}@{text sy}@{verbatim \<open>"\<close>} @{text "p"}@{verbatim ")"}
-  & @{text "\<mapsto>"} &
-  @{verbatim \<open>("(_\<close>}~@{text sy}@{verbatim \<open>/ _)" [\<close>}@{text "p + 1"}@{verbatim ","}~@{text "p + 1"}@{verbatim "]"}~@{text "p"}@{verbatim ")"} \\
-  @{verbatim "("}@{keyword_def "infixl"}~@{verbatim \<open>"\<close>}@{text sy}@{verbatim \<open>"\<close>} @{text "p"}@{verbatim ")"}
-  & @{text "\<mapsto>"} &
-  @{verbatim \<open>("(_\<close>}~@{text sy}@{verbatim \<open>/ _)" [\<close>}@{text "p"}@{verbatim ","}~@{text "p + 1"}@{verbatim "]"}~@{text "p"}@{verbatim ")"} \\
-  @{verbatim "("}@{keyword_def "infixr"}~@{verbatim \<open>"\<close>}@{text sy}@{verbatim \<open>"\<close>}~@{text "p"}@{verbatim ")"}
-  & @{text "\<mapsto>"} &
-  @{verbatim \<open>("(_\<close>}~@{text sy}@{verbatim \<open>/ _)" [\<close>}@{text "p + 1"}@{verbatim ","}~@{text "p"}@{verbatim "]"}~@{text "p"}@{verbatim ")"} \\
+  @{verbatim "("}@{keyword_def "infix"}~@{verbatim \<open>"\<close>}\<open>sy\<close>@{verbatim \<open>"\<close>} \<open>p\<close>@{verbatim ")"}
+  & \<open>\<mapsto>\<close> &
+  @{verbatim \<open>("(_\<close>}~\<open>sy\<close>@{verbatim \<open>/ _)" [\<close>}\<open>p + 1\<close>@{verbatim ","}~\<open>p + 1\<close>@{verbatim "]"}~\<open>p\<close>@{verbatim ")"} \\
+  @{verbatim "("}@{keyword_def "infixl"}~@{verbatim \<open>"\<close>}\<open>sy\<close>@{verbatim \<open>"\<close>} \<open>p\<close>@{verbatim ")"}
+  & \<open>\<mapsto>\<close> &
+  @{verbatim \<open>("(_\<close>}~\<open>sy\<close>@{verbatim \<open>/ _)" [\<close>}\<open>p\<close>@{verbatim ","}~\<open>p + 1\<close>@{verbatim "]"}~\<open>p\<close>@{verbatim ")"} \\
+  @{verbatim "("}@{keyword_def "infixr"}~@{verbatim \<open>"\<close>}\<open>sy\<close>@{verbatim \<open>"\<close>}~\<open>p\<close>@{verbatim ")"}
+  & \<open>\<mapsto>\<close> &
+  @{verbatim \<open>("(_\<close>}~\<open>sy\<close>@{verbatim \<open>/ _)" [\<close>}\<open>p + 1\<close>@{verbatim ","}~\<open>p\<close>@{verbatim "]"}~\<open>p\<close>@{verbatim ")"} \\
 
   \end{tabular}
   \end{center}
 
-  The mixfix template @{verbatim \<open>"(_\<close>}~@{text sy}@{verbatim \<open>/ _)"\<close>}
+  The mixfix template @{verbatim \<open>"(_\<close>}~\<open>sy\<close>@{verbatim \<open>/ _)"\<close>}
   specifies two argument positions; the delimiter is preceded by a
   space and followed by a space or line break; the entire phrase is a
   pretty printing block.
 
-  The alternative notation @{verbatim "op"}~@{text sy} is introduced
+  The alternative notation @{verbatim "op"}~\<open>sy\<close> is introduced
   in addition.  Thus any infix operator may be written in prefix form
   (as in ML), independently of the number of arguments in the term.
 \<close>
@@ -449,41 +445,39 @@ text \<open>Infix operators are specified by convenient short forms that
 subsection \<open>Binders\<close>
 
 text \<open>A \<^emph>\<open>binder\<close> is a variable-binding construct such as a
-  quantifier.  The idea to formalize @{text "\<forall>x. b"} as @{text "All
-  (\<lambda>x. b)"} for @{text "All :: ('a \<Rightarrow> bool) \<Rightarrow> bool"} already goes back
+  quantifier.  The idea to formalize \<open>\<forall>x. b\<close> as \<open>All
+  (\<lambda>x. b)\<close> for \<open>All :: ('a \<Rightarrow> bool) \<Rightarrow> bool\<close> already goes back
   to @{cite church40}.  Isabelle declarations of certain higher-order
   operators may be annotated with @{keyword_def "binder"} annotations
   as follows:
 
   \begin{center}
-  @{text "c :: "}@{verbatim \<open>"\<close>}@{text "(\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2) \<Rightarrow> \<tau>\<^sub>3"}@{verbatim \<open>"  (\<close>}@{keyword "binder"}~@{verbatim \<open>"\<close>}@{text "sy"}@{verbatim \<open>" [\<close>}@{text "p"}@{verbatim "]"}~@{text "q"}@{verbatim ")"}
+  \<open>c :: \<close>@{verbatim \<open>"\<close>}\<open>(\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2) \<Rightarrow> \<tau>\<^sub>3\<close>@{verbatim \<open>"  (\<close>}@{keyword "binder"}~@{verbatim \<open>"\<close>}\<open>sy\<close>@{verbatim \<open>" [\<close>}\<open>p\<close>@{verbatim "]"}~\<open>q\<close>@{verbatim ")"}
   \end{center}
 
-  This introduces concrete binder syntax @{text "sy x. b"}, where
-  @{text x} is a bound variable of type @{text "\<tau>\<^sub>1"}, the body @{text
-  b} has type @{text "\<tau>\<^sub>2"} and the whole term has type @{text "\<tau>\<^sub>3"}.
-  The optional integer @{text p} specifies the syntactic priority of
-  the body; the default is @{text "q"}, which is also the priority of
+  This introduces concrete binder syntax \<open>sy x. b\<close>, where
+  \<open>x\<close> is a bound variable of type \<open>\<tau>\<^sub>1\<close>, the body \<open>b\<close> has type \<open>\<tau>\<^sub>2\<close> and the whole term has type \<open>\<tau>\<^sub>3\<close>.
+  The optional integer \<open>p\<close> specifies the syntactic priority of
+  the body; the default is \<open>q\<close>, which is also the priority of
   the whole construct.
 
   Internally, the binder syntax is expanded to something like this:
   \begin{center}
-  @{text "c_binder :: "}@{verbatim \<open>"\<close>}@{text "idts \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> \<tau>\<^sub>3"}@{verbatim \<open>"  ("(3\<close>}@{text sy}@{verbatim \<open>_./ _)" [0,\<close>}~@{text "p"}@{verbatim "]"}~@{text "q"}@{verbatim ")"}
+  \<open>c_binder :: \<close>@{verbatim \<open>"\<close>}\<open>idts \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> \<tau>\<^sub>3\<close>@{verbatim \<open>"  ("(3\<close>}\<open>sy\<close>@{verbatim \<open>_./ _)" [0,\<close>}~\<open>p\<close>@{verbatim "]"}~\<open>q\<close>@{verbatim ")"}
   \end{center}
 
   Here @{syntax (inner) idts} is the nonterminal symbol for a list of
   identifiers with optional type constraints (see also
   \secref{sec:pure-grammar}).  The mixfix template @{verbatim
-  \<open>"(3\<close>}@{text sy}@{verbatim \<open>_./ _)"\<close>} defines argument positions
+  \<open>"(3\<close>}\<open>sy\<close>@{verbatim \<open>_./ _)"\<close>} defines argument positions
   for the bound identifiers and the body, separated by a dot with
   optional line break; the entire phrase is a pretty printing block of
-  indentation level 3.  Note that there is no extra space after @{text
-  "sy"}, so it needs to be included user specification if the binder
+  indentation level 3.  Note that there is no extra space after \<open>sy\<close>, so it needs to be included user specification if the binder
   syntax ends with a token that may be continued by an identifier
   token at the start of @{syntax (inner) idts}.
 
-  Furthermore, a syntax translation to transforms @{text "c_binder x\<^sub>1
-  \<dots> x\<^sub>n b"} into iterated application @{text "c (\<lambda>x\<^sub>1. \<dots> c (\<lambda>x\<^sub>n. b)\<dots>)"}.
+  Furthermore, a syntax translation to transforms \<open>c_binder x\<^sub>1
+  \<dots> x\<^sub>n b\<close> into iterated application \<open>c (\<lambda>x\<^sub>1. \<dots> c (\<lambda>x\<^sub>n. b)\<dots>)\<close>.
   This works in both directions, for parsing and printing.\<close>
 
 
@@ -491,11 +485,11 @@ section \<open>Explicit notation \label{sec:notation}\<close>
 
 text \<open>
   \begin{matharray}{rcll}
-    @{command_def "type_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "no_type_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "no_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "write"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "type_notation"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "no_type_notation"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "notation"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "no_notation"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "write"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
   \end{matharray}
 
   Commands that introduce new logical entities (terms or types)
@@ -515,7 +509,7 @@ text \<open>
     @@{command write} @{syntax mode}? (@{syntax nameref} @{syntax mixfix} + @'and')
   \<close>}
 
-  \<^descr> @{command "type_notation"}~@{text "c (mx)"} associates mixfix
+  \<^descr> @{command "type_notation"}~\<open>c (mx)\<close> associates mixfix
   syntax with an existing type constructor.  The arity of the
   constructor is retrieved from the context.
 
@@ -523,7 +517,7 @@ text \<open>
   "type_notation"}, but removes the specified syntax annotation from
   the present context.
 
-  \<^descr> @{command "notation"}~@{text "c (mx)"} associates mixfix
+  \<^descr> @{command "notation"}~\<open>c (mx)\<close> associates mixfix
   syntax with an existing constant or fixed variable.  The type
   declaration of the given entity is retrieved from the context.
 
@@ -570,9 +564,9 @@ text \<open>The inner lexical syntax vaguely resembles the outer one
     @{syntax_def (inner) tvar} & = & @{syntax_ref typevar} \\
     @{syntax_def (inner) num_token} & = & @{syntax_ref nat} \\
     @{syntax_def (inner) float_token} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
-    @{syntax_def (inner) str_token} & = & @{verbatim "''"} @{text "\<dots>"} @{verbatim "''"} \\
-    @{syntax_def (inner) string_token} & = & @{verbatim \<open>"\<close>} @{text "\<dots>"} @{verbatim \<open>"\<close>} \\
-    @{syntax_def (inner) cartouche} & = & @{verbatim "\<open>"} @{text "\<dots>"} @{verbatim "\<close>"} \\
+    @{syntax_def (inner) str_token} & = & @{verbatim "''"} \<open>\<dots>\<close> @{verbatim "''"} \\
+    @{syntax_def (inner) string_token} & = & @{verbatim \<open>"\<close>} \<open>\<dots>\<close> @{verbatim \<open>"\<close>} \\
+    @{syntax_def (inner) cartouche} & = & @{verbatim "\<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\
   \end{supertabular}
   \end{center}
 
@@ -593,8 +587,8 @@ subsection \<open>Priority grammars \label{sec:priority-grammar}\<close>
 
 text \<open>A context-free grammar consists of a set of \<^emph>\<open>terminal
   symbols\<close>, a set of \<^emph>\<open>nonterminal symbols\<close> and a set of
-  \<^emph>\<open>productions\<close>.  Productions have the form @{text "A = \<gamma>"},
-  where @{text A} is a nonterminal and @{text \<gamma>} is a string of
+  \<^emph>\<open>productions\<close>.  Productions have the form \<open>A = \<gamma>\<close>,
+  where \<open>A\<close> is a nonterminal and \<open>\<gamma>\<close> is a string of
   terminals and nonterminals.  One designated nonterminal is called
   the \<^emph>\<open>root symbol\<close>.  The language defined by the grammar
   consists of all strings of terminals that can be derived from the
@@ -602,17 +596,16 @@ text \<open>A context-free grammar consists of a set of \<^emph>\<open>terminal
 
   The standard Isabelle parser for inner syntax uses a \<^emph>\<open>priority
   grammar\<close>.  Each nonterminal is decorated by an integer priority:
-  @{text "A\<^sup>(\<^sup>p\<^sup>)"}.  In a derivation, @{text "A\<^sup>(\<^sup>p\<^sup>)"} may be rewritten
-  using a production @{text "A\<^sup>(\<^sup>q\<^sup>) = \<gamma>"} only if @{text "p \<le> q"}.  Any
+  \<open>A\<^sup>(\<^sup>p\<^sup>)\<close>.  In a derivation, \<open>A\<^sup>(\<^sup>p\<^sup>)\<close> may be rewritten
+  using a production \<open>A\<^sup>(\<^sup>q\<^sup>) = \<gamma>\<close> only if \<open>p \<le> q\<close>.  Any
   priority grammar can be translated into a normal context-free
   grammar by introducing new nonterminals and productions.
 
   \<^medskip>
-  Formally, a set of context free productions @{text G}
-  induces a derivation relation @{text "\<longrightarrow>\<^sub>G"} as follows.  Let @{text
-  \<alpha>} and @{text \<beta>} denote strings of terminal or nonterminal symbols.
-  Then @{text "\<alpha> A\<^sup>(\<^sup>p\<^sup>) \<beta> \<longrightarrow>\<^sub>G \<alpha> \<gamma> \<beta>"} holds if and only if @{text G}
-  contains some production @{text "A\<^sup>(\<^sup>q\<^sup>) = \<gamma>"} for @{text "p \<le> q"}.
+  Formally, a set of context free productions \<open>G\<close>
+  induces a derivation relation \<open>\<longrightarrow>\<^sub>G\<close> as follows.  Let \<open>\<alpha>\<close> and \<open>\<beta>\<close> denote strings of terminal or nonterminal symbols.
+  Then \<open>\<alpha> A\<^sup>(\<^sup>p\<^sup>) \<beta> \<longrightarrow>\<^sub>G \<alpha> \<gamma> \<beta>\<close> holds if and only if \<open>G\<close>
+  contains some production \<open>A\<^sup>(\<^sup>q\<^sup>) = \<gamma>\<close> for \<open>p \<le> q\<close>.
 
   \<^medskip>
   The following grammar for arithmetic expressions
@@ -621,11 +614,11 @@ text \<open>A context-free grammar consists of a set of \<^emph>\<open>terminal
 
   \begin{center}
   \begin{tabular}{rclr}
-  @{text "A\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "="} & @{verbatim "("} @{text "A\<^sup>(\<^sup>0\<^sup>)"} @{verbatim ")"} \\
-  @{text "A\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "="} & @{verbatim 0} \\
-  @{text "A\<^sup>(\<^sup>0\<^sup>)"} & @{text "="} & @{text "A\<^sup>(\<^sup>0\<^sup>)"} @{verbatim "+"} @{text "A\<^sup>(\<^sup>1\<^sup>)"} \\
-  @{text "A\<^sup>(\<^sup>2\<^sup>)"} & @{text "="} & @{text "A\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "*"} @{text "A\<^sup>(\<^sup>2\<^sup>)"} \\
-  @{text "A\<^sup>(\<^sup>3\<^sup>)"} & @{text "="} & @{verbatim "-"} @{text "A\<^sup>(\<^sup>3\<^sup>)"} \\
+  \<open>A\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)\<close> & \<open>=\<close> & @{verbatim "("} \<open>A\<^sup>(\<^sup>0\<^sup>)\<close> @{verbatim ")"} \\
+  \<open>A\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)\<close> & \<open>=\<close> & @{verbatim 0} \\
+  \<open>A\<^sup>(\<^sup>0\<^sup>)\<close> & \<open>=\<close> & \<open>A\<^sup>(\<^sup>0\<^sup>)\<close> @{verbatim "+"} \<open>A\<^sup>(\<^sup>1\<^sup>)\<close> \\
+  \<open>A\<^sup>(\<^sup>2\<^sup>)\<close> & \<open>=\<close> & \<open>A\<^sup>(\<^sup>3\<^sup>)\<close> @{verbatim "*"} \<open>A\<^sup>(\<^sup>2\<^sup>)\<close> \\
+  \<open>A\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>=\<close> & @{verbatim "-"} \<open>A\<^sup>(\<^sup>3\<^sup>)\<close> \\
   \end{tabular}
   \end{center}
   The choice of priorities determines that @{verbatim "-"} binds
@@ -641,13 +634,13 @@ text \<open>A context-free grammar consists of a set of \<^emph>\<open>terminal
   \<^item> Priority 0 on the right-hand side and priority 1000 on the
   left-hand side may be omitted.
 
-  \<^item> The production @{text "A\<^sup>(\<^sup>p\<^sup>) = \<alpha>"} is written as @{text "A = \<alpha>
-  (p)"}, i.e.\ the priority of the left-hand side actually appears in
+  \<^item> The production \<open>A\<^sup>(\<^sup>p\<^sup>) = \<alpha>\<close> is written as \<open>A = \<alpha>
+  (p)\<close>, i.e.\ the priority of the left-hand side actually appears in
   a column on the far right.
 
-  \<^item> Alternatives are separated by @{text "|"}.
+  \<^item> Alternatives are separated by \<open>|\<close>.
 
-  \<^item> Repetition is indicated by dots @{text "(\<dots>)"} in an informal
+  \<^item> Repetition is indicated by dots \<open>(\<dots>)\<close> in an informal
   but obvious way.
 
 
@@ -655,11 +648,11 @@ text \<open>A context-free grammar consists of a set of \<^emph>\<open>terminal
   takes the form:
   \begin{center}
   \begin{tabular}{rclc}
-    @{text A} & @{text "="} & @{verbatim "("} @{text A} @{verbatim ")"} \\
-              & @{text "|"} & @{verbatim 0} & \qquad\qquad \\
-              & @{text "|"} & @{text A} @{verbatim "+"} @{text "A\<^sup>(\<^sup>1\<^sup>)"} & @{text "(0)"} \\
-              & @{text "|"} & @{text "A\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "*"} @{text "A\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
-              & @{text "|"} & @{verbatim "-"} @{text "A\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
+    \<open>A\<close> & \<open>=\<close> & @{verbatim "("} \<open>A\<close> @{verbatim ")"} \\
+              & \<open>|\<close> & @{verbatim 0} & \qquad\qquad \\
+              & \<open>|\<close> & \<open>A\<close> @{verbatim "+"} \<open>A\<^sup>(\<^sup>1\<^sup>)\<close> & \<open>(0)\<close> \\
+              & \<open>|\<close> & \<open>A\<^sup>(\<^sup>3\<^sup>)\<close> @{verbatim "*"} \<open>A\<^sup>(\<^sup>2\<^sup>)\<close> & \<open>(2)\<close> \\
+              & \<open>|\<close> & @{verbatim "-"} \<open>A\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>(3)\<close> \\
   \end{tabular}
   \end{center}
 \<close>
@@ -667,75 +660,75 @@ text \<open>A context-free grammar consists of a set of \<^emph>\<open>terminal
 
 subsection \<open>The Pure grammar \label{sec:pure-grammar}\<close>
 
-text \<open>The priority grammar of the @{text "Pure"} theory is defined
+text \<open>The priority grammar of the \<open>Pure\<close> theory is defined
   approximately like this:
 
   \begin{center}
   \begin{supertabular}{rclr}
 
-  @{syntax_def (inner) any} & = & @{text "prop  |  logic"} \\\\
+  @{syntax_def (inner) any} & = & \<open>prop  |  logic\<close> \\\\
 
-  @{syntax_def (inner) prop} & = & @{verbatim "("} @{text prop} @{verbatim ")"} \\
-    & @{text "|"} & @{text "prop\<^sup>(\<^sup>4\<^sup>)"} @{verbatim "::"} @{text type} & @{text "(3)"} \\
-    & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=="} @{text "any\<^sup>(\<^sup>3\<^sup>)"} & @{text "(2)"} \\
-    & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{text "\<equiv>"} @{text "any\<^sup>(\<^sup>3\<^sup>)"} & @{text "(2)"} \\
-    & @{text "|"} & @{text "prop\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "&&&"} @{text "prop\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
-    & @{text "|"} & @{text "prop\<^sup>(\<^sup>2\<^sup>)"} @{verbatim "==>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
-    & @{text "|"} & @{text "prop\<^sup>(\<^sup>2\<^sup>)"} @{text "\<Longrightarrow>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
-    & @{text "|"} & @{verbatim "[|"} @{text prop} @{verbatim ";"} @{text "\<dots>"} @{verbatim ";"} @{text prop} @{verbatim "|]"} @{verbatim "==>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
-    & @{text "|"} & @{text "\<lbrakk>"} @{text prop} @{verbatim ";"} @{text "\<dots>"} @{verbatim ";"} @{text prop} @{text "\<rbrakk>"} @{text "\<Longrightarrow>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
-    & @{text "|"} & @{verbatim "!!"} @{text idts} @{verbatim "."} @{text prop} & @{text "(0)"} \\
-    & @{text "|"} & @{text "\<And>"} @{text idts} @{verbatim "."} @{text prop} & @{text "(0)"} \\
-    & @{text "|"} & @{verbatim OFCLASS} @{verbatim "("} @{text type} @{verbatim ","} @{text logic} @{verbatim ")"} \\
-    & @{text "|"} & @{verbatim SORT_CONSTRAINT} @{verbatim "("} @{text type} @{verbatim ")"} \\
-    & @{text "|"} & @{verbatim TERM} @{text logic} \\
-    & @{text "|"} & @{verbatim PROP} @{text aprop} \\\\
+  @{syntax_def (inner) prop} & = & @{verbatim "("} \<open>prop\<close> @{verbatim ")"} \\
+    & \<open>|\<close> & \<open>prop\<^sup>(\<^sup>4\<^sup>)\<close> @{verbatim "::"} \<open>type\<close> & \<open>(3)\<close> \\
+    & \<open>|\<close> & \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> @{verbatim "=="} \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>(2)\<close> \\
+    & \<open>|\<close> & \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> \<open>\<equiv>\<close> \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>(2)\<close> \\
+    & \<open>|\<close> & \<open>prop\<^sup>(\<^sup>3\<^sup>)\<close> @{verbatim "&&&"} \<open>prop\<^sup>(\<^sup>2\<^sup>)\<close> & \<open>(2)\<close> \\
+    & \<open>|\<close> & \<open>prop\<^sup>(\<^sup>2\<^sup>)\<close> @{verbatim "==>"} \<open>prop\<^sup>(\<^sup>1\<^sup>)\<close> & \<open>(1)\<close> \\
+    & \<open>|\<close> & \<open>prop\<^sup>(\<^sup>2\<^sup>)\<close> \<open>\<Longrightarrow>\<close> \<open>prop\<^sup>(\<^sup>1\<^sup>)\<close> & \<open>(1)\<close> \\
+    & \<open>|\<close> & @{verbatim "[|"} \<open>prop\<close> @{verbatim ";"} \<open>\<dots>\<close> @{verbatim ";"} \<open>prop\<close> @{verbatim "|]"} @{verbatim "==>"} \<open>prop\<^sup>(\<^sup>1\<^sup>)\<close> & \<open>(1)\<close> \\
+    & \<open>|\<close> & \<open>\<lbrakk>\<close> \<open>prop\<close> @{verbatim ";"} \<open>\<dots>\<close> @{verbatim ";"} \<open>prop\<close> \<open>\<rbrakk>\<close> \<open>\<Longrightarrow>\<close> \<open>prop\<^sup>(\<^sup>1\<^sup>)\<close> & \<open>(1)\<close> \\
+    & \<open>|\<close> & @{verbatim "!!"} \<open>idts\<close> @{verbatim "."} \<open>prop\<close> & \<open>(0)\<close> \\
+    & \<open>|\<close> & \<open>\<And>\<close> \<open>idts\<close> @{verbatim "."} \<open>prop\<close> & \<open>(0)\<close> \\
+    & \<open>|\<close> & @{verbatim OFCLASS} @{verbatim "("} \<open>type\<close> @{verbatim ","} \<open>logic\<close> @{verbatim ")"} \\
+    & \<open>|\<close> & @{verbatim SORT_CONSTRAINT} @{verbatim "("} \<open>type\<close> @{verbatim ")"} \\
+    & \<open>|\<close> & @{verbatim TERM} \<open>logic\<close> \\
+    & \<open>|\<close> & @{verbatim PROP} \<open>aprop\<close> \\\\
 
-  @{syntax_def (inner) aprop} & = & @{verbatim "("} @{text aprop} @{verbatim ")"} \\
-    & @{text "|"} & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
-    & @{text "|"} & @{verbatim CONST} @{text "id  |  "}@{verbatim CONST} @{text "longid"} \\
-    & @{text "|"} & @{verbatim XCONST} @{text "id  |  "}@{verbatim XCONST} @{text "longid"} \\
-    & @{text "|"} & @{text "logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "(999)"} \\\\
+  @{syntax_def (inner) aprop} & = & @{verbatim "("} \<open>aprop\<close> @{verbatim ")"} \\
+    & \<open>|\<close> & \<open>id  |  longid  |  var  |  \<close>@{verbatim "_"}\<open>  |  \<close>@{verbatim "..."} \\
+    & \<open>|\<close> & @{verbatim CONST} \<open>id  |  \<close>@{verbatim CONST} \<open>longid\<close> \\
+    & \<open>|\<close> & @{verbatim XCONST} \<open>id  |  \<close>@{verbatim XCONST} \<open>longid\<close> \\
+    & \<open>|\<close> & \<open>logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)\<close> & \<open>(999)\<close> \\\\
 
-  @{syntax_def (inner) logic} & = & @{verbatim "("} @{text logic} @{verbatim ")"} \\
-    & @{text "|"} & @{text "logic\<^sup>(\<^sup>4\<^sup>)"} @{verbatim "::"} @{text type} & @{text "(3)"} \\
-    & @{text "|"} & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
-    & @{text "|"} & @{verbatim CONST} @{text "id  |  "}@{verbatim CONST} @{text "longid"} \\
-    & @{text "|"} & @{verbatim XCONST} @{text "id  |  "}@{verbatim XCONST} @{text "longid"} \\
-    & @{text "|"} & @{text "logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "(999)"} \\
-    & @{text "|"} & @{text "\<struct> index\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} \\
-    & @{text "|"} & @{verbatim "%"} @{text pttrns} @{verbatim "."} @{text "any\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
-    & @{text "|"} & @{text \<lambda>} @{text pttrns} @{verbatim "."} @{text "any\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
-    & @{text "|"} & @{verbatim op} @{verbatim "=="}@{text "  |  "}@{verbatim op} @{text "\<equiv>"}@{text "  |  "}@{verbatim op} @{verbatim "&&&"} \\
-    & @{text "|"} & @{verbatim op} @{verbatim "==>"}@{text "  |  "}@{verbatim op} @{text "\<Longrightarrow>"} \\
-    & @{text "|"} & @{verbatim TYPE} @{verbatim "("} @{text type} @{verbatim ")"} \\\\
+  @{syntax_def (inner) logic} & = & @{verbatim "("} \<open>logic\<close> @{verbatim ")"} \\
+    & \<open>|\<close> & \<open>logic\<^sup>(\<^sup>4\<^sup>)\<close> @{verbatim "::"} \<open>type\<close> & \<open>(3)\<close> \\
+    & \<open>|\<close> & \<open>id  |  longid  |  var  |  \<close>@{verbatim "_"}\<open>  |  \<close>@{verbatim "..."} \\
+    & \<open>|\<close> & @{verbatim CONST} \<open>id  |  \<close>@{verbatim CONST} \<open>longid\<close> \\
+    & \<open>|\<close> & @{verbatim XCONST} \<open>id  |  \<close>@{verbatim XCONST} \<open>longid\<close> \\
+    & \<open>|\<close> & \<open>logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)\<close> & \<open>(999)\<close> \\
+    & \<open>|\<close> & \<open>\<struct> index\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)\<close> \\
+    & \<open>|\<close> & @{verbatim "%"} \<open>pttrns\<close> @{verbatim "."} \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>(3)\<close> \\
+    & \<open>|\<close> & \<open>\<lambda>\<close> \<open>pttrns\<close> @{verbatim "."} \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>(3)\<close> \\
+    & \<open>|\<close> & @{verbatim op} @{verbatim "=="}\<open>  |  \<close>@{verbatim op} \<open>\<equiv>\<close>\<open>  |  \<close>@{verbatim op} @{verbatim "&&&"} \\
+    & \<open>|\<close> & @{verbatim op} @{verbatim "==>"}\<open>  |  \<close>@{verbatim op} \<open>\<Longrightarrow>\<close> \\
+    & \<open>|\<close> & @{verbatim TYPE} @{verbatim "("} \<open>type\<close> @{verbatim ")"} \\\\
 
-  @{syntax_def (inner) idt} & = & @{verbatim "("} @{text idt} @{verbatim ")"}@{text "  |  id  |  "}@{verbatim "_"} \\
-    & @{text "|"} & @{text id} @{verbatim "::"} @{text type} & @{text "(0)"} \\
-    & @{text "|"} & @{verbatim "_"} @{verbatim "::"} @{text type} & @{text "(0)"} \\\\
+  @{syntax_def (inner) idt} & = & @{verbatim "("} \<open>idt\<close> @{verbatim ")"}\<open>  |  id  |  \<close>@{verbatim "_"} \\
+    & \<open>|\<close> & \<open>id\<close> @{verbatim "::"} \<open>type\<close> & \<open>(0)\<close> \\
+    & \<open>|\<close> & @{verbatim "_"} @{verbatim "::"} \<open>type\<close> & \<open>(0)\<close> \\\\
 
-  @{syntax_def (inner) index} & = & @{verbatim "\<^bsub>"} @{text "logic\<^sup>(\<^sup>0\<^sup>)"} @{verbatim "\<^esub>"}@{text "  |  |  \<index>"} \\\\
+  @{syntax_def (inner) index} & = & @{verbatim "\<^bsub>"} \<open>logic\<^sup>(\<^sup>0\<^sup>)\<close> @{verbatim "\<^esub>"}\<open>  |  |  \<index>\<close> \\\\
 
-  @{syntax_def (inner) idts} & = & @{text "idt  |  idt\<^sup>(\<^sup>1\<^sup>) idts"} & @{text "(0)"} \\\\
+  @{syntax_def (inner) idts} & = & \<open>idt  |  idt\<^sup>(\<^sup>1\<^sup>) idts\<close> & \<open>(0)\<close> \\\\
 
-  @{syntax_def (inner) pttrn} & = & @{text idt} \\\\
+  @{syntax_def (inner) pttrn} & = & \<open>idt\<close> \\\\
 
-  @{syntax_def (inner) pttrns} & = & @{text "pttrn  |  pttrn\<^sup>(\<^sup>1\<^sup>) pttrns"} & @{text "(0)"} \\\\
+  @{syntax_def (inner) pttrns} & = & \<open>pttrn  |  pttrn\<^sup>(\<^sup>1\<^sup>) pttrns\<close> & \<open>(0)\<close> \\\\
 
-  @{syntax_def (inner) type} & = & @{verbatim "("} @{text type} @{verbatim ")"} \\
-    & @{text "|"} & @{text "tid  |  tvar  |  "}@{verbatim "_"} \\
-    & @{text "|"} & @{text "tid"} @{verbatim "::"} @{text "sort  |  tvar  "}@{verbatim "::"} @{text "sort  |  "}@{verbatim "_"} @{verbatim "::"} @{text "sort"} \\
-    & @{text "|"} & @{text "type_name  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) type_name"} \\
-    & @{text "|"} & @{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text type_name} \\
-    & @{text "|"} & @{text "type\<^sup>(\<^sup>1\<^sup>)"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\
-    & @{text "|"} & @{text "type\<^sup>(\<^sup>1\<^sup>)"} @{text "\<Rightarrow>"} @{text type} & @{text "(0)"} \\
-    & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\
-    & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{text "\<Rightarrow>"} @{text type} & @{text "(0)"} \\
-  @{syntax_def (inner) type_name} & = & @{text "id  |  longid"} \\\\
+  @{syntax_def (inner) type} & = & @{verbatim "("} \<open>type\<close> @{verbatim ")"} \\
+    & \<open>|\<close> & \<open>tid  |  tvar  |  \<close>@{verbatim "_"} \\
+    & \<open>|\<close> & \<open>tid\<close> @{verbatim "::"} \<open>sort  |  tvar  \<close>@{verbatim "::"} \<open>sort  |  \<close>@{verbatim "_"} @{verbatim "::"} \<open>sort\<close> \\
+    & \<open>|\<close> & \<open>type_name  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) type_name\<close> \\
+    & \<open>|\<close> & @{verbatim "("} \<open>type\<close> @{verbatim ","} \<open>\<dots>\<close> @{verbatim ","} \<open>type\<close> @{verbatim ")"} \<open>type_name\<close> \\
+    & \<open>|\<close> & \<open>type\<^sup>(\<^sup>1\<^sup>)\<close> @{verbatim "=>"} \<open>type\<close> & \<open>(0)\<close> \\
+    & \<open>|\<close> & \<open>type\<^sup>(\<^sup>1\<^sup>)\<close> \<open>\<Rightarrow>\<close> \<open>type\<close> & \<open>(0)\<close> \\
+    & \<open>|\<close> & @{verbatim "["} \<open>type\<close> @{verbatim ","} \<open>\<dots>\<close> @{verbatim ","} \<open>type\<close> @{verbatim "]"} @{verbatim "=>"} \<open>type\<close> & \<open>(0)\<close> \\
+    & \<open>|\<close> & @{verbatim "["} \<open>type\<close> @{verbatim ","} \<open>\<dots>\<close> @{verbatim ","} \<open>type\<close> @{verbatim "]"} \<open>\<Rightarrow>\<close> \<open>type\<close> & \<open>(0)\<close> \\
+  @{syntax_def (inner) type_name} & = & \<open>id  |  longid\<close> \\\\
 
-  @{syntax_def (inner) sort} & = & @{syntax class_name}~@{text "  |  "}@{verbatim "{}"} \\
-    & @{text "|"} & @{verbatim "{"} @{syntax class_name} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{syntax class_name} @{verbatim "}"} \\
-  @{syntax_def (inner) class_name} & = & @{text "id  |  longid"} \\
+  @{syntax_def (inner) sort} & = & @{syntax class_name}~\<open>  |  \<close>@{verbatim "{}"} \\
+    & \<open>|\<close> & @{verbatim "{"} @{syntax class_name} @{verbatim ","} \<open>\<dots>\<close> @{verbatim ","} @{syntax class_name} @{verbatim "}"} \\
+  @{syntax_def (inner) class_name} & = & \<open>id  |  longid\<close> \\
   \end{supertabular}
   \end{center}
 
@@ -750,7 +743,7 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
   \<^descr> @{syntax_ref (inner) prop} denotes meta-level propositions,
   which are terms of type @{typ prop}.  The syntax of such formulae of
   the meta-logic is carefully distinguished from usual conventions for
-  object-logics.  In particular, plain @{text "\<lambda>"}-term notation is
+  object-logics.  In particular, plain \<open>\<lambda>\<close>-term notation is
   \<^emph>\<open>not\<close> recognized as @{syntax (inner) prop}.
 
   \<^descr> @{syntax_ref (inner) aprop} denotes atomic propositions, which
@@ -765,8 +758,7 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
 
   \<^descr> @{syntax_ref (inner) logic} denotes arbitrary terms of a
   logical type, excluding type @{typ prop}.  This is the main
-  syntactic category of object-logic entities, covering plain @{text
-  \<lambda>}-term notation (variables, abstraction, application), plus
+  syntactic category of object-logic entities, covering plain \<open>\<lambda>\<close>-term notation (variables, abstraction, application), plus
   anything defined by the user.
 
   When specifying notation for logical entities, all logical types
@@ -775,8 +767,7 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
 
   \<^descr> @{syntax_ref (inner) index} denotes an optional index term for
   indexed syntax.  If omitted, it refers to the first @{keyword_ref
-  "structure"} variable in the context.  The special dummy ``@{text
-  "\<index>"}'' serves as pattern variable in mixfix annotations that
+  "structure"} variable in the context.  The special dummy ``\<open>\<index>\<close>'' serves as pattern variable in mixfix annotations that
   introduce indexed notation.
 
   \<^descr> @{syntax_ref (inner) idt} denotes identifiers, possibly
@@ -784,7 +775,7 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
 
   \<^descr> @{syntax_ref (inner) idts} denotes a sequence of @{syntax_ref
   (inner) idt}.  This is the most basic category for variables in
-  iterated binders, such as @{text "\<lambda>"} or @{text "\<And>"}.
+  iterated binders, such as \<open>\<lambda>\<close> or \<open>\<And>\<close>.
 
   \<^descr> @{syntax_ref (inner) pttrn} and @{syntax_ref (inner) pttrns}
   denote patterns for abstraction, cases bindings etc.  In Pure, these
@@ -799,43 +790,42 @@ text \<open>The priority grammar of the @{text "Pure"} theory is defined
 
   Here are some further explanations of certain syntax features.
 
-  \<^item> In @{syntax (inner) idts}, note that @{text "x :: nat y"} is
-  parsed as @{text "x :: (nat y)"}, treating @{text y} like a type
-  constructor applied to @{text nat}.  To avoid this interpretation,
-  write @{text "(x :: nat) y"} with explicit parentheses.
+  \<^item> In @{syntax (inner) idts}, note that \<open>x :: nat y\<close> is
+  parsed as \<open>x :: (nat y)\<close>, treating \<open>y\<close> like a type
+  constructor applied to \<open>nat\<close>.  To avoid this interpretation,
+  write \<open>(x :: nat) y\<close> with explicit parentheses.
 
-  \<^item> Similarly, @{text "x :: nat y :: nat"} is parsed as @{text "x ::
-  (nat y :: nat)"}.  The correct form is @{text "(x :: nat) (y ::
-  nat)"}, or @{text "(x :: nat) y :: nat"} if @{text y} is last in the
+  \<^item> Similarly, \<open>x :: nat y :: nat\<close> is parsed as \<open>x ::
+  (nat y :: nat)\<close>.  The correct form is \<open>(x :: nat) (y ::
+  nat)\<close>, or \<open>(x :: nat) y :: nat\<close> if \<open>y\<close> is last in the
   sequence of identifiers.
 
   \<^item> Type constraints for terms bind very weakly.  For example,
-  @{text "x < y :: nat"} is normally parsed as @{text "(x < y) ::
-  nat"}, unless @{text "<"} has a very low priority, in which case the
-  input is likely to be ambiguous.  The correct form is @{text "x < (y
-  :: nat)"}.
+  \<open>x < y :: nat\<close> is normally parsed as \<open>(x < y) ::
+  nat\<close>, unless \<open><\<close> has a very low priority, in which case the
+  input is likely to be ambiguous.  The correct form is \<open>x < (y
+  :: nat)\<close>.
 
   \<^item> Dummy variables (written as underscore) may occur in different
   roles.
 
-    \<^descr> A type ``@{text "_"}'' or ``@{text "_ :: sort"}'' acts like an
+    \<^descr> A type ``\<open>_\<close>'' or ``\<open>_ :: sort\<close>'' acts like an
     anonymous inference parameter, which is filled-in according to the
     most general type produced by the type-checking phase.
 
-    \<^descr> A bound ``@{text "_"}'' refers to a vacuous abstraction, where
+    \<^descr> A bound ``\<open>_\<close>'' refers to a vacuous abstraction, where
     the body does not refer to the binding introduced here.  As in the
-    term @{term "\<lambda>x _. x"}, which is @{text "\<alpha>"}-equivalent to @{text
-    "\<lambda>x y. x"}.
+    term @{term "\<lambda>x _. x"}, which is \<open>\<alpha>\<close>-equivalent to \<open>\<lambda>x y. x\<close>.
 
-    \<^descr> A free ``@{text "_"}'' refers to an implicit outer binding.
-    Higher definitional packages usually allow forms like @{text "f x _
-    = x"}.
+    \<^descr> A free ``\<open>_\<close>'' refers to an implicit outer binding.
+    Higher definitional packages usually allow forms like \<open>f x _
+    = x\<close>.
 
-    \<^descr> A schematic ``@{text "_"}'' (within a term pattern, see
+    \<^descr> A schematic ``\<open>_\<close>'' (within a term pattern, see
     \secref{sec:term-decls}) refers to an anonymous variable that is
     implicitly abstracted over its context of locally bound variables.
-    For example, this allows pattern matching of @{text "{x. f x = g
-    x}"} against @{text "{x. _ = _}"}, or even @{text "{_. _ = _}"} by
+    For example, this allows pattern matching of \<open>{x. f x = g
+    x}\<close> against \<open>{x. _ = _}\<close>, or even \<open>{_. _ = _}\<close> by
     using both bound and schematic dummies.
 
   \<^descr> The three literal dots ``@{verbatim "..."}'' may be also
@@ -859,22 +849,21 @@ subsection \<open>Inspecting the syntax\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def "print_syntax"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_syntax"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
   \<^descr> @{command "print_syntax"} prints the inner syntax of the
   current context.  The output can be quite large; the most important
   sections are explained below.
 
-    \<^descr> @{text "lexicon"} lists the delimiters of the inner token
+    \<^descr> \<open>lexicon\<close> lists the delimiters of the inner token
     language; see \secref{sec:inner-lex}.
 
-    \<^descr> @{text "prods"} lists the productions of the underlying
+    \<^descr> \<open>prods\<close> lists the productions of the underlying
     priority grammar; see \secref{sec:priority-grammar}.
 
-    The nonterminal @{text "A\<^sup>(\<^sup>p\<^sup>)"} is rendered in plain text as @{text
-    "A[p]"}; delimiters are quoted.  Many productions have an extra
-    @{text "\<dots> => name"}.  These names later become the heads of parse
+    The nonterminal \<open>A\<^sup>(\<^sup>p\<^sup>)\<close> is rendered in plain text as \<open>A[p]\<close>; delimiters are quoted.  Many productions have an extra
+    \<open>\<dots> => name\<close>.  These names later become the heads of parse
     trees; they also guide the pretty printer.
 
     Productions without such parse tree names are called \<^emph>\<open>copy
@@ -888,20 +877,19 @@ text \<open>
     production\<close>.  Chain productions act as abbreviations: conceptually,
     they are removed from the grammar by adding new productions.
     Priority information attached to chain productions is ignored; only
-    the dummy value @{text "-1"} is displayed.
+    the dummy value \<open>-1\<close> is displayed.
 
-    \<^descr> @{text "print modes"} lists the alternative print modes
+    \<^descr> \<open>print modes\<close> lists the alternative print modes
     provided by this grammar; see \secref{sec:print-modes}.
 
-    \<^descr> @{text "parse_rules"} and @{text "print_rules"} relate to
+    \<^descr> \<open>parse_rules\<close> and \<open>print_rules\<close> relate to
     syntax translations (macros); see \secref{sec:syn-trans}.
 
-    \<^descr> @{text "parse_ast_translation"} and @{text
-    "print_ast_translation"} list sets of constants that invoke
+    \<^descr> \<open>parse_ast_translation\<close> and \<open>print_ast_translation\<close> list sets of constants that invoke
     translation functions for abstract syntax trees, which are only
     required in very special situations; see \secref{sec:tr-funs}.
 
-    \<^descr> @{text "parse_translation"} and @{text "print_translation"}
+    \<^descr> \<open>parse_translation\<close> and \<open>print_translation\<close>
     list the sets of constants that invoke regular translation
     functions; see \secref{sec:tr-funs}.
 \<close>
@@ -911,8 +899,8 @@ subsection \<open>Ambiguity of parsed expressions\<close>
 
 text \<open>
   \begin{tabular}{rcll}
-    @{attribute_def syntax_ambiguity_warning} & : & @{text attribute} & default @{text true} \\
-    @{attribute_def syntax_ambiguity_limit} & : & @{text attribute} & default @{text 10} \\
+    @{attribute_def syntax_ambiguity_warning} & : & \<open>attribute\<close> & default \<open>true\<close> \\
+    @{attribute_def syntax_ambiguity_limit} & : & \<open>attribute\<close> & default \<open>10\<close> \\
   \end{tabular}
 
   Depending on the grammar and the given input, parsing may be
@@ -943,7 +931,7 @@ section \<open>Syntax transformations \label{sec:syntax-transformations}\<close>
 text \<open>The inner syntax engine of Isabelle provides separate
   mechanisms to transform parse trees either via rewrite systems on
   first-order ASTs (\secref{sec:syn-trans}), or ML functions on ASTs
-  or syntactic @{text "\<lambda>"}-terms (\secref{sec:tr-funs}).  This works
+  or syntactic \<open>\<lambda>\<close>-terms (\secref{sec:tr-funs}).  This works
   both for parsing and printing, as outlined in
   \figref{fig:parse-print}.
 
@@ -951,19 +939,19 @@ text \<open>The inner syntax engine of Isabelle provides separate
   \begin{center}
   \begin{tabular}{cl}
   string          & \\
-  @{text "\<down>"}     & lexer + parser \\
+  \<open>\<down>\<close>     & lexer + parser \\
   parse tree      & \\
-  @{text "\<down>"}     & parse AST translation \\
+  \<open>\<down>\<close>     & parse AST translation \\
   AST             & \\
-  @{text "\<down>"}     & AST rewriting (macros) \\
+  \<open>\<down>\<close>     & AST rewriting (macros) \\
   AST             & \\
-  @{text "\<down>"}     & parse translation \\
+  \<open>\<down>\<close>     & parse translation \\
   --- pre-term ---    & \\
-  @{text "\<down>"}     & print translation \\
+  \<open>\<down>\<close>     & print translation \\
   AST             & \\
-  @{text "\<down>"}     & AST rewriting (macros) \\
+  \<open>\<down>\<close>     & AST rewriting (macros) \\
   AST             & \\
-  @{text "\<down>"}     & print AST translation \\
+  \<open>\<down>\<close>     & print AST translation \\
   string          &
   \end{tabular}
   \end{center}
@@ -1034,8 +1022,8 @@ text \<open>Depending on the situation --- input syntax, output syntax,
   Ast.Constant} versus @{ML Ast.Variable} serves slightly different
   purposes.
 
-  Input syntax of a term such as @{text "f a b = c"} does not yet
-  indicate the scopes of atomic entities @{text "f, a, b, c"}: they
+  Input syntax of a term such as \<open>f a b = c\<close> does not yet
+  indicate the scopes of atomic entities \<open>f, a, b, c\<close>: they
   could be global constants or local variables, even bound ones
   depending on the context of the term.  @{ML Ast.Variable} leaves
   this choice still open: later syntax layers (or translation
@@ -1047,13 +1035,13 @@ text \<open>Depending on the situation --- input syntax, output syntax,
 
   Output syntax turns term constants into @{ML Ast.Constant} and
   variables (free or schematic) into @{ML Ast.Variable}.  This
-  information is precise when printing fully formal @{text "\<lambda>"}-terms.
+  information is precise when printing fully formal \<open>\<lambda>\<close>-terms.
 
   \<^medskip>
   AST translation patterns (\secref{sec:syn-trans}) that
   represent terms cannot distinguish constants and variables
-  syntactically.  Explicit indication of @{text "CONST c"} inside the
-  term language is required, unless @{text "c"} is known as special
+  syntactically.  Explicit indication of \<open>CONST c\<close> inside the
+  term language is required, unless \<open>c\<close> is known as special
   \<^emph>\<open>syntax constant\<close> (see also @{command syntax}).  It is also
   possible to use @{command syntax} declarations (without mixfix
   annotation) to enforce that certain unqualified names are always
@@ -1061,9 +1049,9 @@ text \<open>Depending on the situation --- input syntax, output syntax,
 
   The situation is simpler for ASTs that represent types or sorts,
   since the concrete syntax already distinguishes type variables from
-  type constants (constructors).  So @{text "('a, 'b) foo"}
-  corresponds to an AST application of some constant for @{text foo}
-  and variable arguments for @{text "'a"} and @{text "'b"}.  Note that
+  type constants (constructors).  So \<open>('a, 'b) foo\<close>
+  corresponds to an AST application of some constant for \<open>foo\<close>
+  and variable arguments for \<open>'a\<close> and \<open>'b\<close>.  Note that
   the postfix application is merely a feature of the concrete syntax,
   while in the AST the constructor occurs in head position.\<close>
 
@@ -1078,8 +1066,7 @@ text \<open>Naming constant entities within ASTs is another delicate
 
   \<^emph>\<open>Authentic syntax names\<close> for @{ML Ast.Constant} avoid this
   problem: the fully-qualified constant name with a special prefix for
-  its formal category (@{text "class"}, @{text "type"}, @{text
-  "const"}, @{text "fixed"}) represents the information faithfully
+  its formal category (\<open>class\<close>, \<open>type\<close>, \<open>const\<close>, \<open>fixed\<close>) represents the information faithfully
   within the untyped AST format.  Accidental overlap with free or
   bound variables is excluded as well.  Authentic syntax names work
   implicitly in the following situations:
@@ -1108,13 +1095,13 @@ subsection \<open>Raw syntax and translations \label{sec:syn-trans}\<close>
 
 text \<open>
   \begin{tabular}{rcll}
-    @{command_def "nonterminal"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "syntax"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "no_syntax"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "translations"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "no_translations"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{attribute_def syntax_ast_trace} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def syntax_ast_stats} & : & @{text attribute} & default @{text false} \\
+    @{command_def "nonterminal"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "syntax"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "no_syntax"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "translations"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "no_translations"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{attribute_def syntax_ast_trace} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+    @{attribute_def syntax_ast_stats} & : & \<open>attribute\<close> & default \<open>false\<close> \\
   \end{tabular}
   \<^medskip>
 
@@ -1143,75 +1130,71 @@ text \<open>
     transpat: ('(' @{syntax nameref} ')')? @{syntax string}
   \<close>}
 
-  \<^descr> @{command "nonterminal"}~@{text c} declares a type
-  constructor @{text c} (without arguments) to act as purely syntactic
+  \<^descr> @{command "nonterminal"}~\<open>c\<close> declares a type
+  constructor \<open>c\<close> (without arguments) to act as purely syntactic
   type: a nonterminal symbol of the inner syntax.
 
-  \<^descr> @{command "syntax"}~@{text "(mode) c :: \<sigma> (mx)"} augments the
+  \<^descr> @{command "syntax"}~\<open>(mode) c :: \<sigma> (mx)\<close> augments the
   priority grammar and the pretty printer table for the given print
   mode (default @{verbatim \<open>""\<close>}). An optional keyword @{keyword_ref
   "output"} means that only the pretty printer table is affected.
 
-  Following \secref{sec:mixfix}, the mixfix annotation @{text "mx =
-  template ps q"} together with type @{text "\<sigma> = \<tau>\<^sub>1 \<Rightarrow> \<dots> \<tau>\<^sub>n \<Rightarrow> \<tau>"} and
-  specify a grammar production.  The @{text template} contains
-  delimiter tokens that surround @{text "n"} argument positions
+  Following \secref{sec:mixfix}, the mixfix annotation \<open>mx =
+  template ps q\<close> together with type \<open>\<sigma> = \<tau>\<^sub>1 \<Rightarrow> \<dots> \<tau>\<^sub>n \<Rightarrow> \<tau>\<close> and
+  specify a grammar production.  The \<open>template\<close> contains
+  delimiter tokens that surround \<open>n\<close> argument positions
   (@{verbatim "_"}).  The latter correspond to nonterminal symbols
-  @{text "A\<^sub>i"} derived from the argument types @{text "\<tau>\<^sub>i"} as
+  \<open>A\<^sub>i\<close> derived from the argument types \<open>\<tau>\<^sub>i\<close> as
   follows:
 
-    \<^item> @{text "prop"} if @{text "\<tau>\<^sub>i = prop"}
+    \<^item> \<open>prop\<close> if \<open>\<tau>\<^sub>i = prop\<close>
 
-    \<^item> @{text "logic"} if @{text "\<tau>\<^sub>i = (\<dots>)\<kappa>"} for logical type
-    constructor @{text "\<kappa> \<noteq> prop"}
+    \<^item> \<open>logic\<close> if \<open>\<tau>\<^sub>i = (\<dots>)\<kappa>\<close> for logical type
+    constructor \<open>\<kappa> \<noteq> prop\<close>
 
-    \<^item> @{text any} if @{text "\<tau>\<^sub>i = \<alpha>"} for type variables
+    \<^item> \<open>any\<close> if \<open>\<tau>\<^sub>i = \<alpha>\<close> for type variables
 
-    \<^item> @{text "\<kappa>"} if @{text "\<tau>\<^sub>i = \<kappa>"} for nonterminal @{text "\<kappa>"}
+    \<^item> \<open>\<kappa>\<close> if \<open>\<tau>\<^sub>i = \<kappa>\<close> for nonterminal \<open>\<kappa>\<close>
     (syntactic type constructor)
 
-  Each @{text "A\<^sub>i"} is decorated by priority @{text "p\<^sub>i"} from the
-  given list @{text "ps"}; missing priorities default to 0.
+  Each \<open>A\<^sub>i\<close> is decorated by priority \<open>p\<^sub>i\<close> from the
+  given list \<open>ps\<close>; missing priorities default to 0.
 
   The resulting nonterminal of the production is determined similarly
-  from type @{text "\<tau>"}, with priority @{text "q"} and default 1000.
+  from type \<open>\<tau>\<close>, with priority \<open>q\<close> and default 1000.
 
   \<^medskip>
-  Parsing via this production produces parse trees @{text
-  "t\<^sub>1, \<dots>, t\<^sub>n"} for the argument slots.  The resulting parse tree is
-  composed as @{text "c t\<^sub>1 \<dots> t\<^sub>n"}, by using the syntax constant @{text
-  "c"} of the syntax declaration.
+  Parsing via this production produces parse trees \<open>t\<^sub>1, \<dots>, t\<^sub>n\<close> for the argument slots.  The resulting parse tree is
+  composed as \<open>c t\<^sub>1 \<dots> t\<^sub>n\<close>, by using the syntax constant \<open>c\<close> of the syntax declaration.
 
   Such syntactic constants are invented on the spot, without formal
   check wrt.\ existing declarations.  It is conventional to use plain
-  identifiers prefixed by a single underscore (e.g.\ @{text
-  "_foobar"}).  Names should be chosen with care, to avoid clashes
+  identifiers prefixed by a single underscore (e.g.\ \<open>_foobar\<close>).  Names should be chosen with care, to avoid clashes
   with other syntax declarations.
 
   \<^medskip>
-  The special case of copy production is specified by @{text
-  "c = "}@{verbatim \<open>""\<close>} (empty string).  It means that the
-  resulting parse tree @{text "t"} is copied directly, without any
+  The special case of copy production is specified by \<open>c = \<close>@{verbatim \<open>""\<close>} (empty string).  It means that the
+  resulting parse tree \<open>t\<close> is copied directly, without any
   further decoration.
 
-  \<^descr> @{command "no_syntax"}~@{text "(mode) decls"} removes grammar
-  declarations (and translations) resulting from @{text decls}, which
+  \<^descr> @{command "no_syntax"}~\<open>(mode) decls\<close> removes grammar
+  declarations (and translations) resulting from \<open>decls\<close>, which
   are interpreted in the same manner as for @{command "syntax"} above.
 
-  \<^descr> @{command "translations"}~@{text rules} specifies syntactic
+  \<^descr> @{command "translations"}~\<open>rules\<close> specifies syntactic
   translation rules (i.e.\ macros) as first-order rewrite rules on
   ASTs (\secref{sec:ast}).  The theory context maintains two
   independent lists translation rules: parse rules (@{verbatim "=>"}
-  or @{text "\<rightharpoonup>"}) and print rules (@{verbatim "<="} or @{text "\<leftharpoondown>"}).
+  or \<open>\<rightharpoonup>\<close>) and print rules (@{verbatim "<="} or \<open>\<leftharpoondown>\<close>).
   For convenience, both can be specified simultaneously as parse~/
-  print rules (@{verbatim "=="} or @{text "\<rightleftharpoons>"}).
+  print rules (@{verbatim "=="} or \<open>\<rightleftharpoons>\<close>).
 
   Translation patterns may be prefixed by the syntactic category to be
-  used for parsing; the default is @{text logic} which means that
+  used for parsing; the default is \<open>logic\<close> which means that
   regular term syntax is used.  Both sides of the syntax translation
   rule undergo parsing and parse AST translations
   \secref{sec:tr-funs}, in order to perform some fundamental
-  normalization like @{text "\<lambda>x y. b \<leadsto> \<lambda>x. \<lambda>y. b"}, but other AST
+  normalization like \<open>\<lambda>x y. b \<leadsto> \<lambda>x. \<lambda>y. b\<close>, but other AST
   translation rules are \<^emph>\<open>not\<close> applied recursively here.
 
   When processing AST patterns, the inner syntax lexer runs in a
@@ -1225,23 +1208,22 @@ text \<open>
   Ast.Variable} as follows: a qualified name or syntax constant
   declared via @{command syntax}, or parse tree head of concrete
   notation becomes @{ML Ast.Constant}, anything else @{ML
-  Ast.Variable}.  Note that @{text CONST} and @{text XCONST} within
+  Ast.Variable}.  Note that \<open>CONST\<close> and \<open>XCONST\<close> within
   the term language (\secref{sec:pure-grammar}) allow to enforce
   treatment as constants.
 
-  AST rewrite rules @{text "(lhs, rhs)"} need to obey the following
+  AST rewrite rules \<open>(lhs, rhs)\<close> need to obey the following
   side-conditions:
 
-    \<^item> Rules must be left linear: @{text "lhs"} must not contain
+    \<^item> Rules must be left linear: \<open>lhs\<close> must not contain
     repeated variables.\footnote{The deeper reason for this is that AST
     equality is not well-defined: different occurrences of the ``same''
     AST could be decorated differently by accidental type-constraints or
     source position information, for example.}
 
-    \<^item> Every variable in @{text "rhs"} must also occur in @{text
-    "lhs"}.
+    \<^item> Every variable in \<open>rhs\<close> must also occur in \<open>lhs\<close>.
 
-  \<^descr> @{command "no_translations"}~@{text rules} removes syntactic
+  \<^descr> @{command "no_translations"}~\<open>rules\<close> removes syntactic
   translation rules, which are interpreted in the same manner as for
   @{command "translations"} above.
 
@@ -1278,38 +1260,36 @@ text \<open>As a term is being parsed or printed, an AST is generated as
   first-order term rewriting system.  We first examine how a single
   rule is applied.
 
-  Let @{text "t"} be the abstract syntax tree to be normalized and
-  @{text "(lhs, rhs)"} some translation rule.  A subtree @{text "u"}
-  of @{text "t"} is called \<^emph>\<open>redex\<close> if it is an instance of @{text
-  "lhs"}; in this case the pattern @{text "lhs"} is said to match the
-  object @{text "u"}.  A redex matched by @{text "lhs"} may be
-  replaced by the corresponding instance of @{text "rhs"}, thus
-  \<^emph>\<open>rewriting\<close> the AST @{text "t"}.  Matching requires some notion
+  Let \<open>t\<close> be the abstract syntax tree to be normalized and
+  \<open>(lhs, rhs)\<close> some translation rule.  A subtree \<open>u\<close>
+  of \<open>t\<close> is called \<^emph>\<open>redex\<close> if it is an instance of \<open>lhs\<close>; in this case the pattern \<open>lhs\<close> is said to match the
+  object \<open>u\<close>.  A redex matched by \<open>lhs\<close> may be
+  replaced by the corresponding instance of \<open>rhs\<close>, thus
+  \<^emph>\<open>rewriting\<close> the AST \<open>t\<close>.  Matching requires some notion
   of \<^emph>\<open>place-holders\<close> in rule patterns: @{ML Ast.Variable} serves
   this purpose.
 
-  More precisely, the matching of the object @{text "u"} against the
-  pattern @{text "lhs"} is performed as follows:
+  More precisely, the matching of the object \<open>u\<close> against the
+  pattern \<open>lhs\<close> is performed as follows:
 
-  \<^item> Objects of the form @{ML Ast.Variable}~@{text "x"} or @{ML
-  Ast.Constant}~@{text "x"} are matched by pattern @{ML
-  Ast.Constant}~@{text "x"}.  Thus all atomic ASTs in the object are
+  \<^item> Objects of the form @{ML Ast.Variable}~\<open>x\<close> or @{ML
+  Ast.Constant}~\<open>x\<close> are matched by pattern @{ML
+  Ast.Constant}~\<open>x\<close>.  Thus all atomic ASTs in the object are
   treated as (potential) constants, and a successful match makes them
   actual constants even before name space resolution (see also
   \secref{sec:ast}).
 
-  \<^item> Object @{text "u"} is matched by pattern @{ML
-  Ast.Variable}~@{text "x"}, binding @{text "x"} to @{text "u"}.
+  \<^item> Object \<open>u\<close> is matched by pattern @{ML
+  Ast.Variable}~\<open>x\<close>, binding \<open>x\<close> to \<open>u\<close>.
 
-  \<^item> Object @{ML Ast.Appl}~@{text "us"} is matched by @{ML
-  Ast.Appl}~@{text "ts"} if @{text "us"} and @{text "ts"} have the
+  \<^item> Object @{ML Ast.Appl}~\<open>us\<close> is matched by @{ML
+  Ast.Appl}~\<open>ts\<close> if \<open>us\<close> and \<open>ts\<close> have the
   same length and each corresponding subtree matches.
 
   \<^item> In every other case, matching fails.
 
 
-  A successful match yields a substitution that is applied to @{text
-  "rhs"}, generating the instance that replaces @{text "u"}.
+  A successful match yields a substitution that is applied to \<open>rhs\<close>, generating the instance that replaces \<open>u\<close>.
 
   Normalizing an AST involves repeatedly applying translation rules
   until none are applicable.  This works yoyo-like: top-down,
@@ -1329,11 +1309,11 @@ text \<open>As a term is being parsed or printed, an AST is generated as
   \end{warn}
 
   \begin{warn}
-  If @{attribute_ref eta_contract} is set to @{text "true"}, terms
-  will be @{text "\<eta>"}-contracted \<^emph>\<open>before\<close> the AST rewriter sees
+  If @{attribute_ref eta_contract} is set to \<open>true\<close>, terms
+  will be \<open>\<eta>\<close>-contracted \<^emph>\<open>before\<close> the AST rewriter sees
   them.  Thus some abstraction nodes needed for print rules to match
-  may vanish.  For example, @{text "Ball A (\<lambda>x. P x)"} would contract
-  to @{text "Ball A P"} and the standard print rule would fail to
+  may vanish.  For example, \<open>Ball A (\<lambda>x. P x)\<close> would contract
+  to \<open>Ball A P\<close> and the standard print rule would fail to
   apply.  This problem can be avoided by hand-written ML translation
   functions (see also \secref{sec:tr-funs}), which is in fact the same
   mechanism used in built-in @{keyword "binder"} declarations.
@@ -1345,15 +1325,15 @@ subsection \<open>Syntax translation functions \label{sec:tr-funs}\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def "parse_ast_translation"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "parse_translation"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "print_translation"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "typed_print_translation"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "print_ast_translation"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{ML_antiquotation_def "class_syntax"} & : & @{text "ML antiquotation"} \\
-    @{ML_antiquotation_def "type_syntax"} & : & @{text "ML antiquotation"} \\
-    @{ML_antiquotation_def "const_syntax"} & : & @{text "ML antiquotation"} \\
-    @{ML_antiquotation_def "syntax_const"} & : & @{text "ML antiquotation"} \\
+    @{command_def "parse_ast_translation"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "parse_translation"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "print_translation"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "typed_print_translation"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "print_ast_translation"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{ML_antiquotation_def "class_syntax"} & : & \<open>ML antiquotation\<close> \\
+    @{ML_antiquotation_def "type_syntax"} & : & \<open>ML antiquotation\<close> \\
+    @{ML_antiquotation_def "const_syntax"} & : & \<open>ML antiquotation\<close> \\
+    @{ML_antiquotation_def "syntax_const"} & : & \<open>ML antiquotation\<close> \\
   \end{matharray}
 
   Syntax translation functions written in ML admit almost arbitrary
@@ -1392,25 +1372,22 @@ text \<open>
   \end{tabular}}
   \<^medskip>
 
-  The argument list consists of @{text "(c, tr)"} pairs, where @{text
-  "c"} is the syntax name of the formal entity involved, and @{text
-  "tr"} a function that translates a syntax form @{text "c args"} into
-  @{text "tr ctxt args"} (depending on the context).  The Isabelle/ML
-  naming convention for parse translations is @{text "c_tr"} and for
-  print translations @{text "c_tr'"}.
+  The argument list consists of \<open>(c, tr)\<close> pairs, where \<open>c\<close> is the syntax name of the formal entity involved, and \<open>tr\<close> a function that translates a syntax form \<open>c args\<close> into
+  \<open>tr ctxt args\<close> (depending on the context).  The Isabelle/ML
+  naming convention for parse translations is \<open>c_tr\<close> and for
+  print translations \<open>c_tr'\<close>.
 
   The @{command_ref print_syntax} command displays the sets of names
-  associated with the translation functions of a theory under @{text
-  "parse_ast_translation"} etc.
+  associated with the translation functions of a theory under \<open>parse_ast_translation\<close> etc.
 
-  \<^descr> @{text "@{class_syntax c}"}, @{text "@{type_syntax c}"},
-  @{text "@{const_syntax c}"} inline the authentic syntax name of the
+  \<^descr> \<open>@{class_syntax c}\<close>, \<open>@{type_syntax c}\<close>,
+  \<open>@{const_syntax c}\<close> inline the authentic syntax name of the
   given formal entities into the ML source.  This is the
   fully-qualified logical name prefixed by a special marker to
   indicate its kind: thus different logical name spaces are properly
   distinguished within parse trees.
 
-  \<^descr> @{text "@{const_syntax c}"} inlines the name @{text "c"} of
+  \<^descr> \<open>@{const_syntax c}\<close> inlines the name \<open>c\<close> of
   the given syntax constant, having checked that it has been declared
   via some @{command syntax} commands within the theory context.  Note
   that the usual naming convention makes syntax constants start with
@@ -1424,19 +1401,19 @@ subsubsection \<open>The translation strategy\<close>
 text \<open>The different kinds of translation functions are invoked during
   the transformations between parse trees, ASTs and syntactic terms
   (cf.\ \figref{fig:parse-print}).  Whenever a combination of the form
-  @{text "c x\<^sub>1 \<dots> x\<^sub>n"} is encountered, and a translation function
-  @{text "f"} of appropriate kind is declared for @{text "c"}, the
-  result is produced by evaluation of @{text "f [x\<^sub>1, \<dots>, x\<^sub>n]"} in ML.
+  \<open>c x\<^sub>1 \<dots> x\<^sub>n\<close> is encountered, and a translation function
+  \<open>f\<close> of appropriate kind is declared for \<open>c\<close>, the
+  result is produced by evaluation of \<open>f [x\<^sub>1, \<dots>, x\<^sub>n]\<close> in ML.
 
-  For AST translations, the arguments @{text "x\<^sub>1, \<dots>, x\<^sub>n"} are ASTs.  A
-  combination has the form @{ML "Ast.Constant"}~@{text "c"} or @{ML
-  "Ast.Appl"}~@{text "["}@{ML Ast.Constant}~@{text "c, x\<^sub>1, \<dots>, x\<^sub>n]"}.
+  For AST translations, the arguments \<open>x\<^sub>1, \<dots>, x\<^sub>n\<close> are ASTs.  A
+  combination has the form @{ML "Ast.Constant"}~\<open>c\<close> or @{ML
+  "Ast.Appl"}~\<open>[\<close>@{ML Ast.Constant}~\<open>c, x\<^sub>1, \<dots>, x\<^sub>n]\<close>.
   For term translations, the arguments are terms and a combination has
-  the form @{ML Const}~@{text "(c, \<tau>)"} or @{ML Const}~@{text "(c, \<tau>)
-  $ x\<^sub>1 $ \<dots> $ x\<^sub>n"}.  Terms allow more sophisticated transformations
+  the form @{ML Const}~\<open>(c, \<tau>)\<close> or @{ML Const}~\<open>(c, \<tau>)
+  $ x\<^sub>1 $ \<dots> $ x\<^sub>n\<close>.  Terms allow more sophisticated transformations
   than ASTs do, typically involving abstractions and bound
   variables. \<^emph>\<open>Typed\<close> print translations may even peek at the type
-  @{text "\<tau>"} of the constant they are invoked on, although some
+  \<open>\<tau>\<close> of the constant they are invoked on, although some
   information might have been suppressed for term output already.
 
   Regardless of whether they act on ASTs or terms, translation
@@ -1493,7 +1470,7 @@ text \<open>The parse tree is the raw output of the parser.  It is
   source position information from input tokens.
 
   The Pure syntax provides predefined AST translations to make the
-  basic @{text "\<lambda>"}-term structure more apparent within the
+  basic \<open>\<lambda>\<close>-term structure more apparent within the
   (first-order) AST representation, and thus facilitate the use of
   @{command translations} (see also \secref{sec:syn-trans}).  This
   covers ordinary term application, type application, nested
@@ -1505,13 +1482,13 @@ text \<open>The parse tree is the raw output of the parser.  It is
   \begin{tabular}{ll}
   input source & AST \\
   \hline
-  @{text "f x y z"} & @{verbatim "(f x y z)"} \\
-  @{text "'a ty"} & @{verbatim "(ty 'a)"} \\
-  @{text "('a, 'b)ty"} & @{verbatim "(ty 'a 'b)"} \\
-  @{text "\<lambda>x y z. t"} & @{verbatim \<open>("_abs" x ("_abs" y ("_abs" z t)))\<close>} \\
-  @{text "\<lambda>x :: 'a. t"} & @{verbatim \<open>("_abs" ("_constrain" x 'a) t)\<close>} \\
-  @{text "\<lbrakk>P; Q; R\<rbrakk> \<Longrightarrow> S"} & @{verbatim \<open>("Pure.imp" P ("Pure.imp" Q ("Pure.imp" R S)))\<close>} \\
-   @{text "['a, 'b, 'c] \<Rightarrow> 'd"} & @{verbatim \<open>("fun" 'a ("fun" 'b ("fun" 'c 'd)))\<close>} \\
+  \<open>f x y z\<close> & @{verbatim "(f x y z)"} \\
+  \<open>'a ty\<close> & @{verbatim "(ty 'a)"} \\
+  \<open>('a, 'b)ty\<close> & @{verbatim "(ty 'a 'b)"} \\
+  \<open>\<lambda>x y z. t\<close> & @{verbatim \<open>("_abs" x ("_abs" y ("_abs" z t)))\<close>} \\
+  \<open>\<lambda>x :: 'a. t\<close> & @{verbatim \<open>("_abs" ("_constrain" x 'a) t)\<close>} \\
+  \<open>\<lbrakk>P; Q; R\<rbrakk> \<Longrightarrow> S\<close> & @{verbatim \<open>("Pure.imp" P ("Pure.imp" Q ("Pure.imp" R S)))\<close>} \\
+   \<open>['a, 'b, 'c] \<Rightarrow> 'd\<close> & @{verbatim \<open>("fun" 'a ("fun" 'b ("fun" 'c 'd)))\<close>} \\
   \end{tabular}
   \end{center}
 
@@ -1568,28 +1545,28 @@ text \<open>The output phase is essentially the inverse of the input
   used as templates for pretty printing, with argument slots stemming
   from nonterminals, and syntactic sugar stemming from literal tokens.
 
-  Each AST application with constant head @{text "c"} and arguments
-  @{text "t\<^sub>1"}, \dots, @{text "t\<^sub>n"} (for @{text "n = 0"} the AST is
-  just the constant @{text "c"} itself) is printed according to the
-  first grammar production of result name @{text "c"}.  The required
+  Each AST application with constant head \<open>c\<close> and arguments
+  \<open>t\<^sub>1\<close>, \dots, \<open>t\<^sub>n\<close> (for \<open>n = 0\<close> the AST is
+  just the constant \<open>c\<close> itself) is printed according to the
+  first grammar production of result name \<open>c\<close>.  The required
   syntax priority of the argument slot is given by its nonterminal
-  @{text "A\<^sup>(\<^sup>p\<^sup>)"}.  The argument @{text "t\<^sub>i"} that corresponds to the
-  position of @{text "A\<^sup>(\<^sup>p\<^sup>)"} is printed recursively, and then put in
-  parentheses \<^emph>\<open>if\<close> its priority @{text "p"} requires this.  The
+  \<open>A\<^sup>(\<^sup>p\<^sup>)\<close>.  The argument \<open>t\<^sub>i\<close> that corresponds to the
+  position of \<open>A\<^sup>(\<^sup>p\<^sup>)\<close> is printed recursively, and then put in
+  parentheses \<^emph>\<open>if\<close> its priority \<open>p\<close> requires this.  The
   resulting output is concatenated with the syntactic sugar according
   to the grammar production.
 
-  If an AST application @{text "(c x\<^sub>1 \<dots> x\<^sub>m)"} has more arguments than
-  the corresponding production, it is first split into @{text "((c x\<^sub>1
-  \<dots> x\<^sub>n) x\<^sub>n\<^sub>+\<^sub>1 \<dots> x\<^sub>m)"} and then printed recursively as above.
+  If an AST application \<open>(c x\<^sub>1 \<dots> x\<^sub>m)\<close> has more arguments than
+  the corresponding production, it is first split into \<open>((c x\<^sub>1
+  \<dots> x\<^sub>n) x\<^sub>n\<^sub>+\<^sub>1 \<dots> x\<^sub>m)\<close> and then printed recursively as above.
 
   Applications with too few arguments or with non-constant head or
   without a corresponding production are printed in prefix-form like
-  @{text "f t\<^sub>1 \<dots> t\<^sub>n"} for terms.
+  \<open>f t\<^sub>1 \<dots> t\<^sub>n\<close> for terms.
 
-  Multiple productions associated with some name @{text "c"} are tried
+  Multiple productions associated with some name \<open>c\<close> are tried
   in order of appearance within the grammar.  An occurrence of some
-  AST variable @{text "x"} is printed as @{text "x"} outright.
+  AST variable \<open>x\<close> is printed as \<open>x\<close> outright.
 
   \<^medskip>
   White space is \<^emph>\<open>not\<close> inserted automatically.  If

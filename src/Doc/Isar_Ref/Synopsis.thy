@@ -138,10 +138,9 @@ text \<open>
   misleading and hard to maintain.
 
   \<^item> Natural numbers can be used as ``meaningless'' names (more
-  appropriate than @{text "a1"}, @{text "a2"} etc.)
+  appropriate than \<open>a1\<close>, \<open>a2\<close> etc.)
 
-  \<^item> Symbolic identifiers are supported (e.g. @{text "*"}, @{text
-  "**"}, @{text "***"}).
+  \<^item> Symbolic identifiers are supported (e.g. \<open>*\<close>, \<open>**\<close>, \<open>***\<close>).
 \<close>
 
 
@@ -220,13 +219,13 @@ text \<open>
 subsection \<open>Special names in Isar proofs\<close>
 
 text \<open>
-  \<^item> term @{text "?thesis"} --- the main conclusion of the
+  \<^item> term \<open>?thesis\<close> --- the main conclusion of the
   innermost pending claim
 
-  \<^item> term @{text "\<dots>"} --- the argument of the last explicitly
+  \<^item> term \<open>\<dots>\<close> --- the argument of the last explicitly
   stated result (for infix application this is the right-hand side)
 
-  \<^item> fact @{text "this"} --- the last result produced in the text
+  \<^item> fact \<open>this\<close> --- the last result produced in the text
 \<close>
 
 notepad
@@ -242,15 +241,14 @@ begin
 end
 
 text \<open>Calculational reasoning maintains the special fact called
-  ``@{text calculation}'' in the background.  Certain language
-  elements combine primary @{text this} with secondary @{text
-  calculation}.\<close>
+  ``\<open>calculation\<close>'' in the background.  Certain language
+  elements combine primary \<open>this\<close> with secondary \<open>calculation\<close>.\<close>
 
 
 subsection \<open>Transitive chains\<close>
 
-text \<open>The Idea is to combine @{text this} and @{text calculation}
-  via typical @{text trans} rules (see also @{command
+text \<open>The Idea is to combine \<open>this\<close> and \<open>calculation\<close>
+  via typical \<open>trans\<close> rules (see also @{command
   print_trans_rules}):\<close>
 
 thm trans
@@ -268,7 +266,7 @@ begin
   finally
   have "a = d" .
 
-  txt \<open>Variant using the @{text "\<dots>"} abbreviation:\<close>
+  txt \<open>Variant using the \<open>\<dots>\<close> abbreviation:\<close>
   have "a = b" sorry
   also
   have "\<dots> = c" sorry
@@ -305,7 +303,7 @@ end
 subsubsection \<open>Notes\<close>
 
 text \<open>
-  \<^item> The notion of @{text trans} rule is very general due to the
+  \<^item> The notion of \<open>trans\<close> rule is very general due to the
   flexibility of Isabelle/Pure rule composition.
 
   \<^item> User applications may declare their own rules, with some care
@@ -315,7 +313,7 @@ text \<open>
 
 subsection \<open>Degenerate calculations and bigstep reasoning\<close>
 
-text \<open>The Idea is to append @{text this} to @{text calculation},
+text \<open>The Idea is to append \<open>this\<close> to \<open>calculation\<close>,
   without rule composition.\<close>
 
 notepad
@@ -443,7 +441,7 @@ text \<open>Idea: Pure rule statements are passed through the induction
   rule.  This achieves convenient proof patterns, thanks to some
   internal trickery in the @{method induct} method.
 
-  Important: Using compact HOL formulae with @{text "\<forall>/\<longrightarrow>"} is a
+  Important: Using compact HOL formulae with \<open>\<forall>/\<longrightarrow>\<close> is a
   well-known anti-pattern! It would produce useless formal noise.
 \<close>
 
@@ -551,7 +549,7 @@ text \<open>
   Isabelle/Pure ``theorems'' are always natural deduction rules,
   which sometimes happen to consist of a conclusion only.
 
-  The framework connectives @{text "\<And>"} and @{text "\<Longrightarrow>"} indicate the
+  The framework connectives \<open>\<And>\<close> and \<open>\<Longrightarrow>\<close> indicate the
   rule structure declaratively.  For example:\<close>
 
 thm conjI
@@ -669,8 +667,8 @@ text \<open>
   \<^item> closing of branches by @{inference assumption}
 
 
-  Both principles involve higher-order unification of @{text \<lambda>}-terms
-  modulo @{text "\<alpha>\<beta>\<eta>"}-equivalence (cf.\ Huet and Miller).
+  Both principles involve higher-order unification of \<open>\<lambda>\<close>-terms
+  modulo \<open>\<alpha>\<beta>\<eta>\<close>-equivalence (cf.\ Huet and Miller).
 \<close>
 
 notepad
@@ -885,8 +883,7 @@ end
 
 subsubsection \<open>Example: set-theoretic operators\<close>
 
-text \<open>There is nothing special about logical connectives (@{text
-  "\<and>"}, @{text "\<or>"}, @{text "\<forall>"}, @{text "\<exists>"} etc.).  Operators from
+text \<open>There is nothing special about logical connectives (\<open>\<and>\<close>, \<open>\<or>\<close>, \<open>\<forall>\<close>, \<open>\<exists>\<close> etc.).  Operators from
   set-theory or lattice-theory work analogously.  It is only a matter
   of rule declarations in the library; rules can be also specified
   explicitly.
@@ -979,7 +976,7 @@ begin
   qed
 end
 
-text \<open>Here @{text "?thesis"} is used to refer to the unchanged goal
+text \<open>Here \<open>?thesis\<close> is used to refer to the unchanged goal
   statement.\<close>
 
 

@@ -136,9 +136,9 @@ text \<open>
   This is a reference of common Isabelle settings variables. Note that
   the list is somewhat open-ended. Third-party utilities or interfaces
   may add their own selection. Variables that are special in some
-  sense are marked with @{text "\<^sup>*"}.
+  sense are marked with \<open>\<^sup>*\<close>.
 
-  \<^descr>[@{setting_def USER_HOME}@{text "\<^sup>*"}] Is the cross-platform
+  \<^descr>[@{setting_def USER_HOME}\<open>\<^sup>*\<close>] Is the cross-platform
   user home directory.  On Unix systems this is usually the same as
   @{setting HOME}, but on Windows it is the regular home directory of
   the user, not the one of within the Cygwin root
@@ -146,7 +146,7 @@ text \<open>
   its HOME should point to the @{file_unchecked "/home"} directory tree or the
   Windows user home.}
 
-  \<^descr>[@{setting_def ISABELLE_HOME}@{text "\<^sup>*"}] is the location of the
+  \<^descr>[@{setting_def ISABELLE_HOME}\<open>\<^sup>*\<close>] is the location of the
   top-level Isabelle distribution directory. This is automatically
   determined from the Isabelle executable that has been invoked.  Do
   not attempt to set @{setting ISABELLE_HOME} yourself from the shell!
@@ -160,21 +160,21 @@ text \<open>
   defaults may be overridden by a private @{verbatim
   "$ISABELLE_HOME_USER/etc/settings"}.
 
-  \<^descr>[@{setting_def ISABELLE_PLATFORM_FAMILY}@{text "\<^sup>*"}] is
+  \<^descr>[@{setting_def ISABELLE_PLATFORM_FAMILY}\<open>\<^sup>*\<close>] is
   automatically set to the general platform family: @{verbatim linux},
   @{verbatim macos}, @{verbatim windows}.  Note that
   platform-dependent tools usually need to refer to the more specific
   identification according to @{setting ISABELLE_PLATFORM}, @{setting
   ISABELLE_PLATFORM32}, @{setting ISABELLE_PLATFORM64}.
 
-  \<^descr>[@{setting_def ISABELLE_PLATFORM}@{text "\<^sup>*"}] is automatically
+  \<^descr>[@{setting_def ISABELLE_PLATFORM}\<open>\<^sup>*\<close>] is automatically
   set to a symbolic identifier for the underlying hardware and
   operating system.  The Isabelle platform identification always
   refers to the 32 bit variant, even this is a 64 bit machine.  Note
   that the ML or Java runtime may have a different idea, depending on
   which binaries are actually run.
 
-  \<^descr>[@{setting_def ISABELLE_PLATFORM64}@{text "\<^sup>*"}] is similar to
+  \<^descr>[@{setting_def ISABELLE_PLATFORM64}\<open>\<^sup>*\<close>] is similar to
   @{setting ISABELLE_PLATFORM} but refers to the proper 64 bit variant
   on a platform that supports this; the value is empty for 32 bit.
   Note that the following bash expression (including the quotes)
@@ -182,20 +182,20 @@ text \<open>
 
   @{verbatim [display] \<open>"${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"\<close>}
 
-  \<^descr>[@{setting_def ISABELLE_PROCESS}@{text "\<^sup>*"}, @{setting
-  ISABELLE_TOOL}@{text "\<^sup>*"}] are automatically set to the full path
+  \<^descr>[@{setting_def ISABELLE_PROCESS}\<open>\<^sup>*\<close>, @{setting
+  ISABELLE_TOOL}\<open>\<^sup>*\<close>] are automatically set to the full path
   names of the @{executable "isabelle_process"} and @{executable
   isabelle} executables, respectively.  Thus other tools and scripts
   need not assume that the @{file "$ISABELLE_HOME/bin"} directory is
   on the current search path of the shell.
   
-  \<^descr>[@{setting_def ISABELLE_IDENTIFIER}@{text "\<^sup>*"}] refers
+  \<^descr>[@{setting_def ISABELLE_IDENTIFIER}\<open>\<^sup>*\<close>] refers
   to the name of this Isabelle distribution, e.g.\ ``@{verbatim
   Isabelle2012}''.
 
   \<^descr>[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME},
   @{setting_def ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def
-  ML_IDENTIFIER}@{text "\<^sup>*"}] specify the underlying ML system
+  ML_IDENTIFIER}\<open>\<^sup>*\<close>] specify the underlying ML system
   to be used for Isabelle.  There is only a fixed set of admissable
   @{setting ML_SYSTEM} names (see the @{file
   "$ISABELLE_HOME/etc/settings"} file of the distribution).
@@ -208,7 +208,7 @@ text \<open>
   automatically obtained by composing the values of @{setting
   ML_SYSTEM}, @{setting ML_PLATFORM} and the Isabelle version values.
 
-  \<^descr>[@{setting_def ML_SYSTEM_POLYML}@{text "\<^sup>*"}] is @{verbatim true}
+  \<^descr>[@{setting_def ML_SYSTEM_POLYML}\<open>\<^sup>*\<close>] is @{verbatim true}
   for @{setting ML_SYSTEM} values derived from Poly/ML, as opposed to
   SML/NJ where it is empty.  This is particularly useful with the
   build option @{system_option condition}
@@ -227,7 +227,7 @@ text \<open>
   looking up heaps files, the value of @{setting ML_IDENTIFIER} is
   appended to each component internally.
   
-  \<^descr>[@{setting_def ISABELLE_OUTPUT}@{text "\<^sup>*"}] is a
+  \<^descr>[@{setting_def ISABELLE_OUTPUT}\<open>\<^sup>*\<close>] is a
   directory where output heap files should be stored by default. The
   ML system and Isabelle version identifier is appended here, too.
   
@@ -261,7 +261,7 @@ text \<open>
   \<^descr>[@{setting_def DVI_VIEWER}] specifies the program to be used
   for displaying @{verbatim dvi} files.
   
-  \<^descr>[@{setting_def ISABELLE_TMP_PREFIX}@{text "\<^sup>*"}] is the
+  \<^descr>[@{setting_def ISABELLE_TMP_PREFIX}\<open>\<^sup>*\<close>] is the
   prefix from which any running @{executable "isabelle_process"}
   derives an individual directory for temporary files.
 \<close>

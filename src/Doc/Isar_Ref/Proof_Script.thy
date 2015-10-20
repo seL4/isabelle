@@ -22,13 +22,13 @@ section \<open>Commands for step-wise refinement \label{sec:tactic-commands}\<cl
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def "supply"}@{text "\<^sup>*"} & : & @{text "proof(prove) \<rightarrow> proof(prove)"} \\
-    @{command_def "apply"}@{text "\<^sup>*"} & : & @{text "proof(prove) \<rightarrow> proof(prove)"} \\
-    @{command_def "apply_end"}@{text "\<^sup>*"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
-    @{command_def "done"}@{text "\<^sup>*"} & : & @{text "proof(prove) \<rightarrow> proof(state) | local_theory | theory"} \\
-    @{command_def "defer"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
-    @{command_def "prefer"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
-    @{command_def "back"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
+    @{command_def "supply"}\<open>\<^sup>*\<close> & : & \<open>proof(prove) \<rightarrow> proof(prove)\<close> \\
+    @{command_def "apply"}\<open>\<^sup>*\<close> & : & \<open>proof(prove) \<rightarrow> proof(prove)\<close> \\
+    @{command_def "apply_end"}\<open>\<^sup>*\<close> & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
+    @{command_def "done"}\<open>\<^sup>*\<close> & : & \<open>proof(prove) \<rightarrow> proof(state) | local_theory | theory\<close> \\
+    @{command_def "defer"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow> proof\<close> \\
+    @{command_def "prefer"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow> proof\<close> \\
+    @{command_def "back"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow> proof\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -45,22 +45,20 @@ text \<open>
   refinement: it is similar to @{command "note"}, but it operates in
   backwards mode and does not have any impact on chained facts.
 
-  \<^descr> @{command "apply"}~@{text m} applies proof method @{text m} in
-  initial position, but unlike @{command "proof"} it retains ``@{text
-  "proof(prove)"}'' mode.  Thus consecutive method applications may be
+  \<^descr> @{command "apply"}~\<open>m\<close> applies proof method \<open>m\<close> in
+  initial position, but unlike @{command "proof"} it retains ``\<open>proof(prove)\<close>'' mode.  Thus consecutive method applications may be
   given just as in tactic scripts.
 
-  Facts are passed to @{text m} as indicated by the goal's
+  Facts are passed to \<open>m\<close> as indicated by the goal's
   forward-chain mode, and are \<^emph>\<open>consumed\<close> afterwards.  Thus any
   further @{command "apply"} command would always work in a purely
   backward manner.
 
-  \<^descr> @{command "apply_end"}~@{text "m"} applies proof method @{text
-  m} as if in terminal position.  Basically, this simulates a
+  \<^descr> @{command "apply_end"}~\<open>m\<close> applies proof method \<open>m\<close> as if in terminal position.  Basically, this simulates a
   multi-step tactic script for @{command "qed"}, but may be given
   anywhere within the proof body.
 
-  No facts are passed to @{text m} here.  Furthermore, the static
+  No facts are passed to \<open>m\<close> here.  Furthermore, the static
   context is that of the enclosing goal (as for actual @{command
   "qed"}).  Thus the proof method may not refer to any assumptions
   introduced in the current body, for example.
@@ -70,10 +68,10 @@ text \<open>
   structured proof commands (e.g.\ ``@{command "."}'' or @{command
   "sorry"}) may be used to conclude proof scripts as well.
 
-  \<^descr> @{command "defer"}~@{text n} and @{command "prefer"}~@{text n}
+  \<^descr> @{command "defer"}~\<open>n\<close> and @{command "prefer"}~\<open>n\<close>
   shuffle the list of pending goals: @{command "defer"} puts off
-  sub-goal @{text n} to the end of the list (@{text "n = 1"} by
-  default), while @{command "prefer"} brings sub-goal @{text n} to the
+  sub-goal \<open>n\<close> to the end of the list (\<open>n = 1\<close> by
+  default), while @{command "prefer"} brings sub-goal \<open>n\<close> to the
   front.
 
   \<^descr> @{command "back"} does back-tracking over the result sequence
@@ -88,7 +86,7 @@ section \<open>Explicit subgoal structure\<close>
 
 text \<open>
   \begin{matharray}{rcl}
-    @{command_def "subgoal"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
+    @{command_def "subgoal"}\<open>\<^sup>*\<close> & : & \<open>proof \<rightarrow> proof\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -110,20 +108,20 @@ text \<open>
   is not given explicitly.
 
   Goal parameters may be specified separately, in order to allow referring
-  to them in the proof body: ``@{command subgoal}~@{keyword "for"}~@{text "x
-  y z"}'' names a \<^emph>\<open>prefix\<close>, and ``@{command subgoal}~@{keyword
-  "for"}~@{text "\<dots> x y z"}'' names a \<^emph>\<open>suffix\<close> of goal parameters. The
+  to them in the proof body: ``@{command subgoal}~@{keyword "for"}~\<open>x
+  y z\<close>'' names a \<^emph>\<open>prefix\<close>, and ``@{command subgoal}~@{keyword
+  "for"}~\<open>\<dots> x y z\<close>'' names a \<^emph>\<open>suffix\<close> of goal parameters. The
   latter uses a literal @{verbatim "\<dots>"} symbol as notation. Parameter
   positions may be skipped via dummies (underscore). Unspecified names
   remain internal, and thus inaccessible in the proof text.
 
-  ``@{command subgoal}~@{keyword "premises"}~@{text prems}'' indicates that
+  ``@{command subgoal}~@{keyword "premises"}~\<open>prems\<close>'' indicates that
   goal premises should be turned into assumptions of the context (otherwise
   the remaining conclusion is a Pure implication). The fact name and
-  attributes are optional; the particular name ``@{text prems}'' is a common
+  attributes are optional; the particular name ``\<open>prems\<close>'' is a common
   convention for the premises of an arbitrary goal context in proof scripts.
 
-  ``@{command subgoal}~@{text result}'' indicates a fact name for the result
+  ``@{command subgoal}~\<open>result\<close>'' indicates a fact name for the result
   of a proven subgoal. Thus it may be re-used in further reasoning, similar
   to the result of @{command show} in structured Isar proofs.
 
@@ -202,24 +200,24 @@ text \<open>
   to be solved by unification with certain parts of the subgoal.
 
   Note that the tactic emulation proof methods in Isabelle/Isar are
-  consistently named @{text foo_tac}.  Note also that variable names
+  consistently named \<open>foo_tac\<close>.  Note also that variable names
   occurring on left hand sides of instantiations must be preceded by a
   question mark if they coincide with a keyword or contain dots.  This
   is consistent with the attribute @{attribute "where"} (see
   \secref{sec:pure-meth-att}).
 
   \begin{matharray}{rcl}
-    @{method_def rule_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def erule_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def drule_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def frule_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def cut_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def thin_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def subgoal_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def rename_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def rotate_tac}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def tactic}@{text "\<^sup>*"} & : & @{text method} \\
-    @{method_def raw_tactic}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def rule_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def erule_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def drule_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def frule_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def cut_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def thin_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def subgoal_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def rename_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def rotate_tac}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def tactic}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
+    @{method_def raw_tactic}\<open>\<^sup>*\<close> & : & \<open>method\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -253,27 +251,27 @@ text \<open>
   in contrast to the regular method @{method insert} which inserts
   closed rule statements.
 
-  \<^descr> @{method thin_tac}~@{text \<phi>} deletes the specified premise
-  from a subgoal.  Note that @{text \<phi>} may contain schematic
+  \<^descr> @{method thin_tac}~\<open>\<phi>\<close> deletes the specified premise
+  from a subgoal.  Note that \<open>\<phi>\<close> may contain schematic
   variables, to abbreviate the intended proposition; the first
   matching subgoal premise will be deleted.  Removing useless premises
   from a subgoal increases its readability and can make search tactics
   run faster.
 
-  \<^descr> @{method subgoal_tac}~@{text "\<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"} adds the propositions
-  @{text "\<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"} as local premises to a subgoal, and poses the same
+  \<^descr> @{method subgoal_tac}~\<open>\<phi>\<^sub>1 \<dots> \<phi>\<^sub>n\<close> adds the propositions
+  \<open>\<phi>\<^sub>1 \<dots> \<phi>\<^sub>n\<close> as local premises to a subgoal, and poses the same
   as new subgoals (in the original context).
 
-  \<^descr> @{method rename_tac}~@{text "x\<^sub>1 \<dots> x\<^sub>n"} renames parameters of a
-  goal according to the list @{text "x\<^sub>1, \<dots>, x\<^sub>n"}, which refers to the
+  \<^descr> @{method rename_tac}~\<open>x\<^sub>1 \<dots> x\<^sub>n\<close> renames parameters of a
+  goal according to the list \<open>x\<^sub>1, \<dots>, x\<^sub>n\<close>, which refers to the
   \<^emph>\<open>suffix\<close> of variables.
 
-  \<^descr> @{method rotate_tac}~@{text n} rotates the premises of a
-  subgoal by @{text n} positions: from right to left if @{text n} is
-  positive, and from left to right if @{text n} is negative; the
+  \<^descr> @{method rotate_tac}~\<open>n\<close> rotates the premises of a
+  subgoal by \<open>n\<close> positions: from right to left if \<open>n\<close> is
+  positive, and from left to right if \<open>n\<close> is negative; the
   default value is 1.
 
-  \<^descr> @{method tactic}~@{text "text"} produces a proof method from
+  \<^descr> @{method tactic}~\<open>text\<close> produces a proof method from
   any ML text of type @{ML_type tactic}.  Apart from the usual ML
   environment and the current proof context, the ML code may refer to
   the locally bound values @{ML_text facts}, which indicates any

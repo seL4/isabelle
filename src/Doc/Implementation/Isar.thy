@@ -78,7 +78,7 @@ text %mlref \<open>
   \<^descr> Type @{ML_type Proof.state} represents Isar proof states.
   This is a block-structured configuration with proof context,
   linguistic mode, and optional goal.  The latter consists of goal
-  context, goal facts (``@{text "using"}''), and tactical goal state
+  context, goal facts (``\<open>using\<close>''), and tactical goal state
   (see \secref{sec:tactical-goals}).
 
   The general idea is that the facts shall contribute to the
@@ -87,39 +87,37 @@ text %mlref \<open>
 
   \<^descr> @{ML Proof.assert_forward}, @{ML Proof.assert_chain}, @{ML
   Proof.assert_backward} are partial identity functions that fail
-  unless a certain linguistic mode is active, namely ``@{text
-  "proof(state)"}'', ``@{text "proof(chain)"}'', ``@{text
-  "proof(prove)"}'', respectively (using the terminology of
+  unless a certain linguistic mode is active, namely ``\<open>proof(state)\<close>'', ``\<open>proof(chain)\<close>'', ``\<open>proof(prove)\<close>'', respectively (using the terminology of
   @{cite "isabelle-isar-ref"}).
 
   It is advisable study the implementations of existing proof commands
   for suitable modes to be asserted.
 
-  \<^descr> @{ML Proof.simple_goal}~@{text "state"} returns the structured
+  \<^descr> @{ML Proof.simple_goal}~\<open>state\<close> returns the structured
   Isar goal (if available) in the form seen by ``simple'' methods
   (like @{method simp} or @{method blast}).  The Isar goal facts are
   already inserted as premises into the subgoals, which are presented
   individually as in @{ML Proof.goal}.
 
-  \<^descr> @{ML Proof.goal}~@{text "state"} returns the structured Isar
+  \<^descr> @{ML Proof.goal}~\<open>state\<close> returns the structured Isar
   goal (if available) in the form seen by regular methods (like
   @{method rule}).  The auxiliary internal encoding of Pure
   conjunctions is split into individual subgoals as usual.
 
-  \<^descr> @{ML Proof.raw_goal}~@{text "state"} returns the structured
+  \<^descr> @{ML Proof.raw_goal}~\<open>state\<close> returns the structured
   Isar goal (if available) in the raw internal form seen by ``raw''
   methods (like @{method induct}).  This form is rarely appropriate
   for diagnostic tools; @{ML Proof.simple_goal} or @{ML Proof.goal}
   should be used in most situations.
 
-  \<^descr> @{ML Proof.theorem}~@{text "before_qed after_qed statement ctxt"}
+  \<^descr> @{ML Proof.theorem}~\<open>before_qed after_qed statement ctxt\<close>
   initializes a toplevel Isar proof state within a given context.
 
-  The optional @{text "before_qed"} method is applied at the end of
+  The optional \<open>before_qed\<close> method is applied at the end of
   the proof, just before extracting the result (this feature is rarely
   used).
 
-  The @{text "after_qed"} continuation receives the extracted result
+  The \<open>after_qed\<close> continuation receives the extracted result
   in order to apply it to the final context in a suitable way (e.g.\
   storing named facts).  Note that at this generic level the target
   context is specified as @{ML_type Proof.context}, but the usual
@@ -127,20 +125,20 @@ text %mlref \<open>
   @{ML_type local_theory} here (\chref{ch:local-theory}).  This
   affects the way how results are stored.
 
-  The @{text "statement"} is given as a nested list of terms, each
+  The \<open>statement\<close> is given as a nested list of terms, each
   associated with optional @{keyword "is"} patterns as usual in the
   Isar source language.  The original nested list structure over terms
-  is turned into one over theorems when @{text "after_qed"} is
+  is turned into one over theorems when \<open>after_qed\<close> is
   invoked.
 \<close>
 
 
 text %mlantiq \<open>
   \begin{matharray}{rcl}
-  @{ML_antiquotation_def "Isar.goal"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "Isar.goal"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
-  \<^descr> @{text "@{Isar.goal}"} refers to the regular goal state (if
+  \<^descr> \<open>@{Isar.goal}\<close> refers to the regular goal state (if
   available) of the current proof state managed by the Isar toplevel
   --- as abstract value.
 
@@ -165,8 +163,8 @@ text \<open>Here we see 3 individual subgoals in the same way as regular
 
 section \<open>Proof methods\<close>
 
-text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<^sup>* \<rightarrow> goal
-  \<rightarrow> (cases \<times> goal)\<^sup>*\<^sup>*"} that operates on the full Isar goal
+text \<open>A \<open>method\<close> is a function \<open>context \<rightarrow> thm\<^sup>* \<rightarrow> goal
+  \<rightarrow> (cases \<times> goal)\<^sup>*\<^sup>*\<close> that operates on the full Isar goal
   configuration with context, goal facts, and tactical goal state and
   enumerates possible follow-up goal states, with the potential
   addition of named extensions of the proof context (\<^emph>\<open>cases\<close>).
@@ -186,9 +184,9 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
 
   \<^item> A non-trivial method always needs to make progress: an
   identical follow-up goal state has to be avoided.\footnote{This
-  enables the user to write method expressions like @{text "meth\<^sup>+"}
+  enables the user to write method expressions like \<open>meth\<^sup>+\<close>
   without looping, while the trivial do-nothing case can be recovered
-  via @{text "meth\<^sup>?"}.}
+  via \<open>meth\<^sup>?\<close>.}
 
   Exception: trivial stuttering steps, such as ``@{method -}'' or
   @{method succeed}.
@@ -211,19 +209,17 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
 
   \<^medskip>
   \begin{tabular}{l}
-  @{command from}~@{text "facts\<^sub>1"}~@{command have}~@{text "props"}~@{command using}~@{text "facts\<^sub>2"} \\
-  @{command proof}~@{text "(initial_method)"} \\
-  \quad@{text "body"} \\
-  @{command qed}~@{text "(terminal_method)"} \\
+  @{command from}~\<open>facts\<^sub>1\<close>~@{command have}~\<open>props\<close>~@{command using}~\<open>facts\<^sub>2\<close> \\
+  @{command proof}~\<open>(initial_method)\<close> \\
+  \quad\<open>body\<close> \\
+  @{command qed}~\<open>(terminal_method)\<close> \\
   \end{tabular}
   \<^medskip>
 
-  The goal configuration consists of @{text "facts\<^sub>1"} and
-  @{text "facts\<^sub>2"} appended in that order, and various @{text
-  "props"} being claimed.  The @{text "initial_method"} is invoked
+  The goal configuration consists of \<open>facts\<^sub>1\<close> and
+  \<open>facts\<^sub>2\<close> appended in that order, and various \<open>props\<close> being claimed.  The \<open>initial_method\<close> is invoked
   with facts and goals together and refines the problem to something
-  that is handled recursively in the proof @{text "body"}.  The @{text
-  "terminal_method"} has another chance to finish any remaining
+  that is handled recursively in the proof \<open>body\<close>.  The \<open>terminal_method\<close> has another chance to finish any remaining
   subgoals, but it does not see the facts of the initial step.
 
   \<^medskip>
@@ -231,20 +227,18 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
 
   \<^medskip>
   \begin{tabular}{l}
-  @{command have}~@{text "props"} \\
-  \quad@{command using}~@{text "facts\<^sub>1"}~@{command apply}~@{text "method\<^sub>1"} \\
-  \quad@{command apply}~@{text "method\<^sub>2"} \\
-  \quad@{command using}~@{text "facts\<^sub>3"}~@{command apply}~@{text "method\<^sub>3"} \\
+  @{command have}~\<open>props\<close> \\
+  \quad@{command using}~\<open>facts\<^sub>1\<close>~@{command apply}~\<open>method\<^sub>1\<close> \\
+  \quad@{command apply}~\<open>method\<^sub>2\<close> \\
+  \quad@{command using}~\<open>facts\<^sub>3\<close>~@{command apply}~\<open>method\<^sub>3\<close> \\
   \quad@{command done} \\
   \end{tabular}
   \<^medskip>
 
-  The @{text "method\<^sub>1"} operates on the original claim while
-  using @{text "facts\<^sub>1"}.  Since the @{command apply} command
-  structurally resets the facts, the @{text "method\<^sub>2"} will
-  operate on the remaining goal state without facts.  The @{text
-  "method\<^sub>3"} will see again a collection of @{text
-  "facts\<^sub>3"} that has been inserted into the script explicitly.
+  The \<open>method\<^sub>1\<close> operates on the original claim while
+  using \<open>facts\<^sub>1\<close>.  Since the @{command apply} command
+  structurally resets the facts, the \<open>method\<^sub>2\<close> will
+  operate on the remaining goal state without facts.  The \<open>method\<^sub>3\<close> will see again a collection of \<open>facts\<^sub>3\<close> that has been inserted into the script explicitly.
 
   \<^medskip>
   Empirically, any Isar proof method can be categorized as
@@ -272,7 +266,7 @@ text \<open>A @{text "method"} is a function @{text "context \<rightarrow> thm\<
   \<^enum> \<^emph>\<open>Old-style tactic emulation\<close> with detailed numeric goal
   addressing and explicit references to entities of the internal goal
   state (which are otherwise invisible from proper Isar proof text).
-  The naming convention @{text "foo_tac"} makes this special
+  The naming convention \<open>foo_tac\<close> makes this special
   non-standard status clear.
 
   Example: @{method "rule_tac"}.
@@ -303,30 +297,27 @@ text %mlref \<open>
   \<^descr> Type @{ML_type Proof.method} represents proof methods as
   abstract type.
 
-  \<^descr> @{ML METHOD_CASES}~@{text "(fn facts => cases_tactic)"} wraps
-  @{text cases_tactic} depending on goal facts as proof method with
+  \<^descr> @{ML METHOD_CASES}~\<open>(fn facts => cases_tactic)\<close> wraps
+  \<open>cases_tactic\<close> depending on goal facts as proof method with
   cases; the goal context is passed via method syntax.
 
-  \<^descr> @{ML METHOD}~@{text "(fn facts => tactic)"} wraps @{text
-  tactic} depending on goal facts as regular proof method; the goal
+  \<^descr> @{ML METHOD}~\<open>(fn facts => tactic)\<close> wraps \<open>tactic\<close> depending on goal facts as regular proof method; the goal
   context is passed via method syntax.
 
-  \<^descr> @{ML SIMPLE_METHOD}~@{text "tactic"} wraps a tactic that
+  \<^descr> @{ML SIMPLE_METHOD}~\<open>tactic\<close> wraps a tactic that
   addresses all subgoals uniformly as simple proof method.  Goal facts
-  are already inserted into all subgoals before @{text "tactic"} is
+  are already inserted into all subgoals before \<open>tactic\<close> is
   applied.
 
-  \<^descr> @{ML SIMPLE_METHOD'}~@{text "tactic"} wraps a tactic that
+  \<^descr> @{ML SIMPLE_METHOD'}~\<open>tactic\<close> wraps a tactic that
   addresses a specific subgoal as simple proof method that operates on
-  subgoal 1.  Goal facts are inserted into the subgoal then the @{text
-  "tactic"} is applied.
+  subgoal 1.  Goal facts are inserted into the subgoal then the \<open>tactic\<close> is applied.
 
-  \<^descr> @{ML Method.insert_tac}~@{text "facts i"} inserts @{text
-  "facts"} into subgoal @{text "i"}.  This is convenient to reproduce
+  \<^descr> @{ML Method.insert_tac}~\<open>facts i\<close> inserts \<open>facts\<close> into subgoal \<open>i\<close>.  This is convenient to reproduce
   part of the @{ML SIMPLE_METHOD} or @{ML SIMPLE_METHOD'} wrapping
   within regular @{ML METHOD}, for example.
 
-  \<^descr> @{ML Method.setup}~@{text "name parser description"} provides
+  \<^descr> @{ML Method.setup}~\<open>name parser description\<close> provides
   the functionality of the Isar command @{command method_setup} as ML
   function.
 \<close>
@@ -470,8 +461,8 @@ text \<open>
   method arguments obtained via concrete syntax or the context does
   not meet the requirement of ``strong emphasis on facts'' of regular
   proof methods, because rewrite rules as used above can be easily
-  ignored.  A proof text ``@{command using}~@{text "foo"}~@{command
-  "by"}~@{text "my_simp"}'' where @{text "foo"} is not used would
+  ignored.  A proof text ``@{command using}~\<open>foo\<close>~@{command
+  "by"}~\<open>my_simp\<close>'' where \<open>foo\<close> is not used would
   deceive the reader.
 
   \<^medskip>
@@ -495,12 +486,12 @@ text \<open>
 
 section \<open>Attributes \label{sec:attributes}\<close>
 
-text \<open>An \<^emph>\<open>attribute\<close> is a function @{text "context \<times> thm \<rightarrow>
-  context \<times> thm"}, which means both a (generic) context and a theorem
+text \<open>An \<^emph>\<open>attribute\<close> is a function \<open>context \<times> thm \<rightarrow>
+  context \<times> thm\<close>, which means both a (generic) context and a theorem
   can be modified simultaneously.  In practice this mixed form is very
   rare, instead attributes are presented either as \<^emph>\<open>declaration
-  attribute:\<close> @{text "thm \<rightarrow> context \<rightarrow> context"} or \<^emph>\<open>rule
-  attribute:\<close> @{text "context \<rightarrow> thm \<rightarrow> thm"}.
+  attribute:\<close> \<open>thm \<rightarrow> context \<rightarrow> context\<close> or \<^emph>\<open>rule
+  attribute:\<close> \<open>context \<rightarrow> thm \<rightarrow> thm\<close>.
 
   Attributes can have additional arguments via concrete syntax.  There
   is a collection of context-sensitive parsers for various logical
@@ -527,28 +518,28 @@ text %mlref \<open>
   \<^descr> Type @{ML_type attribute} represents attributes as concrete
   type alias.
 
-  \<^descr> @{ML Thm.rule_attribute}~@{text "(fn context => rule)"} wraps
+  \<^descr> @{ML Thm.rule_attribute}~\<open>(fn context => rule)\<close> wraps
   a context-dependent rule (mapping on @{ML_type thm}) as attribute.
 
-  \<^descr> @{ML Thm.declaration_attribute}~@{text "(fn thm => decl)"}
+  \<^descr> @{ML Thm.declaration_attribute}~\<open>(fn thm => decl)\<close>
   wraps a theorem-dependent declaration (mapping on @{ML_type
   Context.generic}) as attribute.
 
-  \<^descr> @{ML Attrib.setup}~@{text "name parser description"} provides
+  \<^descr> @{ML Attrib.setup}~\<open>name parser description\<close> provides
   the functionality of the Isar command @{command attribute_setup} as
   ML function.
 \<close>
 
 text %mlantiq \<open>
   \begin{matharray}{rcl}
-  @{ML_antiquotation_def attributes} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def attributes} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   @{rail \<open>
   @@{ML_antiquotation attributes} attributes
   \<close>}
 
-  \<^descr> @{text "@{attributes [\<dots>]}"} embeds attribute source
+  \<^descr> \<open>@{attributes [\<dots>]}\<close> embeds attribute source
   representation into the ML text, which is particularly useful with
   declarations like @{ML Local_Theory.note}.  Attribute names are
   internalized at compile time, but the source is unevaluated.  This

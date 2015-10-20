@@ -7,8 +7,8 @@ begin
 
 text \<open>
   In order to commence a new object-logic within
-  Isabelle/Pure we introduce abstract syntactic categories @{text "i"}
-  for individuals and @{text "o"} for object-propositions.  The latter
+  Isabelle/Pure we introduce abstract syntactic categories \<open>i\<close>
+  for individuals and \<open>o\<close> for object-propositions.  The latter
   is embedded into the language of Pure propositions by means of a
   separate judgment.
 \<close>
@@ -126,8 +126,7 @@ qed
 text \<open>
   Reasoning from basic axioms is often tedious.  Our proofs
   work by producing various instances of the given rules (potentially
-  the symmetric form) using the pattern ``@{command have}~@{text
-  eq}~@{command "by"}~@{text "(rule r)"}'' and composing the chain of
+  the symmetric form) using the pattern ``@{command have}~\<open>eq\<close>~@{command "by"}~\<open>(rule r)\<close>'' and composing the chain of
   results via @{command also}/@{command finally}.  These steps may
   involve any of the transitivity rules declared in
   \secref{sec:framework-ex-equal}, namely @{thm trans} in combining
@@ -162,8 +161,7 @@ text \<open>
   realistic object-logic would include proper setup for the Simplifier
   (\secref{sec:simplifier}), the main automated tool for equational
   reasoning in Isabelle.  Then ``@{command unfolding}~@{thm
-  left_inv}~@{command ".."}'' would become ``@{command "by"}~@{text
-  "(simp only: left_inv)"}'' etc.
+  left_inv}~@{command ".."}'' would become ``@{command "by"}~\<open>(simp only: left_inv)\<close>'' etc.
 \<close>
 
 end
@@ -228,7 +226,7 @@ qed
 
 text \<open>
   Note that the analogous elimination rule for disjunction
-  ``@{text "\<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B"}'' coincides with
+  ``\<open>\<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B\<close>'' coincides with
   the original axiomatization of @{thm disjE}.
 
   \<^medskip>
@@ -320,9 +318,9 @@ text \<open>
   unchanged.  Note that @{prop "(\<not> C \<Longrightarrow> C) \<Longrightarrow> C"} fits again into our
   format for eliminations, despite the additional twist that the
   context refers to the main conclusion.  So we may write @{thm
-  classical} as the Isar statement ``@{text "\<OBTAINS> \<not> thesis"}''.
+  classical} as the Isar statement ``\<open>\<OBTAINS> \<not> thesis\<close>''.
   This also explains nicely how classical reasoning really works:
-  whatever the main @{text thesis} might be, we may always assume its
+  whatever the main \<open>thesis\<close> might be, we may always assume its
   negation!
 \<close>
 
@@ -335,9 +333,9 @@ text \<open>
   Representing quantifiers is easy, thanks to the higher-order nature
   of the underlying framework.  According to the well-known technique
   introduced by Church @{cite "church40"}, quantifiers are operators on
-  predicates, which are syntactically represented as @{text "\<lambda>"}-terms
-  of type @{typ "i \<Rightarrow> o"}.  Binder notation turns @{text "All (\<lambda>x. B
-  x)"} into @{text "\<forall>x. B x"} etc.
+  predicates, which are syntactically represented as \<open>\<lambda>\<close>-terms
+  of type @{typ "i \<Rightarrow> o"}.  Binder notation turns \<open>All (\<lambda>x. B
+  x)\<close> into \<open>\<forall>x. B x\<close> etc.
 \<close>
 
 axiomatization
@@ -351,8 +349,7 @@ axiomatization
   exE [elim]: "(\<exists>x. B x) \<Longrightarrow> (\<And>x. B x \<Longrightarrow> C) \<Longrightarrow> C"
 
 text \<open>
-  The statement of @{thm exE} corresponds to ``@{text
-  "\<ASSUMES> \<exists>x. B x \<OBTAINS> x \<WHERE> B x"}'' in Isar.  In the
+  The statement of @{thm exE} corresponds to ``\<open>\<ASSUMES> \<exists>x. B x \<OBTAINS> x \<WHERE> B x\<close>'' in Isar.  In the
   subsequent example we illustrate quantifier reasoning involving all
   four rules:
 \<close>
@@ -360,10 +357,10 @@ text \<open>
 theorem
   assumes "\<exists>x. \<forall>y. R x y"
   shows "\<forall>y. \<exists>x. R x y"
-proof    -- \<open>@{text "\<forall>"} introduction\<close>
-  obtain x where "\<forall>y. R x y" using \<open>\<exists>x. \<forall>y. R x y\<close> ..    -- \<open>@{text "\<exists>"} elimination\<close>
-  fix y have "R x y" using \<open>\<forall>y. R x y\<close> ..    -- \<open>@{text "\<forall>"} destruction\<close>
-  then show "\<exists>x. R x y" ..    -- \<open>@{text "\<exists>"} introduction\<close>
+proof    -- \<open>\<open>\<forall>\<close> introduction\<close>
+  obtain x where "\<forall>y. R x y" using \<open>\<exists>x. \<forall>y. R x y\<close> ..    -- \<open>\<open>\<exists>\<close> elimination\<close>
+  fix y have "R x y" using \<open>\<forall>y. R x y\<close> ..    -- \<open>\<open>\<forall>\<close> destruction\<close>
+  then show "\<exists>x. R x y" ..    -- \<open>\<open>\<exists>\<close> introduction\<close>
 qed
 
 
@@ -377,27 +374,27 @@ text \<open>
 
   \<^medskip>
   \begin{tabular}{l}
-  @{text "impI: \<ASSUMES> A \<Longrightarrow> B \<SHOWS> A \<longrightarrow> B"} \\
-  @{text "impD: \<ASSUMES> A \<longrightarrow> B \<AND> A \<SHOWS> B"} \\[1ex]
+  \<open>impI: \<ASSUMES> A \<Longrightarrow> B \<SHOWS> A \<longrightarrow> B\<close> \\
+  \<open>impD: \<ASSUMES> A \<longrightarrow> B \<AND> A \<SHOWS> B\<close> \\[1ex]
 
-  @{text "disjI\<^sub>1: \<ASSUMES> A \<SHOWS> A \<or> B"} \\
-  @{text "disjI\<^sub>2: \<ASSUMES> B \<SHOWS> A \<or> B"} \\
-  @{text "disjE: \<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B"} \\[1ex]
+  \<open>disjI\<^sub>1: \<ASSUMES> A \<SHOWS> A \<or> B\<close> \\
+  \<open>disjI\<^sub>2: \<ASSUMES> B \<SHOWS> A \<or> B\<close> \\
+  \<open>disjE: \<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B\<close> \\[1ex]
 
-  @{text "conjI: \<ASSUMES> A \<AND> B \<SHOWS> A \<and> B"} \\
-  @{text "conjE: \<ASSUMES> A \<and> B \<OBTAINS> A \<AND> B"} \\[1ex]
+  \<open>conjI: \<ASSUMES> A \<AND> B \<SHOWS> A \<and> B\<close> \\
+  \<open>conjE: \<ASSUMES> A \<and> B \<OBTAINS> A \<AND> B\<close> \\[1ex]
 
-  @{text "falseE: \<ASSUMES> \<bottom> \<SHOWS> A"} \\
-  @{text "trueI: \<SHOWS> \<top>"} \\[1ex]
+  \<open>falseE: \<ASSUMES> \<bottom> \<SHOWS> A\<close> \\
+  \<open>trueI: \<SHOWS> \<top>\<close> \\[1ex]
 
-  @{text "notI: \<ASSUMES> A \<Longrightarrow> \<bottom> \<SHOWS> \<not> A"} \\
-  @{text "notE: \<ASSUMES> \<not> A \<AND> A \<SHOWS> B"} \\[1ex]
+  \<open>notI: \<ASSUMES> A \<Longrightarrow> \<bottom> \<SHOWS> \<not> A\<close> \\
+  \<open>notE: \<ASSUMES> \<not> A \<AND> A \<SHOWS> B\<close> \\[1ex]
 
-  @{text "allI: \<ASSUMES> \<And>x. B x \<SHOWS> \<forall>x. B x"} \\
-  @{text "allE: \<ASSUMES> \<forall>x. B x \<SHOWS> B a"} \\[1ex]
+  \<open>allI: \<ASSUMES> \<And>x. B x \<SHOWS> \<forall>x. B x\<close> \\
+  \<open>allE: \<ASSUMES> \<forall>x. B x \<SHOWS> B a\<close> \\[1ex]
 
-  @{text "exI: \<ASSUMES> B a \<SHOWS> \<exists>x. B x"} \\
-  @{text "exE: \<ASSUMES> \<exists>x. B x \<OBTAINS> a \<WHERE> B a"}
+  \<open>exI: \<ASSUMES> B a \<SHOWS> \<exists>x. B x\<close> \\
+  \<open>exE: \<ASSUMES> \<exists>x. B x \<OBTAINS> a \<WHERE> B a\<close>
   \end{tabular}
   \<^medskip>
 

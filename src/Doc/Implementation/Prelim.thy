@@ -13,13 +13,13 @@ text \<open>
   results etc.).
 
   For example, derivations within the Isabelle/Pure logic can be
-  described as a judgment @{text "\<Gamma> \<turnstile>\<^sub>\<Theta> \<phi>"}, which means that a
-  proposition @{text "\<phi>"} is derivable from hypotheses @{text "\<Gamma>"}
-  within the theory @{text "\<Theta>"}.  There are logical reasons for
-  keeping @{text "\<Theta>"} and @{text "\<Gamma>"} separate: theories can be
+  described as a judgment \<open>\<Gamma> \<turnstile>\<^sub>\<Theta> \<phi>\<close>, which means that a
+  proposition \<open>\<phi>\<close> is derivable from hypotheses \<open>\<Gamma>\<close>
+  within the theory \<open>\<Theta>\<close>.  There are logical reasons for
+  keeping \<open>\<Theta>\<close> and \<open>\<Gamma>\<close> separate: theories can be
   liberal about supporting type constructors and schematic
   polymorphism of constants and axioms, while the inner calculus of
-  @{text "\<Gamma> \<turnstile> \<phi>"} is strictly limited to Simple Type Theory (with
+  \<open>\<Gamma> \<turnstile> \<phi>\<close> is strictly limited to Simple Type Theory (with
   fixed type variables in the assumptions).
 
   \<^medskip>
@@ -27,20 +27,20 @@ text \<open>
   principles:
 
   \<^item> Transfer: monotonicity of derivations admits results to be
-  transferred into a \<^emph>\<open>larger\<close> context, i.e.\ @{text "\<Gamma> \<turnstile>\<^sub>\<Theta>
-  \<phi>"} implies @{text "\<Gamma>' \<turnstile>\<^sub>\<Theta>\<^sub>' \<phi>"} for contexts @{text "\<Theta>'
-  \<supseteq> \<Theta>"} and @{text "\<Gamma>' \<supseteq> \<Gamma>"}.
+  transferred into a \<^emph>\<open>larger\<close> context, i.e.\ \<open>\<Gamma> \<turnstile>\<^sub>\<Theta>
+  \<phi>\<close> implies \<open>\<Gamma>' \<turnstile>\<^sub>\<Theta>\<^sub>' \<phi>\<close> for contexts \<open>\<Theta>'
+  \<supseteq> \<Theta>\<close> and \<open>\<Gamma>' \<supseteq> \<Gamma>\<close>.
 
   \<^item> Export: discharge of hypotheses admits results to be exported
-  into a \<^emph>\<open>smaller\<close> context, i.e.\ @{text "\<Gamma>' \<turnstile>\<^sub>\<Theta> \<phi>"}
-  implies @{text "\<Gamma> \<turnstile>\<^sub>\<Theta> \<Delta> \<Longrightarrow> \<phi>"} where @{text "\<Gamma>' \<supseteq> \<Gamma>"} and
-  @{text "\<Delta> = \<Gamma>' - \<Gamma>"}.  Note that @{text "\<Theta>"} remains unchanged here,
-  only the @{text "\<Gamma>"} part is affected.
+  into a \<^emph>\<open>smaller\<close> context, i.e.\ \<open>\<Gamma>' \<turnstile>\<^sub>\<Theta> \<phi>\<close>
+  implies \<open>\<Gamma> \<turnstile>\<^sub>\<Theta> \<Delta> \<Longrightarrow> \<phi>\<close> where \<open>\<Gamma>' \<supseteq> \<Gamma>\<close> and
+  \<open>\<Delta> = \<Gamma>' - \<Gamma>\<close>.  Note that \<open>\<Theta>\<close> remains unchanged here,
+  only the \<open>\<Gamma>\<close> part is affected.
 
 
   \<^medskip>
   By modeling the main characteristics of the primitive
-  @{text "\<Theta>"} and @{text "\<Gamma>"} above, and abstracting over any
+  \<open>\<Theta>\<close> and \<open>\<Gamma>\<close> above, and abstracting over any
   particular logical content, we arrive at the fundamental notions of
   \<^emph>\<open>theory context\<close> and \<^emph>\<open>proof context\<close> in Isabelle/Isar.
   These implement a certain policy to manage arbitrary \<^emph>\<open>context
@@ -48,15 +48,14 @@ text \<open>
   data at compile time.
 
   The internal bootstrap process of Isabelle/Pure eventually reaches a
-  stage where certain data slots provide the logical content of @{text
-  "\<Theta>"} and @{text "\<Gamma>"} sketched above, but this does not stop there!
+  stage where certain data slots provide the logical content of \<open>\<Theta>\<close> and \<open>\<Gamma>\<close> sketched above, but this does not stop there!
   Various additional data slots support all kinds of mechanisms that
   are not necessarily part of the core logic.
 
   For example, there would be data for canonical introduction and
   elimination rules for arbitrary operators (depending on the
   object-logic and application), which enables users to perform
-  standard proof steps implicitly (cf.\ the @{text "rule"} method
+  standard proof steps implicitly (cf.\ the \<open>rule\<close> method
   @{cite "isabelle-isar-ref"}).
 
   \<^medskip>
@@ -80,28 +79,27 @@ text \<open>A \<^emph>\<open>theory\<close> is a data container with explicit na
   ancestor theories.  To this end, the system maintains a set of
   symbolic ``identification stamps'' within each theory.
 
-  The @{text "begin"} operation starts a new theory by importing several
+  The \<open>begin\<close> operation starts a new theory by importing several
   parent theories (with merged contents) and entering a special mode of
-  nameless incremental updates, until the final @{text "end"} operation is
+  nameless incremental updates, until the final \<open>end\<close> operation is
   performed.
 
   \<^medskip>
   The example in \figref{fig:ex-theory} below shows a theory
-  graph derived from @{text "Pure"}, with theory @{text "Length"}
-  importing @{text "Nat"} and @{text "List"}.  The body of @{text
-  "Length"} consists of a sequence of updates, resulting in locally a
+  graph derived from \<open>Pure\<close>, with theory \<open>Length\<close>
+  importing \<open>Nat\<close> and \<open>List\<close>.  The body of \<open>Length\<close> consists of a sequence of updates, resulting in locally a
   linear sub-theory relation for each intermediate step.
 
   \begin{figure}[htb]
   \begin{center}
   \begin{tabular}{rcccl}
-        &            & @{text "Pure"} \\
-        &            & @{text "\<down>"} \\
-        &            & @{text "FOL"} \\
+        &            & \<open>Pure\<close> \\
+        &            & \<open>\<down>\<close> \\
+        &            & \<open>FOL\<close> \\
         & $\swarrow$ &              & $\searrow$ & \\
-  @{text "Nat"} &    &              &            & @{text "List"} \\
+  \<open>Nat\<close> &    &              &            & \<open>List\<close> \\
         & $\searrow$ &              & $\swarrow$ \\
-        &            & @{text "Length"} \\
+        &            & \<open>Length\<close> \\
         &            & \multicolumn{3}{l}{~~@{keyword "begin"}} \\
         &            & $\vdots$~~ \\
         &            & \multicolumn{3}{l}{~~@{command "end"}} \\
@@ -128,30 +126,30 @@ text %mlref \<open>
 
   \<^descr> Type @{ML_type theory} represents theory contexts.
 
-  \<^descr> @{ML "Context.eq_thy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} check strict
+  \<^descr> @{ML "Context.eq_thy"}~\<open>(thy\<^sub>1, thy\<^sub>2)\<close> check strict
   identity of two theories.
 
-  \<^descr> @{ML "Context.subthy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} compares theories
+  \<^descr> @{ML "Context.subthy"}~\<open>(thy\<^sub>1, thy\<^sub>2)\<close> compares theories
   according to the intrinsic graph structure of the construction.
   This sub-theory relation is a nominal approximation of inclusion
-  (@{text "\<subseteq>"}) of the corresponding content (according to the
+  (\<open>\<subseteq>\<close>) of the corresponding content (according to the
   semantics of the ML modules that implement the data).
 
-  \<^descr> @{ML "Theory.begin_theory"}~@{text "name parents"} constructs
+  \<^descr> @{ML "Theory.begin_theory"}~\<open>name parents\<close> constructs
   a new theory based on the given parents.  This ML function is
   normally not invoked directly.
 
-  \<^descr> @{ML "Theory.parents_of"}~@{text "thy"} returns the direct
-  ancestors of @{text thy}.
+  \<^descr> @{ML "Theory.parents_of"}~\<open>thy\<close> returns the direct
+  ancestors of \<open>thy\<close>.
 
-  \<^descr> @{ML "Theory.ancestors_of"}~@{text "thy"} returns all
-  ancestors of @{text thy} (not including @{text thy} itself).
+  \<^descr> @{ML "Theory.ancestors_of"}~\<open>thy\<close> returns all
+  ancestors of \<open>thy\<close> (not including \<open>thy\<close> itself).
 \<close>
 
 text %mlantiq \<open>
   \begin{matharray}{rcl}
-  @{ML_antiquotation_def "theory"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "theory_context"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "theory"} & : & \<open>ML_antiquotation\<close> \\
+  @{ML_antiquotation_def "theory_context"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   @{rail \<open>
@@ -160,15 +158,15 @@ text %mlantiq \<open>
   @@{ML_antiquotation theory_context} nameref
   \<close>}
 
-  \<^descr> @{text "@{theory}"} refers to the background theory of the
+  \<^descr> \<open>@{theory}\<close> refers to the background theory of the
   current context --- as abstract value.
 
-  \<^descr> @{text "@{theory A}"} refers to an explicitly named ancestor
-  theory @{text "A"} of the background theory of the current context
+  \<^descr> \<open>@{theory A}\<close> refers to an explicitly named ancestor
+  theory \<open>A\<close> of the background theory of the current context
   --- as abstract value.
 
-  \<^descr> @{text "@{theory_context A}"} is similar to @{text "@{theory
-  A}"}, but presents the result as initial @{ML_type Proof.context}
+  \<^descr> \<open>@{theory_context A}\<close> is similar to \<open>@{theory
+  A}\<close>, but presents the result as initial @{ML_type Proof.context}
   (see also @{ML Proof_Context.init_global}).
 \<close>
 
@@ -176,16 +174,16 @@ text %mlantiq \<open>
 subsection \<open>Proof context \label{sec:context-proof}\<close>
 
 text \<open>A proof context is a container for pure data that refers to
-  the theory from which it is derived. The @{text "init"} operation
+  the theory from which it is derived. The \<open>init\<close> operation
   creates a proof context from a given theory. There is an explicit
-  @{text "transfer"} operation to force resynchronization with updates
+  \<open>transfer\<close> operation to force resynchronization with updates
   to the background theory -- this is rarely required in practice.
 
   Entities derived in a proof context need to record logical
   requirements explicitly, since there is no separate context
   identification or symbolic inclusion as for theories.  For example,
   hypotheses used in primitive derivations (cf.\ \secref{sec:thms})
-  are recorded separately within the sequent @{text "\<Gamma> \<turnstile> \<phi>"}, just to
+  are recorded separately within the sequent \<open>\<Gamma> \<turnstile> \<phi>\<close>, just to
   make double sure.  Results could still leak into an alien proof
   context due to programming errors, but Isabelle/Isar includes some
   extra validity checks in critical positions, notably at the end of a
@@ -211,23 +209,22 @@ text %mlref \<open>
 
   \<^descr> Type @{ML_type Proof.context} represents proof contexts.
 
-  \<^descr> @{ML Proof_Context.init_global}~@{text "thy"} produces a proof
-  context derived from @{text "thy"}, initializing all data.
+  \<^descr> @{ML Proof_Context.init_global}~\<open>thy\<close> produces a proof
+  context derived from \<open>thy\<close>, initializing all data.
 
-  \<^descr> @{ML Proof_Context.theory_of}~@{text "ctxt"} selects the
-  background theory from @{text "ctxt"}.
+  \<^descr> @{ML Proof_Context.theory_of}~\<open>ctxt\<close> selects the
+  background theory from \<open>ctxt\<close>.
 
-  \<^descr> @{ML Proof_Context.transfer}~@{text "thy ctxt"} promotes the
-  background theory of @{text "ctxt"} to the super theory @{text
-  "thy"}.
+  \<^descr> @{ML Proof_Context.transfer}~\<open>thy ctxt\<close> promotes the
+  background theory of \<open>ctxt\<close> to the super theory \<open>thy\<close>.
 \<close>
 
 text %mlantiq \<open>
   \begin{matharray}{rcl}
-  @{ML_antiquotation_def "context"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "context"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
-  \<^descr> @{text "@{context}"} refers to \<^emph>\<open>the\<close> context at
+  \<^descr> \<open>@{context}\<close> refers to \<^emph>\<open>the\<close> context at
   compile-time --- as abstract value.  Independently of (local) theory
   or proof mode, this always produces a meaningful result.
 
@@ -246,10 +243,9 @@ text \<open>
   and combinators for lifting operations on either component of the
   disjoint sum.
 
-  Moreover, there are total operations @{text "theory_of"} and @{text
-  "proof_of"} to convert a generic context into either kind: a theory
+  Moreover, there are total operations \<open>theory_of\<close> and \<open>proof_of\<close> to convert a generic context into either kind: a theory
   can always be selected from the sum, while a proof context might
-  have to be constructed by an ad-hoc @{text "init"} operation, which
+  have to be constructed by an ad-hoc \<open>init\<close> operation, which
   incurs a small runtime overhead.
 \<close>
 
@@ -264,12 +260,12 @@ text %mlref \<open>
   "theory"} and @{ML_type "Proof.context"}, with the datatype
   constructors @{ML "Context.Theory"} and @{ML "Context.Proof"}.
 
-  \<^descr> @{ML Context.theory_of}~@{text "context"} always produces a
-  theory from the generic @{text "context"}, using @{ML
+  \<^descr> @{ML Context.theory_of}~\<open>context\<close> always produces a
+  theory from the generic \<open>context\<close>, using @{ML
   "Proof_Context.theory_of"} as required.
 
-  \<^descr> @{ML Context.proof_of}~@{text "context"} always produces a
-  proof context from the generic @{text "context"}, using @{ML
+  \<^descr> @{ML Context.proof_of}~\<open>context\<close> always produces a
+  proof context from the generic \<open>context\<close>, using @{ML
   "Proof_Context.init_global"} as required (note that this re-initializes the
   context data with each invocation).
 \<close>
@@ -287,20 +283,19 @@ text \<open>The main purpose of theory and proof contexts is to manage
 
   \<^medskip>
   \begin{tabular}{ll}
-  @{text "\<type> T"} & representing type \\
-  @{text "\<val> empty: T"} & empty default value \\
-  @{text "\<val> extend: T \<rightarrow> T"} & re-initialize on import \\
-  @{text "\<val> merge: T \<times> T \<rightarrow> T"} & join on import \\
+  \<open>\<type> T\<close> & representing type \\
+  \<open>\<val> empty: T\<close> & empty default value \\
+  \<open>\<val> extend: T \<rightarrow> T\<close> & re-initialize on import \\
+  \<open>\<val> merge: T \<times> T \<rightarrow> T\<close> & join on import \\
   \end{tabular}
   \<^medskip>
 
-  The @{text "empty"} value acts as initial default for \<^emph>\<open>any\<close>
-  theory that does not declare actual data content; @{text "extend"}
-  is acts like a unitary version of @{text "merge"}.
+  The \<open>empty\<close> value acts as initial default for \<^emph>\<open>any\<close>
+  theory that does not declare actual data content; \<open>extend\<close>
+  is acts like a unitary version of \<open>merge\<close>.
 
-  Implementing @{text "merge"} can be tricky.  The general idea is
-  that @{text "merge (data\<^sub>1, data\<^sub>2)"} inserts those parts of @{text
-  "data\<^sub>2"} into @{text "data\<^sub>1"} that are not yet present, while
+  Implementing \<open>merge\<close> can be tricky.  The general idea is
+  that \<open>merge (data\<^sub>1, data\<^sub>2)\<close> inserts those parts of \<open>data\<^sub>2\<close> into \<open>data\<^sub>1\<close> that are not yet present, while
   keeping the general order of things.  The @{ML Library.merge}
   function on plain lists may serve as canonical template.
 
@@ -313,15 +308,15 @@ text \<open>The main purpose of theory and proof contexts is to manage
 
   \<^medskip>
   \begin{tabular}{ll}
-  @{text "\<type> T"} & representing type \\
-  @{text "\<val> init: theory \<rightarrow> T"} & produce initial value \\
+  \<open>\<type> T\<close> & representing type \\
+  \<open>\<val> init: theory \<rightarrow> T\<close> & produce initial value \\
   \end{tabular}
   \<^medskip>
 
-  The @{text "init"} operation is supposed to produce a pure value
+  The \<open>init\<close> operation is supposed to produce a pure value
   from the given background theory and should be somehow
   ``immediate''.  Whenever a proof context is initialized, which
-  happens frequently, the the system invokes the @{text "init"}
+  happens frequently, the the system invokes the \<open>init\<close>
   operation of \<^emph>\<open>all\<close> theory data slots ever declared.  This also
   means that one needs to be economic about the total number of proof
   data declarations in the system, i.e.\ each ML module should declare
@@ -330,19 +325,19 @@ text \<open>The main purpose of theory and proof contexts is to manage
   avoided!
 
   \paragraph{Generic data} provides a hybrid interface for both theory
-  and proof data.  The @{text "init"} operation for proof contexts is
+  and proof data.  The \<open>init\<close> operation for proof contexts is
   predefined to select the current data value from the background
   theory.
 
   \<^bigskip>
-  Any of the above data declarations over type @{text "T"}
+  Any of the above data declarations over type \<open>T\<close>
   result in an ML structure with the following signature:
 
   \<^medskip>
   \begin{tabular}{ll}
-  @{text "get: context \<rightarrow> T"} \\
-  @{text "put: T \<rightarrow> context \<rightarrow> context"} \\
-  @{text "map: (T \<rightarrow> T) \<rightarrow> context \<rightarrow> context"} \\
+  \<open>get: context \<rightarrow> T\<close> \\
+  \<open>put: T \<rightarrow> context \<rightarrow> context\<close> \\
+  \<open>map: (T \<rightarrow> T) \<rightarrow> context \<rightarrow> context\<close> \\
   \end{tabular}
   \<^medskip>
 
@@ -360,15 +355,15 @@ text %mlref \<open>
   @{index_ML_functor Generic_Data} \\
   \end{mldecls}
 
-  \<^descr> @{ML_functor Theory_Data}@{text "(spec)"} declares data for
+  \<^descr> @{ML_functor Theory_Data}\<open>(spec)\<close> declares data for
   type @{ML_type theory} according to the specification provided as
   argument structure.  The resulting structure provides data init and
   access operations as described above.
 
-  \<^descr> @{ML_functor Proof_Data}@{text "(spec)"} is analogous to
+  \<^descr> @{ML_functor Proof_Data}\<open>(spec)\<close> is analogous to
   @{ML_functor Theory_Data} for type @{ML_type Proof.context}.
 
-  \<^descr> @{ML_functor Generic_Data}@{text "(spec)"} is analogous to
+  \<^descr> @{ML_functor Generic_Data}\<open>(spec)\<close> is analogous to
   @{ML_functor Theory_Data} for type @{ML_type Context.generic}.
 \<close>
 
@@ -515,16 +510,16 @@ text %mlref \<open>
   string Config.T"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Config.get}~@{text "ctxt config"} gets the value of
-  @{text "config"} in the given context.
+  \<^descr> @{ML Config.get}~\<open>ctxt config\<close> gets the value of
+  \<open>config\<close> in the given context.
 
-  \<^descr> @{ML Config.map}~@{text "config f ctxt"} updates the context
-  by updating the value of @{text "config"}.
+  \<^descr> @{ML Config.map}~\<open>config f ctxt\<close> updates the context
+  by updating the value of \<open>config\<close>.
 
-  \<^descr> @{text "config ="}~@{ML Attrib.setup_config_bool}~@{text "name
-  default"} creates a named configuration option of type @{ML_type
-  bool}, with the given @{text "default"} depending on the application
-  context.  The resulting @{text "config"} can be used to get/map its
+  \<^descr> \<open>config =\<close>~@{ML Attrib.setup_config_bool}~\<open>name
+  default\<close> creates a named configuration option of type @{ML_type
+  bool}, with the given \<open>default\<close> depending on the application
+  context.  The resulting \<open>config\<close> can be used to get/map its
   value in a given context.  There is an implicit update of the
   background theory that registers the option as attribute with some
   concrete syntax.
@@ -535,7 +530,7 @@ text %mlref \<open>
 \<close>
 
 text %mlex \<open>The following example shows how to declare and use a
-  Boolean configuration option called @{text "my_flag"} with constant
+  Boolean configuration option called \<open>my_flag\<close> with constant
   default value @{ML false}.\<close>
 
 ML \<open>
@@ -578,8 +573,8 @@ section \<open>Names \label{sec:names}\<close>
 
 text \<open>In principle, a name is just a string, but there are various
   conventions for representing additional structure.  For example,
-  ``@{text "Foo.bar.baz"}'' is considered as a long name consisting of
-  qualifier @{text "Foo.bar"} and base name @{text "baz"}.  The
+  ``\<open>Foo.bar.baz\<close>'' is considered as a long name consisting of
+  qualifier \<open>Foo.bar\<close> and base name \<open>baz\<close>.  The
   individual constituents of a name may have further substructure,
   e.g.\ the string ``@{verbatim \<alpha>}'' encodes as a single
   symbol (\secref{sec:symbols}).
@@ -610,31 +605,27 @@ text \<open>
   \<^emph>\<open>internal name\<close>, two underscores means \<^emph>\<open>Skolem name\<close>,
   three underscores means \<^emph>\<open>internal Skolem name\<close>.
 
-  For example, the basic name @{text "foo"} has the internal version
-  @{text "foo_"}, with Skolem versions @{text "foo__"} and @{text
-  "foo___"}, respectively.
+  For example, the basic name \<open>foo\<close> has the internal version
+  \<open>foo_\<close>, with Skolem versions \<open>foo__\<close> and \<open>foo___\<close>, respectively.
 
   These special versions provide copies of the basic name space, apart
   from anything that normally appears in the user text.  For example,
   system generated variables in Isar proof contexts are usually marked
-  as internal, which prevents mysterious names like @{text "xaa"} to
+  as internal, which prevents mysterious names like \<open>xaa\<close> to
   appear in human-readable text.
 
   \<^medskip>
   Manipulating binding scopes often requires on-the-fly
   renamings.  A \<^emph>\<open>name context\<close> contains a collection of already
-  used names.  The @{text "declare"} operation adds names to the
+  used names.  The \<open>declare\<close> operation adds names to the
   context.
 
-  The @{text "invents"} operation derives a number of fresh names from
+  The \<open>invents\<close> operation derives a number of fresh names from
   a given starting point.  For example, the first three names derived
-  from @{text "a"} are @{text "a"}, @{text "b"}, @{text "c"}.
+  from \<open>a\<close> are \<open>a\<close>, \<open>b\<close>, \<open>c\<close>.
 
-  The @{text "variants"} operation produces fresh names by
-  incrementing tentative names as base-26 numbers (with digits @{text
-  "a..z"}) until all clashes are resolved.  For example, name @{text
-  "foo"} results in variants @{text "fooa"}, @{text "foob"}, @{text
-  "fooc"}, \dots, @{text "fooaa"}, @{text "fooab"} etc.; each renaming
+  The \<open>variants\<close> operation produces fresh names by
+  incrementing tentative names as base-26 numbers (with digits \<open>a..z\<close>) until all clashes are resolved.  For example, name \<open>foo\<close> results in variants \<open>fooa\<close>, \<open>foob\<close>, \<open>fooc\<close>, \dots, \<open>fooaa\<close>, \<open>fooab\<close> etc.; each renaming
   step picks the next unused variant from this sequence.
 \<close>
 
@@ -654,25 +645,24 @@ text %mlref \<open>
   @{index_ML Variable.names_of: "Proof.context -> Name.context"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Name.internal}~@{text "name"} produces an internal name
+  \<^descr> @{ML Name.internal}~\<open>name\<close> produces an internal name
   by adding one underscore.
 
-  \<^descr> @{ML Name.skolem}~@{text "name"} produces a Skolem name by
+  \<^descr> @{ML Name.skolem}~\<open>name\<close> produces a Skolem name by
   adding two underscores.
 
   \<^descr> Type @{ML_type Name.context} represents the context of already
   used names; the initial value is @{ML "Name.context"}.
 
-  \<^descr> @{ML Name.declare}~@{text "name"} enters a used name into the
+  \<^descr> @{ML Name.declare}~\<open>name\<close> enters a used name into the
   context.
 
-  \<^descr> @{ML Name.invent}~@{text "context name n"} produces @{text
-  "n"} fresh names derived from @{text "name"}.
+  \<^descr> @{ML Name.invent}~\<open>context name n\<close> produces \<open>n\<close> fresh names derived from \<open>name\<close>.
 
-  \<^descr> @{ML Name.variant}~@{text "name context"} produces a fresh
-  variant of @{text "name"}; the result is declared to the context.
+  \<^descr> @{ML Name.variant}~\<open>name context\<close> produces a fresh
+  variant of \<open>name\<close>; the result is declared to the context.
 
-  \<^descr> @{ML Variable.names_of}~@{text "ctxt"} retrieves the context
+  \<^descr> @{ML Variable.names_of}~\<open>ctxt\<close> retrieves the context
   of declared type and term variable names.  Projecting a proof
   context down to a primitive name context is occasionally useful when
   invoking lower-level operations.  Regular management of ``fresh
@@ -718,36 +708,36 @@ end
 subsection \<open>Indexed names \label{sec:indexname}\<close>
 
 text \<open>
-  An \<^emph>\<open>indexed name\<close> (or @{text "indexname"}) is a pair of a basic
+  An \<^emph>\<open>indexed name\<close> (or \<open>indexname\<close>) is a pair of a basic
   name and a natural number.  This representation allows efficient
   renaming by incrementing the second component only.  The canonical
   way to rename two collections of indexnames apart from each other is
-  this: determine the maximum index @{text "maxidx"} of the first
+  this: determine the maximum index \<open>maxidx\<close> of the first
   collection, then increment all indexes of the second collection by
-  @{text "maxidx + 1"}; the maximum index of an empty collection is
-  @{text "-1"}.
+  \<open>maxidx + 1\<close>; the maximum index of an empty collection is
+  \<open>-1\<close>.
 
   Occasionally, basic names are injected into the same pair type of
-  indexed names: then @{text "(x, -1)"} is used to encode the basic
-  name @{text "x"}.
+  indexed names: then \<open>(x, -1)\<close> is used to encode the basic
+  name \<open>x\<close>.
 
   \<^medskip>
   Isabelle syntax observes the following rules for
-  representing an indexname @{text "(x, i)"} as a packed string:
+  representing an indexname \<open>(x, i)\<close> as a packed string:
 
-  \<^item> @{text "?x"} if @{text "x"} does not end with a digit and @{text "i = 0"},
+  \<^item> \<open>?x\<close> if \<open>x\<close> does not end with a digit and \<open>i = 0\<close>,
 
-  \<^item> @{text "?xi"} if @{text "x"} does not end with a digit,
+  \<^item> \<open>?xi\<close> if \<open>x\<close> does not end with a digit,
 
-  \<^item> @{text "?x.i"} otherwise.
+  \<^item> \<open>?x.i\<close> otherwise.
 
 
   Indexnames may acquire large index numbers after several maxidx
   shifts have been applied.  Results are usually normalized towards
-  @{text "0"} at certain checkpoints, notably at the end of a proof.
+  \<open>0\<close> at certain checkpoints, notably at the end of a proof.
   This works by producing variants of the corresponding basic name
-  components.  For example, the collection @{text "?x1, ?x7, ?x42"}
-  becomes @{text "?x, ?xa, ?xb"}.
+  components.  For example, the collection \<open>?x1, ?x7, ?x42\<close>
+  becomes \<open>?x, ?xa, ?xb\<close>.
 \<close>
 
 text %mlref \<open>
@@ -757,8 +747,8 @@ text %mlref \<open>
 
   \<^descr> Type @{ML_type indexname} represents indexed names.  This is
   an abbreviation for @{ML_type "string * int"}.  The second component
-  is usually non-negative, except for situations where @{text "(x,
-  -1)"} is used to inject basic names into this type.  Other negative
+  is usually non-negative, except for situations where \<open>(x,
+  -1)\<close> is used to inject basic names into this type.  Other negative
   indexes should not be used.
 \<close>
 
@@ -767,16 +757,16 @@ subsection \<open>Long names \label{sec:long-name}\<close>
 
 text \<open>A \<^emph>\<open>long name\<close> consists of a sequence of non-empty name
   components.  The packed representation uses a dot as separator, as
-  in ``@{text "A.b.c"}''.  The last component is called \<^emph>\<open>base
+  in ``\<open>A.b.c\<close>''.  The last component is called \<^emph>\<open>base
   name\<close>, the remaining prefix is called \<^emph>\<open>qualifier\<close> (which may be
   empty).  The qualifier can be understood as the access path to the
   named entity while passing through some nested block-structure,
   although our free-form long names do not really enforce any strict
   discipline.
 
-  For example, an item named ``@{text "A.b.c"}'' may be understood as
-  a local entity @{text "c"}, within a local structure @{text "b"},
-  within a global structure @{text "A"}.  In practice, long names
+  For example, an item named ``\<open>A.b.c\<close>'' may be understood as
+  a local entity \<open>c\<close>, within a local structure \<open>b\<close>,
+  within a global structure \<open>A\<close>.  In practice, long names
   usually represent 1--3 levels of qualification.  User ML code should
   not make any assumptions about the particular structure of long
   names!
@@ -796,42 +786,41 @@ text %mlref \<open>
   @{index_ML Long_Name.explode: "string -> string list"} \\
   \end{mldecls}
 
-  \<^descr> @{ML Long_Name.base_name}~@{text "name"} returns the base name
+  \<^descr> @{ML Long_Name.base_name}~\<open>name\<close> returns the base name
   of a long name.
 
-  \<^descr> @{ML Long_Name.qualifier}~@{text "name"} returns the qualifier
+  \<^descr> @{ML Long_Name.qualifier}~\<open>name\<close> returns the qualifier
   of a long name.
 
-  \<^descr> @{ML Long_Name.append}~@{text "name\<^sub>1 name\<^sub>2"} appends two long
+  \<^descr> @{ML Long_Name.append}~\<open>name\<^sub>1 name\<^sub>2\<close> appends two long
   names.
 
-  \<^descr> @{ML Long_Name.implode}~@{text "names"} and @{ML
-  Long_Name.explode}~@{text "name"} convert between the packed string
+  \<^descr> @{ML Long_Name.implode}~\<open>names\<close> and @{ML
+  Long_Name.explode}~\<open>name\<close> convert between the packed string
   representation and the explicit list form of long names.
 \<close>
 
 
 subsection \<open>Name spaces \label{sec:name-space}\<close>
 
-text \<open>A @{text "name space"} manages a collection of long names,
+text \<open>A \<open>name space\<close> manages a collection of long names,
   together with a mapping between partially qualified external names
   and fully qualified internal names (in both directions).  Note that
-  the corresponding @{text "intern"} and @{text "extern"} operations
-  are mostly used for parsing and printing only!  The @{text
-  "declare"} operation augments a name space according to the accesses
+  the corresponding \<open>intern\<close> and \<open>extern\<close> operations
+  are mostly used for parsing and printing only!  The \<open>declare\<close> operation augments a name space according to the accesses
   determined by a given binding, and a naming policy from the context.
 
   \<^medskip>
-  A @{text "binding"} specifies details about the prospective
+  A \<open>binding\<close> specifies details about the prospective
   long name of a newly introduced formal entity.  It consists of a
   base name, prefixes for qualification (separate ones for system
   infrastructure and user-space mechanisms), a slot for the original
   source position, and some additional flags.
 
   \<^medskip>
-  A @{text "naming"} provides some additional details for
+  A \<open>naming\<close> provides some additional details for
   producing a long name from a binding.  Normally, the naming is
-  implicit in the theory or proof context.  The @{text "full"}
+  implicit in the theory or proof context.  The \<open>full\<close>
   operation (and its variants for different context types) produces a
   fully qualified internal name to be entered into a name space.  The
   main equation of this ``chemical reaction'' when binding new
@@ -839,7 +828,7 @@ text \<open>A @{text "name space"} manages a collection of long names,
 
   \<^medskip>
   \begin{tabular}{l}
-  @{text "binding + naming \<longrightarrow> long name + name space accesses"}
+  \<open>binding + naming \<longrightarrow> long name + name space accesses\<close>
   \end{tabular}
 
   \<^bigskip>
@@ -847,13 +836,13 @@ text \<open>A @{text "name space"} manages a collection of long names,
   each kind of formal entity, e.g.\ fact, logical constant, type
   constructor, type class.  It is usually clear from the occurrence in
   concrete syntax (or from the scope) which kind of entity a name
-  refers to.  For example, the very same name @{text "c"} may be used
+  refers to.  For example, the very same name \<open>c\<close> may be used
   uniformly for a constant, type constructor, and type class.
 
   There are common schemes to name derived entities systematically
   according to the name of the main logical entity involved, e.g.\
-  fact @{text "c.intro"} for a canonical introduction rule related to
-  constant @{text "c"}.  This technique of mapping names from one
+  fact \<open>c.intro\<close> for a canonical introduction rule related to
+  constant \<open>c\<close>.  This technique of mapping names from one
   space into another requires some care in order to avoid conflicts.
   In particular, theorem names derived from a type constructor or type
   class should get an additional suffix in addition to the usual
@@ -863,9 +852,9 @@ text \<open>A @{text "name space"} manages a collection of long names,
   \<^medskip>
   \begin{tabular}{ll}
   logical entity & fact name \\\hline
-  constant @{text "c"} & @{text "c.intro"} \\
-  type @{text "c"} & @{text "c_type.intro"} \\
-  class @{text "c"} & @{text "c_class.intro"} \\
+  constant \<open>c\<close> & \<open>c.intro\<close> \\
+  type \<open>c\<close> & \<open>c_type.intro\<close> \\
+  class \<open>c\<close> & \<open>c_class.intro\<close> \\
   \end{tabular}
 \<close>
 
@@ -901,15 +890,14 @@ text %mlref \<open>
 
   \<^descr> @{ML Binding.empty} is the empty binding.
 
-  \<^descr> @{ML Binding.name}~@{text "name"} produces a binding with base
-  name @{text "name"}.  Note that this lacks proper source position
+  \<^descr> @{ML Binding.name}~\<open>name\<close> produces a binding with base
+  name \<open>name\<close>.  Note that this lacks proper source position
   information; see also the ML antiquotation @{ML_antiquotation
   binding}.
 
-  \<^descr> @{ML Binding.qualify}~@{text "mandatory name binding"}
-  prefixes qualifier @{text "name"} to @{text "binding"}.  The @{text
-  "mandatory"} flag tells if this name component always needs to be
-  given in name space accesses --- this is mostly @{text "false"} in
+  \<^descr> @{ML Binding.qualify}~\<open>mandatory name binding\<close>
+  prefixes qualifier \<open>name\<close> to \<open>binding\<close>.  The \<open>mandatory\<close> flag tells if this name component always needs to be
+  given in name space accesses --- this is mostly \<open>false\<close> in
   practice.  Note that this part of qualification is typically used in
   derived specification mechanisms.
 
@@ -918,14 +906,14 @@ text %mlref \<open>
   typically used in the infrastructure for modular specifications,
   notably ``local theory targets'' (see also \chref{ch:local-theory}).
 
-  \<^descr> @{ML Binding.concealed}~@{text "binding"} indicates that the
+  \<^descr> @{ML Binding.concealed}~\<open>binding\<close> indicates that the
   binding shall refer to an entity that serves foundational purposes
   only.  This flag helps to mark implementation details of
   specification mechanism etc.  Other tools should not depend on the
   particulars of concealed entities (cf.\ @{ML
   Name_Space.is_concealed}).
 
-  \<^descr> @{ML Binding.print}~@{text "binding"} produces a string
+  \<^descr> @{ML Binding.print}~\<open>binding\<close> produces a string
   representation for human-readable output, together with some formal
   markup that might get used in GUI front-ends, for example.
 
@@ -936,26 +924,25 @@ text %mlref \<open>
   global and lacks any path prefix.  In a regular theory context this is
   augmented by a path prefix consisting of the theory name.
 
-  \<^descr> @{ML Name_Space.add_path}~@{text "path naming"} augments the
+  \<^descr> @{ML Name_Space.add_path}~\<open>path naming\<close> augments the
   naming policy by extending its path component.
 
-  \<^descr> @{ML Name_Space.full_name}~@{text "naming binding"} turns a
+  \<^descr> @{ML Name_Space.full_name}~\<open>naming binding\<close> turns a
   name binding (usually a basic name) into the fully qualified
   internal name, according to the given naming policy.
 
   \<^descr> Type @{ML_type Name_Space.T} represents name spaces.
 
-  \<^descr> @{ML Name_Space.empty}~@{text "kind"} and @{ML Name_Space.merge}~@{text
-  "(space\<^sub>1, space\<^sub>2)"} are the canonical operations for
+  \<^descr> @{ML Name_Space.empty}~\<open>kind\<close> and @{ML Name_Space.merge}~\<open>(space\<^sub>1, space\<^sub>2)\<close> are the canonical operations for
   maintaining name spaces according to theory data management
-  (\secref{sec:context-data}); @{text "kind"} is a formal comment
+  (\secref{sec:context-data}); \<open>kind\<close> is a formal comment
   to characterize the purpose of a name space.
 
-  \<^descr> @{ML Name_Space.declare}~@{text "context strict binding
-  space"} enters a name binding as fully qualified internal name into
+  \<^descr> @{ML Name_Space.declare}~\<open>context strict binding
+  space\<close> enters a name binding as fully qualified internal name into
   the name space, using the naming of the context.
 
-  \<^descr> @{ML Name_Space.intern}~@{text "space name"} internalizes a
+  \<^descr> @{ML Name_Space.intern}~\<open>space name\<close> internalizes a
   (partially qualified) external name.
 
   This operation is mostly for parsing!  Note that fully qualified
@@ -964,28 +951,28 @@ text %mlref \<open>
   (or their derivatives for @{ML_type theory} and
   @{ML_type Proof.context}).
 
-  \<^descr> @{ML Name_Space.extern}~@{text "ctxt space name"} externalizes a
+  \<^descr> @{ML Name_Space.extern}~\<open>ctxt space name\<close> externalizes a
   (fully qualified) internal name.
 
   This operation is mostly for printing!  User code should not rely on
   the precise result too much.
 
-  \<^descr> @{ML Name_Space.is_concealed}~@{text "space name"} indicates
-  whether @{text "name"} refers to a strictly private entity that
+  \<^descr> @{ML Name_Space.is_concealed}~\<open>space name\<close> indicates
+  whether \<open>name\<close> refers to a strictly private entity that
   other tools are supposed to ignore!
 \<close>
 
 text %mlantiq \<open>
   \begin{matharray}{rcl}
-  @{ML_antiquotation_def "binding"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "binding"} & : & \<open>ML_antiquotation\<close> \\
   \end{matharray}
 
   @{rail \<open>
   @@{ML_antiquotation binding} name
   \<close>}
 
-  \<^descr> @{text "@{binding name}"} produces a binding with base name
-  @{text "name"} and the source position taken from the concrete
+  \<^descr> \<open>@{binding name}\<close> produces a binding with base name
+  \<open>name\<close> and the source position taken from the concrete
   syntax of this antiquotation.  In many situations this is more
   appropriate than the more basic @{ML Binding.name} function.
 \<close>

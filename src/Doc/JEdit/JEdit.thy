@@ -448,7 +448,7 @@ text \<open>
   grouped according to some simple rules, e.g.\ as plain ``@{verbatim a}'' or
   symbolic ``@{verbatim "\<alpha>"}''. For the editor front-end, a certain subset of
   symbols is rendered physically via Unicode glyphs, in order to show
-  ``@{verbatim "\<alpha>"}'' as ``@{text "\<alpha>"}'', for example. This symbol
+  ``@{verbatim "\<alpha>"}'' as ``\<open>\<alpha>\<close>'', for example. This symbol
   interpretation is specified by the Isabelle system distribution in @{file
   "$ISABELLE_HOME/etc/symbols"} and may be augmented by the user in
   @{file_unchecked "$ISABELLE_HOME_USER/etc/symbols"}.
@@ -470,7 +470,7 @@ text \<open>
   accidentally, or malformed UTF-8 sequences in the text force jEdit to fall
   back on a different encoding like @{verbatim "ISO-8859-15"}. In that case,
   verbatim ``@{verbatim "\<alpha>"}'' will be shown in the text buffer instead of its
-  Unicode rendering ``@{text "\<alpha>"}''. The jEdit menu operation \<^emph>\<open>File~/
+  Unicode rendering ``\<open>\<alpha>\<close>''. The jEdit menu operation \<^emph>\<open>File~/
   Reload with Encoding~/ UTF-8-Isabelle\<close> helps to resolve such problems (after
   repairing malformed parts of the text).
 
@@ -536,20 +536,20 @@ text \<open>
   \<^medskip>
   \begin{tabular}{lll}
     \<^bold>\<open>symbol\<close> & \<^bold>\<open>name with backslash\<close> & \<^bold>\<open>abbreviation\<close> \\\hline
-    @{text "\<lambda>"} & @{verbatim "\\lambda"} & @{verbatim "%"} \\
-    @{text "\<Rightarrow>"} & @{verbatim "\\Rightarrow"} & @{verbatim "=>"} \\
-    @{text "\<Longrightarrow>"} & @{verbatim "\\Longrightarrow"} & @{verbatim "==>"} \\[0.5ex]
-    @{text "\<And>"} & @{verbatim "\\And"} & @{verbatim "!!"} \\
-    @{text "\<equiv>"} & @{verbatim "\\equiv"} & @{verbatim "=="} \\[0.5ex]
-    @{text "\<forall>"} & @{verbatim "\\forall"} & @{verbatim "!"} \\
-    @{text "\<exists>"} & @{verbatim "\\exists"} & @{verbatim "?"} \\
-    @{text "\<longrightarrow>"} & @{verbatim "\\longrightarrow"} & @{verbatim "-->"} \\
-    @{text "\<and>"} & @{verbatim "\\and"} & @{verbatim "&"} \\
-    @{text "\<or>"} & @{verbatim "\\or"} & @{verbatim "|"} \\
-    @{text "\<not>"} & @{verbatim "\\not"} & @{verbatim "~"} \\
-    @{text "\<noteq>"} & @{verbatim "\\noteq"} & @{verbatim "~="} \\
-    @{text "\<in>"} & @{verbatim "\\in"} & @{verbatim ":"} \\
-    @{text "\<notin>"} & @{verbatim "\\notin"} & @{verbatim "~:"} \\
+    \<open>\<lambda>\<close> & @{verbatim "\\lambda"} & @{verbatim "%"} \\
+    \<open>\<Rightarrow>\<close> & @{verbatim "\\Rightarrow"} & @{verbatim "=>"} \\
+    \<open>\<Longrightarrow>\<close> & @{verbatim "\\Longrightarrow"} & @{verbatim "==>"} \\[0.5ex]
+    \<open>\<And>\<close> & @{verbatim "\\And"} & @{verbatim "!!"} \\
+    \<open>\<equiv>\<close> & @{verbatim "\\equiv"} & @{verbatim "=="} \\[0.5ex]
+    \<open>\<forall>\<close> & @{verbatim "\\forall"} & @{verbatim "!"} \\
+    \<open>\<exists>\<close> & @{verbatim "\\exists"} & @{verbatim "?"} \\
+    \<open>\<longrightarrow>\<close> & @{verbatim "\\longrightarrow"} & @{verbatim "-->"} \\
+    \<open>\<and>\<close> & @{verbatim "\\and"} & @{verbatim "&"} \\
+    \<open>\<or>\<close> & @{verbatim "\\or"} & @{verbatim "|"} \\
+    \<open>\<not>\<close> & @{verbatim "\\not"} & @{verbatim "~"} \\
+    \<open>\<noteq>\<close> & @{verbatim "\\noteq"} & @{verbatim "~="} \\
+    \<open>\<in>\<close> & @{verbatim "\\in"} & @{verbatim ":"} \\
+    \<open>\<notin>\<close> & @{verbatim "\\notin"} & @{verbatim "~:"} \\
   \end{tabular}
   \<^medskip>
  
@@ -1142,11 +1142,11 @@ text \<open>
   \<^descr> @{verbatim "`"} (single ASCII back-quote) supports \<^emph>\<open>quotations\<close>
   via text cartouches. There are three selections, which are always presented
   in the same order and do not depend on any context information. The default
-  choice produces a template ``@{text "\<open>\<box>\<close>"}'', where the box indicates the
+  choice produces a template ``\<open>\<open>\<box>\<close>\<close>'', where the box indicates the
   cursor position after insertion; the other choices help to repair the block
   structure of unbalanced text cartouches.
 
-  \<^descr> @{verbatim "@{"} is completed to the template ``@{text "@{\<box>}"}'',
+  \<^descr> @{verbatim "@{"} is completed to the template ``\<open>@{\<box>}\<close>'',
   where the box indicates the cursor position after insertion. Here it is
   convenient to use the wildcard ``@{verbatim __}'' or a more specific name
   prefix to let semantic completion of name-space entries propose
@@ -1176,7 +1176,7 @@ text \<open>
   specify an alternative replacement string to be inserted instead of the
   keyword itself. An empty string means to suppress the keyword altogether,
   which is occasionally useful to avoid confusion, e.g.\ the rare keyword
-  @{command simproc_setup} vs.\ the frequent name-space entry @{text simp}.
+  @{command simproc_setup} vs.\ the frequent name-space entry \<open>simp\<close>.
 \<close>
 
 
@@ -1198,7 +1198,7 @@ text \<open>
   \<^medskip>
 
   When inserted into the text, the above examples all produce the same Unicode
-  rendering @{text "\<forall>"} of the underlying symbol @{verbatim "\<forall>"}.
+  rendering \<open>\<forall>\<close> of the underlying symbol @{verbatim "\<forall>"}.
 
   A symbol abbreviation that is a plain word, like @{verbatim "ALL"}, is
   treated like a syntax keyword. Non-word abbreviations like @{verbatim "-->"}
@@ -1306,7 +1306,7 @@ text \<open>
   The prover may produce \<^emph>\<open>no completion\<close> markup in exceptional
   situations, to tell that some language keywords should be excluded from
   further completion attempts. For example, @{verbatim ":"} within accepted
-  Isar syntax looses its meaning as abbreviation for symbol @{text "\<in>"}.
+  Isar syntax looses its meaning as abbreviation for symbol \<open>\<in>\<close>.
 
   \<^medskip>
   The completion context is \<^emph>\<open>ignored\<close> for built-in templates and
@@ -1425,7 +1425,7 @@ text \<open>
   \<^emph>\<open>HyperSearch\<close>: clicking on one of the items in the \<^emph>\<open>HyperSearch
   Results\<close> window makes jEdit select all its occurrences in the corresponding
   line of text. Then explicit completion can be invoked via @{verbatim "C+b"},
-  e.g.\ to replace occurrences of @{verbatim "-->"} by @{text "\<longrightarrow>"}.
+  e.g.\ to replace occurrences of @{verbatim "-->"} by \<open>\<longrightarrow>\<close>.
 
   \<^medskip>
   Insertion works by removing and inserting pieces of text from the
@@ -1662,7 +1662,7 @@ text \<open>Citations are managed by {\LaTeX} and Bib{\TeX} in @{verbatim ".bib"
   "isabelle-system"} are smart enough to assemble the result, based on the
   session directory layout.
 
-  The document antiquotation @{text "@{cite}"} is described in @{cite
+  The document antiquotation \<open>@{cite}\<close> is described in @{cite
   "isabelle-isar-ref"}. Within the Prover IDE it provides semantic markup for
   tooltips, hyperlinks, and completion for Bib{\TeX} database entries.
   Isabelle/jEdit does \<^emph>\<open>not\<close> know about the actual Bib{\TeX} environment
