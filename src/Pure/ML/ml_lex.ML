@@ -293,9 +293,9 @@ val scan_ml =
 val scan_sml = scan_ml >> Antiquote.Text;
 
 val scan_ml_antiq =
+  Symbol_Pos.scan_cartouche err_prefix >> (Antiquote.Text o token Cartouche) ||
   Antiquote.scan_control >> Antiquote.Control ||
   Antiquote.scan_antiq >> Antiquote.Antiq ||
-  Symbol_Pos.scan_cartouche err_prefix >> (Antiquote.Text o token Cartouche) ||
   scan_ml >> Antiquote.Text;
 
 fun recover msg =

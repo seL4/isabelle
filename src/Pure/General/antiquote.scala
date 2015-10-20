@@ -25,12 +25,12 @@ object Antiquote
   trait Parsers extends Scan.Parsers
   {
     private val txt: Parser[String] =
-      rep1(many1(s => !Symbol.is_control(s) && s != "@") |
+      rep1(many1(s => !Symbol.is_control(s) && !Symbol.is_open(s) && s != "@") |
         one(Symbol.is_control) <~ guard(opt_term(one(s => !Symbol.is_open(s)))) |
         "@" <~ guard(opt_term(one(s => s != "{")))) ^^ (x => x.mkString)
 
     val control: Parser[String] =
-      one(Symbol.is_control) ~ cartouche ^^ { case x ~ y => x + y }
+      opt(one(Symbol.is_control)) ~ cartouche ^^ { case Some(x) ~ y => x + y case None ~ x => x }
 
     val antiq_other: Parser[String] =
       many1(s => s != "\"" && s != "`" && s != "}" && !Symbol.is_open(s) && !Symbol.is_close(s))

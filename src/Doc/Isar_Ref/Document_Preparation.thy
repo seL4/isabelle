@@ -131,25 +131,45 @@ text \<open>
   antiquotations are checked within the current theory or proof
   context.
 
-  \<^medskip>
-  Antiquotations are in general written @{verbatim "@{"}@{text "name
-  [options] arguments"}@{verbatim "}"}. The short form @{verbatim
-  \<open>\\<close>}@{verbatim "<^"}@{text name}@{verbatim ">"}@{text
-  "\<open>argument_content\<close>"} (without surrounding @{verbatim "@{"}@{text
-  "\<dots>"}@{verbatim "}"}) works for a single argument that is a cartouche.
+  \<^medskip> Antiquotations are in general written as @{verbatim "@{"}@{text
+  "name"}~@{verbatim "["}@{text options}@{verbatim "]"}~@{text
+  "arguments"}@{verbatim "}"}. The short form @{verbatim \<open>\\<close>}@{verbatim
+  "<^"}@{text name}@{verbatim ">"}@{text "\<open>argument_content\<close>"} (without
+  surrounding @{verbatim "@{"}@{text "\<dots>"}@{verbatim "}"}) works for a single
+  argument that is a cartouche.
+
+  Omitting the control symbol is also possible: a cartouche without special
+  decoration is equivalent to @{verbatim \<open>\\<close>}@{verbatim
+  "<^cartouche>"}@{text "\<open>argument_content\<close>"}, which is equivalent to
+  @{verbatim "@{cartouche"}~@{text "\<open>argument_content\<close>"}@{verbatim "}"}. The
+  special name @{antiquotation_def cartouche} is defined in the context:
+  Isabelle/Pure introduces that as an alias to @{antiquotation_ref text}
+  (see below). Consequently, \<open>\<open>foo_bar + baz \<le> bazar\<close>\<close> prints literal
+  quasi-formal text (unchecked).
 
   \begingroup
   \def\isasymcontrolstart{\isatt{\isacharbackslash\isacharless\isacharcircum}}
   @{rail \<open>
     @{syntax_def antiquotation}:
       '@{' antiquotation_body '}' |
-      '\<controlstart>' @{syntax_ref name} '>' @{syntax_ref cartouche}
+      '\<controlstart>' @{syntax_ref name} '>' @{syntax_ref cartouche} |
+      @{syntax_ref cartouche}
+    ;
+    options: '[' (option * ',') ']'
+    ;
+    option: @{syntax name} | @{syntax name} '=' @{syntax name}
+    ;
   \<close>}
   \endgroup
+
+  Note that the syntax of antiquotations may \<^emph>\<open>not\<close> include source
+  comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} nor verbatim
+  text @{verbatim "{*"}~@{text "\<dots>"}~@{verbatim "*}"}.
 
   %% FIXME less monolithic presentation, move to individual sections!?
   @{rail \<open>
     @{syntax_def antiquotation_body}:
+      (@@{antiquotation text} | @@{antiquotation cartouche}) options @{syntax text} |
       @@{antiquotation theory} options @{syntax name} |
       @@{antiquotation thm} options styles @{syntax thmrefs} |
       @@{antiquotation lemma} options @{syntax prop} @'by' @{syntax method} @{syntax method}? |
@@ -162,8 +182,7 @@ text \<open>
       @@{antiquotation abbrev} options @{syntax term} |
       @@{antiquotation typ} options @{syntax type} |
       @@{antiquotation type} options @{syntax name} |
-      @@{antiquotation class} options @{syntax name} |
-      @@{antiquotation text} options @{syntax text}
+      @@{antiquotation class} options @{syntax name}
     ;
     @{syntax antiquotation}:
       @@{antiquotation goals} options |
@@ -183,10 +202,6 @@ text \<open>
       @@{antiquotation url} options @{syntax name} |
       @@{antiquotation cite} options @{syntax cartouche}? (@{syntax name} + @'and')
     ;
-    options: '[' (option * ',') ']'
-    ;
-    option: @{syntax name} | @{syntax name} '=' @{syntax name}
-    ;
     styles: '(' (style + ',') ')'
     ;
     style: (@{syntax name} +)
@@ -194,9 +209,14 @@ text \<open>
     @@{command print_antiquotations} ('!'?)
   \<close>}
 
-  Note that the syntax of antiquotations may \<^emph>\<open>not\<close> include source
-  comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} nor verbatim
-  text @{verbatim "{*"}~@{text "\<dots>"}~@{verbatim "*}"}.
+  \<^descr> @{text "@{text s}"} prints uninterpreted source text @{text
+  s}.  This is particularly useful to print portions of text according
+  to the Isabelle document style, without demanding well-formedness,
+  e.g.\ small pieces of terms that should not be parsed or
+  type-checked yet.
+
+  It is also possible to write this in the short form \<open>\<open>s\<close>\<close> without any
+  further decoration.
 
   \<^descr> @{text "@{theory A}"} prints the name @{text "A"}, which is
   guaranteed to refer to a valid ancestor theory in the current
@@ -235,12 +255,6 @@ text \<open>
     constructor @{text "\<kappa>"}.
 
   \<^descr> @{text "@{class c}"} prints a class @{text c}.
-
-  \<^descr> @{text "@{text s}"} prints uninterpreted source text @{text
-  s}.  This is particularly useful to print portions of text according
-  to the Isabelle document style, without demanding well-formedness,
-  e.g.\ small pieces of terms that should not be parsed or
-  type-checked yet.
 
   \<^descr> @{text "@{goals}"} prints the current \<^emph>\<open>dynamic\<close> goal
   state.  This is mainly for support of tactic-emulation scripts

@@ -78,7 +78,8 @@ val err_prefix = "Antiquotation lexical error: ";
 
 val scan_txt =
   Scan.repeats1
-   (Scan.many1 (fn (s, _) => not (Symbol.is_control s) andalso s <> "@" andalso Symbol.not_eof s) ||
+   (Scan.many1 (fn (s, _) =>
+      not (Symbol.is_control s) andalso s <> "\\<open>" andalso s <> "@" andalso Symbol.not_eof s) ||
     Scan.one (fn (s, _) => Symbol.is_control s) --| Scan.ahead (~$$ "\\<open>") >> single ||
     $$$ "@" --| Scan.ahead (~$$ "{"));
 
@@ -87,16 +88,20 @@ val scan_antiq_body =
   Symbol_Pos.scan_cartouche err_prefix ||
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.not_eof s) >> single;
 
+fun control_name sym = (case Symbol.decode sym of Symbol.Control name => name);
+
 in
 
 val scan_control =
-  Scan.one (Symbol.is_control o Symbol_Pos.symbol) --
+  Scan.option (Scan.one (Symbol.is_control o Symbol_Pos.symbol)) --
   Symbol_Pos.scan_cartouche err_prefix >>
-    (fn ((control, pos), body) =>
+    (fn (opt_control, body) =>
       let
-        val Symbol.Control name = Symbol.decode control;
-        val range = Symbol_Pos.range ((control, pos) :: body);
-      in {name = (name, pos), range = range, body = body} end);
+        val (name, range) =
+          (case opt_control of
+            SOME (sym, pos) => ((control_name sym, pos), Symbol_Pos.range ((sym, pos) :: body))
+          | NONE => (("cartouche", #2 (hd body)), Symbol_Pos.range body));
+      in {name = name, range = range, body = body} end);
 
 val scan_antiq =
   Symbol_Pos.scan_pos -- ($$ "@" |-- $$ "{" |-- Symbol_Pos.scan_pos --

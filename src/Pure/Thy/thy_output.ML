@@ -617,8 +617,26 @@ in
 
 val _ =
   Theory.setup
-   (control_antiquotation @{binding "emph"} "\\emph{" "}" #>
-    control_antiquotation @{binding "bold"} "\\textbf{" "}");
+   (control_antiquotation @{binding emph} "\\emph{" "}" #>
+    control_antiquotation @{binding bold} "\\textbf{" "}");
+
+end;
+
+
+(* quasi-formal text (unchecked) *)
+
+local
+
+fun text_antiquotation name =
+  antiquotation name (Scan.lift Args.text_input)
+    (fn {context = ctxt, ...} => output ctxt o single o pretty_text_report ctxt);
+
+in
+
+val _ =
+  Theory.setup
+   (text_antiquotation @{binding text} #>
+    text_antiquotation @{binding cartouche});
 
 end;
 
@@ -628,13 +646,13 @@ end;
 local
 
 fun basic_entities name scan pretty =
-  antiquotation name scan (fn {source, context, ...} =>
-    output context o maybe_pretty_source pretty context source);
+  antiquotation name scan (fn {source, context = ctxt, ...} =>
+    output ctxt o maybe_pretty_source pretty ctxt source);
 
 fun basic_entities_style name scan pretty =
-  antiquotation name scan (fn {source, context, ...} => fn (style, xs) =>
-    output context
-      (maybe_pretty_source (fn ctxt => fn x => pretty ctxt (style, x)) context source xs));
+  antiquotation name scan (fn {source, context = ctxt, ...} => fn (style, xs) =>
+    output ctxt
+      (maybe_pretty_source (fn ctxt => fn x => pretty ctxt (style, x)) ctxt source xs));
 
 fun basic_entity name scan = basic_entities name (scan >> single);
 
@@ -651,7 +669,6 @@ val _ = Theory.setup
   basic_entity @{binding typ} Args.typ_abbrev Syntax.pretty_typ #>
   basic_entity @{binding class} (Scan.lift Args.name_inner_syntax) pretty_class #>
   basic_entity @{binding type} (Scan.lift Args.name) pretty_type #>
-  basic_entity @{binding text} (Scan.lift Args.text_input) pretty_text_report #>
   basic_entities @{binding prf} Attrib.thms (pretty_prf false) #>
   basic_entities @{binding full_prf} Attrib.thms (pretty_prf true) #>
   basic_entity @{binding theory} (Scan.lift (Parse.position Args.name)) pretty_theory);

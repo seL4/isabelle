@@ -22,9 +22,6 @@ accordingly.
 * Toplevel theorem statement 'proposition' is another alias for
 'theorem'.
 
-* There is a new short form for antiquotations with a single argument
-that is a cartouche: \<^name>\<open>...\<close> is equivalent to @{name \<open>...\<close>}.
-
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
@@ -62,6 +59,19 @@ instead of former C+e LEFT.
 
 
 *** Document preparation ***
+
+* There is a new short form for antiquotations with a single argument
+that is a cartouche: \<^name>\<open>...\<close> is equivalent to @{name \<open>...\<close>} and
+\<open>...\<close> without control symbol is equivalent to @{cartouche \<open>...\<close>}.
+
+* Antiquotation @{cartouche} in Isabelle/Pure is the same as @{text}.
+Consequently, \<open>...\<close> without any decoration prints literal quasi-formal
+text.
+
+* The @{text} antiquotation now ignores the antiquotation option
+"source". The given text content is output unconditionally, without any
+surrounding quotes etc. Subtle INCOMPATIBILITY, put quotes into the
+argument where they are really intended, e.g. @{text \<open>"foo"\<close>}.
 
 * HTML presentation uses the standard IsabelleText font and Unicode
 rendering of Isabelle symbols like Isabelle/Scala/jEdit.  The former
