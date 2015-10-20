@@ -12,7 +12,7 @@ import scala.util.parsing.input.CharSequenceReader
 
 object Antiquote
 {
-  sealed abstract class Antiquote
+  sealed abstract class Antiquote { def source: String }
   case class Text(source: String) extends Antiquote
   case class Control(source: String) extends Antiquote
   case class Antiq(source: String) extends Antiquote

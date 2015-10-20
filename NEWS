@@ -66,7 +66,9 @@ that is a cartouche: \<^name>\<open>...\<close> is equivalent to @{name \<open>.
 
 * Antiquotation @{cartouche} in Isabelle/Pure is the same as @{text}.
 Consequently, \<open>...\<close> without any decoration prints literal quasi-formal
-text.
+text. Command-line tool "isabelle update_cartouches -t" helps to update
+old sources, by approximative patching of the content of string and
+cartouche tokens seen in theory sources.
 
 * The @{text} antiquotation now ignores the antiquotation option
 "source". The given text content is output unconditionally, without any

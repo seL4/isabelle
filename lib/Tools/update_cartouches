@@ -14,6 +14,9 @@ function usage()
   echo
   echo "Usage: isabelle $PRG [FILES|DIRS...]"
   echo
+  echo "  Options are:"
+  echo "    -t           replace @{text} antiquotations within text tokens"
+  echo
   echo "  Recursively find .thy files and update theory syntax to use cartouches"
   echo "  instead of old-style {* verbatim *} or \`alt_string\` tokens."
   echo
@@ -25,6 +28,27 @@ function usage()
 
 ## process command line
 
+# options
+
+TEXT="false"
+
+while getopts "t" OPT
+do
+  case "$OPT" in
+    t)
+      TEXT="true"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
 [ "$#" -eq 0 -o "$1" = "-?" ] && usage
 
 SPECS="$@"; shift "$#"
@@ -33,4 +57,4 @@ SPECS="$@"; shift "$#"
 ## main
 
 find $SPECS -name \*.thy -print0 | \
-  xargs -0 "$ISABELLE_TOOL" java isabelle.Update_Cartouches
+  xargs -0 "$ISABELLE_TOOL" java isabelle.Update_Cartouches "$TEXT"
