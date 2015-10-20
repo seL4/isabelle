@@ -1398,7 +1398,7 @@ text \<open>
   \<close>}
 
   \<^descr> @{command consider}~\<open>(a) \<^vec>x \<WHERE> \<^vec>A \<^vec>x
-  | (b) \<^vec>y \<WHERE> \<^vec>B \<^vec>y | \<dots> \<close> states a rule for case
+  | (b) \<^vec>y \<WHERE> \<^vec>B \<^vec>y | \<dots>\<close> states a rule for case
   splitting into separate subgoals, such that each case involves new
   parameters and premises. After the proof is finished, the resulting rule
   may be used directly with the @{method cases} proof method

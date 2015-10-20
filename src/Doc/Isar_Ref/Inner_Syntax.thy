@@ -452,7 +452,7 @@ text \<open>A \<^emph>\<open>binder\<close> is a variable-binding construct such
   as follows:
 
   \begin{center}
-  \<open>c :: \<close>@{verbatim \<open>"\<close>}\<open>(\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2) \<Rightarrow> \<tau>\<^sub>3\<close>@{verbatim \<open>"  (\<close>}@{keyword "binder"}~@{verbatim \<open>"\<close>}\<open>sy\<close>@{verbatim \<open>" [\<close>}\<open>p\<close>@{verbatim "]"}~\<open>q\<close>@{verbatim ")"}
+  \<open>c ::\<close>~@{verbatim \<open>"\<close>}\<open>(\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2) \<Rightarrow> \<tau>\<^sub>3\<close>@{verbatim \<open>"  (\<close>}@{keyword "binder"}~@{verbatim \<open>"\<close>}\<open>sy\<close>@{verbatim \<open>" [\<close>}\<open>p\<close>@{verbatim "]"}~\<open>q\<close>@{verbatim ")"}
   \end{center}
 
   This introduces concrete binder syntax \<open>sy x. b\<close>, where
@@ -463,7 +463,7 @@ text \<open>A \<^emph>\<open>binder\<close> is a variable-binding construct such
 
   Internally, the binder syntax is expanded to something like this:
   \begin{center}
-  \<open>c_binder :: \<close>@{verbatim \<open>"\<close>}\<open>idts \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> \<tau>\<^sub>3\<close>@{verbatim \<open>"  ("(3\<close>}\<open>sy\<close>@{verbatim \<open>_./ _)" [0,\<close>}~\<open>p\<close>@{verbatim "]"}~\<open>q\<close>@{verbatim ")"}
+  \<open>c_binder ::\<close>~@{verbatim \<open>"\<close>}\<open>idts \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> \<tau>\<^sub>3\<close>@{verbatim \<open>"  ("(3\<close>}\<open>sy\<close>@{verbatim \<open>_./ _)" [0,\<close>}~\<open>p\<close>@{verbatim "]"}~\<open>q\<close>@{verbatim ")"}
   \end{center}
 
   Here @{syntax (inner) idts} is the nonterminal symbol for a list of
@@ -685,29 +685,29 @@ text \<open>The priority grammar of the \<open>Pure\<close> theory is defined
     & \<open>|\<close> & @{verbatim PROP} \<open>aprop\<close> \\\\
 
   @{syntax_def (inner) aprop} & = & @{verbatim "("} \<open>aprop\<close> @{verbatim ")"} \\
-    & \<open>|\<close> & \<open>id  |  longid  |  var  |  \<close>@{verbatim "_"}\<open>  |  \<close>@{verbatim "..."} \\
-    & \<open>|\<close> & @{verbatim CONST} \<open>id  |  \<close>@{verbatim CONST} \<open>longid\<close> \\
-    & \<open>|\<close> & @{verbatim XCONST} \<open>id  |  \<close>@{verbatim XCONST} \<open>longid\<close> \\
+    & \<open>|\<close> & \<open>id  |  longid  |  var  |\<close>~~@{verbatim "_"}~~\<open>|\<close>~~@{verbatim "..."} \\
+    & \<open>|\<close> & @{verbatim CONST} \<open>id  |\<close>~~@{verbatim CONST} \<open>longid\<close> \\
+    & \<open>|\<close> & @{verbatim XCONST} \<open>id  |\<close>~~@{verbatim XCONST} \<open>longid\<close> \\
     & \<open>|\<close> & \<open>logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)\<close> & \<open>(999)\<close> \\\\
 
   @{syntax_def (inner) logic} & = & @{verbatim "("} \<open>logic\<close> @{verbatim ")"} \\
     & \<open>|\<close> & \<open>logic\<^sup>(\<^sup>4\<^sup>)\<close> @{verbatim "::"} \<open>type\<close> & \<open>(3)\<close> \\
-    & \<open>|\<close> & \<open>id  |  longid  |  var  |  \<close>@{verbatim "_"}\<open>  |  \<close>@{verbatim "..."} \\
-    & \<open>|\<close> & @{verbatim CONST} \<open>id  |  \<close>@{verbatim CONST} \<open>longid\<close> \\
-    & \<open>|\<close> & @{verbatim XCONST} \<open>id  |  \<close>@{verbatim XCONST} \<open>longid\<close> \\
+    & \<open>|\<close> & \<open>id  |  longid  |  var  |\<close>~~@{verbatim "_"}~~\<open>|\<close>~~@{verbatim "..."} \\
+    & \<open>|\<close> & @{verbatim CONST} \<open>id  |\<close>~~@{verbatim CONST} \<open>longid\<close> \\
+    & \<open>|\<close> & @{verbatim XCONST} \<open>id  |\<close>~~@{verbatim XCONST} \<open>longid\<close> \\
     & \<open>|\<close> & \<open>logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)\<close> & \<open>(999)\<close> \\
     & \<open>|\<close> & \<open>\<struct> index\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)\<close> \\
     & \<open>|\<close> & @{verbatim "%"} \<open>pttrns\<close> @{verbatim "."} \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>(3)\<close> \\
     & \<open>|\<close> & \<open>\<lambda>\<close> \<open>pttrns\<close> @{verbatim "."} \<open>any\<^sup>(\<^sup>3\<^sup>)\<close> & \<open>(3)\<close> \\
-    & \<open>|\<close> & @{verbatim op} @{verbatim "=="}\<open>  |  \<close>@{verbatim op} \<open>\<equiv>\<close>\<open>  |  \<close>@{verbatim op} @{verbatim "&&&"} \\
-    & \<open>|\<close> & @{verbatim op} @{verbatim "==>"}\<open>  |  \<close>@{verbatim op} \<open>\<Longrightarrow>\<close> \\
+    & \<open>|\<close> & @{verbatim op} @{verbatim "=="}~~\<open>|\<close>~~@{verbatim op} \<open>\<equiv>\<close>~~\<open>|\<close>~~@{verbatim op} @{verbatim "&&&"} \\
+    & \<open>|\<close> & @{verbatim op} @{verbatim "==>"}~~\<open>|\<close>~~@{verbatim op} \<open>\<Longrightarrow>\<close> \\
     & \<open>|\<close> & @{verbatim TYPE} @{verbatim "("} \<open>type\<close> @{verbatim ")"} \\\\
 
-  @{syntax_def (inner) idt} & = & @{verbatim "("} \<open>idt\<close> @{verbatim ")"}\<open>  |  id  |  \<close>@{verbatim "_"} \\
+  @{syntax_def (inner) idt} & = & @{verbatim "("} \<open>idt\<close> @{verbatim ")"}~~\<open>|  id  |\<close>~~@{verbatim "_"} \\
     & \<open>|\<close> & \<open>id\<close> @{verbatim "::"} \<open>type\<close> & \<open>(0)\<close> \\
     & \<open>|\<close> & @{verbatim "_"} @{verbatim "::"} \<open>type\<close> & \<open>(0)\<close> \\\\
 
-  @{syntax_def (inner) index} & = & @{verbatim "\<^bsub>"} \<open>logic\<^sup>(\<^sup>0\<^sup>)\<close> @{verbatim "\<^esub>"}\<open>  |  |  \<index>\<close> \\\\
+  @{syntax_def (inner) index} & = & @{verbatim "\<^bsub>"} \<open>logic\<^sup>(\<^sup>0\<^sup>)\<close> @{verbatim "\<^esub>"}~~\<open>|  |  \<index>\<close> \\\\
 
   @{syntax_def (inner) idts} & = & \<open>idt  |  idt\<^sup>(\<^sup>1\<^sup>) idts\<close> & \<open>(0)\<close> \\\\
 
@@ -716,8 +716,8 @@ text \<open>The priority grammar of the \<open>Pure\<close> theory is defined
   @{syntax_def (inner) pttrns} & = & \<open>pttrn  |  pttrn\<^sup>(\<^sup>1\<^sup>) pttrns\<close> & \<open>(0)\<close> \\\\
 
   @{syntax_def (inner) type} & = & @{verbatim "("} \<open>type\<close> @{verbatim ")"} \\
-    & \<open>|\<close> & \<open>tid  |  tvar  |  \<close>@{verbatim "_"} \\
-    & \<open>|\<close> & \<open>tid\<close> @{verbatim "::"} \<open>sort  |  tvar  \<close>@{verbatim "::"} \<open>sort  |  \<close>@{verbatim "_"} @{verbatim "::"} \<open>sort\<close> \\
+    & \<open>|\<close> & \<open>tid  |  tvar  |\<close>~~@{verbatim "_"} \\
+    & \<open>|\<close> & \<open>tid\<close> @{verbatim "::"} \<open>sort  |  tvar\<close>~~@{verbatim "::"} \<open>sort  |\<close>~~@{verbatim "_"} @{verbatim "::"} \<open>sort\<close> \\
     & \<open>|\<close> & \<open>type_name  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) type_name\<close> \\
     & \<open>|\<close> & @{verbatim "("} \<open>type\<close> @{verbatim ","} \<open>\<dots>\<close> @{verbatim ","} \<open>type\<close> @{verbatim ")"} \<open>type_name\<close> \\
     & \<open>|\<close> & \<open>type\<^sup>(\<^sup>1\<^sup>)\<close> @{verbatim "=>"} \<open>type\<close> & \<open>(0)\<close> \\
@@ -726,7 +726,7 @@ text \<open>The priority grammar of the \<open>Pure\<close> theory is defined
     & \<open>|\<close> & @{verbatim "["} \<open>type\<close> @{verbatim ","} \<open>\<dots>\<close> @{verbatim ","} \<open>type\<close> @{verbatim "]"} \<open>\<Rightarrow>\<close> \<open>type\<close> & \<open>(0)\<close> \\
   @{syntax_def (inner) type_name} & = & \<open>id  |  longid\<close> \\\\
 
-  @{syntax_def (inner) sort} & = & @{syntax class_name}~\<open>  |  \<close>@{verbatim "{}"} \\
+  @{syntax_def (inner) sort} & = & @{syntax class_name}~~\<open>|\<close>~~@{verbatim "{}"} \\
     & \<open>|\<close> & @{verbatim "{"} @{syntax class_name} @{verbatim ","} \<open>\<dots>\<close> @{verbatim ","} @{syntax class_name} @{verbatim "}"} \\
   @{syntax_def (inner) class_name} & = & \<open>id  |  longid\<close> \\
   \end{supertabular}
@@ -1173,7 +1173,7 @@ text \<open>
   with other syntax declarations.
 
   \<^medskip>
-  The special case of copy production is specified by \<open>c = \<close>@{verbatim \<open>""\<close>} (empty string).  It means that the
+  The special case of copy production is specified by \<open>c =\<close>~@{verbatim \<open>""\<close>} (empty string).  It means that the
   resulting parse tree \<open>t\<close> is copied directly, without any
   further decoration.
 

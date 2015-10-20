@@ -73,7 +73,8 @@ cartouche tokens seen in theory sources.
 * The @{text} antiquotation now ignores the antiquotation option
 "source". The given text content is output unconditionally, without any
 surrounding quotes etc. Subtle INCOMPATIBILITY, put quotes into the
-argument where they are really intended, e.g. @{text \<open>"foo"\<close>}.
+argument where they are really intended, e.g. @{text \<open>"foo"\<close>}. Initial
+or terminal spaces are ignored.
 
 * HTML presentation uses the standard IsabelleText font and Unicode
 rendering of Isabelle symbols like Isabelle/Scala/jEdit.  The former

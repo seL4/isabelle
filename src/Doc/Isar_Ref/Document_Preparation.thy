@@ -109,7 +109,7 @@ text \<open>
     @{antiquotation_def "file"} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def "url"} & : & \<open>antiquotation\<close> \\
     @{antiquotation_def "cite"} & : & \<open>antiquotation\<close> \\
-    @{command_def "print_antiquotations"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow> \<close> \\
+    @{command_def "print_antiquotations"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
   The overall content of an Isabelle/Isar theory may alternate between

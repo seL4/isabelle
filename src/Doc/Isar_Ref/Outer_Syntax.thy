@@ -103,32 +103,32 @@ text \<open>The outer lexical syntax consists of three main categories of
   \begin{supertabular}{rcl}
     @{syntax_def ident} & = & \<open>letter (subscript\<^sup>? quasiletter)\<^sup>*\<close> \\
     @{syntax_def longident} & = & \<open>ident(\<close>@{verbatim "."}\<open>ident)\<^sup>+\<close> \\
-    @{syntax_def symident} & = & \<open>sym\<^sup>+  |  \<close>@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>ident\<close>@{verbatim ">"} \\
+    @{syntax_def symident} & = & \<open>sym\<^sup>+  |\<close>~~@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>ident\<close>@{verbatim ">"} \\
     @{syntax_def nat} & = & \<open>digit\<^sup>+\<close> \\
-    @{syntax_def float} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}\<open>  |  \<close>@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
-    @{syntax_def var} & = & @{verbatim "?"}\<open>ident  |  \<close>@{verbatim "?"}\<open>ident\<close>@{verbatim "."}\<open>nat\<close> \\
+    @{syntax_def float} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}~~\<open>|\<close>~~@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
+    @{syntax_def var} & = & @{verbatim "?"}\<open>ident  |\<close>~~@{verbatim "?"}\<open>ident\<close>@{verbatim "."}\<open>nat\<close> \\
     @{syntax_def typefree} & = & @{verbatim "'"}\<open>ident\<close> \\
-    @{syntax_def typevar} & = & @{verbatim "?"}\<open>typefree  |  \<close>@{verbatim "?"}\<open>typefree\<close>@{verbatim "."}\<open>nat\<close> \\
+    @{syntax_def typevar} & = & @{verbatim "?"}\<open>typefree  |\<close>~~@{verbatim "?"}\<open>typefree\<close>@{verbatim "."}\<open>nat\<close> \\
     @{syntax_def string} & = & @{verbatim \<open>"\<close>} \<open>\<dots>\<close> @{verbatim \<open>"\<close>} \\
     @{syntax_def altstring} & = & @{verbatim "`"} \<open>\<dots>\<close> @{verbatim "`"} \\
     @{syntax_def cartouche} & = & @{verbatim "\<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\
     @{syntax_def verbatim} & = & @{verbatim "{*"} \<open>\<dots>\<close> @{verbatim "*}"} \\[1ex]
 
-    \<open>letter\<close> & = & \<open>latin  |  \<close>@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>latin\<close>@{verbatim ">"}\<open>  |  \<close>@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>latin latin\<close>@{verbatim ">"}\<open>  |  greek  |\<close> \\
+    \<open>letter\<close> & = & \<open>latin  |\<close>~~@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>latin\<close>@{verbatim ">"}~~\<open>|\<close>~~@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>latin latin\<close>@{verbatim ">"}~~\<open>|  greek  |\<close> \\
     \<open>subscript\<close> & = & @{verbatim "\<^sub>"} \\
-    \<open>quasiletter\<close> & = & \<open>letter  |  digit  |  \<close>@{verbatim "_"}\<open>  |  \<close>@{verbatim "'"} \\
-    \<open>latin\<close> & = & @{verbatim a}\<open>  | \<dots> |  \<close>@{verbatim z}\<open>  |  \<close>@{verbatim A}\<open>  |  \<dots> |  \<close>@{verbatim Z} \\
-    \<open>digit\<close> & = & @{verbatim "0"}\<open>  |  \<dots> |  \<close>@{verbatim "9"} \\
-    \<open>sym\<close> & = & @{verbatim "!"}\<open>  |  \<close>@{verbatim "#"}\<open>  |  \<close>@{verbatim "$"}\<open>  |  \<close>@{verbatim "%"}\<open>  |  \<close>@{verbatim "&"}\<open>  |  \<close>@{verbatim "*"}\<open>  |  \<close>@{verbatim "+"}\<open>  |  \<close>@{verbatim "-"}\<open>  |  \<close>@{verbatim "/"}\<open>  |\<close> \\
-    & & @{verbatim "<"}\<open>  |  \<close>@{verbatim "="}\<open>  |  \<close>@{verbatim ">"}\<open>  |  \<close>@{verbatim "?"}\<open>  |  \<close>@{verbatim "@"}\<open>  |  \<close>@{verbatim "^"}\<open>  |  \<close>@{verbatim "_"}\<open>  |  \<close>@{verbatim "|"}\<open>  |  \<close>@{verbatim "~"} \\
-    \<open>greek\<close> & = & @{verbatim "\<alpha>"}\<open>  |  \<close>@{verbatim "\<beta>"}\<open>  |  \<close>@{verbatim "\<gamma>"}\<open>  |  \<close>@{verbatim "\<delta>"}\<open>  |\<close> \\
-          &   & @{verbatim "\<epsilon>"}\<open>  |  \<close>@{verbatim "\<zeta>"}\<open>  |  \<close>@{verbatim "\<eta>"}\<open>  |  \<close>@{verbatim "\<theta>"}\<open>  |\<close> \\
-          &   & @{verbatim "\<iota>"}\<open>  |  \<close>@{verbatim "\<kappa>"}\<open>  |  \<close>@{verbatim "\<mu>"}\<open>  |  \<close>@{verbatim "\<nu>"}\<open>  |\<close> \\
-          &   & @{verbatim "\<xi>"}\<open>  |  \<close>@{verbatim "\<pi>"}\<open>  |  \<close>@{verbatim "\<rho>"}\<open>  |  \<close>@{verbatim "\<sigma>"}\<open>  |  \<close>@{verbatim "\<tau>"}\<open>  |\<close> \\
-          &   & @{verbatim "\<upsilon>"}\<open>  |  \<close>@{verbatim "\<phi>"}\<open>  |  \<close>@{verbatim "\<chi>"}\<open>  |  \<close>@{verbatim "\<psi>"}\<open>  |\<close> \\
-          &   & @{verbatim "\<omega>"}\<open>  |  \<close>@{verbatim "\<Gamma>"}\<open>  |  \<close>@{verbatim "\<Delta>"}\<open>  |  \<close>@{verbatim "\<Theta>"}\<open>  |\<close> \\
-          &   & @{verbatim "\<Lambda>"}\<open>  |  \<close>@{verbatim "\<Xi>"}\<open>  |  \<close>@{verbatim "\<Pi>"}\<open>  |  \<close>@{verbatim "\<Sigma>"}\<open>  |\<close> \\
-          &   & @{verbatim "\<Upsilon>"}\<open>  |  \<close>@{verbatim "\<Phi>"}\<open>  |  \<close>@{verbatim "\<Psi>"}\<open>  |  \<close>@{verbatim "\<Omega>"} \\
+    \<open>quasiletter\<close> & = & \<open>letter  |  digit  |\<close>~~@{verbatim "_"}~~\<open>|\<close>~~@{verbatim "'"} \\
+    \<open>latin\<close> & = & @{verbatim a}~~\<open>| \<dots> |\<close>~~@{verbatim z}~~\<open>|\<close>~~@{verbatim A}~~\<open>|  \<dots> |\<close>~~@{verbatim Z} \\
+    \<open>digit\<close> & = & @{verbatim "0"}~~\<open>|  \<dots> |\<close>~~@{verbatim "9"} \\
+    \<open>sym\<close> & = & @{verbatim "!"}~~\<open>|\<close>~~@{verbatim "#"}~~\<open>|\<close>~~@{verbatim "$"}~~\<open>|\<close>~~@{verbatim "%"}~~\<open>|\<close>~~@{verbatim "&"}~~\<open>|\<close>~~@{verbatim "*"}~~\<open>|\<close>~~@{verbatim "+"}~~\<open>|\<close>~~@{verbatim "-"}~~\<open>|\<close>~~@{verbatim "/"}~~\<open>|\<close> \\
+    & & @{verbatim "<"}~~\<open>|\<close>~~@{verbatim "="}~~\<open>|\<close>~~@{verbatim ">"}~~\<open>|\<close>~~@{verbatim "?"}~~\<open>|\<close>~~@{verbatim "@"}~~\<open>|\<close>~~@{verbatim "^"}~~\<open>|\<close>~~@{verbatim "_"}~~\<open>|\<close>~~@{verbatim "|"}~~\<open>|\<close>~~@{verbatim "~"} \\
+    \<open>greek\<close> & = & @{verbatim "\<alpha>"}~~\<open>|\<close>~~@{verbatim "\<beta>"}~~\<open>|\<close>~~@{verbatim "\<gamma>"}~~\<open>|\<close>~~@{verbatim "\<delta>"}~~\<open>|\<close> \\
+          &   & @{verbatim "\<epsilon>"}~~\<open>|\<close>~~@{verbatim "\<zeta>"}~~\<open>|\<close>~~@{verbatim "\<eta>"}~~\<open>|\<close>~~@{verbatim "\<theta>"}~~\<open>|\<close> \\
+          &   & @{verbatim "\<iota>"}~~\<open>|\<close>~~@{verbatim "\<kappa>"}~~\<open>|\<close>~~@{verbatim "\<mu>"}~~\<open>|\<close>~~@{verbatim "\<nu>"}~~\<open>|\<close> \\
+          &   & @{verbatim "\<xi>"}~~\<open>|\<close>~~@{verbatim "\<pi>"}~~\<open>|\<close>~~@{verbatim "\<rho>"}~~\<open>|\<close>~~@{verbatim "\<sigma>"}~~\<open>|\<close>~~@{verbatim "\<tau>"}~~\<open>|\<close> \\
+          &   & @{verbatim "\<upsilon>"}~~\<open>|\<close>~~@{verbatim "\<phi>"}~~\<open>|\<close>~~@{verbatim "\<chi>"}~~\<open>|\<close>~~@{verbatim "\<psi>"}~~\<open>|\<close> \\
+          &   & @{verbatim "\<omega>"}~~\<open>|\<close>~~@{verbatim "\<Gamma>"}~~\<open>|\<close>~~@{verbatim "\<Delta>"}~~\<open>|\<close>~~@{verbatim "\<Theta>"}~~\<open>|\<close> \\
+          &   & @{verbatim "\<Lambda>"}~~\<open>|\<close>~~@{verbatim "\<Xi>"}~~\<open>|\<close>~~@{verbatim "\<Pi>"}~~\<open>|\<close>~~@{verbatim "\<Sigma>"}~~\<open>|\<close> \\
+          &   & @{verbatim "\<Upsilon>"}~~\<open>|\<close>~~@{verbatim "\<Phi>"}~~\<open>|\<close>~~@{verbatim "\<Psi>"}~~\<open>|\<close>~~@{verbatim "\<Omega>"} \\
   \end{supertabular}
   \end{center}
 

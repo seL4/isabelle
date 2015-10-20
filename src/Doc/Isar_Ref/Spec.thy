@@ -217,7 +217,7 @@ section \<open>Bundled declarations \label{sec:bundle}\<close>
 text \<open>
   \begin{matharray}{rcl}
     @{command_def "bundle"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
-    @{command_def "print_bundles"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow> \<close> \\
+    @{command_def "print_bundles"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
     @{command_def "include"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
     @{command_def "including"} & : & \<open>proof(prove) \<rightarrow> proof(prove)\<close> \\
     @{keyword_def "includes"} & : & syntax \\
@@ -292,9 +292,9 @@ text \<open>
   \begin{matharray}{rcll}
     @{command_def "definition"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{attribute_def "defn"} & : & \<open>attribute\<close> \\
-    @{command_def "print_defn_rules"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow> \<close> \\
+    @{command_def "print_defn_rules"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
     @{command_def "abbreviation"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
-    @{command_def "print_abbrevs"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow> \<close> \\
+    @{command_def "print_abbrevs"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
 
   Term definitions may either happen within the logic (as equational axioms
