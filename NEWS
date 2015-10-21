@@ -62,7 +62,9 @@ instead of former C+e LEFT.
 
 * There is a new short form for antiquotations with a single argument
 that is a cartouche: \<^name>\<open>...\<close> is equivalent to @{name \<open>...\<close>} and
-\<open>...\<close> without control symbol is equivalent to @{cartouche \<open>...\<close>}.
+\<open>...\<close> without control symbol is equivalent to @{cartouche \<open>...\<close>}. The
+standard Isabelle fonts provide glyphs to render important control
+symbols, e.g. "\<^verbatim>", "\<^emph>", "\<^bold>".
 
 * Antiquotation @{cartouche} in Isabelle/Pure is the same as @{text}.
 Consequently, \<open>...\<close> without any decoration prints literal quasi-formal

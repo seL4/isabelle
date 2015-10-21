@@ -359,6 +359,7 @@
 \<^item>                code: 0x0025aa  group: control  font: IsabelleText
 \<^enum>                code: 0x0025b8  group: control  font: IsabelleText
 \<^descr>               code: 0x0027a7  group: control  font: IsabelleText
+\<^verbatim>            code: 0x0025a9  group: control  font: IsabelleText
 \<^emph>                code: 0x002217  group: control  font: IsabelleText
 \<^bold>                code: 0x002759  group: control  font: IsabelleText
 \<^sub>                 code: 0x0021e9  group: control  font: IsabelleText
