@@ -124,7 +124,6 @@ DVI_VIEWER="$ISABELLE_OPEN"
 ### Rendering information
 ###
 
-ISABELLE_FONTS="$ISABELLE_HOME/lib/fonts/IsabelleText.ttf:$ISABELLE_HOME/lib/fonts/IsabelleTextBold.ttf"
 ISABELLE_SYMBOLS="$ISABELLE_HOME/etc/symbols:$ISABELLE_HOME_USER/etc/symbols"
 
 

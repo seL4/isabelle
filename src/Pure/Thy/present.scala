@@ -105,8 +105,9 @@ object Present
       Isabelle_System.mkdirs(session_prefix)
       File.write(session_prefix + Path.basic("session_graph.pdf"), File.read(graph_file))
       File.copy(Path.explode("~~/etc/isabelle.css"), session_prefix)
-      File.copy(Path.explode("~~/lib/fonts/IsabelleText.ttf"), session_prefix)
-      File.copy(Path.explode("~~/lib/fonts/IsabelleTextBold.ttf"), session_prefix)
+
+      for (font <- Path.split(Isabelle_System.getenv_strict("ISABELLE_FONTS")))
+        File.copy(font, session_prefix)
     }
   }
 }
