@@ -225,7 +225,7 @@ text \<open>
   "values"} and the number of elements.
 \<close>
 
-values %quote [mode: i \<Rightarrow> o \<Rightarrow> bool] 1 "{n. tranclp succ 10 n}" (*FIMXE does not terminate for n\<ge>1*)
+values %quote [mode: i \<Rightarrow> o \<Rightarrow> bool] 1 "{n. tranclp succ 10 n}" (*FIXME does not terminate for n\<ge>1*)
 values %quote [mode: o \<Rightarrow> i \<Rightarrow> bool] 1 "{n. tranclp succ n 10}"
 
 
@@ -237,25 +237,22 @@ text \<open>
 
   \begin{itemize}
 
-    \item You want to use the first-order predicate with the mode
-      where all arguments are input. Then you can use the predicate directly, e.g.
+  \item You want to use the first-order predicate with the mode
+    where all arguments are input. Then you can use the predicate directly, e.g.
 
-      \begin{quote}
-        @{text "valid_suffix ys zs = "} \\
-        @{text "(if append [Suc 0, 2] ys zs then Some ys else None)"}
-      \end{quote}
+    @{text [display]
+\<open>valid_suffix ys zs =
+  (if append [Suc 0, 2] ys zs then Some ys else None)\<close>}
 
-    \item If you know that the execution returns only one value (it is
-      deterministic), then you can use the combinator @{term
-      "Predicate.the"}, e.g., a functional concatenation of lists is
-      defined with
+  \item If you know that the execution returns only one value (it is
+    deterministic), then you can use the combinator @{term
+    "Predicate.the"}, e.g., a functional concatenation of lists is
+    defined with
 
-      \begin{quote}
-        @{term "functional_concat xs ys = Predicate.the (append_i_i_o xs ys)"}
-      \end{quote}
+    @{term [display] "functional_concat xs ys = Predicate.the (append_i_i_o xs ys)"}
 
-      Note that if the evaluation does not return a unique value, it
-      raises a run-time error @{term "not_unique"}.
+    Note that if the evaluation does not return a unique value, it
+    raises a run-time error @{term "not_unique"}.
 
   \end{itemize}
 \<close>
