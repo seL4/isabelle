@@ -524,11 +524,6 @@ fun perhaps_trim ctxt =
 fun pretty_text ctxt =
   Pretty.chunks o map Pretty.str o map (perhaps_trim ctxt) o split_lines;
 
-fun pretty_text_report ctxt source =
- (Context_Position.report ctxt (Input.pos_of source)
-    (Markup.language_text (Input.is_delimited source));
-  pretty_text ctxt (Input.source_content source));
-
 fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
 
 fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
@@ -629,7 +624,10 @@ local
 
 fun text_antiquotation name =
   antiquotation name (Scan.lift Args.text_input)
-    (fn {context = ctxt, ...} => output ctxt o single o pretty_text_report ctxt);
+    (fn {context = ctxt, ...} => fn source =>
+     (Context_Position.report ctxt (Input.pos_of source)
+        (Markup.language_text (Input.is_delimited source));
+      output ctxt [pretty_text ctxt (Input.source_content source)]));
 
 in
 
