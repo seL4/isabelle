@@ -32,8 +32,8 @@ text \<open>
 
   \medskip Record declarations define new types and type abbreviations:
   @{text [display]
-"  point = \<lparr>xpos :: nat, ypos :: nat\<rparr> = () point_ext_type
-  'a point_scheme = \<lparr>xpos :: nat, ypos :: nat, ... :: 'a\<rparr>  = 'a point_ext_type"}
+\<open>point = \<lparr>xpos :: nat, ypos :: nat\<rparr> = () point_ext_type
+'a point_scheme = \<lparr>xpos :: nat, ypos :: nat, ... :: 'a\<rparr>  = 'a point_ext_type\<close>}
 \<close>
 
 consts foo2 :: "(| xpos :: nat, ypos :: nat |)"
@@ -173,12 +173,12 @@ record cpoint = point +
 
 
 text \<open>
-  The record declaration defines a new type constructure and abbreviations:
+  The record declaration defines a new type constructor and abbreviations:
   @{text [display]
-"  cpoint = (| xpos :: nat, ypos :: nat, colour :: colour |) =
-     () cpoint_ext_type point_ext_type
-   'a cpoint_scheme = (| xpos :: nat, ypos :: nat, colour :: colour, ... :: 'a |) =
-     'a cpoint_ext_type point_ext_type"}
+\<open>cpoint = (| xpos :: nat, ypos :: nat, colour :: colour |) =
+  () cpoint_ext_type point_ext_type
+'a cpoint_scheme = (| xpos :: nat, ypos :: nat, colour :: colour, ... :: 'a |) =
+  'a cpoint_ext_type point_ext_type\<close>}
 \<close>
 
 consts foo6 :: cpoint
