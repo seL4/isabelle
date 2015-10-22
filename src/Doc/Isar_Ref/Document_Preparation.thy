@@ -135,7 +135,7 @@ text \<open>
   argument that is a cartouche.
 
   Omitting the control symbol is also possible: a cartouche without special
-  decoration is equivalent to \<^verbatim>\<open>\\<close>\<^verbatim>\<open><^cartouche>\<close>\<open>\<open>argument_content\<close>\<close>, which
+  decoration is equivalent to \<^verbatim>\<open>\<^cartouche>\<close>\<open>\<open>argument_content\<close>\<close>, which
   is equivalent to \<^verbatim>\<open>@{cartouche\<close>~\<open>\<open>argument_content\<close>\<close>\<^verbatim>\<open>}\<close>. The
   special name @{antiquotation_def cartouche} is defined in the context:
   Isabelle/Pure introduces that as an alias to @{antiquotation_ref text}

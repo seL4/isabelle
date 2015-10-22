@@ -233,7 +233,7 @@ text \<open>The @{tool_def document} tool prepares logic session
   includes an appropriate path specification for {\TeX} inputs.
 
   If the text contains any references to Isabelle symbols (such as
-  \<^verbatim>\<open>\\<close>\<^verbatim>\<open><forall>\<close>) then \<^verbatim>\<open>isabellesym.sty\<close> should be included as well.
+  \<^verbatim>\<open>\<forall>\<close>) then \<^verbatim>\<open>isabellesym.sty\<close> should be included as well.
   This package contains a standard set of {\LaTeX} macro definitions
   \<^verbatim>\<open>\isasym\<close>\<open>foo\<close> corresponding to \<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>foo\<close>\<^verbatim>\<open>>\<close>,
   see @{cite "isabelle-implementation"} for a

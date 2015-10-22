@@ -505,30 +505,26 @@ text \<open>
   This is a summary for practically relevant input methods for Isabelle
   symbols.
 
-  \<^enum> The \<^emph>\<open>Symbols\<close> panel: some GUI buttons allow to insert
-  certain symbols in the text buffer.  There are also tooltips to
-  reveal the official Isabelle representation with some additional
-  information about \<^emph>\<open>symbol abbreviations\<close> (see below).
+  \<^enum> The \<^emph>\<open>Symbols\<close> panel: some GUI buttons allow to insert certain symbols in
+  the text buffer. There are also tooltips to reveal the official Isabelle
+  representation with some additional information about \<^emph>\<open>symbol
+  abbreviations\<close> (see below).
 
-  \<^enum> Copy/paste from decoded source files: text that is rendered
-  as Unicode already can be re-used to produce further text.  This
-  also works between different applications, e.g.\ Isabelle/jEdit and
-  some web browser or mail client, as long as the same Unicode view on
-  Isabelle symbols is used.
+  \<^enum> Copy/paste from decoded source files: text that is rendered as Unicode
+  already can be re-used to produce further text. This also works between
+  different applications, e.g.\ Isabelle/jEdit and some web browser or mail
+  client, as long as the same Unicode view on Isabelle symbols is used.
 
-  \<^enum> Copy/paste from prover output within Isabelle/jEdit. The same
-  principles as for text buffers apply, but note that \<^emph>\<open>copy\<close> in secondary
-  Isabelle/jEdit windows works via the keyboard shortcuts \<^verbatim>\<open>C+c\<close> or
-  \<^verbatim>\<open>C+INSERT\<close>, while jEdit menu actions always refer to the primary
-  text area!
+  \<^enum> Copy/paste from prover output within Isabelle/jEdit. The same principles
+  as for text buffers apply, but note that \<^emph>\<open>copy\<close> in secondary Isabelle/jEdit
+  windows works via the keyboard shortcuts \<^verbatim>\<open>C+c\<close> or \<^verbatim>\<open>C+INSERT\<close>, while jEdit
+  menu actions always refer to the primary text area!
 
-  \<^enum> Completion provided by Isabelle plugin (see
-  \secref{sec:completion}).  Isabelle symbols have a canonical name
-  and optional abbreviations.  This can be used with the text
-  completion mechanism of Isabelle/jEdit, to replace a prefix of the
-  actual symbol like \<^verbatim>\<open>\<lambda>\<close>, or its name preceded by backslash
-  \<^verbatim>\<open>\\<close>\<^verbatim>\<open>lambda\<close>, or its ASCII abbreviation
-  \<^verbatim>\<open>%\<close> by the Unicode rendering.
+  \<^enum> Completion provided by Isabelle plugin (see \secref{sec:completion}).
+  Isabelle symbols have a canonical name and optional abbreviations. This can
+  be used with the text completion mechanism of Isabelle/jEdit, to replace a
+  prefix of the actual symbol like \<^verbatim>\<open>\<lambda>\<close>, or its name preceded by backslash
+  \<^verbatim>\<open>\lambda\<close>, or its ASCII abbreviation \<^verbatim>\<open>%\<close> by the Unicode rendering.
 
   The following table is an extract of the information provided by the
   standard @{file "$ISABELLE_HOME/etc/symbols"} file:
@@ -565,13 +561,12 @@ text \<open>
   \secref{sec:completion}).
 
 
-  \paragraph{Control symbols.} There are some special control symbols
-  to modify the display style of a single symbol (without
-  nesting). Control symbols may be applied to a region of selected
-  text, either using the \<^emph>\<open>Symbols\<close> panel or keyboard shortcuts or
-  jEdit actions.  These editor operations produce a separate control
-  symbol for each symbol in the text, in order to make the whole text
-  appear in a certain style.
+  \paragraph{Control symbols.} There are some special control symbols to
+  modify the display style of a single symbol (without nesting). Control
+  symbols may be applied to a region of selected text, either using the
+  \<^emph>\<open>Symbols\<close> panel or keyboard shortcuts or jEdit actions. These editor
+  operations produce a separate control symbol for each symbol in the text, in
+  order to make the whole text appear in a certain style.
 
   \<^medskip>
   \begin{tabular}{llll}
@@ -585,8 +580,7 @@ text \<open>
   \<^medskip>
 
   To produce a single control symbol, it is also possible to complete on
-  \<^verbatim>\<open>\\<close>\<^verbatim>\<open>sup\<close>, \<^verbatim>\<open>\\<close>\<^verbatim>\<open>sub\<close>, \<^verbatim>\<open>\\<close>\<^verbatim>\<open>bold\<close>, \<^verbatim>\<open>\\<close>\<^verbatim>\<open>emph\<close> as for regular
-  symbols.
+  \<^verbatim>\<open>\sup\<close>, \<^verbatim>\<open>\sub\<close>, \<^verbatim>\<open>\bold\<close>, \<^verbatim>\<open>\emph\<close> as for regular symbols.
 
   The emphasized style only takes effect in document output, not in the
   editor.

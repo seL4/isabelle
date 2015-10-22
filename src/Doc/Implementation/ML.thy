@@ -1213,35 +1213,32 @@ text %mlantiq \<open>
 
 section \<open>Strings of symbols \label{sec:symbols}\<close>
 
-text \<open>A \<^emph>\<open>symbol\<close> constitutes the smallest textual unit in
-  Isabelle/ML --- raw ML characters are normally not encountered at
-  all.  Isabelle strings consist of a sequence of symbols, represented
-  as a packed string or an exploded list of strings.  Each symbol is
-  in itself a small string, which has either one of the following
-  forms:
+text \<open>A \<^emph>\<open>symbol\<close> constitutes the smallest textual unit in Isabelle/ML --- raw
+  ML characters are normally not encountered at all. Isabelle strings consist
+  of a sequence of symbols, represented as a packed string or an exploded list
+  of strings. Each symbol is in itself a small string, which has either one of
+  the following forms:
 
-  \<^enum> a single ASCII character ``\<open>c\<close>'', for example ``\<^verbatim>\<open>a\<close>'',
+    \<^enum> a single ASCII character ``\<open>c\<close>'', for example ``\<^verbatim>\<open>a\<close>'',
 
-  \<^enum> a codepoint according to UTF-8 (non-ASCII byte sequence),
+    \<^enum> a codepoint according to UTF-8 (non-ASCII byte sequence),
 
-  \<^enum> a regular symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>ident\<close>\<^verbatim>\<open>>\<close>'', for example ``\<^verbatim>\<open>\<alpha>\<close>'',
+    \<^enum> a regular symbol ``\<^verbatim>\<open>\<ident>\<close>'', for example ``\<^verbatim>\<open>\<alpha>\<close>'',
 
-  \<^enum> a control symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><^\<close>\<open>ident\<close>\<^verbatim>\<open>>\<close>'', for example ``\<^verbatim>\<open>\<^bold>\<close>'',
+    \<^enum> a control symbol ``\<^verbatim>\<open>\<^ident>\<close>'', for example ``\<^verbatim>\<open>\<^bold>\<close>'',
 
-  \<^enum> a raw symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><^raw:\<close>\<open>text\<close>\<^verbatim>\<open>>\<close>'' where \<open>text\<close> consists of printable characters
-  excluding ``\<^verbatim>\<open>.\<close>'' and ``\<^verbatim>\<open>>\<close>'', for example
-  ``\<^verbatim>\<open>\<^raw:$\sum_{i = 1}^n$>\<close>'',
+    \<^enum> a raw symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><^raw:\<close>\<open>text\<close>\<^verbatim>\<open>>\<close>'' where \<open>text\<close> consists of
+    printable characters excluding ``\<^verbatim>\<open>.\<close>'' and ``\<^verbatim>\<open>>\<close>'', for example
+    ``\<^verbatim>\<open>\<^raw:$\sum_{i = 1}^n$>\<close>'',
 
-  \<^enum> a numbered raw control symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><^raw\<close>\<open>n\<close>\<^verbatim>\<open>>\<close>, where \<open>n\<close> consists
-  of digits, for example ``\<^verbatim>\<open>\<^raw42>\<close>''.
+    \<^enum> a numbered raw control symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><^raw\<close>\<open>n\<close>\<^verbatim>\<open>>\<close>, where \<open>n\<close> consists
+    of digits, for example ``\<^verbatim>\<open>\<^raw42>\<close>''.
 
-
-  The \<open>ident\<close> syntax for symbol names is \<open>letter
-  (letter | digit)\<^sup>*\<close>, where \<open>letter = A..Za..z\<close> and \<open>digit = 0..9\<close>.  There are infinitely many regular symbols and
-  control symbols, but a fixed collection of standard symbols is
-  treated specifically.  For example, ``\<^verbatim>\<open>\<alpha>\<close>'' is
-  classified as a letter, which means it may occur within regular
-  Isabelle identifiers.
+  The \<open>ident\<close> syntax for symbol names is \<open>letter (letter | digit)\<^sup>*\<close>, where
+  \<open>letter = A..Za..z\<close> and \<open>digit = 0..9\<close>. There are infinitely many regular
+  symbols and control symbols, but a fixed collection of standard symbols is
+  treated specifically. For example, ``\<^verbatim>\<open>\<alpha>\<close>'' is classified as a letter, which
+  means it may occur within regular Isabelle identifiers.
 
   The character set underlying Isabelle symbols is 7-bit ASCII, but 8-bit
   character sequences are passed-through unchanged. Unicode/UCS data in UTF-8
@@ -1251,11 +1248,11 @@ text \<open>A \<^emph>\<open>symbol\<close> constitutes the smallest textual uni
   to the standard collection of Isabelle regular symbols.
 
   \<^medskip>
-  Output of Isabelle symbols depends on the print mode. For example,
-  the standard {\LaTeX} setup of the Isabelle document preparation system
-  would present ``\<^verbatim>\<open>\<alpha>\<close>'' as \<open>\<alpha>\<close>, and ``\<^verbatim>\<open>\<^bold>\<alpha>\<close>'' as \<open>\<^bold>\<alpha>\<close>. On-screen rendering
-  usually works by mapping a finite subset of Isabelle symbols to suitable
-  Unicode characters.
+  Output of Isabelle symbols depends on the print mode. For example, the
+  standard {\LaTeX} setup of the Isabelle document preparation system would
+  present ``\<^verbatim>\<open>\<alpha>\<close>'' as \<open>\<alpha>\<close>, and ``\<^verbatim>\<open>\<^bold>\<alpha>\<close>'' as \<open>\<^bold>\<alpha>\<close>. On-screen rendering usually
+  works by mapping a finite subset of Isabelle symbols to suitable Unicode
+  characters.
 \<close>
 
 text %mlref \<open>
