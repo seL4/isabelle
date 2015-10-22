@@ -276,10 +276,10 @@ subsection \<open>Context data \label{sec:context-data}\<close>
 text \<open>The main purpose of theory and proof contexts is to manage
   arbitrary (pure) data.  New data types can be declared incrementally
   at compile time.  There are separate declaration mechanisms for any
-  of the three kinds of contexts: theory, proof, generic.
+  of the three kinds of contexts: theory, proof, generic.\<close>
 
-  \paragraph{Theory data} declarations need to implement the following
-  ML signature:
+paragraph \<open>Theory data\<close>
+text \<open>declarations need to implement the following ML signature:
 
   \<^medskip>
   \begin{tabular}{ll}
@@ -302,9 +302,10 @@ text \<open>The main purpose of theory and proof contexts is to manage
   Particularly note that shared parts of the data must not be
   duplicated by naive concatenation, or a theory graph that is like a
   chain of diamonds would cause an exponential blowup!
+\<close>
 
-  \paragraph{Proof context data} declarations need to implement the
-  following ML signature:
+paragraph \<open>Proof context data\<close>
+text \<open>declarations need to implement the following ML signature:
 
   \<^medskip>
   \begin{tabular}{ll}
@@ -323,11 +324,12 @@ text \<open>The main purpose of theory and proof contexts is to manage
   at most one, sometimes two data slots for its internal use.
   Repeated data declarations to simulate a record type should be
   avoided!
+\<close>
 
-  \paragraph{Generic data} provides a hybrid interface for both theory
-  and proof data.  The \<open>init\<close> operation for proof contexts is
-  predefined to select the current data value from the background
-  theory.
+paragraph \<open>Generic data\<close>
+text \<open>provides a hybrid interface for both theory and proof data. The \<open>init\<close>
+  operation for proof contexts is predefined to select the current data
+  value from the background theory.
 
   \<^bigskip>
   Any of the above data declarations over type \<open>T\<close>

@@ -461,26 +461,26 @@ text \<open>
   needs to be avoided. Raw Unicode characters within prover source files
   should be restricted to informal parts, e.g.\ to write text in non-latin
   alphabets in comments.
+\<close>
 
-  \<^medskip>
-  \paragraph{Encoding.} Technically, the Unicode view on Isabelle
-  symbols is an \<^emph>\<open>encoding\<close> called \<^verbatim>\<open>UTF-8-Isabelle\<close> in jEdit
-  (not in the underlying JVM). It is provided by the Isabelle/jEdit plugin and
-  enabled by default for all source files. Sometimes such defaults are reset
-  accidentally, or malformed UTF-8 sequences in the text force jEdit to fall
-  back on a different encoding like \<^verbatim>\<open>ISO-8859-15\<close>. In that case,
-  verbatim ``\<^verbatim>\<open>\<alpha>\<close>'' will be shown in the text buffer instead of its
-  Unicode rendering ``\<open>\<alpha>\<close>''. The jEdit menu operation \<^emph>\<open>File~/
-  Reload with Encoding~/ UTF-8-Isabelle\<close> helps to resolve such problems (after
-  repairing malformed parts of the text).
+paragraph \<open>Encoding.\<close>
+text \<open>Technically, the Unicode view on Isabelle symbols is an \<^emph>\<open>encoding\<close>
+  called \<^verbatim>\<open>UTF-8-Isabelle\<close> in jEdit (not in the underlying JVM). It is
+  provided by the Isabelle/jEdit plugin and enabled by default for all source
+  files. Sometimes such defaults are reset accidentally, or malformed UTF-8
+  sequences in the text force jEdit to fall back on a different encoding like
+  \<^verbatim>\<open>ISO-8859-15\<close>. In that case, verbatim ``\<^verbatim>\<open>\<alpha>\<close>'' will be shown in the text
+  buffer instead of its Unicode rendering ``\<open>\<alpha>\<close>''. The jEdit menu operation
+  \<^emph>\<open>File~/ Reload with Encoding~/ UTF-8-Isabelle\<close> helps to resolve such
+  problems (after repairing malformed parts of the text).
+\<close>
 
-  \<^medskip>
-  \paragraph{Font.} Correct rendering via Unicode requires a
-  font that contains glyphs for the corresponding codepoints.  Most
-  system fonts lack that, so Isabelle/jEdit prefers its own
-  application font \<^verbatim>\<open>IsabelleText\<close>, which ensures that
-  standard collection of Isabelle symbols are actually seen on the
-  screen (or printer).
+paragraph \<open>Font.\<close>
+text \<open>Correct rendering via Unicode requires a font that contains glyphs for
+  the corresponding codepoints. Most system fonts lack that, so Isabelle/jEdit
+  prefers its own application font \<^verbatim>\<open>IsabelleText\<close>, which ensures that
+  standard collection of Isabelle symbols are actually seen on the screen (or
+  printer).
 
   Note that a Java/AWT/Swing application can load additional fonts only if
   they are not installed on the operating system already! Some outdated
@@ -491,16 +491,16 @@ text \<open>
   This problem can be avoided by refraining to ``install'' any version of
   \<^verbatim>\<open>IsabelleText\<close> in the first place, although it is occasionally
   tempting to use the same font in other applications.
+\<close>
 
-  \<^medskip>
-  \paragraph{Input methods.} In principle, Isabelle/jEdit
-  could delegate the problem to produce Isabelle symbols in their
-  Unicode rendering to the underlying operating system and its
-  \<^emph>\<open>input methods\<close>.  Regular jEdit also provides various ways to
-  work with \<^emph>\<open>abbreviations\<close> to produce certain non-ASCII
-  characters.  Since none of these standard input methods work
-  satisfactorily for the mathematical characters required for
-  Isabelle, various specific Isabelle/jEdit mechanisms are provided.
+paragraph \<open>Input methods.\<close>
+text \<open>In principle, Isabelle/jEdit could delegate the problem to produce
+  Isabelle symbols in their Unicode rendering to the underlying operating
+  system and its \<^emph>\<open>input methods\<close>. Regular jEdit also provides various ways to
+  work with \<^emph>\<open>abbreviations\<close> to produce certain non-ASCII characters. Since
+  none of these standard input methods work satisfactorily for the
+  mathematical characters required for Isabelle, various specific
+  Isabelle/jEdit mechanisms are provided.
 
   This is a summary for practically relevant input methods for Isabelle
   symbols.
@@ -559,14 +559,15 @@ text \<open>
   replacement syntax syntax helps to update old theory sources via
   explicit completion (see also \<^verbatim>\<open>C+b\<close> explained in
   \secref{sec:completion}).
+\<close>
 
-
-  \paragraph{Control symbols.} There are some special control symbols to
-  modify the display style of a single symbol (without nesting). Control
-  symbols may be applied to a region of selected text, either using the
-  \<^emph>\<open>Symbols\<close> panel or keyboard shortcuts or jEdit actions. These editor
-  operations produce a separate control symbol for each symbol in the text, in
-  order to make the whole text appear in a certain style.
+paragraph \<open>Control symbols.\<close>
+text \<open>There are some special control symbols to modify the display style of a
+  single symbol (without nesting). Control symbols may be applied to a region
+  of selected text, either using the \<^emph>\<open>Symbols\<close> panel or keyboard shortcuts or
+  jEdit actions. These editor operations produce a separate control symbol for
+  each symbol in the text, in order to make the whole text appear in a certain
+  style.
 
   \<^medskip>
   \begin{tabular}{llll}

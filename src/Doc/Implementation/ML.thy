@@ -104,12 +104,12 @@ text \<open>Isabelle source files have a certain standardized header
 subsection \<open>Naming conventions\<close>
 
 text \<open>Since ML is the primary medium to express the meaning of the
-  source text, naming of ML entities requires special care.
+  source text, naming of ML entities requires special care.\<close>
 
-  \paragraph{Notation.}  A name consists of 1--3 \<^emph>\<open>words\<close> (rarely
-  4, but not more) that are separated by underscore.  There are three
-  variants concerning upper or lower case letters, which are used for
-  certain ML categories as follows:
+paragraph \<open>Notation.\<close>
+text \<open>A name consists of 1--3 \<^emph>\<open>words\<close> (rarely 4, but not more) that are
+  separated by underscore. There are three variants concerning upper or lower
+  case letters, which are used for certain ML categories as follows:
 
   \<^medskip>
   \begin{tabular}{lll}
@@ -136,14 +136,15 @@ text \<open>Since ML is the primary medium to express the meaning of the
   foo'}, @{ML_text foo''}, or @{ML_text foo'''}, but not @{ML_text
   foo''''} or more.  Decimal digits scale better to larger numbers,
   e.g.\ @{ML_text foo0}, @{ML_text foo1}, @{ML_text foo42}.
+\<close>
 
-  \paragraph{Scopes.}  Apart from very basic library modules, ML
-  structures are not ``opened'', but names are referenced with
-  explicit qualification, as in @{ML Syntax.string_of_term} for
-  example.  When devising names for structures and their components it
-  is important to aim at eye-catching compositions of both parts, because
-  this is how they are seen in the sources and documentation.  For the
-  same reasons, aliases of well-known library functions should be
+paragraph\<open>Scopes.\<close>
+text \<open>Apart from very basic library modules, ML structures are not ``opened'',
+  but names are referenced with explicit qualification, as in @{ML
+  Syntax.string_of_term} for example. When devising names for structures and
+  their components it is important to aim at eye-catching compositions of both
+  parts, because this is how they are seen in the sources and documentation.
+  For the same reasons, aliases of well-known library functions should be
   avoided.
 
   Local names of function abstraction or case/let bindings are
@@ -180,10 +181,10 @@ text \<open>Since ML is the primary medium to express the meaning of the
     let
       fun aux t = ... string_of_term ctxt t ...
     in ... end;\<close>}
+\<close>
 
-
-  \paragraph{Specific conventions.} Here are some specific name forms
-  that occur frequently in the sources.
+paragraph \<open>Specific conventions.\<close>
+text \<open>Here are some specific name forms that occur frequently in the sources.
 
   \<^item> A function that maps @{ML_text foo} to @{ML_text bar} is
   called @{ML_text foo_to_bar} or @{ML_text bar_of_foo} (never
@@ -274,22 +275,22 @@ subsection \<open>General source layout\<close>
 text \<open>
   The general Isabelle/ML source layout imitates regular type-setting
   conventions, augmented by the requirements for deeply nested expressions
-  that are commonplace in functional programming.
+  that are commonplace in functional programming.\<close>
 
-  \paragraph{Line length} is limited to 80 characters according to ancient
-  standards, but we allow as much as 100 characters (not
-  more).\footnote{Readability requires to keep the beginning of a line
-  in view while watching its end.  Modern wide-screen displays do not
-  change the way how the human brain works.  Sources also need to be
-  printable on plain paper with reasonable font-size.} The extra 20
-  characters acknowledge the space requirements due to qualified
-  library references in Isabelle/ML.
+paragraph \<open>Line length\<close>
+text \<open>is limited to 80 characters according to ancient standards, but we allow
+  as much as 100 characters (not more).\footnote{Readability requires to keep
+  the beginning of a line in view while watching its end. Modern wide-screen
+  displays do not change the way how the human brain works. Sources also need
+  to be printable on plain paper with reasonable font-size.} The extra 20
+  characters acknowledge the space requirements due to qualified library
+  references in Isabelle/ML.\<close>
 
-  \paragraph{White-space} is used to emphasize the structure of
-  expressions, following mostly standard conventions for mathematical
-  typesetting, as can be seen in plain {\TeX} or {\LaTeX}.  This
-  defines positioning of spaces for parentheses, punctuation, and
-  infixes as illustrated here:
+paragraph \<open>White-space\<close>
+text \<open>is used to emphasize the structure of expressions, following mostly
+  standard conventions for mathematical typesetting, as can be seen in plain
+  {\TeX} or {\LaTeX}. This defines positioning of spaces for parentheses,
+  punctuation, and infixes as illustrated here:
 
   @{verbatim [display]
 \<open>  val x = y + z * (a + b);
@@ -323,13 +324,14 @@ text \<open>
   \<^emph>\<open>compositionality\<close>: the layout of @{ML_text "g p"} does not
   change when @{ML_text "p"} is refined to the concrete pair
   @{ML_text "(a, b)"}.
+\<close>
 
-  \paragraph{Indentation} uses plain spaces, never hard
-  tabulators.\footnote{Tabulators were invented to move the carriage
-  of a type-writer to certain predefined positions.  In software they
-  could be used as a primitive run-length compression of consecutive
-  spaces, but the precise result would depend on non-standardized
-  text editor configuration.}
+paragraph \<open>Indentation\<close>
+text \<open>uses plain spaces, never hard tabulators.\footnote{Tabulators were
+  invented to move the carriage of a type-writer to certain predefined
+  positions. In software they could be used as a primitive run-length
+  compression of consecutive spaces, but the precise result would depend on
+  non-standardized text editor configuration.}
 
   Each level of nesting is indented by 2 spaces, sometimes 1, very
   rarely 4, never 8 or any other odd number.
@@ -367,11 +369,13 @@ text \<open>
   For similar reasons, any kind of two-dimensional or tabular
   layouts, ASCII-art with lines or boxes of asterisks etc.\ should be
   avoided.
+\<close>
 
-  \paragraph{Complex expressions} that consist of multi-clausal
-  function definitions, @{ML_text handle}, @{ML_text case},
-  @{ML_text let} (and combinations) require special attention.  The
-  syntax of Standard ML is quite ambitious and admits a lot of
+paragraph \<open>Complex expressions\<close>
+
+text \<open>that consist of multi-clausal function definitions, @{ML_text handle},
+  @{ML_text case}, @{ML_text let} (and combinations) require special
+  attention. The syntax of Standard ML is quite ambitious and admits a lot of
   variance that can distort the meaning of the text.
 
   Multiple clauses of @{ML_text fun}, @{ML_text fn}, @{ML_text handle},
@@ -1083,10 +1087,11 @@ text \<open>The Standard ML semantics of strict functional evaluation
   together with exceptions is rather well defined, but some delicate
   points need to be observed to avoid that ML programs go wrong
   despite static type-checking.  Exceptions in Isabelle/ML are
-  subsequently categorized as follows.
+  subsequently categorized as follows.\<close>
 
-  \paragraph{Regular user errors.}  These are meant to provide
-  informative feedback about malformed input etc.
+paragraph \<open>Regular user errors.\<close>
+text \<open>These are meant to provide informative feedback about malformed input
+  etc.
 
   The \<^emph>\<open>error\<close> function raises the corresponding @{ML ERROR}
   exception, with a plain text message as argument.  @{ML ERROR}
@@ -1105,11 +1110,12 @@ text \<open>The Standard ML semantics of strict functional evaluation
   or put into a larger context (e.g.\ augmented with source position).
   Note that punctuation after formal entities (types, terms, theorems) is
   particularly prone to user confusion.
+\<close>
 
-  \paragraph{Program failures.}  There is a handful of standard
-  exceptions that indicate general failure situations, or failures of
-  core operations on logical entities (types, terms, theorems,
-  theories, see \chref{ch:logic}).
+paragraph \<open>Program failures.\<close>
+text \<open>There is a handful of standard exceptions that indicate general failure
+  situations, or failures of core operations on logical entities (types,
+  terms, theorems, theories, see \chref{ch:logic}).
 
   These exceptions indicate a genuine breakdown of the program, so the
   main purpose is to determine quickly what has happened where.
@@ -1125,11 +1131,12 @@ text \<open>The Standard ML semantics of strict functional evaluation
   exposed in module signatures require extra care, though, and should
   \<^emph>\<open>not\<close> be introduced by default.  Surprise by users of a module
   can be often minimized by using plain user errors instead.
+\<close>
 
-  \paragraph{Interrupts.}  These indicate arbitrary system events:
-  both the ML runtime system and the Isabelle/ML infrastructure signal
-  various exceptional situations by raising the special
-  @{ML Exn.Interrupt} exception in user code.
+paragraph \<open>Interrupts.\<close>
+text \<open>These indicate arbitrary system events: both the ML runtime system and
+  the Isabelle/ML infrastructure signal various exceptional situations by
+  raising the special @{ML Exn.Interrupt} exception in user code.
 
   This is the one and only way that physical events can intrude an Isabelle/ML
   program. Such an interrupt can mean out-of-memory, stack overflow, timeout,
@@ -1292,19 +1299,18 @@ text %mlref \<open>
 
   \<^descr> @{ML "Symbol.decode"} converts the string representation of a
   symbol into the datatype version.
+\<close>
 
-
-  \paragraph{Historical note.} In the original SML90 standard the
-  primitive ML type @{ML_type char} did not exists, and @{ML_text
-  "explode: string -> string list"} produced a list of singleton
-  strings like @{ML "raw_explode: string -> string list"} in
-  Isabelle/ML today.  When SML97 came out, Isabelle did not adopt its
-  somewhat anachronistic 8-bit or 16-bit characters, but the idea of
-  exploding a string into a list of small strings was extended to
-  ``symbols'' as explained above.  Thus Isabelle sources can refer to
-  an infinite store of user-defined symbols, without having to worry
-  about the multitude of Unicode encodings that have emerged over the
-  years.\<close>
+paragraph \<open>Historical note.\<close>
+text \<open>In the original SML90 standard the primitive ML type @{ML_type char} did
+  not exists, and @{ML_text "explode: string -> string list"} produced a list
+  of singleton strings like @{ML "raw_explode: string -> string list"} in
+  Isabelle/ML today. When SML97 came out, Isabelle did not adopt its somewhat
+  anachronistic 8-bit or 16-bit characters, but the idea of exploding a string
+  into a list of small strings was extended to ``symbols'' as explained above.
+  Thus Isabelle sources can refer to an infinite store of user-defined
+  symbols, without having to worry about the multitude of Unicode encodings
+  that have emerged over the years.\<close>
 
 
 section \<open>Basic data types\<close>

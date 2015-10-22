@@ -189,8 +189,9 @@ lemma (in ideal) Icarr:
 
 subsection \<open>Intersection of Ideals\<close>
 
-text \<open>\paragraph{Intersection of two ideals} The intersection of any
-  two ideals is again an ideal in @{term R}\<close>
+paragraph \<open>Intersection of two ideals\<close>
+text \<open>The intersection of any two ideals is again an ideal in @{term R}\<close>
+
 lemma (in ring) i_intersect:
   assumes "ideal I R"
   assumes "ideal J R"
