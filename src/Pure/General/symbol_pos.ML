@@ -162,19 +162,22 @@ end;
 (* nested text cartouches *)
 
 val scan_cartouche_depth =
-  Scan.repeat1 (Scan.depend (fn (d: int) =>
-    $$ "\\<open>" >> pair (d + 1) ||
-      (if d > 0 then
-        Scan.one (fn (s, _) => s <> "\\<close>" andalso Symbol.not_eof s) >> pair d ||
-        $$ "\\<close>" >> pair (d - 1)
-      else Scan.fail)));
+  Scan.repeat1 (Scan.depend (fn (depth: int option) =>
+    (case depth of
+      SOME d =>
+        $$ "\\<open>" >> pair (SOME (d + 1)) ||
+          (if d > 0 then
+            Scan.one (fn (s, _) => s <> "\\<close>" andalso Symbol.not_eof s) >> pair depth ||
+            $$ "\\<close>" >> pair (if d = 1 then NONE else SOME (d - 1))
+          else Scan.fail)
+    | NONE => Scan.fail)));
 
 fun scan_cartouche err_prefix =
   Scan.ahead ($$ "\\<open>") |--
     !!! (fn () => err_prefix ^ "unclosed text cartouche")
-      (Scan.provide (fn d => d = 0) 0 scan_cartouche_depth);
+      (Scan.provide is_none (SOME 0) scan_cartouche_depth);
 
-val recover_cartouche = Scan.pass 0 scan_cartouche_depth;
+val recover_cartouche = Scan.pass (SOME 0) scan_cartouche_depth;
 
 fun cartouche_content syms =
   let
