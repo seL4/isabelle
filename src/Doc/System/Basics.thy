@@ -93,8 +93,7 @@ text \<open>Isabelle executables need to be run within a proper settings
   \<^enum> The file @{file_unchecked "$ISABELLE_HOME_USER/etc/settings"} (if it
   exists) is run in the same way as the site default settings. Note
   that the variable @{setting ISABELLE_HOME_USER} has already been set
-  before --- usually to something like @{verbatim
-  "$USER_HOME/.isabelle/IsabelleXXXX"}.
+  before --- usually to something like \<^verbatim>\<open>$USER_HOME/.isabelle/IsabelleXXXX\<close>.
   
   Thus individual users may override the site-wide defaults.
   Typically, a user settings file contains only a few lines, with some
@@ -103,8 +102,8 @@ text \<open>Isabelle executables need to be run within a proper settings
 
 
   Since settings files are regular GNU @{executable_def bash} scripts,
-  one may use complex shell commands, such as @{verbatim "if"} or
-  @{verbatim "case"} statements to set variables depending on the
+  one may use complex shell commands, such as \<^verbatim>\<open>if\<close> or
+  \<^verbatim>\<open>case\<close> statements to set variables depending on the
   system architecture or other environment variables.  Such advanced
   features should be added only with great care, though. In
   particular, external environment references should be kept at a
@@ -157,12 +156,12 @@ text \<open>
   circumstances this may be changed in the global setting file.
   Typically, the @{setting ISABELLE_HOME_USER} directory mimics
   @{setting ISABELLE_HOME} to some extend. In particular, site-wide
-  defaults may be overridden by a private @{verbatim
-  "$ISABELLE_HOME_USER/etc/settings"}.
+  defaults may be overridden by a private
+  \<^verbatim>\<open>$ISABELLE_HOME_USER/etc/settings\<close>.
 
   \<^descr>[@{setting_def ISABELLE_PLATFORM_FAMILY}\<open>\<^sup>*\<close>] is
-  automatically set to the general platform family: @{verbatim linux},
-  @{verbatim macos}, @{verbatim windows}.  Note that
+  automatically set to the general platform family: \<^verbatim>\<open>linux\<close>,
+  \<^verbatim>\<open>macos\<close>, \<^verbatim>\<open>windows\<close>.  Note that
   platform-dependent tools usually need to refer to the more specific
   identification according to @{setting ISABELLE_PLATFORM}, @{setting
   ISABELLE_PLATFORM32}, @{setting ISABELLE_PLATFORM64}.
@@ -190,8 +189,7 @@ text \<open>
   on the current search path of the shell.
   
   \<^descr>[@{setting_def ISABELLE_IDENTIFIER}\<open>\<^sup>*\<close>] refers
-  to the name of this Isabelle distribution, e.g.\ ``@{verbatim
-  Isabelle2012}''.
+  to the name of this Isabelle distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2012\<close>''.
 
   \<^descr>[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME},
   @{setting_def ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def
@@ -208,7 +206,7 @@ text \<open>
   automatically obtained by composing the values of @{setting
   ML_SYSTEM}, @{setting ML_PLATFORM} and the Isabelle version values.
 
-  \<^descr>[@{setting_def ML_SYSTEM_POLYML}\<open>\<^sup>*\<close>] is @{verbatim true}
+  \<^descr>[@{setting_def ML_SYSTEM_POLYML}\<open>\<^sup>*\<close>] is \<^verbatim>\<open>true\<close>
   for @{setting ML_SYSTEM} values derived from Poly/ML, as opposed to
   SML/NJ where it is empty.  This is particularly useful with the
   build option @{system_option condition}
@@ -216,10 +214,10 @@ text \<open>
   that SML/NJ can still handle.
 
   \<^descr>[@{setting_def ISABELLE_JDK_HOME}] needs to point to a full JDK
-  (Java Development Kit) installation with @{verbatim javac} and
-  @{verbatim jar} executables.  This is essential for Isabelle/Scala
+  (Java Development Kit) installation with \<^verbatim>\<open>javac\<close> and
+  \<^verbatim>\<open>jar\<close> executables.  This is essential for Isabelle/Scala
   and other JVM-based tools to work properly.  Note that conventional
-  @{verbatim JAVA_HOME} usually points to the JRE (Java Runtime
+  \<^verbatim>\<open>JAVA_HOME\<close> usually points to the JRE (Java Runtime
   Environment), not JDK.
   
   \<^descr>[@{setting_def ISABELLE_PATH}] is a list of directories
@@ -238,7 +236,7 @@ text \<open>
   
   \<^descr>[@{setting_def ISABELLE_LOGIC}] specifies the default logic to
   load if none is given explicitely by the user.  The default value is
-  @{verbatim HOL}.
+  \<^verbatim>\<open>HOL\<close>.
   
   \<^descr>[@{setting_def ISABELLE_LINE_EDITOR}] specifies the
   line editor for the @{tool_ref console} interface.
@@ -256,10 +254,10 @@ text \<open>
   directories with documentation files.
 
   \<^descr>[@{setting_def PDF_VIEWER}] specifies the program to be used
-  for displaying @{verbatim pdf} files.
+  for displaying \<^verbatim>\<open>pdf\<close> files.
 
   \<^descr>[@{setting_def DVI_VIEWER}] specifies the program to be used
-  for displaying @{verbatim dvi} files.
+  for displaying \<^verbatim>\<open>dvi\<close> files.
   
   \<^descr>[@{setting_def ISABELLE_TMP_PREFIX}\<open>\<^sup>*\<close>] is the
   prefix from which any running @{executable "isabelle_process"}
@@ -274,11 +272,11 @@ text \<open>Any directory may be registered as an explicit \<^emph>\<open>Isabel
   Isabelle distribution itself, and the following two files (both
   optional) have a special meaning:
 
-  \<^item> @{verbatim "etc/settings"} holds additional settings that are
+  \<^item> \<^verbatim>\<open>etc/settings\<close> holds additional settings that are
   initialized when bootstrapping the overall Isabelle environment,
   cf.\ \secref{sec:boot}.  As usual, the content is interpreted as a
-  @{verbatim bash} script.  It may refer to the component's enclosing
-  directory via the @{verbatim "COMPONENT"} shell variable.
+  \<^verbatim>\<open>bash\<close> script.  It may refer to the component's enclosing
+  directory via the \<^verbatim>\<open>COMPONENT\<close> shell variable.
 
   For example, the following setting allows to refer to files within
   the component later on, without having to hardwire absolute paths:
@@ -290,9 +288,9 @@ text \<open>Any directory may be registered as an explicit \<^emph>\<open>Isabel
   example:
   @{verbatim [display] \<open>ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"\<close>}
 
-  \<^item> @{verbatim "etc/components"} holds a list of further
+  \<^item> \<^verbatim>\<open>etc/components\<close> holds a list of further
   sub-components of the same structure.  The directory specifications
-  given here can be either absolute (with leading @{verbatim "/"}) or
+  given here can be either absolute (with leading \<^verbatim>\<open>/\<close>) or
   relative to the component's main directory.
 
 
@@ -302,8 +300,8 @@ text \<open>Any directory may be registered as an explicit \<^emph>\<open>Isabel
   that directory exists).  This allows to install private components
   via @{file_unchecked "$ISABELLE_HOME_USER/etc/components"}, although it is
   often more convenient to do that programmatically via the
-  @{verbatim init_component} shell function in the @{verbatim "etc/settings"}
-  script of @{verbatim "$ISABELLE_HOME_USER"} (or any other component
+  \<^verbatim>\<open>init_component\<close> shell function in the \<^verbatim>\<open>etc/settings\<close>
+  script of \<^verbatim>\<open>$ISABELLE_HOME_USER\<close> (or any other component
   directory).  For example:
   @{verbatim [display] \<open>init_component "$HOME/screwdriver-2.0"\<close>}
 
@@ -358,7 +356,7 @@ text \<open>
   internally.  In a similar way, base names are relative to the
   directory specified by @{setting ISABELLE_OUTPUT}.  In any case,
   actual file locations may also be given by including at least one
-  slash (@{verbatim "/"}) in the name (hint: use @{verbatim "./"} to
+  slash (\<^verbatim>\<open>/\<close>) in the name (hint: use \<^verbatim>\<open>./\<close> to
   refer to the current directory).
 \<close>
 
@@ -367,7 +365,7 @@ subsubsection \<open>Options\<close>
 
 text \<open>
   If the input heap file does not have write permission bits set, or
-  the @{verbatim "-r"} option is given explicitly, then the session
+  the \<^verbatim>\<open>-r\<close> option is given explicitly, then the session
   started will be read-only.  That is, the ML world cannot be
   committed back into the image file.  Otherwise, a writable session
   enables commits into either the input file, or into another output
@@ -381,45 +379,45 @@ text \<open>
   when they are no longer needed.
 
   \<^medskip>
-  The @{verbatim "-w"} option makes the output heap file
+  The \<^verbatim>\<open>-w\<close> option makes the output heap file
   read-only after terminating.  Thus subsequent invocations cause the
   logic image to be read-only automatically.
 
   \<^medskip>
-  Using the @{verbatim "-e"} option, arbitrary ML code may be
+  Using the \<^verbatim>\<open>-e\<close> option, arbitrary ML code may be
   passed to the Isabelle session from the command line. Multiple
-  @{verbatim "-e"}'s are evaluated in the given order. Strange things
+  \<^verbatim>\<open>-e\<close> options are evaluated in the given order. Strange things
   may happen when erroneous ML code is provided. Also make sure that
   the ML commands are terminated properly by semicolon.
 
   \<^medskip>
-  The @{verbatim "-m"} option adds identifiers of print modes
+  The \<^verbatim>\<open>-m\<close> option adds identifiers of print modes
   to be made active for this session. Typically, this is used by some
   user interface, e.g.\ to enable output of proper mathematical
   symbols.
 
   \<^medskip>
   Isabelle normally enters an interactive top-level loop
-  (after processing the @{verbatim "-e"} texts). The @{verbatim "-q"}
+  (after processing the \<^verbatim>\<open>-e\<close> texts). The \<^verbatim>\<open>-q\<close>
   option inhibits interaction, thus providing a pure batch mode
   facility.
 
   \<^medskip>
-  Option @{verbatim "-o"} allows to override Isabelle system
+  Option \<^verbatim>\<open>-o\<close> allows to override Isabelle system
   options for this process, see also \secref{sec:system-options}.
-  Alternatively, option @{verbatim "-O"} specifies the full environment of
+  Alternatively, option \<^verbatim>\<open>-O\<close> specifies the full environment of
   system options as a file in YXML format (according to the Isabelle/Scala
-  function @{verbatim isabelle.Options.encode}).
+  function \<^verbatim>\<open>isabelle.Options.encode\<close>).
 
   \<^medskip>
-  The @{verbatim "-P"} option starts the Isabelle process wrapper
+  The \<^verbatim>\<open>-P\<close> option starts the Isabelle process wrapper
   for Isabelle/Scala, with a private protocol running over the specified TCP
   socket. Isabelle/ML and Isabelle/Scala provide various programming
   interfaces to invoke protocol functions over untyped strings and XML
   trees.
 
   \<^medskip>
-  The @{verbatim "-S"} option makes the Isabelle process more
+  The \<^verbatim>\<open>-S\<close> option makes the Isabelle process more
   secure by disabling some critical operations, notably runtime
   compilation and evaluation of ML source code.
 \<close>
@@ -434,30 +432,30 @@ text \<open>
 
   Usually @{setting ISABELLE_LOGIC} refers to one of the standard
   logic images, which are read-only by default.  A writable session
-  --- based on @{verbatim HOL}, but output to @{verbatim Test} (in the
+  --- based on \<^verbatim>\<open>HOL\<close>, but output to \<^verbatim>\<open>Test\<close> (in the
   directory specified by the @{setting ISABELLE_OUTPUT} setting) ---
   may be invoked as follows:
   @{verbatim [display] \<open>isabelle_process HOL Test\<close>}
 
   Ending this session normally (e.g.\ by typing control-D) dumps the
-  whole ML system state into @{verbatim Test} (be prepared for more
+  whole ML system state into \<^verbatim>\<open>Test\<close> (be prepared for more
   than 100\,MB):
 
-  The @{verbatim Test} session may be continued later (still in
+  The \<^verbatim>\<open>Test\<close> session may be continued later (still in
   writable state) by: @{verbatim [display] \<open>isabelle_process Test\<close>}
 
-  A read-only @{verbatim Test} session may be started by:
+  A read-only \<^verbatim>\<open>Test\<close> session may be started by:
   @{verbatim [display] \<open>isabelle_process -r Test\<close>}
 
   \<^bigskip>
   The next example demonstrates batch execution of Isabelle.
-  We retrieve the @{verbatim Main} theory value from the theory loader
+  We retrieve the \<^verbatim>\<open>Main\<close> theory value from the theory loader
   within ML (observe the delicate quoting rules for the Bash shell
   vs.\ ML):
   @{verbatim [display] \<open>isabelle_process -e 'Thy_Info.get_theory "Main";' -q -r HOL\<close>}
 
   Note that the output text will be interspersed with additional junk
-  messages by the ML runtime environment.  The @{verbatim "-W"} option
+  messages by the ML runtime environment.  The \<^verbatim>\<open>-W\<close> option
   allows to communicate with the Isabelle process via an external
   program in a more robust fashion.
 \<close>

@@ -517,8 +517,8 @@ text \<open>A \<^emph>\<open>tactical\<close> is a functional combinator for bui
 subsection \<open>Combining tactics\<close>
 
 text \<open>Sequential composition and alternative choices are the most
-  basic ways to combine tactics, similarly to ``@{verbatim ","}'' and
-  ``@{verbatim "|"}'' in Isar method notation.  This corresponds to
+  basic ways to combine tactics, similarly to ``\<^verbatim>\<open>,\<close>'' and
+  ``\<^verbatim>\<open>|\<close>'' in Isar method notation.  This corresponds to
   @{ML_op "THEN"} and @{ML_op "ORELSE"} in ML, but there are further
   possibilities for fine-tuning alternation of tactics such as @{ML_op
   "APPEND"}.  Further details become visible in ML due to explicit
@@ -577,8 +577,8 @@ text %mlref \<open>
 subsection \<open>Repetition tacticals\<close>
 
 text \<open>These tacticals provide further control over repetition of
-  tactics, beyond the stylized forms of ``@{verbatim "?"}''  and
-  ``@{verbatim "+"}'' in Isar method expressions.\<close>
+  tactics, beyond the stylized forms of ``\<^verbatim>\<open>?\<close>'' and
+  ``\<^verbatim>\<open>+\<close>'' in Isar method expressions.\<close>
 
 text %mlref \<open>
   \begin{mldecls}
@@ -595,7 +595,8 @@ text %mlref \<open>
   once.
 
   Note that for tactics with subgoal addressing, the combinator can be
-  applied via functional composition: @{ML "TRY"}~@{ML_op o}~\<open>tac\<close>.  There is no need for @{verbatim TRY'}.
+  applied via functional composition: @{ML "TRY"}~@{ML_op o}~\<open>tac\<close>.
+  There is no need for \<^verbatim>\<open>TRY'\<close>.
 
   \<^descr> @{ML REPEAT}~\<open>tac\<close> applies \<open>tac\<close> to the goal
   state and, recursively, to each element of the resulting sequence.

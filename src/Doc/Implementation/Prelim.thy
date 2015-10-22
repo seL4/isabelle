@@ -576,7 +576,7 @@ text \<open>In principle, a name is just a string, but there are various
   ``\<open>Foo.bar.baz\<close>'' is considered as a long name consisting of
   qualifier \<open>Foo.bar\<close> and base name \<open>baz\<close>.  The
   individual constituents of a name may have further substructure,
-  e.g.\ the string ``@{verbatim \<alpha>}'' encodes as a single
+  e.g.\ the string ``\<^verbatim>\<open>\<alpha>\<close>'' encodes as a single
   symbol (\secref{sec:symbols}).
 
   \<^medskip>

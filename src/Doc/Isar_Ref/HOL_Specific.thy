@@ -2469,9 +2469,9 @@ text \<open>For validation purposes, it is often useful to \<^emph>\<open>execut
   hierarchy. Omitting the file specification denotes standard output.
 
   Serializers take an optional list of arguments in parentheses. For
-  \<^emph>\<open>Haskell\<close> a module name prefix may be given using the ``\<open>root:\<close>'' argument; ``\<open>string_classes\<close>'' adds a ``@{verbatim
-  "deriving (Read, Show)"}'' clause to each appropriate datatype
-  declaration.
+  \<^emph>\<open>Haskell\<close> a module name prefix may be given using the ``\<open>root:\<close>'' argument;
+  ``\<open>string_classes\<close>'' adds a ``\<^verbatim>\<open>deriving (Read, Show)\<close>'' clause to each
+  appropriate datatype declaration.
 
   \<^descr> @{attribute (HOL) code} declare code equations for code generation.
   Variant \<open>code equation\<close> declares a conventional equation as code

@@ -121,7 +121,7 @@ text %mlref \<open>
   \<^descr> @{ML Toplevel.theory_to_proof}~\<open>tr\<close> adjoins a global
   goal function, which turns a theory into a proof state.  The theory
   may be changed before entering the proof; the generic Isar goal
-  setup includes an @{verbatim after_qed} argument that specifies how to
+  setup includes an \<^verbatim>\<open>after_qed\<close> argument that specifies how to
   apply the proven result to the enclosing context, when the proof
   is finished.
 

@@ -67,8 +67,8 @@ text \<open>Isabelle source files have a certain standardized header
   reaching back to the earliest versions of the system by Larry
   Paulson.  See @{file "~~/src/Pure/thm.ML"}, for example.
 
-  The header includes at least @{verbatim Title} and @{verbatim
-  Author} entries, followed by a prose description of the purpose of
+  The header includes at least \<^verbatim>\<open>Title\<close> and \<^verbatim>\<open>Author\<close> entries,
+  followed by a prose description of the purpose of
   the module.  The latter can range from a single line to several
   paragraphs of explanations.
 
@@ -263,8 +263,8 @@ text \<open>Since ML is the primary medium to express the meaning of the
   explicit, if tactic combinators (tacticals) are used as usual.
 
   A tactic that requires a proof context needs to make that explicit as seen
-  in the @{verbatim ctxt} argument above. Do not refer to the background
-  theory of @{verbatim st} -- it is not a proper context, but merely a formal
+  in the \<^verbatim>\<open>ctxt\<close> argument above. Do not refer to the background
+  theory of \<^verbatim>\<open>st\<close> -- it is not a proper context, but merely a formal
   certificate.
 \<close>
 
@@ -516,8 +516,8 @@ text \<open>ML and Isar are intertwined via an open-ended bootstrap
 
   Object-logics like Isabelle/HOL are built within the Isabelle/ML/Isar
   environment by introducing suitable theories with associated ML modules,
-  either inlined within @{verbatim ".thy"} files, or as separate @{verbatim
-  ".ML"} files that are loading from some theory. Thus Isabelle/HOL is defined
+  either inlined within \<^verbatim>\<open>.thy\<close> files, or as separate \<^verbatim>\<open>.ML\<close> files that are
+  loading from some theory. Thus Isabelle/HOL is defined
   as a regular user-space application within the Isabelle framework. Further
   add-on tools can be implemented in ML within the Isar context in the same
   manner: ML is part of the standard repertoire of Isabelle, and there is no
@@ -970,8 +970,8 @@ text \<open>Isabelle provides output channels for different kinds of
 
   Depending on the user interface involved, these messages may appear
   in different text styles or colours.  The standard output for
-  batch sessions prefixes each line of warnings by @{verbatim
-  "###"} and errors by @{verbatim "***"}, but leaves anything else
+  batch sessions prefixes each line of warnings by \<^verbatim>\<open>###\<close> and errors by
+  \<^verbatim>\<open>***\<close>, but leaves anything else
   unchanged.  The message body may contain further markup and formatting,
   which is routinely used in the Prover IDE @{cite "isabelle-jedit"}.
 
@@ -1220,28 +1220,26 @@ text \<open>A \<^emph>\<open>symbol\<close> constitutes the smallest textual uni
   in itself a small string, which has either one of the following
   forms:
 
-  \<^enum> a single ASCII character ``\<open>c\<close>'', for example
-  ``@{verbatim a}'',
+  \<^enum> a single ASCII character ``\<open>c\<close>'', for example ``\<^verbatim>\<open>a\<close>'',
 
   \<^enum> a codepoint according to UTF-8 (non-ASCII byte sequence),
 
-  \<^enum> a regular symbol ``@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>ident\<close>@{verbatim ">"}'', for example ``@{verbatim "\<alpha>"}'',
+  \<^enum> a regular symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>ident\<close>\<^verbatim>\<open>>\<close>'', for example ``\<^verbatim>\<open>\<alpha>\<close>'',
 
-  \<^enum> a control symbol ``@{verbatim \<open>\\<close>}@{verbatim "<^"}\<open>ident\<close>@{verbatim ">"}'', for example ``@{verbatim "\<^bold>"}'',
+  \<^enum> a control symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><^\<close>\<open>ident\<close>\<^verbatim>\<open>>\<close>'', for example ``\<^verbatim>\<open>\<^bold>\<close>'',
 
-  \<^enum> a raw symbol ``@{verbatim \<open>\\<close>}@{verbatim "<^raw:"}\<open>text\<close>@{verbatim ">"}'' where \<open>text\<close> consists of printable characters
-  excluding ``@{verbatim "."}'' and ``@{verbatim ">"}'', for example
-  ``@{verbatim "\<^raw:$\sum_{i = 1}^n$>"}'',
+  \<^enum> a raw symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><^raw:\<close>\<open>text\<close>\<^verbatim>\<open>>\<close>'' where \<open>text\<close> consists of printable characters
+  excluding ``\<^verbatim>\<open>.\<close>'' and ``\<^verbatim>\<open>>\<close>'', for example
+  ``\<^verbatim>\<open>\<^raw:$\sum_{i = 1}^n$>\<close>'',
 
-  \<^enum> a numbered raw control symbol ``@{verbatim \<open>\\<close>}@{verbatim
-  "<^raw"}\<open>n\<close>@{verbatim ">"}, where \<open>n\<close> consists of digits, for
-  example ``@{verbatim "\<^raw42>"}''.
+  \<^enum> a numbered raw control symbol ``\<^verbatim>\<open>\\<close>\<^verbatim>\<open><^raw\<close>\<open>n\<close>\<^verbatim>\<open>>\<close>, where \<open>n\<close> consists
+  of digits, for example ``\<^verbatim>\<open>\<^raw42>\<close>''.
 
 
   The \<open>ident\<close> syntax for symbol names is \<open>letter
   (letter | digit)\<^sup>*\<close>, where \<open>letter = A..Za..z\<close> and \<open>digit = 0..9\<close>.  There are infinitely many regular symbols and
   control symbols, but a fixed collection of standard symbols is
-  treated specifically.  For example, ``@{verbatim "\<alpha>"}'' is
+  treated specifically.  For example, ``\<^verbatim>\<open>\<alpha>\<close>'' is
   classified as a letter, which means it may occur within regular
   Isabelle identifiers.
 
@@ -1255,9 +1253,9 @@ text \<open>A \<^emph>\<open>symbol\<close> constitutes the smallest textual uni
   \<^medskip>
   Output of Isabelle symbols depends on the print mode. For example,
   the standard {\LaTeX} setup of the Isabelle document preparation system
-  would present ``@{verbatim "\<alpha>"}'' as \<open>\<alpha>\<close>, and ``@{verbatim
-  "\<^bold>\<alpha>"}'' as \<open>\<^bold>\<alpha>\<close>. On-screen rendering usually works by mapping a
-  finite subset of Isabelle symbols to suitable Unicode characters.
+  would present ``\<^verbatim>\<open>\<alpha>\<close>'' as \<open>\<alpha>\<close>, and ``\<^verbatim>\<open>\<^bold>\<alpha>\<close>'' as \<open>\<^bold>\<alpha>\<close>. On-screen rendering
+  usually works by mapping a finite subset of Isabelle symbols to suitable
+  Unicode characters.
 \<close>
 
 text %mlref \<open>
@@ -1361,7 +1359,7 @@ text %mlref \<open>
     with @{ML YXML.parse_body} as key operation.
 
   Note that Isabelle/ML string literals may refer Isabelle symbols like
-  ``@{verbatim \<alpha>}'' natively, \<^emph>\<open>without\<close> escaping the backslash. This is a
+  ``\<^verbatim>\<open>\<alpha>\<close>'' natively, \<^emph>\<open>without\<close> escaping the backslash. This is a
   consequence of Isabelle treating all source text as strings of symbols,
   instead of raw characters.
 \<close>
@@ -1382,7 +1380,7 @@ text \<open>Note that in Unicode renderings of the symbol \<open>\<A>\<close>,
   variations of encodings like UTF-8 or UTF-16 pose delicate questions
   about the multi-byte representations of its codepoint, which is outside
   of the 16-bit address space of the original Unicode standard from
-  the 1990-ies.  In Isabelle/ML it is just ``@{verbatim \<A>}''
+  the 1990-ies.  In Isabelle/ML it is just ``\<^verbatim>\<open>\<A>\<close>''
   literally, using plain ASCII characters beyond any doubts.\<close>
 
 
@@ -1541,13 +1539,13 @@ text \<open>
   Isabelle/ML, following standard conventions for their names and
   types.
 
-  Note that a function called @{verbatim lookup} is obliged to express its
+  Note that a function called \<^verbatim>\<open>lookup\<close> is obliged to express its
   partiality via an explicit option element.  There is no choice to
   raise an exception, without changing the name to something like
   \<open>the_element\<close> or \<open>get\<close>.
 
   The \<open>defined\<close> operation is essentially a contraction of @{ML
-  is_some} and @{verbatim "lookup"}, but this is sufficiently frequent to
+  is_some} and \<^verbatim>\<open>lookup\<close>, but this is sufficiently frequent to
   justify its independent existence.  This also gives the
   implementation some opportunity for peep-hole optimization.
 
@@ -1842,9 +1840,9 @@ text \<open>Execution of Standard ML follows the model of strict
 
   \<^medskip>
   An \<^emph>\<open>unevaluated expression\<close> is represented either as
-  unit abstraction @{verbatim "fn () => a"} of type
-  @{verbatim "unit -> 'a"} or as regular function
-  @{verbatim "fn a => b"} of type @{verbatim "'a -> 'b"}.  Both forms
+  unit abstraction \<^verbatim>\<open>fn () => a\<close> of type
+  \<^verbatim>\<open>unit -> 'a\<close> or as regular function
+  \<^verbatim>\<open>fn a => b\<close> of type \<^verbatim>\<open>'a -> 'b\<close>.  Both forms
   occur routinely, and special care is required to tell them apart ---
   the static type-system of SML is only of limited help here.
 
@@ -1908,7 +1906,7 @@ text %mlref \<open>
   all results are regular values, that list is returned.  Otherwise,
   the collection of all exceptions is raised, wrapped-up as collective
   parallel exception.  Note that the latter prevents access to
-  individual exceptions by conventional @{verbatim "handle"} of ML.
+  individual exceptions by conventional \<^verbatim>\<open>handle\<close> of ML.
 
   \<^descr> @{ML Par_Exn.release_first} is similar to @{ML
   Par_Exn.release_all}, but only the first (meaningful) exception that has
@@ -2010,8 +2008,7 @@ text %mlref \<open>
   @{index_ML Lazy.force: "'a lazy -> 'a"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type "'a lazy"} represents lazy values over type @{verbatim
-  "'a"}.
+  \<^descr> Type @{ML_type "'a lazy"} represents lazy values over type \<^verbatim>\<open>'a\<close>.
 
   \<^descr> @{ML Lazy.lazy}~\<open>(fn () => e)\<close> wraps the unevaluated
   expression \<open>e\<close> as unfinished lazy value.
@@ -2099,8 +2096,7 @@ text %mlref \<open>
   @{index_ML Future.fulfill: "'a future -> 'a -> unit"} \\
   \end{mldecls}
 
-  \<^descr> Type @{ML_type "'a future"} represents future values over type
-  @{verbatim "'a"}.
+  \<^descr> Type @{ML_type "'a future"} represents future values over type \<^verbatim>\<open>'a\<close>.
 
   \<^descr> @{ML Future.fork}~\<open>(fn () => e)\<close> registers the unevaluated
   expression \<open>e\<close> as unfinished future value, to be evaluated eventually

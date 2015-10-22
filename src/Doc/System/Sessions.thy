@@ -29,7 +29,7 @@ text \<open>An Isabelle \<^emph>\<open>session\<close> consists of a collection 
 
 section \<open>Session ROOT specifications \label{sec:session-root}\<close>
 
-text \<open>Session specifications reside in files called @{verbatim ROOT}
+text \<open>Session specifications reside in files called \<^verbatim>\<open>ROOT\<close>
   within certain directories, such as the home locations of registered
   Isabelle components or additional project directories given by the
   user.
@@ -45,7 +45,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
   meaning.  The default chapter is ``\<open>Unsorted\<close>''.
 
   Isabelle/jEdit @{cite "isabelle-jedit"} includes a simple editing
-  mode @{verbatim "isabelle-root"} for session ROOT files, which is
+  mode \<^verbatim>\<open>isabelle-root\<close> for session ROOT files, which is
   enabled by default for any file of that name.
 
   @{rail \<open>
@@ -98,7 +98,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
 
   \<^descr> \isakeyword{session}~\<open>A\<close>~\isakeyword{in}~\<open>dir\<close>
   specifies an explicit directory for this session; by default this is
-  the current directory of the @{verbatim ROOT} file.
+  the current directory of the \<^verbatim>\<open>ROOT\<close> file.
 
   All theories and auxiliary source files are located relatively to
   the session directory.  The prover process is run within the same as
@@ -128,7 +128,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
   declared again.
 
   \<^descr> \isakeyword{document_files}~\<open>(\<close>\isakeyword{in}~\<open>base_dir) files\<close> lists source files for document preparation,
-  typically @{verbatim ".tex"} and @{verbatim ".sty"} for {\LaTeX}.
+  typically \<^verbatim>\<open>.tex\<close> and \<^verbatim>\<open>.sty\<close> for {\LaTeX}.
   Only these explicitly given files are copied from the base directory
   to the document output directory, before formal document processing
   is started (see also \secref{sec:tool-document}).  The local path
@@ -137,7 +137,7 @@ text \<open>Session specifications reside in files called @{verbatim ROOT}
 
   \<^descr> \isakeyword{document_files}~\<open>files\<close> abbreviates
   \isakeyword{document_files}~\<open>(\<close>\isakeyword{in}~\<open>document) files\<close>, i.e.\ document sources are taken from the base
-  directory @{verbatim document} within the session root directory.
+  directory \<^verbatim>\<open>document\<close> within the session root directory.
 \<close>
 
 
@@ -156,7 +156,7 @@ section \<open>System build options \label{sec:system-options}\<close>
 
 text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   the Isabelle distribution.  Isabelle/jEdit @{cite "isabelle-jedit"}
-  includes a simple editing mode @{verbatim "isabelle-options"} for
+  includes a simple editing mode \<^verbatim>\<open>isabelle-options\<close> for
   this file-format.
 
   The following options are particularly relevant to build Isabelle
@@ -167,9 +167,9 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   browser info, see also \secref{sec:info}.
 
   \<^item> @{system_option_def "document"} specifies the document output
-  format, see @{tool document} option @{verbatim "-o"} in
+  format, see @{tool document} option \<^verbatim>\<open>-o\<close> in
   \secref{sec:tool-document}.  In practice, the most relevant values
-  are @{verbatim "document=false"} or @{verbatim "document=pdf"}.
+  are \<^verbatim>\<open>document=false\<close> or \<^verbatim>\<open>document=pdf\<close>.
 
   \<^item> @{system_option_def "document_output"} specifies an
   alternative directory for generated output of the document
@@ -181,13 +181,12 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
 
   \<^item> @{system_option_def "document_variants"} specifies document
   variants as a colon-separated list of \<open>name=tags\<close> entries,
-  corresponding to @{tool document} options @{verbatim "-n"} and
-  @{verbatim "-t"}.
+  corresponding to @{tool document} options \<^verbatim>\<open>-n\<close> and
+  \<^verbatim>\<open>-t\<close>.
 
-  For example, @{verbatim
-  "document_variants=document:outline=/proof,/ML"} indicates two
-  documents: the one called @{verbatim document} with default tags,
-  and the other called @{verbatim outline} where proofs and ML
+  For example, \<^verbatim>\<open>document_variants=document:outline=/proof,/ML\<close> indicates
+  two documents: the one called \<^verbatim>\<open>document\<close> with default tags,
+  and the other called \<^verbatim>\<open>outline\<close> where proofs and ML
   sections are folded.
 
   Document variant names are just a matter of conventions.  It is also
@@ -201,7 +200,7 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   underlying hardware.  For machines with many cores or with
   hyperthreading, this is often requires manual adjustment (on the
   command-line or within personal settings or preferences, not within
-  a session @{verbatim ROOT}).
+  a session \<^verbatim>\<open>ROOT\<close>).
 
   \<^item> @{system_option_def "condition"} specifies a comma-separated
   list of process environment variables (or Isabelle settings) that
@@ -209,9 +208,9 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   Conditions are considered ``true'' if the corresponding environment
   value is defined and non-empty.
 
-  For example, the @{verbatim "condition=ISABELLE_FULL_TEST"} may be
+  For example, the \<^verbatim>\<open>condition=ISABELLE_FULL_TEST\<close> may be
   used to guard extraordinary theories, which are meant to be enabled
-  explicitly via some shell prefix @{verbatim "env ISABELLE_FULL_TEST=true"}
+  explicitly via some shell prefix \<^verbatim>\<open>env ISABELLE_FULL_TEST=true\<close>
   before invoking @{tool build}.
 
   \<^item> @{system_option_def "timeout"} specifies a real wall-clock
@@ -237,18 +236,18 @@ text \<open>See @{file "~~/etc/options"} for the main defaults provided by
   arguments NAME=VAL or NAME.\<close>}
 
   The command line arguments provide additional system options of the
-  form \<open>name\<close>@{verbatim "="}\<open>value\<close> or \<open>name\<close>
+  form \<open>name\<close>\<^verbatim>\<open>=\<close>\<open>value\<close> or \<open>name\<close>
   for Boolean options.
 
-  Option @{verbatim "-b"} augments the implicit environment of system
+  Option \<^verbatim>\<open>-b\<close> augments the implicit environment of system
   options by the ones of @{setting ISABELLE_BUILD_OPTIONS}, cf.\
   \secref{sec:tool-build}.
 
-  Option @{verbatim "-g"} prints the value of the given option.
-  Option @{verbatim "-l"} lists all options with their declaration and
+  Option \<^verbatim>\<open>-g\<close> prints the value of the given option.
+  Option \<^verbatim>\<open>-l\<close> lists all options with their declaration and
   current value.
 
-  Option @{verbatim "-x"} specifies a file to export the result in
+  Option \<^verbatim>\<open>-x\<close> specifies a file to export the result in
   YXML format, instead of printing it in human-readable form.
 \<close>
 
@@ -261,7 +260,7 @@ text \<open>The @{tool_def build} tool invokes the build process for
   images.  Accordingly, it runs instances of the prover process with
   optional document preparation.  Its command-line usage
   is:\footnote{Isabelle/Scala provides the same functionality via
-  @{verbatim "isabelle.Build.build"}.}
+  \<^verbatim>\<open>isabelle.Build.build\<close>.}
   @{verbatim [display]
 \<open>Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
@@ -296,41 +295,41 @@ text \<open>The @{tool_def build} tool invokes the build process for
   described in (\secref{sec:session-root}).  The totality of sessions
   is determined by collecting such specifications from all Isabelle
   component directories (\secref{sec:components}), augmented by more
-  directories given via options @{verbatim "-d"}~\<open>DIR\<close> on the
+  directories given via options \<^verbatim>\<open>-d\<close>~\<open>DIR\<close> on the
   command line.  Each such directory may contain a session
-  @{verbatim ROOT} file with several session specifications.
+  \<^verbatim>\<open>ROOT\<close> file with several session specifications.
 
   Any session root directory may refer recursively to further
   directories of the same kind, by listing them in a catalog file
-  @{verbatim "ROOTS"} line-by-line.  This helps to organize large
-  collections of session specifications, or to make @{verbatim "-d"}
-  command line options persistent (say within @{verbatim
-  "$ISABELLE_HOME_USER/ROOTS"}).
+  \<^verbatim>\<open>ROOTS\<close> line-by-line.  This helps to organize large
+  collections of session specifications, or to make \<^verbatim>\<open>-d\<close>
+  command line options persistent (say within
+  \<^verbatim>\<open>$ISABELLE_HOME_USER/ROOTS\<close>).
 
   \<^medskip>
   The subset of sessions to be managed is determined via
   individual \<open>SESSIONS\<close> given as command-line arguments, or
-  session groups that are given via one or more options @{verbatim
-  "-g"}~\<open>NAME\<close>.  Option @{verbatim "-a"} selects all sessions.
+  session groups that are given via one or more options \<^verbatim>\<open>-g\<close>~\<open>NAME\<close>.
+  Option \<^verbatim>\<open>-a\<close> selects all sessions.
   The build tool takes session dependencies into account: the set of
   selected sessions is completed by including all ancestors.
 
   \<^medskip>
-  One or more options @{verbatim "-x"}~\<open>NAME\<close> specify
+  One or more options \<^verbatim>\<open>-x\<close>~\<open>NAME\<close> specify
   sessions to be excluded. All descendents of excluded sessions are removed
-  from the selection as specified above. Option @{verbatim "-X"} is
+  from the selection as specified above. Option \<^verbatim>\<open>-X\<close> is
   analogous to this, but excluded sessions are specified by session group
   membership.
 
   \<^medskip>
-  Option @{verbatim "-R"} reverses the selection in the sense
+  Option \<^verbatim>\<open>-R\<close> reverses the selection in the sense
   that it refers to its requirements: all ancestor sessions excluding
   the original selection.  This allows to prepare the stage for some
   build process with different options, before running the main build
-  itself (without option @{verbatim "-R"}).
+  itself (without option \<^verbatim>\<open>-R\<close>).
 
   \<^medskip>
-  Option @{verbatim "-D"} is similar to @{verbatim "-d"}, but
+  Option \<^verbatim>\<open>-D\<close> is similar to \<^verbatim>\<open>-d\<close>, but
   selects all sessions that are defined in the given directories.
 
   \<^medskip>
@@ -338,50 +337,49 @@ text \<open>The @{tool_def build} tool invokes the build process for
   (\secref{sec:system-options}) that are passed to the prover
   eventually.  The settings variable @{setting_ref
   ISABELLE_BUILD_OPTIONS} allows to provide additional defaults, e.g.\
-  @{verbatim \<open>ISABELLE_BUILD_OPTIONS="document=pdf threads=4"\<close>}. Moreover,
+  \<^verbatim>\<open>ISABELLE_BUILD_OPTIONS="document=pdf threads=4"\<close>. Moreover,
   the environment of system build options may be augmented on the
-  command line via @{verbatim "-o"}~\<open>name\<close>@{verbatim
-  "="}\<open>value\<close> or @{verbatim "-o"}~\<open>name\<close>, which
-  abbreviates @{verbatim "-o"}~\<open>name\<close>@{verbatim"=true"} for
-  Boolean options.  Multiple occurrences of @{verbatim "-o"} on the
+  command line via \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=\<close>\<open>value\<close> or \<^verbatim>\<open>-o\<close>~\<open>name\<close>, which
+  abbreviates \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=true\<close> for
+  Boolean options.  Multiple occurrences of \<^verbatim>\<open>-o\<close> on the
   command-line are applied in the given order.
 
   \<^medskip>
-  Option @{verbatim "-b"} ensures that heap images are
+  Option \<^verbatim>\<open>-b\<close> ensures that heap images are
   produced for all selected sessions.  By default, images are only
   saved for inner nodes of the hierarchy of sessions, as required for
   other sessions to continue later on.
 
   \<^medskip>
-  Option @{verbatim "-c"} cleans all descendants of the
+  Option \<^verbatim>\<open>-c\<close> cleans all descendants of the
   selected sessions before performing the specified build operation.
 
   \<^medskip>
-  Option @{verbatim "-n"} omits the actual build process
+  Option \<^verbatim>\<open>-n\<close> omits the actual build process
   after the preparatory stage (including optional cleanup).  Note that
   the return code always indicates the status of the set of selected
   sessions.
 
   \<^medskip>
-  Option @{verbatim "-j"} specifies the maximum number of
+  Option \<^verbatim>\<open>-j\<close> specifies the maximum number of
   parallel build jobs (prover processes).  Each prover process is
   subject to a separate limit of parallel worker threads, cf.\ system
   option @{system_option_ref threads}.
 
   \<^medskip>
-  Option @{verbatim "-s"} enables \<^emph>\<open>system mode\<close>, which
+  Option \<^verbatim>\<open>-s\<close> enables \<^emph>\<open>system mode\<close>, which
   means that resulting heap images and log files are stored in
   @{file_unchecked "$ISABELLE_HOME/heaps"} instead of the default location
   @{setting ISABELLE_OUTPUT} (which is normally in @{setting
   ISABELLE_HOME_USER}, i.e.\ the user's home directory).
 
   \<^medskip>
-  Option @{verbatim "-v"} increases the general level of
-  verbosity.  Option @{verbatim "-l"} lists the source files that
+  Option \<^verbatim>\<open>-v\<close> increases the general level of
+  verbosity.  Option \<^verbatim>\<open>-l\<close> lists the source files that
   contribute to a session.
 
   \<^medskip>
-  Option @{verbatim "-k"} specifies a newly proposed keyword for
+  Option \<^verbatim>\<open>-k\<close> specifies a newly proposed keyword for
   outer syntax (multiple uses allowed). The theory sources are checked for
   conflicts wrt.\ this hypothetical change of syntax, e.g.\ to reveal
   occurrences of identifiers that need to be quoted.\<close>
@@ -423,7 +421,7 @@ text \<open>
 
   \<^smallskip>
   Build all sessions from some other directory hierarchy,
-  according to the settings variable @{verbatim "AFP"} that happens to
+  according to the settings variable \<^verbatim>\<open>AFP\<close> that happens to
   be defined inside the Isabelle environment:
   @{verbatim [display] \<open>isabelle build -D '$AFP'\<close>}
 

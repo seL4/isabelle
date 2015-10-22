@@ -598,16 +598,15 @@ section \<open>Refinement steps\<close>
 subsection \<open>Proof method expressions \label{sec:proof-meth}\<close>
 
 text \<open>Proof methods are either basic ones, or expressions composed of
-  methods via ``@{verbatim ","}'' (sequential composition), ``@{verbatim
-  ";"}'' (structural composition), ``@{verbatim "|"}'' (alternative
-  choices), ``@{verbatim "?"}'' (try), ``@{verbatim "+"}'' (repeat at least
-  once), ``@{verbatim "["}\<open>n\<close>@{verbatim "]"}'' (restriction to first
+  methods via ``\<^verbatim>\<open>,\<close>'' (sequential composition), ``\<^verbatim>\<open>;\<close>'' (structural
+  composition), ``\<^verbatim>\<open>|\<close>'' (alternative
+  choices), ``\<^verbatim>\<open>?\<close>'' (try), ``\<^verbatim>\<open>+\<close>'' (repeat at least
+  once), ``\<^verbatim>\<open>[\<close>\<open>n\<close>\<^verbatim>\<open>]\<close>'' (restriction to first
   \<open>n\<close> subgoals). In practice, proof methods are usually just a comma
   separated list of @{syntax nameref}~@{syntax args} specifications. Note
   that parentheses may be dropped for single method specifications (with no
-  arguments). The syntactic precedence of method combinators is @{verbatim
-  "|"} @{verbatim ";"} @{verbatim ","} @{verbatim "[]"} @{verbatim "+"}
-  @{verbatim "?"} (from low to high).
+  arguments). The syntactic precedence of method combinators is \<^verbatim>\<open>|\<close> \<^verbatim>\<open>;\<close> \<^verbatim>\<open>,\<close>
+  \<^verbatim>\<open>[]\<close> \<^verbatim>\<open>+\<close> \<^verbatim>\<open>?\<close> (from low to high).
 
   @{rail \<open>
     @{syntax_def method}:
@@ -627,7 +626,7 @@ text \<open>Proof methods are either basic ones, or expressions composed of
   elsewhere. Thus a proof method has no other chance than to operate on the
   subgoals that are presently exposed.
 
-  Structural composition ``\<open>m\<^sub>1\<close>@{verbatim ";"}~\<open>m\<^sub>2\<close>'' means
+  Structural composition ``\<open>m\<^sub>1\<close>\<^verbatim>\<open>;\<close>~\<open>m\<^sub>2\<close>'' means
   that method \<open>m\<^sub>1\<close> is applied with restriction to the first subgoal,
   then \<open>m\<^sub>2\<close> is applied consecutively with restriction to each subgoal
   that has newly emerged due to \<open>m\<^sub>1\<close>. This is analogous to the tactic
@@ -846,7 +845,7 @@ text \<open>
   structure is not taken into account, i.e.\ meta-level implication is
   considered atomic.  This is the same principle underlying literal
   facts (cf.\ \secref{sec:syn-att}): ``@{command "have"}~\<open>\<phi>\<close>~@{command "by"}~\<open>fact\<close>'' is equivalent to ``@{command
-  "note"}~@{verbatim "`"}\<open>\<phi>\<close>@{verbatim "`"}'' provided that
+  "note"}~\<^verbatim>\<open>`\<close>\<open>\<phi>\<close>\<^verbatim>\<open>`\<close>'' provided that
   \<open>\<turnstile> \<phi>\<close> is an instance of some known \<open>\<turnstile> \<phi>\<close> in the
   proof context.
 

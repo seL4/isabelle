@@ -93,8 +93,8 @@ text \<open>
   feedback via markup, which is rendered in the editor via colors, boxes,
   squiggly underlines, hyperlinks, popup windows, icons, clickable output etc.
 
-  Using the mouse together with the modifier key @{verbatim CONTROL} (Linux,
-  Windows) or @{verbatim COMMAND} (Mac OS X) exposes additional formal content
+  Using the mouse together with the modifier key \<^verbatim>\<open>CONTROL\<close> (Linux,
+  Windows) or \<^verbatim>\<open>COMMAND\<close> (Mac OS X) exposes additional formal content
   via tooltips and/or hyperlinks (see also \secref{sec:tooltips-hyperlinks}).
   Output (in popups etc.) may be explored recursively, using the same
   techniques as in the editor source buffer.
@@ -113,8 +113,8 @@ text \<open>
   standard Isabelle documentation: PDF files are opened by regular desktop
   operations of the underlying platform. The section ``Original jEdit
   Documentation'' contains the original \<^emph>\<open>User's Guide\<close> of this
-  sophisticated text editor. The same is accessible via the @{verbatim Help}
-  menu or @{verbatim F1} keyboard shortcut, using the built-in HTML viewer of
+  sophisticated text editor. The same is accessible via the \<^verbatim>\<open>Help\<close>
+  menu or \<^verbatim>\<open>F1\<close> keyboard shortcut, using the built-in HTML viewer of
   Java/Swing. The latter also includes \<^emph>\<open>Frequently Asked Questions\<close> and
   documentation of individual plugins.
 
@@ -201,7 +201,7 @@ subsection \<open>Keymaps\<close>
 text \<open>Keyboard shortcuts used to be managed as jEdit properties in
   the past, but recent versions (2013) have a separate concept of
   \<^emph>\<open>keymap\<close> that is configurable via \<^emph>\<open>Global Options~/
-  Shortcuts\<close>.  The @{verbatim imported} keymap is derived from the
+  Shortcuts\<close>.  The \<^verbatim>\<open>imported\<close> keymap is derived from the
   initial environment of properties that is available at the first
   start of the editor; afterwards the keymap file takes precedence.
 
@@ -209,7 +209,7 @@ text \<open>Keyboard shortcuts used to be managed as jEdit properties in
   properties, and additional keyboard shortcuts for Isabelle-specific
   functionality. Users may change their keymap later, but need to copy some
   keyboard shortcuts manually (see also @{file_unchecked
-  "$ISABELLE_HOME_USER/jedit/keymaps"} versus @{verbatim shortcut} properties
+  "$ISABELLE_HOME_USER/jedit/keymaps"} versus \<^verbatim>\<open>shortcut\<close> properties
   in @{file "$ISABELLE_HOME/src/Tools/jEdit/src/jEdit.props"}).
 \<close>
 
@@ -239,30 +239,30 @@ text \<open>
   Start jEdit with Isabelle plugin setup and open theory FILES
   (default "$USER_HOME/Scratch.thy").\<close>}
 
-  The @{verbatim "-l"} option specifies the session name of the logic
+  The \<^verbatim>\<open>-l\<close> option specifies the session name of the logic
   image to be used for proof processing.  Additional session root
-  directories may be included via option @{verbatim "-d"} to augment
+  directories may be included via option \<^verbatim>\<open>-d\<close> to augment
   that name space of @{tool build} @{cite "isabelle-system"}.
 
   By default, the specified image is checked and built on demand. The
-  @{verbatim "-s"} option determines where to store the result session image
-  of @{tool build}. The @{verbatim "-n"} option bypasses the implicit build
+  \<^verbatim>\<open>-s\<close> option determines where to store the result session image
+  of @{tool build}. The \<^verbatim>\<open>-n\<close> option bypasses the implicit build
   process for the selected session image.
 
-  The @{verbatim "-m"} option specifies additional print modes for the prover
+  The \<^verbatim>\<open>-m\<close> option specifies additional print modes for the prover
   process. Note that the system option @{system_option_ref jedit_print_mode}
   allows to do the same persistently (e.g.\ via the \<^emph>\<open>Plugin Options\<close>
   dialog of Isabelle/jEdit), without requiring command-line invocation.
 
-  The @{verbatim "-J"} and @{verbatim "-j"} options allow to pass additional
+  The \<^verbatim>\<open>-J\<close> and \<^verbatim>\<open>-j\<close> options allow to pass additional
   low-level options to the JVM or jEdit, respectively. The defaults are
   provided by the Isabelle settings environment @{cite "isabelle-system"}, but
   note that these only work for the command-line tool described here, and not
   the regular application.
 
-  The @{verbatim "-b"} and @{verbatim "-f"} options control the self-build
+  The \<^verbatim>\<open>-b\<close> and \<^verbatim>\<open>-f\<close> options control the self-build
   mechanism of Isabelle/jEdit. This is only relevant for building from
-  sources, which also requires an auxiliary @{verbatim jedit_build} component
+  sources, which also requires an auxiliary \<^verbatim>\<open>jedit_build\<close> component
   from @{url "http://isabelle.in.tum.de/components"}. The official
   Isabelle release already includes a pre-built version of Isabelle/jEdit.
 \<close>
@@ -445,10 +445,10 @@ text \<open>
   or Bi-directional Text.} See also @{cite "Wenzel:2011:CICM"}.
 
   For the prover back-end, formal text consists of ASCII characters that are
-  grouped according to some simple rules, e.g.\ as plain ``@{verbatim a}'' or
-  symbolic ``@{verbatim "\<alpha>"}''. For the editor front-end, a certain subset of
+  grouped according to some simple rules, e.g.\ as plain ``\<^verbatim>\<open>a\<close>'' or
+  symbolic ``\<^verbatim>\<open>\<alpha>\<close>''. For the editor front-end, a certain subset of
   symbols is rendered physically via Unicode glyphs, in order to show
-  ``@{verbatim "\<alpha>"}'' as ``\<open>\<alpha>\<close>'', for example. This symbol
+  ``\<^verbatim>\<open>\<alpha>\<close>'' as ``\<open>\<alpha>\<close>'', for example. This symbol
   interpretation is specified by the Isabelle system distribution in @{file
   "$ISABELLE_HOME/etc/symbols"} and may be augmented by the user in
   @{file_unchecked "$ISABELLE_HOME_USER/etc/symbols"}.
@@ -456,7 +456,7 @@ text \<open>
   The appendix of @{cite "isabelle-isar-ref"} gives an overview of the
   standard interpretation of finitely many symbols from the infinite
   collection. Uninterpreted symbols are displayed literally, e.g.\
-  ``@{verbatim "\<foobar>"}''. Overlap of Unicode characters used in symbol
+  ``\<^verbatim>\<open>\<foobar>\<close>''. Overlap of Unicode characters used in symbol
   interpretation with informal ones (which might appear e.g.\ in comments)
   needs to be avoided. Raw Unicode characters within prover source files
   should be restricted to informal parts, e.g.\ to write text in non-latin
@@ -464,12 +464,12 @@ text \<open>
 
   \<^medskip>
   \paragraph{Encoding.} Technically, the Unicode view on Isabelle
-  symbols is an \<^emph>\<open>encoding\<close> called @{verbatim "UTF-8-Isabelle"} in jEdit
+  symbols is an \<^emph>\<open>encoding\<close> called \<^verbatim>\<open>UTF-8-Isabelle\<close> in jEdit
   (not in the underlying JVM). It is provided by the Isabelle/jEdit plugin and
   enabled by default for all source files. Sometimes such defaults are reset
   accidentally, or malformed UTF-8 sequences in the text force jEdit to fall
-  back on a different encoding like @{verbatim "ISO-8859-15"}. In that case,
-  verbatim ``@{verbatim "\<alpha>"}'' will be shown in the text buffer instead of its
+  back on a different encoding like \<^verbatim>\<open>ISO-8859-15\<close>. In that case,
+  verbatim ``\<^verbatim>\<open>\<alpha>\<close>'' will be shown in the text buffer instead of its
   Unicode rendering ``\<open>\<alpha>\<close>''. The jEdit menu operation \<^emph>\<open>File~/
   Reload with Encoding~/ UTF-8-Isabelle\<close> helps to resolve such problems (after
   repairing malformed parts of the text).
@@ -478,18 +478,18 @@ text \<open>
   \paragraph{Font.} Correct rendering via Unicode requires a
   font that contains glyphs for the corresponding codepoints.  Most
   system fonts lack that, so Isabelle/jEdit prefers its own
-  application font @{verbatim IsabelleText}, which ensures that
+  application font \<^verbatim>\<open>IsabelleText\<close>, which ensures that
   standard collection of Isabelle symbols are actually seen on the
   screen (or printer).
 
   Note that a Java/AWT/Swing application can load additional fonts only if
   they are not installed on the operating system already! Some outdated
-  version of @{verbatim IsabelleText} that happens to be provided by the
+  version of \<^verbatim>\<open>IsabelleText\<close> that happens to be provided by the
   operating system would prevent Isabelle/jEdit to use its bundled version.
   This could lead to missing glyphs (black rectangles), when the system
-  version of @{verbatim IsabelleText} is older than the application version.
+  version of \<^verbatim>\<open>IsabelleText\<close> is older than the application version.
   This problem can be avoided by refraining to ``install'' any version of
-  @{verbatim IsabelleText} in the first place, although it is occasionally
+  \<^verbatim>\<open>IsabelleText\<close> in the first place, although it is occasionally
   tempting to use the same font in other applications.
 
   \<^medskip>
@@ -518,17 +518,17 @@ text \<open>
 
   \<^enum> Copy/paste from prover output within Isabelle/jEdit. The same
   principles as for text buffers apply, but note that \<^emph>\<open>copy\<close> in secondary
-  Isabelle/jEdit windows works via the keyboard shortcuts @{verbatim "C+c"} or
-  @{verbatim "C+INSERT"}, while jEdit menu actions always refer to the primary
+  Isabelle/jEdit windows works via the keyboard shortcuts \<^verbatim>\<open>C+c\<close> or
+  \<^verbatim>\<open>C+INSERT\<close>, while jEdit menu actions always refer to the primary
   text area!
 
   \<^enum> Completion provided by Isabelle plugin (see
   \secref{sec:completion}).  Isabelle symbols have a canonical name
   and optional abbreviations.  This can be used with the text
   completion mechanism of Isabelle/jEdit, to replace a prefix of the
-  actual symbol like @{verbatim "\<lambda>"}, or its name preceded by backslash
-  @{verbatim "\\"}@{verbatim "lambda"}, or its ASCII abbreviation
-  @{verbatim "%"} by the Unicode rendering.
+  actual symbol like \<^verbatim>\<open>\<lambda>\<close>, or its name preceded by backslash
+  \<^verbatim>\<open>\\<close>\<^verbatim>\<open>lambda\<close>, or its ASCII abbreviation
+  \<^verbatim>\<open>%\<close> by the Unicode rendering.
 
   The following table is an extract of the information provided by the
   standard @{file "$ISABELLE_HOME/etc/symbols"} file:
@@ -536,32 +536,32 @@ text \<open>
   \<^medskip>
   \begin{tabular}{lll}
     \<^bold>\<open>symbol\<close> & \<^bold>\<open>name with backslash\<close> & \<^bold>\<open>abbreviation\<close> \\\hline
-    \<open>\<lambda>\<close> & @{verbatim "\\lambda"} & @{verbatim "%"} \\
-    \<open>\<Rightarrow>\<close> & @{verbatim "\\Rightarrow"} & @{verbatim "=>"} \\
-    \<open>\<Longrightarrow>\<close> & @{verbatim "\\Longrightarrow"} & @{verbatim "==>"} \\[0.5ex]
-    \<open>\<And>\<close> & @{verbatim "\\And"} & @{verbatim "!!"} \\
-    \<open>\<equiv>\<close> & @{verbatim "\\equiv"} & @{verbatim "=="} \\[0.5ex]
-    \<open>\<forall>\<close> & @{verbatim "\\forall"} & @{verbatim "!"} \\
-    \<open>\<exists>\<close> & @{verbatim "\\exists"} & @{verbatim "?"} \\
-    \<open>\<longrightarrow>\<close> & @{verbatim "\\longrightarrow"} & @{verbatim "-->"} \\
-    \<open>\<and>\<close> & @{verbatim "\\and"} & @{verbatim "&"} \\
-    \<open>\<or>\<close> & @{verbatim "\\or"} & @{verbatim "|"} \\
-    \<open>\<not>\<close> & @{verbatim "\\not"} & @{verbatim "~"} \\
-    \<open>\<noteq>\<close> & @{verbatim "\\noteq"} & @{verbatim "~="} \\
-    \<open>\<in>\<close> & @{verbatim "\\in"} & @{verbatim ":"} \\
-    \<open>\<notin>\<close> & @{verbatim "\\notin"} & @{verbatim "~:"} \\
+    \<open>\<lambda>\<close> & \<^verbatim>\<open>\lambda\<close> & \<^verbatim>\<open>%\<close> \\
+    \<open>\<Rightarrow>\<close> & \<^verbatim>\<open>\Rightarrow\<close> & \<^verbatim>\<open>=>\<close> \\
+    \<open>\<Longrightarrow>\<close> & \<^verbatim>\<open>\Longrightarrow\<close> & \<^verbatim>\<open>==>\<close> \\[0.5ex]
+    \<open>\<And>\<close> & \<^verbatim>\<open>\And\<close> & \<^verbatim>\<open>!!\<close> \\
+    \<open>\<equiv>\<close> & \<^verbatim>\<open>\equiv\<close> & \<^verbatim>\<open>==\<close> \\[0.5ex]
+    \<open>\<forall>\<close> & \<^verbatim>\<open>\forall\<close> & \<^verbatim>\<open>!\<close> \\
+    \<open>\<exists>\<close> & \<^verbatim>\<open>\exists\<close> & \<^verbatim>\<open>?\<close> \\
+    \<open>\<longrightarrow>\<close> & \<^verbatim>\<open>\longrightarrow\<close> & \<^verbatim>\<open>-->\<close> \\
+    \<open>\<and>\<close> & \<^verbatim>\<open>\and\<close> & \<^verbatim>\<open>&\<close> \\
+    \<open>\<or>\<close> & \<^verbatim>\<open>\or\<close> & \<^verbatim>\<open>|\<close> \\
+    \<open>\<not>\<close> & \<^verbatim>\<open>\not\<close> & \<^verbatim>\<open>~\<close> \\
+    \<open>\<noteq>\<close> & \<^verbatim>\<open>\noteq\<close> & \<^verbatim>\<open>~=\<close> \\
+    \<open>\<in>\<close> & \<^verbatim>\<open>\in\<close> & \<^verbatim>\<open>:\<close> \\
+    \<open>\<notin>\<close> & \<^verbatim>\<open>\notin\<close> & \<^verbatim>\<open>~:\<close> \\
   \end{tabular}
   \<^medskip>
  
   Note that the above abbreviations refer to the input method. The logical
   notation provides ASCII alternatives that often coincide, but sometimes
   deviate. This occasionally causes user confusion with very old-fashioned
-  Isabelle source that use ASCII replacement notation like @{verbatim "!"} or
-  @{verbatim "ALL"} directly in the text.
+  Isabelle source that use ASCII replacement notation like \<^verbatim>\<open>!\<close> or
+  \<^verbatim>\<open>ALL\<close> directly in the text.
 
   On the other hand, coincidence of symbol abbreviations with ASCII
   replacement syntax syntax helps to update old theory sources via
-  explicit completion (see also @{verbatim "C+b"} explained in
+  explicit completion (see also \<^verbatim>\<open>C+b\<close> explained in
   \secref{sec:completion}).
 
 
@@ -576,17 +576,16 @@ text \<open>
   \<^medskip>
   \begin{tabular}{llll}
     \<^bold>\<open>style\<close> & \<^bold>\<open>symbol\<close> & \<^bold>\<open>shortcut\<close> & \<^bold>\<open>action\<close> \\\hline
-    superscript & @{verbatim "\<^sup>"} & @{verbatim "C+e UP"} & @{action_ref "isabelle.control-sup"} \\
-    subscript & @{verbatim "\<^sub>"} & @{verbatim "C+e DOWN"} & @{action_ref "isabelle.control-sub"} \\
-    bold face & @{verbatim "\<^bold>"} & @{verbatim "C+e RIGHT"} & @{action_ref "isabelle.control-bold"} \\
-    emphasized & @{verbatim "\<^emph>"} & @{verbatim "C+e LEF"} & @{action_ref "isabelle.control-emph"} \\
-    reset & & @{verbatim "C+e BACK_SPACE"} & @{action_ref "isabelle.control-reset"} \\
+    superscript & \<^verbatim>\<open>\<^sup>\<close> & \<^verbatim>\<open>C+e UP\<close> & @{action_ref "isabelle.control-sup"} \\
+    subscript & \<^verbatim>\<open>\<^sub>\<close> & \<^verbatim>\<open>C+e DOWN\<close> & @{action_ref "isabelle.control-sub"} \\
+    bold face & \<^verbatim>\<open>\<^bold>\<close> & \<^verbatim>\<open>C+e RIGHT\<close> & @{action_ref "isabelle.control-bold"} \\
+    emphasized & \<^verbatim>\<open>\<^emph>\<close> & \<^verbatim>\<open>C+e LEFT\<close> & @{action_ref "isabelle.control-emph"} \\
+    reset & & \<^verbatim>\<open>C+e BACK_SPACE\<close> & @{action_ref "isabelle.control-reset"} \\
   \end{tabular}
   \<^medskip>
 
   To produce a single control symbol, it is also possible to complete on
-  @{verbatim "\\"}@{verbatim sup}, @{verbatim "\\"}@{verbatim sub}, @{verbatim
-  "\\"}@{verbatim bold}, @{verbatim "\\"}@{verbatim emph} as for regular
+  \<^verbatim>\<open>\\<close>\<^verbatim>\<open>sup\<close>, \<^verbatim>\<open>\\<close>\<^verbatim>\<open>sub\<close>, \<^verbatim>\<open>\\<close>\<^verbatim>\<open>bold\<close>, \<^verbatim>\<open>\\<close>\<^verbatim>\<open>emph\<close> as for regular
   symbols.
 
   The emphasized style only takes effect in document output, not in the
@@ -601,9 +600,9 @@ text \<open>
   structure in a tree view.
 
   Isabelle/jEdit provides SideKick parsers for its main mode for theory files,
-  as well as some minor modes for the @{verbatim NEWS} file (see
-  \figref{fig:sidekick}), session @{verbatim ROOT} files, and system
-  @{verbatim options}.
+  as well as some minor modes for the \<^verbatim>\<open>NEWS\<close> file (see
+  \figref{fig:sidekick}), session \<^verbatim>\<open>ROOT\<close> files, and system
+  \<^verbatim>\<open>options\<close>.
 
   \begin{figure}[htb]
   \begin{center}
@@ -613,7 +612,7 @@ text \<open>
   \label{fig:sidekick}
   \end{figure}
 
-  Moreover, the special SideKick parser @{verbatim "isabelle-markup"}
+  Moreover, the special SideKick parser \<^verbatim>\<open>isabelle-markup\<close>
   provides access to the full (uninterpreted) markup tree of the PIDE
   document model of the current buffer.  This is occasionally useful
   for informative purposes, but the amount of displayed information
@@ -628,19 +627,19 @@ text \<open>
   The \<^emph>\<open>Console\<close> plugin manages various shells (command interpreters),
   e.g.\ \<^emph>\<open>BeanShell\<close>, which is the official jEdit scripting language, and
   the cross-platform \<^emph>\<open>System\<close> shell. Thus the console provides similar
-  functionality than the Emacs buffers @{verbatim "*scratch*"} and
-  @{verbatim "*shell*"}.
+  functionality than the Emacs buffers \<^verbatim>\<open>*scratch*\<close> and
+  \<^verbatim>\<open>*shell*\<close>.
 
   Isabelle/jEdit extends the repertoire of the console by \<^emph>\<open>Scala\<close>, which
   is the regular Scala toplevel loop running inside the same JVM process as
   Isabelle/jEdit itself. This means the Scala command interpreter has access
   to the JVM name space and state of the running Prover IDE application. The
-  default environment imports the full content of packages @{verbatim
-  "isabelle"} and @{verbatim "isabelle.jedit"}.
+  default environment imports the full content of packages \<^verbatim>\<open>isabelle\<close> and
+  \<^verbatim>\<open>isabelle.jedit\<close>.
 
-  For example, @{verbatim PIDE} refers to the Isabelle/jEdit plugin object,
-  and @{verbatim view} to the current editor view of jEdit. The Scala
-  expression @{verbatim "PIDE.snapshot(view)"} makes a PIDE document snapshot
+  For example, \<^verbatim>\<open>PIDE\<close> refers to the Isabelle/jEdit plugin object,
+  and \<^verbatim>\<open>view\<close> to the current editor view of jEdit. The Scala
+  expression \<^verbatim>\<open>PIDE.snapshot(view)\<close> makes a PIDE document snapshot
   of the current buffer within the current editor view.
 
   This helps to explore Isabelle/Scala functionality interactively. Some care
@@ -654,8 +653,8 @@ section \<open>File-system access\<close>
 text \<open>
   File specifications in jEdit follow various formats and conventions
   according to \<^emph>\<open>Virtual File Systems\<close>, which may be also provided by
-  additional plugins. This allows to access remote files via the @{verbatim
-  "http:"} protocol prefix, for example. Isabelle/jEdit attempts to work with
+  additional plugins. This allows to access remote files via the \<^verbatim>\<open>http:\<close>
+  protocol prefix, for example. Isabelle/jEdit attempts to work with
   the file-system model of jEdit as far as possible. In particular, theory
   sources are passed directly from the editor to the prover, without
   indirection via physical files.
@@ -686,8 +685,8 @@ text \<open>
   wrapper, in contrast to @{tool jedit} run from the command line
   (\secref{sec:command-line}).
 
-  Isabelle/jEdit imitates @{verbatim "$ISABELLE_HOME"} and @{verbatim
-  "$ISABELLE_HOME_USER"} within the Java process environment, in order to
+  Isabelle/jEdit imitates \<^verbatim>\<open>$ISABELLE_HOME\<close> and \<^verbatim>\<open>$ISABELLE_HOME_USER\<close> within
+  the Java process environment, in order to
   allow easy access to these important places from the editor. The file
   browser of jEdit also includes \<^emph>\<open>Favorites\<close> for these two important
   locations.
@@ -733,9 +732,9 @@ text \<open>
   \<^medskip>
   \begin{tabular}{lll}
   \<^bold>\<open>mode\<close> & \<^bold>\<open>file extension\<close> & \<^bold>\<open>content\<close> \\\hline
-  @{verbatim "isabelle"} & @{verbatim ".thy"} & theory source \\
-  @{verbatim "isabelle-ml"} & @{verbatim ".ML"} & Isabelle/ML source \\
-  @{verbatim "sml"} & @{verbatim ".sml"} or @{verbatim ".sig"} & Standard ML source \\
+  \<^verbatim>\<open>isabelle\<close> & \<^verbatim>\<open>.thy\<close> & theory source \\
+  \<^verbatim>\<open>isabelle-ml\<close> & \<^verbatim>\<open>.ML\<close> & Isabelle/ML source \\
+  \<^verbatim>\<open>sml\<close> & \<^verbatim>\<open>.sml\<close> or \<^verbatim>\<open>.sig\<close> & Standard ML source \\
   \end{tabular}
   \<^medskip>
 
@@ -837,7 +836,7 @@ text \<open>
   document-model on demand, the first time when opened explicitly in the
   editor. There are further tricks to manage markup of ML files, such that
   Isabelle/HOL may be edited conveniently in the Prover IDE on small machines
-  with only 8\,GB of main memory. Using @{verbatim Pure} as logic session
+  with only 8\,GB of main memory. Using \<^verbatim>\<open>Pure\<close> as logic session
   image, the exploration may start at the top @{file
   "$ISABELLE_HOME/src/HOL/Main.thy"} or the bottom @{file
   "$ISABELLE_HOME/src/HOL/HOL.thy"}, for example.
@@ -1046,8 +1045,8 @@ section \<open>Tooltips and hyperlinks \label{sec:tooltips-hyperlinks}\<close>
 
 text \<open>
   Formally processed text (prover input or output) contains rich markup
-  information that can be explored further by using the @{verbatim CONTROL}
-  modifier key on Linux and Windows, or @{verbatim COMMAND} on Mac OS X.
+  information that can be explored further by using the \<^verbatim>\<open>CONTROL\<close>
+  modifier key on Linux and Windows, or \<^verbatim>\<open>COMMAND\<close> on Mac OS X.
   Hovering with the mouse while the modifier is pressed reveals a
   \<^emph>\<open>tooltip\<close> (grey box over the text with a yellow popup) and/or a
   \<^emph>\<open>hyperlink\<close> (black rectangle over the text with change of mouse
@@ -1075,14 +1074,14 @@ text \<open>
 
   The tooltip popup window provides some controls to \<^emph>\<open>close\<close> or
   \<^emph>\<open>detach\<close> the window, turning it into a separate \<^emph>\<open>Info\<close>
-  window managed by jEdit.  The @{verbatim ESCAPE} key closes
+  window managed by jEdit.  The \<^verbatim>\<open>ESCAPE\<close> key closes
   \<^emph>\<open>all\<close> popups, which is particularly relevant when nested
   tooltips are stacking up.
 
   \<^medskip>
   A black rectangle in the text indicates a hyperlink that may be
-  followed by a mouse click (while the @{verbatim CONTROL} or @{verbatim
-  COMMAND} modifier key is still pressed). Such jumps to other text locations
+  followed by a mouse click (while the \<^verbatim>\<open>CONTROL\<close> or \<^verbatim>\<open>COMMAND\<close> modifier
+  key is still pressed). Such jumps to other text locations
   are recorded by the \<^emph>\<open>Navigator\<close> plugin, which is bundled with
   Isabelle/jEdit and enabled by default, including navigation arrows in the
   main jEdit toolbar.
@@ -1106,9 +1105,8 @@ text \<open>
 
   \<^medskip>
   \<^emph>\<open>Explicit completion\<close> is triggered by the action @{action_ref
-  "isabelle.complete"}, which is bound to the keyboard shortcut @{verbatim
-  "C+b"}, and thus overrides the jEdit default for @{action_ref
-  "complete-word"}.
+  "isabelle.complete"}, which is bound to the keyboard shortcut \<^verbatim>\<open>C+b\<close>,
+  and thus overrides the jEdit default for @{action_ref "complete-word"}.
 
   \<^emph>\<open>Implicit completion\<close> hooks into the regular keyboard input stream of
   the editor, with some event filtering and optional delays.
@@ -1139,16 +1137,16 @@ text \<open>
   kinds and purposes. The completion mechanism supports this by the following
   built-in templates:
 
-  \<^descr> @{verbatim "`"} (single ASCII back-quote) supports \<^emph>\<open>quotations\<close>
+  \<^descr> \<^verbatim>\<open>`\<close> (single ASCII back-quote) supports \<^emph>\<open>quotations\<close>
   via text cartouches. There are three selections, which are always presented
   in the same order and do not depend on any context information. The default
   choice produces a template ``\<open>\<open>\<box>\<close>\<close>'', where the box indicates the
   cursor position after insertion; the other choices help to repair the block
   structure of unbalanced text cartouches.
 
-  \<^descr> @{verbatim "@{"} is completed to the template ``\<open>@{\<box>}\<close>'',
+  \<^descr> \<^verbatim>\<open>@{\<close> is completed to the template ``\<open>@{\<box>}\<close>'',
   where the box indicates the cursor position after insertion. Here it is
-  convenient to use the wildcard ``@{verbatim __}'' or a more specific name
+  convenient to use the wildcard ``\<^verbatim>\<open>__\<close>'' or a more specific name
   prefix to let semantic completion of name-space entries propose
   antiquotation names.
 
@@ -1191,19 +1189,19 @@ text \<open>
   \<^medskip>
   \begin{tabular}{ll}
   \<^bold>\<open>completion entry\<close> & \<^bold>\<open>example\<close> \\\hline
-  literal symbol & @{verbatim "\<forall>"} \\
-  symbol name with backslash & @{verbatim "\\"}@{verbatim forall} \\
-  symbol abbreviation & @{verbatim "ALL"} or @{verbatim "!"} \\
+  literal symbol & \<^verbatim>\<open>\<forall>\<close> \\
+  symbol name with backslash & \<^verbatim>\<open>\\<close>\<^verbatim>\<open>forall\<close> \\
+  symbol abbreviation & \<^verbatim>\<open>ALL\<close> or \<^verbatim>\<open>!\<close> \\
   \end{tabular}
   \<^medskip>
 
   When inserted into the text, the above examples all produce the same Unicode
-  rendering \<open>\<forall>\<close> of the underlying symbol @{verbatim "\<forall>"}.
+  rendering \<open>\<forall>\<close> of the underlying symbol \<^verbatim>\<open>\<forall>\<close>.
 
-  A symbol abbreviation that is a plain word, like @{verbatim "ALL"}, is
-  treated like a syntax keyword. Non-word abbreviations like @{verbatim "-->"}
+  A symbol abbreviation that is a plain word, like \<^verbatim>\<open>ALL\<close>, is
+  treated like a syntax keyword. Non-word abbreviations like \<^verbatim>\<open>-->\<close>
   are inserted more aggressively, except for single-character abbreviations
-  like @{verbatim "!"} above.
+  like \<^verbatim>\<open>!\<close> above.
 
   \<^medskip>
   Symbol completion depends on the semantic language context
@@ -1227,11 +1225,11 @@ text \<open>
   Already recognized names are \<^emph>\<open>not\<close> completed further, but completion
   may be extended by appending a suffix of underscores. This provokes a failed
   lookup, and another completion attempt while ignoring the underscores. For
-  example, in a name space where @{verbatim "foo"} and @{verbatim "foobar"}
-  are known, the input @{verbatim "foo"} remains unchanged, but @{verbatim
-  "foo_"} may be completed to @{verbatim "foo"} or @{verbatim "foobar"}.
+  example, in a name space where \<^verbatim>\<open>foo\<close> and \<^verbatim>\<open>foobar\<close>
+  are known, the input \<^verbatim>\<open>foo\<close> remains unchanged, but \<^verbatim>\<open>foo_\<close> may be completed
+  to \<^verbatim>\<open>foo\<close> or \<^verbatim>\<open>foobar\<close>.
 
-  The special identifier ``@{verbatim "__"}'' serves as a wild-card for
+  The special identifier ``\<^verbatim>\<open>__\<close>'' serves as a wild-card for
   arbitrary completion: it exposes the name-space content to the completion
   mechanism (truncated according to @{system_option completion_limit}). This
   is occasionally useful to explore an unknown name-space, e.g.\ in some
@@ -1278,7 +1276,7 @@ text \<open>
 
   Instead of the specific @{action_ref "isabelle.complete-word"}, it is also
   possible to use the generic @{action_ref "isabelle.complete"} with its
-  default keyboard shortcut @{verbatim "C+b"}.
+  default keyboard shortcut \<^verbatim>\<open>C+b\<close>.
 
   \<^medskip>
   Dictionary lookup uses some educated guesses about lower-case,
@@ -1305,12 +1303,12 @@ text \<open>
 
   The prover may produce \<^emph>\<open>no completion\<close> markup in exceptional
   situations, to tell that some language keywords should be excluded from
-  further completion attempts. For example, @{verbatim ":"} within accepted
+  further completion attempts. For example, \<^verbatim>\<open>:\<close> within accepted
   Isar syntax looses its meaning as abbreviation for symbol \<open>\<in>\<close>.
 
   \<^medskip>
   The completion context is \<^emph>\<open>ignored\<close> for built-in templates and
-  symbols in their explicit form ``@{verbatim "\<foobar>"}''; see also
+  symbols in their explicit form ``\<^verbatim>\<open>\<foobar>\<close>''; see also
   \secref{sec:completion-varieties}. This allows to complete within broken
   input that escapes its normal semantic context, e.g.\ antiquotations or
   string literals in ML, which do not allow arbitrary backslash sequences.
@@ -1325,7 +1323,7 @@ text \<open>
   jedit_completion_delay}.
 
   \<^descr>[Explicit completion] works via action @{action_ref
-  "isabelle.complete"} with keyboard shortcut @{verbatim "C+b"}. This
+  "isabelle.complete"} with keyboard shortcut \<^verbatim>\<open>C+b\<close>. This
   overrides the shortcut for @{action_ref "complete-word"} in jEdit, but it is
   possible to restore the original jEdit keyboard mapping of @{action
   "complete-word"} via \<^emph>\<open>Global Options~/ Shortcuts\<close> and invent a
@@ -1368,9 +1366,9 @@ text \<open>
   text area that offers a selection of completion items to be inserted into
   the text, e.g.\ by mouse clicks. Items are sorted dynamically, according to
   the frequency of selection, with persistent history. The popup may interpret
-  special keys @{verbatim ENTER}, @{verbatim TAB}, @{verbatim ESCAPE},
-  @{verbatim UP}, @{verbatim DOWN}, @{verbatim PAGE_UP}, @{verbatim
-  PAGE_DOWN}, but all other key events are passed to the underlying text area.
+  special keys \<^verbatim>\<open>ENTER\<close>, \<^verbatim>\<open>TAB\<close>, \<^verbatim>\<open>ESCAPE\<close>,
+  \<^verbatim>\<open>UP\<close>, \<^verbatim>\<open>DOWN\<close>, \<^verbatim>\<open>PAGE_UP\<close>, \<^verbatim>\<open>PAGE_DOWN\<close>, but all other key events are
+  passed to the underlying text area.
   This allows to ignore unwanted completions most of the time and continue
   typing quickly. Thus the popup serves as a mechanism of confirmation of
   proposed items, but the default is to continue without completion.
@@ -1380,13 +1378,13 @@ text \<open>
   \<^medskip>
   \begin{tabular}{ll}
   \<^bold>\<open>key\<close> & \<^bold>\<open>action\<close> \\\hline
-  @{verbatim "ENTER"} & select completion (if @{system_option jedit_completion_select_enter}) \\
-  @{verbatim "TAB"} & select completion (if @{system_option jedit_completion_select_tab}) \\
-  @{verbatim "ESCAPE"} & dismiss popup \\
-  @{verbatim "UP"} & move up one item \\
-  @{verbatim "DOWN"} & move down one item \\
-  @{verbatim "PAGE_UP"} & move up one page of items \\
-  @{verbatim "PAGE_DOWN"} & move down one page of items \\
+  \<^verbatim>\<open>ENTER\<close> & select completion (if @{system_option jedit_completion_select_enter}) \\
+  \<^verbatim>\<open>TAB\<close> & select completion (if @{system_option jedit_completion_select_tab}) \\
+  \<^verbatim>\<open>ESCAPE\<close> & dismiss popup \\
+  \<^verbatim>\<open>UP\<close> & move up one item \\
+  \<^verbatim>\<open>DOWN\<close> & move down one item \\
+  \<^verbatim>\<open>PAGE_UP\<close> & move up one page of items \\
+  \<^verbatim>\<open>PAGE_DOWN\<close> & move down one page of items \\
   \end{tabular}
   \<^medskip>
 
@@ -1424,15 +1422,15 @@ text \<open>
   Support for multiple selections is particularly useful for
   \<^emph>\<open>HyperSearch\<close>: clicking on one of the items in the \<^emph>\<open>HyperSearch
   Results\<close> window makes jEdit select all its occurrences in the corresponding
-  line of text. Then explicit completion can be invoked via @{verbatim "C+b"},
-  e.g.\ to replace occurrences of @{verbatim "-->"} by \<open>\<longrightarrow>\<close>.
+  line of text. Then explicit completion can be invoked via \<^verbatim>\<open>C+b\<close>,
+  e.g.\ to replace occurrences of \<^verbatim>\<open>-->\<close> by \<open>\<longrightarrow>\<close>.
 
   \<^medskip>
   Insertion works by removing and inserting pieces of text from the
   buffer. This counts as one atomic operation on the jEdit history. Thus
   unintended completions may be reverted by the regular @{action undo} action
   of jEdit. According to normal jEdit policies, the recovered text after
-  @{action undo} is selected: @{verbatim ESCAPE} is required to reset the
+  @{action undo} is selected: \<^verbatim>\<open>ESCAPE\<close> is required to reset the
   selection and to continue typing more text.
 \<close>
 
@@ -1466,11 +1464,10 @@ text \<open>
   jedit_completion_immediate} determine the handling of keyboard events for
   implicit completion (\secref{sec:completion-input}).
 
-  A @{system_option jedit_completion_delay}~@{verbatim "> 0"} postpones the
+  A @{system_option jedit_completion_delay}~\<^verbatim>\<open>> 0\<close> postpones the
   processing of key events, until after the user has stopped typing for the
-  given time span, but @{system_option jedit_completion_immediate}~@{verbatim
-  "= true"} means that abbreviations of Isabelle symbols are handled
-  nonetheless.
+  given time span, but @{system_option jedit_completion_immediate}~\<^verbatim>\<open>"= true\<close>
+  means that abbreviations of Isabelle symbols are handled nonetheless.
 
   \<^item> @{system_option_def jedit_completion_path_ignore} specifies ``glob''
   patterns to ignore in file-system path completion (separated by colons),
@@ -1650,14 +1647,14 @@ text \<open>Theory sources may contain document markup commands, such as
 
   It is also possible to use text folding according to this structure, by
   adjusting \<^emph>\<open>Utilities / Buffer Options / Folding mode\<close> of jEdit. The
-  default mode @{verbatim isabelle} uses the structure of formal definitions,
-  statements, and proofs. The alternative mode @{verbatim sidekick} uses the
+  default mode \<^verbatim>\<open>isabelle\<close> uses the structure of formal definitions,
+  statements, and proofs. The alternative mode \<^verbatim>\<open>sidekick\<close> uses the
   document structure of the SideKick parser, as explained above.\<close>
 
 
 section \<open>Citations and Bib{\TeX} entries\<close>
 
-text \<open>Citations are managed by {\LaTeX} and Bib{\TeX} in @{verbatim ".bib"}
+text \<open>Citations are managed by {\LaTeX} and Bib{\TeX} in \<^verbatim>\<open>.bib\<close>
   files. The Isabelle session build process and the @{tool latex} tool @{cite
   "isabelle-system"} are smart enough to assemble the result, based on the
   session directory layout.
@@ -1666,9 +1663,8 @@ text \<open>Citations are managed by {\LaTeX} and Bib{\TeX} in @{verbatim ".bib"
   "isabelle-isar-ref"}. Within the Prover IDE it provides semantic markup for
   tooltips, hyperlinks, and completion for Bib{\TeX} database entries.
   Isabelle/jEdit does \<^emph>\<open>not\<close> know about the actual Bib{\TeX} environment
-  used in {\LaTeX} batch-mode, but it can take citations from those @{verbatim
-  ".bib"} files that happen to be open in the editor; see
-  \figref{fig:cite-completion}.
+  used in {\LaTeX} batch-mode, but it can take citations from those \<^verbatim>\<open>.bib\<close>
+  files that happen to be open in the editor; see \figref{fig:cite-completion}.
 
   \begin{figure}[htb]
   \begin{center}
@@ -1678,7 +1674,7 @@ text \<open>Citations are managed by {\LaTeX} and Bib{\TeX} in @{verbatim ".bib"
   \label{fig:cite-completion}
   \end{figure}
 
-  Isabelle/jEdit also provides some support for editing @{verbatim ".bib"}
+  Isabelle/jEdit also provides some support for editing \<^verbatim>\<open>.bib\<close>
   files themselves. There is syntax highlighting based on entry types
   (according to standard Bib{\TeX} styles), a context-menu to compose entries
   systematically, and a SideKick tree view of the overall content; see
@@ -1717,7 +1713,7 @@ text \<open>Managed evaluation of commands within PIDE documents includes
 
   It is also possible to reveal individual timing information via some
   tooltip for the corresponding command keyword, using the technique
-  of mouse hovering with @{verbatim CONTROL}/@{verbatim COMMAND}
+  of mouse hovering with \<^verbatim>\<open>CONTROL\<close>/\<^verbatim>\<open>COMMAND\<close>
   modifier key as explained in \secref{sec:tooltips-hyperlinks}.
   Actual display of timing depends on the global option
   @{system_option_ref jedit_timing_threshold}, which can be configured in
@@ -1729,9 +1725,9 @@ text \<open>Managed evaluation of commands within PIDE documents includes
   system. The display is continuously updated according to @{system_option_ref
   editor_chart_delay}. Note that the painting of the chart takes considerable
   runtime itself --- on the Java Virtual Machine that runs Isabelle/Scala, not
-  Isabelle/ML. Internally, the Isabelle/Scala module @{verbatim
-  isabelle.ML_Statistics} provides further access to statistics of
-  Isabelle/ML.\<close>
+  Isabelle/ML. Internally, the Isabelle/Scala module \<^verbatim>\<open>isabelle.ML_Statistics\<close>
+  provides further access to statistics of Isabelle/ML.
+\<close>
 
 
 section \<open>Low-level output\<close>
@@ -1752,8 +1748,8 @@ text \<open>Prover output is normally shown directly in the main text area
   it is important to undock all \<^emph>\<open>Protocol\<close> panels for production
   work.
 
-  \<^item> \<^emph>\<open>Raw Output\<close> shows chunks of text from the @{verbatim
-  stdout} and @{verbatim stderr} channels of the prover process.
+  \<^item> \<^emph>\<open>Raw Output\<close> shows chunks of text from the \<^verbatim>\<open>stdout\<close> and \<^verbatim>\<open>stderr\<close>
+  channels of the prover process.
   Recording of output starts with the first activation of the
   corresponding dockable window; earlier output is lost.
 
@@ -1771,7 +1767,7 @@ text \<open>Prover output is normally shown directly in the main text area
 
   \<^item> \<^emph>\<open>Syslog\<close> shows system messages that might be relevant to diagnose
   problems with the startup or shutdown phase of the prover process; this also
-  includes raw output on @{verbatim stderr}. Isabelle/ML also provides an
+  includes raw output on \<^verbatim>\<open>stderr\<close>. Isabelle/ML also provides an
   explicit @{ML Output.system_message} operation, which is occasionally useful
   for diagnostic purposes within the system infrastructure itself.
 
@@ -1800,39 +1796,39 @@ text \<open>
   \<^bold>\<open>Workaround:\<close> Clear the buffer content of unused files and close
   \<^emph>\<open>without\<close> saving changes.
 
-  \<^item> \<^bold>\<open>Problem:\<close> Keyboard shortcuts @{verbatim "C+PLUS"} and
-  @{verbatim "C+MINUS"} for adjusting the editor font size depend on
+  \<^item> \<^bold>\<open>Problem:\<close> Keyboard shortcuts \<^verbatim>\<open>C+PLUS\<close> and
+  \<^verbatim>\<open>C+MINUS\<close> for adjusting the editor font size depend on
   platform details and national keyboards.
 
   \<^bold>\<open>Workaround:\<close> Rebind keys via \<^emph>\<open>Global Options~/
   Shortcuts\<close>.
 
-  \<^item> \<^bold>\<open>Problem:\<close> The Mac OS X key sequence @{verbatim
-  "COMMAND+COMMA"} for application \<^emph>\<open>Preferences\<close> is in conflict with the
+  \<^item> \<^bold>\<open>Problem:\<close> The Mac OS X key sequence \<^verbatim>\<open>COMMAND+COMMA\<close> for application
+  \<^emph>\<open>Preferences\<close> is in conflict with the
   jEdit default keyboard shortcut for \<^emph>\<open>Incremental Search Bar\<close> (action
   @{action_ref "quick-search"}).
 
   \<^bold>\<open>Workaround:\<close> Rebind key via \<^emph>\<open>Global Options~/
-  Shortcuts\<close> according to national keyboard, e.g.\ @{verbatim
-  "COMMAND+SLASH"} on English ones.
+  Shortcuts\<close> according to national keyboard, e.g.\ \<^verbatim>\<open>COMMAND+SLASH\<close>
+  on English ones.
 
   \<^item> \<^bold>\<open>Problem:\<close> Mac OS X system fonts sometimes lead to
   character drop-outs in the main text area.
 
-  \<^bold>\<open>Workaround:\<close> Use the default @{verbatim IsabelleText} font.
+  \<^bold>\<open>Workaround:\<close> Use the default \<^verbatim>\<open>IsabelleText\<close> font.
   (Do not install that font on the system.)
 
   \<^item> \<^bold>\<open>Problem:\<close> Some Linux/X11 input methods such as IBus
   tend to disrupt key event handling of Java/AWT/Swing.
 
   \<^bold>\<open>Workaround:\<close> Do not use X11 input methods. Note that environment
-  variable @{verbatim XMODIFIERS} is reset by default within Isabelle
+  variable \<^verbatim>\<open>XMODIFIERS\<close> is reset by default within Isabelle
   settings.
 
   \<^item> \<^bold>\<open>Problem:\<close> Some Linux/X11 window managers that are
   not ``re-parenting'' cause problems with additional windows opened
   by Java. This affects either historic or neo-minimalistic window
-  managers like @{verbatim awesome} or @{verbatim xmonad}.
+  managers like \<^verbatim>\<open>awesome\<close> or \<^verbatim>\<open>xmonad\<close>.
 
   \<^bold>\<open>Workaround:\<close> Use a regular re-parenting X11 window manager.
 
@@ -1849,7 +1845,7 @@ text \<open>
   primary and secondary font as explained in \secref{sec:hdpi}.
 
   \<^item> \<^bold>\<open>Problem:\<close> Full-screen mode via jEdit action @{action_ref
-  "toggle-full-screen"} (default keyboard shortcut @{verbatim F11}) works on
+  "toggle-full-screen"} (default keyboard shortcut \<^verbatim>\<open>F11\<close>) works on
   Windows, but not on Mac OS X or various Linux/X11 window managers.
 
   \<^bold>\<open>Workaround:\<close> Use native full-screen control of the window

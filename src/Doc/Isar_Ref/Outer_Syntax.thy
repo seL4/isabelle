@@ -23,13 +23,13 @@ text \<open>
   syntax is that of Isabelle/Isar theory sources (specifications and
   proofs).  As a general rule, inner syntax entities may occur only as
   \<^emph>\<open>atomic entities\<close> within outer syntax.  For example, the string
-  @{verbatim \<open>"x + y"\<close>} and identifier @{verbatim z} are legal term
-  specifications within a theory, while @{verbatim "x + y"} without
+  \<^verbatim>\<open>"x + y"\<close> and identifier \<^verbatim>\<open>z\<close> are legal term
+  specifications within a theory, while \<^verbatim>\<open>x + y\<close> without
   quotes is not.
 
   Printed theory documents usually omit quotes to gain readability
-  (this is a matter of {\LaTeX} macro setup, say via @{verbatim
-  "\\isabellestyle"}, see also @{cite "isabelle-system"}).  Experienced
+  (this is a matter of {\LaTeX} macro setup, say via \<^verbatim>\<open>\isabellestyle\<close>,
+  see also @{cite "isabelle-system"}).  Experienced
   users of Isabelle/Isar may easily reconstruct the lost technical
   information, while mere readers need not care about quotes at all.
 \<close>
@@ -86,8 +86,8 @@ text \<open>The outer lexical syntax consists of three main categories of
   proof command etc.).
 
   Keywords override named tokens.  For example, the presence of a
-  command called @{verbatim term} inhibits the identifier @{verbatim
-  term}, but the string @{verbatim \<open>"term"\<close>} can be used instead.
+  command called \<^verbatim>\<open>term\<close> inhibits the identifier \<^verbatim>\<open>term\<close>, but the
+  string \<^verbatim>\<open>"term"\<close> can be used instead.
   By convention, the outer syntax always allows quoted strings in
   addition to identifiers, wherever a named entity is expected.
 
@@ -102,55 +102,55 @@ text \<open>The outer lexical syntax consists of three main categories of
   \begin{center}
   \begin{supertabular}{rcl}
     @{syntax_def ident} & = & \<open>letter (subscript\<^sup>? quasiletter)\<^sup>*\<close> \\
-    @{syntax_def longident} & = & \<open>ident(\<close>@{verbatim "."}\<open>ident)\<^sup>+\<close> \\
-    @{syntax_def symident} & = & \<open>sym\<^sup>+  |\<close>~~@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>ident\<close>@{verbatim ">"} \\
+    @{syntax_def longident} & = & \<open>ident(\<close>\<^verbatim>\<open>.\<close>\<open>ident)\<^sup>+\<close> \\
+    @{syntax_def symident} & = & \<open>sym\<^sup>+  |\<close>~~\<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>ident\<close>\<^verbatim>\<open>>\<close> \\
     @{syntax_def nat} & = & \<open>digit\<^sup>+\<close> \\
-    @{syntax_def float} & = & @{syntax_ref nat}@{verbatim "."}@{syntax_ref nat}~~\<open>|\<close>~~@{verbatim "-"}@{syntax_ref nat}@{verbatim "."}@{syntax_ref nat} \\
-    @{syntax_def var} & = & @{verbatim "?"}\<open>ident  |\<close>~~@{verbatim "?"}\<open>ident\<close>@{verbatim "."}\<open>nat\<close> \\
-    @{syntax_def typefree} & = & @{verbatim "'"}\<open>ident\<close> \\
-    @{syntax_def typevar} & = & @{verbatim "?"}\<open>typefree  |\<close>~~@{verbatim "?"}\<open>typefree\<close>@{verbatim "."}\<open>nat\<close> \\
-    @{syntax_def string} & = & @{verbatim \<open>"\<close>} \<open>\<dots>\<close> @{verbatim \<open>"\<close>} \\
-    @{syntax_def altstring} & = & @{verbatim "`"} \<open>\<dots>\<close> @{verbatim "`"} \\
+    @{syntax_def float} & = & @{syntax_ref nat}\<^verbatim>\<open>.\<close>@{syntax_ref nat}~~\<open>|\<close>~~\<^verbatim>\<open>-\<close>@{syntax_ref nat}\<^verbatim>\<open>.\<close>@{syntax_ref nat} \\
+    @{syntax_def var} & = & \<^verbatim>\<open>?\<close>\<open>ident  |\<close>~~\<^verbatim>\<open>?\<close>\<open>ident\<close>\<^verbatim>\<open>.\<close>\<open>nat\<close> \\
+    @{syntax_def typefree} & = & \<^verbatim>\<open>'\<close>\<open>ident\<close> \\
+    @{syntax_def typevar} & = & \<^verbatim>\<open>?\<close>\<open>typefree  |\<close>~~\<^verbatim>\<open>?\<close>\<open>typefree\<close>\<^verbatim>\<open>.\<close>\<open>nat\<close> \\
+    @{syntax_def string} & = & \<^verbatim>\<open>"\<close> \<open>\<dots>\<close> \<^verbatim>\<open>"\<close> \\
+    @{syntax_def altstring} & = & \<^verbatim>\<open>`\<close> \<open>\<dots>\<close> \<^verbatim>\<open>`\<close> \\
     @{syntax_def cartouche} & = & @{verbatim "\<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\
-    @{syntax_def verbatim} & = & @{verbatim "{*"} \<open>\<dots>\<close> @{verbatim "*}"} \\[1ex]
+    @{syntax_def verbatim} & = & \<^verbatim>\<open>{*\<close> \<open>\<dots>\<close> \<^verbatim>\<open>*}\<close> \\[1ex]
 
-    \<open>letter\<close> & = & \<open>latin  |\<close>~~@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>latin\<close>@{verbatim ">"}~~\<open>|\<close>~~@{verbatim \<open>\\<close>}@{verbatim "<"}\<open>latin latin\<close>@{verbatim ">"}~~\<open>|  greek  |\<close> \\
-    \<open>subscript\<close> & = & @{verbatim "\<^sub>"} \\
-    \<open>quasiletter\<close> & = & \<open>letter  |  digit  |\<close>~~@{verbatim "_"}~~\<open>|\<close>~~@{verbatim "'"} \\
-    \<open>latin\<close> & = & @{verbatim a}~~\<open>| \<dots> |\<close>~~@{verbatim z}~~\<open>|\<close>~~@{verbatim A}~~\<open>|  \<dots> |\<close>~~@{verbatim Z} \\
-    \<open>digit\<close> & = & @{verbatim "0"}~~\<open>|  \<dots> |\<close>~~@{verbatim "9"} \\
-    \<open>sym\<close> & = & @{verbatim "!"}~~\<open>|\<close>~~@{verbatim "#"}~~\<open>|\<close>~~@{verbatim "$"}~~\<open>|\<close>~~@{verbatim "%"}~~\<open>|\<close>~~@{verbatim "&"}~~\<open>|\<close>~~@{verbatim "*"}~~\<open>|\<close>~~@{verbatim "+"}~~\<open>|\<close>~~@{verbatim "-"}~~\<open>|\<close>~~@{verbatim "/"}~~\<open>|\<close> \\
-    & & @{verbatim "<"}~~\<open>|\<close>~~@{verbatim "="}~~\<open>|\<close>~~@{verbatim ">"}~~\<open>|\<close>~~@{verbatim "?"}~~\<open>|\<close>~~@{verbatim "@"}~~\<open>|\<close>~~@{verbatim "^"}~~\<open>|\<close>~~@{verbatim "_"}~~\<open>|\<close>~~@{verbatim "|"}~~\<open>|\<close>~~@{verbatim "~"} \\
-    \<open>greek\<close> & = & @{verbatim "\<alpha>"}~~\<open>|\<close>~~@{verbatim "\<beta>"}~~\<open>|\<close>~~@{verbatim "\<gamma>"}~~\<open>|\<close>~~@{verbatim "\<delta>"}~~\<open>|\<close> \\
-          &   & @{verbatim "\<epsilon>"}~~\<open>|\<close>~~@{verbatim "\<zeta>"}~~\<open>|\<close>~~@{verbatim "\<eta>"}~~\<open>|\<close>~~@{verbatim "\<theta>"}~~\<open>|\<close> \\
-          &   & @{verbatim "\<iota>"}~~\<open>|\<close>~~@{verbatim "\<kappa>"}~~\<open>|\<close>~~@{verbatim "\<mu>"}~~\<open>|\<close>~~@{verbatim "\<nu>"}~~\<open>|\<close> \\
-          &   & @{verbatim "\<xi>"}~~\<open>|\<close>~~@{verbatim "\<pi>"}~~\<open>|\<close>~~@{verbatim "\<rho>"}~~\<open>|\<close>~~@{verbatim "\<sigma>"}~~\<open>|\<close>~~@{verbatim "\<tau>"}~~\<open>|\<close> \\
-          &   & @{verbatim "\<upsilon>"}~~\<open>|\<close>~~@{verbatim "\<phi>"}~~\<open>|\<close>~~@{verbatim "\<chi>"}~~\<open>|\<close>~~@{verbatim "\<psi>"}~~\<open>|\<close> \\
-          &   & @{verbatim "\<omega>"}~~\<open>|\<close>~~@{verbatim "\<Gamma>"}~~\<open>|\<close>~~@{verbatim "\<Delta>"}~~\<open>|\<close>~~@{verbatim "\<Theta>"}~~\<open>|\<close> \\
-          &   & @{verbatim "\<Lambda>"}~~\<open>|\<close>~~@{verbatim "\<Xi>"}~~\<open>|\<close>~~@{verbatim "\<Pi>"}~~\<open>|\<close>~~@{verbatim "\<Sigma>"}~~\<open>|\<close> \\
-          &   & @{verbatim "\<Upsilon>"}~~\<open>|\<close>~~@{verbatim "\<Phi>"}~~\<open>|\<close>~~@{verbatim "\<Psi>"}~~\<open>|\<close>~~@{verbatim "\<Omega>"} \\
+    \<open>letter\<close> & = & \<open>latin  |\<close>~~\<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>latin\<close>\<^verbatim>\<open>>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\\<close>\<^verbatim>\<open><\<close>\<open>latin latin\<close>\<^verbatim>\<open>>\<close>~~\<open>|  greek  |\<close> \\
+    \<open>subscript\<close> & = & \<^verbatim>\<open>\<^sub>\<close> \\
+    \<open>quasiletter\<close> & = & \<open>letter  |  digit  |\<close>~~\<^verbatim>\<open>_\<close>~~\<open>|\<close>~~\<^verbatim>\<open>'\<close> \\
+    \<open>latin\<close> & = & \<^verbatim>\<open>a\<close>~~\<open>| \<dots> |\<close>~~\<^verbatim>\<open>z\<close>~~\<open>|\<close>~~\<^verbatim>\<open>A\<close>~~\<open>|  \<dots> |\<close>~~\<^verbatim>\<open>Z\<close> \\
+    \<open>digit\<close> & = & \<^verbatim>\<open>0\<close>~~\<open>|  \<dots> |\<close>~~\<^verbatim>\<open>9\<close> \\
+    \<open>sym\<close> & = & \<^verbatim>\<open>!\<close>~~\<open>|\<close>~~\<^verbatim>\<open>#\<close>~~\<open>|\<close>~~\<^verbatim>\<open>$\<close>~~\<open>|\<close>~~\<^verbatim>\<open>%\<close>~~\<open>|\<close>~~\<^verbatim>\<open>&\<close>~~\<open>|\<close>~~\<^verbatim>\<open>*\<close>~~\<open>|\<close>~~\<^verbatim>\<open>+\<close>~~\<open>|\<close>~~\<^verbatim>\<open>-\<close>~~\<open>|\<close>~~\<^verbatim>\<open>/\<close>~~\<open>|\<close> \\
+    & & \<^verbatim>\<open><\<close>~~\<open>|\<close>~~\<^verbatim>\<open>=\<close>~~\<open>|\<close>~~\<^verbatim>\<open>>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>?\<close>~~\<open>|\<close>~~\<^verbatim>\<open>@\<close>~~\<open>|\<close>~~\<^verbatim>\<open>^\<close>~~\<open>|\<close>~~\<^verbatim>\<open>_\<close>~~\<open>|\<close>~~\<^verbatim>\<open>|\<close>~~\<open>|\<close>~~\<^verbatim>\<open>~\<close> \\
+    \<open>greek\<close> & = & \<^verbatim>\<open>\<alpha>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<beta>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<gamma>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<delta>\<close>~~\<open>|\<close> \\
+          &   & \<^verbatim>\<open>\<epsilon>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<zeta>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<eta>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<theta>\<close>~~\<open>|\<close> \\
+          &   & \<^verbatim>\<open>\<iota>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<kappa>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<mu>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<nu>\<close>~~\<open>|\<close> \\
+          &   & \<^verbatim>\<open>\<xi>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<pi>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<rho>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<sigma>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<tau>\<close>~~\<open>|\<close> \\
+          &   & \<^verbatim>\<open>\<upsilon>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<phi>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<chi>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<psi>\<close>~~\<open>|\<close> \\
+          &   & \<^verbatim>\<open>\<omega>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<Gamma>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<Delta>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<Theta>\<close>~~\<open>|\<close> \\
+          &   & \<^verbatim>\<open>\<Lambda>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<Xi>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<Pi>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<Sigma>\<close>~~\<open>|\<close> \\
+          &   & \<^verbatim>\<open>\<Upsilon>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<Phi>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<Psi>\<close>~~\<open>|\<close>~~\<^verbatim>\<open>\<Omega>\<close> \\
   \end{supertabular}
   \end{center}
 
   A @{syntax_ref var} or @{syntax_ref typevar} describes an unknown,
   which is internally a pair of base name and index (ML type @{ML_type
   indexname}).  These components are either separated by a dot as in
-  \<open>?x.1\<close> or \<open>?x7.3\<close> or run together as in \<open>?x1\<close>.  The latter form is possible if the base name does not end
-  with digits.  If the index is 0, it may be dropped altogether:
-  \<open>?x\<close> and \<open>?x0\<close> and \<open>?x.0\<close> all refer to the
+  \<open>?x.1\<close> or \<open>?x7.3\<close> or run together as in \<open>?x1\<close>.  The latter form is possible
+  if the base name does not end with digits.  If the index is 0, it may be
+  dropped altogether: \<open>?x\<close> and \<open>?x0\<close> and \<open>?x.0\<close> all refer to the
   same unknown, with basename \<open>x\<close> and index 0.
 
   The syntax of @{syntax_ref string} admits any characters, including
-  newlines; ``@{verbatim \<open>"\<close>}'' (double-quote) and ``@{verbatim \<open>\\<close>}''
+  newlines; ``\<^verbatim>\<open>"\<close>'' (double-quote) and ``\<^verbatim>\<open>\\<close>''
   (backslash) need to be escaped by a backslash; arbitrary
-  character codes may be specified as ``@{verbatim \<open>\\<close>}\<open>ddd\<close>'',
+  character codes may be specified as ``\<^verbatim>\<open>\\<close>\<open>ddd\<close>'',
   with three decimal digits.  Alternative strings according to
   @{syntax_ref altstring} are analogous, using single back-quotes
   instead.
 
   The body of @{syntax_ref verbatim} may consist of any text not containing
-  ``@{verbatim "*}"}''; this allows to include quotes without further
-  escapes, but there is no way to escape ``@{verbatim "*}"}''. Cartouches
+  ``\<^verbatim>\<open>*}\<close>''; this allows to include quotes without further
+  escapes, but there is no way to escape ``\<^verbatim>\<open>*}\<close>''. Cartouches
   do not have this limitation.
 
   A @{syntax_ref cartouche} consists of arbitrary text, with properly
@@ -158,18 +158,18 @@ text \<open>The outer lexical syntax consists of three main categories of
   "\<close>"}''.  Note that the rendering of cartouche delimiters is
   usually like this: ``\<open>\<open> \<dots> \<close>\<close>''.
 
-  Source comments take the form @{verbatim "(*"}~\<open>\<dots>\<close>~@{verbatim "*)"} and may be nested, although the user-interface
+  Source comments take the form \<^verbatim>\<open>(*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*)\<close> and may be nested, although the user-interface
   might prevent this.  Note that this form indicates source comments
   only, which are stripped after lexical analysis of the input.  The
   Isar syntax also provides proper \<^emph>\<open>document comments\<close> that are
   considered as part of the text (see \secref{sec:comments}).
 
   Common mathematical symbols such as \<open>\<forall>\<close> are represented in
-  Isabelle as @{verbatim \<forall>}.  There are infinitely many Isabelle
+  Isabelle as \<^verbatim>\<open>\<forall>\<close>.  There are infinitely many Isabelle
   symbols like this, although proper presentation is left to front-end
   tools such as {\LaTeX} or Isabelle/jEdit.  A list of
   predefined Isabelle symbols that work well with these tools is given
-  in \appref{app:symbols}.  Note that @{verbatim "\<lambda>"} does not belong
+  in \appref{app:symbols}.  Note that \<^verbatim>\<open>\<lambda>\<close> does not belong
   to the \<open>letter\<close> category, since it is already used differently
   in the Pure term language.\<close>
 
@@ -189,7 +189,7 @@ text \<open>Entity @{syntax name} usually refers to any name of types,
   constants, theorems etc.\ that are to be \<^emph>\<open>declared\<close> or
   \<^emph>\<open>defined\<close> (so qualified identifiers are excluded here).  Quoted
   strings provide an escape for non-identifier names or those ruled
-  out by outer syntax keywords (e.g.\ quoted @{verbatim \<open>"let"\<close>}).
+  out by outer syntax keywords (e.g.\ quoted \<^verbatim>\<open>"let"\<close>).
   Already existing objects are usually referenced by @{syntax
   nameref}.
 
@@ -224,10 +224,10 @@ text \<open>The outer lexical syntax (\secref{sec:outer-lex}) admits
 subsection \<open>Comments \label{sec:comments}\<close>
 
 text \<open>Large chunks of plain @{syntax text} are usually given @{syntax
-  verbatim}, i.e.\ enclosed in @{verbatim "{*"}~\<open>\<dots>\<close>~@{verbatim "*}"},
+  verbatim}, i.e.\ enclosed in \<^verbatim>\<open>{*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*}\<close>,
   or as @{syntax cartouche} \<open>\<open>\<dots>\<close>\<close>. For convenience, any of the
   smaller text units conforming to @{syntax nameref} are admitted as well. A
-  marginal @{syntax comment} is of the form @{verbatim "--"}~@{syntax text}.
+  marginal @{syntax comment} is of the form \<^verbatim>\<open>--\<close>~@{syntax text}.
   Any number of these may occur within Isabelle/Isar commands.
 
   @{rail \<open>
@@ -267,10 +267,11 @@ text \<open>
   is performed internally later).  For convenience, a slightly more
   liberal convention is adopted: quotes may be omitted for any type or
   term that is already atomic at the outer level.  For example, one
-  may just write @{verbatim x} instead of quoted @{verbatim \<open>"x"\<close>}.
-  Note that symbolic identifiers (e.g.\ @{verbatim "++"} or \<open>\<forall>\<close> are available as well, provided these have not been superseded
-  by commands or other keywords already (such as @{verbatim "="} or
-  @{verbatim "+"}).
+  may just write \<^verbatim>\<open>x\<close> instead of quoted \<^verbatim>\<open>"x"\<close>.
+  Note that symbolic identifiers (e.g.\ \<^verbatim>\<open>++\<close> or \<open>\<forall>\<close> are available as well,
+  provided these have not been superseded
+  by commands or other keywords already (such as \<^verbatim>\<open>=\<close> or
+  \<^verbatim>\<open>+\<close>).
 
   @{rail \<open>
     @{syntax_def type}: @{syntax nameref} | @{syntax typefree} |
@@ -408,7 +409,7 @@ text \<open>Attributes have their own ``semi-inner'' syntax, in the sense
   \<^enum> selections from named facts \<open>a(i)\<close> or \<open>a(j - k)\<close>,
 
   \<^enum> literal fact propositions using token syntax @{syntax_ref altstring}
-  @{verbatim "`"}\<open>\<phi>\<close>@{verbatim "`"} or @{syntax_ref cartouche}
+  \<^verbatim>\<open>`\<close>\<open>\<phi>\<close>\<^verbatim>\<open>`\<close> or @{syntax_ref cartouche}
   \<open>\<open>\<phi>\<close>\<close> (see also method @{method_ref fact}).
 
 

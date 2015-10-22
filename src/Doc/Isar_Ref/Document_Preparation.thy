@@ -53,13 +53,11 @@ text \<open>
   \<^descr> @{command chapter}, @{command section}, @{command subsection} etc.\ mark
   section headings within the theory source. This works in any context, even
   before the initial @{command theory} command. The corresponding {\LaTeX}
-  macros are @{verbatim \<open>\isamarkupchapter\<close>}, @{verbatim
-  \<open>\isamarkupsection\<close>}, @{verbatim \<open>\isamarkupsubsection\<close>} etc.\
+  macros are \<^verbatim>\<open>\isamarkupchapter\<close>, \<^verbatim>\<open>\isamarkupsection\<close>, \<^verbatim>\<open>\isamarkupsubsection\<close> etc.\
 
   \<^descr> @{command text} and @{command txt} specify paragraphs of plain text.
-  This corresponds to a {\LaTeX} environment @{verbatim
-  \<open>\begin{isamarkuptext}\<close>} \<open>\<dots>\<close> @{verbatim \<open>\end{isamarkuptext}\<close>}
-  etc.
+  This corresponds to a {\LaTeX} environment \<^verbatim>\<open>\begin{isamarkuptext}\<close> \<open>\<dots>\<close>
+  \<^verbatim>\<open>\end{isamarkuptext}\<close> etc.
 
   \<^descr> @{command text_raw} is similar to @{command text}, but without
   any surrounding markup environment. This allows to inject arbitrary
@@ -120,7 +118,7 @@ text \<open>
   in the resulting document, but may again refer to formal entities
   via \<^emph>\<open>document antiquotations\<close>.
 
-  For example, embedding @{verbatim \<open>@{term [show_types] "f x = a + x"}\<close>}
+  For example, embedding \<^verbatim>\<open>@{term [show_types] "f x = a + x"}\<close>
   within a text block makes
   \isa{{\isacharparenleft}f{\isasymColon}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharplus}\ x} appear in the final {\LaTeX} document.
 
@@ -131,15 +129,14 @@ text \<open>
   antiquotations are checked within the current theory or proof
   context.
 
-  \<^medskip> Antiquotations are in general written as @{verbatim "@{"}\<open>name\<close>~@{verbatim "["}\<open>options\<close>@{verbatim "]"}~\<open>arguments\<close>@{verbatim "}"}. The short form @{verbatim \<open>\\<close>}@{verbatim
-  "<^"}\<open>name\<close>@{verbatim ">"}\<open>\<open>argument_content\<close>\<close> (without
-  surrounding @{verbatim "@{"}\<open>\<dots>\<close>@{verbatim "}"}) works for a single
+  \<^medskip> Antiquotations are in general written as \<^verbatim>\<open>@{\<close>\<open>name\<close>~\<^verbatim>\<open>[\<close>\<open>options\<close>\<^verbatim>\<open>]\<close>~\<open>arguments\<close>\<^verbatim>\<open>}\<close>.
+  The short form \<^verbatim>\<open>\\<close>\<^verbatim>\<open><^\<close>\<open>name\<close>\<^verbatim>\<open>>\<close>\<open>\<open>argument_content\<close>\<close> (without
+  surrounding \<^verbatim>\<open>@{\<close>\<open>\<dots>\<close>\<^verbatim>\<open>}\<close>) works for a single
   argument that is a cartouche.
 
   Omitting the control symbol is also possible: a cartouche without special
-  decoration is equivalent to @{verbatim \<open>\\<close>}@{verbatim
-  "<^cartouche>"}\<open>\<open>argument_content\<close>\<close>, which is equivalent to
-  @{verbatim "@{cartouche"}~\<open>\<open>argument_content\<close>\<close>@{verbatim "}"}. The
+  decoration is equivalent to \<^verbatim>\<open>\\<close>\<^verbatim>\<open><^cartouche>\<close>\<open>\<open>argument_content\<close>\<close>, which
+  is equivalent to \<^verbatim>\<open>@{cartouche\<close>~\<open>\<open>argument_content\<close>\<close>\<^verbatim>\<open>}\<close>. The
   special name @{antiquotation_def cartouche} is defined in the context:
   Isabelle/Pure introduces that as an alias to @{antiquotation_ref text}
   (see below). Consequently, \<open>\<open>foo_bar + baz \<le> bazar\<close>\<close> prints literal
@@ -161,8 +158,7 @@ text \<open>
   \endgroup
 
   Note that the syntax of antiquotations may \<^emph>\<open>not\<close> include source
-  comments @{verbatim "(*"}~\<open>\<dots>\<close>~@{verbatim "*)"} nor verbatim
-  text @{verbatim "{*"}~\<open>\<dots>\<close>~@{verbatim "*}"}.
+  comments \<^verbatim>\<open>(*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*)\<close> nor verbatim text \<^verbatim>\<open>{*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*}\<close>.
 
   %% FIXME less monolithic presentation, move to individual sections!?
   @{rail \<open>
@@ -280,10 +276,10 @@ text \<open>
   and functor respectively.  The source is printed verbatim.
 
   \<^descr> \<open>@{emph s}\<close> prints document source recursively, with {\LaTeX}
-  markup @{verbatim \<open>\emph{\<close>}\<open>\<dots>\<close>@{verbatim \<open>}\<close>}.
+  markup \<^verbatim>\<open>\emph{\<close>\<open>\<dots>\<close>\<^verbatim>\<open>}\<close>.
 
   \<^descr> \<open>@{bold s}\<close> prints document source recursively, with {\LaTeX}
-  markup @{verbatim \<open>\textbf{\<close>}\<open>\<dots>\<close>@{verbatim \<open>}\<close>}.
+  markup \<^verbatim>\<open>\textbf{\<close>\<open>\<dots>\<close>\<^verbatim>\<open>}\<close>.
 
   \<^descr> \<open>@{verbatim s}\<close> prints uninterpreted source text literally
   as ASCII characters, using some type-writer font style.
@@ -298,19 +294,18 @@ text \<open>
   \<^descr> \<open>@{url name}\<close> produces markup for the given URL, which
   results in an active hyperlink within the text.
 
-  \<^descr> \<open>@{cite name}\<close> produces a citation @{verbatim
-  \<open>\cite{name}\<close>} in {\LaTeX}, where the name refers to some Bib{\TeX}
-  database entry.
+  \<^descr> \<open>@{cite name}\<close> produces a citation \<^verbatim>\<open>\cite{name}\<close> in {\LaTeX},
+  where the name refers to some Bib{\TeX} database entry.
 
-  The variant \<open>@{cite \<open>opt\<close> name}\<close> produces @{verbatim
-  \<open>\cite[opt]{name}\<close>} with some free-form optional argument. Multiple names
+  The variant \<open>@{cite \<open>opt\<close> name}\<close> produces \<^verbatim>\<open>\cite[opt]{name}\<close> with
+  some free-form optional argument. Multiple names
   are output with commas, e.g. \<open>@{cite foo \<AND> bar}\<close> becomes
-  @{verbatim \<open>\cite{foo,bar}\<close>}.
+  \<^verbatim>\<open>\cite{foo,bar}\<close>.
 
   The {\LaTeX} macro name is determined by the antiquotation option
   @{antiquotation_option_def cite_macro}, or the configuration option
   @{attribute cite_macro} in the context. For example, \<open>@{cite
-  [cite_macro = nocite] foobar}\<close> produces @{verbatim \<open>\nocite{foobar}\<close>}.
+  [cite_macro = nocite] foobar}\<close> produces \<^verbatim>\<open>\nocite{foobar}\<close>.
 
   \<^descr> @{command "print_antiquotations"} prints all document antiquotations
   that are defined in the current context; the ``\<open>!\<close>'' option
@@ -422,7 +417,7 @@ text \<open>The following options are available to tune the printed output
   For Boolean flags, ``\<open>name = true\<close>'' may be abbreviated as
   ``\<open>name\<close>''.  All of the above flags are disabled by default,
   unless changed specifically for a logic session in the corresponding
-  @{verbatim "ROOT"} file.
+  \<^verbatim>\<open>ROOT\<close> file.
 \<close>
 
 
@@ -494,8 +489,7 @@ text \<open>
   The @{antiquotation rail} antiquotation allows to include syntax
   diagrams into Isabelle documents.  {\LaTeX} requires the style file
   @{file "~~/lib/texinputs/railsetup.sty"}, which can be used via
-  @{verbatim \<open>\usepackage{railsetup}\<close>} in @{verbatim "root.tex"}, for
-  example.
+  \<^verbatim>\<open>\usepackage{railsetup}\<close> in \<^verbatim>\<open>root.tex\<close>, for example.
 
   The rail specification language is quoted here as Isabelle @{syntax
   string} or text @{syntax "cartouche"}; it has its own grammar given
@@ -528,62 +522,59 @@ text \<open>
   recursion.  The meaning and visual appearance of these rail language
   elements is illustrated by the following representative examples.
 
-  \<^item> Empty @{verbatim "()"}
+  \<^item> Empty \<^verbatim>\<open>()\<close>
 
   @{rail \<open>()\<close>}
 
-  \<^item> Nonterminal @{verbatim "A"}
+  \<^item> Nonterminal \<^verbatim>\<open>A\<close>
 
   @{rail \<open>A\<close>}
 
-  \<^item> Nonterminal via Isabelle antiquotation
-  @{verbatim "@{syntax method}"}
+  \<^item> Nonterminal via Isabelle antiquotation \<^verbatim>\<open>@{syntax method}\<close>
 
   @{rail \<open>@{syntax method}\<close>}
 
-  \<^item> Terminal @{verbatim "'xyz'"}
+  \<^item> Terminal \<^verbatim>\<open>'xyz'\<close>
 
   @{rail \<open>'xyz'\<close>}
 
-  \<^item> Terminal in keyword style @{verbatim "@'xyz'"}
+  \<^item> Terminal in keyword style \<^verbatim>\<open>@'xyz'\<close>
 
   @{rail \<open>@'xyz'\<close>}
 
-  \<^item> Terminal via Isabelle antiquotation
-  @{verbatim "@@{method rule}"}
+  \<^item> Terminal via Isabelle antiquotation \<^verbatim>\<open>@@{method rule}\<close>
 
   @{rail \<open>@@{method rule}\<close>}
 
-  \<^item> Concatenation @{verbatim "A B C"}
+  \<^item> Concatenation \<^verbatim>\<open>A B C\<close>
 
   @{rail \<open>A B C\<close>}
 
-  \<^item> Newline inside concatenation
-  @{verbatim "A B C \<newline> D E F"}
+  \<^item> Newline inside concatenation \<^verbatim>\<open>A B C \<newline> D E F\<close>
 
   @{rail \<open>A B C \<newline> D E F\<close>}
 
-  \<^item> Variants @{verbatim "A | B | C"}
+  \<^item> Variants \<^verbatim>\<open>A | B | C\<close>
 
   @{rail \<open>A | B | C\<close>}
 
-  \<^item> Option @{verbatim "A ?"}
+  \<^item> Option \<^verbatim>\<open>A ?\<close>
 
   @{rail \<open>A ?\<close>}
 
-  \<^item> Repetition @{verbatim "A *"}
+  \<^item> Repetition \<^verbatim>\<open>A *\<close>
 
   @{rail \<open>A *\<close>}
 
-  \<^item> Repetition with separator @{verbatim "A * sep"}
+  \<^item> Repetition with separator \<^verbatim>\<open>A * sep\<close>
 
   @{rail \<open>A * sep\<close>}
 
-  \<^item> Strict repetition @{verbatim "A +"}
+  \<^item> Strict repetition \<^verbatim>\<open>A +\<close>
 
   @{rail \<open>A +\<close>}
 
-  \<^item> Strict repetition with separator @{verbatim "A + sep"}
+  \<^item> Strict repetition with separator \<^verbatim>\<open>A + sep\<close>
 
   @{rail \<open>A + sep\<close>}
 \<close>

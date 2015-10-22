@@ -636,11 +636,10 @@ text %mlref \<open>
   \<^descr> @{ML Thm.peek_status}~\<open>thm\<close> informs about the current
   status of the derivation object behind the given theorem.  This is a
   snapshot of a potentially ongoing (parallel) evaluation of proofs.
-  The three Boolean values indicate the following: @{verbatim oracle}
-  if the finished part contains some oracle invocation; @{verbatim
-  unfinished} if some future proofs are still pending; @{verbatim
-  failed} if some future proof has failed, rendering the theorem
-  invalid!
+  The three Boolean values indicate the following: \<^verbatim>\<open>oracle\<close>
+  if the finished part contains some oracle invocation; \<^verbatim>\<open>unfinished\<close>
+  if some future proofs are still pending; \<^verbatim>\<open>failed\<close> if some future
+  proof has failed, rendering the theorem invalid!
 
   \<^descr> @{ML Logic.all}~\<open>a B\<close> produces a Pure quantification
   \<open>\<And>a. B\<close>, where occurrences of the atomic term \<open>a\<close> in
@@ -1219,18 +1218,18 @@ text \<open>The concrete syntax of proof terms is a slight extension of
   \begin{center}
   \begin{supertabular}{rclr}
 
-  @{syntax_def (inner) proof} & = & @{verbatim Lam} \<open>params\<close> @{verbatim "."} \<open>proof\<close> \\
-    & \<open>|\<close> & \<open>\<^bold>\<lambda>\<close> \<open>params\<close> @{verbatim "."} \<open>proof\<close> \\
-    & \<open>|\<close> & \<open>proof\<close> @{verbatim "%"} \<open>any\<close> \\
+  @{syntax_def (inner) proof} & = & \<^verbatim>\<open>Lam\<close> \<open>params\<close> \<^verbatim>\<open>.\<close> \<open>proof\<close> \\
+    & \<open>|\<close> & \<open>\<^bold>\<lambda>\<close> \<open>params\<close> \<^verbatim>\<open>.\<close> \<open>proof\<close> \\
+    & \<open>|\<close> & \<open>proof\<close> \<^verbatim>\<open>%\<close> \<open>any\<close> \\
     & \<open>|\<close> & \<open>proof\<close> \<open>\<cdot>\<close> \<open>any\<close> \\
-    & \<open>|\<close> & \<open>proof\<close> @{verbatim "%%"} \<open>proof\<close> \\
+    & \<open>|\<close> & \<open>proof\<close> \<^verbatim>\<open>%%\<close> \<open>proof\<close> \\
     & \<open>|\<close> & \<open>proof\<close> \<open>\<bullet>\<close> \<open>proof\<close> \\
     & \<open>|\<close> & \<open>id  |  longid\<close> \\
   \\
 
   \<open>param\<close> & = & \<open>idt\<close> \\
-    & \<open>|\<close> & \<open>idt\<close> @{verbatim ":"} \<open>prop\<close> \\
-    & \<open>|\<close> & @{verbatim "("} \<open>param\<close> @{verbatim ")"} \\
+    & \<open>|\<close> & \<open>idt\<close> \<^verbatim>\<open>:\<close> \<open>prop\<close> \\
+    & \<open>|\<close> & \<^verbatim>\<open>(\<close> \<open>param\<close> \<^verbatim>\<open>)\<close> \\
   \\
 
   \<open>params\<close> & = & \<open>param\<close> \\

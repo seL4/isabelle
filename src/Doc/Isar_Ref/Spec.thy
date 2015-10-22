@@ -93,14 +93,14 @@ text \<open>
   order to make parsing of proof documents work properly.  Command
   keywords need to be classified according to their structural role in
   the formal text.  Examples may be seen in Isabelle/HOL sources
-  itself, such as @{keyword "keywords"}~@{verbatim \<open>"typedef"\<close>}
-  \<open>:: thy_goal\<close> or @{keyword "keywords"}~@{verbatim
-  \<open>"datatype"\<close>} \<open>:: thy_decl\<close> for theory-level declarations
+  itself, such as @{keyword "keywords"}~\<^verbatim>\<open>"typedef"\<close>
+  \<open>:: thy_goal\<close> or @{keyword "keywords"}~\<^verbatim>\<open>"datatype"\<close> \<open>:: thy_decl\<close>
+  for theory-level declarations
   with and without proof, respectively.  Additional @{syntax tags}
   provide defaults for document preparation (\secref{sec:tags}).
 
-  It is possible to specify an alternative completion via @{verbatim
-  "=="}~\<open>text\<close>, while the default is the corresponding keyword name.
+  It is possible to specify an alternative completion via \<^verbatim>\<open>==\<close>~\<open>text\<close>,
+  while the default is the corresponding keyword name.
   
   \<^descr> @{command (global) "end"} concludes the current theory
   definition.  Note that some other commands, e.g.\ local theory
@@ -495,9 +495,9 @@ text \<open>
   Instances have an optional qualifier which applies to names in
   declarations.  Names include local definitions and theorem names.
   If present, the qualifier itself is either optional
-  (``@{verbatim "?"}''), which means that it may be omitted on input of the
-  qualified name, or mandatory (``@{verbatim "!"}'').  If neither
-  ``@{verbatim "?"}'' nor ``@{verbatim "!"}'' are present, the command's default
+  (``\<^verbatim>\<open>?\<close>''), which means that it may be omitted on input of the
+  qualified name, or mandatory (``\<^verbatim>\<open>!\<close>'').  If neither
+  ``\<^verbatim>\<open>?\<close>'' nor ``\<^verbatim>\<open>!\<close>'' are present, the command's default
   is used.  For @{command "interpretation"} and @{command "interpret"}
   the default is ``mandatory'', for @{command "locale"} and @{command
   "sublocale"} the default is ``optional''.  Qualifiers play no role

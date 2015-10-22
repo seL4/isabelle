@@ -111,7 +111,7 @@ text \<open>
   to them in the proof body: ``@{command subgoal}~@{keyword "for"}~\<open>x
   y z\<close>'' names a \<^emph>\<open>prefix\<close>, and ``@{command subgoal}~@{keyword
   "for"}~\<open>\<dots> x y z\<close>'' names a \<^emph>\<open>suffix\<close> of goal parameters. The
-  latter uses a literal @{verbatim "\<dots>"} symbol as notation. Parameter
+  latter uses a literal \<^verbatim>\<open>\<dots>\<close> symbol as notation. Parameter
   positions may be skipped via dummies (underscore). Unspecified names
   remain internal, and thus inaccessible in the proof text.
 

@@ -36,16 +36,16 @@ text \<open>The stand-alone version of the graph browser is wrapped up as
   the directory @{setting ISABELLE_BROWSER_INFO}.
 
   \<^medskip>
-  The @{verbatim "-b"} option indicates that this is for
+  The \<^verbatim>\<open>-b\<close> option indicates that this is for
   administrative build only, i.e.\ no browser popup if no files are
   given.
 
-  The @{verbatim "-c"} option causes the input file to be removed
+  The \<^verbatim>\<open>-c\<close> option causes the input file to be removed
   after use.
 
-  The @{verbatim "-o"} option indicates batch-mode operation, with the
-  output written to the indicated file; note that @{verbatim pdf}
-  produces an @{verbatim eps} copy as well.
+  The \<^verbatim>\<open>-o\<close> option indicates batch-mode operation, with the
+  output written to the indicated file; note that \<^verbatim>\<open>pdf\<close>
+  produces an \<^verbatim>\<open>eps\<close> copy as well.
 
   \<^medskip>
   The applet version of the browser is part of the standard
@@ -105,9 +105,9 @@ text \<open>
   nodes, respectively. The arrow's color then changes to red,
   indicating that the predecessor or successor nodes are currently
   collapsed. The node corresponding to the collapsed nodes has the
-  name ``@{verbatim "[....]"}''. To uncollapse the nodes again, simply
-  click on the red arrow or on the node with the name ``@{verbatim
-  "[....]"}''. Similar to the directory browser, the contents of
+  name ``\<^verbatim>\<open>[....]\<close>''. To uncollapse the nodes again, simply
+  click on the red arrow or on the node with the name ``\<^verbatim>\<open>[....]\<close>''.
+  Similar to the directory browser, the contents of
   theory files can be displayed by double clicking on the
   corresponding node.
 \<close>
@@ -141,8 +141,8 @@ text \<open>
 
   \begin{center}\small
   \begin{tabular}{rcl}
-    \<open>graph\<close> & \<open>=\<close> & \<open>{ vertex\<close>~@{verbatim ";"}~\<open>}+\<close> \\
-    \<open>vertex\<close> & \<open>=\<close> & \<open>vertex_name vertex_ID dir_name [\<close>~@{verbatim "+"}~\<open>] path [\<close>~@{verbatim "<"}~\<open>|\<close>~@{verbatim ">"}~\<open>] { vertex_ID }*\<close>
+    \<open>graph\<close> & \<open>=\<close> & \<open>{ vertex\<close>~\<^verbatim>\<open>;\<close>~\<open>}+\<close> \\
+    \<open>vertex\<close> & \<open>=\<close> & \<open>vertex_name vertex_ID dir_name [\<close>~\<^verbatim>\<open>+\<close>~\<open>] path [\<close>~\<^verbatim>\<open><\<close>~\<open>|\<close>~\<^verbatim>\<open>>\<close>~\<open>] { vertex_ID }*\<close>
   \end{tabular}
   \end{center}
 
@@ -155,16 +155,16 @@ text \<open>
   unique.
 
   \<^descr>[\<open>dir_name\<close>] The name of the ``directory'' the vertex
-  should be placed in.  A ``@{verbatim "+"}'' sign after \<open>dir_name\<close> indicates that the nodes in the directory are initially
+  should be placed in.  A ``\<^verbatim>\<open>+\<close>'' sign after \<open>dir_name\<close> indicates that the nodes in the directory are initially
   visible. Directories are initially invisible by default.
 
   \<^descr>[\<open>path\<close>] The path of the corresponding theory file. This
   is specified relatively to the path of the graph definition file.
 
-  \<^descr>[List of successor/predecessor nodes] A ``@{verbatim "<"}''
+  \<^descr>[List of successor/predecessor nodes] A ``\<^verbatim>\<open><\<close>''
   sign before the list means that successor nodes are listed, a
-  ``@{verbatim ">"}'' sign means that predecessor nodes are listed. If
-  neither ``@{verbatim "<"}'' nor ``@{verbatim ">"}'' is found, the
+  ``\<^verbatim>\<open>>\<close>'' sign means that predecessor nodes are listed. If
+  neither ``\<^verbatim>\<open><\<close>'' nor ``\<^verbatim>\<open>>\<close>'' is found, the
   browser assumes that successor nodes are listed.
 \<close>
 
@@ -195,22 +195,22 @@ text \<open>
   repository @{url "http://isabelle.in.tum.de/components/"} in
   particular.
 
-  Option @{verbatim "-R"} specifies an alternative component
-  repository.  Note that @{verbatim "file:///"} URLs can be used for
+  Option \<^verbatim>\<open>-R\<close> specifies an alternative component
+  repository.  Note that \<^verbatim>\<open>file:///\<close> URLs can be used for
   local directories.
 
-  Option @{verbatim "-a"} selects all missing components to be
+  Option \<^verbatim>\<open>-a\<close> selects all missing components to be
   resolved.  Explicit components may be named as command
   line-arguments as well.  Note that components are uniquely
   identified by their base name, while the installation takes place in
   the location that was specified in the attempt to initialize the
   component before.
 
-  Option @{verbatim "-l"} lists the current state of available and
+  Option \<^verbatim>\<open>-l\<close> lists the current state of available and
   missing components with their location (full name) within the
   file-system.
 
-  Option @{verbatim "-I"} initializes the user settings file to
+  Option \<^verbatim>\<open>-I\<close> initializes the user settings file to
   subscribe to the standard components specified in the Isabelle
   repository clone --- this does not make any sense for regular
   Isabelle releases.  If the file already exists, it needs to be
@@ -236,14 +236,13 @@ text \<open>
   Run Isabelle process with raw ML console and line editor
   (default ISABELLE_LINE_EDITOR).\<close>}
 
-  The @{verbatim "-l"} option specifies the logic session name. By default,
-  its heap image is checked and built on demand, but the option @{verbatim
-  "-n"} skips that.
+  The \<^verbatim>\<open>-l\<close> option specifies the logic session name. By default,
+  its heap image is checked and built on demand, but the option \<^verbatim>\<open>-n\<close> skips that.
 
-  Options @{verbatim "-d"}, @{verbatim "-o"}, @{verbatim "-s"} are passed
+  Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>, \<^verbatim>\<open>-s\<close> are passed
   directly to @{tool build} (\secref{sec:tool-build}).
 
-  Options @{verbatim "-m"}, @{verbatim "-o"} are passed directly to the
+  Options \<^verbatim>\<open>-m\<close>, \<^verbatim>\<open>-o\<close> are passed directly to the
   underlying Isabelle process (\secref{sec:isabelle-process}).
 
   The Isabelle process is run through the line editor that is specified via
@@ -300,11 +299,11 @@ text \<open>
 section \<open>Shell commands within the settings environment \label{sec:tool-env}\<close>
 
 text \<open>The @{tool_def env} tool is a direct wrapper for the standard
-  @{verbatim "/usr/bin/env"} command on POSIX systems, running within
+  \<^verbatim>\<open>/usr/bin/env\<close> command on POSIX systems, running within
   the Isabelle settings environment (\secref{sec:settings}).
 
   The command-line arguments are that of the underlying version of
-  @{verbatim env}.  For example, the following invokes an instance of
+  \<^verbatim>\<open>env\<close>.  For example, the following invokes an instance of
   the GNU Bash shell within the Isabelle environment:
   @{verbatim [display] \<open>isabelle env bash\<close>}
 \<close>
@@ -326,13 +325,13 @@ text \<open>The Isabelle settings environment --- as provided by the
 
   Get value of VARNAMES from the Isabelle settings.\<close>}
 
-  With the @{verbatim "-a"} option, one may inspect the full process
+  With the \<^verbatim>\<open>-a\<close> option, one may inspect the full process
   environment that Isabelle related programs are run in. This usually
   contains much more variables than are actually Isabelle settings.
-  Normally, output is a list of lines of the form \<open>name\<close>@{verbatim "="}\<open>value\<close>. The @{verbatim "-b"} option
+  Normally, output is a list of lines of the form \<open>name\<close>\<^verbatim>\<open>=\<close>\<open>value\<close>. The \<^verbatim>\<open>-b\<close> option
   causes only the values to be printed.
 
-  Option @{verbatim "-d"} produces a dump of the complete environment
+  Option \<^verbatim>\<open>-d\<close> produces a dump of the complete environment
   to the specified file.  Entries are terminated by the ASCII null
   character, i.e.\ the C string terminator.
 \<close>
@@ -368,13 +367,13 @@ text \<open>By default, the main Isabelle binaries (@{executable
   Install Isabelle executables with absolute references to the
   distribution directory.\<close>}
 
-  The @{verbatim "-d"} option overrides the current Isabelle
+  The \<^verbatim>\<open>-d\<close> option overrides the current Isabelle
   distribution directory as determined by @{setting ISABELLE_HOME}.
 
   The \<open>BINDIR\<close> argument tells where executable wrapper scripts
   for @{executable "isabelle_process"} and @{executable isabelle}
   should be placed, which is typically a directory in the shell's
-  @{setting PATH}, such as @{verbatim "$HOME/bin"}.
+  @{setting PATH}, such as \<^verbatim>\<open>$HOME/bin\<close>.
 
   \<^medskip>
   It is also possible to make symbolic links of the main
@@ -395,11 +394,11 @@ text \<open>The @{tool_def logo} tool creates instances of the generic
     -n NAME      alternative output base name (default "isabelle_xyx")
     -q           quiet mode\<close>}
 
-  Option @{verbatim "-n"} specifies an altenative (base) name for the
-  generated files.  The default is @{verbatim "isabelle_"}\<open>xyz\<close>
+  Option \<^verbatim>\<open>-n\<close> specifies an alternative (base) name for the
+  generated files.  The default is \<^verbatim>\<open>isabelle_\<close>\<open>xyz\<close>
   in lower-case.
 
-  Option @{verbatim "-q"} omits printing of the result file name.
+  Option \<^verbatim>\<open>-q\<close> omits printing of the result file name.
 
   \<^medskip>
   Implementors of Isabelle tools and applications are
@@ -421,9 +420,9 @@ text \<open>
 
   \<^medskip>
   The default is to output the full version string of the
-  Isabelle distribution, e.g.\ ``@{verbatim "Isabelle2012: May 2012"}.
+  Isabelle distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2012: May 2012\<close>.
 
-  The @{verbatim "-i"} option produces a short identification derived
+  The \<^verbatim>\<open>-i\<close> option produces a short identification derived
   from the Mercurial id of the @{setting ISABELLE_HOME} directory.
 \<close>
 
@@ -446,13 +445,13 @@ text \<open>
 
   \begin{tabular}{ll}
     XML & YXML \\\hline
-    @{verbatim "<"}\<open>name attribute\<close>@{verbatim "="}\<open>value \<dots>\<close>@{verbatim ">"} &
-    \<open>\<^bold>X\<^bold>Yname\<^bold>Yattribute\<close>@{verbatim "="}\<open>value\<dots>\<^bold>X\<close> \\
-    @{verbatim "</"}\<open>name\<close>@{verbatim ">"} & \<open>\<^bold>X\<^bold>Y\<^bold>X\<close> \\
+    \<^verbatim>\<open><\<close>\<open>name attribute\<close>\<^verbatim>\<open>=\<close>\<open>value \<dots>\<close>\<^verbatim>\<open>>\<close> &
+    \<open>\<^bold>X\<^bold>Yname\<^bold>Yattribute\<close>\<^verbatim>\<open>=\<close>\<open>value\<dots>\<^bold>X\<close> \\
+    \<^verbatim>\<open></\<close>\<open>name\<close>\<^verbatim>\<open>>\<close> & \<open>\<^bold>X\<^bold>Y\<^bold>X\<close> \\
   \end{tabular}
 
-  There is no special case for empty body text, i.e.\ @{verbatim
-  "<foo/>"} is treated like @{verbatim "<foo></foo>"}.  Also note that
+  There is no special case for empty body text, i.e.\ \<^verbatim>\<open><foo/>\<close>
+  is treated like \<^verbatim>\<open><foo></foo>\<close>.  Also note that
   \<open>\<^bold>X\<close> and \<open>\<^bold>Y\<close> may never occur in
   well-formed XML documents.
 
