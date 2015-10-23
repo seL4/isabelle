@@ -137,7 +137,7 @@ fun future_result ctxt result prop =
     val global_prop =
       Logic.varify_types_global (fold_rev Logic.all xs (Logic.list_implies (As, prop)))
       |> Thm.cterm_of ctxt
-      |> Thm.weaken_sorts (Variable.sorts_of ctxt);
+      |> Thm.weaken_sorts' ctxt;
     val global_result = result |> Future.map
       (Drule.flexflex_unique (SOME ctxt) #>
         Thm.adjust_maxidx_thm ~1 #>
@@ -196,9 +196,8 @@ fun prove_common ctxt fork_pri xs asms props tac =
       |> fold Variable.declare_term (asms @ props)
       |> Assumption.add_assumes casms
       ||> Variable.set_body true;
-    val sorts = Variable.sorts_of ctxt';
 
-    val stmt = Thm.weaken_sorts sorts (Conjunction.mk_conjunction_balanced cprops);
+    val stmt = Thm.weaken_sorts' ctxt' (Conjunction.mk_conjunction_balanced cprops);
 
     fun tac' args st =
       if skip then ALLGOALS (Skip_Proof.cheat_tac ctxt) st before Skip_Proof.report ctxt
@@ -214,7 +213,7 @@ fun prove_common ctxt fork_pri xs asms props tac =
             val res =
               (finish ctxt' st
                 |> Drule.flexflex_unique (SOME ctxt')
-                |> Thm.check_shyps ctxt' sorts
+                |> Thm.check_shyps ctxt'
                 |> Thm.check_hyps (Context.Proof ctxt'))
               handle THM (msg, _, _) => err msg | ERROR msg => err msg;
           in

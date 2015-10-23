@@ -501,7 +501,7 @@ fun conclude_goal ctxt goal propss =
       (Goal.conclude (if length (flat propss) > 1 then Thm.close_derivation goal else goal)
         handle THM _ => err_lost ())
       |> Drule.flexflex_unique (SOME ctxt)
-      |> Thm.check_shyps ctxt (Variable.sorts_of ctxt)
+      |> Thm.check_shyps ctxt
       |> Thm.check_hyps (Context.Proof ctxt);
 
     val goal_propss = filter_out null propss;
@@ -947,7 +947,7 @@ fun generic_goal kind before_qed after_qed goal_ctxt goal_propss result_binds st
     val goal =
       Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss)
       |> Thm.cterm_of goal_ctxt
-      |> Thm.weaken_sorts (Variable.sorts_of goal_ctxt);
+      |> Thm.weaken_sorts' goal_ctxt;
     val statement = ((kind, pos), propss', Thm.term_of goal);
 
     val after_qed' = after_qed |>> (fn after_local => fn results =>

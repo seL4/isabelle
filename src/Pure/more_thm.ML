@@ -48,7 +48,6 @@ sig
   val equiv_thm: theory -> thm * thm -> bool
   val class_triv: theory -> class -> thm
   val of_sort: ctyp * sort -> thm list
-  val check_shyps: Proof.context -> sort list -> thm -> thm
   val is_dummy: thm -> bool
   val plain_prop_of: thm -> term
   val add_thm: thm -> thm list -> thm list
@@ -63,6 +62,9 @@ sig
   val restore_hyps: Proof.context -> Proof.context -> Proof.context
   val undeclared_hyps: Context.generic -> thm -> term list
   val check_hyps: Context.generic -> thm -> thm
+  val declare_term_sorts: term -> Proof.context -> Proof.context
+  val check_shyps: Proof.context -> thm -> thm
+  val weaken_sorts': Proof.context -> cterm -> cterm
   val elim_implies: thm -> thm -> thm
   val forall_intr_name: string * cterm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
@@ -229,16 +231,6 @@ fun class_triv thy c =
 
 fun of_sort (T, S) = map (fn c => Thm.of_class (T, c)) S;
 
-fun check_shyps ctxt sorts raw_th =
-  let
-    val th = Thm.strip_shyps raw_th;
-    val pending = Sorts.subtract sorts (Thm.extra_shyps th);
-  in
-    if null pending then th
-    else error (Pretty.string_of (Pretty.block (Pretty.str "Pending sort hypotheses:" ::
-      Pretty.brk 1 :: Pretty.commas (map (Syntax.pretty_sort ctxt) pending))))
-  end;
-
 
 (* misc operations *)
 
@@ -274,22 +266,33 @@ val elim_rules = Item_Net.init eq_thm_prop (single o Thm.major_prem_of);
 
 
 
-(** declared hyps **)
+(** declared hyps and sort hyps **)
 
 structure Hyps = Proof_Data
 (
-  type T = Termtab.set * bool;
-  fun init _ : T = (Termtab.empty, true);
+  type T = {checked_hyps: bool, hyps: Termtab.set, shyps: sort Ord_List.T};
+  fun init _ : T = {checked_hyps = true, hyps = Termtab.empty, shyps = []};
 );
 
-fun declare_hyps raw_ct ctxt =
-  let val ct = Thm.transfer_cterm (Proof_Context.theory_of ctxt) raw_ct
-  in (Hyps.map o apfst) (Termtab.update (Thm.term_of ct, ())) ctxt end;
+fun map_hyps f = Hyps.map (fn {checked_hyps, hyps, shyps} =>
+  let val (checked_hyps', hyps', shyps') = f (checked_hyps, hyps, shyps)
+  in {checked_hyps = checked_hyps', hyps = hyps', shyps = shyps'} end);
+
+
+(* hyps *)
+
+fun declare_hyps raw_ct ctxt = ctxt |> map_hyps (fn (checked_hyps, hyps, shyps) =>
+  let
+    val ct = Thm.transfer_cterm (Proof_Context.theory_of ctxt) raw_ct;
+    val hyps' = Termtab.update (Thm.term_of ct, ()) hyps;
+  in (checked_hyps, hyps', shyps) end);
 
 fun assume_hyps ct ctxt = (Thm.assume ct, declare_hyps ct ctxt);
 
-val unchecked_hyps = (Hyps.map o apsnd) (K false);
-fun restore_hyps ctxt = (Hyps.map o apsnd) (K (#2 (Hyps.get ctxt)));
+val unchecked_hyps = map_hyps (fn (_, hyps, shyps) => (false, hyps, shyps));
+
+fun restore_hyps ctxt =
+  map_hyps (fn (_, hyps, shyps) => (#checked_hyps (Hyps.get ctxt), hyps, shyps));
 
 fun undeclared_hyps context th =
   Thm.hyps_of th
@@ -298,8 +301,8 @@ fun undeclared_hyps context th =
       Context.Theory _ => K false
     | Context.Proof ctxt =>
         (case Hyps.get ctxt of
-          (_, false) => K true
-        | (hyps, _) => Termtab.defined hyps));
+          {checked_hyps = false, ...} => K true
+        | {hyps, ...} => Termtab.defined hyps));
 
 fun check_hyps context th =
   (case undeclared_hyps context th of
@@ -307,6 +310,25 @@ fun check_hyps context th =
   | undeclared =>
       error (Pretty.string_of (Pretty.big_list "Undeclared hyps:"
         (map (Pretty.item o single o Syntax.pretty_term (Syntax.init_pretty context)) undeclared))));
+
+
+(* shyps *)
+
+fun declare_term_sorts t =
+  map_hyps (fn (checked_hyps, hyps, shyps) =>
+    (checked_hyps, hyps, Sorts.insert_term t shyps));
+
+fun check_shyps ctxt raw_th =
+  let
+    val th = Thm.strip_shyps raw_th;
+    val pending = Sorts.subtract (#shyps (Hyps.get ctxt)) (Thm.extra_shyps th);
+  in
+    if null pending then th
+    else error (Pretty.string_of (Pretty.block (Pretty.str "Pending sort hypotheses:" ::
+      Pretty.brk 1 :: Pretty.commas (map (Syntax.pretty_sort ctxt) pending))))
+  end;
+
+val weaken_sorts' = Thm.weaken_sorts o #shyps o Hyps.get;
 
 
 
