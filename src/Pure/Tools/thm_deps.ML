@@ -58,19 +58,23 @@ val _ =
 
 fun unused_thms (base_thys, thys) =
   let
-    fun add_fact space (name, ths) =
+    fun add_fact transfer space (name, ths) =
       if exists (fn thy => Global_Theory.defined_fact thy name) base_thys then I
       else
         let val {concealed, group, ...} = Name_Space.the_entry space name in
           fold_rev (fn th =>
             (case Thm.derivation_name th of
               "" => I
-            | a => cons (a, (th, concealed, group)))) ths
+            | a => cons (a, (transfer th, concealed, group)))) ths
         end;
-    fun add_facts facts = Facts.fold_static (add_fact (Facts.space_of facts)) facts;
+    fun add_facts thy =
+      let
+        val transfer = Global_Theory.transfer_theories thy;
+        val facts = Global_Theory.facts_of thy;
+      in Facts.fold_static (add_fact transfer (Facts.space_of facts)) facts end;
 
     val new_thms =
-      fold (add_facts o Global_Theory.facts_of) thys []
+      fold add_facts thys []
       |> sort_distinct (string_ord o apply2 #1);
 
     val used =
