@@ -63,6 +63,7 @@ sig
   val undeclared_hyps: Context.generic -> thm -> term list
   val check_hyps: Context.generic -> thm -> thm
   val declare_term_sorts: term -> Proof.context -> Proof.context
+  val extra_shyps': Proof.context -> thm -> sort list
   val check_shyps: Proof.context -> thm -> thm
   val weaken_sorts': Proof.context -> cterm -> cterm
   val elim_implies: thm -> thm -> thm
@@ -318,14 +319,17 @@ fun declare_term_sorts t =
   map_hyps (fn (checked_hyps, hyps, shyps) =>
     (checked_hyps, hyps, Sorts.insert_term t shyps));
 
+fun extra_shyps' ctxt th =
+  Sorts.subtract (#shyps (Hyps.get ctxt)) (Thm.extra_shyps th);
+
 fun check_shyps ctxt raw_th =
   let
     val th = Thm.strip_shyps raw_th;
-    val pending = Sorts.subtract (#shyps (Hyps.get ctxt)) (Thm.extra_shyps th);
+    val extra_shyps = extra_shyps' ctxt th;
   in
-    if null pending then th
+    if null extra_shyps then th
     else error (Pretty.string_of (Pretty.block (Pretty.str "Pending sort hypotheses:" ::
-      Pretty.brk 1 :: Pretty.commas (map (Syntax.pretty_sort ctxt) pending))))
+      Pretty.brk 1 :: Pretty.commas (map (Syntax.pretty_sort ctxt) extra_shyps))))
   end;
 
 val weaken_sorts' = Thm.weaken_sorts o #shyps o Hyps.get;
@@ -663,7 +667,7 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
       |> perhaps (try Thm.strip_shyps);
 
     val hyps = if show_hyps then Thm.hyps_of th else undeclared_hyps (Context.Proof ctxt) th;
-    val extra_shyps = Thm.extra_shyps th;
+    val extra_shyps = extra_shyps' ctxt th;
     val tags = Thm.get_tags th;
     val tpairs = Thm.tpairs_of th;
 
