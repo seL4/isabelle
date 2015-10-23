@@ -1,0 +1,21 @@
+diff -ru 5.3.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java 5.3.0/jEdit-patched/org/gjt/sp/jedit/io/VFSFile.java
+--- 5.3.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2015-10-20 19:56:08.000000000 +0200
++++ 5.3.0/jEdit-patched/org/gjt/sp/jedit/io/VFSFile.java	2015-10-23 20:06:27.874803025 +0200
+@@ -82,16 +82,7 @@
+ 			}
+ 			else if(matchAgainst.regionMatches(true,0,str,0,strLen))
+ 			{
+-				/* Keep the first match with exact length but different case.
+-				 * If the first match is not same length, prefer longest match */
+-				if(iPotentialMatch == -1
+-						|| (potentialMatchGTStr
+-							&& (matchAgainst.length() > potentialMatchLen)))
+-				{
+-					potentialMatchLen = matchAgainst.length();
+-					iPotentialMatch = i;
+-					potentialMatchGTStr = potentialMatchLen > strLen;
+-				}
++                            return i;
+ 			}
+ 		}
+ 
