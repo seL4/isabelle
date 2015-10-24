@@ -107,7 +107,7 @@ function usage()
   echo "    -s           system build mode for session image"
   echo
   echo "  Start jEdit with Isabelle plugin setup and open FILES"
-  echo "  (default \"$USER_HOME/Scratch.thy\")."
+  echo "  (default \"$USER_HOME/Scratch.thy\" or \":\" for empty buffer)."
   echo
   exit 1
 }
@@ -196,14 +196,10 @@ shift $(($OPTIND - 1))
 
 # args
 
-if [ "$#" -eq 0 ]; then
-  ARGS["${#ARGS[@]}"]="$(platform_path "$USER_HOME/Scratch.thy")"
-else
-  while [ "$#" -gt 0 ]; do
-    ARGS["${#ARGS[@]}"]="$(platform_path "$1")"
-    shift
-  done
-fi
+while [ "$#" -gt 0 ]; do
+  ARGS["${#ARGS[@]}"]="$(platform_path "$1")"
+  shift
+done
 
 
 ## dependencies

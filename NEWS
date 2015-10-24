@@ -57,6 +57,15 @@ the editor.
 * Action "isabelle-reset" now uses keyboard shortcut C+e BACK_SPACE,
 instead of former C+e LEFT.
 
+* New command-line tool "isabelle jedit_client" allows to connect to
+already running Isabelle/jEdit process. This achieves the effect of
+single-instance applications seen on common GUI desktops.
+
+* The command-line tool "isabelle jedit" and the isabelle.Main
+application wrapper threat the default $USER_HOME/Scratch.thy more
+uniformly, and allow the dummy file argument ":" to open an empty buffer
+instead.
+
 
 *** Document preparation ***
 
@@ -513,10 +522,6 @@ the proof context discipline.
 replacement character "␣" (Unicode point 0x2324).  For example:
 
   \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
-
-* Command-line tool "isabelle jedit_client" allows to connect to already
-running Isabelle/jEdit process. This achieves the effect of
-single-instance applications seen on common GUI desktops.
 
 * Command-line tool "isabelle update_then" expands old Isar command
 conflations:

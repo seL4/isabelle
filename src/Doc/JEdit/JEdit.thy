@@ -236,8 +236,8 @@ text \<open>
     -n           no build of session image on startup
     -s           system build mode for session image
 
-  Start jEdit with Isabelle plugin setup and open theory FILES
-  (default "$USER_HOME/Scratch.thy").\<close>}
+  Start jEdit with Isabelle plugin setup and open FILES
+  (default "$USER_HOME/Scratch.thy" or ":" for empty buffer).\<close>}
 
   The \<^verbatim>\<open>-l\<close> option specifies the session name of the logic
   image to be used for proof processing.  Additional session root

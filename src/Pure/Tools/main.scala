@@ -51,9 +51,14 @@ object Main
           Array("-settings=" + File.platform_path(Path.explode("$JEDIT_SETTINGS")))
 
         val more_args =
-          if (args.isEmpty)
-            Array(File.platform_path(Path.explode("$USER_HOME/Scratch.thy")))
-          else args
+        {
+          args.toList.dropWhile(arg => arg.startsWith("-") && arg != "--") match {
+            case Nil | List("--") =>
+              args ++ Array(File.platform_path(Path.explode("$USER_HOME/Scratch.thy")))
+            case List(":") => args.slice(0, args.size - 1)
+            case _ => args
+          }
+        }
 
 
         /* main startup */
