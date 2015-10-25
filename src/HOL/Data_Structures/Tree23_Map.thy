@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section \<open>2-3 Tree Implementation of Maps\<close>
+section \<open>A 2-3 Tree Implementation of Maps\<close>
 
 theory Tree23_Map
 imports
@@ -70,49 +70,39 @@ definition delete :: "'a::linorder \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('
 "delete k t = tree\<^sub>d(del k t)"
 
 
-subsection "Proofs for Lookup"
+subsection \<open>Functional Correctness\<close>
 
 lemma lookup: "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
 by (induction t) (auto simp: map_of_simps split: option.split)
 
 
-subsection "Proofs for Update"
-
-text {* Balanced trees *}
-
-text{* First a standard proof that @{const upd} preserves @{const bal}. *}
-
-lemma bal_upd: "bal t \<Longrightarrow> bal (tree\<^sub>i(upd a b t)) \<and> height(upd a b t) = height t"
-by (induct t) (auto split: up\<^sub>i.split)
-
-text{* Now an alternative proof (by Brian Huffman) that runs faster because
-two properties (balance and height) are combined in one predicate. *}
-
-lemma full\<^sub>i_ins: "full n t \<Longrightarrow> full\<^sub>i n (upd a b t)"
-by (induct rule: full.induct, auto split: up\<^sub>i.split)
-
-text {* The @{const update} operation preserves balance. *}
-
-lemma bal_update: "bal t \<Longrightarrow> bal (update a b t)"
-unfolding bal_iff_full update_def
-apply (erule exE)
-apply (drule full\<^sub>i_ins [of _ _ a b])
-apply (cases "upd a b t")
-apply (auto intro: full.intros)
-done
-
-text {* Functional correctness of @{const "update"}. *}
-
 lemma inorder_upd:
   "sorted1(inorder t) \<Longrightarrow> inorder(tree\<^sub>i(upd a b t)) = upd_list a b (inorder t)"
 by(induction t) (auto simp: upd_list_simps split: up\<^sub>i.splits)
 
-lemma inorder_update:
+corollary inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update a b t) = upd_list a b (inorder t)"
 by(simp add: update_def inorder_upd)
 
 
-subsection "Proofs for Deletion"
+lemma inorder_del: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
+  inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
+by(induction t rule: del.induct)
+  (auto simp: del_list_simps inorder_nodes del_minD split: prod.splits)
+
+corollary inorder_delete: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
+  inorder(delete x t) = del_list x (inorder t)"
+by(simp add: delete_def inorder_del)
+
+
+subsection \<open>Balancedness\<close>
+
+lemma bal_upd: "bal t \<Longrightarrow> bal (tree\<^sub>i(upd a b t)) \<and> height(upd a b t) = height t"
+by (induct t) (auto split: up\<^sub>i.split)(* 30 secs in 2015 *)
+
+corollary bal_update: "bal t \<Longrightarrow> bal (update a b t)"
+by (simp add: update_def bal_upd)
+
 
 lemma height_del: "bal t \<Longrightarrow> height(del x t) = height t"
 by(induction x t rule: del.induct)
@@ -124,15 +114,6 @@ by(induction x t rule: del.induct)
 
 corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
 by(simp add: delete_def bal_tree\<^sub>d_del)
-
-lemma inorder_del: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
-  inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
-by(induction t rule: del.induct)
-  (auto simp: del_list_simps inorder_nodes del_minD split: prod.splits)
-
-lemma inorder_delete: "\<lbrakk> bal t ; sorted1(inorder t) \<rbrakk> \<Longrightarrow>
-  inorder(delete x t) = del_list x (inorder t)"
-by(simp add: delete_def inorder_del)
 
 
 subsection \<open>Overall Correctness\<close>

@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-section \<open>2-3 Tree Implementation of Sets\<close>
+section \<open>A 2-3 Tree Implementation of Sets\<close>
 
 theory Tree23_Set
 imports
@@ -111,8 +111,6 @@ definition delete :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree
 "delete k t = tree\<^sub>d(del k t)"
 
 
-declare prod.splits [split]
-
 subsection "Functional Correctness"
 
 
@@ -165,12 +163,12 @@ lemma del_minD:
   "del_min t = (x,t') \<Longrightarrow> bal t \<Longrightarrow> height t > 0 \<Longrightarrow>
   x # inorder(tree\<^sub>d t') = inorder t"
 by(induction t arbitrary: t' rule: del_min.induct)
-  (auto simp: inorder_nodes)
+  (auto simp: inorder_nodes split: prod.splits)
 
 lemma inorder_del: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
 by(induction t rule: del.induct)
-  (auto simp: del_list_simps inorder_nodes del_minD)
+  (auto simp: del_list_simps inorder_nodes del_minD split: prod.splits)
 
 lemma inorder_delete: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
@@ -196,7 +194,7 @@ instance ..
 end
 
 lemma bal_ins: "bal t \<Longrightarrow> bal (tree\<^sub>i(ins a t)) \<and> height(ins a t) = height t"
-by (induct t) (auto split: up\<^sub>i.split)
+by (induct t) (auto split: up\<^sub>i.split) (* 25 secs in 2015 *)
 
 text{* Now an alternative proof (by Brian Huffman) that runs faster because
 two properties (balance and height) are combined in one predicate. *}
@@ -336,16 +334,17 @@ by(induct t arbitrary: x t' rule: del_min.induct)
 
 lemma height_del: "bal t \<Longrightarrow> height(del x t) = height t"
 by(induction x t rule: del.induct)
-  (auto simp add: heights max_def height_del_min)
+  (auto simp: heights max_def height_del_min split: prod.splits)
 
 lemma bal_del_min:
   "\<lbrakk> del_min t = (x, t'); bal t; height t > 0 \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d t')"
 by(induct t arbitrary: x t' rule: del_min.induct)
-  (auto simp: heights height_del_min bals)
+  (auto simp: heights height_del_min bals split: prod.splits)
 
 lemma bal_tree\<^sub>d_del: "bal t \<Longrightarrow> bal(tree\<^sub>d(del x t))"
 by(induction x t rule: del.induct)
-  (auto simp: bals bal_del_min height_del height_del_min)
+  (auto simp: bals bal_del_min height_del height_del_min split: prod.splits)
+
 corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
 by(simp add: delete_def bal_tree\<^sub>d_del)
 
