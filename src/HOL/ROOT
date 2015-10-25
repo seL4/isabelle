@@ -179,6 +179,7 @@ session "HOL-Data_Structures" in Data_Structures = HOL +
     AVL_Map
     RBT_Map
     Tree23_Map
+    Tree234_Map
   document_files "root.tex" "root.bib"
 
 session "HOL-Import" in Import = HOL +
