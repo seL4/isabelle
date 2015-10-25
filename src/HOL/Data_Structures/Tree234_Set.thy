@@ -1,0 +1,509 @@
+(* Author: Tobias Nipkow *)
+
+section \<open>A 2-3-4 Tree Implementation of Sets\<close>
+
+theory Tree234_Set
+imports
+  Tree234
+  "../Data_Structures/Set_by_Ordered"
+begin
+
+subsection \<open>Set operations on 2-3-4 trees\<close>
+
+fun isin :: "'a::linorder tree234 \<Rightarrow> 'a \<Rightarrow> bool" where
+"isin Leaf x = False" |
+"isin (Node2 l a r) x = (x < a \<and> isin l x \<or> x=a \<or> isin r x)" |
+"isin (Node3 l a m b r) x =
+  (x < a \<and> isin l x \<or> x = a \<or> x < b \<and> isin m x \<or> x = b \<or> isin r x)" |
+"isin (Node4 l a m b n c r) x =
+  (x < b \<and> (x < a \<and> isin l x \<or> x = a \<or> isin m x) \<or> x = b \<or>
+   x > b \<and> (x < c \<and> isin n x \<or> x=c \<or> isin r x))"
+
+datatype 'a up\<^sub>i = T\<^sub>i "'a tree234" | Up\<^sub>i "'a tree234" 'a "'a tree234"
+
+fun tree\<^sub>i :: "'a up\<^sub>i \<Rightarrow> 'a tree234" where
+"tree\<^sub>i (T\<^sub>i t) = t" |
+"tree\<^sub>i (Up\<^sub>i l p r) = Node2 l p r"
+
+fun ins :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>i" where
+"ins a Leaf = Up\<^sub>i Leaf a Leaf" |
+"ins a (Node2 l x r) =
+   (if a < x then
+        (case ins a l of
+           T\<^sub>i l' => T\<^sub>i (Node2 l' x r)
+         | Up\<^sub>i l1 q l2 => T\<^sub>i (Node3 l1 q l2 x r))
+    else if a=x then T\<^sub>i (Node2 l x r)
+    else
+        (case ins a r of
+           T\<^sub>i r' => T\<^sub>i (Node2 l x r')
+         | Up\<^sub>i r1 q r2 => T\<^sub>i (Node3 l x r1 q r2)))" |
+"ins a (Node3 l x1 m x2 r) =
+   (if a < x1 then
+        (case ins a l of
+           T\<^sub>i l' => T\<^sub>i (Node3 l' x1 m x2 r)
+         | Up\<^sub>i l1 q l2 => T\<^sub>i (Node4 l1 q l2 x1 m x2 r))
+    else if a=x1 then T\<^sub>i (Node3 l x1 m x2 r)
+    else if a < x2 then
+             (case ins a m of
+                T\<^sub>i m' => T\<^sub>i (Node3 l x1 m' x2 r)
+              | Up\<^sub>i m1 q m2 => T\<^sub>i (Node4 l x1 m1 q m2 x2 r))
+         else if a=x2 then T\<^sub>i (Node3 l x1 m x2 r)
+         else
+             (case ins a r of
+                T\<^sub>i r' => T\<^sub>i (Node3 l x1 m x2 r')
+              | Up\<^sub>i r1 q r2 => T\<^sub>i (Node4 l x1 m x2 r1 q r2)))" |
+"ins a (Node4 l x1 m x2 n x3 r) =
+   (if a < x2 then
+      if a < x1 then
+        (case ins a l of
+           T\<^sub>i l' => T\<^sub>i (Node4 l' x1 m x2 n x3 r)
+         | Up\<^sub>i l1 q l2 => Up\<^sub>i (Node2 l1 q l2) x1 (Node3 m x2 n x3 r))
+      else if a=x1 then T\<^sub>i (Node4 l x1 m x2 n x3 r)
+      else (case ins a m of
+                T\<^sub>i m' => T\<^sub>i (Node4 l x1 m' x2 n x3 r)
+              | Up\<^sub>i m1 q m2 => Up\<^sub>i (Node2 l x1 m1) q (Node3 m2 x2 n x3 r))
+    else if a=x2 then T\<^sub>i (Node4 l x1 m x2 n x3 r)
+    else if a < x3 then
+           (case ins a n of
+              T\<^sub>i n' => T\<^sub>i (Node4 l x1 m x2 n' x3 r)
+            | Up\<^sub>i n1 q n2 => Up\<^sub>i (Node2 l x1 m) x2 (Node3 n1 q n2 x3 r))
+         else if a=x3 then T\<^sub>i (Node4 l x1 m x2 n x3 r)
+         else (case ins a r of
+              T\<^sub>i r' => T\<^sub>i (Node4 l x1 m x2 n x3 r')
+            | Up\<^sub>i r1 q r2 => Up\<^sub>i (Node2 l x1 m) x2 (Node3 n x3 r1 q r2))
+)"
+
+hide_const insert
+
+definition insert :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234" where
+"insert a t = tree\<^sub>i(ins a t)"
+
+datatype 'a up\<^sub>d = T\<^sub>d "'a tree234" | Up\<^sub>d "'a tree234"
+
+fun tree\<^sub>d :: "'a up\<^sub>d \<Rightarrow> 'a tree234" where
+"tree\<^sub>d (T\<^sub>d x) = x" |
+"tree\<^sub>d (Up\<^sub>d x) = x"
+
+fun node21 :: "'a up\<^sub>d \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
+"node21 (T\<^sub>d l) a r = T\<^sub>d(Node2 l a r)" |
+"node21 (Up\<^sub>d l) a (Node2 lr b rr) = Up\<^sub>d(Node3 l a lr b rr)" |
+"node21 (Up\<^sub>d l) a (Node3 lr b mr c rr) = T\<^sub>d(Node2 (Node2 l a lr) b (Node2 mr c rr))" |
+"node21 (Up\<^sub>d t1) a (Node4 t2 b t3 c t4 d t5) = T\<^sub>d(Node2 (Node2 t1 a t2) b (Node3 t3 c t4 d t5))"
+
+fun node22 :: "'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a up\<^sub>d \<Rightarrow> 'a up\<^sub>d" where
+"node22 l a (T\<^sub>d r) = T\<^sub>d(Node2 l a r)" |
+"node22 (Node2 ll b rl) a (Up\<^sub>d r) = Up\<^sub>d(Node3 ll b rl a r)" |
+"node22 (Node3 ll b ml c rl) a (Up\<^sub>d r) = T\<^sub>d(Node2 (Node2 ll b ml) c (Node2 rl a r))" |
+"node22 (Node4 t1 a t2 b t3 c t4) d (Up\<^sub>d t5) = T\<^sub>d(Node2 (Node2 t1 a t2) b (Node3 t3 c t4 d t5))"
+
+fun node31 :: "'a up\<^sub>d \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
+"node31 (T\<^sub>d t1) a t2 b t3 = T\<^sub>d(Node3 t1 a t2 b t3)" |
+"node31 (Up\<^sub>d t1) a (Node2 t2 b t3) c t4 = T\<^sub>d(Node2 (Node3 t1 a t2 b t3) c t4)" |
+"node31 (Up\<^sub>d t1) a (Node3 t2 b t3 c t4) d t5 = T\<^sub>d(Node3 (Node2 t1 a t2) b (Node2 t3 c t4) d t5)" |
+"node31 (Up\<^sub>d t1) a (Node4 t2 b t3 c t4 d t5) e t6 = T\<^sub>d(Node3 (Node2 t1 a t2) b (Node3 t3 c t4 d t5) e t6)"
+
+fun node32 :: "'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a up\<^sub>d \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
+"node32 t1 a (T\<^sub>d t2) b t3 = T\<^sub>d(Node3 t1 a t2 b t3)" |
+"node32 t1 a (Up\<^sub>d t2) b (Node2 t3 c t4) = T\<^sub>d(Node2 t1 a (Node3 t2 b t3 c t4))" |
+"node32 t1 a (Up\<^sub>d t2) b (Node3 t3 c t4 d t5) = T\<^sub>d(Node3 t1 a (Node2 t2 b t3) c (Node2 t4 d t5))" |
+"node32 t1 a (Up\<^sub>d t2) b (Node4 t3 c t4 d t5 e t6) = T\<^sub>d(Node3 t1 a (Node2 t2 b t3) c (Node3 t4 d t5 e t6))"
+
+fun node33 :: "'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a up\<^sub>d \<Rightarrow> 'a up\<^sub>d" where
+"node33 l a m b (T\<^sub>d r) = T\<^sub>d(Node3 l a m b r)" |
+"node33 t1 a (Node2 t2 b t3) c (Up\<^sub>d t4) = T\<^sub>d(Node2 t1 a (Node3 t2 b t3 c t4))" |
+"node33 t1 a (Node3 t2 b t3 c t4) d (Up\<^sub>d t5) = T\<^sub>d(Node3 t1 a (Node2 t2 b t3) c (Node2 t4 d t5))" |
+"node33 t1 a (Node4 t2 b t3 c t4 d t5) e (Up\<^sub>d t6) = T\<^sub>d(Node3 t1 a (Node2 t2 b t3) c (Node3 t4 d t5 e t6))"
+
+fun node41 :: "'a up\<^sub>d \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
+"node41 (T\<^sub>d t1) a t2 b t3 c t4 = T\<^sub>d(Node4 t1 a t2 b t3 c t4)" |
+"node41 (Up\<^sub>d t1) a (Node2 t2 b t3) c t4 d t5 = T\<^sub>d(Node3 (Node3 t1 a t2 b t3) c t4 d t5)" |
+"node41 (Up\<^sub>d t1) a (Node3 t2 b t3 c t4) d t5 e t6 = T\<^sub>d(Node4 (Node2 t1 a t2) b (Node2 t3 c t4) d t5 e t6)" |
+"node41 (Up\<^sub>d t1) a (Node4 t2 b t3 c t4 d t5) e t6 f t7 = T\<^sub>d(Node4 (Node2 t1 a t2) b (Node3 t3 c t4 d t5) e t6 f t7)"
+
+fun node42 :: "'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a up\<^sub>d \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
+"node42 t1 a (T\<^sub>d t2) b t3 c t4 = T\<^sub>d(Node4 t1 a t2 b t3 c t4)" |
+"node42 (Node2 t1 a t2) b (Up\<^sub>d t3) c t4 d t5 = T\<^sub>d(Node3 (Node3 t1 a t2 b t3) c t4 d t5)" |
+"node42 (Node3 t1 a t2 b t3) c (Up\<^sub>d t4) d t5 e t6 = T\<^sub>d(Node4 (Node2 t1 a t2) b (Node2 t3 c t4) d t5 e t6)" |
+"node42 (Node4 t1 a t2 b t3 c t4) d (Up\<^sub>d t5) e t6 f t7 = T\<^sub>d(Node4 (Node2 t1 a t2) b (Node3 t3 c t4 d t5) e t6 f t7)"
+
+fun node43 :: "'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a up\<^sub>d \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
+"node43 t1 a t2 b (T\<^sub>d t3) c t4 = T\<^sub>d(Node4 t1 a t2 b t3 c t4)" |
+"node43 t1 a (Node2 t2 b t3) c (Up\<^sub>d t4) d t5 = T\<^sub>d(Node3 t1 a (Node3 t2 b t3 c t4) d t5)" |
+"node43 t1 a (Node3 t2 b t3 c t4) d (Up\<^sub>d t5) e t6 = T\<^sub>d(Node4 t1 a (Node2 t2 b t3) c (Node2 t4 d t5) e t6)" |
+"node43 t1 a (Node4 t2 b t3 c t4 d t5) e (Up\<^sub>d t6) f t7 = T\<^sub>d(Node4 t1 a (Node2 t2 b t3) c (Node3 t4 d t5 e t6) f t7)"
+
+fun node44 :: "'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a \<Rightarrow> 'a up\<^sub>d \<Rightarrow> 'a up\<^sub>d" where
+"node44 t1 a t2 b t3 c (T\<^sub>d t4) = T\<^sub>d(Node4 t1 a t2 b t3 c t4)" |
+"node44 t1 a t2 b (Node2 t3 c t4) d (Up\<^sub>d t5) = T\<^sub>d(Node3 t1 a t2 b (Node3 t3 c t4 d t5))" |
+"node44 t1 a t2 b (Node3 t3 c t4 d t5) e (Up\<^sub>d t6) = T\<^sub>d(Node4 t1 a t2 b (Node2 t3 c t4) d (Node2 t5 e t6))" |
+"node44 t1 a t2 b (Node4 t3 c t4 d t5 e t6) f (Up\<^sub>d t7) = T\<^sub>d(Node4 t1 a t2 b (Node2 t3 c t4) d (Node3 t5 e t6 f t7))"
+
+fun del_min :: "'a tree234 \<Rightarrow> 'a * 'a up\<^sub>d" where
+"del_min (Node2 Leaf a Leaf) = (a, Up\<^sub>d Leaf)" |
+"del_min (Node3 Leaf a Leaf b Leaf) = (a, T\<^sub>d(Node2 Leaf b Leaf))" |
+"del_min (Node4 Leaf a Leaf b Leaf c Leaf) = (a, T\<^sub>d(Node3 Leaf b Leaf c Leaf))" |
+"del_min (Node2 l a r) = (let (x,l') = del_min l in (x, node21 l' a r))" |
+"del_min (Node3 l a m b r) = (let (x,l') = del_min l in (x, node31 l' a m b r))" |
+"del_min (Node4 l a m b n c r) = (let (x,l') = del_min l in (x, node41 l' a m b n c r))"
+
+fun del :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
+"del k Leaf = T\<^sub>d Leaf" |
+"del k (Node2 Leaf p Leaf) = (if k=p then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf p Leaf))" |
+"del k (Node3 Leaf p Leaf q Leaf) = T\<^sub>d(if k=p then Node2 Leaf q Leaf
+  else if k=q then Node2 Leaf p Leaf else Node3 Leaf p Leaf q Leaf)" |
+"del k (Node4 Leaf a Leaf b Leaf c Leaf) =
+  T\<^sub>d(if k=a then Node3 Leaf b Leaf c Leaf else
+     if k=b then Node3 Leaf a Leaf c Leaf else
+     if k=c then Node3 Leaf a Leaf b Leaf
+     else Node4 Leaf a Leaf b Leaf c Leaf)" |
+"del k (Node2 l a r) = (if k<a then node21 (del k l) a r else
+  if k > a then node22 l a (del k r) else
+  let (a',t) = del_min r in node22 l a' t)" |
+"del k (Node3 l a m b r) = (if k<a then node31 (del k l) a m b r else
+  if k = a then let (a',m') = del_min m in node32 l a' m' b r else
+  if k < b then node32 l a (del k m) b r else
+  if k = b then let (b',r') = del_min r in node33 l a m b' r'
+  else node33 l a m b (del k r))" |
+"del k (Node4 l a m b n c r) =
+  (if k < b then
+     if k < a then node41 (del k l) a m b n c r else
+     if k = a then let (a',m') = del_min m in node42 l a' m' b n c r
+     else node42 l a (del k m) b n c r
+   else
+     if k = b then let (b',n') = del_min n in node43 l a m b' n' c r else
+     if k < c then node43 l a m b (del k n) c r else
+     if k = c then let (c',r') = del_min r in node44 l a m b n c' r'
+     else node44 l a m b n c (del k r))"
+
+definition delete :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234" where
+"delete k t = tree\<^sub>d(del k t)"
+
+
+subsection "Functional correctness"
+
+
+subsubsection \<open>Functional correctness of isin:\<close>
+
+lemma "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
+by (induction t) (auto simp: elems_simps1)
+
+lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
+by (induction t) (auto simp: elems_simps2)
+
+
+subsubsection \<open>Functional correctness of insert:\<close>
+
+lemma inorder_ins:
+  "sorted(inorder t) \<Longrightarrow> inorder(tree\<^sub>i(ins x t)) = ins_list x (inorder t)"
+by(induction t) (auto, auto simp: ins_list_simps split: up\<^sub>i.splits)
+
+lemma inorder_insert:
+  "sorted(inorder t) \<Longrightarrow> inorder(insert a t) = ins_list a (inorder t)"
+by(simp add: insert_def inorder_ins)
+
+
+subsubsection \<open>Functional correctness of delete\<close>
+
+lemma inorder_node21: "height r > 0 \<Longrightarrow>
+  inorder (tree\<^sub>d (node21 l' a r)) = inorder (tree\<^sub>d l') @ a # inorder r"
+by(induct l' a r rule: node21.induct) auto
+
+lemma inorder_node22: "height l > 0 \<Longrightarrow>
+  inorder (tree\<^sub>d (node22 l a r')) = inorder l @ a # inorder (tree\<^sub>d r')"
+by(induct l a r' rule: node22.induct) auto
+
+lemma inorder_node31: "height m > 0 \<Longrightarrow>
+  inorder (tree\<^sub>d (node31 l' a m b r)) = inorder (tree\<^sub>d l') @ a # inorder m @ b # inorder r"
+by(induct l' a m b r rule: node31.induct) auto
+
+lemma inorder_node32: "height r > 0 \<Longrightarrow>
+  inorder (tree\<^sub>d (node32 l a m' b r)) = inorder l @ a # inorder (tree\<^sub>d m') @ b # inorder r"
+by(induct l a m' b r rule: node32.induct) auto
+
+lemma inorder_node33: "height m > 0 \<Longrightarrow>
+  inorder (tree\<^sub>d (node33 l a m b r')) = inorder l @ a # inorder m @ b # inorder (tree\<^sub>d r')"
+by(induct l a m b r' rule: node33.induct) auto
+
+lemma inorder_node41: "height m > 0 \<Longrightarrow>
+  inorder (tree\<^sub>d (node41 l' a m b n c r)) = inorder (tree\<^sub>d l') @ a # inorder m @ b # inorder n @ c # inorder r"
+by(induct l' a m b n c r rule: node41.induct) auto
+
+lemma inorder_node42: "height l > 0 \<Longrightarrow>
+  inorder (tree\<^sub>d (node42 l a m b n c r)) = inorder l @ a # inorder (tree\<^sub>d m) @ b # inorder n @ c # inorder r"
+by(induct l a m b n c r rule: node42.induct) auto
+
+lemma inorder_node43: "height m > 0 \<Longrightarrow>
+  inorder (tree\<^sub>d (node43 l a m b n c r)) = inorder l @ a # inorder m @ b # inorder(tree\<^sub>d n) @ c # inorder r"
+by(induct l a m b n c r rule: node43.induct) auto
+
+lemma inorder_node44: "height n > 0 \<Longrightarrow>
+  inorder (tree\<^sub>d (node44 l a m b n c r)) = inorder l @ a # inorder m @ b # inorder n @ c # inorder (tree\<^sub>d r)"
+by(induct l a m b n c r rule: node44.induct) auto
+
+lemmas inorder_nodes = inorder_node21 inorder_node22
+  inorder_node31 inorder_node32 inorder_node33
+  inorder_node41 inorder_node42 inorder_node43 inorder_node44
+
+lemma del_minD:
+  "del_min t = (x,t') \<Longrightarrow> bal t \<Longrightarrow> height t > 0 \<Longrightarrow>
+  x # inorder(tree\<^sub>d t') = inorder t"
+by(induction t arbitrary: t' rule: del_min.induct)
+  (auto simp: inorder_nodes split: prod.splits)
+
+lemma inorder_del: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
+  inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
+apply(induction t rule: del.induct)
+apply(simp_all add: del_list_simps inorder_nodes)
+apply(auto simp: del_list_simps;
+      auto simp: inorder_nodes del_list_simps del_minD split: prod.splits)+
+(* takes 285 s (2015); the last line alone would do it but takes hours *)
+done
+
+lemma inorder_delete: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
+  inorder(delete x t) = del_list x (inorder t)"
+by(simp add: delete_def inorder_del)
+
+
+subsection \<open>Balancedness\<close>
+
+subsubsection "Proofs for insert"
+
+text{* First a standard proof that @{const ins} preserves @{const bal}. *}
+
+instantiation up\<^sub>i :: (type)height
+begin
+
+fun height_up\<^sub>i :: "'a up\<^sub>i \<Rightarrow> nat" where
+"height (T\<^sub>i t) = height t" |
+"height (Up\<^sub>i l a r) = height l"
+
+instance ..
+
+end
+
+lemma bal_ins: "bal t \<Longrightarrow> bal (tree\<^sub>i(ins a t)) \<and> height(ins a t) = height t"
+by (induct t) (auto, auto split: up\<^sub>i.split) (* 29 secs (2015) *)
+
+
+text{* Now an alternative proof (by Brian Huffman) that runs faster because
+two properties (balance and height) are combined in one predicate. *}
+
+inductive full :: "nat \<Rightarrow> 'a tree234 \<Rightarrow> bool" where
+"full 0 Leaf" |
+"\<lbrakk>full n l; full n r\<rbrakk> \<Longrightarrow> full (Suc n) (Node2 l p r)" |
+"\<lbrakk>full n l; full n m; full n r\<rbrakk> \<Longrightarrow> full (Suc n) (Node3 l p m q r)" |
+"\<lbrakk>full n l; full n m; full n m'; full n r\<rbrakk> \<Longrightarrow> full (Suc n) (Node4 l p m q m' q' r)"
+
+inductive_cases full_elims:
+  "full n Leaf"
+  "full n (Node2 l p r)"
+  "full n (Node3 l p m q r)"
+  "full n (Node4 l p m q m' q' r)"
+
+inductive_cases full_0_elim: "full 0 t"
+inductive_cases full_Suc_elim: "full (Suc n) t"
+
+lemma full_0_iff [simp]: "full 0 t \<longleftrightarrow> t = Leaf"
+  by (auto elim: full_0_elim intro: full.intros)
+
+lemma full_Leaf_iff [simp]: "full n Leaf \<longleftrightarrow> n = 0"
+  by (auto elim: full_elims intro: full.intros)
+
+lemma full_Suc_Node2_iff [simp]:
+  "full (Suc n) (Node2 l p r) \<longleftrightarrow> full n l \<and> full n r"
+  by (auto elim: full_elims intro: full.intros)
+
+lemma full_Suc_Node3_iff [simp]:
+  "full (Suc n) (Node3 l p m q r) \<longleftrightarrow> full n l \<and> full n m \<and> full n r"
+  by (auto elim: full_elims intro: full.intros)
+
+lemma full_Suc_Node4_iff [simp]:
+  "full (Suc n) (Node4 l p m q m' q' r) \<longleftrightarrow> full n l \<and> full n m \<and> full n m' \<and> full n r"
+  by (auto elim: full_elims intro: full.intros)
+
+lemma full_imp_height: "full n t \<Longrightarrow> height t = n"
+  by (induct set: full, simp_all)
+
+lemma full_imp_bal: "full n t \<Longrightarrow> bal t"
+  by (induct set: full, auto dest: full_imp_height)
+
+lemma bal_imp_full: "bal t \<Longrightarrow> full (height t) t"
+  by (induct t, simp_all)
+
+lemma bal_iff_full: "bal t \<longleftrightarrow> (\<exists>n. full n t)"
+  by (auto elim!: bal_imp_full full_imp_bal)
+
+text {* The @{const "insert"} function either preserves the height of the
+tree, or increases it by one. The constructor returned by the @{term
+"insert"} function determines which: A return value of the form @{term
+"T\<^sub>i t"} indicates that the height will be the same. A value of the
+form @{term "Up\<^sub>i l p r"} indicates an increase in height. *}
+
+primrec full\<^sub>i :: "nat \<Rightarrow> 'a up\<^sub>i \<Rightarrow> bool" where
+"full\<^sub>i n (T\<^sub>i t) \<longleftrightarrow> full n t" |
+"full\<^sub>i n (Up\<^sub>i l p r) \<longleftrightarrow> full n l \<and> full n r"
+
+lemma full\<^sub>i_ins: "full n t \<Longrightarrow> full\<^sub>i n (ins a t)"
+apply (induct rule: full.induct)
+apply (auto, auto split: up\<^sub>i.split)
+done
+
+text {* The @{const insert} operation preserves balance. *}
+
+lemma bal_insert: "bal t \<Longrightarrow> bal (insert a t)"
+unfolding bal_iff_full insert_def
+apply (erule exE)
+apply (drule full\<^sub>i_ins [of _ _ a])
+apply (cases "ins a t")
+apply (auto intro: full.intros)
+done
+
+
+subsubsection "Proofs for delete"
+
+instantiation up\<^sub>d :: (type)height
+begin
+
+fun height_up\<^sub>d :: "'a up\<^sub>d \<Rightarrow> nat" where
+"height (T\<^sub>d t) = height t" |
+"height (Up\<^sub>d t) = height t + 1"
+
+instance ..
+
+end
+
+lemma bal_tree\<^sub>d_node21:
+  "\<lbrakk>bal r; bal (tree\<^sub>d l); height r = height l \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d (node21 l a r))"
+by(induct l a r rule: node21.induct) auto
+
+lemma bal_tree\<^sub>d_node22:
+  "\<lbrakk>bal(tree\<^sub>d r); bal l; height r = height l \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d (node22 l a r))"
+by(induct l a r rule: node22.induct) auto
+
+lemma bal_tree\<^sub>d_node31:
+  "\<lbrakk> bal (tree\<^sub>d l); bal m; bal r; height l = height r; height m = height r \<rbrakk>
+  \<Longrightarrow> bal (tree\<^sub>d (node31 l a m b r))"
+by(induct l a m b r rule: node31.induct) auto
+
+lemma bal_tree\<^sub>d_node32:
+  "\<lbrakk> bal l; bal (tree\<^sub>d m); bal r; height l = height r; height m = height r \<rbrakk>
+  \<Longrightarrow> bal (tree\<^sub>d (node32 l a m b r))"
+by(induct l a m b r rule: node32.induct) auto
+
+lemma bal_tree\<^sub>d_node33:
+  "\<lbrakk> bal l; bal m; bal(tree\<^sub>d r); height l = height r; height m = height r \<rbrakk>
+  \<Longrightarrow> bal (tree\<^sub>d (node33 l a m b r))"
+by(induct l a m b r rule: node33.induct) auto
+
+lemma bal_tree\<^sub>d_node41:
+  "\<lbrakk> bal (tree\<^sub>d l); bal m; bal n; bal r; height l = height r; height m = height r; height n = height r \<rbrakk>
+  \<Longrightarrow> bal (tree\<^sub>d (node41 l a m b n c r))"
+by(induct l a m b n c r rule: node41.induct) auto
+
+lemma bal_tree\<^sub>d_node42:
+  "\<lbrakk> bal l; bal (tree\<^sub>d m); bal n; bal r; height l = height r; height m = height r; height n = height r \<rbrakk>
+  \<Longrightarrow> bal (tree\<^sub>d (node42 l a m b n c r))"
+by(induct l a m b n c r rule: node42.induct) auto
+
+lemma bal_tree\<^sub>d_node43:
+  "\<lbrakk> bal l; bal m; bal (tree\<^sub>d n); bal r; height l = height r; height m = height r; height n = height r \<rbrakk>
+  \<Longrightarrow> bal (tree\<^sub>d (node43 l a m b n c r))"
+by(induct l a m b n c r rule: node43.induct) auto
+
+lemma bal_tree\<^sub>d_node44:
+  "\<lbrakk> bal l; bal m; bal n; bal (tree\<^sub>d r); height l = height r; height m = height r; height n = height r \<rbrakk>
+  \<Longrightarrow> bal (tree\<^sub>d (node44 l a m b n c r))"
+by(induct l a m b n c r rule: node44.induct) auto
+
+lemmas bals = bal_tree\<^sub>d_node21 bal_tree\<^sub>d_node22
+  bal_tree\<^sub>d_node31 bal_tree\<^sub>d_node32 bal_tree\<^sub>d_node33
+  bal_tree\<^sub>d_node41 bal_tree\<^sub>d_node42 bal_tree\<^sub>d_node43 bal_tree\<^sub>d_node44
+
+lemma height_node21:
+   "height r > 0 \<Longrightarrow> height(node21 l a r) = max (height l) (height r) + 1"
+by(induct l a r rule: node21.induct)(simp_all add: max.assoc)
+
+lemma height_node22:
+   "height l > 0 \<Longrightarrow> height(node22 l a r) = max (height l) (height r) + 1"
+by(induct l a r rule: node22.induct)(simp_all add: max.assoc)
+
+lemma height_node31:
+  "height m > 0 \<Longrightarrow> height(node31 l a m b r) =
+   max (height l) (max (height m) (height r)) + 1"
+by(induct l a m b r rule: node31.induct)(simp_all add: max_def)
+
+lemma height_node32:
+  "height r > 0 \<Longrightarrow> height(node32 l a m b r) =
+   max (height l) (max (height m) (height r)) + 1"
+by(induct l a m b r rule: node32.induct)(simp_all add: max_def)
+
+lemma height_node33:
+  "height m > 0 \<Longrightarrow> height(node33 l a m b r) =
+   max (height l) (max (height m) (height r)) + 1"
+by(induct l a m b r rule: node33.induct)(simp_all add: max_def)
+
+lemma height_node41:
+  "height m > 0 \<Longrightarrow> height(node41 l a m b n c r) =
+   max (height l) (max (height m) (max (height n) (height r))) + 1"
+by(induct l a m b n c r rule: node41.induct)(simp_all add: max_def)
+
+lemma height_node42:
+  "height l > 0 \<Longrightarrow> height(node42 l a m b n c r) =
+   max (height l) (max (height m) (max (height n) (height r))) + 1"
+by(induct l a m b n c r rule: node42.induct)(simp_all add: max_def)
+
+lemma height_node43:
+  "height m > 0 \<Longrightarrow> height(node43 l a m b n c r) =
+   max (height l) (max (height m) (max (height n) (height r))) + 1"
+by(induct l a m b n c r rule: node43.induct)(simp_all add: max_def)
+
+lemma height_node44:
+  "height n > 0 \<Longrightarrow> height(node44 l a m b n c r) =
+   max (height l) (max (height m) (max (height n) (height r))) + 1"
+by(induct l a m b n c r rule: node44.induct)(simp_all add: max_def)
+
+lemmas heights = height_node21 height_node22
+  height_node31 height_node32 height_node33
+  height_node41 height_node42 height_node43 height_node44
+
+lemma height_del_min:
+  "del_min t = (x, t') \<Longrightarrow> height t > 0 \<Longrightarrow> bal t \<Longrightarrow> height t' = height t"
+by(induct t arbitrary: x t' rule: del_min.induct)
+  (auto simp: heights split: prod.splits)
+
+lemma height_del: "bal t \<Longrightarrow> height(del x t) = height t"
+by(induction x t rule: del.induct)
+  (auto simp add: heights height_del_min split: prod.split)
+
+lemma bal_del_min:
+  "\<lbrakk> del_min t = (x, t'); bal t; height t > 0 \<rbrakk> \<Longrightarrow> bal (tree\<^sub>d t')"
+by(induct t arbitrary: x t' rule: del_min.induct)
+  (auto simp: heights height_del_min bals split: prod.splits)
+
+lemma bal_tree\<^sub>d_del: "bal t \<Longrightarrow> bal(tree\<^sub>d(del x t))"
+by(induction x t rule: del.induct)
+  ((auto simp: bals bal_del_min height_del height_del_min split: prod.split)[1])+
+(* 64 secs (2015) *)
+
+corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
+by(simp add: delete_def bal_tree\<^sub>d_del)
+
+
+subsection \<open>Overall Correctness\<close>
+
+interpretation Set_by_Ordered
+where empty = Leaf and isin = isin and insert = insert and delete = delete
+and inorder = inorder and wf = bal
+proof (standard, goal_cases)
+  case 2 thus ?case by(simp add: isin_set)
+next
+  case 3 thus ?case by(simp add: inorder_insert)
+next
+  case 4 thus ?case by(simp add: inorder_delete)
+next
+  case 6 thus ?case by(simp add: bal_insert)
+next
+  case 7 thus ?case by(simp add: bal_delete)
+qed simp+
+
+end
