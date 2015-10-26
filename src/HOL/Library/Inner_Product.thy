@@ -81,6 +81,20 @@ lemma inner_gt_zero_iff [simp]: "0 < inner x x \<longleftrightarrow> x \<noteq> 
 lemma power2_norm_eq_inner: "(norm x)\<^sup>2 = inner x x"
   by (simp add: norm_eq_sqrt_inner)
 
+text \<open>Identities involving real multiplication and division.\<close>
+
+lemma inner_mult_left: "inner (of_real m * a) b = m * (inner a b)"
+  by (metis real_inner_class.inner_scaleR_left scaleR_conv_of_real)
+
+lemma inner_mult_right: "inner a (of_real m * b) = m * (inner a b)"
+  by (metis real_inner_class.inner_scaleR_right scaleR_conv_of_real)
+
+lemma inner_mult_left': "inner (a * of_real m) b = m * (inner a b)"
+  by (simp add: of_real_def)
+
+lemma inner_mult_right': "inner a (b * of_real m) = (inner a b) * m"
+  by (simp add: of_real_def real_inner_class.inner_scaleR_right)
+
 lemma Cauchy_Schwarz_ineq:
   "(inner x y)\<^sup>2 \<le> inner x x * inner y y"
 proof (cases)
@@ -140,6 +154,16 @@ proof
 qed
 
 end
+
+lemma inner_divide_left:
+  fixes a :: "'a :: {real_inner,real_div_algebra}"
+  shows "inner (a / of_real m) b = (inner a b) / m"
+  by (metis (no_types) divide_inverse inner_commute inner_scaleR_right mult.left_neutral mult.right_neutral mult_scaleR_right of_real_inverse scaleR_conv_of_real times_divide_eq_left)
+
+lemma inner_divide_right:
+  fixes a :: "'a :: {real_inner,real_div_algebra}"
+  shows "inner a (b / of_real m) = (inner a b) / m"
+  by (metis inner_commute inner_divide_left)
 
 text \<open>
   Re-enable constraints for @{term "open"},

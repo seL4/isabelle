@@ -96,7 +96,7 @@ lemma convex_halfspace_lt: "convex {x. inner a x < b}"
 lemma convex_halfspace_gt: "convex {x. inner a x > b}"
    using convex_halfspace_lt[of "-a" "-b"] by auto
 
-lemma convex_real_interval:
+lemma convex_real_interval [iff]:
   fixes a b :: "real"
   shows "convex {a..}" and "convex {..b}"
     and "convex {a<..}" and "convex {..<b}"

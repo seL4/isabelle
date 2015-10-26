@@ -464,7 +464,7 @@ lemma Taylor_exp:
   "norm(exp z - (\<Sum>k\<le>n. z ^ k / (fact k))) \<le> exp\<bar>Re z\<bar> * (norm z) ^ (Suc n) / (fact n)"
 proof (rule complex_taylor [of _ n "\<lambda>k. exp" "exp\<bar>Re z\<bar>" 0 z, simplified])
   show "convex (closed_segment 0 z)"
-    by (rule convex_segment [of 0 z])
+    by (rule convex_closed_segment [of 0 z])
 next
   fix k x
   assume "x \<in> closed_segment 0 z" "k \<le> n"

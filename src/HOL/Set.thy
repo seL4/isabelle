@@ -1552,6 +1552,9 @@ lemma Diff_Un: "A - (B \<union> C) = (A - B) \<inter> (A - C)"
 lemma Diff_Int: "A - (B \<inter> C) = (A - B) \<union> (A - C)"
   by blast
 
+lemma Diff_Diff_Int: "A - (A - B) = A \<inter> B"
+  by blast
+
 lemma Un_Diff: "(A \<union> B) - C = (A - C) \<union> (B - C)"
   by blast
 

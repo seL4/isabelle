@@ -1545,6 +1545,10 @@ lemma card_Suc_eq:
  apply(auto simp add: intro:ccontr)
  done
 
+lemma card_1_singletonE:
+    assumes "card A = 1" obtains x where "A = {x}"
+  using assms by (auto simp: card_Suc_eq)
+
 lemma card_le_Suc_iff: "finite A \<Longrightarrow>
   Suc n \<le> card A = (\<exists>a B. A = insert a B \<and> a \<notin> B \<and> n \<le> card B \<and> finite B)"
 by (fastforce simp: card_Suc_eq less_eq_nat.simps(2) insert_eq_iff
