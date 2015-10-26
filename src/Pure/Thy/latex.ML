@@ -159,7 +159,7 @@ fun end_tag tg = enclose "%\n\\endisatag" "\n" tg ^ enclose "{\\isafold" "}%\n" 
 (* theory presentation *)
 
 fun environment name =
-  enclose ("%\n\\begin{" ^ name ^ "}%\n") ("%\n\\end{" ^ name ^ "}%\n");
+  enclose ("%\n\\begin{" ^ name ^ "}%\n") ("%\n\\end{" ^ name ^ "}");
 
 val tex_trailer =
   "%%% Local Variables:\n\
