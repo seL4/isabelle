@@ -24,9 +24,6 @@ proof (cases "\<exists>x. x \<noteq> a")
     by (rule netlimit_within [of a UNIV])
 qed simp
 
-(* Because I do not want to type this all the time *)
-lemmas linear_linear = linear_conv_bounded_linear[symmetric]
-
 declare has_derivative_bounded_linear[dest]
 
 subsection \<open>Derivatives\<close>

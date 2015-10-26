@@ -17,10 +17,10 @@ begin
 (* To be moved elsewhere                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-lemma linear_scaleR: "linear (\<lambda>x. scaleR c x)"
+lemma linear_scaleR  [simp]: "linear (\<lambda>x. scaleR c x)"
   by (simp add: linear_iff scaleR_add_right)
 
-lemma linear_scaleR_left: "linear (\<lambda>r. scaleR r x)"
+lemma linear_scaleR_left [simp]: "linear (\<lambda>r. scaleR r x)"
   by (simp add: linear_iff scaleR_add_left)
 
 lemma injective_scaleR: "c \<noteq> 0 \<Longrightarrow> inj (\<lambda>x::'a::real_vector. scaleR c x)"
@@ -259,33 +259,62 @@ proof -
     by blast
 qed
 
-lemma closure_bounded_linear_image:
+lemma closure_bounded_linear_image_subset:
   assumes f: "bounded_linear f"
   shows "f ` closure S \<subseteq> closure (f ` S)"
   using linear_continuous_on [OF f] closed_closure closure_subset
   by (rule image_closure_subset)
 
-lemma closure_linear_image:
+lemma closure_linear_image_subset:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::real_normed_vector"
   assumes "linear f"
-  shows "f ` (closure S) \<le> closure (f ` S)"
+  shows "f ` (closure S) \<subseteq> closure (f ` S)"
   using assms unfolding linear_conv_bounded_linear
-  by (rule closure_bounded_linear_image)
+  by (rule closure_bounded_linear_image_subset)
+
+lemma closed_injective_linear_image:
+    fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+    assumes S: "closed S" and f: "linear f" "inj f"
+    shows "closed (f ` S)"
+proof -
+  obtain g where g: "linear g" "g \<circ> f = id"
+    using linear_injective_left_inverse [OF f] by blast
+  then have confg: "continuous_on (range f) g"
+    using linear_continuous_on linear_conv_bounded_linear by blast
+  have [simp]: "g ` f ` S = S"
+    using g by (simp add: image_comp)
+  have cgf: "closed (g ` f ` S)"
+    by (simp add: `g \<circ> f = id` S image_comp)
+  have [simp]: "{x \<in> range f. g x \<in> S} = f ` S"
+    using g by (simp add: o_def id_def image_def) metis
+  show ?thesis
+    apply (rule closedin_closed_trans [of "range f"])
+    apply (rule continuous_closedin_preimage [OF confg cgf, simplified])
+    apply (rule closed_injective_image_subspace)
+    using f
+    apply (auto simp: linear_linear linear_injective_0)
+    done
+qed
+
+lemma closed_injective_linear_image_eq:
+    fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+    assumes f: "linear f" "inj f"
+      shows "(closed(image f s) \<longleftrightarrow> closed s)"
+  by (metis closed_injective_linear_image closure_eq closure_linear_image_subset closure_subset_eq f(1) f(2) inj_image_subset_iff)
 
 lemma closure_injective_linear_image:
-  fixes f :: "'n::euclidean_space \<Rightarrow> 'n::euclidean_space"
-  assumes "linear f" "inj f"
-  shows "f ` (closure S) = closure (f ` S)"
-proof -
-  obtain f' where f': "linear f' \<and> f \<circ> f' = id \<and> f' \<circ> f = id"
-    using assms linear_injective_isomorphism[of f] isomorphism_expand by auto
-  then have "f' ` closure (f ` S) \<le> closure (S)"
-    using closure_linear_image[of f' "f ` S"] image_comp[of f' f] by auto
-  then have "f ` f' ` closure (f ` S) \<le> f ` closure S" by auto
-  then have "closure (f ` S) \<le> f ` closure S"
-    using image_comp[of f f' "closure (f ` S)"] f' by auto
-  then show ?thesis using closure_linear_image[of f S] assms by auto
-qed
+    fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+    shows "\<lbrakk>linear f; inj f\<rbrakk> \<Longrightarrow> f ` (closure S) = closure (f ` S)"
+  apply (rule subset_antisym)
+  apply (simp add: closure_linear_image_subset)
+  by (simp add: closure_minimal closed_injective_linear_image closure_subset image_mono)
+
+lemma closure_bounded_linear_image:
+    fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+    shows "\<lbrakk>linear f; bounded S\<rbrakk> \<Longrightarrow> f ` (closure S) = closure (f ` S)"
+  apply (rule subset_antisym, simp add: closure_linear_image_subset)
+  apply (rule closure_minimal, simp add: closure_subset image_mono)
+  by (meson bounded_closure closed_closure compact_continuous_image compact_eq_bounded_closed linear_continuous_on linear_conv_bounded_linear)
 
 lemma closure_scaleR:
   fixes S :: "'a::real_normed_vector set"
@@ -293,7 +322,7 @@ lemma closure_scaleR:
 proof
   show "(op *\<^sub>R c) ` (closure S) \<subseteq> closure ((op *\<^sub>R c) ` S)"
     using bounded_linear_scaleR_right
-    by (rule closure_bounded_linear_image)
+    by (rule closure_bounded_linear_image_subset)
   show "closure ((op *\<^sub>R c) ` S) \<subseteq> (op *\<^sub>R c) ` (closure S)"
     by (intro closure_minimal image_mono closure_subset closed_scaling closed_closure)
 qed
@@ -1422,12 +1451,12 @@ proof -
   then show ?thesis by (auto simp add: convex_def Ball_def)
 qed
 
-lemma connected_ball:
+lemma connected_ball [iff]:
   fixes x :: "'a::real_normed_vector"
   shows "connected (ball x e)"
   using convex_connected convex_ball by auto
 
-lemma connected_cball:
+lemma connected_cball [iff]:
   fixes x :: "'a::real_normed_vector"
   shows "connected (cball x e)"
   using convex_connected convex_cball by auto
@@ -2212,140 +2241,6 @@ proof -
 qed
 
 
-subsection \<open>Caratheodory's theorem.\<close>
-
-lemma convex_hull_caratheodory:
-  fixes p :: "('a::euclidean_space) set"
-  shows "convex hull p =
-    {y. \<exists>s u. finite s \<and> s \<subseteq> p \<and> card s \<le> DIM('a) + 1 \<and>
-      (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}"
-  unfolding convex_hull_explicit set_eq_iff mem_Collect_eq
-proof (rule, rule)
-  fix y
-  let ?P = "\<lambda>n. \<exists>s u. finite s \<and> card s = n \<and> s \<subseteq> p \<and> (\<forall>x\<in>s. 0 \<le> u x) \<and>
-    setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
-  assume "\<exists>s u. finite s \<and> s \<subseteq> p \<and> (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
-  then obtain N where "?P N" by auto
-  then have "\<exists>n\<le>N. (\<forall>k<n. \<not> ?P k) \<and> ?P n"
-    apply (rule_tac ex_least_nat_le)
-    apply auto
-    done
-  then obtain n where "?P n" and smallest: "\<forall>k<n. \<not> ?P k"
-    by blast
-  then obtain s u where obt: "finite s" "card s = n" "s\<subseteq>p" "\<forall>x\<in>s. 0 \<le> u x"
-    "setsum u s = 1"  "(\<Sum>v\<in>s. u v *\<^sub>R v) = y" by auto
-
-  have "card s \<le> DIM('a) + 1"
-  proof (rule ccontr, simp only: not_le)
-    assume "DIM('a) + 1 < card s"
-    then have "affine_dependent s"
-      using affine_dependent_biggerset[OF obt(1)] by auto
-    then obtain w v where wv: "setsum w s = 0" "v\<in>s" "w v \<noteq> 0" "(\<Sum>v\<in>s. w v *\<^sub>R v) = 0"
-      using affine_dependent_explicit_finite[OF obt(1)] by auto
-    def i \<equiv> "(\<lambda>v. (u v) / (- w v)) ` {v\<in>s. w v < 0}"
-    def t \<equiv> "Min i"
-    have "\<exists>x\<in>s. w x < 0"
-    proof (rule ccontr, simp add: not_less)
-      assume as:"\<forall>x\<in>s. 0 \<le> w x"
-      then have "setsum w (s - {v}) \<ge> 0"
-        apply (rule_tac setsum_nonneg)
-        apply auto
-        done
-      then have "setsum w s > 0"
-        unfolding setsum.remove[OF obt(1) \<open>v\<in>s\<close>]
-        using as[THEN bspec[where x=v]] and \<open>v\<in>s\<close>
-        using \<open>w v \<noteq> 0\<close>
-        by auto
-      then show False using wv(1) by auto
-    qed
-    then have "i \<noteq> {}" unfolding i_def by auto
-
-    then have "t \<ge> 0"
-      using Min_ge_iff[of i 0 ] and obt(1)
-      unfolding t_def i_def
-      using obt(4)[unfolded le_less]
-      by (auto simp: divide_le_0_iff)
-    have t: "\<forall>v\<in>s. u v + t * w v \<ge> 0"
-    proof
-      fix v
-      assume "v \<in> s"
-      then have v: "0 \<le> u v"
-        using obt(4)[THEN bspec[where x=v]] by auto
-      show "0 \<le> u v + t * w v"
-      proof (cases "w v < 0")
-        case False
-        thus ?thesis using v \<open>t\<ge>0\<close> by auto
-      next
-        case True
-        then have "t \<le> u v / (- w v)"
-          using \<open>v\<in>s\<close>
-          unfolding t_def i_def
-          apply (rule_tac Min_le)
-          using obt(1)
-          apply auto
-          done
-        then show ?thesis
-          unfolding real_0_le_add_iff
-          using pos_le_divide_eq[OF True[unfolded neg_0_less_iff_less[symmetric]]]
-          by auto
-      qed
-    qed
-
-    obtain a where "a \<in> s" and "t = (\<lambda>v. (u v) / (- w v)) a" and "w a < 0"
-      using Min_in[OF _ \<open>i\<noteq>{}\<close>] and obt(1) unfolding i_def t_def by auto
-    then have a: "a \<in> s" "u a + t * w a = 0" by auto
-    have *: "\<And>f. setsum f (s - {a}) = setsum f s - ((f a)::'b::ab_group_add)"
-      unfolding setsum.remove[OF obt(1) \<open>a\<in>s\<close>] by auto
-    have "(\<Sum>v\<in>s. u v + t * w v) = 1"
-      unfolding setsum.distrib wv(1) setsum_right_distrib[symmetric] obt(5) by auto
-    moreover have "(\<Sum>v\<in>s. u v *\<^sub>R v + (t * w v) *\<^sub>R v) - (u a *\<^sub>R a + (t * w a) *\<^sub>R a) = y"
-      unfolding setsum.distrib obt(6) scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] wv(4)
-      using a(2) [THEN eq_neg_iff_add_eq_0 [THEN iffD2]] by simp
-    ultimately have "?P (n - 1)"
-      apply (rule_tac x="(s - {a})" in exI)
-      apply (rule_tac x="\<lambda>v. u v + t * w v" in exI)
-      using obt(1-3) and t and a
-      apply (auto simp add: * scaleR_left_distrib)
-      done
-    then show False
-      using smallest[THEN spec[where x="n - 1"]] by auto
-  qed
-  then show "\<exists>s u. finite s \<and> s \<subseteq> p \<and> card s \<le> DIM('a) + 1 \<and>
-      (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
-    using obt by auto
-qed auto
-
-lemma caratheodory:
-  "convex hull p =
-    {x::'a::euclidean_space. \<exists>s. finite s \<and> s \<subseteq> p \<and>
-      card s \<le> DIM('a) + 1 \<and> x \<in> convex hull s}"
-  unfolding set_eq_iff
-  apply rule
-  apply rule
-  unfolding mem_Collect_eq
-proof -
-  fix x
-  assume "x \<in> convex hull p"
-  then obtain s u where "finite s" "s \<subseteq> p" "card s \<le> DIM('a) + 1"
-    "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = x"
-    unfolding convex_hull_caratheodory by auto
-  then show "\<exists>s. finite s \<and> s \<subseteq> p \<and> card s \<le> DIM('a) + 1 \<and> x \<in> convex hull s"
-    apply (rule_tac x=s in exI)
-    using hull_subset[of s convex]
-    using convex_convex_hull[unfolded convex_explicit, of s,
-      THEN spec[where x=s], THEN spec[where x=u]]
-    apply auto
-    done
-next
-  fix x
-  assume "\<exists>s. finite s \<and> s \<subseteq> p \<and> card s \<le> DIM('a) + 1 \<and> x \<in> convex hull s"
-  then obtain s where "finite s" "s \<subseteq> p" "card s \<le> DIM('a) + 1" "x \<in> convex hull s"
-    by auto
-  then show "x \<in> convex hull p"
-    using hull_mono[OF \<open>s\<subseteq>p\<close>] by auto
-qed
-
-
 subsection \<open>Some Properties of Affine Dependent Sets\<close>
 
 lemma affine_independent_empty: "\<not> affine_dependent {}"
@@ -2572,7 +2467,8 @@ qed
 
 subsection \<open>Affine Dimension of a Set\<close>
 
-definition "aff_dim V =
+definition aff_dim :: "('a::euclidean_space) set \<Rightarrow> int"
+  where "aff_dim V =
   (SOME d :: int.
     \<exists>B. affine hull B = affine hull V \<and> \<not> affine_dependent B \<and> of_nat (card B) = d + 1)"
 
@@ -2782,6 +2678,9 @@ proof -
     using aff_independent_finite[of B] card_gt_0_iff[of B] by auto
 qed
 
+lemma aff_dim_empty_eq [simp]: "aff_dim ({}::'a::euclidean_space set) = -1"
+  by (simp add: aff_dim_empty [symmetric])
+
 lemma aff_dim_affine_hull: "aff_dim (affine hull S) = aff_dim S"
   unfolding aff_dim_def using hull_hull[of _ S] by auto
 
@@ -2828,6 +2727,13 @@ lemma aff_dim_affine_independent:
   assumes "\<not> affine_dependent B"
   shows "of_nat (card B) = aff_dim B + 1"
   using aff_dim_unique[of B B] assms by auto
+
+lemma affine_independent_iff_card:
+    fixes s :: "'a::euclidean_space set"
+    shows "~ affine_dependent s \<longleftrightarrow> finite s \<and> aff_dim s = int(card s) - 1"
+  apply (rule iffI)
+  apply (simp add: aff_dim_affine_independent aff_independent_finite)
+  by (metis affine_basis_exists [of s] aff_dim_unique card_subset_eq diff_add_cancel of_nat_eq_iff)
 
 lemma aff_dim_sing:
   fixes a :: "'n::euclidean_space"
@@ -3135,6 +3041,165 @@ corollary empty_interior_lowdim:
   fixes S :: "'n::euclidean_space set"
   shows "dim S < DIM ('n) \<Longrightarrow> interior S = {}"
 by (metis low_dim_interior affine_hull_univ dim_affine_hull less_not_refl dim_UNIV)
+
+subsection \<open>Caratheodory's theorem.\<close>
+
+lemma convex_hull_caratheodory_aff_dim:
+  fixes p :: "('a::euclidean_space) set"
+  shows "convex hull p =
+    {y. \<exists>s u. finite s \<and> s \<subseteq> p \<and> card s \<le> aff_dim p + 1 \<and>
+      (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}"
+  unfolding convex_hull_explicit set_eq_iff mem_Collect_eq
+proof (intro allI iffI)
+  fix y
+  let ?P = "\<lambda>n. \<exists>s u. finite s \<and> card s = n \<and> s \<subseteq> p \<and> (\<forall>x\<in>s. 0 \<le> u x) \<and>
+    setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
+  assume "\<exists>s u. finite s \<and> s \<subseteq> p \<and> (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
+  then obtain N where "?P N" by auto
+  then have "\<exists>n\<le>N. (\<forall>k<n. \<not> ?P k) \<and> ?P n"
+    apply (rule_tac ex_least_nat_le)
+    apply auto
+    done
+  then obtain n where "?P n" and smallest: "\<forall>k<n. \<not> ?P k"
+    by blast
+  then obtain s u where obt: "finite s" "card s = n" "s\<subseteq>p" "\<forall>x\<in>s. 0 \<le> u x"
+    "setsum u s = 1"  "(\<Sum>v\<in>s. u v *\<^sub>R v) = y" by auto
+
+  have "card s \<le> aff_dim p + 1"
+  proof (rule ccontr, simp only: not_le)
+    assume "aff_dim p + 1 < card s"
+    then have "affine_dependent s"
+      using affine_dependent_biggerset[OF obt(1)] independent_card_le_aff_dim not_less obt(3)
+      by blast
+    then obtain w v where wv: "setsum w s = 0" "v\<in>s" "w v \<noteq> 0" "(\<Sum>v\<in>s. w v *\<^sub>R v) = 0"
+      using affine_dependent_explicit_finite[OF obt(1)] by auto
+    def i \<equiv> "(\<lambda>v. (u v) / (- w v)) ` {v\<in>s. w v < 0}"
+    def t \<equiv> "Min i"
+    have "\<exists>x\<in>s. w x < 0"
+    proof (rule ccontr, simp add: not_less)
+      assume as:"\<forall>x\<in>s. 0 \<le> w x"
+      then have "setsum w (s - {v}) \<ge> 0"
+        apply (rule_tac setsum_nonneg)
+        apply auto
+        done
+      then have "setsum w s > 0"
+        unfolding setsum.remove[OF obt(1) \<open>v\<in>s\<close>]
+        using as[THEN bspec[where x=v]]  \<open>v\<in>s\<close>  \<open>w v \<noteq> 0\<close> by auto
+      then show False using wv(1) by auto
+    qed
+    then have "i \<noteq> {}" unfolding i_def by auto
+    then have "t \<ge> 0"
+      using Min_ge_iff[of i 0 ] and obt(1)
+      unfolding t_def i_def
+      using obt(4)[unfolded le_less]
+      by (auto simp: divide_le_0_iff)
+    have t: "\<forall>v\<in>s. u v + t * w v \<ge> 0"
+    proof
+      fix v
+      assume "v \<in> s"
+      then have v: "0 \<le> u v"
+        using obt(4)[THEN bspec[where x=v]] by auto
+      show "0 \<le> u v + t * w v"
+      proof (cases "w v < 0")
+        case False
+        thus ?thesis using v \<open>t\<ge>0\<close> by auto
+      next
+        case True
+        then have "t \<le> u v / (- w v)"
+          using \<open>v\<in>s\<close> unfolding t_def i_def
+          apply (rule_tac Min_le)
+          using obt(1) apply auto
+          done
+        then show ?thesis
+          unfolding real_0_le_add_iff
+          using pos_le_divide_eq[OF True[unfolded neg_0_less_iff_less[symmetric]]]
+          by auto
+      qed
+    qed
+    obtain a where "a \<in> s" and "t = (\<lambda>v. (u v) / (- w v)) a" and "w a < 0"
+      using Min_in[OF _ \<open>i\<noteq>{}\<close>] and obt(1) unfolding i_def t_def by auto
+    then have a: "a \<in> s" "u a + t * w a = 0" by auto
+    have *: "\<And>f. setsum f (s - {a}) = setsum f s - ((f a)::'b::ab_group_add)"
+      unfolding setsum.remove[OF obt(1) \<open>a\<in>s\<close>] by auto
+    have "(\<Sum>v\<in>s. u v + t * w v) = 1"
+      unfolding setsum.distrib wv(1) setsum_right_distrib[symmetric] obt(5) by auto
+    moreover have "(\<Sum>v\<in>s. u v *\<^sub>R v + (t * w v) *\<^sub>R v) - (u a *\<^sub>R a + (t * w a) *\<^sub>R a) = y"
+      unfolding setsum.distrib obt(6) scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] wv(4)
+      using a(2) [THEN eq_neg_iff_add_eq_0 [THEN iffD2]] by simp
+    ultimately have "?P (n - 1)"
+      apply (rule_tac x="(s - {a})" in exI)
+      apply (rule_tac x="\<lambda>v. u v + t * w v" in exI)
+      using obt(1-3) and t and a
+      apply (auto simp add: * scaleR_left_distrib)
+      done
+    then show False
+      using smallest[THEN spec[where x="n - 1"]] by auto
+  qed
+  then show "\<exists>s u. finite s \<and> s \<subseteq> p \<and> card s \<le> aff_dim p + 1 \<and>
+      (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
+    using obt by auto
+qed auto
+
+lemma caratheodory_aff_dim:
+  fixes p :: "('a::euclidean_space) set"
+  shows "convex hull p = {x. \<exists>s. finite s \<and> s \<subseteq> p \<and> card s \<le> aff_dim p + 1 \<and> x \<in> convex hull s}"
+        (is "?lhs = ?rhs")
+proof
+  show "?lhs \<subseteq> ?rhs"
+    apply (subst convex_hull_caratheodory_aff_dim)
+    apply clarify
+    apply (rule_tac x="s" in exI)
+    apply (simp add: hull_subset convex_explicit [THEN iffD1, OF convex_convex_hull])
+    done
+next
+  show "?rhs \<subseteq> ?lhs"
+    using hull_mono by blast
+qed
+
+lemma convex_hull_caratheodory:
+  fixes p :: "('a::euclidean_space) set"
+  shows "convex hull p =
+            {y. \<exists>s u. finite s \<and> s \<subseteq> p \<and> card s \<le> DIM('a) + 1 \<and>
+              (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}"
+        (is "?lhs = ?rhs")
+proof (intro set_eqI iffI)
+  fix x
+  assume "x \<in> ?lhs" then show "x \<in> ?rhs"
+    apply (simp only: convex_hull_caratheodory_aff_dim Set.mem_Collect_eq)
+    apply (erule ex_forward)+
+    using aff_dim_subset_univ [of p]
+    apply simp
+    done
+next
+  fix x
+  assume "x \<in> ?rhs" then show "x \<in> ?lhs"
+    by (auto simp add: convex_hull_explicit)
+qed
+
+theorem caratheodory:
+  "convex hull p =
+    {x::'a::euclidean_space. \<exists>s. finite s \<and> s \<subseteq> p \<and>
+      card s \<le> DIM('a) + 1 \<and> x \<in> convex hull s}"
+proof safe
+  fix x
+  assume "x \<in> convex hull p"
+  then obtain s u where "finite s" "s \<subseteq> p" "card s \<le> DIM('a) + 1"
+    "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = x"
+    unfolding convex_hull_caratheodory by auto
+  then show "\<exists>s. finite s \<and> s \<subseteq> p \<and> card s \<le> DIM('a) + 1 \<and> x \<in> convex hull s"
+    apply (rule_tac x=s in exI)
+    using hull_subset[of s convex]
+    using convex_convex_hull[unfolded convex_explicit, of s,
+      THEN spec[where x=s], THEN spec[where x=u]]
+    apply auto
+    done
+next
+  fix x s
+  assume  "finite s" "s \<subseteq> p" "card s \<le> DIM('a) + 1" "x \<in> convex hull s"
+  then show "x \<in> convex hull p"
+    using hull_mono[OF \<open>s\<subseteq>p\<close>] by auto
+qed
+
 
 subsection \<open>Relative interior of a set\<close>
 
@@ -5708,20 +5773,33 @@ lemma is_interval_convex_1:
   shows "is_interval s \<longleftrightarrow> convex s"
   by (metis is_interval_convex convex_connected is_interval_connected_1)
 
-lemma convex_connected_1:
+lemma connected_convex_1:
   fixes s :: "real set"
   shows "connected s \<longleftrightarrow> convex s"
   by (metis is_interval_convex convex_connected is_interval_connected_1)
 
+lemma connected_convex_1_gen:
+  fixes s :: "'a :: euclidean_space set"
+  assumes "DIM('a) = 1"
+  shows "connected s \<longleftrightarrow> convex s"
+proof -
+  obtain f:: "'a \<Rightarrow> real" where linf: "linear f" and "inj f"
+    using subspace_isomorphism [where 'a = 'a and 'b = real]
+    by (metis DIM_real dim_UNIV subspace_UNIV assms)
+  then have "f -` (f ` s) = s"
+    by (simp add: inj_vimage_image_eq)
+  then show ?thesis
+    by (metis connected_convex_1 convex_linear_vimage linf convex_connected connected_linear_image)
+qed
 
 subsection \<open>Another intermediate value theorem formulation\<close>
 
 lemma ivt_increasing_component_on_1:
-  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"            
   assumes "a \<le> b"
-    and "continuous_on (cbox a b) f"
+    and "continuous_on {a..b} f"
     and "(f a)\<bullet>k \<le> y" "y \<le> (f b)\<bullet>k"
-  shows "\<exists>x\<in>cbox a b. (f x)\<bullet>k = y"
+  shows "\<exists>x\<in>{a..b}. (f x)\<bullet>k = y"
 proof -
   have "f a \<in> f ` cbox a b" "f b \<in> f ` cbox a b"
     apply (rule_tac[!] imageI)
@@ -5730,24 +5808,22 @@ proof -
     done
   then show ?thesis
     using connected_ivt_component[of "f ` cbox a b" "f a" "f b" k y]
-    using connected_continuous_image[OF assms(2) convex_connected[OF convex_box(1)]]
-    using assms
-    by auto
+    by (simp add: Topology_Euclidean_Space.connected_continuous_image assms)
 qed
 
 lemma ivt_increasing_component_1:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space"
-  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>cbox a b. continuous (at x) f \<Longrightarrow>
-    f a\<bullet>k \<le> y \<Longrightarrow> y \<le> f b\<bullet>k \<Longrightarrow> \<exists>x\<in>cbox a b. (f x)\<bullet>k = y"
+  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>{a..b}. continuous (at x) f \<Longrightarrow>
+    f a\<bullet>k \<le> y \<Longrightarrow> y \<le> f b\<bullet>k \<Longrightarrow> \<exists>x\<in>{a..b}. (f x)\<bullet>k = y"
   by (rule ivt_increasing_component_on_1) (auto simp add: continuous_at_imp_continuous_on)
 
 lemma ivt_decreasing_component_on_1:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space"
   assumes "a \<le> b"
-    and "continuous_on (cbox a b) f"
+    and "continuous_on {a..b} f"
     and "(f b)\<bullet>k \<le> y"
     and "y \<le> (f a)\<bullet>k"
-  shows "\<exists>x\<in>cbox a b. (f x)\<bullet>k = y"
+  shows "\<exists>x\<in>{a..b}. (f x)\<bullet>k = y"
   apply (subst neg_equal_iff_equal[symmetric])
   using ivt_increasing_component_on_1[of a b "\<lambda>x. - f x" k "- y"]
   using assms using continuous_on_minus
@@ -5756,8 +5832,8 @@ lemma ivt_decreasing_component_on_1:
 
 lemma ivt_decreasing_component_1:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space"
-  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>cbox a b. continuous (at x) f \<Longrightarrow>
-    f b\<bullet>k \<le> y \<Longrightarrow> y \<le> f a\<bullet>k \<Longrightarrow> \<exists>x\<in>cbox a b. (f x)\<bullet>k = y"
+  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>{a..b}. continuous (at x) f \<Longrightarrow>
+    f b\<bullet>k \<le> y \<Longrightarrow> y \<le> f a\<bullet>k \<Longrightarrow> \<exists>x\<in>{a..b}. (f x)\<bullet>k = y"
   by (rule ivt_decreasing_component_on_1) (auto simp: continuous_at_imp_continuous_on)
 
 
@@ -6234,11 +6310,11 @@ subsection \<open>Line segments, Starlike Sets, etc.\<close>
 definition midpoint :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a"
   where "midpoint a b = (inverse (2::real)) *\<^sub>R (a + b)"
 
-definition open_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set"
-  where "open_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real.  0 < u \<and> u < 1}"
-
 definition closed_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set"
   where "closed_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real. 0 \<le> u \<and> u \<le> 1}"
+
+definition open_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set" where
+  "open_segment a b \<equiv> closed_segment a b - {a,b}"
 
 definition "between = (\<lambda>(a,b) x. x \<in> closed_segment a b)"
 
@@ -6291,7 +6367,7 @@ proof -
     apply (simp add: scaleR_2)
     done
   show ?t3
-    unfolding midpoint_def dist_norm
+    unfolding midpoint_def dist_norm     
     apply (rule *)
     apply (simp add: scaleR_right_diff_distrib)
     apply (simp add: scaleR_2)
@@ -6325,37 +6401,28 @@ lemma segment_convex_hull:
   "closed_segment a b = convex hull {a,b}"
 proof -
   have *: "\<And>x. {x} \<noteq> {}" by auto
-  have **: "\<And>u v. u + v = 1 \<longleftrightarrow> u = 1 - (v::real)" by auto
   show ?thesis
     unfolding segment convex_hull_insert[OF *] convex_hull_singleton
-    apply (rule set_eqI)
-    unfolding mem_Collect_eq
-    apply (rule, erule exE)
-    apply (rule_tac x="1 - u" in exI)
-    apply rule
-    defer
-    apply (rule_tac x=u in exI)
-    defer
-    apply (elim exE conjE)
-    apply (rule_tac x="1 - u" in exI)
-    unfolding **
-    apply auto
-    done
+    by (safe; rule_tac x="1 - u" in exI; force)
 qed
 
-lemma convex_segment [iff]: "convex (closed_segment a b)"
-  unfolding segment_convex_hull by(rule convex_convex_hull)
+lemma segment_open_subset_closed:
+   "open_segment a b \<subseteq> closed_segment a b"
+  by (auto simp: closed_segment_def open_segment_def)
 
-lemma connected_segment [iff]:
-  fixes x :: "'a :: real_normed_vector"
-  shows "connected (closed_segment x y)"
-  by (simp add: convex_connected)
+lemma bounded_closed_segment:
+    fixes a :: "'a::euclidean_space" shows "bounded (closed_segment a b)"
+  by (simp add: segment_convex_hull compact_convex_hull compact_imp_bounded)
+
+lemma bounded_open_segment:
+    fixes a :: "'a::euclidean_space" shows "bounded (open_segment a b)"
+  by (rule bounded_subset [OF bounded_closed_segment segment_open_subset_closed])
+
+lemmas bounded_segment = bounded_closed_segment open_closed_segment
 
 lemma ends_in_segment [iff]: "a \<in> closed_segment a b" "b \<in> closed_segment a b"
   unfolding segment_convex_hull
-  apply (rule_tac[!] hull_subset[unfolded subset_eq, rule_format])
-  apply auto
-  done
+  by (auto intro!: hull_subset[unfolded subset_eq, rule_format])
 
 lemma segment_furthest_le:
   fixes a b x y :: "'a::euclidean_space"
@@ -6403,6 +6470,106 @@ lemma closed_segment_real_eq:
   fixes u::real shows "closed_segment u v = (\<lambda>x. (v - u) * x + u) ` {0..1}"
   by (simp add: add.commute [of u] image_affinity_atLeastAtMost [where c=u] closed_segment_eq_real_ivl)
 
+subsubsection\<open>More lemmas, especially for working with the underlying formula\<close>
+
+lemma segment_eq_compose:
+  fixes a :: "'a :: real_vector"
+  shows "(\<lambda>u. (1 - u) *\<^sub>R a + u *\<^sub>R b) = (\<lambda>x. a + x) o (\<lambda>u. u *\<^sub>R (b - a))"
+    by (simp add: o_def algebra_simps)
+
+lemma segment_degen_1:
+  fixes a :: "'a :: real_vector"
+  shows "(1 - u) *\<^sub>R a + u *\<^sub>R b = b \<longleftrightarrow> a=b \<or> u=1"
+proof -
+  { assume "(1 - u) *\<^sub>R a + u *\<^sub>R b = b"
+    then have "(1 - u) *\<^sub>R a = (1 - u) *\<^sub>R b"
+      by (simp add: algebra_simps)
+    then have "a=b \<or> u=1"
+      by simp
+  } then show ?thesis
+      by (auto simp: algebra_simps)
+qed
+
+lemma segment_degen_0:
+    fixes a :: "'a :: real_vector"
+    shows "(1 - u) *\<^sub>R a + u *\<^sub>R b = a \<longleftrightarrow> a=b \<or> u=0"
+  using segment_degen_1 [of "1-u" b a]
+  by (auto simp: algebra_simps)
+
+lemma closed_segment_image_interval:
+     "closed_segment a b = (\<lambda>u. (1 - u) *\<^sub>R a + u *\<^sub>R b) ` {0..1}"
+  by (auto simp: set_eq_iff image_iff closed_segment_def)
+
+lemma open_segment_image_interval:
+     "open_segment a b = (if a=b then {} else (\<lambda>u. (1 - u) *\<^sub>R a + u *\<^sub>R b) ` {0<..<1})"
+  by (auto simp:  open_segment_def closed_segment_def segment_degen_0 segment_degen_1)
+
+lemmas segment_image_interval = closed_segment_image_interval open_segment_image_interval
+
+lemma closure_closed_segment [simp]:
+    fixes a :: "'a::euclidean_space"
+    shows "closure(closed_segment a b) = closed_segment a b"
+  by (simp add: closure_eq compact_imp_closed segment_convex_hull compact_convex_hull)
+
+lemma closure_open_segment [simp]:
+    fixes a :: "'a::euclidean_space"
+    shows "closure(open_segment a b) = (if a = b then {} else closed_segment a b)"
+proof -
+  have "closure ((\<lambda>u. u *\<^sub>R (b - a)) ` {0<..<1}) = (\<lambda>u. u *\<^sub>R (b - a)) ` closure {0<..<1}" if "a \<noteq> b"
+    apply (rule closure_injective_linear_image [symmetric])
+    apply (simp add:)
+    using that by (simp add: inj_on_def)
+  then show ?thesis
+    by (simp add: segment_image_interval segment_eq_compose closure_greaterThanLessThan [symmetric]
+         closure_translation image_comp [symmetric] del: closure_greaterThanLessThan)
+qed
+
+lemma closed_segment [simp]:
+    fixes a :: "'a::euclidean_space"  shows "closed (closed_segment a b)"
+  using closure_subset_eq by fastforce
+
+lemma closed_open_segment_iff [simp]:
+    fixes a :: "'a::euclidean_space"  shows "closed(open_segment a b) \<longleftrightarrow> a = b"
+  by (metis open_segment_def DiffE closure_eq closure_open_segment ends_in_segment(1) insert_iff segment_image_interval(2))
+
+lemma compact_segment [simp]:
+    fixes a :: "'a::euclidean_space"  shows "compact (closed_segment a b)"
+  by (simp add: compact_convex_hull segment_convex_hull)
+
+lemma compact_open_segment_iff [simp]:
+    fixes a :: "'a::euclidean_space"  shows "compact(open_segment a b) \<longleftrightarrow> a = b"
+  by (simp add: bounded_open_segment compact_eq_bounded_closed)
+
+lemma convex_closed_segment [iff]: "convex (closed_segment a b)"
+  unfolding segment_convex_hull by(rule convex_convex_hull)
+
+lemma convex_open_segment [iff]: "convex(open_segment a b)"
+proof -
+  have "convex ((\<lambda>u. u *\<^sub>R (b-a)) ` {0<..<1})"
+    by (rule convex_linear_image) auto
+  then show ?thesis
+    apply (simp add: open_segment_image_interval segment_eq_compose)
+    by (metis image_comp convex_translation)
+qed
+
+lemmas convex_segment = convex_closed_segment convex_open_segment
+
+lemma connected_segment [iff]:
+  fixes x :: "'a :: real_normed_vector"
+  shows "connected (closed_segment x y)"
+  by (simp add: convex_connected)
+
+lemma affine_hull_closed_segment [simp]:
+     "affine hull (closed_segment a b) = affine hull {a,b}"
+  by (simp add: segment_convex_hull)
+
+lemma affine_hull_open_segment [simp]:
+    fixes a :: "'a::euclidean_space"
+    shows "affine hull (open_segment a b) = (if a = b then {} else affine hull {a,b})"
+by (metis affine_hull_convex_hull affine_hull_empty closure_open_segment closure_same_affine_hull segment_convex_hull)
+
+subsubsection\<open>Betweenness\<close>
+
 lemma between_mem_segment: "between (a,b) x \<longleftrightarrow> x \<in> closed_segment a b"
   unfolding between_def by auto
 
@@ -6411,7 +6578,7 @@ proof (cases "a = b")
   case True
   then show ?thesis
     unfolding between_def split_conv
-    by (auto simp add:segment_refl dist_commute)
+    by (auto simp add: dist_commute)
 next
   case False
   then have Fal: "norm (a - b) \<noteq> 0" and Fal2: "norm (a - b) > 0"
@@ -7958,7 +8125,7 @@ next
   also have "\<dots> = f ` (closure (rel_interior S))"
     using convex_closure_rel_interior assms by auto
   also have "\<dots> \<subseteq> closure (f ` (rel_interior S))"
-    using closure_linear_image assms by auto
+    using closure_linear_image_subset assms by auto
   finally have "closure (f ` S) = closure (f ` rel_interior S)"
     using closure_mono[of "f ` S" "closure (f ` rel_interior S)"] closure_closure
       closure_mono[of "f ` rel_interior S" "f ` S"] *
@@ -8556,7 +8723,7 @@ lemma closure_sum:
   fixes S T :: "'a::real_normed_vector set"
   shows "closure S + closure T \<subseteq> closure (S + T)"
   unfolding set_plus_image closure_Times [symmetric] split_def
-  by (intro closure_bounded_linear_image bounded_linear_add
+  by (intro closure_bounded_linear_image_subset bounded_linear_add
     bounded_linear_fst bounded_linear_snd)
 
 lemma rel_interior_sum:
@@ -8929,11 +9096,11 @@ lemma interior_atLeastAtMost [simp]:
 
 lemma interior_atLeastLessThan [simp]:
   fixes a::real shows "interior {a..<b} = {a<..<b}"
-  by (metis atLeastLessThan_def greaterThanLessThan_def interior_atLeastAtMost interior_inter interior_interior interior_real_semiline)
+  by (metis atLeastLessThan_def greaterThanLessThan_def interior_atLeastAtMost interior_Int interior_interior interior_real_semiline)
 
 lemma interior_lessThanAtMost [simp]:
   fixes a::real shows "interior {a<..b} = {a<..<b}"
-  by (metis atLeastAtMost_def greaterThanAtMost_def interior_atLeastAtMost interior_inter
+  by (metis atLeastAtMost_def greaterThanAtMost_def interior_atLeastAtMost interior_Int
             interior_interior interior_real_semiline)
 
 lemma at_within_closed_interval:

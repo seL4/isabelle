@@ -1507,6 +1507,8 @@ next
   show "linear f" ..
 qed
 
+lemmas linear_linear = linear_conv_bounded_linear[symmetric]
+
 lemma linear_bounded_pos:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes lf: "linear f"

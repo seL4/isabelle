@@ -1145,7 +1145,8 @@ lemma DERIV_exp [simp]: "DERIV exp x :> exp(x)"
   apply (simp del: of_real_add)
   done
 
-declare DERIV_exp[THEN DERIV_chain2, derivative_intros]
+declare DERIV_exp[THEN DERIV_chain2, derivative_intros] 
+        DERIV_exp[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
 
 lemma norm_exp: "norm (exp x) \<le> exp (norm x)"
 proof -
@@ -1589,6 +1590,8 @@ lemma DERIV_ln_divide:
   by (rule DERIV_ln[THEN DERIV_cong], simp, simp add: divide_inverse)
 
 declare DERIV_ln_divide[THEN DERIV_chain2, derivative_intros]
+        DERIV_ln_divide[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
+
 
 lemma ln_series:
   assumes "0 < x" and "x < 2"
@@ -2173,6 +2176,7 @@ proof -
 qed
 
 lemmas DERIV_log[THEN DERIV_chain2, derivative_intros]
+       DERIV_log[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
 
 lemma powr_log_cancel [simp]: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> a powr (log a x) = x"
   by (simp add: powr_def log_def)
@@ -2720,6 +2724,7 @@ lemma DERIV_sin [simp]:
   done
 
 declare DERIV_sin[THEN DERIV_chain2, derivative_intros]
+        DERIV_sin[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
 
 lemma DERIV_cos [simp]:
   fixes x :: "'a::{real_normed_field,banach}"
@@ -2735,6 +2740,7 @@ lemma DERIV_cos [simp]:
   done
 
 declare DERIV_cos[THEN DERIV_chain2, derivative_intros]
+        DERIV_cos[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
 
 lemma isCont_sin:
   fixes x :: "'a::{real_normed_field,banach}"
@@ -4528,8 +4534,11 @@ lemma DERIV_arctan: "DERIV arctan x :> inverse (1 + x\<^sup>2)"
 
 declare
   DERIV_arcsin[THEN DERIV_chain2, derivative_intros]
+  DERIV_arcsin[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
   DERIV_arccos[THEN DERIV_chain2, derivative_intros]
+  DERIV_arccos[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
   DERIV_arctan[THEN DERIV_chain2, derivative_intros]
+  DERIV_arctan[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
 
 lemma filterlim_tan_at_right: "filterlim tan at_bot (at_right (- pi/2))"
   by (rule filterlim_at_bot_at_right[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])

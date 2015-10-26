@@ -513,9 +513,6 @@ lemma closedin_Inter[intro]:
 lemma closedin_Int[intro]: "closedin U S \<Longrightarrow> closedin U T \<Longrightarrow> closedin U (S \<inter> T)"
   using closedin_Inter[of "{S,T}" U] by auto
 
-lemma Diff_Diff_Int: "A - (A - B) = A \<inter> B"
-  by blast
-
 lemma openin_closedin_eq: "openin U S \<longleftrightarrow> S \<subseteq> topspace U \<and> closedin U (topspace U - S)"
   apply (auto simp add: closedin_def Diff_Diff_Int inf_absorb2)
   apply (metis openin_subset subset_eq)
@@ -790,6 +787,13 @@ lemma closedin_trans[trans]:
 lemma closedin_closed_trans: "closedin (subtopology euclidean T) S \<Longrightarrow> closed T \<Longrightarrow> closed S"
   by (auto simp add: closedin_closed intro: closedin_trans)
 
+lemma openin_subtopology_inter_subset:
+   "openin (subtopology euclidean u) (u \<inter> s) \<and> v \<subseteq> u \<Longrightarrow> openin (subtopology euclidean v) (v \<inter> s)"
+  by (auto simp: openin_subtopology)
+
+lemma openin_open_eq: "open s \<Longrightarrow> (openin (subtopology euclidean s) t \<longleftrightarrow> open t \<and> t \<subseteq> s)"
+  using open_subset openin_open_trans openin_subset by fastforce
+
 
 subsection \<open>Open and closed balls\<close>
 
@@ -805,23 +809,29 @@ lemma mem_ball [simp]: "y \<in> ball x e \<longleftrightarrow> dist x y < e"
 lemma mem_cball [simp]: "y \<in> cball x e \<longleftrightarrow> dist x y \<le> e"
   by (simp add: cball_def)
 
-lemma mem_ball_0:
+lemma ball_trivial [simp]: "ball x 0 = {}"
+  by (simp add: ball_def)
+
+lemma cball_trivial [simp]: "cball x 0 = {x}"
+  by (simp add: cball_def)
+
+lemma mem_ball_0 [simp]:
   fixes x :: "'a::real_normed_vector"
   shows "x \<in> ball 0 e \<longleftrightarrow> norm x < e"
   by (simp add: dist_norm)
 
-lemma mem_cball_0:
+lemma mem_cball_0 [simp]:
   fixes x :: "'a::real_normed_vector"
   shows "x \<in> cball 0 e \<longleftrightarrow> norm x \<le> e"
   by (simp add: dist_norm)
 
-lemma centre_in_ball: "x \<in> ball x e \<longleftrightarrow> 0 < e"
+lemma centre_in_ball [simp]: "x \<in> ball x e \<longleftrightarrow> 0 < e"
   by simp
 
-lemma centre_in_cball: "x \<in> cball x e \<longleftrightarrow> 0 \<le> e"
+lemma centre_in_cball [simp]: "x \<in> cball x e \<longleftrightarrow> 0 \<le> e"
   by simp
 
-lemma ball_subset_cball[simp,intro]: "ball x e \<subseteq> cball x e"
+lemma ball_subset_cball [simp,intro]: "ball x e \<subseteq> cball x e"
   by (simp add: subset_eq)
 
 lemma subset_ball[intro]: "d \<le> e \<Longrightarrow> ball x d \<subseteq> ball x e"
@@ -1547,7 +1557,12 @@ lemma interior_unique:
   shows "interior S = T"
   by (intro equalityI assms interior_subset open_interior interior_maximal)
 
-lemma interior_inter [simp]: "interior (S \<inter> T) = interior S \<inter> interior T"
+lemma interior_singleton [simp]:
+      fixes a :: "'a::perfect_space" shows "interior {a} = {}"
+  apply (rule interior_unique, simp_all)
+  using not_open_singleton subset_singletonD by fastforce
+
+lemma interior_Int [simp]: "interior (S \<inter> T) = interior S \<inter> interior T"
   by (intro equalityI Int_mono Int_greatest interior_mono Int_lower1
     Int_lower2 interior_maximal interior_subset open_Int open_interior)
 
@@ -1800,6 +1815,10 @@ lemma closed_in_limpt:
   apply simp
   apply (force simp: closure_def)
   done
+
+lemma closedin_closed_eq:
+    "closed s \<Longrightarrow> (closedin (subtopology euclidean s) t \<longleftrightarrow> closed t \<and> t \<subseteq> s)"
+  by (meson closed_in_limpt closed_subset closedin_closed_trans)
 
 subsection\<open>Connected components, considered as a connectedness relation or a set\<close>
 
@@ -2171,7 +2190,7 @@ proof -
   then show ?thesis using frontier_subset_closed[of S] ..
 qed
 
-lemma frontier_complement: "frontier (- S) = frontier S"
+lemma frontier_complement  [simp]: "frontier (- S) = frontier S"
   by (auto simp add: frontier_def closure_complement interior_complement)
 
 lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> open S"
@@ -5128,6 +5147,11 @@ definition uniformly_continuous_on :: "'a set \<Rightarrow> ('a::metric_space \<
 
 text\<open>Some simple consequential lemmas.\<close>
 
+lemma continuous_onD:
+    assumes "continuous_on s f" "x\<in>s" "e>0"
+    obtains d where "d>0"  "\<And>x'. \<lbrakk>x' \<in> s; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+  using assms [unfolded continuous_on_iff] by blast
+
 lemma uniformly_continuous_onE:
   assumes "uniformly_continuous_on s f" "0 < e"
   obtains d where "d>0" "\<And>x x'. \<lbrakk>x\<in>s; x'\<in>s; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
@@ -5514,7 +5538,7 @@ lemma continuous_on_closed:
 
 text \<open>Half-global and completely global cases.\<close>
 
-lemma continuous_open_in_preimage:
+lemma continuous_openin_preimage:
   assumes "continuous_on s f"  "open t"
   shows "openin (subtopology euclidean s) {x \<in> s. f x \<in> t}"
 proof -
@@ -5527,7 +5551,7 @@ proof -
     using * by auto
 qed
 
-lemma continuous_closed_in_preimage:
+lemma continuous_closedin_preimage:
   assumes "continuous_on s f" and "closed t"
   shows "closedin (subtopology euclidean s) {x \<in> s. f x \<in> t}"
 proof -
@@ -5548,7 +5572,7 @@ lemma continuous_open_preimage:
   shows "open {x \<in> s. f x \<in> t}"
 proof-
   obtain T where T: "open T" "{x \<in> s. f x \<in> t} = s \<inter> T"
-    using continuous_open_in_preimage[OF assms(1,3)] unfolding openin_open by auto
+    using continuous_openin_preimage[OF assms(1,3)] unfolding openin_open by auto
   then show ?thesis
     using open_Int[of s T, OF assms(2)] by auto
 qed
@@ -5560,7 +5584,7 @@ lemma continuous_closed_preimage:
   shows "closed {x \<in> s. f x \<in> t}"
 proof-
   obtain T where "closed T" "{x \<in> s. f x \<in> t} = s \<inter> T"
-    using continuous_closed_in_preimage[OF assms(1,3)]
+    using continuous_closedin_preimage[OF assms(1,3)]
     unfolding closedin_closed by auto
   then show ?thesis using closed_Int[of s T, OF assms(2)] by auto
 qed
@@ -5603,7 +5627,7 @@ text \<open>Equality of continuous functions on closure and related results.\<cl
 lemma continuous_closed_in_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
   shows "continuous_on s f \<Longrightarrow> closedin (subtopology euclidean s) {x \<in> s. f x = a}"
-  using continuous_closed_in_preimage[of s f "{a}"] by auto
+  using continuous_closedin_preimage[of s f "{a}"] by auto
 
 lemma continuous_closed_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
@@ -5969,6 +5993,12 @@ proof -
   then show ?thesis
     unfolding connected_clopen by auto
 qed
+  
+lemma connected_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "linear f" and "connected s"
+  shows "connected (f ` s)"
+using connected_continuous_image assms linear_continuous_on linear_conv_bounded_linear by blast
 
 text \<open>Continuity implies uniform continuity on a compact domain.\<close>
 
@@ -5986,7 +6016,7 @@ proof (cases, safe)
   proof safe
     fix y
     assume "y \<in> s"
-    from continuous_open_in_preimage[OF f open_ball]
+    from continuous_openin_preimage[OF f open_ball]
     obtain T where "open T" and T: "{x \<in> s. f x \<in> ball (f y) (e/2)} = T \<inter> s"
       unfolding openin_subtopology open_openin by metis
     then obtain d where "ball y d \<subseteq> T" "0 < d"

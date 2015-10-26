@@ -1211,7 +1211,7 @@ next
       apply (rule arg_cong[of _ _ interior])
       using p(8) uv by auto
     also have "\<dots> = {}"
-      unfolding interior_inter
+      unfolding interior_Int
       apply (rule inter_interior_unions_intervals)
       using p(6) p(7)[OF p(2)] p(3)
       apply auto
@@ -4872,7 +4872,7 @@ proof (clarify, goal_cases)
             "cbox m n \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} = cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}"
           have "(cbox m n \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<inter> (cbox u v \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<subseteq> cbox m n \<inter> cbox u v"
             by blast
-          note interior_mono[OF this, unfolded division_ofD(5)[OF p'' as(1-3)] interior_inter[of "cbox m n"]]
+          note interior_mono[OF this, unfolded division_ofD(5)[OF p'' as(1-3)] interior_Int[of "cbox m n"]]
           then have "interior (cbox m n \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) = {}"
             unfolding as Int_absorb by auto
           then show "content (cbox m n \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) = 0"
@@ -7341,7 +7341,7 @@ proof -
               guess v' using pa[OF k(2)] .. note v' = conjunctD2[OF this] let ?v = "min v v'"
               have "box a ?v \<subseteq> k \<inter> k'"
                 unfolding v v' by (auto simp add: mem_box)
-              note interior_mono[OF this,unfolded interior_inter]
+              note interior_mono[OF this,unfolded interior_Int]
               moreover have "(a + ?v)/2 \<in> box a ?v"
                 using k(3-)
                 unfolding v v' content_eq_0 not_le
@@ -7372,7 +7372,7 @@ proof -
               let ?v = "max v v'"
               have "box ?v b \<subseteq> k \<inter> k'"
                 unfolding v v' by (auto simp: mem_box)
-                note interior_mono[OF this,unfolded interior_inter]
+                note interior_mono[OF this,unfolded interior_Int]
               moreover have " ((b + ?v)/2) \<in> box ?v b"
                 using k(3-) unfolding v v' content_eq_0 not_le by (auto simp: mem_box)
               ultimately have " ((b + ?v)/2) \<in> interior k \<inter> interior k'"
@@ -8014,7 +8014,7 @@ proof -
     apply (rule assms(1)[unfolded connected_clopen,rule_format])
     apply rule
     defer
-    apply (rule continuous_closed_in_preimage[OF assms(4) closed_singleton])
+    apply (rule continuous_closedin_preimage[OF assms(4) closed_singleton])
     apply (rule open_openin_trans[OF assms(2)])
     unfolding open_contains_ball
   proof safe
@@ -9427,7 +9427,7 @@ proof -
     note kl = tagged_division_ofD(3,4)[OF qq[THEN conjunct1]]
     from this(2)[OF as(4,1)] guess u v by (elim exE) note uv=this
     have *: "interior (k \<inter> l) = {}"
-      unfolding interior_inter
+      unfolding interior_Int
       apply (rule q')
       using as
       unfolding r_def
@@ -10771,7 +10771,7 @@ proof -
           proof goal_cases
             case prems: (1 l y)
             have "interior (k \<inter> l) \<subseteq> interior (l \<inter> y)"
-              apply (subst(2) interior_inter)
+              apply (subst(2) interior_Int)
               apply (rule Int_greatest)
               defer
               apply (subst prems(4))
@@ -10960,7 +10960,7 @@ proof -
             from d'(4)[OF this(1)] d'(4)[OF this(2)]
             guess u1 v1 u2 v2 by (elim exE) note uv=this
             have "{} = interior ((k \<inter> y) \<inter> cbox u v)"
-              apply (subst interior_inter)
+              apply (subst interior_Int)
               using d'(5)[OF prems(1-3)]
               apply auto
               done

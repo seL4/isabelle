@@ -1083,7 +1083,7 @@ proof -
   also have "... \<le> B * cmod (z - w) ^ n / (fact n) * cmod (w - z)"
     apply (rule complex_differentiable_bound 
       [where f' = "\<lambda>w. f (Suc n) w * (z - w)^n / (fact n)"
-         and s = "closed_segment w z", OF convex_segment])
+         and s = "closed_segment w z", OF convex_closed_segment])
     apply (auto simp: ends_in_segment real_of_nat_def DERIV_subset [OF sum_deriv wzs]
                   norm_divide norm_mult norm_power divide_le_cancel cmod_bound)
     done
@@ -1096,7 +1096,7 @@ text\<open>Something more like the traditional MVT for real components.\<close>
 
 lemma complex_mvt_line:
   assumes "\<And>u. u \<in> closed_segment w z \<Longrightarrow> (f has_field_derivative f'(u)) (at u)"
-    shows "\<exists>u. u \<in> open_segment w z \<and> Re(f z) - Re(f w) = Re(f'(u) * (z - w))"
+    shows "\<exists>u. u \<in> closed_segment w z \<and> Re(f z) - Re(f w) = Re(f'(u) * (z - w))"
 proof -
   have twz: "\<And>t. (1 - t) *\<^sub>R w + t *\<^sub>R z = w + t *\<^sub>R (z - w)"
     by (simp add: real_vector.scale_left_diff_distrib real_vector.scale_right_diff_distrib)
@@ -1107,11 +1107,10 @@ proof -
                       "\<lambda>u. Re o (\<lambda>h. f'((1 - u) *\<^sub>R w + u *\<^sub>R z) * h) o (\<lambda>t. t *\<^sub>R (z - w))"])
     apply auto
     apply (rule_tac x="(1 - x) *\<^sub>R w + x *\<^sub>R z" in exI)
-    apply (auto simp add: open_segment_def twz) []
-    apply (intro derivative_eq_intros has_derivative_at_within)
-    apply simp_all
+    apply (auto simp: closed_segment_def twz) []
+    apply (intro derivative_eq_intros has_derivative_at_within, simp_all)
     apply (simp add: fun_eq_iff real_vector.scale_right_diff_distrib)
-    apply (force simp add: twz closed_segment_def)
+    apply (force simp: twz closed_segment_def)
     done
 qed
 

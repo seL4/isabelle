@@ -2484,7 +2484,7 @@ lemma starlike_convex_subset:
     shows "convex hull {a,b,c} \<subseteq> s"
       using s
       apply (clarsimp simp add: convex_hull_insert [of "{b,c}" a] segment_convex_hull)
-      apply (meson subs convexD convex_segment ends_in_segment(1) ends_in_segment(2) subsetCE)
+      apply (meson subs convexD convex_closed_segment ends_in_segment(1) ends_in_segment(2) subsetCE)
       done
 
 lemma triangle_path_integrals_starlike_primitive:
@@ -3096,7 +3096,6 @@ lemma
   using path_integral_nearby [OF assms, where Ends=False]
   by simp_all
 
-  thm has_vector_derivative_polynomial_function
 corollary differentiable_polynomial_function:
   fixes p :: "real \<Rightarrow> 'a::euclidean_space"
   shows "polynomial_function p \<Longrightarrow> p differentiable_on s"
@@ -3111,6 +3110,11 @@ lemma valid_path_polynomial_function:
   fixes p :: "real \<Rightarrow> 'a::euclidean_space"
   shows "polynomial_function p \<Longrightarrow> valid_path p"
 by (force simp: valid_path_def piecewise_C1_differentiable_on_def continuous_on_polymonial_function C1_differentiable_polynomial_function)
+
+lemma valid_path_subpath_trivial [simp]:
+    fixes g :: "real \<Rightarrow> 'a::euclidean_space"
+    shows "z \<noteq> g x \<Longrightarrow> valid_path (subpath x x g)"
+  by (simp add: subpath_def valid_path_polynomial_function)
 
 lemma path_integral_bound_exists:
 assumes s: "open s"
