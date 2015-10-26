@@ -1021,14 +1021,14 @@ where @{text I} is some inductively defined predicate and @{text x}, @{text y}, 
 are variables. In some rare situations one needs to deal with an assumption where
 not all arguments @{text r}, @{text s}, @{text t} are variables:
 \begin{isabelle}
-\isacom{lemma} @{text[source]"I r s t \<Longrightarrow> \<dots>"}
+\isacom{lemma} @{text"\"I r s t \<Longrightarrow> \<dots>\""}
 \end{isabelle}
 Applying the standard form of
 rule induction in such a situation will lead to strange and typically unprovable goals.
 We can easily reduce this situation to the standard one by introducing
 new variables @{text x}, @{text y}, @{text z} and reformulating the goal like this:
 \begin{isabelle}
-\isacom{lemma} @{text[source]"I x y z \<Longrightarrow> x = r \<Longrightarrow> y = s \<Longrightarrow> z = t \<Longrightarrow> \<dots>"}
+\isacom{lemma} @{text"\"I x y z \<Longrightarrow> x = r \<Longrightarrow> y = s \<Longrightarrow> z = t \<Longrightarrow> \<dots>\""}
 \end{isabelle}
 Standard rule induction will work fine now, provided the free variables in
 @{text r}, @{text s}, @{text t} are generalized via @{text"arbitrary"}.
@@ -1036,7 +1036,7 @@ Standard rule induction will work fine now, provided the free variables in
 However, induction can do the above transformation for us, behind the curtains, so we never
 need to see the expanded version of the lemma. This is what we need to write:
 \begin{isabelle}
-\isacom{lemma} @{text[source]"I r s t \<Longrightarrow> \<dots>"}\isanewline
+\isacom{lemma} @{text"\"I r s t \<Longrightarrow> \<dots>\""}\isanewline
 \isacom{proof}@{text"(induction \"r\" \"s\" \"t\" arbitrary: \<dots> rule: I.induct)"}\index{inductionrule@@{text"induction ... rule:"}}\index{arbitrary@@{text"arbitrary:"}}
 \end{isabelle}
 Like for rule inversion, cases that are impossible because of constructor clashes
