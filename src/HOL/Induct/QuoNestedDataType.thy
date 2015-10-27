@@ -185,7 +185,7 @@ apply (erule Abs_Exp_inverse)
 done
 
 text\<open>Reduces equality on abstractions to equality on representatives\<close>
-declare inj_on_Abs_Exp [THEN inj_on_iff, simp]
+declare inj_on_Abs_Exp [THEN inj_on_eq_iff, simp]
 
 declare Abs_Exp_inverse [simp]
 

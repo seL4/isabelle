@@ -171,7 +171,7 @@ theorem range_ex1_eq: "inj f \<Longrightarrow> b : range f = (EX! x. b = f x)"
 lemma injD: "[| inj(f); f(x) = f(y) |] ==> x=y"
 by (simp add: inj_on_def)
 
-lemma inj_on_eq_iff: "inj_on f A ==> x:A ==> y:A ==> (f(x) = f(y)) = (x=y)"
+lemma inj_on_eq_iff: "\<lbrakk>inj_on f A; x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> (f x = f y) = (x = y)"
 by (force simp add: inj_on_def)
 
 lemma inj_on_cong:
@@ -216,9 +216,6 @@ by (auto dest:  arg_cong [of concl: g] simp add: inj_on_def)
 
 lemma inj_onD: "[| inj_on f A;  f(x)=f(y);  x:A;  y:A |] ==> x=y"
 by (unfold inj_on_def, blast)
-
-lemma inj_on_iff: "[| inj_on f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)"
-  by (fact inj_on_eq_iff)
 
 lemma comp_inj_on:
      "[| inj_on f A;  inj_on g (f`A) |] ==> inj_on (g o f) A"
@@ -497,6 +494,10 @@ by (simp add: inj_on_def, blast)
 
 lemma inj_on_image_mem_iff: "\<lbrakk>inj_on f B; a \<in> B; A \<subseteq> B\<rbrakk> \<Longrightarrow> f a \<in> f`A \<longleftrightarrow> a \<in> A"
   by (auto simp: inj_on_def)
+
+(*FIXME DELETE*)
+lemma inj_on_image_mem_iff_alt: "inj_on f B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> f a \<in> f`A \<Longrightarrow> a \<in> B \<Longrightarrow> a \<in> A"
+  by (blast dest: inj_onD)
 
 lemma inj_image_mem_iff: "inj f \<Longrightarrow> f a \<in> f`A \<longleftrightarrow> a \<in> A"
   by (blast dest: injD)

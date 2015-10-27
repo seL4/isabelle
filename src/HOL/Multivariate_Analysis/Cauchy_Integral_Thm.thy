@@ -3167,4 +3167,1259 @@ show ?thesis
   by (force simp: L path_integral_integral)
 qed
 
+subsection\<open>Constancy of a function from a connected set into a finite, disconnected or discrete set\<close>
+
+text\<open>Still missing: versions for a set that is smaller than R, or countable.\<close>
+
+lemma continuous_disconnected_range_constant:
+  assumes s: "connected s"
+      and conf: "continuous_on s f"
+      and fim: "f ` s \<subseteq> t"
+      and cct: "\<And>y. y \<in> t \<Longrightarrow> connected_component_set t y = {y}"
+    shows "\<exists>a. \<forall>x \<in> s. f x = a"
+proof (cases "s = {}")
+  case True then show ?thesis by force
+next
+  case False
+  { fix x assume "x \<in> s"
+    then have "f ` s \<subseteq> {f x}"
+    by (metis connected_continuous_image conf connected_component_maximal fim image_subset_iff rev_image_eqI s cct)
+  }
+  with False show ?thesis
+    by blast
+qed
+
+lemma discrete_subset_disconnected:
+  fixes s :: "'a::topological_space set"
+  fixes t :: "'b::real_normed_vector set"
+  assumes conf: "continuous_on s f"
+      and no: "\<And>x. x \<in> s \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
+   shows "f ` s \<subseteq> {y. connected_component_set (f ` s) y = {y}}"
+proof -
+  { fix x assume x: "x \<in> s"
+    then obtain e where "e>0" and ele: "\<And>y. \<lbrakk>y \<in> s; f y \<noteq> f x\<rbrakk> \<Longrightarrow> e \<le> norm (f y - f x)"
+      using conf no [OF x] by auto
+    then have e2: "0 \<le> e / 2"
+      by simp
+    have "f y = f x" if "y \<in> s" and ccs: "f y \<in> connected_component_set (f ` s) (f x)" for y
+      apply (rule ccontr)
+      using connected_closed [of "connected_component_set (f ` s) (f x)"] `e>0`
+      apply (simp add: del: ex_simps)
+      apply (drule spec [where x="cball (f x) (e / 2)"])
+      apply (drule spec [where x="- ball(f x) e"])
+      apply (auto simp: dist_norm open_closed [symmetric] simp del: le_divide_eq_numeral1 dest!: connected_component_in)
+        apply (metis diff_self e2 ele norm_minus_commute norm_zero not_less)
+       using centre_in_cball connected_component_refl_eq e2 x apply blast
+      using ccs
+      apply (force simp: cball_def dist_norm norm_minus_commute dest: ele [OF `y \<in> s`])
+      done
+    moreover have "connected_component_set (f ` s) (f x) \<subseteq> f ` s"
+      by (auto simp: connected_component_in)
+    ultimately have "connected_component_set (f ` s) (f x) = {f x}"
+      by (auto simp: x)
+  }
+  with assms show ?thesis
+    by blast
+qed
+
+lemma finite_implies_discrete:
+  fixes s :: "'a::topological_space set"
+  assumes "finite (f ` s)"
+  shows "(\<forall>x \<in> s. \<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x))"
+proof -
+  have "\<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)" if "x \<in> s" for x
+  proof (cases "f ` s - {f x} = {}")
+    case True
+    with zero_less_numeral show ?thesis
+      by (fastforce simp add: Set.image_subset_iff cong: conj_cong)
+  next
+    case False
+    then obtain z where z: "z \<in> s" "f z \<noteq> f x"
+      by blast
+    have finn: "finite {norm (z - f x) |z. z \<in> f ` s - {f x}}"
+      using assms by simp
+    then have *: "0 < Inf{norm(z - f x) | z. z \<in> f ` s - {f x}}"
+      apply (rule finite_imp_less_Inf)
+      using z apply force+
+      done
+    show ?thesis
+      by (force intro!: * cInf_le_finite [OF finn])
+  qed
+  with assms show ?thesis
+    by blast
+qed
+
+text\<open>This proof requires the existence of two separate values of the range type.\<close>
+lemma finite_range_constant_imp_connected:
+  assumes "\<And>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
+              \<lbrakk>continuous_on s f; finite(f ` s)\<rbrakk> \<Longrightarrow> \<exists>a. \<forall>x \<in> s. f x = a"
+    shows "connected s"
+proof -
+  { fix t u
+    assume clt: "closedin (subtopology euclidean s) t"
+       and clu: "closedin (subtopology euclidean s) u"
+       and tue: "t \<inter> u = {}" and tus: "t \<union> u = s"
+    have conif: "continuous_on s (\<lambda>x. if x \<in> t then 0 else 1)"
+      apply (subst tus [symmetric])
+      apply (rule continuous_on_cases_local)
+      using clt clu tue
+      apply (auto simp: tus continuous_on_const)
+      done
+    have fi: "finite ((\<lambda>x. if x \<in> t then 0 else 1) ` s)"
+      by (rule finite_subset [of _ "{0,1}"]) auto
+    have "t = {} \<or> u = {}"
+      using assms [OF conif fi] tus [symmetric]
+      by (auto simp: Ball_def) (metis IntI empty_iff one_neq_zero tue)
+  }
+  then show ?thesis
+    by (simp add: connected_closed_in_eq)
+qed
+
+lemma continuous_disconnected_range_constant_eq:
+      "(connected s \<longleftrightarrow>
+           (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
+            \<forall>t. continuous_on s f \<and> f ` s \<subseteq> t \<and> (\<forall>y \<in> t. connected_component_set t y = {y})
+            \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> s. f x = a)))" (is ?thesis1)
+  and continuous_discrete_range_constant_eq:
+      "(connected s \<longleftrightarrow>
+         (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
+          continuous_on s f \<and>
+          (\<forall>x \<in> s. \<exists>e. 0 < e \<and> (\<forall>y. y \<in> s \<and> (f y \<noteq> f x) \<longrightarrow> e \<le> norm(f y - f x)))
+          \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> s. f x = a)))" (is ?thesis2)
+  and continuous_finite_range_constant_eq:
+      "(connected s \<longleftrightarrow>
+         (\<forall>f::'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1.
+          continuous_on s f \<and> finite (f ` s)
+          \<longrightarrow> (\<exists>a::'b. \<forall>x \<in> s. f x = a)))" (is ?thesis3)
+proof -
+  have *: "\<And>s t u v. \<lbrakk>s \<Longrightarrow> t; t \<Longrightarrow> u; u \<Longrightarrow> v; v \<Longrightarrow> s\<rbrakk>
+    \<Longrightarrow> (s \<longleftrightarrow> t) \<and> (s \<longleftrightarrow> u) \<and> (s \<longleftrightarrow> v)"
+    by blast
+  have "?thesis1 \<and> ?thesis2 \<and> ?thesis3"
+    apply (rule *)
+    using continuous_disconnected_range_constant apply metis
+    apply clarify
+    apply (frule discrete_subset_disconnected; blast)
+    apply (blast dest: finite_implies_discrete)
+    apply (blast intro!: finite_range_constant_imp_connected)
+    done
+  then show ?thesis1 ?thesis2 ?thesis3
+    by blast+
+qed
+
+lemma continuous_discrete_range_constant:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1"
+  assumes s: "connected s"
+      and "continuous_on s f"
+      and "\<And>x. x \<in> s \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> s \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
+    shows "\<exists>a. \<forall>x \<in> s. f x = a"
+  using continuous_discrete_range_constant_eq [THEN iffD1, OF s] assms
+  by blast
+
+lemma continuous_finite_range_constant:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra_1"
+  assumes "connected s"
+      and "continuous_on s f"
+      and "finite (f ` s)"
+    shows "\<exists>a. \<forall>x \<in> s. f x = a"
+  using assms continuous_finite_range_constant_eq
+  by blast
+
+
+text\<open>We can treat even non-rectifiable paths as having a "length" for bounds on analytic functions in open sets.\<close>
+
+subsection\<open>Winding Numbers\<close>
+
+text\<open>The result is an integer, but it doesn't have type @{typ int}!\<close>
+definition winding_number:: "[real \<Rightarrow> complex, complex] \<Rightarrow> complex" where
+  "winding_number \<gamma> z \<equiv>
+    @n. \<forall>e > 0. \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
+                    pathstart p = pathstart \<gamma> \<and>
+                    pathfinish p = pathfinish \<gamma> \<and>
+                    (\<forall>t \<in> {0..1}. norm(\<gamma> t - p t) < e) \<and>
+                    path_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+
+lemma winding_number:
+  assumes "path \<gamma>" "z \<notin> path_image \<gamma>" "0 < e"
+    shows "\<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
+               pathstart p = pathstart \<gamma> \<and>
+               pathfinish p = pathfinish \<gamma> \<and>
+               (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
+               path_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * winding_number \<gamma> z"
+proof -
+  have "path_image \<gamma> \<subseteq> UNIV - {z}"
+    using assms by blast
+  then obtain d
+    where d: "d>0"
+      and pi_eq: "\<And>h1 h2. valid_path h1 \<and> valid_path h2 \<and>
+                    (\<forall>t\<in>{0..1}. cmod (h1 t - \<gamma> t) < d \<and> cmod (h2 t - \<gamma> t) < d) \<and>
+                    pathstart h2 = pathstart h1 \<and> pathfinish h2 = pathfinish h1 \<longrightarrow>
+                      path_image h1 \<subseteq> UNIV - {z} \<and> path_image h2 \<subseteq> UNIV - {z} \<and>
+                      (\<forall>f. f holomorphic_on UNIV - {z} \<longrightarrow> path_integral h2 f = path_integral h1 f)"
+    using path_integral_nearby_ends [of "UNIV - {z}" \<gamma>] assms by (auto simp: open_delete)
+  then obtain h where h: "polynomial_function h \<and> pathstart h = pathstart \<gamma> \<and> pathfinish h = pathfinish \<gamma> \<and>
+                          (\<forall>t \<in> {0..1}. norm(h t - \<gamma> t) < d/2)"
+    using path_approx_polynomial_function [OF `path \<gamma>`, of "d/2"] d by auto
+  def nn \<equiv> "1/(2* pi*ii) * path_integral h (\<lambda>w. 1/(w - z))"
+  have "\<exists>n. \<forall>e > 0. \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
+                        pathstart p = pathstart \<gamma> \<and>  pathfinish p = pathfinish \<gamma> \<and>
+                        (\<forall>t \<in> {0..1}. norm(\<gamma> t - p t) < e) \<and>
+                        path_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+                    (is "\<exists>n. \<forall>e > 0. ?PP e n")
+    proof (rule_tac x=nn in exI, clarify)
+      fix e::real
+      assume e: "e>0"
+      obtain p where p: "polynomial_function p \<and>
+            pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma> \<and> (\<forall>t\<in>{0..1}. cmod (p t - \<gamma> t) < min e (d / 2))"
+        using path_approx_polynomial_function [OF `path \<gamma>`, of "min e (d/2)"] d `0<e` by auto
+      have "(\<lambda>w. 1 / (w - z)) holomorphic_on UNIV - {z}"
+        by (auto simp: intro!: holomorphic_intros)
+      then show "?PP e nn"
+        apply (rule_tac x=p in exI)
+        using pi_eq [of h p] h p d
+        apply (auto simp: valid_path_polynomial_function norm_minus_commute nn_def)
+        done
+    qed
+  then show ?thesis
+    unfolding winding_number_def
+    apply (rule someI2_ex)
+    apply (blast intro: `0<e`)
+    done
+qed
+
+lemma winding_number_unique:
+  assumes \<gamma>: "path \<gamma>" "z \<notin> path_image \<gamma>"
+      and pi:
+        "\<And>e. e>0 \<Longrightarrow> \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
+                          pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma> \<and>
+                          (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
+                          path_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+   shows "winding_number \<gamma> z = n"
+proof -
+  have "path_image \<gamma> \<subseteq> UNIV - {z}"
+    using assms by blast
+  then obtain e
+    where e: "e>0"
+      and pi_eq: "\<And>h1 h2 f. \<lbrakk>valid_path h1; valid_path h2;
+                    (\<forall>t\<in>{0..1}. cmod (h1 t - \<gamma> t) < e \<and> cmod (h2 t - \<gamma> t) < e);
+                    pathstart h2 = pathstart h1; pathfinish h2 = pathfinish h1; f holomorphic_on UNIV - {z}\<rbrakk> \<Longrightarrow>
+                    path_integral h2 f = path_integral h1 f"
+    using path_integral_nearby_ends [of "UNIV - {z}" \<gamma>] assms  by (auto simp: open_delete)
+  obtain p where p:
+     "valid_path p \<and> z \<notin> path_image p \<and>
+      pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma> \<and>
+      (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
+      path_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+    using pi [OF e] by blast
+  obtain q where q:
+     "valid_path q \<and> z \<notin> path_image q \<and>
+      pathstart q = pathstart \<gamma> \<and> pathfinish q = pathfinish \<gamma> \<and>
+      (\<forall>t\<in>{0..1}. cmod (\<gamma> t - q t) < e) \<and> path_integral q (\<lambda>w. 1 / (w - z)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z"
+    using winding_number [OF \<gamma> e] by blast
+  have "2 * complex_of_real pi * \<i> * n = path_integral p (\<lambda>w. 1 / (w - z))"
+    using p by auto
+  also have "... = path_integral q (\<lambda>w. 1 / (w - z))"
+    apply (rule pi_eq)
+    using p q
+    by (auto simp: valid_path_polynomial_function norm_minus_commute intro!: holomorphic_intros)
+  also have "... = 2 * complex_of_real pi * \<i> * winding_number \<gamma> z"
+    using q by auto
+  finally have "2 * complex_of_real pi * \<i> * n = 2 * complex_of_real pi * \<i> * winding_number \<gamma> z" .
+  then show ?thesis
+    by simp
+qed
+
+lemma winding_number_unique_loop:
+  assumes \<gamma>: "path \<gamma>" "z \<notin> path_image \<gamma>"
+      and loop: "pathfinish \<gamma> = pathstart \<gamma>"
+      and pi:
+        "\<And>e. e>0 \<Longrightarrow> \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
+                           pathfinish p = pathstart p \<and>
+                           (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
+                           path_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+   shows "winding_number \<gamma> z = n"
+proof -
+  have "path_image \<gamma> \<subseteq> UNIV - {z}"
+    using assms by blast
+  then obtain e
+    where e: "e>0"
+      and pi_eq: "\<And>h1 h2 f. \<lbrakk>valid_path h1; valid_path h2;
+                    (\<forall>t\<in>{0..1}. cmod (h1 t - \<gamma> t) < e \<and> cmod (h2 t - \<gamma> t) < e);
+                    pathfinish h1 = pathstart h1; pathfinish h2 = pathstart h2; f holomorphic_on UNIV - {z}\<rbrakk> \<Longrightarrow>
+                    path_integral h2 f = path_integral h1 f"
+    using path_integral_nearby_loop [of "UNIV - {z}" \<gamma>] assms  by (auto simp: open_delete)
+  obtain p where p:
+     "valid_path p \<and> z \<notin> path_image p \<and>
+      pathfinish p = pathstart p \<and>
+      (\<forall>t \<in> {0..1}. norm (\<gamma> t - p t) < e) \<and>
+      path_integral p (\<lambda>w. 1/(w - z)) = 2 * pi * ii * n"
+    using pi [OF e] by blast
+  obtain q where q:
+     "valid_path q \<and> z \<notin> path_image q \<and>
+      pathstart q = pathstart \<gamma> \<and> pathfinish q = pathfinish \<gamma> \<and>
+      (\<forall>t\<in>{0..1}. cmod (\<gamma> t - q t) < e) \<and> path_integral q (\<lambda>w. 1 / (w - z)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z"
+    using winding_number [OF \<gamma> e] by blast
+  have "2 * complex_of_real pi * \<i> * n = path_integral p (\<lambda>w. 1 / (w - z))"
+    using p by auto
+  also have "... = path_integral q (\<lambda>w. 1 / (w - z))"
+    apply (rule pi_eq)
+    using p q loop
+    by (auto simp: valid_path_polynomial_function norm_minus_commute intro!: holomorphic_intros)
+  also have "... = 2 * complex_of_real pi * \<i> * winding_number \<gamma> z"
+    using q by auto
+  finally have "2 * complex_of_real pi * \<i> * n = 2 * complex_of_real pi * \<i> * winding_number \<gamma> z" .
+  then show ?thesis
+    by simp
+qed
+
+lemma winding_number_valid_path:
+  assumes "valid_path \<gamma>" "z \<notin> path_image \<gamma>"
+    shows "winding_number \<gamma> z = 1/(2*pi*ii) * path_integral \<gamma> (\<lambda>w. 1/(w - z))"
+  using assms by (auto simp: valid_path_imp_path intro!: winding_number_unique)
+
+lemma has_path_integral_winding_number:
+  assumes \<gamma>: "valid_path \<gamma>" "z \<notin> path_image \<gamma>"
+    shows "((\<lambda>w. 1/(w - z)) has_path_integral (2*pi*ii*winding_number \<gamma> z)) \<gamma>"
+by (simp add: winding_number_valid_path has_path_integral_integral path_integrable_inversediff assms)
+
+lemma winding_number_trivial [simp]: "z \<noteq> a \<Longrightarrow> winding_number(linepath a a) z = 0"
+  by (simp add: winding_number_valid_path)
+
+lemma winding_number_subpath_trivial [simp]: "z \<noteq> g x \<Longrightarrow> winding_number (subpath x x g) z = 0"
+  by (simp add: winding_number_valid_path)
+
+lemma winding_number_join:
+  assumes g1: "path g1" "z \<notin> path_image g1"
+      and g2: "path g2" "z \<notin> path_image g2"
+      and "pathfinish g1 = pathstart g2"
+    shows "winding_number(g1 +++ g2) z = winding_number g1 z + winding_number g2 z"
+  apply (rule winding_number_unique)
+  using assms apply (simp_all add: not_in_path_image_join)
+  apply (frule winding_number [OF g2])
+  apply (frule winding_number [OF g1], clarify)
+  apply (rename_tac p2 p1)
+  apply (rule_tac x="p1+++p2" in exI)
+  apply (simp add: not_in_path_image_join path_integrable_inversediff algebra_simps)
+  apply (auto simp: joinpaths_def)
+  done
+
+lemma winding_number_reversepath:
+  assumes "path \<gamma>" "z \<notin> path_image \<gamma>"
+    shows "winding_number(reversepath \<gamma>) z = - (winding_number \<gamma> z)"
+  apply (rule winding_number_unique)
+  using assms
+  apply simp_all
+  apply (frule winding_number [OF assms], clarify)
+  apply (rule_tac x="reversepath p" in exI)
+  apply (simp add: path_integral_reversepath path_integrable_inversediff valid_path_imp_reverse)
+  apply (auto simp: reversepath_def)
+  done
+
+lemma winding_number_shiftpath:
+  assumes \<gamma>: "path \<gamma>" "z \<notin> path_image \<gamma>"
+      and "pathfinish \<gamma> = pathstart \<gamma>" "a \<in> {0..1}"
+    shows "winding_number(shiftpath a \<gamma>) z = winding_number \<gamma> z"
+  apply (rule winding_number_unique_loop)
+  using assms
+  apply (simp_all add: path_shiftpath path_image_shiftpath pathfinish_shiftpath pathstart_shiftpath)
+  apply (frule winding_number [OF \<gamma>], clarify)
+  apply (rule_tac x="shiftpath a p" in exI)
+  apply (simp add: path_integral_shiftpath path_image_shiftpath pathfinish_shiftpath pathstart_shiftpath valid_path_shiftpath)
+  apply (auto simp: shiftpath_def)
+  done
+
+lemma winding_number_split_linepath:
+  assumes "c \<in> closed_segment a b" "z \<notin> closed_segment a b"
+    shows "winding_number(linepath a b) z = winding_number(linepath a c) z + winding_number(linepath c b) z"
+proof -
+  have "z \<notin> closed_segment a c" "z \<notin> closed_segment c b"
+    using assms  apply (meson convex_contains_segment convex_segment ends_in_segment(1) subsetCE)
+    using assms  by (meson convex_contains_segment convex_segment ends_in_segment(2) subsetCE)
+  then show ?thesis
+    using assms
+    by (simp add: winding_number_valid_path path_integral_split_linepath [symmetric] continuous_on_inversediff field_simps)
+qed
+
+lemma winding_number_cong:
+   "(\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> p t = q t) \<Longrightarrow> winding_number p z = winding_number q z"
+  by (simp add: winding_number_def pathstart_def pathfinish_def)
+
+lemma winding_number_offset: "winding_number p z = winding_number (\<lambda>w. p w - z) 0"
+  apply (simp add: winding_number_def path_integral_integral path_image_def valid_path_def pathstart_def pathfinish_def)
+  apply (intro ext arg_cong [where f = Eps] arg_cong [where f = All] imp_cong refl, safe)
+  apply (rename_tac g)
+  apply (rule_tac x="\<lambda>t. g t - z" in exI)
+  apply (force simp: vector_derivative_def has_vector_derivative_diff_const piecewise_C1_differentiable_diff C1_differentiable_imp_piecewise)
+  apply (rename_tac g)
+  apply (rule_tac x="\<lambda>t. g t + z" in exI)
+  apply (simp add: piecewise_C1_differentiable_add vector_derivative_def has_vector_derivative_add_const C1_differentiable_imp_piecewise)
+  apply (force simp: algebra_simps)
+  done
+
+(* A combined theorem deducing several things piecewise.*)
+lemma winding_number_join_pos_combined:
+     "\<lbrakk>valid_path \<gamma>1; z \<notin> path_image \<gamma>1; 0 < Re(winding_number \<gamma>1 z);
+       valid_path \<gamma>2; z \<notin> path_image \<gamma>2; 0 < Re(winding_number \<gamma>2 z); pathfinish \<gamma>1 = pathstart \<gamma>2\<rbrakk>
+      \<Longrightarrow> valid_path(\<gamma>1 +++ \<gamma>2) \<and> z \<notin> path_image(\<gamma>1 +++ \<gamma>2) \<and> 0 < Re(winding_number(\<gamma>1 +++ \<gamma>2) z)"
+  by (simp add: valid_path_join path_image_join winding_number_join valid_path_imp_path)
+
+
+(* Useful sufficient conditions for the winding number to be positive etc.*)
+
+lemma Re_winding_number:
+    "\<lbrakk>valid_path \<gamma>; z \<notin> path_image \<gamma>\<rbrakk>
+     \<Longrightarrow> Re(winding_number \<gamma> z) = Im(path_integral \<gamma> (\<lambda>w. 1/(w - z))) / (2*pi)"
+by (simp add: winding_number_valid_path field_simps Re_divide power2_eq_square)
+
+lemma winding_number_pos_le:
+  assumes \<gamma>: "valid_path \<gamma>" "z \<notin> path_image \<gamma>"
+      and ge: "\<And>x. \<lbrakk>0 < x; x < 1\<rbrakk> \<Longrightarrow> 0 \<le> Im (vector_derivative \<gamma> (at x) * cnj(\<gamma> x - z))"
+    shows "0 \<le> Re(winding_number \<gamma> z)"
+proof -
+  have *: "0 \<le> Im (vector_derivative \<gamma> (at x) / (\<gamma> x - z))" if x: "0 < x" "x < 1" for x
+    using ge by (simp add: Complex.Im_divide algebra_simps x)
+  show ?thesis
+    apply (simp add: Re_winding_number [OF \<gamma>] field_simps)
+    apply (rule has_integral_component_nonneg
+             [of ii "\<lambda>x. if x \<in> {0<..<1}
+                         then 1/(\<gamma> x - z) * vector_derivative \<gamma> (at x) else 0", simplified])
+      prefer 3 apply (force simp: *)
+     apply (simp add: Basis_complex_def)
+    apply (rule has_integral_spike_interior [of 0 1 _ "\<lambda>x. 1/(\<gamma> x - z) * vector_derivative \<gamma> (at x)"])
+    apply simp
+    apply (simp only: box_real)
+    apply (subst has_path_integral [symmetric])
+    using \<gamma>
+    apply (simp add: path_integrable_inversediff has_path_integral_integral)
+    done
+qed
+
+lemma winding_number_pos_lt_lemma:
+  assumes \<gamma>: "valid_path \<gamma>" "z \<notin> path_image \<gamma>"
+      and e: "0 < e"
+      and ge: "\<And>x. \<lbrakk>0 < x; x < 1\<rbrakk> \<Longrightarrow> e \<le> Im (vector_derivative \<gamma> (at x) / (\<gamma> x - z))"
+    shows "0 < Re(winding_number \<gamma> z)"
+proof -
+  have "e \<le> Im (path_integral \<gamma> (\<lambda>w. 1 / (w - z)))"
+    apply (rule has_integral_component_le
+             [of ii "\<lambda>x. ii*e" "ii*e" "{0..1}"
+                    "\<lambda>x. if x \<in> {0<..<1} then 1/(\<gamma> x - z) * vector_derivative \<gamma> (at x) else ii*e"
+                    "path_integral \<gamma> (\<lambda>w. 1/(w - z))", simplified])
+    using e
+    apply (simp_all add: Basis_complex_def)
+    using has_integral_const_real [of _ 0 1] apply force
+    apply (rule has_integral_spike_interior [of 0 1 _ "\<lambda>x. 1/(\<gamma> x - z) * vector_derivative \<gamma> (at x)", simplified box_real])
+    apply simp
+    apply (subst has_path_integral [symmetric])
+    using \<gamma>
+    apply (simp_all add: path_integrable_inversediff has_path_integral_integral ge)
+    done
+  with e show ?thesis
+    by (simp add: Re_winding_number [OF \<gamma>] field_simps)
+qed
+
+lemma winding_number_pos_lt:
+  assumes \<gamma>: "valid_path \<gamma>" "z \<notin> path_image \<gamma>"
+      and e: "0 < e"
+      and ge: "\<And>x. \<lbrakk>0 < x; x < 1\<rbrakk> \<Longrightarrow> e \<le> Im (vector_derivative \<gamma> (at x) * cnj(\<gamma> x - z))"
+    shows "0 < Re (winding_number \<gamma> z)"
+proof -
+  have bm: "bounded ((\<lambda>w. w - z) ` (path_image \<gamma>))"
+    using bounded_translation [of _ "-z"] \<gamma> by (simp add: bounded_valid_path_image)
+  then obtain B where B: "B > 0" and Bno: "\<And>x. x \<in> (\<lambda>w. w - z) ` (path_image \<gamma>) \<Longrightarrow> norm x \<le> B"
+    using bounded_pos [THEN iffD1, OF bm] by blast
+  { fix x::real  assume x: "0 < x" "x < 1"
+    then have B2: "cmod (\<gamma> x - z)^2 \<le> B^2" using Bno [of "\<gamma> x - z"]
+      by (simp add: path_image_def power2_eq_square mult_mono')
+    with x have "\<gamma> x \<noteq> z" using \<gamma>
+      using path_image_def by fastforce
+    then have "e / B\<^sup>2 \<le> Im (vector_derivative \<gamma> (at x) * cnj (\<gamma> x - z)) / (cmod (\<gamma> x - z))\<^sup>2"
+      using B ge [OF x] B2 e
+      apply (rule_tac y="e / (cmod (\<gamma> x - z))\<^sup>2" in order_trans)
+      apply (auto simp: divide_left_mono divide_right_mono)
+      done
+    then have "e / B\<^sup>2 \<le> Im (vector_derivative \<gamma> (at x) / (\<gamma> x - z))"
+      by (simp add: Im_divide_Reals complex_div_cnj [of _ "\<gamma> x - z" for x] del: complex_cnj_diff times_complex.sel)
+  } note * = this
+  show ?thesis
+    using e B by (simp add: * winding_number_pos_lt_lemma [OF \<gamma>, of "e/B^2"])
+qed
+
+subsection\<open>The winding number is an integer\<close>
+
+text\<open>Proof from the book Complex Analysis by Lars V. Ahlfors, Chapter 4, section 2.1,
+     Also on page 134 of Serge Lang's book with the name title, etc.\<close>
+
+lemma exp_fg:
+  fixes z::complex
+  assumes g: "(g has_vector_derivative g') (at x within s)"
+      and f: "(f has_vector_derivative (g' / (g x - z))) (at x within s)"
+      and z: "g x \<noteq> z"
+    shows "((\<lambda>x. exp(-f x) * (g x - z)) has_vector_derivative 0) (at x within s)"
+proof -
+  have *: "(exp o (\<lambda>x. (- f x)) has_vector_derivative - (g' / (g x - z)) * exp (- f x)) (at x within s)"
+    using assms unfolding has_vector_derivative_def scaleR_conv_of_real
+    by (auto intro!: derivative_eq_intros)
+  show ?thesis
+    apply (rule has_vector_derivative_eq_rhs)
+    apply (rule bounded_bilinear.has_vector_derivative [OF bounded_bilinear_mult])
+    using z
+    apply (auto simp: intro!: derivative_eq_intros * [unfolded o_def] g)
+    done
+qed
+
+lemma winding_number_exp_integral:
+  fixes z::complex
+  assumes \<gamma>: "\<gamma> piecewise_C1_differentiable_on {a..b}"
+      and ab: "a \<le> b"
+      and z: "z \<notin> \<gamma> ` {a..b}"
+    shows "(\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z)) integrable_on {a..b}"
+          (is "?thesis1")
+          "exp (- (integral {a..b} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z)))) * (\<gamma> b - z) = \<gamma> a - z"
+          (is "?thesis2")
+proof -
+  let ?D\<gamma> = "\<lambda>x. vector_derivative \<gamma> (at x)"
+  have [simp]: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> \<gamma> x \<noteq> z"
+    using z by force
+  have cong: "continuous_on {a..b} \<gamma>"
+    using \<gamma> by (simp add: piecewise_C1_differentiable_on_def)
+  obtain k where fink: "finite k" and g_C1_diff: "\<gamma> C1_differentiable_on ({a..b} - k)"
+    using \<gamma> by (force simp: piecewise_C1_differentiable_on_def)
+  have o: "open ({a<..<b} - k)"
+    using `finite k` by (simp add: finite_imp_closed open_Diff)
+  moreover have "{a<..<b} - k \<subseteq> {a..b} - k"
+    by force
+  ultimately have g_diff_at: "\<And>x. \<lbrakk>x \<notin> k; x \<in> {a<..<b}\<rbrakk> \<Longrightarrow> \<gamma> differentiable at x"
+    by (metis Diff_iff differentiable_on_subset C1_diff_imp_diff [OF g_C1_diff] differentiable_on_def differentiable_within_open)
+  { fix w
+    assume "w \<noteq> z"
+    have "continuous_on (ball w (cmod (w - z))) (\<lambda>w. 1 / (w - z))"
+      by (auto simp: dist_norm intro!: continuous_intros)
+    moreover have "\<And>x. cmod (w - x) < cmod (w - z) \<Longrightarrow> \<exists>f'. ((\<lambda>w. 1 / (w - z)) has_field_derivative f') (at x)"
+      by (auto simp: intro!: derivative_eq_intros)
+    ultimately have "\<exists>h. \<forall>y. norm(y - w) < norm(w - z) \<longrightarrow> (h has_field_derivative 1/(y - z)) (at y)"
+      using holomorphic_convex_primitive [of "ball w (norm(w - z))" "{}" "\<lambda>w. 1/(w - z)"]
+      by (simp add: complex_differentiable_def Ball_def dist_norm at_within_open_NO_MATCH norm_minus_commute)
+  }
+  then obtain h where h: "\<And>w y. w \<noteq> z \<Longrightarrow> norm(y - w) < norm(w - z) \<Longrightarrow> (h w has_field_derivative 1/(y - z)) (at y)"
+    by meson
+  have exy: "\<exists>y. ((\<lambda>x. inverse (\<gamma> x - z) * ?D\<gamma> x) has_integral y) {a..b}"
+    unfolding integrable_on_def [symmetric]
+    apply (rule path_integral_local_primitive_any [OF piecewise_C1_imp_differentiable [OF \<gamma>], of "-{z}"])
+    apply (rename_tac w)
+    apply (rule_tac x="norm(w - z)" in exI)
+    apply (simp_all add: inverse_eq_divide)
+    apply (metis has_field_derivative_at_within h)
+    done
+  have vg_int: "(\<lambda>x. ?D\<gamma> x / (\<gamma> x - z)) integrable_on {a..b}"
+    unfolding box_real [symmetric] divide_inverse_commute
+    by (auto intro!: exy integrable_subinterval simp add: integrable_on_def ab)
+  with ab show ?thesis1
+    by (simp add: divide_inverse_commute integral_def integrable_on_def)
+  { fix t
+    assume t: "t \<in> {a..b}"
+    have cball: "continuous_on (ball (\<gamma> t) (dist (\<gamma> t) z)) (\<lambda>x. inverse (x - z))"
+        using z by (auto intro!: continuous_intros simp: dist_norm)
+    have icd: "\<And>x. cmod (\<gamma> t - x) < cmod (\<gamma> t - z) \<Longrightarrow> (\<lambda>w. inverse (w - z)) complex_differentiable at x"
+      unfolding complex_differentiable_def by (force simp: intro!: derivative_eq_intros)
+    obtain h where h: "\<And>x. cmod (\<gamma> t - x) < cmod (\<gamma> t - z) \<Longrightarrow>
+                       (h has_field_derivative inverse (x - z)) (at x within {y. cmod (\<gamma> t - y) < cmod (\<gamma> t - z)})"
+      using holomorphic_convex_primitive [where f = "\<lambda>w. inverse(w - z)", OF convex_ball finite.emptyI cball icd]
+      by simp (auto simp: ball_def dist_norm that)
+    { fix x D
+      assume x: "x \<notin> k" "a < x" "x < b"
+      then have "x \<in> interior ({a..b} - k)"
+        using open_subset_interior [OF o] by fastforce
+      then have con: "isCont (\<lambda>x. ?D\<gamma> x) x"
+        using g_C1_diff x by (auto simp: C1_differentiable_on_eq intro: continuous_on_interior)
+      then have con_vd: "continuous (at x within {a..b}) (\<lambda>x. ?D\<gamma> x)"
+        by (rule continuous_at_imp_continuous_within)
+      have gdx: "\<gamma> differentiable at x"
+        using x by (simp add: g_diff_at)
+      have "((\<lambda>c. Exp (- integral {a..c} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z))) * (\<gamma> c - z)) has_derivative (\<lambda>h. 0))
+          (at x within {a..b})"
+        using x gdx t
+        apply (clarsimp simp add: differentiable_iff_scaleR)
+        apply (rule exp_fg [unfolded has_vector_derivative_def, simplified], blast intro: has_derivative_at_within)
+        apply (simp_all add: has_vector_derivative_def [symmetric])
+        apply (rule has_vector_derivative_eq_rhs [OF integral_has_vector_derivative_continuous_at])
+        apply (rule con_vd continuous_intros cong vg_int | simp add: continuous_at_imp_continuous_within has_vector_derivative_continuous vector_derivative_at)+
+        done
+      } note * = this
+    have "exp (- (integral {a..t} (\<lambda>x. ?D\<gamma> x / (\<gamma> x - z)))) * (\<gamma> t - z) =\<gamma> a - z"
+      apply (rule has_derivative_zero_unique_strong_interval [of "{a,b} \<union> k" a b])
+      using t
+      apply (auto intro!: * continuous_intros fink cong indefinite_integral_continuous [OF vg_int]  simp add: ab)+
+      done
+   }
+  with ab show ?thesis2
+    by (simp add: divide_inverse_commute integral_def)
+qed
+
+corollary winding_number_exp_2pi:
+    "\<lbrakk>path p; z \<notin> path_image p\<rbrakk>
+     \<Longrightarrow> pathfinish p - z = exp (2 * pi * ii * winding_number p z) * (pathstart p - z)"
+using winding_number [of p z 1] unfolding valid_path_def path_image_def pathstart_def pathfinish_def
+  by (force dest: winding_number_exp_integral(2) [of _ 0 1 z] simp: field_simps path_integral_integral exp_minus)
+
+
+subsection\<open>The version with complex integers and equality\<close>
+
+lemma integer_winding_number_eq:
+  assumes \<gamma>: "path \<gamma>" and z: "z \<notin> path_image \<gamma>"
+  shows "winding_number \<gamma> z \<in> \<int> \<longleftrightarrow> pathfinish \<gamma> = pathstart \<gamma>"
+proof -
+  have *: "\<And>i::complex. \<And>g0 g1. \<lbrakk>i \<noteq> 0; g0 \<noteq> z; (g1 - z) / i = g0 - z\<rbrakk> \<Longrightarrow> (i = 1 \<longleftrightarrow> g1 = g0)"
+      by (simp add: field_simps) algebra
+  obtain p where p: "valid_path p" "z \<notin> path_image p"
+                    "pathstart p = pathstart \<gamma>" "pathfinish p = pathfinish \<gamma>"
+                    "path_integral p (\<lambda>w. 1 / (w - z)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z"
+    using winding_number [OF assms, of 1] by auto
+  have [simp]: "(winding_number \<gamma> z \<in> \<int>) = (Exp (path_integral p (\<lambda>w. 1 / (w - z))) = 1)"
+      using p by (simp add: exp_eq_1 complex_is_Int_iff)
+  have "winding_number p z \<in> \<int> \<longleftrightarrow> pathfinish p = pathstart p"
+    using p z
+    apply (simp add: winding_number_valid_path valid_path_def path_image_def pathstart_def pathfinish_def)
+    using winding_number_exp_integral(2) [of p 0 1 z]
+    apply (simp add: field_simps path_integral_integral exp_minus)
+    apply (rule *)
+    apply (auto simp: path_image_def field_simps)
+    done
+  then show ?thesis using p
+    by (auto simp: winding_number_valid_path)
+qed
+
+theorem integer_winding_number:
+  "\<lbrakk>path \<gamma>; pathfinish \<gamma> = pathstart \<gamma>; z \<notin> path_image \<gamma>\<rbrakk> \<Longrightarrow> winding_number \<gamma> z \<in> \<int>"
+by (metis integer_winding_number_eq)
+
+
+text\<open>If the winding number's magnitude is at least one, then the path must contain points in every direction.*)
+   We can thus bound the winding number of a path that doesn't intersect a given ray. \<close>
+
+lemma winding_number_pos_meets:
+  fixes z::complex
+  assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>" and 1: "Re (winding_number \<gamma> z) \<ge> 1"
+      and w: "w \<noteq> z"
+  shows "\<exists>a::real. 0 < a \<and> z + a*(w - z) \<in> path_image \<gamma>"
+proof -
+  have [simp]: "\<And>x. 0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> \<gamma> x \<noteq> z"
+    using z by (auto simp: path_image_def)
+  have [simp]: "z \<notin> \<gamma> ` {0..1}"
+    using path_image_def z by auto
+  have gpd: "\<gamma> piecewise_C1_differentiable_on {0..1}"
+    using \<gamma> valid_path_def by blast
+  def r \<equiv> "(w - z) / (\<gamma> 0 - z)"
+  have [simp]: "r \<noteq> 0"
+    using w z by (auto simp: r_def)
+  have "Arg r \<le> 2*pi"
+    by (simp add: Arg less_eq_real_def)
+  also have "... \<le> Im (integral {0..1} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z)))"
+    using 1
+    apply (simp add: winding_number_valid_path [OF \<gamma> z] Cauchy_Integral_Thm.path_integral_integral)
+    apply (simp add: Complex.Re_divide field_simps power2_eq_square)
+    done
+  finally have "Arg r \<le> Im (integral {0..1} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z)))" .
+  then have "\<exists>t. t \<in> {0..1} \<and> Im(integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x)/(\<gamma> x - z))) = Arg r"
+    apply (simp add:)
+    apply (rule Topological_Spaces.IVT')
+    apply (simp_all add: Complex_Transcendental.Arg_ge_0)
+    apply (intro continuous_intros indefinite_integral_continuous winding_number_exp_integral [OF gpd]; simp)
+    done
+  then obtain t where t:     "t \<in> {0..1}"
+                  and eqArg: "Im (integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x)/(\<gamma> x - z))) = Arg r"
+    by blast
+  def i \<equiv> "integral {0..t} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z))"
+  have iArg: "Arg r = Im i"
+    using eqArg by (simp add: i_def)
+  have gpdt: "\<gamma> piecewise_C1_differentiable_on {0..t}"
+    by (metis atLeastAtMost_iff atLeastatMost_subset_iff order_refl piecewise_C1_differentiable_on_subset gpd t)
+  have "Exp (- i) * (\<gamma> t - z) = \<gamma> 0 - z"
+    unfolding i_def
+    apply (rule winding_number_exp_integral [OF gpdt])
+    using t z unfolding path_image_def
+    apply force+
+    done
+  then have *: "\<gamma> t - z = exp i * (\<gamma> 0 - z)"
+    by (simp add: exp_minus field_simps)
+  then have "(w - z) = r * (\<gamma> 0 - z)"
+    by (simp add: r_def)
+  then have "z + complex_of_real (exp (Re i)) * (w - z) / complex_of_real (cmod r) = \<gamma> t"
+    apply (simp add:)
+    apply (subst Complex_Transcendental.Arg_eq [of r])
+    apply (simp add: iArg)
+    using *
+    apply (simp add: Exp_eq_polar field_simps)
+    done
+  with t show ?thesis
+    by (rule_tac x="exp(Re i) / norm r" in exI) (auto simp: path_image_def)
+qed
+
+lemma winding_number_big_meets:
+  fixes z::complex
+  assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>" and "abs (Re (winding_number \<gamma> z)) \<ge> 1"
+      and w: "w \<noteq> z"
+  shows "\<exists>a::real. 0 < a \<and> z + a*(w - z) \<in> path_image \<gamma>"
+proof -
+  { assume "Re (winding_number \<gamma> z) \<le> - 1"
+    then have "Re (winding_number (reversepath \<gamma>) z) \<ge> 1"
+      by (simp add: \<gamma> valid_path_imp_path winding_number_reversepath z)
+    moreover have "valid_path (reversepath \<gamma>)"
+      using \<gamma> valid_path_imp_reverse by auto
+    moreover have "z \<notin> path_image (reversepath \<gamma>)"
+      by (simp add: z)
+    ultimately have "\<exists>a::real. 0 < a \<and> z + a*(w - z) \<in> path_image (reversepath \<gamma>)"
+      using winding_number_pos_meets w by blast
+    then have ?thesis
+      by simp
+  }
+  then show ?thesis
+    using assms
+    by (simp add: Groups.abs_if_class.abs_if winding_number_pos_meets split: split_if_asm)
+qed
+
+lemma winding_number_less_1:
+  fixes z::complex
+  shows
+  "\<lbrakk>valid_path \<gamma>; z \<notin> path_image \<gamma>; w \<noteq> z;
+    \<And>a::real. 0 < a \<Longrightarrow> z + a*(w - z) \<notin> path_image \<gamma>\<rbrakk>
+   \<Longrightarrow> abs (Re(winding_number \<gamma> z)) < 1"
+   by (auto simp: not_less dest: winding_number_big_meets)
+
+text\<open>One way of proving that WN=1 for a loop.\<close>
+lemma winding_number_eq_1:
+  fixes z::complex
+  assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
+      and 0: "0 < Re(winding_number \<gamma> z)" and 2: "Re(winding_number \<gamma> z) < 2"
+  shows "winding_number \<gamma> z = 1"
+proof -
+  have "winding_number \<gamma> z \<in> Ints"
+    by (simp add: \<gamma> integer_winding_number loop valid_path_imp_path z)
+  then show ?thesis
+    using 0 2 by (auto simp: Ints_def)
+qed
+
+
+subsection\<open>Continuity of winding number and invariance on connected sets.\<close>
+
+lemma continuous_at_winding_number:
+  fixes z::complex
+  assumes \<gamma>: "path \<gamma>" and z: "z \<notin> path_image \<gamma>"
+  shows "continuous (at z) (winding_number \<gamma>)"
+proof -
+  obtain e where "e>0" and cbg: "cball z e \<subseteq> - path_image \<gamma>"
+    using open_contains_cball [of "- path_image \<gamma>"]  z
+    by (force simp: closed_def [symmetric] closed_path_image [OF \<gamma>])
+  then have ppag: "path_image \<gamma> \<subseteq> - cball z (e/2)"
+    by (force simp: cball_def dist_norm)
+  have oc: "open (- cball z (e / 2))"
+    by (simp add: closed_def [symmetric])
+  obtain d where "d>0" and pi_eq:
+    "\<And>h1 h2. \<lbrakk>valid_path h1; valid_path h2;
+              (\<forall>t\<in>{0..1}. cmod (h1 t - \<gamma> t) < d \<and> cmod (h2 t - \<gamma> t) < d);
+              pathstart h2 = pathstart h1; pathfinish h2 = pathfinish h1\<rbrakk>
+             \<Longrightarrow>
+               path_image h1 \<subseteq> - cball z (e / 2) \<and>
+               path_image h2 \<subseteq> - cball z (e / 2) \<and>
+               (\<forall>f. f holomorphic_on - cball z (e / 2) \<longrightarrow> path_integral h2 f = path_integral h1 f)"
+    using path_integral_nearby_ends [OF oc \<gamma> ppag] by metis
+  obtain p where p: "valid_path p" "z \<notin> path_image p"
+                    "pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma>"
+              and pg: "\<And>t. t\<in>{0..1} \<Longrightarrow> cmod (\<gamma> t - p t) < min d e / 2"
+              and pi: "path_integral p (\<lambda>x. 1 / (x - z)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z"
+    using winding_number [OF \<gamma> z, of "min d e / 2"] `d>0` `e>0` by auto
+  { fix w
+    assume d2: "cmod (w - z) < d/2" and e2: "cmod (w - z) < e/2"
+    then have wnotp: "w \<notin> path_image p"
+      using cbg `d>0` `e>0`
+      apply (simp add: path_image_def cball_def dist_norm, clarify)
+      apply (frule pg)
+      apply (drule_tac c="\<gamma> x" in subsetD)
+      apply (auto simp: less_eq_real_def norm_minus_commute norm_triangle_half_l)
+      done
+    have wnotg: "w \<notin> path_image \<gamma>"
+      using cbg e2 `e>0` by (force simp: dist_norm norm_minus_commute)
+    { fix k::real
+      assume k: "k>0"
+      then obtain q where q: "valid_path q" "w \<notin> path_image q"
+                             "pathstart q = pathstart \<gamma> \<and> pathfinish q = pathfinish \<gamma>"
+                    and qg: "\<And>t. t \<in> {0..1} \<Longrightarrow> cmod (\<gamma> t - q t) < min k (min d e) / 2"
+                    and qi: "path_integral q (\<lambda>u. 1 / (u - w)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> w"
+        using winding_number [OF \<gamma> wnotg, of "min k (min d e) / 2"] `d>0` `e>0` k
+        by (force simp: min_divide_distrib_right)
+      have "path_integral p (\<lambda>u. 1 / (u - w)) = path_integral q (\<lambda>u. 1 / (u - w))"
+        apply (rule pi_eq [OF `valid_path q` `valid_path p`, THEN conjunct2, THEN conjunct2, rule_format])
+        apply (frule pg)
+        apply (frule qg)
+        using p q `d>0` e2
+        apply (auto simp: dist_norm norm_minus_commute intro!: holomorphic_intros)
+        done
+      then have "path_integral p (\<lambda>x. 1 / (x - w)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> w"
+        by (simp add: pi qi)
+    } note pip = this
+    have "path p"
+      using p by (simp add: valid_path_imp_path)
+    then have "winding_number p w = winding_number \<gamma> w"
+      apply (rule winding_number_unique [OF _ wnotp])
+      apply (rule_tac x=p in exI)
+      apply (simp add: p wnotp min_divide_distrib_right pip)
+      done
+  } note wnwn = this
+  obtain pe where "pe>0" and cbp: "cball z (3 / 4 * pe) \<subseteq> - path_image p"
+    using p open_contains_cball [of "- path_image p"]
+    by (force simp: closed_def [symmetric] closed_path_image [OF valid_path_imp_path])
+  obtain L
+    where "L>0"
+      and L: "\<And>f B. \<lbrakk>f holomorphic_on - cball z (3 / 4 * pe);
+                      \<forall>z \<in> - cball z (3 / 4 * pe). cmod (f z) \<le> B\<rbrakk> \<Longrightarrow>
+                      cmod (path_integral p f) \<le> L * B"
+    using path_integral_bound_exists [of "- cball z (3/4*pe)" p] cbp `valid_path p` by force
+  { fix e::real and w::complex
+    assume e: "0 < e" and w: "cmod (w - z) < pe/4" "cmod (w - z) < e * pe\<^sup>2 / (8 * L)"
+    then have [simp]: "w \<notin> path_image p"
+      using cbp p(2) `0 < pe`
+      by (force simp: dist_norm norm_minus_commute path_image_def cball_def)
+    have [simp]: "path_integral p (\<lambda>x. 1/(x - w)) - path_integral p (\<lambda>x. 1/(x - z)) =
+                  path_integral p (\<lambda>x. 1/(x - w) - 1/(x - z))"
+      by (simp add: p path_integrable_inversediff path_integral_diff)
+    { fix x
+      assume pe: "3/4 * pe < cmod (z - x)"
+      have "cmod (w - x) < pe/4 + cmod (z - x)"
+        by (meson add_less_cancel_right norm_diff_triangle_le order_refl order_trans_rules(21) w(1))
+      then have wx: "cmod (w - x) < 4/3 * cmod (z - x)" using pe by simp
+      have "cmod (z - x) \<le> cmod (z - w) + cmod (w - x)"
+        using norm_diff_triangle_le by blast
+      also have "... < pe/4 + cmod (w - x)"
+        using w by (simp add: norm_minus_commute)
+      finally have "pe/2 < cmod (w - x)"
+        using pe by auto
+      then have "(pe/2)^2 < cmod (w - x) ^ 2"
+        apply (rule power_strict_mono)
+        using `pe>0` by auto
+      then have pe2: "pe^2 < 4 * cmod (w - x) ^ 2"
+        by auto
+      have "8 * L * cmod (w - z) < e * pe\<^sup>2"
+        using w `L>0` by (simp add: field_simps)
+      also have "... < e * 4 * cmod (w - x) * cmod (w - x)"
+        using pe2 `e>0` by (simp add: power2_eq_square)
+      also have "... < e * 4 * cmod (w - x) * (4/3 * cmod (z - x))"
+        using wx
+        apply (rule mult_strict_left_mono)
+        using pe2 e not_less_iff_gr_or_eq by fastforce
+      finally have "L * cmod (w - z) < 2/3 * e * cmod (w - x) * cmod (z - x)"
+        by simp
+      also have "... \<le> e * cmod (w - x) * cmod (z - x)"
+         using e by simp
+      finally have Lwz: "L * cmod (w - z) < e * cmod (w - x) * cmod (z - x)" .
+      have "L * cmod (1 / (x - w) - 1 / (x - z)) \<le> e"
+        apply (cases "x=z \<or> x=w")
+        using pe `pe>0` w `L>0`
+        apply (force simp: norm_minus_commute)
+        using wx w(2) `L>0` pe pe2 Lwz
+        apply (auto simp: divide_simps mult_less_0_iff norm_minus_commute norm_divide norm_mult power2_eq_square)
+        done
+    } note L_cmod_le = this
+    have *: "cmod (path_integral p (\<lambda>x. 1 / (x - w) - 1 / (x - z))) \<le> L * (e * pe\<^sup>2 / L / 4 * (inverse (pe / 2))\<^sup>2)"
+      apply (rule L)
+      using `pe>0` w
+      apply (force simp: dist_norm norm_minus_commute intro!: holomorphic_intros)
+      using `pe>0` w `L>0`
+      apply (auto simp: cball_def dist_norm field_simps L_cmod_le  simp del: less_divide_eq_numeral1 le_divide_eq_numeral1)
+      done
+    have "cmod (path_integral p (\<lambda>x. 1 / (x - w)) - path_integral p (\<lambda>x. 1 / (x - z))) < 2*e"
+      apply (simp add:)
+      apply (rule le_less_trans [OF *])
+      using `L>0` e
+      apply (force simp: field_simps)
+      done
+    then have "cmod (winding_number p w - winding_number p z) < e"
+      using pi_ge_two e
+      by (force simp: winding_number_valid_path p field_simps norm_divide norm_mult intro: less_le_trans)
+  } note cmod_wn_diff = this
+  show ?thesis
+    apply (rule continuous_transform_at [of "min d e / 2" _ "winding_number p"])
+    apply (auto simp: `d>0` `e>0` dist_norm wnwn simp del: less_divide_eq_numeral1)
+    apply (simp add: continuous_at_eps_delta, clarify)
+    apply (rule_tac x="min (pe/4) (e/2*pe^2/L/4)" in exI)
+    using `pe>0` `L>0`
+    apply (simp add: dist_norm cmod_wn_diff)
+    done
+qed
+
+corollary continuous_on_winding_number:
+    "path \<gamma> \<Longrightarrow> continuous_on (- path_image \<gamma>) (\<lambda>w. winding_number \<gamma> w)"
+  by (simp add: continuous_at_imp_continuous_on continuous_at_winding_number)
+
+
+subsection{*The winding number is constant on a connected region*}
+
+lemma winding_number_constant:
+  assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>" and cs: "connected s" and sg: "s \<inter> path_image \<gamma> = {}"
+    shows "\<exists>k. \<forall>z \<in> s. winding_number \<gamma> z = k"
+proof -
+  { fix y z
+    assume ne: "winding_number \<gamma> y \<noteq> winding_number \<gamma> z"
+    assume "y \<in> s" "z \<in> s"
+    then have "winding_number \<gamma> y \<in> \<int>"  "winding_number \<gamma> z \<in>  \<int>"
+      using integer_winding_number [OF \<gamma> loop] sg `y \<in> s` by auto
+    with ne have "1 \<le> cmod (winding_number \<gamma> y - winding_number \<gamma> z)"
+      by (auto simp: Ints_def of_int_diff [symmetric] simp del: of_int_diff)
+  } note * = this
+  show ?thesis
+    apply (rule continuous_discrete_range_constant [OF cs])
+    using continuous_on_winding_number [OF \<gamma>] sg
+    apply (metis Diff_Compl Diff_eq_empty_iff continuous_on_subset)
+    apply (rule_tac x=1 in exI)
+    apply (auto simp: *)
+    done
+qed
+
+lemma winding_number_eq:
+     "\<lbrakk>path \<gamma>; pathfinish \<gamma> = pathstart \<gamma>; w \<in> s; z \<in> s; connected s; s \<inter> path_image \<gamma> = {}\<rbrakk>
+      \<Longrightarrow> winding_number \<gamma> w = winding_number \<gamma> z"
+using winding_number_constant by fastforce
+
+lemma open_winding_number_levelsets:
+  assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
+    shows "open {z. z \<notin> path_image \<gamma> \<and> winding_number \<gamma> z = k}"
+proof -
+  have op: "open (- path_image \<gamma>)"
+    by (simp add: closed_path_image \<gamma> open_Compl)
+  { fix z assume z: "z \<notin> path_image \<gamma>" and k: "k = winding_number \<gamma> z"
+    obtain e where e: "e>0" "ball z e \<subseteq> - path_image \<gamma>"
+      using open_contains_ball [of "- path_image \<gamma>"] op z
+      by blast
+    have "\<exists>e>0. \<forall>y. dist y z < e \<longrightarrow> y \<notin> path_image \<gamma> \<and> winding_number \<gamma> y = winding_number \<gamma> z"
+      apply (rule_tac x=e in exI)
+      using e apply (simp add: dist_norm ball_def norm_minus_commute)
+      apply (auto simp: dist_norm norm_minus_commute intro!: winding_number_eq [OF assms, where s = "ball z e"])
+      done
+  } then
+  show ?thesis
+    by (auto simp: Complex.open_complex_def)
+qed
+
+subsection\<open>Winding number is zero "outside" a curve, in various senses\<close>
+
+lemma winding_number_zero_in_outside:
+  assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>" and z: "z \<in> outside (path_image \<gamma>)"
+    shows "winding_number \<gamma> z = 0"
+proof -
+  obtain B::real where "0 < B" and B: "path_image \<gamma> \<subseteq> ball 0 B"
+    using bounded_subset_ballD [OF bounded_path_image [OF \<gamma>]] by auto
+  obtain w::complex where w: "w \<notin> ball 0 (B + 1)"
+    by (metis abs_of_nonneg le_less less_irrefl mem_ball_0 norm_of_real)
+  have "- ball 0 (B + 1) \<subseteq> outside (path_image \<gamma>)"
+    apply (rule outside_subset_convex)
+    using B subset_ball by auto
+  then have wout: "w \<in> outside (path_image \<gamma>)"
+    using w by blast
+  moreover obtain k where "\<And>z. z \<in> outside (path_image \<gamma>) \<Longrightarrow> winding_number \<gamma> z = k"
+    using winding_number_constant [OF \<gamma> loop, of "outside(path_image \<gamma>)"] connected_outside
+    by (metis DIM_complex bounded_path_image dual_order.refl \<gamma> outside_no_overlap)
+  ultimately have "winding_number \<gamma> z = winding_number \<gamma> w"
+    using z by blast
+  also have "... = 0"
+  proof -
+    have wnot: "w \<notin> path_image \<gamma>"  using wout by (simp add: outside_def)
+    { fix e::real assume "0<e"
+      obtain p where p: "polynomial_function p" "pathstart p = pathstart \<gamma>" "pathfinish p = pathfinish \<gamma>"
+                 and pg1: "(\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> cmod (p t - \<gamma> t) < 1)"
+                 and pge: "(\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> cmod (p t - \<gamma> t) < e)"
+        using path_approx_polynomial_function [OF \<gamma>, of "min 1 e"] `e>0` by force
+      have pip: "path_image p \<subseteq> ball 0 (B + 1)"
+        using B
+        apply (clarsimp simp add: path_image_def dist_norm ball_def)
+        apply (frule (1) pg1)
+        apply (fastforce dest: norm_add_less)
+        done
+      then have "w \<notin> path_image p"  using w by blast
+      then have "\<exists>p. valid_path p \<and> w \<notin> path_image p \<and>
+                     pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma> \<and>
+                     (\<forall>t\<in>{0..1}. cmod (\<gamma> t - p t) < e) \<and> path_integral p (\<lambda>wa. 1 / (wa - w)) = 0"
+        apply (rule_tac x=p in exI)
+        apply (simp add: p valid_path_polynomial_function)
+        apply (intro conjI)
+        using pge apply (simp add: norm_minus_commute)
+        apply (rule path_integral_unique [OF Cauchy_theorem_convex_simple [OF _ convex_ball [of 0 "B+1"]]])
+        apply (rule holomorphic_intros | simp add: dist_norm)+
+        using mem_ball_0 w apply blast
+        using p apply (simp_all add: valid_path_polynomial_function loop pip)
+        done
+    }
+    then show ?thesis
+      by (auto intro: winding_number_unique [OF \<gamma>] simp add: wnot)
+  qed
+  finally show ?thesis .
+qed
+
+lemma winding_number_zero_outside:
+    "\<lbrakk>path \<gamma>; convex s; pathfinish \<gamma> = pathstart \<gamma>; z \<notin> s; path_image \<gamma> \<subseteq> s\<rbrakk> \<Longrightarrow> winding_number \<gamma> z = 0"
+  by (meson convex_in_outside outside_mono subsetCE winding_number_zero_in_outside)
+
+lemma winding_number_zero_at_infinity:
+  assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
+    shows "\<exists>B. \<forall>z. B \<le> norm z \<longrightarrow> winding_number \<gamma> z = 0"
+proof -
+  obtain B::real where "0 < B" and B: "path_image \<gamma> \<subseteq> ball 0 B"
+    using bounded_subset_ballD [OF bounded_path_image [OF \<gamma>]] by auto
+  then show ?thesis
+    apply (rule_tac x="B+1" in exI, clarify)
+    apply (rule winding_number_zero_outside [OF \<gamma> convex_cball [of 0 B] loop])
+    apply (meson less_add_one mem_cball_0 not_le order_trans)
+    using ball_subset_cball by blast
+qed
+
+lemma winding_number_zero_point:
+    "\<lbrakk>path \<gamma>; convex s; pathfinish \<gamma> = pathstart \<gamma>; open s; path_image \<gamma> \<subseteq> s\<rbrakk>
+     \<Longrightarrow> \<exists>z. z \<in> s \<and> winding_number \<gamma> z = 0"
+  using outside_compact_in_open [of "path_image \<gamma>" s] path_image_nonempty winding_number_zero_in_outside
+  by (fastforce simp add: compact_path_image)
+
+
+text\<open>If a path winds round a set, it winds rounds its inside.\<close>
+lemma winding_number_around_inside:
+  assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
+      and cls: "closed s" and cos: "connected s" and s_disj: "s \<inter> path_image \<gamma> = {}"
+      and z: "z \<in> s" and wn_nz: "winding_number \<gamma> z \<noteq> 0" and w: "w \<in> s \<union> inside s"
+    shows "winding_number \<gamma> w = winding_number \<gamma> z"
+proof -
+  have ssb: "s \<subseteq> inside(path_image \<gamma>)"
+  proof
+    fix x :: complex
+    assume "x \<in> s"
+    hence "x \<notin> path_image \<gamma>"
+      by (meson disjoint_iff_not_equal s_disj)
+    thus "x \<in> inside (path_image \<gamma>)"
+      using `x \<in> s` by (metis (no_types) ComplI UnE cos \<gamma> loop s_disj union_with_outside winding_number_eq winding_number_zero_in_outside wn_nz z)
+qed
+  show ?thesis
+    apply (rule winding_number_eq [OF \<gamma> loop w])
+    using z apply blast
+    apply (simp add: cls connected_with_inside cos)
+    apply (simp add: Int_Un_distrib2 s_disj, safe)
+    by (meson ssb inside_inside_compact_connected [OF cls, of "path_image \<gamma>"] compact_path_image connected_path_image contra_subsetD disjoint_iff_not_equal \<gamma> inside_no_overlap)
+ qed
+
+
+text\<open>Bounding a WN by 1/2 for a path and point in opposite halfspaces.\<close>
+lemma winding_number_subpath_continuous:
+  assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>"
+    shows "continuous_on {0..1} (\<lambda>x. winding_number(subpath 0 x \<gamma>) z)"
+proof -
+  have *: "integral {0..x} (\<lambda>t. vector_derivative \<gamma> (at t) / (\<gamma> t - z)) / (2 * of_real pi * \<i>) =
+         winding_number (subpath 0 x \<gamma>) z"
+         if x: "0 \<le> x" "x \<le> 1" for x
+  proof -
+    have "integral {0..x} (\<lambda>t. vector_derivative \<gamma> (at t) / (\<gamma> t - z)) / (2 * of_real pi * \<i>) =
+          1 / (2*pi*ii) * path_integral (subpath 0 x \<gamma>) (\<lambda>w. 1/(w - z))"
+      using assms x
+      apply (simp add: path_integral_subpath_integral [OF path_integrable_inversediff])
+      done
+    also have "... = winding_number (subpath 0 x \<gamma>) z"
+      apply (subst winding_number_valid_path)
+      using assms x
+      apply (simp_all add: valid_path_subpath)
+      by (force simp: closed_segment_eq_real_ivl path_image_def)
+    finally show ?thesis .
+  qed
+  show ?thesis
+    apply (rule continuous_on_eq
+                 [where f = "\<lambda>x. 1 / (2*pi*ii) *
+                                 integral {0..x} (\<lambda>t. 1/(\<gamma> t - z) * vector_derivative \<gamma> (at t))"])
+    apply (rule continuous_intros)+
+    apply (rule indefinite_integral_continuous)
+    apply (rule path_integrable_inversediff [OF assms, unfolded path_integrable_on])
+      using assms
+    apply (simp add: *)
+    done
+qed
+
+lemma winding_number_ivt_pos:
+    assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>" and "0 \<le> w" "w \<le> Re(winding_number \<gamma> z)"
+      shows "\<exists>t \<in> {0..1}. Re(winding_number(subpath 0 t \<gamma>) z) = w"
+  apply (rule ivt_increasing_component_on_1 [of 0 1, where ?k = "1::complex", simplified complex_inner_1_right])
+  apply (simp add:)
+  apply (rule winding_number_subpath_continuous [OF \<gamma> z])
+  using assms
+  apply (auto simp: path_image_def image_def)
+  done
+
+lemma winding_number_ivt_neg:
+    assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>" and "Re(winding_number \<gamma> z) \<le> w" "w \<le> 0"
+      shows "\<exists>t \<in> {0..1}. Re(winding_number(subpath 0 t \<gamma>) z) = w"
+  apply (rule ivt_decreasing_component_on_1 [of 0 1, where ?k = "1::complex", simplified complex_inner_1_right])
+  apply (simp add:)
+  apply (rule winding_number_subpath_continuous [OF \<gamma> z])
+  using assms
+  apply (auto simp: path_image_def image_def)
+  done
+
+lemma winding_number_ivt_abs:
+    assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>" and "0 \<le> w" "w \<le> \<bar>Re(winding_number \<gamma> z)\<bar>"
+      shows "\<exists>t \<in> {0..1}. \<bar>Re (winding_number (subpath 0 t \<gamma>) z)\<bar> = w"
+  using assms winding_number_ivt_pos [of \<gamma> z w] winding_number_ivt_neg [of \<gamma> z "-w"]
+  by force
+
+lemma winding_number_lt_half_lemma:
+  assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>" and az: "a \<bullet> z \<le> b" and pag: "path_image \<gamma> \<subseteq> {w. a \<bullet> w > b}"
+    shows "Re(winding_number \<gamma> z) < 1/2"
+proof -
+  { assume "Re(winding_number \<gamma> z) \<ge> 1/2"
+    then obtain t::real where t: "0 \<le> t" "t \<le> 1" and sub12: "Re (winding_number (subpath 0 t \<gamma>) z) = 1/2"
+      using winding_number_ivt_pos [OF \<gamma> z, of "1/2"] by auto
+    have gt: "\<gamma> t - z = - (of_real (exp (- (2 * pi * Im (winding_number (subpath 0 t \<gamma>) z)))) * (\<gamma> 0 - z))"
+      using winding_number_exp_2pi [of "subpath 0 t \<gamma>" z]
+      apply (simp add: t \<gamma> valid_path_imp_path)
+      using closed_segment_eq_real_ivl path_image_def t z by (fastforce simp add: Euler sub12)
+    have "b < a \<bullet> \<gamma> 0"
+    proof -
+      have "\<gamma> 0 \<in> {c. b < a \<bullet> c}"
+        by (metis (no_types) pag atLeastAtMost_iff image_subset_iff order_refl path_image_def zero_le_one)
+      thus ?thesis
+        by blast
+    qed
+    moreover have "b < a \<bullet> \<gamma> t"
+    proof -
+      have "\<gamma> t \<in> {c. b < a \<bullet> c}"
+        by (metis (no_types) pag atLeastAtMost_iff image_subset_iff path_image_def t)
+      thus ?thesis
+        by blast
+    qed
+    ultimately have "0 < a \<bullet> (\<gamma> 0 - z)" "0 < a \<bullet> (\<gamma> t - z)" using az
+      by (simp add: inner_diff_right)+
+    then have False
+      by (simp add: gt inner_mult_right mult_less_0_iff)
+  }
+  then show ?thesis by force
+qed
+
+lemma winding_number_lt_half:
+  assumes "valid_path \<gamma>" "a \<bullet> z \<le> b" "path_image \<gamma> \<subseteq> {w. a \<bullet> w > b}"
+    shows "\<bar>Re (winding_number \<gamma> z)\<bar> < 1/2"
+proof -
+  have "z \<notin> path_image \<gamma>" using assms by auto
+  with assms show ?thesis
+    apply (simp add: winding_number_lt_half_lemma abs_if del: less_divide_eq_numeral1)
+    apply (metis complex_inner_1_right winding_number_lt_half_lemma [OF valid_path_imp_reverse, of \<gamma> z a b]
+                 winding_number_reversepath valid_path_imp_path inner_minus_left path_image_reversepath)
+    done
+qed
+
+lemma winding_number_le_half:
+  assumes \<gamma>: "valid_path \<gamma>" and z: "z \<notin> path_image \<gamma>"
+      and anz: "a \<noteq> 0" and azb: "a \<bullet> z \<le> b" and pag: "path_image \<gamma> \<subseteq> {w. a \<bullet> w \<ge> b}"
+    shows "\<bar>Re (winding_number \<gamma> z)\<bar> \<le> 1/2"
+proof -
+  { assume wnz_12: "\<bar>Re (winding_number \<gamma> z)\<bar> > 1/2"
+    have "isCont (winding_number \<gamma>) z"
+      by (metis continuous_at_winding_number valid_path_imp_path \<gamma> z)
+    then obtain d where "d>0" and d: "\<And>x'. dist x' z < d \<Longrightarrow> dist (winding_number \<gamma> x') (winding_number \<gamma> z) < abs(Re(winding_number \<gamma> z)) - 1/2"
+      using continuous_at_eps_delta wnz_12 diff_less_iff(1) by blast
+    def z' \<equiv> "z - (d / (2 * cmod a)) *\<^sub>R a"
+    have *: "a \<bullet> z' \<le> b - d / 3 * cmod a"
+      unfolding z'_def inner_mult_right' divide_inverse
+      apply (simp add: divide_simps algebra_simps dot_square_norm power2_eq_square anz)
+      apply (metis `0 < d` add_increasing azb less_eq_real_def mult_nonneg_nonneg mult_right_mono norm_ge_zero norm_numeral)
+      done
+    have "cmod (winding_number \<gamma> z' - winding_number \<gamma> z) < \<bar>Re (winding_number \<gamma> z)\<bar> - 1/2"
+      using d [of z'] anz `d>0` by (simp add: dist_norm z'_def)
+    then have "1/2 < \<bar>Re (winding_number \<gamma> z)\<bar> - cmod (winding_number \<gamma> z' - winding_number \<gamma> z)"
+      by simp
+    then have "1/2 < \<bar>Re (winding_number \<gamma> z)\<bar> - \<bar>Re (winding_number \<gamma> z') - Re (winding_number \<gamma> z)\<bar>"
+      using abs_Re_le_cmod [of "winding_number \<gamma> z' - winding_number \<gamma> z"] by simp
+    then have wnz_12': "\<bar>Re (winding_number \<gamma> z')\<bar> > 1/2"
+      by linarith
+    moreover have "\<bar>Re (winding_number \<gamma> z')\<bar> < 1/2"
+      apply (rule winding_number_lt_half [OF \<gamma> *])
+      using azb `d>0` pag
+      apply (auto simp: add_strict_increasing anz divide_simps algebra_simps dest!: subsetD)
+      done
+    ultimately have False
+      by simp
+  }
+  then show ?thesis by force
+qed
+
+lemma winding_number_lt_half_linepath: "z \<notin> closed_segment a b \<Longrightarrow> \<bar>Re (winding_number (linepath a b) z)\<bar> < 1/2"
+  using separating_hyperplane_closed_point [of "closed_segment a b" z]
+  apply auto
+  apply (simp add: closed_segment_def)
+  apply (drule less_imp_le)
+  apply (frule winding_number_lt_half [OF valid_path_linepath [of a b]])
+  apply (auto simp: segment)
+  done
+
+
+text\<open> Positivity of WN for a linepath.\<close>
+lemma winding_number_linepath_pos_lt:
+    assumes "0 < Im ((b - a) * cnj (b - z))"
+      shows "0 < Re(winding_number(linepath a b) z)"
+proof -
+  have z: "z \<notin> path_image (linepath a b)"
+    using assms
+    by (simp add: closed_segment_def) (force simp: algebra_simps)
+  show ?thesis
+    apply (rule winding_number_pos_lt [OF valid_path_linepath z assms])
+    apply (simp add: linepath_def algebra_simps)
+    done
+qed
+
+
+subsection{* Cauchy's integral formula, again for a convex enclosing set.*}
+
+lemma Cauchy_integral_formula_weak: 
+    assumes s: "convex s" and "finite k" and conf: "continuous_on s f" 
+        and fcd: "(\<And>x. x \<in> interior s - k \<Longrightarrow> f complex_differentiable at x)" 
+        and z: "z \<in> interior s - k" and vpg: "valid_path \<gamma>" 
+        and pasz: "path_image \<gamma> \<subseteq> s - {z}" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
+      shows "((\<lambda>w. f w / (w - z)) has_path_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"
+proof -
+  obtain f' where f': "(f has_field_derivative f') (at z)"
+    using fcd [OF z] by (auto simp: complex_differentiable_def)
+  have pas: "path_image \<gamma> \<subseteq> s" and znotin: "z \<notin> path_image \<gamma>" using pasz by blast+
+  have c: "continuous (at x within s) (\<lambda>w. if w = z then f' else (f w - f z) / (w - z))" if "x \<in> s" for x
+  proof (cases "x = z")
+    case True then show ?thesis
+      apply (simp add: continuous_within)
+      apply (rule Lim_transform_away_within [of _ "z+1" _ "\<lambda>w::complex. (f w - f z)/(w - z)"])
+      using has_field_derivative_at_within DERIV_within_iff f' 
+      apply (fastforce simp add:)+
+      done
+  next
+    case False
+    then have dxz: "dist x z > 0" using dist_nz by blast
+    have cf: "continuous (at x within s) f"
+      using conf continuous_on_eq_continuous_within that by blast
+    show ?thesis
+      apply (rule continuous_transform_within [OF dxz that, of "\<lambda>w::complex. (f w - f z)/(w - z)"])
+      apply (force simp: dist_commute)
+      apply (rule cf continuous_intros)+
+      using False by auto      
+  qed
+  have fink': "finite (insert z k)" using \<open>finite k\<close> by blast
+  have *: "((\<lambda>w. if w = z then f' else (f w - f z) / (w - z)) has_path_integral 0) \<gamma>"
+    apply (rule Cauchy_theorem_convex [OF _ s fink' _ vpg pas loop])
+    using c apply (force simp: continuous_on_eq_continuous_within)
+    apply (rename_tac w)
+    apply (rule_tac d="dist w z" and f = "\<lambda>w. (f w - f z)/(w - z)" in complex_differentiable_transform_within)
+    apply (simp_all add: dist_pos_lt dist_commute)
+    apply (metis less_irrefl)
+    apply (rule derivative_intros fcd | simp)+
+    done
+  show ?thesis
+    apply (rule has_path_integral_eq)
+    using znotin has_path_integral_add [OF has_path_integral_lmul [OF has_path_integral_winding_number [OF vpg znotin], of "f z"] *]
+    apply (auto simp: mult_ac divide_simps)
+    done
+qed    
+
+theorem Cauchy_integral_formula_convex_simple: 
+    "\<lbrakk>convex s; f holomorphic_on s; z \<in> interior s; valid_path \<gamma>; path_image \<gamma> \<subseteq> s - {z};
+      pathfinish \<gamma> = pathstart \<gamma>\<rbrakk>
+     \<Longrightarrow> ((\<lambda>w. f w / (w - z)) has_path_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"
+  apply (rule Cauchy_integral_formula_weak [where k = "{}"])
+  using holomorphic_on_imp_continuous_on
+  by auto (metis at_within_interior holomorphic_on_def interiorE subsetCE)
+
 end

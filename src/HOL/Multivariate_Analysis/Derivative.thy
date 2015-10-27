@@ -2247,6 +2247,49 @@ lemma vector_derivative_within:
   by (intro vector_derivative_unique_within[OF not_bot vector_derivative_works[THEN iffD1] y])
      (auto simp: differentiable_def has_vector_derivative_def)
 
+lemma frechet_derivative_eq_vector_derivative:
+  assumes "f differentiable (at x)"
+    shows  "(frechet_derivative f (at x)) = (\<lambda>r. r *\<^sub>R vector_derivative f (at x))"
+using assms
+by (auto simp: differentiable_iff_scaleR vector_derivative_def has_vector_derivative_def
+         intro: someI frechet_derivative_at [symmetric])
+
+lemma has_real_derivative:
+  fixes f :: "real \<Rightarrow> real" 
+  assumes "(f has_derivative f') F"
+  obtains c where "(f has_real_derivative c) F"
+proof -
+  obtain c where "f' = (\<lambda>x. x * c)"
+    by (metis assms has_derivative_bounded_linear real_bounded_linear)
+  then show ?thesis
+    by (metis assms that has_field_derivative_def mult_commute_abs)
+qed
+
+lemma has_real_derivative_iff:
+  fixes f :: "real \<Rightarrow> real" 
+  shows "(\<exists>c. (f has_real_derivative c) F) = (\<exists>D. (f has_derivative D) F)"
+  by (metis has_field_derivative_def has_real_derivative)
+
+definition deriv :: "('a \<Rightarrow> 'a::real_normed_field) \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "deriv f x \<equiv> SOME D. DERIV f x :> D"
+
+lemma DERIV_imp_deriv: "DERIV f x :> f' \<Longrightarrow> deriv f x = f'"
+  unfolding deriv_def by (metis some_equality DERIV_unique)
+
+lemma DERIV_deriv_iff_real_differentiable:
+  fixes x :: real
+  shows "DERIV f x :> deriv f x \<longleftrightarrow> f differentiable at x"
+  unfolding differentiable_def by (metis DERIV_imp_deriv has_real_derivative_iff)
+
+lemma real_derivative_chain:
+  fixes x :: real
+  shows "f differentiable at x \<Longrightarrow> g differentiable at (f x)
+    \<Longrightarrow> deriv (g o f) x = deriv g (f x) * deriv f x"
+  by (metis DERIV_deriv_iff_real_differentiable DERIV_chain DERIV_imp_deriv)
+lemma field_derivative_eq_vector_derivative:
+   "(deriv f x) = vector_derivative f (at x)"
+by (simp add: mult.commute deriv_def vector_derivative_def has_vector_derivative_def has_field_derivative_def)
+
 lemma islimpt_closure_open:
   fixes s :: "'a::perfect_space set"
   assumes "open s" and t: "t = closure s" "x \<in> t"

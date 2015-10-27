@@ -204,8 +204,8 @@ proof (rule emeasure_lim)
     then have fm_in: "fm n x \<in> fm n ` B n"
       using K' by (force simp: K_def)
     show "x \<in> B n"
-      using `x \<in> K n` K_sets sets.sets_into_space J(1,2,3)[of n]
-      by (intro inj_on_image_mem_iff[OF inj_on_fm _ fm_in, of "\<lambda>_. borel"]) auto
+      using `x \<in> K n` K_sets sets.sets_into_space J(1,2,3)[of n] inj_on_image_mem_iff[OF inj_on_fm]
+    by (metis (no_types) Int_iff K_def fm_in space_borel)
   qed
   def Z' \<equiv> "\<lambda>n. emb I (J n) (K n)"
   have Z': "\<And>n. Z' n \<subseteq> Z n"

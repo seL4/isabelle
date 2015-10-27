@@ -326,20 +326,20 @@ proof
 qed
 
 lemma upd_inj: "i < n \<Longrightarrow> j < n \<Longrightarrow> upd i = upd j \<longleftrightarrow> i = j"
-  using upd by (auto simp: bij_betw_def inj_on_iff)
+  using upd by (auto simp: bij_betw_def inj_on_eq_iff)
 
 lemma upd_surj: "upd ` {..< n} = {..< n}"
   using upd by (auto simp: bij_betw_def)
 
 lemma in_upd_image: "A \<subseteq> {..< n} \<Longrightarrow> i < n \<Longrightarrow> upd i \<in> upd ` A \<longleftrightarrow> i \<in> A"
-  using inj_on_image_mem_iff[of upd "{..< n}" A i ] upd
+  using inj_on_image_mem_iff[of upd "{..< n}"] upd
   by (auto simp: bij_betw_def)
 
 lemma enum_inj: "i \<le> n \<Longrightarrow> j \<le> n \<Longrightarrow> enum i = enum j \<longleftrightarrow> i = j"
-  using inj_enum by (auto simp: inj_on_iff)
+  using inj_enum by (auto simp: inj_on_eq_iff)
 
 lemma in_enum_image: "A \<subseteq> {.. n} \<Longrightarrow> i \<le> n \<Longrightarrow> enum i \<in> enum ` A \<longleftrightarrow> i \<in> A"
-  using inj_on_image_mem_iff[OF inj_enum, of A i] by auto
+  using inj_on_image_mem_iff[OF inj_enum] by auto
 
 lemma enum_mono: "i \<le> n \<Longrightarrow> j \<le> n \<Longrightarrow> enum i \<le> enum j \<longleftrightarrow> i \<le> j"
   by (auto simp: enum_def le_fun_def in_upd_image Ball_def[symmetric])

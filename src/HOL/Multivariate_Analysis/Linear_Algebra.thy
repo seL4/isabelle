@@ -300,6 +300,20 @@ proof -
   finally show ?thesis .
 qed
 
+lemma linear_scaleR  [simp]: "linear (\<lambda>x. scaleR c x)"
+  by (simp add: linear_iff scaleR_add_right)
+
+lemma linear_scaleR_left [simp]: "linear (\<lambda>r. scaleR r x)"
+  by (simp add: linear_iff scaleR_add_left)
+
+lemma injective_scaleR: "c \<noteq> 0 \<Longrightarrow> inj (\<lambda>x::'a::real_vector. scaleR c x)"
+  by (simp add: inj_on_def)
+
+lemma linear_add_cmul:
+  assumes "linear f"
+  shows "f (a *\<^sub>R x + b *\<^sub>R y) = a *\<^sub>R f x +  b *\<^sub>R f y"
+  using linear_add[of f] linear_cmul[of f] assms by simp
+
 
 subsection \<open>Bilinear functions.\<close>
 

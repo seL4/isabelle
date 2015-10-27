@@ -2187,7 +2187,7 @@ lemma continuous_inj_imp_mono:
   assumes inj: "inj_on f {a..b}"
   shows "(f a < f x \<and> f x < f b) \<or> (f b < f x \<and> f x < f a)"
 proof -
-  note I = inj_on_iff[OF inj]
+  note I = inj_on_eq_iff[OF inj]
   { assume "f x < f a" "f x < f b"
     then obtain s t where "x \<le> s" "s \<le> b" "a \<le> t" "t \<le> x" "f s = f t" "f x < f s"
       using IVT'[of f x "min (f a) (f b)" b] IVT2'[of f x "min (f a) (f b)" a] x

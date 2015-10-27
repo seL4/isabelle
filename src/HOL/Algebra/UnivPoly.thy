@@ -860,7 +860,7 @@ proof (rule le_antisym)
 next
   show "deg R p <= deg R (\<ominus>\<^bsub>P\<^esub> p)"
     by (simp add: deg_belowI lcoeff_nonzero_deg
-      inj_on_iff [OF R.a_inv_inj, of _ "\<zero>", simplified] R)
+      inj_on_eq_iff [OF R.a_inv_inj, of _ "\<zero>", simplified] R)
 qed
 
 text\<open>The following lemma is later \emph{overwritten} by the most

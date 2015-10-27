@@ -12,36 +12,6 @@ imports
   "~~/src/HOL/Library/Set_Algebras"
 begin
 
-
-(* ------------------------------------------------------------------------- *)
-(* To be moved elsewhere                                                     *)
-(* ------------------------------------------------------------------------- *)
-
-lemma linear_scaleR  [simp]: "linear (\<lambda>x. scaleR c x)"
-  by (simp add: linear_iff scaleR_add_right)
-
-lemma linear_scaleR_left [simp]: "linear (\<lambda>r. scaleR r x)"
-  by (simp add: linear_iff scaleR_add_left)
-
-lemma injective_scaleR: "c \<noteq> 0 \<Longrightarrow> inj (\<lambda>x::'a::real_vector. scaleR c x)"
-  by (simp add: inj_on_def)
-
-lemma linear_add_cmul:
-  assumes "linear f"
-  shows "f (a *\<^sub>R x + b *\<^sub>R y) = a *\<^sub>R f x +  b *\<^sub>R f y"
-  using linear_add[of f] linear_cmul[of f] assms by simp
-
-lemma mem_convex_alt:
-  assumes "convex S" "x \<in> S" "y \<in> S" "u \<ge> 0" "v \<ge> 0" "u + v > 0"
-  shows "((u/(u+v)) *\<^sub>R x + (v/(u+v)) *\<^sub>R y) \<in> S"
-  apply (rule convexD)
-  using assms
-  apply (simp_all add: zero_le_divide_iff add_divide_distrib [symmetric])
-  done
-
-lemma inj_on_image_mem_iff: "inj_on f B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> f a \<in> f`A \<Longrightarrow> a \<in> B \<Longrightarrow> a \<in> A"
-  by (blast dest: inj_onD)
-
 lemma independent_injective_on_span_image:
   assumes iS: "independent S"
     and lf: "linear f"
@@ -3699,8 +3669,8 @@ proof -
         using y e2 h1 by auto
       then have "y \<in> S"
         using assms y hull_subset[of S] affine_hull_subset_span
-          inj_on_image_mem_iff[of f "span S" S y]
-        by auto
+          inj_on_image_mem_iff [OF \<open>inj_on f (span S)\<close>]
+        by (metis Int_iff span_inc subsetCE)
     }
     then have "z \<in> f ` (rel_interior S)"
       using mem_rel_interior_cball[of x S] \<open>e > 0\<close> x by auto
@@ -6318,12 +6288,9 @@ definition open_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a se
 
 definition "between = (\<lambda>(a,b) x. x \<in> closed_segment a b)"
 
-lemmas segment = open_segment_def closed_segment_def
-
-lemma open_closed_segment: "u \<in> open_segment w z \<Longrightarrow> u \<in> closed_segment w z"
-  by (auto simp add: closed_segment_def open_segment_def)
-
 definition "starlike s \<longleftrightarrow> (\<exists>a\<in>s. \<forall>x\<in>s. closed_segment a x \<subseteq> s)"
+
+lemmas segment = open_segment_def closed_segment_def
 
 lemma midpoint_refl: "midpoint x x = x"
   unfolding midpoint_def
@@ -6406,6 +6373,9 @@ proof -
     by (safe; rule_tac x="1 - u" in exI; force)
 qed
 
+lemma open_closed_segment: "u \<in> open_segment w z \<Longrightarrow> u \<in> closed_segment w z"
+  by (auto simp add: closed_segment_def open_segment_def)
+
 lemma segment_open_subset_closed:
    "open_segment a b \<subseteq> closed_segment a b"
   by (auto simp: closed_segment_def open_segment_def)
@@ -6445,15 +6415,25 @@ lemma segment_bound:
   using segment_furthest_le[OF assms, of b]
   by (auto simp add:norm_minus_commute)
 
-lemma segment_refl [simp]: "closed_segment a a = {a}"
-  unfolding segment by (auto simp add: algebra_simps)
-
 lemma closed_segment_commute: "closed_segment a b = closed_segment b a"
 proof -
   have "{a, b} = {b, a}" by auto
   thus ?thesis
     by (simp add: segment_convex_hull)
 qed
+
+lemma open_segment_commute: "open_segment a b = open_segment b a"
+proof -
+  have "{a, b} = {b, a}" by auto
+  thus ?thesis
+    by (simp add: closed_segment_commute open_segment_def)
+qed
+
+lemma closed_segment_idem [simp]: "closed_segment a a = {a}"
+  unfolding segment by (auto simp add: algebra_simps)
+
+lemma open_segment_idem [simp]: "open_segment a a = {}"
+  by (simp add: open_segment_def)
 
 lemma closed_segment_eq_real_ivl:
   fixes a b::real

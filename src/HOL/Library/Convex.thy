@@ -48,6 +48,14 @@ lemma convexD_alt:
   shows "((1 - u) *\<^sub>R a + u *\<^sub>R b) \<in> s"
   using assms unfolding convex_alt by auto
 
+lemma mem_convex_alt:
+  assumes "convex S" "x \<in> S" "y \<in> S" "u \<ge> 0" "v \<ge> 0" "u + v > 0"
+  shows "((u/(u+v)) *\<^sub>R x + (v/(u+v)) *\<^sub>R y) \<in> S"
+  apply (rule convexD)
+  using assms
+  apply (simp_all add: zero_le_divide_iff add_divide_distrib [symmetric])
+  done
+
 lemma convex_empty[intro,simp]: "convex {}"
   unfolding convex_def by simp
 

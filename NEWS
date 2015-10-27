@@ -459,8 +459,8 @@ not available during instantiation.
     less_eq_multiset_def
     INCOMPATIBILITY
 
-* Multivariate_Analysis/Cauchy_Integral_Thm: Complex path integrals and Cauchy's
-integral theorem, ported from HOL Light
+* Multivariate_Analysis/Cauchy_Integral_Thm: Complex path integrals, Cauchy's
+integral theorem, winding numbers and Cauchy's integral formula, ported from HOL Light
 
 * Multivariate_Analysis: Added topological concepts such as connected components
 and the inside or outside of a set.
