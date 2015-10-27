@@ -1807,6 +1807,14 @@ text \<open>
   Shortcuts\<close> according to national keyboard, e.g.\ \<^verbatim>\<open>COMMAND+SLASH\<close>
   on English ones.
 
+  \<^item> \<^bold>\<open>Problem:\<close> On Mac OS X with native Apple look-and-feel, some exotic
+  national keyboards may cause a conflict of menu accelerator keys with
+  regular jEdit key bindings. This leads to duplicate execution of the
+  corresponding jEdit action.
+
+  \<^bold>\<open>Workaround:\<close> Disable the native Apple menu bar via Java runtime option
+  \<^verbatim>\<open>-Dapple.laf.useScreenMenuBar=false\<close>.
+
   \<^item> \<^bold>\<open>Problem:\<close> Mac OS X system fonts sometimes lead to
   character drop-outs in the main text area.
 
