@@ -181,9 +181,6 @@ object GUI
 
   def isabelle_image(): Image = isabelle_icon().getImage
 
-  def isabelle_images(): java.util.List[Image] =
-    WrapAsJava.seqAsJavaList(isabelle_icons.map(_.getImage))
-
 
   /* component hierachy */
 

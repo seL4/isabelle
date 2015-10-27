@@ -153,8 +153,6 @@ object Session_Build
 
     /* main */
 
-    setIconImages(GUI.isabelle_images())
-
     setTitle("Isabelle build (" +
       Isabelle_System.getenv("ML_IDENTIFIER") + " / " +
       "jdk-" + Platform.jvm_version + "_" + Platform.jvm_platform + ")")
