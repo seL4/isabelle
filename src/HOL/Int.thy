@@ -724,7 +724,35 @@ lemma Ints_induct [case_names of_int, induct set: Ints]:
   "q \<in> \<int> \<Longrightarrow> (\<And>z. P (of_int z)) \<Longrightarrow> P q"
   by (rule Ints_cases) auto
 
+lemma Nats_subset_Ints: "\<nat> \<subseteq> \<int>"
+  unfolding Nats_def Ints_def
+  by (rule subsetI, elim imageE, hypsubst, subst of_int_of_nat_eq[symmetric], rule imageI) simp_all
+
+lemma Nats_altdef1: "\<nat> = {of_int n |n. n \<ge> 0}"
+proof (intro subsetI equalityI)
+  fix x :: 'a assume "x \<in> {of_int n |n. n \<ge> 0}"
+  then obtain n where "x = of_int n" "n \<ge> 0" by (auto elim!: Ints_cases)
+  hence "x = of_nat (nat n)" by (subst of_nat_nat) simp_all
+  thus "x \<in> \<nat>" by simp
+next
+  fix x :: 'a assume "x \<in> \<nat>"
+  then obtain n where "x = of_nat n" by (auto elim!: Nats_cases)
+  hence "x = of_int (int n)" by simp
+  also have "int n \<ge> 0" by simp
+  hence "of_int (int n) \<in> {of_int n |n. n \<ge> 0}" by blast
+  finally show "x \<in> {of_int n |n. n \<ge> 0}" .
+qed
+
 end
+
+lemma (in linordered_idom) Nats_altdef2: "\<nat> = {n \<in> \<int>. n \<ge> 0}"
+proof (intro subsetI equalityI)
+  fix x :: 'a assume "x \<in> {n \<in> \<int>. n \<ge> 0}"
+  then obtain n where "x = of_int n" "n \<ge> 0" by (auto elim!: Ints_cases)
+  hence "x = of_nat (nat n)" by (subst of_nat_nat) simp_all
+  thus "x \<in> \<nat>" by simp
+qed (auto elim!: Nats_cases)
+
 
 text \<open>The premise involving @{term Ints} prevents @{term "a = 1/2"}.\<close>
 

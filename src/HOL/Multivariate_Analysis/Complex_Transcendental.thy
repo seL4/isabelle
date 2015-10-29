@@ -977,7 +977,6 @@ lemma exists_complex_root:
   apply (auto simp: exp_of_nat_mult [symmetric])
   done
 
-
 subsection\<open>The Unwinding Number and the Ln-product Formula\<close>
 
 text\<open>Note that in this special case the unwinding number is -1, 0 or 1.\<close>
@@ -1262,6 +1261,21 @@ lemma Ln_times_ii:
         Im_Ln_eq_pi [of z] Im_Ln_pos_lt [of z] Re_Ln_pos_le [of z]
   by (auto simp: of_real_numeral Ln_times)
 
+lemma Ln_of_nat: "0 < n \<Longrightarrow> Ln (of_nat n) = of_real (ln (of_nat n))"
+  by (subst of_real_of_nat_eq[symmetric], subst Ln_of_real[symmetric]) simp_all
+
+lemma Ln_of_nat_over_of_nat: 
+  assumes "m > 0" "n > 0"
+  shows   "Ln (of_nat m / of_nat n) = of_real (ln (of_nat m) - ln (of_nat n))"
+proof -
+  have "of_nat m / of_nat n = (of_real (of_nat m / of_nat n) :: complex)" by simp
+  also from assms have "Ln ... = of_real (ln (of_nat m / of_nat n))"
+    by (simp add: Ln_of_real[symmetric])
+  also from assms have "... = of_real (ln (of_nat m) - ln (of_nat n))"
+    by (simp add: ln_div)
+  finally show ?thesis .
+qed
+
 
 subsection\<open>Relation between Ln and Arg, and hence continuity of Arg\<close>
 
@@ -1445,6 +1459,15 @@ lemma norm_powr_real: "w \<in> \<real> \<Longrightarrow> 0 < Re w \<Longrightarr
   using Im_Ln_eq_0 complex_is_Real_iff norm_complex_def
   by auto
 
+lemma cnj_powr:
+  assumes "Im a = 0 \<Longrightarrow> Re a \<ge> 0"
+  shows   "cnj (a powr b) = cnj a powr cnj b"
+proof (cases "a = 0")
+  case False
+  with assms have "Im a = 0 \<Longrightarrow> Re a > 0" by (auto simp: complex_eq_iff)
+  with False show ?thesis by (simp add: powr_def exp_cnj cnj_Ln)
+qed simp
+
 lemma powr_real_real:
     "\<lbrakk>w \<in> \<real>; z \<in> \<real>; 0 < Re w\<rbrakk> \<Longrightarrow> w powr z = exp(Re z * ln(Re w))"
   apply (simp add: powr_def)
@@ -1466,6 +1489,19 @@ lemma powr_times_real:
            \<Longrightarrow> (x * y) powr z = x powr z * y powr z"
   by (auto simp: Reals_def powr_def Ln_times exp_add algebra_simps less_eq_real_def Ln_of_real)
 
+lemma powr_neg_real_complex:
+  shows   "(- of_real x) powr a = (-1) powr (of_real (sgn x) * a) * of_real x powr (a :: complex)"
+proof (cases "x = 0")
+  assume x: "x \<noteq> 0"
+  hence "(-x) powr a = exp (a * ln (-of_real x))" by (simp add: powr_def)
+  also from x have "ln (-of_real x) = Ln (of_real x) + of_real (sgn x) * pi * \<i>"
+    by (simp add: Ln_minus Ln_of_real)
+  also from x assms have "exp (a * ...) = cis pi powr (of_real (sgn x) * a) * of_real x powr a"
+    by (simp add: powr_def exp_add algebra_simps Ln_of_real cis_conv_exp)
+  also note cis_pi
+  finally show ?thesis by simp
+qed simp_all
+
 lemma has_field_derivative_powr:
     "(Im z = 0 \<Longrightarrow> 0 < Re z)
      \<Longrightarrow> ((\<lambda>z. z powr s) has_field_derivative (s * z powr (s - 1))) (at z)"
@@ -1476,6 +1512,25 @@ lemma has_field_derivative_powr:
   apply (intro derivative_eq_intros | simp add: assms)+
   apply (simp add: field_simps exp_diff)
   done
+
+lemma has_field_derivative_powr_complex':
+  assumes "Im z \<noteq> 0 \<or> Re z > 0"
+  shows "((\<lambda>z. z powr r :: complex) has_field_derivative r * z powr (r - 1)) (at z)"
+proof (subst DERIV_cong_ev[OF refl _ refl])
+  from assms have "eventually (\<lambda>z. z \<noteq> 0) (nhds z)" by (intro t1_space_nhds) auto
+  thus "eventually (\<lambda>z. z powr r = Exp (r * Ln z)) (nhds z)"
+    unfolding powr_def by eventually_elim simp
+
+  have "((\<lambda>z. Exp (r * Ln z)) has_field_derivative Exp (r * Ln z) * (inverse z * r)) (at z)" 
+    using assms by (auto intro!: derivative_eq_intros has_field_derivative_powr)
+  also have "Exp (r * Ln z) * (inverse z * r) = r * z powr (r - 1)"
+    unfolding powr_def by (simp add: assms exp_diff field_simps)
+  finally show "((\<lambda>z. Exp (r * Ln z)) has_field_derivative r * z powr (r - 1)) (at z)" 
+    by simp
+qed
+
+declare has_field_derivative_powr_complex'[THEN DERIV_chain2, derivative_intros]
+
 
 lemma has_field_derivative_powr_right:
     "w \<noteq> 0 \<Longrightarrow> ((\<lambda>z. w powr z) has_field_derivative Ln w * w powr z) (at z)"

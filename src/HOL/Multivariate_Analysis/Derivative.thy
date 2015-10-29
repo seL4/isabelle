@@ -1135,6 +1135,15 @@ proof -
     by metis
 qed
 
+lemma has_field_derivative_zero_constant:
+  assumes "convex s" "\<And>x. x \<in> s \<Longrightarrow> (f has_field_derivative 0) (at x within s)"
+  shows   "\<exists>c. \<forall>x\<in>s. f (x) = (c :: 'a :: real_normed_field)"
+proof (rule has_derivative_zero_constant)
+  have A: "op * 0 = (\<lambda>_. 0 :: 'a)" by (intro ext) simp
+  fix x assume "x \<in> s" thus "(f has_derivative (\<lambda>h. 0)) (at x within s)"
+    using assms(2)[of x] by (simp add: has_field_derivative_def A)
+qed fact
+
 lemma has_derivative_zero_unique:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "convex s"

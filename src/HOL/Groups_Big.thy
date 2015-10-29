@@ -930,6 +930,14 @@ proof -
   finally show ?thesis .
 qed
 
+lemma setsum_cong_Suc:
+  assumes "0 \<notin> A" "\<And>x. Suc x \<in> A \<Longrightarrow> f (Suc x) = g (Suc x)"
+  shows   "setsum f A = setsum g A"
+proof (rule setsum.cong)
+  fix x assume "x \<in> A"
+  with assms(1) show "f x = g x" by (cases x) (auto intro!: assms(2))
+qed simp_all
+
 
 subsubsection \<open>Cardinality as special case of @{const setsum}\<close>
 

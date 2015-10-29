@@ -1436,6 +1436,39 @@ lemma LIMSEQ_inverse_real_of_nat_add_minus_mult:
   using tendsto_mult [OF tendsto_const LIMSEQ_inverse_real_of_nat_add_minus [of 1]]
   by auto
 
+lemma lim_1_over_n: "((\<lambda>n. 1 / of_nat n) ---> (0::'a::real_normed_field)) sequentially"
+proof (subst lim_sequentially, intro allI impI exI)
+  fix e :: real assume e: "e > 0"
+  fix n :: nat assume n: "n \<ge> nat \<lceil>inverse e + 1\<rceil>"
+  have "inverse e < of_nat (nat \<lceil>inverse e + 1\<rceil>)" by linarith
+  also note n
+  finally show "dist (1 / of_nat n :: 'a) 0 < e" using e 
+    by (simp add: divide_simps mult.commute norm_conv_dist[symmetric] norm_divide)
+qed
+
+lemma lim_inverse_n: "((\<lambda>n. inverse(of_nat n)) ---> (0::'a::real_normed_field)) sequentially"
+  using lim_1_over_n by (simp add: inverse_eq_divide)
+
+lemma LIMSEQ_Suc_n_over_n: "(\<lambda>n. of_nat (Suc n) / of_nat n :: 'a :: real_normed_field) ----> 1"
+proof (rule Lim_transform_eventually)
+  show "eventually (\<lambda>n. 1 + inverse (of_nat n :: 'a) = of_nat (Suc n) / of_nat n) sequentially"
+    using eventually_gt_at_top[of "0::nat"] by eventually_elim (simp add: field_simps)
+  have "(\<lambda>n. 1 + inverse (of_nat n) :: 'a) ----> 1 + 0"
+    by (intro tendsto_add tendsto_const lim_inverse_n)
+  thus "(\<lambda>n. 1 + inverse (of_nat n) :: 'a) ----> 1" by simp
+qed
+
+lemma LIMSEQ_n_over_Suc_n: "(\<lambda>n. of_nat n / of_nat (Suc n) :: 'a :: real_normed_field) ----> 1"
+proof (rule Lim_transform_eventually)
+  show "eventually (\<lambda>n. inverse (of_nat (Suc n) / of_nat n :: 'a) = 
+                        of_nat n / of_nat (Suc n)) sequentially"
+    using eventually_gt_at_top[of "0::nat"] 
+    by eventually_elim (simp add: field_simps del: of_nat_Suc)
+  have "(\<lambda>n. inverse (of_nat (Suc n) / of_nat n :: 'a)) ----> inverse 1"
+    by (intro tendsto_inverse LIMSEQ_Suc_n_over_n) simp_all
+  thus "(\<lambda>n. inverse (of_nat (Suc n) / of_nat n :: 'a)) ----> 1" by simp
+qed
+
 subsection \<open>Convergence on sequences\<close>
 
 lemma convergent_add:

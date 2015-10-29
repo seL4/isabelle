@@ -25,6 +25,14 @@ lemma real_fact_nat [simp]: "real (fact n :: nat) = fact n"
 lemma real_fact_int [simp]: "real (fact n :: int) = fact n"
   by (metis of_int_of_nat_eq of_nat_fact real_of_int_def)
 
+lemma norm_fact [simp]:
+  "norm (fact n :: 'a :: {real_normed_algebra_1}) = fact n"
+proof -
+  have "(fact n :: 'a) = of_real (fact n)" by simp
+  also have "norm \<dots> = fact n" by (subst norm_of_real) simp
+  finally show ?thesis .
+qed
+
 lemma root_test_convergence:
   fixes f :: "nat \<Rightarrow> 'a::banach"
   assumes f: "(\<lambda>n. root n (norm (f n))) ----> x" -- "could be weakened to lim sup"
@@ -2431,6 +2439,14 @@ lemma powr_mono2:
   apply (metis dual_order.strict_iff_order powr_less_mono2)
   done
 
+lemma powr_mono2':
+  assumes "a \<le> 0" "x > 0" "x \<le> (y::real)"
+  shows   "x powr a \<ge> y powr a"
+proof -
+  from assms have "x powr -a \<le> y powr -a" by (intro powr_mono2) simp_all
+  with assms show ?thesis by (auto simp add: powr_minus field_simps)
+qed
+
 lemma powr_inj:
   fixes x::real shows "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x = a powr y \<longleftrightarrow> x = y"
   unfolding powr_def exp_inj_iff by simp
@@ -2541,6 +2557,19 @@ lemma DERIV_fun_powr:
   shows  "DERIV (\<lambda>x. (g x) powr r) x :> r * (g x) powr (r - of_nat 1) * m"
   using DERIV_powr[OF g pos DERIV_const, of r] pos
   by (simp add: powr_divide2[symmetric] field_simps)
+
+lemma has_real_derivative_powr:
+  assumes "z > 0"
+  shows "((\<lambda>z. z powr r) has_real_derivative r * z powr (r - 1)) (at z)"
+proof (subst DERIV_cong_ev[OF refl _ refl])
+  from assms have "eventually (\<lambda>z. z \<noteq> 0) (nhds z)" by (intro t1_space_nhds) auto
+  thus "eventually (\<lambda>z. z powr r = exp (r * ln z)) (nhds z)"
+    unfolding powr_def by eventually_elim simp
+  from assms show "((\<lambda>z. exp (r * ln z)) has_real_derivative r * z powr (r - 1)) (at z)"
+    by (auto intro!: derivative_eq_intros simp: powr_def field_simps exp_diff)
+qed
+
+declare has_real_derivative_powr[THEN DERIV_chain2, derivative_intros]
 
 lemma tendsto_zero_powrI:
   assumes "(f ---> (0::real)) F" "(g ---> b) F" "\<forall>\<^sub>F x in F. 0 \<le> f x" "0 < b"

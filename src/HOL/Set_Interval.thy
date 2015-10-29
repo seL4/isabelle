@@ -409,6 +409,11 @@ lemma atLeastAtMost_subseteq_atLeastLessThan_iff:
   "{a .. b} \<subseteq> { c ..< d } \<longleftrightarrow> (a \<le> b \<longrightarrow> c \<le> a \<and> b < d)"
   using dense[of "max a d" "b"]
   by (force simp: subset_eq Ball_def not_less[symmetric])
+  
+lemma greaterThanLessThan_subseteq_greaterThanLessThan:
+  "{a <..< b} \<subseteq> {c <..< d} \<longleftrightarrow> (a < b \<longrightarrow> a \<ge> c \<and> b \<le> d)"
+  using dense[of "a" "min c b"] dense[of "max a d" "b"]
+  by (force simp: subset_eq Ball_def not_less[symmetric])
 
 lemma greaterThanAtMost_subseteq_atLeastLessThan_iff:
   "{a <.. b} \<subseteq> { c ..< d } \<longleftrightarrow> (a < b \<longrightarrow> c \<le> a \<and> b < d)"
@@ -1648,6 +1653,18 @@ lemma setsum_zero_power' [simp]:
   by auto
 
 
+subsection \<open>Telescoping\<close>
+
+lemma setsum_telescope:
+  fixes f::"nat \<Rightarrow> 'a::ab_group_add"
+  shows "setsum (\<lambda>i. f i - f (Suc i)) {.. i} = f 0 - f (Suc i)"
+  by (induct i) simp_all
+
+lemma setsum_telescope'':
+  assumes "m \<le> n"
+  shows   "(\<Sum>k\<in>{Suc m..n}. f k - f (k - 1)) = f n - (f m :: 'a :: ab_group_add)"
+  by (rule dec_induct[OF assms]) (simp_all add: algebra_simps)
+
 subsection \<open>The formula for geometric sums\<close>
 
 lemma geometric_sum:
@@ -1843,6 +1860,40 @@ next
   case False
   then show ?thesis
     by auto
+qed
+
+
+subsection \<open>Shifting bounds\<close>
+
+lemma setprod_shift_bounds_nat_ivl:
+  "setprod f {m+k..<n+k} = setprod (%i. f(i + k)){m..<n::nat}"
+by (induct "n", auto simp:atLeastLessThanSuc)
+
+lemma setprod_shift_bounds_cl_nat_ivl:
+  "setprod f {m+k..n+k} = setprod (%i. f(i + k)){m..n::nat}"
+  by (rule setprod.reindex_bij_witness[where i="\<lambda>i. i + k" and j="\<lambda>i. i - k"]) auto
+
+corollary setprod_shift_bounds_cl_Suc_ivl:
+  "setprod f {Suc m..Suc n} = setprod (%i. f(Suc i)){m..n}"
+by (simp add:setprod_shift_bounds_cl_nat_ivl[where k="Suc 0", simplified])
+
+corollary setprod_shift_bounds_Suc_ivl:
+  "setprod f {Suc m..<Suc n} = setprod (%i. f(Suc i)){m..<n}"
+by (simp add:setprod_shift_bounds_nat_ivl[where k="Suc 0", simplified])
+
+lemma setprod_lessThan_Suc: "setprod f {..<Suc n} = setprod f {..<n} * f n"
+  by (simp add: lessThan_Suc mult.commute)
+
+lemma setprod_atLeastLessThan_Suc: "a \<le> b \<Longrightarrow> setprod f {a..<Suc b} = setprod f {a..<b} * f b"
+  by (simp add: atLeastLessThanSuc mult.commute)
+
+lemma setprod_nat_ivl_Suc':
+  assumes "m \<le> Suc n"
+  shows   "setprod f {m..Suc n} = f (Suc n) * setprod f {m..n}"
+proof -
+  from assms have "{m..Suc n} = insert (Suc n) {m..n}" by auto
+  also have "setprod f \<dots> = f (Suc n) * setprod f {m..n}" by simp
+  finally show ?thesis .
 qed
 
 end

@@ -6019,12 +6019,6 @@ qed
 
 subsection \<open>Taylor series expansion\<close>
 
-lemma
-  setsum_telescope:
-  fixes f::"nat \<Rightarrow> 'a::ab_group_add"
-  shows "setsum (\<lambda>i. f i - f (Suc i)) {.. i} = f 0 - f (Suc i)"
-  by (induct i) simp_all
-
 lemma (in bounded_bilinear) setsum_prod_derivatives_has_vector_derivative:
   assumes "p>0"
   and f0: "Df 0 = f"

@@ -1506,6 +1506,18 @@ proof -
     by (metis islimpt_approachable closed_limpt [where 'a='a])
 qed
 
+lemma closed_of_nat_image: "closed (of_nat ` A :: 'a :: real_normed_algebra_1 set)"
+  by (rule discrete_imp_closed[of 1]) (auto simp: dist_of_nat)
+
+lemma closed_of_int_image: "closed (of_int ` A :: 'a :: real_normed_algebra_1 set)"
+  by (rule discrete_imp_closed[of 1]) (auto simp: dist_of_int)
+
+lemma closed_Nats [simp]: "closed (\<nat> :: 'a :: real_normed_algebra_1 set)"
+  unfolding Nats_def by (rule closed_of_nat_image)
+
+lemma closed_Ints [simp]: "closed (\<int> :: 'a :: real_normed_algebra_1 set)"
+  unfolding Ints_def by (rule closed_of_int_image)
+
 
 subsection \<open>Interior of a Set\<close>
 

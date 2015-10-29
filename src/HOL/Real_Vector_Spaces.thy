@@ -735,6 +735,9 @@ proof -
   thus ?thesis by simp
 qed
 
+lemma norm_uminus_minus: "norm (-x - y :: 'a :: real_normed_vector) = norm (x + y)"
+  by (subst (2) norm_minus_cancel[symmetric], subst minus_add_distrib) simp
+
 lemma norm_triangle_ineq2:
   fixes a b :: "'a::real_normed_vector"
   shows "norm a - norm b \<le> norm (a - b)"
@@ -1280,6 +1283,18 @@ lemma norm_conv_dist: "norm x = dist x 0"
 
 lemma dist_diff [simp]: "dist a (a - b) = norm b"  "dist (a - b) a = norm b"
   by (simp_all add: dist_norm)
+  
+lemma dist_of_int: "dist (of_int m) (of_int n :: 'a :: real_normed_algebra_1) = of_int \<bar>m - n\<bar>"
+proof -
+  have "dist (of_int m) (of_int n :: 'a) = dist (of_int m :: 'a) (of_int m - (of_int (m - n)))"
+    by simp
+  also have "\<dots> = of_int \<bar>m - n\<bar>" by (subst dist_diff, subst norm_of_int) simp
+  finally show ?thesis .
+qed
+
+lemma dist_of_nat: 
+  "dist (of_nat m) (of_nat n :: 'a :: real_normed_algebra_1) = of_int \<bar>int m - int n\<bar>"
+  by (subst (1 2) of_int_of_nat_eq [symmetric]) (rule dist_of_int)
   
 subsection \<open>Bounded Linear and Bilinear Operators\<close>
 
