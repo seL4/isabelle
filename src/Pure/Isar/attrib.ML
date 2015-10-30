@@ -510,7 +510,7 @@ end;
 (* theory setup *)
 
 val _ = Theory.setup
- (register_config quick_and_dirty_raw #>
+ (register_config Goal.quick_and_dirty_raw #>
   register_config Ast.trace_raw #>
   register_config Ast.stats_raw #>
   register_config Printer.show_brackets_raw #>
