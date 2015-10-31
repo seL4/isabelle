@@ -34,8 +34,7 @@ object GUI
       if (Platform.is_windows || Platform.is_macos)
         UIManager.getSystemLookAndFeelClassName()
       else
-        find_laf("Nimbus") getOrElse
-          UIManager.getCrossPlatformLookAndFeelClassName()
+        UIManager.getCrossPlatformLookAndFeelClassName()
     }
 
   def init_laf(): Unit = UIManager.setLookAndFeel(get_laf())
