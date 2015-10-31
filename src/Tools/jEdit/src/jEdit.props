@@ -1,5 +1,4 @@
 #jEdit properties
-action-bar.shortcut=C+ENTER
 buffer.deepIndent=false
 buffer.encoding=UTF-8-Isabelle
 buffer.indentSize=2
@@ -241,7 +240,7 @@ largefilemode=full
 line-end.shortcut=END
 line-home.shortcut=HOME
 logo.icon.medium=32x32/apps/isabelle.gif
-lookAndFeel=javax.swing.plaf.nimbus.NimbusLookAndFeel
+lookAndFeel=javax.swing.plaf.metal.MetalLookAndFeel
 match-bracket.shortcut2=C+9
 navigator.showOnToolbar=true
 next-bracket.shortcut2=C+e C+9

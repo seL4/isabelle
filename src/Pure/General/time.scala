@@ -15,8 +15,10 @@ object Time
 {
   def seconds(s: Double): Time = new Time((s * 1000.0).round)
   def ms(m: Long): Time = new Time(m)
-  val zero: Time = ms(0)
   def now(): Time = ms(System.currentTimeMillis())
+
+  val zero: Time = ms(0)
+  val start: Time = now()
 
   def print_seconds(s: Double): String =
     String.format(Locale.ROOT, "%.3f", s.asInstanceOf[AnyRef])
