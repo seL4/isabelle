@@ -79,6 +79,9 @@ that is a cartouche: \<^name>\<open>...\<close> is equivalent to @{name \<open>.
 standard Isabelle fonts provide glyphs to render important control
 symbols, e.g. "\<^verbatim>", "\<^emph>", "\<^bold>".
 
+* System option "document_symbols" determines completion of Isabelle
+symbols within document source.
+
 * Antiquotation @{cartouche} in Isabelle/Pure is the same as @{text}.
 Consequently, \<open>...\<close> without any decoration prints literal quasi-formal
 text. Command-line tool "isabelle update_cartouches -t" helps to update
