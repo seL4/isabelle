@@ -22,7 +22,8 @@ text \<open>
   on \<open>E\<close>, and \<open>f\<close> be a linear form defined on \<open>F\<close> such that \<open>f\<close> is bounded
   by \<open>p\<close>, i.e. \<open>\<forall>x \<in> F. f x \<le> p x\<close>. Then \<open>f\<close> can be extended to a linear
   form \<open>h\<close> on \<open>E\<close> such that \<open>h\<close> is norm-preserving, i.e. \<open>h\<close> is also bounded
-  by \<open>p\<close>. \<close>
+  by \<open>p\<close>.
+\<close>
 
 paragraph \<open>Proof Sketch.\<close>
 text \<open>
