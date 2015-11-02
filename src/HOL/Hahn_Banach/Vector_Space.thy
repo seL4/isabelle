@@ -11,9 +11,9 @@ begin
 subsection \<open>Signature\<close>
 
 text \<open>
-  For the definition of real vector spaces a type @{typ 'a} of the
-  sort \<open>{plus, minus, zero}\<close> is considered, on which a real
-  scalar multiplication \<open>\<cdot>\<close> is declared.
+  For the definition of real vector spaces a type @{typ 'a} of the sort
+  \<open>{plus, minus, zero}\<close> is considered, on which a real scalar multiplication
+  \<open>\<cdot>\<close> is declared.
 \<close>
 
 consts
@@ -23,13 +23,13 @@ consts
 subsection \<open>Vector space laws\<close>
 
 text \<open>
-  A \<^emph>\<open>vector space\<close> is a non-empty set \<open>V\<close> of elements from
-  @{typ 'a} with the following vector space laws: The set \<open>V\<close> is
-  closed under addition and scalar multiplication, addition is
-  associative and commutative; \<open>- x\<close> is the inverse of \<open>x\<close> w.~r.~t.~addition and \<open>0\<close> is the neutral element of
-  addition.  Addition and multiplication are distributive; scalar
-  multiplication is associative and the real number \<open>1\<close> is
-  the neutral element of scalar multiplication.
+  A \<^emph>\<open>vector space\<close> is a non-empty set \<open>V\<close> of elements from @{typ 'a} with
+  the following vector space laws: The set \<open>V\<close> is closed under addition and
+  scalar multiplication, addition is associative and commutative; \<open>- x\<close> is
+  the inverse of \<open>x\<close> wrt.\ addition and \<open>0\<close> is the neutral element of
+  addition. Addition and multiplication are distributive; scalar
+  multiplication is associative and the real number \<open>1\<close> is the neutral
+  element of scalar multiplication.
 \<close>
 
 locale vectorspace =
@@ -64,7 +64,8 @@ lemma diff_closed [iff]: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow
 lemma neg_closed [iff]: "x \<in> V \<Longrightarrow> - x \<in> V"
   by (simp add: negate_eq1)
 
-lemma add_left_commute: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> z \<in> V \<Longrightarrow> x + (y + z) = y + (x + z)"
+lemma add_left_commute:
+  "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> z \<in> V \<Longrightarrow> x + (y + z) = y + (x + z)"
 proof -
   assume xyz: "x \<in> V"  "y \<in> V"  "z \<in> V"
   then have "x + (y + z) = (x + y) + z"
@@ -77,8 +78,8 @@ qed
 lemmas add_ac = add_assoc add_commute add_left_commute
 
 
-text \<open>The existence of the zero element of a vector space
-  follows from the non-emptiness of carrier set.\<close>
+text \<open>The existence of the zero element of a vector space follows from the
+  non-emptiness of carrier set.\<close>
 
 lemma zero [iff]: "0 \<in> V"
 proof -
@@ -213,7 +214,8 @@ next
   then show "x + y = x + z" by (simp only:)
 qed
 
-lemma add_right_cancel: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> z \<in> V \<Longrightarrow> (y + x = z + x) = (y = z)"
+lemma add_right_cancel:
+    "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> z \<in> V \<Longrightarrow> (y + x = z + x) = (y = z)"
   by (simp only: add_commute add_left_cancel)
 
 lemma add_assoc_cong:
@@ -371,4 +373,3 @@ qed
 end
 
 end
-

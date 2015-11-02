@@ -11,9 +11,9 @@ begin
 subsection \<open>Quasinorms\<close>
 
 text \<open>
-  A \<^emph>\<open>seminorm\<close> \<open>\<parallel>\<cdot>\<parallel>\<close> is a function on a real vector space
-  into the reals that has the following properties: it is positive
-  definite, absolute homogeneous and subadditive.
+  A \<^emph>\<open>seminorm\<close> \<open>\<parallel>\<cdot>\<parallel>\<close> is a function on a real vector space into the reals
+  that has the following properties: it is positive definite, absolute
+  homogeneous and subadditive.
 \<close>
 
 locale seminorm =

@@ -70,8 +70,8 @@ definition funct :: "'a graph \<Rightarrow> ('a \<Rightarrow> real)"
   where "funct g = (\<lambda>x. (SOME y. (x, y) \<in> g))"
 
 text \<open>
-  The following lemma states that \<open>g\<close> is the graph of a function
-  if the relation induced by \<open>g\<close> is unique.
+  The following lemma states that \<open>g\<close> is the graph of a function if the
+  relation induced by \<open>g\<close> is unique.
 \<close>
 
 lemma graph_domain_funct:
@@ -93,9 +93,9 @@ qed
 subsection \<open>Norm-preserving extensions of a function\<close>
 
 text \<open>
-  Given a linear form \<open>f\<close> on the space \<open>F\<close> and a seminorm
-  \<open>p\<close> on \<open>E\<close>. The set of all linear extensions of \<open>f\<close>, to superspaces \<open>H\<close> of \<open>F\<close>, which are bounded by
-  \<open>p\<close>, is defined as follows.
+  Given a linear form \<open>f\<close> on the space \<open>F\<close> and a seminorm \<open>p\<close> on \<open>E\<close>. The
+  set of all linear extensions of \<open>f\<close>, to superspaces \<open>H\<close> of \<open>F\<close>, which are
+  bounded by \<open>p\<close>, is defined as follows.
 \<close>
 
 definition

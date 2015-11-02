@@ -2,27 +2,25 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-section \<open>The supremum w.r.t.~the function order\<close>
+section \<open>The supremum wrt.\ the function order\<close>
 
 theory Hahn_Banach_Sup_Lemmas
 imports Function_Norm Zorn_Lemma
 begin
 
 text \<open>
-  This section contains some lemmas that will be used in the proof of
-  the Hahn-Banach Theorem.  In this section the following context is
-  presumed.  Let \<open>E\<close> be a real vector space with a seminorm
-  \<open>p\<close> on \<open>E\<close>.  \<open>F\<close> is a subspace of \<open>E\<close> and
-  \<open>f\<close> a linear form on \<open>F\<close>. We consider a chain \<open>c\<close>
-  of norm-preserving extensions of \<open>f\<close>, such that \<open>\<Union>c =
-  graph H h\<close>.  We will show some properties about the limit function
-  \<open>h\<close>, i.e.\ the supremum of the chain \<open>c\<close>.
+  This section contains some lemmas that will be used in the proof of the
+  Hahn-Banach Theorem. In this section the following context is presumed.
+  Let \<open>E\<close> be a real vector space with a seminorm \<open>p\<close> on \<open>E\<close>. \<open>F\<close> is a
+  subspace of \<open>E\<close> and \<open>f\<close> a linear form on \<open>F\<close>. We consider a chain \<open>c\<close> of
+  norm-preserving extensions of \<open>f\<close>, such that \<open>\<Union>c = graph H h\<close>. We will
+  show some properties about the limit function \<open>h\<close>, i.e.\ the supremum of
+  the chain \<open>c\<close>.
 
   \<^medskip>
-  Let \<open>c\<close> be a chain of norm-preserving extensions of
-  the function \<open>f\<close> and let \<open>graph H h\<close> be the supremum
-  of \<open>c\<close>.  Every element in \<open>H\<close> is member of one of the
-  elements of the chain.
+  Let \<open>c\<close> be a chain of norm-preserving extensions of the function \<open>f\<close> and
+  let \<open>graph H h\<close> be the supremum of \<open>c\<close>. Every element in \<open>H\<close> is member of
+  one of the elements of the chain.
 \<close>
 
 lemmas [dest?] = chainsD
@@ -57,10 +55,10 @@ qed
 
 text \<open>
   \<^medskip>
-  Let \<open>c\<close> be a chain of norm-preserving extensions of
-  the function \<open>f\<close> and let \<open>graph H h\<close> be the supremum
-  of \<open>c\<close>.  Every element in the domain \<open>H\<close> of the supremum
-  function is member of the domain \<open>H'\<close> of some function \<open>h'\<close>, such that \<open>h\<close> extends \<open>h'\<close>.
+  Let \<open>c\<close> be a chain of norm-preserving extensions of the function \<open>f\<close> and
+  let \<open>graph H h\<close> be the supremum of \<open>c\<close>. Every element in the domain \<open>H\<close> of
+  the supremum function is member of the domain \<open>H'\<close> of some function \<open>h'\<close>,
+  such that \<open>h\<close> extends \<open>h'\<close>.
 \<close>
 
 lemma some_H'h':
@@ -85,10 +83,9 @@ qed
 
 text \<open>
   \<^medskip>
-  Any two elements \<open>x\<close> and \<open>y\<close> in the domain
-  \<open>H\<close> of the supremum function \<open>h\<close> are both in the domain
-  \<open>H'\<close> of some function \<open>h'\<close>, such that \<open>h\<close> extends
-  \<open>h'\<close>.
+  Any two elements \<open>x\<close> and \<open>y\<close> in the domain \<open>H\<close> of the supremum function
+  \<open>h\<close> are both in the domain \<open>H'\<close> of some function \<open>h'\<close>, such that \<open>h\<close>
+  extends \<open>h'\<close>.
 \<close>
 
 lemma some_H'h'2:
@@ -158,8 +155,8 @@ qed
 
 text \<open>
   \<^medskip>
-  The relation induced by the graph of the supremum of a
-  chain \<open>c\<close> is definite, i.~e.~t is the graph of a function.
+  The relation induced by the graph of the supremum of a chain \<open>c\<close> is
+  definite, i.e.\ it is the graph of a function.
 \<close>
 
 lemma sup_definite:
@@ -181,8 +178,8 @@ proof -
   then obtain H2 h2 where G2_rep: "G2 = graph H2 h2"
     unfolding M_def by blast
 
-  txt \<open>\<open>G\<^sub>1\<close> is contained in \<open>G\<^sub>2\<close>
-    or vice versa, since both \<open>G\<^sub>1\<close> and \<open>G\<^sub>2\<close> are members of \<open>c\<close>. \label{cases2}\<close>
+  txt \<open>\<open>G\<^sub>1\<close> is contained in \<open>G\<^sub>2\<close> or vice versa, since both \<open>G\<^sub>1\<close> and \<open>G\<^sub>2\<close>
+    are members of \<open>c\<close>. \label{cases2}\<close>
 
   from cM G1 G2 consider "G1 \<subseteq> G2" | "G2 \<subseteq> G1"
     by (blast dest: chainsD)
@@ -208,12 +205,11 @@ qed
 
 text \<open>
   \<^medskip>
-  The limit function \<open>h\<close> is linear. Every element
-  \<open>x\<close> in the domain of \<open>h\<close> is in the domain of a function
-  \<open>h'\<close> in the chain of norm preserving extensions.  Furthermore,
-  \<open>h\<close> is an extension of \<open>h'\<close> so the function values of
-  \<open>x\<close> are identical for \<open>h'\<close> and \<open>h\<close>.  Finally, the
-  function \<open>h'\<close> is linear by construction of \<open>M\<close>.
+  The limit function \<open>h\<close> is linear. Every element \<open>x\<close> in the domain of \<open>h\<close>
+  is in the domain of a function \<open>h'\<close> in the chain of norm preserving
+  extensions. Furthermore, \<open>h\<close> is an extension of \<open>h'\<close> so the function
+  values of \<open>x\<close> are identical for \<open>h'\<close> and \<open>h\<close>. Finally, the function \<open>h'\<close>
+  is linear by construction of \<open>M\<close>.
 \<close>
 
 lemma sup_lf:
@@ -264,10 +260,9 @@ qed
 
 text \<open>
   \<^medskip>
-  The limit of a non-empty chain of norm preserving
-  extensions of \<open>f\<close> is an extension of \<open>f\<close>, since every
-  element of the chain is an extension of \<open>f\<close> and the supremum
-  is an extension for every element of the chain.
+  The limit of a non-empty chain of norm preserving extensions of \<open>f\<close> is an
+  extension of \<open>f\<close>, since every element of the chain is an extension of \<open>f\<close>
+  and the supremum is an extension for every element of the chain.
 \<close>
 
 lemma sup_ext:
@@ -291,9 +286,8 @@ qed
 
 text \<open>
   \<^medskip>
-  The domain \<open>H\<close> of the limit function is a superspace
-  of \<open>F\<close>, since \<open>F\<close> is a subset of \<open>H\<close>. The
-  existence of the \<open>0\<close> element in \<open>F\<close> and the closure
+  The domain \<open>H\<close> of the limit function is a superspace of \<open>F\<close>, since \<open>F\<close> is
+  a subset of \<open>H\<close>. The existence of the \<open>0\<close> element in \<open>F\<close> and the closure
   properties follow from the fact that \<open>F\<close> is a vector space.
 \<close>
 
@@ -317,8 +311,7 @@ qed
 
 text \<open>
   \<^medskip>
-  The domain \<open>H\<close> of the limit function is a subspace of
-  \<open>E\<close>.
+  The domain \<open>H\<close> of the limit function is a subspace of \<open>E\<close>.
 \<close>
 
 lemma sup_subE:
@@ -374,8 +367,8 @@ qed
 
 text \<open>
   \<^medskip>
-  The limit function is bounded by the norm \<open>p\<close> as
-  well, since all elements in the chain are bounded by \<open>p\<close>.
+  The limit function is bounded by the norm \<open>p\<close> as well, since all elements
+  in the chain are bounded by \<open>p\<close>.
 \<close>
 
 lemma sup_norm_pres:
@@ -396,10 +389,10 @@ qed
 
 text \<open>
   \<^medskip>
-  The following lemma is a property of linear forms on real
-  vector spaces. It will be used for the lemma \<open>abs_Hahn_Banach\<close>
-  (see page \pageref{abs-Hahn_Banach}). \label{abs-ineq-iff} For real
-  vector spaces the following inequations are equivalent:
+  The following lemma is a property of linear forms on real vector spaces.
+  It will be used for the lemma \<open>abs_Hahn_Banach\<close> (see page
+  \pageref{abs-Hahn-Banach}). \label{abs-ineq-iff} For real vector spaces
+  the following inequality are equivalent:
   \begin{center}
   \begin{tabular}{lll}
   \<open>\<forall>x \<in> H. \<bar>h x\<bar> \<le> p x\<close> & and &

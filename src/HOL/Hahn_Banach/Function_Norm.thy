@@ -11,14 +11,13 @@ begin
 subsection \<open>Continuous linear forms\<close>
 
 text \<open>
-  A linear form \<open>f\<close> on a normed vector space \<open>(V, \<parallel>\<cdot>\<parallel>)\<close>
-  is \<^emph>\<open>continuous\<close>, iff it is bounded, i.e.
+  A linear form \<open>f\<close> on a normed vector space \<open>(V, \<parallel>\<cdot>\<parallel>)\<close> is \<^emph>\<open>continuous\<close>,
+  iff it is bounded, i.e.
   \begin{center}
   \<open>\<exists>c \<in> R. \<forall>x \<in> V. \<bar>f x\<bar> \<le> c \<cdot> \<parallel>x\<parallel>\<close>
   \end{center}
-  In our application no other functions than linear forms are
-  considered, so we can define continuous linear forms as bounded
-  linear forms:
+  In our application no other functions than linear forms are considered, so
+  we can define continuous linear forms as bounded linear forms:
 \<close>
 
 locale continuous = linearform +
@@ -48,28 +47,25 @@ text \<open>
   \end{center}
   is called the \<^emph>\<open>norm\<close> of \<open>f\<close>.
 
-  For non-trivial vector spaces \<open>V \<noteq> {0}\<close> the norm can be
-  defined as
+  For non-trivial vector spaces \<open>V \<noteq> {0}\<close> the norm can be defined as
   \begin{center}
   \<open>\<parallel>f\<parallel> = \<sup>x \<noteq> 0. \<bar>f x\<bar> / \<parallel>x\<parallel>\<close>
   \end{center}
 
-  For the case \<open>V = {0}\<close> the supremum would be taken from an
-  empty set. Since \<open>\<real>\<close> is unbounded, there would be no supremum.
-  To avoid this situation it must be guaranteed that there is an
-  element in this set. This element must be \<open>{} \<ge> 0\<close> so that
-  \<open>fn_norm\<close> has the norm properties. Furthermore it does not
-  have to change the norm in all other cases, so it must be \<open>0\<close>,
-  as all other elements are \<open>{} \<ge> 0\<close>.
+  For the case \<open>V = {0}\<close> the supremum would be taken from an empty set.
+  Since \<open>\<real>\<close> is unbounded, there would be no supremum. To avoid this
+  situation it must be guaranteed that there is an element in this set. This
+  element must be \<open>{} \<ge> 0\<close> so that \<open>fn_norm\<close> has the norm properties.
+  Furthermore it does not have to change the norm in all other cases, so it
+  must be \<open>0\<close>, as all other elements are \<open>{} \<ge> 0\<close>.
 
-  Thus we define the set \<open>B\<close> where the supremum is taken from as
-  follows:
+  Thus we define the set \<open>B\<close> where the supremum is taken from as follows:
   \begin{center}
   \<open>{0} \<union> {\<bar>f x\<bar> / \<parallel>x\<parallel>. x \<noteq> 0 \<and> x \<in> F}\<close>
   \end{center}
 
-  \<open>fn_norm\<close> is equal to the supremum of \<open>B\<close>, if the
-  supremum exists (otherwise it is undefined).
+  \<open>fn_norm\<close> is equal to the supremum of \<open>B\<close>, if the supremum exists
+  (otherwise it is undefined).
 \<close>
 
 locale fn_norm =
@@ -84,8 +80,8 @@ lemma (in fn_norm) B_not_empty [intro]: "0 \<in> B V f"
   by (simp add: B_def)
 
 text \<open>
-  The following lemma states that every continuous linear form on a
-  normed space \<open>(V, \<parallel>\<cdot>\<parallel>)\<close> has a function norm.
+  The following lemma states that every continuous linear form on a normed
+  space \<open>(V, \<parallel>\<cdot>\<parallel>)\<close> has a function norm.
 \<close>
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_works:
@@ -108,9 +104,9 @@ proof -
       txt \<open>We know that \<open>f\<close> is bounded by some value \<open>c\<close>.\<close>
       from bounded obtain c where c: "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..
 
-      txt \<open>To prove the thesis, we have to show that there is some
-        \<open>b\<close>, such that \<open>y \<le> b\<close> for all \<open>y \<in>
-        B\<close>. Due to the definition of \<open>B\<close> there are two cases.\<close>
+      txt \<open>To prove the thesis, we have to show that there is some \<open>b\<close>, such
+        that \<open>y \<le> b\<close> for all \<open>y \<in> B\<close>. Due to the definition of \<open>B\<close> there are
+        two cases.\<close>
 
       def b \<equiv> "max c 0"
       have "\<forall>y \<in> B V f. y \<le> b"
@@ -237,8 +233,8 @@ qed
 
 text \<open>
   \<^medskip>
-  The function norm is the least positive real number for
-  which the following inequation holds:
+  The function norm is the least positive real number for which the
+  following inequality holds:
   \begin{center}
     \<open>\<bar>f x\<bar> \<le> c \<cdot> \<parallel>x\<parallel>\<close>
   \end{center}

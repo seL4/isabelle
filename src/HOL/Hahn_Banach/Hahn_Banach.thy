@@ -9,37 +9,36 @@ imports Hahn_Banach_Lemmas
 begin
 
 text \<open>
-  We present the proof of two different versions of the Hahn-Banach
-  Theorem, closely following @{cite \<open>\S36\<close> "Heuser:1986"}.
+  We present the proof of two different versions of the Hahn-Banach Theorem,
+  closely following @{cite \<open>\S36\<close> "Heuser:1986"}.
 \<close>
+
 
 subsection \<open>The Hahn-Banach Theorem for vector spaces\<close>
 
 paragraph \<open>Hahn-Banach Theorem.\<close>
 text \<open>
-  Let \<open>F\<close> be a subspace of a real vector space \<open>E\<close>, let \<open>p\<close> be a semi-norm on \<open>E\<close>, and \<open>f\<close> be a linear form defined on
-  \<open>F\<close> such that \<open>f\<close> is bounded by \<open>p\<close>, i.e. \<open>\<forall>x \<in>
-  F. f x \<le> p x\<close>. Then \<open>f\<close> can be extended to a linear form \<open>h\<close>
-  on \<open>E\<close> such that \<open>h\<close> is norm-preserving, i.e. \<open>h\<close> is
-  also bounded by \<open>p\<close>.
-\<close>
+  Let \<open>F\<close> be a subspace of a real vector space \<open>E\<close>, let \<open>p\<close> be a semi-norm
+  on \<open>E\<close>, and \<open>f\<close> be a linear form defined on \<open>F\<close> such that \<open>f\<close> is bounded
+  by \<open>p\<close>, i.e. \<open>\<forall>x \<in> F. f x \<le> p x\<close>. Then \<open>f\<close> can be extended to a linear
+  form \<open>h\<close> on \<open>E\<close> such that \<open>h\<close> is norm-preserving, i.e. \<open>h\<close> is also bounded
+  by \<open>p\<close>. \<close>
 
 paragraph \<open>Proof Sketch.\<close>
 text \<open>
-  \<^enum> Define \<open>M\<close> as the set of norm-preserving extensions of
-  \<open>f\<close> to subspaces of \<open>E\<close>. The linear forms in \<open>M\<close>
-  are ordered by domain extension.
+  \<^enum> Define \<open>M\<close> as the set of norm-preserving extensions of \<open>f\<close> to subspaces
+  of \<open>E\<close>. The linear forms in \<open>M\<close> are ordered by domain extension.
 
-  \<^enum> We show that every non-empty chain in \<open>M\<close> has an upper
-  bound in \<open>M\<close>.
+  \<^enum> We show that every non-empty chain in \<open>M\<close> has an upper bound in \<open>M\<close>.
 
-  \<^enum> With Zorn's Lemma we conclude that there is a maximal function
-  \<open>g\<close> in \<open>M\<close>.
+  \<^enum> With Zorn's Lemma we conclude that there is a maximal function \<open>g\<close> in
+  \<open>M\<close>.
 
-  \<^enum> The domain \<open>H\<close> of \<open>g\<close> is the whole space \<open>E\<close>, as shown by classical contradiction:
+  \<^enum> The domain \<open>H\<close> of \<open>g\<close> is the whole space \<open>E\<close>, as shown by classical
+  contradiction:
 
-    \<^item> Assuming \<open>g\<close> is not defined on whole \<open>E\<close>, it can
-    still be extended in a norm-preserving way to a super-space \<open>H'\<close> of \<open>H\<close>.
+    \<^item> Assuming \<open>g\<close> is not defined on whole \<open>E\<close>, it can still be extended in
+    a norm-preserving way to a super-space \<open>H'\<close> of \<open>H\<close>.
 
     \<^item> Thus \<open>g\<close> can not be maximal. Contradiction!
 \<close>
@@ -153,7 +152,7 @@ proof -
       obtain xi where
         xi: "\<forall>y \<in> H. - p (y + x') - h y \<le> xi
           \<and> xi \<le> p (y + x') - h y"
-        -- \<open>Pick a real number \<open>\<xi>\<close> that fulfills certain inequations; this will\<close>
+        -- \<open>Pick a real number \<open>\<xi>\<close> that fulfills certain inequality; this will\<close>
         -- \<open>be used to establish that \<open>h'\<close> is a norm-preserving extension of \<open>h\<close>.
            \label{ex-xi-use}\<^smallskip>\<close>
       proof -
@@ -292,10 +291,10 @@ subsection \<open>Alternative formulation\<close>
 
 text \<open>
   The following alternative formulation of the Hahn-Banach
-  Theorem\label{abs-Hahn-Banach} uses the fact that for a real linear
-  form \<open>f\<close> and a seminorm \<open>p\<close> the following inequations
-  are equivalent:\footnote{This was shown in lemma @{thm [source]
-  abs_ineq_iff} (see page \pageref{abs-ineq-iff}).}
+  Theorem\label{abs-Hahn-Banach} uses the fact that for a real linear form
+  \<open>f\<close> and a seminorm \<open>p\<close> the following inequality are
+  equivalent:\footnote{This was shown in lemma @{thm [source] abs_ineq_iff}
+  (see page \pageref{abs-ineq-iff}).}
   \begin{center}
   \begin{tabular}{lll}
   \<open>\<forall>x \<in> H. \<bar>h x\<bar> \<le> p x\<close> & and &
@@ -336,9 +335,9 @@ qed
 subsection \<open>The Hahn-Banach Theorem for normed spaces\<close>
 
 text \<open>
-  Every continuous linear form \<open>f\<close> on a subspace \<open>F\<close> of a
-  norm space \<open>E\<close>, can be extended to a continuous linear form
-  \<open>g\<close> on \<open>E\<close> such that \<open>\<parallel>f\<parallel> = \<parallel>g\<parallel>\<close>.
+  Every continuous linear form \<open>f\<close> on a subspace \<open>F\<close> of a norm space \<open>E\<close>,
+  can be extended to a continuous linear form \<open>g\<close> on \<open>E\<close> such that \<open>\<parallel>f\<parallel> =
+  \<parallel>g\<parallel>\<close>.
 \<close>
 
 theorem norm_Hahn_Banach:
@@ -420,10 +419,10 @@ proof -
          OF F_norm, folded B_def fn_norm_def])
   qed
 
-  txt \<open>Using the fact that \<open>p\<close> is a seminorm and \<open>f\<close> is bounded
-    by \<open>p\<close> we can apply the Hahn-Banach Theorem for real vector
-    spaces. So \<open>f\<close> can be extended in a norm-preserving way to
-    some function \<open>g\<close> on the whole vector space \<open>E\<close>.\<close>
+  txt \<open>Using the fact that \<open>p\<close> is a seminorm and \<open>f\<close> is bounded by \<open>p\<close> we
+    can apply the Hahn-Banach Theorem for real vector spaces. So \<open>f\<close> can be
+    extended in a norm-preserving way to some function \<open>g\<close> on the whole
+    vector space \<open>E\<close>.\<close>
 
   with E FE linearform q obtain g where
       linearformE: "linearform E g"
@@ -445,19 +444,20 @@ proof -
   have "\<parallel>g\<parallel>\<hyphen>E = \<parallel>f\<parallel>\<hyphen>F"
   proof (rule order_antisym)
     txt \<open>
-      First we show \<open>\<parallel>g\<parallel> \<le> \<parallel>f\<parallel>\<close>.  The function norm \<open>\<parallel>g\<parallel>\<close> is defined as the smallest \<open>c \<in> \<real>\<close> such that
+      First we show \<open>\<parallel>g\<parallel> \<le> \<parallel>f\<parallel>\<close>. The function norm \<open>\<parallel>g\<parallel>\<close> is defined as the
+      smallest \<open>c \<in> \<real>\<close> such that
       \begin{center}
       \begin{tabular}{l}
       \<open>\<forall>x \<in> E. \<bar>g x\<bar> \<le> c \<cdot> \<parallel>x\<parallel>\<close>
       \end{tabular}
       \end{center}
-      \noindent Furthermore holds
+      \<^noindent> Furthermore holds
       \begin{center}
       \begin{tabular}{l}
       \<open>\<forall>x \<in> E. \<bar>g x\<bar> \<le> \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>\<close>
       \end{tabular}
       \end{center}
-\<close>
+    \<close>
 
     from g_cont _ ge_zero
     show "\<parallel>g\<parallel>\<hyphen>E \<le> \<parallel>f\<parallel>\<hyphen>F"
