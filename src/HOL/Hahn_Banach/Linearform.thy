@@ -44,7 +44,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-text \<open>Every linear form yields @{text 0} for the @{text 0} vector.\<close>
+text \<open>Every linear form yields \<open>0\<close> for the \<open>0\<close> vector.\<close>
 
 lemma (in linearform) zero [iff]:
   assumes "vectorspace V"

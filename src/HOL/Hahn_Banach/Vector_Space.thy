@@ -12,8 +12,8 @@ subsection \<open>Signature\<close>
 
 text \<open>
   For the definition of real vector spaces a type @{typ 'a} of the
-  sort @{text "{plus, minus, zero}"} is considered, on which a real
-  scalar multiplication @{text \<cdot>} is declared.
+  sort \<open>{plus, minus, zero}\<close> is considered, on which a real
+  scalar multiplication \<open>\<cdot>\<close> is declared.
 \<close>
 
 consts
@@ -23,13 +23,12 @@ consts
 subsection \<open>Vector space laws\<close>
 
 text \<open>
-  A \<^emph>\<open>vector space\<close> is a non-empty set @{text V} of elements from
-  @{typ 'a} with the following vector space laws: The set @{text V} is
+  A \<^emph>\<open>vector space\<close> is a non-empty set \<open>V\<close> of elements from
+  @{typ 'a} with the following vector space laws: The set \<open>V\<close> is
   closed under addition and scalar multiplication, addition is
-  associative and commutative; @{text "- x"} is the inverse of @{text
-  x} w.~r.~t.~addition and @{text 0} is the neutral element of
+  associative and commutative; \<open>- x\<close> is the inverse of \<open>x\<close> w.~r.~t.~addition and \<open>0\<close> is the neutral element of
   addition.  Addition and multiplication are distributive; scalar
-  multiplication is associative and the real number @{text "1"} is
+  multiplication is associative and the real number \<open>1\<close> is
   the neutral element of scalar multiplication.
 \<close>
 

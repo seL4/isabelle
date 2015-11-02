@@ -9,34 +9,32 @@ imports Function_Norm
 begin
 
 text \<open>
-  In this section the following context is presumed.  Let @{text E} be
-  a real vector space with a seminorm @{text q} on @{text E}. @{text
-  F} is a subspace of @{text E} and @{text f} a linear function on
-  @{text F}. We consider a subspace @{text H} of @{text E} that is a
-  superspace of @{text F} and a linear form @{text h} on @{text
-  H}. @{text H} is a not equal to @{text E} and @{text "x\<^sub>0"} is
-  an element in @{text "E - H"}.  @{text H} is extended to the direct
-  sum @{text "H' = H + lin x\<^sub>0"}, so for any @{text "x \<in> H'"}
-  the decomposition of @{text "x = y + a \<cdot> x"} with @{text "y \<in> H"} is
-  unique. @{text h'} is defined on @{text H'} by @{text "h' x = h y +
-  a \<cdot> \<xi>"} for a certain @{text \<xi>}.
+  In this section the following context is presumed.  Let \<open>E\<close> be
+  a real vector space with a seminorm \<open>q\<close> on \<open>E\<close>. \<open>F\<close> is a subspace of \<open>E\<close> and \<open>f\<close> a linear function on
+  \<open>F\<close>. We consider a subspace \<open>H\<close> of \<open>E\<close> that is a
+  superspace of \<open>F\<close> and a linear form \<open>h\<close> on \<open>H\<close>. \<open>H\<close> is a not equal to \<open>E\<close> and \<open>x\<^sub>0\<close> is
+  an element in \<open>E - H\<close>.  \<open>H\<close> is extended to the direct
+  sum \<open>H' = H + lin x\<^sub>0\<close>, so for any \<open>x \<in> H'\<close>
+  the decomposition of \<open>x = y + a \<cdot> x\<close> with \<open>y \<in> H\<close> is
+  unique. \<open>h'\<close> is defined on \<open>H'\<close> by \<open>h' x = h y +
+  a \<cdot> \<xi>\<close> for a certain \<open>\<xi>\<close>.
 
-  Subsequently we show some properties of this extension @{text h'} of
-  @{text h}.
+  Subsequently we show some properties of this extension \<open>h'\<close> of
+  \<open>h\<close>.
 
   \<^medskip>
   This lemma will be used to show the existence of a linear
-  extension of @{text f} (see page \pageref{ex-xi-use}). It is a
-  consequence of the completeness of @{text \<real>}. To show
+  extension of \<open>f\<close> (see page \pageref{ex-xi-use}). It is a
+  consequence of the completeness of \<open>\<real>\<close>. To show
   \begin{center}
   \begin{tabular}{l}
-  @{text "\<exists>\<xi>. \<forall>y \<in> F. a y \<le> \<xi> \<and> \<xi> \<le> b y"}
+  \<open>\<exists>\<xi>. \<forall>y \<in> F. a y \<le> \<xi> \<and> \<xi> \<le> b y\<close>
   \end{tabular}
   \end{center}
   \noindent it suffices to show that
   \begin{center}
   \begin{tabular}{l}
-  @{text "\<forall>u \<in> F. \<forall>v \<in> F. a u \<le> b v"}
+  \<open>\<forall>u \<in> F. \<forall>v \<in> F. a u \<le> b v\<close>
   \end{tabular}
   \end{center}
 \<close>
@@ -48,7 +46,7 @@ lemma ex_xi:
 proof -
   interpret vectorspace F by fact
   txt \<open>From the completeness of the reals follows:
-    The set @{text "S = {a u. u \<in> F}"} has a supremum, if it is
+    The set \<open>S = {a u. u \<in> F}\<close> has a supremum, if it is
     non-empty and has an upper bound.\<close>
 
   let ?S = "{a u | u. u \<in> F}"
@@ -86,9 +84,9 @@ qed
 
 text \<open>
   \<^medskip>
-  The function @{text h'} is defined as a @{text "h' x = h y
-  + a \<cdot> \<xi>"} where @{text "x = y + a \<cdot> \<xi>"} is a linear extension of
-  @{text h} to @{text H'}.
+  The function \<open>h'\<close> is defined as a \<open>h' x = h y
+  + a \<cdot> \<xi>\<close> where \<open>x = y + a \<cdot> \<xi>\<close> is a linear extension of
+  \<open>h\<close> to \<open>H'\<close>.
 \<close>
 
 lemma h'_lf:
@@ -194,8 +192,8 @@ qed
 
 text \<open>
   \<^medskip>
-  The linear extension @{text h'} of @{text h}
-  is bounded by the seminorm @{text p}.\<close>
+  The linear extension \<open>h'\<close> of \<open>h\<close>
+  is bounded by the seminorm \<open>p\<close>.\<close>
 
 lemma h'_norm_pres:
   assumes h'_def: "h' \<equiv> \<lambda>x. let (y, a) =
@@ -235,8 +233,8 @@ proof -
         also from x0 y' z have "p y = p (y + a \<cdot> x0)" by simp
         finally show ?thesis .
       next
-        txt \<open>In the case @{text "a < 0"}, we use @{text "a\<^sub>1"}
-          with @{text ya} taken as @{text "y / a"}:\<close>
+        txt \<open>In the case \<open>a < 0\<close>, we use \<open>a\<^sub>1\<close>
+          with \<open>ya\<close> taken as \<open>y / a\<close>:\<close>
         assume lz: "a < 0" then have nz: "a \<noteq> 0" by simp
         from a1 ay
         have "- p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y) \<le> xi" ..
@@ -257,8 +255,8 @@ proof -
         finally have "a * xi \<le> p (y + a \<cdot> x0) - h y" .
         then show ?thesis by simp
       next
-        txt \<open>In the case @{text "a > 0"}, we use @{text "a\<^sub>2"}
-          with @{text ya} taken as @{text "y / a"}:\<close>
+        txt \<open>In the case \<open>a > 0\<close>, we use \<open>a\<^sub>2\<close>
+          with \<open>ya\<close> taken as \<open>y / a\<close>:\<close>
         assume gz: "0 < a" then have nz: "a \<noteq> 0" by simp
         from a2 ay
         have "xi \<le> p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y)" ..
