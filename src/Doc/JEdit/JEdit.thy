@@ -283,7 +283,7 @@ text \<open>
   Isabelle/jEdit enables platform-specific look-and-feel by default as
   follows.
 
-  \<^descr>[Linux:] The platform-independent \<^emph>\<open>Nimbus\<close> is used by
+  \<^descr>[Linux:] The platform-independent \<^emph>\<open>Metal\<close> is used by
   default.
 
   \<^emph>\<open>GTK+\<close> also works under the side-condition that the overall GTK theme
@@ -310,7 +310,7 @@ text \<open>
   Users may experiment with different look-and-feels, but need to keep
   in mind that this extra variance of GUI functionality is unlikely to
   work in arbitrary combinations.  The platform-independent
-  \<^emph>\<open>Nimbus\<close> and \<^emph>\<open>Metal\<close> should always work.  The historic
+  \<^emph>\<open>Metal\<close> and \<^emph>\<open>Nimbus\<close> should always work.  The historic
   \<^emph>\<open>CDE/Motif\<close> should be ignored.
 
   After changing the look-and-feel in \<^emph>\<open>Global Options~/
@@ -353,7 +353,7 @@ text \<open>
 
   \<^item> \<^emph>\<open>Global Options / Appearance / Button, menu and label font\<close> as
   well as \<^emph>\<open>List and text field font\<close>: this specifies the primary and
-  secondary font for the old \<^emph>\<open>Metal\<close> look-and-feel
+  secondary font for the traditional \<^emph>\<open>Metal\<close> look-and-feel
   (\secref{sec:look-and-feel}), which happens to scale better than newer ones
   like \<^emph>\<open>Nimbus\<close>.
 

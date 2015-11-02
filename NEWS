@@ -66,6 +66,10 @@ application wrapper threat the default $USER_HOME/Scratch.thy more
 uniformly, and allow the dummy file argument ":" to open an empty buffer
 instead.
 
+* The default look-and-feel for Linux is the traditional "Metal", which
+works better with GUI scaling for very high-resolution displays (e.g.
+4K). Moreover, it is generally more robust than "Nimbus".
+
 
 *** Document preparation ***
 

@@ -6,6 +6,7 @@ Goals in tactical theorem proving, with support for forked proofs.
 
 signature BASIC_GOAL =
 sig
+  val quick_and_dirty: bool Config.T
   val parallel_proofs: int Unsynchronized.ref
   val SELECT_GOAL: tactic -> int -> tactic
   val PREFER_GOAL: tactic -> int -> tactic
@@ -38,6 +39,7 @@ sig
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove_global: theory -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
+  val quick_and_dirty_raw: Config.raw
   val prove_sorry: Proof.context -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove_sorry_global: theory -> string list -> term list -> term ->
@@ -249,6 +251,12 @@ fun prove_global_future thy xs asms prop tac =
 
 fun prove_global thy xs asms prop tac =
   Drule.export_without_context (prove (Proof_Context.init_global thy) xs asms prop tac);
+
+
+(* skip proofs *)
+
+val quick_and_dirty_raw = Config.declare_option ("quick_and_dirty", @{here});
+val quick_and_dirty = Config.bool quick_and_dirty_raw;
 
 fun prove_sorry ctxt xs asms prop tac =
   if Config.get ctxt quick_and_dirty then
