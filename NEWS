@@ -400,7 +400,9 @@ been removed. INCOMPATIBILITY.
   - New commands "lift_bnf" and "copy_bnf" for lifting (copying) a BNF
     structure on the raw type to an abstract type defined using typedef.
   - Always generate "case_transfer" theorem.
-  - Allow discriminators and selectors with the same name as the type.
+  - Allow discriminators and selectors with the same name as the type
+    being defined.
+  - Avoid various internal name clashes (e.g., 'datatype f = f').
 
 * Transfer:
   - new methods for interactive debugging of 'transfer' and

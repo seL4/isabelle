@@ -105,14 +105,13 @@ sig
   val morph_gfp_sugar_thms: morphism -> gfp_sugar_thms -> gfp_sugar_thms
   val transfer_gfp_sugar_thms: theory -> gfp_sugar_thms -> gfp_sugar_thms
 
-  val mk_co_recs_prelims: BNF_Util.fp_kind -> typ list list list -> typ list -> typ list ->
-     typ list -> typ list -> int list -> int list list -> term list -> Proof.context ->
-     (term list
-      * (typ list list * typ list list list list * term list list * term list list list list) option
-      * (string * term list * term list list
-         * (((term list list * term list list * term list list list list * term list list list list)
-             * term list list list) * typ list)) option)
-     * Proof.context
+  val mk_co_recs_prelims: Proof.context -> BNF_Util.fp_kind -> typ list list list -> typ list ->
+     typ list -> typ list -> typ list -> int list -> int list list -> term list ->
+     term list
+     * (typ list list * typ list list list list * term list list * term list list list list) option
+     * (string * term list * term list list
+        * (((term list list * term list list * term list list list list * term list list list list)
+            * term list list list) * typ list)) option
   val repair_nullary_single_ctr: typ list list -> typ list list
   val mk_corec_p_pred_types: typ list -> int list -> typ list list
   val mk_corec_fun_arg_types: typ list list list -> typ list -> typ list -> typ list -> int list ->
@@ -1176,7 +1175,7 @@ fun unzip_recT (Type (@{type_name prod}, [_, TFree x]))
   | unzip_recT _ (Type (@{type_name prod}, Ts as [_, TFree _])) = Ts
   | unzip_recT _ T = [T];
 
-fun mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts lthy =
+fun mk_recs_args_types ctxt ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts =
   let
     val Css = map2 replicate ns Cs;
     val x_Tssss =
@@ -1188,11 +1187,11 @@ fun mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts lthy =
     val x_Tsss' = map (map flat_rec_arg_args) x_Tssss;
     val f_Tss = map2 (map2 (curry (op --->))) x_Tsss' Css;
 
-    val ((fss, xssss), lthy) = lthy
+    val ((fss, xssss), _) = ctxt
       |> mk_Freess "f" f_Tss
       ||>> mk_Freessss "x" x_Tssss;
   in
-    ((f_Tss, x_Tssss, fss, xssss), lthy)
+    (f_Tss, x_Tssss, fss, xssss)
   end;
 
 fun unzip_corecT (Type (@{type_name sum}, _)) T = [T]
@@ -1222,14 +1221,14 @@ fun mk_corec_fun_arg_types ctr_Tsss Cs absTs repTs ns mss dtor_corec =
    mk_corec_fun_arg_types0 ctr_Tsss Cs absTs repTs ns mss
      (binder_fun_types (fastype_of dtor_corec)));
 
-fun mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts lthy =
+fun mk_corecs_args_types ctxt ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts =
   let
     val p_Tss = mk_corec_p_pred_types Cs ns;
 
     val (q_Tssss, g_Tsss, g_Tssss, corec_types) =
       mk_corec_fun_arg_types0 ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts;
 
-    val (((((Free (x, _), cs), pss), qssss), gssss), lthy) = lthy
+    val (((((Free (x, _), cs), pss), qssss), gssss), _) = ctxt
       |> yield_singleton (mk_Frees "x") dummyT
       ||>> mk_Frees "a" Cs
       ||>> mk_Freess "p" p_Tss
@@ -1238,7 +1237,7 @@ fun mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts lthy =
 
     val cpss = map2 (map o rapp) cs pss;
 
-    fun build_sum_inj mk_inj = build_map lthy [] (uncurry mk_inj o dest_sumT o snd);
+    fun build_sum_inj mk_inj = build_map ctxt [] (uncurry mk_inj o dest_sumT o snd);
 
     fun build_dtor_corec_arg _ [] [cg] = cg
       | build_dtor_corec_arg T [cq] [cg, cg'] =
@@ -1250,25 +1249,25 @@ fun mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts lthy =
     val cgssss = map2 (map o map o map o rapp) cs gssss;
     val cqgsss = @{map 3} (@{map 3} (@{map 3} build_dtor_corec_arg)) g_Tsss cqssss cgssss;
   in
-    ((x, cs, cpss, (((pgss, pss, qssss, gssss), cqgsss), corec_types)), lthy)
+    (x, cs, cpss, (((pgss, pss, qssss, gssss), cqgsss), corec_types))
   end;
 
-fun mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy =
+fun mk_co_recs_prelims ctxt fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 =
   let
-    val thy = Proof_Context.theory_of lthy;
+    val thy = Proof_Context.theory_of ctxt;
 
     val (xtor_co_rec_fun_Ts, xtor_co_recs) =
       mk_xtor_co_recs thy fp fpTs Cs xtor_co_recs0 |> `(binder_fun_types o fastype_of o hd);
 
-    val ((recs_args_types, corecs_args_types), lthy') =
+    val (recs_args_types, corecs_args_types) =
       if fp = Least_FP then
-        mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss xtor_co_rec_fun_Ts lthy
-        |>> (rpair NONE o SOME)
+        mk_recs_args_types ctxt ctr_Tsss Cs absTs repTs ns mss xtor_co_rec_fun_Ts
+        |> (rpair NONE o SOME)
       else
-        mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss xtor_co_rec_fun_Ts lthy
-        |>> (pair NONE o SOME);
+        mk_corecs_args_types ctxt ctr_Tsss Cs absTs repTs ns mss xtor_co_rec_fun_Ts
+        |> (pair NONE o SOME);
   in
-    ((xtor_co_recs, recs_args_types, corecs_args_types), lthy')
+    (xtor_co_recs, recs_args_types, corecs_args_types)
   end;
 
 fun mk_preds_getterss_join c cps absT abs cqgss =
@@ -2175,8 +2174,9 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
     val kss = map (fn n => 1 upto n) ns;
     val mss = map (map length) ctr_Tsss;
 
-    val ((xtor_co_recs, recs_args_types, corecs_args_types), lthy') =
-      mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy;
+    val (xtor_co_recs, recs_args_types, corecs_args_types) =
+      mk_co_recs_prelims lthy fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0;
+    val lthy' = lthy;
 
     fun define_ctrs_dtrs_for_type fp_bnf fp_b fpT C E ctor dtor xtor_co_rec ctor_dtor dtor_ctor
         ctor_inject pre_map_def pre_set_defs pre_rel_def fp_map_thm fp_set_thms fp_rel_thm n ks ms

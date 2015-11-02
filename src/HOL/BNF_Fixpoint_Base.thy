@@ -14,9 +14,6 @@ theory BNF_Fixpoint_Base
 imports BNF_Composition Basic_BNFs
 begin
 
-lemma False_imp_eq_True: "(False \<Longrightarrow> Q) \<equiv> Trueprop True"
-  by standard simp_all
-
 lemma conj_imp_eq_imp_imp: "(P \<and> Q \<Longrightarrow> PROP R) \<equiv> (P \<Longrightarrow> Q \<Longrightarrow> PROP R)"
   by standard simp_all
 
