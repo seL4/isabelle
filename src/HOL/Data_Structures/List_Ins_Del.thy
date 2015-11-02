@@ -52,8 +52,8 @@ subsection \<open>Inserting into an ordered list without duplicates:\<close>
 
 fun ins_list :: "'a::linorder \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "ins_list x [] = [x]" |
-"ins_list x (y#zs) =
-  (if x < y then x#y#zs else if x=y then x#zs else y # ins_list x zs)"
+"ins_list x (a#xs) =
+  (if x < a then x#a#xs else if x=a then a#xs else a # ins_list x xs)"
 
 lemma set_ins_list[simp]: "elems (ins_list x xs) = insert x (elems xs)"
 by(induction xs) auto
@@ -66,12 +66,12 @@ by (metis in_set_conv_decomp_first less_imp_not_less sorted_mid_iff2)
 lemma sorted_ins_list: "sorted xs \<Longrightarrow> sorted(ins_list x xs)"
 by(induction xs rule: sorted.induct) auto
 
-lemma ins_list_sorted1: "sorted (xs @ [y]) \<Longrightarrow> y \<le> x \<Longrightarrow>
-  ins_list x (xs @ y # ys) = xs @ ins_list x (y#ys)"
+lemma ins_list_sorted1: "sorted (xs @ [a]) \<Longrightarrow> a \<le> x \<Longrightarrow>
+  ins_list x (xs @ a # ys) = xs @ ins_list x (a#ys)"
 by(induction xs) (auto simp: sorted_lems)
 
-lemma ins_list_sorted2: "sorted (xs @ [y]) \<Longrightarrow> x < y \<Longrightarrow>
-  ins_list x (xs @ y # ys) = ins_list x xs @ (y#ys)"
+lemma ins_list_sorted2: "sorted (xs @ [a]) \<Longrightarrow> x < a \<Longrightarrow>
+  ins_list x (xs @ a # ys) = ins_list x xs @ (a#ys)"
 by(induction xs) (auto simp: sorted_lems)
 
 lemmas ins_list_simps = sorted_lems ins_list_sorted1 ins_list_sorted2
@@ -80,8 +80,8 @@ lemmas ins_list_simps = sorted_lems ins_list_sorted1 ins_list_sorted2
 subsection \<open>Delete one occurrence of an element from a list:\<close>
 
 fun del_list :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"del_list a [] = []" |
-"del_list a (x#xs) = (if a=x then xs else x # del_list a xs)"
+"del_list x [] = []" |
+"del_list x (a#xs) = (if x=a then xs else a # del_list x xs)"
 
 lemma del_list_idem: "x \<notin> elems xs \<Longrightarrow> del_list x xs = xs"
 by (induct xs) simp_all
@@ -99,28 +99,28 @@ apply(induction xs rule: sorted.induct)
 apply auto
 by (meson order.strict_trans sorted_Cons_iff)
 
-lemma del_list_sorted1: "sorted (xs @ [x]) \<Longrightarrow> x \<le> y \<Longrightarrow>
-  del_list y (xs @ x # ys) = xs @ del_list y (x # ys)"
+lemma del_list_sorted1: "sorted (xs @ [a]) \<Longrightarrow> a \<le> x \<Longrightarrow>
+  del_list x (xs @ a # ys) = xs @ del_list x (a # ys)"
 by (induction xs) (auto simp: sorted_mid_iff2)
 
-lemma del_list_sorted2: "sorted (xs @ x # ys) \<Longrightarrow> y < x \<Longrightarrow>
-  del_list y (xs @ x # ys) = del_list y xs @ x # ys"
+lemma del_list_sorted2: "sorted (xs @ a # ys) \<Longrightarrow> x < a \<Longrightarrow>
+  del_list x (xs @ a # ys) = del_list x xs @ a # ys"
 by (induction xs) (auto simp: sorted_Cons_iff intro!: del_list_idem)
 
 lemma del_list_sorted3:
-  "sorted (xs @ x # ys @ y # zs) \<Longrightarrow> a < y \<Longrightarrow>
-  del_list a (xs @ x # ys @ y # zs) = del_list a (xs @ x # ys) @ y # zs"
+  "sorted (xs @ a # ys @ b # zs) \<Longrightarrow> x < b \<Longrightarrow>
+  del_list x (xs @ a # ys @ b # zs) = del_list x (xs @ a # ys) @ b # zs"
 by (induction xs) (auto simp: sorted_Cons_iff del_list_sorted2)
 
 lemma del_list_sorted4:
-  "sorted (xs @ x # ys @ y # zs @ z # us) \<Longrightarrow> a < z \<Longrightarrow>
-  del_list a (xs @ x # ys @ y # zs @ z # us) = del_list a (xs @ x # ys @ y # zs) @ z # us"
+  "sorted (xs @ a # ys @ b # zs @ c # us) \<Longrightarrow> x < c \<Longrightarrow>
+  del_list x (xs @ a # ys @ b # zs @ c # us) = del_list x (xs @ a # ys @ b # zs) @ c # us"
 by (induction xs) (auto simp: sorted_Cons_iff del_list_sorted3)
 
 lemma del_list_sorted5:
-  "sorted (xs @ x # ys @ y # zs @ z # us @ u # vs) \<Longrightarrow> a < u \<Longrightarrow>
-   del_list a (xs @ x # ys @ y # zs @ z # us @ u # vs) =
-   del_list a (xs @ x # ys @ y # zs @ z # us) @ u # vs" 
+  "sorted (xs @ a # ys @ b # zs @ c # us @ d # vs) \<Longrightarrow> x < d \<Longrightarrow>
+   del_list x (xs @ a # ys @ b # zs @ c # us @ d # vs) =
+   del_list x (xs @ a # ys @ b # zs @ c # us) @ d # vs" 
 by (induction xs) (auto simp: sorted_Cons_iff del_list_sorted4)
 
 lemmas del_list_simps = sorted_lems

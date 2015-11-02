@@ -21,53 +21,53 @@ fun lookup :: "('a::linorder * 'b) tree23 \<Rightarrow> 'a \<Rightarrow> 'b opti
    else lookup r x)"
 
 fun upd :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<^sub>i" where
-"upd a b Leaf = Up\<^sub>i Leaf (a,b) Leaf" |
-"upd a b (Node2 l xy r) =
-   (if a < fst xy then
-        (case upd a b l of
-           T\<^sub>i l' => T\<^sub>i (Node2 l' xy r)
-         | Up\<^sub>i l1 q l2 => T\<^sub>i (Node3 l1 q l2 xy r))
-    else if a = fst xy then T\<^sub>i (Node2 l (a,b) r)
+"upd x y Leaf = Up\<^sub>i Leaf (x,y) Leaf" |
+"upd x y (Node2 l ab r) =
+   (if x < fst ab then
+        (case upd x y l of
+           T\<^sub>i l' => T\<^sub>i (Node2 l' ab r)
+         | Up\<^sub>i l1 ab' l2 => T\<^sub>i (Node3 l1 ab' l2 ab r))
+    else if x = fst ab then T\<^sub>i (Node2 l (x,y) r)
     else
-        (case upd a b r of
-           T\<^sub>i r' => T\<^sub>i (Node2 l xy r')
-         | Up\<^sub>i r1 q r2 => T\<^sub>i (Node3 l xy r1 q r2)))" |
-"upd a b (Node3 l xy1 m xy2 r) =
-   (if a < fst xy1 then
-        (case upd a b l of
-           T\<^sub>i l' => T\<^sub>i (Node3 l' xy1 m xy2 r)
-         | Up\<^sub>i l1 q l2 => Up\<^sub>i (Node2 l1 q l2) xy1 (Node2 m xy2 r))
-    else if a = fst xy1 then T\<^sub>i (Node3 l (a,b) m xy2 r)
-    else if a < fst xy2 then
-             (case upd a b m of
-                T\<^sub>i m' => T\<^sub>i (Node3 l xy1 m' xy2 r)
-              | Up\<^sub>i m1 q m2 => Up\<^sub>i (Node2 l xy1 m1) q (Node2 m2 xy2 r))
-         else if a = fst xy2 then T\<^sub>i (Node3 l xy1 m (a,b) r)
+        (case upd x y r of
+           T\<^sub>i r' => T\<^sub>i (Node2 l ab r')
+         | Up\<^sub>i r1 ab' r2 => T\<^sub>i (Node3 l ab r1 ab' r2)))" |
+"upd x y (Node3 l ab1 m ab2 r) =
+   (if x < fst ab1 then
+        (case upd x y l of
+           T\<^sub>i l' => T\<^sub>i (Node3 l' ab1 m ab2 r)
+         | Up\<^sub>i l1 ab' l2 => Up\<^sub>i (Node2 l1 ab' l2) ab1 (Node2 m ab2 r))
+    else if x = fst ab1 then T\<^sub>i (Node3 l (x,y) m ab2 r)
+    else if x < fst ab2 then
+             (case upd x y m of
+                T\<^sub>i m' => T\<^sub>i (Node3 l ab1 m' ab2 r)
+              | Up\<^sub>i m1 ab' m2 => Up\<^sub>i (Node2 l ab1 m1) ab' (Node2 m2 ab2 r))
+         else if x = fst ab2 then T\<^sub>i (Node3 l ab1 m (x,y) r)
          else
-             (case upd a b r of
-                T\<^sub>i r' => T\<^sub>i (Node3 l xy1 m xy2 r')
-              | Up\<^sub>i r1 q r2 => Up\<^sub>i (Node2 l xy1 m) xy2 (Node2 r1 q r2)))"
+             (case upd x y r of
+                T\<^sub>i r' => T\<^sub>i (Node3 l ab1 m ab2 r')
+              | Up\<^sub>i r1 ab' r2 => Up\<^sub>i (Node2 l ab1 m) ab2 (Node2 r1 ab' r2)))"
 
 definition update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) tree23" where
 "update a b t = tree\<^sub>i(upd a b t)"
 
 fun del :: "'a::linorder \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<^sub>d"
 where
-"del k Leaf = T\<^sub>d Leaf" |
-"del k (Node2 Leaf p Leaf) = (if k=fst p then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf p Leaf))" |
-"del k (Node3 Leaf p Leaf q Leaf) = T\<^sub>d(if k=fst p then Node2 Leaf q Leaf
-  else if k=fst q then Node2 Leaf p Leaf else Node3 Leaf p Leaf q Leaf)" |
-"del k (Node2 l a r) = (if k<fst a then node21 (del k l) a r else
-  if k > fst a then node22 l a (del k r) else
-  let (a',t) = del_min r in node22 l a' t)" |
-"del k (Node3 l a m b r) = (if k<fst a then node31 (del k l) a m b r else
-  if k = fst a then let (a',m') = del_min m in node32 l a' m' b r else
-  if k < fst b then node32 l a (del k m) b r else
-  if k = fst b then let (b',r') = del_min r in node33 l a m b' r'
-  else node33 l a m b (del k r))"
+"del x Leaf = T\<^sub>d Leaf" |
+"del x (Node2 Leaf ab1 Leaf) = (if x=fst ab1 then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf ab1 Leaf))" |
+"del x (Node3 Leaf ab1 Leaf ab2 Leaf) = T\<^sub>d(if x=fst ab1 then Node2 Leaf ab2 Leaf
+  else if x=fst ab2 then Node2 Leaf ab1 Leaf else Node3 Leaf ab1 Leaf ab2 Leaf)" |
+"del x (Node2 l ab1 r) = (if x<fst ab1 then node21 (del x l) ab1 r else
+  if x > fst ab1 then node22 l ab1 (del x r) else
+  let (ab1',t) = del_min r in node22 l ab1' t)" |
+"del x (Node3 l ab1 m ab2 r) = (if x<fst ab1 then node31 (del x l) ab1 m ab2 r else
+  if x = fst ab1 then let (ab1',m') = del_min m in node32 l ab1' m' ab2 r else
+  if x < fst ab2 then node32 l ab1 (del x m) ab2 r else
+  if x = fst ab2 then let (ab2',r') = del_min r in node33 l ab1 m ab2' r'
+  else node33 l ab1 m ab2 (del x r))"
 
 definition delete :: "'a::linorder \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) tree23" where
-"delete k t = tree\<^sub>d(del k t)"
+"delete x t = tree\<^sub>d(del x t)"
 
 
 subsection \<open>Functional Correctness\<close>

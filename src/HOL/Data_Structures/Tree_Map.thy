@@ -14,16 +14,16 @@ fun lookup :: "('a::linorder*'b) tree \<Rightarrow> 'a \<Rightarrow> 'b option" 
   if x > a then lookup r x else Some b)"
 
 fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
-"update a b Leaf = Node Leaf (a,b) Leaf" |
-"update a b (Node l (x,y) r) =
-   (if a < x then Node (update a b l) (x,y) r
-    else if a=x then Node l (a,b) r
-    else Node l (x,y) (update a b r))"
+"update x y Leaf = Node Leaf (x,y) Leaf" |
+"update x y (Node l (a,b) r) =
+   (if x < a then Node (update x y l) (a,b) r
+    else if x = a then Node l (x,y) r
+    else Node l (a,b) (update x y r))"
 
 fun delete :: "'a::linorder \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
-"delete k Leaf = Leaf" |
-"delete k (Node l (a,b) r) = (if k<a then Node (delete k l) (a,b) r else
-  if k > a then Node l (a,b) (delete k r) else
+"delete x Leaf = Leaf" |
+"delete x (Node l (a,b) r) = (if x < a then Node (delete x l) (a,b) r else
+  if x > a then Node l (a,b) (delete x r) else
   if r = Leaf then l else let (ab',r') = del_min r in Node l ab' r')"
 
 
