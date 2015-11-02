@@ -1,4 +1,15 @@
-\input{style}
+\documentclass[11pt,a4paper]{article}
+\usepackage[only,bigsqcap]{stmaryrd}
+\usepackage{ifthen,proof,amssymb,isabelle,isabellesym}
+\isabellestyle{it}
+\usepackage{pdfsetup}\urlstyle{rm}
+
+\renewcommand{\isacommand}[1]
+{\ifthenelse{\equal{sorry}{#1}}{$\;$\dummyproof}
+  {\ifthenelse{\equal{oops}{#1}}{$\vdots$}{\isakeyword{#1}}}}
+
+\newcommand{\DUMMYPROOF}{{\langle\mathit{proof}\rangle}}
+\newcommand{\dummyproof}{$\DUMMYPROOF$}
 
 \hyphenation{Isabelle}
 

@@ -253,9 +253,7 @@ lemma "P \<or> P \<longrightarrow> P"
 proof
   assume "P \<or> P"
   then show P
-  proof                    -- \<open>
-    rule \<open>disjE\<close>: \smash{$\infer{C}{A \disj B & \infer*{C}{[A]} & \infer*{C}{[B]}}$}
-\<close>
+  proof                    -- \<open>rule \<open>disjE\<close>: \smash{$\infer{\<open>C\<close>}{\<open>A \<or> B\<close> & \infer*{\<open>C\<close>}{[\<open>A\<close>]} & \infer*{\<open>C\<close>}{[\<open>B\<close>]}}$}\<close>
     assume P show P by fact
   next
     assume P show P by fact
@@ -324,8 +322,7 @@ lemma "(\<exists>x. P (f x)) \<longrightarrow> (\<exists>y. P y)"
 proof
   assume "\<exists>x. P (f x)"
   then show "\<exists>y. P y"
-  proof (rule exE)             --
-    \<open>rule \<open>exE\<close>: \smash{$\infer{B}{\ex x A(x) & \infer*{B}{[A(x)]_x}}$}\<close>
+  proof (rule exE)             -- \<open>rule \<open>exE\<close>: \smash{$\infer{\<open>B\<close>}{\<open>\<exists>x. A(x)\<close> & \infer*{\<open>B\<close>}{[\<open>A(x)\<close>]_x}}$}\<close>
     fix a
     assume "P (f a)" (is "P ?witness")
     then show ?thesis by (rule exI [of P ?witness])
