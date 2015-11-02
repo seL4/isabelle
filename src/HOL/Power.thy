@@ -283,6 +283,9 @@ next
     by (simp del: power_Suc add: power_Suc2 mult.assoc)
 qed
 
+lemma power_minus': "NO_MATCH 1 x \<Longrightarrow> (-x) ^ n = (-1)^n * x ^ n"
+  by (rule power_minus)
+
 lemma power_minus_Bit0:
   "(- x) ^ numeral (Num.Bit0 k) = x ^ numeral (Num.Bit0 k)"
   by (induct k, simp_all only: numeral_class.numeral.simps power_add
@@ -307,7 +310,7 @@ qed
 lemma power_minus1_odd:
   "(- 1) ^ Suc (2*n) = -1"
   by simp
-
+  
 lemma power_minus_even [simp]:
   "(-a) ^ (2*n) = a ^ (2*n)"
   by (simp add: power_minus [of a])

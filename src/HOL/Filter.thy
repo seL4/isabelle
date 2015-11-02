@@ -393,6 +393,11 @@ lemma frequently_const[simp]: "F \<noteq> bot \<Longrightarrow> frequently (\<la
 lemma eventually_happens: "eventually P net \<Longrightarrow> net = bot \<or> (\<exists>x. P x)"
   by (metis frequentlyE eventually_frequently)
 
+lemma eventually_happens':
+  assumes "F \<noteq> bot" "eventually P F"
+  shows   "\<exists>x. P x"
+  using assms eventually_frequently frequentlyE by blast
+
 abbreviation (input) trivial_limit :: "'a filter \<Rightarrow> bool"
   where "trivial_limit F \<equiv> F = bot"
 
@@ -610,6 +615,15 @@ lemma eventually_at_top_not_equal: "eventually (\<lambda>x::'a::{no_top, linorde
 
 lemma eventually_gt_at_top: "eventually (\<lambda>x. (c::_::{no_top, linorder}) < x) at_top"
   unfolding eventually_at_top_dense by auto
+
+lemma eventually_all_ge_at_top:
+  assumes "eventually P (at_top :: ('a :: linorder) filter)"
+  shows   "eventually (\<lambda>x. \<forall>y\<ge>x. P y) at_top"
+proof -
+  from assms obtain x where "\<And>y. y \<ge> x \<Longrightarrow> P y" by (auto simp: eventually_at_top_linorder)
+  hence "\<forall>z\<ge>y. P z" if "y \<ge> x" for y using that by simp
+  thus ?thesis by (auto simp: eventually_at_top_linorder)
+qed
 
 definition at_bot :: "('a::order) filter"
   where "at_bot = (INF k. principal {.. k})"

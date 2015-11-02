@@ -819,6 +819,7 @@ by (auto simp: complex_derivative_mult_at complex_derivative_const analytic_on_c
 
 subsection\<open>Complex differentiation of sequences and series\<close>
 
+(* TODO: Could probably be simplified using Uniform_Limit *)
 lemma has_complex_derivative_sequence:
   fixes s :: "complex set"
   assumes cvs: "convex s"
@@ -898,6 +899,41 @@ proof -
     by (blast intro: **)
   qed
 qed
+
+
+lemma complex_differentiable_series:
+  fixes f :: "nat \<Rightarrow> complex \<Rightarrow> complex"
+  assumes "convex s" "open s"
+  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
+  assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
+  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)" and x: "x \<in> s"
+  shows   "summable (\<lambda>n. f n x)" and "(\<lambda>x. \<Sum>n. f n x) complex_differentiable (at x)"
+proof -
+  from assms(4) obtain g' where A: "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
+    unfolding uniformly_convergent_on_def by blast
+  from x and `open s` have s: "at x within s = at x" by (rule at_within_open)
+  have "\<exists>g. \<forall>x\<in>s. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within s)"
+    by (intro has_field_derivative_series[of s f f' g' x0] assms A has_field_derivative_at_within)
+  then obtain g where g: "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>n. f n x) sums g x"
+    "\<And>x. x \<in> s \<Longrightarrow> (g has_field_derivative g' x) (at x within s)" by blast
+  from g[OF x] show "summable (\<lambda>n. f n x)" by (auto simp: summable_def)
+  from g(2)[OF x] have g': "(g has_derivative op * (g' x)) (at x)"
+    by (simp add: has_field_derivative_def s)
+  have "((\<lambda>x. \<Sum>n. f n x) has_derivative op * (g' x)) (at x)"
+    by (rule has_derivative_transform_within_open[OF `open s` x _ g'])
+       (insert g, auto simp: sums_iff)
+  thus "(\<lambda>x. \<Sum>n. f n x) complex_differentiable (at x)" unfolding differentiable_def
+    by (auto simp: summable_def complex_differentiable_def has_field_derivative_def)
+qed
+
+lemma complex_differentiable_series':
+  fixes f :: "nat \<Rightarrow> complex \<Rightarrow> complex"
+  assumes "convex s" "open s"
+  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
+  assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
+  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)"
+  shows   "(\<lambda>x. \<Sum>n. f n x) complex_differentiable (at x0)"
+  using complex_differentiable_series[OF assms, of x0] `x0 \<in> s` by blast+
 
 subsection\<open>Bound theorem\<close>
 

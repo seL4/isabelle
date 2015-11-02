@@ -228,6 +228,14 @@ apply (case_tac "x = 0", simp)
 apply (erule (1) nonzero_inverse_scaleR_distrib)
 done
 
+lemma setsum_constant_scaleR:
+  fixes y :: "'a::real_vector"
+  shows "(\<Sum>x\<in>A. y) = of_nat (card A) *\<^sub>R y"
+  apply (cases "finite A")
+  apply (induct set: finite)
+  apply (simp_all add: algebra_simps)
+  done
+
 lemma real_vector_affinity_eq:
   fixes x :: "'a :: real_vector"
   assumes m0: "m \<noteq> 0"
@@ -1614,6 +1622,12 @@ lemma eventually_at_le:
   apply auto
   done
 
+lemma eventually_at_left_real: "a > (b :: real) \<Longrightarrow> eventually (\<lambda>x. x \<in> {b<..<a}) (at_left a)"
+  by (subst eventually_at, rule exI[of _ "a - b"]) (force simp: dist_real_def)
+
+lemma eventually_at_right_real: "a < (b :: real) \<Longrightarrow> eventually (\<lambda>x. x \<in> {a<..<b}) (at_right a)"
+  by (subst eventually_at, rule exI[of _ "b - a"]) (force simp: dist_real_def)
+
 lemma metric_tendsto_imp_tendsto:
   fixes a :: "'a :: metric_space" and b :: "'b :: metric_space"
   assumes f: "(f ---> a) F"
@@ -1709,11 +1723,35 @@ subsection \<open>Cauchy sequences\<close>
 definition (in metric_space) Cauchy :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool" where
   "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. dist (X m) (X n) < e)"
 
-subsection \<open>Cauchy Sequences\<close>
+lemma Cauchy_altdef:
+  "Cauchy f = (\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (f m) (f n) < e)"
+proof
+  assume A: "\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (f m) (f n) < e"
+  show "Cauchy f" unfolding Cauchy_def
+  proof (intro allI impI)
+    fix e :: real assume e: "e > 0"
+    with A obtain M where M: "\<And>m n. m \<ge> M \<Longrightarrow> n > m \<Longrightarrow> dist (f m) (f n) < e" by blast
+    have "dist (f m) (f n) < e" if "m \<ge> M" "n \<ge> M" for m n
+      using M[of m n] M[of n m] e that by (cases m n rule: linorder_cases) (auto simp: dist_commute)
+    thus "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (f m) (f n) < e" by blast
+  qed
+next
+  assume "Cauchy f"
+  show "\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (f m) (f n) < e" 
+  proof (intro allI impI)
+    fix e :: real assume e: "e > 0"
+    with `Cauchy f` obtain M where "\<And>m n. m \<ge> M \<Longrightarrow> n \<ge> M \<Longrightarrow> dist (f m) (f n) < e"
+      unfolding Cauchy_def by fast
+    thus "\<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (f m) (f n) < e" by (intro exI[of _ M]) force
+  qed
+qed
 
 lemma metric_CauchyI:
   "(\<And>e. 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e) \<Longrightarrow> Cauchy X"
   by (simp add: Cauchy_def)
+
+lemma CauchyI': "(\<And>e. 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (X m) (X n) < e) \<Longrightarrow> Cauchy X"
+  unfolding Cauchy_altdef by blast
 
 lemma metric_CauchyD:
   "Cauchy X \<Longrightarrow> 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e"

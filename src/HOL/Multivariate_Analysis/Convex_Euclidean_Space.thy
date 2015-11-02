@@ -1788,14 +1788,6 @@ qed
 
 subsubsection \<open>Another formulation from Lars Schewe\<close>
 
-lemma setsum_constant_scaleR:
-  fixes y :: "'a::real_vector"
-  shows "(\<Sum>x\<in>A. y) = of_nat (card A) *\<^sub>R y"
-  apply (cases "finite A")
-  apply (induct set: finite)
-  apply (simp_all add: algebra_simps)
-  done
-
 lemma convex_hull_explicit:
   fixes p :: "'a::real_vector set"
   shows "convex hull p =

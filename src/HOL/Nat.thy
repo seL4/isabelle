@@ -1472,6 +1472,9 @@ lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
 lemma of_nat_mult: "of_nat (m * n) = of_nat m * of_nat n"
   by (induct m) (simp_all add: ac_simps distrib_right)
 
+lemma mult_of_nat_commute: "of_nat x * y = y * of_nat x"
+  by (induction x) (simp_all add: algebra_simps)
+
 primrec of_nat_aux :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" where
   "of_nat_aux inc 0 i = i"
 | "of_nat_aux inc (Suc n) i = of_nat_aux inc n (inc i)" -- \<open>tail recursive\<close>

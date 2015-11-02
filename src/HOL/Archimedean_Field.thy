@@ -486,6 +486,11 @@ lemma neg_numeral_less_ceiling [simp]:
   "- numeral v < ceiling x \<longleftrightarrow> - numeral v < x"
   by (simp add: less_ceiling_iff)
 
+lemma ceiling_altdef: "ceiling x = (if x = of_int (floor x) then floor x else floor x + 1)"
+  by (intro ceiling_unique, (simp, linarith?)+)
+
+lemma floor_le_ceiling [simp]: "floor x \<le> ceiling x" by (simp add: ceiling_altdef)
+
 text \<open>Addition and subtraction of integers\<close>
 
 lemma ceiling_add_of_int [simp]: "ceiling (x + of_int z) = ceiling x + z"
@@ -591,5 +596,80 @@ lemma frac_neg:
   apply (auto simp add: frac_unique_iff)
   apply (simp add: frac_def)
   by (meson frac_lt_1 less_iff_diff_less_0 not_le not_less_iff_gr_or_eq)
+
+
+subsection \<open>Rounding to the nearest integer\<close>
+
+definition round where "round x = \<lfloor>x + 1/2\<rfloor>"
+
+lemma of_int_round_ge:     "of_int (round x) \<ge> x - 1/2"
+  and of_int_round_le:     "of_int (round x) \<le> x + 1/2"
+  and of_int_round_abs_le: "\<bar>of_int (round x) - x\<bar> \<le> 1/2"
+  and of_int_round_gt:     "of_int (round x) > x - 1/2"
+proof -
+  from floor_correct[of "x + 1/2"] have "x + 1/2 < of_int (round x) + 1" by (simp add: round_def)
+  from add_strict_right_mono[OF this, of "-1"] show A: "of_int (round x) > x - 1/2" by simp
+  thus "of_int (round x) \<ge> x - 1/2" by simp
+  from floor_correct[of "x + 1/2"] show "of_int (round x) \<le> x + 1/2" by (simp add: round_def)
+  with A show "\<bar>of_int (round x) - x\<bar> \<le> 1/2" by linarith
+qed
+
+lemma round_of_int [simp]: "round (of_int n) = n"
+  unfolding round_def by (subst floor_unique_iff) force
+
+lemma round_0 [simp]: "round 0 = 0"
+  using round_of_int[of 0] by simp
+
+lemma round_1 [simp]: "round 1 = 1"
+  using round_of_int[of 1] by simp
+
+lemma round_numeral [simp]: "round (numeral n) = numeral n"
+  using round_of_int[of "numeral n"] by simp
+
+lemma round_neg_numeral [simp]: "round (-numeral n) = -numeral n"
+  using round_of_int[of "-numeral n"] by simp
+
+lemma round_of_nat [simp]: "round (of_nat n) = of_nat n"
+  using round_of_int[of "int n"] by simp
+
+lemma round_mono: "x \<le> y \<Longrightarrow> round x \<le> round y"
+  unfolding round_def by (intro floor_mono) simp
+
+lemma round_unique: "of_int y > x - 1/2 \<Longrightarrow> of_int y \<le> x + 1/2 \<Longrightarrow> round x = y"
+unfolding round_def
+proof (rule floor_unique)
+  assume "x - 1 / 2 < of_int y"
+  from add_strict_left_mono[OF this, of 1] show "x + 1 / 2 < of_int y + 1" by simp
+qed
+
+lemma round_altdef: "round x = (if frac x \<ge> 1/2 then ceiling x else floor x)"
+  by (cases "frac x \<ge> 1/2")
+     (rule round_unique, ((simp add: frac_def field_simps ceiling_altdef, linarith?)+)[2])+
+
+lemma floor_le_round: "\<lfloor>x\<rfloor> \<le> round x"
+  unfolding round_def by (intro floor_mono) simp
+
+lemma ceiling_ge_round: "\<lceil>x\<rceil> \<ge> round x" unfolding round_altdef by simp
+     
+lemma round_diff_minimal: 
+  fixes z :: "'a :: floor_ceiling"
+  shows "abs (z - of_int (round z)) \<le> abs (z - of_int m)"
+proof (cases "of_int m \<ge> z")
+  case True
+  hence "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int (ceiling z) - z\<bar>"
+    unfolding round_altdef by (simp add: ceiling_altdef frac_def) linarith?
+  also have "of_int \<lceil>z\<rceil> - z \<ge> 0" by linarith
+  with True have "\<bar>of_int (ceiling z) - z\<bar> \<le> \<bar>z - of_int m\<bar>"
+    by (simp add: ceiling_le_iff)
+  finally show ?thesis .
+next
+  case False
+  hence "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int (floor z) - z\<bar>"
+    unfolding round_altdef by (simp add: ceiling_altdef frac_def) linarith?
+  also have "z - of_int \<lfloor>z\<rfloor> \<ge> 0" by linarith
+  with False have "\<bar>of_int (floor z) - z\<bar> \<le> \<bar>z - of_int m\<bar>"
+    by (simp add: le_floor_iff)
+  finally show ?thesis .
+qed
 
 end

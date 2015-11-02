@@ -225,6 +225,9 @@ lemma of_int_diff [simp]: "of_int (w - z) = of_int w - of_int z"
 lemma of_int_mult [simp]: "of_int (w*z) = of_int w * of_int z"
   by (transfer fixing: times) (clarsimp simp add: algebra_simps of_nat_mult)
 
+lemma mult_of_int_commute: "of_int x * y = y * of_int x"
+  by (transfer fixing: times) (auto simp: algebra_simps mult_of_nat_commute)
+
 text\<open>Collapse nested embeddings\<close>
 lemma of_int_of_nat_eq [simp]: "of_int (int n) = of_nat n"
 by (induct n) auto

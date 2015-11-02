@@ -6,7 +6,7 @@
 section \<open>Multivariate calculus in Euclidean space\<close>
 
 theory Derivative
-imports Brouwer_Fixpoint Operator_Norm
+imports Brouwer_Fixpoint Operator_Norm "~~/src/HOL/Multivariate_Analysis/Uniform_Limit"
 begin
 
 lemma netlimit_at_vector: (* TODO: move *)
@@ -2202,6 +2202,92 @@ lemma has_derivative_series:
   apply auto
   done
 
+lemma has_field_derivative_series:
+  fixes f :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a"
+  assumes "convex s"
+  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x within s)"
+  assumes "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
+  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)"
+  shows   "\<exists>g. \<forall>x\<in>s. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within s)"
+unfolding has_field_derivative_def
+proof (rule has_derivative_series)
+  show "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h"
+  proof (intro allI impI)
+    fix e :: real assume "e > 0"
+    with assms(3) obtain N where N: "\<And>n x. n \<ge> N \<Longrightarrow> x \<in> s \<Longrightarrow> norm ((\<Sum>i<n. f' i x) - g' x) < e"
+      unfolding uniform_limit_iff eventually_at_top_linorder dist_norm by blast
+    {
+      fix n :: nat and x h :: 'a assume nx: "n \<ge> N" "x \<in> s"
+      have "norm ((\<Sum>i<n. f' i x * h) - g' x * h) = norm ((\<Sum>i<n. f' i x) - g' x) * norm h"
+        by (simp add: norm_mult [symmetric] ring_distribs setsum_left_distrib)
+      also from N[OF nx] have "norm ((\<Sum>i<n. f' i x) - g' x) \<le> e" by simp
+      hence "norm ((\<Sum>i<n. f' i x) - g' x) * norm h \<le> e * norm h" 
+        by (intro mult_right_mono) simp_all
+      finally have "norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h" .
+    }
+    thus "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h" by blast
+  qed
+qed (insert assms, auto simp: has_field_derivative_def)
+
+lemma has_field_derivative_series':
+  fixes f :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a"
+  assumes "convex s"
+  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x within s)"
+  assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
+  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)" "x \<in> interior s"
+  shows   "summable (\<lambda>n. f n x)" "((\<lambda>x. \<Sum>n. f n x) has_field_derivative (\<Sum>n. f' n x)) (at x)"
+proof -
+  from \<open>x \<in> interior s\<close> have "x \<in> s" using interior_subset by blast
+  def g' \<equiv> "\<lambda>x. \<Sum>i. f' i x"
+  from assms(3) have "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
+    by (simp add: uniformly_convergent_uniform_limit_iff suminf_eq_lim g'_def)
+  from has_field_derivative_series[OF assms(1,2) this assms(4,5)] obtain g where g:
+    "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>n. f n x) sums g x"
+    "\<And>x. x \<in> s \<Longrightarrow> (g has_field_derivative g' x) (at x within s)" by blast
+  from g(1)[OF \<open>x \<in> s\<close>] show "summable (\<lambda>n. f n x)" by (simp add: sums_iff)
+  from g(2)[OF \<open>x \<in> s\<close>] \<open>x \<in> interior s\<close> have "(g has_field_derivative g' x) (at x)" 
+    by (simp add: at_within_interior[of x s])
+  also have "(g has_field_derivative g' x) (at x) \<longleftrightarrow> 
+                ((\<lambda>x. \<Sum>n. f n x) has_field_derivative g' x) (at x)"
+    using eventually_nhds_in_nhd[OF \<open>x \<in> interior s\<close>] interior_subset[of s] g(1)
+    by (intro DERIV_cong_ev) (auto elim!: eventually_elim1 simp: sums_iff)
+  finally show "((\<lambda>x. \<Sum>n. f n x) has_field_derivative g' x) (at x)" .
+qed
+
+lemma differentiable_series:
+  fixes f :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a"
+  assumes "convex s" "open s"
+  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
+  assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
+  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)" and x: "x \<in> s"
+  shows   "summable (\<lambda>n. f n x)" and "(\<lambda>x. \<Sum>n. f n x) differentiable (at x)"
+proof -
+  from assms(4) obtain g' where A: "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
+    unfolding uniformly_convergent_on_def by blast
+  from x and `open s` have s: "at x within s = at x" by (rule at_within_open)
+  have "\<exists>g. \<forall>x\<in>s. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within s)"
+    by (intro has_field_derivative_series[of s f f' g' x0] assms A has_field_derivative_at_within)
+  then obtain g where g: "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>n. f n x) sums g x"
+    "\<And>x. x \<in> s \<Longrightarrow> (g has_field_derivative g' x) (at x within s)" by blast
+  from g[OF x] show "summable (\<lambda>n. f n x)" by (auto simp: summable_def)
+  from g(2)[OF x] have g': "(g has_derivative op * (g' x)) (at x)"
+    by (simp add: has_field_derivative_def s)
+  have "((\<lambda>x. \<Sum>n. f n x) has_derivative op * (g' x)) (at x)"
+    by (rule has_derivative_transform_within_open[OF `open s` x _ g'])
+       (insert g, auto simp: sums_iff)
+  thus "(\<lambda>x. \<Sum>n. f n x) differentiable (at x)" unfolding differentiable_def
+    by (auto simp: summable_def differentiable_def has_field_derivative_def)
+qed
+
+lemma differentiable_series':
+  fixes f :: "nat \<Rightarrow> ('a :: {real_normed_field,banach}) \<Rightarrow> 'a"
+  assumes "convex s" "open s"
+  assumes "\<And>n x. x \<in> s \<Longrightarrow> (f n has_field_derivative f' n x) (at x)"
+  assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
+  assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)"
+  shows   "(\<lambda>x. \<Sum>n. f n x) differentiable (at x0)"
+  using differentiable_series[OF assms, of x0] `x0 \<in> s` by blast+
+
 text \<open>Considering derivative @{typ "real \<Rightarrow> 'b::real_normed_vector"} as a vector.\<close>
 
 definition "vector_derivative f net = (SOME f'. (f has_vector_derivative f') net)"
@@ -2444,5 +2530,62 @@ lemma vector_derivative_chain_at:
   shows "vector_derivative (g \<circ> f) (at x) =
          vector_derivative f (at x) *\<^sub>R vector_derivative g (at (f x))"
 by (metis vector_diff_chain_at vector_derivative_at vector_derivative_works assms)
+
+
+subsection \<open>Relation between convexity and derivative\<close>
+
+(* TODO: Generalise to real vector spaces? *)
+lemma convex_on_imp_above_tangent:
+  assumes convex: "convex_on A f" and connected: "connected A"
+  assumes c: "c \<in> interior A" and x : "x \<in> A"
+  assumes deriv: "(f has_field_derivative f') (at c within A)"
+  shows   "f x - f c \<ge> f' * (x - c)"
+proof (cases x c rule: linorder_cases)
+  assume xc: "x > c"
+  let ?A' = "interior A \<inter> {c<..}"
+  from c have "c \<in> interior A \<inter> closure {c<..}" by auto
+  also have "\<dots> \<subseteq> closure (interior A \<inter> {c<..})" by (intro open_inter_closure_subset) auto
+  finally have "at c within ?A' \<noteq> bot" by (subst at_within_eq_bot_iff) auto
+  moreover from deriv have "((\<lambda>y. (f y - f c) / (y - c)) ---> f') (at c within ?A')"
+    unfolding DERIV_within_iff using interior_subset[of A] by (blast intro: tendsto_mono at_le)
+  moreover from eventually_at_right_real[OF xc]
+    have "eventually (\<lambda>y. (f y - f c) / (y - c) \<le> (f x - f c) / (x - c)) (at_right c)"
+  proof eventually_elim
+    fix y assume y: "y \<in> {c<..<x}"
+    with convex connected x c have "f y \<le> (f x - f c) / (x - c) * (y - c) + f c"
+      using interior_subset[of A]
+      by (intro convex_onD_Icc' convex_on_subset[OF convex] connected_contains_Icc) auto
+    hence "f y - f c \<le> (f x - f c) / (x - c) * (y - c)" by simp
+    thus "(f y - f c) / (y - c) \<le> (f x - f c) / (x - c)" using y xc by (simp add: divide_simps)
+  qed
+  hence "eventually (\<lambda>y. (f y - f c) / (y - c) \<le> (f x - f c) / (x - c)) (at c within ?A')"
+    by (blast intro: filter_leD at_le)
+  ultimately have "f' \<le> (f x - f c) / (x - c)" by (rule tendsto_ge_const)
+  thus ?thesis using xc by (simp add: field_simps)
+next
+  assume xc: "x < c"
+  let ?A' = "interior A \<inter> {..<c}"
+  from c have "c \<in> interior A \<inter> closure {..<c}" by auto
+  also have "\<dots> \<subseteq> closure (interior A \<inter> {..<c})" by (intro open_inter_closure_subset) auto
+  finally have "at c within ?A' \<noteq> bot" by (subst at_within_eq_bot_iff) auto
+  moreover from deriv have "((\<lambda>y. (f y - f c) / (y - c)) ---> f') (at c within ?A')"
+    unfolding DERIV_within_iff using interior_subset[of A] by (blast intro: tendsto_mono at_le)
+  moreover from eventually_at_left_real[OF xc]
+    have "eventually (\<lambda>y. (f y - f c) / (y - c) \<ge> (f x - f c) / (x - c)) (at_left c)"
+  proof eventually_elim
+    fix y assume y: "y \<in> {x<..<c}"
+    with convex connected x c have "f y \<le> (f x - f c) / (c - x) * (c - y) + f c"
+      using interior_subset[of A]
+      by (intro convex_onD_Icc'' convex_on_subset[OF convex] connected_contains_Icc) auto
+    hence "f y - f c \<le> (f x - f c) * ((c - y) / (c - x))" by simp
+    also have "(c - y) / (c - x) = (y - c) / (x - c)" using y xc by (simp add: field_simps)
+    finally show "(f y - f c) / (y - c) \<ge> (f x - f c) / (x - c)" using y xc 
+      by (simp add: divide_simps)
+  qed
+  hence "eventually (\<lambda>y. (f y - f c) / (y - c) \<ge> (f x - f c) / (x - c)) (at c within ?A')"
+    by (blast intro: filter_leD at_le)
+  ultimately have "f' \<ge> (f x - f c) / (x - c)" by (rule tendsto_le_const)
+  thus ?thesis using xc by (simp add: field_simps)
+qed simp_all
 
 end

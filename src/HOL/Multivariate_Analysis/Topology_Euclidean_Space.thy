@@ -896,6 +896,15 @@ lemma euclidean_dist_l2:
   unfolding dist_norm norm_eq_sqrt_inner setL2_def
   by (subst euclidean_inner) (simp add: power2_eq_square inner_diff_left)
 
+lemma eventually_nhds_ball: "d > 0 \<Longrightarrow> eventually (\<lambda>x. x \<in> ball z d) (nhds z)"
+  by (rule eventually_nhds_in_open) simp_all
+
+lemma eventually_at_ball: "d > 0 \<Longrightarrow> eventually (\<lambda>t. t \<in> ball z d \<and> t \<in> A) (at z within A)"
+  unfolding eventually_at by (intro exI[of _ d]) (simp_all add: dist_commute)
+
+lemma eventually_at_ball': "d > 0 \<Longrightarrow> eventually (\<lambda>t. t \<in> ball z d \<and> t \<noteq> z \<and> t \<in> A) (at z within A)"
+  unfolding eventually_at by (intro exI[of _ d]) (simp_all add: dist_commute)
+
 
 subsection \<open>Boxes\<close>
 
@@ -1582,6 +1591,9 @@ lemma mem_interior: "x \<in> interior S \<longleftrightarrow> (\<exists>e>0. bal
   using open_contains_ball_eq [where S="interior S"]
   by (simp add: open_subset_interior)
 
+lemma eventually_nhds_in_nhd: "x \<in> interior s \<Longrightarrow> eventually (\<lambda>y. y \<in> s) (nhds x)"
+  using interior_subset[of s] by (subst eventually_nhds) blast
+
 lemma interior_limit_point [intro]:
   fixes x :: "'a::perfect_space"
   assumes x: "x \<in> interior S"
@@ -1831,6 +1843,7 @@ lemma closed_in_limpt:
 lemma closedin_closed_eq:
     "closed s \<Longrightarrow> (closedin (subtopology euclidean s) t \<longleftrightarrow> closed t \<and> t \<subseteq> s)"
   by (meson closed_in_limpt closed_subset closedin_closed_trans)
+
 
 subsection\<open>Connected components, considered as a connectedness relation or a set\<close>
 
@@ -2257,6 +2270,9 @@ lemma trivial_limit_at_infinity:
 lemma not_trivial_limit_within: "\<not> trivial_limit (at x within S) = (x \<in> closure (S - {x}))"
   using islimpt_in_closure
   by (metis trivial_limit_within)
+
+lemma at_within_eq_bot_iff: "(at c within A = bot) \<longleftrightarrow> (c \<notin> closure (A - {c}))"
+  using not_trivial_limit_within[of c A] by blast
 
 text \<open>Some property holds "sufficiently close" to the limit point.\<close>
 

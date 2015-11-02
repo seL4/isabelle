@@ -16,6 +16,11 @@ lemma reals_Archimedean4:
   using floor_correct [of "x/y"] assms
   by (auto simp: Real.real_of_nat_Suc field_simps intro: that [of "nat (floor (x/y))"])
 
+lemma fact_in_Reals: "fact n \<in> \<real>" by (induction n) auto
+
+lemma pochhammer_of_real: "pochhammer (of_real x) n = of_real (pochhammer x n)"
+  by (simp add: pochhammer_def)
+
 lemma of_real_fact [simp]: "of_real (fact n) = fact n"
   by (metis of_nat_fact of_real_of_nat_eq)
 
@@ -1079,6 +1084,15 @@ proof -
   from for_subinterval[OF this]
   show ?thesis .
 qed
+
+
+lemma isCont_pochhammer [continuous_intros]: "isCont (\<lambda>z::'a::real_normed_field. pochhammer z n) z"
+  by (induction n) (auto intro!: continuous_intros simp: pochhammer_rec')
+
+lemma continuous_on_pochhammer [continuous_intros]: 
+  fixes A :: "'a :: real_normed_field set"
+  shows "continuous_on A (\<lambda>z. pochhammer z n)"
+  by (intro continuous_at_imp_continuous_on ballI isCont_pochhammer)
 
 
 subsection \<open>Exponential Function\<close>
@@ -4226,6 +4240,93 @@ lemma tan_bound_pi2: "abs(x) < pi/4 \<Longrightarrow> abs(tan x) < 1"
 
 lemma tan_cot: "tan(pi/2 - x) = inverse(tan x)"
   by (simp add: tan_def sin_diff cos_diff)
+
+subsection \<open>Cotangent\<close>
+
+definition cot :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
+  where "cot = (\<lambda>x. cos x / sin x)"
+
+lemma cot_of_real:
+  "of_real (cot x) = (cot (of_real x) :: 'a::{real_normed_field,banach})"
+  by (simp add: cot_def sin_of_real cos_of_real)
+
+lemma cot_in_Reals [simp]:
+  fixes z :: "'a::{real_normed_field,banach}"
+  shows "z \<in> \<real> \<Longrightarrow> cot z \<in> \<real>"
+  by (simp add: cot_def)
+
+lemma cot_zero [simp]: "cot 0 = 0"
+  by (simp add: cot_def)
+
+lemma cot_pi [simp]: "cot pi = 0"
+  by (simp add: cot_def)
+
+lemma cot_npi [simp]: "cot (real (n::nat) * pi) = 0"
+  by (simp add: cot_def)
+
+lemma cot_minus [simp]: "cot (-x) = - cot x"
+  by (simp add: cot_def)
+
+lemma cot_periodic [simp]: "cot (x + 2*pi) = cot x"
+  by (simp add: cot_def)
+  
+lemma cot_altdef: "cot x = inverse (tan x)"
+  by (simp add: cot_def tan_def)
+
+lemma tan_altdef: "tan x = inverse (cot x)"
+  by (simp add: cot_def tan_def)
+
+lemma tan_cot': "tan(pi/2 - x) = cot x"
+  by (simp add: tan_cot cot_altdef)
+
+lemma cot_gt_zero: "\<lbrakk>0 < x; x < pi/2\<rbrakk> \<Longrightarrow> 0 < cot x"
+  by (simp add: cot_def zero_less_divide_iff sin_gt_zero2 cos_gt_zero_pi)
+
+lemma cot_less_zero:
+  assumes lb: "- pi/2 < x" and "x < 0"
+  shows "cot x < 0"
+proof -
+  have "0 < cot (- x)" using assms by (simp only: cot_gt_zero)
+  thus ?thesis by simp
+qed
+
+lemma DERIV_cot [simp]:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "sin x \<noteq> 0 \<Longrightarrow> DERIV cot x :> -inverse ((sin x)\<^sup>2)"
+  unfolding cot_def using cos_squared_eq[of x]
+  by (auto intro!: derivative_eq_intros, simp add: divide_inverse power2_eq_square)
+
+lemma isCont_cot:
+  fixes x :: "'a::{real_normed_field,banach}"
+  shows "sin x \<noteq> 0 \<Longrightarrow> isCont cot x"
+  by (rule DERIV_cot [THEN DERIV_isCont])
+
+lemma isCont_cot' [simp,continuous_intros]:
+  fixes a :: "'a::{real_normed_field,banach}" and f :: "'a \<Rightarrow> 'a"
+  shows "\<lbrakk>isCont f a; sin (f a) \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. cot (f x)) a"
+  by (rule isCont_o2 [OF _ isCont_cot])
+
+lemma tendsto_cot [tendsto_intros]:
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "\<lbrakk>(f ---> a) F; sin a \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. cot (f x)) ---> cot a) F"
+  by (rule isCont_tendsto_compose [OF isCont_cot])
+
+lemma continuous_cot:
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "continuous F f \<Longrightarrow> sin (f (Lim F (\<lambda>x. x))) \<noteq> 0 \<Longrightarrow> continuous F (\<lambda>x. cot (f x))"
+  unfolding continuous_def by (rule tendsto_cot)
+
+lemma continuous_on_cot [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. sin (f x) \<noteq> 0) \<Longrightarrow> continuous_on s (\<lambda>x. cot (f x))"
+  unfolding continuous_on_def by (auto intro: tendsto_cot)
+
+lemma continuous_within_cot [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,banach}"
+  shows
+  "continuous (at x within s) f \<Longrightarrow> sin (f x) \<noteq> 0 \<Longrightarrow> continuous (at x within s) (\<lambda>x. cot (f x))"
+  unfolding continuous_within by (rule tendsto_cot)
+
 
 subsection \<open>Inverse Trigonometric Functions\<close>
 

@@ -353,6 +353,10 @@ lemma (in topological_space) eventually_nhds:
   "eventually P (nhds a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
   unfolding nhds_def by (subst eventually_INF_base) (auto simp: eventually_principal)
 
+lemma (in topological_space) eventually_nhds_in_open: 
+  "open s \<Longrightarrow> x \<in> s \<Longrightarrow> eventually (\<lambda>y. y \<in> s) (nhds x)"
+  by (subst eventually_nhds) blast
+
 lemma nhds_neq_bot [simp]: "nhds a \<noteq> bot"
   unfolding trivial_limit_def eventually_nhds by simp
 
@@ -497,6 +501,12 @@ lemma (in topological_space) tendsto_def:
    "(f ---> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
    unfolding nhds_def filterlim_INF filterlim_principal by auto
 
+lemma tendsto_cong:
+  assumes "eventually (\<lambda>x. f x = g x) F"
+  shows   "(f ---> c) F \<longleftrightarrow> (g ---> c) F"
+  by (rule filterlim_cong[OF refl refl assms])
+
+
 lemma tendsto_mono: "F \<le> F' \<Longrightarrow> (f ---> l) F' \<Longrightarrow> (f ---> l) F"
   unfolding tendsto_def le_filter_def by fast
 
@@ -625,6 +635,28 @@ next
     using order_tendstoD[OF lim(2), of a] ev by (auto elim: eventually_elim2)
 qed
 
+lemma limit_frequently_eq:
+  assumes "F \<noteq> bot"
+  assumes "frequently (\<lambda>x. f x = c) F"
+  assumes "(f ---> d) F"
+  shows   "d = (c :: 'a :: t1_space)"
+proof (rule ccontr)
+  assume "d \<noteq> c"
+  from t1_space[OF this] obtain U where "open U" "d \<in> U" "c \<notin> U" by blast
+  from this assms have "eventually (\<lambda>x. f x \<in> U) F" unfolding tendsto_def by blast
+  hence "eventually (\<lambda>x. f x \<noteq> c) F" by eventually_elim (insert `c \<notin> U`, blast)
+  with assms(2) show False unfolding frequently_def by contradiction
+qed
+
+lemma tendsto_imp_eventually_ne:
+  assumes "F \<noteq> bot" "(f ---> c) F" "c \<noteq> (c' :: 'a :: t1_space)"
+  shows   "eventually (\<lambda>z. f z \<noteq> c') F"
+proof (rule ccontr)
+  assume "\<not>eventually (\<lambda>z. f z \<noteq> c') F"
+  hence "frequently (\<lambda>z. f z = c') F" by (simp add: frequently_def)
+  from limit_frequently_eq[OF assms(1) this assms(2)] and assms(3) show False by contradiction
+qed
+
 lemma tendsto_le:
   fixes f g :: "'a \<Rightarrow> 'b::linorder_topology"
   assumes F: "\<not> trivial_limit F"
@@ -656,6 +688,9 @@ lemma tendsto_ge_const:
   assumes x: "(f ---> x) F" and a: "eventually (\<lambda>i. a \<ge> f i) F"
   shows "a \<ge> x"
   by (rule tendsto_le [OF F tendsto_const x a])
+
+
+
 
 subsubsection \<open>Rules about @{const Lim}\<close>
 
@@ -923,6 +958,17 @@ lemma subseq_o: "subseq r \<Longrightarrow> subseq s \<Longrightarrow> subseq (r
 
 lemma subseq_mono: assumes "subseq r" "m < n" shows "r m < r n"
   using assms by (auto simp: subseq_def)
+
+lemma subseq_imp_inj_on: "subseq g \<Longrightarrow> inj_on g A"
+proof (rule inj_onI)
+  assume g: "subseq g"
+  fix x y assume "g x = g y"
+  with subseq_mono[OF g, of x y] subseq_mono[OF g, of y x] show "x = y" 
+    by (cases x y rule: linorder_cases) simp_all
+qed
+
+lemma subseq_strict_mono: "subseq g \<Longrightarrow> strict_mono g"
+  by (intro strict_monoI subseq_mono[of g])
 
 lemma incseq_imp_monoseq:  "incseq X \<Longrightarrow> monoseq X"
   by (simp add: incseq_def monoseq_def)
@@ -2141,6 +2187,15 @@ lemma connected_contains_Ioo:
   fixes A :: "'a :: linorder_topology set"
   assumes A: "connected A" "a \<in> A" "b \<in> A" shows "{a <..< b} \<subseteq> A"
   using connectedD_interval[OF A] by (simp add: subset_eq Ball_def less_imp_le)
+
+lemma connected_contains_Icc:
+  assumes "connected (A :: ('a :: {linorder_topology}) set)" "a \<in> A" "b \<in> A"
+  shows   "{a..b} \<subseteq> A"
+proof
+  fix x assume "x \<in> {a..b}"
+  hence "x = a \<or> x = b \<or> x \<in> {a<..<b}" by auto
+  thus "x \<in> A" using assms connected_contains_Ioo[of A a b] by auto
+qed
 
 subsection \<open>Intermediate Value Theorem\<close>
 

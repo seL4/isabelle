@@ -171,6 +171,17 @@ lemma of_real_Re [simp]:
     "z \<in> \<real> \<Longrightarrow> of_real (Re z) = z"
   by (auto simp: Reals_def)
 
+lemma complex_Re_fact [simp]: "Re (fact n) = fact n"
+proof -
+  have "(fact n :: complex) = of_real (fact n)" by simp
+  also have "Re \<dots> = fact n" by (subst Re_complex_of_real) simp_all
+  finally show ?thesis .
+qed
+
+lemma complex_Im_fact [simp]: "Im (fact n) = 0"
+  by (subst of_nat_fact [symmetric]) (simp only: complex_Im_of_nat)
+
+
 subsection \<open>The Complex Number $i$\<close>
 
 primcorec "ii" :: complex  ("\<i>") where
@@ -496,6 +507,12 @@ lemma complex_mod_sqrt_Re_mult_cnj: "cmod z = sqrt (Re (z * cnj z))"
 
 lemma complex_In_mult_cnj_zero [simp]: "Im (z * cnj z) = 0"
   by simp
+
+lemma complex_cnj_fact [simp]: "cnj (fact n) = fact n"
+  by (subst of_nat_fact [symmetric], subst complex_cnj_of_nat) simp
+
+lemma complex_cnj_pochhammer [simp]: "cnj (pochhammer z n) = pochhammer (cnj z) n"
+  by (induction n arbitrary: z) (simp_all add: pochhammer_rec)
 
 lemma bounded_linear_cnj: "bounded_linear cnj"
   using complex_cnj_add complex_cnj_scaleR

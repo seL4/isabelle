@@ -233,7 +233,7 @@ lemma even_nat_iff:
 
 subsection \<open>Parity and powers\<close>
 
-context comm_ring_1
+context ring_1
 begin
 
 lemma power_minus_even [simp]:

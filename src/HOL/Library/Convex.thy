@@ -304,6 +304,42 @@ definition convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> rea
   where "convex_on s f \<longleftrightarrow>
     (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y)"
 
+lemma convex_onI [intro?]:
+  assumes "\<And>t x y. t > 0 \<Longrightarrow> t < 1 \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow>
+             f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
+  shows   "convex_on A f"
+  unfolding convex_on_def
+proof clarify
+  fix x y u v assume A: "x \<in> A" "y \<in> A" "(u::real) \<ge> 0" "v \<ge> 0" "u + v = 1"
+  from A(5) have [simp]: "v = 1 - u" by (simp add: algebra_simps)
+  from A(1-4) show "f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y" using assms[of u y x]
+    by (cases "u = 0 \<or> u = 1") (auto simp: algebra_simps)
+qed
+
+lemma convex_on_linorderI [intro?]:
+  fixes A :: "('a::{linorder,real_vector}) set"
+  assumes "\<And>t x y. t > 0 \<Longrightarrow> t < 1 \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x < y \<Longrightarrow>
+             f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
+  shows   "convex_on A f"
+proof
+  fix t x y assume A: "x \<in> A" "y \<in> A" "(t::real) > 0" "t < 1"
+  case (goal1 t x y)
+  with goal1 assms[of t x y] assms[of "1 - t" y x]
+    show ?case by (cases x y rule: linorder_cases) (auto simp: algebra_simps)
+qed
+
+lemma convex_onD:
+  assumes "convex_on A f"
+  shows   "\<And>t x y. t \<ge> 0 \<Longrightarrow> t \<le> 1 \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow>
+             f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
+  using assms unfolding convex_on_def by auto
+
+lemma convex_onD_Icc:
+  assumes "convex_on {x..y} f" "x \<le> (y :: _ :: {real_vector,preorder})"
+  shows   "\<And>t. t \<ge> 0 \<Longrightarrow> t \<le> 1 \<Longrightarrow>
+             f ((1 - t) *\<^sub>R x + t *\<^sub>R y) \<le> (1 - t) * f x + t * f y"
+  using assms(2) by (intro convex_onD[OF assms(1)]) simp_all
+
 lemma convex_on_subset: "convex_on t f \<Longrightarrow> s \<subseteq> t \<Longrightarrow> convex_on s f"
   unfolding convex_on_def by auto
 
@@ -834,5 +870,92 @@ proof -
     unfolded greaterThan_iff, OF f' f''0 f''_ge0]
   show ?thesis by auto
 qed
+
+
+subsection \<open>Convexity of real functions\<close>
+
+lemma convex_on_realI:
+  assumes "connected A"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> (f has_real_derivative f' x) (at x)"
+  assumes "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> x \<le> y \<Longrightarrow> f' x \<le> f' y"
+  shows   "convex_on A f"
+proof (rule convex_on_linorderI)
+  fix t x y :: real
+  assume t: "t > 0" "t < 1" and xy: "x \<in> A" "y \<in> A" "x < y"
+  def z \<equiv> "(1 - t) * x + t * y"
+  with `connected A` and xy have ivl: "{x..y} \<subseteq> A" using connected_contains_Icc by blast
+  
+  from xy t have xz: "z > x" by (simp add: z_def algebra_simps)
+  have "y - z = (1 - t) * (y - x)" by (simp add: z_def algebra_simps)
+  also from xy t have "... > 0" by (intro mult_pos_pos) simp_all
+  finally have yz: "z < y" by simp
+    
+  from assms xz yz ivl t have "\<exists>\<xi>. \<xi> > x \<and> \<xi> < z \<and> f z - f x = (z - x) * f' \<xi>"
+    by (intro MVT2) (auto intro!: assms(2))
+  then obtain \<xi> where \<xi>: "\<xi> > x" "\<xi> < z" "f' \<xi> = (f z - f x) / (z - x)" by auto
+  from assms xz yz ivl t have "\<exists>\<eta>. \<eta> > z \<and> \<eta> < y \<and> f y - f z = (y - z) * f' \<eta>"
+    by (intro MVT2) (auto intro!: assms(2))
+  then obtain \<eta> where \<eta>: "\<eta> > z" "\<eta> < y" "f' \<eta> = (f y - f z) / (y - z)" by auto
+  
+  from \<eta>(3) have "(f y - f z) / (y - z) = f' \<eta>" ..
+  also from \<xi> \<eta> ivl have "\<xi> \<in> A" "\<eta> \<in> A" by auto
+  with \<xi> \<eta> have "f' \<eta> \<ge> f' \<xi>" by (intro assms(3)) auto
+  also from \<xi>(3) have "f' \<xi> = (f z - f x) / (z - x)" .
+  finally have "(f y - f z) * (z - x) \<ge> (f z - f x) * (y - z)"
+    using xz yz by (simp add: field_simps)
+  also have "z - x = t * (y - x)" by (simp add: z_def algebra_simps)
+  also have "y - z = (1 - t) * (y - x)" by (simp add: z_def algebra_simps)
+  finally have "(f y - f z) * t \<ge> (f z - f x) * (1 - t)" using xy by simp
+  thus "(1 - t) * f x + t * f y \<ge> f ((1 - t) *\<^sub>R x + t *\<^sub>R y)"
+    by (simp add: z_def algebra_simps)
+qed
+
+lemma convex_on_inverse:
+  assumes "A \<subseteq> {0<..}"
+  shows   "convex_on A (inverse :: real \<Rightarrow> real)"
+proof (rule convex_on_subset[OF _ assms], intro convex_on_realI[of _ _ "\<lambda>x. -inverse (x^2)"])
+  fix u v :: real assume "u \<in> {0<..}" "v \<in> {0<..}" "u \<le> v"
+  with assms show "-inverse (u^2) \<le> -inverse (v^2)"
+    by (intro le_imp_neg_le le_imp_inverse_le power_mono) (simp_all)
+qed (insert assms, auto intro!: derivative_eq_intros simp: divide_simps power2_eq_square)
+
+lemma convex_onD_Icc':
+  assumes "convex_on {x..y} f" "c \<in> {x..y}"
+  defines "d \<equiv> y - x"
+  shows   "f c \<le> (f y - f x) / d * (c - x) + f x"
+proof (cases y x rule: linorder_cases)
+  assume less: "x < y"
+  hence d: "d > 0" by (simp add: d_def)
+  from assms(2) less have A: "0 \<le> (c - x) / d" "(c - x) / d \<le> 1" 
+    by (simp_all add: d_def divide_simps)
+  have "f c = f (x + (c - x) * 1)" by simp
+  also from less have "1 = ((y - x) / d)" by (simp add: d_def)
+  also from d have "x + (c - x) * \<dots> = (1 - (c - x) / d) *\<^sub>R x + ((c - x) / d) *\<^sub>R y" 
+    by (simp add: field_simps)
+  also have "f \<dots> \<le> (1 - (c - x) / d) * f x + (c - x) / d * f y" using assms less
+    by (intro convex_onD_Icc) simp_all
+  also from d have "\<dots> = (f y - f x) / d * (c - x) + f x" by (simp add: field_simps)
+  finally show ?thesis .
+qed (insert assms(2), simp_all)
+
+lemma convex_onD_Icc'':
+  assumes "convex_on {x..y} f" "c \<in> {x..y}"
+  defines "d \<equiv> y - x"
+  shows   "f c \<le> (f x - f y) / d * (y - c) + f y"
+proof (cases y x rule: linorder_cases)
+  assume less: "x < y"
+  hence d: "d > 0" by (simp add: d_def)
+  from assms(2) less have A: "0 \<le> (y - c) / d" "(y - c) / d \<le> 1" 
+    by (simp_all add: d_def divide_simps)
+  have "f c = f (y - (y - c) * 1)" by simp
+  also from less have "1 = ((y - x) / d)" by (simp add: d_def)
+  also from d have "y - (y - c) * \<dots> = (1 - (1 - (y - c) / d)) *\<^sub>R x + (1 - (y - c) / d) *\<^sub>R y" 
+    by (simp add: field_simps)
+  also have "f \<dots> \<le> (1 - (1 - (y - c) / d)) * f x + (1 - (y - c) / d) * f y" using assms less
+    by (intro convex_onD_Icc) (simp_all add: field_simps)
+  also from d have "\<dots> = (f x - f y) / d * (y - c) + f y" by (simp add: field_simps)
+  finally show ?thesis .
+qed (insert assms(2), simp_all)
+
 
 end

@@ -137,10 +137,32 @@ proof (elim BseqE, intro bdd_aboveI2)
     by (auto elim!: allE[of _ n])
 qed
 
+lemma Bseq_bdd_above': 
+  "Bseq (X::nat \<Rightarrow> 'a :: real_normed_vector) \<Longrightarrow> bdd_above (range (\<lambda>n. norm (X n)))"
+proof (elim BseqE, intro bdd_aboveI2)
+  fix K n assume "0 < K" "\<forall>n. norm (X n) \<le> K" then show "norm (X n) \<le> K"
+    by (auto elim!: allE[of _ n])
+qed
+
 lemma Bseq_bdd_below: "Bseq (X::nat \<Rightarrow> real) \<Longrightarrow> bdd_below (range X)"
 proof (elim BseqE, intro bdd_belowI2)
   fix K n assume "0 < K" "\<forall>n. norm (X n) \<le> K" then show "- K \<le> X n"
     by (auto elim!: allE[of _ n])
+qed
+
+lemma Bseq_eventually_mono:
+  assumes "eventually (\<lambda>n. norm (f n) \<le> norm (g n)) sequentially" "Bseq g"
+  shows   "Bseq f" 
+proof -
+  from assms(1) obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> norm (f n) \<le> norm (g n)"
+    by (auto simp: eventually_at_top_linorder)
+  moreover from assms(2) obtain K where K: "\<And>n. norm (g n) \<le> K" by (blast elim!: BseqE)
+  ultimately have "norm (f n) \<le> max K (Max {norm (f n) |n. n < N})" for n
+    apply (cases "n < N")
+    apply (rule max.coboundedI2, rule Max.coboundedI, auto) []
+    apply (rule max.coboundedI1, force intro: order.trans[OF N K])
+    done
+  thus ?thesis by (blast intro: BseqI') 
 qed
 
 lemma lemma_NBseq_def:
@@ -217,6 +239,73 @@ subsubsection\<open>Upper Bounds and Lubs of Bounded Sequences\<close>
 
 lemma Bseq_minus_iff: "Bseq (%n. -(X n) :: 'a :: real_normed_vector) = Bseq X"
   by (simp add: Bseq_def)
+
+lemma Bseq_add: 
+  assumes "Bseq (f :: nat \<Rightarrow> 'a :: real_normed_vector)"
+  shows   "Bseq (\<lambda>x. f x + c)"
+proof -
+  from assms obtain K where K: "\<And>x. norm (f x) \<le> K" unfolding Bseq_def by blast
+  {
+    fix x :: nat
+    have "norm (f x + c) \<le> norm (f x) + norm c" by (rule norm_triangle_ineq)
+    also have "norm (f x) \<le> K" by (rule K)
+    finally have "norm (f x + c) \<le> K + norm c" by simp
+  }
+  thus ?thesis by (rule BseqI')
+qed
+
+lemma Bseq_add_iff: "Bseq (\<lambda>x. f x + c) \<longleftrightarrow> Bseq (f :: nat \<Rightarrow> 'a :: real_normed_vector)"
+  using Bseq_add[of f c] Bseq_add[of "\<lambda>x. f x + c" "-c"] by auto
+
+lemma Bseq_mult: 
+  assumes "Bseq (f :: nat \<Rightarrow> 'a :: real_normed_field)"
+  assumes "Bseq (g :: nat \<Rightarrow> 'a :: real_normed_field)"
+  shows   "Bseq (\<lambda>x. f x * g x)"
+proof -
+  from assms obtain K1 K2 where K: "\<And>x. norm (f x) \<le> K1" "K1 > 0" "\<And>x. norm (g x) \<le> K2" "K2 > 0" 
+    unfolding Bseq_def by blast
+  hence "\<And>x. norm (f x * g x) \<le> K1 * K2" by (auto simp: norm_mult intro!: mult_mono)
+  thus ?thesis by (rule BseqI')
+qed
+
+lemma Bfun_const [simp]: "Bfun (\<lambda>_. c) F"
+  unfolding Bfun_metric_def by (auto intro!: exI[of _ c] exI[of _ "1::real"])
+
+lemma Bseq_cmult_iff: "(c :: 'a :: real_normed_field) \<noteq> 0 \<Longrightarrow> Bseq (\<lambda>x. c * f x) \<longleftrightarrow> Bseq f"
+proof
+  assume "c \<noteq> 0" "Bseq (\<lambda>x. c * f x)"
+  find_theorems "Bfun (\<lambda>_. ?c) _"
+  from Bfun_const this(2) have "Bseq (\<lambda>x. inverse c * (c * f x))" by (rule Bseq_mult)
+  with `c \<noteq> 0` show "Bseq f" by (simp add: divide_simps)
+qed (intro Bseq_mult Bfun_const)
+
+lemma Bseq_subseq: "Bseq (f :: nat \<Rightarrow> 'a :: real_normed_vector) \<Longrightarrow> Bseq (\<lambda>x. f (g x))"
+  unfolding Bseq_def by auto
+
+lemma Bseq_Suc_iff: "Bseq (\<lambda>n. f (Suc n)) \<longleftrightarrow> Bseq (f :: nat \<Rightarrow> 'a :: real_normed_vector)"
+  using Bseq_offset[of f 1] by (auto intro: Bseq_subseq)
+
+lemma increasing_Bseq_subseq_iff:
+  assumes "\<And>x y. x \<le> y \<Longrightarrow> norm (f x :: 'a :: real_normed_vector) \<le> norm (f y)" "subseq g"
+  shows   "Bseq (\<lambda>x. f (g x)) \<longleftrightarrow> Bseq f"
+proof
+  assume "Bseq (\<lambda>x. f (g x))"
+  then obtain K where K: "\<And>x. norm (f (g x)) \<le> K" unfolding Bseq_def by auto
+  {
+    fix x :: nat
+    from filterlim_subseq[OF assms(2)] obtain y where "g y \<ge> x"
+      by (auto simp: filterlim_at_top eventually_at_top_linorder)
+    hence "norm (f x) \<le> norm (f (g y))" using assms(1) by blast
+    also have "norm (f (g y)) \<le> K" by (rule K)
+    finally have "norm (f x) \<le> K" .
+  }
+  thus "Bseq f" by (rule BseqI')
+qed (insert Bseq_subseq[of f g], simp_all)
+
+lemma nonneg_incseq_Bseq_subseq_iff:
+  assumes "\<And>x. f x \<ge> 0" "incseq (f :: nat \<Rightarrow> real)" "subseq g"
+  shows   "Bseq (\<lambda>x. f (g x)) \<longleftrightarrow> Bseq f"
+  using assms by (intro increasing_Bseq_subseq_iff) (auto simp: incseq_def)
 
 lemma Bseq_eq_bounded: "range f \<subseteq> {a .. b::real} \<Longrightarrow> Bseq f"
   apply (simp add: subset_eq)
@@ -679,6 +768,16 @@ lemma continuous_on_setprod [continuous_intros]:
   shows "(\<And>i. i \<in> S \<Longrightarrow> continuous_on s (f i)) \<Longrightarrow> continuous_on s (\<lambda>x. \<Prod>i\<in>S. f i x)"
   unfolding continuous_on_def by (auto intro: tendsto_setprod)
 
+lemma tendsto_of_real_iff:
+  "((\<lambda>x. of_real (f x) :: 'a :: real_normed_div_algebra) ---> of_real c) F \<longleftrightarrow> (f ---> c) F"
+  unfolding tendsto_iff by simp
+
+lemma tendsto_add_const_iff:
+  "((\<lambda>x. c + f x :: 'a :: real_normed_vector) ---> c + d) F \<longleftrightarrow> (f ---> d) F"
+  using tendsto_add[OF tendsto_const[of c], of f d] 
+        tendsto_add[OF tendsto_const[of "-c"], of "\<lambda>x. c + f x" "c + d"] by auto
+
+
 subsubsection \<open>Inverse and division\<close>
 
 lemma (in bounded_bilinear) Zfun_prod_Bfun:
@@ -892,6 +991,55 @@ proof safe
   qed
 qed force
 
+lemma not_tendsto_and_filterlim_at_infinity:
+  assumes "F \<noteq> bot"
+  assumes "(f ---> (c :: 'a :: real_normed_vector)) F" 
+  assumes "filterlim f at_infinity F"
+  shows   False
+proof -
+  from tendstoD[OF assms(2), of "1/2"] 
+    have "eventually (\<lambda>x. dist (f x) c < 1/2) F" by simp
+  moreover from filterlim_at_infinity[of "norm c" f F] assms(3)
+    have "eventually (\<lambda>x. norm (f x) \<ge> norm c + 1) F" by simp
+  ultimately have "eventually (\<lambda>x. False) F"
+  proof eventually_elim
+    fix x assume A: "dist (f x) c < 1/2" and B: "norm (f x) \<ge> norm c + 1"
+    note B
+    also have "norm (f x) = dist (f x) 0" by (simp add: norm_conv_dist)
+    also have "... \<le> dist (f x) c + dist c 0" by (rule dist_triangle)
+    also note A
+    finally show False by (simp add: norm_conv_dist)
+  qed
+  with assms show False by simp
+qed
+
+lemma filterlim_at_infinity_imp_not_convergent:
+  assumes "filterlim f at_infinity sequentially"
+  shows   "\<not>convergent f"
+  by (rule notI, rule not_tendsto_and_filterlim_at_infinity[OF _ _ assms])
+     (simp_all add: convergent_LIMSEQ_iff)
+
+lemma filterlim_at_infinity_imp_eventually_ne:
+  assumes "filterlim f at_infinity F"
+  shows   "eventually (\<lambda>z. f z \<noteq> c) F"
+proof -
+  have "norm c + 1 > 0" by (intro add_nonneg_pos) simp_all
+  with filterlim_at_infinity[OF order.refl, of f F] assms
+    have "eventually (\<lambda>z. norm (f z) \<ge> norm c + 1) F" by blast
+  thus ?thesis by eventually_elim auto
+qed
+
+lemma tendsto_of_nat [tendsto_intros]: 
+  "filterlim (of_nat :: nat \<Rightarrow> 'a :: real_normed_algebra_1) at_infinity sequentially"
+proof (subst filterlim_at_infinity[OF order.refl], intro allI impI)
+  fix r :: real assume r: "r > 0"
+  def n \<equiv> "nat \<lceil>r\<rceil>"
+  from r have n: "\<forall>m\<ge>n. of_nat m \<ge> r" unfolding n_def by linarith
+  from eventually_ge_at_top[of n] show "eventually (\<lambda>m. norm (of_nat m :: 'a) \<ge> r) sequentially"
+    by eventually_elim (insert n, simp_all)
+qed
+
+
 subsection \<open>Relate @{const at}, @{const at_left} and @{const at_right}\<close>
 
 text \<open>
@@ -1075,9 +1223,27 @@ next
     by (auto intro: order_trans simp: filterlim_def filtermap_filtermap)
 qed
 
+lemma tendsto_mult_filterlim_at_infinity:
+  assumes "F \<noteq> bot" "(f ---> (c :: 'a :: real_normed_field)) F" "c \<noteq> 0"
+  assumes "filterlim g at_infinity F"
+  shows   "filterlim (\<lambda>x. f x * g x) at_infinity F"
+proof -
+  have "((\<lambda>x. inverse (f x) * inverse (g x)) ---> inverse c * 0) F"
+    by (intro tendsto_mult tendsto_inverse assms filterlim_compose[OF tendsto_inverse_0])
+  hence "filterlim (\<lambda>x. inverse (f x) * inverse (g x)) (at (inverse c * 0)) F"
+    unfolding filterlim_at using assms
+    by (auto intro: filterlim_at_infinity_imp_eventually_ne tendsto_imp_eventually_ne eventually_conj)
+  thus ?thesis by (subst filterlim_inverse_at_iff[symmetric]) simp_all
+qed
+
 lemma tendsto_inverse_0_at_top: "LIM x F. f x :> at_top \<Longrightarrow> ((\<lambda>x. inverse (f x) :: real) ---> 0) F"
  by (metis filterlim_at filterlim_mono[OF _ at_top_le_at_infinity order_refl] filterlim_inverse_at_iff)
 
+lemma mult_nat_left_at_top: "c > 0 \<Longrightarrow> filterlim (\<lambda>x. c * x :: nat) at_top sequentially"
+  by (rule filterlim_subseq) (auto simp: subseq_def)
+
+lemma mult_nat_right_at_top: "c > 0 \<Longrightarrow> filterlim (\<lambda>x. x * c :: nat) at_top sequentially"
+  by (rule filterlim_subseq) (auto simp: subseq_def)
 
 lemma at_to_infinity:
   fixes x :: "'a :: {real_normed_field,field}"
@@ -1471,6 +1637,23 @@ qed
 
 subsection \<open>Convergence on sequences\<close>
 
+lemma convergent_cong:
+  assumes "eventually (\<lambda>x. f x = g x) sequentially"
+  shows   "convergent f \<longleftrightarrow> convergent g"
+  unfolding convergent_def by (subst filterlim_cong[OF refl refl assms]) (rule refl)
+
+lemma convergent_Suc_iff: "convergent (\<lambda>n. f (Suc n)) \<longleftrightarrow> convergent f"
+  by (auto simp: convergent_def LIMSEQ_Suc_iff)
+
+lemma convergent_ignore_initial_segment: "convergent (\<lambda>n. f (n + m)) = convergent f"
+proof (induction m arbitrary: f)
+  case (Suc m)
+  have "convergent (\<lambda>n. f (n + Suc m)) \<longleftrightarrow> convergent (\<lambda>n. f (Suc n + m))" by simp
+  also have "\<dots> \<longleftrightarrow> convergent (\<lambda>n. f (n + m))" by (rule convergent_Suc_iff)
+  also have "\<dots> \<longleftrightarrow> convergent f" by (rule Suc)
+  finally show ?case .
+qed simp_all
+
 lemma convergent_add:
   fixes X Y :: "nat \<Rightarrow> 'a::real_normed_vector"
   assumes "convergent (\<lambda>n. X n)"
@@ -1505,6 +1688,71 @@ apply (auto dest: tendsto_minus)
 apply (drule tendsto_minus, auto)
 done
 
+lemma convergent_diff:
+  fixes X Y :: "nat \<Rightarrow> 'a::real_normed_vector"
+  assumes "convergent (\<lambda>n. X n)"
+  assumes "convergent (\<lambda>n. Y n)"
+  shows "convergent (\<lambda>n. X n - Y n)"
+  using assms unfolding convergent_def by (fast intro: tendsto_diff)
+
+lemma convergent_norm:
+  assumes "convergent f"
+  shows   "convergent (\<lambda>n. norm (f n))"
+proof -
+  from assms have "f ----> lim f" by (simp add: convergent_LIMSEQ_iff)
+  hence "(\<lambda>n. norm (f n)) ----> norm (lim f)" by (rule tendsto_norm)
+  thus ?thesis by (auto simp: convergent_def)
+qed
+
+lemma convergent_of_real: 
+  "convergent f \<Longrightarrow> convergent (\<lambda>n. of_real (f n) :: 'a :: real_normed_algebra_1)"
+  unfolding convergent_def by (blast intro!: tendsto_of_real)
+
+lemma convergent_add_const_iff: 
+  "convergent (\<lambda>n. c + f n :: 'a :: real_normed_vector) \<longleftrightarrow> convergent f"
+proof
+  assume "convergent (\<lambda>n. c + f n)"
+  from convergent_diff[OF this convergent_const[of c]] show "convergent f" by simp
+next
+  assume "convergent f"
+  from convergent_add[OF convergent_const[of c] this] show "convergent (\<lambda>n. c + f n)" by simp
+qed
+
+lemma convergent_add_const_right_iff: 
+  "convergent (\<lambda>n. f n + c :: 'a :: real_normed_vector) \<longleftrightarrow> convergent f"
+  using convergent_add_const_iff[of c f] by (simp add: add_ac)
+
+lemma convergent_diff_const_right_iff: 
+  "convergent (\<lambda>n. f n - c :: 'a :: real_normed_vector) \<longleftrightarrow> convergent f"
+  using convergent_add_const_right_iff[of f "-c"] by (simp add: add_ac)
+
+lemma convergent_mult:
+  fixes X Y :: "nat \<Rightarrow> 'a::real_normed_field"
+  assumes "convergent (\<lambda>n. X n)"
+  assumes "convergent (\<lambda>n. Y n)"
+  shows "convergent (\<lambda>n. X n * Y n)"
+  using assms unfolding convergent_def by (fast intro: tendsto_mult)
+
+lemma convergent_mult_const_iff:
+  assumes "c \<noteq> 0"
+  shows   "convergent (\<lambda>n. c * f n :: 'a :: real_normed_field) \<longleftrightarrow> convergent f"
+proof
+  assume "convergent (\<lambda>n. c * f n)"
+  from assms convergent_mult[OF this convergent_const[of "inverse c"]] 
+    show "convergent f" by (simp add: field_simps)
+next
+  assume "convergent f"
+  from convergent_mult[OF convergent_const[of c] this] show "convergent (\<lambda>n. c * f n)" by simp
+qed
+
+lemma convergent_mult_const_right_iff:
+  assumes "c \<noteq> 0"
+  shows   "convergent (\<lambda>n. (f n :: 'a :: real_normed_field) * c) \<longleftrightarrow> convergent f"
+  using convergent_mult_const_iff[OF assms, of f] by (simp add: mult_ac)
+
+lemma convergent_imp_Bseq: "convergent f \<Longrightarrow> Bseq f"
+  by (simp add: Cauchy_Bseq convergent_Cauchy)
+
 
 text \<open>A monotone sequence converges to its least upper bound.\<close>
 
@@ -1531,6 +1779,19 @@ lemma Bseq_monoseq_convergent: "Bseq X \<Longrightarrow> monoseq X \<Longrightar
 
 lemma Bseq_mono_convergent: "Bseq X \<Longrightarrow> (\<forall>m n. m \<le> n \<longrightarrow> X m \<le> X n) \<Longrightarrow> convergent (X::nat\<Rightarrow>real)"
   by (auto intro!: Bseq_monoseq_convergent incseq_imp_monoseq simp: incseq_def)
+
+lemma monoseq_imp_convergent_iff_Bseq: "monoseq (f :: nat \<Rightarrow> real) \<Longrightarrow> convergent f \<longleftrightarrow> Bseq f"
+  using Bseq_monoseq_convergent[of f] convergent_imp_Bseq[of f] by blast
+
+lemma Bseq_monoseq_convergent'_inc:
+  "Bseq (\<lambda>n. f (n + M) :: real) \<Longrightarrow> (\<And>m n. M \<le> m \<Longrightarrow> m \<le> n \<Longrightarrow> f m \<le> f n) \<Longrightarrow> convergent f"
+  by (subst convergent_ignore_initial_segment [symmetric, of _ M])
+     (auto intro!: Bseq_monoseq_convergent simp: monoseq_def)
+
+lemma Bseq_monoseq_convergent'_dec:
+  "Bseq (\<lambda>n. f (n + M) :: real) \<Longrightarrow> (\<And>m n. M \<le> m \<Longrightarrow> m \<le> n \<Longrightarrow> f m \<ge> f n) \<Longrightarrow> convergent f"
+  by (subst convergent_ignore_initial_segment [symmetric, of _ M])
+     (auto intro!: Bseq_monoseq_convergent simp: monoseq_def)
 
 lemma Cauchy_iff:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"

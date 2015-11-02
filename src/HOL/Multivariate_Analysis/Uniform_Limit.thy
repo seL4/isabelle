@@ -15,6 +15,12 @@ definition uniformly_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b::metric_sp
 abbreviation
   "uniform_limit S f l \<equiv> filterlim f (uniformly_on S l)"
 
+definition uniformly_convergent_on where
+  "uniformly_convergent_on X f \<longleftrightarrow> (\<exists>l. uniform_limit X f l sequentially)"
+
+definition uniformly_Cauchy_on where 
+  "uniformly_Cauchy_on X f \<longleftrightarrow> (\<forall>e>0. \<exists>M. \<forall>x\<in>X. \<forall>(m::nat)\<ge>M. \<forall>n\<ge>M. dist (f m x) (f n x) < e)"
+  
 lemma uniform_limit_iff:
   "uniform_limit S f l F \<longleftrightarrow> (\<forall>e>0. \<forall>\<^sub>F n in F. \<forall>x\<in>S. dist (f n x) (l x) < e)"
   unfolding filterlim_iff uniformly_on_def
@@ -114,9 +120,115 @@ proof safe
     by (rule swap_uniform_limit) fact+
 qed
 
-lemma weierstrass_m_test:
+lemma uniformly_Cauchy_onI:
+  assumes "\<And>e. e > 0 \<Longrightarrow> \<exists>M. \<forall>x\<in>X. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (f m x) (f n x) < e"
+  shows   "uniformly_Cauchy_on X f"
+  using assms unfolding uniformly_Cauchy_on_def by blast
+
+lemma uniformly_Cauchy_onI':
+  assumes "\<And>e. e > 0 \<Longrightarrow> \<exists>M. \<forall>x\<in>X. \<forall>m\<ge>M. \<forall>n>m. dist (f m x) (f n x) < e"
+  shows   "uniformly_Cauchy_on X f"
+proof (rule uniformly_Cauchy_onI)
+  fix e :: real assume e: "e > 0"
+  from assms[OF this] obtain M 
+    where M: "\<And>x m n. x \<in> X \<Longrightarrow> m \<ge> M \<Longrightarrow> n > m \<Longrightarrow> dist (f m x) (f n x) < e" by fast
+  {
+    fix x m n assume x: "x \<in> X" and m: "m \<ge> M" and n: "n \<ge> M"
+    with M[OF this(1,2), of n] M[OF this(1,3), of m] e have "dist (f m x) (f n x) < e"
+      by (cases m n rule: linorder_cases) (simp_all add: dist_commute)
+  }
+  thus "\<exists>M. \<forall>x\<in>X. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (f m x) (f n x) < e" by fast
+qed
+
+lemma uniformly_Cauchy_imp_Cauchy: 
+  "uniformly_Cauchy_on X f \<Longrightarrow> x \<in> X \<Longrightarrow> Cauchy (\<lambda>n. f n x)"
+  unfolding Cauchy_def uniformly_Cauchy_on_def by fast
+
+lemma uniform_limit_cong:
+  fixes f g :: "'a \<Rightarrow> 'b \<Rightarrow> ('c :: metric_space)" and h i :: "'b \<Rightarrow> 'c"
+  assumes "eventually (\<lambda>y. \<forall>x\<in>X. f y x = g y x) F"
+  assumes "\<And>x. x \<in> X \<Longrightarrow> h x = i x"
+  shows   "uniform_limit X f h F \<longleftrightarrow> uniform_limit X g i F"
+proof -
+  {
+    fix f g :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" and h i :: "'b \<Rightarrow> 'c"
+    assume C: "uniform_limit X f h F" and A: "eventually (\<lambda>y. \<forall>x\<in>X. f y x = g y x) F"
+       and B: "\<And>x. x \<in> X \<Longrightarrow> h x = i x"
+    {
+      fix e ::real assume "e > 0"
+      with C have "eventually (\<lambda>y. \<forall>x\<in>X. dist (f y x) (h x) < e) F" 
+        unfolding uniform_limit_iff by blast
+      with A have "eventually (\<lambda>y. \<forall>x\<in>X. dist (g y x) (i x) < e) F"
+        by eventually_elim (insert B, simp_all)
+    }
+    hence "uniform_limit X g i F" unfolding uniform_limit_iff by blast
+  } note A = this
+  show ?thesis by (rule iffI) (erule A; insert assms; simp add: eq_commute)+
+qed
+
+lemma uniform_limit_cong':
+  fixes f g :: "'a \<Rightarrow> 'b \<Rightarrow> ('c :: metric_space)" and h i :: "'b \<Rightarrow> 'c"
+  assumes "\<And>y x. x \<in> X \<Longrightarrow> f y x = g y x"
+  assumes "\<And>x. x \<in> X \<Longrightarrow> h x = i x"
+  shows   "uniform_limit X f h F \<longleftrightarrow> uniform_limit X g i F"
+  using assms by (intro uniform_limit_cong always_eventually) blast+
+
+lemma uniformly_convergent_uniform_limit_iff:
+  "uniformly_convergent_on X f \<longleftrightarrow> uniform_limit X f (\<lambda>x. lim (\<lambda>n. f n x)) sequentially"
+proof
+  assume "uniformly_convergent_on X f"
+  then obtain l where l: "uniform_limit X f l sequentially" 
+    unfolding uniformly_convergent_on_def by blast
+  from l have "uniform_limit X f (\<lambda>x. lim (\<lambda>n. f n x)) sequentially \<longleftrightarrow>
+                      uniform_limit X f l sequentially"
+    by (intro uniform_limit_cong' limI tendsto_uniform_limitI[of f X l]) simp_all
+  also note l
+  finally show "uniform_limit X f (\<lambda>x. lim (\<lambda>n. f n x)) sequentially" .
+qed (auto simp: uniformly_convergent_on_def)
+
+lemma uniformly_convergentI: "uniform_limit X f l sequentially \<Longrightarrow> uniformly_convergent_on X f"
+  unfolding uniformly_convergent_on_def by blast
+
+lemma Cauchy_uniformly_convergent:
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> 'b :: complete_space"
+  assumes "uniformly_Cauchy_on X f"
+  shows   "uniformly_convergent_on X f"
+unfolding uniformly_convergent_uniform_limit_iff uniform_limit_iff
+proof safe
+  let ?f = "\<lambda>x. lim (\<lambda>n. f n x)"
+  fix e :: real assume e: "e > 0"
+  hence "e/2 > 0" by simp
+  with assms obtain N where N: "\<And>x m n. x \<in> X \<Longrightarrow> m \<ge> N \<Longrightarrow> n \<ge> N \<Longrightarrow> dist (f m x) (f n x) < e/2"
+    unfolding uniformly_Cauchy_on_def by fast
+  show "eventually (\<lambda>n. \<forall>x\<in>X. dist (f n x) (?f x) < e) sequentially"
+    using eventually_ge_at_top[of N]
+  proof eventually_elim
+    fix n assume n: "n \<ge> N"
+    show "\<forall>x\<in>X. dist (f n x) (?f x) < e"
+    proof
+      fix x assume x: "x \<in> X"
+      with assms have "(\<lambda>n. f n x) ----> ?f x" 
+        by (auto dest!: Cauchy_convergent uniformly_Cauchy_imp_Cauchy simp: convergent_LIMSEQ_iff)
+      with `e/2 > 0` have "eventually (\<lambda>m. m \<ge> N \<and> dist (f m x) (?f x) < e/2) sequentially"
+        by (intro tendstoD eventually_conj eventually_ge_at_top)
+      then obtain m where m: "m \<ge> N" "dist (f m x) (?f x) < e/2" 
+        unfolding eventually_at_top_linorder by blast
+      have "dist (f n x) (?f x) \<le> dist (f n x) (f m x) + dist (f m x) (?f x)"
+          by (rule dist_triangle)
+      also from x n have "... < e/2 + e/2" by (intro add_strict_mono N m)
+      finally show "dist (f n x) (?f x) < e" by simp
+    qed
+  qed
+qed
+
+lemma uniformly_convergent_imp_convergent:
+  "uniformly_convergent_on X f \<Longrightarrow> x \<in> X \<Longrightarrow> convergent (\<lambda>n. f n x)"
+  unfolding uniformly_convergent_on_def convergent_def
+  by (auto dest: tendsto_uniform_limitI)
+
+lemma weierstrass_m_test_ev:
 fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
-assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n"
+assumes "eventually (\<lambda>n. \<forall>x\<in>A. norm (f n x) \<le> M n) sequentially"
 assumes "summable M"
 shows "uniform_limit A (\<lambda>n x. \<Sum>i<n. f i x) (\<lambda>x. suminf (\<lambda>i. f i x)) sequentially"
 proof (rule uniform_limitI)
@@ -125,14 +237,15 @@ proof (rule uniform_limitI)
   from suminf_exist_split[OF \<open>0 < e\<close> \<open>summable M\<close>]
   have "\<forall>\<^sub>F k in sequentially. norm (\<Sum>i. M (i + k)) < e"
     by (auto simp: eventually_sequentially)
-  thus "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>A. dist (\<Sum>i<n. f i x) (\<Sum>i. f i x) < e"
+  with eventually_all_ge_at_top[OF assms(1)]
+    show "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>A. dist (\<Sum>i<n. f i x) (\<Sum>i. f i x) < e"
   proof eventually_elim
     case (elim k)
     show ?case
     proof safe
       fix x assume "x \<in> A"
       have "\<exists>N. \<forall>n\<ge>N. norm (f n x) \<le> M n"
-        using assms(1)[OF \<open>x \<in> A\<close>] by simp
+        using assms(1) \<open>x \<in> A\<close> by (force simp: eventually_at_top_linorder)
       hence summable_norm_f: "summable (\<lambda>n. norm (f n x))"
         by(rule summable_norm_comparison_test[OF _ \<open>summable M\<close>])
       have summable_f: "summable (\<lambda>n. f n x)"
@@ -152,12 +265,31 @@ proof (rule uniform_limitI)
         using summable_norm[OF summable_norm_f_plus_k] .
       also have "... \<le> (\<Sum>i. M (i + k))"
         by (rule suminf_le[OF _ summable_norm_f_plus_k summable_M_plus_k])
-           (simp add: assms(1)[OF \<open>x \<in> A\<close>])
+           (insert elim(1) \<open>x \<in> A\<close>, simp)
       finally show "dist (\<Sum>i<k. f i x) (\<Sum>i. f i x) < e"
         using elim by auto
     qed
   qed
 qed
+
+lemma weierstrass_m_test:
+fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
+assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n"
+assumes "summable M"
+shows "uniform_limit A (\<lambda>n x. \<Sum>i<n. f i x) (\<lambda>x. suminf (\<lambda>i. f i x)) sequentially"
+  using assms by (intro weierstrass_m_test_ev always_eventually) auto
+  
+lemma weierstrass_m_test'_ev:
+  fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
+  assumes "eventually (\<lambda>n. \<forall>x\<in>A. norm (f n x) \<le> M n) sequentially" "summable M" 
+  shows   "uniformly_convergent_on A (\<lambda>n x. \<Sum>i<n. f i x)"
+  unfolding uniformly_convergent_on_def by (rule exI, rule weierstrass_m_test_ev[OF assms])
+
+lemma weierstrass_m_test':
+  fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: banach"
+  assumes "\<And>n x. x \<in> A \<Longrightarrow> norm (f n x) \<le> M n" "summable M" 
+  shows   "uniformly_convergent_on A (\<lambda>n x. \<Sum>i<n. f i x)"
+  unfolding uniformly_convergent_on_def by (rule exI, rule weierstrass_m_test[OF assms])
 
 lemma uniform_limit_eq_rhs: "uniform_limit X f l F \<Longrightarrow> l = m \<Longrightarrow> uniform_limit X f m F"
   by simp
