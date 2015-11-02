@@ -479,4 +479,22 @@ lemma uniform_limit_on_subset:
   "uniform_limit J f g F \<Longrightarrow> I \<subseteq> J \<Longrightarrow> uniform_limit I f g F"
   by (auto intro!: uniform_limitI dest!: uniform_limitD intro: eventually_rev_mono)
 
+
+
+lemma uniformly_convergent_add:
+  "uniformly_convergent_on A f \<Longrightarrow> uniformly_convergent_on A g\<Longrightarrow>
+      uniformly_convergent_on A (\<lambda>k x. f k x + g k x :: 'a :: {real_normed_algebra})"
+  unfolding uniformly_convergent_on_def by (blast dest: uniform_limit_add)
+
+lemma uniformly_convergent_minus:
+  "uniformly_convergent_on A f \<Longrightarrow> uniformly_convergent_on A g\<Longrightarrow>
+      uniformly_convergent_on A (\<lambda>k x. f k x - g k x :: 'a :: {real_normed_algebra})"
+  unfolding uniformly_convergent_on_def by (blast dest: uniform_limit_minus)
+
+lemma uniformly_convergent_mult:
+  "uniformly_convergent_on A f \<Longrightarrow> 
+      uniformly_convergent_on A (\<lambda>k x. c * f k x :: 'a :: {real_normed_algebra})"
+  unfolding uniformly_convergent_on_def
+  by (blast dest: bounded_linear_uniform_limit_intros(13))
+
 end

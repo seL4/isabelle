@@ -166,6 +166,12 @@ lemma Re_divide_numeral [simp]: "Re (z / numeral w) = Re z / numeral w"
 
 lemma Im_divide_numeral [simp]: "Im (z / numeral w) = Im z / numeral w"
   by (simp add: Im_divide sqr_conv_mult)
+  
+lemma Re_divide_of_nat: "Re (z / of_nat n) = Re z / of_nat n"
+  by (cases n) (simp_all add: Re_divide divide_simps power2_eq_square del: of_nat_Suc)
+
+lemma Im_divide_of_nat: "Im (z / of_nat n) = Im z / of_nat n"
+  by (cases n) (simp_all add: Im_divide divide_simps power2_eq_square del: of_nat_Suc)
 
 lemma of_real_Re [simp]:
     "z \<in> \<real> \<Longrightarrow> of_real (Re z) = z"

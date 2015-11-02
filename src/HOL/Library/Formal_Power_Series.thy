@@ -3115,7 +3115,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma fps_minomial_minus_one: "fps_binomial (- 1) = inverse (1 + X)"
+lemma fps_binomial_minus_one: "fps_binomial (- 1) = inverse (1 + X)"
   (is "?l = inverse ?r")
 proof-
   have th: "?r$0 \<noteq> 0" by simp

@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* Autumn 2015: Chaitanya Mangla, Lawrence C Paulson, and Manuel Eberl
+  A large number of additional binomial identities.
+
 * Summer 2015: Daniel Matichuk, NICTA and Makarius Wenzel
   Isar subgoal command for proof structure within unstructured proof
   scripts.

@@ -1148,6 +1148,32 @@ proof safe
   qed
 qed
 
+lemma tendsto_add_filterlim_at_infinity:
+  assumes "(f ---> (c :: 'b :: real_normed_vector)) (F :: 'a filter)"
+  assumes "filterlim g at_infinity F"
+  shows   "filterlim (\<lambda>x. f x + g x) at_infinity F"
+proof (subst filterlim_at_infinity[OF order_refl], safe)
+  fix r :: real assume r: "r > 0"
+  from assms(1) have "((\<lambda>x. norm (f x)) ---> norm c) F" by (rule tendsto_norm)
+  hence "eventually (\<lambda>x. norm (f x) < norm c + 1) F" by (rule order_tendstoD) simp_all
+  moreover from r have "r + norm c + 1 > 0" by (intro add_pos_nonneg) simp_all 
+  with assms(2) have "eventually (\<lambda>x. norm (g x) \<ge> r + norm c + 1) F"
+    unfolding filterlim_at_infinity[OF order_refl] by (elim allE[of _ "r + norm c + 1"]) simp_all
+  ultimately show "eventually (\<lambda>x. norm (f x + g x) \<ge> r) F"
+  proof eventually_elim
+    fix x :: 'a assume A: "norm (f x) < norm c + 1" and B: "r + norm c + 1 \<le> norm (g x)"
+    from A B have "r \<le> norm (g x) - norm (f x)" by simp
+    also have "norm (g x) - norm (f x) \<le> norm (g x + f x)" by (rule norm_diff_ineq)
+    finally show "r \<le> norm (f x + g x)" by (simp add: add_ac)
+  qed
+qed
+
+lemma tendsto_add_filterlim_at_infinity':
+  assumes "filterlim f at_infinity F"
+  assumes "(g ---> (c :: 'b :: real_normed_vector)) (F :: 'a filter)"
+  shows   "filterlim (\<lambda>x. f x + g x) at_infinity F"
+  by (subst add.commute) (rule tendsto_add_filterlim_at_infinity assms)+
+
 lemma filterlim_inverse_at_right_top: "LIM x at_top. inverse x :> at_right (0::real)"
   unfolding filterlim_at
   by (auto simp: eventually_at_top_dense)

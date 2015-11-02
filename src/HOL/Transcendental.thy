@@ -792,6 +792,29 @@ proof -
     done
 qed
 
+lemma termdiffs_strong_converges_everywhere:
+    fixes K x :: "'a::{real_normed_field,banach}"
+  assumes "\<And>y. summable (\<lambda>n. c n * y ^ n)"
+  shows   "((\<lambda>x. \<Sum>n. c n * x^n) has_field_derivative (\<Sum>n. diffs c n * x^n)) (at x)"
+  using termdiffs_strong[OF assms[of "of_real (norm x + 1)"], of x]
+  by (force simp del: of_real_add)
+  
+lemma isCont_powser:
+  fixes K x :: "'a::{real_normed_field,banach}"
+  assumes "summable (\<lambda>n. c n * K ^ n)"
+  assumes "norm x < norm K"
+  shows   "isCont (\<lambda>x. \<Sum>n. c n * x^n) x"
+  using termdiffs_strong[OF assms] by (blast intro!: DERIV_isCont)
+  
+lemmas isCont_powser' = isCont_o2[OF _ isCont_powser]
+
+lemma isCont_powser_converges_everywhere:
+  fixes K x :: "'a::{real_normed_field,banach}"
+  assumes "\<And>y. summable (\<lambda>n. c n * y ^ n)"
+  shows   "isCont (\<lambda>x. \<Sum>n. c n * x^n) x"
+  using termdiffs_strong[OF assms[of "of_real (norm x + 1)"], of x]
+  by (force intro!: DERIV_isCont simp del: of_real_add)
+
 lemma powser_limit_0: 
   fixes a :: "nat \<Rightarrow> 'a::{real_normed_field,banach}"
   assumes s: "0 < s"

@@ -3164,6 +3164,9 @@ lemma bounded_iff: "bounded S \<longleftrightarrow> (\<exists>a. \<forall>x\<in>
   unfolding bounded_any_center [where a=0]
   by (simp add: dist_norm)
 
+lemma bdd_above_norm: "bdd_above (norm ` X) \<longleftrightarrow> bounded X"
+  by (simp add: bounded_iff bdd_above_def)
+
 lemma bounded_realI:
   assumes "\<forall>x\<in>s. abs (x::real) \<le> B"
   shows "bounded s"

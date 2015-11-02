@@ -13,7 +13,7 @@ begin
 
 subsection \<open>Factorial\<close>
 
-fun fact :: "nat \<Rightarrow> ('a::semiring_char_0)"
+fun (in semiring_char_0) fact :: "nat \<Rightarrow> 'a"
   where "fact 0 = 1" | "fact (Suc n) = of_nat (Suc n) * fact n"
 
 lemmas fact_Suc = fact.simps(2)
@@ -442,7 +442,7 @@ subsection\<open>Pochhammer's symbol : generalized rising factorial\<close>
 
 text \<open>See @{url "http://en.wikipedia.org/wiki/Pochhammer_symbol"}\<close>
 
-definition "pochhammer (a::'a::comm_semiring_1) n =
+definition (in comm_semiring_1) "pochhammer (a :: 'a) n =
   (if n = 0 then 1 else setprod (\<lambda>n. a + of_nat n) {0 .. n - 1})"
 
 lemma pochhammer_0 [simp]: "pochhammer a 0 = 1"
@@ -621,6 +621,40 @@ lemma pochhammer_product:
   "m \<le> n \<Longrightarrow> pochhammer z n = pochhammer z m * pochhammer (z + of_nat m) (n - m)"
   using pochhammer_product'[of z m "n - m"] by simp
 
+lemma pochhammer_times_pochhammer_half:
+  fixes z :: "'a :: field_char_0"
+  shows "pochhammer z (Suc n) * pochhammer (z + 1/2) (Suc n) = (\<Prod>k=0..2*n+1. z + of_nat k / 2)"
+proof (induction n)
+  case (Suc n)
+  def n' \<equiv> "Suc n"
+  have "pochhammer z (Suc n') * pochhammer (z + 1 / 2) (Suc n') =
+          (pochhammer z n' * pochhammer (z + 1 / 2) n') * 
+          ((z + of_nat n') * (z + 1/2 + of_nat n'))" (is "_ = _ * ?A")
+     by (simp_all add: pochhammer_rec' mult_ac)
+  also have "?A = (z + of_nat (Suc (2 * n + 1)) / 2) * (z + of_nat (Suc (Suc (2 * n + 1))) / 2)"
+    (is "_ = ?A") by (simp add: field_simps n'_def of_nat_mult)
+  also note Suc[folded n'_def]
+  also have "(\<Prod>k = 0..2 * n + 1. z + of_nat k / 2) * ?A = (\<Prod>k = 0..2 * Suc n + 1. z + of_nat k / 2)"
+    by (simp add: setprod_nat_ivl_Suc)
+  finally show ?case by (simp add: n'_def)
+qed (simp add: setprod_nat_ivl_Suc)
+
+lemma pochhammer_double:
+  fixes z :: "'a :: field_char_0"
+  shows "pochhammer (2 * z) (2 * n) = of_nat (2^(2*n)) * pochhammer z n * pochhammer (z+1/2) n"
+proof (induction n)
+  case (Suc n)
+  have "pochhammer (2 * z) (2 * (Suc n)) = pochhammer (2 * z) (2 * n) * 
+          (2 * (z + of_nat n)) * (2 * (z + of_nat n) + 1)"
+    by (simp add: pochhammer_rec' ac_simps of_nat_mult)
+  also note Suc
+  also have "of_nat (2 ^ (2 * n)) * pochhammer z n * pochhammer (z + 1/2) n *
+                 (2 * (z + of_nat n)) * (2 * (z + of_nat n) + 1) =
+             of_nat (2 ^ (2 * (Suc n))) * pochhammer z (Suc n) * pochhammer (z + 1/2) (Suc n)"
+    by (simp add: of_nat_mult field_simps pochhammer_rec')
+  finally show ?case .
+qed simp
+
 lemma pochhammer_absorb_comp:
   "((r :: 'a :: comm_ring_1) - of_nat k) * pochhammer (- r) k = r * pochhammer (-r + 1) k" 
   (is "?lhs = ?rhs")
@@ -633,7 +667,7 @@ qed
 
 subsection\<open>Generalized binomial coefficients\<close>
 
-definition gbinomial :: "'a::field_char_0 \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
+definition (in field_char_0) gbinomial :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
   where "a gchoose n =
     (if n = 0 then 1 else (setprod (\<lambda>i. a - of_nat i) {0 .. n - 1}) / (fact n))"
 
@@ -652,6 +686,15 @@ next
   from False show ?thesis
     by (simp add: pochhammer_def gbinomial_def field_simps
       eq setprod.distrib[symmetric])
+qed
+
+lemma gbinomial_pochhammer':
+  "(s :: 'a :: field_char_0) gchoose n = pochhammer (s - of_nat n + 1) n / fact n"
+proof -
+  have "s gchoose n = ((-1)^n * (-1)^n) * pochhammer (s - of_nat n + 1) n / fact n"
+    by (simp add: gbinomial_pochhammer pochhammer_minus mult_ac)
+  also have "(-1 :: 'a)^n * (-1)^n = 1" by (subst power_add [symmetric]) simp
+  finally show ?thesis by simp
 qed
 
 lemma binomial_gbinomial: 

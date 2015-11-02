@@ -686,6 +686,9 @@ lemma Ints_0 [simp]: "0 \<in> \<int>"
 lemma Ints_1 [simp]: "1 \<in> \<int>"
   using Ints_of_int [of "1"] by simp
 
+lemma Ints_numeral [simp]: "numeral n \<in> \<int>"
+  by (subst of_nat_numeral [symmetric], rule Ints_of_nat)
+
 lemma Ints_add [simp]: "a \<in> \<int> \<Longrightarrow> b \<in> \<int> \<Longrightarrow> a + b \<in> \<int>"
 apply (auto simp add: Ints_def)
 apply (rule range_eqI)
