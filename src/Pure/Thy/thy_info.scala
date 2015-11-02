@@ -35,23 +35,25 @@ class Thy_Info(resources: Resources)
 
   object Dependencies
   {
-    val empty = new Dependencies(Nil, Nil, Multi_Map.empty, Multi_Map.empty)
+    val empty = new Dependencies(Nil, Nil, Set.empty, Multi_Map.empty, Multi_Map.empty)
   }
 
   final class Dependencies private(
     rev_deps: List[Thy_Info.Dep],
     val keywords: Thy_Header.Keywords,
+    val seen: Set[Document.Node.Name],
     val seen_names: Multi_Map[String, Document.Node.Name],
     val seen_positions: Multi_Map[String, Position.T])
   {
     def :: (dep: Thy_Info.Dep): Dependencies =
       new Dependencies(dep :: rev_deps, dep.header.keywords ::: keywords,
-        seen_names, seen_positions)
+        seen, seen_names, seen_positions)
 
     def + (thy: (Document.Node.Name, Position.T)): Dependencies =
     {
       val (name, pos) = thy
       new Dependencies(rev_deps, keywords,
+        seen + name,
         seen_names + (name.theory -> name),
         seen_positions + (name.theory -> pos))
     }
@@ -102,15 +104,13 @@ class Thy_Info(resources: Resources)
       required: Dependencies, thy: (Document.Node.Name, Position.T)): Dependencies =
   {
     val (name, require_pos) = thy
-    val theory = name.theory
 
     def message: String =
-      "The error(s) above occurred for theory " + quote(theory) +
+      "The error(s) above occurred for theory " + quote(name.theory) +
         required_by(initiators) + Position.here(require_pos)
 
     val required1 = required + thy
-    if (required.seen_names.isDefinedAt(theory) || resources.loaded_theories(theory))
-      required1
+    if (required.seen(name) || resources.loaded_theories(name.theory)) required1
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
