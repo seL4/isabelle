@@ -10,13 +10,12 @@ begin
 
 text \<open>
   Zorn's Lemmas states: if every linear ordered subset of an ordered
-  set @{text S} has an upper bound in @{text S}, then there exists a
-  maximal element in @{text S}.  In our application, @{text S} is a
+  set \<open>S\<close> has an upper bound in \<open>S\<close>, then there exists a
+  maximal element in \<open>S\<close>.  In our application, \<open>S\<close> is a
   set of sets ordered by set inclusion. Since the union of a chain of
   sets is an upper bound for all elements of the chain, the conditions
-  of Zorn's lemma can be modified: if @{text S} is non-empty, it
-  suffices to show that for every non-empty chain @{text c} in @{text
-  S} the union of @{text c} also lies in @{text S}.
+  of Zorn's lemma can be modified: if \<open>S\<close> is non-empty, it
+  suffices to show that for every non-empty chain \<open>c\<close> in \<open>S\<close> the union of \<open>c\<close> also lies in \<open>S\<close>.
 \<close>
 
 theorem Zorn's_Lemma:
@@ -30,14 +29,14 @@ proof (rule Zorn_Lemma2)
     show "\<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
     proof cases
 
-      txt \<open>If @{text c} is an empty chain, then every element in
-        @{text S} is an upper bound of @{text c}.\<close>
+      txt \<open>If \<open>c\<close> is an empty chain, then every element in
+        \<open>S\<close> is an upper bound of \<open>c\<close>.\<close>
 
       assume "c = {}"
       with aS show ?thesis by fast
 
-      txt \<open>If @{text c} is non-empty, then @{text "\<Union>c"} is an upper
-        bound of @{text c}, lying in @{text S}.\<close>
+      txt \<open>If \<open>c\<close> is non-empty, then \<open>\<Union>c\<close> is an upper
+        bound of \<open>c\<close>, lying in \<open>S\<close>.\<close>
 
     next
       assume "c \<noteq> {}"

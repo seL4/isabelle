@@ -9,42 +9,39 @@ imports Hahn_Banach_Lemmas
 begin
 
 text \<open>
-  We present the proof of two different versions of the Hahn-Banach
-  Theorem, closely following @{cite \<open>\S36\<close> "Heuser:1986"}.
+  We present the proof of two different versions of the Hahn-Banach Theorem,
+  closely following @{cite \<open>\S36\<close> "Heuser:1986"}.
 \<close>
+
 
 subsection \<open>The Hahn-Banach Theorem for vector spaces\<close>
 
 paragraph \<open>Hahn-Banach Theorem.\<close>
 text \<open>
-  Let @{text F} be a subspace of a real vector space @{text E}, let @{text
-  p} be a semi-norm on @{text E}, and @{text f} be a linear form defined on
-  @{text F} such that @{text f} is bounded by @{text p}, i.e. @{text "\<forall>x \<in>
-  F. f x \<le> p x"}. Then @{text f} can be extended to a linear form @{text h}
-  on @{text E} such that @{text h} is norm-preserving, i.e. @{text h} is
-  also bounded by @{text p}.
+  Let \<open>F\<close> be a subspace of a real vector space \<open>E\<close>, let \<open>p\<close> be a semi-norm
+  on \<open>E\<close>, and \<open>f\<close> be a linear form defined on \<open>F\<close> such that \<open>f\<close> is bounded
+  by \<open>p\<close>, i.e. \<open>\<forall>x \<in> F. f x \<le> p x\<close>. Then \<open>f\<close> can be extended to a linear
+  form \<open>h\<close> on \<open>E\<close> such that \<open>h\<close> is norm-preserving, i.e. \<open>h\<close> is also bounded
+  by \<open>p\<close>.
 \<close>
 
 paragraph \<open>Proof Sketch.\<close>
 text \<open>
-  \<^enum> Define @{text M} as the set of norm-preserving extensions of
-  @{text f} to subspaces of @{text E}. The linear forms in @{text M}
-  are ordered by domain extension.
+  \<^enum> Define \<open>M\<close> as the set of norm-preserving extensions of \<open>f\<close> to subspaces
+  of \<open>E\<close>. The linear forms in \<open>M\<close> are ordered by domain extension.
 
-  \<^enum> We show that every non-empty chain in @{text M} has an upper
-  bound in @{text M}.
+  \<^enum> We show that every non-empty chain in \<open>M\<close> has an upper bound in \<open>M\<close>.
 
-  \<^enum> With Zorn's Lemma we conclude that there is a maximal function
-  @{text g} in @{text M}.
+  \<^enum> With Zorn's Lemma we conclude that there is a maximal function \<open>g\<close> in
+  \<open>M\<close>.
 
-  \<^enum> The domain @{text H} of @{text g} is the whole space @{text
-  E}, as shown by classical contradiction:
+  \<^enum> The domain \<open>H\<close> of \<open>g\<close> is the whole space \<open>E\<close>, as shown by classical
+  contradiction:
 
-    \<^item> Assuming @{text g} is not defined on whole @{text E}, it can
-    still be extended in a norm-preserving way to a super-space @{text
-    H'} of @{text H}.
+    \<^item> Assuming \<open>g\<close> is not defined on whole \<open>E\<close>, it can still be extended in
+    a norm-preserving way to a super-space \<open>H'\<close> of \<open>H\<close>.
 
-    \<^item> Thus @{text g} can not be maximal. Contradiction!
+    \<^item> Thus \<open>g\<close> can not be maximal. Contradiction!
 \<close>
 
 theorem Hahn_Banach:
@@ -52,9 +49,9 @@ theorem Hahn_Banach:
     and "seminorm E p" and "linearform F f"
   assumes fp: "\<forall>x \<in> F. f x \<le> p x"
   shows "\<exists>h. linearform E h \<and> (\<forall>x \<in> F. h x = f x) \<and> (\<forall>x \<in> E. h x \<le> p x)"
-    -- \<open>Let @{text E} be a vector space, @{text F} a subspace of @{text E}, @{text p} a seminorm on @{text E},\<close>
-    -- \<open>and @{text f} a linear form on @{text F} such that @{text f} is bounded by @{text p},\<close>
-    -- \<open>then @{text f} can be extended to a linear form @{text h} on @{text E} in a norm-preserving way. \<^smallskip>\<close>
+    -- \<open>Let \<open>E\<close> be a vector space, \<open>F\<close> a subspace of \<open>E\<close>, \<open>p\<close> a seminorm on \<open>E\<close>,\<close>
+    -- \<open>and \<open>f\<close> a linear form on \<open>F\<close> such that \<open>f\<close> is bounded by \<open>p\<close>,\<close>
+    -- \<open>then \<open>f\<close> can be extended to a linear form \<open>h\<close> on \<open>E\<close> in a norm-preserving way. \<^smallskip>\<close>
 proof -
   interpret vectorspace E by fact
   interpret subspace F E by fact
@@ -67,8 +64,8 @@ proof -
   {
     fix c assume cM: "c \<in> chains M" and ex: "\<exists>x. x \<in> c"
     have "\<Union>c \<in> M"
-      -- \<open>Show that every non-empty chain @{text c} of @{text M} has an upper bound in @{text M}:\<close>
-      -- \<open>@{text "\<Union>c"} is greater than any element of the chain @{text c}, so it suffices to show @{text "\<Union>c \<in> M"}.\<close>
+      -- \<open>Show that every non-empty chain \<open>c\<close> of \<open>M\<close> has an upper bound in \<open>M\<close>:\<close>
+      -- \<open>\<open>\<Union>c\<close> is greater than any element of the chain \<open>c\<close>, so it suffices to show \<open>\<Union>c \<in> M\<close>.\<close>
       unfolding M_def
     proof (rule norm_pres_extensionI)
       let ?H = "domain (\<Union>c)"
@@ -98,9 +95,9 @@ proof -
     qed
   }
   then have "\<exists>g \<in> M. \<forall>x \<in> M. g \<subseteq> x \<longrightarrow> x = g"
-  -- \<open>With Zorn's Lemma we can conclude that there is a maximal element in @{text M}. \<^smallskip>\<close>
+  -- \<open>With Zorn's Lemma we can conclude that there is a maximal element in \<open>M\<close>. \<^smallskip>\<close>
   proof (rule Zorn's_Lemma)
-      -- \<open>We show that @{text M} is non-empty:\<close>
+      -- \<open>We show that \<open>M\<close> is non-empty:\<close>
     show "graph F f \<in> M"
       unfolding M_def
     proof (rule norm_pres_extensionI2)
@@ -119,18 +116,18 @@ proof -
     and HE: "H \<unlhd> E" and FH: "F \<unlhd> H"
     and graphs: "graph F f \<subseteq> graph H h"
     and hp: "\<forall>x \<in> H. h x \<le> p x" unfolding M_def ..
-      -- \<open>@{text g} is a norm-preserving extension of @{text f}, in other words:\<close>
-      -- \<open>@{text g} is the graph of some linear form @{text h} defined on a subspace @{text H} of @{text E},\<close>
-      -- \<open>and @{text h} is an extension of @{text f} that is again bounded by @{text p}. \<^smallskip>\<close>
+      -- \<open>\<open>g\<close> is a norm-preserving extension of \<open>f\<close>, in other words:\<close>
+      -- \<open>\<open>g\<close> is the graph of some linear form \<open>h\<close> defined on a subspace \<open>H\<close> of \<open>E\<close>,\<close>
+      -- \<open>and \<open>h\<close> is an extension of \<open>f\<close> that is again bounded by \<open>p\<close>. \<^smallskip>\<close>
   from HE E have H: "vectorspace H"
     by (rule subspace.vectorspace)
 
   have HE_eq: "H = E"
-    -- \<open>We show that @{text h} is defined on whole @{text E} by classical contradiction. \<^smallskip>\<close>
+    -- \<open>We show that \<open>h\<close> is defined on whole \<open>E\<close> by classical contradiction. \<^smallskip>\<close>
   proof (rule classical)
     assume neq: "H \<noteq> E"
-      -- \<open>Assume @{text h} is not defined on whole @{text E}. Then show that @{text h} can be extended\<close>
-      -- \<open>in a norm-preserving way to a function @{text h'} with the graph @{text g'}. \<^smallskip>\<close>
+      -- \<open>Assume \<open>h\<close> is not defined on whole \<open>E\<close>. Then show that \<open>h\<close> can be extended\<close>
+      -- \<open>in a norm-preserving way to a function \<open>h'\<close> with the graph \<open>g'\<close>. \<^smallskip>\<close>
     have "\<exists>g' \<in> M. g \<subseteq> g' \<and> g \<noteq> g'"
     proof -
       from HE have "H \<subseteq> E" ..
@@ -146,7 +143,7 @@ proof -
       qed
 
       def H' \<equiv> "H + lin x'"
-        -- \<open>Define @{text H'} as the direct sum of @{text H} and the linear closure of @{text x'}. \<^smallskip>\<close>
+        -- \<open>Define \<open>H'\<close> as the direct sum of \<open>H\<close> and the linear closure of \<open>x'\<close>. \<^smallskip>\<close>
       have HH': "H \<unlhd> H'"
       proof (unfold H'_def)
         from x'E have "vectorspace (lin x')" ..
@@ -156,8 +153,8 @@ proof -
       obtain xi where
         xi: "\<forall>y \<in> H. - p (y + x') - h y \<le> xi
           \<and> xi \<le> p (y + x') - h y"
-        -- \<open>Pick a real number @{text \<xi>} that fulfills certain inequations; this will\<close>
-        -- \<open>be used to establish that @{text h'} is a norm-preserving extension of @{text h}.
+        -- \<open>Pick a real number \<open>\<xi>\<close> that fulfills certain inequality; this will\<close>
+        -- \<open>be used to establish that \<open>h'\<close> is a norm-preserving extension of \<open>h\<close>.
            \label{ex-xi-use}\<^smallskip>\<close>
       proof -
         from H have "\<exists>xi. \<forall>y \<in> H. - p (y + x') - h y \<le> xi
@@ -185,10 +182,10 @@ proof -
 
       def h' \<equiv> "\<lambda>x. let (y, a) =
           SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H in h y + a * xi"
-        -- \<open>Define the extension @{text h'} of @{text h} to @{text H'} using @{text \<xi>}. \<^smallskip>\<close>
+        -- \<open>Define the extension \<open>h'\<close> of \<open>h\<close> to \<open>H'\<close> using \<open>\<xi>\<close>. \<^smallskip>\<close>
 
       have "g \<subseteq> graph H' h' \<and> g \<noteq> graph H' h'"
-        -- \<open>@{text h'} is an extension of @{text h} \dots \<^smallskip>\<close>
+        -- \<open>\<open>h'\<close> is an extension of \<open>h\<close> \dots \<^smallskip>\<close>
       proof
         show "g \<subseteq> graph H' h'"
         proof -
@@ -225,7 +222,7 @@ proof -
         qed
       qed
       moreover have "graph H' h' \<in> M"
-        -- \<open>and @{text h'} is norm-preserving. \<^smallskip>\<close>
+        -- \<open>and \<open>h'\<close> is norm-preserving. \<^smallskip>\<close>
       proof (unfold M_def)
         show "graph H' h' \<in> norm_pres_extensions E p F f"
         proof (rule norm_pres_extensionI2)
@@ -273,7 +270,7 @@ proof -
       ultimately show ?thesis ..
     qed
     then have "\<not> (\<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x)" by simp
-      -- \<open>So the graph @{text g} of @{text h} cannot be maximal. Contradiction! \<^smallskip>\<close>
+      -- \<open>So the graph \<open>g\<close> of \<open>h\<close> cannot be maximal. Contradiction! \<^smallskip>\<close>
     with gx show "H = E" by contradiction
   qed
 
@@ -295,14 +292,14 @@ subsection \<open>Alternative formulation\<close>
 
 text \<open>
   The following alternative formulation of the Hahn-Banach
-  Theorem\label{abs-Hahn-Banach} uses the fact that for a real linear
-  form @{text f} and a seminorm @{text p} the following inequations
-  are equivalent:\footnote{This was shown in lemma @{thm [source]
-  abs_ineq_iff} (see page \pageref{abs-ineq-iff}).}
+  Theorem\label{abs-Hahn-Banach} uses the fact that for a real linear form
+  \<open>f\<close> and a seminorm \<open>p\<close> the following inequality are
+  equivalent:\footnote{This was shown in lemma @{thm [source] abs_ineq_iff}
+  (see page \pageref{abs-ineq-iff}).}
   \begin{center}
   \begin{tabular}{lll}
-  @{text "\<forall>x \<in> H. \<bar>h x\<bar> \<le> p x"} & and &
-  @{text "\<forall>x \<in> H. h x \<le> p x"} \\
+  \<open>\<forall>x \<in> H. \<bar>h x\<bar> \<le> p x\<close> & and &
+  \<open>\<forall>x \<in> H. h x \<le> p x\<close> \\
   \end{tabular}
   \end{center}
 \<close>
@@ -339,9 +336,9 @@ qed
 subsection \<open>The Hahn-Banach Theorem for normed spaces\<close>
 
 text \<open>
-  Every continuous linear form @{text f} on a subspace @{text F} of a
-  norm space @{text E}, can be extended to a continuous linear form
-  @{text g} on @{text E} such that @{text "\<parallel>f\<parallel> = \<parallel>g\<parallel>"}.
+  Every continuous linear form \<open>f\<close> on a subspace \<open>F\<close> of a norm space \<open>E\<close>,
+  can be extended to a continuous linear form \<open>g\<close> on \<open>E\<close> such that \<open>\<parallel>f\<parallel> =
+  \<parallel>g\<parallel>\<close>.
 \<close>
 
 theorem norm_Hahn_Banach:
@@ -370,22 +367,22 @@ proof -
     by (rule normed_vectorspace_with_fn_norm.fn_norm_ge_zero
       [OF normed_vectorspace_with_fn_norm.intro,
        OF F_norm \<open>continuous F f norm\<close> , folded B_def fn_norm_def])
-  txt \<open>We define a function @{text p} on @{text E} as follows:
-    @{text "p x = \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>"}\<close>
+  txt \<open>We define a function \<open>p\<close> on \<open>E\<close> as follows:
+    \<open>p x = \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>\<close>\<close>
   def p \<equiv> "\<lambda>x. \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>"
 
-  txt \<open>@{text p} is a seminorm on @{text E}:\<close>
+  txt \<open>\<open>p\<close> is a seminorm on \<open>E\<close>:\<close>
   have q: "seminorm E p"
   proof
     fix x y a assume x: "x \<in> E" and y: "y \<in> E"
     
-    txt \<open>@{text p} is positive definite:\<close>
+    txt \<open>\<open>p\<close> is positive definite:\<close>
     have "0 \<le> \<parallel>f\<parallel>\<hyphen>F" by (rule ge_zero)
     moreover from x have "0 \<le> \<parallel>x\<parallel>" ..
     ultimately show "0 \<le> p x"  
       by (simp add: p_def zero_le_mult_iff)
 
-    txt \<open>@{text p} is absolutely homogeneous:\<close>
+    txt \<open>\<open>p\<close> is absolutely homogeneous:\<close>
 
     show "p (a \<cdot> x) = \<bar>a\<bar> * p x"
     proof -
@@ -396,7 +393,7 @@ proof -
       finally show ?thesis .
     qed
 
-    txt \<open>Furthermore, @{text p} is subadditive:\<close>
+    txt \<open>Furthermore, \<open>p\<close> is subadditive:\<close>
 
     show "p (x + y) \<le> p x + p y"
     proof -
@@ -411,7 +408,7 @@ proof -
     qed
   qed
 
-  txt \<open>@{text f} is bounded by @{text p}.\<close>
+  txt \<open>\<open>f\<close> is bounded by \<open>p\<close>.\<close>
 
   have "\<forall>x \<in> F. \<bar>f x\<bar> \<le> p x"
   proof
@@ -423,10 +420,10 @@ proof -
          OF F_norm, folded B_def fn_norm_def])
   qed
 
-  txt \<open>Using the fact that @{text p} is a seminorm and @{text f} is bounded
-    by @{text p} we can apply the Hahn-Banach Theorem for real vector
-    spaces. So @{text f} can be extended in a norm-preserving way to
-    some function @{text g} on the whole vector space @{text E}.\<close>
+  txt \<open>Using the fact that \<open>p\<close> is a seminorm and \<open>f\<close> is bounded by \<open>p\<close> we
+    can apply the Hahn-Banach Theorem for real vector spaces. So \<open>f\<close> can be
+    extended in a norm-preserving way to some function \<open>g\<close> on the whole
+    vector space \<open>E\<close>.\<close>
 
   with E FE linearform q obtain g where
       linearformE: "linearform E g"
@@ -434,7 +431,7 @@ proof -
     and b: "\<forall>x \<in> E. \<bar>g x\<bar> \<le> p x"
     by (rule abs_Hahn_Banach [elim_format]) iprover
 
-  txt \<open>We furthermore have to show that @{text g} is also continuous:\<close>
+  txt \<open>We furthermore have to show that \<open>g\<close> is also continuous:\<close>
 
   have g_cont: "continuous E g norm" using linearformE
   proof
@@ -443,25 +440,25 @@ proof -
       by (simp only: p_def)
   qed
 
-  txt \<open>To complete the proof, we show that @{text "\<parallel>g\<parallel> = \<parallel>f\<parallel>"}.\<close>
+  txt \<open>To complete the proof, we show that \<open>\<parallel>g\<parallel> = \<parallel>f\<parallel>\<close>.\<close>
 
   have "\<parallel>g\<parallel>\<hyphen>E = \<parallel>f\<parallel>\<hyphen>F"
   proof (rule order_antisym)
     txt \<open>
-      First we show @{text "\<parallel>g\<parallel> \<le> \<parallel>f\<parallel>"}.  The function norm @{text
-      "\<parallel>g\<parallel>"} is defined as the smallest @{text "c \<in> \<real>"} such that
+      First we show \<open>\<parallel>g\<parallel> \<le> \<parallel>f\<parallel>\<close>. The function norm \<open>\<parallel>g\<parallel>\<close> is defined as the
+      smallest \<open>c \<in> \<real>\<close> such that
       \begin{center}
       \begin{tabular}{l}
-      @{text "\<forall>x \<in> E. \<bar>g x\<bar> \<le> c \<cdot> \<parallel>x\<parallel>"}
+      \<open>\<forall>x \<in> E. \<bar>g x\<bar> \<le> c \<cdot> \<parallel>x\<parallel>\<close>
       \end{tabular}
       \end{center}
-      \noindent Furthermore holds
+      \<^noindent> Furthermore holds
       \begin{center}
       \begin{tabular}{l}
-      @{text "\<forall>x \<in> E. \<bar>g x\<bar> \<le> \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>"}
+      \<open>\<forall>x \<in> E. \<bar>g x\<bar> \<le> \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>\<close>
       \end{tabular}
       \end{center}
-\<close>
+    \<close>
 
     from g_cont _ ge_zero
     show "\<parallel>g\<parallel>\<hyphen>E \<le> \<parallel>f\<parallel>\<hyphen>F"
