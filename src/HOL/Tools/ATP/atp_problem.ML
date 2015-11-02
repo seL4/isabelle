@@ -397,15 +397,20 @@ fun str_of_type format ty =
     val dfg = (case format of DFG _ => true | _ => false)
     fun str _ (AType ((s, _), [])) =
         if dfg andalso s = tptp_individual_type then dfg_individual_type else s
-      | str _ (AType ((s, _), tys)) =
-        let val ss = tys |> map (str false) in
-          if s = tptp_product_type then
-            ss |> space_implode
-                      (if dfg then ", " else " " ^ tptp_product_type ^ " ")
-               |> (not dfg andalso length ss > 1) ? parens
-          else
-            tptp_string_of_app format s ss
-        end
+      | str rhs (AType ((s, _), tys)) =
+        if s = tptp_fun_type then
+          let val [ty1, ty2] = tys in
+            str rhs (AFun (ty1, ty2))
+          end
+        else
+          let val ss = tys |> map (str false) in
+            if s = tptp_product_type then
+              ss |> space_implode
+                        (if dfg then ", " else " " ^ tptp_product_type ^ " ")
+                 |> (not dfg andalso length ss > 1) ? parens
+            else
+              tptp_string_of_app format s ss
+          end
       | str rhs (AFun (ty1, ty2)) =
         (str false ty1 |> dfg ? parens) ^ " " ^
         (if dfg then "" else tptp_fun_type ^ " ") ^ str true ty2
