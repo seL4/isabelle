@@ -255,6 +255,9 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
       reset_blob()
       reset_bibtex()
 
+      for (doc_view <- PIDE.document_views(buffer))
+        doc_view.rich_text_area.active_reset()
+
       if (clear) {
         pending_clear = true
         pending.clear
