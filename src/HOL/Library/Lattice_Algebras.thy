@@ -1,4 +1,4 @@
-(* Author: Steven Obua, TU Muenchen *)
+(*  Author:     Steven Obua, TU Muenchen *)
 
 section \<open>Various algebraic structures combined with a lattice\<close>
 
@@ -224,7 +224,7 @@ proof
   proof -
     from that have a: "inf (a + a) 0 = 0"
       by (simp add: inf_commute inf_absorb1)
-    have "inf a 0 + inf a 0 = inf (inf (a + a) 0) a"  (is "?l=_")
+    have "inf a 0 + inf a 0 = inf (inf (a + a) 0) a"  (is "?l = _")
       by (simp add: add_sup_inf_distribs inf_aci)
     then have "?l = 0 + inf a 0"
       by (simp add: a, simp add: inf_commute)
@@ -619,4 +619,3 @@ proof
 qed
 
 end
-
