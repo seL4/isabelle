@@ -12,17 +12,17 @@ text_raw \<open>\footnote{This is an Isar version of the final example of
   the Isabelle/HOL manual @{cite "isabelle-HOL"}.}\<close>
 
 text \<open>Cantor's Theorem states that every set has more subsets than
-  it has elements.  It has become a favorite basic example in pure
-  higher-order logic since it is so easily expressed: \[\all{f::\alpha
-  \To \alpha \To \idt{bool}} \ex{S::\alpha \To \idt{bool}}
-  \all{x::\alpha} f \ap x \not= S\]
+  it has elements.  It has become a favourite basic example in pure
+  higher-order logic since it is so easily expressed:
 
-  Viewing types as sets, $\alpha \To \idt{bool}$ represents the
-  powerset of $\alpha$.  This version of the theorem states that for
-  every function from $\alpha$ to its powerset, some subset is outside
-  its range.  The Isabelle/Isar proofs below uses HOL's set theory,
-  with the type $\alpha \ap \idt{set}$ and the operator
-  $\idt{range}::(\alpha \To \beta) \To \beta \ap \idt{set}$.\<close>
+  @{text [display]
+  \<open>\<forall>f::\<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool. \<exists>S::\<alpha> \<Rightarrow> bool. \<forall>x::\<alpha>. f x \<noteq> S\<close>}
+
+  Viewing types as sets, \<open>\<alpha> \<Rightarrow> bool\<close> represents the powerset of \<open>\<alpha>\<close>. This
+  version of the theorem states that for every function from \<open>\<alpha>\<close> to its
+  powerset, some subset is outside its range. The Isabelle/Isar proofs below
+  uses HOL's set theory, with the type \<open>\<alpha> set\<close> and the operator
+  \<open>range :: (\<alpha> \<Rightarrow> \<beta>) \<Rightarrow> \<beta> set\<close>.\<close>
 
 theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
 proof
@@ -46,20 +46,19 @@ proof
   qed
 qed
 
-text \<open>How much creativity is required?  As it happens, Isabelle can
-  prove this theorem automatically using best-first search.
-  Depth-first search would diverge, but best-first search successfully
-  navigates through the large search space.  The context of Isabelle's
-  classical prover contains rules for the relevant constructs of HOL's
-  set theory.\<close>
+text \<open>How much creativity is required? As it happens, Isabelle can prove
+  this theorem automatically using best-first search. Depth-first search
+  would diverge, but best-first search successfully navigates through the
+  large search space. The context of Isabelle's classical prover contains
+  rules for the relevant constructs of HOL's set theory.\<close>
 
 theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
   by best
 
-text \<open>While this establishes the same theorem internally, we do not
-  get any idea of how the proof actually works.  There is currently no
-  way to transform internal system-level representations of Isabelle
-  proofs back into Isar text.  Writing intelligible proof documents
-  really is a creative process, after all.\<close>
+text \<open>While this establishes the same theorem internally, we do not get any
+  idea of how the proof actually works. There is currently no way to
+  transform internal system-level representations of Isabelle proofs back
+  into Isar text. Writing intelligible proof documents really is a creative
+  process, after all.\<close>
 
 end

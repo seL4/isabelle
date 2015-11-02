@@ -20,7 +20,7 @@ where
 
 lemmas subst_simps = subst_term.simps subst_term_list.simps
 
-text \<open>\medskip A simple lemma about composition of substitutions.\<close>
+text \<open>\<^medskip> A simple lemma about composition of substitutions.\<close>
 
 lemma
   "subst_term (subst_term f1 \<circ> f2) t =
