@@ -163,10 +163,8 @@ class Query_Operation[Editor_Context](
         if (state0.status != new_status) {
           current_state.change(_.copy(status = new_status))
           consume_status(new_status)
-          if (new_status == Query_Operation.Status.FINISHED) {
+          if (new_status == Query_Operation.Status.FINISHED)
             remove_overlay()
-            editor.flush()
-          }
         }
       }
     }
