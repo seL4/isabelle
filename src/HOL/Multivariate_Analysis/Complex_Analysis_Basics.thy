@@ -5,7 +5,7 @@
 section \<open>Complex Analysis Basics\<close>
 
 theory Complex_Analysis_Basics
-imports  "~~/src/HOL/Multivariate_Analysis/Cartesian_Euclidean_Space"
+imports Cartesian_Euclidean_Space
 begin
 
 

@@ -6,7 +6,7 @@
 section \<open>Multivariate calculus in Euclidean space\<close>
 
 theory Derivative
-imports Brouwer_Fixpoint Operator_Norm "~~/src/HOL/Multivariate_Analysis/Uniform_Limit"
+imports Brouwer_Fixpoint Operator_Norm Uniform_Limit
 begin
 
 lemma netlimit_at_vector: (* TODO: move *)

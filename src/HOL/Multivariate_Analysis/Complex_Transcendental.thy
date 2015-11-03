@@ -5,7 +5,7 @@
 section \<open>Complex Transcendental Functions\<close>
 
 theory Complex_Transcendental
-imports  "~~/src/HOL/Multivariate_Analysis/Complex_Analysis_Basics"
+imports Complex_Analysis_Basics
 begin
 
 lemma cmod_add_real_less:

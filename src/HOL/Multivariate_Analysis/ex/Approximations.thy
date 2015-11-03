@@ -1,7 +1,7 @@
 section \<open>Binary Approximations to Constants\<close>
 
 theory Approximations
-imports "~~/src/HOL/Multivariate_Analysis/Complex_Transcendental"
+imports Complex_Transcendental
 begin
 
 declare of_real_numeral [simp]
