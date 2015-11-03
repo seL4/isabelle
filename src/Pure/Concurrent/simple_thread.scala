@@ -71,7 +71,7 @@ object Simple_Thread
       val new_run =
         running match {
           case Some(request) => if (first) false else { request.cancel; cancel(); true }
-          case None => true
+          case None => cancel(); true
         }
       if (new_run)
         running = Some(Event_Timer.request(Time.now() + delay)(run))
