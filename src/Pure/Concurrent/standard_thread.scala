@@ -28,19 +28,9 @@ object Standard_Thread
   }
 
 
-  /* future result via thread */
-
-  def future[A](name: String = "", daemon: Boolean = false)(body: => A): (Thread, Future[A]) =
-  {
-    val result = Future.promise[A]
-    val thread = fork(name, daemon) { result.fulfill_result(Exn.capture(body)) }
-    (thread, result)
-  }
-
-
   /* thread pool */
 
-  lazy val default_pool =
+  lazy val pool: ThreadPoolExecutor =
     {
       val m = Properties.Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
       val n = if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
@@ -48,7 +38,7 @@ object Standard_Thread
     }
 
   def submit_task[A](body: => A): JFuture[A] =
-    default_pool.submit(new Callable[A] { def call = body })
+    pool.submit(new Callable[A] { def call = body })
 
 
   /* delayed events */

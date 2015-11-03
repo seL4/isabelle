@@ -121,8 +121,8 @@ abstract class Prover(
 
   /** process manager **/
 
-  private val (_, process_result) =
-    Standard_Thread.future("process_result") { system_process.join }
+  private val process_result =
+    Future.thread("process_result") { system_process.join }
 
   private def terminate_process()
   {

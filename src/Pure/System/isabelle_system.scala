@@ -328,14 +328,10 @@ object Isabelle_System
       proc.stdin.close
 
       val limited = new Limited_Progress(proc, progress_limit)
-      val (_, stdout) =
-        Standard_Thread.future("bash_stdout") {
-          File.read_lines(proc.stdout, limited(progress_stdout))
-        }
-      val (_, stderr) =
-        Standard_Thread.future("bash_stderr") {
-          File.read_lines(proc.stderr, limited(progress_stderr))
-        }
+      val stdout =
+        Future.thread("bash_stdout") { File.read_lines(proc.stdout, limited(progress_stdout)) }
+      val stderr =
+        Future.thread("bash_stderr") { File.read_lines(proc.stderr, limited(progress_stderr)) }
 
       val rc =
         try { proc.join }
