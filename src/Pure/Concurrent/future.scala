@@ -18,7 +18,7 @@ import scala.concurrent.duration.Duration
 object Future
 {
   lazy val execution_context: ExecutionContextExecutor =
-    ExecutionContext.fromExecutorService(Simple_Thread.default_pool)
+    ExecutionContext.fromExecutorService(Standard_Thread.default_pool)
 
   def value[A](x: A): Future[A] = new Finished_Future(x)
 

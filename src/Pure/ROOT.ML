@@ -109,7 +109,7 @@ if ML_System.name = "polyml-5.5.0"
 then use "ML/ml_statistics_polyml-5.5.0.ML"
 else use "ML/ml_statistics_dummy.ML";
 
-use "Concurrent/simple_thread.ML";
+use "Concurrent/standard_thread.ML";
 
 use "Concurrent/single_assignment.ML";
 if Multithreading.available then ()

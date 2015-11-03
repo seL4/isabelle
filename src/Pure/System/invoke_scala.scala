@@ -94,7 +94,7 @@ class Invoke_Scala extends Session.Protocol_Handler
     msg.properties match {
       case Markup.Invoke_Scala(name, id) =>
         futures += (id ->
-          Simple_Thread.submit_task {
+          Standard_Thread.submit_task {
             val (tag, result) = Invoke_Scala.method(name, msg.text)
             fulfill(prover, id, tag, result)
           })

@@ -1,10 +1,10 @@
-(*  Title:      Pure/Concurrent/simple_thread.ML
+(*  Title:      Pure/Concurrent/standard_thread.ML
     Author:     Makarius
 
-Simplified thread operations.
+Standard thread operations.
 *)
 
-signature SIMPLE_THREAD =
+signature STANDARD_THREAD =
 sig
   val is_self: Thread.thread -> bool
   val get_name: unit -> string option
@@ -16,7 +16,7 @@ sig
   val interrupt_unsynchronized: Thread.thread -> unit
 end;
 
-structure Simple_Thread: SIMPLE_THREAD =
+structure Standard_Thread: STANDARD_THREAD =
 struct
 
 (* self *)

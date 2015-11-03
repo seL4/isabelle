@@ -161,7 +161,7 @@ object Session_Build
     setLocationRelativeTo(view)
     setVisible(true)
 
-    Simple_Thread.fork("session_build") {
+    Standard_Thread.fork("session_build") {
       progress.echo("Build started for Isabelle/" + Isabelle_Logic.session_name() + " ...")
 
       val (out, rc) =

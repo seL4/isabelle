@@ -599,7 +599,7 @@ object Build
       }
 
     private val (thread, result) =
-      Simple_Thread.future("build") {
+      Standard_Thread.future("build") {
         Isabelle_System.bash_env(info.dir.file, env, script,
           progress_stdout = (line: String) =>
             Library.try_unprefix("\floading_theory = ", line) match {

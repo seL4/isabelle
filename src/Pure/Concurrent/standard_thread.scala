@@ -1,8 +1,8 @@
-/*  Title:      Pure/Concurrent/simple_thread.scala
+/*  Title:      Pure/Concurrent/standard_thread.scala
     Module:     PIDE
     Author:     Makarius
 
-Simplified thread operations.
+Standard thread operations.
 */
 
 package isabelle
@@ -13,7 +13,7 @@ import java.util.concurrent.{Callable, Future => JFuture, ThreadPoolExecutor,
   TimeUnit, LinkedBlockingQueue}
 
 
-object Simple_Thread
+object Standard_Thread
 {
   /* plain thread */
 
@@ -53,7 +53,7 @@ object Simple_Thread
 
   /* delayed events */
 
-  final class Delay private [Simple_Thread](
+  final class Delay private [Standard_Thread](
     first: Boolean, delay: => Time, cancel: () => Unit, event: => Unit)
   {
     private var running: Option[Event_Timer.Request] = None

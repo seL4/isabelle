@@ -329,11 +329,11 @@ object Isabelle_System
 
       val limited = new Limited_Progress(proc, progress_limit)
       val (_, stdout) =
-        Simple_Thread.future("bash_stdout") {
+        Standard_Thread.future("bash_stdout") {
           File.read_lines(proc.stdout, limited(progress_stdout))
         }
       val (_, stderr) =
-        Simple_Thread.future("bash_stderr") {
+        Standard_Thread.future("bash_stderr") {
           File.read_lines(proc.stderr, limited(progress_stderr))
         }
 

@@ -128,7 +128,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
             }
 
             future_refresh =
-              Some(Simple_Thread.submit_task {
+              Some(Standard_Thread.submit_task {
                 val line_count = overview.line_count
                 val char_count = overview.char_count
                 val L = overview.L

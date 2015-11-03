@@ -184,14 +184,14 @@ fun cancel_now group = (*requires SYNCHRONIZED*)
   let
     val running = Task_Queue.cancel (! queue) group;
     val _ = running |> List.app (fn thread =>
-      if Simple_Thread.is_self thread then ()
-      else Simple_Thread.interrupt_unsynchronized thread);
+      if Standard_Thread.is_self thread then ()
+      else Standard_Thread.interrupt_unsynchronized thread);
   in running end;
 
 fun cancel_all () = (*requires SYNCHRONIZED*)
   let
     val (groups, threads) = Task_Queue.cancel_all (! queue);
-    val _ = List.app Simple_Thread.interrupt_unsynchronized threads;
+    val _ = List.app Standard_Thread.interrupt_unsynchronized threads;
   in groups end;
 
 fun cancel_later group = (*requires SYNCHRONIZED*)
@@ -264,7 +264,7 @@ fun worker_start name = (*requires SYNCHRONIZED*)
       Real.floor (Options.default_real "threads_stack_limit" * 1024.0 * 1024.0 * 1024.0);
     val stack_limit = if threads_stack_limit <= 0 then NONE else SOME threads_stack_limit;
     val worker =
-      Simple_Thread.fork {name = "worker", stack_limit = stack_limit, interrupts = false}
+      Standard_Thread.fork {name = "worker", stack_limit = stack_limit, interrupts = false}
         (fn () => worker_loop name);
   in Unsynchronized.change workers (cons (worker, Unsynchronized.ref Working)) end
   handle Fail msg => Multithreading.tracing 0 (fn () => "SCHEDULER: " ^ msg);
@@ -367,7 +367,7 @@ fun scheduler_check () = (*requires SYNCHRONIZED*)
   if scheduler_active () then ()
   else
     scheduler :=
-      SOME (Simple_Thread.fork {name = "scheduler", stack_limit = NONE, interrupts = false}
+      SOME (Standard_Thread.fork {name = "scheduler", stack_limit = NONE, interrupts = false}
         scheduler_loop));
 
 

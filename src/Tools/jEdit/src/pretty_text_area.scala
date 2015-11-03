@@ -130,7 +130,7 @@ class Pretty_Text_Area(
 
       future_refresh.map(_.cancel(true))
       future_refresh =
-        Some(Simple_Thread.submit_task {
+        Some(Standard_Thread.submit_task {
           val (text, rendering) =
             try { Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body) }
             catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }

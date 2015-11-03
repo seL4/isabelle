@@ -30,7 +30,7 @@ object Par_List
       try {
         state.change(_ =>
           (xs.iterator.zipWithIndex.map({ case (x, self) =>
-            Simple_Thread.submit_task {
+            Standard_Thread.submit_task {
               val result = Exn.capture { f(x) }
               result match { case Exn.Exn(_) => cancel_other(self) case _ => }
               result
