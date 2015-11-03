@@ -462,16 +462,22 @@ fun prepare_free_constructors kind prep_plugins prep_term
           else
             sel)) (1 upto m) o pad_list Binding.empty m) ctrs0 ms raw_sel_bindingss;
 
+    val add_bindings =
+      Variable.add_fixes (distinct (op =) (filter Symbol_Pos.is_identifier
+        (map Binding.name_of (disc_bindings @ flat sel_bindingss))))
+      #> snd;
+
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val ((((((((exh_y, xss), yss), fs), gs), u), w), (p, p'))) =
+    val ((((((((u, exh_y), xss), yss), fs), gs), w), (p, p'))) =
       no_defs_lthy
-      |> yield_singleton (mk_Frees "y") fcT (* for compatibility with "datatype_realizer.ML" *)
+      |> add_bindings
+      |> yield_singleton (mk_Frees fc_b_name) fcT
+      ||>> yield_singleton (mk_Frees "y") fcT (* for compatibility with "datatype_realizer.ML" *)
       ||>> mk_Freess "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
-      ||>> yield_singleton (mk_Frees fc_b_name) fcT
       ||>> yield_singleton (mk_Frees "z") B
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT
       |> fst;
@@ -673,13 +679,14 @@ fun prepare_free_constructors kind prep_plugins prep_term
 
     fun after_qed ([exhaust_thm] :: thmss) lthy =
       let
-        val ((((((((xss, xss'), fs), gs), h), (u, u')), v), p), _) =
+        val ((((((((u, u'), (xss, xss')), fs), gs), h), v), p), _) =
           lthy
-          |> mk_Freess' "x" ctr_Tss
+          |> add_bindings
+          |> yield_singleton (apfst (op ~~) oo mk_Frees' fc_b_name) fcT
+          ||>> mk_Freess' "x" ctr_Tss
           ||>> mk_Frees "f" case_Ts
           ||>> mk_Frees "g" case_Ts
           ||>> yield_singleton (mk_Frees "h") (B --> C)
-          ||>> yield_singleton (apfst (op ~~) oo mk_Frees' fc_b_name) fcT
           ||>> yield_singleton (mk_Frees (fc_b_name ^ "'")) fcT
           ||>> yield_singleton (mk_Frees "P") HOLogic.boolT;
 
@@ -687,18 +694,18 @@ fun prepare_free_constructors kind prep_plugins prep_term
         val xgs = map2 (curry Term.list_comb) gs xss;
 
         val fcase = Term.list_comb (casex, fs);
-    
+
         val ufcase = fcase $ u;
         val vfcase = fcase $ v;
-    
+
         val eta_fcase = Term.list_comb (casex, eta_fs);
         val eta_gcase = Term.list_comb (casex, eta_gs);
-    
+
         val eta_ufcase = eta_fcase $ u;
         val eta_vgcase = eta_gcase $ v;
 
         fun mk_uu_eq () = HOLogic.mk_eq (u, u);
-    
+
         val uv_eq = mk_Trueprop_eq (u, v);
 
         val ((inject_thms, inject_thmss), half_distinct_thmss) = chop n thmss |>> `flat;

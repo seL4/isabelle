@@ -255,8 +255,8 @@ fun mutualize_fp_sugars plugins fp mutual_cliques bs fpTs callers callssss fp_su
         val fp_nesting_bnfs = nesting_bnfs lthy ctrXs_Tsss Xs;
         val live_nesting_bnfs = nesting_bnfs lthy ctrXs_Tsss As;
 
-        val ((xtor_co_recs, recs_args_types, corecs_args_types), _) =
-          mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy;
+        val (xtor_co_recs, recs_args_types, corecs_args_types) =
+          mk_co_recs_prelims lthy fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0;
 
         fun mk_binding b pre = Binding.prefix_name (pre ^ "_") b;
 

@@ -11,10 +11,10 @@ begin
 subsection \<open>The graph of a function\<close>
 
 text \<open>
-  We define the \<^emph>\<open>graph\<close> of a (real) function @{text f} with
-  domain @{text F} as the set
+  We define the \<^emph>\<open>graph\<close> of a (real) function \<open>f\<close> with
+  domain \<open>F\<close> as the set
   \begin{center}
-  @{text "{(x, f x). x \<in> F}"}
+  \<open>{(x, f x). x \<in> F}\<close>
   \end{center}
   So we are modeling partial functions by specifying the domain and
   the mapping function. We use the term ``function'' also for its
@@ -41,8 +41,8 @@ lemma graphE [elim?]:
 subsection \<open>Functions ordered by domain extension\<close>
 
 text \<open>
-  A function @{text h'} is an extension of @{text h}, iff the graph of
-  @{text h} is a subset of the graph of @{text h'}.
+  A function \<open>h'\<close> is an extension of \<open>h\<close>, iff the graph of
+  \<open>h\<close> is a subset of the graph of \<open>h'\<close>.
 \<close>
 
 lemma graph_extI:
@@ -60,8 +60,7 @@ lemma graph_extD2 [dest?]: "graph H h \<subseteq> graph H' h' \<Longrightarrow> 
 subsection \<open>Domain and function of a graph\<close>
 
 text \<open>
-  The inverse functions to @{text graph} are @{text domain} and @{text
-  funct}.
+  The inverse functions to \<open>graph\<close> are \<open>domain\<close> and \<open>funct\<close>.
 \<close>
 
 definition domain :: "'a graph \<Rightarrow> 'a set"
@@ -71,8 +70,8 @@ definition funct :: "'a graph \<Rightarrow> ('a \<Rightarrow> real)"
   where "funct g = (\<lambda>x. (SOME y. (x, y) \<in> g))"
 
 text \<open>
-  The following lemma states that @{text g} is the graph of a function
-  if the relation induced by @{text g} is unique.
+  The following lemma states that \<open>g\<close> is the graph of a function if the
+  relation induced by \<open>g\<close> is unique.
 \<close>
 
 lemma graph_domain_funct:
@@ -94,10 +93,9 @@ qed
 subsection \<open>Norm-preserving extensions of a function\<close>
 
 text \<open>
-  Given a linear form @{text f} on the space @{text F} and a seminorm
-  @{text p} on @{text E}. The set of all linear extensions of @{text
-  f}, to superspaces @{text H} of @{text F}, which are bounded by
-  @{text p}, is defined as follows.
+  Given a linear form \<open>f\<close> on the space \<open>F\<close> and a seminorm \<open>p\<close> on \<open>E\<close>. The
+  set of all linear extensions of \<open>f\<close>, to superspaces \<open>H\<close> of \<open>F\<close>, which are
+  bounded by \<open>p\<close>, is defined as follows.
 \<close>
 
 definition

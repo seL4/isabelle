@@ -11,9 +11,8 @@ begin
 subsection \<open>Definition\<close>
 
 text \<open>
-  A non-empty subset @{text U} of a vector space @{text V} is a
-  \<^emph>\<open>subspace\<close> of @{text V}, iff @{text U} is closed under addition
-  and scalar multiplication.
+  A non-empty subset \<open>U\<close> of a vector space \<open>V\<close> is a \<^emph>\<open>subspace\<close> of \<open>V\<close>, iff
+  \<open>U\<close> is closed under addition and scalar multiplication.
 \<close>
 
 locale subspace =
@@ -51,9 +50,9 @@ qed
 
 text \<open>
   \<^medskip>
-  Similar as for linear spaces, the existence of the zero
-  element in every subspace follows from the non-emptiness of the
-  carrier set and by vector space laws.
+  Similar as for linear spaces, the existence of the zero element in every
+  subspace follows from the non-emptiness of the carrier set and by vector
+  space laws.
 \<close>
 
 lemma (in subspace) zero [intro]:
@@ -140,8 +139,8 @@ qed
 subsection \<open>Linear closure\<close>
 
 text \<open>
-  The \<^emph>\<open>linear closure\<close> of a vector @{text x} is the set of all
-  scalar multiples of @{text x}.
+  The \<^emph>\<open>linear closure\<close> of a vector \<open>x\<close> is the set of all scalar multiples
+  of \<open>x\<close>.
 \<close>
 
 definition lin :: "('a::{minus,plus,zero}) \<Rightarrow> 'a set"
@@ -227,8 +226,8 @@ qed
 subsection \<open>Sum of two vectorspaces\<close>
 
 text \<open>
-  The \<^emph>\<open>sum\<close> of two vectorspaces @{text U} and @{text V} is the
-  set of all sums of elements from @{text U} and @{text V}.
+  The \<^emph>\<open>sum\<close> of two vectorspaces \<open>U\<close> and \<open>V\<close> is the set of all sums of
+  elements from \<open>U\<close> and \<open>V\<close>.
 \<close>
 
 lemma sum_def: "U + V = {u + v | u v. u \<in> U \<and> v \<in> V}"
@@ -246,7 +245,7 @@ lemma sumI' [intro]:
     "u \<in> U \<Longrightarrow> v \<in> V \<Longrightarrow> u + v \<in> U + V"
   unfolding sum_def by blast
 
-text \<open>@{text U} is a subspace of @{text "U + V"}.\<close>
+text \<open>\<open>U\<close> is a subspace of \<open>U + V\<close>.\<close>
 
 lemma subspace_sum1 [iff]:
   assumes "vectorspace U" "vectorspace V"
@@ -329,11 +328,10 @@ lemma sum_vs [intro?]:
 subsection \<open>Direct sums\<close>
 
 text \<open>
-  The sum of @{text U} and @{text V} is called \<^emph>\<open>direct\<close>, iff the
-  zero element is the only common element of @{text U} and @{text
-  V}. For every element @{text x} of the direct sum of @{text U} and
-  @{text V} the decomposition in @{text "x = u + v"} with
-  @{text "u \<in> U"} and @{text "v \<in> V"} is unique.
+  The sum of \<open>U\<close> and \<open>V\<close> is called \<^emph>\<open>direct\<close>, iff the zero element is the
+  only common element of \<open>U\<close> and \<open>V\<close>. For every element \<open>x\<close> of the direct
+  sum of \<open>U\<close> and \<open>V\<close> the decomposition in \<open>x = u + v\<close> with \<open>u \<in> U\<close> and
+  \<open>v \<in> V\<close> is unique.
 \<close>
 
 lemma decomp:
@@ -378,12 +376,10 @@ proof -
 qed
 
 text \<open>
-  An application of the previous lemma will be used in the proof of
-  the Hahn-Banach Theorem (see page \pageref{decomp-H-use}): for any
-  element @{text "y + a \<cdot> x\<^sub>0"} of the direct sum of a
-  vectorspace @{text H} and the linear closure of @{text "x\<^sub>0"}
-  the components @{text "y \<in> H"} and @{text a} are uniquely
-  determined.
+  An application of the previous lemma will be used in the proof of the
+  Hahn-Banach Theorem (see page \pageref{decomp-H-use}): for any element
+  \<open>y + a \<cdot> x\<^sub>0\<close> of the direct sum of a vectorspace \<open>H\<close> and the linear closure
+  of \<open>x\<^sub>0\<close> the components \<open>y \<in> H\<close> and \<open>a\<close> are uniquely determined.
 \<close>
 
 lemma decomp_H':
@@ -437,10 +433,9 @@ proof -
 qed
 
 text \<open>
-  Since for any element @{text "y + a \<cdot> x'"} of the direct sum of a
-  vectorspace @{text H} and the linear closure of @{text x'} the
-  components @{text "y \<in> H"} and @{text a} are unique, it follows from
-  @{text "y \<in> H"} that @{text "a = 0"}.
+  Since for any element \<open>y + a \<cdot> x'\<close> of the direct sum of a vectorspace \<open>H\<close>
+  and the linear closure of \<open>x'\<close> the components \<open>y \<in> H\<close> and \<open>a\<close> are unique,
+  it follows from \<open>y \<in> H\<close> that \<open>a = 0\<close>.
 \<close>
 
 lemma decomp_H'_H:
@@ -465,9 +460,8 @@ proof -
 qed
 
 text \<open>
-  The components @{text "y \<in> H"} and @{text a} in @{text "y + a \<cdot> x'"}
-  are unique, so the function @{text h'} defined by
-  @{text "h' (y + a \<cdot> x') = h y + a \<cdot> \<xi>"} is definite.
+  The components \<open>y \<in> H\<close> and \<open>a\<close> in \<open>y + a \<cdot> x'\<close> are unique, so the function
+  \<open>h'\<close> defined by \<open>h' (y + a \<cdot> x') = h y + a \<cdot> \<xi>\<close> is definite.
 \<close>
 
 lemma h'_definite:

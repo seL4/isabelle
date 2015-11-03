@@ -13,13 +13,13 @@ fixes delete :: "'a \<Rightarrow> 's \<Rightarrow> 's"
 fixes isin :: "'s \<Rightarrow> 'a \<Rightarrow> bool"
 fixes set :: "'s \<Rightarrow> 'a set"
 fixes invar :: "'s \<Rightarrow> bool"
-assumes "set empty = {}"
-assumes "invar s \<Longrightarrow> isin s a = (a \<in> set s)"
-assumes "invar s \<Longrightarrow> set(insert a s) = Set.insert a (set s)"
-assumes "invar s \<Longrightarrow> set(delete a s) = set s - {a}"
-assumes "invar empty"
-assumes "invar s \<Longrightarrow> invar(insert a s)"
-assumes "invar s \<Longrightarrow> invar(delete a s)"
+assumes set_empty:    "set empty = {}"
+assumes set_isin:     "invar s \<Longrightarrow> isin s x = (x \<in> set s)"
+assumes set_insert:   "invar s \<Longrightarrow> set(insert x s) = Set.insert x (set s)"
+assumes set_delete:   "invar s \<Longrightarrow> set(delete x s) = set s - {x}"
+assumes invar_empty:  "invar empty"
+assumes invar_insert: "invar s \<Longrightarrow> invar(insert x s)"
+assumes invar_delete: "invar s \<Longrightarrow> invar(delete x s)"
 
 locale Set_by_Ordered =
 fixes empty :: "'t"
@@ -30,14 +30,14 @@ fixes inorder :: "'t \<Rightarrow> 'a list"
 fixes wf :: "'t \<Rightarrow> bool"
 assumes empty: "inorder empty = []"
 assumes isin: "wf t \<and> sorted(inorder t) \<Longrightarrow>
-  isin t a = (a \<in> elems (inorder t))"
+  isin t x = (x \<in> elems (inorder t))"
 assumes insert: "wf t \<and> sorted(inorder t) \<Longrightarrow>
-  inorder(insert a t) = ins_list a (inorder t)"
+  inorder(insert x t) = ins_list x (inorder t)"
 assumes delete: "wf t \<and> sorted(inorder t) \<Longrightarrow>
-  inorder(delete a t) = del_list a (inorder t)"
+  inorder(delete x t) = del_list x (inorder t)"
 assumes wf_empty:  "wf empty"
-assumes wf_insert: "wf t \<and> sorted(inorder t) \<Longrightarrow> wf(insert a t)"
-assumes wf_delete: "wf t \<and> sorted(inorder t) \<Longrightarrow> wf(delete a t)"
+assumes wf_insert: "wf t \<and> sorted(inorder t) \<Longrightarrow> wf(insert x t)"
+assumes wf_delete: "wf t \<and> sorted(inorder t) \<Longrightarrow> wf(delete x t)"
 begin
 
 sublocale Set
@@ -49,8 +49,8 @@ next
 next
   case 3 thus ?case by(simp add: insert)
 next
-  case (4 s a) show ?case
-    using delete[OF 4, of a] 4 by (auto simp: distinct_if_sorted)
+  case (4 s x) show ?case
+    using delete[OF 4, of x] 4 by (auto simp: distinct_if_sorted)
 next
   case 5 thus ?case by(simp add: empty wf_empty)
 next

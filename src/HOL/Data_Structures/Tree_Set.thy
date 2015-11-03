@@ -15,20 +15,20 @@ fun isin :: "'a::linorder tree \<Rightarrow> 'a \<Rightarrow> bool" where
 hide_const (open) insert
 
 fun insert :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
-"insert a Leaf = Node Leaf a Leaf" |
-"insert a (Node l x r) =
-   (if a < x then Node (insert a l) x r
-    else if a=x then Node l x r
-    else Node l x (insert a r))"
+"insert x Leaf = Node Leaf x Leaf" |
+"insert x (Node l a r) =
+   (if x < a then Node (insert x l) a r else
+    if x = a then Node l a r
+    else Node l a (insert x r))"
 
 fun del_min :: "'a tree \<Rightarrow> 'a * 'a tree" where
 "del_min (Node Leaf a r) = (a, r)" |
 "del_min (Node l a r) = (let (x,l') = del_min l in (x, Node l' a r))"
 
 fun delete :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
-"delete k Leaf = Leaf" |
-"delete k (Node l a r) = (if k<a then Node (delete k l) a r else
-  if k > a then Node l a (delete k r) else
+"delete x Leaf = Leaf" |
+"delete x (Node l a r) = (if x < a then Node (delete x l) a r else
+  if x > a then Node l a (delete x r) else
   if r = Leaf then l else let (a',r') = del_min r in Node l a' r')"
 
 

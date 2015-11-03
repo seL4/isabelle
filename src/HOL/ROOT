@@ -647,7 +647,6 @@ session "HOL-Isar_Examples" in Isar_Examples = HOL +
   document_files
     "root.bib"
     "root.tex"
-    "style.tex"
 
 session "HOL-Eisbach" in Eisbach = HOL +
   description {*
