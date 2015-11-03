@@ -8,6 +8,9 @@ Value-oriented parallel execution via futures and promises.
 package isabelle
 
 
+import java.util.concurrent.Callable
+
+
 /* futures and promises */
 
 object Future
@@ -85,7 +88,7 @@ private class Task_Future[A](body: => A) extends Future[A]
       status.change(_ => Finished(if (Thread.interrupted) Exn.Exn(Exn.Interrupt()) else result))
     }
   }
-  private val task = Standard_Thread.submit_task { try_run() }
+  private val task = Standard_Thread.pool.submit(new Callable[A] { def call = body })
 
   def join_result: Exn.Result[A] =
   {

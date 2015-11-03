@@ -9,13 +9,14 @@ package isabelle
 
 
 import java.lang.Thread
-import java.util.concurrent.{Callable, Future => JFuture, ThreadPoolExecutor,
-  TimeUnit, LinkedBlockingQueue}
+import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue}
+
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 
 object Standard_Thread
 {
-  /* plain thread */
+  /* fork */
 
   def fork(name: String = "", daemon: Boolean = false)(body: => Unit): Thread =
   {
@@ -28,7 +29,7 @@ object Standard_Thread
   }
 
 
-  /* thread pool */
+  /* pool */
 
   lazy val pool: ThreadPoolExecutor =
     {
@@ -37,8 +38,8 @@ object Standard_Thread
       new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
     }
 
-  def submit_task[A](body: => A): JFuture[A] =
-    pool.submit(new Callable[A] { def call = body })
+  lazy val execution_context: ExecutionContextExecutor =
+    ExecutionContext.fromExecutorService(pool)
 
 
   /* delayed events */
