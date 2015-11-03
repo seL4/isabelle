@@ -30,7 +30,7 @@ object Active
             // FIXME avoid hard-wired stuff
             elem match {
               case XML.Elem(Markup(Markup.BROWSER, _), body) =>
-                Future.fork {
+                Standard_Thread.fork("browser") {
                   val graph_file = Isabelle_System.tmp_file("graph")
                   File.write(graph_file, XML.content(body))
                   Isabelle_System.bash_env(null,
@@ -39,7 +39,7 @@ object Active
                 }
 
               case XML.Elem(Markup(Markup.GRAPHVIEW, _), body) =>
-                Future.fork {
+                Standard_Thread.fork("graphview") {
                   val graph =
                     Exn.capture { Graph_Display.decode_graph(body).transitive_reduction_acyclic }
                   GUI_Thread.later { Graphview_Dockable(view, snapshot, graph) }
