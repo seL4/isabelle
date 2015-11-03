@@ -24,7 +24,7 @@ fun output_message kind msg =
   if msg = "" then ()
   else
     Output.protocol_message
-      (Markup.debugger_output (Simple_Thread.the_name ()))
+      (Markup.debugger_output (Standard_Thread.the_name ()))
       [Markup.markup (kind, Markup.serial_properties (serial ())) msg];
 
 val writeln_message = output_message Markup.writelnN;
@@ -255,7 +255,7 @@ val _ =
         (SOME (fn (_, break) =>
           if not (is_debugging ()) andalso (! break orelse is_break () orelse is_stepping ())
           then
-            (case Simple_Thread.get_name () of
+            (case Standard_Thread.get_name () of
               SOME thread_name => debugger_loop thread_name
             | NONE => ())
           else ()))));

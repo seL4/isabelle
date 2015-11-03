@@ -598,8 +598,8 @@ object Build
         """
       }
 
-    private val (thread, result) =
-      Simple_Thread.future("build") {
+    private val result =
+      Future.thread("build") {
         Isabelle_System.bash_env(info.dir.file, env, script,
           progress_stdout = (line: String) =>
             Library.try_unprefix("\floading_theory = ", line) match {
@@ -614,7 +614,7 @@ object Build
           strict = false)
       }
 
-    def terminate: Unit = thread.interrupt
+    def terminate: Unit = result.cancel
     def is_finished: Boolean = result.is_finished
 
     @volatile private var was_timeout = false

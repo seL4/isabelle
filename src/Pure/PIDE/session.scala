@@ -291,7 +291,7 @@ class Session(val resources: Resources)
       nodes = Set.empty
       commands = Set.empty
     }
-    private val delay_flush = Simple_Thread.delay_first(output_delay) { flush() }
+    private val delay_flush = Standard_Thread.delay_first(output_delay) { flush() }
 
     def invoke(assign: Boolean, cmds: List[Command]): Unit = synchronized {
       assignment |= assign
@@ -353,7 +353,7 @@ class Session(val resources: Resources)
 
   /* manager thread */
 
-  private val delay_prune = Simple_Thread.delay_first(prune_delay) { manager.send(Prune_History) }
+  private val delay_prune = Standard_Thread.delay_first(prune_delay) { manager.send(Prune_History) }
 
   private val manager: Consumer_Thread[Any] =
   {

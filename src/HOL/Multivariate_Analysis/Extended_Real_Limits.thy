@@ -8,7 +8,10 @@
 section \<open>Limits on the Extended real number line\<close>
 
 theory Extended_Real_Limits
-  imports Topology_Euclidean_Space "~~/src/HOL/Library/Extended_Real" "~~/src/HOL/Library/Indicator_Function"
+imports
+  Topology_Euclidean_Space
+  "~~/src/HOL/Library/Extended_Real"
+  "~~/src/HOL/Library/Indicator_Function"
 begin
 
 lemma compact_UNIV:

@@ -24,7 +24,7 @@ fun make_thread interrupts body =
       Runtime.debugging NONE body () handle exn =>
         if Exn.is_interrupt exn then ()
         else writeln ("## INTERNAL ERROR ##\n" ^ Runtime.exn_message exn),
-      Simple_Thread.attributes
+      Standard_Thread.attributes
         {name = "async_manager", stack_limit = NONE, interrupts = interrupts});
 
 fun implode_message (workers, work) =
@@ -108,7 +108,7 @@ fun check_thread_manager () = Synchronized.change global_state
               NONE
             else
               let
-                val _ = List.app (Simple_Thread.interrupt_unsynchronized o #1) canceling
+                val _ = List.app (Standard_Thread.interrupt_unsynchronized o #1) canceling
                 val canceling' = filter (Thread.isActive o #1) canceling
                 val state' = make_state manager timeout_heap' active canceling' messages
               in SOME (map #2 timeout_threads, state') end

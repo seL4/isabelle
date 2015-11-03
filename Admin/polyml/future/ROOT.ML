@@ -101,7 +101,7 @@ fun print_mode_value () : string list = [];
 use "General/properties.ML";
 use "General/timing.ML";
 
-use "Concurrent/simple_thread.ML";
+use "Concurrent/standard_thread.ML";
 use "Concurrent/synchronized.ML";
 use "General/markup.ML";
 use "Concurrent/single_assignment.ML";

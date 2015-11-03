@@ -50,8 +50,8 @@ object GUI_Thread
   /* delayed events */
 
   def delay_first(delay: => Time, cancel: () => Unit = () => ())(event: => Unit)
-    : Simple_Thread.Delay = Simple_Thread.delay_first(delay, cancel) { later { event } }
+    : Standard_Thread.Delay = Standard_Thread.delay_first(delay, cancel) { later { event } }
 
   def delay_last(delay: => Time, cancel: () => Unit = () => ())(event: => Unit)
-    : Simple_Thread.Delay = Simple_Thread.delay_last(delay, cancel) { later { event } }
+    : Standard_Thread.Delay = Standard_Thread.delay_last(delay, cancel) { later { event } }
 }

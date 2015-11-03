@@ -10,7 +10,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.util.concurrent.{Future => JFuture}
 import java.awt.{Color, Font, Toolkit, Window}
 import java.awt.event.KeyEvent
 import javax.swing.JTextField
@@ -75,7 +74,7 @@ class Pretty_Text_Area(
   private var current_base_results = Command.Results.empty
   private var current_rendering: Rendering =
     Pretty_Text_Area.text_rendering(current_base_snapshot, current_base_results, Nil)._2
-  private var future_refresh: Option[JFuture[Unit]] = None
+  private var future_refresh: Option[Future[Unit]] = None
 
   private val rich_text_area =
     new Rich_Text_Area(view, text_area, () => current_rendering, close_action,
@@ -128,9 +127,9 @@ class Pretty_Text_Area(
       val base_results = current_base_results
       val formatted_body = Pretty.formatted(current_body, margin, metric)
 
-      future_refresh.map(_.cancel(true))
+      future_refresh.map(_.cancel)
       future_refresh =
-        Some(Simple_Thread.submit_task {
+        Some(Future.fork {
           val (text, rendering) =
             try { Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body) }
             catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }

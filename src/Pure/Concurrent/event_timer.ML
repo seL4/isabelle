@@ -105,7 +105,7 @@ fun manager_loop () =
 fun manager_check manager =
   if is_some manager andalso Thread.isActive (the manager) then manager
   else
-    SOME (Simple_Thread.fork {name = "event_timer", stack_limit = NONE, interrupts = false}
+    SOME (Standard_Thread.fork {name = "event_timer", stack_limit = NONE, interrupts = false}
       manager_loop);
 
 fun shutdown () =

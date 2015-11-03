@@ -1,12 +1,11 @@
-section \<open>polynomial functions: extremal behaviour and root counts\<close>
-
 (*  Author: John Harrison and Valentina Bruno
     Ported from "hol_light/Multivariate/complexes.ml" by L C Paulson
 *)
 
+section \<open>polynomial functions: extremal behaviour and root counts\<close>
+
 theory PolyRoots
 imports Complex_Main
-
 begin
 
 subsection\<open>Geometric progressions\<close>

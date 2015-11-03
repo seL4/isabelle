@@ -58,7 +58,7 @@ object Exn
     def apply(): Throwable = new InterruptedException
     def unapply(exn: Throwable): Boolean = is_interrupt(exn)
 
-    def expose() { if (Thread.interrupted()) throw apply() }
+    def expose() { if (Thread.interrupted) throw apply() }
     def impose() { Thread.currentThread.interrupt }
 
     def postpone[A](body: => A): Option[A] =
@@ -104,4 +104,3 @@ object Exn
   def message(exn: Throwable): String =
     user_message(exn) getOrElse (if (is_interrupt(exn)) "Interrupt" else exn.toString)
 }
-
