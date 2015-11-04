@@ -124,6 +124,9 @@ the lack of the surrounding isabelle markup environment in output.
 recursively, adding appropriate text style markup. These are typically
 used in the short form \<^emph>\<open>...\<close> and \<^bold>\<open>...\<close>.
 
+* Document antiquotation @{footnote} outputs LaTeX source recursively,
+marked as \footnote{}. This is typically used in the short form \<^footnote>\<open>...\<close>.
+
 
 *** Isar ***
 

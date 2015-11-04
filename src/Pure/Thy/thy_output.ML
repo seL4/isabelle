@@ -615,7 +615,8 @@ in
 
 val _ =
   Theory.setup
-   (control_antiquotation @{binding emph} "\\emph{" "}" #>
+   (control_antiquotation @{binding footnote} "\\footnote{" "}" #>
+    control_antiquotation @{binding emph} "\\emph{" "}" #>
     control_antiquotation @{binding bold} "\\textbf{" "}");
 
 end;
