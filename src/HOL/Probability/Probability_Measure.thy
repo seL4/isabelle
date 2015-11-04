@@ -461,7 +461,7 @@ lemma (in prob_space) variance_mean_zero:
 
 locale pair_prob_space = pair_sigma_finite M1 M2 + M1: prob_space M1 + M2: prob_space M2 for M1 M2
 
-sublocale pair_prob_space \<subseteq> P: prob_space "M1 \<Otimes>\<^sub>M M2"
+sublocale pair_prob_space \<subseteq> P?: prob_space "M1 \<Otimes>\<^sub>M M2"
 proof
   show "emeasure (M1 \<Otimes>\<^sub>M M2) (space (M1 \<Otimes>\<^sub>M M2)) = 1"
     by (simp add: M2.emeasure_pair_measure_Times M1.emeasure_space_1 M2.emeasure_space_1 space_pair_measure)
@@ -471,7 +471,7 @@ locale product_prob_space = product_sigma_finite M for M :: "'i \<Rightarrow> 'a
   fixes I :: "'i set"
   assumes prob_space: "\<And>i. prob_space (M i)"
 
-sublocale product_prob_space \<subseteq> M: prob_space "M i" for i
+sublocale product_prob_space \<subseteq> M?: prob_space "M i" for i
   by (rule prob_space)
 
 locale finite_product_prob_space = finite_product_sigma_finite M I + product_prob_space M I for M I

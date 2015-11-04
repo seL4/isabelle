@@ -429,7 +429,7 @@ lemma (in group_hom) hom_one [simp]:
 proof -
   have "h ` \<one> \<cdot>\<^bsub>H\<^esub> \<one>\<^bsub>H\<^esub> = (h ` \<one>) \<cdot>\<^bsub>H\<^esub> (h ` \<one>)"
     by (simp add: hom_mult [symmetric] del: hom_mult)
-  then show ?thesis by (simp del: r_one)
+  then show ?thesis by (simp del: H.r_one)
 qed
 
 lemma (in group_hom) inv_closed [simp]:
@@ -445,7 +445,7 @@ proof -
   also from x have "... = h ` x \<cdot>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h ` x)"
     by (simp add: hom_mult [symmetric] H.r_inv del: hom_mult)
   finally have "h ` x \<cdot>\<^bsub>H\<^esub> h ` (inv x) = h ` x \<cdot>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h ` x)" .
-  with x show ?thesis by (simp del: inv)
+  with x show ?thesis by (simp del: H.inv)
 qed
 
 subsection \<open>Commutative Structures\<close>
@@ -596,7 +596,7 @@ definition
   "set_inv\<^bsub>G\<^esub> H == \<Union>h\<in>H. {inv\<^bsub>G\<^esub> h}"
 
 
-locale normal = subgroup: subgroup + group +
+locale normal = subgroup + group +
   assumes coset_eq: "(\<forall>x \<in> carrier(G). H #> x = x <# H)"
 
 notation

@@ -648,7 +648,7 @@ lemma ring_hom_one:
   shows "h \<in> ring_hom R S ==> h \<one> = \<one>\<^bsub>S\<^esub>"
   by (simp add: ring_hom_def)
 
-locale ring_hom_cring = R: cring R + S: cring S
+locale ring_hom_cring = R?: cring R + S?: cring S
     for R (structure) and S (structure) +
   fixes h
   assumes homh [simp, intro]: "h \<in> ring_hom R S"

@@ -497,10 +497,8 @@ text \<open>
   If present, the qualifier itself is either optional
   (``\<^verbatim>\<open>?\<close>''), which means that it may be omitted on input of the
   qualified name, or mandatory (``\<^verbatim>\<open>!\<close>'').  If neither
-  ``\<^verbatim>\<open>?\<close>'' nor ``\<^verbatim>\<open>!\<close>'' are present, the command's default
-  is used.  For @{command "interpretation"} and @{command "interpret"}
-  the default is ``mandatory'', for @{command "locale"} and @{command
-  "sublocale"} the default is ``optional''.  Qualifiers play no role
+  ``\<^verbatim>\<open>?\<close>'' nor ``\<^verbatim>\<open>!\<close>'' are present the default
+  is used, which is ``mandatory''.  Qualifiers play no role
   in determining whether one locale instance subsumes another.
 \<close>
 

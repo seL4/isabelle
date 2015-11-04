@@ -486,13 +486,13 @@ text \<open>It is quite common in abstract algebra that such a construction
   proof unfold_locales
     fix f g
     have "partial_order.is_inf (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x) f g (\<lambda>x. f x \<sqinter> g x)"
-      apply (rule is_infI) apply rule+ apply (drule spec, assumption)+ done
+      apply (rule f.is_infI) apply rule+ apply (drule spec, assumption)+ done
     then show "\<exists>inf. partial_order.is_inf (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x) f g inf"
       by fast
   next
     fix f g
     have "partial_order.is_sup (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x) f g (\<lambda>x. f x \<squnion> g x)"
-      apply (rule is_supI) apply rule+ apply (drule spec, assumption)+ done
+      apply (rule f.is_supI) apply rule+ apply (drule spec, assumption)+ done
     then show "\<exists>sup. partial_order.is_sup (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x) f g sup"
       by fast
   qed

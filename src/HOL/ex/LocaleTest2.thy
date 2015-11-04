@@ -826,7 +826,7 @@ lemma hom_one [simp]:
 proof -
   have "hom one +++ zero = hom one +++ hom one"
     by (simp add: hom_mult [symmetric] del: hom_mult)
-  then show ?thesis by (simp del: r_one)
+  then show ?thesis by (simp del: sum.r_one)
 qed
 
 end

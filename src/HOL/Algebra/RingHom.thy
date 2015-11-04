@@ -9,7 +9,7 @@ begin
 section \<open>Homomorphisms of Non-Commutative Rings\<close>
 
 text \<open>Lifting existing lemmas in a @{text ring_hom_ring} locale\<close>
-locale ring_hom_ring = R: ring R + S: ring S
+locale ring_hom_ring = R?: ring R + S?: ring S
     for R (structure) and S (structure) +
   fixes h
   assumes homh: "h \<in> ring_hom R S"
@@ -19,7 +19,7 @@ locale ring_hom_ring = R: ring R + S: ring S
 sublocale ring_hom_cring \<subseteq> ring: ring_hom_ring
   by standard (rule homh)
 
-sublocale ring_hom_ring \<subseteq> abelian_group: abelian_group_hom R S
+sublocale ring_hom_ring \<subseteq> abelian_group?: abelian_group_hom R S
 apply (rule abelian_group_homI)
   apply (rule R.is_abelian_group)
  apply (rule S.is_abelian_group)

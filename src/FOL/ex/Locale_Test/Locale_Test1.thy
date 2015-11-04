@@ -298,7 +298,7 @@ qed
 
 section \<open>Interpretation between locales: sublocales\<close>
 
-sublocale lgrp < right: rgrp
+sublocale lgrp < right?: rgrp
 print_facts
 proof unfold_locales
   {
@@ -601,7 +601,7 @@ begin
 lemmas less_thm4 = less_def
 end
 
-locale mixin4_combined = le1: mixin4_mixin le' + le2: mixin4_copy le for le' le
+locale mixin4_combined = le1?: mixin4_mixin le' + le2?: mixin4_copy le for le' le
 begin
 lemmas less_thm4' = less_def
 end
@@ -726,7 +726,7 @@ lemma linv: "inv(x) ** x = one"
 
 end
 
-sublocale lgrp < "def": dgrp
+sublocale lgrp < "def"?: dgrp
   where one_equation: "dgrp.one(prod) = one" and inv_equation: "dgrp.inv(prod, x) = inv(x)"
 proof -
   show "dgrp(prod)" by unfold_locales
