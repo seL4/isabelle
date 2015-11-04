@@ -82,7 +82,7 @@ fun nitpick_tptp_file thy timeout file_name =
     val nondefs = pseudo_defs @ nondefs
     val state = Proof.init ctxt
     val params =
-      [("card", "1\<emdash>100"),
+      [("card", "1-100"),
        ("box", "false"),
        ("max_threads", "1"),
        ("batch_size", "5"),

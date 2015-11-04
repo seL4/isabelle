@@ -34,9 +34,9 @@ val auto_try_max_scopes = 6
 type raw_param = string * string list
 
 val default_default_params =
-  [("card", "1\<emdash>10"),
+  [("card", "1-10"),
    ("iter", "0,1,2,4,8,12,16,20,24,28"),
-   ("bits", "1\<emdash>10"),
+   ("bits", "1-10"),
    ("bisim_depth", "9"),
    ("box", "smart"),
    ("finitize", "smart"),
@@ -138,7 +138,7 @@ val set_default_raw_param =
   Data.map o fold (AList.update (op =)) o normalize_raw_param
 val default_raw_params = Data.get
 
-fun is_punctuation s = (s = "," orelse s = "-" orelse s = "\<emdash>")
+fun is_punctuation s = (s = "," orelse s = "-")
 
 fun stringify_raw_param_value [] = ""
   | stringify_raw_param_value [s] = s
@@ -177,7 +177,7 @@ fun extract_params ctxt mode default_params override_params =
       let
         val (k1, k2) =
           (case space_explode "-" s of
-             [s] => the_default (s, s) (first_field "\<emdash>" s)
+             [s] => (s, s)
            | ["", s2] => ("-" ^ s2, "-" ^ s2)
            | [s1, s2] => (s1, s2)
            | _ => raise Option.Option)
