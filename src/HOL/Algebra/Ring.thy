@@ -95,7 +95,7 @@ text \<open>Transfer facts from multiplicative structures via interpretation.\<c
 
 sublocale abelian_monoid <
   add!: monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
-  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+  rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
   by (rule a_monoid) auto
@@ -113,7 +113,7 @@ end
 
 sublocale abelian_monoid <
   add!: comm_monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
-  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+  rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
     and "finprod \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = finsum G"
@@ -169,7 +169,7 @@ end
 
 sublocale abelian_group <
   add!: group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
-  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+  rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
     and "m_inv \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = a_inv G"
@@ -197,7 +197,7 @@ end
 
 sublocale abelian_group <
   add!: comm_group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
-  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+  rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
     and "m_inv \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = a_inv G"

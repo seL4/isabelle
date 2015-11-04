@@ -5151,7 +5151,7 @@ definition sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
   "sorted_list_of_set = folding.F insort []"
 
 sublocale sorted_list_of_set!: folding insort Nil
-where
+rewrites
   "folding.F insort [] = sorted_list_of_set"
 proof -
   interpret comp_fun_commute insort by (fact comp_fun_commute_insort)

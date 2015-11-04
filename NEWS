@@ -271,6 +271,9 @@ occasionally useful for demonstration and testing purposes.
 regardless of the command.  Previously, for 'locale' and 'sublocale'
 the default was optional ('?').  INCOMPATIBILITY
 
+* Keyword 'rewrites' identifies rewrite morphisms in interpretation
+commands.  Previously, the keyword was 'where'.  INCOMPATIBILITY
+
 * Command 'print_definitions' prints dependencies of definitional
 specifications. This functionality used to be part of 'print_theory'.
 

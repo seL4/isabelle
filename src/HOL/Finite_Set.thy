@@ -1197,7 +1197,7 @@ definition card :: "'a set \<Rightarrow> nat" where
   "card = folding.F (\<lambda>_. Suc) 0"
 
 interpretation card!: folding "\<lambda>_. Suc" 0
-where
+rewrites
   "folding.F (\<lambda>_. Suc) 0 = card"
 proof -
   show "folding (\<lambda>_. Suc)" by standard rule

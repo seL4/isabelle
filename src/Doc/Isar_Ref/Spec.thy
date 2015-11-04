@@ -676,10 +676,10 @@ text \<open>
     @@{command print_interps} @{syntax nameref}
     ;
 
-    equations: @'where' (@{syntax thmdecl}? @{syntax prop} + @'and')
+    equations: @'rewrites' (@{syntax thmdecl}? @{syntax prop} + @'and')
   \<close>}
 
-  \<^descr> @{command "interpretation"}~\<open>expr \<WHERE> eqns\<close>
+  \<^descr> @{command "interpretation"}~\<open>expr\<close>~@{keyword "rewrites"}~\<open>eqns\<close>
   interprets \<open>expr\<close> in a global or local theory.  The command
   generates proof obligations for the instantiated specifications.
   Once these are discharged by the user, instantiated declarations (in
@@ -720,14 +720,13 @@ text \<open>
   concepts introduced through definitions.  The equations must be
   proved.
 
-  \<^descr> @{command "interpret"}~\<open>expr \<WHERE> eqns\<close> interprets
+  \<^descr> @{command "interpret"}~\<open>expr\<close>~@{keyword "rewrites"}~\<open>eqns\<close> interprets
   \<open>expr\<close> in the proof context and is otherwise similar to
   interpretation in local theories.  Note that for @{command
   "interpret"} the \<open>eqns\<close> should be
   explicitly universally quantified.
 
-  \<^descr> @{command "sublocale"}~\<open>name \<subseteq> expr \<WHERE>
-  eqns\<close>
+  \<^descr> @{command "sublocale"}~\<open>name \<subseteq> expr\<close>~@{keyword "rewrites"}~\<open>eqns\<close>
   interprets \<open>expr\<close> in the locale \<open>name\<close>.  A proof that
   the specification of \<open>name\<close> implies the specification of
   \<open>expr\<close> is required.  As in the localized version of the
@@ -826,10 +825,10 @@ text \<open>
     ;
     definitions: @'defining' (@{syntax thmdecl}? @{syntax name} \<newline>
       @{syntax mixfix}? @'=' @{syntax term} + @'and');
-    equations: @'where' (@{syntax thmdecl}? @{syntax prop} + @'and')
+    equations: @'rewrites' (@{syntax thmdecl}? @{syntax prop} + @'and')
   \<close>}
 
-  \<^descr> @{command "permanent_interpretation"}~\<open>expr \<DEFINING> defs \<WHERE> eqns\<close>
+  \<^descr> @{command "permanent_interpretation"}~\<open>expr \<DEFINING> defs\<close>~@{keyword "rewrites"}~\<open>eqns\<close>
   interprets \<open>expr\<close> in the current local theory.  The command
   generates proof obligations for the instantiated specifications.
   Instantiated declarations (in particular, facts) are added to the

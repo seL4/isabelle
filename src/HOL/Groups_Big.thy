@@ -472,7 +472,7 @@ where
   "setsum = comm_monoid_set.F plus 0"
 
 sublocale setsum!: comm_monoid_set plus 0
-where
+rewrites
   "comm_monoid_set.F plus 0 = setsum"
 proof -
   show "comm_monoid_set plus 0" ..
@@ -1063,7 +1063,7 @@ where
   "setprod = comm_monoid_set.F times 1"
 
 sublocale setprod!: comm_monoid_set times 1
-where
+rewrites
   "comm_monoid_set.F times 1 = setprod"
 proof -
   show "comm_monoid_set times 1" ..

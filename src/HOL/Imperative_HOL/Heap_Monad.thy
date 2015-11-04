@@ -405,7 +405,7 @@ proof -
 qed
 
 interpretation heap!: partial_function_definitions Heap_ord Heap_lub
-  where "Heap_lub {} \<equiv> Heap Map.empty"
+  rewrites "Heap_lub {} \<equiv> Heap Map.empty"
 by (fact heap_interpretation)(simp add: Heap_lub_empty)
 
 lemma heap_step_admissible: 

@@ -192,7 +192,7 @@ subsection \<open>@{text "\<lesssim>"} is a preorder\<close>
 text \<open>This yields all lemmas relating @{text "\<lesssim>"}, @{text "\<prec>"} and @{text "\<cong>"}.\<close>
 
 interpretation fun_order: preorder_equiv less_eq_fun less_fun
-  where "preorder_equiv.equiv less_eq_fun = equiv_fun"
+  rewrites "preorder_equiv.equiv less_eq_fun = equiv_fun"
 proof -
   interpret preorder: preorder_equiv less_eq_fun less_fun
   proof

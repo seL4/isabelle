@@ -319,7 +319,7 @@ where
   "Inf_fin = semilattice_set.F inf"
 
 sublocale Inf_fin!: semilattice_order_set inf less_eq less
-where
+rewrites
   "semilattice_set.F inf = Inf_fin"
 proof -
   show "semilattice_order_set inf less_eq less" ..
@@ -337,7 +337,7 @@ where
   "Sup_fin = semilattice_set.F sup"
 
 sublocale Sup_fin!: semilattice_order_set sup greater_eq greater
-where
+rewrites
   "semilattice_set.F sup = Sup_fin"
 proof -
   show "semilattice_order_set sup greater_eq greater" ..
@@ -492,7 +492,7 @@ where
 
 sublocale Min!: semilattice_order_set min less_eq less
   + Max!: semilattice_order_set max greater_eq greater
-where
+rewrites
   "semilattice_set.F min = Min"
   and "semilattice_set.F max = Max"
 proof -

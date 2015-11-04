@@ -66,7 +66,7 @@ where
   "listsum  = monoid_list.F plus 0"
 
 sublocale listsum!: monoid_list plus 0
-where
+rewrites
  "monoid_list.F plus 0 = listsum"
 proof -
   show "monoid_list plus 0" ..
@@ -80,7 +80,7 @@ context comm_monoid_add
 begin
 
 sublocale listsum!: comm_monoid_list plus 0
-where
+rewrites
   "monoid_list.F plus 0 = listsum"
 proof -
   show "comm_monoid_list plus 0" ..
@@ -89,7 +89,7 @@ proof -
 qed
 
 sublocale setsum!: comm_monoid_list_set plus 0
-where
+rewrites
   "monoid_list.F plus 0 = listsum"
   and "comm_monoid_set.F plus 0 = setsum"
 proof -
@@ -333,7 +333,7 @@ where
   "listprod  = monoid_list.F times 1"
 
 sublocale listprod!: monoid_list times 1
-where
+rewrites
   "monoid_list.F times 1 = listprod"
 proof -
   show "monoid_list times 1" ..
@@ -347,7 +347,7 @@ context comm_monoid_mult
 begin
 
 sublocale listprod!: comm_monoid_list times 1
-where
+rewrites
   "monoid_list.F times 1 = listprod"
 proof -
   show "comm_monoid_list times 1" ..
@@ -356,7 +356,7 @@ proof -
 qed
 
 sublocale setprod!: comm_monoid_list_set times 1
-where
+rewrites
   "monoid_list.F times 1 = listprod"
   and "comm_monoid_set.F times 1 = setprod"
 proof -

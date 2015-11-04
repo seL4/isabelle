@@ -1971,7 +1971,7 @@ qed simp
 
 interpretation gcd_lcm_complete_lattice_nat:
   complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat"
-where "Inf.INFIMUM Gcd A f = Gcd (f ` A :: nat set)"
+rewrites "Inf.INFIMUM Gcd A f = Gcd (f ` A :: nat set)"
   and "Sup.SUPREMUM Lcm A f = Lcm (f ` A)"
 proof -
   show "class.complete_lattice Gcd Lcm gcd Rings.dvd (\<lambda>m n. m dvd n \<and> \<not> n dvd m) lcm 1 (0::nat)"

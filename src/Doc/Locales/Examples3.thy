@@ -17,7 +17,7 @@ text \<open>In the above example, the fact that @{term "op \<le>"} is a partial
   repeat the example from the previous section to illustrate this.\<close>
 
   interpretation %visible int: partial_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
-    where "int.less x y = (x < y)"
+    rewrites "int.less x y = (x < y)"
   proof -
     show "partial_order (op \<le> :: int \<Rightarrow> int \<Rightarrow> bool)"
       by unfold_locales auto
@@ -47,7 +47,7 @@ text \<open>Further interpretations are necessary for
   so they can be used in a later example.\<close>
 
   interpretation %visible int: lattice "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
-    where int_min_eq: "int.meet x y = min x y"
+    rewrites int_min_eq: "int.meet x y = min x y"
       and int_max_eq: "int.join x y = max x y"
   proof -
     show "lattice (op \<le> :: int \<Rightarrow> int \<Rightarrow> bool)"
@@ -611,7 +611,7 @@ text \<open>
 
   \textit{equation} & ::= & [ \textit{attr-name} ``\textbf{:}'' ]
     \textit{prop} \\
-  \textit{equations} & ::= &  \textbf{where} \textit{equation} ( \textbf{and}
+  \textit{equations} & ::= &  \textbf{rewrites} \textit{equation} ( \textbf{and}
     \textit{equation} )$^*$  \\
   \textit{toplevel} & ::=
   & \textbf{sublocale} \textit{name} ( ``$<$'' $|$

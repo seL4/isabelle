@@ -504,7 +504,7 @@ definition lor_o (infixl "||" 50) where
 end
 
 interpretation x: logic_o "op \<and>" "Not"
-  where bool_logic_o: "x.lor_o(x, y) \<longleftrightarrow> x \<or> y"
+  rewrites bool_logic_o: "x.lor_o(x, y) \<longleftrightarrow> x \<or> y"
 proof -
   show bool_logic_o: "PROP logic_o(op \<and>, Not)" by unfold_locales fast+
   show "logic_o.lor_o(op \<and>, Not, x, y) \<longleftrightarrow> x \<or> y"
@@ -546,7 +546,7 @@ begin
 lemmas less_thm = less_def
 end
 
-interpretation le: mixin gle where "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
+interpretation le: mixin gle rewrites "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
 proof -
   show "mixin(gle)" by unfold_locales (rule grefl)
   note reflexive = this[unfolded mixin_def]
@@ -588,7 +588,7 @@ locale mixin4_base = reflexive
 locale mixin4_mixin = mixin4_base
 
 interpretation le: mixin4_mixin gle
-  where "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
+  rewrites "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
 proof -
   show "mixin4_mixin(gle)" by unfold_locales (rule grefl)
   note reflexive = this[unfolded mixin4_mixin_def mixin4_base_def mixin_def]
@@ -620,7 +620,7 @@ locale mixin5_base = reflexive
 locale mixin5_inherited = mixin5_base
 
 interpretation le5: mixin5_base gle
-  where "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
+  rewrites "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
 proof -
   show "mixin5_base(gle)" by unfold_locales
   note reflexive = this[unfolded mixin5_base_def mixin_def]
@@ -648,7 +648,7 @@ interpretation le6: mixin6_base gle
 interpretation le6: mixin6_inherited gle
   by unfold_locales
 interpretation le6: mixin6_base gle
-  where "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
+  rewrites "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
 proof -
   show "mixin6_base(gle)" by unfold_locales
   note reflexive = this[unfolded mixin6_base_def mixin_def]
@@ -669,7 +669,7 @@ locale mixin7_base = reflexive
 locale mixin7_inherited = reflexive
 
 interpretation le7: mixin7_base gle
-  where "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
+  rewrites "reflexive.less(gle, x, y) \<longleftrightarrow> gless(x, y)"
 proof -
   show "mixin7_base(gle)" by unfold_locales
   note reflexive = this[unfolded mixin7_base_def mixin_def]
@@ -727,7 +727,7 @@ lemma linv: "inv(x) ** x = one"
 end
 
 sublocale lgrp < "def"?: dgrp
-  where one_equation: "dgrp.one(prod) = one" and inv_equation: "dgrp.inv(prod, x) = inv(x)"
+  rewrites one_equation: "dgrp.one(prod) = one" and inv_equation: "dgrp.inv(prod, x) = inv(x)"
 proof -
   show "dgrp(prod)" by unfold_locales
   from this interpret d: dgrp .
@@ -766,7 +766,7 @@ text \<open>Roundup applies rewrite morphisms at declaration level in DFS tree\<
 
 locale roundup = fixes x assumes true: "x \<longleftrightarrow> True"
 
-sublocale roundup \<subseteq> sub: roundup x where "x \<longleftrightarrow> True \<and> True"
+sublocale roundup \<subseteq> sub: roundup x rewrites "x \<longleftrightarrow> True \<and> True"
   apply unfold_locales apply (simp add: true) done
 lemma (in roundup) "True \<and> True \<longleftrightarrow> True" by (rule sub.true)
 
@@ -816,7 +816,7 @@ proof
       and pnotnot: "\<And>x. pnot(pnot(x)) \<longleftrightarrow> x"
       and por_def: "\<And>x y. por(x, y) \<longleftrightarrow> pnot(pand(pnot(x), pnot(y)))"
     interpret loc: logic_o pand pnot
-      where por_eq: "\<And>x y. logic_o.lor_o(pand, pnot, x, y) \<longleftrightarrow> por(x, y)"  (* FIXME *)
+      rewrites por_eq: "\<And>x y. logic_o.lor_o(pand, pnot, x, y) \<longleftrightarrow> por(x, y)"  (* FIXME *)
     proof -
       show logic_o: "PROP logic_o(pand, pnot)" using passoc pnotnot by unfold_locales
       fix x y

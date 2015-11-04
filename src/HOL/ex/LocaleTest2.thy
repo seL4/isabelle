@@ -469,7 +469,7 @@ qed
 subsubsection \<open>Total order @{text "<="} on @{typ int}\<close>
 
 interpretation int: dpo "op <= :: [int, int] => bool"
-  where "(dpo.less (op <=) (x::int) y) = (x < y)"
+  rewrites "(dpo.less (op <=) (x::int) y) = (x < y)"
   txt \<open>We give interpretation for less, but not @{text is_inf} and @{text is_sub}.\<close>
 proof -
   show "dpo (op <= :: [int, int] => bool)"
@@ -488,7 +488,7 @@ lemma "(op < :: [int, int] => bool) = op <"
   apply (rule int.abs_test) done
 
 interpretation int: dlat "op <= :: [int, int] => bool"
-  where meet_eq: "dlat.meet (op <=) (x::int) y = min x y"
+  rewrites meet_eq: "dlat.meet (op <=) (x::int) y = min x y"
     and join_eq: "dlat.join (op <=) (x::int) y = max x y"
 proof -
   show "dlat (op <= :: [int, int] => bool)"
@@ -525,7 +525,7 @@ thm int.less_total text \<open>from dlo\<close>
 subsubsection \<open>Total order @{text "<="} on @{typ nat}\<close>
 
 interpretation nat: dpo "op <= :: [nat, nat] => bool"
-  where "dpo.less (op <=) (x::nat) y = (x < y)"
+  rewrites "dpo.less (op <=) (x::nat) y = (x < y)"
   txt \<open>We give interpretation for less, but not @{text is_inf} and @{text is_sub}.\<close>
 proof -
   show "dpo (op <= :: [nat, nat] => bool)"
@@ -539,7 +539,7 @@ proof -
 qed
 
 interpretation nat: dlat "op <= :: [nat, nat] => bool"
-  where "dlat.meet (op <=) (x::nat) y = min x y"
+  rewrites "dlat.meet (op <=) (x::nat) y = min x y"
     and "dlat.join (op <=) (x::nat) y = max x y"
 proof -
   show "dlat (op <= :: [nat, nat] => bool)"
@@ -576,7 +576,7 @@ thm nat.less_total text \<open>from ldo\<close>
 subsubsection \<open>Lattice @{text "dvd"} on @{typ nat}\<close>
 
 interpretation nat_dvd: dpo "op dvd :: [nat, nat] => bool"
-  where "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
+  rewrites "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
   txt \<open>We give interpretation for less, but not @{text is_inf} and @{text is_sub}.\<close>
 proof -
   show "dpo (op dvd :: [nat, nat] => bool)"
@@ -590,7 +590,7 @@ proof -
 qed
 
 interpretation nat_dvd: dlat "op dvd :: [nat, nat] => bool"
-  where "dlat.meet (op dvd) (x::nat) y = gcd x y"
+  rewrites "dlat.meet (op dvd) (x::nat) y = gcd x y"
     and "dlat.join (op dvd) (x::nat) y = lcm x y"
 proof -
   show "dlat (op dvd :: [nat, nat] => bool)"
@@ -835,7 +835,7 @@ end
 subsubsection \<open>Interpretation of Functions\<close>
 
 interpretation Dfun: Dmonoid "op o" "id :: 'a => 'a"
-  where "Dmonoid.unit (op o) id f = bij (f::'a => 'a)"
+  rewrites "Dmonoid.unit (op o) id f = bij (f::'a => 'a)"
 (*    and "Dmonoid.inv (op o) id" = "inv :: ('a => 'a) => ('a => 'a)" *)
 proof -
   show "Dmonoid op o (id :: 'a => 'a)" proof qed (simp_all add: o_assoc)
@@ -885,7 +885,7 @@ lemma unit_id:
   by rule simp
 
 interpretation Dfun: Dgrp "op o" "id :: unit => unit"
-  where "Dmonoid.inv (op o) id f = inv (f :: unit => unit)"
+  rewrites "Dmonoid.inv (op o) id f = inv (f :: unit => unit)"
 proof -
   have "Dmonoid op o (id :: 'a => 'a)" ..
   note Dmonoid = this

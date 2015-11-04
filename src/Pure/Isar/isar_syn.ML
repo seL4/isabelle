@@ -405,7 +405,7 @@ val _ =
 val interpretation_args =
   Parse.!!! (Parse_Spec.locale_expression true) --
     Scan.optional
-      (Parse.where_ |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) [];
+      (@{keyword "rewrites"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) [];
 
 val _ =
   Outer_Syntax.command @{command_keyword sublocale}

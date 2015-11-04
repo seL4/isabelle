@@ -283,12 +283,12 @@ by(rule antisymI)(auto dest: flat_ord_antisym)
 
 interpretation tailrec!:
   partial_function_definitions "flat_ord undefined" "flat_lub undefined"
-  where "flat_lub undefined {} \<equiv> undefined"
+  rewrites "flat_lub undefined {} \<equiv> undefined"
 by (rule flat_interpretation)(simp add: flat_lub_def)
 
 interpretation option!:
   partial_function_definitions "flat_ord None" "flat_lub None"
-  where "flat_lub None {} \<equiv> None"
+  rewrites "flat_lub None {} \<equiv> None"
 by (rule flat_interpretation)(simp add: flat_lub_def)
 
 

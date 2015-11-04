@@ -2,7 +2,7 @@ theory Examples2
 imports Examples
 begin
   interpretation %visible int: partial_order "op \<le> :: [int, int] \<Rightarrow> bool"
-    where "int.less x y = (x < y)"
+    rewrites "int.less x y = (x < y)"
   proof -
     txt \<open>\normalsize The goals are now:
       @{subgoals [display]}
