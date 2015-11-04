@@ -357,10 +357,10 @@ text \<open>
 theorem
   assumes "\<exists>x. \<forall>y. R x y"
   shows "\<forall>y. \<exists>x. R x y"
-proof    -- \<open>\<open>\<forall>\<close> introduction\<close>
-  obtain x where "\<forall>y. R x y" using \<open>\<exists>x. \<forall>y. R x y\<close> ..    -- \<open>\<open>\<exists>\<close> elimination\<close>
-  fix y have "R x y" using \<open>\<forall>y. R x y\<close> ..    -- \<open>\<open>\<forall>\<close> destruction\<close>
-  then show "\<exists>x. R x y" ..    -- \<open>\<open>\<exists>\<close> introduction\<close>
+proof    \<comment> \<open>\<open>\<forall>\<close> introduction\<close>
+  obtain x where "\<forall>y. R x y" using \<open>\<exists>x. \<forall>y. R x y\<close> ..    \<comment> \<open>\<open>\<exists>\<close> elimination\<close>
+  fix y have "R x y" using \<open>\<forall>y. R x y\<close> ..    \<comment> \<open>\<open>\<forall>\<close> destruction\<close>
+  then show "\<exists>x. R x y" ..    \<comment> \<open>\<open>\<exists>\<close> introduction\<close>
 qed
 
 

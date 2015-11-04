@@ -471,17 +471,17 @@ experiment
 begin
 
 declare [[show_types = false]]
-  -- \<open>declaration within (local) theory context\<close>
+  \<comment> \<open>declaration within (local) theory context\<close>
 
 notepad
 begin
   note [[show_types = true]]
-    -- \<open>declaration within proof (forward mode)\<close>
+    \<comment> \<open>declaration within proof (forward mode)\<close>
   term x
 
   have "x = x"
     using [[show_types = false]]
-      -- \<open>declaration within proof (backward mode)\<close>
+      \<comment> \<open>declaration within proof (backward mode)\<close>
     ..
 end
 

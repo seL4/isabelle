@@ -578,7 +578,7 @@ begin
   ML_prf %"ML" \<open>val a = 1\<close>
   {
     ML_prf %"ML" \<open>val b = a + 1\<close>
-  } -- \<open>Isar block structure ignored by ML environment\<close>
+  } \<comment> \<open>Isar block structure ignored by ML environment\<close>
   ML_prf %"ML" \<open>val c = b + 1\<close>
 end
 
