@@ -19,11 +19,11 @@ text \<open>
   Derivations are relative to a logical theory, which declares type
   constructors, constants, and axioms.  Theory declarations support
   schematic polymorphism, which is strictly speaking outside the
-  logic.\footnote{This is the deeper logical reason, why the theory
+  logic.\<^footnote>\<open>This is the deeper logical reason, why the theory
   context \<open>\<Theta>\<close> is separate from the proof context \<open>\<Gamma>\<close>
   of the core calculus: type constructors, term constants, and facts
   (proof constants) may involve arbitrary type schemes, but the type
-  of a locally fixed term parameter is also fixed!}
+  of a locally fixed term parameter is also fixed!\<close>
 \<close>
 
 
@@ -531,9 +531,9 @@ text \<open>
   the simple syntactic types of Pure are always inhabitable.
   ``Assumptions'' \<open>x :: \<tau>\<close> for type-membership are only
   present as long as some \<open>x\<^sub>\<tau>\<close> occurs in the statement
-  body.\footnote{This is the key difference to ``\<open>\<lambda>HOL\<close>'' in
+  body.\<^footnote>\<open>This is the key difference to ``\<open>\<lambda>HOL\<close>'' in
   the PTS framework @{cite "Barendregt-Geuvers:2001"}, where hypotheses
-  \<open>x : A\<close> are treated uniformly for propositions and types.}
+  \<open>x : A\<close> are treated uniformly for propositions and types.\<close>
 
   \<^medskip>
   The axiomatization of a theory is implicitly closed by

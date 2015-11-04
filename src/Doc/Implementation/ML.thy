@@ -23,11 +23,11 @@ text \<open>Isabelle/ML is best understood as a certain culture based on
   first-hand explanations should help to understand how proper
   Isabelle/ML is to be read and written, and to get access to the
   wealth of experience that is expressed in the source text and its
-  history of changes.\footnote{See
+  history of changes.\<^footnote>\<open>See
   @{url "http://isabelle.in.tum.de/repos/isabelle"} for the full
   Mercurial history.  There are symbolic tags to refer to official
   Isabelle releases, as opposed to arbitrary \<^emph>\<open>tip\<close> versions that
-  merely reflect snapshots that are never really up-to-date.}\<close>
+  merely reflect snapshots that are never really up-to-date.\<close>\<close>
 
 
 section \<open>Style and orthography\<close>
@@ -37,10 +37,10 @@ text \<open>The sources of Isabelle/Isar are optimized for
   to tell an informed reader what is really going on and how things
   really work.  This is a non-trivial aim, but it is supported by a
   certain style of writing Isabelle/ML that has emerged from long
-  years of system development.\footnote{See also the interesting style
+  years of system development.\<^footnote>\<open>See also the interesting style
   guide for OCaml
   @{url "http://caml.inria.fr/resources/doc/guides/guidelines.en.html"}
-  which shares many of our means and ends.}
+  which shares many of our means and ends.\<close>
 
   The main principle behind any coding style is \<^emph>\<open>consistency\<close>.
   For a single author of a small program this merely means ``choose
@@ -123,10 +123,10 @@ text \<open>A name consists of 1--3 \<^emph>\<open>words\<close> (rarely 4, but 
   For historical reasons, many capitalized names omit underscores,
   e.g.\ old-style @{ML_text FooBar} instead of @{ML_text Foo_Bar}.
   Genuine mixed-case names are \<^emph>\<open>not\<close> used, because clear division
-  of words is essential for readability.\footnote{Camel-case was
+  of words is essential for readability.\<^footnote>\<open>Camel-case was
   invented to workaround the lack of underscore in some early
   non-ASCII character sets.  Later it became habitual in some language
-  communities that are now strong in numbers.}
+  communities that are now strong in numbers.\<close>
 
   A single (capital) character does not count as ``word'' in this
   respect: some Isabelle/ML names are suffixed by extra markers like
@@ -279,10 +279,10 @@ text \<open>
 
 paragraph \<open>Line length\<close>
 text \<open>is limited to 80 characters according to ancient standards, but we allow
-  as much as 100 characters (not more).\footnote{Readability requires to keep
+  as much as 100 characters (not more).\<^footnote>\<open>Readability requires to keep
   the beginning of a line in view while watching its end. Modern wide-screen
   displays do not change the way how the human brain works. Sources also need
-  to be printable on plain paper with reasonable font-size.} The extra 20
+  to be printable on plain paper with reasonable font-size.\<close> The extra 20
   characters acknowledge the space requirements due to qualified library
   references in Isabelle/ML.\<close>
 
@@ -327,11 +327,11 @@ text \<open>is used to emphasize the structure of expressions, following mostly
 \<close>
 
 paragraph \<open>Indentation\<close>
-text \<open>uses plain spaces, never hard tabulators.\footnote{Tabulators were
+text \<open>uses plain spaces, never hard tabulators.\<^footnote>\<open>Tabulators were
   invented to move the carriage of a type-writer to certain predefined
   positions. In software they could be used as a primitive run-length
   compression of consecutive spaces, but the precise result would depend on
-  non-standardized text editor configuration.}
+  non-standardized text editor configuration.\<close>
 
   Each level of nesting is indented by 2 spaces, sometimes 1, very
   rarely 4, never 8 or any other odd number.
@@ -562,10 +562,10 @@ text \<open>Here the ML environment is already managed by Isabelle, i.e.\
   Removing the above ML declaration from the source text will remove any trace
   of this definition, as expected. The Isabelle/ML toplevel environment is
   managed in a \<^emph>\<open>stateless\<close> way: in contrast to the raw ML toplevel, there
-  are no global side-effects involved here.\footnote{Such a stateless
+  are no global side-effects involved here.\<^footnote>\<open>Such a stateless
   compilation environment is also a prerequisite for robust parallel
   compilation within independent nodes of the implicit theory development
-  graph.}
+  graph.\<close>
 
   \<^medskip>
   The next example shows how to embed ML into Isar proofs, using
@@ -739,9 +739,9 @@ text \<open>Standard ML is a language in the tradition of \<open>\<lambda>\<clos
   type \<open>\<tau>\<close> is represented by the iterated function space
   \<open>\<tau>\<^sub>1 \<rightarrow> \<dots> \<rightarrow> \<tau>\<^sub>n \<rightarrow> \<tau>\<close>.  This is isomorphic to the well-known
   encoding via tuples \<open>\<tau>\<^sub>1 \<times> \<dots> \<times> \<tau>\<^sub>n \<rightarrow> \<tau>\<close>, but the curried
-  version fits more smoothly into the basic calculus.\footnote{The
+  version fits more smoothly into the basic calculus.\<^footnote>\<open>The
   difference is even more significant in HOL, because the redundant
-  tuple structure needs to be accommodated extraneous proof steps.}
+  tuple structure needs to be accommodated extraneous proof steps.\<close>
 
   Currying gives some flexibility due to \<^emph>\<open>partial application\<close>.  A
   function \<open>f: \<tau>\<^sub>1 \<rightarrow> \<tau>\<^sub>2 \<rightarrow> \<tau>\<close> can be applied to \<open>x: \<tau>\<^sub>1\<close>
@@ -1282,9 +1282,9 @@ text %mlref \<open>
   \<^descr> @{ML "Symbol.explode"}~\<open>str\<close> produces a symbol list
   from the packed form.  This function supersedes @{ML
   "String.explode"} for virtually all purposes of manipulating text in
-  Isabelle!\footnote{The runtime overhead for exploded strings is
+  Isabelle!\<^footnote>\<open>The runtime overhead for exploded strings is
   mainly that of the list structure: individual symbols that happen to
-  be a singleton string do not require extra memory in Poly/ML.}
+  be a singleton string do not require extra memory in Poly/ML.\<close>
 
   \<^descr> @{ML "Symbol.is_letter"}, @{ML "Symbol.is_digit"}, @{ML
   "Symbol.is_quasi"}, @{ML "Symbol.is_blank"} classify standard
@@ -1396,8 +1396,8 @@ text %mlref \<open>
 
   \<^descr> Type @{ML_type int} represents regular mathematical integers, which
   are \<^emph>\<open>unbounded\<close>. Overflow is treated properly, but should never happen
-  in practice.\footnote{The size limit for integer bit patterns in memory is
-  64\,MB for 32-bit Poly/ML, and much higher for 64-bit systems.} This works
+  in practice.\<^footnote>\<open>The size limit for integer bit patterns in memory is
+  64\,MB for 32-bit Poly/ML, and much higher for 64-bit systems.\<close> This works
   uniformly for all supported ML platforms (Poly/ML and SML/NJ).
 
   Literal integers in ML text are forced to be of this one true
@@ -1614,13 +1614,13 @@ text \<open>Multiple threads help to organize advanced operations of the
   sub-components with explicit communication, general asynchronous
   interaction etc.  Moreover, parallel evaluation is a prerequisite to
   make adequate use of the CPU resources that are available on
-  multi-core systems.\footnote{Multi-core computing does not mean that
+  multi-core systems.\<^footnote>\<open>Multi-core computing does not mean that
   there are ``spare cycles'' to be wasted.  It means that the
   continued exponential speedup of CPU performance due to ``Moore's
   Law'' follows different rules: clock frequency has reached its peak
   around 2005, and applications need to be parallelized in order to
   avoid a perceived loss of performance.  See also
-  @{cite "Sutter:2005"}.}
+  @{cite "Sutter:2005"}.\<close>
 
   Isabelle/Isar exploits the inherent structure of theories and proofs to
   support \<^emph>\<open>implicit parallelism\<close> to a large extent. LCF-style theorem
@@ -1671,8 +1671,8 @@ text \<open>Thread-safeness is mainly concerned about concurrent
 
   \<^item> Global references (or arrays), i.e.\ mutable memory cells that
   persist over several invocations of associated
-  operations.\footnote{This is independent of the visibility of such
-  mutable values in the toplevel scope.}
+  operations.\<^footnote>\<open>This is independent of the visibility of such
+  mutable values in the toplevel scope.\<close>
 
   \<^item> Global state of the running Isabelle/ML process, i.e.\ raw I/O
   channels, environment variables, current working directory.

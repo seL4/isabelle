@@ -141,9 +141,9 @@ text \<open>
   user home directory.  On Unix systems this is usually the same as
   @{setting HOME}, but on Windows it is the regular home directory of
   the user, not the one of within the Cygwin root
-  file-system.\footnote{Cygwin itself offers another choice whether
+  file-system.\<^footnote>\<open>Cygwin itself offers another choice whether
   its HOME should point to the @{file_unchecked "/home"} directory tree or the
-  Windows user home.}
+  Windows user home.\<close>
 
   \<^descr>[@{setting_def ISABELLE_HOME}\<open>\<^sup>*\<close>] is the location of the
   top-level Isabelle distribution directory. This is automatically

@@ -277,8 +277,8 @@ text \<open>
   used internally in Isabelle/Pure.
 
   \<^item> \<^verbatim>\<open>xsymbols\<close>: enable proper mathematical symbols
-  instead of ASCII art.\footnote{This traditional mode name stems from
-  the ``X-Symbol'' package for classic Proof~General with XEmacs.}
+  instead of ASCII art.\<^footnote>\<open>This traditional mode name stems from
+  the ``X-Symbol'' package for classic Proof~General with XEmacs.\<close>
 
   \<^item> \<^verbatim>\<open>latex\<close>: additional mode that is active in {\LaTeX}
   document preparation of Isabelle theory sources; allows to provide
@@ -338,9 +338,9 @@ text \<open>In full generality, mixfix declarations work as follows.
   grammar, where for each argument \<open>i\<close> the syntactic category
   is determined by \<open>\<tau>\<^sub>i\<close> (with priority \<open>p\<^sub>i\<close>), and the
   result category is determined from \<open>\<tau>\<close> (with priority \<open>p\<close>).  Priority specifications are optional, with default 0 for
-  arguments and 1000 for the result.\footnote{Omitting priorities is
+  arguments and 1000 for the result.\<^footnote>\<open>Omitting priorities is
   prone to syntactic ambiguities unless the delimiter tokens determine
-  fully bracketed notation, as in \<open>if _ then _ else _ fi\<close>.}
+  fully bracketed notation, as in \<open>if _ then _ else _ fi\<close>.\<close>
 
   Since \<open>\<tau>\<close> may be again a function type, the constant
   type scheme may have more argument positions than the mixfix
@@ -1213,10 +1213,10 @@ text \<open>
   side-conditions:
 
     \<^item> Rules must be left linear: \<open>lhs\<close> must not contain
-    repeated variables.\footnote{The deeper reason for this is that AST
+    repeated variables.\<^footnote>\<open>The deeper reason for this is that AST
     equality is not well-defined: different occurrences of the ``same''
     AST could be decorated differently by accidental type-constraints or
-    source position information, for example.}
+    source position information, for example.\<close>
 
     \<^item> Every variable in \<open>rhs\<close> must also occur in \<open>lhs\<close>.
 

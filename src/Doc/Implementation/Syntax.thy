@@ -20,9 +20,9 @@ text \<open>Pure \<open>\<lambda>\<close>-calculus as introduced in \chref{ch:lo
   Moreover, type-inference in the style of Hindley-Milner @{cite hindleymilner}
   (and extensions) enables users to write \<open>\<forall>x. B x\<close> concisely, when
   the type \<open>'a\<close> is already clear from the
-  context.\footnote{Type-inference taken to the extreme can easily confuse
+  context.\<^footnote>\<open>Type-inference taken to the extreme can easily confuse
   users. Beginners often stumble over unexpectedly general types inferred by
-  the system.}
+  the system.\<close>
 
   \<^medskip>
   The main inner syntax operations are \<^emph>\<open>read\<close> for

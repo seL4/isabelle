@@ -39,9 +39,9 @@ text \<open>
   between ML and Scala, using asynchronous protocol commands.
 
   \<^descr>[jEdit] is a sophisticated text editor implemented in
-  Java.\footnote{@{url "http://www.jedit.org"}} It is easily extensible
+  Java.\<^footnote>\<open>@{url "http://www.jedit.org"}\<close> It is easily extensible
   by plugins written in languages that work on the JVM, e.g.\
-  Scala\footnote{@{url "http://www.scala-lang.org"}}.
+  Scala\<^footnote>\<open>@{url "http://www.scala-lang.org"}\<close>.
 
   \<^descr>[Isabelle/jEdit] is the main example application of the PIDE
   framework and the default user-interface for Isabelle. It targets
@@ -287,13 +287,13 @@ text \<open>
   default.
 
   \<^emph>\<open>GTK+\<close> also works under the side-condition that the overall GTK theme
-  is selected in a Swing-friendly way.\footnote{GTK support in Java/Swing was
+  is selected in a Swing-friendly way.\<^footnote>\<open>GTK support in Java/Swing was
   once marketed aggressively by Sun, but never quite finished. Today (2015) it
   is lagging behind further development of Swing and GTK. The graphics
   rendering performance can be worse than for other Swing look-and-feels.
   Nonetheless it has its uses for displays with very high resolution (such as
   ``4K'' or ``UHD'' models), because the rendering by the external library is
-  subject to global system settings for font scaling.}
+  subject to global system settings for font scaling.\<close>
 
   \<^descr>[Windows:] Regular \<^emph>\<open>Windows\<close> is used by default, but
   \<^emph>\<open>Windows Classic\<close> also works.
@@ -439,10 +439,10 @@ text \<open>
   Isabelle sources consist of \<^emph>\<open>symbols\<close> that extend plain ASCII to allow
   infinitely many mathematical symbols within the formal sources. This works
   without depending on particular encodings and varying Unicode
-  standards.\footnote{Raw Unicode characters within formal sources would
+  standards.\<^footnote>\<open>Raw Unicode characters within formal sources would
   compromise portability and reliability in the face of changing
   interpretation of special features of Unicode, such as Combining Characters
-  or Bi-directional Text.} See also @{cite "Wenzel:2011:CICM"}.
+  or Bi-directional Text.\<close> See also @{cite "Wenzel:2011:CICM"}.
 
   For the prover back-end, formal text consists of ASCII characters that are
   grouped according to some simple rules, e.g.\ as plain ``\<^verbatim>\<open>a\<close>'' or
@@ -663,8 +663,8 @@ text \<open>
 
   The Java notation for files needs to be distinguished from the one of
   Isabelle, which uses POSIX notation with forward slashes on \<^emph>\<open>all\<close>
-  platforms.\footnote{Isabelle/ML on Windows uses Cygwin file-system access
-  and Unix-style path notation.} Moreover, environment variables from the
+  platforms.\<^footnote>\<open>Isabelle/ML on Windows uses Cygwin file-system access
+  and Unix-style path notation.\<close> Moreover, environment variables from the
   Isabelle process may be used freely, e.g.\ @{file
   "$ISABELLE_HOME/etc/symbols"} or @{file_unchecked "$POLYML_HOME/README"}.
   There are special shortcuts: @{file "~"} for @{file "$USER_HOME"} and @{file
@@ -926,9 +926,9 @@ text \<open>
   markup, while using secondary output windows only rarely.
 
   The main purpose of the output window is to ``debug'' unclear
-  situations by inspecting internal state of the prover.\footnote{In
+  situations by inspecting internal state of the prover.\<^footnote>\<open>In
   that sense, unstructured tactic scripts depend on continuous
-  debugging with internal state inspection.} Consequently, some
+  debugging with internal state inspection.\<close> Consequently, some
   special messages for \<^emph>\<open>tracing\<close> or \<^emph>\<open>proof state\<close> only
   appear here, and are not attached to the original source.
 
@@ -975,8 +975,8 @@ text \<open>
 
   \<^item> The \<^emph>\<open>Search\<close> field allows to highlight query output according to
   some regular expression, in the notation that is commonly used on the Java
-  platform.\footnote{@{url
-  "http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html"}}
+  platform.\<^footnote>\<open>@{url
+  "http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html"}\<close>
   This may serve as an additional visual filter of the result.
 
   \<^item> The \<^emph>\<open>Zoom\<close> box controls the font size of the output area.

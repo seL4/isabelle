@@ -183,10 +183,10 @@ text \<open>A \<open>method\<close> is a function \<open>context \<rightarrow> t
   method space, e.g.\ @{method rule_tac}.
 
   \<^item> A non-trivial method always needs to make progress: an
-  identical follow-up goal state has to be avoided.\footnote{This
+  identical follow-up goal state has to be avoided.\<^footnote>\<open>This
   enables the user to write method expressions like \<open>meth\<^sup>+\<close>
   without looping, while the trivial do-nothing case can be recovered
-  via \<open>meth\<^sup>?\<close>.}
+  via \<open>meth\<^sup>?\<close>.\<close>
 
   Exception: trivial stuttering steps, such as ``@{method -}'' or
   @{method succeed}.
@@ -275,11 +275,11 @@ text \<open>A \<open>method\<close> is a function \<open>context \<rightarrow> t
   When implementing proof methods, it is advisable to study existing
   implementations carefully and imitate the typical ``boiler plate''
   for context-sensitive parsing and further combinators to wrap-up
-  tactic expressions as methods.\footnote{Aliases or abbreviations of
+  tactic expressions as methods.\<^footnote>\<open>Aliases or abbreviations of
   the standard method combinators should be avoided.  Note that from
   Isabelle99 until Isabelle2009 the system did provide various odd
   combinations of method syntax wrappers that made applications more
-  complicated than necessary.}
+  complicated than necessary.\<close>
 \<close>
 
 text %mlref \<open>

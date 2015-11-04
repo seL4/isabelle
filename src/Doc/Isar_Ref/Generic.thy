@@ -327,9 +327,9 @@ text \<open>
 
   \<^descr> @{method simp_all} is similar to @{method simp}, but acts on
   all goals, working backwards from the last to the first one as usual
-  in Isabelle.\footnote{The order is irrelevant for goals without
+  in Isabelle.\<^footnote>\<open>The order is irrelevant for goals without
   schematic variables, so simplification might actually be performed
-  in parallel here.}
+  in parallel here.\<close>
 
   Chained facts are inserted into all subgoals, before the
   simplification process starts.  Further rule declarations are the
@@ -347,8 +347,8 @@ text \<open>
   normalization process, or simplifying assumptions themselves.
   Further options allow to fine-tune the behavior of the Simplifier
   in this respect, corresponding to a variety of ML tactics as
-  follows.\footnote{Unlike the corresponding Isar proof methods, the
-  ML tactics do not insist in changing the goal state.}
+  follows.\<^footnote>\<open>Unlike the corresponding Isar proof methods, the
+  ML tactics do not insist in changing the goal state.\<close>
 
   \begin{center}
   \small
@@ -1179,9 +1179,9 @@ text \<open>Isabelle supports natural deduction, which is easy to use for
   is easier to automate.
 
   A \<^bold>\<open>sequent\<close> has the form \<open>\<Gamma> \<turnstile> \<Delta>\<close>, where \<open>\<Gamma>\<close>
-  and \<open>\<Delta>\<close> are sets of formulae.\footnote{For first-order
+  and \<open>\<Delta>\<close> are sets of formulae.\<^footnote>\<open>For first-order
   logic, sequents can equivalently be made from lists or multisets of
-  formulae.} The sequent \<open>P\<^sub>1, \<dots>, P\<^sub>m \<turnstile> Q\<^sub>1, \<dots>, Q\<^sub>n\<close> is
+  formulae.\<close> The sequent \<open>P\<^sub>1, \<dots>, P\<^sub>m \<turnstile> Q\<^sub>1, \<dots>, Q\<^sub>n\<close> is
   \<^bold>\<open>valid\<close> if \<open>P\<^sub>1 \<and> \<dots> \<and> P\<^sub>m\<close> implies \<open>Q\<^sub>1 \<or> \<dots> \<or>
   Q\<^sub>n\<close>.  Thus \<open>P\<^sub>1, \<dots>, P\<^sub>m\<close> represent assumptions, each of which
   is true, while \<open>Q\<^sub>1, \<dots>, Q\<^sub>n\<close> represent alternative goals.  A

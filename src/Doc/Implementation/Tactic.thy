@@ -18,10 +18,10 @@ text \<open>
   Isabelle/Pure represents a goal as a theorem stating that the
   subgoals imply the main goal: \<open>A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow>
   C\<close>.  The outermost goal structure is that of a Horn Clause: i.e.\
-  an iterated implication without any quantifiers\footnote{Recall that
+  an iterated implication without any quantifiers\<^footnote>\<open>Recall that
   outermost \<open>\<And>x. \<phi>[x]\<close> is always represented via schematic
   variables in the body: \<open>\<phi>[?x]\<close>.  These variables may get
-  instantiated during the course of reasoning.}.  For \<open>n = 0\<close>
+  instantiated during the course of reasoning.\<close>.  For \<open>n = 0\<close>
   a goal is called ``solved''.
 
   The structure of each subgoal \<open>A\<^sub>i\<close> is that of a
@@ -90,11 +90,11 @@ text \<open>A \<open>tactic\<close> is a function \<open>goal \<rightarrow> goal
   \secref{sec:tactical-goals}) to a lazy sequence of potential
   successor states.  The underlying sequence implementation is lazy
   both in head and tail, and is purely functional in \<^emph>\<open>not\<close>
-  supporting memoing.\footnote{The lack of memoing and the strict
+  supporting memoing.\<^footnote>\<open>The lack of memoing and the strict
   nature of ML requires some care when working with low-level
   sequence operations, to avoid duplicate or premature evaluation of
   results.  It also means that modified runtime behavior, such as
-  timeout, is very hard to achieve for general tactics.}
+  timeout, is very hard to achieve for general tactics.\<close>
 
   An \<^emph>\<open>empty result sequence\<close> means that the tactic has failed: in
   a compound tactic expression other tactics might be tried instead,
@@ -319,12 +319,12 @@ text %mlref \<open>
   \<^descr> @{ML match_tac}, @{ML ematch_tac}, @{ML dmatch_tac}, and @{ML
   bimatch_tac} are similar to @{ML resolve_tac}, @{ML eresolve_tac},
   @{ML dresolve_tac}, and @{ML biresolve_tac}, respectively, but do
-  not instantiate schematic variables in the goal state.%
-\footnote{Strictly speaking, matching means to treat the unknowns in the goal
+  not instantiate schematic variables in the goal state.\<^footnote>\<open>Strictly speaking,
+  matching means to treat the unknowns in the goal
   state as constants, but these tactics merely discard unifiers that would
   update the goal state. In rare situations (where the conclusion and 
   goal state have flexible terms at the same position), the tactic
-  will fail even though an acceptable unifier exists.}
+  will fail even though an acceptable unifier exists.\<close>
   These tactics were written for a specific application within the classical reasoner.
 
   Flexible subgoals are not updated at will, but are left alone.
