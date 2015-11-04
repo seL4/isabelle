@@ -14,8 +14,8 @@ text \<open>
   terms, facts, or other methods.
 
   \<^medskip>
-  The syntax diagram below refers to some syntactic categories that
-  are further defined in @{cite "isabelle-isar-ref"}.
+  The syntax diagram below refers to some syntactic categories that are
+  further defined in @{cite "isabelle-isar-ref"}.
 
   @{rail \<open>
     @@{command method} name args @'=' method
@@ -56,11 +56,10 @@ text \<open>
       by prop_solver\<^sub>1
 
 text \<open>
-  In this example, the facts \<open>impI\<close> and \<open>conjE\<close> are static. They
-  are evaluated once when the method is defined and cannot be changed later.
-  This makes the method stable in the sense of \<^emph>\<open>static scoping\<close>: naming
-  another fact \<open>impI\<close> in a later context won't affect the behaviour of
-  \<open>prop_solver\<^sub>1\<close>.
+  In this example, the facts \<open>impI\<close> and \<open>conjE\<close> are static. They are evaluated
+  once when the method is defined and cannot be changed later. This makes the
+  method stable in the sense of \<^emph>\<open>static scoping\<close>: naming another fact \<open>impI\<close>
+  in a later context won't affect the behaviour of \<open>prop_solver\<^sub>1\<close>.
 \<close>
 
 
@@ -100,11 +99,11 @@ section \<open>Fact abstraction\<close>
 subsection \<open>Named theorems\<close>
 
 text \<open>
-  A \<open>named theorem\<close> is a fact whose contents are produced dynamically
-  within the current proof context. The Isar command @{command_ref
-  "named_theorems"} provides simple access to this concept: it declares a
-  dynamic fact with corresponding \<^emph>\<open>attribute\<close> for managing
-  this particular data slot in the context.
+  A \<^emph>\<open>named theorem\<close> is a fact whose contents are produced dynamically within
+  the current proof context. The Isar command @{command_ref "named_theorems"}
+  provides simple access to this concept: it declares a dynamic fact with
+  corresponding \<^emph>\<open>attribute\<close> for managing this particular data slot in the
+  context.
 \<close>
 
     named_theorems intros
@@ -112,7 +111,8 @@ text \<open>
 text \<open>
   So far \<open>intros\<close> refers to the empty fact. Using the Isar command
   @{command_ref "declare"} we may apply declaration attributes to the context.
-  Below we declare both \<open>conjI\<close> and \<open>impI\<close> as \<open>intros\<close>, adding them to the named theorem slot.
+  Below we declare both \<open>conjI\<close> and \<open>impI\<close> as \<open>intros\<close>, adding them to the
+  named theorem slot.
 \<close>
 
     declare conjI [intros] and impI [intros]
@@ -136,8 +136,8 @@ text \<open>
 text \<open>
   Often these named theorems need to be augmented on the spot, when a method
   is invoked. The @{keyword_def "declares"} keyword in the signature of
-  @{command method} adds the common method syntax \<open>method decl: facts\<close>
-  for each named theorem \<open>decl\<close>.
+  @{command method} adds the common method syntax \<open>method decl: facts\<close> for
+  each named theorem \<open>decl\<close>.
 \<close>
 
     method prop_solver\<^sub>4 declares intros elims =
@@ -170,11 +170,12 @@ text \<open>
 section \<open>Higher-order methods\<close>
 
 text \<open>
-  The \<^emph>\<open>structured concatenation\<close> combinator ``\<open>method\<^sub>1 ;
-  method\<^sub>2\<close>'' was introduced in Isabelle2015, motivated by development of
-  Eisbach. It is similar to ``\<open>method\<^sub>1, method\<^sub>2\<close>'', but \<open>method\<^sub>2\<close> is invoked on on \<^emph>\<open>all\<close> subgoals that have newly emerged from
-  \<open>method\<^sub>1\<close>. This is useful to handle cases where the number of
-  subgoals produced by a method is determined dynamically at run-time.
+  The \<^emph>\<open>structured concatenation\<close> combinator ``\<open>method\<^sub>1 ; method\<^sub>2\<close>'' was
+  introduced in Isabelle2015, motivated by development of Eisbach. It is
+  similar to ``\<open>method\<^sub>1, method\<^sub>2\<close>'', but \<open>method\<^sub>2\<close> is invoked on on \<^emph>\<open>all\<close>
+  subgoals that have newly emerged from \<open>method\<^sub>1\<close>. This is useful to handle
+  cases where the number of subgoals produced by a method is determined
+  dynamically at run-time.
 \<close>
 
     method conj_with uses rule =
@@ -190,18 +191,17 @@ text \<open>
   method combinators with prefix syntax. For example, to more usefully exploit
   Isabelle's backtracking, the explicit requirement that a method solve all
   produced subgoals is frequently useful. This can easily be written as a
-  \<^emph>\<open>higher-order method\<close> using ``\<open>;\<close>''. The @{keyword "methods"}
-  keyword denotes method parameters that are other proof methods to be invoked
-  by the method being defined.
+  \<^emph>\<open>higher-order method\<close> using ``\<open>;\<close>''. The @{keyword "methods"} keyword
+  denotes method parameters that are other proof methods to be invoked by the
+  method being defined.
 \<close>
 
     method solve methods m = (m ; fail)
 
 text \<open>
-  Given some method-argument \<open>m\<close>, \<open>solve \<open>m\<close>\<close> applies the
-  method \<open>m\<close> and then fails whenever \<open>m\<close> produces any new unsolved
-  subgoals --- i.e. when \<open>m\<close> fails to completely discharge the goal it
-  was applied to.
+  Given some method-argument \<open>m\<close>, \<open>solve \<open>m\<close>\<close> applies the method \<open>m\<close> and then
+  fails whenever \<open>m\<close> produces any new unsolved subgoals --- i.e. when \<open>m\<close>
+  fails to completely discharge the goal it was applied to.
 \<close>
 
 
@@ -222,29 +222,31 @@ text \<open>
         (erule notE ; solve \<open>prop_solver\<close>))+
 
 text \<open>
-  The only non-trivial part above is the final alternative \<open>(erule notE
-  ; solve \<open>prop_solver\<close>)\<close>. Here, in the case that all other alternatives
-  fail, the method takes one of the assumptions @{term "\<not> P"} of the current
-  goal and eliminates it with the rule \<open>notE\<close>, causing the goal to be
-  proved to become @{term P}. The method then recursively invokes itself on
-  the remaining goals. The job of the recursive call is to demonstrate that
-  there is a contradiction in the original assumptions (i.e.\ that @{term P}
-  can be derived from them). Note this recursive invocation is applied with
-  the @{method solve} method combinator to ensure that a contradiction will
-  indeed be shown. In the case where a contradiction cannot be found,
-  backtracking will occur and a different assumption @{term "\<not> Q"} will be
-  chosen for elimination.
+  The only non-trivial part above is the final alternative \<open>(erule notE ;
+  solve \<open>prop_solver\<close>)\<close>. Here, in the case that all other alternatives fail,
+  the method takes one of the assumptions @{term "\<not> P"} of the current goal
+  and eliminates it with the rule \<open>notE\<close>, causing the goal to be proved to
+  become @{term P}. The method then recursively invokes itself on the
+  remaining goals. The job of the recursive call is to demonstrate that there
+  is a contradiction in the original assumptions (i.e.\ that @{term P} can be
+  derived from them). Note this recursive invocation is applied with the
+  @{method solve} method combinator to ensure that a contradiction will indeed
+  be shown. In the case where a contradiction cannot be found, backtracking
+  will occur and a different assumption @{term "\<not> Q"} will be chosen for
+  elimination.
 
   Note that the recursive call to @{method prop_solver} does not have any
-  parameters passed to it. Recall that fact parameters, e.g.\ \<open>intros\<close>, \<open>elims\<close>, and \<open>subst\<close>, are managed by declarations
-  in the current proof context. They will therefore be passed to any recursive
-  call to @{method prop_solver} and, more generally, any invocation of a
-  method which declares these named theorems.
+  parameters passed to it. Recall that fact parameters, e.g.\ \<open>intros\<close>,
+  \<open>elims\<close>, and \<open>subst\<close>, are managed by declarations in the current proof
+  context. They will therefore be passed to any recursive call to @{method
+  prop_solver} and, more generally, any invocation of a method which declares
+  these named theorems.
 
   \<^medskip>
   After declaring some standard rules to the context, the @{method
   prop_solver} becomes capable of solving non-trivial propositional
-  tautologies.\<close>
+  tautologies.
+\<close>
 
     lemmas [intros] =
       conjI  --  \<open>@{thm conjI}\<close>
@@ -271,15 +273,15 @@ text \<open>
   result of backtracking. When designing more sophisticated proof methods this
   proves too restrictive and difficult to manage conceptually.
 
-  To address this, we introduce the @{method_def "match"} method, which
-  provides more direct access to the higher-order matching facility at the
-  core of Isabelle. It is implemented as a separate proof method (in
-  Isabelle/ML), and thus can be directly applied to proofs, however it is most
-  useful when applied in the context of writing Eisbach method definitions.
+  To address this, we introduce the @{method_def match} method, which provides
+  more direct access to the higher-order matching facility at the core of
+  Isabelle. It is implemented as a separate proof method (in Isabelle/ML), and
+  thus can be directly applied to proofs, however it is most useful when
+  applied in the context of writing Eisbach method definitions.
 
   \<^medskip>
-  The syntax diagram below refers to some syntactic categories that
-  are further defined in @{cite "isabelle-isar-ref"}.
+  The syntax diagram below refers to some syntactic categories that are
+  further defined in @{cite "isabelle-isar-ref"}.
 
   @{rail \<open>
     @@{method match} kind @'in' (pattern '\<Rightarrow>' cartouche + '\<bar>')
@@ -296,10 +298,10 @@ text \<open>
   \<close>}
 
   Matching allows methods to introspect the goal state, and to implement more
-  explicit control flow. In the basic case, a term or fact \<open>ts\<close> is given
-  to match against as a \<^emph>\<open>match target\<close>, along with a collection of
-  pattern-method pairs \<open>(p, m)\<close>: roughly speaking, when the pattern
-  \<open>p\<close> matches any member of \<open>ts\<close>, the \<^emph>\<open>inner\<close> method \<open>m\<close> will be executed.
+  explicit control flow. In the basic case, a term or fact \<open>ts\<close> is given to
+  match against as a \<^emph>\<open>match target\<close>, along with a collection of
+  pattern-method pairs \<open>(p, m)\<close>: roughly speaking, when the pattern \<open>p\<close>
+  matches any member of \<open>ts\<close>, the \<^emph>\<open>inner\<close> method \<open>m\<close> will be executed.
 \<close>
 
     lemma
@@ -310,11 +312,11 @@ text \<open>
         by (match X in I: "Q \<longrightarrow> P" and I': "Q" \<Rightarrow> \<open>insert mp [OF I I']\<close>)
 
 text \<open>
-  In this example we have a structured Isar proof, with the named
-  assumption \<open>X\<close> and a conclusion @{term "P"}. With the match method
-  we can find the local facts @{term "Q \<longrightarrow> P"} and @{term "Q"}, binding them to
-  separately as \<open>I\<close> and \<open>I'\<close>. We then specialize the
-  modus-ponens rule @{thm mp [of Q P]} to these facts to solve the goal.
+  In this example we have a structured Isar proof, with the named assumption
+  \<open>X\<close> and a conclusion @{term "P"}. With the match method we can find the
+  local facts @{term "Q \<longrightarrow> P"} and @{term "Q"}, binding them to separately as
+  \<open>I\<close> and \<open>I'\<close>. We then specialize the modus-ponens rule @{thm mp [of Q P]} to
+  these facts to solve the goal.
 \<close>
 
 
@@ -324,15 +326,14 @@ text\<open>
   In the previous example we were able to match against an assumption out of
   the Isar proof state. In general, however, proof subgoals can be
   \<^emph>\<open>unstructured\<close>, with goal parameters and premises arising from rule
-  application. To address this, @{method match} uses \<^emph>\<open>subgoal focusing\<close>
-  to produce structured goals out of
-  unstructured ones. In place of fact or term, we may give the
-  keyword @{keyword_def "premises"} as the match target. This causes a subgoal
-  focus on the first subgoal, lifting local goal parameters to fixed term
-  variables and premises into hypothetical theorems. The match is performed
-  against these theorems, naming them and binding them as appropriate.
-  Similarly giving the keyword @{keyword_def "conclusion"} matches against the
-  conclusion of the first subgoal.
+  application. To address this, @{method match} uses \<^emph>\<open>subgoal focusing\<close> to
+  produce structured goals out of unstructured ones. In place of fact or term,
+  we may give the keyword @{keyword_def "premises"} as the match target. This
+  causes a subgoal focus on the first subgoal, lifting local goal parameters
+  to fixed term variables and premises into hypothetical theorems. The match
+  is performed against these theorems, naming them and binding them as
+  appropriate. Similarly giving the keyword @{keyword_def "conclusion"}
+  matches against the conclusion of the first subgoal.
 
   An unstructured version of the previous example can then be similarly solved
   through focusing.
@@ -358,16 +359,16 @@ text \<open>
   now-bound @{term A} (bound to @{term P}) against the conclusion (also @{term
   P}), finally applying the specialized rule to solve the goal.
 
-  Schematic terms like \<open>?P\<close> may also be used to specify match
-  variables, but the result of the match is not bound, and thus cannot be used
-  in the inner method body.
+  Schematic terms like \<open>?P\<close> may also be used to specify match variables, but
+  the result of the match is not bound, and thus cannot be used in the inner
+  method body.
 
   \<^medskip>
-  In the following example we extract the predicate of an
-  existentially quantified conclusion in the current subgoal and search the
-  current premises for a matching fact. If both matches are successful, we
-  then instantiate the existential introduction rule with both the witness and
-  predicate, solving with the matched premise.
+  In the following example we extract the predicate of an existentially
+  quantified conclusion in the current subgoal and search the current premises
+  for a matching fact. If both matches are successful, we then instantiate the
+  existential introduction rule with both the witness and predicate, solving
+  with the matched premise.
 \<close>
 
     method solve_ex =
@@ -378,15 +379,14 @@ text \<open>
 text \<open>
   The first @{method match} matches the pattern @{term "\<exists>x. Q x"} against the
   current conclusion, binding the term @{term "Q"} in the inner match. Next
-  the pattern \<open>Q y\<close> is matched against all premises of the current
-  subgoal. In this case @{term "Q"} is fixed and @{term "y"} may be
-  instantiated. Once a match is found, the local fact \<open>U\<close> is bound to
-  the matching premise and the variable @{term "y"} is bound to the matching
-  witness. The existential introduction rule \<open>exI:\<close>~@{thm exI} is then
-  instantiated with @{term "y"} as the witness and @{term "Q"} as the
-  predicate, with its proof obligation solved by the local fact U (using the
-  Isar attribute @{attribute OF}). The following example is a trivial use of
-  this method.
+  the pattern \<open>Q y\<close> is matched against all premises of the current subgoal. In
+  this case @{term "Q"} is fixed and @{term "y"} may be instantiated. Once a
+  match is found, the local fact \<open>U\<close> is bound to the matching premise and the
+  variable @{term "y"} is bound to the matching witness. The existential
+  introduction rule \<open>exI:\<close>~@{thm exI} is then instantiated with @{term "y"} as
+  the witness and @{term "Q"} as the predicate, with its proof obligation
+  solved by the local fact U (using the Isar attribute @{attribute OF}). The
+  following example is a trivial use of this method.
 \<close>
 
     lemma "halts p \<Longrightarrow> \<exists>x. halts x"
@@ -419,13 +419,12 @@ text \<open>
   with a universal quantifier in the premises that matches the type of @{term
   y}. Since @{keyword "premises"} causes a focus, however, there are no
   subgoal premises to be found and thus @{method my_allE_bad} will always
-  fail. If focusing instead left the premises in place, using methods
-  like @{method erule} would lead to unintended behaviour, specifically during
+  fail. If focusing instead left the premises in place, using methods like
+  @{method erule} would lead to unintended behaviour, specifically during
   backtracking. In our example, @{method erule} could choose an alternate
-  premise while backtracking, while leaving \<open>I\<close> bound to the original
-  match. In the case of more complex inner methods, where either \<open>I\<close> or
-  bound terms are used, this would almost certainly not be the intended
-  behaviour.
+  premise while backtracking, while leaving \<open>I\<close> bound to the original match.
+  In the case of more complex inner methods, where either \<open>I\<close> or bound terms
+  are used, this would almost certainly not be the intended behaviour.
 
   An alternative implementation would be to specialize the elimination rule to
   the bound term and apply it directly.
@@ -444,13 +443,13 @@ text \<open>
   premise, it is not likely the intended behaviour. Repeated application of
   this method will produce an infinite stream of duplicate specialized
   premises, due to the original premise never being removed. To address this,
-  matched premises may be declared with the @{attribute "thin"} attribute.
-  This will hide the premise from subsequent inner matches, and remove it from
-  the list of premises when the inner method has finished and the subgoal is
+  matched premises may be declared with the @{attribute thin} attribute. This
+  will hide the premise from subsequent inner matches, and remove it from the
+  list of premises when the inner method has finished and the subgoal is
   unfocused. It can be considered analogous to the existing \<open>thin_tac\<close>.
 
-  To complete our example, the correct implementation of the method
-  will @{attribute "thin"} the premise from the match and then apply it to the
+  To complete our example, the correct implementation of the method will
+  @{attribute thin} the premise from the match and then apply it to the
   specialized elimination rule.\<close>
 
     method my_allE for y :: 'a =
@@ -460,13 +459,14 @@ text \<open>
     lemma "\<forall>x. P x \<Longrightarrow> \<forall>x. Q x \<Longrightarrow> P y \<and> Q y"
       by (my_allE y)+ (rule conjI)
 
+
 subsubsection \<open>Inner focusing\<close>
 
 text \<open>
-  Premises are \<^emph>\<open>accumulated\<close> for the purposes of subgoal focusing.
-  In contrast to using standard methods like @{method frule} within
-  focused match, another @{method match} will have access to all the premises
-  of the outer focus.
+  Premises are \<^emph>\<open>accumulated\<close> for the purposes of subgoal focusing. In
+  contrast to using standard methods like @{method frule} within focused
+  match, another @{method match} will have access to all the premises of the
+  outer focus.
 \<close>
 
     lemma "A \<Longrightarrow> B \<Longrightarrow> A \<and> B"
@@ -475,25 +475,23 @@ text \<open>
 
 text \<open>
   In this example, the inner @{method match} can find the focused premise
-  @{term B}. In contrast, the @{method assumption} method would fail here
-  due to @{term B} not being logically accessible.
+  @{term B}. In contrast, the @{method assumption} method would fail here due
+  to @{term B} not being logically accessible.
 \<close>
 
-    lemma
-    "A \<Longrightarrow> A \<and> (B \<longrightarrow> B)"
+    lemma "A \<Longrightarrow> A \<and> (B \<longrightarrow> B)"
       by (match premises in H: A \<Rightarrow> \<open>intro conjI, rule H, rule impI,
             match premises (local) in A \<Rightarrow> \<open>fail\<close>
                                  \<bar> H': B \<Rightarrow> \<open>rule H'\<close>\<close>)
 
 text \<open>
-  In this example, the only premise that exists in the first focus is
-  @{term "A"}. Prior to the inner match, the rule \<open>impI\<close> changes
-  the goal @{term "B \<longrightarrow> B"} into @{term "B \<Longrightarrow> B"}. A standard premise
-  match would also include @{term A} as an original premise of the outer
-  match. The \<open>local\<close> argument limits the match to
-  newly focused premises.
-
+  In this example, the only premise that exists in the first focus is @{term
+  "A"}. Prior to the inner match, the rule \<open>impI\<close> changes the goal @{term "B \<longrightarrow>
+  B"} into @{term "B \<Longrightarrow> B"}. A standard premise match would also include @{term
+  A} as an original premise of the outer match. The \<open>local\<close> argument limits
+  the match to newly focused premises.
 \<close>
+
 
 section \<open>Attributes\<close>
 
@@ -547,8 +545,7 @@ text \<open>
 text \<open>
   The @{attribute of} attribute behaves similarly. It is worth noting,
   however, that the positional instantiation of @{attribute of} occurs against
-  the position of the variables as they are declared \<^emph>\<open>in the match
-  pattern\<close>.
+  the position of the variables as they are declared \<^emph>\<open>in the match pattern\<close>.
 \<close>
 
     lemma
@@ -559,15 +556,16 @@ text \<open>
             \<open>rule I [of x y]\<close>)
 
 text \<open>
-  In this example, the order of schematics in \<open>asm\<close> is actually \<open>?y ?x\<close>, but we instantiate our matched rule in the opposite order. This is
-  because the effective rule @{term I} was bound from the match, which
-  declared the @{typ 'a} slot first and the @{typ 'b} slot second.
+  In this example, the order of schematics in \<open>asm\<close> is actually \<open>?y ?x\<close>, but
+  we instantiate our matched rule in the opposite order. This is because the
+  effective rule @{term I} was bound from the match, which declared the @{typ
+  'a} slot first and the @{typ 'b} slot second.
 
   To get the dynamic behaviour of @{attribute of} we can choose to invoke it
-  \<^emph>\<open>unchecked\<close>. This avoids trying to do any type inference for the
-  provided parameters, instead storing them as their most general type and
-  doing type matching at run-time. This, like @{attribute OF}, will throw
-  errors if the expected slots don't exist or there is a type mismatch.
+  \<^emph>\<open>unchecked\<close>. This avoids trying to do any type inference for the provided
+  parameters, instead storing them as their most general type and doing type
+  matching at run-time. This, like @{attribute OF}, will throw errors if the
+  expected slots don't exist or there is a type mismatch.
 \<close>
 
     lemma
@@ -587,11 +585,11 @@ text \<open>
             \<open>prop_solver\<close>)
 
 text \<open>
-  In this example, the pattern \<open>\<And>x :: 'a. ?P x \<Longrightarrow> ?Q x\<close> matches against
-  the only premise, giving an appropriately typed slot for @{term y}. After
-  the match, the resulting rule is instantiated to @{term y} and then declared
-  as an @{attribute intros} rule. This is then picked up by @{method
-  prop_solver} to solve the goal.
+  In this example, the pattern \<open>\<And>x :: 'a. ?P x \<Longrightarrow> ?Q x\<close> matches against the
+  only premise, giving an appropriately typed slot for @{term y}. After the
+  match, the resulting rule is instantiated to @{term y} and then declared as
+  an @{attribute intros} rule. This is then picked up by @{method prop_solver}
+  to solve the goal.
 \<close>
 
 
@@ -600,8 +598,9 @@ section \<open>Multi-match \label{sec:multi}\<close>
 text \<open>
   In all previous examples, @{method match} was only ever searching for a
   single rule or premise. Each local fact would therefore always have a length
-  of exactly one. We may, however, wish to find \<^emph>\<open>all\<close> matching results.
-  To achieve this, we can simply mark a given pattern with the \<open>(multi)\<close> argument.
+  of exactly one. We may, however, wish to find \<^emph>\<open>all\<close> matching results. To
+  achieve this, we can simply mark a given pattern with the \<open>(multi)\<close>
+  argument.
 \<close>
 
     lemma
@@ -612,21 +611,21 @@ text \<open>
       done
 
 text \<open>
-  In the first @{method match}, without the \<open>(multi)\<close> argument, @{term
-  I} is only ever be bound to one of the members of \<open>asms\<close>. This
-  backtracks over both possibilities (see next section), however neither
-  assumption in isolation is sufficient to solve to goal. The use of the
-  @{method solves} combinator ensures that @{method prop_solver} has no effect
-  on the goal when it doesn't solve it, and so the first match leaves the goal
-  unchanged. In the second @{method match}, \<open>I\<close> is bound to all of
-  \<open>asms\<close>, declaring both results as \<open>intros\<close>. With these rules
-  @{method prop_solver} is capable of solving the goal.
+  In the first @{method match}, without the \<open>(multi)\<close> argument, @{term I} is
+  only ever be bound to one of the members of \<open>asms\<close>. This backtracks over
+  both possibilities (see next section), however neither assumption in
+  isolation is sufficient to solve to goal. The use of the @{method solves}
+  combinator ensures that @{method prop_solver} has no effect on the goal when
+  it doesn't solve it, and so the first match leaves the goal unchanged. In
+  the second @{method match}, \<open>I\<close> is bound to all of \<open>asms\<close>, declaring both
+  results as \<open>intros\<close>. With these rules @{method prop_solver} is capable of
+  solving the goal.
 
   Using for-fixed variables in patterns imposes additional constraints on the
-  results. In all previous examples, the choice of using \<open>?P\<close> or a
-  for-fixed @{term P} only depended on whether or not @{term P} was mentioned
-  in another pattern or the inner method. When using a multi-match, however,
-  all for-fixed terms must agree in the results.
+  results. In all previous examples, the choice of using \<open>?P\<close> or a for-fixed
+  @{term P} only depended on whether or not @{term P} was mentioned in another
+  pattern or the inner method. When using a multi-match, however, all
+  for-fixed terms must agree in the results.
 \<close>
 
     lemma
@@ -641,11 +640,11 @@ text \<open>
 text \<open>
   Here we have two seemingly-equivalent applications of @{method match},
   however only the second one is capable of solving the goal. The first
-  @{method match} selects the first and third members of \<open>asms\<close> (those
-  that agree on their conclusion), which is not sufficient. The second
-  @{method match} selects the first and second members of \<open>asms\<close> (those
-  that agree on their assumption), which is enough for @{method prop_solver}
-  to solve the goal.
+  @{method match} selects the first and third members of \<open>asms\<close> (those that
+  agree on their conclusion), which is not sufficient. The second @{method
+  match} selects the first and second members of \<open>asms\<close> (those that agree on
+  their assumption), which is enough for @{method prop_solver} to solve the
+  goal.
 \<close>
 
 
@@ -655,10 +654,10 @@ text \<open>
   Dummy patterns may be given as placeholders for unique schematics in
   patterns. They implicitly receive all currently bound variables as
   arguments, and are coerced into the @{typ prop} type whenever possible. For
-  example, the trivial dummy pattern \<open>_\<close> will match any proposition.
-  In contrast, by default the pattern \<open>?P\<close> is considered to have type
-  @{typ bool}. It will not bind anything with meta-logical connectives (e.g.
-  \<open>_ \<Longrightarrow> _\<close> or \<open>_ &&& _\<close>).
+  example, the trivial dummy pattern \<open>_\<close> will match any proposition. In
+  contrast, by default the pattern \<open>?P\<close> is considered to have type @{typ
+  bool}. It will not bind anything with meta-logical connectives (e.g. \<open>_ \<Longrightarrow> _\<close>
+  or \<open>_ &&& _\<close>).
 \<close>
 
     lemma
@@ -670,19 +669,19 @@ text \<open>
 section \<open>Backtracking\<close>
 
 text \<open>
-  Patterns are considered top-down, executing the inner method \<open>m\<close> of
-  the first pattern which is satisfied by the current match target. By
-  default, matching performs extensive backtracking by attempting all valid
-  variable and fact bindings according to the given pattern. In particular,
-  all unifiers for a given pattern will be explored, as well as each matching
+  Patterns are considered top-down, executing the inner method \<open>m\<close> of the
+  first pattern which is satisfied by the current match target. By default,
+  matching performs extensive backtracking by attempting all valid variable
+  and fact bindings according to the given pattern. In particular, all
+  unifiers for a given pattern will be explored, as well as each matching
   fact. The inner method \<open>m\<close> will be re-executed for each different
   variable/fact binding during backtracking. A successful match is considered
   a cut-point for backtracking. Specifically, once a match is made no other
   pattern-method pairs will be considered.
 
-  The method \<open>foo\<close> below fails for all goals that are conjunctions. Any
-  such goal will match the first pattern, causing the second pattern (that
-  would otherwise match all goals) to never be considered.
+  The method \<open>foo\<close> below fails for all goals that are conjunctions. Any such
+  goal will match the first pattern, causing the second pattern (that would
+  otherwise match all goals) to never be considered.
 \<close>
 
     method foo =
@@ -690,12 +689,12 @@ text \<open>
 
 text \<open>
   The failure of an inner method that is executed after a successful match
-  will cause the entire match to fail. This distinction is important
-  due to the pervasive use of backtracking. When a method is used in a
-  combinator chain, its failure
-  becomes significant because it signals previously applied methods to move to
-  the next result. Therefore, it is necessary for @{method match} to not mask
-  such failure. One can always rewrite a match using the combinators ``\<open>?\<close>'' and ``\<open>|\<close>'' to try subsequent patterns in the case of an
+  will cause the entire match to fail. This distinction is important due to
+  the pervasive use of backtracking. When a method is used in a combinator
+  chain, its failure becomes significant because it signals previously applied
+  methods to move to the next result. Therefore, it is necessary for @{method
+  match} to not mask such failure. One can always rewrite a match using the
+  combinators ``\<open>?\<close>'' and ``\<open>|\<close>'' to try subsequent patterns in the case of an
   inner-method failure. The following proof method, for example, always
   invokes @{method prop_solver} for all goals because its first alternative
   either never matches or (if it does match) always fails.
@@ -710,8 +709,8 @@ subsection \<open>Cut\<close>
 
 text \<open>
   Backtracking may be controlled more precisely by marking individual patterns
-  as \<open>cut\<close>. This causes backtracking to not progress beyond this pattern:
-  once a match is found no others will be considered.
+  as \<open>cut\<close>. This causes backtracking to not progress beyond this pattern: once
+  a match is found no others will be considered.
 \<close>
 
     method foo\<^sub>2 =
@@ -722,10 +721,10 @@ text \<open>
   In this example, once a conjunction is found (@{term "P \<and> Q"}), all possible
   implications of @{term "P"} in the premises are considered, evaluating the
   inner @{method rule} with each consequent. No other conjunctions will be
-  considered, with method failure occurring once all implications of the
-  form \<open>P \<longrightarrow> ?U\<close> have been explored. Here the left-right processing of
-  individual patterns is important, as all patterns after of the cut will
-  maintain their usual backtracking behaviour.
+  considered, with method failure occurring once all implications of the form
+  \<open>P \<longrightarrow> ?U\<close> have been explored. Here the left-right processing of individual
+  patterns is important, as all patterns after of the cut will maintain their
+  usual backtracking behaviour.
 \<close>
 
     lemma "A \<and> B \<Longrightarrow> A \<longrightarrow> D \<Longrightarrow> A \<longrightarrow> C \<Longrightarrow> C"
@@ -735,16 +734,16 @@ text \<open>
       by (foo\<^sub>2 | prop_solver)
 
 text \<open>
-  In this example, the first lemma is solved by \<open>foo\<^sub>2\<close>, by first
-  picking @{term "A \<longrightarrow> D"} for \<open>I'\<close>, then backtracking and ultimately
-  succeeding after picking @{term "A \<longrightarrow> C"}. In the second lemma, however,
-  @{term "C \<and> D"} is matched first, the second pattern in the match cannot be
-  found and so the method fails, falling through to @{method prop_solver}.
+  In this example, the first lemma is solved by \<open>foo\<^sub>2\<close>, by first picking
+  @{term "A \<longrightarrow> D"} for \<open>I'\<close>, then backtracking and ultimately succeeding after
+  picking @{term "A \<longrightarrow> C"}. In the second lemma, however, @{term "C \<and> D"} is
+  matched first, the second pattern in the match cannot be found and so the
+  method fails, falling through to @{method prop_solver}.
 
-  More precise control is also possible by giving a positive
-  number \<open>n\<close> as an argument to \<open>cut\<close>. This will limit the number
-  of backtracking results of that match to be at most \<open>n\<close>.
-  The match argument \<open>(cut 1)\<close> is the same as simply \<open>(cut)\<close>.
+  More precise control is also possible by giving a positive number \<open>n\<close> as an
+  argument to \<open>cut\<close>. This will limit the number of backtracking results of
+  that match to be at most \<open>n\<close>. The match argument \<open>(cut 1)\<close> is the same as
+  simply \<open>(cut)\<close>.
 \<close>
 
 
@@ -769,15 +768,16 @@ text \<open>
 
 text \<open>
   Intuitively it seems like this proof should fail to check. The first match
-  result, which binds @{term I} to the first two members of \<open>asms\<close>,
-  fails the second inner match due to binding @{term P} to @{term A}.
-  Backtracking then attempts to bind @{term I} to the third member of \<open>asms\<close>. This passes all inner matches, but fails when @{method rule} cannot
-  successfully apply this to the current goal. After this, a valid match that
-  is produced by the unifier is one which binds @{term P} to simply \<open>\<lambda>a. A ?x\<close>. The first inner match succeeds because \<open>\<lambda>a. A ?x\<close> does
-  not match @{term A}. The next inner match succeeds because @{term I} has
-  only been bound to the first member of \<open>asms\<close>. This is due to @{method
-  match} considering \<open>\<lambda>a. A ?x\<close> and \<open>\<lambda>a. A ?y\<close> as distinct
-  terms.
+  result, which binds @{term I} to the first two members of \<open>asms\<close>, fails the
+  second inner match due to binding @{term P} to @{term A}. Backtracking then
+  attempts to bind @{term I} to the third member of \<open>asms\<close>. This passes all
+  inner matches, but fails when @{method rule} cannot successfully apply this
+  to the current goal. After this, a valid match that is produced by the
+  unifier is one which binds @{term P} to simply \<open>\<lambda>a. A ?x\<close>. The first inner
+  match succeeds because \<open>\<lambda>a. A ?x\<close> does not match @{term A}. The next inner
+  match succeeds because @{term I} has only been bound to the first member of
+  \<open>asms\<close>. This is due to @{method match} considering \<open>\<lambda>a. A ?x\<close> and \<open>\<lambda>a. A ?y\<close>
+  as distinct terms.
 
   The simplest way to address this is to explicitly disallow term bindings
   which we would consider invalid.
@@ -797,8 +797,8 @@ section \<open>Uncurrying\<close>
 text \<open>
   The @{method match} method is not aware of the logical content of match
   targets. Each pattern is simply matched against the shallow structure of a
-  fact or term. Most facts are in \<^emph>\<open>normal form\<close>, which curries premises
-  via meta-implication \<open>_ \<Longrightarrow> _\<close>.
+  fact or term. Most facts are in \<^emph>\<open>normal form\<close>, which curries premises via
+  meta-implication \<open>_ \<Longrightarrow> _\<close>.
 \<close>
 
     lemma
@@ -821,17 +821,17 @@ text \<open>
 text \<open>
   This proof will fail to solve the goal. Our match pattern will only match
   rules which have a single premise, and conclusion @{term C}, so the first
-  member of \<open>asms\<close> is not bound and thus the proof fails. Matching a
-  pattern of the form @{term "P \<Longrightarrow> Q"} against this fact will bind @{term "P"}
-  to @{term "A"} and @{term Q} to @{term "B \<Longrightarrow> C"}. Our pattern, with a
-  concrete @{term "C"} in the conclusion, will fail to match this fact.
+  member of \<open>asms\<close> is not bound and thus the proof fails. Matching a pattern
+  of the form @{term "P \<Longrightarrow> Q"} against this fact will bind @{term "P"} to
+  @{term "A"} and @{term Q} to @{term "B \<Longrightarrow> C"}. Our pattern, with a concrete
+  @{term "C"} in the conclusion, will fail to match this fact.
 
-  To express our desired match, we may \<^emph>\<open>uncurry\<close> our rules before
-  matching against them. This forms a meta-conjunction of all premises in a
-  fact, so that only one implication remains. For example the uncurried
-  version of @{term "A \<Longrightarrow> B \<Longrightarrow> C"} is @{term "A &&& B \<Longrightarrow> C"}. This will now match
-  our desired pattern \<open>_ \<Longrightarrow> C\<close>, and can be \<^emph>\<open>curried\<close> after the
-  match to put it back into normal form.
+  To express our desired match, we may \<^emph>\<open>uncurry\<close> our rules before matching
+  against them. This forms a meta-conjunction of all premises in a fact, so
+  that only one implication remains. For example the uncurried version of
+  @{term "A \<Longrightarrow> B \<Longrightarrow> C"} is @{term "A &&& B \<Longrightarrow> C"}. This will now match our
+  desired pattern \<open>_ \<Longrightarrow> C\<close>, and can be \<^emph>\<open>curried\<close> after the match to put it
+  back into normal form.
 \<close>
 
     lemma
@@ -858,12 +858,12 @@ text \<open>
       done
 
 text \<open>
-  In the first @{method match} we attempt to find a member of \<open>asms\<close>
-  which matches our goal precisely. This fails due to no such member existing.
-  The second match reverses the role of the fact in the match, by first giving
-  a general pattern @{term P}. This bound pattern is then matched against
-  @{term "A y"}. In this case, @{term P} is bound to \<open>A ?x\<close> and so it
-  successfully matches.
+  In the first @{method match} we attempt to find a member of \<open>asms\<close> which
+  matches our goal precisely. This fails due to no such member existing. The
+  second match reverses the role of the fact in the match, by first giving a
+  general pattern @{term P}. This bound pattern is then matched against @{term
+  "A y"}. In this case, @{term P} is bound to \<open>A ?x\<close> and so it successfully
+  matches.
 \<close>
 
 
@@ -883,9 +883,10 @@ text \<open>
           \<open>match (y) in "y :: 'b" for y \<Rightarrow> \<open>rule H [where z = y]\<close>\<close>)
 
 text \<open>
-  In this example the type \<open>'b\<close> is matched to \<open>'a\<close>, however
-  statically they are formally distinct types. The first match binds \<open>'b\<close> while the inner match serves to coerce @{term y} into having the type
-  \<open>'b\<close>. This allows the rule instantiation to successfully apply.
+  In this example the type \<open>'b\<close> is matched to \<open>'a\<close>, however statically they
+  are formally distinct types. The first match binds \<open>'b\<close> while the inner
+  match serves to coerce @{term y} into having the type \<open>'b\<close>. This allows the
+  rule instantiation to successfully apply.
 \<close>
 
 
@@ -922,10 +923,10 @@ subsubsection \<open>Attributes\<close>
 
 text \<open>
   A custom rule attribute is a simple way to extend the functionality of
-  Eisbach methods. The dummy rule attribute notation (\<open>[[ _ ]]\<close>)
-  invokes the given attribute against a dummy fact and evaluates to the result
-  of that attribute. When used as a match target, this can serve as an
-  effective auxiliary function.
+  Eisbach methods. The dummy rule attribute notation (\<open>[[ _ ]]\<close>) invokes the
+  given attribute against a dummy fact and evaluates to the result of that
+  attribute. When used as a match target, this can serve as an effective
+  auxiliary function.
 \<close>
 
     attribute_setup get_split_rule =
