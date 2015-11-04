@@ -145,8 +145,8 @@ subsubsection \<open>Examples\<close>
 
 text \<open>See @{file "~~/src/HOL/ROOT"} for a diversity of practically
   relevant situations, although it uses relatively complex
-  quasi-hierarchic naming conventions like \<open>HOL\<dash>SPARK\<close>,
-  \<open>HOL\<dash>SPARK\<dash>Examples\<close>.  An alternative is to use
+  quasi-hierarchic naming conventions like \<^verbatim>\<open>HOL-SPARK\<close>,
+  \<^verbatim>\<open>HOL-SPARK-Examples\<close>.  An alternative is to use
   unqualified names that are relatively long and descriptive, as in
   the Archive of Formal Proofs (@{url "http://afp.sourceforge.net"}), for
   example.\<close>
