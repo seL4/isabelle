@@ -575,6 +575,9 @@ platforms as follows.
 * Bash shell function "jvmpath" has been renamed to "platform_path": it
 is relevant both for Poly/ML and JVM processes.
 
+* Heap images are 10-15% smaller due to less wasteful persistent theory
+content (using ML type theory_id instead of theory);
+
 
 
 New in Isabelle2015 (May 2015)
