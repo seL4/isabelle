@@ -22,6 +22,10 @@ accordingly.
 * Toplevel theorem statement 'proposition' is another alias for
 'theorem'.
 
+* Syntax for formal comments "-- text" now also supports the symbolic
+form "\<comment> text". Command-line tool "isabelle update_cartouches -c" helps
+to update old sources.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

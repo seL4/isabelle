@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/update_cartouches.scala
     Author:     Makarius
 
-Update theory syntax to use cartouches.
+Update theory syntax to use cartouches etc.
 */
 
 package isabelle
@@ -37,11 +37,11 @@ object Update_Cartouches
     }
   }
 
-  def update_cartouches(replace_text: Boolean, path: Path)
+  def update_cartouches(replace_comment: Boolean, replace_text: Boolean, path: Path)
   {
     val text0 = File.read(path)
 
-    // outer syntax cartouches
+    // outer syntax cartouches and comment markers
     val text1 =
       (for (tok <- Token.explode(Keyword.Keywords.empty, text0).iterator)
         yield {
@@ -52,6 +52,7 @@ object Update_Cartouches
               case s => tok.source
             }
           }
+          else if (replace_comment && tok.source == "--") Symbol.comment
           else tok.source
         }
       ).mkString
@@ -87,8 +88,10 @@ object Update_Cartouches
   {
     Command_Line.tool0 {
       args.toList match {
-        case Properties.Value.Boolean(replace_text) :: files =>
-          files.foreach(file => update_cartouches(replace_text, Path.explode(file)))
+        case Properties.Value.Boolean(replace_comment) ::
+            Properties.Value.Boolean(replace_text) :: files =>
+          files.foreach(file =>
+            update_cartouches(replace_comment, replace_text, Path.explode(file)))
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }

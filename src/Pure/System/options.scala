@@ -75,7 +75,7 @@ object Options
   private val PREFS = PREFS_DIR + Path.basic("preferences")
 
   lazy val options_syntax =
-    Outer_Syntax.init() + ":" + "=" + "--" +
+    Outer_Syntax.init() + ":" + "=" + "--" + Symbol.comment + Symbol.comment_decoded +
       (SECTION, Keyword.DOCUMENT_HEADING) + PUBLIC + (OPTION, Keyword.THY_DECL)
 
   lazy val prefs_syntax = Outer_Syntax.init() + "="
@@ -89,12 +89,15 @@ object Options
         { case s ~ n => if (s.isDefined) "-" + n else n } |
       atom("option value", tok => tok.is_name || tok.is_float)
 
+    def comment_marker: Parser[String] =
+      $$$("--") | $$$(Symbol.comment) | $$$(Symbol.comment_decoded)
+
     val option_entry: Parser[Options => Options] =
     {
       command(SECTION) ~! text ^^
         { case _ ~ a => (options: Options) => options.set_section(a) } |
       opt($$$(PUBLIC)) ~ command(OPTION) ~! (position(option_name) ~ $$$(":") ~ option_type ~
-      $$$("=") ~ option_value ~ ($$$("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
+      $$$("=") ~ option_value ~ (comment_marker ~! text ^^ { case _ ~ x => x } | success(""))) ^^
         { case a ~ _ ~ ((b, pos) ~ _ ~ c ~ _ ~ d ~ e) =>
             (options: Options) => options.declare(a.isDefined, pos, b, c, d, e) }
     }

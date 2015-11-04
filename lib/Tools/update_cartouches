@@ -15,6 +15,7 @@ function usage()
   echo "Usage: isabelle $PRG [FILES|DIRS...]"
   echo
   echo "  Options are:"
+  echo "    -c           replace comment marker \"--\" by symbol \"\\<comment>\""
   echo "    -t           replace @{text} antiquotations within text tokens"
   echo
   echo "  Recursively find .thy files and update theory syntax to use cartouches"
@@ -30,11 +31,15 @@ function usage()
 
 # options
 
+COMMENT="false"
 TEXT="false"
 
-while getopts "t" OPT
+while getopts "ct" OPT
 do
   case "$OPT" in
+    c)
+      COMMENT="true"
+      ;;
     t)
       TEXT="true"
       ;;
@@ -57,4 +62,4 @@ SPECS="$@"; shift "$#"
 ## main
 
 find $SPECS -name \*.thy -print0 | \
-  xargs -0 "$ISABELLE_TOOL" java isabelle.Update_Cartouches "$TEXT"
+  xargs -0 "$ISABELLE_TOOL" java isabelle.Update_Cartouches "$COMMENT" "$TEXT"

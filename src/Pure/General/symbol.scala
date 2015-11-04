@@ -433,6 +433,11 @@ object Symbol
     val symbolic = recode_set((for { (sym, _) <- symbols; if raw_symbolic(sym) } yield sym): _*)
 
 
+    /* comment */
+
+    val comment_decoded = decode(comment)
+
+
     /* cartouches */
 
     val open_decoded = decode(open)
@@ -496,10 +501,16 @@ object Symbol
   def is_blank(sym: Symbol): Boolean = symbols.blanks.contains(sym)
 
 
+  /* comment */
+
+  val comment: Symbol = "\\<comment>"
+  def comment_decoded: Symbol = symbols.comment_decoded
+
+
   /* cartouches */
 
-  val open = "\\<open>"
-  val close = "\\<close>"
+  val open: Symbol = "\\<open>"
+  val close: Symbol = "\\<close>"
 
   def open_decoded: Symbol = symbols.open_decoded
   def close_decoded: Symbol = symbols.close_decoded

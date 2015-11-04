@@ -430,7 +430,8 @@ fun present_thy thy command_results toks =
             (Basic_Token cmd, (markup_false, d)))]));
 
     val cmt = Scan.peek (fn d =>
-      Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.document_source) >>
+      (Parse.$$$ "--" || Parse.$$$ Symbol.comment) |--
+        Parse.!!!! (improper |-- Parse.document_source) >>
         (fn source => (NONE, (Markup_Token ("cmt", source), ("", d)))));
 
     val other = Scan.peek (fn d =>
