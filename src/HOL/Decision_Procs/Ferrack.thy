@@ -7,7 +7,7 @@ imports Complex_Main Dense_Linear_Order DP_Library
   "~~/src/HOL/Library/Code_Target_Numeral" "~~/src/HOL/Library/Old_Recdef"
 begin
 
-section \<open>Quantifier elimination for @{text "\<real> (0, 1, +, <)"}\<close>
+section \<open>Quantifier elimination for \<open>\<real> (0, 1, +, <)\<close>\<close>
 
   (*********************************************************************************)
   (****                            SHADOW SYNTAX AND SEMANTICS                  ****)

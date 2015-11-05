@@ -32,7 +32,7 @@ lemma gather_simps[no_atp]:
 lemma gather_start [no_atp]: "(\<exists>x. P x) \<equiv> (\<exists>x. (\<forall>y \<in> {}. y < x) \<and> (\<forall>y\<in> {}. x < y) \<and> P x)"
   by simp
 
-text\<open>Theorems for @{text "\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>-\<^sub>\<infinity>)"}\<close>
+text\<open>Theorems for \<open>\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>-\<^sub>\<infinity>)\<close>\<close>
 lemma minf_lt[no_atp]:  "\<exists>z . \<forall>x. x < z \<longrightarrow> (x < t \<longleftrightarrow> True)" by auto
 lemma minf_gt[no_atp]: "\<exists>z . \<forall>x. x < z \<longrightarrow>  (t < x \<longleftrightarrow>  False)"
   by (simp add: not_less) (rule exI[where x="t"], auto simp add: less_le)
@@ -44,7 +44,7 @@ lemma minf_eq[no_atp]: "\<exists>z. \<forall>x. x < z \<longrightarrow> (x = t \
 lemma minf_neq[no_atp]: "\<exists>z. \<forall>x. x < z \<longrightarrow> (x \<noteq> t \<longleftrightarrow> True)" by auto
 lemma minf_P[no_atp]: "\<exists>z. \<forall>x. x < z \<longrightarrow> (P \<longleftrightarrow> P)" by blast
 
-text\<open>Theorems for @{text "\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>+\<^sub>\<infinity>)"}\<close>
+text\<open>Theorems for \<open>\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>+\<^sub>\<infinity>)\<close>\<close>
 lemma pinf_gt[no_atp]:  "\<exists>z. \<forall>x. z < x \<longrightarrow> (t < x \<longleftrightarrow> True)" by auto
 lemma pinf_lt[no_atp]: "\<exists>z. \<forall>x. z < x \<longrightarrow>  (x < t \<longleftrightarrow>  False)"
   by (simp add: not_less) (rule exI[where x="t"], auto simp add: less_le)
@@ -452,7 +452,7 @@ begin
 lemma ge_ex[no_atp]: "\<exists>y. x \<sqsubseteq> y"
   using gt_ex by auto
 
-text \<open>Theorems for @{text "\<exists>z. \<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>+\<^sub>\<infinity>)"}\<close>
+text \<open>Theorems for \<open>\<exists>z. \<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>+\<^sub>\<infinity>)\<close>\<close>
 lemma pinf_conj[no_atp]:
   assumes ex1: "\<exists>z1. \<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
     and ex2: "\<exists>z2. \<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
@@ -516,7 +516,7 @@ lemma le_ex[no_atp]: "\<exists>y. y \<sqsubseteq> x"
   using lt_ex by auto
 
 
-text \<open>Theorems for @{text "\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>-\<^sub>\<infinity>)"}\<close>
+text \<open>Theorems for \<open>\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P\<^sub>-\<^sub>\<infinity>)\<close>\<close>
 lemma minf_conj[no_atp]:
   assumes ex1: "\<exists>z1. \<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
     and ex2: "\<exists>z2. \<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"

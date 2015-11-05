@@ -101,7 +101,7 @@ next
     by (cases x) auto
 qed
 
-text \<open>mkPX conserves normalizedness (@{text "_cn"})\<close>
+text \<open>mkPX conserves normalizedness (\<open>_cn\<close>)\<close>
 lemma mkPX_cn:
   assumes "x \<noteq> 0"
     and "isnorm P"
