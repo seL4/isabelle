@@ -8,65 +8,65 @@ imports
   Map_by_Ordered
 begin
 
-fun lookup :: "('a::linorder * 'b) tree23 \<Rightarrow> 'a \<Rightarrow> 'b option" where
+fun lookup :: "('a::cmp * 'b) tree23 \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "lookup Leaf x = None" |
-"lookup (Node2 l (a,b) r) x =
-  (if x < a then lookup l x else
-  if a < x then lookup r x else Some b)" |
-"lookup (Node3 l (a1,b1) m (a2,b2) r) x =
-  (if x < a1 then lookup l x else
-   if x = a1 then Some b1 else
-   if x < a2 then lookup m x else
-   if x = a2 then Some b2
-   else lookup r x)"
+"lookup (Node2 l (a,b) r) x = (case cmp x a of
+  LT \<Rightarrow> lookup l x |
+  GT \<Rightarrow> lookup r x |
+  EQ \<Rightarrow> Some b)" |
+"lookup (Node3 l (a1,b1) m (a2,b2) r) x = (case cmp x a1 of
+  LT \<Rightarrow> lookup l x |
+  EQ \<Rightarrow> Some b1 |
+  GT \<Rightarrow> (case cmp x a2 of
+          LT \<Rightarrow> lookup m x |
+          EQ \<Rightarrow> Some b2 |
+          GT \<Rightarrow> lookup r x))"
 
-fun upd :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<^sub>i" where
+fun upd :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<^sub>i" where
 "upd x y Leaf = Up\<^sub>i Leaf (x,y) Leaf" |
-"upd x y (Node2 l ab r) =
-   (if x < fst ab then
-        (case upd x y l of
+"upd x y (Node2 l ab r) = (case cmp x (fst ab) of
+   LT \<Rightarrow> (case upd x y l of
            T\<^sub>i l' => T\<^sub>i (Node2 l' ab r)
-         | Up\<^sub>i l1 ab' l2 => T\<^sub>i (Node3 l1 ab' l2 ab r))
-    else if x = fst ab then T\<^sub>i (Node2 l (x,y) r)
-    else
-        (case upd x y r of
+         | Up\<^sub>i l1 ab' l2 => T\<^sub>i (Node3 l1 ab' l2 ab r)) |
+   EQ \<Rightarrow> T\<^sub>i (Node2 l (x,y) r) |
+   GT \<Rightarrow> (case upd x y r of
            T\<^sub>i r' => T\<^sub>i (Node2 l ab r')
          | Up\<^sub>i r1 ab' r2 => T\<^sub>i (Node3 l ab r1 ab' r2)))" |
-"upd x y (Node3 l ab1 m ab2 r) =
-   (if x < fst ab1 then
-        (case upd x y l of
+"upd x y (Node3 l ab1 m ab2 r) = (case cmp x (fst ab1) of
+   LT \<Rightarrow> (case upd x y l of
            T\<^sub>i l' => T\<^sub>i (Node3 l' ab1 m ab2 r)
-         | Up\<^sub>i l1 ab' l2 => Up\<^sub>i (Node2 l1 ab' l2) ab1 (Node2 m ab2 r))
-    else if x = fst ab1 then T\<^sub>i (Node3 l (x,y) m ab2 r)
-    else if x < fst ab2 then
-             (case upd x y m of
-                T\<^sub>i m' => T\<^sub>i (Node3 l ab1 m' ab2 r)
-              | Up\<^sub>i m1 ab' m2 => Up\<^sub>i (Node2 l ab1 m1) ab' (Node2 m2 ab2 r))
-         else if x = fst ab2 then T\<^sub>i (Node3 l ab1 m (x,y) r)
-         else
-             (case upd x y r of
-                T\<^sub>i r' => T\<^sub>i (Node3 l ab1 m ab2 r')
-              | Up\<^sub>i r1 ab' r2 => Up\<^sub>i (Node2 l ab1 m) ab2 (Node2 r1 ab' r2)))"
+         | Up\<^sub>i l1 ab' l2 => Up\<^sub>i (Node2 l1 ab' l2) ab1 (Node2 m ab2 r)) |
+   EQ \<Rightarrow> T\<^sub>i (Node3 l (x,y) m ab2 r) |
+   GT \<Rightarrow> (case cmp x (fst ab2) of
+           LT \<Rightarrow> (case upd x y m of
+                   T\<^sub>i m' => T\<^sub>i (Node3 l ab1 m' ab2 r)
+                 | Up\<^sub>i m1 ab' m2 => Up\<^sub>i (Node2 l ab1 m1) ab' (Node2 m2 ab2 r)) |
+           EQ \<Rightarrow> T\<^sub>i (Node3 l ab1 m (x,y) r) |
+           GT \<Rightarrow> (case upd x y r of
+                   T\<^sub>i r' => T\<^sub>i (Node3 l ab1 m ab2 r')
+                 | Up\<^sub>i r1 ab' r2 => Up\<^sub>i (Node2 l ab1 m) ab2 (Node2 r1 ab' r2))))"
 
-definition update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) tree23" where
+definition update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) tree23" where
 "update a b t = tree\<^sub>i(upd a b t)"
 
-fun del :: "'a::linorder \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<^sub>d"
-where
+fun del :: "'a::cmp \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) up\<^sub>d" where
 "del x Leaf = T\<^sub>d Leaf" |
 "del x (Node2 Leaf ab1 Leaf) = (if x=fst ab1 then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf ab1 Leaf))" |
 "del x (Node3 Leaf ab1 Leaf ab2 Leaf) = T\<^sub>d(if x=fst ab1 then Node2 Leaf ab2 Leaf
   else if x=fst ab2 then Node2 Leaf ab1 Leaf else Node3 Leaf ab1 Leaf ab2 Leaf)" |
-"del x (Node2 l ab1 r) = (if x<fst ab1 then node21 (del x l) ab1 r else
-  if x > fst ab1 then node22 l ab1 (del x r) else
-  let (ab1',t) = del_min r in node22 l ab1' t)" |
-"del x (Node3 l ab1 m ab2 r) = (if x<fst ab1 then node31 (del x l) ab1 m ab2 r else
-  if x = fst ab1 then let (ab1',m') = del_min m in node32 l ab1' m' ab2 r else
-  if x < fst ab2 then node32 l ab1 (del x m) ab2 r else
-  if x = fst ab2 then let (ab2',r') = del_min r in node33 l ab1 m ab2' r'
-  else node33 l ab1 m ab2 (del x r))"
+"del x (Node2 l ab1 r) = (case cmp x (fst ab1) of
+  LT \<Rightarrow> node21 (del x l) ab1 r |
+  GT \<Rightarrow> node22 l ab1 (del x r) |
+  EQ \<Rightarrow> let (ab1',t) = del_min r in node22 l ab1' t)" |
+"del x (Node3 l ab1 m ab2 r) = (case cmp x (fst ab1) of
+  LT \<Rightarrow> node31 (del x l) ab1 m ab2 r |
+  EQ \<Rightarrow> let (ab1',m') = del_min m in node32 l ab1' m' ab2 r |
+  GT \<Rightarrow> (case cmp x (fst ab2) of
+           LT \<Rightarrow> node32 l ab1 (del x m) ab2 r |
+           EQ \<Rightarrow> let (ab2',r') = del_min r in node33 l ab1 m ab2' r' |
+           GT \<Rightarrow> node33 l ab1 m ab2 (del x r)))"
 
-definition delete :: "'a::linorder \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) tree23" where
+definition delete :: "'a::cmp \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b) tree23" where
 "delete x t = tree\<^sub>d(del x t)"
 
 
@@ -98,7 +98,7 @@ by(simp add: delete_def inorder_del)
 subsection \<open>Balancedness\<close>
 
 lemma bal_upd: "bal t \<Longrightarrow> bal (tree\<^sub>i(upd a b t)) \<and> height(upd a b t) = height t"
-by (induct t) (auto split: up\<^sub>i.split)(* 30 secs in 2015 *)
+by (induct t) (auto split: up\<^sub>i.split)(* 16 secs in 2015 *)
 
 corollary bal_update: "bal t \<Longrightarrow> bal (update a b t)"
 by (simp add: update_def bal_upd)
