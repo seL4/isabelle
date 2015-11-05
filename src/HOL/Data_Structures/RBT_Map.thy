@@ -8,25 +8,26 @@ imports
   Lookup2
 begin
 
-fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
+fun update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
 "update x y Leaf = R Leaf (x,y) Leaf" |
-"update x y (B l (a,b) r) =
-  (if x < a then bal (update x y l) (a,b) r else
-   if x > a then bal l (a,b) (update x y r)
-   else B l (x,y) r)" |
-"update x y (R l (a,b) r) =
-  (if x < a then R (update x y l) (a,b) r else
-   if x > a then R l (a,b) (update x y r)
-   else R l (x,y) r)"
+"update x y (B l (a,b) r) = (case cmp x a of
+  LT \<Rightarrow> bal (update x y l) (a,b) r |
+  GT \<Rightarrow> bal l (a,b) (update x y r) |
+  EQ \<Rightarrow> B l (x,y) r)" |
+"update x y (R l (a,b) r) = (case cmp x a of
+  LT \<Rightarrow> R (update x y l) (a,b) r |
+  GT \<Rightarrow> R l (a,b) (update x y r) |
+  EQ \<Rightarrow> R l (x,y) r)"
 
-fun delete :: "'a::linorder \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
-and deleteL :: "'a::linorder \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
-and deleteR :: "'a::linorder \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
+fun delete :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
+and deleteL :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
+and deleteR :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
 where
 "delete x Leaf = Leaf" |
-"delete x (Node c t1 (a,b) t2) = 
-  (if x < a then deleteL x t1 (a,b) t2 else
-   if x > a then deleteR x t1 (a,b) t2 else combine t1 t2)" |
+"delete x (Node c t1 (a,b) t2) = (case cmp x a of
+  LT \<Rightarrow> deleteL x t1 (a,b) t2 |
+  GT \<Rightarrow> deleteR x t1 (a,b) t2 |
+  EQ \<Rightarrow> combine t1 t2)" |
 "deleteL x (B t1 a t2) b t3 = balL (delete x (B t1 a t2)) b t3" |
 "deleteL x t1 a t2 = R (delete x t1) a t2" |
 "deleteR x t1 a (B t2 b t3) = balR t1 a (delete x (B t2 b t3))" | 
@@ -49,7 +50,6 @@ lemma inorder_delete:
     inorder t1 @ a # del_list x (inorder t2)"
 by(induction x t1 and x t1 a t2 and x t1 a t2 rule: delete_deleteL_deleteR.induct)
   (auto simp: del_list_simps inorder_combine inorder_balL inorder_balR)
-
 
 interpretation Map_by_Ordered
 where empty = Leaf and lookup = lookup and update = update and delete = delete

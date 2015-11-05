@@ -1,6 +1,6 @@
 (*
 Author: Tobias Nipkow
-Function defs follows AFP entry Splay_Tree, proofs are new.
+Function defs follow AFP entry Splay_Tree, proofs are new.
 *)
 
 section "Splay Tree Implementation of Sets"
@@ -9,6 +9,7 @@ theory Splay_Set
 imports
   "~~/src/HOL/Library/Tree"
   Set_by_Ordered
+  Cmp
 begin
 
 function splay :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
@@ -45,35 +46,35 @@ done
 termination splay
 by lexicographic_order
 
-lemma splay_code: "splay x t = (case t of Leaf \<Rightarrow> Leaf |
-  Node al a ar \<Rightarrow>
-  (if x=a then t else
-   if x < a then
-     case al of
-       Leaf \<Rightarrow> t |
-       Node bl b br \<Rightarrow>
-         (if x=b then Node bl b (Node br a ar) else
-          if x < b then
-            if bl = Leaf then Node bl b (Node br a ar)
-            else case splay x bl of
-                   Node bll y blr \<Rightarrow> Node bll y (Node blr b (Node br a ar))
-          else
-          if br = Leaf then Node bl b (Node br a ar)
-          else case splay x br of
-                 Node brl y brr \<Rightarrow> Node (Node bl b brl) y (Node brr a ar))
-   else
-   case ar of
-     Leaf \<Rightarrow> t |
-     Node bl b br \<Rightarrow>
-       (if x=b then Node (Node al a bl) b br else
-        if x < b then
-          if bl = Leaf then Node (Node al a bl) b br
-          else case splay x bl of
-                 Node bll y blr \<Rightarrow> Node (Node al a bll) y (Node blr b br)
-        else if br=Leaf then Node (Node al a bl) b br
-             else case splay x br of
-                    Node bll y blr \<Rightarrow> Node (Node (Node al a bl) b bll) y blr)))"
-by(auto split: tree.split)
+(* no idea why this speeds things up below *)
+lemma case_tree_cong:
+  "\<lbrakk> x = x'; y = y'; z = z' \<rbrakk> \<Longrightarrow> case_tree x y z = case_tree x' y' z'"
+by auto
+
+lemma splay_code: "splay (x::_::cmp) t = (case t of Leaf \<Rightarrow> Leaf |
+  Node al a ar \<Rightarrow> (case cmp x a of
+    EQ \<Rightarrow> t |
+    LT \<Rightarrow> (case al of
+      Leaf \<Rightarrow> t |
+      Node bl b br \<Rightarrow> (case cmp x b of
+        EQ \<Rightarrow> Node bl b (Node br a ar) |
+        LT \<Rightarrow> if bl = Leaf then Node bl b (Node br a ar)
+              else case splay x bl of
+                Node bll y blr \<Rightarrow> Node bll y (Node blr b (Node br a ar)) |
+        GT \<Rightarrow> if br = Leaf then Node bl b (Node br a ar)
+              else case splay x br of
+                Node brl y brr \<Rightarrow> Node (Node bl b brl) y (Node brr a ar))) |
+    GT \<Rightarrow> (case ar of
+      Leaf \<Rightarrow> t |
+      Node bl b br \<Rightarrow> (case cmp x b of
+        EQ \<Rightarrow> Node (Node al a bl) b br |
+        LT \<Rightarrow> if bl = Leaf then Node (Node al a bl) b br
+              else case splay x bl of
+                Node bll y blr \<Rightarrow> Node (Node al a bll) y (Node blr b br) |
+        GT \<Rightarrow> if br=Leaf then Node (Node al a bl) b br
+              else case splay x br of
+                Node bll y blr \<Rightarrow> Node (Node (Node al a bl) b bll) y blr))))"
+by(auto cong: case_tree_cong split: tree.split)
 
 definition is_root :: "'a \<Rightarrow> 'a tree \<Rightarrow> bool" where
 "is_root a t = (case t of Leaf \<Rightarrow> False | Node _ x _ \<Rightarrow> x = a)"
