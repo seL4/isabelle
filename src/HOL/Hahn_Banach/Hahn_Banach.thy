@@ -49,9 +49,9 @@ theorem Hahn_Banach:
     and "seminorm E p" and "linearform F f"
   assumes fp: "\<forall>x \<in> F. f x \<le> p x"
   shows "\<exists>h. linearform E h \<and> (\<forall>x \<in> F. h x = f x) \<and> (\<forall>x \<in> E. h x \<le> p x)"
-    -- \<open>Let \<open>E\<close> be a vector space, \<open>F\<close> a subspace of \<open>E\<close>, \<open>p\<close> a seminorm on \<open>E\<close>,\<close>
-    -- \<open>and \<open>f\<close> a linear form on \<open>F\<close> such that \<open>f\<close> is bounded by \<open>p\<close>,\<close>
-    -- \<open>then \<open>f\<close> can be extended to a linear form \<open>h\<close> on \<open>E\<close> in a norm-preserving way. \<^smallskip>\<close>
+    \<comment> \<open>Let \<open>E\<close> be a vector space, \<open>F\<close> a subspace of \<open>E\<close>, \<open>p\<close> a seminorm on \<open>E\<close>,\<close>
+    \<comment> \<open>and \<open>f\<close> a linear form on \<open>F\<close> such that \<open>f\<close> is bounded by \<open>p\<close>,\<close>
+    \<comment> \<open>then \<open>f\<close> can be extended to a linear form \<open>h\<close> on \<open>E\<close> in a norm-preserving way. \<^smallskip>\<close>
 proof -
   interpret vectorspace E by fact
   interpret subspace F E by fact
@@ -64,8 +64,8 @@ proof -
   {
     fix c assume cM: "c \<in> chains M" and ex: "\<exists>x. x \<in> c"
     have "\<Union>c \<in> M"
-      -- \<open>Show that every non-empty chain \<open>c\<close> of \<open>M\<close> has an upper bound in \<open>M\<close>:\<close>
-      -- \<open>\<open>\<Union>c\<close> is greater than any element of the chain \<open>c\<close>, so it suffices to show \<open>\<Union>c \<in> M\<close>.\<close>
+      \<comment> \<open>Show that every non-empty chain \<open>c\<close> of \<open>M\<close> has an upper bound in \<open>M\<close>:\<close>
+      \<comment> \<open>\<open>\<Union>c\<close> is greater than any element of the chain \<open>c\<close>, so it suffices to show \<open>\<Union>c \<in> M\<close>.\<close>
       unfolding M_def
     proof (rule norm_pres_extensionI)
       let ?H = "domain (\<Union>c)"
@@ -95,9 +95,9 @@ proof -
     qed
   }
   then have "\<exists>g \<in> M. \<forall>x \<in> M. g \<subseteq> x \<longrightarrow> x = g"
-  -- \<open>With Zorn's Lemma we can conclude that there is a maximal element in \<open>M\<close>. \<^smallskip>\<close>
+  \<comment> \<open>With Zorn's Lemma we can conclude that there is a maximal element in \<open>M\<close>. \<^smallskip>\<close>
   proof (rule Zorn's_Lemma)
-      -- \<open>We show that \<open>M\<close> is non-empty:\<close>
+      \<comment> \<open>We show that \<open>M\<close> is non-empty:\<close>
     show "graph F f \<in> M"
       unfolding M_def
     proof (rule norm_pres_extensionI2)
@@ -116,18 +116,18 @@ proof -
     and HE: "H \<unlhd> E" and FH: "F \<unlhd> H"
     and graphs: "graph F f \<subseteq> graph H h"
     and hp: "\<forall>x \<in> H. h x \<le> p x" unfolding M_def ..
-      -- \<open>\<open>g\<close> is a norm-preserving extension of \<open>f\<close>, in other words:\<close>
-      -- \<open>\<open>g\<close> is the graph of some linear form \<open>h\<close> defined on a subspace \<open>H\<close> of \<open>E\<close>,\<close>
-      -- \<open>and \<open>h\<close> is an extension of \<open>f\<close> that is again bounded by \<open>p\<close>. \<^smallskip>\<close>
+      \<comment> \<open>\<open>g\<close> is a norm-preserving extension of \<open>f\<close>, in other words:\<close>
+      \<comment> \<open>\<open>g\<close> is the graph of some linear form \<open>h\<close> defined on a subspace \<open>H\<close> of \<open>E\<close>,\<close>
+      \<comment> \<open>and \<open>h\<close> is an extension of \<open>f\<close> that is again bounded by \<open>p\<close>. \<^smallskip>\<close>
   from HE E have H: "vectorspace H"
     by (rule subspace.vectorspace)
 
   have HE_eq: "H = E"
-    -- \<open>We show that \<open>h\<close> is defined on whole \<open>E\<close> by classical contradiction. \<^smallskip>\<close>
+    \<comment> \<open>We show that \<open>h\<close> is defined on whole \<open>E\<close> by classical contradiction. \<^smallskip>\<close>
   proof (rule classical)
     assume neq: "H \<noteq> E"
-      -- \<open>Assume \<open>h\<close> is not defined on whole \<open>E\<close>. Then show that \<open>h\<close> can be extended\<close>
-      -- \<open>in a norm-preserving way to a function \<open>h'\<close> with the graph \<open>g'\<close>. \<^smallskip>\<close>
+      \<comment> \<open>Assume \<open>h\<close> is not defined on whole \<open>E\<close>. Then show that \<open>h\<close> can be extended\<close>
+      \<comment> \<open>in a norm-preserving way to a function \<open>h'\<close> with the graph \<open>g'\<close>. \<^smallskip>\<close>
     have "\<exists>g' \<in> M. g \<subseteq> g' \<and> g \<noteq> g'"
     proof -
       from HE have "H \<subseteq> E" ..
@@ -143,7 +143,7 @@ proof -
       qed
 
       def H' \<equiv> "H + lin x'"
-        -- \<open>Define \<open>H'\<close> as the direct sum of \<open>H\<close> and the linear closure of \<open>x'\<close>. \<^smallskip>\<close>
+        \<comment> \<open>Define \<open>H'\<close> as the direct sum of \<open>H\<close> and the linear closure of \<open>x'\<close>. \<^smallskip>\<close>
       have HH': "H \<unlhd> H'"
       proof (unfold H'_def)
         from x'E have "vectorspace (lin x')" ..
@@ -153,8 +153,8 @@ proof -
       obtain xi where
         xi: "\<forall>y \<in> H. - p (y + x') - h y \<le> xi
           \<and> xi \<le> p (y + x') - h y"
-        -- \<open>Pick a real number \<open>\<xi>\<close> that fulfills certain inequality; this will\<close>
-        -- \<open>be used to establish that \<open>h'\<close> is a norm-preserving extension of \<open>h\<close>.
+        \<comment> \<open>Pick a real number \<open>\<xi>\<close> that fulfills certain inequality; this will\<close>
+        \<comment> \<open>be used to establish that \<open>h'\<close> is a norm-preserving extension of \<open>h\<close>.
            \label{ex-xi-use}\<^smallskip>\<close>
       proof -
         from H have "\<exists>xi. \<forall>y \<in> H. - p (y + x') - h y \<le> xi
@@ -182,10 +182,10 @@ proof -
 
       def h' \<equiv> "\<lambda>x. let (y, a) =
           SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H in h y + a * xi"
-        -- \<open>Define the extension \<open>h'\<close> of \<open>h\<close> to \<open>H'\<close> using \<open>\<xi>\<close>. \<^smallskip>\<close>
+        \<comment> \<open>Define the extension \<open>h'\<close> of \<open>h\<close> to \<open>H'\<close> using \<open>\<xi>\<close>. \<^smallskip>\<close>
 
       have "g \<subseteq> graph H' h' \<and> g \<noteq> graph H' h'"
-        -- \<open>\<open>h'\<close> is an extension of \<open>h\<close> \dots \<^smallskip>\<close>
+        \<comment> \<open>\<open>h'\<close> is an extension of \<open>h\<close> \dots \<^smallskip>\<close>
       proof
         show "g \<subseteq> graph H' h'"
         proof -
@@ -222,7 +222,7 @@ proof -
         qed
       qed
       moreover have "graph H' h' \<in> M"
-        -- \<open>and \<open>h'\<close> is norm-preserving. \<^smallskip>\<close>
+        \<comment> \<open>and \<open>h'\<close> is norm-preserving. \<^smallskip>\<close>
       proof (unfold M_def)
         show "graph H' h' \<in> norm_pres_extensions E p F f"
         proof (rule norm_pres_extensionI2)
@@ -270,7 +270,7 @@ proof -
       ultimately show ?thesis ..
     qed
     then have "\<not> (\<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x)" by simp
-      -- \<open>So the graph \<open>g\<close> of \<open>h\<close> cannot be maximal. Contradiction! \<^smallskip>\<close>
+      \<comment> \<open>So the graph \<open>g\<close> of \<open>h\<close> cannot be maximal. Contradiction! \<^smallskip>\<close>
     with gx show "H = E" by contradiction
   qed
 
