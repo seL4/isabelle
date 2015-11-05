@@ -27,21 +27,21 @@ fixes insert :: "'a::linorder \<Rightarrow> 't \<Rightarrow> 't"
 fixes delete :: "'a \<Rightarrow> 't \<Rightarrow> 't"
 fixes isin :: "'t \<Rightarrow> 'a \<Rightarrow> bool"
 fixes inorder :: "'t \<Rightarrow> 'a list"
-fixes wf :: "'t \<Rightarrow> bool"
+fixes inv :: "'t \<Rightarrow> bool"
 assumes empty: "inorder empty = []"
-assumes isin: "wf t \<and> sorted(inorder t) \<Longrightarrow>
+assumes isin: "inv t \<and> sorted(inorder t) \<Longrightarrow>
   isin t x = (x \<in> elems (inorder t))"
-assumes insert: "wf t \<and> sorted(inorder t) \<Longrightarrow>
+assumes insert: "inv t \<and> sorted(inorder t) \<Longrightarrow>
   inorder(insert x t) = ins_list x (inorder t)"
-assumes delete: "wf t \<and> sorted(inorder t) \<Longrightarrow>
+assumes delete: "inv t \<and> sorted(inorder t) \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
-assumes wf_empty:  "wf empty"
-assumes wf_insert: "wf t \<and> sorted(inorder t) \<Longrightarrow> wf(insert x t)"
-assumes wf_delete: "wf t \<and> sorted(inorder t) \<Longrightarrow> wf(delete x t)"
+assumes inv_empty:  "inv empty"
+assumes inv_insert: "inv t \<and> sorted(inorder t) \<Longrightarrow> inv(insert x t)"
+assumes inv_delete: "inv t \<and> sorted(inorder t) \<Longrightarrow> inv(delete x t)"
 begin
 
 sublocale Set
-  empty insert delete isin "elems o inorder" "\<lambda>t. wf t \<and> sorted(inorder t)"
+  empty insert delete isin "elems o inorder" "\<lambda>t. inv t \<and> sorted(inorder t)"
 proof(standard, goal_cases)
   case 1 show ?case by (auto simp: empty)
 next
@@ -52,11 +52,11 @@ next
   case (4 s x) show ?case
     using delete[OF 4, of x] 4 by (auto simp: distinct_if_sorted)
 next
-  case 5 thus ?case by(simp add: empty wf_empty)
+  case 5 thus ?case by(simp add: empty inv_empty)
 next
-  case 6 thus ?case by(simp add: insert wf_insert sorted_ins_list)
+  case 6 thus ?case by(simp add: insert inv_insert sorted_ins_list)
 next
-  case 7 thus ?case by (auto simp: delete wf_delete sorted_del_list)
+  case 7 thus ?case by (auto simp: delete inv_delete sorted_del_list)
 qed
 
 end

@@ -119,7 +119,7 @@ subsubsection "Overall functional correctness"
 
 interpretation Set_by_Ordered
 where empty = Leaf and isin = isin and insert = insert and delete = delete
-and inorder = inorder and wf = "\<lambda>_. True"
+and inorder = inorder and inv = "\<lambda>_. True"
 proof (standard, goal_cases)
   case 1 show ?case by simp
 next

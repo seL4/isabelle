@@ -356,7 +356,7 @@ subsection \<open>Overall Correctness\<close>
 
 interpretation Set_by_Ordered
 where empty = Leaf and isin = isin and insert = insert and delete = delete
-and inorder = inorder and wf = bal
+and inorder = inorder and inv = bal
 proof (standard, goal_cases)
   case 2 thus ?case by(simp add: isin_set)
 next
