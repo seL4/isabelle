@@ -348,7 +348,7 @@
 \<some>                 code: 0x0003f5
 \<hole>                 code: 0x002311
 \<newline>              code: 0x0023ce
-\<comment>              code: 0x002015
+\<comment>              code: 0x002015  font: IsabelleText
 \<open>                 code: 0x002039  group: punctuation  font: IsabelleText  abbrev: <<
 \<close>                code: 0x00203a  group: punctuation  font: IsabelleText  abbrev: >>
 \<here>                 code: 0x002302  font: IsabelleText
