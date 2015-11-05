@@ -177,7 +177,7 @@ apply auto done
 
 section \<open>Alternative list definitions\<close>
 
-subsection \<open>Alternative rules for @{text length}\<close>
+subsection \<open>Alternative rules for \<open>length\<close>\<close>
 
 definition size_list' :: "'a list => nat"
 where "size_list' = size"
@@ -191,7 +191,7 @@ declare size_list'_simps[code_pred_def]
 declare size_list'_def[symmetric, code_pred_inline]
 
 
-subsection \<open>Alternative rules for @{text list_all2}\<close>
+subsection \<open>Alternative rules for \<open>list_all2\<close>\<close>
 
 lemma list_all2_NilI [code_pred_intro]: "list_all2 P [] []"
 by auto

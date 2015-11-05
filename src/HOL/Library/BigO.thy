@@ -16,20 +16,20 @@ O(h)$.  An earlier version of this library is described in detail in
 
 The main changes in this version are as follows:
 \begin{itemize}
-\item We have eliminated the @{text O} operator on sets. (Most uses of this seem
+\item We have eliminated the \<open>O\<close> operator on sets. (Most uses of this seem
   to be inessential.)
-\item We no longer use @{text "+"} as output syntax for @{text "+o"}
-\item Lemmas involving @{text "sumr"} have been replaced by more general lemmas
-  involving `@{text "setsum"}.
+\item We no longer use \<open>+\<close> as output syntax for \<open>+o\<close>
+\item Lemmas involving \<open>sumr\<close> have been replaced by more general lemmas
+  involving `\<open>setsum\<close>.
 \item The library has been expanded, with e.g.~support for expressions of
-  the form @{text "f < g + O(h)"}.
+  the form \<open>f < g + O(h)\<close>.
 \end{itemize}
 
 Note also since the Big O library includes rules that demonstrate set
 inclusion, to use the automated reasoners effectively with the library
-one should redeclare the theorem @{text "subsetI"} as an intro rule,
-rather than as an @{text "intro!"} rule, for example, using
-\isa{\isakeyword{declare}}~@{text "subsetI [del, intro]"}.
+one should redeclare the theorem \<open>subsetI\<close> as an intro rule,
+rather than as an \<open>intro!\<close> rule, for example, using
+\isa{\isakeyword{declare}}~\<open>subsetI [del, intro]\<close>.
 \<close>
 
 subsection \<open>Definitions\<close>

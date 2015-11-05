@@ -120,7 +120,7 @@ subsection \<open>Preliminaries\<close>
 subsubsection \<open>``Axiom'' of Dependent Choice\<close>
 
 primrec choice :: "('a => bool) => ('a * 'a) set => nat => 'a" where
-  --\<open>An integer-indexed chain of choices\<close>
+  \<comment>\<open>An integer-indexed chain of choices\<close>
     choice_0:   "choice P r 0 = (SOME x. P x)"
   | choice_Suc: "choice P r (Suc n) = (SOME y. P y & (choice P r n, y) \<in> r)"
 
@@ -157,7 +157,7 @@ qed
 subsubsection \<open>Partitions of a Set\<close>
 
 definition part :: "nat => nat => 'a set => ('a set => nat) => bool"
-  --\<open>the function @{term f} partitions the @{term r}-subsets of the typically
+  \<comment>\<open>the function @{term f} partitions the @{term r}-subsets of the typically
        infinite set @{term Y} into @{term s} distinct categories.\<close>
 where
   "part r s Y f = (\<forall>X. X \<subseteq> Y & finite X & card X = r --> f X < s)"

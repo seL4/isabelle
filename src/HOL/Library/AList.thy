@@ -18,7 +18,7 @@ text \<open>
   to establish the invariant, e.g. for inductive proofs.
 \<close>
 
-subsection \<open>@{text update} and @{text updates}\<close>
+subsection \<open>\<open>update\<close> and \<open>updates\<close>\<close>
 
 qualified primrec update :: "'key \<Rightarrow> 'val \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
@@ -163,7 +163,7 @@ lemma updates_append2_drop [simp]:
   by (induct xs arbitrary: ys al) (auto split: list.splits)
 
 
-subsection \<open>@{text delete}\<close>
+subsection \<open>\<open>delete\<close>\<close>
 
 qualified definition delete :: "'key \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
   where delete_eq: "delete k = filter (\<lambda>(k', _). k \<noteq> k')"
@@ -215,7 +215,7 @@ lemma length_delete_le: "length (delete k al) \<le> length al"
   by (simp add: delete_eq)
 
 
-subsection \<open>@{text update_with_aux} and @{text delete_aux}\<close>
+subsection \<open>\<open>update_with_aux\<close> and \<open>delete_aux\<close>\<close>
 
 qualified primrec update_with_aux :: "'val \<Rightarrow> 'key \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
@@ -296,7 +296,7 @@ lemma delete_aux_eq_Nil_conv: "delete_aux k ts = [] \<longleftrightarrow> ts = [
 by(cases ts)(auto split: split_if_asm)
 
 
-subsection \<open>@{text restrict}\<close>
+subsection \<open>\<open>restrict\<close>\<close>
 
 qualified definition restrict :: "'key set \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
   where restrict_eq: "restrict A = filter (\<lambda>(k, v). k \<in> A)"
@@ -380,7 +380,7 @@ lemma restr_delete_twist: "(restrict A (delete a ps)) = delete a (restrict A ps)
   by (induct ps) auto
 
 
-subsection \<open>@{text clearjunk}\<close>
+subsection \<open>\<open>clearjunk\<close>\<close>
 
 qualified function clearjunk  :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
@@ -464,7 +464,7 @@ lemma clearjunk_map:
     (simp_all add: clearjunk_delete delete_map assms)
 
 
-subsection \<open>@{text map_ran}\<close>
+subsection \<open>\<open>map_ran\<close>\<close>
 
 definition map_ran :: "('key \<Rightarrow> 'val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
   where "map_ran f = map (\<lambda>(k, v). (k, f k v))"
@@ -490,7 +490,7 @@ lemma clearjunk_map_ran: "clearjunk (map_ran f al) = map_ran f (clearjunk al)"
   by (simp add: map_ran_def split_def clearjunk_map)
 
 
-subsection \<open>@{text merge}\<close>
+subsection \<open>\<open>merge\<close>\<close>
 
 qualified definition merge :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
   where "merge qs ps = foldr (\<lambda>(k, v). update k v) ps qs"
@@ -558,7 +558,7 @@ lemma merge_append: "map_of (xs @ ys) = map_of (merge ys xs)"
   by (simp add: merge_conv')
 
 
-subsection \<open>@{text compose}\<close>
+subsection \<open>\<open>compose\<close>\<close>
 
 qualified function compose :: "('key \<times> 'a) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('key \<times> 'b) list"
 where
@@ -723,7 +723,7 @@ lemma map_comp_None_iff:
   by (simp add: compose_conv map_comp_None_iff)
 
 
-subsection \<open>@{text map_entry}\<close>
+subsection \<open>\<open>map_entry\<close>\<close>
 
 qualified fun map_entry :: "'key \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
@@ -745,7 +745,7 @@ lemma distinct_map_entry:
   using assms by (induct xs) (auto simp add: dom_map_entry)
 
 
-subsection \<open>@{text map_default}\<close>
+subsection \<open>\<open>map_default\<close>\<close>
 
 fun map_default :: "'key \<Rightarrow> 'val \<Rightarrow> ('val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where

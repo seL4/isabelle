@@ -21,7 +21,7 @@ typedef ('a, 'b) node = "Node :: ((nat => 'b + nat) * ('a + nat)) set"
   morphisms Rep_Node Abs_Node
   unfolding Node_def by auto
 
-text\<open>Datatypes will be represented by sets of type @{text node}\<close>
+text\<open>Datatypes will be represented by sets of type \<open>node\<close>\<close>
 
 type_synonym 'a item        = "('a, unit) node set"
 type_synonym ('a, 'b) dtree = "('a, 'b) node set"

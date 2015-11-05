@@ -14,7 +14,7 @@ begin
 text \<open>
 
 This should be part of @{theory Extended_Nat} or @{theory Order_Continuity}, but then the
-AFP-entry @{text "Jinja_Thread"} fails, as it does overload certain named from @{theory Complex_Main}.
+AFP-entry \<open>Jinja_Thread\<close> fails, as it does overload certain named from @{theory Complex_Main}.
 
 \<close>
 
@@ -3613,7 +3613,7 @@ lemma inverse_ereal_tendsto_pos:
   shows "inverse -- x --> inverse x"
 proof (cases x)
   case (real r)
-  with `0 < x` have **: "(\<lambda>x. ereal (inverse x)) -- r --> ereal (inverse r)"
+  with \<open>0 < x\<close> have **: "(\<lambda>x. ereal (inverse x)) -- r --> ereal (inverse r)"
     by (auto intro!: tendsto_inverse)
   from real \<open>0 < x\<close> show ?thesis
     by (auto simp: at_ereal tendsto_compose_filtermap[symmetric] eventually_at_filter

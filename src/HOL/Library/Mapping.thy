@@ -10,7 +10,7 @@ begin
 
 subsection \<open>Parametricity transfer rules\<close>
 
-lemma map_of_foldr: -- \<open>FIXME move\<close>
+lemma map_of_foldr: \<comment> \<open>FIXME move\<close>
   "map_of xs = foldr (\<lambda>(k, v) m. m(k \<mapsto> v)) xs Map.empty"
   using map_add_map_of_foldr [of Map.empty] by auto
 
@@ -107,7 +107,7 @@ lift_definition lookup :: "('a, 'b) mapping \<Rightarrow> 'a \<Rightarrow> 'b op
   is "\<lambda>m k. m k" parametric lookup_parametric .
 
 declare [[code drop: Mapping.lookup]]
-setup \<open>Code.add_default_eqn @{thm Mapping.lookup.abs_eq}\<close> -- \<open>FIXME lifting\<close>
+setup \<open>Code.add_default_eqn @{thm Mapping.lookup.abs_eq}\<close> \<comment> \<open>FIXME lifting\<close>
 
 lift_definition update :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping"
   is "\<lambda>k v m. m(k \<mapsto> v)" parametric update_parametric .

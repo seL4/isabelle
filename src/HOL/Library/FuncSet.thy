@@ -226,7 +226,7 @@ lemma restrict_Pi_cancel: "restrict x I \<in> Pi I A \<longleftrightarrow> x \<i
 
 subsection \<open>Bijections Between Sets\<close>
 
-text \<open>The definition of @{const bij_betw} is in @{text "Fun.thy"}, but most of
+text \<open>The definition of @{const bij_betw} is in \<open>Fun.thy\<close>, but most of
 the theorems belong here, or need at least @{term Hilbert_Choice}.\<close>
 
 lemma bij_betwI:

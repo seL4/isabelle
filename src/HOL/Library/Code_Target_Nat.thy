@@ -135,7 +135,7 @@ lemma [code abstract]:
   including integer.lifting by transfer auto
 
 lemma term_of_nat_code [code]:
-  -- \<open>Use @{term Code_Numeral.nat_of_integer} in term reconstruction
+  \<comment> \<open>Use @{term Code_Numeral.nat_of_integer} in term reconstruction
         instead of @{term Code_Target_Nat.Nat} such that reconstructed
         terms can be fed back to the code generator\<close>
   "term_of_class.term_of n =

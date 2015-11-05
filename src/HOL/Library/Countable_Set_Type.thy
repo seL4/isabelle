@@ -369,11 +369,11 @@ lemmas cUN_csingleton [simp] = UN_singleton[Transfer.transferred]
 
 subsection \<open>Additional lemmas\<close>
 
-subsubsection \<open>@{text cempty}\<close>
+subsubsection \<open>\<open>cempty\<close>\<close>
 
 lemma cemptyE [elim!]: "cin a cempty \<Longrightarrow> P" by simp
 
-subsubsection \<open>@{text cinsert}\<close>
+subsubsection \<open>\<open>cinsert\<close>\<close>
 
 lemma countable_insert_iff: "countable (insert x A) \<longleftrightarrow> countable A"
 by (metis Diff_eq_empty_iff countable_empty countable_insert subset_insertI uncountable_minus_countable)
@@ -386,7 +386,7 @@ using assms by transfer(erule Set.set_insert, simp add: countable_insert_iff)
 lemma mk_disjoint_cinsert: "cin a A \<Longrightarrow> \<exists>B. A = cinsert a B \<and> \<not> cin a B"
   by (rule exI[where x = "cDiff A (csingle a)"]) blast
 
-subsubsection \<open>@{text cimage}\<close>
+subsubsection \<open>\<open>cimage\<close>\<close>
 
 lemma subset_cimage_iff: "csubset_eq B (cimage f A) \<longleftrightarrow> (\<exists>AA. csubset_eq AA A \<and> B = cimage f AA)"
 by transfer (metis countable_subset image_mono mem_Collect_eq subset_imageE) 

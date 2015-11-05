@@ -11,8 +11,8 @@ begin
 
 text \<open>
   This theory defines sublist ordering on lists.
-  A list @{text ys} is a sublist of a list @{text xs},
-  iff one obtains @{text ys} by erasing some elements from @{text xs}.
+  A list \<open>ys\<close> is a sublist of a list \<open>xs\<close>,
+  iff one obtains \<open>ys\<close> by erasing some elements from \<open>xs\<close>.
 \<close>
 
 subsection \<open>Definitions and basic lemmas\<close>

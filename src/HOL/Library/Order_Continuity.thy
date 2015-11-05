@@ -29,8 +29,8 @@ lemma INF_nat_binary:
   done
 
 text \<open>
-  The name @{text continuous} is already taken in @{text "Complex_Main"}, so we use
-  @{text "sup_continuous"} and @{text "inf_continuous"}. These names appear sometimes in literature
+  The name \<open>continuous\<close> is already taken in \<open>Complex_Main\<close>, so we use
+  \<open>sup_continuous\<close> and \<open>inf_continuous\<close>. These names appear sometimes in literature
   and have the advantage that these names are duals.
 \<close>
 

@@ -15,8 +15,8 @@ text \<open>The following document presents a proof that the Continuum is
 uncountable. It is formalised in the Isabelle/Isar theorem proving
 system.
 
-{\em Theorem:} The Continuum @{text "\<real>"} is not denumerable. In other
-words, there does not exist a function @{text "f: \<nat> \<Rightarrow> \<real>"} such that f is
+{\em Theorem:} The Continuum \<open>\<real>\<close> is not denumerable. In other
+words, there does not exist a function \<open>f: \<nat> \<Rightarrow> \<real>\<close> such that f is
 surjective.
 
 {\em Outline:} An elegant informal proof of this result uses Cantor's
@@ -26,8 +26,7 @@ prove the Nested Interval Property. This property relies on the
 completeness of the Real numbers and is the foundation for our
 argument. Informally it states that an intersection of countable
 closed intervals (where each successive interval is a subset of the
-last) is non-empty. We then assume a surjective function @{text
-"f: \<nat> \<Rightarrow> \<real>"} exists and find a real x such that x is not in the range of f
+last) is non-empty. We then assume a surjective function \<open>f: \<nat> \<Rightarrow> \<real>\<close> exists and find a real x such that x is not in the range of f
 by generating a sequence of closed intervals then using the NIP.\<close>
 
 theorem real_non_denum: "\<not> (\<exists>f :: nat \<Rightarrow> real. surj f)"

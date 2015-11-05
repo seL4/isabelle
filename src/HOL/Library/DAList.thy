@@ -17,7 +17,7 @@ lemma distinct_map_fst_filter:
   by (induct xs) auto
 
 
-subsection \<open>Type @{text "('key, 'value) alist" }\<close>
+subsection \<open>Type \<open>('key, 'value) alist\<close>\<close>
 
 typedef ('key, 'value) alist = "{xs :: ('key \<times> 'value) list. (distinct \<circ> map fst) xs}"
   morphisms impl_of Alist

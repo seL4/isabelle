@@ -11,7 +11,7 @@ begin
 text \<open>
   This library lifts operations like addition and multiplication to
   sets.  It was designed to support asymptotic calculations. See the
-  comments at the top of theory @{text BigO}.
+  comments at the top of theory \<open>BigO\<close>.
 \<close>
 
 instantiation set :: (plus) plus

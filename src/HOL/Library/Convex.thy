@@ -883,7 +883,7 @@ proof (rule convex_on_linorderI)
   fix t x y :: real
   assume t: "t > 0" "t < 1" and xy: "x \<in> A" "y \<in> A" "x < y"
   def z \<equiv> "(1 - t) * x + t * y"
-  with `connected A` and xy have ivl: "{x..y} \<subseteq> A" using connected_contains_Icc by blast
+  with \<open>connected A\<close> and xy have ivl: "{x..y} \<subseteq> A" using connected_contains_Icc by blast
   
   from xy t have xz: "z > x" by (simp add: z_def algebra_simps)
   have "y - z = (1 - t) * (y - x)" by (simp add: z_def algebra_simps)

@@ -1323,7 +1323,7 @@ lemma fps_mult_XD_shift:
 
 subsubsection \<open>Rule 3\<close>
 
-text \<open>Rule 3 is trivial and is given by @{text fps_times_def}.\<close>
+text \<open>Rule 3 is trivial and is given by \<open>fps_times_def\<close>.\<close>
 
 
 subsubsection \<open>Rule 5 --- summation and "division" by (1 - X)\<close>
@@ -3774,7 +3774,7 @@ proof
         unfolding eventually_nhds
         apply clarsimp
         apply (rule FalseE)
-        apply auto -- \<open>slow\<close>
+        apply auto \<comment> \<open>slow\<close>
         done
       then obtain i where "inverse (2 ^ i) < e"
         by (auto simp: eventually_sequentially)

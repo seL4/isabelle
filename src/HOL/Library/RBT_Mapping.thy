@@ -100,11 +100,11 @@ subsection \<open>Data type and invariant\<close>
 text \<open>
   The type @{typ "('k, 'v) RBT_Impl.rbt"} denotes red-black trees with
   keys of type @{typ "'k"} and values of type @{typ "'v"}. To function
-  properly, the key type musorted belong to the @{text "linorder"}
+  properly, the key type musorted belong to the \<open>linorder\<close>
   class.
 
   A value @{term t} of this type is a valid red-black tree if it
-  satisfies the invariant @{text "is_rbt t"}.  The abstract type @{typ
+  satisfies the invariant \<open>is_rbt t\<close>.  The abstract type @{typ
   "('k, 'v) rbt"} always obeys this invariant, and for this reason you
   should only use this in our application.  Going back to @{typ "('k,
   'v) RBT_Impl.rbt"} may be necessary in proofs if not yet proven
@@ -155,25 +155,25 @@ subsection \<open>Invariant preservation\<close>
 
 text \<open>
   \noindent
-  @{thm Empty_is_rbt}\hfill(@{text "Empty_is_rbt"})
+  @{thm Empty_is_rbt}\hfill(\<open>Empty_is_rbt\<close>)
 
   \noindent
-  @{thm rbt_insert_is_rbt}\hfill(@{text "rbt_insert_is_rbt"})
+  @{thm rbt_insert_is_rbt}\hfill(\<open>rbt_insert_is_rbt\<close>)
 
   \noindent
-  @{thm rbt_delete_is_rbt}\hfill(@{text "delete_is_rbt"})
+  @{thm rbt_delete_is_rbt}\hfill(\<open>delete_is_rbt\<close>)
 
   \noindent
-  @{thm rbt_bulkload_is_rbt}\hfill(@{text "bulkload_is_rbt"})
+  @{thm rbt_bulkload_is_rbt}\hfill(\<open>bulkload_is_rbt\<close>)
 
   \noindent
-  @{thm rbt_map_entry_is_rbt}\hfill(@{text "map_entry_is_rbt"})
+  @{thm rbt_map_entry_is_rbt}\hfill(\<open>map_entry_is_rbt\<close>)
 
   \noindent
-  @{thm map_is_rbt}\hfill(@{text "map_is_rbt"})
+  @{thm map_is_rbt}\hfill(\<open>map_is_rbt\<close>)
 
   \noindent
-  @{thm rbt_union_is_rbt}\hfill(@{text "union_is_rbt"})
+  @{thm rbt_union_is_rbt}\hfill(\<open>union_is_rbt\<close>)
 \<close>
 
 
@@ -181,27 +181,27 @@ subsection \<open>Map Semantics\<close>
 
 text \<open>
   \noindent
-  \underline{@{text "lookup_empty"}}
+  \underline{\<open>lookup_empty\<close>}
   @{thm [display] lookup_empty}
   \vspace{1ex}
 
   \noindent
-  \underline{@{text "lookup_insert"}}
+  \underline{\<open>lookup_insert\<close>}
   @{thm [display] lookup_insert}
   \vspace{1ex}
 
   \noindent
-  \underline{@{text "lookup_delete"}}
+  \underline{\<open>lookup_delete\<close>}
   @{thm [display] lookup_delete}
   \vspace{1ex}
 
   \noindent
-  \underline{@{text "lookup_bulkload"}}
+  \underline{\<open>lookup_bulkload\<close>}
   @{thm [display] lookup_bulkload}
   \vspace{1ex}
 
   \noindent
-  \underline{@{text "lookup_map"}}
+  \underline{\<open>lookup_map\<close>}
   @{thm [display] lookup_map}
   \vspace{1ex}
 \<close>

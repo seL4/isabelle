@@ -51,7 +51,7 @@ them, because incorrect choices of weights might render a problem unsolvable.
 definition weight :: "int \<Rightarrow> bool \<Rightarrow> bool" where "weight _ P = P"
 
 text \<open>
-Weights must be non-negative.  The value @{text 0} is equivalent to providing
+Weights must be non-negative.  The value \<open>0\<close> is equivalent to providing
 no weight at all.
 
 Weights should only be used at quantifiers and only inside triggers (if the
@@ -150,7 +150,7 @@ subsection \<open>Configuration\<close>
 
 text \<open>
 The current configuration can be printed by the command
-@{text old_smt_status}, which shows the values of most options.
+\<open>old_smt_status\<close>, which shows the values of most options.
 \<close>
 
 
@@ -158,14 +158,14 @@ The current configuration can be printed by the command
 subsection \<open>General configuration options\<close>
 
 text \<open>
-The option @{text old_smt_solver} can be used to change the target SMT
-solver.  The possible values can be obtained from the @{text old_smt_status}
+The option \<open>old_smt_solver\<close> can be used to change the target SMT
+solver.  The possible values can be obtained from the \<open>old_smt_status\<close>
 command.
 
 Due to licensing restrictions, Yices and Z3 are not installed/enabled
 by default.  Z3 is free for non-commercial applications and can be enabled
-by setting the @{text OLD_Z3_NON_COMMERCIAL} environment variable to
-@{text yes}.
+by setting the \<open>OLD_Z3_NON_COMMERCIAL\<close> environment variable to
+\<open>yes\<close>.
 \<close>
 
 declare [[ old_smt_solver = z3 ]]
@@ -242,7 +242,7 @@ declare [[ monomorph_max_new_instances = 500 ]]
 subsection \<open>Certificates\<close>
 
 text \<open>
-By setting the option @{text old_smt_certificates} to the name of a file,
+By setting the option \<open>old_smt_certificates\<close> to the name of a file,
 all following applications of an SMT solver a cached in that file.
 Any further application of the same SMT solver (using the very same
 configuration) re-uses the cached certificate instead of invoking the
@@ -250,7 +250,7 @@ solver.  An empty string disables caching certificates.
 
 The filename should be given as an explicit path.  It is good
 practice to use the name of the current theory (with ending
-@{text ".certs"} instead of @{text ".thy"}) as the certificates file.
+\<open>.certs\<close> instead of \<open>.thy\<close>) as the certificates file.
 Certificate files should be used at most once in a certain theory context,
 to avoid race conditions with other concurrent accesses.
 \<close>
@@ -258,11 +258,11 @@ to avoid race conditions with other concurrent accesses.
 declare [[ old_smt_certificates = "" ]]
 
 text \<open>
-The option @{text old_smt_read_only_certificates} controls whether only
+The option \<open>old_smt_read_only_certificates\<close> controls whether only
 stored certificates are should be used or invocation of an SMT solver
-is allowed.  When set to @{text true}, no SMT solver will ever be
+is allowed.  When set to \<open>true\<close>, no SMT solver will ever be
 invoked and only the existing certificates found in the configured
-cache are used;  when set to @{text false} and there is no cached
+cache are used;  when set to \<open>false\<close> and there is no cached
 certificate for some proposition, then the configured SMT solver is
 invoked.
 \<close>
@@ -275,7 +275,7 @@ subsection \<open>Tracing\<close>
 
 text \<open>
 The SMT method, when applied, traces important information.  To
-make it entirely silent, set the following option to @{text false}.
+make it entirely silent, set the following option to \<open>false\<close>.
 \<close>
 
 declare [[ old_smt_verbose = true ]]
@@ -283,7 +283,7 @@ declare [[ old_smt_verbose = true ]]
 text \<open>
 For tracing the generated problem file given to the SMT solver as
 well as the returned result of the solver, the option
-@{text old_smt_trace} should be set to @{text true}.
+\<open>old_smt_trace\<close> should be set to \<open>true\<close>.
 \<close>
 
 declare [[ old_smt_trace = false ]]
@@ -292,7 +292,7 @@ text \<open>
 From the set of assumptions given to the SMT solver, those assumptions
 used in the proof are traced when the following option is set to
 @{term true}.  This only works for Z3 when it runs in non-oracle mode
-(see options @{text old_smt_solver} and @{text old_smt_oracle} above).
+(see options \<open>old_smt_solver\<close> and \<open>old_smt_oracle\<close> above).
 \<close>
 
 declare [[ old_smt_trace_used_facts = false ]]
@@ -304,9 +304,9 @@ subsection \<open>Schematic rules for Z3 proof reconstruction\<close>
 text \<open>
 Several prof rules of Z3 are not very well documented.  There are two
 lemma groups which can turn failing Z3 proof reconstruction attempts
-into succeeding ones: the facts in @{text z3_rule} are tried prior to
+into succeeding ones: the facts in \<open>z3_rule\<close> are tried prior to
 any implemented reconstruction procedure for all uncertain Z3 proof
-rules;  the facts in @{text z3_simp} are only fed to invocations of
+rules;  the facts in \<open>z3_simp\<close> are only fed to invocations of
 the simplifier when reconstructing theory-specific proof steps.
 \<close>
 
