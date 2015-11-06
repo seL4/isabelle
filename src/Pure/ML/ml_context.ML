@@ -170,7 +170,8 @@ fun eval_antiquotes (ants, pos) opt_context =
                   in (decl #> tokenize range, ctxt') end
                 else (K ([], [tok]), ctxt)
             | expand (Antiquote.Control {name, range, body}) ctxt =
-                expand_src range (Token.src name [Token.read_cartouche body]) ctxt
+                expand_src range
+                  (Token.src name (if null body then [] else [Token.read_cartouche body])) ctxt
             | expand (Antiquote.Antiq {range, body, ...}) ctxt =
                 expand_src range
                   (Token.read_antiq (Thy_Header.get_keywords' ctxt) antiq (body, #1 range)) ctxt;

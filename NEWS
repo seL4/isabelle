@@ -79,9 +79,14 @@ works better with GUI scaling for very high-resolution displays (e.g.
 
 * There is a new short form for antiquotations with a single argument
 that is a cartouche: \<^name>\<open>...\<close> is equivalent to @{name \<open>...\<close>} and
-\<open>...\<close> without control symbol is equivalent to @{cartouche \<open>...\<close>}. The
+\<open>...\<close> without control symbol is equivalent to @{cartouche \<open>...\<close>}.
+\<^name> without following cartouche is equivalent to @{name}. The
 standard Isabelle fonts provide glyphs to render important control
 symbols, e.g. "\<^verbatim>", "\<^emph>", "\<^bold>".
+
+* Antiquotations @{noindent}, @{smallskip}, @{medskip}, @{bigskip} with
+corresponding control symbols \<^noindent>, \<^smallskip>, \<^medskip>, \<^bigskip> specify spacing formally, using
+standard LaTeX macros of the same names.
 
 * System option "document_symbols" determines completion of Isabelle
 symbols within document source.
@@ -112,13 +117,6 @@ follows:
   \<^item>  itemize
   \<^enum>  enumerate
   \<^descr>  description
-
-* Text may contain control symbols for markup and formatting as follows:
-
-  \<^noindent>   \noindent
-  \<^smallskip>   \smallskip
-  \<^medskip>   \medskip
-  \<^bigskip>   \bigskip
 
 * Command 'text_raw' has been clarified: input text is processed as in
 'text' (with antiquotations and control symbols). The key difference is

@@ -134,13 +134,16 @@ text \<open>
   surrounding \<^verbatim>\<open>@{\<close>\<open>\<dots>\<close>\<^verbatim>\<open>}\<close>) works for a single
   argument that is a cartouche.
 
-  Omitting the control symbol is also possible: a cartouche without special
-  decoration is equivalent to \<^verbatim>\<open>\<^cartouche>\<close>\<open>\<open>argument_content\<close>\<close>, which
-  is equivalent to \<^verbatim>\<open>@{cartouche\<close>~\<open>\<open>argument_content\<close>\<close>\<^verbatim>\<open>}\<close>. The
-  special name @{antiquotation_def cartouche} is defined in the context:
-  Isabelle/Pure introduces that as an alias to @{antiquotation_ref text}
-  (see below). Consequently, \<open>\<open>foo_bar + baz \<le> bazar\<close>\<close> prints literal
-  quasi-formal text (unchecked).
+  A cartouche without special decoration is equivalent to
+  \<^verbatim>\<open>\<^cartouche>\<close>\<open>\<open>argument_content\<close>\<close>, which is equivalent to
+  \<^verbatim>\<open>@{cartouche\<close>~\<open>\<open>argument_content\<close>\<close>\<^verbatim>\<open>}\<close>. The special name
+  @{antiquotation_def cartouche} is defined in the context: Isabelle/Pure
+  introduces that as an alias to @{antiquotation_ref text} (see below).
+  Consequently, \<open>\<open>foo_bar + baz \<le> bazar\<close>\<close> prints literal quasi-formal text
+  (unchecked).
+
+  A control symbol \<^verbatim>\<open>\\<close>\<^verbatim>\<open><^\<close>\<open>name\<close>\<^verbatim>\<open>>\<close> within the body text, but without a
+  subsequent cartouche, is equivalent to \<^verbatim>\<open>@{\<close>\<open>name\<close>\<^verbatim>\<open>}\<close>.
 
   \begingroup
   \def\isasymcontrolstart{\isatt{\isacharbackslash\isacharless\isacharcircum}}

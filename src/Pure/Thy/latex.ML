@@ -10,7 +10,6 @@ sig
   val output_known_symbols: (string -> bool) * (string -> bool) ->
     Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
-  val output_ctrl_symbols: Symbol.symbol list -> string
   val output_token: Token.T -> string
   val begin_delim: string -> string
   val end_delim: string -> string
@@ -99,11 +98,6 @@ fun output_known_sym (known_sym, known_ctrl) sym =
   | Symbol.Malformed s => error (Symbol.malformed_msg s)
   | Symbol.EOF => error "Bad EOF symbol");
 
-fun output_ctrl_sym sym =
-  (case Symbol.decode sym of
-    Symbol.Control s => enclose "\\isactrl" " " s
-  | _ => sym);
-
 in
 
 val output_known_symbols = implode oo (map o output_known_sym);
@@ -118,8 +112,6 @@ val output_syms_antiq =
     | Antiquote.Antiq {body, ...} =>
         enclose "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n"
           (output_symbols (map Symbol_Pos.symbol body)));
-
-val output_ctrl_symbols = implode o map output_ctrl_sym;
 
 end;
 

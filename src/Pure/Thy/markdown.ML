@@ -19,9 +19,9 @@ Notable differences to official Markdown:
 
 signature MARKDOWN =
 sig
-  val is_control: Symbol.symbol -> bool
   datatype kind = Itemize | Enumerate | Description
   val print_kind: kind -> string
+  val is_control: Symbol.symbol -> bool
   type line
   val line_source: line -> Antiquote.text_antiquote list
   val line_is_item: line -> bool
@@ -39,15 +39,20 @@ end;
 structure Markdown: MARKDOWN =
 struct
 
-(* document lines *)
-
-val is_control = member (op =) ["\\<^item>", "\\<^enum>", "\\<^descr>"];
+(* item kinds *)
 
 datatype kind = Itemize | Enumerate | Description;
 
 fun print_kind Itemize = "itemize"
   | print_kind Enumerate = "enumerate"
   | print_kind Description = "description";
+
+val kinds = [("item", Itemize), ("enum", Enumerate), ("descr", Description)];
+
+val is_control = member (op =) ["\\<^item>", "\\<^enum>", "\\<^descr>"];
+
+
+(* document lines *)
 
 datatype line =
   Line of
@@ -84,19 +89,22 @@ fun check_blanks source =
 fun is_space ((s, _): Symbol_Pos.T) = s = Symbol.space;
 val is_empty = forall (fn Antiquote.Text ss => forall is_space ss | _ => false);
 
-val scan_marker =
-  Scan.many is_space -- Symbol_Pos.scan_pos --
-  Scan.option
-   (Symbol_Pos.$$ "\\<^item>" >> K Itemize ||
-    Symbol_Pos.$$ "\\<^enum>" >> K Enumerate ||
-    Symbol_Pos.$$ "\\<^descr>" >> K Description) --| Scan.many is_space
-  >> (fn ((sp, pos), item) => (length sp, item, if is_some item then pos else Position.none));
+fun strip_spaces (Antiquote.Text ss :: rest) =
+      let val (sp, ss') = take_prefix is_space ss
+      in (length sp, if null ss' then rest else Antiquote.Text ss' :: rest) end
+  | strip_spaces source = (0, source);
 
-fun read_marker (Antiquote.Text ss :: rest) =
-      (case Scan.finite Symbol_Pos.stopper scan_marker ss of
-        (marker, []) => (marker, rest)
-      | (marker, ss') => (marker, Antiquote.Text ss' :: rest))
-  | read_marker source = ((0, NONE, Position.none), source);
+fun read_marker source =
+  let val (indent, source') = strip_spaces source in
+    (case source' of
+      (control as Antiquote.Control {name = (name, pos), body = [], ...}) :: rest =>
+        let
+          val item = AList.lookup (op =) kinds name;
+          val item_pos = if is_some item then pos else Position.none;
+          val (_, rest') = strip_spaces (if is_some item then rest else control :: rest);
+        in ((indent, item, item_pos), rest') end
+    | _ => ((indent, NONE, Position.none), source'))
+  end;
 
 in
 

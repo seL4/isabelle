@@ -177,7 +177,7 @@ in
 
 fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
   | eval_antiquote state (Antiquote.Control {name, body, ...}) =
-      eval_antiq state ([], Token.src name [Token.read_cartouche body])
+      eval_antiq state ([], Token.src name (if null body then [] else [Token.read_cartouche body]))
   | eval_antiquote state (Antiquote.Antiq {range = (pos, _), body, ...}) =
       let
         val keywords =
@@ -202,8 +202,7 @@ fun output_text state {markdown} source =
           {symbols = Options.default_bool "document_symbols", delimited = Input.is_delimited source});
     val syms = Input.source_explode source;
 
-    val output_antiquote = eval_antiquote state #> Symbol.explode #> Latex.output_ctrl_symbols;
-    val output_antiquotes = map output_antiquote #> implode;
+    val output_antiquotes = map (eval_antiquote state) #> implode;
 
     fun output_line line =
       (if Markdown.line_is_item line then "\\item " else "") ^
@@ -603,6 +602,16 @@ fun output ctxt prts =
 
 
 (** concrete antiquotations **)
+
+(* control spacing *)
+
+val _ =
+  Theory.setup
+   (antiquotation @{binding noindent} (Scan.succeed ()) (fn _ => fn () => "\\noindent") #>
+    antiquotation @{binding smallskip} (Scan.succeed ()) (fn _ => fn () => "\\smallskip") #>
+    antiquotation @{binding medskip} (Scan.succeed ()) (fn _ => fn () => "\\medskip") #>
+    antiquotation @{binding bigskip} (Scan.succeed ()) (fn _ => fn () => "\\bigskip"));
+
 
 (* control style *)
 
