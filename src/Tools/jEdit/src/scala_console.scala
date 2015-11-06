@@ -137,7 +137,7 @@ class Scala_Console extends Shell("Scala")
 
   private class Interpreter
   {
-    private val running = Synchronized(None: Option[Thread])
+    private val running = Synchronized[Option[Thread]](None)
     def interrupt { running.change(opt => { opt.foreach(_.interrupt); opt }) }
 
     private val settings = new GenericRunnerSettings(report_error)

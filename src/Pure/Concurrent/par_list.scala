@@ -13,7 +13,7 @@ object Par_List
   def managed_results[A, B](f: A => B, xs: List[A]): List[Exn.Result[B]] =
     if (xs.isEmpty || xs.tail.isEmpty) xs.map(x => Exn.capture { f(x) })
     else {
-      val state = Synchronized((List.empty[Future[B]], false))
+      val state = Synchronized[(List[Future[B]], Boolean)]((Nil, false))
 
       def cancel_other(self: Int = -1): Unit =
         state.change { case (futures, canceled) =>

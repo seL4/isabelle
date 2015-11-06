@@ -156,7 +156,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph)
 
   object Selection
   {
-    private val state = Synchronized(List.empty[Graph_Display.Node])
+    private val state = Synchronized[List[Graph_Display.Node]](Nil)
 
     def get(): List[Graph_Display.Node] = state.value
     def contains(node: Graph_Display.Node): Boolean = get().contains(node)

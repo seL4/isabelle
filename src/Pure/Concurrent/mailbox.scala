@@ -17,7 +17,7 @@ object Mailbox
 
 class Mailbox[A] private()
 {
-  private val mailbox = Synchronized(List.empty[A])
+  private val mailbox = Synchronized[List[A]](Nil)
   override def toString: String = mailbox.value.reverse.mkString("Mailbox(", ",", ")")
 
   def send(msg: A): Unit = mailbox.change(msg :: _)

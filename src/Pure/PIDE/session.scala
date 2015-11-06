@@ -24,7 +24,7 @@ object Session
 
   class Outlet[A](dispatcher: Consumer_Thread[() => Unit])
   {
-    private val consumers = Synchronized(List.empty[Consumer[A]])
+    private val consumers = Synchronized[List[Consumer[A]]](Nil)
 
     def += (c: Consumer[A]) { consumers.change(Library.update(c)) }
     def -= (c: Consumer[A]) { consumers.change(Library.remove(c)) }
@@ -330,7 +330,7 @@ class Session(val resources: Resources)
 
   private object prover
   {
-    private val variable = Synchronized(None: Option[Prover])
+    private val variable = Synchronized[Option[Prover]](None)
 
     def defined: Boolean = variable.value.isDefined
     def get: Prover = variable.value.get
