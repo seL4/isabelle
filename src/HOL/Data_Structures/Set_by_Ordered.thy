@@ -47,10 +47,10 @@ proof(standard, goal_cases)
 next
   case 2 thus ?case by(simp add: isin)
 next
-  case 3 thus ?case by(simp add: insert)
+  case 3 thus ?case by(simp add: insert set_ins_list)
 next
-  case (4 s x) show ?case
-    using delete[OF 4, of x] 4 by (auto simp: distinct_if_sorted)
+  case (4 s x) thus ?case
+    using delete[OF 4, of x] by (auto simp: distinct_if_sorted elems_del_list_eq)
 next
   case 5 thus ?case by(simp add: empty inv_empty)
 next
