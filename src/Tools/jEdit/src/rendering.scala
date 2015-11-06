@@ -115,7 +115,6 @@ object Rendering
       ML_Lex.Kind.CHAR -> LITERAL2,
       ML_Lex.Kind.STRING -> LITERAL1,
       ML_Lex.Kind.SPACE -> NULL,
-      ML_Lex.Kind.CARTOUCHE -> COMMENT4,
       ML_Lex.Kind.COMMENT -> COMMENT1,
       ML_Lex.Kind.ANTIQ -> NULL,
       ML_Lex.Kind.ANTIQ_START -> LITERAL4,

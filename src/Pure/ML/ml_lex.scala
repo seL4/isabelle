@@ -50,7 +50,6 @@ object ML_Lex
     val CHAR = Value("character")
     val STRING = Value("quoted string")
     val SPACE = Value("white space")
-    val CARTOUCHE = Value("text cartouche")
     val COMMENT = Value("comment text")
     val CONTROL = Value("control symbol antiquotation")
     val ANTIQ = Value("antiquotation")
@@ -135,15 +134,6 @@ object ML_Lex
     }
 
 
-    /* ML cartouche */
-
-    private val ml_cartouche: Parser[Token] =
-      cartouche ^^ (x => Token(Kind.CARTOUCHE, x))
-
-    private def ml_cartouche_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
-      cartouche_line(ctxt) ^^ { case (x, c) => (Token(Kind.CARTOUCHE, x), c) }
-
-
     /* ML comment */
 
     private val ml_comment: Parser[Token] =
@@ -156,7 +146,7 @@ object ML_Lex
     /* delimited token */
 
     private def delimited_token: Parser[Token] =
-      ml_char | (ml_string | (ml_cartouche | ml_comment))
+      ml_char | (ml_string | ml_comment)
 
     private val recover_delimited: Parser[Token] =
       (recover_ml_char | (recover_ml_string | (recover_cartouche | recover_comment))) ^^
@@ -217,7 +207,7 @@ object ML_Lex
 
       val bad = one(_ => true) ^^ (x => Token(Kind.ERROR, x))
 
-      space | (recover_delimited | (ml_control | (ml_antiq |
+      space | (ml_control | (recover_delimited | (ml_antiq |
         (((word | (real | (int | (long_ident | (ident | type_var))))) ||| keyword) | bad))))
     }
 
@@ -259,9 +249,8 @@ object ML_Lex
       if (SML) ml_string_line(ctxt) | (ml_comment_line(ctxt) | other)
       else
         ml_string_line(ctxt) |
-          (ml_cartouche_line(ctxt) |
-            (ml_comment_line(ctxt) |
-              (ml_antiq_start(ctxt) | (ml_antiq_stop(ctxt) | (ml_antiq_body(ctxt) | other)))))
+          (ml_comment_line(ctxt) |
+            (ml_antiq_start(ctxt) | (ml_antiq_stop(ctxt) | (ml_antiq_body(ctxt) | other))))
     }
   }
 
@@ -292,4 +281,3 @@ object ML_Lex
     (toks.toList, ctxt)
   }
 }
-
