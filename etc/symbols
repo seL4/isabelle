@@ -326,6 +326,7 @@
 \<ordfeminine>          code: 0x0000aa
 \<ordmasculine>         code: 0x0000ba
 \<section>              code: 0x0000a7
+\<paragraph>            code: 0x0000b6
 \<exclamdown>           code: 0x0000a1
 \<questiondown>         code: 0x0000bf
 \<euro>                 code: 0x0020ac
@@ -359,7 +360,7 @@
 \<^item>                code: 0x0025aa  group: control  font: IsabelleText
 \<^enum>                code: 0x0025b8  group: control  font: IsabelleText
 \<^descr>               code: 0x0027a7  group: control  font: IsabelleText
-\<^footnote>            code: 0x0000b6  group: control
+\<^footnote>            code: 0x00204b  group: control  font: IsabelleText
 \<^verbatim>            code: 0x0025a9  group: control  font: IsabelleText
 \<^emph>                code: 0x002217  group: control  font: IsabelleText
 \<^bold>                code: 0x002759  group: control  font: IsabelleText
