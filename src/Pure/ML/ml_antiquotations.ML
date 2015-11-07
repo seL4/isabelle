@@ -12,9 +12,8 @@ struct
 val _ = Theory.setup
  (ML_Antiquotation.value @{binding cartouche}
     (Args.context -- Scan.lift (Parse.position Args.cartouche_input) >> (fn (ctxt, (source, pos)) =>
-      (Context_Position.report ctxt pos Markup.ML_cartouche;
-        "Input.source true " ^ ML_Syntax.print_string (Input.text_of source) ^ " " ^
-          ML_Syntax.atomic (ML_Syntax.print_range (Input.range_of source))))) #>
+      "Input.source true " ^ ML_Syntax.print_string (Input.text_of source) ^ " " ^
+        ML_Syntax.atomic (ML_Syntax.print_range (Input.range_of source)))) #>
 
   ML_Antiquotation.inline @{binding undefined}
     (Scan.succeed "(raise General.Match)") #>
