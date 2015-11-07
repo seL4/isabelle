@@ -292,12 +292,17 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* completion */
 
-  def semantic_completion(range: Text.Range): Option[Text.Info[Completion.Semantic]] =
+  def semantic_completion(completed_range: Option[Text.Range], range: Text.Range)
+      : Option[Text.Info[Completion.Semantic]] =
     if (snapshot.is_outdated) None
     else {
       snapshot.select(range, Rendering.semantic_completion_elements, _ =>
         {
-          case Completion.Semantic.Info(info) => Some(info)
+          case Completion.Semantic.Info(info) =>
+            completed_range match {
+              case Some(range0) if range0.contains(info.range) && range0 != info.range => None
+              case _ => Some(info)
+            }
           case _ => None
         }).headOption.map(_.info)
     }
