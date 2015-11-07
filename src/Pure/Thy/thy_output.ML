@@ -196,10 +196,7 @@ end;
 fun output_text state {markdown} source =
   let
     val pos = Input.pos_of source;
-    val _ =
-      Position.report pos
-        (Markup.language_document
-          {symbols = Options.default_bool "document_symbols", delimited = Input.is_delimited source});
+    val _ = Position.report pos (Markup.language_document (Input.is_delimited source));
     val syms = Input.source_explode source;
 
     val output_antiquotes = map (eval_antiquote state) #> implode;

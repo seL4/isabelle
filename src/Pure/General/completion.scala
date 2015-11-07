@@ -246,8 +246,8 @@ object Completion
   {
     override val whiteSpace = "".r
 
-    private val symbol_regex: Regex = """\\<\^?[A-Za-z0-9_']+>""".r
-    def is_symbol(s: CharSequence): Boolean = symbol_regex.pattern.matcher(s).matches
+    private val symboloid_regex: Regex = """\\([A-Za-z0-9_']+|<\^?[A-Za-z0-9_']+>)""".r
+    def is_symboloid(s: CharSequence): Boolean = symboloid_regex.pattern.matcher(s).matches
 
     private def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+\^?<\\""".r
     private def reverse_symb: Parser[String] = """[A-Za-z0-9_']{2,}\^?<\\""".r
@@ -401,10 +401,7 @@ final class Completion private(
             case (abbr, _) :: _ =>
               val ok =
                 if (abbr == Completion.antiquote) language_context.antiquotes
-                else
-                  language_context.symbols ||
-                  Completion.default_abbrs.exists(_._1 == abbr) ||
-                  Completion.Word_Parsers.is_symbol(abbr)
+                else language_context.symbols || Completion.default_abbrs.exists(_._1 == abbr)
               if (ok) Some((abbr, abbrevs))
               else None
           }
@@ -434,7 +431,7 @@ final class Completion private(
                     complete_word <- complete_words
                     ok =
                       if (is_keyword(complete_word)) !word_context && language_context.is_outer
-                      else language_context.symbols
+                      else language_context.symbols || Completion.Word_Parsers.is_symboloid(word)
                     if ok
                     completion <- words_map.get_list(complete_word)
                   } yield (complete_word, completion)
@@ -448,6 +445,7 @@ final class Completion private(
         val immediate =
           explicit ||
             (!Completion.Word_Parsers.is_word(original) &&
+             !Completion.Word_Parsers.is_symboloid(original) &&
               Character.codePointCount(original, 0, original.length) > 1)
         val unique = completions.length == 1
 

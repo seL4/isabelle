@@ -164,5 +164,3 @@ section "Completion"
 public option completion_limit : int = 40
   -- "limit for completion within the formal context"
 
-public option document_symbols : bool = false
-  -- "completion of Isabelle symbols within document source"

@@ -29,6 +29,10 @@ to update old sources.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Completion of symbols via prefix of \<name> or \<^name> or \name is
+always possible, independently of the language context. It is never
+implicit: a popup will show up unconditionally.
+
 * Improved scheduling for urgent print tasks (e.g. command state output,
 interactive queries) wrt. long-running background tasks.
 
@@ -87,9 +91,6 @@ symbols, e.g. "\<^verbatim>", "\<^emph>", "\<^bold>".
 * Antiquotations @{noindent}, @{smallskip}, @{medskip}, @{bigskip} with
 corresponding control symbols \<^noindent>, \<^smallskip>, \<^medskip>, \<^bigskip> specify spacing formally, using
 standard LaTeX macros of the same names.
-
-* System option "document_symbols" determines completion of Isabelle
-symbols within document source.
 
 * Antiquotation @{cartouche} in Isabelle/Pure is the same as @{text}.
 Consequently, \<open>...\<close> without any decoration prints literal quasi-formal

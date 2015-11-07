@@ -36,7 +36,7 @@ sig
   val language_prop: bool -> T
   val language_ML: bool -> T
   val language_SML: bool -> T
-  val language_document: {symbols: bool, delimited: bool} -> T
+  val language_document: bool -> T
   val language_antiquotation: T
   val language_text: bool -> T
   val language_rail: T
@@ -309,8 +309,7 @@ val language_term = language' {name = "term", symbols = true, antiquotes = false
 val language_prop = language' {name = "prop", symbols = true, antiquotes = false};
 val language_ML = language' {name = "ML", symbols = false, antiquotes = true};
 val language_SML = language' {name = "SML", symbols = false, antiquotes = false};
-fun language_document {symbols, delimited} =
-  language' {name = "document", symbols = symbols, antiquotes = true} delimited;
+val language_document = language' {name = "document", symbols = false, antiquotes = true};
 val language_antiquotation =
   language {name = "antiquotation", symbols = true, antiquotes = false, delimited = true};
 val language_text = language' {name = "text", symbols = true, antiquotes = false};
