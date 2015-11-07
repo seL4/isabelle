@@ -16,6 +16,9 @@ val _ = Theory.setup
         "Input.source true " ^ ML_Syntax.print_string (Input.text_of source) ^ " " ^
           ML_Syntax.atomic (ML_Syntax.print_range (Input.range_of source))))) #>
 
+  ML_Antiquotation.inline @{binding undefined}
+    (Scan.succeed "(raise General.Match)") #>
+
   ML_Antiquotation.inline @{binding assert}
     (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
 

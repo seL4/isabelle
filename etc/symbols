@@ -353,6 +353,7 @@
 \<open>                 code: 0x002039  group: punctuation  font: IsabelleText  abbrev: <<
 \<close>                code: 0x00203a  group: punctuation  font: IsabelleText  abbrev: >>
 \<here>                 code: 0x002302  font: IsabelleText
+\<^undefined>           code: 0x002756  group: control  font: IsabelleText
 \<^noindent>            code: 0x0021e4  group: control  font: IsabelleText
 \<^smallskip>           code: 0x002508  group: control  font: IsabelleText
 \<^medskip>             code: 0x002509  group: control  font: IsabelleText
