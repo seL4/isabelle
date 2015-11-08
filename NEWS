@@ -543,10 +543,14 @@ the proof context discipline.
 
 *** System ***
 
+* Global session timeout is multiplied by timeout_scale factor. This
+allows to adjust large-scale tests (e.g. AFP) to overall hardware
+performance.
+
 * Property values in etc/symbols may contain spaces, if written with the
 replacement character "␣" (Unicode point 0x2324).  For example:
 
-  \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
+    \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
 
 * Command-line tool "isabelle update_then" expands old Isar command
 conflations:

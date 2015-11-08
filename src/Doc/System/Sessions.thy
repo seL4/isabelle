@@ -202,11 +202,16 @@ text \<open>
     extraordinary theories, which are meant to be enabled explicitly via some
     shell prefix \<^verbatim>\<open>env ISABELLE_FULL_TEST=true\<close> before invoking @{tool build}.
 
-    \<^item> @{system_option_def "timeout"} specifies a real wall-clock timeout (in
-    seconds) for the session as a whole. The timer is controlled outside the
-    ML process by the JVM that runs Isabelle/Scala. Thus it is relatively
-    reliable in canceling processes that get out of control, even if there is
-    a deadlock without CPU time usage.
+    \<^item> @{system_option_def "timeout"} and @{system_option_def "timeout_scale"}
+    specify a real wall-clock timeout for the session as a whole: the two
+    values are multiplied and taken as the number of seconds. Typically,
+    @{system_option "timeout"} is given for individual sessions, and
+    @{system_option "timeout_scale"} as global adjustment to overall hardware
+    performance.
+
+    The timer is controlled outside the ML process by the JVM that runs
+    Isabelle/Scala. Thus it is relatively reliable in canceling processes that
+    get out of control, even if there is a deadlock without CPU time usage.
 
   The @{tool_def options} tool prints Isabelle system options. Its
   command-line usage is:
@@ -315,11 +320,11 @@ text \<open>
   The build process depends on additional options
   (\secref{sec:system-options}) that are passed to the prover eventually. The
   settings variable @{setting_ref ISABELLE_BUILD_OPTIONS} allows to provide
-  additional defaults, e.g.\ \<^verbatim>\<open>ISABELLE_BUILD_OPTIONS="document=pdf
-  threads=4"\<close>. Moreover, the environment of system build options may be
-  augmented on the command line via \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=\<close>\<open>value\<close> or \<^verbatim>\<open>-o\<close>~\<open>name\<close>,
-  which abbreviates \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=true\<close> for Boolean options. Multiple
-  occurrences of \<^verbatim>\<open>-o\<close> on the command-line are applied in the given order.
+  additional defaults, e.g.\ \<^verbatim>\<open>ISABELLE_BUILD_OPTIONS="document=pdf threads=4"\<close>.
+  Moreover, the environment of system build options may be augmented on the
+  command line via \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=\<close>\<open>value\<close> or \<^verbatim>\<open>-o\<close>~\<open>name\<close>, which abbreviates
+  \<^verbatim>\<open>-o\<close>~\<open>name\<close>\<^verbatim>\<open>=true\<close> for Boolean options. Multiple occurrences of \<^verbatim>\<open>-o\<close> on
+  the command-line are applied in the given order.
 
   \<^medskip>
   Option \<^verbatim>\<open>-b\<close> ensures that heap images are produced for all selected
