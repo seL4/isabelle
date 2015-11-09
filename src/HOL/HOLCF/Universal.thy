@@ -836,7 +836,7 @@ qed
 
 end
 
-interpretation compact_basis!:
+interpretation compact_basis:
   ideal_completion below Rep_compact_basis
     "approximants :: 'a::bifinite \<Rightarrow> 'a compact_basis set"
 proof -

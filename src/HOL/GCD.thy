@@ -104,7 +104,7 @@ lemma is_unit_gcd [simp]:
   "is_unit (gcd a b) \<longleftrightarrow> coprime a b"
   by (cases "a = 0 \<and> b = 0") (auto simp add: unit_factor_gcd dest: is_unit_unit_factor)
 
-sublocale gcd!: abel_semigroup gcd
+sublocale gcd: abel_semigroup gcd
 proof
   fix a b c
   show "gcd a b = gcd b a"
@@ -256,7 +256,7 @@ lemma unit_factor_lcm :
   "unit_factor (lcm a b) = (if a = 0 \<or> b = 0 then 0 else 1)"
   by (simp add: unit_factor_gcd dvd_unit_factor_div lcm_gcd)
 
-sublocale lcm!: abel_semigroup lcm
+sublocale lcm: abel_semigroup lcm
 proof
   fix a b c
   show "lcm a b = lcm b a"

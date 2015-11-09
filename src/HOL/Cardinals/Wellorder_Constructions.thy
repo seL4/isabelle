@@ -932,8 +932,8 @@ assumes r: "Well_order r" and s: "Well_order s"
 and f: "\<And> a. a \<in> Field r \<Longrightarrow> f a \<in> Field s \<and> f ` underS r a \<subseteq> underS s (f a)"
 shows "\<exists> g. embed r s g"
 proof-
-  interpret r!: wo_rel r by unfold_locales (rule r)
-  interpret s!: wo_rel s by unfold_locales (rule s)
+  interpret r: wo_rel r by unfold_locales (rule r)
+  interpret s: wo_rel s by unfold_locales (rule s)
   let ?G = "\<lambda> g a. suc s (g ` underS r a)"
   def g \<equiv> "worec r ?G"
   have adm: "adm_wo r ?G" unfolding r.adm_wo_def image_def by auto

@@ -94,7 +94,7 @@ lemmas monoid_record_simps = partial_object.simps monoid.simps
 text \<open>Transfer facts from multiplicative structures via interpretation.\<close>
 
 sublocale abelian_monoid <
-  add!: monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  add: monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
@@ -112,7 +112,7 @@ lemmas minus_unique = add.inv_unique
 end
 
 sublocale abelian_monoid <
-  add!: comm_monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  add: comm_monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
@@ -168,7 +168,7 @@ lemmas finsum_singleton = add.finprod_singleton
 end
 
 sublocale abelian_group <
-  add!: group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  add: group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
@@ -196,7 +196,7 @@ lemmas minus_equality = add.inv_equality
 end
 
 sublocale abelian_group <
-  add!: comm_group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  add: comm_group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"

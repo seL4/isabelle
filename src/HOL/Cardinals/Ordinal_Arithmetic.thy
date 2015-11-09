@@ -498,8 +498,8 @@ locale wo_rel2 =
   and     sWELL: "Well_order s"
 begin
 
-interpretation r!: wo_rel r by unfold_locales (rule rWELL)
-interpretation s!: wo_rel s by unfold_locales (rule sWELL)
+interpretation r: wo_rel r by unfold_locales (rule rWELL)
+interpretation s: wo_rel s by unfold_locales (rule sWELL)
 
 abbreviation "SUPP \<equiv> support r.zero (Field s)"
 abbreviation "FINFUNC \<equiv> FinFunc r s"
@@ -1134,8 +1134,8 @@ proof -
   moreover
   from *(2,4) have "compat ?L ?R ?f" unfolding compat_def osum_def map_prod_def by fastforce
   moreover
-  interpret t!: wo_rel t by unfold_locales (rule t)
-  interpret rt!: wo_rel ?R by unfold_locales (rule osum_Well_order[OF r t])
+  interpret t: wo_rel t by unfold_locales (rule t)
+  interpret rt: wo_rel ?R by unfold_locales (rule osum_Well_order[OF r t])
   from *(3) have "ofilter ?R (?f ` Field ?L)"
     unfolding t.ofilter_def rt.ofilter_def Field_osum image_Un image_image under_def
     by (auto simp: osum_def intro!: imageI) (auto simp: Field_def)
@@ -1200,8 +1200,8 @@ proof -
   from *(2,4) the_inv_into_f_f[OF *(1)] have "compat ?L ?R ?f" unfolding compat_def oprod_def
     by auto (metis well_order_on_domain t, metis well_order_on_domain s)
   moreover
-  interpret t!: wo_rel t by unfold_locales (rule t)
-  interpret rt!: wo_rel ?R by unfold_locales (rule oprod_Well_order[OF r t])
+  interpret t: wo_rel t by unfold_locales (rule t)
+  interpret rt: wo_rel ?R by unfold_locales (rule oprod_Well_order[OF r t])
   from *(3) have "ofilter ?R (?f ` Field ?L)"
     unfolding t.ofilter_def rt.ofilter_def Field_oprod under_def
     by (auto simp: oprod_def image_iff) (fast | metis r well_order_on_domain)+
@@ -1277,12 +1277,12 @@ lemma oexp_monoR:
   assumes "oone <o r" "s <o t"
   shows   "r ^o s <o r ^o t" (is "?L <o ?R")
 proof -
-  interpret rs!: wo_rel2 r s by unfold_locales (rule r, rule s)
-  interpret rt!: wo_rel2 r t by unfold_locales (rule r, rule t)
-  interpret rexpt!: wo_rel "r ^o t" by unfold_locales (rule rt.oexp_Well_order)
-  interpret r!: wo_rel r by unfold_locales (rule r)
-  interpret s!: wo_rel s by unfold_locales (rule s)
-  interpret t!: wo_rel t by unfold_locales (rule t)
+  interpret rs: wo_rel2 r s by unfold_locales (rule r, rule s)
+  interpret rt: wo_rel2 r t by unfold_locales (rule r, rule t)
+  interpret rexpt: wo_rel "r ^o t" by unfold_locales (rule rt.oexp_Well_order)
+  interpret r: wo_rel r by unfold_locales (rule r)
+  interpret s: wo_rel s by unfold_locales (rule s)
+  interpret t: wo_rel t by unfold_locales (rule t)
   have "Field r \<noteq> {}" by (metis assms(1) internalize_ordLess not_psubset_empty)
   moreover
   { assume "Field r = {r.zero}"
@@ -1388,11 +1388,11 @@ lemma oexp_monoL:
   assumes "r \<le>o s"
   shows   "r ^o t \<le>o s ^o t"
 proof -
-  interpret rt!: wo_rel2 r t by unfold_locales (rule r, rule t)
-  interpret st!: wo_rel2 s t by unfold_locales (rule s, rule t)
-  interpret r!: wo_rel r by unfold_locales (rule r)
-  interpret s!: wo_rel s by unfold_locales (rule s)
-  interpret t!: wo_rel t by unfold_locales (rule t)
+  interpret rt: wo_rel2 r t by unfold_locales (rule r, rule t)
+  interpret st: wo_rel2 s t by unfold_locales (rule s, rule t)
+  interpret r: wo_rel r by unfold_locales (rule r)
+  interpret s: wo_rel s by unfold_locales (rule s)
+  interpret t: wo_rel t by unfold_locales (rule t)
   show ?thesis
   proof (cases "t = {}")
     case True thus ?thesis using r s unfolding ordLeq_def2 underS_def by auto
@@ -1453,9 +1453,9 @@ lemma ordLeq_oexp2:
   assumes "oone <o r"
   shows   "s \<le>o r ^o s"
 proof -
-  interpret rs!: wo_rel2 r s by unfold_locales (rule r, rule s)
-  interpret r!: wo_rel r by unfold_locales (rule r)
-  interpret s!: wo_rel s by unfold_locales (rule s)
+  interpret rs: wo_rel2 r s by unfold_locales (rule r, rule s)
+  interpret r: wo_rel r by unfold_locales (rule r)
+  interpret s: wo_rel s by unfold_locales (rule s)
   from assms well_order_on_domain[OF r] obtain x where
     x: "x \<in> Field r" "r.zero \<in> Field r" "x \<noteq> r.zero"
     unfolding ordLess_def oone_def embedS_def[abs_def] bij_betw_def embed_def under_def
@@ -1511,9 +1511,9 @@ lemma max_fun_diff_eq_Inl:
     "case_sum f1 g1 \<in> FinFunc r (s +o t)" "case_sum f2 g2 \<in> FinFunc r (s +o t)"
   shows "wo_rel.max_fun_diff s f1 f2 = x" (is ?P) "g1 = g2" (is ?Q)
 proof -
-  interpret st!: wo_rel "s +o t" by unfold_locales (rule osum_Well_order[OF s t])
-  interpret s!: wo_rel s by unfold_locales (rule s)
-  interpret rst!: wo_rel2 r "s +o t" by unfold_locales (rule r, rule osum_Well_order[OF s t])
+  interpret st: wo_rel "s +o t" by unfold_locales (rule osum_Well_order[OF s t])
+  interpret s: wo_rel s by unfold_locales (rule s)
+  interpret rst: wo_rel2 r "s +o t" by unfold_locales (rule r, rule osum_Well_order[OF s t])
   from assms(1) have *: "st.isMaxim {a \<in> Field (s +o t). case_sum f1 g1 a \<noteq> case_sum f2 g2 a} (Inl x)"
     using rst.isMaxim_max_fun_diff[OF assms(2-4)] by simp
   hence "s.isMaxim {a \<in> Field s. f1 a \<noteq> f2 a} x"
@@ -1535,9 +1535,9 @@ lemma max_fun_diff_eq_Inr:
     "case_sum f1 g1 \<in> FinFunc r (s +o t)" "case_sum f2 g2 \<in> FinFunc r (s +o t)"
   shows "wo_rel.max_fun_diff t g1 g2 = x" (is ?P) "g1 \<noteq> g2" (is ?Q)
 proof -
-  interpret st!: wo_rel "s +o t" by unfold_locales (rule osum_Well_order[OF s t])
-  interpret t!: wo_rel t by unfold_locales (rule t)
-  interpret rst!: wo_rel2 r "s +o t" by unfold_locales (rule r, rule osum_Well_order[OF s t])
+  interpret st: wo_rel "s +o t" by unfold_locales (rule osum_Well_order[OF s t])
+  interpret t: wo_rel t by unfold_locales (rule t)
+  interpret rst: wo_rel2 r "s +o t" by unfold_locales (rule r, rule osum_Well_order[OF s t])
   from assms(1) have *: "st.isMaxim {a \<in> Field (s +o t). case_sum f1 g1 a \<noteq> case_sum f2 g2 a} (Inr x)"
     using rst.isMaxim_max_fun_diff[OF assms(2-4)] by simp
   hence "t.isMaxim {a \<in> Field t. g1 a \<noteq> g2 a} x"
@@ -1548,9 +1548,9 @@ qed
 
 lemma oexp_osum: "r ^o (s +o t) =o (r ^o s) *o (r ^o t)" (is "?R =o ?L")
 proof (rule ordIso_symmetric)
-  interpret rst!: wo_rel2 r "s +o t" by unfold_locales (rule r, rule osum_Well_order[OF s t])
-  interpret rs!: wo_rel2 r s by unfold_locales (rule r, rule s)
-  interpret rt!: wo_rel2 r t by unfold_locales (rule r, rule t)
+  interpret rst: wo_rel2 r "s +o t" by unfold_locales (rule r, rule osum_Well_order[OF s t])
+  interpret rs: wo_rel2 r s by unfold_locales (rule r, rule s)
+  interpret rt: wo_rel2 r t by unfold_locales (rule r, rule t)
   let ?f = "\<lambda>(f, g). case_sum f g"
   have "bij_betw ?f (Field ?L) (Field ?R)"
   unfolding bij_betw_def rst.Field_oexp rs.Field_oexp rt.Field_oexp Field_oprod proof (intro conjI)
@@ -1581,8 +1581,8 @@ lemma rev_curr_FinFunc:
   assumes Field: "Field r \<noteq> {}"
   shows "rev_curr ` (FinFunc r (s *o t)) = FinFunc (r ^o s) t"
 proof safe
-  interpret rs!: wo_rel2 r s by unfold_locales (rule r, rule s)
-  interpret rst!: wo_rel2 "r ^o s" t by unfold_locales (rule oexp_Well_order[OF r s], rule t)
+  interpret rs: wo_rel2 r s by unfold_locales (rule r, rule s)
+  interpret rst: wo_rel2 "r ^o s" t by unfold_locales (rule oexp_Well_order[OF r s], rule t)
   fix g assume g: "g \<in> FinFunc r (s *o t)"
   hence "finite (rst.SUPP (rev_curr g))" "\<forall>x \<in> Field t. finite (rs.SUPP (rev_curr g x))"
     unfolding FinFunc_def Field_oprod rs.Field_oexp Func_def fin_support_def support_def
@@ -1591,8 +1591,8 @@ proof safe
     unfolding FinFunc_def Field_oprod rs.Field_oexp Func_def
     by (auto simp: rev_curr_def fin_support_def)
 next
-  interpret rs!: wo_rel2 r s by unfold_locales (rule r, rule s)
-  interpret rst!: wo_rel2 "r ^o s" t by unfold_locales (rule oexp_Well_order[OF r s], rule t)
+  interpret rs: wo_rel2 r s by unfold_locales (rule r, rule s)
+  interpret rst: wo_rel2 "r ^o s" t by unfold_locales (rule oexp_Well_order[OF r s], rule t)
   fix fg assume *: "fg \<in> FinFunc (r ^o s) t"
   let ?g = "\<lambda>(a, b). if (a, b) \<in> Field (s *o t) then fg b a else undefined"
   show "fg \<in> rev_curr ` FinFunc r (s *o t)"
@@ -1631,12 +1631,12 @@ lemma max_fun_diff_oprod:
   shows "wo_rel.max_fun_diff (s *o t) f g =
     (wo_rel.max_fun_diff s (rev_curr f m) (rev_curr g m), m)"
 proof -
-  interpret st!: wo_rel "s *o t" by unfold_locales (rule oprod_Well_order[OF s t])
-  interpret s!: wo_rel s by unfold_locales (rule s)
-  interpret t!: wo_rel t by unfold_locales (rule t)
-  interpret r_st!: wo_rel2 r "s *o t" by unfold_locales (rule r, rule oprod_Well_order[OF s t])
-  interpret rs!: wo_rel2 r s by unfold_locales (rule r, rule s)
-  interpret rst!: wo_rel2 "r ^o s" t by unfold_locales (rule oexp_Well_order[OF r s], rule t)
+  interpret st: wo_rel "s *o t" by unfold_locales (rule oprod_Well_order[OF s t])
+  interpret s: wo_rel s by unfold_locales (rule s)
+  interpret t: wo_rel t by unfold_locales (rule t)
+  interpret r_st: wo_rel2 r "s *o t" by unfold_locales (rule r, rule oprod_Well_order[OF s t])
+  interpret rs: wo_rel2 r s by unfold_locales (rule r, rule s)
+  interpret rst: wo_rel2 "r ^o s" t by unfold_locales (rule oexp_Well_order[OF r s], rule t)
   from fun_unequal_in_support[OF assms(2), of "Field (s *o t)" "Field r" "Field r"] assms(3,4)
     have diff1: "rev_curr f \<noteq> rev_curr g"
       "rev_curr f \<in> FinFunc (r ^o s) t" "rev_curr g \<in> FinFunc (r ^o s) t" using rev_curr_FinFunc[OF Field]
@@ -1668,8 +1668,8 @@ qed
 lemma oexp_oexp: "(r ^o s) ^o t =o r ^o (s *o t)" (is "?R =o ?L")
 proof (cases "r = {}")
   case True
-  interpret rs!: wo_rel2 r s by unfold_locales (rule r, rule s)
-  interpret rst!: wo_rel2 "r ^o s" t by unfold_locales (rule oexp_Well_order[OF r s], rule t)
+  interpret rs: wo_rel2 r s by unfold_locales (rule r, rule s)
+  interpret rst: wo_rel2 "r ^o s" t by unfold_locales (rule oexp_Well_order[OF r s], rule t)
   show ?thesis
   proof (cases "s = {} \<or> t = {}")
     case True with `r = {}` show ?thesis
@@ -1687,9 +1687,9 @@ next
   hence Field: "Field r \<noteq> {}" by (metis Field_def Range_empty_iff Un_empty)
   show ?thesis
   proof (rule ordIso_symmetric)
-    interpret r_st!: wo_rel2 r "s *o t" by unfold_locales (rule r, rule oprod_Well_order[OF s t])
-    interpret rs!: wo_rel2 r s by unfold_locales (rule r, rule s)
-    interpret rst!: wo_rel2 "r ^o s" t by unfold_locales (rule oexp_Well_order[OF r s], rule t)
+    interpret r_st: wo_rel2 r "s *o t" by unfold_locales (rule r, rule oprod_Well_order[OF s t])
+    interpret rs: wo_rel2 r s by unfold_locales (rule r, rule s)
+    interpret rst: wo_rel2 "r ^o s" t by unfold_locales (rule oexp_Well_order[OF r s], rule t)
     have bij: "bij_betw rev_curr (Field ?L) (Field ?R)"
     unfolding bij_betw_def r_st.Field_oexp rst.Field_oexp Field_oprod proof (intro conjI)
       show "inj_on rev_curr (FinFunc r (s *o t))"

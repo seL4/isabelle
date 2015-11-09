@@ -318,12 +318,12 @@ definition Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>\<^sub>f\<^sub>i\<^s
 where
   "Inf_fin = semilattice_set.F inf"
 
-sublocale Inf_fin!: semilattice_order_set inf less_eq less
+sublocale Inf_fin: semilattice_order_set inf less_eq less
 rewrites
   "semilattice_set.F inf = Inf_fin"
 proof -
   show "semilattice_order_set inf less_eq less" ..
-  then interpret Inf_fin!: semilattice_order_set inf less_eq less .
+  then interpret Inf_fin: semilattice_order_set inf less_eq less .
   from Inf_fin_def show "semilattice_set.F inf = Inf_fin" by rule
 qed
 
@@ -336,12 +336,12 @@ definition Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>\<^sub>f\<^sub>i\<^s
 where
   "Sup_fin = semilattice_set.F sup"
 
-sublocale Sup_fin!: semilattice_order_set sup greater_eq greater
+sublocale Sup_fin: semilattice_order_set sup greater_eq greater
 rewrites
   "semilattice_set.F sup = Sup_fin"
 proof -
   show "semilattice_order_set sup greater_eq greater" ..
-  then interpret Sup_fin!: semilattice_order_set sup greater_eq greater .
+  then interpret Sup_fin: semilattice_order_set sup greater_eq greater .
   from Sup_fin_def show "semilattice_set.F sup = Sup_fin" by rule
 qed
 
@@ -490,16 +490,16 @@ definition Max :: "'a set \<Rightarrow> 'a"
 where
   "Max = semilattice_set.F max"
 
-sublocale Min!: semilattice_order_set min less_eq less
-  + Max!: semilattice_order_set max greater_eq greater
+sublocale Min: semilattice_order_set min less_eq less
+  + Max: semilattice_order_set max greater_eq greater
 rewrites
   "semilattice_set.F min = Min"
   and "semilattice_set.F max = Max"
 proof -
   show "semilattice_order_set min less_eq less" by standard (auto simp add: min_def)
-  then interpret Min!: semilattice_order_set min less_eq less .
+  then interpret Min: semilattice_order_set min less_eq less .
   show "semilattice_order_set max greater_eq greater" by standard (auto simp add: max_def)
-  then interpret Max!: semilattice_order_set max greater_eq greater .
+  then interpret Max: semilattice_order_set max greater_eq greater .
   from Min_def show "semilattice_set.F min = Min" by rule
   from Max_def show "semilattice_set.F max = Max" by rule
 qed
@@ -530,14 +530,14 @@ lemma dual_max:
 lemma dual_Min:
   "linorder.Min greater_eq = Max"
 proof -
-  interpret dual!: linorder greater_eq greater by (fact dual_linorder)
+  interpret dual: linorder greater_eq greater by (fact dual_linorder)
   show ?thesis by (simp add: dual.Min_def dual_min Max_def)
 qed
 
 lemma dual_Max:
   "linorder.Max greater_eq = Min"
 proof -
-  interpret dual!: linorder greater_eq greater by (fact dual_linorder)
+  interpret dual: linorder greater_eq greater by (fact dual_linorder)
   show ?thesis by (simp add: dual.Max_def dual_max Min_def)
 qed
 

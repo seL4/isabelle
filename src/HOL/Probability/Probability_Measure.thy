@@ -46,7 +46,7 @@ qed
 lemma prob_space_distrD:
   assumes f: "f \<in> measurable M N" and M: "prob_space (distr M N f)" shows "prob_space M"
 proof
-  interpret M!: prob_space "distr M N f" by fact
+  interpret M: prob_space "distr M N f" by fact
   have "f -` space N \<inter> space M = space M"
     using f[THEN measurable_space] by auto
   then show "emeasure M (space M) = 1"

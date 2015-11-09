@@ -709,7 +709,7 @@ qed
 lemma lborel_distr_plus: "distr lborel borel (op + c) = (lborel :: real measure)"
   by (subst lborel_real_affine[of 1 c]) (auto simp: density_1 one_ereal_def[symmetric])
 
-interpretation lborel!: sigma_finite_measure lborel
+interpretation lborel: sigma_finite_measure lborel
   by (rule sigma_finite_lborel)
 
 interpretation lborel_pair: pair_sigma_finite lborel lborel ..

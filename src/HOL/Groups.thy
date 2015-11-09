@@ -131,7 +131,7 @@ class semigroup_add = plus +
   assumes add_assoc [algebra_simps, field_simps]: "(a + b) + c = a + (b + c)"
 begin
 
-sublocale add!: semigroup plus
+sublocale add: semigroup plus
   by standard (fact add_assoc)
 
 end
@@ -142,7 +142,7 @@ class ab_semigroup_add = semigroup_add +
   assumes add_commute [algebra_simps, field_simps]: "a + b = b + a"
 begin
 
-sublocale add!: abel_semigroup plus
+sublocale add: abel_semigroup plus
   by standard (fact add_commute)
 
 declare add.left_commute [algebra_simps, field_simps]
@@ -159,7 +159,7 @@ class semigroup_mult = times +
   assumes mult_assoc [algebra_simps, field_simps]: "(a * b) * c = a * (b * c)"
 begin
 
-sublocale mult!: semigroup times
+sublocale mult: semigroup times
   by standard (fact mult_assoc)
 
 end
@@ -170,7 +170,7 @@ class ab_semigroup_mult = semigroup_mult +
   assumes mult_commute [algebra_simps, field_simps]: "a * b = b * a"
 begin
 
-sublocale mult!: abel_semigroup times
+sublocale mult: abel_semigroup times
   by standard (fact mult_commute)
 
 declare mult.left_commute [algebra_simps, field_simps]
@@ -188,7 +188,7 @@ class monoid_add = zero + semigroup_add +
     and add_0_right: "a + 0 = a"
 begin
 
-sublocale add!: monoid plus 0
+sublocale add: monoid plus 0
   by standard (fact add_0_left add_0_right)+
 
 end
@@ -203,7 +203,7 @@ begin
 subclass monoid_add
   by standard (simp_all add: add_0 add.commute [of _ 0])
 
-sublocale add!: comm_monoid plus 0
+sublocale add: comm_monoid plus 0
   by standard (simp add: ac_simps)
 
 end
@@ -213,7 +213,7 @@ class monoid_mult = one + semigroup_mult +
     and mult_1_right: "a * 1 = a"
 begin
 
-sublocale mult!: monoid times 1
+sublocale mult: monoid times 1
   by standard (fact mult_1_left mult_1_right)+
 
 end
@@ -228,7 +228,7 @@ begin
 subclass monoid_mult
   by standard (simp_all add: mult_1 mult.commute [of _ 1])
 
-sublocale mult!: comm_monoid times 1
+sublocale mult: comm_monoid times 1
   by standard (simp add: ac_simps)
 
 end

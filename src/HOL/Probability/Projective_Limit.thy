@@ -469,7 +469,7 @@ hide_const (open) proj
 hide_const (open) domain
 hide_const (open) basis_finmap
 
-sublocale polish_projective \<subseteq> P!: prob_space lim
+sublocale polish_projective \<subseteq> P: prob_space lim
 proof
   have *: "emb I {} {\<lambda>x. undefined} = space (\<Pi>\<^sub>M i\<in>I. borel)"
     by (auto simp: prod_emb_def space_PiM)

@@ -26,10 +26,10 @@ locale boolean =
   assumes disj_cancel_right [simp]: "x \<squnion> \<sim> x = \<one>"
 begin
 
-sublocale conj!: abel_semigroup conj
+sublocale conj: abel_semigroup conj
   by standard (fact conj_assoc conj_commute)+
 
-sublocale disj!: abel_semigroup disj
+sublocale disj: abel_semigroup disj
   by standard (fact disj_assoc disj_commute)+
 
 lemmas conj_left_commute = conj.left_commute
@@ -190,7 +190,7 @@ locale boolean_xor = boolean +
   assumes xor_def: "x \<oplus> y = (x \<sqinter> \<sim> y) \<squnion> (\<sim> x \<sqinter> y)"
 begin
 
-sublocale xor!: abel_semigroup xor
+sublocale xor: abel_semigroup xor
 proof
   fix x y z :: 'a
   let ?t = "(x \<sqinter> y \<sqinter> z) \<squnion> (x \<sqinter> \<sim> y \<sqinter> \<sim> z) \<squnion>

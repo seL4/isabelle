@@ -238,7 +238,7 @@ lemma gcdI:
   shows "c = gcd a b"
   by (rule associated_eqI) (auto simp: assms intro: gcd_greatest)
 
-sublocale gcd!: abel_semigroup gcd
+sublocale gcd: abel_semigroup gcd
 proof
   fix a b c 
   show "gcd (gcd a b) c = gcd a (gcd b c)"
@@ -790,7 +790,7 @@ lemma lcmI:
   shows "c = lcm a b"
   by (rule associated_eqI) (auto simp: assms intro: lcm_least)
 
-sublocale lcm!: abel_semigroup lcm ..
+sublocale lcm: abel_semigroup lcm ..
 
 lemma dvd_lcm_D1:
   "lcm m n dvd k \<Longrightarrow> m dvd k"

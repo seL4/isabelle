@@ -97,7 +97,7 @@ proof (safe elim!: generator.cases)
     by simp
 qed (force simp: generator.simps prod_emb_empty[symmetric])
 
-interpretation generator!: algebra "space (PiM I M)" generator
+interpretation generator: algebra "space (PiM I M)" generator
   by (rule algebra_generator)
 
 lemma sets_PiM_generator: "sets (PiM I M) = sigma_sets (space (PiM I M)) generator"
@@ -407,7 +407,7 @@ lemma up_to_mono: "J \<subseteq> H \<Longrightarrow> finite H \<Longrightarrow> 
 definition CI :: "nat set \<Rightarrow> (nat \<Rightarrow> 'a) measure" where
   "CI J = distr (C 0 (up_to J) (\<lambda>x. undefined)) (PiM J M) (\<lambda>f. restrict f J)"
 
-sublocale PF!: projective_family UNIV CI
+sublocale PF: projective_family UNIV CI
   unfolding projective_family_def
 proof safe
   show "finite J \<Longrightarrow> prob_space (CI J)" for J
@@ -460,7 +460,7 @@ proof (rule PF.emeasure_lim[OF J subset_UNIV X])
   also have "\<dots> \<le> (INF i. C 0 i (\<lambda>x. undefined) (X i))"
   proof (intro INF_greatest)
     fix n
-    interpret C!: prob_space "C 0 n (\<lambda>x. undefined)"
+    interpret C: prob_space "C 0 n (\<lambda>x. undefined)"
       by (rule prob_space_C) simp
     show "(INF i. CI (J i) (X' i)) \<le> C 0 n (\<lambda>x. undefined) (X n)"
     proof cases
@@ -606,9 +606,9 @@ proof (rule emeasure_lim[OF *], goal_cases)
       using count by (auto simp: t_def)
     then have inj_t_J: "inj_on t (J i)" for i
       by (rule subset_inj_on) auto
-    interpret IT!: Ionescu_Tulcea "\<lambda>i \<omega>. M (f i)" "\<lambda>i. M (f i)"
+    interpret IT: Ionescu_Tulcea "\<lambda>i \<omega>. M (f i)" "\<lambda>i. M (f i)"
       by standard auto
-    interpret Mf!: product_prob_space "\<lambda>x. M (f x)" UNIV
+    interpret Mf: product_prob_space "\<lambda>x. M (f x)" UNIV
       by standard
     have C_eq_PiM: "IT.C 0 n (\<lambda>_. undefined) = PiM {0..<n} (\<lambda>x. M (f x))" for n
     proof (induction n)

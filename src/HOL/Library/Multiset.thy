@@ -1058,7 +1058,7 @@ definition mset_set :: "'a set \<Rightarrow> 'a multiset"
 where
   "mset_set = folding.F (\<lambda>x M. {#x#} + M) {#}"
 
-interpretation mset_set!: folding "\<lambda>x M. {#x#} + M" "{#}"
+interpretation mset_set: folding "\<lambda>x M. {#x#} + M" "{#}"
 rewrites
   "folding.F (\<lambda>x M. {#x#} + M) {#} = mset_set"
 proof -
@@ -1221,7 +1221,7 @@ begin
 definition msetsum :: "'a multiset \<Rightarrow> 'a"
   where "msetsum = comm_monoid_mset.F plus 0"
 
-sublocale msetsum!: comm_monoid_mset plus 0
+sublocale msetsum: comm_monoid_mset plus 0
   rewrites "comm_monoid_mset.F plus 0 = msetsum"
 proof -
   show "comm_monoid_mset plus 0" ..
@@ -1279,7 +1279,7 @@ begin
 definition msetprod :: "'a multiset \<Rightarrow> 'a"
   where "msetprod = comm_monoid_mset.F times 1"
 
-sublocale msetprod!: comm_monoid_mset times 1
+sublocale msetprod: comm_monoid_mset times 1
   rewrites "comm_monoid_mset.F times 1 = msetprod"
 proof -
   show "comm_monoid_mset times 1" ..

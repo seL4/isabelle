@@ -935,7 +935,7 @@ proof
     by (auto intro: density_cong)
 next
   assume eq: "density M f = density M g"
-  interpret f!: sigma_finite_measure "density M f" by fact
+  interpret f: sigma_finite_measure "density M f" by fact
   from f.sigma_finite_incseq guess A . note cover = this
 
   have "AE x in M. \<forall>i. x \<in> A i \<longrightarrow> f x = g x"

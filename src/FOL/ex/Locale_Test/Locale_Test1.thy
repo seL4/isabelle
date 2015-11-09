@@ -775,7 +775,7 @@ section \<open>Interpretation in named contexts\<close>
 
 locale container
 begin
-interpretation "private"!: roundup True by unfold_locales rule
+interpretation "private": roundup True by unfold_locales rule
 lemmas true_copy = private.true
 end
 
