@@ -54,9 +54,12 @@ full document node content is taken into account.
 
 * The State panel manages explicit proof state output, with jEdit action
 "isabelle.update-state" (shortcut S+ENTER) to trigger update according
-to cursor position. Option "editor_output_state" controls implicit proof
-state output in the Output panel: suppressing this reduces resource
-requirements of prover time and GUI space.
+to cursor position.
+
+* The Output panel no longer shows proof state output by default. This
+reduces resource requirements of prover time and GUI space.
+INCOMPATIBILITY, use the State panel instead or enable option
+"editor_output_state".
 
 * Action "isabelle-emph" (with keyboard shortcut C+e LEFT) controls
 emphasized text style; the effect is visible in document output, not in
