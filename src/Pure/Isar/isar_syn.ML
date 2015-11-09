@@ -384,7 +384,7 @@ val _ =
 (* locales *)
 
 val locale_val =
-  Parse_Spec.locale_expression true --
+  Parse_Spec.locale_expression --
     Scan.optional (@{keyword "+"} |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
   Scan.repeat1 Parse_Spec.context_element >> pair ([], []);
 
@@ -403,7 +403,7 @@ val _ =
           Toplevel.begin_local_theory true (Experiment.experiment_cmd elems #> snd)));
 
 val interpretation_args =
-  Parse.!!! (Parse_Spec.locale_expression true) --
+  Parse.!!! Parse_Spec.locale_expression --
     Scan.optional
       (@{keyword "rewrites"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) [];
 
@@ -817,7 +817,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword print_dependencies}
     "print dependencies of locale expression"
-    (Parse.opt_bang -- Parse_Spec.locale_expression true >> (fn (b, expr) =>
+    (Parse.opt_bang -- Parse_Spec.locale_expression >> (fn (b, expr) =>
       Toplevel.keep (fn state => Expression.print_dependencies (Toplevel.context_of state) b expr)));
 
 val _ =

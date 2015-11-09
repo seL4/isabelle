@@ -276,12 +276,13 @@ occasionally useful for demonstration and testing purposes.
 
 *** Pure ***
 
-* Qualifiers in locale expressions default to mandatory ('!')
-regardless of the command.  Previously, for 'locale' and 'sublocale'
-the default was optional ('?').  INCOMPATIBILITY
+* Qualifiers in locale expressions default to mandatory ('!') regardless
+of the command. Previously, for 'locale' and 'sublocale' the default was
+optional ('?'). The old synatx '!' has been discontinued.
+INCOMPATIBILITY, remove '!' and add '?' as required.
 
 * Keyword 'rewrites' identifies rewrite morphisms in interpretation
-commands.  Previously, the keyword was 'where'.  INCOMPATIBILITY
+commands.  Previously, the keyword was 'where'.  INCOMPATIBILITY.
 
 * Command 'print_definitions' prints dependencies of definitional
 specifications. This functionality used to be part of 'print_theory'.
@@ -501,7 +502,12 @@ context for rare situations where these facts are really needed.
 
 * Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
 
-* Library/Omega_Words_Fun: Infinite words modeled as functions nat => 'a.
+* Library/Omega_Words_Fun: Infinite words modeled as functions nat =>
+'a.
+
+* HOL-Statespace: command 'statespace' uses mandatory qualifier for
+import of parent, as for general 'locale' expressions. INCOMPATIBILITY,
+remove '!' and add '?' as required.
 
 
 *** ML ***
