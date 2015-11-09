@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.Color
+import java.awt.{Font, Color}
 import javax.swing.{InputVerifier, JComponent, UIManager}
 import javax.swing.text.JTextComponent
 
@@ -91,7 +91,8 @@ class JEdit_Options extends Options_Variable
         val default_font = UIManager.getFont("TextField.font")
         val text_area =
           new TextArea with Option_Component {
-            if (default_font != null) font = default_font
+            if (default_font != null) font =
+              new Font(default_font.getFamily, default_font.getStyle, default_font.getSize)
             name = opt_name
             val title = opt_title
             def load = text = value.check_name(opt_name).value
