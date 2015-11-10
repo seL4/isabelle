@@ -141,14 +141,6 @@ val _ =
             #> enclose "\\isa{" "}")));
 
 
-(* theory file *)
-
-val _ =
-  Theory.setup (Thy_Output.antiquotation @{binding thy_file} (Scan.lift Args.name)
-    (fn {context = ctxt, ...} =>
-      fn name => (Resources.check_thy Path.current name; Thy_Output.output ctxt [Pretty.str name])));
-
-
 (* Isabelle/jEdit elements *)
 
 local
