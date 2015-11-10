@@ -2,7 +2,7 @@
     Author:     Sascha Boehme, TU Muenchen
 *)
 
-section \<open>Bindings to Satisfiability Modulo Theories (SMT) solvers based on SMT-LIB 2\<close>
+section \<open>Bi ndings to Satisfiability Modulo Theories (SMT) solvers based on SMT-LIB 2\<close>
 
 theory SMT
 imports Divides

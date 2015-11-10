@@ -118,9 +118,12 @@ fun fix_subproof_steps ((((id_of_father_step, rule), prems), subproof), ((step_c
   let
     fun mk_prop_of_term concl =
       concl |> fastype_of concl = @{typ bool} ? curry (op $) @{term Trueprop}
+    fun update_prems assumption_id prems =
+      map (fn prem => id_of_father_step ^ prem)
+          (filter_out (curry (op =) assumption_id) prems)
     fun inline_assumption assumption assumption_id
-        (node as VeriT_Node {id, rule, prems, concl, bounds}) =
-      mk_node id rule (filter_out (curry (op =) assumption_id) prems)
+        (VeriT_Node {id, rule, prems, concl, bounds}) =
+      mk_node id rule (update_prems assumption_id prems)
         (@{const Pure.imp} $ mk_prop_of_term assumption $ mk_prop_of_term concl) bounds
     fun find_input_steps_and_inline [] last_step = ([], last_step)
       | find_input_steps_and_inline (VeriT_Node {id = id', rule, prems, concl, bounds} :: steps)
