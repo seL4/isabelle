@@ -20,7 +20,7 @@ definition G :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a"
 where
   expand_set: "G g = comm_monoid_set.F f 1 g {a. g a \<noteq> 1}"
 
-interpretation F!: comm_monoid_set f 1
+interpretation F: comm_monoid_set f 1
   ..
 
 lemma expand_superset:
@@ -225,13 +225,13 @@ definition Sum_any :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a"
 where
   "Sum_any = comm_monoid_fun.G plus 0"
 
-permanent_interpretation Sum_any!: comm_monoid_fun plus 0
+permanent_interpretation Sum_any: comm_monoid_fun plus 0
 where
   "comm_monoid_fun.G plus 0 = Sum_any" and
   "comm_monoid_set.F plus 0 = setsum"
 proof -
   show "comm_monoid_fun plus 0" ..
-  then interpret Sum_any!: comm_monoid_fun plus 0 .
+  then interpret Sum_any: comm_monoid_fun plus 0 .
   from Sum_any_def show "comm_monoid_fun.G plus 0 = Sum_any" by rule
   from setsum_def show "comm_monoid_set.F plus 0 = setsum" by rule
 qed
@@ -298,13 +298,13 @@ definition Prod_any :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a"
 where
   "Prod_any = comm_monoid_fun.G times 1"
 
-permanent_interpretation Prod_any!: comm_monoid_fun times 1
+permanent_interpretation Prod_any: comm_monoid_fun times 1
 where
   "comm_monoid_fun.G times 1 = Prod_any" and
   "comm_monoid_set.F times 1 = setprod"
 proof -
   show "comm_monoid_fun times 1" ..
-  then interpret Prod_any!: comm_monoid_fun times 1 .
+  then interpret Prod_any: comm_monoid_fun times 1 .
   from Prod_any_def show "comm_monoid_fun.G times 1 = Prod_any" by rule
   from setprod_def show "comm_monoid_set.F times 1 = setprod" by rule
 qed

@@ -7,7 +7,7 @@ imports Complex_Main Dense_Linear_Order DP_Library
   "~~/src/HOL/Library/Code_Target_Numeral" "~~/src/HOL/Library/Old_Recdef"
 begin
 
-section \<open>Quantifier elimination for @{text "\<real> (0, 1, +, floor, <)"}\<close>
+section \<open>Quantifier elimination for \<open>\<real> (0, 1, +, floor, <)\<close>\<close>
 
 declare of_int_floor_cancel [simp del]
 
@@ -1428,8 +1428,8 @@ lemma qelim_ci:
   by (induct p rule: qelim.induct) (auto simp del: simpfm.simps)
 
 
-text \<open>The @{text "\<int>"} Part\<close>
-text\<open>Linearity for fm where Bound 0 ranges over @{text "\<int>"}\<close>
+text \<open>The \<open>\<int>\<close> Part\<close>
+text\<open>Linearity for fm where Bound 0 ranges over \<open>\<int>\<close>\<close>
 
 function zsplit0 :: "num \<Rightarrow> int \<times> num" (* splits the bounded from the unbounded part*) where
   "zsplit0 (C c) = (0,C c)"
@@ -1933,10 +1933,10 @@ next
   ultimately show ?case by blast
 qed auto
 
-text\<open>plusinf : Virtual substitution of @{text "+\<infinity>"}
-       minusinf: Virtual substitution of @{text "-\<infinity>"}
-       @{text "\<delta>"} Compute lcm @{text "d| Dvd d  c*x+t \<in> p"}
-       @{text "d_\<delta>"} checks if a given l divides all the ds above\<close>
+text\<open>plusinf : Virtual substitution of \<open>+\<infinity>\<close>
+       minusinf: Virtual substitution of \<open>-\<infinity>\<close>
+       \<open>\<delta>\<close> Compute lcm \<open>d| Dvd d  c*x+t \<in> p\<close>
+       \<open>d_\<delta>\<close> checks if a given l divides all the ds above\<close>
 
 fun minusinf:: "fm \<Rightarrow> fm" where
   "minusinf (And p q) = conj (minusinf p) (minusinf q)" 
@@ -3270,9 +3270,9 @@ lemma mirror_\<alpha>_\<rho>:   assumes lp: "iszlfm p (a#bs)"
   using lp
   by (induct p rule: mirror.induct) (simp_all add: split_def image_Un)
   
-text \<open>The @{text "\<real>"} part\<close>
+text \<open>The \<open>\<real>\<close> part\<close>
 
-text\<open>Linearity for fm where Bound 0 ranges over @{text "\<real>"}\<close>
+text\<open>Linearity for fm where Bound 0 ranges over \<open>\<real>\<close>\<close>
 consts
   isrlfm :: "fm \<Rightarrow> bool"   (* Linearity test for fm *)
 recdef isrlfm "measure size"

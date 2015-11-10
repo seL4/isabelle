@@ -18,7 +18,7 @@ where "x *\<^sub>s xs \<equiv> map (op * x) xs"
 lemma scale1[simp]: "(1::'a::monoid_mult) *\<^sub>s xs = xs"
 by (induct xs) simp_all
 
-subsection \<open>@{text"+"} and @{text"-"}\<close>
+subsection \<open>\<open>+\<close> and \<open>-\<close>\<close>
 
 fun zipwith0 :: "('a::zero \<Rightarrow> 'b::zero \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
 where

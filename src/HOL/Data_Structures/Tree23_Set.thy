@@ -5,14 +5,17 @@ section \<open>A 2-3 Tree Implementation of Sets\<close>
 theory Tree23_Set
 imports
   Tree23
+  Cmp
   Set_by_Ordered
 begin
 
-fun isin :: "'a::linorder tree23 \<Rightarrow> 'a \<Rightarrow> bool" where
+fun isin :: "'a::cmp tree23 \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin Leaf x = False" |
-"isin (Node2 l a r) x = (x < a \<and> isin l x \<or> x=a \<or> isin r x)" |
+"isin (Node2 l a r) x =
+  (case cmp x a of LT \<Rightarrow> isin l x | EQ \<Rightarrow> True | GT \<Rightarrow> isin r x)" |
 "isin (Node3 l a m b r) x =
-  (x < a \<and> isin l x \<or> x > b \<and> isin r x \<or> x = a \<or> x = b \<or> isin m x)"
+  (case cmp x a of LT \<Rightarrow> isin l x | EQ \<Rightarrow> True | GT \<Rightarrow> (case cmp x b of
+   LT \<Rightarrow> isin m x | EQ \<Rightarrow> True | GT \<Rightarrow> isin r x))"
 
 datatype 'a up\<^sub>i = T\<^sub>i "'a tree23" | Up\<^sub>i "'a tree23" 'a "'a tree23"
 
@@ -20,38 +23,35 @@ fun tree\<^sub>i :: "'a up\<^sub>i \<Rightarrow> 'a tree23" where
 "tree\<^sub>i (T\<^sub>i t) = t" |
 "tree\<^sub>i (Up\<^sub>i l p r) = Node2 l p r"
 
-fun ins :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>i" where
+fun ins :: "'a::cmp \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>i" where
 "ins x Leaf = Up\<^sub>i Leaf x Leaf" |
 "ins x (Node2 l a r) =
-   (if x < a then
-      case ins x l of
-         T\<^sub>i l' => T\<^sub>i (Node2 l' a r)
-       | Up\<^sub>i l1 b l2 => T\<^sub>i (Node3 l1 b l2 a r)
-    else if x=a then T\<^sub>i (Node2 l x r)
-    else
-      case ins x r of
-        T\<^sub>i r' => T\<^sub>i (Node2 l a r')
-      | Up\<^sub>i r1 b r2 => T\<^sub>i (Node3 l a r1 b r2))" |
+   (case cmp x a of
+      LT \<Rightarrow> (case ins x l of
+              T\<^sub>i l' => T\<^sub>i (Node2 l' a r)
+            | Up\<^sub>i l1 b l2 => T\<^sub>i (Node3 l1 b l2 a r)) |
+      EQ \<Rightarrow> T\<^sub>i (Node2 l x r) |
+      GT \<Rightarrow> (case ins x r of
+              T\<^sub>i r' => T\<^sub>i (Node2 l a r')
+            | Up\<^sub>i r1 b r2 => T\<^sub>i (Node3 l a r1 b r2)))" |
 "ins x (Node3 l a m b r) =
-   (if x < a then
-      case ins x l of
-        T\<^sub>i l' => T\<^sub>i (Node3 l' a m b r)
-      | Up\<^sub>i l1 c l2 => Up\<^sub>i (Node2 l1 c l2) a (Node2 m b r)
-    else
-    if x > b then
-      case ins x r of
-        T\<^sub>i r' => T\<^sub>i (Node3 l a m b r')
-      | Up\<^sub>i r1 c r2 => Up\<^sub>i (Node2 l a m) b (Node2 r1 c r2)
-    else
-    if x=a \<or> x = b then T\<^sub>i (Node3 l a m b r)
-    else
-      case ins x m of
-        T\<^sub>i m' => T\<^sub>i (Node3 l a m' b r)
-      | Up\<^sub>i m1 c m2 => Up\<^sub>i (Node2 l a m1) c (Node2 m2 b r))"
+   (case cmp x a of
+      LT \<Rightarrow> (case ins x l of
+              T\<^sub>i l' => T\<^sub>i (Node3 l' a m b r)
+            | Up\<^sub>i l1 c l2 => Up\<^sub>i (Node2 l1 c l2) a (Node2 m b r)) |
+      EQ \<Rightarrow> T\<^sub>i (Node3 l a m b r) |
+      GT \<Rightarrow> (case cmp x b of
+               GT \<Rightarrow> (case ins x r of
+                       T\<^sub>i r' => T\<^sub>i (Node3 l a m b r')
+                     | Up\<^sub>i r1 c r2 => Up\<^sub>i (Node2 l a m) b (Node2 r1 c r2)) |
+               EQ \<Rightarrow> T\<^sub>i (Node3 l a m b r) |
+               LT \<Rightarrow> (case ins x m of
+                       T\<^sub>i m' => T\<^sub>i (Node3 l a m' b r)
+                     | Up\<^sub>i m1 c m2 => Up\<^sub>i (Node2 l a m1) c (Node2 m2 b r))))"
 
 hide_const insert
 
-definition insert :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree23" where
+definition insert :: "'a::cmp \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree23" where
 "insert x t = tree\<^sub>i(ins x t)"
 
 datatype 'a up\<^sub>d = T\<^sub>d "'a tree23" | Up\<^sub>d "'a tree23"
@@ -93,32 +93,34 @@ fun del_min :: "'a tree23 \<Rightarrow> 'a * 'a up\<^sub>d" where
 "del_min (Node2 l a r) = (let (x,l') = del_min l in (x, node21 l' a r))" |
 "del_min (Node3 l a m b r) = (let (x,l') = del_min l in (x, node31 l' a m b r))"
 
-fun del :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d"
+fun del :: "'a::cmp \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d"
 where
 "del x Leaf = T\<^sub>d Leaf" |
 "del x (Node2 Leaf a Leaf) = (if x = a then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf a Leaf))" |
 "del x (Node3 Leaf a Leaf b Leaf) = T\<^sub>d(if x = a then Node2 Leaf b Leaf
   else if x = b then Node2 Leaf a Leaf else Node3 Leaf a Leaf b Leaf)" |
-"del x (Node2 l a r) = (if x<a then node21 (del x l) a r else
-  if x > a then node22 l a (del x r) else
-  let (a',t) = del_min r in node22 l a' t)" |
-"del x (Node3 l a m b r) = (if x<a then node31 (del x l) a m b r else
-  if x = a then let (a',m') = del_min m in node32 l a' m' b r else
-  if x < b then node32 l a (del x m) b r else
-  if x = b then let (b',r') = del_min r in node33 l a m b' r'
-  else node33 l a m b (del x r))"
+"del x (Node2 l a r) = (case cmp x a of
+  LT \<Rightarrow> node21 (del x l) a r |
+  GT \<Rightarrow> node22 l a (del x r) |
+  EQ \<Rightarrow> let (a',t) = del_min r in node22 l a' t)" |
+"del x (Node3 l a m b r) = (case cmp x a of
+  LT \<Rightarrow> node31 (del x l) a m b r |
+  EQ \<Rightarrow> let (a',m') = del_min m in node32 l a' m' b r |
+  GT \<Rightarrow> (case cmp x b of
+          LT \<Rightarrow> node32 l a (del x m) b r |
+          EQ \<Rightarrow> let (b',r') = del_min r in node33 l a m b' r' |
+          GT \<Rightarrow> node33 l a m b (del x r)))"
 
-definition delete :: "'a::linorder \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree23" where
+definition delete :: "'a::cmp \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree23" where
 "delete x t = tree\<^sub>d(del x t)"
 
 
 subsection "Functional Correctness"
 
-
 subsubsection "Proofs for isin"
 
 lemma "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
-by (induction t) (auto simp: elems_simps1)
+by (induction t) (auto simp: elems_simps1 ball_Un)
 
 lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
 by (induction t) (auto simp: elems_simps2)
@@ -128,7 +130,7 @@ subsubsection "Proofs for insert"
 
 lemma inorder_ins:
   "sorted(inorder t) \<Longrightarrow> inorder(tree\<^sub>i(ins x t)) = ins_list x (inorder t)"
-by(induction t) (auto simp: ins_list_simps split: up\<^sub>i.splits) (* 38 secs in 2015 *)
+by(induction t) (auto simp: ins_list_simps split: up\<^sub>i.splits)
 
 lemma inorder_insert:
   "sorted(inorder t) \<Longrightarrow> inorder(insert a t) = ins_list a (inorder t)"
@@ -195,7 +197,7 @@ instance ..
 end
 
 lemma bal_ins: "bal t \<Longrightarrow> bal (tree\<^sub>i(ins a t)) \<and> height(ins a t) = height t"
-by (induct t) (auto split: up\<^sub>i.split) (* 87 secs in 2015 *)
+by (induct t) (auto split: up\<^sub>i.split) (* 15 secs in 2015 *)
 
 text{* Now an alternative proof (by Brian Huffman) that runs faster because
 two properties (balance and height) are combined in one predicate. *}
@@ -354,7 +356,7 @@ subsection \<open>Overall Correctness\<close>
 
 interpretation Set_by_Ordered
 where empty = Leaf and isin = isin and insert = insert and delete = delete
-and inorder = inorder and wf = bal
+and inorder = inorder and inv = bal
 proof (standard, goal_cases)
   case 2 thus ?case by(simp add: isin_set)
 next

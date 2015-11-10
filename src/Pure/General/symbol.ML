@@ -10,6 +10,7 @@ sig
   val STX: symbol
   val DEL: symbol
   val space: symbol
+  val comment: symbol
   val is_char: symbol -> bool
   val is_utf8: symbol -> bool
   val is_symbolic: symbol -> bool
@@ -92,6 +93,8 @@ val STX = chr 2;
 val DEL = chr 127;
 
 val space = chr 32;
+
+val comment = "\\<comment>";
 
 fun is_char s = size s = 1;
 

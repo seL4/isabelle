@@ -137,7 +137,7 @@ Hint: Setting \verb!show_question_marks! to \texttt{false} only
 suppresses question marks; variables that end in digits,
 e.g. @{text"x1"}, are still printed with a trailing @{text".0"},
 e.g. @{text"x1.0"}, their internal index. This can be avoided by
-turning the last digit into a subscript: write \verb!x\<^sub>1! and
+turning the last digit into a subscript: write \<^verbatim>\<open>x\<^sub>1\<close> and
 obtain the much nicer @{text"x\<^sub>1"}. *}
 
 (*<*)declare [[show_question_marks = false]](*>*)

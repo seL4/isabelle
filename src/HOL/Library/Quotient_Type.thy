@@ -14,8 +14,8 @@ text \<open>We introduce the notion of quotient types over equivalence relations
 
 subsection \<open>Equivalence relations and quotient types\<close>
 
-text \<open>Type class @{text equiv} models equivalence relations
-  @{text "\<sim> :: 'a \<Rightarrow> 'a \<Rightarrow> bool"}.\<close>
+text \<open>Type class \<open>equiv\<close> models equivalence relations
+  \<open>\<sim> :: 'a \<Rightarrow> 'a \<Rightarrow> bool\<close>.\<close>
 
 class eqv =
   fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infixl "\<sim>" 50)
@@ -57,7 +57,7 @@ qed
 
 end
 
-text \<open>The quotient type @{text "'a quot"} consists of all \emph{equivalence
+text \<open>The quotient type \<open>'a quot\<close> consists of all \emph{equivalence
   classes} over elements of the base type @{typ 'a}.\<close>
 
 definition (in eqv) "quot = {{x. a \<sim> x} | a. True}"

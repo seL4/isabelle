@@ -146,7 +146,7 @@ fun heap :: "'a::linorder tree \<Rightarrow> bool" where
   (heap l \<and> heap r \<and> (\<forall>x \<in> set_tree l \<union> set_tree r. m \<le> x))"
 
 
-subsection "Function @{text mirror}"
+subsection "Function \<open>mirror\<close>"
 
 fun mirror :: "'a tree \<Rightarrow> 'a tree" where
 "mirror \<langle>\<rangle> = Leaf" |

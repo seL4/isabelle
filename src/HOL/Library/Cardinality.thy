@@ -211,7 +211,7 @@ class card_UNIV = finite_UNIV +
   fixes card_UNIV :: "'a card_UNIV"
   assumes card_UNIV: "card_UNIV = Phantom('a) CARD('a)"
 
-subsection \<open>Instantiations for @{text "card_UNIV"}\<close>
+subsection \<open>Instantiations for \<open>card_UNIV\<close>\<close>
 
 instantiation nat :: card_UNIV begin
 definition "finite_UNIV = Phantom(nat) False"
@@ -534,7 +534,7 @@ lemma coset_subseteq_set_code [code]:
      (\<lambda>_. List.coset xs \<subseteq> set ys))"
 by simp
 
-notepad begin -- "test code setup"
+notepad begin \<comment> "test code setup"
 have "List.coset [True] = set [False] \<and> 
       List.coset [] \<subseteq> List.set [True, False] \<and> 
       finite (List.coset [True])"

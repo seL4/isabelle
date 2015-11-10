@@ -22,7 +22,7 @@ fun timeLimit timeout f x =
 
       val request =
         Event_Timer.request (Time.+ (Time.now (), timeout))
-          (fn () => Simple_Thread.interrupt_unsynchronized self);
+          (fn () => Standard_Thread.interrupt_unsynchronized self);
 
       val result =
         Exn.capture (fn () => Multithreading.with_attributes orig_atts (fn _ => f x)) ();

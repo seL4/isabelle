@@ -202,7 +202,7 @@ text \<open>
   The interpretation itself is enriched with an equation @{text "t = c"}:
 \<close>
 
-interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)" where
+interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)" rewrites
   "power.powers (\<lambda>n f. f ^^ n) = funpows"
   by unfold_locales
     (simp_all add: fun_eq_iff funpow_mult mult.commute funpows_def)

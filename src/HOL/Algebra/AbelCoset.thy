@@ -51,7 +51,7 @@ definition
     kernel \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>
       \<lparr>carrier = carrier H, mult = add H, one = zero H\<rparr> h"
 
-locale abelian_group_hom = G: abelian_group G + H: abelian_group H
+locale abelian_group_hom = G?: abelian_group G + H?: abelian_group H
     for G (structure) and H (structure) +
   fixes h
   assumes a_group_hom: "group_hom \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>

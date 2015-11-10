@@ -80,7 +80,6 @@ val scan_txt =
   Scan.repeats1
    (Scan.many1 (fn (s, _) =>
       not (Symbol.is_control s) andalso s <> "\\<open>" andalso s <> "@" andalso Symbol.not_eof s) ||
-    Scan.one (fn (s, _) => Symbol.is_control s) --| Scan.ahead (~$$ "\\<open>") >> single ||
     $$$ "@" --| Scan.ahead (~$$ "{"));
 
 val scan_antiq_body =
@@ -101,7 +100,10 @@ val scan_control =
           (case opt_control of
             SOME (sym, pos) => ((control_name sym, pos), Symbol_Pos.range ((sym, pos) :: body))
           | NONE => (("cartouche", #2 (hd body)), Symbol_Pos.range body));
-      in {name = name, range = range, body = body} end);
+      in {name = name, range = range, body = body} end) ||
+  Scan.one (Symbol.is_control o Symbol_Pos.symbol) >>
+    (fn (sym, pos) =>
+      {name = (control_name sym, pos), range = Symbol_Pos.range [(sym, pos)], body = []});
 
 val scan_antiq =
   Symbol_Pos.scan_pos -- ($$ "@" |-- $$ "{" |-- Symbol_Pos.scan_pos --

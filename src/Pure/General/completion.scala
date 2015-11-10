@@ -246,12 +246,12 @@ object Completion
   {
     override val whiteSpace = "".r
 
-    private val symbol_regex: Regex = """\\<\^?[A-Za-z0-9_']+>""".r
-    def is_symbol(s: CharSequence): Boolean = symbol_regex.pattern.matcher(s).matches
+    private val symboloid_regex: Regex = """\\([A-Za-z0-9_']+|<\^?[A-Za-z0-9_']+>)""".r
+    def is_symboloid(s: CharSequence): Boolean = symboloid_regex.pattern.matcher(s).matches
 
     private def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+\^?<\\""".r
     private def reverse_symb: Parser[String] = """[A-Za-z0-9_']{2,}\^?<\\""".r
-    private def escape: Parser[String] = """[a-zA-Z0-9_']+\\""".r
+    private def reverse_escape: Parser[String] = """[a-zA-Z0-9_']+\\""".r
 
     private val word_regex = "[a-zA-Z0-9_'.]+".r
     private def word: Parser[String] = word_regex
@@ -275,7 +275,7 @@ object Completion
       val parse_word = if (explicit) word else word3
       val reverse_in = new Library.Reverse(in)
       val parser =
-        (reverse_symbol | reverse_symb | escape) ^^ (x => (x.reverse, "")) |
+        (reverse_symbol | reverse_symb | reverse_escape) ^^ (x => (x.reverse, "")) |
         underscores ~ parse_word ~ opt("?") ^^
         { case x ~ y ~ z => (z.getOrElse("") + y.reverse, x) }
       parse(parser, reverse_in) match {
@@ -354,17 +354,18 @@ final class Completion private(
   private def add_symbols(): Completion =
   {
     val words =
-      (for ((x, _) <- Symbol.names.toList) yield (x, x)) :::
-      (for ((x, y) <- Symbol.names.toList) yield ("\\" + y, x)) :::
-      (for ((x, y) <- Symbol.abbrevs.toList if Completion.Word_Parsers.is_word(y)) yield (y, x))
+      (for ((sym, _) <- Symbol.names.toList) yield (sym, sym)) :::
+      (for ((sym, name) <- Symbol.names.toList) yield ("\\" + name, sym)) :::
+      (for ((sym, abbr) <- Symbol.abbrevs.toList if Completion.Word_Parsers.is_word(abbr))
+        yield (abbr, sym))
 
     val symbol_abbrs =
-      (for ((x, y) <- Symbol.abbrevs.iterator if !Completion.Word_Parsers.is_word(y))
-        yield (y, x)).toList
+      (for ((sym, abbr) <- Symbol.abbrevs.iterator if !Completion.Word_Parsers.is_word(abbr))
+        yield (abbr, sym)).toList
 
     val abbrs =
-      for ((a, b) <- symbol_abbrs ::: Completion.default_abbrs)
-        yield (a.reverse, (a, b))
+      for ((abbr, sym) <- symbol_abbrs ::: Completion.default_abbrs)
+        yield (abbr.reverse, (abbr, sym))
 
     new Completion(
       keywords,
@@ -393,18 +394,15 @@ final class Completion private(
     {
       val reverse_in = new Library.Reverse(text.subSequence(0, caret))
       Scan.Parsers.parse(Scan.Parsers.literal(abbrevs_lex), reverse_in) match {
-        case Scan.Parsers.Success(reverse_a, _) =>
-          val abbrevs = abbrevs_map.get_list(reverse_a)
+        case Scan.Parsers.Success(reverse_abbr, _) =>
+          val abbrevs = abbrevs_map.get_list(reverse_abbr)
           abbrevs match {
             case Nil => None
-            case (a, _) :: _ =>
+            case (abbr, _) :: _ =>
               val ok =
-                if (a == Completion.antiquote) language_context.antiquotes
-                else
-                  language_context.symbols ||
-                  Completion.default_abbrs.exists(_._1 == a) ||
-                  Completion.Word_Parsers.is_symbol(a)
-              if (ok) Some((a, abbrevs))
+                if (abbr == Completion.antiquote) language_context.antiquotes
+                else language_context.symbols || Completion.default_abbrs.exists(_._1 == abbr)
+              if (ok) Some((abbr, abbrevs))
               else None
           }
         case _ => None
@@ -433,7 +431,7 @@ final class Completion private(
                     complete_word <- complete_words
                     ok =
                       if (is_keyword(complete_word)) !word_context && language_context.is_outer
-                      else language_context.symbols
+                      else language_context.symbols || Completion.Word_Parsers.is_symboloid(word)
                     if ok
                     completion <- words_map.get_list(complete_word)
                   } yield (complete_word, completion)
@@ -447,6 +445,7 @@ final class Completion private(
         val immediate =
           explicit ||
             (!Completion.Word_Parsers.is_word(original) &&
+             !Completion.Word_Parsers.is_symboloid(original) &&
               Character.codePointCount(original, 0, original.length) > 1)
         val unique = completions.length == 1
 

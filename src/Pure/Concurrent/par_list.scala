@@ -8,38 +8,34 @@ Parallel list combinators.
 package isabelle
 
 
-import java.util.concurrent.{Future => JFuture, CancellationException}
-
-
 object Par_List
 {
   def managed_results[A, B](f: A => B, xs: List[A]): List[Exn.Result[B]] =
     if (xs.isEmpty || xs.tail.isEmpty) xs.map(x => Exn.capture { f(x) })
     else {
-      val state = Synchronized((List.empty[JFuture[Exn.Result[B]]], false))
+      val state = Synchronized[(List[Future[B]], Boolean)]((Nil, false))
 
       def cancel_other(self: Int = -1): Unit =
-        state.change { case (tasks, canceled) =>
+        state.change { case (futures, canceled) =>
           if (!canceled) {
-            for ((task, i) <- tasks.iterator.zipWithIndex if i != self)
-              task.cancel(true)
+            for ((future, i) <- futures.iterator.zipWithIndex if i != self)
+              future.cancel
           }
-          (tasks, true)
+          (futures, true)
         }
 
       try {
         state.change(_ =>
           (xs.iterator.zipWithIndex.map({ case (x, self) =>
-            Simple_Thread.submit_task {
-              val result = Exn.capture { f(x) }
-              result match { case Exn.Exn(_) => cancel_other(self) case _ => }
-              result
+            Future.fork {
+              Exn.capture { f(x) } match {
+                case Exn.Exn(exn) => cancel_other(self); throw exn
+                case Exn.Res(res) => res
+              }
             }
           }).toList, false))
 
-        state.value._1.map(future =>
-          try { future.get }
-          catch { case _: CancellationException => Exn.Exn(Exn.Interrupt()): Exn.Result[B] })
+        state.value._1.map(_.join_result)
       }
       finally { cancel_other() }
     }
@@ -65,4 +61,3 @@ object Par_List
   def exists[A](P: A => Boolean, xs: List[A]): Boolean = find_some(P, xs).isDefined
   def forall[A](P: A => Boolean, xs: List[A]): Boolean = !exists((x: A) => !P(x), xs)
 }
-

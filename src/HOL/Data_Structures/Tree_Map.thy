@@ -8,23 +8,24 @@ imports
   Map_by_Ordered
 begin
 
-fun lookup :: "('a::linorder*'b) tree \<Rightarrow> 'a \<Rightarrow> 'b option" where
+fun lookup :: "('a::cmp*'b) tree \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "lookup Leaf x = None" |
-"lookup (Node l (a,b) r) x = (if x < a then lookup l x else
-  if x > a then lookup r x else Some b)"
+"lookup (Node l (a,b) r) x =
+  (case cmp x a of LT \<Rightarrow> lookup l x | GT \<Rightarrow> lookup r x | EQ \<Rightarrow> Some b)"
 
-fun update :: "'a::linorder \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
+fun update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
 "update x y Leaf = Node Leaf (x,y) Leaf" |
-"update x y (Node l (a,b) r) =
-   (if x < a then Node (update x y l) (a,b) r
-    else if x = a then Node l (x,y) r
-    else Node l (a,b) (update x y r))"
+"update x y (Node l (a,b) r) = (case cmp x a of
+   LT \<Rightarrow> Node (update x y l) (a,b) r |
+   EQ \<Rightarrow> Node l (x,y) r |
+   GT \<Rightarrow> Node l (a,b) (update x y r))"
 
-fun delete :: "'a::linorder \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
+fun delete :: "'a::cmp \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" where
 "delete x Leaf = Leaf" |
-"delete x (Node l (a,b) r) = (if x < a then Node (delete x l) (a,b) r else
-  if x > a then Node l (a,b) (delete x r) else
-  if r = Leaf then l else let (ab',r') = del_min r in Node l ab' r')"
+"delete x (Node l (a,b) r) = (case cmp x a of
+  LT \<Rightarrow> Node (delete x l) (a,b) r |
+  GT \<Rightarrow> Node l (a,b) (delete x r) |
+  EQ \<Rightarrow> if r = Leaf then l else let (ab',r') = del_min r in Node l ab' r')"
 
 
 subsection "Functional Correctness Proofs"
@@ -48,7 +49,6 @@ by(induction t arbitrary: t' rule: del_min.induct)
 lemma inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
 by(induction t) (auto simp: del_list_simps del_minD split: prod.splits)
-
 
 interpretation Map_by_Ordered
 where empty = Leaf and lookup = lookup and update = update and delete = delete

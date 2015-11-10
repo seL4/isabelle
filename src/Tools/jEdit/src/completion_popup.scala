@@ -128,16 +128,17 @@ object Completion_Popup
           if (line_range.contains(text_area.getCaretPosition)) {
             JEdit_Lib.before_caret_range(text_area, rendering).try_restrict(line_range) match {
               case Some(range) if !range.is_singularity =>
-                rendering.semantic_completion(range) match {
+                val range0 =
+                  Completion.Result.merge(Completion.History.empty,
+                    syntax_completion(Completion.History.empty, false, Some(rendering)),
+                    Completion.Result.merge(Completion.History.empty,
+                      path_completion(rendering),
+                      Bibtex_JEdit.completion(Completion.History.empty, text_area, rendering)))
+                  .map(_.range)
+                rendering.semantic_completion(range0, range) match {
+                  case None => range0
                   case Some(Text.Info(_, Completion.No_Completion)) => None
                   case Some(Text.Info(range1, _: Completion.Names)) => Some(range1)
-                  case None =>
-                    Completion.Result.merge(Completion.History.empty,
-                      syntax_completion(Completion.History.empty, false, Some(rendering)),
-                      Completion.Result.merge(Completion.History.empty,
-                        path_completion(rendering),
-                        Bibtex_JEdit.completion(Completion.History.empty, text_area, rendering)))
-                    .map(_.range)
                 }
               case _ => None
             }
@@ -344,43 +345,36 @@ object Completion_Popup
       }
 
       if (buffer.isEditable) {
-        val (no_completion, semantic_completion, opt_rendering) =
+        val opt_rendering = PIDE.document_view(text_area).map(_.get_rendering())
+        val result0 = syntax_completion(history, explicit, opt_rendering)
+        val (no_completion, semantic_completion) =
         {
-          PIDE.document_view(text_area) match {
-            case Some(doc_view) =>
-              val rendering = doc_view.get_rendering()
-              val (no_completion, result) =
-              {
-                val caret_range = JEdit_Lib.before_caret_range(text_area, rendering)
-                rendering.semantic_completion(caret_range) match {
-                  case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
-                  case Some(Text.Info(range, names: Completion.Names)) =>
-                    val result =
-                      JEdit_Lib.try_get_text(buffer, range) match {
-                        case Some(original) => names.complete(range, history, decode, original)
-                        case None => None
-                      }
-                    (false, result)
-                  case None => (false, None)
-                }
+          opt_rendering match {
+            case Some(rendering) =>
+              val caret_range = JEdit_Lib.before_caret_range(text_area, rendering)
+              rendering.semantic_completion(result0.map(_.range), caret_range) match {
+                case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
+                case Some(Text.Info(range, names: Completion.Names)) =>
+                  JEdit_Lib.try_get_text(buffer, range) match {
+                    case Some(original) => (false, names.complete(range, history, decode, original))
+                    case None => (false, None)
+                  }
+                case None => (false, None)
               }
-              (no_completion, result, Some(rendering))
-            case None => (false, None, None)
+            case None => (false, None)
           }
         }
         if (no_completion) false
         else {
           val result =
           {
-            val result0 =
+            val result1 =
               if (word_only) None
-              else
-                Completion.Result.merge(history, semantic_completion,
-                  syntax_completion(history, explicit, opt_rendering))
+              else Completion.Result.merge(history, semantic_completion, result0)
             opt_rendering match {
-              case None => result0
+              case None => result1
               case Some(rendering) =>
-                Completion.Result.merge(history, result0,
+                Completion.Result.merge(history, result1,
                   Completion.Result.merge(history,
                     Spell_Checker.completion(text_area, explicit, rendering),
                     Completion.Result.merge(history,
@@ -771,4 +765,3 @@ class Completion_Popup private(
     popup.hide
   }
 }
-

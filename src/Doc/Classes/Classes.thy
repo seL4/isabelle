@@ -457,7 +457,7 @@ primrec %quote replicate :: "nat \<Rightarrow> \<alpha> list \<Rightarrow> \<alp
   "replicate 0 _ = []"
   | "replicate (Suc n) xs = xs @ replicate n xs"
 
-interpretation %quote list_monoid: monoid append "[]" where
+interpretation %quote list_monoid: monoid append "[]" rewrites
   "monoid.pow_nat append [] = replicate"
 proof -
   interpret monoid append "[]" ..

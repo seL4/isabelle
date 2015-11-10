@@ -12,39 +12,39 @@ subsection \<open>Motivation\<close>
 text \<open>
   When comparing growth of functions in computer science, it is common to adhere
   on Landau Symbols (``O-Notation'').  However these come at the cost of notational
-  oddities, particularly writing @{text "f = O(g)"} for @{text "f \<in> O(g)"} etc.
+  oddities, particularly writing \<open>f = O(g)\<close> for \<open>f \<in> O(g)\<close> etc.
   
   Here we suggest a different way, following Hardy (G.~H.~Hardy and J.~E.~Littlewood,
   Some problems of Diophantine approximation, Acta Mathematica 37 (1914), p.~225).
-  We establish a quasi order relation @{text "\<lesssim>"} on functions such that
-  @{text "f \<lesssim> g \<longleftrightarrow> f \<in> O(g)"}.  From a didactic point of view, this does not only
+  We establish a quasi order relation \<open>\<lesssim>\<close> on functions such that
+  \<open>f \<lesssim> g \<longleftrightarrow> f \<in> O(g)\<close>.  From a didactic point of view, this does not only
   avoid the notational oddities mentioned above but also emphasizes the key insight
   of a growth hierarchy of functions:
-  @{text "(\<lambda>n. 0) \<lesssim> (\<lambda>n. k) \<lesssim> Discrete.log \<lesssim> Discrete.sqrt \<lesssim> id \<lesssim> \<dots>"}.
+  \<open>(\<lambda>n. 0) \<lesssim> (\<lambda>n. k) \<lesssim> Discrete.log \<lesssim> Discrete.sqrt \<lesssim> id \<lesssim> \<dots>\<close>.
 \<close>
 
 subsection \<open>Model\<close>
 
 text \<open>
-  Our growth functions are of type @{text "\<nat> \<Rightarrow> \<nat>"}.  This is different
-  to the usual conventions for Landau symbols for which @{text "\<real> \<Rightarrow> \<real>"}
-  would be appropriate, but we argue that @{text "\<real> \<Rightarrow> \<real>"} is more
+  Our growth functions are of type \<open>\<nat> \<Rightarrow> \<nat>\<close>.  This is different
+  to the usual conventions for Landau symbols for which \<open>\<real> \<Rightarrow> \<real>\<close>
+  would be appropriate, but we argue that \<open>\<real> \<Rightarrow> \<real>\<close> is more
   appropriate for analysis, whereas our setting is discrete.
 
-  Note that we also restrict the additional coefficients to @{text \<nat>}, something
+  Note that we also restrict the additional coefficients to \<open>\<nat>\<close>, something
   we discuss at the particular definitions.
 \<close>
 
-subsection \<open>The @{text "\<lesssim>"} relation\<close>
+subsection \<open>The \<open>\<lesssim>\<close> relation\<close>
 
 definition less_eq_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix "\<lesssim>" 50)
 where
   "f \<lesssim> g \<longleftrightarrow> (\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * g m)"
 
 text \<open>
-  This yields @{text "f \<lesssim> g \<longleftrightarrow> f \<in> O(g)"}.  Note that @{text c} is restricted to
-  @{text \<nat>}.  This does not pose any problems since if @{text "f \<in> O(g)"} holds for
-  a @{text "c \<in> \<real>"}, it also holds for @{text "\<lceil>c\<rceil> \<in> \<nat>"} by transitivity.
+  This yields \<open>f \<lesssim> g \<longleftrightarrow> f \<in> O(g)\<close>.  Note that \<open>c\<close> is restricted to
+  \<open>\<nat>\<close>.  This does not pose any problems since if \<open>f \<in> O(g)\<close> holds for
+  a \<open>c \<in> \<real>\<close>, it also holds for \<open>\<lceil>c\<rceil> \<in> \<nat>\<close> by transitivity.
 \<close>
 
 lemma less_eq_funI [intro?]:
@@ -68,7 +68,7 @@ lemma not_less_eq_funE:
   using assms unfolding less_eq_fun_def linorder_not_le [symmetric] by blast
 
 
-subsection \<open>The @{text "\<approx>"} relation, the equivalence relation induced by @{text "\<lesssim>"}\<close>
+subsection \<open>The \<open>\<approx>\<close> relation, the equivalence relation induced by \<open>\<lesssim>\<close>\<close>
 
 definition equiv_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix "\<cong>" 50)
 where
@@ -76,8 +76,8 @@ where
     (\<exists>c\<^sub>1>0. \<exists>c\<^sub>2>0. \<exists>n. \<forall>m>n. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m)"
 
 text \<open>
-  This yields @{text "f \<cong> g \<longleftrightarrow> f \<in> \<Theta>(g)"}.  Concerning @{text "c\<^sub>1"} and @{text "c\<^sub>2"}
-  restricted to @{typ nat}, see note above on @{text "(\<lesssim>)"}.
+  This yields \<open>f \<cong> g \<longleftrightarrow> f \<in> \<Theta>(g)\<close>.  Concerning \<open>c\<^sub>1\<close> and \<open>c\<^sub>2\<close>
+  restricted to @{typ nat}, see note above on \<open>(\<lesssim>)\<close>.
 \<close>
 
 lemma equiv_funI [intro?]:
@@ -105,7 +105,7 @@ lemma not_equiv_funE:
   using assms unfolding equiv_fun_def linorder_not_le [symmetric] by blast
 
 
-subsection \<open>The @{text "\<prec>"} relation, the strict part of @{text "\<lesssim>"}\<close>
+subsection \<open>The \<open>\<prec>\<close> relation, the strict part of \<open>\<lesssim>\<close>\<close>
 
 definition less_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix "\<prec>" 50)
 where
@@ -147,18 +147,18 @@ lemma not_less_funE:
   using assms unfolding less_fun_def linorder_not_less [symmetric] by blast
 
 text \<open>
-  I did not find a proof for @{text "f \<prec> g \<longleftrightarrow> f \<in> o(g)"}.  Maybe this only
-  holds if @{text f} and/or @{text g} are of a certain class of functions.
-  However @{text "f \<in> o(g) \<longrightarrow> f \<prec> g"} is provable, and this yields a
+  I did not find a proof for \<open>f \<prec> g \<longleftrightarrow> f \<in> o(g)\<close>.  Maybe this only
+  holds if \<open>f\<close> and/or \<open>g\<close> are of a certain class of functions.
+  However \<open>f \<in> o(g) \<longrightarrow> f \<prec> g\<close> is provable, and this yields a
   handy introduction rule.
 
-  Note that D. Knuth ignores @{text o} altogether.  So what \dots
+  Note that D. Knuth ignores \<open>o\<close> altogether.  So what \dots
 
-  Something still has to be said about the coefficient @{text c} in
-  the definition of @{text "(\<prec>)"}.  In the typical definition of @{text o},
-  it occurs on the \emph{right} hand side of the @{text "(>)"}.  The reason
-  is that the situation is dual to the definition of @{text O}: the definition
-  works since @{text c} may become arbitrary small.  Since this is not possible
+  Something still has to be said about the coefficient \<open>c\<close> in
+  the definition of \<open>(\<prec>)\<close>.  In the typical definition of \<open>o\<close>,
+  it occurs on the \emph{right} hand side of the \<open>(>)\<close>.  The reason
+  is that the situation is dual to the definition of \<open>O\<close>: the definition
+  works since \<open>c\<close> may become arbitrary small.  Since this is not possible
   within @{term \<nat>}, we push the coefficient to the left hand side instead such
   that it become arbitrary big instead.
 \<close>
@@ -187,12 +187,12 @@ proof (rule less_funI)
 qed
 
 
-subsection \<open>@{text "\<lesssim>"} is a preorder\<close>
+subsection \<open>\<open>\<lesssim>\<close> is a preorder\<close>
 
-text \<open>This yields all lemmas relating @{text "\<lesssim>"}, @{text "\<prec>"} and @{text "\<cong>"}.\<close>
+text \<open>This yields all lemmas relating \<open>\<lesssim>\<close>, \<open>\<prec>\<close> and \<open>\<cong>\<close>.\<close>
 
 interpretation fun_order: preorder_equiv less_eq_fun less_fun
-  where "preorder_equiv.equiv less_eq_fun = equiv_fun"
+  rewrites "preorder_equiv.equiv less_eq_fun = equiv_fun"
 proof -
   interpret preorder: preorder_equiv less_eq_fun less_fun
   proof

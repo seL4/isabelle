@@ -642,7 +642,7 @@ val rename = Parse.name -- (mapsto |-- Parse.name);
 val renames = Scan.optional (@{keyword "["} |-- Parse.!!! (Parse.list1 rename --| @{keyword "]"})) [];
 
 val parent =
-  Parse_Spec.locale_prefix false --
+  Parse_Spec.locale_prefix --
   ((type_insts -- Parse.xname) || (Parse.xname >> pair [])) -- renames
     >> (fn ((prefix, (insts, name)), renames) => (prefix, (insts, name, renames)));
 

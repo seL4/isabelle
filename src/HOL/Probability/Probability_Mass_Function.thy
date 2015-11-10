@@ -113,10 +113,10 @@ declare [[coercion measure_pmf]]
 lemma prob_space_measure_pmf: "prob_space (measure_pmf p)"
   using pmf.measure_pmf[of p] by auto
 
-interpretation measure_pmf!: prob_space "measure_pmf M" for M
+interpretation measure_pmf: prob_space "measure_pmf M" for M
   by (rule prob_space_measure_pmf)
 
-interpretation measure_pmf!: subprob_space "measure_pmf M" for M
+interpretation measure_pmf: subprob_space "measure_pmf M" for M
   by (rule prob_space_imp_subprob_space) unfold_locales
 
 lemma subprob_space_measure_pmf: "subprob_space (measure_pmf x)"

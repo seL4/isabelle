@@ -322,7 +322,7 @@ qed
 
 subsection {* Binary products of $\sigma$-finite emeasure spaces *}
 
-locale pair_sigma_finite = M1: sigma_finite_measure M1 + M2: sigma_finite_measure M2
+locale pair_sigma_finite = M1?: sigma_finite_measure M1 + M2?: sigma_finite_measure M2
   for M1 :: "'a measure" and M2 :: "'b measure"
 
 lemma (in pair_sigma_finite) measurable_emeasure_Pair1:
@@ -379,7 +379,7 @@ proof -
   qed
 qed
 
-sublocale pair_sigma_finite \<subseteq> P: sigma_finite_measure "M1 \<Otimes>\<^sub>M M2"
+sublocale pair_sigma_finite \<subseteq> P?: sigma_finite_measure "M1 \<Otimes>\<^sub>M M2"
 proof
   from M1.sigma_finite_countable guess F1 ..
   moreover from M2.sigma_finite_countable guess F2 ..

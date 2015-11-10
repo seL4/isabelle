@@ -116,7 +116,7 @@ lemma perm_append2_eq [iff]: "xs @ zs <~~> ys @ zs \<longleftrightarrow> xs <~~>
   apply (safe intro!: perm_append2)
   apply (rule append_perm_imp_perm)
   apply (rule perm_append_swap [THEN perm.trans])
-    -- \<open>the previous step helps this @{text blast} call succeed quickly\<close>
+    \<comment> \<open>the previous step helps this \<open>blast\<close> call succeed quickly\<close>
   apply (blast intro: perm_append_swap)
   done
 

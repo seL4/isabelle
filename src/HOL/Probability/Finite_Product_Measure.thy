@@ -829,7 +829,7 @@ locale product_sigma_finite =
   fixes M :: "'i \<Rightarrow> 'a measure"
   assumes sigma_finite_measures: "\<And>i. sigma_finite_measure (M i)"
 
-sublocale product_sigma_finite \<subseteq> M: sigma_finite_measure "M i" for i
+sublocale product_sigma_finite \<subseteq> M?: sigma_finite_measure "M i" for i
   by (rule sigma_finite_measures)
 
 locale finite_product_sigma_finite = product_sigma_finite M for M :: "'i \<Rightarrow> 'a measure" +

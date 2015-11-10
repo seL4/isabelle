@@ -22,8 +22,16 @@ accordingly.
 * Toplevel theorem statement 'proposition' is another alias for
 'theorem'.
 
+* Syntax for formal comments "-- text" now also supports the symbolic
+form "\<comment> text". Command-line tool "isabelle update_cartouches -c" helps
+to update old sources.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Completion of symbols via prefix of \<name> or \<^name> or \name is
+always possible, independently of the language context. It is never
+implicit: a popup will show up unconditionally.
 
 * Improved scheduling for urgent print tasks (e.g. command state output,
 interactive queries) wrt. long-running background tasks.
@@ -46,9 +54,12 @@ full document node content is taken into account.
 
 * The State panel manages explicit proof state output, with jEdit action
 "isabelle.update-state" (shortcut S+ENTER) to trigger update according
-to cursor position. Option "editor_output_state" controls implicit proof
-state output in the Output panel: suppressing this reduces resource
-requirements of prover time and GUI space.
+to cursor position.
+
+* The Output panel no longer shows proof state output by default. This
+reduces resource requirements of prover time and GUI space.
+INCOMPATIBILITY, use the State panel instead or enable option
+"editor_output_state".
 
 * Action "isabelle-emph" (with keyboard shortcut C+e LEFT) controls
 emphasized text style; the effect is visible in document output, not in
@@ -75,12 +86,14 @@ works better with GUI scaling for very high-resolution displays (e.g.
 
 * There is a new short form for antiquotations with a single argument
 that is a cartouche: \<^name>\<open>...\<close> is equivalent to @{name \<open>...\<close>} and
-\<open>...\<close> without control symbol is equivalent to @{cartouche \<open>...\<close>}. The
+\<open>...\<close> without control symbol is equivalent to @{cartouche \<open>...\<close>}.
+\<^name> without following cartouche is equivalent to @{name}. The
 standard Isabelle fonts provide glyphs to render important control
 symbols, e.g. "\<^verbatim>", "\<^emph>", "\<^bold>".
 
-* System option "document_symbols" determines completion of Isabelle
-symbols within document source.
+* Antiquotations @{noindent}, @{smallskip}, @{medskip}, @{bigskip} with
+corresponding control symbols \<^noindent>, \<^smallskip>, \<^medskip>, \<^bigskip> specify spacing formally, using
+standard LaTeX macros of the same names.
 
 * Antiquotation @{cartouche} in Isabelle/Pure is the same as @{text}.
 Consequently, \<open>...\<close> without any decoration prints literal quasi-formal
@@ -109,13 +122,6 @@ follows:
   \<^enum>  enumerate
   \<^descr>  description
 
-* Text may contain control symbols for markup and formatting as follows:
-
-  \<^noindent>   \noindent
-  \<^smallskip>   \smallskip
-  \<^medskip>   \medskip
-  \<^bigskip>   \bigskip
-
 * Command 'text_raw' has been clarified: input text is processed as in
 'text' (with antiquotations and control symbols). The key difference is
 the lack of the surrounding isabelle markup environment in output.
@@ -123,6 +129,9 @@ the lack of the surrounding isabelle markup environment in output.
 * Document antiquotations @{emph} and @{bold} output LaTeX source
 recursively, adding appropriate text style markup. These are typically
 used in the short form \<^emph>\<open>...\<close> and \<^bold>\<open>...\<close>.
+
+* Document antiquotation @{footnote} outputs LaTeX source recursively,
+marked as \footnote{}. This is typically used in the short form \<^footnote>\<open>...\<close>.
 
 
 *** Isar ***
@@ -266,6 +275,14 @@ occasionally useful for demonstration and testing purposes.
 
 
 *** Pure ***
+
+* Qualifiers in locale expressions default to mandatory ('!') regardless
+of the command. Previously, for 'locale' and 'sublocale' the default was
+optional ('?'). The old synatx '!' has been discontinued.
+INCOMPATIBILITY, remove '!' and add '?' as required.
+
+* Keyword 'rewrites' identifies rewrite morphisms in interpretation
+commands.  Previously, the keyword was 'where'.  INCOMPATIBILITY.
 
 * Command 'print_definitions' prints dependencies of definitional
 specifications. This functionality used to be part of 'print_theory'.
@@ -485,10 +502,17 @@ context for rare situations where these facts are really needed.
 
 * Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
 
-* Library/Omega_Words_Fun: Infinite words modeled as functions nat => 'a.
+* Library/Omega_Words_Fun: Infinite words modeled as functions nat =>
+'a.
+
+* HOL-Statespace: command 'statespace' uses mandatory qualifier for
+import of parent, as for general 'locale' expressions. INCOMPATIBILITY,
+remove '!' and add '?' as required.
 
 
 *** ML ***
+
+* Antiquotation @{undefined} or \<^undefined> inlines (raise Match).
 
 * The auxiliary module Pure/display.ML has been eliminated. Its
 elementary thm print operations are now in Pure/more_thm.ML and thus
@@ -528,10 +552,14 @@ the proof context discipline.
 
 *** System ***
 
+* Global session timeout is multiplied by timeout_scale factor. This
+allows to adjust large-scale tests (e.g. AFP) to overall hardware
+performance.
+
 * Property values in etc/symbols may contain spaces, if written with the
 replacement character "␣" (Unicode point 0x2324).  For example:
 
-  \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
+    \<star>  code: 0x0022c6  group: operator  font: Deja␣Vu␣Sans␣Mono
 
 * Command-line tool "isabelle update_then" expands old Isar command
 conflations:
@@ -567,6 +595,9 @@ platforms as follows.
 
 * Bash shell function "jvmpath" has been renamed to "platform_path": it
 is relevant both for Poly/ML and JVM processes.
+
+* Heap images are 10-15% smaller due to less wasteful persistent theory
+content (using ML type theory_id instead of theory);
 
 
 

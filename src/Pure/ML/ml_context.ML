@@ -132,10 +132,6 @@ fun make_env name visible =
 
 fun reset_env name = ML_Lex.tokenize ("structure " ^ name ^ " = struct end");
 
-fun expanding (Antiquote.Text tok) = ML_Lex.is_cartouche tok
-  | expanding (Antiquote.Control _) = true
-  | expanding (Antiquote.Antiq _) = true;
-
 fun eval_antiquotes (ants, pos) opt_context =
   let
     val visible =
@@ -145,7 +141,7 @@ fun eval_antiquotes (ants, pos) opt_context =
     val opt_ctxt = Option.map Context.proof_of opt_context;
 
     val ((ml_env, ml_body), opt_ctxt') =
-      if forall (not o expanding) ants
+      if forall (fn Antiquote.Text _ => true | _ => false) ants
       then (([], map (fn Antiquote.Text tok => tok) ants), opt_ctxt)
       else
         let
@@ -155,22 +151,10 @@ fun eval_antiquotes (ants, pos) opt_context =
             let val (decl, ctxt') = apply_antiquotation src ctxt
             in (decl #> tokenize range, ctxt') end;
 
-          fun expand (Antiquote.Text tok) ctxt =
-                if ML_Lex.is_cartouche tok then
-                  let
-                    val range = ML_Lex.range_of tok;
-                    val text =
-                      Symbol_Pos.explode (ML_Lex.content_of tok, #1 range)
-                      |> Symbol_Pos.cartouche_content
-                      |> Symbol_Pos.implode_range range |> #1;
-                    val (decl, ctxt') =
-                      value_decl "input"
-                        ("Input.source true " ^ ML_Syntax.print_string text  ^ " " ^
-                          ML_Syntax.atomic (ML_Syntax.print_range range)) ctxt;
-                  in (decl #> tokenize range, ctxt') end
-                else (K ([], [tok]), ctxt)
+          fun expand (Antiquote.Text tok) ctxt = (K ([], [tok]), ctxt)
             | expand (Antiquote.Control {name, range, body}) ctxt =
-                expand_src range (Token.src name [Token.read_cartouche body]) ctxt
+                expand_src range
+                  (Token.src name (if null body then [] else [Token.read_cartouche body])) ctxt
             | expand (Antiquote.Antiq {range, body, ...}) ctxt =
                 expand_src range
                   (Token.read_antiq (Thy_Header.get_keywords' ctxt) antiq (body, #1 range)) ctxt;

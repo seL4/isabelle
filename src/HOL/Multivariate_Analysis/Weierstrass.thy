@@ -1,8 +1,7 @@
-section\<open>Bernstein-Weierstrass and Stone-Weierstrass Theorems\<close>
+section \<open>Bernstein-Weierstrass and Stone-Weierstrass Theorems\<close>
 
 theory Weierstrass
 imports Uniform_Limit Path_Connected
-
 begin
 
 (*Power.thy:*)

@@ -384,7 +384,7 @@ val _ =
 (* locales *)
 
 val locale_val =
-  Parse_Spec.locale_expression false --
+  Parse_Spec.locale_expression --
     Scan.optional (@{keyword "+"} |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
   Scan.repeat1 Parse_Spec.context_element >> pair ([], []);
 
@@ -402,30 +402,30 @@ val _ =
       >> (fn elems =>
           Toplevel.begin_local_theory true (Experiment.experiment_cmd elems #> snd)));
 
-fun interpretation_args mandatory =
-  Parse.!!! (Parse_Spec.locale_expression mandatory) --
+val interpretation_args =
+  Parse.!!! Parse_Spec.locale_expression --
     Scan.optional
-      (Parse.where_ |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) [];
+      (@{keyword "rewrites"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) [];
 
 val _ =
   Outer_Syntax.command @{command_keyword sublocale}
     "prove sublocale relation between a locale and a locale expression"
     ((Parse.position Parse.xname --| (@{keyword "\<subseteq>"} || @{keyword "<"}) --
-      interpretation_args false >> (fn (loc, (expr, equations)) =>
+      interpretation_args >> (fn (loc, (expr, equations)) =>
         Toplevel.theory_to_proof (Expression.sublocale_global_cmd loc expr equations)))
-    || interpretation_args false >> (fn (expr, equations) =>
+    || interpretation_args >> (fn (expr, equations) =>
         Toplevel.local_theory_to_proof NONE NONE (Expression.sublocale_cmd expr equations)));
 
 val _ =
   Outer_Syntax.command @{command_keyword interpretation}
     "prove interpretation of locale expression in local theory"
-    (interpretation_args true >> (fn (expr, equations) =>
+    (interpretation_args >> (fn (expr, equations) =>
       Toplevel.local_theory_to_proof NONE NONE (Expression.interpretation_cmd expr equations)));
 
 val _ =
   Outer_Syntax.command @{command_keyword interpret}
     "prove interpretation of locale expression in proof context"
-    (interpretation_args true >> (fn (expr, equations) =>
+    (interpretation_args >> (fn (expr, equations) =>
       Toplevel.proof' (Expression.interpret_cmd expr equations)));
 
 
@@ -817,7 +817,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_keyword print_dependencies}
     "print dependencies of locale expression"
-    (Parse.opt_bang -- Parse_Spec.locale_expression true >> (fn (b, expr) =>
+    (Parse.opt_bang -- Parse_Spec.locale_expression >> (fn (b, expr) =>
       Toplevel.keep (fn state => Expression.print_dependencies (Toplevel.context_of state) b expr)));
 
 val _ =

@@ -22,7 +22,7 @@ import org.gjt.sp.jedit.View
 
 class Monitor_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  private val rev_stats = Synchronized(Nil: List[Properties.T])
+  private val rev_stats = Synchronized[List[Properties.T]](Nil)
 
 
   /* chart data -- owned by GUI thread */

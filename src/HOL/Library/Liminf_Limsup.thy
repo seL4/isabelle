@@ -30,7 +30,7 @@ lemma INF_pair:
   shows "(INF i : A. INF j : B. f i j) = (INF p : A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: INF_greatest INF_lower2)
 
-subsubsection \<open>@{text Liminf} and @{text Limsup}\<close>
+subsubsection \<open>\<open>Liminf\<close> and \<open>Limsup\<close>\<close>
 
 definition Liminf :: "'a filter \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b :: complete_lattice" where
   "Liminf F f = (SUP P:{P. eventually P F}. INF x:{x. P x}. f x)"

@@ -17,11 +17,11 @@ subsection \<open>Types and terms\<close>
 notepad
 begin
   txt \<open>Locally fixed entities:\<close>
-  fix x   -- \<open>local constant, without any type information yet\<close>
-  fix x :: 'a  -- \<open>variant with explicit type-constraint for subsequent use\<close>
+  fix x   \<comment> \<open>local constant, without any type information yet\<close>
+  fix x :: 'a  \<comment> \<open>variant with explicit type-constraint for subsequent use\<close>
 
   fix a b
-  assume "a = b"  -- \<open>type assignment at first occurrence in concrete term\<close>
+  assume "a = b"  \<comment> \<open>type assignment at first occurrence in concrete term\<close>
 
   txt \<open>Definitions (non-polymorphic):\<close>
   def x \<equiv> "t::'a"
@@ -234,7 +234,7 @@ begin
   proof -
     term ?thesis
     show ?thesis sorry
-    term ?thesis  -- \<open>static!\<close>
+    term ?thesis  \<comment> \<open>static!\<close>
   qed
   term "\<dots>"
   thm this
@@ -345,7 +345,7 @@ next
   moreover
   { assume C have R sorry }
   ultimately
-  have R by blast  -- \<open>``big-bang integration'' of proof blocks (occasionally fragile)\<close>
+  have R by blast  \<comment> \<open>``big-bang integration'' of proof blocks (occasionally fragile)\<close>
 end
 
 
@@ -364,7 +364,7 @@ notepad
 begin
   fix n :: nat
   have "P n"
-  proof (rule nat.induct)  -- \<open>fragile rule application!\<close>
+  proof (rule nat.induct)  \<comment> \<open>fragile rule application!\<close>
     show "P 0" sorry
   next
     fix n :: nat
@@ -503,7 +503,7 @@ begin
     from \<open>A x 0\<close> show "Q x 0" sorry
   next
     case (Suc n)
-    from \<open>\<And>x. A x n \<Longrightarrow> Q x n\<close>  -- \<open>arbitrary instances can be produced here\<close>
+    from \<open>\<And>x. A x n \<Longrightarrow> Q x n\<close>  \<comment> \<open>arbitrary instances can be produced here\<close>
       and \<open>A x (Suc n)\<close> show "Q x (Suc n)" sorry
   qed
 end
@@ -675,9 +675,9 @@ notepad
 begin
   assume a: A and b: B
   thm conjI
-  thm conjI [of A B]  -- "instantiation"
-  thm conjI [of A B, OF a b]  -- "instantiation and composition"
-  thm conjI [OF a b]  -- "composition via unification (trivial)"
+  thm conjI [of A B]  \<comment> "instantiation"
+  thm conjI [of A B, OF a b]  \<comment> "instantiation and composition"
+  thm conjI [OF a b]  \<comment> "composition via unification (trivial)"
   thm conjI [OF \<open>A\<close> \<open>B\<close>]
 
   thm conjI [OF disjI1]
@@ -710,9 +710,9 @@ begin
       fix x
       assume "A x"
       show "B x" sorry
-    } -- "implicit block structure made explicit"
+    } \<comment> "implicit block structure made explicit"
     note \<open>\<And>x. A x \<Longrightarrow> B x\<close>
-      -- "side exit for the resulting rule"
+      \<comment> "side exit for the resulting rule"
   qed
 end
 
@@ -726,12 +726,12 @@ text \<open>
 
 notepad
 begin
-  assume r1: "A \<Longrightarrow> B \<Longrightarrow> C"  -- \<open>simple rule (Horn clause)\<close>
+  assume r1: "A \<Longrightarrow> B \<Longrightarrow> C"  \<comment> \<open>simple rule (Horn clause)\<close>
 
-  have A sorry  -- "prefix of facts via outer sub-proof"
+  have A sorry  \<comment> "prefix of facts via outer sub-proof"
   then have C
   proof (rule r1)
-    show B sorry  -- "remaining rule premises via inner sub-proof"
+    show B sorry  \<comment> "remaining rule premises via inner sub-proof"
   qed
 
   have C
@@ -750,7 +750,7 @@ begin
 
 next
 
-  assume r2: "A \<Longrightarrow> (\<And>x. B1 x \<Longrightarrow> B2 x) \<Longrightarrow> C"  -- \<open>nested rule\<close>
+  assume r2: "A \<Longrightarrow> (\<And>x. B1 x \<Longrightarrow> B2 x) \<Longrightarrow> C"  \<comment> \<open>nested rule\<close>
 
   have A sorry
   then have C
@@ -850,31 +850,31 @@ text \<open>Further variations to illustrate Isar sub-proofs involving
 notepad
 begin
   have "A \<and> B"
-  proof  -- \<open>two strictly isolated subproofs\<close>
+  proof  \<comment> \<open>two strictly isolated subproofs\<close>
     show A sorry
   next
     show B sorry
   qed
 
   have "A \<and> B"
-  proof  -- \<open>one simultaneous sub-proof\<close>
+  proof  \<comment> \<open>one simultaneous sub-proof\<close>
     show A and B sorry
   qed
 
   have "A \<and> B"
-  proof  -- \<open>two subproofs in the same context\<close>
+  proof  \<comment> \<open>two subproofs in the same context\<close>
     show A sorry
     show B sorry
   qed
 
   have "A \<and> B"
-  proof  -- \<open>swapped order\<close>
+  proof  \<comment> \<open>swapped order\<close>
     show B sorry
     show A sorry
   qed
 
   have "A \<and> B"
-  proof  -- \<open>sequential subproofs\<close>
+  proof  \<comment> \<open>sequential subproofs\<close>
     show A sorry
     show B using \<open>A\<close> sorry
   qed
@@ -941,9 +941,9 @@ text \<open>
   following typical representatives:
 \<close>
 
-thm exE     -- \<open>local parameter\<close>
-thm conjE   -- \<open>local premises\<close>
-thm disjE   -- \<open>split into cases\<close>
+thm exE     \<comment> \<open>local parameter\<close>
+thm conjE   \<comment> \<open>local premises\<close>
+thm disjE   \<comment> \<open>split into cases\<close>
 
 text \<open>
   Combining these characteristics leads to the following general scheme
@@ -1001,7 +1001,7 @@ print_statement conjE
 print_statement disjE
 
 lemma
-  assumes A1 and A2  -- \<open>assumptions\<close>
+  assumes A1 and A2  \<comment> \<open>assumptions\<close>
   obtains
     (case1)  x y where "B1 x y" and "C1 x y"
   | (case2)  x y where "B2 x y" and "C2 x y"

@@ -194,7 +194,7 @@ class JEdit_Editor extends Editor[View]
     new Hyperlink {
       val external = true
       def follow(view: View): Unit =
-        Future.fork {
+        Standard_Thread.fork("hyperlink_url") {
           try { Isabelle_System.open(name) }
           catch {
             case exn: Throwable =>

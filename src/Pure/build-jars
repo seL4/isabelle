@@ -16,7 +16,7 @@ declare -a SOURCES=(
   Concurrent/future.scala
   Concurrent/mailbox.scala
   Concurrent/par_list.scala
-  Concurrent/simple_thread.scala
+  Concurrent/standard_thread.scala
   Concurrent/synchronized.scala
   GUI/color_value.scala
   GUI/gui.scala

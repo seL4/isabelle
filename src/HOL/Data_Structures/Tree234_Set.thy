@@ -5,19 +5,29 @@ section \<open>A 2-3-4 Tree Implementation of Sets\<close>
 theory Tree234_Set
 imports
   Tree234
+  Cmp
   "../Data_Structures/Set_by_Ordered"
 begin
 
 subsection \<open>Set operations on 2-3-4 trees\<close>
 
-fun isin :: "'a::linorder tree234 \<Rightarrow> 'a \<Rightarrow> bool" where
+fun isin :: "'a::cmp tree234 \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin Leaf x = False" |
-"isin (Node2 l a r) x = (x < a \<and> isin l x \<or> x=a \<or> isin r x)" |
+"isin (Node2 l a r) x =
+  (case cmp x a of LT \<Rightarrow> isin l x | EQ \<Rightarrow> True | GT \<Rightarrow> isin r x)" |
 "isin (Node3 l a m b r) x =
-  (x < a \<and> isin l x \<or> x = a \<or> x < b \<and> isin m x \<or> x = b \<or> isin r x)" |
-"isin (Node4 l a m b n c r) x =
-  (x < b \<and> (x < a \<and> isin l x \<or> x = a \<or> isin m x) \<or> x = b \<or>
-   x > b \<and> (x < c \<and> isin n x \<or> x=c \<or> isin r x))"
+  (case cmp x a of LT \<Rightarrow> isin l x | EQ \<Rightarrow> True | GT \<Rightarrow> (case cmp x b of
+   LT \<Rightarrow> isin m x | EQ \<Rightarrow> True | GT \<Rightarrow> isin r x))" |
+"isin (Node4 t1 a t2 b t3 c t4) x = (case cmp x b of
+  LT \<Rightarrow> (case cmp x a of
+          LT \<Rightarrow> isin t1 x |
+          EQ \<Rightarrow> True |
+          GT \<Rightarrow> isin t2 x) |
+  EQ \<Rightarrow> True |
+  GT \<Rightarrow> (case cmp x c of
+          LT \<Rightarrow> isin t3 x |
+          EQ \<Rightarrow> True |
+          GT \<Rightarrow> isin t4 x))"
 
 datatype 'a up\<^sub>i = T\<^sub>i "'a tree234" | Up\<^sub>i "'a tree234" 'a "'a tree234"
 
@@ -25,33 +35,31 @@ fun tree\<^sub>i :: "'a up\<^sub>i \<Rightarrow> 'a tree234" where
 "tree\<^sub>i (T\<^sub>i t) = t" |
 "tree\<^sub>i (Up\<^sub>i l p r) = Node2 l p r"
 
-fun ins :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>i" where
-"ins a Leaf = Up\<^sub>i Leaf a Leaf" |
-"ins a (Node2 l x r) =
-   (if a < x then
-        (case ins a l of
-           T\<^sub>i l' => T\<^sub>i (Node2 l' x r)
-         | Up\<^sub>i l1 q l2 => T\<^sub>i (Node3 l1 q l2 x r))
-    else if a=x then T\<^sub>i (Node2 l x r)
-    else
-        (case ins a r of
-           T\<^sub>i r' => T\<^sub>i (Node2 l x r')
-         | Up\<^sub>i r1 q r2 => T\<^sub>i (Node3 l x r1 q r2)))" |
-"ins a (Node3 l x1 m x2 r) =
-   (if a < x1 then
-        (case ins a l of
-           T\<^sub>i l' => T\<^sub>i (Node3 l' x1 m x2 r)
-         | Up\<^sub>i l1 q l2 => T\<^sub>i (Node4 l1 q l2 x1 m x2 r))
-    else if a=x1 then T\<^sub>i (Node3 l x1 m x2 r)
-    else if a < x2 then
-             (case ins a m of
-                T\<^sub>i m' => T\<^sub>i (Node3 l x1 m' x2 r)
-              | Up\<^sub>i m1 q m2 => T\<^sub>i (Node4 l x1 m1 q m2 x2 r))
-         else if a=x2 then T\<^sub>i (Node3 l x1 m x2 r)
-         else
-             (case ins a r of
-                T\<^sub>i r' => T\<^sub>i (Node3 l x1 m x2 r')
-              | Up\<^sub>i r1 q r2 => T\<^sub>i (Node4 l x1 m x2 r1 q r2)))" |
+fun ins :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>i" where
+"ins x Leaf = Up\<^sub>i Leaf x Leaf" |
+"ins x (Node2 l a r) =
+   (case cmp x a of
+      LT \<Rightarrow> (case ins x l of
+              T\<^sub>i l' => T\<^sub>i (Node2 l' a r)
+            | Up\<^sub>i l1 b l2 => T\<^sub>i (Node3 l1 b l2 a r)) |
+      EQ \<Rightarrow> T\<^sub>i (Node2 l x r) |
+      GT \<Rightarrow> (case ins x r of
+              T\<^sub>i r' => T\<^sub>i (Node2 l a r')
+            | Up\<^sub>i r1 b r2 => T\<^sub>i (Node3 l a r1 b r2)))" |
+"ins x (Node3 l a m b r) =
+   (case cmp x a of
+      LT \<Rightarrow> (case ins x l of
+              T\<^sub>i l' => T\<^sub>i (Node3 l' a m b r)
+            | Up\<^sub>i l1 c l2 => Up\<^sub>i (Node2 l1 c l2) a (Node2 m b r)) |
+      EQ \<Rightarrow> T\<^sub>i (Node3 l a m b r) |
+      GT \<Rightarrow> (case cmp x b of
+               GT \<Rightarrow> (case ins x r of
+                       T\<^sub>i r' => T\<^sub>i (Node3 l a m b r')
+                     | Up\<^sub>i r1 c r2 => Up\<^sub>i (Node2 l a m) b (Node2 r1 c r2)) |
+               EQ \<Rightarrow> T\<^sub>i (Node3 l a m b r) |
+               LT \<Rightarrow> (case ins x m of
+                       T\<^sub>i m' => T\<^sub>i (Node3 l a m' b r)
+                     | Up\<^sub>i m1 c m2 => Up\<^sub>i (Node2 l a m1) c (Node2 m2 b r))))" |
 "ins a (Node4 l x1 m x2 n x3 r) =
    (if a < x2 then
       if a < x1 then
@@ -75,8 +83,8 @@ fun ins :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>i" w
 
 hide_const insert
 
-definition insert :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234" where
-"insert a t = tree\<^sub>i(ins a t)"
+definition insert :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234" where
+"insert x t = tree\<^sub>i(ins x t)"
 
 datatype 'a up\<^sub>d = T\<^sub>d "'a tree234" | Up\<^sub>d "'a tree234"
 
@@ -146,7 +154,7 @@ fun del_min :: "'a tree234 \<Rightarrow> 'a * 'a up\<^sub>d" where
 "del_min (Node3 l a m b r) = (let (x,l') = del_min l in (x, node31 l' a m b r))" |
 "del_min (Node4 l a m b n c r) = (let (x,l') = del_min l in (x, node41 l' a m b n c r))"
 
-fun del :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
+fun del :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
 "del k Leaf = T\<^sub>d Leaf" |
 "del k (Node2 Leaf p Leaf) = (if k=p then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf p Leaf))" |
 "del k (Node3 Leaf p Leaf q Leaf) = T\<^sub>d(if k=p then Node2 Leaf q Leaf
@@ -156,36 +164,38 @@ fun del :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" w
      if k=b then Node3 Leaf a Leaf c Leaf else
      if k=c then Node3 Leaf a Leaf b Leaf
      else Node4 Leaf a Leaf b Leaf c Leaf)" |
-"del k (Node2 l a r) = (if k<a then node21 (del k l) a r else
-  if k > a then node22 l a (del k r) else
-  let (a',t) = del_min r in node22 l a' t)" |
-"del k (Node3 l a m b r) = (if k<a then node31 (del k l) a m b r else
-  if k = a then let (a',m') = del_min m in node32 l a' m' b r else
-  if k < b then node32 l a (del k m) b r else
-  if k = b then let (b',r') = del_min r in node33 l a m b' r'
-  else node33 l a m b (del k r))" |
-"del k (Node4 l a m b n c r) =
-  (if k < b then
-     if k < a then node41 (del k l) a m b n c r else
-     if k = a then let (a',m') = del_min m in node42 l a' m' b n c r
-     else node42 l a (del k m) b n c r
-   else
-     if k = b then let (b',n') = del_min n in node43 l a m b' n' c r else
-     if k < c then node43 l a m b (del k n) c r else
-     if k = c then let (c',r') = del_min r in node44 l a m b n c' r'
-     else node44 l a m b n c (del k r))"
+"del k (Node2 l a r) = (case cmp k a of
+  LT \<Rightarrow> node21 (del k l) a r |
+  GT \<Rightarrow> node22 l a (del k r) |
+  EQ \<Rightarrow> let (a',t) = del_min r in node22 l a' t)" |
+"del k (Node3 l a m b r) = (case cmp k a of
+  LT \<Rightarrow> node31 (del k l) a m b r |
+  EQ \<Rightarrow> let (a',m') = del_min m in node32 l a' m' b r |
+  GT \<Rightarrow> (case cmp k b of
+           LT \<Rightarrow> node32 l a (del k m) b r |
+           EQ \<Rightarrow> let (b',r') = del_min r in node33 l a m b' r' |
+           GT \<Rightarrow> node33 l a m b (del k r)))" |
+"del k (Node4 l a m b n c r) = (case cmp k b of
+  LT \<Rightarrow> (case cmp k a of
+          LT \<Rightarrow> node41 (del k l) a m b n c r |
+          EQ \<Rightarrow> let (a',m') = del_min m in node42 l a' m' b n c r |
+          GT \<Rightarrow> node42 l a (del k m) b n c r) |
+  EQ \<Rightarrow> let (b',n') = del_min n in node43 l a m b' n' c r |
+  GT \<Rightarrow> (case cmp k c of
+           LT \<Rightarrow> node43 l a m b (del k n) c r |
+           EQ \<Rightarrow> let (c',r') = del_min r in node44 l a m b n c' r' |
+           GT \<Rightarrow> node44 l a m b n c (del k r)))"
 
-definition delete :: "'a::linorder \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234" where
-"delete k t = tree\<^sub>d(del k t)"
+definition delete :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234" where
+"delete x t = tree\<^sub>d(del x t)"
 
 
 subsection "Functional correctness"
 
-
 subsubsection \<open>Functional correctness of isin:\<close>
 
 lemma "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
-by (induction t) (auto simp: elems_simps1)
+by (induction t) (auto simp: elems_simps1 ball_Un)
 
 lemma isin_set: "sorted(inorder t) \<Longrightarrow> isin t x = (x \<in> elems (inorder t))"
 by (induction t) (auto simp: elems_simps2)
@@ -252,12 +262,9 @@ by(induction t arbitrary: t' rule: del_min.induct)
 
 lemma inorder_del: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(tree\<^sub>d (del x t)) = del_list x (inorder t)"
-apply(induction t rule: del.induct)
-apply(simp_all add: del_list_simps inorder_nodes)
-apply(auto simp: del_list_simps;
-      auto simp: inorder_nodes del_list_simps del_minD split: prod.splits)+
-(* takes 285 s (2015); the last line alone would do it but takes hours *)
-done
+by(induction t rule: del.induct)
+  (auto simp: inorder_nodes del_list_simps del_minD split: prod.splits)
+  (* 150 secs (2015) *)
 
 lemma inorder_delete: "\<lbrakk> bal t ; sorted(inorder t) \<rbrakk> \<Longrightarrow>
   inorder(delete x t) = del_list x (inorder t)"
@@ -282,7 +289,7 @@ instance ..
 end
 
 lemma bal_ins: "bal t \<Longrightarrow> bal (tree\<^sub>i(ins a t)) \<and> height(ins a t) = height t"
-by (induct t) (auto, auto split: up\<^sub>i.split) (* 29 secs (2015) *)
+by (induct t) (auto, auto split: up\<^sub>i.split) (* 20 secs (2015) *)
 
 
 text{* Now an alternative proof (by Brian Huffman) that runs faster because
@@ -344,9 +351,7 @@ primrec full\<^sub>i :: "nat \<Rightarrow> 'a up\<^sub>i \<Rightarrow> bool" whe
 "full\<^sub>i n (Up\<^sub>i l p r) \<longleftrightarrow> full n l \<and> full n r"
 
 lemma full\<^sub>i_ins: "full n t \<Longrightarrow> full\<^sub>i n (ins a t)"
-apply (induct rule: full.induct)
-apply (auto, auto split: up\<^sub>i.split)
-done
+by (induct rule: full.induct) (auto, auto split: up\<^sub>i.split)
 
 text {* The @{const insert} operation preserves balance. *}
 
@@ -482,18 +487,17 @@ by(induct t arbitrary: x t' rule: del_min.induct)
 
 lemma bal_tree\<^sub>d_del: "bal t \<Longrightarrow> bal(tree\<^sub>d(del x t))"
 by(induction x t rule: del.induct)
-  ((auto simp: bals bal_del_min height_del height_del_min split: prod.split)[1])+
-(* 64 secs (2015) *)
+  (auto simp: bals bal_del_min height_del height_del_min split: prod.split)
+(* 60 secs (2015) *)
 
 corollary bal_delete: "bal t \<Longrightarrow> bal(delete x t)"
 by(simp add: delete_def bal_tree\<^sub>d_del)
-
 
 subsection \<open>Overall Correctness\<close>
 
 interpretation Set_by_Ordered
 where empty = Leaf and isin = isin and insert = insert and delete = delete
-and inorder = inorder and wf = bal
+and inorder = inorder and inv = bal
 proof (standard, goal_cases)
   case 2 thus ?case by(simp add: isin_set)
 next

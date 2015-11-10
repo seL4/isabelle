@@ -149,7 +149,7 @@ proof -
     unfolding linorder_not_le[symmetric] by blast
 qed
 
-text \<open>Hence we can always reduce modulus of @{text "1 + b z^n"} if nonzero\<close>
+text \<open>Hence we can always reduce modulus of \<open>1 + b z^n\<close> if nonzero\<close>
 lemma reduce_poly_simple:
   assumes b: "b \<noteq> 0"
     and n: "n \<noteq> 0"

@@ -3,6 +3,7 @@
     Copyright   : 1998  University of Cambridge
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
     The integer version of factorial and other additions by Jeremy Avigad.
+    Additional binomial identities by Chaitanya Mangla and Manuel Eberl
 *)
 
 section\<open>Factorial Function, Binomial Coefficients and Binomial Theorem\<close>

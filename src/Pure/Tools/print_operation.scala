@@ -20,7 +20,7 @@ object Print_Operation
 
   class Handler extends Session.Protocol_Handler
   {
-    private val print_operations = Synchronized(Nil: List[(String, String)])
+    private val print_operations = Synchronized[List[(String, String)]](Nil)
 
     def get: List[(String, String)] = print_operations.value
 

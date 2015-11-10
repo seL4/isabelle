@@ -271,7 +271,7 @@ subsubsection \<open>Equational laws\<close>
 context semilattice_inf
 begin
 
-sublocale inf!: semilattice inf
+sublocale inf: semilattice inf
 proof
   fix a b c
   show "(a \<sqinter> b) \<sqinter> c = a \<sqinter> (b \<sqinter> c)"
@@ -282,7 +282,7 @@ proof
     by (rule antisym) (auto simp add: le_inf_iff)
 qed
 
-sublocale inf!: semilattice_order inf less_eq less
+sublocale inf: semilattice_order inf less_eq less
   by standard (auto simp add: le_iff_inf less_le)
 
 lemma inf_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
@@ -316,7 +316,7 @@ end
 context semilattice_sup
 begin
 
-sublocale sup!: semilattice sup
+sublocale sup: semilattice sup
 proof
   fix a b c
   show "(a \<squnion> b) \<squnion> c = a \<squnion> (b \<squnion> c)"
@@ -327,7 +327,7 @@ proof
     by (rule antisym) (auto simp add: le_sup_iff)
 qed
 
-sublocale sup!: semilattice_order sup greater_eq greater
+sublocale sup: semilattice_order sup greater_eq greater
   by standard (auto simp add: le_iff_sup sup.commute less_le)
 
 lemma sup_assoc: "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
@@ -484,8 +484,8 @@ subsection \<open>Bounded lattices and boolean algebras\<close>
 class bounded_semilattice_inf_top = semilattice_inf + order_top
 begin
 
-sublocale inf_top!: semilattice_neutr inf top
-  + inf_top!: semilattice_neutr_order inf top less_eq less
+sublocale inf_top: semilattice_neutr inf top
+  + inf_top: semilattice_neutr_order inf top less_eq less
 proof
   fix x
   show "x \<sqinter> \<top> = x"
@@ -497,8 +497,8 @@ end
 class bounded_semilattice_sup_bot = semilattice_sup + order_bot
 begin
 
-sublocale sup_bot!: semilattice_neutr sup bot
-  + sup_bot!: semilattice_neutr_order sup bot greater_eq greater
+sublocale sup_bot: semilattice_neutr sup bot
+  + sup_bot: semilattice_neutr_order sup bot greater_eq greater
 proof
   fix x
   show "x \<squnion> \<bottom> = x"
@@ -715,8 +715,8 @@ subsection \<open>@{text "min/max"} as special case of lattice\<close>
 context linorder
 begin
 
-sublocale min!: semilattice_order min less_eq less
-  + max!: semilattice_order max greater_eq greater
+sublocale min: semilattice_order min less_eq less
+  + max: semilattice_order max greater_eq greater
   by standard (auto simp add: min_def max_def)
 
 lemma min_le_iff_disj:

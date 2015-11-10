@@ -133,7 +133,7 @@ qed
 locale pair_subprob_space = 
   pair_sigma_finite M1 M2 + M1: subprob_space M1 + M2: subprob_space M2 for M1 M2
 
-sublocale pair_subprob_space \<subseteq> P: subprob_space "M1 \<Otimes>\<^sub>M M2"
+sublocale pair_subprob_space \<subseteq> P?: subprob_space "M1 \<Otimes>\<^sub>M M2"
 proof
   have "\<And>a b. \<lbrakk>a \<ge> 0; b \<ge> 0; a \<le> 1; b \<le> 1\<rbrakk> \<Longrightarrow> a * b \<le> (1::ereal)"
     by (metis monoid_mult_class.mult.left_neutral dual_order.trans ereal_mult_right_mono)

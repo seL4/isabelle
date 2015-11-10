@@ -471,12 +471,12 @@ definition setsum :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> '
 where
   "setsum = comm_monoid_set.F plus 0"
 
-sublocale setsum!: comm_monoid_set plus 0
-where
+sublocale setsum: comm_monoid_set plus 0
+rewrites
   "comm_monoid_set.F plus 0 = setsum"
 proof -
   show "comm_monoid_set plus 0" ..
-  then interpret setsum!: comm_monoid_set plus 0 .
+  then interpret setsum: comm_monoid_set plus 0 .
   from setsum_def show "comm_monoid_set.F plus 0 = setsum" by rule
 qed
 
@@ -1062,12 +1062,12 @@ definition setprod :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 
 where
   "setprod = comm_monoid_set.F times 1"
 
-sublocale setprod!: comm_monoid_set times 1
-where
+sublocale setprod: comm_monoid_set times 1
+rewrites
   "comm_monoid_set.F times 1 = setprod"
 proof -
   show "comm_monoid_set times 1" ..
-  then interpret setprod!: comm_monoid_set times 1 .
+  then interpret setprod: comm_monoid_set times 1 .
   from setprod_def show "comm_monoid_set.F times 1 = setprod" by rule
 qed
 

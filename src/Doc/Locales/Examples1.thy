@@ -84,6 +84,6 @@ text \<open>Not only does the above interpretation qualify theorem names.
   In order to allow for the desired replacement, interpretation
   accepts \emph{equations} in addition to the parameter instantiation.
   These follow the locale expression and are indicated with the
-  keyword \isakeyword{where}.  This is the revised interpretation:
+  keyword \isakeyword{rewrites}.  This is the revised interpretation:
 \<close>
 end

@@ -30,7 +30,7 @@ where
 | "polysize (Pw p n) = 1 + polysize p"
 | "polysize (CN c n p) = 4 + polysize c + polysize p"
 
-primrec polybound0:: "poly \<Rightarrow> bool" -- \<open>a poly is INDEPENDENT of Bound 0\<close>
+primrec polybound0:: "poly \<Rightarrow> bool" \<comment> \<open>a poly is INDEPENDENT of Bound 0\<close>
 where
   "polybound0 (C c) \<longleftrightarrow> True"
 | "polybound0 (Bound n) \<longleftrightarrow> n > 0"
@@ -41,7 +41,7 @@ where
 | "polybound0 (Pw p n) \<longleftrightarrow> polybound0 p"
 | "polybound0 (CN c n p) \<longleftrightarrow> n \<noteq> 0 \<and> polybound0 c \<and> polybound0 p"
 
-primrec polysubst0:: "poly \<Rightarrow> poly \<Rightarrow> poly" -- \<open>substitute a poly into a poly for Bound 0\<close>
+primrec polysubst0:: "poly \<Rightarrow> poly \<Rightarrow> poly" \<comment> \<open>substitute a poly into a poly for Bound 0\<close>
 where
   "polysubst0 t (C c) = C c"
 | "polysubst0 t (Bound n) = (if n = 0 then t else Bound n)"

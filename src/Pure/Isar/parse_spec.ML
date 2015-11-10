@@ -19,9 +19,9 @@ sig
   val locale_fixes: (binding * string option * mixfix) list parser
   val locale_insts: (string option list * (Attrib.binding * string) list) parser
   val class_expression: string list parser
-  val locale_prefix: bool -> (string * bool) parser
+  val locale_prefix: (string * bool) parser
   val locale_keyword: string parser
-  val locale_expression: bool -> Expression.expression parser
+  val locale_expression: Expression.expression parser
   val context_element: Element.context parser
   val statement: (Attrib.binding * (string * string list) list) list parser
   val if_statement: (Attrib.binding * (string * string list) list) list parser
@@ -105,11 +105,9 @@ val instance = Parse.where_ |--
 
 in
 
-fun locale_prefix mandatory =
+val locale_prefix =
   Scan.optional
-    (Parse.name --
-      (Parse.$$$ "!" >> K true || Parse.$$$ "?" >> K false || Scan.succeed mandatory) --|
-      Parse.$$$ ":")
+    (Parse.name -- (Scan.option (Parse.$$$ "?") >> is_none) --| Parse.$$$ ":")
     ("", false);
 
 val locale_keyword =
@@ -118,10 +116,11 @@ val locale_keyword =
 
 val class_expression = plus1_unless locale_keyword Parse.class;
 
-fun locale_expression mandatory =
+val locale_expression =
   let
     val expr2 = Parse.position Parse.xname;
-    val expr1 = locale_prefix mandatory -- expr2 --
+    val expr1 =
+      locale_prefix -- expr2 --
       Scan.optional instance (Expression.Named []) >> (fn ((p, l), i) => (l, (p, i)));
     val expr0 = plus1_unless locale_keyword expr1;
   in expr0 -- Scan.optional (Parse.$$$ "for" |-- Parse.!!! locale_fixes) [] end;

@@ -55,7 +55,7 @@ fun ins_list :: "'a::linorder \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "ins_list x (a#xs) =
   (if x < a then x#a#xs else if x=a then a#xs else a # ins_list x xs)"
 
-lemma set_ins_list[simp]: "elems (ins_list x xs) = insert x (elems xs)"
+lemma set_ins_list: "elems (ins_list x xs) = insert x (elems xs)"
 by(induction xs) auto
 
 lemma distinct_if_sorted: "sorted xs \<Longrightarrow> distinct xs"
@@ -86,7 +86,7 @@ fun del_list :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 lemma del_list_idem: "x \<notin> elems xs \<Longrightarrow> del_list x xs = xs"
 by (induct xs) simp_all
 
-lemma elems_del_list_eq [simp]:
+lemma elems_del_list_eq:
   "distinct xs \<Longrightarrow> elems (del_list x xs) = elems xs - {x}"
 apply(induct xs)
  apply simp

@@ -18,7 +18,7 @@ declare powr_neg_numeral [simp]
 
 section "Horner Scheme"
 
-subsection \<open>Define auxiliary helper @{text horner} function\<close>
+subsection \<open>Define auxiliary helper \<open>horner\<close> function\<close>
 
 primrec horner :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat \<Rightarrow> nat) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> real \<Rightarrow> real" where
 "horner F G 0 i k x       = 0" |

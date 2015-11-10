@@ -5189,7 +5189,7 @@ lemma a_star_trans[trans]:
 using a2 a1
 by (induct) (auto)
 
-text {* congruence rules for \<longrightarrow>\<^sub>a* *}
+text {* congruence rules for \<open>\<longrightarrow>\<^sub>a*\<close> *}
 
 lemma ax_do_not_a_star_reduce:
   shows "Ax x a \<longrightarrow>\<^sub>a* M \<Longrightarrow> M = Ax x a"

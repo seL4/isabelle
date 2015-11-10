@@ -809,12 +809,11 @@ end
 text \<open>
   A note on code generation: When defining some function containing a
   subterm @{term "fold_mset F"}, code generation is not automatic. When
-  interpreting locale @{text left_commutative} with @{text F}, the
+  interpreting locale \<open>left_commutative\<close> with \<open>F\<close>, the
   would be code thms for @{const fold_mset} become thms like
-  @{term "fold_mset F z {#} = z"} where @{text F} is not a pattern but
+  @{term "fold_mset F z {#} = z"} where \<open>F\<close> is not a pattern but
   contains defined symbols, i.e.\ is not a code thm. Hence a separate
-  constant with its own code thms needs to be introduced for @{text
-  F}. See the image operator below.
+  constant with its own code thms needs to be introduced for \<open>F\<close>. See the image operator below.
 \<close>
 
 
@@ -1059,8 +1058,8 @@ definition mset_set :: "'a set \<Rightarrow> 'a multiset"
 where
   "mset_set = folding.F (\<lambda>x M. {#x#} + M) {#}"
 
-interpretation mset_set!: folding "\<lambda>x M. {#x#} + M" "{#}"
-where
+interpretation mset_set: folding "\<lambda>x M. {#x#} + M" "{#}"
+rewrites
   "folding.F (\<lambda>x M. {#x#} + M) {#} = mset_set"
 proof -
   interpret comp_fun_commute "\<lambda>x M. {#x#} + M"
@@ -1083,7 +1082,7 @@ proof -
   qed
   then show "PROP ?P" "PROP ?Q" "PROP ?R"
   by (auto elim!: Set.set_insert)
-qed -- \<open>TODO: maybe define @{const mset_set} also in terms of @{const Abs_multiset}\<close>
+qed \<comment> \<open>TODO: maybe define @{const mset_set} also in terms of @{const Abs_multiset}\<close>
 
 lemma elem_mset_set[simp, intro]: "finite A \<Longrightarrow> x \<in># mset_set A \<longleftrightarrow> x \<in> A"
   by (induct A rule: finite_induct) simp_all
@@ -1222,8 +1221,8 @@ begin
 definition msetsum :: "'a multiset \<Rightarrow> 'a"
   where "msetsum = comm_monoid_mset.F plus 0"
 
-sublocale msetsum!: comm_monoid_mset plus 0
-  where "comm_monoid_mset.F plus 0 = msetsum"
+sublocale msetsum: comm_monoid_mset plus 0
+  rewrites "comm_monoid_mset.F plus 0 = msetsum"
 proof -
   show "comm_monoid_mset plus 0" ..
   from msetsum_def show "comm_monoid_mset.F plus 0 = msetsum" ..
@@ -1280,8 +1279,8 @@ begin
 definition msetprod :: "'a multiset \<Rightarrow> 'a"
   where "msetprod = comm_monoid_mset.F times 1"
 
-sublocale msetprod!: comm_monoid_mset times 1
-  where "comm_monoid_mset.F times 1 = msetprod"
+sublocale msetprod: comm_monoid_mset times 1
+  rewrites "comm_monoid_mset.F times 1 = msetprod"
 proof -
   show "comm_monoid_mset times 1" ..
   show "comm_monoid_mset.F times 1 = msetprod" using msetprod_def ..
@@ -1349,7 +1348,7 @@ lemma mset_sort [simp]:
 
 text \<open>
   This lemma shows which properties suffice to show that a function
-  @{text "f"} with @{text "f xs = ys"} behaves like sort.
+  \<open>f\<close> with \<open>f xs = ys\<close> behaves like sort.
 \<close>
 
 lemma properties_for_sort_key:
@@ -2106,7 +2105,7 @@ declare set_mset_mset [code]
 
 declare sorted_list_of_multiset_mset [code]
 
-lemma [code]: -- \<open>not very efficient, but representation-ignorant!\<close>
+lemma [code]: \<comment> \<open>not very efficient, but representation-ignorant!\<close>
   "mset_set A = mset (sorted_list_of_set A)"
   apply (cases "finite A")
   apply simp_all

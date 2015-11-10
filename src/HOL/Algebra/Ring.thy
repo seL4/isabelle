@@ -94,8 +94,8 @@ lemmas monoid_record_simps = partial_object.simps monoid.simps
 text \<open>Transfer facts from multiplicative structures via interpretation.\<close>
 
 sublocale abelian_monoid <
-  add!: monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
-  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+  add: monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
   by (rule a_monoid) auto
@@ -112,8 +112,8 @@ lemmas minus_unique = add.inv_unique
 end
 
 sublocale abelian_monoid <
-  add!: comm_monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
-  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+  add: comm_monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
     and "finprod \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = finsum G"
@@ -168,8 +168,8 @@ lemmas finsum_singleton = add.finprod_singleton
 end
 
 sublocale abelian_group <
-  add!: group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
-  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+  add: group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
     and "m_inv \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = a_inv G"
@@ -196,8 +196,8 @@ lemmas minus_equality = add.inv_equality
 end
 
 sublocale abelian_group <
-  add!: comm_group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
-  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+  add: comm_group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  rewrites "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
     and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
     and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
     and "m_inv \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = a_inv G"
@@ -648,7 +648,7 @@ lemma ring_hom_one:
   shows "h \<in> ring_hom R S ==> h \<one> = \<one>\<^bsub>S\<^esub>"
   by (simp add: ring_hom_def)
 
-locale ring_hom_cring = R: cring R + S: cring S
+locale ring_hom_cring = R?: cring R + S?: cring S
     for R (structure) and S (structure) +
   fixes h
   assumes homh [simp, intro]: "h \<in> ring_hom R S"

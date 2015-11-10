@@ -101,13 +101,12 @@ val veriT: SMT_Solver.solver_config = {
   command = make_command "VERIT",
   options = (fn ctxt => [
     "--proof-version=1",
-    "--proof=-",
     "--proof-prune",
     "--proof-merge",
     "--disable-print-success",
     "--disable-banner",
     "--max-time=" ^ string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout))]),
-  smt_options = [],
+  smt_options = [(":produce-proofs", "true")],
   default_max_relevant = 200 (* FUDGE *),
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat"
     "warning : proof_done: status is still open"),

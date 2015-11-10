@@ -6,13 +6,13 @@ Final stage of bootstrapping Pure, based on implicit background theory.
 
 theory Pure
   keywords
-    "!!" "!" "+" "--" ":" ";" "<" "<=" "=" "=>" "?" "[" "\<equiv>"
+    "!!" "!" "+" "--" ":" ";" "<" "<=" "=" "=>" "?" "[" "\<comment>" "\<equiv>"
     "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
     "\<subseteq>" "]" "assumes" "attach" "binder" "constrains"
     "defines" "fixes" "for" "identifier" "if" "in" "includes" "infix"
     "infixl" "infixr" "is" "notes" "obtains" "open" "output"
-    "overloaded" "pervasive" "premises" "private" "qualified" "shows"
-    "structure" "unchecked" "where" "when" "|"
+    "overloaded" "pervasive" "premises" "private" "qualified" "rewrites"
+    "shows" "structure" "unchecked" "where" "when" "|"
   and "text" "txt" :: document_body
   and "text_raw" :: document_raw
   and "default_sort" :: thy_decl == ""

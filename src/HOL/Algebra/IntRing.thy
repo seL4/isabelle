@@ -54,7 +54,7 @@ text \<open>Since definitions of derived operations are global, their
   with as few assumptions as possible.\<close>
 
 interpretation int: monoid \<Z>
-  where "carrier \<Z> = UNIV"
+  rewrites "carrier \<Z> = UNIV"
     and "mult \<Z> x y = x * y"
     and "one \<Z> = 1"
     and "pow \<Z> x n = x^n"
@@ -73,7 +73,7 @@ proof -
 qed
 
 interpretation int: comm_monoid \<Z>
-  where "finprod \<Z> f A = setprod f A"
+  rewrites "finprod \<Z> f A = setprod f A"
 proof -
   -- "Specification"
   show "comm_monoid \<Z>" by standard auto
@@ -88,7 +88,7 @@ proof -
 qed
 
 interpretation int: abelian_monoid \<Z>
-  where int_carrier_eq: "carrier \<Z> = UNIV"
+  rewrites int_carrier_eq: "carrier \<Z> = UNIV"
     and int_zero_eq: "zero \<Z> = 0"
     and int_add_eq: "add \<Z> x y = x + y"
     and int_finsum_eq: "finsum \<Z> f A = setsum f A"
@@ -114,7 +114,7 @@ interpretation int: abelian_group \<Z>
      Since the morphisms through which the abelian structures are interpreted are
      not the identity, the equations of these interpretations are not inherited. *)
   (* FIXME *)
-  where "carrier \<Z> = UNIV"
+  rewrites "carrier \<Z> = UNIV"
     and "zero \<Z> = 0"
     and "add \<Z> x y = x + y"
     and "finsum \<Z> f A = setsum f A"
@@ -147,7 +147,7 @@ proof -
 qed (simp add: int_carrier_eq int_zero_eq int_add_eq int_finsum_eq)+
 
 interpretation int: "domain" \<Z>
-  where "carrier \<Z> = UNIV"
+  rewrites "carrier \<Z> = UNIV"
     and "zero \<Z> = 0"
     and "add \<Z> x y = x + y"
     and "finsum \<Z> f A = setsum f A"
@@ -173,7 +173,7 @@ lemma UNIV:
 
 interpretation int (* FIXME [unfolded UNIV] *) :
   partial_order "\<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr>"
-  where "carrier \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> = UNIV"
+  rewrites "carrier \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> = UNIV"
     and "le \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = (x \<le> y)"
     and "lless \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = (x < y)"
 proof -
@@ -189,7 +189,7 @@ qed
 
 interpretation int (* FIXME [unfolded UNIV] *) :
   lattice "\<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr>"
-  where "join \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = max x y"
+  rewrites "join \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = max x y"
     and "meet \<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr> x y = min x y"
 proof -
   let ?Z = "\<lparr>carrier = UNIV::int set, eq = op =, le = op \<le>\<rparr>"

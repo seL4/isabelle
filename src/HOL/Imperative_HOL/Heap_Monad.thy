@@ -404,8 +404,8 @@ proof -
     by (simp only: Heap_ord_def Heap_lub_def)
 qed
 
-interpretation heap!: partial_function_definitions Heap_ord Heap_lub
-  where "Heap_lub {} \<equiv> Heap Map.empty"
+interpretation heap: partial_function_definitions Heap_ord Heap_lub
+  rewrites "Heap_lub {} \<equiv> Heap Map.empty"
 by (fact heap_interpretation)(simp add: Heap_lub_empty)
 
 lemma heap_step_admissible: 

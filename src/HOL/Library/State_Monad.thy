@@ -32,26 +32,26 @@ text \<open>
 
   \begin{description}
 
-    \item[transformations] with type signature @{text "\<sigma> \<Rightarrow> \<sigma>'"},
+    \item[transformations] with type signature \<open>\<sigma> \<Rightarrow> \<sigma>'\<close>,
       transforming a state.
 
-    \item[``yielding'' transformations] with type signature @{text "\<sigma>
-      \<Rightarrow> \<alpha> \<times> \<sigma>'"}, ``yielding'' a side result while transforming a
+    \item[``yielding'' transformations] with type signature \<open>\<sigma>
+      \<Rightarrow> \<alpha> \<times> \<sigma>'\<close>, ``yielding'' a side result while transforming a
       state.
 
-    \item[queries] with type signature @{text "\<sigma> \<Rightarrow> \<alpha>"}, computing a
+    \item[queries] with type signature \<open>\<sigma> \<Rightarrow> \<alpha>\<close>, computing a
       result dependent on a state.
 
   \end{description}
 
-  By convention we write @{text "\<sigma>"} for types representing states and
-  @{text "\<alpha>"}, @{text "\<beta>"}, @{text "\<gamma>"}, @{text "\<dots>"} for types
+  By convention we write \<open>\<sigma>\<close> for types representing states and
+  \<open>\<alpha>\<close>, \<open>\<beta>\<close>, \<open>\<gamma>\<close>, \<open>\<dots>\<close> for types
   representing side results.  Type changes due to transformations are
   not excluded in our scenario.
 
-  We aim to assert that values of any state type @{text "\<sigma>"} are used
+  We aim to assert that values of any state type \<open>\<sigma>\<close> are used
   in a single-threaded way: after application of a transformation on a
-  value of type @{text "\<sigma>"}, the former value should not be used
+  value of type \<open>\<sigma>\<close>, the former value should not be used
   again.  To achieve this, we use a set of monad combinators:
 \<close>
 

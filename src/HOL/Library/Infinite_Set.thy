@@ -13,7 +13,7 @@ subsection "Infinite Sets"
 text \<open>
   Some elementary facts about infinite sets, mostly by Stephan Merz.
   Beware! Because "infinite" merely abbreviates a negation, these
-  lemmas may not work well with @{text "blast"}.
+  lemmas may not work well with \<open>blast\<close>.
 \<close>
 
 abbreviation infinite :: "'a set \<Rightarrow> bool"
@@ -96,7 +96,7 @@ lemma finite_nat_bounded: "finite (S::nat set) \<Longrightarrow> \<exists>k. S \
 
 text \<open>
   For a set of natural numbers to be infinite, it is enough to know
-  that for any number larger than some @{text k}, there is some larger
+  that for any number larger than some \<open>k\<close>, there is some larger
   number that is an element of the set.
 \<close>
 

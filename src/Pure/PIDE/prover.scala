@@ -121,8 +121,8 @@ abstract class Prover(
 
   /** process manager **/
 
-  private val (_, process_result) =
-    Simple_Thread.future("process_result") { system_process.join }
+  private val process_result =
+    Future.thread("process_result") { system_process.join }
 
   private def terminate_process()
   {
@@ -132,7 +132,7 @@ abstract class Prover(
     }
   }
 
-  private val process_manager = Simple_Thread.fork("process_manager")
+  private val process_manager = Standard_Thread.fork("process_manager")
   {
     val (startup_failed, startup_errors) =
     {
@@ -230,7 +230,7 @@ abstract class Prover(
       if (err) ("standard_error", system_process.stderr, Markup.STDERR)
       else ("standard_output", system_process.stdout, Markup.STDOUT)
 
-    Simple_Thread.fork(name) {
+    Standard_Thread.fork(name) {
       try {
         var result = new StringBuilder(100)
         var finished = false
@@ -268,7 +268,7 @@ abstract class Prover(
     class Protocol_Error(msg: String) extends Exception(msg)
 
     val name = "message_output"
-    Simple_Thread.fork(name) {
+    Standard_Thread.fork(name) {
       val default_buffer = new Array[Byte](65536)
       var c = -1
 

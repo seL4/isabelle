@@ -114,7 +114,7 @@ object Debugger
   case object Update
 
   private val delay_update =
-    Simple_Thread.delay_first(global_state.value.session.output_delay) {
+    Standard_Thread.delay_first(global_state.value.session.output_delay) {
       global_state.value.session.debugger_updates.post(Update)
     }
 

@@ -530,8 +530,8 @@ text \<open>
 
   \<^medskip>
   The Isar calculation proof commands may be defined as
-  follows:\footnote{We suppress internal bookkeeping such as proper
-  handling of block-structure.}
+  follows:\<^footnote>\<open>We suppress internal bookkeeping such as proper
+  handling of block-structure.\<close>
 
   \begin{matharray}{rcl}
     @{command "also"}\<open>\<^sub>0\<close> & \equiv & @{command "note"}~\<open>calculation = this\<close> \\
@@ -718,9 +718,9 @@ text \<open>
   If the goal had been \<open>show\<close> (or \<open>thus\<close>), some
   pending sub-goal is solved as well by the rule resulting from the
   result \<^emph>\<open>exported\<close> into the enclosing goal context.  Thus \<open>qed\<close> may fail for two reasons: either \<open>m\<^sub>2\<close> fails, or the
-  resulting rule does not fit to any pending goal\footnote{This
+  resulting rule does not fit to any pending goal\<^footnote>\<open>This
   includes any additional ``strong'' assumptions as introduced by
-  @{command "assume"}.} of the enclosing context.  Debugging such a
+  @{command "assume"}.\<close> of the enclosing context.  Debugging such a
   situation might involve temporarily changing @{command "show"} into
   @{command "have"}, or weakening the local context by replacing
   occurrences of @{command "assume"} by @{command "presume"}.

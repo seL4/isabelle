@@ -94,6 +94,7 @@ object Rendering
 
   def token_markup(syntax: Outer_Syntax, token: Token): Byte =
     if (token.is_command) command_style(syntax.keywords.command_kind(token.content).getOrElse(""))
+    else if (token.is_keyword && token.source == Symbol.comment_decoded) JEditToken.NULL
     else if (token.is_delimiter) JEditToken.OPERATOR
     else token_style(token.kind)
 
@@ -114,7 +115,6 @@ object Rendering
       ML_Lex.Kind.CHAR -> LITERAL2,
       ML_Lex.Kind.STRING -> LITERAL1,
       ML_Lex.Kind.SPACE -> NULL,
-      ML_Lex.Kind.CARTOUCHE -> COMMENT4,
       ML_Lex.Kind.COMMENT -> COMMENT1,
       ML_Lex.Kind.ANTIQ -> NULL,
       ML_Lex.Kind.ANTIQ_START -> LITERAL4,
@@ -143,7 +143,7 @@ object Rendering
   private val language_context_elements =
     Markup.Elements(Markup.STRING, Markup.ALT_STRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
-      Markup.ML_STRING, Markup.ML_CARTOUCHE, Markup.ML_COMMENT)
+      Markup.ML_STRING, Markup.ML_COMMENT)
 
   private val language_elements = Markup.Elements(Markup.LANGUAGE)
 
@@ -292,12 +292,17 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* completion */
 
-  def semantic_completion(range: Text.Range): Option[Text.Info[Completion.Semantic]] =
+  def semantic_completion(completed_range: Option[Text.Range], range: Text.Range)
+      : Option[Text.Info[Completion.Semantic]] =
     if (snapshot.is_outdated) None
     else {
       snapshot.select(range, Rendering.semantic_completion_elements, _ =>
         {
-          case Completion.Semantic.Info(info) => Some(info)
+          case Completion.Semantic.Info(info) =>
+            completed_range match {
+              case Some(range0) if range0.contains(info.range) && range0 != info.range => None
+              case _ => Some(info)
+            }
           case _ => None
         }).headOption.map(_.info)
     }
@@ -309,9 +314,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           if (delimited) Some(Completion.Language_Context(language, symbols, antiquotes))
           else None
         case Text.Info(_, elem)
-        if elem.name == Markup.ML_STRING ||
-          elem.name == Markup.ML_CARTOUCHE ||
-          elem.name == Markup.ML_COMMENT =>
+        if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
           Some(Completion.Language_Context.ML_inner)
         case Text.Info(_, _) =>
           Some(Completion.Language_Context.inner)
@@ -675,7 +678,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     val (states, other) =
       results.iterator.map(_._2).filterNot(Protocol.is_result(_)).toList
         .partition(Protocol.is_state(_))
-    states ::: other
+    if (options.bool("editor_output_state")) states ::: other else other
   }
 
 
@@ -778,7 +781,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.ML_NUMERAL -> inner_numeral_color,
       Markup.ML_CHAR -> inner_quoted_color,
       Markup.ML_STRING -> inner_quoted_color,
-      Markup.ML_CARTOUCHE -> inner_cartouche_color,
       Markup.ML_COMMENT -> inner_comment_color,
       Markup.SML_STRING -> inner_quoted_color,
       Markup.SML_COMMENT -> inner_comment_color)

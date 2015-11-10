@@ -51,7 +51,7 @@ lemma (in product_prob_space) emeasure_PiM_emb:
     emeasure (Pi\<^sub>M I M) (emb I J (Pi\<^sub>E J X)) = (\<Prod> i\<in>J. emeasure (M i) (X i))"
   by (subst emeasure_PiM_emb') (auto intro!: emeasure_PiM)
 
-sublocale product_prob_space \<subseteq> P: prob_space "Pi\<^sub>M I M"
+sublocale product_prob_space \<subseteq> P?: prob_space "Pi\<^sub>M I M"
 proof
   have *: "emb I {} {\<lambda>x. undefined} = space (PiM I M)"
     by (auto simp: prod_emb_def space_PiM)

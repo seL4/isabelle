@@ -17,7 +17,7 @@ definition setge :: "'a::ord \<Rightarrow> 'a set \<Rightarrow> bool"  (infixl "
   where "x <=* S = (ALL y: S. x \<le> y)"
 
 
-subsection \<open>Rules for the Relations @{text "*<="} and @{text "<=*"}\<close>
+subsection \<open>Rules for the Relations \<open>*<=\<close> and \<open><=*\<close>\<close>
 
 lemma setleI: "ALL y: S. y \<le> x \<Longrightarrow> S *<= x"
   by (simp add: setle_def)

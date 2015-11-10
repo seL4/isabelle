@@ -1,21 +1,22 @@
-/*  Title:      Pure/Concurrent/simple_thread.scala
+/*  Title:      Pure/Concurrent/standard_thread.scala
     Module:     PIDE
     Author:     Makarius
 
-Simplified thread operations.
+Standard thread operations.
 */
 
 package isabelle
 
 
 import java.lang.Thread
-import java.util.concurrent.{Callable, Future => JFuture, ThreadPoolExecutor,
-  TimeUnit, LinkedBlockingQueue}
+import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue}
+
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 
-object Simple_Thread
+object Standard_Thread
 {
-  /* plain thread */
+  /* fork */
 
   def fork(name: String = "", daemon: Boolean = false)(body: => Unit): Thread =
   {
@@ -28,32 +29,22 @@ object Simple_Thread
   }
 
 
-  /* future result via thread */
+  /* pool */
 
-  def future[A](name: String = "", daemon: Boolean = false)(body: => A): (Thread, Future[A]) =
-  {
-    val result = Future.promise[A]
-    val thread = fork(name, daemon) { result.fulfill_result(Exn.capture(body)) }
-    (thread, result)
-  }
-
-
-  /* thread pool */
-
-  lazy val default_pool =
+  lazy val pool: ThreadPoolExecutor =
     {
       val m = Properties.Value.Int.unapply(System.getProperty("isabelle.threads", "0")) getOrElse 0
       val n = if (m > 0) m else (Runtime.getRuntime.availableProcessors max 1) min 8
       new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
     }
 
-  def submit_task[A](body: => A): JFuture[A] =
-    default_pool.submit(new Callable[A] { def call = body })
+  lazy val execution_context: ExecutionContextExecutor =
+    ExecutionContext.fromExecutorService(pool)
 
 
   /* delayed events */
 
-  final class Delay private [Simple_Thread](
+  final class Delay private [Standard_Thread](
     first: Boolean, delay: => Time, cancel: () => Unit, event: => Unit)
   {
     private var running: Option[Event_Timer.Request] = None
@@ -71,7 +62,7 @@ object Simple_Thread
       val new_run =
         running match {
           case Some(request) => if (first) false else { request.cancel; cancel(); true }
-          case None => true
+          case None => cancel(); true
         }
       if (new_run)
         running = Some(Event_Timer.request(Time.now() + delay)(run))

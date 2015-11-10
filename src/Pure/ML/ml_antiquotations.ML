@@ -10,7 +10,15 @@ struct
 (* ML support *)
 
 val _ = Theory.setup
- (ML_Antiquotation.inline @{binding assert}
+ (ML_Antiquotation.value @{binding cartouche}
+    (Args.context -- Scan.lift (Parse.position Args.cartouche_input) >> (fn (ctxt, (source, pos)) =>
+      "Input.source true " ^ ML_Syntax.print_string (Input.text_of source) ^ " " ^
+        ML_Syntax.atomic (ML_Syntax.print_range (Input.range_of source)))) #>
+
+  ML_Antiquotation.inline @{binding undefined}
+    (Scan.succeed "(raise General.Match)") #>
+
+  ML_Antiquotation.inline @{binding assert}
     (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
 
   ML_Antiquotation.inline @{binding make_string}

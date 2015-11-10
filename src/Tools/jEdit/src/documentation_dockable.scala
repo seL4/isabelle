@@ -59,7 +59,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
         if (path.is_file)
           PIDE.editor.goto_file(true, view, File.platform_path(path))
         else {
-          Future.fork {
+          Standard_Thread.fork("documentation") {
             try { Doc.view(path) }
             catch {
               case exn: Throwable =>

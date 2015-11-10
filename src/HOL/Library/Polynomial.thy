@@ -50,7 +50,7 @@ lemma tl_cCons [simp]:
   "tl (x ## xs) = xs"
   by (simp add: cCons_def)
 
-subsection \<open>Definition of type @{text poly}\<close>
+subsection \<open>Definition of type \<open>poly\<close>\<close>
 
 typedef (overloaded) 'a poly = "{f :: nat \<Rightarrow> 'a::zero. \<forall>\<^sub>\<infinity> n. f n = 0}"
   morphisms coeff Abs_poly by (auto intro!: ALL_MOST)
@@ -440,7 +440,7 @@ subsection \<open>Canonical morphism on polynomials -- evaluation\<close>
 
 definition poly :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a"
 where
-  "poly p = fold_coeffs (\<lambda>a f x. a + x * f x) p (\<lambda>x. 0)" -- \<open>The Horner Schema\<close>
+  "poly p = fold_coeffs (\<lambda>a f x. a + x * f x) p (\<lambda>x. 0)" \<comment> \<open>The Horner Schema\<close>
 
 lemma poly_0 [simp]:
   "poly 0 x = 0"
@@ -1887,7 +1887,7 @@ proof -
     by (rule poly_dvd_antisym)
 qed
 
-interpretation gcd_poly!: abel_semigroup "gcd :: _ poly \<Rightarrow> _"
+interpretation gcd_poly: abel_semigroup "gcd :: _ poly \<Rightarrow> _"
 proof
   fix x y z :: "'a poly"
   show "gcd (gcd x y) z = gcd x (gcd y z)"

@@ -182,7 +182,7 @@ end
 subsection \<open>Ring class instances\<close>
 
 text \<open>
-  Unfortunately @{text ring_1} instance is not possible for
+  Unfortunately \<open>ring_1\<close> instance is not possible for
   @{typ num1}, since 0 and 1 are not distinct.
 \<close>
 

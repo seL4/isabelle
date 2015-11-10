@@ -17,7 +17,7 @@ text \<open>
 \<close>
 
 
-subsection \<open>The @{text "map_default"} operation\<close>
+subsection \<open>The \<open>map_default\<close> operation\<close>
 
 definition map_default :: "'b \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
 where "map_default b f a \<equiv> case f a of None \<Rightarrow> b | Some b' \<Rightarrow> b'"
@@ -307,7 +307,7 @@ subsection \<open>Setup for quickcheck\<close>
 
 quickcheck_generator finfun constructors: finfun_update_code, "finfun_const :: 'b \<Rightarrow> 'a \<Rightarrow>f 'b"
 
-subsection \<open>@{text "finfun_update"} as instance of @{text "comp_fun_commute"}\<close>
+subsection \<open>\<open>finfun_update\<close> as instance of \<open>comp_fun_commute\<close>\<close>
 
 interpretation finfun_update: comp_fun_commute "\<lambda>a f. f(a :: 'a $:= b')"
   including finfun
@@ -1525,7 +1525,7 @@ definition "card_UNIV = Phantom('a \<Rightarrow>f 'b)
 instance by intro_classes (simp add: card_UNIV_finfun_def card_UNIV Let_def card_UNIV_finfun)
 end
 
-text \<open>Deactivate syntax again. Import theory @{text FinFun_Syntax} to reactivate it again\<close>
+text \<open>Deactivate syntax again. Import theory \<open>FinFun_Syntax\<close> to reactivate it again\<close>
 
 no_type_notation
   finfun ("(_ \<Rightarrow>f /_)" [22, 21] 21)

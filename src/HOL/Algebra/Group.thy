@@ -613,7 +613,7 @@ by (auto simp add: iso_def hom_def inj_on_def bij_betw_def)
 
 text\<open>Basis for homomorphism proofs: we assume two groups @{term G} and
   @{term H}, with a homomorphism @{term h} between them\<close>
-locale group_hom = G: group G + H: group H for G (structure) and H (structure) +
+locale group_hom = G?: group G + H?: group H for G (structure) and H (structure) +
   fixes h
   assumes homh: "h \<in> hom G H"
 

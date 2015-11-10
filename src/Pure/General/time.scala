@@ -31,6 +31,7 @@ final class Time private(val ms: Long) extends AnyVal
   def + (t: Time): Time = new Time(ms + t.ms)
   def - (t: Time): Time = new Time(ms - t.ms)
 
+  def compare(t: Time): Int = ms compare t.ms
   def < (t: Time): Boolean = ms < t.ms
   def <= (t: Time): Boolean = ms <= t.ms
   def > (t: Time): Boolean = ms > t.ms

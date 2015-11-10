@@ -462,46 +462,41 @@ text \<open>
 subsection \<open>Locale expressions \label{sec:locale-expr}\<close>
 
 text \<open>
-  A \<^emph>\<open>locale expression\<close> denotes a context composed of instances
-  of existing locales.  The context consists of the declaration
-  elements from the locale instances.  Redundant locale instances are
-  omitted according to roundup.
+  A \<^emph>\<open>locale expression\<close> denotes a context composed of instances of existing
+  locales. The context consists of the declaration elements from the locale
+  instances. Redundant locale instances are omitted according to roundup.
 
   @{rail \<open>
     @{syntax_def locale_expr}: (instance + '+') @{syntax for_fixes}
     ;
     instance: (qualifier ':')? @{syntax nameref} (pos_insts | named_insts)
     ;
-    qualifier: @{syntax name} ('?' | '!')?
+    qualifier: @{syntax name} ('?')?
     ;
     pos_insts: ('_' | @{syntax term})*
     ;
     named_insts: @'where' (@{syntax name} '=' @{syntax term} + @'and')
   \<close>}
 
-  A locale instance consists of a reference to a locale and either
-  positional or named parameter instantiations.  Identical
-  instantiations (that is, those that instantiate a parameter by itself)
-  may be omitted.  The notation `\<open>_\<close>' enables to omit the
-  instantiation for a parameter inside a positional instantiation.
+  A locale instance consists of a reference to a locale and either positional
+  or named parameter instantiations. Identical instantiations (that is, those
+  that instantiate a parameter by itself) may be omitted. The notation ``\<open>_\<close>''
+  enables to omit the instantiation for a parameter inside a positional
+  instantiation.
 
-  Terms in instantiations are from the context the locale expressions
-  is declared in.  Local names may be added to this context with the
-  optional @{keyword "for"} clause.  This is useful for shadowing names
-  bound in outer contexts, and for declaring syntax.  In addition,
-  syntax declarations from one instance are effective when parsing
-  subsequent instances of the same expression.
+  Terms in instantiations are from the context the locale expressions is
+  declared in. Local names may be added to this context with the optional
+  @{keyword "for"} clause. This is useful for shadowing names bound in outer
+  contexts, and for declaring syntax. In addition, syntax declarations from
+  one instance are effective when parsing subsequent instances of the same
+  expression.
 
-  Instances have an optional qualifier which applies to names in
-  declarations.  Names include local definitions and theorem names.
-  If present, the qualifier itself is either optional
-  (``\<^verbatim>\<open>?\<close>''), which means that it may be omitted on input of the
-  qualified name, or mandatory (``\<^verbatim>\<open>!\<close>'').  If neither
-  ``\<^verbatim>\<open>?\<close>'' nor ``\<^verbatim>\<open>!\<close>'' are present, the command's default
-  is used.  For @{command "interpretation"} and @{command "interpret"}
-  the default is ``mandatory'', for @{command "locale"} and @{command
-  "sublocale"} the default is ``optional''.  Qualifiers play no role
-  in determining whether one locale instance subsumes another.
+  Instances have an optional qualifier which applies to names in declarations.
+  Names include local definitions and theorem names. If present, the qualifier
+  itself is either mandatory (default) or non-mandatory (when followed by
+  ``\<^verbatim>\<open>?\<close>''). Non-mandatory means that the qualifier may be omitted on input.
+  Qualifiers only affect name spaces; they play no role in determining whether
+  one locale instance subsumes another.
 \<close>
 
 
@@ -678,10 +673,10 @@ text \<open>
     @@{command print_interps} @{syntax nameref}
     ;
 
-    equations: @'where' (@{syntax thmdecl}? @{syntax prop} + @'and')
+    equations: @'rewrites' (@{syntax thmdecl}? @{syntax prop} + @'and')
   \<close>}
 
-  \<^descr> @{command "interpretation"}~\<open>expr \<WHERE> eqns\<close>
+  \<^descr> @{command "interpretation"}~\<open>expr\<close>~@{keyword "rewrites"}~\<open>eqns\<close>
   interprets \<open>expr\<close> in a global or local theory.  The command
   generates proof obligations for the instantiated specifications.
   Once these are discharged by the user, instantiated declarations (in
@@ -722,14 +717,13 @@ text \<open>
   concepts introduced through definitions.  The equations must be
   proved.
 
-  \<^descr> @{command "interpret"}~\<open>expr \<WHERE> eqns\<close> interprets
+  \<^descr> @{command "interpret"}~\<open>expr\<close>~@{keyword "rewrites"}~\<open>eqns\<close> interprets
   \<open>expr\<close> in the proof context and is otherwise similar to
   interpretation in local theories.  Note that for @{command
   "interpret"} the \<open>eqns\<close> should be
   explicitly universally quantified.
 
-  \<^descr> @{command "sublocale"}~\<open>name \<subseteq> expr \<WHERE>
-  eqns\<close>
+  \<^descr> @{command "sublocale"}~\<open>name \<subseteq> expr\<close>~@{keyword "rewrites"}~\<open>eqns\<close>
   interprets \<open>expr\<close> in the locale \<open>name\<close>.  A proof that
   the specification of \<open>name\<close> implies the specification of
   \<open>expr\<close> is required.  As in the localized version of the
@@ -828,10 +822,10 @@ text \<open>
     ;
     definitions: @'defining' (@{syntax thmdecl}? @{syntax name} \<newline>
       @{syntax mixfix}? @'=' @{syntax term} + @'and');
-    equations: @'where' (@{syntax thmdecl}? @{syntax prop} + @'and')
+    equations: @'rewrites' (@{syntax thmdecl}? @{syntax prop} + @'and')
   \<close>}
 
-  \<^descr> @{command "permanent_interpretation"}~\<open>expr \<DEFINING> defs \<WHERE> eqns\<close>
+  \<^descr> @{command "permanent_interpretation"}~\<open>expr \<DEFINING> defs\<close>~@{keyword "rewrites"}~\<open>eqns\<close>
   interprets \<open>expr\<close> in the current local theory.  The command
   generates proof obligations for the instantiated specifications.
   Instantiated declarations (in particular, facts) are added to the

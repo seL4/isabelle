@@ -5,10 +5,10 @@ imports Base "~~/src/HOL/Eisbach/Eisbach_Tools"
 begin
 
 text \<open>
-  \<^emph>\<open>Eisbach\<close> is a collection of tools which form the basis for defining
-  new proof methods in Isabelle/Isar~@{cite "Wenzel-PhD"}. It can be thought
-  of as a ``proof method language'', but is more precisely an infrastructure
-  for defining new proof methods out of existing ones.
+  \<^emph>\<open>Eisbach\<close> is a collection of tools which form the basis for defining new
+  proof methods in Isabelle/Isar~@{cite "Wenzel-PhD"}. It can be thought of as
+  a ``proof method language'', but is more precisely an infrastructure for
+  defining new proof methods out of existing ones.
 
   The core functionality of Eisbach is provided by the Isar @{command method}
   command. Here users may define new methods by combining existing ones with
@@ -27,8 +27,8 @@ text \<open>
   high barrier-to-entry for many users.
 
   \<^medskip>
-  This manual is written for users familiar with Isabelle/Isar, but
-  not necessarily Isabelle/ML. It covers the usage of the @{command method} as
+  This manual is written for users familiar with Isabelle/Isar, but not
+  necessarily Isabelle/ML. It covers the usage of the @{command method} as
   well as the @{method match} method, as well as discussing their integration
   with existing Isar concepts such as @{command named_theorems}.
 \<close>

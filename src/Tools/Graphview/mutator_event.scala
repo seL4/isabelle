@@ -21,7 +21,7 @@ object Mutator_Event
 
   class Bus
   {
-    private val receivers = Synchronized(List.empty[Receiver])
+    private val receivers = Synchronized[List[Receiver]](Nil)
 
     def += (r: Receiver) { receivers.change(Library.insert(r)) }
     def -= (r: Receiver) { receivers.change(Library.remove(r)) }

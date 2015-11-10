@@ -14,7 +14,7 @@ subsection \<open>Definitions\<close>
 record ('a, 'b) module = "'b ring" +
   smult :: "['a, 'b] => 'b" (infixl "\<odot>\<index>" 70)
 
-locale module = R: cring + M: abelian_group M for M (structure) +
+locale module = R?: cring + M?: abelian_group M for M (structure) +
   assumes smult_closed [simp, intro]:
       "[| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^bsub>M\<^esub> x \<in> carrier M"
     and smult_l_distr:

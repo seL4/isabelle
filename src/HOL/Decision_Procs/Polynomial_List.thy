@@ -81,15 +81,15 @@ lemma (in semiring_0) dividesE:
   obtains q where "poly p2 = poly (p1 *** q)"
   using assms by (auto simp add: divides_def)
 
--- \<open>order of a polynomial\<close>
+\<comment> \<open>order of a polynomial\<close>
 definition (in ring_1) order :: "'a \<Rightarrow> 'a list \<Rightarrow> nat"
   where "order a p = (SOME n. ([-a, 1] %^ n) divides p \<and> \<not> (([-a, 1] %^ (Suc n)) divides p))"
 
--- \<open>degree of a polynomial\<close>
+\<comment> \<open>degree of a polynomial\<close>
 definition (in semiring_0) degree :: "'a list \<Rightarrow> nat"
   where "degree p = length (pnormalize p) - 1"
 
--- \<open>squarefree polynomials --- NB with respect to real roots only\<close>
+\<comment> \<open>squarefree polynomials --- NB with respect to real roots only\<close>
 definition (in ring_1) rsquarefree :: "'a list \<Rightarrow> bool"
   where "rsquarefree p \<longleftrightarrow> poly p \<noteq> poly [] \<and> (\<forall>a. order a p = 0 \<or> order a p = 1)"
 

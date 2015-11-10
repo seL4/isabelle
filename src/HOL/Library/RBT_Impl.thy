@@ -10,7 +10,7 @@ imports Main
 begin
 
 text \<open>
-  For applications, you should use theory @{text RBT} which defines
+  For applications, you should use theory \<open>RBT\<close> which defines
   an abstract type of red-black tree obeying the invariant.
 \<close>
 
@@ -305,7 +305,7 @@ where
   "inv1 Empty = True"
 | "inv1 (Branch c lt k v rt) \<longleftrightarrow> inv1 lt \<and> inv1 rt \<and> (c = B \<or> color_of lt = B \<and> color_of rt = B)"
 
-primrec inv1l :: "('a, 'b) rbt \<Rightarrow> bool" -- \<open>Weaker version\<close>
+primrec inv1l :: "('a, 'b) rbt \<Rightarrow> bool" \<comment> \<open>Weaker version\<close>
 where
   "inv1l Empty = True"
 | "inv1l (Branch c l k v r) = (inv1 l \<and> inv1 r)"

@@ -58,14 +58,14 @@ text \<open>
 notepad
 begin
   {
-    fix x  -- \<open>all potential occurrences of some \<open>x::\<tau>\<close> are fixed\<close>
+    fix x  \<comment> \<open>all potential occurrences of some \<open>x::\<tau>\<close> are fixed\<close>
     {
-      have "x::'a \<equiv> x"  -- \<open>implicit type assignment by concrete occurrence\<close>
+      have "x::'a \<equiv> x"  \<comment> \<open>implicit type assignment by concrete occurrence\<close>
         by (rule reflexive)
     }
-    thm this  -- \<open>result still with fixed type \<open>'a\<close>\<close>
+    thm this  \<comment> \<open>result still with fixed type \<open>'a\<close>\<close>
   }
-  thm this  -- \<open>fully general result for arbitrary \<open>?x::?'a\<close>\<close>
+  thm this  \<comment> \<open>fully general result for arbitrary \<open>?x::?'a\<close>\<close>
 end
 
 text \<open>The Isabelle/Isar proof context manages the details of term

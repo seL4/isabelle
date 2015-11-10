@@ -223,17 +223,18 @@ text \<open>The outer lexical syntax (\secref{sec:outer-lex}) admits
 
 subsection \<open>Comments \label{sec:comments}\<close>
 
-text \<open>Large chunks of plain @{syntax text} are usually given @{syntax
-  verbatim}, i.e.\ enclosed in \<^verbatim>\<open>{*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*}\<close>,
-  or as @{syntax cartouche} \<open>\<open>\<dots>\<close>\<close>. For convenience, any of the
-  smaller text units conforming to @{syntax nameref} are admitted as well. A
-  marginal @{syntax comment} is of the form \<^verbatim>\<open>--\<close>~@{syntax text}.
-  Any number of these may occur within Isabelle/Isar commands.
+text \<open>
+  Large chunks of plain @{syntax text} are usually given @{syntax verbatim},
+  i.e.\ enclosed in \<^verbatim>\<open>{*\<close>~\<open>\<dots>\<close>~\<^verbatim>\<open>*}\<close>, or as @{syntax cartouche} \<open>\<open>\<dots>\<close>\<close>. For
+  convenience, any of the smaller text units conforming to @{syntax nameref}
+  are admitted as well. A marginal @{syntax comment} is of the form
+  \<^verbatim>\<open>--\<close>~@{syntax text} or \<^verbatim>\<open>\<comment>\<close>~@{syntax text}. Any number of these may occur
+  within Isabelle/Isar commands.
 
   @{rail \<open>
     @{syntax_def text}: @{syntax verbatim} | @{syntax cartouche} | @{syntax nameref}
     ;
-    @{syntax_def comment}: '--' @{syntax text}
+    @{syntax_def comment}: ('--' | @'\<comment>') @{syntax text}
   \<close>}
 \<close>
 

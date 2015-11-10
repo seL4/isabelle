@@ -50,6 +50,9 @@ object Build
     files: List[Path],
     document_files: List[(Path, Path)],
     entry_digest: SHA1.Digest)
+  {
+    def timeout: Time = Time.seconds(options.real("timeout") * options.real("timeout_scale"))
+  }
 
   def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
 
@@ -342,7 +345,6 @@ object Build
         Map(timings.map({ case (name, (_, t)) => (name, t) }): _*).withDefaultValue(0.0)
 
       def outdegree(name: String): Int = graph.imm_succs(name).size
-      def timeout(name: String): Double = tree(name).options.real("timeout")
 
       object Ordering extends scala.math.Ordering[String]
       {
@@ -359,7 +361,7 @@ object Build
             case 0 =>
               compare_timing(name2, name1) match {
                 case 0 =>
-                  timeout(name2) compare timeout(name1) match {
+                  tree(name2).timeout compare tree(name1).timeout match {
                     case 0 => name1 compare name2
                     case ord => ord
                   }
@@ -598,8 +600,8 @@ object Build
         """
       }
 
-    private val (thread, result) =
-      Simple_Thread.future("build") {
+    private val result =
+      Future.thread("build") {
         Isabelle_System.bash_env(info.dir.file, env, script,
           progress_stdout = (line: String) =>
             Library.try_unprefix("\floading_theory = ", line) match {
@@ -614,13 +616,13 @@ object Build
           strict = false)
       }
 
-    def terminate: Unit = thread.interrupt
+    def terminate: Unit = result.cancel
     def is_finished: Boolean = result.is_finished
 
     @volatile private var was_timeout = false
     private val timeout_request: Option[Event_Timer.Request] =
     {
-      val timeout = info.options.seconds("timeout")
+      val timeout = info.timeout
       if (timeout > Time.zero)
         Some(Event_Timer.request(Time.now() + timeout) { terminate; was_timeout = true })
       else None

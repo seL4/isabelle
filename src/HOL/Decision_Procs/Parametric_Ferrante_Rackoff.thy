@@ -60,7 +60,7 @@ where
 | "tmboundslt n (Sub a b) = (tmboundslt n a \<and> tmboundslt n b)"
 | "tmboundslt n (Mul i a) = tmboundslt n a"
 
-primrec tmbound0 :: "tm \<Rightarrow> bool"  -- \<open>a tm is INDEPENDENT of Bound 0\<close>
+primrec tmbound0 :: "tm \<Rightarrow> bool"  \<comment> \<open>a tm is INDEPENDENT of Bound 0\<close>
 where
   "tmbound0 (CP c) = True"
 | "tmbound0 (Bound n) = (n>0)"
@@ -76,7 +76,7 @@ lemma tmbound0_I:
   using nb
   by (induct a rule: tm.induct) auto
 
-primrec tmbound :: "nat \<Rightarrow> tm \<Rightarrow> bool"  -- \<open>a tm is INDEPENDENT of Bound n\<close>
+primrec tmbound :: "nat \<Rightarrow> tm \<Rightarrow> bool"  \<comment> \<open>a tm is INDEPENDENT of Bound n\<close>
 where
   "tmbound n (CP c) = True"
 | "tmbound n (Bound m) = (n \<noteq> m)"
@@ -626,7 +626,7 @@ where
 | "boundslt n (E p) = boundslt (Suc n) p"
 | "boundslt n (A p) = boundslt (Suc n) p"
 
-fun bound0:: "fm \<Rightarrow> bool"  -- \<open>a Formula is independent of Bound 0\<close>
+fun bound0:: "fm \<Rightarrow> bool"  \<comment> \<open>a Formula is independent of Bound 0\<close>
 where
   "bound0 T = True"
 | "bound0 F = True"
@@ -647,7 +647,7 @@ lemma bound0_I:
   using bp tmbound0_I[where b="b" and bs="bs" and b'="b'"]
   by (induct p rule: bound0.induct) auto
 
-primrec bound:: "nat \<Rightarrow> fm \<Rightarrow> bool"  -- \<open>a Formula is independent of Bound n\<close>
+primrec bound:: "nat \<Rightarrow> fm \<Rightarrow> bool"  \<comment> \<open>a Formula is independent of Bound n\<close>
 where
   "bound m T = True"
 | "bound m F = True"
@@ -897,7 +897,7 @@ lemma iff_blt[simp]: "boundslt n p \<Longrightarrow> boundslt n q \<Longrightarr
 lemma decr0_qf: "bound0 p \<Longrightarrow> qfree (decr0 p)"
   by (induct p) simp_all
 
-fun isatom :: "fm \<Rightarrow> bool"  -- \<open>test for atomicity\<close>
+fun isatom :: "fm \<Rightarrow> bool"  \<comment> \<open>test for atomicity\<close>
 where
   "isatom T = True"
 | "isatom F = True"
@@ -1643,7 +1643,7 @@ lemma qelim:
 
 subsection \<open>Core Procedure\<close>
 
-fun minusinf:: "fm \<Rightarrow> fm"  -- \<open>Virtual substitution of -\<infinity>\<close>
+fun minusinf:: "fm \<Rightarrow> fm"  \<comment> \<open>Virtual substitution of -\<infinity>\<close>
 where
   "minusinf (And p q) = conj (minusinf p) (minusinf q)"
 | "minusinf (Or p q) = disj (minusinf p) (minusinf q)"
@@ -1653,7 +1653,7 @@ where
 | "minusinf (Le  (CNP 0 c e)) = disj (conj (eq (CP c)) (le e)) (lt (CP (~\<^sub>p c)))"
 | "minusinf p = p"
 
-fun plusinf:: "fm \<Rightarrow> fm"  -- \<open>Virtual substitution of +\<infinity>\<close>
+fun plusinf:: "fm \<Rightarrow> fm"  \<comment> \<open>Virtual substitution of +\<infinity>\<close>
 where
   "plusinf (And p q) = conj (plusinf p) (plusinf q)"
 | "plusinf (Or p q) = disj (plusinf p) (plusinf q)"

@@ -1479,7 +1479,7 @@ declare [[coercion emeasure]]
 lemma measure_space: "measure_space (space M) (sets M) (emeasure M)"
   by (cases M) (auto simp: space_def sets_def emeasure_def Abs_measure_inverse)
 
-interpretation sets!: sigma_algebra "space M" "sets M" for M :: "'a measure"
+interpretation sets: sigma_algebra "space M" "sets M" for M :: "'a measure"
   using measure_space[of M] by (auto simp: measure_space_def)
 
 definition measure_of :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> 'a measure" where

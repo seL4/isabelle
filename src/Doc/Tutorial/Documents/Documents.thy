@@ -112,7 +112,7 @@ text {*
   macros (see also \S\ref{sec:doc-prep-symbols}).  There are also a
   few predefined control symbols, such as \verb,\,\verb,<^sub>, and
   \verb,\,\verb,<^sup>, for sub- and superscript of the subsequent
-  printable symbol, respectively.  For example, \verb,A\<^sup>\<star>, is
+  printable symbol, respectively.  For example, \<^verbatim>\<open>A\<^sup>\<star>\<close>, is
   output as @{text "A\<^sup>\<star>"}.
 
   A number of symbols are considered letters by the Isabelle lexer and
@@ -125,7 +125,7 @@ text {*
   in the trailing part of an identifier. This means that the input
 
   \medskip
-  {\small\noindent \verb,\,\verb,<forall>\,\verb,<alpha>\<^sub>1.,~\verb,\,\verb,<alpha>\<^sub>1 = \,\verb,<Pi>\<^sub>\<A>,}
+  {\small\noindent \<^verbatim>\<open>\<forall>\<alpha>\<^sub>1. \<alpha>\<^sub>1 = \<Pi>\<^sub>\<A>\<close>}
 
   \medskip
   \noindent is recognized as the term @{term "\<forall>\<alpha>\<^sub>1. \<alpha>\<^sub>1 = \<Pi>\<^sub>\<A>"} 

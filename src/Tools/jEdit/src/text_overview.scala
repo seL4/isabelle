@@ -11,7 +11,6 @@ import isabelle._
 
 import scala.annotation.tailrec
 
-import java.util.concurrent.{Future => JFuture}
 import java.awt.{Graphics, Graphics2D, BorderLayout, Dimension, Color}
 import java.awt.event.{MouseAdapter, MouseEvent}
 import javax.swing.{JPanel, ToolTipManager}
@@ -102,8 +101,8 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
   /* asynchronous refresh */
 
-  private var future_refresh: Option[JFuture[Unit]] = None
-  private def cancel(): Unit = future_refresh.map(_.cancel(true))
+  private var future_refresh: Option[Future[Unit]] = None
+  private def cancel(): Unit = future_refresh.map(_.cancel)
 
   def invoke(): Unit = delay_refresh.invoke()
   def revoke(): Unit = delay_refresh.revoke()
@@ -128,7 +127,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
             }
 
             future_refresh =
-              Some(Simple_Thread.submit_task {
+              Some(Future.fork {
                 val line_count = overview.line_count
                 val char_count = overview.char_count
                 val L = overview.L

@@ -197,7 +197,7 @@ fun parse_command thy =
             in msg ^ quote (Markup.markup Markup.keyword1 name) end))
     end);
 
-val parse_cmt = Parse.$$$ "--" -- Parse.!!! Parse.document_source;
+val parse_cmt = (Parse.$$$ "--" || Parse.$$$ Symbol.comment) -- Parse.!!! Parse.document_source;
 
 fun commands_source thy =
   Token.source_proper #>
@@ -261,7 +261,7 @@ end;
 (* side-comments *)
 
 fun cmts (t1 :: t2 :: toks) =
-      if Token.keyword_with (fn s => s = "--") t1 then t2 :: cmts toks
+      if Token.keyword_with (fn s => s = "--" orelse s = Symbol.comment) t1 then t2 :: cmts toks
       else cmts (t2 :: toks)
   | cmts _ = [];
 

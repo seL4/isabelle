@@ -42,35 +42,30 @@ done
 termination splay
 by lexicographic_order
 
-lemma splay_code: "splay x t = (case t of Leaf \<Rightarrow> Leaf |
-  Node al a ar \<Rightarrow>
-  (if x = fst a then t else
-   if x < fst a then
-     case al of
-       Leaf \<Rightarrow> t |
-       Node bl b br \<Rightarrow>
-         (if x = fst b then Node bl b (Node br a ar) else
-          if x < fst b then
-            if bl = Leaf then Node bl b (Node br a ar)
-            else case splay x bl of
-                   Node bll y blr \<Rightarrow> Node bll y (Node blr b (Node br a ar))
-          else
-          if br = Leaf then Node bl b (Node br a ar)
-          else case splay x br of
-                 Node brl y brr \<Rightarrow> Node (Node bl b brl) y (Node brr a ar))
-   else
-   case ar of
-     Leaf \<Rightarrow> t |
-     Node bl b br \<Rightarrow>
-       (if x = fst b then Node (Node al a bl) b br else
-        if x < fst b then
-          if bl = Leaf then Node (Node al a bl) b br
-          else case splay x bl of
-                 Node bll y blr \<Rightarrow> Node (Node al a bll) y (Node blr b br)
-        else if br=Leaf then Node (Node al a bl) b br
-             else case splay x br of
-                    Node bll y blr \<Rightarrow> Node (Node (Node al a bl) b bll) y blr)))"
-by(auto split: tree.split)
+lemma splay_code: "splay (x::_::cmp) t = (case t of Leaf \<Rightarrow> Leaf |
+  Node al a ar \<Rightarrow> (case cmp x (fst a) of
+    EQ \<Rightarrow> t |
+    LT \<Rightarrow> (case al of
+      Leaf \<Rightarrow> t |
+      Node bl b br \<Rightarrow> (case cmp x (fst b) of
+        EQ \<Rightarrow> Node bl b (Node br a ar) |
+        LT \<Rightarrow> if bl = Leaf then Node bl b (Node br a ar)
+              else case splay x bl of
+                Node bll y blr \<Rightarrow> Node bll y (Node blr b (Node br a ar)) |
+        GT \<Rightarrow> if br = Leaf then Node bl b (Node br a ar)
+              else case splay x br of
+                Node brl y brr \<Rightarrow> Node (Node bl b brl) y (Node brr a ar))) |
+    GT \<Rightarrow> (case ar of
+      Leaf \<Rightarrow> t |
+      Node bl b br \<Rightarrow> (case cmp x (fst b) of
+        EQ \<Rightarrow> Node (Node al a bl) b br |
+        LT \<Rightarrow> if bl = Leaf then Node (Node al a bl) b br
+              else case splay x bl of
+                Node bll y blr \<Rightarrow> Node (Node al a bll) y (Node blr b br) |
+        GT \<Rightarrow> if br=Leaf then Node (Node al a bl) b br
+              else case splay x br of
+                Node bll y blr \<Rightarrow> Node (Node (Node al a bl) b bll) y blr))))"
+by(auto cong: case_tree_cong split: tree.split)
 
 definition lookup :: "('a*'b)tree \<Rightarrow> 'a::linorder \<Rightarrow> 'b option" where "lookup t x =
   (case splay x t of Leaf \<Rightarrow> None | Node _ (a,b) _ \<Rightarrow> if x=a then Some b else None)"

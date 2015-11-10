@@ -529,20 +529,20 @@ theorem limit_is_suffix:
 proof -
   have "\<exists>k. range (suffix k x) \<subseteq> limit x"
   proof -
-    -- "The set of letters that are not in the limit is certainly finite."
+    \<comment> "The set of letters that are not in the limit is certainly finite."
     from fin have "finite (range x - limit x)"
       by simp
-    -- "Moreover, any such letter occurs only finitely often"
+    \<comment> "Moreover, any such letter occurs only finitely often"
     moreover
     have "\<forall>a \<in> range x - limit x. finite (x -` {a})"
       by (auto simp add: limit_vimage)
-    -- "Thus, there are only finitely many occurrences of such letters."
+    \<comment> "Thus, there are only finitely many occurrences of such letters."
     ultimately have "finite (UN a : range x - limit x. x -` {a})"
       by (blast intro: finite_UN_I)
-    -- "Therefore these occurrences are within some initial interval."
+    \<comment> "Therefore these occurrences are within some initial interval."
     then obtain k where "(UN a : range x - limit x. x -` {a}) \<subseteq> {..<k}"
       by (blast dest: finite_nat_bounded)
-    -- "This is just the bound we are looking for."
+    \<comment> "This is just the bound we are looking for."
     hence "\<forall>m. k \<le> m \<longrightarrow> x m \<in> limit x"
       by (auto simp add: limit_vimage)
     hence "range (suffix k x) \<subseteq> limit x"
@@ -624,11 +624,11 @@ next
     fix a assume a: "a \<in> set w"
     then obtain k where k: "k < length w \<and> w!k = a"
       by (auto simp add: set_conv_nth)
-    -- "the following bound is terrible, but it simplifies the proof"
+    \<comment> "the following bound is terrible, but it simplifies the proof"
     from nempty k have "\<forall>m. w\<^sup>\<omega> ((Suc m)*(length w) + k) = a"
       by (simp add: mod_add_left_eq)
     moreover
-    -- "why is the following so hard to prove??"
+    \<comment> "why is the following so hard to prove??"
     have "\<forall>m. m < (Suc m)*(length w) + k"
     proof
       fix m
@@ -661,7 +661,7 @@ qed
 text \<open>
   The converse relation is not true in general: $f(a)$ can be in the
   limit of $f \circ w$ even though $a$ is not in the limit of $w$.
-  However, @{text limit} commutes with renaming if the function is
+  However, \<open>limit\<close> commutes with renaming if the function is
   injective. More generally, if $f(a)$ is the image of only finitely
   many elements, some of these must be in the limit of $w$.
 \<close>
@@ -672,21 +672,21 @@ lemma limit_o_inv:
   shows "\<exists>a \<in> (f -` {x}). a \<in> limit w"
 proof (rule ccontr)
   assume contra: "\<not> ?thesis"
-  -- "hence, every element in the pre-image occurs only finitely often"
+  \<comment> "hence, every element in the pre-image occurs only finitely often"
   then have "\<forall>a \<in> (f -` {x}). finite {n. w n = a}"
     by (simp add: limit_def Inf_many_def)
-  -- "so there are only finitely many occurrences of any such element"
+  \<comment> "so there are only finitely many occurrences of any such element"
   with fin have "finite (\<Union> a \<in> (f -` {x}). {n. w n = a})"
     by auto
-  -- \<open>these are precisely those positions where $x$ occurs in $f \circ w$\<close>
+  \<comment> \<open>these are precisely those positions where $x$ occurs in $f \circ w$\<close>
   moreover
   have "(\<Union> a \<in> (f -` {x}). {n. w n = a}) = {n. f(w n) = x}"
     by auto
   ultimately
-  -- "so $x$ can occur only finitely often in the translated word"
+  \<comment> "so $x$ can occur only finitely often in the translated word"
   have "finite {n. f(w n) = x}"
     by simp
-  -- \<open>\ldots\ which yields a contradiction\<close>
+  \<comment> \<open>\ldots\ which yields a contradiction\<close>
   with x show "False"
     by (simp add: limit_def Inf_many_def)
 qed
