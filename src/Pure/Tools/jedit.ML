@@ -6,7 +6,7 @@ jEdit support.
 
 signature JEDIT =
 sig
-  val is_action: string -> bool
+  val check_action: string * Position.T -> string
 end;
 
 structure JEdit: JEDIT =
@@ -44,12 +44,16 @@ val jedit_actions =
         | _ => [])
     | (_, rc) => error ("Cannot unzip jedit.jar\nreturn code = " ^ string_of_int rc)));
 
-in
-
 fun is_action a =
   member (op =) (Lazy.force isabelle_jedit_actions) a orelse
   member (op =) (Lazy.force isabelle_jedit_dockables) a orelse
   member (op =) (Lazy.force jedit_actions) a;
+
+in
+
+fun check_action (a, pos) =
+  if is_action a then a
+  else error ("Bad jEdit action " ^ quote a ^ Position.here pos);
 
 end;
 

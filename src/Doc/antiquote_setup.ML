@@ -145,12 +145,11 @@ val _ =
 
 local
 
-fun no_check _ _ = true;
+fun no_check (_: Proof.context) (name, _: Position.T) = name;
 
-fun is_keyword ctxt (name, _) =
-  Keyword.is_keyword (Thy_Header.get_keywords' ctxt) name;
-
-fun check_command ctxt (name, pos) = (Outer_Syntax.check_command ctxt (name, pos); true);
+fun check_keyword ctxt (name, pos) =
+  if Keyword.is_keyword (Thy_Header.get_keywords' ctxt) name then name
+  else error ("Bad outer syntax keyword " ^ quote name ^ Position.here pos);
 
 fun check_system_option ctxt (name, pos) =
   (Context_Position.report ctxt pos (Options.default_markup (name, pos)); true)
@@ -166,6 +165,8 @@ fun check_tool ctxt (name, pos) =
       NONE => false
     | SOME path => (Context_Position.report ctxt pos (Markup.path (Path.implode path)); true))
   end;
+
+fun check_action _ = can JEdit.check_action;
 
 val arg = enclose "{" "}" o clean_string;
 
@@ -187,13 +188,12 @@ fun entity check markup binding index =
             NONE => ""
           | SOME is_def =>
               "\\index" ^ (if is_def then "def" else "ref") ^ arg logic ^ arg kind ^ arg name);
+        val _ = check ctxt (name, pos);
       in
-        if check ctxt (name, pos) then
-          idx ^
-          (Output.output name
-            |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
-            |> hyper o enclose "\\mbox{\\isa{" "}}")
-        else error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos)
+        idx ^
+        (Output.output name
+          |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
+          |> hyper o enclose "\\mbox{\\isa{" "}}")
       end);
 
 fun entity_antiqs check markup kind =
@@ -206,23 +206,23 @@ in
 val _ =
   Theory.setup
    (entity_antiqs no_check "" @{binding syntax} #>
-    entity_antiqs check_command "isacommand" @{binding command} #>
-    entity_antiqs is_keyword "isakeyword" @{binding keyword} #>
-    entity_antiqs is_keyword "isakeyword" @{binding element} #>
-    entity_antiqs (can o Method.check_name) "" @{binding method} #>
-    entity_antiqs (can o Attrib.check_name) "" @{binding attribute} #>
+    entity_antiqs Outer_Syntax.check_command "isacommand" @{binding command} #>
+    entity_antiqs check_keyword "isakeyword" @{binding keyword} #>
+    entity_antiqs check_keyword "isakeyword" @{binding element} #>
+    entity_antiqs Method.check_name "" @{binding method} #>
+    entity_antiqs Attrib.check_name "" @{binding attribute} #>
     entity_antiqs no_check "" @{binding fact} #>
     entity_antiqs no_check "" @{binding variable} #>
     entity_antiqs no_check "" @{binding case} #>
-    entity_antiqs (can o Thy_Output.check_command) "" @{binding antiquotation} #>
-    entity_antiqs (can o Thy_Output.check_option) "" @{binding antiquotation_option} #>
+    entity_antiqs Thy_Output.check_command "" @{binding antiquotation} #>
+    entity_antiqs Thy_Output.check_option "" @{binding antiquotation_option} #>
     entity_antiqs no_check "isasystem" @{binding setting} #>
     entity_antiqs check_system_option "isasystem" @{binding system_option} #>
     entity_antiqs no_check "" @{binding inference} #>
     entity_antiqs no_check "isasystem" @{binding executable} #>
     entity_antiqs check_tool "isatool" @{binding tool} #>
-    entity_antiqs (can o ML_Context.check_antiquotation) "" @{binding ML_antiquotation} #>
-    entity_antiqs (K (JEdit.is_action o #1)) "isasystem" @{binding action});
+    entity_antiqs ML_Context.check_antiquotation "" @{binding ML_antiquotation} #>
+    entity_antiqs check_action "isasystem" @{binding action});
 
 end;
 
