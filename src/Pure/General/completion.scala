@@ -246,7 +246,7 @@ object Completion
   {
     override val whiteSpace = "".r
 
-    private val symboloid_regex: Regex = """\\([A-Za-z0-9_']+|<\^?[A-Za-z0-9_']+>)""".r
+    private val symboloid_regex: Regex = """\\([A-Za-z0-9_']+|<\^?[A-Za-z0-9_']+>?)""".r
     def is_symboloid(s: CharSequence): Boolean = symboloid_regex.pattern.matcher(s).matches
 
     private def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+\^?<\\""".r
