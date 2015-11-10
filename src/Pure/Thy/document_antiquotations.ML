@@ -172,4 +172,18 @@ val _ = Theory.setup
       (Context_Position.reports ctxt [(pos, Markup.language_path), (pos, Markup.url name)];
        enclose "\\url{" "}" name)));
 
+
+(* formal entities *)
+
+fun entity_antiquotation name check output =
+  Thy_Output.antiquotation name (Scan.lift (Parse.position Args.name))
+    (fn {context = ctxt, ...} => fn (name, pos) => (check ctxt (name, pos); output name));
+
+val _ =
+  Theory.setup
+   (entity_antiquotation @{binding command} Outer_Syntax.check_command
+     (enclose "\\isacommand{" "}" o Output.output) #>
+    entity_antiquotation @{binding method} Method.check_name Output.output #>
+    entity_antiquotation @{binding attribute} Attrib.check_name Output.output);
+
 end;

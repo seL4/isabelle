@@ -175,7 +175,9 @@ text \<open>
       @@{antiquotation abbrev} options @{syntax term} |
       @@{antiquotation typ} options @{syntax type} |
       @@{antiquotation type} options @{syntax name} |
-      @@{antiquotation class} options @{syntax name}
+      @@{antiquotation class} options @{syntax name} |
+      (@@{antiquotation command} | @@{antiquotation method} | @@{antiquotation attribute})
+        options @{syntax name}
     ;
     @{syntax antiquotation}:
       @@{antiquotation goals} options |
@@ -243,6 +245,9 @@ text \<open>
   \<^descr> \<open>@{type \<kappa>}\<close> prints a (logical or syntactic) type constructor \<open>\<kappa>\<close>.
 
   \<^descr> \<open>@{class c}\<close> prints a class \<open>c\<close>.
+
+  \<^descr> \<open>@{command name}\<close>, \<open>@{method name}\<close>, \<open>@{attribute name}\<close> print checked
+  entities of the Isar language.
 
   \<^descr> \<open>@{goals}\<close> prints the current \<^emph>\<open>dynamic\<close> goal state. This is mainly for
   support of tactic-emulation scripts within Isar. Presentation of goal states

@@ -94,6 +94,9 @@ symbols, e.g. "\<^verbatim>", "\<^emph>", "\<^bold>".
 * Antiquotation @{theory_text} prints uninterpreted theory source text
 (outer syntax with command keywords etc.).
 
+* Antiquotations @{command}, @{method}, @{attribute} print checked
+entities of the Isar language.
+
 * Antiquotations @{noindent}, @{smallskip}, @{medskip}, @{bigskip} with
 corresponding control symbols \<^noindent>, \<^smallskip>, \<^medskip>, \<^bigskip> specify spacing formally, using
 standard LaTeX macros of the same names.
