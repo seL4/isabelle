@@ -150,20 +150,7 @@ fun no_check _ _ = true;
 fun is_keyword ctxt (name, _) =
   Keyword.is_keyword (Thy_Header.get_keywords' ctxt) name;
 
-fun check_command ctxt (name, pos) =
-  let
-    val thy = Proof_Context.theory_of ctxt;
-    val keywords = Thy_Header.get_keywords thy;
-  in
-    Keyword.is_command keywords name andalso
-      let
-        val markup =
-          Token.explode keywords Position.none name
-          |> maps (Outer_Syntax.command_reports thy)
-          |> map (snd o fst);
-        val _ = Context_Position.reports ctxt (map (pair pos) markup);
-      in true end
-  end;
+fun check_command ctxt (name, pos) = (Outer_Syntax.check_command ctxt (name, pos); true);
 
 fun check_system_option ctxt (name, pos) =
   (Context_Position.report ctxt pos (Options.default_markup (name, pos)); true)
