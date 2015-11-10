@@ -89,6 +89,8 @@ sig
   val pretty_value: Proof.context -> T -> Pretty.T
   val pretty_src: Proof.context -> src -> Pretty.T
   val ident_or_symbolic: string -> bool
+  val source': bool -> Keyword.keywords -> (Symbol_Pos.T, 'a) Source.source ->
+    (T, (Symbol_Pos.T, 'a) Source.source) Source.source
   val source_proper: (T, 'a) Source.source -> (T, (T, 'a) Source.source) Source.source
   val source: Keyword.keywords ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (T,

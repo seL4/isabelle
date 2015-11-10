@@ -109,6 +109,7 @@ ML_file "Tools/find_consts.ML"
 ML_file "Tools/simplifier_trace.ML"
 ML_file "Tools/debugger.ML"
 ML_file "Tools/named_theorems.ML"
+ML_file "Tools/jedit.ML"
 
 
 section \<open>Basic attributes\<close>
@@ -298,4 +299,3 @@ next
 qed
 
 end
-

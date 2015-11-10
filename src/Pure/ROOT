@@ -227,6 +227,7 @@ session Pure =
     "System/message_channel.ML"
     "System/options.ML"
     "System/system_channel.ML"
+    "Thy/document_antiquotations.ML"
     "Thy/html.ML"
     "Thy/latex.ML"
     "Thy/markdown.ML"

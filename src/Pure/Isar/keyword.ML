@@ -43,6 +43,7 @@ sig
   val is_keyword: keywords -> string -> bool
   val is_command: keywords -> string -> bool
   val is_literal: keywords -> string -> bool
+  val dest_commands: keywords -> string list
   val command_markup: keywords -> string -> Markup.T option
   val command_kind: keywords -> string -> string option
   val command_files: keywords -> string -> Path.T -> Path.T list
@@ -186,6 +187,8 @@ val add_keywords =
 fun is_keyword keywords s = Scan.is_literal (minor_keywords keywords) (Symbol.explode s);
 fun is_command (Keywords {commands, ...}) = Symtab.defined commands;
 fun is_literal keywords = is_keyword keywords orf is_command keywords;
+
+fun dest_commands (Keywords {commands, ...}) = Symtab.keys commands;
 
 
 (* command keywords *)

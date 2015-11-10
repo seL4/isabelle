@@ -303,6 +303,7 @@ use "System/isabelle_system.ML";
 use "Thy/term_style.ML";
 use "Isar/outer_syntax.ML";
 use "Thy/thy_output.ML";
+use "Thy/document_antiquotations.ML";
 use "General/graph_display.ML";
 use "Thy/present.ML";
 use "pure_syn.ML";

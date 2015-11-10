@@ -205,8 +205,15 @@ object Completion
              (Long_Name.qualify(kind, name),
               Word.implode(Word.explode('_', kind)) +
               (if (xname == name) "" else " " + quote(decode(name))))
-          description = List(xname1, "(" + descr_name + ")")
-        } yield Item(range, original, full_name, description, xname1, 0, true)
+        } yield {
+          val description = List(xname1, "(" + descr_name + ")")
+          val replacement =
+            Token.explode(Keyword.Keywords.empty, xname1) match {
+              case List(tok) if tok.is_name => xname1
+              case _ => quote(xname1)
+            }
+          Item(range, original, full_name, description, replacement, 0, true)
+        }
 
       if (items.isEmpty) None
       else Some(Result(range, original, names.length == 1, items.sorted(history.ordering)))
@@ -246,7 +253,7 @@ object Completion
   {
     override val whiteSpace = "".r
 
-    private val symboloid_regex: Regex = """\\([A-Za-z0-9_']+|<\^?[A-Za-z0-9_']+>)""".r
+    private val symboloid_regex: Regex = """\\([A-Za-z0-9_']+|<\^?[A-Za-z0-9_']+>?)""".r
     def is_symboloid(s: CharSequence): Boolean = symboloid_regex.pattern.matcher(s).matches
 
     private def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+\^?<\\""".r

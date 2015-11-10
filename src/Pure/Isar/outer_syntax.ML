@@ -25,6 +25,7 @@ sig
   val parse_spans: Token.T list -> Command_Span.span list
   val side_comments: Token.T list -> Token.T list
   val command_reports: theory -> Token.T -> Position.report_text list
+  val check_command: Proof.context -> string * Position.T -> string
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -268,7 +269,7 @@ fun cmts (t1 :: t2 :: toks) =
 val side_comments = filter Token.is_proper #> cmts;
 
 
-(* read commands *)
+(* check commands *)
 
 fun command_reports thy tok =
   if Token.is_command tok then
@@ -278,5 +279,31 @@ fun command_reports thy tok =
       | SOME cmd => [((Token.pos_of tok, command_markup false (name, cmd)), "")])
     end
   else [];
+
+fun check_command ctxt (name, pos) =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val keywords = Thy_Header.get_keywords thy;
+  in
+    if Keyword.is_command keywords name then
+      let
+        val markup =
+          Token.explode keywords Position.none name
+          |> maps (command_reports thy)
+          |> map (#2 o #1);
+        val _ = Context_Position.reports ctxt (map (pair pos) markup);
+      in name end
+    else
+      let
+        val completion =
+          Completion.make (name, pos)
+            (fn completed =>
+              Keyword.dest_commands keywords
+              |> filter completed
+              |> sort_strings
+              |> map (fn a => (a, (Markup.commandN, a))));
+        val report = Markup.markup_report (Completion.reported_text completion);
+      in error ("Bad command " ^ quote name ^ Position.here pos ^ report) end
+  end;
 
 end;

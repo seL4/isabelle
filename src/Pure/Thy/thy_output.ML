@@ -597,60 +597,18 @@ fun output ctxt prts =
         #> enclose "\\isa{" "}");
 
 
+(* verbatim text *)
 
-(** concrete antiquotations **)
-
-(* control spacing *)
-
-val _ =
-  Theory.setup
-   (antiquotation @{binding noindent} (Scan.succeed ()) (fn _ => fn () => "\\noindent") #>
-    antiquotation @{binding smallskip} (Scan.succeed ()) (fn _ => fn () => "\\smallskip") #>
-    antiquotation @{binding medskip} (Scan.succeed ()) (fn _ => fn () => "\\medskip") #>
-    antiquotation @{binding bigskip} (Scan.succeed ()) (fn _ => fn () => "\\bigskip"));
+fun verbatim_text ctxt =
+  if Config.get ctxt display then
+    Latex.output_ascii #> Latex.environment "isabellett"
+  else
+    split_lines #>
+    map (Latex.output_ascii #> enclose "\\isatt{" "}") #>
+    space_implode "\\isasep\\isanewline%\n";
 
 
-(* control style *)
-
-local
-
-fun control_antiquotation name s1 s2 =
-  antiquotation name (Scan.lift Args.cartouche_input)
-    (fn {state, ...} => enclose s1 s2 o output_text state {markdown = false});
-
-in
-
-val _ =
-  Theory.setup
-   (control_antiquotation @{binding footnote} "\\footnote{" "}" #>
-    control_antiquotation @{binding emph} "\\emph{" "}" #>
-    control_antiquotation @{binding bold} "\\textbf{" "}");
-
-end;
-
-
-(* quasi-formal text (unchecked) *)
-
-local
-
-fun text_antiquotation name =
-  antiquotation name (Scan.lift Args.text_input)
-    (fn {context = ctxt, ...} => fn source =>
-     (Context_Position.report ctxt (Input.pos_of source)
-        (Markup.language_text (Input.is_delimited source));
-      output ctxt [pretty_text ctxt (Input.source_content source)]));
-
-in
-
-val _ =
-  Theory.setup
-   (text_antiquotation @{binding text} #>
-    text_antiquotation @{binding cartouche});
-
-end;
-
-
-(* basic entities *)
+(* antiquotations for basic entities *)
 
 local
 
@@ -683,101 +641,6 @@ val _ = Theory.setup
   basic_entity @{binding theory} (Scan.lift (Parse.position Args.name)) pretty_theory);
 
 end;
-
-
-(* goal state *)
-
-local
-
-fun goal_state name main = antiquotation name (Scan.succeed ())
-  (fn {state, context = ctxt, ...} => fn () =>
-    output ctxt
-      [Goal_Display.pretty_goal
-        (Config.put Goal_Display.show_main_goal main ctxt)
-        (#goal (Proof.goal (Toplevel.proof_of state)))]);
-
-in
-
-val _ = Theory.setup
- (goal_state @{binding goals} true #>
-  goal_state @{binding subgoals} false);
-
-end;
-
-
-(* embedded lemma *)
-
-val _ = Theory.setup
-  (antiquotation @{binding lemma}
-    (Scan.lift (Scan.ahead Parse.not_eof) -- Args.prop --
-      Scan.lift (Parse.position (Parse.reserved "by") -- Method.parse -- Scan.option Method.parse))
-    (fn {source, context = ctxt, ...} => fn ((prop_token, prop), (((_, by_pos), m1), m2)) =>
-      let
-        val prop_src = Token.src (Token.name_of_src source) [prop_token];
-
-        val reports = (by_pos, Markup.keyword1) :: maps Method.reports_of (m1 :: the_list m2);
-        val _ = Context_Position.reports ctxt reports;
-
-        (* FIXME check proof!? *)
-        val _ = ctxt
-          |> Proof.theorem NONE (K I) [[(prop, [])]]
-          |> Proof.global_terminal_proof (m1, m2);
-      in output ctxt (maybe_pretty_source pretty_term ctxt prop_src [prop]) end));
-
-
-(* verbatim text *)
-
-fun verbatim_text ctxt =
-  if Config.get ctxt display then
-    Latex.output_ascii #> Latex.environment "isabellett"
-  else
-    split_lines #>
-    map (Latex.output_ascii #> enclose "\\isatt{" "}") #>
-    space_implode "\\isasep\\isanewline%\n";
-
-val _ =
-  Theory.setup
-    (antiquotation @{binding verbatim} (Scan.lift Args.text) (verbatim_text o #context));
-
-
-(* ML text *)
-
-local
-
-fun ml_text name ml = antiquotation name (Scan.lift Args.text_input)
-  (fn {context = ctxt, ...} => fn source =>
-   (ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (Input.pos_of source) (ml source);
-    verbatim_text ctxt (Input.source_content source)));
-
-fun ml_enclose bg en source =
-  ML_Lex.read bg @ ML_Lex.read_source false source @ ML_Lex.read en;
-
-in
-
-val _ = Theory.setup
- (ml_text @{binding ML} (ml_enclose "fn _ => (" ");") #>
-  ml_text @{binding ML_op} (ml_enclose "fn _ => (op " ");") #>
-  ml_text @{binding ML_type} (ml_enclose "val _ = NONE : (" ") option;") #>
-  ml_text @{binding ML_structure}
-    (ml_enclose "functor XXX() = struct structure XX = " " end;") #>
-
-  ml_text @{binding ML_functor}   (* FIXME formal treatment of functor name (!?) *)
-    (fn source =>
-      ML_Lex.read ("ML_Env.check_functor " ^
-        ML_Syntax.print_string (Input.source_content source))) #>
-
-  ml_text @{binding ML_text} (K []));
-
-end;
-
-
-(* URLs *)
-
-val _ = Theory.setup
-  (antiquotation @{binding url} (Scan.lift (Parse.position Parse.name))
-    (fn {context = ctxt, ...} => fn (name, pos) =>
-      (Context_Position.reports ctxt [(pos, Markup.language_path), (pos, Markup.url name)];
-       enclose "\\url{" "}" name)));
 
 
 
