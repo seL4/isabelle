@@ -205,8 +205,15 @@ object Completion
              (Long_Name.qualify(kind, name),
               Word.implode(Word.explode('_', kind)) +
               (if (xname == name) "" else " " + quote(decode(name))))
-          description = List(xname1, "(" + descr_name + ")")
-        } yield Item(range, original, full_name, description, xname1, 0, true)
+        } yield {
+          val description = List(xname1, "(" + descr_name + ")")
+          val replacement =
+            Token.explode(Keyword.Keywords.empty, xname1) match {
+              case List(tok) if tok.is_name => xname1
+              case _ => quote(xname1)
+            }
+          Item(range, original, full_name, description, replacement, 0, true)
+        }
 
       if (items.isEmpty) None
       else Some(Result(range, original, names.length == 1, items.sorted(history.ordering)))
