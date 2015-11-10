@@ -4,18 +4,20 @@ begin
 
 chapter \<open>Document preparation \label{ch:document-prep}\<close>
 
-text \<open>Isabelle/Isar provides a simple document preparation system
-  based on {PDF-\LaTeX}, with support for hyperlinks and bookmarks
-  within that format.  This allows to produce papers, books, theses
-  etc.\ from Isabelle theory sources.
+text \<open>
+  Isabelle/Isar provides a simple document preparation system based on
+  {PDF-\LaTeX}, with support for hyperlinks and bookmarks within that format.
+  This allows to produce papers, books, theses etc.\ from Isabelle theory
+  sources.
 
-  {\LaTeX} output is generated while processing a \<^emph>\<open>session\<close> in
-  batch mode, as explained in the \<^emph>\<open>The Isabelle System Manual\<close>
-  @{cite "isabelle-system"}.  The main Isabelle tools to get started with
-  document preparation are @{tool_ref mkroot} and @{tool_ref build}.
+  {\LaTeX} output is generated while processing a \<^emph>\<open>session\<close> in batch mode, as
+  explained in the \<^emph>\<open>The Isabelle System Manual\<close> @{cite "isabelle-system"}.
+  The main Isabelle tools to get started with document preparation are
+  @{tool_ref mkroot} and @{tool_ref build}.
 
-  The classic Isabelle/HOL tutorial @{cite "isabelle-hol-book"} also
-  explains some aspects of theory presentation.\<close>
+  The classic Isabelle/HOL tutorial @{cite "isabelle-hol-book"} also explains
+  some aspects of theory presentation.
+\<close>
 
 
 section \<open>Markup commands \label{sec:markup}\<close>
@@ -33,16 +35,15 @@ text \<open>
     @{command_def "text_raw"} & : & \<open>any \<rightarrow> any\<close> \\
   \end{matharray}
 
-  Markup commands provide a structured way to insert text into the
-  document generated from a theory.  Each markup command takes a
-  single @{syntax text} argument, which is passed as argument to a
-  corresponding {\LaTeX} macro.  The default macros provided by
-  @{file "~~/lib/texinputs/isabelle.sty"} can be redefined according
-  to the needs of the underlying document and {\LaTeX} styles.
+  Markup commands provide a structured way to insert text into the document
+  generated from a theory. Each markup command takes a single @{syntax text}
+  argument, which is passed as argument to a corresponding {\LaTeX} macro. The
+  default macros provided by @{file "~~/lib/texinputs/isabelle.sty"} can be
+  redefined according to the needs of the underlying document and {\LaTeX}
+  styles.
 
-  Note that formal comments (\secref{sec:comments}) are similar to
-  markup commands, but have a different status within Isabelle/Isar
-  syntax.
+  Note that formal comments (\secref{sec:comments}) are similar to markup
+  commands, but have a different status within Isabelle/Isar syntax.
 
   @{rail \<open>
     (@@{command chapter} | @@{command section} | @@{command subsection} |
@@ -50,28 +51,27 @@ text \<open>
       @@{command text} | @@{command txt} | @@{command text_raw}) @{syntax text}
   \<close>}
 
-  \<^descr> @{command chapter}, @{command section}, @{command subsection} etc.\ mark
-  section headings within the theory source. This works in any context, even
-  before the initial @{command theory} command. The corresponding {\LaTeX}
-  macros are \<^verbatim>\<open>\isamarkupchapter\<close>, \<^verbatim>\<open>\isamarkupsection\<close>, \<^verbatim>\<open>\isamarkupsubsection\<close> etc.\
+    \<^descr> @{command chapter}, @{command section}, @{command subsection} etc.\ mark
+    section headings within the theory source. This works in any context, even
+    before the initial @{command theory} command. The corresponding {\LaTeX}
+    macros are \<^verbatim>\<open>\isamarkupchapter\<close>, \<^verbatim>\<open>\isamarkupsection\<close>,
+    \<^verbatim>\<open>\isamarkupsubsection\<close> etc.\
 
-  \<^descr> @{command text} and @{command txt} specify paragraphs of plain text.
-  This corresponds to a {\LaTeX} environment \<^verbatim>\<open>\begin{isamarkuptext}\<close> \<open>\<dots>\<close>
-  \<^verbatim>\<open>\end{isamarkuptext}\<close> etc.
+    \<^descr> @{command text} and @{command txt} specify paragraphs of plain text.
+    This corresponds to a {\LaTeX} environment \<^verbatim>\<open>\begin{isamarkuptext}\<close> \<open>\<dots>\<close>
+    \<^verbatim>\<open>\end{isamarkuptext}\<close> etc.
 
-  \<^descr> @{command text_raw} is similar to @{command text}, but without
-  any surrounding markup environment. This allows to inject arbitrary
-  {\LaTeX} source into the generated document.
-
+    \<^descr> @{command text_raw} is similar to @{command text}, but without any
+    surrounding markup environment. This allows to inject arbitrary {\LaTeX}
+    source into the generated document.
 
   All text passed to any of the above markup commands may refer to formal
-  entities via \<^emph>\<open>document antiquotations\<close>, see also \secref{sec:antiq}.
-  These are interpreted in the present theory or proof context.
+  entities via \<^emph>\<open>document antiquotations\<close>, see also \secref{sec:antiq}. These
+  are interpreted in the present theory or proof context.
 
   \<^medskip>
-  The proof markup commands closely resemble those for theory
-  specifications, but have a different formal status and produce
-  different {\LaTeX} macros.
+  The proof markup commands closely resemble those for theory specifications,
+  but have a different formal status and produce different {\LaTeX} macros.
 \<close>
 
 
@@ -309,117 +309,110 @@ text \<open>
 
 subsection \<open>Styled antiquotations\<close>
 
-text \<open>The antiquotations \<open>thm\<close>, \<open>prop\<close> and \<open>term\<close> admit an extra \<^emph>\<open>style\<close> specification to modify the
-  printed result.  A style is specified by a name with a possibly
-  empty number of arguments;  multiple styles can be sequenced with
-  commas.  The following standard styles are available:
+text \<open>
+  The antiquotations \<open>thm\<close>, \<open>prop\<close> and \<open>term\<close> admit an extra \<^emph>\<open>style\<close>
+  specification to modify the printed result. A style is specified by a name
+  with a possibly empty number of arguments; multiple styles can be sequenced
+  with commas. The following standard styles are available:
 
-  \<^descr> \<open>lhs\<close> extracts the first argument of any application
-  form with at least two arguments --- typically meta-level or
-  object-level equality, or any other binary relation.
+  \<^descr> \<open>lhs\<close> extracts the first argument of any application form with at least
+  two arguments --- typically meta-level or object-level equality, or any
+  other binary relation.
   
-  \<^descr> \<open>rhs\<close> is like \<open>lhs\<close>, but extracts the second
-  argument.
+  \<^descr> \<open>rhs\<close> is like \<open>lhs\<close>, but extracts the second argument.
   
-  \<^descr> \<open>concl\<close> extracts the conclusion \<open>C\<close> from a rule
-  in Horn-clause normal form \<open>A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C\<close>.
+  \<^descr> \<open>concl\<close> extracts the conclusion \<open>C\<close> from a rule in Horn-clause normal form
+  \<open>A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C\<close>.
   
-  \<^descr> \<open>prem\<close> \<open>n\<close> extract premise number
-  \<open>n\<close> from from a rule in Horn-clause
-  normal form \<open>A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C\<close>
+  \<^descr> \<open>prem\<close> \<open>n\<close> extract premise number \<open>n\<close> from from a rule in Horn-clause
+  normal form \<open>A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C\<close>.
 \<close>
 
 
 subsection \<open>General options\<close>
 
-text \<open>The following options are available to tune the printed output
-  of antiquotations.  Note that many of these coincide with system and
+text \<open>
+  The following options are available to tune the printed output of
+  antiquotations. Note that many of these coincide with system and
   configuration options of the same names.
 
-  \<^descr> @{antiquotation_option_def show_types}~\<open>= bool\<close> and
-  @{antiquotation_option_def show_sorts}~\<open>= bool\<close> control
-  printing of explicit type and sort constraints.
+    \<^descr> @{antiquotation_option_def show_types}~\<open>= bool\<close> and
+    @{antiquotation_option_def show_sorts}~\<open>= bool\<close> control printing of
+    explicit type and sort constraints.
 
-  \<^descr> @{antiquotation_option_def show_structs}~\<open>= bool\<close>
-  controls printing of implicit structures.
+    \<^descr> @{antiquotation_option_def show_structs}~\<open>= bool\<close> controls printing of
+    implicit structures.
 
-  \<^descr> @{antiquotation_option_def show_abbrevs}~\<open>= bool\<close>
-  controls folding of abbreviations.
+    \<^descr> @{antiquotation_option_def show_abbrevs}~\<open>= bool\<close> controls folding of
+    abbreviations.
 
-  \<^descr> @{antiquotation_option_def names_long}~\<open>= bool\<close> forces
-  names of types and constants etc.\ to be printed in their fully
-  qualified internal form.
+    \<^descr> @{antiquotation_option_def names_long}~\<open>= bool\<close> forces names of types
+    and constants etc.\ to be printed in their fully qualified internal form.
 
-  \<^descr> @{antiquotation_option_def names_short}~\<open>= bool\<close>
-  forces names of types and constants etc.\ to be printed unqualified.
-  Note that internalizing the output again in the current context may
-  well yield a different result.
+    \<^descr> @{antiquotation_option_def names_short}~\<open>= bool\<close> forces names of types
+    and constants etc.\ to be printed unqualified. Note that internalizing the
+    output again in the current context may well yield a different result.
 
-  \<^descr> @{antiquotation_option_def names_unique}~\<open>= bool\<close>
-  determines whether the printed version of qualified names should be
-  made sufficiently long to avoid overlap with names declared further
-  back.  Set to \<open>false\<close> for more concise output.
+    \<^descr> @{antiquotation_option_def names_unique}~\<open>= bool\<close> determines whether the
+    printed version of qualified names should be made sufficiently long to
+    avoid overlap with names declared further back. Set to \<open>false\<close> for more
+    concise output.
 
-  \<^descr> @{antiquotation_option_def eta_contract}~\<open>= bool\<close>
-  prints terms in \<open>\<eta>\<close>-contracted form.
+    \<^descr> @{antiquotation_option_def eta_contract}~\<open>= bool\<close> prints terms in
+    \<open>\<eta>\<close>-contracted form.
 
-  \<^descr> @{antiquotation_option_def display}~\<open>= bool\<close> indicates
-  if the text is to be output as multi-line ``display material'',
-  rather than a small piece of text without line breaks (which is the
-  default).
+    \<^descr> @{antiquotation_option_def display}~\<open>= bool\<close> indicates if the text is to
+    be output as multi-line ``display material'', rather than a small piece of
+    text without line breaks (which is the default).
 
-  In this mode the embedded entities are printed in the same style as
-  the main theory text.
+    In this mode the embedded entities are printed in the same style as the
+    main theory text.
 
-  \<^descr> @{antiquotation_option_def break}~\<open>= bool\<close> controls
-  line breaks in non-display material.
+    \<^descr> @{antiquotation_option_def break}~\<open>= bool\<close> controls line breaks in
+    non-display material.
 
-  \<^descr> @{antiquotation_option_def quotes}~\<open>= bool\<close> indicates
-  if the output should be enclosed in double quotes.
+    \<^descr> @{antiquotation_option_def quotes}~\<open>= bool\<close> indicates if the output
+    should be enclosed in double quotes.
 
-  \<^descr> @{antiquotation_option_def mode}~\<open>= name\<close> adds \<open>name\<close> to the print mode to be used for presentation.  Note that the
-  standard setup for {\LaTeX} output is already present by default,
-  including the modes \<open>latex\<close> and \<open>xsymbols\<close>.
+    \<^descr> @{antiquotation_option_def mode}~\<open>= name\<close> adds \<open>name\<close> to the print mode
+    to be used for presentation. Note that the standard setup for {\LaTeX}
+    output is already present by default, including the modes \<open>latex\<close> and
+    \<open>xsymbols\<close>.
 
-  \<^descr> @{antiquotation_option_def margin}~\<open>= nat\<close> and
-  @{antiquotation_option_def indent}~\<open>= nat\<close> change the margin
-  or indentation for pretty printing of display material.
+    \<^descr> @{antiquotation_option_def margin}~\<open>= nat\<close> and
+    @{antiquotation_option_def indent}~\<open>= nat\<close> change the margin or
+    indentation for pretty printing of display material.
 
-  \<^descr> @{antiquotation_option_def goals_limit}~\<open>= nat\<close>
-  determines the maximum number of subgoals to be printed (for goal-based
-  antiquotation).
+    \<^descr> @{antiquotation_option_def goals_limit}~\<open>= nat\<close> determines the maximum
+    number of subgoals to be printed (for goal-based antiquotation).
 
-  \<^descr> @{antiquotation_option_def source}~\<open>= bool\<close> prints the
-  original source text of the antiquotation arguments, rather than its
-  internal representation.  Note that formal checking of
-  @{antiquotation "thm"}, @{antiquotation "term"}, etc. is still
-  enabled; use the @{antiquotation "text"} antiquotation for unchecked
-  output.
+    \<^descr> @{antiquotation_option_def source}~\<open>= bool\<close> prints the original source
+    text of the antiquotation arguments, rather than its internal
+    representation. Note that formal checking of @{antiquotation "thm"},
+    @{antiquotation "term"}, etc. is still enabled; use the @{antiquotation
+    "text"} antiquotation for unchecked output.
 
-  Regular \<open>term\<close> and \<open>typ\<close> antiquotations with \<open>source = false\<close> involve a full round-trip from the original source
-  to an internalized logical entity back to a source form, according
-  to the syntax of the current context.  Thus the printed output is
-  not under direct control of the author, it may even fluctuate a bit
-  as the underlying theory is changed later on.
+    Regular \<open>term\<close> and \<open>typ\<close> antiquotations with \<open>source = false\<close> involve a
+    full round-trip from the original source to an internalized logical entity
+    back to a source form, according to the syntax of the current context.
+    Thus the printed output is not under direct control of the author, it may
+    even fluctuate a bit as the underlying theory is changed later on.
 
-  In contrast, @{antiquotation_option source}~\<open>= true\<close>
-  admits direct printing of the given source text, with the desirable
-  well-formedness check in the background, but without modification of
-  the printed text.
+    In contrast, @{antiquotation_option source}~\<open>= true\<close> admits direct
+    printing of the given source text, with the desirable well-formedness
+    check in the background, but without modification of the printed text.
 
-
-  For Boolean flags, ``\<open>name = true\<close>'' may be abbreviated as
-  ``\<open>name\<close>''.  All of the above flags are disabled by default,
-  unless changed specifically for a logic session in the corresponding
-  \<^verbatim>\<open>ROOT\<close> file.
+  For Boolean flags, ``\<open>name = true\<close>'' may be abbreviated as ``\<open>name\<close>''. All
+  of the above flags are disabled by default, unless changed specifically for
+  a logic session in the corresponding \<^verbatim>\<open>ROOT\<close> file.
 \<close>
 
 
 section \<open>Markup via command tags \label{sec:tags}\<close>
 
-text \<open>Each Isabelle/Isar command may be decorated by additional
-  presentation tags, to indicate some modification in the way it is
-  printed in the document.
+text \<open>
+  Each Isabelle/Isar command may be decorated by additional presentation tags,
+  to indicate some modification in the way it is printed in the document.
 
   @{rail \<open>
     @{syntax_def tags}: ( tag * )
@@ -427,8 +420,8 @@ text \<open>Each Isabelle/Isar command may be decorated by additional
     tag: '%' (@{syntax ident} | @{syntax string})
   \<close>}
 
-  Some tags are pre-declared for certain classes of commands, serving
-  as default markup if no tags are given in the text:
+  Some tags are pre-declared for certain classes of commands, serving as
+  default markup if no tags are given in the text:
 
   \<^medskip>
   \begin{tabular}{ll}
@@ -438,34 +431,29 @@ text \<open>Each Isabelle/Isar command may be decorated by additional
   \end{tabular}
   \<^medskip>
 
-  The Isabelle document preparation system
-  @{cite "isabelle-system"} allows tagged command regions to be presented
-  specifically, e.g.\ to fold proof texts, or drop parts of the text
-  completely.
+  The Isabelle document preparation system @{cite "isabelle-system"} allows
+  tagged command regions to be presented specifically, e.g.\ to fold proof
+  texts, or drop parts of the text completely.
 
-  For example ``@{command "by"}~\<open>%invisible auto\<close>'' causes
-  that piece of proof to be treated as \<open>invisible\<close> instead of
-  \<open>proof\<close> (the default), which may be shown or hidden
-  depending on the document setup.  In contrast, ``@{command
-  "by"}~\<open>%visible auto\<close>'' forces this text to be shown
-  invariably.
+  For example ``@{command "by"}~\<open>%invisible auto\<close>'' causes that piece of proof
+  to be treated as \<open>invisible\<close> instead of \<open>proof\<close> (the default), which may be
+  shown or hidden depending on the document setup. In contrast, ``@{command
+  "by"}~\<open>%visible auto\<close>'' forces this text to be shown invariably.
 
-  Explicit tag specifications within a proof apply to all subsequent
-  commands of the same level of nesting.  For example, ``@{command
-  "proof"}~\<open>%visible \<dots>\<close>~@{command "qed"}'' forces the whole
-  sub-proof to be typeset as \<open>visible\<close> (unless some of its parts
-  are tagged differently).
+  Explicit tag specifications within a proof apply to all subsequent commands
+  of the same level of nesting. For example, ``@{command "proof"}~\<open>%visible
+  \<dots>\<close>~@{command "qed"}'' forces the whole sub-proof to be typeset as \<open>visible\<close>
+  (unless some of its parts are tagged differently).
 
   \<^medskip>
-  Command tags merely produce certain markup environments for
-  type-setting.  The meaning of these is determined by {\LaTeX}
-  macros, as defined in @{file "~~/lib/texinputs/isabelle.sty"} or
-  by the document author.  The Isabelle document preparation tools
-  also provide some high-level options to specify the meaning of
-  arbitrary tags to ``keep'', ``drop'', or ``fold'' the corresponding
-  parts of the text.  Logic sessions may also specify ``document
-  versions'', where given tags are interpreted in some particular way.
-  Again see @{cite "isabelle-system"} for further details.
+  Command tags merely produce certain markup environments for type-setting.
+  The meaning of these is determined by {\LaTeX} macros, as defined in @{file
+  "~~/lib/texinputs/isabelle.sty"} or by the document author. The Isabelle
+  document preparation tools also provide some high-level options to specify
+  the meaning of arbitrary tags to ``keep'', ``drop'', or ``fold'' the
+  corresponding parts of the text. Logic sessions may also specify ``document
+  versions'', where given tags are interpreted in some particular way. Again
+  see @{cite "isabelle-system"} for further details.
 \<close>
 
 
@@ -480,14 +468,13 @@ text \<open>
     'rail' @{syntax text}
   \<close>}
 
-  The @{antiquotation rail} antiquotation allows to include syntax
-  diagrams into Isabelle documents.  {\LaTeX} requires the style file
-  @{file "~~/lib/texinputs/railsetup.sty"}, which can be used via
+  The @{antiquotation rail} antiquotation allows to include syntax diagrams
+  into Isabelle documents. {\LaTeX} requires the style file @{file
+  "~~/lib/texinputs/railsetup.sty"}, which can be used via
   \<^verbatim>\<open>\usepackage{railsetup}\<close> in \<^verbatim>\<open>root.tex\<close>, for example.
 
-  The rail specification language is quoted here as Isabelle @{syntax
-  string} or text @{syntax "cartouche"}; it has its own grammar given
-  below.
+  The rail specification language is quoted here as Isabelle @{syntax string}
+  or text @{syntax "cartouche"}; it has its own grammar given below.
 
   \begingroup
   \def\isasymnewline{\isatt{\isacharbackslash\isacharless newline\isachargreater}}
@@ -506,15 +493,14 @@ text \<open>
   \<close>}
   \endgroup
 
-  The lexical syntax of \<open>identifier\<close> coincides with that of
-  @{syntax ident} in regular Isabelle syntax, but \<open>string\<close> uses
-  single quotes instead of double quotes of the standard @{syntax
-  string} category.
+  The lexical syntax of \<open>identifier\<close> coincides with that of @{syntax ident} in
+  regular Isabelle syntax, but \<open>string\<close> uses single quotes instead of double
+  quotes of the standard @{syntax string} category.
 
-  Each \<open>rule\<close> defines a formal language (with optional name),
-  using a notation that is similar to EBNF or regular expressions with
-  recursion.  The meaning and visual appearance of these rail language
-  elements is illustrated by the following representative examples.
+  Each \<open>rule\<close> defines a formal language (with optional name), using a notation
+  that is similar to EBNF or regular expressions with recursion. The meaning
+  and visual appearance of these rail language elements is illustrated by the
+  following representative examples.
 
   \<^item> Empty \<^verbatim>\<open>()\<close>
 
@@ -585,10 +571,9 @@ text \<open>
     @@{command display_drafts} (@{syntax name} +)
   \<close>}
 
-  \<^descr> @{command "display_drafts"}~\<open>paths\<close> performs simple output of a
-  given list of raw source files. Only those symbols that do not require
-  additional {\LaTeX} packages are displayed properly, everything else is left
-  verbatim.
+  \<^descr> @{command "display_drafts"}~\<open>paths\<close> performs simple output of a given list
+  of raw source files. Only those symbols that do not require additional
+  {\LaTeX} packages are displayed properly, everything else is left verbatim.
 \<close>
 
 end
