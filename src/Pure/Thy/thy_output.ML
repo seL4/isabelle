@@ -650,6 +650,29 @@ val _ =
 end;
 
 
+(* theory text with tokens (unchecked) *)
+
+val _ =
+  Theory.setup
+    (antiquotation @{binding theory_text} (Scan.lift Args.text_input)
+      (fn {context = ctxt, ...} => fn source =>
+        let
+          val _ =
+            Context_Position.report ctxt (Input.pos_of source)
+              (Markup.language_outer (Input.is_delimited source));
+
+          val keywords = Thy_Header.get_keywords' ctxt;
+          val toks =
+            Source.of_list (Input.source_explode source)
+            |> Token.source' true keywords
+            |> Source.exhaust;
+          val _ = Context_Position.reports_text ctxt (maps (Token.reports keywords) toks);
+        in
+          implode (map Latex.output_token toks)
+          |> (if Config.get ctxt display then Latex.environment "isabelle" else enclose "\\isa{" "}")
+        end));
+
+
 (* basic entities *)
 
 local

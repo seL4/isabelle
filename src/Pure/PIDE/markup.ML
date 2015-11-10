@@ -28,6 +28,7 @@ sig
   val is_delimited: Properties.T -> bool
   val language: {name: string, symbols: bool, antiquotes: bool, delimited: bool} -> T
   val language': {name: string, symbols: bool, antiquotes: bool} -> bool -> T
+  val language_outer: bool -> T
   val language_method: T
   val language_attribute: T
   val language_sort: bool -> T
@@ -299,6 +300,7 @@ fun language {name, symbols, antiquotes, delimited} =
 fun language' {name, symbols, antiquotes} delimited =
   language {name = name, symbols = symbols, antiquotes = antiquotes, delimited = delimited};
 
+val language_outer = language' {name = "", symbols = true, antiquotes = false};
 val language_method =
   language {name = "method", symbols = true, antiquotes = false, delimited = false};
 val language_attribute =
