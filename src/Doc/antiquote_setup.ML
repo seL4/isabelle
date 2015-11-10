@@ -253,10 +253,7 @@ fun entity check markup binding index =
           idx ^
           (Output.output name
             |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
-            |> (if Config.get ctxt Thy_Output.quotes then quote else I)
-            |> (if Config.get ctxt Thy_Output.display
-                then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
-                else hyper o enclose "\\mbox{\\isa{" "}}"))
+            |> hyper o enclose "\\mbox{\\isa{" "}}")
         else error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos)
       end);
 
