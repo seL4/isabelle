@@ -166,8 +166,6 @@ fun check_tool ctxt (name, pos) =
     | SOME path => (Context_Position.report ctxt pos (Markup.path (Path.implode path)); true))
   end;
 
-fun check_action _ = can JEdit.check_action;
-
 val arg = enclose "{" "}" o clean_string;
 
 fun entity check markup binding index =
@@ -222,7 +220,7 @@ val _ =
     entity_antiqs no_check "isasystem" @{binding executable} #>
     entity_antiqs check_tool "isatool" @{binding tool} #>
     entity_antiqs ML_Context.check_antiquotation "" @{binding ML_antiquotation} #>
-    entity_antiqs check_action "isasystem" @{binding action});
+    entity_antiqs (K JEdit.check_action) "isasystem" @{binding action});
 
 end;
 
