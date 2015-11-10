@@ -231,19 +231,21 @@ Use assumption that member @{term FreeUltrafilterNat} is not finite.*}
 
 text{*A few lemmas first*}
 
-lemma lemma_omega_empty_singleton_disj: "{n::nat. x = real n} = {} |
-      (\<exists>y. {n::nat. x = real n} = {y})"
+lemma lemma_omega_empty_singleton_disj: 
+  "{n::nat. x = real n} = {} \<or> (\<exists>y. {n::nat. x = real n} = {y})"
 by force
 
 lemma lemma_finite_omega_set: "finite {n::nat. x = real n}"
-by (cut_tac x = x in lemma_omega_empty_singleton_disj, auto)
+  using lemma_omega_empty_singleton_disj [of x] by auto
 
 lemma not_ex_hypreal_of_real_eq_omega:
       "~ (\<exists>x. hypreal_of_real x = omega)"
-apply (simp add: omega_def)
-apply (simp add: star_of_def star_n_eq_iff)
-apply (auto simp add: real_of_nat_Suc diff_eq_eq [symmetric]
-            lemma_finite_omega_set [THEN FreeUltrafilterNat.finite])
+apply (simp add: omega_def star_of_def star_n_eq_iff)
+apply clarify
+apply (rule_tac x2="x-1" in lemma_finite_omega_set [THEN FreeUltrafilterNat.finite, THEN notE])
+apply (rule eventually_mono)
+prefer 2 apply assumption
+apply auto
 done
 
 lemma hypreal_of_real_not_eq_omega: "hypreal_of_real x \<noteq> omega"
@@ -262,7 +264,7 @@ by (cut_tac x = x in lemma_epsilon_empty_singleton_disj, auto)
 
 lemma not_ex_hypreal_of_real_eq_epsilon: "~ (\<exists>x. hypreal_of_real x = epsilon)"
 by (auto simp add: epsilon_def star_of_def star_n_eq_iff
-                   lemma_finite_epsilon_set [THEN FreeUltrafilterNat.finite] simp del: real_of_nat_Suc)
+                   lemma_finite_epsilon_set [THEN FreeUltrafilterNat.finite] simp del: of_nat_Suc)
 
 lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x \<noteq> epsilon"
 by (insert not_ex_hypreal_of_real_eq_epsilon, auto)
@@ -307,21 +309,8 @@ by (simp add: Nats_def image_def)
 (* is a hyperreal c.f. NS extension                           *)
 (*------------------------------------------------------------*)
 
-lemma hypreal_of_nat_eq:
-     "hypreal_of_nat (n::nat) = hypreal_of_real (real n)"
-by (simp add: real_of_nat_def)
-
-lemma hypreal_of_nat:
-     "hypreal_of_nat m = star_n (%n. real m)"
-apply (fold star_of_def)
-apply (simp add: real_of_nat_def)
-done
-
-(*
-FIXME: we should declare this, as for type int, but many proofs would break.
-It replaces x+-y by x-y.
-Addsimps [symmetric hypreal_diff_def]
-*)
+lemma hypreal_of_nat: "hypreal_of_nat m = star_n (%n. real m)"
+by (simp add: star_of_def [symmetric])
 
 declaration {*
   K (Lin_Arith.add_inj_thms [@{thm star_of_le} RS iffD2,
@@ -382,12 +371,6 @@ by (simp add: abs_mult)
 
 lemma two_hrealpow_ge_one [simp]: "(1::hypreal) \<le> 2 ^ n"
 by (insert power_increasing [of 0 n "2::hypreal"], simp)
-
-lemma two_hrealpow_gt [simp]: "hypreal_of_nat n < 2 ^ n"
-apply (induct n)
-apply (auto simp add: distrib_right)
-apply (cut_tac n = n in two_hrealpow_ge_one, arith)
-done
 
 lemma hrealpow:
     "star_n X ^ m = star_n (%n. (X n::real) ^ m)"

@@ -67,19 +67,21 @@ proof (cases b)
   case PInf
   with `a < b` have "a = -\<infinity> \<or> (\<exists>r. a = ereal r)"
     by (cases a) auto
-  moreover have " (\<lambda>x. ereal (real (Suc x))) ----> \<infinity>"
-    using nat_ceiling_le_eq by (subst LIMSEQ_Suc_iff) (auto simp: Lim_PInfty)
+  moreover have "(\<lambda>x. ereal (real (Suc x))) ----> \<infinity>"
+      apply (subst LIMSEQ_Suc_iff)
+      apply (simp add: Lim_PInfty)
+      using nat_ceiling_le_eq by blast
   moreover have "\<And>r. (\<lambda>x. ereal (r + real (Suc x))) ----> \<infinity>"
     apply (subst LIMSEQ_Suc_iff)
     apply (subst Lim_PInfty)
     apply (metis add.commute diff_le_eq nat_ceiling_le_eq ereal_less_eq(3))
     done
   ultimately show thesis
-    by (intro that[of "\<lambda>i. real a + Suc i"])
+    by (intro that[of "\<lambda>i. real_of_ereal a + Suc i"])
        (auto simp: incseq_def PInf)
 next
   case (real b')
-  def d \<equiv> "b' - (if a = -\<infinity> then b' - 1 else real a)"
+  def d \<equiv> "b' - (if a = -\<infinity> then b' - 1 else real_of_ereal a)"
   with `a < b` have a': "0 < d"
     by (cases a) (auto simp: real)
   moreover
@@ -367,7 +369,7 @@ lemma interval_integral_Icc:
 
 lemma interval_integral_Icc':
   "a \<le> b \<Longrightarrow> (LBINT x=a..b. f x) = (LBINT x : {x. a \<le> ereal x \<and> ereal x \<le> b}. f x)"
-  by (auto intro!: set_integral_discrete_difference[where X="{real a, real b}"]
+  by (auto intro!: set_integral_discrete_difference[where X="{real_of_ereal a, real_of_ereal b}"]
            simp add: interval_lebesgue_integral_def einterval_iff)
 
 lemma interval_integral_Ioc:
@@ -378,7 +380,7 @@ lemma interval_integral_Ioc:
 (* TODO: other versions as well? *) (* Yes: I need the Icc' version. *)
 lemma interval_integral_Ioc':
   "a \<le> b \<Longrightarrow> (LBINT x=a..b. f x) = (LBINT x : {x. a < ereal x \<and> ereal x \<le> b}. f x)"
-  by (auto intro!: set_integral_discrete_difference[where X="{real a, real b}"]
+  by (auto intro!: set_integral_discrete_difference[where X="{real_of_ereal a, real_of_ereal b}"]
            simp add: interval_lebesgue_integral_def einterval_iff)
 
 lemma interval_integral_Ico:
@@ -420,7 +422,7 @@ proof -
     have "(LBINT x:einterval a c. f x) = (LBINT x:einterval a b \<union> einterval b c. f x)"
     proof (rule set_integral_cong_set)
       show "AE x in lborel. (x \<in> einterval a b \<union> einterval b c) = (x \<in> einterval a c)"
-        using AE_lborel_singleton[of "real b"] ord
+        using AE_lborel_singleton[of "real_of_ereal b"] ord
         by (cases a b c rule: ereal3_cases) (auto simp: einterval_iff)
     qed (insert ord, auto intro!: set_borel_measurable_subset[OF f] simp: einterval_iff)
     also have "\<dots> = (LBINT x:einterval a b. f x) + (LBINT x:einterval b c. f x)"
@@ -607,8 +609,8 @@ lemma interval_integral_FTC_nonneg:
   assumes F: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> DERIV F x :> f x" 
   assumes f: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> isCont f x" 
   assumes f_nonneg: "AE x in lborel. a < ereal x \<longrightarrow> ereal x < b \<longrightarrow> 0 \<le> f x"
-  assumes A: "((F \<circ> real) ---> A) (at_right a)"
-  assumes B: "((F \<circ> real) ---> B) (at_left b)"
+  assumes A: "((F \<circ> real_of_ereal) ---> A) (at_right a)"
+  assumes B: "((F \<circ> real_of_ereal) ---> B) (at_left b)"
   shows
     "set_integrable lborel (einterval a b) f" 
     "(LBINT x=a..b. f x) = B - A"
@@ -654,8 +656,8 @@ lemma interval_integral_FTC_integrable:
   assumes F: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> (F has_vector_derivative f x) (at x)" 
   assumes f: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> isCont f x" 
   assumes f_integrable: "set_integrable lborel (einterval a b) f"
-  assumes A: "((F \<circ> real) ---> A) (at_right a)"
-  assumes B: "((F \<circ> real) ---> B) (at_left b)"
+  assumes A: "((F \<circ> real_of_ereal) ---> A) (at_right a)"
+  assumes B: "((F \<circ> real_of_ereal) ---> B) (at_left b)"
   shows "(LBINT x=a..b. f x) = B - A"
 proof -
   from einterval_Icc_approximation[OF `a < b`] guess u l . note approx = this
@@ -819,8 +821,8 @@ lemma interval_integral_substitution_integrable:
   and contf: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> isCont f (g x)"
   and contg': "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> isCont g' x"
   and g'_nonneg: "\<And>x. a \<le> ereal x \<Longrightarrow> ereal x \<le> b \<Longrightarrow> 0 \<le> g' x"
-  and A: "((ereal \<circ> g \<circ> real) ---> A) (at_right a)"
-  and B: "((ereal \<circ> g \<circ> real) ---> B) (at_left b)"
+  and A: "((ereal \<circ> g \<circ> real_of_ereal) ---> A) (at_right a)"
+  and B: "((ereal \<circ> g \<circ> real_of_ereal) ---> B) (at_left b)"
   and integrable: "set_integrable lborel (einterval a b) (\<lambda>x. g' x *\<^sub>R f (g x))"
   and integrable2: "set_integrable lborel (einterval A B) (\<lambda>x. f x)"
   shows "(LBINT x=A..B. f x) = (LBINT x=a..b. g' x *\<^sub>R f (g x))"
@@ -920,8 +922,8 @@ lemma interval_integral_substitution_nonneg:
   and contg': "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> isCont g' x"
   and f_nonneg: "\<And>x. a < ereal x \<Longrightarrow> ereal x < b \<Longrightarrow> 0 \<le> f (g x)" (* TODO: make this AE? *)
   and g'_nonneg: "\<And>x. a \<le> ereal x \<Longrightarrow> ereal x \<le> b \<Longrightarrow> 0 \<le> g' x"
-  and A: "((ereal \<circ> g \<circ> real) ---> A) (at_right a)"
-  and B: "((ereal \<circ> g \<circ> real) ---> B) (at_left b)"
+  and A: "((ereal \<circ> g \<circ> real_of_ereal) ---> A) (at_right a)"
+  and B: "((ereal \<circ> g \<circ> real_of_ereal) ---> B) (at_left b)"
   and integrable_fg: "set_integrable lborel (einterval a b) (\<lambda>x. f (g x) * g' x)"
   shows 
     "set_integrable lborel (einterval A B) f"

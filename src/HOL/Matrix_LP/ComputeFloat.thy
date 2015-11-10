@@ -10,22 +10,24 @@ begin
 
 ML_file "~~/src/Tools/float.ML"
 
+(*FIXME surely floor should be used? This file is full of redundant material.*)
+
 definition int_of_real :: "real \<Rightarrow> int"
-  where "int_of_real x = (SOME y. real y = x)"
+  where "int_of_real x = (SOME y. real_of_int y = x)"
 
 definition real_is_int :: "real \<Rightarrow> bool"
-  where "real_is_int x = (EX (u::int). x = real u)"
+  where "real_is_int x = (EX (u::int). x = real_of_int u)"
 
-lemma real_is_int_def2: "real_is_int x = (x = real (int_of_real x))"
+lemma real_is_int_def2: "real_is_int x = (x = real_of_int (int_of_real x))"
   by (auto simp add: real_is_int_def int_of_real_def)
 
-lemma real_is_int_real[simp]: "real_is_int (real (x::int))"
+lemma real_is_int_real[simp]: "real_is_int (real_of_int (x::int))"
 by (auto simp add: real_is_int_def int_of_real_def)
 
-lemma int_of_real_real[simp]: "int_of_real (real x) = x"
+lemma int_of_real_real[simp]: "int_of_real (real_of_int x) = x"
 by (simp add: int_of_real_def)
 
-lemma real_int_of_real[simp]: "real_is_int x \<Longrightarrow> real (int_of_real x) = x"
+lemma real_int_of_real[simp]: "real_is_int x \<Longrightarrow> real_of_int (int_of_real x) = x"
 by (auto simp add: int_of_real_def real_is_int_def)
 
 lemma real_is_int_add_int_of_real: "real_is_int a \<Longrightarrow> real_is_int b \<Longrightarrow> (int_of_real (a+b)) = (int_of_real a) + (int_of_real b)"
@@ -44,15 +46,15 @@ apply (subst real_is_int_def2)
 apply (simp add: int_of_real_sub real_int_of_real)
 done
 
-lemma real_is_int_rep: "real_is_int x \<Longrightarrow> ?! (a::int). real a = x"
+lemma real_is_int_rep: "real_is_int x \<Longrightarrow> ?! (a::int). real_of_int a = x"
 by (auto simp add: real_is_int_def)
 
 lemma int_of_real_mult:
   assumes "real_is_int a" "real_is_int b"
   shows "(int_of_real (a*b)) = (int_of_real a) * (int_of_real b)"
   using assms
-  by (auto simp add: real_is_int_def real_of_int_mult[symmetric]
-           simp del: real_of_int_mult)
+  by (auto simp add: real_is_int_def of_int_mult[symmetric]
+           simp del: of_int_mult)
 
 lemma real_is_int_mult[simp]: "real_is_int a \<Longrightarrow> real_is_int b \<Longrightarrow> real_is_int (a*b)"
 apply (subst real_is_int_def2)
@@ -64,14 +66,14 @@ by (simp add: real_is_int_def int_of_real_def)
 
 lemma real_is_int_1[simp]: "real_is_int (1::real)"
 proof -
-  have "real_is_int (1::real) = real_is_int(real (1::int))" by auto
+  have "real_is_int (1::real) = real_is_int(real_of_int (1::int))" by auto
   also have "\<dots> = True" by (simp only: real_is_int_real)
   ultimately show ?thesis by auto
 qed
 
 lemma real_is_int_n1: "real_is_int (-1::real)"
 proof -
-  have "real_is_int (-1::real) = real_is_int(real (-1::int))" by auto
+  have "real_is_int (-1::real) = real_is_int(real_of_int (-1::int))" by auto
   also have "\<dots> = True" by (simp only: real_is_int_real)
   ultimately show ?thesis by auto
 qed
@@ -87,19 +89,16 @@ by (simp add: int_of_real_def)
 
 lemma int_of_real_1[simp]: "int_of_real (1::real) = (1::int)"
 proof -
-  have 1: "(1::real) = real (1::int)" by auto
+  have 1: "(1::real) = real_of_int (1::int)" by auto
   show ?thesis by (simp only: 1 int_of_real_real)
 qed
 
 lemma int_of_real_numeral[simp]: "int_of_real (numeral b) = numeral b"
-  unfolding int_of_real_def
-  by (intro some_equality)
-     (auto simp add: real_of_int_inject[symmetric] simp del: real_of_int_inject)
+  unfolding int_of_real_def by simp
 
 lemma int_of_real_neg_numeral[simp]: "int_of_real (- numeral b) = - numeral b"
   unfolding int_of_real_def
-  by (intro some_equality)
-     (auto simp add: real_of_int_inject[symmetric] simp del: real_of_int_inject)
+  by (metis int_of_real_def int_of_real_real of_int_minus of_int_of_nat_eq of_nat_numeral) 
 
 lemma int_div_zdiv: "int (a div b) = (int a) div (int b)"
 by (rule zdiv_int)
@@ -160,7 +159,7 @@ lemmas powerarith = nat_numeral zpower_numeral_even
   zpower_numeral_odd zpower_Pls
 
 definition float :: "(int \<times> int) \<Rightarrow> real" where
-  "float = (\<lambda>(a, b). real a * 2 powr real b)"
+  "float = (\<lambda>(a, b). real_of_int a * 2 powr real_of_int b)"
 
 lemma float_add_l0: "float (0, e) + x = x"
   by (simp add: float_def)

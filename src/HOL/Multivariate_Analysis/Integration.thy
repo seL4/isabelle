@@ -2860,7 +2860,7 @@ next
       show "norm ((\<Sum>(x, k)\<in>p m. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p n. content k *\<^sub>R f x)) < e"
         apply (rule less_trans[OF _ N[THEN conjunct2,THEN conjunct2]])
         apply(subst *)
-        using dp p(1) mn d(2) real_of_nat_def by auto
+        using dp p(1) mn d(2) by auto
     qed
   qed
   then guess y unfolding convergent_eq_cauchy[symmetric] .. note y=this[THEN LIMSEQ_D]
@@ -4518,7 +4518,7 @@ next
       using True by (auto simp add: field_simps)
     then obtain M :: nat
          where M: "M \<noteq> 0" "0 < inverse (real_of_nat M)" "inverse (of_nat M) < e / 4 / content (cbox a b)"
-      by (subst (asm) real_arch_inv) (auto simp: real_of_nat_def)
+      by (subst (asm) real_arch_inv) auto
     show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (i m) (i n) < e"
     proof (rule exI [where x=M], clarify)
       fix m n
@@ -6091,8 +6091,7 @@ proof goal_cases
   have Dg: "\<And>m t. m < p \<Longrightarrow> a \<le> t \<Longrightarrow> t \<le> b \<Longrightarrow>
     (Dg m has_vector_derivative Dg (Suc m) t) (at t within {a .. b})"
     unfolding Dg_def
-    by (auto intro!: derivative_eq_intros simp: has_vector_derivative_def
-      fact_eq real_eq_of_nat[symmetric] divide_simps)
+    by (auto intro!: derivative_eq_intros simp: has_vector_derivative_def fact_eq divide_simps)
   let ?sum = "\<lambda>t. \<Sum>i<p. (- 1) ^ i *\<^sub>R Dg i t *\<^sub>R Df (p - Suc i) t"
   from setsum_prod_derivatives_has_vector_derivative[of _ Dg _ _ _ Df,
       OF \<open>p > 0\<close> g0 Dg f0 Df]
@@ -6420,17 +6419,17 @@ lemma integral_has_vector_derivative_continuous_at:
   shows "((\<lambda>u. integral {a..u} f) has_vector_derivative f x) (at x within {a..b})"
 proof -
   let ?I = "\<lambda>a b. integral {a..b} f"
-  { fix e::real 
+  { fix e::real
     assume "e > 0"
     obtain d where "d>0" and d: "\<And>x'. \<lbrakk>x' \<in> {a..b}; \<bar>x' - x\<bar> < d\<rbrakk> \<Longrightarrow> norm(f x' - f x) \<le> e"
       using \<open>e>0\<close> fx by (auto simp: continuous_within_eps_delta dist_norm less_imp_le)
     have "norm (integral {a..y} f - integral {a..x} f - (y - x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
-           if y: "y \<in> {a..b}" and yx: "\<bar>y - x\<bar> < d" for y  
+           if y: "y \<in> {a..b}" and yx: "\<bar>y - x\<bar> < d" for y
     proof (cases "y < x")
       case False
       have "f integrable_on {a..y}"
         using f y by (simp add: integrable_subinterval_real)
-      then have Idiff: "?I a y - ?I a x = ?I x y" 
+      then have Idiff: "?I a y - ?I a x = ?I x y"
         using False x by (simp add: algebra_simps integral_combine)
       have fux_int: "((\<lambda>u. f u - f x) has_integral integral {x..y} f - (y - x) *\<^sub>R f x) {x..y}"
         apply (rule has_integral_sub)
@@ -6448,7 +6447,7 @@ proof -
       case True
       have "f integrable_on {a..x}"
         using f x by (simp add: integrable_subinterval_real)
-      then have Idiff: "?I a x - ?I a y = ?I y x" 
+      then have Idiff: "?I a x - ?I a y = ?I y x"
         using True x y by (simp add: algebra_simps integral_combine)
       have fux_int: "((\<lambda>u. f u - f x) has_integral integral {y..x} f - (x - y) *\<^sub>R f x) {y..x}"
         apply (rule has_integral_sub)
@@ -6466,8 +6465,8 @@ proof -
         by (simp add: algebra_simps norm_minus_commute)
     qed
     then have "\<exists>d>0. \<forall>y\<in>{a..b}. \<bar>y - x\<bar> < d \<longrightarrow> norm (integral {a..y} f - integral {a..x} f - (y - x) *\<^sub>R f x) \<le> e * \<bar>y - x\<bar>"
-      using \<open>d>0\<close> by blast 
-  } 
+      using \<open>d>0\<close> by blast
+  }
   then show ?thesis
     by (simp add: has_vector_derivative_def has_derivative_within_alt bounded_linear_scaleR_left)
 qed
@@ -9485,8 +9484,7 @@ proof -
       defer
       unfolding divide_inverse setsum_left_distrib[symmetric]
       unfolding divide_inverse[symmetric]
-      using *
-      apply (auto simp add: field_simps real_eq_of_nat)
+      using * apply (auto simp add: field_simps)
       done
   next
     case 2

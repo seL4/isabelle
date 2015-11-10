@@ -48,7 +48,7 @@ lemma swap_image:
 
 lemma swap_apply1: "Fun.swap x y f x = f y"
   by (simp add: Fun.swap_def)
-  
+
 lemma swap_apply2: "Fun.swap x y f y = f x"
   by (simp add: Fun.swap_def)
 
@@ -181,7 +181,7 @@ lemma kuhn_complete_lemma:
   shows "odd (card {s\<in>simplices. (rl ` s = {..Suc n})})"
 proof (rule kuhn_counting_lemma)
   have finite_s[simp]: "\<And>s. s \<in> simplices \<Longrightarrow> finite s"
-    by (metis add_is_0 zero_neq_numeral card_infinite assms(3)) 
+    by (metis add_is_0 zero_neq_numeral card_infinite assms(3))
 
   let ?F = "{f. \<exists>s\<in>simplices. face f s}"
   have F_eq: "?F = (\<Union>s\<in>simplices. \<Union>a\<in>s. {s - {a}})"
@@ -293,7 +293,7 @@ lemma inj_enum: "inj_on enum {.. n}"
 proof -
   { fix x y :: nat assume "x \<noteq> y" "x \<le> n" "y \<le> n"
     with upd have "upd ` {..< x} \<noteq> upd ` {..< y}"
-      by (subst inj_on_image_eq_iff[where C="{..< n}"]) (auto simp: bij_betw_def) 
+      by (subst inj_on_image_eq_iff[where C="{..< n}"]) (auto simp: bij_betw_def)
     then have "enum x \<noteq> enum y"
       by (auto simp add: enum_def fun_eq_iff) }
   then show ?thesis
@@ -446,7 +446,7 @@ next
     using step \<open>j + d \<le> n\<close> eq by (auto simp: s.enum_inj t.enum_inj)
   ultimately have "s.enum (Suc l) = t.enum (Suc (l + d))"
     using \<open>j + d \<le> n\<close>
-    by (intro antisym s.enum_less[THEN iffD1] t.enum_less[THEN iffD1]) 
+    by (intro antisym s.enum_less[THEN iffD1] t.enum_less[THEN iffD1])
        (auto intro!: s.enum_in t.enum_in)
   then show ?case by simp
 qed
@@ -466,7 +466,7 @@ next
   moreover have e0: "a = s.enum 0" "b = t.enum 0"
     using a b by (simp_all add: s.enum_0_bot t.enum_0_bot)
   moreover
-  { fix j assume "0 < j" "j \<le> n" 
+  { fix j assume "0 < j" "j \<le> n"
     moreover have "s - {a} = s.enum ` {Suc 0 .. n}" "t - {b} = t.enum ` {Suc 0 .. n}"
       unfolding s.s_eq t.s_eq e0 by (auto simp: s.enum_inj t.enum_inj)
     ultimately have "s.enum j = t.enum j"
@@ -505,7 +505,7 @@ next
   moreover have en: "a = s.enum n" "b = t.enum n"
     using a b by (simp_all add: s.enum_n_top t.enum_n_top)
   moreover
-  { fix j assume "j < n" 
+  { fix j assume "j < n"
     moreover have "s - {a} = s.enum ` {0 .. n'}" "t - {b} = t.enum ` {0 .. n'}"
       unfolding s.s_eq t.s_eq en by (auto simp: s.enum_inj t.enum_inj Suc)
     ultimately have "s.enum j = t.enum j"
@@ -665,7 +665,7 @@ lemma ksimplex_replace_0:
 proof cases
   case (ksimplex b_s u_s)
 
-  { fix t b assume "ksimplex p n t" 
+  { fix t b assume "ksimplex p n t"
     then obtain b_t u_t where "kuhn_simplex p n b_t u_t t"
       by (auto elim: ksimplex.cases)
     interpret kuhn_simplex_pair p n b_s u_s s b_t u_t t
@@ -688,7 +688,7 @@ lemma ksimplex_replace_1:
 proof cases
   case (ksimplex b_s u_s)
 
-  { fix t b assume "ksimplex p n t" 
+  { fix t b assume "ksimplex p n t"
     then obtain b_t u_t where "kuhn_simplex p n b_t u_t t"
       by (auto elim: ksimplex.cases)
     interpret kuhn_simplex_pair p n b_s u_s s b_t u_t t
@@ -858,7 +858,7 @@ proof cases
     have ks_f': "ksimplex p n (b.enum ` {.. n})"
       unfolding f' by rule unfold_locales
 
-    have "0 < n" 
+    have "0 < n"
       using \<open>n \<noteq> 0\<close> by auto
 
     { from \<open>a = enum i\<close> \<open>n \<noteq> 0\<close> \<open>i = n\<close> lb upd_space[of n']
@@ -1040,7 +1040,7 @@ proof cases
         using i by (simp add: k i'_def)
       also have "\<dots> = (enum i') (u l := Suc (enum i' (u l)), u (Suc l) := Suc (enum i' (u (Suc l))))"
         using \<open>Suc l < k\<close> \<open>k \<le> n\<close> by (simp add: t.enum_Suc l t.upd_inj)
-      finally have "(u l = upd i' \<and> u (Suc l) = upd (Suc i')) \<or> 
+      finally have "(u l = upd i' \<and> u (Suc l) = upd (Suc i')) \<or>
         (u l = upd (Suc i') \<and> u (Suc l) = upd i')"
         using \<open>Suc i' < n\<close> by (auto simp: enum_Suc fun_eq_iff split: split_if_asm)
 
@@ -1187,7 +1187,7 @@ next
       then have "reduced (Suc n) (lab x) \<noteq> n"
         using \<open>j \<noteq> n\<close> \<open>j \<le> n\<close> by simp }
     moreover
-    have "n \<in> (reduced (Suc n) \<circ> lab) ` f" 
+    have "n \<in> (reduced (Suc n) \<circ> lab) ` f"
       using eq by auto
     ultimately show False
       by force
@@ -1657,7 +1657,7 @@ proof (rule ccontr)
   have q2: "\<forall>x. (\<forall>i<n. x i \<le> p) \<longrightarrow> (\<forall>i<n. x i = 0 \<longrightarrow>
       (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 0)"
     unfolding o_def using cube \<open>p > 0\<close> by (intro allI impI label(2)) (auto simp add: b'')
-  have q3: "\<forall>x. (\<forall>i<n. x i \<le> p) \<longrightarrow> (\<forall>i<n. x i = p \<longrightarrow> 
+  have q3: "\<forall>x. (\<forall>i<n. x i \<le> p) \<longrightarrow> (\<forall>i<n. x i = p \<longrightarrow>
       (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 1)"
     using cube \<open>p > 0\<close> unfolding o_def by (intro allI impI label(3)) (auto simp add: b'')
   obtain q where q:
@@ -1694,7 +1694,7 @@ proof (rule ccontr)
       done
     also have "\<dots> = d"
       using DIM_positive[where 'a='a]
-      by (auto simp: real_eq_of_nat n_def)
+      by (auto simp: n_def)
     finally show False
       using d_fz_z by auto
   qed
@@ -1742,11 +1742,11 @@ proof (rule ccontr)
     have "(\<Sum>i\<in>Basis. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)"
       apply (rule setsum_mono)
       using rs(1)[OF b'_im]
-      apply (auto simp add:* field_simps simp del: real_of_nat_Suc)
+      apply (auto simp add:* field_simps simp del: of_nat_Suc)
       done
     also have "\<dots> < e * real p"
       using p \<open>e > 0\<close> \<open>p > 0\<close>
-      by (auto simp add: field_simps n_def real_of_nat_def)
+      by (auto simp add: field_simps n_def)
     finally have "(\<Sum>i\<in>Basis. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) < e * real p" .
   }
   moreover
@@ -1754,11 +1754,11 @@ proof (rule ccontr)
     have "(\<Sum>i\<in>Basis. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)"
       apply (rule setsum_mono)
       using rs(2)[OF b'_im]
-      apply (auto simp add:* field_simps simp del: real_of_nat_Suc)
+      apply (auto simp add:* field_simps simp del: of_nat_Suc)
       done
     also have "\<dots> < e * real p"
       using p \<open>e > 0\<close> \<open>p > 0\<close>
-      by (auto simp add: field_simps n_def real_of_nat_def)
+      by (auto simp add: field_simps n_def)
     finally have "(\<Sum>i\<in>Basis. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) < e * real p" .
   }
   ultimately

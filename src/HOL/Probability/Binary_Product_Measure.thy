@@ -717,7 +717,7 @@ proof (rule measure_eqI)
     apply (simp add: fin_Pair emeasure_count_space X_subset fin_X)
     apply (subst nn_integral_count_space)
     using A apply simp
-    apply (simp del: real_of_nat_setsum add: real_of_nat_setsum[symmetric])
+    apply (simp del: of_nat_setsum add: of_nat_setsum[symmetric])
     apply (subst card_gt_0_iff)
     apply (simp add: fin_Pair)
     apply (subst card_SigmaI[symmetric])

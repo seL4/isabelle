@@ -192,8 +192,8 @@ lemma exp_Complex: "exp(Complex r t) = of_real(exp r) * Complex (cos t) (sin t)"
 lemma exp_eq_1: "exp z = 1 \<longleftrightarrow> Re(z) = 0 \<and> (\<exists>n::int. Im(z) = of_int (2 * n) * pi)"
 apply auto
 apply (metis exp_eq_one_iff norm_exp_eq_Re norm_one)
-apply (metis Re_exp cos_one_2pi_int mult.commute mult.left_neutral norm_exp_eq_Re norm_one one_complex.simps(1) real_of_int_def)
-by (metis Im_exp Re_exp complex_Re_Im_cancel_iff cos_one_2pi_int sin_double Re_complex_of_real complex_Re_numeral exp_zero mult.assoc mult.left_commute mult_eq_0_iff mult_numeral_1 numeral_One of_real_0 real_of_int_def sin_zero_iff_int2)
+apply (metis Re_exp cos_one_2pi_int mult.commute mult.left_neutral norm_exp_eq_Re norm_one one_complex.simps(1))
+by (metis Im_exp Re_exp complex_Re_Im_cancel_iff cos_one_2pi_int sin_double Re_complex_of_real complex_Re_numeral exp_zero mult.assoc mult.left_commute mult_eq_0_iff mult_numeral_1 numeral_One of_real_0 sin_zero_iff_int2)
 
 lemma exp_eq: "exp w = exp z \<longleftrightarrow> (\<exists>n::int. w = z + (of_int (2 * n) * pi) * ii)"
                 (is "?lhs = ?rhs")
@@ -227,7 +227,7 @@ proof -
   { assume "sin y = sin x" "cos y = cos x"
     then have "cos (y-x) = 1"
       using cos_add [of y "-x"] by simp
-    then have "\<exists>n::int. y-x = real n * 2 * pi"
+    then have "\<exists>n::int. y-x = n * 2 * pi"
       using cos_one_2pi_int by blast }
   then show ?thesis
   apply (auto simp: sin_add cos_add)
@@ -519,8 +519,8 @@ proof -
   have *: "cmod (sin z -
                  (\<Sum>i\<le>n. (-1) ^ (i div 2) * (if even i then sin 0 else cos 0) * z ^ i / (fact i)))
            \<le> exp \<bar>Im z\<bar> * cmod z ^ Suc n / (fact n)"
-  proof (rule complex_taylor [of "closed_segment 0 z" n 
-                                 "\<lambda>k x. (-1)^(k div 2) * (if even k then sin x else cos x)" 
+  proof (rule complex_taylor [of "closed_segment 0 z" n
+                                 "\<lambda>k x. (-1)^(k div 2) * (if even k then sin x else cos x)"
                                  "exp\<bar>Im z\<bar>" 0 z,  simplified])
     fix k x
     show "((\<lambda>x. (- 1) ^ (k div 2) * (if even k then sin x else cos x)) has_field_derivative
@@ -622,7 +622,7 @@ proof -
   then have "sin t' = sin t \<and> cos t' = cos t"
     apply (simp add: exp_Euler sin_of_real cos_of_real)
     by (metis Complex_eq complex.sel)
-  then obtain n::int where n: "t' = t + 2 * real n * pi"
+  then obtain n::int where n: "t' = t + 2 * n * pi"
     by (auto simp: sin_cos_eq_iff)
   then have "n=0"
     apply (rule_tac z=n in int_cases)
@@ -752,7 +752,7 @@ next
     by blast
 qed
 
-corollary Arg_gt_0: 
+corollary Arg_gt_0:
   assumes "z \<in> \<real> \<Longrightarrow> Re z < 0"
     shows "Arg z > 0"
   using Arg_eq_0 Arg_ge_0 assms dual_order.strict_iff_order by fastforce
@@ -963,7 +963,7 @@ lemma Ln_unique: "exp(z) = w \<Longrightarrow> -pi < Im(z) \<Longrightarrow> Im(
 lemma Re_Ln [simp]: "z \<noteq> 0 \<Longrightarrow> Re(Ln z) = ln(norm z)"
   by (metis exp_Ln assms ln_exp norm_exp_eq_Re)
 
-corollary ln_cmod_le: 
+corollary ln_cmod_le:
   assumes z: "z \<noteq> 0"
     shows "ln (cmod z) \<le> cmod (Ln z)"
   using norm_exp [of "Ln z", simplified exp_Ln [OF z]]
@@ -1205,7 +1205,7 @@ corollary Ln_times_of_real:
 corollary Ln_divide_of_real:
     "\<lbrakk>r > 0; z \<noteq> 0\<rbrakk> \<Longrightarrow> Ln(z / of_real r) = Ln(z) - ln r"
 using Ln_times_of_real [of "inverse r" z]
-by (simp add: ln_inverse Ln_of_real mult.commute divide_inverse of_real_inverse [symmetric] 
+by (simp add: ln_inverse Ln_of_real mult.commute divide_inverse of_real_inverse [symmetric]
          del: of_real_inverse)
 
 lemma Ln_minus:
@@ -1264,7 +1264,7 @@ lemma Ln_times_ii:
 lemma Ln_of_nat: "0 < n \<Longrightarrow> Ln (of_nat n) = of_real (ln (of_nat n))"
   by (subst of_real_of_nat_eq[symmetric], subst Ln_of_real[symmetric]) simp_all
 
-lemma Ln_of_nat_over_of_nat: 
+lemma Ln_of_nat_over_of_nat:
   assumes "m > 0" "n > 0"
   shows   "Ln (of_nat m / of_nat n) = of_real (ln (of_nat m) - ln (of_nat n))"
 proof -
@@ -1279,7 +1279,7 @@ qed
 
 subsection\<open>Relation between Ln and Arg, and hence continuity of Arg\<close>
 
-lemma Arg_Ln: 
+lemma Arg_Ln:
   assumes "0 < Arg z" shows "Arg z = Im(Ln(-z)) + pi"
 proof (cases "z = 0")
   case True
@@ -1307,7 +1307,7 @@ next
   finally show ?thesis .
 qed
 
-lemma continuous_at_Arg: 
+lemma continuous_at_Arg:
   assumes "z \<in> \<real> \<Longrightarrow> Re z < 0"
     shows "continuous (at z) Arg"
 proof -
@@ -1322,7 +1322,7 @@ proof -
 qed
 
 text\<open>Relation between Arg and arctangent in upper halfplane\<close>
-lemma Arg_arctan_upperhalf: 
+lemma Arg_arctan_upperhalf:
   assumes "0 < Im z"
     shows "Arg z = pi/2 - arctan(Re z / Im z)"
 proof (cases "z = 0")
@@ -1340,24 +1340,24 @@ next
     done
 qed
 
-lemma Arg_eq_Im_Ln: 
-  assumes "0 \<le> Im z" "0 < Re z" 
+lemma Arg_eq_Im_Ln:
+  assumes "0 \<le> Im z" "0 < Re z"
     shows "Arg z = Im (Ln z)"
 proof (cases "z = 0 \<or> Im z = 0")
   case True then show ?thesis
-    using assms Arg_eq_0 complex_is_Real_iff  
+    using assms Arg_eq_0 complex_is_Real_iff
     apply auto
     by (metis Arg_eq_0_pi Arg_eq_pi Im_Ln_eq_0 Im_Ln_eq_pi less_numeral_extra(3) zero_complex.simps(1))
 next
-  case False 
+  case False
   then have "Arg z > 0"
     using Arg_gt_0 complex_is_Real_iff by blast
   then show ?thesis
-    using assms False 
+    using assms False
     by (subst Arg_Ln) (auto simp: Ln_minus)
 qed
 
-lemma continuous_within_upperhalf_Arg: 
+lemma continuous_within_upperhalf_Arg:
   assumes "z \<noteq> 0"
     shows "continuous (at z within {z. 0 \<le> Im z}) Arg"
 proof (cases "z \<in> \<real> & 0 \<le> Re z")
@@ -1369,7 +1369,7 @@ next
     using assms  by (auto simp: complex_is_Real_iff complex_neq_0)
   then have [simp]: "Arg z = 0" "Im (Ln z) = 0"
     by (auto simp: Arg_eq_0 Im_Ln_eq_0 assms complex_is_Real_iff)
-  show ?thesis  
+  show ?thesis
   proof (clarsimp simp add: continuous_within Lim_within dist_norm)
     fix e::real
     assume "0 < e"
@@ -1397,12 +1397,12 @@ lemma continuous_on_upperhalf_Arg: "continuous_on ({z. 0 \<le> Im z} - {0}) Arg"
   apply (auto simp: continuous_on_eq_continuous_within)
   by (metis Diff_subset continuous_within_subset continuous_within_upperhalf_Arg)
 
-lemma open_Arg_less_Int: 
+lemma open_Arg_less_Int:
   assumes "0 \<le> s" "t \<le> 2*pi"
     shows "open ({y. s < Arg y} \<inter> {y. Arg y < t})"
 proof -
   have 1: "continuous_on (UNIV - {z \<in> \<real>. 0 \<le> Re z}) Arg"
-    using continuous_at_Arg continuous_at_imp_continuous_within 
+    using continuous_at_Arg continuous_at_imp_continuous_within
     by (auto simp: continuous_on_eq_continuous_within set_diff_eq)
   have 2: "open (UNIV - {z \<in> \<real>. 0 \<le> Re z})"
     by (simp add: closed_Collect_conj closed_complex_Reals closed_halfspace_Re_ge open_Diff)
@@ -1413,7 +1413,7 @@ proof -
     using assms
     by (auto simp: Arg_real)
   ultimately show ?thesis
-    using continuous_imp_open_vimage [OF 1 2, of  "{z. Re z > s} \<inter> {z. Re z < t}"] 
+    using continuous_imp_open_vimage [OF 1 2, of  "{z. Re z > s} \<inter> {z. Re z < t}"]
     by auto
 qed
 
@@ -1521,11 +1521,11 @@ proof (subst DERIV_cong_ev[OF refl _ refl])
   thus "eventually (\<lambda>z. z powr r = Exp (r * Ln z)) (nhds z)"
     unfolding powr_def by eventually_elim simp
 
-  have "((\<lambda>z. Exp (r * Ln z)) has_field_derivative Exp (r * Ln z) * (inverse z * r)) (at z)" 
+  have "((\<lambda>z. Exp (r * Ln z)) has_field_derivative Exp (r * Ln z) * (inverse z * r)) (at z)"
     using assms by (auto intro!: derivative_eq_intros has_field_derivative_powr)
   also have "Exp (r * Ln z) * (inverse z * r) = r * z powr (r - 1)"
     unfolding powr_def by (simp add: assms exp_diff field_simps)
-  finally show "((\<lambda>z. Exp (r * Ln z)) has_field_derivative r * z powr (r - 1)) (at z)" 
+  finally show "((\<lambda>z. Exp (r * Ln z)) has_field_derivative r * z powr (r - 1)) (at z)"
     by simp
 qed
 
@@ -1553,13 +1553,13 @@ lemma norm_powr_real_powr:
 
 
 subsection\<open>Some Limits involving Logarithms\<close>
-        
+
 lemma lim_Ln_over_power:
   fixes s::complex
   assumes "0 < Re s"
     shows "((\<lambda>n. Ln n / (n powr s)) ---> 0) sequentially"
 proof (simp add: lim_sequentially dist_norm, clarify)
-  fix e::real 
+  fix e::real
   assume e: "0 < e"
   have "\<exists>xo>0. \<forall>x\<ge>xo. 0 < e * 2 + (e * Re s * 2 - 2) * x + e * (Re s)\<^sup>2 * x\<^sup>2"
   proof (rule_tac x="2/(e * (Re s)\<^sup>2)" in exI, safe)
@@ -1591,7 +1591,7 @@ proof (simp add: lim_sequentially dist_norm, clarify)
     apply (rule_tac x="nat (ceiling (exp xo))" in exI)
     apply clarify
     apply (drule_tac x="ln n" in spec)
-    apply (auto simp: real_of_nat_def exp_less_mono nat_ceiling_le_eq not_le)
+    apply (auto simp: exp_less_mono nat_ceiling_le_eq not_le)
     apply (metis exp_less_mono exp_ln not_le of_nat_0_less_iff)
     done
 qed
@@ -1613,13 +1613,13 @@ lemma lim_ln_over_power:
   using lim_Ln_over_power [of "of_real s", THEN filterlim_sequentially_Suc [THEN iffD2]] assms
   apply (subst filterlim_sequentially_Suc [symmetric])
   apply (simp add: lim_sequentially dist_norm
-          Ln_Reals_eq norm_powr_real_powr norm_divide real_of_nat_def)
+          Ln_Reals_eq norm_powr_real_powr norm_divide)
   done
 
 lemma lim_ln_over_n: "((\<lambda>n. ln(real_of_nat n) / of_nat n) ---> 0) sequentially"
   using lim_ln_over_power [of 1, THEN filterlim_sequentially_Suc [THEN iffD2]]
   apply (subst filterlim_sequentially_Suc [symmetric])
-  apply (simp add: lim_sequentially dist_norm real_of_nat_def)
+  apply (simp add: lim_sequentially dist_norm)
   done
 
 lemma lim_1_over_complex_power:
@@ -1645,7 +1645,7 @@ lemma lim_1_over_real_power:
   using lim_1_over_complex_power [of "of_real s", THEN filterlim_sequentially_Suc [THEN iffD2]] assms
   apply (subst filterlim_sequentially_Suc [symmetric])
   apply (simp add: lim_sequentially dist_norm)
-  apply (simp add: Ln_Reals_eq norm_powr_real_powr norm_divide real_of_nat_def)
+  apply (simp add: Ln_Reals_eq norm_powr_real_powr norm_divide)
   done
 
 lemma lim_1_over_Ln: "((\<lambda>n. 1 / Ln(of_nat n)) ---> 0) sequentially"
@@ -1677,7 +1677,7 @@ lemma lim_1_over_ln: "((\<lambda>n. 1 / ln(real_of_nat n)) ---> 0) sequentially"
   using lim_1_over_Ln [THEN filterlim_sequentially_Suc [THEN iffD2]] assms
   apply (subst filterlim_sequentially_Suc [symmetric])
   apply (simp add: lim_sequentially dist_norm)
-  apply (simp add: Ln_Reals_eq norm_powr_real_powr norm_divide real_of_nat_def)
+  apply (simp add: Ln_Reals_eq norm_powr_real_powr norm_divide)
   done
 
 
@@ -1842,7 +1842,7 @@ proof -
   also have "... \<longleftrightarrow> False"
     using assms ge_pi2
     apply (auto simp: algebra_simps)
-    by (metis abs_mult_pos not_less not_real_of_nat_less_zero real_of_nat_numeral)
+    by (metis abs_mult_pos not_less of_nat_less_0_iff of_nat_numeral)
   finally have *: "exp (\<i>*z)*exp (\<i>*z) + 1 \<noteq> 0"
     by (auto simp: add.commute minus_unique)
   show ?thesis
@@ -1939,7 +1939,7 @@ lemma Im_Arctan_of_real [simp]: "Im (Arctan (of_real x)) = 0"
   apply (subst exp_Ln, auto)
   apply (simp_all add: cmod_def complex_eq_iff)
   apply (auto simp: divide_simps)
-  apply (metis power_one realpow_two_sum_zero_iff zero_neq_one, algebra)
+  apply (metis power_one sum_power2_eq_zero_iff zero_neq_one, algebra)
   done
 
 lemma arctan_eq_Re_Arctan: "arctan x = Re (Arctan (of_real x))"

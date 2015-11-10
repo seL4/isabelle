@@ -510,7 +510,7 @@ proof -
     also
     have "... \<le> (2::real) ^ card ?Ba * real (Suc n) ^ card ?Ba"
       apply (rule mult_left_mono)
-      apply (metis DIM_positive One_nat_def less_eq_Suc_le less_imp_le real_of_nat_le_iff real_of_nat_power self_le_power zero_less_Suc)
+      apply (metis DIM_positive One_nat_def less_eq_Suc_le less_imp_le of_nat_le_iff of_nat_power self_le_power zero_less_Suc)
       apply (simp add: DIM_positive)
       done
     finally have "real n \<le> (2::real) ^ card ?Ba * real (Suc n) ^ card ?Ba" .
@@ -963,7 +963,7 @@ proof -
 
   note F(1)[THEN borel_measurable_simple_function, measurable]
 
-  { fix i x have "real (F i x) \<le> f x"
+  { fix i x have "real_of_ereal (F i x) \<le> f x"
       using F(3,5) F(4)[of x, symmetric] nonneg
       unfolding real_le_ereal_iff
       by (auto simp: image_iff eq_commute[of \<infinity>] max_def intro: SUP_upper split: split_if_asm) }
@@ -991,25 +991,25 @@ proof -
   also have "\<dots> \<le> ereal I"
   proof (rule SUP_least)
     fix i :: nat
-    have finite_F: "(\<integral>\<^sup>+ x. ereal (real (F i x) * indicator (?B i) x) \<partial>lborel) < \<infinity>"
+    have finite_F: "(\<integral>\<^sup>+ x. ereal (real_of_ereal (F i x) * indicator (?B i) x) \<partial>lborel) < \<infinity>"
     proof (rule nn_integral_bound_simple_function)
-      have "emeasure lborel {x \<in> space lborel. ereal (real (F i x) * indicator (?B i) x) \<noteq> 0} \<le>
+      have "emeasure lborel {x \<in> space lborel. ereal (real_of_ereal (F i x) * indicator (?B i) x) \<noteq> 0} \<le>
         emeasure lborel (?B i)"
         by (intro emeasure_mono)  (auto split: split_indicator)
-      then show "emeasure lborel {x \<in> space lborel. ereal (real (F i x) * indicator (?B i) x) \<noteq> 0} < \<infinity>"
+      then show "emeasure lborel {x \<in> space lborel. ereal (real_of_ereal (F i x) * indicator (?B i) x) \<noteq> 0} < \<infinity>"
         by auto
     qed (auto split: split_indicator
-              intro!: real_of_ereal_pos F simple_function_compose1[where g="real"] simple_function_ereal)
+              intro!: real_of_ereal_pos F simple_function_compose1[where g="real_of_ereal"] simple_function_ereal)
 
-    have int_F: "(\<lambda>x. real (F i x) * indicator (?B i) x) integrable_on UNIV"
+    have int_F: "(\<lambda>x. real_of_ereal (F i x) * indicator (?B i) x) integrable_on UNIV"
       using F(5) finite_F
       by (intro nn_integral_integrable_on) (auto split: split_indicator intro: real_of_ereal_pos)
 
     have "(\<integral>\<^sup>+ x. F i x * indicator (?B i) x \<partial>lborel) =
-      (\<integral>\<^sup>+ x. ereal (real (F i x) * indicator (?B i) x) \<partial>lborel)"
+      (\<integral>\<^sup>+ x. ereal (real_of_ereal (F i x) * indicator (?B i) x) \<partial>lborel)"
       using F(3,5)
       by (intro nn_integral_cong) (auto simp: image_iff ereal_real eq_commute split: split_indicator)
-    also have "\<dots> = ereal (integral UNIV (\<lambda>x. real (F i x) * indicator (?B i) x))"
+    also have "\<dots> = ereal (integral UNIV (\<lambda>x. real_of_ereal (F i x) * indicator (?B i) x))"
       using F
       by (intro nn_integral_lborel_eq_integral[OF _ _ finite_F])
          (auto split: split_indicator intro: real_of_ereal_pos)
@@ -1279,7 +1279,7 @@ proof -
       fix m n :: nat assume "m \<le> n"
       with f nonneg show "F (a + real m) \<le> F (a + real n)"
         by (intro DERIV_nonneg_imp_nondecreasing[where f=F])
-           (simp, metis add_increasing2 order_refl order_trans real_of_nat_ge_zero)
+           (simp, metis add_increasing2 order_refl order_trans of_nat_0_le_iff)
     qed
     have "(\<lambda>x. F (a + real x)) ----> T"
       apply (rule filterlim_compose[OF lim filterlim_tendsto_add_at_top])
@@ -1298,7 +1298,7 @@ lemma integral_power:
 proof (subst integral_FTC_Icc_real)
   fix x show "DERIV (\<lambda>x. x^Suc k / Suc k) x :> x^k"
     by (intro derivative_eq_intros) auto
-qed (auto simp: field_simps simp del: real_of_nat_Suc)
+qed (auto simp: field_simps simp del: of_nat_Suc)
 
 subsection {* Integration by parts *}
 

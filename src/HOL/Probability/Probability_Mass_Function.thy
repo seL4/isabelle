@@ -59,7 +59,7 @@ next
     note singleton_sets = this
     have "?M < (\<Sum>x\<in>X. ?M / Suc n)"
       using `?M \<noteq> 0`
-      by (simp add: `card X = Suc (Suc n)` real_eq_of_nat[symmetric] real_of_nat_Suc field_simps less_le measure_nonneg)
+      by (simp add: `card X = Suc (Suc n)` of_nat_Suc field_simps less_le measure_nonneg)
     also have "\<dots> \<le> (\<Sum>x\<in>X. ?m x)"
       by (rule setsum_mono) fact
     also have "\<dots> = measure M (\<Union>x\<in>X. {x})"
@@ -956,7 +956,7 @@ lemma rel_pmf_iff_measure:
 
 lemma quotient_rel_set_disjoint:
   "equivp R \<Longrightarrow> C \<in> UNIV // {(x, y). R x y} \<Longrightarrow> rel_set R A B \<Longrightarrow> A \<inter> C = {} \<longleftrightarrow> B \<inter> C = {}"
-  using in_quotient_imp_closed[of UNIV "{(x, y). R x y}" C] 
+  using in_quotient_imp_closed[of UNIV "{(x, y). R x y}" C]
   by (auto 0 0 simp: equivp_equiv rel_set_def set_eq_iff elim: equivpE)
      (blast dest: equivp_symp)+
 
@@ -973,17 +973,17 @@ proof (subst rel_pmf_iff_measure, safe)
 next
   fix C assume C: "C \<in> UNIV // ?R" and R: "rel_set R (set_pmf p) (set_pmf q)"
   assume eq: "\<forall>x\<in>set_pmf p. \<forall>y\<in>set_pmf q. R x y \<longrightarrow> measure p {x. R x y} = measure q {y. R x y}"
-  
+
   show "measure p C = measure q C"
   proof cases
     assume "p \<inter> C = {}"
-    moreover then have "q \<inter> C = {}"  
+    moreover then have "q \<inter> C = {}"
       using quotient_rel_set_disjoint[OF assms C R] by simp
     ultimately show ?thesis
       unfolding measure_pmf_zero_iff[symmetric] by simp
   next
     assume "p \<inter> C \<noteq> {}"
-    moreover then have "q \<inter> C \<noteq> {}"  
+    moreover then have "q \<inter> C \<noteq> {}"
       using quotient_rel_set_disjoint[OF assms C R] by simp
     ultimately obtain x y where in_set: "x \<in> set_pmf p" "y \<in> set_pmf q" and in_C: "x \<in> C" "y \<in> C"
       by auto
@@ -1068,11 +1068,11 @@ proof -
         and p: "p = map_pmf fst pq" and q: "q = map_pmf snd pq" by cases auto
       from qr obtain qr where qr: "\<And>y z. (y, z) \<in> set_pmf qr \<Longrightarrow> S y z"
         and q': "q = map_pmf fst qr" and r: "r = map_pmf snd qr" by cases auto
-  
+
       def pr \<equiv> "bind_pmf pq (\<lambda>xy. bind_pmf (cond_pmf qr {yz. fst yz = snd xy}) (\<lambda>yz. return_pmf (fst xy, snd yz)))"
       have pr_welldefined: "\<And>y. y \<in> q \<Longrightarrow> qr \<inter> {yz. fst yz = y} \<noteq> {}"
         by (force simp: q')
-  
+
       have "rel_pmf (R OO S) p r"
       proof (rule rel_pmf.intros)
         fix x z assume "(x, z) \<in> pr"
@@ -1283,7 +1283,7 @@ lemma rel_pmf_inf:
 proof (subst rel_pmf_iff_equivp, safe)
   show "equivp (inf R R\<inverse>\<inverse>)"
     using trans refl by (auto simp: equivp_reflp_symp_transp intro: sympI transpI reflpI dest: transpD reflpD)
-  
+
   fix C assume "C \<in> UNIV // {(x, y). inf R R\<inverse>\<inverse> x y}"
   then obtain x where C: "C = {y. R x y \<and> R y x}"
     by (auto elim: quotientE)
@@ -1399,7 +1399,7 @@ lemma pmf_geometric[simp]: "pmf geometric_pmf n = (1 - p)^n * p"
 end
 
 lemma set_pmf_geometric: "0 < p \<Longrightarrow> p < 1 \<Longrightarrow> set_pmf (geometric_pmf p) = UNIV"
-  by (auto simp: set_pmf_iff) 
+  by (auto simp: set_pmf_iff)
 
 subsubsection \<open> Uniform Multiset Distribution \<close>
 
@@ -1445,7 +1445,7 @@ lemma set_pmf_of_set[simp]: "set_pmf pmf_of_set = S"
 lemma emeasure_pmf_of_set[simp]: "emeasure pmf_of_set S = 1"
   by (rule measure_pmf.emeasure_eq_1_AE) (auto simp: AE_measure_pmf_iff)
 
-lemma nn_integral_pmf_of_set': 
+lemma nn_integral_pmf_of_set':
   "(\<And>x. x \<in> S \<Longrightarrow> f x \<ge> 0) \<Longrightarrow> nn_integral (measure_pmf pmf_of_set) f = setsum f S / card S"
 apply(subst nn_integral_measure_pmf_finite, simp_all add: S_finite)
 apply(simp add: setsum_ereal_left_distrib[symmetric])
@@ -1453,7 +1453,7 @@ apply(subst ereal_divide', simp add: S_not_empty S_finite)
 apply(simp add: ereal_times_divide_eq one_ereal_def[symmetric])
 done
 
-lemma nn_integral_pmf_of_set: 
+lemma nn_integral_pmf_of_set:
   "nn_integral (measure_pmf pmf_of_set) f = setsum (max 0 \<circ> f) S / card S"
 apply(subst nn_integral_max_0[symmetric])
 apply(subst nn_integral_pmf_of_set')
@@ -1476,7 +1476,7 @@ end
 lemma pmf_of_set_singleton: "pmf_of_set {x} = return_pmf x"
 by(rule pmf_eqI)(simp add: indicator_def)
 
-lemma map_pmf_of_set_inj: 
+lemma map_pmf_of_set_inj:
   assumes f: "inj_on f A"
   and [simp]: "A \<noteq> {}" "finite A"
   shows "map_pmf f (pmf_of_set A) = pmf_of_set (f ` A)" (is "?lhs = ?rhs")
@@ -1540,7 +1540,7 @@ proof
     ereal (\<Sum>k\<le>n. real (n choose k) * p ^ k * (1 - p) ^ (n - k))"
     using p_le_1 p_nonneg by (subst nn_integral_count_space') auto
   also have "(\<Sum>k\<le>n. real (n choose k) * p ^ k * (1 - p) ^ (n - k)) = (p + (1 - p)) ^ n"
-    by (subst binomial_ring) (simp add: atLeast0AtMost real_of_nat_def)
+    by (subst binomial_ring) (simp add: atLeast0AtMost)
   finally show "(\<integral>\<^sup>+ x. ereal (real (n choose x) * p ^ x * (1 - p) ^ (n - x)) \<partial>count_space UNIV) = 1"
     by simp
 qed (insert p_nonneg p_le_1, simp)

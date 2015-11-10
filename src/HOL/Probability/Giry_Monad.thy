@@ -337,7 +337,7 @@ lemma integral_measurable_subprob_algebra:
   shows "(\<lambda>M. integral\<^sup>L M f) \<in> borel_measurable (subprob_algebra N)"
 proof -
   note [measurable] = nn_integral_measurable_subprob_algebra
-  have "?thesis \<longleftrightarrow> (\<lambda>M. real (\<integral>\<^sup>+ x. f x \<partial>M) - real (\<integral>\<^sup>+ x. - f x \<partial>M)) \<in> borel_measurable (subprob_algebra N)"
+  have "?thesis \<longleftrightarrow> (\<lambda>M. real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M) - real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M)) \<in> borel_measurable (subprob_algebra N)"
   proof(rule measurable_cong)
     fix M
     assume "M \<in> space (subprob_algebra N)"
@@ -352,7 +352,7 @@ proof -
     finally have "(\<integral>\<^sup>+ x. ereal \<bar>f x\<bar> \<partial>M) \<noteq> \<infinity>" by(auto simp add: max_def)
     then have "integrable M f" using f_measurable
       by(auto intro: integrableI_bounded)
-    thus "(\<integral> x. f x \<partial>M) = real (\<integral>\<^sup>+ x. f x \<partial>M) - real (\<integral>\<^sup>+ x. - f x \<partial>M)"
+    thus "(\<integral> x. f x \<partial>M) = real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M) - real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M)"
       by(simp add: real_lebesgue_integral_def)
   qed
   also have "\<dots>" by measurable
@@ -933,9 +933,9 @@ next
     using f_measurable by(auto intro!: bounded1 dest: f_bounded)
   have "AE M' in M. (\<integral>\<^sup>+ x. f x \<partial>M') \<noteq> \<infinity>"
     using M_bounded by(rule AE_mp[OF _ AE_I2])(auto dest: f_pos1)
-  hence [simp]: "(\<integral>\<^sup>+ M'. ereal (real (\<integral>\<^sup>+ x. f x \<partial>M')) \<partial>M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M)"
+  hence [simp]: "(\<integral>\<^sup>+ M'. ereal (real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M')) \<partial>M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M)"
     by(rule nn_integral_cong_AE[OF AE_mp])(simp add: ereal_real nn_integral_nonneg)
-  from f_pos have [simp]: "integrable M (\<lambda>M'. real (\<integral>\<^sup>+ x. f x \<partial>M'))"
+  from f_pos have [simp]: "integrable M (\<lambda>M'. real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M'))"
     by(simp add: int_f real_integrable_def nn_integral_nonneg real_of_ereal[symmetric] nn_integral_0_iff_AE[THEN iffD2] del: real_of_ereal)
 
   have f_neg1:
@@ -944,9 +944,9 @@ next
     using f_measurable by(auto intro!: bounded1 dest: f_bounded)
   have "AE M' in M. (\<integral>\<^sup>+ x. - f x \<partial>M') \<noteq> \<infinity>"
     using M_bounded by(rule AE_mp[OF _ AE_I2])(auto dest: f_neg1)
-  hence [simp]: "(\<integral>\<^sup>+ M'. ereal (real (\<integral>\<^sup>+ x. - f x \<partial>M')) \<partial>M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M)"
+  hence [simp]: "(\<integral>\<^sup>+ M'. ereal (real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M')) \<partial>M) = (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M)"
     by(rule nn_integral_cong_AE[OF AE_mp])(simp add: ereal_real nn_integral_nonneg)
-  from f_neg have [simp]: "integrable M (\<lambda>M'. real (\<integral>\<^sup>+ x. - f x \<partial>M'))"
+  from f_neg have [simp]: "integrable M (\<lambda>M'. real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M'))"
     by(simp add: int_mf real_integrable_def nn_integral_nonneg real_of_ereal[symmetric] nn_integral_0_iff_AE[THEN iffD2] del: real_of_ereal)
 
   from \<open>?integrable\<close>
@@ -958,15 +958,15 @@ next
     ((\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M) - (\<integral>\<^sup>+ M'. - \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M)) - 
     ((\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M) - (\<integral>\<^sup>+ M'. - \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M))"
     by(subst (7 11) nn_integral_0_iff_AE[THEN iffD2])(simp_all add: nn_integral_nonneg)
-  also have "(\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M) - (\<integral>\<^sup>+ M'. - \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M) = \<integral> M'. real (\<integral>\<^sup>+ x. f x \<partial>M') \<partial>M"
+  also have "(\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M) - (\<integral>\<^sup>+ M'. - \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M) = \<integral> M'. real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M') \<partial>M"
     using f_pos
     by(simp add: real_lebesgue_integral_def)(simp add: ereal_minus(1)[symmetric] ereal_real int_f nn_integral_nonneg nn_integral_0_iff_AE[THEN iffD2] real_of_ereal_pos zero_ereal_def[symmetric])
-  also have "(\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M) - (\<integral>\<^sup>+ M'. - \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M) = \<integral> M'. real (\<integral>\<^sup>+ x. - f x \<partial>M') \<partial>M"
+  also have "(\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M) - (\<integral>\<^sup>+ M'. - \<integral>\<^sup>+ x. - f x \<partial>M' \<partial>M) = \<integral> M'. real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M') \<partial>M"
     using f_neg
     by(simp add: real_lebesgue_integral_def)(simp add: ereal_minus(1)[symmetric] ereal_real int_mf nn_integral_nonneg nn_integral_0_iff_AE[THEN iffD2] real_of_ereal_pos zero_ereal_def[symmetric])
   also note ereal_minus(1)
-  also have "(\<integral> M'. real (\<integral>\<^sup>+ x. f x \<partial>M') \<partial>M) - (\<integral> M'. real (\<integral>\<^sup>+ x. - f x \<partial>M') \<partial>M) = 
-    \<integral>M'. real (\<integral>\<^sup>+ x. f x \<partial>M') - real (\<integral>\<^sup>+ x. - f x \<partial>M') \<partial>M"
+  also have "(\<integral> M'. real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M') \<partial>M) - (\<integral> M'. real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M') \<partial>M) = 
+    \<integral>M'. real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M') - real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M') \<partial>M"
     by simp
   also have "\<dots> = \<integral>M'. \<integral> x. f x \<partial>M' \<partial>M" using _ _ M_bounded
   proof(rule integral_cong_AE[OF _ _ AE_mp[OF _ AE_I2], rule_format])
@@ -982,7 +982,7 @@ next
     hence [simp]: "space M' = space N" by(rule sets_eq_imp_space_eq)
     have "integrable M' f"
       by(rule integrable_const_bound[where B=B])(auto simp add: f_bounded)
-    then show "real (\<integral>\<^sup>+ x. f x \<partial>M') - real (\<integral>\<^sup>+ x. - f x \<partial>M') = \<integral> x. f x \<partial>M'"
+    then show "real_of_ereal (\<integral>\<^sup>+ x. f x \<partial>M') - real_of_ereal (\<integral>\<^sup>+ x. - f x \<partial>M') = \<integral> x. f x \<partial>M'"
       by(simp add: real_lebesgue_integral_def)
   qed simp_all
   finally show ?integral by simp

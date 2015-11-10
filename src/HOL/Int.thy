@@ -238,7 +238,7 @@ lemma of_int_numeral [simp, code_post]: "of_int (numeral k) = numeral k"
 lemma of_int_neg_numeral [code_post]: "of_int (- numeral k) = - numeral k"
   by simp
 
-lemma of_int_power:
+lemma of_int_power [simp]:
   "of_int (z ^ n) = of_int z ^ n"
   by (induct n) simp_all
 
@@ -470,7 +470,7 @@ lemma zless_nat_eq_int_zless: "(m < nat z) = (int m < z)"
 context ring_1
 begin
 
-lemma of_nat_nat: "0 \<le> z \<Longrightarrow> of_nat (nat z) = of_int z"
+lemma of_nat_nat [simp]: "0 \<le> z \<Longrightarrow> of_nat (nat z) = of_int z"
   by transfer (clarsimp simp add: of_nat_diff)
 
 end

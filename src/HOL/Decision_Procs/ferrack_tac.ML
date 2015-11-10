@@ -10,8 +10,8 @@ end
 structure Ferrack_Tac: FERRACK_TAC =
 struct
 
-val ferrack_ss = let val ths = [@{thm real_of_int_inject}, @{thm real_of_int_less_iff}, 
-                                @{thm real_of_int_le_iff}]
+val ferrack_ss = let val ths = [@{thm of_int_eq_iff}, @{thm of_int_less_iff}, 
+                                @{thm of_int_le_iff}]
              in @{context} delsimps ths addsimps (map (fn th => th RS sym) ths)
              end |> simpset_of;
 

@@ -2986,17 +2986,17 @@ proof -
           } note ptgh_ee = this
           have pi_hgn: "path_image (linepath (h (n/N)) (g (n/N))) \<subseteq> ball (p t) (ee (p t))"
             using ptgh_ee [of "n/N"] Suc.prems
-            by (auto simp: field_simps real_of_nat_def dist_norm dest: segment_furthest_le [where y="p t"])
+            by (auto simp: field_simps dist_norm dest: segment_furthest_le [where y="p t"])
           then have gh_ns: "closed_segment (g (n/N)) (h (n/N)) \<subseteq> s"
             using \<open>N>0\<close> Suc.prems
-            apply (simp add: real_of_nat_def path_image_join field_simps closed_segment_commute)
+            apply (simp add: path_image_join field_simps closed_segment_commute)
             apply (erule order_trans)
             apply (simp add: ee pi t)
             done
           have pi_ghn': "path_image (linepath (g ((1 + n) / N)) (h ((1 + n) / N)))
                   \<subseteq> ball (p t) (ee (p t))"
             using ptgh_ee [of "(1+n)/N"] Suc.prems
-            by (auto simp: field_simps real_of_nat_def dist_norm dest: segment_furthest_le [where y="p t"])
+            by (auto simp: field_simps dist_norm dest: segment_furthest_le [where y="p t"])
           then have gh_n's: "closed_segment (g ((1 + n) / N)) (h ((1 + n) / N)) \<subseteq> s"
             using \<open>N>0\<close> Suc.prems ee pi t
             by (auto simp: Path_Connected.path_image_join field_simps)
@@ -3030,7 +3030,7 @@ proof -
                      path_integral (linepath (h (n/N)) (g (n/N))) f = 0"
             using path_integral_unique [OF pi0] Suc.prems
             by (simp add: g h fpa valid_path_subpath path_integrable_subpath
-                          fpa1 fpa2 fpa3 algebra_simps del: real_of_nat_Suc)
+                          fpa1 fpa2 fpa3 algebra_simps del: of_nat_Suc)
           have *: "\<And>hn he hn' gn gd gn' hgn ghn gh0 ghn'.
                     \<lbrakk>hn - gn = ghn - gh0;
                      gd + ghn' + he + hgn = (0::complex);
@@ -4368,10 +4368,10 @@ qed
 
 subsection{* Cauchy's integral formula, again for a convex enclosing set.*}
 
-lemma Cauchy_integral_formula_weak: 
-    assumes s: "convex s" and "finite k" and conf: "continuous_on s f" 
-        and fcd: "(\<And>x. x \<in> interior s - k \<Longrightarrow> f complex_differentiable at x)" 
-        and z: "z \<in> interior s - k" and vpg: "valid_path \<gamma>" 
+lemma Cauchy_integral_formula_weak:
+    assumes s: "convex s" and "finite k" and conf: "continuous_on s f"
+        and fcd: "(\<And>x. x \<in> interior s - k \<Longrightarrow> f complex_differentiable at x)"
+        and z: "z \<in> interior s - k" and vpg: "valid_path \<gamma>"
         and pasz: "path_image \<gamma> \<subseteq> s - {z}" and loop: "pathfinish \<gamma> = pathstart \<gamma>"
       shows "((\<lambda>w. f w / (w - z)) has_path_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"
 proof -
@@ -4383,7 +4383,7 @@ proof -
     case True then show ?thesis
       apply (simp add: continuous_within)
       apply (rule Lim_transform_away_within [of _ "z+1" _ "\<lambda>w::complex. (f w - f z)/(w - z)"])
-      using has_field_derivative_at_within DERIV_within_iff f' 
+      using has_field_derivative_at_within DERIV_within_iff f'
       apply (fastforce simp add:)+
       done
   next
@@ -4395,7 +4395,7 @@ proof -
       apply (rule continuous_transform_within [OF dxz that, of "\<lambda>w::complex. (f w - f z)/(w - z)"])
       apply (force simp: dist_commute)
       apply (rule cf continuous_intros)+
-      using False by auto      
+      using False by auto
   qed
   have fink': "finite (insert z k)" using \<open>finite k\<close> by blast
   have *: "((\<lambda>w. if w = z then f' else (f w - f z) / (w - z)) has_path_integral 0) \<gamma>"
@@ -4412,9 +4412,9 @@ proof -
     using znotin has_path_integral_add [OF has_path_integral_lmul [OF has_path_integral_winding_number [OF vpg znotin], of "f z"] *]
     apply (auto simp: mult_ac divide_simps)
     done
-qed    
+qed
 
-theorem Cauchy_integral_formula_convex_simple: 
+theorem Cauchy_integral_formula_convex_simple:
     "\<lbrakk>convex s; f holomorphic_on s; z \<in> interior s; valid_path \<gamma>; path_image \<gamma> \<subseteq> s - {z};
       pathfinish \<gamma> = pathstart \<gamma>\<rbrakk>
      \<Longrightarrow> ((\<lambda>w. f w / (w - z)) has_path_integral (2*pi * ii * winding_number \<gamma> z * f z)) \<gamma>"

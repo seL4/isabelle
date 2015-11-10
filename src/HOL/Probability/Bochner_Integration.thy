@@ -153,7 +153,7 @@ proof -
   qed
 qed
 
-lemma real_indicator: "real (indicator A x :: ereal) = indicator A x"
+lemma real_indicator: "real_of_ereal (indicator A x :: ereal) = indicator A x"
   unfolding indicator_def by auto
 
 lemma split_indicator_asm:
@@ -182,9 +182,9 @@ proof -
     sup: "\<And>x. (SUP i. U i x) = max 0 (ereal (u x))" and nn: "\<And>i x. 0 \<le> U i x"
     by blast
 
-  def U' \<equiv> "\<lambda>i x. indicator (space M) x * real (U i x)"
+  def U' \<equiv> "\<lambda>i x. indicator (space M) x * real_of_ereal (U i x)"
   then have U'_sf[measurable]: "\<And>i. simple_function M (U' i)"
-    using U by (auto intro!: simple_function_compose1[where g=real])
+    using U by (auto intro!: simple_function_compose1[where g=real_of_ereal])
 
   show "P u"
   proof (rule seq)
@@ -209,7 +209,7 @@ proof -
       by simp
   next
     fix i
-    have "U' i ` space M \<subseteq> real ` (U i ` space M)" "finite (U i ` space M)"
+    have "U' i ` space M \<subseteq> real_of_ereal ` (U i ` space M)" "finite (U i ` space M)"
       unfolding U'_def using U(1) by (auto dest: simple_functionD)
     then have fin: "finite (U' i ` space M)"
       by (metis finite_subset finite_imageI)
@@ -472,7 +472,7 @@ proof -
           emeasure M ((\<lambda>x. ereal (f x)) -` {ereal (f y)} \<inter> space M)" by simp }
   with f have "simple_bochner_integral M f = (\<integral>\<^sup>Sx. f x \<partial>M)"
     unfolding simple_integral_def
-    by (subst simple_bochner_integral_partition[OF f(1), where g="\<lambda>x. ereal (f x)" and v=real])
+    by (subst simple_bochner_integral_partition[OF f(1), where g="\<lambda>x. ereal (f x)" and v=real_of_ereal])
        (auto intro: f simple_function_compose1 elim: simple_bochner_integrable.cases
              intro!: setsum.cong ereal_cong_mult
              simp: setsum_ereal[symmetric] times_ereal.simps(1)[symmetric] ac_simps
@@ -1644,7 +1644,7 @@ qed simp
 lemma integral_eq_nn_integral:
   assumes [measurable]: "f \<in> borel_measurable M"
   assumes nonneg: "AE x in M. 0 \<le> f x"
-  shows "integral\<^sup>L M f = real (\<integral>\<^sup>+ x. ereal (f x) \<partial>M)"
+  shows "integral\<^sup>L M f = real_of_ereal (\<integral>\<^sup>+ x. ereal (f x) \<partial>M)"
 proof cases
   assume *: "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) = \<infinity>"
   also have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) = (\<integral>\<^sup>+ x. ereal (norm (f x)) \<partial>M)"
@@ -2138,15 +2138,15 @@ subsection {* Legacy lemmas for the real-valued Lebesgue integral *}
 
 lemma real_lebesgue_integral_def:
   assumes f[measurable]: "integrable M f"
-  shows "integral\<^sup>L M f = real (\<integral>\<^sup>+x. f x \<partial>M) - real (\<integral>\<^sup>+x. - f x \<partial>M)"
+  shows "integral\<^sup>L M f = real_of_ereal (\<integral>\<^sup>+x. f x \<partial>M) - real_of_ereal (\<integral>\<^sup>+x. - f x \<partial>M)"
 proof -
   have "integral\<^sup>L M f = integral\<^sup>L M (\<lambda>x. max 0 (f x) - max 0 (- f x))"
     by (auto intro!: arg_cong[where f="integral\<^sup>L M"])
   also have "\<dots> = integral\<^sup>L M (\<lambda>x. max 0 (f x)) - integral\<^sup>L M (\<lambda>x. max 0 (- f x))"
     by (intro integral_diff integrable_max integrable_minus integrable_zero f)
-  also have "integral\<^sup>L M (\<lambda>x. max 0 (f x)) = real (\<integral>\<^sup>+x. max 0 (f x) \<partial>M)"
+  also have "integral\<^sup>L M (\<lambda>x. max 0 (f x)) = real_of_ereal (\<integral>\<^sup>+x. max 0 (f x) \<partial>M)"
     by (subst integral_eq_nn_integral[symmetric]) auto
-  also have "integral\<^sup>L M (\<lambda>x. max 0 (- f x)) = real (\<integral>\<^sup>+x. max 0 (- f x) \<partial>M)"
+  also have "integral\<^sup>L M (\<lambda>x. max 0 (- f x)) = real_of_ereal (\<integral>\<^sup>+x. max 0 (- f x) \<partial>M)"
     by (subst integral_eq_nn_integral[symmetric]) auto
   also have "(\<lambda>x. ereal (max 0 (f x))) = (\<lambda>x. max 0 (ereal (f x)))"
     by (auto simp: max_def)
@@ -2346,13 +2346,13 @@ qed
 lemma (in finite_measure) ereal_integral_real:
   assumes [measurable]: "f \<in> borel_measurable M" 
   assumes ae: "AE x in M. 0 \<le> f x" "AE x in M. f x \<le> ereal B"
-  shows "ereal (\<integral>x. real (f x) \<partial>M) = (\<integral>\<^sup>+x. f x \<partial>M)"
+  shows "ereal (\<integral>x. real_of_ereal (f x) \<partial>M) = (\<integral>\<^sup>+x. f x \<partial>M)"
 proof (subst nn_integral_eq_integral[symmetric])
-  show "integrable M (\<lambda>x. real (f x))"
+  show "integrable M (\<lambda>x. real_of_ereal (f x))"
     using ae by (intro integrable_const_bound[where B=B]) (auto simp: real_le_ereal_iff)
-  show "AE x in M. 0 \<le> real (f x)"
+  show "AE x in M. 0 \<le> real_of_ereal (f x)"
     using ae by (auto simp: real_of_ereal_pos)
-  show "(\<integral>\<^sup>+ x. ereal (real (f x)) \<partial>M) = integral\<^sup>N M f"
+  show "(\<integral>\<^sup>+ x. ereal (real_of_ereal (f x)) \<partial>M) = integral\<^sup>N M f"
     using ae by (intro nn_integral_cong_AE) (auto simp: ereal_real)
 qed
 

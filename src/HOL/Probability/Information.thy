@@ -73,7 +73,7 @@ text {* The Kullback$-$Leibler divergence is also known as relative entropy or
 Kullback$-$Leibler distance. *}
 
 definition
-  "entropy_density b M N = log b \<circ> real \<circ> RN_deriv M N"
+  "entropy_density b M N = log b \<circ> real_of_ereal \<circ> RN_deriv M N"
 
 definition
   "KL_divergence b M N = integral\<^sup>L N (entropy_density b M N)"
@@ -247,7 +247,7 @@ proof -
       apply auto
       done
   qed
-  then have "AE x in M. log b (real (RN_deriv M M x)) = 0"
+  then have "AE x in M. log b (real_of_ereal (RN_deriv M M x)) = 0"
     by (elim AE_mp) simp
   from integral_cong_AE[OF _ _ this]
   have "integral\<^sup>L M (entropy_density b M M) = 0"
@@ -787,7 +787,7 @@ proof -
   note D = distributed_measurable[OF X] distributed_borel_measurable[OF X] distributed_AE[OF X]
   note ae = distributed_RN_deriv[OF X]
 
-  have ae_eq: "AE x in distr M MX X. log b (real (RN_deriv MX (distr M MX X) x)) =
+  have ae_eq: "AE x in distr M MX X. log b (real_of_ereal (RN_deriv MX (distr M MX X) x)) =
     log b (f x)"
     unfolding distributed_distr_eq_density[OF X]
     apply (subst AE_density)
@@ -1517,8 +1517,8 @@ qed
 subsection {* Conditional Entropy *}
 
 definition (in prob_space)
-  "conditional_entropy b S T X Y = - (\<integral>(x, y). log b (real (RN_deriv (S \<Otimes>\<^sub>M T) (distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))) (x, y)) / 
-    real (RN_deriv T (distr M T Y) y)) \<partial>distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)))"
+  "conditional_entropy b S T X Y = - (\<integral>(x, y). log b (real_of_ereal (RN_deriv (S \<Otimes>\<^sub>M T) (distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))) (x, y)) / 
+    real_of_ereal (RN_deriv T (distr M T Y) y)) \<partial>distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)))"
 
 abbreviation (in information_space)
   conditional_entropy_Pow ("\<H>'(_ | _')") where
@@ -1535,13 +1535,13 @@ proof -
   interpret T: sigma_finite_measure T by fact
   interpret ST: pair_sigma_finite S T ..
 
-  have "AE x in density (S \<Otimes>\<^sub>M T) (\<lambda>x. ereal (Pxy x)). Pxy x = real (RN_deriv (S \<Otimes>\<^sub>M T) (distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))) x)"
+  have "AE x in density (S \<Otimes>\<^sub>M T) (\<lambda>x. ereal (Pxy x)). Pxy x = real_of_ereal (RN_deriv (S \<Otimes>\<^sub>M T) (distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))) x)"
     unfolding AE_density[OF distributed_borel_measurable, OF Pxy]
     unfolding distributed_distr_eq_density[OF Pxy]
     using distributed_RN_deriv[OF Pxy]
     by auto
   moreover
-  have "AE x in density (S \<Otimes>\<^sub>M T) (\<lambda>x. ereal (Pxy x)). Py (snd x) = real (RN_deriv T (distr M T Y) (snd x))"
+  have "AE x in density (S \<Otimes>\<^sub>M T) (\<lambda>x. ereal (Pxy x)). Py (snd x) = real_of_ereal (RN_deriv T (distr M T Y) (snd x))"
     unfolding AE_density[OF distributed_borel_measurable, OF Pxy]
     unfolding distributed_distr_eq_density[OF Py]
     apply (rule ST.AE_pair_measure)

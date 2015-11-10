@@ -72,9 +72,7 @@ proof
         thus ?thesis by simp
       qed
       moreover from xs have "x \<le> 2^m" by auto
-      ultimately have
-        "inverse (real x) \<ge> inverse (real ((2::nat)^m))"
-        by (simp del: real_of_nat_power)
+      ultimately have "inverse (real x) \<ge> inverse (real ((2::nat)^m))" by simp
       moreover
       from xgt0 have "real x \<noteq> 0" by simp
       then have
@@ -99,7 +97,7 @@ proof
         by simp
       also have
         "\<dots> = ((1/(real tm)) * real (card (?S m)))"
-        by (simp add: real_of_card real_of_nat_def)
+        by (simp add: real_of_card)
       also have
         "\<dots> = ((1/(real tm)) * real (tm - (2^(m - 1))))"
         by (simp add: tmdef)
@@ -280,28 +278,13 @@ proof -- "by contradiction"
   let ?s = "suminf ?f" -- "let ?s equal the sum of the harmonic series"
   assume sf: "summable ?f"
   then obtain n::nat where ndef: "n = nat \<lceil>2 * ?s\<rceil>" by simp
-  then have ngt: "1 + real n/2 > ?s"
-  proof -
-    have "\<forall>n. 0 \<le> ?f n" by simp
-    with sf have "?s \<ge> 0"
-      by (rule suminf_nonneg)
-    then have cgt0: "\<lceil>2*?s\<rceil> \<ge> 0" by simp
-
-    from ndef have "n = nat \<lceil>(2*?s)\<rceil>" .
-    then have "real n = real (nat \<lceil>2*?s\<rceil>)" by simp
-    with cgt0 have "real n = real \<lceil>2*?s\<rceil>"
-      by (auto dest: real_nat_eq_real)
-    then have "real n \<ge> 2*(?s)" by simp
-    then have "real n/2 \<ge> (?s)" by simp
-    then show "1 + real n/2 > (?s)" by simp
-  qed
-
-  obtain j where jdef: "j = (2::nat)^n" by simp
+  then have ngt: "1 + real n/2 > ?s" by linarith
+  def j \<equiv> "(2::nat)^n" 
   have "\<forall>m\<ge>j. 0 < ?f m" by simp
   with sf have "(\<Sum>i<j. ?f i) < ?s" by (rule setsum_less_suminf)
   then have "(\<Sum>i\<in>{Suc 0..<Suc j}. 1/(real i)) < ?s"
     unfolding setsum_shift_bounds_Suc_ivl by (simp add: atLeast0LessThan)
-  with jdef have
+  with j_def have
     "(\<Sum>i\<in>{1..< Suc ((2::nat)^n)}. 1 / (real i)) < ?s" by simp
   then have
     "(\<Sum>i\<in>{1..(2::nat)^n}. 1 / (real i)) < ?s"

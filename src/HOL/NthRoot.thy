@@ -16,7 +16,7 @@ lemma abs_sgn_eq: "abs (sgn x :: real) = (if x = 0 then 0 else 1)"
 lemma inverse_sgn: "sgn (inverse a) = inverse (sgn a :: real)"
   by (simp add: sgn_real_def)
 
-lemma power_eq_iff_eq_base: 
+lemma power_eq_iff_eq_base:
   fixes a b :: "_ :: linordered_semidom"
   shows "0 < n \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> a ^ n = b ^ n \<longleftrightarrow> a = b"
   using power_eq_imp_eq_base[of a n b] by auto
@@ -274,7 +274,7 @@ lemma tendsto_real_root[tendsto_intros]:
 lemma continuous_real_root[continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. root n (f x))"
   unfolding continuous_def by (rule tendsto_real_root)
-  
+
 lemma continuous_on_real_root[continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. root n (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_real_root)
@@ -326,7 +326,7 @@ next
   qed
 next
   show "DERIV (\<lambda>x. - (x ^ n)) (root n x) :> - real n * root n x ^ (n - Suc 0)"
-    by  (auto intro!: derivative_eq_intros simp: real_of_nat_def)
+    by  (auto intro!: derivative_eq_intros)
   show "- real n * root n x ^ (n - Suc 0) \<noteq> 0"
     using n x by simp
 qed (rule isCont_real_root)
@@ -463,7 +463,7 @@ lemma tendsto_real_sqrt[tendsto_intros]:
 lemma continuous_real_sqrt[continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. sqrt (f x))"
   unfolding sqrt_def by (rule continuous_real_root)
-  
+
 lemma continuous_on_real_sqrt[continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. sqrt (f x))"
   unfolding sqrt_def by (rule continuous_on_real_root)
@@ -510,14 +510,14 @@ lemma sqrt_divide_self_eq:
 proof cases
   assume "x=0" thus ?thesis by simp
 next
-  assume nz: "x\<noteq>0" 
+  assume nz: "x\<noteq>0"
   hence pos: "0<x" using nneg by arith
   show ?thesis
-  proof (rule right_inverse_eq [THEN iffD1, THEN sym]) 
-    show "sqrt x / x \<noteq> 0" by (simp add: divide_inverse nneg nz) 
+  proof (rule right_inverse_eq [THEN iffD1, THEN sym])
+    show "sqrt x / x \<noteq> 0" by (simp add: divide_inverse nneg nz)
     show "inverse (sqrt x) / (sqrt x / x) = 1"
-      by (simp add: divide_inverse mult.assoc [symmetric] 
-                  power2_eq_square [symmetric] real_inv_sqrt_pow2 pos nz) 
+      by (simp add: divide_inverse mult.assoc [symmetric]
+                  power2_eq_square [symmetric] real_inv_sqrt_pow2 pos nz)
   qed
 qed
 
@@ -537,7 +537,7 @@ done
 lemma lemma_real_divide_sqrt_less: "0 < u ==> u / sqrt 2 < u"
 by (simp add: divide_less_eq)
 
-lemma four_x_squared: 
+lemma four_x_squared:
   fixes x::real
   shows "4 * x\<^sup>2 = (2 * x)\<^sup>2"
 by (simp add: power2_eq_square)
@@ -548,7 +548,7 @@ lemma sqrt_at_top: "LIM x at_top. sqrt x :: real :> at_top"
 
 subsection \<open>Square Root of Sum of Squares\<close>
 
-lemma sum_squares_bound: 
+lemma sum_squares_bound:
   fixes x:: "'a::linordered_field"
   shows "2*x*y \<le> x^2 + y^2"
 proof -
@@ -560,14 +560,14 @@ proof -
     by arith
 qed
 
-lemma arith_geo_mean: 
+lemma arith_geo_mean:
   fixes u:: "'a::linordered_field" assumes "u\<^sup>2 = x*y" "x\<ge>0" "y\<ge>0" shows "u \<le> (x + y)/2"
     apply (rule power2_le_imp_le)
     using sum_squares_bound assms
     apply (auto simp: zero_le_mult_iff)
     by (auto simp: algebra_simps power2_eq_square)
 
-lemma arith_geo_mean_sqrt: 
+lemma arith_geo_mean_sqrt:
   fixes x::real assumes "x\<ge>0" "y\<ge>0" shows "sqrt(x*y) \<le> (x + y)/2"
   apply (rule arith_geo_mean)
   using assms
@@ -645,10 +645,10 @@ lemma lemma_sqrt_hcomplex_capprox:
   using less_eq_real_def sqrt2_less_2 apply force
   apply assumption
   apply (rule le_less_trans [where y = "y*2"])
-  using less_eq_real_def sqrt2_less_2 mult_le_cancel_left 
-  apply auto 
+  using less_eq_real_def sqrt2_less_2 mult_le_cancel_left
+  apply auto
   done
-  
+
 lemma LIMSEQ_root: "(\<lambda>n. root n n) ----> 1"
 proof -
   def x \<equiv> "\<lambda>n. root n n - 1"
@@ -660,7 +660,7 @@ proof -
     { fix n :: nat assume "2 < n"
       have "1 + (real (n - 1) * n) / 2 * x n^2 = 1 + of_nat (n choose 2) * x n^2"
         using \<open>2 < n\<close> unfolding gbinomial_def binomial_gbinomial
-        by (simp add: atLeast0AtMost atMost_Suc field_simps real_of_nat_diff numeral_2_eq_2 real_eq_of_nat[symmetric])
+        by (simp add: atLeast0AtMost atMost_Suc field_simps of_nat_diff numeral_2_eq_2)
       also have "\<dots> \<le> (\<Sum>k\<in>{0, 2}. of_nat (n choose k) * x n^k)"
         by (simp add: x_def)
       also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"
@@ -697,7 +697,7 @@ proof -
            (simp_all add: at_infinity_eq_at_top_bot)
       { fix n :: nat assume "1 < n"
         have "1 + x n * n = 1 + of_nat (n choose 1) * x n^1"
-          using \<open>1 < n\<close> unfolding gbinomial_def binomial_gbinomial by (simp add: real_eq_of_nat[symmetric])
+          using \<open>1 < n\<close> unfolding gbinomial_def binomial_gbinomial by simp 
         also have "\<dots> \<le> (\<Sum>k\<in>{0, 1}. of_nat (n choose k) * x n^k)"
           by (simp add: x_def)
         also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"

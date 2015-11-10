@@ -20,7 +20,7 @@ lemma setsum_gp0:
   fixes x :: "'a::{comm_ring,division_ring}"
   shows   "(\<Sum>i\<le>n. x^i) = (if x = 1 then of_nat(n + 1) else (1 - x^Suc n) / (1 - x))"
   using setsum_gp_basic[of x n]
-  by (simp add: real_of_nat_def mult.commute divide_simps)
+  by (simp add: mult.commute divide_simps)
 
 lemma setsum_power_add:
   fixes x :: "'a::{comm_ring,monoid_mult}"
@@ -60,8 +60,8 @@ lemma setsum_gp:
                (if n < m then 0
                 else if x = 1 then of_nat((n + 1) - m)
                 else (x^m - x^Suc n) / (1 - x))"
-using setsum_gp_multiplied [of m n x] 
-apply (auto simp: real_of_nat_def)
+using setsum_gp_multiplied [of m n x]
+apply auto
 by (metis eq_iff_diff_eq_0 mult.commute nonzero_divide_eq_eq)
 
 lemma setsum_gp_offset:
@@ -75,15 +75,15 @@ lemma setsum_gp_strict:
   fixes x :: "'a::{comm_ring,division_ring}"
   shows "(\<Sum>i<n. x^i) = (if x = 1 then of_nat n else (1 - x^n) / (1 - x))"
   by (induct n) (auto simp: algebra_simps divide_simps)
-    
+
 subsection\<open>Basics about polynomial functions: extremal behaviour and root counts.\<close>
 
 lemma sub_polyfun:
   fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows   "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) = 
+  shows   "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) =
            (x - y) * (\<Sum>j<n. \<Sum>k= Suc j..n. a k * y^(k - Suc j) * x^j)"
 proof -
-  have "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) = 
+  have "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) =
         (\<Sum>i\<le>n. a i * (x^i - y^i))"
     by (simp add: algebra_simps setsum_subtractf [symmetric])
   also have "... = (\<Sum>i\<le>n. a i * (x - y) * (\<Sum>j<i. y^(i - Suc j) * x^j))"
@@ -97,7 +97,7 @@ qed
 
 lemma sub_polyfun_alt:
   fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows   "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) = 
+  shows   "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) =
            (x - y) * (\<Sum>j<n. \<Sum>k<n-j. a (j+k+1) * y^k * x^j)"
 proof -
   { fix j
@@ -110,19 +110,19 @@ qed
 
 lemma polyfun_linear_factor:
   fixes a :: "'a::{comm_ring,monoid_mult}"
-  shows  "\<exists>b. \<forall>z. (\<Sum>i\<le>n. c i * z^i) = 
+  shows  "\<exists>b. \<forall>z. (\<Sum>i\<le>n. c i * z^i) =
                   (z-a) * (\<Sum>i<n. b i * z^i) + (\<Sum>i\<le>n. c i * a^i)"
 proof -
   { fix z
-    have "(\<Sum>i\<le>n. c i * z^i) - (\<Sum>i\<le>n. c i * a^i) = 
+    have "(\<Sum>i\<le>n. c i * z^i) - (\<Sum>i\<le>n. c i * a^i) =
           (z - a) * (\<Sum>j<n. (\<Sum>k = Suc j..n. c k * a^(k - Suc j)) * z^j)"
       by (simp add: sub_polyfun setsum_left_distrib)
-    then have "(\<Sum>i\<le>n. c i * z^i) = 
+    then have "(\<Sum>i\<le>n. c i * z^i) =
           (z - a) * (\<Sum>j<n. (\<Sum>k = Suc j..n. c k * a^(k - Suc j)) * z^j)
           + (\<Sum>i\<le>n. c i * a^i)"
       by (simp add: algebra_simps) }
   then show ?thesis
-    by (intro exI allI) 
+    by (intro exI allI)
 qed
 
 lemma polyfun_linear_factor_root:
@@ -141,7 +141,7 @@ lemma polyfun_extremal_lemma:
     shows "\<exists>M. \<forall>z. M \<le> norm z \<longrightarrow> norm(\<Sum>i\<le>n. c i * z^i) \<le> e * norm(z) ^ Suc n"
 proof (induction n)
   case 0
-  show ?case 
+  show ?case
     by (rule exI [where x="norm (c 0) / e"]) (auto simp: mult.commute pos_divide_le_eq assms)
 next
   case (Suc n)
@@ -153,14 +153,14 @@ next
     then have norm1: "0 < norm z" "M \<le> norm z" "(e + norm (c (Suc n))) / e \<le> norm z"
       by auto
     then have norm2: "(e + norm (c (Suc n))) \<le> e * norm z"  "(norm z * norm z ^ n) > 0"
-      apply (metis assms less_divide_eq mult.commute not_le) 
+      apply (metis assms less_divide_eq mult.commute not_le)
       using norm1 apply (metis mult_pos_pos zero_less_power)
       done
     have "e * (norm z * norm z ^ n) + norm (c (Suc n) * (z * z ^ n)) =
           (e + norm (c (Suc n))) * (norm z * norm z ^ n)"
       by (simp add: norm_mult norm_power algebra_simps)
     also have "... \<le> (e * norm z) * (norm z * norm z ^ n)"
-      using norm2 by (metis real_mult_le_cancel_iff1) 
+      using norm2 by (metis real_mult_le_cancel_iff1)
     also have "... = e * (norm z * (norm z * norm z ^ n))"
       by (simp add: algebra_simps)
     finally have "e * (norm z * norm z ^ n) + norm (c (Suc n) * (z * z ^ n))
@@ -171,7 +171,7 @@ next
 qed
 
 lemma norm_lemma_xy: "\<lbrakk>abs b + 1 \<le> norm(y) - a; norm(x) \<le> a\<rbrakk> \<Longrightarrow> b \<le> norm(x + y)"
-  by (metis abs_add_one_not_less_self add.commute diff_le_eq dual_order.trans le_less_linear 
+  by (metis abs_add_one_not_less_self add.commute diff_le_eq dual_order.trans le_less_linear
          norm_diff_ineq)
 
 lemma polyfun_extremal:
@@ -192,7 +192,7 @@ next
   next
     case False
     with polyfun_extremal_lemma [of "norm(c (Suc n)) / 2" c n]
-    obtain M where M: "\<And>z. M \<le> norm z \<Longrightarrow> 
+    obtain M where M: "\<And>z. M \<le> norm z \<Longrightarrow>
                norm (\<Sum>i\<le>n. c i * z^i) \<le> norm (c (Suc n)) / 2 * norm z ^ Suc n"
       by auto
     show ?thesis
@@ -202,7 +202,7 @@ next
       assume les: "M \<le> norm z"  "1 \<le> norm z"  "(\<bar>B\<bar> * 2 + 2) / norm (c (Suc n)) \<le> norm z"
       then have "\<bar>B\<bar> * 2 + 2 \<le> norm z * norm (c (Suc n))"
         by (metis False pos_divide_le_eq zero_less_norm_iff)
-      then have "\<bar>B\<bar> * 2 + 2 \<le> norm z ^ (Suc n) * norm (c (Suc n))" 
+      then have "\<bar>B\<bar> * 2 + 2 \<le> norm z ^ (Suc n) * norm (c (Suc n))"
         by (metis \<open>1 \<le> norm z\<close> order.trans mult_right_mono norm_ge_zero self_le_power zero_less_Suc)
       then show "B \<le> norm ((\<Sum>i\<le>n. c i * z^i) + c (Suc n) * (z * z ^ n))" using M les
         apply auto
@@ -235,7 +235,7 @@ proof (induction n arbitrary: c)
      by simp
    then have extr_prem: "~ (\<exists>k\<le>n. b k \<noteq> 0) \<Longrightarrow> \<exists>k. k \<noteq> 0 \<and> k \<le> Suc n \<and> c k \<noteq> 0"
      by (metis Suc.prems le0 minus_zero mult_zero_right)
-   have "\<exists>k\<le>n. b k \<noteq> 0" 
+   have "\<exists>k\<le>n. b k \<noteq> 0"
      apply (rule ccontr)
      using polyfun_extremal [OF extr_prem, of 1]
      apply (auto simp: eventually_at_infinity b simp del: setsum_atMost_Suc)
@@ -257,10 +257,10 @@ lemma polyfun_finite_roots:
   fixes c :: "nat \<Rightarrow> 'a::{comm_ring,real_normed_div_algebra}"
     shows  "finite {z. (\<Sum>i\<le>n. c i * z^i) = 0} \<longleftrightarrow> (\<exists>k. k \<le> n \<and> c k \<noteq> 0)"
 proof (cases " \<exists>k\<le>n. c k \<noteq> 0")
-  case True then show ?thesis 
+  case True then show ?thesis
     by (blast intro: polyfun_rootbound_finite)
 next
-  case False then show ?thesis 
+  case False then show ?thesis
     by (auto simp: infinite_UNIV_char_0)
 qed
 

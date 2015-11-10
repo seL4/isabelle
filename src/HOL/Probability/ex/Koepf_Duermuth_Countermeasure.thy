@@ -374,7 +374,7 @@ proof -
       using finite_measure_finite_Union[OF _ df]
       by (auto simp add: * intro!: setsum_nonneg)
     also have "(\<Sum>obs'\<in>?S obs. \<P>(OB ; fst) {(obs', k)}) = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}"
-      by (simp add: t_eq_imp[OF `k \<in> keys` `K k \<noteq> 0` obs] real_eq_of_nat)
+      by (simp add: t_eq_imp[OF `k \<in> keys` `K k \<noteq> 0` obs])
     finally have "\<P>(t\<circ>OB ; fst) {(t obs, k)} = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}" .}
   note P_t_eq_P_OB = this
 
@@ -471,9 +471,9 @@ proof -
     using entropy_le_card[of "t\<circ>OB", OF simple_distributedI[OF simple_function_finite refl]] by simp
   also have "\<dots> \<le> log b (real (n + 1)^card observations)"
     using card_T_bound not_empty
-    by (auto intro!: log_le simp: card_gt_0_iff power_real_of_nat simp del: real_of_nat_power real_of_nat_Suc)
+    by (auto intro!: log_le simp: card_gt_0_iff power_real_of_nat simp del: of_nat_power of_nat_Suc)
   also have "\<dots> = real (card observations) * log b (real n + 1)"
-    by (simp add: log_nat_power real_of_nat_Suc)
+    by (simp add: log_nat_power add.commute)
   finally show ?thesis  .
 qed
 

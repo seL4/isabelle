@@ -249,21 +249,15 @@ lemma ereal_uminus_eq_iff[simp]:
   shows "-a = -b \<longleftrightarrow> a = b"
   by (cases rule: ereal2_cases[of a b]) simp_all
 
-instantiation ereal :: real_of
-begin
-
-function real_ereal :: "ereal \<Rightarrow> real" where
-  "real_ereal (ereal r) = r"
-| "real_ereal \<infinity> = 0"
-| "real_ereal (-\<infinity>) = 0"
+function real_of_ereal :: "ereal \<Rightarrow> real" where
+  "real_of_ereal (ereal r) = r"
+| "real_of_ereal \<infinity> = 0"
+| "real_of_ereal (-\<infinity>) = 0"
   by (auto intro: ereal_cases)
 termination by standard (rule wf_empty)
 
-instance ..
-end
-
 lemma real_of_ereal[simp]:
-  "real (- x :: ereal) = - (real x)"
+  "real_of_ereal (- x :: ereal) = - (real_of_ereal x)"
   by (cases x) simp_all
 
 lemma range_ereal[simp]: "range ereal = UNIV - {\<infinity>, -\<infinity>}"
@@ -378,7 +372,7 @@ by(simp_all add: zero_ereal_def[symmetric])
 
 instance ereal :: numeral ..
 
-lemma real_of_ereal_0[simp]: "real (0::ereal) = 0"
+lemma real_of_ereal_0[simp]: "real_of_ereal (0::ereal) = 0"
   unfolding zero_ereal_def by simp
 
 lemma abs_ereal_zero[simp]: "\<bar>0\<bar> = (0::ereal)"
@@ -414,13 +408,13 @@ lemma ereal_add_cancel_right:
   shows "b + a = c + a \<longleftrightarrow> a = \<infinity> \<or> b = c"
   using assms by (cases rule: ereal3_cases[of a b c]) auto
 
-lemma ereal_real: "ereal (real x) = (if \<bar>x\<bar> = \<infinity> then 0 else x)"
+lemma ereal_real: "ereal (real_of_ereal x) = (if \<bar>x\<bar> = \<infinity> then 0 else x)"
   by (cases x) simp_all
 
 lemma real_of_ereal_add:
   fixes a b :: ereal
-  shows "real (a + b) =
-    (if (\<bar>a\<bar> = \<infinity>) \<and> (\<bar>b\<bar> = \<infinity>) \<or> (\<bar>a\<bar> \<noteq> \<infinity>) \<and> (\<bar>b\<bar> \<noteq> \<infinity>) then real a + real b else 0)"
+  shows "real_of_ereal (a + b) =
+    (if (\<bar>a\<bar> = \<infinity>) \<and> (\<bar>b\<bar> = \<infinity>) \<or> (\<bar>a\<bar> \<noteq> \<infinity>) \<and> (\<bar>b\<bar> \<noteq> \<infinity>) then real_of_ereal a + real_of_ereal b else 0)"
   by (cases rule: ereal2_cases[of a b]) auto
 
 
@@ -521,7 +515,7 @@ qed
 
 lemma real_of_ereal_positive_mono:
   fixes x y :: ereal
-  shows "0 \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<noteq> \<infinity> \<Longrightarrow> real x \<le> real y"
+  shows "0 \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<noteq> \<infinity> \<Longrightarrow> real_of_ereal x \<le> real_of_ereal y"
   by (cases rule: ereal2_cases[of x y]) auto
 
 lemma ereal_MInfty_lessI[intro, simp]:
@@ -568,24 +562,24 @@ lemma ereal_minus_less_minus[simp]:
   by (cases rule: ereal2_cases[of a b]) auto
 
 lemma ereal_le_real_iff:
-  "x \<le> real y \<longleftrightarrow> (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> ereal x \<le> y) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> x \<le> 0)"
+  "x \<le> real_of_ereal y \<longleftrightarrow> (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> ereal x \<le> y) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> x \<le> 0)"
   by (cases y) auto
 
 lemma real_le_ereal_iff:
-  "real y \<le> x \<longleftrightarrow> (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> y \<le> ereal x) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> 0 \<le> x)"
+  "real_of_ereal y \<le> x \<longleftrightarrow> (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> y \<le> ereal x) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> 0 \<le> x)"
   by (cases y) auto
 
 lemma ereal_less_real_iff:
-  "x < real y \<longleftrightarrow> (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> ereal x < y) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> x < 0)"
+  "x < real_of_ereal y \<longleftrightarrow> (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> ereal x < y) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> x < 0)"
   by (cases y) auto
 
 lemma real_less_ereal_iff:
-  "real y < x \<longleftrightarrow> (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> y < ereal x) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> 0 < x)"
+  "real_of_ereal y < x \<longleftrightarrow> (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> y < ereal x) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> 0 < x)"
   by (cases y) auto
 
 lemma real_of_ereal_pos:
   fixes x :: ereal
-  shows "0 \<le> x \<Longrightarrow> 0 \<le> real x" by (cases x) auto
+  shows "0 \<le> x \<Longrightarrow> 0 \<le> real_of_ereal x" by (cases x) auto
 
 lemmas real_of_ereal_ord_simps =
   ereal_le_real_iff real_le_ereal_iff ereal_less_real_iff real_less_ereal_iff
@@ -599,15 +593,15 @@ lemma abs_ereal_less0[simp]: "x < 0 \<Longrightarrow> \<bar>x :: ereal\<bar> = -
 lemma abs_ereal_pos[simp]: "0 \<le> \<bar>x :: ereal\<bar>"
   by (cases x) auto
 
-lemma real_of_ereal_le_0[simp]: "real (x :: ereal) \<le> 0 \<longleftrightarrow> x \<le> 0 \<or> x = \<infinity>"
+lemma real_of_ereal_le_0[simp]: "real_of_ereal (x :: ereal) \<le> 0 \<longleftrightarrow> x \<le> 0 \<or> x = \<infinity>"
   by (cases x) auto
 
-lemma abs_real_of_ereal[simp]: "\<bar>real (x :: ereal)\<bar> = real \<bar>x\<bar>"
+lemma abs_real_of_ereal[simp]: "\<bar>real_of_ereal (x :: ereal)\<bar> = real_of_ereal \<bar>x\<bar>"
   by (cases x) auto
 
 lemma zero_less_real_of_ereal:
   fixes x :: ereal
-  shows "0 < real x \<longleftrightarrow> 0 < x \<and> x \<noteq> \<infinity>"
+  shows "0 < real_of_ereal x \<longleftrightarrow> 0 < x \<and> x \<noteq> \<infinity>"
   by (cases x) auto
 
 lemma ereal_0_le_uminus_iff[simp]:
@@ -808,7 +802,7 @@ qed
 lemma setsum_real_of_ereal:
   fixes f :: "'i \<Rightarrow> ereal"
   assumes "\<And>x. x \<in> S \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
-  shows "(\<Sum>x\<in>S. real (f x)) = real (setsum f S)"
+  shows "(\<Sum>x\<in>S. real_of_ereal (f x)) = real_of_ereal (setsum f S)"
 proof -
   have "\<forall>x\<in>S. \<exists>r. f x = ereal r"
   proof
@@ -886,12 +880,12 @@ end
 lemma one_not_le_zero_ereal[simp]: "\<not> (1 \<le> (0::ereal))"
   by (simp add: one_ereal_def zero_ereal_def)
 
-lemma real_ereal_1[simp]: "real (1::ereal) = 1"
+lemma real_ereal_1[simp]: "real_of_ereal (1::ereal) = 1"
   unfolding one_ereal_def by simp
 
 lemma real_of_ereal_le_1:
   fixes a :: ereal
-  shows "a \<le> 1 \<Longrightarrow> real a \<le> 1"
+  shows "a \<le> 1 \<Longrightarrow> real_of_ereal a \<le> 1"
   by (cases a) (auto simp: one_ereal_def)
 
 lemma abs_ereal_one[simp]: "\<bar>1\<bar> = (1::ereal)"
@@ -1361,10 +1355,10 @@ lemma ereal_minus_mono:
 
 lemma real_of_ereal_minus:
   fixes a b :: ereal
-  shows "real (a - b) = (if \<bar>a\<bar> = \<infinity> \<or> \<bar>b\<bar> = \<infinity> then 0 else real a - real b)"
+  shows "real_of_ereal (a - b) = (if \<bar>a\<bar> = \<infinity> \<or> \<bar>b\<bar> = \<infinity> then 0 else real_of_ereal a - real_of_ereal b)"
   by (cases rule: ereal2_cases[of a b]) auto
 
-lemma real_of_ereal_minus': "\<bar>x\<bar> = \<infinity> \<longleftrightarrow> \<bar>y\<bar> = \<infinity> \<Longrightarrow> real x - real y = real (x - y :: ereal)"
+lemma real_of_ereal_minus': "\<bar>x\<bar> = \<infinity> \<longleftrightarrow> \<bar>y\<bar> = \<infinity> \<Longrightarrow> real_of_ereal x - real_of_ereal y = real_of_ereal (x - y :: ereal)"
 by(subst real_of_ereal_minus) auto
 
 lemma ereal_diff_positive:
@@ -1411,7 +1405,7 @@ end
 
 lemma real_of_ereal_inverse[simp]:
   fixes a :: ereal
-  shows "real (inverse a) = 1 / real a"
+  shows "real_of_ereal (inverse a) = 1 / real_of_ereal a"
   by (cases a) (auto simp: inverse_eq_divide)
 
 lemma ereal_inverse[simp]:
@@ -2307,7 +2301,7 @@ lemma eventually_finite:
   assumes "\<bar>x\<bar> \<noteq> \<infinity>" "(f ---> x) F"
   shows "eventually (\<lambda>x. \<bar>f x\<bar> \<noteq> \<infinity>) F"
 proof -
-  have "(f ---> ereal (real x)) F"
+  have "(f ---> ereal (real_of_ereal x)) F"
     using assms by (cases x) auto
   then have "eventually (\<lambda>x. f x \<in> ereal ` UNIV) F"
     by (rule topological_tendstoD) (auto intro: open_ereal)
@@ -2371,7 +2365,7 @@ proof -
   from \<open>open S\<close>
   have "open (ereal -` S)"
     by (rule ereal_openE)
-  then obtain e where "e > 0" and e: "\<And>y. dist y (real x) < e \<Longrightarrow> ereal y \<in> S"
+  then obtain e where "e > 0" and e: "\<And>y. dist y (real_of_ereal x) < e \<Longrightarrow> ereal y \<in> S"
     using assms unfolding open_dist by force
   show thesis
   proof (intro that subsetI)
@@ -2379,7 +2373,7 @@ proof -
       using \<open>0 < e\<close> by auto
     fix y
     assume "y \<in> {x - ereal e<..<x + ereal e}"
-    with assms obtain t where "y = ereal t" "dist t (real x) < e"
+    with assms obtain t where "y = ereal t" "dist t (real_of_ereal x) < e"
       by (cases y) (auto simp: dist_real_def)
     then show "y \<in> S"
       using e[of t] by auto
@@ -2404,16 +2398,16 @@ subsubsection \<open>Convergent sequences\<close>
 
 lemma lim_real_of_ereal[simp]:
   assumes lim: "(f ---> ereal x) net"
-  shows "((\<lambda>x. real (f x)) ---> x) net"
+  shows "((\<lambda>x. real_of_ereal (f x)) ---> x) net"
 proof (intro topological_tendstoI)
   fix S
   assume "open S" and "x \<in> S"
   then have S: "open S" "ereal x \<in> ereal ` S"
     by (simp_all add: inj_image_mem_iff)
-  have "\<forall>x. f x \<in> ereal ` S \<longrightarrow> real (f x) \<in> S"
+  have "\<forall>x. f x \<in> ereal ` S \<longrightarrow> real_of_ereal (f x) \<in> S"
     by auto
   from this lim[THEN topological_tendstoD, OF open_ereal, OF S]
-  show "eventually (\<lambda>x. real (f x) \<in> S) net"
+  show "eventually (\<lambda>x. real_of_ereal (f x) \<in> S) net"
     by (rule eventually_mono)
 qed
 
@@ -2425,7 +2419,7 @@ proof -
   {
     fix l :: ereal
     assume "\<forall>r. eventually (\<lambda>x. ereal r < f x) F"
-    from this[THEN spec, of "real l"] have "l \<noteq> \<infinity> \<Longrightarrow> eventually (\<lambda>x. l < f x) F"
+    from this[THEN spec, of "real_of_ereal l"] have "l \<noteq> \<infinity> \<Longrightarrow> eventually (\<lambda>x. l < f x) F"
       by (cases l) (auto elim: eventually_elim1)
   }
   then show ?thesis
@@ -2507,18 +2501,18 @@ lemma Lim_bounded2_ereal:
 
 lemma real_of_ereal_mult[simp]:
   fixes a b :: ereal
-  shows "real (a * b) = real a * real b"
+  shows "real_of_ereal (a * b) = real_of_ereal a * real_of_ereal b"
   by (cases rule: ereal2_cases[of a b]) auto
 
 lemma real_of_ereal_eq_0:
   fixes x :: ereal
-  shows "real x = 0 \<longleftrightarrow> x = \<infinity> \<or> x = -\<infinity> \<or> x = 0"
+  shows "real_of_ereal x = 0 \<longleftrightarrow> x = \<infinity> \<or> x = -\<infinity> \<or> x = 0"
   by (cases x) auto
 
 lemma tendsto_ereal_realD:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes "x \<noteq> 0"
-    and tendsto: "((\<lambda>x. ereal (real (f x))) ---> x) net"
+    and tendsto: "((\<lambda>x. ereal (real_of_ereal (f x))) ---> x) net"
   shows "(f ---> x) net"
 proof (intro topological_tendstoI)
   fix S
@@ -2533,14 +2527,14 @@ qed
 lemma tendsto_ereal_realI:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes x: "\<bar>x\<bar> \<noteq> \<infinity>" and tendsto: "(f ---> x) net"
-  shows "((\<lambda>x. ereal (real (f x))) ---> x) net"
+  shows "((\<lambda>x. ereal (real_of_ereal (f x))) ---> x) net"
 proof (intro topological_tendstoI)
   fix S
   assume "open S" and "x \<in> S"
   with x have "open (S - {\<infinity>, -\<infinity>})" "x \<in> S - {\<infinity>, -\<infinity>}"
     by auto
   from tendsto[THEN topological_tendstoD, OF this]
-  show "eventually (\<lambda>x. ereal (real (f x)) \<in> S) net"
+  show "eventually (\<lambda>x. ereal (real_of_ereal (f x)) \<in> S) net"
     by (elim eventually_elim1) (auto simp: ereal_real)
 qed
 
@@ -2556,15 +2550,15 @@ lemma tendsto_add_ereal:
   shows "((\<lambda>x. f x + g x) ---> x + y) F"
 proof -
   from x obtain r where x': "x = ereal r" by (cases x) auto
-  with f have "((\<lambda>i. real (f i)) ---> r) F" by simp
+  with f have "((\<lambda>i. real_of_ereal (f i)) ---> r) F" by simp
   moreover
   from y obtain p where y': "y = ereal p" by (cases y) auto
-  with g have "((\<lambda>i. real (g i)) ---> p) F" by simp
-  ultimately have "((\<lambda>i. real (f i) + real (g i)) ---> r + p) F"
+  with g have "((\<lambda>i. real_of_ereal (g i)) ---> p) F" by simp
+  ultimately have "((\<lambda>i. real_of_ereal (f i) + real_of_ereal (g i)) ---> r + p) F"
     by (rule tendsto_add)
   moreover
   from eventually_finite[OF x f] eventually_finite[OF y g]
-  have "eventually (\<lambda>x. f x + g x = ereal (real (f x) + real (g x))) F"
+  have "eventually (\<lambda>x. f x + g x = ereal (real_of_ereal (f x) + real_of_ereal (g x))) F"
     by eventually_elim auto
   ultimately show ?thesis
     by (simp add: x' y' cong: filterlim_cong)
@@ -2614,14 +2608,14 @@ lemma ereal_mult_m1[simp]: "x * ereal (-1) = -x"
 
 lemma ereal_real':
   assumes "\<bar>x\<bar> \<noteq> \<infinity>"
-  shows "ereal (real x) = x"
+  shows "ereal (real_of_ereal x) = x"
   using assms by auto
 
-lemma real_ereal_id: "real \<circ> ereal = id"
+lemma real_ereal_id: "real_of_ereal \<circ> ereal = id"
 proof -
   {
     fix x
-    have "(real o ereal) x = id x"
+    have "(real_of_ereal o ereal) x = id x"
       by auto
   }
   then show ?thesis
@@ -2682,7 +2676,7 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
     then have "rx < ra + r" and "ra < rx + r"
       using rx assms \<open>0 < r\<close> lower[OF \<open>n \<le> N\<close>] upper[OF \<open>n \<le> N\<close>]
       by auto
-    then have "dist (real (u N)) rx < r"
+    then have "dist (real_of_ereal (u N)) rx < r"
       using rx ra_def
       by (auto simp: dist_real_def abs_diff_less_iff field_simps)
     from dist[OF this] show "u N \<in> S"
@@ -3063,7 +3057,7 @@ lemma summable_real_of_ereal:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes f: "\<And>i. 0 \<le> f i"
     and fin: "(\<Sum>i. f i) \<noteq> \<infinity>"
-  shows "summable (\<lambda>i. real (f i))"
+  shows "summable (\<lambda>i. real_of_ereal (f i))"
 proof (rule summable_def[THEN iffD2])
   have "0 \<le> (\<Sum>i. f i)"
     using assms by (auto intro: suminf_0_le)
@@ -3077,12 +3071,12 @@ proof (rule summable_def[THEN iffD2])
       using f[of i] by auto
   }
   note fin = this
-  have "(\<lambda>i. ereal (real (f i))) sums (\<Sum>i. ereal (real (f i)))"
+  have "(\<lambda>i. ereal (real_of_ereal (f i))) sums (\<Sum>i. ereal (real_of_ereal (f i)))"
     using f
     by (auto intro!: summable_ereal_pos simp: ereal_le_real_iff zero_ereal_def)
   also have "\<dots> = ereal r"
     using fin r by (auto simp: ereal_real)
-  finally show "\<exists>r. (\<lambda>i. real (f i)) sums r"
+  finally show "\<exists>r. (\<lambda>i. real_of_ereal (f i)) sums r"
     by (auto simp: sums_ereal)
 qed
 
@@ -3559,7 +3553,7 @@ qed (insert \<open>c \<noteq> -\<infinity>\<close>, simp)
 subsubsection \<open>Continuity\<close>
 
 lemma continuous_at_of_ereal:
-  "\<bar>x0 :: ereal\<bar> \<noteq> \<infinity> \<Longrightarrow> continuous (at x0) real"
+  "\<bar>x0 :: ereal\<bar> \<noteq> \<infinity> \<Longrightarrow> continuous (at x0) real_of_ereal"
   unfolding continuous_at
   by (rule lim_real_of_ereal) (simp add: ereal_real)
 
@@ -3583,10 +3577,10 @@ lemma
   by (auto simp add: ereal_all_split ereal_ex_split)
 
 lemma ereal_tendsto_simps1:
-  "((f \<circ> real) ---> y) (at_left (ereal x)) \<longleftrightarrow> (f ---> y) (at_left x)"
-  "((f \<circ> real) ---> y) (at_right (ereal x)) \<longleftrightarrow> (f ---> y) (at_right x)"
-  "((f \<circ> real) ---> y) (at_left (\<infinity>::ereal)) \<longleftrightarrow> (f ---> y) at_top"
-  "((f \<circ> real) ---> y) (at_right (-\<infinity>::ereal)) \<longleftrightarrow> (f ---> y) at_bot"
+  "((f \<circ> real_of_ereal) ---> y) (at_left (ereal x)) \<longleftrightarrow> (f ---> y) (at_left x)"
+  "((f \<circ> real_of_ereal) ---> y) (at_right (ereal x)) \<longleftrightarrow> (f ---> y) (at_right x)"
+  "((f \<circ> real_of_ereal) ---> y) (at_left (\<infinity>::ereal)) \<longleftrightarrow> (f ---> y) at_top"
+  "((f \<circ> real_of_ereal) ---> y) (at_right (-\<infinity>::ereal)) \<longleftrightarrow> (f ---> y) at_bot"
   unfolding tendsto_compose_filtermap at_left_ereal at_right_ereal at_left_PInf at_right_MInf
   by (auto simp: filtermap_filtermap filtermap_ident)
 
@@ -3638,24 +3632,24 @@ lemma continuous_on_iff_ereal:
   shows "continuous_on A f \<longleftrightarrow> continuous_on A (ereal \<circ> f)"
   unfolding continuous_on_def comp_def lim_ereal ..
 
-lemma continuous_on_real: "continuous_on (UNIV - {\<infinity>, -\<infinity>::ereal}) real"
+lemma continuous_on_real: "continuous_on (UNIV - {\<infinity>, -\<infinity>::ereal}) real_of_ereal"
   using continuous_at_of_ereal continuous_on_eq_continuous_at open_image_ereal
   by auto
 
 lemma continuous_on_iff_real:
   fixes f :: "'a::t2_space \<Rightarrow> ereal"
   assumes *: "\<And>x. x \<in> A \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
-  shows "continuous_on A f \<longleftrightarrow> continuous_on A (real \<circ> f)"
+  shows "continuous_on A f \<longleftrightarrow> continuous_on A (real_of_ereal \<circ> f)"
 proof -
   have "f ` A \<subseteq> UNIV - {\<infinity>, -\<infinity>}"
     using assms by force
-  then have *: "continuous_on (f ` A) real"
+  then have *: "continuous_on (f ` A) real_of_ereal"
     using continuous_on_real by (simp add: continuous_on_subset)
-  have **: "continuous_on ((real \<circ> f) ` A) ereal"
+  have **: "continuous_on ((real_of_ereal \<circ> f) ` A) ereal"
     by (intro continuous_on_ereal continuous_on_id)
   {
     assume "continuous_on A f"
-    then have "continuous_on A (real \<circ> f)"
+    then have "continuous_on A (real_of_ereal \<circ> f)"
       apply (subst continuous_on_compose)
       using *
       apply auto
@@ -3663,14 +3657,14 @@ proof -
   }
   moreover
   {
-    assume "continuous_on A (real \<circ> f)"
-    then have "continuous_on A (ereal \<circ> (real \<circ> f))"
+    assume "continuous_on A (real_of_ereal \<circ> f)"
+    then have "continuous_on A (ereal \<circ> (real_of_ereal \<circ> f))"
       apply (subst continuous_on_compose)
       using **
       apply auto
       done
     then have "continuous_on A f"
-      apply (subst continuous_on_cong[of _ A _ "ereal \<circ> (real \<circ> f)"])
+      apply (subst continuous_on_cong[of _ A _ "ereal \<circ> (real_of_ereal \<circ> f)"])
       using assms ereal_real
       apply auto
       done
@@ -3688,6 +3682,6 @@ value "- \<infinity> :: ereal"
 value "\<bar>-\<infinity>\<bar> :: ereal"
 value "4 + 5 / 4 - ereal 2 :: ereal"
 value "ereal 3 < \<infinity>"
-value "real (\<infinity>::ereal) = 0"
+value "real_of_ereal (\<infinity>::ereal) = 0"
 
 end

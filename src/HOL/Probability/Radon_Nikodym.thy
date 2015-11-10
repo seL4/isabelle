@@ -11,7 +11,7 @@ begin
 definition "diff_measure M N =
   measure_of (space M) (sets M) (\<lambda>A. emeasure M A - emeasure N A)"
 
-lemma 
+lemma
   shows space_diff_measure[simp]: "space (diff_measure M N) = space M"
     and sets_diff_measure[simp]: "sets (diff_measure M N) = sets M"
   by (auto simp: diff_measure_def)
@@ -205,7 +205,7 @@ proof -
       by (auto simp add: not_less)
     { fix n have "?d (A n) \<le> - real n * e"
       proof (induct n)
-        case (Suc n) with dA_epsilon[of n, OF B] show ?case by (simp del: A_simps add: real_of_nat_Suc field_simps)
+        case (Suc n) with dA_epsilon[of n, OF B] show ?case by (simp del: A_simps add: of_nat_Suc field_simps)
       next
         case 0 with measure_empty show ?case by (simp add: zero_ereal_def)
       qed } note dA_less = this
@@ -272,7 +272,7 @@ proof -
       hence "0 < - ?d B" by auto
       from ex_inverse_of_nat_Suc_less[OF this]
       obtain n where *: "?d B < - 1 / real (Suc n)"
-        by (auto simp: real_eq_of_nat field_simps)
+        by (auto simp: field_simps)
       also have "\<dots> \<le> - 1 / real (Suc (Suc n))"
         by (auto simp: field_simps)
       finally show False
@@ -443,8 +443,8 @@ proof -
         using b by (auto simp: emeasure_density_const sets_eq intro!: finite_measureI)
     from M'.Radon_Nikodym_aux[OF this] guess A0 ..
     then have "A0 \<in> sets M"
-      and space_less_A0: "measure ?M (space M) - real b * measure M (space M) \<le> measure ?M A0 - real b * measure M A0"
-      and *: "\<And>B. B \<in> sets M \<Longrightarrow> B \<subseteq> A0 \<Longrightarrow> 0 \<le> measure ?M B - real b * measure M B"
+      and space_less_A0: "measure ?M (space M) - real_of_ereal b * measure M (space M) \<le> measure ?M A0 - real_of_ereal b * measure M A0"
+      and *: "\<And>B. B \<in> sets M \<Longrightarrow> B \<subseteq> A0 \<Longrightarrow> 0 \<le> measure ?M B - real_of_ereal b * measure M B"
       using b by (simp_all add: measure_density_const sets_eq_imp_space_eq[OF sets_eq] sets_eq)
     { fix B assume B: "B \<in> sets M" "B \<subseteq> A0"
       with *[OF this] have "b * emeasure M B \<le> ?M B"
@@ -820,7 +820,7 @@ proof -
   let ?f = "\<lambda>A x. f x * indicator A x" and ?f' = "\<lambda>A x. f' x * indicator A x"
 
   have ac: "absolutely_continuous M (density M f)" "sets (density M f) = sets M"
-    using borel by (auto intro!: absolutely_continuousI_density) 
+    using borel by (auto intro!: absolutely_continuousI_density)
   from split_space_into_finite_sets_and_rest[OF this]
   obtain Q0 and Q :: "nat \<Rightarrow> 'a set"
     where Q: "disjoint_family Q" "range Q \<subseteq> sets M"
@@ -857,7 +857,7 @@ proof -
         then show "?A i \<in> null_sets M" using in_Q0[OF `?A i \<in> sets M`] `?A i \<in> sets M` by auto
       qed
       also have "(\<Union>i. ?A i) = Q0 \<inter> {x\<in>space M. f x \<noteq> \<infinity>}"
-        by (auto simp: less_PInf_Ex_of_nat real_eq_of_nat)
+        by (auto simp: less_PInf_Ex_of_nat)
       finally have "Q0 \<inter> {x\<in>space M. f x \<noteq> \<infinity>} \<in> null_sets M" by simp }
     from this[OF borel(1) refl] this[OF borel(2) f]
     have "Q0 \<inter> {x\<in>space M. f x \<noteq> \<infinity>} \<in> null_sets M" "Q0 \<inter> {x\<in>space M. f' x \<noteq> \<infinity>} \<in> null_sets M" by simp_all
@@ -931,7 +931,7 @@ lemma sigma_finite_density_unique:
   and fin: "sigma_finite_measure (density M f)"
   shows "density M f = density M g \<longleftrightarrow> (AE x in M. f x = g x)"
 proof
-  assume "AE x in M. f x = g x" with borel show "density M f = density M g" 
+  assume "AE x in M. f x = g x" with borel show "density M f = density M g"
     by (auto intro: density_cong)
 next
   assume eq: "density M f = density M g"
@@ -1010,8 +1010,8 @@ next
         case PInf with x show ?thesis unfolding A_def by (auto intro: exI[of _ 0])
       next
         case (real r)
-        with less_PInf_Ex_of_nat[of "f x"] obtain n :: nat where "f x < n" by (auto simp: real_eq_of_nat)
-        then show ?thesis using x real unfolding A_def by (auto intro!: exI[of _ "Suc n"] simp: real_eq_of_nat)
+        with less_PInf_Ex_of_nat[of "f x"] obtain n :: nat where "f x < n" by auto
+        then show ?thesis using x real unfolding A_def by (auto intro!: exI[of _ "Suc n"])
       next
         case MInf with x show ?thesis
           unfolding A_def by (auto intro!: exI[of _ "Suc 0"])
@@ -1031,11 +1031,11 @@ next
       case (Suc n)
       then have "(\<integral>\<^sup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<le>
         (\<integral>\<^sup>+x. (Suc n :: ereal) * indicator (Q j) x \<partial>M)"
-        by (auto intro!: nn_integral_mono simp: indicator_def A_def real_eq_of_nat)
+        by (auto intro!: nn_integral_mono simp: indicator_def A_def)
       also have "\<dots> = Suc n * emeasure M (Q j)"
         using Q by (auto intro!: nn_integral_cmult_indicator)
       also have "\<dots> < \<infinity>"
-        using Q by (auto simp: real_eq_of_nat[symmetric])
+        using Q by auto
       finally show ?thesis by simp
     qed
     then show "emeasure ?N X \<noteq> \<infinity>"
@@ -1058,7 +1058,7 @@ definition RN_deriv :: "'a measure \<Rightarrow> 'a measure \<Rightarrow> 'a \<R
        then SOME f. f \<in> borel_measurable M \<and> (\<forall>x. 0 \<le> f x) \<and> density M f = N
        else (\<lambda>_. 0))"
 
-lemma RN_derivI: 
+lemma RN_derivI:
   assumes "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x" "density M f = N"
   shows "density M (RN_deriv M N) = N"
 proof -
@@ -1070,7 +1070,7 @@ proof -
     by (auto simp: RN_deriv_def)
 qed
 
-lemma 
+lemma
   shows borel_measurable_RN_deriv[measurable]: "RN_deriv M N \<in> borel_measurable M" (is ?m)
     and RN_deriv_nonneg: "0 \<le> RN_deriv M N x" (is ?nn)
 proof -
@@ -1205,16 +1205,16 @@ lemma (in sigma_finite_measure)
   assumes N: "sigma_finite_measure N" and ac: "absolutely_continuous M N" "sets N = sets M"
     and f: "f \<in> borel_measurable M"
   shows RN_deriv_integrable: "integrable N f \<longleftrightarrow>
-      integrable M (\<lambda>x. real (RN_deriv M N x) * f x)" (is ?integrable)
-    and RN_deriv_integral: "integral\<^sup>L N f = (\<integral>x. real (RN_deriv M N x) * f x \<partial>M)" (is ?integral)
+      integrable M (\<lambda>x. real_of_ereal (RN_deriv M N x) * f x)" (is ?integrable)
+    and RN_deriv_integral: "integral\<^sup>L N f = (\<integral>x. real_of_ereal (RN_deriv M N x) * f x \<partial>M)" (is ?integral)
 proof -
   note ac(2)[simp] and sets_eq_imp_space_eq[OF ac(2), simp]
   interpret N: sigma_finite_measure N by fact
 
-  have eq: "density M (RN_deriv M N) = density M (\<lambda>x. real (RN_deriv M N x))"
+  have eq: "density M (RN_deriv M N) = density M (\<lambda>x. real_of_ereal (RN_deriv M N x))"
   proof (rule density_cong)
     from RN_deriv_finite[OF assms(1,2,3)]
-    show "AE x in M. RN_deriv M N x = ereal (real (RN_deriv M N x))"
+    show "AE x in M. RN_deriv M N x = ereal (real_of_ereal (RN_deriv M N x))"
       by eventually_elim (insert RN_deriv_nonneg[of M N], auto simp: ereal_real)
   qed (insert ac, auto)
 
@@ -1242,12 +1242,12 @@ lemma (in sigma_finite_measure) real_RN_deriv:
     and "\<And>x. 0 \<le> D x"
 proof
   interpret N: finite_measure N by fact
-  
+
   note RN = borel_measurable_RN_deriv density_RN_deriv[OF ac] RN_deriv_nonneg[of M N]
 
   let ?RN = "\<lambda>t. {x \<in> space M. RN_deriv M N x = t}"
 
-  show "(\<lambda>x. real (RN_deriv M N x)) \<in> borel_measurable M"
+  show "(\<lambda>x. real_of_ereal (RN_deriv M N x)) \<in> borel_measurable M"
     using RN by auto
 
   have "N (?RN \<infinity>) = (\<integral>\<^sup>+ x. RN_deriv M N x * indicator (?RN \<infinity>) x \<partial>M)"
@@ -1268,12 +1268,12 @@ proof
   qed
   ultimately have "AE x in M. RN_deriv M N x < \<infinity>"
     using RN by (intro AE_iff_measurable[THEN iffD2]) auto
-  then show "AE x in M. RN_deriv M N x = ereal (real (RN_deriv M N x))"
+  then show "AE x in M. RN_deriv M N x = ereal (real_of_ereal (RN_deriv M N x))"
     using RN(3) by (auto simp: ereal_real)
-  then have eq: "AE x in N. RN_deriv M N x = ereal (real (RN_deriv M N x))"
+  then have eq: "AE x in N. RN_deriv M N x = ereal (real_of_ereal (RN_deriv M N x))"
     using ac absolutely_continuous_AE by auto
 
-  show "\<And>x. 0 \<le> real (RN_deriv M N x)"
+  show "\<And>x. 0 \<le> real_of_ereal (RN_deriv M N x)"
     using RN by (auto intro: real_of_ereal_pos)
 
   have "N (?RN 0) = (\<integral>\<^sup>+ x. RN_deriv M N x * indicator (?RN 0) x \<partial>M)"
@@ -1282,7 +1282,7 @@ proof
     by (intro nn_integral_cong) (auto simp: indicator_def)
   finally have "AE x in N. RN_deriv M N x \<noteq> 0"
     using RN by (subst AE_iff_measurable[OF _ refl]) (auto simp: ac cong: sets_eq_imp_space_eq)
-  with RN(3) eq show "AE x in N. 0 < real (RN_deriv M N x)"
+  with RN(3) eq show "AE x in N. 0 < real_of_ereal (RN_deriv M N x)"
     by (auto simp: zero_less_real_of_ereal le_less)
 qed
 

@@ -25,7 +25,7 @@ proof safe
     by simp
   show "random_variable lborel (\<lambda>x. t + c * X x)"
     by simp
-  
+
   have "AE x in lborel. 0 \<le> f x"
     using f by (simp add: distributed_def)
   from AE_borel_affine[OF _ _ this, where c="1/c" and t="- t / c"] c
@@ -34,7 +34,7 @@ proof safe
 
   have eq: "\<And>x. ereal \<bar>c\<bar> * (f x / ereal \<bar>c\<bar>) = f x"
     using c by (simp add: divide_ereal_def ac_simps one_ereal_def[symmetric])
-    
+
   have "density lborel f = distr M lborel X"
     using f by (simp add: distributed_def)
   with c show "distr M lborel (\<lambda>x. t + c * X x) = density lborel (\<lambda>x. f ((x - t) / c) / ereal \<bar>c\<bar>)"
@@ -78,7 +78,7 @@ lemma nn_intergal_power_times_exp_Icc:
 proof -
   let ?f = "\<lambda>k x. x^k * exp (-x) / fact k"
   let ?F = "\<lambda>k x. - (\<Sum>n\<le>k. (x^n * exp (-x)) / fact n)"
-  have "?I * (inverse (real_of_nat (fact k))) = 
+  have "?I * (inverse (real_of_nat (fact k))) =
       (\<integral>\<^sup>+x. ereal (x^k * exp (-x)) * indicator {0 .. a} x * (inverse (real_of_nat (fact k))) \<partial>lborel)"
     by (intro nn_integral_multc[symmetric]) auto
   also have "\<dots> = (\<integral>\<^sup>+x. ereal (?f k x) * indicator {0 .. a} x \<partial>lborel)"
@@ -97,12 +97,12 @@ proof -
         ?f k x - ((real (Suc k) - x) * x ^ k * exp (- x)) / (fact (Suc k))"
         by (intro DERIV_diff Suc)
            (auto intro!: derivative_eq_intros simp del: fact_Suc power_Suc
-                 simp add: field_simps power_Suc[symmetric] real_of_nat_def[symmetric])
+                 simp add: field_simps power_Suc[symmetric])
       also have "(\<lambda>x. ?F k x - (x^Suc k * exp (-x)) / fact (Suc k)) = ?F (Suc k)"
         by simp
       also have "?f k x - ((real (Suc k) - x) * x ^ k * exp (- x)) / (fact (Suc k)) = ?f (Suc k) x"
         by (auto simp: field_simps simp del: fact_Suc)
-           (simp_all add: real_of_nat_Suc field_simps)
+           (simp_all add: of_nat_Suc field_simps)
       finally show ?case .
     qed
   qed auto
@@ -166,20 +166,20 @@ proof cases
     by (auto simp: erlang_CDF_def)
   finally show ?thesis .
 next
-  assume "\<not> 0 \<le> a" 
+  assume "\<not> 0 \<le> a"
   moreover then have "(\<integral>\<^sup>+ x. ereal (erlang_density k l x) * indicator {.. a} x \<partial>lborel) = (\<integral>\<^sup>+x. 0 \<partial>(lborel::real measure))"
     by (intro nn_integral_cong) (auto simp: erlang_density_def)
   ultimately show ?thesis
     by (simp add: erlang_CDF_def)
 qed
 
-lemma emeasure_erlang_density: 
+lemma emeasure_erlang_density:
   "0 < l \<Longrightarrow> emeasure (density lborel (erlang_density k l)) {.. a} = erlang_CDF k l a"
   by (simp add: emeasure_density nn_integral_erlang_density)
 
-lemma nn_integral_erlang_ith_moment: 
+lemma nn_integral_erlang_ith_moment:
   fixes k i :: nat and l :: real
-  assumes [arith]: "0 < l" 
+  assumes [arith]: "0 < l"
   shows "(\<integral>\<^sup>+ x. ereal (erlang_density k l x * x ^ i) \<partial>lborel) = fact (k + i) / (fact k * l ^ i)"
 proof -
   have eq: "\<And>x. indicator {0..} (x / l) = indicator {0..} x"
@@ -241,7 +241,7 @@ lemma erlang_distributedI:
   shows "distributed M lborel X (erlang_density k l)"
 proof (rule distributedI_borel_atMost)
   fix a :: real
-  { assume "a \<le> 0"  
+  { assume "a \<le> 0"
     with X have "emeasure M {x\<in>space M. X x \<le> a} \<le> emeasure M {x\<in>space M. X x \<le> 0}"
       by (intro emeasure_mono) auto
     also have "... = 0"  by (auto intro!: erlang_CDF_at0 simp: X_distr[of 0])
@@ -266,31 +266,31 @@ lemma (in prob_space) erlang_distributed_iff:
     distributed_measurable[of M lborel X "erlang_density k l"]
     emeasure_erlang_density[of l]
     erlang_distributed_le[of X k l]
-  by (auto intro!: erlang_distributedI simp: one_ereal_def emeasure_eq_measure) 
+  by (auto intro!: erlang_distributedI simp: one_ereal_def emeasure_eq_measure)
 
 lemma (in prob_space) erlang_distributed_mult_const:
   assumes erlX: "distributed M lborel X (erlang_density k l)"
   assumes a_pos[arith]: "0 < \<alpha>"  "0 < l"
   shows  "distributed M lborel (\<lambda>x. \<alpha> * X x) (erlang_density k (l / \<alpha>))"
 proof (subst erlang_distributed_iff, safe)
-  have [measurable]: "random_variable borel X"  and  [arith]: "0 < l " 
+  have [measurable]: "random_variable borel X"  and  [arith]: "0 < l "
   and  [simp]: "\<And>a. 0 \<le> a \<Longrightarrow> prob {x \<in> space M. X x \<le> a} = erlang_CDF k l a"
     by(insert erlX, auto simp: erlang_distributed_iff)
 
-  show "random_variable borel (\<lambda>x. \<alpha> * X x)" "0 < l / \<alpha>"  "0 < l / \<alpha>" 
+  show "random_variable borel (\<lambda>x. \<alpha> * X x)" "0 < l / \<alpha>"  "0 < l / \<alpha>"
     by (auto simp:field_simps)
-  
+
   fix a:: real assume [arith]: "0 \<le> a"
-  obtain b:: real  where [simp, arith]: "b = a/ \<alpha>" by blast 
+  obtain b:: real  where [simp, arith]: "b = a/ \<alpha>" by blast
 
   have [arith]: "0 \<le> b" by (auto simp: divide_nonneg_pos)
- 
+
   have "prob {x \<in> space M. \<alpha> * X x \<le> a}  = prob {x \<in> space M.  X x \<le> b}"
     by (rule arg_cong[where f= prob]) (auto simp:field_simps)
-  
+
   moreover have "prob {x \<in> space M. X x \<le> b} = erlang_CDF k l b" by auto
   moreover have "erlang_CDF k (l / \<alpha>) a = erlang_CDF k l b" unfolding erlang_CDF_def by auto
-  ultimately show "prob {x \<in> space M. \<alpha> * X x \<le> a} = erlang_CDF k (l / \<alpha>) a" by fastforce  
+  ultimately show "prob {x \<in> space M. \<alpha> * X x \<le> a} = erlang_CDF k (l / \<alpha>) a" by fastforce
 qed
 
 lemma (in prob_space) has_bochner_integral_erlang_ith_moment:
@@ -324,7 +324,7 @@ proof (subst variance_eq)
 
   show "expectation (\<lambda>x. (X x)\<^sup>2) - (expectation X)\<^sup>2 = real (k + 1) / l\<^sup>2"
     using erlang_ith_moment[OF assms, of 1] erlang_ith_moment[OF assms, of 2]
-    by simp (auto simp: power2_eq_square field_simps real_of_nat_Suc)
+    by simp (auto simp: power2_eq_square field_simps of_nat_Suc)
 qed
 
 subsection {* Exponential distribution *}
@@ -352,7 +352,7 @@ proof (cases l "0 :: real" rule: linorder_cases)
     have "AE x in lborel. 0 \<le> exponential_density l x"
       using assms by (auto simp: distributed_real_AE)
     then have "AE x in lborel. x \<le> (0::real)"
-      apply eventually_elim 
+      apply eventually_elim
       using `l < 0`
       apply (auto simp: exponential_density_def zero_le_mult_iff split: split_if_asm)
       done
@@ -431,14 +431,14 @@ proof (subst exponential_distributed_iff, safe)
   have randX: "random_variable borel X" using expX by (simp add: exponential_distributed_iff)
   moreover have randY: "random_variable borel Y" using expY by (simp add: exponential_distributed_iff)
   ultimately show "random_variable borel (\<lambda>x. min (X x) (Y x))" by auto
-  
+
   have "0 < l" by (rule exponential_distributed_params) fact
   moreover have "0 < u" by (rule exponential_distributed_params) fact
   ultimately  show " 0 < l + u" by force
 
   fix a::real assume a[arith]: "0 \<le> a"
-  have gt1[simp]: "\<P>(x in M. a < X x ) = exp (- a * l)" by (rule exponential_distributedD_gt[OF expX a]) 
-  have gt2[simp]: "\<P>(x in M. a < Y x ) = exp (- a * u)" by (rule exponential_distributedD_gt[OF expY a]) 
+  have gt1[simp]: "\<P>(x in M. a < X x ) = exp (- a * l)" by (rule exponential_distributedD_gt[OF expX a])
+  have gt2[simp]: "\<P>(x in M. a < Y x ) = exp (- a * u)" by (rule exponential_distributedD_gt[OF expY a])
 
   have "\<P>(x in M. a < (min (X x) (Y x)) ) =  \<P>(x in M. a < (X x) \<and> a < (Y x))" by (auto intro!:arg_cong[where f=prob])
 
@@ -450,16 +450,16 @@ proof (subst exponential_distributed_iff, safe)
   have "{x \<in> space M. (min (X x) (Y x)) \<le>a } = (space M - {x \<in> space M. a<(min (X x) (Y x)) })"
     by auto
   then have "1 - prob {x \<in> space M. a < (min (X x) (Y x))} = prob {x \<in> space M. (min (X x) (Y x)) \<le> a}"
-    using randX randY by (auto simp: prob_compl) 
+    using randX randY by (auto simp: prob_compl)
   then show "prob {x \<in> space M. (min (X x) (Y x)) \<le> a} = 1 - exp (- a * (l + u))"
     using indep_prob by auto
 qed
- 
+
 lemma (in prob_space) exponential_distributed_Min:
   assumes finI: "finite I"
   assumes A: "I \<noteq> {}"
   assumes expX: "\<And>i. i \<in> I \<Longrightarrow> distributed M lborel (X i) (exponential_density (l i))"
-  assumes ind: "indep_vars (\<lambda>i. borel) X I" 
+  assumes ind: "indep_vars (\<lambda>i. borel) X I"
   shows "distributed M lborel (\<lambda>x. Min ((\<lambda>i. X i x)`I)) (exponential_density (\<Sum>i\<in>I. l i))"
 using assms
 proof (induct rule: finite_ne_induct)
@@ -468,7 +468,7 @@ next
   case (insert i I)
   then have "distributed M lborel (\<lambda>x. min (X i x) (Min ((\<lambda>i. X i x)`I))) (exponential_density (l i + (\<Sum>i\<in>I. l i)))"
       by (intro exponential_distributed_min indep_vars_Min insert)
-         (auto intro: indep_vars_subset) 
+         (auto intro: indep_vars_subset)
   then show ?case
     using insert by simp
 qed
@@ -499,22 +499,22 @@ proof
       done
   next
     note zero_le_mult_iff[simp] zero_le_divide_iff[simp]
-  
+
     have I_eq1: "integral\<^sup>N lborel (erlang_density (Suc k\<^sub>1 + Suc k\<^sub>2 - 1) l) = 1"
       using nn_integral_erlang_ith_moment[of l "Suc k\<^sub>1 + Suc k\<^sub>2 - 1" 0] by (simp del: fact_Suc)
-  
+
     have 1: "(\<integral>\<^sup>+ x. ereal (erlang_density (Suc k\<^sub>1 + Suc k\<^sub>2 - 1) l x * indicator {0<..} x) \<partial>lborel) = 1"
       apply (subst I_eq1[symmetric])
       unfolding erlang_density_def
       by (auto intro!: nn_integral_cong split:split_indicator)
-  
+
     have "prob_space (density lborel ?LHS)"
       unfolding times_ereal.simps[symmetric]
-      by (intro prob_space_convolution_density) 
+      by (intro prob_space_convolution_density)
          (auto intro!: prob_space_erlang_density erlang_density_nonneg)
     then have 2: "integral\<^sup>N lborel ?LHS = 1"
       by (auto dest!: prob_space.emeasure_space_1 simp: emeasure_density)
-  
+
     let ?I = "(integral\<^sup>N lborel (\<lambda>y. ereal ((1 - y)^ k\<^sub>1 * y^k\<^sub>2 * indicator {0..1} y)))"
     let ?C = "(fact (Suc (k\<^sub>1 + k\<^sub>2))) / ((fact k\<^sub>1) * (fact k\<^sub>2))"
     let ?s = "Suc k\<^sub>1 + Suc k\<^sub>2 - 1"
@@ -523,7 +523,7 @@ proof
     { fix x :: real assume [arith]: "0 < x"
       have *: "\<And>x y n. (x - y * x::real)^n = x^n * (1 - y)^n"
         unfolding power_mult_distrib[symmetric] by (simp add: field_simps)
-    
+
       have "?LHS x = ?L x"
         unfolding erlang_density_def
         by (auto intro!: nn_integral_cong split:split_indicator)
@@ -534,7 +534,7 @@ proof
         apply (auto simp add: erlang_density_def mult_less_0_iff exp_minus field_simps exp_diff power_add *
                     simp del: fact_Suc split: split_indicator)
         done
-      finally have "(\<integral>\<^sup>+y. ereal (erlang_density k\<^sub>1 l (x - y) * erlang_density k\<^sub>2 l y) \<partial>lborel) = 
+      finally have "(\<integral>\<^sup>+y. ereal (erlang_density k\<^sub>1 l (x - y) * erlang_density k\<^sub>2 l y) \<partial>lborel) =
         (\<lambda>x. ereal ?C * ?I * erlang_density ?s l x) x"
         by simp }
     note * = this
@@ -548,9 +548,9 @@ proof
       by (auto intro!: nn_integral_cong simp: * split: split_indicator)
     also have "... = ereal (?C) * ?I"
       using 1
-      by (auto simp: nn_integral_nonneg nn_integral_cmult)  
+      by (auto simp: nn_integral_nonneg nn_integral_cmult)
     finally have " ereal (?C) * ?I = 1" by presburger
-  
+
     then show ?thesis
       using * by simp
   qed
@@ -585,7 +585,7 @@ next
     also have "(\<lambda>x. (X i x) + (\<Sum>i\<in> I. X i x)) = (\<lambda>x. \<Sum>i\<in>insert i I. X i x)"
       using insert by auto
     also have "Suc(k i) + Suc ((\<Sum>i\<in>I. Suc (k i)) - 1) - 1 = (\<Sum>i\<in>insert i I. Suc (k i)) - 1"
-      using insert by (auto intro!: Suc_pred simp: ac_simps)    
+      using insert by (auto intro!: Suc_pred simp: ac_simps)
     finally show ?case by fast
 qed
 
@@ -593,7 +593,7 @@ lemma (in prob_space) exponential_distributed_setsum:
   assumes finI: "finite I"
   assumes A: "I \<noteq> {}"
   assumes expX: "\<And>i. i \<in> I \<Longrightarrow> distributed M lborel (X i) (exponential_density l)"
-  assumes ind: "indep_vars (\<lambda>i. borel) X I" 
+  assumes ind: "indep_vars (\<lambda>i. borel) X I"
   shows "distributed M lborel (\<lambda>x. \<Sum>i\<in>I. X i x) (erlang_density ((card I) - 1) l)"
 proof -
   obtain i where "i \<in> I" using assms by auto
@@ -606,22 +606,22 @@ lemma (in information_space) entropy_exponential:
   shows "entropy b lborel X = log b (exp 1 / l)"
 proof -
   have l[simp, arith]: "0 < l" by (rule exponential_distributed_params[OF D])
- 
+
   have [simp]: "integrable lborel (exponential_density l)"
     using distributed_integrable[OF D, of "\<lambda>_. 1"] by simp
 
   have [simp]: "integral\<^sup>L lborel (exponential_density l) = 1"
     using distributed_integral[OF D, of "\<lambda>_. 1"] by (simp add: prob_space)
-    
+
   have [simp]: "integrable lborel (\<lambda>x. exponential_density l x * x)"
     using erlang_ith_moment_integrable[OF l D, of 1] distributed_integrable[OF D, of "\<lambda>x. x"] by simp
 
   have [simp]: "integral\<^sup>L lborel (\<lambda>x. exponential_density l x * x) = 1 / l"
     using erlang_ith_moment[OF l D, of 1] distributed_integral[OF D, of "\<lambda>x. x"] by simp
-    
+
   have "entropy b lborel X = - (\<integral> x. exponential_density l x * log b (exponential_density l x) \<partial>lborel)"
     using D by (rule entropy_distr)
-  also have "(\<integral> x. exponential_density l x * log b (exponential_density l x) \<partial>lborel) = 
+  also have "(\<integral> x. exponential_density l x * log b (exponential_density l x) \<partial>lborel) =
     (\<integral> x. (ln l * exponential_density l x - l * (exponential_density l x * x)) / ln b \<partial>lborel)"
     by (intro integral_cong) (auto simp: log_def ln_mult exponential_density_def field_simps)
   also have "\<dots> = (ln l - 1) / ln b"
@@ -674,7 +674,7 @@ proof (rule distributedI_borel_atMost)
     using A by simp
   then show "emeasure M {x\<in>space M. X x \<le> a} = ereal (measure lborel (A \<inter> {..a}) / r)"
     using distr by simp
- 
+
   have "(\<integral>\<^sup>+ x. ereal (indicator A x / measure lborel A * indicator {..a} x) \<partial>lborel) =
     (\<integral>\<^sup>+ x. ereal (1 / measure lborel A) * indicator (A \<inter> {..a}) x \<partial>lborel)"
     by (auto intro!: nn_integral_cong split: split_indicator)
@@ -698,7 +698,7 @@ proof (rule uniform_distrI_borel)
     by auto
   then show "emeasure M {x\<in>space M. X x \<le> t} = emeasure lborel ({a .. b} \<inter> {..t}) / (b - a)"
   proof (elim disjE conjE)
-    assume "t < a" 
+    assume "t < a"
     then have "emeasure M {x\<in>space M. X x \<le> t} \<le> emeasure M {x\<in>space M. X x \<le> a}"
       using X by (auto intro!: emeasure_mono measurable_sets)
     also have "\<dots> = 0"
@@ -713,7 +713,7 @@ proof (rule uniform_distrI_borel)
     then show ?thesis using `a \<le> t` `a < b`
       using distr[OF bnds] by (simp add: emeasure_eq_measure)
   next
-    assume "b < t" 
+    assume "b < t"
     have "1 = emeasure M {x\<in>space M. X x \<le> b}"
       using distr[of b] `a < b` by (simp add: one_ereal_def emeasure_eq_measure)
     also have "\<dots> \<le> emeasure M {x\<in>space M. X x \<le> t}"
@@ -752,13 +752,13 @@ lemma (in prob_space) uniform_distributed_bounds:
 proof (rule ccontr)
   assume "\<not> a < b"
   then have "{a .. b} = {} \<or> {a .. b} = {a .. a}" by simp
-  with uniform_distributed_params[OF D] show False 
+  with uniform_distributed_params[OF D] show False
     by (auto simp: measure_def)
 qed
 
 lemma (in prob_space) uniform_distributed_iff:
   fixes a b :: real
-  shows "distributed M lborel X (\<lambda>x. indicator {a..b} x / measure lborel {a..b}) \<longleftrightarrow> 
+  shows "distributed M lborel X (\<lambda>x. indicator {a..b} x / measure lborel {a..b}) \<longleftrightarrow>
     (X \<in> borel_measurable M \<and> a < b \<and> (\<forall>t\<in>{a .. b}. \<P>(x in M. X x \<le> t)= (t - a) / (b - a)))"
   using
     uniform_distributed_bounds[of X a b]
@@ -774,7 +774,7 @@ proof (subst distributed_integral[OF D, of "\<lambda>x. x", symmetric])
   have "a < b"
     using uniform_distributed_bounds[OF D] .
 
-  have "(\<integral> x. indicator {a .. b} x / measure lborel {a .. b} * x \<partial>lborel) = 
+  have "(\<integral> x. indicator {a .. b} x / measure lborel {a .. b} * x \<partial>lborel) =
     (\<integral> x. (x / measure lborel {a .. b}) * indicator {a .. b} x \<partial>lborel)"
     by (intro integral_cong) auto
   also have "(\<integral> x. (x / measure lborel {a .. b}) * indicator {a .. b} x \<partial>lborel) = (a + b) / 2"
@@ -867,9 +867,9 @@ proof -
     proof (subst nn_integral_FTC_atLeast)
       have "((\<lambda>a. - (exp (- (a\<^sup>2 * (1 + s\<^sup>2))) / (2 + 2 * s\<^sup>2))) ---> (- (0 / (2 + 2 * s\<^sup>2)))) at_top"
         apply (intro tendsto_intros filterlim_compose[OF exp_at_bot] filterlim_compose[OF filterlim_uminus_at_bot_at_top])
-        apply (subst mult.commute)         
+        apply (subst mult.commute)
         apply (auto intro!: filterlim_tendsto_pos_mult_at_top
-                            filterlim_at_top_mult_at_top[OF filterlim_ident filterlim_ident] 
+                            filterlim_at_top_mult_at_top[OF filterlim_ident filterlim_ident]
                     simp: add_pos_nonneg  power2_eq_square add_nonneg_eq_0_iff)
         done
       then show "((\<lambda>a. - (exp (- a\<^sup>2 - s\<^sup>2 * a\<^sup>2) / (2 + 2 * s\<^sup>2))) ---> 0) at_top"
@@ -884,7 +884,7 @@ proof -
   finally have "?pI ?gauss^2 = pi / 4"
     by (simp add: power2_eq_square)
   then have "?pI ?gauss = sqrt (pi / 4)"
-    using power_eq_iff_eq_base[of 2 "real (?pI ?gauss)" "sqrt (pi / 4)"]
+    using power_eq_iff_eq_base[of 2 "real_of_ereal (?pI ?gauss)" "sqrt (pi / 4)"]
           nn_integral_nonneg[of lborel "\<lambda>x. ?gauss x * indicator {0..} x"]
     by (cases "?pI ?gauss") auto
   also have "?pI ?gauss = (\<integral>\<^sup>+x. indicator {0..} x *\<^sub>R exp (- x\<^sup>2) \<partial>lborel)"
@@ -896,8 +896,8 @@ proof -
 qed
 
 lemma gaussian_moment_1:
-  "has_bochner_integral lborel (\<lambda>x::real. indicator {0..} x *\<^sub>R (exp (- x\<^sup>2) * x)) (1 / 2)" 
-proof - 
+  "has_bochner_integral lborel (\<lambda>x::real. indicator {0..} x *\<^sub>R (exp (- x\<^sup>2) * x)) (1 / 2)"
+proof -
   have "(\<integral>\<^sup>+x. indicator {0..} x *\<^sub>R (exp (- x\<^sup>2) * x) \<partial>lborel) =
     (\<integral>\<^sup>+x. ereal (x * exp (- x\<^sup>2)) * indicator {0..} x \<partial>lborel)"
     by (intro nn_integral_cong)
@@ -922,10 +922,10 @@ lemma
   fixes k :: nat
   shows gaussian_moment_even_pos:
     "has_bochner_integral lborel (\<lambda>x::real. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*x^(2 * k)))
-       ((sqrt pi / 2) * (fact (2 * k) / (2 ^ (2 * k) * fact k)))" 
+       ((sqrt pi / 2) * (fact (2 * k) / (2 ^ (2 * k) * fact k)))"
        (is "?even")
     and gaussian_moment_odd_pos:
-      "has_bochner_integral lborel (\<lambda>x::real. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*x^(2 * k + 1))) (fact k / 2)" 
+      "has_bochner_integral lborel (\<lambda>x::real. indicator {0..} x *\<^sub>R (exp (-x\<^sup>2)*x^(2 * k + 1))) (fact k / 2)"
       (is "?odd")
 proof -
   let ?M = "\<lambda>k x. exp (- x\<^sup>2) * x^k :: real"
@@ -967,7 +967,7 @@ proof -
           (\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * x * exp (- x\<^sup>2) * x ^ (Suc k)) \<partial>lborel)"
         by (rule integral_by_parts')
            (auto intro!: derivative_eq_intros b
-                 simp: real_of_nat_def[symmetric] diff_Suc real_of_nat_Suc field_simps split: nat.split)
+                 simp: diff_Suc of_nat_Suc field_simps split: nat.split)
       also have "(\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * x * exp (- x\<^sup>2) * x ^ (Suc k)) \<partial>lborel) =
         (\<integral>x. indicator {0..b} x *\<^sub>R (- 2 * (exp (- x\<^sup>2) * x ^ (k + 2))) \<partial>lborel)"
         by (intro integral_cong) auto
@@ -979,7 +979,7 @@ proof -
     qed
     finally have int_M_at_top: "((?f ---> (k + 1) / 2 * (\<integral>x. indicator {0..} x *\<^sub>R ?M k x \<partial>lborel)) at_top)"
       by simp
-    
+
     have "has_bochner_integral lborel (\<lambda>x. indicator {0..} x *\<^sub>R ?M (k + 2) x) ((k + 1) / 2 * I)"
     proof (rule has_bochner_integral_monotone_convergence_at_top)
       fix y :: real
@@ -1000,7 +1000,7 @@ proof -
     also have "(real (2 * k + 1) / 2 * (sqrt pi / 2 * ((fact (2 * k)) / ((2::real)^(2*k) * fact k)))) =
       sqrt pi / 2 * ((fact (2 * Suc k)) / ((2::real)^(2 * Suc k) * fact (Suc k)))"
       apply (simp add: field_simps del: fact_Suc)
-      apply (simp add: real_of_nat_def of_nat_mult field_simps)
+      apply (simp add: of_nat_mult field_simps)
       done
     finally show ?case
       by simp
@@ -1011,7 +1011,7 @@ proof -
     case (Suc k)
     note step[OF this]
     also have "(real (2 * k + 1 + 1) / (2::real) * ((fact k) / 2)) = (fact (Suc k)) / 2"
-      by (simp add: field_simps real_of_nat_Suc divide_simps del: fact_Suc) (simp add: field_simps)
+      by (simp add: field_simps of_nat_Suc divide_simps del: fact_Suc) (simp add: field_simps)
     finally show ?case
       by simp
   qed (insert gaussian_moment_1, simp)
@@ -1037,7 +1037,7 @@ proof -
     (\<lambda>x. exp (- ((sqrt 2 * \<sigma>) * x)\<^sup>2 / (2*\<sigma>\<^sup>2)) * ((sqrt 2 * \<sigma>) * x) ^ (2 * k) / sqrt (2 * pi * \<sigma>\<^sup>2))"
     by (auto simp: fun_eq_iff field_simps real_sqrt_power[symmetric] real_sqrt_mult
                    real_sqrt_divide power_mult eq)
-  also have "((sqrt pi * (fact (2 * k) / (2 ^ (2 * k) * fact k))) * ((2*\<sigma>\<^sup>2)^k / sqrt (2 * pi * \<sigma>\<^sup>2))) = 
+  also have "((sqrt pi * (fact (2 * k) / (2 ^ (2 * k) * fact k))) * ((2*\<sigma>\<^sup>2)^k / sqrt (2 * pi * \<sigma>\<^sup>2))) =
     (inverse (sqrt 2 * \<sigma>) * ((fact (2 * k))) / ((2/\<sigma>\<^sup>2) ^ k * (fact k)))"
     by (auto simp: fun_eq_iff power_mult field_simps real_sqrt_power[symmetric] real_sqrt_mult
                    power2_eq_square)
@@ -1060,7 +1060,7 @@ proof -
   also have "(\<lambda>x. (exp (-x\<^sup>2)*\<bar>x\<bar>^(2 * k + 1)) * (2^k * \<sigma>^(2 * k + 1) / sqrt (pi * \<sigma>\<^sup>2))) =
     (\<lambda>x. exp (- (((sqrt 2 * \<sigma>) * x)\<^sup>2 / (2 * \<sigma>\<^sup>2))) * \<bar>sqrt 2 * \<sigma> * x\<bar> ^ (2 * k + 1) / sqrt (2 * pi * \<sigma>\<^sup>2))"
     by (simp add: field_simps abs_mult real_sqrt_power[symmetric] power_mult real_sqrt_mult)
-  also have "(fact k * (2^k * \<sigma>^(2 * k + 1) / sqrt (pi * \<sigma>\<^sup>2))) = 
+  also have "(fact k * (2^k * \<sigma>^(2 * k + 1) / sqrt (pi * \<sigma>\<^sup>2))) =
     (inverse (sqrt 2) * inverse \<sigma> * (2 ^ k * (\<sigma> * \<sigma> ^ (2 * k)) * (fact k) * sqrt (2 / pi)))"
     by (auto simp: fun_eq_iff power_mult field_simps real_sqrt_power[symmetric] real_sqrt_divide
                    real_sqrt_mult)
@@ -1115,7 +1115,7 @@ proof -
   note normal_moment_odd[OF \<sigma>_pos, of \<mu> 0] has_bochner_integral_mult_left[of \<mu>, OF this]
   note has_bochner_integral_add[OF this]
   then show ?thesis
-    by (simp add: power2_eq_square field_simps)  
+    by (simp add: power2_eq_square field_simps)
 qed
 
 lemma integral_normal_moment_nz_1:
@@ -1213,13 +1213,13 @@ proof auto
   assume "distributed M lborel X (\<lambda>x. ereal (normal_density \<mu> \<sigma> x))"
   then have "distributed M lborel (\<lambda>x. -\<mu> / \<sigma> + (1/\<sigma>) * X x) (\<lambda>x. ereal (normal_density (-\<mu> / \<sigma> + (1/\<sigma>)* \<mu>) (\<bar>1/\<sigma>\<bar> * \<sigma>) x))"
     by(rule normal_density_affine) auto
-  
+
   then show "distributed M lborel (\<lambda>x. (X x - \<mu>) / \<sigma>) (\<lambda>x. ereal (std_normal_density x))"
     by (simp add: diff_divide_distrib[symmetric] field_simps)
 next
   assume *: "distributed M lborel (\<lambda>x. (X x - \<mu>) / \<sigma>) (\<lambda>x. ereal (std_normal_density x))"
   have "distributed M lborel (\<lambda>x. \<mu> + \<sigma> * ((X x - \<mu>) / \<sigma>)) (\<lambda>x. ereal (normal_density \<mu> \<bar>\<sigma>\<bar> x))"
-    using normal_density_affine[OF *, of \<sigma> \<mu>] by simp  
+    using normal_density_affine[OF *, of \<sigma> \<mu>] by simp
   then show "distributed M lborel X (\<lambda>x. ereal (normal_density \<mu> \<sigma> x))" by simp
 qed
 
@@ -1231,8 +1231,8 @@ proof -
   def \<sigma>' \<equiv> "\<sigma>\<^sup>2" and \<tau>' \<equiv> "\<tau>\<^sup>2"
   then have [simp, arith]: "0 < \<sigma>'" "0 < \<tau>'"
     by simp_all
-  let ?\<sigma> = "sqrt ((\<sigma>' * \<tau>') / (\<sigma>' + \<tau>'))"  
-  have sqrt: "(sqrt (2 * pi * (\<sigma>' + \<tau>')) * sqrt (2 * pi * (\<sigma>' * \<tau>') / (\<sigma>' + \<tau>'))) = 
+  let ?\<sigma> = "sqrt ((\<sigma>' * \<tau>') / (\<sigma>' + \<tau>'))"
+  have sqrt: "(sqrt (2 * pi * (\<sigma>' + \<tau>')) * sqrt (2 * pi * (\<sigma>' * \<tau>') / (\<sigma>' + \<tau>'))) =
     (sqrt (2 * pi * \<sigma>') * sqrt (2 * pi * \<tau>'))"
     by (subst power_eq_iff_eq_base[symmetric, where n=2])
        (simp_all add: real_sqrt_mult[symmetric] power2_eq_square)
@@ -1269,10 +1269,10 @@ proof -
   have ind[simp]: "indep_var borel (\<lambda>x. - \<mu> + X x) borel (\<lambda>x. - \<nu> + Y x)"
   proof -
     have "indep_var borel ( (\<lambda>x. -\<mu> + x) o X) borel ((\<lambda>x. - \<nu> + x) o Y)"
-      by (auto intro!: indep_var_compose assms) 
+      by (auto intro!: indep_var_compose assms)
     then show ?thesis by (simp add: o_def)
   qed
-  
+
   have "distributed M lborel (\<lambda>x. -\<mu> + 1 * X x) (normal_density (- \<mu> + 1 * \<mu>) (\<bar>1\<bar> * \<sigma>))"
     by(rule normal_density_affine[OF normalX pos_var(1), of 1 "-\<mu>"]) simp
   then have 1[simp]: "distributed M lborel (\<lambda>x. - \<mu> +  X x) (normal_density 0 \<sigma>)" by simp
@@ -1280,10 +1280,10 @@ proof -
   have "distributed M lborel (\<lambda>x. -\<nu> + 1 * Y x) (normal_density (- \<nu> + 1 * \<nu>) (\<bar>1\<bar> * \<tau>))"
     by(rule normal_density_affine[OF normalY pos_var(2), of 1 "-\<nu>"]) simp
   then have 2[simp]: "distributed M lborel (\<lambda>x. - \<nu> +  Y x) (normal_density 0 \<tau>)" by simp
-  
+
   have *: "distributed M lborel (\<lambda>x. (- \<mu> + X x) + (- \<nu> + Y x)) (\<lambda>x. ereal (normal_density 0 (sqrt (\<sigma>\<^sup>2 + \<tau>\<^sup>2)) x))"
     using distributed_convolution[OF ind 1 2] conv_normal_density_zero_mean[OF pos_var] by simp
-  
+
   have "distributed M lborel (\<lambda>x. \<mu> + \<nu> + 1 * (- \<mu> + X x + (- \<nu> + Y x)))
         (\<lambda>x. ereal (normal_density (\<mu> + \<nu> + 1 * 0) (\<bar>1\<bar> * sqrt (\<sigma>\<^sup>2 + \<tau>\<^sup>2)) x))"
     by (rule normal_density_affine[OF *, of 1 "\<mu> + \<nu>"]) (auto simp: add_pos_pos)
@@ -1298,7 +1298,7 @@ lemma (in prob_space) diff_indep_normal:
   assumes normalY[simp]: "distributed M lborel Y (normal_density \<nu> \<tau>)"
   shows "distributed M lborel (\<lambda>x. X x - Y x) (normal_density (\<mu> - \<nu>) (sqrt (\<sigma>\<^sup>2 + \<tau>\<^sup>2)))"
 proof -
-  have "distributed M lborel (\<lambda>x. 0 + - 1 * Y x) (\<lambda>x. ereal (normal_density (0 + - 1 * \<nu>) (\<bar>- 1\<bar> * \<tau>) x))" 
+  have "distributed M lborel (\<lambda>x. 0 + - 1 * Y x) (\<lambda>x. ereal (normal_density (0 + - 1 * \<nu>) (\<bar>- 1\<bar> * \<tau>) x))"
     by(rule normal_density_affine, auto)
   then have [simp]:"distributed M lborel (\<lambda>x. - Y x) (\<lambda>x. ereal (normal_density (- \<nu>) \<tau> x))" by simp
 
@@ -1315,25 +1315,25 @@ lemma (in prob_space) setsum_indep_normal:
   assumes "\<And>i. i \<in> I \<Longrightarrow> 0 < \<sigma> i"
   assumes normal: "\<And>i. i \<in> I \<Longrightarrow> distributed M lborel (X i) (normal_density (\<mu> i) (\<sigma> i))"
   shows "distributed M lborel (\<lambda>x. \<Sum>i\<in>I. X i x) (normal_density (\<Sum>i\<in>I. \<mu> i) (sqrt (\<Sum>i\<in>I. (\<sigma> i)\<^sup>2)))"
-  using assms 
+  using assms
 proof (induct I rule: finite_ne_induct)
   case (singleton i) then show ?case by (simp add : abs_of_pos)
 next
   case (insert i I)
-    then have 1: "distributed M lborel (\<lambda>x. (X i x) + (\<Sum>i\<in>I. X i x)) 
+    then have 1: "distributed M lborel (\<lambda>x. (X i x) + (\<Sum>i\<in>I. X i x))
                 (normal_density (\<mu> i  + setsum \<mu> I)  (sqrt ((\<sigma> i)\<^sup>2 + (sqrt (\<Sum>i\<in>I. (\<sigma> i)\<^sup>2))\<^sup>2)))"
-      apply (intro sum_indep_normal indep_vars_setsum insert real_sqrt_gt_zero)  
+      apply (intro sum_indep_normal indep_vars_setsum insert real_sqrt_gt_zero)
       apply (auto intro: indep_vars_subset intro!: setsum_pos)
       apply fastforce
       done
     have 2: "(\<lambda>x. (X i x)+ (\<Sum>i\<in>I. X i x)) = (\<lambda>x. (\<Sum>j\<in>insert i I. X j x))"
           "\<mu> i + setsum \<mu> I = setsum \<mu> (insert i I)"
       using insert by auto
-  
+
     have 3: "(sqrt ((\<sigma> i)\<^sup>2 + (sqrt (\<Sum>i\<in>I. (\<sigma> i)\<^sup>2))\<^sup>2)) = (sqrt (\<Sum>i\<in>insert i I. (\<sigma> i)\<^sup>2))"
       using insert by (simp add: setsum_nonneg)
-  
-    show ?case using 1 2 3 by simp  
+
+    show ?case using 1 2 3 by simp
 qed
 
 lemma (in prob_space) standard_normal_distributed_expectation:

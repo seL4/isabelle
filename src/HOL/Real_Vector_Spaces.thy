@@ -341,12 +341,6 @@ by (induct n) auto
 lemma of_real_of_int_eq [simp]: "of_real (of_int z) = of_int z"
 by (cases z rule: int_diff_cases, simp)
 
-lemma of_real_real_of_nat_eq [simp]: "of_real (real n) = of_nat n"
-  by (simp add: real_of_nat_def)
-
-lemma of_real_real_of_int_eq [simp]: "of_real (real z) = of_int z"
-  by (simp add: real_of_int_def)
-
 lemma of_real_numeral [simp]: "of_real (numeral w) = numeral w"
 using of_real_of_int_eq [of "numeral w"] by simp
 
@@ -997,7 +991,7 @@ proof -
   also have "\<dots> \<le> (\<Sum>i<m. norm (z - w))"
     by (intro norm_setprod_diff) (auto simp add: assms)
   also have "\<dots> = m * norm (z - w)"
-    by (simp add: real_of_nat_def)
+    by simp
   finally show ?thesis .
 qed
 
@@ -1291,7 +1285,7 @@ lemma norm_conv_dist: "norm x = dist x 0"
 
 lemma dist_diff [simp]: "dist a (a - b) = norm b"  "dist (a - b) a = norm b"
   by (simp_all add: dist_norm)
-  
+
 lemma dist_of_int: "dist (of_int m) (of_int n :: 'a :: real_normed_algebra_1) = of_int \<bar>m - n\<bar>"
 proof -
   have "dist (of_int m) (of_int n :: 'a) = dist (of_int m :: 'a) (of_int m - (of_int (m - n)))"
@@ -1300,10 +1294,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma dist_of_nat: 
+lemma dist_of_nat:
   "dist (of_nat m) (of_nat n :: 'a :: real_normed_algebra_1) = of_int \<bar>int m - int n\<bar>"
   by (subst (1 2) of_int_of_nat_eq [symmetric]) (rule dist_of_int)
-  
+
 subsection \<open>Bounded Linear and Bilinear Operators\<close>
 
 locale linear = additive f for f :: "'a::real_vector \<Rightarrow> 'b::real_vector" +
@@ -1571,7 +1565,7 @@ lemma bij_linear_imp_inv_linear:
   assumes "linear f" "bij f" shows "linear (inv f)"
   using assms unfolding linear_def linear_axioms_def additive_def
   by (auto simp: bij_is_surj bij_is_inj surj_f_inv_f intro!:  Hilbert_Choice.inv_f_eq)
-    
+
 instance real_normed_algebra_1 \<subseteq> perfect_space
 proof
   fix x::'a
@@ -1737,7 +1731,7 @@ proof
   qed
 next
   assume "Cauchy f"
-  show "\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (f m) (f n) < e" 
+  show "\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (f m) (f n) < e"
   proof (intro allI impI)
     fix e :: real assume e: "e > 0"
     with `Cauchy f` obtain M where "\<And>m n. m \<ge> M \<Longrightarrow> n \<ge> M \<Longrightarrow> dist (f m) (f n) < e"
@@ -1959,8 +1953,7 @@ proof (rule tendstoI)
       using ex_le_of_nat[of x] ..
     note monoD[OF mono this]
     also have "f (real_of_nat n) \<le> y"
-      by (rule LIMSEQ_le_const[OF limseq])
-         (auto intro: exI[of _ n] monoD[OF mono] simp: real_eq_of_nat[symmetric])
+      by (rule LIMSEQ_le_const[OF limseq]) (auto intro: exI[of _ n] monoD[OF mono])
     finally have "f x \<le> y" . }
   note le = this
   have "eventually (\<lambda>x. real N \<le> x) at_top"

@@ -14,7 +14,7 @@ lemmas bitle = le_num_simps
 (* addition for bit strings *)
 lemmas bitadd = add_num_simps
 
-(* multiplication for bit strings *) 
+(* multiplication for bit strings *)
 lemmas bitmul = mult_num_simps
 
 lemmas bitarith = arith_simps
@@ -38,9 +38,9 @@ lemmas compute_numberarith =
   arith_simps rel_simps number_norm
 
 lemmas compute_num_conversions =
-  real_of_nat_numeral real_of_nat_zero
+  of_nat_numeral of_nat_0
   nat_numeral nat_0 nat_neg_numeral
-  real_numeral real_of_int_zero
+  of_int_numeral of_int_neg_numeral of_int_0
 
 lemmas zpowerarith = zpower_numeral_even zpower_numeral_odd zpower_Pls int_pow_1
 
@@ -74,7 +74,7 @@ lemma even_Bit1_int: "even (numeral (Num.Bit1 x) :: int) = False"
 
 lemmas compute_even = even_0_int even_One_int even_Bit0_int even_Bit1_int
 
-lemmas compute_numeral = compute_if compute_let compute_pair compute_bool 
+lemmas compute_numeral = compute_if compute_let compute_pair compute_bool
                          compute_natarith compute_numberarith max_def min_def compute_num_conversions zpowerarith compute_div_mod compute_even
 
 end

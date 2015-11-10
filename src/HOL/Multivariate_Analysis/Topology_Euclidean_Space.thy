@@ -707,14 +707,14 @@ next
   from 1 2 show ?lhs
     unfolding openin_open open_dist by fast
 qed
- 
+
 lemma connected_open_in:
       "connected s \<longleftrightarrow>
        ~(\<exists>e1 e2. openin (subtopology euclidean s) e1 \<and>
                  openin (subtopology euclidean s) e2 \<and>
                  s \<subseteq> e1 \<union> e2 \<and> e1 \<inter> e2 = {} \<and> e1 \<noteq> {} \<and> e2 \<noteq> {})"
   apply (simp add: connected_def openin_open, safe)
-  apply (simp_all, blast+)
+  apply (simp_all, blast+)  --\<open>slow\<close>
   done
 
 lemma connected_open_in_eq:
@@ -768,7 +768,7 @@ lemma connected_closed_in_eq:
   apply (simp add: connected_closed_in, safe)
   apply blast
   by (metis Int_lower1 Un_subset_iff closedin_closed subset_antisym)
-    
+
 text \<open>These "transitivity" results are handy too\<close>
 
 lemma openin_trans[trans]:
@@ -1002,7 +1002,7 @@ proof -
         by (simp add: power_divide)
     qed auto
     also have "\<dots> = e"
-      using \<open>0 < e\<close> by (simp add: real_eq_of_nat)
+      using \<open>0 < e\<close> by simp
     finally show "y \<in> ball x e"
       by (auto simp: ball_def)
   qed (insert a b, auto simp: box_def)
@@ -1248,14 +1248,14 @@ qed
 
 lemma UN_box_eq_UNIV: "(\<Union>i::nat. box (- (real i *\<^sub>R One)) (real i *\<^sub>R One)) = UNIV"
 proof -
-  have "\<bar>x \<bullet> b\<bar> < real (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)"
+  have "\<bar>x \<bullet> b\<bar> < real_of_int (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)"
     if [simp]: "b \<in> Basis" for x b :: 'a
   proof -
-    have "\<bar>x \<bullet> b\<bar> \<le> real (ceiling \<bar>x \<bullet> b\<bar>)"
-      by (rule real_of_int_ceiling_ge)
-    also have "\<dots> \<le> real (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)))"
+    have "\<bar>x \<bullet> b\<bar> \<le> real_of_int (ceiling \<bar>x \<bullet> b\<bar>)"
+      by (rule le_of_int_ceiling)
+    also have "\<dots> \<le> real_of_int (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)))"
       by (auto intro!: ceiling_mono)
-    also have "\<dots> < real (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)"
+    also have "\<dots> < real_of_int (ceiling (Max ((\<lambda>b. \<bar>x \<bullet> b\<bar>)`Basis)) + 1)"
       by simp
     finally show ?thesis .
   qed
@@ -1277,15 +1277,11 @@ lemma is_interval_cbox: "is_interval (cbox a (b::'a::euclidean_space))" (is ?th1
   unfolding is_interval_def mem_box Ball_def atLeastAtMost_iff
   by (meson order_trans le_less_trans less_le_trans less_trans)+
 
-lemma is_interval_empty:
- "is_interval {}"
-  unfolding is_interval_def
-  by simp
+lemma is_interval_empty [iff]: "is_interval {}"
+  unfolding is_interval_def  by simp
 
-lemma is_interval_univ:
- "is_interval UNIV"
-  unfolding is_interval_def
-  by simp
+lemma is_interval_univ [iff]: "is_interval UNIV"
+  unfolding is_interval_def  by simp
 
 lemma mem_is_intervalI:
   assumes "is_interval s"
@@ -2162,7 +2158,7 @@ qed
 
 lemma closed_in_connected_component: "closedin (subtopology euclidean s) (connected_component_set s x)"
 proof (cases "connected_component_set s x = {}")
-  case True then show ?thesis 
+  case True then show ?thesis
     by (metis closedin_empty)
 next
   case False
@@ -4383,7 +4379,7 @@ proof
   obtain r where r: "subseq r" "monoseq (f \<circ> r)"
     unfolding comp_def by (metis seq_monosub)
   then have "Bseq (f \<circ> r)"
-    unfolding Bseq_eq_bounded using f by (auto intro: bounded_subset)
+    unfolding Bseq_eq_bounded using f by (force intro: bounded_subset)
   with r show "\<exists>l r. subseq r \<and> (f \<circ> r) ----> l"
     using Bseq_monoseq_convergent[of "f \<circ> r"] by (auto simp: convergent_def)
 qed
@@ -4579,10 +4575,10 @@ lemma nat_approx_posE:
   assumes "0 < e"
   obtains n :: nat where "1 / (Suc n) < e"
 proof atomize_elim
-  have " 1 / real (Suc (nat (ceiling (1/e)))) < 1 / (ceiling (1/e))"
+  have "1 / real (Suc (nat (ceiling (1/e)))) < 1 / (ceiling (1/e))"
     by (rule divide_strict_left_mono) (auto simp: \<open>0 < e\<close>)
   also have "1 / (ceiling (1/e)) \<le> 1 / (1/e)"
-    by (rule divide_left_mono) (auto simp: \<open>0 < e\<close>)
+    by (rule divide_left_mono) (auto simp: \<open>0 < e\<close> ceiling_correct)
   also have "\<dots> = e" by simp
   finally show  "\<exists>n. 1 / real (Suc n) < e" ..
 qed
@@ -4665,7 +4661,7 @@ proof
         fix r :: real and N n m
         assume "1 / Suc N < r" "Suc N \<le> n" "Suc N \<le> m"
         then have "(f \<circ> t) n \<in> F (Suc N)" "(f \<circ> t) m \<in> F (Suc N)" "2 * e N < r"
-          using F_dec t by (auto simp: e_def field_simps real_of_nat_Suc)
+          using F_dec t by (auto simp: e_def field_simps of_nat_Suc)
         with F[of N] obtain x where "dist x ((f \<circ> t) n) < e N" "dist x ((f \<circ> t) m) < e N"
           by (auto simp: subset_eq)
         with dist_triangle[of "(f \<circ> t) m" "(f \<circ> t) n" x] \<open>2 * e N < r\<close>
@@ -5130,7 +5126,7 @@ next
     unfolding continuous_within Lim_within ball_def subset_eq
     apply (auto simp add: dist_commute)
     apply (erule_tac x=e in allE)
-    apply auto         
+    apply auto
     done
 qed
 
@@ -5338,7 +5334,7 @@ next
         fix n :: nat
         assume "n \<ge> N"
         then have "inverse (real n + 1) < inverse (real N)"
-          using real_of_nat_ge_zero and \<open>N\<noteq>0\<close> by auto
+          using of_nat_0_le_iff and \<open>N\<noteq>0\<close> by auto
         also have "\<dots> < e" using N by auto
         finally have "inverse (real n + 1) < e" by auto
         then have "dist (x n) (y n) < e"
@@ -5946,15 +5942,12 @@ lemma bilinear_continuous_at_compose:
 lemma bilinear_continuous_within_compose:
   "continuous (at x within s) f \<Longrightarrow> continuous (at x within s) g \<Longrightarrow> bounded_bilinear h \<Longrightarrow>
     continuous (at x within s) (\<lambda>x. h (f x) (g x))"
-  unfolding continuous_within
-  using Lim_bilinear[of f "f x"]
-  by auto
+  by (rule Limits.bounded_bilinear.continuous)
 
 lemma bilinear_continuous_on_compose:
   "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> bounded_bilinear h \<Longrightarrow>
     continuous_on s (\<lambda>x. h (f x) (g x))"
-  unfolding continuous_on_def
-  by (fast elim: bounded_bilinear.tendsto)
+  by (rule Limits.bounded_bilinear.continuous_on)
 
 text \<open>Preservation of compactness and connectedness under continuous function.\<close>
 
@@ -6024,7 +6017,7 @@ proof -
   then show ?thesis
     unfolding connected_clopen by auto
 qed
-  
+
 lemma connected_linear_image:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "linear f" and "connected s"
@@ -6773,7 +6766,7 @@ lemma continuous_le_on_closure:
       and x: "x \<in> closure(s)"
       and xlo: "\<And>x. x \<in> s ==> f(x) \<le> a"
     shows "f(x) \<le> a"
-    using image_closure_subset [OF f] 
+    using image_closure_subset [OF f]
   using image_closure_subset [OF f] closed_halfspace_le [of "1::real" a] assms
   by force
 
@@ -7140,15 +7133,12 @@ proof -
         then have "\<exists>N::nat. inverse (real (N + 1)) < e"
           using real_arch_inv[of e]
           apply (auto simp add: Suc_pred')
-          apply (metis Suc_pred' real_of_nat_Suc)
+          apply (metis Suc_pred' of_nat_Suc)
           done
-        then obtain N :: nat where "inverse (real (N + 1)) < e"
+        then obtain N :: nat where N: "inverse (real (N + 1)) < e"
           by auto
-        then have "\<forall>n\<ge>N. inverse (real n + 1) < e"
-          apply auto
-          apply (metis Suc_le_mono le_SucE less_imp_inverse_less nat_le_real_less order_less_trans
-            real_of_nat_Suc real_of_nat_Suc_gt_zero)
-          done
+        have "inverse (real n + 1) < e" if "N \<le> n" for n
+          by (auto intro!: that le_less_trans [OF _ N])
         then have "\<exists>N::nat. \<forall>n\<ge>N. inverse (real n + 1) < e" by auto
       }
       then have "((\<lambda>n. inverse (real n + 1)) ---> 0) sequentially"

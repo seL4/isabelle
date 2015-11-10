@@ -841,9 +841,7 @@ lemma DERIV_power[derivative_intros]:
      (auto simp: has_field_derivative_def)
 
 lemma DERIV_pow: "((\<lambda>x. x ^ n) has_field_derivative real n * (x ^ (n - Suc 0))) (at x within s)"
-  apply (cut_tac DERIV_power [OF DERIV_ident])
-  apply (simp add: real_of_nat_def)
-  done
+  using DERIV_power [OF DERIV_ident] by simp
 
 lemma DERIV_chain': "(f has_field_derivative D) (at x within s) \<Longrightarrow> DERIV g (f x) :> E \<Longrightarrow> 
   ((\<lambda>x. g (f x)) has_field_derivative E * D) (at x within s)"
@@ -880,9 +878,6 @@ lemma DERIV_chain3: (*HAS_COMPLEX_DERIVATIVE_CHAIN_UNIV*)
       and "DERIV f x :> f'" 
     shows "DERIV (\<lambda>x. g(f x)) x :> f' * g'(f x)"
   by (metis UNIV_I DERIV_chain_s [of UNIV] assms)
-
-declare
-  DERIV_power[where 'a=real, unfolded real_of_nat_def[symmetric], derivative_intros]
 
 text\<open>Alternative definition for differentiability\<close>
 

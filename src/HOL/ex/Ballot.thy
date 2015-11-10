@@ -266,7 +266,7 @@ using assms
 proof -
   from main_nat[of a b] \<open>b < a\<close> have
     "(real a + real b) * real (valid_countings a b) = (real a - real b) * real (all_countings a b)"
-    by (simp only: real_of_nat_add[symmetric] real_of_nat_mult[symmetric]) auto
+    by (simp only: of_nat_add[symmetric] of_nat_mult[symmetric]) auto
   from this \<open>b < a\<close> show ?thesis
     by (subst mult_left_cancel[of "real a + real b", symmetric]) auto
 qed

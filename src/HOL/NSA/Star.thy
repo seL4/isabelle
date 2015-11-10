@@ -110,7 +110,7 @@ done
 (*
    Prove that abs for hypreal is a nonstandard extension of abs for real w/o
    use of congruence property (proved after this for general
-   nonstandard extensions of real valued functions). 
+   nonstandard extensions of real valued functions).
 
    Proof now Uses the ultrafilter tactic!
 *)
@@ -307,12 +307,12 @@ lemma Infinitesimal_FreeUltrafilterNat_iff2:
      "(star_n X \<in> Infinitesimal) = (\<forall>m. eventually (\<lambda>n. norm(X n) < inverse(real(Suc m))) \<U>)"
 by (simp add: Infinitesimal_hypreal_of_nat_iff star_of_def
      hnorm_def star_of_nat_def starfun_star_n
-     star_n_inverse star_n_less real_of_nat_def)
+     star_n_inverse star_n_less)
 
 lemma HNatInfinite_inverse_Infinitesimal [simp]:
      "n \<in> HNatInfinite ==> inverse (hypreal_of_hypnat n) \<in> Infinitesimal"
 apply (cases n)
-apply (auto simp add: of_hypnat_def starfun_star_n real_of_nat_def [symmetric] star_n_inverse real_norm_def
+apply (auto simp add: of_hypnat_def starfun_star_n star_n_inverse real_norm_def
       HNatInfinite_FreeUltrafilterNat_iff
       Infinitesimal_FreeUltrafilterNat_iff2)
 apply (drule_tac x="Suc m" in spec)

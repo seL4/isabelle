@@ -2022,7 +2022,7 @@ by (blast intro!: Infinitesimal_FreeUltrafilterNat FreeUltrafilterNat_Infinitesi
 
 lemma lemma_Infinitesimal:
      "(\<forall>r. 0 < r --> x < r) = (\<forall>n. x < inverse(real (Suc n)))"
-apply (auto simp add: real_of_nat_Suc_gt_zero simp del: real_of_nat_Suc)
+apply (auto simp add: real_of_nat_Suc_gt_zero simp del: of_nat_Suc)
 apply (blast dest!: reals_Archimedean intro: order_less_trans)
 done
 
@@ -2034,10 +2034,10 @@ apply safe
   apply (simp (no_asm_use))
  apply (rule real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive, THEN star_of_less [THEN iffD2], THEN [2] impE])
   prefer 2 apply assumption
- apply (simp add: real_of_nat_def)
-apply (auto dest!: reals_Archimedean simp add: SReal_iff simp del: real_of_nat_Suc)
+ apply simp
+apply (auto dest!: reals_Archimedean simp add: SReal_iff simp del: of_nat_Suc)
 apply (drule star_of_less [THEN iffD2])
-apply (simp add: real_of_nat_def)
+apply simp
 apply (blast intro: order_less_trans)
 done
 
@@ -2057,16 +2057,11 @@ lemma Suc_Un_eq: "{n. n < Suc m} = {n. n < m} Un {n. n = m}"
 by (auto simp add: less_Suc_eq)
 
 (*-------------------------------------------
-  Prove that any segment is finite and
-  hence cannot belong to FreeUltrafilterNat
+  Prove that any segment is finite and hence cannot belong to FreeUltrafilterNat
  -------------------------------------------*)
-lemma finite_nat_segment: "finite {n::nat. n < m}"
-apply (induct "m")
-apply (auto simp add: Suc_Un_eq)
-done
 
 lemma finite_real_of_nat_segment: "finite {n::nat. real n < real (m::nat)}"
-by (auto intro: finite_nat_segment)
+  by (auto intro: finite_Collect_less_nat)
 
 lemma finite_real_of_nat_less_real: "finite {n::nat. real n < u}"
 apply (cut_tac x = u in reals_Archimedean2, safe)
@@ -2106,13 +2101,12 @@ by (auto dest!: order_le_less_trans simp add: linorder_not_le)
 
 text{*@{term omega} is a member of @{term HInfinite}*}
 
-lemma FreeUltrafilterNat_omega: "eventually (\<lambda>n. u < real n) FreeUltrafilterNat"
-  by (fact FreeUltrafilterNat_nat_gt_real)
-
 theorem HInfinite_omega [simp]: "omega \<in> HInfinite"
 apply (simp add: omega_def)
 apply (rule FreeUltrafilterNat_HInfinite)
-apply (simp add: real_of_nat_Suc diff_less_eq [symmetric] FreeUltrafilterNat_omega)
+apply clarify
+apply (rule_tac u1 = "u-1" in eventually_mono [OF _ FreeUltrafilterNat_nat_gt_real])
+apply auto
 done
 
 (*-----------------------------------------------
@@ -2145,21 +2139,22 @@ done
 
 lemma finite_inverse_real_of_posnat_gt_real:
      "0 < u ==> finite {n. u < inverse(real(Suc n))}"
-apply (simp (no_asm_simp) add: real_of_nat_less_inverse_iff del: real_of_nat_Suc)
-apply (simp (no_asm_simp) add: real_of_nat_Suc less_diff_eq [symmetric])
-apply (rule finite_real_of_nat_less_real)
-done
+proof (simp only: real_of_nat_less_inverse_iff)
+  have "{n. 1 + real n < inverse u} = {n. real n < inverse u - 1}"
+    by fastforce
+  thus "finite {n. real (Suc n) < inverse u}"
+    using finite_real_of_nat_less_real [of "inverse u - 1"] by auto
+qed
 
 lemma lemma_real_le_Un_eq2:
      "{n. u \<le> inverse(real(Suc n))} =
      {n. u < inverse(real(Suc n))} Un {n. u = inverse(real(Suc n))}"
-apply (auto dest: order_le_imp_less_or_eq simp add: order_less_imp_le)
-done
+by (auto dest: order_le_imp_less_or_eq simp add: order_less_imp_le)
 
 lemma finite_inverse_real_of_posnat_ge_real:
      "0 < u ==> finite {n. u \<le> inverse(real(Suc n))}"
 by (auto simp add: lemma_real_le_Un_eq2 lemma_finite_epsilon_set finite_inverse_real_of_posnat_gt_real 
-            simp del: real_of_nat_Suc)
+            simp del: of_nat_Suc)
 
 lemma inverse_real_of_posnat_ge_real_FreeUltrafilterNat:
      "0 < u ==> \<not> eventually (\<lambda>n. u \<le> inverse(real(Suc n))) FreeUltrafilterNat"
@@ -2187,7 +2182,7 @@ text{* Example of an hypersequence (i.e. an extended standard sequence)
 lemma SEQ_Infinitesimal:
       "( *f* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
 by (simp add: hypnat_omega_def starfun_star_n star_n_inverse Infinitesimal_FreeUltrafilterNat_iff 
-       real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat del: real_of_nat_Suc)
+       real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat del: of_nat_Suc)
 
 text{* Example where we get a hyperreal from a real sequence
       for which a particular property holds. The theorem is

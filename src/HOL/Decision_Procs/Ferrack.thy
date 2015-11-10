@@ -30,13 +30,13 @@ where
   (* Semantics of numeral terms (num) *)
 primrec Inum :: "real list \<Rightarrow> num \<Rightarrow> real"
 where
-  "Inum bs (C c) = (real c)"
+  "Inum bs (C c) = (real_of_int c)"
 | "Inum bs (Bound n) = bs!n"
-| "Inum bs (CN n c a) = (real c) * (bs!n) + (Inum bs a)"
+| "Inum bs (CN n c a) = (real_of_int c) * (bs!n) + (Inum bs a)"
 | "Inum bs (Neg a) = -(Inum bs a)"
 | "Inum bs (Add a b) = Inum bs a + Inum bs b"
 | "Inum bs (Sub a b) = Inum bs a - Inum bs b"
-| "Inum bs (Mul c a) = (real c) * Inum bs a"
+| "Inum bs (Mul c a) = (real_of_int c) * Inum bs a"
     (* FORMULAE *)
 datatype fm  =
   T| F| Lt num| Le num| Gt num| Ge num| Eq num| NEq num|
@@ -518,7 +518,7 @@ lemma numgcd_pos: "numgcd t \<ge>0"
 lemma reducecoeffh:
   assumes gt: "dvdnumcoeff t g"
     and gp: "g > 0"
-  shows "real g *(Inum bs (reducecoeffh t g)) = Inum bs t"
+  shows "real_of_int g *(Inum bs (reducecoeffh t g)) = Inum bs t"
   using gt
 proof (induct t rule: reducecoeffh.induct)
   case (1 i)
@@ -618,7 +618,7 @@ proof (simp add: numgcd_def)
   from dvdnumcoeff_aux[OF th1 th2 H] show "dvdnumcoeff t ?g" .
 qed
 
-lemma reducecoeff: "real (numgcd t) * (Inum bs (reducecoeff t)) = Inum bs t"
+lemma reducecoeff: "real_of_int (numgcd t) * (Inum bs (reducecoeff t)) = Inum bs t"
 proof -
   let ?g = "numgcd t"
   have "?g \<ge> 0"
@@ -778,8 +778,8 @@ where
          else (t', n))))"
 
 lemma simp_num_pair_ci:
-  shows "((\<lambda>(t,n). Inum bs t / real n) (simp_num_pair (t,n))) =
-    ((\<lambda>(t,n). Inum bs t / real n) (t, n))"
+  shows "((\<lambda>(t,n). Inum bs t / real_of_int n) (simp_num_pair (t,n))) =
+    ((\<lambda>(t,n). Inum bs t / real_of_int n) (t, n))"
   (is "?lhs = ?rhs")
 proof -
   let ?t' = "simpnum t"
@@ -819,15 +819,15 @@ proof -
         have gpdd: "?g' dvd n" by simp
         have gpdgp: "?g' dvd ?g'" by simp
         from reducecoeffh[OF dvdnumcoeff_trans[OF gpdg th1] g'p]
-        have th2:"real ?g' * ?t = Inum bs ?t'"
+        have th2:"real_of_int ?g' * ?t = Inum bs ?t'"
           by simp
-        from g1 g'1 have "?lhs = ?t / real (n div ?g')"
+        from g1 g'1 have "?lhs = ?t / real_of_int (n div ?g')"
           by (simp add: simp_num_pair_def Let_def)
-        also have "\<dots> = (real ?g' * ?t) / (real ?g' * (real (n div ?g')))"
+        also have "\<dots> = (real_of_int ?g' * ?t) / (real_of_int ?g' * (real_of_int (n div ?g')))"
           by simp
-        also have "\<dots> = (Inum bs ?t' / real n)"
+        also have "\<dots> = (Inum bs ?t' / real_of_int n)"
           using real_of_int_div[OF gpdd] th2 gp0 by simp
-        finally have "?lhs = Inum bs t / real n"
+        finally have "?lhs = Inum bs t / real_of_int n"
           by simp
         then show ?thesis
           by (simp add: simp_num_pair_def)
@@ -1278,17 +1278,17 @@ next
 next
   case (3 c e)
   from 3 have nb: "numbound0 e" by simp
-  from 3 have cp: "real c > 0" by simp
+  from 3 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e = "Inum (a#bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x < ?z"
-    then have "(real c * x < - ?e)"
+    then have "(real_of_int c * x < - ?e)"
       by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps)
-    then have "real c * x + ?e < 0" by arith
-    then have "real c * x + ?e \<noteq> 0" by simp
+    then have "real_of_int c * x + ?e < 0" by arith
+    then have "real_of_int c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (Eq (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp
   }
@@ -1297,17 +1297,17 @@ next
 next
   case (4 c e)
   from 4 have nb: "numbound0 e" by simp
-  from 4 have cp: "real c > 0" by simp
+  from 4 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e = "Inum (a # bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x < ?z"
-    then have "(real c * x < - ?e)"
+    then have "(real_of_int c * x < - ?e)"
       by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps)
-    then have "real c * x + ?e < 0" by arith
-    then have "real c * x + ?e \<noteq> 0" by simp
+    then have "real_of_int c * x + ?e < 0" by arith
+    then have "real_of_int c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (NEq (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp
   }
@@ -1316,16 +1316,16 @@ next
 next
   case (5 c e)
   from 5 have nb: "numbound0 e" by simp
-  from 5 have cp: "real c > 0" by simp
+  from 5 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x < ?z"
-    then have "(real c * x < - ?e)"
+    then have "(real_of_int c * x < - ?e)"
       by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps)
-    then have "real c * x + ?e < 0" by arith
+    then have "real_of_int c * x + ?e < 0" by arith
     with xz have "?P ?z x (Lt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"]  by simp
   }
@@ -1334,16 +1334,16 @@ next
 next
   case (6 c e)
   from 6 have nb: "numbound0 e" by simp
-  from lp 6 have cp: "real c > 0" by simp
+  from lp 6 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e = "Inum (a # bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x < ?z"
-    then have "(real c * x < - ?e)"
+    then have "(real_of_int c * x < - ?e)"
       by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps)
-    then have "real c * x + ?e < 0" by arith
+    then have "real_of_int c * x + ?e < 0" by arith
     with xz have "?P ?z x (Le (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp
   }
@@ -1352,16 +1352,16 @@ next
 next
   case (7 c e)
   from 7 have nb: "numbound0 e" by simp
-  from 7 have cp: "real c > 0" by simp
+  from 7 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e = "Inum (a # bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x < ?z"
-    then have "(real c * x < - ?e)"
+    then have "(real_of_int c * x < - ?e)"
       by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps)
-    then have "real c * x + ?e < 0" by arith
+    then have "real_of_int c * x + ?e < 0" by arith
     with xz have "?P ?z x (Gt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp
   }
@@ -1370,16 +1370,16 @@ next
 next
   case (8 c e)
   from 8 have nb: "numbound0 e" by simp
-  from 8 have cp: "real c > 0" by simp
+  from 8 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x < ?z"
-    then have "(real c * x < - ?e)"
+    then have "(real_of_int c * x < - ?e)"
       by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="- ?e"] ac_simps)
-    then have "real c * x + ?e < 0" by arith
+    then have "real_of_int c * x + ?e < 0" by arith
     with xz have "?P ?z x (Ge (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp
   }
@@ -1408,17 +1408,17 @@ next
 next
   case (3 c e)
   from 3 have nb: "numbound0 e" by simp
-  from 3 have cp: "real c > 0" by simp
+  from 3 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e = "Inum (a # bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: ac_simps)
-    then have "real c * x + ?e > 0" by arith
-    then have "real c * x + ?e \<noteq> 0" by simp
+    have "(real_of_int c * x > - ?e)" by (simp add: ac_simps)
+    then have "real_of_int c * x + ?e > 0" by arith
+    then have "real_of_int c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (Eq (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp
   }
@@ -1427,17 +1427,17 @@ next
 next
   case (4 c e)
   from 4 have nb: "numbound0 e" by simp
-  from 4 have cp: "real c > 0" by simp
+  from 4 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e = "Inum (a # bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: ac_simps)
-    then have "real c * x + ?e > 0" by arith
-    then have "real c * x + ?e \<noteq> 0" by simp
+    have "(real_of_int c * x > - ?e)" by (simp add: ac_simps)
+    then have "real_of_int c * x + ?e > 0" by arith
+    then have "real_of_int c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (NEq (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp
   }
@@ -1446,16 +1446,16 @@ next
 next
   case (5 c e)
   from 5 have nb: "numbound0 e" by simp
-  from 5 have cp: "real c > 0" by simp
+  from 5 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e = "Inum (a # bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: ac_simps)
-    then have "real c * x + ?e > 0" by arith
+    have "(real_of_int c * x > - ?e)" by (simp add: ac_simps)
+    then have "real_of_int c * x + ?e > 0" by arith
     with xz have "?P ?z x (Lt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp
   }
@@ -1464,16 +1464,16 @@ next
 next
   case (6 c e)
   from 6 have nb: "numbound0 e" by simp
-  from 6 have cp: "real c > 0" by simp
+  from 6 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e = "Inum (a # bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: ac_simps)
-    then have "real c * x + ?e > 0" by arith
+    have "(real_of_int c * x > - ?e)" by (simp add: ac_simps)
+    then have "real_of_int c * x + ?e > 0" by arith
     with xz have "?P ?z x (Le (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp
   }
@@ -1482,16 +1482,16 @@ next
 next
   case (7 c e)
   from 7 have nb: "numbound0 e" by simp
-  from 7 have cp: "real c > 0" by simp
+  from 7 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e = "Inum (a # bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: ac_simps)
-    then have "real c * x + ?e > 0" by arith
+    have "(real_of_int c * x > - ?e)" by (simp add: ac_simps)
+    then have "real_of_int c * x + ?e > 0" by arith
     with xz have "?P ?z x (Gt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp
   }
@@ -1500,16 +1500,16 @@ next
 next
   case (8 c e)
   from 8 have nb: "numbound0 e" by simp
-  from 8 have cp: "real c > 0" by simp
+  from 8 have cp: "real_of_int c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
-  let ?z = "(- ?e) / real c"
+  let ?z = "(- ?e) / real_of_int c"
   {
     fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: ac_simps)
-    then have "real c * x + ?e > 0" by arith
+    have "(real_of_int c * x > - ?e)" by (simp add: ac_simps)
+    then have "real_of_int c * x + ?e > 0" by arith
     with xz have "?P ?z x (Ge (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp
   }
@@ -1581,10 +1581,10 @@ recdef usubst "measure size"
 
 lemma usubst_I:
   assumes lp: "isrlfm p"
-    and np: "real n > 0"
+    and np: "real_of_int n > 0"
     and nbt: "numbound0 t"
   shows "(Ifm (x # bs) (usubst p (t,n)) =
-    Ifm (((Inum (x # bs) t) / (real n)) # bs) p) \<and> bound0 (usubst p (t, n))"
+    Ifm (((Inum (x # bs) t) / (real_of_int n)) # bs) p) \<and> bound0 (usubst p (t, n))"
   (is "(?I x (usubst p (t, n)) = ?I ?u p) \<and> ?B p"
    is "(_ = ?I (?t/?n) p) \<and> _"
    is "(_ = ?I (?N x t /_) p) \<and> _")
@@ -1592,65 +1592,65 @@ lemma usubst_I:
 proof (induct p rule: usubst.induct)
   case (5 c e)
   with assms have cp: "c > 0" and nb: "numbound0 e" by simp_all
-  have "?I ?u (Lt (CN 0 c e)) \<longleftrightarrow> real c * (?t / ?n) + ?N x e < 0"
+  have "?I ?u (Lt (CN 0 c e)) \<longleftrightarrow> real_of_int c * (?t / ?n) + ?N x e < 0"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
-  also have "\<dots> \<longleftrightarrow> ?n * (real c * (?t / ?n)) + ?n*(?N x e) < 0"
-    by (simp only: pos_less_divide_eq[OF np, where a="real c *(?t/?n) + (?N x e)"
+  also have "\<dots> \<longleftrightarrow> ?n * (real_of_int c * (?t / ?n)) + ?n*(?N x e) < 0"
+    by (simp only: pos_less_divide_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
       and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
-  also have "\<dots> \<longleftrightarrow> real c * ?t + ?n * (?N x e) < 0" using np by simp
+  also have "\<dots> \<longleftrightarrow> real_of_int c * ?t + ?n * (?N x e) < 0" using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)
 next
   case (6 c e)
   with assms have cp: "c > 0" and nb: "numbound0 e" by simp_all
-  have "?I ?u (Le (CN 0 c e)) \<longleftrightarrow> real c * (?t / ?n) + ?N x e \<le> 0"
+  have "?I ?u (Le (CN 0 c e)) \<longleftrightarrow> real_of_int c * (?t / ?n) + ?N x e \<le> 0"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
-  also have "\<dots> = (?n*(real c *(?t/?n)) + ?n*(?N x e) \<le> 0)"
-    by (simp only: pos_le_divide_eq[OF np, where a="real c *(?t/?n) + (?N x e)"
+  also have "\<dots> = (?n*(real_of_int c *(?t/?n)) + ?n*(?N x e) \<le> 0)"
+    by (simp only: pos_le_divide_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
       and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
-  also have "\<dots> = (real c *?t + ?n* (?N x e) \<le> 0)" using np by simp
+  also have "\<dots> = (real_of_int c *?t + ?n* (?N x e) \<le> 0)" using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)
 next
   case (7 c e)
   with assms have cp: "c >0" and nb: "numbound0 e" by simp_all
-  have "?I ?u (Gt (CN 0 c e)) \<longleftrightarrow> real c *(?t / ?n) + ?N x e > 0"
+  have "?I ?u (Gt (CN 0 c e)) \<longleftrightarrow> real_of_int c *(?t / ?n) + ?N x e > 0"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
-  also have "\<dots> \<longleftrightarrow> ?n * (real c * (?t / ?n)) + ?n * ?N x e > 0"
-    by (simp only: pos_divide_less_eq[OF np, where a="real c *(?t/?n) + (?N x e)"
+  also have "\<dots> \<longleftrightarrow> ?n * (real_of_int c * (?t / ?n)) + ?n * ?N x e > 0"
+    by (simp only: pos_divide_less_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
       and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
-  also have "\<dots> \<longleftrightarrow> real c * ?t + ?n * ?N x e > 0" using np by simp
+  also have "\<dots> \<longleftrightarrow> real_of_int c * ?t + ?n * ?N x e > 0" using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)
 next
   case (8 c e)
   with assms have cp: "c > 0" and nb: "numbound0 e" by simp_all
-  have "?I ?u (Ge (CN 0 c e)) \<longleftrightarrow> real c * (?t / ?n) + ?N x e \<ge> 0"
+  have "?I ?u (Ge (CN 0 c e)) \<longleftrightarrow> real_of_int c * (?t / ?n) + ?N x e \<ge> 0"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
-  also have "\<dots> \<longleftrightarrow> ?n * (real c * (?t / ?n)) + ?n * ?N x e \<ge> 0"
-    by (simp only: pos_divide_le_eq[OF np, where a="real c *(?t/?n) + (?N x e)"
+  also have "\<dots> \<longleftrightarrow> ?n * (real_of_int c * (?t / ?n)) + ?n * ?N x e \<ge> 0"
+    by (simp only: pos_divide_le_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
       and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
-  also have "\<dots> \<longleftrightarrow> real c * ?t + ?n * ?N x e \<ge> 0" using np by simp
+  also have "\<dots> \<longleftrightarrow> real_of_int c * ?t + ?n * ?N x e \<ge> 0" using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)
 next
   case (3 c e)
   with assms have cp: "c > 0" and nb: "numbound0 e" by simp_all
-  from np have np: "real n \<noteq> 0" by simp
-  have "?I ?u (Eq (CN 0 c e)) \<longleftrightarrow> real c * (?t / ?n) + ?N x e = 0"
+  from np have np: "real_of_int n \<noteq> 0" by simp
+  have "?I ?u (Eq (CN 0 c e)) \<longleftrightarrow> real_of_int c * (?t / ?n) + ?N x e = 0"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
-  also have "\<dots> \<longleftrightarrow> ?n * (real c * (?t / ?n)) + ?n * ?N x e = 0"
-    by (simp only: nonzero_eq_divide_eq[OF np, where a="real c *(?t/?n) + (?N x e)"
+  also have "\<dots> \<longleftrightarrow> ?n * (real_of_int c * (?t / ?n)) + ?n * ?N x e = 0"
+    by (simp only: nonzero_eq_divide_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
       and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
-  also have "\<dots> \<longleftrightarrow> real c * ?t + ?n * ?N x e = 0" using np by simp
+  also have "\<dots> \<longleftrightarrow> real_of_int c * ?t + ?n * ?N x e = 0" using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)
 next
   case (4 c e) with assms have cp: "c >0" and nb: "numbound0 e" by simp_all
-  from np have np: "real n \<noteq> 0" by simp
-  have "?I ?u (NEq (CN 0 c e)) \<longleftrightarrow> real c * (?t / ?n) + ?N x e \<noteq> 0"
+  from np have np: "real_of_int n \<noteq> 0" by simp
+  have "?I ?u (NEq (CN 0 c e)) \<longleftrightarrow> real_of_int c * (?t / ?n) + ?N x e \<noteq> 0"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
-  also have "\<dots> \<longleftrightarrow> ?n * (real c * (?t / ?n)) + ?n * ?N x e \<noteq> 0"
-    by (simp only: nonzero_eq_divide_eq[OF np, where a="real c *(?t/?n) + (?N x e)"
+  also have "\<dots> \<longleftrightarrow> ?n * (real_of_int c * (?t / ?n)) + ?n * ?N x e \<noteq> 0"
+    by (simp only: nonzero_eq_divide_eq[OF np, where a="real_of_int c *(?t/?n) + (?N x e)"
       and b="0", simplified divide_zero_left]) (simp only: algebra_simps)
-  also have "\<dots> \<longleftrightarrow> real c * ?t + ?n * ?N x e \<noteq> 0" using np by simp
+  also have "\<dots> \<longleftrightarrow> real_of_int c * ?t + ?n * ?N x e \<noteq> 0" using np by simp
   finally show ?case using nbt nb by (simp add: algebra_simps)
-qed(simp_all add: nbt numbound0_I[where bs ="bs" and b="(Inum (x#bs) t)/ real n" and b'="x"])
+qed(simp_all add: nbt numbound0_I[where bs ="bs" and b="(Inum (x#bs) t)/ real_of_int n" and b'="x"])
 
 lemma uset_l:
   assumes lp: "isrlfm p"
@@ -1661,18 +1661,18 @@ lemma rminusinf_uset:
   assumes lp: "isrlfm p"
     and nmi: "\<not> (Ifm (a # bs) (minusinf p))" (is "\<not> (Ifm (a # bs) (?M p))")
     and ex: "Ifm (x#bs) p" (is "?I x p")
-  shows "\<exists>(s,m) \<in> set (uset p). x \<ge> Inum (a#bs) s / real m"
-    (is "\<exists>(s,m) \<in> ?U p. x \<ge> ?N a s / real m")
+  shows "\<exists>(s,m) \<in> set (uset p). x \<ge> Inum (a#bs) s / real_of_int m"
+    (is "\<exists>(s,m) \<in> ?U p. x \<ge> ?N a s / real_of_int m")
 proof -
-  have "\<exists>(s,m) \<in> set (uset p). real m * x \<ge> Inum (a#bs) s"
-    (is "\<exists>(s,m) \<in> ?U p. real m *x \<ge> ?N a s")
+  have "\<exists>(s,m) \<in> set (uset p). real_of_int m * x \<ge> Inum (a#bs) s"
+    (is "\<exists>(s,m) \<in> ?U p. real_of_int m *x \<ge> ?N a s")
     using lp nmi ex
     by (induct p rule: minusinf.induct) (auto simp add:numbound0_I[where bs="bs" and b="a" and b'="x"])
-  then obtain s m where smU: "(s,m) \<in> set (uset p)" and mx: "real m * x \<ge> ?N a s"
+  then obtain s m where smU: "(s,m) \<in> set (uset p)" and mx: "real_of_int m * x \<ge> ?N a s"
     by blast
-  from uset_l[OF lp] smU have mp: "real m > 0"
+  from uset_l[OF lp] smU have mp: "real_of_int m > 0"
     by auto
-  from pos_divide_le_eq[OF mp, where a="x" and b="?N a s", symmetric] mx have "x \<ge> ?N a s / real m"
+  from pos_divide_le_eq[OF mp, where a="x" and b="?N a s", symmetric] mx have "x \<ge> ?N a s / real_of_int m"
     by (auto simp add: mult.commute)
   then show ?thesis
     using smU by auto
@@ -1682,19 +1682,19 @@ lemma rplusinf_uset:
   assumes lp: "isrlfm p"
     and nmi: "\<not> (Ifm (a # bs) (plusinf p))" (is "\<not> (Ifm (a # bs) (?M p))")
     and ex: "Ifm (x # bs) p" (is "?I x p")
-  shows "\<exists>(s,m) \<in> set (uset p). x \<le> Inum (a#bs) s / real m"
-    (is "\<exists>(s,m) \<in> ?U p. x \<le> ?N a s / real m")
+  shows "\<exists>(s,m) \<in> set (uset p). x \<le> Inum (a#bs) s / real_of_int m"
+    (is "\<exists>(s,m) \<in> ?U p. x \<le> ?N a s / real_of_int m")
 proof -
-  have "\<exists>(s,m) \<in> set (uset p). real m * x \<le> Inum (a#bs) s"
-    (is "\<exists>(s,m) \<in> ?U p. real m *x \<le> ?N a s")
+  have "\<exists>(s,m) \<in> set (uset p). real_of_int m * x \<le> Inum (a#bs) s"
+    (is "\<exists>(s,m) \<in> ?U p. real_of_int m *x \<le> ?N a s")
     using lp nmi ex
     by (induct p rule: minusinf.induct)
       (auto simp add:numbound0_I[where bs="bs" and b="a" and b'="x"])
-  then obtain s m where smU: "(s,m) \<in> set (uset p)" and mx: "real m * x \<le> ?N a s"
+  then obtain s m where smU: "(s,m) \<in> set (uset p)" and mx: "real_of_int m * x \<le> ?N a s"
     by blast
-  from uset_l[OF lp] smU have mp: "real m > 0"
+  from uset_l[OF lp] smU have mp: "real_of_int m > 0"
     by auto
-  from pos_le_divide_eq[OF mp, where a="x" and b="?N a s", symmetric] mx have "x \<le> ?N a s / real m"
+  from pos_le_divide_eq[OF mp, where a="x" and b="?N a s", symmetric] mx have "x \<le> ?N a s / real_of_int m"
     by (auto simp add: mult.commute)
   then show ?thesis
     using smU by auto
@@ -1702,8 +1702,8 @@ qed
 
 lemma lin_dense:
   assumes lp: "isrlfm p"
-    and noS: "\<forall>t. l < t \<and> t< u \<longrightarrow> t \<notin> (\<lambda>(t,n). Inum (x#bs) t / real n) ` set (uset p)"
-      (is "\<forall>t. _ \<and> _ \<longrightarrow> t \<notin> (\<lambda>(t,n). ?N x t / real n ) ` (?U p)")
+    and noS: "\<forall>t. l < t \<and> t< u \<longrightarrow> t \<notin> (\<lambda>(t,n). Inum (x#bs) t / real_of_int n) ` set (uset p)"
+      (is "\<forall>t. _ \<and> _ \<longrightarrow> t \<notin> (\<lambda>(t,n). ?N x t / real_of_int n ) ` (?U p)")
     and lx: "l < x"
     and xu:"x < u"
     and px:" Ifm (x#bs) p"
@@ -1712,163 +1712,163 @@ lemma lin_dense:
   using lp px noS
 proof (induct p rule: isrlfm.induct)
   case (5 c e)
-  then have cp: "real c > 0" and nb: "numbound0 e"
+  then have cp: "real_of_int c > 0" and nb: "numbound0 e"
     by simp_all
-  from 5 have "x * real c + ?N x e < 0"
+  from 5 have "x * real_of_int c + ?N x e < 0"
     by (simp add: algebra_simps)
-  then have pxc: "x < (- ?N x e) / real c"
+  then have pxc: "x < (- ?N x e) / real_of_int c"
     by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="-?N x e"])
-  from 5 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+  from 5 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real_of_int c"
     by auto
-  with ly yu have yne: "y \<noteq> - ?N x e / real c"
+  with ly yu have yne: "y \<noteq> - ?N x e / real_of_int c"
     by auto
-  then consider "y < (-?N x e)/ real c" | "y > (- ?N x e) / real c"
+  then consider "y < (-?N x e)/ real_of_int c" | "y > (- ?N x e) / real_of_int c"
     by atomize_elim auto
   then show ?case
   proof cases
     case 1
-    then have "y * real c < - ?N x e"
+    then have "y * real_of_int c < - ?N x e"
       by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-    then have "real c * y + ?N x e < 0"
+    then have "real_of_int c * y + ?N x e < 0"
       by (simp add: algebra_simps)
     then show ?thesis
       using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp
   next
     case 2
-    with yu have eu: "u > (- ?N x e) / real c"
+    with yu have eu: "u > (- ?N x e) / real_of_int c"
       by auto
-    with noSc ly yu have "(- ?N x e) / real c \<le> l"
-      by (cases "(- ?N x e) / real c > l") auto
+    with noSc ly yu have "(- ?N x e) / real_of_int c \<le> l"
+      by (cases "(- ?N x e) / real_of_int c > l") auto
     with lx pxc have False
       by auto
     then show ?thesis ..
   qed
 next
   case (6 c e)
-  then have cp: "real c > 0" and nb: "numbound0 e"
+  then have cp: "real_of_int c > 0" and nb: "numbound0 e"
     by simp_all
-  from 6 have "x * real c + ?N x e \<le> 0"
+  from 6 have "x * real_of_int c + ?N x e \<le> 0"
     by (simp add: algebra_simps)
-  then have pxc: "x \<le> (- ?N x e) / real c"
+  then have pxc: "x \<le> (- ?N x e) / real_of_int c"
     by (simp only: pos_le_divide_eq[OF cp, where a="x" and b="-?N x e"])
-  from 6 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+  from 6 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real_of_int c"
     by auto
-  with ly yu have yne: "y \<noteq> - ?N x e / real c"
+  with ly yu have yne: "y \<noteq> - ?N x e / real_of_int c"
     by auto
-  then consider "y < (- ?N x e) / real c" | "y > (-?N x e) / real c"
+  then consider "y < (- ?N x e) / real_of_int c" | "y > (-?N x e) / real_of_int c"
     by atomize_elim auto
   then show ?case
   proof cases
     case 1
-    then have "y * real c < - ?N x e"
+    then have "y * real_of_int c < - ?N x e"
       by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-    then have "real c * y + ?N x e < 0"
+    then have "real_of_int c * y + ?N x e < 0"
       by (simp add: algebra_simps)
     then show ?thesis
       using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp
   next
     case 2
-    with yu have eu: "u > (- ?N x e) / real c"
+    with yu have eu: "u > (- ?N x e) / real_of_int c"
       by auto
-    with noSc ly yu have "(- ?N x e) / real c \<le> l"
-      by (cases "(- ?N x e) / real c > l") auto
+    with noSc ly yu have "(- ?N x e) / real_of_int c \<le> l"
+      by (cases "(- ?N x e) / real_of_int c > l") auto
     with lx pxc have False
       by auto
     then show ?thesis ..
   qed
 next
   case (7 c e)
-  then have cp: "real c > 0" and nb: "numbound0 e"
+  then have cp: "real_of_int c > 0" and nb: "numbound0 e"
     by simp_all
-  from 7 have "x * real c + ?N x e > 0"
+  from 7 have "x * real_of_int c + ?N x e > 0"
     by (simp add: algebra_simps)
-  then have pxc: "x > (- ?N x e) / real c"
+  then have pxc: "x > (- ?N x e) / real_of_int c"
     by (simp only: pos_divide_less_eq[OF cp, where a="x" and b="-?N x e"])
-  from 7 have noSc: "\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+  from 7 have noSc: "\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real_of_int c"
     by auto
-  with ly yu have yne: "y \<noteq> - ?N x e / real c"
+  with ly yu have yne: "y \<noteq> - ?N x e / real_of_int c"
     by auto
-  then consider "y > (- ?N x e) / real c" | "y < (-?N x e) / real c"
+  then consider "y > (- ?N x e) / real_of_int c" | "y < (-?N x e) / real_of_int c"
     by atomize_elim auto
   then show ?case
   proof cases
     case 1
-    then have "y * real c > - ?N x e"
+    then have "y * real_of_int c > - ?N x e"
       by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-    then have "real c * y + ?N x e > 0"
+    then have "real_of_int c * y + ?N x e > 0"
       by (simp add: algebra_simps)
     then show ?thesis
       using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp
   next
     case 2
-    with ly have eu: "l < (- ?N x e) / real c"
+    with ly have eu: "l < (- ?N x e) / real_of_int c"
       by auto
-    with noSc ly yu have "(- ?N x e) / real c \<ge> u"
-      by (cases "(- ?N x e) / real c > l") auto
+    with noSc ly yu have "(- ?N x e) / real_of_int c \<ge> u"
+      by (cases "(- ?N x e) / real_of_int c > l") auto
     with xu pxc have False by auto
     then show ?thesis ..
   qed
 next
   case (8 c e)
-  then have cp: "real c > 0" and nb: "numbound0 e"
+  then have cp: "real_of_int c > 0" and nb: "numbound0 e"
     by simp_all
-  from 8 have "x * real c + ?N x e \<ge> 0"
+  from 8 have "x * real_of_int c + ?N x e \<ge> 0"
     by (simp add: algebra_simps)
-  then have pxc: "x \<ge> (- ?N x e) / real c"
+  then have pxc: "x \<ge> (- ?N x e) / real_of_int c"
     by (simp only: pos_divide_le_eq[OF cp, where a="x" and b="-?N x e"])
-  from 8 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+  from 8 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real_of_int c"
     by auto
-  with ly yu have yne: "y \<noteq> - ?N x e / real c"
+  with ly yu have yne: "y \<noteq> - ?N x e / real_of_int c"
     by auto
-  then consider "y > (- ?N x e) / real c" | "y < (-?N x e) / real c"
+  then consider "y > (- ?N x e) / real_of_int c" | "y < (-?N x e) / real_of_int c"
     by atomize_elim auto
   then show ?case
   proof cases
     case 1
-    then have "y * real c > - ?N x e"
+    then have "y * real_of_int c > - ?N x e"
       by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-    then have "real c * y + ?N x e > 0" by (simp add: algebra_simps)
+    then have "real_of_int c * y + ?N x e > 0" by (simp add: algebra_simps)
     then show ?thesis
       using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp
   next
     case 2
-    with ly have eu: "l < (- ?N x e) / real c"
+    with ly have eu: "l < (- ?N x e) / real_of_int c"
       by auto
-    with noSc ly yu have "(- ?N x e) / real c \<ge> u"
-      by (cases "(- ?N x e) / real c > l") auto
+    with noSc ly yu have "(- ?N x e) / real_of_int c \<ge> u"
+      by (cases "(- ?N x e) / real_of_int c > l") auto
     with xu pxc have False
       by auto
     then show ?thesis ..
   qed
 next
   case (3 c e)
-  then have cp: "real c > 0" and nb: "numbound0 e"
+  then have cp: "real_of_int c > 0" and nb: "numbound0 e"
     by simp_all
-  from cp have cnz: "real c \<noteq> 0"
+  from cp have cnz: "real_of_int c \<noteq> 0"
     by simp
-  from 3 have "x * real c + ?N x e = 0"
+  from 3 have "x * real_of_int c + ?N x e = 0"
     by (simp add: algebra_simps)
-  then have pxc: "x = (- ?N x e) / real c"
+  then have pxc: "x = (- ?N x e) / real_of_int c"
     by (simp only: nonzero_eq_divide_eq[OF cnz, where a="x" and b="-?N x e"])
-  from 3 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+  from 3 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real_of_int c"
     by auto
-  with lx xu have yne: "x \<noteq> - ?N x e / real c"
+  with lx xu have yne: "x \<noteq> - ?N x e / real_of_int c"
     by auto
   with pxc show ?case
     by simp
 next
   case (4 c e)
-  then have cp: "real c > 0" and nb: "numbound0 e"
+  then have cp: "real_of_int c > 0" and nb: "numbound0 e"
     by simp_all
-  from cp have cnz: "real c \<noteq> 0"
+  from cp have cnz: "real_of_int c \<noteq> 0"
     by simp
-  from 4 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c"
+  from 4 have noSc:"\<forall>t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real_of_int c"
     by auto
-  with ly yu have yne: "y \<noteq> - ?N x e / real c"
+  with ly yu have yne: "y \<noteq> - ?N x e / real_of_int c"
     by auto
-  then have "y* real c \<noteq> -?N x e"
+  then have "y* real_of_int c \<noteq> -?N x e"
     by (simp only: nonzero_eq_divide_eq[OF cnz, where a="y" and b="-?N x e"]) simp
-  then have "y* real c + ?N x e \<noteq> 0"
+  then have "y* real_of_int c + ?N x e \<noteq> 0"
     by (simp add: algebra_simps)
   then show ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"]
     by (simp add: algebra_simps)
@@ -1947,7 +1947,7 @@ lemma rinf_uset:
     and npi: "\<not> (Ifm (x # bs) (plusinf p))"  (is "\<not> (Ifm (x # bs) (?P p))")
     and ex: "\<exists>x. Ifm (x # bs) p"  (is "\<exists>x. ?I x p")
   shows "\<exists>(l,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p).
-    ?I ((Inum (x#bs) l / real n + Inum (x#bs) s / real m) / 2) p"
+    ?I ((Inum (x#bs) l / real_of_int n + Inum (x#bs) s / real_of_int m) / 2) p"
 proof -
   let ?N = "\<lambda>x t. Inum (x # bs) t"
   let ?U = "set (uset p)"
@@ -1959,22 +1959,22 @@ proof -
   from bound0_I[OF rplusinf_bound0[OF lp], where bs="bs" and b="x" and b'="a"] npi
   have npi': "\<not> (?I a (?P p))"
     by simp
-  have "\<exists>(l,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p). ?I ((?N a l/real n + ?N a s /real m) / 2) p"
+  have "\<exists>(l,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p). ?I ((?N a l/real_of_int n + ?N a s /real_of_int m) / 2) p"
   proof -
-    let ?M = "(\<lambda>(t,c). ?N a t / real c) ` ?U"
+    let ?M = "(\<lambda>(t,c). ?N a t / real_of_int c) ` ?U"
     have fM: "finite ?M"
       by auto
     from rminusinf_uset[OF lp nmi pa] rplusinf_uset[OF lp npi pa]
-    have "\<exists>(l,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p). a \<le> ?N x l / real n \<and> a \<ge> ?N x s / real m"
+    have "\<exists>(l,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p). a \<le> ?N x l / real_of_int n \<and> a \<ge> ?N x s / real_of_int m"
       by blast
     then obtain "t" "n" "s" "m"
       where tnU: "(t,n) \<in> ?U"
         and smU: "(s,m) \<in> ?U"
-        and xs1: "a \<le> ?N x s / real m"
-        and tx1: "a \<ge> ?N x t / real n"
+        and xs1: "a \<le> ?N x s / real_of_int m"
+        and tx1: "a \<ge> ?N x t / real_of_int n"
       by blast
     from uset_l[OF lp] tnU smU numbound0_I[where bs="bs" and b="x" and b'="a"] xs1 tx1
-    have xs: "a \<le> ?N a s / real m" and tx: "a \<ge> ?N a t / real n"
+    have xs: "a \<le> ?N a s / real_of_int m" and tx: "a \<ge> ?N a t / real_of_int n"
       by auto
     from tnU have Mne: "?M \<noteq> {}"
       by auto
@@ -1986,19 +1986,19 @@ proof -
       using fM Mne by simp
     have uinM: "?u \<in> ?M"
       using fM Mne by simp
-    have tnM: "?N a t / real n \<in> ?M"
+    have tnM: "?N a t / real_of_int n \<in> ?M"
       using tnU by auto
-    have smM: "?N a s / real m \<in> ?M"
+    have smM: "?N a s / real_of_int m \<in> ?M"
       using smU by auto
     have lM: "\<forall>t\<in> ?M. ?l \<le> t"
       using Mne fM by auto
     have Mu: "\<forall>t\<in> ?M. t \<le> ?u"
       using Mne fM by auto
-    have "?l \<le> ?N a t / real n"
+    have "?l \<le> ?N a t / real_of_int n"
       using tnM Mne by simp
     then have lx: "?l \<le> a"
       using tx by simp
-    have "?N a s / real m \<le> ?u"
+    have "?N a s / real_of_int m \<le> ?u"
       using smM Mne by simp
     then have xu: "a \<le> ?u"
       using xs by simp
@@ -2010,13 +2010,13 @@ proof -
     proof cases
       case 1
       note um = \<open>u \<in> ?M\<close> and pu = \<open>?I u p\<close>
-      then have "\<exists>(tu,nu) \<in> ?U. u = ?N a tu / real nu"
+      then have "\<exists>(tu,nu) \<in> ?U. u = ?N a tu / real_of_int nu"
         by auto
-      then obtain tu nu where tuU: "(tu, nu) \<in> ?U" and tuu: "u= ?N a tu / real nu"
+      then obtain tu nu where tuU: "(tu, nu) \<in> ?U" and tuu: "u= ?N a tu / real_of_int nu"
         by blast
       have "(u + u) / 2 = u"
         by auto
-      with pu tuu have "?I (((?N a tu / real nu) + (?N a tu / real nu)) / 2) p"
+      with pu tuu have "?I (((?N a tu / real_of_int nu) + (?N a tu / real_of_int nu)) / 2) p"
         by simp
       with tuU show ?thesis by blast
     next
@@ -2024,13 +2024,13 @@ proof -
       note t1M = \<open>t1 \<in> ?M\<close> and t2M = \<open>t2\<in> ?M\<close>
         and noM = \<open>\<forall>y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> ?M\<close>
         and t1x = \<open>t1 < a\<close> and xt2 = \<open>a < t2\<close> and px = \<open>?I a p\<close>
-      from t1M have "\<exists>(t1u,t1n) \<in> ?U. t1 = ?N a t1u / real t1n"
+      from t1M have "\<exists>(t1u,t1n) \<in> ?U. t1 = ?N a t1u / real_of_int t1n"
         by auto
-      then obtain t1u t1n where t1uU: "(t1u, t1n) \<in> ?U" and t1u: "t1 = ?N a t1u / real t1n"
+      then obtain t1u t1n where t1uU: "(t1u, t1n) \<in> ?U" and t1u: "t1 = ?N a t1u / real_of_int t1n"
         by blast
-      from t2M have "\<exists>(t2u,t2n) \<in> ?U. t2 = ?N a t2u / real t2n"
+      from t2M have "\<exists>(t2u,t2n) \<in> ?U. t2 = ?N a t2u / real_of_int t2n"
         by auto
-      then obtain t2u t2n where t2uU: "(t2u, t2n) \<in> ?U" and t2u: "t2 = ?N a t2u / real t2n"
+      then obtain t2u t2n where t2uU: "(t2u, t2n) \<in> ?U" and t2u: "t2 = ?N a t2u / real_of_int t2n"
         by blast
       from t1x xt2 have t1t2: "t1 < t2"
         by simp
@@ -2043,13 +2043,13 @@ proof -
     qed
   qed
   then obtain l n s m where lnU: "(l, n) \<in> ?U" and smU:"(s, m) \<in> ?U"
-    and pu: "?I ((?N a l / real n + ?N a s / real m) / 2) p"
+    and pu: "?I ((?N a l / real_of_int n + ?N a s / real_of_int m) / 2) p"
     by blast
   from lnU smU uset_l[OF lp] have nbl: "numbound0 l" and nbs: "numbound0 s"
     by auto
   from numbound0_I[OF nbl, where bs="bs" and b="a" and b'="x"]
     numbound0_I[OF nbs, where bs="bs" and b="a" and b'="x"] pu
-  have "?I ((?N x l / real n + ?N x s / real m) / 2) p"
+  have "?I ((?N x l / real_of_int n + ?N x s / real_of_int m) / 2) p"
     by simp
   with lnU smU show ?thesis
     by auto
@@ -2063,7 +2063,7 @@ theorem fr_eq:
   shows "(\<exists>x. Ifm (x#bs) p) \<longleftrightarrow>
     Ifm (x # bs) (minusinf p) \<or> Ifm (x # bs) (plusinf p) \<or>
       (\<exists>(t,n) \<in> set (uset p). \<exists>(s,m) \<in> set (uset p).
-        Ifm ((((Inum (x # bs) t) / real n + (Inum (x # bs) s) / real m) / 2) # bs) p)"
+        Ifm ((((Inum (x # bs) t) / real_of_int n + (Inum (x # bs) s) / real_of_int m) / 2) # bs) p)"
   (is "(\<exists>x. ?I x p) \<longleftrightarrow> (?M \<or> ?P \<or> ?F)" is "?E = ?D")
 proof
   assume px: "\<exists>x. ?I x p"
@@ -2111,23 +2111,23 @@ proof
     then show ?thesis by blast
   next
     case 2
-    let ?f = "\<lambda>(t,n). Inum (x # bs) t / real n"
+    let ?f = "\<lambda>(t,n). Inum (x # bs) t / real_of_int n"
     let ?N = "\<lambda>t. Inum (x # bs) t"
     {
       fix t n s m
       assume "(t, n) \<in> set (uset p)" and "(s, m) \<in> set (uset p)"
       with uset_l[OF lp] have tnb: "numbound0 t"
-        and np: "real n > 0" and snb: "numbound0 s" and mp: "real m > 0"
+        and np: "real_of_int n > 0" and snb: "numbound0 s" and mp: "real_of_int m > 0"
         by auto
       let ?st = "Add (Mul m t) (Mul n s)"
-      from np mp have mnp: "real (2 * n * m) > 0"
+      from np mp have mnp: "real_of_int (2 * n * m) > 0"
         by (simp add: mult.commute)
       from tnb snb have st_nb: "numbound0 ?st"
         by simp
-      have st: "(?N t / real n + ?N s / real m) / 2 = ?N ?st / real (2 * n * m)"
+      have st: "(?N t / real_of_int n + ?N s / real_of_int m) / 2 = ?N ?st / real_of_int (2 * n * m)"
         using mnp mp np by (simp add: algebra_simps add_divide_distrib)
       from usubst_I[OF lp mnp st_nb, where x="x" and bs="bs"]
-      have "?I x (usubst p (?st, 2 * n * m)) = ?I ((?N t / real n + ?N s / real m) / 2) p"
+      have "?I x (usubst p (?st, 2 * n * m)) = ?I ((?N t / real_of_int n + ?N s / real_of_int m) / 2) p"
         by (simp only: st[symmetric])
     }
     with rinf_uset[OF lp 2 px] have ?F
@@ -2149,11 +2149,11 @@ next
     from rplusinf_ex[OF lp this] show ?thesis .
   next
     case 3
-    with uset_l[OF lp] have tnb: "numbound0 t" and np: "real k > 0"
-      and snb: "numbound0 s" and mp: "real l > 0"
+    with uset_l[OF lp] have tnb: "numbound0 t" and np: "real_of_int k > 0"
+      and snb: "numbound0 s" and mp: "real_of_int l > 0"
       by auto
     let ?st = "Add (Mul l t) (Mul k s)"
-    from np mp have mnp: "real (2 * k * l) > 0"
+    from np mp have mnp: "real_of_int (2 * k * l) > 0"
       by (simp add: mult.commute)
     from tnb snb have st_nb: "numbound0 ?st"
       by simp
@@ -2182,9 +2182,9 @@ where
 
 lemma uset_cong_aux:
   assumes Ul: "\<forall>(t,n) \<in> set U. numbound0 t \<and> n > 0"
-  shows "((\<lambda>(t,n). Inum (x # bs) t / real n) `
+  shows "((\<lambda>(t,n). Inum (x # bs) t / real_of_int n) `
     (set (map (\<lambda>((t,n),(s,m)). (Add (Mul m t) (Mul n s), 2 * n * m)) (alluopairs U)))) =
-    ((\<lambda>((t,n),(s,m)). (Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2) ` (set U \<times> set U))"
+    ((\<lambda>((t,n),(s,m)). (Inum (x # bs) t / real_of_int n + Inum (x # bs) s / real_of_int m) / 2) ` (set U \<times> set U))"
   (is "?lhs = ?rhs")
 proof auto
   fix t n s m
@@ -2197,10 +2197,10 @@ proof auto
     by auto
   from Ul th have nnz: "n \<noteq> 0"
     by auto
-  have st: "(?N t / real n + ?N s / real m) / 2 = ?N ?st / real (2 * n * m)"
+  have st: "(?N t / real_of_int n + ?N s / real_of_int m) / 2 = ?N ?st / real_of_int (2 * n * m)"
     using mnz nnz by (simp add: algebra_simps add_divide_distrib)
-  then show "(real m *  Inum (x # bs) t + real n * Inum (x # bs) s) / (2 * real n * real m)
-      \<in> (\<lambda>((t, n), s, m). (Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2) `
+  then show "(real_of_int m *  Inum (x # bs) t + real_of_int n * Inum (x # bs) s) / (2 * real_of_int n * real_of_int m)
+      \<in> (\<lambda>((t, n), s, m). (Inum (x # bs) t / real_of_int n + Inum (x # bs) s / real_of_int m) / 2) `
          (set U \<times> set U)"
     using mnz nnz th
     apply (auto simp add: th add_divide_distrib algebra_simps split_def image_def)
@@ -2218,10 +2218,10 @@ next
     by auto
   from Ul tnU have nnz: "n \<noteq> 0"
     by auto
-  have st: "(?N t / real n + ?N s / real m) / 2 = ?N ?st / real (2 * n * m)"
+  have st: "(?N t / real_of_int n + ?N s / real_of_int m) / 2 = ?N ?st / real_of_int (2 * n * m)"
     using mnz nnz by (simp add: algebra_simps add_divide_distrib)
-  let ?P = "\<lambda>(t',n') (s',m'). (Inum (x # bs) t / real n + Inum (x # bs) s / real m)/2 =
-    (Inum (x # bs) t' / real n' + Inum (x # bs) s' / real m') / 2"
+  let ?P = "\<lambda>(t',n') (s',m'). (Inum (x # bs) t / real_of_int n + Inum (x # bs) s / real_of_int m)/2 =
+    (Inum (x # bs) t' / real_of_int n' + Inum (x # bs) s' / real_of_int m') / 2"
   have Pc:"\<forall>a b. ?P a b = ?P b a"
     by auto
   from Ul alluopairs_set1 have Up:"\<forall>((t,n),(s,m)) \<in> set (alluopairs U). n \<noteq> 0 \<and> m \<noteq> 0"
@@ -2235,24 +2235,24 @@ next
   from ts'_U Up have mnz': "m' \<noteq> 0" and nnz': "n'\<noteq> 0"
     by auto
   let ?st' = "Add (Mul m' t') (Mul n' s')"
-  have st': "(?N t' / real n' + ?N s' / real m') / 2 = ?N ?st' / real (2 * n' * m')"
+  have st': "(?N t' / real_of_int n' + ?N s' / real_of_int m') / 2 = ?N ?st' / real_of_int (2 * n' * m')"
     using mnz' nnz' by (simp add: algebra_simps add_divide_distrib)
-  from Pts' have "(Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2 =
-    (Inum (x # bs) t' / real n' + Inum (x # bs) s' / real m') / 2"
+  from Pts' have "(Inum (x # bs) t / real_of_int n + Inum (x # bs) s / real_of_int m) / 2 =
+    (Inum (x # bs) t' / real_of_int n' + Inum (x # bs) s' / real_of_int m') / 2"
     by simp
-  also have "\<dots> = (\<lambda>(t, n). Inum (x # bs) t / real n)
+  also have "\<dots> = (\<lambda>(t, n). Inum (x # bs) t / real_of_int n)
       ((\<lambda>((t, n), s, m). (Add (Mul m t) (Mul n s), 2 * n * m)) ((t', n'), (s', m')))"
     by (simp add: st')
-  finally show "(Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2
-    \<in> (\<lambda>(t, n). Inum (x # bs) t / real n) `
+  finally show "(Inum (x # bs) t / real_of_int n + Inum (x # bs) s / real_of_int m) / 2
+    \<in> (\<lambda>(t, n). Inum (x # bs) t / real_of_int n) `
       (\<lambda>((t, n), s, m). (Add (Mul m t) (Mul n s), 2 * n * m)) ` set (alluopairs U)"
     using ts'_U by blast
 qed
 
 lemma uset_cong:
   assumes lp: "isrlfm p"
-    and UU': "((\<lambda>(t,n). Inum (x # bs) t / real n) ` U') =
-      ((\<lambda>((t,n),(s,m)). (Inum (x # bs) t / real n + Inum (x # bs) s / real m) / 2) ` (U \<times> U))"
+    and UU': "((\<lambda>(t,n). Inum (x # bs) t / real_of_int n) ` U') =
+      ((\<lambda>((t,n),(s,m)). (Inum (x # bs) t / real_of_int n + Inum (x # bs) s / real_of_int m) / 2) ` (U \<times> U))"
       (is "?f ` U' = ?g ` (U \<times> U)")
     and U: "\<forall>(t,n) \<in> U. numbound0 t \<and> n > 0"
     and U': "\<forall>(t,n) \<in> U'. numbound0 t \<and> n > 0"
@@ -2270,11 +2270,11 @@ proof
       and snb: "numbound0 s" and mp: "m > 0"
       by auto
     let ?st = "Add (Mul m t) (Mul n s)"
-    from np mp have mnp: "real (2 * n * m) > 0"
-      by (simp add: mult.commute real_of_int_mult[symmetric] del: real_of_int_mult)
+    from np mp have mnp: "real_of_int (2 * n * m) > 0"
+      by (simp add: mult.commute of_int_mult[symmetric] del: of_int_mult)
     from tnb snb have stnb: "numbound0 ?st"
       by simp
-    have st: "(?N t / real n + ?N s / real m) / 2 = ?N ?st / real (2 * n * m)"
+    have st: "(?N t / real_of_int n + ?N s / real_of_int m) / 2 = ?N ?st / real_of_int (2 * n * m)"
       using mp np by (simp add: algebra_simps add_divide_distrib)
     from tnU smU UU' have "?g ((t, n), (s, m)) \<in> ?f ` U'"
       by blast
@@ -2285,10 +2285,10 @@ proof
       done
     then obtain t' n' where tnU': "(t',n') \<in> U'" and th: "?g ((t, n), (s, m)) = ?f (t', n')"
       by blast
-    from U' tnU' have tnb': "numbound0 t'" and np': "real n' > 0"
+    from U' tnU' have tnb': "numbound0 t'" and np': "real_of_int n' > 0"
       by auto
     from usubst_I[OF lp mnp stnb, where bs="bs" and x="x"] Pst
-    have Pst2: "Ifm (Inum (x # bs) (Add (Mul m t) (Mul n s)) / real (2 * n * m) # bs) p"
+    have Pst2: "Ifm (Inum (x # bs) (Add (Mul m t) (Mul n s)) / real_of_int (2 * n * m) # bs) p"
       by simp
     from conjunct1[OF usubst_I[OF lp np' tnb', where bs="bs" and x="x"], symmetric]
       th[simplified split_def fst_conv snd_conv,symmetric] Pst2[simplified st[symmetric]]
@@ -2316,17 +2316,17 @@ proof
       and snb: "numbound0 s" and mp: "m > 0"
       by auto
     let ?st = "Add (Mul m t) (Mul n s)"
-    from np mp have mnp: "real (2 * n * m) > 0"
-      by (simp add: mult.commute real_of_int_mult[symmetric] del: real_of_int_mult)
+    from np mp have mnp: "real_of_int (2 * n * m) > 0"
+      by (simp add: mult.commute of_int_mult[symmetric] del: of_int_mult)
     from tnb snb have stnb: "numbound0 ?st"
       by simp
-    have st: "(?N t / real n + ?N s / real m) / 2 = ?N ?st / real (2 * n * m)"
+    have st: "(?N t / real_of_int n + ?N s / real_of_int m) / 2 = ?N ?st / real_of_int (2 * n * m)"
       using mp np by (simp add: algebra_simps add_divide_distrib)
-    from U' tnU' have tnb': "numbound0 t'" and np': "real n' > 0"
+    from U' tnU' have tnb': "numbound0 t'" and np': "real_of_int n' > 0"
       by auto
     from usubst_I[OF lp np' tnb', where bs="bs" and x="x",simplified
       th[simplified split_def fst_conv snd_conv] st] Pt'
-    have Pst2: "Ifm (Inum (x # bs) (Add (Mul m t) (Mul n s)) / real (2 * n * m) # bs) p"
+    have Pst2: "Ifm (Inum (x # bs) (Add (Mul m t) (Mul n s)) / real_of_int (2 * n * m) # bs) p"
       by simp
     with usubst_I[OF lp mnp stnb, where x="x" and bs="bs"] tnU smU
     show ?thesis by blast
@@ -2348,8 +2348,8 @@ proof -
   let ?S = "map ?g ?Up"
   let ?SS = "map simp_num_pair ?S"
   let ?Y = "remdups ?SS"
-  let ?f = "\<lambda>(t,n). ?N t / real n"
-  let ?h = "\<lambda>((t,n),(s,m)). (?N t / real n + ?N s / real m) / 2"
+  let ?f = "\<lambda>(t,n). ?N t / real_of_int n"
+  let ?h = "\<lambda>((t,n),(s,m)). (?N t / real_of_int n + ?N s / real_of_int m) / 2"
   let ?F = "\<lambda>p. \<exists>a \<in> set (uset p). \<exists>b \<in> set (uset p). ?I x (usubst p (?g (a, b)))"
   let ?ep = "evaldjf (simpfm \<circ> (usubst ?q)) ?Y"
   from rlfm_I[OF simpfm_qf[OF qf]] have lq: "isrlfm ?q"
@@ -2403,7 +2403,7 @@ proof -
   proof -
     have "bound0 (simpfm (usubst ?q (t, n)))" if tnY: "(t,n) \<in> set ?Y" for t n
     proof -
-      from Y_l that have tnb: "numbound0 t" and np: "real n > 0"
+      from Y_l that have tnb: "numbound0 t" and np: "real_of_int n > 0"
         by auto
       from usubst_I[OF lq np tnb] have "bound0 (usubst ?q (t, n))"
         by simp
@@ -2464,8 +2464,8 @@ val mk_C = @{code C} o @{code int_of_integer};
 val mk_Bound = @{code Bound} o @{code nat_of_integer};
 
 fun num_of_term vs (Free vT) = mk_Bound (find_index (fn vT' => vT = vT') vs)
-  | num_of_term vs @{term "real (0::int)"} = mk_C 0
-  | num_of_term vs @{term "real (1::int)"} = mk_C 1
+  | num_of_term vs @{term "real_of_int (0::int)"} = mk_C 0
+  | num_of_term vs @{term "real_of_int (1::int)"} = mk_C 1
   | num_of_term vs @{term "0::real"} = mk_C 0
   | num_of_term vs @{term "1::real"} = mk_C 1
   | num_of_term vs (Bound i) = mk_Bound i
@@ -2477,7 +2477,7 @@ fun num_of_term vs (Free vT) = mk_Bound (find_index (fn vT' => vT = vT') vs)
   | num_of_term vs (@{term "op * :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) = (case num_of_term vs t1
      of @{code C} i => @{code Mul} (i, num_of_term vs t2)
       | _ => error "num_of_term: unsupported multiplication")
-  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ t') =
+  | num_of_term vs (@{term "real_of_int :: int \<Rightarrow> real"} $ t') =
      (mk_C (snd (HOLogic.dest_number t'))
        handle TERM _ => error ("num_of_term: unknown term"))
   | num_of_term vs t' =
@@ -2504,7 +2504,7 @@ fun fm_of_term vs @{term True} = @{code T}
       @{code A} (fm_of_term (("", dummyT) ::  vs) p)
   | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term @{context} t);
 
-fun term_of_num vs (@{code C} i) = @{term "real :: int \<Rightarrow> real"} $
+fun term_of_num vs (@{code C} i) = @{term "real_of_int :: int \<Rightarrow> real"} $
       HOLogic.mk_number HOLogic.intT (@{code integer_of_int} i)
   | term_of_num vs (@{code Bound} n) = Free (nth vs (@{code integer_of_nat} n))
   | term_of_num vs (@{code Neg} t') = @{term "uminus :: real \<Rightarrow> real"} $ term_of_num vs t'

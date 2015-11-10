@@ -760,10 +760,9 @@ lemma less_RealD:
   shows "x < Real Y \<Longrightarrow> \<exists>n. x < of_rat (Y n)"
 by (erule contrapos_pp, simp add: not_less, erule Real_leI [OF Y])
 
-lemma of_nat_less_two_power:
+lemma of_nat_less_two_power [simp]:
   "of_nat n < (2::'a::linordered_idom) ^ n"
-apply (induct n)
-apply simp
+apply (induct n, simp)
 by (metis add_le_less_mono mult_2 of_nat_Suc one_le_numeral one_le_power power_Suc)
 
 lemma complete_real:
@@ -995,6 +994,11 @@ where
   "real_of_nat \<equiv> of_nat"
 
 abbreviation
+  real :: "nat \<Rightarrow> real"
+where
+  "real \<equiv> of_nat"
+
+abbreviation
   real_of_int :: "int \<Rightarrow> real"
 where
   "real_of_int \<equiv> of_int"
@@ -1004,30 +1008,11 @@ abbreviation
 where
   "real_of_rat \<equiv> of_rat"
 
-class real_of =
-  fixes real :: "'a \<Rightarrow> real"
-
-instantiation nat :: real_of
-begin
-
-definition real_nat :: "nat \<Rightarrow> real" where real_of_nat_def [code_unfold]: "real \<equiv> of_nat"
-
-instance ..
-end
-
-instantiation int :: real_of
-begin
-
-definition real_int :: "int \<Rightarrow> real" where real_of_int_def [code_unfold]: "real \<equiv> of_int"
-
-instance ..
-end
-
 declare [[coercion_enabled]]
 
 declare [[coercion "of_nat :: nat \<Rightarrow> int"]]
-declare [[coercion "real   :: nat \<Rightarrow> real"]]
-declare [[coercion "real   :: int \<Rightarrow> real"]]
+declare [[coercion "of_nat :: nat \<Rightarrow> real"]]
+declare [[coercion "of_int :: int \<Rightarrow> real"]]
 
 (* We do not add rat to the coerced types, this has often unpleasant side effects when writing
 inverse (Suc n) which sometimes gets two coercions: of_rat (inverse (of_nat (Suc n))) *)
@@ -1036,105 +1021,40 @@ declare [[coercion_map map]]
 declare [[coercion_map "\<lambda>f g h x. g (h (f x))"]]
 declare [[coercion_map "\<lambda>f g (x,y). (f x, g y)"]]
 
-lemma real_eq_of_nat: "real = of_nat"
-  unfolding real_of_nat_def ..
+declare of_int_eq_0_iff [algebra, presburger]
+declare of_int_eq_iff [iff, algebra, presburger] (*FIXME*)
+declare of_int_eq_iff [iff, algebra, presburger] (*FIXME*)
+declare of_int_less_iff [iff, algebra, presburger] (*FIXME*)
+declare of_int_le_iff [iff, algebra, presburger] (*FIXME*)
 
-lemma real_eq_of_int: "real = of_int"
-  unfolding real_of_int_def ..
+declare of_int_0_less_iff [presburger]
+declare of_int_0_le_iff [presburger]
+declare of_int_less_0_iff [presburger]
+declare of_int_le_0_iff [presburger]
 
-lemma real_of_int_zero [simp]: "real (0::int) = 0"
-by (simp add: real_of_int_def)
+lemma real_of_int_abs [simp]: "real_of_int (abs x) = abs(real_of_int x)"
+  by (auto simp add: abs_if)
 
-lemma real_of_one [simp]: "real (1::int) = (1::real)"
-by (simp add: real_of_int_def)
+lemma int_less_real_le: "(n < m) = (real_of_int n + 1 <= real_of_int m)"
+proof -
+  have "(0::real) \<le> 1"
+    by (metis less_eq_real_def zero_less_one)
+  thus ?thesis
+    by (metis floor_unique less_add_one less_imp_le not_less of_int_le_iff order_trans)
+qed
 
-lemma real_of_int_add [simp]: "real(x + y) = real (x::int) + real y"
-by (simp add: real_of_int_def)
+lemma int_le_real_less: "(n \<le> m) = (real_of_int n < real_of_int m + 1)"
+  by (meson int_less_real_le not_le)
 
-lemma real_of_int_minus [simp]: "real(-x) = -real (x::int)"
-by (simp add: real_of_int_def)
 
-lemma real_of_int_diff [simp]: "real(x - y) = real (x::int) - real y"
-by (simp add: real_of_int_def)
-
-lemma real_of_int_mult [simp]: "real(x * y) = real (x::int) * real y"
-by (simp add: real_of_int_def)
-
-lemma real_of_int_power [simp]: "real (x ^ n) = real (x::int) ^ n"
-by (simp add: real_of_int_def of_int_power)
-
-lemmas power_real_of_int = real_of_int_power [symmetric]
-
-lemma real_of_int_setsum [simp]: "real ((SUM x:A. f x)::int) = (SUM x:A. real(f x))"
-  apply (subst real_eq_of_int)+
-  apply (rule of_int_setsum)
-done
-
-lemma real_of_int_setprod [simp]: "real ((PROD x:A. f x)::int) =
-    (PROD x:A. real(f x))"
-  apply (subst real_eq_of_int)+
-  apply (rule of_int_setprod)
-done
-
-lemma real_of_int_zero_cancel [simp, algebra, presburger]: "(real x = 0) = (x = (0::int))"
-by (simp add: real_of_int_def)
-
-lemma real_of_int_inject [iff, algebra, presburger]: "(real (x::int) = real y) = (x = y)"
-by (simp add: real_of_int_def)
-
-lemma real_of_int_less_iff [iff, presburger]: "(real (x::int) < real y) = (x < y)"
-by (simp add: real_of_int_def)
-
-lemma real_of_int_le_iff [simp, presburger]: "(real (x::int) \<le> real y) = (x \<le> y)"
-by (simp add: real_of_int_def)
-
-lemma real_of_int_gt_zero_cancel_iff [simp, presburger]: "(0 < real (n::int)) = (0 < n)"
-by (simp add: real_of_int_def)
-
-lemma real_of_int_ge_zero_cancel_iff [simp, presburger]: "(0 <= real (n::int)) = (0 <= n)"
-by (simp add: real_of_int_def)
-
-lemma real_of_int_lt_zero_cancel_iff [simp, presburger]: "(real (n::int) < 0) = (n < 0)"
-by (simp add: real_of_int_def)
-
-lemma real_of_int_le_zero_cancel_iff [simp, presburger]: "(real (n::int) <= 0) = (n <= 0)"
-by (simp add: real_of_int_def)
-
-lemma one_less_real_of_int_cancel_iff: "1 < real (i :: int) \<longleftrightarrow> 1 < i"
-  unfolding real_of_one[symmetric] real_of_int_less_iff ..
-
-lemma one_le_real_of_int_cancel_iff: "1 \<le> real (i :: int) \<longleftrightarrow> 1 \<le> i"
-  unfolding real_of_one[symmetric] real_of_int_le_iff ..
-
-lemma real_of_int_less_one_cancel_iff: "real (i :: int) < 1 \<longleftrightarrow> i < 1"
-  unfolding real_of_one[symmetric] real_of_int_less_iff ..
-
-lemma real_of_int_le_one_cancel_iff: "real (i :: int) \<le> 1 \<longleftrightarrow> i \<le> 1"
-  unfolding real_of_one[symmetric] real_of_int_le_iff ..
-
-lemma real_of_int_abs [simp]: "real (abs x) = abs(real (x::int))"
-by (auto simp add: abs_if)
-
-lemma int_less_real_le: "((n::int) < m) = (real n + 1 <= real m)"
-  apply (subgoal_tac "real n + 1 = real (n + 1)")
-  apply (simp del: real_of_int_add)
-  apply auto
-done
-
-lemma int_le_real_less: "((n::int) <= m) = (real n < real m + 1)"
-  apply (subgoal_tac "real m + 1 = real (m + 1)")
-  apply (simp del: real_of_int_add)
-  apply simp
-done
-
-lemma real_of_int_div_aux: "(real (x::int)) / (real d) =
-    real (x div d) + (real (x mod d)) / (real d)"
+lemma real_of_int_div_aux: "(real_of_int x) / (real_of_int d) =
+    real_of_int (x div d) + (real_of_int (x mod d)) / (real_of_int d)"
 proof -
   have "x = (x div d) * d + x mod d"
     by auto
-  then have "real x = real (x div d) * real d + real(x mod d)"
-    by (simp only: real_of_int_mult [THEN sym] real_of_int_add [THEN sym])
-  then have "real x / real d = ... / real d"
+  then have "real_of_int x = real_of_int (x div d) * real_of_int d + real_of_int(x mod d)"
+    by (metis of_int_add of_int_mult)
+  then have "real_of_int x / real_of_int d = ... / real_of_int d"
     by simp
   then show ?thesis
     by (auto simp add: add_divide_distrib algebra_simps)
@@ -1142,133 +1062,73 @@ qed
 
 lemma real_of_int_div:
   fixes d n :: int
-  shows "d dvd n \<Longrightarrow> real (n div d) = real n / real d"
+  shows "d dvd n \<Longrightarrow> real_of_int (n div d) = real_of_int n / real_of_int d"
   by (simp add: real_of_int_div_aux)
 
 lemma real_of_int_div2:
-  "0 <= real (n::int) / real (x) - real (n div x)"
-  apply (case_tac "x = 0")
-  apply simp
+  "0 <= real_of_int n / real_of_int x - real_of_int (n div x)"
+  apply (case_tac "x = 0", simp)
   apply (case_tac "0 < x")
-  apply (simp add: algebra_simps)
-  apply (subst real_of_int_div_aux)
-  apply simp
-  apply (simp add: algebra_simps)
-  apply (subst real_of_int_div_aux)
-  apply simp
-  apply (subst zero_le_divide_iff)
-  apply auto
-done
+   apply (metis add.left_neutral floor_correct floor_divide_of_int_eq le_diff_eq)
+  apply (metis add.left_neutral floor_correct floor_divide_of_int_eq le_diff_eq)
+  done
 
 lemma real_of_int_div3:
-  "real (n::int) / real (x) - real (n div x) <= 1"
+  "real_of_int (n::int) / real_of_int (x) - real_of_int (n div x) <= 1"
   apply (simp add: algebra_simps)
   apply (subst real_of_int_div_aux)
   apply (auto simp add: divide_le_eq intro: order_less_imp_le)
 done
 
-lemma real_of_int_div4: "real (n div x) <= real (n::int) / real x"
+lemma real_of_int_div4: "real_of_int (n div x) <= real_of_int (n::int) / real_of_int x"
 by (insert real_of_int_div2 [of n x], simp)
-
-lemma Ints_real_of_int [simp]: "real (x::int) \<in> \<int>"
-unfolding real_of_int_def by (rule Ints_of_int)
 
 
 subsection\<open>Embedding the Naturals into the Reals\<close>
 
-lemma real_of_nat_zero [simp]: "real (0::nat) = 0"
-by (simp add: real_of_nat_def)
+declare of_nat_less_iff [iff] (*FIXME*)
+declare of_nat_le_iff [iff] (*FIXME*)
+declare of_nat_0_le_iff [iff] (*FIXME*)
+declare of_nat_less_iff [iff] (*FIXME*)
+declare of_nat_less_iff [iff] (*FIXME*)
 
-lemma real_of_nat_1 [simp]: "real (1::nat) = 1"
-by (simp add: real_of_nat_def)
+lemma real_of_nat_Suc_gt_zero: "0 < real (Suc n)"  (*NEEDED?*)
+   using of_nat_0_less_iff by blast
 
-lemma real_of_nat_one [simp]: "real (Suc 0) = (1::real)"
-by (simp add: real_of_nat_def)
+declare of_nat_mult [simp] (*FIXME*)
+declare of_nat_power [simp] (*FIXME*)
 
-lemma real_of_nat_add [simp]: "real (m + n) = real (m::nat) + real n"
-by (simp add: real_of_nat_def)
+lemmas power_real_of_nat = of_nat_power [symmetric]
 
-lemma real_of_nat_Suc [simp]: "real (Suc n) = real n + (1::real)"
-by (simp add: real_of_nat_def)
+declare of_nat_setsum [simp] (*FIXME*)
+declare of_nat_setprod [simp] (*FIXME*)
 
-lemma real_of_nat_less_iff [iff]:
-     "(real (n::nat) < real m) = (n < m)"
-by (simp add: real_of_nat_def)
+lemma real_of_card: "real (card A) = setsum (\<lambda>x.1) A"
+  by simp
 
-lemma real_of_nat_le_iff [iff]: "(real (n::nat) \<le> real m) = (n \<le> m)"
-by (simp add: real_of_nat_def)
+declare of_nat_eq_iff [iff] (*FIXME*)
+declare of_nat_eq_0_iff [iff] (*FIXME*)
 
-lemma real_of_nat_ge_zero [iff]: "0 \<le> real (n::nat)"
-by (simp add: real_of_nat_def)
-
-lemma real_of_nat_Suc_gt_zero: "0 < real (Suc n)"
-by (simp add: real_of_nat_def del: of_nat_Suc)
-
-lemma real_of_nat_mult [simp]: "real (m * n) = real (m::nat) * real n"
-by (simp add: real_of_nat_def of_nat_mult)
-
-lemma real_of_nat_power [simp]: "real (m ^ n) = real (m::nat) ^ n"
-by (simp add: real_of_nat_def of_nat_power)
-
-lemmas power_real_of_nat = real_of_nat_power [symmetric]
-
-lemma real_of_nat_setsum [simp]: "real ((SUM x:A. f x)::nat) =
-    (SUM x:A. real(f x))"
-  apply (subst real_eq_of_nat)+
-  apply (rule of_nat_setsum)
-done
-
-lemma real_of_nat_setprod [simp]: "real ((PROD x:A. f x)::nat) =
-    (PROD x:A. real(f x))"
-  apply (subst real_eq_of_nat)+
-  apply (rule of_nat_setprod)
-done
-
-lemma real_of_card: "real (card A) = setsum (%x.1) A"
-  apply (subst card_eq_setsum)
-  apply (subst real_of_nat_setsum)
-  apply simp
-done
-
-lemma real_of_nat_inject [iff]: "(real (n::nat) = real m) = (n = m)"
-by (simp add: real_of_nat_def)
-
-lemma real_of_nat_zero_iff [iff]: "(real (n::nat) = 0) = (n = 0)"
-by (simp add: real_of_nat_def)
-
-lemma real_of_nat_diff: "n \<le> m ==> real (m - n) = real (m::nat) - real n"
-by (simp add: add: real_of_nat_def of_nat_diff)
-
-lemma real_of_nat_gt_zero_cancel_iff [simp]: "(0 < real (n::nat)) = (0 < n)"
-by (auto simp: real_of_nat_def)
-
-lemma real_of_nat_le_zero_cancel_iff [simp]: "(real (n::nat) \<le> 0) = (n = 0)"
-by (simp add: add: real_of_nat_def)
-
-lemma not_real_of_nat_less_zero [simp]: "~ real (n::nat) < 0"
-by (simp add: add: real_of_nat_def)
-
-lemma nat_less_real_le: "((n::nat) < m) = (real n + 1 <= real m)"
-by (metis discrete real_of_nat_1 real_of_nat_add real_of_nat_le_iff)
+lemma nat_less_real_le: "(n < m) = (real n + 1 \<le> real m)"
+  by (metis discrete of_nat_1 of_nat_add of_nat_le_iff)
 
 lemma nat_le_real_less: "((n::nat) <= m) = (real n < real m + 1)"
   by (meson nat_less_real_le not_le)
 
-lemma real_of_nat_div_aux: "(real (x::nat)) / (real d) =
+lemma real_of_nat_div_aux: "(real x) / (real d) =
     real (x div d) + (real (x mod d)) / (real d)"
 proof -
   have "x = (x div d) * d + x mod d"
     by auto
   then have "real x = real (x div d) * real d + real(x mod d)"
-    by (simp only: real_of_nat_mult [THEN sym] real_of_nat_add [THEN sym])
+    by (metis of_nat_add of_nat_mult)
   then have "real x / real d = \<dots> / real d"
     by simp
   then show ?thesis
     by (auto simp add: add_divide_distrib algebra_simps)
 qed
 
-lemma real_of_nat_div: "(d :: nat) dvd n ==>
-    real(n div d) = real n / real d"
+lemma real_of_nat_div: "d dvd n \<Longrightarrow> real(n div d) = real n / real d"
   by (subst real_of_nat_div_aux)
     (auto simp add: dvd_eq_mod_eq_0 [symmetric])
 
@@ -1291,85 +1151,63 @@ done
 lemma real_of_nat_div4: "real (n div x) <= real (n::nat) / real x"
 by (insert real_of_nat_div2 [of n x], simp)
 
-lemma real_of_int_of_nat_eq [simp]: "real (of_nat n :: int) = real n"
-by (simp add: real_of_int_def real_of_nat_def)
-
-lemma real_nat_eq_real [simp]: "0 <= x ==> real(nat x) = real x"
-  apply (subgoal_tac "real(int(nat x)) = real(nat x)")
-  apply force
-  apply (simp only: real_of_int_of_nat_eq)
-done
-
-lemma Nats_real_of_nat [simp]: "real (n::nat) \<in> \<nat>"
-unfolding real_of_nat_def by (rule of_nat_in_Nats)
-
-lemma Ints_real_of_nat [simp]: "real (n::nat) \<in> \<int>"
-unfolding real_of_nat_def by (rule Ints_of_nat)
+lemma of_nat_nat [simp]: "0 <= x ==> real(nat x) = real x"
+  by force
 
 subsection \<open>The Archimedean Property of the Reals\<close>
 
-theorem reals_Archimedean:
-  assumes x_pos: "0 < x"
-  shows "\<exists>n. inverse (real (Suc n)) < x"
-  unfolding real_of_nat_def using x_pos
-  by (rule ex_inverse_of_nat_Suc_less)
-
-lemma reals_Archimedean2: "\<exists>n. (x::real) < real (n::nat)"
-  unfolding real_of_nat_def by (rule ex_less_of_nat)
+lemmas reals_Archimedean = ex_inverse_of_nat_Suc_less  (*FIXME*)
+lemmas reals_Archimedean2 = ex_less_of_nat
 
 lemma reals_Archimedean3:
   assumes x_greater_zero: "0 < x"
-  shows "\<forall>(y::real). \<exists>(n::nat). y < real n * x"
-  unfolding real_of_nat_def using \<open>0 < x\<close>
-  by (auto intro: ex_less_of_nat_mult)
+  shows "\<forall>y. \<exists>n. y < real n * x"
+  using \<open>0 < x\<close> by (auto intro: ex_less_of_nat_mult)
 
 
 subsection\<open>Rationals\<close>
 
-lemma Rats_real_nat[simp]: "real(n::nat) \<in> \<rat>"
-by (simp add: real_eq_of_nat)
-
 lemma Rats_eq_int_div_int:
-  "\<rat> = { real(i::int)/real(j::int) |i j. j \<noteq> 0}" (is "_ = ?S")
+  "\<rat> = { real_of_int i / real_of_int j |i j. j \<noteq> 0}" (is "_ = ?S")
 proof
   show "\<rat> \<subseteq> ?S"
   proof
     fix x::real assume "x : \<rat>"
     then obtain r where "x = of_rat r" unfolding Rats_def ..
     have "of_rat r : ?S"
-      by (cases r)(auto simp add:of_rat_rat real_eq_of_int)
+      by (cases r) (auto simp add:of_rat_rat)
     thus "x : ?S" using \<open>x = of_rat r\<close> by simp
   qed
 next
   show "?S \<subseteq> \<rat>"
   proof(auto simp:Rats_def)
     fix i j :: int assume "j \<noteq> 0"
-    hence "real i / real j = of_rat(Fract i j)"
-      by (simp add:of_rat_rat real_eq_of_int)
-    thus "real i / real j \<in> range of_rat" by blast
+    hence "real_of_int i / real_of_int j = of_rat(Fract i j)"
+      by (simp add: of_rat_rat)
+    thus "real_of_int i / real_of_int j \<in> range of_rat" by blast
   qed
 qed
 
 lemma Rats_eq_int_div_nat:
-  "\<rat> = { real(i::int)/real(n::nat) |i n. n \<noteq> 0}"
+  "\<rat> = { real_of_int i / real n |i n. n \<noteq> 0}"
 proof(auto simp:Rats_eq_int_div_int)
   fix i j::int assume "j \<noteq> 0"
-  show "EX (i'::int) (n::nat). real i/real j = real i'/real n \<and> 0<n"
+  show "EX (i'::int) (n::nat). real_of_int i / real_of_int j = real_of_int i'/real n \<and> 0<n"
   proof cases
     assume "j>0"
-    hence "real i/real j = real i/real(nat j) \<and> 0<nat j"
-      by (simp add: real_eq_of_int real_eq_of_nat of_nat_nat)
+    hence "real_of_int i / real_of_int j = real_of_int i/real(nat j) \<and> 0<nat j"
+      by (simp add: of_nat_nat)
     thus ?thesis by blast
   next
     assume "~ j>0"
-    hence "real i/real j = real(-i)/real(nat(-j)) \<and> 0<nat(-j)" using \<open>j\<noteq>0\<close>
-      by (simp add: real_eq_of_int real_eq_of_nat of_nat_nat)
+    hence "real_of_int i / real_of_int j = real_of_int(-i) / real(nat(-j)) \<and> 0<nat(-j)" using \<open>j\<noteq>0\<close>
+      by (simp add: of_nat_nat)
     thus ?thesis by blast
   qed
 next
   fix i::int and n::nat assume "0 < n"
-  hence "real i/real n = real i/real(int n) \<and> int n \<noteq> 0" by simp
-  thus "\<exists>(i'::int) j::int. real i/real n = real i'/real j \<and> j \<noteq> 0" by blast
+  hence "real_of_int i / real n = real_of_int i / real_of_int(int n) \<and> int n \<noteq> 0" by simp
+  thus "\<exists>i' j. real_of_int i / real n = real_of_int i' / real_of_int j \<and> j \<noteq> 0" by blast
 qed
 
 lemma Rats_abs_nat_div_natE:
@@ -1377,9 +1215,9 @@ lemma Rats_abs_nat_div_natE:
   obtains m n :: nat
   where "n \<noteq> 0" and "\<bar>x\<bar> = real m / real n" and "gcd m n = 1"
 proof -
-  from \<open>x \<in> \<rat>\<close> obtain i::int and n::nat where "n \<noteq> 0" and "x = real i / real n"
+  from \<open>x \<in> \<rat>\<close> obtain i::int and n::nat where "n \<noteq> 0" and "x = real_of_int i / real n"
     by(auto simp add: Rats_eq_int_div_nat)
-  hence "\<bar>x\<bar> = real(nat(abs i)) / real n" by simp
+  hence "\<bar>x\<bar> = real(nat(abs i)) / real n" by (simp add: of_nat_nat)
   then obtain m :: nat where x_rat: "\<bar>x\<bar> = real m / real n" by blast
   let ?gcd = "gcd m n"
   from \<open>n\<noteq>0\<close> have gcd: "?gcd \<noteq> 0" by simp
@@ -1396,9 +1234,8 @@ proof -
   moreover
   have "\<bar>x\<bar> = real ?k / real ?l"
   proof -
-    from gcd have "real ?k / real ?l =
-      real (?gcd * ?k) / real (?gcd * ?l)"
-      by (simp only: real_of_nat_mult) simp
+    from gcd have "real ?k / real ?l = real (?gcd * ?k) / real (?gcd * ?l)"
+      by (simp add: real_of_nat_div)
     also from gcd_k and gcd_l have "\<dots> = real m / real n" by simp
     also from x_rat have "\<dots> = \<bar>x\<bar>" ..
     finally show ?thesis ..
@@ -1426,7 +1263,7 @@ lemma Rats_dense_in_real:
 proof -
   from \<open>x<y\<close> have "0 < y-x" by simp
   with reals_Archimedean obtain q::nat
-    where q: "inverse (real q) < y-x" and "0 < q" by blast 
+    where q: "inverse (real q) < y-x" and "0 < q" by blast
   def p \<equiv> "ceiling (y * real q) - 1"
   def r \<equiv> "of_int p / real q"
   from q have "x < y - inverse (real q)" by simp
@@ -1452,34 +1289,23 @@ by (auto elim: Rats_cases)
 
 subsection\<open>Numerals and Arithmetic\<close>
 
-lemma [code_abbrev]:
+lemma [code_abbrev]:   (*FIXME*)
   "real_of_int (numeral k) = numeral k"
   "real_of_int (- numeral k) = - numeral k"
   by simp_all
 
-text\<open>Collapse applications of @{const real} to @{const numeral}\<close>
-lemma real_numeral [simp]:
-  "real (numeral v :: int) = numeral v"
-  "real (- numeral v :: int) = - numeral v"
-by (simp_all add: real_of_int_def)
 
-lemma  real_of_nat_numeral [simp]:
-  "real (numeral v :: nat) = numeral v"
-by (simp add: real_of_nat_def)
-
+  (*FIXME*)
 declaration \<open>
-  K (Lin_Arith.add_inj_thms [@{thm real_of_nat_le_iff} RS iffD2, @{thm real_of_nat_inject} RS iffD2]
-    (* not needed because x < (y::nat) can be rewritten as Suc x <= y: real_of_nat_less_iff RS iffD2 *)
-  #> Lin_Arith.add_inj_thms [@{thm real_of_int_le_iff} RS iffD2, @{thm real_of_int_inject} RS iffD2]
-    (* not needed because x < (y::int) can be rewritten as x + 1 <= y: real_of_int_less_iff RS iffD2 *)
-  #> Lin_Arith.add_simps [@{thm real_of_nat_zero}, @{thm real_of_nat_Suc}, @{thm real_of_nat_add},
-      @{thm real_of_nat_mult}, @{thm real_of_int_zero}, @{thm real_of_one},
-      @{thm real_of_int_add}, @{thm real_of_int_minus}, @{thm real_of_int_diff},
-      @{thm real_of_int_mult}, @{thm real_of_int_of_nat_eq},
-      @{thm real_of_nat_numeral}, @{thm real_numeral(1)}, @{thm real_numeral(2)},
-      @{thm real_of_int_def[symmetric]}, @{thm real_of_nat_def[symmetric]}]
-  #> Lin_Arith.add_inj_const (@{const_name real}, @{typ "nat \<Rightarrow> real"})
-  #> Lin_Arith.add_inj_const (@{const_name real}, @{typ "int \<Rightarrow> real"})
+  K (Lin_Arith.add_inj_thms [@{thm of_nat_le_iff} RS iffD2, @{thm of_nat_eq_iff} RS iffD2]
+    (* not needed because x < (y::nat) can be rewritten as Suc x <= y: of_nat_less_iff RS iffD2 *)
+  #> Lin_Arith.add_inj_thms [@{thm of_int_le_iff} RS iffD2, @{thm of_nat_eq_iff} RS iffD2]
+    (* not needed because x < (y::int) can be rewritten as x + 1 <= y: of_int_less_iff RS iffD2 *)
+  #> Lin_Arith.add_simps [@{thm of_nat_0}, @{thm of_nat_Suc}, @{thm of_nat_add},
+      @{thm of_nat_mult}, @{thm of_int_0}, @{thm of_int_1},
+      @{thm of_int_add}, @{thm of_int_minus}, @{thm of_int_diff},
+      @{thm of_int_mult}, @{thm of_int_of_nat_eq},
+      @{thm of_nat_numeral}, @{thm int_numeral}, @{thm of_int_neg_numeral}]
   #> Lin_Arith.add_inj_const (@{const_name of_nat}, @{typ "nat \<Rightarrow> real"})
   #> Lin_Arith.add_inj_const (@{const_name of_int}, @{typ "int \<Rightarrow> real"}))
 \<close>
@@ -1488,10 +1314,6 @@ subsection\<open>Simprules combining x+y and 0: ARE THEY NEEDED?\<close>
 
 lemma real_add_minus_iff [simp]: "(x + - a = (0::real)) = (x=a)"
 by arith
-
-text \<open>FIXME: redundant with @{text add_eq_0_iff} below\<close>
-lemma real_add_eq_0_iff: "(x+y = (0::real)) = (y = -x)"
-by auto
 
 lemma real_add_less_0_iff: "(x+y < (0::real)) = (y < -x)"
 by auto
@@ -1512,53 +1334,41 @@ declare abs_mult_self [simp]
 
 (* used by Import/HOL/real.imp *)
 lemma two_realpow_ge_one: "(1::real) \<le> 2 ^ n"
-by simp
+  by simp
 
-lemma two_realpow_gt [simp]: "real (n::nat) < 2 ^ n"
-  by (simp add: of_nat_less_two_power real_of_nat_def)
-
-text \<open>TODO: no longer real-specific; rename and move elsewhere\<close>
+text \<open>FIXME: no longer real-specific; rename and move elsewhere\<close>
 lemma realpow_Suc_le_self:
   fixes r :: "'a::linordered_semidom"
   shows "[| 0 \<le> r; r \<le> 1 |] ==> r ^ Suc n \<le> r"
 by (insert power_decreasing [of 1 "Suc n" r], simp)
 
-text \<open>TODO: no longer real-specific; rename and move elsewhere\<close>
+text \<open>FIXME: no longer real-specific; rename and move elsewhere\<close>
 lemma realpow_minus_mult:
   fixes x :: "'a::monoid_mult"
   shows "0 < n \<Longrightarrow> x ^ (n - 1) * x = x ^ n"
 by (simp add: power_Suc power_commutes split add: nat_diff_split)
 
 text \<open>FIXME: declare this [simp] for all types, or not at all\<close>
-lemma real_two_squares_add_zero_iff [simp]:
-  "(x * x + y * y = 0) = ((x::real) = 0 \<and> y = 0)"
-by (rule sum_squares_eq_zero_iff)
-
-text \<open>FIXME: declare this [simp] for all types, or not at all\<close>
-lemma realpow_two_sum_zero_iff [simp]:
-     "(x\<^sup>2 + y\<^sup>2 = (0::real)) = (x = 0 & y = 0)"
-by (rule sum_power2_eq_zero_iff)
+declare sum_squares_eq_zero_iff [simp] sum_power2_eq_zero_iff [simp]
 
 lemma real_minus_mult_self_le [simp]: "-(u * u) \<le> (x * (x::real))"
 by (rule_tac y = 0 in order_trans, auto)
 
 lemma realpow_square_minus_le [simp]: "- u\<^sup>2 \<le> (x::real)\<^sup>2"
-by (auto simp add: power2_eq_square)
-
+  by (auto simp add: power2_eq_square)
 
 lemma numeral_power_eq_real_of_int_cancel_iff[simp]:
-  "numeral x ^ n = real (y::int) \<longleftrightarrow> numeral x ^ n = y"
-  by (metis real_numeral(1) real_of_int_inject real_of_int_power)
+     "numeral x ^ n = real_of_int (y::int) \<longleftrightarrow> numeral x ^ n = y"
+  by (metis of_int_eq_iff of_int_numeral of_int_power)
 
 lemma real_of_int_eq_numeral_power_cancel_iff[simp]:
-  "real (y::int) = numeral x ^ n \<longleftrightarrow> y = numeral x ^ n"
+     "real_of_int (y::int) = numeral x ^ n \<longleftrightarrow> y = numeral x ^ n"
   using numeral_power_eq_real_of_int_cancel_iff[of x n y]
   by metis
 
 lemma numeral_power_eq_real_of_nat_cancel_iff[simp]:
-  "numeral x ^ n = real (y::nat) \<longleftrightarrow> numeral x ^ n = y"
-  by (metis of_nat_eq_iff of_nat_numeral real_of_int_eq_numeral_power_cancel_iff
-    real_of_int_of_nat_eq zpower_int)
+     "numeral x ^ n = real (y::nat) \<longleftrightarrow> numeral x ^ n = y"
+  using of_nat_eq_iff by fastforce
 
 lemma real_of_nat_eq_numeral_power_cancel_iff[simp]:
   "real (y::nat) = numeral x ^ n \<longleftrightarrow> y = numeral x ^ n"
@@ -1567,43 +1377,43 @@ lemma real_of_nat_eq_numeral_power_cancel_iff[simp]:
 
 lemma numeral_power_le_real_of_nat_cancel_iff[simp]:
   "(numeral x::real) ^ n \<le> real a \<longleftrightarrow> (numeral x::nat) ^ n \<le> a"
-  unfolding real_of_nat_le_iff[symmetric] by simp
+by (metis of_nat_le_iff of_nat_numeral of_nat_power)
 
 lemma real_of_nat_le_numeral_power_cancel_iff[simp]:
   "real a \<le> (numeral x::real) ^ n \<longleftrightarrow> a \<le> (numeral x::nat) ^ n"
-  unfolding real_of_nat_le_iff[symmetric] by simp
+by (metis of_nat_le_iff of_nat_numeral of_nat_power)
 
 lemma numeral_power_le_real_of_int_cancel_iff[simp]:
-  "(numeral x::real) ^ n \<le> real a \<longleftrightarrow> (numeral x::int) ^ n \<le> a"
-  unfolding real_of_int_le_iff[symmetric] by simp
+    "(numeral x::real) ^ n \<le> real_of_int a \<longleftrightarrow> (numeral x::int) ^ n \<le> a"
+  by (metis ceiling_le_iff ceiling_of_int of_int_numeral of_int_power)
 
 lemma real_of_int_le_numeral_power_cancel_iff[simp]:
-  "real a \<le> (numeral x::real) ^ n \<longleftrightarrow> a \<le> (numeral x::int) ^ n"
-  unfolding real_of_int_le_iff[symmetric] by simp
+    "real_of_int a \<le> (numeral x::real) ^ n \<longleftrightarrow> a \<le> (numeral x::int) ^ n"
+  by (metis floor_of_int le_floor_iff of_int_numeral of_int_power)
 
 lemma numeral_power_less_real_of_nat_cancel_iff[simp]:
-  "(numeral x::real) ^ n < real a \<longleftrightarrow> (numeral x::nat) ^ n < a"
-  unfolding real_of_nat_less_iff[symmetric] by simp
+    "(numeral x::real) ^ n < real a \<longleftrightarrow> (numeral x::nat) ^ n < a"
+  by (metis of_nat_less_iff of_nat_numeral of_nat_power)
 
 lemma real_of_nat_less_numeral_power_cancel_iff[simp]:
   "real a < (numeral x::real) ^ n \<longleftrightarrow> a < (numeral x::nat) ^ n"
-  unfolding real_of_nat_less_iff[symmetric] by simp
+by (metis of_nat_less_iff of_nat_numeral of_nat_power)
 
 lemma numeral_power_less_real_of_int_cancel_iff[simp]:
-  "(numeral x::real) ^ n < real a \<longleftrightarrow> (numeral x::int) ^ n < a"
-  unfolding real_of_int_less_iff[symmetric] by simp
+    "(numeral x::real) ^ n < real_of_int a \<longleftrightarrow> (numeral x::int) ^ n < a"
+  by (meson not_less real_of_int_le_numeral_power_cancel_iff)
 
 lemma real_of_int_less_numeral_power_cancel_iff[simp]:
-  "real a < (numeral x::real) ^ n \<longleftrightarrow> a < (numeral x::int) ^ n"
-  unfolding real_of_int_less_iff[symmetric] by simp
+     "real_of_int a < (numeral x::real) ^ n \<longleftrightarrow> a < (numeral x::int) ^ n"
+  by (meson not_less numeral_power_le_real_of_int_cancel_iff)
 
 lemma neg_numeral_power_le_real_of_int_cancel_iff[simp]:
-  "(- numeral x::real) ^ n \<le> real a \<longleftrightarrow> (- numeral x::int) ^ n \<le> a"
-  unfolding real_of_int_le_iff[symmetric] by simp
+    "(- numeral x::real) ^ n \<le> real_of_int a \<longleftrightarrow> (- numeral x::int) ^ n \<le> a"
+  by (metis of_int_le_iff of_int_neg_numeral of_int_power)
 
 lemma real_of_int_le_neg_numeral_power_cancel_iff[simp]:
-  "real a \<le> (- numeral x::real) ^ n \<longleftrightarrow> a \<le> (- numeral x::int) ^ n"
-  unfolding real_of_int_le_iff[symmetric] by simp
+     "real_of_int a \<le> (- numeral x::real) ^ n \<longleftrightarrow> a \<le> (- numeral x::int) ^ n"
+  by (metis of_int_le_iff of_int_neg_numeral of_int_power)
 
 
 subsection\<open>Density of the Reals\<close>
@@ -1637,9 +1447,6 @@ by (force simp add: abs_le_iff)
 lemma abs_add_one_gt_zero: "(0::real) < 1 + abs(x)"
 by (simp add: abs_if)
 
-lemma abs_real_of_nat_cancel [simp]: "abs (real x) = real (x::nat)"
-by (rule abs_of_nonneg [OF real_of_nat_ge_zero])
-
 lemma abs_add_one_not_less_self: "~ abs(x) + (1::real) < x"
 by simp
 
@@ -1649,73 +1456,30 @@ by simp
 
 subsection\<open>Floor and Ceiling Functions from the Reals to the Integers\<close>
 
-(* FIXME: theorems for negative numerals *)
-lemma numeral_less_real_of_int_iff [simp]:
-     "((numeral n) < real (m::int)) = (numeral n < m)"
-apply auto
-apply (rule real_of_int_less_iff [THEN iffD1])
-apply (drule_tac [2] real_of_int_less_iff [THEN iffD2], auto)
-done
-
-lemma numeral_less_real_of_int_iff2 [simp]:
-     "(real (m::int) < (numeral n)) = (m < numeral n)"
-apply auto
-apply (rule real_of_int_less_iff [THEN iffD1])
-apply (drule_tac [2] real_of_int_less_iff [THEN iffD2], auto)
-done
+(* FIXME: theorems for negative numerals. Many duplicates, e.g. from Archimedean_Field.thy. *)
 
 lemma real_of_nat_less_numeral_iff [simp]:
-  "real (n::nat) < numeral w \<longleftrightarrow> n < numeral w"
-  using real_of_nat_less_iff[of n "numeral w"] by simp
+     "real (n::nat) < numeral w \<longleftrightarrow> n < numeral w"
+  by (metis of_nat_less_iff of_nat_numeral)
 
 lemma numeral_less_real_of_nat_iff [simp]:
-  "numeral w < real (n::nat) \<longleftrightarrow> numeral w < n"
-  using real_of_nat_less_iff[of "numeral w" n] by simp
+     "numeral w < real (n::nat) \<longleftrightarrow> numeral w < n"
+  by (metis of_nat_less_iff of_nat_numeral)
 
 lemma numeral_le_real_of_nat_iff[simp]:
   "(numeral n \<le> real(m::nat)) = (numeral n \<le> m)"
 by (metis not_le real_of_nat_less_numeral_iff)
 
-lemma numeral_le_real_of_int_iff [simp]:
-     "((numeral n) \<le> real (m::int)) = (numeral n \<le> m)"
-by (simp add: linorder_not_less [symmetric])
+declare of_int_floor_le [simp] (* FIXME*)
 
-lemma numeral_le_real_of_int_iff2 [simp]:
-     "(real (m::int) \<le> (numeral n)) = (m \<le> numeral n)"
-by (simp add: linorder_not_less [symmetric])
+lemma of_int_floor_cancel [simp]:
+    "(of_int (floor x) = x) = (\<exists>n::int. x = of_int n)"
+  by (metis floor_of_int)
 
-lemma floor_real_of_nat [simp]: "floor (real (n::nat)) = int n"
-unfolding real_of_nat_def by simp
-
-lemma floor_minus_real_of_nat [simp]: "floor (- real (n::nat)) = - int n"
-unfolding real_of_nat_def by (simp add: floor_minus)
-
-lemma floor_real_of_int [simp]: "floor (real (n::int)) = n"
-unfolding real_of_int_def by simp
-
-lemma floor_minus_real_of_int [simp]: "floor (- real (n::int)) = - n"
-unfolding real_of_int_def by (simp add: floor_minus)
-
-lemma real_lb_ub_int: " \<exists>n::int. real n \<le> r & r < real (n+1)"
-unfolding real_of_int_def by (rule floor_exists)
-
-lemma lemma_floor: "real m \<le> r \<Longrightarrow> r < real n + 1 \<Longrightarrow> m \<le> (n::int)"
-  by simp
-
-lemma real_of_int_floor_le [simp]: "real (floor r) \<le> r"
-unfolding real_of_int_def by (rule of_int_floor_le)
-
-lemma lemma_floor2: "real n < real (x::int) + 1 ==> n \<le> x"
-  by simp
-
-lemma real_of_int_floor_cancel [simp]:
-    "(real (floor x) = x) = (\<exists>n::int. x = real n)"
-  using floor_real_of_int by metis
-
-lemma floor_eq: "[| real n < x; x < real n + 1 |] ==> floor x = n"
+lemma floor_eq: "[| real_of_int n < x; x < real_of_int n + 1 |] ==> floor x = n"
   by linarith
 
-lemma floor_eq2: "[| real n \<le> x; x < real n + 1 |] ==> floor x = n"
+lemma floor_eq2: "[| real_of_int n \<le> x; x < real_of_int n + 1 |] ==> floor x = n"
   by linarith
 
 lemma floor_eq3: "[| real n < x; x < real (Suc n) |] ==> nat(floor x) = n"
@@ -1724,129 +1488,79 @@ lemma floor_eq3: "[| real n < x; x < real (Suc n) |] ==> nat(floor x) = n"
 lemma floor_eq4: "[| real n \<le> x; x < real (Suc n) |] ==> nat(floor x) = n"
   by linarith
 
-lemma real_of_int_floor_ge_diff_one [simp]: "r - 1 \<le> real(floor r)"
+lemma real_of_int_floor_ge_diff_one [simp]: "r - 1 \<le> real_of_int(floor r)"
   by linarith
 
-lemma real_of_int_floor_gt_diff_one [simp]: "r - 1 < real(floor r)"
+lemma real_of_int_floor_gt_diff_one [simp]: "r - 1 < real_of_int(floor r)"
   by linarith
 
-lemma real_of_int_floor_add_one_ge [simp]: "r \<le> real(floor r) + 1"
+lemma real_of_int_floor_add_one_ge [simp]: "r \<le> real_of_int(floor r) + 1"
   by linarith
 
-lemma real_of_int_floor_add_one_gt [simp]: "r < real(floor r) + 1"
+lemma real_of_int_floor_add_one_gt [simp]: "r < real_of_int(floor r) + 1"
   by linarith
 
-lemma le_floor: "real a <= x ==> a <= floor x"
-  by linarith
+lemma floor_eq_iff: "floor x = b \<longleftrightarrow> of_int b \<le> x \<and> x < of_int (b + 1)"
+by (simp add: floor_unique_iff)
 
-lemma real_le_floor: "a <= floor x ==> real a <= x"
-  by linarith
+lemma floor_add2[simp]: "floor (of_int a + x) = a + floor x"
+  by (simp add: add.commute)
 
-lemma le_floor_eq: "(a <= floor x) = (real a <= x)"
-  by linarith
-
-lemma floor_less_eq: "(floor x < a) = (x < real a)"
-  by linarith
-
-lemma less_floor_eq: "(a < floor x) = (real a + 1 <= x)"
-  by linarith
-
-lemma floor_le_eq: "(floor x <= a) = (x < real a + 1)"
-  by linarith
-
-lemma floor_eq_iff: "floor x = b \<longleftrightarrow> real b \<le> x \<and> x < real (b + 1)"
-  by linarith
-
-lemma floor_add [simp]: "floor (x + real a) = floor x + a"
-  by linarith
-
-lemma floor_add2[simp]: "floor (real a + x) = a + floor x"
-  by linarith
-
-lemma floor_subtract [simp]: "floor (x - real a) = floor x - a"
-  by linarith
-
-lemma floor_divide_real_eq_div: "0 \<le> b \<Longrightarrow> floor (a / real b) = floor a div b"
+lemma floor_divide_real_eq_div: "0 \<le> b \<Longrightarrow> floor (a / real_of_int b) = floor a div b"
 proof cases
   assume "0 < b"
-  { fix i j :: int assume "real i \<le> a" "a < 1 + real i"
-      "real j * real b \<le> a" "a < real b + real j * real b"
-    then have "i < b + j * b" "j * b < 1 + i"
-      unfolding real_of_int_less_iff[symmetric] by auto
-    then have "(j - i div b) * b \<le> i mod b" "i mod b < ((j - i div b) + 1) * b"
+  { fix i j :: int assume "real_of_int i \<le> a" "a < 1 + real_of_int i"
+      "real_of_int j * real_of_int b \<le> a" "a < real_of_int b + real_of_int j * real_of_int b"
+    then have "i < b + j * b"
+      by (metis linorder_not_less of_int_add of_int_le_iff of_int_mult order_trans_rules(21))
+    moreover have "j * b < 1 + i"
+    proof -
+      have "real_of_int (j * b) < real_of_int i + 1"
+        using `a < 1 + real_of_int i` `real_of_int j * real_of_int b \<le> a` by force
+      thus "j * b < 1 + i"
+        by linarith
+    qed
+    ultimately have "(j - i div b) * b \<le> i mod b" "i mod b < ((j - i div b) + 1) * b"
       by (auto simp: field_simps)
     then have "(j - i div b) * b < 1 * b" "0 * b < ((j - i div b) + 1) * b"
       using pos_mod_bound[OF \<open>0<b\<close>, of i] pos_mod_sign[OF \<open>0<b\<close>, of i] by linarith+
     then have "j = i div b"
-      using \<open>0 < b\<close> unfolding mult_less_cancel_right by auto }
+      using \<open>0 < b\<close> unfolding mult_less_cancel_right by auto
+  }
   with \<open>0 < b\<close> show ?thesis
     by (auto split: floor_split simp: field_simps)
 qed auto
 
-lemma floor_divide_eq_div:
-  "floor (real a / real b) = a div b"
-  using floor_divide_of_int_eq [of a b] real_eq_of_int by simp
-
 lemma floor_divide_eq_div_numeral[simp]: "\<lfloor>numeral a / numeral b::real\<rfloor> = numeral a div numeral b"
-  using floor_divide_eq_div[of "numeral a" "numeral b"] by simp
+  by (metis floor_divide_of_int_eq of_int_numeral)
 
 lemma floor_minus_divide_eq_div_numeral[simp]: "\<lfloor>- (numeral a / numeral b)::real\<rfloor> = - numeral a div numeral b"
-  using floor_divide_eq_div[of "- numeral a" "numeral b"] by simp
-
-lemma ceiling_real_of_nat [simp]: "ceiling (real (n::nat)) = int n"
-  by linarith
-
-lemma real_of_int_ceiling_ge [simp]: "r \<le> real (ceiling r)"
-  by linarith
-
-lemma ceiling_real_of_int [simp]: "ceiling (real (n::int)) = n"
-  by linarith
+  by (metis divide_minus_left floor_divide_of_int_eq of_int_neg_numeral of_int_numeral)
 
 lemma real_of_int_ceiling_cancel [simp]:
-     "(real (ceiling x) = x) = (\<exists>n::int. x = real n)"
-  using ceiling_real_of_int by metis
+     "(real_of_int (ceiling x) = x) = (\<exists>n::int. x = real_of_int n)"
+  using ceiling_of_int by metis
 
-lemma ceiling_eq: "[| real n < x; x < real n + 1 |] ==> ceiling x = n + 1"
+lemma ceiling_eq: "[| real_of_int n < x; x < real_of_int n + 1 |] ==> ceiling x = n + 1"
   by linarith
 
-lemma ceiling_eq2: "[| real n < x; x \<le> real n + 1 |] ==> ceiling x = n + 1"
+lemma ceiling_eq2: "[| real_of_int n < x; x \<le> real_of_int n + 1 |] ==> ceiling x = n + 1"
   by linarith
 
-lemma ceiling_eq3: "[| real n - 1 < x; x \<le> real n  |] ==> ceiling x = n"
+lemma real_of_int_ceiling_diff_one_le [simp]: "real_of_int (ceiling r) - 1 \<le> r"
   by linarith
 
-lemma real_of_int_ceiling_diff_one_le [simp]: "real (ceiling r) - 1 \<le> r"
+lemma real_of_int_ceiling_le_add_one [simp]: "real_of_int (ceiling r) \<le> r + 1"
   by linarith
 
-lemma real_of_int_ceiling_le_add_one [simp]: "real (ceiling r) \<le> r + 1"
+lemma ceiling_le: "x <= real_of_int a ==> ceiling x <= a"
   by linarith
 
-lemma ceiling_le: "x <= real a ==> ceiling x <= a"
+lemma ceiling_le_real: "ceiling x <= a ==> x <= real_of_int a"
   by linarith
 
-lemma ceiling_le_real: "ceiling x <= a ==> x <= real a"
-  by linarith
-
-lemma ceiling_le_eq: "(ceiling x <= a) = (x <= real a)"
-  by linarith
-
-lemma less_ceiling_eq: "(a < ceiling x) = (real a < x)"
-  by linarith
-
-lemma ceiling_less_eq: "(ceiling x < a) = (x <= real a - 1)"
-  by linarith
-
-lemma le_ceiling_eq: "(a <= ceiling x) = (real a - 1 < x)"
-  by linarith
-
-lemma ceiling_add [simp]: "ceiling (x + real a) = ceiling x + a"
-  by linarith
-
-lemma ceiling_subtract [simp]: "ceiling (x - real a) = ceiling x - a"
-  by linarith
-
-lemma ceiling_divide_eq_div: "\<lceil>real a / real b\<rceil> = - (- a div b)"
-  unfolding ceiling_def minus_divide_left real_of_int_minus[symmetric] floor_divide_eq_div by simp_all
+lemma ceiling_divide_eq_div: "\<lceil>real_of_int a / real_of_int b\<rceil> = - (- a div b)"
+  by (metis ceiling_def floor_divide_of_int_eq minus_divide_left of_int_minus)
 
 lemma ceiling_divide_eq_div_numeral [simp]:
   "\<lceil>numeral a / numeral b :: real\<rceil> = - (- numeral a div numeral b)"
@@ -1870,12 +1584,11 @@ lemma le_mult_nat_floor:
   by (cases "0 <= a & 0 <= b")
      (auto simp add: nat_mult_distrib[symmetric] nat_mono le_mult_floor)
 
-lemma nat_ceiling_le_eq: "(nat(ceiling x) <= a) = (x <= real a)"
+lemma nat_ceiling_le_eq [simp]: "(nat(ceiling x) <= a) = (x <= real a)"
   by linarith
 
 lemma real_nat_ceiling_ge: "x <= real(nat(ceiling x))"
   by linarith
-
 
 lemma Rats_no_top_le: "\<exists> q \<in> \<rat>. (x :: real) \<le> q"
   by (auto intro!: bexI[of _ "of_nat (nat(ceiling x))"]) linarith
@@ -1889,13 +1602,12 @@ lemma Rats_no_bot_less: "\<exists> q \<in> \<rat>. q < (x :: real)"
 subsection \<open>Exponentiation with floor\<close>
 
 lemma floor_power:
-  assumes "x = real (floor x)"
+  assumes "x = real_of_int (floor x)"
   shows "floor (x ^ n) = floor x ^ n"
 proof -
-  have *: "x ^ n = real (floor x ^ n)"
+  have "x ^ n = real_of_int (floor x ^ n)"
     using assms by (induct n arbitrary: x) simp_all
-  show ?thesis unfolding real_of_int_inject[symmetric]
-    unfolding * floor_real_of_int ..
+  then show ?thesis  by linarith
 qed
 (*
 lemma natfloor_power:
@@ -1903,12 +1615,13 @@ lemma natfloor_power:
   shows "natfloor (x ^ n) = natfloor x ^ n"
 proof -
   from assms have "0 \<le> floor x" by auto
-  note assms[unfolded natfloor_def real_nat_eq_real[OF `0 \<le> floor x`]]
+  note assms[unfolded natfloor_def of_nat_nat[OF `0 \<le> floor x`]]
   from floor_power[OF this]
   show ?thesis unfolding natfloor_def nat_power_eq[OF `0 \<le> floor x`, symmetric]
     by simp
 qed
 *)
+
 lemma floor_numeral_power[simp]:
   "\<lfloor>numeral x ^ n\<rfloor> = numeral x ^ n"
   by (metis floor_of_int of_int_numeral of_int_power)

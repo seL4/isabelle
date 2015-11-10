@@ -695,8 +695,8 @@ local
 
   fun is_alien ct =
     case Thm.term_of ct of
-      Const(@{const_name "real"}, _)$ n =>
-      if can HOLogic.dest_number n then false else true
+      Const(@{const_name "of_nat"}, _)$ n => not (can HOLogic.dest_number n)
+    | Const(@{const_name "of_int"}, _)$ n => not (can HOLogic.dest_number n)
     | _ => false
 in
 fun real_linear_prover translator (eq,le,lt) =
@@ -711,7 +711,7 @@ fun real_linear_prover translator (eq,le,lt) =
                 (eq_pols @ le_pols @ lt_pols) [])
     val le_pols' = le_pols @ map (fn v => FuncUtil.Ctermfunc.onefunc (v,Rat.one)) aliens
     val (_,proof) = linear_prover (eq_pols,le_pols',lt_pols)
-    val le' = le @ map (fn a => Thm.instantiate' [] [SOME (Thm.dest_arg a)] @{thm real_of_nat_ge_zero}) aliens
+    val le' = le @ map (fn a => Thm.instantiate' [] [SOME (Thm.dest_arg a)] @{thm of_nat_0_le_iff}) aliens
   in ((translator (eq,le',lt) proof), Trivial)
   end
 end;

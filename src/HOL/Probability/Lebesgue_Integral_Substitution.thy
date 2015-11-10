@@ -327,7 +327,7 @@ proof-
   from derivg have derivg': "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
     by (simp only: has_field_derivative_iff_has_vector_derivative)
 
-  have real_ind[simp]: "\<And>A x. real (indicator A x :: ereal) = indicator A x" 
+  have real_ind[simp]: "\<And>A x. real_of_ereal (indicator A x :: ereal) = indicator A x" 
       by (auto split: split_indicator)
   have ereal_ind[simp]: "\<And>A x. ereal (indicator A x) = indicator A x" 
       by (auto split: split_indicator)
@@ -645,8 +645,8 @@ proof-
     unfolding real_integrable_def by (force simp: mult.commute)
 
   have "LBINT x. (f x :: real) * indicator {g a..g b} x = 
-          real (\<integral>\<^sup>+ x. ereal (f x) * indicator {g a..g b} x \<partial>lborel) -
-          real (\<integral>\<^sup>+ x. ereal (- (f x)) * indicator {g a..g b} x \<partial>lborel)" using integrable
+          real_of_ereal (\<integral>\<^sup>+ x. ereal (f x) * indicator {g a..g b} x \<partial>lborel) -
+          real_of_ereal (\<integral>\<^sup>+ x. ereal (- (f x)) * indicator {g a..g b} x \<partial>lborel)" using integrable
     by (subst real_lebesgue_integral_def) (simp_all add: nn_integral_set_ereal mult.commute)
   also have "(\<integral>\<^sup>+x. ereal (f x) * indicator {g a..g b} x \<partial>lborel) =
                (\<integral>\<^sup>+x. ereal (f x * indicator {g a..g b} x) \<partial>lborel)"
@@ -677,8 +677,8 @@ proof-
       by (simp_all add: nn_integral_set_ereal mult.commute)
   } note integrable' = this
 
-  have "real (\<integral>\<^sup>+ x. ereal (f (g x) * g' x * indicator {a..b} x) \<partial>lborel) -
-                  real (\<integral>\<^sup>+ x. ereal (-f (g x) * g' x * indicator {a..b} x) \<partial>lborel) =
+  have "real_of_ereal (\<integral>\<^sup>+ x. ereal (f (g x) * g' x * indicator {a..b} x) \<partial>lborel) -
+                  real_of_ereal (\<integral>\<^sup>+ x. ereal (-f (g x) * g' x * indicator {a..b} x) \<partial>lborel) =
                 (LBINT x. f (g x) * g' x * indicator {a..b} x)" using integrable'
     by (subst real_lebesgue_integral_def) (simp_all add: field_simps)
   finally show "(LBINT x. f x * indicator {g a..g b} x) = 

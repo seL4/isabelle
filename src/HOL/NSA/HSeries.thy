@@ -2,8 +2,8 @@
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
 
-Converted to Isar and polished by lcp    
-*) 
+Converted to Isar and polished by lcp
+*)
 
 section{*Finite Summation and Infinite Series for Hyperreals*}
 
@@ -13,7 +13,7 @@ begin
 
 definition
   sumhr :: "(hypnat * hypnat * (nat=>real)) => hypreal" where
-  "sumhr = 
+  "sumhr =
       (%(M,N,f). starfun2 (%m n. setsum f {m..<n}) M N)"
 
 definition
@@ -36,8 +36,8 @@ lemma sumhr_zero [simp]: "!!m. sumhr (m,0,f) = 0"
 unfolding sumhr_app by transfer simp
 
 text{*Recursive case in definition of @{term sumr}*}
-lemma sumhr_if: 
-     "!!m n. sumhr(m,n+1,f) = 
+lemma sumhr_if:
+     "!!m n. sumhr(m,n+1,f) =
       (if n + 1 \<le> m then 0 else sumhr(m,n,f) + ( *f* f) n)"
 unfolding sumhr_app by transfer simp
 
@@ -73,14 +73,14 @@ unfolding sumhr_app by transfer (rule setsum_abs)
 
 text{* other general version also needed *}
 lemma sumhr_fun_hypnat_eq:
-   "(\<forall>r. m \<le> r & r < n --> f r = g r) -->  
-      sumhr(hypnat_of_nat m, hypnat_of_nat n, f) =  
+   "(\<forall>r. m \<le> r & r < n --> f r = g r) -->
+      sumhr(hypnat_of_nat m, hypnat_of_nat n, f) =
       sumhr(hypnat_of_nat m, hypnat_of_nat n, g)"
 unfolding sumhr_app by transfer simp
 
 lemma sumhr_const:
      "!!n. sumhr(0, n, %i. r) = hypreal_of_hypnat n * hypreal_of_real r"
-unfolding sumhr_app by transfer (simp add: real_of_nat_def)
+unfolding sumhr_app by transfer simp
 
 lemma sumhr_less_bounds_zero [simp]: "!!m n. n < m ==> sumhr(m,n,f) = 0"
 unfolding sumhr_app by transfer simp
@@ -98,7 +98,7 @@ subsection{*Nonstandard Sums*}
 
 text{*Infinite sums are obtained by summing to some infinite hypernatural
  (such as @{term whn})*}
-lemma sumhr_hypreal_of_hypnat_omega: 
+lemma sumhr_hypreal_of_hypnat_omega:
       "sumhr(0,whn,%i. 1) = hypreal_of_hypnat whn"
 by (simp add: sumhr_const)
 
@@ -108,33 +108,33 @@ apply (simp add: sumhr_const)
 (* maybe define omega = hypreal_of_hypnat whn + 1 *)
 apply (unfold star_class_defs omega_def hypnat_omega_def
               of_hypnat_def star_of_def)
-apply (simp add: starfun_star_n starfun2_star_n real_of_nat_def)
+apply (simp add: starfun_star_n starfun2_star_n)
 done
 
-lemma sumhr_minus_one_realpow_zero [simp]: 
+lemma sumhr_minus_one_realpow_zero [simp]:
      "!!N. sumhr(0, N + N, %i. (-1) ^ (i+1)) = 0"
 unfolding sumhr_app
-apply transfer 
+apply transfer
 apply (simp del: power_Suc add: mult_2 [symmetric])
 apply (induct_tac N)
 apply simp_all
 done
 
 lemma sumhr_interval_const:
-     "(\<forall>n. m \<le> Suc n --> f n = r) & m \<le> na  
-      ==> sumhr(hypnat_of_nat m,hypnat_of_nat na,f) =  
+     "(\<forall>n. m \<le> Suc n --> f n = r) & m \<le> na
+      ==> sumhr(hypnat_of_nat m,hypnat_of_nat na,f) =
           (hypreal_of_nat (na - m) * hypreal_of_real r)"
 unfolding sumhr_app by transfer simp
 
 lemma starfunNat_sumr: "!!N. ( *f* (%n. setsum f {0..<n})) N = sumhr(0,N,f)"
 unfolding sumhr_app by transfer (rule refl)
 
-lemma sumhr_hrabs_approx [simp]: "sumhr(0, M, f) @= sumhr(0, N, f)  
+lemma sumhr_hrabs_approx [simp]: "sumhr(0, M, f) @= sumhr(0, N, f)
       ==> abs (sumhr(M, N, f)) @= 0"
 apply (cut_tac x = M and y = N in linorder_less_linear)
 apply (auto simp add: approx_refl)
 apply (drule approx_sym [THEN approx_minus_iff [THEN iffD1]])
-apply (auto dest: approx_hrabs 
+apply (auto dest: approx_hrabs
             simp add: sumhr_split_diff)
 done
 
@@ -166,7 +166,7 @@ lemma NSseries_zero:
 by (auto simp add: sums_NSsums_iff [symmetric] not_le[symmetric] intro!: sums_finite)
 
 lemma NSsummable_NSCauchy:
-     "NSsummable f =  
+     "NSsummable f =
       (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. abs (sumhr(M,N,f)) @= 0)"
 apply (auto simp add: summable_NSsummable_iff [symmetric]
        summable_iff_convergent convergent_NSconvergent_iff atLeast0LessThan[symmetric]
@@ -175,7 +175,7 @@ apply (cut_tac x = M and y = N in linorder_less_linear)
 apply auto
 apply (rule approx_minus_iff [THEN iffD2, THEN approx_sym])
 apply (rule_tac [2] approx_minus_iff [THEN iffD2])
-apply (auto dest: approx_hrabs_zero_cancel 
+apply (auto dest: approx_hrabs_zero_cancel
             simp add: sumhr_split_diff atLeast0LessThan[symmetric])
 done
 

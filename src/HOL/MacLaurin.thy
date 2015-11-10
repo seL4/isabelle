@@ -24,17 +24,17 @@ by (rule exI[where x = "(f h - (\<Sum>m<n. (j m / (fact m)) * h^m)) * (fact n) /
 lemma eq_diff_eq': "(x = y - z) = (y = x + (z::real))"
 by arith
 
-lemma fact_diff_Suc [rule_format]:
-  "n < Suc m ==> fact (Suc m - n) = (Suc m - n) * fact (m - n)"
+lemma fact_diff_Suc:
+  "n < Suc m \<Longrightarrow> fact (Suc m - n) = (Suc m - n) * fact (m - n)"
   by (subst fact_reduce, auto)
 
 lemma Maclaurin_lemma2:
   fixes B
   assumes DERIV : "\<forall>m t. m < n \<and> 0\<le>t \<and> t\<le>h \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t"
       and INIT : "n = Suc k"
-  defines "difg \<equiv> 
-      (\<lambda>m t::real. diff m t - 
-         ((\<Sum>p<n - m. diff (m + p) 0 / (fact p) * t ^ p) + B * (t ^ (n - m) / (fact (n - m)))))" 
+  defines "difg \<equiv>
+      (\<lambda>m t::real. diff m t -
+         ((\<Sum>p<n - m. diff (m + p) 0 / (fact p) * t ^ p) + B * (t ^ (n - m) / (fact (n - m)))))"
         (is "difg \<equiv> (\<lambda>m t. diff m t - ?difg m t)")
   shows "\<forall>m t. m < n & 0 \<le> t & t \<le> h --> DERIV (difg m) t :> difg (Suc m) t"
 proof (rule allI impI)+
@@ -42,10 +42,9 @@ proof (rule allI impI)+
   assume INIT2: "m < n & 0 \<le> t & t \<le> h"
   have "DERIV (difg m) t :> diff (Suc m) t -
     ((\<Sum>x<n - m. real x * t ^ (x - Suc 0) * diff (m + x) 0 / (fact x)) +
-     real (n - m) * t ^ (n - Suc m) * B / (fact (n - m)))" 
+     real (n - m) * t ^ (n - Suc m) * B / (fact (n - m)))"
     unfolding difg_def
-    by (auto intro!: derivative_eq_intros DERIV[rule_format, OF INIT2]
-             simp: real_of_nat_def[symmetric])
+    by (auto intro!: derivative_eq_intros DERIV[rule_format, OF INIT2])
   moreover
   from INIT2 have intvl: "{..<n - m} = insert 0 (Suc ` {..<n - Suc m})" and "0 < n - m"
     unfolding atLeast0LessThan[symmetric] by auto
@@ -54,7 +53,7 @@ proof (rule allI impI)+
     unfolding intvl atLeast0LessThan by (subst setsum.insert) (auto simp: setsum.reindex)
   moreover
   have fact_neq_0: "\<And>x. (fact x) + real x * (fact x) \<noteq> 0"
-    by (metis add_pos_pos fact_gt_zero less_add_same_cancel1 less_add_same_cancel2 less_numeral_extra(3) mult_less_0_iff not_real_of_nat_less_zero)
+    by (metis add_pos_pos fact_gt_zero less_add_same_cancel1 less_add_same_cancel2 less_numeral_extra(3) mult_less_0_iff of_nat_less_0_iff)
   have "\<And>x. (Suc x) * t ^ x * diff (Suc m + x) 0 / (fact (Suc x)) =
             diff (Suc m + x) 0 * t^x / (fact x)"
     by (rule nonzero_divide_eq_eq[THEN iffD2]) auto
@@ -64,7 +63,7 @@ proof (rule allI impI)+
     using \<open>0 < n - m\<close>
     by (simp add: divide_simps fact_reduce)
   ultimately show "DERIV (difg m) t :> difg (Suc m) t"
-    unfolding difg_def by simp
+    unfolding difg_def  by (simp add: mult.commute)
 qed
 
 lemma Maclaurin:
@@ -420,7 +419,7 @@ text\<open>It is unclear why so many variant results are needed.\<close>
 lemma sin_expansion_lemma:
      "sin (x + real (Suc m) * pi / 2) =
       cos (x + real (m) * pi / 2)"
-by (simp only: cos_add sin_add real_of_nat_Suc add_divide_distrib distrib_right, auto)
+by (simp only: cos_add sin_add of_nat_Suc add_divide_distrib distrib_right, auto)
 
 lemma Maclaurin_sin_expansion2:
      "\<exists>t. abs t \<le> abs x &
@@ -431,7 +430,7 @@ apply (cut_tac f = sin and n = n and x = x
         and diff = "%n x. sin (x + 1/2*real n * pi)" in Maclaurin_all_lt_objl)
 apply safe
     apply (simp)
-   apply (simp add: sin_expansion_lemma del: real_of_nat_Suc)
+   apply (simp add: sin_expansion_lemma del: of_nat_Suc)
    apply (force intro!: derivative_eq_intros)
   apply (subst (asm) setsum.neutral, auto)[1]
  apply (rule ccontr, simp)
@@ -439,7 +438,7 @@ apply safe
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])
-apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: real_of_nat_Suc)
+apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
 done
 
 lemma Maclaurin_sin_expansion:
@@ -459,12 +458,12 @@ lemma Maclaurin_sin_expansion3:
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin_objl)
 apply safe
     apply simp
-   apply (simp (no_asm) add: sin_expansion_lemma del: real_of_nat_Suc)
+   apply (simp (no_asm) add: sin_expansion_lemma del: of_nat_Suc)
    apply (force intro!: derivative_eq_intros)
   apply (erule ssubst)
   apply (rule_tac x = t in exI, simp)
  apply (rule setsum.cong[OF refl])
- apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: real_of_nat_Suc)
+ apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
 done
 
 lemma Maclaurin_sin_expansion4:
@@ -476,12 +475,12 @@ lemma Maclaurin_sin_expansion4:
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin2_objl)
 apply safe
     apply simp
-   apply (simp (no_asm) add: sin_expansion_lemma del: real_of_nat_Suc)
+   apply (simp (no_asm) add: sin_expansion_lemma del: of_nat_Suc)
    apply (force intro!: derivative_eq_intros)
   apply (erule ssubst)
   apply (rule_tac x = t in exI, simp)
  apply (rule setsum.cong[OF refl])
- apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: real_of_nat_Suc)
+ apply (auto simp add: sin_coeff_def sin_zero_iff elim: oddE simp del: of_nat_Suc)
 done
 
 
@@ -493,7 +492,7 @@ by (induct "n", auto)
 
 lemma cos_expansion_lemma:
   "cos (x + real(Suc m) * pi / 2) = -sin (x + real m * pi / 2)"
-by (simp only: cos_add sin_add real_of_nat_Suc distrib_right add_divide_distrib, auto)
+by (simp only: cos_add sin_add of_nat_Suc distrib_right add_divide_distrib, auto)
 
 lemma Maclaurin_cos_expansion:
      "\<exists>t::real. abs t \<le> abs x &
@@ -503,7 +502,7 @@ lemma Maclaurin_cos_expansion:
 apply (cut_tac f = cos and n = n and x = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_all_lt_objl)
 apply safe
     apply (simp (no_asm))
-   apply (simp (no_asm) add: cos_expansion_lemma del: real_of_nat_Suc)
+   apply (simp (no_asm) add: cos_expansion_lemma del: of_nat_Suc)
   apply (case_tac "n", simp)
   apply (simp del: setsum_lessThan_Suc)
 apply (rule ccontr, simp)
@@ -523,7 +522,7 @@ lemma Maclaurin_cos_expansion2:
 apply (cut_tac f = cos and n = n and h = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_objl)
 apply safe
   apply simp
-  apply (simp (no_asm) add: cos_expansion_lemma del: real_of_nat_Suc)
+  apply (simp (no_asm) add: cos_expansion_lemma del: of_nat_Suc)
  apply (erule ssubst)
  apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])
@@ -539,7 +538,7 @@ lemma Maclaurin_minus_cos_expansion:
 apply (cut_tac f = cos and n = n and h = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_minus_objl)
 apply safe
   apply simp
- apply (simp (no_asm) add: cos_expansion_lemma del: real_of_nat_Suc)
+ apply (simp (no_asm) add: cos_expansion_lemma del: of_nat_Suc)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum.cong[OF refl])

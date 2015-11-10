@@ -570,11 +570,11 @@ lemma hull_redundant: "a \<in> (S hull s) \<Longrightarrow> S hull (insert a s) 
 subsection \<open>Archimedean properties and useful consequences\<close>
 
 lemma real_arch_simple: "\<exists>n::nat. x \<le> real n"
-  unfolding real_of_nat_def by (rule ex_le_of_nat)
+  by (rule ex_le_of_nat)
 
 lemma real_arch_inv: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
   using reals_Archimedean[of e] less_trans[of 0 "1 / real n" e for n::nat]
-  by (auto simp add: field_simps cong: conj_cong simp del: real_of_nat_Suc)
+  by (auto simp add: field_simps cong: conj_cong simp del: of_nat_Suc)
 
 text\<open>Bernoulli's inequality\<close>
 lemma Bernoulli_inequality:
@@ -589,7 +589,7 @@ next
   have "1 + Suc n * x \<le> 1 + (Suc n)*x + n * x^2"
     by (simp add: algebra_simps)
   also have "... = (1 + x) * (1 + n*x)"
-    by (auto simp: power2_eq_square algebra_simps  real_of_nat_Suc)
+    by (auto simp: power2_eq_square algebra_simps  of_nat_Suc)
   also have "... \<le> (1 + x) ^ Suc n"
     using Suc.hyps assms mult_left_mono by fastforce
   finally show ?case .
@@ -668,7 +668,7 @@ lemma forall_pos_mono_1:
     (\<And>n. P (inverse (real (Suc n)))) \<Longrightarrow> 0 < e \<Longrightarrow> P e"
   apply (rule forall_pos_mono)
   apply auto
-  apply (metis Suc_pred real_of_nat_Suc)
+  apply (metis Suc_pred of_nat_Suc)
   done
 
 lemma real_archimedian_rdiv_eq_0:
@@ -1461,8 +1461,7 @@ proof -
       by (intro add_mono norm_bound_Basis_le i fPs) auto
     finally show "(\<Sum>x\<in>P. \<bar>f x \<bullet> i\<bar>) \<le> 2*e" by simp
   qed
-  also have "\<dots> = 2 * real DIM('n) * e"
-    by (simp add: real_of_nat_def)
+  also have "\<dots> = 2 * real DIM('n) * e" by simp
   finally show ?thesis .
 qed
 
@@ -1629,12 +1628,12 @@ lemma independent_bound:
   shows "independent S \<Longrightarrow> finite S \<and> card S \<le> DIM('a)"
   using independent_span_bound[OF finite_Basis, of S] by auto
 
-corollary 
+corollary
   fixes S :: "'a::euclidean_space set"
   assumes "independent S"
   shows independent_imp_finite: "finite S" and independent_card_le:"card S \<le> DIM('a)"
 using assms independent_bound by auto
-  
+
 lemma dependent_biggerset:
   fixes S :: "'a::euclidean_space set"
   shows "(finite S \<Longrightarrow> card S > DIM('a)) \<Longrightarrow> dependent S"
@@ -2856,7 +2855,6 @@ proof -
     by (simp add: zero_le_mult_iff infnorm_pos_le)
   have th1: "x \<bullet> x \<le> (sqrt (real ?d) * infnorm x)\<^sup>2"
     unfolding power_mult_distrib d2
-    unfolding real_of_nat_def
     apply (subst euclidean_inner)
     apply (subst power2_abs[symmetric])
     apply (rule order_trans[OF setsum_bounded_above[where K="\<bar>infnorm x\<bar>\<^sup>2"]])

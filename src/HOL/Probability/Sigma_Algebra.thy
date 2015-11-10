@@ -1468,7 +1468,7 @@ definition emeasure :: "'a measure \<Rightarrow> 'a set \<Rightarrow> ereal" whe
   "emeasure M = snd (snd (Rep_measure M))"
 
 definition measure :: "'a measure \<Rightarrow> 'a set \<Rightarrow> real" where
-  "measure M A = real (emeasure M A)"
+  "measure M A = real_of_ereal (emeasure M A)"
 
 declare [[coercion sets]]
 

@@ -56,7 +56,7 @@ end
 
 overloading int_to_real \<equiv> "to_real :: int \<Rightarrow> real"
 begin
-  definition "int_to_real (n::int) = real n"
+  definition "int_to_real (n::int) = real_of_int n"
 end
 
 overloading rat_to_real \<equiv> "to_real :: rat \<Rightarrow> real"
@@ -79,7 +79,7 @@ lemma to_rat_is_int [intro, simp]: "is_int (to_rat (n::int))"
 by (metis int_to_rat_def rat_is_int_def)
 
 lemma to_real_is_int [intro, simp]: "is_int (to_real (n::int))"
-by (metis Ints_real_of_int int_to_real_def real_is_int_def)
+by (metis Ints_of_int int_to_real_def real_is_int_def)
 
 lemma to_real_is_rat [intro, simp]: "is_rat (to_real (q::rat))"
 by (metis Rats_of_rat rat_to_real_def real_is_rat_def)

@@ -175,7 +175,7 @@ proof safe
   ultimately have "\<forall>m. norm (X m) \<le> real (Suc n)"
     by (blast intro: order_trans)
   then show "\<exists>N. \<forall>n. norm (X n) \<le> real (Suc N)" ..
-qed (force simp add: real_of_nat_Suc)
+qed (force simp add: of_nat_Suc)
 
 text\<open>alternative definition for Bseq\<close>
 lemma Bseq_iff: "Bseq X = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
@@ -188,7 +188,7 @@ lemma lemma_NBseq_def2:
 apply (subst lemma_NBseq_def, auto)
 apply (rule_tac x = "Suc N" in exI)
 apply (rule_tac [2] x = N in exI)
-apply (auto simp add: real_of_nat_Suc)
+apply (auto simp add: of_nat_Suc)
  prefer 2 apply (blast intro: order_less_imp_le)
 apply (drule_tac x = n in spec, simp)
 done
@@ -1433,7 +1433,7 @@ lemma linear_plus_1_le_power:
 proof (induct n)
   case (Suc n)
   have "real (Suc n) * x + 1 \<le> (x + 1) * (real n * x + 1)"
-    by (simp add: field_simps real_of_nat_Suc x)
+    by (simp add: field_simps of_nat_Suc x)
   also have "\<dots> \<le> (x + 1)^Suc n"
     using Suc x by (simp add: mult_left_mono)
   finally show ?case .

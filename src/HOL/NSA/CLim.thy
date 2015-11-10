@@ -140,15 +140,14 @@ lemma CDERIV_pow [simp]:
      "DERIV (%x. x ^ n) x :> (complex_of_real (real n)) * (x ^ (n - Suc 0))"
 apply (induct n)
 apply (drule_tac [2] DERIV_ident [THEN DERIV_mult])
-apply (auto simp add: distrib_right real_of_nat_Suc)
+apply (auto simp add: distrib_right of_nat_Suc)
 apply (case_tac "n")
-apply (auto simp add: ac_simps add.commute)
+apply (auto simp add: ac_simps)
 done
 
 text{*Nonstandard version*}
-lemma NSCDERIV_pow:
-     "NSDERIV (%x. x ^ n) x :> complex_of_real (real n) * (x ^ (n - 1))"
-by (simp add: NSDERIV_DERIV_iff del: of_real_real_of_nat_eq)
+lemma NSCDERIV_pow: "NSDERIV (%x. x ^ n) x :> complex_of_real (real n) * (x ^ (n - 1))"
+    by (metis CDERIV_pow NSDERIV_DERIV_iff One_nat_def)
 
 text{*Can't relax the premise @{term "x \<noteq> 0"}: it isn't continuous at zero*}
 lemma NSCDERIV_inverse:

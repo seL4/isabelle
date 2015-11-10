@@ -293,9 +293,9 @@ proof (rule emeasure_lim)
       also have "\<dots> \<le> ereal (2 powr - real i) * ?a" using K'(1)[of i] .
       finally show "\<mu>G (Z i - Z' i) \<le> (2 powr - real i) * ?a" .
     qed
-    also have "\<dots> = ereal ((\<Sum> i\<in>{1..n}. (2 powr -real i)) * real ?a)"
+    also have "\<dots> = ereal ((\<Sum> i\<in>{1..n}. (2 powr -real_of_ereal i)) * real_of_ereal ?a)"
       by (simp add: setsum_left_distrib r)
-    also have "\<dots> < ereal (1 * real ?a)" unfolding less_ereal.simps
+    also have "\<dots> < ereal (1 * real_of_ereal ?a)" unfolding less_ereal.simps
     proof (rule mult_strict_right_mono)
       have "(\<Sum>i = 1..n. 2 powr - real i) = (\<Sum>i = 1..<Suc n. (1/2) ^ i)"
         by (rule setsum.cong) (auto simp: powr_realpow powr_divide powr_minus_divide)  
@@ -303,7 +303,7 @@ proof (rule emeasure_lim)
       also have "setsum (op ^ (1 / 2::real)) ({..<Suc n} - {0}) =
         setsum (op ^ (1 / 2)) ({..<Suc n}) - 1" by (auto simp: setsum_diff1)
       also have "\<dots> < 1" by (subst geometric_sum) auto
-      finally show "(\<Sum>i = 1..n. 2 powr - real i) < 1" .
+      finally show "(\<Sum>i = 1..n. 2 powr - real_of_ereal i) < 1" by simp
     qed (auto simp: r ereal_less_real_iff zero_ereal_def[symmetric])
     also have "\<dots> = ?a" by (auto simp: r)
     also have "\<dots> \<le> \<mu>G (Z n)"

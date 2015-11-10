@@ -60,8 +60,8 @@ theorem prime_sqrt_irrational:
     "prime (p::nat) \<Longrightarrow> x * x = real p \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<notin> \<rat>"
   apply (rule notI)
   apply (erule Rats_abs_nat_div_natE)
-  apply (simp del: real_of_nat_mult
-              add: abs_if divide_eq_eq prime_not_square real_of_nat_mult [symmetric])
+  apply (simp del: of_nat_mult
+              add: abs_if divide_eq_eq prime_not_square of_nat_mult [symmetric])
   done
 
 lemmas two_sqrt_irrational =

@@ -11,10 +11,11 @@ imports Binomial Series Deriv NthRoot
 begin
 
 lemma reals_Archimedean4:
-  assumes "0 < y" "0 \<le> x" 
+  assumes "0 < y" "0 \<le> x"
   obtains n where "real n * y \<le> x" "x < real (Suc n) * y"
   using floor_correct [of "x/y"] assms
-  by (auto simp: Real.real_of_nat_Suc field_simps intro: that [of "nat (floor (x/y))"])
+  apply (auto simp: field_simps intro!: that [of "nat (floor (x/y))"])
+by (metis (no_types, hide_lams)  divide_inverse divide_self_if floor_correct mult.left_commute mult.right_neutral mult_eq_0_iff order_refl order_trans real_mult_le_cancel_iff2)
 
 lemma fact_in_Reals: "fact n \<in> \<real>" by (induction n) auto
 
@@ -24,11 +25,8 @@ lemma pochhammer_of_real: "pochhammer (of_real x) n = of_real (pochhammer x n)"
 lemma of_real_fact [simp]: "of_real (fact n) = fact n"
   by (metis of_nat_fact of_real_of_nat_eq)
 
-lemma real_fact_nat [simp]: "real (fact n :: nat) = fact n"
-  by (simp add: real_of_nat_def)
-
-lemma real_fact_int [simp]: "real (fact n :: int) = fact n"
-  by (metis of_int_of_nat_eq of_nat_fact real_of_int_def)
+lemma of_int_fact [simp]: "of_int (fact n :: int) = fact n"
+  by (metis of_int_of_nat_eq of_nat_fact)
 
 lemma norm_fact [simp]:
   "norm (fact n :: 'a :: {real_normed_algebra_1}) = fact n"
@@ -155,26 +153,26 @@ proof -
   moreover obtain N where N: "norm x / (1 - norm x) < of_int N"
     using ex_le_of_int
     by (meson ex_less_of_int)
-  ultimately have N0: "N>0" 
+  ultimately have N0: "N>0"
     by auto
-  then have *: "real (N + 1) * norm x / real N < 1"
+  then have *: "real_of_int (N + 1) * norm x / real_of_int N < 1"
     using N assms
     by (auto simp: field_simps)
   { fix n::nat
     assume "N \<le> int n"
-    then have "real N * real_of_nat (Suc n) \<le> real_of_nat n * real (1 + N)"
+    then have "real_of_int N * real_of_nat (Suc n) \<le> real_of_nat n * real_of_int (1 + N)"
       by (simp add: algebra_simps)
-    then have "(real N * real_of_nat (Suc n)) * (norm x * norm (x ^ n))
-               \<le> (real_of_nat n * real (1 + N)) * (norm x * norm (x ^ n))"
+    then have "(real_of_int N * real_of_nat (Suc n)) * (norm x * norm (x ^ n))
+               \<le> (real_of_nat n *  (1 + N)) * (norm x * norm (x ^ n))"
       using N0 mult_mono by fastforce
-    then have "real N * (norm x * (real_of_nat (Suc n) * norm (x ^ n)))
-         \<le> real_of_nat n * (norm x * (real (1 + N) * norm (x ^ n)))"
+    then have "real_of_int N * (norm x * (real_of_nat (Suc n) * norm (x ^ n)))
+         \<le> real_of_nat n * (norm x * ((1 + N) * norm (x ^ n)))"
       by (simp add: algebra_simps)
   } note ** = this
   show ?thesis using *
     apply (rule summable_LIMSEQ_zero [OF summable_ratio_test, where N1="nat N"])
-    apply (simp add: N0 norm_mult field_simps ** 
-                del: of_nat_Suc real_of_int_add)
+    apply (simp add: N0 norm_mult field_simps **
+                del: of_nat_Suc of_int_add)
     done
 qed
 
@@ -183,16 +181,6 @@ corollary lim_n_over_pown:
   shows "1 < norm x \<Longrightarrow> ((\<lambda>n. of_nat n / x^n) ---> 0) sequentially"
 using powser_times_n_limit_0 [of "inverse x"]
 by (simp add: norm_divide divide_simps)
-
-lemma lim_1_over_n: "((\<lambda>n. 1 / of_nat n) ---> (0::'a::real_normed_field)) sequentially"
-  apply (clarsimp simp: lim_sequentially norm_divide dist_norm divide_simps)
-  apply (auto simp: mult_ac dest!: ex_less_of_nat_mult [of _ 1])
-  by (metis le_eq_less_or_eq less_trans linordered_comm_semiring_strict_class.comm_mult_strict_left_mono 
-          of_nat_less_0_iff of_nat_less_iff zero_less_mult_iff zero_less_one)
-
-lemma lim_inverse_n: "((\<lambda>n. inverse(of_nat n)) ---> (0::'a::real_normed_field)) sequentially"
-  using lim_1_over_n
-  by (simp add: inverse_eq_divide)
 
 lemma sum_split_even_odd:
   fixes f :: "nat \<Rightarrow> real"
@@ -751,7 +739,7 @@ next
   then have "summable (\<lambda>n. (of_nat (Suc n) * c(Suc n)) * x ^ n)"
     using False summable_mult2 [of "\<lambda>n. (of_nat (Suc n) * c(Suc n) * x ^ n) * x" "inverse x"]
     by (simp add: mult.assoc) (auto simp: ac_simps)
-  then show ?thesis 
+  then show ?thesis
     by (simp add: diffs_def)
 qed
 
@@ -798,14 +786,14 @@ lemma termdiffs_strong_converges_everywhere:
   shows   "((\<lambda>x. \<Sum>n. c n * x^n) has_field_derivative (\<Sum>n. diffs c n * x^n)) (at x)"
   using termdiffs_strong[OF assms[of "of_real (norm x + 1)"], of x]
   by (force simp del: of_real_add)
-  
+
 lemma isCont_powser:
   fixes K x :: "'a::{real_normed_field,banach}"
   assumes "summable (\<lambda>n. c n * K ^ n)"
   assumes "norm x < norm K"
   shows   "isCont (\<lambda>x. \<Sum>n. c n * x^n) x"
   using termdiffs_strong[OF assms] by (blast intro!: DERIV_isCont)
-  
+
 lemmas isCont_powser' = isCont_o2[OF _ isCont_powser]
 
 lemma isCont_powser_converges_everywhere:
@@ -815,7 +803,7 @@ lemma isCont_powser_converges_everywhere:
   using termdiffs_strong[OF assms[of "of_real (norm x + 1)"], of x]
   by (force intro!: DERIV_isCont simp del: of_real_add)
 
-lemma powser_limit_0: 
+lemma powser_limit_0:
   fixes a :: "nat \<Rightarrow> 'a::{real_normed_field,banach}"
   assumes s: "0 < s"
       and sm: "\<And>x. norm x < s \<Longrightarrow> (\<lambda>n. a n * x ^ n) sums (f x)"
@@ -835,16 +823,16 @@ proof -
     by (blast intro: DERIV_continuous)
   then have "((\<lambda>x. \<Sum>n. a n * x ^ n) ---> a 0) (at 0)"
     by (simp add: continuous_within powser_zero)
-  then show ?thesis 
+  then show ?thesis
     apply (rule Lim_transform)
     apply (auto simp add: LIM_eq)
     apply (rule_tac x="s" in exI)
-    using s 
+    using s
     apply (auto simp: sm [THEN sums_unique])
     done
 qed
 
-lemma powser_limit_0_strong: 
+lemma powser_limit_0_strong:
   fixes a :: "nat \<Rightarrow> 'a::{real_normed_field,banach}"
   assumes s: "0 < s"
       and sm: "\<And>x. x \<noteq> 0 \<Longrightarrow> norm x < s \<Longrightarrow> (\<lambda>n. a n * x ^ n) sums (f x)"
@@ -906,7 +894,7 @@ proof (rule LIM_I)
       from DERIV_D[OF DERIV_f[where n=n], THEN LIM_D, OF \<open>0 < ?r\<close>, unfolded real_norm_def]
       obtain s where s_bound: "0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> \<bar>x\<bar> < s \<longrightarrow> \<bar>?diff n x - f' x0 n\<bar> < ?r)"
         by auto
-      have "0 < ?s n" by (rule someI2[where a=s]) (auto simp add: s_bound simp del: real_of_nat_Suc)
+      have "0 < ?s n" by (rule someI2[where a=s]) (auto simp add: s_bound simp del: of_nat_Suc)
       thus "0 < x" unfolding \<open>x = ?s n\<close> .
     qed
   qed auto
@@ -964,9 +952,8 @@ proof (rule LIM_I)
     qed auto
     also have "\<dots> = of_nat (card {..<?N}) * ?r"
       by (rule setsum_constant)
-    also have "\<dots> = real ?N * ?r"
-      unfolding real_eq_of_nat by auto
-    also have "\<dots> = r/3" by (auto simp del: real_of_nat_Suc)
+    also have "\<dots> = real ?N * ?r" by simp
+    also have "\<dots> = r/3" by (auto simp del: of_nat_Suc)
     finally have "\<bar>\<Sum>n<?N. ?diff n x - f' x0 n \<bar> < r / 3" (is "?diff_part < r / 3") .
 
     from suminf_diff[OF allf_summable[OF x_in_I] allf_summable[OF x0_in_I]]
@@ -1050,9 +1037,10 @@ proof -
                 unfolding power_add[symmetric] using \<open>p \<le> n\<close> by auto
             qed
             also have "\<dots> = real (Suc n) * R' ^ n"
-              unfolding setsum_constant card_atLeastLessThan real_of_nat_def by auto
+              unfolding setsum_constant card_atLeastLessThan by auto
             finally show "\<bar>\<Sum>p<Suc n. x ^ p * y ^ (n - p)\<bar> \<le> \<bar>real (Suc n)\<bar> * \<bar>R' ^ n\<bar>"
-              unfolding abs_real_of_nat_cancel abs_of_nonneg[OF zero_le_power[OF less_imp_le[OF \<open>0 < R'\<close>]]] .
+              unfolding  abs_of_nonneg[OF zero_le_power[OF less_imp_le[OF \<open>0 < R'\<close>]]]
+              by linarith
             show "0 \<le> \<bar>f n\<bar> * \<bar>x - y\<bar>"
               unfolding abs_mult[symmetric] by auto
           qed
@@ -1064,7 +1052,7 @@ proof -
       {
         fix n
         show "DERIV (\<lambda> x. ?f x n) x0 :> (?f' x0 n)"
-          by (auto intro!: derivative_eq_intros simp del: power_Suc simp: real_of_nat_def)
+          by (auto intro!: derivative_eq_intros simp del: power_Suc)
       }
       {
         fix x
@@ -1112,7 +1100,7 @@ qed
 lemma isCont_pochhammer [continuous_intros]: "isCont (\<lambda>z::'a::real_normed_field. pochhammer z n) z"
   by (induction n) (auto intro!: continuous_intros simp: pochhammer_rec')
 
-lemma continuous_on_pochhammer [continuous_intros]: 
+lemma continuous_on_pochhammer [continuous_intros]:
   fixes A :: "'a :: real_normed_field set"
   shows "continuous_on A (\<lambda>z. pochhammer z n)"
   by (intro continuous_at_imp_continuous_on ballI isCont_pochhammer)
@@ -1133,7 +1121,7 @@ proof -
   obtain r :: real where r0: "0 < r" and r1: "r < 1"
     using dense [OF zero_less_one] by fast
   obtain N :: nat where N: "norm x < real N * r"
-    using ex_less_of_nat_mult r0 real_of_nat_def by auto
+    using ex_less_of_nat_mult r0 by auto
   from r1 show ?thesis
   proof (rule summable_ratio_test [rule_format])
     fix n :: nat
@@ -1164,7 +1152,7 @@ proof (rule summable_norm_comparison_test [OF exI, rule_format])
     by (simp add: norm_power_ineq)
 qed
 
-lemma summable_exp: 
+lemma summable_exp:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "summable (\<lambda>n. inverse (fact n) * x^n)"
   using summable_exp_generic [where x=x]
@@ -1190,7 +1178,7 @@ lemma DERIV_exp [simp]: "DERIV exp x :> exp(x)"
   apply (simp del: of_real_add)
   done
 
-declare DERIV_exp[THEN DERIV_chain2, derivative_intros] 
+declare DERIV_exp[THEN DERIV_chain2, derivative_intros]
         DERIV_exp[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
 
 lemma norm_exp: "norm (exp x) \<le> exp (norm x)"
@@ -1279,7 +1267,7 @@ next
              (\<Sum>i\<le>Suc n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i))) =
              (\<Sum>i\<le>Suc n. real (Suc n) *\<^sub>R (S x i * S y (Suc n-i)))"
     by (simp only: setsum.distrib [symmetric] scaleR_left_distrib [symmetric]
-                   real_of_nat_add [symmetric]) simp
+                   of_nat_add [symmetric]) simp
   also have "\<dots> = real (Suc n) *\<^sub>R (\<Sum>i\<le>Suc n. S x i * S y (Suc n-i))"
     by (simp only: scaleR_right.setsum)
   finally show
@@ -1338,7 +1326,7 @@ lemma exp_of_nat_mult:
     by (induct n) (auto simp add: distrib_left exp_add mult.commute)
 
 corollary exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
-  by (simp add: exp_of_nat_mult real_of_nat_def)
+  by (simp add: exp_of_nat_mult)
 
 lemma exp_setsum: "finite I \<Longrightarrow> exp(setsum f I) = setprod (\<lambda>x. exp(f x)) I"
   by (induction I rule: finite_induct) (auto simp: exp_add_commuting mult.commute)
@@ -1480,7 +1468,7 @@ begin
 definition ln_real :: "real \<Rightarrow> real"
   where "ln_real x = (THE u. exp u = x)"
 
-instance 
+instance
 by intro_classes (simp add: ln_real_def)
 
 end
@@ -1488,106 +1476,106 @@ end
 lemma powr_eq_0_iff [simp]: "w powr z = 0 \<longleftrightarrow> w = 0"
   by (simp add: powr_def)
 
-lemma ln_exp [simp]: 
+lemma ln_exp [simp]:
   fixes x::real shows "ln (exp x) = x"
   by (simp add: ln_real_def)
 
-lemma exp_ln [simp]: 
+lemma exp_ln [simp]:
   fixes x::real shows "0 < x \<Longrightarrow> exp (ln x) = x"
   by (auto dest: exp_total)
 
-lemma exp_ln_iff [simp]: 
+lemma exp_ln_iff [simp]:
   fixes x::real shows "exp (ln x) = x \<longleftrightarrow> 0 < x"
   by (metis exp_gt_zero exp_ln)
 
-lemma ln_unique: 
+lemma ln_unique:
   fixes x::real shows "exp y = x \<Longrightarrow> ln x = y"
   by (erule subst, rule ln_exp)
 
-lemma ln_mult:  
+lemma ln_mult:
   fixes x::real shows "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x * y) = ln x + ln y"
   by (rule ln_unique) (simp add: exp_add)
 
-lemma ln_setprod: 
-  fixes f:: "'a => real" 
+lemma ln_setprod:
+  fixes f:: "'a => real"
   shows
     "\<lbrakk>finite I; \<And>i. i \<in> I \<Longrightarrow> f i > 0\<rbrakk> \<Longrightarrow> ln(setprod f I) = setsum (\<lambda>x. ln(f x)) I"
   by (induction I rule: finite_induct) (auto simp: ln_mult setprod_pos)
 
-lemma ln_inverse: 
+lemma ln_inverse:
   fixes x::real shows "0 < x \<Longrightarrow> ln (inverse x) = - ln x"
   by (rule ln_unique) (simp add: exp_minus)
 
-lemma ln_div: 
+lemma ln_div:
   fixes x::real shows "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln (x / y) = ln x - ln y"
   by (rule ln_unique) (simp add: exp_diff)
 
 lemma ln_realpow: "0 < x \<Longrightarrow> ln (x^n) = real n * ln x"
   by (rule ln_unique) (simp add: exp_real_of_nat_mult)
 
-lemma ln_less_cancel_iff [simp]: 
+lemma ln_less_cancel_iff [simp]:
   fixes x::real shows "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x < ln y \<longleftrightarrow> x < y"
   by (subst exp_less_cancel_iff [symmetric]) simp
 
-lemma ln_le_cancel_iff [simp]: 
+lemma ln_le_cancel_iff [simp]:
   fixes x::real shows "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x \<le> ln y \<longleftrightarrow> x \<le> y"
   by (simp add: linorder_not_less [symmetric])
 
-lemma ln_inj_iff [simp]: 
+lemma ln_inj_iff [simp]:
   fixes x::real shows "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x = ln y \<longleftrightarrow> x = y"
   by (simp add: order_eq_iff)
 
-lemma ln_add_one_self_le_self [simp]: 
+lemma ln_add_one_self_le_self [simp]:
   fixes x::real shows "0 \<le> x \<Longrightarrow> ln (1 + x) \<le> x"
   apply (rule exp_le_cancel_iff [THEN iffD1])
   apply (simp add: exp_ge_add_one_self_aux)
   done
 
-lemma ln_less_self [simp]: 
+lemma ln_less_self [simp]:
   fixes x::real shows "0 < x \<Longrightarrow> ln x < x"
   by (rule order_less_le_trans [where y="ln (1 + x)"]) simp_all
 
-lemma ln_ge_zero [simp]: 
+lemma ln_ge_zero [simp]:
   fixes x::real shows "1 \<le> x \<Longrightarrow> 0 \<le> ln x"
   using ln_le_cancel_iff [of 1 x] by simp
 
-lemma ln_ge_zero_imp_ge_one: 
+lemma ln_ge_zero_imp_ge_one:
   fixes x::real shows "0 \<le> ln x \<Longrightarrow> 0 < x \<Longrightarrow> 1 \<le> x"
   using ln_le_cancel_iff [of 1 x] by simp
 
-lemma ln_ge_zero_iff [simp]: 
+lemma ln_ge_zero_iff [simp]:
   fixes x::real shows "0 < x \<Longrightarrow> 0 \<le> ln x \<longleftrightarrow> 1 \<le> x"
   using ln_le_cancel_iff [of 1 x] by simp
 
-lemma ln_less_zero_iff [simp]: 
+lemma ln_less_zero_iff [simp]:
   fixes x::real shows "0 < x \<Longrightarrow> ln x < 0 \<longleftrightarrow> x < 1"
   using ln_less_cancel_iff [of x 1] by simp
 
-lemma ln_gt_zero: 
+lemma ln_gt_zero:
   fixes x::real shows "1 < x \<Longrightarrow> 0 < ln x"
   using ln_less_cancel_iff [of 1 x] by simp
 
-lemma ln_gt_zero_imp_gt_one: 
+lemma ln_gt_zero_imp_gt_one:
   fixes x::real shows "0 < ln x \<Longrightarrow> 0 < x \<Longrightarrow> 1 < x"
   using ln_less_cancel_iff [of 1 x] by simp
 
-lemma ln_gt_zero_iff [simp]: 
+lemma ln_gt_zero_iff [simp]:
   fixes x::real shows "0 < x \<Longrightarrow> 0 < ln x \<longleftrightarrow> 1 < x"
   using ln_less_cancel_iff [of 1 x] by simp
 
-lemma ln_eq_zero_iff [simp]: 
+lemma ln_eq_zero_iff [simp]:
   fixes x::real shows "0 < x \<Longrightarrow> ln x = 0 \<longleftrightarrow> x = 1"
   using ln_inj_iff [of x 1] by simp
 
-lemma ln_less_zero: 
+lemma ln_less_zero:
   fixes x::real shows "0 < x \<Longrightarrow> x < 1 \<Longrightarrow> ln x < 0"
   by simp
 
-lemma ln_neg_is_const: 
+lemma ln_neg_is_const:
   fixes x::real shows "x \<le> 0 \<Longrightarrow> ln x = (THE x. False)"
   by (auto simp add: ln_real_def intro!: arg_cong[where f=The])
 
-lemma isCont_ln: 
+lemma isCont_ln:
   fixes x::real assumes "x \<noteq> 0" shows "isCont ln x"
 proof cases
   assume "0 < x"
@@ -1603,7 +1591,7 @@ next
                 intro!: exI[of _ "\<bar>x\<bar>"])
 qed
 
-lemma tendsto_ln [tendsto_intros]: 
+lemma tendsto_ln [tendsto_intros]:
   fixes a::real shows
   "(f ---> a) F \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> ((\<lambda>x. ln (f x)) ---> ln a) F"
   by (rule isCont_tendsto_compose [OF isCont_ln])
@@ -1709,9 +1697,9 @@ proof -
     have "(2::nat) * 2 ^ n \<le> fact (n + 2)"
       by (induct n) simp_all
     hence "real ((2::nat) * 2 ^ n) \<le> real_of_nat (fact (n + 2))"
-      by (simp only: real_of_nat_le_iff)
+      by (simp only: of_nat_le_iff)
     hence "((2::real) * 2 ^ n) \<le> fact (n + 2)"
-      unfolding of_nat_fact real_of_nat_def
+      unfolding of_nat_fact
       by (simp add: of_nat_mult of_nat_power)
     hence "inverse (fact (n + 2)) \<le> inverse ((2::real) * 2 ^ n)"
       by (rule le_imp_inverse_le) simp
@@ -1843,7 +1831,7 @@ proof -
 qed
 
 lemma ln_one_minus_pos_lower_bound:
-  fixes x::real 
+  fixes x::real
   shows "0 <= x \<Longrightarrow> x <= (1 / 2) \<Longrightarrow> - x - 2 * x\<^sup>2 <= ln (1 - x)"
 proof -
   assume a: "0 <= x" and b: "x <= (1 / 2)"
@@ -1973,13 +1961,13 @@ lemma ln_le_minus_one:
   fixes x::real shows "0 < x \<Longrightarrow> ln x \<le> x - 1"
   using exp_ge_add_one_self[of "ln x"] by simp
 
-corollary ln_diff_le: 
-  fixes x::real 
+corollary ln_diff_le:
+  fixes x::real
   shows "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x - ln y \<le> (x - y) / y"
   by (simp add: ln_div [symmetric] diff_divide_distrib ln_le_minus_one)
 
 lemma ln_eq_minus_one:
-  fixes x::real 
+  fixes x::real
   assumes "0 < x" "ln x = x - 1"
   shows "x = 1"
 proof -
@@ -2328,7 +2316,7 @@ lemma log_le_one_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarr
 lemma le_log_iff:
   assumes "1 < b" "x > 0"
   shows "y \<le> log b x \<longleftrightarrow> b powr y \<le> (x::real)"
-  using assms 
+  using assms
   apply auto
   apply (metis (no_types, hide_lams) less_irrefl less_le_trans linear powr_le_cancel_iff
                powr_log_cancel zero_less_one)
@@ -2358,10 +2346,10 @@ lemma
   by (auto simp add: floor_eq_iff powr_le_iff less_powr_iff)
 
 lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
-  by (induct n) (simp_all add: ac_simps powr_add real_of_nat_Suc)
+  by (induct n) (simp_all add: ac_simps powr_add of_nat_Suc)
 
 lemma powr_realpow_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
-  unfolding real_of_nat_numeral [symmetric] by (rule powr_realpow)
+  by (metis of_nat_numeral powr_realpow)
 
 lemma powr2_sqrt[simp]: "0 < x \<Longrightarrow> sqrt x powr 2 = x"
 by(simp add: powr_realpow_numeral)
@@ -2517,7 +2505,7 @@ proof -
 qed
 
 lemma tendsto_powr [tendsto_intros]:
-  fixes a::real 
+  fixes a::real
   assumes f: "(f ---> a) F" and g: "(g ---> b) F" and a: "a \<noteq> 0"
   shows "((\<lambda>x. f x powr g x) ---> a powr b) F"
   unfolding powr_def
@@ -2561,7 +2549,7 @@ proof (rule filterlim_If)
 next
   { assume "a = 0"
     with f f_nonneg have "LIM x inf F (principal {x. f x \<noteq> 0}). f x :> at_right 0"
-      by (auto simp add: filterlim_at eventually_inf_principal le_less 
+      by (auto simp add: filterlim_at eventually_inf_principal le_less
                elim: eventually_elim1 intro: tendsto_mono inf_le1)
     then have "((\<lambda>x. exp (g x * ln (f x))) ---> 0) (inf F (principal {x. f x \<noteq> 0}))"
       by (auto intro!: filterlim_compose[OF exp_at_bot] filterlim_compose[OF ln_at_0]
@@ -2770,10 +2758,10 @@ corollary cos_in_Reals [simp]: "z \<in> \<real> \<Longrightarrow> cos z \<in> \<
   by (metis Reals_cases Reals_of_real cos_of_real)
 
 lemma diffs_sin_coeff: "diffs sin_coeff = cos_coeff"
-  by (simp add: diffs_def sin_coeff_Suc real_of_nat_def del: of_nat_Suc)
+  by (simp add: diffs_def sin_coeff_Suc del: of_nat_Suc)
 
 lemma diffs_cos_coeff: "diffs cos_coeff = (\<lambda>n. - sin_coeff n)"
-  by (simp add: diffs_def cos_coeff_Suc real_of_nat_def del: of_nat_Suc)
+  by (simp add: diffs_def cos_coeff_Suc del: of_nat_Suc)
 
 text\<open>Now at last we can get the derivatives of exp, sin and cos\<close>
 
@@ -2884,7 +2872,7 @@ lemma DERIV_fun_sin:
 
 lemma DERIV_fun_cos:
      "DERIV g x :> m \<Longrightarrow> DERIV (\<lambda>x. cos(g x)) x :> -sin(g x) * m"
-  by (auto intro!: derivative_eq_intros simp: real_of_nat_def)
+  by (auto intro!: derivative_eq_intros)
 
 subsection \<open>Deriving the Addition Formulas\<close>
 
@@ -2903,7 +2891,7 @@ proof -
     have "(cos_coeff n * cos_coeff (p - n)) *\<^sub>R (x^n * y^(p-n)) =
           (if even p \<and> even n then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
     using \<open>n\<le>p\<close>
-      by (auto simp: * algebra_simps cos_coeff_def binomial_fact real_of_nat_def)
+      by (auto simp: * algebra_simps cos_coeff_def binomial_fact)
   }
   then have "(\<lambda>p. \<Sum>n\<le>p. if even p \<and> even n
                   then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) =
@@ -2942,7 +2930,7 @@ proof -
           (if even p \<and> odd n
           then -((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0)"
     using \<open>n\<le>p\<close>
-      by (auto simp:  algebra_simps sin_coeff_def binomial_fact real_of_nat_def)
+      by (auto simp:  algebra_simps sin_coeff_def binomial_fact)
   }
   then have "(\<lambda>p. \<Sum>n\<le>p. if even p \<and> odd n
                then - ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n) else 0) =
@@ -2977,7 +2965,7 @@ proof -
                   else 0)"
       by (auto simp: setsum_right_distrib field_simps scaleR_conv_of_real nonzero_of_real_divide)
     also have "... = cos_coeff p *\<^sub>R ((x + y) ^ p)"
-      by (simp add: cos_coeff_def binomial_ring [of x y]  scaleR_conv_of_real real_of_nat_def atLeast0AtMost)
+      by (simp add: cos_coeff_def binomial_ring [of x y]  scaleR_conv_of_real atLeast0AtMost)
     finally have "(\<Sum>n\<le>p. if even p
                   then ((-1) ^ (p div 2) * (p choose n) / (fact p)) *\<^sub>R (x^n) * y^(p-n)
                   else 0) = cos_coeff p *\<^sub>R ((x + y) ^ p)" .
@@ -3114,7 +3102,7 @@ lemma cos_double:
 
 lemma DERIV_fun_pow: "DERIV g x :> m ==>
       DERIV (\<lambda>x. (g x) ^ n) x :> real n * (g x) ^ (n - 1) * m"
-  by (auto intro!: derivative_eq_intros simp: real_of_nat_def)
+  by (auto intro!: derivative_eq_intros simp:)
 
 lemma DERIV_fun_exp:
      "DERIV g x :> m ==> DERIV (\<lambda>x. exp(g x)) x :> exp(g x) * m"
@@ -3155,7 +3143,7 @@ proof -
     hence "x * x * x * x ^ (n * 4) < ?k2 * ?k3 * x * x ^ (n * 4)"
       by (intro mult_strict_right_mono zero_less_power \<open>0 < x\<close>)
     thus "0 < ?f n"
-      by (simp add: real_of_nat_def divide_simps mult_ac del: mult_Suc)
+      by (simp add: divide_simps mult_ac del: mult_Suc)
 qed
   have sums: "?f sums sin x"
     by (rule sin_paired [THEN sums_group], simp)
@@ -3183,7 +3171,7 @@ qed
 
 lemmas realpow_num_eq_if = power_eq_if
 
-lemma sumr_pos_lt_pair: 
+lemma sumr_pos_lt_pair:
   fixes f :: "nat \<Rightarrow> real"
   shows "\<lbrakk>summable f;
         \<And>d. 0 < f (k + (Suc(Suc 0) * d)) + f (k + ((Suc(Suc 0) * d) + 1))\<rbrakk>
@@ -3212,13 +3200,12 @@ proof -
     { fix d
       let ?six4d = "Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))"
       have "(4::real) * (fact (?six4d)) < (Suc (Suc (?six4d)) * fact (Suc (?six4d)))"
-        unfolding real_of_nat_mult
-        by (rule mult_strict_mono) (simp_all add: fact_less_mono)
+        unfolding of_nat_mult   by (rule mult_strict_mono) (simp_all add: fact_less_mono)
       then have "(4::real) * (fact (?six4d)) < (fact (Suc (Suc (?six4d))))"
-        by (simp only: fact.simps(2) [of "Suc (?six4d)"] real_of_nat_def of_nat_mult of_nat_fact)
+        by (simp only: fact.simps(2) [of "Suc (?six4d)"] of_nat_mult of_nat_fact)
       then have "(4::real) * inverse (fact (Suc (Suc (?six4d)))) < inverse (fact (?six4d))"
         by (simp add: inverse_eq_divide less_divide_eq)
-    } 
+    }
     then show ?thesis
       by (force intro!: sumr_pos_lt_pair [OF sm] simp add: divide_inverse algebra_simps)
   qed
@@ -3367,6 +3354,9 @@ lemma sin_periodic_pi2 [simp]: "sin (pi + x) = - sin x"
 lemma cos_periodic_pi [simp]: "cos (x + pi) = - cos x"
   by (simp add: cos_add)
 
+lemma cos_periodic_pi2 [simp]: "cos (pi + x) = - cos x"
+  by (simp add: cos_add)
+
 lemma sin_periodic [simp]: "sin (x + 2*pi) = sin x"
   by (simp add: sin_add sin_double cos_double)
 
@@ -3374,13 +3364,13 @@ lemma cos_periodic [simp]: "cos (x + 2*pi) = cos x"
   by (simp add: cos_add sin_double cos_double)
 
 lemma cos_npi [simp]: "cos (real n * pi) = (- 1) ^ n"
-  by (induct n) (auto simp: real_of_nat_Suc distrib_right)
+  by (induct n) (auto simp: distrib_right)
 
 lemma cos_npi2 [simp]: "cos (pi * real n) = (- 1) ^ n"
   by (metis cos_npi mult.commute)
 
 lemma sin_npi [simp]: "sin (real (n::nat) * pi) = 0"
-  by (induct n) (auto simp: real_of_nat_Suc distrib_right)
+  by (induct n) (auto simp: of_nat_Suc distrib_right)
 
 lemma sin_npi2 [simp]: "sin (pi * real (n::nat)) = 0"
   by (simp add: mult.commute [of pi])
@@ -3419,33 +3409,33 @@ lemma sin_plus_sin:  (*FIXME field should not be necessary*)
   apply (simp add: field_simps)
   done
 
-lemma sin_diff_sin: 
+lemma sin_diff_sin:
   fixes w :: "'a::{real_normed_field,banach,field}"
   shows "sin(w) - sin(z) = 2 * sin((w - z) / 2) * cos((w + z) / 2)"
   apply (simp add: mult.assoc sin_times_cos)
   apply (simp add: field_simps)
   done
 
-lemma cos_plus_cos: 
+lemma cos_plus_cos:
   fixes w :: "'a::{real_normed_field,banach,field}"
   shows "cos(w) + cos(z) = 2 * cos((w + z) / 2) * cos((w - z) / 2)"
   apply (simp add: mult.assoc cos_times_cos)
   apply (simp add: field_simps)
   done
 
-lemma cos_diff_cos: 
+lemma cos_diff_cos:
   fixes w :: "'a::{real_normed_field,banach,field}"
   shows "cos(w) - cos(z) = 2 * sin((w + z) / 2) * sin((z - w) / 2)"
   apply (simp add: mult.assoc sin_times_sin)
   apply (simp add: field_simps)
   done
 
-lemma cos_double_cos: 
+lemma cos_double_cos:
   fixes z :: "'a::{real_normed_field,banach}"
   shows "cos(2 * z) = 2 * cos z ^ 2 - 1"
 by (simp add: cos_double sin_squared_eq)
 
-lemma cos_double_sin: 
+lemma cos_double_sin:
   fixes z :: "'a::{real_normed_field,banach}"
   shows "cos(2 * z) = 1 - 2 * sin z ^ 2"
 by (simp add: cos_double sin_squared_eq)
@@ -3466,7 +3456,7 @@ lemma sin_2pi_minus [simp]: "sin (2*pi - x) = -(sin x)"
   by (metis sin_periodic_pi2 add_diff_eq mult_2 sin_pi_minus)
 
 lemma cos_2pi_minus [simp]: "cos (2*pi - x) = cos x"
-  by (metis (no_types, hide_lams) cos_add cos_minus cos_two_pi sin_minus sin_two_pi 
+  by (metis (no_types, hide_lams) cos_add cos_minus cos_two_pi sin_minus sin_two_pi
            diff_0_right minus_diff_eq mult_1 mult_zero_left uminus_add_conv_diff)
 
 lemma sin_gt_zero2: "\<lbrakk>0 < x; x < pi/2\<rbrakk> \<Longrightarrow> 0 < sin x"
@@ -3566,13 +3556,6 @@ proof -
     done
 qed
 
-lemma reals_Archimedean4':
-     "\<lbrakk>0 < y; 0 \<le> x\<rbrakk> \<Longrightarrow> \<exists>n. real n * y \<le> x \<and> x < real (Suc n) * y"
-apply (rule_tac x="nat (floor (x/y))" in exI)
-using floor_correct [of "x/y"]
-apply (auto simp: Real.real_of_nat_Suc field_simps)
-done
-
 lemma cos_zero_lemma:
      "\<lbrakk>0 \<le> x; cos x = 0\<rbrakk> \<Longrightarrow>
       \<exists>n::nat. odd n & x = real n * (pi/2)"
@@ -3580,7 +3563,7 @@ apply (erule reals_Archimedean4 [OF pi_gt_zero])
 apply (auto simp: )
 apply (subgoal_tac "0 \<le> x - real n * pi &
                     (x - real n * pi) \<le> pi & (cos (x - real n * pi) = 0) ")
-apply (auto simp: algebra_simps real_of_nat_Suc)
+apply (auto simp: algebra_simps of_nat_Suc)
  prefer 2 apply (simp add: cos_diff)
 apply (simp add: cos_diff)
 apply (subgoal_tac "EX! x. 0 \<le> x & x \<le> pi & cos x = 0")
@@ -3589,7 +3572,7 @@ apply (drule_tac x = "x - real n * pi" in spec)
 apply (drule_tac x = "pi/2" in spec)
 apply (simp add: cos_diff)
 apply (rule_tac x = "Suc (2 * n)" in exI)
-apply (simp add: real_of_nat_Suc algebra_simps, auto)
+apply (simp add: of_nat_Suc algebra_simps, auto)
 done
 
 lemma sin_zero_lemma:
@@ -3597,7 +3580,7 @@ lemma sin_zero_lemma:
       \<exists>n::nat. even n & x = real n * (pi/2)"
 apply (subgoal_tac "\<exists>n::nat. ~ even n & x + pi/2 = real n * (pi/2) ")
  apply (clarify, rule_tac x = "n - 1" in exI)
- apply (auto elim!: oddE simp add: real_of_nat_Suc field_simps)[1]
+ apply (auto elim!: oddE simp add: of_nat_Suc field_simps)[1]
  apply (rule cos_zero_lemma)
  apply (auto simp: cos_add)
 done
@@ -3611,7 +3594,7 @@ proof -
     assume "odd n"
     then obtain m where "n = 2 * m + 1" ..
     then have "cos (real n * pi / 2) = 0"
-      by (simp add: field_simps real_of_nat_Suc) (simp add: cos_add add_divide_distrib)
+      by (simp add: field_simps of_nat_Suc) (simp add: cos_add add_divide_distrib)
   } note * = this
   show ?thesis
   apply (rule iffI)
@@ -3637,18 +3620,18 @@ done
 
 
 lemma cos_zero_iff_int:
-     "cos x = 0 \<longleftrightarrow> (\<exists>n::int. odd n & x = real n * (pi/2))"
+     "cos x = 0 \<longleftrightarrow> (\<exists>n::int. odd n \<and> x = of_int n * (pi/2))"
 proof safe
   assume "cos x = 0"
-  then show "\<exists>n::int. odd n & x = real n * (pi/2)"
+  then show "\<exists>n::int. odd n & x = of_int n * (pi/2)"
     apply (simp add: cos_zero_iff, safe)
-    apply (metis even_int_iff real_of_int_of_nat_eq)
+    apply (metis even_int_iff of_int_of_nat_eq)
     apply (rule_tac x="- (int n)" in exI, simp)
     done
 next
   fix n::int
   assume "odd n"
-  then show "cos (real n * (pi / 2)) = 0"
+  then show "cos (of_int n * (pi / 2)) = 0"
     apply (simp add: cos_zero_iff)
     apply (case_tac n rule: int_cases2, simp)
     apply (rule disjI2)
@@ -3657,18 +3640,18 @@ next
 qed
 
 lemma sin_zero_iff_int:
-     "sin x = 0 \<longleftrightarrow> (\<exists>n::int. even n & (x = real n * (pi/2)))"
+     "sin x = 0 \<longleftrightarrow> (\<exists>n::int. even n & (x = of_int n * (pi/2)))"
 proof safe
   assume "sin x = 0"
-  then show "\<exists>n::int. even n \<and> x = real n * (pi / 2)"
+  then show "\<exists>n::int. even n \<and> x = of_int n * (pi / 2)"
     apply (simp add: sin_zero_iff, safe)
-    apply (metis even_int_iff real_of_int_of_nat_eq)
+    apply (metis even_int_iff of_int_of_nat_eq)
     apply (rule_tac x="- (int n)" in exI, simp)
     done
 next
   fix n::int
   assume "even n"
-  then show "sin (real n * (pi / 2)) = 0"
+  then show "sin (of_int n * (pi / 2)) = 0"
     apply (simp add: sin_zero_iff)
     apply (case_tac n rule: int_cases2, simp)
     apply (rule disjI2)
@@ -3677,13 +3660,11 @@ next
 qed
 
 lemma sin_zero_iff_int2:
-  "sin x = 0 \<longleftrightarrow> (\<exists>n::int. x = real n * pi)"
+  "sin x = 0 \<longleftrightarrow> (\<exists>n::int. x = of_int n * pi)"
   apply (simp only: sin_zero_iff_int)
   apply (safe elim!: evenE)
   apply (simp_all add: field_simps)
-  apply (subst real_numeral(1) [symmetric])
-  apply (simp only: real_of_int_mult [symmetric] real_of_int_inject)
-  apply auto
+  using dvd_triv_left apply fastforce
   done
 
 lemma cos_monotone_0_pi:
@@ -3691,7 +3672,6 @@ lemma cos_monotone_0_pi:
   shows "cos x < cos y"
 proof -
   have "- (x - y) < 0" using assms by auto
-
   from MVT2[OF \<open>y < x\<close> DERIV_cos[THEN impI, THEN allI]]
   obtain z where "y < z" and "z < x" and cos_diff: "cos x - cos y = (x - y) * - sin z"
     by auto
@@ -3790,8 +3770,7 @@ proof -
   have "sin ((real n + 1/2) * pi) = cos (real n * pi)"
     by (auto simp: algebra_simps sin_add)
   thus ?thesis
-    by (simp add: real_of_nat_Suc distrib_right add_divide_distrib
-                  mult.commute [of pi])
+    by (simp add: distrib_right add_divide_distrib add.commute mult.commute [of pi])
 qed
 
 lemma cos_2npi [simp]: "cos (2 * real (n::nat) * pi) = 1"
@@ -3811,7 +3790,7 @@ lemma sin_3over2_pi [simp]: "sin (3/2*pi) = - 1"
   done
 
 lemma cos_pi_eq_zero [simp]: "cos (pi * real (Suc (2 * m)) / 2) = 0"
-by (simp only: cos_add sin_add real_of_nat_Suc distrib_right distrib_left add_divide_distrib, auto)
+by (simp only: cos_add sin_add of_nat_Suc distrib_right distrib_left add_divide_distrib, auto)
 
 lemma DERIV_cos_add [simp]: "DERIV (\<lambda>x. cos (x + k)) xa :> - sin (xa + k)"
   by (auto intro!: derivative_eq_intros)
@@ -3832,9 +3811,9 @@ lemma cos_one_sin_zero:
   by simp
 
 lemma sin_times_pi_eq_0: "sin(x * pi) = 0 \<longleftrightarrow> x \<in> \<int>"
-  by (simp add: sin_zero_iff_int2) (metis Ints_cases Ints_real_of_int real_of_int_def)
+  by (simp add: sin_zero_iff_int2) (metis Ints_cases Ints_of_int)
 
-lemma cos_one_2pi: 
+lemma cos_one_2pi:
     "cos(x) = 1 \<longleftrightarrow> (\<exists>n::nat. x = n * 2*pi) | (\<exists>n::nat. x = -(n * 2*pi))"
     (is "?lhs = ?rhs")
 proof
@@ -3852,7 +3831,7 @@ proof
     show ?rhs
       using m me n
       by (auto simp: field_simps elim!: evenE)
-  next    
+  next
     fix n::nat
     assume n: "even n" "x = - (real n * (pi/2))"
     then obtain m where m: "n = 2 * m"
@@ -3872,9 +3851,9 @@ qed
 lemma cos_one_2pi_int: "cos(x) = 1 \<longleftrightarrow> (\<exists>n::int. x = n * 2*pi)"
   apply auto  --\<open>FIXME simproc bug\<close>
   apply (auto simp: cos_one_2pi)
-  apply (metis real_of_int_of_nat_eq)
-  apply (metis mult_minus_right real_of_int_minus real_of_int_of_nat_eq)
-  by (metis mult_minus_right of_int_of_nat real_of_int_def real_of_nat_def)
+  apply (metis of_int_of_nat_eq)
+  apply (metis mult_minus_right of_int_minus of_int_of_nat_eq)
+  by (metis mult_minus_right of_int_of_nat )
 
 lemma sin_cos_sqrt: "0 \<le> sin(x) \<Longrightarrow> (sin(x) = sqrt(1 - (cos(x) ^ 2)))"
   using sin_squared_eq real_sqrt_unique by fastforce
@@ -3882,7 +3861,7 @@ lemma sin_cos_sqrt: "0 \<le> sin(x) \<Longrightarrow> (sin(x) = sqrt(1 - (cos(x)
 lemma sin_eq_0_pi: "-pi < x \<Longrightarrow> x < pi \<Longrightarrow> sin(x) = 0 \<Longrightarrow> x = 0"
   by (metis sin_gt_zero sin_minus minus_less_iff neg_0_less_iff_less not_less_iff_gr_or_eq)
 
-lemma cos_treble_cos: 
+lemma cos_treble_cos:
   fixes x :: "'a::{real_normed_field,banach}"
   shows "cos(3 * x) = 4 * cos(x) ^ 3 - 3 * cos x"
 proof -
@@ -3948,16 +3927,16 @@ lemma sin_30: "sin (pi / 6) = 1 / 2"
   by (simp add: sin_cos_eq cos_60)
 
 lemma cos_integer_2pi: "n \<in> \<int> \<Longrightarrow> cos(2*pi * n) = 1"
-  by (metis Ints_cases cos_one_2pi_int mult.assoc mult.commute real_of_int_def)
+  by (metis Ints_cases cos_one_2pi_int mult.assoc mult.commute)
 
 lemma sin_integer_2pi: "n \<in> \<int> \<Longrightarrow> sin(2*pi * n) = 0"
   by (metis sin_two_pi Ints_mult mult.assoc mult.commute sin_times_pi_eq_0)
 
-lemma cos_int_2npi [simp]: "cos (2 * real (n::int) * pi) = 1"
+lemma cos_int_2npi [simp]: "cos (2 * of_int (n::int) * pi) = 1"
   by (simp add: cos_one_2pi_int)
 
-lemma sin_int_2npi [simp]: "sin (2 * real (n::int) * pi) = 0"
-  by (metis Ints_real_of_int mult.assoc mult.commute sin_integer_2pi)
+lemma sin_int_2npi [simp]: "sin (2 * of_int (n::int) * pi) = 0"
+  by (metis Ints_of_int mult.assoc mult.commute sin_integer_2pi)
 
 lemma sincos_principal_value: "\<exists>y. (-pi < y \<and> y \<le> pi) \<and> (sin(y) = sin(x) \<and> cos(y) = cos(x))"
   apply (rule exI [where x="pi - (2*pi) * frac((pi - x) / (2*pi))"])
@@ -4201,27 +4180,29 @@ proof (induct n arbitrary: x)
 next
   case (Suc n)
   have split_pi_off: "x + real (Suc n) * pi = (x + real n * pi) + pi"
-    unfolding Suc_eq_plus1 real_of_nat_add real_of_one distrib_right by auto
+    unfolding Suc_eq_plus1 of_nat_add  distrib_right by auto
   show ?case unfolding split_pi_off using Suc by auto
 qed
 
-lemma tan_periodic_int[simp]: fixes i :: int shows "tan (x + real i * pi) = tan x"
+lemma tan_periodic_int[simp]: fixes i :: int shows "tan (x + of_int i * pi) = tan x"
 proof (cases "0 \<le> i")
   case True
-  hence i_nat: "real i = real (nat i)" by auto
-  show ?thesis unfolding i_nat by auto
+  hence i_nat: "of_int i = of_int (nat i)" by auto
+  show ?thesis unfolding i_nat
+    by (metis of_int_of_nat_eq tan_periodic_nat) 
 next
   case False
-  hence i_nat: "real i = - real (nat (-i))" by auto
-  have "tan x = tan (x + real i * pi - real i * pi)"
+  hence i_nat: "of_int i = - of_int (nat (-i))" by auto
+  have "tan x = tan (x + of_int i * pi - of_int i * pi)"
     by auto
-  also have "\<dots> = tan (x + real i * pi)"
-    unfolding i_nat mult_minus_left diff_minus_eq_add by (rule tan_periodic_nat)
+  also have "\<dots> = tan (x + of_int i * pi)"
+    unfolding i_nat mult_minus_left diff_minus_eq_add
+    by (metis of_int_of_nat_eq tan_periodic_nat)    
   finally show ?thesis by auto
 qed
 
 lemma tan_periodic_n[simp]: "tan (x + numeral n * pi) = tan x"
-  using tan_periodic_int[of _ "numeral n" ] unfolding real_numeral .
+  using tan_periodic_int[of _ "numeral n" ] by simp
 
 lemma tan_minus_45: "tan (-(pi/4)) = -1"
   unfolding tan_def by (simp add: sin_45 cos_45)
@@ -4292,7 +4273,7 @@ lemma cot_minus [simp]: "cot (-x) = - cot x"
 
 lemma cot_periodic [simp]: "cot (x + 2*pi) = cot x"
   by (simp add: cot_def)
-  
+
 lemma cot_altdef: "cot x = inverse (tan x)"
   by (simp add: cot_def tan_def)
 
@@ -4494,7 +4475,7 @@ lemma arccos_minus_1 [simp]: "arccos(-1) = pi"
   by (metis arccos_cos cos_pi order_refl pi_ge_zero)
 
 lemma arccos_minus: "-1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arccos(-x) = pi - arccos x"
-  by (metis arccos_cos arccos_cos2 cos_minus_pi cos_total diff_le_0_iff_le le_add_same_cancel1 
+  by (metis arccos_cos arccos_cos2 cos_minus_pi cos_total diff_le_0_iff_le le_add_same_cancel1
     minus_diff_eq uminus_add_conv_diff)
 
 lemma sin_arccos_nonzero: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> ~(sin(arccos x) = 0)"
@@ -4746,7 +4727,7 @@ lemma sin_mono_le_eq: "\<lbrakk>-(pi/2) \<le> x; x \<le> pi/2; -(pi/2) \<le> y; 
          \<Longrightarrow> (sin(x) \<le> sin(y) \<longleftrightarrow> x \<le> y)"
 by (meson leD le_less_linear sin_monotone_2pi sin_monotone_2pi_le)
 
-lemma sin_inj_pi: 
+lemma sin_inj_pi:
     "\<lbrakk>-(pi/2) \<le> x; x \<le> pi/2;-(pi/2) \<le> y; y \<le> pi/2; sin(x) = sin(y)\<rbrakk> \<Longrightarrow> x = y"
 by (metis arcsin_sin)
 
@@ -4772,24 +4753,24 @@ lemma sincos_total_pi_half:
 proof -
   have x1: "x \<le> 1"
     using assms
-    by (metis le_add_same_cancel1 power2_le_imp_le power_one zero_le_power2) 
+    by (metis le_add_same_cancel1 power2_le_imp_le power_one zero_le_power2)
   moreover with assms have ax: "0 \<le> arccos x" "cos(arccos x) = x"
     by (auto simp: arccos)
   moreover have "y = sqrt (1 - x\<^sup>2)" using assms
     by (metis abs_of_nonneg add.commute add_diff_cancel real_sqrt_abs)
-  ultimately show ?thesis using assms arccos_le_pi2 [of x] 
+  ultimately show ?thesis using assms arccos_le_pi2 [of x]
     by (rule_tac x="arccos x" in exI) (auto simp: sin_arccos)
-qed    
+qed
 
 lemma sincos_total_pi:
   assumes "0 \<le> y" and "x\<^sup>2 + y\<^sup>2 = 1"
     shows "\<exists>t. 0 \<le> t \<and> t \<le> pi \<and> x = cos t \<and> y = sin t"
 proof (cases rule: le_cases [of 0 x])
-  case le from sincos_total_pi_half [OF le]  
+  case le from sincos_total_pi_half [OF le]
   show ?thesis
     by (metis pi_ge_two pi_half_le_two add.commute add_le_cancel_left add_mono assms)
 next
-  case ge 
+  case ge
   then have "0 \<le> -x"
     by simp
   then obtain t where "t\<ge>0" "t \<le> pi/2" "-x = cos t" "y = sin t"
@@ -4798,17 +4779,17 @@ next
     by (metis \<open>0 \<le> - x\<close> power2_minus)
   then show ?thesis
     by (rule_tac x="pi-t" in exI, auto)
-qed    
-    
+qed
+
 lemma sincos_total_2pi_le:
   assumes "x\<^sup>2 + y\<^sup>2 = 1"
     shows "\<exists>t. 0 \<le> t \<and> t \<le> 2*pi \<and> x = cos t \<and> y = sin t"
 proof (cases rule: le_cases [of 0 y])
-  case le from sincos_total_pi [OF le]  
+  case le from sincos_total_pi [OF le]
   show ?thesis
     by (metis assms le_add_same_cancel1 mult.commute mult_2_right order.trans)
 next
-  case ge 
+  case ge
   then have "0 \<le> -y"
     by simp
   then obtain t where "t\<ge>0" "t \<le> pi" "x = cos t" "-y = sin t"
@@ -4817,7 +4798,7 @@ next
     by (metis \<open>0 \<le> - y\<close> power2_minus)
   then show ?thesis
     by (rule_tac x="2*pi-t" in exI, auto)
-qed    
+qed
 
 lemma sincos_total_2pi:
   assumes "x\<^sup>2 + y\<^sup>2 = 1"
@@ -4855,7 +4836,7 @@ lemma arccos_less_mono: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrig
   done
 
 lemma arccos_le_mono: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> arccos x \<le> arccos y \<longleftrightarrow> y \<le> x"
-  using arccos_less_mono [of y x] 
+  using arccos_less_mono [of y x]
   by (simp add: not_le [symmetric])
 
 lemma arccos_less_arccos: "-1 \<le> x \<Longrightarrow> x < y \<Longrightarrow> y \<le> 1 \<Longrightarrow> arccos y < arccos x"
@@ -4934,7 +4915,7 @@ proof -
   moreover
   have "\<bar>336/527\<bar> < (1 :: real)" by auto
   from arctan_add[OF less_imp_le[OF 17] this]
-  have "arctan(1/7) + arctan (336/527) = arctan (2879/3353)"  by auto 
+  have "arctan(1/7) + arctan (336/527) = arctan (2879/3353)"  by auto
   ultimately have I: "5 * arctan(1/7) = arctan (2879/3353)"  by auto
   have 379: "\<bar>3/79\<bar> < (1 :: real)" by auto
   with arctan_double
@@ -5272,7 +5253,7 @@ proof -
     }
     have "?a 1 ----> 0"
       unfolding tendsto_rabs_zero_iff power_one divide_inverse One_nat_def
-      by (auto intro!: tendsto_mult LIMSEQ_linear LIMSEQ_inverse_real_of_nat simp del: real_of_nat_Suc)
+      by (auto intro!: tendsto_mult LIMSEQ_linear LIMSEQ_inverse_real_of_nat simp del: of_nat_Suc)
     have "?diff 1 ----> 0"
     proof (rule LIMSEQ_I)
       fix r :: real
@@ -5459,7 +5440,7 @@ lemma product_atMost_eq_Un:
 lemma polynomial_product: (*with thanks to Chaitanya Mangla*)
   fixes x:: "'a :: idom"
   assumes m: "\<And>i. i>m \<Longrightarrow> (a i) = 0" and n: "\<And>j. j>n \<Longrightarrow> (b j) = 0"
-  shows "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) = 
+  shows "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) =
          (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
 proof -
   have "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) = (\<Sum>i\<le>m. \<Sum>j\<le>n. (a i * x ^ i) * (b j * x ^ j))"
@@ -5473,19 +5454,19 @@ proof -
   also have "... = (\<Sum>(i,j)\<in>{(i,j). i+j \<le> m+n}. (a i * x ^ i) * (b j * x ^ j))"
     by (auto simp: pairs_le_eq_Sigma setsum.Sigma)
   also have "... = (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
-    apply (subst setsum_triangle_reindex_eq)  
+    apply (subst setsum_triangle_reindex_eq)
     apply (auto simp: algebra_simps setsum_right_distrib intro!: setsum.cong)
     by (metis le_add_diff_inverse power_add)
   finally show ?thesis .
 qed
 
-lemma polynomial_product_nat: 
+lemma polynomial_product_nat:
   fixes x:: nat
   assumes m: "\<And>i. i>m \<Longrightarrow> (a i) = 0" and n: "\<And>j. j>n \<Longrightarrow> (b j) = 0"
-  shows "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) = 
+  shows "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) =
          (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
   using polynomial_product [of m a n b x] assms
-  by (simp add: Int.zpower_int Int.zmult_int Int.int_setsum [symmetric])
+  by (simp only: of_nat_mult [symmetric] of_nat_power [symmetric] int_int_eq Int.int_setsum [symmetric])
 
 lemma polyfun_diff: (*COMPLEX_SUB_POLYFUN in HOL Light*)
     fixes x :: "'a::idom"

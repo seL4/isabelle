@@ -4596,7 +4596,7 @@ proof -
       using separating_hyperplane_closed_0[OF convex_convex_hull, of c]
       using finite_imp_compact_convex_hull[OF c(3), THEN compact_imp_closed] and assms(2)
       using subset_hull[of convex, OF assms(1), symmetric, of c]
-      by auto
+      by force
     then have "\<exists>x. norm x = 1 \<and> (\<forall>y\<in>c. 0 \<le> inner y x)"
       apply (rule_tac x = "inverse(norm a) *\<^sub>R a" in exI)
       using hull_subset[of c convex]
@@ -4624,7 +4624,7 @@ lemma separating_hyperplane_sets:
 proof -
   from separating_hyperplane_set_0[OF convex_differences[OF assms(2,1)]]
   obtain a where "a \<noteq> 0" "\<forall>x\<in>{x - y |x y. x \<in> t \<and> y \<in> s}. 0 \<le> inner a x"
-    using assms(3-5) by auto
+    using assms(3-5) by fastforce
   then have *: "\<And>x y. x \<in> t \<Longrightarrow> y \<in> s \<Longrightarrow> inner a y \<le> inner a x"
     by (force simp add: inner_diff)
   then have bdd: "bdd_above ((op \<bullet> a)`s)"
@@ -4832,11 +4832,10 @@ proof -
   have *: "\<And>x. (if f x < 0 then f x else 0) + (if 0 < f x then f x else 0) = f x"
     by auto
   show ?thesis
-    unfolding real_add_eq_0_iff[symmetric] and setsum.inter_filter[OF assms(1)]
+    unfolding add_eq_0_iff[symmetric] and setsum.inter_filter[OF assms(1)]
       and setsum.distrib[symmetric] and *
     using assms(2)
-    apply assumption
-    done
+    by assumption
 qed
 
 lemma radon_v_lemma:
@@ -5757,7 +5756,7 @@ qed
 subsection \<open>Another intermediate value theorem formulation\<close>
 
 lemma ivt_increasing_component_on_1:
-  fixes f :: "real \<Rightarrow> 'a::euclidean_space"            
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
   assumes "a \<le> b"
     and "continuous_on {a..b} f"
     and "(f a)\<bullet>k \<le> y" "y \<le> (f b)\<bullet>k"
@@ -6204,7 +6203,7 @@ proof
       apply (erule (1) order_trans [OF Basis_le_norm])
       done
     have e': "e = (\<Sum>(i::'a)\<in>Basis. d)"
-      by (simp add: d_def real_of_nat_def DIM_positive)
+      by (simp add: d_def DIM_positive)
     show "convex hull c \<subseteq> cball x e"
       unfolding 2
       apply clarsimp
@@ -6326,7 +6325,7 @@ proof -
     apply (simp add: scaleR_2)
     done
   show ?t3
-    unfolding midpoint_def dist_norm     
+    unfolding midpoint_def dist_norm
     apply (rule *)
     apply (simp add: scaleR_right_diff_distrib)
     apply (simp add: scaleR_2)
@@ -6910,7 +6909,7 @@ next
       then show "y \<bullet> i \<le> x \<bullet> i + ?d" by auto
     qed
     also have "\<dots> \<le> 1"
-      unfolding setsum.distrib setsum_constant real_eq_of_nat
+      unfolding setsum.distrib setsum_constant
       by (auto simp add: Suc_le_eq)
     finally show "(\<forall>i\<in>Basis. 0 \<le> y \<bullet> i) \<and> setsum (op \<bullet> y) Basis \<le> 1"
     proof safe
@@ -6957,7 +6956,7 @@ proof -
       apply auto
       done
     also have "\<dots> < 1"
-      unfolding setsum_constant real_eq_of_nat divide_inverse[symmetric]
+      unfolding setsum_constant divide_inverse[symmetric]
       by (auto simp add: field_simps)
     finally show "setsum (op \<bullet> ?a) ?D < 1" by auto
   qed
@@ -7094,8 +7093,7 @@ proof -
           then show "y \<bullet> i \<le> x \<bullet> i + ?d" by auto
         qed
         also have "\<dots> \<le> 1"
-          unfolding setsum.distrib setsum_constant real_eq_of_nat
-          using \<open>0 < card d\<close>
+          unfolding setsum.distrib setsum_constant  using \<open>0 < card d\<close>
           by auto
         finally show "setsum (op \<bullet> y) d \<le> 1" .
 
@@ -7164,7 +7162,7 @@ proof -
     have "setsum (op \<bullet> ?a) ?D = setsum (\<lambda>i. inverse (2 * real (card d))) ?D"
       by (rule setsum.cong) (rule refl, rule **)
     also have "\<dots> < 1"
-      unfolding setsum_constant real_eq_of_nat divide_real_def[symmetric]
+      unfolding setsum_constant divide_real_def[symmetric]
       by (auto simp add: field_simps)
     finally show "setsum (op \<bullet> ?a) ?D < 1" by auto
   next
@@ -9713,7 +9711,7 @@ lemma setdist_le_dist: "\<lbrakk>x \<in> s; y \<in> t\<rbrakk> \<Longrightarrow>
   unfolding setdist_def
   by (auto intro!: bdd_belowI [where m=0] cInf_lower)
 
-lemma le_setdist_iff: 
+lemma le_setdist_iff:
         "d \<le> setdist s t \<longleftrightarrow>
         (\<forall>x \<in> s. \<forall>y \<in> t. d \<le> dist x y) \<and> (s = {} \<or> t = {} \<longrightarrow> d \<le> 0)"
   apply (cases "s = {} \<or> t = {}")
@@ -9723,7 +9721,7 @@ lemma le_setdist_iff:
   apply (auto simp: intro: le_setdistI)
   done
 
-lemma setdist_ltE: 
+lemma setdist_ltE:
   assumes "setdist s t < b" "s \<noteq> {}" "t \<noteq> {}"
     obtains x y where "x \<in> s" "y \<in> t" "dist x y < b"
 using assms
@@ -9745,7 +9743,7 @@ proof (cases "s = {} \<or> t = {}")
     using setdist_pos_le by fastforce
 next
   case False
-  have "\<And>x. x \<in> s \<Longrightarrow> setdist s t - dist x a \<le> setdist {a} t" 
+  have "\<And>x. x \<in> s \<Longrightarrow> setdist s t - dist x a \<le> setdist {a} t"
     apply (rule le_setdistI, blast)
     using False apply (fastforce intro: le_setdistI)
     apply (simp add: algebra_simps)
@@ -9840,7 +9838,7 @@ lemma setdist_eq_0_compact_closed:
   assumes s: "compact s" and t: "closed t"
     shows "setdist s t = 0 \<longleftrightarrow> s = {} \<or> t = {} \<or> s \<inter> t \<noteq> {}"
   apply (cases "s = {} \<or> t = {}", force)
-  using setdist_compact_closed [OF s t]  
+  using setdist_compact_closed [OF s t]
   apply (force intro: setdist_eq_0I )
   done
 
@@ -9863,29 +9861,29 @@ lemma setdist_eq_0_bounded:
   assumes "bounded s \<or> bounded t"
     shows "setdist s t = 0 \<longleftrightarrow> s = {} \<or> t = {} \<or> closure s \<inter> closure t \<noteq> {}"
   apply (cases "s = {} \<or> t = {}", force)
-  using setdist_eq_0_compact_closed [of "closure s" "closure t"] 
-        setdist_eq_0_closed_compact [of "closure s" "closure t"] assms 
+  using setdist_eq_0_compact_closed [of "closure s" "closure t"]
+        setdist_eq_0_closed_compact [of "closure s" "closure t"] assms
   apply (force simp add:  bounded_closure compact_eq_bounded_closed)
   done
 
-lemma setdist_unique: 
+lemma setdist_unique:
   "\<lbrakk>a \<in> s; b \<in> t; \<And>x y. x \<in> s \<and> y \<in> t ==> dist a b \<le> dist x y\<rbrakk>
    \<Longrightarrow> setdist s t = dist a b"
   by (force simp add: setdist_le_dist le_setdist_iff intro: antisym)
 
-lemma setdist_closest_point: 
+lemma setdist_closest_point:
     "\<lbrakk>closed s; s \<noteq> {}\<rbrakk> \<Longrightarrow> setdist {a} s = dist a (closest_point s a)"
   apply (rule setdist_unique)
   using closest_point_le
   apply (auto simp: closest_point_in_set)
   done
 
-lemma setdist_eq_0_sing_1 [simp]: 
+lemma setdist_eq_0_sing_1 [simp]:
   fixes s :: "'a::euclidean_space set"
   shows "setdist {x} s = 0 \<longleftrightarrow> s = {} \<or> x \<in> closure s"
 by (auto simp: setdist_eq_0_bounded)
 
-lemma setdist_eq_0_sing_2 [simp]: 
+lemma setdist_eq_0_sing_2 [simp]:
   fixes s :: "'a::euclidean_space set"
   shows "setdist s {x} = 0 \<longleftrightarrow> s = {} \<or> x \<in> closure s"
 by (auto simp: setdist_eq_0_bounded)

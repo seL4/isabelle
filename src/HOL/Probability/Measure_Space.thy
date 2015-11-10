@@ -700,7 +700,7 @@ qed
 
 lemma emeasure_insert_ne:
   "A \<noteq> {} \<Longrightarrow> {x} \<in> sets M \<Longrightarrow> A \<in> sets M \<Longrightarrow> x \<notin> A \<Longrightarrow> emeasure M (insert x A) = emeasure M {x} + emeasure M A"
-  by (rule emeasure_insert) 
+  by (rule emeasure_insert)
 
 lemma emeasure_eq_setsum_singleton:
   assumes "finite S" "\<And>x. x \<in> S \<Longrightarrow> {x} \<in> sets M"
@@ -877,7 +877,7 @@ proof (rule ring_of_setsI)
     by (auto intro!: antisym)
 qed
 
-lemma UN_from_nat_into: 
+lemma UN_from_nat_into:
   assumes I: "countable I" "I \<noteq> {}"
   shows "(\<Union>i\<in>I. N i) = (\<Union>i. N (from_nat_into I i))"
 proof -
@@ -1100,7 +1100,7 @@ proof
     unfolding eventually_ae_filter by auto
 qed auto
 
-lemma AE_ball_countable: 
+lemma AE_ball_countable:
   assumes [intro]: "countable X"
   shows "(AE x in M. \<forall>y\<in>X. P x y) \<longleftrightarrow> (\<forall>y\<in>X. AE x in M. P x y)"
 proof
@@ -1121,7 +1121,7 @@ qed auto
 
 lemma AE_discrete_difference:
   assumes X: "countable X"
-  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0" 
+  assumes null: "\<And>x. x \<in> X \<Longrightarrow> emeasure M {x} = 0"
   assumes sets: "\<And>x. x \<in> X \<Longrightarrow> {x} \<in> sets M"
   shows "AE x in M. x \<notin> X"
 proof -
@@ -1207,7 +1207,7 @@ proof -
     assume "A = {}" with `(\<Union>A) = space M` show thesis
       by (intro that[of "\<lambda>_. {}"]) auto
   next
-    assume "A \<noteq> {}" 
+    assume "A \<noteq> {}"
     show thesis
     proof
       show "range (from_nat_into A) \<subseteq> sets M"
@@ -1364,7 +1364,7 @@ lemma measure_distr:
   by (simp add: emeasure_distr measure_def)
 
 lemma distr_cong_AE:
-  assumes 1: "M = K" "sets N = sets L" and 
+  assumes 1: "M = K" "sets N = sets L" and
     2: "(AE x in M. f x = g x)" and "f \<in> measurable M N" and "g \<in> measurable K L"
   shows "distr M N f = distr K L g"
 proof (rule measure_eqI)
@@ -1713,7 +1713,7 @@ proof cases
     using finite_measure_eq_setsum_singleton[OF s] by simp
   also have "\<dots> = (\<Sum> x \<in> s. measure M {SOME y. y \<in> s})" using prob_some by auto
   also have "\<dots> = real (card s) * measure M {(SOME x. x \<in> s)}"
-    using setsum_constant assms by (simp add: real_eq_of_nat)
+    using setsum_constant assms by simp
   finally show ?thesis by simp
 qed simp
 
@@ -1744,7 +1744,7 @@ lemma (in finite_measure) measure_exclude:
   shows "measure M B = 0"
   using measure_space_inter[of B A] assms by (auto simp: ac_simps)
 lemma (in finite_measure) finite_measure_distr:
-  assumes f: "f \<in> measurable M M'" 
+  assumes f: "f \<in> measurable M M'"
   shows "finite_measure (distr M M' f)"
 proof (rule finite_measureI)
   have "f -` space M' \<inter> space M = space M" using f by (auto dest: measurable_space)
@@ -1795,7 +1795,7 @@ proof (rule emeasure_measure_of_sigma)
 
   interpret ring_of_sets A "Pow A"
     by (rule ring_of_setsI) auto
-  show "countably_additive (Pow A) ?M" 
+  show "countably_additive (Pow A) ?M"
     unfolding countably_additive_iff_continuous_from_below[OF positive additive]
   proof safe
     fix F :: "nat \<Rightarrow> 'a set" assume "incseq F"
@@ -1844,7 +1844,7 @@ proof (rule emeasure_measure_of_sigma)
         by (rule infinite_super[OF _ 1]) auto
       then have "infinite (\<Union>i. F i)"
         by auto
-      
+
       ultimately show ?thesis by auto
     qed
   qed
@@ -1975,7 +1975,7 @@ proof -
     by (auto simp add: space_restrict_space null_sets_def sets_restrict_space_iff
                        emeasure_restrict_space cong: conj_cong
              intro!: ex_cong[where f="\<lambda>X. (\<Omega> \<inter> space M) \<inter> X"])
-qed  
+qed
 
 lemma restrict_restrict_space:
   assumes "A \<inter> space M \<in> sets M" "B \<inter> space M \<in> sets M"
@@ -2036,7 +2036,7 @@ proof -
     by(rule finite_measureI)(simp add: emeasure_restrict_space A space_restrict_space)
 qed
 
-lemma restrict_distr: 
+lemma restrict_distr:
   assumes [measurable]: "f \<in> measurable M N"
   assumes [simp]: "\<Omega> \<inter> space N \<in> sets N" and restrict: "f \<in> space M \<rightarrow> \<Omega>"
   shows "restrict_space (distr M N f) \<Omega> = distr M (restrict_space N \<Omega>) f"
@@ -2053,7 +2053,7 @@ lemma measure_eqI_restrict_generator:
   assumes E: "Int_stable E" "E \<subseteq> Pow \<Omega>" "\<And>X. X \<in> E \<Longrightarrow> emeasure M X = emeasure N X"
   assumes sets_eq: "sets M = sets N" and \<Omega>: "\<Omega> \<in> sets M"
   assumes "sets (restrict_space M \<Omega>) = sigma_sets \<Omega> E"
-  assumes "sets (restrict_space N \<Omega>) = sigma_sets \<Omega> E" 
+  assumes "sets (restrict_space N \<Omega>) = sigma_sets \<Omega> E"
   assumes ae: "AE x in M. x \<in> \<Omega>" "AE x in N. x \<in> \<Omega>"
   assumes A: "countable A" "A \<noteq> {}" "A \<subseteq> E" "\<Union>A = \<Omega>" "\<And>a. a \<in> A \<Longrightarrow> emeasure M a \<noteq> \<infinity>"
   shows "M = N"
@@ -2089,7 +2089,7 @@ definition "null_measure M = sigma (space M) (sets M)"
 lemma space_null_measure[simp]: "space (null_measure M) = space M"
   by (simp add: null_measure_def)
 
-lemma sets_null_measure[simp, measurable_cong]: "sets (null_measure M) = sets M" 
+lemma sets_null_measure[simp, measurable_cong]: "sets (null_measure M) = sets M"
   by (simp add: null_measure_def)
 
 lemma emeasure_null_measure[simp]: "emeasure (null_measure M) X = 0"
@@ -2176,12 +2176,12 @@ lemma
 proof -
   have sets: "(SUP a:A. sets a) = sets a"
   proof (intro antisym SUP_least)
-    fix a' show "a' \<in> A \<Longrightarrow> sets a' \<subseteq> sets a" 
+    fix a' show "a' \<in> A \<Longrightarrow> sets a' \<subseteq> sets a"
       using a chainD[OF A, of a a'] by (auto elim!: less_eq_measure.cases)
   qed (insert \<open>a\<in>A\<close>, auto)
   have space: "(SUP a:A. space a) = space a"
   proof (intro antisym SUP_least)
-    fix a' show "a' \<in> A \<Longrightarrow> space a' \<subseteq> space a" 
+    fix a' show "a' \<in> A \<Longrightarrow> space a' \<subseteq> space a"
       using a chainD[OF A, of a a'] by (intro sets_le_imp_space_le) (auto elim!: less_eq_measure.cases)
   qed (insert \<open>a\<in>A\<close>, auto)
   show "space (Sup A) = space a"

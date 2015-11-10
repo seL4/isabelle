@@ -31,9 +31,10 @@ proof -
   have "m*(m-1) \<le> n*(n + 1)"
    using assms by (meson diff_le_self order_trans le_add1 mult_le_mono)
   hence "int(\<Sum> {m..n}) = int((n*(n+1) - m*(m-1)) div 2)" using assms
-    by (auto simp: Setsum_Icc_int[transferred, OF assms] zdiv_int int_mult
-      split: zdiff_int_split)
-  thus ?thesis by simp
+    by (auto simp: Setsum_Icc_int[transferred, OF assms] zdiv_int int_mult simp del: of_nat_setsum
+          split: zdiff_int_split)
+  thus ?thesis
+    by blast 
 qed
 
 lemma Setsum_Ico_nat: assumes "(m::nat) \<le> n"
@@ -75,7 +76,6 @@ lemma Chebyshev_sum_upper_nat:
          (\<And>i j. \<lbrakk> i\<le>j; j<n \<rbrakk> \<Longrightarrow> b i \<ge> b j) \<Longrightarrow>
     n * (\<Sum>i=0..<n. a i * b i) \<le> (\<Sum>i=0..<n. a i) * (\<Sum>i=0..<n. b i)"
 using Chebyshev_sum_upper[where 'a=real, of n a b]
-by (simp del: real_of_nat_mult real_of_nat_setsum
-  add: real_of_nat_mult[symmetric] real_of_nat_setsum[symmetric] real_of_nat_def[symmetric])
+by (simp del: of_nat_mult of_nat_setsum  add: of_nat_mult[symmetric] of_nat_setsum[symmetric])
 
 end

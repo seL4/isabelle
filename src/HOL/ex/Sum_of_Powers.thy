@@ -1,7 +1,4 @@
-(*  Title:      HOL/ex/Sum_of_Powers.thy
-    Author:     Lukas Bulwahn <lukas.bulwahn-at-gmail.com>
-*)
-
+(*  Author:     Lukas Bulwahn <lukas.bulwahn-at-gmail.com> *)
 section \<open>Sum of Powers\<close>
 
 theory Sum_of_Powers
@@ -32,8 +29,8 @@ proof -
       by (simp only: Suc_eq_plus1)
     finally show ?thesis .
   qed
-  from this have "(\<Prod>i<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) / of_nat (n + 1) * (\<Prod>i<k. of_nat (Suc n - i))"
-    by (metis le_add2 nonzero_mult_divide_cancel_left not_one_le_zero of_nat_eq_0_iff times_divide_eq_left)
+  then have "(\<Prod>i<k. of_nat (n - i)) = (of_nat :: (nat \<Rightarrow> 'a)) (n + 1 - k) / of_nat (n + 1) * (\<Prod>i<k. of_nat (Suc n - i))"
+    by (metis (no_types, lifting) le_add2 nonzero_mult_divide_cancel_left not_one_le_zero of_nat_eq_0_iff times_divide_eq_left)
   from assms this show ?thesis
     by (auto simp add: binomial_altdef_of_nat setprod_dividef)
 qed
@@ -41,15 +38,7 @@ qed
 lemma real_binomial_eq_mult_binomial_Suc:
   assumes "k \<le> n"
   shows "(n choose k) = (n + 1 - k) / (n + 1) * (Suc n choose k)"
-proof -
-  have "real (n choose k) = of_nat (n choose k)" by auto
-  also have "... = of_nat (n + 1 - k) / of_nat (n + 1) * of_nat (Suc n choose k)"
-    by (simp add: assms of_nat_binomial_eq_mult_binomial_Suc)
-  also have "... = (n + 1 - k) / (n + 1) * (Suc n choose k)"
-    using real_of_nat_def by auto
-  finally show ?thesis
-    by (metis (no_types, lifting) assms le_add1 le_trans of_nat_diff real_of_nat_1 real_of_nat_add real_of_nat_def)
-qed
+by (metis Suc_eq_plus1 add.commute assms le_SucI of_nat_Suc of_nat_binomial_eq_mult_binomial_Suc of_nat_diff)
 
 subsection \<open>Preliminaries\<close>
 
@@ -90,7 +79,7 @@ subsection \<open>Basic Observations on Bernoulli Polynomials\<close>
 lemma bernpoly_0: "bernpoly n 0 = bernoulli n"
 proof (cases n)
   case 0
-  from this show "bernpoly n 0 = bernoulli n"
+  then show "bernpoly n 0 = bernoulli n"
     unfolding bernpoly_def bernoulli.simps by auto
 next
   case (Suc n')
@@ -104,10 +93,10 @@ lemma setsum_binomial_times_bernoulli:
   "(\<Sum>k\<le>n. ((Suc n) choose k) * bernoulli k) = (if n = 0 then 1 else 0)"
 proof (cases n)
   case 0
-  from this show ?thesis by (simp add: bernoulli.simps)
+  then show ?thesis by (simp add: bernoulli.simps)
 next
   case Suc
-  from this show ?thesis
+  then show ?thesis
   by (simp add: bernoulli.simps)
     (simp add: field_simps add_2_eq_Suc'[symmetric] del: add_2_eq_Suc add_2_eq_Suc')
 qed
@@ -121,7 +110,7 @@ proof -
     unfolding bernpoly_def by (rule DERIV_cong) (fast intro!: derivative_intros, simp)
   moreover have "(\<Sum>k\<le>n. real (Suc n - k) * x ^ (n - k) * (real (Suc n choose k) * bernoulli k)) = (n + 1) * bernpoly n x"
     unfolding bernpoly_def
-    by (auto intro: setsum.cong simp add: setsum_right_distrib real_binomial_eq_mult_binomial_Suc[of _ n] Suc_eq_plus1 real_of_nat_diff)
+    by (auto intro: setsum.cong simp add: setsum_right_distrib real_binomial_eq_mult_binomial_Suc[of _ n] Suc_eq_plus1 of_nat_diff)
   ultimately show ?thesis by auto
 qed
 
@@ -134,7 +123,7 @@ next
   case (Suc n)
   have "bernpoly (Suc n) (0 + 1) - bernpoly (Suc n) 0 = (Suc n) * 0 ^ n"
     unfolding bernpoly_0 unfolding bernpoly_def by (simp add: setsum_binomial_times_bernoulli zero_power)
-  from this have const: "bernpoly (Suc n) (0 + 1) - bernpoly (Suc n) 0 = real (Suc n) * 0 ^ n" by (simp add: power_0_left)
+  then have const: "bernpoly (Suc n) (0 + 1) - bernpoly (Suc n) 0 = real (Suc n) * 0 ^ n" by (simp add: power_0_left)
   have hyps': "\<And>x. (real n + 1) * bernpoly n (x + 1) - (real n + 1) * bernpoly n x = real n * x ^ (n - Suc 0) * real (Suc n)"
     unfolding right_diff_distrib[symmetric] by (simp add: Suc.hyps One_nat_def)
   note [derivative_intros] = DERIV_chain'[where f = "\<lambda>x::real. x + 1" and g = "bernpoly (Suc n)" and s="UNIV"]
@@ -148,7 +137,7 @@ proof -
   from diff_bernpoly[of "Suc m", simplified] have "(m + (1::real)) * (\<Sum>k\<le>n. (real k) ^ m) = (\<Sum>k\<le>n. bernpoly (Suc m) (real k + 1) - bernpoly (Suc m) (real k))"
     by (auto simp add: setsum_right_distrib intro!: setsum.cong)
   also have "... = (\<Sum>k\<le>n. bernpoly (Suc m) (real (k + 1)) - bernpoly (Suc m) (real k))"
-    by (simp only: real_of_nat_1[symmetric] real_of_nat_add[symmetric])
+    by simp
   also have "... = bernpoly (Suc m) (n + 1) - bernpoly (Suc m) 0"
     by (simp only: setsum_diff[where f="\<lambda>k. bernpoly (Suc m) (real k)"]) simp
   finally show ?thesis by (auto simp add: field_simps intro!: eq_divide_imp)
@@ -185,9 +174,9 @@ lemma sum_of_squares_nat: "(\<Sum>k\<le>n::nat. k ^ 2) = (2 * n ^ 3 + 3 * n ^ 2 
 proof -
   from sum_of_squares have "real (6 * (\<Sum>k\<le>n. k ^ 2)) = real (2 * n ^ 3 + 3 * n ^ 2 + n)"
     by (auto simp add: field_simps)
-  from this have "6 * (\<Sum>k\<le>n. k ^ 2) = 2 * n ^ 3 + 3 * n ^ 2 + n"
-    by (simp only: real_of_nat_inject[symmetric])
-  from this show ?thesis by auto
+  then have "6 * (\<Sum>k\<le>n. k ^ 2) = 2 * n ^ 3 + 3 * n ^ 2 + n"
+    by blast
+  then show ?thesis by auto
 qed
 
 lemma sum_of_cubes: "(\<Sum>k\<le>n::nat. k ^ 3) = (n ^ 2 + n) ^ 2 / 4"
@@ -202,14 +191,14 @@ proof -
     by (simp add: unroll algebra_simps power2_eq_square power4_eq power3_eq_cube)
   finally show ?thesis by simp
 qed
-
+                       
 lemma sum_of_cubes_nat: "(\<Sum>k\<le>n::nat. k ^ 3) = (n ^ 2 + n) ^ 2 div 4"
 proof -
   from sum_of_cubes have "real (4 * (\<Sum>k\<le>n. k ^ 3)) = real ((n ^ 2 + n) ^ 2)"
     by (auto simp add: field_simps)
-  from this have "4 * (\<Sum>k\<le>n. k ^ 3) = (n ^ 2 + n) ^ 2"
-    by (simp only: real_of_nat_inject[symmetric])
-  from this show ?thesis by auto
+  then have "4 * (\<Sum>k\<le>n. k ^ 3) = (n ^ 2 + n) ^ 2"
+    by blast
+  then show ?thesis by auto
 qed
 
 end

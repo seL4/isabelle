@@ -552,7 +552,6 @@ done
 
 lemma NSDeMoivre: "!!a. (hcis a) ^ n = hcis (hypreal_of_nat n * a)"
 apply transfer
-apply (fold real_of_nat_def)
 apply (rule DeMoivre)
 done
 
@@ -563,15 +562,15 @@ by transfer (simp add: distrib_right cis_mult)
 
 lemma NSDeMoivre_ext:
   "!!a n. (hcis a) pow n = hcis (hypreal_of_hypnat n * a)"
-by transfer (fold real_of_nat_def, rule DeMoivre)
+by transfer (rule DeMoivre)
 
 lemma NSDeMoivre2:
   "!!a r. (hrcis r a) ^ n = hrcis (r ^ n) (hypreal_of_nat n * a)"
-by transfer (fold real_of_nat_def, rule DeMoivre2)
+by transfer (rule DeMoivre2)
 
 lemma DeMoivre2_ext:
   "!! a r n. (hrcis r a) pow n = hrcis (r pow n) (hypreal_of_hypnat n * a)"
-by transfer (fold real_of_nat_def, rule DeMoivre2)
+by transfer (rule DeMoivre2)
 
 lemma hcis_inverse [simp]: "!!a. inverse(hcis a) = hcis (-a)"
 by transfer (rule cis_inverse)

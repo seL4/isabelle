@@ -3143,8 +3143,8 @@ lemma binomial_Vandermonde:
   "setsum (\<lambda>k. (a choose k) * (b choose (n - k))) {0..n} = (a + b) choose n"
   using gbinomial_Vandermonde[of "(of_nat a)" "of_nat b" n]
   apply (simp only: binomial_gbinomial[symmetric] of_nat_mult[symmetric]
-    of_nat_setsum[symmetric] of_nat_add[symmetric])
-  apply simp
+                    of_nat_setsum[symmetric] of_nat_add[symmetric])
+  apply blast
   done
 
 lemma binomial_Vandermonde_same: "setsum (\<lambda>k. (n choose k)\<^sup>2) {0..n} = (2 * n) choose n"

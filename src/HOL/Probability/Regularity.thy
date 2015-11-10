@@ -26,7 +26,7 @@ next
     assume "\<not> x \<le> y" hence "x > y" by simp
     hence y_fin: "\<bar>y\<bar> \<noteq> \<infinity>" using `y \<ge> 0` by auto
     have x_fin: "\<bar>x\<bar> \<noteq> \<infinity>" using `x > y` f_fin approx[where e = 1] by auto
-    def e \<equiv> "real ((x - y) / 2)"
+    def e \<equiv> "real_of_ereal ((x - y) / 2)"
     have e: "x > y + e" "e > 0" using `x > y` y_fin x_fin by (auto simp: e_def field_simps)
     note e(1)
     also from approx[OF `e > 0`] obtain i where i: "i \<in> A" "x \<le> f i + e" by blast
@@ -56,7 +56,7 @@ next
     hence y_fin: "\<bar>y\<bar> \<noteq> \<infinity>" using `y \<noteq> \<infinity>` by auto
     have x_fin: "\<bar>x\<bar> \<noteq> \<infinity>" using `y > x` f_fin f_nonneg approx[where e = 1] A_notempty
       by auto
-    def e \<equiv> "real ((y - x) / 2)"
+    def e \<equiv> "real_of_ereal ((y - x) / 2)"
     have e: "y > x + e" "e > 0" using `y > x` y_fin x_fin by (auto simp: e_def field_simps)
     from approx[OF `e > 0`] obtain i where i: "i \<in> A" "x + e \<ge> f i" by blast
     note i(2)
@@ -192,7 +192,7 @@ proof -
     also have "\<dots> \<le> (\<Sum>n. ereal (e*2 powr - real (Suc n)))"
       using B_compl_le by (intro suminf_le_pos) (simp_all add: measure_nonneg emeasure_eq_measure)
     also have "\<dots> \<le> (\<Sum>n. ereal (e * (1 / 2) ^ Suc n))"
-      by (simp add: Transcendental.powr_minus powr_realpow field_simps del: real_of_nat_Suc)
+      by (simp add: Transcendental.powr_minus powr_realpow field_simps del: of_nat_Suc)
     also have "\<dots> = (\<Sum>n. ereal e * ((1 / 2) ^ Suc n))"
       unfolding times_ereal.simps[symmetric] ereal_power[symmetric] one_ereal_def numeral_eq_ereal
       by simp
@@ -254,7 +254,7 @@ proof -
       from in_closed_iff_infdist_zero[OF `closed A` `A \<noteq> {}`]
       have "A = {x. infdist x A = 0}" by auto
       also have "\<dots> = (\<Inter>i. ?G (1/real (Suc i)))"
-      proof (auto simp del: real_of_nat_Suc, rule ccontr)
+      proof (auto simp del: of_nat_Suc, rule ccontr)
         fix x
         assume "infdist x A \<noteq> 0"
         hence pos: "infdist x A > 0" using infdist_nonneg[of x A] by simp
@@ -262,7 +262,7 @@ proof -
         moreover
         assume "\<forall>i. infdist x A < 1 / real (Suc i)"
         hence "infdist x A < 1 / real (Suc n)" by auto
-        ultimately show False by simp 
+        ultimately show False by simp
       qed
       also have "M \<dots> = (INF n. emeasure M (?G (1 / real (Suc n))))"
       proof (rule INF_emeasure_decseq[symmetric], safe)
@@ -294,7 +294,7 @@ proof -
     note `?inner A` `?outer A` }
   note closed_in_D = this
   from `B \<in> sets borel`
-  have "Int_stable (Collect closed)" "Collect closed \<subseteq> Pow UNIV" "B \<in> sigma_sets UNIV (Collect closed)" 
+  have "Int_stable (Collect closed)" "Collect closed \<subseteq> Pow UNIV" "B \<in> sigma_sets UNIV (Collect closed)"
     by (auto simp: Int_stable_def borel_eq_closed)
   then show "?inner B" "?outer B"
   proof (induct B rule: sigma_sets_induct_disjoint)
@@ -356,7 +356,7 @@ proof -
     finally have measure_LIMSEQ: "(\<lambda>n. \<Sum>i<n. measure M (D i)) ----> measure M (\<Union>i. D i)"
       by (simp add: emeasure_eq_measure)
     have "(\<Union>i. D i) \<in> sets M" using `range D \<subseteq> sets M` by auto
-    
+
     case 1
     show ?case
     proof (rule approx_inner)
@@ -398,7 +398,7 @@ proof -
       also have "\<dots> = (\<Sum>i<n0. measure M (K i)) + (\<Sum>i<n0. e/(2*Suc n0))"
         by (simp add: setsum.distrib)
       also have "\<dots> \<le> (\<Sum>i<n0. measure M (K i)) +  e / 2" using `0 < e`
-        by (auto simp: real_of_nat_def[symmetric] field_simps intro!: mult_left_mono)
+        by (auto simp: field_simps intro!: mult_left_mono)
       finally
       have "measure M (\<Union>i. D i) < (\<Sum>i<n0. measure M (K i)) + e / 2 + e / 2"
         by auto
@@ -439,7 +439,7 @@ proof -
         by (intro suminf_le_pos, subst emeasure_Diff)
            (auto simp: emeasure_Diff emeasure_eq_measure sb measure_nonneg intro: less_imp_le)
       also have "\<dots> \<le> (\<Sum>n. ereal (e * (1 / 2) ^ Suc n))"
-        by (simp add: powr_minus inverse_eq_divide powr_realpow field_simps power_divide del: real_of_nat_Suc)
+        by (simp add: powr_minus inverse_eq_divide powr_realpow field_simps power_divide del: of_nat_Suc)
       also have "\<dots> = (\<Sum>n. ereal e * ((1 / 2) ^  Suc n))"
         unfolding times_ereal.simps[symmetric] ereal_power[symmetric] one_ereal_def numeral_eq_ereal
         by simp

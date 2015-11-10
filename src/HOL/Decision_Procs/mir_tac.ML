@@ -11,7 +11,7 @@ structure Mir_Tac: MIR_TAC =
 struct
 
 val mir_ss = 
-let val ths = [@{thm "real_of_int_inject"}, @{thm "real_of_int_less_iff"}, @{thm "real_of_int_le_iff"}]
+let val ths = [@{thm "of_int_eq_iff"}, @{thm "of_int_less_iff"}, @{thm "of_int_le_iff"}]
 in simpset_of (@{context} delsimps ths addsimps (map (fn th => th RS sym) ths))
 end;
 
@@ -23,9 +23,9 @@ val nT = HOLogic.natT;
                  (map (fn th => th RS sym) [@{thm "numeral_1_eq_1"}])
                  @ @{thms arith_simps} @ nat_arith @ @{thms rel_simps} 
   val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"}, 
-             @{thm real_of_nat_numeral},
-             @{thm "real_of_nat_Suc"}, @{thm "real_of_nat_one"}, @{thm "real_of_one"},
-             @{thm "real_of_int_zero"}, @{thm "real_of_nat_zero"},
+             @{thm of_nat_numeral},
+             @{thm "of_nat_Suc"}, @{thm "of_nat_1"},
+             @{thm "of_int_0"}, @{thm "of_nat_0"},
              @{thm "divide_zero"}, 
              @{thm "divide_divide_eq_left"}, @{thm "times_divide_eq_right"}, 
              @{thm "times_divide_eq_left"}, @{thm "divide_divide_eq_right"},

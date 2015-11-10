@@ -618,7 +618,7 @@ proof -
   interpret sigma_algebra UNIV ?SIGMA
     by (intro sigma_algebra_sigma_sets) simp_all
   have *: "?set = (\<Union>n. UNIV - {x::'a. x \<bullet> i < a + 1 / real (Suc n)})"
-  proof (safe, simp_all add: not_less del: real_of_nat_Suc)
+  proof (safe, simp_all add: not_less del: of_nat_Suc)
     fix x :: 'a assume "a < x \<bullet> i"
     with reals_Archimedean[of "x \<bullet> i - a"]
     obtain n where "a + 1 / real (Suc n) < x \<bullet> i"
@@ -655,7 +655,7 @@ proof (rule borel_eq_sigmaI2[OF borel_eq_halfspace_less])
   fix a :: real and i :: 'a assume "(a, i) \<in> UNIV \<times> Basis"
   then have i: "i \<in> Basis" by auto
   have *: "{x::'a. x\<bullet>i < a} = (\<Union>n. {x. x\<bullet>i \<le> a - 1/real (Suc n)})"
-  proof (safe, simp_all del: real_of_nat_Suc)
+  proof (safe, simp_all del: of_nat_Suc)
     fix x::'a assume *: "x\<bullet>i < a"
     with reals_Archimedean[of "a - x\<bullet>i"]
     obtain n where "x \<bullet> i < a - 1 / (real (Suc n))"
@@ -1055,7 +1055,7 @@ lemma borel_measurable_exp[measurable]:
 lemma measurable_real_floor[measurable]:
   "(floor :: real \<Rightarrow> int) \<in> measurable borel (count_space UNIV)"
 proof -
-  have "\<And>a x. \<lfloor>x\<rfloor> = a \<longleftrightarrow> (real a \<le> x \<and> x < real (a + 1))"
+  have "\<And>a x. \<lfloor>x\<rfloor> = a \<longleftrightarrow> (real_of_int a \<le> x \<and> x < real_of_int (a + 1))"
     by (auto intro: floor_eq2)
   then show ?thesis
     by (auto simp: vimage_def measurable_count_space_eq2_countable)
@@ -1065,7 +1065,7 @@ lemma measurable_real_ceiling[measurable]:
   "(ceiling :: real \<Rightarrow> int) \<in> measurable borel (count_space UNIV)"
   unfolding ceiling_def[abs_def] by simp
 
-lemma borel_measurable_real_floor: "(\<lambda>x::real. real \<lfloor>x\<rfloor>) \<in> borel_measurable borel"
+lemma borel_measurable_real_floor: "(\<lambda>x::real. real_of_int \<lfloor>x\<rfloor>) \<in> borel_measurable borel"
   by simp
 
 lemma borel_measurable_root [measurable]: "root n \<in> borel_measurable borel"
@@ -1116,7 +1116,7 @@ lemma borel_measurable_ereal[measurable (raw)]:
 lemma borel_measurable_real_of_ereal[measurable (raw)]:
   fixes f :: "'a \<Rightarrow> ereal" 
   assumes f: "f \<in> borel_measurable M"
-  shows "(\<lambda>x. real (f x)) \<in> borel_measurable M"
+  shows "(\<lambda>x. real_of_ereal (f x)) \<in> borel_measurable M"
   apply (rule measurable_compose[OF f])
   apply (rule borel_measurable_continuous_countable_exceptions[of "{\<infinity>, -\<infinity> }"])
   apply (auto intro: continuous_on_real simp: Compl_eq_Diff_UNIV)
@@ -1125,10 +1125,10 @@ lemma borel_measurable_real_of_ereal[measurable (raw)]:
 lemma borel_measurable_ereal_cases:
   fixes f :: "'a \<Rightarrow> ereal" 
   assumes f: "f \<in> borel_measurable M"
-  assumes H: "(\<lambda>x. H (ereal (real (f x)))) \<in> borel_measurable M"
+  assumes H: "(\<lambda>x. H (ereal (real_of_ereal (f x)))) \<in> borel_measurable M"
   shows "(\<lambda>x. H (f x)) \<in> borel_measurable M"
 proof -
-  let ?F = "\<lambda>x. if f x = \<infinity> then H \<infinity> else if f x = - \<infinity> then H (-\<infinity>) else H (ereal (real (f x)))"
+  let ?F = "\<lambda>x. if f x = \<infinity> then H \<infinity> else if f x = - \<infinity> then H (-\<infinity>) else H (ereal (real_of_ereal (f x)))"
   { fix x have "H (f x) = ?F x" by (cases "f x") auto }
   with f H show ?thesis by simp
 qed
@@ -1150,15 +1150,15 @@ lemma set_Collect_ereal2:
   fixes f g :: "'a \<Rightarrow> ereal" 
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
-  assumes H: "{x \<in> space M. H (ereal (real (f x))) (ereal (real (g x)))} \<in> sets M"
+  assumes H: "{x \<in> space M. H (ereal (real_of_ereal (f x))) (ereal (real_of_ereal (g x)))} \<in> sets M"
     "{x \<in> space borel. H (-\<infinity>) (ereal x)} \<in> sets borel"
     "{x \<in> space borel. H (\<infinity>) (ereal x)} \<in> sets borel"
     "{x \<in> space borel. H (ereal x) (-\<infinity>)} \<in> sets borel"
     "{x \<in> space borel. H (ereal x) (\<infinity>)} \<in> sets borel"
   shows "{x \<in> space M. H (f x) (g x)} \<in> sets M"
 proof -
-  let ?G = "\<lambda>y x. if g x = \<infinity> then H y \<infinity> else if g x = -\<infinity> then H y (-\<infinity>) else H y (ereal (real (g x)))"
-  let ?F = "\<lambda>x. if f x = \<infinity> then ?G \<infinity> x else if f x = -\<infinity> then ?G (-\<infinity>) x else ?G (ereal (real (f x))) x"
+  let ?G = "\<lambda>y x. if g x = \<infinity> then H y \<infinity> else if g x = -\<infinity> then H y (-\<infinity>) else H y (ereal (real_of_ereal (g x)))"
+  let ?F = "\<lambda>x. if f x = \<infinity> then ?G \<infinity> x else if f x = -\<infinity> then ?G (-\<infinity>) x else ?G (ereal (real_of_ereal (f x))) x"
   { fix x have "H (f x) (g x) = ?F x" by (cases "f x" "g x" rule: ereal2_cases) auto }
   note * = this
   from assms show ?thesis
@@ -1180,12 +1180,12 @@ lemma borel_measurable_erealD[measurable_dest]:
 lemma borel_measurable_ereal_iff_real:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "f \<in> borel_measurable M \<longleftrightarrow>
-    ((\<lambda>x. real (f x)) \<in> borel_measurable M \<and> f -` {\<infinity>} \<inter> space M \<in> sets M \<and> f -` {-\<infinity>} \<inter> space M \<in> sets M)"
+    ((\<lambda>x. real_of_ereal (f x)) \<in> borel_measurable M \<and> f -` {\<infinity>} \<inter> space M \<in> sets M \<and> f -` {-\<infinity>} \<inter> space M \<in> sets M)"
 proof safe
-  assume *: "(\<lambda>x. real (f x)) \<in> borel_measurable M" "f -` {\<infinity>} \<inter> space M \<in> sets M" "f -` {-\<infinity>} \<inter> space M \<in> sets M"
+  assume *: "(\<lambda>x. real_of_ereal (f x)) \<in> borel_measurable M" "f -` {\<infinity>} \<inter> space M \<in> sets M" "f -` {-\<infinity>} \<inter> space M \<in> sets M"
   have "f -` {\<infinity>} \<inter> space M = {x\<in>space M. f x = \<infinity>}" "f -` {-\<infinity>} \<inter> space M = {x\<in>space M. f x = -\<infinity>}" by auto
   with * have **: "{x\<in>space M. f x = \<infinity>} \<in> sets M" "{x\<in>space M. f x = -\<infinity>} \<in> sets M" by simp_all
-  let ?f = "\<lambda>x. if f x = \<infinity> then \<infinity> else if f x = -\<infinity> then -\<infinity> else ereal (real (f x))"
+  let ?f = "\<lambda>x. if f x = \<infinity> then \<infinity> else if f x = -\<infinity> then -\<infinity> else ereal (real_of_ereal (f x))"
   have "?f \<in> borel_measurable M" using * ** by (intro measurable_If) auto
   also have "?f = f" by (auto simp: fun_eq_iff ereal_real)
   finally show "f \<in> borel_measurable M" .
@@ -1221,15 +1221,15 @@ lemma borel_measurable_ereal2:
   fixes f g :: "'a \<Rightarrow> ereal" 
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
-  assumes H: "(\<lambda>x. H (ereal (real (f x))) (ereal (real (g x)))) \<in> borel_measurable M"
-    "(\<lambda>x. H (-\<infinity>) (ereal (real (g x)))) \<in> borel_measurable M"
-    "(\<lambda>x. H (\<infinity>) (ereal (real (g x)))) \<in> borel_measurable M"
-    "(\<lambda>x. H (ereal (real (f x))) (-\<infinity>)) \<in> borel_measurable M"
-    "(\<lambda>x. H (ereal (real (f x))) (\<infinity>)) \<in> borel_measurable M"
+  assumes H: "(\<lambda>x. H (ereal (real_of_ereal (f x))) (ereal (real_of_ereal (g x)))) \<in> borel_measurable M"
+    "(\<lambda>x. H (-\<infinity>) (ereal (real_of_ereal (g x)))) \<in> borel_measurable M"
+    "(\<lambda>x. H (\<infinity>) (ereal (real_of_ereal (g x)))) \<in> borel_measurable M"
+    "(\<lambda>x. H (ereal (real_of_ereal (f x))) (-\<infinity>)) \<in> borel_measurable M"
+    "(\<lambda>x. H (ereal (real_of_ereal (f x))) (\<infinity>)) \<in> borel_measurable M"
   shows "(\<lambda>x. H (f x) (g x)) \<in> borel_measurable M"
 proof -
-  let ?G = "\<lambda>y x. if g x = \<infinity> then H y \<infinity> else if g x = - \<infinity> then H y (-\<infinity>) else H y (ereal (real (g x)))"
-  let ?F = "\<lambda>x. if f x = \<infinity> then ?G \<infinity> x else if f x = - \<infinity> then ?G (-\<infinity>) x else ?G (ereal (real (f x))) x"
+  let ?G = "\<lambda>y x. if g x = \<infinity> then H y \<infinity> else if g x = - \<infinity> then H y (-\<infinity>) else H y (ereal (real_of_ereal (g x)))"
+  let ?F = "\<lambda>x. if f x = \<infinity> then ?G \<infinity> x else if f x = - \<infinity> then ?G (-\<infinity>) x else ?G (ereal (real_of_ereal (f x))) x"
   { fix x have "H (f x) (g x) = ?F x" by (cases "f x" "g x" rule: ereal2_cases) auto }
   note * = this
   from assms show ?thesis unfolding * by simp
@@ -1427,7 +1427,7 @@ proof -
         also have "\<dots> < ?I i / 2 + ?I i / 2"
           by (intro add_strict_mono d less_trans[OF _ j] *)
         also have "\<dots> \<le> ?I i"
-          by (simp add: field_simps real_of_nat_Suc)
+          by (simp add: field_simps of_nat_Suc)
         finally show "dist (f y) (f z) \<le> ?I i"
           by simp
       qed

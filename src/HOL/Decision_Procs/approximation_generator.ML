@@ -94,17 +94,17 @@ fun is_True @{term True} = true
 
 val postproc_form_eqs =
   @{lemma
-    "real (Float 0 a) = 0"
-    "real (Float (numeral m) 0) = numeral m"
-    "real (Float 1 0) = 1"
-    "real (Float (- 1) 0) = - 1"
-    "real (Float 1 (numeral e)) = 2 ^ numeral e"
-    "real (Float 1 (- numeral e)) = 1 / 2 ^ numeral e"
-    "real (Float a 1) = a * 2"
-    "real (Float a (-1)) = a / 2"
-    "real (Float (- a) b) = - real (Float a b)"
-    "real (Float (numeral m) (numeral e)) = numeral m * 2 ^ (numeral e)"
-    "real (Float (numeral m) (- numeral e)) = numeral m / 2 ^ (numeral e)"
+    "real_of_float (Float 0 a) = 0"
+    "real_of_float (Float (numeral m) 0) = numeral m"
+    "real_of_float (Float 1 0) = 1"
+    "real_of_float (Float (- 1) 0) = - 1"
+    "real_of_float (Float 1 (numeral e)) = 2 ^ numeral e"
+    "real_of_float (Float 1 (- numeral e)) = 1 / 2 ^ numeral e"
+    "real_of_float (Float a 1) = a * 2"
+    "real_of_float (Float a (-1)) = a / 2"
+    "real_of_float (Float (- a) b) = - real_of_float (Float a b)"
+    "real_of_float (Float (numeral m) (numeral e)) = numeral m * 2 ^ (numeral e)"
+    "real_of_float (Float (numeral m) (- numeral e)) = numeral m / 2 ^ (numeral e)"
     "- (c * d::real) = -c * d"
     "- (c / d::real) = -c / d"
     "- (0::real) = 0"
@@ -137,7 +137,7 @@ fun approx_random ctxt prec eps frees e xs genuine_only size seed =
         val ts' = map
           (AList.lookup op = (map dest_Free xs ~~ ts)
             #> the_default Term.dummy
-            #> curry op $ @{term "real::float\<Rightarrow>_"}
+            #> curry op $ @{term "real_of_float::float\<Rightarrow>_"}
             #> conv_term ctxt (rewrite_with ctxt postproc_form_eqs))
           frees
       in

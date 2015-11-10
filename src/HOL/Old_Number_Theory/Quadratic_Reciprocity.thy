@@ -274,7 +274,7 @@ lemma Q_set_card: "(q - 1) div 2 = int (card (Q_set))"
 
 lemma S_card: "((p - 1) div 2) * ((q - 1) div 2) = int (card(S))"
   using P_set_card Q_set_card P_set_finite Q_set_finite
-  by (auto simp add: S_def zmult_int)
+  by (simp add: S_def)
 
 lemma S1_Int_S2_prop: "S1 \<inter> S2 = {}"
   by (auto simp add: S1_def S2_def)

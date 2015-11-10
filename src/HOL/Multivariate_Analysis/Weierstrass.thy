@@ -5,9 +5,6 @@ imports Uniform_Limit Path_Connected
 
 begin
 
-(*FIXME: simplification changes to be enforced globally*)
-declare of_nat_Suc [simp del]
-
 (*Power.thy:*)
 declare power_divide [where b = "numeral w" for w, simp del]
 
@@ -45,7 +42,7 @@ lemma binomial_deriv2:
 lemma sum_k_Bernstein [simp]: "(\<Sum>k = 0..n. real k * Bernstein n k x) = of_nat n * x"
   apply (subst binomial_deriv1 [of n x "1-x", simplified, symmetric])
   apply (simp add: setsum_left_distrib)
-  apply (auto simp: Bernstein_def real_of_nat_def algebra_simps realpow_num_eq_if intro!: setsum.cong)
+  apply (auto simp: Bernstein_def algebra_simps realpow_num_eq_if intro!: setsum.cong)
   done
 
 lemma sum_kk_Bernstein [simp]: "(\<Sum> k = 0..n. real k * (real k - 1) * Bernstein n k x) = real n * (real n - 1) * x\<^sup>2"
@@ -54,7 +51,7 @@ proof -
     apply (subst binomial_deriv2 [of n x "1-x", simplified, symmetric])
     apply (simp add: setsum_left_distrib)
     apply (rule setsum.cong [OF refl])
-    apply (simp add: Bernstein_def power2_eq_square algebra_simps real_of_nat_def)
+    apply (simp add: Bernstein_def power2_eq_square algebra_simps)
     apply (rename_tac k)
     apply (subgoal_tac "k = 0 \<or> k = 1 \<or> (\<exists>k'. k = Suc (Suc k'))")
     apply (force simp add: field_simps of_nat_Suc power2_eq_square)
@@ -90,13 +87,13 @@ proof -
       using e \<open>0<d\<close> by simp
     also have "... \<le> M * 4"
       using \<open>0\<le>M\<close> by simp
-    finally have [simp]: "real (nat \<lceil>4 * M / (e * d\<^sup>2)\<rceil>) = real \<lceil>4 * M / (e * d\<^sup>2)\<rceil>"
+    finally have [simp]: "real_of_int (nat \<lceil>4 * M / (e * d\<^sup>2)\<rceil>) = real_of_int \<lceil>4 * M / (e * d\<^sup>2)\<rceil>"
       using \<open>0\<le>M\<close> e \<open>0<d\<close>
-      by (simp add: Real.real_of_nat_Suc field_simps)
+      by (simp add: of_nat_Suc field_simps)
     have "4*M/(e*d\<^sup>2) + 1 \<le> real (Suc (nat\<lceil>4*M/(e*d\<^sup>2)\<rceil>))"
-      by (simp add: Real.real_of_nat_Suc)
+      by (simp add: of_nat_Suc real_nat_ceiling_ge)
     also have "... \<le> real n"
-      using n by (simp add: Real.real_of_nat_Suc field_simps)
+      using n by (simp add: of_nat_Suc field_simps)
     finally have nbig: "4*M/(e*d\<^sup>2) + 1 \<le> real n" .
     have sum_bern: "(\<Sum>k = 0..n. (x - k/n)\<^sup>2 * Bernstein n k x) = x * (1 - x) / n"
     proof -
@@ -296,7 +293,7 @@ proof -
       using pf01 by force
     moreover have "p x \<le> 1"
       using subU cardp t
-      apply (simp add: p_def divide_simps setsum_nonneg real_of_nat_def)
+      apply (simp add: p_def divide_simps setsum_nonneg)
       apply (rule setsum_bounded_above [where 'a=real and K=1, simplified])
       using pf01 by force
     ultimately show ?thesis
@@ -484,7 +481,7 @@ proof -
       using ff by fastforce
     moreover have "pff x \<le> 1"
       using subA cardp t
-      apply (simp add: pff_def divide_simps setsum_nonneg real_of_nat_def)
+      apply (simp add: pff_def divide_simps setsum_nonneg)
       apply (rule setprod_mono [where g = "\<lambda>x. 1", simplified])
       using ff by fastforce
     ultimately show ?thesis
@@ -571,7 +568,7 @@ proof -
   def B \<equiv> "\<lambda>j::nat. {x \<in> s. f x \<ge> (j + 1/3)*e}"
   have ngt: "(n-1) * e \<ge> normf f" "n\<ge>1"
     using e
-    apply (simp_all add: n_def field_simps real_of_nat_Suc)
+    apply (simp_all add: n_def field_simps of_nat_Suc)
     by (metis real_nat_ceiling_ge mult.commute not_less pos_less_divide_eq)
   then have ge_fx: "(n-1) * e \<ge> f x" if "x \<in> s" for x
     using f normf_upper that by fastforce
@@ -606,7 +603,7 @@ proof -
   have A0: "A 0 = {}"
     using fpos e by (fastforce simp: A_def)
   have An: "A n = s"
-    using e ngt f normf_upper by (fastforce simp: A_def field_simps real_of_nat_diff)
+    using e ngt f normf_upper by (fastforce simp: A_def field_simps of_nat_diff)
   have Asub: "A j \<subseteq> A i" if "i\<ge>j" for i j
     using e that apply (clarsimp simp: A_def)
     apply (erule order_trans, simp)
@@ -631,7 +628,7 @@ proof -
     then have Anj: "t \<notin> A (j-1)"
       using Least_le by (fastforce simp add: j_def)
     then have fj2: "(j - 4/3)*e < f t"
-      using j1 t  by (simp add: A_def real_of_nat_diff)
+      using j1 t  by (simp add: A_def of_nat_diff)
     have ***: "xf i t \<le> e/n" if "i\<ge>j" for i
       using xfA [OF Ai] that by (simp add: less_eq_real_def)
     { fix i
@@ -641,7 +638,7 @@ proof -
       then have "t \<in> B i"
         using Anj e ge_fx [OF t] \<open>1 \<le> n\<close> fpos [OF t] t
         apply (simp add: A_def B_def)
-        apply (clarsimp simp add: field_simps real_of_nat_diff not_le real_of_nat_Suc)
+        apply (clarsimp simp add: field_simps of_nat_diff not_le of_nat_Suc)
         apply (rule order_trans [of _ "e * 2 + (e * (real d * 3) + e * (real i * 3))"])
         apply auto
         done
@@ -658,15 +655,15 @@ proof -
       done
     also have "... \<le> e*j + e * ((Suc n - j)*e/n)"
       apply (rule add_mono)
-      apply (simp_all only: mult_le_cancel_left_pos e real_of_nat_def)
+      apply (simp_all only: mult_le_cancel_left_pos e)
       apply (rule setsum_bounded_above [OF xf_le1, where A = "lessThan j", simplified])
       using setsum_bounded_above [of "{j..n}" "\<lambda>i. xf i t", OF ***]
       apply simp
       done
     also have "... \<le> j*e + e*(n - j + 1)*e/n "
-      using \<open>1 \<le> n\<close> e  by (simp add: field_simps del: real_of_nat_Suc)
+      using \<open>1 \<le> n\<close> e  by (simp add: field_simps del: of_nat_Suc)
     also have "... \<le> j*e + e*e"
-      using \<open>1 \<le> n\<close> e j1 by (simp add: field_simps del: real_of_nat_Suc)
+      using \<open>1 \<le> n\<close> e j1 by (simp add: field_simps del: of_nat_Suc)
     also have "... < (j + 1/3)*e"
       using e by (auto simp: field_simps)
     finally have gj1: "g t < (j + 1 / 3) * e" .
@@ -678,7 +675,7 @@ proof -
     next
       case True
       then have "(j - 4/3)*e < (j-1)*e - e^2"
-        using e by (auto simp: real_of_nat_diff algebra_simps power2_eq_square)
+        using e by (auto simp: of_nat_diff algebra_simps power2_eq_square)
       also have "... < (j-1)*e - ((j - 1)/n) * e^2"
         using e True jn by (simp add: power2_eq_square field_simps)
       also have "... = e * (j-1) * (1 - e/n)"
@@ -688,7 +685,7 @@ proof -
         apply simp
         apply (rule order_trans [OF _ setsum_bounded_below [OF less_imp_le [OF ****]]])
         using True
-        apply (simp_all add: real_of_nat_def of_nat_Suc of_nat_diff)
+        apply (simp_all add: of_nat_Suc of_nat_diff)
         done
       also have "... \<le> g t"
         using jn e
@@ -739,7 +736,7 @@ proof -
       have "\<not> real (Suc n) < inverse e"
         using \<open>N \<le> n\<close> N using less_imp_inverse_less by force
       then have "1 / (1 + real n) \<le> e"
-        using e by (simp add: field_simps real_of_nat_Suc)
+        using e by (simp add: field_simps of_nat_Suc)
       then have "\<bar>f x - g x\<bar> < e"
         using n(2) x by auto
     } note * = this
@@ -922,7 +919,7 @@ next
   show ?case
     apply (rule_tac x="\<lambda>i. c" in exI)
     apply (rule_tac x=0 in exI)
-    apply (auto simp: mult_ac real_of_nat_Suc)
+    apply (auto simp: mult_ac of_nat_Suc)
     done
   case (add f1 f2)
   then obtain a1 n1 a2 n2 where

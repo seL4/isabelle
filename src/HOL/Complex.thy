@@ -166,7 +166,7 @@ lemma Re_divide_numeral [simp]: "Re (z / numeral w) = Re z / numeral w"
 
 lemma Im_divide_numeral [simp]: "Im (z / numeral w) = Im z / numeral w"
   by (simp add: Im_divide sqr_conv_mult)
-  
+
 lemma Re_divide_of_nat: "Re (z / of_nat n) = Re z / of_nat n"
   by (cases n) (simp_all add: Re_divide divide_simps power2_eq_square del: of_nat_Suc)
 
@@ -688,7 +688,7 @@ lemma cis_mult: "cis a * cis b = cis (a + b)"
   by (simp add: complex_eq_iff cos_add sin_add)
 
 lemma DeMoivre: "(cis a) ^ n = cis (real n * a)"
-  by (induct n, simp_all add: real_of_nat_Suc algebra_simps cis_mult)
+  by (induct n, simp_all add: of_nat_Suc algebra_simps cis_mult)
 
 lemma cis_inverse [simp]: "inverse(cis a) = cis (-a)"
   by (simp add: complex_eq_iff)
@@ -757,8 +757,7 @@ proof -
     have "\<i> ^ n = fact n *\<^sub>R (cos_coeff n + \<i> * sin_coeff n)"
       by (induct n)
          (simp_all add: sin_coeff_Suc cos_coeff_Suc complex_eq_iff Re_divide Im_divide field_simps
-                        power2_eq_square real_of_nat_Suc add_nonneg_eq_0_iff
-                        real_of_nat_def[symmetric])
+                        power2_eq_square of_nat_Suc add_nonneg_eq_0_iff)
     then have "(\<i> * complex_of_real b) ^ n /\<^sub>R fact n =
         of_real (cos_coeff n * b^n) + \<i> * of_real (sin_coeff n * b^n)"
       by (simp add: field_simps) }
