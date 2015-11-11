@@ -1161,13 +1161,8 @@ lemma nn_integral_multc:
   unfolding mult.commute[of _ c] nn_integral_cmult[OF assms] by simp
 
 lemma nn_integral_divide:
-  "0 < c \<Longrightarrow> f \<in> borel_measurable M \<Longrightarrow> (\<integral>\<^sup>+x. f x / c \<partial>M) = (\<integral>\<^sup>+x. f x \<partial>M) / c"
-  unfolding divide_ereal_def
-  apply (rule nn_integral_multc)
-  apply assumption
-  apply (cases c)
-  apply auto
-  done
+   "\<lbrakk> 0 \<le> c; f \<in> borel_measurable M \<rbrakk> \<Longrightarrow> (\<integral>\<^sup>+ x. f x / c \<partial>M) = (\<integral>\<^sup>+ x. f x \<partial>M) / c"
+by(simp add: divide_ereal_def nn_integral_multc inverse_ereal_ge0I)
 
 lemma nn_integral_indicator[simp]:
   "A \<in> sets M \<Longrightarrow> (\<integral>\<^sup>+ x. indicator A x\<partial>M) = (emeasure M) A"
