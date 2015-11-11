@@ -256,7 +256,6 @@ lemma LeastI2_order:
 unfolding Least_def by (rule theI2)
   (blast intro: assms antisym)+
 
-
 text \<open>Dual order\<close>
 
 lemma dual_order:
@@ -1171,6 +1170,10 @@ lemma min_absorb2: "(y::'a::order) \<le> x \<Longrightarrow> min x y = y"
 lemma max_absorb1: "(y::'a::order) \<le> x \<Longrightarrow> max x y = x"
   by (simp add: max_def)
 
+lemma max_min_same [simp]:
+  fixes x y :: "'a :: linorder"
+  shows "max x (min x y) = x" "max (min x y) x = x" "max (min x y) y = y" "max y (min x y) = y"
+by(auto simp add: max_def min_def)
 
 subsection \<open>(Unique) top and bottom elements\<close>
 

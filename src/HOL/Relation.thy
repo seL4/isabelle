@@ -219,6 +219,9 @@ lemma refl_on_def' [nitpick_unfold, code]:
 lemma reflp_equality [simp]: "reflp op ="
 by(simp add: reflp_def)
 
+lemma reflp_mono: "\<lbrakk> reflp R; \<And>x y. R x y \<longrightarrow> Q x y \<rbrakk> \<Longrightarrow> reflp Q"
+by(auto intro: reflpI dest: reflpD)
+
 subsubsection \<open>Irreflexivity\<close>
 
 definition irrefl :: "'a rel \<Rightarrow> bool"
@@ -676,6 +679,8 @@ lemma relcompp_apply: "(R OO S) a c \<longleftrightarrow> (\<exists>b. R a b \<a
 lemma eq_OO: "op= OO R = R"
 by blast
 
+lemma OO_eq: "R OO op = = R"
+by blast
 
 subsubsection \<open>Converse\<close>
 

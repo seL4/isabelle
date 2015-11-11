@@ -570,6 +570,12 @@ ML_file "Tools/Lifting/lifting_def.ML"
 ML_file "Tools/Lifting/lifting_setup.ML"
 ML_file "Tools/Lifting/lifting_def_code_dt.ML"
 
+lemma pred_prod_beta: "pred_prod P Q xy \<longleftrightarrow> P (fst xy) \<and> Q (snd xy)"
+by(cases xy) simp
+
+lemma pred_prod_split: "P (pred_prod Q R xy) \<longleftrightarrow> (\<forall>x y. xy = (x, y) \<longrightarrow> P (Q x \<and> R y))"
+by(cases xy) simp
+
 hide_const (open) POS NEG
 
 end

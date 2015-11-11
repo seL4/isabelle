@@ -663,6 +663,8 @@ by auto
 lemma fun_upd_comp: "f \<circ> (g(x := y)) = (f \<circ> g)(x := f y)"
   by auto
 
+lemma fun_upd_eqD: "f(x := y) = g(x := z) \<Longrightarrow> y = z"
+by(simp add: fun_eq_iff split: split_if_asm)
 
 subsection \<open>@{text override_on}\<close>
 

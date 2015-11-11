@@ -174,6 +174,9 @@ lemma less_num_simps [simp, code]:
   using nat_of_num_pos [of n] nat_of_num_pos [of m]
   by (auto simp add: less_eq_num_def less_num_def)
 
+lemma le_num_One_iff: "x \<le> num.One \<longleftrightarrow> x = num.One"
+by (simp add: antisym_conv)
+
 text \<open>Rules using @{text One} and @{text inc} as constructors\<close>
 
 lemma add_One: "x + One = inc x"
@@ -645,6 +648,26 @@ lemmas less_numeral_simps [simp] =
   not_numeral_less_one
   zero_less_numeral
   not_numeral_less_zero
+
+lemma min_0_1 [simp]:
+  fixes min' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" defines "min' \<equiv> min" shows
+  "min' 0 1 = 0"
+  "min' 1 0 = 0"
+  "min' 0 (numeral x) = 0"
+  "min' (numeral x) 0 = 0"
+  "min' 1 (numeral x) = 1"
+  "min' (numeral x) 1 = 1"
+by(simp_all add: min'_def min_def le_num_One_iff)
+
+lemma max_0_1 [simp]: 
+  fixes max' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" defines "max' \<equiv> max" shows
+  "max' 0 1 = 1"
+  "max' 1 0 = 1"
+  "max' 0 (numeral x) = numeral x"
+  "max' (numeral x) 0 = numeral x"
+  "max' 1 (numeral x) = numeral x"
+  "max' (numeral x) 1 = numeral x"
+by(simp_all add: max'_def max_def le_num_One_iff)
 
 end
 

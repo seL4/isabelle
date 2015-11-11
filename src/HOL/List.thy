@@ -795,6 +795,8 @@ qed
 lemma inj_split_Cons: "inj_on (\<lambda>(xs, n). n#xs) X"
   by (auto intro!: inj_onI)
 
+lemma inj_on_Cons1 [simp]: "inj_on (op # x) A"
+by(simp add: inj_on_def)
 
 subsubsection \<open>@{const length}\<close>
 
@@ -2501,6 +2503,9 @@ apply (induct i arbitrary: j, auto)
 apply (case_tac j, auto)
 done
 
+lemma zip_replicate1: "zip (replicate n x) ys = map (Pair x) (take n ys)"
+by(induction ys arbitrary: n)(case_tac [2] n, simp_all)
+
 lemma take_zip:
   "take n (zip xs ys) = zip (take n xs) (take n ys)"
 apply (induct n arbitrary: xs ys)
@@ -2717,6 +2722,20 @@ by(auto simp add: set_zip list_all2_eq list_all2_conv_all_nth cong: conj_cong)
 
 lemma list_all2_same: "list_all2 P xs xs \<longleftrightarrow> (\<forall>x\<in>set xs. P x x)"
 by(auto simp add: list_all2_conv_all_nth set_conv_nth)
+
+lemma zip_assoc:
+  "zip xs (zip ys zs) = map (\<lambda>((x, y), z). (x, y, z)) (zip (zip xs ys) zs)"
+by(rule list_all2_all_nthI[where P="op =", unfolded list.rel_eq]) simp_all
+
+lemma zip_commute: "zip xs ys = map (\<lambda>(x, y). (y, x)) (zip ys xs)"
+by(rule list_all2_all_nthI[where P="op =", unfolded list.rel_eq]) simp_all
+
+lemma zip_left_commute:
+  "zip xs (zip ys zs) = map (\<lambda>(y, (x, z)). (x, y, z)) (zip ys (zip xs zs))"
+by(rule list_all2_all_nthI[where P="op =", unfolded list.rel_eq]) simp_all
+
+lemma zip_replicate2: "zip xs (replicate n y) = map (\<lambda>x. (x, y)) (take n xs)"
+by(subst zip_commute)(simp add: zip_replicate1)
 
 subsubsection \<open>@{const List.product} and @{const product_lists}\<close>
 

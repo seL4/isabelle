@@ -65,6 +65,12 @@ lemma rel_option_None1 [simp]: "rel_option P None x \<longleftrightarrow> x = No
 lemma rel_option_None2 [simp]: "rel_option P x None \<longleftrightarrow> x = None"
   by (cases x) simp_all
 
+lemma option_rel_Some1: "rel_option A (Some x) y \<longleftrightarrow> (\<exists>y'. y = Some y' \<and> A x y')" (* Option *)
+by(cases y) simp_all
+
+lemma option_rel_Some2: "rel_option A x (Some y) \<longleftrightarrow> (\<exists>x'. x = Some x' \<and> A x' y)" (* Option *)
+by(cases x) simp_all
+
 lemma rel_option_inf: "inf (rel_option A) (rel_option B) = rel_option (inf A B)"
   (is "?lhs = ?rhs")
 proof (rule antisym)
@@ -96,6 +102,9 @@ lemma map_option_case: "map_option f y = (case y of None \<Rightarrow> None | So
 lemma map_option_is_None [iff]: "(map_option f opt = None) = (opt = None)"
   by (simp add: map_option_case split add: option.split)
 
+lemma None_eq_map_option_iff [iff]: "None = map_option f x \<longleftrightarrow> x = None"
+by(cases x) simp_all
+
 lemma map_option_eq_Some [iff]: "(map_option f xo = Some y) = (\<exists>z. xo = Some z \<and> f z = y)"
   by (simp add: map_option_case split add: option.split)
 
@@ -106,18 +115,26 @@ lemma map_option_o_case_sum [simp]:
 lemma map_option_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> map_option f x = map_option g y"
   by (cases x) auto
 
+lemma map_option_idI: "(\<And>y. y \<in> set_option x \<Longrightarrow> f y = y) \<Longrightarrow> map_option f x = x"
+by(cases x)(simp_all)
+
 functor map_option: map_option
   by (simp_all add: option.map_comp fun_eq_iff option.map_id)
 
 lemma case_map_option [simp]: "case_option g h (map_option f x) = case_option g (h \<circ> f) x"
   by (cases x) simp_all
 
+lemma None_notin_image_Some [simp]: "None \<notin> Some ` A"
+by auto
+
+lemma notin_range_Some: "x \<notin> range Some \<longleftrightarrow> x = None"
+by(cases x) auto
+
 lemma rel_option_iff:
   "rel_option R x y = (case (x, y) of (None, None) \<Rightarrow> True
     | (Some x, Some y) \<Rightarrow> R x y
     | _ \<Rightarrow> False)"
   by (auto split: prod.split option.split)
-
 
 context
 begin
@@ -183,6 +200,9 @@ lemmas bind_splits = bind_split bind_split_asm
 lemma bind_eq_Some_conv: "bind f g = Some x \<longleftrightarrow> (\<exists>y. f = Some y \<and> g y = Some x)"
   by (cases f) simp_all
 
+lemma bind_eq_None_conv: "Option.bind a f = None \<longleftrightarrow> a = None \<or> f (the a) = None"
+by(cases a) simp_all
+
 lemma map_option_bind: "map_option f (bind x g) = bind x (map_option f \<circ> g)"
   by (cases x) simp_all
 
@@ -196,6 +216,15 @@ lemma bind_option_cong_simp:
 
 lemma bind_option_cong_code: "x = y \<Longrightarrow> bind x f = bind y f"
   by simp
+
+lemma bind_map_option: "bind (map_option f x) g = bind x (g \<circ> f)"
+by(cases x) simp_all
+
+lemma set_bind_option [simp]: "set_option (bind x f) = UNION (set_option x) (set_option \<circ> f)"
+by(cases x) auto
+
+lemma map_conv_bind_option: "map_option f x = Option.bind x (Some \<circ> f)"
+by(cases x) simp_all
 
 end
 
