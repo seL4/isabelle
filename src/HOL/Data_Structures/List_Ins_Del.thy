@@ -68,7 +68,7 @@ by(induction xs rule: sorted.induct) auto
 
 lemma ins_list_sorted: "sorted (xs @ [a]) \<Longrightarrow>
   ins_list x (xs @ a # ys) =
-  (if a \<le> x then xs @ ins_list x (a#ys) else ins_list x xs @ (a#ys))"
+  (if x < a then ins_list x xs @ (a#ys) else xs @ ins_list x (a#ys))"
 by(induction xs) (auto simp: sorted_lems)
 
 text\<open>In principle, @{thm ins_list_sorted} suffices, but the following two
@@ -76,7 +76,7 @@ corollaries speed up proofs.\<close>
 
 corollary ins_list_sorted1: "sorted (xs @ [a]) \<Longrightarrow> a \<le> x \<Longrightarrow>
   ins_list x (xs @ a # ys) = xs @ ins_list x (a#ys)"
-by(simp add: ins_list_sorted)
+by(auto simp add: ins_list_sorted)
 
 corollary ins_list_sorted2: "sorted (xs @ [a]) \<Longrightarrow> x < a \<Longrightarrow>
   ins_list x (xs @ a # ys) = ins_list x xs @ (a#ys)"
