@@ -31,7 +31,6 @@ lemma real_of_float_eq:
 declare real_of_float_inverse[simp] float_of_inverse [simp]
 declare real_of_float [simp]
 
-
 subsection \<open>Real operations preserving the representation as floating point number\<close>
 
 lemma floatI: fixes m e :: int shows "m * 2 powr e = x \<Longrightarrow> x \<in> float"
@@ -213,6 +212,12 @@ instance
   by (standard; transfer; fastforce simp add: field_simps intro: mult_left_mono mult_right_mono)+
 
 end
+
+lemma real_of_float [simp]: "real_of_float (of_nat n) = of_nat n"
+by (induct n) simp_all
+
+lemma real_of_float_of_int_eq [simp]: "real_of_float (of_int z) = of_int z"
+  by (cases z rule: int_diff_cases) (simp_all add: of_rat_diff)
 
 lemma Float_0_eq_0[simp]: "Float 0 e = 0"
   by transfer simp
