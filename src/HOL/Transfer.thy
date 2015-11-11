@@ -620,6 +620,10 @@ lemma right_unique_parametric [transfer_rule]:
   shows "((A ===> B ===> op =) ===> op =) right_unique right_unique"
 unfolding right_unique_def[abs_def] by transfer_prover
 
+lemma map_fun_parametric [transfer_rule]:
+  "((A ===> B) ===> (C ===> D) ===> (B ===> C) ===> A ===> D) map_fun map_fun"
+unfolding map_fun_def[abs_def] by transfer_prover
+
 end
 
 end

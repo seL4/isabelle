@@ -1161,13 +1161,8 @@ lemma nn_integral_multc:
   unfolding mult.commute[of _ c] nn_integral_cmult[OF assms] by simp
 
 lemma nn_integral_divide:
-  "0 < c \<Longrightarrow> f \<in> borel_measurable M \<Longrightarrow> (\<integral>\<^sup>+x. f x / c \<partial>M) = (\<integral>\<^sup>+x. f x \<partial>M) / c"
-  unfolding divide_ereal_def
-  apply (rule nn_integral_multc)
-  apply assumption
-  apply (cases c)
-  apply auto
-  done
+   "\<lbrakk> 0 \<le> c; f \<in> borel_measurable M \<rbrakk> \<Longrightarrow> (\<integral>\<^sup>+ x. f x / c \<partial>M) = (\<integral>\<^sup>+ x. f x \<partial>M) / c"
+by(simp add: divide_ereal_def nn_integral_multc inverse_ereal_ge0I)
 
 lemma nn_integral_indicator[simp]:
   "A \<in> sets M \<Longrightarrow> (\<integral>\<^sup>+ x. indicator A x\<partial>M) = (emeasure M) A"
@@ -2714,5 +2709,42 @@ lemma emeasure_uniform_count_measure:
 lemma measure_uniform_count_measure:
   "finite A \<Longrightarrow> X \<subseteq> A \<Longrightarrow> measure (uniform_count_measure A) X = card X / card A"
   by (simp add: emeasure_point_measure_finite uniform_count_measure_def measure_def)
+
+lemma space_uniform_count_measure_empty_iff [simp]:
+  "space (uniform_count_measure X) = {} \<longleftrightarrow> X = {}"
+by(simp add: space_uniform_count_measure)
+
+lemma sets_uniform_count_measure_eq_UNIV [simp]:
+  "sets (uniform_count_measure UNIV) = UNIV \<longleftrightarrow> True"
+  "UNIV = sets (uniform_count_measure UNIV) \<longleftrightarrow> True"
+by(simp_all add: sets_uniform_count_measure)
+
+subsubsection \<open>Scaled measure\<close>
+
+lemma nn_integral_scale_measure':
+  assumes f: "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x"
+  shows "nn_integral (scale_measure r M) f = max 0 r * nn_integral M f"
+  using f
+proof induction
+  case (cong f g)
+  thus ?case
+    by(simp add: cong.hyps space_scale_measure cong: nn_integral_cong_simp)
+next
+  case (mult f c)
+  thus ?case
+    by(simp add: nn_integral_cmult max_def mult.assoc mult.left_commute)
+next
+  case (add f g)
+  thus ?case
+    by(simp add: nn_integral_add ereal_right_distrib nn_integral_nonneg)
+next
+  case (seq U)
+  thus ?case
+    by(simp add: nn_integral_monotone_convergence_SUP SUP_ereal_mult_left nn_integral_nonneg)
+qed simp
+
+lemma nn_integral_scale_measure:
+  "f \<in> borel_measurable M \<Longrightarrow> nn_integral (scale_measure r M) f = max 0 r * nn_integral M f"
+by(subst (1 2) nn_integral_max_0[symmetric])(rule nn_integral_scale_measure', simp_all)
 
 end

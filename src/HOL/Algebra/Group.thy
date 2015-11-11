@@ -44,6 +44,9 @@ begin
     in if z < 0 then inv\<^bsub>G\<^esub> (p (nat (-z))) else p (nat z))"
 end
 
+lemma int_pow_int: "x (^)\<^bsub>G\<^esub> (int n) = x (^)\<^bsub>G\<^esub> n"
+by(simp add: int_pow_def nat_pow_def)
+
 locale monoid =
   fixes G (structure)
   assumes m_closed [intro, simp]:
@@ -186,6 +189,9 @@ proof -
   from G have "x \<otimes> y \<otimes> x = x \<otimes> \<one>" by (auto simp add: inv Units_closed)
   with G show ?thesis by (simp del: r_one add: m_assoc Units_closed)
 qed
+
+lemma (in monoid) carrier_not_empty: "carrier G \<noteq> {}"
+by auto
 
 text \<open>Power\<close>
 
@@ -434,7 +440,16 @@ proof -
     by (auto simp add: int_pow_def2 inv_solve_left inv_solve_right nat_add_distrib [symmetric] nat_pow_mult )
 qed
 
- 
+lemma (in group) int_pow_diff:
+  "x \<in> carrier G \<Longrightarrow> x (^) (n - m :: int) = x (^) n \<otimes> inv (x (^) m)"
+by(simp only: diff_conv_add_uminus int_pow_mult int_pow_neg)
+
+lemma (in group) inj_on_multc: "c \<in> carrier G \<Longrightarrow> inj_on (\<lambda>x. x \<otimes> c) (carrier G)"
+by(simp add: inj_on_def)
+
+lemma (in group) inj_on_cmult: "c \<in> carrier G \<Longrightarrow> inj_on (\<lambda>x. c \<otimes> x) (carrier G)"
+by(simp add: inj_on_def)
+
 subsection \<open>Subgroups\<close>
 
 locale subgroup =

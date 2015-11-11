@@ -1144,6 +1144,9 @@ lemma Sigma_Union:
   "Sigma (\<Union>X) B = (\<Union>A\<in>X. Sigma A B)"
   by blast
 
+lemma Pair_vimage_Sigma: "Pair x -` Sigma A f = (if x \<in> A then f x else {})"
+  by auto
+
 text \<open>
   Non-dependent versions are needed to avoid the need for higher-order
   matching, especially when the rules are re-oriented.

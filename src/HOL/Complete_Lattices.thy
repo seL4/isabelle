@@ -1346,6 +1346,8 @@ lemma Un_INT_distrib2: "(\<Inter>i\<in>I. A i) \<union> (\<Inter>j\<in>J. B j) =
 lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<forall>B\<in>C. B \<inter> A = {})"
   by (fact Sup_inf_eq_bot_iff)
 
+lemma SUP_UNION: "(SUP x:(UN y:A. g y). f x) = (SUP y:A. SUP x:g y. f x :: _ :: complete_lattice)"
+by(rule order_antisym)(blast intro: SUP_least SUP_upper2)+
 
 subsection \<open>Injections and bijections\<close>
 

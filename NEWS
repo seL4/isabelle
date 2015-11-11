@@ -462,6 +462,10 @@ INCOMPATIBILITY,  instantiations must refer to Rings.divide rather
 than the former separate constants, hence infix syntax (_ / _) is usually
 not available during instantiation.
 
+* New cancellation simprocs for boolean algebras to cancel
+complementary terms for sup and inf. For example, "sup x (sup y (- x))"
+simplifies to "top". INCOMPATIBILITY.
+
 * Library/Multiset:
   - Renamed multiset inclusion operators:
       < ~> <#

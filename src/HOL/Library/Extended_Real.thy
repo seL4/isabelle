@@ -311,7 +311,6 @@ lemma ereal_infinity_cases:
   shows "a \<noteq> \<infinity> \<Longrightarrow> a \<noteq> -\<infinity> \<Longrightarrow> \<bar>a\<bar> \<noteq> \<infinity>"
   by auto
 
-
 subsubsection "Addition"
 
 instantiation ereal :: "{one,comm_monoid_add,zero_neq_one}"
@@ -592,6 +591,11 @@ lemma abs_ereal_less0[simp]: "x < 0 \<Longrightarrow> \<bar>x :: ereal\<bar> = -
 
 lemma abs_ereal_pos[simp]: "0 \<le> \<bar>x :: ereal\<bar>"
   by (cases x) auto
+
+lemma ereal_abs_leI:
+  fixes x y :: ereal 
+  shows "\<lbrakk> x \<le> y; -x \<le> y \<rbrakk> \<Longrightarrow> \<bar>x\<bar> \<le> y"
+by(cases x y rule: ereal2_cases)(simp_all)
 
 lemma real_of_ereal_le_0[simp]: "real_of_ereal (x :: ereal) \<le> 0 \<longleftrightarrow> x \<le> 0 \<or> x = \<infinity>"
   by (cases x) auto
@@ -877,6 +881,11 @@ qed
 
 end
 
+lemma [simp]: 
+  shows ereal_1_times: "ereal 1 * x = x"
+  and times_ereal_1: "x * ereal 1 = x"
+by(simp_all add: one_ereal_def[symmetric])
+
 lemma one_not_le_zero_ereal[simp]: "\<not> (1 \<le> (0::ereal))"
   by (simp add: one_ereal_def zero_ereal_def)
 
@@ -1045,6 +1054,10 @@ lemma numeral_eq_ereal [simp]: "numeral w = ereal (numeral w)"
   apply (simp only: numeral_inc ereal_plus_1)
   done
 
+lemma distrib_left_ereal_nn:
+  "c \<ge> 0 \<Longrightarrow> (x + y) * ereal c = x * ereal c + y * ereal c"
+by(cases x y rule: ereal2_cases)(simp_all add: ring_distribs)
+
 lemma setsum_ereal_right_distrib:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> r * setsum f A = (\<Sum>n\<in>A. r * f n)"
@@ -1053,6 +1066,10 @@ lemma setsum_ereal_right_distrib:
 lemma setsum_ereal_left_distrib:
   "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> setsum f A * r = (\<Sum>n\<in>A. f n * r :: ereal)"
   using setsum_ereal_right_distrib[of A f r] by (simp add: mult_ac)
+
+lemma setsum_left_distrib_ereal:
+  "c \<ge> 0 \<Longrightarrow> setsum f A * ereal c = (\<Sum>x\<in>A. f x * c :: ereal)"
+by(subst setsum_comp_morphism[where h="\<lambda>x. x * ereal c", symmetric])(simp_all add: distrib_left_ereal_nn)
 
 lemma ereal_le_epsilon:
   fixes x y :: ereal
@@ -1384,6 +1401,26 @@ lemma ereal_minus_eq_PInfty_iff:
   shows "x - y = \<infinity> \<longleftrightarrow> y = -\<infinity> \<or> x = \<infinity>"
   by (cases x y rule: ereal2_cases) simp_all
 
+lemma ereal_diff_add_eq_diff_diff_swap:
+  fixes x y z :: ereal 
+  shows "\<bar>y\<bar> \<noteq> \<infinity> \<Longrightarrow> x - (y + z) = x - y - z"
+by(cases x y z rule: ereal3_cases) simp_all
+
+lemma ereal_diff_add_assoc2:
+  fixes x y z :: ereal
+  shows "x + y - z = x - z + y"
+by(cases x y z rule: ereal3_cases) simp_all
+
+lemma ereal_add_uminus_conv_diff: fixes x y z :: ereal shows "- x + y = y - x"
+by(cases x y rule: ereal2_cases) simp_all
+
+lemma ereal_minus_diff_eq: 
+  fixes x y :: ereal 
+  shows "\<lbrakk> x = \<infinity> \<longrightarrow> y \<noteq> \<infinity>; x = -\<infinity> \<longrightarrow> y \<noteq> - \<infinity> \<rbrakk> \<Longrightarrow> - (x - y) = y - x"
+by(cases x y rule: ereal2_cases) simp_all
+
+lemma ediff_le_self [simp]: "x - y \<le> (x :: enat)"
+by(cases x y rule: enat.exhaust[case_product enat.exhaust]) simp_all
 
 subsubsection \<open>Division\<close>
 
@@ -1450,6 +1487,9 @@ lemma ereal_divide_ereal[simp]: "\<infinity> / ereal r = (if 0 \<le> r then \<in
 
 lemma ereal_inverse_nonneg_iff: "0 \<le> inverse (x :: ereal) \<longleftrightarrow> 0 \<le> x \<or> x = -\<infinity>"
   by (cases x) auto
+
+lemma inverse_ereal_ge0I: "0 \<le> (x :: ereal) \<Longrightarrow> 0 \<le> inverse x"
+by(cases x) simp_all
 
 lemma zero_le_divide_ereal[simp]:
   fixes a :: ereal
@@ -2191,6 +2231,9 @@ lemma ereal_of_enat_mult:
 lemmas ereal_of_enat_pushin = ereal_of_enat_add ereal_of_enat_sub ereal_of_enat_mult
 lemmas ereal_of_enat_pushout = ereal_of_enat_pushin[symmetric]
 
+lemma ereal_of_enat_nonneg: "ereal_of_enat n \<ge> 0"
+by(cases n) simp_all
+
 lemma ereal_of_enat_Sup:
   assumes "A \<noteq> {}" shows "ereal_of_enat (Sup A) = (SUP a : A. ereal_of_enat a)"
 proof (intro antisym mono_Sup)
@@ -2807,6 +2850,10 @@ next
     finally show "?lhs \<le> ?rhs" .
   qed
 qed
+
+lemma Sup_ereal_mult_left':
+  "\<lbrakk> Y \<noteq> {}; x \<ge> 0 \<rbrakk> \<Longrightarrow> ereal x * (SUP i:Y. f i) = (SUP i:Y. ereal x * f i)"
+by(subst (1 2) mult.commute)(rule Sup_ereal_mult_right')
 
 lemma sup_continuous_add[order_continuous_intros]:
   fixes f g :: "'a::complete_lattice \<Rightarrow> ereal"

@@ -20,6 +20,7 @@ definition Equality :: "['a set, 'a set] => 'a set"  (infixl "<==>" 60)
 
 lemma Always_at_FP:
      "[|F \<in> A LeadsTo B; all_total F|] ==> F \<in> Always (-((FP F) \<inter> A \<inter> -B))"
+supply [[simproc del: boolean_algebra_cancel_inf]] inf_compl_bot_right[simp del] 
 apply (rule LeadsTo_empty)
 apply (subgoal_tac "F \<in> (FP F \<inter> A \<inter> - B) LeadsTo (B \<inter> (FP F \<inter> -B))")
 apply (subgoal_tac [2] " (FP F \<inter> A \<inter> - B) = (A \<inter> (FP F \<inter> -B))")

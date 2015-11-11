@@ -1567,4 +1567,8 @@ lemma return_count_space_eq_density:
   by (rule measure_eqI) 
      (auto simp: indicator_inter_arith_ereal emeasure_density split: split_indicator)
 
+lemma null_measure_in_space_subprob_algebra [simp]:
+  "null_measure M \<in> space (subprob_algebra M) \<longleftrightarrow> space M \<noteq> {}"
+by(simp add: space_subprob_algebra subprob_space_null_measure_iff)
+
 end

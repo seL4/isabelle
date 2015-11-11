@@ -1421,6 +1421,9 @@ lemma emeasure_eq_ereal_measure:
   using emeasure_nonneg[of M A]
   by (cases "emeasure M A") (auto simp: measure_def)
 
+lemma max_0_ereal_measure [simp]: "max 0 (ereal (measure M X)) = ereal (measure M X)"
+by(simp add: max_def measure_nonneg)
+
 lemma measure_Union:
   assumes finite: "emeasure M A \<noteq> \<infinity>" "emeasure M B \<noteq> \<infinity>"
   and measurable: "A \<in> sets M" "B \<in> sets M" "A \<inter> B = {}"
@@ -2100,6 +2103,59 @@ lemma emeasure_null_measure[simp]: "emeasure (null_measure M) X = 0"
 lemma measure_null_measure[simp]: "measure (null_measure M) X = 0"
   by (simp add: measure_def)
 
+lemma null_measure_idem [simp]: "null_measure (null_measure M) = null_measure M"
+by(rule measure_eqI) simp_all
+
+subsection \<open>Scaling a measure\<close>
+
+definition scale_measure :: "real \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
+where "scale_measure r M = measure_of (space M) (sets M) (\<lambda>A. (max 0 r) * emeasure M A)"
+
+lemma space_scale_measure: "space (scale_measure r M) = space M"
+by(simp add: scale_measure_def)
+
+lemma sets_scale_measure [simp, measurable_cong]: "sets (scale_measure r M) = sets M"
+by(simp add: scale_measure_def)
+
+lemma emeasure_scale_measure [simp]:
+  "emeasure (scale_measure r M) A = max 0 r * emeasure M A"
+  (is "_ = ?\<mu> A")
+proof(cases "A \<in> sets M")
+  case True
+  show ?thesis unfolding scale_measure_def
+  proof(rule emeasure_measure_of_sigma)
+    show "sigma_algebra (space M) (sets M)" ..
+    show "positive (sets M) ?\<mu>" by(simp add: positive_def emeasure_nonneg)
+    show "countably_additive (sets M) ?\<mu>"
+    proof (rule countably_additiveI)
+      fix A :: "nat \<Rightarrow> _"  assume *: "range A \<subseteq> sets M" "disjoint_family A"
+      have "(\<Sum>i. ?\<mu> (A i)) = max 0 (ereal r) * (\<Sum>i. emeasure M (A i))"
+        by(rule suminf_cmult_ereal)(simp_all add: emeasure_nonneg)
+      also have "\<dots> = ?\<mu> (\<Union>i. A i)" using * by(simp add: suminf_emeasure)
+      finally show "(\<Sum>i. ?\<mu> (A i)) = ?\<mu> (\<Union>i. A i)" .
+    qed
+  qed(fact True)
+qed(simp add: emeasure_notin_sets)
+
+lemma measure_scale_measure [simp]: "measure (scale_measure r M) A = max 0 r * measure M A"
+by(simp add: measure_def max_def)
+
+lemma scale_measure_1 [simp]: "scale_measure 1 M = M"
+by(rule measure_eqI)(simp_all add: max_def)
+
+lemma scale_measure_le_0: "r \<le> 0 \<Longrightarrow> scale_measure r M = null_measure M"
+by(rule measure_eqI)(simp_all add: max_def)
+
+lemma scale_measure_0 [simp]: "scale_measure 0 M = null_measure M"
+by(simp add: scale_measure_le_0)
+
+lemma scale_scale_measure [simp]:
+  "scale_measure r (scale_measure r' M) = scale_measure (max 0 r * max 0 r') M"
+by(rule measure_eqI)(simp_all add: max_def mult.assoc times_ereal.simps(1)[symmetric] del: times_ereal.simps(1))
+
+lemma scale_null_measure [simp]: "scale_measure r (null_measure M) = null_measure M"
+by(rule measure_eqI) simp_all
+
 subsection \<open>Measures form a chain-complete partial order\<close>
 
 instantiation measure :: (type) order_bot
@@ -2269,5 +2325,17 @@ next
   qed
 qed
 end
+
+lemma
+  assumes A: "Complete_Partial_Order.chain op \<le> (f ` A)" and a: "a \<in> A" "f a \<noteq> bot"
+  shows space_SUP: "space (SUP M:A. f M) = space (f a)"
+    and sets_SUP: "sets (SUP M:A. f M) = sets (f a)"
+unfolding SUP_def by(rule space_Sup[OF A a(2) imageI[OF a(1)]] sets_Sup[OF A a(2) imageI[OF a(1)]])+
+
+lemma emeasure_SUP:
+  assumes A: "Complete_Partial_Order.chain op \<le> (f ` A)" "A \<noteq> {}"
+  assumes "X \<in> sets (SUP M:A. f M)"
+  shows "emeasure (SUP M:A. f M) X = (SUP M:A. emeasure (f M)) X"
+using \<open>X \<in> _\<close> unfolding SUP_def by(subst emeasure_Sup[OF A(1)]; simp add: A)
 
 end

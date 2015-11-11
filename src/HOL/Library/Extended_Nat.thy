@@ -459,6 +459,10 @@ lemma enat_ile: "n \<le> enat m \<Longrightarrow> \<exists>k. n = enat k"
 lemma enat_iless: "n < enat m \<Longrightarrow> \<exists>k. n = enat k"
   by (cases n) simp_all
 
+lemma iadd_le_enat_iff:
+  "x + y \<le> enat n \<longleftrightarrow> (\<exists>y' x'. x = enat x' \<and> y = enat y' \<and> x' + y' \<le> n)"
+by(cases x y rule: enat.exhaust[case_product enat.exhaust]) simp_all
+
 lemma chain_incr: "\<forall>i. \<exists>j. Y i < Y j ==> \<exists>j. enat k < Y j"
 apply (induct_tac k)
  apply (simp (no_asm) only: enat_0)
