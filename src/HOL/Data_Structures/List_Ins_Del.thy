@@ -66,13 +66,21 @@ by (metis in_set_conv_decomp_first less_imp_not_less sorted_mid_iff2)
 lemma sorted_ins_list: "sorted xs \<Longrightarrow> sorted(ins_list x xs)"
 by(induction xs rule: sorted.induct) auto
 
-lemma ins_list_sorted1: "sorted (xs @ [a]) \<Longrightarrow> a \<le> x \<Longrightarrow>
-  ins_list x (xs @ a # ys) = xs @ ins_list x (a#ys)"
+lemma ins_list_sorted: "sorted (xs @ [a]) \<Longrightarrow>
+  ins_list x (xs @ a # ys) =
+  (if a \<le> x then xs @ ins_list x (a#ys) else ins_list x xs @ (a#ys))"
 by(induction xs) (auto simp: sorted_lems)
 
-lemma ins_list_sorted2: "sorted (xs @ [a]) \<Longrightarrow> x < a \<Longrightarrow>
+text\<open>In principle, @{thm ins_list_sorted} suffices, but the following two
+corollaries speed up proofs.\<close>
+
+corollary ins_list_sorted1: "sorted (xs @ [a]) \<Longrightarrow> a \<le> x \<Longrightarrow>
+  ins_list x (xs @ a # ys) = xs @ ins_list x (a#ys)"
+by(simp add: ins_list_sorted)
+
+corollary ins_list_sorted2: "sorted (xs @ [a]) \<Longrightarrow> x < a \<Longrightarrow>
   ins_list x (xs @ a # ys) = ins_list x xs @ (a#ys)"
-by(induction xs) (auto simp: sorted_lems)
+by(auto simp: ins_list_sorted)
 
 lemmas ins_list_simps = sorted_lems ins_list_sorted1 ins_list_sorted2
 
@@ -99,29 +107,37 @@ apply(induction xs rule: sorted.induct)
 apply auto
 by (meson order.strict_trans sorted_Cons_iff)
 
-lemma del_list_sorted1: "sorted (xs @ [a]) \<Longrightarrow> a \<le> x \<Longrightarrow>
+lemma del_list_sorted: "sorted (xs @ a # ys) \<Longrightarrow>
+  del_list x (xs @ a # ys) = (if x < a then del_list x xs @ a # ys else xs @ del_list x (a # ys))"
+by(induction xs)
+  (fastforce simp: sorted_lems sorted_Cons_iff elems_eq_set intro!: del_list_idem)+
+
+text\<open>In principle, @{thm del_list_sorted} suffices, but the following
+corollaries speed up proofs.\<close>
+
+corollary del_list_sorted1: "sorted (xs @ a # ys) \<Longrightarrow> a \<le> x \<Longrightarrow>
   del_list x (xs @ a # ys) = xs @ del_list x (a # ys)"
-by (induction xs) (auto simp: sorted_mid_iff2)
+by (auto simp: del_list_sorted)
 
-lemma del_list_sorted2: "sorted (xs @ a # ys) \<Longrightarrow> x < a \<Longrightarrow>
+corollary del_list_sorted2: "sorted (xs @ a # ys) \<Longrightarrow> x < a \<Longrightarrow>
   del_list x (xs @ a # ys) = del_list x xs @ a # ys"
-by (induction xs) (auto simp: sorted_Cons_iff intro!: del_list_idem)
+by (auto simp: del_list_sorted)
 
-lemma del_list_sorted3:
+corollary del_list_sorted3:
   "sorted (xs @ a # ys @ b # zs) \<Longrightarrow> x < b \<Longrightarrow>
   del_list x (xs @ a # ys @ b # zs) = del_list x (xs @ a # ys) @ b # zs"
-by (induction xs) (auto simp: sorted_Cons_iff del_list_sorted2)
+by (auto simp: del_list_sorted sorted_lems)
 
-lemma del_list_sorted4:
+corollary del_list_sorted4:
   "sorted (xs @ a # ys @ b # zs @ c # us) \<Longrightarrow> x < c \<Longrightarrow>
   del_list x (xs @ a # ys @ b # zs @ c # us) = del_list x (xs @ a # ys @ b # zs) @ c # us"
-by (induction xs) (auto simp: sorted_Cons_iff del_list_sorted3)
+by (auto simp: del_list_sorted sorted_lems)
 
-lemma del_list_sorted5:
+corollary del_list_sorted5:
   "sorted (xs @ a # ys @ b # zs @ c # us @ d # vs) \<Longrightarrow> x < d \<Longrightarrow>
    del_list x (xs @ a # ys @ b # zs @ c # us @ d # vs) =
    del_list x (xs @ a # ys @ b # zs @ c # us) @ d # vs" 
-by (induction xs) (auto simp: sorted_Cons_iff del_list_sorted4)
+by (auto simp: del_list_sorted sorted_lems)
 
 lemmas del_list_simps = sorted_lems
   del_list_sorted1
