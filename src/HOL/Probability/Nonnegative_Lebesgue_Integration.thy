@@ -2719,4 +2719,32 @@ lemma sets_uniform_count_measure_eq_UNIV [simp]:
   "UNIV = sets (uniform_count_measure UNIV) \<longleftrightarrow> True"
 by(simp_all add: sets_uniform_count_measure)
 
+subsubsection \<open>Scaled measure\<close>
+
+lemma nn_integral_scale_measure':
+  assumes f: "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x"
+  shows "nn_integral (scale_measure r M) f = max 0 r * nn_integral M f"
+  using f
+proof induction
+  case (cong f g)
+  thus ?case
+    by(simp add: cong.hyps space_scale_measure cong: nn_integral_cong_simp)
+next
+  case (mult f c)
+  thus ?case
+    by(simp add: nn_integral_cmult max_def mult.assoc mult.left_commute)
+next
+  case (add f g)
+  thus ?case
+    by(simp add: nn_integral_add ereal_right_distrib nn_integral_nonneg)
+next
+  case (seq U)
+  thus ?case
+    by(simp add: nn_integral_monotone_convergence_SUP SUP_ereal_mult_left nn_integral_nonneg)
+qed simp
+
+lemma nn_integral_scale_measure:
+  "f \<in> borel_measurable M \<Longrightarrow> nn_integral (scale_measure r M) f = max 0 r * nn_integral M f"
+by(subst (1 2) nn_integral_max_0[symmetric])(rule nn_integral_scale_measure', simp_all)
+
 end

@@ -2106,6 +2106,56 @@ lemma measure_null_measure[simp]: "measure (null_measure M) X = 0"
 lemma null_measure_idem [simp]: "null_measure (null_measure M) = null_measure M"
 by(rule measure_eqI) simp_all
 
+subsection \<open>Scaling a measure\<close>
+
+definition scale_measure :: "real \<Rightarrow> 'a measure \<Rightarrow> 'a measure"
+where "scale_measure r M = measure_of (space M) (sets M) (\<lambda>A. (max 0 r) * emeasure M A)"
+
+lemma space_scale_measure: "space (scale_measure r M) = space M"
+by(simp add: scale_measure_def)
+
+lemma sets_scale_measure [simp, measurable_cong]: "sets (scale_measure r M) = sets M"
+by(simp add: scale_measure_def)
+
+lemma emeasure_scale_measure [simp]:
+  "emeasure (scale_measure r M) A = max 0 r * emeasure M A"
+  (is "_ = ?\<mu> A")
+proof(cases "A \<in> sets M")
+  case True
+  show ?thesis unfolding scale_measure_def
+  proof(rule emeasure_measure_of_sigma)
+    show "sigma_algebra (space M) (sets M)" ..
+    show "positive (sets M) ?\<mu>" by(simp add: positive_def emeasure_nonneg)
+    show "countably_additive (sets M) ?\<mu>"
+    proof (rule countably_additiveI)
+      fix A :: "nat \<Rightarrow> _"  assume *: "range A \<subseteq> sets M" "disjoint_family A"
+      have "(\<Sum>i. ?\<mu> (A i)) = max 0 (ereal r) * (\<Sum>i. emeasure M (A i))"
+        by(rule suminf_cmult_ereal)(simp_all add: emeasure_nonneg)
+      also have "\<dots> = ?\<mu> (\<Union>i. A i)" using * by(simp add: suminf_emeasure)
+      finally show "(\<Sum>i. ?\<mu> (A i)) = ?\<mu> (\<Union>i. A i)" .
+    qed
+  qed(fact True)
+qed(simp add: emeasure_notin_sets)
+
+lemma measure_scale_measure [simp]: "measure (scale_measure r M) A = max 0 r * measure M A"
+by(simp add: measure_def max_def)
+
+lemma scale_measure_1 [simp]: "scale_measure 1 M = M"
+by(rule measure_eqI)(simp_all add: max_def)
+
+lemma scale_measure_le_0: "r \<le> 0 \<Longrightarrow> scale_measure r M = null_measure M"
+by(rule measure_eqI)(simp_all add: max_def)
+
+lemma scale_measure_0 [simp]: "scale_measure 0 M = null_measure M"
+by(simp add: scale_measure_le_0)
+
+lemma scale_scale_measure [simp]:
+  "scale_measure r (scale_measure r' M) = scale_measure (max 0 r * max 0 r') M"
+by(rule measure_eqI)(simp_all add: max_def mult.assoc times_ereal.simps(1)[symmetric] del: times_ereal.simps(1))
+
+lemma scale_null_measure [simp]: "scale_measure r (null_measure M) = null_measure M"
+by(rule measure_eqI) simp_all
+
 subsection \<open>Measures form a chain-complete partial order\<close>
 
 instantiation measure :: (type) order_bot
