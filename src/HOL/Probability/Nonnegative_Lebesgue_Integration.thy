@@ -2710,4 +2710,13 @@ lemma measure_uniform_count_measure:
   "finite A \<Longrightarrow> X \<subseteq> A \<Longrightarrow> measure (uniform_count_measure A) X = card X / card A"
   by (simp add: emeasure_point_measure_finite uniform_count_measure_def measure_def)
 
+lemma space_uniform_count_measure_empty_iff [simp]:
+  "space (uniform_count_measure X) = {} \<longleftrightarrow> X = {}"
+by(simp add: space_uniform_count_measure)
+
+lemma sets_uniform_count_measure_eq_UNIV [simp]:
+  "sets (uniform_count_measure UNIV) = UNIV \<longleftrightarrow> True"
+  "UNIV = sets (uniform_count_measure UNIV) \<longleftrightarrow> True"
+by(simp_all add: sets_uniform_count_measure)
+
 end

@@ -60,6 +60,9 @@ lemma indicator_sum: "indicator (A <+> B) x = (case x of Inl x \<Rightarrow> ind
 lemma indicator_image: "inj f \<Longrightarrow> indicator (f ` X) (f x) = (indicator X x::_::zero_neq_one)"
   by (auto simp: indicator_def inj_on_def)
 
+lemma indicator_vimage: "indicator (f -` A) x = indicator A (f x)"
+by(auto split: split_indicator)
+
 lemma
   fixes f :: "'a \<Rightarrow> 'b::semiring_1" assumes "finite A"
   shows setsum_mult_indicator[simp]: "(\<Sum>x \<in> A. f x * indicator B x) = (\<Sum>x \<in> A \<inter> B. f x)"

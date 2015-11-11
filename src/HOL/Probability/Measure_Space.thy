@@ -1421,6 +1421,9 @@ lemma emeasure_eq_ereal_measure:
   using emeasure_nonneg[of M A]
   by (cases "emeasure M A") (auto simp: measure_def)
 
+lemma max_0_ereal_measure [simp]: "max 0 (ereal (measure M X)) = ereal (measure M X)"
+by(simp add: max_def measure_nonneg)
+
 lemma measure_Union:
   assumes finite: "emeasure M A \<noteq> \<infinity>" "emeasure M B \<noteq> \<infinity>"
   and measurable: "A \<in> sets M" "B \<in> sets M" "A \<inter> B = {}"
@@ -2100,6 +2103,9 @@ lemma emeasure_null_measure[simp]: "emeasure (null_measure M) X = 0"
 lemma measure_null_measure[simp]: "measure (null_measure M) X = 0"
   by (simp add: measure_def)
 
+lemma null_measure_idem [simp]: "null_measure (null_measure M) = null_measure M"
+by(rule measure_eqI) simp_all
+
 subsection \<open>Measures form a chain-complete partial order\<close>
 
 instantiation measure :: (type) order_bot
@@ -2269,5 +2275,17 @@ next
   qed
 qed
 end
+
+lemma
+  assumes A: "Complete_Partial_Order.chain op \<le> (f ` A)" and a: "a \<in> A" "f a \<noteq> bot"
+  shows space_SUP: "space (SUP M:A. f M) = space (f a)"
+    and sets_SUP: "sets (SUP M:A. f M) = sets (f a)"
+unfolding SUP_def by(rule space_Sup[OF A a(2) imageI[OF a(1)]] sets_Sup[OF A a(2) imageI[OF a(1)]])+
+
+lemma emeasure_SUP:
+  assumes A: "Complete_Partial_Order.chain op \<le> (f ` A)" "A \<noteq> {}"
+  assumes "X \<in> sets (SUP M:A. f M)"
+  shows "emeasure (SUP M:A. f M) X = (SUP M:A. emeasure (f M)) X"
+using \<open>X \<in> _\<close> unfolding SUP_def by(subst emeasure_Sup[OF A(1)]; simp add: A)
 
 end

@@ -298,6 +298,10 @@ proof -
   finally show ?thesis .
 qed
 
+lemma (in sigma_algebra) countable_UN'':
+  "\<lbrakk> countable X; \<And>x y. x \<in> X \<Longrightarrow> A x \<in> M \<rbrakk> \<Longrightarrow> (\<Union>x\<in>X. A x) \<in> M"
+by(erule countable_UN')(auto)
+
 lemma (in sigma_algebra) countable_INT [intro]:
   fixes A :: "'i::countable \<Rightarrow> 'a set"
   assumes A: "A`X \<subseteq> M" "X \<noteq> {}"
