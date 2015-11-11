@@ -759,6 +759,9 @@ definition
   order :: "('a, 'b) monoid_scheme \<Rightarrow> nat"
   where "order S = card (carrier S)"
 
+lemma (in monoid) order_gt_0_iff_finite: "0 < order G \<longleftrightarrow> finite (carrier G)"
+by(auto simp add: order_def card_gt_0_iff)
+
 lemma (in group) rcosets_part_G:
   assumes "subgroup H G"
   shows "\<Union>(rcosets H) = carrier G"
