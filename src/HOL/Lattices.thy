@@ -707,8 +707,44 @@ proof -
   then show ?thesis by simp
 qed
 
+lemma sup_cancel_left1: "sup (sup x a) (sup (- x) b) = top"
+by(simp add: inf_sup_aci sup_compl_top)
+
+lemma sup_cancel_left2: "sup (sup (- x) a) (sup x b) = top"
+by(simp add: inf_sup_aci sup_compl_top)
+
+lemma inf_cancel_left1: "inf (inf x a) (inf (- x) b) = bot"
+by(simp add: inf_sup_aci inf_compl_bot)
+
+lemma inf_cancel_left2: "inf (inf (- x) a) (inf x b) = bot"
+by(simp add: inf_sup_aci inf_compl_bot)
+
+declare inf_compl_bot [simp] sup_compl_top [simp]
+
+lemma sup_compl_top_left1 [simp]: "sup (- x) (sup x y) = top"
+by(simp add: sup_assoc[symmetric])
+
+lemma sup_compl_top_left2 [simp]: "sup x (sup (- x) y) = top"
+using sup_compl_top_left1[of "- x" y] by simp
+
+lemma inf_compl_bot_left1 [simp]: "inf (- x) (inf x y) = bot"
+by(simp add: inf_assoc[symmetric])
+
+lemma inf_compl_bot_left2 [simp]: "inf x (inf (- x) y) = bot"
+using inf_compl_bot_left1[of "- x" y] by simp
+
+lemma inf_compl_bot_right [simp]: "inf x (inf y (- x)) = bot"
+by(subst inf_left_commute) simp
+
 end
 
+ML_file "Tools/boolean_algebra_cancel.ML"
+
+simproc_setup boolean_algebra_cancel_sup ("sup a b::'a::boolean_algebra") =
+  {* fn phi => fn ss => try Boolean_Algebra_Cancel.cancel_sup_conv *}
+
+simproc_setup boolean_algebra_cancel_inf ("inf a b::'a::boolean_algebra") =
+  {* fn phi => fn ss => try Boolean_Algebra_Cancel.cancel_inf_conv *}
 
 subsection \<open>@{text "min/max"} as special case of lattice\<close>
 
