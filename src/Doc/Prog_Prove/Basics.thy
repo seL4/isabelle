@@ -135,10 +135,18 @@ The textual definition of a theory follows a fixed syntax with keywords like
 \isacommand{begin} and \isacommand{datatype}.  Embedded in this syntax are
 the types and formulas of HOL.  To distinguish the two levels, everything
 HOL-specific (terms and types) must be enclosed in quotation marks:
-\texttt{"}\dots\texttt{"}. To lessen this burden, quotation marks around a
+\texttt{"}\dots\texttt{"}. Quotation marks around a
 single identifier can be dropped.  When Isabelle prints a syntax error
 message, it refers to the HOL syntax as the \concept{inner syntax} and the
 enclosing theory language as the \concept{outer syntax}.
+
+\subsection{Proof State}
+
+\begin{warn}
+By default Isabelle/jEdit not longer shows the current proof state
+in the output window. You should enable this by ticking
+Plugins $>$ Plugin Options $>$ Editor Output State.
+\end{warn}
 *}
 (*<*)
 end
