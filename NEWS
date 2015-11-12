@@ -92,7 +92,8 @@ standard Isabelle fonts provide glyphs to render important control
 symbols, e.g. "\<^verbatim>", "\<^emph>", "\<^bold>".
 
 * Antiquotation @{theory_text} prints uninterpreted theory source text
-(outer syntax with command keywords etc.).
+(outer syntax with command keywords etc.). This may be used in the short
+form \<^theory_text>\<open>...\<close>.
 
 * Antiquotations @{command}, @{method}, @{attribute} print checked
 entities of the Isar language.
@@ -133,11 +134,11 @@ follows:
 the lack of the surrounding isabelle markup environment in output.
 
 * Document antiquotations @{emph} and @{bold} output LaTeX source
-recursively, adding appropriate text style markup. These are typically
-used in the short form \<^emph>\<open>...\<close> and \<^bold>\<open>...\<close>.
+recursively, adding appropriate text style markup. These may be used in
+the short form \<^emph>\<open>...\<close> and \<^bold>\<open>...\<close>.
 
 * Document antiquotation @{footnote} outputs LaTeX source recursively,
-marked as \footnote{}. This is typically used in the short form \<^footnote>\<open>...\<close>.
+marked as \footnote{}. This may be used in the short form \<^footnote>\<open>...\<close>.
 
 
 *** Isar ***
