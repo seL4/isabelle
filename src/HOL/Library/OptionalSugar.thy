@@ -7,6 +7,10 @@ theory OptionalSugar
 imports Complex_Main LaTeXsugar
 begin
 
+(* displaying theorems with conjunctions between premises: *)
+translations
+  ("prop") "P \<and> Q \<Longrightarrow> R" <= ("prop") "P \<Longrightarrow> Q \<Longrightarrow> R"
+
 (* hiding set *)
 translations
   "xs" <= "CONST set xs"
