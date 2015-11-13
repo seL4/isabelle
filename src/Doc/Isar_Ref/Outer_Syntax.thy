@@ -316,7 +316,7 @@ subsection \<open>Term patterns and declarations \label{sec:term-decls}\<close>
 text \<open>
   Wherever explicit propositions (or term fragments) occur in a proof text,
   casual binding of schematic term variables may be given specified via
-  patterns of the form ``\<open>(\<IS> p\<^sub>1 \<dots> p\<^sub>n)\<close>''. This works both for @{syntax
+  patterns of the form ``\<^theory_text>\<open>(is p\<^sub>1 \<dots> p\<^sub>n)\<close>''. This works both for @{syntax
   term} and @{syntax prop}.
 
   @{rail \<open>
