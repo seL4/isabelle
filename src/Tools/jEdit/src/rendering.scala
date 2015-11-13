@@ -159,7 +159,8 @@ object Rendering
       Markup.MARKDOWN_PARAGRAPH, Markup.Markdown_List.name)
 
   private val hyperlink_elements =
-    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.CITATION, Markup.URL)
+    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.POSITION,
+      Markup.CITATION, Markup.URL)
 
   private val active_elements =
     Markup.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
@@ -417,6 +418,10 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
             val link = PIDE.editor.hyperlink_file(true, jedit_file(name))
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
+
+          case (links, Text.Info(info_range, XML.Elem(Markup.Doc(name), _))) =>
+            PIDE.editor.hyperlink_doc(name).map(link =>
+              (links :+ Text.Info(snapshot.convert(info_range), link)))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Url(name), _))) =>
             val link = PIDE.editor.hyperlink_url(name)

@@ -95,6 +95,9 @@ symbols, e.g. "\<^verbatim>", "\<^emph>", "\<^bold>".
 (outer syntax with command keywords etc.). This may be used in the short
 form \<^theory_text>\<open>...\<close>.
 
+* Antiquotation @{doc ENTRY} provides a reference to the given
+documentation, with a hyperlink in the Prover IDE.
+
 * Antiquotations @{command}, @{method}, @{attribute} print checked
 entities of the Isar language.
 

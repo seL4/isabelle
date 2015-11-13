@@ -173,6 +173,15 @@ val _ = Theory.setup
        enclose "\\url{" "}" name)));
 
 
+(* doc entries *)
+
+val _ = Theory.setup
+  (Thy_Output.antiquotation @{binding doc} (Scan.lift (Parse.position Parse.name))
+    (fn {context = ctxt, ...} => fn (name, pos) =>
+      (Context_Position.report ctxt pos (Markup.doc name);
+        Thy_Output.output ctxt [Thy_Output.pretty_text ctxt name])));
+
+
 (* formal entities *)
 
 fun entity_antiquotation name check output =

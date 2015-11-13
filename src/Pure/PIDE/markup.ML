@@ -62,6 +62,7 @@ sig
   val citationN: string val citation: string -> T
   val pathN: string val path: string -> T
   val urlN: string val url: string -> T
+  val docN: string val doc: string -> T
   val indentN: string
   val blockN: string val block: int -> T
   val widthN: string
@@ -371,6 +372,7 @@ val (citationN, citation) = markup_string "citation" nameN;
 
 val (pathN, path) = markup_string "path" nameN;
 val (urlN, url) = markup_string "url" nameN;
+val (docN, doc) = markup_string "doc" nameN;
 
 
 (* pretty printing *)
