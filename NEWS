@@ -176,6 +176,26 @@ corresponds to a raw proof block like this:
 The keyword 'when' may be used instead of 'if', to indicate 'presume'
 instead of 'assume' above.
 
+* Assumptions ('assume', 'presume') allow structured statements using
+'if' and 'for', similar to 'have' etc. above. For example:
+
+  assume result: "C x y"
+    if "A x" and "B y"
+    for x :: 'a and y :: 'a
+
+This assumes "\<And>x y::'a. A x \<Longrightarrow> B y \<Longrightarrow> C x y" and produces a general
+result as usual: "A ?x \<Longrightarrow> B ?y \<Longrightarrow> C ?x ?y".
+
+Vacuous quantification in assumptions is omitted, i.e. a for-context
+only effects propositions according to actual use of variables. For
+example:
+
+  assume "A x" and "B y" for x and y
+
+is equivalent to:
+
+  assume "\<And>x. A x" and "\<And>y. B y"
+
 * The meaning of 'show' with Pure rule statements has changed: premises
 are treated in the sense of 'assume', instead of 'presume'. This means,
 a goal like "\<And>x. A x \<Longrightarrow> B x \<Longrightarrow> C x" can be solved completely as follows:

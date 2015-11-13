@@ -160,7 +160,11 @@ text \<open>
   @{rail \<open>
     @@{command fix} @{syntax "fixes"}
     ;
-    (@@{command assume} | @@{command presume}) (@{syntax props} + @'and')
+    (@@{command assume} | @@{command presume}) concl prems @{syntax for_fixes}
+    ;
+    concl: (@{syntax props} + @'and')
+    ;
+    prems: (@'if' (@{syntax props'} + @'and'))?
     ;
     @@{command def} (def + @'and')
     ;
@@ -180,6 +184,10 @@ text \<open>
   Several lists of assumptions may be given (separated by @{keyword_ref
   "and"}; the resulting list of current facts consists of all of these
   concatenated.
+
+  A structured assumption like \<^theory_text>\<open>assume "B x" and "A x" for x\<close> is equivalent
+  to \<^theory_text>\<open>assume "\<And>x. A x \<Longrightarrow> B x"\<close>, but vacuous quantification is avoided: a
+  for-context only effects propositions according to actual use of variables.
 
   \<^descr> @{command "def"}~\<open>x \<equiv> t\<close> introduces a local (non-polymorphic) definition.
   In results exported from the context, \<open>x\<close> is replaced by \<open>t\<close>. Basically,

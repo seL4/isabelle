@@ -349,6 +349,8 @@ text \<open>Wherever explicit propositions (or term fragments) occur in a
     @{syntax_def vars}: (@{syntax name} +) ('::' @{syntax type})?
     ;
     @{syntax_def props}: @{syntax thmdecl}? (@{syntax prop} @{syntax prop_pat}? +)
+    ;
+    @{syntax_def props'}: (@{syntax prop} @{syntax prop_pat}? +)
   \<close>}
 
   The treatment of multiple declarations corresponds to the
