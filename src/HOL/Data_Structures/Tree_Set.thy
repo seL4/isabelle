@@ -50,8 +50,7 @@ by(induction t) (auto simp: ins_list_simps)
 
 
 lemma del_minD:
-  "del_min t = (x,t') \<Longrightarrow> t \<noteq> Leaf \<Longrightarrow> sorted(inorder t) \<Longrightarrow>
-   x # inorder t' = inorder t"
+  "del_min t = (x,t') \<Longrightarrow> t \<noteq> Leaf \<Longrightarrow> x # inorder t' = inorder t"
 by(induction t arbitrary: t' rule: del_min.induct)
   (auto simp: sorted_lems split: prod.splits if_splits)
 

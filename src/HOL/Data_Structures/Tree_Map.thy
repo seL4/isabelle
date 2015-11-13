@@ -34,17 +34,9 @@ lemma lookup_eq:
   "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
 by (induction t) (auto simp: map_of_simps split: option.split)
 
-
 lemma inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update a b t) = upd_list a b (inorder t)"
 by(induction t) (auto simp: upd_list_simps)
-
-
-lemma del_minD:
-  "del_min t = (x,t') \<Longrightarrow> t \<noteq> Leaf \<Longrightarrow> sorted1(inorder t) \<Longrightarrow>
-   x # inorder t' = inorder t"
-by(induction t arbitrary: t' rule: del_min.induct)
-  (auto simp: del_list_simps split: prod.splits if_splits)
 
 lemma inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
