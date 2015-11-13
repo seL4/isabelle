@@ -18,7 +18,7 @@ fun update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) avl_tree \<Rightar
 fun delete :: "'a::cmp \<Rightarrow> ('a*'b) avl_tree \<Rightarrow> ('a*'b) avl_tree" where
 "delete _ Leaf = Leaf" |
 "delete x (Node h l (a,b) r) = (case cmp x a of
-   EQ \<Rightarrow> delete_root (Node h l (a,b) r) |
+   EQ \<Rightarrow> del_root (Node h l (a,b) r) |
    LT \<Rightarrow> balR (delete x l) (a,b) r |
    GT \<Rightarrow> balL l (a,b) (delete x r))"
 
@@ -34,7 +34,7 @@ theorem inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder (delete x t) = del_list x (inorder t)"
 by(induction t)
   (auto simp: del_list_simps inorder_balL inorder_balR
-     inorder_delete_root inorder_delete_maxD split: prod.splits)
+     inorder_del_root inorder_del_maxD split: prod.splits)
 
 interpretation Map_by_Ordered
 where empty = Leaf and lookup = lookup and update = update and delete = delete
