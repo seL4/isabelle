@@ -3452,7 +3452,7 @@ proof(induct t rule: rsplit0.induct)
       ultimately have "?I (?p (p',n',s') j) \<longrightarrow> (?N (Floor a) = ?N ((Add (Floor s') (C j))))"
         by blast
       with s_def n0 p_def nb nf have ?ths by auto}
-    ultimately show ?ths by auto
+    ultimately show ?ths by fastforce
   qed
 next
   case (3 a b) then show ?case
@@ -5647,13 +5647,17 @@ in
 end;
 \<close>
 
+lemmas iff_real_of_int = of_int_eq_iff [where 'a = real, symmetric] 
+                         of_int_less_iff [where 'a = real, symmetric] 
+                         of_int_le_iff [where 'a = real, symmetric]
+
 ML_file "mir_tac.ML"
 
 method_setup mir = \<open>
   Scan.lift (Args.mode "no_quantify") >>
     (fn q => fn ctxt => SIMPLE_METHOD' (Mir_Tac.mir_tac ctxt (not q)))
 \<close> "decision procedure for MIR arithmetic"
-(*FIXME
+
 lemma "\<forall>x::real. (\<lfloor>x\<rfloor> = \<lceil>x\<rceil> \<longleftrightarrow> (x = real_of_int \<lfloor>x\<rfloor>))"
   by mir
 
@@ -5668,6 +5672,6 @@ lemma "\<forall>x::real. \<exists>y \<le> x. (\<lfloor>x\<rfloor> = \<lceil>y\<r
 
 lemma "\<forall>(x::real) (y::real). \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<longrightarrow> 0 \<le> abs (y - x) \<and> abs (y - x) \<le> 1"
   by mir
-*)
+
 end
 
