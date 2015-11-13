@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Document_Preparation
 imports Base Main
 begin

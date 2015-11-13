@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Spec
 imports Base Main "~~/src/Tools/Permanent_Interpretation"
 begin

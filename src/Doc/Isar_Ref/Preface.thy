@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Preface
 imports Base Main
 begin

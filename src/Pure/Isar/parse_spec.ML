@@ -23,6 +23,8 @@ sig
   val locale_keyword: string parser
   val locale_expression: Expression.expression parser
   val context_element: Element.context parser
+  val statement': (string * string list) list list parser
+  val if_statement': (string * string list) list list parser
   val statement: (Attrib.binding * (string * string list) list) list parser
   val if_statement: (Attrib.binding * (string * string list) list) list parser
   val cond_statement: (bool * (Attrib.binding * (string * string list) list) list) parser
@@ -131,6 +133,9 @@ end;
 
 
 (* statements *)
+
+val statement' = Parse.and_list1 (Scan.repeat1 Parse.propp);
+val if_statement' = Scan.optional (Parse.$$$ "if" |-- Parse.!!! statement') [];
 
 val statement = Parse.and_list1 (opt_thm_name ":" -- Scan.repeat1 Parse.propp);
 val if_statement = Scan.optional (Parse.$$$ "if" |-- Parse.!!! statement) [];

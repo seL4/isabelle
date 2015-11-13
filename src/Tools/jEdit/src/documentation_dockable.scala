@@ -56,18 +56,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
       case Text_File(_, path) =>
         PIDE.editor.goto_file(true, view, File.platform_path(path))
       case Documentation(_, _, path) =>
-        if (path.is_file)
-          PIDE.editor.goto_file(true, view, File.platform_path(path))
-        else {
-          Standard_Thread.fork("documentation") {
-            try { Doc.view(path) }
-            catch {
-              case exn: Throwable =>
-                GUI.error_dialog(view,
-                  "Documentation error", GUI.scrollable_text(Exn.message(exn)))
-            }
-          }
-        }
+        PIDE.editor.goto_doc(view, path)
       case _ =>
     }
   }

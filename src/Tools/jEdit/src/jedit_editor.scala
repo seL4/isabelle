@@ -187,8 +187,34 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
+  def goto_doc(view: View, path: Path)
+  {
+    if (path.is_file)
+      goto_file(true, view, File.platform_path(path))
+    else {
+      Standard_Thread.fork("documentation") {
+        try { Doc.view(path) }
+        catch {
+          case exn: Throwable =>
+            GUI.error_dialog(view,
+              "Documentation error", GUI.scrollable_text(Exn.message(exn)))
+        }
+      }
+    }
+  }
+
 
   /* hyperlinks */
+
+  def hyperlink_doc(name: String): Option[Hyperlink] =
+    Doc.contents().collectFirst({
+      case doc: Doc.Text_File if doc.name == name => doc.path
+      case doc: Doc.Doc if doc.name == name => doc.path}).map(path =>
+        new Hyperlink {
+          val external = !path.is_file
+          def follow(view: View): Unit = goto_doc(view, path)
+          override def toString: String = "doc " + quote(name)
+        })
 
   def hyperlink_url(name: String): Hyperlink =
     new Hyperlink {

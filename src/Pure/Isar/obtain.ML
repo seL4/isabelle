@@ -229,7 +229,7 @@ fun gen_obtain prep_att prep_var prep_propp
         state'
         |> Proof.fix vars
         |> Proof.map_context declare_asms
-        |> Proof.assm (obtain_export params_ctxt rule cparams) asms
+        |> Proof.assm (obtain_export params_ctxt rule cparams) [] [] asms
       end;
   in
     state
@@ -384,7 +384,7 @@ fun gen_guess prep_var raw_vars int state =
         |> Proof.fix (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) parms)
         |> `Proof.context_of |-> (fn fix_ctxt => Proof.assm
           (obtain_export fix_ctxt rule (map (Thm.cterm_of ctxt) ts))
-            [(Thm.empty_binding, asms)])
+            [] [] [(Thm.empty_binding, asms)])
         |> Proof.map_context (fold Variable.unbind_term Auto_Bind.no_facts)
       end;
 

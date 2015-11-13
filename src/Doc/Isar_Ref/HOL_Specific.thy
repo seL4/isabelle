@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory HOL_Specific
 imports
   Base

@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Tactic
 imports Base
 begin

@@ -174,6 +174,9 @@ object Markup
   val URL = "url"
   val Url = new Markup_String(URL, NAME)
 
+  val DOC = "doc"
+  val Doc = new Markup_String(DOC, NAME)
+
 
   /* pretty printing */
 

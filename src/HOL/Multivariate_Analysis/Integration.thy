@@ -9471,7 +9471,7 @@ proof -
   have "?x =  norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p. integral k f))"
     unfolding split_def setsum_subtractf ..
   also have "\<dots> \<le> e + k"
-    apply (rule *[OF **, where ir2="setsum (\<lambda>k. integral k f) r"])
+    apply (rule *[OF **, where ir1="setsum (\<lambda>k. integral k f) r"])
   proof goal_cases
     case 1
     have *: "k * real (card r) / (1 + real (card r)) < k"

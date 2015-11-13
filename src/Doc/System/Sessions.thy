@@ -1,4 +1,4 @@
-(*:wrap=hard:maxLineLen=78:*)
+(*:maxLineLen=78:*)
 
 theory Sessions
 imports Base

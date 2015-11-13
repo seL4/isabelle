@@ -1,4 +1,4 @@
-(*:wrap=hard:maxLineLen=78:*)
+(*:maxLineLen=78:*)
 
 theory Integration
 imports Base
