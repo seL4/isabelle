@@ -44,7 +44,7 @@ lemma del_minD:
   "del_min t = (x,t') \<Longrightarrow> t \<noteq> Leaf \<Longrightarrow> sorted1(inorder t) \<Longrightarrow>
    x # inorder t' = inorder t"
 by(induction t arbitrary: t' rule: del_min.induct)
-  (auto simp: del_list_simps split: prod.splits)
+  (auto simp: del_list_simps split: prod.splits if_splits)
 
 lemma inorder_delete:
   "sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
