@@ -960,7 +960,7 @@ lemma uints_unats: "uints n = int ` unats n"
   apply auto
   apply (erule_tac nat_less_iff [THEN iffD2])
   apply (rule_tac [2] zless_nat_eq_int_zless [THEN iffD1])
-  apply (auto simp add : nat_power_eq int_power)
+  apply (auto simp add : nat_power_eq of_nat_power)
   done
 
 lemma unats_uints: "unats n = nat ` uints n"
@@ -1901,7 +1901,7 @@ lemma Abs_fnat_hom_add:
 
 lemma Abs_fnat_hom_mult:
   "of_nat a * of_nat b = (of_nat (a * b) :: 'a :: len word)"
-  by (simp add: word_of_nat wi_hom_mult zmult_int)
+  by (simp add: word_of_nat wi_hom_mult)
 
 lemma Abs_fnat_hom_Suc:
   "word_succ (of_nat a) = of_nat (Suc a)"
@@ -2125,9 +2125,7 @@ lemma div_lt_uint':
   "(i :: 'a :: len word) <= k div x \<Longrightarrow> uint i * uint x < 2 ^ len_of TYPE('a)"
   apply (unfold uint_nat)
   apply (drule div_lt')
-  apply (simp add: zmult_int zless_nat_eq_int_zless [symmetric] 
-                   nat_power_eq)
-  done
+  by (metis of_nat_less_iff of_nat_mult of_nat_numeral of_nat_power)
 
 lemmas div_lt_uint'' = order_less_imp_le [THEN div_lt_uint']
 
@@ -2156,22 +2154,14 @@ lemmas le_unat_uoi = unat_le [THEN word_unat.Abs_inverse]
 
 lemmas thd = refl [THEN [2] split_div_lemma [THEN iffD2], THEN conjunct1]
 
-lemma thd1:
-  "a div b * b \<le> (a::nat)"
-  using gt_or_eq_0 [of b]
-  apply (rule disjE)
-   apply (erule xtr4 [OF thd mult.commute])
-  apply clarsimp
-  done
-
-lemmas uno_simps [THEN le_unat_uoi] = mod_le_divisor div_le_dividend thd1 
+lemmas uno_simps [THEN le_unat_uoi] = mod_le_divisor div_le_dividend dtle 
 
 lemma word_mod_div_equality:
   "(n div b) * b + (n mod b) = (n :: 'a :: len word)"
   apply (unfold word_less_nat_alt word_arith_nat_defs)
   apply (cut_tac y="unat b" in gt_or_eq_0)
   apply (erule disjE)
-   apply (simp add: mod_div_equality uno_simps)
+   apply (simp only: mod_div_equality uno_simps Word.word_unat.Rep_inverse)
   apply simp
   done
 
@@ -2179,7 +2169,7 @@ lemma word_div_mult_le: "a div b * b <= (a::'a::len word)"
   apply (unfold word_le_nat_alt word_arith_nat_defs)
   apply (cut_tac y="unat b" in gt_or_eq_0)
   apply (erule disjE)
-   apply (simp add: div_mult_le uno_simps)
+   apply (simp only: div_mult_le uno_simps Word.word_unat.Rep_inverse)
   apply simp
   done
 
@@ -3305,7 +3295,7 @@ lemma and_mask_dvd_nat: "2 ^ n dvd unat w = (w AND mask n = 0)"
   apply (unfold dvd_def) 
   apply auto 
   apply (drule uint_ge_0 [THEN nat_int.Abs_inverse' [simplified], symmetric])
-  apply (simp add : int_mult int_power)
+  apply (simp add : int_mult of_nat_power)
   apply (simp add : nat_mult_distrib nat_power_eq)
   done
 
@@ -4653,15 +4643,7 @@ lemma word_rec_Suc:
   "1 + n \<noteq> (0::'a::len word) \<Longrightarrow> word_rec z s (1 + n) = s n (word_rec z s n)"
   apply (simp add: word_rec_def unat_word_ariths)
   apply (subst nat_mod_eq')
-   apply (cut_tac x=n in unat_lt2p)
-   apply (drule Suc_mono)
-   apply (simp add: less_Suc_eq_le)
-   apply (simp only: order_less_le, simp)
-   apply (erule contrapos_pn, simp)
-   apply (drule arg_cong[where f=of_nat])
-   apply simp
-   apply (subst (asm) word_unat.Rep_inverse[of n])
-   apply simp
+   apply (metis Suc_eq_plus1_left Suc_lessI of_nat_2p unat_1 unat_lt2p word_arith_nat_add)
   apply simp
   done
 

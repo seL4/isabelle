@@ -14,7 +14,8 @@ begin
 lemma cSup_abs_le: (* TODO: move to Conditionally_Complete_Lattices.thy? *)
   fixes S :: "real set"
   shows "S \<noteq> {} \<Longrightarrow> (\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Sup S\<bar> \<le> a"
-  by (auto simp add: abs_le_interval_iff intro: cSup_least) (metis cSup_upper2 bdd_aboveI)
+  apply (auto simp add: abs_le_iff intro: cSup_least)
+  by (metis bdd_aboveI cSup_upper neg_le_iff_le order_trans)
 
 lemma cInf_abs_ge:
   fixes S :: "real set"

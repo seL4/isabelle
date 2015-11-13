@@ -1696,17 +1696,14 @@ end
 
 lemma divmod_int_rel:
   "divmod_int_rel k l (k div l, k mod l)"
+  unfolding divmod_int_rel_def divide_int_def mod_int_def
   apply (cases k rule: int_cases3)
-  apply (simp add: mod_greater_zero_iff_not_dvd not_le divmod_int_rel_def divide_int_def mod_int_def algebra_simps int_dvd_iff of_nat_mult [symmetric])
+  apply (simp add: mod_greater_zero_iff_not_dvd not_le algebra_simps)
   apply (cases l rule: int_cases3)
-  apply (simp add: mod_greater_zero_iff_not_dvd not_le divmod_int_rel_def divide_int_def mod_int_def algebra_simps int_dvd_iff of_nat_mult [symmetric])
-  apply (simp add: mod_greater_zero_iff_not_dvd not_le divmod_int_rel_def divide_int_def mod_int_def algebra_simps int_dvd_iff of_nat_mult [symmetric])
-  apply (simp add: of_nat_add [symmetric])
-  apply (simp add: mod_greater_zero_iff_not_dvd not_le divmod_int_rel_def divide_int_def mod_int_def algebra_simps int_dvd_iff of_nat_mult [symmetric])
-  apply (simp add: of_nat_add [symmetric])
+  apply (simp add: mod_greater_zero_iff_not_dvd not_le algebra_simps)
+  apply (simp_all del: of_nat_add of_nat_mult add: mod_greater_zero_iff_not_dvd not_le algebra_simps int_dvd_iff of_nat_add [symmetric] of_nat_mult [symmetric])
   apply (cases l rule: int_cases3)
-  apply (simp_all add: mod_greater_zero_iff_not_dvd not_le divmod_int_rel_def divide_int_def mod_int_def algebra_simps int_dvd_iff of_nat_mult [symmetric])
-  apply (simp_all add: of_nat_add [symmetric])
+  apply (simp_all del: of_nat_add of_nat_mult add: not_le algebra_simps int_dvd_iff of_nat_add [symmetric] of_nat_mult [symmetric])
   done
 
 instantiation int :: ring_div

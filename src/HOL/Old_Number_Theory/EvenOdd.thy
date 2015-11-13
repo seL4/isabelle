@@ -176,7 +176,7 @@ proof -
   finally have "(-1::int)^nat x = (-1)^(2 * nat a)"
     by simp
   also have "... = (-1::int)\<^sup>2 ^ nat a"
-    by (simp add: zpower_zpower [symmetric])
+    by (simp add: power_mult)
   also have "(-1::int)\<^sup>2 = 1"
     by simp
   finally show ?thesis

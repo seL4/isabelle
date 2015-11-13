@@ -375,7 +375,7 @@ proof
     also have "\<dots> = m2 * 2^nat (e2 - e1)"
       by (simp add: powr_realpow)
     finally have m1_eq: "m1 = m2 * 2^nat (e2 - e1)"
-      by blast
+      by linarith
     with m1 have "m1 = m2"
       by (cases "nat (e2 - e1)") (auto simp add: dvd_def)
     then show ?thesis
@@ -526,8 +526,10 @@ proof
   ultimately have "real_of_int m = mantissa f * 2^nat (exponent f - e)"
     by (simp add: powr_realpow[symmetric])
   with \<open>e \<le> exponent f\<close>
-  show "m = mantissa f * 2 ^ nat (exponent f - e)" "e = exponent f - nat (exponent f - e)"
-    by force+
+  show "m = mantissa f * 2 ^ nat (exponent f - e)" 
+    by linarith
+  show "e = exponent f - nat (exponent f - e)"
+    using `e \<le> exponent f` by auto
 qed
 
 context
@@ -1258,7 +1260,7 @@ next
     case True
     def x' \<equiv> "x * 2 ^ nat l"
     have "int x * 2 ^ nat l = x'"
-      by (simp add: x'_def int_mult int_power)
+      by (simp add: x'_def int_mult of_nat_power)
     moreover have "real x * 2 powr l = real x'"
       by (simp add: powr_realpow[symmetric] \<open>0 \<le> l\<close> x'_def)
     ultimately show ?thesis
@@ -1271,7 +1273,7 @@ next
     case False
     def y' \<equiv> "y * 2 ^ nat (- l)"
     from \<open>y \<noteq> 0\<close> have "y' \<noteq> 0" by (simp add: y'_def)
-    have "int y * 2 ^ nat (- l) = y'" by (simp add: y'_def int_mult int_power)
+    have "int y * 2 ^ nat (- l) = y'" by (simp add: y'_def int_mult of_nat_power)
     moreover have "real x * real_of_int (2::int) powr real_of_int l / real y = x / real y'"
       using \<open>\<not> 0 \<le> l\<close>
       by (simp add: powr_realpow[symmetric] powr_minus y'_def field_simps)
@@ -1554,7 +1556,7 @@ next
     using bitlen_bounds[of "\<bar>m2\<bar>"]
     by (auto simp: powr_add bitlen_nonneg)
   then show ?thesis
-    by (metis bitlen_nonneg powr_int real_of_int_abs real_of_int_less_numeral_power_cancel_iff zero_less_numeral)
+    by (metis bitlen_nonneg powr_int of_int_abs real_of_int_less_numeral_power_cancel_iff zero_less_numeral)
 qed
 
 lemma floor_sum_times_2_powr_sgn_eq:
@@ -1984,7 +1986,7 @@ next
     by simp
   also have "\<dots> \<le> 2 powr (bitlen \<bar>mantissa x\<bar>)"
     using bitlen_bounds[of "\<bar>mantissa x\<bar>"] bitlen_nonneg \<open>mantissa x \<noteq> 0\<close>
-    by (auto simp del: real_of_int_abs simp add: powr_int)
+    by (auto simp del: of_int_abs simp add: powr_int)
   finally show ?thesis by (simp add: powr_add)
 qed
 

@@ -34,7 +34,7 @@ proof -
     by (auto simp: Setsum_Icc_int[transferred, OF assms] zdiv_int int_mult simp del: of_nat_setsum
           split: zdiff_int_split)
   thus ?thesis
-    by blast 
+    using int_int_eq by blast
 qed
 
 lemma Setsum_Ico_nat: assumes "(m::nat) \<le> n"

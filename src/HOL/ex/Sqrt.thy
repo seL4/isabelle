@@ -26,7 +26,7 @@ proof
       by (auto simp add: power2_eq_square)
     also have "(sqrt p)\<^sup>2 = p" by simp
     also have "\<dots> * n\<^sup>2 = p * n\<^sup>2" by simp
-    finally show ?thesis ..
+    finally show ?thesis using of_nat_eq_iff by blast
   qed
   have "p dvd m \<and> p dvd n"
   proof
@@ -69,7 +69,7 @@ proof
     by (auto simp add: power2_eq_square)
   also have "(sqrt p)\<^sup>2 = p" by simp
   also have "\<dots> * n\<^sup>2 = p * n\<^sup>2" by simp
-  finally have eq: "m\<^sup>2 = p * n\<^sup>2" ..
+  finally have eq: "m\<^sup>2 = p * n\<^sup>2" using of_nat_eq_iff by blast
   then have "p dvd m\<^sup>2" ..
   with \<open>prime p\<close> have dvd_m: "p dvd m" by (rule prime_dvd_power_nat)
   then obtain k where "m = p * k" ..

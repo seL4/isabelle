@@ -257,7 +257,7 @@ proof cases
   have "continuous_on ({0..} \<union> {.. 0}) (\<lambda>x. if 0 < x then x ^ n else - ((-x) ^ n) :: real)"
     using n by (intro continuous_on_If continuous_intros) auto
   then have "continuous_on UNIV ?f"
-    by (rule continuous_on_cong[THEN iffD1, rotated 2]) (auto simp: not_less real_sgn_neg le_less n)
+    by (rule continuous_on_cong[THEN iffD1, rotated 2]) (auto simp: not_less sgn_neg le_less n)
   then have [simp]: "\<And>x. isCont ?f x"
     by (simp add: continuous_on_eq_continuous_at)
 
@@ -697,7 +697,7 @@ proof -
            (simp_all add: at_infinity_eq_at_top_bot)
       { fix n :: nat assume "1 < n"
         have "1 + x n * n = 1 + of_nat (n choose 1) * x n^1"
-          using \<open>1 < n\<close> unfolding gbinomial_def binomial_gbinomial by simp 
+          using \<open>1 < n\<close> unfolding gbinomial_def binomial_gbinomial by simp
         also have "\<dots> \<le> (\<Sum>k\<in>{0, 1}. of_nat (n choose k) * x n^k)"
           by (simp add: x_def)
         also have "\<dots> \<le> (\<Sum>k=0..n. of_nat (n choose k) * x n^k)"
@@ -740,9 +740,5 @@ lemmas real_root_pos_pos_le = real_root_ge_zero
 lemmas real_sqrt_mult_distrib = real_sqrt_mult
 lemmas real_sqrt_mult_distrib2 = real_sqrt_mult
 lemmas real_sqrt_eq_zero_cancel_iff = real_sqrt_eq_0_iff
-
-(* needed for CauchysMeanTheorem.het_base from AFP *)
-lemma real_root_pos: "0 < x \<Longrightarrow> root (Suc n) (x ^ (Suc n)) = x"
-by (rule real_root_power_cancel [OF zero_less_Suc order_less_imp_le])
 
 end

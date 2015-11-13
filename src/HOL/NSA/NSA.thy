@@ -1243,13 +1243,16 @@ lemma lemma_st_part_major:
 apply (frule lemma_st_part1a)
 apply (frule_tac [4] lemma_st_part2a, auto)
 apply (drule order_le_imp_less_or_eq)+
-apply (auto dest: lemma_st_part_not_eq1 lemma_st_part_not_eq2 simp add: abs_less_iff)
+apply auto
+using lemma_st_part_not_eq2 apply fastforce
+using lemma_st_part_not_eq1 apply fastforce
 done
 
 lemma lemma_st_part_major2:
      "[| (x::hypreal) \<in> HFinite; isLub \<real> {s. s \<in> \<real> & s < x} t |]
       ==> \<forall>r \<in> Reals. 0 < r --> abs (x - t) < r"
 by (blast dest!: lemma_st_part_major)
+
 
 
 text{*Existence of real and Standard Part Theorem*}
@@ -1778,7 +1781,7 @@ apply (auto intro: approx_unique_real)
 done
 
 lemma st_SReal_eq: "x \<in> \<real> ==> st x = x"
-  by (metis approx_refl st_unique) 
+  by (metis approx_refl st_unique)
 
 lemma st_hypreal_of_real [simp]: "st (hypreal_of_real x) = hypreal_of_real x"
 by (rule SReal_hypreal_of_real [THEN st_SReal_eq])
@@ -2022,7 +2025,7 @@ by (blast intro!: Infinitesimal_FreeUltrafilterNat FreeUltrafilterNat_Infinitesi
 
 lemma lemma_Infinitesimal:
      "(\<forall>r. 0 < r --> x < r) = (\<forall>n. x < inverse(real (Suc n)))"
-apply (auto simp add: real_of_nat_Suc_gt_zero simp del: of_nat_Suc)
+apply (auto simp del: of_nat_Suc)
 apply (blast dest!: reals_Archimedean intro: order_less_trans)
 done
 
@@ -2031,10 +2034,8 @@ lemma lemma_Infinitesimal2:
       (\<forall>n. x < inverse(hypreal_of_nat (Suc n)))"
 apply safe
  apply (drule_tac x = "inverse (hypreal_of_real (real (Suc n))) " in bspec)
-  apply (simp (no_asm_use))
- apply (rule real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive, THEN star_of_less [THEN iffD2], THEN [2] impE])
-  prefer 2 apply assumption
- apply simp
+  apply simp_all
+  using less_imp_of_nat_less apply fastforce
 apply (auto dest!: reals_Archimedean simp add: SReal_iff simp del: of_nat_Suc)
 apply (drule star_of_less [THEN iffD2])
 apply simp
@@ -2077,7 +2078,7 @@ lemma finite_real_of_nat_le_real: "finite {n::nat. real n \<le> u}"
 by (auto simp add: lemma_real_le_Un_eq lemma_finite_omega_set finite_real_of_nat_less_real)
 
 lemma finite_rabs_real_of_nat_le_real: "finite {n::nat. abs(real n) \<le> u}"
-apply (simp (no_asm) add: real_of_nat_Suc_gt_zero finite_real_of_nat_le_real)
+apply (simp (no_asm) add: finite_real_of_nat_le_real)
 done
 
 lemma rabs_real_of_nat_le_real_FreeUltrafilterNat:
@@ -2133,7 +2134,7 @@ lemma real_of_nat_less_inverse_iff:
 apply (simp add: inverse_eq_divide)
 apply (subst pos_less_divide_eq, assumption)
 apply (subst pos_less_divide_eq)
- apply (simp add: real_of_nat_Suc_gt_zero)
+ apply simp
 apply (simp add: mult.commute)
 done
 
@@ -2153,7 +2154,7 @@ by (auto dest: order_le_imp_less_or_eq simp add: order_less_imp_le)
 
 lemma finite_inverse_real_of_posnat_ge_real:
      "0 < u ==> finite {n. u \<le> inverse(real(Suc n))}"
-by (auto simp add: lemma_real_le_Un_eq2 lemma_finite_epsilon_set finite_inverse_real_of_posnat_gt_real 
+by (auto simp add: lemma_real_le_Un_eq2 lemma_finite_epsilon_set finite_inverse_real_of_posnat_gt_real
             simp del: of_nat_Suc)
 
 lemma inverse_real_of_posnat_ge_real_FreeUltrafilterNat:
@@ -2181,8 +2182,8 @@ text{* Example of an hypersequence (i.e. an extended standard sequence)
 
 lemma SEQ_Infinitesimal:
       "( *f* (%n::nat. inverse(real(Suc n)))) whn : Infinitesimal"
-by (simp add: hypnat_omega_def starfun_star_n star_n_inverse Infinitesimal_FreeUltrafilterNat_iff 
-       real_of_nat_Suc_gt_zero FreeUltrafilterNat_inverse_real_of_posnat del: of_nat_Suc)
+by (simp add: hypnat_omega_def starfun_star_n star_n_inverse Infinitesimal_FreeUltrafilterNat_iff
+        FreeUltrafilterNat_inverse_real_of_posnat del: of_nat_Suc)
 
 text{* Example where we get a hyperreal from a real sequence
       for which a particular property holds. The theorem is
@@ -2198,7 +2199,7 @@ lemma real_seq_to_hypreal_Infinitesimal:
      "\<forall>n. norm(X n - x) < inverse(real(Suc n))
      ==> star_n X - star_of x \<in> Infinitesimal"
 unfolding star_n_diff star_of_def Infinitesimal_FreeUltrafilterNat_iff star_n_inverse
-by (auto dest!: FreeUltrafilterNat_inverse_real_of_posnat  
+by (auto dest!: FreeUltrafilterNat_inverse_real_of_posnat
          intro: order_less_trans elim!: eventually_elim1)
 
 lemma real_seq_to_hypreal_approx:

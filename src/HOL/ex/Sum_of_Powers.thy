@@ -175,7 +175,7 @@ proof -
   from sum_of_squares have "real (6 * (\<Sum>k\<le>n. k ^ 2)) = real (2 * n ^ 3 + 3 * n ^ 2 + n)"
     by (auto simp add: field_simps)
   then have "6 * (\<Sum>k\<le>n. k ^ 2) = 2 * n ^ 3 + 3 * n ^ 2 + n"
-    by blast
+    using of_nat_eq_iff by blast
   then show ?thesis by auto
 qed
 
@@ -197,7 +197,7 @@ proof -
   from sum_of_cubes have "real (4 * (\<Sum>k\<le>n. k ^ 3)) = real ((n ^ 2 + n) ^ 2)"
     by (auto simp add: field_simps)
   then have "4 * (\<Sum>k\<le>n. k ^ 3) = (n ^ 2 + n) ^ 2"
-    by blast
+    using of_nat_eq_iff by blast
   then show ?thesis by auto
 qed
 

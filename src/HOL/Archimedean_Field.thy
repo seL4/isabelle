@@ -152,7 +152,7 @@ lemma floor_unique_iff:
   shows  "\<lfloor>x\<rfloor> = a \<longleftrightarrow> of_int a \<le> x \<and> x < of_int a + 1"
 using floor_correct floor_unique by auto
 
-lemma of_int_floor_le: "of_int (floor x) \<le> x"
+lemma of_int_floor_le [simp]: "of_int (floor x) \<le> x"
   using floor_correct ..
 
 lemma le_floor_iff: "z \<le> floor x \<longleftrightarrow> of_int z \<le> x"
@@ -381,12 +381,12 @@ notation (xsymbols)
   ceiling  ("\<lceil>_\<rceil>")
 
 lemma ceiling_correct: "of_int (ceiling x) - 1 < x \<and> x \<le> of_int (ceiling x)"
-  unfolding ceiling_def using floor_correct [of "- x"] by simp
+  unfolding ceiling_def using floor_correct [of "- x"] by (simp add: le_minus_iff) 
 
 lemma ceiling_unique: "\<lbrakk>of_int z - 1 < x; x \<le> of_int z\<rbrakk> \<Longrightarrow> ceiling x = z"
   unfolding ceiling_def using floor_unique [of "- z" "- x"] by simp
 
-lemma le_of_int_ceiling: "x \<le> of_int (ceiling x)"
+lemma le_of_int_ceiling [simp]: "x \<le> of_int (ceiling x)"
   using ceiling_correct ..
 
 lemma ceiling_le_iff: "ceiling x \<le> z \<longleftrightarrow> x \<le> of_int z"
@@ -494,7 +494,7 @@ lemma floor_le_ceiling [simp]: "floor x \<le> ceiling x" by (simp add: ceiling_a
 text \<open>Addition and subtraction of integers\<close>
 
 lemma ceiling_add_of_int [simp]: "ceiling (x + of_int z) = ceiling x + z"
-  using ceiling_correct [of x] by (simp add: ceiling_unique)
+  using ceiling_correct [of x] by (simp add: ceiling_def)
 
 lemma ceiling_add_numeral [simp]:
     "ceiling (x + numeral v) = ceiling x + numeral v"

@@ -203,11 +203,9 @@ done
 lemma transfer_nat_int_sum_prod2:
     "setsum f A = nat(setsum (%x. int (f x)) A)"
     "setprod f A = nat(setprod (%x. int (f x)) A)"
-  apply (subst int_setsum [symmetric])
-  apply auto
-  apply (subst int_setprod [symmetric])
-  apply auto
-done
+  apply (simp only: int_setsum [symmetric] nat_int)
+  apply (simp only: int_setprod [symmetric] nat_int)
+  done
 
 lemma transfer_nat_int_sum_prod_closure:
     "nat_set A \<Longrightarrow> (!!x. x >= 0 \<Longrightarrow> f x >= (0::int)) \<Longrightarrow> setsum f A >= 0"
@@ -288,7 +286,7 @@ lemma transfer_int_nat_functions:
     "(int x) * (int y) = int (x * y)"
     "tsub (int x) (int y) = int (x - y)"
     "(int x)^n = int (x^n)"
-  by (auto simp add: int_mult tsub_def int_power)
+  by (auto simp add: int_mult tsub_def of_nat_power)
 
 lemma transfer_int_nat_function_closures:
     "is_nat x \<Longrightarrow> is_nat y \<Longrightarrow> is_nat (x + y)"
@@ -411,9 +409,7 @@ lemma transfer_int_nat_sum_prod2:
     "(!!x. x:A \<Longrightarrow> is_nat (f x)) \<Longrightarrow>
       setprod f A = int(setprod (%x. nat (f x)) A)"
   unfolding is_nat_def
-  apply (subst int_setsum, auto)
-  apply (subst int_setprod, auto simp add: cong: setprod.cong)
-done
+  by (subst int_setsum) auto
 
 declare transfer_morphism_int_nat [transfer add
   return: transfer_int_nat_sum_prod transfer_int_nat_sum_prod2

@@ -51,7 +51,7 @@ lemma fib_Cassini_int: "int (fib (Suc (Suc n)) * fib n) - int((fib (Suc n))\<^su
 lemma fib_Cassini_nat:
   "fib (Suc (Suc n)) * fib n =
      (if even n then (fib (Suc n))\<^sup>2 - 1 else (fib (Suc n))\<^sup>2 + 1)"
-  using fib_Cassini_int [of n] by auto
+  using fib_Cassini_int [of n]  by (auto simp del: of_nat_mult of_nat_power)
 
 
 subsection \<open>Law 6.111 of Concrete Mathematics\<close>

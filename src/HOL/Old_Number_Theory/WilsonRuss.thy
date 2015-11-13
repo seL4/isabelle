@@ -133,7 +133,7 @@ lemma inv_inv: "zprime p \<Longrightarrow>
     5 \<le> p \<Longrightarrow> 0 < a \<Longrightarrow> a < p ==> inv p (inv p a) = a"
   apply (unfold inv_def)
   apply (subst power_mod)
-  apply (subst zpower_zpower)
+  apply (subst power_mult [symmetric])
   apply (rule zcong_zless_imp_eq)
       prefer 5
       apply (subst zcong_zmod)

@@ -376,7 +376,6 @@ declare
 lemma Abs_bit0'_code [code abstract]:
   "Rep_bit0 (Abs_bit0' x :: 'a :: finite bit0) = x mod int (CARD('a bit0))"
 by(auto simp add: Abs_bit0'_def intro!: Abs_bit0_inverse)
-  (metis bit0.Rep_Abs_mod bit0.Rep_less_n card_bit0 of_nat_numeral zmult_int)
 
 lemma inj_on_Abs_bit0:
   "inj_on (Abs_bit0 :: int \<Rightarrow> 'a bit0) {0..<2 * int CARD('a :: finite)}"
@@ -389,8 +388,7 @@ declare
 
 lemma Abs_bit1'_code [code abstract]:
   "Rep_bit1 (Abs_bit1' x :: 'a :: finite bit1) = x mod int (CARD('a bit1))"
-by(auto simp add: Abs_bit1'_def intro!: Abs_bit1_inverse)
-  (metis of_nat_0_less_iff of_nat_Suc of_nat_mult of_nat_numeral pos_mod_conj zero_less_Suc)
+  by(auto simp add: Abs_bit1'_def intro!: Abs_bit1_inverse)
 
 lemma inj_on_Abs_bit1:
   "inj_on (Abs_bit1 :: int \<Rightarrow> 'a bit1) {0..<1 + 2 * int CARD('a :: finite)}"
@@ -414,7 +412,7 @@ definition "enum_class.enum_ex P = (\<exists>b :: 'a bit0 \<in> set enum_class.e
 instance
 proof(intro_classes)
   show "distinct (enum_class.enum :: 'a bit0 list)"
-    by(auto intro!: inj_onI simp add: Abs_bit0'_def Abs_bit0_inject zmod_int[symmetric] enum_bit0_def distinct_map)
+    by (simp add: enum_bit0_def distinct_map inj_on_def Abs_bit0'_def Abs_bit0_inject mod_pos_pos_trivial)
 
   show univ_eq: "(UNIV :: 'a bit0 set) = set enum_class.enum"
     unfolding enum_bit0_def type_definition.Abs_image[OF type_definition_bit0, symmetric]

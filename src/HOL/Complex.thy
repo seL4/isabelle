@@ -842,7 +842,7 @@ proof (simp add: arg_def assms, rule someI_ex)
     by (simp add: cis_divide [symmetric] cis_2pi_int)
   moreover have "- pi < c \<and> c \<le> pi"
     using ceiling_correct [of "(b - pi) / (2*pi)"]
-    by (simp add: c_def less_divide_eq divide_le_eq algebra_simps)
+    by (simp add: c_def less_divide_eq divide_le_eq algebra_simps del: le_of_int_ceiling)
   ultimately show "\<exists>a. sgn z = cis a \<and> -pi < a \<and> a \<le> pi" by fast
 qed
 

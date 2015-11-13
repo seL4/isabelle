@@ -114,7 +114,7 @@ lemma vanishes_mult_bounded:
 proof (rule vanishesI)
   fix r :: rat assume r: "0 < r"
   obtain a where a: "0 < a" "\<forall>n. \<bar>X n\<bar> < a"
-    using X by fast
+    using X by blast
   obtain b where b: "0 < b" "r = a * b"
   proof
     show "0 < r / a" using r a by simp
@@ -217,9 +217,9 @@ proof (rule cauchyI)
   then obtain u v where u: "0 < u" and v: "0 < v" and "r = u + v"
     by (rule obtain_pos_sum)
   obtain a where a: "0 < a" "\<forall>n. \<bar>X n\<bar> < a"
-    using cauchy_imp_bounded [OF X] by fast
+    using cauchy_imp_bounded [OF X] by blast
   obtain b where b: "0 < b" "\<forall>n. \<bar>Y n\<bar> < b"
-    using cauchy_imp_bounded [OF Y] by fast
+    using cauchy_imp_bounded [OF Y] by blast
   obtain s t where s: "0 < s" and t: "0 < t" and r: "r = a * t + s * b"
   proof
     show "0 < v/b" using v b(1) by simp
@@ -259,7 +259,7 @@ proof -
   obtain i where i: "\<forall>m\<ge>i. \<forall>n\<ge>i. \<bar>X m - X n\<bar> < s"
     using cauchyD [OF X s] ..
   obtain k where "i \<le> k" and "r \<le> \<bar>X k\<bar>"
-    using r by fast
+    using r by blast
   have k: "\<forall>n\<ge>k. \<bar>X n - X k\<bar> < s"
     using i \<open>i \<le> k\<close> by auto
   have "X k \<le> - r \<or> r \<le> X k"
@@ -285,7 +285,7 @@ lemma cauchy_inverse [simp]:
 proof (rule cauchyI)
   fix r :: rat assume "0 < r"
   obtain b i where b: "0 < b" and i: "\<forall>n\<ge>i. b < \<bar>X n\<bar>"
-    using cauchy_not_vanishes [OF X nz] by fast
+    using cauchy_not_vanishes [OF X nz] by blast
   from b i have nz: "\<forall>n\<ge>i. X n \<noteq> 0" by auto
   obtain s where s: "0 < s" and r: "r = inverse b * s * inverse b"
   proof
@@ -317,9 +317,9 @@ lemma vanishes_diff_inverse:
 proof (rule vanishesI)
   fix r :: rat assume r: "0 < r"
   obtain a i where a: "0 < a" and i: "\<forall>n\<ge>i. a < \<bar>X n\<bar>"
-    using cauchy_not_vanishes [OF X] by fast
+    using cauchy_not_vanishes [OF X] by blast
   obtain b j where b: "0 < b" and j: "\<forall>n\<ge>j. b < \<bar>Y n\<bar>"
-    using cauchy_not_vanishes [OF Y] by fast
+    using cauchy_not_vanishes [OF Y] by blast
   obtain s where s: "0 < s" and "inverse a * s * inverse b = r"
   proof
     show "0 < a * r * b"
@@ -372,7 +372,7 @@ lemma transp_realrel: "transp realrel"
   done
 
 lemma part_equivp_realrel: "part_equivp realrel"
-  by (fast intro: part_equivpI symp_realrel transp_realrel
+  by (blast intro: part_equivpI symp_realrel transp_realrel
     realrel_refl cauchy_const)
 
 subsection \<open>The field of real numbers\<close>
@@ -527,7 +527,7 @@ proof -
       unfolding realrel_def by simp_all
     assume "\<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < X n"
     then obtain r i where "0 < r" and i: "\<forall>n\<ge>i. r < X n"
-      by fast
+      by blast
     obtain s t where s: "0 < s" and t: "0 < t" and r: "r = s + t"
       using \<open>0 < r\<close> by (rule obtain_pos_sum)
     obtain j where j: "\<forall>n\<ge>j. \<bar>X n - Y n\<bar> < s"
@@ -539,7 +539,7 @@ proof -
         using i j n by simp_all
       thus "t < Y n" unfolding r by simp
     qed
-    hence "\<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < Y n" using t by fast
+    hence "\<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < Y n" using t by blast
   } note 1 = this
   fix X Y assume "realrel X Y"
   hence "realrel X Y" and "realrel Y X"
@@ -579,7 +579,8 @@ lemma positive_minus:
   "\<not> positive x \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> positive (- x)"
 apply transfer
 apply (simp add: realrel_def)
-apply (drule (1) cauchy_not_vanishes_cases, safe, fast, fast)
+apply (drule (1) cauchy_not_vanishes_cases, safe)
+apply blast+
 done
 
 instantiation real :: linordered_field
@@ -781,7 +782,7 @@ proof -
     finally have "of_int (floor (x - 1)) < x" .
     hence "\<not> x \<le> of_int (floor (x - 1))" by (simp only: not_le)
     then show "\<not> P (of_int (floor (x - 1)))"
-      unfolding P_def of_rat_of_int_eq using x by fast
+      unfolding P_def of_rat_of_int_eq using x by blast
   qed
   obtain b where b: "P b"
   proof
@@ -810,7 +811,7 @@ proof -
   have width: "\<And>n. B n - A n = (b - a) / 2^n"
     apply (simp add: eq_divide_eq)
     apply (induct_tac n, simp)
-    apply (simp add: C_def avg_def power_Suc algebra_simps)
+    apply (simp add: C_def avg_def algebra_simps)
     done
 
   have twos: "\<And>y r :: rat. 0 < r \<Longrightarrow> \<exists>n. y / 2 ^ n < r"
@@ -902,7 +903,7 @@ proof -
   proof (rule vanishesI)
     fix r :: rat assume "0 < r"
     then obtain k where k: "\<bar>b - a\<bar> / 2 ^ k < r"
-      using twos by fast
+      using twos by blast
     have "\<forall>n\<ge>k. \<bar>(b - a) / 2 ^ n\<bar> < r"
     proof (clarify)
       fix n assume n: "k \<le> n"
@@ -1022,17 +1023,20 @@ declare [[coercion_map "\<lambda>f g h x. g (h (f x))"]]
 declare [[coercion_map "\<lambda>f g (x,y). (f x, g y)"]]
 
 declare of_int_eq_0_iff [algebra, presburger]
-declare of_int_eq_iff [iff, algebra, presburger] (*FIXME*)
-declare of_int_eq_iff [iff, algebra, presburger] (*FIXME*)
-declare of_int_less_iff [iff, algebra, presburger] (*FIXME*)
-declare of_int_le_iff [iff, algebra, presburger] (*FIXME*)
+declare of_int_eq_1_iff [algebra, presburger]
+declare of_int_eq_iff [algebra, presburger]
+declare of_int_less_0_iff [algebra, presburger]
+declare of_int_less_1_iff [algebra, presburger]
+declare of_int_less_iff [algebra, presburger]
+declare of_int_le_0_iff [algebra, presburger]
+declare of_int_le_1_iff [algebra, presburger]
+declare of_int_le_iff [algebra, presburger]
+declare of_int_0_less_iff [algebra, presburger]
+declare of_int_0_le_iff [algebra, presburger]
+declare of_int_1_less_iff [algebra, presburger]
+declare of_int_1_le_iff [algebra, presburger]
 
-declare of_int_0_less_iff [presburger]
-declare of_int_0_le_iff [presburger]
-declare of_int_less_0_iff [presburger]
-declare of_int_le_0_iff [presburger]
-
-lemma real_of_int_abs [simp]: "real_of_int (abs x) = abs(real_of_int x)"
+lemma of_int_abs [simp]: "of_int (abs x) = (abs(of_int x) :: 'a::linordered_idom)"
   by (auto simp add: abs_if)
 
 lemma int_less_real_le: "(n < m) = (real_of_int n + 1 <= real_of_int m)"
@@ -1086,28 +1090,8 @@ by (insert real_of_int_div2 [of n x], simp)
 
 subsection\<open>Embedding the Naturals into the Reals\<close>
 
-declare of_nat_less_iff [iff] (*FIXME*)
-declare of_nat_le_iff [iff] (*FIXME*)
-declare of_nat_0_le_iff [iff] (*FIXME*)
-declare of_nat_less_iff [iff] (*FIXME*)
-declare of_nat_less_iff [iff] (*FIXME*)
-
-lemma real_of_nat_Suc_gt_zero: "0 < real (Suc n)"  (*NEEDED?*)
-   using of_nat_0_less_iff by blast
-
-declare of_nat_mult [simp] (*FIXME*)
-declare of_nat_power [simp] (*FIXME*)
-
-lemmas power_real_of_nat = of_nat_power [symmetric]
-
-declare of_nat_setsum [simp] (*FIXME*)
-declare of_nat_setprod [simp] (*FIXME*)
-
 lemma real_of_card: "real (card A) = setsum (\<lambda>x.1) A"
   by simp
-
-declare of_nat_eq_iff [iff] (*FIXME*)
-declare of_nat_eq_0_iff [iff] (*FIXME*)
 
 lemma nat_less_real_le: "(n < m) = (real n + 1 \<le> real m)"
   by (metis discrete of_nat_1 of_nat_add of_nat_le_iff)
@@ -1150,9 +1134,6 @@ done
 
 lemma real_of_nat_div4: "real (n div x) <= real (n::nat) / real x"
 by (insert real_of_nat_div2 [of n x], simp)
-
-lemma of_nat_nat [simp]: "0 <= x ==> real(nat x) = real x"
-  by force
 
 subsection \<open>The Archimedean Property of the Reals\<close>
 
@@ -1276,7 +1257,7 @@ proof -
     by (simp add: divide_less_eq diff_less_eq \<open>0 < q\<close>
       less_ceiling_iff [symmetric])
   moreover from r_def have "r \<in> \<rat>" by simp
-  ultimately show ?thesis by fast
+  ultimately show ?thesis by blast
 qed
 
 lemma of_rat_dense:
@@ -1294,8 +1275,6 @@ lemma [code_abbrev]:   (*FIXME*)
   "real_of_int (- numeral k) = - numeral k"
   by simp_all
 
-
-  (*FIXME*)
 declaration \<open>
   K (Lin_Arith.add_inj_thms [@{thm of_nat_le_iff} RS iffD2, @{thm of_nat_eq_iff} RS iffD2]
     (* not needed because x < (y::nat) can be rewritten as Suc x <= y: of_nat_less_iff RS iffD2 *)
@@ -1328,9 +1307,6 @@ lemma real_0_le_add_iff: "((0::real) \<le> x+y) = (-x \<le> y)"
 by auto
 
 subsection \<open>Lemmas about powers\<close>
-
-text \<open>FIXME: declare this in Rings.thy or not at all\<close>
-declare abs_mult_self [simp]
 
 (* used by Import/HOL/real.imp *)
 lemma two_realpow_ge_one: "(1::real) \<le> 2 ^ n"
@@ -1439,10 +1415,6 @@ subsection\<open>Absolute Value Function for the Reals\<close>
 
 lemma abs_minus_add_cancel: "abs(x + (-y)) = abs (y + (-(x::real)))"
 by (simp add: abs_if)
-
-(* FIXME: redundant, but used by Integration/RealRandVar.thy in AFP *)
-lemma abs_le_interval_iff: "(abs x \<le> r) = (-r\<le>x & x\<le>(r::real))"
-by (force simp add: abs_le_iff)
 
 lemma abs_add_one_gt_zero: "(0::real) < 1 + abs(x)"
 by (simp add: abs_if)

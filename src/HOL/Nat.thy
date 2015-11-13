@@ -1469,7 +1469,7 @@ lemma of_nat_1 [simp]: "of_nat 1 = 1"
 lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
   by (induct m) (simp_all add: ac_simps)
 
-lemma of_nat_mult: "of_nat (m * n) = of_nat m * of_nat n"
+lemma of_nat_mult [simp]: "of_nat (m * n) = of_nat m * of_nat n"
   by (induct m) (simp_all add: ac_simps distrib_right)
 
 lemma mult_of_nat_commute: "of_nat x * y = y * of_nat x"

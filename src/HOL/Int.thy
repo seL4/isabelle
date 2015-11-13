@@ -319,25 +319,25 @@ end
 text \<open>Comparisons involving @{term of_int}.\<close>
 
 lemma of_int_eq_numeral_iff [iff]:
-   "of_int z = (numeral n :: 'a::ring_char_0) 
+   "of_int z = (numeral n :: 'a::ring_char_0)
    \<longleftrightarrow> z = numeral n"
   using of_int_eq_iff by fastforce
 
-lemma of_int_le_numeral_iff [simp]:           
-   "of_int z \<le> (numeral n :: 'a::linordered_idom) 
+lemma of_int_le_numeral_iff [simp]:
+   "of_int z \<le> (numeral n :: 'a::linordered_idom)
    \<longleftrightarrow> z \<le> numeral n"
   using of_int_le_iff [of z "numeral n"] by simp
 
-lemma of_int_numeral_le_iff [simp]:  
+lemma of_int_numeral_le_iff [simp]:
    "(numeral n :: 'a::linordered_idom) \<le> of_int z \<longleftrightarrow> numeral n \<le> z"
   using of_int_le_iff [of "numeral n"] by simp
 
-lemma of_int_less_numeral_iff [simp]:           
-   "of_int z < (numeral n :: 'a::linordered_idom) 
+lemma of_int_less_numeral_iff [simp]:
+   "of_int z < (numeral n :: 'a::linordered_idom)
    \<longleftrightarrow> z < numeral n"
   using of_int_less_iff [of z "numeral n"] by simp
 
-lemma of_int_numeral_less_iff [simp]:           
+lemma of_int_numeral_less_iff [simp]:
    "(numeral n :: 'a::linordered_idom) < of_int z \<longleftrightarrow> numeral n < z"
   using of_int_less_iff [of "numeral n" z] by simp
 
@@ -815,22 +815,22 @@ qed
 
 subsection \<open>@{term setsum} and @{term setprod}\<close>
 
-lemma of_nat_setsum: "of_nat (setsum f A) = (\<Sum>x\<in>A. of_nat(f x))"
+lemma of_nat_setsum [simp]: "of_nat (setsum f A) = (\<Sum>x\<in>A. of_nat(f x))"
   apply (cases "finite A")
   apply (erule finite_induct, auto)
   done
 
-lemma of_int_setsum: "of_int (setsum f A) = (\<Sum>x\<in>A. of_int(f x))"
+lemma of_int_setsum [simp]: "of_int (setsum f A) = (\<Sum>x\<in>A. of_int(f x))"
   apply (cases "finite A")
   apply (erule finite_induct, auto)
   done
 
-lemma of_nat_setprod: "of_nat (setprod f A) = (\<Prod>x\<in>A. of_nat(f x))"
+lemma of_nat_setprod [simp]: "of_nat (setprod f A) = (\<Prod>x\<in>A. of_nat(f x))"
   apply (cases "finite A")
   apply (erule finite_induct, auto simp add: of_nat_mult)
   done
 
-lemma of_int_setprod: "of_int (setprod f A) = (\<Prod>x\<in>A. of_int(f x))"
+lemma of_int_setprod [simp]: "of_int (setprod f A) = (\<Prod>x\<in>A. of_int(f x))"
   apply (cases "finite A")
   apply (erule finite_induct, auto)
   done
@@ -1401,7 +1401,7 @@ proof -
     then show "x dvd y"
     proof (cases k)
       case (nonneg n)
-      with A have "y = x * n" by (simp add: of_nat_mult [symmetric])
+      with A have "y = x * n" by (simp del: of_nat_mult add: of_nat_mult [symmetric])
       then show ?thesis ..
     next
       case (neg n)
@@ -1694,16 +1694,6 @@ lemmas of_int_int_eq = of_int_of_nat_eq [where 'a=int]
 lemmas zdiff_int = of_nat_diff [where 'a=int, symmetric]
 lemmas zpower_numeral_even = power_numeral_even [where 'a=int]
 lemmas zpower_numeral_odd = power_numeral_odd [where 'a=int]
-
-lemma zpower_zpower:
-  "(x ^ y) ^ z = (x ^ (y * z)::int)"
-  by (rule power_mult [symmetric])
-
-lemma int_power:
-  "int (m ^ n) = int m ^ n"
-  by (fact of_nat_power)
-
-lemmas zpower_int = int_power [symmetric]
 
 text \<open>De-register @{text "int"} as a quotient type:\<close>
 

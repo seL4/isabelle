@@ -89,7 +89,7 @@ qed
 lemma BfunE:
   assumes "Bfun f F"
   obtains B where "0 < B" and "eventually (\<lambda>x. norm (f x) \<le> B) F"
-using assms unfolding Bfun_def by fast
+using assms unfolding Bfun_def by blast
 
 lemma Cauchy_Bseq: "Cauchy X \<Longrightarrow> Bseq X"
   unfolding Cauchy_def Bfun_metric_def eventually_sequentially
@@ -175,7 +175,10 @@ proof safe
   ultimately have "\<forall>m. norm (X m) \<le> real (Suc n)"
     by (blast intro: order_trans)
   then show "\<exists>N. \<forall>n. norm (X n) \<le> real (Suc N)" ..
-qed (force simp add: of_nat_Suc)
+next
+  show "\<And>N. \<forall>n. norm (X n) \<le> real (Suc N) \<Longrightarrow> \<exists>K>0. \<forall>n. norm (X n) \<le> K"
+    using of_nat_0_less_iff by blast
+qed
 
 text\<open>alternative definition for Bseq\<close>
 lemma Bseq_iff: "Bseq X = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
@@ -367,7 +370,7 @@ proof (cases)
     fix r::real assume "0 < r"
     hence "0 < r / K" using K by simp
     then have "eventually (\<lambda>x. norm (f x) < r / K) F"
-      using ZfunD [OF f] by fast
+      using ZfunD [OF f] by blast
     with g show "eventually (\<lambda>x. norm (g x) < r) F"
     proof eventually_elim
       case (elim x)
@@ -433,7 +436,7 @@ lemma (in bounded_linear) Zfun:
   shows "Zfun (\<lambda>x. f (g x)) F"
 proof -
   obtain K where "\<And>x. norm (f x) \<le> norm x * K"
-    using bounded by fast
+    using bounded by blast
   then have "eventually (\<lambda>x. norm (f (g x)) \<le> norm (g x) * K) F"
     by simp
   with g show ?thesis
@@ -448,7 +451,7 @@ proof (rule ZfunI)
   fix r::real assume r: "0 < r"
   obtain K where K: "0 < K"
     and norm_le: "\<And>x y. norm (x ** y) \<le> norm x * norm y * K"
-    using pos_bounded by fast
+    using pos_bounded by blast
   from K have K': "0 < inverse K"
     by (rule positive_imp_inverse_positive)
   have "eventually (\<lambda>x. norm (f x) < r) F"
@@ -787,7 +790,7 @@ lemma (in bounded_bilinear) Zfun_prod_Bfun:
 proof -
   obtain K where K: "0 \<le> K"
     and norm_le: "\<And>x y. norm (x ** y) \<le> norm x * norm y * K"
-    using nonneg_bounded by fast
+    using nonneg_bounded by blast
   obtain B where B: "0 < B"
     and norm_g: "eventually (\<lambda>x. norm (g x) \<le> B) F"
     using g by (rule BfunE)
@@ -816,7 +819,7 @@ lemma (in bounded_bilinear) flip:
   apply (rule scaleR_left)
   apply (subst mult.commute)
   using bounded
-  apply fast
+  apply blast
   done
 
 lemma (in bounded_bilinear) Bfun_prod_Zfun:
@@ -840,9 +843,9 @@ lemma Bfun_inverse:
 proof -
   from a have "0 < norm a" by simp
   hence "\<exists>r>0. r < norm a" by (rule dense)
-  then obtain r where r1: "0 < r" and r2: "r < norm a" by fast
+  then obtain r where r1: "0 < r" and r2: "r < norm a" by blast
   have "eventually (\<lambda>x. dist (f x) a < r) F"
-    using tendstoD [OF f r1] by fast
+    using tendstoD [OF f r1] by blast
   hence "eventually (\<lambda>x. norm (inverse (f x)) \<le> inverse (norm a - r)) F"
   proof eventually_elim
     case (elim x)
@@ -911,7 +914,7 @@ lemma continuous_on_inverse[continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
   assumes "continuous_on s f" and "\<forall>x\<in>s. f x \<noteq> 0"
   shows "continuous_on s (\<lambda>x. inverse (f x))"
-  using assms unfolding continuous_on_def by (fast intro: tendsto_inverse)
+  using assms unfolding continuous_on_def by (blast intro: tendsto_inverse)
 
 lemma tendsto_divide [tendsto_intros]:
   fixes a b :: "'a::real_normed_field"
@@ -941,7 +944,7 @@ lemma continuous_on_divide[continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_field"
   assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. g x \<noteq> 0"
   shows "continuous_on s (\<lambda>x. (f x) / (g x))"
-  using assms unfolding continuous_on_def by (fast intro: tendsto_divide)
+  using assms unfolding continuous_on_def by (blast intro: tendsto_divide)
 
 lemma tendsto_sgn [tendsto_intros]:
   fixes l :: "'a::real_normed_vector"
@@ -970,7 +973,7 @@ lemma continuous_on_sgn[continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   assumes "continuous_on s f" and "\<forall>x\<in>s. f x \<noteq> 0"
   shows "continuous_on s (\<lambda>x. sgn (f x))"
-  using assms unfolding continuous_on_def by (fast intro: tendsto_sgn)
+  using assms unfolding continuous_on_def by (blast intro: tendsto_sgn)
 
 lemma filterlim_at_infinity:
   fixes f :: "_ \<Rightarrow> 'a::real_normed_vector"
@@ -1685,7 +1688,7 @@ lemma convergent_add:
   assumes "convergent (\<lambda>n. X n)"
   assumes "convergent (\<lambda>n. Y n)"
   shows "convergent (\<lambda>n. X n + Y n)"
-  using assms unfolding convergent_def by (fast intro: tendsto_add)
+  using assms unfolding convergent_def by (blast intro: tendsto_add)
 
 lemma convergent_setsum:
   fixes X :: "'a \<Rightarrow> nat \<Rightarrow> 'b::real_normed_vector"
@@ -1699,12 +1702,12 @@ qed (simp add: convergent_const)
 lemma (in bounded_linear) convergent:
   assumes "convergent (\<lambda>n. X n)"
   shows "convergent (\<lambda>n. f (X n))"
-  using assms unfolding convergent_def by (fast intro: tendsto)
+  using assms unfolding convergent_def by (blast intro: tendsto)
 
 lemma (in bounded_bilinear) convergent:
   assumes "convergent (\<lambda>n. X n)" and "convergent (\<lambda>n. Y n)"
   shows "convergent (\<lambda>n. X n ** Y n)"
-  using assms unfolding convergent_def by (fast intro: tendsto)
+  using assms unfolding convergent_def by (blast intro: tendsto)
 
 lemma convergent_minus_iff:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"
@@ -1719,7 +1722,7 @@ lemma convergent_diff:
   assumes "convergent (\<lambda>n. X n)"
   assumes "convergent (\<lambda>n. Y n)"
   shows "convergent (\<lambda>n. X n - Y n)"
-  using assms unfolding convergent_def by (fast intro: tendsto_diff)
+  using assms unfolding convergent_def by (blast intro: tendsto_diff)
 
 lemma convergent_norm:
   assumes "convergent f"
@@ -1757,7 +1760,7 @@ lemma convergent_mult:
   assumes "convergent (\<lambda>n. X n)"
   assumes "convergent (\<lambda>n. Y n)"
   shows "convergent (\<lambda>n. X n * Y n)"
-  using assms unfolding convergent_def by (fast intro: tendsto_mult)
+  using assms unfolding convergent_def by (blast intro: tendsto_mult)
 
 lemma convergent_mult_const_iff:
   assumes "c \<noteq> 0"
@@ -2122,7 +2125,7 @@ unfolding isUCont_def dist_norm
 proof (intro allI impI)
   fix r::real assume r: "0 < r"
   obtain K where K: "0 < K" and norm_le: "\<And>x. norm (f x) \<le> norm x * K"
-    using pos_bounded by fast
+    using pos_bounded by blast
   show "\<exists>s>0. \<forall>x y. norm (x - y) < s \<longrightarrow> norm (f x - f y) < r"
   proof (rule exI, safe)
     from r K show "0 < r / K" by simp

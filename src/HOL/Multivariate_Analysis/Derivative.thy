@@ -2139,7 +2139,7 @@ proof -
   have *: "\<forall>n. \<exists>f f'. \<forall>x\<in>s.
     (f has_derivative (f' x)) (at x within s) \<and>
     (\<forall>h. norm(f' x h - g' x h) \<le> inverse (real (Suc n)) * norm h)"
-    by (metis assms(2) inverse_positive_iff_positive real_of_nat_Suc_gt_zero)
+    by (simp add: assms(2))
   obtain f where
     *: "\<forall>x. \<exists>f'. \<forall>xa\<in>s. (f x has_derivative f' xa) (at xa within s) \<and>
       (\<forall>h. norm (f' xa h - g' xa h) \<le> inverse (real (Suc x)) * norm h)"
@@ -2221,7 +2221,7 @@ proof (rule has_derivative_series)
       have "norm ((\<Sum>i<n. f' i x * h) - g' x * h) = norm ((\<Sum>i<n. f' i x) - g' x) * norm h"
         by (simp add: norm_mult [symmetric] ring_distribs setsum_left_distrib)
       also from N[OF nx] have "norm ((\<Sum>i<n. f' i x) - g' x) \<le> e" by simp
-      hence "norm ((\<Sum>i<n. f' i x) - g' x) * norm h \<le> e * norm h" 
+      hence "norm ((\<Sum>i<n. f' i x) - g' x) * norm h \<le> e * norm h"
         by (intro mult_right_mono) simp_all
       finally have "norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h" .
     }
@@ -2245,9 +2245,9 @@ proof -
     "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>n. f n x) sums g x"
     "\<And>x. x \<in> s \<Longrightarrow> (g has_field_derivative g' x) (at x within s)" by blast
   from g(1)[OF \<open>x \<in> s\<close>] show "summable (\<lambda>n. f n x)" by (simp add: sums_iff)
-  from g(2)[OF \<open>x \<in> s\<close>] \<open>x \<in> interior s\<close> have "(g has_field_derivative g' x) (at x)" 
+  from g(2)[OF \<open>x \<in> s\<close>] \<open>x \<in> interior s\<close> have "(g has_field_derivative g' x) (at x)"
     by (simp add: at_within_interior[of x s])
-  also have "(g has_field_derivative g' x) (at x) \<longleftrightarrow> 
+  also have "(g has_field_derivative g' x) (at x) \<longleftrightarrow>
                 ((\<lambda>x. \<Sum>n. f n x) has_field_derivative g' x) (at x)"
     using eventually_nhds_in_nhd[OF \<open>x \<in> interior s\<close>] interior_subset[of s] g(1)
     by (intro DERIV_cong_ev) (auto elim!: eventually_elim1 simp: sums_iff)
@@ -2311,7 +2311,7 @@ proof -
     qed
   qed (insert f' f'', auto simp: has_vector_derivative_def)
   then show ?thesis
-    unfolding fun_eq_iff by auto
+    unfolding fun_eq_iff by (metis scaleR_one)
 qed
 
 lemma vector_derivative_unique_at:
@@ -2350,7 +2350,7 @@ by (auto simp: differentiable_iff_scaleR vector_derivative_def has_vector_deriva
          intro: someI frechet_derivative_at [symmetric])
 
 lemma has_real_derivative:
-  fixes f :: "real \<Rightarrow> real" 
+  fixes f :: "real \<Rightarrow> real"
   assumes "(f has_derivative f') F"
   obtains c where "(f has_real_derivative c) F"
 proof -
@@ -2361,7 +2361,7 @@ proof -
 qed
 
 lemma has_real_derivative_iff:
-  fixes f :: "real \<Rightarrow> real" 
+  fixes f :: "real \<Rightarrow> real"
   shows "(\<exists>c. (f has_real_derivative c) F) = (\<exists>D. (f has_derivative D) F)"
   by (metis has_field_derivative_def has_real_derivative)
 
@@ -2390,7 +2390,7 @@ lemma islimpt_closure_open:
   assumes "open s" and t: "t = closure s" "x \<in> t"
   shows "x islimpt t"
 proof cases
-  assume "x \<in> s" 
+  assume "x \<in> s"
   { fix T assume "x \<in> T" "open T"
     then have "open (s \<inter> T)"
       using \<open>open s\<close> by auto
@@ -2579,7 +2579,7 @@ next
       by (intro convex_onD_Icc'' convex_on_subset[OF convex] connected_contains_Icc) auto
     hence "f y - f c \<le> (f x - f c) * ((c - y) / (c - x))" by simp
     also have "(c - y) / (c - x) = (y - c) / (x - c)" using y xc by (simp add: field_simps)
-    finally show "(f y - f c) / (y - c) \<ge> (f x - f c) / (x - c)" using y xc 
+    finally show "(f y - f c) / (y - c) \<ge> (f x - f c) / (x - c)" using y xc
       by (simp add: divide_simps)
   qed
   hence "eventually (\<lambda>y. (f y - f c) / (y - c) \<ge> (f x - f c) / (x - c)) (at c within ?A')"

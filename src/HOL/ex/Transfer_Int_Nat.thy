@@ -46,7 +46,7 @@ lemma ZN_diff [transfer_rule]: "(ZN ===> ZN ===> ZN) tsub (op -)"
   unfolding rel_fun_def ZN_def tsub_def by (simp add: zdiff_int)
 
 lemma ZN_power [transfer_rule]: "(ZN ===> op = ===> ZN) (op ^) (op ^)"
-  unfolding rel_fun_def ZN_def by (simp add: int_power)
+  unfolding rel_fun_def ZN_def by (simp add: of_nat_power)
 
 lemma ZN_nat_id [transfer_rule]: "(ZN ===> op =) nat id"
   unfolding rel_fun_def ZN_def by simp

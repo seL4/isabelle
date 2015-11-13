@@ -2399,15 +2399,15 @@ lemma Re_Arccos_bounds: "-pi < Re(Arccos z) \<and> Re(Arccos z) \<le> pi"
   by (blast intro!: mpi_less_Im_Ln Im_Ln_le_pi Arccos_body_lemma)
 
 lemma Re_Arccos_bound: "abs(Re(Arccos z)) \<le> pi"
-  using Re_Arccos_bounds abs_le_interval_iff less_eq_real_def by blast
+  by (meson Re_Arccos_bounds abs_le_iff less_eq_real_def minus_less_iff)
 
 lemma Re_Arcsin_bounds: "-pi < Re(Arcsin z) & Re(Arcsin z) \<le> pi"
   unfolding Re_Arcsin
   by (blast intro!: mpi_less_Im_Ln Im_Ln_le_pi Arcsin_body_lemma)
 
 lemma Re_Arcsin_bound: "abs(Re(Arcsin z)) \<le> pi"
-  using Re_Arcsin_bounds abs_le_interval_iff less_eq_real_def by blast
-
+  by (meson Re_Arcsin_bounds abs_le_iff less_eq_real_def minus_less_iff)
+ 
 
 subsection\<open>Interrelations between Arcsin and Arccos\<close>
 

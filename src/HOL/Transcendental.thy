@@ -10,13 +10,6 @@ theory Transcendental
 imports Binomial Series Deriv NthRoot
 begin
 
-lemma reals_Archimedean4:
-  assumes "0 < y" "0 \<le> x"
-  obtains n where "real n * y \<le> x" "x < real (Suc n) * y"
-  using floor_correct [of "x/y"] assms
-  apply (auto simp: field_simps intro!: that [of "nat (floor (x/y))"])
-by (metis (no_types, hide_lams)  divide_inverse divide_self_if floor_correct mult.left_commute mult.right_neutral mult_eq_0_iff order_refl order_trans real_mult_le_cancel_iff2)
-
 lemma fact_in_Reals: "fact n \<in> \<real>" by (induction n) auto
 
 lemma pochhammer_of_real: "pochhammer (of_real x) n = of_real (pochhammer x n)"
@@ -3556,6 +3549,14 @@ proof -
     done
 qed
 
+
+lemma reals_Archimedean4:
+  assumes "0 < y" "0 \<le> x"
+  obtains n where "real n * y \<le> x" "x < real (Suc n) * y"
+  using floor_correct [of "x/y"] assms
+  apply (auto simp: field_simps intro!: that [of "nat (floor (x/y))"])
+by (metis (no_types, hide_lams)  divide_inverse divide_self_if floor_correct mult.left_commute mult.right_neutral mult_eq_0_iff order_refl order_trans real_mult_le_cancel_iff2)
+
 lemma cos_zero_lemma:
      "\<lbrakk>0 \<le> x; cos x = 0\<rbrakk> \<Longrightarrow>
       \<exists>n::nat. odd n & x = real n * (pi/2)"
@@ -4399,7 +4400,7 @@ lemma arcsin_minus: "-1 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> ar
   by (metis (no_types, hide_lams) arcsin arcsin_sin minus_minus neg_le_iff_le sin_minus)
 
 lemma arcsin_eq_iff: "abs x \<le> 1 \<Longrightarrow> abs y \<le> 1 \<Longrightarrow> (arcsin x = arcsin y \<longleftrightarrow> x = y)"
-  by (metis abs_le_interval_iff arcsin)
+  by (metis abs_le_iff arcsin minus_le_iff)
 
 lemma cos_arcsin_nonzero: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> cos(arcsin x) \<noteq> 0"
   using arcsin_lt_bounded cos_gt_zero_pi by force

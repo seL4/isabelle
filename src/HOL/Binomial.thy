@@ -67,11 +67,11 @@ begin
   proof (induct n)
     case (Suc n)
     then have *: "fact n \<le> (of_nat (Suc n ^ n) ::'a)"
-      by (rule order_trans) (simp add: power_mono)
+      by (rule order_trans) (simp add: power_mono del: of_nat_power)
     have "fact (Suc n) = (of_nat (Suc n) * fact n ::'a)"
       by (simp add: algebra_simps)
     also have "... \<le> (of_nat (Suc n) * of_nat (Suc n ^ n) ::'a)"
-      by (simp add: "*" ordered_comm_semiring_class.comm_mult_left_mono)
+      by (simp add: "*" ordered_comm_semiring_class.comm_mult_left_mono del: of_nat_power)
     also have "... \<le> (of_nat (Suc n ^ Suc n) ::'a)"
       by (metis of_nat_mult order_refl power_Suc)
     finally show ?case .

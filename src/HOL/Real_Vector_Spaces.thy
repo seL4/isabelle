@@ -1062,7 +1062,7 @@ by (rule dist_triangle_half_l, simp_all add: dist_commute)
 subclass topological_space
 proof
   have "\<exists>e::real. 0 < e"
-    by (fast intro: zero_less_one)
+    by (blast intro: zero_less_one)
   then show "open UNIV"
     unfolding open_dist by simp
 next
@@ -1076,7 +1076,7 @@ next
     done
 next
   fix K assume "\<forall>S\<in>K. open S" thus "open (\<Union>K)"
-    unfolding open_dist by fast
+    unfolding open_dist by (meson UnionE UnionI) 
 qed
 
 lemma open_ball: "open {y. dist x y < d}"
@@ -1260,24 +1260,12 @@ lemma sgn_mult:
 by (simp add: sgn_div_norm norm_mult mult.commute)
 
 lemma real_sgn_eq: "sgn (x::real) = x / \<bar>x\<bar>"
-by (simp add: sgn_div_norm divide_inverse)
-
-lemma real_sgn_pos: "0 < (x::real) \<Longrightarrow> sgn x = 1"
-unfolding real_sgn_eq by simp
-
-lemma real_sgn_neg: "(x::real) < 0 \<Longrightarrow> sgn x = -1"
-unfolding real_sgn_eq by simp
+  by (simp add: sgn_div_norm divide_inverse)
 
 lemma zero_le_sgn_iff [simp]: "0 \<le> sgn x \<longleftrightarrow> 0 \<le> (x::real)"
   by (cases "0::real" x rule: linorder_cases) simp_all
 
-lemma zero_less_sgn_iff [simp]: "0 < sgn x \<longleftrightarrow> 0 < (x::real)"
-  by (cases "0::real" x rule: linorder_cases) simp_all
-
 lemma sgn_le_0_iff [simp]: "sgn x \<le> 0 \<longleftrightarrow> (x::real) \<le> 0"
-  by (cases "0::real" x rule: linorder_cases) simp_all
-
-lemma sgn_less_0_iff [simp]: "sgn x < 0 \<longleftrightarrow> (x::real) < 0"
   by (cases "0::real" x rule: linorder_cases) simp_all
 
 lemma norm_conv_dist: "norm x = dist x 0"
@@ -1321,7 +1309,7 @@ lemma pos_bounded:
   "\<exists>K>0. \<forall>x. norm (f x) \<le> norm x * K"
 proof -
   obtain K where K: "\<And>x. norm (f x) \<le> norm x * K"
-    using bounded by fast
+    using bounded by blast
   show ?thesis
   proof (intro exI impI conjI allI)
     show "0 < max 1 K"
@@ -1351,7 +1339,7 @@ lemma bounded_linear_intro:
   assumes "\<And>r x. f (scaleR r x) = scaleR r (f x)"
   assumes "\<And>x. norm (f x) \<le> norm x * K"
   shows "bounded_linear f"
-  by standard (fast intro: assms)+
+  by standard (blast intro: assms)+
 
 locale bounded_bilinear =
   fixes prod :: "['a::real_normed_vector, 'b::real_normed_vector]
@@ -1481,9 +1469,9 @@ proof -
       by (simp only: f.scaleR g.scaleR)
   next
     from f.pos_bounded
-    obtain Kf where f: "\<And>x. norm (f x) \<le> norm x * Kf" and Kf: "0 < Kf" by fast
+    obtain Kf where f: "\<And>x. norm (f x) \<le> norm x * Kf" and Kf: "0 < Kf" by blast
     from g.pos_bounded
-    obtain Kg where g: "\<And>x. norm (g x) \<le> norm x * Kg" by fast
+    obtain Kg where g: "\<And>x. norm (g x) \<le> norm x * Kg" by blast
     show "\<exists>K. \<forall>x. norm (f (g x)) \<le> norm x * K"
     proof (intro exI allI)
       fix x
@@ -1735,7 +1723,7 @@ next
   proof (intro allI impI)
     fix e :: real assume e: "e > 0"
     with `Cauchy f` obtain M where "\<And>m n. m \<ge> M \<Longrightarrow> n \<ge> M \<Longrightarrow> dist (f m) (f n) < e"
-      unfolding Cauchy_def by fast
+      unfolding Cauchy_def by blast
     thus "\<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (f m) (f n) < e" by (intro exI[of _ M]) force
   qed
 qed
@@ -1783,9 +1771,9 @@ proof (rule metric_CauchyI)
   show "\<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m) (X n) < e"
   proof (intro exI allI impI)
     fix m assume "N \<le> m"
-    hence m: "dist (X m) a < e/2" using N by fast
+    hence m: "dist (X m) a < e/2" using N by blast
     fix n assume "N \<le> n"
-    hence n: "dist (X n) a < e/2" using N by fast
+    hence n: "dist (X n) a < e/2" using N by blast
     have "dist (X m) (X n) \<le> dist (X m) a + dist (X n) a"
       by (rule dist_triangle2)
     also from m n have "\<dots> < e" by simp
@@ -1805,7 +1793,7 @@ class complete_space = metric_space +
 lemma Cauchy_convergent_iff:
   fixes X :: "nat \<Rightarrow> 'a::complete_space"
   shows "Cauchy X = convergent X"
-by (fast intro: Cauchy_convergent convergent_Cauchy)
+by (blast intro: Cauchy_convergent convergent_Cauchy)
 
 subsection \<open>The set of real numbers is a complete metric space\<close>
 
@@ -1881,11 +1869,11 @@ proof -
   hence N: "\<forall>n\<ge>N. X N - r/2 < X n \<and> X n < X N + r/2"
     by (simp only: dist_real_def abs_diff_less_iff)
 
-  from N have "\<forall>n\<ge>N. X N - r/2 < X n" by fast
+  from N have "\<forall>n\<ge>N. X N - r/2 < X n" by blast
   hence "X N - r/2 \<in> S" by (rule mem_S)
   hence 1: "X N - r/2 \<le> Sup S" by (simp add: cSup_upper)
 
-  from N have "\<forall>n\<ge>N. X n < X N + r/2" by fast
+  from N have "\<forall>n\<ge>N. X n < X N + r/2" by blast
   from bound_isUb[OF this]
   have 2: "Sup S \<le> X N + r/2"
     by (intro cSup_least) simp_all
@@ -1953,7 +1941,7 @@ proof (rule tendstoI)
       using ex_le_of_nat[of x] ..
     note monoD[OF mono this]
     also have "f (real_of_nat n) \<le> y"
-      by (rule LIMSEQ_le_const[OF limseq]) (auto intro: exI[of _ n] monoD[OF mono])
+      by (rule LIMSEQ_le_const[OF limseq]) (auto intro!: exI[of _ n] monoD[OF mono])
     finally have "f x \<le> y" . }
   note le = this
   have "eventually (\<lambda>x. real N \<le> x) at_top"

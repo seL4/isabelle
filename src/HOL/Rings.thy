@@ -1976,7 +1976,7 @@ lemma abs_mult:
   "\<bar>a * b\<bar> = \<bar>a\<bar> * \<bar>b\<bar>"
   by (rule abs_eq_mult) auto
 
-lemma abs_mult_self:
+lemma abs_mult_self [simp]:
   "\<bar>a\<bar> * \<bar>a\<bar> = a * a"
   by (simp add: abs_if)
 

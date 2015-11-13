@@ -808,7 +808,7 @@ proof -
         also note float_round_up
         finally have "pi / 2 - float_round_up prec (?ub_horner ?invx) \<le> arctan x"
           using \<open>0 \<le> arctan x\<close> arctan_inverse[OF \<open>1 / x \<noteq> 0\<close>]
-          unfolding real_sgn_pos[OF \<open>0 < 1 / real_of_float x\<close>] le_diff_eq by auto
+          unfolding sgn_pos[OF \<open>0 < 1 / real_of_float x\<close>] le_diff_eq by auto
         moreover
         have "lb_pi prec * Float 1 (- 1) \<le> pi / 2"
           unfolding Float_num times_divide_eq_right mult_1_left using pi_boundaries by simp
@@ -935,7 +935,7 @@ proof -
         unfolding one_float.rep_eq[symmetric] by (rule arctan_monotone') (rule float_divl)
       finally have "arctan x \<le> pi / 2 - (?lb_horner ?invx)"
         using \<open>0 \<le> arctan x\<close> arctan_inverse[OF \<open>1 / x \<noteq> 0\<close>]
-        unfolding real_sgn_pos[OF \<open>0 < 1 / x\<close>] le_diff_eq by auto
+        unfolding sgn_pos[OF \<open>0 < 1 / x\<close>] le_diff_eq by auto
       moreover
       have "pi / 2 \<le> ub_pi prec * Float 1 (- 1)"
         unfolding Float_num times_divide_eq_right mult_1_right

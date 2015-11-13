@@ -284,7 +284,7 @@ lemma Euler_part3: "[| 2 < p; zprime p; ~([x = 0](mod p)); QuadRes p x |] ==>
    apply (metis zprime_zOdd_eq_grt_2)
   apply (frule aux__1, auto)
   apply (drule_tac z = "nat ((p - 1) div 2)" in zcong_zpower)
-  apply (auto simp add: zpower_zpower) 
+  apply (auto simp add: power_mult [symmetric]) 
   apply (rule zcong_trans)
   apply (auto simp add: zcong_sym [of "x ^ nat ((p - 1) div 2)"])
   apply (metis Little_Fermat even_div_2_prop2 odd_minus_one_even mult_1 aux__2)

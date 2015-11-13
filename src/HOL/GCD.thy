@@ -1133,10 +1133,7 @@ lemma coprime_int: "coprime (a::int) b \<longleftrightarrow>
   apply (erule subst)
   apply (rule iffI)
   apply force
-  apply (drule_tac x = "abs e" for e in exI)
-  apply (case_tac "e >= 0" for e :: int)
-  apply force
-  apply force
+  using abs_dvd_iff abs_ge_zero apply blast
   done
 
 lemma gcd_coprime_nat:

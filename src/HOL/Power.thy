@@ -175,7 +175,7 @@ end
 context semiring_1
 begin
 
-lemma of_nat_power:
+lemma of_nat_power [simp]:
   "of_nat (m ^ n) = of_nat m ^ n"
   by (induct n) (simp_all add: of_nat_mult)
 
@@ -310,7 +310,7 @@ qed
 lemma power_minus1_odd:
   "(- 1) ^ Suc (2*n) = -1"
   by simp
-  
+
 lemma power_minus_even [simp]:
   "(-a) ^ (2*n) = a ^ (2*n)"
   by (simp add: power_minus [of a])
@@ -320,7 +320,7 @@ end
 context ring_1_no_zero_divisors
 begin
 
-subclass semiring_1_no_zero_divisors .. 
+subclass semiring_1_no_zero_divisors ..
 
 lemma power2_eq_1_iff:
   "a\<^sup>2 = 1 \<longleftrightarrow> a = 1 \<or> a = - 1"
@@ -377,7 +377,7 @@ lemma power_one_over [field_simps, divide_simps]:
   "(1 / a) ^ n = 1 / a ^ n"
   using power_inverse [of a] by (simp add: divide_inverse)
 
-end  
+end
 
 context field
 begin
@@ -463,6 +463,10 @@ next
   qed
 qed
 
+lemma of_nat_zero_less_power_iff [simp]:
+  "of_nat x ^ n > 0 \<longleftrightarrow> x > 0 \<or> n = 0"
+  by (induct n) auto
+
 text\<open>Surely we can strengthen this? It holds for @{text "0<a<1"} too.\<close>
 lemma power_inject_exp [simp]:
   "1 < a \<Longrightarrow> a ^ m = a ^ n \<longleftrightarrow> m = n"
@@ -491,7 +495,7 @@ lemma power_strict_decreasing [rule_format]:
 proof (induct N)
   case 0 then show ?case by simp
 next
-  case (Suc N) then show ?case 
+  case (Suc N) then show ?case
   apply (auto simp add: power_Suc_less less_Suc_eq)
   apply (subgoal_tac "a * a^N < 1 * a^n")
   apply simp
@@ -505,7 +509,7 @@ lemma power_decreasing [rule_format]:
 proof (induct N)
   case 0 then show ?case by simp
 next
-  case (Suc N) then show ?case 
+  case (Suc N) then show ?case
   apply (auto simp add: le_Suc_eq)
   apply (subgoal_tac "a * a^N \<le> 1 * a^n", simp)
   apply (rule mult_mono) apply auto
@@ -522,7 +526,7 @@ lemma power_increasing [rule_format]:
 proof (induct N)
   case 0 then show ?case by simp
 next
-  case (Suc N) then show ?case 
+  case (Suc N) then show ?case
   apply (auto simp add: le_Suc_eq)
   apply (subgoal_tac "1 * a^n \<le> a * a^N", simp)
   apply (rule mult_mono) apply (auto simp add: order_trans [OF zero_le_one])
@@ -539,7 +543,7 @@ lemma power_strict_increasing [rule_format]:
 proof (induct N)
   case 0 then show ?case by simp
 next
-  case (Suc N) then show ?case 
+  case (Suc N) then show ?case
   apply (auto simp add: power_less_power_Suc less_Suc_eq)
   apply (subgoal_tac "1 * a^n < a * a^N", simp)
   apply (rule mult_strict_mono) apply (auto simp add: less_trans [OF zero_less_one] less_imp_le)
@@ -552,7 +556,7 @@ lemma power_increasing_iff [simp]:
 
 lemma power_strict_increasing_iff [simp]:
   "1 < b \<Longrightarrow> b ^ x < b ^ y \<longleftrightarrow> x < y"
-by (blast intro: power_less_imp_less_exp power_strict_increasing) 
+by (blast intro: power_less_imp_less_exp power_strict_increasing)
 
 lemma power_le_imp_le_base:
   assumes le: "a ^ Suc n \<le> b ^ Suc n"
@@ -680,7 +684,7 @@ qed
 lemma odd_0_le_power_imp_0_le:
   "0 \<le> a ^ Suc (2*n) \<Longrightarrow> 0 \<le> a"
   using odd_power_less_zero [of a n]
-    by (force simp add: linorder_not_less [symmetric]) 
+    by (force simp add: linorder_not_less [symmetric])
 
 lemma zero_le_even_power'[simp]:
   "0 \<le> a ^ (2*n)"
@@ -689,7 +693,7 @@ proof (induct n)
     show ?case by simp
 next
   case (Suc n)
-    have "a ^ (2 * Suc n) = (a*a) * a ^ (2*n)" 
+    have "a ^ (2 * Suc n) = (a*a) * a ^ (2*n)"
       by (simp add: ac_simps power_add power2_eq_square)
     thus ?case
       by (simp add: Suc zero_le_mult_iff)
@@ -733,7 +737,7 @@ lemma abs_square_le_1:"x\<^sup>2 \<le> 1 \<longleftrightarrow> abs(x) \<le> 1"
 
 lemma abs_square_eq_1: "x\<^sup>2 = 1 \<longleftrightarrow> abs(x) = 1"
   by (auto simp add: abs_if power2_eq_1_iff)
-  
+
 lemma abs_square_less_1: "x\<^sup>2 < 1 \<longleftrightarrow> abs(x) < 1"
   using  abs_square_eq_1 [of x] abs_square_le_1 [of x]
   by (auto simp add: le_less)
@@ -768,10 +772,10 @@ text \<open>Simprules for comparisons where common factors can be cancelled.\<cl
 
 lemmas zero_compare_simps =
     add_strict_increasing add_strict_increasing2 add_increasing
-    zero_le_mult_iff zero_le_divide_iff 
-    zero_less_mult_iff zero_less_divide_iff 
-    mult_le_0_iff divide_le_0_iff 
-    mult_less_0_iff divide_less_0_iff 
+    zero_le_mult_iff zero_le_divide_iff
+    zero_less_mult_iff zero_less_divide_iff
+    mult_le_0_iff divide_le_0_iff
+    mult_less_0_iff divide_less_0_iff
     zero_le_power2 power2_less_0
 
 
@@ -785,7 +789,7 @@ lemma nat_zero_less_power_iff [simp]:
   "x ^ n > 0 \<longleftrightarrow> x > (0::nat) \<or> n = 0"
   by (induct n) auto
 
-lemma nat_power_eq_Suc_0_iff [simp]: 
+lemma nat_power_eq_Suc_0_iff [simp]:
   "x ^ m = Suc 0 \<longleftrightarrow> m = 0 \<or> x = Suc 0"
   by (induct m) auto
 
@@ -842,13 +846,13 @@ lemma card_UNIV_bool [simp]: "card (UNIV :: bool set) = 2"
 
 lemma card_Pow: "finite A \<Longrightarrow> card (Pow A) = 2 ^ card A"
 proof (induct rule: finite_induct)
-  case empty 
+  case empty
     show ?case by auto
 next
   case (insert x A)
-  then have "inj_on (insert x) (Pow A)" 
+  then have "inj_on (insert x) (Pow A)"
     unfolding inj_on_def by (blast elim!: equalityE)
-  then have "card (Pow A) + card (insert x ` Pow A) = 2 * 2 ^ card A" 
+  then have "card (Pow A) + card (insert x ` Pow A) = 2 * 2 ^ card A"
     by (simp add: mult_2 card_image Pow_insert insert.hyps)
   then show ?case using insert
     apply (simp add: Pow_insert)
@@ -882,11 +886,11 @@ done
 lemma setprod_power_distrib:
   fixes f :: "'a \<Rightarrow> 'b::comm_semiring_1"
   shows "setprod f A ^ n = setprod (\<lambda>x. (f x) ^ n) A"
-proof (cases "finite A") 
-  case True then show ?thesis 
+proof (cases "finite A")
+  case True then show ?thesis
     by (induct A rule: finite_induct) (auto simp add: power_mult_distrib)
 next
-  case False then show ?thesis 
+  case False then show ?thesis
     by simp
 qed
 
@@ -902,13 +906,13 @@ proof-
   {assume a: "a \<notin> S"
     hence "\<forall> k\<in> S. ?f k = c" by simp
     hence ?thesis  using a setprod_constant[OF fS, of c] by simp }
-  moreover 
+  moreover
   {assume a: "a \<in> S"
     let ?A = "S - {a}"
     let ?B = "{a}"
-    have eq: "S = ?A \<union> ?B" using a by blast 
+    have eq: "S = ?A \<union> ?B" using a by blast
     have dj: "?A \<inter> ?B = {}" by simp
-    from fS have fAB: "finite ?A" "finite ?B" by auto  
+    from fS have fAB: "finite ?A" "finite ?B" by auto
     have fA0:"setprod ?f ?A = setprod (\<lambda>i. c) ?A"
       apply (rule setprod.cong) by auto
     have cA: "card ?A = card S - 1" using fS a by auto

@@ -35,12 +35,12 @@ proof
   hence th: "\<exists> k. x=real_of_int (i*k)" by (simp add: rdvd_def)
   hence th': "real_of_int (floor x) = x" by (auto simp del: of_int_mult)
   with th have "\<exists> k. real_of_int (floor x) = real_of_int (i*k)" by simp
-  hence "\<exists> k. floor x = i*k" by blast
+  hence "\<exists> k. floor x = i*k" by presburger
   thus ?r  using th' by (simp add: dvd_def) 
 next
   assume "?r" hence "(i::int) dvd \<lfloor>x::real\<rfloor>" ..
   hence "\<exists> k. real_of_int (floor x) = real_of_int (i*k)"
-    using dvd_def by blast 
+    by (metis (no_types) dvd_def)
   thus ?l using \<open>?r\<close> by (simp add: rdvd_def)
 qed
 
@@ -123,7 +123,7 @@ proof-
   let ?fe = "floor ?e"
   assume be: "isint e bs" hence efe:"real_of_int ?fe = ?e" by (simp add: isint_iff)
   have "real_of_int ((floor (Inum bs (Mul c e)))) = real_of_int (floor (real_of_int (c * ?fe)))" using efe by simp
-  also have "\<dots> = real_of_int (c* ?fe)" using floor_of_int by blast 
+  also have "\<dots> = real_of_int (c* ?fe)"  by (metis floor_of_int)
   also have "\<dots> = real_of_int c * ?e" using efe by simp
   finally show ?thesis using isint_iff by simp
 qed
@@ -1053,9 +1053,10 @@ definition iff :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "iff p q \<equiv> (if (p = q) then T else if (p = not q \<or> not p = q) then F else 
        if p=F then not q else if q=F then not p else if p=T then q else if q=T then p else 
   Iff p q)"
+
 lemma iff[simp]: "Ifm bs (iff p q) = Ifm bs (Iff p q)"
-  by (unfold iff_def,cases "p=q", simp,cases "p=not q", simp) 
-(cases "not p= q", auto simp add:not)
+  by (unfold iff_def,cases "p=q", simp,cases "p=not q", simp)  (cases "not p= q", auto simp add:not)
+
 lemma iff_qf[simp]: "\<lbrakk>qfree p ; qfree q\<rbrakk> \<Longrightarrow> qfree (iff p q)"
   by (unfold iff_def,cases "p=q", auto)
 
@@ -2623,7 +2624,7 @@ next
       hence "x + floor ?e +1 \<ge> 1 \<and> x + floor ?e + 1 \<le> d"  by simp
       hence "\<exists> (j::int) \<in> {1 .. d}. j = x + floor ?e + 1" by simp
       hence "\<exists> (j::int) \<in> {1 .. d}. x= - floor ?e - 1 + j" by (simp add: algebra_simps)
-      hence "\<exists> (j::int) \<in> {1 .. d}. real_of_int x= real_of_int (- floor ?e - 1 + j)" by blast
+      hence "\<exists> (j::int) \<in> {1 .. d}. real_of_int x= real_of_int (- floor ?e - 1 + j)" by presburger
       hence "\<exists> (j::int) \<in> {1 .. d}. real_of_int x= - ?e - 1 + real_of_int j" 
         by (simp add: ie[simplified isint_iff])
       with nob have ?case by simp }
