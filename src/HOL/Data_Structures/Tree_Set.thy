@@ -24,8 +24,8 @@ fun insert :: "'a::cmp \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
       GT \<Rightarrow> Node l a (insert x r))"
 
 fun del_min :: "'a tree \<Rightarrow> 'a * 'a tree" where
-"del_min (Node Leaf a r) = (a, r)" |
-"del_min (Node l a r) = (let (x,l') = del_min l in (x, Node l' a r))"
+"del_min (Node l a r) = (if l = Leaf then (a,r)
+  else let (x,l') = del_min l in (x, Node l' a r))"
 
 fun delete :: "'a::cmp \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 "delete x Leaf = Leaf" |
@@ -53,7 +53,7 @@ lemma del_minD:
   "del_min t = (x,t') \<Longrightarrow> t \<noteq> Leaf \<Longrightarrow> sorted(inorder t) \<Longrightarrow>
    x # inorder t' = inorder t"
 by(induction t arbitrary: t' rule: del_min.induct)
-  (auto simp: sorted_lems split: prod.splits)
+  (auto simp: sorted_lems split: prod.splits if_splits)
 
 lemma inorder_delete:
   "sorted(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"

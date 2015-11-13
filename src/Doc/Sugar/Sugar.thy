@@ -2,6 +2,8 @@
 theory Sugar
 imports "~~/src/HOL/Library/LaTeXsugar" "~~/src/HOL/Library/OptionalSugar"
 begin
+no_translations
+  ("prop") "P \<and> Q \<Longrightarrow> R" <= ("prop") "P \<Longrightarrow> Q \<Longrightarrow> R"
 (*>*)
 text{*
 \section{Introduction}
@@ -114,6 +116,10 @@ hidden.
 
 
 \section{Printing theorems}
+
+The @{prop "P \<Longrightarrow> Q \<Longrightarrow> R"} syntax is a bit idiosyncratic. If you would like
+to avoid it, you can easily print the premises as a conjunction:
+@{prop "P \<and> Q \<Longrightarrow> R"}. See \texttt{OptionalSugar} for the required ``code''.
 
 \subsection{Question marks}
 
