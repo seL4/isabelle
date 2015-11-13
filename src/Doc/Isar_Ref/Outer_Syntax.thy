@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Outer_Syntax
 imports Base Main
 begin

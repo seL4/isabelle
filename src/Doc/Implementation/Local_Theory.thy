@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Local_Theory
 imports Base
 begin

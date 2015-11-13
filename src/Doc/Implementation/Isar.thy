@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Isar
 imports Base
 begin

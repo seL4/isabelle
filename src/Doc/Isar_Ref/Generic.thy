@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Generic
 imports Base Main
 begin

@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 section \<open>Basic setup that is not included in the document\<close>
 
 theory Base

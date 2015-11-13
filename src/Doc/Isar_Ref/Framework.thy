@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Framework
 imports Base Main
 begin

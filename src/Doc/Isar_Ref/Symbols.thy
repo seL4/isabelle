@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Symbols
 imports Base Main
 begin

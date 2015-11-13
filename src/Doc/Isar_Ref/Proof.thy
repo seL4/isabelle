@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Proof
 imports Base Main
 begin
@@ -5,6 +7,7 @@ begin
 chapter \<open>Proofs \label{ch:proofs}\<close>
 
 text \<open>
+
   Proof commands perform transitions of Isar/VM machine
   configurations, which are block-structured, consisting of a stack of
   nodes with three main components: logical proof context, current

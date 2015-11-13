@@ -1,3 +1,4 @@
+(*:maxLineLen=78:*)
 
 section \<open>Example: First-Order Logic\<close>
 

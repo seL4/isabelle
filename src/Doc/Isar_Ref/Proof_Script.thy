@@ -1,3 +1,5 @@
+(*:maxLineLen=78:*)
+
 theory Proof_Script
 imports Base Main
 begin
