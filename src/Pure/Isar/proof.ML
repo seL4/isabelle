@@ -1066,12 +1066,13 @@ fun local_goal print_results prep_att prep_propp prep_var strict_asm
       Assumption.add_assms
         (if strict_asm then Assumption.assume_export else Assumption.presume_export);
 
-    val (assumes_bindings, shows_bindings) =
-      apply2 (map (apsnd (map (prep_att ctxt)) o fst)) (raw_assumes, raw_shows);
-
+    (*params*)
     val ((params, assumes_propss, shows_propss, result_binds), params_ctxt) = ctxt
       |> prep_clause prep_var prep_propp raw_fixes (map snd raw_assumes) (map snd raw_shows);
 
+    (*prems*)
+    val (assumes_bindings, shows_bindings) =
+      apply2 (map (apsnd (map (prep_att ctxt)) o fst)) (raw_assumes, raw_shows);
     val (that_fact, goal_ctxt) = params_ctxt
       |> fold_burrow add_assumes ((map o map) (Thm.cterm_of params_ctxt) assumes_propss)
       |> (fn (premss, ctxt') =>
@@ -1086,10 +1087,21 @@ fun local_goal print_results prep_att prep_propp prep_var strict_asm
                   (assumes_bindings ~~ map (map (fn th => ([th], []))) premss))
           in (prems, ctxt'') end);
 
-    fun after_qed' (result_ctxt, results) state' = state'
-      |> local_results (shows_bindings ~~ burrow (Proof_Context.export result_ctxt ctxt) results)
-      |-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
-      |> after_qed (result_ctxt, results);
+    (*result*)
+    fun after_qed' (result_ctxt, results) state' =
+      let
+        val ctxt' = context_of state';
+        val export0 =
+          Assumption.export false result_ctxt ctxt' #>
+          fold_rev (fn (x, v) => Thm.forall_intr_name (x, Thm.cterm_of params_ctxt v)) params #>
+          Raw_Simplifier.norm_hhf_protect ctxt';
+        val export = map export0 #> Variable.export result_ctxt ctxt';
+      in
+        state'
+        |> local_results (shows_bindings ~~ burrow export results)
+        |-> (fn res => tap (fn st => print_results (context_of st) ((kind, ""), res) : unit))
+        |> after_qed (result_ctxt, results)
+      end;
   in
     state
     |> generic_goal kind before_qed (after_qed', K I) goal_ctxt shows_propss result_binds
