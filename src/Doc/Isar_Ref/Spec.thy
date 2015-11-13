@@ -16,8 +16,8 @@ text \<open>
 
   The Isar proof language (see \chref{ch:proofs}) is embedded into the theory
   language as a proper sub-language. Proof mode is entered by stating some
-  @{command theorem} or @{command lemma} at the theory level, and left again
-  with the final conclusion (e.g.\ via @{command qed}).
+  \<^theory_text>\<open>theorem\<close> or \<^theory_text>\<open>lemma\<close> at the theory level, and left again with the final
+  conclusion (e.g.\ via \<^theory_text>\<open>qed\<close>).
 \<close>
 
 
@@ -32,28 +32,26 @@ text \<open>
 
   Isabelle/Isar theories are defined via theory files, which consist of an
   outermost sequence of definition--statement--proof elements. Some
-  definitions are self-sufficient (e.g.\ @{command fun} in Isabelle/HOL), with
+  definitions are self-sufficient (e.g.\ \<^theory_text>\<open>fun\<close> in Isabelle/HOL), with
   foundational proofs performed internally. Other definitions require an
-  explicit proof as justification (e.g.\ @{command function} and @{command
-  termination} in Isabelle/HOL). Plain statements like @{command theorem} or
-  @{command lemma} are merely a special case of that, defining a theorem from
-  a given proposition and its proof.
+  explicit proof as justification (e.g.\ \<^theory_text>\<open>function\<close> and \<^theory_text>\<open>termination\<close> in
+  Isabelle/HOL). Plain statements like \<^theory_text>\<open>theorem\<close> or \<^theory_text>\<open>lemma\<close> are merely a
+  special case of that, defining a theorem from a given proposition and its
+  proof.
 
   The theory body may be sub-structured by means of \<^emph>\<open>local theory targets\<close>,
-  such as @{command "locale"} and @{command "class"}. It is also possible to
-  use @{command context}~@{keyword "begin"}~\dots~@{command end} blocks to
-  delimited a local theory context: a \<^emph>\<open>named context\<close> to augment a locale or
-  class specification, or an \<^emph>\<open>unnamed context\<close> to refer to local parameters
-  and assumptions that are discharged later. See \secref{sec:target} for more
-  details.
+  such as \<^theory_text>\<open>locale\<close> and \<^theory_text>\<open>class\<close>. It is also possible to use
+  \<^theory_text>\<open>context begin \<dots> end\<close> blocks to delimited a local theory context: a \<^emph>\<open>named
+  context\<close> to augment a locale or class specification, or an \<^emph>\<open>unnamed
+  context\<close> to refer to local parameters and assumptions that are discharged
+  later. See \secref{sec:target} for more details.
 
   \<^medskip>
-  A theory is commenced by the @{command "theory"} command, which indicates
-  imports of previous theories, according to an acyclic foundational order.
-  Before the initial @{command "theory"} command, there may be optional
-  document header material (like @{command section} or @{command text}, see
-  \secref{sec:markup}). The document header is outside of the formal theory
-  context, though.
+  A theory is commenced by the \<^theory_text>\<open>theory\<close> command, which indicates imports of
+  previous theories, according to an acyclic foundational order. Before the
+  initial \<^theory_text>\<open>theory\<close> command, there may be optional document header material
+  (like \<^theory_text>\<open>section\<close> or \<^theory_text>\<open>text\<close>, see \secref{sec:markup}). The document header
+  is outside of the formal theory context, though.
 
   A theory is concluded by a final @{command (global) "end"} command, one that
   does not belong to a local theory target. No further commands may follow
@@ -74,13 +72,13 @@ text \<open>
     thy_bounds: @{syntax name} | '(' (@{syntax name} + @'|') ')'
   \<close>}
 
-  \<^descr> @{command "theory"}~\<open>A \<IMPORTS> B\<^sub>1 \<dots> B\<^sub>n \<BEGIN>\<close> starts a new theory
-  \<open>A\<close> based on the merge of existing theories \<open>B\<^sub>1 \<dots> B\<^sub>n\<close>. Due to the
-  possibility to import more than one ancestor, the resulting theory structure
-  of an Isabelle session forms a directed acyclic graph (DAG). Isabelle takes
-  care that sources contributing to the development graph are always
-  up-to-date: changed files are automatically rechecked whenever a theory
-  header specification is processed.
+  \<^descr> \<^theory_text>\<open>theory A imports B\<^sub>1 \<dots> B\<^sub>n begin\<close> starts a new theory \<open>A\<close> based on the
+  merge of existing theories \<open>B\<^sub>1 \<dots> B\<^sub>n\<close>. Due to the possibility to import
+  more than one ancestor, the resulting theory structure of an Isabelle
+  session forms a directed acyclic graph (DAG). Isabelle takes care that
+  sources contributing to the development graph are always up-to-date: changed
+  files are automatically rechecked whenever a theory header specification is
+  processed.
 
   Empty imports are only allowed in the bootstrap process of the special
   theory @{theory Pure}, which is the start of any other formal development
@@ -103,14 +101,14 @@ text \<open>
   the default is the corresponding keyword name.
   
   \<^descr> @{command (global) "end"} concludes the current theory definition. Note
-  that some other commands, e.g.\ local theory targets @{command locale} or
-  @{command class} may involve a @{keyword "begin"} that needs to be matched
-  by @{command (local) "end"}, according to the usual rules for nested blocks.
+  that some other commands, e.g.\ local theory targets \<^theory_text>\<open>locale\<close> or \<^theory_text>\<open>class\<close>
+  may involve a \<^theory_text>\<open>begin\<close> that needs to be matched by @{command (local) "end"},
+  according to the usual rules for nested blocks.
 
-  \<^descr> @{command thy_deps} visualizes the theory hierarchy as a directed acyclic
-  graph. By default, all imported theories are shown, taking the base session
-  as a starting point. Alternatively, it is possibly to restrict the full
-  theory graph by giving bounds, analogously to @{command_ref class_deps}.
+  \<^descr> \<^theory_text>\<open>thy_deps\<close> visualizes the theory hierarchy as a directed acyclic graph.
+  By default, all imported theories are shown, taking the base session as a
+  starting point. Alternatively, it is possibly to restrict the full theory
+  graph by giving bounds, analogously to @{command_ref class_deps}.
 \<close>
 
 
@@ -135,8 +133,8 @@ text \<open>
 
   \<^emph>\<open>Unnamed contexts\<close> may introduce additional parameters and assumptions, and
   results produced in the context are generalized accordingly. Such auxiliary
-  contexts may be nested within other targets, like @{command "locale"},
-  @{command "class"}, @{command "instantiation"}, @{command "overloading"}.
+  contexts may be nested within other targets, like \<^theory_text>\<open>locale\<close>, \<^theory_text>\<open>class\<close>,
+  \<^theory_text>\<open>instantiation\<close>, \<^theory_text>\<open>overloading\<close>.
 
   @{rail \<open>
     @@{command context} @{syntax nameref} @'begin'
@@ -146,44 +144,43 @@ text \<open>
     @{syntax_def target}: '(' @'in' @{syntax nameref} ')'
   \<close>}
 
-  \<^descr> @{command "context"}~\<open>c \<BEGIN>\<close> opens a named context, by recommencing
-  an existing locale or class \<open>c\<close>. Note that locale and class definitions
-  allow to include the @{keyword "begin"} keyword as well, in order to
-  continue the local theory immediately after the initial specification.
+  \<^descr> \<^theory_text>\<open>context c begin\<close> opens a named context, by recommencing an existing
+  locale or class \<open>c\<close>. Note that locale and class definitions allow to include
+  the \<^theory_text>\<open>begin\<close> keyword as well, in order to continue the local theory
+  immediately after the initial specification.
 
-  \<^descr> @{command "context"}~\<open>bundles elements \<BEGIN>\<close> opens an unnamed context,
-  by extending the enclosing global or local theory target by the given
-  declaration bundles (\secref{sec:bundle}) and context elements (\<open>\<FIXES>\<close>,
-  \<open>\<ASSUMES>\<close> etc.). This means any results stemming from definitions and
-  proofs in the extended context will be exported into the enclosing target by
-  lifting over extra parameters and premises.
+  \<^descr> \<^theory_text>\<open>context bundles elements begin\<close> opens an unnamed context, by extending
+  the enclosing global or local theory target by the given declaration bundles
+  (\secref{sec:bundle}) and context elements (\<^theory_text>\<open>fixes\<close>, \<^theory_text>\<open>assumes\<close> etc.). This
+  means any results stemming from definitions and proofs in the extended
+  context will be exported into the enclosing target by lifting over extra
+  parameters and premises.
   
   \<^descr> @{command (local) "end"} concludes the current local theory, according to
   the nesting of contexts. Note that a global @{command (global) "end"} has a
   different meaning: it concludes the theory itself (\secref{sec:begin-thy}).
   
-  \<^descr> @{keyword "private"} or @{keyword "qualified"} may be given as modifiers
-  before any local theory command. This restricts name space accesses to the
-  local scope, as determined by the enclosing @{command "context"}~@{keyword
-  "begin"}~\dots~@{command "end"} block. Outside its scope, a @{keyword
-  "private"} name is inaccessible, and a @{keyword "qualified"} name is only
+  \<^descr> \<^theory_text>\<open>private\<close> or \<^theory_text>\<open>qualified\<close> may be given as modifiers before any local
+  theory command. This restricts name space accesses to the local scope, as
+  determined by the enclosing \<^theory_text>\<open>context begin \<dots> end\<close> block. Outside its scope,
+  a \<^theory_text>\<open>private\<close> name is inaccessible, and a \<^theory_text>\<open>qualified\<close> name is only
   accessible with some qualification.
 
-  Neither a global @{command theory} nor a @{command locale} target provides a
-  local scope by itself: an extra unnamed context is required to use @{keyword
-  "private"} or @{keyword "qualified"} here.
+  Neither a global \<^theory_text>\<open>theory\<close> nor a \<^theory_text>\<open>locale\<close> target provides a local scope by
+  itself: an extra unnamed context is required to use \<^theory_text>\<open>private\<close> or
+  \<^theory_text>\<open>qualified\<close> here.
 
   \<^descr> \<open>(\<close>@{keyword_def "in"}~\<open>c)\<close> given after any local theory command specifies
-  an immediate target, e.g.\ ``@{command "definition"}~\<open>(\<IN> c)\<close>'' or
-  ``@{command "theorem"}~\<open>(\<IN> c)\<close>''. This works both in a local or global
-  theory context; the current target context will be suspended for this
-  command only. Note that ``\<open>(\<IN> -)\<close>'' will always produce a global result
-  independently of the current target context.
+  an immediate target, e.g.\ ``\<^theory_text>\<open>definition (in c)\<close>'' or
+  ``\<^theory_text>\<open>theorem (in c)\<close>''. This works both in a local or global theory context;
+  the current target context will be suspended for this command only. Note
+  that ``\<^theory_text>\<open>(in -)\<close>'' will always produce a global result independently of the
+  current target context.
 
 
   Any specification element that operates on \<open>local_theory\<close> according to this
-  manual implicitly allows the above target syntax \<open>(\<close>@{keyword "in"}~\<open>c)\<close>,
-  but individual syntax diagrams omit that aspect for clarity.
+  manual implicitly allows the above target syntax \<^theory_text>\<open>(in c)\<close>, but individual
+  syntax diagrams omit that aspect for clarity.
 
   \<^medskip>
   The exact meaning of results produced within a local theory context depends
@@ -238,26 +235,26 @@ text \<open>
     @{syntax_def "includes"}: @'includes' (@{syntax nameref}+)
   \<close>}
 
-  \<^descr> @{command bundle}~\<open>b = decls\<close> defines a bundle of declarations in the
-  current context. The RHS is similar to the one of the @{command declare}
-  command. Bundles defined in local theory targets are subject to
-  transformations via morphisms, when moved into different application
-  contexts; this works analogously to any other local theory specification.
+  \<^descr> \<^theory_text>\<open>bundle b = decls\<close> defines a bundle of declarations in the current
+  context. The RHS is similar to the one of the \<^theory_text>\<open>declare\<close> command. Bundles
+  defined in local theory targets are subject to transformations via
+  morphisms, when moved into different application contexts; this works
+  analogously to any other local theory specification.
 
-  \<^descr> @{command print_bundles} prints the named bundles that are available in
-  the current context; the ``\<open>!\<close>'' option indicates extra verbosity.
+  \<^descr> \<^theory_text>\<open>print_bundles\<close> prints the named bundles that are available in the
+  current context; the ``\<open>!\<close>'' option indicates extra verbosity.
 
-  \<^descr> @{command include}~\<open>b\<^sub>1 \<dots> b\<^sub>n\<close> includes the declarations from the given
-  bundles into the current proof body context. This is analogous to @{command
-  "note"} (\secref{sec:proof-facts}) with the expanded bundles.
-
-  \<^descr> @{command including} is similar to @{command include}, but works in proof
-  refinement (backward mode). This is analogous to @{command "using"}
+  \<^descr> \<^theory_text>\<open>include b\<^sub>1 \<dots> b\<^sub>n\<close> includes the declarations from the given bundles into
+  the current proof body context. This is analogous to \<^theory_text>\<open>note\<close>
   (\secref{sec:proof-facts}) with the expanded bundles.
 
-  \<^descr> @{keyword "includes"}~\<open>b\<^sub>1 \<dots> b\<^sub>n\<close> is similar to @{command include}, but
-  works in situations where a specification context is constructed, notably
-  for @{command context} and long statements of @{command theorem} etc.
+  \<^descr> \<^theory_text>\<open>including\<close> is similar to \<^theory_text>\<open>include\<close>, but works in proof refinement
+  (backward mode). This is analogous to \<^theory_text>\<open>using\<close> (\secref{sec:proof-facts})
+  with the expanded bundles.
+
+  \<^descr> \<^theory_text>\<open>includes b\<^sub>1 \<dots> b\<^sub>n\<close> is similar to \<^theory_text>\<open>include\<close>, but works in situations
+  where a specification context is constructed, notably for \<^theory_text>\<open>context\<close> and
+  long statements of \<^theory_text>\<open>theorem\<close> etc.
 
 
   Here is an artificial example of bundling various configuration options:
@@ -298,24 +295,23 @@ text \<open>
     @@{command print_abbrevs} ('!'?)
   \<close>}
 
-  \<^descr> @{command "definition"}~\<open>c \<WHERE> eq\<close> produces an internal definition \<open>c
-  \<equiv> t\<close> according to the specification given as \<open>eq\<close>, which is then turned into
-  a proven fact. The given proposition may deviate from internal meta-level
-  equality according to the rewrite rules declared as @{attribute defn} by the
+  \<^descr> \<^theory_text>\<open>definition c where eq\<close> produces an internal definition \<open>c \<equiv> t\<close> according
+  to the specification given as \<open>eq\<close>, which is then turned into a proven fact.
+  The given proposition may deviate from internal meta-level equality
+  according to the rewrite rules declared as @{attribute defn} by the
   object-logic. This usually covers object-level equality \<open>x = y\<close> and
-  equivalence \<open>A \<leftrightarrow> B\<close>. End-users normally need not change the @{attribute
+  equivalence \<open>A \<longleftrightarrow> B\<close>. End-users normally need not change the @{attribute
   defn} setup.
   
   Definitions may be presented with explicit arguments on the LHS, as well as
   additional conditions, e.g.\ \<open>f x y = t\<close> instead of \<open>f \<equiv> \<lambda>x y. t\<close> and \<open>y \<noteq> 0
   \<Longrightarrow> g x y = u\<close> instead of an unrestricted \<open>g \<equiv> \<lambda>x y. u\<close>.
 
-  \<^descr> @{command "print_defn_rules"} prints the definitional rewrite rules
-  declared via @{attribute defn} in the current context.
+  \<^descr> \<^theory_text>\<open>print_defn_rules\<close> prints the definitional rewrite rules declared via
+  @{attribute defn} in the current context.
 
-  \<^descr> @{command "abbreviation"}~\<open>c \<WHERE> eq\<close> introduces a syntactic constant
-  which is associated with a certain term according to the meta-level equality
-  \<open>eq\<close>.
+  \<^descr> \<^theory_text>\<open>abbreviation c where eq\<close> introduces a syntactic constant which is
+  associated with a certain term according to the meta-level equality \<open>eq\<close>.
   
   Abbreviations participate in the usual type-inference process, but are
   expanded before the logic ever sees them. Pretty printing of terms involves
@@ -324,12 +320,12 @@ text \<open>
   
   The optional \<open>mode\<close> specification restricts output to a particular print
   mode; using ``\<open>input\<close>'' here achieves the effect of one-way abbreviations.
-  The mode may also include an ``@{keyword "output"}'' qualifier that affects
-  the concrete syntax declared for abbreviations, cf.\ @{command "syntax"} in
+  The mode may also include an ``\<^theory_text>\<open>output\<close>'' qualifier that affects the
+  concrete syntax declared for abbreviations, cf.\ \<^theory_text>\<open>syntax\<close> in
   \secref{sec:syn-trans}.
   
-  \<^descr> @{command "print_abbrevs"} prints all constant abbreviations of the
-  current context; the ``\<open>!\<close>'' option indicates extra verbosity.
+  \<^descr> \<^theory_text>\<open>print_abbrevs\<close> prints all constant abbreviations of the current context;
+  the ``\<open>!\<close>'' option indicates extra verbosity.
 \<close>
 
 
@@ -346,13 +342,13 @@ text \<open>
     specs: (@{syntax thmdecl}? @{syntax props} + @'and')
   \<close>}
 
-  \<^descr> @{command "axiomatization"}~\<open>c\<^sub>1 \<dots> c\<^sub>m \<WHERE> \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n\<close> introduces
-  several constants simultaneously and states axiomatic properties for these.
-  The constants are marked as being specified once and for all, which prevents
-  additional specifications for the same constants later on, but it is always
-  possible do emit axiomatizations without referring to particular constants.
-  Note that lack of precise dependency tracking of axiomatizations may disrupt
-  the well-formedness of an otherwise definitional theory.
+  \<^descr> \<^theory_text>\<open>axiomatization c\<^sub>1 \<dots> c\<^sub>m where \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n\<close> introduces several constants
+  simultaneously and states axiomatic properties for these. The constants are
+  marked as being specified once and for all, which prevents additional
+  specifications for the same constants later on, but it is always possible do
+  emit axiomatizations without referring to particular constants. Note that
+  lack of precise dependency tracking of axiomatizations may disrupt the
+  well-formedness of an otherwise definitional theory.
 
   Axiomatization is restricted to a global theory context: support for local
   theory targets \secref{sec:target} would introduce an extra dimension of
@@ -390,23 +386,23 @@ text \<open>
     @@{command declare} (@{syntax thmrefs} + @'and')
   \<close>}
 
-  \<^descr> @{command "declaration"}~\<open>d\<close> adds the declaration function \<open>d\<close> of ML type
-  @{ML_type declaration}, to the current local theory under construction. In
-  later application contexts, the function is transformed according to the
-  morphisms being involved in the interpretation hierarchy.
+  \<^descr> \<^theory_text>\<open>declaration d\<close> adds the declaration function \<open>d\<close> of ML type @{ML_type
+  declaration}, to the current local theory under construction. In later
+  application contexts, the function is transformed according to the morphisms
+  being involved in the interpretation hierarchy.
 
-  If the \<open>(pervasive)\<close> option is given, the corresponding declaration is
+  If the \<^theory_text>\<open>(pervasive)\<close> option is given, the corresponding declaration is
   applied to all possible contexts involved, including the global background
   theory.
 
-  \<^descr> @{command "syntax_declaration"} is similar to @{command "declaration"},
-  but is meant to affect only ``syntactic'' tools by convention (such as
-  notation and type-checking information).
+  \<^descr> \<^theory_text>\<open>syntax_declaration\<close> is similar to \<^theory_text>\<open>declaration\<close>, but is meant to affect
+  only ``syntactic'' tools by convention (such as notation and type-checking
+  information).
 
-  \<^descr> @{command "declare"}~\<open>thms\<close> declares theorems to the current local theory
-  context. No theorem binding is involved here, unlike @{command "lemmas"}
-  (cf.\ \secref{sec:theorems}), so @{command "declare"} only has the effect of
-  applying attributes as included in the theorem specification.
+  \<^descr> \<^theory_text>\<open>declare thms\<close> declares theorems to the current local theory context. No
+  theorem binding is involved here, unlike \<^theory_text>\<open>lemmas\<close> (cf.\
+  \secref{sec:theorems}), so \<^theory_text>\<open>declare\<close> only has the effect of applying
+  attributes as included in the theorem specification.
 \<close>
 
 
@@ -461,10 +457,9 @@ text \<open>
 
   Terms in instantiations are from the context the locale expressions is
   declared in. Local names may be added to this context with the optional
-  @{keyword "for"} clause. This is useful for shadowing names bound in outer
-  contexts, and for declaring syntax. In addition, syntax declarations from
-  one instance are effective when parsing subsequent instances of the same
-  expression.
+  \<^theory_text>\<open>for\<close> clause. This is useful for shadowing names bound in outer contexts,
+  and for declaring syntax. In addition, syntax declarations from one instance
+  are effective when parsing subsequent instances of the same expression.
 
   Instances have an optional qualifier which applies to names in declarations.
   Names include local definitions and theorem names. If present, the qualifier
@@ -510,22 +505,22 @@ text \<open>
       @'notes' (@{syntax thmdef}? @{syntax thmrefs} + @'and')
   \<close>}
 
-  \<^descr> @{command "locale"}~\<open>loc = import + body\<close> defines a new locale \<open>loc\<close> as a
-  context consisting of a certain view of existing locales (\<open>import\<close>) plus
-  some additional elements (\<open>body\<close>). Both \<open>import\<close> and \<open>body\<close> are optional;
-  the degenerate form @{command "locale"}~\<open>loc\<close> defines an empty locale, which
-  may still be useful to collect declarations of facts later on.
-  Type-inference on locale expressions automatically takes care of the most
-  general typing that the combined context elements may acquire.
+  \<^descr> \<^theory_text>\<open>locale loc = import + body\<close> defines a new locale \<open>loc\<close> as a context
+  consisting of a certain view of existing locales (\<open>import\<close>) plus some
+  additional elements (\<open>body\<close>). Both \<open>import\<close> and \<open>body\<close> are optional; the
+  degenerate form \<^theory_text>\<open>locale loc\<close> defines an empty locale, which may still be
+  useful to collect declarations of facts later on. Type-inference on locale
+  expressions automatically takes care of the most general typing that the
+  combined context elements may acquire.
 
   The \<open>import\<close> consists of a locale expression; see \secref{sec:proof-context}
-  above. Its @{keyword "for"} clause defines the parameters of \<open>import\<close>. These
-  are parameters of the defined locale. Locale parameters whose instantiation
-  is omitted automatically extend the (possibly empty) @{keyword "for"}
-  clause: they are inserted at its beginning. This means that these parameters
-  may be referred to from within the expression and also in the subsequent
-  context elements and provides a notational convenience for the inheritance
-  of parameters in locale declarations.
+  above. Its \<^theory_text>\<open>for\<close> clause defines the parameters of \<open>import\<close>. These are
+  parameters of the defined locale. Locale parameters whose instantiation is
+  omitted automatically extend the (possibly empty) \<^theory_text>\<open>for\<close> clause: they are
+  inserted at its beginning. This means that these parameters may be referred
+  to from within the expression and also in the subsequent context elements
+  and provides a notational convenience for the inheritance of parameters in
+  locale declarations.
 
   The \<open>body\<close> consists of context elements.
 
@@ -536,14 +531,14 @@ text \<open>
 
     \<^descr> @{element "constrains"}~\<open>x :: \<tau>\<close> introduces a type constraint \<open>\<tau>\<close> on the
     local parameter \<open>x\<close>. This element is deprecated. The type constraint
-    should be introduced in the @{keyword "for"} clause or the relevant
-    @{element "fixes"} element.
+    should be introduced in the \<^theory_text>\<open>for\<close> clause or the relevant @{element
+    "fixes"} element.
 
     \<^descr> @{element "assumes"}~\<open>a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n\<close> introduces local premises, similar
-    to @{command "assume"} within a proof (cf.\ \secref{sec:proof-context}).
+    to \<^theory_text>\<open>assume\<close> within a proof (cf.\ \secref{sec:proof-context}).
 
     \<^descr> @{element "defines"}~\<open>a: x \<equiv> t\<close> defines a previously declared parameter.
-    This is similar to @{command "def"} within a proof (cf.\
+    This is similar to \<^theory_text>\<open>def\<close> within a proof (cf.\
     \secref{sec:proof-context}), but @{element "defines"} takes an equational
     proposition instead of variable-term pair. The left-hand side of the
     equation may have additional arguments, e.g.\ ``@{element "defines"}~\<open>f
@@ -556,10 +551,10 @@ text \<open>
 
   Both @{element "assumes"} and @{element "defines"} elements contribute to
   the locale specification. When defining an operation derived from the
-  parameters, @{command "definition"} (\secref{sec:term-definitions}) is
-  usually more appropriate.
+  parameters, \<^theory_text>\<open>definition\<close> (\secref{sec:term-definitions}) is usually more
+  appropriate.
   
-  Note that ``\<open>(\<IS> p\<^sub>1 \<dots> p\<^sub>n)\<close>'' patterns given in the syntax of @{element
+  Note that ``\<^theory_text>\<open>(is p\<^sub>1 \<dots> p\<^sub>n)\<close>'' patterns given in the syntax of @{element
   "assumes"} and @{element "defines"} above are illegal in locale definitions.
   In the long goal format of \secref{sec:goals}, term bindings may be included
   as expected, though.
@@ -580,21 +575,20 @@ text \<open>
   Separate introduction rules \<open>loc_axioms.intro\<close> and \<open>loc.intro\<close> are provided
   as well.
 
-  \<^descr> @{command experiment}~\<open>exprs\<close>~@{keyword "begin"} opens an anonymous locale
-  context with private naming policy. Specifications in its body are
-  inaccessible from outside. This is useful to perform experiments, without
-  polluting the name space.
+  \<^descr> \<^theory_text>\<open>experiment exprs begin\<close> opens an anonymous locale context with private
+  naming policy. Specifications in its body are inaccessible from outside.
+  This is useful to perform experiments, without polluting the name space.
 
-  \<^descr> @{command "print_locale"}~\<open>locale\<close> prints the contents of the named
-  locale. The command omits @{element "notes"} elements by default. Use
-  @{command "print_locale"}\<open>!\<close> to have them included.
+  \<^descr> \<^theory_text>\<open>print_locale locale\<close> prints the contents of the named locale. The
+  command omits @{element "notes"} elements by default. Use \<^theory_text>\<open>print_locale!\<close>
+  to have them included.
 
-  \<^descr> @{command "print_locales"} prints the names of all locales of the current
-  theory; the ``\<open>!\<close>'' option indicates extra verbosity.
+  \<^descr> \<^theory_text>\<open>print_locales\<close> prints the names of all locales of the current theory;
+  the ``\<open>!\<close>'' option indicates extra verbosity.
 
-  \<^descr> @{command "locale_deps"} visualizes all locales and their relations as a
-  Hasse diagram. This includes locales defined as type classes
-  (\secref{sec:class}). See also @{command "print_dependencies"} below.
+  \<^descr> \<^theory_text>\<open>locale_deps\<close> visualizes all locales and their relations as a Hasse
+  diagram. This includes locales defined as type classes (\secref{sec:class}).
+  See also \<^theory_text>\<open>print_dependencies\<close> below.
 
   \<^descr> @{method intro_locales} and @{method unfold_locales} repeatedly expand all
   introduction rules of locale predicates of the theory. While @{method
@@ -621,9 +615,8 @@ text \<open>
   Locales may be instantiated, and the resulting instantiated declarations
   added to the current context. This requires proof (of the instantiated
   specification) and is called \<^emph>\<open>locale interpretation\<close>. Interpretation is
-  possible in locales (@{command "sublocale"}), global and local theories
-  (@{command "interpretation"}) and also within proof bodies (@{command
-  "interpret"}).
+  possible in locales (\<^theory_text>\<open>sublocale\<close>), global and local theories
+  (\<^theory_text>\<open>interpretation\<close>) and also within proof bodies (\<^theory_text>\<open>interpret\<close>).
 
   @{rail \<open>
     @@{command interpretation} @{syntax locale_expr} equations?
@@ -641,11 +634,11 @@ text \<open>
     equations: @'rewrites' (@{syntax thmdecl}? @{syntax prop} + @'and')
   \<close>}
 
-  \<^descr> @{command "interpretation"}~\<open>expr\<close>~@{keyword "rewrites"}~\<open>eqns\<close> interprets
-  \<open>expr\<close> in a global or local theory. The command generates proof obligations
-  for the instantiated specifications. Once these are discharged by the user,
-  instantiated declarations (in particular, facts) are added to the theory in
-  a post-processing phase.
+  \<^descr> \<^theory_text>\<open>interpretation expr rewrites eqns\<close> interprets \<open>expr\<close> in a global or
+  local theory. The command generates proof obligations for the instantiated
+  specifications. Once these are discharged by the user, instantiated
+  declarations (in particular, facts) are added to the theory in a
+  post-processing phase.
 
   The command is aware of interpretations that are already active.
   Post-processing is achieved through a variant of roundup that takes the
@@ -659,40 +652,37 @@ text \<open>
   dynamically participate in any declarations added to locales.
 
   In contrast, the lifetime of an interpretation in a local theory is limited
-  to the current context block. At the closing @{command end} of the block the
+  to the current context block. At the closing \<^theory_text>\<open>end\<close> of the block the
   interpretation and its declarations disappear. This enables establishing
   facts based on interpretations without creating permanent links to the
-  interpreted locale instances, as would be the case with @{command
-  sublocale}. While @{command "interpretation"}~\<open>(\<IN> c) \<dots>\<close> is technically
-  possible, it is not useful since its result is discarded immediately.
+  interpreted locale instances, as would be the case with \<^theory_text>\<open>sublocale\<close>. While
+  \<^theory_text>\<open>interpretation (in c) \<dots>\<close> is technically possible, it is not useful since
+  its result is discarded immediately.
 
   Free variables in the interpreted expression are allowed. They are turned
   into schematic variables in the generated declarations. In order to use a
   free variable whose name is already bound in the context --- for example,
-  because a constant of that name exists --- add it to the @{keyword "for"}
-  clause.
+  because a constant of that name exists --- add it to the \<^theory_text>\<open>for\<close> clause.
 
   The equations \<open>eqns\<close> yield \<^emph>\<open>rewrite morphisms\<close>, which are unfolded during
   post-processing and are useful for interpreting concepts introduced through
   definitions. The equations must be proved.
 
-  \<^descr> @{command "interpret"}~\<open>expr\<close>~@{keyword "rewrites"}~\<open>eqns\<close> interprets
-  \<open>expr\<close> in the proof context and is otherwise similar to interpretation in
-  local theories. Note that for @{command "interpret"} the \<open>eqns\<close> should be
-  explicitly universally quantified.
+  \<^descr> \<^theory_text>\<open>interpret expr rewrites eqns\<close> interprets \<open>expr\<close> in the proof context and
+  is otherwise similar to interpretation in local theories. Note that for
+  \<^theory_text>\<open>interpret\<close> the \<open>eqns\<close> should be explicitly universally quantified.
 
-  \<^descr> @{command "sublocale"}~\<open>name \<subseteq> expr\<close>~@{keyword "rewrites"}~\<open>eqns\<close>
-  interprets \<open>expr\<close> in the locale \<open>name\<close>. A proof that the specification of
-  \<open>name\<close> implies the specification of \<open>expr\<close> is required. As in the localized
-  version of the theorem command, the proof is in the context of \<open>name\<close>. After
-  the proof obligation has been discharged, the locale hierarchy is changed as
-  if \<open>name\<close> imported \<open>expr\<close> (hence the name @{command "sublocale"}). When the
-  context of \<open>name\<close> is subsequently entered, traversing the locale hierarchy
-  will involve the locale instances of \<open>expr\<close>, and their declarations will be
-  added to the context. This makes @{command "sublocale"} dynamic: extensions
-  of a locale that is instantiated in \<open>expr\<close> may take place after the
-  @{command "sublocale"} declaration and still become available in the
-  context. Circular @{command "sublocale"} declarations are allowed as long as
+  \<^descr> \<^theory_text>\<open>sublocale name \<subseteq> expr rewrites eqns\<close> interprets \<open>expr\<close> in the locale
+  \<open>name\<close>. A proof that the specification of \<open>name\<close> implies the specification
+  of \<open>expr\<close> is required. As in the localized version of the theorem command,
+  the proof is in the context of \<open>name\<close>. After the proof obligation has been
+  discharged, the locale hierarchy is changed as if \<open>name\<close> imported \<open>expr\<close>
+  (hence the name \<^theory_text>\<open>sublocale\<close>). When the context of \<open>name\<close> is subsequently
+  entered, traversing the locale hierarchy will involve the locale instances
+  of \<open>expr\<close>, and their declarations will be added to the context. This makes
+  \<^theory_text>\<open>sublocale\<close> dynamic: extensions of a locale that is instantiated in \<open>expr\<close>
+  may take place after the \<^theory_text>\<open>sublocale\<close> declaration and still become available
+  in the context. Circular \<^theory_text>\<open>sublocale\<close> declarations are allowed as long as
   they do not lead to infinite chains.
 
   If interpretations of \<open>name\<close> exist in the current global theory, the command
@@ -701,25 +691,25 @@ text \<open>
 
   The equations \<open>eqns\<close> amend the morphism through which \<open>expr\<close> is interpreted.
   This enables mapping definitions from the interpreted locales to entities of
-  \<open>name\<close> and can help break infinite chains induced by circular @{command
-  "sublocale"} declarations.
+  \<open>name\<close> and can help break infinite chains induced by circular \<^theory_text>\<open>sublocale\<close>
+  declarations.
 
-  In a named context block the @{command sublocale} command may also be used,
-  but the locale argument must be omitted. The command then refers to the
-  locale (or class) target of the context block.
+  In a named context block the \<^theory_text>\<open>sublocale\<close> command may also be used, but the
+  locale argument must be omitted. The command then refers to the locale (or
+  class) target of the context block.
 
-  \<^descr> @{command "print_dependencies"}~\<open>expr\<close> is useful for understanding the
-  effect of an interpretation of \<open>expr\<close> in the current context. It lists all
-  locale instances for which interpretations would be added to the current
-  context. Variant @{command "print_dependencies"}\<open>!\<close> does not generalize
-  parameters and assumes an empty context --- that is, it prints all locale
-  instances that would be considered for interpretation. The latter is useful
-  for understanding the dependencies of a locale expression.
+  \<^descr> \<^theory_text>\<open>print_dependencies expr\<close> is useful for understanding the effect of an
+  interpretation of \<open>expr\<close> in the current context. It lists all locale
+  instances for which interpretations would be added to the current context.
+  Variant \<^theory_text>\<open>print_dependencies!\<close> does not generalize parameters and assumes an
+  empty context --- that is, it prints all locale instances that would be
+  considered for interpretation. The latter is useful for understanding the
+  dependencies of a locale expression.
 
-  \<^descr> @{command "print_interps"}~\<open>locale\<close> lists all interpretations of \<open>locale\<close>
-  in the current theory or proof context, including those due to a combination
-  of an @{command "interpretation"} or @{command "interpret"} and one or
-  several @{command "sublocale"} declarations.
+  \<^descr> \<^theory_text>\<open>print_interps locale\<close> lists all interpretations of \<open>locale\<close> in the
+  current theory or proof context, including those due to a combination of an
+  \<^theory_text>\<open>interpretation\<close> or \<^theory_text>\<open>interpret\<close> and one or several \<^theory_text>\<open>sublocale\<close>
+  declarations.
 
 
   \begin{warn}
@@ -731,7 +721,7 @@ text \<open>
   \begin{warn}
     Since attributes are applied to interpreted theorems, interpretation may
     modify the context of common proof tools, e.g.\ the Simplifier or
-    Classical Reasoner. As the behavior of such tools is \<^emph>\<open>not\<close> stable under
+    Classical Reasoner. As the behaviour of such tools is \<^emph>\<open>not\<close> stable under
     interpretation morphisms, manual declarations might have to be added to
     the target context of the interpretation to revert such declarations.
   \end{warn}
@@ -749,9 +739,9 @@ text \<open>
 subsubsection \<open>Permanent locale interpretation\<close>
 
 text \<open>
-  Permanent locale interpretation is a library extension on top of @{command
-  "interpretation"} and @{command "sublocale"}. It is available by importing
-  theory @{file "~~/src/Tools/Permanent_Interpretation.thy"} and provides
+  Permanent locale interpretation is a library extension on top of
+  \<^theory_text>\<open>interpretation\<close> and \<^theory_text>\<open>sublocale\<close>. It is available by importing theory
+  @{file "~~/src/Tools/Permanent_Interpretation.thy"} and provides
 
     \<^enum> a unified view on arbitrary suitable local theories as interpretation
     target;
@@ -771,23 +761,22 @@ text \<open>
     equations: @'rewrites' (@{syntax thmdecl}? @{syntax prop} + @'and')
   \<close>}
 
-  \<^descr> @{command "permanent_interpretation"}~\<open>expr \<DEFINING> defs\<close>~@{keyword
-  "rewrites"}~\<open>eqns\<close> interprets \<open>expr\<close> in the current local theory. The
-  command generates proof obligations for the instantiated specifications.
-  Instantiated declarations (in particular, facts) are added to the local
-  theory's underlying target in a post-processing phase. When adding
-  declarations to locales, interpreted versions of these declarations are
-  added to any target for all interpretations in that target as well. That is,
-  permanent interpretations dynamically participate in any declarations added
-  to locales.
+  \<^descr> \<^theory_text>\<open>permanent_interpretation expr defining "defs" rewrites eqns\<close> interprets
+  \<open>expr\<close> in the current local theory. The command generates proof obligations
+  for the instantiated specifications. Instantiated declarations (in
+  particular, facts) are added to the local theory's underlying target in a
+  post-processing phase. When adding declarations to locales, interpreted
+  versions of these declarations are added to any target for all
+  interpretations in that target as well. That is, permanent interpretations
+  dynamically participate in any declarations added to locales.
   
   The local theory's underlying target must explicitly support permanent
-  interpretations. Prominent examples are global theories (where @{command
-  "permanent_interpretation"} is technically corresponding to @{command
-  "interpretation"}) and locales (where @{command "permanent_interpretation"}
-  is technically corresponding to @{command "sublocale"}). Unnamed contexts
-  (see \secref{sec:target}) are not admissible since they are non-permanent
-  due to their very nature.
+  interpretations. Prominent examples are global theories (where
+  \<^theory_text>\<open>permanent_interpretation\<close> is technically corresponding to
+  \<^theory_text>\<open>interpretation\<close>) and locales (where \<^theory_text>\<open>permanent_interpretation\<close> is
+  technically corresponding to \<^theory_text>\<open>sublocale\<close>). Unnamed contexts (see
+  \secref{sec:target}) are not admissible since they are non-permanent due to
+  their very nature.
 
   In additions to \<^emph>\<open>rewrite morphisms\<close> specified by \<open>eqns\<close>, also \<^emph>\<open>rewrite
   definitions\<close> may be specified. Semantically, a rewrite definition
@@ -853,9 +842,9 @@ text \<open>
     class_bounds: @{syntax sort} | '(' (@{syntax sort} + @'|') ')'
   \<close>}
 
-  \<^descr> @{command "class"}~\<open>c = superclasses + body\<close> defines a new class \<open>c\<close>,
-  inheriting from \<open>superclasses\<close>. This introduces a locale \<open>c\<close> with import of
-  all locales \<open>superclasses\<close>.
+  \<^descr> \<^theory_text>\<open>class c = superclasses + body\<close> defines a new class \<open>c\<close>, inheriting from
+  \<open>superclasses\<close>. This introduces a locale \<open>c\<close> with import of all locales
+  \<open>superclasses\<close>.
 
   Any @{element "fixes"} in \<open>body\<close> are lifted to the global theory level
   (\<^emph>\<open>class operations\<close> \<open>f\<^sub>1, \<dots>, f\<^sub>n\<close> of class \<open>c\<close>), mapping the local type
@@ -868,53 +857,52 @@ text \<open>
   @{method intro_classes} method takes care of the details of class membership
   proofs.
 
-  \<^descr> @{command "instantiation"}~\<open>t :: (s\<^sub>1, \<dots>, s\<^sub>n)s \<BEGIN>\<close> opens a target
-  (cf.\ \secref{sec:target}) which allows to specify class operations \<open>f\<^sub>1, \<dots>,
-  f\<^sub>n\<close> corresponding to sort \<open>s\<close> at the particular type instance \<open>(\<alpha>\<^sub>1 :: s\<^sub>1,
-  \<dots>, \<alpha>\<^sub>n :: s\<^sub>n) t\<close>. A plain @{command "instance"} command in the target body
-  poses a goal stating these type arities. The target is concluded by an
-  @{command_ref (local) "end"} command.
+  \<^descr> \<^theory_text>\<open>instantiation t :: (s\<^sub>1, \<dots>, s\<^sub>n)s begin\<close> opens a target (cf.\
+  \secref{sec:target}) which allows to specify class operations \<open>f\<^sub>1, \<dots>, f\<^sub>n\<close>
+  corresponding to sort \<open>s\<close> at the particular type instance \<open>(\<alpha>\<^sub>1 :: s\<^sub>1, \<dots>,
+  \<alpha>\<^sub>n :: s\<^sub>n) t\<close>. A plain \<^theory_text>\<open>instance\<close> command in the target body poses a goal
+  stating these type arities. The target is concluded by an @{command_ref
+  (local) "end"} command.
 
   Note that a list of simultaneous type constructors may be given; this
   corresponds nicely to mutually recursive type definitions, e.g.\ in
   Isabelle/HOL.
 
-  \<^descr> @{command "instance"} in an instantiation target body sets up a goal
-  stating the type arities claimed at the opening @{command "instantiation"}.
-  The proof would usually proceed by @{method intro_classes}, and then
-  establish the characteristic theorems of the type classes involved. After
-  finishing the proof, the background theory will be augmented by the proven
-  type arities.
+  \<^descr> \<^theory_text>\<open>instance\<close> in an instantiation target body sets up a goal stating the
+  type arities claimed at the opening \<^theory_text>\<open>instantiation\<close>. The proof would
+  usually proceed by @{method intro_classes}, and then establish the
+  characteristic theorems of the type classes involved. After finishing the
+  proof, the background theory will be augmented by the proven type arities.
 
-  On the theory level, @{command "instance"}~\<open>t :: (s\<^sub>1, \<dots>, s\<^sub>n)s\<close> provides a
-  convenient way to instantiate a type class with no need to specify
-  operations: one can continue with the instantiation proof immediately.
+  On the theory level, \<^theory_text>\<open>instance t :: (s\<^sub>1, \<dots>, s\<^sub>n)s\<close> provides a convenient
+  way to instantiate a type class with no need to specify operations: one can
+  continue with the instantiation proof immediately.
 
-  \<^descr> @{command "subclass"}~\<open>c\<close> in a class context for class \<open>d\<close> sets up a goal
-  stating that class \<open>c\<close> is logically contained in class \<open>d\<close>. After finishing
-  the proof, class \<open>d\<close> is proven to be subclass \<open>c\<close> and the locale \<open>c\<close> is
-  interpreted into \<open>d\<close> simultaneously.
+  \<^descr> \<^theory_text>\<open>subclass c\<close> in a class context for class \<open>d\<close> sets up a goal stating that
+  class \<open>c\<close> is logically contained in class \<open>d\<close>. After finishing the proof,
+  class \<open>d\<close> is proven to be subclass \<open>c\<close> and the locale \<open>c\<close> is interpreted
+  into \<open>d\<close> simultaneously.
 
   A weakened form of this is available through a further variant of @{command
-  instance}: @{command instance}~\<open>c\<^sub>1 \<subseteq> c\<^sub>2\<close> opens a proof that class \<open>c\<^sub>2\<close>
-  implies \<open>c\<^sub>1\<close> without reference to the underlying locales; this is useful if
-  the properties to prove the logical connection are not sufficient on the
-  locale level but on the theory level.
+  instance}: \<^theory_text>\<open>instance c\<^sub>1 \<subseteq> c\<^sub>2\<close> opens a proof that class \<open>c\<^sub>2\<close> implies
+  \<open>c\<^sub>1\<close> without reference to the underlying locales; this is useful if the
+  properties to prove the logical connection are not sufficient on the locale
+  level but on the theory level.
 
-  \<^descr> @{command "print_classes"} prints all classes in the current theory.
+  \<^descr> \<^theory_text>\<open>print_classes\<close> prints all classes in the current theory.
 
-  \<^descr> @{command "class_deps"} visualizes classes and their subclass relations as
-  a directed acyclic graph. By default, all classes from the current theory
+  \<^descr> \<^theory_text>\<open>class_deps\<close> visualizes classes and their subclass relations as a
+  directed acyclic graph. By default, all classes from the current theory
   context are show. This may be restricted by optional bounds as follows:
-  @{command "class_deps"}~\<open>upper\<close> or @{command "class_deps"}~\<open>upper lower\<close>. A
-  class is visualized, iff it is a subclass of some sort from \<open>upper\<close> and a
-  superclass of some sort from \<open>lower\<close>.
+  \<^theory_text>\<open>class_deps upper\<close> or \<^theory_text>\<open>class_deps upper lower\<close>. A class is visualized, iff
+  it is a subclass of some sort from \<open>upper\<close> and a superclass of some sort
+  from \<open>lower\<close>.
 
   \<^descr> @{method intro_classes} repeatedly expands all class introduction rules of
   this theory. Note that this method usually needs not be named explicitly, as
-  it is already included in the default proof step (e.g.\ of @{command
-  "proof"}). In particular, instantiation of trivial (syntactic) classes may
-  be performed by a single ``@{command ".."}'' proof step.
+  it is already included in the default proof step (e.g.\ of \<^theory_text>\<open>proof\<close>). In
+  particular, instantiation of trivial (syntactic) classes may be performed by
+  a single ``\<^theory_text>\<open>..\<close>'' proof step.
 \<close>
 
 
@@ -989,9 +977,9 @@ text \<open>
   as \<open>c :: \<alpha> decl\<close> may be defined separately on type instances \<open>c :: (\<beta>\<^sub>1, \<dots>,
   \<beta>\<^sub>n) t decl\<close> for each type constructor \<open>t\<close>. At most occasions overloading
   will be used in a Haskell-like fashion together with type classes by means
-  of @{command "instantiation"} (see \secref{sec:class}). Sometimes low-level
-  overloading is desirable. The @{command "overloading"} target provides a
-  convenient view for end-users.
+  of \<^theory_text>\<open>instantiation\<close> (see \secref{sec:class}). Sometimes low-level
+  overloading is desirable. The \<^theory_text>\<open>overloading\<close> target provides a convenient
+  view for end-users.
 
   @{rail \<open>
     @@{command overloading} ( spec + ) @'begin'
@@ -999,16 +987,15 @@ text \<open>
     spec: @{syntax name} ( '==' | '\<equiv>' ) @{syntax term} ( '(' @'unchecked' ')' )?
   \<close>}
 
-  \<^descr> @{command "overloading"}~\<open>x\<^sub>1 \<equiv> c\<^sub>1 :: \<tau>\<^sub>1 \<AND> \<dots> x\<^sub>n \<equiv> c\<^sub>n :: \<tau>\<^sub>n
-  \<BEGIN>\<close> opens a theory target (cf.\ \secref{sec:target}) which allows to
-  specify constants with overloaded definitions. These are identified by an
-  explicitly given mapping from variable names \<open>x\<^sub>i\<close> to constants \<open>c\<^sub>i\<close> at
-  particular type instances. The definitions themselves are established using
-  common specification tools, using the names \<open>x\<^sub>i\<close> as reference to the
-  corresponding constants. The target is concluded by @{command (local)
-  "end"}.
+  \<^descr> \<^theory_text>\<open>overloading x\<^sub>1 \<equiv> c\<^sub>1 :: \<tau>\<^sub>1 and \<dots> x\<^sub>n \<equiv> c\<^sub>n :: \<tau>\<^sub>n begin\<close> opens a
+  theory target (cf.\ \secref{sec:target}) which allows to specify constants
+  with overloaded definitions. These are identified by an explicitly given
+  mapping from variable names \<open>x\<^sub>i\<close> to constants \<open>c\<^sub>i\<close> at particular type
+  instances. The definitions themselves are established using common
+  specification tools, using the names \<open>x\<^sub>i\<close> as reference to the corresponding
+  constants. The target is concluded by @{command (local) "end"}.
 
-  A \<open>(unchecked)\<close> option disables global dependency checks for the
+  A \<^theory_text>\<open>(unchecked)\<close> option disables global dependency checks for the
   corresponding definition, which is occasionally useful for exotic
   overloading (see \secref{sec:consts} for a precise description). It is at
   the discretion of the user to avoid malformed theory specifications!
@@ -1044,47 +1031,45 @@ text \<open>
     @@{command attribute_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
   \<close>}
 
-  \<^descr> @{command "SML_file"}~\<open>name\<close> reads and evaluates the given Standard ML
-  file. Top-level SML bindings are stored within the theory context; the
-  initial environment is restricted to the Standard ML implementation of
-  Poly/ML, without the many add-ons of Isabelle/ML. Multiple @{command
-  "SML_file"} commands may be used to build larger Standard ML projects,
-  independently of the regular Isabelle/ML environment.
+  \<^descr> \<^theory_text>\<open>SML_file name\<close> reads and evaluates the given Standard ML file. Top-level
+  SML bindings are stored within the theory context; the initial environment
+  is restricted to the Standard ML implementation of Poly/ML, without the many
+  add-ons of Isabelle/ML. Multiple \<^theory_text>\<open>SML_file\<close> commands may be used to build
+  larger Standard ML projects, independently of the regular Isabelle/ML
+  environment.
 
-  \<^descr> @{command "ML_file"}~\<open>name\<close> reads and evaluates the given ML file. The
-  current theory context is passed down to the ML toplevel and may be
-  modified, using @{ML "Context.>>"} or derived ML commands. Top-level ML
-  bindings are stored within the (global or local) theory context.
+  \<^descr> \<^theory_text>\<open>ML_file name\<close> reads and evaluates the given ML file. The current theory
+  context is passed down to the ML toplevel and may be modified, using @{ML
+  "Context.>>"} or derived ML commands. Top-level ML bindings are stored
+  within the (global or local) theory context.
   
-  \<^descr> @{command "ML"}~\<open>text\<close> is similar to @{command "ML_file"}, but evaluates
-  directly the given \<open>text\<close>. Top-level ML bindings are stored within the
-  (global or local) theory context.
+  \<^descr> \<^theory_text>\<open>ML text\<close> is similar to \<^theory_text>\<open>ML_file\<close>, but evaluates directly the given
+  \<open>text\<close>. Top-level ML bindings are stored within the (global or local) theory
+  context.
 
-  \<^descr> @{command "ML_prf"} is analogous to @{command "ML"} but works within a
-  proof context. Top-level ML bindings are stored within the proof context in
-  a purely sequential fashion, disregarding the nested proof structure. ML
-  bindings introduced by @{command "ML_prf"} are discarded at the end of the
-  proof.
+  \<^descr> \<^theory_text>\<open>ML_prf\<close> is analogous to \<^theory_text>\<open>ML\<close> but works within a proof context.
+  Top-level ML bindings are stored within the proof context in a purely
+  sequential fashion, disregarding the nested proof structure. ML bindings
+  introduced by \<^theory_text>\<open>ML_prf\<close> are discarded at the end of the proof.
 
-  \<^descr> @{command "ML_val"} and @{command "ML_command"} are diagnostic versions of
-  @{command "ML"}, which means that the context may not be updated. @{command
-  "ML_val"} echos the bindings produced at the ML toplevel, but @{command
-  "ML_command"} is silent.
+  \<^descr> \<^theory_text>\<open>ML_val\<close> and \<^theory_text>\<open>ML_command\<close> are diagnostic versions of \<^theory_text>\<open>ML\<close>, which means
+  that the context may not be updated. \<^theory_text>\<open>ML_val\<close> echos the bindings produced
+  at the ML toplevel, but \<^theory_text>\<open>ML_command\<close> is silent.
   
-  \<^descr> @{command "setup"}~\<open>text\<close> changes the current theory context by applying
-  \<open>text\<close>, which refers to an ML expression of type @{ML_type "theory ->
-  theory"}. This enables to initialize any object-logic specific tools and
-  packages written in ML, for example.
+  \<^descr> \<^theory_text>\<open>setup "text"\<close> changes the current theory context by applying \<open>text\<close>,
+  which refers to an ML expression of type @{ML_type "theory -> theory"}. This
+  enables to initialize any object-logic specific tools and packages written
+  in ML, for example.
 
-  \<^descr> @{command "local_setup"} is similar to @{command "setup"} for a local
-  theory context, and an ML expression of type @{ML_type "local_theory ->
-  local_theory"}. This allows to invoke local theory specification packages
-  without going through concrete outer syntax, for example.
+  \<^descr> \<^theory_text>\<open>local_setup\<close> is similar to \<^theory_text>\<open>setup\<close> for a local theory context, and an
+  ML expression of type @{ML_type "local_theory -> local_theory"}. This allows
+  to invoke local theory specification packages without going through concrete
+  outer syntax, for example.
 
-  \<^descr> @{command "attribute_setup"}~\<open>name = text description\<close> defines an
-  attribute in the current context. The given \<open>text\<close> has to be an ML
-  expression of type @{ML_type "attribute context_parser"}, cf.\ basic parsers
-  defined in structure @{ML_structure Args} and @{ML_structure Attrib}.
+  \<^descr> \<^theory_text>\<open>attribute_setup name = "text" description\<close> defines an attribute in the
+  current context. The given \<open>text\<close> has to be an ML expression of type
+  @{ML_type "attribute context_parser"}, cf.\ basic parsers defined in
+  structure @{ML_structure Args} and @{ML_structure Attrib}.
 
   In principle, attributes can operate both on a given theorem and the
   implicit context, although in practice only one is modified and the other
@@ -1142,10 +1127,10 @@ text \<open>
     @@{command default_sort} @{syntax sort}
   \<close>}
 
-  \<^descr> @{command "default_sort"}~\<open>s\<close> makes sort \<open>s\<close> the new default sort for any
-  type variable that is given explicitly in the text, but lacks a sort
-  constraint (wrt.\ the current context). Type variables generated by type
-  inference are not affected.
+  \<^descr> \<^theory_text>\<open>default_sort s\<close> makes sort \<open>s\<close> the new default sort for any type
+  variable that is given explicitly in the text, but lacks a sort constraint
+  (wrt.\ the current context). Type variables generated by type inference are
+  not affected.
 
   Usually the default sort is only changed when defining a new object-logic.
   For example, the default sort in Isabelle/HOL is @{class type}, the class of
@@ -1170,16 +1155,14 @@ text \<open>
     @@{command typedecl} @{syntax typespec} @{syntax mixfix}?
   \<close>}
 
-  \<^descr> @{command "type_synonym"}~\<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = \<tau>\<close> introduces a \<^emph>\<open>type
-  synonym\<close> \<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t\<close> for the existing type \<open>\<tau>\<close>. Unlike the semantic
-  type definitions in Isabelle/HOL, type synonyms are merely syntactic
-  abbreviations without any logical significance. Internally, type synonyms
-  are fully expanded.
+  \<^descr> \<^theory_text>\<open>type_synonym (\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = \<tau>\<close> introduces a \<^emph>\<open>type synonym\<close> \<open>(\<alpha>\<^sub>1, \<dots>,
+  \<alpha>\<^sub>n) t\<close> for the existing type \<open>\<tau>\<close>. Unlike the semantic type definitions in
+  Isabelle/HOL, type synonyms are merely syntactic abbreviations without any
+  logical significance. Internally, type synonyms are fully expanded.
   
-  \<^descr> @{command "typedecl"}~\<open>(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t\<close> declares a new type constructor
-  \<open>t\<close>. If the object-logic defines a base sort \<open>s\<close>, then the constructor is
-  declared to operate on that, via the axiomatic type-class instance \<open>t :: (s,
-  \<dots>, s)s\<close>.
+  \<^descr> \<^theory_text>\<open>typedecl (\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t\<close> declares a new type constructor \<open>t\<close>. If the
+  object-logic defines a base sort \<open>s\<close>, then the constructor is declared to
+  operate on that, via the axiomatic type-class instance \<open>t :: (s, \<dots>, s)s\<close>.
 
 
   \begin{warn}
@@ -1241,20 +1224,20 @@ text \<open>
     opt: '(' @'unchecked'? @'overloaded'? ')'
   \<close>}
 
-  \<^descr> @{command "consts"}~\<open>c :: \<sigma>\<close> declares constant \<open>c\<close> to have any instance of
-  type scheme \<open>\<sigma>\<close>. The optional mixfix annotations may attach concrete syntax
-  to the constants declared.
+  \<^descr> \<^theory_text>\<open>consts c :: \<sigma>\<close> declares constant \<open>c\<close> to have any instance of type scheme
+  \<open>\<sigma>\<close>. The optional mixfix annotations may attach concrete syntax to the
+  constants declared.
   
-  \<^descr> @{command "defs"}~\<open>name: eqn\<close> introduces \<open>eqn\<close> as a definitional axiom for
-  some existing constant.
+  \<^descr> \<^theory_text>\<open>defs name: eqn\<close> introduces \<open>eqn\<close> as a definitional axiom for some
+  existing constant.
   
-  The \<open>(unchecked)\<close> option disables global dependency checks for this
+  The \<^theory_text>\<open>(unchecked)\<close> option disables global dependency checks for this
   definition, which is occasionally useful for exotic overloading. It is at
   the discretion of the user to avoid malformed theory specifications!
   
-  The \<open>(overloaded)\<close> option declares definitions to be potentially overloaded.
-  Unless this option is given, a warning message would be issued for any
-  definitional equation with a more special type than that of the
+  The \<^theory_text>\<open>(overloaded)\<close> option declares definitions to be potentially
+  overloaded. Unless this option is given, a warning message would be issued
+  for any definitional equation with a more special type than that of the
   corresponding constant declaration.
 \<close>
 
@@ -1274,14 +1257,14 @@ text \<open>
     @@{command named_theorems} (@{syntax name} @{syntax text}? + @'and')
   \<close>}
 
-  \<^descr> @{command "lemmas"}~\<open>a = b\<^sub>1 \<dots> b\<^sub>n\<close>~@{keyword_def "for"}~\<open>x\<^sub>1 \<dots> x\<^sub>m\<close>
-  evaluates given facts (with attributes) in the current context, which may be
-  augmented by local variables. Results are standardized before being stored,
-  i.e.\ schematic variables are renamed to enforce index \<open>0\<close> uniformly.
+  \<^descr> \<^theory_text>\<open>lemmas a = b\<^sub>1 \<dots> b\<^sub>n\<close>~@{keyword_def "for"}~\<open>x\<^sub>1 \<dots> x\<^sub>m\<close> evaluates given
+  facts (with attributes) in the current context, which may be augmented by
+  local variables. Results are standardized before being stored, i.e.\
+  schematic variables are renamed to enforce index \<open>0\<close> uniformly.
 
-  \<^descr> @{command "named_theorems"}~\<open>name description\<close> declares a dynamic fact
-  within the context. The same \<open>name\<close> is used to define an attribute with the
-  usual \<open>add\<close>/\<open>del\<close> syntax (e.g.\ see \secref{sec:simp-rules}) to maintain the
+  \<^descr> \<^theory_text>\<open>named_theorems name description\<close> declares a dynamic fact within the
+  context. The same \<open>name\<close> is used to define an attribute with the usual
+  \<open>add\<close>/\<open>del\<close> syntax (e.g.\ see \secref{sec:simp-rules}) to maintain the
   content incrementally, in canonical declaration order of the text structure.
 \<close>
 
@@ -1312,11 +1295,11 @@ text \<open>
     @@{command oracle} @{syntax name} '=' @{syntax text}
   \<close>}
 
-  \<^descr> @{command "oracle"}~\<open>name = text\<close> turns the given ML expression \<open>text\<close> of
-  type @{ML_text "'a -> cterm"} into an ML function of type @{ML_text "'a ->
-  thm"}, which is bound to the global identifier @{ML_text name}. This acts
-  like an infinitary specification of axioms! Invoking the oracle only works
-  within the scope of the resulting theory.
+  \<^descr> \<^theory_text>\<open>oracle name = "text"\<close> turns the given ML expression \<open>text\<close> of type
+  @{ML_text "'a -> cterm"} into an ML function of type @{ML_text "'a -> thm"},
+  which is bound to the global identifier @{ML_text name}. This acts like an
+  infinitary specification of axioms! Invoking the oracle only works within
+  the scope of the resulting theory.
 
 
   See @{file "~~/src/HOL/ex/Iff_Oracle.thy"} for a worked example of defining
@@ -1341,21 +1324,19 @@ text \<open>
 
   Isabelle organizes any kind of name declarations (of types, constants,
   theorems etc.) by separate hierarchically structured name spaces. Normally
-  the user does not have to control the behavior of name spaces by hand, yet
+  the user does not have to control the behaviour of name spaces by hand, yet
   the following commands provide some way to do so.
 
-  \<^descr> @{command "hide_class"}~\<open>names\<close> fully removes class declarations from a
-  given name space; with the \<open>(open)\<close> option, only the unqualified base name
-  is hidden.
+  \<^descr> \<^theory_text>\<open>hide_class names\<close> fully removes class declarations from a given name
+  space; with the \<open>(open)\<close> option, only the unqualified base name is hidden.
 
   Note that hiding name space accesses has no impact on logical declarations
   --- they remain valid internally. Entities that are no longer accessible to
   the user are printed with the special qualifier ``\<open>??\<close>'' prefixed to the
   full internal name.
 
-  \<^descr> @{command "hide_type"}, @{command "hide_const"}, and @{command
-  "hide_fact"} are similar to @{command "hide_class"}, but hide types,
-  constants, and facts, respectively.
+  \<^descr> \<^theory_text>\<open>hide_type\<close>, \<^theory_text>\<open>hide_const\<close>, and \<^theory_text>\<open>hide_fact\<close> are similar to
+  \<^theory_text>\<open>hide_class\<close>, but hide types, constants, and facts, respectively.
 \<close>
 
 end
