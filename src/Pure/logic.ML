@@ -9,6 +9,7 @@ signature LOGIC =
 sig
   val all_const: typ -> term
   val all: term -> term -> term
+  val all_name: string * term -> term -> term
   val is_all: term -> bool
   val dest_all: term -> (string * typ) * term
   val list_all: (string * typ) list * term -> term
@@ -98,6 +99,7 @@ struct
 fun all_const T = Const ("Pure.all", (T --> propT) --> propT);
 
 fun all v t = all_const (Term.fastype_of v) $ lambda v t;
+fun all_name (x, v) t = all_const (Term.fastype_of v) $ Term.lambda_name (x, v) t;
 
 fun is_all (Const ("Pure.all", _) $ Abs _) = true
   | is_all _ = false;

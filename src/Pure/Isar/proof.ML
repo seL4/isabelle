@@ -49,14 +49,24 @@ sig
   val write_cmd: Syntax.mode -> (string * mixfix) list -> state -> state
   val fix: (binding * typ option * mixfix) list -> state -> state
   val fix_cmd: (binding * string option * mixfix) list -> state -> state
-  val assm: Assumption.export ->
-    (Thm.binding * (term * term list) list) list -> state -> state
-  val assm_cmd: Assumption.export ->
-    (Attrib.binding * (string * string list) list) list -> state -> state
-  val assume: (Thm.binding * (term * term list) list) list -> state -> state
-  val assume_cmd: (Attrib.binding * (string * string list) list) list -> state -> state
-  val presume: (Thm.binding * (term * term list) list) list -> state -> state
-  val presume_cmd: (Attrib.binding * (string * string list) list) list -> state -> state
+  val assm: Assumption.export -> (binding * typ option * mixfix) list ->
+    (term * term list) list list -> (Thm.binding * (term * term list) list) list ->
+    state -> state
+  val assm_cmd: Assumption.export -> (binding * string option * mixfix) list ->
+    (string * string list) list list -> (Attrib.binding * (string * string list) list) list ->
+    state -> state
+  val assume: (binding * typ option * mixfix) list ->
+    (term * term list) list list -> (Thm.binding * (term * term list) list) list ->
+    state -> state
+  val assume_cmd: (binding * string option * mixfix) list ->
+    (string * string list) list list -> (Attrib.binding * (string * string list) list) list ->
+    state -> state
+  val presume: (binding * typ option * mixfix) list ->
+    (term * term list) list list -> (Thm.binding * (term * term list) list) list ->
+    state -> state
+  val presume_cmd: (binding * string option * mixfix) list ->
+    (string * string list) list list -> (Attrib.binding * (string * string list) list) list ->
+    state -> state
   val def: (Thm.binding * ((binding * mixfix) * (term * term list))) list -> state -> state
   val def_cmd: (Attrib.binding * ((binding * mixfix) * (string * string list))) list -> state -> state
   val chain: state -> state
@@ -618,22 +628,86 @@ val fix_cmd = gen_fix Proof_Context.add_fixes_cmd;
 end;
 
 
-(* assume etc. *)
+(* structured clause *)
+
+fun export_binds ctxt' ctxt binds =
+  let
+    val rhss =
+      map (the_list o snd) binds
+      |> burrow (Variable.export_terms ctxt' ctxt)
+      |> map (try the_single);
+  in map fst binds ~~ rhss end;
+
+fun prep_clause prep_var prep_propp raw_fixes raw_assumes raw_shows ctxt =
+  let
+    (*fixed variables*)
+    val ((xs', vars), fix_ctxt) = ctxt
+      |> fold_map prep_var raw_fixes
+      |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
+
+    (*propositions with term bindings*)
+    val (all_propss, binds) = prep_propp fix_ctxt (raw_assumes @ raw_shows);
+    val (assumes_propss, shows_propss) = chop (length raw_assumes) all_propss;
+
+    (*params*)
+    val (ps, params_ctxt) = fix_ctxt
+      |> (fold o fold) Variable.declare_term all_propss
+      |> fold Variable.bind_term binds
+      |> fold_map Proof_Context.inferred_param xs';
+    val xs = map (Variable.check_name o #1) vars;
+    val params = xs ~~ map Free ps;
+
+    val _ = Variable.warn_extra_tfrees fix_ctxt params_ctxt;
+
+    (*result term bindings*)
+    val shows_props = flat shows_propss;
+    val binds' =
+      (case try List.last shows_props of
+        NONE => []
+      | SOME prop => map (apsnd (SOME o Auto_Bind.abs_params prop)) binds);
+    val result_binds =
+      (Auto_Bind.facts params_ctxt shows_props @ binds')
+      |> (map o apsnd o Option.map) (fold_rev Term.dependent_lambda_name params)
+      |> export_binds params_ctxt ctxt;
+  in ((params, assumes_propss, shows_propss, result_binds), params_ctxt) end;
+
+
+(* assume *)
 
 local
 
-fun gen_assume asm prep_att exp args state =
-  state
-  |> assert_forward
-  |> map_context_result (asm exp (Attrib.map_specs (map (prep_att (context_of state))) args))
-  |> these_factss [] |> #2;
+fun gen_assume prep_var prep_propp prep_att export raw_fixes raw_prems raw_concls state =
+  let
+    val ctxt = context_of state;
+
+    val bindings = map (apsnd (map (prep_att ctxt)) o fst) raw_concls;
+    val (params, prems_propss, concl_propss, result_binds) =
+      #1 (prep_clause prep_var prep_propp raw_fixes raw_prems (map snd raw_concls) ctxt);
+
+    fun close prop =
+      fold_rev Logic.all_name params (Logic.list_implies (flat prems_propss, prop));
+    val propss = (map o map) close concl_propss;
+  in
+    state
+    |> assert_forward
+    |> map_context_result (fn ctxt =>
+      ctxt
+      |> (fold o fold) Variable.declare_term propss
+      |> fold Variable.maybe_bind_term result_binds
+      |> fold_burrow (Assumption.add_assms export o map (Thm.cterm_of ctxt)) propss
+      |-> (fn premss =>
+        Proof_Context.note_thmss "" (bindings ~~ (map o map) (fn th => ([th], [])) premss)))
+    |> these_factss [] |> #2
+  end;
 
 in
 
-val assm = gen_assume Proof_Context.add_assms (K I);
-val assm_cmd = gen_assume Proof_Context.add_assms_cmd Attrib.attribute_cmd;
+val assm = gen_assume Proof_Context.cert_var Proof_Context.cert_propp (K I);
+val assm_cmd = gen_assume Proof_Context.read_var Proof_Context.read_propp Attrib.attribute_cmd;
+
 val assume = assm Assumption.assume_export;
 val assume_cmd = assm_cmd Assumption.assume_export;
+
 val presume = assm Assumption.presume_export;
 val presume_cmd = assm_cmd Assumption.presume_export;
 
@@ -788,7 +862,7 @@ fun gen_case internal prep_att ((raw_binding, raw_atts), ((name, pos), xs)) stat
       asms |> map (fn (a, ts) => ((Binding.qualified true a binding, []), map (rpair []) ts));
   in
     state'
-    |> assume assumptions
+    |> assume [] [] assumptions
     |> map_context (fold Variable.unbind_term Auto_Bind.no_facts)
     |> `the_facts |-> (fn thms => note_thmss [((binding, atts), [(thms, [])])])
   end;
@@ -982,18 +1056,6 @@ end;
 
 (* local goals *)
 
-local
-
-fun export_binds ctxt' ctxt binds =
-  let
-    val rhss =
-      map (the_list o snd) binds
-      |> burrow (Variable.export_terms ctxt' ctxt)
-      |> map (try the_single);
-  in map fst binds ~~ rhss end;
-
-in
-
 fun local_goal print_results prep_att prep_propp prep_var strict_asm
     kind before_qed after_qed raw_fixes raw_assumes raw_shows state =
   let
@@ -1002,57 +1064,26 @@ fun local_goal print_results prep_att prep_propp prep_var strict_asm
     val add_assumes =
       Assumption.add_assms
         (if strict_asm then Assumption.assume_export else Assumption.presume_export);
+
     val (assumes_bindings, shows_bindings) =
       apply2 (map (apsnd (map (prep_att ctxt)) o fst)) (raw_assumes, raw_shows);
-    val (assumes_propp, shows_propp) = apply2 (map snd) (raw_assumes, raw_shows);
 
-    val (goal_ctxt, goal_propss, result_binds, that_fact) =
-      let
-        (*fixed variables*)
-        val ((xs', vars), fix_ctxt) = ctxt
-          |> fold_map prep_var raw_fixes
-          |-> (fn vars => Proof_Context.add_fixes vars ##>> pair vars);
+    val ((params, assumes_propss, shows_propss, result_binds), params_ctxt) = ctxt
+      |> prep_clause prep_var prep_propp raw_fixes (map snd raw_assumes) (map snd raw_shows);
 
-        (*propositions with term bindings*)
-        val (all_propss, binds) = prep_propp fix_ctxt (assumes_propp @ shows_propp);
-        val (assumes_propss, shows_propss) = chop (length assumes_propp) all_propss;
-
-        (*params*)
-        val (ps, params_ctxt) = fix_ctxt
-          |> (fold o fold) Variable.declare_term all_propss
-          |> fold Variable.bind_term binds
-          |> fold_map Proof_Context.inferred_param xs';
-        val xs = map (Variable.check_name o #1) vars;
-        val params = xs ~~ map Free ps;
-
-        (*prems*)
-        val (that_fact, goal_ctxt) = params_ctxt
-          |> fold_burrow add_assumes ((map o map) (Thm.cterm_of params_ctxt) assumes_propss)
-          |> (fn (premss, ctxt') =>
-              let
-                val prems = Assumption.local_prems_of ctxt' ctxt;
-                val ctxt'' =
-                  ctxt'
-                  |> not (null assumes_propss) ?
-                    (snd o Proof_Context.note_thmss ""
-                      [((Binding.name Auto_Bind.thatN, []), [(prems, [])])])
-                  |> (snd o Proof_Context.note_thmss ""
-                      (assumes_bindings ~~ map (map (fn th => ([th], []))) premss))
-              in (prems, ctxt'') end);
-
-        val _ = Variable.warn_extra_tfrees fix_ctxt goal_ctxt;
-
-        (*result term bindings*)
-        val shows_props = flat shows_propss;
-        val binds' =
-          (case try List.last shows_props of
-            NONE => []
-          | SOME prop => map (apsnd (SOME o Auto_Bind.abs_params prop)) binds);
-        val result_binds =
-          (Auto_Bind.facts goal_ctxt shows_props @ binds')
-          |> (map o apsnd o Option.map) (fold_rev Term.dependent_lambda_name params)
-          |> export_binds goal_ctxt ctxt;
-      in (goal_ctxt, shows_propss, result_binds, that_fact) end;
+    val (that_fact, goal_ctxt) = params_ctxt
+      |> fold_burrow add_assumes ((map o map) (Thm.cterm_of params_ctxt) assumes_propss)
+      |> (fn (premss, ctxt') =>
+          let
+            val prems = Assumption.local_prems_of ctxt' ctxt;
+            val ctxt'' =
+              ctxt'
+              |> not (null assumes_propss) ?
+                (snd o Proof_Context.note_thmss ""
+                  [((Binding.name Auto_Bind.thatN, []), [(prems, [])])])
+              |> (snd o Proof_Context.note_thmss ""
+                  (assumes_bindings ~~ map (map (fn th => ([th], []))) premss))
+          in (prems, ctxt'') end);
 
     fun after_qed' (result_ctxt, results) state' = state'
       |> local_results (shows_bindings ~~ burrow (Proof_Context.export result_ctxt ctxt) results)
@@ -1060,11 +1091,9 @@ fun local_goal print_results prep_att prep_propp prep_var strict_asm
       |> after_qed (result_ctxt, results);
   in
     state
-    |> generic_goal kind before_qed (after_qed', K I) goal_ctxt goal_propss result_binds
+    |> generic_goal kind before_qed (after_qed', K I) goal_ctxt shows_propss result_binds
     |> pair that_fact
   end;
-
-end;
 
 fun local_qeds arg =
   end_proof false arg

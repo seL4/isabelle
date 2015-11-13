@@ -488,6 +488,15 @@ val _ =
 
 (* statements *)
 
+val structured_statement =
+  Parse_Spec.statement -- Parse_Spec.cond_statement -- Parse.for_fixes
+    >> (fn ((shows, (strict, assumes)), fixes) => (strict, fixes, assumes, shows));
+
+val structured_statement' =
+  Parse_Spec.statement -- Parse_Spec.if_statement' -- Parse.for_fixes
+    >> (fn ((shows, assumes), fixes) => (fixes, assumes, shows));
+
+
 fun theorem spec schematic descr =
   Outer_Syntax.local_theory_to_proof' spec
     ("state " ^ descr)
@@ -505,10 +514,6 @@ val _ = theorem @{command_keyword corollary} false "corollary";
 val _ = theorem @{command_keyword proposition} false "proposition";
 val _ = theorem @{command_keyword schematic_goal} true "schematic goal";
 
-
-val structured_statement =
-  Parse_Spec.statement -- Parse_Spec.cond_statement -- Parse.for_fixes
-    >> (fn ((shows, (strict, assumes)), fixes) => (strict, fixes, assumes, shows));
 
 val _ =
   Outer_Syntax.command @{command_keyword have} "state local goal"
@@ -572,11 +577,11 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword assume} "assume propositions"
-    (Parse_Spec.statement >> (Toplevel.proof o Proof.assume_cmd));
+    (structured_statement' >> (fn (a, b, c) => Toplevel.proof (Proof.assume_cmd a b c)));
 
 val _ =
   Outer_Syntax.command @{command_keyword presume} "assume propositions, to be established later"
-    (Parse_Spec.statement >> (Toplevel.proof o Proof.presume_cmd));
+    (structured_statement' >> (fn (a, b, c) => Toplevel.proof (Proof.presume_cmd a b c)));
 
 val _ =
   Outer_Syntax.command @{command_keyword def} "local definition (non-polymorphic)"
