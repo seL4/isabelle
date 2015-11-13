@@ -685,7 +685,8 @@ fun gen_assume prep_var prep_propp prep_att export raw_fixes raw_prems raw_concl
       #1 (prep_clause prep_var prep_propp raw_fixes raw_prems (map snd raw_concls) ctxt);
 
     fun close prop =
-      fold_rev Logic.all_name params (Logic.list_implies (flat prems_propss, prop));
+      fold_rev Logic.dependent_all_name params
+        (Logic.list_implies (flat prems_propss, prop));
     val propss = (map o map) close concl_propss;
   in
     state

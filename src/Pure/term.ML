@@ -153,6 +153,7 @@ sig
   val rename_abs: term -> term -> term -> term option
   val is_open: term -> bool
   val is_dependent: term -> bool
+  val term_name: term -> string
   val dependent_lambda_name: string * term -> term -> term
   val lambda_name: string * term -> term -> term
   val close_schematic_term: term -> term
