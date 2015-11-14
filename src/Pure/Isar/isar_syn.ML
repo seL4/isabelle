@@ -412,21 +412,21 @@ val _ =
     "prove sublocale relation between a locale and a locale expression"
     ((Parse.position Parse.xname --| (@{keyword "\<subseteq>"} || @{keyword "<"}) --
       interpretation_args >> (fn (loc, (expr, equations)) =>
-        Toplevel.theory_to_proof (Expression.sublocale_global_cmd loc expr equations)))
+        Toplevel.theory_to_proof (Interpretation.sublocale_global_cmd loc expr equations)))
     || interpretation_args >> (fn (expr, equations) =>
-        Toplevel.local_theory_to_proof NONE NONE (Expression.sublocale_cmd expr equations)));
+        Toplevel.local_theory_to_proof NONE NONE (Interpretation.sublocale_cmd expr equations)));
 
 val _ =
   Outer_Syntax.command @{command_keyword interpretation}
     "prove interpretation of locale expression in local theory"
     (interpretation_args >> (fn (expr, equations) =>
-      Toplevel.local_theory_to_proof NONE NONE (Expression.interpretation_cmd expr equations)));
+      Toplevel.local_theory_to_proof NONE NONE (Interpretation.interpretation_cmd expr equations)));
 
 val _ =
   Outer_Syntax.command @{command_keyword interpret}
     "prove interpretation of locale expression in proof context"
     (interpretation_args >> (fn (expr, equations) =>
-      Toplevel.proof' (Expression.interpret_cmd expr equations)));
+      Toplevel.proof' (Interpretation.interpret_cmd expr equations)));
 
 
 (* classes *)

@@ -271,6 +271,7 @@ use "axclass.ML";
 use "Isar/class.ML";
 use "Isar/named_target.ML";
 use "Isar/expression.ML";
+use "Isar/interpretation.ML";
 use "Isar/class_declaration.ML";
 use "Isar/bundle.ML";
 use "Isar/experiment.ML";
