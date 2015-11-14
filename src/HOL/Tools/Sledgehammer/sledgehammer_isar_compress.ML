@@ -215,7 +215,7 @@ fun compress_isar_proof ctxt compress preplay_timeout preplay_data proof =
               | SOME times0 =>
                 let
                   val n = length labels
-                  val total_time = Library.foldl (op Time.+) (reference_time l, times0)
+                  val total_time = Library.foldl Time.+ (reference_time l, times0)
                   val timeout = adjust_merge_timeout preplay_timeout
                     (Time.fromReal (Time.toReal total_time / Real.fromInt n))
                   val meths_outcomess = @{map 2} (preplay_isar_step ctxt timeout) hopelesses succs'
