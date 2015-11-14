@@ -194,7 +194,7 @@ end
 
 permanent_interpretation
   Abs_Int1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl "(iter' 3 2)"
-defining afilter_ivl' = afilter
+defines afilter_ivl' = afilter
 and bfilter_ivl' = bfilter
 and AI_ivl' = AI
 and aval_ivl' = aval'

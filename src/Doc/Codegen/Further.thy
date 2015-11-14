@@ -229,7 +229,7 @@ hide_const (open) funpows
 
 (*>*)
 permanent_interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"
-  defining funpows = "fun_power.powers :: nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
+  defines funpows = "fun_power.powers :: nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
   by unfold_locales
     (simp_all add: fun_eq_iff funpow_mult mult.commute) (*<*)
 

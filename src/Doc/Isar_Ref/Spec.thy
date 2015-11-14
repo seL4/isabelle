@@ -756,12 +756,12 @@ text \<open>
     @@{command permanent_interpretation} @{syntax locale_expr} \<newline>
       definitions? equations?
     ;
-    definitions: @'defining' (@{syntax thmdecl}? @{syntax name} \<newline>
+    definitions: @'defines' (@{syntax thmdecl}? @{syntax name} \<newline>
       @{syntax mixfix}? @'=' @{syntax term} + @'and');
     equations: @'rewrites' (@{syntax thmdecl}? @{syntax prop} + @'and')
   \<close>}
 
-  \<^descr> \<^theory_text>\<open>permanent_interpretation expr defining "defs" rewrites eqns\<close> interprets
+  \<^descr> \<^theory_text>\<open>permanent_interpretation expr defines "defs" rewrites eqns\<close> interprets
   \<open>expr\<close> in the current local theory. The command generates proof obligations
   for the instantiated specifications. Instantiated declarations (in
   particular, facts) are added to the local theory's underlying target in a

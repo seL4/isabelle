@@ -181,7 +181,7 @@ qed
 
 permanent_interpretation Val_abs1_gamma
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
-defining aval_ivl = aval'
+defines aval_ivl = aval'
 proof
   case goal1 thus ?case
     by(auto simp add: \<gamma>_ivl_def meet_ivl_def empty_def min_option_def max_option_def split: ivl.split option.split)
@@ -219,7 +219,7 @@ permanent_interpretation Abs_Int1
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
 and test_num' = in_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
-defining afilter_ivl = afilter
+defines afilter_ivl = afilter
 and bfilter_ivl = bfilter
 and step_ivl = step'
 and AI_ivl = AI

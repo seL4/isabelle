@@ -260,7 +260,7 @@ permanent_interpretation Abs_Int_wn
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
-defining AI_wn_ivl = AI_wn
+defines AI_wn_ivl = AI_wn
 ..
 
 

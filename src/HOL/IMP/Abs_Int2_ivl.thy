@@ -320,7 +320,7 @@ qed
 
 permanent_interpretation Val_lattice_gamma
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
-defining aval_ivl = aval'
+defines aval_ivl = aval'
 proof (standard, goal_cases)
   case 1 show ?case by(simp add: \<gamma>_inf)
 next
@@ -354,7 +354,7 @@ permanent_interpretation Abs_Int_inv
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
-defining inv_aval_ivl = inv_aval'
+defines inv_aval_ivl = inv_aval'
 and inv_bval_ivl = inv_bval'
 and step_ivl = step'
 and AI_ivl = AI

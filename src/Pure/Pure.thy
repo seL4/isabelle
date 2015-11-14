@@ -9,7 +9,7 @@ theory Pure
     "!!" "!" "+" "--" ":" ";" "<" "<=" "=" "=>" "?" "[" "\<comment>" "\<equiv>"
     "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
     "\<subseteq>" "]" "assumes" "attach" "binder" "constrains"
-    "defines" "defining" "fixes" "for" "identifier" "if" "in" "includes" "infix"
+    "defines" "rewrites" "fixes" "for" "identifier" "if" "in" "includes" "infix"
     "infixl" "infixr" "is" "notes" "obtains" "open" "output"
     "overloaded" "pervasive" "premises" "private" "qualified" "rewrites"
     "shows" "structure" "unchecked" "where" "when" "|"
