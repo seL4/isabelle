@@ -315,7 +315,9 @@ INCOMPATIBILITY, remove '!' and add '?' as required.
 commands.  Previously, the keyword was 'where'.  INCOMPATIBILITY.
 
 * Command 'permanent_interpretation' is available in Pure, without
-need to load a separate theory.
+need to load a separate theory.  Keyword 'defines' identifies
+mixin definitions, keyword 'rewrites' identifies rewrite morphisms.
+INCOMPATIBILITY.
 
 * Command 'print_definitions' prints dependencies of definitional
 specifications. This functionality used to be part of 'print_theory'.

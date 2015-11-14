@@ -407,23 +407,27 @@ val interpretation_args =
     Scan.optional
       (@{keyword "rewrites"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) [];
 
+val interpretation_args_with_defs =
+  Parse.!!! Parse_Spec.locale_expression --
+    (Scan.optional (@{keyword "defines"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"
+      -- ((Parse.binding -- Parse.opt_mixfix') --| @{keyword "="} -- Parse.term))) [] --
+    Scan.optional
+      (@{keyword "rewrites"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) []);
+
 val _ =
   Outer_Syntax.command @{command_keyword sublocale}
     "prove sublocale relation between a locale and a locale expression"
     ((Parse.position Parse.xname --| (@{keyword "\<subseteq>"} || @{keyword "<"}) --
-      interpretation_args >> (fn (loc, (expr, equations)) =>
-        Toplevel.theory_to_proof (Interpretation.sublocale_global_cmd loc expr equations)))
-    || interpretation_args >> (fn (expr, equations) =>
-        Toplevel.local_theory_to_proof NONE NONE (Interpretation.sublocale_cmd expr equations)));
+      interpretation_args_with_defs >> (fn (loc, (expr, (defs, equations))) =>
+        Toplevel.theory_to_proof (Interpretation.global_sublocale_cmd loc expr defs equations)))
+    || interpretation_args_with_defs >> (fn (expr, (defs, equations)) =>
+        Toplevel.local_theory_to_proof NONE NONE (Interpretation.sublocale_cmd expr defs equations)));
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_keyword permanent_interpretation}
     "prove interpretation of locale expression into named theory"
-    (Parse.!!! Parse_Spec.locale_expression --
-      Scan.optional (@{keyword "defines"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"
-        -- ((Parse.binding -- Parse.opt_mixfix') --| @{keyword "="} -- Parse.term))) [] --
-      Scan.optional (@{keyword "rewrites"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) []
-      >> (fn ((expr, defs), eqns) => Interpretation.permanent_interpretation_cmd expr defs eqns));
+    (interpretation_args_with_defs
+      >> (fn (expr, (defs, equations)) => Interpretation.permanent_interpretation_cmd expr defs equations));
 
 val _ =
   Outer_Syntax.command @{command_keyword interpretation}
