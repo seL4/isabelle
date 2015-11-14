@@ -48,11 +48,21 @@ fun add_term_of tyco raw_vs thy =
     |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
   end;
 
-fun ensure_term_of (tyco, (raw_vs, _)) thy =
+fun ensure_term_of (tyco, (vs, _)) thy =
   let
     val need_inst = not (Sorts.has_instance (Sign.classes_of thy) tyco @{sort term_of})
       andalso Sorts.has_instance (Sign.classes_of thy) tyco @{sort typerep};
-  in if need_inst then add_term_of tyco raw_vs thy else thy end;
+  in if need_inst then add_term_of tyco vs thy else thy end;
+
+fun for_term_of_instance tyco vs f thy =
+  let
+    val algebra = Sign.classes_of thy;
+  in
+    case try (Sorts.mg_domain algebra tyco) @{sort term_of} of
+      NONE => thy
+    | SOME sorts => f tyco (map2 (fn (v, sort) => fn sort' =>
+        (v, Sorts.inter_sort algebra (sort, sort'))) vs sorts) thy
+  end;
 
 
 (* code equations for datatypes *)
@@ -67,17 +77,18 @@ fun mk_term_of_eq thy ty (c, (_, tys)) =
           map_aterms (fn t as Free (_, ty) => HOLogic.mk_term_of ty t | t => t)
             (HOLogic.reflect_term t));
     val cty = Thm.global_ctyp_of thy ty;
+    val _ = writeln ("typ: " ^ Syntax.string_of_typ_global thy (Thm.typ_of cty));
+    val _ = writeln ("arg: " ^ Syntax.string_of_term_global thy (Thm.term_of arg));
+    val _ = writeln ("rhs: " ^ Syntax.string_of_term_global thy (Thm.term_of rhs));
   in
     @{thm term_of_anything}
     |> Thm.instantiate' [SOME cty] [SOME arg, SOME rhs]
+    |> tap (fn _ => writeln "instantiated")
     |> Thm.varifyT_global
   end;
 
-fun add_term_of_code tyco raw_vs raw_cs thy =
+fun add_term_of_code tyco vs raw_cs thy =
   let
-    val algebra = Sign.classes_of thy;
-    val vs = map (fn (v, sort) =>
-      (v, curry (Sorts.inter_sort algebra) @{sort typerep} sort)) raw_vs;
     val ty = Type (tyco, map TFree vs);
     val cs = (map o apsnd o apsnd o map o map_atyps)
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
@@ -89,10 +100,8 @@ fun add_term_of_code tyco raw_vs raw_cs thy =
     |> fold Code.add_eqn eqs
   end;
 
-fun ensure_term_of_code (tyco, (raw_vs, cs)) thy =
-  let
-    val has_inst = Sorts.has_instance (Sign.classes_of thy) tyco @{sort term_of};
-  in if has_inst then add_term_of_code tyco raw_vs cs thy else thy end;
+fun ensure_term_of_code (tyco, (vs, cs)) =
+  for_term_of_instance tyco vs (fn tyco => fn vs => add_term_of_code tyco vs cs);
 
 
 (* code equations for abstypes *)
@@ -110,11 +119,8 @@ fun mk_abs_term_of_eq thy ty abs ty_rep proj =
     |> Thm.varifyT_global
   end;
 
-fun add_abs_term_of_code tyco raw_vs abs raw_ty_rep proj thy =
+fun add_abs_term_of_code tyco vs abs raw_ty_rep proj thy =
   let
-    val algebra = Sign.classes_of thy;
-    val vs = map (fn (v, sort) =>
-      (v, curry (Sorts.inter_sort algebra) @{sort typerep} sort)) raw_vs;
     val ty = Type (tyco, map TFree vs);
     val ty_rep = map_atyps
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_ty_rep;
@@ -126,10 +132,9 @@ fun add_abs_term_of_code tyco raw_vs abs raw_ty_rep proj thy =
     |> Code.add_eqn eq
   end;
 
-fun ensure_abs_term_of_code (tyco, (raw_vs, ((abs, (_, ty)), (proj, _)))) thy =
-  let
-    val has_inst = Sorts.has_instance (Sign.classes_of thy) tyco @{sort term_of};
-  in if has_inst then add_abs_term_of_code tyco raw_vs abs ty proj thy else thy end;
+fun ensure_abs_term_of_code (tyco, (vs, ((abs, (_, ty)), (proj, _)))) =
+  for_term_of_instance tyco vs
+    (fn tyco => fn vs => add_abs_term_of_code tyco vs abs ty proj);
 
 
 (* setup *)
