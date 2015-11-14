@@ -220,8 +220,7 @@ text %quotetypewriter \<open>
 
 (*>*) text \<open>
   Fortunately, an even more succint approach is available using command
-  @{command permanent_interpretation}.  This is available
-  by importing theory @{file "~~/src/Tools/Permanent_Interpretation.thy"}.
+  @{command permanent_interpretation}.
   Then the pattern above collapses to
 \<close> (*<*)
 

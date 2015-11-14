@@ -1,7 +1,6 @@
 theory Setup
 imports
   Complex_Main
-  "~~/src/Tools/Permanent_Interpretation"
   "~~/src/HOL/Library/Dlist"
   "~~/src/HOL/Library/RBT"
   "~~/src/HOL/Library/Mapping"

@@ -5,7 +5,6 @@ section \<open>Big sum and product over function bodies\<close>
 theory Groups_Big_Fun
 imports
   Main
-  "~~/src/Tools/Permanent_Interpretation"
 begin
 
 subsection \<open>Abstract product\<close>

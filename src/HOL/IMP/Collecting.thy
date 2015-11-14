@@ -1,6 +1,5 @@
 theory Collecting
 imports Complete_Lattice Big_Step ACom
-  "~~/src/Tools/Permanent_Interpretation"
 begin
 
 subsection "The generic Step function"

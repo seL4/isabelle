@@ -1,9 +1,9 @@
 (* Author: Tobias Nipkow *)
 
 theory Abs_Int0_ITP
-imports "~~/src/Tools/Permanent_Interpretation"
-        "~~/src/HOL/Library/While_Combinator"
-        "Collecting_ITP"
+imports
+  "~~/src/HOL/Library/While_Combinator"
+  Collecting_ITP
 begin
 
 subsection "Orderings"

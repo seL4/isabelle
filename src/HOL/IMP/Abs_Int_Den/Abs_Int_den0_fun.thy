@@ -3,7 +3,7 @@
 section "Denotational Abstract Interpretation"
 
 theory Abs_Int_den0_fun
-imports "~~/src/Tools/Permanent_Interpretation" "../Big_Step"
+imports "../Big_Step"
 begin
 
 subsection "Orderings"

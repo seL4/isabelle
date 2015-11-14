@@ -9,7 +9,7 @@ theory Pure
     "!!" "!" "+" "--" ":" ";" "<" "<=" "=" "=>" "?" "[" "\<comment>" "\<equiv>"
     "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
     "\<subseteq>" "]" "assumes" "attach" "binder" "constrains"
-    "defines" "fixes" "for" "identifier" "if" "in" "includes" "infix"
+    "defines" "defining" "fixes" "for" "identifier" "if" "in" "includes" "infix"
     "infixl" "infixr" "is" "notes" "obtains" "open" "output"
     "overloaded" "pervasive" "premises" "private" "qualified" "rewrites"
     "shows" "structure" "unchecked" "where" "when" "|"
@@ -35,7 +35,7 @@ theory Pure
   and "include" "including" :: prf_decl
   and "print_bundles" :: diag
   and "context" "locale" "experiment" :: thy_decl_block
-  and "sublocale" "interpretation" :: thy_goal
+  and "permanent_interpretation" "interpretation" "sublocale" :: thy_goal
   and "interpret" :: prf_goal % "proof"
   and "class" :: thy_decl_block
   and "subclass" :: thy_goal

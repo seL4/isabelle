@@ -1,7 +1,7 @@
 (*:maxLineLen=78:*)
 
 theory Spec
-imports Base Main "~~/src/Tools/Permanent_Interpretation"
+imports Base Main
 begin
 
 chapter \<open>Specifications\<close>
@@ -739,9 +739,9 @@ text \<open>
 subsubsection \<open>Permanent locale interpretation\<close>
 
 text \<open>
-  Permanent locale interpretation is a library extension on top of
-  \<^theory_text>\<open>interpretation\<close> and \<^theory_text>\<open>sublocale\<close>. It is available by importing theory
-  @{file "~~/src/Tools/Permanent_Interpretation.thy"} and provides
+  Permanent locale interpretation is an extension on top
+  of \<^theory_text>\<open>interpretation\<close> and \<^theory_text>\<open>sublocale\<close>
+  and provides
 
     \<^enum> a unified view on arbitrary suitable local theories as interpretation
     target;

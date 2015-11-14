@@ -115,7 +115,6 @@ session "HOL-Induct" in Induct = HOL +
 session "HOL-IMP" in IMP = HOL +
   options [document_variants = document]
   theories [document = false]
-    "~~/src/Tools/Permanent_Interpretation"
     "~~/src/HOL/Library/While_Combinator"
     "~~/src/HOL/Library/Char_ord"
     "~~/src/HOL/Library/List_lexord"
