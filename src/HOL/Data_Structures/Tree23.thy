@@ -10,9 +10,9 @@ class height =
 fixes height :: "'a \<Rightarrow> nat"
 
 datatype 'a tree23 =
-  Leaf |
-  Node2 "'a tree23" 'a "'a tree23" |
-  Node3 "'a tree23" 'a "'a tree23" 'a "'a tree23"
+  Leaf ("\<langle>\<rangle>") |
+  Node2 "'a tree23" 'a "'a tree23"  ("\<langle>_, _, _\<rangle>") |
+  Node3 "'a tree23" 'a "'a tree23" 'a "'a tree23"  ("\<langle>_, _, _, _, _\<rangle>")
 
 fun inorder :: "'a tree23 \<Rightarrow> 'a list" where
 "inorder Leaf = []" |
