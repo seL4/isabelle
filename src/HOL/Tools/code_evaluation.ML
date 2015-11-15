@@ -77,13 +77,9 @@ fun mk_term_of_eq thy ty (c, (_, tys)) =
           map_aterms (fn t as Free (_, ty) => HOLogic.mk_term_of ty t | t => t)
             (HOLogic.reflect_term t));
     val cty = Thm.global_ctyp_of thy ty;
-    val _ = writeln ("typ: " ^ Syntax.string_of_typ_global thy (Thm.typ_of cty));
-    val _ = writeln ("arg: " ^ Syntax.string_of_term_global thy (Thm.term_of arg));
-    val _ = writeln ("rhs: " ^ Syntax.string_of_term_global thy (Thm.term_of rhs));
   in
     @{thm term_of_anything}
     |> Thm.instantiate' [SOME cty] [SOME arg, SOME rhs]
-    |> tap (fn _ => writeln "instantiated")
     |> Thm.varifyT_global
   end;
 
