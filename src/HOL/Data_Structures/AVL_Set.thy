@@ -27,21 +27,25 @@ definition node :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rig
 "node l a r = Node (max (ht l) (ht r) + 1) l a r"
 
 definition balL :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
-"balL l a r = (
-  if ht l = ht r + 2 then (case l of 
-    Node _ bl b br \<Rightarrow> (if ht bl < ht br
-    then case br of
-      Node _ cl c cr \<Rightarrow> node (node bl b cl) c (node cr a r)
-    else node bl b (node br a r)))
-  else node l a r)"
+"balL l a r =
+  (if ht l = ht r + 2 then
+     case l of 
+       Node _ bl b br \<Rightarrow>
+         if ht bl < ht br then
+           case br of
+             Node _ cl c cr \<Rightarrow> node (node bl b cl) c (node cr a r)
+         else node bl b (node br a r)
+   else node l a r)"
 
 definition balR :: "'a avl_tree \<Rightarrow> 'a \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
-"balR l a r = (
-  if ht r = ht l + 2 then (case r of
-    Node _ bl b br \<Rightarrow> (if ht bl > ht br
-    then case bl of
-      Node _ cl c cr \<Rightarrow> node (node l a cl) c (node cr b br)
-    else node (node l a bl) b br))
+"balR l a r =
+   (if ht r = ht l + 2 then
+      case r of
+        Node _ bl b br \<Rightarrow>
+          if ht bl > ht br then
+            case bl of
+              Node _ cl c cr \<Rightarrow> node (node l a cl) c (node cr b br)
+          else node (node l a bl) b br
   else node l a r)"
 
 fun insert :: "'a::cmp \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
@@ -52,8 +56,8 @@ fun insert :: "'a::cmp \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" wher
    GT \<Rightarrow> balR l a (insert x r))"
 
 fun del_max :: "'a avl_tree \<Rightarrow> 'a avl_tree * 'a" where
-"del_max (Node _ l a r) = (if r = Leaf then (l,a)
-  else let (r',a') = del_max r in (balL l a r', a'))"
+"del_max (Node _ l a r) =
+  (if r = Leaf then (l,a) else let (r',a') = del_max r in (balL l a r', a'))"
 
 lemmas del_max_induct = del_max.induct[case_names Node Leaf]
 
@@ -66,10 +70,11 @@ lemmas del_root_cases = del_root.cases[case_names Leaf_t Node_Leaf Node_Node]
 
 fun delete :: "'a::cmp \<Rightarrow> 'a avl_tree \<Rightarrow> 'a avl_tree" where
 "delete _ Leaf = Leaf" |
-"delete x (Node h l a r) = (case cmp x a of
-   EQ \<Rightarrow> del_root (Node h l a r) |
-   LT \<Rightarrow> balR (delete x l) a r |
-   GT \<Rightarrow> balL l a (delete x r))"
+"delete x (Node h l a r) =
+  (case cmp x a of
+     EQ \<Rightarrow> del_root (Node h l a r) |
+     LT \<Rightarrow> balR (delete x l) a r |
+     GT \<Rightarrow> balL l a (delete x r))"
 
 
 subsection {* Functional Correctness Proofs *}

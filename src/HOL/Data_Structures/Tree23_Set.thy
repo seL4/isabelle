@@ -12,10 +12,19 @@ begin
 fun isin :: "'a::cmp tree23 \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin Leaf x = False" |
 "isin (Node2 l a r) x =
-  (case cmp x a of LT \<Rightarrow> isin l x | EQ \<Rightarrow> True | GT \<Rightarrow> isin r x)" |
+  (case cmp x a of
+     LT \<Rightarrow> isin l x |
+     EQ \<Rightarrow> True |
+     GT \<Rightarrow> isin r x)" |
 "isin (Node3 l a m b r) x =
-  (case cmp x a of LT \<Rightarrow> isin l x | EQ \<Rightarrow> True | GT \<Rightarrow> (case cmp x b of
-   LT \<Rightarrow> isin m x | EQ \<Rightarrow> True | GT \<Rightarrow> isin r x))"
+  (case cmp x a of
+     LT \<Rightarrow> isin l x |
+     EQ \<Rightarrow> True |
+     GT \<Rightarrow>
+       (case cmp x b of
+          LT \<Rightarrow> isin m x |
+          EQ \<Rightarrow> True |
+          GT \<Rightarrow> isin r x))"
 
 datatype 'a up\<^sub>i = T\<^sub>i "'a tree23" | Up\<^sub>i "'a tree23" 'a "'a tree23"
 
@@ -27,27 +36,33 @@ fun ins :: "'a::cmp \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>i" where
 "ins x Leaf = Up\<^sub>i Leaf x Leaf" |
 "ins x (Node2 l a r) =
    (case cmp x a of
-      LT \<Rightarrow> (case ins x l of
-              T\<^sub>i l' => T\<^sub>i (Node2 l' a r)
-            | Up\<^sub>i l1 b l2 => T\<^sub>i (Node3 l1 b l2 a r)) |
+      LT \<Rightarrow>
+        (case ins x l of
+           T\<^sub>i l' => T\<^sub>i (Node2 l' a r) |
+           Up\<^sub>i l1 b l2 => T\<^sub>i (Node3 l1 b l2 a r)) |
       EQ \<Rightarrow> T\<^sub>i (Node2 l x r) |
-      GT \<Rightarrow> (case ins x r of
-              T\<^sub>i r' => T\<^sub>i (Node2 l a r')
-            | Up\<^sub>i r1 b r2 => T\<^sub>i (Node3 l a r1 b r2)))" |
+      GT \<Rightarrow>
+        (case ins x r of
+           T\<^sub>i r' => T\<^sub>i (Node2 l a r') |
+           Up\<^sub>i r1 b r2 => T\<^sub>i (Node3 l a r1 b r2)))" |
 "ins x (Node3 l a m b r) =
    (case cmp x a of
-      LT \<Rightarrow> (case ins x l of
-              T\<^sub>i l' => T\<^sub>i (Node3 l' a m b r)
-            | Up\<^sub>i l1 c l2 => Up\<^sub>i (Node2 l1 c l2) a (Node2 m b r)) |
+      LT \<Rightarrow>
+        (case ins x l of
+           T\<^sub>i l' => T\<^sub>i (Node3 l' a m b r) |
+           Up\<^sub>i l1 c l2 => Up\<^sub>i (Node2 l1 c l2) a (Node2 m b r)) |
       EQ \<Rightarrow> T\<^sub>i (Node3 l a m b r) |
-      GT \<Rightarrow> (case cmp x b of
-               GT \<Rightarrow> (case ins x r of
-                       T\<^sub>i r' => T\<^sub>i (Node3 l a m b r')
-                     | Up\<^sub>i r1 c r2 => Up\<^sub>i (Node2 l a m) b (Node2 r1 c r2)) |
-               EQ \<Rightarrow> T\<^sub>i (Node3 l a m b r) |
-               LT \<Rightarrow> (case ins x m of
-                       T\<^sub>i m' => T\<^sub>i (Node3 l a m' b r)
-                     | Up\<^sub>i m1 c m2 => Up\<^sub>i (Node2 l a m1) c (Node2 m2 b r))))"
+      GT \<Rightarrow>
+        (case cmp x b of
+           GT \<Rightarrow>
+             (case ins x r of
+                T\<^sub>i r' => T\<^sub>i (Node3 l a m b r') |
+                Up\<^sub>i r1 c r2 => Up\<^sub>i (Node2 l a m) b (Node2 r1 c r2)) |
+           EQ \<Rightarrow> T\<^sub>i (Node3 l a m b r) |
+           LT \<Rightarrow>
+             (case ins x m of
+                T\<^sub>i m' => T\<^sub>i (Node3 l a m' b r) |
+                Up\<^sub>i m1 c m2 => Up\<^sub>i (Node2 l a m1) c (Node2 m2 b r))))"
 
 hide_const insert
 
@@ -93,20 +108,25 @@ fun del_min :: "'a tree23 \<Rightarrow> 'a * 'a up\<^sub>d" where
 "del_min (Node2 l a r) = (let (x,l') = del_min l in (x, node21 l' a r))" |
 "del_min (Node3 l a m b r) = (let (x,l') = del_min l in (x, node31 l' a m b r))"
 
-fun del :: "'a::cmp \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d"
-where
+fun del :: "'a::cmp \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>d" where
 "del x Leaf = T\<^sub>d Leaf" |
-"del x (Node2 Leaf a Leaf) = (if x = a then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf a Leaf))" |
-"del x (Node3 Leaf a Leaf b Leaf) = T\<^sub>d(if x = a then Node2 Leaf b Leaf
-  else if x = b then Node2 Leaf a Leaf else Node3 Leaf a Leaf b Leaf)" |
-"del x (Node2 l a r) = (case cmp x a of
-  LT \<Rightarrow> node21 (del x l) a r |
-  GT \<Rightarrow> node22 l a (del x r) |
-  EQ \<Rightarrow> let (a',t) = del_min r in node22 l a' t)" |
-"del x (Node3 l a m b r) = (case cmp x a of
-  LT \<Rightarrow> node31 (del x l) a m b r |
-  EQ \<Rightarrow> let (a',m') = del_min m in node32 l a' m' b r |
-  GT \<Rightarrow> (case cmp x b of
+"del x (Node2 Leaf a Leaf) =
+  (if x = a then Up\<^sub>d Leaf else T\<^sub>d(Node2 Leaf a Leaf))" |
+"del x (Node3 Leaf a Leaf b Leaf) =
+  T\<^sub>d(if x = a then Node2 Leaf b Leaf else
+     if x = b then Node2 Leaf a Leaf
+     else Node3 Leaf a Leaf b Leaf)" |
+"del x (Node2 l a r) =
+  (case cmp x a of
+     LT \<Rightarrow> node21 (del x l) a r |
+     GT \<Rightarrow> node22 l a (del x r) |
+     EQ \<Rightarrow> let (a',t) = del_min r in node22 l a' t)" |
+"del x (Node3 l a m b r) =
+  (case cmp x a of
+     LT \<Rightarrow> node31 (del x l) a m b r |
+     EQ \<Rightarrow> let (a',m') = del_min m in node32 l a' m' b r |
+     GT \<Rightarrow>
+       (case cmp x b of
           LT \<Rightarrow> node32 l a (del x m) b r |
           EQ \<Rightarrow> let (b',r') = del_min r in node33 l a m b' r' |
           GT \<Rightarrow> node33 l a m b (del x r)))"

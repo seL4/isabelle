@@ -12,27 +12,32 @@ begin
 fun isin :: "'a::cmp tree \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin Leaf x = False" |
 "isin (Node l a r) x =
-  (case cmp x a of LT \<Rightarrow> isin l x | EQ \<Rightarrow> True | GT \<Rightarrow> isin r x)"
+  (case cmp x a of
+     LT \<Rightarrow> isin l x |
+     EQ \<Rightarrow> True |
+     GT \<Rightarrow> isin r x)"
 
 hide_const (open) insert
 
 fun insert :: "'a::cmp \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 "insert x Leaf = Node Leaf x Leaf" |
-"insert x (Node l a r) = (case cmp x a of
-      LT \<Rightarrow> Node (insert x l) a r |
-      EQ \<Rightarrow> Node l a r |
-      GT \<Rightarrow> Node l a (insert x r))"
+"insert x (Node l a r) =
+  (case cmp x a of
+     LT \<Rightarrow> Node (insert x l) a r |
+     EQ \<Rightarrow> Node l a r |
+     GT \<Rightarrow> Node l a (insert x r))"
 
 fun del_min :: "'a tree \<Rightarrow> 'a * 'a tree" where
-"del_min (Node l a r) = (if l = Leaf then (a,r)
-  else let (x,l') = del_min l in (x, Node l' a r))"
+"del_min (Node l a r) =
+  (if l = Leaf then (a,r) else let (x,l') = del_min l in (x, Node l' a r))"
 
 fun delete :: "'a::cmp \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
 "delete x Leaf = Leaf" |
-"delete x (Node l a r) = (case cmp x a of
-  LT \<Rightarrow>  Node (delete x l) a r |
-  GT \<Rightarrow>  Node l a (delete x r) |
-  EQ \<Rightarrow> if r = Leaf then l else let (a',r') = del_min r in Node l a' r')"
+"delete x (Node l a r) =
+  (case cmp x a of
+     LT \<Rightarrow>  Node (delete x l) a r |
+     GT \<Rightarrow>  Node l a (delete x r) |
+     EQ \<Rightarrow> if r = Leaf then l else let (a',r') = del_min r in Node l a' r')"
 
 
 subsection "Functional Correctness Proofs"
