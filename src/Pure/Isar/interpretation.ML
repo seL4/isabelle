@@ -57,7 +57,7 @@ fun prep_interpretation prep_expr prep_term prep_prop prep_attr expression raw_d
     (*reading*)
     val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
     val deps_ctxt = fold Locale.activate_declarations deps expr_ctxt;
-    val prep = Syntax.check_terms deps_ctxt #> Variable.export_terms deps_ctxt deps_ctxt;
+    val prep = Syntax.check_terms deps_ctxt #> Variable.export_terms deps_ctxt expr_ctxt;
     val rhss = (prep o map (prep_term deps_ctxt o snd o snd)) raw_defs;
     val eqns = (prep o map (prep_prop deps_ctxt o snd)) raw_eqns;
 
