@@ -18,7 +18,7 @@ sig
   val global_interpretation: Expression.expression_i ->
     term defines -> term rewrites -> theory -> Proof.state
   val global_sublocale: string -> Expression.expression_i ->
-    term defines -> term rewrites ->theory -> Proof.state
+    term defines -> term rewrites -> theory -> Proof.state
   val global_sublocale_cmd: xstring * Position.T -> Expression.expression ->
     string defines -> string rewrites -> theory -> Proof.state
   val sublocale: Expression.expression_i ->
