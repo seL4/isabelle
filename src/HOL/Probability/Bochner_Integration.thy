@@ -886,8 +886,14 @@ proof -
              intro!: setsum.mono_neutral_cong_left arg_cong2[where f=measure])
 qed
 
+context
+  notes [[inductive_defs]]
+begin
+
 inductive integrable for M f where
   "has_bochner_integral M f x \<Longrightarrow> integrable M f"
+
+end
 
 definition lebesgue_integral ("integral\<^sup>L") where
   "integral\<^sup>L M f = (if \<exists>x. has_bochner_integral M f x then THE x. has_bochner_integral M f x else 0)"

@@ -5573,7 +5573,12 @@ text \<open>
   Author: Andreas Lochbihler
 \<close>
 
-context ord begin
+context ord
+begin
+
+context
+  notes [[inductive_defs]]
+begin
 
 inductive lexordp :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
 where
@@ -5581,6 +5586,8 @@ where
 | Cons: "x < y \<Longrightarrow> lexordp (x # xs) (y # ys)"
 | Cons_eq:
   "\<lbrakk> \<not> x < y; \<not> y < x; lexordp xs ys \<rbrakk> \<Longrightarrow> lexordp (x # xs) (y # ys)"
+
+end
 
 lemma lexordp_simps [simp]:
   "lexordp [] ys = (ys \<noteq> [])"
@@ -5636,7 +5643,8 @@ declare ord.lexordp_eq_simps [code, simp]
 lemma lexord_code [code, code_unfold]: "lexordp = ord.lexordp less"
 unfolding lexordp_def ord.lexordp_def ..
 
-context order begin
+context order
+begin
 
 lemma lexordp_antisym:
   assumes "lexordp xs ys" "lexordp ys xs"

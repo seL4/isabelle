@@ -529,10 +529,14 @@ and the inside or outside of a set.
 * Theory Library/Old_Recdef: discontinued obsolete 'defer_recdef'
 command. Minor INCOMPATIBILITY, use 'function' instead.
 
+* Inductive definitions ('inductive', 'coinductive', etc.) expose
+low-level facts of the internal construction only if the option
+"inductive_defs" is enabled. This refers to the internal predicate
+definition and its monotonicity result. Rare INCOMPATIBILITY.
+
 * Recursive function definitions ('fun', 'function', 'partial_function')
-no longer expose the low-level "_def" facts of the internal
-construction. INCOMPATIBILITY, enable option "function_defs" in the
-context for rare situations where these facts are really needed.
+expose low-level facts of the internal construction only if the option
+"function_defs" is enabled. Rare INCOMPATIBILITY.
 
 * Imperative_HOL: obsolete theory Legacy_Mrec has been removed.
 

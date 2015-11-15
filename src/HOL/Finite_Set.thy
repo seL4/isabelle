@@ -11,10 +11,16 @@ begin
 
 subsection \<open>Predicate for finite sets\<close>
 
+context
+  notes [[inductive_defs]]
+begin
+
 inductive finite :: "'a set \<Rightarrow> bool"
   where
     emptyI [simp, intro!]: "finite {}"
   | insertI [simp, intro!]: "finite A \<Longrightarrow> finite (insert a A)"
+
+end
 
 simproc_setup finite_Collect ("finite (Collect P)") = \<open>K Set_Comprehension_Pointfree.simproc\<close>
 
