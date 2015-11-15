@@ -314,6 +314,9 @@ INCOMPATIBILITY, remove '!' and add '?' as required.
 * Keyword 'rewrites' identifies rewrite morphisms in interpretation
 commands.  Previously, the keyword was 'where'.  INCOMPATIBILITY.
 
+* Command 'sublocale' accepts mixin definitions after keyword
+'defines'.
+
 * Command 'permanent_interpretation' is available in Pure, without
 need to load a separate theory.  Keyword 'defines' identifies
 mixin definitions, keyword 'rewrites' identifies rewrite morphisms.
