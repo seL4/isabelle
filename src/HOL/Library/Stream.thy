@@ -68,11 +68,17 @@ lemma shift_left_inj[simp]: "xs @- s1 = xs @- s2 \<longleftrightarrow> s1 = s2"
 
 subsection \<open>set of streams with elements in some fixed set\<close>
 
+context
+  notes [[inductive_defs]]
+begin
+
 coinductive_set
   streams :: "'a set \<Rightarrow> 'a stream set"
   for A :: "'a set"
 where
   Stream[intro!, simp, no_atp]: "\<lbrakk>a \<in> A; s \<in> streams A\<rbrakk> \<Longrightarrow> a ## s \<in> streams A"
+
+end
 
 lemma in_streams: "stl s \<in> streams S \<Longrightarrow> shd s \<in> S \<Longrightarrow> s \<in> streams S"
   by (cases s) auto

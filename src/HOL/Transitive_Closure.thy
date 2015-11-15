@@ -20,6 +20,10 @@ text \<open>
   operands to be atomic.
 \<close>
 
+context
+  notes [[inductive_defs]]
+begin
+
 inductive_set
   rtrancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"   ("(_^*)" [1000] 999)
   for r :: "('a \<times> 'a) set"
@@ -38,6 +42,8 @@ declare rtrancl_def [nitpick_unfold del]
         rtranclp_def [nitpick_unfold del]
         trancl_def [nitpick_unfold del]
         tranclp_def [nitpick_unfold del]
+
+end
 
 notation
   rtranclp  ("(_^**)" [1000] 1000) and

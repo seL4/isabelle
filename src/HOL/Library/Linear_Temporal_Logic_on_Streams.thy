@@ -64,6 +64,10 @@ definition "HLD s = holds (\<lambda>x. x \<in> s)"
 abbreviation HLD_nxt (infixr "\<cdot>" 65) where
   "s \<cdot> P \<equiv> HLD s aand nxt P"
 
+context
+  notes [[inductive_defs]]
+begin
+
 inductive ev for \<phi> where
 base: "\<phi> xs \<Longrightarrow> ev \<phi> xs"
 |
@@ -77,6 +81,8 @@ coinductive UNTIL (infix "until" 60) for \<phi> \<psi> where
 base: "\<psi> xs \<Longrightarrow> (\<phi> until \<psi>) xs"
 |
 step: "\<lbrakk>\<phi> xs; (\<phi> until \<psi>) (stl xs)\<rbrakk> \<Longrightarrow> (\<phi> until \<psi>) xs"
+
+end
 
 lemma holds_mono:
 assumes holds: "holds P xs" and 0: "\<And> x. P x \<Longrightarrow> Q x"
@@ -587,11 +593,17 @@ lemma not_holds_eq[simp]: "holds (- op = x) = not (HLD {x})"
 
 text \<open>Strong until\<close>
 
+context
+  notes [[inductive_defs]]
+begin
+
 inductive suntil (infix "suntil" 60) for \<phi> \<psi> where
   base: "\<psi> \<omega> \<Longrightarrow> (\<phi> suntil \<psi>) \<omega>"
 | step: "\<phi> \<omega> \<Longrightarrow> (\<phi> suntil \<psi>) (stl \<omega>) \<Longrightarrow> (\<phi> suntil \<psi>) \<omega>"
 
 inductive_simps suntil_Stream: "(\<phi> suntil \<psi>) (x ## s)"
+
+end
 
 lemma suntil_induct_strong[consumes 1, case_names base step]:
   "(\<phi> suntil \<psi>) x \<Longrightarrow>

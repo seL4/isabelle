@@ -71,6 +71,7 @@ end;
 signature INDUCTIVE =
 sig
   include BASIC_INDUCTIVE
+  val inductive_defs: bool Config.T
   val select_disj_tac: Proof.context -> int -> int -> int -> tactic
   type add_ind_def =
     inductive_flags ->
@@ -120,6 +121,8 @@ val simp_thms3 =
 
 
 (** misc utilities **)
+
+val inductive_defs = Attrib.setup_config_bool @{binding inductive_defs} (K false);
 
 fun message quiet_mode s = if quiet_mode then () else writeln s;
 
@@ -836,17 +839,21 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
 
     (* add definition of recursive predicates to theory *)
 
-    val rec_name =
+    val rec_binding =
       if Binding.is_empty alt_name then
         Binding.name (space_implode "_" (map (Binding.name_of o fst) cnames_syn))
       else alt_name;
+    val rec_name = Binding.name_of rec_binding;
 
-    val is_auxiliary = length cs >= 2; 
+    val inductive_defs = Config.get lthy inductive_defs;
+    val is_auxiliary = length cs >= 2;
+
     val ((rec_const, (_, fp_def)), lthy') = lthy
       |> is_auxiliary ? Proof_Context.concealed
       |> Local_Theory.define
-        ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
-         ((Binding.concealed (Thm.def_binding rec_name), @{attributes [nitpick_unfold]}),
+        ((rec_binding, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
+         ((if inductive_defs then Thm.def_binding rec_binding else Binding.empty,
+           @{attributes [nitpick_unfold]}),
            fold_rev lambda params
              (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
       ||> Proof_Context.restore_naming lthy;
@@ -854,18 +861,18 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
       Simplifier.rewrite (put_simpset HOL_basic_ss lthy' addsimps [fp_def])
         (Thm.cterm_of lthy' (list_comb (rec_const, params)));
     val specs =
-      if length cs < 2 then []
-      else
+      if is_auxiliary then
         map_index (fn (i, (name_mx, c)) =>
           let
             val Ts = arg_types_of (length params) c;
             val xs =
               map Free (Variable.variant_frees lthy' intr_ts (mk_names "x" (length Ts) ~~ Ts));
           in
-            (name_mx, (apfst Binding.concealed Attrib.empty_binding, fold_rev lambda (params @ xs)
+            (name_mx, (Attrib.empty_binding, fold_rev lambda (params @ xs)
               (list_comb (rec_const, params @ make_bool_args' bs i @
                 make_args argTs (xs ~~ Ts)))))
-          end) (cnames_syn ~~ cs);
+          end) (cnames_syn ~~ cs)
+      else [];
     val (consts_defs, lthy'') = lthy'
       |> fold_map Local_Theory.define specs;
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
@@ -873,11 +880,14 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
     val (_, ctxt'') = Variable.add_fixes (map (fst o dest_Free) params) lthy'';
     val mono = prove_mono quiet_mode skip_mono predT fp_fun monos ctxt'';
     val (_, lthy''') = lthy''
-      |> Local_Theory.note (apfst Binding.concealed Attrib.empty_binding,
-        Proof_Context.export ctxt'' lthy'' [mono]);
+      |> Local_Theory.note
+        ((if inductive_defs
+          then Binding.qualify true rec_name (Binding.name "mono")
+          else Binding.empty, []),
+          Proof_Context.export ctxt'' lthy'' [mono]);
   in
     (lthy''', Proof_Context.transfer (Proof_Context.theory_of lthy''') ctxt'',
-      rec_name, mono, fp_def', map (#2 o #2) consts_defs,
+      rec_binding, mono, fp_def', map (#2 o #2) consts_defs,
       list_comb (rec_const, params), preds, argTs, bs, xs)
   end;
 
@@ -974,7 +984,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
     val ((intr_names, intr_atts), intr_ts) =
       apfst split_list (split_list (map (check_rule lthy cs params) intros));
 
-    val (lthy1, lthy2, rec_name, mono, fp_def, rec_preds_defs, rec_const, preds,
+    val (lthy1, lthy2, rec_binding, mono, fp_def, rec_preds_defs, rec_const, preds,
       argTs, bs, xs) = mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts
         monos params cnames_syn lthy;
 
@@ -1003,7 +1013,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
     val intrs' = map (rulify lthy1) intrs;
 
     val (intrs'', elims'', eqs', induct, inducts, lthy3) =
-      declare_rules rec_name coind no_ind
+      declare_rules rec_binding coind no_ind
         cnames preds intrs' intr_names intr_atts elims' eqs raw_induct lthy1;
 
     val result =

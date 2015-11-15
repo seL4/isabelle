@@ -24,8 +24,6 @@ where
   "R1 a c \<Longrightarrow> rel_sum R1 R2 (Inl a) (Inl c)"
 | "R2 b d \<Longrightarrow> rel_sum R1 R2 (Inr b) (Inr d)"
 
-hide_fact rel_sum_def
-
 definition
   rel_fun :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool"
 where

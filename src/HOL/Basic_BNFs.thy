@@ -102,8 +102,6 @@ inductive
 where
   "\<lbrakk>R1 a b; R2 c d\<rbrakk> \<Longrightarrow> rel_prod R1 R2 (a, c) (b, d)"
 
-hide_fact rel_prod_def
-
 lemma rel_prod_apply [code, simp]:
   "rel_prod R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
   by (auto intro: rel_prod.intros elim: rel_prod.cases)
