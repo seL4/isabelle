@@ -163,7 +163,7 @@ subsubsection "Overall Correctness"
 
 interpretation Map_by_Ordered
 where empty = Leaf and lookup = lookup and update = update
-and delete = delete and inorder = inorder and wf = "\<lambda>_. True"
+and delete = delete and inorder = inorder and inv = "\<lambda>_. True"
 proof (standard, goal_cases)
   case 2 thus ?case by(simp add: lookup_eq)
 next

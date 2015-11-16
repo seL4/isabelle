@@ -53,7 +53,7 @@ by(induction x t1 and x t1 a t2 and x t1 a t2 rule: delete_deleteL_deleteR.induc
 
 interpretation Map_by_Ordered
 where empty = Leaf and lookup = lookup and update = update and delete = delete
-and inorder = inorder and wf = "\<lambda>_. True"
+and inorder = inorder and inv = "\<lambda>_. True"
 proof (standard, goal_cases)
   case 1 show ?case by simp
 next
@@ -62,6 +62,6 @@ next
   case 3 thus ?case by(simp add: inorder_update)
 next
   case 4 thus ?case by(simp add: inorder_delete)
-qed (rule TrueI)+
+qed auto
 
 end

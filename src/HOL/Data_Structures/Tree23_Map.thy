@@ -120,7 +120,7 @@ subsection \<open>Overall Correctness\<close>
 
 interpretation T23_Map: Map_by_Ordered
 where empty = Leaf and lookup = lookup and update = update and delete = delete
-and inorder = inorder and wf = bal
+and inorder = inorder and inv = bal
 proof (standard, goal_cases)
   case 2 thus ?case by(simp add: lookup)
 next
