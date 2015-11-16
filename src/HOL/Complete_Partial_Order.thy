@@ -87,11 +87,15 @@ by(rule antisym)(auto intro: ccpo_Sup_least ccpo_Sup_upper simp add: chain_singl
 
 subsection \<open>Transfinite iteration of a function\<close>
 
+context notes [[inductive_defs]] begin
+
 inductive_set iterates :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a set"
 for f :: "'a \<Rightarrow> 'a"
 where
   step: "x \<in> iterates f \<Longrightarrow> f x \<in> iterates f"
 | Sup: "chain (op \<le>) M \<Longrightarrow> \<forall>x\<in>M. x \<in> iterates f \<Longrightarrow> Sup M \<in> iterates f"
+
+end
 
 lemma iterates_le_f:
   "x \<in> iterates f \<Longrightarrow> monotone (op \<le>) (op \<le>) f \<Longrightarrow> x \<le> f x"
