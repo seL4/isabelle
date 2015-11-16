@@ -52,25 +52,35 @@ type 'a rewrites = (Attrib.binding * 'a) list
 
 local
 
-fun prep_interpretation prep_expr prep_term prep_prop prep_attr expression raw_defs raw_eqns initial_ctxt =
+fun prep_mixins prep_term prep_prop expr_ctxt deps_ctxt raw_defs raw_eqns =
   let
-    (*reading*)
-    val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
-    val deps_ctxt = fold Locale.activate_declarations deps expr_ctxt;
     val prep = Syntax.check_terms deps_ctxt #> Variable.export_terms deps_ctxt expr_ctxt;
     val rhss = (prep o map (prep_term deps_ctxt o snd o snd)) raw_defs;
-    val eqns = (prep o map (prep_prop deps_ctxt o snd)) raw_eqns;
-
-    (*defining*)
     val pre_defs = map2 (fn ((name, atts), ((b, mx), _)) => fn rhs =>
       ((b, mx), ((Thm.def_binding_optional b name, atts), rhs))) raw_defs rhss;
-    val (defs, forked_ctxt) = fold_map Local_Theory.define pre_defs expr_ctxt;
-    val def_ctxt = Proof_Context.transfer (Proof_Context.theory_of forked_ctxt) expr_ctxt;
-    val def_eqns = defs
-      |> map (Thm.symmetric o
-        Morphism.thm (Local_Theory.standard_morphism forked_ctxt def_ctxt) o snd o snd);
+    val eqns = (prep o map (prep_prop deps_ctxt o snd)) raw_eqns;
+  in (pre_defs, eqns) end;
 
-    (*setting up proof*)
+fun define_mixins [] expr_ctxt = ([], expr_ctxt)
+      (*quasi-inhomogeneous type: definitions demand local theory rather than bare proof context*)
+  | define_mixins pre_defs expr_lthy =
+      let
+        val (defs, forked_lthy) = fold_map Local_Theory.define pre_defs expr_lthy;
+        val def_lthy =
+          Proof_Context.transfer (Proof_Context.theory_of forked_lthy) expr_lthy;
+        val def_eqns = defs
+          |> map (Thm.symmetric o
+              Morphism.thm (Local_Theory.standard_morphism forked_lthy def_lthy) o snd o snd);
+      in (def_eqns, def_lthy) end;
+
+fun prep_interpretation prep_expr prep_term prep_prop prep_attr
+  expression raw_defs raw_eqns initial_ctxt =
+  let
+    val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
+    val (pre_defs, eqns) =
+      prep_mixins prep_term prep_prop expr_ctxt
+        (fold Locale.activate_declarations deps expr_ctxt) raw_defs raw_eqns;
+    val (def_eqns, def_ctxt) = define_mixins pre_defs expr_ctxt;
     val attrss = map (apsnd (map (prep_attr def_ctxt)) o fst) raw_eqns;
     val goal_ctxt = fold Variable.auto_fixes eqns def_ctxt;
     val export' = Variable.export_morphism goal_ctxt def_ctxt;
