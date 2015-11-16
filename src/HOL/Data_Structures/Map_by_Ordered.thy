@@ -34,22 +34,24 @@ and update: "inv t \<and> sorted1 (inorder t) \<Longrightarrow>
 and delete: "inv t \<and> sorted1 (inorder t) \<Longrightarrow>
   inorder(delete a t) = del_list a (inorder t)"
 and inv_empty:  "inv empty"
-and inv_insert: "inv t \<and> sorted1 (inorder t) \<Longrightarrow> inv(update a b t)"
+and inv_update: "inv t \<and> sorted1 (inorder t) \<Longrightarrow> inv(update a b t)"
 and inv_delete: "inv t \<and> sorted1 (inorder t) \<Longrightarrow> inv(delete a t)"
 begin
 
 sublocale Map
-  empty update delete "map_of o inorder" "\<lambda>t. inv t \<and> sorted1 (inorder t)"
+  empty update delete lookup "\<lambda>t. inv t \<and> sorted1 (inorder t)"
 proof(standard, goal_cases)
-  case 1 show ?case by (auto simp: empty)
+  case 1 show ?case by (auto simp: lookup empty inv_empty)
 next
-  case 2 thus ?case by(simp add: update map_of_ins_list)
+  case 2 thus ?case
+    by(simp add: fun_eq_iff update inv_update map_of_ins_list lookup sorted_upd_list)
 next
-  case 3 thus ?case by(simp add: delete map_of_del_list)
+  case 3 thus ?case
+    by(simp add: fun_eq_iff delete inv_delete map_of_del_list lookup sorted_del_list)
 next
   case 4 thus ?case by(simp add: empty inv_empty)
 next
-  case 5 thus ?case by(simp add: update inv_insert sorted_upd_list)
+  case 5 thus ?case by(simp add: update inv_update sorted_upd_list)
 next
   case 6 thus ?case by (auto simp: delete inv_delete sorted_del_list)
 qed
