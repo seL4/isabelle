@@ -31,21 +31,15 @@ that in practice this is not a problem because of the simplicity of
 the "isin" functions that implement @{const elems}. Nevertheless
 it is possible to avoid the quantifiers with the help of some rewrite rules: *}
 
-lemma sorted_ConsD: "sorted (y # xs) \<Longrightarrow> x \<in> elems xs \<Longrightarrow> y < x"
-by (simp add: sorted_Cons_iff)
+lemma sorted_ConsD: "sorted (y # xs) \<Longrightarrow> x \<le> y \<Longrightarrow> x \<notin> elems xs"
+by (auto simp: sorted_Cons_iff)
 
-lemma sorted_snocD: "sorted (xs @ [y]) \<Longrightarrow> x \<in> elems xs \<Longrightarrow> x < y"
-by (simp add: sorted_snoc_iff)
-
-lemma sorted_ConsD2: "sorted (y # xs) \<Longrightarrow> x \<le> y \<Longrightarrow> x \<notin> elems xs"
-using leD sorted_ConsD by blast
-
-lemma sorted_snocD2: "sorted (xs @ [y]) \<Longrightarrow> y \<le> x \<Longrightarrow> x \<notin> elems xs"
-using leD sorted_snocD by blast
+lemma sorted_snocD: "sorted (xs @ [y]) \<Longrightarrow> y \<le> x \<Longrightarrow> x \<notin> elems xs"
+by (auto simp: sorted_snoc_iff)
 
 lemmas elems_simps = sorted_lems elems_app
 lemmas elems_simps1 = elems_simps sorted_Cons_iff sorted_snoc_iff
-lemmas elems_simps2 = elems_simps sorted_ConsD sorted_snocD sorted_ConsD2 sorted_snocD2
+lemmas elems_simps2 = elems_simps sorted_ConsD sorted_snocD
 
 
 subsection \<open>Inserting into an ordered list without duplicates:\<close>
