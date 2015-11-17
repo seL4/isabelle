@@ -19,7 +19,7 @@ val nT = HOLogic.natT;
 
   val comp_arith = [@{thm "Let_def"}, @{thm "if_False"}, @{thm "if_True"}, @{thm "add_0"},
                  @{thm "add_Suc"}, @{thm add_numeral_left}, @{thm mult_numeral_left(1)}] @
-                 (map (fn th => th RS sym) [@{thm "numeral_1_eq_1"}])
+                 (map (fn th => th RS sym) [@{thm "numeral_One"}])
                  @ @{thms arith_simps} @ nat_arith @ @{thms rel_simps} 
   val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"}, 
              @{thm of_nat_numeral},
@@ -87,9 +87,8 @@ fun mir_tac ctxt q =
             @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = put_simpset HOL_basic_ss ctxt
-      addsimps [@{thm "zdvd_int"}] @ map (fn r => r RS sym)
-        [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm "zadd_int"}, 
-         @{thm nat_numeral}, @{thm "zmult_int"}]
+      addsimps [@{thm "zdvd_int"}, @{thm "of_nat_add"}, @{thm "of_nat_mult"}] @ 
+          map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm nat_numeral}]
       |> Splitter.add_split @{thm "zdiff_int_split"}
     (*simp rules for elimination of int n*)
 

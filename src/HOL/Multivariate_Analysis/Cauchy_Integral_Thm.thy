@@ -3997,7 +3997,7 @@ proof -
         apply (rule power_strict_mono)
         using `pe>0` by auto
       then have pe2: "pe^2 < 4 * cmod (w - x) ^ 2"
-        by auto
+        by (simp add: power_divide)
       have "8 * L * cmod (w - z) < e * pe\<^sup>2"
         using w `L>0` by (simp add: field_simps)
       also have "... < e * 4 * cmod (w - x) * cmod (w - x)"

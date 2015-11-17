@@ -1044,7 +1044,7 @@ proof -
   have "(0::real) \<le> 1"
     by (metis less_eq_real_def zero_less_one)
   thus ?thesis
-    by (metis floor_unique less_add_one less_imp_le not_less of_int_le_iff order_trans)
+    by (metis floor_of_int less_floor_iff)
 qed
 
 lemma int_le_real_less: "(n \<le> m) = (real_of_int n < real_of_int m + 1)"
@@ -1509,29 +1509,23 @@ lemma floor_divide_eq_div_numeral[simp]: "\<lfloor>numeral a / numeral b::real\<
 lemma floor_minus_divide_eq_div_numeral[simp]: "\<lfloor>- (numeral a / numeral b)::real\<rfloor> = - numeral a div numeral b"
   by (metis divide_minus_left floor_divide_of_int_eq of_int_neg_numeral of_int_numeral)
 
-lemma real_of_int_ceiling_cancel [simp]:
-     "(real_of_int (ceiling x) = x) = (\<exists>n::int. x = real_of_int n)"
+lemma of_int_ceiling_cancel [simp]:
+     "(of_int (ceiling x) = x) = (\<exists>n::int. x = of_int n)"
   using ceiling_of_int by metis
 
-lemma ceiling_eq: "[| real_of_int n < x; x < real_of_int n + 1 |] ==> ceiling x = n + 1"
+lemma ceiling_eq: "[| of_int n < x; x \<le> of_int n + 1 |] ==> ceiling x = n + 1"
+  by (simp add: ceiling_unique)
+
+lemma of_int_ceiling_diff_one_le [simp]: "of_int (ceiling r) - 1 \<le> r"
   by linarith
 
-lemma ceiling_eq2: "[| real_of_int n < x; x \<le> real_of_int n + 1 |] ==> ceiling x = n + 1"
+lemma of_int_ceiling_le_add_one [simp]: "of_int (ceiling r) \<le> r + 1"
   by linarith
 
-lemma real_of_int_ceiling_diff_one_le [simp]: "real_of_int (ceiling r) - 1 \<le> r"
-  by linarith
+lemma ceiling_le: "x <= of_int a ==> ceiling x <= a"
+  by (simp add: ceiling_le_iff)
 
-lemma real_of_int_ceiling_le_add_one [simp]: "real_of_int (ceiling r) \<le> r + 1"
-  by linarith
-
-lemma ceiling_le: "x <= real_of_int a ==> ceiling x <= a"
-  by linarith
-
-lemma ceiling_le_real: "ceiling x <= a ==> x <= real_of_int a"
-  by linarith
-
-lemma ceiling_divide_eq_div: "\<lceil>real_of_int a / real_of_int b\<rceil> = - (- a div b)"
+lemma ceiling_divide_eq_div: "\<lceil>of_int a / of_int b\<rceil> = - (- a div b)"
   by (metis ceiling_def floor_divide_of_int_eq minus_divide_left of_int_minus)
 
 lemma ceiling_divide_eq_div_numeral [simp]:
@@ -1574,25 +1568,13 @@ lemma Rats_no_bot_less: "\<exists> q \<in> \<rat>. q < (x :: real)"
 subsection \<open>Exponentiation with floor\<close>
 
 lemma floor_power:
-  assumes "x = real_of_int (floor x)"
+  assumes "x = of_int (floor x)"
   shows "floor (x ^ n) = floor x ^ n"
 proof -
-  have "x ^ n = real_of_int (floor x ^ n)"
+  have "x ^ n = of_int (floor x ^ n)"
     using assms by (induct n arbitrary: x) simp_all
-  then show ?thesis  by linarith
+  then show ?thesis by (metis floor_of_int) 
 qed
-(*
-lemma natfloor_power:
-  assumes "x = real (natfloor x)"
-  shows "natfloor (x ^ n) = natfloor x ^ n"
-proof -
-  from assms have "0 \<le> floor x" by auto
-  note assms[unfolded natfloor_def of_nat_nat[OF `0 \<le> floor x`]]
-  from floor_power[OF this]
-  show ?thesis unfolding natfloor_def nat_power_eq[OF `0 \<le> floor x`, symmetric]
-    by simp
-qed
-*)
 
 lemma floor_numeral_power[simp]:
   "\<lfloor>numeral x ^ n\<rfloor> = numeral x ^ n"

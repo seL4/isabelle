@@ -22,8 +22,8 @@ text{*
 *}
 
 text{*
-@{thm[display] numeral_1_eq_1[no_vars]}
-\rulename{numeral_1_eq_1}
+@{thm[display] numeral_One[no_vars]}
+\rulename{numeral_One}
 
 @{thm[display] add_2_eq_Suc[no_vars]}
 \rulename{add_2_eq_Suc}

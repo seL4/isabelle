@@ -130,6 +130,10 @@ lemma indep_card_eq_dim_span:
 lemma setsum_not_0: "setsum f A \<noteq> 0 \<Longrightarrow> \<exists>a \<in> A. f a \<noteq> 0"
   by (rule ccontr) auto
 
+lemma subset_translation_eq [simp]:
+    fixes a :: "'a::real_vector" shows "op + a ` s \<subseteq> op + a ` t \<longleftrightarrow> s \<subseteq> t"
+  by auto
+
 lemma translate_inj_on:
   fixes A :: "'a::ab_group_add set"
   shows "inj_on (\<lambda>x. a + x) A"
@@ -160,6 +164,9 @@ lemma translation_galois:
   apply auto
   done
 
+lemma convex_translation_eq [simp]: "convex ((\<lambda>x. a + x) ` s) \<longleftrightarrow> convex s"
+  by (metis convex_translation translation_galois)
+
 lemma translation_inverse_subset:
   assumes "((\<lambda>x. - a + x) ` V) \<le> (S :: 'n::ab_group_add set)"
   shows "V \<le> ((\<lambda>x. a + x) ` S)"
@@ -177,6 +184,11 @@ proof -
   }
   then show ?thesis by auto
 qed
+
+lemma convex_linear_image_eq [simp]:
+    fixes f :: "'a::real_vector \<Rightarrow> 'b::real_vector"
+    shows "\<lbrakk>linear f; inj f\<rbrakk> \<Longrightarrow> convex (f ` s) \<longleftrightarrow> convex s"
+    by (metis (no_types) convex_linear_image convex_linear_vimage inj_vimage_image_eq)
 
 lemma basis_to_basis_subspace_isomorphism:
   assumes s: "subspace (S:: ('n::euclidean_space) set)"
@@ -7254,7 +7266,7 @@ next
     using subset_rel_interior[of "convex hull insert 0 B" S] ** by auto
 qed
 
-lemma rel_interior_convex_nonempty:
+lemma rel_interior_eq_empty:
   fixes S :: "'n::euclidean_space set"
   assumes "convex S"
   shows "rel_interior S = {} \<longleftrightarrow> S = {}"
@@ -7313,7 +7325,7 @@ proof -
   proof (cases "S = {}")
     case False
     then obtain a where a: "a \<in> rel_interior S"
-      using rel_interior_convex_nonempty assms by auto
+      using rel_interior_eq_empty assms by auto
     { fix x
       assume x: "x \<in> closure S"
       {
@@ -7421,7 +7433,7 @@ lemma convex_rel_interior_closure:
 proof (cases "S = {}")
   case True
   then show ?thesis
-    using assms rel_interior_convex_nonempty by auto
+    using assms rel_interior_eq_empty by auto
 next
   case False
   have "rel_interior (closure S) \<supseteq> rel_interior S"
@@ -7432,7 +7444,7 @@ next
     fix z
     assume z: "z \<in> rel_interior (closure S)"
     obtain x where x: "x \<in> rel_interior S"
-      using \<open>S \<noteq> {}\<close> assms rel_interior_convex_nonempty by auto
+      using \<open>S \<noteq> {}\<close> assms rel_interior_eq_empty by auto
     have "z \<in> rel_interior S"
     proof (cases "x = z")
       case True
@@ -7566,7 +7578,7 @@ proof -
        apply auto
        done
     obtain a where a: "a \<in> rel_interior S1"
-      using \<open>S1 \<noteq> {}\<close> rel_interior_convex_nonempty assms by auto
+      using \<open>S1 \<noteq> {}\<close> rel_interior_eq_empty assms by auto
     obtain T where T: "open T" "a \<in> T \<inter> S1" "T \<inter> affine hull S1 \<subseteq> S1"
        using mem_rel_interior[of a S1] a by auto
     then have "a \<in> T \<inter> closure S2"
@@ -7668,7 +7680,7 @@ lemma convex_rel_interior_only_if:
   shows "z \<in> rel_interior S"
 proof -
   obtain x where x: "x \<in> rel_interior S"
-    using rel_interior_convex_nonempty assms by auto
+    using rel_interior_eq_empty assms by auto
   then have "x \<in> S"
     using rel_interior_subset by auto
   then obtain e where e: "e > 1 \<and> (1 - e) *\<^sub>R x + e *\<^sub>R z \<in> S"
@@ -8085,7 +8097,7 @@ lemma rel_interior_convex_linear_image:
 proof (cases "S = {}")
   case True
   then show ?thesis
-    using assms rel_interior_empty rel_interior_convex_nonempty by auto
+    using assms rel_interior_empty rel_interior_eq_empty by auto
 next
   case False
   have *: "f ` (rel_interior S) \<subseteq> f ` S"
@@ -8219,7 +8231,7 @@ proof -
   {
     assume "S \<noteq> {}" "T \<noteq> {}"
     then have ri: "rel_interior S \<noteq> {}" "rel_interior T \<noteq> {}"
-      using rel_interior_convex_nonempty assms by auto
+      using rel_interior_eq_empty assms by auto
     then have "fst -` rel_interior S \<noteq> {}"
       using fst_vimage_eq_Times[of "rel_interior S"] by auto
     then have "rel_interior ((fst :: 'n * 'm \<Rightarrow> 'n) -` S) = fst -` rel_interior S"

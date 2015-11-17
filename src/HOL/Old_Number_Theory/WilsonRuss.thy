@@ -29,7 +29,7 @@ fun wset :: "int \<Rightarrow> int => int set" where
 text \<open>\medskip @{term [source] inv}\<close>
 
 lemma inv_is_inv_aux: "1 < m ==> Suc (nat (m - 2)) = nat (m - 1)"
-  by (subst int_int_eq [symmetric]) auto
+  by simp
 
 lemma inv_is_inv:
     "zprime p \<Longrightarrow> 0 < a \<Longrightarrow> a < p ==> [a * inv p a = 1] (mod p)"
@@ -38,10 +38,7 @@ lemma inv_is_inv:
   apply (subst mod_mult_right_eq [symmetric])
   apply (subst zcong_zmod [symmetric])
   apply (subst power_Suc [symmetric])
-  apply (subst inv_is_inv_aux)
-   apply (erule_tac [2] Little_Fermat)
-   apply (erule_tac [2] zdvd_not_zless)
-   apply (unfold zprime_def, auto)
+  using Little_Fermat inv_is_inv_aux zdvd_not_zless apply auto
   done
 
 lemma inv_distinct:
@@ -116,8 +113,7 @@ lemma inv_less_p_minus_1:
 
 lemma inv_inv_aux: "5 \<le> p ==>
     nat (p - 2) * nat (p - 2) = Suc (nat (p - 1) * nat (p - 3))"
-  apply (subst int_int_eq [symmetric])
-  apply (simp add: of_nat_mult)
+  apply (subst of_nat_eq_iff [where 'a = int, symmetric])
   apply (simp add: left_diff_distrib right_diff_distrib)
   done
 

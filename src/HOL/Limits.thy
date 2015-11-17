@@ -635,6 +635,9 @@ lemma continuous_on_diff [continuous_intros]:
   shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f x - g x)"
   unfolding continuous_on_def by (auto intro: tendsto_diff)
 
+lemma continuous_on_op_minus: "continuous_on (s::'a::real_normed_vector set) (op - x)"
+  by (rule continuous_intros | simp)+
+
 lemma tendsto_setsum [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::real_normed_vector"
   assumes "\<And>i. i \<in> S \<Longrightarrow> (f i ---> a i) F"

@@ -28,11 +28,11 @@ fun natfac :: "nat \<Rightarrow> nat"
 lemmas compute_natarith =
   arith_simps rel_simps
   diff_nat_numeral nat_numeral nat_0 nat_neg_numeral
-  numeral_1_eq_1 [symmetric]
+  numeral_One [symmetric]
   numeral_1_eq_Suc_0 [symmetric]
   Suc_numeral natfac.simps
 
-lemmas number_norm = numeral_1_eq_1[symmetric]
+lemmas number_norm = numeral_One[symmetric]
 
 lemmas compute_numberarith =
   arith_simps rel_simps number_norm

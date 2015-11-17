@@ -391,8 +391,6 @@ lemma power_divide [field_simps, divide_simps]:
   "(a / b) ^ n = a ^ n / b ^ n"
   by (induct n) simp_all
 
-declare power_divide [where b = "numeral w" for w, simp]
-
 end
 
 

@@ -122,7 +122,7 @@ val semiring_funs =
       (case Rat.quotient_of_rat x of (i, 1) => i | _ => error "int_of_rat: bad int")),
     conv = (fn ctxt =>
       Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
-      then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_1_eq_1}))};
+      then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_One}))};
 
 val divide_const = Thm.cterm_of @{context} (Logic.varify_global @{term "op /"});
 val [divide_tvar] = Term.add_tvars (Thm.term_of divide_const) [];
@@ -257,10 +257,10 @@ val dest_number = Thm.term_of #> HOLogic.dest_number #> snd;
 val is_number = can dest_number;
 
 fun numeral01_conv ctxt =
-  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [@{thm numeral_1_eq_1}]);
+  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [@{thm numeral_One}]);
 
 fun zero1_numeral_conv ctxt =
-  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [@{thm numeral_1_eq_1} RS sym]);
+  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [@{thm numeral_One} RS sym]);
 
 fun zerone_conv ctxt cv =
   zero1_numeral_conv ctxt then_conv cv then_conv numeral01_conv ctxt;

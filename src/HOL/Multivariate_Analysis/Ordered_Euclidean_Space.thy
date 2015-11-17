@@ -211,15 +211,6 @@ lemma convex_closed_interval:
   using convex_box[of a b]
   by (metis interval_cbox)
 
-lemma image_affinity_interval: fixes m::real
-  fixes a b c :: "'a::ordered_euclidean_space"
-  shows "(\<lambda>x. m *\<^sub>R x + c) ` {a..b} =
-    (if {a..b} = {} then {}
-     else (if 0 \<le> m then {m *\<^sub>R a + c .. m *\<^sub>R b + c}
-     else {m *\<^sub>R b + c .. m *\<^sub>R a + c}))"
-  using image_affinity_cbox[of m c a b]
-  by (simp add: cbox_interval)
-
 lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::_::ordered_euclidean_space)) ` {a .. b} =
   (if {a .. b} = {} then {} else if 0 \<le> m then {m *\<^sub>R a .. m *\<^sub>R b} else {m *\<^sub>R b .. m *\<^sub>R a})"
   using image_smult_cbox[of m a b]

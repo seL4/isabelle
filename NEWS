@@ -406,6 +406,36 @@ old-style "hide_const (open) ...". Consequently, both the defined
 constant and its defining fact become qualified, e.g. Option.is_none and
 Option.is_none_def. Occasional INCOMPATIBILITY in applications.
 
+* The coercions to type 'real' have been reorganised. The function 'real'
+is no longer overloaded, but has type 'nat => real' and abbreviates
+of_nat for that type. Also 'real_of_int :: int => real' abbreviates
+of_int for that type. Other overloaded instances of 'real' have been
+replaced by 'real_of_ereal' and 'real_of_float'.
+Consolidated facts (among others):
+  real_of_nat_le_iff -> of_nat_le_iff
+  real_of_nat_numeral of_nat_numeral
+  real_of_int_zero of_int_0
+  real_of_nat_zero of_nat_0
+  real_of_one of_int_1
+  real_of_int_add of_int_add
+  real_of_nat_add of_nat_add
+  real_of_int_diff of_int_diff
+  real_of_nat_diff of_nat_diff
+  floor_subtract floor_diff_of_int
+  real_of_int_inject of_int_eq_iff
+  real_of_int_gt_zero_cancel_iff of_int_0_less_iff
+  real_of_int_ge_zero_cancel_iff of_int_0_le_iff
+  real_of_nat_ge_zero of_nat_0_le_iff
+  real_of_int_ceiling_ge le_of_int_ceiling
+  ceiling_less_eq ceiling_less_iff
+  ceiling_le_eq ceiling_le_iff
+  less_floor_eq less_floor_iff
+  floor_less_eq floor_less_iff
+  floor_divide_eq_div floor_divide_of_int_eq
+  real_of_int_zero_cancel of_nat_eq_0_iff
+  ceiling_real_of_int ceiling_of_int
+INCOMPATIBILITY.
+
 * Some old and rarely used ASCII replacement syntax has been removed.
 INCOMPATIBILITY, standard syntax with symbols should be used instead.
 The subsequent commands help to reproduce the old forms, e.g. to

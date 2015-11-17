@@ -85,7 +85,7 @@ theorem fib_Cassini:
  "fib (Suc (Suc n)) * fib n =
   (if n mod 2 = 0 then fib (Suc n) * fib (Suc n) - 1
    else fib (Suc n) * fib (Suc n) + 1)"
-  apply (rule int_int_eq [THEN iffD1]) 
+  apply (rule of_nat_eq_iff [where 'a = int, THEN iffD1]) 
   using fib_Cassini_int apply (auto simp add: Suc_leI fib_Suc_gr_0 of_nat_diff)
   done
 

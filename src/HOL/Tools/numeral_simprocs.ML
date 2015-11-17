@@ -169,7 +169,7 @@ val num_ss =
     |> Simplifier.set_termless numtermless);
 
 (*Maps 1 to Numeral1 so that arithmetic isn't complicated by the abstract 1.*)
-val numeral_syms = [@{thm numeral_1_eq_1} RS sym];
+val numeral_syms = [@{thm numeral_One} RS sym];
 
 (*Simplify 0+n, n+0, Numeral1*n, n*Numeral1, 1*x, x*1, x/1 *)
 val add_0s =  @{thms add_0_left add_0_right};
@@ -177,7 +177,7 @@ val mult_1s = @{thms mult_1s divide_numeral_1 mult_1_left mult_1_right mult_minu
 
 (* For post-simplification of the rhs of simproc-generated rules *)
 val post_simps =
-    [@{thm numeral_1_eq_1},
+    [@{thm numeral_One},
      @{thm add_0_left}, @{thm add_0_right},
      @{thm mult_zero_left}, @{thm mult_zero_right},
      @{thm mult_1_left}, @{thm mult_1_right},
@@ -192,7 +192,7 @@ val inverse_1s = [@{thm inverse_numeral_1}];
 (*To perform binary arithmetic.  The "left" rewriting handles patterns
   created by the Numeral_Simprocs, such as 3 * (5 * x). *)
 val simps =
-    [@{thm numeral_1_eq_1} RS sym] @
+    [@{thm numeral_One} RS sym] @
     @{thms add_numeral_left} @
     @{thms add_neg_numeral_left} @
     @{thms mult_numeral_left} @
@@ -475,7 +475,7 @@ fun find_first_t past u []         = raise TERM ("find_first_t", [])
 
 (** Final simplification for the CancelFactor simprocs **)
 val simplify_one = Arith_Data.simplify_meta_eq
-  [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_by_1}, @{thm numeral_1_eq_1}];
+  [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_by_1}, @{thm numeral_One}];
 
 fun cancel_simplify_meta_eq ctxt cancel_th th =
     simplify_one ctxt (([th, cancel_th]) MRS trans);
@@ -739,7 +739,7 @@ in
 fun field_comp_conv ctxt =
   Simplifier.rewrite (put_simpset field_comp_ss ctxt)
   then_conv
-  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [@{thm numeral_1_eq_1}])
+  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [@{thm numeral_One}])
 
 end
 

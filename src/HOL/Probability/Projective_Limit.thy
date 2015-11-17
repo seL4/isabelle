@@ -298,7 +298,7 @@ proof (rule emeasure_lim)
     also have "\<dots> < ereal (1 * real_of_ereal ?a)" unfolding less_ereal.simps
     proof (rule mult_strict_right_mono)
       have "(\<Sum>i = 1..n. 2 powr - real i) = (\<Sum>i = 1..<Suc n. (1/2) ^ i)"
-        by (rule setsum.cong) (auto simp: powr_realpow powr_divide powr_minus_divide)  
+        by (rule setsum.cong) (auto simp: powr_realpow powr_divide power_divide powr_minus_divide)  
       also have "{1..<Suc n} = {..<Suc n} - {0}" by auto
       also have "setsum (op ^ (1 / 2::real)) ({..<Suc n} - {0}) =
         setsum (op ^ (1 / 2)) ({..<Suc n}) - 1" by (auto simp: setsum_diff1)

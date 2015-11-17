@@ -256,6 +256,7 @@ proof -
 qed
 
 subsection \<open>Alternating series test / Leibniz formula\<close>
+text\<open>FIXME: generalise these results from the reals via type classes?\<close>
 
 lemma sums_alternating_upper_lower:
   fixes a :: "nat \<Rightarrow> real"
@@ -3549,82 +3550,80 @@ proof -
     done
 qed
 
-
-lemma reals_Archimedean4:
-  assumes "0 < y" "0 \<le> x"
-  obtains n where "real n * y \<le> x" "x < real (Suc n) * y"
-  using floor_correct [of "x/y"] assms
-  apply (auto simp: field_simps intro!: that [of "nat (floor (x/y))"])
-by (metis (no_types, hide_lams)  divide_inverse divide_self_if floor_correct mult.left_commute mult.right_neutral mult_eq_0_iff order_refl order_trans real_mult_le_cancel_iff2)
-
 lemma cos_zero_lemma:
-     "\<lbrakk>0 \<le> x; cos x = 0\<rbrakk> \<Longrightarrow>
-      \<exists>n::nat. odd n & x = real n * (pi/2)"
-apply (erule reals_Archimedean4 [OF pi_gt_zero])
-apply (auto simp: )
-apply (subgoal_tac "0 \<le> x - real n * pi &
-                    (x - real n * pi) \<le> pi & (cos (x - real n * pi) = 0) ")
-apply (auto simp: algebra_simps of_nat_Suc)
- prefer 2 apply (simp add: cos_diff)
-apply (simp add: cos_diff)
-apply (subgoal_tac "EX! x. 0 \<le> x & x \<le> pi & cos x = 0")
-apply (rule_tac [2] cos_total, safe)
-apply (drule_tac x = "x - real n * pi" in spec)
-apply (drule_tac x = "pi/2" in spec)
-apply (simp add: cos_diff)
-apply (rule_tac x = "Suc (2 * n)" in exI)
-apply (simp add: of_nat_Suc algebra_simps, auto)
-done
+  assumes "0 \<le> x" "cos x = 0"
+  shows "\<exists>n. odd n \<and> x = of_nat n * (pi/2) \<and> n > 0"
+proof -
+  have xle: "x < (1 + real_of_int \<lfloor>x/pi\<rfloor>) * pi"
+    using floor_correct [of "x/pi"]
+    by (simp add: add.commute divide_less_eq)
+  obtain n where "real n * pi \<le> x" "x < real (Suc n) * pi"
+    apply (rule that [of "nat (floor (x/pi))"] )
+    using assms
+    apply (simp_all add: xle)
+    apply (metis floor_less_iff less_irrefl mult_imp_div_pos_less not_le pi_gt_zero)
+    done
+  then have x: "0 \<le> x - n * pi" "(x - n * pi) \<le> pi" "cos (x - n * pi) = 0"
+    by (auto simp: algebra_simps cos_diff assms)
+  then have "\<exists>!x. 0 \<le> x \<and> x \<le> pi \<and> cos x = 0"
+    by (auto simp: intro!: cos_total)
+  then obtain \<theta> where \<theta>: "0 \<le> \<theta>" "\<theta> \<le> pi" "cos \<theta> = 0" 
+                  and uniq: "\<And>\<phi>. \<lbrakk>0 \<le> \<phi>; \<phi> \<le> pi; cos \<phi> = 0\<rbrakk> \<Longrightarrow> \<phi> = \<theta>"
+    by blast
+  then have "x - real n * pi = \<theta>"
+    using x by blast
+  moreover have "pi/2 = \<theta>"
+    using pi_half_ge_zero uniq by fastforce 
+  ultimately show ?thesis
+    by (rule_tac x = "Suc (2 * n)" in exI) (simp add: algebra_simps)
+qed
 
 lemma sin_zero_lemma:
-     "\<lbrakk>0 \<le> x; sin x = 0\<rbrakk> \<Longrightarrow>
-      \<exists>n::nat. even n & x = real n * (pi/2)"
-apply (subgoal_tac "\<exists>n::nat. ~ even n & x + pi/2 = real n * (pi/2) ")
- apply (clarify, rule_tac x = "n - 1" in exI)
- apply (auto elim!: oddE simp add: of_nat_Suc field_simps)[1]
- apply (rule cos_zero_lemma)
- apply (auto simp: cos_add)
-done
+     "\<lbrakk>0 \<le> x; sin x = 0\<rbrakk> \<Longrightarrow> \<exists>n::nat. even n & x = real n * (pi/2)"
+  using cos_zero_lemma [of "x + pi/2"]
+  apply (clarsimp simp add: cos_add)
+  apply (rule_tac x = "n - 1" in exI)
+  apply (simp add: algebra_simps of_nat_diff)
+  done
 
 lemma cos_zero_iff:
-     "(cos x = 0) =
-      ((\<exists>n::nat. odd n & (x = real n * (pi/2))) |
-       (\<exists>n::nat. odd n & (x = -(real n * (pi/2)))))"
+     "(cos x = 0) \<longleftrightarrow>
+      ((\<exists>n. odd n & (x = real n * (pi/2))) \<or> (\<exists>n. odd n & (x = -(real n * (pi/2)))))"
+      (is "?lhs = ?rhs")
 proof -
   { fix n :: nat
     assume "odd n"
     then obtain m where "n = 2 * m + 1" ..
     then have "cos (real n * pi / 2) = 0"
-      by (simp add: field_simps of_nat_Suc) (simp add: cos_add add_divide_distrib)
+      by (simp add: field_simps) (simp add: cos_add add_divide_distrib)
   } note * = this
   show ?thesis
-  apply (rule iffI)
-  apply (cut_tac linorder_linear [of 0 x], safe)
-  apply (drule cos_zero_lemma, assumption+)
-  apply (cut_tac x="-x" in cos_zero_lemma, simp, simp)
-  apply (auto dest: *)
-  done
+  proof
+    assume "cos x = 0" then show ?rhs
+      using cos_zero_lemma [of x] cos_zero_lemma [of "-x"] by force
+  next
+    assume ?rhs then show "cos x = 0" 
+    by (auto dest: * simp del: eq_divide_eq_numeral1)
+  qed
 qed
 
-(* ditto: but to a lesser extent *)
 lemma sin_zero_iff:
-     "(sin x = 0) =
-      ((\<exists>n::nat. even n & (x = real n * (pi/2))) |
-       (\<exists>n::nat. even n & (x = -(real n * (pi/2)))))"
-apply (rule iffI)
-apply (cut_tac linorder_linear [of 0 x], safe)
-apply (drule sin_zero_lemma, assumption+)
-apply (cut_tac x="-x" in sin_zero_lemma, simp, simp, safe)
-apply (force simp add: minus_equation_iff [of x])
-apply (auto elim: evenE)
-done
-
+     "(sin x = 0) \<longleftrightarrow>
+      ((\<exists>n. even n & (x = real n * (pi/2))) \<or> (\<exists>n. even n & (x = -(real n * (pi/2)))))"
+      (is "?lhs = ?rhs")
+proof
+  assume "sin x = 0" then show ?rhs
+    using sin_zero_lemma [of x] sin_zero_lemma [of "-x"] by force
+next
+  assume ?rhs then show "sin x = 0" 
+    by (auto elim: evenE)
+qed
 
 lemma cos_zero_iff_int:
-     "cos x = 0 \<longleftrightarrow> (\<exists>n::int. odd n \<and> x = of_int n * (pi/2))"
+     "cos x = 0 \<longleftrightarrow> (\<exists>n. odd n \<and> x = of_int n * (pi/2))"
 proof safe
   assume "cos x = 0"
-  then show "\<exists>n::int. odd n & x = of_int n * (pi/2)"
+  then show "\<exists>n. odd n & x = of_int n * (pi/2)"
     apply (simp add: cos_zero_iff, safe)
     apply (metis even_int_iff of_int_of_nat_eq)
     apply (rule_tac x="- (int n)" in exI, simp)
@@ -3634,18 +3633,16 @@ next
   assume "odd n"
   then show "cos (of_int n * (pi / 2)) = 0"
     apply (simp add: cos_zero_iff)
-    apply (case_tac n rule: int_cases2, simp)
-    apply (rule disjI2)
-    apply (rule_tac x="nat (-n)" in exI, simp)
+    apply (case_tac n rule: int_cases2, simp_all)
     done
 qed
 
 lemma sin_zero_iff_int:
-     "sin x = 0 \<longleftrightarrow> (\<exists>n::int. even n & (x = of_int n * (pi/2)))"
+     "sin x = 0 \<longleftrightarrow> (\<exists>n. even n & (x = of_int n * (pi/2)))"
 proof safe
   assume "sin x = 0"
-  then show "\<exists>n::int. even n \<and> x = of_int n * (pi / 2)"
-    apply (simp add: sin_zero_iff, safe)
+  then show "\<exists>n. even n \<and> x = of_int n * (pi / 2)"
+    apply (simp add: sin_zero_iff, safe)    
     apply (metis even_int_iff of_int_of_nat_eq)
     apply (rule_tac x="- (int n)" in exI, simp)
     done
@@ -3654,9 +3651,7 @@ next
   assume "even n"
   then show "sin (of_int n * (pi / 2)) = 0"
     apply (simp add: sin_zero_iff)
-    apply (case_tac n rule: int_cases2, simp)
-    apply (rule disjI2)
-    apply (rule_tac x="nat (-n)" in exI, simp)
+    apply (case_tac n rule: int_cases2, simp_all)
     done
 qed
 
@@ -4907,20 +4902,16 @@ qed
 lemma machin_Euler: "5 * arctan(1/7) + 2 * arctan(3/79) = pi/4"
 proof -
   have 17: "\<bar>1/7\<bar> < (1 :: real)" by auto
-  with arctan_double
-  have "2 * arctan (1/7) = arctan (7/24)"  by auto
-  moreover
-  have "\<bar>7/24\<bar> < (1 :: real)" by auto
-  with arctan_double
-  have "2 * arctan (7/24) = arctan (336/527)"  by auto
-  moreover
-  have "\<bar>336/527\<bar> < (1 :: real)" by auto
+  with arctan_double have "2 * arctan (1/7) = arctan (7/24)" 
+    by simp (simp add: field_simps)
+  moreover have "\<bar>7/24\<bar> < (1 :: real)" by auto
+  with arctan_double have "2 * arctan (7/24) = arctan (336/527)"  by simp (simp add: field_simps)
+  moreover have "\<bar>336/527\<bar> < (1 :: real)" by auto
   from arctan_add[OF less_imp_le[OF 17] this]
   have "arctan(1/7) + arctan (336/527) = arctan (2879/3353)"  by auto
   ultimately have I: "5 * arctan(1/7) = arctan (2879/3353)"  by auto
   have 379: "\<bar>3/79\<bar> < (1 :: real)" by auto
-  with arctan_double
-  have II: "2 * arctan (3/79) = arctan (237/3116)"  by auto
+  with arctan_double have II: "2 * arctan (3/79) = arctan (237/3116)"  by simp (simp add: field_simps)
   have *: "\<bar>2879/3353\<bar> < (1 :: real)" by auto
   have "\<bar>237/3116\<bar> < (1 :: real)" by auto
   from arctan_add[OF less_imp_le[OF *] this]
@@ -5011,9 +5002,8 @@ next
   qed
 qed
 
-text\<open>FIXME: generalise from the reals via type classes?\<close>
 lemma summable_arctan_series:
-  fixes x :: real and n :: nat
+  fixes n :: nat
   assumes "\<bar>x\<bar> \<le> 1"
   shows "summable (\<lambda> k. (-1)^k * (1 / real (k*2+1) * x ^ (k*2+1)))"
   (is "summable (?c x)")
@@ -5467,7 +5457,7 @@ lemma polynomial_product_nat:
   shows "(\<Sum>i\<le>m. (a i) * x ^ i) * (\<Sum>j\<le>n. (b j) * x ^ j) =
          (\<Sum>r\<le>m + n. (\<Sum>k\<le>r. (a k) * (b (r - k))) * x ^ r)"
   using polynomial_product [of m a n b x] assms
-  by (simp only: of_nat_mult [symmetric] of_nat_power [symmetric] int_int_eq Int.int_setsum [symmetric])
+  by (simp only: of_nat_mult [symmetric] of_nat_power [symmetric] of_nat_eq_iff Int.int_setsum [symmetric])
 
 lemma polyfun_diff: (*COMPLEX_SUB_POLYFUN in HOL Light*)
     fixes x :: "'a::idom"

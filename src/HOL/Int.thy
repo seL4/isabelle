@@ -524,9 +524,6 @@ qed
 lemma zadd_int_left: "int m + (int n + z) = int (m + n) + z"
 by simp
 
-lemma int_Suc0_eq_1: "int (Suc 0) = 1"
-by simp
-
 text\<open>This version is proved for all ordered rings, not just integers!
       It is proved here because attribute @{text arith_split} is not available
       in theory @{text Rings}.
@@ -843,7 +840,6 @@ text \<open>Legacy theorems\<close>
 
 lemmas zle_int = of_nat_le_iff [where 'a=int]
 lemmas int_int_eq = of_nat_eq_iff [where 'a=int]
-lemmas numeral_1_eq_1 = numeral_One
 
 subsection \<open>Setting up simplification procedures\<close>
 
@@ -1678,7 +1674,6 @@ subsection \<open>Legacy theorems\<close>
 lemmas inj_int = inj_of_nat [where 'a=int]
 lemmas zadd_int = of_nat_add [where 'a=int, symmetric]
 lemmas int_mult = of_nat_mult [where 'a=int]
-lemmas zmult_int = of_nat_mult [where 'a=int, symmetric]
 lemmas int_eq_0_conv = of_nat_eq_0_iff [where 'a=int and m="n"] for n
 lemmas zless_int = of_nat_less_iff [where 'a=int]
 lemmas int_less_0_conv = of_nat_less_0_iff [where 'a=int and m="k"] for k

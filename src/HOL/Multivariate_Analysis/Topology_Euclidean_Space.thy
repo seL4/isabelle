@@ -888,7 +888,7 @@ lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
   apply (metis zero_le_dist order_trans dist_self)
   done
 
-lemma ball_empty[intro]: "e \<le> 0 \<Longrightarrow> ball x e = {}" by simp
+lemma ball_empty: "e \<le> 0 \<Longrightarrow> ball x e = {}" by simp
 
 lemma euclidean_dist_l2:
   fixes x y :: "'a :: euclidean_space"
@@ -6856,6 +6856,38 @@ lemma continuous_on_cases_local:
       \<Longrightarrow> continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
   by (rule continuous_on_union_local) (auto intro: continuous_on_eq)
 
+lemma continuous_on_cases_le:
+  fixes h :: "'a :: topological_space \<Rightarrow> real"
+  assumes "continuous_on {t \<in> s. h t \<le> a} f"
+      and "continuous_on {t \<in> s. a \<le> h t} g"
+      and h: "continuous_on s h"
+      and "\<And>t. \<lbrakk>t \<in> s; h t = a\<rbrakk> \<Longrightarrow> f t = g t"
+    shows "continuous_on s (\<lambda>t. if h t \<le> a then f(t) else g(t))"
+proof -
+  have s: "s = {t \<in> s. h t \<in> atMost a} \<union> {t \<in> s. h t \<in> atLeast a}"
+    by force
+  have 1: "closedin (subtopology euclidean s) {t \<in> s. h t \<in> atMost a}"
+    by (rule continuous_closedin_preimage [OF h closed_atMost])
+  have 2: "closedin (subtopology euclidean s) {t \<in> s. h t \<in> atLeast a}"
+    by (rule continuous_closedin_preimage [OF h closed_atLeast])
+  show ?thesis
+    apply (rule continuous_on_subset [of s, OF _ order_refl])
+    apply (subst s)
+    apply (rule continuous_on_cases_local)
+    using 1 2 s assms apply auto
+    done
+qed
+
+lemma continuous_on_cases_1:
+  fixes s :: "real set"
+  assumes "continuous_on {t \<in> s. t \<le> a} f"
+      and "continuous_on {t \<in> s. a \<le> t} g"
+      and "continuous_on s h"
+      and "a \<in> s \<Longrightarrow> f a = g a"
+    shows "continuous_on s (\<lambda>t. if t \<le> a then f(t) else g(t))"
+using assms
+by (auto simp: continuous_on_id intro: continuous_on_cases_le [where h = id, simplified])
+
 text\<open>Some more convenient intermediate-value theorem formulations.\<close>
 
 lemma connected_ivt_hyperplane:
@@ -8134,6 +8166,216 @@ proof -
   moreover have "\<And>x. x \<in> s \<Longrightarrow> g x = x \<Longrightarrow> x = a"
     using dist[THEN bspec[where x=a]] \<open>g a = a\<close> and \<open>a\<in>s\<close> by auto
   ultimately show "\<exists>!x\<in>s. g x = x" using \<open>a \<in> s\<close> by blast
+qed
+
+
+lemma cball_subset_cball_iff:
+  fixes a :: "'a :: euclidean_space"
+  shows "cball a r \<subseteq> cball a' r' \<longleftrightarrow> dist a a' + r \<le> r' \<or> r < 0"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs 
+  then show ?rhs 
+  proof (cases "r < 0")
+    case True then show ?rhs by simp
+  next
+    case False
+    then have [simp]: "r \<ge> 0" by simp
+    have "norm (a - a') + r \<le> r'"
+    proof (cases "a = a'")
+      case True then show ?thesis
+        using subsetD [where c = "a + r *\<^sub>R (SOME i. i \<in> Basis)", OF \<open>?lhs\<close>]  subsetD [where c = "a", OF \<open>?lhs\<close>]
+        by (force simp add: SOME_Basis dist_norm)
+    next
+      case False
+      have "norm (a' - (a + (r / norm (a - a')) *\<^sub>R (a - a'))) = norm (a' - a - (r / norm (a - a')) *\<^sub>R (a - a'))"
+        by (simp add: algebra_simps)
+      also have "... = norm ((-1 - (r / norm (a - a'))) *\<^sub>R (a - a'))"
+        by (simp add: algebra_simps)
+      also have "... = \<bar>- norm (a - a') - r\<bar>"
+        using  \<open>a \<noteq> a'\<close> by (simp add: abs_mult_pos field_simps)
+      finally have [simp]: "norm (a' - (a + (r / norm (a - a')) *\<^sub>R (a - a'))) = \<bar>norm (a - a') + r\<bar>" by linarith
+      show ?thesis
+        using subsetD [where c = "a' + (1 + r / norm(a - a')) *\<^sub>R (a - a')", OF \<open>?lhs\<close>] \<open>a \<noteq> a'\<close> 
+        by (simp add: dist_norm scaleR_add_left)
+    qed
+    then show ?rhs by (simp add: dist_norm)
+  qed
+next
+  assume ?rhs then show ?lhs 
+    apply (auto simp: ball_def dist_norm )
+    apply (metis add.commute add_le_cancel_right dist_norm dist_triangle_alt order_trans)
+    using le_less_trans apply fastforce
+    done
+qed
+
+lemma cball_subset_ball_iff:
+  fixes a :: "'a :: euclidean_space"
+  shows "cball a r \<subseteq> ball a' r' \<longleftrightarrow> dist a a' + r < r' \<or> r < 0"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs 
+  then show ?rhs 
+  proof (cases "r < 0")
+    case True then show ?rhs by simp
+  next
+    case False
+    then have [simp]: "r \<ge> 0" by simp
+    have "norm (a - a') + r < r'"
+    proof (cases "a = a'")
+      case True then show ?thesis
+        using subsetD [where c = "a + r *\<^sub>R (SOME i. i \<in> Basis)", OF \<open>?lhs\<close>]  subsetD [where c = "a", OF \<open>?lhs\<close>]
+        by (force simp add: SOME_Basis dist_norm)
+    next
+      case False
+      { assume "norm (a - a') + r \<ge> r'"
+        then have "\<bar>r' - norm (a - a')\<bar> \<le> r"
+          apply (simp split: abs_split)
+          by (metis \<open>0 \<le> r\<close> \<open>?lhs\<close> centre_in_cball dist_commute dist_norm less_asym mem_ball subset_eq)
+        then have False
+        using subsetD [where c = "a + (r' / norm(a - a') - 1) *\<^sub>R (a - a')", OF \<open>?lhs\<close>] \<open>a \<noteq> a'\<close>
+        apply (simp add: dist_norm field_simps)
+        apply (simp add: diff_divide_distrib scaleR_left_diff_distrib)
+        done
+      }
+      then show ?thesis by force
+    qed
+    then show ?rhs by (simp add: dist_norm)
+  qed
+next
+  assume ?rhs then show ?lhs 
+    apply (auto simp: ball_def dist_norm )
+    apply (metis add.commute add_le_cancel_right dist_norm dist_triangle_alt le_less_trans)
+    using le_less_trans apply fastforce
+    done
+qed
+
+lemma ball_subset_cball_iff:
+  fixes a :: "'a :: euclidean_space"
+  shows "ball a r \<subseteq> cball a' r' \<longleftrightarrow> dist a a' + r \<le> r' \<or> r \<le> 0"
+        (is "?lhs = ?rhs")
+proof (cases "r \<le> 0")
+  case True then show ?thesis   
+    using dist_not_less_zero less_le_trans by force
+next
+  case False show ?thesis  
+  proof
+    assume ?lhs
+    then have "(cball a r \<subseteq> cball a' r')"
+      by (metis False closed_cball closure_ball closure_closed closure_mono not_less)
+    then show ?rhs
+      using False cball_subset_cball_iff by fastforce
+  next
+    assume ?rhs with False show ?lhs
+      using ball_subset_cball cball_subset_cball_iff by blast 
+  qed
+qed
+
+lemma ball_subset_ball_iff:
+  fixes a :: "'a :: euclidean_space"
+  shows "ball a r \<subseteq> ball a' r' \<longleftrightarrow> dist a a' + r \<le> r' \<or> r \<le> 0"
+        (is "?lhs = ?rhs")
+proof (cases "r \<le> 0")
+  case True then show ?thesis   
+    using dist_not_less_zero less_le_trans by force
+next
+  case False show ?thesis  
+  proof
+    assume ?lhs
+    then have "0 < r'"
+      by (metis (no_types) False \<open>?lhs\<close> centre_in_ball dist_norm le_less_trans mem_ball norm_ge_zero not_less set_mp)
+    then have "(cball a r \<subseteq> cball a' r')"
+      by (metis False\<open>?lhs\<close> closure_ball closure_mono not_less)
+    then show ?rhs
+      using False cball_subset_cball_iff by fastforce
+  next
+  assume ?rhs then show ?lhs
+    apply (auto simp: ball_def)
+    apply (metis add.commute add_le_cancel_right dist_commute dist_triangle_lt not_le order_trans)
+    using dist_not_less_zero order.strict_trans2 apply blast
+    done
+  qed
+qed
+
+
+lemma ball_eq_ball_iff:
+  fixes x :: "'a :: euclidean_space"
+  shows "ball x d = ball y e \<longleftrightarrow> d \<le> 0 \<and> e \<le> 0 \<or> x=y \<and> d=e"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs 
+  then show ?rhs 
+  proof (cases "d \<le> 0 \<or> e \<le> 0")
+    case True 
+      with \<open>?lhs\<close> show ?rhs
+        by safe (simp_all only: ball_eq_empty [of y e, symmetric] ball_eq_empty [of x d, symmetric])
+  next
+    case False
+    with \<open>?lhs\<close> show ?rhs 
+      apply (auto simp add: set_eq_subset ball_subset_ball_iff dist_norm norm_minus_commute algebra_simps)
+      apply (metis add_le_same_cancel1 le_add_same_cancel1 norm_ge_zero norm_pths(2) order_trans)
+      apply (metis add_increasing2 add_le_imp_le_right eq_iff norm_ge_zero)
+      done
+  qed
+next
+  assume ?rhs then show ?lhs 
+    by (auto simp add: set_eq_subset ball_subset_ball_iff)
+qed
+
+lemma cball_eq_cball_iff:
+  fixes x :: "'a :: euclidean_space"
+  shows "cball x d = cball y e \<longleftrightarrow> d < 0 \<and> e < 0 \<or> x=y \<and> d=e"
+        (is "?lhs = ?rhs")
+proof
+  assume ?lhs 
+  then show ?rhs 
+  proof (cases "d < 0 \<or> e < 0")
+    case True 
+      with \<open>?lhs\<close> show ?rhs
+        by safe (simp_all only: cball_eq_empty [of y e, symmetric] cball_eq_empty [of x d, symmetric])
+  next
+    case False
+    with \<open>?lhs\<close> show ?rhs 
+      apply (auto simp add: set_eq_subset cball_subset_cball_iff dist_norm norm_minus_commute algebra_simps)
+      apply (metis add_le_same_cancel1 le_add_same_cancel1 norm_ge_zero norm_pths(2) order_trans)
+      apply (metis add_increasing2 add_le_imp_le_right eq_iff norm_ge_zero)
+      done
+  qed
+next
+  assume ?rhs then show ?lhs 
+    by (auto simp add: set_eq_subset cball_subset_cball_iff)
+qed
+
+lemma ball_eq_cball_iff:
+  fixes x :: "'a :: euclidean_space"
+  shows "ball x d = cball y e \<longleftrightarrow> d \<le> 0 \<and> e < 0" (is "?lhs = ?rhs")
+proof
+  assume ?lhs 
+  then show ?rhs
+    apply (auto simp add: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff algebra_simps)
+    apply (metis add_increasing2 add_le_cancel_right add_less_same_cancel1 dist_not_less_zero less_le_trans zero_le_dist)
+    apply (metis add_less_same_cancel1 dist_not_less_zero less_le_trans not_le)
+    using \<open>?lhs\<close> ball_eq_empty cball_eq_empty apply blast+
+    done
+next
+  assume ?rhs then show ?lhs 
+    by (auto simp add: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff)
+qed
+
+lemma cball_eq_ball_iff:
+  fixes x :: "'a :: euclidean_space"
+  shows "cball x d = ball y e \<longleftrightarrow> d < 0 \<and> e \<le> 0" (is "?lhs = ?rhs")
+proof
+  assume ?lhs 
+  then show ?rhs
+    apply (auto simp add: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff algebra_simps)
+    apply (metis add_increasing2 add_le_cancel_right add_less_same_cancel1 dist_not_less_zero less_le_trans zero_le_dist)
+    apply (metis add_less_same_cancel1 dist_not_less_zero less_le_trans not_le)
+    using \<open>?lhs\<close> ball_eq_empty cball_eq_empty apply blast+
+    done
+next
+  assume ?rhs then show ?lhs 
+    by (auto simp add: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff)
 qed
 
 no_notation

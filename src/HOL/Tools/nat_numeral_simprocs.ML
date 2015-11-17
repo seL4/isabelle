@@ -26,7 +26,7 @@ structure Nat_Numeral_Simprocs : NAT_NUMERAL_SIMPROCS =
 struct
 
 (*Maps n to #n for n = 1, 2*)
-val numeral_syms = [@{thm numeral_1_eq_1} RS sym, @{thm numeral_2_eq_2} RS sym];
+val numeral_syms = [@{thm numeral_One} RS sym, @{thm numeral_2_eq_2} RS sym];
 val numeral_sym_ss =
   simpset_of (put_simpset HOL_basic_ss @{context} addsimps numeral_syms);
 
@@ -59,7 +59,7 @@ val dest_plus = HOLogic.dest_bin @{const_name Groups.plus} HOLogic.natT;
 (** Other simproc items **)
 
 val bin_simps =
-     [@{thm numeral_1_eq_1} RS sym,
+     [@{thm numeral_One} RS sym,
       @{thm numeral_plus_numeral}, @{thm add_numeral_left},
       @{thm diff_nat_numeral}, @{thm diff_0_eq_0}, @{thm diff_0},
       @{thm numeral_times_numeral}, @{thm mult_numeral_left(1)},

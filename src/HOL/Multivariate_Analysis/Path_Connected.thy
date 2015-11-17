@@ -428,9 +428,6 @@ subsection\<open>The operations on paths\<close>
 lemma path_image_subset_reversepath: "path_image(reversepath g) \<le> path_image g"
   by (auto simp: path_image_def reversepath_def)
 
-lemma continuous_on_op_minus: "continuous_on (s::real set) (op - x)"
-  by (rule continuous_intros | simp)+
-
 lemma path_imp_reversepath: "path g \<Longrightarrow> path(reversepath g)"
   apply (auto simp: path_def reversepath_def)
   using continuous_on_compose [of "{0..1}" "\<lambda>x. 1 - x" g]
@@ -1141,7 +1138,7 @@ lemma path_connected_component: "path_connected s \<longleftrightarrow> (\<foral
   unfolding path_connected_def path_component_def by auto
 
 lemma path_connected_component_set: "path_connected s \<longleftrightarrow> (\<forall>x\<in>s. path_component_set s x = s)"
-  unfolding path_connected_component path_component_subset 
+  unfolding path_connected_component path_component_subset
   using path_component_mem by blast
 
 lemma path_component_maximal:
@@ -2454,5 +2451,462 @@ lemma bounded_unique_outside:
   apply (rule iffI)
   apply (metis cobounded_unique_unbounded_components connected_outside double_compl outside_bounded_nonempty outside_in_components unbounded_outside)
   by (simp add: connected_outside outside_bounded_nonempty outside_in_components unbounded_outside)
+
+section\<open> Homotopy of maps p,q : X=>Y with property P of all intermediate maps.\<close>
+
+text\<open> We often just want to require that it fixes some subset, but to take in
+  the case of a loop homotopy, it's convenient to have a general property P.\<close>
+
+definition homotopic_with ::
+  "[('a::topological_space \<Rightarrow> 'b::topological_space) \<Rightarrow> bool, 'a set, 'b set, 'a \<Rightarrow> 'b, 'a \<Rightarrow> 'b] \<Rightarrow> bool"
+where
+ "homotopic_with P X Y p q \<equiv>
+   (\<exists>h:: real \<times> 'a \<Rightarrow> 'b.
+       continuous_on ({0..1} \<times> X) h \<and>
+       h ` ({0..1} \<times> X) \<subseteq> Y \<and>
+       (\<forall>x. h(0, x) = p x) \<and>
+       (\<forall>x. h(1, x) = q x) \<and>
+       (\<forall>t \<in> {0..1}. P(\<lambda>x. h(t, x))))"
+
+
+text\<open> We often want to just localize the ending function equality or whatever.\<close>
+proposition homotopic_with:
+  fixes X :: "'a::topological_space set" and Y :: "'b::topological_space set"
+  assumes "\<And>h k. (\<And>x. x \<in> X \<Longrightarrow> h x = k x) \<Longrightarrow> (P h \<longleftrightarrow> P k)"
+  shows "homotopic_with P X Y p q \<longleftrightarrow>
+           (\<exists>h :: real \<times> 'a \<Rightarrow> 'b.
+              continuous_on ({0..1} \<times> X) h \<and>
+              h ` ({0..1} \<times> X) \<subseteq> Y \<and>
+              (\<forall>x \<in> X. h(0,x) = p x) \<and>
+              (\<forall>x \<in> X. h(1,x) = q x) \<and>
+              (\<forall>t \<in> {0..1}. P(\<lambda>x. h(t, x))))"
+  unfolding homotopic_with_def
+  apply (rule iffI, blast, clarify)
+  apply (rule_tac x="\<lambda>(u,v). if v \<in> X then h(u,v) else if u = 0 then p v else q v" in exI)
+  apply (auto simp:)
+  apply (force elim: continuous_on_eq)
+  apply (drule_tac x=t in bspec, force)
+  apply (subst assms; simp)
+  done
+
+proposition homotopic_with_eq:
+   assumes h: "homotopic_with P X Y f g"
+       and f': "\<And>x. x \<in> X \<Longrightarrow> f' x = f x"
+       and g': "\<And>x. x \<in> X \<Longrightarrow> g' x = g x"
+       and P:  "(\<And>h k. (\<And>x. x \<in> X \<Longrightarrow> h x = k x) \<Longrightarrow> (P h \<longleftrightarrow> P k))"
+   shows "homotopic_with P X Y f' g'"
+  using h unfolding homotopic_with_def
+  apply safe
+  apply (rule_tac x="\<lambda>(u,v). if v \<in> X then h(u,v) else if u = 0 then f' v else g' v" in exI)
+  apply (simp add: f' g', safe)
+  apply (fastforce intro: continuous_on_eq)
+  apply fastforce
+  apply (subst P; fastforce)
+  done
+
+proposition homotopic_with_equal:
+   assumes contf: "continuous_on X f" and fXY: "f ` X \<subseteq> Y"
+       and gf: "\<And>x. x \<in> X \<Longrightarrow> g x = f x"
+       and P:  "P f" "P g"
+   shows "homotopic_with P X Y f g"
+  unfolding homotopic_with_def
+  apply (rule_tac x="\<lambda>(u,v). if u = 1 then g v else f v" in exI)
+  using assms
+  apply (intro conjI)
+  apply (rule continuous_on_eq [where f = "f o snd"])
+  apply (rule continuous_intros | force)+
+  apply clarify
+  apply (case_tac "t=1"; force)
+  done
+
+
+lemma image_Pair_const: "(\<lambda>x. (x, c)) ` A = A \<times> {c}"
+  by (auto simp:)
+
+lemma homotopic_constant_maps:
+   "homotopic_with (\<lambda>x. True) s t (\<lambda>x. a) (\<lambda>x. b) \<longleftrightarrow> s = {} \<or> path_component t a b"
+proof (cases "s = {} \<or> t = {}")
+  case True with continuous_on_const show ?thesis
+    by (auto simp: homotopic_with path_component_def)
+next
+  case False
+  then obtain c where "c \<in> s" by blast
+  show ?thesis
+  proof
+    assume "homotopic_with (\<lambda>x. True) s t (\<lambda>x. a) (\<lambda>x. b)"
+    then obtain h :: "real \<times> 'a \<Rightarrow> 'b"
+        where conth: "continuous_on ({0..1} \<times> s) h"
+          and h: "h ` ({0..1} \<times> s) \<subseteq> t" "(\<forall>x\<in>s. h (0, x) = a)" "(\<forall>x\<in>s. h (1, x) = b)"
+      by (auto simp: homotopic_with)
+    have "continuous_on {0..1} (h \<circ> (\<lambda>t. (t, c)))"
+      apply (rule continuous_intros conth | simp add: image_Pair_const)+
+      apply (blast intro:  \<open>c \<in> s\<close> continuous_on_subset [OF conth] )
+      done
+    with \<open>c \<in> s\<close> h show "s = {} \<or> path_component t a b"
+      apply (simp_all add: homotopic_with path_component_def)
+      apply (auto simp:)
+      apply (drule_tac x="h o (\<lambda>t. (t, c))" in spec)
+      apply (auto simp: pathstart_def pathfinish_def path_image_def path_def)
+      done
+  next
+    assume "s = {} \<or> path_component t a b"
+    with False show "homotopic_with (\<lambda>x. True) s t (\<lambda>x. a) (\<lambda>x. b)"
+      apply (clarsimp simp: homotopic_with path_component_def pathstart_def pathfinish_def path_image_def path_def)
+      apply (rule_tac x="g o fst" in exI)
+      apply (rule conjI continuous_intros | force)+
+      done
+  qed
+qed
+
+
+subsection\<open> Trivial properties.\<close>
+
+lemma homotopic_with_imp_property: "homotopic_with P X Y f g \<Longrightarrow> P f \<and> P g"
+  unfolding homotopic_with_def Ball_def
+  apply clarify
+  apply (frule_tac x=0 in spec)
+  apply (drule_tac x=1 in spec)
+  apply (auto simp:)
+  done
+
+lemma continuous_on_o_Pair: "\<lbrakk>continuous_on (T \<times> X) h; t \<in> T\<rbrakk> \<Longrightarrow> continuous_on X (h o Pair t)"
+  by (fast intro: continuous_intros elim!: continuous_on_subset)
+
+lemma homotopic_with_imp_continuous:
+    assumes "homotopic_with P X Y f g"
+    shows "continuous_on X f \<and> continuous_on X g"
+proof -
+  obtain h :: "real \<times> 'a \<Rightarrow> 'b"
+    where conth: "continuous_on ({0..1} \<times> X) h"
+      and h: "\<forall>x. h (0, x) = f x" "\<forall>x. h (1, x) = g x"
+    using assms by (auto simp: homotopic_with_def)
+  have *: "t \<in> {0..1} \<Longrightarrow> continuous_on X (h o (\<lambda>x. (t,x)))" for t
+    by (rule continuous_intros continuous_on_subset [OF conth] | force)+
+  show ?thesis
+    using h *[of 0] *[of 1] by auto
+qed
+
+proposition homotopic_with_imp_subset1:
+     "homotopic_with P X Y f g \<Longrightarrow> f ` X \<subseteq> Y"
+  by (simp add: homotopic_with_def image_subset_iff) (metis atLeastAtMost_iff order_refl zero_le_one)
+
+proposition homotopic_with_imp_subset2:
+     "homotopic_with P X Y f g \<Longrightarrow> g ` X \<subseteq> Y"
+  by (simp add: homotopic_with_def image_subset_iff) (metis atLeastAtMost_iff order_refl zero_le_one)
+
+proposition homotopic_with_mono:
+    assumes hom: "homotopic_with P X Y f g"
+        and Q: "\<And>h. \<lbrakk>continuous_on X h; image h X \<subseteq> Y \<and> P h\<rbrakk> \<Longrightarrow> Q h"
+      shows "homotopic_with Q X Y f g"
+  using hom
+  apply (simp add: homotopic_with_def)
+  apply (erule ex_forward)
+  apply (force simp: intro!: Q dest: continuous_on_o_Pair)
+  done
+
+proposition homotopic_with_subset_left:
+     "\<lbrakk>homotopic_with P X Y f g; Z \<subseteq> X\<rbrakk> \<Longrightarrow> homotopic_with P Z Y f g"
+  apply (simp add: homotopic_with_def)
+  apply (fast elim!: continuous_on_subset ex_forward)
+  done
+
+proposition homotopic_with_subset_right:
+     "\<lbrakk>homotopic_with P X Y f g; Y \<subseteq> Z\<rbrakk> \<Longrightarrow> homotopic_with P X Z f g"
+  apply (simp add: homotopic_with_def)
+  apply (fast elim!: continuous_on_subset ex_forward)
+  done
+
+proposition homotopic_with_compose_continuous_right:
+    "\<lbrakk>homotopic_with (\<lambda>f. p (f \<circ> h)) X Y f g; continuous_on W h; h ` W \<subseteq> X\<rbrakk>
+     \<Longrightarrow> homotopic_with p W Y (f o h) (g o h)"
+  apply (clarsimp simp add: homotopic_with_def)
+  apply (rename_tac k)
+  apply (rule_tac x="k o (\<lambda>y. (fst y, h (snd y)))" in exI)
+  apply (rule conjI continuous_intros continuous_on_compose [where f=snd and g=h, unfolded o_def] | simp)+
+  apply (erule continuous_on_subset)
+  apply (fastforce simp: o_def)+
+  done
+
+proposition homotopic_compose_continuous_right:
+     "\<lbrakk>homotopic_with (\<lambda>f. True) X Y f g; continuous_on W h; h ` W \<subseteq> X\<rbrakk>
+      \<Longrightarrow> homotopic_with (\<lambda>f. True) W Y (f o h) (g o h)"
+  using homotopic_with_compose_continuous_right by fastforce
+
+proposition homotopic_with_compose_continuous_left:
+     "\<lbrakk>homotopic_with (\<lambda>f. p (h \<circ> f)) X Y f g; continuous_on Y h; h ` Y \<subseteq> Z\<rbrakk>
+      \<Longrightarrow> homotopic_with p X Z (h o f) (h o g)"
+  apply (clarsimp simp add: homotopic_with_def)
+  apply (rename_tac k)
+  apply (rule_tac x="h o k" in exI)
+  apply (rule conjI continuous_intros continuous_on_compose [where f=snd and g=h, unfolded o_def] | simp)+
+  apply (erule continuous_on_subset)
+  apply (fastforce simp: o_def)+
+  done
+
+proposition homotopic_compose_continuous_left:
+   "homotopic_with (\<lambda>f. True) X Y f g \<and>
+        continuous_on Y h \<and> image h Y \<subseteq> Z
+        \<Longrightarrow> homotopic_with (\<lambda>f. True) X Z (h o f) (h o g)"
+  using homotopic_with_compose_continuous_left by fastforce
+
+proposition homotopic_with_Pair:
+   assumes hom: "homotopic_with p s t f g" "homotopic_with p' s' t' f' g'"
+       and q: "\<And>f g. \<lbrakk>p f; p' g\<rbrakk> \<Longrightarrow> q(\<lambda>(x,y). (f x, g y))"
+     shows "homotopic_with q (s \<times> s') (t \<times> t')
+                  (\<lambda>(x,y). (f x, f' y)) (\<lambda>(x,y). (g x, g' y))"
+  using hom
+  apply (clarsimp simp add: homotopic_with_def)
+  apply (rename_tac k k')
+  apply (rule_tac x="\<lambda>z. ((k o (\<lambda>x. (fst x, fst (snd x)))) z, (k' o (\<lambda>x. (fst x, snd (snd x)))) z)" in exI)
+  apply (rule conjI continuous_intros | erule continuous_on_subset | clarsimp)+
+  apply (auto intro!: q [unfolded case_prod_unfold])
+  done
+
+lemma homotopic_on_empty: "homotopic_with (\<lambda>x. True) {} t f g"
+  by (metis continuous_on_def empty_iff homotopic_with_equal image_subset_iff)
+
+
+text\<open>Homotopy with P is an equivalence relation (on continuous functions mapping X into Y that satisfy P,
+     though this only affects reflexivity.\<close>
+
+
+proposition homotopic_with_refl:
+   "homotopic_with P X Y f f \<longleftrightarrow> continuous_on X f \<and> image f X \<subseteq> Y \<and> P f"
+  apply (rule iffI)
+  using homotopic_with_imp_continuous homotopic_with_imp_property homotopic_with_imp_subset2 apply blast
+  apply (simp add: homotopic_with_def)
+  apply (rule_tac x="f o snd" in exI)
+  apply (rule conjI continuous_intros | force)+
+  done
+
+lemma homotopic_with_symD:
+  fixes X :: "'a::real_normed_vector set"
+    assumes "homotopic_with P X Y f g"
+      shows "homotopic_with P X Y g f"
+  using assms
+  apply (clarsimp simp add: homotopic_with_def)
+  apply (rename_tac h)
+  apply (rule_tac x="h o (\<lambda>y. (1 - fst y, snd y))" in exI)
+  apply (rule conjI continuous_intros | erule continuous_on_subset | force simp add: image_subset_iff)+
+  done
+
+proposition homotopic_with_sym:
+    fixes X :: "'a::real_normed_vector set"
+    shows "homotopic_with P X Y f g \<longleftrightarrow> homotopic_with P X Y g f"
+  using homotopic_with_symD by blast
+
+lemma split_01_prod: "{0..1::real} \<times> X = ({0..1/2} \<times> X) \<union> ({1/2..1} \<times> X)"
+  by force
+
+proposition homotopic_with_trans:
+    fixes X :: "'a::real_normed_vector set"
+    assumes "homotopic_with P X Y f g" and "homotopic_with P X Y g h"
+      shows "homotopic_with P X Y f h"
+proof -
+  have clo1: "closedin (subtopology euclidean ({0..1/2} \<times> X \<union> {1/2..1} \<times> X)) ({0..1/2::real} \<times> X)"
+    apply (simp add: closedin_closed split_01_prod [symmetric])
+    apply (rule_tac x="{0..1/2} \<times> UNIV" in exI)
+    apply (force simp add: closed_Times)
+    done
+  have clo2: "closedin (subtopology euclidean ({0..1/2} \<times> X \<union> {1/2..1} \<times> X)) ({1/2..1::real} \<times> X)"
+    apply (simp add: closedin_closed split_01_prod [symmetric])
+    apply (rule_tac x="{1/2..1} \<times> UNIV" in exI)
+    apply (force simp add: closed_Times)
+    done
+  { fix k1 k2:: "real \<times> 'a \<Rightarrow> 'b"
+    assume cont: "continuous_on ({0..1} \<times> X) k1" "continuous_on ({0..1} \<times> X) k2"
+       and Y: "k1 ` ({0..1} \<times> X) \<subseteq> Y" "k2 ` ({0..1} \<times> X) \<subseteq> Y"
+       and geq: "\<forall>x. k1 (1, x) = g x" "\<forall>x. k2 (0, x) = g x"
+       and k12: "\<forall>x. k1 (0, x) = f x" "\<forall>x. k2 (1, x) = h x"
+       and P:   "\<forall>t\<in>{0..1}. P (\<lambda>x. k1 (t, x))" "\<forall>t\<in>{0..1}. P (\<lambda>x. k2 (t, x))"
+    def k \<equiv> "\<lambda>y. if fst y \<le> 1 / 2 then (k1 o (\<lambda>x. (2 *\<^sub>R fst x, snd x))) y
+                                   else (k2 o (\<lambda>x. (2 *\<^sub>R fst x -1, snd x))) y"
+    have keq: "k1 (2 * u, v) = k2 (2 * u - 1, v)" if "u = 1/2"  for u v
+      by (simp add: geq that)
+    have "continuous_on ({0..1} \<times> X) k"
+      using cont
+      apply (simp add: split_01_prod k_def)
+      apply (rule clo1 clo2 continuous_on_cases_local continuous_intros | erule continuous_on_subset | simp add: linear image_subset_iff)+
+      apply (force simp add: keq)
+      done
+    moreover have "k ` ({0..1} \<times> X) \<subseteq> Y"
+      using Y by (force simp add: k_def)
+    moreover have "\<forall>x. k (0, x) = f x"
+      by (simp add: k_def k12)
+    moreover have "(\<forall>x. k (1, x) = h x)"
+      by (simp add: k_def k12)
+    moreover have "\<forall>t\<in>{0..1}. P (\<lambda>x. k (t, x))"
+      using P
+      apply (clarsimp simp add: k_def)
+      apply (case_tac "t \<le> 1/2")
+      apply (auto simp:)
+      done
+    ultimately have *: "\<exists>k :: real \<times> 'a \<Rightarrow> 'b.
+                       continuous_on ({0..1} \<times> X) k \<and> k ` ({0..1} \<times> X) \<subseteq> Y \<and>
+                       (\<forall>x. k (0, x) = f x) \<and> (\<forall>x. k (1, x) = h x) \<and> (\<forall>t\<in>{0..1}. P (\<lambda>x. k (t, x)))"
+      by blast
+  } note * = this
+  show ?thesis
+    using assms by (auto intro: * simp add: homotopic_with_def)
+qed
+
+proposition homotopic_compose:
+      fixes s :: "'a::real_normed_vector set"
+      shows "\<lbrakk>homotopic_with (\<lambda>x. True) s t f f'; homotopic_with (\<lambda>x. True) t u g g'\<rbrakk>
+             \<Longrightarrow> homotopic_with (\<lambda>x. True) s u (g o f) (g' o f')"
+  apply (rule homotopic_with_trans [where g = "g o f'"])
+  apply (metis homotopic_compose_continuous_left homotopic_with_imp_continuous homotopic_with_imp_subset1)
+  by (metis homotopic_compose_continuous_right homotopic_with_imp_continuous homotopic_with_imp_subset2)
+
+
+subsection\<open>Homotopy of paths, maintaining the same endpoints.\<close>
+
+
+definition homotopic_paths :: "['a set, real \<Rightarrow> 'a, real \<Rightarrow> 'a::topological_space] \<Rightarrow> bool"
+  where
+     "homotopic_paths s p q \<equiv>
+       homotopic_with (\<lambda>r. pathstart r = pathstart p \<and> pathfinish r = pathfinish p) {0..1} s p q"
+
+lemma homotopic_paths:
+   "homotopic_paths s p q \<longleftrightarrow>
+      (\<exists>h. continuous_on ({0..1} \<times> {0..1}) h \<and>
+          h ` ({0..1} \<times> {0..1}) \<subseteq> s \<and>
+          (\<forall>x \<in> {0..1}. h(0,x) = p x) \<and>
+          (\<forall>x \<in> {0..1}. h(1,x) = q x) \<and>
+          (\<forall>t \<in> {0..1::real}. pathstart(h o Pair t) = pathstart p \<and>
+                        pathfinish(h o Pair t) = pathfinish p))"
+  by (auto simp: homotopic_paths_def homotopic_with pathstart_def pathfinish_def)
+
+proposition homotopic_paths_imp_pathstart:
+     "homotopic_paths s p q \<Longrightarrow> pathstart p = pathstart q"
+  by (metis (mono_tags, lifting) homotopic_paths_def homotopic_with_imp_property)
+
+proposition homotopic_paths_imp_pathfinish:
+     "homotopic_paths s p q \<Longrightarrow> pathfinish p = pathfinish q"
+  by (metis (mono_tags, lifting) homotopic_paths_def homotopic_with_imp_property)
+
+lemma homotopic_paths_imp_path:
+     "homotopic_paths s p q \<Longrightarrow> path p \<and> path q"
+  using homotopic_paths_def homotopic_with_imp_continuous path_def by blast
+
+lemma homotopic_paths_imp_subset:
+     "homotopic_paths s p q \<Longrightarrow> path_image p \<subseteq> s \<and> path_image q \<subseteq> s"
+  by (simp add: homotopic_paths_def homotopic_with_imp_subset1 homotopic_with_imp_subset2 path_image_def)
+
+proposition homotopic_paths_refl [simp]: "homotopic_paths s p p \<longleftrightarrow> path p \<and> path_image p \<subseteq> s"
+by (simp add: homotopic_paths_def homotopic_with_refl path_def path_image_def)
+
+proposition homotopic_paths_sym: "homotopic_paths s p q \<longleftrightarrow> homotopic_paths s q p"
+  by (metis (mono_tags) homotopic_paths_def homotopic_paths_imp_pathfinish homotopic_paths_imp_pathstart homotopic_with_symD)+
+
+proposition homotopic_paths_trans:
+     "\<lbrakk>homotopic_paths s p q; homotopic_paths s q r\<rbrakk> \<Longrightarrow> homotopic_paths s p r"
+  apply (simp add: homotopic_paths_def)
+  apply (rule homotopic_with_trans, assumption)
+  by (metis (mono_tags, lifting) homotopic_with_imp_property homotopic_with_mono)
+
+proposition homotopic_paths_eq:
+     "\<lbrakk>path p; path_image p \<subseteq> s; \<And>t. t \<in> {0..1} \<Longrightarrow> p t = q t\<rbrakk> \<Longrightarrow> homotopic_paths s p q"
+  apply (simp add: homotopic_paths_def)
+  apply (rule homotopic_with_eq)
+  apply (auto simp: path_def homotopic_with_refl pathstart_def pathfinish_def path_image_def elim: continuous_on_eq)
+  done
+
+proposition homotopic_paths_reparametrize:
+  assumes "path p"
+      and pips: "path_image p \<subseteq> s"
+      and contf: "continuous_on {0..1} f"
+      and f01:"f ` {0..1} \<subseteq> {0..1}"
+      and [simp]: "f(0) = 0" "f(1) = 1"
+      and q: "\<And>t. t \<in> {0..1} \<Longrightarrow> q(t) = p(f t)"
+    shows "homotopic_paths s p q"
+proof -
+  have contp: "continuous_on {0..1} p"
+    by (metis \<open>path p\<close> path_def)
+  then have "continuous_on {0..1} (p o f)"
+    using contf continuous_on_compose continuous_on_subset f01 by blast
+  then have "path q"
+    by (simp add: path_def) (metis q continuous_on_cong)
+  have piqs: "path_image q \<subseteq> s"
+    by (metis (no_types, hide_lams) pips f01 image_subset_iff path_image_def q)
+  have fb0: "\<And>a b. \<lbrakk>0 \<le> a; a \<le> 1; 0 \<le> b; b \<le> 1\<rbrakk> \<Longrightarrow> 0 \<le> (1 - a) * f b + a * b"
+    using f01 by force
+  have fb1: "\<lbrakk>0 \<le> a; a \<le> 1; 0 \<le> b; b \<le> 1\<rbrakk> \<Longrightarrow> (1 - a) * f b + a * b \<le> 1" for a b
+    using f01 [THEN subsetD, of "f b"] by (simp add: convex_bound_le)
+  have "homotopic_paths s q p"
+  proof (rule homotopic_paths_trans)
+    show "homotopic_paths s q (p \<circ> f)"
+      using q by (force intro: homotopic_paths_eq [OF  \<open>path q\<close> piqs])
+  next
+    show "homotopic_paths s (p \<circ> f) p"
+      apply (simp add: homotopic_paths_def homotopic_with_def)
+      apply (rule_tac x="p o (\<lambda>y. (1 - (fst y)) *\<^sub>R ((f o snd) y) + (fst y) *\<^sub>R snd y)"  in exI)
+      apply (rule conjI contf continuous_intros continuous_on_subset [OF contp] | simp)+
+      using pips [unfolded path_image_def]
+      apply (auto simp: fb0 fb1 pathstart_def pathfinish_def)
+      done
+  qed
+  then show ?thesis
+    by (simp add: homotopic_paths_sym)
+qed
+
+lemma homotopic_paths_subset: "\<lbrakk>homotopic_paths s p q; s \<subseteq> t\<rbrakk> \<Longrightarrow> homotopic_paths t p q"
+  using homotopic_paths_def homotopic_with_subset_right by blast
+
+
+text\<open> A slightly ad-hoc but useful lemma in constructing homotopies.\<close>
+lemma homotopic_join_lemma:
+  fixes q :: "[real,real] \<Rightarrow> 'a::topological_space"
+  assumes p: "continuous_on ({0..1} \<times> {0..1}) (\<lambda>y. p (fst y) (snd y))"
+      and q: "continuous_on ({0..1} \<times> {0..1}) (\<lambda>y. q (fst y) (snd y))"
+      and pf: "\<And>t. t \<in> {0..1} \<Longrightarrow> pathfinish(p t) = pathstart(q t)"
+    shows "continuous_on ({0..1} \<times> {0..1}) (\<lambda>y. (p(fst y) +++ q(fst y)) (snd y))"
+proof -
+  have 1: "(\<lambda>y. p (fst y) (2 * snd y)) = (\<lambda>y. p (fst y) (snd y)) o (\<lambda>y. (fst y, 2 * snd y))"
+    by (rule ext) (simp )
+  have 2: "(\<lambda>y. q (fst y) (2 * snd y - 1)) = (\<lambda>y. q (fst y) (snd y)) o (\<lambda>y. (fst y, 2 * snd y - 1))"
+    by (rule ext) (simp )
+  show ?thesis
+    apply (simp add: joinpaths_def)
+    apply (rule continuous_on_cases_le)
+    apply (simp_all only: 1 2)
+    apply (rule continuous_intros continuous_on_subset [OF p] continuous_on_subset [OF q] | force)+
+    using pf
+    apply (auto simp: mult.commute pathstart_def pathfinish_def)
+    done
+qed
+
+text\<open> Congruence properties of homotopy w.r.t. path-combining operations.\<close>
+
+lemma homotopic_paths_reversepath_D:
+      assumes "homotopic_paths s p q"
+      shows   "homotopic_paths s (reversepath p) (reversepath q)"
+  using assms
+  apply (simp add: homotopic_paths_def homotopic_with_def, clarify)
+  apply (rule_tac x="h o (\<lambda>x. (fst x, 1 - snd x))" in exI)
+  apply (rule conjI continuous_intros)+
+  apply (auto simp: reversepath_def pathstart_def pathfinish_def elim!: continuous_on_subset)
+  done
+
+proposition homotopic_paths_reversepath:
+     "homotopic_paths s (reversepath p) (reversepath q) \<longleftrightarrow> homotopic_paths s p q"
+  using homotopic_paths_reversepath_D by force
+
+
+proposition homotopic_paths_join:
+    "\<lbrakk>homotopic_paths s p p'; homotopic_paths s q q'; pathfinish p = pathstart q\<rbrakk> \<Longrightarrow> homotopic_paths s (p +++ q) (p' +++ q')"
+  apply (simp add: homotopic_paths_def homotopic_with_def, clarify)
+  apply (rename_tac k1 k2)
+  apply (rule_tac x="(\<lambda>y. ((k1 o Pair (fst y)) +++ (k2 o Pair (fst y))) (snd y))" in exI)
+  apply (rule conjI continuous_intros homotopic_join_lemma)+
+  apply (auto simp: joinpaths_def pathstart_def pathfinish_def path_image_def)
+  done
+
+proposition homotopic_paths_continuous_image:
+    "\<lbrakk>homotopic_paths s f g; continuous_on s h; h ` s \<subseteq> t\<rbrakk> \<Longrightarrow> homotopic_paths t (h o f) (h o g)"
+  unfolding homotopic_paths_def
+  apply (rule homotopic_with_compose_continuous_left [of _ _ _ s])
+  apply (auto simp: pathstart_def pathfinish_def elim!: homotopic_with_mono)
+  done
 
 end

@@ -189,7 +189,7 @@ proof -
     by (auto simp add: sum_of_powers)
   also have "... = ((n ^ 2 + n) / 2) ^ 2"
     by (simp add: unroll algebra_simps power2_eq_square power4_eq power3_eq_cube)
-  finally show ?thesis by simp
+  finally show ?thesis by (simp add: power_divide)
 qed
                        
 lemma sum_of_cubes_nat: "(\<Sum>k\<le>n::nat. k ^ 3) = (n ^ 2 + n) ^ 2 div 4"

@@ -400,7 +400,7 @@ lemma norm_cos_squared:
     "norm(cos z) ^ 2 = cos(Re z) ^ 2 + (exp(Im z) - inverse(exp(Im z))) ^ 2 / 4"
   apply (cases z)
   apply (simp add: cos_add cmod_power2 cos_of_real sin_of_real)
-  apply (simp add: cos_exp_eq sin_exp_eq exp_minus exp_of_real Re_divide Im_divide)
+  apply (simp add: cos_exp_eq sin_exp_eq exp_minus exp_of_real Re_divide Im_divide power_divide)
   apply (simp only: left_diff_distrib [symmetric] power_mult_distrib)
   apply (simp add: sin_squared_eq)
   apply (simp add: power2_eq_square algebra_simps divide_simps)
@@ -410,7 +410,7 @@ lemma norm_sin_squared:
     "norm(sin z) ^ 2 = (exp(2 * Im z) + inverse(exp(2 * Im z)) - 2 * cos(2 * Re z)) / 4"
   apply (cases z)
   apply (simp add: sin_add cmod_power2 cos_of_real sin_of_real cos_double_cos exp_double)
-  apply (simp add: cos_exp_eq sin_exp_eq exp_minus exp_of_real Re_divide Im_divide)
+  apply (simp add: cos_exp_eq sin_exp_eq exp_minus exp_of_real Re_divide Im_divide power_divide)
   apply (simp only: left_diff_distrib [symmetric] power_mult_distrib)
   apply (simp add: cos_squared_eq)
   apply (simp add: power2_eq_square algebra_simps divide_simps)
@@ -2140,7 +2140,7 @@ lemma Arcsin_sin:
       shows "Arcsin(sin z) = z"
 proof -
   have "Arcsin(sin z) = - (\<i> * Ln (csqrt (1 - (\<i> * (exp (\<i>*z) - inverse (exp (\<i>*z))))\<^sup>2 / 4) - (inverse (exp (\<i>*z)) - exp (\<i>*z)) / 2))"
-    by (simp add: sin_exp_eq Arcsin_def exp_minus)
+    by (simp add: sin_exp_eq Arcsin_def exp_minus power_divide)
   also have "... = - (\<i> * Ln (csqrt (((exp (\<i>*z) + inverse (exp (\<i>*z)))/2)\<^sup>2) - (inverse (exp (\<i>*z)) - exp (\<i>*z)) / 2))"
     by (simp add: field_simps power2_eq_square)
   also have "... = - (\<i> * Ln (((exp (\<i>*z) + inverse (exp (\<i>*z)))/2) - (inverse (exp (\<i>*z)) - exp (\<i>*z)) / 2))"
@@ -2308,7 +2308,7 @@ proof -
     by (simp add: field_simps power2_eq_square)
   then have "Arccos(cos z) = - (\<i> * Ln ((exp (\<i> * z) + inverse (exp (\<i> * z))) / 2 +
                            \<i> * csqrt (((\<i> - (exp (\<i> * z))\<^sup>2 * \<i>) / (2 * exp (\<i> * z)))\<^sup>2)))"
-    by (simp add: cos_exp_eq Arccos_def exp_minus)
+    by (simp add: cos_exp_eq Arccos_def exp_minus power_divide)
   also have "... = - (\<i> * Ln ((exp (\<i> * z) + inverse (exp (\<i> * z))) / 2 +
                               \<i> * ((\<i> - (exp (\<i> * z))\<^sup>2 * \<i>) / (2 * exp (\<i> * z)))))"
     apply (subst csqrt_square)

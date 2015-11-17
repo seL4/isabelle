@@ -810,10 +810,9 @@ fun generalize_tac ctxt f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
 local
 val ss1 =
   simpset_of (put_simpset comp_ss @{context}
-    addsimps @{thms simp_thms} @ [@{thm "nat_numeral"} RS sym, @{thm "zdvd_int"}] 
-        @ map (fn r => r RS sym) 
-          [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm "zadd_int"}, 
-           @{thm "zmult_int"}]
+    addsimps @{thms simp_thms} @ 
+            [@{thm "nat_numeral"} RS sym, @{thm "zdvd_int"}, @{thm "of_nat_add"}, @{thm "of_nat_mult"}] 
+        @ map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}]
     |> Splitter.add_split @{thm "zdiff_int_split"})
 
 val ss2 =

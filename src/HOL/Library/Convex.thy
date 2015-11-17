@@ -884,19 +884,19 @@ proof (rule convex_on_linorderI)
   assume t: "t > 0" "t < 1" and xy: "x \<in> A" "y \<in> A" "x < y"
   def z \<equiv> "(1 - t) * x + t * y"
   with \<open>connected A\<close> and xy have ivl: "{x..y} \<subseteq> A" using connected_contains_Icc by blast
-  
+
   from xy t have xz: "z > x" by (simp add: z_def algebra_simps)
   have "y - z = (1 - t) * (y - x)" by (simp add: z_def algebra_simps)
   also from xy t have "... > 0" by (intro mult_pos_pos) simp_all
   finally have yz: "z < y" by simp
-    
+
   from assms xz yz ivl t have "\<exists>\<xi>. \<xi> > x \<and> \<xi> < z \<and> f z - f x = (z - x) * f' \<xi>"
     by (intro MVT2) (auto intro!: assms(2))
   then obtain \<xi> where \<xi>: "\<xi> > x" "\<xi> < z" "f' \<xi> = (f z - f x) / (z - x)" by auto
   from assms xz yz ivl t have "\<exists>\<eta>. \<eta> > z \<and> \<eta> < y \<and> f y - f z = (y - z) * f' \<eta>"
     by (intro MVT2) (auto intro!: assms(2))
   then obtain \<eta> where \<eta>: "\<eta> > z" "\<eta> < y" "f' \<eta> = (f y - f z) / (y - z)" by auto
-  
+
   from \<eta>(3) have "(f y - f z) / (y - z) = f' \<eta>" ..
   also from \<xi> \<eta> ivl have "\<xi> \<in> A" "\<eta> \<in> A" by auto
   with \<xi> \<eta> have "f' \<eta> \<ge> f' \<xi>" by (intro assms(3)) auto
@@ -926,11 +926,11 @@ lemma convex_onD_Icc':
 proof (cases y x rule: linorder_cases)
   assume less: "x < y"
   hence d: "d > 0" by (simp add: d_def)
-  from assms(2) less have A: "0 \<le> (c - x) / d" "(c - x) / d \<le> 1" 
+  from assms(2) less have A: "0 \<le> (c - x) / d" "(c - x) / d \<le> 1"
     by (simp_all add: d_def divide_simps)
   have "f c = f (x + (c - x) * 1)" by simp
   also from less have "1 = ((y - x) / d)" by (simp add: d_def)
-  also from d have "x + (c - x) * \<dots> = (1 - (c - x) / d) *\<^sub>R x + ((c - x) / d) *\<^sub>R y" 
+  also from d have "x + (c - x) * \<dots> = (1 - (c - x) / d) *\<^sub>R x + ((c - x) / d) *\<^sub>R y"
     by (simp add: field_simps)
   also have "f \<dots> \<le> (1 - (c - x) / d) * f x + (c - x) / d * f y" using assms less
     by (intro convex_onD_Icc) simp_all
@@ -945,11 +945,11 @@ lemma convex_onD_Icc'':
 proof (cases y x rule: linorder_cases)
   assume less: "x < y"
   hence d: "d > 0" by (simp add: d_def)
-  from assms(2) less have A: "0 \<le> (y - c) / d" "(y - c) / d \<le> 1" 
+  from assms(2) less have A: "0 \<le> (y - c) / d" "(y - c) / d \<le> 1"
     by (simp_all add: d_def divide_simps)
   have "f c = f (y - (y - c) * 1)" by simp
   also from less have "1 = ((y - x) / d)" by (simp add: d_def)
-  also from d have "y - (y - c) * \<dots> = (1 - (1 - (y - c) / d)) *\<^sub>R x + (1 - (y - c) / d) *\<^sub>R y" 
+  also from d have "y - (y - c) * \<dots> = (1 - (1 - (y - c) / d)) *\<^sub>R x + (1 - (y - c) / d) *\<^sub>R y"
     by (simp add: field_simps)
   also have "f \<dots> \<le> (1 - (1 - (y - c) / d)) * f x + (1 - (y - c) / d) * f y" using assms less
     by (intro convex_onD_Icc) (simp_all add: field_simps)
