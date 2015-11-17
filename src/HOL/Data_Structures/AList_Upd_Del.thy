@@ -80,23 +80,6 @@ by(induction ps) (auto simp: sorted_lems)
 
 lemmas upd_list_simps = sorted_lems upd_list_sorted1 upd_list_sorted2
 
-(*
-lemma set_ins_list[simp]: "set (ins_list x xs) = insert x (set xs)"
-by(induction xs) auto
-
-lemma distinct_if_sorted: "sorted xs \<Longrightarrow> distinct xs"
-apply(induction xs rule: sorted.induct)
-apply auto
-by (metis in_set_conv_decomp_first less_imp_not_less sorted_mid_iff2)
-
-lemma set_del_list_eq [simp]: "distinct xs ==> set(del_list x xs) = set xs - {x}"
-apply(induct xs)
- apply simp
-apply simp
-apply blast
-done
-*)
-
 
 subsection \<open>Lemmas for @{const del_list}\<close>
 
