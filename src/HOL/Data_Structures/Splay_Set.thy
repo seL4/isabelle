@@ -1,6 +1,6 @@
 (*
 Author: Tobias Nipkow
-Function defs follow AFP entry Splay_Tree, proofs are new.
+Function follow AFP entry Splay_Tree, proofs are new.
 *)
 
 section "Splay Tree Implementation of Sets"
@@ -136,16 +136,6 @@ by (auto simp: isin_def is_root_def splay_elemsD splay_Leaf_iff split: tree.spli
 
 subsubsection "Proofs for insert"
 
-text\<open>Splay trees need two addition @{const sorted} lemmas:\<close>
-
-lemma sorted_snoc_le:
-  "ASSUMPTION(sorted(xs @ [x])) \<Longrightarrow> x \<le> y \<Longrightarrow> sorted (xs @ [y])"
-by (auto simp add: Sorted_Less.sorted_snoc_iff ASSUMPTION_def)
-
-lemma sorted_Cons_le:
-  "ASSUMPTION(sorted(x # xs)) \<Longrightarrow> y \<le> x \<Longrightarrow> sorted (y # xs)"
-by (auto simp add: Sorted_Less.sorted_Cons_iff ASSUMPTION_def)
-
 lemma inorder_splay: "inorder(splay x t) = inorder t"
 by(induction x t rule: splay.induct)
   (auto simp: neq_Leaf_iff split: tree.split)
@@ -157,14 +147,6 @@ unfolding inorder_splay[of x t, symmetric]
 by(induction x t arbitrary: l a r rule: splay.induct)
   (auto simp: sorted_lems sorted_Cons_le sorted_snoc_le splay_Leaf_iff split: tree.splits)
 
-text\<open>Splay trees need two addition @{const ins_list} lemmas:\<close>
-
-lemma ins_list_Cons: "sorted (x # xs) \<Longrightarrow> ins_list x xs = x # xs"
-by (induction xs) auto
-
-lemma ins_list_snoc: "sorted (xs @ [x]) \<Longrightarrow> ins_list x xs = xs @ [x]"
-by(induction xs) (auto simp add: sorted_mid_iff2)
-
 lemma inorder_insert:
   "sorted(inorder t) \<Longrightarrow> inorder(insert x t) = ins_list x (inorder t)"
 using inorder_splay[of x t, symmetric] sorted_splay[of t x]
@@ -172,15 +154,6 @@ by(auto simp: ins_list_simps ins_list_Cons ins_list_snoc neq_Leaf_iff split: tre
 
 
 subsubsection "Proofs for delete"
-
-text\<open>Splay trees need two addition @{const del_list} lemmas:\<close>
-
-lemma del_list_notin_Cons: "sorted (x # xs) \<Longrightarrow> del_list x xs = xs"
-by(induction xs)(auto simp: sorted_Cons_iff)
-
-lemma del_list_sorted_app:
-  "sorted(xs @ [x]) \<Longrightarrow> del_list x (xs @ ys) = xs @ del_list x ys"
-by (induction xs) (auto simp: sorted_mid_iff2)
 
 lemma inorder_splay_maxD:
   "splay_max t = Node l a r \<Longrightarrow> sorted(inorder t) \<Longrightarrow>

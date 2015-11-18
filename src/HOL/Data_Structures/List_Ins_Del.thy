@@ -78,6 +78,14 @@ by(auto simp: ins_list_sorted)
 
 lemmas ins_list_simps = sorted_lems ins_list_sorted1 ins_list_sorted2
 
+text\<open>Splay trees need two additional @{const ins_list} lemmas:\<close>
+
+lemma ins_list_Cons: "sorted (x # xs) \<Longrightarrow> ins_list x xs = x # xs"
+by (induction xs) auto
+
+lemma ins_list_snoc: "sorted (xs @ [x]) \<Longrightarrow> ins_list x xs = xs @ [x]"
+by(induction xs) (auto simp add: sorted_mid_iff2)
+
 
 subsection \<open>Delete one occurrence of an element from a list:\<close>
 
@@ -139,5 +147,14 @@ lemmas del_list_simps = sorted_lems
   del_list_sorted3
   del_list_sorted4
   del_list_sorted5
+
+text\<open>Splay trees need two additional @{const del_list} lemmas:\<close>
+
+lemma del_list_notin_Cons: "sorted (x # xs) \<Longrightarrow> del_list x xs = xs"
+by(induction xs)(auto simp: sorted_Cons_iff)
+
+lemma del_list_sorted_app:
+  "sorted(xs @ [x]) \<Longrightarrow> del_list x (xs @ ys) = xs @ del_list x ys"
+by (induction xs) (auto simp: sorted_mid_iff2)
 
 end

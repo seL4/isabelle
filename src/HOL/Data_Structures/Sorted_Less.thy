@@ -51,4 +51,14 @@ by(rule sorted_mid_iff)
 
 lemmas sorted_lems = sorted_mid_iff' sorted_mid_iff2 sorted_cons' sorted_snoc'
 
+text\<open>Splay trees need two additional @{const sorted} lemmas:\<close>
+
+lemma sorted_snoc_le:
+  "ASSUMPTION(sorted(xs @ [x])) \<Longrightarrow> x \<le> y \<Longrightarrow> sorted (xs @ [y])"
+by (auto simp add: Sorted_Less.sorted_snoc_iff ASSUMPTION_def)
+
+lemma sorted_Cons_le:
+  "ASSUMPTION(sorted(x # xs)) \<Longrightarrow> y \<le> x \<Longrightarrow> sorted (y # xs)"
+by (auto simp add: Sorted_Less.sorted_Cons_iff ASSUMPTION_def)
+
 end

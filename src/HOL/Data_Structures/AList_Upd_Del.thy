@@ -89,6 +89,16 @@ by (auto simp: upd_list_sorted)
 
 lemmas upd_list_simps = sorted_lems upd_list_sorted1 upd_list_sorted2
 
+text\<open>Splay trees need two additional @{const upd_list} lemmas:\<close>
+
+lemma upd_list_Cons:
+  "sorted1 ((x,y) # xs) \<Longrightarrow> upd_list x y xs = (x,y) # xs"
+by (induction xs) auto
+
+lemma upd_list_snoc:
+  "sorted1 (xs @ [(x,y)]) \<Longrightarrow> upd_list x y xs = xs @ [(x,y)]"
+by(induction xs) (auto simp add: sorted_mid_iff2)
+
 
 subsection \<open>Lemmas for @{const del_list}\<close>
 
@@ -137,6 +147,19 @@ lemma del_list_sorted5:
 by (auto simp: del_list_sorted sorted_lems)
 
 lemmas del_list_simps = sorted_lems
-  del_list_sorted1 del_list_sorted2 del_list_sorted3 del_list_sorted4 del_list_sorted5
+  del_list_sorted1
+  del_list_sorted2
+  del_list_sorted3
+  del_list_sorted4
+  del_list_sorted5
+
+text\<open>Splay trees need two additional @{const del_list} lemmas:\<close>
+
+lemma del_list_notin_Cons: "sorted (x # map fst xs) \<Longrightarrow> del_list x xs = xs"
+by(induction xs)(auto simp: sorted_Cons_iff)
+
+lemma del_list_sorted_app:
+  "sorted(map fst xs @ [x]) \<Longrightarrow> del_list x (xs @ ys) = xs @ del_list x ys"
+by (induction xs) (auto simp: sorted_mid_iff2)
 
 end

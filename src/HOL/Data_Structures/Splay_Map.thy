@@ -118,16 +118,6 @@ unfolding inorder_splay[of x t, symmetric]
 by(induction x t arbitrary: l a r rule: splay.induct)
   (auto simp: sorted_lems sorted_Cons_le sorted_snoc_le splay_Leaf_iff split: tree.splits)
 
-(* more upd_list lemmas; unify with basic set? *)
-
-lemma upd_list_Cons:
-  "sorted1 ((x,y) # xs) \<Longrightarrow> upd_list x y xs = (x,y) # xs"
-by (induction xs) auto
-
-lemma upd_list_snoc:
-  "sorted1 (xs @ [(x,y)]) \<Longrightarrow> upd_list x y xs = xs @ [(x,y)]"
-by(induction xs) (auto simp add: sorted_mid_iff2)
-
 lemma inorder_update:
   "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"
 using inorder_splay[of x t, symmetric] sorted_splay[of t x]
@@ -135,15 +125,6 @@ by(auto simp: upd_list_simps upd_list_Cons upd_list_snoc neq_Leaf_iff split: tre
 
 
 subsubsection "Proofs for delete"
-
-(* more del_simp lemmas; unify with basic set? *)
-
-lemma del_list_notin_Cons: "sorted (x # map fst xs) \<Longrightarrow> del_list x xs = xs"
-by(induction xs)(auto simp: sorted_Cons_iff)
-
-lemma del_list_sorted_app:
-  "sorted(map fst xs @ [x]) \<Longrightarrow> del_list x (xs @ ys) = xs @ del_list x ys"
-by (induction xs) (auto simp: sorted_mid_iff2)
 
 lemma inorder_splay_maxD:
   "splay_max t = Node l a r \<Longrightarrow> sorted1(inorder t) \<Longrightarrow>
