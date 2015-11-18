@@ -70,13 +70,13 @@ text \<open>Not only does the above interpretation qualify theorem names.
   The prefix @{text int} is applied to all names introduced in locale
   conclusions including names introduced in definitions.  The
   qualified name @{text int.less} is short for
-  the interpretation of the definition, which is @{term int.less}.
+  the interpretation of the definition, which is @{text "partial_order.less op \<le>"}.
   Qualified name and expanded form may be used almost
   interchangeably.%
-\footnote{Since @{term "op \<le>"} is polymorphic, for @{term int.less} a
+\footnote{Since @{term "op \<le>"} is polymorphic, for @{text "partial_order.less op \<le>"} a
   more general type will be inferred than for @{text int.less} which
   is over type @{typ int}.}
-  The latter is preferred on output, as for example in the theorem
+  The former is preferred on output, as for example in the theorem
   @{thm [source] int.less_le_trans}: @{thm [display, indent=2]
   int.less_le_trans}
   Both notations for the strict order are not satisfactory.  The

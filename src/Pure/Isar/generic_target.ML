@@ -112,12 +112,17 @@ fun check_mixfix_global (b, no_params) mx =
   else (warning ("Dropping global mixfix syntax: " ^ Binding.print b ^ " " ^
     Pretty.string_of (Mixfix.pretty_mixfix mx)); NoSyn);
 
+fun same_const (Const (c, _), Const (c', _)) = c = c'
+  | same_const (t $ _, t' $ _) = same_const (t, t')
+  | same_const (_, _) = false;
+
 fun const_decl phi_pred prmode ((b, mx), rhs) phi context =
   if phi_pred phi then
     let
       val b' = Morphism.binding phi b;
       val rhs' = Morphism.term phi rhs;
       val same_shape = Term.aconv_untyped (rhs, rhs');
+      val same_stem = same_shape orelse same_const (rhs, rhs');
       val const_alias =
         if same_shape then
           (case rhs' of
@@ -141,9 +146,9 @@ fun const_decl phi_pred prmode ((b, mx), rhs) phi context =
       | NONE =>
           context
           |> Proof_Context.generic_add_abbrev Print_Mode.internal (b', Term.close_schematic_term rhs')
-          |-> (fn (const as Const (c, _), _) => same_shape ?
+          |-> (fn (const as Const (c, _), _) => same_stem ?
                 (Proof_Context.generic_revert_abbrev (#1 prmode) c #>
-                 Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)]))))
+                 same_shape ? Morphism.form (Proof_Context.generic_notation true prmode [(const, mx)]))))
     end
   else context;
 

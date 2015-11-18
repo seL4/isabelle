@@ -223,15 +223,13 @@ text (in order_preserving) \<open>Here are examples of theorems that are
 
   \hspace*{1em}@{thm [source] le'.less_le_trans}:
   @{thm [display, indent=4] le'.less_le_trans}
-  While there is infix syntax for the strict operation associated to
+  While there is infix syntax for the strict operation associated with
   @{term "op \<sqsubseteq>"}, there is none for the strict version of @{term
-  "op \<preceq>"}.  The abbreviation @{text less} with its infix syntax is only
+  "op \<preceq>"}.  The syntax @{text "\<sqsubset>"} for @{text less} is only
   available for the original instance it was declared for.  We may
-  introduce the abbreviation @{text less'} with infix syntax~@{text \<prec>}
-  with the following declaration:\<close>
+  introduce infix syntax for @{text le'.less} with the following declaration:\<close>
 
-  abbreviation (in order_preserving)
-    less' (infixl "\<prec>" 50) where "less' \<equiv> partial_order.less le'"
+  notation (in order_preserving) le'.less (infixl "\<prec>" 50)
 
 text (in order_preserving) \<open>Now the theorem is displayed nicely as
   @{thm [source]  le'.less_le_trans}:
@@ -306,8 +304,8 @@ text \<open>The parameter instantiation in the first instance of @{term
 
   context lattice_hom
   begin
-  abbreviation meet' (infixl "\<sqinter>''" 50) where "meet' \<equiv> le'.meet"
-  abbreviation join' (infixl "\<squnion>''" 50) where "join' \<equiv> le'.join"
+  notation le'.meet (infixl "\<sqinter>''" 50)
+  notation le'.join (infixl "\<squnion>''" 50)
   end
 
 text \<open>The next example makes radical use of the short hand

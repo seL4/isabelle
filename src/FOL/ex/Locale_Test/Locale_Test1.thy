@@ -126,26 +126,7 @@ interpretation var?: extra_type "0" "%x y. x = 0" .
 thm var.test_def
 
 
-text \<open>Under which circumstances term syntax remains active.\<close>
-
-locale "syntax" =
-  fixes p1 :: "'a => 'b"
-    and p2 :: "'b => o"
-begin
-
-definition d1 :: "'a => o" where "d1(x) \<longleftrightarrow> \<not> p2(p1(x))"
-definition d2 :: "'b => o" where "d2(x) \<longleftrightarrow> \<not> p2(x)"
-
-thm d1_def d2_def
-
-end
-
-thm syntax.d1_def syntax.d2_def
-
-locale syntax' = "syntax" p1 p2 for p1 :: "'a => 'a" and p2 :: "'a => o"
-begin
-
-thm d1_def d2_def  (* should print as "d1(?x) <-> ..." and "d2(?x) <-> ..." *)
+text \<open>Under which circumstances notation remains active.\<close>
 
 ML \<open>
   fun check_syntax ctxt thm expected =
@@ -161,9 +142,28 @@ ML \<open>
 
 declare [[show_hyps]]
 
+locale "syntax" =
+  fixes p1 :: "'a => 'b"
+    and p2 :: "'b => o"
+begin
+
+definition d1 :: "'a => o" ("D1'(_')") where "d1(x) \<longleftrightarrow> \<not> p2(p1(x))"
+definition d2 :: "'b => o" ("D2'(_')") where "d2(x) \<longleftrightarrow> \<not> p2(x)"
+
+thm d1_def d2_def
+
+end
+
+thm syntax.d1_def syntax.d2_def
+
+locale syntax' = "syntax" p1 p2 for p1 :: "'a => 'a" and p2 :: "'a => o"
+begin
+
+thm d1_def d2_def  (* should print as "D1(?x) <-> ..." and "D2(?x) <-> ..." *)
+
 ML \<open>
-  check_syntax @{context} @{thm d1_def} "d1(?x) \<longleftrightarrow> \<not> p2(p1(?x))";
-  check_syntax @{context} @{thm d2_def} "d2(?x) \<longleftrightarrow> \<not> p2(?x)";
+  check_syntax @{context} @{thm d1_def} "D1(?x) \<longleftrightarrow> \<not> p2(p1(?x))";
+  check_syntax @{context} @{thm d2_def} "D2(?x) \<longleftrightarrow> \<not> p2(?x)";
 \<close>
 
 end
@@ -172,11 +172,11 @@ locale syntax'' = "syntax" p3 p2 for p3 :: "'a => 'b" and p2 :: "'b => o"
 begin
 
 thm d1_def d2_def
-  (* should print as "syntax.d1(p3, p2, ?x) <-> ..." and "d2(?x) <-> ..." *)
+  (* should print as "d1(?x) <-> ..." and "D2(?x) <-> ..." *)
 
 ML \<open>
-  check_syntax @{context} @{thm d1_def} "syntax.d1(p3, p2, ?x) \<longleftrightarrow> \<not> p2(p3(?x))";
-  check_syntax @{context} @{thm d2_def} "d2(?x) \<longleftrightarrow> \<not> p2(?x)";
+  check_syntax @{context} @{thm d1_def} "d1(?x) \<longleftrightarrow> \<not> p2(p3(?x))";
+  check_syntax @{context} @{thm d2_def} "D2(?x) \<longleftrightarrow> \<not> p2(?x)";
 \<close>
 
 end

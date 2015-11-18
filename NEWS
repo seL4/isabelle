@@ -314,6 +314,28 @@ INCOMPATIBILITY, remove '!' and add '?' as required.
 * Keyword 'rewrites' identifies rewrite morphisms in interpretation
 commands.  Previously, the keyword was 'where'.  INCOMPATIBILITY.
 
+* More gentle suppression of syntax along locale morphisms while
+printing terms.  Previously 'abbreviation' and 'notation' declarations
+would be suppressed for morphisms except term identity.  Now
+'abbreviation' is also kept for morphims that only change the involved
+parameters, and only 'notation' is suppressed.  This can be of great
+help when working with complex locale hierarchies, because proof
+states are displayed much more succinctly.  It also means that only
+notation needs to be redeclared if desired, as illustrated by this
+example:
+
+  locale struct = fixes composition :: "'a => 'a => 'a" (infixl "\<cdot>" 65)
+  begin
+    definition derived (infixl "\<odot>" 65) where ...
+  end
+
+  locale morphism =
+    left: struct composition + right: struct composition'
+    for composition (infix "\<cdot>" 65) and composition' (infix "\<cdot>''" 65)
+  begin
+    notation right.derived ("\<odot>''")
+  end
+
 * Command 'sublocale' accepts mixin definitions after keyword
 'defines'.
 
