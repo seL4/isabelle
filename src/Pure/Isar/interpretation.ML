@@ -88,11 +88,12 @@ fun prep_interpretation prep_expr prep_term prep_prop prep_attr
 
 in
 
-val cert_interpretation =
-  prep_interpretation Expression.cert_goal_expression (K I) (K I) (K I);
+fun cert_interpretation expression =
+  prep_interpretation Expression.cert_goal_expression (K I) (K I) (K I) expression;
 
-val read_interpretation =
-  prep_interpretation Expression.read_goal_expression Syntax.parse_term Syntax.parse_prop Attrib.check_src;
+fun read_interpretation expression =
+  prep_interpretation Expression.read_goal_expression Syntax.parse_term
+    Syntax.parse_prop Attrib.check_src expression;
 
 end;
 
