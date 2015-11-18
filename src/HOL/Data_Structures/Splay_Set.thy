@@ -83,11 +83,15 @@ definition "isin t x = is_root x (splay x t)"
 
 hide_const (open) insert
 
-fun insert :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
-"insert x t =  (if t = Leaf then Node Leaf x Leaf
-  else case splay x t of
-    Node l a r \<Rightarrow> if x = a then Node l a r
-      else if x < a then Node l x (Node Leaf a r) else Node (Node l a Leaf) x r)"
+fun insert :: "'a::cmp \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
+"insert x t =
+  (if t = Leaf then Node Leaf x Leaf
+   else case splay x t of
+     Node l a r \<Rightarrow>
+      case cmp x a of
+        EQ \<Rightarrow> Node l a r |
+        LT \<Rightarrow> Node l x (Node Leaf a r) |
+        GT \<Rightarrow> Node (Node l a Leaf) x r)"
 
 
 fun splay_max :: "'a tree \<Rightarrow> 'a tree" where
@@ -100,11 +104,12 @@ fun splay_max :: "'a tree \<Rightarrow> 'a tree" where
 
 
 definition delete :: "'a::linorder \<Rightarrow> 'a tree \<Rightarrow> 'a tree" where
-"delete x t = (if t = Leaf then Leaf
-  else case splay x t of Node l a r \<Rightarrow>
-    if x = a
-    then if l = Leaf then r else case splay_max l of Node l' m r' \<Rightarrow> Node l' m r
-    else Node l a r)"
+"delete x t =
+  (if t = Leaf then Leaf
+   else case splay x t of Node l a r \<Rightarrow>
+     if x = a
+     then if l = Leaf then r else case splay_max l of Node l' m r' \<Rightarrow> Node l' m r
+     else Node l a r)"
 
 
 subsection "Functional Correctness Proofs"
