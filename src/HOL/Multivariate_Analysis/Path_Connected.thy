@@ -2695,6 +2695,9 @@ proposition homotopic_with_sym:
     shows "homotopic_with P X Y f g \<longleftrightarrow> homotopic_with P X Y g f"
   using homotopic_with_symD by blast
 
+lemma split_01: "{0..1::real} = {0..1/2} \<union> {1/2..1}"
+  by force
+
 lemma split_01_prod: "{0..1::real} \<times> X = ({0..1/2} \<times> X) \<union> ({1/2..1} \<times> X)"
   by force
 

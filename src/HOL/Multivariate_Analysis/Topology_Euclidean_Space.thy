@@ -6882,7 +6882,6 @@ lemma continuous_on_cases_1:
   fixes s :: "real set"
   assumes "continuous_on {t \<in> s. t \<le> a} f"
       and "continuous_on {t \<in> s. a \<le> t} g"
-      and "continuous_on s h"
       and "a \<in> s \<Longrightarrow> f a = g a"
     shows "continuous_on s (\<lambda>t. if t \<le> a then f(t) else g(t))"
 using assms

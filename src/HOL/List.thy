@@ -2081,6 +2081,12 @@ apply (induct xs arbitrary: i, auto)
  apply (case_tac i, auto)
 done
 
+lemma drop_rev: "drop n (rev xs) = rev (take (length xs - n) xs)"
+  by (cases "length xs < n") (auto simp: rev_take)
+
+lemma take_rev: "take n (rev xs) = rev (drop (length xs - n) xs)"
+  by (cases "length xs < n") (auto simp: rev_drop)
+
 lemma nth_take [simp]: "i < n ==> (take n xs)!i = xs!i"
 apply (induct xs arbitrary: i n, auto)
  apply (case_tac n, blast)

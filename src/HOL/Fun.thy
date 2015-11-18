@@ -120,6 +120,9 @@ lemma id_fcomp [simp]: "id \<circ>> g = g"
 lemma fcomp_id [simp]: "f \<circ>> id = f"
   by (simp add: fcomp_def)
 
+lemma fcomp_comp: "fcomp f g = comp g f" 
+  by (simp add: ext)
+
 code_printing
   constant fcomp \<rightharpoonup> (Eval) infixl 1 "#>"
 

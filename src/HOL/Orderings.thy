@@ -1379,8 +1379,14 @@ next
   fix x assume "P x" "\<forall>y. P y \<longrightarrow> x \<le> y" thus "Q x" by (rule assms(2))
 qed
 
+lemma LeastI2_wellorder_ex:
+  assumes "\<exists>x. P x"
+  and "\<And>a. \<lbrakk> P a; \<forall>b. P b \<longrightarrow> a \<le> b \<rbrakk> \<Longrightarrow> Q a"
+  shows "Q (Least P)"
+using assms by clarify (blast intro!: LeastI2_wellorder)
+
 lemma not_less_Least: "k < (LEAST x. P x) \<Longrightarrow> \<not> P k"
-apply (simp (no_asm_use) add: not_le [symmetric])
+apply (simp add: not_le [symmetric])
 apply (erule contrapos_nn)
 apply (erule Least_le)
 done
