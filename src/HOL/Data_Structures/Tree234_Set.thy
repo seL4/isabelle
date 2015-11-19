@@ -18,13 +18,16 @@ fun isin :: "'a::cmp tree234 \<Rightarrow> 'a \<Rightarrow> bool" where
 "isin (Node3 l a m b r) x =
   (case cmp x a of LT \<Rightarrow> isin l x | EQ \<Rightarrow> True | GT \<Rightarrow> (case cmp x b of
    LT \<Rightarrow> isin m x | EQ \<Rightarrow> True | GT \<Rightarrow> isin r x))" |
-"isin (Node4 t1 a t2 b t3 c t4) x = (case cmp x b of
-  LT \<Rightarrow> (case cmp x a of
+"isin (Node4 t1 a t2 b t3 c t4) x =
+  (case cmp x b of
+     LT \<Rightarrow>
+       (case cmp x a of
           LT \<Rightarrow> isin t1 x |
           EQ \<Rightarrow> True |
           GT \<Rightarrow> isin t2 x) |
-  EQ \<Rightarrow> True |
-  GT \<Rightarrow> (case cmp x c of
+     EQ \<Rightarrow> True |
+     GT \<Rightarrow>
+       (case cmp x c of
           LT \<Rightarrow> isin t3 x |
           EQ \<Rightarrow> True |
           GT \<Rightarrow> isin t4 x))"
@@ -60,26 +63,31 @@ fun ins :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>i" where
                LT \<Rightarrow> (case ins x m of
                        T\<^sub>i m' => T\<^sub>i (Node3 l a m' b r)
                      | Up\<^sub>i m1 c m2 => Up\<^sub>i (Node2 l a m1) c (Node2 m2 b r))))" |
-"ins a (Node4 l x1 m x2 n x3 r) =
-   (if a < x2 then
-      if a < x1 then
-        (case ins a l of
-           T\<^sub>i l' => T\<^sub>i (Node4 l' x1 m x2 n x3 r)
-         | Up\<^sub>i l1 q l2 => Up\<^sub>i (Node2 l1 q l2) x1 (Node3 m x2 n x3 r))
-      else if a=x1 then T\<^sub>i (Node4 l x1 m x2 n x3 r)
-      else (case ins a m of
-                T\<^sub>i m' => T\<^sub>i (Node4 l x1 m' x2 n x3 r)
-              | Up\<^sub>i m1 q m2 => Up\<^sub>i (Node2 l x1 m1) q (Node3 m2 x2 n x3 r))
-    else if a=x2 then T\<^sub>i (Node4 l x1 m x2 n x3 r)
-    else if a < x3 then
-           (case ins a n of
-              T\<^sub>i n' => T\<^sub>i (Node4 l x1 m x2 n' x3 r)
-            | Up\<^sub>i n1 q n2 => Up\<^sub>i (Node2 l x1 m) x2 (Node3 n1 q n2 x3 r))
-         else if a=x3 then T\<^sub>i (Node4 l x1 m x2 n x3 r)
-         else (case ins a r of
-              T\<^sub>i r' => T\<^sub>i (Node4 l x1 m x2 n x3 r')
-            | Up\<^sub>i r1 q r2 => Up\<^sub>i (Node2 l x1 m) x2 (Node3 n x3 r1 q r2))
-)"
+"ins x (Node4 t1 a t2 b t3 c t4) =
+  (case cmp x b of
+     LT \<Rightarrow>
+       (case cmp x a of
+          LT \<Rightarrow>
+            (case ins x t1 of
+               T\<^sub>i t => T\<^sub>i (Node4 t a t2 b t3 c t4) |
+               Up\<^sub>i l y r => Up\<^sub>i (Node2 l y r) a (Node3 t2 b t3 c t4)) |
+          EQ \<Rightarrow> T\<^sub>i (Node4 t1 a t2 b t3 c t4) |
+          GT \<Rightarrow>
+            (case ins x t2 of
+               T\<^sub>i t => T\<^sub>i (Node4 t1 a t b t3 c t4) |
+               Up\<^sub>i l y r => Up\<^sub>i (Node2 t1 a l) y (Node3 r b t3 c t4))) |
+     EQ \<Rightarrow> T\<^sub>i (Node4 t1 a t2 b t3 c t4) |
+     GT \<Rightarrow>
+       (case cmp x c of
+          LT \<Rightarrow>
+            (case ins x t3 of
+              T\<^sub>i t => T\<^sub>i (Node4 t1 a t2 b t c t4) |
+              Up\<^sub>i l y r => Up\<^sub>i (Node2 t1 a t2) b (Node3 l y r c t4)) |
+          EQ \<Rightarrow> T\<^sub>i (Node4 t1 a t2 b t3 c t4) |
+          GT \<Rightarrow>
+            (case ins x t4 of
+              T\<^sub>i t => T\<^sub>i (Node4 t1 a t2 b t3 c t) |
+              Up\<^sub>i l y r => Up\<^sub>i (Node2 t1 a t2) b (Node3 t3 c l y r))))"
 
 hide_const insert
 
