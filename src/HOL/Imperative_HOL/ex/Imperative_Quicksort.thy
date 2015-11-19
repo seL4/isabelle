@@ -14,7 +14,7 @@ begin
 
 text {* We prove QuickSort correct in the Relational Calculus. *}
 
-definition swap :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap"
+definition swap :: "'a::heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap"
 where
   "swap arr i j =
      do {
@@ -40,7 +40,7 @@ lemma swap_permutes:
   unfolding swap_def
   by (auto simp add: Array.length_def mset_swap dest: sym [of _ "h'"] elim!: effect_bindE effect_nthE effect_returnE effect_updE)
 
-function part1 :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat Heap"
+function part1 :: "'a::{heap,ord} array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat Heap"
 where
   "part1 a left right p = (
      if (right \<le> left) then return right
@@ -134,7 +134,7 @@ qed
 
 lemma part_outer_remains:
   assumes "effect (part1 a l r p) h h' rs"
-  shows "\<forall>i. i < l \<or> r < i \<longrightarrow> Array.get h (a::nat array) ! i = Array.get h' a ! i"
+  shows "\<forall>i. i < l \<or> r < i \<longrightarrow> Array.get h (a::'a::{heap,linorder} array) ! i = Array.get h' a ! i"
   using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
@@ -178,7 +178,7 @@ qed
 
 lemma part_partitions:
   assumes "effect (part1 a l r p) h h' rs"
-  shows "(\<forall>i. l \<le> i \<and> i < rs \<longrightarrow> Array.get h' (a::nat array) ! i \<le> p)
+  shows "(\<forall>i. l \<le> i \<and> i < rs \<longrightarrow> Array.get h' (a::'a::{heap,linorder} array) ! i \<le> p)
   \<and> (\<forall>i. rs < i \<and> i \<le> r \<longrightarrow> Array.get h' a ! i \<ge> p)"
   using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
@@ -229,7 +229,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
 qed
 
 
-fun partition :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat Heap"
+fun partition :: "'a::{heap,linorder} array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat Heap"
 where
   "partition a left right = do {
      pivot \<leftarrow> Array.nth a right;
@@ -249,7 +249,7 @@ lemma partition_permutes:
 proof -
     from assms part_permutes swap_permutes show ?thesis
       unfolding partition.simps
-      by (elim effect_bindE effect_returnE effect_nthE effect_ifE effect_updE) auto
+      by (elim effect_bindE effect_returnE effect_nthE effect_ifE effect_updE) fastforce
 qed
 
 lemma partition_length_remains:
@@ -264,7 +264,7 @@ qed
 lemma partition_outer_remains:
   assumes "effect (partition a l r) h h' rs"
   assumes "l < r"
-  shows "\<forall>i. i < l \<or> r < i \<longrightarrow> Array.get h (a::nat array) ! i = Array.get h' a ! i"
+  shows "\<forall>i. i < l \<or> r < i \<longrightarrow> Array.get h (a::'a::{heap,linorder} array) ! i = Array.get h' a ! i"
 proof -
   from assms part_outer_remains part_returns_index_in_bounds show ?thesis
     unfolding partition.simps swap_def
@@ -288,7 +288,7 @@ qed
 lemma partition_partitions:
   assumes effect: "effect (partition a l r) h h' rs"
   assumes "l < r"
-  shows "(\<forall>i. l \<le> i \<and> i < rs \<longrightarrow> Array.get h' (a::nat array) ! i \<le> Array.get h' a ! rs) \<and>
+  shows "(\<forall>i. l \<le> i \<and> i < rs \<longrightarrow> Array.get h' (a::'a::{heap,linorder} array) ! i \<le> Array.get h' a ! rs) \<and>
   (\<forall>i. rs < i \<and> i \<le> r \<longrightarrow> Array.get h' a ! rs \<le> Array.get h' a ! i)"
 proof -
   let ?pivot = "Array.get h a ! r" 
@@ -402,7 +402,7 @@ proof -
 qed
 
 
-function quicksort :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap"
+function quicksort :: "'a::{heap,linorder} array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap"
 where
   "quicksort arr left right =
      (if (right > left)  then
@@ -442,12 +442,12 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
   with partition_length_remains show ?case
     unfolding quicksort.simps [of a l r]
-    by (elim effect_ifE effect_bindE effect_assertE effect_returnE) auto
+    by (elim effect_ifE effect_bindE effect_assertE effect_returnE) fastforce+
 qed
 
 lemma quicksort_outer_remains:
   assumes "effect (quicksort a l r) h h' rs"
-   shows "\<forall>i. i < l \<or> r < i \<longrightarrow> Array.get h (a::nat array) ! i = Array.get h' a ! i"
+   shows "\<forall>i. i < l \<or> r < i \<longrightarrow> Array.get h (a::'a::{heap,linorder} array) ! i = Array.get h' a ! i"
   using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
@@ -557,7 +557,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
       with IH1' IH2 part_conds1' part_conds2' pivot have ?thesis
         unfolding subarray_def
         apply (auto simp add: sorted_append sorted_Cons all_in_set_sublist'_conv)
-        by (auto simp add: set_sublist' dest: le_trans [of _ "Array.get h' a ! p"])
+        by (auto simp add: set_sublist' dest: order.trans [of _ "Array.get h' a ! p"])
     }
     with True cr show ?thesis
       unfolding quicksort.simps [of a l r]
@@ -658,7 +658,7 @@ definition "qsort a = do {
 code_reserved SML upto
 
 definition "example = do {
-    a \<leftarrow> Array.of_list [42, 2, 3, 5, 0, 1705, 8, 3, 15];
+    a \<leftarrow> Array.of_list ([42, 2, 3, 5, 0, 1705, 8, 3, 15] :: nat list);
     qsort a
   }"
 

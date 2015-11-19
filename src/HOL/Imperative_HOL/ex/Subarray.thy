@@ -5,7 +5,7 @@
 section {* Theorems about sub arrays *}
 
 theory Subarray
-imports "~~/src/HOL/Imperative_HOL/Array" Sublist
+imports "~~/src/HOL/Imperative_HOL/Array" List_Sublist
 begin
 
 definition subarray :: "nat \<Rightarrow> nat \<Rightarrow> ('a::heap) array \<Rightarrow> heap \<Rightarrow> 'a list" where
@@ -47,7 +47,7 @@ lemma subarray_nth_array_back: "\<lbrakk> i < j; j \<le> Array.length h a\<rbrak
 unfolding Array.length_def subarray_def
 by (simp add: sublist'_back)
 
-lemma subarray_append: "\<lbrakk> i < j; j < k \<rbrakk> \<Longrightarrow> subarray i j a h @ subarray j k a h = subarray i k a h"
+lemma subarray_append: "\<lbrakk> i \<le> j; j \<le> k \<rbrakk> \<Longrightarrow> subarray i j a h @ subarray j k a h = subarray i k a h"
 unfolding subarray_def
 by (simp add: sublist'_append)
 

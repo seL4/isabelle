@@ -4,7 +4,7 @@
 
 section {* Slices of lists *}
 
-theory Sublist
+theory List_Sublist
 imports "~~/src/HOL/Library/Multiset"
 begin
 
