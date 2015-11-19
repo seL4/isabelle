@@ -11,10 +11,10 @@ struct
 
 val _ =
   Theory.setup
-   (Thy_Output.antiquotation @{binding noindent} (Scan.succeed ()) (fn _ => fn () => "\\noindent") #>
-    Thy_Output.antiquotation @{binding smallskip} (Scan.succeed ()) (fn _ => fn () => "\\smallskip") #>
-    Thy_Output.antiquotation @{binding medskip} (Scan.succeed ()) (fn _ => fn () => "\\medskip") #>
-    Thy_Output.antiquotation @{binding bigskip} (Scan.succeed ()) (fn _ => fn () => "\\bigskip"));
+   (Thy_Output.antiquotation @{binding noindent} (Scan.succeed ()) (K (K "\\noindent")) #>
+    Thy_Output.antiquotation @{binding smallskip} (Scan.succeed ()) (K (K "\\smallskip")) #>
+    Thy_Output.antiquotation @{binding medskip} (Scan.succeed ()) (K (K "\\medskip")) #>
+    Thy_Output.antiquotation @{binding bigskip} (Scan.succeed ()) (K (K "\\bigskip")));
 
 
 (* control style *)
