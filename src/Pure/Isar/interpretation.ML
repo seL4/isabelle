@@ -65,13 +65,18 @@ fun define_mixins [] expr_ctxt = ([], expr_ctxt)
       (*quasi-inhomogeneous type: definitions demand local theory rather than bare proof context*)
   | define_mixins pre_defs expr_lthy =
       let
-        val (defs, forked_lthy) = fold_map Local_Theory.define pre_defs expr_lthy;
+        val ((_, defs), inner_def_lthy) =
+          expr_lthy
+          |> Local_Theory.open_target
+          ||>> fold_map Local_Theory.define pre_defs
         val def_lthy =
-          Proof_Context.transfer (Proof_Context.theory_of forked_lthy) expr_lthy;
-        val def_eqns = defs
-          |> map (Thm.symmetric o
-              Morphism.thm (Local_Theory.standard_morphism forked_lthy def_lthy) o snd o snd);
-      in (def_eqns, def_lthy) end;
+          inner_def_lthy
+          |> Local_Theory.close_target;
+        val def_eqns =
+          defs
+          |> map (Thm.symmetric o snd o snd)
+          |> Proof_Context.export inner_def_lthy def_lthy;
+      in (def_eqns, Proof_Context.transfer (Proof_Context.theory_of def_lthy) expr_lthy) end;
 
 fun prep_interpretation prep_expr prep_term prep_prop prep_attr
   expression raw_defs raw_eqns initial_ctxt =
