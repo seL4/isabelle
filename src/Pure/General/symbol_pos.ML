@@ -74,9 +74,7 @@ fun split_lines [] = []
           | (line, nl :: rest) => line :: split rest);
       in split list end;
 
-val trim_blanks =
-  take_prefix (Symbol.is_blank o symbol) #> #2 #>
-  take_suffix (Symbol.is_blank o symbol) #> #1;
+val trim_blanks = trim (Symbol.is_blank o symbol);
 
 val trim_lines =
   split_lines #> map trim_blanks #> separate [(Symbol.space, Position.none)] #> flat;

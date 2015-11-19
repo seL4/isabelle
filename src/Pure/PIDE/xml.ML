@@ -104,12 +104,7 @@ fun trim_blanks trees =
   trees |> maps
     (fn Elem (markup, body) => [Elem (markup, trim_blanks body)]
       | Text s =>
-          let
-            val s' = s
-              |> raw_explode
-              |> take_prefix Symbol.is_blank |> #2
-              |> take_suffix Symbol.is_blank |> #1
-              |> implode;
+          let val s' = s |> raw_explode |> trim Symbol.is_blank |> implode;
           in if s' = "" then [] else [Text s'] end);
 
 

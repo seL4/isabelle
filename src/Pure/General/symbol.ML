@@ -510,11 +510,7 @@ val explode_words = split_words o sym_explode;
 
 (* blanks *)
 
-fun trim_blanks s =
-  sym_explode s
-  |> take_prefix is_blank |> #2
-  |> take_suffix is_blank |> #1
-  |> implode;
+val trim_blanks = sym_explode #> trim is_blank #> implode;
 
 
 (* bump string -- treat as base 26 or base 1 numbers *)

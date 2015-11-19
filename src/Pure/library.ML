@@ -113,6 +113,7 @@ sig
   val prefixes: 'a list -> 'a list list
   val suffixes1: 'a list -> 'a list list
   val suffixes: 'a list -> 'a list list
+  val trim: ('a -> bool) -> 'a list -> 'a list
 
   (*integers*)
   val upto: int * int -> int list
@@ -587,6 +588,7 @@ fun prefixes xs = [] :: prefixes1 xs;
 fun suffixes1 xs = map rev (prefixes1 (rev xs));
 fun suffixes xs = [] :: suffixes1 xs;
 
+fun trim pred = take_prefix pred #> #2 #> take_suffix pred #> #1;
 
 
 (** integers **)
