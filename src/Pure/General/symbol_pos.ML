@@ -14,7 +14,9 @@ sig
   val ~$$$ : Symbol.symbol -> T list -> T list * T list
   val content: T list -> string
   val range: T list -> Position.range
+  val split_lines: T list -> T list list
   val trim_blanks: T list -> T list
+  val trim_lines: T list -> T list
   val is_eof: T -> bool
   val stopper: T Scan.stopper
   val !!! : Scan.message -> (T list -> 'a) -> T list -> 'a
@@ -60,9 +62,24 @@ fun range (syms as (_, pos) :: _) =
       in Position.range pos pos' end
   | range [] = Position.no_range;
 
+
+(* lines and blanks *)
+
+fun split_lines [] = []
+  | split_lines (list: T list) =
+      let
+        fun split syms =
+          (case take_prefix (fn (s, _) => s <> "\n") syms of
+            (line, []) => [line]
+          | (line, nl :: rest) => line :: split rest);
+      in split list end;
+
 val trim_blanks =
   take_prefix (Symbol.is_blank o symbol) #> #2 #>
   take_suffix (Symbol.is_blank o symbol) #> #1;
+
+val trim_lines =
+  split_lines #> map trim_blanks #> separate [(Symbol.space, Position.none)] #> flat;
 
 
 (* stopper *)

@@ -70,7 +70,9 @@ val _ =
 
           val keywords = Thy_Header.get_keywords' ctxt;
           val toks =
-            Source.of_list (Input.source_explode source)
+            Input.source_explode source
+            |> not (Config.get ctxt Thy_Output.display) ? Symbol_Pos.trim_lines
+            |> Source.of_list
             |> Token.source' true keywords
             |> Source.exhaust;
           val _ = Context_Position.reports_text ctxt (maps (Token.reports keywords) toks);
