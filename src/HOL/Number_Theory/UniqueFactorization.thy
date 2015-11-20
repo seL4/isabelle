@@ -298,8 +298,7 @@ lemma prime_factorization_unique_nat:
   fixes f :: "nat \<Rightarrow> _"
   assumes S_eq: "S = {p. 0 < f p}"
     and "finite S"
-    and "\<forall>p\<in>S. prime p"
-    and "n = (\<Prod>p\<in>S. p ^ f p)"
+    and S: "\<forall>p\<in>S. prime p" "n = (\<Prod>p\<in>S. p ^ f p)"
   shows "S = prime_factors n \<and> (\<forall>p. f p = multiplicity p n)"
 proof -
   from assms have "f \<in> multiset"
@@ -315,7 +314,7 @@ proof -
     apply force
     apply force
     apply force
-    using assms apply (simp add: set_mset_def msetprod_multiplicity)
+    using S S_eq  apply (simp add: set_mset_def msetprod_multiplicity)
     done
   with \<open>f \<in> multiset\<close> have "count (multiset_prime_factorization n) = f"
     by simp
@@ -359,7 +358,7 @@ lemma prime_factors_characterization_int:
   apply (subgoal_tac "{p. 0 < f p} = {p. 0 \<le> p \<and> 0 < f p}")
   apply (simp only:)
   apply (subst primes_characterization'_int)
-  apply auto
+  apply simp_all
   apply (metis nat_int)
   apply (metis le_cases nat_le_0 zero_not_prime_nat)
   done
@@ -396,7 +395,7 @@ lemma multiplicity_characterization_int: "S = {p. 0 < f (p::int)} \<Longrightarr
   apply (subgoal_tac "{p. 0 < f p} = {p. 0 \<le> p \<and> 0 < f p}")
   apply (simp only:)
   apply (subst multiplicity_characterization'_int)
-  apply auto
+  apply simp_all
   apply (metis nat_int)
   apply (metis le_cases nat_le_0 zero_not_prime_nat)
   done
