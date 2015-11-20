@@ -39,7 +39,7 @@ fun report_parse_tree redirect depth space parse_tree =
         is_reported pos ?
           let
             val xml =
-              PolyML.NameSpace.displayTypeExpression (types, depth, space)
+              ML_Name_Space.displayTypeExpression (types, depth, space)
               |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
               |> Output.output |> YXML.parse_body;
           in cons (pos, fn () => Markup.ML_typing, fn () => YXML.string_of_body xml) end
@@ -188,17 +188,17 @@ fun eval (flags: flags) pos toks =
           else ();
 
         fun apply_fix (a, b) =
-          (#enterFix space (a, b); display PolyML.NameSpace.displayFix (a, b));
+          (#enterFix space (a, b); display ML_Name_Space.displayFix (a, b));
         fun apply_type (a, b) =
-          (#enterType space (a, b); display PolyML.NameSpace.displayType (b, depth, space));
+          (#enterType space (a, b); display ML_Name_Space.displayType (b, depth, space));
         fun apply_sig (a, b) =
-          (#enterSig space (a, b); display PolyML.NameSpace.displaySig (b, depth, space));
+          (#enterSig space (a, b); display ML_Name_Space.displaySig (b, depth, space));
         fun apply_struct (a, b) =
-          (#enterStruct space (a, b); display PolyML.NameSpace.displayStruct (b, depth, space));
+          (#enterStruct space (a, b); display ML_Name_Space.displayStruct (b, depth, space));
         fun apply_funct (a, b) =
-          (#enterFunct space (a, b); display PolyML.NameSpace.displayFunct (b, depth, space));
+          (#enterFunct space (a, b); display ML_Name_Space.displayFunct (b, depth, space));
         fun apply_val (a, b) =
-          (#enterVal space (a, b); display PolyML.NameSpace.displayVal (b, depth, space));
+          (#enterVal space (a, b); display ML_Name_Space.displayVal (b, depth, space));
       in
         List.app apply_fix fixes;
         List.app apply_type types;

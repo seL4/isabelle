@@ -6,11 +6,15 @@ Compatibility wrapper for Poly/ML.
 
 (* initial ML name space *)
 
+use "ML-Systems/ml_system.ML";
+
+if ML_System.name = "polyml-5.6"
+then use "ML-Systems/ml_name_space_polyml-5.6.ML"
+else use "ML-Systems/ml_name_space_polyml.ML";
+
 structure ML_Name_Space =
 struct
-  open PolyML.NameSpace;
-  type T = PolyML.NameSpace.nameSpace;
-  val global = PolyML.globalNameSpace;
+  open ML_Name_Space;
   val initial_val =
     List.filter (fn (a, _) => a <> "use" andalso a <> "exit" andalso a <> "commit")
       (#allVal global ());
@@ -19,13 +23,10 @@ struct
   val initial_structure = #allStruct global ();
   val initial_signature = #allSig global ();
   val initial_functor = #allFunct global ();
-  val forget_global_structure = PolyML.Compiler.forgetStructure;
 end;
 
 
 (* ML system operations *)
-
-use "ML-Systems/ml_system.ML";
 
 if ML_System.name = "polyml-5.3.0"
 then use "ML-Systems/share_common_data_polyml-5.3.0.ML"
@@ -60,6 +61,7 @@ fun print_exception_trace (_: exn -> string) (_: string -> unit) = PolyML.except
 if ML_System.name = "polyml-5.5.1"
   orelse ML_System.name = "polyml-5.5.2"
   orelse ML_System.name = "polyml-5.5.3"
+  orelse ML_System.name = "polyml-5.6"
 then use "ML-Systems/exn_trace_polyml-5.5.1.ML"
 else ();
 
@@ -77,6 +79,7 @@ use "ML-Systems/multithreading.ML";
 use "ML-Systems/multithreading_polyml.ML";
 
 if ML_System.name = "polyml-5.5.3"
+  orelse ML_System.name = "polyml-5.6"
 then use "ML-Systems/ml_stack_polyml-5.5.3.ML"
 else use "ML-Systems/ml_stack_dummy.ML";
 
@@ -108,16 +111,9 @@ fun quit () = exit 0;
 
 (* ML runtime system *)
 
-val timing = PolyML.timing;
-val profiling = PolyML.profiling;
-
-fun profile 0 f x = f x
-  | profile n f x =
-      let
-        val _ = RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler n;
-        val res = Exn.capture f x;
-        val _ = RunCall.run_call1 RuntimeCalls.POLY_SYS_profiler 0;
-      in Exn.release res end;
+if ML_System.name = "polyml-5.6"
+then use "ML-Systems/ml_profiling_polyml-5.6.ML"
+else use "ML-Systems/ml_profiling_polyml.ML";
 
 val pointer_eq = PolyML.pointerEq;
 
@@ -176,11 +172,12 @@ fun ml_pretty (ML_Pretty.Break (false, wd)) = PolyML.PrettyBreak (wd, 0)
 structure ML_Name_Space =
 struct
   open ML_Name_Space;
-  val display_val = pretty_ml o PolyML.NameSpace.displayVal;
+  val display_val = pretty_ml o displayVal;
 end;
 
 use "ML-Systems/ml_compiler_parameters.ML";
 if ML_System.name = "polyml-5.5.3"
+  orelse ML_System.name = "polyml-5.6"
 then use "ML-Systems/ml_compiler_parameters_polyml-5.5.3.ML" else ();
 
 use "ML-Systems/use_context.ML";
@@ -195,6 +192,7 @@ fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 :
 
 use "ML-Systems/ml_parse_tree.ML";
 if ML_System.name = "polyml-5.5.3"
+  orelse ML_System.name = "polyml-5.6"
 then use "ML-Systems/ml_parse_tree_polyml-5.5.3.ML" else ();
 
 fun toplevel_pp context (_: string list) pp =
@@ -209,5 +207,6 @@ fun ml_make_string struct_name =
 (* ML debugger *)
 
 if ML_System.name = "polyml-5.5.3"
+  orelse ML_System.name = "polyml-5.6"
 then use "ML-Systems/ml_debugger_polyml-5.5.3.ML"
 else use "ML-Systems/ml_debugger.ML";
