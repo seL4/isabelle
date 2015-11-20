@@ -30,7 +30,7 @@ datatype 'a up\<^sub>i = T\<^sub>i "'a tree23" | Up\<^sub>i "'a tree23" 'a "'a t
 
 fun tree\<^sub>i :: "'a up\<^sub>i \<Rightarrow> 'a tree23" where
 "tree\<^sub>i (T\<^sub>i t) = t" |
-"tree\<^sub>i (Up\<^sub>i l p r) = Node2 l p r"
+"tree\<^sub>i (Up\<^sub>i l a r) = Node2 l a r"
 
 fun ins :: "'a::cmp \<Rightarrow> 'a tree23 \<Rightarrow> 'a up\<^sub>i" where
 "ins x Leaf = Up\<^sub>i Leaf x Leaf" |
@@ -72,8 +72,8 @@ definition insert :: "'a::cmp \<Rightarrow> 'a tree23 \<Rightarrow> 'a tree23" w
 datatype 'a up\<^sub>d = T\<^sub>d "'a tree23" | Up\<^sub>d "'a tree23"
 
 fun tree\<^sub>d :: "'a up\<^sub>d \<Rightarrow> 'a tree23" where
-"tree\<^sub>d (T\<^sub>d x) = x" |
-"tree\<^sub>d (Up\<^sub>d x) = x"
+"tree\<^sub>d (T\<^sub>d t) = t" |
+"tree\<^sub>d (Up\<^sub>d t) = t"
 
 (* Variation: return None to signal no-change *)
 
