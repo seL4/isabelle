@@ -638,6 +638,10 @@ proof -
     by (simp add: algebra_simps)
 qed
 
+lemma sum_le_prod1:
+  fixes a::real shows "\<lbrakk>a \<le> 1; b \<le> 1\<rbrakk> \<Longrightarrow> a + b \<le> 1 + a * b"
+by (metis add.commute affine_ineq less_eq_real_def mult.right_neutral)
+
 lemma simple_path_subpath_eq:
   "simple_path(subpath u v g) \<longleftrightarrow>
      path(subpath u v g) \<and> u\<noteq>v \<and>
@@ -1012,6 +1016,12 @@ qed
 
 lemma simple_path_linepath[intro]: "a \<noteq> b \<Longrightarrow> simple_path (linepath a b)"
   by (simp add: arc_imp_simple_path arc_linepath)
+
+lemma linepath_trivial [simp]: "linepath a a x = a"
+  by (simp add: linepath_def real_vector.scale_left_diff_distrib)
+    
+lemma subpath_refl: "subpath a a g = linepath (g a) (g a)"
+  by (simp add: subpath_def linepath_def algebra_simps)
 
 
 subsection \<open>Bounding a point away from a path\<close>
@@ -2911,5 +2921,276 @@ proposition homotopic_paths_continuous_image:
   apply (rule homotopic_with_compose_continuous_left [of _ _ _ s])
   apply (auto simp: pathstart_def pathfinish_def elim!: homotopic_with_mono)
   done
+
+subsection\<open>Group properties for homotopy of paths\<close>
+
+text\<open>So taking equivalence classes under homotopy would give the fundamental group\<close>
+
+proposition homotopic_paths_rid:
+    "\<lbrakk>path p; path_image p \<subseteq> s\<rbrakk> \<Longrightarrow> homotopic_paths s (p +++ linepath (pathfinish p) (pathfinish p)) p"
+  apply (subst homotopic_paths_sym)
+  apply (rule homotopic_paths_reparametrize [where f = "\<lambda>t. if  t \<le> 1 / 2 then 2 *\<^sub>R t else 1"])
+  apply (simp_all del: le_divide_eq_numeral1)
+  apply (subst split_01)
+  apply (rule continuous_on_cases continuous_intros | force simp: pathfinish_def joinpaths_def)+
+  done
+
+proposition homotopic_paths_lid:
+   "\<lbrakk>path p; path_image p \<subseteq> s\<rbrakk> \<Longrightarrow> homotopic_paths s (linepath (pathstart p) (pathstart p) +++ p) p"
+using homotopic_paths_rid [of "reversepath p" s]
+  by (metis homotopic_paths_reversepath path_image_reversepath path_reversepath pathfinish_linepath 
+        pathfinish_reversepath reversepath_joinpaths reversepath_linepath)
+
+proposition homotopic_paths_assoc:
+   "\<lbrakk>path p; path_image p \<subseteq> s; path q; path_image q \<subseteq> s; path r; path_image r \<subseteq> s; pathfinish p = pathstart q;
+     pathfinish q = pathstart r\<rbrakk>
+    \<Longrightarrow> homotopic_paths s (p +++ (q +++ r)) ((p +++ q) +++ r)"
+  apply (subst homotopic_paths_sym)
+  apply (rule homotopic_paths_reparametrize
+           [where f = "\<lambda>t. if  t \<le> 1 / 2 then inverse 2 *\<^sub>R t
+                           else if  t \<le> 3 / 4 then t - (1 / 4)
+                           else 2 *\<^sub>R t - 1"])
+  apply (simp_all del: le_divide_eq_numeral1)
+  apply (simp add: subset_path_image_join)
+  apply (rule continuous_on_cases_1 continuous_intros)+
+  apply (auto simp: joinpaths_def)
+  done
+
+proposition homotopic_paths_rinv:
+  assumes "path p" "path_image p \<subseteq> s"
+    shows "homotopic_paths s (p +++ reversepath p) (linepath (pathstart p) (pathstart p))"
+proof -
+  have "continuous_on ({0..1} \<times> {0..1}) (\<lambda>x. (subpath 0 (fst x) p +++ reversepath (subpath 0 (fst x) p)) (snd x))"
+    using assms 
+    apply (simp add: joinpaths_def subpath_def reversepath_def path_def del: le_divide_eq_numeral1)
+    apply (rule continuous_on_cases_le)
+    apply (rule_tac [2] continuous_on_compose [of _ _ p, unfolded o_def])
+    apply (rule continuous_on_compose [of _ _ p, unfolded o_def])
+    apply (auto intro!: continuous_intros simp del: eq_divide_eq_numeral1)
+    apply (force elim!: continuous_on_subset simp add: mult_le_one)+
+    done
+  then show ?thesis
+    using assms
+    apply (subst homotopic_paths_sym)
+    apply (simp add: homotopic_paths_def homotopic_with_def)
+    apply (rule_tac x="(\<lambda>y. (subpath 0 (fst y) p +++ reversepath(subpath 0 (fst y) p)) (snd y))" in exI)
+    apply (simp add: path_defs joinpaths_def subpath_def reversepath_def)
+    apply (force simp: mult_le_one)
+    done
+qed
+
+proposition homotopic_paths_linv:
+  assumes "path p" "path_image p \<subseteq> s"
+    shows "homotopic_paths s (reversepath p +++ p) (linepath (pathfinish p) (pathfinish p))"
+using homotopic_paths_rinv [of "reversepath p" s] assms by simp
+
+
+subsection\<open> Homotopy of loops without requiring preservation of endpoints.\<close>
+
+definition homotopic_loops :: "'a::topological_space set \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> bool"  where
+ "homotopic_loops s p q \<equiv>
+     homotopic_with (\<lambda>r. pathfinish r = pathstart r) {0..1} s p q"
+
+lemma homotopic_loops:
+   "homotopic_loops s p q \<longleftrightarrow>
+      (\<exists>h. continuous_on ({0..1::real} \<times> {0..1}) h \<and>
+          image h ({0..1} \<times> {0..1}) \<subseteq> s \<and>
+          (\<forall>x \<in> {0..1}. h(0,x) = p x) \<and>
+          (\<forall>x \<in> {0..1}. h(1,x) = q x) \<and>
+          (\<forall>t \<in> {0..1}. pathfinish(h o Pair t) = pathstart(h o Pair t)))"
+  by (simp add: homotopic_loops_def pathstart_def pathfinish_def homotopic_with)
+
+proposition homotopic_loops_imp_loop:
+     "homotopic_loops s p q \<Longrightarrow> pathfinish p = pathstart p \<and> pathfinish q = pathstart q"
+using homotopic_with_imp_property homotopic_loops_def by blast
+
+proposition homotopic_loops_imp_path:
+     "homotopic_loops s p q \<Longrightarrow> path p \<and> path q"
+  unfolding homotopic_loops_def path_def
+  using homotopic_with_imp_continuous by blast
+
+proposition homotopic_loops_imp_subset1:
+     "homotopic_loops s p q \<Longrightarrow> path_image p \<subseteq> s"
+  unfolding homotopic_loops_def path_image_def
+  using homotopic_with_imp_subset1  by blast
+
+proposition homotopic_loops_imp_subset2:
+     "homotopic_loops s p q \<Longrightarrow> path_image q \<subseteq> s"
+  unfolding homotopic_loops_def path_image_def
+  using homotopic_with_imp_subset2 by blast
+
+proposition homotopic_loops_refl:
+     "homotopic_loops s p p \<longleftrightarrow>
+      path p \<and> path_image p \<subseteq> s \<and> pathfinish p = pathstart p"
+  by (simp add: homotopic_loops_def homotopic_with_refl path_image_def path_def)
+
+proposition homotopic_loops_sym:
+   "homotopic_loops s p q \<longleftrightarrow> homotopic_loops s q p"
+  by (simp add: homotopic_loops_def homotopic_with_sym)
+
+proposition homotopic_loops_trans:
+   "\<lbrakk>homotopic_loops s p q; homotopic_loops s q r\<rbrakk> \<Longrightarrow> homotopic_loops s p r"
+  unfolding homotopic_loops_def by (blast intro: homotopic_with_trans)
+
+proposition homotopic_loops_subset:
+   "\<lbrakk>homotopic_loops s p q; s \<subseteq> t\<rbrakk> \<Longrightarrow> homotopic_loops t p q"
+  by (simp add: homotopic_loops_def homotopic_with_subset_right)
+
+proposition homotopic_loops_eq:
+   "\<lbrakk>path p; path_image p \<subseteq> s; pathfinish p = pathstart p; \<And>t. t \<in> {0..1} \<Longrightarrow> p(t) = q(t)\<rbrakk>
+          \<Longrightarrow> homotopic_loops s p q"
+  unfolding homotopic_loops_def
+  apply (rule homotopic_with_eq)
+  apply (rule homotopic_with_refl [where f = p, THEN iffD2])
+  apply (simp_all add: path_image_def path_def pathstart_def pathfinish_def)
+  done
+
+proposition homotopic_loops_continuous_image:
+   "\<lbrakk>homotopic_loops s f g; continuous_on s h; h ` s \<subseteq> t\<rbrakk> \<Longrightarrow> homotopic_loops t (h \<circ> f) (h \<circ> g)"
+  unfolding homotopic_loops_def
+  apply (rule homotopic_with_compose_continuous_left)
+  apply (erule homotopic_with_mono)
+  by (simp add: pathfinish_def pathstart_def)
+
+
+subsection\<open>Relations between the two variants of homotopy\<close>
+
+proposition homotopic_paths_imp_homotopic_loops:
+    "\<lbrakk>homotopic_paths s p q; pathfinish p = pathstart p; pathfinish q = pathstart p\<rbrakk> \<Longrightarrow> homotopic_loops s p q"
+  by (auto simp: homotopic_paths_def homotopic_loops_def intro: homotopic_with_mono)
+
+proposition homotopic_loops_imp_homotopic_paths_null:
+  assumes "homotopic_loops s p (linepath a a)"
+    shows "homotopic_paths s p (linepath (pathstart p) (pathstart p))"
+proof -
+  have "path p" by (metis assms homotopic_loops_imp_path)
+  have ploop: "pathfinish p = pathstart p" by (metis assms homotopic_loops_imp_loop)
+  have pip: "path_image p \<subseteq> s" by (metis assms homotopic_loops_imp_subset1)
+  obtain h where conth: "continuous_on ({0..1::real} \<times> {0..1}) h"
+             and hs: "h ` ({0..1} \<times> {0..1}) \<subseteq> s"
+             and [simp]: "\<And>x. x \<in> {0..1} \<Longrightarrow> h(0,x) = p x"
+             and [simp]: "\<And>x. x \<in> {0..1} \<Longrightarrow> h(1,x) = a"
+             and ends: "\<And>t. t \<in> {0..1} \<Longrightarrow> pathfinish (h \<circ> Pair t) = pathstart (h \<circ> Pair t)"
+    using assms by (auto simp: homotopic_loops homotopic_with)
+  have conth0: "path (\<lambda>u. h (u, 0))"
+    unfolding path_def
+    apply (rule continuous_on_compose [of _ _ h, unfolded o_def])
+    apply (force intro: continuous_intros continuous_on_subset [OF conth])+
+    done
+  have pih0: "path_image (\<lambda>u. h (u, 0)) \<subseteq> s"
+    using hs by (force simp: path_image_def)
+  have c1: "continuous_on ({0..1} \<times> {0..1}) (\<lambda>x. h (fst x * snd x, 0))"
+    apply (rule continuous_on_compose [of _ _ h, unfolded o_def])
+    apply (force simp: mult_le_one intro: continuous_intros continuous_on_subset [OF conth])+
+    done
+  have c2: "continuous_on ({0..1} \<times> {0..1}) (\<lambda>x. h (fst x - fst x * snd x, 0))"
+    apply (rule continuous_on_compose [of _ _ h, unfolded o_def])
+    apply (force simp: mult_left_le mult_le_one intro: continuous_intros continuous_on_subset [OF conth])+
+    apply (rule continuous_on_subset [OF conth])
+    apply (auto simp: algebra_simps add_increasing2 mult_left_le)
+    done
+  have [simp]: "\<And>t. \<lbrakk>0 \<le> t \<and> t \<le> 1\<rbrakk> \<Longrightarrow> h (t, 1) = h (t, 0)"
+    using ends by (simp add: pathfinish_def pathstart_def)
+  have adhoc_le: "c * 4 \<le> 1 + c * (d * 4)" if "\<not> d * 4 \<le> 3" "0 \<le> c" "c \<le> 1" for c d::real
+  proof -
+    have "c * 3 \<le> c * (d * 4)" using that less_eq_real_def by auto
+    with \<open>c \<le> 1\<close> show ?thesis by fastforce
+  qed
+  have *: "\<And>p x. (path p \<and> path(reversepath p)) \<and>
+                  (path_image p \<subseteq> s \<and> path_image(reversepath p) \<subseteq> s) \<and>
+                  (pathfinish p = pathstart(linepath a a +++ reversepath p) \<and>
+                   pathstart(reversepath p) = a) \<and> pathstart p = x
+                  \<Longrightarrow> homotopic_paths s (p +++ linepath a a +++ reversepath p) (linepath x x)"
+    by (metis homotopic_paths_lid homotopic_paths_join
+              homotopic_paths_trans homotopic_paths_sym homotopic_paths_rinv)
+  have 1: "homotopic_paths s p (p +++ linepath (pathfinish p) (pathfinish p))"
+    using \<open>path p\<close> homotopic_paths_rid homotopic_paths_sym pip by blast
+  moreover have "homotopic_paths s (p +++ linepath (pathfinish p) (pathfinish p)) 
+                                   (linepath (pathstart p) (pathstart p) +++ p +++ linepath (pathfinish p) (pathfinish p))"
+    apply (subst homotopic_paths_sym)
+    using homotopic_paths_lid [of "p +++ linepath (pathfinish p) (pathfinish p)" s]
+    by (metis 1 homotopic_paths_imp_path homotopic_paths_imp_pathstart homotopic_paths_imp_subset)
+  moreover have "homotopic_paths s (linepath (pathstart p) (pathstart p) +++ p +++ linepath (pathfinish p) (pathfinish p)) 
+                                   ((\<lambda>u. h (u, 0)) +++ linepath a a +++ reversepath (\<lambda>u. h (u, 0)))"
+    apply (simp add: homotopic_paths_def homotopic_with_def)
+    apply (rule_tac x="\<lambda>y. (subpath 0 (fst y) (\<lambda>u. h (u, 0)) +++ (\<lambda>u. h (Pair (fst y) u)) +++ subpath (fst y) 0 (\<lambda>u. h (u, 0))) (snd y)" in exI)
+    apply (simp add: subpath_reversepath)
+    apply (intro conjI homotopic_join_lemma)
+    using ploop 
+    apply (simp_all add: path_defs joinpaths_def o_def subpath_def conth c1 c2)
+    apply (force simp: algebra_simps mult_le_one mult_left_le intro: hs [THEN subsetD] adhoc_le)
+    done
+  moreover have "homotopic_paths s ((\<lambda>u. h (u, 0)) +++ linepath a a +++ reversepath (\<lambda>u. h (u, 0))) 
+                                   (linepath (pathstart p) (pathstart p))"
+    apply (rule *)
+    apply (simp add: pih0 pathstart_def pathfinish_def conth0)
+    apply (simp add: reversepath_def joinpaths_def)
+    done
+  ultimately show ?thesis
+    by (blast intro: homotopic_paths_trans)
+qed
+
+proposition homotopic_loops_conjugate:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "path p" "path q" and pip: "path_image p \<subseteq> s" and piq: "path_image q \<subseteq> s" 
+      and papp: "pathfinish p = pathstart q" and qloop: "pathfinish q = pathstart q"
+    shows "homotopic_loops s (p +++ q +++ reversepath p) q"
+proof -
+  have contp: "continuous_on {0..1} p"  using \<open>path p\<close> [unfolded path_def] by blast
+  have contq: "continuous_on {0..1} q"  using \<open>path q\<close> [unfolded path_def] by blast
+  have c1: "continuous_on ({0..1} \<times> {0..1}) (\<lambda>x. p ((1 - fst x) * snd x + fst x))"
+    apply (rule continuous_on_compose [of _ _ p, unfolded o_def])
+    apply (force simp: mult_le_one intro!: continuous_intros)
+    apply (rule continuous_on_subset [OF contp])
+    apply (auto simp: algebra_simps add_increasing2 mult_right_le_one_le sum_le_prod1)
+    done
+  have c2: "continuous_on ({0..1} \<times> {0..1}) (\<lambda>x. p ((fst x - 1) * snd x + 1))"
+    apply (rule continuous_on_compose [of _ _ p, unfolded o_def])
+    apply (force simp: mult_le_one intro!: continuous_intros)
+    apply (rule continuous_on_subset [OF contp])
+    apply (auto simp: algebra_simps add_increasing2 mult_left_le_one_le)
+    done
+  have ps1: "\<And>a b. \<lbrakk>b * 2 \<le> 1; 0 \<le> b; 0 \<le> a; a \<le> 1\<rbrakk> \<Longrightarrow> p ((1 - a) * (2 * b) + a) \<in> s"
+    using sum_le_prod1   
+    by (force simp: algebra_simps add_increasing2 mult_left_le intro: pip [unfolded path_image_def, THEN subsetD])
+  have ps2: "\<And>a b. \<lbrakk>\<not> 4 * b \<le> 3; b \<le> 1; 0 \<le> a; a \<le> 1\<rbrakk> \<Longrightarrow> p ((a - 1) * (4 * b - 3) + 1) \<in> s"
+    apply (rule pip [unfolded path_image_def, THEN subsetD])
+    apply (rule image_eqI, blast)
+    apply (simp add: algebra_simps)
+    by (metis add_mono_thms_linordered_semiring(1) affine_ineq linear mult.commute mult.left_neutral mult_right_mono not_le 
+              add.commute zero_le_numeral)
+  have qs: "\<And>a b. \<lbrakk>4 * b \<le> 3; \<not> b * 2 \<le> 1\<rbrakk> \<Longrightarrow> q (4 * b - 2) \<in> s"
+    using path_image_def piq by fastforce
+  have "homotopic_loops s (p +++ q +++ reversepath p) 
+                          (linepath (pathstart q) (pathstart q) +++ q +++ linepath (pathstart q) (pathstart q))"
+    apply (simp add: homotopic_loops_def homotopic_with_def)
+    apply (rule_tac x="(\<lambda>y. (subpath (fst y) 1 p +++ q +++ subpath 1 (fst y) p) (snd y))" in exI)
+    apply (simp add: subpath_refl subpath_reversepath)
+    apply (intro conjI homotopic_join_lemma)
+    using papp qloop
+    apply (simp_all add: path_defs joinpaths_def o_def subpath_def c1 c2)
+    apply (force simp: contq intro: continuous_on_compose [of _ _ q, unfolded o_def] continuous_on_id continuous_on_snd)
+    apply (auto simp: ps1 ps2 qs)
+    done
+  moreover have "homotopic_loops s (linepath (pathstart q) (pathstart q) +++ q +++ linepath (pathstart q) (pathstart q)) q"
+  proof -
+    have "homotopic_paths s (linepath (pathfinish q) (pathfinish q) +++ q) q"
+      using \<open>path q\<close> homotopic_paths_lid qloop piq by auto
+    hence 1: "\<And>f. homotopic_paths s f q \<or> \<not> homotopic_paths s f (linepath (pathfinish q) (pathfinish q) +++ q)"
+      using homotopic_paths_trans by blast
+    hence "homotopic_paths s (linepath (pathfinish q) (pathfinish q) +++ q +++ linepath (pathfinish q) (pathfinish q)) q"    
+    proof -
+      have "homotopic_paths s (q +++ linepath (pathfinish q) (pathfinish q)) q"
+        by (simp add: \<open>path q\<close> homotopic_paths_rid piq)
+      thus ?thesis
+        by (metis (no_types) 1 \<open>path q\<close> homotopic_paths_join homotopic_paths_rinv homotopic_paths_sym 
+                  homotopic_paths_trans qloop pathfinish_linepath piq)
+    qed 
+    thus ?thesis
+      by (metis (no_types) qloop homotopic_loops_sym homotopic_paths_imp_homotopic_loops homotopic_paths_imp_pathfinish homotopic_paths_sym)
+  qed
+  ultimately show ?thesis
+    by (blast intro: homotopic_loops_trans)
+qed
 
 end

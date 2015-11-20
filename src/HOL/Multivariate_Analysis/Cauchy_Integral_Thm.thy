@@ -1,5 +1,7 @@
 section \<open>Complex path integrals and Cauchy's integral theorem\<close>
 
+text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2015)\<close>
+
 theory Cauchy_Integral_Thm
 imports Complex_Transcendental Weierstrass
 begin
@@ -2847,17 +2849,22 @@ text\<open>Key fact that path integral is the same for a "nearby" path. This is 
  winding numbers now.
 \<close>
 
+text\<open>A technical definition to avoid duplication of similar proofs,
+     for paths joined at the ends versus looping paths\<close>
+definition linked_paths :: "bool \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
+  where "linked_paths atends g h ==
+        (if atends then pathstart h = pathstart g \<and> pathfinish h = pathfinish g
+                   else pathfinish g = pathstart g \<and> pathfinish h = pathstart h)"
+
 text\<open>This formulation covers two cases: @{term g} and @{term h} share their
       start and end points; @{term g} and @{term h} both loop upon themselves.\<close>
 lemma path_integral_nearby:
-  assumes os: "open s"
-      and p: "path p" "path_image p \<subseteq> s"
+  assumes os: "open s" and p: "path p" "path_image p \<subseteq> s"
     shows
        "\<exists>d. 0 < d \<and>
             (\<forall>g h. valid_path g \<and> valid_path h \<and>
                   (\<forall>t \<in> {0..1}. norm(g t - p t) < d \<and> norm(h t - p t) < d) \<and>
-                  (if Ends then pathstart h = pathstart g \<and> pathfinish h = pathfinish g
-                   else pathfinish g = pathstart g \<and> pathfinish h = pathstart h)
+                  linked_paths atends g h
                   \<longrightarrow> path_image g \<subseteq> s \<and> path_image h \<subseteq> s \<and>
                       (\<forall>f. f holomorphic_on s \<longrightarrow> path_integral h f = path_integral g f))"
 proof -
@@ -2900,8 +2907,7 @@ proof -
   { fix g h
     assume g: "valid_path g" and gp: "\<forall>t\<in>{0..1}. cmod (g t - p t) < e / 3"
        and h: "valid_path h" and hp: "\<forall>t\<in>{0..1}. cmod (h t - p t) < e / 3"
-       and joins: "if Ends then pathstart h = pathstart g \<and> pathfinish h = pathfinish g
-                   else pathfinish g = pathstart g \<and> pathfinish h = pathstart h"
+       and joins: "linked_paths atends g h"
     { fix t::real
       assume t: "0 \<le> t" "t \<le> 1"
       then obtain u where u: "u \<in> k" and ptu: "p t \<in> ball(p u) (ee(p u) / 3)"
@@ -3056,7 +3062,7 @@ proof -
       } note ind = this
       have "path_integral h f = path_integral g f"
         using ind [OF order_refl] N joins
-        by (simp add: pathstart_def pathfinish_def split: split_if_asm)
+        by (simp add: linked_paths_def pathstart_def pathfinish_def split: split_if_asm)
     }
     ultimately
     have "path_image g \<subseteq> s \<and> path_image h \<subseteq> s \<and> (\<forall>f. f holomorphic_on s \<longrightarrow> path_integral h f = path_integral g f)"
@@ -3083,7 +3089,7 @@ lemma
                         path_image h \<subseteq> s \<and>
                         (\<forall>f. f holomorphic_on s
                             \<longrightarrow> path_integral h f = path_integral g f))"
-    and path_integral_nearby_loop:
+    and path_integral_nearby_loops:
       "\<exists>d. 0 < d \<and>
               (\<forall>g h. valid_path g \<and> valid_path h \<and>
                     (\<forall>t \<in> {0..1}. norm(g t - p t) < d \<and> norm(h t - p t) < d) \<and>
@@ -3092,9 +3098,9 @@ lemma
                         path_image h \<subseteq> s \<and>
                         (\<forall>f. f holomorphic_on s
                             \<longrightarrow> path_integral h f = path_integral g f))"
-  using path_integral_nearby [OF assms, where Ends=True]
-  using path_integral_nearby [OF assms, where Ends=False]
-  by simp_all
+  using path_integral_nearby [OF assms, where atends=True]
+  using path_integral_nearby [OF assms, where atends=False]
+  unfolding linked_paths_def by simp_all
 
 corollary differentiable_polynomial_function:
   fixes p :: "real \<Rightarrow> 'a::euclidean_space"
@@ -3447,7 +3453,7 @@ proof -
                     (\<forall>t\<in>{0..1}. cmod (h1 t - \<gamma> t) < e \<and> cmod (h2 t - \<gamma> t) < e);
                     pathfinish h1 = pathstart h1; pathfinish h2 = pathstart h2; f holomorphic_on UNIV - {z}\<rbrakk> \<Longrightarrow>
                     path_integral h2 f = path_integral h1 f"
-    using path_integral_nearby_loop [of "UNIV - {z}" \<gamma>] assms  by (auto simp: open_delete)
+    using path_integral_nearby_loops [of "UNIV - {z}" \<gamma>] assms  by (auto simp: open_delete)
   obtain p where p:
      "valid_path p \<and> z \<notin> path_image p \<and>
       pathfinish p = pathstart p \<and>

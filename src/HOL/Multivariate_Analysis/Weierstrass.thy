@@ -1,11 +1,10 @@
-section \<open>Bernstein-Weierstrass and Stone-Weierstrass Theorems\<close>
+section \<open>The Bernstein-Weierstrass and Stone-Weierstrass Theorems\<close>
+
+text\<open>By L C Paulson (2015)\<close>
 
 theory Weierstrass
 imports Uniform_Limit Path_Connected
 begin
-
-(*Power.thy:*)
-declare power_divide [where b = "numeral w" for w, simp del]
 
 subsection \<open>Bernstein polynomials\<close>
 
@@ -23,8 +22,7 @@ lemma sum_Bernstein [simp]: "(\<Sum> k = 0..n. Bernstein n k x) = 1"
   by (simp add: Bernstein_def)
 
 lemma binomial_deriv1:
-    "(\<Sum>k=0..n. (of_nat k * of_nat (n choose k)) * a^(k-1) * b^(n-k)) =
-     of_nat n * (a+b::real) ^ (n-1)"
+    "(\<Sum>k=0..n. (of_nat k * of_nat (n choose k)) * a^(k-1) * b^(n-k)) = real_of_nat n * (a+b) ^ (n-1)"
   apply (rule DERIV_unique [where f = "\<lambda>a. (a+b)^n" and x=a])
   apply (subst binomial_ring)
   apply (rule derivative_eq_intros setsum.cong | simp)+
@@ -169,7 +167,8 @@ text\<open>Source:
 Bruno Brosowski and Frank Deutsch.
 An Elementary Proof of the Stone-Weierstrass Theorem.
 Proceedings of the American Mathematical Society
-Volume 81, Number 1, January 1981.\<close>
+Volume 81, Number 1, January 1981.
+DOI: 10.2307/2043993  http://www.jstor.org/stable/2043993\<close>
 
 locale function_ring_on =
   fixes R :: "('a::t2_space \<Rightarrow> real) set" and s :: "'a set"

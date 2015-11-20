@@ -1,4 +1,4 @@
-section \<open>Instanciates the finite cartesian product of euclidean spaces as a euclidean space.\<close>
+section \<open>Instantiates the finite Cartesian product of Euclidean spaces as a Euclidean space.\<close>
 
 theory Cartesian_Euclidean_Space
 imports Finite_Cartesian_Product Integration

@@ -1,8 +1,6 @@
-(*  Author: John Harrison
-    Ported from "hol_light/Multivariate/transcendentals.ml" by L C Paulson (2015)
-*)
-
 section \<open>Complex Transcendental Functions\<close>
+
+text\<open>By John Harrison et al.  Ported from HOL Light by L C Paulson (2015)\<close>
 
 theory Complex_Transcendental
 imports Complex_Analysis_Basics
