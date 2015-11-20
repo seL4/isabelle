@@ -36,7 +36,7 @@ datatype 'a up\<^sub>i = T\<^sub>i "'a tree234" | Up\<^sub>i "'a tree234" 'a "'a
 
 fun tree\<^sub>i :: "'a up\<^sub>i \<Rightarrow> 'a tree234" where
 "tree\<^sub>i (T\<^sub>i t) = t" |
-"tree\<^sub>i (Up\<^sub>i l p r) = Node2 l p r"
+"tree\<^sub>i (Up\<^sub>i l a r) = Node2 l a r"
 
 fun ins :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>i" where
 "ins x Leaf = Up\<^sub>i Leaf x Leaf" |
@@ -97,8 +97,8 @@ definition insert :: "'a::cmp \<Rightarrow> 'a tree234 \<Rightarrow> 'a tree234"
 datatype 'a up\<^sub>d = T\<^sub>d "'a tree234" | Up\<^sub>d "'a tree234"
 
 fun tree\<^sub>d :: "'a up\<^sub>d \<Rightarrow> 'a tree234" where
-"tree\<^sub>d (T\<^sub>d x) = x" |
-"tree\<^sub>d (Up\<^sub>d x) = x"
+"tree\<^sub>d (T\<^sub>d t) = t" |
+"tree\<^sub>d (Up\<^sub>d t) = t"
 
 fun node21 :: "'a up\<^sub>d \<Rightarrow> 'a \<Rightarrow> 'a tree234 \<Rightarrow> 'a up\<^sub>d" where
 "node21 (T\<^sub>d l) a r = T\<^sub>d(Node2 l a r)" |
