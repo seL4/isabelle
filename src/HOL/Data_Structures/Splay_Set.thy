@@ -77,7 +77,7 @@ lemma splay_code: "splay (x::_::cmp) t = (case t of Leaf \<Rightarrow> Leaf |
 by(auto cong: case_tree_cong split: tree.split)
 
 definition is_root :: "'a \<Rightarrow> 'a tree \<Rightarrow> bool" where
-"is_root a t = (case t of Leaf \<Rightarrow> False | Node _ x _ \<Rightarrow> x = a)"
+"is_root x t = (case t of Leaf \<Rightarrow> False | Node l a r \<Rightarrow> x = a)"
 
 definition "isin t x = is_root x (splay x t)"
 
