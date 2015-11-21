@@ -686,7 +686,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     val (states, other) =
       results.iterator.map(_._2).filterNot(Protocol.is_result(_)).toList
         .partition(Protocol.is_state(_))
-    if (options.bool("editor_output_state")) states ::: other else other
+    states ::: other
   }
 
 
