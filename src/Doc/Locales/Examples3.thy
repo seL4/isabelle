@@ -132,18 +132,16 @@ text \<open>The interpretations for a locale $n$ within the current
   outputs the following:
 \begin{small}
 \begin{alltt}
-  int! : partial_order "op \(\le\)"
+  int : partial_order "op \(\le\)"
 \end{alltt}
 \end{small}
   Of course, there is only one interpretation.
-  The interpretation qualifier on the left is decorated with an
-  exclamation point.  This means that it is mandatory.  Qualifiers
-  can either be \emph{mandatory} or \emph{optional}, designated by
-  ``!'' or ``?'' respectively.  Mandatory qualifiers must occur in a
-  name reference while optional ones need not.  Mandatory qualifiers
+  The interpretation qualifier on the left is mandatory.  Qualifiers
+  can either be \emph{mandatory} or \emph{optional}.  Optional qualifiers
+  are designated by ``?''.  Mandatory qualifiers must occur in
+  name references while optional ones need not.  Mandatory qualifiers
   prevent accidental hiding of names, while optional qualifiers can be
-  more convenient to use.  For \isakeyword{interpretation}, the
-  default is ``!''.
+  more convenient to use.  The default is mandatory.
 \<close>
 
 
@@ -178,10 +176,8 @@ text \<open>
   We have already seen locale instances as arguments to
   \isakeyword{interpretation} in Section~\ref{sec:interpretation}.
   As before, the qualifier serves to disambiguate names from
-  different instances of the same locale.  While in
-  \isakeyword{interpretation} qualifiers default to mandatory, in
-  import and in the \isakeyword{sublocale} command, they default to
-  optional.
+  different instances of the same locale, and unless designated with a
+  ``?'' it must occur in name references.
 
   Since the parameters~@{text le} and~@{text le'} are to be partial
   orders, our locale for order preserving maps will import the these
@@ -544,7 +540,7 @@ text \<open>
   & \textit{name} $|$ \textit{attribute} $|$
     \textit{name} \textit{attribute} \\
   \textit{qualifier} & ::=
-  & \textit{name} [``\textbf{?}'' $|$ ``\textbf{!}''] \\[2ex]
+  & \textit{name} [``\textbf{?}''] \\[2ex]
 
   \multicolumn{3}{l}{Context Elements} \\
 
