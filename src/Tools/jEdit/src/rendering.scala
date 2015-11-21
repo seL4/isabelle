@@ -694,53 +694,51 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def background(range: Text.Range): List[Text.Info[Color]] =
   {
-    if (snapshot.is_outdated && snapshot.is_loaded) List(Text.Info(range, outdated_color))
-    else
-      for {
-        Text.Info(r, result) <-
-          snapshot.cumulate[(List[Markup], Option[Color])](
-            range, (List(Markup.Empty), None), Rendering.background_elements,
-            command_states =>
-              {
-                case (((status, color), Text.Info(_, XML.Elem(markup, _))))
-                if status.nonEmpty && Protocol.proper_status_elements(markup.name) =>
-                  Some((markup :: status, color))
-                case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
-                  Some((Nil, Some(bad_color)))
-                case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
-                  Some((Nil, Some(intensify_color)))
-                case (_, Text.Info(_, XML.Elem(Markup.Markdown_Item(depth), _))) =>
-                  val color =
-                    depth match {
-                      case 1 => markdown_item_color1
-                      case 2 => markdown_item_color2
-                      case 3 => markdown_item_color3
-                      case _ => markdown_item_color4
-                    }
-                  Some((Nil, Some(color)))
-                case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
-                  command_states.collectFirst(
-                    { case st if st.results.defined(serial) => st.results.get(serial).get }) match
-                  {
-                    case Some(Protocol.Dialog_Result(res)) if res == result =>
-                      Some((Nil, Some(active_result_color)))
-                    case _ =>
-                      Some((Nil, Some(active_color)))
+    for {
+      Text.Info(r, result) <-
+        snapshot.cumulate[(List[Markup], Option[Color])](
+          range, (List(Markup.Empty), None), Rendering.background_elements,
+          command_states =>
+            {
+              case (((status, color), Text.Info(_, XML.Elem(markup, _))))
+              if status.nonEmpty && Protocol.proper_status_elements(markup.name) =>
+                Some((markup :: status, color))
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
+                Some((Nil, Some(bad_color)))
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
+                Some((Nil, Some(intensify_color)))
+              case (_, Text.Info(_, XML.Elem(Markup.Markdown_Item(depth), _))) =>
+                val color =
+                  depth match {
+                    case 1 => markdown_item_color1
+                    case 2 => markdown_item_color2
+                    case 3 => markdown_item_color3
+                    case _ => markdown_item_color4
                   }
-                case (_, Text.Info(_, elem)) =>
-                  if (Rendering.active_elements(elem.name)) Some((Nil, Some(active_color)))
-                  else None
-              })
-        color <-
-          (result match {
-            case (markups, opt_color) if markups.nonEmpty =>
-              val status = Protocol.Status.make(markups.iterator)
-              if (status.is_unprocessed) Some(unprocessed1_color)
-              else if (status.is_running) Some(running1_color)
-              else opt_color
-            case (_, opt_color) => opt_color
-          })
-      } yield Text.Info(r, color)
+                Some((Nil, Some(color)))
+              case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
+                command_states.collectFirst(
+                  { case st if st.results.defined(serial) => st.results.get(serial).get }) match
+                {
+                  case Some(Protocol.Dialog_Result(res)) if res == result =>
+                    Some((Nil, Some(active_result_color)))
+                  case _ =>
+                    Some((Nil, Some(active_color)))
+                }
+              case (_, Text.Info(_, elem)) =>
+                if (Rendering.active_elements(elem.name)) Some((Nil, Some(active_color)))
+                else None
+            })
+      color <-
+        (result match {
+          case (markups, opt_color) if markups.nonEmpty =>
+            val status = Protocol.Status.make(markups.iterator)
+            if (status.is_unprocessed) Some(unprocessed1_color)
+            else if (status.is_running) Some(running1_color)
+            else opt_color
+          case (_, opt_color) => opt_color
+        })
+    } yield Text.Info(r, color)
   }
 
 
