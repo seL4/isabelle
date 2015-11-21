@@ -215,7 +215,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       GUI_Thread.now {
         nodes_status = nodes_status2
         status.listData = nodes.topological_order.filter(nodes_status.isDefinedAt(_))
-        status.repaint
+        status.repaint()
       }
   }
 
