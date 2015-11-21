@@ -106,7 +106,6 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
   def invoke(): Unit = delay_refresh.invoke()
   def revoke(): Unit = delay_refresh.revoke()
-  def postpone(): Unit = { delay_refresh.postpone(PIDE.options.seconds("editor_input_delay")) }
 
   private val delay_refresh =
     GUI_Thread.delay_first(PIDE.options.seconds("editor_update_delay"), cancel _) {

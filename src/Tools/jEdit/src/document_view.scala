@@ -201,7 +201,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   private val main =
     Session.Consumer[Any](getClass.getName) {
-      case _: Session.Raw_Edits => overview.postpone()
+      case _: Session.Raw_Edits =>
+        overview.invoke()
 
       case changed: Session.Commands_Changed =>
         val buffer = model.buffer
