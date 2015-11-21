@@ -91,12 +91,14 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     if (output_state != b) {
       PIDE.options.bool("editor_output_state") = b
       PIDE.session.update_options(PIDE.options.value)
+      PIDE.editor.flush(hidden = true)
+      PIDE.editor.flush()
     }
   }
 
-  private val output_state_button = new CheckBox("Output state")
+  private val output_state_button = new CheckBox("Proof state")
   {
-    tooltip = "Implicit output of proof state"
+    tooltip = "Output of proof state (normally shown on State panel)"
     reactions += { case ButtonClicked(_) => output_state = selected }
     selected = output_state
   }

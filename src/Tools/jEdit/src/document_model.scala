@@ -113,7 +113,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     }
   }
 
-  def node_perspective(doc_blobs: Document.Blobs): (Boolean, Document.Node.Perspective_Text) =
+  def node_perspective(hidden: Boolean, doc_blobs: Document.Blobs): (Boolean, Document.Node.Perspective_Text) =
   {
     GUI_Thread.require {}
 
@@ -140,7 +140,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
       (reparse,
         Document.Node.Perspective(node_required,
-          Text.Perspective(document_view_ranges ::: load_ranges),
+          Text.Perspective(if (hidden) Nil else document_view_ranges ::: load_ranges),
           PIDE.editor.node_overlays(node_name)))
     }
     else (false, Document.Node.no_perspective_text)
@@ -232,21 +232,21 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     def is_pending(): Boolean = synchronized { pending_clear || pending.nonEmpty }
     def snapshot(): List[Text.Edit] = synchronized { pending.toList }
 
-    def flushed_edits(doc_blobs: Document.Blobs): List[Document.Edit_Text] = synchronized
-    {
-      GUI_Thread.require {}
+    def flushed_edits(hidden: Boolean, doc_blobs: Document.Blobs): List[Document.Edit_Text] =
+      synchronized {
+        GUI_Thread.require {}
 
-      val clear = pending_clear
-      val edits = snapshot()
-      val (reparse, perspective) = node_perspective(doc_blobs)
-      if (clear || reparse || edits.nonEmpty || last_perspective != perspective) {
-        pending_clear = false
-        pending.clear
-        last_perspective = perspective
-        node_edits(clear, edits, perspective)
+        val clear = pending_clear
+        val edits = snapshot()
+        val (reparse, perspective) = node_perspective(hidden, doc_blobs)
+        if (clear || reparse || edits.nonEmpty || last_perspective != perspective) {
+          pending_clear = false
+          pending.clear
+          last_perspective = perspective
+          node_edits(clear, edits, perspective)
+        }
+        else Nil
       }
-      else Nil
-    }
 
     def edit(clear: Boolean, e: Text.Edit): Unit = synchronized
     {
@@ -272,8 +272,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   def snapshot(): Document.Snapshot =
     session.snapshot(node_name, pending_edits.snapshot())
 
-  def flushed_edits(doc_blobs: Document.Blobs): List[Document.Edit_Text] =
-    pending_edits.flushed_edits(doc_blobs)
+  def flushed_edits(hidden: Boolean, doc_blobs: Document.Blobs): List[Document.Edit_Text] =
+    pending_edits.flushed_edits(hidden, doc_blobs)
 
 
   /* buffer listener */

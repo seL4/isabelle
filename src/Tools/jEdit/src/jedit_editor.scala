@@ -28,7 +28,7 @@ class JEdit_Editor extends Editor[View]
   def remove_node(name: Document.Node.Name): Unit =
     GUI_Thread.require { removed_nodes += name }
 
-  override def flush()
+  override def flush(hidden: Boolean = false)
   {
     GUI_Thread.require {}
 
@@ -40,7 +40,7 @@ class JEdit_Editor extends Editor[View]
       (removed -- models.iterator.map(_.node_name)).toList.map(
         name => (name, Document.Node.no_perspective_text))
 
-    val edits = models.flatMap(_.flushed_edits(doc_blobs)) ::: removed_perspective
+    val edits = models.flatMap(_.flushed_edits(hidden, doc_blobs)) ::: removed_perspective
     session.update(doc_blobs, edits)
   }
 
