@@ -153,7 +153,7 @@ object Rendering
 
   private val highlight_elements =
     Markup.Elements(Markup.EXPRESSION, Markup.CITATION, Markup.LANGUAGE, Markup.ML_TYPING,
-      Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
+      Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL, Markup.SORTING,
       Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
       Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_BREAKPOINT,
       Markup.MARKDOWN_PARAGRAPH, Markup.Markdown_List.name)
@@ -184,8 +184,8 @@ object Rendering
 
   private val tooltip_elements =
     Markup.Elements(Markup.LANGUAGE, Markup.TIMING, Markup.ENTITY, Markup.SORTING,
-      Markup.TYPING, Markup.ML_TYPING, Markup.ML_BREAKPOINT, Markup.PATH, Markup.URL,
-      Markup.MARKDOWN_PARAGRAPH, Markup.Markdown_List.name) ++
+      Markup.TYPING, Markup.ML_TYPING, Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC,
+      Markup.URL, Markup.MARKDOWN_PARAGRAPH, Markup.Markdown_List.name) ++
     Markup.Elements(tooltip_descriptions.keySet)
 
   private val gutter_elements =
@@ -547,6 +547,10 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             val text =
               if (name == file) "file " + quote(file)
               else "path " + quote(name) + "\nfile " + quote(file)
+            Some(add(prev, r, (true, XML.Text(text))))
+
+          case (prev, Text.Info(r, XML.Elem(Markup.Doc(name), _))) =>
+            val text = "doc " + quote(name)
             Some(add(prev, r, (true, XML.Text(text))))
 
           case (prev, Text.Info(r, XML.Elem(Markup.Url(name), _))) =>
