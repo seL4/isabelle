@@ -83,14 +83,33 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* controls */
 
-  private val auto_update = new CheckBox("Auto update") {
+  /* output state */
+
+  private def output_state: Boolean = PIDE.options.bool("editor_output_state")
+  private def output_state_=(b: Boolean)
+  {
+    if (output_state != b) {
+      PIDE.options.bool("editor_output_state") = b
+      PIDE.options_changed()
+      PIDE.editor.flush()
+    }
+  }
+
+  private val output_state_button = new CheckBox("Output state")
+  {
+    tooltip = "Implicit output of proof state"
+    reactions += { case ButtonClicked(_) => output_state = selected }
+    selected = output_state
+  }
+
+  private val auto_update_button = new CheckBox("Auto update") {
     tooltip = "Indicate automatic update following cursor movement"
     reactions += {
       case ButtonClicked(_) => do_update = this.selected; handle_update(do_update, None) }
     selected = do_update
   }
 
-  private val update = new Button("Update") {
+  private val update_button = new Button("Update") {
     tooltip = "Update display according to the command at cursor position"
     reactions += { case ButtonClicked(_) => handle_update(true, None) }
   }
@@ -98,8 +117,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val zoom = new Font_Info.Zoom_Box { def changed = handle_resize() }
 
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update, update,
-      pretty_text_area.search_label, pretty_text_area.search_field, zoom)
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(output_state_button, auto_update_button,
+      update_button, pretty_text_area.search_label, pretty_text_area.search_field, zoom)
   add(controls.peer, BorderLayout.NORTH)
 
 
@@ -108,7 +127,10 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
-        GUI_Thread.later { handle_resize() }
+        GUI_Thread.later {
+          output_state_button.selected = output_state
+          handle_update(do_update, None)
+        }
 
       case changed: Session.Commands_Changed =>
         val restriction = if (changed.assignment) None else Some(changed.commands)
