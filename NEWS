@@ -52,14 +52,13 @@ application uniformly on all platforms: Linux, Windows, Mac OS X.
 asynchronously, leading to much better editor reactivity. Moreover, the
 full document node content is taken into account.
 
-* The State panel manages explicit proof state output, with jEdit action
-"isabelle.update-state" (shortcut S+ENTER) to trigger update according
-to cursor position.
+* The State panel manages explicit proof state output. The jEdit action
+"isabelle.update-state" (shortcut S+ENTER) triggers manual update
+according to cursor position.
 
-* The Output panel no longer shows proof state output by default. This
-reduces resource requirements of prover time and GUI space.
-INCOMPATIBILITY, use the State panel instead or enable option
-"editor_output_state".
+* The Output panel no longer shows proof state output by default, to
+avoid GUI overcrowding. INCOMPATIBILITY, use the State panel instead or
+enable option "editor_output_state".
 
 * Action "isabelle-emph" (with keyboard shortcut C+e LEFT) controls
 emphasized text style; the effect is visible in document output, not in
