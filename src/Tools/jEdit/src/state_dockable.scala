@@ -57,7 +57,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* update */
 
-  private var do_update = true
+  private var do_update = false
 
   private def maybe_update(): Unit = GUI_Thread.require { if (do_update) update() }
 
