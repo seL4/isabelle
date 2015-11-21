@@ -187,8 +187,7 @@ object Isabelle
     GUI_Thread.require {
       if (continuous_checking != b) {
         PIDE.options.bool(CONTINUOUS_CHECKING) = b
-        PIDE.options_changed()
-        PIDE.editor.flush()
+        PIDE.session.update_options(PIDE.options.value)
       }
     }
 

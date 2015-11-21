@@ -90,8 +90,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     if (output_state != b) {
       PIDE.options.bool("editor_output_state") = b
-      PIDE.options_changed()
-      PIDE.editor.flush()
+      PIDE.session.update_options(PIDE.options.value)
     }
   }
 
