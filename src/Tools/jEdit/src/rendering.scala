@@ -243,7 +243,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val legacy_color = color_value("legacy_color")
   val error_color = color_value("error_color")
   val writeln_message_color = color_value("writeln_message_color")
-  val state_message_color = color_value("state_message_color")
   val information_message_color = color_value("information_message_color")
   val tracing_message_color = color_value("tracing_message_color")
   val warning_message_color = color_value("warning_message_color")
@@ -656,7 +655,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private lazy val message_colors = Map(
     Rendering.writeln_pri -> writeln_message_color,
-    Rendering.state_pri -> state_message_color,
     Rendering.information_pri -> information_message_color,
     Rendering.tracing_pri -> tracing_message_color,
     Rendering.warning_pri -> warning_message_color,
@@ -672,14 +670,15 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 
-    val is_separator =
-      pri > 0 &&
-      snapshot.cumulate[Boolean](range, false, Rendering.separator_elements, _ =>
-        {
-          case _ => Some(true)
-        }).exists(_.info)
-
-    message_colors.get(pri).map((_, is_separator))
+    message_colors.get(pri).map(message_color =>
+      {
+        val is_separator =
+          snapshot.cumulate[Boolean](range, false, Rendering.separator_elements, _ =>
+            {
+              case _ => Some(true)
+            }).exists(_.info)
+        (message_color, is_separator)
+      })
   }
 
   def output_messages(results: Command.Results): List[XML.Tree] =
