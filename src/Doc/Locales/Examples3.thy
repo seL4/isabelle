@@ -631,14 +631,15 @@ text \<open>
 \end{table}
 \<close>
 
-text \<open>\textbf{Revision History.}  For the present third revision of
-  the tutorial, much of the explanatory text
-  was rewritten.  Inheritance of interpretation equations is
-  available with the forthcoming release of Isabelle, which at the
-  time of editing these notes is expected for the end of 2009.
+text \<open>\textbf{Revision History.}  The present fourth revision of the
+  tutorial accommodates minor updates to the syntax of the locale commands
+  and the handling of notation under morphisms introduced with Isabelle 2016.
+  For the third revision of the tutorial, which corresponds to the published
+  version, much of the explanatory text was rewritten.  Inheritance of
+  interpretation equations was made available with Isabelle 2009-1.
   The second revision accommodates changes introduced by the locales
   reimplementation for Isabelle 2009.  Most notably locale expressions
-  have been generalised from renaming to instantiation.\<close>
+  were generalised from renaming to instantiation.\<close>
 
 text \<open>\textbf{Acknowledgements.}  Alexander Krauss, Tobias Nipkow,
   Randy Pollack, Andreas Schropp, Christian Sternagel and Makarius Wenzel
