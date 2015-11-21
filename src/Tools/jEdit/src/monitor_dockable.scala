@@ -11,7 +11,8 @@ import isabelle._
 
 import java.awt.BorderLayout
 
-import scala.swing.{TextArea, ScrollPane, Component, ComboBox, Button}
+import scala.collection.immutable.Queue
+import scala.swing.{TextArea, TextField, ScrollPane, Component, ComboBox, Button}
 import scala.swing.event.{SelectionChanged, ButtonClicked}
 
 import org.jfree.chart.ChartPanel
@@ -22,10 +23,29 @@ import org.gjt.sp.jedit.View
 
 class Monitor_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  private val rev_stats = Synchronized[List[Properties.T]](Nil)
-
-
   /* chart data -- owned by GUI thread */
+
+  private var statistics = Queue.empty[Properties.T]
+  private var statistics_length = 0
+
+  private def add_statistics(stats: Properties.T)
+  {
+    statistics = statistics.enqueue(stats)
+    statistics_length += 1
+    limit_data.text match {
+      case Properties.Value.Int(limit) =>
+        while (statistics_length > limit) {
+          statistics = statistics.dequeue._2
+          statistics_length -= 1
+        }
+      case _ =>
+    }
+  }
+  private def clear_statistics()
+  {
+    statistics = Queue.empty
+    statistics_length = 0
+  }
 
   private var data_name = ML_Statistics.standard_fields(0)._1
   private val chart = ML_Statistics.empty.chart(null, Nil)
@@ -34,8 +54,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   private def update_chart: Unit =
     ML_Statistics.standard_fields.find(_._1 == data_name) match {
       case None =>
-      case Some((_, fields)) =>
-        ML_Statistics("", rev_stats.value.reverse).update_data(data, fields)
+      case Some((_, fields)) => ML_Statistics("", statistics.toList).update_data(data, fields)
     }
 
   private val delay_update =
@@ -58,17 +77,22 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     }
   }
 
-  val reset_data = new Button("Reset") {
+  private val reset_data = new Button("Reset") {
     tooltip = "Reset accumulated data"
     reactions += {
-      case ButtonClicked(_) =>
-        rev_stats.change(_ => Nil)
+      case ButtonClicked(_) => clear_statistics()
         update_chart
     }
   }
 
+  private val limit_data = new TextField("200", 5) {
+    tooltip = "Limit for accumulated data"
+    verifier = (s: String) =>
+      s match { case Properties.Value.Int(x) => x > 0 case _ => false }
+  }
+
   private val controls =
-    new Wrap_Panel(Wrap_Panel.Alignment.Right)(ml_stats, select_data, reset_data)
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(ml_stats, select_data, reset_data, limit_data)
 
 
   /* layout */
@@ -82,7 +106,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case stats: Session.Statistics =>
-        rev_stats.change(stats.props :: _)
+        add_statistics(stats.props)
         delay_update.invoke()
 
       case _: Session.Global_Options =>
