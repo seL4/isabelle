@@ -130,7 +130,7 @@ object Completion_Popup
               case Some(range) if !range.is_singularity =>
                 val range0 =
                   Completion.Result.merge(Completion.History.empty,
-                    syntax_completion(Completion.History.empty, false, Some(rendering)),
+                    syntax_completion(Completion.History.empty, true, Some(rendering)),
                     Completion.Result.merge(Completion.History.empty,
                       path_completion(rendering),
                       Bibtex_JEdit.completion(Completion.History.empty, text_area, rendering)))
