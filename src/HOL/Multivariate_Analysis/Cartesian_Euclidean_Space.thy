@@ -151,7 +151,7 @@ lemma vec_neg: "vec(- x) = - vec x " by vector
 
 lemma vec_setsum:
   assumes "finite S"
-  shows "vec(setsum f S) = setsum (vec o f) S"
+  shows "vec(setsum f S) = setsum (vec \<circ> f) S"
   using assms
 proof induct
   case empty
@@ -512,7 +512,7 @@ lemma matrix_of_matrix_vector_mul: "matrix(\<lambda>x. A *v (x :: real ^ 'n)) = 
 lemma matrix_compose:
   assumes lf: "linear (f::real^'n \<Rightarrow> real^'m)"
     and lg: "linear (g::real^'m \<Rightarrow> real^_)"
-  shows "matrix (g o f) = matrix g ** matrix f"
+  shows "matrix (g \<circ> f) = matrix g ** matrix f"
   using lf lg linear_compose[OF lf lg] matrix_works[OF linear_compose[OF lf lg]]
   by (simp add: matrix_eq matrix_works matrix_vector_mul_assoc[symmetric] o_def)
 
@@ -581,7 +581,7 @@ proof -
   { assume A: "\<forall>x y. A *v x = A *v y \<longrightarrow> x = y"
     hence i: "inj (op *v A)" unfolding inj_on_def by auto
     from linear_injective_left_inverse[OF matrix_vector_mul_linear i]
-    obtain g where g: "linear g" "g o op *v A = id" by blast
+    obtain g where g: "linear g" "g \<circ> op *v A = id" by blast
     have "matrix g ** A = mat 1"
       unfolding matrix_eq matrix_vector_mul_lid matrix_vector_mul_assoc[symmetric] matrix_works[OF g(1)]
       using g(2) by (simp add: fun_eq_iff)
@@ -607,7 +607,7 @@ proof -
   moreover
   { assume sf: "surj (op *v A)"
     from linear_surjective_right_inverse[OF matrix_vector_mul_linear sf]
-    obtain g:: "real ^'m \<Rightarrow> real ^'n" where g: "linear g" "op *v A o g = id"
+    obtain g:: "real ^'m \<Rightarrow> real ^'n" where g: "linear g" "op *v A \<circ> g = id"
       by blast
 
     have "A ** (matrix g) = mat 1"
@@ -1066,8 +1066,8 @@ qed
 
 lemma affinity_inverses:
   assumes m0: "m \<noteq> (0::'a::field)"
-  shows "(\<lambda>x. m *s x + c) o (\<lambda>x. inverse(m) *s x + (-(inverse(m) *s c))) = id"
-  "(\<lambda>x. inverse(m) *s x + (-(inverse(m) *s c))) o (\<lambda>x. m *s x + c) = id"
+  shows "(\<lambda>x. m *s x + c) \<circ> (\<lambda>x. inverse(m) *s x + (-(inverse(m) *s c))) = id"
+  "(\<lambda>x. inverse(m) *s x + (-(inverse(m) *s c))) \<circ> (\<lambda>x. m *s x + c) = id"
   using m0
   apply (auto simp add: fun_eq_iff vector_add_ldistrib diff_conv_add_uminus simp del: add_uminus_conv_diff)
   apply (simp_all add: vector_smult_lneg[symmetric] vector_smult_assoc vector_sneg_minus1 [symmetric])

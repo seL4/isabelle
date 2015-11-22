@@ -2388,14 +2388,14 @@ lemma has_integral_linear:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::real_normed_vector"
   assumes "(f has_integral y) s"
     and "bounded_linear h"
-  shows "((h o f) has_integral ((h y))) s"
+  shows "((h \<circ> f) has_integral ((h y))) s"
 proof -
   interpret bounded_linear h
     using assms(2) .
   from pos_bounded obtain B where B: "0 < B" "\<And>x. norm (h x) \<le> norm x * B"
     by blast
   have lem: "\<And>(f :: 'n \<Rightarrow> 'a) y a b.
-    (f has_integral y) (cbox a b) \<Longrightarrow> ((h o f) has_integral h y) (cbox a b)"
+    (f has_integral y) (cbox a b) \<Longrightarrow> ((h \<circ> f) has_integral h y) (cbox a b)"
     unfolding has_integral
   proof (clarify, goal_cases)
     case prems: (1 f y a b e)
@@ -3580,7 +3580,7 @@ lemma support_clauses:
   "\<And>f g s. support opp f (s \<union> t) = (support opp f s) \<union> (support opp f t)"
   "\<And>f g s. support opp f (s \<inter> t) = (support opp f s) \<inter> (support opp f t)"
   "\<And>f g s. support opp f (s - t) = (support opp f s) - (support opp f t)"
-  "\<And>f g s. support opp g (f ` s) = f ` (support opp (g o f) s)"
+  "\<And>f g s. support opp g (f ` s) = f ` (support opp (g \<circ> f) s)"
   unfolding support_def by auto
 
 lemma finite_support[intro]: "finite s \<Longrightarrow> finite (support opp f s)"
@@ -4636,7 +4636,7 @@ lemma setsum_nonzero_image_lemma:
   assumes "finite s"
     and "g a = 0"
     and "\<forall>x\<in>s. \<forall>y\<in>s. f x = f y \<and> x \<noteq> y \<longrightarrow> g (f x) = 0"
-  shows "setsum g {f x |x. x \<in> s \<and> f x \<noteq> a} = setsum (g o f) s"
+  shows "setsum g {f x |x. x \<in> s \<and> f x \<noteq> a} = setsum (g \<circ> f) s"
   apply (subst setsum_iterate)
   using assms monoidal_monoid
   unfolding setsum_iterate[OF assms(1)]
@@ -9601,7 +9601,7 @@ proof -
     apply (auto simp add: image_iff Bex_def)
     apply presburger
     done
-  have th: "op ^ x o op + m = (\<lambda>i. x^m * x^i)"
+  have th: "op ^ x \<circ> op + m = (\<lambda>i. x^m * x^i)"
     by (rule ext) (simp add: power_add power_mult)
   from setsum.reindex[OF i, of "op ^ x", unfolded f th setsum_right_distrib[symmetric]]
   have "?lhs = x^m * ((1 - x) * setsum (op ^ x) {0..n - m})"
@@ -10281,7 +10281,7 @@ lemma absolutely_integrable_onD[dest]:
 
 (*lemma absolutely_integrable_on_trans[simp]:
   fixes f::"'n::euclidean_space \<Rightarrow> real"
-  shows "(vec1 o f) absolutely_integrable_on s \<longleftrightarrow> f absolutely_integrable_on s"
+  shows "(vec1 \<circ> f) absolutely_integrable_on s \<longleftrightarrow> f absolutely_integrable_on s"
   unfolding absolutely_integrable_on_def o_def by auto*)
 
 lemma integral_norm_bound_integral:
@@ -11992,7 +11992,7 @@ lemma continuous_on_imp_integrable_on_Pair1:
   assumes con: "continuous_on (cbox (a,c) (b,d)) f" and x: "x \<in> cbox a b"
   shows "(\<lambda>y. f (x, y)) integrable_on (cbox c d)"
 proof -
-  have "f o (\<lambda>y. (x, y)) integrable_on (cbox c d)"
+  have "f \<circ> (\<lambda>y. (x, y)) integrable_on (cbox c d)"
     apply (rule integrable_continuous)
     apply (rule continuous_on_compose [OF _ continuous_on_subset [OF con]])
     using x
@@ -12276,7 +12276,7 @@ lemma swap_continuous:
   assumes "continuous_on (cbox (a,c) (b,d)) (\<lambda>(x,y). f x y)"
     shows "continuous_on (cbox (c,a) (d,b)) (\<lambda>(x, y). f y x)"
 proof -
-  have "(\<lambda>(x, y). f y x) = (\<lambda>(x, y). f x y) o prod.swap"
+  have "(\<lambda>(x, y). f y x) = (\<lambda>(x, y). f x y) \<circ> prod.swap"
     by auto
   then show ?thesis
     apply (rule ssubst)
