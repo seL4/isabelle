@@ -155,8 +155,8 @@ parameter scope for of each clause.
 statements: result is abstracted over unknowns.
 
 * Local goals ('have', 'show', 'hence', 'thus') allow structured
-statements like fixes/assumes/shows in theorem specifications, but the
-notation is postfix with keywords 'if' (or 'when') and 'for'. For
+rule statements like fixes/assumes/shows in theorem specifications, but
+the notation is postfix with keywords 'if' (or 'when') and 'for'. For
 example:
 
   have result: "C x y"
@@ -178,8 +178,8 @@ corresponds to a raw proof block like this:
 The keyword 'when' may be used instead of 'if', to indicate 'presume'
 instead of 'assume' above.
 
-* Assumptions ('assume', 'presume') allow structured statements using
-'if' and 'for', similar to 'have' etc. above. For example:
+* Assumptions ('assume', 'presume') allow structured rule statements
+using 'if' and 'for', similar to 'have' etc. above. For example:
 
   assume result: "C x y"
     if "A x" and "B y"
