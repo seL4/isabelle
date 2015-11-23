@@ -215,6 +215,10 @@ object GUI
 
   /* font operations */
 
+  def copy_font(font: Font): Font =
+    if (font == null) null
+    else new Font(font.getFamily, font.getStyle, font.getSize)
+
   def line_metrics(font: Font): LineMetrics =
     font.getLineMetrics("", new FontRenderContext(null, false, false))
 

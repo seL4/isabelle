@@ -45,7 +45,7 @@ object Session_Build
       columns = 65
       rows = 24
     }
-    text.font = (new Label).font
+    text.font = GUI.copy_font((new Label).font)
 
     private val scroll_text = new ScrollPane(text)
 
