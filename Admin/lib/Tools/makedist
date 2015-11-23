@@ -207,8 +207,9 @@ echo "$DISTBASE/$DISTNAME.tar.gz" > ../ISABELLE_DIST
 echo "$IDENT" >../ISABELLE_IDENT
 
 chown -R "$LOGNAME" "$DISTNAME"
-chmod -R u+w "$DISTNAME"
 chmod -R g=o "$DISTNAME"
+chmod -R u+w "$DISTNAME"
+find "$DISTNAME" -type f "(" -name '*.scala' -o -name '*.ML' -o -name '*.thy' ")" -print | xargs chmod -f u-w
 
 echo "$DISTBASE/$DISTNAME.tar.gz"
 tar -c -z -f "$DISTNAME.tar.gz" "$DISTNAME"
