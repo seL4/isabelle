@@ -657,7 +657,7 @@ lemma round_diff_minimal:
 proof (cases "of_int m \<ge> z")
   case True
   hence "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int (ceiling z) - z\<bar>"
-    unfolding round_altdef by (simp add: ceiling_altdef frac_def) linarith?
+    unfolding round_altdef by (simp add: field_simps ceiling_altdef frac_def) linarith?
   also have "of_int \<lceil>z\<rceil> - z \<ge> 0" by linarith
   with True have "\<bar>of_int (ceiling z) - z\<bar> \<le> \<bar>z - of_int m\<bar>"
     by (simp add: ceiling_le_iff)
@@ -665,7 +665,7 @@ proof (cases "of_int m \<ge> z")
 next
   case False
   hence "\<bar>z - of_int (round z)\<bar> \<le> \<bar>of_int (floor z) - z\<bar>"
-    unfolding round_altdef by (simp add: ceiling_altdef frac_def) linarith?
+    unfolding round_altdef by (simp add: field_simps ceiling_altdef frac_def) linarith?
   also have "z - of_int \<lfloor>z\<rfloor> \<ge> 0" by linarith
   with False have "\<bar>of_int (floor z) - z\<bar> \<le> \<bar>z - of_int m\<bar>"
     by (simp add: le_floor_iff)

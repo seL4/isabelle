@@ -713,7 +713,7 @@ next
     using K less_trans zero_less_norm_iff by blast
   then obtain r::real where r: "norm x < norm r" "norm r < K" "r>0"
     using K False
-    by (auto simp: abs_less_iff add_pos_pos intro: that [of "(norm x + K) / 2"])
+    by (auto simp: field_simps abs_less_iff add_pos_pos intro: that [of "(norm x + K) / 2"])
   have "(\<lambda>n. of_nat n * (x / of_real r) ^ n) ----> 0"
     using r by (simp add: norm_divide powser_times_n_limit_0 [of "x / of_real r"])
   then obtain N where N: "\<And>n. n\<ge>N \<Longrightarrow> real_of_nat n * norm x ^ n < r ^ n"
@@ -725,7 +725,7 @@ next
     apply (rule summable_comparison_test' [of "\<lambda>n. norm(c n * (of_real r) ^ n)" N])
     apply (rule powser_insidea [OF sm [of "of_real ((r+K)/2)"]])
     using N r norm_of_real [of "r+K", where 'a = 'a]
-    apply (auto simp add: norm_divide norm_mult norm_power )
+    apply (auto simp add: norm_divide norm_mult norm_power field_simps)
     using less_eq_real_def by fastforce
   then have "summable (\<lambda>n. (of_nat (Suc n) * c(Suc n)) * x ^ Suc n)"
     using summable_iff_shift [of "\<lambda>n. of_nat n * c n * x ^ n" 1]
@@ -754,7 +754,7 @@ lemma termdiffs_strong:
 proof -
   have K2: "norm ((of_real (norm K) + of_real (norm x)) / 2 :: 'a) < norm K"
     using K
-    apply (auto simp: norm_divide)
+    apply (auto simp: norm_divide field_simps)
     apply (rule le_less_trans [of _ "of_real (norm K) + of_real (norm x)"])
     apply (auto simp: mult_2_right norm_triangle_mono)
     done
@@ -768,7 +768,7 @@ proof -
     by (blast intro: sm termdiff_converges powser_inside)
   ultimately show ?thesis
     apply (rule termdiffs [where K = "of_real (norm x + norm K) / 2"])
-    apply (auto simp: algebra_simps)
+    apply (auto simp: field_simps)
     using K
     apply (simp_all add: of_real_add [symmetric] del: of_real_add)
     done
@@ -990,11 +990,11 @@ proof -
       show "summable (\<lambda> n. \<bar>f n * real (Suc n) * R'^n\<bar>)"
       proof -
         have "(R' + R) / 2 < R" and "0 < (R' + R) / 2"
-          using \<open>0 < R'\<close> \<open>0 < R\<close> \<open>R' < R\<close> by auto
+          using \<open>0 < R'\<close> \<open>0 < R\<close> \<open>R' < R\<close> by (auto simp: field_simps)
         hence in_Rball: "(R' + R) / 2 \<in> {-R <..< R}"
           using \<open>R' < R\<close> by auto
         have "norm R' < norm ((R' + R) / 2)"
-          using \<open>0 < R'\<close> \<open>0 < R\<close> \<open>R' < R\<close> by auto
+          using \<open>0 < R'\<close> \<open>0 < R\<close> \<open>R' < R\<close> by (auto simp: field_simps)
         from powser_insidea[OF converges[OF in_Rball] this] show ?thesis
           by auto
       qed
@@ -1072,7 +1072,7 @@ proof -
     qed
   } note for_subinterval = this
   let ?R = "(R + \<bar>x0\<bar>) / 2"
-  have "\<bar>x0\<bar> < ?R" using assms by auto
+  have "\<bar>x0\<bar> < ?R" using assms by (auto simp: field_simps)
   hence "- ?R < x0"
   proof (cases "x0 < 0")
     case True
@@ -1085,7 +1085,7 @@ proof -
     finally show ?thesis .
   qed
   hence "0 < ?R" "?R < R" "- ?R < x0" and "x0 < ?R"
-    using assms by auto
+    using assms by (auto simp: field_simps)
   from for_subinterval[OF this]
   show ?thesis .
 qed
@@ -2342,11 +2342,11 @@ lemma
 lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
   by (induct n) (simp_all add: ac_simps powr_add of_nat_Suc)
 
-lemma powr_realpow_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
+lemma powr_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
   by (metis of_nat_numeral powr_realpow)
 
 lemma powr2_sqrt[simp]: "0 < x \<Longrightarrow> sqrt x powr 2 = x"
-by(simp add: powr_realpow_numeral)
+by(simp add: powr_numeral)
 
 lemma powr_realpow2: "0 <= x ==> 0 < n ==> x^n = (if (x = 0) then 0 else x powr (real n))"
   apply (case_tac "x = 0", simp, simp)
@@ -2377,10 +2377,6 @@ lemma powr_one:
   fixes x::real shows "0 \<le> x \<Longrightarrow> x powr 1 = x"
   using powr_realpow [of x 1]
   by simp
-
-lemma powr_numeral:
-  fixes x::real shows "0 < x \<Longrightarrow> x powr numeral n = x ^ numeral n"
-  by (fact powr_realpow_numeral)
 
 lemma powr_neg_one:
   fixes x::real shows "0 < x \<Longrightarrow> x powr - 1 = 1 / x"

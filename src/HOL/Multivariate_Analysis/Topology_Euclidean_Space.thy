@@ -15,6 +15,20 @@ imports
   Norm_Arith
 begin
 
+lemma image_affinity_interval:
+  fixes c :: "'a::ordered_real_vector"
+  shows "((\<lambda>x. m *\<^sub>R x + c) ` {a..b}) = (if {a..b}={} then {}
+            else if 0 <= m then {m *\<^sub>R a + c .. m  *\<^sub>R b + c}
+            else {m *\<^sub>R b + c .. m *\<^sub>R a + c})"
+  apply (case_tac "m=0", force)
+  apply (auto simp: scaleR_left_mono)
+  apply (rule_tac x="inverse m *\<^sub>R (x-c)" in rev_image_eqI, auto simp: pos_le_divideR_eq le_diff_eq scaleR_left_mono_neg)
+  apply (metis diff_le_eq inverse_inverse_eq order.not_eq_order_implies_strict pos_le_divideR_eq positive_imp_inverse_positive)
+  apply (rule_tac x="inverse m *\<^sub>R (x-c)" in rev_image_eqI, auto simp: not_le neg_le_divideR_eq diff_le_eq)
+  using le_diff_eq scaleR_le_cancel_left_neg
+  apply fastforce
+  done
+
 lemma dist_0_norm:
   fixes x :: "'a::real_normed_vector"
   shows "dist 0 x = norm x"

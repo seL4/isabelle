@@ -36,7 +36,7 @@ proof cases
   assume "x = bot" then show ?thesis
     by (simp add: trivial_limit_at_left_bot)
 next
-  assume x: "x \<noteq> bot" 
+  assume x: "x \<noteq> bot"
   show ?thesis
     unfolding continuous_within
   proof (intro tendsto_at_left_sequentially[of bot])
@@ -54,7 +54,7 @@ lemma sup_continuous_iff_at_left:
   shows "sup_continuous f \<longleftrightarrow> (\<forall>x. continuous (at_left x) f) \<and> mono f"
   using sup_continuous_at_left[of f] continuous_at_left_imp_sup_continuous[of f]
     sup_continuous_mono[of f] by auto
-  
+
 lemma continuous_at_right_imp_inf_continuous:
   fixes f :: "'a \<Rightarrow> 'a::{complete_linorder, linorder_topology}"
   assumes "mono f" "\<And>x. continuous (at_right x) f"
@@ -73,7 +73,7 @@ proof cases
   assume "x = top" then show ?thesis
     by (simp add: trivial_limit_at_right_top)
 next
-  assume x: "x \<noteq> top" 
+  assume x: "x \<noteq> top"
   show ?thesis
     unfolding continuous_within
   proof (intro tendsto_at_right_sequentially[of _ top])
@@ -593,7 +593,7 @@ lemma abs_ereal_pos[simp]: "0 \<le> \<bar>x :: ereal\<bar>"
   by (cases x) auto
 
 lemma ereal_abs_leI:
-  fixes x y :: ereal 
+  fixes x y :: ereal
   shows "\<lbrakk> x \<le> y; -x \<le> y \<rbrakk> \<Longrightarrow> \<bar>x\<bar> \<le> y"
 by(cases x y rule: ereal2_cases)(simp_all)
 
@@ -881,7 +881,7 @@ qed
 
 end
 
-lemma [simp]: 
+lemma [simp]:
   shows ereal_1_times: "ereal 1 * x = x"
   and times_ereal_1: "x * ereal 1 = x"
 by(simp_all add: one_ereal_def[symmetric])
@@ -1034,7 +1034,7 @@ lemma ereal_left_mult_cong:
   shows  "c = d \<Longrightarrow> (d \<noteq> 0 \<Longrightarrow> a = b) \<Longrightarrow> a * c = b * d"
   by (cases "c = 0") simp_all
 
-lemma ereal_right_mult_cong: 
+lemma ereal_right_mult_cong:
   fixes a b c :: ereal
   shows "c = d \<Longrightarrow> (d \<noteq> 0 \<Longrightarrow> a = b) \<Longrightarrow> c * a = d * b"
   by (cases "c = 0") simp_all
@@ -1402,7 +1402,7 @@ lemma ereal_minus_eq_PInfty_iff:
   by (cases x y rule: ereal2_cases) simp_all
 
 lemma ereal_diff_add_eq_diff_diff_swap:
-  fixes x y z :: ereal 
+  fixes x y z :: ereal
   shows "\<bar>y\<bar> \<noteq> \<infinity> \<Longrightarrow> x - (y + z) = x - y - z"
 by(cases x y z rule: ereal3_cases) simp_all
 
@@ -1414,8 +1414,8 @@ by(cases x y z rule: ereal3_cases) simp_all
 lemma ereal_add_uminus_conv_diff: fixes x y z :: ereal shows "- x + y = y - x"
 by(cases x y rule: ereal2_cases) simp_all
 
-lemma ereal_minus_diff_eq: 
-  fixes x y :: ereal 
+lemma ereal_minus_diff_eq:
+  fixes x y :: ereal
   shows "\<lbrakk> x = \<infinity> \<longrightarrow> y \<noteq> \<infinity>; x = -\<infinity> \<longrightarrow> y \<noteq> - \<infinity> \<rbrakk> \<Longrightarrow> - (x - y) = y - x"
 by(cases x y rule: ereal2_cases) simp_all
 
@@ -1745,13 +1745,9 @@ instance
 
 end
 
-lemma continuous_on_compose': 
-  "continuous_on s f \<Longrightarrow> continuous_on t g \<Longrightarrow> f`s \<subseteq> t \<Longrightarrow> continuous_on s (\<lambda>x. g (f x))"
-  using continuous_on_compose[of s f g] continuous_on_subset[of t g "f`s"] by auto
-
 lemma continuous_on_ereal[continuous_intros]:
   assumes f: "continuous_on s f" shows "continuous_on s (\<lambda>x. ereal (f x))"
-  by (rule continuous_on_compose'[OF f continuous_onI_mono[of ereal UNIV]]) auto
+  by (rule continuous_on_compose2 [OF continuous_onI_mono[of ereal UNIV] f]) auto
 
 lemma tendsto_ereal[tendsto_intros, simp, intro]: "(f ---> x) F \<Longrightarrow> ((\<lambda>x. ereal (f x)) ---> ereal x) F"
   using isCont_tendsto_compose[of x ereal f F] continuous_on_ereal[of UNIV "\<lambda>x. x"]
@@ -1807,7 +1803,7 @@ proof -
       by (auto simp: ereal_uminus_reorder ereal_less_uminus_reorder[of 0])
     then have "((\<lambda>x. (- c) * f x) ---> (- c) * x) F"
       by (rule *)
-    from tendsto_uminus_ereal[OF this] show ?thesis 
+    from tendsto_uminus_ereal[OF this] show ?thesis
       by simp
   qed (auto intro!: *)
 qed
@@ -2119,7 +2115,7 @@ next
              intro!: ereal_mult_left_mono c)
 qed
 
-lemma countable_approach: 
+lemma countable_approach:
   fixes x :: ereal
   assumes "x \<noteq> -\<infinity>"
   shows "\<exists>f. incseq f \<and> (\<forall>i::nat. f i < x) \<and> (f ----> x)"
@@ -2129,7 +2125,7 @@ proof (cases x)
     by (intro tendsto_intros LIMSEQ_inverse_real_of_nat)
   ultimately show ?thesis
     by (intro exI[of _ "\<lambda>n. x - inverse (Suc n)"]) (auto simp: incseq_def)
-next 
+next
   case PInf with LIMSEQ_SUP[of "\<lambda>n::nat. ereal (real n)"] show ?thesis
     by (intro exI[of _ "\<lambda>n. ereal (real n)"]) (auto simp: incseq_def SUP_nat_Infty)
 qed (simp add: assms)
@@ -3275,7 +3271,7 @@ proof -
     next
       fix i j assume "i \<in> I" "j \<in> I"
       from directed[OF \<open>insert n N \<subseteq> A\<close> this] guess k ..
-      then show "\<exists>k\<in>I. f n i + (\<Sum>l\<in>N. f l j) \<le> f n k + (\<Sum>l\<in>N. f l k)" 
+      then show "\<exists>k\<in>I. f n i + (\<Sum>l\<in>N. f l j) \<le> f n k + (\<Sum>l\<in>N. f l k)"
         by (intro bexI[of _ k]) (auto intro!: ereal_add_mono setsum_mono)
     qed
     ultimately show ?case
@@ -3475,7 +3471,7 @@ lemma limsup_le_liminf_real:
   shows "X ----> L"
 proof -
   from 1 2 have "limsup X \<le> liminf X" by auto
-  hence 3: "limsup X = liminf X"  
+  hence 3: "limsup X = liminf X"
     apply (subst eq_iff, rule conjI)
     by (rule Liminf_le_Limsup, auto)
   hence 4: "convergent (\<lambda>n. ereal (X n))"
@@ -3486,7 +3482,7 @@ proof -
   finally have "lim (\<lambda>n. ereal(X n)) = L" ..
   hence "(\<lambda>n. ereal (X n)) ----> L"
     apply (elim subst)
-    by (subst convergent_LIMSEQ_iff [symmetric], rule 4) 
+    by (subst convergent_LIMSEQ_iff [symmetric], rule 4)
   thus ?thesis by simp
 qed
 
@@ -3642,14 +3638,14 @@ lemma inverse_infty_ereal_tendsto_0: "inverse -- \<infinity> --> (0::ereal)"
 proof -
   have **: "((\<lambda>x. ereal (inverse x)) ---> ereal 0) at_infinity"
     by (intro tendsto_intros tendsto_inverse_0)
-  
+
   show ?thesis
     by (simp add: at_infty_ereal_eq_at_top tendsto_compose_filtermap[symmetric] comp_def)
        (auto simp: eventually_at_top_linorder exI[of _ 1] zero_ereal_def at_top_le_at_infinity
              intro!: filterlim_mono_eventually[OF **])
 qed
 
-lemma inverse_ereal_tendsto_pos: 
+lemma inverse_ereal_tendsto_pos:
   fixes x :: ereal assumes "0 < x"
   shows "inverse -- x --> inverse x"
 proof (cases x)

@@ -1484,13 +1484,16 @@ lemma continuous_on_id[continuous_intros]: "continuous_on s (\<lambda>x. x)"
 lemma continuous_on_const[continuous_intros]: "continuous_on s (\<lambda>x. c)"
   unfolding continuous_on_def by auto
 
+lemma continuous_on_subset: "continuous_on s f \<Longrightarrow> t \<subseteq> s \<Longrightarrow> continuous_on t f"
+  unfolding continuous_on_def by (metis subset_eq tendsto_within_subset)
+
 lemma continuous_on_compose[continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on (f ` s) g \<Longrightarrow> continuous_on s (g o f)"
   unfolding continuous_on_topological by simp metis
 
 lemma continuous_on_compose2:
-  "continuous_on t g \<Longrightarrow> continuous_on s f \<Longrightarrow> t = f ` s \<Longrightarrow> continuous_on s (\<lambda>x. g (f x))"
-  using continuous_on_compose[of s f g] by (simp add: comp_def)
+  "continuous_on t g \<Longrightarrow> continuous_on s f \<Longrightarrow> f ` s \<subseteq> t \<Longrightarrow> continuous_on s (\<lambda>x. g (f x))"
+  using continuous_on_compose[of s f g] continuous_on_subset by (force simp add: comp_def)
 
 lemma continuous_on_generate_topology:
   assumes *: "open = generate_topology X"
@@ -1600,9 +1603,6 @@ lemma continuous_at_imp_continuous_at_within: "isCont f x \<Longrightarrow> cont
 
 lemma continuous_on_eq_continuous_at: "open s \<Longrightarrow> continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. isCont f x)"
   by (simp add: continuous_on_def continuous_at at_within_open[of _ s])
-
-lemma continuous_on_subset: "continuous_on s f \<Longrightarrow> t \<subseteq> s \<Longrightarrow> continuous_on t f"
-  unfolding continuous_on_def by (metis subset_eq tendsto_within_subset)
 
 lemma continuous_at_imp_continuous_on: "\<forall>x\<in>s. isCont f x \<Longrightarrow> continuous_on s f"
   by (auto intro: continuous_at_imp_continuous_at_within simp: continuous_on_eq_continuous_within)

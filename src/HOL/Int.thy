@@ -1263,27 +1263,29 @@ lemmas mult_le_cancel_right_numeral [simp, no_atp] = mult_le_cancel_right [of _ 
 
 text \<open>Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="})\<close>
 
-lemmas le_divide_eq_numeral1 [simp] =
+named_theorems divide_const_simps "simplification rules to simplify comparisons involving constant divisors"
+
+lemmas le_divide_eq_numeral1 [simp,divide_const_simps] =
   pos_le_divide_eq [of "numeral w", OF zero_less_numeral]
   neg_le_divide_eq [of "- numeral w", OF neg_numeral_less_zero] for w
 
-lemmas divide_le_eq_numeral1 [simp] =
+lemmas divide_le_eq_numeral1 [simp,divide_const_simps] =
   pos_divide_le_eq [of "numeral w", OF zero_less_numeral]
   neg_divide_le_eq [of "- numeral w", OF neg_numeral_less_zero] for w
 
-lemmas less_divide_eq_numeral1 [simp] =
+lemmas less_divide_eq_numeral1 [simp,divide_const_simps] =
   pos_less_divide_eq [of "numeral w", OF zero_less_numeral]
   neg_less_divide_eq [of "- numeral w", OF neg_numeral_less_zero] for w
 
-lemmas divide_less_eq_numeral1 [simp] =
+lemmas divide_less_eq_numeral1 [simp,divide_const_simps] =
   pos_divide_less_eq [of "numeral w", OF zero_less_numeral]
   neg_divide_less_eq [of "- numeral w", OF neg_numeral_less_zero] for w
 
-lemmas eq_divide_eq_numeral1 [simp] =
+lemmas eq_divide_eq_numeral1 [simp,divide_const_simps] =
   eq_divide_eq [of _ _ "numeral w"]
   eq_divide_eq [of _ _ "- numeral w"] for w
 
-lemmas divide_eq_eq_numeral1 [simp] =
+lemmas divide_eq_eq_numeral1 [simp,divide_const_simps] =
   divide_eq_eq [of _ "numeral w"]
   divide_eq_eq [of _ "- numeral w"] for w
 
@@ -1292,36 +1294,33 @@ subsubsection\<open>Optional Simplification Rules Involving Constants\<close>
 
 text\<open>Simplify quotients that are compared with a literal constant.\<close>
 
-lemmas le_divide_eq_numeral =
+lemmas le_divide_eq_numeral [divide_const_simps] =
   le_divide_eq [of "numeral w"]
   le_divide_eq [of "- numeral w"] for w
 
-lemmas divide_le_eq_numeral =
+lemmas divide_le_eq_numeral [divide_const_simps] =
   divide_le_eq [of _ _ "numeral w"]
   divide_le_eq [of _ _ "- numeral w"] for w
 
-lemmas less_divide_eq_numeral =
+lemmas less_divide_eq_numeral [divide_const_simps] =
   less_divide_eq [of "numeral w"]
   less_divide_eq [of "- numeral w"] for w
 
-lemmas divide_less_eq_numeral =
+lemmas divide_less_eq_numeral [divide_const_simps] =
   divide_less_eq [of _ _ "numeral w"]
   divide_less_eq [of _ _ "- numeral w"] for w
 
-lemmas eq_divide_eq_numeral =
+lemmas eq_divide_eq_numeral [divide_const_simps] =
   eq_divide_eq [of "numeral w"]
   eq_divide_eq [of "- numeral w"] for w
 
-lemmas divide_eq_eq_numeral =
+lemmas divide_eq_eq_numeral [divide_const_simps] =
   divide_eq_eq [of _ _ "numeral w"]
   divide_eq_eq [of _ _ "- numeral w"] for w
 
 
 text\<open>Not good as automatic simprules because they cause case splits.\<close>
-lemmas divide_const_simps =
-  le_divide_eq_numeral divide_le_eq_numeral less_divide_eq_numeral
-  divide_less_eq_numeral eq_divide_eq_numeral divide_eq_eq_numeral
-  le_divide_eq_1 divide_le_eq_1 less_divide_eq_1 divide_less_eq_1
+lemmas [divide_const_simps] = le_divide_eq_1 divide_le_eq_1 less_divide_eq_1 divide_less_eq_1 
 
 
 subsection \<open>The divides relation\<close>

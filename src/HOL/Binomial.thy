@@ -842,7 +842,7 @@ proof (induct m)
 next
   case (Suc m)
   from Suc show ?case
-    by (simp add: algebra_simps distrib gbinomial_mult_1)
+    by (simp add: field_simps distrib gbinomial_mult_1)
 qed
 
 lemma binomial_symmetric:
@@ -1131,7 +1131,7 @@ lemma gbinomial_partial_row_sum:
 proof (induction m)
   case (Suc mm)
   hence "(\<Sum>k\<le>Suc mm. (r gchoose k) * (r / 2 - of_nat k)) = 
-             (r - of_nat (Suc mm)) * (r gchoose Suc mm) / 2" by (simp add: algebra_simps)
+             (r - of_nat (Suc mm)) * (r gchoose Suc mm) / 2" by (simp add: field_simps)
   also have "\<dots> = r * (r - 1 gchoose Suc mm) / 2" by (subst gbinomial_absorb_comp) (rule refl)
   also have "\<dots> = (of_nat (Suc mm) + 1) / 2 * (r gchoose (Suc mm + 1))"
     by (subst gbinomial_absorption [symmetric]) simp

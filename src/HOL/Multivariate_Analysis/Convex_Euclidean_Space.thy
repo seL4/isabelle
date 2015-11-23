@@ -6410,20 +6410,31 @@ proof -
     by (auto simp add:norm_minus_commute)
 qed
 
-lemma segment_bound:
-  fixes x a b :: "'a::euclidean_space"
-  assumes "x \<in> closed_segment a b"
-  shows "norm (x - a) \<le> norm (b - a)" "norm (x - b) \<le> norm (b - a)"
-  using segment_furthest_le[OF assms, of a]
-  using segment_furthest_le[OF assms, of b]
-  by (auto simp add:norm_minus_commute)
-
 lemma closed_segment_commute: "closed_segment a b = closed_segment b a"
 proof -
   have "{a, b} = {b, a}" by auto
   thus ?thesis
     by (simp add: segment_convex_hull)
 qed
+
+lemma segment_bound1:
+  assumes "x \<in> closed_segment a b"
+  shows "norm (x - a) \<le> norm (b - a)"
+proof -
+  obtain u where "x = (1 - u) *\<^sub>R a + u *\<^sub>R b" "0 \<le> u" "u \<le> 1"
+    using assms by (auto simp add: closed_segment_def)
+  then show "norm (x - a) \<le> norm (b - a)"
+    apply clarify
+    apply (auto simp: algebra_simps)
+    apply (simp add: scaleR_diff_right [symmetric] mult_left_le_one_le)
+    done
+qed
+
+lemma segment_bound:
+  assumes "x \<in> closed_segment a b"
+  shows "norm (x - a) \<le> norm (b - a)" "norm (x - b) \<le> norm (b - a)"
+apply (simp add: assms segment_bound1)
+by (metis assms closed_segment_commute dist_commute dist_norm segment_bound1)
 
 lemma open_segment_commute: "open_segment a b = open_segment b a"
 proof -
@@ -6488,6 +6499,28 @@ lemma open_segment_image_interval:
   by (auto simp:  open_segment_def closed_segment_def segment_degen_0 segment_degen_1)
 
 lemmas segment_image_interval = closed_segment_image_interval open_segment_image_interval
+
+lemma open_segment_eq: "open_segment a b = (if a=b then {} else {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real. 0 < u \<and> u < 1})"
+  by (auto simp: open_segment_def closed_segment_def segment_degen_0 segment_degen_1)
+
+lemma open_segment_bound1:
+  assumes "x \<in> open_segment a b"
+  shows "norm (x - a) < norm (b - a)"
+proof -
+  obtain u where "x = (1 - u) *\<^sub>R a + u *\<^sub>R b" "0 < u" "u < 1" "a \<noteq> b"
+    using assms by (auto simp add: open_segment_eq split: split_if_asm)
+  then show "norm (x - a) < norm (b - a)"
+    apply clarify
+    apply (auto simp: algebra_simps)
+    apply (simp add: scaleR_diff_right [symmetric])
+    done
+qed
+
+lemma open_segment_bound:
+  assumes "x \<in> open_segment a b"
+  shows "norm (x - a) < norm (b - a)" "norm (x - b) < norm (b - a)"
+apply (simp add: assms open_segment_bound1)
+by (metis assms norm_minus_commute open_segment_bound1 open_segment_commute)
 
 lemma closure_closed_segment [simp]:
     fixes a :: "'a::euclidean_space"
