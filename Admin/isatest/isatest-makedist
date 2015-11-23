@@ -117,9 +117,9 @@ $SSH macbroy2 "
   $MAKEALL $HOME/settings/mac-poly-M8-skip_proofs;
   $MAKEALL $HOME/settings/mac-poly-M8-quick_and_dirty"
 sleep 15
-$SSH macbroy6 "$MAKEALL -x HOL-Mirabelle-ex $HOME/settings/mac-poly64-M2"
-sleep 15
-$SSH macbroy30 "$MAKEALL $HOME/settings/mac-poly-M2"
+$SSH macbroy30 "
+  $MAKEALL $HOME/settings/mac-poly-M2;
+  $MAKEALL $HOME/settings/mac-poly64-M2"
 sleep 15
 $SSH macbroy31 "$MAKEALL $HOME/settings/mac-poly-M2-alternative"
 
