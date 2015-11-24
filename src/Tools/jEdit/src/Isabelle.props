@@ -18,7 +18,7 @@ plugin.isabelle.jedit.Plugin.depend.1=jedit 05.03.00.00
 plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 5.1.4
 plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.3
 plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 1.8
-plugin.isabelle.jedit.Plugin.depend.5=plugin gatchan.highlight.HighlightPlugin 2.0
+plugin.isabelle.jedit.Plugin.depend.5=plugin gatchan.highlight.HighlightPlugin 2.2
 
 #options
 plugin.isabelle.jedit.Plugin.option-group=isabelle-general isabelle-rendering
