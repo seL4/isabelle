@@ -25,7 +25,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
   private def lines(): Int = buffer.getLineCount max text_area.getVisibleLines
 
-  private val WIDTH = 10
+  private val WIDTH = text_area.getPainter.getFontMetrics.stringWidth("A") max 10
   private val HEIGHT = 4
 
   setPreferredSize(new Dimension(WIDTH, 0))
