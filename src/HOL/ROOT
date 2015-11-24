@@ -794,6 +794,7 @@ session "HOL-Datatype_Examples" in Datatype_Examples = HOL +
     "Derivation_Trees/Parallel"
     Koenig
     Lift_BNF
+    Milner_Tofte
     Stream_Processor
     Misc_Codatatype
     Misc_Datatype
