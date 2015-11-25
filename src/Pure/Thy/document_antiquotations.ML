@@ -76,10 +76,13 @@ val _ =
             |> Token.source' true keywords
             |> Source.exhaust;
           val _ = Context_Position.reports_text ctxt (maps (Token.reports keywords) toks);
+          val indentation =
+            Latex.output_symbols (replicate (Config.get ctxt Thy_Output.indent) Symbol.space);
         in
           implode (map Latex.output_token toks) |>
-           (if Config.get ctxt Thy_Output.display
-            then Latex.environment "isabelle"
+           (if Config.get ctxt Thy_Output.display then
+              split_lines #> map (prefix indentation) #> cat_lines #>
+              Latex.environment "isabelle"
             else enclose "\\isa{" "}")
         end));
 
