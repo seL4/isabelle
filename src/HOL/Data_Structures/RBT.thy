@@ -22,20 +22,20 @@ fun bal :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" w
 "bal t1 a1 (R (R t2 a2 t3) a3 t4) = R (B t1 a1 t2) a2 (B t3 a3 t4)" |
 "bal t1 a t2 = B t1 a t2"
 
-fun red :: "'a rbt \<Rightarrow> 'a rbt" where
-"red Leaf = Leaf" |
-"red (Node _ l a r) = R l a r"
+fun paint :: "color \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
+"paint c Leaf = Leaf" |
+"paint c (Node _ l a r) = Node c l a r"
 
 fun balL :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "balL (R t1 x t2) y t3 = R (B t1 x t2) y t3" |
 "balL bl x (B t1 y t2) = bal bl x (R t1 y t2)" |
-"balL bl x (R (B t1 y t2) z t3) = R (B bl x t1) y (bal t2 z (red t3))" |
+"balL bl x (R (B t1 y t2) z t3) = R (B bl x t1) y (bal t2 z (paint Red t3))" |
 "balL t1 x t2 = R t1 x t2"
 
 fun balR :: "'a rbt \<Rightarrow> 'a \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where
 "balR t1 x (R t2 y t3) = R t1 x (B t2 y t3)" |
 "balR (B t1 x t2) y t3 = bal (R t1 x t2) y t3" |
-"balR (R t1 x (B t2 y t3)) z t4 = R (bal (red t1) x t2) y (B t3 z t4)" |
+"balR (R t1 x (B t2 y t3)) z t4 = R (bal (paint Red t1) x t2) y (B t3 z t4)" |
 "balR t1 x t2 = R t1 x t2"
 
 fun combine :: "'a rbt \<Rightarrow> 'a rbt \<Rightarrow> 'a rbt" where

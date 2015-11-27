@@ -8,48 +8,61 @@ imports
   Lookup2
 begin
 
-fun update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
-"update x y Leaf = R Leaf (x,y) Leaf" |
-"update x y (B l (a,b) r) = (case cmp x a of
-  LT \<Rightarrow> bal (update x y l) (a,b) r |
-  GT \<Rightarrow> bal l (a,b) (update x y r) |
+fun upd :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
+"upd x y Leaf = R Leaf (x,y) Leaf" |
+"upd x y (B l (a,b) r) = (case cmp x a of
+  LT \<Rightarrow> bal (upd x y l) (a,b) r |
+  GT \<Rightarrow> bal l (a,b) (upd x y r) |
   EQ \<Rightarrow> B l (x,y) r)" |
-"update x y (R l (a,b) r) = (case cmp x a of
-  LT \<Rightarrow> R (update x y l) (a,b) r |
-  GT \<Rightarrow> R l (a,b) (update x y r) |
+"upd x y (R l (a,b) r) = (case cmp x a of
+  LT \<Rightarrow> R (upd x y l) (a,b) r |
+  GT \<Rightarrow> R l (a,b) (upd x y r) |
   EQ \<Rightarrow> R l (x,y) r)"
 
-fun delete :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
-and deleteL :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
-and deleteR :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
+definition update :: "'a::cmp \<Rightarrow> 'b \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
+"update x y t = paint Black (upd x y t)"
+
+fun del :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
+and delL :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
+and delR :: "'a::cmp \<Rightarrow> ('a*'b)rbt \<Rightarrow> 'a*'b \<Rightarrow> ('a*'b)rbt \<Rightarrow> ('a*'b)rbt"
 where
-"delete x Leaf = Leaf" |
-"delete x (Node c t1 (a,b) t2) = (case cmp x a of
-  LT \<Rightarrow> deleteL x t1 (a,b) t2 |
-  GT \<Rightarrow> deleteR x t1 (a,b) t2 |
+"del x Leaf = Leaf" |
+"del x (Node c t1 (a,b) t2) = (case cmp x a of
+  LT \<Rightarrow> delL x t1 (a,b) t2 |
+  GT \<Rightarrow> delR x t1 (a,b) t2 |
   EQ \<Rightarrow> combine t1 t2)" |
-"deleteL x (B t1 a t2) b t3 = balL (delete x (B t1 a t2)) b t3" |
-"deleteL x t1 a t2 = R (delete x t1) a t2" |
-"deleteR x t1 a (B t2 b t3) = balR t1 a (delete x (B t2 b t3))" | 
-"deleteR x t1 a t2 = R t1 a (delete x t2)"
+"delL x (B t1 a t2) b t3 = balL (del x (B t1 a t2)) b t3" |
+"delL x t1 a t2 = R (del x t1) a t2" |
+"delR x t1 a (B t2 b t3) = balR t1 a (del x (B t2 b t3))" | 
+"delR x t1 a t2 = R t1 a (del x t2)"
+
+definition delete :: "'a::cmp \<Rightarrow> ('a*'b) rbt \<Rightarrow> ('a*'b) rbt" where
+"delete x t = paint Black (del x t)"
 
 
 subsection "Functional Correctness Proofs"
 
-lemma inorder_update:
-  "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"
-by(induction x y t rule: update.induct)
+lemma inorder_upd:
+  "sorted1(inorder t) \<Longrightarrow> inorder(upd x y t) = upd_list x y (inorder t)"
+by(induction x y t rule: upd.induct)
   (auto simp: upd_list_simps inorder_bal)
 
+lemma inorder_update:
+  "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"
+by(simp add: update_def inorder_upd inorder_paint)
+
+lemma inorder_del:
+ "sorted1(inorder t1) \<Longrightarrow>  inorder(del x t1) = del_list x (inorder t1)" and
+ "sorted1(inorder t1) \<Longrightarrow>  inorder(delL x t1 a t2) =
+    del_list x (inorder t1) @ a # inorder t2" and
+ "sorted1(inorder t2) \<Longrightarrow>  inorder(delR x t1 a t2) =
+    inorder t1 @ a # del_list x (inorder t2)"
+by(induction x t1 and x t1 a t2 and x t1 a t2 rule: del_delL_delR.induct)
+  (auto simp: del_list_simps inorder_combine inorder_balL inorder_balR)
 
 lemma inorder_delete:
- "sorted1(inorder t1) \<Longrightarrow>  inorder(delete x t1) = del_list x (inorder t1)" and
- "sorted1(inorder t1) \<Longrightarrow>  inorder(deleteL x t1 a t2) =
-    del_list x (inorder t1) @ a # inorder t2" and
- "sorted1(inorder t2) \<Longrightarrow>  inorder(deleteR x t1 a t2) =
-    inorder t1 @ a # del_list x (inorder t2)"
-by(induction x t1 and x t1 a t2 and x t1 a t2 rule: delete_deleteL_deleteR.induct)
-  (auto simp: del_list_simps inorder_combine inorder_balL inorder_balR)
+  "sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
+by(simp add: delete_def inorder_del inorder_paint)
 
 interpretation Map_by_Ordered
 where empty = Leaf and lookup = lookup and update = update and delete = delete
