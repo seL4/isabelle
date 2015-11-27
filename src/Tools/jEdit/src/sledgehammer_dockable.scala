@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.{Button, Component, Label, TextField, CheckBox}
+import scala.swing.{Button, Component, Label, CheckBox}
 import scala.swing.event.ButtonClicked
 
 import java.awt.BorderLayout

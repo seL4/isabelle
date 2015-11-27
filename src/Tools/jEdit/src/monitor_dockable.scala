@@ -13,7 +13,7 @@ import java.awt.BorderLayout
 
 import scala.collection.immutable.Queue
 import scala.swing.{TextArea, TextField, ScrollPane, Component, ComboBox, Button}
-import scala.swing.event.{SelectionChanged, ButtonClicked}
+import scala.swing.event.{SelectionChanged, ButtonClicked, ValueChanged}
 
 import org.jfree.chart.ChartPanel
 import org.jfree.data.xy.XYSeriesCollection
@@ -57,7 +57,10 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
       case Some((_, fields)) => ML_Statistics("", statistics.toList).update_data(data, fields)
     }
 
-  private val delay_update =
+  private val input_delay =
+    GUI_Thread.delay_first(PIDE.options.seconds("editor_input_delay")) { update_chart }
+
+  private val update_delay =
     GUI_Thread.delay_first(PIDE.options.seconds("editor_chart_delay")) { update_chart }
 
 
@@ -89,6 +92,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     tooltip = "Limit for accumulated data"
     verifier = (s: String) =>
       s match { case Properties.Value.Int(x) => x > 0 case _ => false }
+    reactions += { case ValueChanged(_) => input_delay.invoke() }
   }
 
   private val controls =
@@ -107,7 +111,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
     Session.Consumer[Any](getClass.getName) {
       case stats: Session.Statistics =>
         add_statistics(stats.props)
-        delay_update.invoke()
+        update_delay.invoke()
 
       case _: Session.Global_Options =>
         GUI_Thread.later { ml_stats.load() }
