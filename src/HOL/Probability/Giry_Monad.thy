@@ -279,7 +279,6 @@ next
   moreover then have "(\<lambda>M'. \<integral>\<^sup>+M''. c * f M'' \<partial>M') \<in> ?B \<longleftrightarrow> (\<lambda>M'. c * \<integral>\<^sup>+M''. f M'' \<partial>M') \<in> ?B"
     by (intro measurable_cong nn_integral_cmult) (auto simp add: space_subprob_algebra)
   ultimately show ?case
-    using [[simp_trace_new]]
     by simp
 next
   case (add f g)
