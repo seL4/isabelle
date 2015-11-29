@@ -101,4 +101,178 @@ next
   case 4 thus ?case by(simp add: inorder_delete)
 qed auto
 
+
+subsection \<open>Structural invariants\<close>
+
+fun color :: "'a rbt \<Rightarrow> color" where
+"color Leaf = Black" |
+"color (Node c _ _ _) = c"
+
+fun bheight :: "'a rbt \<Rightarrow> nat" where
+"bheight Leaf = 0" |
+"bheight (Node c l x r) = (if c = Black then Suc(bheight l) else bheight l)"
+
+fun inv1 :: "'a rbt \<Rightarrow> bool" where
+"inv1 Leaf = True" |
+"inv1 (Node c l a r) =
+  (inv1 l \<and> inv1 r \<and> (c = Black \<or> color l = Black \<and> color r = Black))"
+
+fun inv1_root :: "'a rbt \<Rightarrow> bool" \<comment> \<open>Weaker version\<close> where
+"inv1_root Leaf = True" |
+"inv1_root (Node c l a r) = (inv1 l \<and> inv1 r)"
+
+fun inv2 :: "'a rbt \<Rightarrow> bool" where
+"inv2 Leaf = True" |
+"inv2 (Node c l x r) = (inv2 l \<and> inv2 r \<and> bheight l = bheight r)"
+
+lemma inv1_rootI[simp]: "inv1 t \<Longrightarrow> inv1_root t"
+by (cases t) simp+
+
+definition rbt :: "'a rbt \<Rightarrow> bool" where
+"rbt t = (inv1 t \<and> inv2 t \<and> color t = Black)"
+
+lemma color_paint_Black: "color (paint Black t) = Black"
+by (cases t) auto
+
+theorem rbt_Leaf: "rbt Leaf"
+by (simp add: rbt_def)
+
+lemma paint_inv1_root: "inv1_root t \<Longrightarrow> inv1_root (paint c t)"
+by (cases t) auto
+
+lemma inv1_paint_Black: "inv1_root t \<Longrightarrow> inv1 (paint Black t)"
+by (cases t) auto
+
+lemma inv2_paint: "inv2 t \<Longrightarrow> inv2 (paint c t)"
+by (cases t) auto
+
+lemma inv1_bal: "\<lbrakk>inv1_root l; inv1_root r\<rbrakk> \<Longrightarrow> inv1 (bal l a r)" 
+by (induct l a r rule: bal.induct) auto
+
+lemma bheight_bal:
+  "bheight l = bheight r \<Longrightarrow> bheight (bal l a r) = Suc (bheight l)"
+by (induct l a r rule: bal.induct) auto
+
+lemma inv2_bal: 
+  "\<lbrakk> inv2 l; inv2 r; bheight l = bheight r \<rbrakk> \<Longrightarrow> inv2 (bal l a r)"
+by (induct l a r rule: bal.induct) auto
+
+
+subsubsection \<open>Insertion\<close>
+
+lemma inv1_ins: assumes "inv1 t"
+  shows "color t = Black \<Longrightarrow> inv1 (ins x t)" "inv1_root (ins x t)"
+using assms
+by (induct x t rule: ins.induct) (auto simp: inv1_bal)
+
+lemma inv2_ins: assumes "inv2 t"
+  shows "inv2 (ins x t)" "bheight (ins x t) = bheight t"
+using assms
+by (induct x t rule: ins.induct) (auto simp: inv2_bal bheight_bal)
+
+theorem rbt_ins: "rbt t \<Longrightarrow> rbt (insert x t)"
+by (simp add: inv1_ins inv2_ins color_paint_Black inv1_paint_Black inv2_paint
+  rbt_def insert_def)
+
+(*
+lemma bheight_paintR'[simp]: "color t = Black \<Longrightarrow> bheight (paint Red t) = bheight t - 1"
+by (cases t) auto
+
+lemma balL_inv2_with_inv1:
+  assumes "inv2 lt" "inv2 rt" "bheight lt + 1 = bheight rt" "inv1 rt"
+  shows "bheight (balL lt a rt) = bheight lt + 1"  "inv2 (balL lt a rt)"
+using assms 
+by (induct lt a rt rule: balL.induct) (auto simp: inv2_bal inv2_paint bheight_bal)
+
+lemma balL_inv2_app: 
+  assumes "inv2 lt" "inv2 rt" "bheight lt + 1 = bheight rt" "color rt = Black"
+  shows "inv2 (balL lt a rt)" 
+        "bheight (balL lt a rt) = bheight rt"
+using assms 
+by (induct lt a rt rule: balL.induct) (auto simp add: inv2_bal bheight_bal) 
+
+lemma balL_inv1: "\<lbrakk>inv1_root l; inv1 r; color r = Black\<rbrakk> \<Longrightarrow> inv1 (balL l a r)"
+by (induct l a r rule: balL.induct) (simp_all add: inv1_bal)
+
+lemma balL_inv1_root: "\<lbrakk> inv1_root lt; inv1 rt \<rbrakk> \<Longrightarrow> inv1_root (balL lt a rt)"
+by (induct lt a rt rule: balL.induct) (auto simp: inv1_bal paint_inv1_root)
+
+lemma balR_inv2_with_inv1:
+  assumes "inv2 lt" "inv2 rt" "bheight lt = bheight rt + 1" "inv1 lt"
+  shows "inv2 (balR lt a rt) \<and> bheight (balR lt a rt) = bheight lt"
+using assms
+by(induct lt a rt rule: balR.induct)(auto simp: inv2_bal bheight_bal inv2_paint)
+
+lemma balR_inv1: "\<lbrakk>inv1 a; inv1_root b; color a = Black\<rbrakk> \<Longrightarrow> inv1 (balR a x b)"
+by (induct a x b rule: balR.induct) (simp_all add: inv1_bal)
+
+lemma balR_inv1_root: "\<lbrakk> inv1 lt; inv1_root rt \<rbrakk> \<Longrightarrow>inv1_root (balR lt x rt)"
+by (induct lt x rt rule: balR.induct) (auto simp: inv1_bal paint_inv1_root)
+
+lemma combine_inv2:
+  assumes "inv2 lt" "inv2 rt" "bheight lt = bheight rt"
+  shows "bheight (combine lt rt) = bheight lt" "inv2 (combine lt rt)"
+using assms 
+by (induct lt rt rule: combine.induct) 
+   (auto simp: balL_inv2_app split: tree.splits color.splits)
+
+lemma combine_inv1: 
+  assumes "inv1 lt" "inv1 rt"
+  shows "color lt = Black \<Longrightarrow> color rt = Black \<Longrightarrow> inv1 (combine lt rt)"
+         "inv1_root (combine lt rt)"
+using assms 
+by (induct lt rt rule: combine.induct)
+   (auto simp: balL_inv1 split: tree.splits color.splits)
+
+
+lemma 
+  assumes "inv2 lt" "inv1 lt"
+  shows
+  "\<lbrakk>inv2 rt; bheight lt = bheight rt; inv1 rt\<rbrakk> \<Longrightarrow>
+   inv2 (rbt_del_from_left x lt k v rt) \<and> 
+   bheight (rbt_del_from_left x lt k v rt) = bheight lt \<and> 
+   (color_of lt = B \<and> color_of rt = B \<and> inv1 (rbt_del_from_left x lt k v rt) \<or> 
+    (color_of lt \<noteq> B \<or> color_of rt \<noteq> B) \<and> inv1l (rbt_del_from_left x lt k v rt))"
+  and "\<lbrakk>inv2 rt; bheight lt = bheight rt; inv1 rt\<rbrakk> \<Longrightarrow>
+  inv2 (rbt_del_from_right x lt k v rt) \<and> 
+  bheight (rbt_del_from_right x lt k v rt) = bheight lt \<and> 
+  (color_of lt = B \<and> color_of rt = B \<and> inv1 (rbt_del_from_right x lt k v rt) \<or> 
+   (color_of lt \<noteq> B \<or> color_of rt \<noteq> B) \<and> inv1l (rbt_del_from_right x lt k v rt))"
+  and rbt_del_inv1_inv2: "inv2 (rbt_del x lt) \<and> (color_of lt = R \<and> bheight (rbt_del x lt) = bheight lt \<and> inv1 (rbt_del x lt) 
+  \<or> color_of lt = B \<and> bheight (rbt_del x lt) = bheight lt - 1 \<and> inv1l (rbt_del x lt))"
+using assms
+proof (induct x lt k v rt and x lt k v rt and x lt rule: rbt_del_from_left_rbt_del_from_right_rbt_del.induct)
+case (2 y c _ y')
+  have "y = y' \<or> y < y' \<or> y > y'" by auto
+  thus ?case proof (elim disjE)
+    assume "y = y'"
+    with 2 show ?thesis by (cases c) (simp add: combine_inv2 combine_inv1)+
+  next
+    assume "y < y'"
+    with 2 show ?thesis by (cases c) auto
+  next
+    assume "y' < y"
+    with 2 show ?thesis by (cases c) auto
+  qed
+next
+  case (3 y lt z v rta y' ss bb) 
+  thus ?case by (cases "color_of (Branch B lt z v rta) = B \<and> color_of bb = B") (simp add: balance_left_inv2_with_inv1 balance_left_inv1 balance_left_inv1l)+
+next
+  case (5 y a y' ss lt z v rta)
+  thus ?case by (cases "color_of a = B \<and> color_of (Branch B lt z v rta) = B") (simp add: balance_right_inv2_with_inv1 balance_right_inv1 balance_right_inv1l)+
+next
+  case ("6_1" y a y' ss) thus ?case by (cases "color_of a = B \<and> color_of Empty = B") simp+
+qed auto
+
+theorem rbt_delete_is_rbt [simp]: assumes "rbt t" shows "rbt (delete k t)"
+proof -
+  from assms have "inv2 t" and "inv1 t" unfolding rbt_def by auto 
+  hence "inv2 (del k t) \<and> (color t = Red \<and> bheight (del k t) = bheight t \<and> inv1 (del k t) \<or> color t = Black \<and> bheight (del k t) = bheight t - 1 \<and> inv1_root (del k t))"
+    by (rule rbt_del_inv1_inv2)
+  hence "inv2 (del k t) \<and> inv1l (rbt_del k t)" by (cases "color_of t") auto
+  with assms show ?thesis
+    unfolding is_rbt_def rbt_delete_def
+    by (auto intro: paint_rbt_sorted rbt_del_rbt_sorted)
+qed
+*)
 end
