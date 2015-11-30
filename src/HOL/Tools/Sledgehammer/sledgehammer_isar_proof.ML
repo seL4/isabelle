@@ -289,7 +289,7 @@ fun string_of_isar_proof ctxt0 i n proof =
        else "") ^ "obtain"
 
     fun of_show_have qs = if member (op =) qs Show then "show" else "have"
-    fun of_thus_hence qs = if member (op =) qs Show then "thus" else "hence"
+    fun of_thus_hence qs = if member (op =) qs Show then "then show" else "then have"
 
     fun of_have qs nr =
       if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then "ultimately " ^ of_show_have qs
@@ -310,8 +310,8 @@ fun string_of_isar_proof ctxt0 i n proof =
 
     (* Local facts are always passed via "using", which affects "meson" and "metis". This is
        arguably stylistically superior, because it emphasises the structure of the proof. It is also
-       more robust w.r.t. preplay: Preplay is performed before chaining of local facts with "hence"
-       and "thus" is introduced. See also "tac_of_method" in "Sledgehammer_Isar_Preplay". *)
+       more robust w.r.t. preplay: Preplay is performed before chaining of local facts with "then"
+       is introduced. See also "tac_of_method" in "Sledgehammer_Isar_Preplay". *)
     fun of_method ls ss meth =
       let val direct = is_proof_method_direct meth in
         using_facts ls (if direct then [] else ss) ^
