@@ -66,11 +66,6 @@ fun bnf_only_type_ctr f bnf = if is_Type (T_of_bnf bnf) then f bnf else I
 
 fun bnf_of_fp_sugar (fp_sugar:fp_sugar) = nth (#bnfs (#fp_res fp_sugar)) (#fp_res_index fp_sugar)
 
-fun fp_sugar_only_type_ctr f fp_sugars =
-  (case filter (is_Type o T_of_bnf o bnf_of_fp_sugar) fp_sugars of
-    [] => I
-  | fp_sugars' => f fp_sugars')
-
 (* relation constraints - bi_total & co. *)
 
 fun mk_relation_constraint name arg =
@@ -410,7 +405,7 @@ fun pred_injects fp_sugar lthy =
 
 fun transfer_fp_sugars_interpretation fp_sugar lthy =
   let
-    val lthy = pred_injects fp_sugar lthy
+    val lthy = lthy |> (is_Type o T_of_bnf o bnf_of_fp_sugar) fp_sugar ? pred_injects fp_sugar
     val transfer_rules_notes = fp_sugar_transfer_rules fp_sugar
   in
     lthy
@@ -419,7 +414,6 @@ fun transfer_fp_sugars_interpretation fp_sugar lthy =
   end
 
 val _ =
-  Theory.setup (fp_sugars_interpretation transfer_plugin
-    (fp_sugar_only_type_ctr (fold transfer_fp_sugars_interpretation)))
+  Theory.setup (fp_sugars_interpretation transfer_plugin (fold transfer_fp_sugars_interpretation))
 
 end
