@@ -1009,8 +1009,8 @@ fun build_defs ctxt bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     |> map2 abs_curried_balanced arg_Tss
     |> (fn ts => Syntax.check_terms ctxt ts
       handle ERROR _ => nonprimitive_corec ctxt [])
-    |> @{map 3} (fn b => fn mx => fn t => ((b, mx), ((Binding.concealed (Thm.def_binding b), []), t)))
-      bs mxs
+    |> @{map 3} (fn b => fn mx => fn t =>
+      ((b, mx), ((Binding.concealed (Thm.def_binding b), []), t))) bs mxs
     |> rpair excludess'
   end;
 
@@ -1037,7 +1037,8 @@ fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_
         val prems = maps (s_not_conj o #prems) disc_eqns;
         val ctr_rhs_opt = Option.map #ctr_rhs_opt sel_eqn_opt |> the_default NONE;
         val code_rhs_opt = Option.map #code_rhs_opt sel_eqn_opt |> the_default NONE;
-        val eqn_pos = Option.map (curry (op +) 1 o #eqn_pos) sel_eqn_opt |> the_default 100000; (* FIXME *)
+        val eqn_pos = Option.map (curry (op +) 1 o #eqn_pos) sel_eqn_opt
+          |> the_default 100000; (* FIXME *)
 
         val extra_disc_eqn =
           {fun_name = fun_name, fun_T = fun_T, fun_args = fun_args, ctr = ctr, ctr_no = ctr_no,
@@ -1307,7 +1308,8 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
             Goal.prove_sorry lthy [] [] goal
               (fn {context = ctxt, prems = _} =>
                 mk_primcorec_sel_tac ctxt def_thms distincts split_sels split_sel_asms
-                fp_nesting_maps fp_nesting_map_ident0s fp_nesting_map_comps corec_sel k m excludesss)
+                  fp_nesting_maps fp_nesting_map_ident0s fp_nesting_map_comps corec_sel k m
+                  excludesss)
             |> Thm.close_derivation
             |> `(is_some code_rhs_opt ? fold_thms lthy sel_defs) (*mildly too aggressive*)
             |> pair sel
@@ -1444,7 +1446,8 @@ fun primcorec_ursive auto opts fixes specs of_specs_opt lthy =
                       Goal.prove_sorry lthy [] [] raw_goal
                         (fn {context = ctxt, prems = _} =>
                           mk_primcorec_raw_code_tac ctxt distincts discIs split_sels split_sel_asms
-                            ms ctr_thms (if exhaustive_code then try the_single nchotomys else NONE))
+                            ms ctr_thms
+                            (if exhaustive_code then try the_single nchotomys else NONE))
                       |> Thm.close_derivation;
                   in
                     Goal.prove_sorry lthy [] [] goal

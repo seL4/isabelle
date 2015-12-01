@@ -42,7 +42,8 @@ fun register_size T_name size_name size_simps size_gen_o_maps =
   Context.proof_map (Data.map (Symtab.update (T_name, (size_name, (size_simps, size_gen_o_maps)))));
 
 fun register_size_global T_name size_name size_simps size_gen_o_maps =
-  Context.theory_map (Data.map (Symtab.update (T_name, (size_name, (size_simps, size_gen_o_maps)))));
+  Context.theory_map
+    (Data.map (Symtab.update (T_name, (size_name, (size_simps, size_gen_o_maps)))));
 
 val size_of = Symtab.lookup o Data.get o Context.Proof;
 val size_of_global = Symtab.lookup o Data.get o Context.Theory;
@@ -70,8 +71,9 @@ fun mk_size_gen_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
 fun mk_size_neq ctxt cts exhaust sizes =
   HEADGOAL (rtac ctxt (infer_instantiate' ctxt (map SOME cts) exhaust)) THEN
   ALLGOALS (hyp_subst_tac ctxt) THEN
-  Ctr_Sugar_Tactics.unfold_thms_tac ctxt (@{thm neq0_conv} :: sizes) THEN
-  ALLGOALS (REPEAT_DETERM o (rtac ctxt @{thm zero_less_Suc} ORELSE' rtac ctxt @{thm trans_less_add2}));
+  unfold_thms_tac ctxt (@{thm neq0_conv} :: sizes) THEN
+  ALLGOALS (REPEAT_DETERM o (rtac ctxt @{thm zero_less_Suc} ORELSE'
+    rtac ctxt @{thm trans_less_add2}));
 
 fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
         fp_res = {bnfs = fp_bnfs, ...}, fp_nesting_bnfs, live_nesting_bnfs, ...} : fp_sugar) :: _)
@@ -236,7 +238,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
         (Spec_Rules.retrieve lthy0 @{const size ('a)}
          |> map_filter (try (fn (Spec_Rules.Equational, (_, [thm])) => thm)));
 
-      val nested_size_maps = map (mk_pointful lthy2) nested_size_gen_o_maps @ nested_size_gen_o_maps;
+      val nested_size_maps =
+        map (mk_pointful lthy2) nested_size_gen_o_maps @ nested_size_gen_o_maps;
       val all_inj_maps =
         @{thm prod.inj_map} :: map inj_map_of_bnf (fp_bnfs @ fp_nesting_bnfs @ live_nesting_bnfs)
         |> distinct Thm.eq_thm_prop;

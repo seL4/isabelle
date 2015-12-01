@@ -74,14 +74,16 @@ fun mk_comp_set_map0_tac ctxt set'_eq_set Gmap_comp0 Gmap_cong0 Gset_map0 set_ma
      map (fn thm => rtac ctxt (thm RS fun_cong)) set_map0s @
      [rtac ctxt (Gset_map0 RS comp_eq_dest_lhs), rtac ctxt sym, rtac ctxt trans_o_apply,
      rtac ctxt trans_image_cong_o_apply, rtac ctxt trans_image_cong_o_apply,
-     rtac ctxt (@{thm image_cong} OF [Gset_map0 RS comp_eq_dest_lhs RS arg_cong_Union, refl] RS trans),
+     rtac ctxt (@{thm image_cong} OF [Gset_map0 RS comp_eq_dest_lhs RS arg_cong_Union, refl]
+       RS trans),
      rtac ctxt @{thm trans[OF comp_eq_dest[OF Union_natural[symmetric]]]}, rtac ctxt arg_cong_Union,
      rtac ctxt @{thm trans[OF comp_eq_dest_lhs[OF image_o_collect[symmetric]]]},
      rtac ctxt @{thm fun_cong[OF arg_cong[of _ _ collect]]}] @
      [REPEAT_DETERM_N (length set_map0s) o EVERY' [rtac ctxt @{thm trans[OF image_insert]},
-        rtac ctxt @{thm arg_cong2[of _ _ _ _ insert]}, rtac ctxt @{thm ext}, rtac ctxt trans_o_apply,
-        rtac ctxt trans_image_cong_o_apply, rtac ctxt @{thm trans[OF image_image]},
-        rtac ctxt @{thm sym[OF trans[OF o_apply]]}, rtac ctxt @{thm image_cong[OF refl o_apply]}],
+        rtac ctxt @{thm arg_cong2[of _ _ _ _ insert]}, rtac ctxt @{thm ext},
+        rtac ctxt trans_o_apply, rtac ctxt trans_image_cong_o_apply,
+        rtac ctxt @{thm trans[OF image_image]}, rtac ctxt @{thm sym[OF trans[OF o_apply]]},
+        rtac ctxt @{thm image_cong[OF refl o_apply]}],
      rtac ctxt @{thm image_empty}]) 1;
 
 fun mk_comp_map_cong0_tac ctxt set'_eq_sets comp_set_alts map_cong0 map_cong0s =
@@ -96,9 +98,9 @@ fun mk_comp_map_cong0_tac ctxt set'_eq_sets comp_set_alts map_cong0 map_cong0s =
           EVERY' [select_prem_tac ctxt n (dtac ctxt @{thm meta_spec}) (k + 1), etac ctxt meta_mp,
             rtac ctxt (equalityD2 RS set_mp), rtac ctxt (set_alt RS fun_cong RS trans),
             rtac ctxt trans_o_apply, rtac ctxt (@{thm collect_def} RS arg_cong_Union),
-            rtac ctxt @{thm UnionI}, rtac ctxt @{thm UN_I}, REPEAT_DETERM_N i o rtac ctxt @{thm insertI2},
-            rtac ctxt @{thm insertI1}, rtac ctxt (o_apply RS equalityD2 RS set_mp),
-            etac ctxt @{thm imageI}, assume_tac ctxt])
+            rtac ctxt @{thm UnionI}, rtac ctxt @{thm UN_I},
+            REPEAT_DETERM_N i o rtac ctxt @{thm insertI2}, rtac ctxt @{thm insertI1},
+            rtac ctxt (o_apply RS equalityD2 RS set_mp), etac ctxt @{thm imageI}, assume_tac ctxt])
           comp_set_alts))
       map_cong0s) 1)
   end;
@@ -220,14 +222,15 @@ fun lift_in_alt_tac ctxt =
 
 fun mk_permute_in_alt_tac ctxt src dest =
   (rtac ctxt @{thm Collect_cong} THEN'
-  mk_rotate_eq_tac ctxt (rtac ctxt refl) trans @{thm conj_assoc} @{thm conj_commute} @{thm conj_cong}
-    dest src) 1;
+  mk_rotate_eq_tac ctxt (rtac ctxt refl) trans @{thm conj_assoc} @{thm conj_commute}
+    @{thm conj_cong} dest src) 1;
 
 
 (* Miscellaneous *)
 
 fun mk_le_rel_OO_tac ctxt outer_le_rel_OO outer_rel_mono inner_le_rel_OOs =
-  EVERY' (map (rtac ctxt) (@{thm order_trans} :: outer_le_rel_OO :: outer_rel_mono :: inner_le_rel_OOs)) 1;
+  EVERY' (map (rtac ctxt) (@{thm order_trans} :: outer_le_rel_OO :: outer_rel_mono ::
+    inner_le_rel_OOs)) 1;
 
 fun mk_simple_rel_OO_Grp_tac ctxt rel_OO_Grp in_alt_thm =
   rtac ctxt (trans OF [rel_OO_Grp, in_alt_thm RS @{thm OO_Grp_cong} RS sym]) 1;
