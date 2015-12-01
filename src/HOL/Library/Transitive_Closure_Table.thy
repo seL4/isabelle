@@ -207,4 +207,23 @@ declare rtranclp_eq_rtrancl_tab_nil [THEN iffD2, code_pred_intro]
 code_pred rtranclp
   using rtranclp_eq_rtrancl_tab_nil [THEN iffD1] by fastforce
 
+lemma rtrancl_path_Range: "\<lbrakk> rtrancl_path R x xs y; z \<in> set xs \<rbrakk> \<Longrightarrow> RangeP R z"
+by(induction rule: rtrancl_path.induct) auto
+
+lemma rtrancl_path_Range_end: "\<lbrakk> rtrancl_path R x xs y; xs \<noteq> [] \<rbrakk> \<Longrightarrow> RangeP R y"
+by(induction rule: rtrancl_path.induct)(auto elim: rtrancl_path.cases)
+
+lemma rtrancl_path_nth:
+  "\<lbrakk> rtrancl_path R x xs y; i < length xs \<rbrakk> \<Longrightarrow> R ((x # xs) ! i) (xs ! i)"
+proof(induction arbitrary: i rule: rtrancl_path.induct)
+  case step thus ?case by(cases i) simp_all
+qed simp
+
+lemma rtrancl_path_last: "\<lbrakk> rtrancl_path R x xs y; xs \<noteq> [] \<rbrakk> \<Longrightarrow> last xs = y"
+by(induction rule: rtrancl_path.induct)(auto elim: rtrancl_path.cases)
+
+lemma rtrancl_path_mono:
+  "\<lbrakk> rtrancl_path R x p y; \<And>x y. R x y \<Longrightarrow> S x y \<rbrakk> \<Longrightarrow> rtrancl_path S x p y"
+by(induction rule: rtrancl_path.induct)(auto intro: rtrancl_path.intros)
+
 end
