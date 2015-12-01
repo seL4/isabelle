@@ -305,13 +305,15 @@ fun mk_corec_transfer_tac ctxt actives passives type_definitions corec_defs dtor
   end;
 
 fun solve_prem_prem_tac ctxt =
-  REPEAT o (eresolve_tac ctxt @{thms bexE rev_bexI} ORELSE' rtac ctxt @{thm rev_bexI[OF UNIV_I]} ORELSE'
-    hyp_subst_tac ctxt ORELSE' resolve_tac ctxt @{thms disjI1 disjI2}) THEN'
+  REPEAT o (eresolve_tac ctxt @{thms bexE rev_bexI} ORELSE'
+    rtac ctxt @{thm rev_bexI[OF UNIV_I]} ORELSE' hyp_subst_tac ctxt ORELSE'
+    resolve_tac ctxt @{thms disjI1 disjI2}) THEN'
   (rtac ctxt refl ORELSE' assume_tac ctxt ORELSE' rtac ctxt @{thm singletonI});
 
 fun mk_induct_leverage_prem_prems_tac ctxt nn kks fp_abs_inverses abs_inverses set_maps
     pre_set_defs =
-  HEADGOAL (EVERY' (maps (fn kk => [select_prem_tac ctxt nn (dtac ctxt meta_spec) kk, etac ctxt meta_mp,
+  HEADGOAL (EVERY' (maps (fn kk => [select_prem_tac ctxt nn (dtac ctxt meta_spec) kk,
+    etac ctxt meta_mp,
     SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ fp_abs_inverses @ abs_inverses @ set_maps @
       sumprod_thms_set)),
     solve_prem_prem_tac ctxt]) (rev kks)));
@@ -366,9 +368,10 @@ fun mk_coinduct_distinct_ctrs_tac ctxt discs discs' =
 fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def fp_abs_inverse abs_inverse
     dtor_ctor exhaust ctr_defs discss selss =
   let val ks = 1 upto n in
-    EVERY' ([rtac ctxt allI, rtac ctxt allI, rtac ctxt impI, select_prem_tac ctxt nn (dtac ctxt meta_spec) kk,
-        dtac ctxt meta_spec, dtac ctxt meta_mp, assume_tac ctxt, rtac ctxt exhaust,
-        K (co_induct_inst_as_projs_tac ctxt 0), hyp_subst_tac ctxt] @
+    EVERY' ([rtac ctxt allI, rtac ctxt allI, rtac ctxt impI,
+        select_prem_tac ctxt nn (dtac ctxt meta_spec) kk, dtac ctxt meta_spec, dtac ctxt meta_mp,
+        assume_tac ctxt, rtac ctxt exhaust, K (co_induct_inst_as_projs_tac ctxt 0),
+        hyp_subst_tac ctxt] @
       @{map 4} (fn k => fn ctr_def => fn discs => fn sels =>
         EVERY' ([rtac ctxt exhaust, K (co_induct_inst_as_projs_tac ctxt 1)] @
           map2 (fn k' => fn discs' =>
@@ -435,8 +438,8 @@ fun mk_rel_coinduct0_tac ctxt dtor_rel_coinduct cts assms exhausts discss selss 
         abs_inject :: ctor_defs @ nesting_rel_eqs @ simp_thms' @
         @{thms id_bnf_def rel_sum_simps rel_prod_apply vimage2p_def Inl_Inr_False
           iffD2[OF eq_False Inr_not_Inl] sum.inject prod.inject}) THEN
-      REPEAT_DETERM (HEADGOAL ((REPEAT_DETERM o etac ctxt conjE) THEN' (REPEAT_DETERM o rtac ctxt conjI) THEN'
-        (rtac ctxt refl ORELSE' assume_tac ctxt))))
+      REPEAT_DETERM (HEADGOAL ((REPEAT_DETERM o etac ctxt conjE) THEN'
+        (REPEAT_DETERM o rtac ctxt conjI) THEN' (rtac ctxt refl ORELSE' assume_tac ctxt))))
     cts assms exhausts discss selss ctor_defss dtor_ctors ctor_injects abs_injects rel_pre_defs
       abs_inverses);
 
@@ -445,7 +448,8 @@ fun mk_rel_induct0_tac ctxt ctor_rel_induct assms cterms exhausts ctor_defss cto
   rtac ctxt ctor_rel_induct 1 THEN EVERY (@{map 6} (fn cterm => fn exhaust => fn ctor_defs =>
       fn ctor_inject => fn rel_pre_list_def => fn Abs_inverse =>
         HEADGOAL (rtac ctxt exhaust THEN_ALL_NEW (rtac ctxt exhaust THEN_ALL_NEW
-          (rtac ctxt (infer_instantiate' ctxt (replicate 4 NONE @ [SOME cterm]) @{thm arg_cong2} RS iffD2)
+          (rtac ctxt (infer_instantiate' ctxt (replicate 4 NONE @ [SOME cterm]) @{thm arg_cong2}
+              RS iffD2)
             THEN' assume_tac ctxt THEN' assume_tac ctxt THEN' TRY o resolve_tac ctxt assms))) THEN
         unfold_thms_tac ctxt (ctor_inject :: rel_pre_list_def :: ctor_defs @ nesting_rel_eqs @
           @{thms id_bnf_def vimage2p_def}) THEN
@@ -485,12 +489,14 @@ fun mk_set_sel_tac ctxt ct exhaust discs sels sets =
       (rtac ctxt @{thm singletonI} ORELSE' assume_tac ctxt));
 
 fun mk_set_cases_tac ctxt ct assms exhaust sets =
-  HEADGOAL (rtac ctxt (infer_instantiate' ctxt [SOME ct] exhaust) THEN_ALL_NEW hyp_subst_tac ctxt) THEN
+  HEADGOAL (rtac ctxt (infer_instantiate' ctxt [SOME ct] exhaust)
+    THEN_ALL_NEW hyp_subst_tac ctxt) THEN
   unfold_thms_tac ctxt sets THEN
   REPEAT_DETERM (HEADGOAL
     (eresolve_tac ctxt @{thms FalseE emptyE singletonE UnE UN_E insertE} ORELSE'
      hyp_subst_tac ctxt ORELSE'
-     SELECT_GOAL (SOLVE (HEADGOAL (eresolve_tac ctxt assms THEN' REPEAT_DETERM o assume_tac ctxt)))));
+     SELECT_GOAL (SOLVE (HEADGOAL (eresolve_tac ctxt assms THEN' REPEAT_DETERM o
+       assume_tac ctxt)))));
 
 fun mk_set_intros_tac ctxt sets =
   TRYALL Goal.conjunction_tac THEN unfold_thms_tac ctxt sets THEN
@@ -505,7 +511,8 @@ fun mk_set_induct0_tac ctxt cts assms dtor_set_inducts exhausts set_pre_defs cto
     val assms_tac =
       let val assms' = map (unfold_thms ctxt (@{thm id_bnf_def} :: ctor_defs)) assms in
         fold (curry (op ORELSE')) (map (fn thm =>
-            funpow (length (Thm.prems_of thm)) (fn tac => tac THEN' assume_tac ctxt) (rtac ctxt thm)) assms')
+            funpow (length (Thm.prems_of thm)) (fn tac => tac THEN' assume_tac ctxt)
+              (rtac ctxt thm)) assms')
           (etac ctxt FalseE)
       end;
     val exhausts' = map (fn thm => thm RS @{thm asm_rl[of "P x y" for P x y]}) exhausts
@@ -519,8 +526,8 @@ fun mk_set_induct0_tac ctxt cts assms dtor_set_inducts exhausts set_pre_defs cto
     unfold_thms_tac ctxt (Abs_pre_inverses @ dtor_ctors @ set_pre_defs @ ctor_defs @
       @{thms id_bnf_def o_apply sum_set_simps prod_set_simps UN_empty UN_insert Un_empty_left
         Un_empty_right empty_iff singleton_iff}) THEN
-    REPEAT (HEADGOAL (hyp_subst_tac ctxt ORELSE' eresolve_tac ctxt @{thms UN_E UnE singletonE} ORELSE'
-      assms_tac))
+    REPEAT (HEADGOAL (hyp_subst_tac ctxt ORELSE'
+      eresolve_tac ctxt @{thms UN_E UnE singletonE} ORELSE' assms_tac))
   end;
 
 end;

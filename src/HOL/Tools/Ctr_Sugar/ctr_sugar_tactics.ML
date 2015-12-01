@@ -54,7 +54,8 @@ fun if_P_or_not_P_OF pos thm = thm RS (if pos then @{thm if_P} else @{thm if_not
 
 fun mk_nchotomy_tac ctxt n exhaust =
   HEADGOAL (rtac ctxt allI THEN' rtac ctxt exhaust THEN'
-    EVERY' (maps (fn k => [rtac ctxt (mk_disjIN n k), REPEAT_DETERM o rtac ctxt exI, assume_tac ctxt])
+    EVERY' (maps (fn k =>
+        [rtac ctxt (mk_disjIN n k), REPEAT_DETERM o rtac ctxt exI, assume_tac ctxt])
       (1 upto n)));
 
 fun mk_unique_disc_def_tac ctxt m uexhaust =
@@ -114,7 +115,8 @@ fun mk_expand_tac ctxt n ms uexhaust_disc vexhaust_disc uncollapses distinct_dis
   else
     let val ks = 1 upto n in
       HEADGOAL (rtac ctxt uexhaust_disc THEN'
-        EVERY' (@{map 5} (fn k => fn m => fn distinct_discss => fn distinct_discss' => fn uuncollapse =>
+        EVERY' (@{map 5} (fn k => fn m => fn distinct_discss => fn distinct_discss' =>
+            fn uuncollapse =>
           EVERY' [rtac ctxt (uuncollapse RS trans) THEN'
             TRY o assume_tac ctxt, rtac ctxt sym, rtac ctxt vexhaust_disc,
             EVERY' (@{map 4} (fn k' => fn distinct_discs => fn distinct_discs' => fn vuncollapse =>
@@ -124,13 +126,17 @@ fun mk_expand_tac ctxt n ms uexhaust_disc vexhaust_disc uncollapses distinct_dis
                    (if m = 0 then
                       [rtac ctxt refl]
                     else
-                      [if n = 1 then K all_tac
-                       else EVERY' [dtac ctxt meta_mp, assume_tac ctxt, dtac ctxt meta_mp, assume_tac ctxt],
-                       REPEAT_DETERM_N (Int.max (0, m - 1)) o etac ctxt conjE,
-                       asm_simp_tac (ss_only [] ctxt)])
+                      [if n = 1 then
+                         K all_tac
+                       else
+                         EVERY' [dtac ctxt meta_mp, assume_tac ctxt, dtac ctxt meta_mp,
+                           assume_tac ctxt],
+                         REPEAT_DETERM_N (Int.max (0, m - 1)) o etac ctxt conjE,
+                         asm_simp_tac (ss_only [] ctxt)])
                  else
                    [dtac ctxt (the_single (if k = n then distinct_discs else distinct_discs')),
-                    etac ctxt (if k = n then @{thm iff_contradict(1)} else @{thm iff_contradict(2)}),
+                    etac ctxt (if k = n then @{thm iff_contradict(1)}
+                      else @{thm iff_contradict(2)}),
                     assume_tac ctxt, assume_tac ctxt]))
               ks distinct_discss distinct_discss' uncollapses)])
           ks ms distinct_discsss distinct_discsss' uncollapses))
@@ -152,8 +158,8 @@ fun mk_case_tac ctxt n k case_def injects distinctss =
     val ks = 1 upto n;
   in
     HEADGOAL (rtac ctxt (case_def' RS trans) THEN' rtac ctxt @{thm the_equality} THEN'
-      rtac ctxt (mk_disjIN n k) THEN' REPEAT_DETERM o rtac ctxt exI THEN' rtac ctxt conjI THEN' rtac ctxt refl THEN'
-      rtac ctxt refl THEN'
+      rtac ctxt (mk_disjIN n k) THEN' REPEAT_DETERM o rtac ctxt exI THEN' rtac ctxt conjI THEN'
+      rtac ctxt refl THEN' rtac ctxt refl THEN'
       EVERY' (map2 (fn k' => fn distincts =>
         (if k' < n then etac ctxt disjE else K all_tac) THEN'
         (if k' = k then mk_case_same_ctr_tac ctxt injects
@@ -182,7 +188,8 @@ fun mk_split_tac ctxt ms uexhaust cases selss injectss distinctsss =
        simp_tac (ss_only (@{thms simp_thms} @ cases @ nth selss (k - 1) @ nth injectss (k - 1) @
          flat (nth distinctsss (k - 1))) ctxt)) k) THEN
     ALLGOALS (etac ctxt thin_rl THEN' rtac ctxt iffI THEN'
-      REPEAT_DETERM o rtac ctxt allI THEN' rtac ctxt impI THEN' REPEAT_DETERM o etac ctxt conjE THEN'
+      REPEAT_DETERM o rtac ctxt allI THEN' rtac ctxt impI THEN'
+      REPEAT_DETERM o etac ctxt conjE THEN'
       hyp_subst_tac ctxt THEN' assume_tac ctxt THEN'
       REPEAT_DETERM o etac ctxt allE THEN' etac ctxt impE THEN'
       REPEAT_DETERM o (rtac ctxt conjI THEN' rtac ctxt refl) THEN'

@@ -1,113 +1,121 @@
 (*  Title:      FOL/ex/First_Order_Logic.thy
-    Author:     Markus Wenzel, TU Munich
+    Author:     Makarius
 *)
 
 section \<open>A simple formulation of First-Order Logic\<close>
 
-theory First_Order_Logic imports Pure begin
-
 text \<open>
-  The subsequent theory development illustrates single-sorted
-  intuitionistic first-order logic with equality, formulated within
-  the Pure framework.  Actually this is not an example of
-  Isabelle/FOL, but of Isabelle/Pure.
+  The subsequent theory development illustrates single-sorted intuitionistic
+  first-order logic with equality, formulated within the Pure framework. So
+  this is strictly speaking an example of Isabelle/Pure, not Isabelle/FOL.
 \<close>
 
-subsection \<open>Syntax\<close>
+theory First_Order_Logic
+imports Pure
+begin
+
+subsection \<open>Abstract syntax\<close>
 
 typedecl i
 typedecl o
 
-judgment
-  Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
+judgment Trueprop :: "o \<Rightarrow> prop"  ("_" 5)
 
 
 subsection \<open>Propositional logic\<close>
 
-axiomatization
-  false :: o  ("\<bottom>") and
-  imp :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longrightarrow>" 25) and
-  conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<and>" 35) and
-  disj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<or>" 30)
-where
-  falseE [elim]: "\<bottom> \<Longrightarrow> A" and
+axiomatization false :: o  ("\<bottom>")
+  where falseE [elim]: "\<bottom> \<Longrightarrow> A"
 
-  impI [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B" and
-  mp [dest]: "A \<longrightarrow> B \<Longrightarrow> A \<Longrightarrow> B" and
 
-  conjI [intro]: "A \<Longrightarrow> B \<Longrightarrow> A \<and> B" and
-  conjD1: "A \<and> B \<Longrightarrow> A" and
-  conjD2: "A \<and> B \<Longrightarrow> B" and
+axiomatization imp :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longrightarrow>" 25)
+  where impI [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B"
+    and mp [dest]: "A \<longrightarrow> B \<Longrightarrow> A \<Longrightarrow> B"
 
-  disjE [elim]: "A \<or> B \<Longrightarrow> (A \<Longrightarrow> C) \<Longrightarrow> (B \<Longrightarrow> C) \<Longrightarrow> C" and
-  disjI1 [intro]: "A \<Longrightarrow> A \<or> B" and
-  disjI2 [intro]: "B \<Longrightarrow> A \<or> B"
+
+axiomatization conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<and>" 35)
+  where conjI [intro]: "A \<Longrightarrow> B \<Longrightarrow> A \<and> B"
+    and conjD1: "A \<and> B \<Longrightarrow> A"
+    and conjD2: "A \<and> B \<Longrightarrow> B"
 
 theorem conjE [elim]:
   assumes "A \<and> B"
   obtains A and B
 proof
-  from \<open>A \<and> B\<close> show A by (rule conjD1)
-  from \<open>A \<and> B\<close> show B by (rule conjD2)
+  from \<open>A \<and> B\<close> show A
+    by (rule conjD1)
+  from \<open>A \<and> B\<close> show B
+    by (rule conjD2)
 qed
+
+
+axiomatization disj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<or>" 30)
+  where disjE [elim]: "A \<or> B \<Longrightarrow> (A \<Longrightarrow> C) \<Longrightarrow> (B \<Longrightarrow> C) \<Longrightarrow> C"
+    and disjI1 [intro]: "A \<Longrightarrow> A \<or> B"
+    and disjI2 [intro]: "B \<Longrightarrow> A \<or> B"
+
 
 definition true :: o  ("\<top>")
   where "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
 
+theorem trueI [intro]: \<top>
+  unfolding true_def ..
+
+
 definition not :: "o \<Rightarrow> o"  ("\<not> _" [40] 40)
   where "\<not> A \<equiv> A \<longrightarrow> \<bottom>"
 
-definition iff :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longleftrightarrow>" 25)
-  where "A \<longleftrightarrow> B \<equiv> (A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
-
-
-theorem trueI [intro]: \<top>
-proof (unfold true_def)
-  show "\<bottom> \<longrightarrow> \<bottom>" ..
-qed
-
 theorem notI [intro]: "(A \<Longrightarrow> \<bottom>) \<Longrightarrow> \<not> A"
-proof (unfold not_def)
-  assume "A \<Longrightarrow> \<bottom>"
-  then show "A \<longrightarrow> \<bottom>" ..
-qed
+  unfolding not_def ..
 
 theorem notE [elim]: "\<not> A \<Longrightarrow> A \<Longrightarrow> B"
-proof (unfold not_def)
+  unfolding not_def
+proof -
   assume "A \<longrightarrow> \<bottom>" and A
   then have \<bottom> ..
   then show B ..
 qed
 
-theorem iffI [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<longleftrightarrow> B"
-proof (unfold iff_def)
-  assume "A \<Longrightarrow> B" then have "A \<longrightarrow> B" ..
-  moreover assume "B \<Longrightarrow> A" then have "B \<longrightarrow> A" ..
-  ultimately show "(A \<longrightarrow> B) \<and> (B \<longrightarrow> A)" ..
+
+definition iff :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longleftrightarrow>" 25)
+  where "A \<longleftrightarrow> B \<equiv> (A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
+
+theorem iffI [intro]:
+  assumes "A \<Longrightarrow> B"
+    and "B \<Longrightarrow> A"
+  shows "A \<longleftrightarrow> B"
+  unfolding iff_def
+proof
+  from \<open>A \<Longrightarrow> B\<close> show "A \<longrightarrow> B" ..
+  from \<open>B \<Longrightarrow> A\<close> show "B \<longrightarrow> A" ..
 qed
 
-theorem iff1 [elim]: "A \<longleftrightarrow> B \<Longrightarrow> A \<Longrightarrow> B"
-proof (unfold iff_def)
-  assume "(A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
+theorem iff1 [elim]:
+  assumes "A \<longleftrightarrow> B" and A
+  shows B
+proof -
+  from \<open>A \<longleftrightarrow> B\<close> have "(A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
+    unfolding iff_def .
   then have "A \<longrightarrow> B" ..
-  then show "A \<Longrightarrow> B" ..
+  from this and \<open>A\<close> show B ..
 qed
 
-theorem iff2 [elim]: "A \<longleftrightarrow> B \<Longrightarrow> B \<Longrightarrow> A"
-proof (unfold iff_def)
-  assume "(A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
+theorem iff2 [elim]:
+  assumes "A \<longleftrightarrow> B" and B
+  shows A
+proof -
+  from \<open>A \<longleftrightarrow> B\<close> have "(A \<longrightarrow> B) \<and> (B \<longrightarrow> A)"
+    unfolding iff_def .
   then have "B \<longrightarrow> A" ..
-  then show "B \<Longrightarrow> A" ..
+  from this and \<open>B\<close> show A ..
 qed
 
 
 subsection \<open>Equality\<close>
 
-axiomatization
-  equal :: "i \<Rightarrow> i \<Rightarrow> o"  (infixl "=" 50)
-where
-  refl [intro]: "x = x" and
-  subst: "x = y \<Longrightarrow> P x \<Longrightarrow> P y"
+axiomatization equal :: "i \<Rightarrow> i \<Rightarrow> o"  (infixl "=" 50)
+  where refl [intro]: "x = x"
+    and subst: "x = y \<Longrightarrow> P x \<Longrightarrow> P y"
 
 theorem trans [trans]: "x = y \<Longrightarrow> y = z \<Longrightarrow> x = z"
   by (rule subst)
@@ -115,43 +123,38 @@ theorem trans [trans]: "x = y \<Longrightarrow> y = z \<Longrightarrow> x = z"
 theorem sym [sym]: "x = y \<Longrightarrow> y = x"
 proof -
   assume "x = y"
-  from this and refl show "y = x" by (rule subst)
+  from this and refl show "y = x"
+    by (rule subst)
 qed
 
 
 subsection \<open>Quantifiers\<close>
 
-axiomatization
-  All :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<forall>" 10) and
-  Ex :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>" 10)
-where
-  allI [intro]: "(\<And>x. P x) \<Longrightarrow> \<forall>x. P x" and
-  allD [dest]: "\<forall>x. P x \<Longrightarrow> P a" and
-  exI [intro]: "P a \<Longrightarrow> \<exists>x. P x" and
-  exE [elim]: "\<exists>x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> C) \<Longrightarrow> C"
+axiomatization All :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<forall>" 10)
+  where allI [intro]: "(\<And>x. P x) \<Longrightarrow> \<forall>x. P x"
+    and allD [dest]: "\<forall>x. P x \<Longrightarrow> P a"
+
+axiomatization Ex :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>" 10)
+  where exI [intro]: "P a \<Longrightarrow> \<exists>x. P x"
+    and exE [elim]: "\<exists>x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> C) \<Longrightarrow> C"
 
 
 lemma "(\<exists>x. P (f x)) \<longrightarrow> (\<exists>y. P y)"
 proof
   assume "\<exists>x. P (f x)"
-  then show "\<exists>y. P y"
-  proof
-    fix x assume "P (f x)"
-    then show ?thesis ..
-  qed
+  then obtain x where "P (f x)" ..
+  then show "\<exists>y. P y" ..
 qed
 
 lemma "(\<exists>x. \<forall>y. R x y) \<longrightarrow> (\<forall>y. \<exists>x. R x y)"
 proof
   assume "\<exists>x. \<forall>y. R x y"
-  then show "\<forall>y. \<exists>x. R x y"
+  then obtain x where "\<forall>y. R x y" ..
+  show "\<forall>y. \<exists>x. R x y"
   proof
-    fix x assume a: "\<forall>y. R x y"
-    show ?thesis
-    proof
-      fix y from a have "R x y" ..
-      then show "\<exists>x. R x y" ..
-    qed
+    fix y
+    from \<open>\<forall>y. R x y\<close> have "R x y" ..
+    then show "\<exists>x. R x y" ..
   qed
 qed
 

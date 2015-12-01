@@ -50,8 +50,8 @@ sig
   val ctr_sugars_of_global: theory -> ctr_sugar list
   val ctr_sugar_of_case: Proof.context -> string -> ctr_sugar option
   val ctr_sugar_of_case_global: theory -> string -> ctr_sugar option
-  val ctr_sugar_interpretation: string ->
-    (ctr_sugar -> local_theory -> local_theory) -> theory -> theory
+  val ctr_sugar_interpretation: string -> (ctr_sugar -> local_theory -> local_theory) -> theory ->
+    theory
   val interpret_ctr_sugar: (string -> bool) -> ctr_sugar -> local_theory -> local_theory
   val register_ctr_sugar_raw: ctr_sugar -> local_theory -> local_theory
   val register_ctr_sugar: (string -> bool) -> ctr_sugar -> local_theory -> local_theory
