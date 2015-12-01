@@ -66,7 +66,6 @@ proof -
       using assms by (cases "i \<le> j") (auto simp: algebra_simps)
   } hence "?S \<le> 0"
     by (auto intro!: setsum_nonpos simp: mult_le_0_iff)
-       (auto simp: field_simps)
   finally show ?thesis by (simp add: algebra_simps)
 qed
 

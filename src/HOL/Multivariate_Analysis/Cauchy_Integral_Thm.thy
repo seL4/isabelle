@@ -3012,7 +3012,7 @@ proof -
                  \<subseteq> ball (p t) (ee (p t))"
             apply (intro subset_path_image_join pi_hgn pi_ghn')
             using \<open>N>0\<close> Suc.prems
-            apply (auto simp: dist_norm field_simps closed_segment_eq_real_ivl ptgh_ee)
+            apply (auto simp: path_image_subpath dist_norm field_simps closed_segment_eq_real_ivl ptgh_ee)
             done
           have pi0: "(f has_contour_integral 0)
                        (subpath (n/ N) ((Suc n)/N) g +++ linepath(g ((Suc n) / N)) (h((Suc n) / N)) +++
@@ -3492,7 +3492,7 @@ lemma winding_number_trivial [simp]: "z \<noteq> a \<Longrightarrow> winding_num
   by (simp add: winding_number_valid_path)
 
 lemma winding_number_subpath_trivial [simp]: "z \<noteq> g x \<Longrightarrow> winding_number (subpath x x g) z = 0"
-  by (simp add: winding_number_valid_path)
+  by (simp add: path_image_subpath winding_number_valid_path)
 
 lemma winding_number_join:
   assumes g1: "path g1" "z \<notin> path_image g1"
@@ -3742,7 +3742,7 @@ proof -
         by (rule continuous_at_imp_continuous_within)
       have gdx: "\<gamma> differentiable at x"
         using x by (simp add: g_diff_at)
-      have "((\<lambda>c. Exp (- integral {a..c} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z))) * (\<gamma> c - z)) has_derivative (\<lambda>h. 0))
+      have "((\<lambda>c. exp (- integral {a..c} (\<lambda>x. vector_derivative \<gamma> (at x) / (\<gamma> x - z))) * (\<gamma> c - z)) has_derivative (\<lambda>h. 0))
           (at x within {a..b})"
         using x gdx t
         apply (clarsimp simp add: differentiable_iff_scaleR)
@@ -3781,7 +3781,7 @@ proof -
                     "pathstart p = pathstart \<gamma>" "pathfinish p = pathfinish \<gamma>"
                     "contour_integral p (\<lambda>w. 1 / (w - z)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z"
     using winding_number [OF assms, of 1] by auto
-  have [simp]: "(winding_number \<gamma> z \<in> \<int>) = (Exp (contour_integral p (\<lambda>w. 1 / (w - z))) = 1)"
+  have [simp]: "(winding_number \<gamma> z \<in> \<int>) = (exp (contour_integral p (\<lambda>w. 1 / (w - z))) = 1)"
       using p by (simp add: exp_eq_1 complex_is_Int_iff)
   have "winding_number p z \<in> \<int> \<longleftrightarrow> pathfinish p = pathstart p"
     using p z
@@ -3840,7 +3840,7 @@ proof -
     using eqArg by (simp add: i_def)
   have gpdt: "\<gamma> piecewise_C1_differentiable_on {0..t}"
     by (metis atLeastAtMost_iff atLeastatMost_subset_iff order_refl piecewise_C1_differentiable_on_subset gpd t)
-  have "Exp (- i) * (\<gamma> t - z) = \<gamma> 0 - z"
+  have "exp (- i) * (\<gamma> t - z) = \<gamma> 0 - z"
     unfolding i_def
     apply (rule winding_number_exp_integral [OF gpdt])
     using t z unfolding path_image_def
@@ -3855,7 +3855,7 @@ proof -
     apply (subst Complex_Transcendental.Arg_eq [of r])
     apply (simp add: iArg)
     using *
-    apply (simp add: Exp_eq_polar field_simps)
+    apply (simp add: exp_eq_polar field_simps)
     done
   with t show ?thesis
     by (rule_tac x="exp(Re i) / norm r" in exI) (auto simp: path_image_def)
@@ -4225,8 +4225,8 @@ proof -
     also have "... = winding_number (subpath 0 x \<gamma>) z"
       apply (subst winding_number_valid_path)
       using assms x
-      apply (simp_all add: valid_path_subpath)
-      by (force simp: closed_segment_eq_real_ivl path_image_def)
+      apply (simp_all add: path_image_subpath valid_path_subpath)
+      by (force simp: path_image_def)
     finally show ?thesis .
   qed
   show ?thesis
@@ -4277,7 +4277,7 @@ proof -
     have gt: "\<gamma> t - z = - (of_real (exp (- (2 * pi * Im (winding_number (subpath 0 t \<gamma>) z)))) * (\<gamma> 0 - z))"
       using winding_number_exp_2pi [of "subpath 0 t \<gamma>" z]
       apply (simp add: t \<gamma> valid_path_imp_path)
-      using closed_segment_eq_real_ivl path_image_def t z by (fastforce simp add: Euler sub12)
+      using closed_segment_eq_real_ivl path_image_def t z by (fastforce simp: path_image_subpath Euler sub12)
     have "b < a \<bullet> \<gamma> 0"
     proof -
       have "\<gamma> 0 \<in> {c. b < a \<bullet> c}"
@@ -4321,7 +4321,7 @@ proof -
     have "isCont (winding_number \<gamma>) z"
       by (metis continuous_at_winding_number valid_path_imp_path \<gamma> z)
     then obtain d where "d>0" and d: "\<And>x'. dist x' z < d \<Longrightarrow> dist (winding_number \<gamma> x') (winding_number \<gamma> z) < abs(Re(winding_number \<gamma> z)) - 1/2"
-      using continuous_at_eps_delta wnz_12 diff_less_iff(1) by blast
+      using continuous_at_eps_delta wnz_12 diff_gt_0_iff_gt by blast
     def z' \<equiv> "z - (d / (2 * cmod a)) *\<^sub>R a"
     have *: "a \<bullet> z' \<le> b - d / 3 * cmod a"
       unfolding z'_def inner_mult_right' divide_inverse

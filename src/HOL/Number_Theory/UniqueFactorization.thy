@@ -107,9 +107,7 @@ proof (cases "a \<in> set_mset M")
   ultimately have "a ^ count M a dvd a ^ count N a"
     by (elim coprime_dvd_mult_nat)
   with a show ?thesis
-    apply (intro power_dvd_imp_le)
-    apply auto
-    done
+    using power_dvd_imp_le prime_def by blast
 next
   case False
   then show ?thesis
@@ -247,14 +245,14 @@ lemma prime_factors_prime_int [intro]:
   using assms apply auto
   done
 
-lemma prime_factors_gt_0_nat [elim]:
+lemma prime_factors_gt_0_nat:
   fixes p :: nat
   shows "p \<in> prime_factors x \<Longrightarrow> p > 0"
-  by (auto dest!: prime_factors_prime_nat)
+    using prime_factors_prime_nat by force
 
-lemma prime_factors_gt_0_int [elim]:
+lemma prime_factors_gt_0_int:
   shows "x \<ge> 0 \<Longrightarrow> p \<in> prime_factors x \<Longrightarrow> int p > (0::int)"
-  by auto
+    by (simp add: prime_factors_gt_0_nat)
 
 lemma prime_factors_finite_nat [iff]:
   fixes n :: nat
@@ -303,7 +301,8 @@ lemma prime_factorization_unique_nat:
 proof -
   from assms have "f \<in> multiset"
     by (auto simp add: multiset_def)
-  moreover from assms have "n > 0" by force
+  moreover from assms have "n > 0" 
+    by (auto intro: prime_gt_0_nat)
   ultimately have "multiset_prime_factorization n = Abs_multiset f"
     apply (unfold multiset_prime_factorization_def)
     apply (subst if_P, assumption)
@@ -723,16 +722,16 @@ lemma gcd_eq_nat:
     (\<Prod>p \<in> prime_factors x \<union> prime_factors y. p ^ min (multiplicity p x) (multiplicity p y))"
   (is "_ = ?z")
 proof -
-  have [arith]: "?z > 0"
-    by auto
+  have [arith]: "?z > 0" 
+    using prime_factors_gt_0_nat by auto
   have aux: "\<And>p. prime p \<Longrightarrow> multiplicity p ?z = min (multiplicity p x) (multiplicity p y)"
     apply (subst multiplicity_prod_prime_powers_nat)
     apply auto
     done
   have "?z dvd x"
-    by (intro multiplicity_dvd'_nat) (auto simp add: aux)
+    by (intro multiplicity_dvd'_nat) (auto simp add: aux intro: prime_gt_0_nat)
   moreover have "?z dvd y"
-    by (intro multiplicity_dvd'_nat) (auto simp add: aux)
+    by (intro multiplicity_dvd'_nat) (auto simp add: aux intro: prime_gt_0_nat)
   moreover have "w dvd x \<and> w dvd y \<longrightarrow> w dvd ?z" for w
   proof (cases "w = 0")
     case True
@@ -758,7 +757,7 @@ lemma lcm_eq_nat:
   (is "_ = ?z")
 proof -
   have [arith]: "?z > 0"
-    by auto
+    by (auto intro: prime_gt_0_nat)
   have aux: "\<And>p. prime p \<Longrightarrow> multiplicity p ?z = max (multiplicity p x) (multiplicity p y)"
     apply (subst multiplicity_prod_prime_powers_nat)
     apply auto
@@ -776,7 +775,7 @@ proof -
     then show ?thesis
       apply auto
       apply (rule multiplicity_dvd'_nat)
-      apply (auto intro: dvd_multiplicity_nat simp add: aux)
+      apply (auto intro: prime_gt_0_nat dvd_multiplicity_nat simp add: aux)
       done
   qed
   ultimately have "?z = lcm x y"

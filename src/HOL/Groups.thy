@@ -999,6 +999,9 @@ apply (subst less_iff_diff_less_0 [of a])
 apply (simp add: algebra_simps)
 done
 
+lemma diff_gt_0_iff_gt [simp]: "a - b > 0 \<longleftrightarrow> a > b"
+by (simp add: less_diff_eq)
+
 lemma diff_le_eq[algebra_simps, field_simps]: "a - b \<le> c \<longleftrightarrow> a \<le> c + b"
 by (auto simp add: le_less diff_less_eq )
 

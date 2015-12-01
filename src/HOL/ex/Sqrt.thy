@@ -14,7 +14,7 @@ theorem sqrt_prime_irrational:
   assumes "prime (p::nat)"
   shows "sqrt p \<notin> \<rat>"
 proof
-  from \<open>prime p\<close> have p: "1 < p" by (simp add: prime_nat_def)
+  from \<open>prime p\<close> have p: "1 < p" by (simp add: prime_def)
   assume "sqrt p \<in> \<rat>"
   then obtain m n :: nat where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt p\<bar> = m / n"
@@ -59,7 +59,7 @@ theorem
   assumes "prime (p::nat)"
   shows "sqrt p \<notin> \<rat>"
 proof
-  from \<open>prime p\<close> have p: "1 < p" by (simp add: prime_nat_def)
+  from \<open>prime p\<close> have p: "1 < p" by (simp add: prime_def)
   assume "sqrt p \<in> \<rat>"
   then obtain m n :: nat where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt p\<bar> = m / n"

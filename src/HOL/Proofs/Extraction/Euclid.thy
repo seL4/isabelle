@@ -29,7 +29,7 @@ lemma prod_mn_less_k:
   by (induct m) auto
 
 lemma prime_eq: "prime (p::nat) = (1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> 1 < m \<longrightarrow> m = p))"
-  apply (simp add: prime_nat_def)
+  apply (simp add: prime_def)
   apply (rule iffI)
   apply blast
   apply (erule conjE)

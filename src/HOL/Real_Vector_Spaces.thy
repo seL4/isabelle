@@ -9,6 +9,10 @@ theory Real_Vector_Spaces
 imports Real Topological_Spaces
 begin
 
+
+lemma (in ordered_ab_group_add) diff_ge_0_iff_ge [simp]: "a - b \<ge> 0 \<longleftrightarrow> a \<ge> b"
+  by (simp add: le_diff_eq)
+
 subsection \<open>Locale for additive functions\<close>
 
 locale additive =
@@ -776,6 +780,11 @@ proof -
     by (rule norm_triangle_ineq2)
   thus ?thesis by simp
 qed
+
+lemma norm_add_leD:
+  fixes a b :: "'a::real_normed_vector"
+  shows "norm (a + b) \<le> c \<Longrightarrow> norm b \<le> norm a + c"
+    by (metis add.commute diff_le_eq norm_diff_ineq order.trans)
 
 lemma norm_diff_triangle_ineq:
   fixes a b c d :: "'a::real_normed_vector"

@@ -380,9 +380,7 @@ proof -
       by (simp add: algebra_simps power_mult power2_eq_square power_mult_distrib [symmetric])
     also have "... \<le> (1/(k * (p t))^n) * 1"
       apply (rule mult_left_mono [OF power_le_one])
-      apply (metis diff_le_iff(1) less_eq_real_def mult.commute power_le_one power_mult ptn_pos ptn_le)
-      using pt_pos [OF t] \<open>k>0\<close>
-      apply auto
+      using pt_pos \<open>k>0\<close> p01 power_le_one t apply auto
       done
     also have "... \<le> (1 / (k*\<delta>))^n"
       using \<open>k>0\<close> \<delta>01  power_mono pt_\<delta> t

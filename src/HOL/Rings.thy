@@ -1559,6 +1559,9 @@ lemma zero_le_square [simp]: "0 \<le> a * a"
 lemma not_square_less_zero [simp]: "\<not> (a * a < 0)"
   by (simp add: not_less)
 
+proposition abs_eq_iff: "abs x = abs y \<longleftrightarrow> x = y \<or> x = -y"
+  by (auto simp add: abs_if split: split_if_asm)
+
 end
 
 class linordered_ring_strict = ring + linordered_semiring_strict

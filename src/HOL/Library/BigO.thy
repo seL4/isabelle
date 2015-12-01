@@ -200,8 +200,6 @@ lemma bigo_bounded2: "\<forall>x. lb x \<le> f x \<Longrightarrow> \<forall>x. f
   apply (auto simp add: fun_Compl_def func_plus)
   apply (drule_tac x = x in spec)+
   apply force
-  apply (drule_tac x = x in spec)+
-  apply force
   done
 
 lemma bigo_abs: "(\<lambda>x. abs (f x)) =o O(f)"

@@ -375,7 +375,7 @@ lemma path_compose_join: "f o (p +++ q) = (f o p) +++ (f o q)"
 lemma path_compose_reversepath: "f o reversepath p = reversepath(f o p)"
   by (rule ext) (simp add: reversepath_def)
 
-lemma join_paths_eq:
+lemma joinpaths_eq:
   "(\<And>t. t \<in> {0..1} \<Longrightarrow> p t = p' t) \<Longrightarrow>
    (\<And>t. t \<in> {0..1} \<Longrightarrow> q t = q' t)
    \<Longrightarrow>  t \<in> {0..1} \<Longrightarrow> (p +++ q) t = (p' +++ q') t"
@@ -452,8 +452,6 @@ qed
 
 lemma path_join_imp: "\<lbrakk>path g1; path g2; pathfinish g1 = pathstart g2\<rbrakk> \<Longrightarrow> path(g1 +++ g2)"
   by (simp add: path_join)
-
-lemmas join_paths_simps = path_join path_image_join pathstart_join pathfinish_join
 
 lemma simple_path_join_loop:
   assumes "arc g1" "arc g2"
@@ -563,18 +561,18 @@ section\<open>Choosing a subpath of an existing path\<close>
 definition subpath :: "real \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a::real_normed_vector"
   where "subpath a b g \<equiv> \<lambda>x. g((b - a) * x + a)"
 
-lemma path_image_subpath_gen [simp]:
-  fixes g :: "real \<Rightarrow> 'a::real_normed_vector"
+lemma path_image_subpath_gen:
+  fixes g :: "_ \<Rightarrow> 'a::real_normed_vector"
   shows "path_image(subpath u v g) = g ` (closed_segment u v)"
   apply (simp add: closed_segment_real_eq path_image_def subpath_def)
   apply (subst o_def [of g, symmetric])
   apply (simp add: image_comp [symmetric])
   done
 
-lemma path_image_subpath [simp]:
+lemma path_image_subpath:
   fixes g :: "real \<Rightarrow> 'a::real_normed_vector"
   shows "path_image(subpath u v g) = (if u \<le> v then g ` {u..v} else g ` {v..u})"
-  by (simp add: closed_segment_eq_real_ivl)
+  by (simp add: path_image_subpath_gen closed_segment_eq_real_ivl)
 
 lemma path_subpath [simp]:
   fixes g :: "real \<Rightarrow> 'a::real_normed_vector"
@@ -614,7 +612,7 @@ lemma subpath_linear_image: "linear f \<Longrightarrow> subpath u v (f o g) = f 
 
 lemma affine_ineq:
   fixes x :: "'a::linordered_idom"
-  assumes "x \<le> 1" "v < u"
+  assumes "x \<le> 1" "v \<le> u"
     shows "v + x * u \<le> u + x * v"
 proof -
   have "(1-x)*(u-v) \<ge> 0"
@@ -726,7 +724,7 @@ lemma arc_simple_path_subpath_interior:
 
 lemma path_image_subpath_subset:
     "\<lbrakk>path g; u \<in> {0..1}; v \<in> {0..1}\<rbrakk> \<Longrightarrow> path_image(subpath u v g) \<subseteq> path_image g"
-  apply (simp add: closed_segment_real_eq image_affinity_atLeastAtMost)
+  apply (simp add: closed_segment_real_eq image_affinity_atLeastAtMost path_image_subpath)
   apply (auto simp: path_image_def)
   done
 
@@ -805,7 +803,7 @@ proof -
     apply (rule that [OF `0 \<le> u` `u \<le> 1`])
     apply (metis DiffI disj frontier_def g0 notin pathstart_def)
     using `0 \<le> u` g0 disj
-    apply (simp add:)
+    apply (simp add: path_image_subpath_gen)
     apply (auto simp: closed_segment_eq_real_ivl pathstart_def pathfinish_def subpath_def)
     apply (rename_tac y)
     apply (drule_tac x="y/u" in spec)
@@ -825,7 +823,7 @@ proof -
   show ?thesis
     apply (rule that [of "subpath 0 u g"])
     using assms u
-    apply simp_all
+    apply (simp_all add: path_image_subpath)
     apply (simp add: pathstart_def)
     apply (force simp: closed_segment_eq_real_ivl path_image_def)
     done
@@ -966,7 +964,7 @@ lemma continuous_linepath_at[intro]: "continuous (at x) (linepath a b)"
   unfolding linepath_def
   by (intro continuous_intros)
 
-lemma continuous_on_linepath[intro]: "continuous_on s (linepath a b)"
+lemma continuous_on_linepath [intro,continuous_intros]: "continuous_on s (linepath a b)"
   using continuous_linepath_at
   by (auto intro!: continuous_at_imp_continuous_on)
 
@@ -981,6 +979,9 @@ lemma path_image_linepath[simp]: "path_image (linepath a b) = closed_segment a b
 lemma reversepath_linepath[simp]: "reversepath (linepath a b) = linepath b a"
   unfolding reversepath_def linepath_def
   by auto
+
+lemma linepath_0 [simp]: "linepath 0 b x = x *\<^sub>R b"
+  by (simp add: linepath_def)
 
 lemma arc_linepath:
   assumes "a \<noteq> b"
@@ -1566,7 +1567,7 @@ next
       have CC: "1 \<le> 1 + (C - 1) * u"
         using `x \<noteq> a` `0 \<le> u`
         apply (simp add: C_def divide_simps norm_minus_commute)
-        by (metis Bx diff_le_iff(1) less_eq_real_def mult_nonneg_nonneg)
+        using Bx by auto
       have *: "\<And>v. (1 - u) *\<^sub>R x + u *\<^sub>R (a + v *\<^sub>R (x - a)) = a + (1 + (v - 1) * u) *\<^sub>R (x - a)"
         by (simp add: algebra_simps)
       have "a + ((1 / (1 + C * u - u)) *\<^sub>R x + ((u / (1 + C * u - u)) *\<^sub>R a + (C * u / (1 + C * u - u)) *\<^sub>R x)) =
@@ -1601,7 +1602,7 @@ next
       have DD: "1 \<le> 1 + (D - 1) * u"
         using `y \<noteq> a` `0 \<le> u`
         apply (simp add: D_def divide_simps norm_minus_commute)
-        by (metis By diff_le_iff(1) less_eq_real_def mult_nonneg_nonneg)
+        using By by auto
       have *: "\<And>v. (1 - u) *\<^sub>R y + u *\<^sub>R (a + v *\<^sub>R (y - a)) = a + (1 + (v - 1) * u) *\<^sub>R (y - a)"
         by (simp add: algebra_simps)
       have "a + ((1 / (1 + D * u - u)) *\<^sub>R y + ((u / (1 + D * u - u)) *\<^sub>R a + (D * u / (1 + D * u - u)) *\<^sub>R y)) =
@@ -2793,7 +2794,7 @@ proposition homotopic_paths_sym: "homotopic_paths s p q \<Longrightarrow> homoto
 proposition homotopic_paths_sym_eq: "homotopic_paths s p q \<longleftrightarrow> homotopic_paths s q p"
   by (metis homotopic_paths_sym)
 
-proposition homotopic_paths_trans:
+proposition homotopic_paths_trans [trans]:
      "\<lbrakk>homotopic_paths s p q; homotopic_paths s q r\<rbrakk> \<Longrightarrow> homotopic_paths s p r"
   apply (simp add: homotopic_paths_def)
   apply (rule homotopic_with_trans, assumption)
@@ -3261,5 +3262,84 @@ proof -
     apply (auto simp: intro!: homotopic_loops_nearby_explicit assms  \<open>e > 0\<close>)
     by (metis atLeastAtMost_iff imageI le_less_trans not_le path_image_def)
 qed
+
+subsection\<open> Homotopy and subpaths\<close>
+
+lemma homotopic_join_subpaths1:
+  assumes "path g" and pag: "path_image g \<subseteq> s"
+      and u: "u \<in> {0..1}" and v: "v \<in> {0..1}" and w: "w \<in> {0..1}" "u \<le> v" "v \<le> w"
+    shows "homotopic_paths s (subpath u v g +++ subpath v w g) (subpath u w g)"
+proof -
+  have 1: "t * 2 \<le> 1 \<Longrightarrow> u + t * (v * 2) \<le> v + t * (u * 2)" for t
+    using affine_ineq \<open>u \<le> v\<close> by fastforce
+  have 2: "t * 2 > 1 \<Longrightarrow> u + (2*t - 1) * v \<le> v + (2*t - 1) * w" for t
+    by (metis add_mono_thms_linordered_semiring(1) diff_gt_0_iff_gt less_eq_real_def mult.commute mult_right_mono \<open>u \<le> v\<close> \<open>v \<le> w\<close>)
+  have t2: "\<And>t::real. t*2 = 1 \<Longrightarrow> t = 1/2" by auto
+  show ?thesis
+    apply (rule homotopic_paths_subset [OF _ pag])
+    using assms
+    apply (cases "w = u")
+    using homotopic_paths_rinv [of "subpath u v g" "path_image g"]
+    apply (force simp: closed_segment_eq_real_ivl image_mono path_image_def subpath_refl)
+      apply (rule homotopic_paths_sym)
+      apply (rule homotopic_paths_reparametrize
+             [where f = "\<lambda>t. if  t \<le> 1 / 2
+                             then inverse((w - u)) *\<^sub>R (2 * (v - u)) *\<^sub>R t
+                             else inverse((w - u)) *\<^sub>R ((v - u) + (w - v) *\<^sub>R (2 *\<^sub>R t - 1))"])
+      using \<open>path g\<close> path_subpath u w apply blast
+      using \<open>path g\<close> path_image_subpath_subset u w(1) apply blast
+      apply simp_all
+      apply (subst split_01)
+      apply (rule continuous_on_cases continuous_intros | force simp: pathfinish_def joinpaths_def)+
+      apply (simp_all add: field_simps not_le)
+      apply (force dest!: t2)
+      apply (force simp: algebra_simps mult_left_mono affine_ineq dest!: 1 2)
+      apply (simp add: joinpaths_def subpath_def)
+      apply (force simp: algebra_simps)
+      done
+qed
+
+lemma homotopic_join_subpaths2:
+  assumes "homotopic_paths s (subpath u v g +++ subpath v w g) (subpath u w g)"
+    shows "homotopic_paths s (subpath w v g +++ subpath v u g) (subpath w u g)"
+by (metis assms homotopic_paths_reversepath_D pathfinish_subpath pathstart_subpath reversepath_joinpaths reversepath_subpath)
+
+lemma homotopic_join_subpaths3:
+  assumes hom: "homotopic_paths s (subpath u v g +++ subpath v w g) (subpath u w g)"
+      and "path g" and pag: "path_image g \<subseteq> s"
+      and u: "u \<in> {0..1}" and v: "v \<in> {0..1}" and w: "w \<in> {0..1}"
+    shows "homotopic_paths s (subpath v w g +++ subpath w u g) (subpath v u g)"
+proof -
+  have "homotopic_paths s (subpath u w g +++ subpath w v g) ((subpath u v g +++ subpath v w g) +++ subpath w v g)"
+    apply (rule homotopic_paths_join)
+    using hom homotopic_paths_sym_eq apply blast
+    apply (metis \<open>path g\<close> homotopic_paths_eq pag path_image_subpath_subset path_subpath subset_trans v w)
+    apply (simp add:)
+    done
+  also have "homotopic_paths s ((subpath u v g +++ subpath v w g) +++ subpath w v g) (subpath u v g +++ subpath v w g +++ subpath w v g)"
+    apply (rule homotopic_paths_sym [OF homotopic_paths_assoc])
+    using assms by (simp_all add: path_image_subpath_subset [THEN order_trans])
+  also have "homotopic_paths s (subpath u v g +++ subpath v w g +++ subpath w v g)
+                               (subpath u v g +++ linepath (pathfinish (subpath u v g)) (pathfinish (subpath u v g)))"
+    apply (rule homotopic_paths_join)
+    apply (metis \<open>path g\<close> homotopic_paths_eq order.trans pag path_image_subpath_subset path_subpath u v)
+    apply (metis (no_types, lifting) \<open>path g\<close> homotopic_paths_linv order_trans pag path_image_subpath_subset path_subpath pathfinish_subpath reversepath_subpath v w)
+    apply (simp add:)
+    done
+  also have "homotopic_paths s (subpath u v g +++ linepath (pathfinish (subpath u v g)) (pathfinish (subpath u v g))) (subpath u v g)"
+    apply (rule homotopic_paths_rid)
+    using \<open>path g\<close> path_subpath u v apply blast
+    apply (meson \<open>path g\<close> order.trans pag path_image_subpath_subset u v)
+    done
+  finally have "homotopic_paths s (subpath u w g +++ subpath w v g) (subpath u v g)" .
+  then show ?thesis
+    using homotopic_join_subpaths2 by blast
+qed
+
+proposition homotopic_join_subpaths:
+   "\<lbrakk>path g; path_image g \<subseteq> s; u \<in> {0..1}; v \<in> {0..1}; w \<in> {0..1}\<rbrakk>
+    \<Longrightarrow> homotopic_paths s (subpath u v g +++ subpath v w g) (subpath u w g)"
+apply (rule le_cases3 [of u v w])
+using homotopic_join_subpaths1 homotopic_join_subpaths2 homotopic_join_subpaths3 by metis+
 
 end

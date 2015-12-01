@@ -310,6 +310,11 @@ lemma le_cases [case_names le ge]:
   "(x \<le> y \<Longrightarrow> P) \<Longrightarrow> (y \<le> x \<Longrightarrow> P) \<Longrightarrow> P"
 using linear by blast
 
+lemma (in linorder) le_cases3:
+  "\<lbrakk>\<lbrakk>x \<le> y; y \<le> z\<rbrakk> \<Longrightarrow> P; \<lbrakk>y \<le> x; x \<le> z\<rbrakk> \<Longrightarrow> P; \<lbrakk>x \<le> z; z \<le> y\<rbrakk> \<Longrightarrow> P;
+    \<lbrakk>z \<le> y; y \<le> x\<rbrakk> \<Longrightarrow> P; \<lbrakk>y \<le> z; z \<le> x\<rbrakk> \<Longrightarrow> P; \<lbrakk>z \<le> x; x \<le> y\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+by (blast intro: le_cases)
+
 lemma linorder_cases [case_names less equal greater]:
   "(x < y \<Longrightarrow> P) \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> (y < x \<Longrightarrow> P) \<Longrightarrow> P"
 using less_linear by blast

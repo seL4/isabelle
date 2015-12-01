@@ -1116,10 +1116,11 @@ lemma truncate_down_pos:
 proof -
   have "0 \<le> log 2 x - real_of_int \<lfloor>log 2 x\<rfloor>"
     by (simp add: algebra_simps)
-  from this assms
+  with assms
   show ?thesis
-    by (auto simp: truncate_down_def round_down_def mult_powr_eq
+    apply (auto simp: truncate_down_def round_down_def mult_powr_eq 
       intro!: ge_one_powr_ge_zero mult_pos_pos)
+    by linarith
 qed
 
 lemma truncate_down_nonneg: "0 \<le> y \<Longrightarrow> 0 \<le> truncate_down prec y"

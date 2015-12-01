@@ -46,8 +46,8 @@ next
   assume l_r[simp]: "\<And>n. l n \<le> r n" and "a \<le> b" and disj: "disjoint_family (\<lambda>n. {l n<..r n})"
   assume lr_eq_ab: "(\<Union>i. {l i<..r i}) = {a<..b}"
 
-  have [intro, simp]: "\<And>a b. a \<le> b \<Longrightarrow> 0 \<le> F b - F a"
-    by (auto intro!: l_r mono_F simp: diff_le_iff)
+  have [intro, simp]: "\<And>a b. a \<le> b \<Longrightarrow> F a \<le> F b"
+    by (auto intro!: l_r mono_F)
 
   { fix S :: "nat set" assume "finite S"
     moreover note `a \<le> b`
@@ -92,7 +92,7 @@ next
           by (auto simp add: Ioc_subset_iff intro!: mono_F)
         finally show ?case
           by (auto intro: add_mono)
-      qed (simp add: `a \<le> b` less_le)
+      qed (auto simp add: `a \<le> b` less_le)
     qed }
   note claim1 = this
 
@@ -280,7 +280,7 @@ next
     by (auto simp add: claim1 intro!: suminf_bound)
   ultimately show "(\<Sum>n. ereal (F (r n) - F (l n))) = ereal (F b - F a)"
     by simp
-qed (auto simp: Ioc_inj diff_le_iff mono_F)
+qed (auto simp: Ioc_inj mono_F)
 
 lemma measure_interval_measure_Ioc:
   assumes "a \<le> b"

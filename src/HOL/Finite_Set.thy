@@ -319,6 +319,16 @@ lemma finite_vimage_IntI:
   apply (simp add: finite_subset [OF inj_on_vimage_singleton] Int_Un_distrib2)
   done
 
+lemma finite_finite_vimage_IntI:
+  assumes "finite F" and "\<And>y. y \<in> F \<Longrightarrow> finite ((h -` {y}) \<inter> A)"
+  shows "finite (h -` F \<inter> A)"
+proof -
+  have *: "h -` F \<inter> A = (\<Union> y\<in>F. (h -` {y}) \<inter> A)"
+    by blast
+  show ?thesis
+    by (simp only: * assms finite_UN_I)
+qed
+
 lemma finite_vimageI:
   "finite F \<Longrightarrow> inj h \<Longrightarrow> finite (h -` F)"
   using finite_vimage_IntI[of F h UNIV] by auto

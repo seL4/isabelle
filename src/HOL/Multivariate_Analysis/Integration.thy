@@ -599,7 +599,7 @@ next
   then have cd_ne: "\<forall>i\<in>Basis. c \<bullet> i \<le> d \<bullet> i"
     using assms unfolding box_ne_empty by auto
   have "\<And>i. i \<in> Basis \<Longrightarrow> 0 \<le> b \<bullet> i - a \<bullet> i"
-    using ab_ne by (metis diff_le_iff(1))
+    using ab_ne by auto
   moreover
   have "\<And>i. i \<in> Basis \<Longrightarrow> b \<bullet> i - a \<bullet> i \<le> d \<bullet> i - c \<bullet> i"
     using assms[unfolded subset_eq mem_box,rule_format,OF ab_ab(2)]

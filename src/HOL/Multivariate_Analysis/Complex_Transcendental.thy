@@ -654,7 +654,6 @@ next
     done
 qed
 
-
 corollary
   shows Arg_ge_0: "0 \<le> Arg z"
     and Arg_lt_2pi: "Arg z < 2*pi"
@@ -772,7 +771,7 @@ lemma Arg_eq_0_pi: "Arg z = 0 \<or> Arg z = pi \<longleftrightarrow> z \<in> \<r
 lemma Arg_inverse: "Arg(inverse z) = (if z \<in> \<real> \<and> 0 \<le> Re z then Arg z else 2*pi - Arg z)"
   apply (cases "z=0", simp)
   apply (rule Arg_unique [of "inverse (norm z)"])
-  using Arg_ge_0 [of z] Arg_lt_2pi [of z] Arg_eq [of z] Arg_eq_0 [of z] Exp_two_pi_i
+  using Arg_ge_0 [of z] Arg_lt_2pi [of z] Arg_eq [of z] Arg_eq_0 [of z] exp_two_pi_i
   apply (auto simp: of_real_numeral algebra_simps exp_diff divide_simps)
   done
 
@@ -849,8 +848,11 @@ lemma Arg_real: "z \<in> \<real> \<Longrightarrow> Arg z = (if 0 \<le> Re z then
   by auto
 
 lemma Arg_exp: "0 \<le> Im z \<Longrightarrow> Im z < 2*pi \<Longrightarrow> Arg(exp z) = Im z"
-  by (rule Arg_unique [of  "exp(Re z)"]) (auto simp: Exp_eq_polar)
+  by (rule Arg_unique [of  "exp(Re z)"]) (auto simp: exp_eq_polar)
 
+lemma complex_split_polar:
+  obtains r a::real where "z = complex_of_real r * (cos a + \<i> * sin a)" "0 \<le> r" "0 \<le> a" "a < 2*pi"
+  using Arg cis.ctr cis_conv_exp by fastforce
 
 subsection\<open>Analytic properties of tangent function\<close>
 
@@ -898,7 +900,7 @@ proof -
   have "exp(ln z) = z & -pi < Im(ln z) & Im(ln z) \<le> pi" unfolding ln_complex_def
     apply (rule theI [where a = "Complex (ln(norm z)) \<phi>"])
     using z assms \<phi>
-    apply (auto simp: field_simps exp_complex_eqI Exp_eq_polar cis.code)
+    apply (auto simp: field_simps exp_complex_eqI exp_eq_polar cis.code)
     done
   then show "exp(ln z) = z" "-pi < Im(ln z)" "Im(ln z) \<le> pi"
     by auto
@@ -1516,14 +1518,14 @@ lemma has_field_derivative_powr_complex':
   shows "((\<lambda>z. z powr r :: complex) has_field_derivative r * z powr (r - 1)) (at z)"
 proof (subst DERIV_cong_ev[OF refl _ refl])
   from assms have "eventually (\<lambda>z. z \<noteq> 0) (nhds z)" by (intro t1_space_nhds) auto
-  thus "eventually (\<lambda>z. z powr r = Exp (r * Ln z)) (nhds z)"
+  thus "eventually (\<lambda>z. z powr r = exp (r * Ln z)) (nhds z)"
     unfolding powr_def by eventually_elim simp
 
-  have "((\<lambda>z. Exp (r * Ln z)) has_field_derivative Exp (r * Ln z) * (inverse z * r)) (at z)"
+  have "((\<lambda>z. exp (r * Ln z)) has_field_derivative exp (r * Ln z) * (inverse z * r)) (at z)"
     using assms by (auto intro!: derivative_eq_intros has_field_derivative_powr)
-  also have "Exp (r * Ln z) * (inverse z * r) = r * z powr (r - 1)"
+  also have "exp (r * Ln z) * (inverse z * r) = r * z powr (r - 1)"
     unfolding powr_def by (simp add: assms exp_diff field_simps)
-  finally show "((\<lambda>z. Exp (r * Ln z)) has_field_derivative r * z powr (r - 1)) (at z)"
+  finally show "((\<lambda>z. exp (r * Ln z)) has_field_derivative r * z powr (r - 1)) (at z)"
     by simp
 qed
 
@@ -2405,7 +2407,7 @@ lemma Re_Arcsin_bounds: "-pi < Re(Arcsin z) & Re(Arcsin z) \<le> pi"
 
 lemma Re_Arcsin_bound: "abs(Re(Arcsin z)) \<le> pi"
   by (meson Re_Arcsin_bounds abs_le_iff less_eq_real_def minus_less_iff)
- 
+
 
 subsection\<open>Interrelations between Arcsin and Arccos\<close>
 
@@ -2481,7 +2483,6 @@ lemma cos_sin_csqrt:
   apply (simp add: cos_squared_eq)
   using assms
   apply (auto simp: Re_cos Im_cos add_pos_pos mult_le_0_iff zero_le_mult_iff)
-  apply (auto simp: algebra_simps)
   done
 
 lemma sin_cos_csqrt:
@@ -2491,7 +2492,6 @@ lemma sin_cos_csqrt:
   apply (simp add: sin_squared_eq)
   using assms
   apply (auto simp: Re_sin Im_sin add_pos_pos mult_le_0_iff zero_le_mult_iff)
-  apply (auto simp: algebra_simps)
   done
 
 lemma Arcsin_Arccos_csqrt_pos:
@@ -2661,7 +2661,7 @@ lemma csqrt_1_diff_eq: "csqrt (1 - (of_real x)\<^sup>2) = (if x^2 \<le> 1 then s
   by ( simp add: of_real_sqrt del: csqrt_of_real_nonneg)
 
 lemma arcsin_arccos_sqrt_pos: "0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arcsin x = arccos(sqrt(1 - x\<^sup>2))"
-  apply (simp add: abs_square_le_1 diff_le_iff arcsin_eq_Re_Arcsin arccos_eq_Re_Arccos)
+  apply (simp add: abs_square_le_1 arcsin_eq_Re_Arcsin arccos_eq_Re_Arccos)
   apply (subst Arcsin_Arccos_csqrt_pos)
   apply (auto simp: power_le_one csqrt_1_diff_eq)
   done
@@ -2671,7 +2671,7 @@ lemma arcsin_arccos_sqrt_neg: "-1 \<le> x \<Longrightarrow> x \<le> 0 \<Longrigh
   by (simp add: arcsin_minus)
 
 lemma arccos_arcsin_sqrt_pos: "0 \<le> x \<Longrightarrow> x \<le> 1 \<Longrightarrow> arccos x = arcsin(sqrt(1 - x\<^sup>2))"
-  apply (simp add: abs_square_le_1 diff_le_iff arcsin_eq_Re_Arcsin arccos_eq_Re_Arccos)
+  apply (simp add: abs_square_le_1 arcsin_eq_Re_Arcsin arccos_eq_Re_Arccos)
   apply (subst Arccos_Arcsin_csqrt_pos)
   apply (auto simp: power_le_one csqrt_1_diff_eq)
   done
