@@ -93,14 +93,14 @@ qed
 
 lemma rtrancl_path_distinct:
   assumes xy: "rtrancl_path r x xs y"
-  obtains xs' where "rtrancl_path r x xs' y" and "distinct (x # xs')"
+  obtains xs' where "rtrancl_path r x xs' y" and "distinct (x # xs')" and "set xs' \<subseteq> set xs"
   using xy
 proof (induct xs rule: measure_induct_rule [of length])
   case (less xs)
   show ?case
   proof (cases "distinct (x # xs)")
     case True
-    with \<open>rtrancl_path r x xs y\<close> show ?thesis by (rule less)
+    with \<open>rtrancl_path r x xs y\<close> show ?thesis by (rule less) simp
   next
     case False
     then have "\<exists>as bs cs a. x # xs = as @ [a] @ bs @ [a] @ cs"
@@ -112,11 +112,11 @@ proof (induct xs rule: measure_induct_rule [of length])
       case Nil
       with xxs have x: "x = a" and xs: "xs = bs @ a # cs"
         by auto
-      from x xs \<open>rtrancl_path r x xs y\<close> have cs: "rtrancl_path r x cs y"
+      from x xs \<open>rtrancl_path r x xs y\<close> have cs: "rtrancl_path r x cs y" "set cs \<subseteq> set xs"
         by (auto elim: rtrancl_path_appendE)
       from xs have "length cs < length xs" by simp
       then show ?thesis
-        by (rule less(1)) (iprover intro: cs less(2))+
+        by (rule less(1))(blast intro: cs less(2) order_trans del: subsetI)+
     next
       case (Cons d ds)
       with xxs have xs: "xs = ds @ a # (bs @ [a] @ cs)"
@@ -127,9 +127,10 @@ proof (induct xs rule: measure_induct_rule [of length])
       from ay have "rtrancl_path r a cs y" by (auto elim: rtrancl_path_appendE)
       with xa have xy: "rtrancl_path r x ((ds @ [a]) @ cs) y"
         by (rule rtrancl_path_trans)
+      from xs have set: "set ((ds @ [a]) @ cs) \<subseteq> set xs" by auto
       from xs have "length ((ds @ [a]) @ cs) < length xs" by simp
       then show ?thesis
-        by (rule less(1)) (iprover intro: xy less(2))+
+        by (rule less(1))(blast intro: xy less(2) set[THEN subsetD])+
     qed
   qed
 qed
