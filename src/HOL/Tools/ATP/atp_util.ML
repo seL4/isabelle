@@ -385,19 +385,18 @@ fun transform_elim_prop t =
 fun specialize_type thy (s, T) t =
   let
     fun subst_for (Const (s', T')) =
-      if s = s' then
-        SOME (Sign.typ_match thy (T', T) Vartab.empty)
-        handle Type.TYPE_MATCH => NONE
-      else
-        NONE
-    | subst_for (t1 $ t2) =
-      (case subst_for t1 of SOME x => SOME x | NONE => subst_for t2)
-    | subst_for (Abs (_, _, t')) = subst_for t'
-    | subst_for _ = NONE
+        if s = s' then
+          SOME (Sign.typ_match thy (T', T) Vartab.empty)
+          handle Type.TYPE_MATCH => NONE
+        else
+          NONE
+      | subst_for (t1 $ t2) = (case subst_for t1 of SOME x => SOME x | NONE => subst_for t2)
+      | subst_for (Abs (_, _, t')) = subst_for t'
+      | subst_for _ = NONE
   in
-    case subst_for t of
+    (case subst_for t of
       SOME subst => monomorphic_term subst t
-    | NONE => raise Type.TYPE_MATCH
+    | NONE => raise Type.TYPE_MATCH)
   end
 
 fun strip_subgoal goal i ctxt =
