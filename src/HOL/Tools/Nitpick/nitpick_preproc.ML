@@ -1031,7 +1031,7 @@ fun axioms_for_term
           map (fn t => case Term.add_tvars t [] of
                          [] => t
                        | [(x, S)] =>
-                         monomorphic_term (Vartab.make [(x, (S, T))]) t
+                         Envir.subst_term_types (Vartab.make [(x, (S, T))]) t
                        | _ => raise TERM ("Nitpick_Preproc.axioms_for_term.\
                                           \add_axioms_for_sort", [t]))
               class_axioms

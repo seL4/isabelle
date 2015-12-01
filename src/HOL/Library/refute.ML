@@ -375,7 +375,6 @@ fun typ_of_dtyp _ typ_assoc (Old_Datatype_Aux.DtTFree a) =
     end
 
 val close_form = ATP_Util.close_form
-val monomorphic_term = ATP_Util.monomorphic_term
 val specialize_type = ATP_Util.specialize_type
 
 (* ------------------------------------------------------------------------- *)
@@ -451,7 +450,7 @@ fun get_def thy (s, T) =
             if s=s' then
               let
                 val typeSubs = Sign.typ_match thy (T', T) Vartab.empty
-                val ax'      = monomorphic_term typeSubs ax
+                val ax'      = Envir.subst_term_types typeSubs ax
                 val rhs      = norm_rhs ax'
               in
                 SOME (axname, rhs)
@@ -495,7 +494,7 @@ fun get_typedef thy T =
                   val T'' = domain_type (domain_type T')
                   val typeSubs = Sign.typ_match thy (T'', T) Vartab.empty
                 in
-                  SOME (axname, monomorphic_term typeSubs ax)
+                  SOME (axname, Envir.subst_term_types typeSubs ax)
                 end
             | NONE => get_typedef_ax axioms
           end handle ERROR _         => get_typedef_ax axioms
@@ -669,7 +668,7 @@ fun collect_axioms ctxt t =
         val monomorphic_class_axioms = map (fn (axname, ax) =>
           (case Term.add_tvars ax [] of
             [] => (axname, ax)
-          | [(idx, S)] => (axname, monomorphic_term (Vartab.make [(idx, (S, T))]) ax)
+          | [(idx, S)] => (axname, Envir.subst_term_types (Vartab.make [(idx, (S, T))]) ax)
           | _ =>
             raise REFUTE ("collect_axioms", "class axiom " ^ axname ^ " (" ^
               Syntax.string_of_term ctxt ax ^

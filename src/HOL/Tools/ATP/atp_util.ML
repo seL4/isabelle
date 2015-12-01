@@ -39,7 +39,6 @@ sig
   val hol_close_form_prefix : string
   val hol_close_form : term -> term
   val hol_open_form : (string -> string) -> term -> term
-  val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
   val cong_extensionalize_term : Proof.context -> term -> term
   val abs_extensionalize_term : Proof.context -> term -> term
@@ -324,12 +323,6 @@ fun hol_open_form unprefix
      | NONE => t)
   | hol_open_form _ t = t
 
-fun monomorphic_term subst =
-  map_types (map_type_tvar (fn v =>
-      case Type.lookup subst v of
-        SOME typ => typ
-      | NONE => TVar v))
-
 fun eta_expand _ t 0 = t
   | eta_expand Ts (Abs (s, T, t')) n =
     Abs (s, T, eta_expand (T :: Ts) t' (n - 1))
@@ -395,7 +388,7 @@ fun specialize_type thy (s, T) t =
       | subst_for _ = NONE
   in
     (case subst_for t of
-      SOME subst => monomorphic_term subst t
+      SOME subst => Envir.subst_term_types subst t
     | NONE => raise Type.TYPE_MATCH)
   end
 

@@ -1525,8 +1525,8 @@ fun multi_specialize_type thy slack (s, T) t =
           ys |> (if AList.defined (op =) ys T' then
                    I
                  else
-                   cons (T', monomorphic_term (Sign.typ_match thy (T', T)
-                                                              Vartab.empty) t)
+                   cons (T', Envir.subst_term_types (Sign.typ_match thy (T', T)
+                     Vartab.empty) t)
                    handle Type.TYPE_MATCH => I
                         | TERM _ =>
                           if slack then

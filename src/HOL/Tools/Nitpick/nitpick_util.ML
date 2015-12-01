@@ -65,7 +65,6 @@ sig
   val varify_and_instantiate_type_global : theory -> typ -> typ -> typ -> typ
   val is_of_class_const : theory -> string * typ -> bool
   val get_class_def : theory -> string -> (string * term) option
-  val monomorphic_term : Type.tyenv -> term -> term
   val specialize_type : theory -> string * typ -> term -> term
   val eta_expand : typ list -> term -> int -> term
   val DETERM_TIMEOUT : Time.time -> tactic -> tactic
@@ -270,7 +269,6 @@ fun get_class_def thy class =
       (AList.lookup (op =) (Theory.all_axioms_of thy) axname)
   end;
 
-val monomorphic_term = ATP_Util.monomorphic_term
 val specialize_type = ATP_Util.specialize_type
 val eta_expand = ATP_Util.eta_expand
 

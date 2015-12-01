@@ -1715,7 +1715,7 @@ fun add_helper_facts_of_sym ctxt format type_enc completish (s, {types, ...} : s
       fun specialize_helper t T =
         if unmangled_s = app_op_name then
           let val tyenv = Sign.typ_match thy (alpha_to_beta, domain_type T) Vartab.empty in
-            monomorphic_term tyenv t
+            Envir.subst_term_types tyenv t
           end
         else
           specialize_type thy (invert_const unmangled_s, T) t
