@@ -181,7 +181,8 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     val CCA = mk_T_of_bnf oDs CAs outer;
     val CBs = @{map 3} mk_T_of_bnf Dss Bss_repl inners;
     val outer_sets = mk_sets_of_bnf (replicate olive oDs) (replicate olive CAs) outer;
-    val inner_setss = @{map 3} mk_sets_of_bnf (map (replicate ilive) Dss) (replicate olive Ass) inners;
+    val inner_setss =
+      @{map 3} mk_sets_of_bnf (map (replicate ilive) Dss) (replicate olive Ass) inners;
     val inner_bds = @{map 3} mk_bd_of_bnf Dss Ass_repl inners;
     val outer_bd = mk_bd_of_bnf oDs CAs outer;
 
@@ -692,7 +693,8 @@ fun raw_compose_bnf const_policy qualify flatten_tyargs outer inners oDs Dss tfr
     val ((kill_poss, As), (inners', ((cache', unfold_set'), lthy'))) =
       normalize_bnfs qualify Ass Ds flatten_tyargs inners accum;
 
-    val Ds = oDs @ flat (@{map 3} (uncurry append oo curry swap oo map o nth) tfreess kill_poss Dss);
+    val Ds =
+      oDs @ flat (@{map 3} (uncurry append oo curry swap oo map o nth) tfreess kill_poss Dss);
     val As = map TFree As;
   in
     apfst (rpair (Ds, As))

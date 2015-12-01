@@ -1300,10 +1300,12 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
                 val funTs = map (fn T => bdT --> T) ranTs;
                 val ran_bnfT = mk_bnf_T ranTs Calpha;
                 val (revTs, Ts) = `rev (bd_bnfT :: funTs);
-                val cTs = map (SOME o Thm.ctyp_of lthy) [ran_bnfT, Library.foldr1 HOLogic.mk_prodT Ts];
-                val tinst = fold (fn T => fn t => HOLogic.mk_case_prod (Term.absdummy T t)) (tl revTs)
-                  (Term.absdummy (hd revTs) (Term.list_comb (mk_bnf_map bdTs ranTs,
-                    map Bound (live - 1 downto 0)) $ Bound live));
+                val cTs = map (SOME o Thm.ctyp_of lthy) [ran_bnfT,
+                  Library.foldr1 HOLogic.mk_prodT Ts];
+                val tinst = fold (fn T => fn t =>
+                  HOLogic.mk_case_prod (Term.absdummy T t)) (tl revTs)
+                    (Term.absdummy (hd revTs) (Term.list_comb (mk_bnf_map bdTs ranTs,
+                      map Bound (live - 1 downto 0)) $ Bound live));
                 val cts = [NONE, SOME (Thm.cterm_of lthy tinst)];
               in
                 Thm.instantiate' cTs cts @{thm surj_imp_ordLeq}
@@ -1420,7 +1422,8 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
         val in_rel = Lazy.lazy mk_in_rel;
 
         fun mk_rel_flip () =
-          unfold_thms lthy @{thms conversep_iff} (Lazy.force rel_conversep RS @{thm predicate2_eqD});
+          unfold_thms lthy @{thms conversep_iff}
+            (Lazy.force rel_conversep RS @{thm predicate2_eqD});
 
         val rel_flip = Lazy.lazy mk_rel_flip;
 

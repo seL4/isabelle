@@ -97,18 +97,20 @@ fun mk_collect_set_map_tac ctxt set_map0s =
 fun mk_rel_Grp_tac ctxt rel_OO_Grps map_id0 map_cong0 map_id map_comp set_maps =
   let
     val n = length set_maps;
-    val rel_OO_Grps_tac = if null rel_OO_Grps then K all_tac else rtac ctxt (hd rel_OO_Grps RS trans);
+    val rel_OO_Grps_tac =
+      if null rel_OO_Grps then K all_tac else rtac ctxt (hd rel_OO_Grps RS trans);
   in
     if null set_maps then
       unfold_thms_tac ctxt ((map_id0 RS @{thm Grp_UNIV_id}) :: rel_OO_Grps) THEN
       rtac ctxt @{thm Grp_UNIV_idI[OF refl]} 1
     else
       EVERY' [rel_OO_Grps_tac, rtac ctxt @{thm antisym}, rtac ctxt @{thm predicate2I},
-        REPEAT_DETERM o
-          eresolve_tac ctxt [CollectE, exE, conjE, @{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
-        hyp_subst_tac ctxt, rtac ctxt @{thm GrpI}, rtac ctxt trans, rtac ctxt map_comp, rtac ctxt map_cong0,
-        REPEAT_DETERM_N n o
-          EVERY' [rtac ctxt @{thm Collect_case_prod_Grp_eqD}, etac ctxt @{thm set_mp}, assume_tac ctxt],
+        REPEAT_DETERM o eresolve_tac ctxt
+          [CollectE, exE, conjE, @{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
+        hyp_subst_tac ctxt, rtac ctxt @{thm GrpI}, rtac ctxt trans, rtac ctxt map_comp,
+          rtac ctxt map_cong0,
+        REPEAT_DETERM_N n o EVERY' [rtac ctxt @{thm Collect_case_prod_Grp_eqD},
+          etac ctxt @{thm set_mp}, assume_tac ctxt],
         rtac ctxt CollectI,
         CONJ_WRAP' (fn thm => EVERY' [rtac ctxt (thm RS ord_eq_le_trans),
           rtac ctxt @{thm image_subsetI}, rtac ctxt @{thm Collect_case_prod_Grp_in},
@@ -151,8 +153,9 @@ fun mk_rel_map0_tac ctxt live rel_compp rel_conversep rel_Grp map_id =
       unfold_thms_tac ctxt [rel_compp, rel_conversep, rel_Grp, @{thm vimage2p_Grp}] THEN
       TRYALL (EVERY' [rtac ctxt iffI, rtac ctxt @{thm relcomppI}, rtac ctxt @{thm GrpI},
         resolve_tac ctxt [map_id, refl], rtac ctxt CollectI,
-        CONJ_WRAP' (K (rtac ctxt @{thm subset_UNIV})) ks, rtac ctxt @{thm relcomppI}, assume_tac ctxt,
-        rtac ctxt @{thm conversepI}, rtac ctxt @{thm GrpI}, resolve_tac ctxt [map_id, refl], rtac ctxt CollectI,
+        CONJ_WRAP' (K (rtac ctxt @{thm subset_UNIV})) ks, rtac ctxt @{thm relcomppI},
+        assume_tac ctxt, rtac ctxt @{thm conversepI}, rtac ctxt @{thm GrpI},
+        resolve_tac ctxt [map_id, refl], rtac ctxt CollectI,
         CONJ_WRAP' (K (rtac ctxt @{thm subset_UNIV})) ks,
         REPEAT_DETERM o eresolve_tac ctxt @{thms relcomppE conversepE GrpE},
         dtac ctxt (trans OF [sym, map_id]), hyp_subst_tac ctxt, assume_tac ctxt])

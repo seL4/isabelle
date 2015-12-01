@@ -10,6 +10,16 @@ theory Transcendental
 imports Binomial Series Deriv NthRoot
 begin
 
+lemma of_int_leD: 
+  fixes x :: "'a :: linordered_idom"
+  shows "\<bar>of_int n\<bar> \<le> x \<Longrightarrow> n=0 \<or> x\<ge>1"
+  by (metis (no_types) le_less_trans not_less of_int_abs of_int_less_1_iff zabs_less_one_iff)
+
+lemma of_int_lessD: 
+  fixes x :: "'a :: linordered_idom"
+  shows "\<bar>of_int n\<bar> < x \<Longrightarrow> n=0 \<or> x>1"
+  by (metis less_le_trans not_less of_int_abs of_int_less_1_iff zabs_less_one_iff)
+
 lemma fact_in_Reals: "fact n \<in> \<real>" by (induction n) auto
 
 lemma pochhammer_of_real: "pochhammer (of_real x) n = of_real (pochhammer x n)"
@@ -1979,8 +1989,7 @@ proof -
       assume "x \<le> y" "y \<le> a"
       with \<open>0 < x\<close> \<open>a < 1\<close> have "0 < 1 / y - 1" "0 < y"
         by (auto simp: field_simps)
-      with D show "\<exists>z. DERIV ?l y :> z \<and> 0 < z"
-        by auto
+      with D show "\<exists>z. DERIV ?l y :> z \<and> 0 < z" by blast
     qed
     also have "\<dots> \<le> 0"
       using ln_le_minus_one \<open>0 < x\<close> \<open>x < a\<close> by (auto simp: field_simps)
@@ -3089,6 +3098,11 @@ lemma cos_double:
   shows "cos(2*x) = (cos x)\<^sup>2 - (sin x)\<^sup>2"
   using cos_add [where x=x and y=x]
   by (simp add: power2_eq_square)
+
+lemma sin_cos_le1:
+  fixes x::real shows "abs (sin x * sin y + cos x * cos y) \<le> 1"
+  using cos_diff [of x y]
+  by (metis abs_cos_le_one add.commute)
 
 lemma DERIV_fun_pow: "DERIV g x :> m ==>
       DERIV (\<lambda>x. (g x) ^ n) x :> real n * (g x) ^ (n - 1) * m"

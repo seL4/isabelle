@@ -748,9 +748,6 @@ lemma rcis_divide: "rcis r1 a / rcis r2 b = rcis (r1/r2) (a - b)"
 
 subsubsection \<open>Complex exponential\<close>
 
-abbreviation Exp :: "complex \<Rightarrow> complex"
-  where "Exp \<equiv> exp"
-
 lemma cis_conv_exp: "cis b = exp (\<i> * b)"
 proof -
   { fix n :: nat
@@ -766,29 +763,29 @@ proof -
              intro!: sums_unique sums_add sums_mult sums_of_real)
 qed
 
-lemma Exp_eq_polar: "Exp z = exp (Re z) * cis (Im z)"
+lemma exp_eq_polar: "exp z = exp (Re z) * cis (Im z)"
   unfolding cis_conv_exp exp_of_real [symmetric] mult_exp_exp by (cases z) simp
 
 lemma Re_exp: "Re (exp z) = exp (Re z) * cos (Im z)"
-  unfolding Exp_eq_polar by simp
+  unfolding exp_eq_polar by simp
 
 lemma Im_exp: "Im (exp z) = exp (Re z) * sin (Im z)"
-  unfolding Exp_eq_polar by simp
+  unfolding exp_eq_polar by simp
 
 lemma norm_cos_sin [simp]: "norm (Complex (cos t) (sin t)) = 1"
   by (simp add: norm_complex_def)
 
 lemma norm_exp_eq_Re [simp]: "norm (exp z) = exp (Re z)"
-  by (simp add: cis.code cmod_complex_polar Exp_eq_polar)
+  by (simp add: cis.code cmod_complex_polar exp_eq_polar)
 
-lemma complex_Exp_Ex: "\<exists>a r. z = complex_of_real r * Exp a"
+lemma complex_exp_exists: "\<exists>a r. z = complex_of_real r * exp a"
   apply (insert rcis_Ex [of z])
-  apply (auto simp add: Exp_eq_polar rcis_def mult.assoc [symmetric])
+  apply (auto simp add: exp_eq_polar rcis_def mult.assoc [symmetric])
   apply (rule_tac x = "ii * complex_of_real a" in exI, auto)
   done
 
-lemma Exp_two_pi_i [simp]: "Exp((2::complex) * complex_of_real pi * ii) = 1"
-  by (simp add: Exp_eq_polar complex_eq_iff)
+lemma exp_two_pi_i [simp]: "exp(2 * complex_of_real pi * ii) = 1"
+  by (simp add: exp_eq_polar complex_eq_iff)
 
 subsubsection \<open>Complex argument\<close>
 

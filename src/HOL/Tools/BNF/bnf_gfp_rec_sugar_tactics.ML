@@ -72,7 +72,8 @@ fun mk_primcorec_exhaust_tac ctxt frees n nchotomy =
 fun mk_primcorec_assumption_tac ctxt discIs =
   SELECT_GOAL (unfold_thms_tac ctxt @{thms fst_conv snd_conv not_not not_False_eq_True
       not_True_eq_False de_Morgan_conj de_Morgan_disj} THEN
-    SOLVE (HEADGOAL (REPEAT o (rtac ctxt refl ORELSE' assume_tac ctxt ORELSE' etac ctxt conjE ORELSE'
+    SOLVE (HEADGOAL (REPEAT o (rtac ctxt refl ORELSE' assume_tac ctxt ORELSE'
+    etac ctxt conjE ORELSE'
     eresolve_tac ctxt falseEs ORELSE'
     resolve_tac ctxt @{thms TrueI conjI disjI1 disjI2} ORELSE'
     dresolve_tac ctxt discIs THEN' assume_tac ctxt ORELSE'
@@ -137,7 +138,8 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_ident0s
     resolve_tac ctxt split_connectI ORELSE'
     Splitter.split_asm_tac ctxt (split_if_asm :: split_asms) ORELSE'
     Splitter.split_tac ctxt (split_if :: splits) ORELSE'
-    eresolve_tac ctxt (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' assume_tac ctxt ORELSE'
+    eresolve_tac ctxt (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN'
+    assume_tac ctxt ORELSE'
     etac ctxt notE THEN' assume_tac ctxt ORELSE'
     (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt (@{thms fst_conv snd_conv id_def comp_def split_def
          sum.case sum.sel sum.distinct[THEN eq_False[THEN iffD2]]} @
@@ -148,7 +150,8 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_ident0s
 
 fun mk_primcorec_ctr_tac ctxt m collapse disc_fun_opt sel_funs =
   HEADGOAL (rtac ctxt ((if null sel_funs then collapse else collapse RS sym) RS trans) THEN'
-    (the_default (K all_tac) (Option.map (rtac ctxt) disc_fun_opt)) THEN' REPEAT_DETERM_N m o assume_tac ctxt) THEN
+    (the_default (K all_tac) (Option.map (rtac ctxt) disc_fun_opt)) THEN'
+    REPEAT_DETERM_N m o assume_tac ctxt) THEN
   unfold_thms_tac ctxt (@{thm split_def} :: unfold_lets @ sel_funs) THEN HEADGOAL (rtac ctxt refl);
 
 fun inst_split_eq ctxt split =

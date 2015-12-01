@@ -37,38 +37,33 @@ declare [[coercion_enabled]]
 definition prime :: "nat \<Rightarrow> bool"
   where "prime p = (1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> m = 1 \<or> m = p))"
 
-lemmas prime_nat_def = prime_def
-
-
 subsection \<open>Primes\<close>
 
 lemma prime_odd_nat: "prime p \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
-  apply (auto simp add: prime_nat_def even_iff_mod_2_eq_zero dvd_eq_mod_eq_0)
+  apply (auto simp add: prime_def even_iff_mod_2_eq_zero dvd_eq_mod_eq_0)
   apply (metis dvd_eq_mod_eq_0 even_Suc mod_by_1 nat_dvd_not_less not_mod_2_eq_0_eq_1 zero_less_numeral)
   done
 
-(* FIXME Is there a better way to handle these, rather than making them elim rules? *)
+lemma prime_gt_0_nat: "prime p \<Longrightarrow> p > 0"
+  unfolding prime_def by auto
 
-lemma prime_gt_0_nat [elim]: "prime p \<Longrightarrow> p > 0"
-  unfolding prime_nat_def by auto
+lemma prime_ge_1_nat: "prime p \<Longrightarrow> p >= 1"
+  unfolding prime_def by auto
 
-lemma prime_ge_1_nat [elim]: "prime p \<Longrightarrow> p >= 1"
-  unfolding prime_nat_def by auto
+lemma prime_gt_1_nat: "prime p \<Longrightarrow> p > 1"
+  unfolding prime_def by auto
 
-lemma prime_gt_1_nat [elim]: "prime p \<Longrightarrow> p > 1"
-  unfolding prime_nat_def by auto
+lemma prime_ge_Suc_0_nat: "prime p \<Longrightarrow> p >= Suc 0"
+  unfolding prime_def by auto
 
-lemma prime_ge_Suc_0_nat [elim]: "prime p \<Longrightarrow> p >= Suc 0"
-  unfolding prime_nat_def by auto
+lemma prime_gt_Suc_0_nat: "prime p \<Longrightarrow> p > Suc 0"
+  unfolding prime_def by auto
 
-lemma prime_gt_Suc_0_nat [elim]: "prime p \<Longrightarrow> p > Suc 0"
-  unfolding prime_nat_def by auto
-
-lemma prime_ge_2_nat [elim]: "prime p \<Longrightarrow> p >= 2"
-  unfolding prime_nat_def by auto
+lemma prime_ge_2_nat: "prime p \<Longrightarrow> p >= 2"
+  unfolding prime_def by auto
 
 lemma prime_imp_coprime_nat: "prime p \<Longrightarrow> \<not> p dvd n \<Longrightarrow> coprime p n"
-  apply (unfold prime_nat_def)
+  apply (unfold prime_def)
   apply (metis gcd_dvd1_nat gcd_dvd2_nat)
   done
 
@@ -105,7 +100,7 @@ lemma prime_dvd_mult_eq_int [simp]:
 
 lemma not_prime_eq_prod_nat: "(n::nat) > 1 \<Longrightarrow> ~ prime n \<Longrightarrow>
     EX m k. n = m * k & 1 < m & m < n & 1 < k & k < n"
-  unfolding prime_nat_def dvd_def apply auto
+  unfolding prime_def dvd_def apply auto
   by (metis mult.commute linorder_neq_iff linorder_not_le mult_1
       n_less_n_mult_m one_le_mult_iff less_imp_le_nat)
 
@@ -129,18 +124,18 @@ lemma prime_dvd_power_int_iff:
 subsubsection \<open>Make prime naively executable\<close>
 
 lemma zero_not_prime_nat [simp]: "~prime (0::nat)"
-  by (simp add: prime_nat_def)
+  by (simp add: prime_def)
 
 lemma one_not_prime_nat [simp]: "~prime (1::nat)"
-  by (simp add: prime_nat_def)
+  by (simp add: prime_def)
 
 lemma Suc_0_not_prime_nat [simp]: "~prime (Suc 0)"
-  by (simp add: prime_nat_def)
+  by (simp add: prime_def)
 
 lemma prime_nat_code [code]:
     "prime p \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)"
   apply (simp add: Ball_def)
-  apply (metis One_nat_def less_not_refl prime_nat_def dvd_triv_right not_prime_eq_prod_nat)
+  apply (metis One_nat_def less_not_refl prime_def dvd_triv_right not_prime_eq_prod_nat)
   done
 
 lemma prime_nat_simp:
@@ -178,7 +173,7 @@ lemma prime_factor_nat: "n \<noteq> (1::nat) \<Longrightarrow> \<exists> p. prim
   using two_is_prime_nat
   apply blast
   apply (metis One_nat_def dvd.order_trans dvd_refl less_Suc0 linorder_neqE_nat
-    nat_dvd_not_less neq0_conv prime_nat_def)
+    nat_dvd_not_less neq0_conv prime_def)
   done
 
 text \<open>One property of coprimality is easier to prove via prime factors.\<close>
@@ -239,7 +234,8 @@ proof-
       by (rule dvd_diff_nat)
     then have "p dvd 1" by simp
     then have "p <= 1" by auto
-    moreover from \<open>prime p\<close> have "p > 1" by auto
+    moreover from \<open>prime p\<close> have "p > 1"
+      using prime_def by blast
     ultimately have False by auto}
   then have "n < p" by presburger
   with \<open>prime p\<close> and \<open>p <= fact n + 1\<close> show ?thesis by auto
@@ -270,7 +266,7 @@ lemma prime_product:
 proof -
   from assms have
     "1 < p * q" and P: "\<And>m. m dvd p * q \<Longrightarrow> m = 1 \<or> m = p * q"
-    unfolding prime_nat_def by auto
+    unfolding prime_def by auto
   from \<open>1 < p * q\<close> have "p \<noteq> 0" by (cases p) auto
   then have Q: "p = p * q \<longleftrightarrow> q = 1" by auto
   have "p dvd p * q" by simp

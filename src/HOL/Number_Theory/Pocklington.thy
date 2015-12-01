@@ -457,11 +457,11 @@ next
   proof
     assume "prime n"
     then show ?rhs
-      by (metis one_not_prime_nat prime_nat_def)
+      by (metis one_not_prime_nat prime_def)
   next
     assume ?rhs
     with False show "prime n"
-      by (auto simp: prime_def) (metis One_nat_def prime_factor_nat prime_nat_def)
+      by (auto simp: prime_def) (metis One_nat_def prime_factor_nat prime_def)
   qed
 qed
 
@@ -538,7 +538,7 @@ lemma pocklington_lemma:
   and pp: "prime p" and pn: "p dvd n"
   shows "[p = 1] (mod q)"
 proof -
-  have p01: "p \<noteq> 0" "p \<noteq> 1" using pp one_not_prime_nat zero_not_prime_nat by auto
+  have p01: "p \<noteq> 0" "p \<noteq> 1" using pp one_not_prime_nat zero_not_prime_nat by (auto intro: prime_gt_0_nat)
   obtain k where k: "a ^ (q * r) - 1 = n*k"
     by (metis an cong_to_1_nat dvd_def nqr)
   from pn[unfolded dvd_def] obtain l where l: "n = p*l" by blast
@@ -689,7 +689,7 @@ proof(induct n rule: nat_less_induct)
     from p(2) obtain m where m: "n = p*m" unfolding dvd_def by blast
     from n m have m0: "m > 0" "m\<noteq>0" by auto
     have "1 < p"
-      by (metis p(1) prime_nat_def)
+      by (metis p(1) prime_def)
     with m0 m have mn: "m < n" by auto
     from H[rule_format, OF mn m0(2)] obtain ps where ps: "primefact ps m" ..
     from ps m p(1) have "primefact (p#ps) n" by (simp add: primefact_def)

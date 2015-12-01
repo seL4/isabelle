@@ -784,8 +784,7 @@ proof -
     qed
     hence "y < r" by simp
     with ypos have  dless: "?d < (r * ?d)/y"
-      by (simp add: pos_less_divide_eq mult.commute [of ?d]
-                    mult_strict_right_mono dpos)
+      using dpos less_divide_eq_1 by fastforce
     have "r + ?d < r*x"
     proof -
       have "r + ?d < r + (r * ?d)/y" by (simp add: dless)

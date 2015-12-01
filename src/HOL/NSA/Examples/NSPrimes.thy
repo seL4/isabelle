@@ -61,7 +61,7 @@ those hypernaturals exceeding 1 that have no nontrivial factors*}
 (* Goldblatt: Exercise 5.11(3a) - p 57  *)
 lemma starprime:
   "starprime = {p. 1 < p & (\<forall>m. m dvd p --> m = 1 | m = p)}"
-by (transfer, auto simp add: prime_nat_def)
+by (transfer, auto simp add: prime_def)
 
 (* Goldblatt Exercise 5.11(3b) - p 57  *)
 lemma hyperprime_factor_exists [rule_format]:
@@ -262,17 +262,14 @@ by (transfer, rule gcd_lcm_complete_lattice_nat.le_bot)
 text{*Already proved as @{text primes_infinite}, but now using non-standard naturals.*}
 theorem not_finite_prime: "~ finite {p::nat. prime p}"
 apply (rule hypnat_infinite_has_nonstandard_iff [THEN iffD2])
-apply (cut_tac hypnat_dvd_all_hypnat_of_nat)
-apply (erule exE)
-apply (erule conjE)
-apply (subgoal_tac "1 < N + 1")
-prefer 2 apply (blast intro: hypnat_add_one_gt_one)
+using hypnat_dvd_all_hypnat_of_nat
+apply clarify
+apply (drule hypnat_add_one_gt_one)
 apply (drule hyperprime_factor_exists)
-apply auto
+apply clarify
 apply (subgoal_tac "k \<notin> hypnat_of_nat ` {p. prime p}")
-apply (force simp add: starprime_def, safe)
-apply (drule_tac x = x in bspec, auto)
-apply (metis add.commute hdvd_diff hdvd_one_eq_one hypnat_diff_add_inverse2 hypnat_one_not_prime)
+apply (force simp add: starprime_def)
+apply (metis Compl_iff add.commute dvd_add_left_iff empty_iff hdvd_one_eq_one hypnat_one_not_prime imageE insert_iff mem_Collect_eq zero_not_prime_nat)
 done
 
 end

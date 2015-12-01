@@ -665,7 +665,8 @@ lemma zgcd_non_0: "0 < n ==> zgcd m n = zgcd n (m mod n)"
   apply (simp del: pos_mod_sign add: zgcd_def abs_if nat_mod_distrib)
   apply (auto simp add: gcd_non_0 nat_mod_distrib [symmetric] zmod_zminus1_eq_if)
   apply (frule_tac a = m in pos_mod_bound)
-  apply (simp del: pos_mod_bound add: nat_diff_distrib gcd_diff2 nat_le_eq_zle)
+  apply (simp del: pos_mod_bound add: algebra_simps nat_diff_distrib gcd_diff2 nat_le_eq_zle)
+  apply (metis dual_order.strict_implies_order gcd.simps gcd_0_left gcd_diff2 mod_by_0 nat_mono)
   done
 
 lemma zgcd_eq: "zgcd m n = zgcd n (m mod n)"

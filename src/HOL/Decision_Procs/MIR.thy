@@ -1644,9 +1644,8 @@ lemma split_int_gt_real':
   "(real_of_int (a::int) + b > 0) = (real_of_int a + real_of_int (floor b) > 0 \<or> (real_of_int a + real_of_int (floor b) = 0 \<and> real_of_int (floor b) - b < 0))"
 proof-
   have th: "(real_of_int a + b >0) = (real_of_int (-a) + (-b)< 0)" by arith
-  show ?thesis using myless[of _ "real_of_int (floor b)"]
-    by (simp only:th split_int_less_real'[where a="-a" and b="-b"])
-    (simp add: algebra_simps,arith)
+  show ?thesis 
+    by (simp only:th split_int_less_real'[where a="-a" and b="-b"]) (auto simp add: algebra_simps)
 qed
 
 lemma split_int_le_real:
@@ -3765,8 +3764,7 @@ lemma rdvd01_cs:
 proof-
   let ?ss = "s - real_of_int (floor s)"
   from real_of_int_floor_add_one_gt[where r="s", simplified myless[of "s"]]
-    of_int_floor_le  have ss0:"?ss \<ge> 0" and ss1:"?ss < 1"
-    by (auto simp add: myle[of _ "s", symmetric] myless[of "?ss"])
+    of_int_floor_le  have ss0:"?ss \<ge> 0" and ss1:"?ss < 1" by (auto simp: floor_less_cancel)
   from np have n0: "real_of_int n \<ge> 0" by simp
   from mult_left_mono[OF up n0] mult_strict_left_mono[OF u1 np]
   have nu0:"real_of_int n * u - s \<ge> -s" and nun:"real_of_int n * u -s < real_of_int n - s" by auto
@@ -4807,7 +4805,7 @@ lemma splitex:
   shows "(Ifm bs (E p)) = (\<exists> (i::int). Ifm (real_of_int i#bs) (E (And (And (Ge(CN 0 1 (C 0))) (Lt (CN 0 1 (C (- 1))))) (exsplit p))))" (is "?lhs = ?rhs")
 proof-
   have "?rhs = (\<exists> (i::int). \<exists> x. 0\<le> x \<and> x < 1 \<and> Ifm (x#(real_of_int i)#bs) (exsplit p))"
-    by (simp add: myless[of _ "1"] myless[of _ "0"] ac_simps)
+    by auto
   also have "\<dots> = (\<exists> (i::int). \<exists> x. 0\<le> x \<and> x < 1 \<and> Ifm ((real_of_int i + x) #bs) p)"
     by (simp only: exsplit[OF qf] ac_simps)
   also have "\<dots> = (\<exists> x. Ifm (x#bs) p)"

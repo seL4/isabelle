@@ -40,7 +40,8 @@ fun basic_lfp_sugars_of _ [@{typ nat}] _ _ lthy =
   | basic_lfp_sugars_of bs arg_Ts callers callssss0 lthy0 =
     let
       val ((missing_arg_Ts, perm0_kks,
-            fp_sugars as {fp_nesting_bnfs, fp_co_induct_sugar = {common_co_inducts = [common_induct], ...}, ...} :: _,
+            fp_sugars as {fp_nesting_bnfs,
+              fp_co_induct_sugar = {common_co_inducts = [common_induct], ...}, ...} :: _,
             (lfp_sugar_thms, _)), lthy) =
         nested_to_mutual_fps (K true) Least_FP bs arg_Ts callers callssss0 lthy0;
 

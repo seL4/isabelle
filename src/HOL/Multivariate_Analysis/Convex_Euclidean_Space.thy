@@ -4397,7 +4397,7 @@ proof -
     using \<open>y \<in> s\<close>
   proof -
     show "inner (y - z) z < inner (y - z) y"
-      apply (subst diff_less_iff(1)[symmetric])
+      apply (subst diff_gt_0_iff_gt [symmetric])
       unfolding inner_diff_right[symmetric] and inner_gt_zero_iff
       using \<open>y\<in>s\<close> \<open>z\<notin>s\<close>
       apply auto

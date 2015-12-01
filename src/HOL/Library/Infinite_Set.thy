@@ -72,10 +72,7 @@ proof
     by(induction rule: finite_psubset_induct)(meson Diff_subset card_Diff1_less card_psubset finite_Diff step)
 qed    
 
-text \<open>
-  As a concrete example, we prove that the set of natural numbers is
-  infinite.
-\<close>
+text \<open>As a concrete example, we prove that the set of natural numbers is infinite.\<close>
 
 lemma infinite_nat_iff_unbounded_le: "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n\<ge>m. n \<in> S)"
   using frequently_cofinite[of "\<lambda>x. x \<in> S"]
@@ -93,6 +90,7 @@ lemma finite_nat_iff_bounded_le: "finite (S::nat set) \<longleftrightarrow> (\<e
 
 lemma finite_nat_bounded: "finite (S::nat set) \<Longrightarrow> \<exists>k. S \<subseteq> {..<k}"
   by (simp add: finite_nat_iff_bounded)
+
 
 text \<open>
   For a set of natural numbers to be infinite, it is enough to know
@@ -149,6 +147,32 @@ lemma inf_img_fin_domE:
   assumes "finite (f`A)" and "infinite A"
   obtains y where "y \<in> f`A" and "infinite (f -` {y})"
   using assms by (blast dest: inf_img_fin_dom)
+
+proposition finite_image_absD:
+    fixes S :: "'a::linordered_ring set"
+    shows "finite (abs ` S) \<Longrightarrow> finite S"
+  by (rule ccontr) (auto simp: abs_eq_iff vimage_def dest: inf_img_fin_dom)
+
+text \<open>The set of integers is also infinite.\<close>
+
+lemma infinite_int_iff_infinite_nat_abs: "infinite (S::int set) \<longleftrightarrow> infinite ((nat o abs) ` S)"
+  by (auto simp: transfer_nat_int_set_relations o_def image_comp dest: finite_image_absD)
+
+proposition infinite_int_iff_unbounded_le: "infinite (S::int set) \<longleftrightarrow> (\<forall>m. \<exists>n. abs n \<ge> m \<and> n \<in> S)"
+  apply (simp add: infinite_int_iff_infinite_nat_abs infinite_nat_iff_unbounded_le o_def image_def)
+  apply (metis abs_ge_zero nat_le_eq_zle le_nat_iff)
+  done
+
+proposition infinite_int_iff_unbounded: "infinite (S::int set) \<longleftrightarrow> (\<forall>m. \<exists>n. abs n > m \<and> n \<in> S)"
+  apply (simp add: infinite_int_iff_infinite_nat_abs infinite_nat_iff_unbounded o_def image_def)
+  apply (metis (full_types) nat_le_iff nat_mono not_le)
+  done
+
+proposition finite_int_iff_bounded: "finite (S::int set) \<longleftrightarrow> (\<exists>k. abs ` S \<subseteq> {..<k})"
+  using infinite_int_iff_unbounded_le[of S] by (simp add: subset_eq) (metis not_le)
+
+proposition finite_int_iff_bounded_le: "finite (S::int set) \<longleftrightarrow> (\<exists>k. abs ` S \<subseteq> {.. k})"
+  using infinite_int_iff_unbounded[of S] by (simp add: subset_eq) (metis not_le)
 
 subsection "Infinitely Many and Almost All"
 
@@ -384,25 +408,6 @@ proof -
   ultimately show ?thesis
     unfolding bij_betw_def by (auto intro: enumerate_in_set)
 qed
-
-subsection "Miscellaneous"
-
-text \<open>
-  A few trivial lemmas about sets that contain at most one element.
-  These simplify the reasoning about deterministic automata.
-\<close>
-
-definition atmost_one :: "'a set \<Rightarrow> bool"
-  where "atmost_one S \<longleftrightarrow> (\<forall>x y. x\<in>S \<and> y\<in>S \<longrightarrow> x = y)"
-
-lemma atmost_one_empty: "S = {} \<Longrightarrow> atmost_one S"
-  by (simp add: atmost_one_def)
-
-lemma atmost_one_singleton: "S = {x} \<Longrightarrow> atmost_one S"
-  by (simp add: atmost_one_def)
-
-lemma atmost_one_unique [elim]: "atmost_one S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> y = x"
-  by (simp add: atmost_one_def)
 
 end
 

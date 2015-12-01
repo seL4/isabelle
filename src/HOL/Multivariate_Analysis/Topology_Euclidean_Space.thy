@@ -817,6 +817,9 @@ definition ball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
 definition cball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
   where "cball x e = {y. dist x y \<le> e}"
 
+definition sphere :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
+  where "sphere x e = {y. dist x y = e}"
+
 lemma mem_ball [simp]: "y \<in> ball x e \<longleftrightarrow> dist x y < e"
   by (simp add: ball_def)
 
@@ -862,19 +865,6 @@ lemma ball_min_Int: "ball a (min r s) = ball a r \<inter> ball a s"
 
 lemma cball_diff_eq_sphere: "cball a r - ball a r =  {x. dist x a = r}"
   by (auto simp: cball_def ball_def dist_commute)
-
-lemma diff_less_iff:
-  "(a::real) - b > 0 \<longleftrightarrow> a > b"
-  "(a::real) - b < 0 \<longleftrightarrow> a < b"
-  "a - b < c \<longleftrightarrow> a < c + b" "a - b > c \<longleftrightarrow> a > c + b"
-  by arith+
-
-lemma diff_le_iff:
-  "(a::real) - b \<ge> 0 \<longleftrightarrow> a \<ge> b"
-  "(a::real) - b \<le> 0 \<longleftrightarrow> a \<le> b"
-  "a - b \<le> c \<longleftrightarrow> a \<le> c + b"
-  "a - b \<ge> c \<longleftrightarrow> a \<ge> c + b"
-  by arith+
 
 lemma open_ball [intro, simp]: "open (ball x e)"
 proof -
@@ -7347,7 +7337,7 @@ next
     then have "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` cbox a b"
       unfolding image_iff Bex_def mem_box
       apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
-      apply (auto simp add: pos_le_divide_eq pos_divide_le_eq mult.commute diff_le_iff inner_distrib inner_diff_left)
+      apply (auto simp add: pos_le_divide_eq pos_divide_le_eq mult.commute inner_distrib inner_diff_left)
       done
   }
   moreover
@@ -7357,7 +7347,7 @@ next
     then have "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` cbox a b"
       unfolding image_iff Bex_def mem_box
       apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
-      apply (auto simp add: neg_le_divide_eq neg_divide_le_eq mult.commute diff_le_iff inner_distrib inner_diff_left)
+      apply (auto simp add: neg_le_divide_eq neg_divide_le_eq mult.commute inner_distrib inner_diff_left)
       done
   }
   ultimately show ?thesis using False by (auto simp: cbox_def)
@@ -8187,8 +8177,8 @@ lemma cball_subset_cball_iff:
   shows "cball a r \<subseteq> cball a' r' \<longleftrightarrow> dist a a' + r \<le> r' \<or> r < 0"
         (is "?lhs = ?rhs")
 proof
-  assume ?lhs 
-  then show ?rhs 
+  assume ?lhs
+  then show ?rhs
   proof (cases "r < 0")
     case True then show ?rhs by simp
   next
@@ -8209,13 +8199,13 @@ proof
         using  \<open>a \<noteq> a'\<close> by (simp add: abs_mult_pos field_simps)
       finally have [simp]: "norm (a' - (a + (r / norm (a - a')) *\<^sub>R (a - a'))) = \<bar>norm (a - a') + r\<bar>" by linarith
       show ?thesis
-        using subsetD [where c = "a' + (1 + r / norm(a - a')) *\<^sub>R (a - a')", OF \<open>?lhs\<close>] \<open>a \<noteq> a'\<close> 
+        using subsetD [where c = "a' + (1 + r / norm(a - a')) *\<^sub>R (a - a')", OF \<open>?lhs\<close>] \<open>a \<noteq> a'\<close>
         by (simp add: dist_norm scaleR_add_left)
     qed
     then show ?rhs by (simp add: dist_norm)
   qed
 next
-  assume ?rhs then show ?lhs 
+  assume ?rhs then show ?lhs
     apply (auto simp: ball_def dist_norm )
     apply (metis add.commute add_le_cancel_right dist_norm dist_triangle_alt order_trans)
     using le_less_trans apply fastforce
@@ -8227,8 +8217,8 @@ lemma cball_subset_ball_iff:
   shows "cball a r \<subseteq> ball a' r' \<longleftrightarrow> dist a a' + r < r' \<or> r < 0"
         (is "?lhs = ?rhs")
 proof
-  assume ?lhs 
-  then show ?rhs 
+  assume ?lhs
+  then show ?rhs
   proof (cases "r < 0")
     case True then show ?rhs by simp
   next
@@ -8256,7 +8246,7 @@ proof
     then show ?rhs by (simp add: dist_norm)
   qed
 next
-  assume ?rhs then show ?lhs 
+  assume ?rhs then show ?lhs
     apply (auto simp: ball_def dist_norm )
     apply (metis add.commute add_le_cancel_right dist_norm dist_triangle_alt le_less_trans)
     using le_less_trans apply fastforce
@@ -8268,10 +8258,10 @@ lemma ball_subset_cball_iff:
   shows "ball a r \<subseteq> cball a' r' \<longleftrightarrow> dist a a' + r \<le> r' \<or> r \<le> 0"
         (is "?lhs = ?rhs")
 proof (cases "r \<le> 0")
-  case True then show ?thesis   
+  case True then show ?thesis
     using dist_not_less_zero less_le_trans by force
 next
-  case False show ?thesis  
+  case False show ?thesis
   proof
     assume ?lhs
     then have "(cball a r \<subseteq> cball a' r')"
@@ -8280,7 +8270,7 @@ next
       using False cball_subset_cball_iff by fastforce
   next
     assume ?rhs with False show ?lhs
-      using ball_subset_cball cball_subset_cball_iff by blast 
+      using ball_subset_cball cball_subset_cball_iff by blast
   qed
 qed
 
@@ -8289,10 +8279,10 @@ lemma ball_subset_ball_iff:
   shows "ball a r \<subseteq> ball a' r' \<longleftrightarrow> dist a a' + r \<le> r' \<or> r \<le> 0"
         (is "?lhs = ?rhs")
 proof (cases "r \<le> 0")
-  case True then show ?thesis   
+  case True then show ?thesis
     using dist_not_less_zero less_le_trans by force
 next
-  case False show ?thesis  
+  case False show ?thesis
   proof
     assume ?lhs
     then have "0 < r'"
@@ -8316,22 +8306,22 @@ lemma ball_eq_ball_iff:
   shows "ball x d = ball y e \<longleftrightarrow> d \<le> 0 \<and> e \<le> 0 \<or> x=y \<and> d=e"
         (is "?lhs = ?rhs")
 proof
-  assume ?lhs 
-  then show ?rhs 
+  assume ?lhs
+  then show ?rhs
   proof (cases "d \<le> 0 \<or> e \<le> 0")
-    case True 
+    case True
       with \<open>?lhs\<close> show ?rhs
         by safe (simp_all only: ball_eq_empty [of y e, symmetric] ball_eq_empty [of x d, symmetric])
   next
     case False
-    with \<open>?lhs\<close> show ?rhs 
+    with \<open>?lhs\<close> show ?rhs
       apply (auto simp add: set_eq_subset ball_subset_ball_iff dist_norm norm_minus_commute algebra_simps)
       apply (metis add_le_same_cancel1 le_add_same_cancel1 norm_ge_zero norm_pths(2) order_trans)
       apply (metis add_increasing2 add_le_imp_le_right eq_iff norm_ge_zero)
       done
   qed
 next
-  assume ?rhs then show ?lhs 
+  assume ?rhs then show ?lhs
     by (auto simp add: set_eq_subset ball_subset_ball_iff)
 qed
 
@@ -8340,22 +8330,22 @@ lemma cball_eq_cball_iff:
   shows "cball x d = cball y e \<longleftrightarrow> d < 0 \<and> e < 0 \<or> x=y \<and> d=e"
         (is "?lhs = ?rhs")
 proof
-  assume ?lhs 
-  then show ?rhs 
+  assume ?lhs
+  then show ?rhs
   proof (cases "d < 0 \<or> e < 0")
-    case True 
+    case True
       with \<open>?lhs\<close> show ?rhs
         by safe (simp_all only: cball_eq_empty [of y e, symmetric] cball_eq_empty [of x d, symmetric])
   next
     case False
-    with \<open>?lhs\<close> show ?rhs 
+    with \<open>?lhs\<close> show ?rhs
       apply (auto simp add: set_eq_subset cball_subset_cball_iff dist_norm norm_minus_commute algebra_simps)
       apply (metis add_le_same_cancel1 le_add_same_cancel1 norm_ge_zero norm_pths(2) order_trans)
       apply (metis add_increasing2 add_le_imp_le_right eq_iff norm_ge_zero)
       done
   qed
 next
-  assume ?rhs then show ?lhs 
+  assume ?rhs then show ?lhs
     by (auto simp add: set_eq_subset cball_subset_cball_iff)
 qed
 
@@ -8363,7 +8353,7 @@ lemma ball_eq_cball_iff:
   fixes x :: "'a :: euclidean_space"
   shows "ball x d = cball y e \<longleftrightarrow> d \<le> 0 \<and> e < 0" (is "?lhs = ?rhs")
 proof
-  assume ?lhs 
+  assume ?lhs
   then show ?rhs
     apply (auto simp add: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff algebra_simps)
     apply (metis add_increasing2 add_le_cancel_right add_less_same_cancel1 dist_not_less_zero less_le_trans zero_le_dist)
@@ -8371,7 +8361,7 @@ proof
     using \<open>?lhs\<close> ball_eq_empty cball_eq_empty apply blast+
     done
 next
-  assume ?rhs then show ?lhs 
+  assume ?rhs then show ?lhs
     by (auto simp add: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff)
 qed
 
@@ -8379,7 +8369,7 @@ lemma cball_eq_ball_iff:
   fixes x :: "'a :: euclidean_space"
   shows "cball x d = ball y e \<longleftrightarrow> d < 0 \<and> e \<le> 0" (is "?lhs = ?rhs")
 proof
-  assume ?lhs 
+  assume ?lhs
   then show ?rhs
     apply (auto simp add: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff algebra_simps)
     apply (metis add_increasing2 add_le_cancel_right add_less_same_cancel1 dist_not_less_zero less_le_trans zero_le_dist)
@@ -8387,7 +8377,7 @@ proof
     using \<open>?lhs\<close> ball_eq_empty cball_eq_empty apply blast+
     done
 next
-  assume ?rhs then show ?lhs 
+  assume ?rhs then show ?lhs
     by (auto simp add: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff)
 qed
 
