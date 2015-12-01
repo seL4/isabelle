@@ -6,6 +6,7 @@ imports
   Bit
   BNF_Axiomatization
   Boolean_Algebra
+  Bourbaki_Witt_Fixpoint
   Char_ord
   Code_Test
   ContNotDenum

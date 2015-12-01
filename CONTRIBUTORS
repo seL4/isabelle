@@ -6,6 +6,10 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* Autumn 2015: Andreas Lochbihler
+  Bourbaki-Witt fixpoint theorem for increasing functions on
+  chain-complete partial orders.
+
 * Autumn 2015: Chaitanya Mangla, Lawrence C Paulson, and Manuel Eberl
   A large number of additional binomial identities.
 

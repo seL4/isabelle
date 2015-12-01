@@ -581,6 +581,10 @@ simplifies to "top". INCOMPATIBILITY.
     less_eq_multiset_def
     INCOMPATIBILITY
 
+* Library/Bourbaki_Witt_Fixpoint: Added formalisation of the Bourbaki-Witt
+fixpoint theorem for increasing functions in chain-complete partial
+orders.
+
 * Multivariate_Analysis/Cauchy_Integral_Thm: Complex path integrals, Cauchy's
 integral theorem, winding numbers and Cauchy's integral formula, ported from HOL Light
 
