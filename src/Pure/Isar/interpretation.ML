@@ -52,13 +52,13 @@ type 'a rewrites = (Attrib.binding * 'a) list
 
 local
 
-fun prep_mixins prep_term prep_prop expr_ctxt deps_ctxt raw_defs raw_eqns =
+fun prep_mixins prep_term prep_prop expr_ctxt read_rew_ctxt raw_defs raw_eqns =
   let
-    val prep = Syntax.check_terms deps_ctxt #> Variable.export_terms deps_ctxt expr_ctxt;
-    val rhss = (prep o map (prep_term deps_ctxt o snd o snd)) raw_defs;
+    val prep = Syntax.check_terms read_rew_ctxt #> Variable.export_terms read_rew_ctxt expr_ctxt;
+    val rhss = (prep o map (prep_term read_rew_ctxt o snd o snd)) raw_defs;
     val pre_defs = map2 (fn ((name, atts), ((b, mx), _)) => fn rhs =>
       ((b, mx), ((Thm.def_binding_optional b name, atts), rhs))) raw_defs rhss;
-    val eqns = (prep o map (prep_prop deps_ctxt o snd)) raw_eqns;
+    val eqns = (prep o map (prep_prop read_rew_ctxt o snd)) raw_eqns;
   in (pre_defs, eqns) end;
 
 fun define_mixins [] expr_ctxt = ([], expr_ctxt)
