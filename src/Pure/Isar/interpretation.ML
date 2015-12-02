@@ -52,41 +52,46 @@ type 'a rewrites = (Attrib.binding * 'a) list
 
 local
 
-fun prep_mixins prep_term prep_props expr_ctxt read_rew_ctxt raw_defs raw_eqns =
+fun augment_with_def prep_term deps ((name, atts), ((b, mx), raw_rhs)) lthy =
   let
-    val export = Variable.export_terms read_rew_ctxt expr_ctxt;
-    val rhss = (export o map (prep_term read_rew_ctxt o snd o snd)) raw_defs;
-    val pre_defs = map2 (fn ((name, atts), ((b, mx), _)) => fn rhs =>
-      ((b, mx), ((Thm.def_binding_optional b name, atts), rhs))) raw_defs rhss;
-    val eqns = (export o prep_props read_rew_ctxt o map snd) raw_eqns;
-  in (pre_defs, eqns) end;
+    val rhs = prep_term lthy raw_rhs;
+    val lthy' = Variable.declare_term rhs lthy;
+    val ((_, (_, def)), lthy'') =
+      Local_Theory.define ((b, mx), ((Thm.def_binding_optional b name, atts), rhs)) lthy';
+  in (def, lthy'') end;
 
-fun define_mixins [] expr_ctxt = ([], expr_ctxt)
+fun augment_with_defs prep_term [] deps ctxt = ([], ctxt)
       (*quasi-inhomogeneous type: definitions demand local theory rather than bare proof context*)
-  | define_mixins pre_defs expr_lthy =
+  | augment_with_defs prep_term raw_defs deps lthy =
       let
-        val ((_, defs), inner_def_lthy) =
-          expr_lthy
-          |> Local_Theory.open_target
-          ||>> fold_map Local_Theory.define pre_defs
-        val def_lthy =
-          inner_def_lthy
+        val (_, inner_lthy) =
+          Local_Theory.open_target lthy
+          ||> fold Locale.activate_declarations deps;
+        val (inner_defs, inner_lthy') =
+          fold_map (augment_with_def prep_term deps) raw_defs inner_lthy;
+        val lthy' =
+          inner_lthy'
           |> Local_Theory.close_target;
         val def_eqns =
-          defs
-          |> map (Thm.symmetric o snd o snd)
-          |> Proof_Context.export inner_def_lthy def_lthy;
-      in (def_eqns, Proof_Context.transfer (Proof_Context.theory_of def_lthy) expr_lthy) end;
+          map (singleton (Proof_Context.export inner_lthy' lthy') o Thm.symmetric) inner_defs
+      in (def_eqns, lthy') end;
+
+fun prep_eqns prep_props prep_attr [] deps ctxt = ([], [])
+  | prep_eqns prep_props prep_attr raw_eqns deps ctxt =
+      let
+        val ctxt' = fold Locale.activate_declarations deps ctxt;
+        val eqns =
+          (Variable.export_terms ctxt' ctxt o prep_props ctxt' o map snd) raw_eqns;
+        val attrss = map (apsnd (map (prep_attr ctxt)) o fst) raw_eqns;
+      in (eqns, attrss) end;
 
 fun prep_interpretation prep_expr prep_term prep_props prep_attr
   expression raw_defs raw_eqns initial_ctxt =
   let
     val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
-    val (pre_defs, eqns) =
-      prep_mixins prep_term prep_props expr_ctxt
-        (fold Locale.activate_declarations deps expr_ctxt) raw_defs raw_eqns;
-    val (def_eqns, def_ctxt) = define_mixins pre_defs expr_ctxt;
-    val attrss = map (apsnd (map (prep_attr def_ctxt)) o fst) raw_eqns;
+    val (def_eqns, def_ctxt) =
+      augment_with_defs prep_term raw_defs deps expr_ctxt;
+    val (eqns, attrss) = prep_eqns prep_props prep_attr raw_eqns deps def_ctxt;
     val goal_ctxt = fold Variable.auto_fixes eqns def_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
   in (((propss, deps, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) end;
