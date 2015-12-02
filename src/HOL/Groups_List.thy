@@ -61,18 +61,9 @@ subsection \<open>List summation\<close>
 context monoid_add
 begin
 
-definition listsum :: "'a list \<Rightarrow> 'a"
-where
-  "listsum  = monoid_list.F plus 0"
-
 sublocale listsum: monoid_list plus 0
-rewrites
- "monoid_list.F plus 0 = listsum"
-proof -
-  show "monoid_list plus 0" ..
-  then interpret listsum: monoid_list plus 0 .
-  from listsum_def show "monoid_list.F plus 0 = listsum" by rule
-qed
+defines
+  listsum = listsum.F ..
  
 end
 
@@ -85,7 +76,7 @@ rewrites
 proof -
   show "comm_monoid_list plus 0" ..
   then interpret listsum: comm_monoid_list plus 0 .
-  from listsum_def show "monoid_list.F plus 0 = listsum" by rule
+  from listsum_def show "monoid_list.F plus 0 = listsum" by simp
 qed
 
 sublocale setsum: comm_monoid_list_set plus 0
@@ -95,8 +86,8 @@ rewrites
 proof -
   show "comm_monoid_list_set plus 0" ..
   then interpret setsum: comm_monoid_list_set plus 0 .
-  from listsum_def show "monoid_list.F plus 0 = listsum" by rule
-  from setsum_def show "comm_monoid_set.F plus 0 = setsum" by rule
+  from listsum_def show "monoid_list.F plus 0 = listsum" by simp
+  from setsum_def show "comm_monoid_set.F plus 0 = setsum" by (auto intro: sym)
 qed
 
 end
@@ -328,18 +319,9 @@ subsection \<open>List product\<close>
 context monoid_mult
 begin
 
-definition listprod :: "'a list \<Rightarrow> 'a"
-where
-  "listprod  = monoid_list.F times 1"
-
 sublocale listprod: monoid_list times 1
-rewrites
-  "monoid_list.F times 1 = listprod"
-proof -
-  show "monoid_list times 1" ..
-  then interpret listprod: monoid_list times 1 .
-  from listprod_def show "monoid_list.F times 1 = listprod" by rule
-qed
+defines
+  listprod = listprod.F ..
 
 end
 
@@ -352,7 +334,7 @@ rewrites
 proof -
   show "comm_monoid_list times 1" ..
   then interpret listprod: comm_monoid_list times 1 .
-  from listprod_def show "monoid_list.F times 1 = listprod" by rule
+  from listprod_def show "monoid_list.F times 1 = listprod" by simp
 qed
 
 sublocale setprod: comm_monoid_list_set times 1
@@ -362,8 +344,8 @@ rewrites
 proof -
   show "comm_monoid_list_set times 1" ..
   then interpret setprod: comm_monoid_list_set times 1 .
-  from listprod_def show "monoid_list.F times 1 = listprod" by rule
-  from setprod_def show "comm_monoid_set.F times 1 = setprod" by rule
+  from listprod_def show "monoid_list.F times 1 = listprod" by simp
+  from setprod_def show "comm_monoid_set.F times 1 = setprod" by (auto intro: sym)
 qed
 
 end

@@ -467,18 +467,9 @@ subsection \<open>Generalized summation over a set\<close>
 context comm_monoid_add
 begin
 
-definition setsum :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
-where
-  "setsum = comm_monoid_set.F plus 0"
-
 sublocale setsum: comm_monoid_set plus 0
-rewrites
-  "comm_monoid_set.F plus 0 = setsum"
-proof -
-  show "comm_monoid_set plus 0" ..
-  then interpret setsum: comm_monoid_set plus 0 .
-  from setsum_def show "comm_monoid_set.F plus 0 = setsum" by rule
-qed
+defines
+  setsum = setsum.F ..
 
 abbreviation
   Setsum ("\<Sum>_" [1000] 999) where
@@ -1058,18 +1049,9 @@ subsection \<open>Generalized product over a set\<close>
 context comm_monoid_mult
 begin
 
-definition setprod :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
-where
-  "setprod = comm_monoid_set.F times 1"
-
 sublocale setprod: comm_monoid_set times 1
-rewrites
-  "comm_monoid_set.F times 1 = setprod"
-proof -
-  show "comm_monoid_set times 1" ..
-  then interpret setprod: comm_monoid_set times 1 .
-  from setprod_def show "comm_monoid_set.F times 1 = setprod" by rule
-qed
+defines
+  setprod = setprod.F ..
 
 abbreviation
   Setprod ("\<Prod>_" [1000] 999) where

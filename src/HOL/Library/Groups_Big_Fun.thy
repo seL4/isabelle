@@ -220,19 +220,15 @@ subsection \<open>Concrete sum\<close>
 context comm_monoid_add
 begin
 
-definition Sum_any :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-where
-  "Sum_any = comm_monoid_fun.G plus 0"
-
-permanent_interpretation Sum_any: comm_monoid_fun plus 0
+sublocale Sum_any: comm_monoid_fun plus 0
+defines
+  Sum_any = Sum_any.G
 rewrites
-  "comm_monoid_fun.G plus 0 = Sum_any" and
   "comm_monoid_set.F plus 0 = setsum"
 proof -
   show "comm_monoid_fun plus 0" ..
   then interpret Sum_any: comm_monoid_fun plus 0 .
-  from Sum_any_def show "comm_monoid_fun.G plus 0 = Sum_any" by rule
-  from setsum_def show "comm_monoid_set.F plus 0 = setsum" by rule
+  from setsum_def show "comm_monoid_set.F plus 0 = setsum" by (auto intro: sym)
 qed
 
 end
@@ -293,19 +289,15 @@ subsection \<open>Concrete product\<close>
 context comm_monoid_mult
 begin
 
-definition Prod_any :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-where
-  "Prod_any = comm_monoid_fun.G times 1"
-
-permanent_interpretation Prod_any: comm_monoid_fun times 1
+sublocale Prod_any: comm_monoid_fun times 1
+defines
+  Prod_any = Prod_any.G
 rewrites
-  "comm_monoid_fun.G times 1 = Prod_any" and
   "comm_monoid_set.F times 1 = setprod"
 proof -
   show "comm_monoid_fun times 1" ..
   then interpret Prod_any: comm_monoid_fun times 1 .
-  from Prod_any_def show "comm_monoid_fun.G times 1 = Prod_any" by rule
-  from setprod_def show "comm_monoid_set.F times 1 = setprod" by rule
+  from setprod_def show "comm_monoid_set.F times 1 = setprod" by (auto intro: sym)
 qed
 
 end
