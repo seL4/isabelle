@@ -88,7 +88,7 @@ fun prep_interpretation prep_expr prep_term prep_prop prep_attr
     val (def_eqns, def_ctxt) = define_mixins pre_defs expr_ctxt;
     val attrss = map (apsnd (map (prep_attr def_ctxt)) o fst) raw_eqns;
     val goal_ctxt = fold Variable.auto_fixes eqns def_ctxt;
-    val export' = Variable.export_morphism goal_ctxt def_ctxt;
+    val export' = Variable.export_morphism goal_ctxt expr_ctxt;
   in (((propss, deps, export, export'), (def_eqns, eqns, attrss)), goal_ctxt) end;
 
 in
