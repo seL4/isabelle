@@ -52,13 +52,13 @@ type 'a rewrites = (Attrib.binding * 'a) list
 
 local
 
-fun prep_mixins prep_term prep_prop expr_ctxt read_rew_ctxt raw_defs raw_eqns =
+fun prep_mixins prep_term prep_props expr_ctxt read_rew_ctxt raw_defs raw_eqns =
   let
-    val prep = Syntax.check_terms read_rew_ctxt #> Variable.export_terms read_rew_ctxt expr_ctxt;
-    val rhss = (prep o map (prep_term read_rew_ctxt o snd o snd)) raw_defs;
+    val export = Variable.export_terms read_rew_ctxt expr_ctxt;
+    val rhss = (export o map (prep_term read_rew_ctxt o snd o snd)) raw_defs;
     val pre_defs = map2 (fn ((name, atts), ((b, mx), _)) => fn rhs =>
       ((b, mx), ((Thm.def_binding_optional b name, atts), rhs))) raw_defs rhss;
-    val eqns = (prep o map (prep_prop read_rew_ctxt o snd)) raw_eqns;
+    val eqns = (export o prep_props read_rew_ctxt o map snd) raw_eqns;
   in (pre_defs, eqns) end;
 
 fun define_mixins [] expr_ctxt = ([], expr_ctxt)
@@ -78,12 +78,12 @@ fun define_mixins [] expr_ctxt = ([], expr_ctxt)
           |> Proof_Context.export inner_def_lthy def_lthy;
       in (def_eqns, Proof_Context.transfer (Proof_Context.theory_of def_lthy) expr_lthy) end;
 
-fun prep_interpretation prep_expr prep_term prep_prop prep_attr
+fun prep_interpretation prep_expr prep_term prep_props prep_attr
   expression raw_defs raw_eqns initial_ctxt =
   let
     val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
     val (pre_defs, eqns) =
-      prep_mixins prep_term prep_prop expr_ctxt
+      prep_mixins prep_term prep_props expr_ctxt
         (fold Locale.activate_declarations deps expr_ctxt) raw_defs raw_eqns;
     val (def_eqns, def_ctxt) = define_mixins pre_defs expr_ctxt;
     val attrss = map (apsnd (map (prep_attr def_ctxt)) o fst) raw_eqns;
@@ -94,11 +94,12 @@ fun prep_interpretation prep_expr prep_term prep_prop prep_attr
 in
 
 fun cert_interpretation expression =
-  prep_interpretation Expression.cert_goal_expression (K I) (K I) (K I) expression;
+  prep_interpretation Expression.cert_goal_expression Syntax.check_term
+    Syntax.check_props (K I) expression;
 
 fun read_interpretation expression =
-  prep_interpretation Expression.read_goal_expression Syntax.parse_term
-    Syntax.parse_prop Attrib.check_src expression;
+  prep_interpretation Expression.read_goal_expression Syntax.read_term
+    Syntax.read_props Attrib.check_src expression;
 
 end;
 
