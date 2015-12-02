@@ -14,7 +14,7 @@ sig
   val interpret: Expression.expression_i -> term rewrites -> bool -> Proof.state -> Proof.state
   val interpret_cmd: Expression.expression -> string rewrites -> bool -> Proof.state -> Proof.state
 
-  (*algebraic-view*)
+  (*algebraic view*)
   val global_interpretation: Expression.expression_i ->
     term defines -> term rewrites -> theory -> Proof.state
   val global_sublocale: string -> Expression.expression_i ->
