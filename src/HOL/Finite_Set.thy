@@ -1209,17 +1209,9 @@ text \<open>
   But now that we have @{const fold} things are easy:
 \<close>
 
-definition card :: "'a set \<Rightarrow> nat" where
-  "card = folding.F (\<lambda>_. Suc) 0"
-
-interpretation card: folding "\<lambda>_. Suc" 0
-rewrites
-  "folding.F (\<lambda>_. Suc) 0 = card"
-proof -
-  show "folding (\<lambda>_. Suc)" by standard rule
-  then interpret card: folding "\<lambda>_. Suc" 0 .
-  from card_def show "folding.F (\<lambda>_. Suc) 0 = card" by rule
-qed
+permanent_interpretation card: folding "\<lambda>_. Suc" 0
+  defines card = "folding.F (\<lambda>_. Suc) 0"
+  by standard rule
 
 lemma card_infinite:
   "\<not> finite A \<Longrightarrow> card A = 0"
