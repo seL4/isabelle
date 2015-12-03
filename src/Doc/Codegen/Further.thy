@@ -152,7 +152,7 @@ begin
 
 text \<open>
   \noindent Inside that locale we can lift @{text power} to exponent
-  lists by means of specification relative to that locale:
+  lists by means of a specification relative to that locale:
 \<close>
 
 primrec %quote powers :: "'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
@@ -178,64 +178,34 @@ end %quote
 text \<open>
   After an interpretation of this locale (say, @{command_def
   interpretation} @{text "fun_power:"} @{term [source] "power (\<lambda>n (f
-  :: 'a \<Rightarrow> 'a). f ^^ n)"}), one would expect to have a constant @{text
+  :: 'a \<Rightarrow> 'a). f ^^ n)"}), one could naively expect to have a constant @{text
   "fun_power.powers :: nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"} for which code
   can be generated.  But this not the case: internally, the term
   @{text "fun_power.powers"} is an abbreviation for the foundational
   term @{term [source] "power.powers (\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"}
   (see @{cite "isabelle-locale"} for the details behind).
 
-  Fortunately, with minor effort the desired behaviour can be
-  achieved.  First, a dedicated definition of the constant on which
-  the local @{text "powers"} after interpretation is supposed to be
-  mapped on:
+  Fortunately, a succint solution is available:
+  @{command permanent_interpretation} with a dedicated
+  rewrite definition:
 \<close>
 
-definition %quote funpows :: "nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
-  [code del]: "funpows = power.powers (\<lambda>n f. f ^^ n)"
-
-text \<open>
-  \noindent In general, the pattern is @{text "c = t"} where @{text c}
-  is the name of the future constant and @{text t} the foundational
-  term corresponding to the local constant after interpretation.
-
-  The interpretation itself is enriched with an equation @{text "t = c"}:
-\<close>
-
-interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)" rewrites
-  "power.powers (\<lambda>n f. f ^^ n) = funpows"
+permanent_interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"
+  defines funpows = fun_power.powers
   by unfold_locales
-    (simp_all add: fun_eq_iff funpow_mult mult.commute funpows_def)
+    (simp_all add: fun_eq_iff funpow_mult mult.commute)
 
 text \<open>
-  \noindent This additional equation is trivially proved by the
-  definition itself.
+  \noindent This amends the interpretation morphisms such that
+  occurrences of the foundational term @{term [source] "power.powers (\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"}
+  are folded to a newly defined constant @{const funpows}.
 
   After this setup procedure, code generation can continue as usual:
 \<close>
 
 text %quotetypewriter \<open>
   @{code_stmts funpows (consts) Nat.funpow funpows (Haskell)}
-\<close> (*<*)
-
-(*>*) text \<open>
-  Fortunately, an even more succint approach is available using command
-  @{command permanent_interpretation}.
-  Then the pattern above collapses to
-\<close> (*<*)
-
-setup \<open>Sign.add_path "funpows"\<close>
-hide_const (open) funpows
-
-(*>*)
-permanent_interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"
-  defines funpows = "fun_power.powers :: nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
-  by unfold_locales
-    (simp_all add: fun_eq_iff funpow_mult mult.commute) (*<*)
-
-setup \<open>Sign.parent_path\<close>
-
-(*>*)
+\<close>
 
 
 subsection \<open>Parallel computation\<close>
