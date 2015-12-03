@@ -63,7 +63,7 @@ fun class_of lthy =
   | _ => NONE;
 
 
-(* define *)
+(* operations *)
 
 fun locale_foundation locale (((b, U), mx), (b_def, rhs)) params =
   Generic_Target.background_foundation (((b, U), NoSyn), (b_def, rhs)) params
@@ -79,33 +79,18 @@ fun foundation ("", _) = Generic_Target.theory_target_foundation
   | foundation (locale, false) = locale_foundation locale
   | foundation (class, true) = class_foundation class;
 
-
-(* notes *)
-
 fun notes ("", _) = Generic_Target.theory_target_notes
   | notes (locale, _) = Generic_Target.locale_target_notes locale;
-
-
-(* abbrev *)
 
 fun abbrev ("", _) = Generic_Target.theory_abbrev
   | abbrev (locale, false) = Generic_Target.locale_abbrev locale
   | abbrev (class, true) = Class.abbrev class;
 
-
-(* declaration *)
-
 fun declaration ("", _) flags decl = Generic_Target.theory_declaration decl
   | declaration (locale, _) flags decl = Generic_Target.locale_declaration locale flags decl;
 
-
-(* subscription *)
-
 fun subscription ("", _) = Generic_Target.theory_registration
   | subscription (locale, _) = Generic_Target.locale_dependency locale;
-
-
-(* pretty *)
 
 fun pretty (target, is_class) ctxt =
   if target = "" then
