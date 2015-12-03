@@ -116,10 +116,10 @@ text \<open>
   arguments of the left hand side of an equation, but never to the
   constant heading the left hand side.
 
-  Pre- and postprocessor can be setup to broker between
+  Pre- and postprocessor can be setup to transfer between
   expressions suitable for logical reasoning and expressions 
   suitable for execution.  As example, take list membership; logically
-  is is just expressed as @{term "x \<in> set xs"}.  But for execution
+  it is expressed as @{term "x \<in> set xs"}.  But for execution
   the intermediate set is not desirable.  Hence the following
   specification:
 \<close>
