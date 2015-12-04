@@ -30,24 +30,6 @@ val size_neqN = "size_neq";
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
 
-structure Data = Generic_Data
-(
-  type T = (string * (thm list * thm list)) Symtab.table;
-  val empty = Symtab.empty;
-  val extend = I
-  fun merge data = Symtab.merge (K true) data;
-);
-
-fun register_size T_name size_name size_simps size_gen_o_maps =
-  Context.proof_map (Data.map (Symtab.update (T_name, (size_name, (size_simps, size_gen_o_maps)))));
-
-fun register_size_global T_name size_name size_simps size_gen_o_maps =
-  Context.theory_map
-    (Data.map (Symtab.update (T_name, (size_name, (size_simps, size_gen_o_maps)))));
-
-val size_of = Symtab.lookup o Data.get o Context.Proof;
-val size_of_global = Symtab.lookup o Data.get o Context.Theory;
-
 fun mk_plus_nat (t1, t2) = Const (@{const_name Groups.plus},
   HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
 
@@ -59,6 +41,40 @@ fun mk_pointful ctxt thm = unfold_thms ctxt [o_apply] (thm RS fun_cong);
 
 fun mk_unabs_def_unused_0 n =
   funpow n (fn thm => thm RS @{thm fun_cong_unused_0} handle THM _ => thm RS fun_cong);
+
+structure Data = Generic_Data
+(
+  type T = (string * (thm list * thm list)) Symtab.table;
+  val empty = Symtab.empty;
+  val extend = I
+  fun merge data = Symtab.merge (K true) data;
+);
+
+fun check_size_type thy T_name size_name =
+  let
+    val n = Sign.arity_number thy T_name;
+    val As = map (fn s => TFree (s, @{sort type})) (Name.invent Name.context Name.aT n);
+    val T = Type (T_name, As);
+    val size_T = map mk_to_natT As ---> mk_to_natT T;
+    val size_const = Const (size_name, size_T);
+  in
+    can (Thm.global_cterm_of thy) size_const orelse
+    error ("Constant " ^ quote size_name ^ " registered as size function for " ^ quote T_name ^
+      " must have type\n" ^ quote (Syntax.string_of_typ_global thy size_T))
+  end;
+
+fun register_size T_name size_name size_simps size_gen_o_maps lthy =
+  (check_size_type (Proof_Context.theory_of lthy) T_name size_name;
+   Context.proof_map (Data.map (Symtab.update (T_name, (size_name, (size_simps, size_gen_o_maps)))))
+     lthy);
+
+fun register_size_global T_name size_name size_simps size_gen_o_maps thy =
+  (check_size_type thy T_name size_name;
+   Context.theory_map (Data.map (Symtab.update (T_name, (size_name, (size_simps,
+     size_gen_o_maps))))) thy);
+
+val size_of = Symtab.lookup o Data.get o Context.Proof;
+val size_of_global = Symtab.lookup o Data.get o Context.Theory;
 
 val size_gen_o_map_simps = @{thms inj_on_id snd_comp_apfst[unfolded apfst_def]};
 
@@ -125,7 +141,8 @@ fun generate_datatype_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), 
               SOME (size_name, (_, size_gen_o_maps)) =>
               let
                 val (args, size_gen_o_mapss') = fold_map mk_size_of_typ Ts [];
-                val size_const = Const (size_name, map fastype_of args ---> mk_to_natT T);
+                val size_T = map fastype_of args ---> mk_to_natT T;
+                val size_const = Const (size_name, size_T);
               in
                 append (size_gen_o_maps :: size_gen_o_mapss')
                 #> pair (Term.list_comb (size_const, args))
