@@ -367,3 +367,16 @@ unsat
 (let ((@x46 (monotonicity @x43 (= $x34 (not (= (p$ $x29) ?x32))))))
 (mp (asserted $x34) (trans @x46 @x63 (= $x34 false)) false))))))))))))))
 
+6182523304a5597432fa1bb8dd16e804ddd8d7ee 12 0
+unsat
+((set-logic <null>)
+(proof
+(let ((?x31 (p$ true)))
+(let (($x29 (bvule (_ bv0 4) a$)))
+(let ((?x30 (p$ $x29)))
+(let (($x32 (= ?x30 ?x31)))
+(let ((@x42 (monotonicity (monotonicity (rewrite (= $x29 true)) $x32) (= $x32 (= ?x31 ?x31)))))
+(let ((@x49 (monotonicity (trans @x42 (rewrite (= (= ?x31 ?x31) true)) (= $x32 true)) (= (not $x32) (not true)))))
+(let ((@x53 (trans @x49 (rewrite (= (not true) false)) (= (not $x32) false))))
+(mp (asserted (not $x32)) @x53 false))))))))))
+

@@ -6020,3 +6020,40 @@ unsat
 785615f585a02b3e6ed8608ecc9660ba5c4025e2 2 0
 sat
 (error "line 9 column 10: proof is not available")
+c4e20de399740e8f0c9a87abad030298d74bc47b 12 0
+unsat
+((set-logic AUFLIA)
+(proof
+(let ((?x31 (p$ true)))
+(let (($x29 (< 2 3)))
+(let ((?x30 (p$ $x29)))
+(let (($x32 (= ?x30 ?x31)))
+(let ((@x42 (monotonicity (monotonicity (rewrite (= $x29 true)) $x32) (= $x32 (= ?x31 ?x31)))))
+(let ((@x49 (monotonicity (trans @x42 (rewrite (= (= ?x31 ?x31) true)) (= $x32 true)) (= (not $x32) (not true)))))
+(let ((@x53 (trans @x49 (rewrite (= (not true) false)) (= (not $x32) false))))
+(mp (asserted (not $x32)) @x53 false))))))))))
+
+23f5eb3b530a4577da2f8947333286ff70ed557f 11 0
+unsat
+((set-logic AUFLIA)
+(proof
+(let (($x29 (exists ((?v0 A$) )(! (g$ ?v0) :qid k!7))
+))
+(let (($x30 (f$ $x29)))
+(let (($x31 (=> $x30 true)))
+(let (($x32 (not $x31)))
+(let ((@x42 (trans (monotonicity (rewrite (= $x31 true)) (= $x32 (not true))) (rewrite (= (not true) false)) (= $x32 false))))
+(mp (asserted $x32) @x42 false))))))))
+
+60f1b32e9c6a2229b64c85dcfb0bde9c2bd5433a 11 0
+unsat
+((set-logic AUFLIA)
+(proof
+(let (($x29 (forall ((?v0 A$) )(! (g$ ?v0) :qid k!7))
+))
+(let (($x30 (f$ $x29)))
+(let (($x31 (=> $x30 true)))
+(let (($x32 (not $x31)))
+(let ((@x42 (trans (monotonicity (rewrite (= $x31 true)) (= $x32 (not true))) (rewrite (= (not true) false)) (= $x32 false))))
+(mp (asserted $x32) @x42 false))))))))
+
