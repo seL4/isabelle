@@ -319,13 +319,9 @@ local
 
   val fol_rules = [
     Let_def,
-    @{lemma "P = True == P" by (rule eq_reflection) simp},
-    @{lemma "if P then True else False == P" by (rule eq_reflection) simp}]
+    @{lemma "P = True == P" by (rule eq_reflection) simp}]
 
   exception BAD_PATTERN of unit
-
-  fun wrap_in_if pat t =
-    if pat then raise BAD_PATTERN () else @{const If (bool)} $ t $ @{const True} $ @{const False}
 
   fun is_builtin_conn_or_pred ctxt c ts =
     is_some (SMT_Builtin.dest_builtin_conn ctxt c ts) orelse
@@ -343,9 +339,10 @@ fun folify ctxt =
       | (u as Const (@{const_name If}, _), [t1, t2, t3]) =>
           if pat then raise BAD_PATTERN () else u $ in_form t1 $ in_term pat t2 $ in_term pat t3
       | (Const (c as (n, _)), ts) =>
-          if is_builtin_conn_or_pred ctxt c ts then wrap_in_if pat (in_form t)
-          else if is_quant n then wrap_in_if pat (in_form t)
-          else Term.list_comb (Const c, map (in_term pat) ts)
+          if is_builtin_conn_or_pred ctxt c ts orelse is_quant n then
+            if pat then raise BAD_PATTERN () else in_form t
+          else
+            Term.list_comb (Const c, map (in_term pat) ts)
       | (Free c, ts) => Term.list_comb (Free c, map (in_term pat) ts)
       | _ => t)
 
