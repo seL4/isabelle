@@ -134,7 +134,6 @@ as the code generator, Transfer, Lifting, and Quickcheck.
 Limitations,'' concludes with known open issues at the time of writing.
 \end{itemize}
 
-
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{NOSPAM}}
 
@@ -142,7 +141,7 @@ Limitations,'' concludes with known open issues at the time of writing.
 in.\allowbreak tum.\allowbreak de}}
 
 Comments and bug reports concerning either the package or this tutorial should
-be directed to the first author at \authoremaili or to the
+be directed to the first author at \authoremaili{} or to the
 \texttt{cl-isabelle-users} mailing list.
 *}
 
@@ -1967,9 +1966,12 @@ section {* Defining Primitively Corecursive Functions
 
 text {*
 Corecursive functions can be specified using the @{command primcorec} and
-\keyw{prim\-corec\-ursive} commands, which support primitive corecursion, or
-using the more general \keyw{partial_function} command. In this tutorial, the
-focus is on the first two. More examples can be found in %the directory
+\keyw{prim\-corec\-ursive} commands, which support primitive corecursion.
+Other approaches include the more general \keyw{partial_function} command, the
+forthcoming \keyw{corec} command @{cite "blanchette-et-al-2015-corec"}, and
+techniques based on domains and topologies @{cite "lochbihler-hoelzl-2014"}.
+In this tutorial, the focus is on @{command primcorec} and
+@{command primcorecursive}. More examples can be found in the directory
 @{file "~~/src/HOL/Datatype_Examples"}.
 
 Whereas recursive functions consume datatypes one constructor at a time,
@@ -3136,6 +3138,11 @@ Quickcheck. They can be enabled or disabled individually using the
 
     datatype (plugins del: code "quickcheck") color = Red | Black
 
+text {*
+Beyond the standard plugins, the \emph{Archive of Formal Proofs} includes a
+\keyw{derive} command that derives class instances of datatypes
+@{cite "sternagel-thiemann-2015"}.
+*}
 
 subsection {* Code Generator
   \label{ssec:code-generator} *}
@@ -3218,7 +3225,8 @@ If the recursion is through a non-datatype @{text u} with type arguments
 @{text "'a\<^sub>1, \<dots>, 'a\<^sub>m"}, by default @{text u} values are given a size of 0. This
 can be improved upon by registering a custom size function of type
 @{text "('a\<^sub>1 \<Rightarrow> nat) \<Rightarrow> \<dots> \<Rightarrow> ('a\<^sub>m \<Rightarrow> nat) \<Rightarrow> u \<Rightarrow> nat"} using
-@{ML BNF_LFP_Size.register_size} or @{ML BNF_LFP_Size.register_size_global}. See
+the ML function @{ML BNF_LFP_Size.register_size} or
+@{ML BNF_LFP_Size.register_size_global}. See theory
 @{file "~~/src/HOL/Library/Multiset.thy"} for an example.
 *}
 
@@ -3271,12 +3279,17 @@ This property is generated only for (co)datatypes.
 
 For (co)datatypes with at least one live type argument, the plugin sets the
 @{text "[transfer_rule]"} attribute on the following (co)datatypes properties:
-@{text "t.case_transfer"}, @{text "t.sel_transfer"}, @{text "t.ctr_transfer"},
-@{text "t.disc_transfer"}, @{text "t.rec_transfer"}, and @{text
-"t.corec_transfer"}. For (co)datatypes that further have \emph{no dead type
-arguments}, the plugin sets @{text "[transfer_rule]"} on
-@{text "t.set_transfer"}, @{text "t.map_transfer"}, and
-@{text "t.rel_transfer"}.
+@{text "t.case_"}\allowbreak @{text "transfer"},
+@{text "t.sel_"}\allowbreak @{text "transfer"},
+@{text "t.ctr_"}\allowbreak @{text "transfer"},
+@{text "t.disc_"}\allowbreak @{text "transfer"},
+@{text "t.rec_"}\allowbreak @{text "transfer"}, and
+@{text "t.corec_"}\allowbreak @{text "transfer"}.
+For (co)datatypes that further have \emph{no dead type arguments}, the plugin
+sets @{text "[transfer_rule]"} on
+@{text "t.set_"}\allowbreak @{text "transfer"},
+@{text "t.map_"}\allowbreak @{text "transfer"}, and
+@{text "t.rel_"}\allowbreak @{text "transfer"}.
 
 For @{command primrec}, @{command primcorec}, and @{command primcorecursive},
 the plugin implements the generation of the @{text "f.transfer"} property,
@@ -3382,7 +3395,7 @@ the package.}
 
 \item
 \emph{The compatibility layer sometimes produces induction principles with a
-slightly different shape than the old package.}
+slightly different ordering of the premises than the old package.}
 
 \end{enumerate}
 *}
