@@ -3178,11 +3178,11 @@ subsection {* Size
   \label{ssec:size} *}
 
 text {*
-For each datatype, the \hthm{size} plugin generates a generic size
+For each datatype @{text t}, the \hthm{size} plugin generates a generic size
 function @{text "t.size_t"} as well as a specific instance
-@{text "size :: t \<Rightarrow> nat"} belonging to the @{text size} type
-class. The \keyw{fun} command relies on @{const size} to prove termination of
-recursive functions on datatypes.
+@{text "size :: t \<Rightarrow> nat"} belonging to the @{text size} type class. The
+\keyw{fun} command relies on @{const size} to prove termination of recursive
+functions on datatypes.
 
 The plugin derives the following properties:
 
@@ -3209,7 +3209,19 @@ always evaluates to a non-zero value, this theorem has the form
 
 \end{description}
 \end{indentblock}
+
+The @{text "t.size"} and @{text "t.size_t"} functions generated for datatypes
+defined by nested recursion through a datatype @{text u} depend on
+@{text "u.size_u"}.
+
+If the recursion is through a non-datatype @{text u} with type arguments
+@{text "'a\<^sub>1, \<dots>, 'a\<^sub>m"}, by default @{text u} values are given a size of 0. This
+can be improved upon by registering a custom size function of type
+@{text "('a\<^sub>1 \<Rightarrow> nat) \<Rightarrow> \<dots> \<Rightarrow> ('a\<^sub>m \<Rightarrow> nat) \<Rightarrow> u \<Rightarrow> nat"} using
+@{ML BNF_LFP_Size.register_size} or @{ML BNF_LFP_Size.register_size_global}. See
+@{file "~~/src/HOL/Library/Multiset.thy"} for an example.
 *}
+
 
 subsection {* Transfer
   \label{ssec:transfer} *}
