@@ -77,11 +77,11 @@ by (induction t) (auto simp: map_of_simps split: option.split)
 
 
 lemma inorder_upd:
-  "sorted1(inorder t) \<Longrightarrow> inorder(tree\<^sub>i(upd a b t)) = upd_list a b (inorder t)"
+  "sorted1(inorder t) \<Longrightarrow> inorder(tree\<^sub>i(upd x y t)) = upd_list x y (inorder t)"
 by(induction t) (auto simp: upd_list_simps split: up\<^sub>i.splits)
 
 corollary inorder_update:
-  "sorted1(inorder t) \<Longrightarrow> inorder(update a b t) = upd_list a b (inorder t)"
+  "sorted1(inorder t) \<Longrightarrow> inorder(update x y t) = upd_list x y (inorder t)"
 by(simp add: update_def inorder_upd)
 
 
@@ -97,10 +97,10 @@ by(simp add: delete_def inorder_del)
 
 subsection \<open>Balancedness\<close>
 
-lemma bal_upd: "bal t \<Longrightarrow> bal (tree\<^sub>i(upd a b t)) \<and> height(upd a b t) = height t"
+lemma bal_upd: "bal t \<Longrightarrow> bal (tree\<^sub>i(upd x y t)) \<and> height(upd x y t) = height t"
 by (induct t) (auto split: up\<^sub>i.split)(* 16 secs in 2015 *)
 
-corollary bal_update: "bal t \<Longrightarrow> bal (update a b t)"
+corollary bal_update: "bal t \<Longrightarrow> bal (update x y t)"
 by (simp add: update_def bal_upd)
 
 

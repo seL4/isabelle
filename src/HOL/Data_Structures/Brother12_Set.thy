@@ -54,13 +54,13 @@ fun n2 :: "'a bro \<Rightarrow> 'a \<Rightarrow> 'a bro \<Rightarrow> 'a bro" wh
 "n2 t1 a t2 = N2 t1 a t2"
 
 fun ins :: "'a::cmp \<Rightarrow> 'a bro \<Rightarrow> 'a bro" where
-"ins a N0 = L2 a" |
-"ins a (N1 t) = n1 (ins a t)" |
-"ins a (N2 l b r) =
-  (case cmp a b of
-     LT \<Rightarrow> n2 (ins a l) b r |
-     EQ \<Rightarrow> N2 l b r |
-     GT \<Rightarrow> n2 l b (ins a r))"
+"ins x N0 = L2 x" |
+"ins x (N1 t) = n1 (ins x t)" |
+"ins x (N2 l a r) =
+  (case cmp x a of
+     LT \<Rightarrow> n2 (ins x l) a r |
+     EQ \<Rightarrow> N2 l a r |
+     GT \<Rightarrow> n2 l a (ins x r))"
 
 fun tree :: "'a bro \<Rightarrow> 'a bro" where
 "tree (L2 a) = N2 N0 a N0" |
@@ -210,7 +210,7 @@ end
 
 subsection \<open>Invariant Proofs\<close>
 
-subsection \<open>Proofs for insertion\<close>
+subsubsection \<open>Proofs for insertion\<close>
 
 lemma n1_type: "t \<in> Bp h \<Longrightarrow> n1 t \<in> T (Suc h)"
 by(cases h rule: Bp.cases) auto
@@ -301,7 +301,7 @@ unfolding insert_def by (metis Un_iff ins_type tree_type1 tree_type2)
 
 end
 
-subsection "Proofs for deletion"
+subsubsection "Proofs for deletion"
 
 lemma B_simps[simp]: 
   "N1 t \<in> B h = False"
@@ -470,11 +470,12 @@ by (cases h) (simp, metis del_type tree_type Un_iff Suc_eq_plus1 diff_Suc_1)
 
 end
 
+
 subsection "Overall correctness"
 
 interpretation Set_by_Ordered
-where empty = N0 and isin = isin and insert = insert.insert and delete = delete.delete
-and inorder = inorder and inv = "\<lambda>t. \<exists>h. t \<in> T h"
+where empty = N0 and isin = isin and insert = insert.insert
+and delete = delete.delete and inorder = inorder and inv = "\<lambda>t. \<exists>h. t \<in> T h"
 proof (standard, goal_cases)
   case 2 thus ?case by(auto intro!: isin_set)
 next
