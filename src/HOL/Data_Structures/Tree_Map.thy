@@ -30,7 +30,7 @@ fun delete :: "'a::cmp \<Rightarrow> ('a*'b) tree \<Rightarrow> ('a*'b) tree" wh
 
 subsection "Functional Correctness Proofs"
 
-lemma lookup_eq:
+lemma lookup_map_of:
   "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
 by (induction t) (auto simp: map_of_simps split: option.split)
 
@@ -48,7 +48,7 @@ and inorder = inorder and inv = "\<lambda>_. True"
 proof (standard, goal_cases)
   case 1 show ?case by simp
 next
-  case 2 thus ?case by(simp add: lookup_eq)
+  case 2 thus ?case by(simp add: lookup_map_of)
 next
   case 3 thus ?case by(simp add: inorder_update)
 next

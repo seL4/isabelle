@@ -14,7 +14,8 @@ fun lookup :: "('a::cmp * 'b, 'c) tree \<Rightarrow> 'a \<Rightarrow> 'b option"
 "lookup (Node _ l (a,b) r) x =
   (case cmp x a of LT \<Rightarrow> lookup l x | GT \<Rightarrow> lookup r x | EQ \<Rightarrow> Some b)"
 
-lemma lookup_eq: "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
+lemma lookup_map_of:
+  "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
 by(induction t) (auto simp: map_of_simps split: option.split)
 
 end

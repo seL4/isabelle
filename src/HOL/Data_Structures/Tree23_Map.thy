@@ -72,7 +72,8 @@ definition delete :: "'a::cmp \<Rightarrow> ('a*'b) tree23 \<Rightarrow> ('a*'b)
 
 subsection \<open>Functional Correctness\<close>
 
-lemma lookup: "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
+lemma lookup_map_of:
+  "sorted1(inorder t) \<Longrightarrow> lookup t x = map_of (inorder t) x"
 by (induction t) (auto simp: map_of_simps split: option.split)
 
 
@@ -118,11 +119,11 @@ by(simp add: delete_def bal_tree\<^sub>d_del)
 
 subsection \<open>Overall Correctness\<close>
 
-interpretation T23_Map: Map_by_Ordered
+interpretation Map_by_Ordered
 where empty = Leaf and lookup = lookup and update = update and delete = delete
 and inorder = inorder and inv = bal
 proof (standard, goal_cases)
-  case 2 thus ?case by(simp add: lookup)
+  case 2 thus ?case by(simp add: lookup_map_of)
 next
   case 3 thus ?case by(simp add: inorder_update)
 next

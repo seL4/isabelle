@@ -70,7 +70,7 @@ and inorder = inorder and inv = "\<lambda>_. True"
 proof (standard, goal_cases)
   case 1 show ?case by simp
 next
-  case 2 thus ?case by(simp add: lookup_eq)
+  case 2 thus ?case by(simp add: lookup_map_of)
 next
   case 3 thus ?case by(simp add: inorder_update)
 next
