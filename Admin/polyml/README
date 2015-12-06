@@ -2,7 +2,7 @@ Poly/ML for Isabelle
 ====================
 
 This is a preview of Poly/ML 5.6, based on
-https://github.com/polyml/polyml/ commit b49eb17ab516.
+https://github.com/polyml/polyml/ commit b97488071c19.
 
 The included build script is used like this:
 
