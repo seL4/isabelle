@@ -679,8 +679,8 @@ maintainability of proofs.
 64bit via system option ML_system_64. A system restart (and rebuild)
 is required after change.
 
-* Poly/ML 5.5.3 runs natively on x86-windows and x86_64-windows,
-which both allow larger heap space than former x86-cygwin.
+* Poly/ML 5.6 runs natively on x86-windows and x86_64-windows, which
+both allow larger heap space than former x86-cygwin.
 
 * Java runtime environment for x86_64-windows allows to use larger heap
 space.
