@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/ml_parse_tree_polyml-5.5.3.ML
+(*  Title:      Pure/ML-Systems/ml_parse_tree_polyml-5.6.ML
     Author:     Makarius
 
-Additional ML parse tree components for Poly/ML 5.5.3, or later.
+Additional ML parse tree components for Poly/ML 5.6, or later.
 *)
 
 structure ML_Parse_Tree: ML_PARSE_TREE =

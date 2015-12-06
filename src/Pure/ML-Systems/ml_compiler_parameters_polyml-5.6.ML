@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/ml_compiler_parameters_polyml-5.5.3.ML
+(*  Title:      Pure/ML/ml_compiler_parameters_polyml-5.6.ML
     Author:     Makarius
 
-Additional ML compiler parameters for Poly/ML 5.5.3, or later.
+Additional ML compiler parameters for Poly/ML 5.6, or later.
 *)
 
 structure ML_Compiler_Parameters: ML_COMPILER_PARAMETERS =

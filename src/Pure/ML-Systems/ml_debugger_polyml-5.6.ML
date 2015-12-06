@@ -1,7 +1,7 @@
-(*  Title:      Pure/ML/ml_debugger_polyml-5.5.3.ML
+(*  Title:      Pure/ML-Systems/ml_debugger_polyml-5.6.ML
     Author:     Makarius
 
-ML debugger interface -- for Poly/ML 5.5.3, or later.
+ML debugger interface -- for Poly/ML 5.6, or later.
 *)
 
 signature ML_DEBUGGER =

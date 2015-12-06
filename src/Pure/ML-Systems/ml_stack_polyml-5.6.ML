@@ -1,6 +1,6 @@
-(*  Title:      Pure/ML-Systems/ml_stack_polyml-5.5.3.ML
+(*  Title:      Pure/ML-Systems/ml_stack_polyml-5.6.ML
 
-Maximum stack size (in words) for ML threads -- Poly/ML 5.5.3, or later.
+Maximum stack size (in words) for ML threads -- Poly/ML 5.6, or later.
 *)
 
 signature ML_STACK =

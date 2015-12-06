@@ -105,7 +105,6 @@ else use "ML/exn_properties_dummy.ML";
 if ML_System.name = "polyml-5.5.0"
   orelse ML_System.name = "polyml-5.5.1"
   orelse ML_System.name = "polyml-5.5.2"
-  orelse ML_System.name = "polyml-5.5.3"
   orelse ML_System.name = "polyml-5.6"
 then use "ML/ml_statistics_polyml-5.5.0.ML"
 else use "ML/ml_statistics_dummy.ML";
