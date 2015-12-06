@@ -193,17 +193,18 @@ lemma inorder_n2: "inorder(n2 l a r) = inorder l @ a # inorder r"
 by(induction l a r rule: n2.induct) (auto)
 
 lemma inorder_del_min:
-shows "t \<in> B h \<Longrightarrow> (del_min t = None \<longleftrightarrow> inorder t = []) \<and>
-  (del_min t = Some(a,t') \<longrightarrow> inorder t = a # inorder t')"
-and "t \<in> U h \<Longrightarrow> (del_min t = None \<longleftrightarrow> inorder t = []) \<and>
+  "t \<in> T h \<Longrightarrow> (del_min t = None \<longleftrightarrow> inorder t = []) \<and>
   (del_min t = Some(a,t') \<longrightarrow> inorder t = a # inorder t')"
 by(induction h arbitrary: t a t') (auto simp: inorder_n2 split: option.splits)
 
 lemma inorder_del:
-  "t \<in> B h \<Longrightarrow> sorted(inorder t) \<Longrightarrow> inorder(del a t) = del_list a (inorder t)"
-  "t \<in> U h \<Longrightarrow> sorted(inorder t) \<Longrightarrow> inorder(del a t) = del_list a (inorder t)"
-by(induction h arbitrary: t)
-  (auto simp: del_list_simps inorder_n2 inorder_del_min split: option.splits)
+  "t \<in> T h \<Longrightarrow> sorted(inorder t) \<Longrightarrow> inorder(del x t) = del_list x (inorder t)"
+by(induction h arbitrary: t) (auto simp: del_list_simps inorder_n2
+     inorder_del_min[OF UnI1] inorder_del_min[OF UnI2] split: option.splits)
+
+lemma inorder_delete:
+  "t \<in> T h \<Longrightarrow> sorted(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
+by(simp add: delete_def inorder_del inorder_tree)
 
 end
 
@@ -481,8 +482,7 @@ proof (standard, goal_cases)
 next
   case 3 thus ?case by(auto intro!: insert.inorder_insert)
 next
-  case 4 thus ?case
-    by(auto simp: delete.delete_def delete.inorder_tree delete.inorder_del)
+  case 4 thus ?case by(auto intro!: delete.inorder_delete)
 next
   case 6 thus ?case using insert.insert_type by blast
 next

@@ -82,10 +82,13 @@ context delete
 begin
 
 lemma inorder_del:
-  "t \<in> B h \<Longrightarrow> sorted1(inorder t) \<Longrightarrow> inorder(del x t) = del_list x (inorder t)"
-  "t \<in> U h \<Longrightarrow> sorted1(inorder t) \<Longrightarrow> inorder(del x t) = del_list x (inorder t)"
-by(induction h arbitrary: t)
-  (auto simp: del_list_simps inorder_n2 inorder_del_min split: option.splits)
+  "t \<in> T h \<Longrightarrow> sorted1(inorder t) \<Longrightarrow> inorder(del x t) = del_list x (inorder t)"
+by(induction h arbitrary: t) (auto simp: del_list_simps inorder_n2
+     inorder_del_min[OF UnI1] inorder_del_min[OF UnI2] split: option.splits)
+
+lemma inorder_delete:
+  "t \<in> T h \<Longrightarrow> sorted1(inorder t) \<Longrightarrow> inorder(delete x t) = del_list x (inorder t)"
+by(simp add: delete_def inorder_del inorder_tree)
 
 end
 
@@ -199,8 +202,7 @@ proof (standard, goal_cases)
 next
   case 3 thus ?case by(auto intro!: update.inorder_update)
 next
-  case 4 thus ?case
-    by(auto simp: delete.delete_def delete.inorder_tree delete.inorder_del)
+  case 4 thus ?case by(auto intro!: delete.inorder_delete)
 next
   case 6 thus ?case using update.update_type by (metis Un_iff)
 next
