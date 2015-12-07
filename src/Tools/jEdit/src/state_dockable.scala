@@ -57,9 +57,8 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* update */
 
-  private var do_update = true
-
-  private def maybe_update(): Unit = GUI_Thread.require { if (do_update) update() }
+  def update_request(): Unit =
+    GUI_Thread.require { print_state.apply_query(Nil) }
 
   def update()
   {
@@ -69,24 +68,32 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
       case Some(snapshot) =>
         (PIDE.editor.current_command(view, snapshot), print_state.get_location) match {
           case (Some(command1), Some(command2)) if command1.id == command2.id =>
-          case _ => print_state.apply_query(Nil)
+          case _ => update_request()
         }
       case None =>
     }
   }
 
 
+  /* auto update */
+
+  private var auto_update_enabled = true
+
+  private def auto_update(): Unit =
+    GUI_Thread.require { if (auto_update_enabled) update() }
+
+
   /* controls */
 
   private val auto_update_button = new CheckBox("Auto update") {
     tooltip = "Indicate automatic update following cursor movement"
-    reactions += { case ButtonClicked(_) => do_update = this.selected; maybe_update() }
-    selected = do_update
+    reactions += { case ButtonClicked(_) => auto_update_enabled = this.selected; auto_update() }
+    selected = auto_update_enabled
   }
 
   private val update_button = new Button("<html><b>Update</b></html>") {
     tooltip = "Update display according to the command at cursor position"
-    reactions += { case ButtonClicked(_) => print_state.apply_query(Nil) }
+    reactions += { case ButtonClicked(_) => update_request() }
   }
 
   private val locate_button = new Button("Locate") {
@@ -112,10 +119,10 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
         GUI_Thread.later { handle_resize() }
 
       case changed: Session.Commands_Changed =>
-        if (changed.assignment) GUI_Thread.later { maybe_update() }
+        if (changed.assignment) GUI_Thread.later { auto_update() }
 
       case Session.Caret_Focus =>
-        GUI_Thread.later { maybe_update() }
+        GUI_Thread.later { auto_update() }
     }
 
   override def init()
@@ -125,7 +132,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     PIDE.session.caret_focus += main
     handle_resize()
     print_state.activate()
-    maybe_update()
+    auto_update()
   }
 
   override def exit()
