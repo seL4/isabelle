@@ -12,83 +12,78 @@ notepad
 begin
   txt \<open>hypothetical group axiomatization\<close>
 
-  fix prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "**" 70)
+  fix prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<odot>" 70)
     and one :: "'a"
     and inverse :: "'a \<Rightarrow> 'a"
-  assume assoc: "\<And>x y z. (x ** y) ** z = x ** (y ** z)"
-    and left_one: "\<And>x. one ** x = x"
-    and left_inverse: "\<And>x. inverse x ** x = one"
+  assume assoc: "(x \<odot> y) \<odot> z = x \<odot> (y \<odot> z)"
+    and left_one: "one \<odot> x = x"
+    and left_inverse: "inverse x \<odot> x = one"
+    for x y z
 
   txt \<open>some consequences\<close>
 
-  have right_inverse: "\<And>x. x ** inverse x = one"
+  have right_inverse: "x \<odot> inverse x = one" for x
   proof -
-    fix x
-    have "x ** inverse x = one ** (x ** inverse x)"
+    have "x \<odot> inverse x = one \<odot> (x \<odot> inverse x)"
       by (simp only: left_one)
-    also have "\<dots> = one ** x ** inverse x"
+    also have "\<dots> = one \<odot> x \<odot> inverse x"
       by (simp only: assoc)
-    also have "\<dots> = inverse (inverse x) ** inverse x ** x ** inverse x"
+    also have "\<dots> = inverse (inverse x) \<odot> inverse x \<odot> x \<odot> inverse x"
       by (simp only: left_inverse)
-    also have "\<dots> = inverse (inverse x) ** (inverse x ** x) ** inverse x"
+    also have "\<dots> = inverse (inverse x) \<odot> (inverse x \<odot> x) \<odot> inverse x"
       by (simp only: assoc)
-    also have "\<dots> = inverse (inverse x) ** one ** inverse x"
+    also have "\<dots> = inverse (inverse x) \<odot> one \<odot> inverse x"
       by (simp only: left_inverse)
-    also have "\<dots> = inverse (inverse x) ** (one ** inverse x)"
+    also have "\<dots> = inverse (inverse x) \<odot> (one \<odot> inverse x)"
       by (simp only: assoc)
-    also have "\<dots> = inverse (inverse x) ** inverse x"
+    also have "\<dots> = inverse (inverse x) \<odot> inverse x"
       by (simp only: left_one)
     also have "\<dots> = one"
       by (simp only: left_inverse)
-    finally show "x ** inverse x = one" .
+    finally show ?thesis .
   qed
 
-  have right_one: "\<And>x. x ** one = x"
+  have right_one: "x \<odot> one = x" for x
   proof -
-    fix x
-    have "x ** one = x ** (inverse x ** x)"
+    have "x \<odot> one = x \<odot> (inverse x \<odot> x)"
       by (simp only: left_inverse)
-    also have "\<dots> = x ** inverse x ** x"
+    also have "\<dots> = x \<odot> inverse x \<odot> x"
       by (simp only: assoc)
-    also have "\<dots> = one ** x"
+    also have "\<dots> = one \<odot> x"
       by (simp only: right_inverse)
     also have "\<dots> = x"
       by (simp only: left_one)
-    finally show "x ** one = x" .
+    finally show ?thesis .
   qed
 
-  have one_equality: "\<And>e x. e ** x = x \<Longrightarrow> one = e"
+  have one_equality: "one = e" if eq: "e \<odot> x = x" for e x
   proof -
-    fix e x
-    assume eq: "e ** x = x"
-    have "one = x ** inverse x"
+    have "one = x \<odot> inverse x"
       by (simp only: right_inverse)
-    also have "\<dots> = (e ** x) ** inverse x"
+    also have "\<dots> = (e \<odot> x) \<odot> inverse x"
       by (simp only: eq)
-    also have "\<dots> = e ** (x ** inverse x)"
+    also have "\<dots> = e \<odot> (x \<odot> inverse x)"
       by (simp only: assoc)
-    also have "\<dots> = e ** one"
+    also have "\<dots> = e \<odot> one"
       by (simp only: right_inverse)
     also have "\<dots> = e"
       by (simp only: right_one)
-    finally show "one = e" .
+    finally show ?thesis .
   qed
 
-  have inverse_equality: "\<And>x x'. x' ** x = one \<Longrightarrow> inverse x = x'"
+  have inverse_equality: "inverse x = x'" if eq: "x' \<odot> x = one" for x x'
   proof -
-    fix x x'
-    assume eq: "x' ** x = one"
-    have "inverse x = one ** inverse x"
+    have "inverse x = one \<odot> inverse x"
       by (simp only: left_one)
-    also have "\<dots> = (x' ** x) ** inverse x"
+    also have "\<dots> = (x' \<odot> x) \<odot> inverse x"
       by (simp only: eq)
-    also have "\<dots> = x' ** (x ** inverse x)"
+    also have "\<dots> = x' \<odot> (x \<odot> inverse x)"
       by (simp only: assoc)
-    also have "\<dots> = x' ** one"
+    also have "\<dots> = x' \<odot> one"
       by (simp only: right_inverse)
     also have "\<dots> = x'"
       by (simp only: right_one)
-    finally show "inverse x = x'" .
+    finally show ?thesis .
   qed
 
 end

@@ -11,82 +11,82 @@ begin
 text \<open>hypothetical group axiomatization\<close>
 
 context
-  fixes prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "**" 70)
+  fixes prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<odot>" 70)
     and one :: "'a"
     and inverse :: "'a \<Rightarrow> 'a"
-  assumes assoc: "(x ** y) ** z = x ** (y ** z)"
-    and left_one: "one ** x = x"
-    and left_inverse: "inverse x ** x = one"
+  assumes assoc: "(x \<odot> y) \<odot> z = x \<odot> (y \<odot> z)"
+    and left_one: "one \<odot> x = x"
+    and left_inverse: "inverse x \<odot> x = one"
 begin
 
 text \<open>some consequences\<close>
 
-lemma right_inverse: "x ** inverse x = one"
+lemma right_inverse: "x \<odot> inverse x = one"
 proof -
-  have "x ** inverse x = one ** (x ** inverse x)"
+  have "x \<odot> inverse x = one \<odot> (x \<odot> inverse x)"
     by (simp only: left_one)
-  also have "\<dots> = one ** x ** inverse x"
+  also have "\<dots> = one \<odot> x \<odot> inverse x"
     by (simp only: assoc)
-  also have "\<dots> = inverse (inverse x) ** inverse x ** x ** inverse x"
+  also have "\<dots> = inverse (inverse x) \<odot> inverse x \<odot> x \<odot> inverse x"
     by (simp only: left_inverse)
-  also have "\<dots> = inverse (inverse x) ** (inverse x ** x) ** inverse x"
+  also have "\<dots> = inverse (inverse x) \<odot> (inverse x \<odot> x) \<odot> inverse x"
     by (simp only: assoc)
-  also have "\<dots> = inverse (inverse x) ** one ** inverse x"
+  also have "\<dots> = inverse (inverse x) \<odot> one \<odot> inverse x"
     by (simp only: left_inverse)
-  also have "\<dots> = inverse (inverse x) ** (one ** inverse x)"
+  also have "\<dots> = inverse (inverse x) \<odot> (one \<odot> inverse x)"
     by (simp only: assoc)
-  also have "\<dots> = inverse (inverse x) ** inverse x"
+  also have "\<dots> = inverse (inverse x) \<odot> inverse x"
     by (simp only: left_one)
   also have "\<dots> = one"
     by (simp only: left_inverse)
-  finally show "x ** inverse x = one" .
+  finally show ?thesis .
 qed
 
-lemma right_one: "x ** one = x"
+lemma right_one: "x \<odot> one = x"
 proof -
-  have "x ** one = x ** (inverse x ** x)"
+  have "x \<odot> one = x \<odot> (inverse x \<odot> x)"
     by (simp only: left_inverse)
-  also have "\<dots> = x ** inverse x ** x"
+  also have "\<dots> = x \<odot> inverse x \<odot> x"
     by (simp only: assoc)
-  also have "\<dots> = one ** x"
+  also have "\<dots> = one \<odot> x"
     by (simp only: right_inverse)
   also have "\<dots> = x"
     by (simp only: left_one)
-  finally show "x ** one = x" .
+  finally show ?thesis .
 qed
 
 lemma one_equality:
-  assumes eq: "e ** x = x"
+  assumes eq: "e \<odot> x = x"
   shows "one = e"
 proof -
-  have "one = x ** inverse x"
+  have "one = x \<odot> inverse x"
     by (simp only: right_inverse)
-  also have "\<dots> = (e ** x) ** inverse x"
+  also have "\<dots> = (e \<odot> x) \<odot> inverse x"
     by (simp only: eq)
-  also have "\<dots> = e ** (x ** inverse x)"
+  also have "\<dots> = e \<odot> (x \<odot> inverse x)"
     by (simp only: assoc)
-  also have "\<dots> = e ** one"
+  also have "\<dots> = e \<odot> one"
     by (simp only: right_inverse)
   also have "\<dots> = e"
     by (simp only: right_one)
-  finally show "one = e" .
+  finally show ?thesis .
 qed
 
 lemma inverse_equality:
-  assumes eq: "x' ** x = one"
+  assumes eq: "x' \<odot> x = one"
   shows "inverse x = x'"
 proof -
-  have "inverse x = one ** inverse x"
+  have "inverse x = one \<odot> inverse x"
     by (simp only: left_one)
-  also have "\<dots> = (x' ** x) ** inverse x"
+  also have "\<dots> = (x' \<odot> x) \<odot> inverse x"
     by (simp only: eq)
-  also have "\<dots> = x' ** (x ** inverse x)"
+  also have "\<dots> = x' \<odot> (x \<odot> inverse x)"
     by (simp only: assoc)
-  also have "\<dots> = x' ** one"
+  also have "\<dots> = x' \<odot> one"
     by (simp only: right_inverse)
   also have "\<dots> = x'"
     by (simp only: right_one)
-  finally show "inverse x = x'" .
+  finally show ?thesis .
 qed
 
 end

@@ -10,9 +10,9 @@ begin
 
 subsection \<open>Groups and calculational reasoning\<close> 
 
-text \<open>Groups over signature \<open>(\<times> :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>, one :: \<alpha>, inverse :: \<alpha> \<Rightarrow> \<alpha>)\<close>
+text \<open>Groups over signature \<open>(* :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>, 1 :: \<alpha>, inverse :: \<alpha> \<Rightarrow> \<alpha>)\<close>
   are defined as an axiomatic type class as follows. Note that the parent
-  class \<open>\<times>\<close> is provided by the basic HOL theory.\<close>
+  class \<open>times\<close> is provided by the basic HOL theory.\<close>
 
 class group = times + one + inverse +
   assumes group_assoc: "(x * y) * z = x * (y * z)"
@@ -122,7 +122,7 @@ text \<open>Note that this scheme of calculations is not restricted to plain
 
 subsection \<open>Groups as monoids\<close>
 
-text \<open>Monoids over signature \<open>(\<times> :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>, one :: \<alpha>)\<close> are defined like
+text \<open>Monoids over signature \<open>(* :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>, 1 :: \<alpha>)\<close> are defined like
   this.\<close>
 
 class monoid = times + one +
