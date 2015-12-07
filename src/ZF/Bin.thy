@@ -697,7 +697,7 @@ ML_file "int_arith.ML"
 
 subsection \<open>examples:\<close>
 
-text \<open>@{text combine_numerals_prod} (products of separate literals)\<close>
+text \<open>\<open>combine_numerals_prod\<close> (products of separate literals)\<close>
 lemma "#5 $* x $* #3 = y" apply simp oops
 
 schematic_goal "y2 $+ ?x42 = y $+ y2" apply simp oops

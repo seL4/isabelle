@@ -264,7 +264,7 @@ lemma mod2_add_self [simp]: "(m#+m) mod 2 = 0"
 by (cut_tac n = 0 in mod2_add_more, auto)
 
 
-subsection\<open>Additional theorems about @{text "\<le>"}\<close>
+subsection\<open>Additional theorems about \<open>\<le>\<close>\<close>
 
 lemma add_le_self: "m:nat ==> m \<le> (m #+ n)"
 apply (simp (no_asm_simp))

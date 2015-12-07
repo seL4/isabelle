@@ -195,7 +195,7 @@ lemma the_eq_trivial2 [simp]: "(THE x. a = x) = a"
 by blast
 
 
-subsection\<open>Conditional Terms: @{text "if-then-else"}\<close>
+subsection\<open>Conditional Terms: \<open>if-then-else\<close>\<close>
 
 lemma if_true [simp]: "(if True then a else b) = a"
 by (unfold if_def, blast)

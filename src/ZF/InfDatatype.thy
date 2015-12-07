@@ -70,7 +70,7 @@ lemma fun_in_Vcsucc:
        ==> f: Vfrom(A,csucc(K))"
 by (blast intro: fun_Vcsucc [THEN subsetD])
 
-text\<open>Remove @{text "\<subseteq>"} from the rule above\<close>
+text\<open>Remove \<open>\<subseteq>\<close> from the rule above\<close>
 lemmas fun_in_Vcsucc' = fun_in_Vcsucc [OF _ _ _ subsetI]
 
 (** Version where K itself is the index set **)

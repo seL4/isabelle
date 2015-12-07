@@ -37,7 +37,7 @@ definition
   "PREC(f,g) ==
      \<lambda>l \<in> list(nat). list_case(0,
                       \<lambda>x xs. rec(x, f`xs, \<lambda>y r. g ` Cons(r, Cons(y, xs))), l)"
-  -- \<open>Note that @{text g} is applied first to @{term "PREC(f,g)`y"} and then to @{text y}!\<close>
+  \<comment> \<open>Note that \<open>g\<close> is applied first to @{term "PREC(f,g)`y"} and then to \<open>y\<close>!\<close>
 
 consts
   ACK :: "i=>i"
@@ -115,16 +115,16 @@ lemma ack_type [TC]: "[| i \<in> nat;  j \<in> nat |] ==>  ack(i,j) \<in> nat"
 subsection \<open>Ackermann's function cases\<close>
 
 lemma ack_0: "j \<in> nat ==> ack(0,j) = succ(j)"
-  -- \<open>PROPERTY A 1\<close>
+  \<comment> \<open>PROPERTY A 1\<close>
   by (simp add: SC)
 
 lemma ack_succ_0: "ack(succ(i), 0) = ack(i,1)"
-  -- \<open>PROPERTY A 2\<close>
+  \<comment> \<open>PROPERTY A 2\<close>
   by (simp add: CONSTANT PREC_0)
 
 lemma ack_succ_succ:
   "[| i\<in>nat;  j\<in>nat |] ==> ack(succ(i), succ(j)) = ack(i, ack(succ(i), j))"
-  -- \<open>PROPERTY A 3\<close>
+  \<comment> \<open>PROPERTY A 3\<close>
   by (simp add: CONSTANT PREC_succ COMP_1 PROJ_0)
 
 lemmas [simp] = ack_0 ack_succ_0 ack_succ_succ ack_type
@@ -132,7 +132,7 @@ lemmas [simp] = ack_0 ack_succ_0 ack_succ_succ ack_type
 
 
 lemma lt_ack2: "i \<in> nat ==> j \<in> nat ==> j < ack(i,j)"
-  -- \<open>PROPERTY A 4\<close>
+  \<comment> \<open>PROPERTY A 4\<close>
   apply (induct i arbitrary: j set: nat)
    apply simp
   apply (induct_tac j)
@@ -142,11 +142,11 @@ lemma lt_ack2: "i \<in> nat ==> j \<in> nat ==> j < ack(i,j)"
   done
 
 lemma ack_lt_ack_succ2: "[|i\<in>nat; j\<in>nat|] ==> ack(i,j) < ack(i, succ(j))"
-  -- \<open>PROPERTY A 5-, the single-step lemma\<close>
+  \<comment> \<open>PROPERTY A 5-, the single-step lemma\<close>
   by (induct set: nat) (simp_all add: lt_ack2)
 
 lemma ack_lt_mono2: "[| j<k; i \<in> nat; k \<in> nat |] ==> ack(i,j) < ack(i,k)"
-  -- \<open>PROPERTY A 5, monotonicity for @{text "<"}\<close>
+  \<comment> \<open>PROPERTY A 5, monotonicity for \<open><\<close>\<close>
   apply (frule lt_nat_in_nat, assumption)
   apply (erule succ_lt_induct)
     apply assumption
@@ -155,14 +155,14 @@ lemma ack_lt_mono2: "[| j<k; i \<in> nat; k \<in> nat |] ==> ack(i,j) < ack(i,k)
   done
 
 lemma ack_le_mono2: "[|j\<le>k;  i\<in>nat;  k\<in>nat|] ==> ack(i,j) \<le> ack(i,k)"
-  -- \<open>PROPERTY A 5', monotonicity for @{text \<le>}\<close>
+  \<comment> \<open>PROPERTY A 5', monotonicity for \<open>\<le>\<close>\<close>
   apply (rule_tac f = "\<lambda>j. ack (i,j) " in Ord_lt_mono_imp_le_mono)
      apply (assumption | rule ack_lt_mono2 ack_type [THEN nat_into_Ord])+
   done
 
 lemma ack2_le_ack1:
   "[| i\<in>nat;  j\<in>nat |] ==> ack(i, succ(j)) \<le> ack(succ(i), j)"
-  -- \<open>PROPERTY A 6\<close>
+  \<comment> \<open>PROPERTY A 6\<close>
   apply (induct_tac j)
    apply simp_all
   apply (rule ack_le_mono2)
@@ -171,14 +171,14 @@ lemma ack2_le_ack1:
   done
 
 lemma ack_lt_ack_succ1: "[| i \<in> nat; j \<in> nat |] ==> ack(i,j) < ack(succ(i),j)"
-  -- \<open>PROPERTY A 7-, the single-step lemma\<close>
+  \<comment> \<open>PROPERTY A 7-, the single-step lemma\<close>
   apply (rule ack_lt_mono2 [THEN lt_trans2])
      apply (rule_tac [4] ack2_le_ack1)
       apply auto
   done
 
 lemma ack_lt_mono1: "[| i<j; j \<in> nat; k \<in> nat |] ==> ack(i,k) < ack(j,k)"
-  -- \<open>PROPERTY A 7, monotonicity for @{text "<"}\<close>
+  \<comment> \<open>PROPERTY A 7, monotonicity for \<open><\<close>\<close>
   apply (frule lt_nat_in_nat, assumption)
   apply (erule succ_lt_induct)
     apply assumption
@@ -187,23 +187,23 @@ lemma ack_lt_mono1: "[| i<j; j \<in> nat; k \<in> nat |] ==> ack(i,k) < ack(j,k)
   done
 
 lemma ack_le_mono1: "[| i\<le>j; j \<in> nat; k \<in> nat |] ==> ack(i,k) \<le> ack(j,k)"
-  -- \<open>PROPERTY A 7', monotonicity for @{text \<le>}\<close>
+  \<comment> \<open>PROPERTY A 7', monotonicity for \<open>\<le>\<close>\<close>
   apply (rule_tac f = "\<lambda>j. ack (j,k) " in Ord_lt_mono_imp_le_mono)
      apply (assumption | rule ack_lt_mono1 ack_type [THEN nat_into_Ord])+
   done
 
 lemma ack_1: "j \<in> nat ==> ack(1,j) = succ(succ(j))"
-  -- \<open>PROPERTY A 8\<close>
+  \<comment> \<open>PROPERTY A 8\<close>
   by (induct set: nat) simp_all
 
 lemma ack_2: "j \<in> nat ==> ack(succ(1),j) = succ(succ(succ(j#+j)))"
-  -- \<open>PROPERTY A 9\<close>
+  \<comment> \<open>PROPERTY A 9\<close>
   by (induct set: nat) (simp_all add: ack_1)
 
 lemma ack_nest_bound:
   "[| i1 \<in> nat; i2 \<in> nat; j \<in> nat |]
     ==> ack(i1, ack(i2,j)) < ack(succ(succ(i1#+i2)), j)"
-  -- \<open>PROPERTY A 10\<close>
+  \<comment> \<open>PROPERTY A 10\<close>
   apply (rule lt_trans2 [OF _ ack2_le_ack1])
     apply simp
     apply (rule add_le_self [THEN ack_le_mono1, THEN lt_trans1])
@@ -214,7 +214,7 @@ lemma ack_nest_bound:
 lemma ack_add_bound:
   "[| i1 \<in> nat; i2 \<in> nat; j \<in> nat |]
     ==> ack(i1,j) #+ ack(i2,j) < ack(succ(succ(succ(succ(i1#+i2)))), j)"
-  -- \<open>PROPERTY A 11\<close>
+  \<comment> \<open>PROPERTY A 11\<close>
   apply (rule_tac j = "ack (succ (1), ack (i1 #+ i2, j))" in lt_trans)
    apply (simp add: ack_2)
    apply (rule_tac [2] ack_nest_bound [THEN lt_trans2])
@@ -225,9 +225,9 @@ lemma ack_add_bound:
 lemma ack_add_bound2:
      "[| i < ack(k,j);  j \<in> nat;  k \<in> nat |]
       ==> i#+j < ack(succ(succ(succ(succ(k)))), j)"
-  -- \<open>PROPERTY A 12.\<close>
-  -- \<open>Article uses existential quantifier but the ALF proof used @{term "k#+#4"}.\<close>
-  -- \<open>Quantified version must be nested @{text "\<exists>k'. \<forall>i,j \<dots>"}.\<close>
+  \<comment> \<open>PROPERTY A 12.\<close>
+  \<comment> \<open>Article uses existential quantifier but the ALF proof used @{term "k#+#4"}.\<close>
+  \<comment> \<open>Quantified version must be nested \<open>\<exists>k'. \<forall>i,j \<dots>\<close>.\<close>
   apply (rule_tac j = "ack (k,j) #+ ack (0,j) " in lt_trans)
    apply (rule_tac [2] ack_add_bound [THEN lt_trans2])
       apply (rule add_lt_mono)
@@ -247,7 +247,7 @@ lemma SC_case: "l \<in> list(nat) ==> SC ` l < ack(1, list_add(l))"
   done
 
 lemma lt_ack1: "[| i \<in> nat; j \<in> nat |] ==> i < ack(i,j)"
-  -- \<open>PROPERTY A 4'? Extra lemma needed for @{text CONSTANT} case, constant functions.\<close>
+  \<comment> \<open>PROPERTY A 4'? Extra lemma needed for \<open>CONSTANT\<close> case, constant functions.\<close>
   apply (induct_tac i)
    apply (simp add: nat_0_le)
   apply (erule lt_trans1 [OF succ_leI ack_lt_ack_succ1])
@@ -275,7 +275,7 @@ lemma PROJ_case [rule_format]:
   done
 
 text \<open>
-  \medskip @{text COMP} case.
+  \medskip \<open>COMP\<close> case.
 \<close>
 
 lemma COMP_map_lemma:
@@ -312,7 +312,7 @@ lemma COMP_case:
   done
 
 text \<open>
-  \medskip @{text PREC} case.
+  \medskip \<open>PREC\<close> case.
 \<close>
 
 lemma PREC_case_lemma:
@@ -326,7 +326,7 @@ lemma PREC_case_lemma:
   apply (erule list.cases)
    apply (simp add: lt_trans [OF nat_le_refl lt_ack2])
   apply simp
-  apply (erule ssubst)  -- \<open>get rid of the needless assumption\<close>
+  apply (erule ssubst)  \<comment> \<open>get rid of the needless assumption\<close>
   apply (induct_tac a)
    apply simp_all
    txt \<open>base case\<close>

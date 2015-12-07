@@ -145,7 +145,7 @@ text\<open>There is a well-known bijection between @{term "nat*nat"} and @{term
 nat} given by the expression f(m,n) = triangle(m+n) + m, where triangle(k)
 enumerates the triangular numbers and can be defined by triangle(0)=0,
 triangle(succ(k)) = succ(k + triangle(k)).  Some small amount of effort is
-needed to show that f is a bijection.  We already know that such a bijection exists by the theorem @{text well_ord_InfCard_square_eq}:
+needed to show that f is a bijection.  We already know that such a bijection exists by the theorem \<open>well_ord_InfCard_square_eq\<close>:
 @{thm[display] well_ord_InfCard_square_eq[no_vars]}
 
 However, this result merely states that there is a bijection between the two
@@ -233,20 +233,20 @@ formulas.  The order type of the resulting wellordering gives us a map from
 
 definition
   env_form_r :: "[i,i,i]=>i" where
-    --\<open>wellordering on (environment, formula) pairs\<close>
+    \<comment>\<open>wellordering on (environment, formula) pairs\<close>
    "env_form_r(f,r,A) ==
       rmult(list(A), rlist(A, r),
             formula, measure(formula, enum(f)))"
 
 definition
   env_form_map :: "[i,i,i,i]=>i" where
-    --\<open>map from (environment, formula) pairs to ordinals\<close>
+    \<comment>\<open>map from (environment, formula) pairs to ordinals\<close>
    "env_form_map(f,r,A,z)
       == ordermap(list(A) * formula, env_form_r(f,r,A)) ` z"
 
 definition
   DPow_ord :: "[i,i,i,i,i]=>o" where
-    --\<open>predicate that holds if @{term k} is a valid index for @{term X}\<close>
+    \<comment>\<open>predicate that holds if @{term k} is a valid index for @{term X}\<close>
    "DPow_ord(f,r,A,X,k) ==
            \<exists>env \<in> list(A). \<exists>p \<in> formula.
              arity(p) \<le> succ(length(env)) &
@@ -255,12 +255,12 @@ definition
 
 definition
   DPow_least :: "[i,i,i,i]=>i" where
-    --\<open>function yielding the smallest index for @{term X}\<close>
+    \<comment>\<open>function yielding the smallest index for @{term X}\<close>
    "DPow_least(f,r,A,X) == \<mu> k. DPow_ord(f,r,A,X,k)"
 
 definition
   DPow_r :: "[i,i,i]=>i" where
-    --\<open>a wellordering on @{term "DPow(A)"}\<close>
+    \<comment>\<open>a wellordering on @{term "DPow(A)"}\<close>
    "DPow_r(f,r,A) == measure(DPow(A), DPow_least(f,r,A))"
 
 
@@ -332,7 +332,7 @@ of wellorderings for smaller ordinals.\<close>
 
 definition
   rlimit :: "[i,i=>i]=>i" where
-  --\<open>Expresses the wellordering at limit ordinals.  The conditional
+  \<comment>\<open>Expresses the wellordering at limit ordinals.  The conditional
       lets us remove the premise @{term "Limit(i)"} from some theorems.\<close>
     "rlimit(i,r) ==
        if Limit(i) then 
@@ -344,7 +344,7 @@ definition
 
 definition
   Lset_new :: "i=>i" where
-  --\<open>This constant denotes the set of elements introduced at level
+  \<comment>\<open>This constant denotes the set of elements introduced at level
       @{term "succ(i)"}\<close>
     "Lset_new(i) == {x \<in> Lset(succ(i)). lrank(x) = i}"
 

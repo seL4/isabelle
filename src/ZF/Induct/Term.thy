@@ -8,8 +8,7 @@ section \<open>Terms over an alphabet\<close>
 theory Term imports Main begin
 
 text \<open>
-  Illustrates the list functor (essentially the same type as in @{text
-  Trees_Forest}).
+  Illustrates the list functor (essentially the same type as in \<open>Trees_Forest\<close>).
 \<close>
 
 consts
@@ -56,7 +55,7 @@ lemma term_induct2:
       !!x z zs. [| x \<in> A;  z \<in> term(A);  zs: list(term(A));  P(Apply(x,zs))
                 |] ==> P(Apply(x, Cons(z,zs)))
      |] ==> P(t)"
-  -- \<open>Induction on @{term "term(A)"} followed by induction on @{term list}.\<close>
+  \<comment> \<open>Induction on @{term "term(A)"} followed by induction on @{term list}.\<close>
   apply (induct_tac t)
   apply (erule list.induct)
    apply (auto dest: list_CollectD)
@@ -67,7 +66,7 @@ lemma term_induct_eqn [consumes 1, case_names Apply]:
       !!x zs. [| x \<in> A;  zs: list(term(A));  map(f,zs) = map(g,zs) |] ==>
               f(Apply(x,zs)) = g(Apply(x,zs))
    |] ==> f(t) = g(t)"
-  -- \<open>Induction on @{term "term(A)"} to prove an equation.\<close>
+  \<comment> \<open>Induction on @{term "term(A)"} to prove an equation.\<close>
   apply (induct_tac t)
   apply (auto dest: map_list_Collect list_CollectD)
   done
@@ -85,7 +84,7 @@ lemma term_mono: "A \<subseteq> B ==> term(A) \<subseteq> term(B)"
   done
 
 lemma term_univ: "term(univ(A)) \<subseteq> univ(A)"
-  -- \<open>Easily provable by induction also\<close>
+  \<comment> \<open>Easily provable by induction also\<close>
   apply (unfold term.defs term.con_defs)
   apply (rule lfp_lowerbound)
    apply (rule_tac [2] A_subset_univ [THEN univ_mono])
@@ -103,12 +102,12 @@ lemma term_into_univ: "[| t \<in> term(A);  A \<subseteq> univ(B) |] ==> t \<in>
   by (rule term_subset_univ [THEN subsetD])
 
 text \<open>
-  \medskip @{text term_rec} -- by @{text Vset} recursion.
+  \medskip \<open>term_rec\<close> -- by \<open>Vset\<close> recursion.
 \<close>
 
 lemma map_lemma: "[| l \<in> list(A);  Ord(i);  rank(l)<i |]
     ==> map(\<lambda>z. (\<lambda>x \<in> Vset(i).h(x)) ` z, l) = map(h,l)"
-  -- \<open>@{term map} works correctly on the underlying list of terms.\<close>
+  \<comment> \<open>@{term map} works correctly on the underlying list of terms.\<close>
   apply (induct set: list)
    apply simp
   apply (subgoal_tac "rank (a) <i & rank (l) < i")
@@ -119,7 +118,7 @@ lemma map_lemma: "[| l \<in> list(A);  Ord(i);  rank(l)<i |]
 
 lemma term_rec [simp]: "ts \<in> list(A) ==>
   term_rec(Apply(a,ts), d) = d(a, ts, map (\<lambda>z. term_rec(z,d), ts))"
-  -- \<open>Typing premise is necessary to invoke @{text map_lemma}.\<close>
+  \<comment> \<open>Typing premise is necessary to invoke \<open>map_lemma\<close>.\<close>
   apply (rule term_rec_def [THEN def_Vrec, THEN trans])
   apply (unfold term.con_defs)
   apply (simp add: rank_pair2 map_lemma)
@@ -131,7 +130,7 @@ lemma term_rec_type:
                    r \<in> list(\<Union>t \<in> term(A). C(t)) |]
                 ==> d(x, zs, r): C(Apply(x,zs))"
   shows "term_rec(t,d) \<in> C(t)"
-  -- \<open>Slightly odd typing condition on @{text r} in the second premise!\<close>
+  \<comment> \<open>Slightly odd typing condition on \<open>r\<close> in the second premise!\<close>
   using t
   apply induct
   apply (frule list_CollectD)
@@ -194,7 +193,7 @@ lemma term_size_type [TC]: "t \<in> term(A) ==> term_size(t) \<in> nat"
 
 
 text \<open>
-  \medskip @{text reflect}.
+  \medskip \<open>reflect\<close>.
 \<close>
 
 lemma reflect [simp]:
@@ -206,7 +205,7 @@ lemma reflect_type [TC]: "t \<in> term(A) ==> reflect(t) \<in> term(A)"
 
 
 text \<open>
-  \medskip @{text preorder}.
+  \medskip \<open>preorder\<close>.
 \<close>
 
 lemma preorder [simp]:
@@ -218,7 +217,7 @@ lemma preorder_type [TC]: "t \<in> term(A) ==> preorder(t) \<in> list(A)"
 
 
 text \<open>
-  \medskip @{text postorder}.
+  \medskip \<open>postorder\<close>.
 \<close>
 
 lemma postorder [simp]:
@@ -230,7 +229,7 @@ lemma postorder_type [TC]: "t \<in> term(A) ==> postorder(t) \<in> list(A)"
 
 
 text \<open>
-  \medskip Theorems about @{text term_map}.
+  \medskip Theorems about \<open>term_map\<close>.
 \<close>
 
 declare map_compose [simp]
@@ -248,7 +247,7 @@ lemma term_map_reflect:
 
 
 text \<open>
-  \medskip Theorems about @{text term_size}.
+  \medskip Theorems about \<open>term_size\<close>.
 \<close>
 
 lemma term_size_term_map: "t \<in> term(A) ==> term_size(term_map(f,t)) = term_size(t)"
@@ -262,7 +261,7 @@ lemma term_size_length: "t \<in> term(A) ==> term_size(t) = length(preorder(t))"
 
 
 text \<open>
-  \medskip Theorems about @{text reflect}.
+  \medskip Theorems about \<open>reflect\<close>.
 \<close>
 
 lemma reflect_reflect_ident: "t \<in> term(A) ==> reflect(reflect(t)) = t"

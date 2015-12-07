@@ -493,7 +493,7 @@ by  (simp add: RepFun_closed2 list_eq_Union
                list_replacement2' relation1_def
                iterates_closed [of "is_list_functor(M,A)"])
 
-text\<open>WARNING: use only with @{text "dest:"} or with variables fixed!\<close>
+text\<open>WARNING: use only with \<open>dest:\<close> or with variables fixed!\<close>
 lemmas (in M_datatypes) list_into_M = transM [OF _ list_closed]
 
 lemma (in M_datatypes) list_N_abs [simp]:
@@ -574,7 +574,7 @@ apply (rule M_equalityI, simp_all)
 done
 
 
-subsection\<open>Absoluteness for @{text \<epsilon>}-Closure: the @{term eclose} Operator\<close>
+subsection\<open>Absoluteness for \<open>\<epsilon>\<close>-Closure: the @{term eclose} Operator\<close>
 
 text\<open>Re-expresses eclose using "iterates"\<close>
 lemma eclose_eq_Union:
@@ -664,7 +664,7 @@ definition
        wfrec_replacement(M,MH,mesa)"
 
 text\<open>The condition @{term "Ord(i)"} lets us use the simpler
-  @{text "trans_wfrec_abs"} rather than @{text "trans_wfrec_abs"},
+  \<open>trans_wfrec_abs\<close> rather than \<open>trans_wfrec_abs\<close>,
   which I haven't even proved yet.\<close>
 theorem (in M_eclose) transrec_abs:
   "[|transrec_replacement(M,MH,i);  relation2(M,MH,H);
@@ -765,7 +765,7 @@ subsection\<open>Relativization and Absoluteness for the @{term formula} Constru
 
 definition
   is_Member :: "[i=>o,i,i,i] => o" where
-     --\<open>because @{term "Member(x,y) \<equiv> Inl(Inl(\<langle>x,y\<rangle>))"}\<close>
+     \<comment>\<open>because @{term "Member(x,y) \<equiv> Inl(Inl(\<langle>x,y\<rangle>))"}\<close>
     "is_Member(M,x,y,Z) ==
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inl(M,u,Z)"
 
@@ -779,7 +779,7 @@ by (simp add: Member_def)
 
 definition
   is_Equal :: "[i=>o,i,i,i] => o" where
-     --\<open>because @{term "Equal(x,y) \<equiv> Inl(Inr(\<langle>x,y\<rangle>))"}\<close>
+     \<comment>\<open>because @{term "Equal(x,y) \<equiv> Inl(Inr(\<langle>x,y\<rangle>))"}\<close>
     "is_Equal(M,x,y,Z) ==
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inr(M,p,u) & is_Inl(M,u,Z)"
 
@@ -792,7 +792,7 @@ by (simp add: Equal_def)
 
 definition
   is_Nand :: "[i=>o,i,i,i] => o" where
-     --\<open>because @{term "Nand(x,y) \<equiv> Inr(Inl(\<langle>x,y\<rangle>))"}\<close>
+     \<comment>\<open>because @{term "Nand(x,y) \<equiv> Inr(Inl(\<langle>x,y\<rangle>))"}\<close>
     "is_Nand(M,x,y,Z) ==
         \<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inr(M,u,Z)"
 
@@ -805,7 +805,7 @@ by (simp add: Nand_def)
 
 definition
   is_Forall :: "[i=>o,i,i] => o" where
-     --\<open>because @{term "Forall(x) \<equiv> Inr(Inr(p))"}\<close>
+     \<comment>\<open>because @{term "Forall(x) \<equiv> Inr(Inr(p))"}\<close>
     "is_Forall(M,p,Z) == \<exists>u[M]. is_Inr(M,p,u) & is_Inr(M,u,Z)"
 
 lemma (in M_trivial) Forall_abs [simp]:
@@ -821,7 +821,7 @@ subsection \<open>Absoluteness for @{term formula_rec}\<close>
 
 definition
   formula_rec_case :: "[[i,i]=>i, [i,i]=>i, [i,i,i,i]=>i, [i,i]=>i, i, i] => i" where
-    --\<open>the instance of @{term formula_case} in @{term formula_rec}\<close>
+    \<comment>\<open>the instance of @{term formula_case} in @{term formula_rec}\<close>
    "formula_rec_case(a,b,c,d,h) ==
         formula_case (a, b,
                 \<lambda>u v. c(u, v, h ` succ(depth(u)) ` u,
@@ -881,7 +881,7 @@ subsubsection\<open>@{term is_formula_case}: relativization of @{term formula_ca
 definition
  is_formula_case ::
     "[i=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i]=>o, i, i] => o" where
-  --\<open>no constraint on non-formulas\<close>
+  \<comment>\<open>no constraint on non-formulas\<close>
   "is_formula_case(M, is_a, is_b, is_c, is_d, p, z) ==
       (\<forall>x[M]. \<forall>y[M]. finite_ordinal(M,x) \<longrightarrow> finite_ordinal(M,y) \<longrightarrow>
                       is_Member(M,x,y,p) \<longrightarrow> is_a(x,y,z)) &
@@ -915,7 +915,7 @@ subsubsection \<open>Absoluteness for @{term formula_rec}: Final Results\<close>
 
 definition
   is_formula_rec :: "[i=>o, [i,i,i]=>o, i, i] => o" where
-    --\<open>predicate to relativize the functional @{term formula_rec}\<close>
+    \<comment>\<open>predicate to relativize the functional @{term formula_rec}\<close>
    "is_formula_rec(M,MH,p,z)  ==
       \<exists>dp[M]. \<exists>i[M]. \<exists>f[M]. finite_ordinal(M,dp) & is_depth(M,p,dp) &
              successor(M,dp,i) & fun_apply(M,f,p,z) & is_transrec(M,MH,i,f)"

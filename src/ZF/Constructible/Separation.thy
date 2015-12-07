@@ -6,7 +6,7 @@ section\<open>Early Instances of Separation and Strong Replacement\<close>
 
 theory Separation imports L_axioms WF_absolute begin
 
-text\<open>This theory proves all instances needed for locale @{text "M_basic"}\<close>
+text\<open>This theory proves all instances needed for locale \<open>M_basic\<close>\<close>
 
 text\<open>Helps us solve for de Bruijn indices!\<close>
 lemma nth_ConsI: "[|nth(n,l) = x; n \<in> nat|] ==> nth(succ(n), Cons(a,l)) = x"
@@ -274,7 +274,7 @@ lemma is_recfun_reflects:
 by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma is_recfun_separation:
-     --\<open>for well-founded recursion\<close>
+     \<comment>\<open>for well-founded recursion\<close>
      "[| L(r); L(f); L(g); L(a); L(b) |]
      ==> separation(L,
             \<lambda>x. \<exists>xa[L]. \<exists>xb[L].
@@ -288,7 +288,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsection\<open>Instantiating the locale @{text M_basic}\<close>
+subsection\<open>Instantiating the locale \<open>M_basic\<close>\<close>
 text\<open>Separation (and Strong Replacement) for basic set-theoretic constructions
 such as intersection, Cartesian Product and image.\<close>
 

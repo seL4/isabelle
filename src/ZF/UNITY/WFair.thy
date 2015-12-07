@@ -283,7 +283,7 @@ done
 lemma leadsTo_Union_distrib: "(F \<in> \<Union>(S) \<longmapsto> B) \<longleftrightarrow>  (\<forall>A \<in> S. F \<in> A \<longmapsto> B) & F \<in> program & st_set(B)"
 by (blast dest: leadsToD2 intro: leadsTo_Union leadsTo_weaken_L)
 
-text\<open>Set difference: maybe combine with @{text leadsTo_weaken_L}??\<close>
+text\<open>Set difference: maybe combine with \<open>leadsTo_weaken_L\<close>??\<close>
 lemma leadsTo_Diff:
      "[| F: (A-B) \<longmapsto> C; F \<in> B \<longmapsto> C; st_set(C) |]
       ==> F \<in> A \<longmapsto> C"

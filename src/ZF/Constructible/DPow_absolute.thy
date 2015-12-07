@@ -238,7 +238,7 @@ apply (erule DPow'_closed)
 done
 
 
-subsection\<open>Instantiating the Locale @{text M_DPow}\<close>
+subsection\<open>Instantiating the Locale \<open>M_DPow\<close>\<close>
 
 subsubsection\<open>The Instance of Separation\<close>
 
@@ -510,7 +510,7 @@ text\<open>Relativization of the Operator @{term Lset}\<close>
 
 definition
   is_Lset :: "[i=>o, i, i] => o" where
-   --\<open>We can use the term language below because @{term is_Lset} will
+   \<comment>\<open>We can use the term language below because @{term is_Lset} will
        not have to be internalized: it isn't used in any instance of
        separation.\<close>
    "is_Lset(M,a,z) == is_transrec(M, %x f u. u = (\<Union>y\<in>x. DPow'(f`y)), a, z)"
@@ -531,7 +531,7 @@ apply (simp_all add: relation2_def RepFun_DPow_apply_closed)
 done
 
 
-subsection\<open>Instantiating the Locale @{text M_Lset}\<close>
+subsection\<open>Instantiating the Locale \<open>M_Lset\<close>\<close>
 
 subsubsection\<open>The First Instance of Replacement\<close>
 
@@ -570,7 +570,7 @@ lemma transrec_rep_Reflects:
                       is_DPow'(##Lset(i),gy,z), r) & 
                       big_union(##Lset(i),r,u), mr, v, y))]" 
 apply (simp only: rex_setclass_is_bex [symmetric])
-  --\<open>Convert @{text "\<exists>y\<in>Lset(i)"} to @{text "\<exists>y[##Lset(i)]"} within the body
+  \<comment>\<open>Convert \<open>\<exists>y\<in>Lset(i)\<close> to \<open>\<exists>y[##Lset(i)]\<close> within the body
        of the @{term is_wfrec} application.\<close>
 apply (intro FOL_reflections function_reflections 
           is_wfrec_reflection Replace_reflection DPow'_reflection) 
@@ -593,7 +593,7 @@ apply (rule sep_rules is_wfrec_iff_sats Replace_iff_sats DPow'_iff_sats |
 done
 
 
-subsubsection\<open>Actually Instantiating @{text M_Lset}\<close>
+subsubsection\<open>Actually Instantiating \<open>M_Lset\<close>\<close>
 
 lemma M_Lset_axioms_L: "M_Lset_axioms(L)"
   apply (rule M_Lset_axioms.intro)

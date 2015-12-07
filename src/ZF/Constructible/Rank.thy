@@ -15,7 +15,7 @@ assumes well_ord_iso_separation:
       ==> separation (M, \<lambda>x. x\<in>A \<longrightarrow> (\<exists>y[M]. (\<exists>p[M].
                      fun_apply(M,f,x,y) & pair(M,y,x,p) & p \<in> r)))"
   and obase_separation:
-     --\<open>part of the order type formalization\<close>
+     \<comment>\<open>part of the order type formalization\<close>
      "[| M(A); M(r) |]
       ==> separation(M, \<lambda>a. \<exists>x[M]. \<exists>g[M]. \<exists>mx[M]. \<exists>par[M].
              ordinal(M,x) & membership(M,x,mx) & pred_set(M,A,a,r,par) &
@@ -92,7 +92,7 @@ done
 text\<open>Following Kunen's Theorem I 7.6, page 17.  Note that this material is
 not required elsewhere.\<close>
 
-text\<open>Can't use @{text well_ord_iso_preserving} because it needs the
+text\<open>Can't use \<open>well_ord_iso_preserving\<close> because it needs the
 strong premise @{term "well_ord(A,r)"}\<close>
 lemma (in M_ordertype) ord_iso_pred_imp_lt:
      "[| f \<in> ord_iso(Order.pred(A,x,r), r, i, Memrel(i));
@@ -114,7 +114,7 @@ txt\<open>case @{term "j<i"} also yields a contradiction\<close>
 apply (frule restrict_ord_iso2, assumption+) 
 apply (frule ord_iso_sym [THEN ord_iso_is_bij, THEN bij_is_fun]) 
 apply (frule apply_type, blast intro: ltD) 
-  --\<open>thus @{term "converse(f)`j \<in> Order.pred(A,x,r)"}\<close>
+  \<comment>\<open>thus @{term "converse(f)`j \<in> Order.pred(A,x,r)"}\<close>
 apply (simp add: pred_iff) 
 apply (subgoal_tac
        "\<exists>h[M]. h \<in> ord_iso(Order.pred(A,y,r), r, 
@@ -137,26 +137,26 @@ done
 
 definition  
   obase :: "[i=>o,i,i] => i" where
-       --\<open>the domain of @{text om}, eventually shown to equal @{text A}\<close>
+       \<comment>\<open>the domain of \<open>om\<close>, eventually shown to equal \<open>A\<close>\<close>
    "obase(M,A,r) == {a\<in>A. \<exists>x[M]. \<exists>g[M]. Ord(x) & 
                           g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x))}"
 
 definition
   omap :: "[i=>o,i,i,i] => o" where
-    --\<open>the function that maps wosets to order types\<close>
+    \<comment>\<open>the function that maps wosets to order types\<close>
    "omap(M,A,r,f) == 
         \<forall>z[M].
          z \<in> f \<longleftrightarrow> (\<exists>a\<in>A. \<exists>x[M]. \<exists>g[M]. z = <a,x> & Ord(x) & 
                         g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
 
 definition
-  otype :: "[i=>o,i,i,i] => o" where --\<open>the order types themselves\<close>
+  otype :: "[i=>o,i,i,i] => o" where \<comment>\<open>the order types themselves\<close>
    "otype(M,A,r,i) == \<exists>f[M]. omap(M,A,r,f) & is_range(M,f,i)"
 
 
 text\<open>Can also be proved with the premise @{term "M(z)"} instead of
       @{term "M(f)"}, but that version is less useful.  This lemma
-      is also more useful than the definition, @{text omap_def}.\<close>
+      is also more useful than the definition, \<open>omap_def\<close>.\<close>
 lemma (in M_ordertype) omap_iff:
      "[| omap(M,A,r,f); M(A); M(f) |] 
       ==> z \<in> f \<longleftrightarrow>
@@ -478,7 +478,7 @@ locale M_ord_arith = M_ordertype +
 
 
 
-text\<open>@{text is_oadd_fun}: Relating the pure "language of set theory" to Isabelle/ZF\<close>
+text\<open>\<open>is_oadd_fun\<close>: Relating the pure "language of set theory" to Isabelle/ZF\<close>
 lemma (in M_ord_arith) is_oadd_fun_iff:
    "[| a\<le>j; M(i); M(j); M(a); M(f) |] 
     ==> is_oadd_fun(M,i,j,a,f) \<longleftrightarrow>
@@ -602,7 +602,7 @@ lemma (in M_ord_arith) the_omult_eqns_closed:
     "[| M(i); M(x); M(g); function(g) |] 
      ==> M(THE z. omult_eqns(i, x, g, z))"
 apply (case_tac "Ord(x)")
- prefer 2 apply (simp add: omult_eqns_Not) --\<open>trivial, non-Ord case\<close>
+ prefer 2 apply (simp add: omult_eqns_Not) \<comment>\<open>trivial, non-Ord case\<close>
 apply (erule Ord_cases) 
   apply (simp add: omult_eqns_0)
  apply (simp add: omult_eqns_succ apply_closed oadd_closed) 
@@ -897,12 +897,12 @@ apply (rename_tac fb)
 apply (frule is_recfun_restrict [of concl: "r^+" a])
     apply (rule trans_trancl, assumption)
    apply (simp_all add: r_into_trancl trancl_subset_times)
-txt\<open>Still the same goal, but with new @{text is_recfun} assumptions.\<close>
+txt\<open>Still the same goal, but with new \<open>is_recfun\<close> assumptions.\<close>
 apply (simp add: wellfoundedrank_eq)
 apply (frule_tac a=a in wellfoundedrank_eq, assumption+)
    apply (simp_all add: transM [of a])
 txt\<open>We have used equations for wellfoundedrank and now must use some
-    for  @{text is_recfun}.\<close>
+    for  \<open>is_recfun\<close>.\<close>
 apply (rule_tac a=a in rangeI)
 apply (simp add: is_recfun_type [THEN apply_iff] vimage_singleton_iff
                  r_into_trancl apply_recfun r_into_trancl)

@@ -9,7 +9,7 @@ theory Ntree imports Main begin
 
 text \<open>
   Demonstrates a simple use of function space in a datatype
-  definition.  Based upon theory @{text Term}.
+  definition.  Based upon theory \<open>Term\<close>.
 \<close>
 
 consts
@@ -18,12 +18,12 @@ consts
   maptree2 :: "[i, i] => i"
 
 datatype "ntree(A)" = Branch ("a \<in> A", "h \<in> (\<Union>n \<in> nat. n -> ntree(A))")
-  monos UN_mono [OF subset_refl Pi_mono]  -- \<open>MUST have this form\<close>
+  monos UN_mono [OF subset_refl Pi_mono]  \<comment> \<open>MUST have this form\<close>
   type_intros nat_fun_univ [THEN subsetD]
   type_elims UN_E
 
 datatype "maptree(A)" = Sons ("a \<in> A", "h \<in> maptree(A) -||> maptree(A)")
-  monos FiniteFun_mono1  -- \<open>Use monotonicity in BOTH args\<close>
+  monos FiniteFun_mono1  \<comment> \<open>Use monotonicity in BOTH args\<close>
   type_intros FiniteFun_univ1 [THEN subsetD]
 
 datatype "maptree2(A, B)" = Sons2 ("a \<in> A", "h \<in> B -||> maptree2(A, B)")
@@ -41,7 +41,7 @@ definition
 
 
 text \<open>
-  \medskip @{text ntree}
+  \medskip \<open>ntree\<close>
 \<close>
 
 lemma ntree_unfold: "ntree(A) = A \<times> (\<Union>n \<in> nat. n -> ntree(A))"
@@ -53,7 +53,7 @@ lemma ntree_induct [consumes 1, case_names Branch, induct set: ntree]:
     and step: "!!x n h. [| x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  \<forall>i \<in> n. P(h`i)
       |] ==> P(Branch(x,h))"
   shows "P(t)"
-  -- \<open>A nicer induction rule than the standard one.\<close>
+  \<comment> \<open>A nicer induction rule than the standard one.\<close>
   using t
   apply induct
   apply (erule UN_E)
@@ -69,7 +69,7 @@ lemma ntree_induct_eqn [consumes 1]:
     and step: "!!x n h. [| x \<in> A;  n \<in> nat;  h \<in> n -> ntree(A);  f O h = g O h |] ==>
       f ` Branch(x,h) = g ` Branch(x,h)"
   shows "f`t=g`t"
-  -- \<open>Induction on @{term "ntree(A)"} to prove an equation\<close>
+  \<comment> \<open>Induction on @{term "ntree(A)"} to prove an equation\<close>
   using t
   apply induct
   apply (assumption | rule step)+
@@ -80,7 +80,7 @@ lemma ntree_induct_eqn [consumes 1]:
   done
 
 text \<open>
-  \medskip Lemmas to justify using @{text Ntree} in other recursive
+  \medskip Lemmas to justify using \<open>Ntree\<close> in other recursive
   type definitions.
 \<close>
 
@@ -92,7 +92,7 @@ lemma ntree_mono: "A \<subseteq> B ==> ntree(A) \<subseteq> ntree(B)"
   done
 
 lemma ntree_univ: "ntree(univ(A)) \<subseteq> univ(A)"
-  -- \<open>Easily provable by induction also\<close>
+  \<comment> \<open>Easily provable by induction also\<close>
   apply (unfold ntree.defs ntree.con_defs)
   apply (rule lfp_lowerbound)
    apply (rule_tac [2] A_subset_univ [THEN univ_mono])
@@ -104,7 +104,7 @@ lemma ntree_subset_univ: "A \<subseteq> univ(B) ==> ntree(A) \<subseteq> univ(B)
 
 
 text \<open>
-  \medskip @{text ntree} recursion.
+  \medskip \<open>ntree\<close> recursion.
 \<close>
 
 lemma ntree_rec_Branch:
@@ -125,7 +125,7 @@ lemma ntree_copy_is_ident: "z \<in> ntree(A) ==> ntree_copy(z) = z"
 
 
 text \<open>
-  \medskip @{text maptree}
+  \medskip \<open>maptree\<close>
 \<close>
 
 lemma maptree_unfold: "maptree(A) = A \<times> (maptree(A) -||> maptree(A))"
@@ -138,7 +138,7 @@ lemma maptree_induct [consumes 1, induct set: maptree]:
                   \<forall>y \<in> field(h). P(y)
                |] ==> P(Sons(x,h))"
   shows "P(t)"
-  -- \<open>A nicer induction rule than the standard one.\<close>
+  \<comment> \<open>A nicer induction rule than the standard one.\<close>
   using t
   apply induct
   apply (assumption | rule step)+
@@ -150,7 +150,7 @@ lemma maptree_induct [consumes 1, induct set: maptree]:
 
 
 text \<open>
-  \medskip @{text maptree2}
+  \medskip \<open>maptree2\<close>
 \<close>
 
 lemma maptree2_unfold: "maptree2(A, B) = A \<times> (B -||> maptree2(A, B))"

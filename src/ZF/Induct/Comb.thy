@@ -15,7 +15,7 @@ text \<open>
 
 subsection \<open>Definitions\<close>
 
-text \<open>Datatype definition of combinators @{text S} and @{text K}.\<close>
+text \<open>Datatype definition of combinators \<open>S\<close> and \<open>K\<close>.\<close>
 
 consts comb :: i
 datatype comb =
@@ -24,8 +24,8 @@ datatype comb =
   | app ("p \<in> comb", "q \<in> comb")    (infixl "\<bullet>" 90)
 
 text \<open>
-  Inductive definition of contractions, @{text "-1->"} and
-  (multi-step) reductions, @{text "-\<longrightarrow>"}.
+  Inductive definition of contractions, \<open>-1->\<close> and
+  (multi-step) reductions, \<open>-\<longrightarrow>\<close>.
 \<close>
 
 consts
@@ -49,8 +49,8 @@ inductive
   type_intros comb.intros
 
 text \<open>
-  Inductive definition of parallel contractions, @{text "=1=>"} and
-  (multi-step) parallel reductions, @{text "===>"}.
+  Inductive definition of parallel contractions, \<open>=1=>\<close> and
+  (multi-step) parallel reductions, \<open>===>\<close>.
 \<close>
 
 consts
@@ -115,8 +115,8 @@ inductive_cases Ap_E [elim!]: "p\<bullet>q \<in> comb"
 subsection \<open>Results about Contraction\<close>
 
 text \<open>
-  For type checking: replaces @{term "a -1-> b"} by @{text "a, b \<in>
-  comb"}.
+  For type checking: replaces @{term "a -1-> b"} by \<open>a, b \<in>
+  comb\<close>.
 \<close>
 
 lemmas contract_combE2 = contract.dom_subset [THEN subsetD, THEN SigmaE2]
@@ -141,7 +141,7 @@ lemmas reduction_rls =
   contract.Ap2 [THEN rtrancl_into_rtrancl2]
 
 lemma "p \<in> comb ==> I\<bullet>p -\<longrightarrow> p"
-  -- \<open>Example only: not used\<close>
+  \<comment> \<open>Example only: not used\<close>
   by (unfold I_def) (blast intro: reduction_rls)
 
 lemma comb_I: "I \<in> comb"
@@ -181,7 +181,7 @@ lemma Ap_reduce2: "[| p -\<longrightarrow> q;  r \<in> comb |] ==> r\<bullet>p -
                       contract_combD2 reduction_rls)
   done
 
-text \<open>Counterexample to the diamond property for @{text "-1->"}.\<close>
+text \<open>Counterexample to the diamond property for \<open>-1->\<close>.\<close>
 
 lemma KIII_contract1: "K\<bullet>I\<bullet>(I\<bullet>I) -1-> I"
   by (blast intro: comb_I)
@@ -201,8 +201,8 @@ lemma not_diamond_contract: "\<not> diamond(contract)"
 
 subsection \<open>Results about Parallel Contraction\<close>
 
-text \<open>For type checking: replaces @{text "a =1=> b"} by @{text "a, b
-  \<in> comb"}\<close>
+text \<open>For type checking: replaces \<open>a =1=> b\<close> by \<open>a, b
+  \<in> comb\<close>\<close>
 lemmas parcontract_combE2 = parcontract.dom_subset [THEN subsetD, THEN SigmaE2]
   and parcontract_combD1 = parcontract.dom_subset [THEN subsetD, THEN SigmaD1]
   and parcontract_combD2 = parcontract.dom_subset [THEN subsetD, THEN SigmaD2]
@@ -234,7 +234,7 @@ lemma S2_parcontractD [dest!]:
   by auto
 
 lemma diamond_parcontract: "diamond(parcontract)"
-  -- \<open>Church-Rosser property for parallel contraction\<close>
+  \<comment> \<open>Church-Rosser property for parallel contraction\<close>
   apply (unfold diamond_def)
   apply (rule impI [THEN allI, THEN allI])
   apply (erule parcontract.induct)

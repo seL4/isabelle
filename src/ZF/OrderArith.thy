@@ -87,7 +87,7 @@ subsubsection\<open>Well-foundedness\<close>
 lemma wf_on_radd: "[| wf[A](r);  wf[B](s) |] ==> wf[A+B](radd(A,r,B,s))"
 apply (rule wf_onI2)
 apply (subgoal_tac "\<forall>x\<in>A. Inl (x) \<in> Ba")
- --\<open>Proving the lemma, which is needed twice!\<close>
+ \<comment>\<open>Proving the lemma, which is needed twice!\<close>
  prefer 2
  apply (erule_tac V = "y \<in> A + B" in thin_rl)
  apply (rule_tac ballI)
@@ -369,8 +369,8 @@ apply (subgoal_tac "\<exists>w. w \<in> {w: {f`x. x \<in> Q}. \<exists>x. x \<in
 apply blast
 done
 
-text\<open>But note that the combination of @{text wf_imp_wf_on} and
- @{text wf_rvimage} gives @{prop "wf(r) ==> wf[C](rvimage(A,f,r))"}\<close>
+text\<open>But note that the combination of \<open>wf_imp_wf_on\<close> and
+ \<open>wf_rvimage\<close> gives @{prop "wf(r) ==> wf[C](rvimage(A,f,r))"}\<close>
 lemma wf_on_rvimage: "[| f \<in> A->B;  wf[B](r) |] ==> wf[A](rvimage(A,f,r))"
 apply (rule wf_onI2)
 apply (subgoal_tac "\<forall>z\<in>A. f`z=f`y \<longrightarrow> z \<in> Ba")
@@ -460,7 +460,7 @@ subsection\<open>Other Results\<close>
 lemma wf_times: "A \<inter> B = 0 ==> wf(A*B)"
 by (simp add: wf_def, blast)
 
-text\<open>Could also be used to prove @{text wf_radd}\<close>
+text\<open>Could also be used to prove \<open>wf_radd\<close>\<close>
 lemma wf_Un:
      "[| range(r) \<inter> domain(s) = 0; wf(r);  wf(s) |] ==> wf(r \<union> s)"
 apply (simp add: wf_def, clarify)

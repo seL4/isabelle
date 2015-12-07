@@ -53,7 +53,7 @@ lemma rmap_functional: "function(r) ==> function(rmap(r))"
   done
 
 text \<open>
-  \medskip If @{text f} is a function then @{text "rmap(f)"} behaves
+  \medskip If \<open>f\<close> is a function then \<open>rmap(f)\<close> behaves
   as expected.
 \<close>
 

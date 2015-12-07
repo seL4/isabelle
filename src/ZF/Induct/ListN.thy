@@ -8,7 +8,7 @@ section \<open>Lists of n elements\<close>
 theory ListN imports Main begin
 
 text \<open>
-  Inductive definition of lists of @{text n} elements; see
+  Inductive definition of lists of \<open>n\<close> elements; see
   @{cite "paulin-tlca"}.
 \<close>
 

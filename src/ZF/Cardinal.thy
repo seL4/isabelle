@@ -439,10 +439,10 @@ lemma Card_cardinal [iff]: "Card(|A|)"
 proof (unfold cardinal_def)
   show "Card(\<mu> i. i \<approx> A)"
     proof (cases "\<exists>i. Ord (i) & i \<approx> A")
-      case False thus ?thesis           --\<open>degenerate case\<close>
+      case False thus ?thesis           \<comment>\<open>degenerate case\<close>
         by (simp add: Least_0 Card_0)
     next
-      case True                         --\<open>real case: @{term A} is isomorphic to some ordinal\<close>
+      case True                         \<comment>\<open>real case: @{term A} is isomorphic to some ordinal\<close>
       then obtain i where i: "Ord(i)" "i \<approx> A" by blast
       show ?thesis
         proof (rule CardI [OF Ord_Least], rule notI)
@@ -490,7 +490,7 @@ next
   thus ?thesis by simp
 qed
 
-text\<open>Since we have @{term"|succ(nat)| \<le> |nat|"}, the converse of @{text cardinal_mono} fails!\<close>
+text\<open>Since we have @{term"|succ(nat)| \<le> |nat|"}, the converse of \<open>cardinal_mono\<close> fails!\<close>
 lemma cardinal_lt_imp_lt: "[| |i| < |j|;  Ord(i);  Ord(j) |] ==> i < j"
 apply (rule Ord_linear2 [of i j], assumption+)
 apply (erule lt_trans2 [THEN lt_irrefl])
@@ -687,7 +687,7 @@ proof -
   thus ?thesis by auto
 qed
 
-text\<open>A slightly weaker version of @{text nat_eqpoll_iff}\<close>
+text\<open>A slightly weaker version of \<open>nat_eqpoll_iff\<close>\<close>
 lemma Ord_nat_eqpoll_iff:
   assumes i: "Ord(i)" and n: "n \<in> nat" shows "i \<approx> n \<longleftrightarrow> i=n"
 using i nat_into_Ord [OF n]
@@ -1109,7 +1109,7 @@ proof (induct n rule: nat_induct)
 next
   case (succ x)
   hence wfx: "\<And>Z. Z = 0 \<or> (\<exists>z\<in>Z. \<forall>y. z \<in> y \<and> z \<in> x \<and> y \<in> x \<and> z \<in> x \<longrightarrow> y \<notin> Z)"
-    by (simp add: wf_on_def wf_def)  --\<open>not easy to erase the duplicate @{term"z \<in> x"}!\<close>
+    by (simp add: wf_on_def wf_def)  \<comment>\<open>not easy to erase the duplicate @{term"z \<in> x"}!\<close>
   show ?case
     proof (rule wf_onI)
       fix Z u

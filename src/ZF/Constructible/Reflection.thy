@@ -19,15 +19,15 @@ text\<open>From the notes of A. S. Kechris, page 6, and from
 
 subsection\<open>Basic Definitions\<close>
 
-text\<open>First part: the cumulative hierarchy defining the class @{text M}.
-To avoid handling multiple arguments, we assume that @{text "Mset(l)"} is
-closed under ordered pairing provided @{text l} is limit.  Possibly this
+text\<open>First part: the cumulative hierarchy defining the class \<open>M\<close>.
+To avoid handling multiple arguments, we assume that \<open>Mset(l)\<close> is
+closed under ordered pairing provided \<open>l\<close> is limit.  Possibly this
 could be avoided: the induction hypothesis @{term Cl_reflects}
-(in locale @{text ex_reflection}) could be weakened to
+(in locale \<open>ex_reflection\<close>) could be weakened to
 @{term "\<forall>y\<in>Mset(a). \<forall>z\<in>Mset(a). P(<y,z>) \<longleftrightarrow> Q(a,<y,z>)"}, removing most
 uses of @{term Pair_in_Mset}.  But there isn't much point in doing so, since
-ultimately the @{text ex_reflection} proof is packaged up using the
-predicate @{text Reflects}.
+ultimately the \<open>ex_reflection\<close> proof is packaged up using the
+predicate \<open>Reflects\<close>.
 \<close>
 locale reflection =
   fixes Mset and M and Reflects
@@ -38,9 +38,9 @@ locale reflection =
   defines "M(x) == \<exists>a. Ord(a) & x \<in> Mset(a)"
       and "Reflects(Cl,P,Q) == Closed_Unbounded(Cl) &
                               (\<forall>a. Cl(a) \<longrightarrow> (\<forall>x\<in>Mset(a). P(x) \<longleftrightarrow> Q(a,x)))"
-  fixes F0 --\<open>ordinal for a specific value @{term y}\<close>
-  fixes FF --\<open>sup over the whole level, @{term "y\<in>Mset(a)"}\<close>
-  fixes ClEx --\<open>Reflecting ordinals for the formula @{term "\<exists>z. P"}\<close>
+  fixes F0 \<comment>\<open>ordinal for a specific value @{term y}\<close>
+  fixes FF \<comment>\<open>sup over the whole level, @{term "y\<in>Mset(a)"}\<close>
+  fixes ClEx \<comment>\<open>Reflecting ordinals for the formula @{term "\<exists>z. P"}\<close>
   defines "F0(P,y) == \<mu> b. (\<exists>z. M(z) & P(<y,z>)) \<longrightarrow>
                                (\<exists>z\<in>Mset(b). P(<y,z>))"
       and "FF(P)   == \<lambda>a. \<Union>y\<in>Mset(a). F0(P,y)"
@@ -51,7 +51,7 @@ apply (insert Mset_mono_le)
 apply (simp add: mono_le_subset_def leI)
 done
 
-text\<open>Awkward: we need a version of @{text ClEx_def} as an equality
+text\<open>Awkward: we need a version of \<open>ClEx_def\<close> as an equality
       at the level of classes, which do not really exist\<close>
 lemma (in reflection) ClEx_eq:
      "ClEx(P) == \<lambda>a. Limit(a) & normalize(FF(P),a) = a"
@@ -136,9 +136,9 @@ done
 text\<open>Locale for the induction hypothesis\<close>
 
 locale ex_reflection = reflection +
-  fixes P  --"the original formula"
-  fixes Q  --"the reflected formula"
-  fixes Cl --"the class of reflecting ordinals"
+  fixes P  \<comment>"the original formula"
+  fixes Q  \<comment>"the reflected formula"
+  fixes Cl \<comment>"the class of reflecting ordinals"
   assumes Cl_reflects: "[| Cl(a); Ord(a) |] ==> \<forall>x\<in>Mset(a). P(x) \<longleftrightarrow> Q(a,x)"
 
 lemma (in ex_reflection) ClEx_downward:
@@ -159,7 +159,7 @@ apply (blast dest: Cl_reflects
              intro: Limit_is_Ord Pair_in_Mset)
 done
 
-text\<open>Class @{text ClEx} indeed consists of reflecting ordinals...\<close>
+text\<open>Class \<open>ClEx\<close> indeed consists of reflecting ordinals...\<close>
 lemma (in ex_reflection) ZF_ClEx_iff:
      "[| y\<in>Mset(a); Cl(a); ClEx(P,a) |]
       ==> (\<exists>z. M(z) & P(<y,z>)) \<longleftrightarrow> (\<exists>z\<in>Mset(a). Q(a,<y,z>))"
@@ -173,9 +173,9 @@ apply (fast intro: Closed_Unbounded_Int Normal_imp_fp_Closed_Unbounded
                    Closed_Unbounded_Limit Normal_normalize)
 done
 
-text\<open>The same two theorems, exported to locale @{text reflection}.\<close>
+text\<open>The same two theorems, exported to locale \<open>reflection\<close>.\<close>
 
-text\<open>Class @{text ClEx} indeed consists of reflecting ordinals...\<close>
+text\<open>Class \<open>ClEx\<close> indeed consists of reflecting ordinals...\<close>
 lemma (in reflection) ClEx_iff:
      "[| y\<in>Mset(a); Cl(a); ClEx(P,a);
         !!a. [| Cl(a); Ord(a) |] ==> \<forall>x\<in>Mset(a). P(x) \<longleftrightarrow> Q(a,x) |]
@@ -266,7 +266,7 @@ text\<open>No point considering bounded quantifiers, where reflection is trivial
 subsection\<open>Simple Examples of Reflection\<close>
 
 text\<open>Example 1: reflecting a simple formula.  The reflecting class is first
-given as the variable @{text ?Cl} and later retrieved from the final
+given as the variable \<open>?Cl\<close> and later retrieved from the final
 proof state.\<close>
 schematic_goal (in reflection)
      "Reflects(?Cl,
@@ -349,7 +349,7 @@ schematic_goal (in reflection)
                \<lambda>a x. \<exists>y\<in>Mset(a). y = Replace(x,P))"
 by fast
 
-text\<open>Example 4: Axiom of Choice.  Possibly wrong, since @{text \<Pi>} needs
+text\<open>Example 4: Axiom of Choice.  Possibly wrong, since \<open>\<Pi>\<close> needs
 to be relativized.\<close>
 schematic_goal (in reflection)
      "Reflects(?Cl,

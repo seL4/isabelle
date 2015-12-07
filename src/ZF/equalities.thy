@@ -20,7 +20,7 @@ subsection\<open>Bounded Quantifiers\<close>
 text \<open>\medskip
 
   The following are not added to the default simpset because
-  (a) they duplicate the body and (b) there are no similar rules for @{text Int}.\<close>
+  (a) they duplicate the body and (b) there are no similar rules for \<open>Int\<close>.\<close>
 
 lemma ball_Un: "(\<forall>x \<in> A\<union>B. P(x)) \<longleftrightarrow> (\<forall>x \<in> A. P(x)) & (\<forall>x \<in> B. P(x))"
   by blast

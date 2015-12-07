@@ -80,8 +80,8 @@ subsubsection\<open>The intersection of any set-indexed family of c.u. classes i
 text\<open>The constructions below come from Kunen, \emph{Set Theory}, page 78.\<close>
 locale cub_family =
   fixes P and A
-  fixes next_greater -- "the next ordinal satisfying class @{term A}"
-  fixes sup_greater  -- "sup of those ordinals over all @{term A}"
+  fixes next_greater \<comment> "the next ordinal satisfying class @{term A}"
+  fixes sup_greater  \<comment> "sup of those ordinals over all @{term A}"
   assumes closed:    "a\<in>A ==> Closed(P(a))"
       and unbounded: "a\<in>A ==> Unbounded(P(a))"
       and A_non0: "A\<noteq>0"
@@ -335,7 +335,7 @@ lemma iterates_omega_Limit:
 apply (frule lt_Ord) 
 apply (simp add: iterates_omega_def)
 apply (rule increasing_LimitI) 
-   --"this lemma is @{thm increasing_LimitI [no_vars]}"
+   \<comment>"this lemma is @{thm increasing_LimitI [no_vars]}"
  apply (blast intro: UN_upper_lt [of "1"]   Normal_imp_Ord
                      Ord_UN Ord_iterates lt_imp_0_lt
                      iterates_Normal_increasing, clarify)
@@ -382,11 +382,11 @@ by (simp add: Closed_Unbounded_def Normal_imp_fp_Closed
               Normal_imp_fp_Unbounded)
 
 
-subsubsection\<open>Function @{text normalize}\<close>
+subsubsection\<open>Function \<open>normalize\<close>\<close>
 
-text\<open>Function @{text normalize} maps a function @{text F} to a 
+text\<open>Function \<open>normalize\<close> maps a function \<open>F\<close> to a 
       normal function that bounds it above.  The result is normal if and
-      only if @{text F} is continuous: succ is not bounded above by any 
+      only if \<open>F\<close> is continuous: succ is not bounded above by any 
       normal function, by @{thm [source] Normal_imp_fp_Unbounded}.
 \<close>
 definition

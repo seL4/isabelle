@@ -634,7 +634,7 @@ by (simp add: sats_is_recfun_fm [OF MH_iff_sats])
 
 text\<open>The additional variable in the premise, namely @{term f'}, is essential.
 It lets @{term MH} depend upon @{term x}, which seems often necessary.
-The same thing occurs in @{text is_wfrec_reflection}.\<close>
+The same thing occurs in \<open>is_wfrec_reflection\<close>.\<close>
 theorem is_recfun_reflection:
   assumes MH_reflection:
     "!!f' f g h. REFLECTS[\<lambda>x. MH(L, f'(x), f(x), g(x), h(x)), 

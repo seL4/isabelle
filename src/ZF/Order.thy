@@ -11,8 +11,8 @@ section\<open>Partial and Total Orderings: Basic Definitions and Properties\<clo
 
 theory Order imports WF Perm begin
 
-text \<open>We adopt the following convention: @{text ord} is used for
-  strict orders and @{text order} is used for their reflexive
+text \<open>We adopt the following convention: \<open>ord\<close> is used for
+  strict orders and \<open>order\<close> is used for their reflexive
   counterparts.\<close>
 
 definition

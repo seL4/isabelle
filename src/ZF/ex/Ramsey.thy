@@ -31,7 +31,7 @@ definition
     "Symmetric(E) == (\<forall>x y. <x,y>:E \<longrightarrow> <y,x>:E)"
 
 definition
-  Atleast :: "[i,i]=>o" where -- "not really necessary: ZF defines cardinality"
+  Atleast :: "[i,i]=>o" where \<comment> "not really necessary: ZF defines cardinality"
     "Atleast(n,S) == (\<exists>f. f \<in> inj(n,S))"
 
 definition

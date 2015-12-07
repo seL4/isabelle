@@ -8,7 +8,7 @@ section \<open>The accessible part of a relation\<close>
 theory Acc imports Main begin
 
 text \<open>
-  Inductive definition of @{text "acc(r)"}; see @{cite "paulin-tlca"}.
+  Inductive definition of \<open>acc(r)\<close>; see @{cite "paulin-tlca"}.
 \<close>
 
 consts
@@ -22,7 +22,7 @@ inductive
 
 text \<open>
   The introduction rule must require @{prop "a \<in> field(r)"},
-  otherwise @{text "acc(r)"} would be a proper class!
+  otherwise \<open>acc(r)\<close> would be a proper class!
 
   \medskip
   The intended introduction rule:

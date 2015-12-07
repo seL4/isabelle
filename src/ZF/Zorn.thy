@@ -114,7 +114,7 @@ lemma TFin_linear_lemma2:
      ==> \<forall>n \<in> TFin(S,next). n<=m \<longrightarrow> n=m | next`n \<subseteq> m"
 apply (erule TFin_induct)
 apply (rule impI [THEN ballI])
-txt\<open>case split using @{text TFin_linear_lemma1}\<close>
+txt\<open>case split using \<open>TFin_linear_lemma1\<close>\<close>
 apply (rule_tac n1 = n and m1 = x in TFin_linear_lemma1 [THEN disjE],
        assumption+)
 apply (blast del: subsetI
@@ -176,7 +176,7 @@ done
 
 subsection\<open>Hausdorff's Theorem: Every Set Contains a Maximal Chain\<close>
 
-text\<open>NOTE: We assume the partial ordering is @{text "\<subseteq>"}, the subset
+text\<open>NOTE: We assume the partial ordering is \<open>\<subseteq>\<close>, the subset
 relation!\<close>
 
 text\<open>* Defining the "next" operation for Hausdorff's Theorem *\<close>
@@ -248,7 +248,7 @@ apply (simp (no_asm_simp) add: chain_subset_Pow [THEN subsetD, THEN PowD]
 apply (unfold chain_def)
 apply (rule CollectI, blast, safe)
 apply (rule_tac m1=B and n1=Ba in TFin_subset_linear [THEN disjE], fast+)
-      txt\<open>@{text "Blast_tac's"} slow\<close>
+      txt\<open>\<open>Blast_tac's\<close> slow\<close>
 done
 
 theorem Hausdorff: "\<exists>c. c \<in> maxchain(S)"
@@ -404,7 +404,7 @@ apply (subgoal_tac "x \<notin> \<Union>({y \<in> TFin (S,next) . x \<notin> y}) 
 prefer 2 apply (blast elim: equalityE)
 apply (subgoal_tac "\<Union>({y \<in> TFin (S,next) . x \<notin> y}) \<noteq> S")
 prefer 2 apply (blast elim: equalityE)
-txt\<open>For proving @{text "x \<in> next`\<Union>(...)"}.
+txt\<open>For proving \<open>x \<in> next`\<Union>(...)\<close>.
   Abrial and Laffitte's justification appears to be faulty.\<close>
 apply (subgoal_tac "~ next ` Union({y \<in> TFin (S,next) . x \<notin> y}) 
                     \<subseteq> \<Union>({y \<in> TFin (S,next) . x \<notin> y}) ")
@@ -449,7 +449,7 @@ theorem Zorn_po:
   shows "\<exists>m\<in>field(r). \<forall>a\<in>field(r). <m, a> \<in> r \<longrightarrow> a = m"
 proof -
   have "Preorder(r)" using po by (simp add: partial_order_on_def)
-  --\<open>Mirror r in the set of subsets below (wrt r) elements of A (?).\<close>
+  \<comment>\<open>Mirror r in the set of subsets below (wrt r) elements of A (?).\<close>
   let ?B = "\<lambda>x\<in>field(r). r -`` {x}" let ?S = "?B `` field(r)"
   have "\<forall>C\<in>chain(?S). \<exists>U\<in>?S. \<forall>A\<in>C. A \<subseteq> U"
   proof (clarsimp simp: chain_def Subset_rel_def bex_image_simp)

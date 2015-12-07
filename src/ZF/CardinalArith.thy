@@ -28,14 +28,14 @@ definition
 
 definition
   jump_cardinal :: "i=>i"  where
-    --\<open>This def is more complex than Kunen's but it more easily proved to
+    \<comment>\<open>This def is more complex than Kunen's but it more easily proved to
         be a cardinal\<close>
     "jump_cardinal(K) ==
          \<Union>X\<in>Pow(K). {z. r \<in> Pow(K*K), well_ord(X,r) & z = ordertype(X,r)}"
 
 definition
   csucc         :: "i=>i"  where
-    --\<open>needed because @{term "jump_cardinal(K)"} might not be the successor
+    \<comment>\<open>needed because @{term "jump_cardinal(K)"} might not be the successor
         of @{term K}\<close>
     "csucc(K) == \<mu> L. Card(L) & K<L"
 
@@ -574,7 +574,7 @@ next
   finally show "ordermap(K \<times> K, csquare_rel(K)) ` \<langle>x,y\<rangle> \<lesssim> |succ(z)| \<times> |succ(z)|" .
 qed
 
-text\<open>Kunen: "... so the order type is @{text"\<le>"} K"\<close>
+text\<open>Kunen: "... so the order type is \<open>\<le>\<close> K"\<close>
 lemma ordertype_csquare_le:
   assumes IK: "InfCard(K)" and eq: "\<And>y. y\<in>K \<Longrightarrow> InfCard(y) \<Longrightarrow> y \<otimes> y = y"
   shows "ordertype(K*K, csquare_rel(K)) \<le> K"

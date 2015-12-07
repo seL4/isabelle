@@ -9,7 +9,7 @@ theory Wellorderings imports Relative begin
 text\<open>We define functions analogous to @{term ordermap} @{term ordertype} 
       but without using recursion.  Instead, there is a direct appeal
       to Replacement.  This will be the basis for a version relativized
-      to some class @{text M}.  The main result is Theorem I 7.6 in Kunen,
+      to some class \<open>M\<close>.  The main result is Theorem I 7.6 in Kunen,
       page 17.\<close>
 
 
@@ -32,18 +32,18 @@ definition
 
 definition
   wellfounded :: "[i=>o,i]=>o" where
-    --\<open>EVERY non-empty set has an @{text r}-minimal element\<close>
+    \<comment>\<open>EVERY non-empty set has an \<open>r\<close>-minimal element\<close>
     "wellfounded(M,r) == 
         \<forall>x[M]. x\<noteq>0 \<longrightarrow> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 definition
   wellfounded_on :: "[i=>o,i,i]=>o" where
-    --\<open>every non-empty SUBSET OF @{text A} has an @{text r}-minimal element\<close>
+    \<comment>\<open>every non-empty SUBSET OF \<open>A\<close> has an \<open>r\<close>-minimal element\<close>
     "wellfounded_on(M,A,r) == 
         \<forall>x[M]. x\<noteq>0 \<longrightarrow> x\<subseteq>A \<longrightarrow> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 
 definition
   wellordered :: "[i=>o,i,i]=>o" where
-    --\<open>linear and wellfounded on @{text A}\<close>
+    \<comment>\<open>linear and wellfounded on \<open>A\<close>\<close>
     "wellordered(M,A,r) == 
         transitive_rel(M,A,r) & linear_rel(M,A,r) & wellfounded_on(M,A,r)"
 

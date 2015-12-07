@@ -19,11 +19,11 @@ lemma singleton_example_1:
 
 lemma singleton_example_2:
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-  -- \<open>Variant of the problem above.\<close>
+  \<comment> \<open>Variant of the problem above.\<close>
   by blast
 
 lemma "\<exists>!x. f (g(x)) = x \<Longrightarrow> \<exists>!y. g (f(y)) = y"
-  -- \<open>A unique fixpoint theorem --- @{text fast}/@{text best}/@{text auto} all fail.\<close> 
+  \<comment> \<open>A unique fixpoint theorem --- \<open>fast\<close>/\<open>best\<close>/\<open>auto\<close> all fail.\<close> 
   apply (erule ex1E, rule ex1I, erule subst_context)
   apply (rule subst, assumption, erule allE, rule subst_context, erule mp)
   apply (erule subst_context)

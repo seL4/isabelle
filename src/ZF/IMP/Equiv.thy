@@ -38,14 +38,14 @@ declare bexp_iff [THEN iffD1, simp]
 lemma com1: "<c,sigma> -c-> sigma' ==> <sigma,sigma'> \<in> C(c)"
   apply (erule evalc.induct)
         apply (simp_all (no_asm_simp))
-     txt \<open>@{text assign}\<close>
+     txt \<open>\<open>assign\<close>\<close>
      apply (simp add: update_type)
-    txt \<open>@{text comp}\<close>
+    txt \<open>\<open>comp\<close>\<close>
     apply fast
-   txt \<open>@{text while}\<close>
+   txt \<open>\<open>while\<close>\<close>
    apply (erule Gamma_bnd_mono [THEN lfp_unfold, THEN ssubst, OF C_subset])
    apply (simp add: Gamma_def)
-  txt \<open>recursive case of @{text while}\<close>
+  txt \<open>recursive case of \<open>while\<close>\<close>
   apply (erule Gamma_bnd_mono [THEN lfp_unfold, THEN ssubst, OF C_subset])
   apply (auto simp add: Gamma_def)
   done
@@ -56,19 +56,19 @@ declare evalc.intros [intro]
 
 lemma com2 [rule_format]: "c \<in> com ==> \<forall>x \<in> C(c). <c,fst(x)> -c-> snd(x)"
   apply (erule com.induct)
-      txt \<open>@{text skip}\<close>
+      txt \<open>\<open>skip\<close>\<close>
       apply force
-     txt \<open>@{text assign}\<close>
+     txt \<open>\<open>assign\<close>\<close>
      apply force
-    txt \<open>@{text comp}\<close>
+    txt \<open>\<open>comp\<close>\<close>
     apply force
-   txt \<open>@{text while}\<close>
+   txt \<open>\<open>while\<close>\<close>
    apply safe
    apply simp_all
    apply (frule Gamma_bnd_mono [OF C_subset], erule Fixedpt.induct, assumption)
    apply (unfold Gamma_def)
    apply force
-  txt \<open>@{text "if"}\<close>
+  txt \<open>\<open>if\<close>\<close>
   apply auto
   done
 

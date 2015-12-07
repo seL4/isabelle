@@ -12,7 +12,7 @@ imports FoldSet Acc
 begin
 
 abbreviation (input)
-  -- \<open>Short cut for multiset space\<close>
+  \<comment> \<open>Short cut for multiset space\<close>
   Mult :: "i=>i" where
   "Mult(A) == A -||> nat-{0}"
 

@@ -123,7 +123,7 @@ definition
 
 definition
   is_range :: "[i=>o,i,i] => o" where
-    --\<open>the cleaner
+    \<comment>\<open>the cleaner
       @{term "\<exists>r'[M]. is_converse(M,r,r') & is_domain(M,r',z)"}
       unfortunately needs an instance of separation in order to prove
         @{term "M(converse(r))"}.\<close>
@@ -200,32 +200,32 @@ definition
 
 definition
   ordinal :: "[i=>o,i] => o" where
-     --\<open>an ordinal is a transitive set of transitive sets\<close>
+     \<comment>\<open>an ordinal is a transitive set of transitive sets\<close>
     "ordinal(M,a) == transitive_set(M,a) & (\<forall>x[M]. x\<in>a \<longrightarrow> transitive_set(M,x))"
 
 definition
   limit_ordinal :: "[i=>o,i] => o" where
-    --\<open>a limit ordinal is a non-empty, successor-closed ordinal\<close>
+    \<comment>\<open>a limit ordinal is a non-empty, successor-closed ordinal\<close>
     "limit_ordinal(M,a) ==
         ordinal(M,a) & ~ empty(M,a) &
         (\<forall>x[M]. x\<in>a \<longrightarrow> (\<exists>y[M]. y\<in>a & successor(M,x,y)))"
 
 definition
   successor_ordinal :: "[i=>o,i] => o" where
-    --\<open>a successor ordinal is any ordinal that is neither empty nor limit\<close>
+    \<comment>\<open>a successor ordinal is any ordinal that is neither empty nor limit\<close>
     "successor_ordinal(M,a) ==
         ordinal(M,a) & ~ empty(M,a) & ~ limit_ordinal(M,a)"
 
 definition
   finite_ordinal :: "[i=>o,i] => o" where
-    --\<open>an ordinal is finite if neither it nor any of its elements are limit\<close>
+    \<comment>\<open>an ordinal is finite if neither it nor any of its elements are limit\<close>
     "finite_ordinal(M,a) ==
         ordinal(M,a) & ~ limit_ordinal(M,a) &
         (\<forall>x[M]. x\<in>a \<longrightarrow> ~ limit_ordinal(M,x))"
 
 definition
   omega :: "[i=>o,i] => o" where
-    --\<open>omega is a limit ordinal none of whose elements are limit\<close>
+    \<comment>\<open>omega is a limit ordinal none of whose elements are limit\<close>
     "omega(M,a) == limit_ordinal(M,a) & (\<forall>x[M]. x\<in>a \<longrightarrow> ~ limit_ordinal(M,x))"
 
 definition
@@ -245,7 +245,7 @@ definition
 
 definition
   Relation1 :: "[i=>o, i, [i,i]=>o, i=>i] => o" where
-    --\<open>as above, but typed\<close>
+    \<comment>\<open>as above, but typed\<close>
     "Relation1(M,A,is_f,f) ==
         \<forall>x[M]. \<forall>y[M]. x\<in>A \<longrightarrow> is_f(x,y) \<longleftrightarrow> y = f(x)"
 
@@ -294,9 +294,9 @@ definition
 
 definition
   separation :: "[i=>o, i=>o] => o" where
-    --\<open>The formula @{text P} should only involve parameters
-        belonging to @{text M} and all its quantifiers must be relativized
-        to @{text M}.  We do not have separation as a scheme; every instance
+    \<comment>\<open>The formula \<open>P\<close> should only involve parameters
+        belonging to \<open>M\<close> and all its quantifiers must be relativized
+        to \<open>M\<close>.  We do not have separation as a scheme; every instance
         that we need must be assumed (and later proved) separately.\<close>
     "separation(M,P) ==
         \<forall>z[M]. \<exists>y[M]. \<forall>x[M]. x \<in> y \<longleftrightarrow> x \<in> z & P(x)"
@@ -339,7 +339,7 @@ definition
 subsection\<open>A trivial consistency proof for $V_\omega$\<close>
 
 text\<open>We prove that $V_\omega$
-      (or @{text univ} in Isabelle) satisfies some ZF axioms.
+      (or \<open>univ\<close> in Isabelle) satisfies some ZF axioms.
      Kunen, Theorem IV 3.13, page 123.\<close>
 
 lemma univ0_downwards_mem: "[| y \<in> x; x \<in> univ(0) |] ==> y \<in> univ(0)"
@@ -355,7 +355,7 @@ lemma univ0_Bex_abs [simp]:
      "A \<in> univ(0) ==> (\<exists>x\<in>A. x \<in> univ(0) & P(x)) \<longleftrightarrow> (\<exists>x\<in>A. P(x))"
 by (blast intro: univ0_downwards_mem)
 
-text\<open>Congruence rule for separation: can assume the variable is in @{text M}\<close>
+text\<open>Congruence rule for separation: can assume the variable is in \<open>M\<close>\<close>
 lemma separation_cong [cong]:
      "(!!x. M(x) ==> P(x) \<longleftrightarrow> P'(x))
       ==> separation(M, %x. P(x)) \<longleftrightarrow> separation(M, %x. P'(x))"
@@ -468,8 +468,8 @@ apply (rule equalityI, auto)
 apply (simp add: Pair_def, blast)
 done
 
-text\<open>These two lemmas lets us prove @{text domain_closed} and
-      @{text range_closed} without new instances of separation\<close>
+text\<open>These two lemmas lets us prove \<open>domain_closed\<close> and
+      \<open>range_closed\<close> without new instances of separation\<close>
 
 lemma domain_eq_vimage: "domain(r) = r -`` Union(Union(r))"
 apply (rule equalityI, auto)
@@ -515,7 +515,7 @@ definition
         \<forall>y[M]. y \<in> B \<longleftrightarrow> (\<exists>p[M]. p\<in>r & y \<in> A & pair(M,y,x,p))"
 
 definition
-  membership :: "[i=>o,i,i] => o" where --\<open>membership relation\<close>
+  membership :: "[i=>o,i,i] => o" where \<comment>\<open>membership relation\<close>
     "membership(M,A,r) ==
         \<forall>p[M]. p \<in> r \<longleftrightarrow> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>A & x\<in>y & pair(M,x,y,p)))"
 
@@ -534,8 +534,8 @@ locale M_trivial =
       and M_nat [iff]:      "M(nat)"           (*i.e. the axiom of infinity*)
 
 
-text\<open>Automatically discovers the proof using @{text transM}, @{text nat_0I}
-and @{text M_nat}.\<close>
+text\<open>Automatically discovers the proof using \<open>transM\<close>, \<open>nat_0I\<close>
+and \<open>M_nat\<close>.\<close>
 lemma (in M_trivial) nonempty [simp]: "M(0)"
 by (blast intro: transM)
 
@@ -758,7 +758,7 @@ done
 lemma Replace_conj_eq: "{y . x \<in> A, x\<in>A & y=f(x)} = {y . x\<in>A, y=f(x)}"
 by simp
 
-text\<open>Better than @{text RepFun_closed} when having the formula @{term "x\<in>A"}
+text\<open>Better than \<open>RepFun_closed\<close> when having the formula @{term "x\<in>A"}
       makes relativization easier.\<close>
 lemma (in M_trivial) RepFun_closed2:
      "[| strong_replacement(M, \<lambda>x y. x\<in>A & y = f(x)); M(A); \<forall>x\<in>A. M(f(x)) |]
@@ -781,7 +781,7 @@ lemma (in M_trivial) lam_closed:
       ==> M(\<lambda>x\<in>A. b(x))"
 by (simp add: lam_def, blast intro: RepFun_closed dest: transM)
 
-text\<open>Better than @{text lam_closed}: has the formula @{term "x\<in>A"}\<close>
+text\<open>Better than \<open>lam_closed\<close>: has the formula @{term "x\<in>A"}\<close>
 lemma (in M_trivial) lam_closed2:
   "[|strong_replacement(M, \<lambda>x y. x\<in>A & y = \<langle>x, b(x)\<rangle>);
      M(A); \<forall>m[M]. m\<in>A \<longrightarrow> M(b(m))|] ==> M(Lambda(A,b))"
@@ -816,14 +816,14 @@ apply (rule iffI)
  apply (blast intro!: equalityI dest: transM, blast)
 done
 
-text\<open>What about @{text Pow_abs}?  Powerset is NOT absolute!
+text\<open>What about \<open>Pow_abs\<close>?  Powerset is NOT absolute!
       This result is one direction of absoluteness.\<close>
 
 lemma (in M_trivial) powerset_Pow:
      "powerset(M, x, Pow(x))"
 by (simp add: powerset_def)
 
-text\<open>But we can't prove that the powerset in @{text M} includes the
+text\<open>But we can't prove that the powerset in \<open>M\<close> includes the
       real powerset.\<close>
 lemma (in M_trivial) powerset_imp_subset_Pow:
      "[| powerset(M,x,y); M(y) |] ==> y \<subseteq> Pow(x)"
@@ -992,7 +992,7 @@ assumes Inter_separation:
                 pair(M,f,b,p) & pair(M,n,b,nb) & is_cons(M,nb,f,cnbf) &
                 upair(M,cnbf,cnbf,z))"
   and is_recfun_separation:
-     --\<open>for well-founded recursion: used to prove @{text is_recfun_equal}\<close>
+     \<comment>\<open>for well-founded recursion: used to prove \<open>is_recfun_equal\<close>\<close>
      "[| M(r); M(f); M(g); M(a); M(b) |]
      ==> separation(M,
             \<lambda>x. \<exists>xa[M]. \<exists>xb[M].
@@ -1360,7 +1360,7 @@ done
 
 text\<open>@{term M} contains all finite function spaces.  Needed to prove the
 absoluteness of transitive closure.  See the definition of
-@{text rtrancl_alt} in in @{text WF_absolute.thy}.\<close>
+\<open>rtrancl_alt\<close> in in \<open>WF_absolute.thy\<close>.\<close>
 lemma (in M_basic) finite_funspace_closed [intro,simp]:
      "[|n\<in>nat; M(B)|] ==> M(n->B)"
 apply (induct_tac n, simp)
@@ -1428,12 +1428,12 @@ subsection\<open>Relativization and Absoluteness for List Operators\<close>
 
 definition
   is_Nil :: "[i=>o, i] => o" where
-     --\<open>because @{prop "[] \<equiv> Inl(0)"}\<close>
+     \<comment>\<open>because @{prop "[] \<equiv> Inl(0)"}\<close>
     "is_Nil(M,xs) == \<exists>zero[M]. empty(M,zero) & is_Inl(M,zero,xs)"
 
 definition
   is_Cons :: "[i=>o,i,i,i] => o" where
-     --\<open>because @{prop "Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)"}\<close>
+     \<comment>\<open>because @{prop "Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)"}\<close>
     "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)"
 
 
@@ -1461,13 +1461,13 @@ definition
 
 definition
   list_case' :: "[i, [i,i]=>i, i] => i" where
-    --\<open>A version of @{term list_case} that's always defined.\<close>
+    \<comment>\<open>A version of @{term list_case} that's always defined.\<close>
     "list_case'(a,b,xs) ==
        if quasilist(xs) then list_case(a,b,xs) else 0"
 
 definition
   is_list_case :: "[i=>o, i, [i,i,i]=>o, i, i] => o" where
-    --\<open>Returns 0 for non-lists\<close>
+    \<comment>\<open>Returns 0 for non-lists\<close>
     "is_list_case(M, a, is_b, xs, z) ==
        (is_Nil(M,xs) \<longrightarrow> z=a) &
        (\<forall>x[M]. \<forall>l[M]. is_Cons(M,x,l,xs) \<longrightarrow> is_b(x,l,z)) &
@@ -1475,17 +1475,17 @@ definition
 
 definition
   hd' :: "i => i" where
-    --\<open>A version of @{term hd} that's always defined.\<close>
+    \<comment>\<open>A version of @{term hd} that's always defined.\<close>
     "hd'(xs) == if quasilist(xs) then hd(xs) else 0"
 
 definition
   tl' :: "i => i" where
-    --\<open>A version of @{term tl} that's always defined.\<close>
+    \<comment>\<open>A version of @{term tl} that's always defined.\<close>
     "tl'(xs) == if quasilist(xs) then tl(xs) else 0"
 
 definition
   is_hd :: "[i=>o,i,i] => o" where
-     --\<open>@{term "hd([]) = 0"} no constraints if not a list.
+     \<comment>\<open>@{term "hd([]) = 0"} no constraints if not a list.
           Avoiding implication prevents the simplifier's looping.\<close>
     "is_hd(M,xs,H) ==
        (is_Nil(M,xs) \<longrightarrow> empty(M,H)) &
@@ -1494,7 +1494,7 @@ definition
 
 definition
   is_tl :: "[i=>o,i,i] => o" where
-     --\<open>@{term "tl([]) = []"}; see comments about @{term is_hd}\<close>
+     \<comment>\<open>@{term "tl([]) = []"}; see comments about @{term is_hd}\<close>
     "is_tl(M,xs,T) ==
        (is_Nil(M,xs) \<longrightarrow> T=xs) &
        (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | T=l) &

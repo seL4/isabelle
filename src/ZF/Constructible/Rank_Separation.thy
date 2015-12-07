@@ -9,10 +9,10 @@ theory Rank_Separation imports Rank Rec_Separation begin
 
 
 text\<open>This theory proves all instances needed for locales
- @{text "M_ordertype"} and  @{text "M_wfrank"}.  But the material is not
+ \<open>M_ordertype\<close> and  \<open>M_wfrank\<close>.  But the material is not
  needed for proving the relative consistency of AC.\<close>
 
-subsection\<open>The Locale @{text "M_ordertype"}\<close>
+subsection\<open>The Locale \<open>M_ordertype\<close>\<close>
 
 subsubsection\<open>Separation for Order-Isomorphisms\<close>
 
@@ -46,7 +46,7 @@ lemma obase_reflects:
 by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma obase_separation:
-     --\<open>part of the order type formalization\<close>
+     \<comment>\<open>part of the order type formalization\<close>
      "[| L(A); L(r) |]
       ==> separation(L, \<lambda>a. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
              ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &
@@ -109,7 +109,7 @@ done
 
 
 
-subsection\<open>Instantiating the locale @{text M_ordertype}\<close>
+subsection\<open>Instantiating the locale \<open>M_ordertype\<close>\<close>
 text\<open>Separation (and Strong Replacement) for basic set-theoretic constructions
 such as intersection, Cartesian Product and image.\<close>
 
@@ -127,7 +127,7 @@ theorem M_ordertype_L: "PROP M_ordertype(L)"
   done
 
 
-subsection\<open>The Locale @{text "M_wfrank"}\<close>
+subsection\<open>The Locale \<open>M_wfrank\<close>\<close>
 
 subsubsection\<open>Separation for @{term "wfrank"}\<close>
 
@@ -182,7 +182,7 @@ apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
 done
 
 
-subsubsection\<open>Separation for Proving @{text Ord_wfrank_range}\<close>
+subsubsection\<open>Separation for Proving \<open>Ord_wfrank_range\<close>\<close>
 
 lemma Ord_wfrank_Reflects:
  "REFLECTS[\<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) \<longrightarrow>
@@ -213,7 +213,7 @@ apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
 done
 
 
-subsubsection\<open>Instantiating the locale @{text M_wfrank}\<close>
+subsubsection\<open>Instantiating the locale \<open>M_wfrank\<close>\<close>
 
 lemma M_wfrank_axioms_L: "M_wfrank_axioms(L)"
   apply (rule M_wfrank_axioms.intro)

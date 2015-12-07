@@ -15,9 +15,9 @@ typedecl i
 instance i :: "term" ..
 
 axiomatization
-  zero :: "i"  ("0")   --\<open>the empty set\<close>  and
-  Pow :: "i => i"  --\<open>power sets\<close>  and
-  Inf :: "i"  --\<open>infinite set\<close>
+  zero :: "i"  ("0")   \<comment>\<open>the empty set\<close>  and
+  Pow :: "i => i"  \<comment>\<open>power sets\<close>  and
+  Inf :: "i"  \<comment>\<open>infinite set\<close>
 
 text \<open>Bounded Quantifiers\<close>
 consts
@@ -56,7 +56,7 @@ consts
   Pair  :: "[i, i] => i"
   fst   :: "i => i"
   snd   :: "i => i"
-  split :: "[[i, i] => 'a, i] => 'a::{}"  --\<open>for pattern-matching\<close>
+  split :: "[[i, i] => 'a, i] => 'a::{}"  \<comment>\<open>for pattern-matching\<close>
 
 text \<open>Sigma and Pi Operators\<close>
 consts
@@ -69,35 +69,35 @@ consts
   range       :: "i => i"
   field       :: "i => i"
   converse    :: "i => i"
-  relation    :: "i => o"        --\<open>recognizes sets of pairs\<close>
-  "function"  :: "i => o"        --\<open>recognizes functions; can have non-pairs\<close>
+  relation    :: "i => o"        \<comment>\<open>recognizes sets of pairs\<close>
+  "function"  :: "i => o"        \<comment>\<open>recognizes functions; can have non-pairs\<close>
   Lambda      :: "[i, i => i] => i"
   restrict    :: "[i, i] => i"
 
 text \<open>Infixes in order of decreasing precedence\<close>
 consts
 
-  Image       :: "[i, i] => i"    (infixl "``" 90) --\<open>image\<close>
-  vimage      :: "[i, i] => i"    (infixl "-``" 90) --\<open>inverse image\<close>
-  "apply"     :: "[i, i] => i"    (infixl "`" 90) --\<open>function application\<close>
-  "Int"       :: "[i, i] => i"    (infixl "Int" 70) --\<open>binary intersection\<close>
-  "Un"        :: "[i, i] => i"    (infixl "Un" 65) --\<open>binary union\<close>
-  Diff        :: "[i, i] => i"    (infixl "-" 65) --\<open>set difference\<close>
-  Subset      :: "[i, i] => o"    (infixl "<=" 50) --\<open>subset relation\<close>
+  Image       :: "[i, i] => i"    (infixl "``" 90) \<comment>\<open>image\<close>
+  vimage      :: "[i, i] => i"    (infixl "-``" 90) \<comment>\<open>inverse image\<close>
+  "apply"     :: "[i, i] => i"    (infixl "`" 90) \<comment>\<open>function application\<close>
+  "Int"       :: "[i, i] => i"    (infixl "Int" 70) \<comment>\<open>binary intersection\<close>
+  "Un"        :: "[i, i] => i"    (infixl "Un" 65) \<comment>\<open>binary union\<close>
+  Diff        :: "[i, i] => i"    (infixl "-" 65) \<comment>\<open>set difference\<close>
+  Subset      :: "[i, i] => o"    (infixl "<=" 50) \<comment>\<open>subset relation\<close>
 
 axiomatization
-  mem         :: "[i, i] => o"    (infixl ":" 50) --\<open>membership relation\<close>
+  mem         :: "[i, i] => o"    (infixl ":" 50) \<comment>\<open>membership relation\<close>
 
 abbreviation
-  not_mem :: "[i, i] => o"  (infixl "~:" 50)  --\<open>negated membership relation\<close>
+  not_mem :: "[i, i] => o"  (infixl "~:" 50)  \<comment>\<open>negated membership relation\<close>
   where "x ~: y == ~ (x : y)"
 
 abbreviation
-  cart_prod :: "[i, i] => i"    (infixr "*" 80) --\<open>Cartesian product\<close>
+  cart_prod :: "[i, i] => i"    (infixr "*" 80) \<comment>\<open>Cartesian product\<close>
   where "A * B == Sigma(A, %_. B)"
 
 abbreviation
-  function_space :: "[i, i] => i"  (infixr "->" 60) --\<open>function space\<close>
+  function_space :: "[i, i] => i"  (infixr "->" 60) \<comment>\<open>function space\<close>
   where "A -> B == Pi(A, %_. B)"
 
 
@@ -616,8 +616,8 @@ by (erule Pow_iff [THEN iffD1])
 
 declare Pow_iff [iff]
 
-lemmas Pow_bottom = empty_subsetI [THEN PowI]    --\<open>@{term"0 \<in> Pow(B)"}\<close>
-lemmas Pow_top = subset_refl [THEN PowI]         --\<open>@{term"A \<in> Pow(A)"}\<close>
+lemmas Pow_bottom = empty_subsetI [THEN PowI]    \<comment>\<open>@{term"0 \<in> Pow(B)"}\<close>
+lemmas Pow_top = subset_refl [THEN PowI]         \<comment>\<open>@{term"A \<in> Pow(A)"}\<close>
 
 
 subsection\<open>Cantor's Theorem: There is no surjection from a set to its powerset.\<close>

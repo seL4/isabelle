@@ -77,7 +77,7 @@ apply (rule_tac a=x in eps_induct)
 apply (subst Vfrom)
 apply (subst Vfrom, rule subset_refl [THEN Un_mono])
 apply (rule UN_least)
-txt\<open>expand @{text "rank(x1) = (\<Union>y\<in>x1. succ(rank(y)))"} in assumptions\<close>
+txt\<open>expand \<open>rank(x1) = (\<Union>y\<in>x1. succ(rank(y)))\<close> in assumptions\<close>
 apply (erule rank [THEN equalityD1, THEN subsetD, THEN UN_E])
 apply (rule subset_trans)
 apply (erule_tac [2] UN_upper)
@@ -748,7 +748,7 @@ lemma FiniteFun_in_univ:
      "[| f: W -||> univ(A);  W \<subseteq> univ(A) |] ==> f \<in> univ(A)"
 by (erule FiniteFun_univ [THEN subsetD], assumption)
 
-text\<open>Remove @{text "\<subseteq>"} from the rule above\<close>
+text\<open>Remove \<open>\<subseteq>\<close> from the rule above\<close>
 lemmas FiniteFun_in_univ' = FiniteFun_in_univ [OF _ subsetI]
 
 

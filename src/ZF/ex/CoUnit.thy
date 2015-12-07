@@ -25,14 +25,14 @@ codatatype
   "counit" = Con ("x \<in> counit")
 
 inductive_cases ConE: "Con(x) \<in> counit"
-  -- \<open>USELESS because folding on @{term "Con(xa) == xa"} fails.\<close>
+  \<comment> \<open>USELESS because folding on @{term "Con(xa) == xa"} fails.\<close>
 
 lemma Con_iff: "Con(x) = Con(y) \<longleftrightarrow> x = y"
-  -- \<open>Proving freeness results.\<close>
+  \<comment> \<open>Proving freeness results.\<close>
   by (auto elim!: counit.free_elims)
 
 lemma counit_eq_univ: "counit = quniv(0)"
-  -- \<open>Should be a singleton, not everything!\<close>
+  \<comment> \<open>Should be a singleton, not everything!\<close>
   apply (rule counit.dom_subset [THEN equalityI])
   apply (rule subsetI)
   apply (erule counit.coinduct)
@@ -56,7 +56,7 @@ codatatype
 inductive_cases Con2E: "Con2(x, y) \<in> counit2"
 
 lemma Con2_iff: "Con2(x, y) = Con2(x', y') \<longleftrightarrow> x = x' & y = y'"
-  -- \<open>Proving freeness results.\<close>
+  \<comment> \<open>Proving freeness results.\<close>
   by (fast elim!: counit2.free_elims)
 
 lemma Con2_bnd_mono: "bnd_mono(univ(0), %x. Con2(x, x))"
@@ -74,7 +74,7 @@ lemma lfp_Con2_in_counit2: "lfp(univ(0), %x. Con2(x,x)) \<in> counit2"
 
 lemma counit2_Int_Vset_subset [rule_format]:
   "Ord(i) ==> \<forall>x y. x \<in> counit2 \<longrightarrow> y \<in> counit2 \<longrightarrow> x \<inter> Vset(i) \<subseteq> y"
-  -- \<open>Lemma for proving finality.\<close>
+  \<comment> \<open>Lemma for proving finality.\<close>
   apply (erule trans_induct)
   apply (tactic "safe_tac (put_claset subset_cs @{context})")
   apply (erule counit2.cases)

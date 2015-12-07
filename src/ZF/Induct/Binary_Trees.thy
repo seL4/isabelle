@@ -21,11 +21,11 @@ lemma Br_neq_left: "l \<in> bt(A) ==> Br(x, l, r) \<noteq> l"
   by (induct arbitrary: x r set: bt) auto
 
 lemma Br_iff: "Br(a, l, r) = Br(a', l', r') \<longleftrightarrow> a = a' & l = l' & r = r'"
-  -- "Proving a freeness theorem."
+  \<comment> "Proving a freeness theorem."
   by (fast elim!: bt.free_elims)
 
 inductive_cases BrE: "Br(a, l, r) \<in> bt(A)"
-  -- "An elimination rule, for type-checking."
+  \<comment> "An elimination rule, for type-checking."
 
 text \<open>
   \medskip Lemmas to justify using @{term bt} in other recursive type
@@ -58,7 +58,7 @@ lemma bt_rec_type:
     !!x y z r s. [| x \<in> A;  y \<in> bt(A);  z \<in> bt(A);  r \<in> C(y);  s \<in> C(z) |] ==>
     h(x, y, z, r, s) \<in> C(Br(x, y, z))
   |] ==> bt_rec(c, h, t) \<in> C(t)"
-  -- \<open>Type checking for recursor -- example only; not really needed.\<close>
+  \<comment> \<open>Type checking for recursor -- example only; not really needed.\<close>
   apply (induct_tac t)
    apply simp_all
   done

@@ -6,7 +6,7 @@ section \<open>The ZF Axioms (Except Separation) in L\<close>
 
 theory L_axioms imports Formula Relative Reflection MetaExists begin
 
-text \<open>The class L satisfies the premises of locale @{text M_trivial}\<close>
+text \<open>The class L satisfies the premises of locale \<open>M_trivial\<close>\<close>
 
 lemma transL: "[| y\<in>x; L(x) |] ==> L(y)"
 apply (insert Transset_Lset)
@@ -78,7 +78,7 @@ apply (rule_tac x=Y in rexI)
 apply (simp_all add: Replace_iff univalent_def, blast)
 done
 
-subsection\<open>Instantiating the locale @{text M_trivial}\<close>
+subsection\<open>Instantiating the locale \<open>M_trivial\<close>\<close>
 text\<open>No instances of Separation yet.\<close>
 
 lemma Lset_mono_le: "mono_le_subset(Lset)"
@@ -110,7 +110,7 @@ declare rex_abs [simp]
 ...and dozens of similar ones.
 *)
 
-subsection\<open>Instantiation of the locale @{text reflection}\<close>
+subsection\<open>Instantiation of the locale \<open>reflection\<close>\<close>
 
 text\<open>instances of locale constants\<close>
 
@@ -224,7 +224,7 @@ apply (intro Imp_reflection All_reflection, assumption)
 done
 
 text\<open>This version handles an alternative form of the bounded quantifier
-      in the second argument of @{text REFLECTS}.\<close>
+      in the second argument of \<open>REFLECTS\<close>.\<close>
 theorem Rex_reflection':
      "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
       ==> REFLECTS[\<lambda>x. \<exists>z[L]. P(x,z), \<lambda>a x. \<exists>z[##Lset(a)]. Q(a,x,z)]"
@@ -564,11 +564,11 @@ done
 
 subsubsection\<open>Variants of Satisfaction Definitions for Ordinals, etc.\<close>
 
-text\<open>The @{text sats} theorems below are standard versions of the ones proved
-in theory @{text Formula}.  They relate elements of type @{term formula} to
+text\<open>The \<open>sats\<close> theorems below are standard versions of the ones proved
+in theory \<open>Formula\<close>.  They relate elements of type @{term formula} to
 relativized concepts such as @{term subset} or @{term ordinal} rather than to
 real concepts such as @{term Ord}.  Now that we have instantiated the locale
-@{text M_trivial}, we no longer require the earlier versions.\<close>
+\<open>M_trivial\<close>, we no longer require the earlier versions.\<close>
 
 lemma sats_subset_fm':
    "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]

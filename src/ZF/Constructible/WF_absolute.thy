@@ -60,7 +60,7 @@ by (blast del: subsetI
 
 definition
   rtran_closure_mem :: "[i=>o,i,i,i] => o" where
-    --\<open>The property of belonging to @{text "rtran_closure(r)"}\<close>
+    \<comment>\<open>The property of belonging to \<open>rtran_closure(r)\<close>\<close>
     "rtran_closure_mem(M,A,r,p) ==
               \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M]. 
                omega(M,nnat) & n\<in>nnat & successor(M,n,n') &
@@ -140,7 +140,7 @@ lemma (in M_trancl) wellfounded_trancl_separation':
      "[| M(r); M(Z) |] ==> separation (M, \<lambda>x. \<exists>w[M]. w \<in> Z & <w,x> \<in> r^+)"
 by (insert wellfounded_trancl_separation [of r Z], simp) 
 
-text\<open>Alternative proof of @{text wf_on_trancl}; inspiration for the
+text\<open>Alternative proof of \<open>wf_on_trancl\<close>; inspiration for the
       relativized version.  Original version is on theory WF.\<close>
 lemma "[| wf[A](r);  r-``A \<subseteq> A |] ==> wf[A](r^+)"
 apply (simp add: wf_on_def wf_def)
@@ -200,7 +200,7 @@ apply (simp add: wftrec_def wfrec_def, safe)
 done
 
 
-text\<open>Assuming @{term r} is transitive simplifies the occurrences of @{text H}.
+text\<open>Assuming @{term r} is transitive simplifies the occurrences of \<open>H\<close>.
       The premise @{term "relation(r)"} is necessary 
       before we can replace @{term "r^+"} by @{term r}.\<close>
 theorem (in M_trancl) trans_wfrec_relativize:
@@ -238,7 +238,7 @@ done
 
 subsection\<open>M is closed under well-founded recursion\<close>
 
-text\<open>Lemma with the awkward premise mentioning @{text wfrec}.\<close>
+text\<open>Lemma with the awkward premise mentioning \<open>wfrec\<close>.\<close>
 lemma (in M_trancl) wfrec_closed_lemma [rule_format]:
      "[|wf(r); M(r); 
         strong_replacement(M, \<lambda>x y. y = \<langle>x, wfrec(r, x, H)\<rangle>);

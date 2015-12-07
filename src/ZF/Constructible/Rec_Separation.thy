@@ -6,14 +6,13 @@ section \<open>Separation for Facts About Recursion\<close>
 
 theory Rec_Separation imports Separation Internalize begin
 
-text\<open>This theory proves all instances needed for locales @{text
-"M_trancl"} and @{text "M_datatypes"}\<close>
+text\<open>This theory proves all instances needed for locales \<open>M_trancl\<close> and \<open>M_datatypes\<close>\<close>
 
 lemma eq_succ_imp_lt: "[|i = succ(j); Ord(i)|] ==> j<i"
 by simp
 
 
-subsection\<open>The Locale @{text "M_trancl"}\<close>
+subsection\<open>The Locale \<open>M_trancl\<close>\<close>
 
 subsubsection\<open>Separation for Reflexive/Transitive Closure\<close>
 
@@ -152,7 +151,7 @@ apply (intro FOL_reflections function_reflections
 done
 
 
-subsubsection\<open>Separation for the Proof of @{text "wellfounded_on_trancl"}\<close>
+subsubsection\<open>Separation for the Proof of \<open>wellfounded_on_trancl\<close>\<close>
 
 lemma wellfounded_trancl_reflects:
   "REFLECTS[\<lambda>x. \<exists>w[L]. \<exists>wx[L]. \<exists>rp[L].
@@ -175,7 +174,7 @@ apply (rule sep_rules tran_closure_iff_sats | simp)+
 done
 
 
-subsubsection\<open>Instantiating the locale @{text M_trancl}\<close>
+subsubsection\<open>Instantiating the locale \<open>M_trancl\<close>\<close>
 
 lemma M_trancl_axioms_L: "M_trancl_axioms(L)"
   apply (rule M_trancl_axioms.intro)
@@ -356,7 +355,7 @@ apply (rule sep_rules is_nat_case_iff_sats tl_iff_sats
 done
 
 
-subsubsection\<open>Instantiating the locale @{text M_datatypes}\<close>
+subsubsection\<open>Instantiating the locale \<open>M_datatypes\<close>\<close>
 
 lemma M_datatypes_axioms_L: "M_datatypes_axioms(L)"
   apply (rule M_datatypes_axioms.intro)
@@ -422,7 +421,7 @@ apply (rule sep_rules is_iterates_iff_sats big_union_iff_sats | simp)+
 done
 
 
-subsubsection\<open>Instantiating the locale @{text M_eclose}\<close>
+subsubsection\<open>Instantiating the locale \<open>M_eclose\<close>\<close>
 
 lemma M_eclose_axioms_L: "M_eclose_axioms(L)"
   apply (rule M_eclose_axioms.intro)

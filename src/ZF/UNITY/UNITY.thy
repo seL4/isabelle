@@ -20,7 +20,7 @@ definition
 
 definition
   mk_program :: "[i,i,i]=>i"  where
-  --\<open>The definition yields a program thanks to the coercions
+  \<comment>\<open>The definition yields a program thanks to the coercions
        init \<inter> state, acts \<inter> Pow(state*state), etc.\<close>
   "mk_program(init, acts, allowed) ==
     <init \<inter> state, cons(id(state), acts \<inter> Pow(state*state)),
@@ -70,7 +70,7 @@ definition
 
 definition "constrains" :: "[i, i] => i"  (infixl "co" 60)  where
   "A co B == {F \<in> program. (\<forall>act \<in> Acts(F). act``A\<subseteq>B) & st_set(A)}"
-    --\<open>the condition @{term "st_set(A)"} makes the definition slightly
+    \<comment>\<open>the condition @{term "st_set(A)"} makes the definition slightly
          stronger than the HOL one\<close>
 
 definition unless :: "[i, i] => i"  (infixl "unless" 60)  where
@@ -199,7 +199,7 @@ lemma Pow_state_times_state_is_subset_AllowedActs_iff [iff]:
      "Pow(state*state) \<subseteq> AllowedActs(F) \<longleftrightarrow> AllowedActs(F)=Pow(state*state)"
 by (cut_tac F = F in AllowedActs_type, auto)
 
-subsubsection\<open>Eliminating @{text "\<inter> state"} from expressions\<close>
+subsubsection\<open>Eliminating \<open>\<inter> state\<close> from expressions\<close>
 
 lemma Init_Int_state [simp]: "Init(F) \<inter> state = Init(F)"
 by (cut_tac F = F in Init_type, blast)

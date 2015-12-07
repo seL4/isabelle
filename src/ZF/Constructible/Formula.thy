@@ -505,13 +505,13 @@ done
 
 subsection\<open>Internalized Formulas for the Ordinals\<close>
 
-text\<open>The @{text sats} theorems below differ from the usual form in that they
+text\<open>The \<open>sats\<close> theorems below differ from the usual form in that they
 include an element of absoluteness.  That is, they relate internalized
 formulas to real concepts such as the subset relation, rather than to the
-relativized concepts defined in theory @{text Relative}.  This lets us prove
-the theorem as @{text Ords_in_DPow} without first having to instantiate the
-locale @{text M_trivial}.  Note that the present theory does not even take
-@{text Relative} as a parent.\<close>
+relativized concepts defined in theory \<open>Relative\<close>.  This lets us prove
+the theorem as \<open>Ords_in_DPow\<close> without first having to instantiate the
+locale \<open>M_trivial\<close>.  Note that the present theory does not even take
+\<open>Relative\<close> as a parent.\<close>
 
 subsubsection\<open>The subset relation\<close>
 
@@ -578,7 +578,7 @@ apply (blast intro: nth_type)
 done
 
 text\<open>The subset consisting of the ordinals is definable.  Essential lemma for
-@{text Ord_in_Lset}.  This result is the objective of the present subsection.\<close>
+\<open>Ord_in_Lset\<close>.  This result is the objective of the present subsection.\<close>
 theorem Ords_in_DPow: "Transset(A) ==> {x \<in> A. Ord(x)} \<in> DPow(A)"
 apply (simp add: DPow_def Collect_subset)
 apply (rule_tac x=Nil in bexI)
@@ -594,7 +594,7 @@ definition
   "Lset(i) == transrec(i, %x f. \<Union>y\<in>x. DPow(f`y))"
 
 definition
-  L :: "i=>o" where --\<open>Kunen's definition VI 1.5, page 167\<close>
+  L :: "i=>o" where \<comment>\<open>Kunen's definition VI 1.5, page 167\<close>
   "L(x) == \<exists>i. Ord(i) & x \<in> Lset(i)"
 
 text\<open>NOT SUITABLE FOR REWRITING -- RECURSIVE!\<close>
@@ -837,7 +837,7 @@ done
 
 text\<open>The rank function for the constructible universe\<close>
 definition
-  lrank :: "i=>i" where --\<open>Kunen's definition VI 1.7\<close>
+  lrank :: "i=>i" where \<comment>\<open>Kunen's definition VI 1.7\<close>
   "lrank(x) == \<mu> i. x \<in> Lset(succ(i))"
 
 lemma L_I: "[|x \<in> Lset(i); Ord(i)|] ==> L(x)"

@@ -10,8 +10,7 @@ theory Datatypes imports Main begin
 subsection \<open>A type with four constructors\<close>
 
 text \<open>
-  It has four contructors, of arities 0--3, and two parameters @{text
-  A} and @{text B}.
+  It has four contructors, of arities 0--3, and two parameters \<open>A\<close> and \<open>B\<close>.
 \<close>
 
 consts

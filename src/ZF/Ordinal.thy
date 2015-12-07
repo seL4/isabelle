@@ -390,7 +390,7 @@ lemma not_lt_imp_le: "[| ~ i<j;  Ord(i);  Ord(j) |] ==> j \<le> i"
 by (rule_tac i = i and j = j in Ord_linear2, auto)
 
 
-subsubsection \<open>Some Rewrite Rules for @{text "<"}, @{text "\<le>"}\<close>
+subsubsection \<open>Some Rewrite Rules for \<open><\<close>, \<open>\<le>\<close>\<close>
 
 lemma Ord_mem_iff_lt: "Ord(j) ==> i\<in>j <-> i<j"
 by (unfold lt_def, blast)

@@ -274,14 +274,14 @@ qed
 
 text \<open>
   Since @{term H} is nonempty, it contains some element @{term x}.  Since
-  it is closed under inverse, it contains @{text "inv x"}.  Since
-  it is closed under product, it contains @{text "x \<cdot> inv x = \<one>"}.
+  it is closed under inverse, it contains \<open>inv x\<close>.  Since
+  it is closed under product, it contains \<open>x \<cdot> inv x = \<one>\<close>.
 \<close>
 
 text \<open>
   Since @{term H} is nonempty, it contains some element @{term x}.  Since
-  it is closed under inverse, it contains @{text "inv x"}.  Since
-  it is closed under product, it contains @{text "x \<cdot> inv x = \<one>"}.
+  it is closed under inverse, it contains \<open>inv x\<close>.  Since
+  it is closed under product, it contains \<open>x \<cdot> inv x = \<one>\<close>.
 \<close>
 
 lemma (in group) one_in_subset:
@@ -628,7 +628,7 @@ by (auto simp add: r_coset_def m_assoc [symmetric]
 
 lemma (in group) coset_join2:
      "\<lbrakk>x \<in> carrier(G);  subgroup(H,G);  x\<in>H\<rbrakk> \<Longrightarrow> H #> x = H"
-  --\<open>Alternative proof is to put @{term "x=\<one>"} in @{text repr_independence}.\<close>
+  \<comment>\<open>Alternative proof is to put @{term "x=\<one>"} in \<open>repr_independence\<close>.\<close>
 by (force simp add: subgroup.m_closed r_coset_def solve_equation)
 
 lemma (in group) r_coset_subset_G:
@@ -788,7 +788,7 @@ apply (auto simp add: subgroup.one_closed subgroup.subset [THEN subsetD])
 done
 
 
-subsubsection \<open>Set of inverses of an @{text r_coset}.\<close>
+subsubsection \<open>Set of inverses of an \<open>r_coset\<close>.\<close>
 
 lemma (in normal) rcos_inv:
   assumes x:     "x \<in> carrier(G)"
@@ -817,7 +817,7 @@ qed
 
 
 
-subsubsection \<open>Theorems for @{text "<#>"} with @{text "#>"} or @{text "<#"}.\<close>
+subsubsection \<open>Theorems for \<open><#>\<close> with \<open>#>\<close> or \<open><#\<close>.\<close>
 
 lemma (in group) setmult_rcos_assoc:
      "\<lbrakk>H \<subseteq> carrier(G); K \<subseteq> carrier(G); x \<in> carrier(G)\<rbrakk>
@@ -852,7 +852,7 @@ lemma (in normal) rcos_sum:
 by (simp add: rcos_mult_step1 rcos_mult_step2 rcos_mult_step3)
 
 lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M = M"
-  -- \<open>generalizes @{text subgroup_mult_id}\<close>
+  \<comment> \<open>generalizes \<open>subgroup_mult_id\<close>\<close>
   by (auto simp add: RCOSETS_def subset
         setmult_rcos_assoc subgroup_mult_id normal_axioms normal.axioms)
 
@@ -897,7 +897,7 @@ proof -
   qed
 qed
 
-text\<open>Equivalence classes of @{text rcong} correspond to left cosets.
+text\<open>Equivalence classes of \<open>rcong\<close> correspond to left cosets.
   Was there a mistake in the definitions? I'd have expected them to
   correspond to right cosets.\<close>
 lemma (in subgroup) l_coset_eq_rcong:
@@ -1021,7 +1021,7 @@ subsection \<open>Quotient Groups: Factorization of a Group\<close>
 
 definition
   FactGroup :: "[i,i] => i" (infixl "Mod" 65) where
-    --\<open>Actually defined for groups rather than monoids\<close>
+    \<comment>\<open>Actually defined for groups rather than monoids\<close>
   "G Mod H ==
      <rcosets\<^bsub>G\<^esub> H, \<lambda><K1,K2> \<in> (rcosets\<^bsub>G\<^esub> H) \<times> (rcosets\<^bsub>G\<^esub> H). K1 <#>\<^bsub>G\<^esub> K2, H, 0>"
 
@@ -1085,7 +1085,7 @@ text\<open>The quotient by the kernel of a homomorphism is isomorphic to the
 
 definition
   kernel :: "[i,i,i] => i" where
-    --\<open>the kernel of a homomorphism\<close>
+    \<comment>\<open>the kernel of a homomorphism\<close>
   "kernel(G,H,h) == {x \<in> carrier(G). h ` x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel(G,H,h), G)"
@@ -1215,7 +1215,7 @@ proof (simp add: surj_def FactGroup_contents_mem lam_type, clarify)
   hence "(\<Union>x\<in>kernel(G,H,h) #> g. {h ` x}) = {y}"
     by (auto simp add: y kernel_def r_coset_def)
   with g show "\<exists>x\<in>carrier(G Mod kernel(G, H, h)). contents(h `` x) = y"
-        --\<open>The witness is @{term "kernel(G,H,h) #> g"}\<close>
+        \<comment>\<open>The witness is @{term "kernel(G,H,h) #> g"}\<close>
     by (force simp add: FactGroup_def RCOSETS_def
            image_eq_UN [OF hom_is_fun] kernel_rcoset_subset)
 qed

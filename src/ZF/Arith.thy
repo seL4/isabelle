@@ -85,7 +85,7 @@ done
 lemmas zero_lt_natE = zero_lt_lemma [THEN bexE]
 
 
-subsection\<open>@{text natify}, the Coercion to @{term nat}\<close>
+subsection\<open>\<open>natify\<close>, the Coercion to @{term nat}\<close>
 
 lemma pred_succ_eq [simp]: "pred(succ(y)) = y"
 by (unfold pred_def, auto)
@@ -324,7 +324,7 @@ text\<open>strict, in second argument\<close>
 lemma add_lt_mono2: "[| i<j; j\<in>nat |] ==> k#+i < k#+j"
 by (simp add: add_commute [of k] add_lt_mono1)
 
-text\<open>A [clumsy] way of lifting < monotonicity to @{text "\<le>"} monotonicity\<close>
+text\<open>A [clumsy] way of lifting < monotonicity to \<open>\<le>\<close> monotonicity\<close>
 lemma Ord_lt_mono_imp_le_mono:
   assumes lt_mono: "!!i j. [| i<j; j:k |] ==> f(i) < f(j)"
       and ford:    "!!i. i:k ==> Ord(f(i))"
@@ -335,13 +335,13 @@ apply (insert leij jink)
 apply (blast intro!: leCI lt_mono ford elim!: leE)
 done
 
-text\<open>@{text "\<le>"} monotonicity, 1st argument\<close>
+text\<open>\<open>\<le>\<close> monotonicity, 1st argument\<close>
 lemma add_le_mono1: "[| i \<le> j; j\<in>nat |] ==> i#+k \<le> j#+k"
 apply (rule_tac f = "%j. j#+k" in Ord_lt_mono_imp_le_mono, typecheck)
 apply (blast intro: add_lt_mono1 add_type [THEN nat_into_Ord])+
 done
 
-text\<open>@{text "\<le>"} monotonicity, both arguments\<close>
+text\<open>\<open>\<le>\<close> monotonicity, both arguments\<close>
 lemma add_le_mono: "[| i \<le> j; k \<le> l; j\<in>nat; l\<in>nat |] ==> i#+k \<le> j#+l"
 apply (rule add_le_mono1 [THEN le_trans], assumption+)
 apply (subst add_commute, subst add_commute, rule add_le_mono1, assumption+)

@@ -17,11 +17,11 @@ definition
     "int == (nat*nat)//intrel"
 
 definition
-  int_of :: "i=>i" --\<open>coercion from nat to int\<close>    ("$# _" [80] 80)  where
+  int_of :: "i=>i" \<comment>\<open>coercion from nat to int\<close>    ("$# _" [80] 80)  where
     "$# m == intrel `` {<natify(m), 0>}"
 
 definition
-  intify :: "i=>i" --\<open>coercion from ANYTHING to int\<close>  where
+  intify :: "i=>i" \<comment>\<open>coercion from ANYTHING to int\<close>  where
     "intify(m) == if m \<in> int then m else $#0"
 
 definition
@@ -50,7 +50,7 @@ definition
 
 definition
   zmagnitude  ::      "i=>i"  where
-  --\<open>could be replaced by an absolute value function from int to int?\<close>
+  \<comment>\<open>could be replaced by an absolute value function from int to int?\<close>
     "zmagnitude(z) ==
      THE m. m\<in>nat & ((~ znegative(z) & z = $# m) |
                        (znegative(z) & $- z = $# m))"
@@ -770,7 +770,7 @@ lemma not_zle_iff_zless: "~ (z $\<le> w) \<longleftrightarrow> (w $< z)"
 by (simp add: not_zless_iff_zle [THEN iff_sym])
 
 
-subsection\<open>More subtraction laws (for @{text zcompare_rls})\<close>
+subsection\<open>More subtraction laws (for \<open>zcompare_rls\<close>)\<close>
 
 lemma zdiff_zdiff_eq: "(x $- y) $- z = x $- (y $+ z)"
 by (simp add: zdiff_def zadd_ac)
@@ -808,7 +808,7 @@ by (cut_tac zle_zdiff_iff_lemma [ OF intify_in_int intify_in_int], simp)
 
 text\<open>This list of rewrites simplifies (in)equalities by bringing subtractions
   to the top and then moving negative terms to the other side.
-  Use with @{text zadd_ac}\<close>
+  Use with \<open>zadd_ac\<close>\<close>
 lemmas zcompare_rls =
      zdiff_def [symmetric]
      zadd_zdiff_eq zdiff_zadd_eq zdiff_zdiff_eq zdiff_zdiff_eq2

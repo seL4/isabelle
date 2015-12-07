@@ -61,7 +61,7 @@ lemma TF_equals_Un: "tree(A) \<union> forest(A) = tree_forest(A)"
 
 lemma tree_forest_unfold:
   "tree_forest(A) = (A \<times> forest(A)) + ({0} + tree(A) \<times> forest(A))"
-    -- \<open>NOT useful, but interesting \dots\<close>
+    \<comment> \<open>NOT useful, but interesting \dots\<close>
   supply rews = tree_forest.con_defs tree_def forest_def
   apply (unfold tree_def forest_def)
   apply (fast intro!: tree_forest.intros [unfolded rews, THEN PartD1]
@@ -108,7 +108,7 @@ lemma tree_forest_rec_type:
                     |] ==> d(t,f,r1,r2) \<in> D(Fcons(t,f))
    |] ==> (\<forall>t \<in> tree(A).    tree_forest_rec(b,c,d,t) \<in> C(t)) \<and>
           (\<forall>f \<in> forest(A). tree_forest_rec(b,c,d,f) \<in> D(f))"
-    -- \<open>Mutually recursive version.\<close>
+    \<comment> \<open>Mutually recursive version.\<close>
   apply (unfold Ball_def)
   apply (rule tree_forest.mutual_induct)
   apply simp_all
@@ -157,7 +157,7 @@ primrec
 
 
 text \<open>
-  \medskip @{text list_of_TF} and @{text of_list}.
+  \medskip \<open>list_of_TF\<close> and \<open>of_list\<close>.
 \<close>
 
 lemma list_of_TF_type [TC]:
@@ -168,7 +168,7 @@ lemma of_list_type [TC]: "l \<in> list(tree(A)) ==> of_list(l) \<in> forest(A)"
   by (induct set: list) simp_all
 
 text \<open>
-  \medskip @{text map}.
+  \medskip \<open>map\<close>.
 \<close>
 
 lemma
@@ -179,7 +179,7 @@ lemma
   by (induct rule: tree'induct forest'induct) simp_all
 
 text \<open>
-  \medskip @{text size}.
+  \medskip \<open>size\<close>.
 \<close>
 
 lemma size_type [TC]: "z \<in> tree_forest(A) ==> size(z) \<in> nat"
@@ -187,7 +187,7 @@ lemma size_type [TC]: "z \<in> tree_forest(A) ==> size(z) \<in> nat"
 
 
 text \<open>
-  \medskip @{text preorder}.
+  \medskip \<open>preorder\<close>.
 \<close>
 
 lemma preorder_type [TC]: "z \<in> tree_forest(A) ==> preorder(z) \<in> list(A)"
@@ -195,7 +195,7 @@ lemma preorder_type [TC]: "z \<in> tree_forest(A) ==> preorder(z) \<in> list(A)"
 
 
 text \<open>
-  \medskip Theorems about @{text list_of_TF} and @{text of_list}.
+  \medskip Theorems about \<open>list_of_TF\<close> and \<open>of_list\<close>.
 \<close>
 
 lemma forest_induct [consumes 1, case_names Fnil Fcons]:
@@ -203,7 +203,7 @@ lemma forest_induct [consumes 1, case_names Fnil Fcons]:
       R(Fnil);
       !!t f. [| t \<in> tree(A);  f \<in> forest(A);  R(f) |] ==> R(Fcons(t,f))
    |] ==> R(f)"
-  -- \<open>Essentially the same as list induction.\<close>
+  \<comment> \<open>Essentially the same as list induction.\<close>
   apply (erule tree_forest.mutual_induct
       [THEN conjunct2, THEN spec, THEN [2] rev_mp])
     apply (rule TrueI)
@@ -219,7 +219,7 @@ lemma tree_list_iso: "ts: list(tree(A)) ==> list_of_TF(of_list(ts)) = ts"
 
 
 text \<open>
-  \medskip Theorems about @{text map}.
+  \medskip Theorems about \<open>map\<close>.
 \<close>
 
 lemma map_ident: "z \<in> tree_forest(A) ==> map(\<lambda>u. u, z) = z"
@@ -231,7 +231,7 @@ lemma map_compose:
 
 
 text \<open>
-  \medskip Theorems about @{text size}.
+  \medskip Theorems about \<open>size\<close>.
 \<close>
 
 lemma size_map: "z \<in> tree_forest(A) ==> size(map(h,z)) = size(z)"
@@ -241,7 +241,7 @@ lemma size_length: "z \<in> tree_forest(A) ==> size(z) = length(preorder(z))"
   by (induct set: tree_forest) (simp_all add: length_app)
 
 text \<open>
-  \medskip Theorems about @{text preorder}.
+  \medskip Theorems about \<open>preorder\<close>.
 \<close>
 
 lemma preorder_map:

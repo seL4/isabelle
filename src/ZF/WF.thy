@@ -116,7 +116,7 @@ done
 
 lemmas wf_induct = wf_induct_raw [rule_format, consumes 1, case_names step, induct set: wf]
 
-text\<open>The form of this rule is designed to match @{text wfI}\<close>
+text\<open>The form of this rule is designed to match \<open>wfI\<close>\<close>
 lemma wf_induct2:
     "[| wf(r);  a \<in> A;  field(r)<=A;
         !!x.[| x \<in> A;  \<forall>y. <y,x>: r \<longrightarrow> P(y) |] ==> P(x) |]
@@ -287,7 +287,7 @@ apply (rename_tac a1)
 apply (rule_tac f = "\<lambda>y\<in>r-``{a1}. wftrec (r,y,H)" in is_the_recfun)
   apply typecheck
 apply (unfold is_recfun_def wftrec_def)
-  --\<open>Applying the substitution: must keep the quantified assumption!\<close>
+  \<comment>\<open>Applying the substitution: must keep the quantified assumption!\<close>
 apply (rule lam_cong [OF refl])
 apply (drule underD)
 apply (fold is_recfun_def)

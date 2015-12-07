@@ -18,7 +18,7 @@ apply (frule apply_recfun)
 apply (simp add: function_apply_equality [OF _ is_recfun_imp_function])
 done
 
-text\<open>Expresses @{text is_recfun} as a recursion equation\<close>
+text\<open>Expresses \<open>is_recfun\<close> as a recursion equation\<close>
 lemma is_recfun_iff_equation:
      "is_recfun(r,a,H,f) \<longleftrightarrow>
            f \<in> r -`` {a} \<rightarrow> range(f) &
@@ -56,7 +56,7 @@ apply (rule lam_cong)
 apply (simp_all add: vimage_singleton_iff Int_lower2)  
 done
 
-text\<open>For @{text is_recfun} we need only pay attention to functions
+text\<open>For \<open>is_recfun\<close> we need only pay attention to functions
       whose domains are initial segments of @{term r}.\<close>
 lemma is_recfun_cong:
   "[| r = r'; a = a'; f = f'; 
@@ -82,7 +82,7 @@ done
 
 text\<open>Stated using @{term "trans(r)"} rather than
       @{term "transitive_rel(M,A,r)"} because the latter rewrites to
-      the former anyway, by @{text transitive_rel_abs}.
+      the former anyway, by \<open>transitive_rel_abs\<close>.
       As always, theorems should be expressed in simplified form.
       The last three M-premises are redundant because of @{term "M(r)"}, 
       but without them we'd have to undertake
@@ -130,7 +130,7 @@ apply (erule is_recfun_type)+
 apply (blast intro!: is_recfun_equal dest: transM) 
 done 
 
-text\<open>Tells us that @{text is_recfun} can (in principle) be relativized.\<close>
+text\<open>Tells us that \<open>is_recfun\<close> can (in principle) be relativized.\<close>
 lemma (in M_basic) is_recfun_relativize:
   "[| M(r); M(f); \<forall>x[M]. \<forall>g[M]. function(g) \<longrightarrow> M(H(x,g)) |] 
    ==> is_recfun(r,a,H,f) \<longleftrightarrow>
@@ -180,7 +180,7 @@ lemma (in M_basic) restrict_Y_lemma:
        ==> restrict(Y, r -`` {x}) = f"
 apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. <y,z>:Y \<longleftrightarrow> <y,z>:f") 
  apply (simp (no_asm_simp) add: restrict_def) 
- apply (thin_tac "rall(M,P)" for P)+  --\<open>essential for efficiency\<close>
+ apply (thin_tac "rall(M,P)" for P)+  \<comment>\<open>essential for efficiency\<close>
  apply (frule is_recfun_type [THEN fun_is_rel], blast)
 apply (frule pair_components_in_M, assumption, clarify) 
 apply (rule iffI)
@@ -207,7 +207,7 @@ apply (blast dest: is_recfun_functional)
 done
 
 
-text\<open>Proof of the inductive step for @{text exists_is_recfun}, since
+text\<open>Proof of the inductive step for \<open>exists_is_recfun\<close>, since
       we must prove two versions.\<close>
 lemma (in M_basic) exists_is_recfun_indstep:
     "[|\<forall>y. \<langle>y, a1\<rangle> \<in> r \<longrightarrow> (\<exists>f[M]. is_recfun(r, y, H, f)); 
@@ -220,7 +220,7 @@ apply (drule_tac A="r-``{a1}" in strong_replacementD)
   apply blast 
  txt\<open>Discharge the "univalent" obligation of Replacement\<close>
  apply (simp add: univalent_is_recfun) 
-txt\<open>Show that the constructed object satisfies @{text is_recfun}\<close> 
+txt\<open>Show that the constructed object satisfies \<open>is_recfun\<close>\<close> 
 apply clarify 
 apply (rule_tac x=Y in rexI)  
 txt\<open>Unfold only the top-level occurrence of @{term is_recfun}\<close>

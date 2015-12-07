@@ -401,7 +401,7 @@ done
 
 
 subsection\<open>Correctness of posDivAlg,
-           the Division Algorithm for @{text "a\<ge>0"} and @{text "b>0"}\<close>
+           the Division Algorithm for \<open>a\<ge>0\<close> and \<open>b>0\<close>\<close>
 
 lemma adjust_eq [simp]:
      "adjust(b, <q,r>) = (let diff = r$-b in
