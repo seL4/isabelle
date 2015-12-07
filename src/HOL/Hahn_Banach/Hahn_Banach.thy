@@ -189,7 +189,7 @@ proof -
       proof
         show "g \<subseteq> graph H' h'"
         proof -
-          have  "graph H h \<subseteq> graph H' h'"
+          have "graph H h \<subseteq> graph H' h'"
           proof (rule graph_extI)
             fix t assume t: "t \<in> H"
             from E HE t have "(SOME (y, a). t = y + a \<cdot> x' \<and> y \<in> H) = (t, 0)"
