@@ -180,9 +180,9 @@ using assms unfolding order_on_defs total_on_def antisym_def Id_def refl_on_def 
 subsubsection \<open>The upper and lower bounds operators\<close>
 
 text\<open>Here we define upper (``above") and lower (``below") bounds operators.
-We think of @{text "r"} as a {\em non-strict} relation.  The suffix ``S"
+We think of \<open>r\<close> as a {\em non-strict} relation.  The suffix ``S"
 at the names of some operators indicates that the bounds are strict -- e.g.,
-@{text "underS a"} is the set of all strict lower bounds of @{text "a"} (w.r.t. @{text "r"}).
+\<open>underS a\<close> is the set of all strict lower bounds of \<open>a\<close> (w.r.t. \<open>r\<close>).
 Capitalization of the first letter in the name reminds that the operator acts on sets, rather
 than on individual elements.\<close>
 
@@ -213,9 +213,9 @@ where "AboveS r A \<equiv> {b \<in> Field r. \<forall>a \<in> A. b \<noteq> a \<
 definition ofilter :: "'a rel \<Rightarrow> 'a set \<Rightarrow> bool"
 where "ofilter r A \<equiv> (A \<le> Field r) \<and> (\<forall>a \<in> A. under r a \<le> A)"
 
-text\<open>Note:  In the definitions of @{text "Above[S]"} and @{text "Under[S]"},
-  we bounded comprehension by @{text "Field r"} in order to properly cover
-  the case of @{text "A"} being empty.\<close>
+text\<open>Note:  In the definitions of \<open>Above[S]\<close> and \<open>Under[S]\<close>,
+  we bounded comprehension by \<open>Field r\<close> in order to properly cover
+  the case of \<open>A\<close> being empty.\<close>
 
 lemma underS_subset_under: "underS r a \<le> under r a"
 by(auto simp add: underS_def under_def)
@@ -362,7 +362,7 @@ proof-
   ultimately show ?thesis using R_def by blast
 qed
 
-text \<open>The next lemma is a variation of @{text "wf_eq_minimal"} from Wellfounded,
+text \<open>The next lemma is a variation of \<open>wf_eq_minimal\<close> from Wellfounded,
 allowing one to assume the set included in the field.\<close>
 
 lemma wf_eq_minimal2:

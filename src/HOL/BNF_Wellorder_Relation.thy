@@ -117,10 +117,10 @@ subsection \<open>The notions of maximum, minimum, supremum, successor and order
 
 text\<open>
 We define the successor {\em of a set}, and not of an element (the latter is of course
-a particular case).  Also, we define the maximum {\em of two elements}, @{text "max2"},
-and the minimum {\em of a set}, @{text "minim"} -- we chose these variants since we
+a particular case).  Also, we define the maximum {\em of two elements}, \<open>max2\<close>,
+and the minimum {\em of a set}, \<open>minim\<close> -- we chose these variants since we
 consider them the most useful for well-orders.  The minimum is defined in terms of the
-auxiliary relational operator @{text "isMinim"}.  Then, supremum and successor are
+auxiliary relational operator \<open>isMinim\<close>.  Then, supremum and successor are
 defined in terms of minimum as expected.
 The minimum is only meaningful for non-empty sets, and the successor is only
 meaningful for sets for which strict upper bounds exist.

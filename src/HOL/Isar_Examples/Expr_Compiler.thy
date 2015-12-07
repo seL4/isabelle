@@ -157,7 +157,7 @@ next
   next
     case (Load adr)
     from Cons show ?case
-      by simp -- \<open>same as above\<close>
+      by simp \<comment> \<open>same as above\<close>
   next
     case (Apply fn)
     have "exec ((Apply fn # xs) @ ys) s env =
@@ -187,7 +187,7 @@ proof -
     finally show ?case .
   next
     case (Constant val s)
-    show ?case by simp -- \<open>same as above\<close>
+    show ?case by simp \<comment> \<open>same as above\<close>
   next
     case (Binop fn e1 e2 s)
     have "exec (compile (Binop fn e1 e2)) s env =

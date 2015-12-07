@@ -29,7 +29,7 @@ lemma map2_Cons [simp, code]:
   unfolding map2_def by auto
 
 
-subsection {* Operations on lists of booleans *}
+subsection \<open>Operations on lists of booleans\<close>
 
 primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int"
 where
@@ -66,10 +66,10 @@ where
 
 subsection "Arithmetic in terms of bool lists"
 
-text {* 
+text \<open>
   Arithmetic operations in terms of the reversed bool list,
   assuming input list(s) the same length, and don't extend them. 
-*}
+\<close>
 
 primrec rbl_succ :: "bool list => bool list"
 where
@@ -83,14 +83,14 @@ where
 
 primrec rbl_add :: "bool list => bool list => bool list"
 where
-  -- "result is length of first arg, second arg may be longer"
+  \<comment> "result is length of first arg, second arg may be longer"
   Nil: "rbl_add Nil x = Nil"
   | Cons: "rbl_add (y # ys) x = (let ws = rbl_add ys (tl x) in 
     (y ~= hd x) # (if hd x & y then rbl_succ ws else ws))"
 
 primrec rbl_mult :: "bool list => bool list => bool list"
 where
-  -- "result is length of first arg, second arg may be longer"
+  \<comment> "result is length of first arg, second arg may be longer"
   Nil: "rbl_mult Nil x = Nil"
   | Cons: "rbl_mult (y # ys) x = (let ws = False # rbl_mult ys x in 
     if y then rbl_add ws x else ws)"
@@ -129,7 +129,7 @@ lemma bin_to_bl_aux_Bit1_minus_simp [simp]:
     bin_to_bl_aux (n - 1) (numeral w) (True # bl)"
   by (cases n) auto
 
-text {* Link between bin and bool list. *}
+text \<open>Link between bin and bool list.\<close>
 
 lemma bl_to_bin_aux_append: 
   "bl_to_bin_aux (bs @ cs) w = bl_to_bin_aux cs (bl_to_bin_aux bs w)"
@@ -1118,14 +1118,14 @@ lemma bin_rsplit_aux_len_indep:
 proof (induct n nw w cs arbitrary: v bs rule: bin_rsplit_aux.induct)
   case (1 n m w cs v bs) show ?case
   proof (cases "m = 0")
-    case True then show ?thesis using `length bs = length cs` by simp
+    case True then show ?thesis using \<open>length bs = length cs\<close> by simp
   next
     case False
-    from "1.hyps" `m \<noteq> 0` `n \<noteq> 0` have hyp: "\<And>v bs. length bs = Suc (length cs) \<Longrightarrow>
+    from "1.hyps" \<open>m \<noteq> 0\<close> \<open>n \<noteq> 0\<close> have hyp: "\<And>v bs. length bs = Suc (length cs) \<Longrightarrow>
       length (bin_rsplit_aux n (m - n) v bs) =
       length (bin_rsplit_aux n (m - n) (fst (bin_split n w)) (snd (bin_split n w) # cs))"
     by auto
-    show ?thesis using `length bs = length cs` `n \<noteq> 0`
+    show ?thesis using \<open>length bs = length cs\<close> \<open>n \<noteq> 0\<close>
       by (auto simp add: bin_rsplit_aux_simp_alt Let_def bin_rsplit_len
         split: prod.split)
   qed
@@ -1140,7 +1140,7 @@ lemma bin_rsplit_len_indep:
   done
 
 
-text {* Even more bit operations *}
+text \<open>Even more bit operations\<close>
 
 instantiation int :: bitss
 begin

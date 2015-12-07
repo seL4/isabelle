@@ -57,11 +57,11 @@ subsubsection \<open>Relations as sets of pairs\<close>
 
 type_synonym 'a rel = "('a * 'a) set"
 
-lemma subrelI: -- \<open>Version of @{thm [source] subsetI} for binary relations\<close>
+lemma subrelI: \<comment> \<open>Version of @{thm [source] subsetI} for binary relations\<close>
   "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (x, y) \<in> s) \<Longrightarrow> r \<subseteq> s"
   by auto
 
-lemma lfp_induct2: -- \<open>Version of @{thm [source] lfp_induct} for binary relations\<close>
+lemma lfp_induct2: \<comment> \<open>Version of @{thm [source] lfp_induct} for binary relations\<close>
   "(a, b) \<in> lfp f \<Longrightarrow> mono f \<Longrightarrow>
     (\<And>a b. (a, b) \<in> f (lfp f \<inter> {(x, y). P x y}) \<Longrightarrow> P a b) \<Longrightarrow> P a b"
   using lfp_induct_set [of "(a, b)" f "case_prod P"] by auto
@@ -150,7 +150,7 @@ where
   "refl_on A r \<longleftrightarrow> r \<subseteq> A \<times> A \<and> (\<forall>x\<in>A. (x, x) \<in> r)"
 
 abbreviation refl :: "'a rel \<Rightarrow> bool"
-where -- \<open>reflexivity over a type\<close>
+where \<comment> \<open>reflexivity over a type\<close>
   "refl \<equiv> refl_on UNIV"
 
 definition reflp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
@@ -380,7 +380,7 @@ lemma transp_trans_eq [pred_set_conv]:
   by (simp add: trans_def transp_def)
 
 abbreviation transP :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
-where -- \<open>FIXME drop\<close>
+where \<comment> \<open>FIXME drop\<close>
   "transP r \<equiv> trans {(x, y). r x y}"
 
 lemma transI:
@@ -494,7 +494,7 @@ lemma refl_Id: "refl Id"
   by (simp add: refl_on_def)
 
 lemma antisym_Id: "antisym Id"
-  -- \<open>A strange result, since @{text Id} is also symmetric.\<close>
+  \<comment> \<open>A strange result, since \<open>Id\<close> is also symmetric.\<close>
   by (simp add: antisym_def)
 
 lemma sym_Id: "sym Id"
@@ -533,7 +533,7 @@ lemma Id_onI [intro!]: "a : A ==> (a, a) : Id_on A"
 
 lemma Id_onE [elim!]:
   "c : Id_on A ==> (!!x. x : A ==> c = (x, x) ==> P) ==> P"
-  -- \<open>The general elimination rule.\<close>
+  \<comment> \<open>The general elimination rule.\<close>
   by (unfold Id_on_def) (iprover elim!: UN_E singletonE)
 
 lemma Id_on_iff: "((x, y) : Id_on A) = (x = y & x : A)"
@@ -715,7 +715,7 @@ lemma conversepD (* CANDIDATE [sym] *):
   by (fact converseD [to_pred])
 
 lemma converseE [elim!]:
-  -- \<open>More general than @{text converseD}, as it ``splits'' the member of the relation.\<close>
+  \<comment> \<open>More general than \<open>converseD\<close>, as it ``splits'' the member of the relation.\<close>
   "yx \<in> r\<inverse> \<Longrightarrow> (\<And>x y. yx = (y, x) \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> P) \<Longrightarrow> P"
   by (cases yx) (simp, erule converse.cases, iprover)
 
@@ -1008,7 +1008,7 @@ lemma ImageE [elim!]:
   by (unfold Image_def) (iprover elim!: CollectE bexE)
 
 lemma rev_ImageI: "a : A ==> (a, b) : r ==> b : r `` A"
-  -- \<open>This version's more effective when we already have the required @{text a}\<close>
+  \<comment> \<open>This version's more effective when we already have the required \<open>a\<close>\<close>
   by blast
 
 lemma Image_empty [simp]: "R``{} = {}"
@@ -1037,7 +1037,7 @@ lemma Image_subset: "r \<subseteq> A \<times> B ==> r``C \<subseteq> B"
   by (iprover intro!: subsetI elim!: ImageE dest!: subsetD SigmaD2)
 
 lemma Image_eq_UN: "r``B = (\<Union>y\<in> B. r``{y})"
-  -- \<open>NOT suitable for rewriting\<close>
+  \<comment> \<open>NOT suitable for rewriting\<close>
   by blast
 
 lemma Image_mono: "r' \<subseteq> r ==> A' \<subseteq> A ==> (r' `` A') \<subseteq> (r `` A)"

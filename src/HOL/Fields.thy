@@ -29,7 +29,7 @@ where
 
 end
 
-text\<open>Lemmas @{text divide_simps} move division to the outside and eliminates them on (in)equalities.\<close>
+text\<open>Lemmas \<open>divide_simps\<close> move division to the outside and eliminates them on (in)equalities.\<close>
 
 named_theorems divide_simps "rewrite rules to eliminate divisions"
 
@@ -396,8 +396,7 @@ lemma inverse_divide [simp]:
 
 text \<open>Calculations with fractions\<close>
 
-text\<open>There is a whole bunch of simp-rules just for class @{text
-field} but none for class @{text field} and @{text nonzero_divides}
+text\<open>There is a whole bunch of simp-rules just for class \<open>field\<close> but none for class \<open>field\<close> and \<open>nonzero_divides\<close>
 because the latter are covered by a simproc.\<close>
 
 lemma mult_divide_mult_cancel_left:
@@ -736,7 +735,7 @@ proof -
   finally show ?thesis .
 qed
 
-text\<open>The following @{text field_simps} rules are necessary, as minus is always moved atop of
+text\<open>The following \<open>field_simps\<close> rules are necessary, as minus is always moved atop of
 division but we want to get rid of division.\<close>
 
 lemma pos_le_minus_divide_eq [field_simps]: "0 < c \<Longrightarrow> a \<le> - (b / c) \<longleftrightarrow> a * c \<le> - b"
@@ -771,9 +770,8 @@ lemma frac_le_eq:
   "y \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> x / y \<le> w / z \<longleftrightarrow> (x * z - w * y) / (y * z) \<le> 0"
   by (subst le_iff_diff_le_0) (simp add: diff_frac_eq )
 
-text\<open>Lemmas @{text sign_simps} is a first attempt to automate proofs
-of positivity/negativity needed for @{text field_simps}. Have not added @{text
-sign_simps} to @{text field_simps} because the former can lead to case
+text\<open>Lemmas \<open>sign_simps\<close> is a first attempt to automate proofs
+of positivity/negativity needed for \<open>field_simps\<close>. Have not added \<open>sign_simps\<close> to \<open>field_simps\<close> because the former can lead to case
 explosions.\<close>
 
 lemmas sign_simps = algebra_simps zero_less_mult_iff mult_less_0_iff
@@ -1006,7 +1004,7 @@ lemma zero_eq_1_divide_iff [simp]: "0 = 1 / a \<longleftrightarrow> a = 0"
 lemma one_divide_eq_0_iff [simp]: "1 / a = 0 \<longleftrightarrow> a = 0"
   using zero_eq_1_divide_iff[of a] by simp
 
-text\<open>Simplify expressions such as @{text "0 < 1/x"} to @{text "0 < x"}\<close>
+text\<open>Simplify expressions such as \<open>0 < 1/x\<close> to \<open>0 < x\<close>\<close>
 
 lemma zero_le_divide_1_iff [simp]:
   "0 \<le> 1 / a \<longleftrightarrow> 0 \<le> a"

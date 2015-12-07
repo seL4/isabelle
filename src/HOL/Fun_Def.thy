@@ -223,7 +223,7 @@ definition "min_weak = min_ext pair_leq \<union> {({}, {})}"
 lemma wf_pair_less[simp]: "wf pair_less"
   by (auto simp: pair_less_def)
 
-text \<open>Introduction rules for @{text pair_less}/@{text pair_leq}\<close>
+text \<open>Introduction rules for \<open>pair_less\<close>/\<open>pair_leq\<close>\<close>
 lemma pair_leqI1: "a < b \<Longrightarrow> ((a, s), (b, t)) \<in> pair_leq"
   and pair_leqI2: "a \<le> b \<Longrightarrow> s \<le> t \<Longrightarrow> ((a, s), (b, t)) \<in> pair_leq"
   and pair_lessI1: "a < b  \<Longrightarrow> ((a, s), (b, t)) \<in> pair_less"
@@ -301,7 +301,7 @@ ML_file "Tools/Function/scnp_solve.ML"
 ML_file "Tools/Function/scnp_reconstruct.ML"
 ML_file "Tools/Function/fun_cases.ML"
 
-ML_val -- "setup inactive"
+ML_val \<comment> "setup inactive"
 \<open>
   Context.theory_map (Function_Common.set_termination_prover
     (K (ScnpReconstruct.decomp_scnp_tac [ScnpSolve.MAX, ScnpSolve.MIN, ScnpSolve.MS])))

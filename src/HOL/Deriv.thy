@@ -444,7 +444,7 @@ subsection \<open>Uniqueness\<close>
 text \<open>
 
 This can not generally shown for @{const has_derivative}, as we need to approach the point from
-all directions. There is a proof in @{text Multivariate_Analysis} for @{text euclidean_space}.
+all directions. There is a proof in \<open>Multivariate_Analysis\<close> for \<open>euclidean_space\<close>.
 
 \<close>
 
@@ -800,7 +800,7 @@ proof -
     by (auto intro: has_derivative_imp_has_field_derivative has_derivative_inverse)
 qed
 
-text \<open>Power of @{text "-1"}\<close>
+text \<open>Power of \<open>-1\<close>\<close>
 
 lemma DERIV_inverse:
   "x \<noteq> 0 \<Longrightarrow> ((\<lambda>x. inverse(x)) has_field_derivative - (inverse x ^ Suc (Suc 0))) (at x within s)"
@@ -1079,9 +1079,9 @@ done
 
 text\<open>Rolle's Theorem.
    If @{term f} is defined and continuous on the closed interval
-   @{text "[a,b]"} and differentiable on the open interval @{text "(a,b)"},
+   \<open>[a,b]\<close> and differentiable on the open interval \<open>(a,b)\<close>,
    and @{term "f(a) = f(b)"},
-   then there exists @{text "x0 \<in> (a,b)"} such that @{term "f'(x0) = 0"}\<close>
+   then there exists \<open>x0 \<in> (a,b)\<close> such that @{term "f'(x0) = 0"}\<close>
 theorem Rolle:
   assumes lt: "a < b"
       and eq: "f(a) = f(b)"
@@ -1101,7 +1101,7 @@ proof -
   show ?thesis
   proof cases
     assume axb: "a < x & x < b"
-        --\<open>@{term f} attains its maximum within the interval\<close>
+        \<comment>\<open>@{term f} attains its maximum within the interval\<close>
     hence ax: "a<x" and xb: "x<b" by arith + 
     from lemma_interval [OF ax xb]
     obtain d where d: "0<d" and bound: "\<forall>y. \<bar>x-y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b"
@@ -1111,7 +1111,7 @@ proof -
     from differentiableD [OF dif [OF axb]]
     obtain l where der: "DERIV f x :> l" ..
     have "l=0" by (rule DERIV_local_max [OF der d bound'])
-        --\<open>the derivative at a local maximum is zero\<close>
+        \<comment>\<open>the derivative at a local maximum is zero\<close>
     thus ?thesis using ax xb der by auto
   next
     assume notaxb: "~ (a < x & x < b)"
@@ -1120,7 +1120,7 @@ proof -
     show ?thesis
     proof cases
       assume ax'b: "a < x' & x' < b"
-        --\<open>@{term f} attains its minimum within the interval\<close>
+        \<comment>\<open>@{term f} attains its minimum within the interval\<close>
       hence ax': "a<x'" and x'b: "x'<b" by arith+ 
       from lemma_interval [OF ax' x'b]
       obtain d where d: "0<d" and bound: "\<forall>y. \<bar>x'-y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b"
@@ -1130,11 +1130,11 @@ proof -
       from differentiableD [OF dif [OF ax'b]]
       obtain l where der: "DERIV f x' :> l" ..
       have "l=0" by (rule DERIV_local_min [OF der d bound'])
-        --\<open>the derivative at a local minimum is zero\<close>
+        \<comment>\<open>the derivative at a local minimum is zero\<close>
       thus ?thesis using ax' x'b der by auto
     next
       assume notax'b: "~ (a < x' & x' < b)"
-        --\<open>@{term f} is constant througout the interval\<close>
+        \<comment>\<open>@{term f} is constant througout the interval\<close>
       hence x'eqab: "x'=a | x'=b" using alex' x'leb by arith
       hence fb_eq_fx': "f b = f x'" by (auto simp add: eq)
       from dense [OF lt]
@@ -1162,7 +1162,7 @@ proof -
       from differentiableD [OF dif [OF conjI [OF ar rb]]]
       obtain l where der: "DERIV f r :> l" ..
       have "l=0" by (rule DERIV_local_const [OF der d bound'])
-        --\<open>the derivative of a constant function is zero\<close>
+        \<comment>\<open>the derivative of a constant function is zero\<close>
       thus ?thesis using ar rb der by auto
     qed
   qed

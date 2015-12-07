@@ -384,7 +384,7 @@ lemma WhileRule:
 lemma Compl_Collect: "- Collect b = {x. \<not> b x}"
   by blast
 
-lemmas AbortRule = SkipRule  -- "dummy version"
+lemmas AbortRule = SkipRule  \<comment> "dummy version"
 
 ML_file "~~/src/HOL/Hoare/hoare_tac.ML"
 

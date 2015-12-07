@@ -798,15 +798,15 @@ lemma atLeastLessThan_add_Un: "i \<le> j \<Longrightarrow> {i..<j+k} = {i..<j} \
 
 subsubsection \<open>Intervals and numerals\<close>
 
-lemma lessThan_nat_numeral:  --\<open>Evaluation for specific numerals\<close>
+lemma lessThan_nat_numeral:  \<comment>\<open>Evaluation for specific numerals\<close>
   "lessThan (numeral k :: nat) = insert (pred_numeral k) (lessThan (pred_numeral k))"
   by (simp add: numeral_eq_Suc lessThan_Suc)
 
-lemma atMost_nat_numeral:  --\<open>Evaluation for specific numerals\<close>
+lemma atMost_nat_numeral:  \<comment>\<open>Evaluation for specific numerals\<close>
   "atMost (numeral k :: nat) = insert (numeral k) (atMost (pred_numeral k))"
   by (simp add: numeral_eq_Suc atMost_Suc)
 
-lemma atLeastLessThan_nat_numeral:  --\<open>Evaluation for specific numerals\<close>
+lemma atLeastLessThan_nat_numeral:  \<comment>\<open>Evaluation for specific numerals\<close>
   "atLeastLessThan m (numeral k :: nat) = 
      (if m \<le> (pred_numeral k) then insert (pred_numeral k) (atLeastLessThan m (pred_numeral k))
                  else {})"
@@ -1468,12 +1468,12 @@ The left column shows the term before introduction of the new syntax,
 the middle column shows the new (default) syntax, and the right column
 shows a special syntax. The latter is only meaningful for latex output
 and has to be activated explicitly by setting the print mode to
-@{text latex_sum} (e.g.\ via @{text "mode = latex_sum"} in
+\<open>latex_sum\<close> (e.g.\ via \<open>mode = latex_sum\<close> in
 antiquotations). It is not the default \LaTeX\ output because it only
 works well with italic-style formulae, not tt-style.
 
 Note that for uniformity on @{typ nat} it is better to use
-@{term"\<Sum>x::nat=0..<n. e"} rather than @{text"\<Sum>x<n. e"}: @{text setsum} may
+@{term"\<Sum>x::nat=0..<n. e"} rather than \<open>\<Sum>x<n. e\<close>: \<open>setsum\<close> may
 not provide all lemmas available for @{term"{m..<n}"} also in the
 special form for @{term"{..<n}"}.\<close>
 
@@ -1697,7 +1697,7 @@ proof (induct n)
   finally show ?case .
 qed simp
 
-corollary power_diff_sumr2: --\<open>@{text COMPLEX_POLYFUN} in HOL Light\<close>
+corollary power_diff_sumr2: \<comment>\<open>\<open>COMPLEX_POLYFUN\<close> in HOL Light\<close>
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows   "x^n - y^n = (x - y) * (\<Sum>i<n. y^(n - Suc i) * x^i)"
 using diff_power_eq_setsum[of x "n - 1" y]

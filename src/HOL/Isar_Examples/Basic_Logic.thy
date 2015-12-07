@@ -172,9 +172,9 @@ lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
   assume "A \<and> B"
   then show "B \<and> A"
-  proof                    -- \<open>rule \<open>conjE\<close> of \<open>A \<and> B\<close>\<close>
+  proof                    \<comment> \<open>rule \<open>conjE\<close> of \<open>A \<and> B\<close>\<close>
     assume B A
-    then show ?thesis ..   -- \<open>rule \<open>conjI\<close> of \<open>B \<and> A\<close>\<close>
+    then show ?thesis ..   \<comment> \<open>rule \<open>conjI\<close> of \<open>B \<and> A\<close>\<close>
   qed
 qed
 
@@ -202,7 +202,7 @@ proof -
     from \<open>A \<and> B\<close> have B ..
     from \<open>B\<close> \<open>A\<close> have "B \<and> A" ..
   }
-  then show ?thesis ..         -- \<open>rule \<open>impI\<close>\<close>
+  then show ?thesis ..         \<comment> \<open>rule \<open>impI\<close>\<close>
 qed
 
 text \<open>
@@ -253,7 +253,7 @@ lemma "P \<or> P \<longrightarrow> P"
 proof
   assume "P \<or> P"
   then show P
-  proof                    -- \<open>rule \<open>disjE\<close>: \smash{$\infer{\<open>C\<close>}{\<open>A \<or> B\<close> & \infer*{\<open>C\<close>}{[\<open>A\<close>]} & \infer*{\<open>C\<close>}{[\<open>B\<close>]}}$}\<close>
+  proof                    \<comment> \<open>rule \<open>disjE\<close>: \smash{$\infer{\<open>C\<close>}{\<open>A \<or> B\<close> & \infer*{\<open>C\<close>}{[\<open>A\<close>]} & \infer*{\<open>C\<close>}{[\<open>B\<close>]}}$}\<close>
     assume P show P by fact
   next
     assume P show P by fact
@@ -322,7 +322,7 @@ lemma "(\<exists>x. P (f x)) \<longrightarrow> (\<exists>y. P y)"
 proof
   assume "\<exists>x. P (f x)"
   then show "\<exists>y. P y"
-  proof (rule exE)             -- \<open>rule \<open>exE\<close>: \smash{$\infer{\<open>B\<close>}{\<open>\<exists>x. A(x)\<close> & \infer*{\<open>B\<close>}{[\<open>A(x)\<close>]_x}}$}\<close>
+  proof (rule exE)             \<comment> \<open>rule \<open>exE\<close>: \smash{$\infer{\<open>B\<close>}{\<open>\<exists>x. A(x)\<close> & \infer*{\<open>B\<close>}{[\<open>A(x)\<close>]_x}}$}\<close>
     fix a
     assume "P (f a)" (is "P ?witness")
     then show ?thesis by (rule exI [of P ?witness])

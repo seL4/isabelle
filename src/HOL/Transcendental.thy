@@ -41,7 +41,7 @@ qed
 
 lemma root_test_convergence:
   fixes f :: "nat \<Rightarrow> 'a::banach"
-  assumes f: "(\<lambda>n. root n (norm (f n))) ----> x" -- "could be weakened to lim sup"
+  assumes f: "(\<lambda>n. root n (norm (f n))) ----> x" \<comment> "could be weakened to lim sup"
   assumes "x < 1"
   shows "summable f"
 proof -
@@ -1459,7 +1459,7 @@ class ln = real_normed_algebra_1 + banach +
   assumes ln_one [simp]: "ln 1 = 0"
 
 definition powr :: "['a,'a] => 'a::ln"     (infixr "powr" 80)
-  -- \<open>exponentation via ln and exp\<close>
+  \<comment> \<open>exponentation via ln and exp\<close>
   where  [code del]: "x powr a \<equiv> if x = 0 then 0 else exp(a * ln x)"
 
 lemma powr_0 [simp]: "0 powr z = 0"
@@ -2084,7 +2084,7 @@ qed
 
 
 definition log :: "[real,real] => real"
-  -- \<open>logarithm of @{term x} to base @{term a}\<close>
+  \<comment> \<open>logarithm of @{term x} to base @{term a}\<close>
   where "log a x = ln x / ln a"
 
 
@@ -3519,7 +3519,7 @@ lemma sin_le_zero: "pi \<le> x \<Longrightarrow> x < 2*pi \<Longrightarrow> sin 
   using sin_ge_zero [of "x-pi"]
   by (simp add: sin_diff)
 
-text \<open>FIXME: This proof is almost identical to lemma @{text cos_is_zero}.
+text \<open>FIXME: This proof is almost identical to lemma \<open>cos_is_zero\<close>.
   It should be possible to factor out some of the common parts.\<close>
 
 lemma cos_total: "\<lbrakk>-1 \<le> y; y \<le> 1\<rbrakk> \<Longrightarrow> EX! x. 0 \<le> x & x \<le> pi & (cos x = y)"
@@ -3855,7 +3855,7 @@ next
 qed
 
 lemma cos_one_2pi_int: "cos(x) = 1 \<longleftrightarrow> (\<exists>n::int. x = n * 2*pi)"
-  apply auto  --\<open>FIXME simproc bug\<close>
+  apply auto  \<comment>\<open>FIXME simproc bug\<close>
   apply (auto simp: cos_one_2pi)
   apply (metis of_int_of_nat_eq)
   apply (metis mult_minus_right of_int_minus of_int_of_nat_eq)
@@ -5573,7 +5573,7 @@ next
   then have wnz: "\<And>w. w \<noteq> 0 \<Longrightarrow> (\<Sum>i\<le>n. c (Suc i) * w^i) = 0"
     using Suc  by auto
   then have "(\<lambda>h. \<Sum>i\<le>n. c (Suc i) * h^i) -- 0 --> 0"
-    by (simp cong: LIM_cong)                   --\<open>the case @{term"w=0"} by continuity\<close>
+    by (simp cong: LIM_cong)                   \<comment>\<open>the case @{term"w=0"} by continuity\<close>
   then have "(\<Sum>i\<le>n. c (Suc i) * 0^i) = 0"
     using isCont_polynom [of 0 "\<lambda>i. c (Suc i)" n] LIM_unique
     by (force simp add: Limits.isCont_iff)

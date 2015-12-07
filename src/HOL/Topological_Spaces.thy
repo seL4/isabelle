@@ -644,7 +644,7 @@ proof (rule ccontr)
   assume "d \<noteq> c"
   from t1_space[OF this] obtain U where "open U" "d \<in> U" "c \<notin> U" by blast
   from this assms have "eventually (\<lambda>x. f x \<in> U) F" unfolding tendsto_def by blast
-  hence "eventually (\<lambda>x. f x \<noteq> c) F" by eventually_elim (insert `c \<notin> U`, blast)
+  hence "eventually (\<lambda>x. f x \<noteq> c) F" by eventually_elim (insert \<open>c \<notin> U\<close>, blast)
   with assms(2) show False unfolding frequently_def by contradiction
 qed
 
@@ -795,7 +795,7 @@ subsubsection \<open>Monotone sequences and subsequences\<close>
 
 definition
   monoseq :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
-    --\<open>Definition of monotonicity.
+    \<comment>\<open>Definition of monotonicity.
         The use of disjunction here complicates proofs considerably.
         One alternative is to add a Boolean argument to indicate the direction.
         Another is to develop the notions of increasing and decreasing first.\<close>
@@ -815,7 +815,7 @@ lemma decseq_def: "decseq X \<longleftrightarrow> (\<forall>m. \<forall>n\<ge>m.
 
 definition
   subseq :: "(nat \<Rightarrow> nat) \<Rightarrow> bool" where
-    --\<open>Definition of subsequence\<close>
+    \<comment>\<open>Definition of subsequence\<close>
   "subseq f \<longleftrightarrow> (\<forall>m. \<forall>n>m. f m < f n)"
 
 lemma incseq_SucI:
@@ -1641,7 +1641,7 @@ context topological_space
 begin
 
 definition compact :: "'a set \<Rightarrow> bool" where
-  compact_eq_heine_borel: -- "This name is used for backwards compatibility"
+  compact_eq_heine_borel: \<comment> "This name is used for backwards compatibility"
     "compact S \<longleftrightarrow> (\<forall>C. (\<forall>c\<in>C. open c) \<and> S \<subseteq> \<Union>C \<longrightarrow> (\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D))"
 
 lemma compactI:

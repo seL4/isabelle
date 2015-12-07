@@ -417,7 +417,7 @@ proof -
     by (auto intro: associated_eqI)
 qed
 
-lemma dvd_Gcd: -- \<open>FIXME remove\<close>
+lemma dvd_Gcd: \<comment> \<open>FIXME remove\<close>
   "\<forall>b\<in>A. a dvd b \<Longrightarrow> a dvd Gcd A"
   by (blast intro: Gcd_greatest)
 
@@ -745,7 +745,7 @@ by (auto simp add: gcd_int_def)
 declare gcd_nat.simps [simp del]
 
 text \<open>
-  \medskip @{term "gcd m n"} divides @{text m} and @{text n}.  The
+  \medskip @{term "gcd m n"} divides \<open>m\<close> and \<open>n\<close>.  The
   conjunctions don't seem provable separately.
 \<close>
 
@@ -873,7 +873,7 @@ text \<open>
 \<close>
 
 lemma gcd_mult_distrib_nat: "(k::nat) * gcd m n = gcd (k * m) (k * n)"
-    -- \<open>@{cite \<open>page 27\<close> davenport92}\<close>
+    \<comment> \<open>@{cite \<open>page 27\<close> davenport92}\<close>
   apply (induct m n rule: gcd_nat_induct)
   apply simp
   apply (case_tac "k = 0")

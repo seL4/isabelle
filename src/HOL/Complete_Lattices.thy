@@ -81,7 +81,7 @@ end
 
 text \<open>
   Note: must use names @{const INFIMUM} and @{const SUPREMUM} here instead of
-  @{text INF} and @{text SUP} to allow the following syntax coexist
+  \<open>INF\<close> and \<open>SUP\<close> to allow the following syntax coexist
   with the plain constant names.
 \<close>
 
@@ -110,7 +110,7 @@ translations
 print_translation \<open>
   [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFIMUM} @{syntax_const "_INF"},
     Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPREMUM} @{syntax_const "_SUP"}]
-\<close> -- \<open>to avoid eta-contraction of body\<close>
+\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 subsection \<open>Abstract complete lattices\<close>
 
@@ -274,7 +274,7 @@ lemma SUP_mono:
 
 lemma INF_superset_mono:
   "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> f x \<sqsubseteq> g x) \<Longrightarrow> (\<Sqinter>x\<in>A. f x) \<sqsubseteq> (\<Sqinter>x\<in>B. g x)"
-  -- \<open>The last inclusion is POSITIVE!\<close>
+  \<comment> \<open>The last inclusion is POSITIVE!\<close>
   by (blast intro: INF_mono dest: subsetD)
 
 lemma SUP_subset_mono:
@@ -926,14 +926,14 @@ lemma InterI [intro!]: "(\<And>X. X \<in> C \<Longrightarrow> A \<in> X) \<Longr
 text \<open>
   \medskip A ``destruct'' rule -- every @{term X} in @{term C}
   contains @{term A} as an element, but @{prop "A \<in> X"} can hold when
-  @{prop "X \<in> C"} does not!  This rule is analogous to @{text spec}.
+  @{prop "X \<in> C"} does not!  This rule is analogous to \<open>spec\<close>.
 \<close>
 
 lemma InterD [elim, Pure.elim]: "A \<in> \<Inter>C \<Longrightarrow> X \<in> C \<Longrightarrow> A \<in> X"
   by auto
 
 lemma InterE [elim]: "A \<in> \<Inter>C \<Longrightarrow> (X \<notin> C \<Longrightarrow> R) \<Longrightarrow> (A \<in> X \<Longrightarrow> R) \<Longrightarrow> R"
-  -- \<open>``Classical'' elimination rule -- does not require proving
+  \<comment> \<open>``Classical'' elimination rule -- does not require proving
     @{prop "X \<in> C"}.\<close>
   by (unfold Inter_eq) blast
 
@@ -977,7 +977,7 @@ abbreviation INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarr
   "INTER \<equiv> INFIMUM"
 
 text \<open>
-  Note: must use name @{const INTER} here instead of @{text INT}
+  Note: must use name @{const INTER} here instead of \<open>INT\<close>
   to allow the following syntax coexist with the plain constant name.
 \<close>
 
@@ -1001,7 +1001,7 @@ translations
 
 print_translation \<open>
   [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INTER} @{syntax_const "_INTER"}]
-\<close> -- \<open>to avoid eta-contraction of body\<close>
+\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 lemma INTER_eq:
   "(\<Inter>x\<in>A. B x) = {y. \<forall>x\<in>A. y \<in> B x}"
@@ -1021,7 +1021,7 @@ lemma INT_D [elim, Pure.elim]: "b \<in> (\<Inter>x\<in>A. B x) \<Longrightarrow>
   by auto
 
 lemma INT_E [elim]: "b \<in> (\<Inter>x\<in>A. B x) \<Longrightarrow> (b \<in> B a \<Longrightarrow> R) \<Longrightarrow> (a \<notin> A \<Longrightarrow> R) \<Longrightarrow> R"
-  -- \<open>"Classical" elimination -- by the Excluded Middle on @{prop "a\<in>A"}.\<close>
+  \<comment> \<open>"Classical" elimination -- by the Excluded Middle on @{prop "a\<in>A"}.\<close>
   by (auto simp add: INF_def image_def)
 
 lemma Collect_ball_eq: "{x. \<forall>y\<in>A. P x y} = (\<Inter>y\<in>A. {x. P x y})"
@@ -1068,7 +1068,7 @@ lemma INT_bool_eq: "(\<Inter>b. A b) = A True \<inter> A False"
 
 lemma INT_anti_mono:
   "A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<subseteq> g x) \<Longrightarrow> (\<Inter>x\<in>B. f x) \<subseteq> (\<Inter>x\<in>A. g x)"
-  -- \<open>The last inclusion is POSITIVE!\<close>
+  \<comment> \<open>The last inclusion is POSITIVE!\<close>
   by (fact INF_superset_mono)
 
 lemma Pow_INT_eq: "Pow (\<Inter>x\<in>A. B x) = (\<Inter>x\<in>A. Pow (B x))"
@@ -1102,7 +1102,7 @@ lemma Union_iff [simp]:
 
 lemma UnionI [intro]:
   "X \<in> C \<Longrightarrow> A \<in> X \<Longrightarrow> A \<in> \<Union>C"
-  -- \<open>The order of the premises presupposes that @{term C} is rigid;
+  \<comment> \<open>The order of the premises presupposes that @{term C} is rigid;
     @{term A} may be flexible.\<close>
   by auto
 
@@ -1153,7 +1153,7 @@ abbreviation UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarr
   "UNION \<equiv> SUPREMUM"
 
 text \<open>
-  Note: must use name @{const UNION} here instead of @{text UN}
+  Note: must use name @{const UNION} here instead of \<open>UN\<close>
   to allow the following syntax coexist with the plain constant name.
 \<close>
 
@@ -1177,7 +1177,7 @@ translations
 
 text \<open>
   Note the difference between ordinary xsymbol syntax of indexed
-  unions and intersections (e.g.\ @{text"\<Union>a\<^sub>1\<in>A\<^sub>1. B"})
+  unions and intersections (e.g.\ \<open>\<Union>a\<^sub>1\<in>A\<^sub>1. B\<close>)
   and their \LaTeX\ rendition: @{term"\<Union>a\<^sub>1\<in>A\<^sub>1. B"}. The
   former does not make the index expression a subscript of the
   union/intersection symbol because this leads to problems with nested
@@ -1186,7 +1186,7 @@ text \<open>
 
 print_translation \<open>
   [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax UNION} @{syntax_const "_UNION"}]
-\<close> -- \<open>to avoid eta-contraction of body\<close>
+\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 lemma UNION_eq:
   "(\<Union>x\<in>A. B x) = {y. \<exists>x\<in>A. y \<in> B x}"
@@ -1211,7 +1211,7 @@ lemma UN_iff [simp]: "b \<in> (\<Union>x\<in>A. B x) \<longleftrightarrow> (\<ex
   using Union_iff [of _ "B ` A"] by simp
 
 lemma UN_I [intro]: "a \<in> A \<Longrightarrow> b \<in> B a \<Longrightarrow> b \<in> (\<Union>x\<in>A. B x)"
-  -- \<open>The order of the premises presupposes that @{term A} is rigid;
+  \<comment> \<open>The order of the premises presupposes that @{term A} is rigid;
     @{term b} may be flexible.\<close>
   by auto
 
@@ -1295,7 +1295,7 @@ lemma vimage_UN: "f -` (\<Union>x\<in>A. B x) = (\<Union>x\<in>A. f -` B x)"
   by blast
 
 lemma vimage_eq_UN: "f -` B = (\<Union>y\<in>B. f -` {y})"
-  -- \<open>NOT suitable for rewriting\<close>
+  \<comment> \<open>NOT suitable for rewriting\<close>
   by blast
 
 lemma image_UN: "f ` UNION A B = (\<Union>x\<in>A. f ` B x)"
@@ -1322,19 +1322,19 @@ lemma INT_Int_distrib: "(\<Inter>i\<in>I. A i \<inter> B i) = (\<Inter>i\<in>I. 
 lemma UN_Un_distrib: "(\<Union>i\<in>I. A i \<union> B i) = (\<Union>i\<in>I. A i) \<union> (\<Union>i\<in>I. B i)"
   by (rule sym) (rule SUP_sup_distrib)
 
-lemma Int_Inter_image: "(\<Inter>x\<in>C. A x \<inter> B x) = \<Inter>(A ` C) \<inter> \<Inter>(B ` C)" -- \<open>FIXME drop\<close>
+lemma Int_Inter_image: "(\<Inter>x\<in>C. A x \<inter> B x) = \<Inter>(A ` C) \<inter> \<Inter>(B ` C)" \<comment> \<open>FIXME drop\<close>
   by (simp add: INT_Int_distrib)
 
-lemma Un_Union_image: "(\<Union>x\<in>C. A x \<union> B x) = \<Union>(A ` C) \<union> \<Union>(B ` C)" -- \<open>FIXME drop\<close>
-  -- \<open>Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5:\<close>
-  -- \<open>Union of a family of unions\<close>
+lemma Un_Union_image: "(\<Union>x\<in>C. A x \<union> B x) = \<Union>(A ` C) \<union> \<Union>(B ` C)" \<comment> \<open>FIXME drop\<close>
+  \<comment> \<open>Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5:\<close>
+  \<comment> \<open>Union of a family of unions\<close>
   by (simp add: UN_Un_distrib)
 
 lemma Un_INT_distrib: "B \<union> (\<Inter>i\<in>I. A i) = (\<Inter>i\<in>I. B \<union> A i)"
   by (fact sup_INF)
 
 lemma Int_UN_distrib: "B \<inter> (\<Union>i\<in>I. A i) = (\<Union>i\<in>I. B \<inter> A i)"
-  -- \<open>Halmos, Naive Set Theory, page 35.\<close>
+  \<comment> \<open>Halmos, Naive Set Theory, page 35.\<close>
   by (fact inf_SUP)
 
 lemma Int_UN_distrib2: "(\<Union>i\<in>I. A i) \<inter> (\<Union>j\<in>J. B j) = (\<Union>i\<in>I. \<Union>j\<in>J. A i \<inter> B j)"
@@ -1516,7 +1516,7 @@ no_notation
 lemmas mem_simps =
   insert_iff empty_iff Un_iff Int_iff Compl_iff Diff_iff
   mem_Collect_eq UN_iff Union_iff INT_iff Inter_iff
-  -- \<open>Each of these has ALREADY been added @{text "[simp]"} above.\<close>
+  \<comment> \<open>Each of these has ALREADY been added \<open>[simp]\<close> above.\<close>
 
 end
 

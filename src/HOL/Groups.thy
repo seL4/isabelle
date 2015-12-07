@@ -13,22 +13,22 @@ subsection \<open>Dynamic facts\<close>
 named_theorems ac_simps "associativity and commutativity simplification rules"
 
 
-text\<open>The rewrites accumulated in @{text algebra_simps} deal with the
+text\<open>The rewrites accumulated in \<open>algebra_simps\<close> deal with the
 classical algebraic structures of groups, rings and family. They simplify
 terms by multiplying everything out (in case of a ring) and bringing sums and
 products into a canonical form (by ordered rewriting). As a result it decides
 group and ring equalities but also helps with inequalities.
 
 Of course it also works for fields, but it knows nothing about multiplicative
-inverses or division. This is catered for by @{text field_simps}.\<close>
+inverses or division. This is catered for by \<open>field_simps\<close>.\<close>
 
 named_theorems algebra_simps "algebra simplification rules"
 
 
-text\<open>Lemmas @{text field_simps} multiply with denominators in (in)equations
+text\<open>Lemmas \<open>field_simps\<close> multiply with denominators in (in)equations
 if they can be proved to be non-zero (for equations) or positive/negative
 (for inequations). Can be too aggressive and is therefore separate from the
-more benign @{text algebra_simps}.\<close>
+more benign \<open>algebra_simps\<close>.\<close>
 
 named_theorems field_simps "algebra simplification rules for fields"
 
@@ -110,7 +110,7 @@ typed_print_translation \<open>
           Syntax_Phases.term_of_typ ctxt T
       else raise Match);
   in map tr' [@{const_syntax Groups.one}, @{const_syntax Groups.zero}] end;
-\<close> -- \<open>show types that are presumably too general\<close>
+\<close> \<comment> \<open>show types that are presumably too general\<close>
 
 class plus =
   fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
@@ -1383,10 +1383,10 @@ lemma dense_eq0_I:
 
 hide_fact (open) ab_diff_conv_add_uminus add_0 mult_1 ab_left_minus
 
-lemmas add_0 = add_0_left -- \<open>FIXME duplicate\<close>
-lemmas mult_1 = mult_1_left -- \<open>FIXME duplicate\<close>
-lemmas ab_left_minus = left_minus -- \<open>FIXME duplicate\<close>
-lemmas diff_diff_eq = diff_diff_add -- \<open>FIXME duplicate\<close>
+lemmas add_0 = add_0_left \<comment> \<open>FIXME duplicate\<close>
+lemmas mult_1 = mult_1_left \<comment> \<open>FIXME duplicate\<close>
+lemmas ab_left_minus = left_minus \<comment> \<open>FIXME duplicate\<close>
+lemmas diff_diff_eq = diff_diff_add \<comment> \<open>FIXME duplicate\<close>
 
 
 subsection \<open>Tools setup\<close>

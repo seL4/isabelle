@@ -137,7 +137,7 @@ proof (induct x arbitrary: y n rule: bin_induct)
       with 3 have "bin BIT bit = 0" by simp
       then have "bin = 0" and "\<not> bit"
         by (auto simp add: Bit_def split: if_splits) arith
-      then show ?thesis using 0 1 `y < 2 ^ n`
+      then show ?thesis using 0 1 \<open>y < 2 ^ n\<close>
         by simp
     next
       case (Suc m)
@@ -170,7 +170,7 @@ proof (induct x arbitrary: y n rule: bin_induct)
       with 3 have "bin BIT bit = 0" by simp
       then have "bin = 0" and "\<not> bit"
         by (auto simp add: Bit_def split: if_splits) arith
-      then show ?thesis using 0 1 `y < 2 ^ n`
+      then show ?thesis using 0 1 \<open>y < 2 ^ n\<close>
         by simp
     next
       case (Suc m)

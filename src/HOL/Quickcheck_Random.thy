@@ -18,7 +18,7 @@ axiomatization catch_match :: "'a => 'a => 'a"
 code_printing
   constant catch_match \<rightharpoonup> (Quickcheck) "((_) handle Match => _)"
 
-subsection \<open>The @{text random} class\<close>
+subsection \<open>The \<open>random\<close> class\<close>
 
 class random = typerep +
   fixes random :: "natural \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
@@ -213,8 +213,8 @@ subsection \<open>Code setup\<close>
 
 code_printing
   constant random_fun_aux \<rightharpoonup> (Quickcheck) "Random'_Generators.random'_fun"
-  -- \<open>With enough criminal energy this can be abused to derive @{prop False};
-  for this reason we use a distinguished target @{text Quickcheck}
+  \<comment> \<open>With enough criminal energy this can be abused to derive @{prop False};
+  for this reason we use a distinguished target \<open>Quickcheck\<close>
   not spoiling the regular trusted code generation\<close>
 
 code_reserved Quickcheck Random_Generators

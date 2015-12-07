@@ -6,7 +6,7 @@ theory Enum
 imports Map Groups_List
 begin
 
-subsection \<open>Class @{text enum}\<close>
+subsection \<open>Class \<open>enum\<close>\<close>
 
 class enum =
   fixes enum :: "'a list"
@@ -16,7 +16,7 @@ class enum =
     and enum_distinct: "distinct enum"
   assumes enum_all_UNIV: "enum_all P \<longleftrightarrow> Ball UNIV P"
   assumes enum_ex_UNIV: "enum_ex P \<longleftrightarrow> Bex UNIV P" 
-   -- \<open>tailored towards simple instantiation\<close>
+   \<comment> \<open>tailored towards simple instantiation\<close>
 begin
 
 subclass finite proof

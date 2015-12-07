@@ -28,7 +28,7 @@ print_translation \<open>
   [(@{const_syntax Eps}, fn _ => fn [Abs abs] =>
       let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
       in Syntax.const @{syntax_const "_Eps"} $ x $ t end)]
-\<close> -- \<open>to avoid eta-contraction of body\<close>
+\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 definition inv_into :: "'a set => ('a => 'b) => ('b => 'a)" where
 "inv_into A f == %x. SOME y. y : A & f y = x"
@@ -39,19 +39,19 @@ abbreviation inv :: "('a => 'b) => ('b => 'a)" where
 
 subsection \<open>Hilbert's Epsilon-operator\<close>
 
-text\<open>Easier to apply than @{text someI} if the witness comes from an
+text\<open>Easier to apply than \<open>someI\<close> if the witness comes from an
 existential formula\<close>
 lemma someI_ex [elim?]: "\<exists>x. P x ==> P (SOME x. P x)"
 apply (erule exE)
 apply (erule someI)
 done
 
-text\<open>Easier to apply than @{text someI} because the conclusion has only one
+text\<open>Easier to apply than \<open>someI\<close> because the conclusion has only one
 occurrence of @{term P}.\<close>
 lemma someI2: "[| P a;  !!x. P x ==> Q x |] ==> Q (SOME x. P x)"
   by (blast intro: someI)
 
-text\<open>Easier to apply than @{text someI2} if the witness comes from an
+text\<open>Easier to apply than \<open>someI2\<close> if the witness comes from an
 existential formula\<close>
 
 lemma someI2_ex: "[| \<exists>a. P a; !!x. P x ==> Q x |] ==> Q (SOME x. P x)"
@@ -294,20 +294,20 @@ qed
 
 text \<open>
   Every infinite set contains a countable subset. More precisely we
-  show that a set @{text S} is infinite if and only if there exists an
-  injective function from the naturals into @{text S}.
+  show that a set \<open>S\<close> is infinite if and only if there exists an
+  injective function from the naturals into \<open>S\<close>.
 
   The ``only if'' direction is harder because it requires the
   construction of a sequence of pairwise different elements of an
-  infinite set @{text S}. The idea is to construct a sequence of
-  non-empty and infinite subsets of @{text S} obtained by successively
-  removing elements of @{text S}.
+  infinite set \<open>S\<close>. The idea is to construct a sequence of
+  non-empty and infinite subsets of \<open>S\<close> obtained by successively
+  removing elements of \<open>S\<close>.
 \<close>
 
 lemma infinite_countable_subset:
   assumes inf: "\<not> finite (S::'a set)"
   shows "\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S"
-  -- \<open>Courtesy of Stephan Merz\<close>
+  \<comment> \<open>Courtesy of Stephan Merz\<close>
 proof -
   def Sseq \<equiv> "rec_nat S (\<lambda>n T. T - {SOME e. e \<in> T})"
   def pick \<equiv> "\<lambda>n. (SOME e. e \<in> Sseq n)"
@@ -325,7 +325,7 @@ proof -
 qed
 
 lemma infinite_iff_countable_subset: "\<not> finite S \<longleftrightarrow> (\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S)"
-  -- \<open>Courtesy of Stephan Merz\<close>
+  \<comment> \<open>Courtesy of Stephan Merz\<close>
   using finite_imageD finite_subset infinite_UNIV_char_0 infinite_countable_subset by auto
 
 lemma image_inv_into_cancel:
@@ -703,7 +703,7 @@ lemma GreatestM_nat_le:
   done
 
 
-text \<open>\medskip Specialization to @{text GREATEST}.\<close>
+text \<open>\medskip Specialization to \<open>GREATEST\<close>.\<close>
 
 lemma GreatestI: "P (k::nat) ==> \<forall>y. P y --> y < b ==> P (GREATEST x. P x)"
   apply (simp add: Greatest_def)

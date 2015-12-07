@@ -125,7 +125,7 @@ print_translation \<open>
   [(@{const_syntax The}, fn _ => fn [Abs abs] =>
       let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
       in Syntax.const @{syntax_const "_The"} $ x $ t end)]
-\<close>  -- \<open>To avoid eta-contraction of body\<close>
+\<close>  \<comment> \<open>To avoid eta-contraction of body\<close>
 
 nonterminal letbinds and letbind
 syntax
@@ -160,7 +160,7 @@ axiomatization where
   refl: "t = (t::'a)" and
   subst: "s = t \<Longrightarrow> P s \<Longrightarrow> P t" and
   ext: "(\<And>x::'a. (f x ::'b) = g x) \<Longrightarrow> (\<lambda>x. f x) = (\<lambda>x. g x)"
-    -- \<open>Extensionality is built into the meta-logic, and this rule expresses
+    \<comment> \<open>Extensionality is built into the meta-logic, and this rule expresses
          a related property.  It is an eta-expanded version of the traditional
          rule, and similar to the ABS rule of HOL\<close> and
 
@@ -219,7 +219,7 @@ lemma meta_eq_to_obj_eq:
   shows "A = B"
   by (unfold meq) (rule refl)
 
-text \<open>Useful with @{text erule} for proving equalities from known equalities.\<close>
+text \<open>Useful with \<open>erule\<close> for proving equalities from known equalities.\<close>
      (* a = b
         |   |
         c = d   *)
@@ -241,13 +241,13 @@ lemma back_subst: "P a \<Longrightarrow> a = b \<Longrightarrow> P b"
 
 subsubsection \<open>Congruence rules for application\<close>
 
-text \<open>Similar to @{text AP_THM} in Gordon's HOL.\<close>
+text \<open>Similar to \<open>AP_THM\<close> in Gordon's HOL.\<close>
 lemma fun_cong: "(f :: 'a \<Rightarrow> 'b) = g \<Longrightarrow> f x = g x"
 apply (erule subst)
 apply (rule refl)
 done
 
-text \<open>Similar to @{text AP_TERM} in Gordon's HOL and FOL's @{text subst_context}.\<close>
+text \<open>Similar to \<open>AP_TERM\<close> in Gordon's HOL and FOL's \<open>subst_context\<close>.\<close>
 lemma arg_cong: "x = y \<Longrightarrow> f x = f y"
 apply (erule subst)
 apply (rule refl)
@@ -329,7 +329,7 @@ lemma all_dupE:
 subsubsection \<open>False\<close>
 
 text \<open>
-  Depends upon @{text spec}; it is impossible to do propositional
+  Depends upon \<open>spec\<close>; it is impossible to do propositional
   logic before quantifiers!
 \<close>
 
@@ -968,7 +968,7 @@ lemma imp_conjR: "(P \<longrightarrow> (Q \<and> R)) = ((P \<longrightarrow> Q) 
 lemma imp_conjL: "((P \<and> Q) \<longrightarrow> R) = (P \<longrightarrow> (Q \<longrightarrow> R))" by iprover
 lemma imp_disjL: "((P \<or> Q) \<longrightarrow> R) = ((P \<longrightarrow> R) \<and> (Q \<longrightarrow> R))" by iprover
 
-text \<open>These two are specialized, but @{text imp_disj_not1} is useful in @{text "Auth/Yahalom"}.\<close>
+text \<open>These two are specialized, but \<open>imp_disj_not1\<close> is useful in \<open>Auth/Yahalom\<close>.\<close>
 lemma imp_disj_not1: "(P \<longrightarrow> Q \<or> R) = (\<not> Q \<longrightarrow> P \<longrightarrow> R)" by blast
 lemma imp_disj_not2: "(P \<longrightarrow> Q \<or> R) = (\<not> R \<longrightarrow> P \<longrightarrow> Q)" by blast
 
@@ -983,7 +983,7 @@ lemma de_Morgan_conj: "(\<not> (P \<and> Q)) = (\<not> P \<or> \<not> Q)" by bla
 lemma not_imp: "(\<not> (P \<longrightarrow> Q)) = (P \<and> \<not> Q)" by blast
 lemma not_iff: "(P \<noteq> Q) = (P = (\<not> Q))" by blast
 lemma disj_not1: "(\<not> P \<or> Q) = (P \<longrightarrow> Q)" by blast
-lemma disj_not2: "(P \<or> \<not> Q) = (Q \<longrightarrow> P)"  -- \<open>changes orientation :-(\<close>
+lemma disj_not2: "(P \<or> \<not> Q) = (Q \<longrightarrow> P)"  \<comment> \<open>changes orientation :-(\<close>
   by blast
 lemma imp_conv_disj: "(P \<longrightarrow> Q) = ((\<not> P) \<or> Q)" by blast
 
@@ -991,8 +991,8 @@ lemma iff_conv_conj_imp: "(P = Q) = ((P \<longrightarrow> Q) \<and> (Q \<longrig
 
 
 lemma cases_simp: "((P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> Q)) = Q"
-  -- \<open>Avoids duplication of subgoals after @{text split_if}, when the true and false\<close>
-  -- \<open>cases boil down to the same thing.\<close>
+  \<comment> \<open>Avoids duplication of subgoals after \<open>split_if\<close>, when the true and false\<close>
+  \<comment> \<open>cases boil down to the same thing.\<close>
   by blast
 
 lemma not_all: "(\<not> (\<forall>x. P x)) = (\<exists>x. \<not> P x)" by blast
@@ -1007,7 +1007,7 @@ lemma ex_disj_distrib: "(\<exists>x. P x \<or> Q x) = ((\<exists>x. P x) \<or> (
 lemma all_conj_distrib: "(\<forall>x. P x \<and> Q x) = ((\<forall>x. P x) \<and> (\<forall>x. Q x))" by iprover
 
 text \<open>
-  \medskip The @{text "\<and>"} congruence rule: not included by default!
+  \medskip The \<open>\<and>\<close> congruence rule: not included by default!
   May slow rewrite proofs down by as much as 50\%\<close>
 
 lemma conj_cong:
@@ -1018,7 +1018,7 @@ lemma rev_conj_cong:
     "(Q = Q') \<Longrightarrow> (Q' \<Longrightarrow> (P = P')) \<Longrightarrow> ((P \<and> Q) = (P' \<and> Q'))"
   by iprover
 
-text \<open>The @{text "|"} congruence rule: not included by default!\<close>
+text \<open>The \<open>|\<close> congruence rule: not included by default!\<close>
 
 lemma disj_cong:
     "(P = P') \<Longrightarrow> (\<not> P' \<Longrightarrow> (Q = Q')) \<Longrightarrow> ((P \<or> Q) = (P' \<or> Q'))"
@@ -1057,11 +1057,11 @@ lemma if_eq_cancel: "(if x = y then y else x) = x"
 by (simplesubst split_if, blast)
 
 lemma if_bool_eq_conj: "(if P then Q else R) = ((P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> R))"
-  -- \<open>This form is useful for expanding @{text "if"}s on the RIGHT of the @{text "\<Longrightarrow>"} symbol.\<close>
+  \<comment> \<open>This form is useful for expanding \<open>if\<close>s on the RIGHT of the \<open>\<Longrightarrow>\<close> symbol.\<close>
   by (rule split_if)
 
 lemma if_bool_eq_disj: "(if P then Q else R) = ((P \<and> Q) \<or> (\<not> P \<and> R))"
-  -- \<open>And this form is useful for expanding @{text "if"}s on the LEFT.\<close>
+  \<comment> \<open>And this form is useful for expanding \<open>if\<close>s on the LEFT.\<close>
   by (simplesubst split_if) blast
 
 lemma Eq_TrueI: "P \<Longrightarrow> P \<equiv> True" by (unfold atomize_eq) iprover
@@ -1156,7 +1156,7 @@ setup \<open>
 simproc_setup defined_Ex ("\<exists>x. P x") = \<open>fn _ => Quantifier1.rearrange_ex\<close>
 simproc_setup defined_All ("\<forall>x. P x") = \<open>fn _ => Quantifier1.rearrange_all\<close>
 
-text \<open>Simproc for proving @{text "(y = x) \<equiv> False"} from premise @{text "\<not> (x = y)"}:\<close>
+text \<open>Simproc for proving \<open>(y = x) \<equiv> False\<close> from premise \<open>\<not> (x = y)\<close>:\<close>
 
 simproc_setup neq ("x = y") = \<open>fn _ =>
 let
@@ -1261,7 +1261,7 @@ lemma ex_simps:
   "\<And>P Q. (\<exists>x. P \<or> Q x)   = (P \<or> (\<exists>x. Q x))"
   "\<And>P Q. (\<exists>x. P x \<longrightarrow> Q) = ((\<forall>x. P x) \<longrightarrow> Q)"
   "\<And>P Q. (\<exists>x. P \<longrightarrow> Q x) = (P \<longrightarrow> (\<exists>x. Q x))"
-  -- \<open>Miniscoping: pushing in existential quantifiers.\<close>
+  \<comment> \<open>Miniscoping: pushing in existential quantifiers.\<close>
   by (iprover | blast)+
 
 lemma all_simps:
@@ -1271,7 +1271,7 @@ lemma all_simps:
   "\<And>P Q. (\<forall>x. P \<or> Q x)   = (P \<or> (\<forall>x. Q x))"
   "\<And>P Q. (\<forall>x. P x \<longrightarrow> Q) = ((\<exists>x. P x) \<longrightarrow> Q)"
   "\<And>P Q. (\<forall>x. P \<longrightarrow> Q x) = (P \<longrightarrow> (\<forall>x. Q x))"
-  -- \<open>Miniscoping: pushing in universal quantifiers.\<close>
+  \<comment> \<open>Miniscoping: pushing in universal quantifiers.\<close>
   by (iprover | blast)+
 
 lemmas [simp] =
@@ -1654,7 +1654,7 @@ val trans = @{thm trans}
 ML_file "Tools/cnf.ML"
 
 
-section \<open>@{text NO_MATCH} simproc\<close>
+section \<open>\<open>NO_MATCH\<close> simproc\<close>
 
 text \<open>
  The simplification procedure can be used to avoid simplification of terms of a certain form

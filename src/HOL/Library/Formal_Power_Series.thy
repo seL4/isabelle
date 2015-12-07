@@ -476,7 +476,7 @@ proof
 qed simp_all
   
 
-subsection {* Subdegrees *}  
+subsection \<open>Subdegrees\<close>  
   
 definition subdegree :: "('a::zero) fps \<Rightarrow> nat" where
   "subdegree f = (if f = 0 then 0 else LEAST n. f$n \<noteq> 0)"
@@ -1467,7 +1467,7 @@ proof (cases "bdd_above (subdegree`A)")
     assume "Lcm A \<noteq> 0"
     from unbounded obtain f where f: "f \<in> A" "subdegree (Lcm A) < subdegree f"
       unfolding bdd_above_def by (auto simp: not_le)
-    moreover from this and `Lcm A \<noteq> 0` have "subdegree f \<le> subdegree (Lcm A)"
+    moreover from this and \<open>Lcm A \<noteq> 0\<close> have "subdegree f \<le> subdegree (Lcm A)"
       by (intro dvd_imp_subdegree_le) simp_all
     ultimately show False by simp
   qed

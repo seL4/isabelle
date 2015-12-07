@@ -1401,7 +1401,7 @@ apply (simp add: min_def)
 done
 
 
-text\<open>Similar results are proved in @{text Fields}\<close>
+text\<open>Similar results are proved in \<open>Fields\<close>\<close>
 lemma real_less_half_sum: "x < y ==> x < (x+y) / (2::real)"
   by auto
 
@@ -1488,7 +1488,7 @@ proof cases
     moreover have "j * b < 1 + i"
     proof -
       have "real_of_int (j * b) < real_of_int i + 1"
-        using `a < 1 + real_of_int i` `real_of_int j * real_of_int b \<le> a` by force
+        using \<open>a < 1 + real_of_int i\<close> \<open>real_of_int j * real_of_int b \<le> a\<close> by force
       thus "j * b < 1 + i"
         by linarith
     qed

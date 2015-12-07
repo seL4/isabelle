@@ -384,7 +384,7 @@ end
 lemma summable_minus_iff:
   fixes f :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "summable (\<lambda>n. - f n) \<longleftrightarrow> summable f"
-  by (auto dest: summable_minus) --\<open>used two ways, hence must be outside the context above\<close>
+  by (auto dest: summable_minus) \<comment>\<open>used two ways, hence must be outside the context above\<close>
 
 
 context

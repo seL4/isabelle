@@ -529,7 +529,7 @@ proof
   show "m = mantissa f * 2 ^ nat (exponent f - e)" 
     by linarith
   show "e = exponent f - nat (exponent f - e)"
-    using `e \<le> exponent f` by auto
+    using \<open>e \<le> exponent f\<close> by auto
 qed
 
 context

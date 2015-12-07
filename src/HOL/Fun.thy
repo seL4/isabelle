@@ -22,7 +22,7 @@ lemma uniq_choice: "\<forall>x. \<exists>!y. Q x y \<Longrightarrow> \<exists>f.
 lemma b_uniq_choice: "\<forall>x\<in>S. \<exists>!y. Q x y \<Longrightarrow> \<exists>f. \<forall>x\<in>S. Q x (f x)"
   by (force intro: theI')
 
-subsection \<open>The Identity Function @{text id}\<close>
+subsection \<open>The Identity Function \<open>id\<close>\<close>
 
 definition id :: "'a \<Rightarrow> 'a" where
   "id = (\<lambda>x. x)"
@@ -40,7 +40,7 @@ code_printing
   constant id \<rightharpoonup> (Haskell) "id"
 
 
-subsection \<open>The Composition Operator @{text "f \<circ> g"}\<close>
+subsection \<open>The Composition Operator \<open>f \<circ> g\<close>\<close>
 
 definition comp :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "o" 55) where
   "f o g = (\<lambda>x. f (g x))"
@@ -103,7 +103,7 @@ code_printing
   constant comp \<rightharpoonup> (SML) infixl 5 "o" and (Haskell) infixr 9 "."
 
 
-subsection \<open>The Forward Composition Operator @{text fcomp}\<close>
+subsection \<open>The Forward Composition Operator \<open>fcomp\<close>\<close>
 
 definition fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "\<circ>>" 60) where
   "f \<circ>> g = (\<lambda>x. g (f x))"
@@ -141,10 +141,10 @@ lemma map_fun_apply [simp]:
 
 subsection \<open>Injectivity and Bijectivity\<close>
 
-definition inj_on :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> bool" where -- "injective"
+definition inj_on :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> bool" where \<comment> "injective"
   "inj_on f A \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. f x = f y \<longrightarrow> x = y)"
 
-definition bij_betw :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool" where -- "bijective"
+definition bij_betw :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool" where \<comment> "bijective"
   "bij_betw f A B \<longleftrightarrow> inj_on f A \<and> f ` A = B"
 
 text\<open>A common special case: functions injective, surjective or bijective over
@@ -153,7 +153,7 @@ the entire domain type.\<close>
 abbreviation
   "inj f \<equiv> inj_on f UNIV"
 
-abbreviation surj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool" where -- "surjective"
+abbreviation surj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool" where \<comment> "surjective"
   "surj f \<equiv> (range f = UNIV)"
 
 abbreviation
@@ -290,7 +290,7 @@ qed
 lemma linorder_injI:
   assumes hyp: "\<And>x y. x < (y::'a::linorder) \<Longrightarrow> f x \<noteq> f y"
   shows "inj f"
-  -- \<open>Courtesy of Stephan Merz\<close>
+  \<comment> \<open>Courtesy of Stephan Merz\<close>
 proof (rule inj_onI)
   fix x y
   assume f_eq: "f x = f y"
@@ -524,7 +524,7 @@ apply (simp_all (no_asm_simp) add: inj_image_Compl_subset surj_Compl_image_subse
 done
 
 lemma inj_vimage_singleton: "inj f \<Longrightarrow> f -` {a} \<subseteq> {THE x. f x = a}"
-  -- \<open>The inverse image of a singleton under an injective function
+  \<comment> \<open>The inverse image of a singleton under an injective function
          is included in a singleton.\<close>
   apply (auto simp add: inj_on_def)
   apply (blast intro: the_equality [symmetric])
@@ -669,7 +669,7 @@ lemma fun_upd_comp: "f \<circ> (g(x := y)) = (f \<circ> g)(x := f y)"
 lemma fun_upd_eqD: "f(x := y) = g(x := z) \<Longrightarrow> y = z"
 by(simp add: fun_eq_iff split: split_if_asm)
 
-subsection \<open>@{text override_on}\<close>
+subsection \<open>\<open>override_on\<close>\<close>
 
 definition override_on :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b" where
   "override_on f g A = (\<lambda>a. if a \<in> A then g a else f a)"
@@ -684,7 +684,7 @@ lemma override_on_apply_in[simp]: "a : A ==> (override_on f g A) a = g a"
 by(simp add:override_on_def)
 
 
-subsection \<open>@{text swap}\<close>
+subsection \<open>\<open>swap\<close>\<close>
 
 definition swap :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
 where

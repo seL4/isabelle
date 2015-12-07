@@ -67,7 +67,7 @@ lemma neutral_const [simp]:
 lemma union_inter:
   assumes "finite A" and "finite B"
   shows "F g (A \<union> B) * F g (A \<inter> B) = F g A * F g B"
-  -- \<open>The reversed orientation looks more natural, but LOOPS as a simprule!\<close>
+  \<comment> \<open>The reversed orientation looks more natural, but LOOPS as a simprule!\<close>
 using assms proof (induct A)
   case empty then show ?case by simp
 next
@@ -478,19 +478,19 @@ abbreviation
 end
 
 text\<open>Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
-written @{text"\<Sum>x\<in>A. e"}.\<close>
+written \<open>\<Sum>x\<in>A. e\<close>.\<close>
 
 syntax
   "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(3SUM _:_./ _)" [0, 51, 10] 10)
 syntax (xsymbols)
   "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(2\<Sum>_\<in>_./ _)" [0, 51, 10] 10)
 
-translations -- \<open>Beware of argument permutation!\<close>
+translations \<comment> \<open>Beware of argument permutation!\<close>
   "SUM i:A. b" == "CONST setsum (%i. b) A"
   "\<Sum>i\<in>A. b" == "CONST setsum (%i. b) A"
 
 text\<open>Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter
- @{text"\<Sum>x|P. e"}.\<close>
+ \<open>\<Sum>x|P. e\<close>.\<close>
 
 syntax
   "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SUM _ |/ _./ _)" [0,0,10] 10)
@@ -857,7 +857,7 @@ lemmas setsum_eq_1_iff = setsum_eq_Suc0_iff[simplified One_nat_def[symmetric]]
 
 lemma setsum_Un_nat: "finite A ==> finite B ==>
   (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
-  -- \<open>For the natural numbers, we have subtraction.\<close>
+  \<comment> \<open>For the natural numbers, we have subtraction.\<close>
 by (subst setsum.union_inter [symmetric], auto simp add: algebra_simps)
 
 lemma setsum_diff1_nat: "(setsum f (A - {a}) :: nat) =
@@ -1064,12 +1064,12 @@ syntax
 syntax (xsymbols)
   "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>_\<in>_./ _)" [0, 51, 10] 10)
 
-translations -- \<open>Beware of argument permutation!\<close>
+translations \<comment> \<open>Beware of argument permutation!\<close>
   "PROD i:A. b" == "CONST setprod (%i. b) A" 
   "\<Prod>i\<in>A. b" == "CONST setprod (%i. b) A" 
 
 text\<open>Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter
- @{text"\<Prod>x|P. e"}.\<close>
+ \<open>\<Prod>x|P. e\<close>.\<close>
 
 syntax
   "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(4PROD _ |/ _./ _)" [0,0,10] 10)

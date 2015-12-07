@@ -18,14 +18,14 @@ subsection \<open>Introduction\<close>
 text \<open>
   Records are isomorphic to compound tuple types. To implement
   efficient records, we make this isomorphism explicit. Consider the
-  record access/update simplification @{text "alpha (beta_update f
-  rec) = alpha rec"} for distinct fields alpha and beta of some record
-  rec with n fields. There are @{text "n ^ 2"} such theorems, which
+  record access/update simplification \<open>alpha (beta_update f
+  rec) = alpha rec\<close> for distinct fields alpha and beta of some record
+  rec with n fields. There are \<open>n ^ 2\<close> such theorems, which
   prohibits storage of all of them for large n. The rules can be
   proved on the fly by case decomposition and simplification in O(n)
   time. By creating O(n) isomorphic-tuple types while defining the
   record, however, we can prove the access/update simplification in
-  @{text "O(log(n)^2)"} time.
+  \<open>O(log(n)^2)\<close> time.
 
   The O(n) cost of case decomposition is not because O(n) steps are
   taken, but rather because the resulting rule must contain O(n) new
@@ -34,39 +34,36 @@ text \<open>
   access/update theorems.
 
   Record types are defined as isomorphic to tuple types. For instance,
-  a record type with fields @{text "'a"}, @{text "'b"}, @{text "'c"}
-  and @{text "'d"} might be introduced as isomorphic to @{text "'a \<times>
-  ('b \<times> ('c \<times> 'd))"}. If we balance the tuple tree to @{text "('a \<times>
-  'b) \<times> ('c \<times> 'd)"} then accessors can be defined by converting to the
+  a record type with fields \<open>'a\<close>, \<open>'b\<close>, \<open>'c\<close>
+  and \<open>'d\<close> might be introduced as isomorphic to \<open>'a \<times>
+  ('b \<times> ('c \<times> 'd))\<close>. If we balance the tuple tree to \<open>('a \<times>
+  'b) \<times> ('c \<times> 'd)\<close> then accessors can be defined by converting to the
   underlying type then using O(log(n)) fst or snd operations.
-  Updators can be defined similarly, if we introduce a @{text
-  "fst_update"} and @{text "snd_update"} function. Furthermore, we can
+  Updators can be defined similarly, if we introduce a \<open>fst_update\<close> and \<open>snd_update\<close> function. Furthermore, we can
   prove the access/update theorem in O(log(n)) steps by using simple
-  rewrites on fst, snd, @{text "fst_update"} and @{text "snd_update"}.
+  rewrites on fst, snd, \<open>fst_update\<close> and \<open>snd_update\<close>.
 
   The catch is that, although O(log(n)) steps were taken, the
   underlying type we converted to is a tuple tree of size
   O(n). Processing this term type wastes performance. We avoid this
   for large n by taking each subtree of size K and defining a new type
   isomorphic to that tuple subtree. A record can now be defined as
-  isomorphic to a tuple tree of these O(n/K) new types, or, if @{text
-  "n > K*K"}, we can repeat the process, until the record can be
+  isomorphic to a tuple tree of these O(n/K) new types, or, if \<open>n > K*K\<close>, we can repeat the process, until the record can be
   defined in terms of a tuple tree of complexity less than the
   constant K.
 
   If we prove the access/update theorem on this type with the
-  analogous steps to the tuple tree, we consume @{text "O(log(n)^2)"}
-  time as the intermediate terms are @{text "O(log(n))"} in size and
+  analogous steps to the tuple tree, we consume \<open>O(log(n)^2)\<close>
+  time as the intermediate terms are \<open>O(log(n))\<close> in size and
   the types needed have size bounded by K.  To enable this analogous
-  traversal, we define the functions seen below: @{text
-  "iso_tuple_fst"}, @{text "iso_tuple_snd"}, @{text "iso_tuple_fst_update"}
-  and @{text "iso_tuple_snd_update"}. These functions generalise tuple
+  traversal, we define the functions seen below: \<open>iso_tuple_fst\<close>, \<open>iso_tuple_snd\<close>, \<open>iso_tuple_fst_update\<close>
+  and \<open>iso_tuple_snd_update\<close>. These functions generalise tuple
   operations by taking a parameter that encapsulates a tuple
   isomorphism.  The rewrites needed on these functions now need an
   additional assumption which is that the isomorphism works.
 
   These rewrites are typically used in a structured way. They are here
-  presented as the introduction rule @{text "isomorphic_tuple.intros"}
+  presented as the introduction rule \<open>isomorphic_tuple.intros\<close>
   rather than as a rewrite rule set. The introduction form is an
   optimisation, as net matching can be performed at one term location
   for each step rather than the simplifier searching the term for

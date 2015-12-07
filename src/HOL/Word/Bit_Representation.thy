@@ -2,13 +2,13 @@
   Author: Jeremy Dawson, NICTA
 *) 
 
-section {* Integers as implict bit strings *}
+section \<open>Integers as implict bit strings\<close>
 
 theory Bit_Representation
 imports Misc_Numeric
 begin
 
-subsection {* Constructors and destructors for binary integers *}
+subsection \<open>Constructors and destructors for binary integers\<close>
 
 definition Bit :: "int \<Rightarrow> bool \<Rightarrow> int" (infixl "BIT" 90)
 where
@@ -270,7 +270,7 @@ lemmas bin_nth_simps =
   bin_nth_numeral_simps
 
 
-subsection {* Truncating binary integers *}
+subsection \<open>Truncating binary integers\<close>
 
 definition bin_sign :: "int \<Rightarrow> int"
 where
@@ -750,7 +750,7 @@ lemmas rco_sbintr = sbintrunc_rest'
   [THEN rco_lem [THEN fun_cong], unfolded o_def]
 
   
-subsection {* Splitting and concatenation *}
+subsection \<open>Splitting and concatenation\<close>
 
 primrec bin_split :: "nat \<Rightarrow> int \<Rightarrow> int \<times> int" where
   Z: "bin_split 0 w = (w, 0)"

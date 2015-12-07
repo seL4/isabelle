@@ -20,12 +20,12 @@ where
 datatype_compat list
 
 lemma [case_names Nil Cons, cases type: list]:
-  -- \<open>for backward compatibility -- names of variables differ\<close>
+  \<comment> \<open>for backward compatibility -- names of variables differ\<close>
   "(y = [] \<Longrightarrow> P) \<Longrightarrow> (\<And>a list. y = a # list \<Longrightarrow> P) \<Longrightarrow> P"
 by (rule list.exhaust)
 
 lemma [case_names Nil Cons, induct type: list]:
-  -- \<open>for backward compatibility -- names of variables differ\<close>
+  \<comment> \<open>for backward compatibility -- names of variables differ\<close>
   "P [] \<Longrightarrow> (\<And>a list. P list \<Longrightarrow> P (a # list)) \<Longrightarrow> P list"
 by (rule list.induct)
 
@@ -42,7 +42,7 @@ setup \<open>Sign.parent_path\<close>
 lemmas set_simps = list.set (* legacy *)
 
 syntax
-  -- \<open>list Enumeration\<close>
+  \<comment> \<open>list Enumeration\<close>
   "_list" :: "args => 'a list"    ("[(_)]")
 
 translations
@@ -78,7 +78,7 @@ primrec filter:: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a
 "filter P (x # xs) = (if P x then x # filter P xs else filter P xs)"
 
 syntax
-  -- \<open>Special syntax for filter\<close>
+  \<comment> \<open>Special syntax for filter\<close>
   "_filter" :: "[pttrn, 'a list, bool] => 'a list"    ("(1[_<-_./ _])")
 syntax (xsymbols)
   "_filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
@@ -104,19 +104,19 @@ primrec concat:: "'a list list \<Rightarrow> 'a list" where
 primrec drop:: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 drop_Nil: "drop n [] = []" |
 drop_Cons: "drop n (x # xs) = (case n of 0 \<Rightarrow> x # xs | Suc m \<Rightarrow> drop m xs)"
-  -- \<open>Warning: simpset does not contain this definition, but separate
-       theorems for @{text "n = 0"} and @{text "n = Suc k"}\<close>
+  \<comment> \<open>Warning: simpset does not contain this definition, but separate
+       theorems for \<open>n = 0\<close> and \<open>n = Suc k\<close>\<close>
 
 primrec take:: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 take_Nil:"take n [] = []" |
 take_Cons: "take n (x # xs) = (case n of 0 \<Rightarrow> [] | Suc m \<Rightarrow> x # take m xs)"
-  -- \<open>Warning: simpset does not contain this definition, but separate
-       theorems for @{text "n = 0"} and @{text "n = Suc k"}\<close>
+  \<comment> \<open>Warning: simpset does not contain this definition, but separate
+       theorems for \<open>n = 0\<close> and \<open>n = Suc k\<close>\<close>
 
 primrec (nonexhaustive) nth :: "'a list => nat => 'a" (infixl "!" 100) where
 nth_Cons: "(x # xs) ! n = (case n of 0 \<Rightarrow> x | Suc k \<Rightarrow> xs ! k)"
-  -- \<open>Warning: simpset does not contain this definition, but separate
-       theorems for @{text "n = 0"} and @{text "n = Suc k"}\<close>
+  \<comment> \<open>Warning: simpset does not contain this definition, but separate
+       theorems for \<open>n = 0\<close> and \<open>n = Suc k\<close>\<close>
 
 primrec list_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
 "list_update [] i v = []" |
@@ -147,8 +147,8 @@ primrec zip :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b) lis
 "zip xs [] = []" |
 zip_Cons: "zip xs (y # ys) =
   (case xs of [] => [] | z # zs => (z, y) # zip zs ys)"
-  -- \<open>Warning: simpset does not contain this definition, but separate
-       theorems for @{text "xs = []"} and @{text "xs = z # zs"}\<close>
+  \<comment> \<open>Warning: simpset does not contain this definition, but separate
+       theorems for \<open>xs = []\<close> and \<open>xs = z # zs\<close>\<close>
 
 primrec product :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b) list" where
 "product [] _ = []" |
@@ -177,7 +177,7 @@ primrec find :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a 
 "find _ [] = None" |
 "find P (x#xs) = (if P x then Some x else find P xs)"
 
-text \<open>In the context of multisets, @{text count_list} is equivalent to
+text \<open>In the context of multisets, \<open>count_list\<close> is equivalent to
   @{term "count o mset"} and it it advisable to use the latter.\<close>
 primrec count_list :: "'a list \<Rightarrow> 'a \<Rightarrow> nat" where
 "count_list [] y = 0" |
@@ -225,8 +225,8 @@ replicate_0: "replicate 0 x = []" |
 replicate_Suc: "replicate (Suc n) x = x # replicate n x"
 
 text \<open>
-  Function @{text size} is overloaded for all datatypes. Users may
-  refer to the list version as @{text length}.\<close>
+  Function \<open>size\<close> is overloaded for all datatypes. Users may
+  refer to the list version as \<open>length\<close>.\<close>
 
 abbreviation length :: "'a list \<Rightarrow> nat" where
 "length \<equiv> size"
@@ -367,23 +367,23 @@ end
 subsubsection \<open>List comprehension\<close>
 
 text\<open>Input syntax for Haskell-like list comprehension notation.
-Typical example: @{text"[(x,y). x \<leftarrow> xs, y \<leftarrow> ys, x \<noteq> y]"},
-the list of all pairs of distinct elements from @{text xs} and @{text ys}.
-The syntax is as in Haskell, except that @{text"|"} becomes a dot
-(like in Isabelle's set comprehension): @{text"[e. x \<leftarrow> xs, \<dots>]"} rather than
+Typical example: \<open>[(x,y). x \<leftarrow> xs, y \<leftarrow> ys, x \<noteq> y]\<close>,
+the list of all pairs of distinct elements from \<open>xs\<close> and \<open>ys\<close>.
+The syntax is as in Haskell, except that \<open>|\<close> becomes a dot
+(like in Isabelle's set comprehension): \<open>[e. x \<leftarrow> xs, \<dots>]\<close> rather than
 \verb![e| x <- xs, ...]!.
 
 The qualifiers after the dot are
 \begin{description}
-\item[generators] @{text"p \<leftarrow> xs"},
- where @{text p} is a pattern and @{text xs} an expression of list type, or
-\item[guards] @{text"b"}, where @{text b} is a boolean expression.
+\item[generators] \<open>p \<leftarrow> xs\<close>,
+ where \<open>p\<close> is a pattern and \<open>xs\<close> an expression of list type, or
+\item[guards] \<open>b\<close>, where \<open>b\<close> is a boolean expression.
 %\item[local bindings] @ {text"let x = e"}.
 \end{description}
 
 Just like in Haskell, list comprehension is just a shorthand. To avoid
 misunderstandings, the translation into desugared form is not reversed
-upon output. Note that the translation of @{text"[e. x \<leftarrow> xs]"} is
+upon output. Note that the translation of \<open>[e. x \<leftarrow> xs]\<close> is
 optmized to @{term"map (%x. e) xs"}.
 
 It is easy to write short list comprehensions which stand for complex
@@ -801,8 +801,7 @@ by(simp add: inj_on_def)
 subsubsection \<open>@{const length}\<close>
 
 text \<open>
-  Needs to come before @{text "@"} because of theorem @{text
-  append_eq_append_conv}.
+  Needs to come before \<open>@\<close> because of theorem \<open>append_eq_append_conv\<close>.
 \<close>
 
 lemma length_append [simp]: "length (xs @ ys) = length xs + length ys"
@@ -926,7 +925,7 @@ in K list_neq end;
 \<close>
 
 
-subsubsection \<open>@{text "@"} -- append\<close>
+subsubsection \<open>\<open>@\<close> -- append\<close>
 
 lemma append_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)"
 by (induct xs) auto
@@ -1003,7 +1002,7 @@ lemma append_eq_Cons_conv: "(ys@zs = x#xs) =
 by(cases ys) auto
 
 
-text \<open>Trivial rules for solving @{text "@"}-equations automatically.\<close>
+text \<open>Trivial rules for solving \<open>@\<close>-equations automatically.\<close>
 
 lemma eq_Nil_appendI: "xs = ys ==> xs = [] @ ys"
 by simp
@@ -1019,7 +1018,7 @@ by (drule sym) simp
 
 text \<open>
 Simplification procedure for all list equalities.
-Currently only tries to rearrange @{text "@"} to see if
+Currently only tries to rearrange \<open>@\<close> to see if
 - both lists end in a singleton list,
 - or both lists end in the same list.
 \<close>
@@ -1258,7 +1257,7 @@ by(rule rev_cases[of xs]) auto
 
 subsubsection \<open>@{const set}\<close>
 
-declare list.set[code_post]  --"pretty output"
+declare list.set[code_post]  \<comment>"pretty output"
 
 lemma finite_set [iff]: "finite (set xs)"
 by (induct xs) auto
@@ -2782,7 +2781,7 @@ qed
 
 subsubsection \<open>@{const fold} with natural argument order\<close>
 
-lemma fold_simps [code]: -- \<open>eta-expanded variant for generated code -- enables tail-recursion optimisation in Scala\<close>
+lemma fold_simps [code]: \<comment> \<open>eta-expanded variant for generated code -- enables tail-recursion optimisation in Scala\<close>
   "fold f [] s = s"
   "fold f (x # xs) s = fold f xs (f x s)" 
 by simp_all
@@ -2934,7 +2933,7 @@ by (induct xs) simp_all
 lemma foldl_conv_fold: "foldl f s xs = fold (\<lambda>x s. f s x) xs s"
 by (induct xs arbitrary: s) simp_all
 
-lemma foldr_conv_foldl: -- \<open>The ``Third Duality Theorem'' in Bird \& Wadler:\<close>
+lemma foldr_conv_foldl: \<comment> \<open>The ``Third Duality Theorem'' in Bird \& Wadler:\<close>
   "foldr f xs a = foldl (\<lambda>x y. f y x) a (rev xs)"
 by (simp add: foldr_conv_fold foldl_conv_fold)
 
@@ -2980,7 +2979,7 @@ by (simp add: fold_append_concat_rev foldr_conv_fold)
 subsubsection \<open>@{const upt}\<close>
 
 lemma upt_rec[code]: "[i..<j] = (if i<j then i#[Suc i..<j] else [])"
--- \<open>simp does not terminate!\<close>
+\<comment> \<open>simp does not terminate!\<close>
 by (induct j) auto
 
 lemmas upt_rec_numeral[simp] = upt_rec[of "numeral m" "numeral n"] for m n
@@ -3000,14 +2999,14 @@ apply arith
 done
 
 lemma upt_Suc_append: "i <= j ==> [i..<(Suc j)] = [i..<j]@[j]"
--- \<open>Only needed if @{text upt_Suc} is deleted from the simpset.\<close>
+\<comment> \<open>Only needed if \<open>upt_Suc\<close> is deleted from the simpset.\<close>
 by simp
 
 lemma upt_conv_Cons: "i < j ==> [i..<j] = i # [Suc i..<j]"
 by (simp add: upt_rec)
 
 lemma upt_add_eq_append: "i<=j ==> [i..<j+k] = [i..<j]@[j..<j+k]"
--- \<open>LOOPS as a simprule, since @{text "j <= j"}.\<close>
+\<comment> \<open>LOOPS as a simprule, since \<open>j <= j\<close>.\<close>
 by (induct k) auto
 
 lemma length_upt [simp]: "length [i..<j] = j - i"
@@ -3080,7 +3079,7 @@ apply (rule nth_equalityI, blast, simp)
 done
 
 lemma take_equalityI: "(\<forall>i. take i xs = take i ys) ==> xs = ys"
--- \<open>The famous take-lemma.\<close>
+\<comment> \<open>The famous take-lemma.\<close>
 apply (drule_tac x = "max (length xs) (length ys)" in spec)
 apply (simp add: le_max_iff_disj)
 done
@@ -3110,7 +3109,7 @@ lemma nth_Cons_numeral [simp]:
 by (simp add: nth_Cons')
 
 
-subsubsection \<open>@{text upto}: interval-list on @{typ int}\<close>
+subsubsection \<open>\<open>upto\<close>: interval-list on @{typ int}\<close>
 
 function upto :: "int \<Rightarrow> int \<Rightarrow> int list" ("(1[_../_])") where
   "upto i j = (if i \<le> j then i # [i+1..j] else [])"
@@ -5155,14 +5154,14 @@ proof (rule nth_equalityI)
 qed
 
 
-subsubsection \<open>@{text sorted_list_of_set}\<close>
+subsubsection \<open>\<open>sorted_list_of_set\<close>\<close>
 
 text\<open>This function maps (finite) linearly ordered sets to sorted
 lists. Warning: in most cases it is not a good idea to convert from
 sets to lists but one should convert in the other direction (via
 @{const set}).\<close>
 
-subsubsection \<open>@{text sorted_list_of_set}\<close>
+subsubsection \<open>\<open>sorted_list_of_set\<close>\<close>
 
 text\<open>This function maps (finite) linearly ordered sets to sorted
 lists. Warning: in most cases it is not a good idea to convert from
@@ -5230,7 +5229,7 @@ lemma sorted_list_of_set_range [simp]:
   by (rule sorted_distinct_set_unique) simp_all
 
 
-subsubsection \<open>@{text lists}: the list-forming operator over sets\<close>
+subsubsection \<open>\<open>lists\<close>: the list-forming operator over sets\<close>
 
 inductive_set
   lists :: "'a set => 'a list set"
@@ -5277,7 +5276,7 @@ by (induct xs) auto
 lemmas append_in_lists_conv [iff] = append_in_listsp_conv [to_set]
 
 lemma in_listsp_conv_set: "(listsp A xs) = (\<forall>x \<in> set xs. A x)"
--- \<open>eliminate @{text listsp} in favour of @{text set}\<close>
+\<comment> \<open>eliminate \<open>listsp\<close> in favour of \<open>set\<close>\<close>
 by (induct xs) auto
 
 lemmas in_lists_conv_set [code_unfold] = in_listsp_conv_set [to_set]
@@ -5326,7 +5325,7 @@ done
 
 subsubsection \<open>Lists as Cartesian products\<close>
 
-text\<open>@{text"set_Cons A Xs"}: the set of lists with head drawn from
+text\<open>\<open>set_Cons A Xs\<close>: the set of lists with head drawn from
 @{term A} and tail drawn from @{term Xs}.\<close>
 
 definition set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set" where
@@ -5350,7 +5349,7 @@ subsubsection \<open>Length Lexicographic Ordering\<close>
 text\<open>These orderings preserve well-foundedness: shorter lists 
   precede longer lists. These ordering are not used in dictionaries.\<close>
         
-primrec -- \<open>The lexicographic ordering for lists of the specified length\<close>
+primrec \<comment> \<open>The lexicographic ordering for lists of the specified length\<close>
   lexn :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> ('a list \<times> 'a list) set" where
 "lexn r 0 = {}" |
 "lexn r (Suc n) =
@@ -5358,11 +5357,11 @@ primrec -- \<open>The lexicographic ordering for lists of the specified length\<
   {(xs, ys). length xs = Suc n \<and> length ys = Suc n}"
 
 definition lex :: "('a \<times> 'a) set \<Rightarrow> ('a list \<times> 'a list) set" where
-"lex r = (\<Union>n. lexn r n)" -- \<open>Holds only between lists of the same length\<close>
+"lex r = (\<Union>n. lexn r n)" \<comment> \<open>Holds only between lists of the same length\<close>
 
 definition lenlex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set" where
 "lenlex r = inv_image (less_than <*lex*> lex r) (\<lambda>xs. (length xs, xs))"
-        -- \<open>Compares lists by their length and then lexicographically\<close>
+        \<comment> \<open>Compares lists by their length and then lexicographically\<close>
 
 lemma wf_lexn: "wf r ==> wf (lexn r n)"
 apply (induct n, simp, simp)
@@ -5486,7 +5485,7 @@ lemma lexord_take_index_conv:
   apply (rule_tac x="drop (Suc i) y" in exI)
   by (simp add: Cons_nth_drop_Suc) 
 
--- \<open>lexord is extension of partial ordering List.lex\<close> 
+\<comment> \<open>lexord is extension of partial ordering List.lex\<close> 
 lemma lexord_lex: "(x,y) \<in> lex r = ((x,y) \<in> lexord r \<and> length x = length y)"
   apply (rule_tac x = y in spec) 
   apply (induct_tac x, clarsimp) 
@@ -6159,7 +6158,7 @@ definition member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
 [code_abbrev]: "member xs x \<longleftrightarrow> x \<in> set xs"
 
 text \<open>
-  Use @{text member} only for generating executable code.  Otherwise use
+  Use \<open>member\<close> only for generating executable code.  Otherwise use
   @{prop "x \<in> set xs"} instead --- it is much easier to reason about.
 \<close>
 
@@ -6184,8 +6183,8 @@ definition list_ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
 list_ex1_iff [code_abbrev]: "list_ex1 P xs \<longleftrightarrow> (\<exists>! x. x \<in> set xs \<and> P x)"
 
 text \<open>
-  Usually you should prefer @{text "\<forall>x\<in>set xs"}, @{text "\<exists>x\<in>set xs"}
-  and @{text "\<exists>!x. x\<in>set xs \<and> _"} over @{const list_all}, @{const list_ex}
+  Usually you should prefer \<open>\<forall>x\<in>set xs\<close>, \<open>\<exists>x\<in>set xs\<close>
+  and \<open>\<exists>!x. x\<in>set xs \<and> _\<close> over @{const list_all}, @{const list_ex}
   and @{const list_ex1} in specifications.
 \<close>
 
@@ -6322,7 +6321,7 @@ lemma ex_nat_less [code_unfold]:
   "(\<exists>m\<le>n::nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
   by auto
 
-text\<open>Bounded @{text LEAST} operator:\<close>
+text\<open>Bounded \<open>LEAST\<close> operator:\<close>
 
 definition "Bleast S P = (LEAST x. x \<in> S \<and> P x)"
 
@@ -6422,8 +6421,8 @@ lemma map_filter_map_filter [code_unfold]:
   "map f (filter P xs) = map_filter (\<lambda>x. if P x then Some (f x) else None) xs"
   by (simp add: map_filter_def)
 
-text \<open>Optimized code for @{text"\<forall>i\<in>{a..b::int}"} and @{text"\<forall>n:{a..<b::nat}"}
-and similiarly for @{text"\<exists>"}.\<close>
+text \<open>Optimized code for \<open>\<forall>i\<in>{a..b::int}\<close> and \<open>\<forall>n:{a..<b::nat}\<close>
+and similiarly for \<open>\<exists>\<close>.\<close>
 
 definition all_interval_nat :: "(nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
   "all_interval_nat P i j \<longleftrightarrow> (\<forall>n \<in> {i..<j}. P n)"

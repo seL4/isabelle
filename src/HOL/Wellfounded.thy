@@ -233,7 +233,7 @@ apply (case_tac "y:Q")
 apply (rule_tac x = "{z. z:Q & (z,y) : r^*}" in allE)
  apply assumption
 apply (erule_tac V = "ALL Q. (EX x. x : Q) --> P Q" for P in thin_rl) 
-  --\<open>essential for speed\<close>
+  \<comment>\<open>essential for speed\<close>
 txt\<open>Blast with new substOccur fails\<close>
 apply (fast intro: converse_rtrancl_into_rtrancl)
 done
@@ -375,7 +375,7 @@ next
   qed
 qed
 
-lemma wf_comp_self: "wf R = wf (R O R)"  -- \<open>special case\<close>
+lemma wf_comp_self: "wf R = wf (R O R)"  \<comment> \<open>special case\<close>
   by (rule wf_union_merge [where S = "{}", simplified])
 
 
@@ -384,7 +384,7 @@ subsection \<open>Well-Foundedness of Composition\<close>
 text \<open>Bachmair and Dershowitz 1986, Lemma 2. [Provided by Tjark Weber]\<close>
 
 lemma qc_wf_relto_iff:
-  assumes "R O S \<subseteq> (R \<union> S)\<^sup>* O R" -- \<open>R quasi-commutes over S\<close>
+  assumes "R O S \<subseteq> (R \<union> S)\<^sup>* O R" \<comment> \<open>R quasi-commutes over S\<close>
   shows "wf (S\<^sup>* O R O S\<^sup>*) \<longleftrightarrow> wf R" (is "wf ?S \<longleftrightarrow> _")
 proof
   assume "wf ?S"

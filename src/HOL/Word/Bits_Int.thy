@@ -6,13 +6,13 @@
   and converting them to and from lists of bools.
 *) 
 
-section {* Bitwise Operations on Binary Integers *}
+section \<open>Bitwise Operations on Binary Integers\<close>
 
 theory Bits_Int
 imports Bits Bit_Representation
 begin
 
-subsection {* Logical operations *}
+subsection \<open>Logical operations\<close>
 
 text "bit-wise logical operations on the int type"
 
@@ -43,7 +43,7 @@ instance ..
 
 end
 
-subsubsection {* Basic simplification rules *}
+subsubsection \<open>Basic simplification rules\<close>
 
 lemma int_not_BIT [simp]:
   "NOT (w BIT b) = (NOT w) BIT (\<not> b)"
@@ -88,7 +88,7 @@ lemma int_xor_Bits [simp]:
   "(x BIT b) XOR (y BIT c) = (x XOR y) BIT ((b \<or> c) \<and> \<not> (b \<and> c))"
   unfolding int_xor_def by auto
 
-subsubsection {* Binary destructors *}
+subsubsection \<open>Binary destructors\<close>
 
 lemma bin_rest_NOT [simp]: "bin_rest (NOT x) = NOT (bin_rest x)"
   by (cases x rule: bin_exhaust, simp)
@@ -121,7 +121,7 @@ lemma bin_nth_ops:
   "!!x. bin_nth (NOT x) n = (~ bin_nth x n)"
   by (induct n) auto
 
-subsubsection {* Derived properties *}
+subsubsection \<open>Derived properties\<close>
 
 lemma int_xor_minus1 [simp]: "(-1::int) XOR x = NOT x"
   by (auto simp add: bin_eq_iff bin_nth_ops)
@@ -219,10 +219,10 @@ Why were these declared simp???
 declare bin_ops_comm [simp] bbw_assocs [simp] 
 *)
 
-subsubsection {* Simplification with numerals *}
+subsubsection \<open>Simplification with numerals\<close>
 
-text {* Cases for @{text "0"} and @{text "-1"} are already covered by
-  other simp rules. *}
+text \<open>Cases for \<open>0\<close> and \<open>-1\<close> are already covered by
+  other simp rules.\<close>
 
 lemma bin_rl_eqI: "\<lbrakk>bin_rest x = bin_rest y; bin_last x = bin_last y\<rbrakk> \<Longrightarrow> x = y"
   by (metis (mono_tags) BIT_eq_iff bin_ex_rl bin_last_BIT bin_rest_BIT)
@@ -235,8 +235,8 @@ lemma bin_last_neg_numeral_BitM [simp]:
   "bin_last (- numeral (Num.BitM w))"
   by (simp only: BIT_bin_simps [symmetric] bin_last_BIT)
 
-text {* FIXME: The rule sets below are very large (24 rules for each
-  operator). Is there a simpler way to do this? *}
+text \<open>FIXME: The rule sets below are very large (24 rules for each
+  operator). Is there a simpler way to do this?\<close>
 
 lemma int_and_numerals [simp]:
   "numeral (Num.Bit0 x) AND numeral (Num.Bit0 y) = (numeral x AND numeral y) BIT False"
@@ -319,7 +319,7 @@ lemma int_xor_numerals [simp]:
   "- numeral (Num.Bit1 x) XOR (1::int) = - numeral (Num.Bit0 (x + Num.One))"
   by (rule bin_rl_eqI, simp, simp)+
 
-subsubsection {* Interactions with arithmetic *}
+subsubsection \<open>Interactions with arithmetic\<close>
 
 lemma plus_and_or [rule_format]:
   "ALL y::int. (x AND y) + (x OR y) = x + y"
@@ -358,7 +358,7 @@ lemma bin_add_not: "x + NOT x = (-1::int)"
   apply (case_tac bit, auto)
   done
 
-subsubsection {* Truncating results of bit-wise operations *}
+subsubsection \<open>Truncating results of bit-wise operations\<close>
 
 lemma bin_trunc_ao: 
   "!!x y. (bintrunc n x) AND (bintrunc n y) = bintrunc n (x AND y)" 
@@ -382,7 +382,7 @@ lemma bintr_bintr_i:
 lemmas bin_trunc_and = bin_trunc_ao(1) [THEN bintr_bintr_i]
 lemmas bin_trunc_or = bin_trunc_ao(2) [THEN bintr_bintr_i]
 
-subsection {* Setting and clearing bits *}
+subsection \<open>Setting and clearing bits\<close>
 
 (** nth bit, set/clear **)
 
@@ -480,7 +480,7 @@ lemma bin_sc_numeral [simp]:
   by (simp add: numeral_eq_Suc)
 
 
-subsection {* Splitting and concatenation *}
+subsection \<open>Splitting and concatenation\<close>
 
 definition bin_rcat :: "nat \<Rightarrow> int list \<Rightarrow> int"
 where
@@ -619,7 +619,7 @@ lemma bin_split_num:
   apply (simp add: Bit_def mod_mult_mult1 p1mod22k)
   done
 
-subsection {* Miscellaneous lemmas *}
+subsection \<open>Miscellaneous lemmas\<close>
 
 lemma nth_2p_bin: 
   "bin_nth (2 ^ n) m = (m = n)"

@@ -14,7 +14,7 @@ locale type_definition =
   assumes Rep: "Rep x \<in> A"
     and Rep_inverse: "Abs (Rep x) = x"
     and Abs_inverse: "y \<in> A \<Longrightarrow> Rep (Abs y) = y"
-  -- \<open>This will be axiomatized for each typedef!\<close>
+  \<comment> \<open>This will be axiomatized for each typedef!\<close>
 begin
 
 lemma Rep_inject: "Rep x = Rep y \<longleftrightarrow> x = y"

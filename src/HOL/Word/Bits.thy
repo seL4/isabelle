@@ -2,7 +2,7 @@
     Author:     Author: Brian Huffman, PSU and Gerwin Klein, NICTA
 *)
 
-section {* Syntactic classes for bitwise operations *}
+section \<open>Syntactic classes for bitwise operations\<close>
 
 theory Bits
 imports Main
@@ -14,15 +14,15 @@ class bit =
     and bitOR  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "OR"  59)
     and bitXOR :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "XOR" 59)
 
-text {*
+text \<open>
   We want the bitwise operations to bind slightly weaker
-  than @{text "+"} and @{text "-"}, but @{text "~~"} to 
-  bind slightly stronger than @{text "*"}.
-*}
+  than \<open>+\<close> and \<open>-\<close>, but \<open>~~\<close> to 
+  bind slightly stronger than \<open>*\<close>.
+\<close>
 
-text {*
+text \<open>
   Testing and shifting operations.
-*}
+\<close>
 
 class bits = bit +
   fixes test_bit :: "'a \<Rightarrow> nat \<Rightarrow> bool" (infixl "!!" 100)

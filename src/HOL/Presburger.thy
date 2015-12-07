@@ -12,7 +12,7 @@ begin
 ML_file "Tools/Qelim/qelim.ML"
 ML_file "Tools/Qelim/cooper_procedure.ML"
 
-subsection\<open>The @{text "-\<infinity>"} and @{text "+\<infinity>"} Properties\<close>
+subsection\<open>The \<open>-\<infinity>\<close> and \<open>+\<infinity>\<close> Properties\<close>
 
 lemma minf:
   "\<lbrakk>\<exists>(z ::'a::linorder).\<forall>x<z. P x = P' x; \<exists>z.\<forall>x<z. Q x = Q' x\<rbrakk> 
@@ -176,7 +176,7 @@ next
   thus "\<forall>(x::int).(\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j)\<longrightarrow> (\<not>d dvd x+t) \<longrightarrow> (\<not>d dvd (x + D) + t)" by auto
 qed blast
 
-subsection\<open>Cooper's Theorem @{text "-\<infinity>"} and @{text "+\<infinity>"} Version\<close>
+subsection\<open>Cooper's Theorem \<open>-\<infinity>\<close> and \<open>+\<infinity>\<close> Version\<close>
 
 subsubsection\<open>First some trivial facts about periodic sets or predicates\<close>
 lemma periodic_finite_ex:
@@ -209,7 +209,7 @@ proof
   qed
 qed auto
 
-subsubsection\<open>The @{text "-\<infinity>"} Version\<close>
+subsubsection\<open>The \<open>-\<infinity>\<close> Version\<close>
 
 lemma decr_lemma: "0 < (d::int) \<Longrightarrow> x - (abs(x-z)+1) * d < z"
 by(induct rule: int_gr_induct,simp_all add:int_distrib)
@@ -277,7 +277,7 @@ proof-
  ultimately show ?thesis by blast
 qed
 
-subsubsection \<open>The @{text "+\<infinity>"} Version\<close>
+subsubsection \<open>The \<open>+\<infinity>\<close> Version\<close>
 
 lemma  plusinfinity:
   assumes dpos: "(0::int) < d" and
@@ -372,7 +372,7 @@ lemma uminus_dvd_conv:
   shows "d dvd t \<equiv> - d dvd t" and "d dvd t \<equiv> d dvd - t"
   by simp_all
 
-text \<open>\bigskip Theorems for transforming predicates on nat to predicates on @{text int}\<close>
+text \<open>\bigskip Theorems for transforming predicates on nat to predicates on \<open>int\<close>\<close>
 
 lemma zdiff_int_split: "P (int (x - y)) =
   ((y \<le> x \<longrightarrow> P (int x - int y)) \<and> (x < y \<longrightarrow> P 0))"

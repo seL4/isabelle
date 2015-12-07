@@ -60,13 +60,13 @@ functions\<close>
 
 text\<open>Standardly, a function is an embedding of a well-order in another if it injectively and
 order-compatibly maps the former into an order filter of the latter.
-Here we opt for a more succinct definition (operator @{text "embed"}),
+Here we opt for a more succinct definition (operator \<open>embed\<close>),
 asking that, for any element in the source, the function should be a bijection
 between the set of strict lower bounds of that element
 and the set of strict lower bounds of its image.  (Later we prove equivalence with
-the standard definition -- lemma @{text "embed_iff_compat_inj_on_ofilter"}.)
-A {\em strict embedding} (operator @{text "embedS"})  is a non-bijective embedding
-and an isomorphism (operator @{text "iso"}) is a bijective embedding.\<close>
+the standard definition -- lemma \<open>embed_iff_compat_inj_on_ofilter\<close>.)
+A {\em strict embedding} (operator \<open>embedS\<close>)  is a non-bijective embedding
+and an isomorphism (operator \<open>iso\<close>) is a bijective embedding.\<close>
 
 definition embed :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> ('a \<Rightarrow> 'a') \<Rightarrow> bool"
 where
@@ -151,7 +151,7 @@ shows "iso r r'' (f' o f)"
 using assms unfolding iso_def
 by (auto simp add: comp_embed bij_betw_trans)
 
-text\<open>That @{text "embedS"} is also preserved by function composition shall be proved only later.\<close>
+text\<open>That \<open>embedS\<close> is also preserved by function composition shall be proved only later.\<close>
 
 lemma embed_Field:
 "\<lbrakk>Well_order r; embed r r' f\<rbrakk> \<Longrightarrow> f`(Field r) \<le> Field r'"
@@ -454,22 +454,22 @@ qed
 subsection \<open>Given any two well-orders, one can be embedded in the other\<close>
 
 text\<open>Here is an overview of the proof of of this fact, stated in theorem
-@{text "wellorders_totally_ordered"}:
+\<open>wellorders_totally_ordered\<close>:
 
-   Fix the well-orders @{text "r::'a rel"} and @{text "r'::'a' rel"}.
-   Attempt to define an embedding @{text "f::'a \<Rightarrow> 'a'"} from @{text "r"} to @{text "r'"} in the
-   natural way by well-order recursion ("hoping" that @{text "Field r"} turns out to be smaller
-   than @{text "Field r'"}), but also record, at the recursive step, in a function
-   @{text "g::'a \<Rightarrow> bool"}, the extra information of whether @{text "Field r'"}
+   Fix the well-orders \<open>r::'a rel\<close> and \<open>r'::'a' rel\<close>.
+   Attempt to define an embedding \<open>f::'a \<Rightarrow> 'a'\<close> from \<open>r\<close> to \<open>r'\<close> in the
+   natural way by well-order recursion ("hoping" that \<open>Field r\<close> turns out to be smaller
+   than \<open>Field r'\<close>), but also record, at the recursive step, in a function
+   \<open>g::'a \<Rightarrow> bool\<close>, the extra information of whether \<open>Field r'\<close>
    gets exhausted or not.
 
-   If @{text "Field r'"} does not get exhausted, then @{text "Field r"} is indeed smaller
-   and @{text "f"} is the desired embedding from @{text "r"} to @{text "r'"}
-   (lemma @{text "wellorders_totally_ordered_aux"}).
+   If \<open>Field r'\<close> does not get exhausted, then \<open>Field r\<close> is indeed smaller
+   and \<open>f\<close> is the desired embedding from \<open>r\<close> to \<open>r'\<close>
+   (lemma \<open>wellorders_totally_ordered_aux\<close>).
 
-   Otherwise, it means that @{text "Field r'"} is the smaller one, and the inverse of
-   (the "good" segment of) @{text "f"} is the desired embedding from @{text "r'"} to @{text "r"}
-   (lemma @{text "wellorders_totally_ordered_aux2"}).
+   Otherwise, it means that \<open>Field r'\<close> is the smaller one, and the inverse of
+   (the "good" segment of) \<open>f\<close> is the desired embedding from \<open>r'\<close> to \<open>r\<close>
+   (lemma \<open>wellorders_totally_ordered_aux2\<close>).
 \<close>
 
 lemma wellorders_totally_ordered_aux:

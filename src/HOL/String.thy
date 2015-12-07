@@ -115,7 +115,7 @@ lemma nibble_of_nat_mod_16:
   by (simp add: nibble_of_nat_def)
 
 datatype char = Char nibble nibble
-  -- "Note: canonical order of character encoding coincides with standard term ordering"
+  \<comment> "Note: canonical order of character encoding coincides with standard term ordering"
 
 syntax
   "_Char" :: "str_position => char"    ("CHR _")
@@ -281,7 +281,7 @@ proof (cases c)
   with Char show ?thesis by (simp add: nat_of_char_def add.commute)
 qed
 
-code_datatype Char -- \<open>drop case certificate for char\<close>
+code_datatype Char \<comment> \<open>drop case certificate for char\<close>
 
 lemma case_char_code [code]:
   "case_char f c = (let n = nat_of_char c in f (nibble_of_nat (n div 16)) (nibble_of_nat n))"

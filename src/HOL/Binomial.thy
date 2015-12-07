@@ -146,7 +146,7 @@ proof -
     by (induct r rule: nat.induct) (auto simp add: fact_div_fact Suc_diff_Suc mult_le_mono)
 qed
 
-lemma fact_numeral:  --\<open>Evaluation for specific numerals\<close>
+lemma fact_numeral:  \<comment>\<open>Evaluation for specific numerals\<close>
   "fact (numeral k) = (numeral k) * (fact (pred_numeral k))"
   by (metis fact.simps(2) numeral_eq_Suc of_nat_numeral)
 
@@ -230,7 +230,7 @@ lemma times_binomial_minus1_eq:
   by (auto split add: nat_diff_split)
 
 
-subsection \<open>Combinatorial theorems involving @{text "choose"}\<close>
+subsection \<open>Combinatorial theorems involving \<open>choose\<close>\<close>
 
 text \<open>By Florian Kamm\"uller, tidied by LCP.\<close>
 
@@ -890,7 +890,7 @@ proof (cases n)
     by (subst setsum_right_distrib, rule setsum.cong[OF refl], subst Suc_times_binomial)
        (simp add: algebra_simps of_nat_mult)
   also have "(\<Sum>i\<le>m. (-1 :: 'a) ^ i * of_nat ((m choose i))) = 0"
-    using choose_alternating_sum[OF `m > 0`] by simp
+    using choose_alternating_sum[OF \<open>m > 0\<close>] by simp
   finally show ?thesis by simp
 qed simp
 
@@ -1266,7 +1266,7 @@ qed
 text\<open>Versions of the theorems above for the natural-number version of "choose"\<close>
 lemma binomial_altdef_of_nat:
   fixes n k :: nat
-    and x :: "'a :: {field_char_0,field}"  --\<open>the point is to constrain @{typ 'a}\<close>
+    and x :: "'a :: {field_char_0,field}"  \<comment>\<open>the point is to constrain @{typ 'a}\<close>
   assumes "k \<le> n"
   shows "of_nat (n choose k) = (\<Prod>i<k. of_nat (n - i) / of_nat (k - i) :: 'a)"
 using assms
@@ -1426,7 +1426,7 @@ proof -
   finally show ?thesis ..
 qed
 
-text\<open>The number of nat lists of length @{text m} summing to @{text N} is
+text\<open>The number of nat lists of length \<open>m\<close> summing to \<open>N\<close> is
 @{term "(N + m - 1) choose N"}:\<close>
 
 lemma card_length_listsum_rec:
@@ -1473,7 +1473,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma card_length_listsum: --"By Holden Lee, tidied by Tobias Nipkow"
+lemma card_length_listsum: \<comment>"By Holden Lee, tidied by Tobias Nipkow"
   "card {l::nat list. size l = m \<and> listsum l = N} = (N + m - 1) choose N"
 proof (cases m)
   case 0 then show ?thesis
@@ -1483,7 +1483,7 @@ next
     have m: "m\<ge>1" by (simp add: Suc)
     then show ?thesis
     proof (induct "N + m - 1" arbitrary: N m)
-      case 0   -- "In the base case, the only solution is [0]."
+      case 0   \<comment> "In the base case, the only solution is [0]."
       have [simp]: "{l::nat list. length l = Suc 0 \<and> (\<forall>n\<in>set l. n = 0)} = {[0]}"
         by (auto simp: length_Suc_conv)
       have "m=1 \<and> N=0" using 0 by linarith
@@ -1519,7 +1519,7 @@ next
 qed
 
 
-lemma Suc_times_binomial_add: -- \<open>by Lukas Bulwahn\<close>
+lemma Suc_times_binomial_add: \<comment> \<open>by Lukas Bulwahn\<close>
   "Suc a * (Suc (a + b) choose Suc a) = Suc b * (Suc (a + b) choose a)"
 proof -
   have dvd: "Suc a * (fact a * fact b) dvd fact (Suc (a + b))" for a b

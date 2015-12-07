@@ -9,7 +9,7 @@ imports MacLaurin
 begin
 
 text \<open>
-We use MacLaurin and the translation of the expansion point @{text c} to @{text 0}
+We use MacLaurin and the translation of the expansion point \<open>c\<close> to \<open>0\<close>
 to prove Taylor's theorem.
 \<close>
 

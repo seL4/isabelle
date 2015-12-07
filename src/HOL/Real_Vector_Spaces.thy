@@ -264,7 +264,7 @@ lemma real_vector_eq_affinity:
   by metis
 
 
-subsection \<open>Embedding of the Reals into any @{text real_algebra_1}:
+subsection \<open>Embedding of the Reals into any \<open>real_algebra_1\<close>:
 @{term of_real}\<close>
 
 definition
@@ -927,7 +927,7 @@ lemma norm_of_real_diff [simp]:
     "norm (of_real b - of_real a :: 'a::real_normed_algebra_1) \<le> \<bar>b - a\<bar>"
   by (metis norm_of_real of_real_diff order_refl)
 
-text\<open>Despite a superficial resemblance, @{text norm_eq_1} is not relevant.\<close>
+text\<open>Despite a superficial resemblance, \<open>norm_eq_1\<close> is not relevant.\<close>
 lemma square_norm_one:
   fixes x :: "'a::real_normed_div_algebra"
   assumes "x^2 = 1" shows "norm x = 1"
@@ -1222,17 +1222,17 @@ lemmas closed_real_atLeastAtMost = closed_atLeastAtMost[where 'a=real]
 
 subsection \<open>Extra type constraints\<close>
 
-text \<open>Only allow @{term "open"} in class @{text topological_space}.\<close>
+text \<open>Only allow @{term "open"} in class \<open>topological_space\<close>.\<close>
 
 setup \<open>Sign.add_const_constraint
   (@{const_name "open"}, SOME @{typ "'a::topological_space set \<Rightarrow> bool"})\<close>
 
-text \<open>Only allow @{term dist} in class @{text metric_space}.\<close>
+text \<open>Only allow @{term dist} in class \<open>metric_space\<close>.\<close>
 
 setup \<open>Sign.add_const_constraint
   (@{const_name dist}, SOME @{typ "'a::metric_space \<Rightarrow> 'a \<Rightarrow> real"})\<close>
 
-text \<open>Only allow @{term norm} in class @{text real_normed_vector}.\<close>
+text \<open>Only allow @{term norm} in class \<open>real_normed_vector\<close>.\<close>
 
 setup \<open>Sign.add_const_constraint
   (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"})\<close>
@@ -1731,7 +1731,7 @@ next
   show "\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (f m) (f n) < e"
   proof (intro allI impI)
     fix e :: real assume e: "e > 0"
-    with `Cauchy f` obtain M where "\<And>m n. m \<ge> M \<Longrightarrow> n \<ge> M \<Longrightarrow> dist (f m) (f n) < e"
+    with \<open>Cauchy f\<close> obtain M where "\<And>m n. m \<ge> M \<Longrightarrow> n \<ge> M \<Longrightarrow> dist (f m) (f n) < e"
       unfolding Cauchy_def by blast
     thus "\<exists>M. \<forall>m\<ge>M. \<forall>n>m. dist (f m) (f n) < e" by (intro exI[of _ M]) force
   qed

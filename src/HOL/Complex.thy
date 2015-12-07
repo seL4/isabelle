@@ -11,8 +11,8 @@ imports Transcendental
 begin
 
 text \<open>
-We use the @{text codatatype} command to define the type of complex numbers. This allows us to use
-@{text primcorec} to define complex functions by defining their real and imaginary result
+We use the \<open>codatatype\<close> command to define the type of complex numbers. This allows us to use
+\<open>primcorec\<close> to define complex functions by defining their real and imaginary result
 separately.
 \<close>
 

@@ -123,8 +123,8 @@ lemmas max_def_raw = max_def[abs_def]
 subsection \<open>Integer division and modulo for Z3\<close>
 
 text \<open>
-The following Z3-inspired definitions are overspecified for the case where @{text "l = 0"}. This
-Schönheitsfehler is corrected in the @{text div_as_z3div} and @{text mod_as_z3mod} theorems.
+The following Z3-inspired definitions are overspecified for the case where \<open>l = 0\<close>. This
+Schönheitsfehler is corrected in the \<open>div_as_z3div\<close> and \<open>mod_as_z3mod\<close> theorems.
 \<close>
 
 definition z3div :: "int \<Rightarrow> int \<Rightarrow> int" where
@@ -182,15 +182,15 @@ subsection \<open>Configuration\<close>
 
 text \<open>
 The current configuration can be printed by the command
-@{text smt_status}, which shows the values of most options.
+\<open>smt_status\<close>, which shows the values of most options.
 \<close>
 
 
 subsection \<open>General configuration options\<close>
 
 text \<open>
-The option @{text smt_solver} can be used to change the target SMT
-solver. The possible values can be obtained from the @{text smt_status}
+The option \<open>smt_solver\<close> can be used to change the target SMT
+solver. The possible values can be obtained from the \<open>smt_status\<close>
 command.
 \<close>
 
@@ -258,7 +258,7 @@ declare [[z3_extensions = false]]
 subsection \<open>Certificates\<close>
 
 text \<open>
-By setting the option @{text smt_certificates} to the name of a file,
+By setting the option \<open>smt_certificates\<close> to the name of a file,
 all following applications of an SMT solver a cached in that file.
 Any further application of the same SMT solver (using the very same
 configuration) re-uses the cached certificate instead of invoking the
@@ -266,7 +266,7 @@ solver. An empty string disables caching certificates.
 
 The filename should be given as an explicit path. It is good
 practice to use the name of the current theory (with ending
-@{text ".certs"} instead of @{text ".thy"}) as the certificates file.
+\<open>.certs\<close> instead of \<open>.thy\<close>) as the certificates file.
 Certificate files should be used at most once in a certain theory context,
 to avoid race conditions with other concurrent accesses.
 \<close>
@@ -274,11 +274,11 @@ to avoid race conditions with other concurrent accesses.
 declare [[smt_certificates = ""]]
 
 text \<open>
-The option @{text smt_read_only_certificates} controls whether only
+The option \<open>smt_read_only_certificates\<close> controls whether only
 stored certificates are should be used or invocation of an SMT solver
-is allowed. When set to @{text true}, no SMT solver will ever be
+is allowed. When set to \<open>true\<close>, no SMT solver will ever be
 invoked and only the existing certificates found in the configured
-cache are used;  when set to @{text false} and there is no cached
+cache are used;  when set to \<open>false\<close> and there is no cached
 certificate for some proposition, then the configured SMT solver is
 invoked.
 \<close>
@@ -290,7 +290,7 @@ subsection \<open>Tracing\<close>
 
 text \<open>
 The SMT method, when applied, traces important information. To
-make it entirely silent, set the following option to @{text false}.
+make it entirely silent, set the following option to \<open>false\<close>.
 \<close>
 
 declare [[smt_verbose = true]]
@@ -298,7 +298,7 @@ declare [[smt_verbose = true]]
 text \<open>
 For tracing the generated problem file given to the SMT solver as
 well as the returned result of the solver, the option
-@{text smt_trace} should be set to @{text true}.
+\<open>smt_trace\<close> should be set to \<open>true\<close>.
 \<close>
 
 declare [[smt_trace = false]]
@@ -309,9 +309,9 @@ subsection \<open>Schematic rules for Z3 proof reconstruction\<close>
 text \<open>
 Several prof rules of Z3 are not very well documented. There are two
 lemma groups which can turn failing Z3 proof reconstruction attempts
-into succeeding ones: the facts in @{text z3_rule} are tried prior to
+into succeeding ones: the facts in \<open>z3_rule\<close> are tried prior to
 any implemented reconstruction procedure for all uncertain Z3 proof
-rules;  the facts in @{text z3_simp} are only fed to invocations of
+rules;  the facts in \<open>z3_simp\<close> are only fed to invocations of
 the simplifier when reconstructing theory-specific proof steps.
 \<close>
 

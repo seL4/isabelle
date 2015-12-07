@@ -155,9 +155,9 @@ definition "all" :: "('a :: {narrowing, partial_term_of} => property) => propert
 where
   "all f = (case narrowing (100 :: integer) of Narrowing_cons ty cs => Universal ty (\<lambda>t. f (conv cs t)) (partial_term_of (TYPE('a))))"
 
-subsubsection \<open>class @{text is_testable}\<close>
+subsubsection \<open>class \<open>is_testable\<close>\<close>
 
-text \<open>The class @{text is_testable} ensures that all necessary type instances are generated.\<close>
+text \<open>The class \<open>is_testable\<close> ensures that all necessary type instances are generated.\<close>
 
 class is_testable
 
@@ -319,7 +319,7 @@ code_printing constant "Code_Evaluation.term_of :: integer \<Rightarrow> term" \
            (Generated'_Code.Const \"Groups.uminus'_class.uminus\" (mkFunT t t))
            (mkNumber (- i)); } in mkNumber)"
 
-subsection \<open>The @{text find_unused_assms} command\<close>
+subsection \<open>The \<open>find_unused_assms\<close> command\<close>
 
 ML_file "Tools/Quickcheck/find_unused_assms.ML"
 

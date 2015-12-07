@@ -11,7 +11,7 @@ begin
 
 subsection \<open>Term representation\<close>
 
-subsubsection \<open>Terms and class @{text term_of}\<close>
+subsubsection \<open>Terms and class \<open>term_of\<close>\<close>
 
 datatype (plugins only: code extraction) "term" = dummy_term
 
@@ -87,7 +87,7 @@ code_reserved Eval Code_Evaluation
 ML_file "~~/src/HOL/Tools/value.ML"
 
 
-subsection \<open>@{text term_of} instances\<close>
+subsection \<open>\<open>term_of\<close> instances\<close>
 
 instantiation "fun" :: (typerep, typerep) term_of
 begin

@@ -116,7 +116,7 @@ lemma size_list_simp[nitpick_simp]:
 
 text \<open>
 Auxiliary definitions used to provide an alternative representation for
-@{text rat} and @{text real}.
+\<open>rat\<close> and \<open>real\<close>.
 \<close>
 
 function nat_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where

@@ -52,7 +52,7 @@ text \<open>A few laws taken from @{cite "Concrete-Math"}.\<close>
 lemma fib_add:
   "fib (n + k + 1) = fib (k + 1) * fib (n + 1) + fib k * fib n"
   (is "?P n")
-  -- \<open>see @{cite \<open>page 280\<close> "Concrete-Math"}\<close>
+  \<comment> \<open>see @{cite \<open>page 280\<close> "Concrete-Math"}\<close>
 proof (induct n rule: fib_induct)
   show "?P 0" by simp
   show "?P 1" by simp

@@ -87,27 +87,27 @@ proof -
     by (simp only: group_left_inverse)
 
   note calculation = this
-    -- \<open>first calculational step: init calculation register\<close>
+    \<comment> \<open>first calculational step: init calculation register\<close>
 
   have "\<dots> = x * inverse x * x"
     by (simp only: group_assoc)
 
   note calculation = trans [OF calculation this]
-    -- \<open>general calculational step: compose with transitivity rule\<close>
+    \<comment> \<open>general calculational step: compose with transitivity rule\<close>
 
   have "\<dots> = 1 * x"
     by (simp only: group_right_inverse)
 
   note calculation = trans [OF calculation this]
-    -- \<open>general calculational step: compose with transitivity rule\<close>
+    \<comment> \<open>general calculational step: compose with transitivity rule\<close>
 
   have "\<dots> = x"
     by (simp only: group_left_one)
 
   note calculation = trans [OF calculation this]
-    -- \<open>final calculational step: compose with transitivity rule \dots\<close>
+    \<comment> \<open>final calculational step: compose with transitivity rule \dots\<close>
   from calculation
-    -- \<open>\dots\ and pick up the final result\<close>
+    \<comment> \<open>\dots\ and pick up the final result\<close>
 
   show ?thesis .
 qed

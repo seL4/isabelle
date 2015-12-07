@@ -14,11 +14,11 @@ begin
 text \<open>In this section, we study basic constructions on well-orders, such as restriction to
 a set/order filter, copy via direct images, ordinal-like sum of disjoint well-orders,
 and bounded square.  We also define between well-orders
-the relations @{text "ordLeq"}, of being embedded (abbreviated @{text "\<le>o"}),
-@{text "ordLess"}, of being strictly embedded (abbreviated @{text "<o"}), and
-@{text "ordIso"}, of being isomorphic (abbreviated @{text "=o"}).  We study the
+the relations \<open>ordLeq\<close>, of being embedded (abbreviated \<open>\<le>o\<close>),
+\<open>ordLess\<close>, of being strictly embedded (abbreviated \<open><o\<close>), and
+\<open>ordIso\<close>, of being isomorphic (abbreviated \<open>=o\<close>).  We study the
 connections between these relations, order filters, and the aforementioned constructions.
-A main result of this section is that @{text "<o"} is well-founded.\<close>
+A main result of this section is that \<open><o\<close> is well-founded.\<close>
 
 
 subsection \<open>Restriction to a set\<close>
@@ -306,14 +306,14 @@ subsection \<open>Ordering the well-orders by existence of embeddings\<close>
 
 text \<open>We define three relations between well-orders:
 \begin{itemize}
-\item @{text "ordLeq"}, of being embedded (abbreviated @{text "\<le>o"});
-\item @{text "ordLess"}, of being strictly embedded (abbreviated @{text "<o"});
-\item @{text "ordIso"}, of being isomorphic (abbreviated @{text "=o"}).
+\item \<open>ordLeq\<close>, of being embedded (abbreviated \<open>\<le>o\<close>);
+\item \<open>ordLess\<close>, of being strictly embedded (abbreviated \<open><o\<close>);
+\item \<open>ordIso\<close>, of being isomorphic (abbreviated \<open>=o\<close>).
 \end{itemize}
 %
 The prefix "ord" and the index "o" in these names stand for "ordinal-like".
 These relations shall be proved to be inter-connected in a similar fashion as the trio
-@{text "\<le>"}, @{text "<"}, @{text "="} associated to a total order on a set.
+\<open>\<le>\<close>, \<open><\<close>, \<open>=\<close> associated to a total order on a set.
 \<close>
 
 definition ordLeq :: "('a rel * 'a' rel) set"
@@ -347,10 +347,10 @@ assumes "r \<le>o r'"
 shows "Well_order r \<and> Well_order r'"
 using assms unfolding ordLeq_def by simp
 
-text\<open>Notice that the relations @{text "\<le>o"}, @{text "<o"}, @{text "=o"} connect well-orders
+text\<open>Notice that the relations \<open>\<le>o\<close>, \<open><o\<close>, \<open>=o\<close> connect well-orders
 on potentially {\em distinct} types. However, some of the lemmas below, including the next one,
-restrict implicitly the type of these relations to @{text "(('a rel) * ('a rel)) set"} , i.e.,
-to @{text "'a rel rel"}.\<close>
+restrict implicitly the type of these relations to \<open>(('a rel) * ('a rel)) set\<close> , i.e.,
+to \<open>'a rel rel\<close>.\<close>
 
 lemma ordLeq_reflexive:
 "Well_order r \<Longrightarrow> r \<le>o r"
@@ -822,12 +822,12 @@ proof-
   ultimately show ?thesis using assms ordLeq_total ordIso_symmetric by blast
 qed
 
-subsection\<open>@{text "<o"} is well-founded\<close>
+subsection\<open>\<open><o\<close> is well-founded\<close>
 
-text \<open>Of course, it only makes sense to state that the @{text "<o"} is well-founded
-on the restricted type @{text "'a rel rel"}.  We prove this by first showing that, for any set
+text \<open>Of course, it only makes sense to state that the \<open><o\<close> is well-founded
+on the restricted type \<open>'a rel rel\<close>.  We prove this by first showing that, for any set
 of well-orders all embedded in a fixed well-order, the function mapping each well-order
-in the set to an order filter of the fixed well-order is compatible w.r.t. to @{text "<o"} versus
+in the set to an order filter of the fixed well-order is compatible w.r.t. to \<open><o\<close> versus
 {\em strict inclusion}; and we already know that strict inclusion of order filters is well-founded.\<close>
 
 definition ord_to_filter :: "'a rel \<Rightarrow> 'a rel \<Rightarrow> 'a set"
@@ -885,8 +885,8 @@ qed
 
 subsection \<open>Copy via direct images\<close>
 
-text\<open>The direct image operator is the dual of the inverse image operator @{text "inv_image"}
-from @{text "Relation.thy"}.  It is useful for transporting a well-order between
+text\<open>The direct image operator is the dual of the inverse image operator \<open>inv_image\<close>
+from \<open>Relation.thy\<close>.  It is useful for transporting a well-order between
 different types.\<close>
 
 definition dir_image :: "'a rel \<Rightarrow> ('a \<Rightarrow> 'a') \<Rightarrow> 'a' rel"
@@ -1045,8 +1045,8 @@ qed
 
 subsection \<open>Bounded square\<close>
 
-text\<open>This construction essentially defines, for an order relation @{text "r"}, a lexicographic
-order @{text "bsqr r"} on @{text "(Field r) \<times> (Field r)"}, applying the
+text\<open>This construction essentially defines, for an order relation \<open>r\<close>, a lexicographic
+order \<open>bsqr r\<close> on \<open>(Field r) \<times> (Field r)\<close>, applying the
 following criteria (in this order):
 \begin{itemize}
 \item compare the maximums;

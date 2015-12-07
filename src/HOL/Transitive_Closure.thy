@@ -12,9 +12,9 @@ begin
 ML_file "~~/src/Provers/trancl.ML"
 
 text \<open>
-  @{text rtrancl} is reflexive/transitive closure,
-  @{text trancl} is transitive closure,
-  @{text reflcl} is reflexive closure.
+  \<open>rtrancl\<close> is reflexive/transitive closure,
+  \<open>trancl\<close> is transitive closure,
+  \<open>reflcl\<close> is reflexive closure.
 
   These postfix operators have \emph{maximum priority}, forcing their
   operands to be atomic.
@@ -86,17 +86,17 @@ lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) op =) 
   by (auto simp add: fun_eq_iff)
 
 lemma r_into_rtrancl [intro]: "!!p. p \<in> r ==> p \<in> r^*"
-  -- \<open>@{text rtrancl} of @{text r} contains @{text r}\<close>
+  \<comment> \<open>\<open>rtrancl\<close> of \<open>r\<close> contains \<open>r\<close>\<close>
   apply (simp only: split_tupled_all)
   apply (erule rtrancl_refl [THEN rtrancl_into_rtrancl])
   done
 
 lemma r_into_rtranclp [intro]: "r x y ==> r^** x y"
-  -- \<open>@{text rtrancl} of @{text r} contains @{text r}\<close>
+  \<comment> \<open>\<open>rtrancl\<close> of \<open>r\<close> contains \<open>r\<close>\<close>
   by (erule rtranclp.rtrancl_refl [THEN rtranclp.rtrancl_into_rtrancl])
 
 lemma rtranclp_mono: "r \<le> s ==> r^** \<le> s^**"
-  -- \<open>monotonicity of @{text rtrancl}\<close>
+  \<comment> \<open>monotonicity of \<open>rtrancl\<close>\<close>
   apply (rule predicate2I)
   apply (erule rtranclp.induct)
    apply (rule_tac [2] rtranclp.rtrancl_into_rtrancl, blast+)
@@ -157,7 +157,7 @@ lemma rtranclE [cases set: rtrancl]:
   obtains
     (base) "a = b"
   | (step) y where "(a, y) : r^*" and "(y, b) : r"
-  -- \<open>elimination of @{text rtrancl} -- by induction on a special formula\<close>
+  \<comment> \<open>elimination of \<open>rtrancl\<close> -- by induction on a special formula\<close>
   apply (subgoal_tac "(a::'a) = b | (EX y. (a,y) : r^* & (y,b) : r)")
    apply (rule_tac [2] major [THEN rtrancl_induct])
     prefer 2 apply blast
@@ -347,7 +347,7 @@ lemma r_into_trancl': "!!p. p : r ==> p : r^+"
   by (simp only: split_tupled_all) (erule r_into_trancl)
 
 text \<open>
-  \medskip Conversions between @{text trancl} and @{text rtrancl}.
+  \medskip Conversions between \<open>trancl\<close> and \<open>rtrancl\<close>.
 \<close>
 
 lemma tranclp_into_rtranclp: "r^++ a b ==> r^** a b"
@@ -362,7 +362,7 @@ lemma rtranclp_into_tranclp1: assumes r: "r^** a b"
 lemmas rtrancl_into_trancl1 = rtranclp_into_tranclp1 [to_set]
 
 lemma rtranclp_into_tranclp2: "[| r a b; r^** b c |] ==> r^++ a c"
-  -- \<open>intro rule from @{text r} and @{text rtrancl}\<close>
+  \<comment> \<open>intro rule from \<open>r\<close> and \<open>rtrancl\<close>\<close>
   apply (erule rtranclp.cases)
    apply iprover
   apply (rule rtranclp_trans [THEN rtranclp_into_tranclp1])
@@ -371,7 +371,7 @@ lemma rtranclp_into_tranclp2: "[| r a b; r^** b c |] ==> r^++ a c"
 
 lemmas rtrancl_into_trancl2 = rtranclp_into_tranclp2 [to_set]
 
-text \<open>Nice induction rule for @{text trancl}\<close>
+text \<open>Nice induction rule for \<open>trancl\<close>\<close>
 lemma tranclp_induct [consumes 1, case_names base step, induct pred: tranclp]:
   assumes a: "r^++ a b"
   and cases: "!!y. r a y ==> P y"
@@ -394,7 +394,7 @@ lemma tranclp_trans_induct:
     and cases: "!!x y. r x y ==> P x y"
       "!!x y z. [| r^++ x y; P x y; r^++ y z; P y z |] ==> P x z"
   shows "P x y"
-  -- \<open>Another induction rule for trancl, incorporating transitivity\<close>
+  \<comment> \<open>Another induction rule for trancl, incorporating transitivity\<close>
   by (iprover intro: major [THEN tranclp_induct] cases)
 
 lemmas trancl_trans_induct = tranclp_trans_induct [to_set]
@@ -594,7 +594,7 @@ by (auto dest: tranclD intro: rtrancl_into_trancl2)
 
 lemma trancl_insert:
   "(insert (y, x) r)^+ = r^+ \<union> {(a, b). (a, y) \<in> r^* \<and> (x, b) \<in> r^*}"
-  -- \<open>primitive recursion for @{text trancl} over finite relations\<close>
+  \<comment> \<open>primitive recursion for \<open>trancl\<close> over finite relations\<close>
   apply (rule equalityI)
    apply (rule subsetI)
    apply (simp only: split_tupled_all)
@@ -627,7 +627,7 @@ lemma rtrancl_reflcl_absorb[simp]: "(R^*)^= = R^*"
 by auto
 
 
-text \<open>@{text Domain} and @{text Range}\<close>
+text \<open>\<open>Domain\<close> and \<open>Range\<close>\<close>
 
 lemma Domain_rtrancl [simp]: "Domain (R^*) = UNIV"
   by blast
@@ -671,7 +671,7 @@ lemma finite_trancl[simp]: "finite (r^+) = finite r"
    apply (auto simp add: finite_Field)
   done
 
-text \<open>More about converse @{text rtrancl} and @{text trancl}, should
+text \<open>More about converse \<open>rtrancl\<close> and \<open>trancl\<close>, should
   be merged with main body.\<close>
 
 lemma single_valued_confluent:
@@ -720,7 +720,7 @@ declare trancl_into_rtrancl [elim]
 
 subsection \<open>The power operation on relations\<close>
 
-text \<open>@{text "R ^^ n = R O ... O R"}, the n-fold composition of @{text R}\<close>
+text \<open>\<open>R ^^ n = R O ... O R\<close>, the n-fold composition of \<open>R\<close>\<close>
 
 overloading
   relpow == "compow :: nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"

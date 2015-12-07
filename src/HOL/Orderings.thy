@@ -18,7 +18,7 @@ locale ordering =
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<preceq>" 50)
    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<prec>" 50)
   assumes strict_iff_order: "a \<prec> b \<longleftrightarrow> a \<preceq> b \<and> a \<noteq> b"
-  assumes refl: "a \<preceq> a" -- \<open>not @{text iff}: makes problems due to multiple (dual) interpretations\<close>
+  assumes refl: "a \<preceq> a" \<comment> \<open>not \<open>iff\<close>: makes problems due to multiple (dual) interpretations\<close>
     and antisym: "a \<preceq> b \<Longrightarrow> b \<preceq> a \<Longrightarrow> a = b"
     and trans: "a \<preceq> b \<Longrightarrow> b \<preceq> c \<Longrightarrow> a \<preceq> c"
 begin
@@ -39,7 +39,7 @@ lemma order_iff_strict:
   "a \<preceq> b \<longleftrightarrow> a \<prec> b \<or> a = b"
   by (auto simp add: strict_iff_order refl)
 
-lemma irrefl: -- \<open>not @{text iff}: makes problems due to multiple (dual) interpretations\<close>
+lemma irrefl: \<comment> \<open>not \<open>iff\<close>: makes problems due to multiple (dual) interpretations\<close>
   "\<not> a \<prec> a"
   by (simp add: strict_iff_order)
 
@@ -127,7 +127,7 @@ begin
 text \<open>Reflexivity.\<close>
 
 lemma eq_refl: "x = y \<Longrightarrow> x \<le> y"
-    -- \<open>This form is useful with the classical reasoner.\<close>
+    \<comment> \<open>This form is useful with the classical reasoner.\<close>
 by (erule ssubst) (rule order_refl)
 
 lemma less_irrefl [iff]: "\<not> x < x"
@@ -198,7 +198,7 @@ sublocale order: ordering less_eq less +  dual_order: ordering greater_eq greate
 text \<open>Reflexivity.\<close>
 
 lemma le_less: "x \<le> y \<longleftrightarrow> x < y \<or> x = y"
-    -- \<open>NOT suitable for iff, since it can cause PROOF FAILED.\<close>
+    \<comment> \<open>NOT suitable for iff, since it can cause PROOF FAILED.\<close>
 by (fact order.order_iff_strict)
 
 lemma le_imp_less_or_eq: "x \<le> y \<Longrightarrow> x < y \<or> x = y"
@@ -1360,7 +1360,7 @@ proof -
   then show "P (LEAST x. P x)" and "(LEAST x. P x) \<le> k" by auto
 qed
 
--- "The following 3 lemmas are due to Brian Huffman"
+\<comment> "The following 3 lemmas are due to Brian Huffman"
 lemma LeastI_ex: "\<exists>x. P x \<Longrightarrow> P (Least P)"
   by (erule exE) (erule LeastI)
 

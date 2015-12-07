@@ -18,7 +18,7 @@ class semiring = ab_semigroup_add + semigroup_mult +
   assumes distrib_left[algebra_simps]: "a * (b + c) = a * b + a * c"
 begin
 
-text\<open>For the @{text combine_numerals} simproc\<close>
+text\<open>For the \<open>combine_numerals\<close> simproc\<close>
 lemma combine_common_factor:
   "a * e + (b * e + c) = (a + b) * e + c"
 by (simp add: distrib_right ac_simps)
@@ -890,7 +890,7 @@ lemma dvd_div_unit_iff:
   by (erule is_unitE [of _ c]) (simp add: dvd_mult_unit_iff)
 
 lemmas unit_dvd_iff = mult_unit_dvd_iff div_unit_dvd_iff
-  dvd_mult_unit_iff dvd_div_unit_iff -- \<open>FIXME consider fact collection\<close>
+  dvd_mult_unit_iff dvd_div_unit_iff \<comment> \<open>FIXME consider fact collection\<close>
 
 lemma unit_mult_div_div [simp]:
   "is_unit a \<Longrightarrow> b * (1 div a) = b div a"
@@ -1298,7 +1298,7 @@ using mult_left_mono [of b 0 a] by simp
 lemma mult_nonpos_nonneg: "a \<le> 0 \<Longrightarrow> 0 \<le> b \<Longrightarrow> a * b \<le> 0"
 using mult_right_mono [of a 0 b] by simp
 
-text \<open>Legacy - use @{text mult_nonpos_nonneg}\<close>
+text \<open>Legacy - use \<open>mult_nonpos_nonneg\<close>\<close>
 lemma mult_nonneg_nonpos2: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> b * a \<le> 0"
 by (drule mult_right_mono [of b 0], auto)
 
@@ -1374,7 +1374,7 @@ using mult_strict_left_mono [of b 0 a] by simp
 lemma mult_neg_pos: "a < 0 \<Longrightarrow> 0 < b \<Longrightarrow> a * b < 0"
 using mult_strict_right_mono [of a 0 b] by simp
 
-text \<open>Legacy - use @{text mult_neg_pos}\<close>
+text \<open>Legacy - use \<open>mult_neg_pos\<close>\<close>
 lemma mult_pos_neg2: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> b * a < 0"
 by (drule mult_strict_right_mono [of b 0], auto)
 
@@ -1627,7 +1627,7 @@ lemma mult_le_0_iff:
   done
 
 text\<open>Cancellation laws for @{term "c*a < c*b"} and @{term "a*c < b*c"},
-   also with the relations @{text "\<le>"} and equality.\<close>
+   also with the relations \<open>\<le>\<close> and equality.\<close>
 
 text\<open>These ``disjunction'' versions produce two cases when the comparison is
  an assumption, but effectively four when the comparison is a goal.\<close>

@@ -23,12 +23,12 @@ lemmas semiring_norm =
 declare split_div [of _ _ "numeral k", arith_split] for k
 declare split_mod [of _ _ "numeral k", arith_split] for k
 
-text \<open>For @{text combine_numerals}\<close>
+text \<open>For \<open>combine_numerals\<close>\<close>
 
 lemma left_add_mult_distrib: "i*u + (j*u + k) = (i+j)*u + (k::nat)"
 by (simp add: add_mult_distrib)
 
-text \<open>For @{text cancel_numerals}\<close>
+text \<open>For \<open>cancel_numerals\<close>\<close>
 
 lemma nat_diff_add_eq1:
      "j <= (i::nat) ==> ((i*u + m) - (j*u + n)) = (((i-j)*u + m) - n)"
@@ -62,7 +62,7 @@ lemma nat_le_add_iff2:
      "i <= (j::nat) ==> (i*u + m <= j*u + n) = (m <= (j-i)*u + n)"
 by (auto split add: nat_diff_split simp add: add_mult_distrib)
 
-text \<open>For @{text cancel_numeral_factors}\<close>
+text \<open>For \<open>cancel_numeral_factors\<close>\<close>
 
 lemma nat_mult_le_cancel1: "(0::nat) < k ==> (k*m <= k*n) = (m<=n)"
 by auto
@@ -83,7 +83,7 @@ by (auto simp: dvd_eq_mod_eq_0 mod_mult_mult1)
 lemma nat_mult_dvd_cancel1: "0 < k \<Longrightarrow> (k*m) dvd (k*n::nat) = (m dvd n)"
 by(auto)
 
-text \<open>For @{text cancel_factor}\<close>
+text \<open>For \<open>cancel_factor\<close>\<close>
 
 lemmas nat_mult_le_cancel_disj = mult_le_cancel1
 

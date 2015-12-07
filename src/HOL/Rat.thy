@@ -244,7 +244,7 @@ next
   with Fract \<open>q = Fract a b\<close> \<open>b > 0\<close> \<open>coprime a b\<close> show C by blast
 qed
 
-subsubsection \<open>Function @{text normalize}\<close>
+subsubsection \<open>Function \<open>normalize\<close>\<close>
 
 lemma Fract_coprime: "Fract (a div gcd a b) (b div gcd a b) = Fract a b"
 proof (cases "b = 0")

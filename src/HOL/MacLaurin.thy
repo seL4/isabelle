@@ -209,7 +209,7 @@ lemma Maclaurin_minus:
          f h = (\<Sum>m<n. diff m 0 / (fact m) * h ^ m) +
          diff n t / (fact n) * h ^ n"
 proof -
-  txt "Transform @{text ABL'} into @{text derivative_intros} format."
+  txt "Transform \<open>ABL'\<close> into \<open>derivative_intros\<close> format."
   note DERIV' = DERIV_chain'[OF _ DERIV[rule_format], THEN DERIV_cong]
   from assms
   have "\<exists>t>0. t < - h \<and>

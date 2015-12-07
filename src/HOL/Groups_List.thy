@@ -99,7 +99,7 @@ syntax
 syntax (xsymbols)
   "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
 
-translations -- \<open>Beware of argument permutation!\<close>
+translations \<comment> \<open>Beware of argument permutation!\<close>
   "SUM x<-xs. b" == "CONST listsum (CONST map (%x. b) xs)"
   "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (CONST map (%x. b) xs)"
 
@@ -179,7 +179,7 @@ lemma (in monoid_add) listsum_0 [simp]:
   "(\<Sum>x\<leftarrow>xs. 0) = 0"
   by (induct xs) (simp_all add: distrib_right)
 
-text\<open>For non-Abelian groups @{text xs} needs to be reversed on one side:\<close>
+text\<open>For non-Abelian groups \<open>xs\<close> needs to be reversed on one side:\<close>
 lemma (in ab_group_add) uminus_listsum_map:
   "- listsum (map f xs) = listsum (map (uminus \<circ> f) xs)"
   by (induct xs) simp_all
@@ -357,7 +357,7 @@ syntax
 syntax (xsymbols)
   "_listprod" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
 
-translations -- \<open>Beware of argument permutation!\<close>
+translations \<comment> \<open>Beware of argument permutation!\<close>
   "PROD x<-xs. b" == "CONST listprod (CONST map (%x. b) xs)"
   "\<Prod>x\<leftarrow>xs. b" == "CONST listprod (CONST map (%x. b) xs)"
 

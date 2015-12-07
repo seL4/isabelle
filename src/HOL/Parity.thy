@@ -9,7 +9,7 @@ theory Parity
 imports Nat_Transfer
 begin
 
-subsection \<open>Ring structures with parity and @{text even}/@{text odd} predicates\<close>
+subsection \<open>Ring structures with parity and \<open>even\<close>/\<open>odd\<close> predicates\<close>
 
 class semiring_parity = comm_semiring_1_cancel + numeral +
   assumes odd_one [simp]: "\<not> 2 dvd 1"

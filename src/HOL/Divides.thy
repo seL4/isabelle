@@ -220,7 +220,7 @@ qed
 
 text \<open>Addition respects modular equivalence.\<close>
 
-lemma mod_add_left_eq: -- \<open>FIXME reorient\<close>
+lemma mod_add_left_eq: \<comment> \<open>FIXME reorient\<close>
   "(a + b) mod c = (a mod c + b) mod c"
 proof -
   have "(a + b) mod c = (a div c * c + a mod c + b) mod c"
@@ -232,7 +232,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma mod_add_right_eq: -- \<open>FIXME reorient\<close>
+lemma mod_add_right_eq: \<comment> \<open>FIXME reorient\<close>
   "(a + b) mod c = (a + b mod c) mod c"
 proof -
   have "(a + b) mod c = (a + (b div c * c + b mod c)) mod c"
@@ -244,7 +244,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma mod_add_eq: -- \<open>FIXME reorient\<close>
+lemma mod_add_eq: \<comment> \<open>FIXME reorient\<close>
   "(a + b) mod c = (a mod c + b mod c) mod c"
 by (rule trans [OF mod_add_left_eq mod_add_right_eq])
 
@@ -261,7 +261,7 @@ qed
 
 text \<open>Multiplication respects modular equivalence.\<close>
 
-lemma mod_mult_left_eq: -- \<open>FIXME reorient\<close>
+lemma mod_mult_left_eq: \<comment> \<open>FIXME reorient\<close>
   "(a * b) mod c = ((a mod c) * b) mod c"
 proof -
   have "(a * b) mod c = ((a div c * c + a mod c) * b) mod c"
@@ -273,7 +273,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma mod_mult_right_eq: -- \<open>FIXME reorient\<close>
+lemma mod_mult_right_eq: \<comment> \<open>FIXME reorient\<close>
   "(a * b) mod c = (a * (b mod c)) mod c"
 proof -
   have "(a * b) mod c = (a * (b div c * c + b mod c)) mod c"
@@ -285,7 +285,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma mod_mult_eq: -- \<open>FIXME reorient\<close>
+lemma mod_mult_eq: \<comment> \<open>FIXME reorient\<close>
   "(a * b) mod c = ((a mod c) * (b mod c)) mod c"
 by (rule trans [OF mod_mult_left_eq mod_mult_right_eq])
 
@@ -573,7 +573,7 @@ class semiring_numeral_div = semiring_div + comm_semiring_1_cancel + linordered_
     and divmod_step_def: "divmod_step l qr = (let (q, r) = qr
     in if r \<ge> numeral l then (2 * q + 1, r - numeral l)
     else (2 * q, r))"
-    -- \<open>These are conceptually definitions but force generated code
+    \<comment> \<open>These are conceptually definitions but force generated code
     to be monomorphic wrt. particular instances of this class which
     yields a significant speedup.\<close>
 
@@ -733,7 +733,7 @@ next
   with False show ?thesis by simp
 qed
 
-text \<open>The division rewrite proper -- first, trivial results involving @{text 1}\<close>
+text \<open>The division rewrite proper -- first, trivial results involving \<open>1\<close>\<close>
 
 lemma divmod_trivial [simp]:
   "divmod Num.One Num.One = (numeral Num.One, 0)"
@@ -1428,7 +1428,7 @@ proof (rule ccontr)
     fix k
     show "?A k"
     proof (induct k)
-      show "?A 0" by simp  -- "by contradiction"
+      show "?A 0" by simp  \<comment> "by contradiction"
     next
       fix n
       assume ih: "?A n"
@@ -1638,7 +1638,7 @@ lemma Suc_0_mod_numeral [simp]:
 
 subsection \<open>Division on @{typ int}\<close>
 
-definition divmod_int_rel :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool" -- \<open>definition of quotient and remainder\<close>
+definition divmod_int_rel :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool" \<comment> \<open>definition of quotient and remainder\<close>
   where "divmod_int_rel a b = (\<lambda>(q, r). a = b * q + r \<and>
     (if 0 < b then 0 \<le> r \<and> r < b else if b < 0 then b < r \<and> r \<le> 0 else q = 0))"
 
@@ -1860,7 +1860,7 @@ apply (rule_tac q = "-1" in mod_int_unique)
 apply (auto simp add: divmod_int_rel_def)
 done
 
-text\<open>There is no @{text mod_neg_pos_trivial}.\<close>
+text\<open>There is no \<open>mod_neg_pos_trivial\<close>.\<close>
 
 
 subsubsection \<open>Laws for div and mod with Unary Minus\<close>
@@ -2170,7 +2170,7 @@ declare split_zdiv [of _ _ "numeral k", arith_split] for k
 declare split_zmod [of _ _ "numeral k", arith_split] for k
 
 
-subsubsection \<open>Computing @{text "div"} and @{text "mod"} with shifting\<close>
+subsubsection \<open>Computing \<open>div\<close> and \<open>mod\<close> with shifting\<close>
 
 lemma pos_divmod_int_rel_mult_2:
   assumes "0 \<le> b"
@@ -2272,8 +2272,8 @@ by (drule zdiv_mono1_neg, auto)
 lemma div_nonpos_pos_le0: "[| (a::int) \<le> 0; b > 0 |] ==> a div b \<le> 0"
 by (drule zdiv_mono1, auto)
 
-text\<open>Now for some equivalences of the form @{text"a div b >=< 0 \<longleftrightarrow> \<dots>"}
-conditional upon the sign of @{text a} or @{text b}. There are many more.
+text\<open>Now for some equivalences of the form \<open>a div b >=< 0 \<longleftrightarrow> \<dots>\<close>
+conditional upon the sign of \<open>a\<close> or \<open>b\<close>. There are many more.
 They should all be simp rules unless that causes too much search.\<close>
 
 lemma pos_imp_zdiv_nonneg_iff: "(0::int) < b ==> (0 \<le> a div b) = (0 \<le> a)"
@@ -2466,7 +2466,7 @@ lemmas zmod_simps =
   power_mod
   zminus_zmod zdiff_zmod_left zdiff_zmod_right
 
-text \<open>Distributive laws for function @{text nat}.\<close>
+text \<open>Distributive laws for function \<open>nat\<close>.\<close>
 
 lemma nat_div_distrib: "0 \<le> x \<Longrightarrow> nat (x div y) = nat x div nat y"
 apply (rule linorder_cases [of y 0])

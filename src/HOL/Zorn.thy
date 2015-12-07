@@ -17,7 +17,7 @@ subsection \<open>Zorn's Lemma for the Subset Relation\<close>
 
 subsubsection \<open>Results that do not require an order\<close>
 
-text \<open>Let @{text P} be a binary predicate on the set @{text A}.\<close>
+text \<open>Let \<open>P\<close> be a binary predicate on the set \<open>A\<close>.\<close>
 locale pred_on =
   fixes A :: "'a set"
     and P :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<sqsubset>" 50)
@@ -464,7 +464,7 @@ lemma Zorns_po_lemma:
   shows "\<exists>m\<in>Field r. \<forall>a\<in>Field r. (m, a) \<in> r \<longrightarrow> a = m"
 proof -
   have "Preorder r" using po by (simp add: partial_order_on_def)
---\<open>Mirror r in the set of subsets below (wrt r) elements of A\<close>
+\<comment>\<open>Mirror r in the set of subsets below (wrt r) elements of A\<close>
   let ?B = "%x. r\<inverse> `` {x}" let ?S = "?B ` Field r"
   {
     fix C assume 1: "C \<subseteq> ?S" and 2: "\<forall>A\<in>C. \<forall>B\<in>C. A \<subseteq> B \<or> B \<subseteq> A"
@@ -607,7 +607,7 @@ lemma Chains_inits_DiffI:
 
 theorem well_ordering: "\<exists>r::'a rel. Well_order r \<and> Field r = UNIV"
 proof -
--- \<open>The initial segment relation on well-orders:\<close>
+\<comment> \<open>The initial segment relation on well-orders:\<close>
   let ?WO = "{r::'a rel. Well_order r}"
   def I \<equiv> "init_seg_of \<inter> ?WO \<times> ?WO"
   have I_init: "I \<subseteq> init_seg_of" by (auto simp: I_def)
@@ -619,7 +619,7 @@ proof -
   hence 0: "Partial_order I"
     by (auto simp: partial_order_on_def preorder_on_def antisym_def antisym_init_seg_of refl_on_def
       trans_def I_def elim!: trans_init_seg_of)
--- \<open>I-chains have upper bounds in ?WO wrt I: their Union\<close>
+\<comment> \<open>I-chains have upper bounds in ?WO wrt I: their Union\<close>
   { fix R assume "R \<in> Chains I"
     hence Ris: "R \<in> Chains init_seg_of" using mono_Chains [OF I_init] by blast
     have subch: "chain\<^sub>\<subseteq> R" using \<open>R : Chains I\<close> I_init
@@ -648,13 +648,13 @@ proof -
       unfolding I_def by blast
   }
   hence 1: "\<forall>R \<in> Chains I. \<exists>u\<in>Field I. \<forall>r\<in>R. (r, u) \<in> I" by (subst FI) blast
---\<open>Zorn's Lemma yields a maximal well-order m:\<close>
+\<comment>\<open>Zorn's Lemma yields a maximal well-order m:\<close>
   then obtain m::"'a rel" where "Well_order m" and
     max: "\<forall>r. Well_order r \<and> (m, r) \<in> I \<longrightarrow> r = m"
     using Zorns_po_lemma[OF 0 1] unfolding FI by fastforce
---\<open>Now show by contradiction that m covers the whole type:\<close>
+\<comment>\<open>Now show by contradiction that m covers the whole type:\<close>
   { fix x::'a assume "x \<notin> Field m"
---\<open>We assume that x is not covered and extend m at the top with x\<close>
+\<comment>\<open>We assume that x is not covered and extend m at the top with x\<close>
     have "m \<noteq> {}"
     proof
       assume "m = {}"
@@ -666,14 +666,14 @@ proof -
     hence "Field m \<noteq> {}" by(auto simp:Field_def)
     moreover have "wf (m - Id)" using \<open>Well_order m\<close>
       by (simp add: well_order_on_def)
---\<open>The extension of m by x:\<close>
+\<comment>\<open>The extension of m by x:\<close>
     let ?s = "{(a, x) | a. a \<in> Field m}"
     let ?m = "insert (x, x) m \<union> ?s"
     have Fm: "Field ?m = insert x (Field m)"
       by (auto simp: Field_def)
     have "Refl m" and "trans m" and "antisym m" and "Total m" and "wf (m - Id)"
       using \<open>Well_order m\<close> by (simp_all add: order_on_defs)
---\<open>We show that the extension is a well-order\<close>
+\<comment>\<open>We show that the extension is a well-order\<close>
     have "Refl ?m" using \<open>Refl m\<close> Fm unfolding refl_on_def by blast
     moreover have "trans ?m" using \<open>trans m\<close> and \<open>x \<notin> Field m\<close>
       unfolding trans_def Field_def by blast
@@ -689,11 +689,11 @@ proof -
         unfolding Un_Diff Field_def by (auto intro: wf_Un)
     qed
     ultimately have "Well_order ?m" by (simp add: order_on_defs)
---\<open>We show that the extension is above m\<close>
+\<comment>\<open>We show that the extension is above m\<close>
     moreover have "(m, ?m) \<in> I" using \<open>Well_order ?m\<close> and \<open>Well_order m\<close> and \<open>x \<notin> Field m\<close>
       by (fastforce simp: I_def init_seg_of_def Field_def)
     ultimately
---\<open>This contradicts maximality of m:\<close>
+\<comment>\<open>This contradicts maximality of m:\<close>
     have False using max and \<open>x \<notin> Field m\<close> unfolding Field_def by blast
   }
   hence "Field m = UNIV" by auto

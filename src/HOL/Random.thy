@@ -136,7 +136,7 @@ proof -
 qed
 
 
-subsection \<open>@{text ML} interface\<close>
+subsection \<open>\<open>ML\<close> interface\<close>
 
 code_reflect Random_Engine
   functions range select select_weight

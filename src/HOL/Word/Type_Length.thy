@@ -2,24 +2,24 @@
     Author:     John Matthews, Galois Connections, Inc., copyright 2006
 *)
 
-section {* Assigning lengths to types by typeclasses *}
+section \<open>Assigning lengths to types by typeclasses\<close>
 
 theory Type_Length
 imports "~~/src/HOL/Library/Numeral_Type"
 begin
 
-text {*
+text \<open>
   The aim of this is to allow any type as index type, but to provide a
   default instantiation for numeral types. This independence requires
-  some duplication with the definitions in @{text "Numeral_Type"}.
-*}
+  some duplication with the definitions in \<open>Numeral_Type\<close>.
+\<close>
 
 class len0 =
   fixes len_of :: "'a itself \<Rightarrow> nat"
 
-text {* 
+text \<open>
   Some theorems are only true on words with length greater 0.
-*}
+\<close>
 
 class len = len0 +
   assumes len_gt_0 [iff]: "0 < len_of TYPE ('a)"

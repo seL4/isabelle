@@ -27,7 +27,7 @@ simproc_setup finite_Collect ("finite (Collect P)") = \<open>K Set_Comprehension
 declare [[simproc del: finite_Collect]]
 
 lemma finite_induct [case_names empty insert, induct set: finite]:
-  -- \<open>Discharging @{text "x \<notin> F"} entails extra work.\<close>
+  \<comment> \<open>Discharging \<open>x \<notin> F\<close> entails extra work.\<close>
   assumes "finite F"
   assumes "P {}"
     and insert: "\<And>x F. finite F \<Longrightarrow> x \<notin> F \<Longrightarrow> P F \<Longrightarrow> P (insert x F)"
@@ -61,7 +61,7 @@ qed
 
 subsubsection \<open>Choice principles\<close>
 
-lemma ex_new_if_finite: -- "does not depend on def of finite at all"
+lemma ex_new_if_finite: \<comment> "does not depend on def of finite at all"
   assumes "\<not> finite (UNIV :: 'a set)" and "finite A"
   shows "\<exists>a::'a. a \<notin> A"
 proof -
@@ -574,7 +574,7 @@ next
 qed
 
 
-subsection \<open>Class @{text finite}\<close>
+subsection \<open>Class \<open>finite\<close>\<close>
 
 class finite =
   assumes finite_UNIV: "finite (UNIV :: 'a set)"
@@ -624,8 +624,8 @@ instance sum :: (finite, finite) finite
 subsection \<open>A basic fold functional for finite sets\<close>
 
 text \<open>The intended behaviour is
-@{text "fold f z {x\<^sub>1, ..., x\<^sub>n} = f x\<^sub>1 (\<dots> (f x\<^sub>n z)\<dots>)"}
-if @{text f} is ``left-commutative'':
+\<open>fold f z {x\<^sub>1, ..., x\<^sub>n} = f x\<^sub>1 (\<dots> (f x\<^sub>n z)\<dots>)\<close>
+if \<open>f\<close> is ``left-commutative'':
 \<close>
 
 locale comp_fun_commute =
@@ -656,7 +656,7 @@ definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Ri
 text\<open>A tempting alternative for the definiens is
 @{term "if finite A then THE y. fold_graph f z A y else e"}.
 It allows the removal of finiteness assumptions from the theorems
-@{text fold_comm}, @{text fold_reindex} and @{text fold_distrib}.
+\<open>fold_comm\<close>, \<open>fold_reindex\<close> and \<open>fold_distrib\<close>.
 The proofs become ugly. It is not worth the effort. (???)\<close>
 
 lemma finite_imp_fold_graph: "finite A \<Longrightarrow> \<exists>x. fold_graph f z A x"
@@ -723,7 +723,7 @@ proof -
   with assms show ?thesis by (simp add: fold_def)
 qed
 
-text \<open>The base case for @{text fold}:\<close>
+text \<open>The base case for \<open>fold\<close>:\<close>
 
 lemma (in -) fold_infinite [simp]:
   assumes "\<not> finite A"
@@ -747,7 +747,7 @@ proof (rule fold_equality)
 qed
 
 declare (in -) empty_fold_graphE [rule del] fold_graph.intros [rule del]
-  -- \<open>No more proofs involve these.\<close>
+  \<comment> \<open>No more proofs involve these.\<close>
 
 lemma fold_fun_left_comm:
   "finite A \<Longrightarrow> f x (fold f z A) = fold f (f x z) A"
@@ -884,7 +884,7 @@ lemma fold_insert_idem2:
 end
 
 
-subsubsection \<open>Liftings to @{text comp_fun_commute} etc.\<close>
+subsubsection \<open>Liftings to \<open>comp_fun_commute\<close> etc.\<close>
 
 lemma (in comp_fun_commute) comp_comp_fun_commute:
   "comp_fun_commute (f \<circ> g)"

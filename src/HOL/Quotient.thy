@@ -64,7 +64,7 @@ lemma Quotient3_rep_reflp:
   by blast
 
 lemma Quotient3_rel:
-  "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- \<open>orientation does not loop on rewriting\<close>
+  "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" \<comment> \<open>orientation does not loop on rewriting\<close>
   using a
   unfolding Quotient3_def
   by blast
@@ -196,7 +196,7 @@ text\<open>
   In the following theorem R1 can be instantiated with anything,
   but we know some of the types of the Rep and Abs functions;
   so by solving Quotient assumptions we can get a unique R1 that
-  will be provable; which is why we need to use @{text apply_rsp} and
+  will be provable; which is why we need to use \<open>apply_rsp\<close> and
   not the primed version\<close>
 
 lemma apply_rspQ3:
@@ -392,7 +392,7 @@ lemma ex_prs:
   using a unfolding Quotient3_def Bex_def in_respects id_apply comp_def map_fun_def
   by metis
 
-subsection \<open>@{text Bex1_rel} quantifier\<close>
+subsection \<open>\<open>Bex1_rel\<close> quantifier\<close>
 
 definition
   Bex1_rel :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"

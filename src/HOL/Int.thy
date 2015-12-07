@@ -198,7 +198,7 @@ lemmas int_distrib =
   for z1 z2 w :: int
 
 
-subsection \<open>Embedding of the Integers into any @{text ring_1}: @{text of_int}\<close>
+subsection \<open>Embedding of the Integers into any \<open>ring_1\<close>: \<open>of_int\<close>\<close>
 
 context ring_1
 begin
@@ -270,7 +270,7 @@ end
 context linordered_idom
 begin
 
-text\<open>Every @{text linordered_idom} has characteristic zero.\<close>
+text\<open>Every \<open>linordered_idom\<close> has characteristic zero.\<close>
 subclass ring_char_0 ..
 
 lemma of_int_le_iff [simp]:
@@ -364,7 +364,7 @@ instance int :: no_bot
   apply simp
   done
 
-subsection \<open>Magnitude of an Integer, as a Natural Number: @{text nat}\<close>
+subsection \<open>Magnitude of an Integer, as a Natural Number: \<open>nat\<close>\<close>
 
 lift_definition nat :: "int \<Rightarrow> nat" is "\<lambda>(x, y). x - y"
   by auto
@@ -525,9 +525,9 @@ lemma zadd_int_left: "int m + (int n + z) = int (m + n) + z"
 by simp
 
 text\<open>This version is proved for all ordered rings, not just integers!
-      It is proved here because attribute @{text arith_split} is not available
-      in theory @{text Rings}.
-      But is it really better than just rewriting with @{text abs_if}?\<close>
+      It is proved here because attribute \<open>arith_split\<close> is not available
+      in theory \<open>Rings\<close>.
+      But is it really better than just rewriting with \<open>abs_if\<close>?\<close>
 lemma abs_split [arith_split, no_atp]:
      "P(abs(a::'a::linordered_idom)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
 by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
@@ -588,14 +588,14 @@ lemma nonneg_int_cases:
   using assms by (rule nonneg_eq_int)
 
 lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
-  -- \<open>Unfold all @{text let}s involving constants\<close>
-  by (fact Let_numeral) -- \<open>FIXME drop\<close>
+  \<comment> \<open>Unfold all \<open>let\<close>s involving constants\<close>
+  by (fact Let_numeral) \<comment> \<open>FIXME drop\<close>
 
 lemma Let_neg_numeral [simp]: "Let (- numeral v) f = f (- numeral v)"
-  -- \<open>Unfold all @{text let}s involving constants\<close>
-  by (fact Let_neg_numeral) -- \<open>FIXME drop\<close>
+  \<comment> \<open>Unfold all \<open>let\<close>s involving constants\<close>
+  by (fact Let_neg_numeral) \<comment> \<open>FIXME drop\<close>
 
-text \<open>Unfold @{text min} and @{text max} on numerals.\<close>
+text \<open>Unfold \<open>min\<close> and \<open>max\<close> on numerals.\<close>
 
 lemmas max_number_of [simp] =
   max_def [of "numeral u" "numeral v"]
@@ -1220,7 +1220,7 @@ lemmas zero_le_divide_iff_numeral [simp, no_atp] = zero_le_divide_iff [of "numer
 lemmas divide_le_0_iff_numeral [simp, no_atp] = divide_le_0_iff [of "numeral w"] for w
 
 
-text \<open>Replaces @{text "inverse #nn"} by @{text "1/#nn"}.  It looks
+text \<open>Replaces \<open>inverse #nn\<close> by \<open>1/#nn\<close>.  It looks
   strange, but then other simprocs simplify the quotient.\<close>
 
 lemmas inverse_eq_divide_numeral [simp] =
@@ -1250,10 +1250,10 @@ lemmas less_minus_iff_numeral [no_atp] =
 lemmas minus_less_iff_numeral [no_atp] =
   minus_less_iff [of _ "numeral v"] for v
 
--- \<open>FIXME maybe simproc\<close>
+\<comment> \<open>FIXME maybe simproc\<close>
 
 
-text \<open>Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"})\<close>
+text \<open>Cancellation of constant factors in comparisons (\<open><\<close> and \<open>\<le>\<close>)\<close>
 
 lemmas mult_less_cancel_left_numeral [simp, no_atp] = mult_less_cancel_left [of "numeral v"] for v
 lemmas mult_less_cancel_right_numeral [simp, no_atp] = mult_less_cancel_right [of _ "numeral v"] for v
@@ -1261,7 +1261,7 @@ lemmas mult_le_cancel_left_numeral [simp, no_atp] = mult_le_cancel_left [of "num
 lemmas mult_le_cancel_right_numeral [simp, no_atp] = mult_le_cancel_right [of _ "numeral v"] for v
 
 
-text \<open>Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="})\<close>
+text \<open>Multiplying out constant divisors in comparisons (\<open><\<close>, \<open>\<le>\<close> and \<open>=\<close>)\<close>
 
 named_theorems divide_const_simps "simplification rules to simplify comparisons involving constant divisors"
 
@@ -1689,7 +1689,7 @@ lemmas zdiff_int = of_nat_diff [where 'a=int, symmetric]
 lemmas zpower_numeral_even = power_numeral_even [where 'a=int]
 lemmas zpower_numeral_odd = power_numeral_odd [where 'a=int]
 
-text \<open>De-register @{text "int"} as a quotient type:\<close>
+text \<open>De-register \<open>int\<close> as a quotient type:\<close>
 
 lifting_update int.lifting
 lifting_forget int.lifting

@@ -10,8 +10,8 @@ subsection \<open>Sets as predicates\<close>
 
 typedecl 'a set
 
-axiomatization Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" -- "comprehension"
-  and member :: "'a \<Rightarrow> 'a set \<Rightarrow> bool" -- "membership"
+axiomatization Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" \<comment> "comprehension"
+  and member :: "'a \<Rightarrow> 'a set \<Rightarrow> bool" \<comment> "membership"
 where
   mem_Collect_eq [iff, code_unfold]: "member a (Collect P) = P a"
   and Collect_mem_eq [simp]: "Collect (\<lambda>x. member x A) = A"
@@ -21,7 +21,7 @@ notation
   member  ("(_/ : _)" [51, 51] 50)
 
 abbreviation not_member where
-  "not_member x A \<equiv> ~ (x : A)" -- "non-membership"
+  "not_member x A \<equiv> ~ (x : A)" \<comment> "non-membership"
 
 notation
   not_member  ("op ~:") and
@@ -58,8 +58,8 @@ lemma Collect_cong: "(\<And>x. P x = Q x) ==> {x. P x} = {x. Q x}"
   by simp
 
 text \<open>
-Simproc for pulling @{text "x=t"} in @{text "{x. \<dots> & x=t & \<dots>}"}
-to the front (and similarly for @{text "t=x"}):
+Simproc for pulling \<open>x=t\<close> in \<open>{x. \<dots> & x=t & \<dots>}\<close>
+to the front (and similarly for \<open>t=x\<close>):
 \<close>
 
 simproc_setup defined_Collect ("{x. P x & Q x}") = \<open>
@@ -176,10 +176,10 @@ notation (xsymbols)
   supset_eq  ("(_/ \<supseteq> _)" [51, 51] 50)
 
 definition Ball :: "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "Ball A P \<longleftrightarrow> (\<forall>x. x \<in> A \<longrightarrow> P x)"   -- "bounded universal quantifiers"
+  "Ball A P \<longleftrightarrow> (\<forall>x. x \<in> A \<longrightarrow> P x)"   \<comment> "bounded universal quantifiers"
 
 definition Bex :: "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "Bex A P \<longleftrightarrow> (\<exists>x. x \<in> A \<and> P x)"   -- "bounded existential quantifiers"
+  "Bex A P \<longleftrightarrow> (\<exists>x. x \<in> A \<and> P x)"   \<comment> "bounded existential quantifiers"
 
 syntax
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3ALL _:_./ _)" [0, 0, 10] 10)
@@ -267,9 +267,8 @@ print_translation \<open>
 
 
 text \<open>
-  \medskip Translate between @{text "{e | x1...xn. P}"} and @{text
-  "{u. EX x1..xn. u = e & P}"}; @{text "{y. EX x1..xn. y = e & P}"} is
-  only translated if @{text "[0..n] subset bvs(e)"}.
+  \medskip Translate between \<open>{e | x1...xn. P}\<close> and \<open>{u. EX x1..xn. u = e & P}\<close>; \<open>{y. EX x1..xn. y = e & P}\<close> is
+  only translated if \<open>[0..n] subset bvs(e)\<close>.
 \<close>
 
 syntax
@@ -295,7 +294,7 @@ parse_translation \<open>
 print_translation \<open>
  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Ball} @{syntax_const "_Ball"},
   Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Bex} @{syntax_const "_Bex"}]
-\<close> -- \<open>to avoid eta-contraction of body\<close>
+\<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 print_translation \<open>
 let
@@ -383,12 +382,12 @@ lemma ballE [elim]: "ALL x:A. P x ==> (P x ==> Q) ==> (x ~: A ==> Q) ==> Q"
   by (unfold Ball_def) blast
 
 lemma bexI [intro]: "P x ==> x:A ==> EX x:A. P x"
-  -- \<open>Normally the best argument order: @{prop "P x"} constrains the
+  \<comment> \<open>Normally the best argument order: @{prop "P x"} constrains the
     choice of @{prop "x:A"}.\<close>
   by (unfold Bex_def) blast
 
 lemma rev_bexI [intro?]: "x:A ==> P x ==> EX x:A. P x"
-  -- \<open>The best argument order when there is only one @{prop "x:A"}.\<close>
+  \<comment> \<open>The best argument order when there is only one @{prop "x:A"}.\<close>
   by (unfold Bex_def) blast
 
 lemma bexCI: "(ALL x:A. ~P x ==> P a) ==> a:A ==> EX x:A. P x"
@@ -398,11 +397,11 @@ lemma bexE [elim!]: "EX x:A. P x ==> (!!x. x:A ==> P x ==> Q) ==> Q"
   by (unfold Bex_def) blast
 
 lemma ball_triv [simp]: "(ALL x:A. P) = ((EX x. x:A) --> P)"
-  -- \<open>Trival rewrite rule.\<close>
+  \<comment> \<open>Trival rewrite rule.\<close>
   by (simp add: Ball_def)
 
 lemma bex_triv [simp]: "(EX x:A. P) = ((EX x. x:A) & P)"
-  -- \<open>Dual form for existentials.\<close>
+  \<comment> \<open>Dual form for existentials.\<close>
   by (simp add: Bex_def)
 
 lemma bex_triv_one_point1 [simp]: "(EX x:A. x = a) = (a:A)"
@@ -465,18 +464,18 @@ lemma subsetI [intro!]: "(\<And>x. x \<in> A \<Longrightarrow> x \<in> B) \<Long
   by (simp add: less_eq_set_def le_fun_def)
 
 text \<open>
-  \medskip Map the type @{text "'a set => anything"} to just @{typ
+  \medskip Map the type \<open>'a set => anything\<close> to just @{typ
   'a}; for overloading constants whose first argument has type @{typ
   "'a set"}.
 \<close>
 
 lemma subsetD [elim, intro?]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
   by (simp add: less_eq_set_def le_fun_def)
-  -- \<open>Rule in Modus Ponens style.\<close>
+  \<comment> \<open>Rule in Modus Ponens style.\<close>
 
 lemma rev_subsetD [intro?]: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
-  -- \<open>The same, with reversed premises for use with @{text erule} --
-      cf @{text rev_mp}.\<close>
+  \<comment> \<open>The same, with reversed premises for use with \<open>erule\<close> --
+      cf \<open>rev_mp\<close>.\<close>
   by (rule subsetD)
 
 text \<open>
@@ -484,7 +483,7 @@ text \<open>
 \<close>
 
 lemma subsetCE [elim]: "A \<subseteq> B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
-  -- \<open>Classical elimination rule.\<close>
+  \<comment> \<open>Classical elimination rule.\<close>
   by (auto simp add: less_eq_set_def le_fun_def)
 
 lemma subset_eq: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
@@ -518,7 +517,7 @@ lemmas basic_trans_rules [trans] =
 subsubsection \<open>Equality\<close>
 
 lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"
-  -- \<open>Anti-symmetry of the subset relation.\<close>
+  \<comment> \<open>Anti-symmetry of the subset relation.\<close>
   by (iprover intro: set_eqI subsetD)
 
 text \<open>
@@ -533,8 +532,7 @@ lemma equalityD2: "A = B ==> B \<subseteq> A"
   by simp
 
 text \<open>
-  \medskip Be careful when adding this to the claset as @{text
-  subset_empty} is in the simpset: @{prop "A = {}"} goes to @{prop "{}
+  \medskip Be careful when adding this to the claset as \<open>subset_empty\<close> is in the simpset: @{prop "A = {}"} goes to @{prop "{}
   \<subseteq> A"} and @{prop "A \<subseteq> {}"} and then back to @{prop "A = {}"}!
 \<close>
 
@@ -565,14 +563,14 @@ lemma emptyE [elim!]: "a : {} ==> P"
   by simp
 
 lemma empty_subsetI [iff]: "{} \<subseteq> A"
-    -- \<open>One effect is to delete the ASSUMPTION @{prop "{} <= A"}\<close>
+    \<comment> \<open>One effect is to delete the ASSUMPTION @{prop "{} <= A"}\<close>
   by blast
 
 lemma equals0I: "(!!y. y \<in> A ==> False) ==> A = {}"
   by blast
 
 lemma equals0D: "A = {} ==> a \<notin> A"
-    -- \<open>Use for reasoning about disjointness: @{text "A Int B = {}"}\<close>
+    \<comment> \<open>Use for reasoning about disjointness: \<open>A Int B = {}\<close>\<close>
   by blast
 
 lemma ball_empty [simp]: "Ball {} P = True"
@@ -594,7 +592,7 @@ lemma UNIV_def:
 lemma UNIV_I [simp]: "x : UNIV"
   by (simp add: UNIV_def)
 
-declare UNIV_I [intro]  -- \<open>unsafe makes it less likely to cause problems\<close>
+declare UNIV_I [intro]  \<comment> \<open>unsafe makes it less likely to cause problems\<close>
 
 lemma UNIV_witness [intro?]: "EX x. x : UNIV"
   by simp
@@ -603,7 +601,7 @@ lemma subset_UNIV: "A \<subseteq> UNIV"
   by (fact top_greatest) (* already simp *)
 
 text \<open>
-  \medskip Eta-contracting these two rules (to remove @{text P})
+  \medskip Eta-contracting these two rules (to remove \<open>P\<close>)
   causes them to be ignored because of their interaction with
   congruence rules.
 \<close>
@@ -777,7 +775,7 @@ lemma insertE [elim!]: "a : insert b A ==> (a = b ==> P) ==> (a:A ==> P) ==> P"
   by (unfold insert_def) blast
 
 lemma insertCI [intro!]: "(a~:B ==> a = b) ==> a: insert b B"
-  -- \<open>Classical introduction rule.\<close>
+  \<comment> \<open>Classical introduction rule.\<close>
   by auto
 
 lemma subset_insert_iff: "(A \<subseteq> insert x B) = (if x:A then A - {x} \<subseteq> B else A \<subseteq> B)"
@@ -821,7 +819,7 @@ by auto
 subsubsection \<open>Singletons, using insert\<close>
 
 lemma singletonI [intro!]: "a : {a}"
-    -- \<open>Redundant? But unlike @{text insertCI}, it proves the subgoal immediately!\<close>
+    \<comment> \<open>Redundant? But unlike \<open>insertCI\<close>, it proves the subgoal immediately!\<close>
   by (rule insertI1)
 
 lemma singletonD [dest!]: "b : {a} ==> b = a"
@@ -887,12 +885,12 @@ lemma imageI:
 
 lemma rev_image_eqI:
   "x \<in> A \<Longrightarrow> b = f x \<Longrightarrow> b \<in> f ` A"
-  -- \<open>This version's more effective when we already have the
+  \<comment> \<open>This version's more effective when we already have the
     required @{term x}.\<close>
   by (rule image_eqI)
 
 lemma imageE [elim!]:
-  assumes "b \<in> (\<lambda>x. f x) ` A" -- \<open>The eta-expansion gives variable-name preservation.\<close>
+  assumes "b \<in> (\<lambda>x. f x) ` A" \<comment> \<open>The eta-expansion gives variable-name preservation.\<close>
   obtains x where "b = f x" and "x \<in> A"
   using assms by (unfold image_def) blast
 
@@ -910,13 +908,13 @@ lemma image_iff:
 
 lemma image_subsetI:
   "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> B) \<Longrightarrow> f ` A \<subseteq> B"
-  -- \<open>Replaces the three steps @{text subsetI}, @{text imageE},
-    @{text hypsubst}, but breaks too many existing proofs.\<close>
+  \<comment> \<open>Replaces the three steps \<open>subsetI\<close>, \<open>imageE\<close>,
+    \<open>hypsubst\<close>, but breaks too many existing proofs.\<close>
   by blast
 
 lemma image_subset_iff:
   "f ` A \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>A. f x \<in> B)"
-  -- \<open>This rewrite rule would confuse users if made default.\<close>
+  \<comment> \<open>This rewrite rule would confuse users if made default.\<close>
   by blast
 
 lemma subset_imageE:
@@ -970,7 +968,7 @@ lemma empty_is_image [iff]:
 
 lemma image_Collect:
   "f ` {x. P x} = {f x | x. P x}"
-  -- \<open>NOT suitable as a default simprule: the RHS isn't simpler than the LHS,
+  \<comment> \<open>NOT suitable as a default simprule: the RHS isn't simpler than the LHS,
       with its implicit quantifier and conjunction.  Also image enjoys better
       equational properties than does the RHS.\<close>
   by blast
@@ -1011,7 +1009,7 @@ text \<open>
 \<close>
 
 abbreviation range :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b set"
-where -- "of function"
+where \<comment> "of function"
   "range f \<equiv> f ` UNIV"
 
 lemma range_eqI:
@@ -1035,9 +1033,9 @@ lemma range_composition:
   by auto
 
 
-subsubsection \<open>Some rules with @{text "if"}\<close>
+subsubsection \<open>Some rules with \<open>if\<close>\<close>
 
-text\<open>Elimination of @{text"{x. \<dots> & x=t & \<dots>}"}.\<close>
+text\<open>Elimination of \<open>{x. \<dots> & x=t & \<dots>}\<close>.\<close>
 
 lemma Collect_conv_if: "{x. x=a & P x} = (if P a then {a} else {})"
   by auto
@@ -1046,8 +1044,7 @@ lemma Collect_conv_if2: "{x. a=x & P x} = (if P a then {a} else {})"
   by auto
 
 text \<open>
-  Rewrite rules for boolean case-splitting: faster than @{text
-  "split_if [split]"}.
+  Rewrite rules for boolean case-splitting: faster than \<open>split_if [split]\<close>.
 \<close>
 
 lemma split_if_eq1: "((if Q then x else y) = b) = ((Q --> x = b) & (~ Q --> y = b))"
@@ -1057,8 +1054,7 @@ lemma split_if_eq2: "(a = (if Q then x else y)) = ((Q --> a = x) & (~ Q --> a = 
   by (rule split_if)
 
 text \<open>
-  Split ifs on either side of the membership relation.  Not for @{text
-  "[simp]"} -- can cause goals to blow up!
+  Split ifs on either side of the membership relation.  Not for \<open>[simp]\<close> -- can cause goals to blow up!
 \<close>
 
 lemma split_if_mem1: "((if Q then x else y) : b) = ((Q --> x : b) & (~ Q --> y : b))"
@@ -1139,7 +1135,7 @@ lemma image_Pow_surj:
 
 subsubsection \<open>Derived rules involving subsets.\<close>
 
-text \<open>@{text insert}.\<close>
+text \<open>\<open>insert\<close>.\<close>
 
 lemma subset_insertI: "B \<subseteq> insert a B"
   by (rule subsetI) (erule insertI2)
@@ -1186,10 +1182,10 @@ by blast
 
 subsubsection \<open>Equalities involving union, intersection, inclusion, etc.\<close>
 
-text \<open>@{text "{}"}.\<close>
+text \<open>\<open>{}\<close>.\<close>
 
 lemma Collect_const [simp]: "{s. P} = (if P then UNIV else {})"
-  -- \<open>supersedes @{text "Collect_False_empty"}\<close>
+  \<comment> \<open>supersedes \<open>Collect_False_empty\<close>\<close>
   by auto
 
 lemma subset_empty [simp]: "(A \<subseteq> {}) = (A = {})"
@@ -1220,10 +1216,10 @@ lemma Collect_mono_iff: "Collect P \<subseteq> Collect Q \<longleftrightarrow> (
   by blast
 
 
-text \<open>\medskip @{text insert}.\<close>
+text \<open>\medskip \<open>insert\<close>.\<close>
 
 lemma insert_is_Un: "insert a A = {a} Un A"
-  -- \<open>NOT SUITABLE FOR REWRITING since @{text "{a} == insert a {}"}\<close>
+  \<comment> \<open>NOT SUITABLE FOR REWRITING since \<open>{a} == insert a {}\<close>\<close>
   by blast
 
 lemma insert_not_empty [simp]: "insert a A \<noteq> {}"
@@ -1233,8 +1229,8 @@ lemmas empty_not_insert = insert_not_empty [symmetric]
 declare empty_not_insert [simp]
 
 lemma insert_absorb: "a \<in> A ==> insert a A = A"
-  -- \<open>@{text "[simp]"} causes recursive calls when there are nested inserts\<close>
-  -- \<open>with \emph{quadratic} running time\<close>
+  \<comment> \<open>\<open>[simp]\<close> causes recursive calls when there are nested inserts\<close>
+  \<comment> \<open>with \emph{quadratic} running time\<close>
   by blast
 
 lemma insert_absorb2 [simp]: "insert x (insert x A) = insert x A"
@@ -1247,7 +1243,7 @@ lemma insert_subset [simp]: "(insert x A \<subseteq> B) = (x \<in> B & A \<subse
   by blast
 
 lemma mk_disjoint_insert: "a \<in> A ==> \<exists>B. A = insert a B & a \<notin> B"
-  -- \<open>use new @{text B} rather than @{text "A - {a}"} to avoid infinite unfolding\<close>
+  \<comment> \<open>use new \<open>B\<close> rather than \<open>A - {a}\<close> to avoid infinite unfolding\<close>
   apply (rule_tac x = "A - {a}" in exI, blast)
   done
 
@@ -1268,7 +1264,7 @@ lemma disjoint_insert [simp]:
   by auto
 
 
-text \<open>\medskip @{text Int}\<close>
+text \<open>\medskip \<open>Int\<close>\<close>
 
 lemma Int_absorb: "A \<inter> A = A"
   by (fact inf_idem) (* already simp *)
@@ -1286,7 +1282,7 @@ lemma Int_assoc: "(A \<inter> B) \<inter> C = A \<inter> (B \<inter> C)"
   by (fact inf_assoc)
 
 lemmas Int_ac = Int_assoc Int_left_absorb Int_commute Int_left_commute
-  -- \<open>Intersection is an AC-operator\<close>
+  \<comment> \<open>Intersection is an AC-operator\<close>
 
 lemma Int_absorb1: "B \<subseteq> A ==> A \<inter> B = B"
   by (fact inf_absorb2)
@@ -1328,7 +1324,7 @@ lemma Int_Collect: "(x \<in> A \<inter> {x. P x}) = (x \<in> A & P x)"
   by blast
 
 
-text \<open>\medskip @{text Un}.\<close>
+text \<open>\medskip \<open>Un\<close>.\<close>
 
 lemma Un_absorb: "A \<union> A = A"
   by (fact sup_idem) (* already simp *)
@@ -1346,7 +1342,7 @@ lemma Un_assoc: "(A \<union> B) \<union> C = A \<union> (B \<union> C)"
   by (fact sup_assoc)
 
 lemmas Un_ac = Un_assoc Un_left_absorb Un_commute Un_left_commute
-  -- \<open>Union is an AC-operator\<close>
+  \<comment> \<open>Union is an AC-operator\<close>
 
 lemma Un_absorb1: "A \<subseteq> B ==> A \<union> B = B"
   by (fact sup_absorb2)
@@ -1449,7 +1445,7 @@ lemma subset_Compl_self_eq: "(A \<subseteq> -A) = (A = {})"
   by blast
 
 lemma Un_Int_assoc_eq: "((A \<inter> B) \<union> C = A \<inter> (B \<union> C)) = (C \<subseteq> A)"
-  -- \<open>Halmos, Naive Set Theory, page 16.\<close>
+  \<comment> \<open>Halmos, Naive Set Theory, page 16.\<close>
   by blast
 
 lemma Compl_UNIV_eq: "-UNIV = {}"
@@ -1470,7 +1466,7 @@ lemma Compl_insert: "- insert x A = (-A) - {x}"
 text \<open>\medskip Bounded quantifiers.
 
   The following are not added to the default simpset because
-  (a) they duplicate the body and (b) there are no similar rules for @{text Int}.\<close>
+  (a) they duplicate the body and (b) there are no similar rules for \<open>Int\<close>.\<close>
 
 lemma ball_Un: "(\<forall>x \<in> A \<union> B. P x) = ((\<forall>x\<in>A. P x) & (\<forall>x\<in>B. P x))"
   by blast
@@ -1509,11 +1505,11 @@ lemma Diff_insert0 [simp]: "x \<notin> A ==> A - insert x B = A - B"
   by blast
 
 lemma Diff_insert: "A - insert a B = A - B - {a}"
-  -- \<open>NOT SUITABLE FOR REWRITING since @{text "{a} == insert a 0"}\<close>
+  \<comment> \<open>NOT SUITABLE FOR REWRITING since \<open>{a} == insert a 0\<close>\<close>
   by blast
 
 lemma Diff_insert2: "A - insert a B = A - {a} - B"
-  -- \<open>NOT SUITABLE FOR REWRITING since @{text "{a} == insert a 0"}\<close>
+  \<comment> \<open>NOT SUITABLE FOR REWRITING since \<open>{a} == insert a 0\<close>\<close>
   by blast
 
 lemma insert_Diff_if: "insert x A - B = (if x \<in> B then A - B else insert x (A - B))"
@@ -1591,7 +1587,7 @@ lemma ex_bool_eq: "(\<exists>b. P b) \<longleftrightarrow> P True \<or> P False"
 lemma UNIV_bool: "UNIV = {False, True}"
   by (auto intro: bool_induct)
 
-text \<open>\medskip @{text Pow}\<close>
+text \<open>\medskip \<open>Pow\<close>\<close>
 
 lemma Pow_empty [simp]: "Pow {} = {{}}"
   by (auto simp add: Pow_def)
@@ -1764,7 +1760,7 @@ lemma vimage_Collect: "(!!x. P (f x) = Q x) ==> f -` (Collect P) = Collect Q"
   by blast
 
 lemma vimage_insert: "f-`(insert a B) = (f-`{a}) Un (f-`B)"
-  -- \<open>NOT suitable for rewriting because of the recurrence of @{term "{a}"}.\<close>
+  \<comment> \<open>NOT suitable for rewriting because of the recurrence of @{term "{a}"}.\<close>
   by blast
 
 lemma vimage_Diff: "f -` (A - B) = (f -` A) - (f -` B)"
@@ -1774,7 +1770,7 @@ lemma vimage_UNIV [simp]: "f -` UNIV = UNIV"
   by blast
 
 lemma vimage_mono: "A \<subseteq> B ==> f -` A \<subseteq> f -` B"
-  -- \<open>monotonicity\<close>
+  \<comment> \<open>monotonicity\<close>
   by blast
 
 lemma vimage_image_eq: "f -` (f ` A) = {y. EX x:A. f x = f y}"
@@ -1831,7 +1827,7 @@ subsubsection \<open>Least value operator\<close>
 lemma Least_mono:
   "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
     ==> (LEAST y. y : f ` S) = f (LEAST x. x : S)"
-    -- \<open>Courtesy of Stephan Merz\<close>
+    \<comment> \<open>Courtesy of Stephan Merz\<close>
   apply clarify
   apply (erule_tac P = "%x. x : S" in LeastI2_order, fast)
   apply (rule LeastI2_order)

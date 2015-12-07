@@ -55,7 +55,7 @@ lemma Quotient_rep_reflp: "R (Rep a) (Rep a)"
   by blast
 
 lemma Quotient_rel:
-  "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- \<open>orientation does not loop on rewriting\<close>
+  "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" \<comment> \<open>orientation does not loop on rewriting\<close>
   using a unfolding Quotient_def
   by blast
 
@@ -318,7 +318,7 @@ lemma Quotient_total_abs_eq_iff: "Abs x = Abs y \<longleftrightarrow> R x y"
 
 end
 
-text \<open>Generating transfer rules for a type defined with @{text "typedef"}.\<close>
+text \<open>Generating transfer rules for a type defined with \<open>typedef\<close>.\<close>
 
 context
   fixes Rep Abs A T
@@ -350,7 +350,7 @@ lemma typedef_rep_transfer: "(T ===> op =) (\<lambda>x. x) Rep"
 end
 
 text \<open>Generating the correspondence rule for a constant defined with
-  @{text "lift_definition"}.\<close>
+  \<open>lift_definition\<close>.\<close>
 
 lemma Quotient_to_transfer:
   assumes "Quotient R Abs Rep T" and "R c c" and "c' \<equiv> Abs c"

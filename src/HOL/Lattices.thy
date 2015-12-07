@@ -741,12 +741,12 @@ end
 ML_file "Tools/boolean_algebra_cancel.ML"
 
 simproc_setup boolean_algebra_cancel_sup ("sup a b::'a::boolean_algebra") =
-  {* fn phi => fn ss => try Boolean_Algebra_Cancel.cancel_sup_conv *}
+  \<open>fn phi => fn ss => try Boolean_Algebra_Cancel.cancel_sup_conv\<close>
 
 simproc_setup boolean_algebra_cancel_inf ("inf a b::'a::boolean_algebra") =
-  {* fn phi => fn ss => try Boolean_Algebra_Cancel.cancel_inf_conv *}
+  \<open>fn phi => fn ss => try Boolean_Algebra_Cancel.cancel_inf_conv\<close>
 
-subsection \<open>@{text "min/max"} as special case of lattice\<close>
+subsection \<open>\<open>min/max\<close> as special case of lattice\<close>
 
 context linorder
 begin
@@ -1002,8 +1002,8 @@ lemma sup2E: "(A \<squnion> B) x y \<Longrightarrow> (A x y \<Longrightarrow> P)
   by (simp add: sup_fun_def) iprover
 
 text \<open>
-  \medskip Classical introduction rule: no commitment to @{text A} vs
-  @{text B}.
+  \medskip Classical introduction rule: no commitment to \<open>A\<close> vs
+  \<open>B\<close>.
 \<close>
 
 lemma sup1CI: "(\<not> B x \<Longrightarrow> A x) \<Longrightarrow> (A \<squnion> B) x"

@@ -15,12 +15,12 @@ datatype 'a option =
 datatype_compat option
 
 lemma [case_names None Some, cases type: option]:
-  -- \<open>for backward compatibility -- names of variables differ\<close>
+  \<comment> \<open>for backward compatibility -- names of variables differ\<close>
   "(y = None \<Longrightarrow> P) \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> P) \<Longrightarrow> P"
   by (rule option.exhaust)
 
 lemma [case_names None Some, induct type: option]:
-  -- \<open>for backward compatibility -- names of variables differ\<close>
+  \<comment> \<open>for backward compatibility -- names of variables differ\<close>
   "P None \<Longrightarrow> (\<And>option. P (Some option)) \<Longrightarrow> P option"
   by (rule option.induct)
 

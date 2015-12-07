@@ -22,14 +22,14 @@ lemma not_conjD: "~(P&Q) ==> ~P | ~Q"
   and not_exD: "!!P. ~(\<exists>x. P(x)) ==> \<forall>x. ~P(x)"
   by fast+
 
-text \<open>Removal of @{text "-->"} and @{text "<->"} (positive and
+text \<open>Removal of \<open>-->\<close> and \<open><->\<close> (positive and
 negative occurrences)\<close>
 
 lemma imp_to_disjD: "P-->Q ==> ~P | Q"
   and not_impD: "~(P-->Q) ==> P & ~Q"
   and iff_to_disjD: "P=Q ==> (~P | Q) & (~Q | P)"
   and not_iffD: "~(P=Q) ==> (P | Q) & (~P | ~Q)"
-    -- \<open>Much more efficient than @{prop "(P & ~Q) | (Q & ~P)"} for computing CNF\<close>
+    \<comment> \<open>Much more efficient than @{prop "(P & ~Q) | (Q & ~P)"} for computing CNF\<close>
   and not_refl_disj_D: "x ~= x | P ==> P"
   by fast+
 
@@ -46,8 +46,8 @@ lemma conj_exD1: "!!P Q. (\<exists>x. P(x)) & Q ==> \<exists>x. P(x) & Q"
 text \<open>Disjunction\<close>
 
 lemma disj_exD: "!!P Q. (\<exists>x. P(x)) | (\<exists>x. Q(x)) ==> \<exists>x. P(x) | Q(x)"
-  -- \<open>DO NOT USE with forall-Skolemization: makes fewer schematic variables!!\<close>
-  -- \<open>With ex-Skolemization, makes fewer Skolem constants\<close>
+  \<comment> \<open>DO NOT USE with forall-Skolemization: makes fewer schematic variables!!\<close>
+  \<comment> \<open>With ex-Skolemization, makes fewer Skolem constants\<close>
   and disj_exD1: "!!P Q. (\<exists>x. P(x)) | Q ==> \<exists>x. P(x) | Q"
   and disj_exD2: "!!P Q. P | (\<exists>x. Q(x)) ==> \<exists>x. P | Q(x)"
   by fast+
@@ -75,7 +75,7 @@ text\<open>@{term P} should be a literal\<close>
 lemma make_pos_rule: "P|Q ==> ((P==>~P) ==> Q)"
 by blast
 
-text\<open>Versions of @{text make_neg_rule} and @{text make_pos_rule} that don't
+text\<open>Versions of \<open>make_neg_rule\<close> and \<open>make_pos_rule\<close> that don't
 insert new assumptions, for ordinary resolution.\<close>
 
 lemmas make_neg_rule' = make_refined_neg_rule

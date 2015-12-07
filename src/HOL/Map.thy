@@ -275,7 +275,7 @@ lemma map_comp_None_iff:
 by (auto simp: map_comp_def split: option.splits)
 
 
-subsection \<open>@{text "++"}\<close>
+subsection \<open>\<open>++\<close>\<close>
 
 lemma map_add_empty[simp]: "m ++ empty = m"
 by(simp add: map_add_def)
@@ -640,7 +640,7 @@ lemma ran_map_option: "ran (\<lambda>x. map_option f (m x)) = f ` ran m"
   by (auto simp add: ran_def)
 
 
-subsection \<open>@{text "map_le"}\<close>
+subsection \<open>\<open>map_le\<close>\<close>
 
 lemma map_le_empty [simp]: "empty \<subseteq>\<^sub>m g"
   by (simp add: map_le_def)

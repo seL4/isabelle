@@ -79,7 +79,7 @@ lemma "\<turnstile> \<lbrace>\<acute>x = a\<rbrace> \<acute>x := \<acute>x \<lbr
 
 lemma
   "Valid {s. x s = a} (Basic (\<lambda>s. x_update (x s) s)) {s. x s = n}"
-  -- \<open>same statement without concrete syntax\<close>
+  \<comment> \<open>same statement without concrete syntax\<close>
   oops
 
 
@@ -99,8 +99,8 @@ qed
 lemma "\<turnstile> \<lbrace>\<acute>M = \<acute>N\<rbrace> \<acute>M := \<acute>M + 1 \<lbrace>\<acute>M \<noteq> \<acute>N\<rbrace>"
 proof -
   have "m = n \<longrightarrow> m + 1 \<noteq> n" for m n :: nat
-      -- \<open>inclusion of assertions expressed in ``pure'' logic,\<close>
-      -- \<open>without mentioning the state space\<close>
+      \<comment> \<open>inclusion of assertions expressed in ``pure'' logic,\<close>
+      \<comment> \<open>without mentioning the state space\<close>
     by simp
   also have "\<turnstile> \<lbrace>\<acute>M + 1 \<noteq> \<acute>N\<rbrace> \<acute>M := \<acute>M + 1 \<lbrace>\<acute>M \<noteq> \<acute>N\<rbrace>"
     by hoare

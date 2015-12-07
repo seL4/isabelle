@@ -9,7 +9,7 @@ theory Num
 imports BNF_Least_Fixpoint
 begin
 
-subsection \<open>The @{text num} type\<close>
+subsection \<open>The \<open>num\<close> type\<close>
 
 datatype num = One | Bit0 num | Bit1 num
 
@@ -83,8 +83,8 @@ qed
 
 text \<open>
   From now on, there are two possible models for @{typ num}:
-  as positive naturals (rule @{text "num_induct"})
-  and as digit representation (rules @{text "num.induct"}, @{text "num.cases"}).
+  as positive naturals (rule \<open>num_induct\<close>)
+  and as digit representation (rules \<open>num.induct\<close>, \<open>num.cases\<close>).
 \<close>
 
 
@@ -177,7 +177,7 @@ lemma less_num_simps [simp, code]:
 lemma le_num_One_iff: "x \<le> num.One \<longleftrightarrow> x = num.One"
 by (simp add: antisym_conv)
 
-text \<open>Rules using @{text One} and @{text inc} as constructors\<close>
+text \<open>Rules using \<open>One\<close> and \<open>inc\<close> as constructors\<close>
 
 lemma add_One: "x + One = inc x"
   by (simp add: num_eq_iff nat_of_num_add nat_of_num_inc)
@@ -237,7 +237,7 @@ subsection \<open>Binary numerals\<close>
 
 text \<open>
   We embed binary representations into a generic algebraic
-  structure using @{text numeral}.
+  structure using \<open>numeral\<close>.
 \<close>
 
 class numeral = one + semigroup_add
@@ -327,7 +327,7 @@ text \<open>
   @{const numeral} is a morphism.
 \<close>
 
-subsubsection \<open>Structures with addition: class @{text numeral}\<close>
+subsubsection \<open>Structures with addition: class \<open>numeral\<close>\<close>
 
 context numeral
 begin
@@ -354,7 +354,7 @@ lemmas add_numeral_special =
 end
 
 subsubsection \<open>
-  Structures with negation: class @{text neg_numeral}
+  Structures with negation: class \<open>neg_numeral\<close>
 \<close>
 
 class neg_numeral = numeral + group_add
@@ -492,7 +492,7 @@ lemma diff_numeral_special:
 end
 
 subsubsection \<open>
-  Structures with multiplication: class @{text semiring_numeral}
+  Structures with multiplication: class \<open>semiring_numeral\<close>
 \<close>
 
 class semiring_numeral = semiring + monoid_mult
@@ -518,7 +518,7 @@ lemma mult_2_right: "z * 2 = z + z"
 end
 
 subsubsection \<open>
-  Structures with a zero: class @{text semiring_1}
+  Structures with a zero: class \<open>semiring_1\<close>
 \<close>
 
 context semiring_1
@@ -548,7 +548,7 @@ lemma nat_of_num_code [code]:
   by (simp_all add: Let_def)
 
 subsubsection \<open>
-  Equality: class @{text semiring_char_0}
+  Equality: class \<open>semiring_char_0\<close>
 \<close>
 
 context semiring_char_0
@@ -581,7 +581,7 @@ lemmas eq_numeral_simps [simp] =
 end
 
 subsubsection \<open>
-  Comparisons: class @{text linordered_semidom}
+  Comparisons: class \<open>linordered_semidom\<close>
 \<close>
 
 text \<open>Could be perhaps more general than here.\<close>
@@ -672,7 +672,7 @@ by(simp_all add: max'_def max_def le_num_One_iff)
 end
 
 subsubsection \<open>
-  Multiplication and negation: class @{text ring_1}
+  Multiplication and negation: class \<open>ring_1\<close>
 \<close>
 
 context ring_1
@@ -696,7 +696,7 @@ lemma mult_minus1_right [simp]: "z * - 1 = - z"
 end
 
 subsubsection \<open>
-  Equality using @{text iszero} for rings with non-zero characteristic
+  Equality using \<open>iszero\<close> for rings with non-zero characteristic
 \<close>
 
 context ring_1
@@ -728,16 +728,15 @@ lemma iszero_neg_numeral [simp]:
 lemma eq_iff_iszero_diff: "x = y \<longleftrightarrow> iszero (x - y)"
   unfolding iszero_def by (rule eq_iff_diff_eq_0)
 
-text \<open>The @{text "eq_numeral_iff_iszero"} lemmas are not declared
-@{text "[simp]"} by default, because for rings of characteristic zero,
-better simp rules are possible. For a type like integers mod @{text
-"n"}, type-instantiated versions of these rules should be added to the
+text \<open>The \<open>eq_numeral_iff_iszero\<close> lemmas are not declared
+\<open>[simp]\<close> by default, because for rings of characteristic zero,
+better simp rules are possible. For a type like integers mod \<open>n\<close>, type-instantiated versions of these rules should be added to the
 simplifier, along with a type-specific rule for deciding propositions
-of the form @{text "iszero (numeral w)"}.
+of the form \<open>iszero (numeral w)\<close>.
 
 bh: Maybe it would not be so bad to just declare these as simp
 rules anyway? I should test whether these rules take precedence over
-the @{text "ring_char_0"} rules in the simplifier.
+the \<open>ring_char_0\<close> rules in the simplifier.
 \<close>
 
 lemma eq_numeral_iff_iszero:
@@ -759,7 +758,7 @@ lemma eq_numeral_iff_iszero:
 end
 
 subsubsection \<open>
-  Equality and negation: class @{text ring_char_0}
+  Equality and negation: class \<open>ring_char_0\<close>
 \<close>
 
 class ring_char_0 = ring_1 + semiring_char_0
@@ -835,7 +834,7 @@ lemmas eq_neg_numeral_simps [simp] =
 end
 
 subsubsection \<open>
-  Structures with negation and order: class @{text linordered_idom}
+  Structures with negation and order: class \<open>linordered_idom\<close>
 \<close>
 
 context linordered_idom
@@ -1179,7 +1178,7 @@ lemmas arith_extra_simps =
 
 text \<open>
   For making a minimal simpset, one must include these default simprules.
-  Also include @{text simp_thms}.
+  Also include \<open>simp_thms\<close>.
 \<close>
 
 lemmas arith_simps =
@@ -1209,11 +1208,11 @@ lemmas rel_simps =
   eq_numeral_simps eq_neg_numeral_simps eq_numeral_extra
 
 lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
-  -- \<open>Unfold all @{text let}s involving constants\<close>
+  \<comment> \<open>Unfold all \<open>let\<close>s involving constants\<close>
   unfolding Let_def ..
 
 lemma Let_neg_numeral [simp]: "Let (- numeral v) f = f (- numeral v)"
-  -- \<open>Unfold all @{text let}s involving constants\<close>
+  \<comment> \<open>Unfold all \<open>let\<close>s involving constants\<close>
   unfolding Let_def ..
 
 declaration \<open>

@@ -2,7 +2,7 @@
     Author:     Miscellaneous
 *)
 
-section {* Miscellaneous lemmas, of at least doubtful value *}
+section \<open>Miscellaneous lemmas, of at least doubtful value\<close>
 
 theory Word_Miscellaneous
 imports Main "~~/src/HOL/Library/Bit" Misc_Numeric
@@ -67,7 +67,7 @@ lemma B1_ass_B0:
   apply (erule y)
   done
 
--- "simplifications for specific word lengths"
+\<comment> "simplifications for specific word lengths"
 lemmas n2s_ths [THEN eq_reflection] = add_2_eq_Suc add_2_eq_Suc'
 
 lemmas s2n_ths = n2s_ths [symmetric]

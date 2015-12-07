@@ -23,10 +23,10 @@ lemma equivE:
   using assms by (simp add: equiv_def)
 
 text \<open>
-  Suppes, Theorem 70: @{text r} is an equiv relation iff @{text "r\<inverse> O
-  r = r"}.
+  Suppes, Theorem 70: \<open>r\<close> is an equiv relation iff \<open>r\<inverse> O
+  r = r\<close>.
 
-  First half: @{text "equiv A r ==> r\<inverse> O r = r"}.
+  First half: \<open>equiv A r ==> r\<inverse> O r = r\<close>.
 \<close>
 
 lemma sym_trans_comp_subset:
@@ -59,7 +59,7 @@ subsection \<open>Equivalence classes\<close>
 
 lemma equiv_class_subset:
   "equiv A r ==> (a, b) \<in> r ==> r``{a} \<subseteq> r``{b}"
-  -- \<open>lemma for the next result\<close>
+  \<comment> \<open>lemma for the next result\<close>
   by (unfold equiv_def trans_def sym_def) blast
 
 theorem equiv_class_eq: "equiv A r ==> (a, b) \<in> r ==> r``{a} = r``{b}"
@@ -73,7 +73,7 @@ lemma equiv_class_self: "equiv A r ==> a \<in> A ==> a \<in> r``{a}"
 
 lemma subset_equiv_class:
     "equiv A r ==> r``{b} \<subseteq> r``{a} ==> b \<in> A ==> (a,b) \<in> r"
-  -- \<open>lemma for the next result\<close>
+  \<comment> \<open>lemma for the next result\<close>
   by (unfold equiv_def refl_on_def) blast
 
 lemma eq_equiv_class:
@@ -99,7 +99,7 @@ theorem eq_equiv_class_iff:
 subsection \<open>Quotients\<close>
 
 definition quotient :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set set"  (infixl "'/'/" 90) where
-  "A//r = (\<Union>x \<in> A. {r``{x}})"  -- \<open>set of equiv classes\<close>
+  "A//r = (\<Union>x \<in> A. {r``{x}})"  \<comment> \<open>set of equiv classes\<close>
 
 lemma quotientI: "x \<in> A ==> r``{x} \<in> A//r"
   by (unfold quotient_def) blast
@@ -209,13 +209,13 @@ abbreviation
 
 
 lemma UN_constant_eq: "a \<in> A ==> \<forall>y \<in> A. f y = c ==> (\<Union>y \<in> A. f(y))=c"
-  -- \<open>lemma required to prove @{text UN_equiv_class}\<close>
+  \<comment> \<open>lemma required to prove \<open>UN_equiv_class\<close>\<close>
   by auto
 
 lemma UN_equiv_class:
   "equiv A r ==> f respects r ==> a \<in> A
     ==> (\<Union>x \<in> r``{a}. f x) = f a"
-  -- \<open>Conversion rule\<close>
+  \<comment> \<open>Conversion rule\<close>
   apply (rule equiv_class_self [THEN UN_constant_eq], assumption+)
   apply (unfold equiv_def congruent_def sym_def)
   apply (blast del: equalityI)
@@ -232,8 +232,8 @@ lemma UN_equiv_class_type:
 
 text \<open>
   Sufficient conditions for injectiveness.  Could weaken premises!
-  major premise could be an inclusion; bcong could be @{text "!!y. y \<in>
-  A ==> f y \<in> B"}.
+  major premise could be an inclusion; bcong could be \<open>!!y. y \<in>
+  A ==> f y \<in> B\<close>.
 \<close>
 
 lemma UN_equiv_class_inject:
@@ -310,8 +310,8 @@ lemma UN_equiv_class_type2:
 lemma UN_UN_split_split_eq:
   "(\<Union>(x1, x2) \<in> X. \<Union>(y1, y2) \<in> Y. A x1 x2 y1 y2) =
     (\<Union>x \<in> X. \<Union>y \<in> Y. (\<lambda>(x1, x2). (\<lambda>(y1, y2). A x1 x2 y1 y2) y) x)"
-  -- \<open>Allows a natural expression of binary operators,\<close>
-  -- \<open>without explicit calls to @{text split}\<close>
+  \<comment> \<open>Allows a natural expression of binary operators,\<close>
+  \<comment> \<open>without explicit calls to \<open>split\<close>\<close>
   by auto
 
 lemma congruent2I:
@@ -319,8 +319,8 @@ lemma congruent2I:
     ==> (!!y z w. w \<in> A2 ==> (y,z) \<in> r1 ==> f y w = f z w)
     ==> (!!y z w. w \<in> A1 ==> (y,z) \<in> r2 ==> f w y = f w z)
     ==> congruent2 r1 r2 f"
-  -- \<open>Suggested by John Harrison -- the two subproofs may be\<close>
-  -- \<open>\emph{much} simpler than the direct proof.\<close>
+  \<comment> \<open>Suggested by John Harrison -- the two subproofs may be\<close>
+  \<comment> \<open>\emph{much} simpler than the direct proof.\<close>
   apply (unfold congruent2_def equiv_def refl_on_def)
   apply clarify
   apply (blast intro: trans)
@@ -345,7 +345,7 @@ subsection \<open>Quotients and finiteness\<close>
 text \<open>Suggested by Florian Kammüller\<close>
 
 lemma finite_quotient: "finite A ==> r \<subseteq> A \<times> A ==> finite (A//r)"
-  -- \<open>recall @{thm equiv_type}\<close>
+  \<comment> \<open>recall @{thm equiv_type}\<close>
   apply (rule finite_subset)
    apply (erule_tac [2] finite_Pow_iff [THEN iffD2])
   apply (unfold quotient_def)
@@ -435,7 +435,7 @@ text \<open>Partial equivalences\<close>
 
 definition part_equivp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
   "part_equivp R \<longleftrightarrow> (\<exists>x. R x x) \<and> (\<forall>x y. R x y \<longleftrightarrow> R x x \<and> R y y \<and> R x = R y)"
-    -- \<open>John-Harrison-style characterization\<close>
+    \<comment> \<open>John-Harrison-style characterization\<close>
 
 lemma part_equivpI:
   "(\<exists>x. R x x) \<Longrightarrow> symp R \<Longrightarrow> transp R \<Longrightarrow> part_equivp R"
@@ -484,7 +484,7 @@ lemma part_equivp_typedef:
 text \<open>Total equivalences\<close>
 
 definition equivp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where
-  "equivp R \<longleftrightarrow> (\<forall>x y. R x y = (R x = R y))" -- \<open>John-Harrison-style characterization\<close>
+  "equivp R \<longleftrightarrow> (\<forall>x y. R x y = (R x = R y))" \<comment> \<open>John-Harrison-style characterization\<close>
 
 lemma equivpI:
   "reflp R \<Longrightarrow> symp R \<Longrightarrow> transp R \<Longrightarrow> equivp R"

@@ -279,7 +279,7 @@ proof
   assume "c \<noteq> 0" "Bseq (\<lambda>x. c * f x)"
   find_theorems "Bfun (\<lambda>_. ?c) _"
   from Bfun_const this(2) have "Bseq (\<lambda>x. inverse c * (c * f x))" by (rule Bseq_mult)
-  with `c \<noteq> 0` show "Bseq f" by (simp add: divide_simps)
+  with \<open>c \<noteq> 0\<close> show "Bseq f" by (simp add: divide_simps)
 qed (intro Bseq_mult Bfun_const)
 
 lemma Bseq_subseq: "Bseq (f :: nat \<Rightarrow> 'a :: real_normed_vector) \<Longrightarrow> Bseq (\<lambda>x. f (g x))"

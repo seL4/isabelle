@@ -21,11 +21,11 @@ begin
 
 definition
   lfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "lfp f = Inf {u. f u \<le> u}"    --\<open>least fixed point\<close>
+  "lfp f = Inf {u. f u \<le> u}"    \<comment>\<open>least fixed point\<close>
 
 definition
   gfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "gfp f = Sup {u. u \<le> f u}"    --\<open>greatest fixed point\<close>
+  "gfp f = Sup {u. u \<le> f u}"    \<comment>\<open>greatest fixed point\<close>
 
 
 subsection\<open>Proof of Knaster-Tarski Theorem using @{term lfp}\<close>
@@ -101,7 +101,7 @@ lemma lfp_ordinal_induct_set:
   using assms by (rule lfp_ordinal_induct)
 
 
-text\<open>Definition forms of @{text lfp_unfold} and @{text lfp_induct}, 
+text\<open>Definition forms of \<open>lfp_unfold\<close> and \<open>lfp_induct\<close>, 
     to control unfolding\<close>
 
 lemma def_lfp_unfold: "[| h==lfp(f);  mono(f) |] ==> h = f(h)"
@@ -230,7 +230,7 @@ apply (rule coinduct3_mono_lemma [THEN lfp_unfold, THEN ssubst])
 apply (simp_all)
 done
 
-text\<open>Definition forms of @{text gfp_unfold} and @{text coinduct}, 
+text\<open>Definition forms of \<open>gfp_unfold\<close> and \<open>coinduct\<close>, 
     to control unfolding\<close>
 
 lemma def_gfp_unfold: "[| A==gfp(f);  mono(f) |] ==> A = f(A)"

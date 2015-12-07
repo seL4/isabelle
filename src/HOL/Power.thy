@@ -465,7 +465,7 @@ lemma of_nat_zero_less_power_iff [simp]:
   "of_nat x ^ n > 0 \<longleftrightarrow> x > 0 \<or> n = 0"
   by (induct n) auto
 
-text\<open>Surely we can strengthen this? It holds for @{text "0<a<1"} too.\<close>
+text\<open>Surely we can strengthen this? It holds for \<open>0<a<1\<close> too.\<close>
 lemma power_inject_exp [simp]:
   "1 < a \<Longrightarrow> a ^ m = a ^ n \<longleftrightarrow> m = n"
   by (force simp add: order_antisym power_le_imp_le_exp)
@@ -482,7 +482,7 @@ lemma power_strict_mono [rule_format]:
   by (induct n)
    (auto simp add: mult_strict_mono le_less_trans [of 0 a b])
 
-text\<open>Lemma for @{text power_strict_decreasing}\<close>
+text\<open>Lemma for \<open>power_strict_decreasing\<close>\<close>
 lemma power_Suc_less:
   "0 < a \<Longrightarrow> a < 1 \<Longrightarrow> a * a ^ n < a ^ n"
   by (induct n)
@@ -501,7 +501,7 @@ next
   done
 qed
 
-text\<open>Proof resembles that of @{text power_strict_decreasing}\<close>
+text\<open>Proof resembles that of \<open>power_strict_decreasing\<close>\<close>
 lemma power_decreasing [rule_format]:
   "n \<le> N \<Longrightarrow> 0 \<le> a \<Longrightarrow> a \<le> 1 \<longrightarrow> a ^ N \<le> a ^ n"
 proof (induct N)
@@ -518,7 +518,7 @@ lemma power_Suc_less_one:
   "0 < a \<Longrightarrow> a < 1 \<Longrightarrow> a ^ Suc n < 1"
   using power_strict_decreasing [of 0 "Suc n" a] by simp
 
-text\<open>Proof again resembles that of @{text power_strict_decreasing}\<close>
+text\<open>Proof again resembles that of \<open>power_strict_decreasing\<close>\<close>
 lemma power_increasing [rule_format]:
   "n \<le> N \<Longrightarrow> 1 \<le> a \<Longrightarrow> a ^ n \<le> a ^ N"
 proof (induct N)
@@ -531,7 +531,7 @@ next
   done
 qed
 
-text\<open>Lemma for @{text power_strict_increasing}\<close>
+text\<open>Lemma for \<open>power_strict_increasing\<close>\<close>
 lemma power_less_power_Suc:
   "1 < a \<Longrightarrow> a ^ n < a * a ^ n"
   by (induct n) (auto simp add: mult_strict_left_mono less_trans [OF zero_less_one])
@@ -795,7 +795,7 @@ lemma power_Suc_0 [simp]:
   "Suc 0 ^ n = Suc 0"
   by simp
 
-text\<open>Valid for the naturals, but what if @{text"0<i<1"}?
+text\<open>Valid for the naturals, but what if \<open>0<i<1\<close>?
 Premises cannot be weakened: consider the case where @{term "i=0"},
 @{term "m=1"} and @{term "n=0"}.\<close>
 lemma nat_power_less_imp_less:

@@ -9,7 +9,7 @@ imports Word
 
 begin
 
-text {* Helper constants used in defining addition *}
+text \<open>Helper constants used in defining addition\<close>
 
 definition
   xor3 :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> bool"
@@ -39,9 +39,9 @@ lemma xor3_simps:
   "xor3 a b False = (a \<noteq> b)"
   by (simp_all add: xor3_def)
 
-text {* Breaking up word equalities into equalities on their
+text \<open>Breaking up word equalities into equalities on their
 bit lists. Equalities are generated and manipulated in the
-reverse order to to_bl. *}
+reverse order to to_bl.\<close>
 
 lemma word_eq_rbl_eq:
   "(x = y) = (rev (to_bl x) = rev (to_bl y))"
@@ -322,7 +322,7 @@ lemma rbl_word_mul:
   using word_rbl_mul_induct[where xs="rev (to_bl x)" and y=y]
   by (simp add: word_size)
 
-text {* Breaking up inequalities into bitlist properties. *}
+text \<open>Breaking up inequalities into bitlist properties.\<close>
 
 definition
   "rev_bl_order F xs ys =
@@ -449,8 +449,8 @@ lemma word_sless_rbl:
    apply auto
   done
 
-text {* Lemmas for unpacking rev (to_bl n) for numerals n and also
-for irreducible values and expressions. *}
+text \<open>Lemmas for unpacking rev (to_bl n) for numerals n and also
+for irreducible values and expressions.\<close>
 
 lemma rev_bin_to_bl_simps:
   "rev (bin_to_bl 0 x) = []"
@@ -494,9 +494,9 @@ lemma upt_eq_list_intros:
   "\<lbrakk> i = x; x < j; [x + 1 ..< j] = xs \<rbrakk> \<Longrightarrow> [i ..< j] = (x # xs)"
   by (simp_all add: upt_eq_Nil_conv upt_eq_Cons_conv)
 
-text {* Tactic definition *}
+text \<open>Tactic definition\<close>
 
-ML {*
+ML \<open>
 structure Word_Bitwise_Tac =
 struct
 
@@ -617,10 +617,10 @@ fun tac ctxt =
 
 end
 
-*}
+\<close>
 
 method_setup word_bitwise =
-  {* Scan.succeed (fn ctxt => Method.SIMPLE_METHOD (Word_Bitwise_Tac.tac ctxt 1))  *}
+  \<open>Scan.succeed (fn ctxt => Method.SIMPLE_METHOD (Word_Bitwise_Tac.tac ctxt 1))\<close>
   "decomposer for word equalities and inequalities into bit propositions"
 
 end

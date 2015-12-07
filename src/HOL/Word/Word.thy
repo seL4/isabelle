@@ -2,7 +2,7 @@
     Author:     Jeremy Dawson and Gerwin Klein, NICTA
 *)
 
-section {* A type of finite bit strings *}
+section \<open>A type of finite bit strings\<close>
 
 theory Word
 imports
@@ -14,9 +14,9 @@ imports
   Word_Miscellaneous
 begin
 
-text {* See @{file "Examples/WordExamples.thy"} for examples. *}
+text \<open>See @{file "Examples/WordExamples.thy"} for examples.\<close>
 
-subsection {* Type definition *}
+subsection \<open>Type definition\<close>
 
 typedef (overloaded) 'a word = "{(0::int) ..< 2 ^ len_of TYPE('a::len0)}"
   morphisms uint Abs_word by auto
@@ -45,8 +45,8 @@ lemma word_uint_eqI:
 
 definition word_of_int :: "int \<Rightarrow> 'a::len0 word"
 where
-  -- {* representation of words using unsigned or signed bins,
-    only difference in these is the type class *}
+  \<comment> \<open>representation of words using unsigned or signed bins,
+    only difference in these is the type class\<close>
   "word_of_int k = Abs_word (k mod 2 ^ len_of TYPE('a))"
 
 lemma uint_word_of_int:
@@ -67,11 +67,11 @@ proof
 qed
 
 
-subsection {* Type conversions and casting *}
+subsection \<open>Type conversions and casting\<close>
 
 definition sint :: "'a::len word \<Rightarrow> int"
 where
-  -- {* treats the most-significant-bit as a sign bit *}
+  \<comment> \<open>treats the most-significant-bit as a sign bit\<close>
   sint_uint: "sint w = sbintrunc (len_of TYPE ('a) - 1) (uint w)"
 
 definition unat :: "'a::len0 word \<Rightarrow> nat"
@@ -80,7 +80,7 @@ where
 
 definition uints :: "nat \<Rightarrow> int set"
 where
-  -- "the sets of integers representing the words"
+  \<comment> "the sets of integers representing the words"
   "uints n = range (bintrunc n)"
 
 definition sints :: "nat \<Rightarrow> int set"
@@ -105,7 +105,7 @@ where
 
 definition scast :: "'a::len word \<Rightarrow> 'b::len word"
 where
-  -- "cast a word to a different length"
+  \<comment> "cast a word to a different length"
   "scast w = word_of_int (sint w)"
 
 definition ucast :: "'a::len0 word \<Rightarrow> 'b::len0 word"
@@ -135,7 +135,7 @@ lemma lens_not_0 [iff]:
 
 definition source_size :: "('a::len0 word \<Rightarrow> 'b) \<Rightarrow> nat"
 where
-  -- "whether a cast (or other) function is to a longer or shorter length"
+  \<comment> "whether a cast (or other) function is to a longer or shorter length"
   [code del]: "source_size c = (let arb = undefined; x = c arb in size arb)"
 
 definition target_size :: "('a \<Rightarrow> 'b::len0 word) \<Rightarrow> nat"
@@ -171,7 +171,7 @@ translations
   "case x of (XCONST of_int :: 'a) y => b" => "CONST word_int_case (%y. b) x"
 
 
-subsection {* Correspondence relation for theorem transfer *}
+subsection \<open>Correspondence relation for theorem transfer\<close>
 
 definition cr_word :: "int \<Rightarrow> 'a::len0 word \<Rightarrow> bool"
 where
@@ -189,7 +189,7 @@ lemma reflp_word:
 
 setup_lifting Quotient_word reflp_word
 
-text {* TODO: The next lemma could be generated automatically. *}
+text \<open>TODO: The next lemma could be generated automatically.\<close>
 
 lemma uint_transfer [transfer_rule]:
   "(rel_fun pcr_word op =) (bintrunc (len_of TYPE('a)))
@@ -198,7 +198,7 @@ lemma uint_transfer [transfer_rule]:
   by (simp add: no_bintr_alt1 uint_word_of_int)
 
 
-subsection {* Basic code generation setup *}
+subsection \<open>Basic code generation setup\<close>
 
 definition Word :: "int \<Rightarrow> 'a::len0 word"
 where
@@ -241,7 +241,7 @@ no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 
-subsection {* Type-definition locale instantiations *}
+subsection \<open>Type-definition locale instantiations\<close>
 
 lemmas uint_0 = uint_nonnegative (* FIXME duplicate *)
 lemmas uint_lt = uint_bounded (* FIXME duplicate *)
@@ -279,7 +279,7 @@ interpretation word_ubin:
   by (fact td_ext_ubin)
 
 
-subsection {* Arithmetic operations *}
+subsection \<open>Arithmetic operations\<close>
 
 lift_definition word_succ :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>x. x + 1"
   by (metis bintr_ariths(6))
@@ -317,7 +317,7 @@ instance
 
 end
 
-text {* Legacy theorems: *}
+text \<open>Legacy theorems:\<close>
 
 lemma word_arith_wis [code]: shows
   word_add_def: "a + b = word_of_int (uint a + uint b)" and
@@ -372,7 +372,7 @@ where
   "a udvd b = (EX n>=0. uint b = n * uint a)"
 
 
-subsection {* Ordering *}
+subsection \<open>Ordering\<close>
 
 instantiation word :: (len0) linorder
 begin
@@ -397,7 +397,7 @@ where
   "(x <s y) = (x <=s y & x ~= y)"
 
 
-subsection {* Bit-wise operations *}
+subsection \<open>Bit-wise operations\<close>
 
 instantiation word :: (len0) bits
 begin
@@ -433,7 +433,7 @@ where
 
 definition shiftr1 :: "'a word \<Rightarrow> 'a word"
 where
-  -- "shift right as unsigned or as signed, ie logical or arithmetic"
+  \<comment> "shift right as unsigned or as signed, ie logical or arithmetic"
   "shiftr1 w = word_of_int (bin_rest (uint w))"
 
 definition
@@ -474,7 +474,7 @@ where
   "clearBit w n = set_bit w n False"
 
 
-subsection {* Shift operations *}
+subsection \<open>Shift operations\<close>
 
 definition sshiftr1 :: "'a :: len word => 'a word"
 where 
@@ -505,7 +505,7 @@ where
   "slice n w = slice1 (size w - n) w"
 
 
-subsection {* Rotation *}
+subsection \<open>Rotation\<close>
 
 definition rotater1 :: "'a list => 'a list"
 where
@@ -530,7 +530,7 @@ where
                     else word_rotl (nat (- i)) w)"
 
 
-subsection {* Split and cat operations *}
+subsection \<open>Split and cat operations\<close>
 
 definition word_cat :: "'a :: len0 word => 'b :: len0 word => 'c :: len0 word"
 where
@@ -552,14 +552,14 @@ where
   "word_rsplit w = 
   map word_of_int (bin_rsplit (len_of TYPE ('b)) (len_of TYPE ('a), uint w))"
 
-definition max_word :: "'a::len word" -- "Largest representable machine integer."
+definition max_word :: "'a::len word" \<comment> "Largest representable machine integer."
 where
   "max_word = word_of_int (2 ^ len_of TYPE('a) - 1)"
 
 lemmas of_nth_def = word_set_bits_def (* FIXME duplicate *)
 
 
-subsection {* Theorems about typedefs *}
+subsection \<open>Theorems about typedefs\<close>
 
 lemma sint_sbintrunc': 
   "sint (word_of_int bin :: 'a word) = 
@@ -805,7 +805,7 @@ lemma sint_below_size:
   unfolding word_size by (rule order_trans [OF _ sint_ge])
 
 
-subsection {* Testing bits *}
+subsection \<open>Testing bits\<close>
 
 lemma test_bit_eq_iff: "(test_bit (u::'a::len0 word) = test_bit v) = (u = v)"
   unfolding word_test_bit_def by (simp add: bin_nth_eq_iff)
@@ -1188,7 +1188,7 @@ lemmas test_bit_def' = word_test_bit_def [THEN fun_cong]
 lemmas word_log_defs = word_and_def word_or_def word_xor_def word_not_def
 
 
-subsection {* Word Arithmetic *}
+subsection \<open>Word Arithmetic\<close>
 
 lemma word_less_alt: "(a < b) = (uint a < uint b)"
   by (fact word_less_def)
@@ -1292,7 +1292,7 @@ lemma ucast_1 [simp]: "ucast (1::'a::len word) = 1"
 (* now, to get the weaker results analogous to word_div/mod_def *)
 
 
-subsection {* Transferring goals from words to ints *}
+subsection \<open>Transferring goals from words to ints\<close>
 
 lemma word_ths:  
   shows
@@ -1368,7 +1368,7 @@ lemma word_of_int_Ex:
   by (rule_tac x="uint x" in exI) simp
 
 
-subsection {* Order on fixed-length words *}
+subsection \<open>Order on fixed-length words\<close>
 
 lemma word_zero_le [simp] :
   "0 <= (y :: 'a :: len0 word)"
@@ -1438,9 +1438,9 @@ proof -
   moreover from assms have "0 \<noteq> uint w" by (simp add: uint_0_iff)
   ultimately have "1 \<le> uint w" by arith
   from uint_lt2p [of w] have "uint w - 1 < 2 ^ len_of TYPE('a)" by arith
-  with `1 \<le> uint w` have "(uint w - 1) mod 2 ^ len_of TYPE('a) = uint w - 1"
+  with \<open>1 \<le> uint w\<close> have "(uint w - 1) mod 2 ^ len_of TYPE('a) = uint w - 1"
     by (auto intro: mod_pos_pos_trivial)
-  with `1 \<le> uint w` have "nat ((uint w - 1) mod 2 ^ len_of TYPE('a)) = nat (uint w) - 1"
+  with \<open>1 \<le> uint w\<close> have "nat ((uint w - 1) mod 2 ^ len_of TYPE('a)) = nat (uint w) - 1"
     by auto
   then show ?thesis
     by (simp only: unat_def int_word_uint word_arith_wis mod_diff_right_eq [symmetric])
@@ -1458,7 +1458,7 @@ lemma uint_sub_lt2p [simp]:
   using uint_ge_0 [of y] uint_lt2p [of x] by arith
 
 
-subsection {* Conditions for the addition (etc) of two words to overflow *}
+subsection \<open>Conditions for the addition (etc) of two words to overflow\<close>
 
 lemma uint_add_lem: 
   "(uint x + uint y < 2 ^ len_of TYPE('a)) = 
@@ -1503,7 +1503,7 @@ lemma uint_sub_if':
   using mod_sub_if_z [of "uint a" _ "uint b"] by (simp add: uint_word_ariths)
 
 
-subsection {* Definition of @{text uint_arith} *}
+subsection \<open>Definition of \<open>uint_arith\<close>\<close>
 
 lemma word_of_int_inverse:
   "word_of_int r = a \<Longrightarrow> 0 <= r \<Longrightarrow> r < 2 ^ len_of TYPE('a) \<Longrightarrow> 
@@ -1541,7 +1541,7 @@ lemma power_False_cong: "False \<Longrightarrow> a ^ b = c ^ d"
   by auto
 
 (* uint_arith_tac: reduce to arithmetic on int, try to solve by arith *)
-ML {*
+ML \<open>
 fun uint_arith_simpset ctxt = 
   ctxt addsimps @{thms uint_arith_simps}
      delsimps @{thms word_uint.Rep_inject}
@@ -1570,14 +1570,14 @@ fun uint_arith_tacs ctxt =
   end
 
 fun uint_arith_tac ctxt = SELECT_GOAL (EVERY (uint_arith_tacs ctxt))
-*}
+\<close>
 
 method_setup uint_arith = 
-  {* Scan.succeed (SIMPLE_METHOD' o uint_arith_tac) *}
+  \<open>Scan.succeed (SIMPLE_METHOD' o uint_arith_tac)\<close>
   "solving word arithmetic via integers and arith"
 
 
-subsection {* More on overflows and monotonicity *}
+subsection \<open>More on overflows and monotonicity\<close>
 
 lemma no_plus_overflow_uint_size: 
   "((x :: 'a :: len0 word) <= x + y) = (uint x + uint y < 2 ^ size x)"
@@ -1803,7 +1803,7 @@ lemma rtb_rbl_ariths:
                  word_pred_rbl word_mult_rbl word_add_rbl)
 
 
-subsection {* Arithmetic type class instantiations *}
+subsection \<open>Arithmetic type class instantiations\<close>
 
 lemmas word_le_0_iff [simp] =
   word_zero_le [THEN leD, THEN linorder_antisym_conv1]
@@ -1820,13 +1820,13 @@ lemma iszero_word_no [simp]:
   using word_ubin.norm_eq_iff [where 'a='a, of "numeral bin" 0]
   by (simp add: iszero_def [symmetric])
     
-text {* Use @{text iszero} to simplify equalities between word numerals. *}
+text \<open>Use \<open>iszero\<close> to simplify equalities between word numerals.\<close>
 
 lemmas word_eq_numeral_iff_iszero [simp] =
   eq_numeral_iff_iszero [where 'a="'a::len word"]
 
 
-subsection {* Word and nat *}
+subsection \<open>Word and nat\<close>
 
 lemma td_ext_unat [OF refl]:
   "n = len_of TYPE ('a :: len) \<Longrightarrow> 
@@ -2017,7 +2017,7 @@ lemma uint_mod: "uint ((x :: 'a :: len word) mod y) = uint x mod uint y"
   unfolding uint_nat by (simp add : unat_mod zmod_int)
 
 
-subsection {* Definition of @{text unat_arith} tactic *}
+subsection \<open>Definition of \<open>unat_arith\<close> tactic\<close>
 
 lemma unat_split:
   fixes x::"'a::len word"
@@ -2043,7 +2043,7 @@ lemmas unat_arith_simps =
 
 (* unat_arith_tac: tactic to reduce word arithmetic to nat, 
    try to solve via arith *)
-ML {*
+ML \<open>
 fun unat_arith_simpset ctxt = 
   ctxt addsimps @{thms unat_arith_simps}
      delsimps @{thms word_unat.Rep_inject}
@@ -2070,10 +2070,10 @@ fun unat_arith_tacs ctxt =
   end
 
 fun unat_arith_tac ctxt = SELECT_GOAL (EVERY (unat_arith_tacs ctxt))
-*}
+\<close>
 
 method_setup unat_arith = 
-  {* Scan.succeed (SIMPLE_METHOD' o unat_arith_tac) *}
+  \<open>Scan.succeed (SIMPLE_METHOD' o unat_arith_tac)\<close>
   "solving word arithmetic via natural numbers and arith"
 
 lemma no_plus_overflow_unat_size: 
@@ -2202,7 +2202,7 @@ lemma of_bl_length_less:
   done
 
 
-subsection {* Cardinality, finiteness of set of words *}
+subsection \<open>Cardinality, finiteness of set of words\<close>
 
 instance word :: (len0) finite
   by standard (simp add: type_definition.univ [OF type_definition_word])
@@ -2215,7 +2215,7 @@ lemma card_word_size:
 unfolding word_size by (rule card_word)
 
 
-subsection {* Bitwise Operations on Words *}
+subsection \<open>Bitwise Operations on Words\<close>
 
 lemmas bin_log_bintrs = bin_trunc_not bin_trunc_xor bin_trunc_and bin_trunc_or
   
@@ -2254,7 +2254,7 @@ lemma word_no_log_defs [simp]:
   "- numeral a XOR - numeral b = word_of_int (- numeral a XOR - numeral b)"
   by (transfer, rule refl)+
 
-text {* Special cases for when one of the arguments equals 1. *}
+text \<open>Special cases for when one of the arguments equals 1.\<close>
 
 lemma word_bitwise_1_simps [simp]:
   "NOT (1::'a::len0 word) = -2"
@@ -2272,7 +2272,7 @@ lemma word_bitwise_1_simps [simp]:
   "- numeral a XOR 1 = word_of_int (- numeral a XOR 1)"
   by (transfer, simp)+
 
-text {* Special cases for when one of the arguments equals -1. *}
+text \<open>Special cases for when one of the arguments equals -1.\<close>
 
 lemma word_bitwise_m1_simps [simp]:
   "NOT (-1::'a::len0 word) = 0"
@@ -2759,7 +2759,7 @@ lemma word_set_ge:
   done
 
 
-subsection {* Shifting, Rotating, and Splitting Words *}
+subsection \<open>Shifting, Rotating, and Splitting Words\<close>
 
 lemma shiftl1_wi [simp]: "shiftl1 (word_of_int w) = word_of_int (w BIT False)"
   unfolding shiftl1_def
@@ -2923,7 +2923,7 @@ lemma sshiftr_div_2n: "sint (sshiftr w n) = sint w div 2 ^ n"
   done
 
 
-subsubsection {* shift functions in terms of lists of bools *}
+subsubsection \<open>shift functions in terms of lists of bools\<close>
 
 lemmas bshiftr1_numeral [simp] = 
   bshiftr1_def [where w="numeral w", unfolded to_bl_numeral] for w
@@ -3215,7 +3215,7 @@ lemma aligned_bl_add_size [OF refl]:
   done
 
 
-subsubsection {* Mask *}
+subsubsection \<open>Mask\<close>
 
 lemma nth_mask [OF refl, simp]:
   "m = mask n \<Longrightarrow> test_bit m i = (i < n & i < size m)"
@@ -3350,7 +3350,7 @@ lemma mask_power_eq:
   by (clarsimp simp: and_mask_wi word_of_int_power_hom bintr_ariths)
 
 
-subsubsection {* Revcast *}
+subsubsection \<open>Revcast\<close>
 
 lemmas revcast_def' = revcast_def [simplified]
 lemmas revcast_def'' = revcast_def' [simplified word_size]
@@ -3382,7 +3382,7 @@ lemma ucast_rev_revcast: "ucast (word_reverse w) = word_reverse (revcast w)"
   by (fact revcast_ucast [THEN word_rev_gal'])
 
 
--- "linking revcast and cast via shift"
+\<comment> "linking revcast and cast via shift"
 
 lemmas wsst_TYs = source_size target_size word_size
 
@@ -3465,7 +3465,7 @@ lemmas ucast_down =
   rc2 [simplified rev_shiftr revcast_ucast [symmetric]]
 
 
-subsubsection {* Slices *}
+subsubsection \<open>Slices\<close>
 
 lemma slice1_no_bin [simp]:
   "slice1 n (numeral w :: 'b word) = of_bl (takefill False n (bin_to_bl (len_of TYPE('b :: len0)) (numeral w)))"
@@ -3488,7 +3488,7 @@ lemma slice_take': "slice n w = of_bl (take (size w - n) (to_bl w))"
 
 lemmas slice_take = slice_take' [unfolded word_size]
 
--- "shiftr to a word of the same size is just slice, 
+\<comment> "shiftr to a word of the same size is just slice, 
     slice is just shiftr then ucast"
 lemmas shiftr_slice = trans [OF shiftr_bl [THEN meta_eq_to_obj_eq] slice_take [symmetric]]
 
@@ -3573,8 +3573,8 @@ lemma rev_slice:
 lemmas sym_notr = 
   not_iff [THEN iffD2, THEN not_sym, THEN not_iff [THEN iffD1]]
 
--- {* problem posed by TPHOLs referee:
-      criterion for overflow of addition of signed integers *}
+\<comment> \<open>problem posed by TPHOLs referee:
+      criterion for overflow of addition of signed integers\<close>
 
 lemma sofl_test:
   "(sint (x :: 'a :: len word) + sint y = sint (x + y)) = 
@@ -3605,7 +3605,7 @@ lemma sofl_test:
   done
 
 
-subsection {* Split and cat *}
+subsection \<open>Split and cat\<close>
 
 lemmas word_split_bin' = word_split_def
 lemmas word_cat_bin' = word_cat_def
@@ -3711,7 +3711,7 @@ lemma word_split_bl_eq:
   apply (rule refl conjI)+
   done
 
--- "keep quantifiers for use in simplification"
+\<comment> "keep quantifiers for use in simplification"
 lemma test_bit_split':
   "word_split c = (a, b) --> (ALL n m. b !! n = (n < size b & c !! n) & 
     a !! m = (m < size a & c !! (m + size b)))"
@@ -3742,13 +3742,13 @@ lemma test_bit_split_eq: "word_split c = (a, b) <->
   apply (fastforce intro ! : word_eqI simp add : word_size)
   done
 
--- {* this odd result is analogous to @{text "ucast_id"}, 
-      result to the length given by the result type *}
+\<comment> \<open>this odd result is analogous to \<open>ucast_id\<close>, 
+      result to the length given by the result type\<close>
 
 lemma word_cat_id: "word_cat a b = b"
   unfolding word_cat_bin' by (simp add: word_ubin.inverse_norm)
 
--- "limited hom result"
+\<comment> "limited hom result"
 lemma word_cat_hom:
   "len_of TYPE('a::len0) <= len_of TYPE('b::len0) + len_of TYPE ('c::len0)
   \<Longrightarrow>
@@ -3771,7 +3771,7 @@ lemma word_cat_split_alt:
 lemmas word_cat_split_size = sym [THEN [2] word_cat_split_alt [symmetric]]
 
 
-subsubsection {* Split and slice *}
+subsubsection \<open>Split and slice\<close>
 
 lemma split_slices: 
   "word_split w = (u, v) \<Longrightarrow> u = slice (size v) w & v = slice 0 w"
@@ -3816,9 +3816,9 @@ lemmas word_cat_bl_no_bin [simp] =
 lemmas word_split_bl_no_bin [simp] =
   word_split_bl_eq [where c="numeral c", unfolded to_bl_numeral] for c
 
-text {* this odd result arises from the fact that the statement of the
+text \<open>this odd result arises from the fact that the statement of the
       result implies that the decoded words are of the same type, 
-      and therefore of the same length, as the original word *}
+      and therefore of the same length, as the original word\<close>
 
 lemma word_rsplit_same: "word_rsplit w = [w]"
   unfolding word_rsplit_def by (simp add : bin_rsplit_all)
@@ -3892,7 +3892,7 @@ lemmas test_bit_rsplit_alt =
   trans [OF nth_rev_alt [THEN test_bit_cong] 
   test_bit_rsplit [OF refl asm_rl diff_Suc_less]]
 
--- "lazy way of expressing that u and v, and su and sv, have same types"
+\<comment> "lazy way of expressing that u and v, and su and sv, have same types"
 lemma word_rsplit_len_indep [OF refl refl refl refl]:
   "[u,v] = p \<Longrightarrow> [su,sv] = q \<Longrightarrow> word_rsplit u = su \<Longrightarrow> 
     word_rsplit v = sv \<Longrightarrow> length su = length sv"
@@ -3975,7 +3975,7 @@ lemma word_rsplit_rcat_size [OF refl]:
   done
 
 
-subsection {* Rotation *}
+subsection \<open>Rotation\<close>
 
 lemmas rotater_0' [simp] = rotater_def [where n = "0", simplified]
 
@@ -3997,7 +3997,7 @@ lemmas rotate_eqs =
   rotate_eq_mod
 
 
-subsubsection {* Rotation of list to right *}
+subsubsection \<open>Rotation of list to right\<close>
 
 lemma rotate1_rl': "rotater1 (l @ [a]) = a # l"
   unfolding rotater1_def by (cases l) auto
@@ -4072,7 +4072,7 @@ lemmas rotater_0 = rotater_eqs (1)
 lemmas rotater_add = rotater_eqs (2)
 
 
-subsubsection {* map, map2, commuting with rotate(r) *}
+subsubsection \<open>map, map2, commuting with rotate(r)\<close>
 
 lemma butlast_map:
   "xs ~= [] \<Longrightarrow> butlast (map f xs) = map f (butlast xs)"
@@ -4147,7 +4147,7 @@ lemma rotate_map2:
   by (induct n) (auto intro!: lth)
 
 
--- "corresponding equalities for word rotation"
+\<comment> "corresponding equalities for word rotation"
 
 lemma to_bl_rotl: 
   "to_bl (word_rotl n w) = rotate n (to_bl w)"
@@ -4248,7 +4248,7 @@ lemma word_roti_conv_mod': "word_roti n w = word_roti (n mod int (size w)) w"
 lemmas word_roti_conv_mod = word_roti_conv_mod' [unfolded word_size]
 
 
-subsubsection {* "Word rotation commutes with bit-wise operations *}
+subsubsection \<open>"Word rotation commutes with bit-wise operations\<close>
 
 (* using locale to not pollute lemma namespace *)
 locale word_rotate 
@@ -4328,7 +4328,7 @@ lemmas word_rotl_dt_no_bin' [simp] =
 declare word_roti_def [simp]
 
 
-subsection {* Maximum machine word *}
+subsection \<open>Maximum machine word\<close>
 
 lemma word_int_cases:
   obtains n where "(x ::'a::len0 word) = word_of_int n" and "0 \<le> n" and "n < 2^len_of TYPE('a)"
@@ -4630,7 +4630,7 @@ lemma word_induct2 [induct type]:
   done
 
 
-subsection {* Recursion combinator for words *}
+subsection \<open>Recursion combinator for words\<close>
 
 definition word_rec :: "'a \<Rightarrow> ('b::len word \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'b word \<Rightarrow> 'a"
 where
