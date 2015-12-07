@@ -1824,14 +1824,20 @@ lemma inverse_mult_eq_1':
   shows "f * inverse f = 1"
   by (metis mult.commute inverse_mult_eq_1 f0)
 
+(* FIXME: The last part of this proof should go through by simp once we have a proper
+   theorem collection for simplifying division on rings *)
 lemma fps_divide_deriv:
-  fixes a :: "'a::field fps"
-  assumes a0: "b$0 \<noteq> 0"
-  shows "fps_deriv (a / b) = (fps_deriv a * b - a * fps_deriv b) / b\<^sup>2"
-  using fps_inverse_deriv[OF a0] a0
-  by (simp add: fps_divide_unit field_simps
-    power2_eq_square fps_inverse_mult inverse_mult_eq_1'[OF a0])
-
+  assumes "b dvd (a :: 'a :: field fps)"
+  shows   "fps_deriv (a / b) = (fps_deriv a * b - a * fps_deriv b) / b^2"
+proof -
+  have eq_divide_imp: "c \<noteq> 0 \<Longrightarrow> a * c = b \<Longrightarrow> a = b div c" for a b c :: "'a :: field fps"
+    by (drule sym) (simp add: mult.assoc)
+  from assms have "a = a / b * b" by simp
+  also have "fps_deriv (a / b * b) = fps_deriv (a / b) * b + a / b * fps_deriv b" by simp
+  finally have "fps_deriv (a / b) * b^2 = fps_deriv a * b - a * fps_deriv b" using assms
+    by (simp add: power2_eq_square algebra_simps)
+  thus ?thesis by (cases "b = 0") (auto simp: eq_divide_imp)
+qed
 
 lemma fps_inverse_gp': "inverse (Abs_fps (\<lambda>n. 1::'a::field)) = 1 - X"
   by (simp add: fps_inverse_gp fps_eq_iff X_def)
