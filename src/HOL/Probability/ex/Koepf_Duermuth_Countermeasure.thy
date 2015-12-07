@@ -1,6 +1,6 @@
 (* Author: Johannes Hölzl, TU München *)
 
-section {* Formalization of a Countermeasure by Koepf \& Duermuth 2009 *}
+section \<open>Formalization of a Countermeasure by Koepf \& Duermuth 2009\<close>
 
 theory Koepf_Duermuth_Countermeasure
   imports "~~/src/HOL/Probability/Information" "~~/src/HOL/Library/Permutation"
@@ -56,17 +56,17 @@ lemma fun_upd_eq_iff: "f(a := b) = g(a := b') \<longleftrightarrow> b = b' \<and
 lemma card_funcset:
   assumes "finite A" "finite B"
   shows "card (extensionalD d A \<inter> (A \<rightarrow> B)) = card B ^ card A"
-using `finite A` proof induct
-  case (insert a A) thus ?case unfolding extensionalD_insert[OF `a \<notin> A`]
+using \<open>finite A\<close> proof induct
+  case (insert a A) thus ?case unfolding extensionalD_insert[OF \<open>a \<notin> A\<close>]
   proof (subst card_UN_disjoint, safe, simp_all)
     show "finite (extensionalD d A \<inter> (A \<rightarrow> B))" "\<And>f. finite (fun_upd f a ` B)"
-      using `finite B` `finite A` by simp_all
+      using \<open>finite B\<close> \<open>finite A\<close> by simp_all
   next
     fix f g b b' assume "f \<noteq> g" and eq: "f(a := b) = g(a := b')" and
       ext: "f \<in> extensionalD d A" "g \<in> extensionalD d A"
     have "f a = d" "g a = d"
-      using ext `a \<notin> A` by (auto simp add: extensionalD_def)
-    with `f \<noteq> g` eq show False unfolding fun_upd_eq_iff[of _ _ b _ _ d]
+      using ext \<open>a \<notin> A\<close> by (auto simp add: extensionalD_def)
+    with \<open>f \<noteq> g\<close> eq show False unfolding fun_upd_eq_iff[of _ _ b _ _ d]
       by (auto simp: fun_upd_idem fun_upd_eq_iff)
   next
     { fix f assume "f \<in> extensionalD d A \<inter> (A \<rightarrow> B)"
@@ -254,7 +254,7 @@ proof -
     apply (simp add: \<mu>'_eq)
     apply (simp add: * P_def)
     apply (simp add: setsum_cartesian_product')
-    using setprod_setsum_distrib_lists[OF M.finite_space, of M n "\<lambda>x x. True"] `k \<in> keys`
+    using setprod_setsum_distrib_lists[OF M.finite_space, of M n "\<lambda>x x. True"] \<open>k \<in> keys\<close>
     by (auto simp add: setsum_right_distrib[symmetric] subset_eq setprod.neutral_const)
 qed
 
@@ -329,7 +329,7 @@ qed
 
 lemma ce_OB_eq_ce_t: "\<I>(fst ; OB) = \<I>(fst ; t\<circ>OB)"
 proof -
-  txt {* Lemma 2 *}
+  txt \<open>Lemma 2\<close>
 
   { fix k obs obs'
     assume "k \<in> keys" "K k \<noteq> 0" and obs': "obs' \<in> OB ` msgs" and obs: "obs \<in> OB ` msgs"
@@ -349,7 +349,7 @@ proof -
         apply (simp add: \<mu>'_eq) by (auto intro!: arg_cong[where f=p])
       also have "\<dots> =
           (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)"
-        unfolding P_def using `K k \<noteq> 0` `k \<in> keys`
+        unfolding P_def using \<open>K k \<noteq> 0\<close> \<open>k \<in> keys\<close>
         apply (simp add: setsum_cartesian_product' setsum_divide_distrib msgs_def ** cong: conj_cong)
         apply (subst setprod_setsum_distrib_lists[OF M.finite_space]) ..
       finally have "(\<P>(OB ; fst) {(obs, k)}) / K k =
@@ -360,7 +360,7 @@ proof -
       unfolding *[OF obs] *[OF obs']
       using t_f(1) obs_t_f by (subst (2) t_f(2)) (simp add: setprod.reindex)
     then have "(\<P>(OB ; fst) {(obs, k)}) = (\<P>(OB ; fst) {(obs', k)})"
-      using `K k \<noteq> 0` by auto }
+      using \<open>K k \<noteq> 0\<close> by auto }
   note t_eq_imp = this
 
   let ?S = "\<lambda>obs. t -`{t obs} \<inter> OB`msgs"
@@ -374,14 +374,14 @@ proof -
       using finite_measure_finite_Union[OF _ df]
       by (auto simp add: * intro!: setsum_nonneg)
     also have "(\<Sum>obs'\<in>?S obs. \<P>(OB ; fst) {(obs', k)}) = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}"
-      by (simp add: t_eq_imp[OF `k \<in> keys` `K k \<noteq> 0` obs])
+      by (simp add: t_eq_imp[OF \<open>k \<in> keys\<close> \<open>K k \<noteq> 0\<close> obs])
     finally have "\<P>(t\<circ>OB ; fst) {(t obs, k)} = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}" .}
   note P_t_eq_P_OB = this
 
   { fix k obs assume "k \<in> keys" and obs: "obs \<in> OB`msgs"
     have "\<P>(t\<circ>OB | fst) {(t obs, k)} =
       real (card (t -` {t obs} \<inter> OB ` msgs)) * \<P>(OB | fst) {(obs, k)}"
-      using \<P>_k[OF `k \<in> keys`] P_t_eq_P_OB[OF `k \<in> keys` _ obs] by auto }
+      using \<P>_k[OF \<open>k \<in> keys\<close>] P_t_eq_P_OB[OF \<open>k \<in> keys\<close> _ obs] by auto }
   note CP_t_K = this
 
   { fix k obs assume "k \<in> keys" and obs: "obs \<in> OB`msgs"
@@ -400,9 +400,9 @@ proof -
       done
     also have "\<P>(t\<circ>OB | fst) {(t obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(t\<circ>OB|fst) {(t obs, k')} * \<P>(fst) {k'}) =
       \<P>(OB | fst) {(obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'})"
-      using CP_t_K[OF `k\<in>keys` obs] CP_t_K[OF _ obs] `real (card ?S) \<noteq> 0`
+      using CP_t_K[OF \<open>k\<in>keys\<close> obs] CP_t_K[OF _ obs] \<open>real (card ?S) \<noteq> 0\<close>
       by (simp only: setsum_right_distrib[symmetric] ac_simps
-          mult_divide_mult_cancel_left[OF `real (card ?S) \<noteq> 0`]
+          mult_divide_mult_cancel_left[OF \<open>real (card ?S) \<noteq> 0\<close>]
         cong: setsum.cong)
     also have "(\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'}) = \<P>(OB) {obs}"
       using setsum_distribution_cut[of OB obs fst]
@@ -435,7 +435,7 @@ proof -
       by (force simp add: * intro!: setsum_nonneg) }
   note P_t_sum_P_O = this
 
-  txt {* Lemma 3 *}
+  txt \<open>Lemma 3\<close>
   have "\<H>(fst | OB) = -(\<Sum>obs\<in>OB`msgs. \<P>(OB) {obs} * ?Ht (t obs))"
     unfolding conditional_entropy_eq_ce_with_hypothesis using * by simp
   also have "\<dots> = -(\<Sum>obs\<in>t`OB`msgs. \<P>(t\<circ>OB) {obs} * ?Ht obs)"

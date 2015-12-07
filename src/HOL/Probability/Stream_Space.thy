@@ -76,7 +76,7 @@ lemma measurable_stream_coinduct[consumes 1, case_names shd stl, coinduct set: m
   shows "f \<in> measurable N (stream_space M)"
 proof (rule measurable_stream_space2)
   fix n show "(\<lambda>x. f x !! n) \<in> measurable N M"
-    using `F f` by (induction n arbitrary: f) (auto intro: h t)
+    using \<open>F f\<close> by (induction n arbitrary: f) (auto intro: h t)
 qed
 
 lemma measurable_sdrop[measurable]: "sdrop n \<in> measurable (stream_space M) (stream_space M)"
@@ -355,11 +355,11 @@ proof
         case (Suc i) from this[of "stl x"] show ?case
           by (simp add: length_Suc_conv Bex_def ex_simps[symmetric] del: ex_simps)
              (metis stream.collapse streams_Stream)
-      qed (insert `a \<in> S`, auto intro: streams_stl in_streams) }
+      qed (insert \<open>a \<in> S\<close>, auto intro: streams_stl in_streams) }
     then have "(\<lambda>x. x !! i) -` {a} \<inter> streams S = (\<Union>xs\<in>{xs\<in>lists S. length xs = i}. sstart S (xs @ [a]))"
       by (auto simp add: set_eq_iff)
     also have "\<dots> \<in> sets ?S"
-      using `a\<in>S` by (intro sets.countable_UN') (auto intro!: sigma_sets.Basic image_eqI)
+      using \<open>a\<in>S\<close> by (intro sets.countable_UN') (auto intro!: sigma_sets.Basic image_eqI)
     finally have " (\<lambda>x. x !! i) -` {a} \<inter> streams S \<in> sets ?S" . }
   then show "sets (stream_space (count_space S)) \<subseteq> sets (sigma (streams S) (sstart S`lists S \<union> {{}}))"
     by (intro sets_stream_space_in_sets) (auto simp: measurable_count_space_eq_countable snth_in)

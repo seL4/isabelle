@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section {*Infinite Product Measure*}
+section \<open>Infinite Product Measure\<close>
 
 theory Infinite_Product_Measure
   imports Probability_Measure Caratheodory Projective_Family
@@ -98,7 +98,7 @@ proof (rule measure_eqI[symmetric])
   moreover have "((\<lambda>\<omega>. \<omega> i) -` A \<inter> space (PiM I M)) = {x\<in>space (PiM I M). x i \<in> A}"
     by auto
   ultimately show "emeasure (M i) A = emeasure (distr (PiM I M) (M i) (\<lambda>\<omega>. \<omega> i)) A"
-    by (auto simp: `i\<in>I` emeasure_distr measurable_component_singleton emeasure_PiM_Collect_single)
+    by (auto simp: \<open>i\<in>I\<close> emeasure_distr measurable_component_singleton emeasure_PiM_Collect_single)
 qed simp
 
 lemma (in product_prob_space) PiM_eq:
@@ -118,7 +118,7 @@ lemma (in product_prob_space) AE_component: "i \<in> I \<Longrightarrow> AE x in
   apply simp_all
   done
 
-subsection {* Sequence space *}
+subsection \<open>Sequence space\<close>
 
 definition comb_seq :: "nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a)" where
   "comb_seq i \<omega> \<omega>' j = (if j < i then \<omega> j else \<omega>' (j - i))"

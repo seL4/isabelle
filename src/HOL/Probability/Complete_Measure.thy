@@ -256,7 +256,7 @@ proof -
       have "?F (f x) - ?N = main_part M (?F (f x)) \<union> null_part M (?F (f x)) - ?N"
         using main_part_null_part_Un[OF F] by auto
       also have "\<dots> = main_part M (?F (f x)) - ?N"
-        using N `x \<in> space M` by auto
+        using N \<open>x \<in> space M\<close> by auto
       finally have "?F (f x) - ?N \<in> sets M"
         using F sets by auto }
     ultimately show "?f' -` {?f' x} \<inter> space M \<in> sets M" by auto
@@ -284,7 +284,7 @@ proof -
     proof (elim AE_mp, safe intro!: AE_I2)
       fix x assume eq: "\<forall>i. f i x = f' i x"
       moreover have "g x = (SUP i. f i x)"
-        unfolding f using `0 \<le> g x` by (auto split: split_max)
+        unfolding f using \<open>0 \<le> g x\<close> by (auto split: split_max)
       ultimately show "g x = ?f x" by auto
     qed
     show "?f \<in> borel_measurable M"

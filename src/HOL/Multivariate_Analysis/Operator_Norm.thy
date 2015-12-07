@@ -9,7 +9,7 @@ theory Operator_Norm
 imports Complex_Main
 begin
 
-text \<open>This formulation yields zero if @{text 'a} is the trivial vector space.\<close>
+text \<open>This formulation yields zero if \<open>'a\<close> is the trivial vector space.\<close>
 
 definition onorm :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> real"
   where "onorm f = (SUP x. norm (f x) / norm x)"

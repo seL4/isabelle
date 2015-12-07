@@ -10,7 +10,7 @@ theory Giry_Monad
   imports Probability_Measure Lebesgue_Integral_Substitution "~~/src/HOL/Library/Monad_Syntax" 
 begin
 
-section {* Sub-probability spaces *}
+section \<open>Sub-probability spaces\<close>
 
 locale subprob_space = finite_measure +
   assumes emeasure_space_le_1: "emeasure M (space M) \<le> 1"
@@ -93,7 +93,7 @@ proof (cases "a < b")
   from mono' derivg have "\<And>x. x \<in> {a<..<b} \<Longrightarrow> g' x \<ge> 0"
     by (rule mono_on_imp_deriv_nonneg) (auto simp: interior_atLeastAtMost_real)
   from contg' this have derivg_nonneg: "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<ge> 0"
-    by (rule continuous_ge_on_Iii) (simp_all add: `a < b`)
+    by (rule continuous_ge_on_Iii) (simp_all add: \<open>a < b\<close>)
 
   from derivg have contg: "continuous_on {a..b} g" by (rule has_real_derivative_imp_continuous_on)
   have A: "h -` {a..b} = {g a..g b}"
@@ -119,13 +119,13 @@ proof (cases "a < b")
   with assms have "(\<integral>\<^sup>+x. f x * indicator {g a..g b} x \<partial>lborel) = 
                       (\<integral>\<^sup>+x. f (g x) * g' x * indicator {a..b} x \<partial>lborel)"
     by (intro nn_integral_substitution_aux)
-       (auto simp: derivg_nonneg A B emeasure_density mult.commute `a < b`)
+       (auto simp: derivg_nonneg A B emeasure_density mult.commute \<open>a < b\<close>)
   also have "... = emeasure (density lborel (\<lambda>x. f (g x) * g' x)) {a..b}" 
     by (simp add: emeasure_density)
   finally show ?thesis .
 next
   assume "\<not>a < b"
-  with `a \<le> b` have [simp]: "b = a" by (simp add: not_less del: `a \<le> b`)
+  with \<open>a \<le> b\<close> have [simp]: "b = a" by (simp add: not_less del: \<open>a \<le> b\<close>)
   from inv and range have "h -` {a} = {g a}" by auto
   thus ?thesis by (simp_all add: emeasure_distr emeasure_density measurable_sets_borel[OF Mh])
 qed
@@ -185,7 +185,7 @@ lemma subprob_measurableD:
   using measurable_space[OF N x]
   by (auto simp: space_subprob_algebra intro!: measurable_cong_sets dest: sets_eq_imp_space_eq)
 
-ML {*
+ML \<open>
 
 fun subprob_cong thm ctxt = (
   let
@@ -198,7 +198,7 @@ fun subprob_cong thm ctxt = (
   end
   handle THM _ => ([], ctxt) | TERM _ => ([], ctxt))
 
-*}
+\<close>
 
 setup \<open>
   Context.theory_map (Measurable.add_preprocessor "subprob_cong" subprob_cong)
@@ -460,7 +460,7 @@ next
   qed
 qed
 
-section {* Properties of return *}
+section \<open>Properties of return\<close>
 
 definition return :: "'a measure \<Rightarrow> 'a \<Rightarrow> 'a measure" where
   "return R x = measure_of (space R) (sets R) (\<lambda>A. indicator A x)"
@@ -525,11 +525,11 @@ lemma nn_integral_return:
   assumes "g x \<ge> 0" "x \<in> space M" "g \<in> borel_measurable M"
   shows "(\<integral>\<^sup>+ a. g a \<partial>return M x) = g x"
 proof-
-  interpret prob_space "return M x" by (rule prob_space_return[OF `x \<in> space M`])
+  interpret prob_space "return M x" by (rule prob_space_return[OF \<open>x \<in> space M\<close>])
   have "(\<integral>\<^sup>+ a. g a \<partial>return M x) = (\<integral>\<^sup>+ a. g x \<partial>return M x)" using assms
     by (intro nn_integral_cong_AE) (auto simp: AE_return)
   also have "... = g x"
-    using nn_integral_const[OF `g x \<ge> 0`, of "return M x"] emeasure_space_1 by simp
+    using nn_integral_const[OF \<open>g x \<ge> 0\<close>, of "return M x"] emeasure_space_1 by simp
   finally show ?thesis .
 qed
 
@@ -538,7 +538,7 @@ lemma integral_return:
   assumes "x \<in> space M" "g \<in> borel_measurable M"
   shows "(\<integral>a. g a \<partial>return M x) = g x"
 proof-
-  interpret prob_space "return M x" by (rule prob_space_return[OF `x \<in> space M`])
+  interpret prob_space "return M x" by (rule prob_space_return[OF \<open>x \<in> space M\<close>])
   have "(\<integral>a. g a \<partial>return M x) = (\<integral>a. g x \<partial>return M x)" using assms
     by (intro integral_cong_AE) (auto simp: AE_return)
   then show ?thesis
@@ -696,7 +696,7 @@ lemma space_select_sets[simp]:
   "sets M = sets (subprob_algebra N) \<Longrightarrow> space (select_sets M) = space N"
   by (intro sets_eq_imp_space_eq sets_select_sets)
 
-section {* Join *}
+section \<open>Join\<close>
 
 definition join :: "'a measure measure \<Rightarrow> 'a measure" where
   "join M = measure_of (space (select_sets M)) (sets (select_sets M)) (\<lambda>B. \<integral>\<^sup>+ M'. emeasure M' B \<partial>M)"
@@ -734,10 +734,10 @@ proof (cases "space N \<noteq> {}", rule measurable_subprob_algebra)
   proof (rule measurable_cong)
     fix M' assume "M' \<in> space (subprob_algebra (subprob_algebra N))"
     then show "emeasure (join M') A = (\<integral>\<^sup>+ M''. emeasure M'' A \<partial>M')"
-      by (intro emeasure_join) (auto simp: space_subprob_algebra `A\<in>sets N`)
+      by (intro emeasure_join) (auto simp: space_subprob_algebra \<open>A\<in>sets N\<close>)
   qed
   also have "(\<lambda>M'. \<integral>\<^sup>+M''. emeasure M'' A \<partial>M') \<in> ?B"
-    using measurable_emeasure_subprob_algebra[OF `A\<in>sets N`]
+    using measurable_emeasure_subprob_algebra[OF \<open>A\<in>sets N\<close>]
     by (rule nn_integral_measurable_subprob_algebra)
   finally show "(\<lambda>M'. emeasure (join M') A) \<in> borel_measurable (subprob_algebra (subprob_algebra N))" .
 next
@@ -1037,7 +1037,7 @@ proof (rule measure_eqI)
     fix M' assume "M' \<in> space M"
     from assms have "space M = space (subprob_algebra R)"
         using sets_eq_imp_space_eq by blast
-    with `M' \<in> space M` have [simp]: "sets M' = sets R" using space_subprob_algebra by blast
+    with \<open>M' \<in> space M\<close> have [simp]: "sets M' = sets R" using space_subprob_algebra by blast
     show "f \<in> measurable M' N" by (simp cong: measurable_cong_sets add: assms)
     have "space M' = space R" by (rule sets_eq_imp_space_eq) simp
     thus "emeasure M' (f -` A \<inter> space R) = emeasure M' (f -` A \<inter> space M')" by simp
@@ -1088,7 +1088,7 @@ proof (cases "space M = {}")
   assume "space M \<noteq> {}"
   hence "(SOME x. x \<in> space M) \<in> space M" by (rule_tac someI_ex) blast
   with assms have "f (SOME x. x \<in> space M) = g (SOME x. x \<in> space M)" by blast
-  with `space M \<noteq> {}` and assms show ?thesis by (simp add: bind_nonempty cong: distr_cong)
+  with \<open>space M \<noteq> {}\<close> and assms show ?thesis by (simp add: bind_nonempty cong: distr_cong)
 qed (simp add: bind_empty)
 
 lemma bind_nonempty':
@@ -1319,7 +1319,7 @@ lemma bind_distr:
   shows "(distr M X f \<guillemotright>= N) = (M \<guillemotright>= (\<lambda>x. N (f x)))"
 proof -
   have "space X \<noteq> {}" "space M \<noteq> {}"
-    using `space M \<noteq> {}` f[THEN measurable_space] by auto
+    using \<open>space M \<noteq> {}\<close> f[THEN measurable_space] by auto
   then show ?thesis
     by (simp add: bind_nonempty''[where N=K] distr_distr comp_def)
 qed
@@ -1419,8 +1419,8 @@ proof (cases "space M = {}")
   from assms have sets_fx[simp]: "\<And>x. x \<in> space M \<Longrightarrow> sets (f x) = sets N"
       by (simp add: sets_kernel)
   have ex_in: "\<And>A. A \<noteq> {} \<Longrightarrow> \<exists>x. x \<in> A" by blast
-  note sets_some[simp] = sets_kernel[OF M1 someI_ex[OF ex_in[OF `space M \<noteq> {}`]]]
-                         sets_kernel[OF M2 someI_ex[OF ex_in[OF `space N \<noteq> {}`]]]
+  note sets_some[simp] = sets_kernel[OF M1 someI_ex[OF ex_in[OF \<open>space M \<noteq> {}\<close>]]]
+                         sets_kernel[OF M2 someI_ex[OF ex_in[OF \<open>space N \<noteq> {}\<close>]]]
   note space_some[simp] = sets_eq_imp_space_eq[OF this(1)] sets_eq_imp_space_eq[OF this(2)]
 
   have "bind M (\<lambda>x. bind (f x) g) = 
@@ -1504,7 +1504,7 @@ proof -
   finally show ?thesis .
 qed
 
-section {* Measures form a $\omega$-chain complete partial order *}
+section \<open>Measures form a $\omega$-chain complete partial order\<close>
 
 definition SUP_measure :: "(nat \<Rightarrow> 'a measure) \<Rightarrow> 'a measure" where
   "SUP_measure M = measure_of (\<Union>i. space (M i)) (\<Union>i. sets (M i)) (\<lambda>A. SUP i. emeasure (M i) A)"

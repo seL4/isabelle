@@ -6,7 +6,7 @@
     measure on the left part of the sum type 'a + 'b)
 *)
 
-section {* Embed Measure Spaces with a Function *}
+section \<open>Embed Measure Spaces with a Function\<close>
 
 theory Embed_Measure
 imports Binary_Product_Measure
@@ -216,7 +216,7 @@ proof
   moreover {
     fix X assume "X \<in> sets A"
     from asm have "emeasure ?M (f`X) = emeasure ?N (f`X)" by simp
-    with `X \<in> sets A` and `sets A = sets B` and assms 
+    with \<open>X \<in> sets A\<close> and \<open>sets A = sets B\<close> and assms 
         have "emeasure A X = emeasure B X" by (simp add: emeasure_embed_measure_image)
   }
   ultimately show "A = B" by (rule measure_eqI)
@@ -312,7 +312,7 @@ proof (intro iffI subsetI)
   with A have "f x \<in> f ` B" by blast
   then obtain y where "f x = f y" and "y \<in> B" by blast
   with assms and B have "x = y" by (auto dest: inj_onD)
-  with `y \<in> B` show "x \<in> B" by simp
+  with \<open>y \<in> B\<close> show "x \<in> B" by simp
 qed auto
   
 

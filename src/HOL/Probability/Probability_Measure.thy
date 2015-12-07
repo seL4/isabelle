@@ -3,7 +3,7 @@
     Author:     Armin Heller, TU München
 *)
 
-section {*Probability measure*}
+section \<open>Probability measure\<close>
 
 theory Probability_Measure
   imports Lebesgue_Measure Radon_Nikodym
@@ -88,21 +88,21 @@ lemma (in prob_space) AE_in_set_eq_1:
 proof
   assume ae: "AE x in M. x \<in> A"
   have "{x \<in> space M. x \<in> A} = A" "{x \<in> space M. x \<notin> A} = space M - A"
-    using `A \<in> events`[THEN sets.sets_into_space] by auto
-  with AE_E2[OF ae] `A \<in> events` have "1 - emeasure M A = 0"
+    using \<open>A \<in> events\<close>[THEN sets.sets_into_space] by auto
+  with AE_E2[OF ae] \<open>A \<in> events\<close> have "1 - emeasure M A = 0"
     by (simp add: emeasure_compl emeasure_space_1)
   then show "prob A = 1"
-    using `A \<in> events` by (simp add: emeasure_eq_measure one_ereal_def)
+    using \<open>A \<in> events\<close> by (simp add: emeasure_eq_measure one_ereal_def)
 next
   assume prob: "prob A = 1"
   show "AE x in M. x \<in> A"
   proof (rule AE_I)
     show "{x \<in> space M. x \<notin> A} \<subseteq> space M - A" by auto
     show "emeasure M (space M - A) = 0"
-      using `A \<in> events` prob
+      using \<open>A \<in> events\<close> prob
       by (simp add: prob_compl emeasure_space_1 emeasure_eq_measure one_ereal_def)
     show "space M - A \<in> events"
-      using `A \<in> events` by auto
+      using \<open>A \<in> events\<close> by auto
   qed
 qed
 
@@ -117,7 +117,7 @@ qed simp
 lemma (in prob_space) AE_prob_1:
   assumes "prob A = 1" shows "AE x in M. x \<in> A"
 proof -
-  from `prob A = 1` have "A \<in> events"
+  from \<open>prob A = 1\<close> have "A \<in> events"
     by (metis measure_notin_sets zero_neq_one)
   with AE_in_set_eq_1 assms show ?thesis by simp
 qed
@@ -204,21 +204,21 @@ proof -
     by (elim disjE)  (auto simp: subset_eq)
   moreover
   { fix y assume y: "y \<in> I"
-    with q(2) `open I` have "Sup ((\<lambda>x. q x + ?F x * (y - x)) ` I) = q y"
+    with q(2) \<open>open I\<close> have "Sup ((\<lambda>x. q x + ?F x * (y - x)) ` I) = q y"
       by (auto intro!: cSup_eq_maximum convex_le_Inf_differential image_eqI [OF _ y] simp: interior_open simp del: Sup_image_eq Inf_image_eq) }
   ultimately have "q (expectation X) = Sup ((\<lambda>x. q x + ?F x * (expectation X - x)) ` I)"
     by simp
   also have "\<dots> \<le> expectation (\<lambda>w. q (X w))"
   proof (rule cSup_least)
     show "(\<lambda>x. q x + ?F x * (expectation X - x)) ` I \<noteq> {}"
-      using `I \<noteq> {}` by auto
+      using \<open>I \<noteq> {}\<close> by auto
   next
     fix k assume "k \<in> (\<lambda>x. q x + ?F x * (expectation X - x)) ` I"
     then guess x .. note x = this
     have "q x + ?F x * (expectation X  - x) = expectation (\<lambda>w. q x + ?F x * (X w - x))"
       using prob_space by (simp add: X)
     also have "\<dots> \<le> expectation (\<lambda>w. q (X w))"
-      using `x \<in> I` `open I` X(2)
+      using \<open>x \<in> I\<close> \<open>open I\<close> X(2)
       apply (intro integral_mono_AE integrable_add integrable_mult_right integrable_diff
                 integrable_const X q)
       apply (elim eventually_elim1)
@@ -230,7 +230,7 @@ proof -
   finally show "q (expectation X) \<le> expectation (\<lambda>x. q (X x))" .
 qed
 
-subsection  {* Introduce binder for probability *}
+subsection  \<open>Introduce binder for probability\<close>
 
 syntax
   "_prob" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("('\<P>'((/_ in _./ _)'))")
@@ -238,7 +238,7 @@ syntax
 translations
   "\<P>(x in M. P)" => "CONST measure M {x \<in> CONST space M. P}"
 
-print_translation {*
+print_translation \<open>
   let
     fun to_pattern (Const (@{const_syntax Pair}, _) $ l $ r) =
       Syntax.const @{const_syntax Pair} :: to_pattern l @ to_pattern r
@@ -299,7 +299,7 @@ print_translation {*
   in
     [(@{const_syntax Sigma_Algebra.measure}, K tr')]
   end
-*}
+\<close>
 
 definition
   "cond_prob M P Q = \<P>(\<omega> in M. P \<omega> \<and> Q \<omega>) / \<P>(\<omega> in M. Q \<omega>)"
@@ -495,7 +495,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-subsection {* Distributions *}
+subsection \<open>Distributions\<close>
 
 definition "distributed M N X f \<longleftrightarrow> distr M N X = density N f \<and> 
   f \<in> borel_measurable N \<and> (AE x in N. 0 \<le> f x) \<and> X \<in> measurable M N"

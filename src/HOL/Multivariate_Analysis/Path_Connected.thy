@@ -755,14 +755,14 @@ proof -
   then have umin': "\<And>t. \<lbrakk>0 \<le> t; t \<le> 1; t < u\<rbrakk> \<Longrightarrow>  g t \<in> S"
     using closure_def by fastforce
   { assume "u \<noteq> 0"
-    then have "u > 0" using `0 \<le> u` by auto
+    then have "u > 0" using \<open>0 \<le> u\<close> by auto
     { fix e::real assume "e > 0"
       obtain d where "d>0" and d: "\<And>x'. \<lbrakk>x' \<in> {0..1}; dist x' u < d\<rbrakk> \<Longrightarrow> dist (g x') (g u) < e"
-        using continuous_onD [OF gcon _ `e > 0`] `0 \<le> _` `_ \<le> 1` atLeastAtMost_iff by auto
+        using continuous_onD [OF gcon _ \<open>e > 0\<close>] \<open>0 \<le> _\<close> \<open>_ \<le> 1\<close> atLeastAtMost_iff by auto
       have *: "dist (max 0 (u - d / 2)) u < d"
-        using `0 \<le> u` `u \<le> 1` `d > 0` by (simp add: dist_real_def)
+        using \<open>0 \<le> u\<close> \<open>u \<le> 1\<close> \<open>d > 0\<close> by (simp add: dist_real_def)
       have "\<exists>y\<in>S. dist y (g u) < e"
-        using `0 < u` `u \<le> 1` `d > 0`
+        using \<open>0 < u\<close> \<open>u \<le> 1\<close> \<open>d > 0\<close>
         by (force intro: d [OF _ *] umin')
     }
     then have "g u \<in> closure S"
@@ -770,8 +770,8 @@ proof -
   }
   then show ?thesis
     apply (rule_tac u=u in that)
-    apply (auto simp: `0 \<le> u` `u \<le> 1` gu interior_closure umin)
-    using `_ \<le> 1` interior_closure umin apply fastforce
+    apply (auto simp: \<open>0 \<le> u\<close> \<open>u \<le> 1\<close> gu interior_closure umin)
+    using \<open>_ \<le> 1\<close> interior_closure umin apply fastforce
     done
 qed
 
@@ -785,9 +785,9 @@ proof -
              and gunot: "(g u \<notin> interior S)" and u0: "(u = 0 \<or> g u \<in> closure S)"
     using subpath_to_frontier_explicit [OF assms] by blast
   show ?thesis
-    apply (rule that [OF `0 \<le> u` `u \<le> 1`])
+    apply (rule that [OF \<open>0 \<le> u\<close> \<open>u \<le> 1\<close>])
     apply (simp add: gunot)
-    using `0 \<le> u` u0 by (force simp: subpath_def gxin)
+    using \<open>0 \<le> u\<close> u0 by (force simp: subpath_def gxin)
 qed
 
 lemma subpath_to_frontier:
@@ -800,9 +800,9 @@ proof -
                         (\<forall>x. 0 \<le> x \<and> x < 1 \<longrightarrow> subpath 0 u g x \<in> interior S) \<and> g u \<in> closure S"
     using subpath_to_frontier_strong [OF g g1] by blast
   show ?thesis
-    apply (rule that [OF `0 \<le> u` `u \<le> 1`])
+    apply (rule that [OF \<open>0 \<le> u\<close> \<open>u \<le> 1\<close>])
     apply (metis DiffI disj frontier_def g0 notin pathstart_def)
-    using `0 \<le> u` g0 disj
+    using \<open>0 \<le> u\<close> g0 disj
     apply (simp add: path_image_subpath_gen)
     apply (auto simp: closed_segment_eq_real_ivl pathstart_def pathfinish_def subpath_def)
     apply (rename_tac y)
@@ -840,7 +840,7 @@ proof -
                     "pathfinish h \<in> frontier S"
     using exists_path_subpath_to_frontier [OF g _ g1] closure_closed [OF S] g0 by auto
   show ?thesis
-    apply (rule that [OF `path h`])
+    apply (rule that [OF \<open>path h\<close>])
     using assms h
     apply auto
     apply (metis diff_single_insert frontier_subset_eq insert_iff interior_subset subset_iff)
@@ -1555,9 +1555,9 @@ next
   case False
   then obtain a where "a \<in> s" by auto
   { fix x y assume "x \<notin> s" "y \<notin> s"
-    then have "x \<noteq> a" "y \<noteq> a" using `a \<in> s` by auto
+    then have "x \<noteq> a" "y \<noteq> a" using \<open>a \<in> s\<close> by auto
     then have bxy: "bounded(insert x (insert y s))"
-      by (simp add: `bounded s`)
+      by (simp add: \<open>bounded s\<close>)
     then obtain B::real where B: "0 < B" and Bx: "norm (a - x) < B" and By: "norm (a - y) < B"
                           and "s \<subseteq> ball a B"
       using bounded_subset_ballD [OF bxy, of a] by (auto simp: dist_norm)
@@ -1565,7 +1565,7 @@ next
     { fix u
       assume u: "(1 - u) *\<^sub>R x + u *\<^sub>R (a + C *\<^sub>R (x - a)) \<in> s" and "0 \<le> u" "u \<le> 1"
       have CC: "1 \<le> 1 + (C - 1) * u"
-        using `x \<noteq> a` `0 \<le> u`
+        using \<open>x \<noteq> a\<close> \<open>0 \<le> u\<close>
         apply (simp add: C_def divide_simps norm_minus_commute)
         using Bx by auto
       have *: "\<And>v. (1 - u) *\<^sub>R x + u *\<^sub>R (a + v *\<^sub>R (x - a)) = a + (1 + (v - 1) * u) *\<^sub>R (x - a)"
@@ -1583,24 +1583,24 @@ next
       finally have xeq: "(1 - 1 / (1 + (C - 1) * u)) *\<^sub>R a + (1 / (1 + (C - 1) * u)) *\<^sub>R (a + (1 + (C - 1) * u) *\<^sub>R (x - a)) = x"
         by (simp add: algebra_simps)
       have False
-        using `convex s`
+        using \<open>convex s\<close>
         apply (simp add: convex_alt)
         apply (drule_tac x=a in bspec)
-         apply (rule  `a \<in> s`)
+         apply (rule  \<open>a \<in> s\<close>)
         apply (drule_tac x="a + (1 + (C - 1) * u) *\<^sub>R (x - a)" in bspec)
          using u apply (simp add: *)
         apply (drule_tac x="1 / (1 + (C - 1) * u)" in spec)
-        using `x \<noteq> a` `x \<notin> s` `0 \<le> u` CC
+        using \<open>x \<noteq> a\<close> \<open>x \<notin> s\<close> \<open>0 \<le> u\<close> CC
         apply (auto simp: xeq)
         done
     }
     then have pcx: "path_component (- s) x (a + C *\<^sub>R (x - a))"
       by (force simp: closed_segment_def intro!: path_connected_linepath)
-    def D == "B / norm(y - a)"  --{*massive duplication with the proof above*}
+    def D == "B / norm(y - a)"  \<comment>\<open>massive duplication with the proof above\<close>
     { fix u
       assume u: "(1 - u) *\<^sub>R y + u *\<^sub>R (a + D *\<^sub>R (y - a)) \<in> s" and "0 \<le> u" "u \<le> 1"
       have DD: "1 \<le> 1 + (D - 1) * u"
-        using `y \<noteq> a` `0 \<le> u`
+        using \<open>y \<noteq> a\<close> \<open>0 \<le> u\<close>
         apply (simp add: D_def divide_simps norm_minus_commute)
         using By by auto
       have *: "\<And>v. (1 - u) *\<^sub>R y + u *\<^sub>R (a + v *\<^sub>R (y - a)) = a + (1 + (v - 1) * u) *\<^sub>R (y - a)"
@@ -1618,14 +1618,14 @@ next
       finally have xeq: "(1 - 1 / (1 + (D - 1) * u)) *\<^sub>R a + (1 / (1 + (D - 1) * u)) *\<^sub>R (a + (1 + (D - 1) * u) *\<^sub>R (y - a)) = y"
         by (simp add: algebra_simps)
       have False
-        using `convex s`
+        using \<open>convex s\<close>
         apply (simp add: convex_alt)
         apply (drule_tac x=a in bspec)
-         apply (rule  `a \<in> s`)
+         apply (rule  \<open>a \<in> s\<close>)
         apply (drule_tac x="a + (1 + (D - 1) * u) *\<^sub>R (y - a)" in bspec)
          using u apply (simp add: *)
         apply (drule_tac x="1 / (1 + (D - 1) * u)" in spec)
-        using `y \<noteq> a` `y \<notin> s` `0 \<le> u` DD
+        using \<open>y \<noteq> a\<close> \<open>y \<notin> s\<close> \<open>0 \<le> u\<close> DD
         apply (auto simp: xeq)
         done
     }
@@ -1633,10 +1633,10 @@ next
       by (force simp: closed_segment_def intro!: path_connected_linepath)
     have pyx: "path_component (- s) (a + D *\<^sub>R (y - a)) (a + C *\<^sub>R (x - a))"
       apply (rule path_component_of_subset [of "{x. norm(x - a) = B}"])
-       using `s \<subseteq> ball a B`
+       using \<open>s \<subseteq> ball a B\<close>
        apply (force simp: ball_def dist_norm norm_minus_commute)
       apply (rule path_connected_sphere [OF 2, of a B, simplified path_connected_component, rule_format])
-      using `x \<noteq> a`  using `y \<noteq> a`  B apply (auto simp: C_def D_def)
+      using \<open>x \<noteq> a\<close>  using \<open>y \<noteq> a\<close>  B apply (auto simp: C_def D_def)
       done
     have "path_component (- s) x y"
       by (metis path_component_trans path_component_sym pcx pdy pyx)
@@ -1834,7 +1834,7 @@ lemma segment_bound_lemma:
 proof -
   obtain dx dy where "dx \<ge> 0" "dy \<ge> 0" "x = B + dx" "y = B + dy"
     using assms by auto (metis add.commute diff_add_cancel)
-  with `0 \<le> u` `u \<le> 1` show ?thesis
+  with \<open>0 \<le> u\<close> \<open>u \<le> 1\<close> show ?thesis
     by (simp add: add_increasing2 mult_left_le field_simps)
 qed
 
@@ -2036,20 +2036,20 @@ next
       by (metis mem_Collect_eq)
     def C \<equiv> "((B + 1 + norm z) / norm (z-a))"
     have "C > 0"
-      using `0 < B` zna by (simp add: C_def divide_simps add_strict_increasing)
+      using \<open>0 < B\<close> zna by (simp add: C_def divide_simps add_strict_increasing)
     have "\<bar>norm (z + C *\<^sub>R (z-a)) - norm (C *\<^sub>R (z-a))\<bar> \<le> norm z"
       by (metis add_diff_cancel norm_triangle_ineq3)
     moreover have "norm (C *\<^sub>R (z-a)) > norm z + B"
-      using zna `B>0` by (simp add: C_def le_max_iff_disj field_simps)
+      using zna \<open>B>0\<close> by (simp add: C_def le_max_iff_disj field_simps)
     ultimately have C: "norm (z + C *\<^sub>R (z-a)) > B" by linarith
     { fix u::real
       assume u: "0\<le>u" "u\<le>1" and ins: "(1 - u) *\<^sub>R z + u *\<^sub>R (z + C *\<^sub>R (z - a)) \<in> s"
       then have Cpos: "1 + u * C > 0"
-        by (meson `0 < C` add_pos_nonneg less_eq_real_def zero_le_mult_iff zero_less_one)
+        by (meson \<open>0 < C\<close> add_pos_nonneg less_eq_real_def zero_le_mult_iff zero_less_one)
       then have *: "(1 / (1 + u * C)) *\<^sub>R z + (u * C / (1 + u * C)) *\<^sub>R z = z"
         by (simp add: scaleR_add_left [symmetric] divide_simps)
       then have False
-        using convexD_alt [OF s `a \<in> s` ins, of "1/(u*C + 1)"] `C>0` `z \<notin> s` Cpos u
+        using convexD_alt [OF s \<open>a \<in> s\<close> ins, of "1/(u*C + 1)"] \<open>C>0\<close> \<open>z \<notin> s\<close> Cpos u
         by (simp add: * divide_simps algebra_simps)
     } note contra = this
     have "connected_component (- s) z (z + C *\<^sub>R (z-a))"
@@ -2250,7 +2250,7 @@ proof -
   next
     case False
       have front: "frontier t \<subseteq> - s"
-        using `s \<subseteq> t` frontier_disjoint_eq t by auto
+        using \<open>s \<subseteq> t\<close> frontier_disjoint_eq t by auto
       { fix \<gamma>
         assume "path \<gamma>" and pimg_sbs: "path_image \<gamma> - {pathfinish \<gamma>} \<subseteq> interior (- t)"
            and pf: "pathfinish \<gamma> \<in> frontier t" and ps: "pathstart \<gamma> = a"
@@ -2267,20 +2267,20 @@ proof -
         have pimg_sbs_cos: "path_image \<gamma> \<subseteq> -s"
           using pimg_sbs apply (auto simp: path_image_def)
           apply (drule subsetD)
-          using `c \<in> - s` `s \<subseteq> t` interior_subset apply (auto simp: c_def)
+          using \<open>c \<in> - s\<close> \<open>s \<subseteq> t\<close> interior_subset apply (auto simp: c_def)
           done
         have "closed_segment c d \<le> cball c \<epsilon>"
           apply (simp add: segment_convex_hull)
           apply (rule hull_minimal)
-          using  `\<epsilon> > 0` d apply (auto simp: dist_commute)
+          using  \<open>\<epsilon> > 0\<close> d apply (auto simp: dist_commute)
           done
         with \<epsilon> have "closed_segment c d \<subseteq> -s" by blast
         moreover have con_gcd: "connected (path_image \<gamma> \<union> closed_segment c d)"
-          by (rule connected_Un) (auto simp: c_def `path \<gamma>` connected_path_image)
+          by (rule connected_Un) (auto simp: c_def \<open>path \<gamma>\<close> connected_path_image)
         ultimately have "connected_component (- s) a d"
           unfolding connected_component_def using pimg_sbs_cos ps by blast
         then have "outside s \<inter> t \<noteq> {}"
-          using outside_same_component [OF _ a]  by (metis IntI `d \<in> t` empty_iff)
+          using outside_same_component [OF _ a]  by (metis IntI \<open>d \<in> t\<close> empty_iff)
       } note * = this
       have pal: "pathstart (linepath a b) \<in> closure (- t)"
         by (auto simp: False closure_def)
@@ -2328,10 +2328,10 @@ next
     moreover have "outside s \<inter> inside t \<noteq> {}"
       by (meson False assms(4) compact_eq_bounded_closed coms open_inside outside_compact_in_open t)
     ultimately have "inside s \<inter> t = {}"
-      using inside_outside_intersect_connected [OF `connected t`, of s]
+      using inside_outside_intersect_connected [OF \<open>connected t\<close>, of s]
       by (metis "2" compact_eq_bounded_closed coms connected_outside inf.commute inside_outside_intersect_connected outst)
     then show ?thesis
-      using inside_inside [OF `s \<subseteq> inside t`] by blast
+      using inside_inside [OF \<open>s \<subseteq> inside t\<close>] by blast
   qed
 qed
 

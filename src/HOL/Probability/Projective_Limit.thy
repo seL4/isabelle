@@ -2,7 +2,7 @@
     Author:     Fabian Immler, TU München
 *)
 
-section {* Projective Limit *}
+section \<open>Projective Limit\<close>
 
 theory Projective_Limit
   imports
@@ -14,7 +14,7 @@ theory Projective_Limit
     "~~/src/HOL/Library/Diagonal_Subsequence"
 begin
 
-subsection {* Sequences of Finite Maps in Compact Sets *}
+subsection \<open>Sequences of Finite Maps in Compact Sets\<close>
 
 locale finmap_seqs_into_compact =
   fixes K::"nat \<Rightarrow> (nat \<Rightarrow>\<^sub>F 'a::metric_space) set" and f::"nat \<Rightarrow> (nat \<Rightarrow>\<^sub>F 'a)" and M
@@ -31,8 +31,8 @@ proof cases
   obtain k where "k \<in> K (Suc 0)" using f_in_K by auto
   assume "\<forall>n. t \<notin> domain (f n)"
   thus ?thesis
-    by (auto intro!: exI[where x=1] image_eqI[OF _ `k \<in> K (Suc 0)`]
-      simp: domain_K[OF `k \<in> K (Suc 0)`])
+    by (auto intro!: exI[where x=1] image_eqI[OF _ \<open>k \<in> K (Suc 0)\<close>]
+      simp: domain_K[OF \<open>k \<in> K (Suc 0)\<close>])
 qed blast
 
 lemma proj_in_KE:
@@ -52,9 +52,9 @@ lemma compactE':
 proof atomize_elim
   have "subseq (op + m)" by (simp add: subseq_def)
   have "\<forall>n. (f o (\<lambda>i. m + i)) n \<in> S" using assms by auto
-  from seq_compactE[OF `compact S`[unfolded compact_eq_seq_compact_metric] this] guess l r .
+  from seq_compactE[OF \<open>compact S\<close>[unfolded compact_eq_seq_compact_metric] this] guess l r .
   hence "l \<in> S" "subseq ((\<lambda>i. m + i) o r) \<and> (f \<circ> ((\<lambda>i. m + i) o r)) ----> l"
-    using subseq_o[OF `subseq (op + m)` `subseq r`] by (auto simp: o_def)
+    using subseq_o[OF \<open>subseq (op + m)\<close> \<open>subseq r\<close>] by (auto simp: o_def)
   thus "\<exists>l r. l \<in> S \<and> subseq r \<and> (f \<circ> r) ----> l" by blast
 qed
 
@@ -84,7 +84,7 @@ proof -
     assume "\<exists>l. (\<lambda>i. ((f \<circ> s) i)\<^sub>F n) ----> l"
     then obtain l where "((\<lambda>i. (f i)\<^sub>F n) o s) ----> l"
       by (auto simp: o_def)
-    hence "((\<lambda>i. (f i)\<^sub>F n) o s o r) ----> l" using `subseq r`
+    hence "((\<lambda>i. (f i)\<^sub>F n) o s o r) ----> l" using \<open>subseq r\<close>
       by (rule LIMSEQ_subseq_LIMSEQ)
     thus "\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r)) i)\<^sub>F n) ----> l" by (auto simp add: o_def)
   qed
@@ -93,9 +93,9 @@ proof -
   thus ?thesis ..
 qed
 
-subsection {* Daniell-Kolmogorov Theorem *}
+subsection \<open>Daniell-Kolmogorov Theorem\<close>
 
-text {* Existence of Projective Limit *}
+text \<open>Existence of Projective Limit\<close>
 
 locale polish_projective = projective_family I P "\<lambda>_. borel::'a::polish_space measure"
   for I::"'i set" and P
@@ -175,15 +175,15 @@ proof (rule emeasure_lim)
         hence "?SUP n - emeasure (P' n) K > 2 powr (-n) * ?a"
           unfolding not_less[symmetric] by simp
         hence "?SUP n - 2 powr (-n) * ?a > emeasure (P' n) K"
-          using `0 < ?a` by (auto simp add: ereal_less_minus_iff ac_simps)
+          using \<open>0 < ?a\<close> by (auto simp add: ereal_less_minus_iff ac_simps)
         thus "?SUP n - 2 powr (-n) * ?a \<ge> emeasure (P' n) K" by simp
       qed
-      hence "?SUP n + 0 \<le> ?SUP n - (2 powr (-n) * ?a)" using `0 < ?a` by simp
+      hence "?SUP n + 0 \<le> ?SUP n - (2 powr (-n) * ?a)" using \<open>0 < ?a\<close> by simp
       hence "?SUP n + 0 \<le> ?SUP n + - (2 powr (-n) * ?a)" unfolding minus_ereal_def .
       hence "0 \<le> - (2 powr (-n) * ?a)"
-        using `?SUP n \<noteq> \<infinity>` `?SUP n \<noteq> - \<infinity>`
+        using \<open>?SUP n \<noteq> \<infinity>\<close> \<open>?SUP n \<noteq> - \<infinity>\<close>
         by (subst (asm) ereal_add_le_add_iff) (auto simp:)
-      moreover have "ereal (2 powr - real n) * ?a > 0" using `0 < ?a`
+      moreover have "ereal (2 powr - real n) * ?a > 0" using \<open>0 < ?a\<close>
         by (auto simp: ereal_zero_less_0_iff)
       ultimately show False by simp
     qed
@@ -195,7 +195,7 @@ proof (rule emeasure_lim)
   def K \<equiv> "\<lambda>n. fm n -` K' n \<inter> space (Pi\<^sub>M (J n) (\<lambda>_. borel))"
   have K_sets: "\<And>n. K n \<in> sets (Pi\<^sub>M (J n) (\<lambda>_. borel))"
     unfolding K_def
-    using compact_imp_closed[OF `compact (K' _)`]
+    using compact_imp_closed[OF \<open>compact (K' _)\<close>]
     by (intro measurable_sets[OF fm_measurable, of _ "Collect finite"])
        (auto simp: borel_eq_PiF_borel[symmetric])
   have K_B: "\<And>n. K n \<subseteq> B n"
@@ -204,7 +204,7 @@ proof (rule emeasure_lim)
     then have fm_in: "fm n x \<in> fm n ` B n"
       using K' by (force simp: K_def)
     show "x \<in> B n"
-      using `x \<in> K n` K_sets sets.sets_into_space J(1,2,3)[of n] inj_on_image_mem_iff[OF inj_on_fm]
+      using \<open>x \<in> K n\<close> K_sets sets.sets_into_space J(1,2,3)[of n] inj_on_image_mem_iff[OF inj_on_fm]
     by (metis (no_types) Int_iff K_def fm_in space_borel)
   qed
   def Z' \<equiv> "\<lambda>n. emb I (J n) (K n)"
@@ -224,7 +224,7 @@ proof (rule emeasure_lim)
         by (auto simp add: space_P sets_P)
       assume "fm n x = fm n y"
       note inj_onD[OF inj_on_fm[OF space_borel],
-        OF `fm n x = fm n y` `x \<in> space _` `y \<in> space _`]
+        OF \<open>fm n x = fm n y\<close> \<open>x \<in> space _\<close> \<open>y \<in> space _\<close>]
       with y show "x \<in> B n" by simp
     qed
   qed
@@ -243,39 +243,39 @@ proof (rule emeasure_lim)
     have "Y n = (\<Inter>i\<in>{1..n}. emb I (J n) (emb (J n) (J i) (K i)))" using J J_mono
       by (auto simp: Y_def Z'_def)
     also have "\<dots> = prod_emb I (\<lambda>_. borel) (J n) (\<Inter>i\<in>{1..n}. emb (J n) (J i) (K i))"
-      using `n \<ge> 1`
+      using \<open>n \<ge> 1\<close>
       by (subst prod_emb_INT) auto
     finally
     have Y_emb:
       "Y n = prod_emb I (\<lambda>_. borel) (J n) (\<Inter>i\<in>{1..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i))" .
-    hence "Y n \<in> generator" using J J_mono K_sets `n \<ge> 1`
+    hence "Y n \<in> generator" using J J_mono K_sets \<open>n \<ge> 1\<close>
       by (auto simp del: prod_emb_INT intro!: generator.intros)
     have *: "\<mu>G (Z n) = P (J n) (B n)"
       unfolding Z_def using J by (intro mu_G_spec) auto
     then have "\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>" by auto
     note *
     moreover have *: "\<mu>G (Y n) = P (J n) (\<Inter>i\<in>{Suc 0..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i))"
-      unfolding Y_emb using J J_mono K_sets `n \<ge> 1` by (subst mu_G_spec) auto
+      unfolding Y_emb using J J_mono K_sets \<open>n \<ge> 1\<close> by (subst mu_G_spec) auto
     then have "\<bar>\<mu>G (Y n)\<bar> \<noteq> \<infinity>" by auto
     note *
     moreover have "\<mu>G (Z n - Y n) =
         P (J n) (B n - (\<Inter>i\<in>{Suc 0..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i)))"
-      unfolding Z_def Y_emb prod_emb_Diff[symmetric] using J J_mono K_sets `n \<ge> 1`
+      unfolding Z_def Y_emb prod_emb_Diff[symmetric] using J J_mono K_sets \<open>n \<ge> 1\<close>
       by (subst mu_G_spec) (auto intro!: sets.Diff)
     ultimately
     have "\<mu>G (Z n) - \<mu>G (Y n) = \<mu>G (Z n - Y n)"
-      using J J_mono K_sets `n \<ge> 1`
+      using J J_mono K_sets \<open>n \<ge> 1\<close>
       by (simp only: emeasure_eq_measure Z_def)
         (auto dest!: bspec[where x=n] intro!: measure_Diff[symmetric] set_mp[OF K_B]
           simp: extensional_restrict emeasure_eq_measure prod_emb_iff sets_P space_P)
     also have subs: "Z n - Y n \<subseteq> (\<Union>i\<in>{1..n}. (Z i - Z' i))"
-      using `n \<ge> 1` unfolding Y_def UN_extend_simps(7) by (intro UN_mono Diff_mono Z_mono order_refl) auto
+      using \<open>n \<ge> 1\<close> unfolding Y_def UN_extend_simps(7) by (intro UN_mono Diff_mono Z_mono order_refl) auto
     have "Z n - Y n \<in> generator" "(\<Union>i\<in>{1..n}. (Z i - Z' i)) \<in> generator"
-      using `Z' _ \<in> generator` `Z _ \<in> generator` `Y _ \<in> generator` by auto
+      using \<open>Z' _ \<in> generator\<close> \<open>Z _ \<in> generator\<close> \<open>Y _ \<in> generator\<close> by auto
     hence "\<mu>G (Z n - Y n) \<le> \<mu>G (\<Union>i\<in>{1..n}. (Z i - Z' i))"
       using subs generator.additive_increasing[OF positive_mu_G additive_mu_G]
       unfolding increasing_def by auto
-    also have "\<dots> \<le> (\<Sum> i\<in>{1..n}. \<mu>G (Z i - Z' i))" using `Z _ \<in> generator` `Z' _ \<in> generator`
+    also have "\<dots> \<le> (\<Sum> i\<in>{1..n}. \<mu>G (Z i - Z' i))" using \<open>Z _ \<in> generator\<close> \<open>Z' _ \<in> generator\<close>
       by (intro generator.subadditive[OF positive_mu_G additive_mu_G]) auto
     also have "\<dots> \<le> (\<Sum> i\<in>{1..n}. 2 powr -real i * ?a)"
     proof (rule setsum_mono)
@@ -285,11 +285,11 @@ proof (rule emeasure_lim)
       also have "\<dots> = P (J i) (B i - K i)"
         using J K_sets by (subst mu_G_spec) auto
       also have "\<dots> = P (J i) (B i) - P (J i) (K i)"
-        using K_sets J `K _ \<subseteq> B _` by (simp add: emeasure_Diff)
+        using K_sets J \<open>K _ \<subseteq> B _\<close> by (simp add: emeasure_Diff)
       also have "\<dots> = P (J i) (B i) - P' i (K' i)"
         unfolding K_def P'_def
         by (auto simp: mapmeasure_PiF borel_eq_PiF_borel[symmetric]
-          compact_imp_closed[OF `compact (K' _)`] space_PiM PiE_def)
+          compact_imp_closed[OF \<open>compact (K' _)\<close>] space_PiM PiE_def)
       also have "\<dots> \<le> ereal (2 powr - real i) * ?a" using K'(1)[of i] .
       finally show "\<mu>G (Z i - Z' i) \<le> (2 powr - real i) * ?a" .
     qed
@@ -310,12 +310,12 @@ proof (rule emeasure_lim)
       using J by (auto intro: INF_lower simp: Z_def mu_G_spec)
     finally have "\<mu>G (Z n) - \<mu>G (Y n) < \<mu>G (Z n)" .
     hence R: "\<mu>G (Z n) < \<mu>G (Z n) + \<mu>G (Y n)"
-      using `\<bar>\<mu>G (Y n)\<bar> \<noteq> \<infinity>` by (simp add: ereal_minus_less)
-    have "0 \<le> (- \<mu>G (Z n)) + \<mu>G (Z n)" using `\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>` by auto
+      using \<open>\<bar>\<mu>G (Y n)\<bar> \<noteq> \<infinity>\<close> by (simp add: ereal_minus_less)
+    have "0 \<le> (- \<mu>G (Z n)) + \<mu>G (Z n)" using \<open>\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>\<close> by auto
     also have "\<dots> < (- \<mu>G (Z n)) + (\<mu>G (Z n) + \<mu>G (Y n))"
-      apply (rule ereal_less_add[OF _ R]) using `\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>` by auto
+      apply (rule ereal_less_add[OF _ R]) using \<open>\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>\<close> by auto
     finally have "\<mu>G (Y n) > 0"
-      using `\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>` by (auto simp: ac_simps zero_ereal_def[symmetric])
+      using \<open>\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>\<close> by (auto simp: ac_simps zero_ereal_def[symmetric])
     thus "Y n \<noteq> {}" using positive_mu_G by (auto simp add: positive_def)
   qed
   hence "\<forall>n\<in>{1..}. \<exists>y. y \<in> Y n" by auto
@@ -323,8 +323,8 @@ proof (rule emeasure_lim)
   {
     fix t and n m::nat
     assume "1 \<le> n" "n \<le> m" hence "1 \<le> m" by simp
-    from Y_mono[OF `m \<ge> n`] y[OF `1 \<le> m`] have "y m \<in> Y n" by auto
-    also have "\<dots> \<subseteq> Z' n" using Y_Z'[OF `1 \<le> n`] .
+    from Y_mono[OF \<open>m \<ge> n\<close>] y[OF \<open>1 \<le> m\<close>] have "y m \<in> Y n" by auto
+    also have "\<dots> \<subseteq> Z' n" using Y_Z'[OF \<open>1 \<le> n\<close>] .
     finally
     have "fm n (restrict (y m) (J n)) \<in> K' n"
       unfolding Z'_def K_def prod_emb_iff by (simp add: Z'_def K_def prod_emb_iff)
@@ -354,12 +354,12 @@ proof (rule emeasure_lim)
     assume "n \<le> m" hence "Suc n \<le> Suc m" by simp
     assume "t \<in> domain (fm (Suc n) (y (Suc n)))"
     then obtain j where j: "t = Utn j" "j \<in> J (Suc n)" by auto
-    hence "j \<in> J (Suc m)" using J_mono[OF `Suc n \<le> Suc m`] by auto
-    have img: "fm (Suc n) (y (Suc m)) \<in> K' (Suc n)" using `n \<le> m`
+    hence "j \<in> J (Suc m)" using J_mono[OF \<open>Suc n \<le> Suc m\<close>] by auto
+    have img: "fm (Suc n) (y (Suc m)) \<in> K' (Suc n)" using \<open>n \<le> m\<close>
       by (intro fm_in_K') simp_all
     show "(fm (Suc m) (y (Suc m)))\<^sub>F t \<in> (\<lambda>k. (k)\<^sub>F t) ` K' (Suc n)"
       apply (rule image_eqI[OF _ img])
-      using `j \<in> J (Suc n)` `j \<in> J (Suc m)`
+      using \<open>j \<in> J (Suc n)\<close> \<open>j \<in> J (Suc m)\<close>
       unfolding j by (subst proj_fm, auto)+
   qed
   have "\<forall>t. \<exists>z. (\<lambda>i. (fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^sub>F t) ----> z"
@@ -383,7 +383,7 @@ proof (rule emeasure_lim)
         fix e :: real assume "0 < e"
         { fix i and x :: "'i \<Rightarrow> 'a" assume i: "i \<ge> n"
           assume "t \<in> domain (fm n x)"
-          hence "t \<in> domain (fm i x)" using J_mono[OF `i \<ge> n`] by auto
+          hence "t \<in> domain (fm i x)" using J_mono[OF \<open>i \<ge> n\<close>] by auto
           with i have "(fm i x)\<^sub>F t = (fm n x)\<^sub>F t"
             using j by (auto simp: proj_fm dest!: inj_onD[OF inj_on_Utn])
         } note index_shift = this
@@ -394,7 +394,7 @@ proof (rule emeasure_lim)
           done
         from z
         have "\<exists>N. \<forall>i\<ge>N. dist ((fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^sub>F t) (z t) < e"
-          unfolding tendsto_iff eventually_sequentially using `0 < e` by auto
+          unfolding tendsto_iff eventually_sequentially using \<open>0 < e\<close> by auto
         then obtain N where N: "\<And>i. i \<ge> N \<Longrightarrow>
           dist ((fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^sub>F t) (z t) < e" by auto
         show "\<exists>N. \<forall>na\<ge>N. dist ((fm n (y (Suc (diagseq na))))\<^sub>F t) (z t) < e "
@@ -403,7 +403,7 @@ proof (rule emeasure_lim)
           hence  "dist ((fm n (y (Suc (diagseq na))))\<^sub>F t) (z t) =
                   dist ((fm (Suc (diagseq na)) (y (Suc (diagseq na))))\<^sub>F t) (z t)" using t
             by (subst index_shift[OF I]) auto
-          also have "\<dots> < e" using `max N n \<le> na` by (intro N) simp
+          also have "\<dots> < e" using \<open>max N n \<le> na\<close> by (intro N) simp
           finally show "dist ((fm n (y (Suc (diagseq na))))\<^sub>F t) (z t) < e" .
         qed
       qed
@@ -416,14 +416,14 @@ proof (rule emeasure_lim)
       by (intro lim_subseq) (simp add: subseq_def)
     moreover
     have "(\<forall>i. ((\<lambda>i. fm n (y (Suc (diagseq i)))) o (\<lambda>i. i + n)) i \<in> K' n)"
-      apply (auto simp add: o_def intro!: fm_in_K' `1 \<le> n` le_SucI)
+      apply (auto simp add: o_def intro!: fm_in_K' \<open>1 \<le> n\<close> le_SucI)
       apply (rule le_trans)
       apply (rule le_add2)
       using seq_suble[OF subseq_diagseq]
       apply auto
       done
     moreover
-    from `compact (K' n)` have "closed (K' n)" by (rule compact_imp_closed)
+    from \<open>compact (K' n)\<close> have "closed (K' n)" by (rule compact_imp_closed)
     ultimately
     have "finmap_of (Utn ` J n) z \<in> K' n"
       unfolding closed_sequential_limits by blast

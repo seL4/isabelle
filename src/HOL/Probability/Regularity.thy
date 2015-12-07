@@ -2,7 +2,7 @@
     Author:     Fabian Immler, TU München
 *)
 
-section {* Regularity of Measures *}
+section \<open>Regularity of Measures\<close>
 
 theory Regularity
 imports Measure_Space Borel_Space
@@ -24,12 +24,12 @@ next
   show "x \<le> y"
   proof (rule ccontr)
     assume "\<not> x \<le> y" hence "x > y" by simp
-    hence y_fin: "\<bar>y\<bar> \<noteq> \<infinity>" using `y \<ge> 0` by auto
-    have x_fin: "\<bar>x\<bar> \<noteq> \<infinity>" using `x > y` f_fin approx[where e = 1] by auto
+    hence y_fin: "\<bar>y\<bar> \<noteq> \<infinity>" using \<open>y \<ge> 0\<close> by auto
+    have x_fin: "\<bar>x\<bar> \<noteq> \<infinity>" using \<open>x > y\<close> f_fin approx[where e = 1] by auto
     def e \<equiv> "real_of_ereal ((x - y) / 2)"
-    have e: "x > y + e" "e > 0" using `x > y` y_fin x_fin by (auto simp: e_def field_simps)
+    have e: "x > y + e" "e > 0" using \<open>x > y\<close> y_fin x_fin by (auto simp: e_def field_simps)
     note e(1)
-    also from approx[OF `e > 0`] obtain i where i: "i \<in> A" "x \<le> f i + e" by blast
+    also from approx[OF \<open>e > 0\<close>] obtain i where i: "i \<in> A" "x \<le> f i + e" by blast
     note i(2)
     finally have "y < f i" using y_fin f_fin by (metis add_right_mono linorder_not_le)
     moreover have "f i \<le> y" by (rule f_le_y) fact
@@ -53,12 +53,12 @@ next
   show "y \<le> x"
   proof (rule ccontr)
     assume "\<not> y \<le> x" hence "y > x" by simp hence "y \<noteq> - \<infinity>" by auto
-    hence y_fin: "\<bar>y\<bar> \<noteq> \<infinity>" using `y \<noteq> \<infinity>` by auto
-    have x_fin: "\<bar>x\<bar> \<noteq> \<infinity>" using `y > x` f_fin f_nonneg approx[where e = 1] A_notempty
+    hence y_fin: "\<bar>y\<bar> \<noteq> \<infinity>" using \<open>y \<noteq> \<infinity>\<close> by auto
+    have x_fin: "\<bar>x\<bar> \<noteq> \<infinity>" using \<open>y > x\<close> f_fin f_nonneg approx[where e = 1] A_notempty
       by auto
     def e \<equiv> "real_of_ereal ((y - x) / 2)"
-    have e: "y > x + e" "e > 0" using `y > x` y_fin x_fin by (auto simp: e_def field_simps)
-    from approx[OF `e > 0`] obtain i where i: "i \<in> A" "x + e \<ge> f i" by blast
+    have e: "y > x + e" "e > 0" using \<open>y > x\<close> y_fin x_fin by (auto simp: e_def field_simps)
+    from approx[OF \<open>e > 0\<close>] obtain i where i: "i \<in> A" "x + e \<ge> f i" by blast
     note i(2)
     also note e(1)
     finally have "y > f i" .
@@ -78,7 +78,7 @@ proof (rule ccontr, clarsimp)
   moreover
   from INF have "\<And>y. (\<And>i. i \<in> A \<Longrightarrow> y \<le> f i) \<Longrightarrow> y \<le> x" by (auto intro: INF_greatest)
   ultimately
-  have "(INF i : A. f i) = x + e" using `e > 0`
+  have "(INF i : A. f i) = x + e" using \<open>e > 0\<close>
     by (intro INF_eqI)
       (force, metis add.comm_neutral add_left_mono ereal_less(1)
         linorder_not_le not_less_iff_gr_or_eq)
@@ -96,7 +96,7 @@ proof (rule ccontr, clarsimp)
   moreover
   from SUP have "\<And>y. (\<And>i. i \<in> A \<Longrightarrow> f i \<le> y) \<Longrightarrow> y \<ge> x" by (auto intro: SUP_least)
   ultimately
-  have "(SUP i : A. f i) = x - e" using `e > 0` `\<bar>x\<bar> \<noteq> \<infinity>`
+  have "(SUP i : A. f i) = x - e" using \<open>e > 0\<close> \<open>\<bar>x\<bar> \<noteq> \<infinity>\<close>
     by (intro SUP_eqI)
        (metis PInfty_neq_ereal(2) abs_ereal.simps(1) ereal_minus_le linorder_linear,
         metis ereal_between(1) ereal_less(2) less_eq_ereal_def order_trans)
@@ -136,7 +136,7 @@ proof -
         (auto intro!: borel_closed bexI simp: closed_cball incseq_def Us sb)
     also have "?U = space M"
     proof safe
-      fix x from X(2)[OF open_ball[of x r]] `r > 0` obtain d where d: "d\<in>X" "d \<in> ball x r" by auto
+      fix x from X(2)[OF open_ball[of x r]] \<open>r > 0\<close> obtain d where d: "d\<in>X" "d \<in> ball x r" by auto
       show "x \<in> ?U"
         using X(1) d by (auto intro!: exI[where x="to_nat_on X d"] simp: dist_commute Bex_def)
     qed (simp add: sU)
@@ -145,10 +145,10 @@ proof -
   {
     fix e ::real and n :: nat assume "e > 0" "n > 0"
     hence "1/n > 0" "e * 2 powr - n > 0" by (auto)
-    from M_space[OF `1/n>0`]
+    from M_space[OF \<open>1/n>0\<close>]
     have "(\<lambda>k. measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n))) ----> measure M (space M)"
       unfolding emeasure_eq_measure by simp
-    from metric_LIMSEQ_D[OF this `0 < e * 2 powr -n`]
+    from metric_LIMSEQ_D[OF this \<open>0 < e * 2 powr -n\<close>]
     obtain k where "dist (measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n))) (measure M (space M)) <
       e * 2 powr -n"
       by auto
@@ -176,13 +176,13 @@ proof -
     def B \<equiv> "\<lambda>n. \<Union>i\<in>{0..k e (Suc n)}. cball (from_nat_into X i) (1 / Suc n)"
     have "\<And>n. closed (B n)" by (auto simp: B_def closed_cball)
     hence [simp]: "\<And>n. B n \<in> sets M" by (simp add: sb)
-    from k[OF `e > 0` zero_less_Suc]
+    from k[OF \<open>e > 0\<close> zero_less_Suc]
     have "\<And>n. measure M (space M) - measure M (B n) \<le> e * 2 powr - real (Suc n)"
       by (simp add: algebra_simps B_def finite_measure_compl)
     hence B_compl_le: "\<And>n::nat. measure M (space M - B n) \<le> e * 2 powr - real (Suc n)"
       by (simp add: finite_measure_compl)
     def K \<equiv> "\<Inter>n. B n"
-    from `closed (B _)` have "closed K" by (auto simp: K_def)
+    from \<open>closed (B _)\<close> have "closed K" by (auto simp: K_def)
     hence [simp]: "K \<in> sets M" by (simp add: sb)
     have "measure M (space M) - measure M K = measure M (space M - K)"
       by (simp add: finite_measure_compl)
@@ -197,14 +197,14 @@ proof -
       unfolding times_ereal.simps[symmetric] ereal_power[symmetric] one_ereal_def numeral_eq_ereal
       by simp
     also have "\<dots> = ereal e * (\<Sum>n. ((1 / 2) ^ Suc n))"
-      by (rule suminf_cmult_ereal) (auto simp: `0 < e` less_imp_le)
+      by (rule suminf_cmult_ereal) (auto simp: \<open>0 < e\<close> less_imp_le)
     also have "\<dots> = e" unfolding suminf_half_series_ereal by simp
     finally have "measure M (space M) \<le> measure M K + e" by simp
     hence "emeasure M (space M) \<le> emeasure M K + e" by (simp add: emeasure_eq_measure)
     moreover have "compact K"
       unfolding compact_eq_totally_bounded
     proof safe
-      show "complete K" using `closed K` by (simp add: complete_eq_closed)
+      show "complete K" using \<open>closed K\<close> by (simp add: complete_eq_closed)
       fix e'::real assume "0 < e'"
       from nat_approx_posE[OF this] guess n . note n = this
       let ?k = "from_nat_into X ` {0..k e (Suc n)}"
@@ -236,7 +236,7 @@ proof -
       also have "\<dots> \<le> e" using K by (simp add: emeasure_eq_measure)
       finally have "emeasure M A \<le> emeasure M (A \<inter> K) + ereal e"
         by (simp add: emeasure_eq_measure algebra_simps)
-      moreover have "A \<inter> K \<subseteq> A" "compact (A \<inter> K)" using `closed A` `compact K` by auto
+      moreover have "A \<inter> K \<subseteq> A" "compact (A \<inter> K)" using \<open>closed A\<close> \<open>compact K\<close> by auto
       ultimately show "\<exists>K \<subseteq> A. compact K \<and> emeasure M A \<le> emeasure M K + ereal e"
         by blast
     qed simp
@@ -251,7 +251,7 @@ proof -
           by (intro continuous_open_vimage) (auto intro!: continuous_infdist continuous_at_id)
         finally have "open (?G d)" .
       } note open_G = this
-      from in_closed_iff_infdist_zero[OF `closed A` `A \<noteq> {}`]
+      from in_closed_iff_infdist_zero[OF \<open>closed A\<close> \<open>A \<noteq> {}\<close>]
       have "A = {x. infdist x A = 0}" by auto
       also have "\<dots> = (\<Inter>i. ?G (1/real (Suc i)))"
       proof (auto simp del: of_nat_Suc, rule ccontr)
@@ -291,9 +291,9 @@ proof -
         by (rule INF_greatest) (auto intro!: emeasure_mono simp: sb)
       ultimately show ?thesis by simp
     qed (auto intro!: INF_eqI)
-    note `?inner A` `?outer A` }
+    note \<open>?inner A\<close> \<open>?outer A\<close> }
   note closed_in_D = this
-  from `B \<in> sets borel`
+  from \<open>B \<in> sets borel\<close>
   have "Int_stable (Collect closed)" "Collect closed \<subseteq> Pow UNIV" "B \<in> sigma_sets UNIV (Collect closed)"
     by (auto simp: Int_stable_def borel_eq_closed)
   then show "?inner B" "?outer B"
@@ -340,10 +340,10 @@ proof -
     also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
     proof (safe intro!: antisym SUP_least)
       fix K assume "closed K" "K \<subseteq> space M - B"
-      from closed_in_D[OF `closed K`]
+      from closed_in_D[OF \<open>closed K\<close>]
       have K_inner: "emeasure M K = (SUP K:{Ka. Ka \<subseteq> K \<and> compact Ka}. emeasure M K)" by simp
       show "emeasure M K \<le> (SUP K:{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
-        unfolding K_inner using `K \<subseteq> space M - B`
+        unfolding K_inner using \<open>K \<subseteq> space M - B\<close>
         by (auto intro!: SUP_upper SUP_least)
     qed (fastforce intro!: SUP_least SUP_upper simp: compact_imp_closed)
     finally show ?case by (auto intro!: antisym simp: sets_eq_imp_space_eq[OF sb])
@@ -355,7 +355,7 @@ proof -
       by (intro summable_LIMSEQ summable_ereal_pos emeasure_nonneg)
     finally have measure_LIMSEQ: "(\<lambda>n. \<Sum>i<n. measure M (D i)) ----> measure M (\<Union>i. D i)"
       by (simp add: emeasure_eq_measure)
-    have "(\<Union>i. D i) \<in> sets M" using `range D \<subseteq> sets M` by auto
+    have "(\<Union>i. D i) \<in> sets M" using \<open>range D \<subseteq> sets M\<close> by auto
 
     case 1
     show ?case
@@ -377,10 +377,10 @@ proof -
       have "\<forall>i. \<exists>K. K \<subseteq> D i \<and> compact K \<and> emeasure M (D i) \<le> emeasure M K + e/(2*Suc n0)"
       proof
         fix i
-        from `0 < e` have "0 < e/(2*Suc n0)" by simp
+        from \<open>0 < e\<close> have "0 < e/(2*Suc n0)" by simp
         have "emeasure M (D i) = (SUP K:{K. K \<subseteq> (D i) \<and> compact K}. emeasure M K)"
           using union by blast
-        from SUP_approx_ereal[OF `0 < e/(2*Suc n0)` this]
+        from SUP_approx_ereal[OF \<open>0 < e/(2*Suc n0)\<close> this]
         show "\<exists>K. K \<subseteq> D i \<and> compact K \<and> emeasure M (D i) \<le> emeasure M K + e/(2*Suc n0)"
           by (auto simp: emeasure_eq_measure)
       qed
@@ -388,7 +388,7 @@ proof -
         "\<And>i. emeasure M (D i) \<le> emeasure M (K i) + e/(2*Suc n0)"
         unfolding choice_iff by blast
       let ?K = "\<Union>i\<in>{..<n0}. K i"
-      have "disjoint_family_on K {..<n0}" using K `disjoint_family D`
+      have "disjoint_family_on K {..<n0}" using K \<open>disjoint_family D\<close>
         unfolding disjoint_family_on_def by blast
       hence mK: "measure M ?K = (\<Sum>i<n0. measure M (K i))" using K
         by (intro finite_measure_finite_Union) (auto simp: sb compact_imp_closed)
@@ -397,7 +397,7 @@ proof -
         using K by (auto intro: setsum_mono simp: emeasure_eq_measure)
       also have "\<dots> = (\<Sum>i<n0. measure M (K i)) + (\<Sum>i<n0. e/(2*Suc n0))"
         by (simp add: setsum.distrib)
-      also have "\<dots> \<le> (\<Sum>i<n0. measure M (K i)) +  e / 2" using `0 < e`
+      also have "\<dots> \<le> (\<Sum>i<n0. measure M (K i)) +  e / 2" using \<open>0 < e\<close>
         by (auto simp: field_simps intro!: mult_left_mono)
       finally
       have "measure M (\<Union>i. D i) < (\<Sum>i<n0. measure M (K i)) + e / 2 + e / 2"
@@ -413,15 +413,15 @@ proof -
     qed fact
     case 2
     show ?case
-    proof (rule approx_outer[OF `(\<Union>i. D i) \<in> sets M`])
+    proof (rule approx_outer[OF \<open>(\<Union>i. D i) \<in> sets M\<close>])
       fix e::real assume "e > 0"
       have "\<forall>i::nat. \<exists>U. D i \<subseteq> U \<and> open U \<and> e/(2 powr Suc i) > emeasure M U - emeasure M (D i)"
       proof
         fix i::nat
-        from `0 < e` have "0 < e/(2 powr Suc i)" by simp
+        from \<open>0 < e\<close> have "0 < e/(2 powr Suc i)" by simp
         have "emeasure M (D i) = (INF U:{U. (D i) \<subseteq> U \<and> open U}. emeasure M U)"
           using union by blast
-        from INF_approx_ereal[OF `0 < e/(2 powr Suc i)` this]
+        from INF_approx_ereal[OF \<open>0 < e/(2 powr Suc i)\<close> this]
         show "\<exists>U. D i \<subseteq> U \<and> open U \<and> e/(2 powr Suc i) > emeasure M U - emeasure M (D i)"
           by (auto simp: emeasure_eq_measure)
       qed
@@ -429,13 +429,13 @@ proof -
         "\<And>i. e/(2 powr Suc i) > emeasure M (U i) - emeasure M (D i)"
         unfolding choice_iff by blast
       let ?U = "\<Union>i. U i"
-      have "M ?U - M (\<Union>i. D i) = M (?U - (\<Union>i. D i))" using U  `(\<Union>i. D i) \<in> sets M`
+      have "M ?U - M (\<Union>i. D i) = M (?U - (\<Union>i. D i))" using U  \<open>(\<Union>i. D i) \<in> sets M\<close>
         by (subst emeasure_Diff) (auto simp: sb)
-      also have "\<dots> \<le> M (\<Union>i. U i - D i)" using U  `range D \<subseteq> sets M`
+      also have "\<dots> \<le> M (\<Union>i. U i - D i)" using U  \<open>range D \<subseteq> sets M\<close>
         by (intro emeasure_mono) (auto simp: sb intro!: sets.countable_nat_UN sets.Diff)
-      also have "\<dots> \<le> (\<Sum>i. M (U i - D i))" using U  `range D \<subseteq> sets M`
+      also have "\<dots> \<le> (\<Sum>i. M (U i - D i))" using U  \<open>range D \<subseteq> sets M\<close>
         by (intro emeasure_subadditive_countably) (auto intro!: sets.Diff simp: sb)
-      also have "\<dots> \<le> (\<Sum>i. ereal e/(2 powr Suc i))" using U `range D \<subseteq> sets M`
+      also have "\<dots> \<le> (\<Sum>i. ereal e/(2 powr Suc i))" using U \<open>range D \<subseteq> sets M\<close>
         by (intro suminf_le_pos, subst emeasure_Diff)
            (auto simp: emeasure_Diff emeasure_eq_measure sb measure_nonneg intro: less_imp_le)
       also have "\<dots> \<le> (\<Sum>n. ereal (e * (1 / 2) ^ Suc n))"
@@ -444,7 +444,7 @@ proof -
         unfolding times_ereal.simps[symmetric] ereal_power[symmetric] one_ereal_def numeral_eq_ereal
         by simp
       also have "\<dots> = ereal e * (\<Sum>n. ((1 / 2) ^ Suc n))"
-        by (rule suminf_cmult_ereal) (auto simp: `0 < e` less_imp_le)
+        by (rule suminf_cmult_ereal) (auto simp: \<open>0 < e\<close> less_imp_le)
       also have "\<dots> = e" unfolding suminf_half_series_ereal by simp
       finally
       have "emeasure M ?U \<le> emeasure M (\<Union>i. D i) + ereal e" by (simp add: emeasure_eq_measure)

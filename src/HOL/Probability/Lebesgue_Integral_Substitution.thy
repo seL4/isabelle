@@ -6,7 +6,7 @@
     This could probably be weakened somehow.
 *)
 
-section {* Integration by Substition *}
+section \<open>Integration by Substition\<close>
 
 theory Lebesgue_Integral_Substitution
 imports Interval_Integral
@@ -36,7 +36,7 @@ proof-
   also from assms(1) have "closed (g -` {a..} \<inter> {c..d})"
     by (auto simp: continuous_on_closed_vimage)
   hence "closure (g -` {a..} \<inter> {c..d}) = g -` {a..} \<inter> {c..d}" by simp
-  finally show ?thesis using `x \<in> {c..d}` by auto 
+  finally show ?thesis using \<open>x \<in> {c..d}\<close> by auto 
 qed 
 
 lemma interior_real_semiline':
@@ -103,7 +103,7 @@ proof -
     using assms by (subst borel_measurable_restrict_space_iff) auto
   then have "f -` B \<inter> space (restrict_space M X) \<in> sets (restrict_space M X)"
     by (rule measurable_sets) fact
-  with `X \<in> sets M` show ?thesis
+  with \<open>X \<in> sets M\<close> show ?thesis
     by (subst (asm) sets_restrict_space_iff) (auto simp: space_restrict_space)
 qed
 
@@ -171,8 +171,8 @@ lemma strict_mono_inv:
   shows "strict_mono g"
 proof
   fix x y :: 'b assume "x < y"
-  from `surj f` obtain x' y' where [simp]: "x = f x'" "y = f y'" by blast
-  with `x < y` and `strict_mono f` have "x' < y'" by (simp add: strict_mono_less)
+  from \<open>surj f\<close> obtain x' y' where [simp]: "x = f x'" "y = f y'" by blast
+  with \<open>x < y\<close> and \<open>strict_mono f\<close> have "x' < y'" by (simp add: strict_mono_less)
   with inv show "g x < g y" by simp
 qed
 
@@ -218,11 +218,11 @@ proof (rule tendsto_le_const)
     also have "(op + (-x) ` interior A) = ?A'" by auto
     finally show "open ?A'" .
   next
-    from `x \<in> interior A` show "0 \<in> ?A'" by auto
+    from \<open>x \<in> interior A\<close> show "0 \<in> ?A'" by auto
   next
     fix h assume "h \<in> ?A'"
     hence "x + h \<in> interior A" by auto
-    with mono' and `x \<in> interior A` show "(f (x + h) - f x) / h \<ge> 0"
+    with mono' and \<open>x \<in> interior A\<close> show "(f (x + h) - f x) / h \<ge> 0"
       by (cases h rule: linorder_cases[of _ 0])
          (simp_all add: divide_nonpos_neg divide_nonneg_pos mono_onD field_simps)
   qed
@@ -267,7 +267,7 @@ lemma deriv_nonneg_imp_mono:
 proof (cases "a < b")
   assume "a < b"
   from deriv have "\<forall>x. x \<ge> a \<and> x \<le> b \<longrightarrow> (g has_real_derivative g' x) (at x)" by simp
-  from MVT2[OF `a < b` this] and deriv 
+  from MVT2[OF \<open>a < b\<close> this] and deriv 
     obtain \<xi> where \<xi>_ab: "\<xi> > a" "\<xi> < b" and g_ab: "g b - g a = (b - a) * g' \<xi>" by blast
   from \<xi>_ab ab nonneg have "(b - a) * g' \<xi> \<ge> 0" by simp
   with g_ab show ?thesis by simp
@@ -279,9 +279,9 @@ lemma continuous_interval_vimage_Int:
   obtains c' d' where "{a..b} \<inter> g -` {c..d} = {c'..d'}" "c' \<le> d'" "g c' = c" "g d' = d"
 proof-
     let ?A = "{a..b} \<inter> g -` {c..d}"
-    from IVT'[of g a c b, OF _ _ `a \<le> b` assms(1)] assms(4,5) 
+    from IVT'[of g a c b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5) 
          obtain c'' where c'': "c'' \<in> ?A" "g c'' = c" by auto
-    from IVT'[of g a d b, OF _ _ `a \<le> b` assms(1)] assms(4,5) 
+    from IVT'[of g a d b, OF _ _ \<open>a \<le> b\<close> assms(1)] assms(4,5) 
          obtain d'' where d'': "d'' \<in> ?A" "g d'' = d" by auto
     hence [simp]: "?A \<noteq> {}" by blast
 
@@ -319,7 +319,7 @@ lemma nn_integral_substitution_aux:
   shows "(\<integral>\<^sup>+x. f x * indicator {g a..g b} x \<partial>lborel) = 
              (\<integral>\<^sup>+x. f (g x) * g' x * indicator {a..b} x \<partial>lborel)"
 proof-
-  from `a < b` have [simp]: "a \<le> b" by simp
+  from \<open>a < b\<close> have [simp]: "a \<le> b" by simp
   from derivg have contg: "continuous_on {a..b} g" by (rule has_real_derivative_imp_continuous_on)
   from this and contg' have Mg: "set_borel_measurable borel {a..b} g" and 
                              Mg': "set_borel_measurable borel {a..b} g'" 
@@ -364,7 +364,7 @@ proof-
             by (simp only: u'v' max_absorb2 min_absorb1) 
                (intro continuous_on_subset[OF contg'], insert u'v', auto)
         have "\<And>x. x \<in> {u'..v'} \<Longrightarrow> (g has_real_derivative g' x) (at x within {u'..v'})"
-           using asm by (intro has_field_derivative_subset[OF derivg] set_mp[OF `{u'..v'} \<subseteq> {a..b}`]) auto
+           using asm by (intro has_field_derivative_subset[OF derivg] set_mp[OF \<open>{u'..v'} \<subseteq> {a..b}\<close>]) auto
         hence B: "\<And>x. min u' v' \<le> x \<Longrightarrow> x \<le> max u' v' \<Longrightarrow> 
                       (g has_vector_derivative g' x) (at x within {min u' v'..max u' v'})" 
             by (simp only: u'v' max_absorb2 min_absorb1) 
@@ -377,7 +377,7 @@ proof-
              (auto intro: measurable_sets Mg simp: derivg_nonneg mult.commute split: split_indicator)
         also from interval_integral_FTC_finite[OF A B]
             have "LBINT x:{a..b} \<inter> g-`{u..v}. g' x = v - u"
-                by (simp add: u'v' interval_integral_Icc `u \<le> v`)
+                by (simp add: u'v' interval_integral_Icc \<open>u \<le> v\<close>)
         finally have "(\<integral>\<^sup>+ x. ereal (g' x) * indicator ({a..b} \<inter> g -` {u..v}) x \<partial>lborel) =
                            ereal (v - u)" .
       } note A = this
@@ -386,11 +386,11 @@ proof-
                (\<integral>\<^sup>+ x. ereal (g' x) * indicator ({a..b} \<inter> g -` {c..d}) x \<partial>lborel)" 
         by (intro nn_integral_cong) (simp split: split_indicator)
       also have "{a..b} \<inter> g-`{c..d} = {a..b} \<inter> g-`{max (g a) c..min (g b) d}" 
-        using `a \<le> b` `c \<le> d`
+        using \<open>a \<le> b\<close> \<open>c \<le> d\<close>
         by (auto intro!: monog intro: order.trans)
       also have "(\<integral>\<^sup>+ x. ereal (g' x) * indicator ... x \<partial>lborel) =
         (if max (g a) c \<le> min (g b) d then min (g b) d - max (g a) c else 0)"
-         using `c \<le> d` by (simp add: A)
+         using \<open>c \<le> d\<close> by (simp add: A)
       also have "... = (\<integral>\<^sup>+ x. indicator ({g a..g b} \<inter> {c..d}) x \<partial>lborel)"
         by (subst nn_integral_indicator) (auto intro!: measurable_sets Mg simp:)
       also have "... = (\<integral>\<^sup>+ x. indicator {c..d} x * indicator {g a..g b} x \<partial>lborel)"
@@ -400,7 +400,7 @@ proof-
       next
 
       case (compl A)
-      note `A \<in> sets borel`[measurable]
+      note \<open>A \<in> sets borel\<close>[measurable]
       from emeasure_mono[of "A \<inter> {g a..g b}" "{g a..g b}" lborel]
           have [simp]: "emeasure lborel (A \<inter> {g a..g b}) \<noteq> \<infinity>" by auto
       have [simp]: "g -` A \<inter> {a..b} \<in> sets borel"
@@ -415,10 +415,10 @@ proof-
         by (simp add: vimage_Compl diff_eq Int_commute[of "-A"])
       also have "{g a..g b} - A = {g a..g b} - A \<inter> {g a..g b}" by blast
       also have "emeasure lborel ... = g b - g a - emeasure lborel (A \<inter> {g a..g b})"
-             using `A \<in> sets borel` by (subst emeasure_Diff) (auto simp: real_of_ereal_minus)
+             using \<open>A \<in> sets borel\<close> by (subst emeasure_Diff) (auto simp: real_of_ereal_minus)
      also have "emeasure lborel (A \<inter> {g a..g b}) = 
                     \<integral>\<^sup>+x. indicator A x * indicator {g a..g b} x \<partial>lborel" 
-       using `A \<in> sets borel`
+       using \<open>A \<in> sets borel\<close>
        by (subst nn_integral_indicator[symmetric], simp, intro nn_integral_cong)
           (simp split: split_indicator)
       also have "... = \<integral>\<^sup>+ x. indicator (g-`A \<inter> {a..b}) x * ereal (g' x * indicator {a..b} x) \<partial>lborel" (is "_ = ?I")
@@ -500,7 +500,7 @@ proof-
 
 next
   case (mult f c)
-    note Mf[measurable] = `f \<in> borel_measurable borel`
+    note Mf[measurable] = \<open>f \<in> borel_measurable borel\<close>
     let ?I = "indicator {a..b}"
     have "(\<lambda>x. f (g x * ?I x) * ereal (g' x * ?I x)) \<in> borel_measurable borel" using Mg Mg'
       by (intro borel_measurable_ereal_times measurable_compose[OF _ Mf])
@@ -522,7 +522,7 @@ next
       also have "(\<lambda>x. f (g x * ?I x) * ereal (g' x * ?I x)) = (\<lambda>x. f (g x) * ereal (g' x) * ?I x)"
         by (intro ext) (simp split: split_indicator)
       finally have "(\<lambda>x. f (g x) * ereal (g' x) * ?I x) \<in> borel_measurable borel" .
-    } note Mf' = this[OF `f1 \<in> borel_measurable borel`] this[OF `f2 \<in> borel_measurable borel`]
+    } note Mf' = this[OF \<open>f1 \<in> borel_measurable borel\<close>] this[OF \<open>f2 \<in> borel_measurable borel\<close>]
     from add have not_neginf: "\<And>x. f1 x \<noteq> -\<infinity>" "\<And>x. f2 x \<noteq> -\<infinity>" 
       by (metis Infty_neq_0(1) ereal_0_le_uminus_iff ereal_infty_less_eq(1))+
 
@@ -583,7 +583,7 @@ lemma nn_integral_substitution:
              (\<integral>\<^sup>+x. f (g x) * g' x * indicator {a..b} x \<partial>lborel)"
 proof (cases "a = b")
   assume "a \<noteq> b"
-  with `a \<le> b` have "a < b" by auto
+  with \<open>a \<le> b\<close> have "a < b" by auto
   let ?f' = "\<lambda>x. max 0 (f x * indicator {g a..g b} x)"
 
   from derivg derivg_nonneg have monog: "\<And>x y. a \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<le> b \<Longrightarrow> g x \<le> g y"
@@ -602,7 +602,7 @@ proof (cases "a = b")
     by (subst nn_integral_max_0[symmetric], intro nn_integral_cong) 
        (auto split: split_indicator simp: zero_ereal_def)
   also have "... = \<integral>\<^sup>+ x. ?f' (g x) * ereal (g' x) * indicator {a..b} x \<partial>lborel" using Mf
-    by (subst nn_integral_substitution_aux[OF _ _ derivg contg' derivg_nonneg `a < b`]) 
+    by (subst nn_integral_substitution_aux[OF _ _ derivg contg' derivg_nonneg \<open>a < b\<close>]) 
        (auto simp add: zero_ereal_def mult.commute)
   also have "... = \<integral>\<^sup>+ x. max 0 (f (g x)) * ereal (g' x) * indicator {a..b} x \<partial>lborel"
     by (intro nn_integral_cong) 
@@ -653,14 +653,14 @@ proof-
     by (intro nn_integral_cong) (simp split: split_indicator)
   also with M1 have A: "(\<integral>\<^sup>+ x. ereal (f x * indicator {g a..g b} x) \<partial>lborel) =
                             (\<integral>\<^sup>+ x. ereal (f (g x) * g' x * indicator {a..b} x) \<partial>lborel)"
-    by (subst nn_integral_substitution[OF _ derivg contg' derivg_nonneg `a \<le> b`]) 
+    by (subst nn_integral_substitution[OF _ derivg contg' derivg_nonneg \<open>a \<le> b\<close>]) 
        (auto simp: nn_integral_set_ereal mult.commute)
   also have "(\<integral>\<^sup>+ x. ereal (- (f x)) * indicator {g a..g b} x \<partial>lborel) =
                (\<integral>\<^sup>+ x. ereal (- (f x) * indicator {g a..g b} x) \<partial>lborel)"
     by (intro nn_integral_cong) (simp split: split_indicator)
   also with M2 have B: "(\<integral>\<^sup>+ x. ereal (- (f x) * indicator {g a..g b} x) \<partial>lborel) =
                             (\<integral>\<^sup>+ x. ereal (- (f (g x)) * g' x * indicator {a..b} x) \<partial>lborel)"
-    by (subst nn_integral_substitution[OF _ derivg contg' derivg_nonneg `a \<le> b`])
+    by (subst nn_integral_substitution[OF _ derivg contg' derivg_nonneg \<open>a \<le> b\<close>])
        (auto simp: nn_integral_set_ereal mult.commute)
 
   also {

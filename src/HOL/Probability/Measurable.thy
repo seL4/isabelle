@@ -7,7 +7,7 @@ theory Measurable
     "~~/src/HOL/Library/Order_Continuity"
 begin
 
-subsection {* Measurability prover *}
+subsection \<open>Measurability prover\<close>
 
 lemma (in algebra) sets_Collect_finite_All:
   assumes "\<And>i. i \<in> S \<Longrightarrow> {x\<in>\<Omega>. P i x} \<in> M" "finite S"
@@ -48,7 +48,7 @@ lemma pred_sets2: "A \<in> sets N \<Longrightarrow> f \<in> measurable M N \<Lon
 
 ML_file "measurable.ML"
 
-attribute_setup measurable = {*
+attribute_setup measurable = \<open>
   Scan.lift (
     (Args.add >> K true || Args.del >> K false || Scan.succeed true) --
     Scan.optional (Args.parens (
@@ -56,7 +56,7 @@ attribute_setup measurable = {*
       Scan.optional (Args.$$$ "generic" >> K Measurable.Generic) Measurable.Concrete))
     (false, Measurable.Concrete) >>
     Measurable.measurable_thm_attr)
-*} "declaration of measurability theorems"
+\<close> "declaration of measurability theorems"
 
 attribute_setup measurable_dest = Measurable.dest_thm_attr
   "add dest rule to measurability prover"
@@ -67,11 +67,11 @@ attribute_setup measurable_cong = Measurable.cong_thm_attr
 method_setup measurable = \<open> Scan.lift (Scan.succeed (METHOD o Measurable.measurable_tac)) \<close>
   "measurability prover"
 
-simproc_setup measurable ("A \<in> sets M" | "f \<in> measurable M N") = {* K Measurable.simproc *}
+simproc_setup measurable ("A \<in> sets M" | "f \<in> measurable M N") = \<open>K Measurable.simproc\<close>
 
-setup {*
+setup \<open>
   Global_Theory.add_thms_dynamic (@{binding measurable}, Measurable.get_all)
-*}
+\<close>
   
 declare
   pred_sets1[measurable_dest]
@@ -288,7 +288,7 @@ proof safe
   { fix x i j assume "P i x" "\<forall>n\<ge>j. \<not> P n x"
     then have "finite {i. P i x}"
       by (auto simp: subset_eq not_le[symmetric] finite_nat_iff_bounded)
-    with `P i x` have "P (Max {i. P i x}) x" "i \<le> Max {i. P i x}" "finite {i. P i x}"
+    with \<open>P i x\<close> have "P (Max {i. P i x}) x" "i \<le> Max {i. P i x}" "finite {i. P i x}"
       using Max_in[of "{i. P i x}"] by auto }
   note 2 = this
 
@@ -323,7 +323,7 @@ proof safe
   { fix x i j assume "P i x" "\<forall>n\<ge>j. \<not> P n x"
     then have "finite {i. P i x}"
       by (auto simp: subset_eq not_le[symmetric] finite_nat_iff_bounded)
-    with `P i x` have "P (Min {i. P i x}) x" "Min {i. P i x} \<le> i" "finite {i. P i x}"
+    with \<open>P i x\<close> have "P (Min {i. P i x}) x" "Min {i. P i x} \<le> i" "finite {i. P i x}"
       using Min_in[of "{i. P i x}"] by auto }
   note 2 = this
 
@@ -380,7 +380,7 @@ lemma measurable_pred_countable[measurable (raw)]:
   unfolding pred_def
   by (auto intro!: sets.sets_Collect_countable_All' sets.sets_Collect_countable_Ex' assms)
 
-subsection {* Measurability for (co)inductive predicates *}
+subsection \<open>Measurability for (co)inductive predicates\<close>
 
 lemma measurable_bot[measurable]: "bot \<in> measurable M (count_space UNIV)"
   by (simp add: bot_fun_def)
@@ -427,7 +427,7 @@ lemma measurable_lfp_coinduct[consumes 1, case_names continuity step]:
   assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> A \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
   shows "lfp F \<in> measurable M (count_space UNIV)"
 proof -
-  { fix i from `P M` have "((F ^^ i) bot) \<in> measurable M (count_space UNIV)"
+  { fix i from \<open>P M\<close> have "((F ^^ i) bot) \<in> measurable M (count_space UNIV)"
       by (induct i arbitrary: M) (auto intro!: *) }
   then have "(\<lambda>x. SUP i. (F ^^ i) bot x) \<in> measurable M (count_space UNIV)"
     by measurable
@@ -450,7 +450,7 @@ lemma measurable_gfp_coinduct[consumes 1, case_names continuity step]:
   assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> A \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
   shows "gfp F \<in> measurable M (count_space UNIV)"
 proof -
-  { fix i from `P M` have "((F ^^ i) top) \<in> measurable M (count_space UNIV)"
+  { fix i from \<open>P M\<close> have "((F ^^ i) top) \<in> measurable M (count_space UNIV)"
       by (induct i arbitrary: M) (auto intro!: *) }
   then have "(\<lambda>x. INF i. (F ^^ i) top x) \<in> measurable M (count_space UNIV)"
     by measurable
@@ -473,7 +473,7 @@ lemma measurable_lfp2_coinduct[consumes 1, case_names continuity step]:
   assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> A t \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A s \<in> measurable M (count_space UNIV)"
   shows "lfp F s \<in> measurable M (count_space UNIV)"
 proof -
-  { fix i from `P M s` have "(\<lambda>x. (F ^^ i) bot s x) \<in> measurable M (count_space UNIV)"
+  { fix i from \<open>P M s\<close> have "(\<lambda>x. (F ^^ i) bot s x) \<in> measurable M (count_space UNIV)"
       by (induct i arbitrary: M s) (auto intro!: *) }
   then have "(\<lambda>x. SUP i. (F ^^ i) bot s x) \<in> measurable M (count_space UNIV)"
     by measurable
@@ -489,7 +489,7 @@ lemma measurable_gfp2_coinduct[consumes 1, case_names continuity step]:
   assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> A t \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A s \<in> measurable M (count_space UNIV)"
   shows "gfp F s \<in> measurable M (count_space UNIV)"
 proof -
-  { fix i from `P M s` have "(\<lambda>x. (F ^^ i) top s x) \<in> measurable M (count_space UNIV)"
+  { fix i from \<open>P M s\<close> have "(\<lambda>x. (F ^^ i) top s x) \<in> measurable M (count_space UNIV)"
       by (induct i arbitrary: M s) (auto intro!: *) }
   then have "(\<lambda>x. INF i. (F ^^ i) top s x) \<in> measurable M (count_space UNIV)"
     by measurable
@@ -511,7 +511,7 @@ proof (simp add: measurable_count_space_eq2_countable, rule )
   have "f -` {a} \<inter> space M = {x\<in>space M. f x = a}"
     by auto
   { fix i :: nat
-    from `R f` have "Measurable.pred M (\<lambda>x. f x = enat i)"
+    from \<open>R f\<close> have "Measurable.pred M (\<lambda>x. f x = enat i)"
     proof (induction i arbitrary: f)
       case 0
       from *[OF this] obtain g h i P
@@ -533,7 +533,7 @@ proof (simp add: measurable_count_space_eq2_countable, rule )
         (\<lambda>x. (P x \<longrightarrow> h x = enat (Suc n)) \<and> (\<not> P x \<longrightarrow> g (i x) = enat n))"
         by (auto simp: f zero_enat_def[symmetric] eSuc_enat[symmetric])
       also have "Measurable.pred M \<dots>"
-        by (intro pred_intros_logic measurable_compose[OF M(2)] Suc `R g`) measurable
+        by (intro pred_intros_logic measurable_compose[OF M(2)] Suc \<open>R g\<close>) measurable
       finally show ?case .
     qed
     then have "f -` {enat i} \<inter> space M \<in> sets M"

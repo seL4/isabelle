@@ -209,7 +209,7 @@ proof safe
       fix x assume x: "x \<in> X"
       with assms have "(\<lambda>n. f n x) ----> ?f x" 
         by (auto dest!: Cauchy_convergent uniformly_Cauchy_imp_Cauchy simp: convergent_LIMSEQ_iff)
-      with `e/2 > 0` have "eventually (\<lambda>m. m \<ge> N \<and> dist (f m x) (?f x) < e/2) sequentially"
+      with \<open>e/2 > 0\<close> have "eventually (\<lambda>m. m \<ge> N \<and> dist (f m x) (?f x) < e/2) sequentially"
         by (intro tendstoD eventually_conj eventually_ge_at_top)
       then obtain m where m: "m \<ge> N" "dist (f m x) (?f x) < e/2" 
         unfolding eventually_at_top_linorder by blast

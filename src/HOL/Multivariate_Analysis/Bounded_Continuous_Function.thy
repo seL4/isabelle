@@ -169,7 +169,7 @@ subsection \<open>Complete Space\<close>
 instance bcontfun :: (metric_space, complete_space) complete_space
 proof
   fix f :: "nat \<Rightarrow> ('a, 'b) bcontfun"
-  assume "Cauchy f"  -- \<open>Cauchy equals uniform convergence\<close>
+  assume "Cauchy f"  \<comment> \<open>Cauchy equals uniform convergence\<close>
   then obtain g where limit_function:
     "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x. dist (Rep_bcontfun (f n) x) (g x) < e"
     using uniformly_convergent_eq_cauchy[of "\<lambda>_. True"
@@ -177,13 +177,13 @@ proof
     unfolding Cauchy_def
     by (metis dist_fun_lt_imp_dist_val_lt)
 
-  then obtain N where fg_dist:  -- \<open>for an upper bound on @{term g}\<close>
+  then obtain N where fg_dist:  \<comment> \<open>for an upper bound on @{term g}\<close>
     "\<forall>n\<ge>N. \<forall>x. dist (g x) ( Rep_bcontfun (f n) x) < 1"
     by (force simp add: dist_commute)
   from bcontfunE'[OF Rep_bcontfun, of "f N"] obtain b where
     f_bound: "\<forall>x. dist (Rep_bcontfun (f N) x) undefined \<le> b"
     by force
-  have "g \<in> bcontfun"  -- \<open>The limit function is bounded and continuous\<close>
+  have "g \<in> bcontfun"  \<comment> \<open>The limit function is bounded and continuous\<close>
   proof (intro bcontfunI)
     show "continuous_on UNIV g"
       using bcontfunE[OF Rep_bcontfun] limit_function
@@ -199,7 +199,7 @@ proof
   qed
   show "convergent f"
   proof (rule convergentI, subst lim_sequentially, safe)
-    -- \<open>The limit function converges according to its norm\<close>
+    \<comment> \<open>The limit function converges according to its norm\<close>
     fix e :: real
     assume "e > 0"
     then have "e/2 > 0" by simp

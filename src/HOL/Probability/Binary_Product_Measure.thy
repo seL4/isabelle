@@ -2,7 +2,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section {*Binary product measures*}
+section \<open>Binary product measures\<close>
 
 theory Binary_Product_Measure
 imports Nonnegative_Lebesgue_Integration
@@ -249,17 +249,17 @@ proof -
     have "(\<Sum>i. emeasure M (?C x i)) = emeasure M (\<Union>i. ?C x i)"
     proof (intro suminf_emeasure)
       show "range (?C x) \<subseteq> sets M"
-        using F `Q \<in> sets (N \<Otimes>\<^sub>M M)` by (auto intro!: sets_Pair1)
+        using F \<open>Q \<in> sets (N \<Otimes>\<^sub>M M)\<close> by (auto intro!: sets_Pair1)
       have "disjoint_family F" using F by auto
       show "disjoint_family (?C x)"
-        by (rule disjoint_family_on_bisimulation[OF `disjoint_family F`]) auto
+        by (rule disjoint_family_on_bisimulation[OF \<open>disjoint_family F\<close>]) auto
     qed
     also have "(\<Union>i. ?C x i) = Pair x -` Q"
-      using F sets.sets_into_space[OF `Q \<in> sets (N \<Otimes>\<^sub>M M)`]
+      using F sets.sets_into_space[OF \<open>Q \<in> sets (N \<Otimes>\<^sub>M M)\<close>]
       by (auto simp: space_pair_measure)
     finally have "emeasure M (Pair x -` Q) = (\<Sum>i. emeasure M (?C x i))"
       by simp }
-  ultimately show ?thesis using `Q \<in> sets (N \<Otimes>\<^sub>M M)` F_sets
+  ultimately show ?thesis using \<open>Q \<in> sets (N \<Otimes>\<^sub>M M)\<close> F_sets
     by auto
 qed
 
@@ -320,7 +320,7 @@ proof -
     by (simp add: ac_simps)
 qed
 
-subsection {* Binary products of $\sigma$-finite emeasure spaces *}
+subsection \<open>Binary products of $\sigma$-finite emeasure spaces\<close>
 
 locale pair_sigma_finite = M1?: sigma_finite_measure M1 + M2?: sigma_finite_measure M2
   for M1 :: "'a measure" and M2 :: "'b measure"
@@ -359,7 +359,7 @@ proof -
       then obtain i j where "fst x \<in> F1 i" "snd x \<in> F2 j"
         by (auto simp: space)
       then have "fst x \<in> F1 (max i j)" "snd x \<in> F2 (max j i)"
-        using `incseq F1` `incseq F2` unfolding incseq_def
+        using \<open>incseq F1\<close> \<open>incseq F2\<close> unfolding incseq_def
         by (force split: split_max)+
       then have "(fst x, snd x) \<in> F1 (max i j) \<times> F2 (max i j)"
         by (intro SigmaI) (auto simp add: max.commute)
@@ -369,7 +369,7 @@ proof -
       using space by (auto simp: space)
   next
     fix i show "incseq (\<lambda>i. F1 i \<times> F2 i)"
-      using `incseq F1` `incseq F2` unfolding incseq_Suc_iff by auto
+      using \<open>incseq F1\<close> \<open>incseq F2\<close> unfolding incseq_Suc_iff by auto
   next
     fix i
     from F1 F2 have "F1 i \<in> sets M1" "F2 i \<in> sets M2" by auto
@@ -453,7 +453,7 @@ proof -
     using assms unfolding eventually_ae_filter by auto
   show ?thesis
   proof (rule AE_I)
-    from N measurable_emeasure_Pair1[OF `N \<in> sets (M1 \<Otimes>\<^sub>M M2)`]
+    from N measurable_emeasure_Pair1[OF \<open>N \<in> sets (M1 \<Otimes>\<^sub>M M2)\<close>]
     show "emeasure M1 {x\<in>space M1. emeasure M2 (Pair x -` N) \<noteq> 0} = 0"
       by (auto simp: M2.emeasure_pair_measure_alt nn_integral_0_iff emeasure_nonneg)
     show "{x \<in> space M1. emeasure M2 (Pair x -` N) \<noteq> 0} \<in> sets M1"
@@ -464,7 +464,7 @@ proof -
         show "emeasure M2 (Pair x -` N) = 0" by fact
         show "Pair x -` N \<in> sets M2" using N(1) by (rule sets_Pair1)
         show "{y \<in> space M2. \<not> Q (x, y)} \<subseteq> Pair x -` N"
-          using N `x \<in> space M1` unfolding space_pair_measure by auto
+          using N \<open>x \<in> space M1\<close> unfolding space_pair_measure by auto
       qed }
     then show "{x \<in> space M1. \<not> (AE y in M2. Q (x, y))} \<subseteq> {x \<in> space M1. emeasure M2 (Pair x -` N) \<noteq> 0}"
       by auto
@@ -599,7 +599,7 @@ lemma (in pair_sigma_finite) Fubini':
   shows "(\<integral>\<^sup>+ y. (\<integral>\<^sup>+ x. f x y \<partial>M1) \<partial>M2) = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. f x y \<partial>M2) \<partial>M1)"
   using Fubini[OF f] by simp
 
-subsection {* Products on counting spaces, densities and distributions *}
+subsection \<open>Products on counting spaces, densities and distributions\<close>
 
 lemma sigma_prod:
   assumes X_cover: "\<exists>E\<subseteq>A. countable E \<and> X = \<Union>E" and A: "A \<subseteq> Pow X"
@@ -628,18 +628,18 @@ proof (rule measure_eqI)
       fix a assume "a \<in> A"
       from Y_cover obtain E where E: "E \<subseteq> B" "countable E" and "Y = \<Union>E"
         by auto
-      with `a \<in> A` A have eq: "fst -` a \<inter> X \<times> Y = (\<Union>e\<in>E. a \<times> e)"
+      with \<open>a \<in> A\<close> A have eq: "fst -` a \<inter> X \<times> Y = (\<Union>e\<in>E. a \<times> e)"
         by auto
       show "fst -` a \<inter> X \<times> Y \<in> sigma_sets (X \<times> Y) {a \<times> b |a b. a \<in> A \<and> b \<in> B}"
-        using `a \<in> A` E unfolding eq by (auto intro!: XY.countable_UN')
+        using \<open>a \<in> A\<close> E unfolding eq by (auto intro!: XY.countable_UN')
     next
       fix b assume "b \<in> B"
       from X_cover obtain E where E: "E \<subseteq> A" "countable E" and "X = \<Union>E"
         by auto
-      with `b \<in> B` B have eq: "snd -` b \<inter> X \<times> Y = (\<Union>e\<in>E. e \<times> b)"
+      with \<open>b \<in> B\<close> B have eq: "snd -` b \<inter> X \<times> Y = (\<Union>e\<in>E. e \<times> b)"
         by auto
       show "snd -` b \<inter> X \<times> Y \<in> sigma_sets (X \<times> Y) {a \<times> b |a b. a \<in> A \<and> b \<in> B}"
-        using `b \<in> B` E unfolding eq by (auto intro!: XY.countable_UN')
+        using \<open>b \<in> B\<close> E unfolding eq by (auto intro!: XY.countable_UN')
     qed
   next
     fix Z assume "Z \<in> {a \<times> b |a b. a \<in> A \<and> b \<in> B}"
@@ -769,9 +769,9 @@ proof -
     with A have "emeasure (?A \<Otimes>\<^sub>M ?B) C \<le> emeasure (?A \<Otimes>\<^sub>M ?B) A"
       by (intro emeasure_mono) auto
     also have "emeasure (?A \<Otimes>\<^sub>M ?B) C = emeasure (count_space UNIV) C"
-      using `countable C` by (rule *)
+      using \<open>countable C\<close> by (rule *)
     finally show ?thesis
-      using `infinite C` `infinite A` by simp
+      using \<open>infinite C\<close> \<open>infinite A\<close> by simp
   qed
 qed
 
@@ -799,7 +799,7 @@ proof cases
     by (auto simp add: nn_integral_count_space_indicator intro!: nn_integral_cong split: split_indicator)
 next
   { fix x assume "f x \<noteq> 0"
-    with `0 \<le> f x` have "(\<exists>r. 0 < r \<and> f x = ereal r) \<or> f x = \<infinity>"
+    with \<open>0 \<le> f x\<close> have "(\<exists>r. 0 < r \<and> f x = ereal r) \<or> f x = \<infinity>"
       by (cases "f x") (auto simp: less_le)
     then have "\<exists>n. ereal (1 / real (Suc n)) \<le> f x"
       by (auto elim!: nat_approx_posE intro!: less_imp_le) }
@@ -814,16 +814,16 @@ next
     by (metis infinite_countable_subset')
 
   have [measurable]: "C \<in> sets ?P"
-    using sets.countable[OF _ `countable C`, of ?P] by (auto simp: sets_Pair)
+    using sets.countable[OF _ \<open>countable C\<close>, of ?P] by (auto simp: sets_Pair)
 
   have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>?P) \<le> nn_integral ?P f"
     using C by (intro nn_integral_mono) (auto split: split_indicator simp: zero_ereal_def[symmetric])
   moreover have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>?P) = \<infinity>"
-    using `infinite C` by (simp add: nn_integral_cmult emeasure_count_space_prod_eq)
+    using \<open>infinite C\<close> by (simp add: nn_integral_cmult emeasure_count_space_prod_eq)
   moreover have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>count_space UNIV) \<le> nn_integral (count_space UNIV) f"
     using C by (intro nn_integral_mono) (auto split: split_indicator simp: zero_ereal_def[symmetric])
   moreover have "(\<integral>\<^sup>+x. ereal (1/Suc n) * indicator C x \<partial>count_space UNIV) = \<infinity>"
-    using `infinite C` by (simp add: nn_integral_cmult)
+    using \<open>infinite C\<close> by (simp add: nn_integral_cmult)
   ultimately show ?thesis
     by simp
 qed
@@ -930,11 +930,11 @@ proof auto
 next
   fix X assume X: "X \<subseteq> S1 \<times> S2"
   then have "countable X"
-    by (metis countable_subset `countable S1` `countable S2` countable_SIGMA)
+    by (metis countable_subset \<open>countable S1\<close> \<open>countable S2\<close> countable_SIGMA)
   have "X = (\<Union>(a, b)\<in>X. {a} \<times> {b})" by auto
   also have "\<dots> \<in> sets (M \<Otimes>\<^sub>M N)"
     using X
-    by (safe intro!: sets.countable_UN' `countable X` subsetI pair_measureI) (auto simp: M N)
+    by (safe intro!: sets.countable_UN' \<open>countable X\<close> subsetI pair_measureI) (auto simp: M N)
   finally show "X \<in> sets (M \<Otimes>\<^sub>M N)" .
 qed
 
@@ -977,7 +977,7 @@ proof(cases)
   finally show ?thesis .
 next
   { fix xy assume "f xy \<noteq> 0"
-    with `0 \<le> f xy` have "(\<exists>r. 0 < r \<and> f xy = ereal r) \<or> f xy = \<infinity>"
+    with \<open>0 \<le> f xy\<close> have "(\<exists>r. 0 < r \<and> f xy = ereal r) \<or> f xy = \<infinity>"
       by (cases "f xy") (auto simp: less_le)
     then have "\<exists>n. ereal (1 / real (Suc n)) \<le> f xy"
       by (auto elim!: nat_approx_posE intro!: less_imp_le) }
@@ -1060,7 +1060,7 @@ lemma measurable_pair_measure_countable1:
 using _ _ assms(1)
 by(rule measurable_compose_countable'[where f="\<lambda>a b. f (a, snd b)" and g=fst and I=A, simplified])simp_all
 
-subsection {* Product of Borel spaces *}
+subsection \<open>Product of Borel spaces\<close>
 
 lemma borel_Times:
   fixes A :: "'a::topological_space set" and B :: "'b::topological_space set"

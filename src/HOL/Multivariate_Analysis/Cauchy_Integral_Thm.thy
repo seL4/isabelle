@@ -3209,7 +3209,7 @@ proof -
       by simp
     have "f y = f x" if "y \<in> s" and ccs: "f y \<in> connected_component_set (f ` s) (f x)" for y
       apply (rule ccontr)
-      using connected_closed [of "connected_component_set (f ` s) (f x)"] `e>0`
+      using connected_closed [of "connected_component_set (f ` s) (f x)"] \<open>e>0\<close>
       apply (simp add: del: ex_simps)
       apply (drule spec [where x="cball (f x) (e / 2)"])
       apply (drule spec [where x="- ball(f x) e"])
@@ -3217,7 +3217,7 @@ proof -
         apply (metis diff_self e2 ele norm_minus_commute norm_zero not_less)
        using centre_in_cball connected_component_refl_eq e2 x apply blast
       using ccs
-      apply (force simp: cball_def dist_norm norm_minus_commute dest: ele [OF `y \<in> s`])
+      apply (force simp: cball_def dist_norm norm_minus_commute dest: ele [OF \<open>y \<in> s\<close>])
       done
     moreover have "connected_component_set (f ` s) (f x) \<subseteq> f ` s"
       by (auto simp: connected_component_in)
@@ -3365,7 +3365,7 @@ proof -
     using contour_integral_nearby_ends [of "UNIV - {z}" \<gamma>] assms by (auto simp: open_delete)
   then obtain h where h: "polynomial_function h \<and> pathstart h = pathstart \<gamma> \<and> pathfinish h = pathfinish \<gamma> \<and>
                           (\<forall>t \<in> {0..1}. norm(h t - \<gamma> t) < d/2)"
-    using path_approx_polynomial_function [OF `path \<gamma>`, of "d/2"] d by auto
+    using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "d/2"] d by auto
   def nn \<equiv> "1/(2* pi*ii) * contour_integral h (\<lambda>w. 1/(w - z))"
   have "\<exists>n. \<forall>e > 0. \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>
                         pathstart p = pathstart \<gamma> \<and>  pathfinish p = pathfinish \<gamma> \<and>
@@ -3377,7 +3377,7 @@ proof -
       assume e: "e>0"
       obtain p where p: "polynomial_function p \<and>
             pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma> \<and> (\<forall>t\<in>{0..1}. cmod (p t - \<gamma> t) < min e (d / 2))"
-        using path_approx_polynomial_function [OF `path \<gamma>`, of "min e (d/2)"] d `0<e` by auto
+        using path_approx_polynomial_function [OF \<open>path \<gamma>\<close>, of "min e (d/2)"] d \<open>0<e\<close> by auto
       have "(\<lambda>w. 1 / (w - z)) holomorphic_on UNIV - {z}"
         by (auto simp: intro!: holomorphic_intros)
       then show "?PP e nn"
@@ -3389,7 +3389,7 @@ proof -
   then show ?thesis
     unfolding winding_number_def
     apply (rule someI2_ex)
-    apply (blast intro: `0<e`)
+    apply (blast intro: \<open>0<e\<close>)
     done
 qed
 
@@ -3692,7 +3692,7 @@ proof -
   obtain k where fink: "finite k" and g_C1_diff: "\<gamma> C1_differentiable_on ({a..b} - k)"
     using \<gamma> by (force simp: piecewise_C1_differentiable_on_def)
   have o: "open ({a<..<b} - k)"
-    using `finite k` by (simp add: finite_imp_closed open_Diff)
+    using \<open>finite k\<close> by (simp add: finite_imp_closed open_Diff)
   moreover have "{a<..<b} - k \<subseteq> {a..b} - k"
     by force
   ultimately have g_diff_at: "\<And>x. \<lbrakk>x \<notin> k; x \<in> {a<..<b}\<rbrakk> \<Longrightarrow> \<gamma> differentiable at x"
@@ -3933,31 +3933,31 @@ proof -
                     "pathstart p = pathstart \<gamma> \<and> pathfinish p = pathfinish \<gamma>"
               and pg: "\<And>t. t\<in>{0..1} \<Longrightarrow> cmod (\<gamma> t - p t) < min d e / 2"
               and pi: "contour_integral p (\<lambda>x. 1 / (x - z)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> z"
-    using winding_number [OF \<gamma> z, of "min d e / 2"] `d>0` `e>0` by auto
+    using winding_number [OF \<gamma> z, of "min d e / 2"] \<open>d>0\<close> \<open>e>0\<close> by auto
   { fix w
     assume d2: "cmod (w - z) < d/2" and e2: "cmod (w - z) < e/2"
     then have wnotp: "w \<notin> path_image p"
-      using cbg `d>0` `e>0`
+      using cbg \<open>d>0\<close> \<open>e>0\<close>
       apply (simp add: path_image_def cball_def dist_norm, clarify)
       apply (frule pg)
       apply (drule_tac c="\<gamma> x" in subsetD)
       apply (auto simp: less_eq_real_def norm_minus_commute norm_triangle_half_l)
       done
     have wnotg: "w \<notin> path_image \<gamma>"
-      using cbg e2 `e>0` by (force simp: dist_norm norm_minus_commute)
+      using cbg e2 \<open>e>0\<close> by (force simp: dist_norm norm_minus_commute)
     { fix k::real
       assume k: "k>0"
       then obtain q where q: "valid_path q" "w \<notin> path_image q"
                              "pathstart q = pathstart \<gamma> \<and> pathfinish q = pathfinish \<gamma>"
                     and qg: "\<And>t. t \<in> {0..1} \<Longrightarrow> cmod (\<gamma> t - q t) < min k (min d e) / 2"
                     and qi: "contour_integral q (\<lambda>u. 1 / (u - w)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> w"
-        using winding_number [OF \<gamma> wnotg, of "min k (min d e) / 2"] `d>0` `e>0` k
+        using winding_number [OF \<gamma> wnotg, of "min k (min d e) / 2"] \<open>d>0\<close> \<open>e>0\<close> k
         by (force simp: min_divide_distrib_right)
       have "contour_integral p (\<lambda>u. 1 / (u - w)) = contour_integral q (\<lambda>u. 1 / (u - w))"
-        apply (rule pi_eq [OF `valid_path q` `valid_path p`, THEN conjunct2, THEN conjunct2, rule_format])
+        apply (rule pi_eq [OF \<open>valid_path q\<close> \<open>valid_path p\<close>, THEN conjunct2, THEN conjunct2, rule_format])
         apply (frule pg)
         apply (frule qg)
-        using p q `d>0` e2
+        using p q \<open>d>0\<close> e2
         apply (auto simp: dist_norm norm_minus_commute intro!: holomorphic_intros)
         done
       then have "contour_integral p (\<lambda>x. 1 / (x - w)) = complex_of_real (2 * pi) * \<i> * winding_number \<gamma> w"
@@ -3979,11 +3979,11 @@ proof -
       and L: "\<And>f B. \<lbrakk>f holomorphic_on - cball z (3 / 4 * pe);
                       \<forall>z \<in> - cball z (3 / 4 * pe). cmod (f z) \<le> B\<rbrakk> \<Longrightarrow>
                       cmod (contour_integral p f) \<le> L * B"
-    using contour_integral_bound_exists [of "- cball z (3/4*pe)" p] cbp `valid_path p` by force
+    using contour_integral_bound_exists [of "- cball z (3/4*pe)" p] cbp \<open>valid_path p\<close> by force
   { fix e::real and w::complex
     assume e: "0 < e" and w: "cmod (w - z) < pe/4" "cmod (w - z) < e * pe\<^sup>2 / (8 * L)"
     then have [simp]: "w \<notin> path_image p"
-      using cbp p(2) `0 < pe`
+      using cbp p(2) \<open>0 < pe\<close>
       by (force simp: dist_norm norm_minus_commute path_image_def cball_def)
     have [simp]: "contour_integral p (\<lambda>x. 1/(x - w)) - contour_integral p (\<lambda>x. 1/(x - z)) =
                   contour_integral p (\<lambda>x. 1/(x - w) - 1/(x - z))"
@@ -4001,13 +4001,13 @@ proof -
         using pe by auto
       then have "(pe/2)^2 < cmod (w - x) ^ 2"
         apply (rule power_strict_mono)
-        using `pe>0` by auto
+        using \<open>pe>0\<close> by auto
       then have pe2: "pe^2 < 4 * cmod (w - x) ^ 2"
         by (simp add: power_divide)
       have "8 * L * cmod (w - z) < e * pe\<^sup>2"
-        using w `L>0` by (simp add: field_simps)
+        using w \<open>L>0\<close> by (simp add: field_simps)
       also have "... < e * 4 * cmod (w - x) * cmod (w - x)"
-        using pe2 `e>0` by (simp add: power2_eq_square)
+        using pe2 \<open>e>0\<close> by (simp add: power2_eq_square)
       also have "... < e * 4 * cmod (w - x) * (4/3 * cmod (z - x))"
         using wx
         apply (rule mult_strict_left_mono)
@@ -4019,23 +4019,23 @@ proof -
       finally have Lwz: "L * cmod (w - z) < e * cmod (w - x) * cmod (z - x)" .
       have "L * cmod (1 / (x - w) - 1 / (x - z)) \<le> e"
         apply (cases "x=z \<or> x=w")
-        using pe `pe>0` w `L>0`
+        using pe \<open>pe>0\<close> w \<open>L>0\<close>
         apply (force simp: norm_minus_commute)
-        using wx w(2) `L>0` pe pe2 Lwz
+        using wx w(2) \<open>L>0\<close> pe pe2 Lwz
         apply (auto simp: divide_simps mult_less_0_iff norm_minus_commute norm_divide norm_mult power2_eq_square)
         done
     } note L_cmod_le = this
     have *: "cmod (contour_integral p (\<lambda>x. 1 / (x - w) - 1 / (x - z))) \<le> L * (e * pe\<^sup>2 / L / 4 * (inverse (pe / 2))\<^sup>2)"
       apply (rule L)
-      using `pe>0` w
+      using \<open>pe>0\<close> w
       apply (force simp: dist_norm norm_minus_commute intro!: holomorphic_intros)
-      using `pe>0` w `L>0`
+      using \<open>pe>0\<close> w \<open>L>0\<close>
       apply (auto simp: cball_def dist_norm field_simps L_cmod_le  simp del: less_divide_eq_numeral1 le_divide_eq_numeral1)
       done
     have "cmod (contour_integral p (\<lambda>x. 1 / (x - w)) - contour_integral p (\<lambda>x. 1 / (x - z))) < 2*e"
       apply (simp add:)
       apply (rule le_less_trans [OF *])
-      using `L>0` e
+      using \<open>L>0\<close> e
       apply (force simp: field_simps)
       done
     then have "cmod (winding_number p w - winding_number p z) < e"
@@ -4044,10 +4044,10 @@ proof -
   } note cmod_wn_diff = this
   show ?thesis
     apply (rule continuous_transform_at [of "min d e / 2" _ "winding_number p"])
-    apply (auto simp: `d>0` `e>0` dist_norm wnwn simp del: less_divide_eq_numeral1)
+    apply (auto simp: \<open>d>0\<close> \<open>e>0\<close> dist_norm wnwn simp del: less_divide_eq_numeral1)
     apply (simp add: continuous_at_eps_delta, clarify)
     apply (rule_tac x="min (pe/4) (e/2*pe^2/L/4)" in exI)
-    using `pe>0` `L>0`
+    using \<open>pe>0\<close> \<open>L>0\<close>
     apply (simp add: dist_norm cmod_wn_diff)
     done
 qed
@@ -4057,7 +4057,7 @@ corollary continuous_on_winding_number:
   by (simp add: continuous_at_imp_continuous_on continuous_at_winding_number)
 
 
-subsection{*The winding number is constant on a connected region*}
+subsection\<open>The winding number is constant on a connected region\<close>
 
 lemma winding_number_constant:
   assumes \<gamma>: "path \<gamma>" and loop: "pathfinish \<gamma> = pathstart \<gamma>" and cs: "connected s" and sg: "s \<inter> path_image \<gamma> = {}"
@@ -4067,7 +4067,7 @@ proof -
     assume ne: "winding_number \<gamma> y \<noteq> winding_number \<gamma> z"
     assume "y \<in> s" "z \<in> s"
     then have "winding_number \<gamma> y \<in> \<int>"  "winding_number \<gamma> z \<in>  \<int>"
-      using integer_winding_number [OF \<gamma> loop] sg `y \<in> s` by auto
+      using integer_winding_number [OF \<gamma> loop] sg \<open>y \<in> s\<close> by auto
     with ne have "1 \<le> cmod (winding_number \<gamma> y - winding_number \<gamma> z)"
       by (auto simp: Ints_def of_int_diff [symmetric] simp del: of_int_diff)
   } note * = this
@@ -4132,7 +4132,7 @@ proof -
       obtain p where p: "polynomial_function p" "pathstart p = pathstart \<gamma>" "pathfinish p = pathfinish \<gamma>"
                  and pg1: "(\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> cmod (p t - \<gamma> t) < 1)"
                  and pge: "(\<And>t. \<lbrakk>0 \<le> t; t \<le> 1\<rbrakk> \<Longrightarrow> cmod (p t - \<gamma> t) < e)"
-        using path_approx_polynomial_function [OF \<gamma>, of "min 1 e"] `e>0` by force
+        using path_approx_polynomial_function [OF \<gamma>, of "min 1 e"] \<open>e>0\<close> by force
       have pip: "path_image p \<subseteq> ball 0 (B + 1)"
         using B
         apply (clarsimp simp add: path_image_def dist_norm ball_def)
@@ -4197,7 +4197,7 @@ proof -
     hence "x \<notin> path_image \<gamma>"
       by (meson disjoint_iff_not_equal s_disj)
     thus "x \<in> inside (path_image \<gamma>)"
-      using `x \<in> s` by (metis (no_types) ComplI UnE cos \<gamma> loop s_disj union_with_outside winding_number_eq winding_number_zero_in_outside wn_nz z)
+      using \<open>x \<in> s\<close> by (metis (no_types) ComplI UnE cos \<gamma> loop s_disj union_with_outside winding_number_eq winding_number_zero_in_outside wn_nz z)
 qed
   show ?thesis
     apply (rule winding_number_eq [OF \<gamma> loop w])
@@ -4326,10 +4326,10 @@ proof -
     have *: "a \<bullet> z' \<le> b - d / 3 * cmod a"
       unfolding z'_def inner_mult_right' divide_inverse
       apply (simp add: divide_simps algebra_simps dot_square_norm power2_eq_square anz)
-      apply (metis `0 < d` add_increasing azb less_eq_real_def mult_nonneg_nonneg mult_right_mono norm_ge_zero norm_numeral)
+      apply (metis \<open>0 < d\<close> add_increasing azb less_eq_real_def mult_nonneg_nonneg mult_right_mono norm_ge_zero norm_numeral)
       done
     have "cmod (winding_number \<gamma> z' - winding_number \<gamma> z) < \<bar>Re (winding_number \<gamma> z)\<bar> - 1/2"
-      using d [of z'] anz `d>0` by (simp add: dist_norm z'_def)
+      using d [of z'] anz \<open>d>0\<close> by (simp add: dist_norm z'_def)
     then have "1/2 < \<bar>Re (winding_number \<gamma> z)\<bar> - cmod (winding_number \<gamma> z' - winding_number \<gamma> z)"
       by simp
     then have "1/2 < \<bar>Re (winding_number \<gamma> z)\<bar> - \<bar>Re (winding_number \<gamma> z') - Re (winding_number \<gamma> z)\<bar>"
@@ -4338,7 +4338,7 @@ proof -
       by linarith
     moreover have "\<bar>Re (winding_number \<gamma> z')\<bar> < 1/2"
       apply (rule winding_number_lt_half [OF \<gamma> *])
-      using azb `d>0` pag
+      using azb \<open>d>0\<close> pag
       apply (auto simp: add_strict_increasing anz divide_simps algebra_simps dest!: subsetD)
       done
     ultimately have False
@@ -4372,7 +4372,7 @@ proof -
 qed
 
 
-subsection{* Cauchy's integral formula, again for a convex enclosing set.*}
+subsection\<open>Cauchy's integral formula, again for a convex enclosing set.\<close>
 
 lemma Cauchy_integral_formula_weak:
     assumes s: "convex s" and "finite k" and conf: "continuous_on s f"
@@ -4462,7 +4462,7 @@ proof -
       using contour_integral_nearby [OF \<open>open s\<close> pak pik, of atends] f by metis
     obtain d where "d>0" and d:
         "\<And>x x'. \<lbrakk>x \<in> {0..1} \<times> {0..1}; x' \<in> {0..1} \<times> {0..1}; norm (x'-x) < d\<rbrakk> \<Longrightarrow> norm (k x' - k x) < e/4"
-      by (rule uniformly_continuous_onE [OF ucontk, of "e/4"]) (auto simp: dist_norm `e>0`)
+      by (rule uniformly_continuous_onE [OF ucontk, of "e/4"]) (auto simp: dist_norm \<open>e>0\<close>)
     { fix t1 t2
       assume t1: "0 \<le> t1" "t1 \<le> 1" and t2: "0 \<le> t2" "t2 \<le> 1" and ltd: "\<bar>t1 - t\<bar> < d" "\<bar>t2 - t\<bar> < d"
       have no2: "\<And>g1 k1 kt. \<lbrakk>norm(g1 - k1) < e/4; norm(k1 - kt) < e/4\<rbrakk> \<Longrightarrow> norm(g1 - kt) < e"
@@ -4544,7 +4544,7 @@ proof -
     have n'N_less: "\<bar>real (Suc n) / real N - t\<bar> < ee t"
       using t N \<open>N > 0\<close> e_le_ee [of t]
       by (simp add: dist_norm add_divide_distrib abs_diff_less_iff del: less_divide_eq_numeral1) (simp add: field_simps)
-    have t01: "t \<in> {0..1}" using `kk \<subseteq> {0..1}` `t \<in> kk` by blast
+    have t01: "t \<in> {0..1}" using \<open>kk \<subseteq> {0..1}\<close> \<open>t \<in> kk\<close> by blast
     obtain d1 where "d1 > 0" and d1:
         "\<And>g1 g2. \<lbrakk>valid_path g1; valid_path g2;
                    \<forall>u\<in>{0..1}. cmod (g1 u - k (n/N, u)) < d1 \<and> cmod (g2 u - k ((Suc n) / N, u)) < d1;
@@ -4562,7 +4562,7 @@ proof -
       using N01 by auto
     then have pkn: "path (\<lambda>u. k (n/N, u))"
       by (simp add: path_def)
-    have min12: "min d1 d2 > 0" by (simp add: `0 < d1` `0 < d2`)
+    have min12: "min d1 d2 > 0" by (simp add: \<open>0 < d1\<close> \<open>0 < d2\<close>)
     obtain p where "polynomial_function p"
         and psf: "pathstart p = pathstart (\<lambda>u. k (n/N, u))"
                  "pathfinish p = pathfinish (\<lambda>u. k (n/N, u))"
@@ -4573,7 +4573,7 @@ proof -
       by (metis (mono_tags, lifting) N01(1) ksf linked_paths_def pathfinish_def pathstart_def psf)
     show ?case
       apply (rule_tac x="min d1 d2" in exI)
-      apply (simp add: `0 < d1` `0 < d2`, clarify)
+      apply (simp add: \<open>0 < d1\<close> \<open>0 < d2\<close>, clarify)
       apply (rule_tac s="contour_integral p f" in trans)
       using pk_le N01(1) ksf pathfinish_def pathstart_def
       apply (force intro!: vpp d1 simp add: linked_paths_def psf ksf)

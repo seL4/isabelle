@@ -2,18 +2,18 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section {* Bochner Integration for Vector-Valued Functions *}
+section \<open>Bochner Integration for Vector-Valued Functions\<close>
 
 theory Bochner_Integration
   imports Finite_Product_Measure
 begin
 
-text {*
+text \<open>
 
 In the following development of the Bochner integral we use second countable topologies instead
 of separable spaces. A second countable topology is also separable.
 
-*}
+\<close>
 
 lemma borel_measurable_implies_sequence_metric:
   fixes f :: "'a \<Rightarrow> 'b :: {metric_space, second_countable_topology}"
@@ -28,7 +28,7 @@ proof -
   { fix n x
     obtain d where "d \<in> D" and d: "d \<in> ball x (1 / Suc n)"
       using D[of "ball x (1 / Suc n)"] by auto
-    from `d \<in> D` D[of UNIV] `countable D` obtain i where "d = e i"
+    from \<open>d \<in> D\<close> D[of UNIV] \<open>countable D\<close> obtain i where "d = e i"
       unfolding e_def by (auto dest: from_nat_into_surj)
     with d have "\<exists>i. dist x (e i) < 1 / Suc n"
       by auto }
@@ -109,16 +109,16 @@ proof -
       then have "\<And>i. F i x = z"
         by (auto simp: F_def)
       then show ?thesis
-        using `f x = z` by auto
+        using \<open>f x = z\<close> by auto
     next
       assume "f x \<noteq> z"
 
       show ?thesis
       proof (rule tendstoI)
         fix e :: real assume "0 < e"
-        with `f x \<noteq> z` obtain n where "1 / Suc n < e" "1 / Suc n < dist (f x) z"
+        with \<open>f x \<noteq> z\<close> obtain n where "1 / Suc n < e" "1 / Suc n < dist (f x) z"
           by (metis dist_nz order_less_trans neq_iff nat_approx_posE)
-        with `x\<in>space M` `f x \<noteq> z` have "x \<in> (\<Union>i. B n i)"
+        with \<open>x\<in>space M\<close> \<open>f x \<noteq> z\<close> have "x \<in> (\<Union>i. B n i)"
           unfolding A_def B_def UN_disjointed_eq using e by auto
         then obtain i where i: "x \<in> B n i" by auto
 
@@ -131,7 +131,7 @@ proof -
           also have "\<dots> \<le> 1 / Suc n"
             using j m_upper[OF _ _ i]
             by (auto simp: field_simps)
-          also note `1 / Suc n < e`
+          also note \<open>1 / Suc n < e\<close>
           finally show "dist (F j x) (f x) < e"
             by (simp add: less_imp_le dist_commute)
         qed
@@ -292,7 +292,7 @@ proof cases
     with nn show "m * indicator {x \<in> space M. 0 \<noteq> f x} x \<le> f x"
       using f by (auto split: split_indicator simp: simple_function_def m_def)
   qed
-  also note `\<dots> < \<infinity>`
+  also note \<open>\<dots> < \<infinity>\<close>
   finally show ?thesis
     using m by auto 
 next
@@ -556,7 +556,7 @@ proof -
   have sbi: "simple_bochner_integrable M (indicator A::'a \<Rightarrow> real)"
   proof
     have "{y \<in> space M. (indicator A y::real) \<noteq> 0} = A"
-      using sets.sets_into_space[OF `A\<in>sets M`] by (auto split: split_indicator)
+      using sets.sets_into_space[OF \<open>A\<in>sets M\<close>] by (auto split: split_indicator)
     then show "emeasure M {y \<in> space M. (indicator A y::real) \<noteq> 0} \<noteq> \<infinity>"
       using A by auto
   qed (rule simple_function_indicator assms)+
@@ -743,7 +743,7 @@ proof (elim has_bochner_integral.cases)
   then have "(\<integral>\<^sup>+x. norm (s i x) \<partial>M) \<le> (\<integral>\<^sup>+x. ereal m * indicator {x\<in>space M. s i x \<noteq> 0} x \<partial>M)"
     by (auto split: split_indicator intro!: Max_ge nn_integral_mono simp:)
   also have "\<dots> < \<infinity>"
-    using s by (subst nn_integral_cmult_indicator) (auto simp: `0 \<le> m` simple_bochner_integrable.simps)
+    using s by (subst nn_integral_cmult_indicator) (auto simp: \<open>0 \<le> m\<close> simple_bochner_integrable.simps)
   finally have s_fin: "(\<integral>\<^sup>+x. norm (s i x) \<partial>M) < \<infinity>" .
 
   have "(\<integral>\<^sup>+ x. norm (f x) \<partial>M) \<le> (\<integral>\<^sup>+ x. ereal (norm (f x - s i x)) + ereal (norm (s i x)) \<partial>M)"
@@ -824,7 +824,7 @@ proof (elim has_bochner_integral.cases)
     show "eventually (\<lambda>i. norm (?s i - ?t i) \<le> ?S i + ?T i) sequentially"
       by (intro always_eventually allI simple_bochner_integral_bounded s t f)
     show "(\<lambda>i. ?S i + ?T i) ----> ereal 0"
-      using tendsto_add_ereal[OF _ _ `?S ----> 0` `?T ----> 0`]
+      using tendsto_add_ereal[OF _ _ \<open>?S ----> 0\<close> \<open>?T ----> 0\<close>]
       by (simp add: zero_ereal_def[symmetric])
   qed
   then have "(\<lambda>i. norm (?s i - ?t i)) ----> 0"
@@ -1159,7 +1159,7 @@ proof -
       have "norm (?s n - ?s m) \<le> ?S n + ?S m"
         by (intro simple_bochner_integral_bounded s f)
       also have "\<dots> < ereal (e / 2) + e / 2"
-        using ereal_add_strict_mono[OF less_imp_le[OF M[OF n]] _ `?S n \<noteq> \<infinity>` M[OF m]]
+        using ereal_add_strict_mono[OF less_imp_le[OF M[OF n]] _ \<open>?S n \<noteq> \<infinity>\<close> M[OF m]]
         by (auto simp: nn_integral_nonneg)
       also have "\<dots> = e" by simp
       finally show "dist (?s n) (?s m) < e"
@@ -1460,7 +1460,7 @@ proof -
     using bound[of 0] by eventually_elim (auto intro: norm_ge_zero order_trans)
   then have "(\<integral>\<^sup>+x. w x \<partial>M) = (\<integral>\<^sup>+x. norm (w x) \<partial>M)"
     by (intro nn_integral_cong_AE) auto
-  with `integrable M w` have w: "w \<in> borel_measurable M" "(\<integral>\<^sup>+x. w x \<partial>M) < \<infinity>"
+  with \<open>integrable M w\<close> have w: "w \<in> borel_measurable M" "(\<integral>\<^sup>+x. w x \<partial>M) < \<infinity>"
     unfolding integrable_iff_bounded by auto
 
   show int_s: "\<And>i. integrable M (s i)"
@@ -1690,7 +1690,7 @@ lemma integrable_induct[consumes 1, case_names base add lim, induct pred: integr
    (\<And>i x. x \<in> space M \<Longrightarrow> norm (s i x) \<le> 2 * norm (f x)) \<Longrightarrow> integrable M f \<Longrightarrow> P f"
   shows "P f"
 proof -
-  from `integrable M f` have f: "f \<in> borel_measurable M" "(\<integral>\<^sup>+x. norm (f x) \<partial>M) < \<infinity>"
+  from \<open>integrable M f\<close> have f: "f \<in> borel_measurable M" "(\<integral>\<^sup>+x. norm (f x) \<partial>M) < \<infinity>"
     unfolding integrable_iff_bounded by auto
   from borel_measurable_implies_sequence_metric[OF f(1)]
   obtain s where s: "\<And>i. simple_function M (s i)" "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. s i x) ----> f x"
@@ -1746,7 +1746,7 @@ proof -
     fix x assume "x \<in> space M" with s show "(\<lambda>i. s' i x) ----> f x"
       by (simp add: s'_eq_s)
     show "norm (s' i x) \<le> 2 * norm (f x)"
-      using `x \<in> space M` s by (simp add: s'_eq_s)
+      using \<open>x \<in> space M\<close> s by (simp add: s'_eq_s)
   qed fact
 qed
 
@@ -1838,7 +1838,7 @@ next
     by (simp add: not_integrable_integral_eq)
 qed
 
-subsection {* Restricted measure spaces *}
+subsection \<open>Restricted measure spaces\<close>
 
 lemma integrable_restrict_space:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -1890,7 +1890,7 @@ proof -
   thus ?thesis by simp
 qed
 
-subsection {* Measure spaces with an associated density *}
+subsection \<open>Measure spaces with an associated density\<close>
 
 lemma integrable_density:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}" and g :: "'a \<Rightarrow> real"
@@ -1972,7 +1972,7 @@ lemma has_bochner_integral_density:
     has_bochner_integral M (\<lambda>x. g x *\<^sub>R f x) x \<Longrightarrow> has_bochner_integral (density M g) f x"
   by (simp add: has_bochner_integral_iff integrable_density integral_density)
 
-subsection {* Distributions *}
+subsection \<open>Distributions\<close>
 
 lemma integrable_distr_eq:
   fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -2044,7 +2044,7 @@ lemma has_bochner_integral_distr:
     has_bochner_integral M (\<lambda>x. f (g x)) x \<Longrightarrow> has_bochner_integral (distr M N g) f x"
   by (simp add: has_bochner_integral_iff integrable_distr_eq integral_distr)
 
-subsection {* Lebesgue integration on @{const count_space} *}
+subsection \<open>Lebesgue integration on @{const count_space}\<close>
 
 lemma integrable_count_space:
   fixes f :: "'a \<Rightarrow> 'b::{banach,second_countable_topology}"
@@ -2109,7 +2109,7 @@ lemma integral_count_space_nat:
   shows "integrable (count_space UNIV) f \<Longrightarrow> integral\<^sup>L (count_space UNIV) f = (\<Sum>x. f x)"
   using sums_integral_count_space_nat by (rule sums_unique)
 
-subsection {* Point measure *}
+subsection \<open>Point measure\<close>
 
 lemma lebesgue_integral_point_measure_finite:
   fixes g :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
@@ -2126,7 +2126,7 @@ lemma integrable_point_measure_finite:
   apply (auto simp: AE_count_space integrable_count_space)
   done
 
-subsection {* Lebesgue integration on @{const null_measure} *}
+subsection \<open>Lebesgue integration on @{const null_measure}\<close>
 
 lemma has_bochner_integral_null_measure_iff[iff]:
   "has_bochner_integral (null_measure M) f 0 \<longleftrightarrow> f \<in> borel_measurable M"
@@ -2140,7 +2140,7 @@ lemma integral_null_measure[simp]: "integral\<^sup>L (null_measure M) f = 0"
   by (cases "integrable (null_measure M) f")
      (auto simp add: not_integrable_integral_eq has_bochner_integral_integral_eq)
 
-subsection {* Legacy lemmas for the real-valued Lebesgue integral *}
+subsection \<open>Legacy lemmas for the real-valued Lebesgue integral\<close>
 
 lemma real_lebesgue_integral_def:
   assumes f[measurable]: "integrable M f"
@@ -2388,7 +2388,7 @@ proof -
       using int A by (simp add: integrable_def)
     ultimately have "emeasure M A = 0"
       using emeasure_nonneg[of M A] by simp
-    with `(emeasure M) A \<noteq> 0` show False by auto
+    with \<open>(emeasure M) A \<noteq> 0\<close> show False by auto
   qed
   ultimately show ?thesis by auto
 qed
@@ -2413,7 +2413,7 @@ proof (rule tendsto_at_topI_sequentially)
     show "AE x in M. (\<lambda>n. indicator {..X n} x *\<^sub>R f x) ----> f x"
     proof
       fix x
-      from `filterlim X at_top sequentially` 
+      from \<open>filterlim X at_top sequentially\<close> 
       have "eventually (\<lambda>n. x \<le> X n) sequentially"
         unfolding filterlim_at_top_ge[where c=x] by auto
       then show "(\<lambda>n. indicator {..X n} x *\<^sub>R f x) ----> f x"
@@ -2455,7 +2455,7 @@ proof -
     by (auto simp: _has_bochner_integral_iff)
 qed
 
-subsection {* Product measure *}
+subsection \<open>Product measure\<close>
 
 lemma (in sigma_finite_measure) borel_measurable_lebesgue_integrable[measurable (raw)]:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _::{banach, second_countable_topology}"
@@ -2823,7 +2823,7 @@ proof -
     have f_borel: "f \<in> borel_measurable (Pi\<^sub>M (insert i I) M)"
       using f by auto
     show "(\<lambda>y. f (x(i := y))) \<in> borel_measurable (M i)"
-      using measurable_comp[OF measurable_component_update f_borel, OF x `i \<notin> I`]
+      using measurable_comp[OF measurable_component_update f_borel, OF x \<open>i \<notin> I\<close>]
       unfolding comp_def .
     from x I show "(\<integral> y. f (merge I {i} (x,y)) \<partial>Pi\<^sub>M {i} M) = (\<integral> xa. f (x(i := xa i)) \<partial>Pi\<^sub>M {i} M)"
       by (auto intro!: integral_cong arg_cong[where f=f] simp: merge_def space_PiM extensional_def PiE_def)
@@ -2867,7 +2867,7 @@ next
     by (intro product_integrable_setprod insert(4)) (auto intro: finite_subset)
   interpret I: finite_product_sigma_finite M I by standard fact
   have *: "\<And>x y. (\<Prod>j\<in>I. f j (if j = i then y else x j)) = (\<Prod>j\<in>I. f j (x j))"
-    using `i \<notin> I` by (auto intro!: setprod.cong)
+    using \<open>i \<notin> I\<close> by (auto intro!: setprod.cong)
   show ?case
     unfolding product_integral_insert[OF insert(1,2) prod[OF subset_refl]]
     by (simp add: * insert prod subset_insertI)

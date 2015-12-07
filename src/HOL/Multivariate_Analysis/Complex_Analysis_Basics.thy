@@ -897,7 +897,7 @@ lemma complex_differentiable_series:
 proof -
   from assms(4) obtain g' where A: "uniform_limit s (\<lambda>n x. \<Sum>i<n. f' i x) g' sequentially"
     unfolding uniformly_convergent_on_def by blast
-  from x and `open s` have s: "at x within s = at x" by (rule at_within_open)
+  from x and \<open>open s\<close> have s: "at x within s = at x" by (rule at_within_open)
   have "\<exists>g. \<forall>x\<in>s. (\<lambda>n. f n x) sums g x \<and> (g has_field_derivative g' x) (at x within s)"
     by (intro has_field_derivative_series[of s f f' g' x0] assms A has_field_derivative_at_within)
   then obtain g where g: "\<And>x. x \<in> s \<Longrightarrow> (\<lambda>n. f n x) sums g x"
@@ -906,7 +906,7 @@ proof -
   from g(2)[OF x] have g': "(g has_derivative op * (g' x)) (at x)"
     by (simp add: has_field_derivative_def s)
   have "((\<lambda>x. \<Sum>n. f n x) has_derivative op * (g' x)) (at x)"
-    by (rule has_derivative_transform_within_open[OF `open s` x _ g'])
+    by (rule has_derivative_transform_within_open[OF \<open>open s\<close> x _ g'])
        (insert g, auto simp: sums_iff)
   thus "(\<lambda>x. \<Sum>n. f n x) complex_differentiable (at x)" unfolding differentiable_def
     by (auto simp: summable_def complex_differentiable_def has_field_derivative_def)
@@ -919,7 +919,7 @@ lemma complex_differentiable_series':
   assumes "uniformly_convergent_on s (\<lambda>n x. \<Sum>i<n. f' i x)"
   assumes "x0 \<in> s" "summable (\<lambda>n. f n x0)"
   shows   "(\<lambda>x. \<Sum>n. f n x) complex_differentiable (at x0)"
-  using complex_differentiable_series[OF assms, of x0] `x0 \<in> s` by blast+
+  using complex_differentiable_series[OF assms, of x0] \<open>x0 \<in> s\<close> by blast+
 
 subsection\<open>Bound theorem\<close>
 

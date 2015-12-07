@@ -174,7 +174,7 @@ instance prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_eucl
       inner_Basis_SUP_left Sup_prod_def less_prod_def less_eq_prod_def eucl_le[where 'a='a]
       eucl_le[where 'a='b] abs_prod_def abs_inner)
 
-text\<open>Instantiation for intervals on @{text ordered_euclidean_space}\<close>
+text\<open>Instantiation for intervals on \<open>ordered_euclidean_space\<close>\<close>
 
 lemma
   fixes a :: "'a::ordered_euclidean_space"

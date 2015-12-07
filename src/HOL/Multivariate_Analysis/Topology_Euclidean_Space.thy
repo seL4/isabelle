@@ -728,7 +728,7 @@ lemma connected_open_in:
                  openin (subtopology euclidean s) e2 \<and>
                  s \<subseteq> e1 \<union> e2 \<and> e1 \<inter> e2 = {} \<and> e1 \<noteq> {} \<and> e2 \<noteq> {})"
   apply (simp add: connected_def openin_open, safe)
-  apply (simp_all, blast+)  --\<open>slow\<close>
+  apply (simp_all, blast+)  \<comment>\<open>slow\<close>
   done
 
 lemma connected_open_in_eq:
@@ -1898,7 +1898,7 @@ next
   next
     assume "\<forall>x \<in> s. connected_component_set s x = s"
     then show "connected s"
-      by (metis `x \<in> s` connected_connected_component)
+      by (metis \<open>x \<in> s\<close> connected_connected_component)
   qed
 qed
 
@@ -5211,7 +5211,7 @@ lemma continuous_at_imp_continuous_within:
 lemma Lim_trivial_limit: "trivial_limit net \<Longrightarrow> (f ---> l) net"
   by simp
 
-lemmas continuous_on = continuous_on_def -- "legacy theorem name"
+lemmas continuous_on = continuous_on_def \<comment> "legacy theorem name"
 
 lemma continuous_within_subset:
   "continuous (at x within s) f \<Longrightarrow> t \<subseteq> s \<Longrightarrow> continuous (at x within t) f"

@@ -3,7 +3,7 @@
     Author:     Armin Heller, TU München
 *)
 
-section {*Borel spaces*}
+section \<open>Borel spaces\<close>
 
 theory Borel_Space
 imports
@@ -22,7 +22,7 @@ proof -
     by (auto intro: topological_basis_prod topological_basis_trivial topological_basis_imp_subbasis)  
 qed
 
-subsection {* Generic Borel spaces *}
+subsection \<open>Generic Borel spaces\<close>
 
 definition borel :: "'a::topological_space measure" where
   "borel = sigma UNIV {S. open S}"
@@ -182,7 +182,7 @@ proof (intro sigma_eqI sigma_sets_eqI)
       by metis
     def U \<equiv> "(\<Union>k\<in>K. m k)"
     with m have "countable U"
-      by (intro countable_subset[OF _ `countable B`]) auto
+      by (intro countable_subset[OF _ \<open>countable B\<close>]) auto
     have "\<Union>U = (\<Union>A\<in>U. A)" by simp
     also have "\<dots> = \<Union>K"
       unfolding U_def UN_simps by (simp add: m)
@@ -195,9 +195,9 @@ proof (intro sigma_eqI sigma_sets_eqI)
     then have "(\<Union>b\<in>U. u b) \<subseteq> \<Union>K" "\<Union>U \<subseteq> (\<Union>b\<in>U. u b)"
       by auto
     then have "\<Union>K = (\<Union>b\<in>U. u b)"
-      unfolding `\<Union>U = \<Union>K` by auto
+      unfolding \<open>\<Union>U = \<Union>K\<close> by auto
     also have "\<dots> \<in> sigma_sets UNIV X"
-      using u UN by (intro X.countable_UN' `countable U`) auto
+      using u UN by (intro X.countable_UN' \<open>countable U\<close>) auto
     finally show "\<Union>K \<in> sigma_sets UNIV X" .
   qed auto
 qed (auto simp: eq intro: generate_topology.Basis)
@@ -257,7 +257,7 @@ proof (intro sigma_eqI sigma_sets_eqI, safe)
   fix X::"'a set" assume "open X"
   from open_countable_basisE[OF this] guess B' . note B' = this
   then show "X \<in> sigma_sets UNIV B"
-    by (blast intro: sigma_sets_UNION `countable B` countable_subset)
+    by (blast intro: sigma_sets_UNION \<open>countable B\<close> countable_subset)
 next
   fix b assume "b \<in> B"
   hence "open b" by (rule topological_basis_open[OF assms(2)])
@@ -302,7 +302,7 @@ proof -
     unfolding eq by (rule borel_measurable_continuous_on[OF H]) auto
 qed
 
-subsection {* Borel spaces on order topologies *}
+subsection \<open>Borel spaces on order topologies\<close>
 
 
 lemma borel_Iio:
@@ -441,7 +441,7 @@ proof -
   finally show ?thesis .
 qed
 
-subsection {* Borel spaces on euclidean spaces *}
+subsection \<open>Borel spaces on euclidean spaces\<close>
 
 lemma borel_measurable_inner[measurable (raw)]:
   fixes f g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_inner}"
@@ -603,7 +603,7 @@ proof (rule borel_eq_sigmaI1[OF borel_def])
   fix M :: "'a set" assume "M \<in> {S. open S}"
   then have "open M" by simp
   show "M \<in> ?SIGMA"
-    apply (subst open_UNION_box[OF `open M`])
+    apply (subst open_UNION_box[OF \<open>open M\<close>])
     apply (safe intro!: sets.countable_UN' countable_PiE countable_Collect)
     apply (auto intro: countable_rat)
     done
@@ -746,7 +746,7 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_ge])
   fix a :: real and i :: 'a assume "(a, i) \<in> UNIV \<times> Basis"
   then have i: "i \<in> Basis" by auto
   have "{x::'a. a \<le> x\<bullet>i} = UNIV - {x::'a. x\<bullet>i < a}" by auto
-  also have *: "{x::'a. x\<bullet>i < a} = (\<Union>k::nat. {x. x <e (\<Sum>n\<in>Basis. (if n = i then a else real k) *\<^sub>R n)})" using `i\<in> Basis`
+  also have *: "{x::'a. x\<bullet>i < a} = (\<Union>k::nat. {x. x <e (\<Sum>n\<in>Basis. (if n = i then a else real k) *\<^sub>R n)})" using \<open>i\<in> Basis\<close>
   proof (safe, simp_all add: eucl_less_def split: split_if_asm)
     fix x :: 'a
     from reals_Archimedean2[of "Max ((\<lambda>i. x\<bullet>i)`Basis)"]
@@ -817,13 +817,13 @@ proof (intro sigma_eqI sigma_sets_eqI, safe)
   fix x :: "'a set" assume "open x"
   hence "x = UNIV - (UNIV - x)" by auto
   also have "\<dots> \<in> sigma_sets UNIV (Collect closed)"
-    by (force intro: sigma_sets.Compl simp: `open x`)
+    by (force intro: sigma_sets.Compl simp: \<open>open x\<close>)
   finally show "x \<in> sigma_sets UNIV (Collect closed)" by simp
 next
   fix x :: "'a set" assume "closed x"
   hence "x = UNIV - (UNIV - x)" by auto
   also have "\<dots> \<in> sigma_sets UNIV (Collect open)"
-    by (force intro: sigma_sets.Compl simp: `closed x`)
+    by (force intro: sigma_sets.Compl simp: \<open>closed x\<close>)
   finally show "x \<in> sigma_sets UNIV (Collect open)" by simp
 qed simp_all
 
@@ -965,12 +965,12 @@ proof (rule borel_measurableI)
   show "(\<lambda>x. a + b *\<^sub>R f x) -` S \<inter> space M \<in> sets M"
   proof cases
     assume "b \<noteq> 0"
-    with `open S` have "open ((\<lambda>x. (- a + x) /\<^sub>R b) ` S)" (is "open ?S")
+    with \<open>open S\<close> have "open ((\<lambda>x. (- a + x) /\<^sub>R b) ` S)" (is "open ?S")
       using open_affinity [of S "inverse b" "- a /\<^sub>R b"]
       by (auto simp: algebra_simps)
     hence "?S \<in> sets borel" by auto
     moreover
-    from `b \<noteq> 0` have "(\<lambda>x. a + b *\<^sub>R f x) -` S = f -` ?S"
+    from \<open>b \<noteq> 0\<close> have "(\<lambda>x. a + b *\<^sub>R f x) -` S = f -` ?S"
       apply auto by (rule_tac x="a + b *\<^sub>R f x" in image_eqI, simp_all)
     ultimately show ?thesis using assms unfolding in_borel_measurable_borel
       by auto
@@ -1315,7 +1315,7 @@ lemma borel_measurable_extreal_suminf[measurable (raw)]:
   shows "(\<lambda>x. (\<Sum>i. f i x)) \<in> borel_measurable M"
   unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
 
-subsection {* LIMSEQ is borel measurable *}
+subsection \<open>LIMSEQ is borel measurable\<close>
 
 lemma borel_measurable_LIMSEQ:
   fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> real"
@@ -1352,7 +1352,7 @@ proof (safe intro!: measurable_measure_of)
   proof cases
     assume "A \<noteq> {}"
     then have "\<And>x. infdist x A = 0 \<longleftrightarrow> x \<in> A"
-      using `closed A` by (simp add: in_closed_iff_infdist_zero)
+      using \<open>closed A\<close> by (simp add: in_closed_iff_infdist_zero)
     then have "g -` A \<inter> space M = {x\<in>space M. infdist (g x) A = 0}"
       by auto
     also have "\<dots> \<in> sets M"

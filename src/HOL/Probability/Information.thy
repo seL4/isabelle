@@ -3,7 +3,7 @@
     Author:     Armin Heller, TU München
 *)
 
-section {*Information theory*}
+section \<open>Information theory\<close>
 
 theory Information
 imports
@@ -33,7 +33,7 @@ locale information_space = prob_space +
 context information_space
 begin
 
-text {* Introduce some simplification rules for logarithm of base @{term b}. *}
+text \<open>Introduce some simplification rules for logarithm of base @{term b}.\<close>
 
 lemma log_neg_const:
   assumes "x \<le> 0"
@@ -69,8 +69,8 @@ end
 
 subsection "Kullback$-$Leibler divergence"
 
-text {* The Kullback$-$Leibler divergence is also known as relative entropy or
-Kullback$-$Leibler distance. *}
+text \<open>The Kullback$-$Leibler divergence is also known as relative entropy or
+Kullback$-$Leibler distance.\<close>
 
 definition
   "entropy_density b M N = log b \<circ> real_of_ereal \<circ> RN_deriv M N"
@@ -118,9 +118,9 @@ proof -
     KL_divergence b (density M f) (density (density M f) (\<lambda>x. g x / f x))"
     using f g ac by (subst density_density_divide) simp_all
   also have "\<dots> = (\<integral>x. (g x / f x) * log b (g x / f x) \<partial>density M f)"
-    using f g `1 < b` by (intro Mf.KL_density) (auto simp: AE_density)
+    using f g \<open>1 < b\<close> by (intro Mf.KL_density) (auto simp: AE_density)
   also have "\<dots> = (\<integral>x. g x * log b (g x / f x) \<partial>M)"
-    using ac f g `1 < b` by (subst integral_density) (auto intro!: integral_cong_AE)
+    using ac f g \<open>1 < b\<close> by (subst integral_density) (auto intro!: integral_cong_AE)
   finally show ?thesis .
 qed
 
@@ -135,7 +135,7 @@ proof -
   interpret N: prob_space "density M D" by fact
 
   obtain A where "A \<in> sets M" "emeasure (density M D) A \<noteq> emeasure M A"
-    using measure_eqI[of "density M D" M] `density M D \<noteq> M` by auto
+    using measure_eqI[of "density M D" M] \<open>density M D \<noteq> M\<close> by auto
 
   let ?D_set = "{x\<in>space M. D x \<noteq> 0}"
   have [simp, intro]: "?D_set \<in> sets M"
@@ -157,12 +157,12 @@ proof -
   have "0 \<le> 1 - measure M ?D_set"
     using prob_le_1 by (auto simp: field_simps)
   also have "\<dots> = (\<integral> x. D x - indicator ?D_set x \<partial>M)"
-    using `integrable M D` `integral\<^sup>L M D = 1`
+    using \<open>integrable M D\<close> \<open>integral\<^sup>L M D = 1\<close>
     by (simp add: emeasure_eq_measure)
   also have "\<dots> < (\<integral> x. D x * (ln b * log b (D x)) \<partial>M)"
   proof (rule integral_less_AE)
     show "integrable M (\<lambda>x. D x - indicator ?D_set x)"
-      using `integrable M D` by auto
+      using \<open>integrable M D\<close> by auto
   next
     from integrable_mult_left(1)[OF int, of "ln b"]
     show "integrable M (\<lambda>x. D x * (ln b * log b (D x)))" 
@@ -183,8 +183,8 @@ proof -
       then have "(\<integral>\<^sup>+x. indicator A x\<partial>M) = (\<integral>\<^sup>+x. ereal (D x) * indicator A x\<partial>M)"
         by (intro nn_integral_cong_AE) (auto simp: one_ereal_def[symmetric])
       also have "\<dots> = density M D A"
-        using `A \<in> sets M` D by (simp add: emeasure_density)
-      finally show False using `A \<in> sets M` `emeasure (density M D) A \<noteq> emeasure M A` by simp
+        using \<open>A \<in> sets M\<close> D by (simp add: emeasure_density)
+      finally show False using \<open>A \<in> sets M\<close> \<open>emeasure (density M D) A \<noteq> emeasure M A\<close> by simp
     qed
     show "{x\<in>space M. D x \<noteq> 1 \<and> D x \<noteq> 0} \<in> sets M"
       using D(1) by (auto intro: sets.sets_Collect_conj)
@@ -200,11 +200,11 @@ proof -
         using Dt by simp
       also note eq
       also have "D t * (ln b * log b (D t)) = - D t * ln (1 / D t)"
-        using b_gt_1 `D t \<noteq> 0` `0 \<le> D t`
+        using b_gt_1 \<open>D t \<noteq> 0\<close> \<open>0 \<le> D t\<close>
         by (simp add: log_def ln_div less_le)
       finally have "ln (1 / D t) = 1 / D t - 1"
-        using `D t \<noteq> 0` by (auto simp: field_simps)
-      from ln_eq_minus_one[OF _ this] `D t \<noteq> 0` `0 \<le> D t` `D t \<noteq> 1`
+        using \<open>D t \<noteq> 0\<close> by (auto simp: field_simps)
+      from ln_eq_minus_one[OF _ this] \<open>D t \<noteq> 0\<close> \<open>0 \<le> D t\<close> \<open>D t \<noteq> 1\<close>
       show False by auto
     qed
 
@@ -215,14 +215,14 @@ proof -
       show "D t - indicator ?D_set t \<le> D t * (ln b * log b (D t))"
       proof cases
         assume asm: "D t \<noteq> 0"
-        then have "0 < D t" using `0 \<le> D t` by auto
+        then have "0 < D t" using \<open>0 \<le> D t\<close> by auto
         then have "0 < 1 / D t" by auto
         have "D t - indicator ?D_set t \<le> - D t * (1 / D t - 1)"
-          using asm `t \<in> space M` by (simp add: field_simps)
+          using asm \<open>t \<in> space M\<close> by (simp add: field_simps)
         also have "- D t * (1 / D t - 1) \<le> - D t * ln (1 / D t)"
-          using ln_le_minus_one `0 < 1 / D t` by (intro mult_left_mono_neg) auto
+          using ln_le_minus_one \<open>0 < 1 / D t\<close> by (intro mult_left_mono_neg) auto
         also have "\<dots> = D t * (ln b * log b (D t))"
-          using `0 < D t` b_gt_1
+          using \<open>0 < D t\<close> b_gt_1
           by (simp_all add: log_def ln_div)
         finally show ?thesis by simp
       qed simp
@@ -289,7 +289,7 @@ proof -
        (auto simp: N entropy_density_def)
   with D b_gt_1 have "integrable M (\<lambda>x. D x * log b (D x))"
     by (subst integrable_real_density[symmetric]) (auto simp: N[symmetric] comp_def)
-  with `prob_space N` D show ?thesis
+  with \<open>prob_space N\<close> D show ?thesis
     unfolding N
     by (intro KL_eq_0_iff_eq) auto
 qed
@@ -323,7 +323,7 @@ proof -
     show "AE x in density M f. 0 \<le> g x / f x"
       using f g by (auto simp: AE_density)
     show "integrable (density M f) (\<lambda>x. g x / f x * log b (g x / f x))"
-      using `1 < b` f g ac
+      using \<open>1 < b\<close> f g ac
       by (subst integrable_density)
          (auto intro!: integrable_cong_AE[THEN iffD2, OF _ _ _ int] measurable_If)
   qed
@@ -332,7 +332,7 @@ proof -
   finally show ?thesis .
 qed
 
-subsection {* Finite Entropy *}
+subsection \<open>Finite Entropy\<close>
 
 definition (in information_space) 
   "finite_entropy S X f \<longleftrightarrow> distributed M S X f \<and> integrable S (\<lambda>x. f x * log b (f x))"
@@ -421,7 +421,7 @@ lemma (in information_space) finite_entropy_integrable_transform:
   using distributed_transform_integrable[of M T Y Py S X Px f "\<lambda>x. log b (Px x)"]
   by auto
 
-subsection {* Mutual Information *}
+subsection \<open>Mutual Information\<close>
 
 definition (in prob_space)
   "mutual_information b S T X Y =
@@ -459,16 +459,16 @@ proof safe
     have "AE x in P. 1 = RN_deriv P Q x"
     proof (rule P.RN_deriv_unique)
       show "density P (\<lambda>x. 1) = Q"
-        unfolding `Q = P` by (intro measure_eqI) (auto simp: emeasure_density)
+        unfolding \<open>Q = P\<close> by (intro measure_eqI) (auto simp: emeasure_density)
     qed auto
     then have ae_0: "AE x in P. entropy_density b P Q x = 0"
       by eventually_elim (auto simp: entropy_density_def)
     then have "integrable P (entropy_density b P Q) \<longleftrightarrow> integrable Q (\<lambda>x. 0::real)"
-      using ed unfolding `Q = P` by (intro integrable_cong_AE) auto
+      using ed unfolding \<open>Q = P\<close> by (intro integrable_cong_AE) auto
     then show "integrable Q (entropy_density b P Q)" by simp
 
     from ae_0 have "mutual_information b S T X Y = (\<integral>x. 0 \<partial>P)"
-      unfolding mutual_information_def KL_divergence_def P_def[symmetric] Q_def[symmetric] `Q = P`
+      unfolding mutual_information_def KL_divergence_def P_def[symmetric] Q_def[symmetric] \<open>Q = P\<close>
       by (intro integral_cong_AE) auto
     then show "mutual_information b S T X Y = 0"
       by simp }
@@ -753,7 +753,7 @@ proof (subst mutual_information_simple_distributed[OF Px Py Pxy])
     Pxy (x, y) * log b (Pxy (x, y) / (Px x * Py y))) = 0" by simp
 qed
 
-subsection {* Entropy *}
+subsection \<open>Entropy\<close>
 
 definition (in prob_space) entropy :: "real \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> real" where
   "entropy b S X = - KL_divergence b S (distr M S X)"
@@ -946,7 +946,7 @@ proof -
   finally show ?thesis .
 qed
 
-subsection {* Conditional Mutual Information *}
+subsection \<open>Conditional Mutual Information\<close>
 
 definition (in prob_space)
   "conditional_mutual_information b MX MY MZ X Y Z \<equiv>
@@ -1173,7 +1173,7 @@ proof -
       done
   qed (auto simp: b_gt_1 minus_log_convex)
   also have "\<dots> = conditional_mutual_information b S T P X Y Z"
-    unfolding `?eq`
+    unfolding \<open>?eq\<close>
     apply (subst integral_real_density)
     apply simp
     apply (auto intro!: distributed_real_AE[OF Pxyz]) []
@@ -1430,7 +1430,7 @@ proof -
       done
   qed (auto simp: b_gt_1 minus_log_convex)
   also have "\<dots> = conditional_mutual_information b S T P X Y Z"
-    unfolding `?eq`
+    unfolding \<open>?eq\<close>
     apply (subst integral_real_density)
     apply simp
     apply (auto intro!: distributed_real_AE[OF Pxyz]) []
@@ -1490,7 +1490,7 @@ proof (subst conditional_mutual_information_generic_eq[OF _ _ _ _
   have "(\<lambda>(x, y, z). ?i x y z) = (\<lambda>x. if x \<in> (\<lambda>x. (X x, Y x, Z x)) ` space M then ?j (fst x) (fst (snd x)) (snd (snd x)) else 0)"
     by (auto intro!: ext)
   then show "(\<integral> (x, y, z). ?i x y z \<partial>?P) = (\<Sum>(x, y, z)\<in>(\<lambda>x. (X x, Y x, Z x)) ` space M. ?j x y z)"
-    by (auto intro!: setsum.cong simp add: `?P = ?C` lebesgue_integral_count_space_finite simple_distributed_finite setsum.If_cases split_beta')
+    by (auto intro!: setsum.cong simp add: \<open>?P = ?C\<close> lebesgue_integral_count_space_finite simple_distributed_finite setsum.If_cases split_beta')
 qed
 
 lemma (in information_space) conditional_mutual_information_nonneg:
@@ -1514,7 +1514,7 @@ proof -
    done
 qed
 
-subsection {* Conditional Entropy *}
+subsection \<open>Conditional Entropy\<close>
 
 definition (in prob_space)
   "conditional_entropy b S T X Y = - (\<integral>(x, y). log b (real_of_ereal (RN_deriv (S \<Otimes>\<^sub>M T) (distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))) (x, y)) / 
@@ -1614,7 +1614,7 @@ proof -
     by (rule conditional_entropy_eq_entropy sigma_finite_measure_count_space_finite
                  simple_functionD  X Y simple_distributed simple_distributedI[OF _ refl]
                  simple_distributed_joint simple_function_Pair integrable_count_space)+
-       (auto simp: `?P = ?C` intro!: integrable_count_space simple_functionD  X Y)
+       (auto simp: \<open>?P = ?C\<close> intro!: integrable_count_space simple_functionD  X Y)
 qed
 
 lemma (in information_space) conditional_entropy_eq:
@@ -1642,7 +1642,7 @@ proof (subst conditional_entropy_generic_eq[OF _ _
     by auto
   from Y show "- (\<integral> (x, y). ?f (x, y) * log b (?f (x, y) / Py y) \<partial>?P) =
     - (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M. Pxy (x, y) * log b (Pxy (x, y) / Py y))"
-    by (auto intro!: setsum.cong simp add: `?P = ?C` lebesgue_integral_count_space_finite simple_distributed_finite eq setsum.If_cases split_beta')
+    by (auto intro!: setsum.cong simp add: \<open>?P = ?C\<close> lebesgue_integral_count_space_finite simple_distributed_finite eq setsum.If_cases split_beta')
 qed
 
 lemma (in information_space) conditional_mutual_information_eq_conditional_entropy:
@@ -1685,7 +1685,7 @@ lemma (in information_space) conditional_entropy_nonneg:
   using conditional_mutual_information_eq_conditional_entropy[OF X Y] conditional_mutual_information_nonneg[OF X X Y]
   by simp
 
-subsection {* Equalities *}
+subsection \<open>Equalities\<close>
 
 lemma (in information_space) mutual_information_eq_entropy_conditional_entropy_distr:
   fixes Px :: "'b \<Rightarrow> real" and Py :: "'c \<Rightarrow> real" and Pxy :: "('b \<times> 'c) \<Rightarrow> real"
@@ -1752,7 +1752,7 @@ proof -
     apply (simp add: field_simps)
     done
   also have "\<dots> = integral\<^sup>L (S \<Otimes>\<^sub>M T) ?g"
-    using `AE x in _. ?f x = ?g x` by (intro integral_cong_AE) auto
+    using \<open>AE x in _. ?f x = ?g x\<close> by (intro integral_cong_AE) auto
   also have "\<dots> = mutual_information b S T X Y"
     by (rule mutual_information_distr[OF S T Px Py Pxy, symmetric])
   finally show ?thesis ..

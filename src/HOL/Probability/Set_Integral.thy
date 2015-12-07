@@ -104,7 +104,7 @@ lemma set_integrable_subset:
 proof -
   have "set_integrable M B (\<lambda>x. indicator A x *\<^sub>R f x)"
     by (rule integrable_mult_indicator) fact+
-  with `B \<subseteq> A` show ?thesis
+  with \<open>B \<subseteq> A\<close> show ?thesis
     by (simp add: indicator_inter_arith[symmetric] Int_absorb2)
 qed
 
@@ -287,7 +287,7 @@ proof -
   have "set_borel_measurable M B (\<lambda>x. indicator A x *\<^sub>R f x)"
     by measurable
   also have "(\<lambda>x. indicator B x *\<^sub>R indicator A x *\<^sub>R f x) = (\<lambda>x. indicator B x *\<^sub>R f x)"
-    using `B \<subseteq> A` by (auto simp: fun_eq_iff split: split_indicator)
+    using \<open>B \<subseteq> A\<close> by (auto simp: fun_eq_iff split: split_indicator)
   finally show ?thesis .
 qed
 
@@ -340,7 +340,7 @@ lemma pos_integrable_to_top:
   apply (rule intgbl)
   prefer 3 apply (rule lim)
   apply (rule AE_I2)
-  using `mono A` apply (auto simp: mono_def nneg split: split_indicator) []
+  using \<open>mono A\<close> apply (auto simp: mono_def nneg split: split_indicator) []
 proof (rule AE_I2)
   { fix x assume "x \<in> space M"
     show "(\<lambda>i. indicator (A i) x *\<^sub>R f x) ----> indicator (\<Union>i. A i) x *\<^sub>R f x"
@@ -348,7 +348,7 @@ proof (rule AE_I2)
       assume "\<exists>i. x \<in> A i"
       then guess i ..
       then have *: "eventually (\<lambda>i. x \<in> A i) sequentially"
-        using `x \<in> A i` `mono A` by (auto simp: eventually_sequentially mono_def)
+        using \<open>x \<in> A i\<close> \<open>mono A\<close> by (auto simp: eventually_sequentially mono_def)
       show ?thesis
         apply (intro Lim_eventually)
         using *

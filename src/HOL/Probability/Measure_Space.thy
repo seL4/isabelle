@@ -4,7 +4,7 @@
     Author:     Armin Heller, TU München
 *)
 
-section {* Measure spaces and their properties *}
+section \<open>Measure spaces and their properties\<close>
 
 theory Measure_Space
 imports
@@ -19,7 +19,7 @@ lemma suminf_cmult_indicator:
   shows "(\<Sum>n. f n * indicator (A n) x) = f i"
 proof -
   have **: "\<And>n. f n * indicator (A n) x = (if n = i then f n else 0 :: ereal)"
-    using `x \<in> A i` assms unfolding disjoint_family_on_def indicator_def by auto
+    using \<open>x \<in> A i\<close> assms unfolding disjoint_family_on_def indicator_def by auto
   then have "\<And>n. (\<Sum>j<n. f j * indicator (A j) x) = (if i < n then f i else 0 :: ereal)"
     by (auto simp: setsum.If_cases)
   moreover have "(SUP n. if i < n then f i else 0) = (f i :: ereal)"
@@ -37,7 +37,7 @@ lemma suminf_indicator:
 proof cases
   assume *: "x \<in> (\<Union>i. A i)"
   then obtain i where "x \<in> A i" by auto
-  from suminf_cmult_indicator[OF assms(1), OF `x \<in> A i`, of "\<lambda>k. 1"]
+  from suminf_cmult_indicator[OF assms(1), OF \<open>x \<in> A i\<close>, of "\<lambda>k. 1"]
   show ?thesis using * by simp
 qed simp
 
@@ -47,17 +47,17 @@ lemma setsum_indicator_disjoint_family:
   shows "(\<Sum>i\<in>P. f i * indicator (A i) x) = f j"
 proof -
   have "P \<inter> {i. x \<in> A i} = {j}"
-    using d `x \<in> A j` `j \<in> P` unfolding disjoint_family_on_def
+    using d \<open>x \<in> A j\<close> \<open>j \<in> P\<close> unfolding disjoint_family_on_def
     by auto
   thus ?thesis
     unfolding indicator_def
-    by (simp add: if_distrib setsum.If_cases[OF `finite P`])
+    by (simp add: if_distrib setsum.If_cases[OF \<open>finite P\<close>])
 qed
 
-text {*
+text \<open>
   The type for emeasure spaces is already defined in @{theory Sigma_Algebra}, as it is also used to
   represent sigma algebras (with an arbitrary emeasure).
-*}
+\<close>
 
 subsection "Extend binary sets"
 
@@ -91,12 +91,12 @@ lemma suminf_binaryset_eq:
   shows "f {} = 0 \<Longrightarrow> (\<Sum>n. f (binaryset A B n)) = f A + f B"
   by (metis binaryset_sums sums_unique)
 
-subsection {* Properties of a premeasure @{term \<mu>} *}
+subsection \<open>Properties of a premeasure @{term \<mu>}\<close>
 
-text {*
+text \<open>
   The definitions for @{const positive} and @{const countably_additive} should be here, by they are
   necessary to define @{typ "'a measure"} in @{theory Sigma_Algebra}.
-*}
+\<close>
 
 definition additive where
   "additive M \<mu> \<longleftrightarrow> (\<forall>x\<in>M. \<forall>y\<in>M. x \<inter> y = {} \<longrightarrow> \<mu> (x \<union> y) = \<mu> x + \<mu> y)"
@@ -134,7 +134,7 @@ proof (induct n)
   also have "\<dots> = f (A n \<union> disjointed A (Suc n))"
     using A by (subst f(2)[THEN additiveD]) (auto simp: disjointed_mono)
   also have "A n \<union> disjointed A (Suc n) = A (Suc n)"
-    using `incseq A` by (auto dest: incseq_SucD simp: disjointed_mono)
+    using \<open>incseq A\<close> by (auto dest: incseq_SucD simp: disjointed_mono)
   finally show ?case .
 qed simp
 
@@ -144,7 +144,7 @@ lemma (in ring_of_sets) additive_sum:
       and A: "A`S \<subseteq> M"
       and disj: "disjoint_family_on A S"
   shows  "(\<Sum>i\<in>S. f (A i)) = f (\<Union>i\<in>S. A i)"
-  using `finite S` disj A
+  using \<open>finite S\<close> disj A
 proof induct
   case empty show ?case using f by (simp add: positive_def)
 next
@@ -154,7 +154,7 @@ next
   moreover
   have "A s \<in> M" using insert by blast
   moreover have "(\<Union>i\<in>S. A i) \<in> M"
-    using insert `finite S` by auto
+    using insert \<open>finite S\<close> by auto
   ultimately have "f (A s \<union> (\<Union>i\<in>S. A i)) = f (A s) + f(\<Union>i\<in>S. A i)"
     using ad UNION_in_sets A by (auto simp add: additive_def)
   with insert show ?case using ad disjoint_family_on_mono[of S "insert s S" A]
@@ -254,7 +254,7 @@ proof (rule countably_additiveI)
     by (metis F(2) assms(1) infinite_super sets_into_space)
 
   have F_subset: "{i. \<mu> (F i) \<noteq> 0} \<subseteq> {i. F i \<noteq> {}}"
-    by (auto simp: positiveD_empty[OF `positive M \<mu>`])
+    by (auto simp: positiveD_empty[OF \<open>positive M \<mu>\<close>])
   moreover have fin_not_empty: "finite {i. F i \<noteq> {}}"
   proof (rule finite_imageD)
     from f have "f`{i. F i \<noteq> {}} \<subseteq> (\<Union>i. F i)" by auto
@@ -272,7 +272,7 @@ proof (rule countably_additiveI)
   also have "\<dots> = (\<Sum>i | F i \<noteq> {}. \<mu> (F i))"
     using fin_not_empty F_subset by (rule setsum.mono_neutral_left) auto
   also have "\<dots> = \<mu> (\<Union>i\<in>{i. F i \<noteq> {}}. F i)"
-    using `positive M \<mu>` `additive M \<mu>` fin_not_empty disj_not_empty F by (intro additive_sum) auto
+    using \<open>positive M \<mu>\<close> \<open>additive M \<mu>\<close> fin_not_empty disj_not_empty F by (intro additive_sum) auto
   also have "\<dots> = \<mu> (\<Union>i. F i)"
     by (rule arg_cong[where f=\<mu>]) auto
   finally show "(\<Sum>i. \<mu> (F i)) = \<mu> (\<Union>i. F i)" .
@@ -327,7 +327,7 @@ proof safe
   assume cont: "(\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) \<in> M \<longrightarrow> (\<forall>i. f (A i) \<noteq> \<infinity>) \<longrightarrow> (\<lambda>i. f (A i)) ----> f (\<Inter>i. A i))"
   fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> M" "decseq A" "(\<Inter>i. A i) = {}" "\<forall>i. f (A i) \<noteq> \<infinity>"
   with cont[THEN spec, of A] show "(\<lambda>i. f (A i)) ----> 0"
-    using `positive M f`[unfolded positive_def] by auto
+    using \<open>positive M f\<close>[unfolded positive_def] by auto
 next
   assume cont: "\<forall>A. range A \<subseteq> M \<longrightarrow> decseq A \<longrightarrow> (\<Inter>i. A i) = {} \<longrightarrow> (\<forall>i. f (A i) \<noteq> \<infinity>) \<longrightarrow> (\<lambda>i. f (A i)) ----> 0"
   fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> M" "decseq A" "(\<Inter>i. A i) \<in> M" "\<forall>i. f (A i) \<noteq> \<infinity>"
@@ -415,7 +415,7 @@ lemma (in ring_of_sets) empty_continuous_imp_countably_additive:
   using empty_continuous_imp_continuous_from_below[OF f fin] cont
   by blast
 
-subsection {* Properties of @{const emeasure} *}
+subsection \<open>Properties of @{const emeasure}\<close>
 
 lemma emeasure_positive: "positive (sets M) (emeasure M)"
   by (cases M) (auto simp: sets_def emeasure_def Abs_measure_inverse measure_space_def)
@@ -483,7 +483,7 @@ proof -
     by (rule plus_emeasure[symmetric]) (auto simp add: s)
   finally have "emeasure M (space M) = emeasure M s + emeasure M (space M - s)" .
   then show ?thesis
-    using fin `0 \<le> emeasure M s`
+    using fin \<open>0 \<le> emeasure M s\<close>
     unfolding ereal_eq_minus_iff by (auto simp: ac_simps)
 qed
 
@@ -493,13 +493,13 @@ lemma emeasure_Diff:
   shows "emeasure M (A - B) = emeasure M A - emeasure M B"
 proof -
   have "0 \<le> emeasure M B" using assms by auto
-  have "(A - B) \<union> B = A" using `B \<subseteq> A` by auto
+  have "(A - B) \<union> B = A" using \<open>B \<subseteq> A\<close> by auto
   then have "emeasure M A = emeasure M ((A - B) \<union> B)" by simp
   also have "\<dots> = emeasure M (A - B) + emeasure M B"
     by (subst plus_emeasure[symmetric]) auto
   finally show "emeasure M (A - B) = emeasure M A - emeasure M B"
     unfolding ereal_eq_minus_iff
-    using finite `0 \<le> emeasure M B` by auto
+    using finite \<open>0 \<le> emeasure M B\<close> by auto
 qed
 
 lemma Lim_emeasure_incseq:
@@ -541,13 +541,13 @@ proof -
     unfolding minus_ereal_def using A0 assms
     by (subst SUP_ereal_add) (auto simp add: decseq_emeasure)
   also have "\<dots> = (SUP n. emeasure M (A 0 - A n))"
-    using A finite `decseq A`[unfolded decseq_def] by (subst emeasure_Diff) auto
+    using A finite \<open>decseq A\<close>[unfolded decseq_def] by (subst emeasure_Diff) auto
   also have "\<dots> = emeasure M (\<Union>i. A 0 - A i)"
   proof (rule SUP_emeasure_incseq)
     show "range (\<lambda>n. A 0 - A n) \<subseteq> sets M"
       using A by auto
     show "incseq (\<lambda>n. A 0 - A n)"
-      using `decseq A` by (auto simp add: incseq_def decseq_def)
+      using \<open>decseq A\<close> by (auto simp add: incseq_def decseq_def)
   qed
   also have "\<dots> = emeasure M (A 0) - emeasure M (\<Inter>i. A i)"
     using A finite * by (simp, subst emeasure_Diff) auto
@@ -616,7 +616,7 @@ lemma emeasure_lfp'[consumes 1, case_names cont measurable]:
 proof -
   have "emeasure M {x\<in>space M. lfp F x} = emeasure M (\<Union>i. {x\<in>space M. (F ^^ i) (\<lambda>x. False) x})"
     using sup_continuous_lfp[OF cont] by (auto simp add: bot_fun_def intro!: arg_cong2[where f=emeasure])
-  moreover { fix i from `P M` have "{x\<in>space M. (F ^^ i) (\<lambda>x. False) x} \<in> sets M"
+  moreover { fix i from \<open>P M\<close> have "{x\<in>space M. (F ^^ i) (\<lambda>x. False) x} \<in> sets M"
     by (induct i arbitrary: M) (auto simp add: pred_def[symmetric] intro: *) }
   moreover have "incseq (\<lambda>i. {x\<in>space M. (F ^^ i) (\<lambda>x. False) x})"
   proof (rule incseq_SucI)
@@ -694,7 +694,7 @@ lemma emeasure_insert:
   assumes sets: "{x} \<in> sets M" "A \<in> sets M" and "x \<notin> A"
   shows "emeasure M (insert x A) = emeasure M {x} + emeasure M A"
 proof -
-  have "{x} \<inter> A = {}" using `x \<notin> A` by auto
+  have "{x} \<inter> A = {}" using \<open>x \<notin> A\<close> by auto
   from plus_emeasure[OF sets this] show ?thesis by simp
 qed
 
@@ -717,7 +717,7 @@ proof -
   have "(\<Sum>i\<in>S. emeasure M (A \<inter> (B i))) = emeasure M (\<Union>i\<in>S. A \<inter> (B i))"
   proof (rule setsum_emeasure)
     show "disjoint_family_on (\<lambda>i. A \<inter> B i) S"
-      using `disjoint_family_on B S`
+      using \<open>disjoint_family_on B S\<close>
       unfolding disjoint_family_on_def by auto
   qed (insert assms, auto)
   also have "(\<Union>i\<in>S. A \<inter> (B i)) = A"
@@ -747,11 +747,11 @@ proof (rule measure_eqI)
   fix X assume "X \<in> sets M"
   then have X: "X \<subseteq> A" by auto
   then have "emeasure M X = (\<Sum>a\<in>X. emeasure M {a})"
-    using `finite A` by (subst emeasure_eq_setsum_singleton) (auto dest: finite_subset)
+    using \<open>finite A\<close> by (subst emeasure_eq_setsum_singleton) (auto dest: finite_subset)
   also have "\<dots> = (\<Sum>a\<in>X. emeasure N {a})"
     using X eq by (auto intro!: setsum.cong)
   also have "\<dots> = emeasure N X"
-    using X `finite A` by (subst emeasure_eq_setsum_singleton) (auto dest: finite_subset)
+    using X \<open>finite A\<close> by (subst emeasure_eq_setsum_singleton) (auto dest: finite_subset)
   finally show "emeasure M X = emeasure N X" .
 qed simp
 
@@ -767,18 +767,18 @@ proof -
   let ?\<mu>  = "emeasure M" and ?\<nu> = "emeasure N"
   interpret S: sigma_algebra \<Omega> "sigma_sets \<Omega> E" by (rule sigma_algebra_sigma_sets) fact
   have "space M = \<Omega>"
-    using sets.top[of M] sets.space_closed[of M] S.top S.space_closed `sets M = sigma_sets \<Omega> E`
+    using sets.top[of M] sets.space_closed[of M] S.top S.space_closed \<open>sets M = sigma_sets \<Omega> E\<close>
     by blast
 
   { fix F D assume "F \<in> E" and "?\<mu> F \<noteq> \<infinity>"
     then have [intro]: "F \<in> sigma_sets \<Omega> E" by auto
-    have "?\<nu> F \<noteq> \<infinity>" using `?\<mu> F \<noteq> \<infinity>` `F \<in> E` eq by simp
+    have "?\<nu> F \<noteq> \<infinity>" using \<open>?\<mu> F \<noteq> \<infinity>\<close> \<open>F \<in> E\<close> eq by simp
     assume "D \<in> sets M"
-    with `Int_stable E` `E \<subseteq> Pow \<Omega>` have "emeasure M (F \<inter> D) = emeasure N (F \<inter> D)"
+    with \<open>Int_stable E\<close> \<open>E \<subseteq> Pow \<Omega>\<close> have "emeasure M (F \<inter> D) = emeasure N (F \<inter> D)"
       unfolding M
     proof (induct rule: sigma_sets_induct_disjoint)
       case (basic A)
-      then have "F \<inter> A \<in> E" using `Int_stable E` `F \<in> E` by (auto simp: Int_stable_def)
+      then have "F \<inter> A \<in> E" using \<open>Int_stable E\<close> \<open>F \<in> E\<close> by (auto simp: Int_stable_def)
       then show ?case using eq by auto
     next
       case empty then show ?case by simp
@@ -786,19 +786,19 @@ proof -
       case (compl A)
       then have **: "F \<inter> (\<Omega> - A) = F - (F \<inter> A)"
         and [intro]: "F \<inter> A \<in> sigma_sets \<Omega> E"
-        using `F \<in> E` S.sets_into_space by (auto simp: M)
+        using \<open>F \<in> E\<close> S.sets_into_space by (auto simp: M)
       have "?\<nu> (F \<inter> A) \<le> ?\<nu> F" by (auto intro!: emeasure_mono simp: M N)
-      then have "?\<nu> (F \<inter> A) \<noteq> \<infinity>" using `?\<nu> F \<noteq> \<infinity>` by auto
+      then have "?\<nu> (F \<inter> A) \<noteq> \<infinity>" using \<open>?\<nu> F \<noteq> \<infinity>\<close> by auto
       have "?\<mu> (F \<inter> A) \<le> ?\<mu> F" by (auto intro!: emeasure_mono simp: M N)
-      then have "?\<mu> (F \<inter> A) \<noteq> \<infinity>" using `?\<mu> F \<noteq> \<infinity>` by auto
+      then have "?\<mu> (F \<inter> A) \<noteq> \<infinity>" using \<open>?\<mu> F \<noteq> \<infinity>\<close> by auto
       then have "?\<mu> (F \<inter> (\<Omega> - A)) = ?\<mu> F - ?\<mu> (F \<inter> A)" unfolding **
-        using `F \<inter> A \<in> sigma_sets \<Omega> E` by (auto intro!: emeasure_Diff simp: M N)
-      also have "\<dots> = ?\<nu> F - ?\<nu> (F \<inter> A)" using eq `F \<in> E` compl by simp
+        using \<open>F \<inter> A \<in> sigma_sets \<Omega> E\<close> by (auto intro!: emeasure_Diff simp: M N)
+      also have "\<dots> = ?\<nu> F - ?\<nu> (F \<inter> A)" using eq \<open>F \<in> E\<close> compl by simp
       also have "\<dots> = ?\<nu> (F \<inter> (\<Omega> - A))" unfolding **
-        using `F \<inter> A \<in> sigma_sets \<Omega> E` `?\<nu> (F \<inter> A) \<noteq> \<infinity>`
+        using \<open>F \<inter> A \<in> sigma_sets \<Omega> E\<close> \<open>?\<nu> (F \<inter> A) \<noteq> \<infinity>\<close>
         by (auto intro!: emeasure_Diff[symmetric] simp: M N)
       finally show ?case
-        using `space M = \<Omega>` by auto
+        using \<open>space M = \<Omega>\<close> by auto
     next
       case (union A)
       then have "?\<mu> (\<Union>x. F \<inter> A x) = ?\<nu> (\<Union>x. F \<inter> A x)"
@@ -815,10 +815,10 @@ proof -
       using A(1) by (auto simp: subset_eq M)
     fix F assume "F \<in> sets M"
     let ?D = "disjointed (\<lambda>i. F \<inter> A i)"
-    from `space M = \<Omega>` have F_eq: "F = (\<Union>i. ?D i)"
-      using `F \<in> sets M`[THEN sets.sets_into_space] A(2)[symmetric] by (auto simp: UN_disjointed_eq)
+    from \<open>space M = \<Omega>\<close> have F_eq: "F = (\<Union>i. ?D i)"
+      using \<open>F \<in> sets M\<close>[THEN sets.sets_into_space] A(2)[symmetric] by (auto simp: UN_disjointed_eq)
     have [simp, intro]: "\<And>i. ?D i \<in> sets M"
-      using sets.range_disjointed_sets[of "\<lambda>i. F \<inter> A i" M] `F \<in> sets M`
+      using sets.range_disjointed_sets[of "\<lambda>i. F \<inter> A i" M] \<open>F \<in> sets M\<close>
       by (auto simp: subset_eq)
     have "disjoint_family ?D"
       by (auto simp: disjoint_family_disjointed)
@@ -832,7 +832,7 @@ proof -
         using *[of "A i" "?D i", OF _ A(3)] A(1) by auto
     qed
     ultimately show "emeasure M F = emeasure N F"
-      by (simp add: image_subset_iff `sets M = sets N`[symmetric] F_eq[symmetric] suminf_emeasure)
+      by (simp add: image_subset_iff \<open>sets M = sets N\<close>[symmetric] F_eq[symmetric] suminf_emeasure)
   qed
 qed
 
@@ -845,7 +845,7 @@ proof (intro measure_eqI emeasure_measure_of_sigma)
     by (simp add: emeasure_countably_additive)
 qed simp_all
 
-subsection {* @{text \<mu>}-null sets *}
+subsection \<open>\<open>\<mu>\<close>-null sets\<close>
 
 definition null_sets :: "'a measure \<Rightarrow> 'a set set" where
   "null_sets M = {N\<in>sets M. emeasure M N = 0}"
@@ -901,10 +901,10 @@ next
     show "(\<Union>i\<in>I. N i) \<in> sets M"
       using assms by (intro sets.countable_UN') auto
     have "emeasure M (\<Union>i\<in>I. N i) \<le> (\<Sum>n. emeasure M (N (from_nat_into I n)))"
-      unfolding UN_from_nat_into[OF `countable I` `I \<noteq> {}`]
-      using assms `I \<noteq> {}` by (intro emeasure_subadditive_countably) (auto intro: from_nat_into)
+      unfolding UN_from_nat_into[OF \<open>countable I\<close> \<open>I \<noteq> {}\<close>]
+      using assms \<open>I \<noteq> {}\<close> by (intro emeasure_subadditive_countably) (auto intro: from_nat_into)
     also have "(\<lambda>n. emeasure M (N (from_nat_into I n))) = (\<lambda>_. 0)"
-      using assms `I \<noteq> {}` by (auto intro: from_nat_into)
+      using assms \<open>I \<noteq> {}\<close> by (auto intro: from_nat_into)
     finally show "emeasure M (\<Union>i\<in>I. N i) = 0"
       by (intro antisym emeasure_nonneg) simp
   qed
@@ -953,7 +953,7 @@ proof -
     by (subst plus_emeasure[symmetric]) auto
 qed
 
-subsection {* The almost everywhere filter (i.e.\ quantifier) *}
+subsection \<open>The almost everywhere filter (i.e.\ quantifier)\<close>
 
 definition ae_filter :: "'a measure \<Rightarrow> 'a filter" where
   "ae_filter M = (INF N:null_sets M. principal (space M - N))"
@@ -983,7 +983,7 @@ proof
   have "0 \<le> emeasure M ?P" by auto
   moreover have "emeasure M ?P \<le> emeasure M N"
     using assms N(1,2) by (auto intro: emeasure_mono)
-  ultimately have "emeasure M ?P = 0" unfolding `emeasure M N = 0` by auto
+  ultimately have "emeasure M ?P = 0" unfolding \<open>emeasure M N = 0\<close> by auto
   then show "?P \<in> null_sets M" using assms by auto
 next
   assume "?P \<in> null_sets M" with assms show "AE x in M. P x" by (auto intro: AE_I')
@@ -1138,7 +1138,7 @@ lemma AE_finite_all:
 lemma AE_finite_allI:
   assumes "finite S"
   shows "(\<And>s. s \<in> S \<Longrightarrow> AE x in M. Q s x) \<Longrightarrow> AE x in M. \<forall>s\<in>S. Q s x"
-  using AE_finite_all[OF `finite S`] by auto
+  using AE_finite_all[OF \<open>finite S\<close>] by auto
 
 lemma emeasure_mono_AE:
   assumes imp: "AE x in M. x \<in> A \<longrightarrow> x \<in> B"
@@ -1187,7 +1187,7 @@ proof -
   finally show ?thesis .
 qed
 
-subsection {* @{text \<sigma>}-finite Measures *}
+subsection \<open>\<open>\<sigma>\<close>-finite Measures\<close>
 
 locale sigma_finite_measure =
   fixes M :: "'a measure"
@@ -1204,19 +1204,19 @@ proof -
     using sigma_finite_countable by metis
   show thesis
   proof cases
-    assume "A = {}" with `(\<Union>A) = space M` show thesis
+    assume "A = {}" with \<open>(\<Union>A) = space M\<close> show thesis
       by (intro that[of "\<lambda>_. {}"]) auto
   next
     assume "A \<noteq> {}"
     show thesis
     proof
       show "range (from_nat_into A) \<subseteq> sets M"
-        using `A \<noteq> {}` A by auto
+        using \<open>A \<noteq> {}\<close> A by auto
       have "(\<Union>i. from_nat_into A i) = \<Union>A"
-        using range_from_nat_into[OF `A \<noteq> {}` `countable A`] by auto
+        using range_from_nat_into[OF \<open>A \<noteq> {}\<close> \<open>countable A\<close>] by auto
       with A show "(\<Union>i. from_nat_into A i) = space M"
         by auto
-    qed (intro A from_nat_into `A \<noteq> {}`)
+    qed (intro A from_nat_into \<open>A \<noteq> {}\<close>)
   qed
 qed
 
@@ -1275,7 +1275,7 @@ proof -
   qed
 qed
 
-subsection {* Measure space induced by distribution of @{const measurable}-functions *}
+subsection \<open>Measure space induced by distribution of @{const measurable}-functions\<close>
 
 definition distr :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b measure" where
   "distr M N f = measure_of (space N) (sets N) (\<lambda>A. emeasure M (f -` A \<inter> space M))"
@@ -1312,7 +1312,7 @@ proof (rule emeasure_measure_of_sigma)
     moreover have "(\<Union>i. f -`  A i \<inter> space M) \<in> sets M"
       using * by blast
     moreover have **: "disjoint_family (\<lambda>i. f -` A i \<inter> space M)"
-      using `disjoint_family A` by (auto simp: disjoint_family_on_def)
+      using \<open>disjoint_family A\<close> by (auto simp: disjoint_family_on_def)
     ultimately show "(\<Sum>i. ?\<mu> (A i)) = ?\<mu> (\<Union>i. A i)"
       using suminf_emeasure[OF _ **] A f
       by (auto simp: comp_def vimage_UN)
@@ -1334,21 +1334,21 @@ lemma emeasure_lfp2[consumes 1, case_names cont f measurable]:
   shows "emeasure M' {x\<in>space M'. lfp F (f x)} = (SUP i. emeasure M' {x\<in>space M'. (F ^^ i) (\<lambda>x. False) (f x)})"
 proof (subst (1 2) emeasure_Collect_distr[symmetric, where X=f])
   show "f \<in> measurable M' M"  "f \<in> measurable M' M"
-    using f[OF `P M`] by auto
+    using f[OF \<open>P M\<close>] by auto
   { fix i show "Measurable.pred M ((F ^^ i) (\<lambda>x. False))"
-    using `P M` by (induction i arbitrary: M) (auto intro!: *) }
+    using \<open>P M\<close> by (induction i arbitrary: M) (auto intro!: *) }
   show "Measurable.pred M (lfp F)"
-    using `P M` cont * by (rule measurable_lfp_coinduct[of P])
+    using \<open>P M\<close> cont * by (rule measurable_lfp_coinduct[of P])
 
   have "emeasure (distr M' M f) {x \<in> space (distr M' M f). lfp F x} =
     (SUP i. emeasure (distr M' M f) {x \<in> space (distr M' M f). (F ^^ i) (\<lambda>x. False) x})"
-    using `P M`
+    using \<open>P M\<close>
   proof (coinduction arbitrary: M rule: emeasure_lfp')
     case (measurable A N) then have "\<And>N. P N \<Longrightarrow> Measurable.pred (distr M' N f) A"
       by metis
     then have "\<And>N. P N \<Longrightarrow> Measurable.pred N A"
       by simp
-    with `P N`[THEN *] show ?case
+    with \<open>P N\<close>[THEN *] show ?case
       by auto
   qed fact
   then show "emeasure (distr M' M f) {x \<in> space M. lfp F x} =
@@ -1405,7 +1405,7 @@ lemma distr_distr:
   by (auto simp add: emeasure_distr measurable_space
            intro!: arg_cong[where f="emeasure M"] measure_eqI)
 
-subsection {* Real measure values *}
+subsection \<open>Real measure values\<close>
 
 lemma measure_nonneg: "0 \<le> measure M A"
   using emeasure_nonneg[of M A] unfolding measure_def by (auto intro: real_of_ereal_pos)
@@ -1449,7 +1449,7 @@ proof -
     using measurable by (auto intro!: emeasure_mono)
   hence "measure M ((A - B) \<union> B) = measure M (A - B) + measure M B"
     using measurable finite by (rule_tac measure_Union) auto
-  thus ?thesis using `B \<subseteq> A` by (auto simp: Un_absorb2)
+  thus ?thesis using \<open>B \<subseteq> A\<close> by (auto simp: Un_absorb2)
 qed
 
 lemma measure_UNION:
@@ -1548,7 +1548,7 @@ proof -
     by (intro lim_real_of_ereal) simp
 qed
 
-subsection {* Measure spaces with @{term "emeasure M (space M) < \<infinity>"} *}
+subsection \<open>Measure spaces with @{term "emeasure M (space M) < \<infinity>"}\<close>
 
 locale finite_measure = sigma_finite_measure M for M +
   assumes finite_emeasure_space: "emeasure M (space M) \<noteq> \<infinity>"
@@ -1606,7 +1606,7 @@ lemma (in finite_measure) finite_measure_subadditive_countably:
   assumes A: "range A \<subseteq> sets M" and sum: "summable (\<lambda>i. measure M (A i))"
   shows "measure M (\<Union>i. A i) \<le> (\<Sum>i. measure M (A i))"
 proof -
-  from `summable (\<lambda>i. measure M (A i))`
+  from \<open>summable (\<lambda>i. measure M (A i))\<close>
   have "(\<lambda>i. ereal (measure M (A i))) sums ereal (\<Sum>i. measure M (A i))"
     by (simp add: sums_ereal) (rule summable_sums)
   from sums_unique[OF this, symmetric]
@@ -1729,7 +1729,7 @@ lemma (in finite_measure) measure_real_sum_image_fn:
   shows "measure M e = (\<Sum> x \<in> s. measure M (e \<inter> f x))"
 proof -
   have e: "e = (\<Union>i \<in> s. e \<inter> f i)"
-    using `e \<in> sets M` sets.sets_into_space upper by blast
+    using \<open>e \<in> sets M\<close> sets.sets_into_space upper by blast
   hence "measure M e = measure M (\<Union>i \<in> s. e \<inter> f i)" by simp
   also have "\<dots> = (\<Sum> x \<in> s. measure M (e \<inter> f x))"
   proof (rule finite_measure_finite_Union)
@@ -1774,7 +1774,7 @@ next
     using bound[of x] sets_eq_imp_space_eq[OF sets] by (simp add: iter)
 qed (auto simp add: iter le_fun_def INF_apply[abs_def] intro!: meas cont)
 
-subsection {* Counting space *}
+subsection \<open>Counting space\<close>
 
 lemma strict_monoI_Suc:
   assumes ord [simp]: "(\<And>n. f n < f (Suc n))" shows "strict_mono f"
@@ -1789,7 +1789,7 @@ lemma emeasure_count_space:
     (is "_ = ?M X")
   unfolding count_space_def
 proof (rule emeasure_measure_of_sigma)
-  show "X \<in> Pow A" using `X \<subseteq> A` by auto
+  show "X \<in> Pow A" using \<open>X \<subseteq> A\<close> by auto
   show "sigma_algebra A (Pow A)" by (rule sigma_algebra_Pow)
   show positive: "positive (Pow A) ?M"
     by (auto simp: positive_def)
@@ -1806,7 +1806,7 @@ proof (rule emeasure_measure_of_sigma)
     proof cases
       assume "\<exists>i. \<forall>j\<ge>i. F i = F j"
       then guess i .. note i = this
-      { fix j from i `incseq F` have "F j \<subseteq> F i"
+      { fix j from i \<open>incseq F\<close> have "F j \<subseteq> F i"
           by (cases "i \<le> j") (auto simp: incseq_def) }
       then have eq: "(\<Union>i. F i) = F i"
         by auto
@@ -1815,11 +1815,11 @@ proof (rule emeasure_measure_of_sigma)
     next
       assume "\<not> (\<exists>i. \<forall>j\<ge>i. F i = F j)"
       then obtain f where f: "\<And>i. i \<le> f i" "\<And>i. F i \<noteq> F (f i)" by metis
-      then have "\<And>i. F i \<subseteq> F (f i)" using `incseq F` by (auto simp: incseq_def)
+      then have "\<And>i. F i \<subseteq> F (f i)" using \<open>incseq F\<close> by (auto simp: incseq_def)
       with f have *: "\<And>i. F i \<subset> F (f i)" by auto
 
       have "incseq (\<lambda>i. ?M (F i))"
-        using `incseq F` unfolding incseq_def by (auto simp: card_mono dest: finite_subset)
+        using \<open>incseq F\<close> unfolding incseq_def by (auto simp: card_mono dest: finite_subset)
       then have "(\<lambda>i. ?M (F i)) ----> (SUP n. ?M (F n))"
         by (rule LIMSEQ_SUP)
 
@@ -1830,9 +1830,9 @@ proof (rule emeasure_measure_of_sigma)
           case (Suc n)
           then guess k .. note k = this
           moreover have "finite (F k) \<Longrightarrow> finite (F (f k)) \<Longrightarrow> card (F k) < card (F (f k))"
-            using `F k \<subset> F (f k)` by (simp add: psubset_card_mono)
+            using \<open>F k \<subset> F (f k)\<close> by (simp add: psubset_card_mono)
           moreover have "finite (F (f k)) \<Longrightarrow> finite (F k)"
-            using `k \<le> f k` `incseq F` by (auto simp: incseq_def dest: finite_subset)
+            using \<open>k \<le> f k\<close> \<open>incseq F\<close> by (auto simp: incseq_def dest: finite_subset)
           ultimately show ?case
             by (auto intro!: exI[of _ "f k"])
         qed auto
@@ -1926,7 +1926,7 @@ proof -
   show "sigma_finite_measure (count_space A)" ..
 qed
 
-subsection {* Measure restricted to space *}
+subsection \<open>Measure restricted to space\<close>
 
 lemma emeasure_restrict_space:
   assumes "\<Omega> \<inter> space M \<in> sets M" "A \<subseteq> \<Omega>"
@@ -1936,7 +1936,7 @@ proof cases
   show ?thesis
   proof (rule emeasure_measure_of[OF restrict_space_def])
     show "op \<inter> \<Omega> ` sets M \<subseteq> Pow (\<Omega> \<inter> space M)" "A \<in> sets (restrict_space M \<Omega>)"
-      using `A \<subseteq> \<Omega>` `A \<in> sets M` sets.space_closed by (auto simp: sets_restrict_space)
+      using \<open>A \<subseteq> \<Omega>\<close> \<open>A \<in> sets M\<close> sets.space_closed by (auto simp: sets_restrict_space)
     show "positive (sets (restrict_space M \<Omega>)) (emeasure M)"
       by (auto simp: positive_def emeasure_nonneg)
     show "countably_additive (sets (restrict_space M \<Omega>)) (emeasure M)"
@@ -2085,7 +2085,7 @@ proof (rule measure_eqI)
   finally show "emeasure M X = emeasure N X" .
 qed fact
 
-subsection {* Null measure *}
+subsection \<open>Null measure\<close>
 
 definition "null_measure M = sigma (space M) (sets M)"
 

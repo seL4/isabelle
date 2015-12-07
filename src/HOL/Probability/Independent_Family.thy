@@ -3,7 +3,7 @@
     Author:     Sudeep Kanav, TU München
 *)
 
-section {* Independent families of events, event sets, and random variables *}
+section \<open>Independent families of events, event sets, and random variables\<close>
 
 theory Independent_Family
   imports Probability_Measure Infinite_Product_Measure
@@ -101,7 +101,7 @@ proof (rule indep_setsI)
   fix F J assume "J \<noteq> {}" "J \<subseteq> UNIV"
     and F: "\<forall>j\<in>J. F j \<in> (case j of True \<Rightarrow> A | False \<Rightarrow> B)"
   have "J \<in> Pow UNIV" by auto
-  with F `J \<noteq> {}` indep[of "F True" "F False"]
+  with F \<open>J \<noteq> {}\<close> indep[of "F True" "F False"]
   show "prob (\<Inter>j\<in>J. F j) = (\<Prod>j\<in>J. prob (F j))"
     unfolding UNIV_bool Pow_insert by (auto simp: ac_simps)
 qed (auto split: bool.split simp: ev)
@@ -155,19 +155,19 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
             next
               assume "J \<noteq> {j}"
               have "prob (\<Inter>i\<in>J. A i) = prob ((\<Inter>i\<in>J-{j}. A i) \<inter> X)"
-                using `j \<in> J` `A j = X` by (auto intro!: arg_cong[where f=prob] split: split_if_asm)
+                using \<open>j \<in> J\<close> \<open>A j = X\<close> by (auto intro!: arg_cong[where f=prob] split: split_if_asm)
               also have "\<dots> = prob X * (\<Prod>i\<in>J-{j}. prob (A i))"
               proof (rule indep)
                 show "J - {j} \<noteq> {}" "J - {j} \<subseteq> K" "finite (J - {j})" "j \<notin> J - {j}"
-                  using J `J \<noteq> {j}` `j \<in> J` by auto
+                  using J \<open>J \<noteq> {j}\<close> \<open>j \<in> J\<close> by auto
                 show "\<forall>i\<in>J - {j}. A i \<in> G i"
                   using J by auto
               qed
               also have "\<dots> = prob (A j) * (\<Prod>i\<in>J-{j}. prob (A i))"
-                using `A j = X` by simp
+                using \<open>A j = X\<close> by simp
               also have "\<dots> = (\<Prod>i\<in>J. prob (A i))"
-                unfolding setprod.insert_remove[OF `finite J`, symmetric, of "\<lambda>i. prob  (A i)"]
-                using `j \<in> J` by (simp add: insert_absorb)
+                unfolding setprod.insert_remove[OF \<open>finite J\<close>, symmetric, of "\<lambda>i. prob  (A i)"]
+                using \<open>j \<in> J\<close> by (simp add: insert_absorb)
               finally show ?thesis .
             qed
           next
@@ -191,23 +191,23 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
             using G by auto
           have "prob ((\<Inter>j\<in>J. A j) \<inter> (space M - X)) =
               prob ((\<Inter>j\<in>J. A j) - (\<Inter>i\<in>insert j J. (A(j := X)) i))"
-            using A_sets sets.sets_into_space[of _ M] X `J \<noteq> {}`
+            using A_sets sets.sets_into_space[of _ M] X \<open>J \<noteq> {}\<close>
             by (auto intro!: arg_cong[where f=prob] split: split_if_asm)
           also have "\<dots> = prob (\<Inter>j\<in>J. A j) - prob (\<Inter>i\<in>insert j J. (A(j := X)) i)"
-            using J `J \<noteq> {}` `j \<notin> J` A_sets X sets.sets_into_space
+            using J \<open>J \<noteq> {}\<close> \<open>j \<notin> J\<close> A_sets X sets.sets_into_space
             by (auto intro!: finite_measure_Diff sets.finite_INT split: split_if_asm)
           finally have "prob ((\<Inter>j\<in>J. A j) \<inter> (space M - X)) =
               prob (\<Inter>j\<in>J. A j) - prob (\<Inter>i\<in>insert j J. (A(j := X)) i)" .
           moreover {
             have "prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j))"
-              using J A `finite J` by (intro indep_setsD[OF G(1)]) auto
+              using J A \<open>finite J\<close> by (intro indep_setsD[OF G(1)]) auto
             then have "prob (\<Inter>j\<in>J. A j) = prob (space M) * (\<Prod>i\<in>J. prob (A i))"
               using prob_space by simp }
           moreover {
             have "prob (\<Inter>i\<in>insert j J. (A(j := X)) i) = (\<Prod>i\<in>insert j J. prob ((A(j := X)) i))"
-              using J A `j \<in> K` by (intro indep_setsD[OF G']) auto
+              using J A \<open>j \<in> K\<close> by (intro indep_setsD[OF G']) auto
             then have "prob (\<Inter>i\<in>insert j J. (A(j := X)) i) = prob X * (\<Prod>i\<in>J. prob (A i))"
-              using `finite J` `j \<notin> J` by (auto intro!: setprod.cong) }
+              using \<open>finite J\<close> \<open>j \<notin> J\<close> by (auto intro!: setprod.cong) }
           ultimately have "prob ((\<Inter>j\<in>J. A j) \<inter> (space M - X)) = (prob (space M) - prob X) * (\<Prod>i\<in>J. prob (A i))"
             by (simp add: field_simps)
           also have "\<dots> = prob (space M - X) * (\<Prod>i\<in>J. prob (A i))"
@@ -223,19 +223,19 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
           then have A_sets: "\<And>i. i\<in>J \<Longrightarrow> A i \<in> events"
             using G by auto
           have "prob ((\<Inter>j\<in>J. A j) \<inter> (\<Union>k. F k)) = prob (\<Union>k. (\<Inter>i\<in>insert j J. (A(j := F k)) i))"
-            using `J \<noteq> {}` `j \<notin> J` `j \<in> K` by (auto intro!: arg_cong[where f=prob] split: split_if_asm)
+            using \<open>J \<noteq> {}\<close> \<open>j \<notin> J\<close> \<open>j \<in> K\<close> by (auto intro!: arg_cong[where f=prob] split: split_if_asm)
           moreover have "(\<lambda>k. prob (\<Inter>i\<in>insert j J. (A(j := F k)) i)) sums prob (\<Union>k. (\<Inter>i\<in>insert j J. (A(j := F k)) i))"
           proof (rule finite_measure_UNION)
             show "disjoint_family (\<lambda>k. \<Inter>i\<in>insert j J. (A(j := F k)) i)"
               using disj by (rule disjoint_family_on_bisimulation) auto
             show "range (\<lambda>k. \<Inter>i\<in>insert j J. (A(j := F k)) i) \<subseteq> events"
-              using A_sets F `finite J` `J \<noteq> {}` `j \<notin> J` by (auto intro!: sets.Int)
+              using A_sets F \<open>finite J\<close> \<open>J \<noteq> {}\<close> \<open>j \<notin> J\<close> by (auto intro!: sets.Int)
           qed
           moreover { fix k
-            from J A `j \<in> K` have "prob (\<Inter>i\<in>insert j J. (A(j := F k)) i) = prob (F k) * (\<Prod>i\<in>J. prob (A i))"
+            from J A \<open>j \<in> K\<close> have "prob (\<Inter>i\<in>insert j J. (A(j := F k)) i) = prob (F k) * (\<Prod>i\<in>J. prob (A i))"
               by (subst indep_setsD[OF F(2)]) (auto intro!: setprod.cong split: split_if_asm)
             also have "\<dots> = prob (F k) * prob (\<Inter>i\<in>J. A i)"
-              using J A `j \<in> K` by (subst indep_setsD[OF G(1)]) auto
+              using J A \<open>j \<in> K\<close> by (subst indep_setsD[OF G(1)]) auto
             finally have "prob (\<Inter>i\<in>insert j J. (A(j := F k)) i) = prob (F k) * prob (\<Inter>i\<in>J. A i)" . }
           ultimately have "(\<lambda>k. prob (F k) * prob (\<Inter>i\<in>J. A i)) sums (prob ((\<Inter>j\<in>J. A j) \<inter> (\<Union>k. F k)))"
             by simp
@@ -243,7 +243,7 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
           have "(\<lambda>k. prob (F k) * prob (\<Inter>i\<in>J. A i)) sums (prob (\<Union>k. F k) * prob (\<Inter>i\<in>J. A i))"
             using disj F(1) by (intro finite_measure_UNION sums_mult2) auto
           then have "(\<lambda>k. prob (F k) * prob (\<Inter>i\<in>J. A i)) sums (prob (\<Union>k. F k) * (\<Prod>i\<in>J. prob (A i)))"
-            using J A `j \<in> K` by (subst indep_setsD[OF G(1), symmetric]) auto
+            using J A \<open>j \<in> K\<close> by (subst indep_setsD[OF G(1), symmetric]) auto
           ultimately
           show "prob ((\<Inter>j\<in>J. A j) \<inter> (\<Union>k. F k)) = prob (\<Union>k. F k) * (\<Prod>j\<in>J. prob (A j))"
             by (auto dest!: sums_unique)
@@ -252,10 +252,10 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
       then have mono: "dynkin (space M) (G j) \<subseteq> {E \<in> events. indep_sets (G(j := {E})) K}"
       proof (rule dynkin_system.dynkin_subset, safe)
         fix X assume "X \<in> G j"
-        then show "X \<in> events" using G `j \<in> K` by auto
-        from `indep_sets G K`
+        then show "X \<in> events" using G \<open>j \<in> K\<close> by auto
+        from \<open>indep_sets G K\<close>
         show "indep_sets (G(j := {X})) K"
-          by (rule indep_sets_mono_sets) (insert `X \<in> G j`, auto)
+          by (rule indep_sets_mono_sets) (insert \<open>X \<in> G j\<close>, auto)
       qed
       have "indep_sets (G(j:=?D)) K"
       proof (rule indep_setsI)
@@ -279,9 +279,9 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
       then have "indep_sets (G(j := dynkin (space M) (G j))) K"
         by (rule indep_sets_mono_sets) (insert mono, auto)
       then show ?case
-        by (rule indep_sets_mono_sets) (insert `j \<in> K` `j \<notin> J`, auto simp: G_def)
-    qed (insert `indep_sets F K`, simp) }
-  from this[OF `indep_sets F J` `finite J` subset_refl]
+        by (rule indep_sets_mono_sets) (insert \<open>j \<in> K\<close> \<open>j \<notin> J\<close>, auto simp: G_def)
+    qed (insert \<open>indep_sets F K\<close>, simp) }
+  from this[OF \<open>indep_sets F J\<close> \<open>finite J\<close> subset_refl]
   show "indep_sets ?F J"
     by (rule indep_sets_mono_sets) auto
 qed
@@ -375,7 +375,7 @@ proof -
   have "indep_sets (\<lambda>i. sigma_sets (space M) (case i of True \<Rightarrow> A | False \<Rightarrow> B)) UNIV"
   proof (rule indep_sets_sigma)
     show "indep_sets (case_bool A B) UNIV"
-      by (rule `indep_set A B`[unfolded indep_set_def])
+      by (rule \<open>indep_set A B\<close>[unfolded indep_set_def])
     fix i show "Int_stable (case i of True \<Rightarrow> A | False \<Rightarrow> B)"
       using A B by (cases i) auto
   qed
@@ -398,7 +398,7 @@ proof -
     then have "{{x \<in> space M. P i (X i x)}} = {X i -` {x\<in>space (N i). P i x} \<inter> space M}"
       using indep by (auto simp: indep_vars_def dest: measurable_space)
     also have "\<dots> \<subseteq> {X i -` A \<inter> space M |A. A \<in> sets (N i)}"
-      using P[OF `i \<in> I`] by blast
+      using P[OF \<open>i \<in> I\<close>] by blast
     finally show "{{x \<in> space M. P i (X i x)}} \<subseteq> {X i -` A \<inter> space M |A. A \<in> sets (N i)}" .
   qed
 qed                              
@@ -457,10 +457,10 @@ proof -
         have "k = j"
         proof (rule ccontr)
           assume "k \<noteq> j"
-          with disjoint `K \<subseteq> J` `k \<in> K` `j \<in> K` have "I k \<inter> I j = {}"
+          with disjoint \<open>K \<subseteq> J\<close> \<open>k \<in> K\<close> \<open>j \<in> K\<close> have "I k \<inter> I j = {}"
             unfolding disjoint_family_on_def by auto
-          with L(2,3)[OF `j \<in> K`] L(2,3)[OF `k \<in> K`]
-          show False using `l \<in> L k` `l \<in> L j` by auto
+          with L(2,3)[OF \<open>j \<in> K\<close>] L(2,3)[OF \<open>k \<in> K\<close>]
+          show False using \<open>l \<in> L k\<close> \<open>l \<in> L j\<close> by auto
         qed }
       note L_inj = this
 
@@ -494,7 +494,7 @@ proof -
       let ?A = "\<lambda>k. (if k \<in> Ka \<inter> Kb then Ea k \<inter> Eb k else if k \<in> Kb then Eb k else if k \<in> Ka then Ea k else {})"
       have "a \<inter> b = INTER (Ka \<union> Kb) ?A"
         by (simp add: a b set_eq_iff) auto
-      with a b `j \<in> J` Int_stableD[OF Int_stable] show "a \<inter> b \<in> ?E j"
+      with a b \<open>j \<in> J\<close> Int_stableD[OF Int_stable] show "a \<inter> b \<in> ?E j"
         by (intro CollectI exI[of _ "Ka \<union> Kb"] exI[of _ ?A]) auto
     qed
   qed
@@ -536,10 +536,10 @@ next
         { interpret sigma_algebra "space M" "?UN j"
             by (rule sigma_algebra_sigma_sets) auto 
           have "\<And>A. (\<And>i. i \<in> J \<Longrightarrow> A i \<in> ?UN j) \<Longrightarrow> INTER J A \<in> ?UN j"
-            using `finite J` `J \<noteq> {}` by (rule finite_INT) blast }
+            using \<open>finite J\<close> \<open>J \<noteq> {}\<close> by (rule finite_INT) blast }
         note INT = this
 
-        from `J \<noteq> {}` J K E[rule_format, THEN sets.sets_into_space] j
+        from \<open>J \<noteq> {}\<close> J K E[rule_format, THEN sets.sets_into_space] j
         have "(\<lambda>\<omega>. \<lambda>i\<in>K j. X i \<omega>) -` prod_emb (K j) M' J (Pi\<^sub>E J E) \<inter> space M
           = (\<Inter>i\<in>J. X i -` E i \<inter> space M)"
           apply (subst prod_emb_PiE[OF _ ])
@@ -552,7 +552,7 @@ next
         also have "\<dots> \<in> ?UN j"
           apply (rule INT)
           apply (rule sigma_sets.Basic)
-          using `J \<subseteq> K j` E
+          using \<open>J \<subseteq> K j\<close> E
           apply auto
           done
         finally show ?thesis .
@@ -630,7 +630,7 @@ proof (simp add: sigma_algebra_iff2, safe)
     from this[of 0] have "X \<in> sigma_sets (space M) (UNION UNIV A)" by simp
     then have "X \<subseteq> space M"
       by induct (insert A.sets_into_space, auto)
-    with `x \<in> X` show "x \<in> space M" by auto }
+    with \<open>x \<in> X\<close> show "x \<in> space M" by auto }
   { fix F :: "nat \<Rightarrow> 'a set" and n assume "range F \<subseteq> ?A"
     then show "(UNION UNIV F) \<in> sigma_sets (space M) (UNION {n..} A)"
       by (intro sigma_sets.Union) auto }
@@ -661,11 +661,11 @@ proof -
       using sets.sets_into_space by auto
   next
     show "space M \<in> ?D"
-      using prob_space `X \<subseteq> space M` by (simp add: Int_absorb2)
+      using prob_space \<open>X \<subseteq> space M\<close> by (simp add: Int_absorb2)
   next
     fix A assume A: "A \<in> ?D"
     have "prob (X \<inter> (space M - A)) = prob (X - (X \<inter> A))"
-      using `X \<subseteq> space M` by (auto intro!: arg_cong[where f=prob])
+      using \<open>X \<subseteq> space M\<close> by (auto intro!: arg_cong[where f=prob])
     also have "\<dots> = prob X - prob (X \<inter> A)"
       using X_in A by (intro finite_measure_Diff) auto
     also have "\<dots> = prob X * prob (space M) - prob X * prob A"
@@ -674,7 +674,7 @@ proof -
       using X_in A sets.sets_into_space
       by (subst finite_measure_Diff) (auto simp: field_simps)
     finally show "space M - A \<in> ?D"
-      using A `X \<subseteq> space M` by auto
+      using A \<open>X \<subseteq> space M\<close> by auto
   next
     fix F :: "nat \<Rightarrow> 'a set" assume dis: "disjoint_family F" and "range F \<subseteq> ?D"
     then have F: "range F \<subseteq> events" "\<And>i. prob (X \<inter> F i) = prob X * prob (F i)"
@@ -726,7 +726,7 @@ proof -
   then have "(\<Union>n. sigma_sets (space M) (\<Union>m\<in>{..n}. A m)) \<subseteq> ?D" (is "?A \<subseteq> _")
     by auto
 
-  note `X \<in> tail_events A`
+  note \<open>X \<in> tail_events A\<close>
   also {
     have "\<And>n. sigma_sets (space M) (\<Union>i\<in>{n..}. A i) \<subseteq> sigma_sets (space M) ?A"
       by (intro sigma_sets_subseteq UN_mono) auto
@@ -757,7 +757,7 @@ proof -
     qed
   qed
   also have "dynkin (space M) ?A \<subseteq> ?D"
-    using `?A \<subseteq> ?D` by (auto intro!: D.dynkin_subset)
+    using \<open>?A \<subseteq> ?D\<close> by (auto intro!: D.dynkin_subset)
   finally show ?thesis by auto
 qed
 
@@ -838,8 +838,8 @@ next
     with indep have "prob (\<Inter>j\<in>I. ?A j) = (\<Prod>j\<in>I. prob (?A j))"
       by auto
     also have "\<dots> = (\<Prod>j\<in>J. prob (A j))"
-      unfolding if_distrib setprod.If_cases[OF `finite I`]
-      using prob_space `J \<subseteq> I` by (simp add: Int_absorb1 setprod.neutral_const)
+      unfolding if_distrib setprod.If_cases[OF \<open>finite I\<close>]
+      using prob_space \<open>J \<subseteq> I\<close> by (simp add: Int_absorb1 setprod.neutral_const)
     finally show "prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j))" ..
   qed
 qed
@@ -858,10 +858,10 @@ proof -
     unfolding measurable_def by simp
 
   { fix i assume "i\<in>I"
-    from closed[OF `i \<in> I`]
+    from closed[OF \<open>i \<in> I\<close>]
     have "sigma_sets (space M) {X i -` A \<inter> space M |A. A \<in> sets (M' i)}
       = sigma_sets (space M) {X i -` A \<inter> space M |A. A \<in> E i}"
-      unfolding sigma_sets_vimage_commute[OF X, OF `i \<in> I`, symmetric] M'[OF `i \<in> I`]
+      unfolding sigma_sets_vimage_commute[OF X, OF \<open>i \<in> I\<close>, symmetric] M'[OF \<open>i \<in> I\<close>]
       by (subst sigma_sets_sigma_sets_eq) auto }
   note sigma_sets_X = this
 
@@ -875,7 +875,7 @@ proof -
       then obtain B where "b = X i -` B \<inter> space M" "B \<in> E i" by auto
       moreover
       have "(X i -` A \<inter> space M) \<inter> (X i -` B \<inter> space M) = X i -` (A \<inter> B) \<inter> space M" by auto
-      moreover note Int_stable[OF `i \<in> I`]
+      moreover note Int_stable[OF \<open>i \<in> I\<close>]
       ultimately
       show "a \<inter> b \<in> {X i -` A \<inter> space M |A. A \<in> E i}"
         by (auto simp del: vimage_Int intro!: exI[of _ "A \<inter> B"] dest: Int_stableD)
@@ -884,12 +884,12 @@ proof -
 
   { fix i assume "i \<in> I"
     { fix A assume "A \<in> E i"
-      with M'[OF `i \<in> I`] have "A \<in> sets (M' i)" by auto
+      with M'[OF \<open>i \<in> I\<close>] have "A \<in> sets (M' i)" by auto
       moreover
-      from rv[OF `i\<in>I`] have "X i \<in> measurable M (M' i)" by auto
+      from rv[OF \<open>i\<in>I\<close>] have "X i \<in> measurable M (M' i)" by auto
       ultimately
       have "X i -` A \<inter> space M \<in> sets M" by (auto intro: measurable_sets) }
-    with X[OF `i\<in>I`] space[OF `i\<in>I`]
+    with X[OF \<open>i\<in>I\<close>] space[OF \<open>i\<in>I\<close>]
     have "{X i -` A \<inter> space M |A. A \<in> E i} \<subseteq> events"
       "space M \<in> {X i -` A \<inter> space M |A. A \<in> E i}"
       by (auto intro!: exI[of _ "space (M' i)"]) }
@@ -900,7 +900,7 @@ proof -
     (is "?L = ?R")
   proof safe
     fix A assume ?L and A: "A \<in> (\<Pi> i\<in>I. E i)"
-    from `?L`[THEN bspec, of "\<lambda>i. X i -` A i \<inter> space M"] A `I \<noteq> {}`
+    from \<open>?L\<close>[THEN bspec, of "\<lambda>i. X i -` A i \<inter> space M"] A \<open>I \<noteq> {}\<close>
     show "prob ((\<Inter>j\<in>I. X j -` A j) \<inter> space M) = (\<Prod>x\<in>I. prob (X x -` A x \<inter> space M))"
       by (auto simp add: Pi_iff)
   next
@@ -908,11 +908,11 @@ proof -
     from A have "\<forall>i\<in>I. \<exists>B. A i = X i -` B \<inter> space M \<and> B \<in> E i" by auto
     from bchoice[OF this] obtain B where B: "\<forall>i\<in>I. A i = X i -` B i \<inter> space M"
       "B \<in> (\<Pi> i\<in>I. E i)" by auto
-    from `?R`[THEN bspec, OF B(2)] B(1) `I \<noteq> {}`
+    from \<open>?R\<close>[THEN bspec, OF B(2)] B(1) \<open>I \<noteq> {}\<close>
     show "prob (INTER I A) = (\<Prod>j\<in>I. prob (A j))"
       by simp
   qed
-  then show ?thesis using `I \<noteq> {}`
+  then show ?thesis using \<open>I \<noteq> {}\<close>
     by (simp add: rv indep_vars_def indep_sets_X sigma_sets_X indep_sets_finite_X cong: indep_sets_cong)
 qed
 
@@ -922,21 +922,21 @@ lemma (in prob_space) indep_vars_compose:
   shows "indep_vars N (\<lambda>i. Y i \<circ> X i) I"
   unfolding indep_vars_def
 proof
-  from rv `indep_vars M' X I`
+  from rv \<open>indep_vars M' X I\<close>
   show "\<forall>i\<in>I. random_variable (N i) (Y i \<circ> X i)"
     by (auto simp: indep_vars_def)
 
   have "indep_sets (\<lambda>i. sigma_sets (space M) {X i -` A \<inter> space M |A. A \<in> sets (M' i)}) I"
-    using `indep_vars M' X I` by (simp add: indep_vars_def)
+    using \<open>indep_vars M' X I\<close> by (simp add: indep_vars_def)
   then show "indep_sets (\<lambda>i. sigma_sets (space M) {(Y i \<circ> X i) -` A \<inter> space M |A. A \<in> sets (N i)}) I"
   proof (rule indep_sets_mono_sets)
     fix i assume "i \<in> I"
-    with `indep_vars M' X I` have X: "X i \<in> space M \<rightarrow> space (M' i)"
+    with \<open>indep_vars M' X I\<close> have X: "X i \<in> space M \<rightarrow> space (M' i)"
       unfolding indep_vars_def measurable_def by auto
     { fix A assume "A \<in> sets (N i)"
       then have "\<exists>B. (Y i \<circ> X i) -` A \<inter> space M = X i -` B \<inter> space M \<and> B \<in> sets (M' i)"
         by (intro exI[of _ "Y i -` A \<inter> space (M' i)"])
-           (auto simp: vimage_comp intro!: measurable_sets rv `i \<in> I` funcset_mem[OF X]) }
+           (auto simp: vimage_comp intro!: measurable_sets rv \<open>i \<in> I\<close> funcset_mem[OF X]) }
     then show "sigma_sets (space M) {(Y i \<circ> X i) -` A \<inter> space M |A. A \<in> sets (N i)} \<subseteq>
       sigma_sets (space M) {X i -` A \<inter> space M |A. A \<in> sets (M' i)}"
       by (intro sigma_sets_subseteq) (auto simp: vimage_comp)
@@ -1078,9 +1078,9 @@ proof -
       then have "emeasure ?D E = emeasure M (?X -` E \<inter> space M)"
         by (simp add: emeasure_distr X)
       also have "?X -` E \<inter> space M = (\<Inter>i\<in>J. X i -` Y i \<inter> space M)"
-        using J `I \<noteq> {}` measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: split_if_asm)
+        using J \<open>I \<noteq> {}\<close> measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: split_if_asm)
       also have "emeasure M (\<Inter>i\<in>J. X i -` Y i \<inter> space M) = (\<Prod> i\<in>J. emeasure M (X i -` Y i \<inter> space M))"
-        using `indep_vars M' X I` J `I \<noteq> {}` using indep_varsD[of M' X I J]
+        using \<open>indep_vars M' X I\<close> J \<open>I \<noteq> {}\<close> using indep_varsD[of M' X I J]
         by (auto simp: emeasure_eq_measure setprod_ereal)
       also have "\<dots> = (\<Prod> i\<in>J. emeasure (?D' i) (Y i))"
         using rv J by (simp add: emeasure_distr)
@@ -1109,13 +1109,13 @@ proof -
         Y: "\<And>j. j \<in> J \<Longrightarrow> Y' j = X j -` Y j \<inter> space M" "\<And>j. j \<in> J \<Longrightarrow> Y j \<in> sets (M' j)" by auto
       let ?E = "prod_emb I M' J (Pi\<^sub>E J Y)"
       from Y have "(\<Inter>j\<in>J. Y' j) = ?X -` ?E \<inter> space M"
-        using J `I \<noteq> {}` measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: split_if_asm)
+        using J \<open>I \<noteq> {}\<close> measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: split_if_asm)
       then have "emeasure M (\<Inter>j\<in>J. Y' j) = emeasure M (?X -` ?E \<inter> space M)"
         by simp
       also have "\<dots> = emeasure ?D ?E"
         using Y  J by (intro emeasure_distr[symmetric] X sets_PiM_I) auto
       also have "\<dots> = emeasure ?P' ?E"
-        using `?D = ?P'` by simp
+        using \<open>?D = ?P'\<close> by simp
       also have "\<dots> = (\<Prod> i\<in>J. emeasure (?D' i) (Y i))"
         using P.emeasure_PiM_emb[of J Y] J Y by (simp add: prod_emb_def)
       also have "\<dots> = (\<Prod> i\<in>J. emeasure M (Y' i))"
@@ -1191,7 +1191,7 @@ proof safe
     have "emeasure ?J (A \<times> B) = emeasure M ((\<lambda>x. (X x, Y x)) -` (A \<times> B) \<inter> space M)"
       using A B by (intro emeasure_distr[OF XY]) auto
     also have "\<dots> = emeasure M (X -` A \<inter> space M) * emeasure M (Y -` B \<inter> space M)"
-      using indep_varD[OF `indep_var S X T Y`, of A B] A B by (simp add: emeasure_eq_measure)
+      using indep_varD[OF \<open>indep_var S X T Y\<close>, of A B] A B by (simp add: emeasure_eq_measure)
     also have "\<dots> = emeasure ?S A * emeasure ?T B"
       using rvs A B by (simp add: emeasure_distr)
     finally show "emeasure ?S A * emeasure ?T B = emeasure ?J (A \<times> B)" by simp
@@ -1222,15 +1222,15 @@ next
     show "indep_set {X -` A \<inter> space M |A. A \<in> sets S} {Y -` A \<inter> space M |A. A \<in> sets T}"
     proof (safe intro!: indep_setI)
       { fix A assume "A \<in> sets S" then show "X -` A \<inter> space M \<in> sets M"
-        using `X \<in> measurable M S` by (auto intro: measurable_sets) }
+        using \<open>X \<in> measurable M S\<close> by (auto intro: measurable_sets) }
       { fix A assume "A \<in> sets T" then show "Y -` A \<inter> space M \<in> sets M"
-        using `Y \<in> measurable M T` by (auto intro: measurable_sets) }
+        using \<open>Y \<in> measurable M T\<close> by (auto intro: measurable_sets) }
     next
       fix A B assume ab: "A \<in> sets S" "B \<in> sets T"
       then have "ereal (prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M))) = emeasure ?J (A \<times> B)"
         using XY by (auto simp add: emeasure_distr emeasure_eq_measure intro!: arg_cong[where f="prob"])
       also have "\<dots> = emeasure (?S \<Otimes>\<^sub>M ?T) (A \<times> B)"
-        unfolding `?S \<Otimes>\<^sub>M ?T = ?J` ..
+        unfolding \<open>?S \<Otimes>\<^sub>M ?T = ?J\<close> ..
       also have "\<dots> = emeasure ?S A * emeasure ?T B"
         using ab by (simp add: Y.emeasure_pair_measure_Times)
       finally show "prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M)) =
@@ -1275,9 +1275,9 @@ proof cases
   also have "\<dots> = (\<integral>\<^sup>+\<omega>. (\<Prod>i\<in>I. max 0 (\<omega> i)) \<partial>distr M (Pi\<^sub>M I (\<lambda>i. borel)) (\<lambda>x. \<lambda>i\<in>I. Y i x))"
     by (subst nn_integral_distr) auto
   also have "\<dots> = (\<integral>\<^sup>+\<omega>. (\<Prod>i\<in>I. max 0 (\<omega> i)) \<partial>Pi\<^sub>M I (\<lambda>i. distr M borel (Y i)))"
-    unfolding indep_vars_iff_distr_eq_PiM[THEN iffD1, OF `I \<noteq> {}` rv_Y indep_Y] ..
+    unfolding indep_vars_iff_distr_eq_PiM[THEN iffD1, OF \<open>I \<noteq> {}\<close> rv_Y indep_Y] ..
   also have "\<dots> = (\<Prod>i\<in>I. (\<integral>\<^sup>+\<omega>. max 0 \<omega> \<partial>distr M borel (Y i)))"
-    by (rule product_nn_integral_setprod) (auto intro: `finite I`)
+    by (rule product_nn_integral_setprod) (auto intro: \<open>finite I\<close>)
   also have "\<dots> = (\<Prod>i\<in>I. \<integral>\<^sup>+\<omega>. X i \<omega> \<partial>M)"
     by (intro setprod.cong nn_integral_cong)
        (auto simp: nn_integral_distr nn_integral_max_0 Y_def rv_X)
@@ -1317,17 +1317,17 @@ proof (induct rule: case_split)
   also have "\<dots> = (\<integral>\<omega>. (\<Prod>i\<in>I. \<omega> i) \<partial>distr M (Pi\<^sub>M I (\<lambda>i. borel)) (\<lambda>x. \<lambda>i\<in>I. Y i x))"
     by (subst integral_distr) auto
   also have "\<dots> = (\<integral>\<omega>. (\<Prod>i\<in>I. \<omega> i) \<partial>Pi\<^sub>M I (\<lambda>i. distr M borel (Y i)))"
-    unfolding indep_vars_iff_distr_eq_PiM[THEN iffD1, OF `I \<noteq> {}` rv_Y indep_Y] ..
+    unfolding indep_vars_iff_distr_eq_PiM[THEN iffD1, OF \<open>I \<noteq> {}\<close> rv_Y indep_Y] ..
   also have "\<dots> = (\<Prod>i\<in>I. (\<integral>\<omega>. \<omega> \<partial>distr M borel (Y i)))"
-    by (rule product_integral_setprod) (auto intro: `finite I` simp: integrable_distr_eq int_Y)
+    by (rule product_integral_setprod) (auto intro: \<open>finite I\<close> simp: integrable_distr_eq int_Y)
   also have "\<dots> = (\<Prod>i\<in>I. \<integral>\<omega>. X i \<omega> \<partial>M)"
     by (intro setprod.cong integral_cong)
        (auto simp: integral_distr Y_def rv_X)
   finally show ?eq .
 
   have "integrable (distr M (Pi\<^sub>M I (\<lambda>i. borel)) (\<lambda>x. \<lambda>i\<in>I. Y i x)) (\<lambda>\<omega>. (\<Prod>i\<in>I. \<omega> i))"
-    unfolding indep_vars_iff_distr_eq_PiM[THEN iffD1, OF `I \<noteq> {}` rv_Y indep_Y]
-    by (intro product_integrable_setprod[OF `finite I`])
+    unfolding indep_vars_iff_distr_eq_PiM[THEN iffD1, OF \<open>I \<noteq> {}\<close> rv_Y indep_Y]
+    by (intro product_integrable_setprod[OF \<open>finite I\<close>])
        (simp add: integrable_distr_eq int_Y)
   then show ?int
     by (simp add: integrable_distr_eq Y_def)

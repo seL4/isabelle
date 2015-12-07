@@ -150,7 +150,7 @@ proof -
     using eq[unfolded set_eq_iff] by force
   
   have "uncountable (UNIV - J)"
-    using `countable J` uncountable_UNIV_real uncountable_minus_countable by blast
+    using \<open>countable J\<close> uncountable_UNIV_real uncountable_minus_countable by blast
   then have "infinite (UNIV - J)"
     by (auto intro: countable_finite)
   then have "\<exists>A. finite A \<and> card A = 2 \<and> A \<subseteq> UNIV - J"

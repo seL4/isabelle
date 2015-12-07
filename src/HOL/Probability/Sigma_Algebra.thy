@@ -5,7 +5,7 @@
     translated by Lawrence Paulson.
 *)
 
-section {* Describing measurable sets *}
+section \<open>Describing measurable sets\<close>
 
 theory Sigma_Algebra
 imports
@@ -17,15 +17,15 @@ imports
   "~~/src/HOL/Library/Disjoint_Sets"
 begin
 
-text {* Sigma algebras are an elementary concept in measure
+text \<open>Sigma algebras are an elementary concept in measure
   theory. To measure --- that is to integrate --- functions, we first have
   to measure sets. Unfortunately, when dealing with a large universe,
   it is often not possible to consistently assign a measure to every
   subset. Therefore it is necessary to define the set of measurable
   subsets of the universe. A sigma algebra is such a set that has
-  three very natural and desirable properties. *}
+  three very natural and desirable properties.\<close>
 
-subsection {* Families of sets *}
+subsection \<open>Families of sets\<close>
 
 locale subset_class =
   fixes \<Omega> :: "'a set" and M :: "'a set set"
@@ -34,7 +34,7 @@ locale subset_class =
 lemma (in subset_class) sets_into_space: "x \<in> M \<Longrightarrow> x \<subseteq> \<Omega>"
   by (metis PowD contra_subsetD space_closed)
 
-subsubsection {* Semiring of sets *}
+subsubsection \<open>Semiring of sets\<close>
 
 locale semiring_of_sets = subset_class +
   assumes empty_sets[iff]: "{} \<in> M"
@@ -67,7 +67,7 @@ lemma (in semiring_of_sets) sets_Collect_finite_All':
   shows "{x\<in>\<Omega>. \<forall>i\<in>S. P i x} \<in> M"
 proof -
   have "{x\<in>\<Omega>. \<forall>i\<in>S. P i x} = (\<Inter>i\<in>S. {x\<in>\<Omega>. P i x})"
-    using `S \<noteq> {}` by auto
+    using \<open>S \<noteq> {}\<close> by auto
   with assms show ?thesis by auto
 qed
 
@@ -158,13 +158,13 @@ next
   interpret ring_of_sets \<Omega> M
   proof (rule ring_of_setsI)
     show \<Omega>: "M \<subseteq> Pow \<Omega>" "{} \<in> M"
-      using `?Un` by auto
+      using \<open>?Un\<close> by auto
     fix a b assume a: "a \<in> M" and b: "b \<in> M"
-    then show "a \<union> b \<in> M" using `?Un` by auto
+    then show "a \<union> b \<in> M" using \<open>?Un\<close> by auto
     have "a - b = \<Omega> - ((\<Omega> - a) \<union> b)"
       using \<Omega> a b by auto
     then show "a - b \<in> M"
-      using a b  `?Un` by auto
+      using a b  \<open>?Un\<close> by auto
   qed
   show "algebra \<Omega> M" proof qed fact
 qed
@@ -183,13 +183,13 @@ next
   show "algebra \<Omega> M"
   proof (unfold algebra_iff_Un, intro conjI ballI)
     show \<Omega>: "M \<subseteq> Pow \<Omega>" "{} \<in> M"
-      using `?Int` by auto
-    from `?Int` show "\<And>a. a \<in> M \<Longrightarrow> \<Omega> - a \<in> M" by auto
+      using \<open>?Int\<close> by auto
+    from \<open>?Int\<close> show "\<And>a. a \<in> M \<Longrightarrow> \<Omega> - a \<in> M" by auto
     fix a b assume M: "a \<in> M" "b \<in> M"
     hence "a \<union> b = \<Omega> - ((\<Omega> - a) \<inter> (\<Omega> - b))"
       using \<Omega> by blast
     also have "... \<in> M"
-      using M `?Int` by auto
+      using M \<open>?Int\<close> by auto
     finally show "a \<union> b \<in> M" .
   qed
 qed
@@ -214,7 +214,7 @@ lemma algebra_single_set:
   "X \<subseteq> S \<Longrightarrow> algebra S { {}, X, S - X, S }"
   by (auto simp: algebra_iff_Int)
 
-subsubsection {* Restricted algebras *}
+subsubsection \<open>Restricted algebras\<close>
 
 abbreviation (in algebra)
   "restricted_space A \<equiv> (op \<inter> A) ` M"
@@ -223,7 +223,7 @@ lemma (in algebra) restricted_algebra:
   assumes "A \<in> M" shows "algebra A (restricted_space A)"
   using assms by (auto simp: algebra_iff_Int)
 
-subsubsection {* Sigma Algebras *}
+subsubsection \<open>Sigma Algebras\<close>
 
 locale sigma_algebra = algebra +
   assumes countable_nat_UN [intro]: "\<And>A. range A \<subseteq> M \<Longrightarrow> (\<Union>i::nat. A i) \<in> M"
@@ -236,7 +236,7 @@ proof
   then have "(\<Union>i. A i) = (\<Union>s\<in>M \<inter> range A. s)"
     by auto
   also have "(\<Union>s\<in>M \<inter> range A. s) \<in> M"
-    using `finite M` by auto
+    using \<open>finite M\<close> by auto
   finally show "(\<Union>i. A i) \<in> M" .
 qed
 
@@ -267,7 +267,7 @@ proof cases
   hence "\<Union>X = (\<Union>n. from_nat_into X n)"
     using assms by (auto intro: from_nat_into) (metis from_nat_into_surj)
   also have "\<dots> \<in> M" using assms
-    by (auto intro!: countable_nat_UN) (metis `X \<noteq> {}` from_nat_into set_mp)
+    by (auto intro!: countable_nat_UN) (metis \<open>X \<noteq> {}\<close> from_nat_into set_mp)
   finally show ?thesis .
 qed simp
 
@@ -421,9 +421,9 @@ lemma (in sigma_algebra) sets_Collect_countable_Bex:
 lemma sigma_algebra_single_set:
   assumes "X \<subseteq> S"
   shows "sigma_algebra S { {}, X, S - X, S }"
-  using algebra.is_sigma_algebra[OF algebra_single_set[OF `X \<subseteq> S`]] by simp
+  using algebra.is_sigma_algebra[OF algebra_single_set[OF \<open>X \<subseteq> S\<close>]] by simp
 
-subsubsection {* Binary Unions *}
+subsubsection \<open>Binary Unions\<close>
 
 definition binary :: "'a \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"
   where "binary a b =  (\<lambda>x. b)(0 := a)"
@@ -445,10 +445,10 @@ lemma sigma_algebra_iff2:
   by (auto simp add: range_binary_eq sigma_algebra_def sigma_algebra_axioms_def
          algebra_iff_Un Un_range_binary)
 
-subsubsection {* Initial Sigma Algebra *}
+subsubsection \<open>Initial Sigma Algebra\<close>
 
-text {*Sigma algebras can naturally be created as the closure of any set of
-  M with regard to the properties just postulated.  *}
+text \<open>Sigma algebras can naturally be created as the closure of any set of
+  M with regard to the properties just postulated.\<close>
 
 inductive_set sigma_sets :: "'a set \<Rightarrow> 'a set set \<Rightarrow> 'a set set"
   for sp :: "'a set" and A :: "'a set set"
@@ -482,7 +482,7 @@ lemma sigma_sets_least_sigma_algebra:
 proof safe
   fix B X assume "A \<subseteq> B" and sa: "sigma_algebra S B"
     and X: "X \<in> sigma_sets S A"
-  from sigma_algebra.sigma_sets_subset[OF sa, simplified, OF `A \<subseteq> B`] X
+  from sigma_algebra.sigma_sets_subset[OF sa, simplified, OF \<open>A \<subseteq> B\<close>] X
   show "X \<in> B" by auto
 next
   fix X assume "X \<in> \<Inter>{B. A \<subseteq> B \<and> sigma_algebra S B}"
@@ -569,19 +569,19 @@ qed
 lemma sigma_sets_subseteq: assumes "A \<subseteq> B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
 proof
   fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
-    by induct (insert `A \<subseteq> B`, auto intro: sigma_sets.intros(2-))
+    by induct (insert \<open>A \<subseteq> B\<close>, auto intro: sigma_sets.intros(2-))
 qed
 
 lemma sigma_sets_mono: assumes "A \<subseteq> sigma_sets X B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
 proof
   fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
-    by induct (insert `A \<subseteq> sigma_sets X B`, auto intro: sigma_sets.intros(2-))
+    by induct (insert \<open>A \<subseteq> sigma_sets X B\<close>, auto intro: sigma_sets.intros(2-))
 qed
 
 lemma sigma_sets_mono': assumes "A \<subseteq> B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
 proof
   fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
-    by induct (insert `A \<subseteq> B`, auto intro: sigma_sets.intros(2-))
+    by induct (insert \<open>A \<subseteq> B\<close>, auto intro: sigma_sets.intros(2-))
 qed
 
 lemma sigma_sets_superset_generator: "A \<subseteq> sigma_sets X A"
@@ -595,7 +595,7 @@ lemma (in sigma_algebra) restriction_in_sets:
 proof -
   { fix i have "A i \<in> ?r" using * by auto
     hence "\<exists>B. A i = B \<inter> S \<and> B \<in> M" by auto
-    hence "A i \<subseteq> S" "A i \<in> M" using `S \<in> M` by auto }
+    hence "A i \<subseteq> S" "A i \<in> M" using \<open>S \<in> M\<close> by auto }
   thus "range A \<subseteq> M" "(\<Union>i. A i) \<in> (\<lambda>A. S \<inter> A) ` M"
     by (auto intro!: image_eqI[of _ _ "(\<Union>i. A i)"])
 qed
@@ -630,14 +630,14 @@ proof (intro equalityI subsetI)
                simp add: UN_extend_simps simp del: UN_simps)
   qed (auto intro!: sigma_sets.intros(2-))
   then show "x \<in> sigma_sets A (op \<inter> A ` st)"
-    using `A \<subseteq> sp` by (simp add: Int_absorb2)
+    using \<open>A \<subseteq> sp\<close> by (simp add: Int_absorb2)
 next
   fix x assume "x \<in> sigma_sets A (op \<inter> A ` st)"
   then show "x \<in> op \<inter> A ` sigma_sets sp st"
   proof induct
     case (Compl a)
     then obtain x where "a = A \<inter> x" "x \<in> sigma_sets sp st" by auto
-    then show ?case using `A \<subseteq> sp`
+    then show ?case using \<open>A \<subseteq> sp\<close>
       by (force simp add: image_iff intro!: bexI[of _ "sp - x"] sigma_sets.Compl)
   next
     case (Union a)
@@ -793,7 +793,7 @@ proof (auto simp add: sigma_algebra_iff)
   thus "(\<Union>i::nat. A i) \<in> M" by (simp add: UN_disjointed_eq)
 qed
 
-subsubsection {* Ring generated by a semiring *}
+subsubsection \<open>Ring generated by a semiring\<close>
 
 definition (in semiring_of_sets)
   "generated_ring = { \<Union>C | C. C \<subseteq> M \<and> finite C \<and> disjoint C }"
@@ -822,7 +822,7 @@ proof -
   show ?thesis
   proof
     show "disjoint (Ca \<union> Cb)"
-      using `a \<inter> b = {}` Ca Cb by (auto intro!: disjoint_union)
+      using \<open>a \<inter> b = {}\<close> Ca Cb by (auto intro!: disjoint_union)
   qed (insert Ca Cb, auto)
 qed
 
@@ -888,7 +888,7 @@ proof (rule ring_of_setsI)
   
     show "a - b \<in> ?R"
     proof cases
-      assume "Cb = {}" with Cb `a \<in> ?R` show ?thesis
+      assume "Cb = {}" with Cb \<open>a \<in> ?R\<close> show ?thesis
         by simp
     next
       assume "Cb \<noteq> {}"
@@ -900,7 +900,7 @@ proof (rule ring_of_setsI)
           by (auto simp add: generated_ring_def)
       next
         show "disjoint ((\<lambda>a'. \<Inter>b'\<in>Cb. a' - b')`Ca)"
-          using Ca by (auto simp add: disjoint_def `Cb \<noteq> {}`)
+          using Ca by (auto simp add: disjoint_def \<open>Cb \<noteq> {}\<close>)
       next
         show "finite Ca" "finite Cb" "Cb \<noteq> {}" by fact+
       qed
@@ -923,7 +923,7 @@ proof
     by (blast intro!: sigma_sets_mono elim: generated_ringE)
 qed (auto intro!: generated_ringI_Basic sigma_sets_mono)
 
-subsubsection {* A Two-Element Series *}
+subsubsection \<open>A Two-Element Series\<close>
 
 definition binaryset :: "'a set \<Rightarrow> 'a set \<Rightarrow> nat \<Rightarrow> 'a set "
   where "binaryset A B = (\<lambda>x. {})(0 := A, Suc 0 := B)"
@@ -937,7 +937,7 @@ lemma range_binaryset_eq: "range(binaryset A B) = {A,B,{}}"
 lemma UN_binaryset_eq: "(\<Union>i. binaryset A B i) = A \<union> B"
   by (simp add: SUP_def range_binaryset_eq)
 
-subsubsection {* Closed CDI *}
+subsubsection \<open>Closed CDI\<close>
 
 definition closed_cdi where
   "closed_cdi \<Omega> M \<longleftrightarrow>
@@ -1171,7 +1171,7 @@ proof -
     by blast
 qed
 
-subsubsection {* Dynkin systems *}
+subsubsection \<open>Dynkin systems\<close>
 
 locale dynkin_system = subset_class +
   assumes space: "\<Omega> \<in> M"
@@ -1193,7 +1193,7 @@ proof -
     by (auto simp: image_iff split: split_if_asm)
   moreover
   have "disjoint_family ?f" unfolding disjoint_family_on_def
-    using `D \<in> M`[THEN sets_into_space] `D \<subseteq> E` by auto
+    using \<open>D \<in> M\<close>[THEN sets_into_space] \<open>D \<subseteq> E\<close> by auto
   ultimately have "\<Omega> - (D \<union> (\<Omega> - E)) \<in> M"
     using sets by auto
   also have "\<Omega> - (D \<union> (\<Omega> - E)) = E - D"
@@ -1265,7 +1265,7 @@ next
               "\<Omega> - A \<in> M" "\<Omega> - B \<in> M"
       using sets_into_space by auto
     then show "A \<union> B \<in> M"
-      using `Int_stable M` unfolding Int_stable_def by auto
+      using \<open>Int_stable M\<close> unfolding Int_stable_def by auto
   qed auto
 qed
 
@@ -1314,15 +1314,15 @@ lemma (in dynkin_system) restricted_dynkin_system:
   shows "dynkin_system \<Omega> {Q. Q \<subseteq> \<Omega> \<and> Q \<inter> D \<in> M}"
 proof (rule dynkin_systemI, simp_all)
   have "\<Omega> \<inter> D = D"
-    using `D \<in> M` sets_into_space by auto
+    using \<open>D \<in> M\<close> sets_into_space by auto
   then show "\<Omega> \<inter> D \<in> M"
-    using `D \<in> M` by auto
+    using \<open>D \<in> M\<close> by auto
 next
   fix A assume "A \<subseteq> \<Omega> \<and> A \<inter> D \<in> M"
   moreover have "(\<Omega> - A) \<inter> D = (\<Omega> - (A \<inter> D)) - (\<Omega> - D)"
     by auto
   ultimately show "\<Omega> - A \<subseteq> \<Omega> \<and> (\<Omega> - A) \<inter> D \<in> M"
-    using  `D \<in> M` by (auto intro: diff)
+    using  \<open>D \<in> M\<close> by (auto intro: diff)
 next
   fix A :: "nat \<Rightarrow> 'a set"
   assume "disjoint_family A" "range A \<subseteq> {Q. Q \<subseteq> \<Omega> \<and> Q \<inter> D \<in> M}"
@@ -1340,7 +1340,7 @@ proof -
   have "dynkin_system \<Omega> M" ..
   then have "dynkin_system \<Omega> M"
     using assms unfolding dynkin_system_def dynkin_system_axioms_def subset_class_def by simp
-  with `N \<subseteq> M` show ?thesis by (auto simp add: dynkin_def)
+  with \<open>N \<subseteq> M\<close> show ?thesis by (auto simp add: dynkin_def)
 qed
 
 lemma sigma_eq_dynkin:
@@ -1363,22 +1363,22 @@ proof -
     proof
       fix E assume "E \<in> M"
       then have "M \<subseteq> ?D E" "E \<in> dynkin \<Omega> M"
-        using sets_into_space `Int_stable M` by (auto simp: Int_stable_def)
+        using sets_into_space \<open>Int_stable M\<close> by (auto simp: Int_stable_def)
       then have "dynkin \<Omega> M \<subseteq> ?D E"
-        using restricted_dynkin_system `E \<in> dynkin \<Omega> M`
+        using restricted_dynkin_system \<open>E \<in> dynkin \<Omega> M\<close>
         by (intro dynkin_system.dynkin_subset) simp_all
       then have "B \<in> ?D E"
-        using `B \<in> dynkin \<Omega> M` by auto
+        using \<open>B \<in> dynkin \<Omega> M\<close> by auto
       then have "E \<inter> B \<in> dynkin \<Omega> M"
         by (subst Int_commute) simp
       then show "E \<in> ?D B"
-        using sets `E \<in> M` by auto
+        using sets \<open>E \<in> M\<close> by auto
     qed
     then have "dynkin \<Omega> M \<subseteq> ?D B"
-      using restricted_dynkin_system `B \<in> dynkin \<Omega> M`
+      using restricted_dynkin_system \<open>B \<in> dynkin \<Omega> M\<close>
       by (intro dynkin_system.dynkin_subset) simp_all
     then show "A \<inter> B \<in> dynkin \<Omega> M"
-      using `A \<in> dynkin \<Omega> M` sets_into_space by auto
+      using \<open>A \<in> dynkin \<Omega> M\<close> sets_into_space by auto
   qed
   from sigma_algebra.sigma_sets_subset[OF this, of "M"]
   have "sigma_sets (\<Omega>) (M) \<subseteq> dynkin \<Omega> M" by auto
@@ -1409,17 +1409,17 @@ proof -
   have "E \<subseteq> Pow \<Omega>"
     using E sets_into_space by force
   then have *: "sigma_sets \<Omega> E = dynkin \<Omega> E"
-    using `Int_stable E` by (rule sigma_eq_dynkin)
+    using \<open>Int_stable E\<close> by (rule sigma_eq_dynkin)
   then have "dynkin \<Omega> E = M"
     using assms dynkin_subset[OF E(1)] by simp
   with * show ?thesis
     using assms by (auto simp: dynkin_def)
 qed
 
-subsubsection {* Induction rule for intersection-stable generators *}
+subsubsection \<open>Induction rule for intersection-stable generators\<close>
 
-text {* The reason to introduce Dynkin-systems is the following induction rules for $\sigma$-algebras
-generated by a generator closed under intersection. *}
+text \<open>The reason to introduce Dynkin-systems is the following induction rules for $\sigma$-algebras
+generated by a generator closed under intersection.\<close>
 
 lemma sigma_sets_induct_disjoint[consumes 3, case_names basic empty compl union]:
   assumes "Int_stable G"
@@ -1438,11 +1438,11 @@ proof -
   interpret dynkin_system \<Omega> ?D
     by standard (auto dest: sets_into_space intro!: space compl union)
   have "sigma_sets \<Omega> G = ?D"
-    by (rule dynkin_lemma) (auto simp: basic `Int_stable G`)
+    by (rule dynkin_lemma) (auto simp: basic \<open>Int_stable G\<close>)
   with A show ?thesis by auto
 qed
 
-subsection {* Measure type *}
+subsection \<open>Measure type\<close>
 
 definition positive :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> bool" where
   "positive M \<mu> \<longleftrightarrow> \<mu> {} = 0 \<and> (\<forall>A\<in>M. 0 \<le> \<mu> A)"
@@ -1554,7 +1554,7 @@ proof -
     hence "measure_space \<Omega> (sigma_sets \<Omega> A) \<mu> = measure_space \<Omega> (sigma_sets \<Omega> A)
       (\<lambda>a. if a \<in> sigma_sets \<Omega> A then \<mu> a else 0)"
       by(rule measure_space_eq) auto
-    with True `A \<subseteq> Pow \<Omega>` show ?thesis
+    with True \<open>A \<subseteq> Pow \<Omega>\<close> show ?thesis
       by(simp add: measure_of_def space_def sets_def emeasure_def Abs_measure_inverse)
   next
     case False thus ?thesis
@@ -1599,10 +1599,10 @@ proof
   next
     case Empty show ?case by (rule sigma_sets.Empty)
   next
-    from assms have "A \<in> sets (sigma C D)" by (subst sets_measure_of[OF `D \<subseteq> Pow C`])
-    moreover case (Compl a) hence "a \<in> sets (sigma C D)" by (subst sets_measure_of[OF `D \<subseteq> Pow C`])
+    from assms have "A \<in> sets (sigma C D)" by (subst sets_measure_of[OF \<open>D \<subseteq> Pow C\<close>])
+    moreover case (Compl a) hence "a \<in> sets (sigma C D)" by (subst sets_measure_of[OF \<open>D \<subseteq> Pow C\<close>])
     ultimately have "A - a \<in> sets (sigma C D)" ..
-    thus ?case by (subst (asm) sets_measure_of[OF `D \<subseteq> Pow C`])
+    thus ?case by (subst (asm) sets_measure_of[OF \<open>D \<subseteq> Pow C\<close>])
   next
     case (Union a)
     thus ?case by (intro sigma_sets.Union)
@@ -1616,7 +1616,7 @@ lemma space_empty_iff: "space N = {} \<longleftrightarrow> sets N = {{}}"
   by (metis Pow_empty Sup_bot_conv(1) cSup_singleton empty_iff
             sets.sigma_sets_eq sets.space_closed sigma_sets_top subset_singletonD)
 
-subsubsection {* Constructing simple @{typ "'a measure"} *}
+subsubsection \<open>Constructing simple @{typ "'a measure"}\<close>
 
 lemma emeasure_measure_of:
   assumes M: "M = measure_of \<Omega> A \<mu>"
@@ -1671,17 +1671,17 @@ proof (cases M N rule: measure_cases[case_product measure_cases])
   interpret N: sigma_algebra \<Omega>' A' using measure_measure by (auto simp: measure_space_def)
   have "A = sets M" "A' = sets N"
     using measure_measure by (simp_all add: sets_def Abs_measure_inverse)
-  with `sets M = sets N` have AA': "A = A'" by simp
+  with \<open>sets M = sets N\<close> have AA': "A = A'" by simp
   moreover from M.top N.top M.space_closed N.space_closed AA' have "\<Omega> = \<Omega>'" by auto
   moreover { fix B have "\<mu> B = \<mu>' B"
     proof cases
       assume "B \<in> A"
-      with eq `A = sets M` have "emeasure M B = emeasure N B" by simp
+      with eq \<open>A = sets M\<close> have "emeasure M B = emeasure N B" by simp
       with measure_measure show "\<mu> B = \<mu>' B"
         by (simp add: emeasure_def Abs_measure_inverse)
     next
       assume "B \<notin> A"
-      with `A = sets M` `A' = sets N` `A = A'` have "B \<notin> sets M" "B \<notin> sets N"
+      with \<open>A = sets M\<close> \<open>A' = sets N\<close> \<open>A = A'\<close> have "B \<notin> sets M" "B \<notin> sets N"
         by auto
       then have "emeasure M B = 0" "emeasure N B = 0"
         by (simp_all add: emeasure_notin_sets)
@@ -1698,7 +1698,7 @@ lemma sigma_eqI:
   shows "sigma \<Omega> M = sigma \<Omega> N"
   by (rule measure_eqI) (simp_all add: emeasure_sigma)
 
-subsubsection {* Measurable functions *}
+subsubsection \<open>Measurable functions\<close>
 
 definition measurable :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) set" where
   "measurable A B = {f \<in> space A \<rightarrow> space B. \<forall>y \<in> sets B. f -` y \<inter> space A \<in> sets A}"
@@ -1860,7 +1860,7 @@ lemma measurable_mono1:
     measurable (measure_of \<Omega> M \<mu>) N \<subseteq> measurable (measure_of \<Omega> M' \<mu>') N"
   using measure_of_subset[of M' \<Omega> M] by (auto simp add: measurable_def)
 
-subsubsection {* Counting space *}
+subsubsection \<open>Counting space\<close>
 
 definition count_space :: "'a set \<Rightarrow> 'a measure" where
   "count_space \<Omega> = measure_of \<Omega> (Pow \<Omega>) (\<lambda>A. if finite A then ereal (card A) else \<infinity>)"
@@ -1898,11 +1898,11 @@ lemma measurable_count_space_eq_countable:
   shows "f \<in> measurable M (count_space A) \<longleftrightarrow> (f \<in> space M \<rightarrow> A \<and> (\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M))"
 proof -
   { fix X assume "X \<subseteq> A" "f \<in> space M \<rightarrow> A"
-    with `countable A` have "f -` X \<inter> space M = (\<Union>a\<in>X. f -` {a} \<inter> space M)" "countable X"
+    with \<open>countable A\<close> have "f -` X \<inter> space M = (\<Union>a\<in>X. f -` {a} \<inter> space M)" "countable X"
       by (auto dest: countable_subset)
     moreover assume "\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M"
     ultimately have "f -` X \<inter> space M \<in> sets M"
-      using `X \<subseteq> A` by (auto intro!: sets.countable_UN' simp del: UN_simps) }
+      using \<open>X \<subseteq> A\<close> by (auto intro!: sets.countable_UN' simp del: UN_simps) }
   then show ?thesis
     unfolding measurable_def by auto
 qed
@@ -1938,7 +1938,7 @@ lemma measurable_empty_iff:
   "space N = {} \<Longrightarrow> f \<in> measurable M N \<longleftrightarrow> space M = {}"
   by (auto simp add: measurable_def Pi_iff)
 
-subsubsection {* Extend measure *}
+subsubsection \<open>Extend measure\<close>
 
 definition "extend_measure \<Omega> I G \<mu> =
   (if (\<exists>\<mu>'. (\<forall>i\<in>I. \<mu>' (G i) = \<mu> i) \<and> measure_space \<Omega> (sigma_sets \<Omega> (G`I)) \<mu>') \<and> \<not> (\<forall>i\<in>I. \<mu> i = 0)
@@ -1961,10 +1961,10 @@ proof cases
   assume *: "(\<forall>i\<in>I. \<mu> i = 0)"
   with M have M_eq: "M = measure_of \<Omega> (G`I) (\<lambda>_. 0)"
    by (simp add: extend_measure_def)
-  from measure_space_0[OF ms(1)] ms `i\<in>I`
+  from measure_space_0[OF ms(1)] ms \<open>i\<in>I\<close>
   have "emeasure M (G i) = 0"
     by (intro emeasure_measure_of[OF M_eq]) (auto simp add: M measure_space_def sets_extend_measure)
-  with `i\<in>I` * show ?thesis
+  with \<open>i\<in>I\<close> * show ?thesis
     by simp
 next
   def P \<equiv> "\<lambda>\<mu>'. (\<forall>i\<in>I. \<mu>' (G i) = \<mu> i) \<and> measure_space \<Omega> (sigma_sets \<Omega> (G`I)) \<mu>'"
@@ -1978,14 +1978,14 @@ next
   ultimately have M_eq: "M = measure_of \<Omega> (G`I) (Eps P)"
     by (simp add: M extend_measure_def P_def[symmetric])
 
-  from `\<exists>\<mu>'. P \<mu>'` have P: "P (Eps P)" by (rule someI_ex)
+  from \<open>\<exists>\<mu>'. P \<mu>'\<close> have P: "P (Eps P)" by (rule someI_ex)
   show "emeasure M (G i) = \<mu> i"
   proof (subst emeasure_measure_of[OF M_eq])
     have sets_M: "sets M = sigma_sets \<Omega> (G`I)"
       using M_eq ms by (auto simp: sets_extend_measure)
-    then show "G i \<in> sets M" using `i \<in> I` by auto
+    then show "G i \<in> sets M" using \<open>i \<in> I\<close> by auto
     show "positive (sets M) (Eps P)" "countably_additive (sets M) (Eps P)" "Eps P (G i) = \<mu> i"
-      using P `i\<in>I` by (auto simp add: sets_M measure_space_def P_def)
+      using P \<open>i\<in>I\<close> by (auto simp add: sets_M measure_space_def P_def)
   qed fact
 qed
 
@@ -1995,10 +1995,10 @@ lemma emeasure_extend_measure_Pair:
     and ms: "\<And>i j. I i j \<Longrightarrow> G i j \<in> Pow \<Omega>" "positive (sets M) \<mu>'" "countably_additive (sets M) \<mu>'"
     and "I i j"
   shows "emeasure M (G i j) = \<mu> i j"
-  using emeasure_extend_measure[OF M _ _ ms(2,3), of "(i,j)"] eq ms(1) `I i j`
+  using emeasure_extend_measure[OF M _ _ ms(2,3), of "(i,j)"] eq ms(1) \<open>I i j\<close>
   by (auto simp: subset_eq)
 
-subsubsection {* Supremum of a set of $\sigma$-algebras *}
+subsubsection \<open>Supremum of a set of $\sigma$-algebras\<close>
 
 definition "Sup_sigma M = sigma (\<Union>x\<in>M. space x) (\<Union>x\<in>M. sets x)"
 
@@ -2078,7 +2078,7 @@ proof -
     by (simp add: image_image)
 qed
 
-subsection {* The smallest $\sigma$-algebra regarding a function *}
+subsection \<open>The smallest $\sigma$-algebra regarding a function\<close>
 
 definition
   "vimage_algebra X f M = sigma X {f -` A \<inter> X | A. A \<in> sets M}"
@@ -2178,7 +2178,7 @@ proof (rule measure_eqI)
     using assms by (rule sets_vimage_Sup_eq)
 qed (simp add: vimage_algebra_def Sup_sigma_def emeasure_sigma)
 
-subsubsection {* Restricted Space Sigma Algebra *}
+subsubsection \<open>Restricted Space Sigma Algebra\<close>
 
 definition restrict_space where
   "restrict_space M \<Omega> = measure_of (\<Omega> \<inter> space M) ((op \<inter> \<Omega>) ` sets M) (emeasure M)"
@@ -2263,7 +2263,7 @@ proof (intro CollectI conjI ballI)
     by (auto simp: space_restrict_space)
   also have "\<dots> \<in> sets (restrict_space M \<Omega>)"
     unfolding sets_restrict_space
-    using measurable_sets[OF f `A \<in> sets N`] by blast
+    using measurable_sets[OF f \<open>A \<in> sets N\<close>] by blast
   finally show "f -` A \<inter> space (restrict_space M \<Omega>) \<in> sets (restrict_space M \<Omega>)" .
 qed
 
@@ -2324,7 +2324,7 @@ lemma measurable_If_set:
   shows "(\<lambda>x. if x \<in> A then f x else g x) \<in> measurable M M'"
 proof (rule measurable_If[OF measure])
   have "{x \<in> space M. x \<in> A} = A \<inter> space M" by auto
-  thus "{x \<in> space M. x \<in> A} \<in> sets M" using `A \<inter> space M \<in> sets M` by auto
+  thus "{x \<in> space M. x \<in> A} \<in> sets M" using \<open>A \<inter> space M \<in> sets M\<close> by auto
 qed
 
 lemma measurable_restrict_space_iff:

@@ -2,7 +2,7 @@
     Author:     Sudeep Kanav, TU München
     Author:     Johannes Hölzl, TU München *)
 
-section {* Convolution Measure *}
+section \<open>Convolution Measure\<close>
 
 theory Convolution
   imports Independent_Family
@@ -160,7 +160,7 @@ proof (intro measure_eqI)
       by (subst nn_integral_real_affine[where c=1 and t="-y"])
          (auto simp del: gt_0 simp add: one_ereal_def[symmetric])
     also have "\<dots> = (\<integral>\<^sup>+x. g y * (f (x - y) * indicator A x) \<partial>lborel)"
-      using `0 \<le> g y` by (intro nn_integral_cmult[symmetric]) auto
+      using \<open>0 \<le> g y\<close> by (intro nn_integral_cmult[symmetric]) auto
     finally show "(\<integral>\<^sup>+ x. g y * (f x * indicator A (x + y)) \<partial>lborel) =
       (\<integral>\<^sup>+ x. f (x - y) * g y * indicator A x \<partial>lborel)"
       by (simp add: ac_simps)

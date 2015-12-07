@@ -5,13 +5,13 @@
     Author:     Luke Serafin
 *)
 
-section {* Lebesgue measure *}
+section \<open>Lebesgue measure\<close>
 
 theory Lebesgue_Measure
   imports Finite_Product_Measure Bochner_Integration Caratheodory
 begin
 
-subsection {* Every right continuous and nondecreasing function gives rise to a measure *}
+subsection \<open>Every right continuous and nondecreasing function gives rise to a measure\<close>
 
 definition interval_measure :: "(real \<Rightarrow> real) \<Rightarrow> real measure" where
   "interval_measure F = extend_measure UNIV {(a, b). a \<le> b} (\<lambda>(a, b). {a <.. b}) (\<lambda>(a, b). ereal (F b - F a))"
@@ -21,7 +21,7 @@ lemma emeasure_interval_measure_Ioc:
   assumes mono_F: "\<And>x y. x \<le> y \<Longrightarrow> F x \<le> F y"
   assumes right_cont_F : "\<And>a. continuous (at_right a) F"
   shows "emeasure (interval_measure F) {a <.. b} = F b - F a"
-proof (rule extend_measure_caratheodory_pair[OF interval_measure_def `a \<le> b`])
+proof (rule extend_measure_caratheodory_pair[OF interval_measure_def \<open>a \<le> b\<close>])
   show "semiring_of_sets UNIV {{a<..b} |a b :: real. a \<le> b}"
   proof (unfold_locales, safe)
     fix a b c d :: real assume *: "a \<le> b" "c \<le> d"
@@ -50,7 +50,7 @@ next
     by (auto intro!: l_r mono_F)
 
   { fix S :: "nat set" assume "finite S"
-    moreover note `a \<le> b`
+    moreover note \<open>a \<le> b\<close>
     moreover have "\<And>i. i \<in> S \<Longrightarrow> {l i <.. r i} \<subseteq> {a <.. b}"
       unfolding lr_eq_ab[symmetric] by auto
     ultimately have "(\<Sum>i\<in>S. F (r i) - F (l i)) \<le> F b - F a"
@@ -59,7 +59,7 @@ next
       show ?case
       proof cases
         assume "\<exists>i\<in>S. l i < r i"
-        with `finite S` have "Min (l ` {i\<in>S. l i < r i}) \<in> l ` {i\<in>S. l i < r i}"
+        with \<open>finite S\<close> have "Min (l ` {i\<in>S. l i < r i}) \<in> l ` {i\<in>S. l i < r i}"
           by (intro Min_in) auto
         then obtain m where m: "m \<in> S" "l m < r m" "l m = Min (l ` {i\<in>S. l i < r i})"
           by fastforce
@@ -69,14 +69,14 @@ next
         also have "(\<Sum>i\<in>S - {m}. F (r i) - F (l i)) \<le> F b - F (r m)"
         proof (intro psubset.IH)
           show "S - {m} \<subset> S"
-            using `m\<in>S` by auto
+            using \<open>m\<in>S\<close> by auto
           show "r m \<le> b"
-            using psubset.prems(2)[OF `m\<in>S`] `l m < r m` by auto
+            using psubset.prems(2)[OF \<open>m\<in>S\<close>] \<open>l m < r m\<close> by auto
         next
           fix i assume "i \<in> S - {m}"
           then have i: "i \<in> S" "i \<noteq> m" by auto
           { assume i': "l i < r i" "l i < r m"
-            moreover with `finite S` i m have "l m \<le> l i"
+            moreover with \<open>finite S\<close> i m have "l m \<le> l i"
               by auto
             ultimately have "{l i <.. r i} \<inter> {l m <.. r m} \<noteq> {}"
               by auto
@@ -85,14 +85,14 @@ next
           then have "l i \<noteq> r i \<Longrightarrow> r m \<le> l i"
             unfolding not_less[symmetric] using l_r[of i] by auto
           then show "{l i <.. r i} \<subseteq> {r m <.. b}"
-            using psubset.prems(2)[OF `i\<in>S`] by auto
+            using psubset.prems(2)[OF \<open>i\<in>S\<close>] by auto
         qed
         also have "F (r m) - F (l m) \<le> F (r m) - F a"
-          using psubset.prems(2)[OF `m \<in> S`] `l m < r m`
+          using psubset.prems(2)[OF \<open>m \<in> S\<close>] \<open>l m < r m\<close>
           by (auto simp add: Ioc_subset_iff intro!: mono_F)
         finally show ?case
           by (auto intro: add_mono)
-      qed (auto simp add: `a \<le> b` less_le)
+      qed (auto simp add: \<open>a \<le> b\<close> less_le)
     qed }
   note claim1 = this
 
@@ -117,13 +117,13 @@ next
         show ?case
         proof cases
           assume "?R"
-          with `j \<in> S` psubset.prems have "{u..v} \<subseteq> (\<Union>i\<in>S-{j}. {l i<..< r i})"
+          with \<open>j \<in> S\<close> psubset.prems have "{u..v} \<subseteq> (\<Union>i\<in>S-{j}. {l i<..< r i})"
             apply (auto simp: subset_eq Ball_def)
             apply (metis Diff_iff less_le_trans leD linear singletonD)
             apply (metis Diff_iff less_le_trans leD linear singletonD)
             apply (metis order_trans less_le_not_le linear)
             done
-          with `j \<in> S` have "F v - F u \<le> (\<Sum>i\<in>S - {j}. F (r i) - F (l i))"
+          with \<open>j \<in> S\<close> have "F v - F u \<le> (\<Sum>i\<in>S - {j}. F (r i) - F (l i))"
             by (intro psubset) auto
           also have "\<dots> \<le> (\<Sum>i\<in>S. F (r i) - F (l i))"
             using psubset.prems
@@ -137,7 +137,7 @@ next
           let ?S2 = "{i \<in> S. r i > r j}"
 
           have "(\<Sum>i\<in>S. F (r i) - F (l i)) \<ge> (\<Sum>i\<in>?S1 \<union> ?S2 \<union> {j}. F (r i) - F (l i))"
-            using `j \<in> S` `finite S` psubset.prems j
+            using \<open>j \<in> S\<close> \<open>finite S\<close> psubset.prems j
             by (intro setsum_mono2) (auto intro: less_imp_le)
           also have "(\<Sum>i\<in>?S1 \<union> ?S2 \<union> {j}. F (r i) - F (l i)) =
             (\<Sum>i\<in>?S1. F (r i) - F (l i)) + (\<Sum>i\<in>?S2 . F (r i) - F (l i)) + (F (r j) - F (l j))"
@@ -149,13 +149,13 @@ next
             apply (metis less_le_not_le)
             done
           also (xtrans) have "(\<Sum>i\<in>?S1. F (r i) - F (l i)) \<ge> F (l j) - F u"
-            using `j \<in> S` `finite S` psubset.prems j
+            using \<open>j \<in> S\<close> \<open>finite S\<close> psubset.prems j
             apply (intro psubset.IH psubset)
             apply (auto simp: subset_eq Ball_def)
             apply (metis less_le_trans not_le)
             done
           also (xtrans) have "(\<Sum>i\<in>?S2. F (r i) - F (l i)) \<ge> F v - F (r j)"
-            using `j \<in> S` `finite S` psubset.prems j
+            using \<open>j \<in> S\<close> \<open>finite S\<close> psubset.prems j
             apply (intro psubset.IH psubset)
             apply (auto simp: subset_eq Ball_def)
             apply (metis le_less_trans not_le)
@@ -326,7 +326,7 @@ proof (rule tendsto_unique)
   proof (rule tendsto_at_left_sequentially)
     show "a - 1 < a" by simp
     fix X assume "\<And>n. X n < a" "incseq X" "X ----> a"
-    with `a \<le> b` have "(\<lambda>n. emeasure ?F {X n<..b}) ----> emeasure ?F (\<Inter>n. {X n <..b})"
+    with \<open>a \<le> b\<close> have "(\<lambda>n. emeasure ?F {X n<..b}) ----> emeasure ?F (\<Inter>n. {X n <..b})"
       apply (intro Lim_emeasure_decseq)
       apply (auto simp: decseq_def incseq_def emeasure_interval_measure_Ioc *)
       apply force
@@ -334,14 +334,14 @@ proof (rule tendsto_unique)
       apply (auto intro: less_le_trans less_imp_le)
       done
     also have "(\<Inter>n. {X n <..b}) = {a..b}"
-      using `\<And>n. X n < a`
+      using \<open>\<And>n. X n < a\<close>
       apply auto
-      apply (rule LIMSEQ_le_const2[OF `X ----> a`])
+      apply (rule LIMSEQ_le_const2[OF \<open>X ----> a\<close>])
       apply (auto intro: less_imp_le)
       apply (auto intro: less_le_trans)
       done
     also have "(\<lambda>n. emeasure ?F {X n<..b}) = (\<lambda>n. F b - F (X n))"
-      using `\<And>n. X n < a` `a \<le> b` by (subst *) (auto intro: less_imp_le less_le_trans)
+      using \<open>\<And>n. X n < a\<close> \<open>a \<le> b\<close> by (subst *) (auto intro: less_imp_le less_le_trans)
     finally show "(\<lambda>n. F b - F (X n)) ----> emeasure ?F {a..b}" .
   qed
   show "((\<lambda>a. ereal (F b - F a)) ---> F b - F a) (at_left a)"
@@ -359,7 +359,7 @@ lemma sigma_finite_interval_measure:
   apply (auto intro!: Rats_no_top_le Rats_no_bot_less countable_rat simp: emeasure_interval_measure_Ioc_eq[OF assms])
   done
 
-subsection {* Lebesgue-Borel measure *}
+subsection \<open>Lebesgue-Borel measure\<close>
 
 definition lborel :: "('a :: euclidean_space) measure" where
   "lborel = distr (\<Pi>\<^sub>M b\<in>Basis. interval_measure (\<lambda>x. x)) borel (\<lambda>f. \<Sum>b\<in>Basis. f b *\<^sub>R b)"
@@ -557,7 +557,7 @@ proof
   ultimately show False by contradiction
 qed
 
-subsection {* Affine transformation on the Lebesgue-Borel *}
+subsection \<open>Affine transformation on the Lebesgue-Borel\<close>
 
 lemma lborel_eqI:
   fixes M :: "'a::euclidean_space measure"
@@ -595,13 +595,13 @@ proof (rule lborel_eqI)
     assume "0 < c"
     then have "(\<lambda>x. t + c *\<^sub>R x) -` box l u = box ((l - t) /\<^sub>R c) ((u - t) /\<^sub>R c)"
       by (auto simp: field_simps box_def inner_simps)
-    with `0 < c` show ?thesis
+    with \<open>0 < c\<close> show ?thesis
       using le
       by (auto simp: field_simps emeasure_density nn_integral_distr nn_integral_cmult
                      emeasure_lborel_box_eq inner_simps setprod_dividef setprod_constant
                      borel_measurable_indicator' emeasure_distr)
   next
-    assume "\<not> 0 < c" with `c \<noteq> 0` have "c < 0" by auto
+    assume "\<not> 0 < c" with \<open>c \<noteq> 0\<close> have "c < 0" by auto
     then have "box ((u - t) /\<^sub>R c) ((l - t) /\<^sub>R c) = (\<lambda>x. t + c *\<^sub>R x) -` box l u"
       by (auto simp: field_simps box_def inner_simps)
     then have "\<And>x. indicator (box l u) (t + c *\<^sub>R x) = (indicator (box ((u - t) /\<^sub>R c) ((l - t) /\<^sub>R c)) x :: ereal)"
@@ -615,7 +615,7 @@ proof (rule lborel_eqI)
       finally have "(- c) ^ card ?B * (\<Prod>x\<in>?B. l \<bullet> x - u \<bullet> x) = c ^ card ?B * (\<Prod>b\<in>?B. u \<bullet> b - l \<bullet> b)"
         by simp }
     ultimately show ?thesis
-      using `c < 0` le
+      using \<open>c < 0\<close> le
       by (auto simp: field_simps emeasure_density nn_integral_distr nn_integral_cmult
                      emeasure_lborel_box_eq inner_simps setprod_dividef setprod_constant
                      borel_measurable_indicator' emeasure_distr)
@@ -736,7 +736,7 @@ qed (simp add: borel_prod[symmetric])
 lemma lborelD_Collect[measurable (raw)]: "{x\<in>space borel. P x} \<in> sets borel \<Longrightarrow> {x\<in>space lborel. P x} \<in> sets lborel" by simp
 lemma lborelD[measurable (raw)]: "A \<in> sets borel \<Longrightarrow> A \<in> sets lborel" by simp
 
-subsection {* Equivalence Lebesgue integral on @{const lborel} and HK-integral *}
+subsection \<open>Equivalence Lebesgue integral on @{const lborel} and HK-integral\<close>
 
 lemma has_integral_measure_lborel:
   fixes A :: "'a::euclidean_space set"
@@ -915,7 +915,7 @@ next
   have *: "f integrable_on UNIV \<and> (\<lambda>k. integral UNIV (U k)) ----> integral UNIV f"
   proof (rule monotone_convergence_increasing)
     show "\<forall>k. U k integrable_on UNIV" using U_int by auto
-    show "\<forall>k. \<forall>x\<in>UNIV. U k x \<le> U (Suc k) x" using `incseq U` by (auto simp: incseq_def le_fun_def)
+    show "\<forall>k. \<forall>x\<in>UNIV. U k x \<le> U (Suc k) x" using \<open>incseq U\<close> by (auto simp: incseq_def le_fun_def)
     then show "bounded {integral UNIV (U k) |k. True}"
       using bnd int_eq by (auto simp: bounded_real intro!: exI[of _ r])
     show "\<forall>x\<in>UNIV. (\<lambda>k. U k x) ----> f x"
@@ -1067,7 +1067,7 @@ next
   proof (rule has_integral_dominated_convergence)
     show "\<And>i. (s i has_integral integral\<^sup>L lborel (s i)) UNIV" by fact
     show "(\<lambda>x. norm (2 * f x)) integrable_on UNIV"
-      using `integrable lborel f`
+      using \<open>integrable lborel f\<close>
       by (intro nn_integral_integrable_on)
          (auto simp: integrable_iff_bounded abs_mult times_ereal.simps(1)[symmetric] nn_integral_cmult
                simp del: times_ereal.simps)
@@ -1106,12 +1106,12 @@ lemma integral_lborel: "integrable lborel f \<Longrightarrow> integral UNIV f = 
 
 end
 
-subsection {* Fundamental Theorem of Calculus for the Lebesgue integral *}
+subsection \<open>Fundamental Theorem of Calculus for the Lebesgue integral\<close>
 
 lemma emeasure_bounded_finite:
   assumes "bounded A" shows "emeasure lborel A < \<infinity>"
 proof -
-  from bounded_subset_cbox[OF `bounded A`] obtain a b where "A \<subseteq> cbox a b"
+  from bounded_subset_cbox[OF \<open>bounded A\<close>] obtain a b where "A \<subseteq> cbox a b"
     by auto
   then have "emeasure lborel A \<le> emeasure lborel (cbox a b)"
     by (intro emeasure_mono) auto
@@ -1130,7 +1130,7 @@ proof cases
   assume "S \<noteq> {}"
   have "continuous_on S (\<lambda>x. norm (f x))"
     using assms by (intro continuous_intros)
-  from continuous_attains_sup[OF `compact S` `S \<noteq> {}` this]
+  from continuous_attains_sup[OF \<open>compact S\<close> \<open>S \<noteq> {}\<close> this]
   obtain M where M: "\<And>x. x \<in> S \<Longrightarrow> norm (f x) \<le> M"
     by auto
 
@@ -1159,11 +1159,11 @@ proof -
     by (auto simp: mult.commute)
 qed
 
-text {*
+text \<open>
 
 For the positive integral we replace continuity with Borel-measurability.
 
-*}
+\<close>
 
 lemma
   fixes f :: "real \<Rightarrow> real"
@@ -1181,7 +1181,7 @@ proof -
   have "(f has_integral F b - F a) {a..b}"
     by (intro fundamental_theorem_of_calculus)
        (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric]
-             intro: has_field_derivative_subset[OF f(1)] `a \<le> b`)
+             intro: has_field_derivative_subset[OF f(1)] \<open>a \<le> b\<close>)
   then have i: "((\<lambda>x. f x * indicator {a .. b} x) has_integral F b - F a) UNIV"
     unfolding indicator_def if_distrib[where f="\<lambda>x. a * x" for a]
     by (simp cong del: if_cong del: atLeastAtMost_iff)
@@ -1235,7 +1235,7 @@ proof -
   have 2: "continuous_on {a .. b} f"
     using cont by (intro continuous_at_imp_continuous_on) auto
   show ?has ?eq
-    using has_bochner_integral_FTC_Icc[OF `a \<le> b` 1 2] integral_FTC_Icc[OF `a \<le> b` 1 2]
+    using has_bochner_integral_FTC_Icc[OF \<open>a \<le> b\<close> 1 2] integral_FTC_Icc[OF \<open>a \<le> b\<close> 1 2]
     by (auto simp: mult.commute)
 qed
 
@@ -1300,7 +1300,7 @@ proof (subst integral_FTC_Icc_real)
     by (intro derivative_eq_intros) auto
 qed (auto simp: field_simps simp del: of_nat_Suc)
 
-subsection {* Integration by parts *}
+subsection \<open>Integration by parts\<close>
 
 lemma integral_by_parts_integrable:
   fixes f g F G::"real \<Rightarrow> real"

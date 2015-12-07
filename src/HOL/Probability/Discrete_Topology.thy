@@ -6,7 +6,7 @@ theory Discrete_Topology
 imports "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
 begin
 
-text {* Copy of discrete types with discrete topology. This space is polish. *}
+text \<open>Copy of discrete types with discrete topology. This space is polish.\<close>
 
 typedef 'a discrete = "UNIV::'a set"
 morphisms of_discrete discrete

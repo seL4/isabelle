@@ -54,16 +54,16 @@ next
     from this(3) have *: "\<And>x. x \<in> X \<Longrightarrow> ?M / Suc n \<le> ?m x"
       by auto
     { fix x assume "x \<in> X"
-      from `?M \<noteq> 0` *[OF this] have "?m x \<noteq> 0" by (auto simp: field_simps measure_le_0_iff)
+      from \<open>?M \<noteq> 0\<close> *[OF this] have "?m x \<noteq> 0" by (auto simp: field_simps measure_le_0_iff)
       then have "{x} \<in> sets M" by (auto dest: measure_notin_sets) }
     note singleton_sets = this
     have "?M < (\<Sum>x\<in>X. ?M / Suc n)"
-      using `?M \<noteq> 0`
-      by (simp add: `card X = Suc (Suc n)` of_nat_Suc field_simps less_le measure_nonneg)
+      using \<open>?M \<noteq> 0\<close>
+      by (simp add: \<open>card X = Suc (Suc n)\<close> of_nat_Suc field_simps less_le measure_nonneg)
     also have "\<dots> \<le> (\<Sum>x\<in>X. ?m x)"
       by (rule setsum_mono) fact
     also have "\<dots> = measure M (\<Union>x\<in>X. {x})"
-      using singleton_sets `finite X`
+      using singleton_sets \<open>finite X\<close>
       by (intro finite_measure_finite_Union[symmetric]) (auto simp: disjoint_family_on_def)
     finally have "?M < measure M (\<Union>x\<in>X. {x})" .
     moreover have "measure M (\<Union>x\<in>X. {x}) \<le> ?M"
@@ -399,7 +399,7 @@ lemma set_bind_pmf[simp]: "set_pmf (bind_pmf M N) = (\<Union>M\<in>set_pmf M. se
 lemma bind_pmf_cong:
   assumes "p = q"
   shows "(\<And>x. x \<in> set_pmf q \<Longrightarrow> f x = g x) \<Longrightarrow> bind_pmf p f = bind_pmf q g"
-  unfolding `p = q`[symmetric] measure_pmf_inject[symmetric] bind_pmf.rep_eq
+  unfolding \<open>p = q\<close>[symmetric] measure_pmf_inject[symmetric] bind_pmf.rep_eq
   by (auto simp: AE_measure_pmf_iff Pi_iff space_subprob_algebra subprob_space_measure_pmf
                  sets_bind[where N="count_space UNIV"] emeasure_bind[where N="count_space UNIV"]
            intro!: nn_integral_cong_AE measure_eqI)
@@ -736,7 +736,7 @@ setup_lifting td_pmf_embed_pmf
 lemma set_pmf_transfer[transfer_rule]:
   assumes "bi_total A"
   shows "rel_fun (pcr_pmf A) (rel_set A) (\<lambda>f. {x. f x \<noteq> 0}) set_pmf"
-  using `bi_total A`
+  using \<open>bi_total A\<close>
   by (auto simp: pcr_pmf_def cr_pmf_def rel_fun_def rel_set_def bi_total_def Bex_def set_pmf_iff)
      metis+
 
@@ -1079,9 +1079,9 @@ next
     with in_set eq have "measure p {x. R x y} = measure q {y. R x y}"
       by auto
     moreover have "{y. R x y} = C"
-      using assms `x \<in> C` C quotientD[of UNIV ?R C x] by (simp add: equivp_equiv)
+      using assms \<open>x \<in> C\<close> C quotientD[of UNIV ?R C x] by (simp add: equivp_equiv)
     moreover have "{x. R x y} = C"
-      using assms `y \<in> C` C quotientD[of UNIV "?R" C y] sympD[of R]
+      using assms \<open>y \<in> C\<close> C quotientD[of UNIV "?R" C y] sympD[of R]
       by (auto simp add: equivp_equiv elim: equivpE)
     ultimately show ?thesis
       by auto
@@ -1114,7 +1114,7 @@ next
 
   fix x y assume "x \<in> set_pmf p" "y \<in> set_pmf q" "R x y"
   have "{y. R x y} \<in> UNIV // ?R" "{x. R x y} = {y. R x y}"
-    using assms `R x y` by (auto simp: quotient_def dest: equivp_symp equivp_transp)
+    using assms \<open>R x y\<close> by (auto simp: quotient_def dest: equivp_symp equivp_transp)
   with eq show "measure p {x. R x y} = measure q {y. R x y}"
     by auto
 qed
@@ -1198,7 +1198,7 @@ proof safe
     by (force elim: rel_pmf.cases)
   moreover have "set_pmf (return_pmf x) = {x}"
     by simp
-  with `a \<in> M` have "(x, a) \<in> pq"
+  with \<open>a \<in> M\<close> have "(x, a) \<in> pq"
     by (force simp: eq)
   with * show "R x a"
     by auto
@@ -1366,12 +1366,12 @@ lemma rel_pmf_bindI:
   by (rule rel_pmf_joinI)
      (auto simp add: pmf.rel_map intro: pmf.rel_mono[THEN le_funD, THEN le_funD, THEN le_boolD, THEN mp, OF _ pq] fg)
 
-text {*
+text \<open>
   Proof that @{const rel_pmf} preserves orders.
   Antisymmetry proof follows Thm. 1 in N. Saheb-Djahromi, Cpo's of measures for nondeterminism,
   Theoretical Computer Science 12(1):19--37, 1980,
   @{url "http://dx.doi.org/10.1016/0304-3975(80)90003-1"}
-*}
+\<close>
 
 lemma
   assumes *: "rel_pmf R p q"

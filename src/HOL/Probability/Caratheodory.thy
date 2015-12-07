@@ -3,15 +3,15 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section {*Caratheodory Extension Theorem*}
+section \<open>Caratheodory Extension Theorem\<close>
 
 theory Caratheodory
   imports Measure_Space
 begin
 
-text {*
+text \<open>
   Originally from the Hurd/Coble measure theory development, translated by Lawrence Paulson.
-*}
+\<close>
 
 lemma suminf_ereal_2dimen:
   fixes f:: "nat \<times> nat \<Rightarrow> ereal"
@@ -45,7 +45,7 @@ proof -
                      SUP_ereal_setsum[symmetric] incseq_setsumI setsum_nonneg)
 qed
 
-subsection {* Characterizations of Measures *}
+subsection \<open>Characterizations of Measures\<close>
 
 definition subadditive where
   "subadditive M f \<longleftrightarrow> (\<forall>x\<in>M. \<forall>y\<in>M. x \<inter> y = {} \<longrightarrow> f (x \<union> y) \<le> f x + f y)"
@@ -60,7 +60,7 @@ definition outer_measure_space where
 lemma subadditiveD: "subadditive M f \<Longrightarrow> x \<inter> y = {} \<Longrightarrow> x \<in> M \<Longrightarrow> y \<in> M \<Longrightarrow> f (x \<union> y) \<le> f x + f y"
   by (auto simp add: subadditive_def)
 
-subsubsection {* Lambda Systems *}
+subsubsection \<open>Lambda Systems\<close>
 
 definition lambda_system where
   "lambda_system \<Omega> M f = {l \<in> M. \<forall>x \<in> M. f (l \<inter> x) + f ((\<Omega> - l) \<inter> x) = f x}"
@@ -393,7 +393,7 @@ lemma (in ring_of_sets) outer_measure_close:
   assumes posf: "positive M f" and "0 < e" and "outer_measure M f X \<noteq> \<infinity>"
   shows "\<exists>A. range A \<subseteq> M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i) \<and> (\<Sum>i. f (A i)) \<le> outer_measure M f X + e"
 proof -
-  from `outer_measure M f X \<noteq> \<infinity>` have fin: "\<bar>outer_measure M f X\<bar> \<noteq> \<infinity>"
+  from \<open>outer_measure M f X \<noteq> \<infinity>\<close> have fin: "\<bar>outer_measure M f X\<bar> \<noteq> \<infinity>"
     using outer_measure_nonneg[OF posf, of X] by auto
   show ?thesis
     using Inf_ereal_close[OF fin[unfolded outer_measure_def INF_def], OF \<open>0 < e\<close>]
@@ -509,7 +509,7 @@ qed
 lemma measure_down: "measure_space \<Omega> N \<mu> \<Longrightarrow> sigma_algebra \<Omega> M \<Longrightarrow> M \<subseteq> N \<Longrightarrow> measure_space \<Omega> M \<mu>"
   by (auto simp add: measure_space_def positive_def countably_additive_def subset_eq)
 
-subsection {* Caratheodory's theorem *}
+subsection \<open>Caratheodory's theorem\<close>
 
 theorem (in ring_of_sets) caratheodory':
   assumes posf: "positive M f" and ca: "countably_additive M f"
@@ -546,7 +546,7 @@ proof (intro caratheodory' empty_continuous_imp_countably_additive f)
   show "\<forall>A\<in>M. f A \<noteq> \<infinity>" using fin by auto
 qed (rule cont)
 
-subsection {* Volumes *}
+subsection \<open>Volumes\<close>
 
 definition volume :: "'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> bool" where
   "volume M f \<longleftrightarrow>
@@ -575,16 +575,16 @@ lemma volume_finite_additive:
 proof -
   have "A`I \<subseteq> M" "disjoint (A`I)" "finite (A`I)" "\<Union>(A`I) \<in> M"
     using A unfolding SUP_def by (auto simp: disjoint_family_on_disjoint_image)
-  with `volume M f` have "f (\<Union>(A`I)) = (\<Sum>a\<in>A`I. f a)"
+  with \<open>volume M f\<close> have "f (\<Union>(A`I)) = (\<Sum>a\<in>A`I. f a)"
     unfolding volume_def by blast
   also have "\<dots> = (\<Sum>i\<in>I. f (A i))"
   proof (subst setsum.reindex_nontrivial)
     fix i j assume "i \<in> I" "j \<in> I" "i \<noteq> j" "A i = A j"
-    with `disjoint_family_on A I` have "A i = {}"
+    with \<open>disjoint_family_on A I\<close> have "A i = {}"
       by (auto simp: disjoint_family_on_def)
     then show "f (A i) = 0"
-      using volume_empty[OF `volume M f`] by simp
-  qed (auto intro: `finite I`)
+      using volume_empty[OF \<open>volume M f\<close>] by simp
+  qed (auto intro: \<open>finite I\<close>)
   finally show "f (UNION I A) = (\<Sum>i\<in>I. f (A i))"
     by simp
 qed
@@ -622,15 +622,15 @@ proof -
     proof (intro setsum.cong refl)
       fix d assume "d \<in> D"
       have Un_eq_d: "(\<Union>c\<in>C. c \<inter> d) = d"
-        using `d \<in> D` `\<Union>C = \<Union>D` by auto
+        using \<open>d \<in> D\<close> \<open>\<Union>C = \<Union>D\<close> by auto
       moreover have "\<mu> (\<Union>c\<in>C. c \<inter> d) = (\<Sum>c\<in>C. \<mu> (c \<inter> d))"
       proof (rule volume_finite_additive)
         { fix c assume "c \<in> C" then show "c \<inter> d \<in> M"
-            using C D `d \<in> D` by auto }
+            using C D \<open>d \<in> D\<close> by auto }
         show "(\<Union>a\<in>C. a \<inter> d) \<in> M"
-          unfolding Un_eq_d using `d \<in> D` D by auto
+          unfolding Un_eq_d using \<open>d \<in> D\<close> D by auto
         show "disjoint_family_on (\<lambda>a. a \<inter> d) C"
-          using `disjoint C` by (auto simp: disjoint_family_on_def disjoint_def)
+          using \<open>disjoint C\<close> by (auto simp: disjoint_family_on_def disjoint_def)
       qed fact+
       ultimately show "\<mu> d = (\<Sum>c\<in>C. \<mu> (c \<inter> d))" by simp
     qed }
@@ -659,7 +659,7 @@ proof -
       by (simp add: disjoint_def)
   next
     fix a assume "a \<in> ?R" then guess Ca .. note Ca = this
-    with \<mu>'[of Ca] `volume M \<mu>`[THEN volume_positive]
+    with \<mu>'[of Ca] \<open>volume M \<mu>\<close>[THEN volume_positive]
     show "0 \<le> \<mu>' a"
       by (auto intro!: setsum_nonneg)
   next
@@ -671,10 +671,10 @@ proof -
     with Ca Cb have "Ca \<inter> Cb \<subseteq> {{}}" by auto
     then have C_Int_cases: "Ca \<inter> Cb = {{}} \<or> Ca \<inter> Cb = {}" by auto
 
-    from `a \<inter> b = {}` have "\<mu>' (\<Union>(Ca \<union> Cb)) = (\<Sum>c\<in>Ca \<union> Cb. \<mu> c)"
+    from \<open>a \<inter> b = {}\<close> have "\<mu>' (\<Union>(Ca \<union> Cb)) = (\<Sum>c\<in>Ca \<union> Cb. \<mu> c)"
       using Ca Cb by (intro \<mu>') (auto intro!: disjoint_union)
     also have "\<dots> = (\<Sum>c\<in>Ca \<union> Cb. \<mu> c) + (\<Sum>c\<in>Ca \<inter> Cb. \<mu> c)"
-      using C_Int_cases volume_empty[OF `volume M \<mu>`] by (elim disjE) simp_all
+      using C_Int_cases volume_empty[OF \<open>volume M \<mu>\<close>] by (elim disjE) simp_all
     also have "\<dots> = (\<Sum>c\<in>Ca. \<mu> c) + (\<Sum>c\<in>Cb. \<mu> c)"
       using Ca Cb by (simp add: setsum.union_inter)
     also have "\<dots> = \<mu>' a + \<mu>' b"
@@ -684,7 +684,7 @@ proof -
   qed
 qed
 
-subsubsection {* Caratheodory on semirings *}
+subsubsection \<open>Caratheodory on semirings\<close>
 
 theorem (in semiring_of_sets) caratheodory:
   assumes pos: "positive M \<mu>" and ca: "countably_additive M \<mu>"
@@ -698,14 +698,14 @@ proof -
 
     fix C assume sets_C: "C \<subseteq> M" "\<Union>C \<in> M" and "disjoint C" "finite C"
     have "\<exists>F'. bij_betw F' {..<card C} C"
-      by (rule finite_same_card_bij[OF _ `finite C`]) auto
+      by (rule finite_same_card_bij[OF _ \<open>finite C\<close>]) auto
     then guess F' .. note F' = this
     then have F': "C = F' ` {..< card C}" "inj_on F' {..< card C}"
       by (auto simp: bij_betw_def)
     { fix i j assume *: "i < card C" "j < card C" "i \<noteq> j"
       with F' have "F' i \<in> C" "F' j \<in> C" "F' i \<noteq> F' j"
         unfolding inj_on_def by auto
-      with `disjoint C`[THEN disjointD]
+      with \<open>disjoint C\<close>[THEN disjointD]
       have "F' i \<inter> F' j = {}"
         by auto }
     note F'_disj = this
@@ -733,7 +733,7 @@ proof -
     finally show "\<mu> (\<Union>C) = (\<Sum>c\<in>C. \<mu> c)" .
   next
     show "\<mu> {} = 0"
-      using `positive M \<mu>` by (rule positiveD1)
+      using \<open>positive M \<mu>\<close> by (rule positiveD1)
   qed
   from extend_volume[OF this] obtain \<mu>_r where
     V: "volume generated_ring \<mu>_r" "\<And>a. a \<in> M \<Longrightarrow> \<mu> a = \<mu>_r a"
@@ -758,7 +758,7 @@ proof -
         and Un_A: "(\<Union>i. A i) \<in> generated_ring"
         using A' C'
         by (auto intro!: G.Int G.finite_Union intro: generated_ringI_Basic simp: disjoint_family_on_def)
-      from A C' `c \<in> C'` have UN_eq: "(\<Union>i. A i) = c"
+      from A C' \<open>c \<in> C'\<close> have UN_eq: "(\<Union>i. A i) = c"
         by (auto simp: A_def)
 
       have "\<forall>i::nat. \<exists>f::nat \<Rightarrow> 'a set. \<mu>_r (A i) = (\<Sum>j. \<mu>_r (f j)) \<and> disjoint_family f \<and> \<Union>range f = A i \<and> (\<forall>j. f j \<in> M)"
@@ -769,7 +769,7 @@ proof -
         from generated_ringE[OF this] guess C . note C = this
 
         have "\<exists>F'. bij_betw F' {..<card C} C"
-          by (rule finite_same_card_bij[OF _ `finite C`]) auto
+          by (rule finite_same_card_bij[OF _ \<open>finite C\<close>]) auto
         then guess F .. note F = this
         def f \<equiv> "\<lambda>i. if i < card C then F i else {}"
         then have f: "bij_betw f {..< card C} C"
@@ -831,7 +831,7 @@ proof -
       also have "\<dots> = (\<Sum>n. \<mu> (case_prod f (prod_decode n)))"
         using f V(2) by (auto intro!: arg_cong[where f=suminf] split: prod.split)
       also have "\<dots> = \<mu> (\<Union>i. case_prod f (prod_decode i))"
-        using f `c \<in> C'` C'
+        using f \<open>c \<in> C'\<close> C'
         by (intro ca[unfolded countably_additive_def, rule_format])
            (auto split: prod.split simp: UN_f_eq d UN_eq)
       finally have "(\<Sum>n. \<mu>_r (A' n \<inter> c)) = \<mu> c"
@@ -858,7 +858,7 @@ proof -
     finally show "(\<Sum>n. \<mu>_r (A' n)) = \<mu>_r (\<Union>i. A' i)"
       using C' by simp
   qed
-  from G.caratheodory'[OF `positive generated_ring \<mu>_r` `countably_additive generated_ring \<mu>_r`]
+  from G.caratheodory'[OF \<open>positive generated_ring \<mu>_r\<close> \<open>countably_additive generated_ring \<mu>_r\<close>]
   guess \<mu>' ..
   with V show ?thesis
     unfolding sigma_sets_generated_ring_eq

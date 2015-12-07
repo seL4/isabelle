@@ -3,7 +3,7 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-section {*Projective Family*}
+section \<open>Projective Family\<close>
 
 theory Projective_Family
 imports Finite_Product_Measure Giry_Monad
@@ -22,11 +22,11 @@ proof  (intro subsetI)
   proof cases
     assume x: "x \<in> (\<Pi>\<^sub>E i\<in>J. S i)"
     have "merge J (I - J) (x,y) \<in> (\<lambda>x. restrict x J) -` A \<inter> (\<Pi>\<^sub>E i\<in>I. S i)"
-      using y x `J \<subseteq> I` PiE_cancel_merge[of "J" "I - J" x y S] \<open>x\<in>A\<close>
+      using y x \<open>J \<subseteq> I\<close> PiE_cancel_merge[of "J" "I - J" x y S] \<open>x\<in>A\<close>
       by (auto simp del: PiE_cancel_merge simp add: Un_absorb1)
     also have "\<dots> \<subseteq> (\<lambda>x. restrict x J) -` B \<inter> (\<Pi>\<^sub>E i\<in>I. S i)" by fact
     finally show "x \<in> B"
-      using y x `J \<subseteq> I` PiE_cancel_merge[of "J" "I - J" x y S] \<open>x\<in>A\<close> eq
+      using y x \<open>J \<subseteq> I\<close> PiE_cancel_merge[of "J" "I - J" x y S] \<open>x\<in>A\<close> eq
       by (auto simp del: PiE_cancel_merge simp add: Un_absorb1)
   qed (insert \<open>x\<in>A\<close> sets, auto)
 qed
@@ -62,7 +62,7 @@ proof (rule vimage_restrict_preseve_mono)
   show "(\<Pi>\<^sub>E i\<in>L. space (M i)) \<noteq> {}"
     using \<open>L \<subseteq> I\<close> by (auto simp add: not_empty_M space_PiM[symmetric])
   show "(\<lambda>x. restrict x J) -` X \<inter> (\<Pi>\<^sub>E i\<in>L. space (M i)) \<subseteq> (\<lambda>x. restrict x J) -` Y \<inter> (\<Pi>\<^sub>E i\<in>L. space (M i))"
-    using `prod_emb L M J X \<subseteq> prod_emb L M J Y` by (simp add: prod_emb_def)
+    using \<open>prod_emb L M J X \<subseteq> prod_emb L M J Y\<close> by (simp add: prod_emb_def)
 qed fact
 
 lemma emb_injective:

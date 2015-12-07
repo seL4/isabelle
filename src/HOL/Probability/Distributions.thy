@@ -3,7 +3,7 @@
     Author:     Johannes Hölzl, TU München
     Author:     Jeremy Avigad, CMU *)
 
-section {* Properties of Various Distributions *}
+section \<open>Properties of Various Distributions\<close>
 
 theory Distributions
   imports Convolution Information
@@ -69,7 +69,7 @@ proof -
   finally show ?thesis .
 qed
 
-subsection {* Erlang *}
+subsection \<open>Erlang\<close>
 
 lemma nn_intergal_power_times_exp_Icc:
   assumes [arith]: "0 \<le> a"
@@ -327,7 +327,7 @@ proof (subst variance_eq)
     by simp (auto simp: power2_eq_square field_simps of_nat_Suc)
 qed
 
-subsection {* Exponential distribution *}
+subsection \<open>Exponential distribution\<close>
 
 abbreviation exponential_density :: "real \<Rightarrow> real \<Rightarrow> real" where
   "exponential_density \<equiv> erlang_density 0"
@@ -353,7 +353,7 @@ proof (cases l "0 :: real" rule: linorder_cases)
       using assms by (auto simp: distributed_real_AE)
     then have "AE x in lborel. x \<le> (0::real)"
       apply eventually_elim
-      using `l < 0`
+      using \<open>l < 0\<close>
       apply (auto simp: exponential_density_def zero_le_mult_iff split: split_if_asm)
       done
     then show "emeasure lborel {x :: real \<in> space lborel. 0 < x} = 0"
@@ -391,7 +391,7 @@ lemma (in prob_space) exponential_distributed_memoryless:
   shows "\<P>(x in M. a + t < X x \<bar> a < X x) = \<P>(x in M. t < X x)"
 proof -
   have "\<P>(x in M. a + t < X x \<bar> a < X x) = \<P>(x in M. a + t < X x) / \<P>(x in M. a < X x)"
-    using `0 \<le> t` by (auto simp: cond_prob_def intro!: arg_cong[where f=prob] arg_cong2[where f="op /"])
+    using \<open>0 \<le> t\<close> by (auto simp: cond_prob_def intro!: arg_cong[where f=prob] arg_cong2[where f="op /"])
   also have "\<dots> = exp (- (a + t) * l) / exp (- a * l)"
     using a t by (simp add: exponential_distributedD_gt[OF D])
   also have "\<dots> = exp (- t * l)"
@@ -563,7 +563,7 @@ lemma (in prob_space) sum_indep_erlang:
   assumes erlY: "distributed M lborel Y (erlang_density k\<^sub>2 l)"
   shows "distributed M lborel (\<lambda>x. X x + Y x) (erlang_density (Suc k\<^sub>1 + Suc k\<^sub>2 - 1) l)"
   using assms
-  apply (subst convolution_erlang_density[symmetric, OF `0<l`])
+  apply (subst convolution_erlang_density[symmetric, OF \<open>0<l\<close>])
   apply (intro distributed_convolution)
   apply auto
   done
@@ -630,7 +630,7 @@ proof -
     by (simp add: log_def divide_simps ln_div)
 qed
 
-subsection {* Uniform distribution *}
+subsection \<open>Uniform distribution\<close>
 
 lemma uniform_distrI:
   assumes X: "X \<in> measurable M M'"
@@ -679,7 +679,7 @@ proof (rule distributedI_borel_atMost)
     (\<integral>\<^sup>+ x. ereal (1 / measure lborel A) * indicator (A \<inter> {..a}) x \<partial>lborel)"
     by (auto intro!: nn_integral_cong split: split_indicator)
   also have "\<dots> = ereal (1 / measure lborel A) * emeasure lborel (A \<inter> {..a})"
-    using `A \<in> sets borel`
+    using \<open>A \<in> sets borel\<close>
     by (intro nn_integral_cmult_indicator) (auto simp: measure_nonneg)
   also have "\<dots> = ereal (measure lborel (A \<inter> {..a}) / r)"
     unfolding emeasure_eq_ereal_measure[OF fin] using A by (simp add: measure_def)
@@ -702,27 +702,27 @@ proof (rule uniform_distrI_borel)
     then have "emeasure M {x\<in>space M. X x \<le> t} \<le> emeasure M {x\<in>space M. X x \<le> a}"
       using X by (auto intro!: emeasure_mono measurable_sets)
     also have "\<dots> = 0"
-      using distr[of a] `a < b` by (simp add: emeasure_eq_measure)
+      using distr[of a] \<open>a < b\<close> by (simp add: emeasure_eq_measure)
     finally have "emeasure M {x\<in>space M. X x \<le> t} = 0"
       by (simp add: antisym measure_nonneg emeasure_le_0_iff)
-    with `t < a` show ?thesis by simp
+    with \<open>t < a\<close> show ?thesis by simp
   next
     assume bnds: "a \<le> t" "t \<le> b"
     have "{a..b} \<inter> {..t} = {a..t}"
       using bnds by auto
-    then show ?thesis using `a \<le> t` `a < b`
+    then show ?thesis using \<open>a \<le> t\<close> \<open>a < b\<close>
       using distr[OF bnds] by (simp add: emeasure_eq_measure)
   next
     assume "b < t"
     have "1 = emeasure M {x\<in>space M. X x \<le> b}"
-      using distr[of b] `a < b` by (simp add: one_ereal_def emeasure_eq_measure)
+      using distr[of b] \<open>a < b\<close> by (simp add: one_ereal_def emeasure_eq_measure)
     also have "\<dots> \<le> emeasure M {x\<in>space M. X x \<le> t}"
-      using X `b < t` by (auto intro!: emeasure_mono measurable_sets)
+      using X \<open>b < t\<close> by (auto intro!: emeasure_mono measurable_sets)
     finally have "emeasure M {x\<in>space M. X x \<le> t} = 1"
        by (simp add: antisym emeasure_eq_measure one_ereal_def)
-    with `b < t` `a < b` show ?thesis by (simp add: measure_def one_ereal_def)
+    with \<open>b < t\<close> \<open>a < b\<close> show ?thesis by (simp add: measure_def one_ereal_def)
   qed
-qed (insert X `a < b`, auto)
+qed (insert X \<open>a < b\<close>, auto)
 
 lemma (in prob_space) uniform_distributed_measure:
   fixes a b :: real
@@ -734,12 +734,12 @@ proof -
     using distributed_measurable[OF D]
     by (subst emeasure_distr) (auto intro!: arg_cong2[where f=emeasure])
   also have "\<dots> = (\<integral>\<^sup>+x. ereal (1 / (b - a)) * indicator {a .. t} x \<partial>lborel)"
-    using distributed_borel_measurable[OF D] `a \<le> t` `t \<le> b`
+    using distributed_borel_measurable[OF D] \<open>a \<le> t\<close> \<open>t \<le> b\<close>
     unfolding distributed_distr_eq_density[OF D]
     by (subst emeasure_density)
        (auto intro!: nn_integral_cong simp: measure_def split: split_indicator)
   also have "\<dots> = ereal (1 / (b - a)) * (t - a)"
-    using `a \<le> t` `t \<le> b`
+    using \<open>a \<le> t\<close> \<open>t \<le> b\<close>
     by (subst nn_integral_cmult_indicator) auto
   finally show ?thesis
     by (simp add: measure_def)
@@ -788,12 +788,12 @@ proof (subst distributed_integral[OF D, of "\<lambda>x. x", symmetric])
       by (auto intro!: isCont_divide)
     have *: "b\<^sup>2 / (2 * measure lborel {a..b}) - a\<^sup>2 / (2 * measure lborel {a..b}) =
       (b*b - a * a) / (2 * (b - a))"
-      using `a < b`
+      using \<open>a < b\<close>
       by (auto simp: measure_def power2_eq_square diff_divide_distrib[symmetric])
     show "b\<^sup>2 / (2 * measure lborel {a..b}) - a\<^sup>2 / (2 * measure lborel {a..b}) = (a + b) / 2"
-      using `a < b`
+      using \<open>a < b\<close>
       unfolding * square_diff_square_factored by (auto simp: field_simps)
-  qed (insert `a < b`, simp)
+  qed (insert \<open>a < b\<close>, simp)
   finally show "(\<integral> x. indicator {a .. b} x / measure lborel {a .. b} * x \<partial>lborel) = (a + b) / 2" .
 qed auto
 
@@ -812,7 +812,7 @@ proof (subst distributed_variance)
   finally show "(\<integral>x. x\<^sup>2 * ?D x \<partial>lborel) = (b - a)\<^sup>2 / 12" .
 qed fact
 
-subsection {* Normal distribution *}
+subsection \<open>Normal distribution\<close>
 
 
 definition normal_density :: "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> real" where
@@ -936,7 +936,7 @@ proof -
     let ?f = "\<lambda>b. \<integral>x. indicator {0..} x *\<^sub>R ?M (k + 2) x * indicator {..b} x \<partial>lborel"
     have "((\<lambda>b. (k + 1) / 2 * (\<integral>x. indicator {..b} x *\<^sub>R (indicator {0..} x *\<^sub>R ?M k x) \<partial>lborel) - ?M (k + 1) b / 2) --->
         (k + 1) / 2 * (\<integral>x. indicator {0..} x *\<^sub>R ?M k x \<partial>lborel) - 0 / 2) at_top" (is ?tendsto)
-    proof (intro tendsto_intros `2 \<noteq> 0` tendsto_integral_at_top sets_lborel Mk[THEN integrable.intros])
+    proof (intro tendsto_intros \<open>2 \<noteq> 0\<close> tendsto_integral_at_top sets_lborel Mk[THEN integrable.intros])
       show "(?M (k + 1) ---> 0) at_top"
       proof cases
         assume "even k"
@@ -945,7 +945,7 @@ proof -
                    filterlim_at_top_imp_at_infinity filterlim_ident filterlim_pow_at_top filterlim_ident)
              auto
         also have "(\<lambda>x. ((x\<^sup>2)^(k div 2 + 1) / exp (x\<^sup>2)) * (1 / x) :: real) = ?M (k + 1)"
-          using `even k` by (auto simp: fun_eq_iff exp_minus field_simps power2_eq_square power_mult elim: evenE)
+          using \<open>even k\<close> by (auto simp: fun_eq_iff exp_minus field_simps power2_eq_square power_mult elim: evenE)
         finally show ?thesis by simp
       next
         assume "odd k"
@@ -954,7 +954,7 @@ proof -
                     filterlim_ident filterlim_pow_at_top)
              auto
         also have "(\<lambda>x. ((x\<^sup>2)^((k - 1) div 2 + 1) / exp (x\<^sup>2)) :: real) = ?M (k + 1)"
-          using `odd k` by (auto simp: fun_eq_iff exp_minus field_simps power2_eq_square power_mult elim: oddE)
+          using \<open>odd k\<close> by (auto simp: fun_eq_iff exp_minus field_simps power2_eq_square power_mult elim: oddE)
         finally show ?thesis by simp
       qed
     qed
@@ -1203,7 +1203,7 @@ proof -
     by (simp add: normal_density_def real_sqrt_mult field_simps)
        (simp add: power2_eq_square field_simps)
   show ?thesis
-    by (rule distributed_affineI[OF _ `\<alpha> \<noteq> 0`, where t=\<beta>]) (simp_all add: eq X)
+    by (rule distributed_affineI[OF _ \<open>\<alpha> \<noteq> 0\<close>, where t=\<beta>]) (simp_all add: eq X)
 qed
 
 lemma (in prob_space) normal_standard_normal_convert:

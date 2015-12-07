@@ -142,7 +142,7 @@ subsection \<open>The key "counting" observation, somewhat abstracted.\<close>
 lemma kuhn_counting_lemma:
   fixes bnd compo compo' face S F
   defines "nF s == card {f\<in>F. face f s \<and> compo' f}"
-  assumes [simp, intro]: "finite F" -- "faces" and [simp, intro]: "finite S" -- "simplices"
+  assumes [simp, intro]: "finite F" \<comment> "faces" and [simp, intro]: "finite S" \<comment> "simplices"
     and "\<And>f. f \<in> F \<Longrightarrow> bnd f \<Longrightarrow> card {s\<in>S. face f s} = 1"
     and "\<And>f. f \<in> F \<Longrightarrow> \<not> bnd f \<Longrightarrow> card {s\<in>S. face f s} = 2"
     and "\<And>s. s \<in> S \<Longrightarrow> compo s \<Longrightarrow> nF s = 1"
@@ -1932,7 +1932,7 @@ lemma brouwer_ball:
   using assms by auto
 
 text \<open>Still more general form; could derive this directly without using the
-  rather involved @{text "HOMEOMORPHIC_CONVEX_COMPACT"} theorem, just using
+  rather involved \<open>HOMEOMORPHIC_CONVEX_COMPACT\<close> theorem, just using
   a scaling and translation to put the set inside the unit cube.\<close>
 
 lemma brouwer:
