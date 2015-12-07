@@ -177,7 +177,7 @@ fun interpret_cmd raw_expression = gen_interpret read_interpretation raw_express
 end;
 
 
-(* algebraic-view *)
+(* algebraic view *)
 
 local
 

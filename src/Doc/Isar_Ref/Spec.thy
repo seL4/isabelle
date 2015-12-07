@@ -670,7 +670,9 @@ text \<open>
   proved explicitly the user. Such rewrite definitions are a even more useful
   device for interpreting concepts introduced through definitions, but they
   are only supported for interpretation commands operating in a local theory
-  whose implementing target actually supports this.
+  whose implementing target actually supports this.  Note that despite
+  the suggestive \<^theory_text>\<open>and\<close> connective, \<open>defs\<close>
+  are parsed sequentially without mutual recursion.
 
   \<^descr> \<^theory_text>\<open>interpretation expr rewrites eqns\<close> interprets \<open>expr\<close> into a local theory
   such that its lifetime is limited to the current context block (e.g. a
@@ -770,6 +772,13 @@ text \<open>
     interpreted twice and the instantiation of the second interpretation is
     more general than the interpretation of the first. The locale package does
     not attempt to remove subsumed interpretations.
+  \end{warn}
+
+  \begin{warn}
+    Due to a technical limitation, the specific context of a interpretation
+    given by a \<^theory_text>\<open>for\<close> clause can get lost between a \<^theory_text>\<open>defines\<close> and
+    \<^theory_text>\<open>rewrites\<close> clause and must then be recovered manually using
+    explicit sort constraints and quantified term variables.
   \end{warn}
 
   \begin{warn}

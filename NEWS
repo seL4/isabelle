@@ -346,12 +346,12 @@ example:
     notation right.derived ("\<odot>''")
   end
 
-* Command 'sublocale' accepts mixin definitions after keyword
+* Command 'sublocale' accepts rewrite definitions after keyword
 'defines'.
 
 * Command 'permanent_interpretation' is available in Pure, without
 need to load a separate theory.  Keyword 'defines' identifies
-mixin definitions, keyword 'rewrites' identifies rewrite morphisms.
+rewrite definitions, keyword 'rewrites' identifies rewrite equations.
 INCOMPATIBILITY.
 
 * Command 'print_definitions' prints dependencies of definitional
