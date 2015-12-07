@@ -48,17 +48,26 @@ running ML program.
 * The main Isabelle executable is managed as single-instance Desktop
 application uniformly on all platforms: Linux, Windows, Mac OS X.
 
-* The text overview column (status of errors, warnings etc.) is updated
-asynchronously, leading to much better editor reactivity. Moreover, the
-full document node content is taken into account.
-
-* The State panel manages explicit proof state output. The jEdit action
-"isabelle.update-state" (shortcut S+ENTER) triggers manual update
-according to cursor position.
+* The State panel manages explicit proof state output, with dynamic
+auto-update according to cursor movement. Alternatively, the jEdit
+action "isabelle.update-state" (shortcut S+ENTER) triggers manual
+update.
 
 * The Output panel no longer shows proof state output by default, to
 avoid GUI overcrowding. INCOMPATIBILITY, use the State panel instead or
 enable option "editor_output_state".
+
+* The text overview column (status of errors, warnings etc.) is updated
+asynchronously, leading to much better editor reactivity. Moreover, the
+full document node content is taken into account. The width of the
+column is scaled according to the main text area font, for improved
+visibility.
+
+* The main text area no longer changes its color hue in outdated
+situations. The text overview column takes over the role to indicate
+unfinished edits in the PIDE pipeline. This avoids flashing text display
+due to ad-hoc updates by auxiliary GUI components, such as the State
+panel.
 
 * Action "isabelle-emph" (with keyboard shortcut C+e LEFT) controls
 emphasized text style; the effect is visible in document output, not in
