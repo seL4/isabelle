@@ -2106,7 +2106,7 @@ theorem HInfinite_omega [simp]: "omega \<in> HInfinite"
 apply (simp add: omega_def)
 apply (rule FreeUltrafilterNat_HInfinite)
 apply clarify
-apply (rule_tac u1 = "u-1" in eventually_mono [OF _ FreeUltrafilterNat_nat_gt_real])
+apply (rule_tac u1 = "u-1" in eventually_mono' [OF FreeUltrafilterNat_nat_gt_real])
 apply auto
 done
 

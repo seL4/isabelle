@@ -854,6 +854,13 @@ lemma complex_split_polar:
   obtains r a::real where "z = complex_of_real r * (cos a + \<i> * sin a)" "0 \<le> r" "0 \<le> a" "a < 2*pi"
   using Arg cis.ctr cis_conv_exp by fastforce
 
+lemma Re_Im_le_cmod: "Im w * sin \<phi> + Re w * cos \<phi> \<le> cmod w"
+proof (cases w rule: complex_split_polar)
+  case (1 r a) with sin_cos_le1 [of a \<phi>] show ?thesis
+    apply (simp add: norm_mult cmod_unit_one)
+    by (metis (no_types, hide_lams) abs_le_D1 distrib_left mult.commute mult.left_commute mult_left_le)
+qed
+
 subsection\<open>Analytic properties of tangent function\<close>
 
 lemma cnj_tan: "cnj(tan z) = tan(cnj z)"

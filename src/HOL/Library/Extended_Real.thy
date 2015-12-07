@@ -2443,11 +2443,8 @@ proof (intro topological_tendstoI)
   assume "open S" and "x \<in> S"
   then have S: "open S" "ereal x \<in> ereal ` S"
     by (simp_all add: inj_image_mem_iff)
-  have "\<forall>x. f x \<in> ereal ` S \<longrightarrow> real_of_ereal (f x) \<in> S"
-    by auto
-  from this lim[THEN topological_tendstoD, OF open_ereal, OF S]
   show "eventually (\<lambda>x. real_of_ereal (f x) \<in> S) net"
-    by (rule eventually_mono)
+    by (auto intro: eventually_mono' [OF lim[THEN topological_tendstoD, OF open_ereal, OF S]])
 qed
 
 lemma lim_ereal[simp]: "((\<lambda>n. ereal (f n)) ---> ereal x) net \<longleftrightarrow> (f ---> x) net"

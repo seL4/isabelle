@@ -661,6 +661,10 @@ lemmas real_tendsto_sandwich = tendsto_sandwich[where 'b=real]
 
 subsubsection \<open>Linear operators and multiplication\<close>
 
+lemma linear_times:
+  fixes c::"'a::real_algebra" shows "linear (\<lambda>x. c * x)"
+  by (auto simp: linearI distrib_left)
+
 lemma (in bounded_linear) tendsto:
   "(g ---> a) F \<Longrightarrow> ((\<lambda>x. f (g x)) ---> f a) F"
   by (simp only: tendsto_Zfun_iff diff [symmetric] Zfun)
@@ -712,6 +716,16 @@ lemmas tendsto_scaleR [tendsto_intros] =
 
 lemmas tendsto_mult [tendsto_intros] =
   bounded_bilinear.tendsto [OF bounded_bilinear_mult]
+
+lemma tendsto_mult_left:
+  fixes c::"'a::real_normed_algebra"
+  shows "(f ---> l) F \<Longrightarrow> ((\<lambda>x. c * (f x)) ---> c * l) F"
+by (rule tendsto_mult [OF tendsto_const])
+
+lemma tendsto_mult_right:
+  fixes c::"'a::real_normed_algebra"
+  shows "(f ---> l) F \<Longrightarrow> ((\<lambda>x. (f x) * c) ---> l * c) F"
+by (rule tendsto_mult [OF _ tendsto_const])
 
 lemmas continuous_of_real [continuous_intros] =
   bounded_linear.continuous [OF bounded_linear_of_real]

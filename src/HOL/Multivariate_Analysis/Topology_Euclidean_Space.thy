@@ -2282,15 +2282,6 @@ lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually 
 lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. eventually P net)"
   by (simp add: filter_eq_iff)
 
-text\<open>Combining theorems for "eventually"\<close>
-
-lemma eventually_rev_mono:
-  "eventually P net \<Longrightarrow> (\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually Q net"
-  using eventually_mono [of P Q] by fast
-
-lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> \<not> trivial_limit net \<Longrightarrow> \<not> eventually (\<lambda>x. P x) net"
-  by (simp add: eventually_False)
-
 
 subsection \<open>Limits\<close>
 
@@ -2319,7 +2310,7 @@ lemma Lim_at_infinity:
   by (auto simp add: tendsto_iff eventually_at_infinity)
 
 lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
-  by (rule topological_tendstoI, auto elim: eventually_rev_mono)
+  by (rule topological_tendstoI, auto elim: eventually_mono')
 
 text\<open>The expected monotonicity property.\<close>
 
@@ -2998,7 +2989,7 @@ proof (rule islimptI)
     by fast
 qed
 
-lemma closure_ball:
+lemma closure_ball [simp]:
   fixes x :: "'a::real_normed_vector"
   shows "0 < e \<Longrightarrow> closure (ball x e) = cball x e"
   apply (rule equalityI)
@@ -3016,7 +3007,7 @@ lemma closure_ball:
   done
 
 (* In a trivial vector space, this fails for e = 0. *)
-lemma interior_cball:
+lemma interior_cball [simp]:
   fixes x :: "'a::{real_normed_vector, perfect_space}"
   shows "interior (cball x e) = ball x e"
 proof (cases "e \<ge> 0")
@@ -3108,12 +3099,12 @@ lemma frontier_cball:
   apply arith
   done
 
-lemma cball_eq_empty: "cball x e = {} \<longleftrightarrow> e < 0"
+lemma cball_eq_empty [simp]: "cball x e = {} \<longleftrightarrow> e < 0"
   apply (simp add: set_eq_iff not_le)
   apply (metis zero_le_dist dist_self order_less_le_trans)
   done
 
-lemma cball_empty: "e < 0 \<Longrightarrow> cball x e = {}"
+lemma cball_empty [simp]: "e < 0 \<Longrightarrow> cball x e = {}"
   by (simp add: cball_eq_empty)
 
 lemma cball_eq_sing:
@@ -3132,6 +3123,26 @@ lemma cball_sing:
   fixes x :: "'a::metric_space"
   shows "e = 0 \<Longrightarrow> cball x e = {x}"
   by (auto simp add: set_eq_iff)
+
+lemma ball_divide_subset: "d \<ge> 1 \<Longrightarrow> ball x (e/d) \<subseteq> ball x e"
+  apply (cases "e \<le> 0")
+  apply (simp add: ball_empty divide_simps)
+  apply (rule subset_ball)
+  apply (simp add: divide_simps)
+  done
+
+lemma ball_divide_subset_numeral: "ball x (e / numeral w) \<subseteq> ball x e"
+  using ball_divide_subset one_le_numeral by blast
+
+lemma cball_divide_subset: "d \<ge> 1 \<Longrightarrow> cball x (e/d) \<subseteq> cball x e"
+  apply (cases "e < 0")
+  apply (simp add: divide_simps)
+  apply (rule subset_cball)
+  apply (metis divide_1 frac_le not_le order_refl zero_less_one)
+  done
+
+lemma cball_divide_subset_numeral: "cball x (e / numeral w) \<subseteq> cball x e"
+  using cball_divide_subset one_le_numeral by blast
 
 
 subsection \<open>Boundedness\<close>
@@ -5723,7 +5734,7 @@ proof -
     using \<open>open U\<close> and \<open>f x \<in> U\<close>
     unfolding tendsto_def by fast
   then have "eventually (\<lambda>y. f y \<noteq> a) (at x within s)"
-    using \<open>a \<notin> U\<close> by (fast elim: eventually_mono [rotated])
+    using \<open>a \<notin> U\<close> by (fast elim: eventually_mono')
   then show ?thesis
     using \<open>f x \<noteq> a\<close> by (auto simp: dist_commute zero_less_dist_iff eventually_at)
 qed
@@ -8206,9 +8217,8 @@ proof
   qed
 next
   assume ?rhs then show ?lhs
-    apply (auto simp: ball_def dist_norm )
+    apply (auto simp: ball_def dist_norm)
     apply (metis add.commute add_le_cancel_right dist_norm dist_triangle_alt order_trans)
-    using le_less_trans apply fastforce
     done
 qed
 
@@ -8249,7 +8259,6 @@ next
   assume ?rhs then show ?lhs
     apply (auto simp: ball_def dist_norm )
     apply (metis add.commute add_le_cancel_right dist_norm dist_triangle_alt le_less_trans)
-    using le_less_trans apply fastforce
     done
 qed
 
@@ -8361,8 +8370,7 @@ proof
     using \<open>?lhs\<close> ball_eq_empty cball_eq_empty apply blast+
     done
 next
-  assume ?rhs then show ?lhs
-    by (auto simp add: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff)
+  assume ?rhs then show ?lhs by auto
 qed
 
 lemma cball_eq_ball_iff:
@@ -8377,8 +8385,7 @@ proof
     using \<open>?lhs\<close> ball_eq_empty cball_eq_empty apply blast+
     done
 next
-  assume ?rhs then show ?lhs
-    by (auto simp add: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff)
+  assume ?rhs then show ?lhs  using ball_eq_cball_iff by blast
 qed
 
 no_notation

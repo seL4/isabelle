@@ -2622,7 +2622,7 @@ lemma integral_cmul: "f integrable_on s \<Longrightarrow> integral s (\<lambda>x
 lemma integral_neg: "f integrable_on s \<Longrightarrow> integral s (\<lambda>x. - f x) = - integral s f"
   by (rule integral_unique) (metis integrable_integral has_integral_neg)
 
-lemma integral_sub: "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow>
+lemma integral_diff: "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow>
     integral s (\<lambda>x. f x - g x) = integral s f - integral s g"
   by (rule integral_unique) (metis integrable_integral has_integral_sub)
 
@@ -2645,7 +2645,7 @@ lemma integrable_on_cmult_iff:
 lemma integrable_neg: "f integrable_on s \<Longrightarrow> (\<lambda>x. -f(x)) integrable_on s"
   unfolding integrable_on_def by(auto intro: has_integral_neg)
 
-lemma integrable_sub:
+lemma integrable_diff:
   "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow> (\<lambda>x. f x - g x) integrable_on s"
   unfolding integrable_on_def by(auto intro: has_integral_sub)
 
@@ -4622,6 +4622,8 @@ next
       by (blast intro: g')
   qed
 qed
+
+lemmas integrable_uniform_limit_real = integrable_uniform_limit [where 'a=real, simplified]
 
 
 subsection \<open>Negligible sets.\<close>
@@ -8933,19 +8935,19 @@ proof -
       have *: "\<And>x f g. (if x \<in> s then f x else 0) - (if x \<in> s then g x else 0) =
         (if x \<in> s then f x - g x else (0::real))"
         by auto
-      note ** = abs_of_nonneg[OF integral_nonneg[OF integrable_sub, OF h g]]
+      note ** = abs_of_nonneg[OF integral_nonneg[OF integrable_diff, OF h g]]
       show "norm (integral (cbox a b) (\<lambda>x. if x \<in> s then h x else 0) -
           integral (cbox a b) (\<lambda>x. if x \<in> s then g x else 0)) \<le>
         norm (integral (cbox c d) (\<lambda>x. if x \<in> s then h x else 0) -
           integral (cbox c d) (\<lambda>x. if x \<in> s then g x else 0))"
-        unfolding integral_sub[OF h g,symmetric] real_norm_def
+        unfolding integral_diff[OF h g,symmetric] real_norm_def
         apply (subst **)
         defer
         apply (subst **)
         defer
         apply (rule has_integral_subset_le)
         defer
-        apply (rule integrable_integral integrable_sub h g)+
+        apply (rule integrable_integral integrable_diff h g)+
       proof safe
         fix x
         assume "x \<in> cbox a b"
@@ -10123,7 +10125,7 @@ proof -
   qed
 
   have sub: "\<And>k. integral s (\<lambda>x. f k x - f 0 x) = integral s (f k) - integral s (f 0)"
-    apply (subst integral_sub)
+    apply (subst integral_diff)
     apply (rule assms(1)[rule_format])+
     apply rule
     done
@@ -10144,7 +10146,7 @@ proof -
   next
     case (2 k)
     then show ?case
-      apply (rule integrable_sub)
+      apply (rule integrable_diff)
       using assms(1)
       apply auto
       done
@@ -10182,7 +10184,7 @@ proof -
     apply -
     apply rule
     defer
-    apply (subst(asm) integral_sub)
+    apply (subst(asm) integral_diff)
     using assms(1)
     apply auto
     apply (rule LIMSEQ_imp_Suc)
@@ -11653,11 +11655,11 @@ proof -
             "J = integral (cbox a b) g"
           using I[of n] J by (simp_all add: integral_unique)
         then have "dist (I n) J = norm (integral (cbox a b) (\<lambda>x. f n x - g x))"
-          by (simp add: integral_sub dist_norm)
+          by (simp add: integral_diff dist_norm)
         also have "\<dots> \<le> integral (cbox a b) (\<lambda>x. (e' / content (cbox a b)))"
           using elim
           by (intro integral_norm_bound_integral)
-            (auto intro!: integrable_sub absolutely_integrable_onI)
+            (auto intro!: integrable_diff absolutely_integrable_onI)
         also have "\<dots> < e"
           using \<open>0 < e\<close>
           by (simp add: e'_def)
@@ -12029,12 +12031,12 @@ next
       apply clarify
       apply (rule le_less_trans [OF _ e2_less])
       apply (rule integrable_bound)
-      apply (auto intro: integrable_sub continuous_on_imp_integrable_on_Pair1)
+      apply (auto intro: integrable_diff continuous_on_imp_integrable_on_Pair1)
       done
   } note * = this
   show ?thesis
     apply (rule integrable_continuous)
-    apply (simp add: * continuous_on_iff dist_norm integral_sub [symmetric] continuous_on_imp_integrable_on_Pair1 [OF assms])
+    apply (simp add: * continuous_on_iff dist_norm integral_diff [symmetric] continuous_on_imp_integrable_on_Pair1 [OF assms])
     done
 qed
 
@@ -12217,10 +12219,10 @@ next
         by (blast intro: continuous_on_imp_integrable_on_Pair1)
       have 1: "norm (integral (cbox (u,w) (v,z)) f - integral (cbox (u,w) (v,z)) (\<lambda>x. f (t1,t2)))
          \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX / 2"
-        apply (simp only: integral_sub [symmetric] f_int_uwvz integrable_const)
+        apply (simp only: integral_diff [symmetric] f_int_uwvz integrable_const)
         apply (rule order_trans [OF integrable_bound [of "e / content ?CBOX / 2"]])
         using cbp e' nf'
-        apply (auto simp: integrable_sub f_int_uwvz integrable_const)
+        apply (auto simp: integrable_diff f_int_uwvz integrable_const)
         done
       have int_integrable: "(\<lambda>x. integral (cbox w z) (\<lambda>y. f (x, y))) integrable_on cbox u v"
         using assms integral_integrable_2dim continuous_on_subset uwvz_sub(2) by blast
@@ -12228,24 +12230,24 @@ next
          "\<And>x. x \<in> cbox u v \<Longrightarrow>
                norm (integral (cbox w z) (\<lambda>y. f (x, y)) - integral (cbox w z) (\<lambda>y. f (t1, t2)))
                \<le> e * content (cbox w z) / content (cbox (a, c) (b, d)) / 2"
-        apply (simp only: integral_sub [symmetric] f_int_uv integrable_const)
+        apply (simp only: integral_diff [symmetric] f_int_uv integrable_const)
         apply (rule order_trans [OF integrable_bound [of "e / content ?CBOX / 2"]])
         using cbp e' nf'
-        apply (auto simp: integrable_sub f_int_uv integrable_const)
+        apply (auto simp: integrable_diff f_int_uv integrable_const)
         done
       have "norm (integral (cbox u v)
                (\<lambda>x. integral (cbox w z) (\<lambda>y. f (x,y)) - integral (cbox w z) (\<lambda>y. f (t1,t2))))
             \<le> e * content (cbox w z) / content ?CBOX / 2 * content (cbox u v)"
         apply (rule integrable_bound [OF _ _ normint_wz])
         using cbp e'
-        apply (auto simp: divide_simps content_pos_le integrable_sub int_integrable integrable_const)
+        apply (auto simp: divide_simps content_pos_le integrable_diff int_integrable integrable_const)
         done
       also have "... \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX / 2"
         by (simp add: content_Pair divide_simps)
       finally have 2: "norm (integral (cbox u v) (\<lambda>x. integral (cbox w z) (\<lambda>y. f (x,y))) -
                       integral (cbox u v) (\<lambda>x. integral (cbox w z) (\<lambda>y. f (t1,t2))))
                 \<le> e * content (cbox (u,w) (v,z)) / content ?CBOX / 2"
-        by (simp only: integral_sub [symmetric] int_integrable integrable_const)
+        by (simp only: integral_diff [symmetric] int_integrable integrable_const)
       have norm_xx: "\<lbrakk>x' = y'; norm(x - x') \<le> e/2; norm(y - y') \<le> e/2\<rbrakk> \<Longrightarrow> norm(x - y) \<le> e" for x::'c and y x' y' e
         using norm_triangle_mono [of "x-y'" "e/2" "y'-y" "e/2"] real_sum_of_halves
         by (simp add: norm_minus_commute)

@@ -477,9 +477,7 @@ lemma uniform_limit_on_Union:
 
 lemma uniform_limit_on_subset:
   "uniform_limit J f g F \<Longrightarrow> I \<subseteq> J \<Longrightarrow> uniform_limit I f g F"
-  by (auto intro!: uniform_limitI dest!: uniform_limitD intro: eventually_rev_mono)
-
-
+  by (auto intro!: uniform_limitI dest!: uniform_limitD intro: eventually_mono')
 
 lemma uniformly_convergent_add:
   "uniformly_convergent_on A f \<Longrightarrow> uniformly_convergent_on A g\<Longrightarrow>

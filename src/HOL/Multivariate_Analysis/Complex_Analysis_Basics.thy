@@ -24,8 +24,8 @@ lemma has_derivative_of_real[derivative_intros, simp]:
   using bounded_linear.has_derivative[OF bounded_linear_of_real] .
 
 lemma has_vector_derivative_real_complex:
-  "DERIV f (of_real a) :> f' \<Longrightarrow> ((\<lambda>x. f (of_real x)) has_vector_derivative f') (at a)"
-  using has_derivative_compose[of of_real of_real a UNIV f "op * f'"]
+  "DERIV f (of_real a) :> f' \<Longrightarrow> ((\<lambda>x. f (of_real x)) has_vector_derivative f') (at a within s)"
+  using has_derivative_compose[of of_real of_real a _ f "op * f'"]
   by (simp add: scaleR_conv_of_real ac_simps has_vector_derivative_def has_field_derivative_def)
 
 lemma fact_cancel:
@@ -33,26 +33,12 @@ lemma fact_cancel:
   shows "of_nat (Suc n) * c / (fact (Suc n)) = c / (fact n)"
   by (simp add: of_nat_mult del: of_nat_Suc times_nat.simps)
 
-lemma linear_times:
-  fixes c::"'a::real_algebra" shows "linear (\<lambda>x. c * x)"
-  by (auto simp: linearI distrib_left)
-
 lemma bilinear_times:
   fixes c::"'a::real_algebra" shows "bilinear (\<lambda>x y::'a. x*y)"
   by (auto simp: bilinear_def distrib_left distrib_right intro!: linearI)
 
 lemma linear_cnj: "linear cnj"
   using bounded_linear.linear[OF bounded_linear_cnj] .
-
-lemma tendsto_mult_left:
-  fixes c::"'a::real_normed_algebra"
-  shows "(f ---> l) F \<Longrightarrow> ((\<lambda>x. c * (f x)) ---> c * l) F"
-by (rule tendsto_mult [OF tendsto_const])
-
-lemma tendsto_mult_right:
-  fixes c::"'a::real_normed_algebra"
-  shows "(f ---> l) F \<Longrightarrow> ((\<lambda>x. (f x) * c) ---> l * c) F"
-by (rule tendsto_mult [OF _ tendsto_const])
 
 lemma tendsto_Re_upper:
   assumes "~ (trivial_limit F)"

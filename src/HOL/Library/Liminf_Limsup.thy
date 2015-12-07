@@ -100,7 +100,7 @@ qed
 lemma Liminf_eq:
   assumes "eventually (\<lambda>x. f x = g x) F"
   shows "Liminf F f = Liminf F g"
-  by (intro antisym Liminf_mono eventually_mono[OF _ assms]) auto
+  by (intro antisym Liminf_mono eventually_mono'[OF assms]) auto
 
 lemma Limsup_mono:
   assumes ev: "eventually (\<lambda>x. f x \<le> g x) F"
@@ -116,7 +116,7 @@ qed
 lemma Limsup_eq:
   assumes "eventually (\<lambda>x. f x = g x) net"
   shows "Limsup net f = Limsup net g"
-  by (intro antisym Limsup_mono eventually_mono[OF _ assms]) auto
+  by (intro antisym Limsup_mono eventually_mono'[OF assms]) auto
 
 lemma Liminf_le_Limsup:
   assumes ntriv: "\<not> trivial_limit F"

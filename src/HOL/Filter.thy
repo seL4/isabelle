@@ -71,6 +71,11 @@ lemma eventually_mono:
   unfolding eventually_def
   by (rule is_filter.mono [OF is_filter_Rep_filter])
 
+lemma eventually_mono':
+  "\<lbrakk>eventually P F; \<And>x. P x \<Longrightarrow> Q x\<rbrakk> \<Longrightarrow> eventually Q F"
+  unfolding eventually_def
+  by (blast intro: is_filter.mono [OF is_filter_Rep_filter])
+
 lemma eventually_conj:
   assumes P: "eventually (\<lambda>x. P x) F"
   assumes Q: "eventually (\<lambda>x. Q x) F"
@@ -82,10 +87,11 @@ lemma eventually_mp:
   assumes "eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
   assumes "eventually (\<lambda>x. P x) F"
   shows "eventually (\<lambda>x. Q x) F"
-proof (rule eventually_mono)
-  show "\<forall>x. (P x \<longrightarrow> Q x) \<and> P x \<longrightarrow> Q x" by simp
-  show "eventually (\<lambda>x. (P x \<longrightarrow> Q x) \<and> P x) F"
+proof -
+  have "eventually (\<lambda>x. (P x \<longrightarrow> Q x) \<and> P x) F"
     using assms by (rule eventually_conj)
+  then show ?thesis
+    by (blast intro: eventually_mono')
 qed
 
 lemma eventually_rev_mp:
@@ -172,7 +178,7 @@ lemma frequentlyE: assumes "frequently P F" obtains x where "P x"
 
 lemma frequently_mp:
   assumes ev: "\<forall>\<^sub>Fx in F. P x \<longrightarrow> Q x" and P: "\<exists>\<^sub>Fx in F. P x" shows "\<exists>\<^sub>Fx in F. Q x"
-proof - 
+proof -
   from ev have "eventually (\<lambda>x. \<not> Q x \<longrightarrow> \<not> P x) F"
     by (rule eventually_rev_mp) (auto intro!: always_eventually)
   from eventually_mp[OF this] P show ?thesis
@@ -225,7 +231,7 @@ lemma eventually_frequently_const_simps:
   "(\<forall>\<^sub>Fx in F. C \<longrightarrow> P x) \<longleftrightarrow> (C \<longrightarrow> (\<forall>\<^sub>Fx in F. P x))"
   by (cases C; simp add: not_frequently)+
 
-lemmas eventually_frequently_simps = 
+lemmas eventually_frequently_simps =
   eventually_frequently_const_simps
   not_eventually
   eventually_conj_iff
@@ -340,7 +346,7 @@ instance proof
     unfolding le_filter_def eventually_inf by (auto intro: eventually_True) }
   { assume "F \<le> F'" and "F \<le> F''" thus "F \<le> inf F' F''"
     unfolding le_filter_def eventually_inf
-    by (auto elim!: eventually_mono intro: eventually_conj) }
+    by (auto intro: eventually_mono' [OF eventually_conj]) }
   { show "F \<le> sup F F'" and "F' \<le> sup F F'"
     unfolding le_filter_def eventually_sup by simp_all }
   { assume "F \<le> F''" and "F' \<le> F''" thus "sup F F' \<le> F''"
@@ -404,10 +410,13 @@ abbreviation (input) trivial_limit :: "'a filter \<Rightarrow> bool"
 lemma trivial_limit_def: "trivial_limit F \<longleftrightarrow> eventually (\<lambda>x. False) F"
   by (rule eventually_False [symmetric])
 
+lemma False_imp_not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> \<not> trivial_limit net \<Longrightarrow> \<not> eventually (\<lambda>x. P x) net"
+  by (simp add: eventually_False)
+
 lemma eventually_Inf: "eventually P (Inf B) \<longleftrightarrow> (\<exists>X\<subseteq>B. finite X \<and> eventually P (Inf X))"
 proof -
   let ?F = "\<lambda>P. \<exists>X\<subseteq>B. finite X \<and> eventually P (Inf X)"
-  
+
   { fix P have "eventually P (Abs_filter ?F) \<longleftrightarrow> ?F P"
     proof (rule eventually_Abs_filter is_filter.intro)+
       show "?F (\<lambda>x. True)"
@@ -605,7 +614,7 @@ proof -
   have "eventually P (INF k. principal {k <..}) \<longleftrightarrow> (\<exists>N::'a. \<forall>n>N. P n)"
     by (subst eventually_INF_base) (auto simp: eventually_principal intro: max.cobounded1 max.cobounded2)
   also have "(INF k. principal {k::'a <..}) = at_top"
-    unfolding at_top_def 
+    unfolding at_top_def
     by (intro INF_eq) (auto intro: less_imp_le simp: Ici_subset_Ioi_iff gt_ex)
   finally show ?thesis .
 qed
@@ -645,7 +654,7 @@ proof -
   have "eventually P (INF k. principal {..< k}) \<longleftrightarrow> (\<exists>N::'a. \<forall>n<N. P n)"
     by (subst eventually_INF_base) (auto simp: eventually_principal intro: min.cobounded1 min.cobounded2)
   also have "(INF k. principal {..< k::'a}) = at_bot"
-    unfolding at_bot_def 
+    unfolding at_bot_def
     by (intro INF_eq) (auto intro: less_imp_le simp: Iic_subset_Iio_iff lt_ex)
   finally show ?thesis .
 qed
@@ -828,11 +837,11 @@ lemma filterlim_INF_INF:
   unfolding filterlim_def by (rule order_trans[OF filtermap_INF INF_mono])
 
 lemma filterlim_base:
-  "(\<And>m x. m \<in> J \<Longrightarrow> i m \<in> I) \<Longrightarrow> (\<And>m x. m \<in> J \<Longrightarrow> x \<in> F (i m) \<Longrightarrow> f x \<in> G m) \<Longrightarrow> 
+  "(\<And>m x. m \<in> J \<Longrightarrow> i m \<in> I) \<Longrightarrow> (\<And>m x. m \<in> J \<Longrightarrow> x \<in> F (i m) \<Longrightarrow> f x \<in> G m) \<Longrightarrow>
     LIM x (INF i:I. principal (F i)). f x :> (INF j:J. principal (G j))"
   by (force intro!: filterlim_INF_INF simp: image_subset_iff)
 
-lemma filterlim_base_iff: 
+lemma filterlim_base_iff:
   assumes "I \<noteq> {}" and chain: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> F i \<subseteq> F j \<or> F j \<subseteq> F i"
   shows "(LIM x (INF i:I. principal (F i)). f x :> INF j:J. principal (G j)) \<longleftrightarrow>
     (\<forall>j\<in>J. \<exists>i\<in>I. \<forall>x\<in>F i. f x \<in> G j)"
@@ -912,7 +921,7 @@ lemma filterlim_at_top_gt:
   shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z>c. eventually (\<lambda>x. Z \<le> f x) F)"
   by (metis filterlim_at_top order_less_le_trans gt_ex filterlim_at_top_ge)
 
-lemma filterlim_at_bot: 
+lemma filterlim_at_bot:
   fixes f :: "'a \<Rightarrow> ('b::linorder)"
   shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. f x \<le> Z) F)"
   by (auto simp: filterlim_iff eventually_at_bot_linorder elim!: eventually_elim1)
@@ -926,12 +935,12 @@ proof (auto simp add: filterlim_at_bot[of f F])
   assume "\<forall>Z. eventually (\<lambda>x. f x \<le> Z) F"
   hence "eventually (\<lambda>x. f x \<le> Z') F" by auto
   thus "eventually (\<lambda>x. f x < Z) F"
-    apply (rule eventually_mono[rotated])
+    apply (rule eventually_mono')
     using 1 by auto
-  next 
-    fix Z :: 'b 
+  next
+    fix Z :: 'b
     show "\<forall>Z. eventually (\<lambda>x. f x < Z) F \<Longrightarrow> eventually (\<lambda>x. f x \<le> Z) F"
-      by (drule spec [of _ Z], erule eventually_mono[rotated], auto simp add: less_imp_le)
+      by (drule spec [of _ Z], erule eventually_mono', auto simp add: less_imp_le)
 qed
 
 lemma filterlim_at_bot_le:
@@ -958,7 +967,7 @@ definition rel_filter :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow>
 where "rel_filter R F G = ((R ===> op =) ===> op =) (Rep_filter F) (Rep_filter G)"
 
 lemma rel_filter_eventually:
-  "rel_filter R F G \<longleftrightarrow> 
+  "rel_filter R F G \<longleftrightarrow>
   ((R ===> op =) ===> op =) (\<lambda>P. eventually P F) (\<lambda>P. eventually P G)"
 by(simp add: rel_filter_def eventually_def)
 
@@ -984,7 +993,7 @@ next
   from Q have *: "\<And>x. T (Rep x) x" unfolding Quotient_alt_def by blast
 
   fix F
-  show "rel_filter T (filtermap Rep F) F" 
+  show "rel_filter T (filtermap Rep F) F"
     by(auto elim: rel_funD intro: * intro!: ext arg_cong[where f="\<lambda>P. eventually P F"] rel_funI
             del: iffI simp add: eventually_filtermap rel_filter_eventually)
 qed(auto simp add: map_fun_def o_def eventually_filtermap filter_eq_iff fun_eq_iff rel_filter_eventually
@@ -1063,7 +1072,7 @@ lemma left_total_rel_filter [transfer_rule]:
 proof(rule left_totalI)
   fix F :: "'a filter"
   from bi_total_fun[OF bi_unique_fun[OF \<open>bi_total A\<close> bi_unique_eq] bi_total_eq]
-  obtain G where [transfer_rule]: "((A ===> op =) ===> op =) (\<lambda>P. eventually P F) G" 
+  obtain G where [transfer_rule]: "((A ===> op =) ===> op =) (\<lambda>P. eventually P F) G"
     unfolding  bi_total_def by blast
   moreover have "is_filter (\<lambda>P. eventually P F) \<longleftrightarrow> is_filter G" by transfer_prover
   hence "is_filter G" by(simp add: eventually_def is_filter_Rep_filter)
@@ -1094,7 +1103,7 @@ proof(rule left_uniqueI)
     fix P :: "'a \<Rightarrow> bool"
     obtain P' where [transfer_rule]: "(A ===> op =) P P'"
       using left_total_fun[OF assms left_total_eq] unfolding left_total_def by blast
-    have "eventually P F = eventually P' G" 
+    have "eventually P F = eventually P' G"
       and "eventually P F' = eventually P' G" by transfer_prover+
     thus "eventually P F = eventually P F'" by simp
   qed
@@ -1139,7 +1148,7 @@ qed
 
 context
   fixes A :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
-  assumes [transfer_rule]: "bi_unique A" 
+  assumes [transfer_rule]: "bi_unique A"
 begin
 
 lemma le_filter_parametric [transfer_rule]:

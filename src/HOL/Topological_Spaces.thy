@@ -1758,7 +1758,7 @@ proof (rule openI)
   with \<open>finite D\<close> have "eventually (\<lambda>y. y \<notin> \<Union>D) (nhds y)"
     by (simp add: eventually_ball_finite)
   with \<open>s \<subseteq> \<Union>D\<close> have "eventually (\<lambda>y. y \<notin> s) (nhds y)"
-    by (auto elim!: eventually_mono [rotated])
+    by (auto elim!: eventually_mono')
   thus "\<exists>t. open t \<and> y \<in> t \<and> t \<subseteq> - s"
     by (simp add: eventually_nhds subset_eq)
 qed

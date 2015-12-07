@@ -1,5 +1,5 @@
 (*  Title:      HOL/Multivariate_Analysis/Path_Connected.thy
-    Author:     Robert Himmelmann, TU Muenchen, and LC Paulson with material from HOL Light
+    Authors:    LC Paulson and Robert Himmelmann (TU Muenchen), based on material from HOL Light
 *)
 
 section \<open>Continuous paths and path-connected sets\<close>

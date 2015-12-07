@@ -1508,7 +1508,7 @@ lemma contour_integral_bound_linepath:
   apply (auto simp: has_contour_integral_integral)
   done
 
-lemma contour_integral_0: "contour_integral g (\<lambda>x. 0) = 0"
+lemma contour_integral_0 [simp]: "contour_integral g (\<lambda>x. 0) = 0"
   by (simp add: contour_integral_unique has_contour_integral_0)
 
 lemma contour_integral_setsum:
@@ -4727,5 +4727,473 @@ lemma winding_number_nearby_loops_eq:
       \<And>t. t \<in> {0..1} \<Longrightarrow> norm(h t - g t) < norm(g t - z)\<rbrakk>
       \<Longrightarrow> winding_number h z = winding_number g z"
   by (metis segment_bound(2) norm_minus_commute not_le winding_number_loops_linear_eq)
+
+
+proposition winding_number_subpath_combine:
+    "\<lbrakk>path g; z \<notin> path_image g;
+      u \<in> {0..1}; v \<in> {0..1}; w \<in> {0..1}\<rbrakk>
+      \<Longrightarrow> winding_number (subpath u v g) z + winding_number (subpath v w g) z =
+          winding_number (subpath u w g) z"
+apply (rule trans [OF winding_number_join [THEN sym]
+                      winding_number_homotopic_paths [OF homotopic_join_subpaths]])
+apply (auto dest: path_image_subpath_subset)
+done
+
+
+subsection\<open>Partial circle path\<close>
+
+definition part_circlepath :: "[complex, real, real, real, real] \<Rightarrow> complex"
+  where "part_circlepath z r s t \<equiv> \<lambda>x. z + of_real r * exp (ii * of_real (linepath s t x))"
+
+lemma pathstart_part_circlepath [simp]:
+     "pathstart(part_circlepath z r s t) = z + r*exp(ii * s)"
+by (metis part_circlepath_def pathstart_def pathstart_linepath)
+
+lemma pathfinish_part_circlepath [simp]:
+     "pathfinish(part_circlepath z r s t) = z + r*exp(ii*t)"
+by (metis part_circlepath_def pathfinish_def pathfinish_linepath)
+
+proposition has_vector_derivative_part_circlepath [derivative_intros]:
+    "((part_circlepath z r s t) has_vector_derivative
+      (ii * r * (of_real t - of_real s) * exp(ii * linepath s t x)))
+     (at x within X)"
+  apply (simp add: part_circlepath_def linepath_def scaleR_conv_of_real)
+  apply (rule has_vector_derivative_real_complex)
+  apply (rule derivative_eq_intros | simp)+
+  done
+
+corollary vector_derivative_part_circlepath:
+    "vector_derivative (part_circlepath z r s t) (at x) =
+       ii * r * (of_real t - of_real s) * exp(ii * linepath s t x)"
+  using has_vector_derivative_part_circlepath vector_derivative_at by blast
+
+corollary vector_derivative_part_circlepath01:
+    "\<lbrakk>0 \<le> x; x \<le> 1\<rbrakk>
+     \<Longrightarrow> vector_derivative (part_circlepath z r s t) (at x within {0..1}) =
+          ii * r * (of_real t - of_real s) * exp(ii * linepath s t x)"
+  using has_vector_derivative_part_circlepath
+  by (auto simp: vector_derivative_at_within_ivl)
+
+lemma valid_path_part_circlepath [simp]: "valid_path (part_circlepath z r s t)"
+  apply (simp add: valid_path_def)
+  apply (rule C1_differentiable_imp_piecewise)
+  apply (auto simp: C1_differentiable_on_eq vector_derivative_works vector_derivative_part_circlepath has_vector_derivative_part_circlepath
+              intro!: continuous_intros)
+  done
+
+lemma path_part_circlepath [simp]: "path (part_circlepath z r s t)"
+  by (simp add: valid_path_imp_path)
+
+proposition path_image_part_circlepath:
+  assumes "s \<le> t"
+    shows "path_image (part_circlepath z r s t) = {z + r * exp(ii * of_real x) | x. s \<le> x \<and> x \<le> t}"
+proof -
+  { fix z::real
+    assume "0 \<le> z" "z \<le> 1"
+    with \<open>s \<le> t\<close> have "\<exists>x. (exp (\<i> * linepath s t z) = exp (\<i> * of_real x)) \<and> s \<le> x \<and> x \<le> t"
+      apply (rule_tac x="(1 - z) * s + z * t" in exI)
+      apply (simp add: linepath_def scaleR_conv_of_real algebra_simps)
+      apply (rule conjI)
+      using mult_right_mono apply blast
+      using affine_ineq  by (metis "mult.commute")
+  }
+  moreover
+  { fix z
+    assume "s \<le> z" "z \<le> t"
+    then have "z + of_real r * exp (\<i> * of_real z) \<in> (\<lambda>x. z + of_real r * exp (\<i> * linepath s t x)) ` {0..1}"
+      apply (rule_tac x="(z - s)/(t - s)" in image_eqI)
+      apply (simp add: linepath_def scaleR_conv_of_real divide_simps exp_eq)
+      apply (auto simp: algebra_simps divide_simps)
+      done
+  }
+  ultimately show ?thesis
+    by (fastforce simp add: path_image_def part_circlepath_def)
+qed
+
+corollary path_image_part_circlepath_subset:
+    "\<lbrakk>s \<le> t; 0 \<le> r\<rbrakk> \<Longrightarrow> path_image(part_circlepath z r s t) \<subseteq> sphere z r"
+by (auto simp: path_image_part_circlepath sphere_def dist_norm algebra_simps norm_mult)
+
+proposition in_path_image_part_circlepath:
+  assumes "w \<in> path_image(part_circlepath z r s t)" "s \<le> t" "0 \<le> r"
+    shows "norm(w - z) = r"
+proof -
+  have "w \<in> {c. dist z c = r}"
+    by (metis (no_types) path_image_part_circlepath_subset sphere_def subset_eq assms)
+  thus ?thesis
+    by (simp add: dist_norm norm_minus_commute)
+qed
+
+proposition finite_bounded_log: "finite {z::complex. norm z \<le> b \<and> exp z = w}"
+proof (cases "w = 0")
+  case True then show ?thesis by auto
+next
+  case False
+  have *: "finite {x. cmod (complex_of_real (2 * real_of_int x * pi) * \<i>) \<le> b + cmod (Ln w)}"
+    apply (simp add: norm_mult finite_int_iff_bounded_le)
+    apply (rule_tac x="floor ((b + cmod (Ln w)) / (2*pi))" in exI)
+    apply (auto simp: divide_simps le_floor_iff)
+    done
+  have [simp]: "\<And>P f. {z. P z \<and> (\<exists>n. z = f n)} = f ` {n. P (f n)}"
+    by blast
+  show ?thesis
+    apply (subst exp_Ln [OF False, symmetric])
+    apply (simp add: exp_eq)
+    using norm_add_leD apply (fastforce intro: finite_subset [OF _ *])
+    done
+qed
+
+lemma finite_bounded_log2:
+  fixes a::complex
+    assumes "a \<noteq> 0"
+    shows "finite {z. norm z \<le> b \<and> exp(a*z) = w}"
+proof -
+  have *: "finite ((\<lambda>z. z / a) ` {z. cmod z \<le> b * cmod a \<and> exp z = w})"
+    by (rule finite_imageI [OF finite_bounded_log])
+  show ?thesis
+    by (rule finite_subset [OF _ *]) (force simp: assms norm_mult)
+qed
+
+proposition has_contour_integral_bound_part_circlepath_strong:
+  assumes fi: "(f has_contour_integral i) (part_circlepath z r s t)"
+      and "finite k" and le: "0 \<le> B" "0 < r" "s \<le> t"
+      and B: "\<And>x. x \<in> path_image(part_circlepath z r s t) - k \<Longrightarrow> norm(f x) \<le> B"
+    shows "cmod i \<le> B * r * (t - s)"
+proof -
+  consider "s = t" | "s < t" using \<open>s \<le> t\<close> by linarith
+  then show ?thesis
+  proof cases
+    case 1 with fi [unfolded has_contour_integral]
+    have "i = 0"  by (simp add: vector_derivative_part_circlepath)
+    with assms show ?thesis by simp
+  next
+    case 2
+    have [simp]: "abs r = r" using \<open>r > 0\<close> by linarith
+    have [simp]: "cmod (complex_of_real t - complex_of_real s) = t-s"
+      by (metis "2" abs_of_pos diff_gt_0_iff_gt norm_of_real of_real_diff)
+    have "finite (part_circlepath z r s t -` {y} \<inter> {0..1})" if "y \<in> k" for y
+    proof -
+      def w \<equiv> "(y - z)/of_real r / exp(ii * of_real s)"
+      have fin: "finite (of_real -` {z. cmod z \<le> 1 \<and> exp (\<i> * complex_of_real (t - s) * z) = w})"
+        apply (rule finite_vimageI [OF finite_bounded_log2])
+        using \<open>s < t\<close> apply (auto simp: inj_of_real)
+        done
+      show ?thesis
+        apply (simp add: part_circlepath_def linepath_def vimage_def)
+        apply (rule finite_subset [OF _ fin])
+        using le
+        apply (auto simp: w_def algebra_simps scaleR_conv_of_real exp_add exp_diff)
+        done
+    qed
+    then have fin01: "finite ((part_circlepath z r s t) -` k \<inter> {0..1})"
+      by (rule finite_finite_vimage_IntI [OF \<open>finite k\<close>])
+    have **: "((\<lambda>x. if (part_circlepath z r s t x) \<in> k then 0
+                    else f(part_circlepath z r s t x) *
+                       vector_derivative (part_circlepath z r s t) (at x)) has_integral i)  {0..1}"
+      apply (rule has_integral_spike
+              [where f = "\<lambda>x. f(part_circlepath z r s t x) * vector_derivative (part_circlepath z r s t) (at x)"])
+      apply (rule negligible_finite [OF fin01])
+      using fi has_contour_integral
+      apply auto
+      done
+    have *: "\<And>x. \<lbrakk>0 \<le> x; x \<le> 1; part_circlepath z r s t x \<notin> k\<rbrakk> \<Longrightarrow> cmod (f (part_circlepath z r s t x)) \<le> B"
+      by (auto intro!: B [unfolded path_image_def image_def, simplified])
+    show ?thesis
+      apply (rule has_integral_bound [where 'a=real, simplified, OF _ **, simplified])
+      using assms apply force
+      apply (simp add: norm_mult vector_derivative_part_circlepath)
+      using le * "2" \<open>r > 0\<close> by auto
+  qed
+qed
+
+corollary has_contour_integral_bound_part_circlepath:
+      "\<lbrakk>(f has_contour_integral i) (part_circlepath z r s t);
+        0 \<le> B; 0 < r; s \<le> t;
+        \<And>x. x \<in> path_image(part_circlepath z r s t) \<Longrightarrow> norm(f x) \<le> B\<rbrakk>
+       \<Longrightarrow> norm i \<le> B*r*(t - s)"
+  by (auto intro: has_contour_integral_bound_part_circlepath_strong)
+
+proposition contour_integrable_continuous_part_circlepath:
+     "continuous_on (path_image (part_circlepath z r s t)) f
+      \<Longrightarrow> f contour_integrable_on (part_circlepath z r s t)"
+  apply (simp add: contour_integrable_on has_contour_integral_def vector_derivative_part_circlepath path_image_def)
+  apply (rule integrable_continuous_real)
+  apply (fast intro: path_part_circlepath [unfolded path_def] continuous_intros continuous_on_compose2 [where g=f, OF _ _ order_refl])
+  done
+
+proposition winding_number_part_circlepath_pos_less:
+  assumes "s < t" and no: "norm(w - z) < r"
+    shows "0 < Re (winding_number(part_circlepath z r s t) w)"
+proof -
+  have "0 < r" by (meson no norm_not_less_zero not_le order.strict_trans2)
+  note valid_path_part_circlepath
+  moreover have " w \<notin> path_image (part_circlepath z r s t)"
+    using assms by (auto simp: path_image_def image_def part_circlepath_def norm_mult linepath_def)
+  moreover have "0 < r * (t - s) * (r - cmod (w - z))"
+    using assms by (metis \<open>0 < r\<close> diff_gt_0_iff_gt mult_pos_pos)
+  ultimately show ?thesis
+    apply (rule winding_number_pos_lt [where e = "r*(t - s)*(r - norm(w - z))"])
+    apply (simp add: vector_derivative_part_circlepath right_diff_distrib [symmetric] mult_ac)
+    apply (rule mult_left_mono)+
+    using Re_Im_le_cmod [of "w-z" "linepath s t x" for x]
+    apply (simp add: exp_Euler cos_of_real sin_of_real part_circlepath_def algebra_simps cos_squared_eq [unfolded power2_eq_square])
+    using assms \<open>0 < r\<close> by auto
+qed
+
+proposition simple_path_part_circlepath:
+    "simple_path(part_circlepath z r s t) \<longleftrightarrow> (r \<noteq> 0 \<and> s \<noteq> t \<and> abs(s - t) \<le> 2*pi)"
+proof (cases "r = 0 \<or> s = t")
+  case True
+  then show ?thesis
+    apply (rule disjE)
+    apply (force simp: part_circlepath_def simple_path_def intro: bexI [where x = "1/4"] bexI [where x = "1/3"])+
+    done
+next
+  case False then have "r \<noteq> 0" "s \<noteq> t" by auto
+  have *: "\<And>x y z s t. ii*((1 - x) * s + x * t) = ii*(((1 - y) * s + y * t)) + z  \<longleftrightarrow> ii*(x - y) * (t - s) = z"
+    by (simp add: algebra_simps)
+  have abs01: "\<And>x y::real. 0 \<le> x \<and> x \<le> 1 \<and> 0 \<le> y \<and> y \<le> 1
+                      \<Longrightarrow> (x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0 \<longleftrightarrow> abs(x - y) \<in> {0,1})"
+    by auto
+  have abs_away: "\<And>P. (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. P(abs(x - y))) \<longleftrightarrow> (\<forall>x::real. 0 \<le> x \<and> x \<le> 1 \<longrightarrow> P x)"
+    by force
+  have **: "\<And>x y. (\<exists>n. (complex_of_real x - of_real y) * (of_real t - of_real s) = 2 * (of_int n * of_real pi)) \<longleftrightarrow>
+                  (\<exists>n. abs(x - y) * (t - s) = 2 * (of_int n * pi))"
+    by (force simp: algebra_simps abs_if dest: arg_cong [where f=Re] arg_cong [where f=complex_of_real]
+                    intro: exI [where x = "-n" for n])
+  have 1: "\<forall>x. 0 \<le> x \<and> x \<le> 1 \<longrightarrow> (\<exists>n. x * (t - s) = 2 * (real_of_int n * pi)) \<longrightarrow> x = 0 \<or> x = 1 \<Longrightarrow> \<bar>s - t\<bar> \<le> 2 * pi"
+    apply (rule ccontr)
+    apply (drule_tac x="2*pi / abs(t-s)" in spec)
+    using False
+    apply (simp add: abs_minus_commute divide_simps)
+    apply (frule_tac x=1 in spec)
+    apply (drule_tac x="-1" in spec)
+    apply (simp add:)
+    done
+  have 2: "\<bar>s - t\<bar> = \<bar>2 * (real_of_int n * pi) / x\<bar>" if "x \<noteq> 0" "x * (t - s) = 2 * (real_of_int n * pi)" for x n
+  proof -
+    have "t-s = 2 * (real_of_int n * pi)/x"
+      using that by (simp add: field_simps)
+    then show ?thesis by (metis abs_minus_commute)
+  qed
+  show ?thesis using False
+    apply (simp add: simple_path_def path_part_circlepath)
+    apply (simp add: part_circlepath_def linepath_def exp_eq  * ** abs01  del: Set.insert_iff)
+    apply (subst abs_away)
+    apply (auto simp: 1)
+    apply (rule ccontr)
+    apply (auto simp: 2 divide_simps abs_mult dest: of_int_leD)
+    done
+qed
+
+proposition arc_part_circlepath:
+  assumes "r \<noteq> 0" "s \<noteq> t" "abs(s - t) < 2*pi"
+    shows "arc (part_circlepath z r s t)"
+proof -
+  have *: "x = y" if eq: "\<i> * (linepath s t x) = \<i> * (linepath s t y) + 2 * of_int n * complex_of_real pi * \<i>"
+                  and x: "x \<in> {0..1}" and y: "y \<in> {0..1}" for x y n
+    proof -
+      have "(linepath s t x) = (linepath s t y) + 2 * of_int n * complex_of_real pi"
+        by (metis add_divide_eq_iff complex_i_not_zero mult.commute nonzero_mult_divide_cancel_left eq)
+      then have "s*y + t*x = s*x + (t*y + of_int n * (pi * 2))"
+        by (force simp: algebra_simps linepath_def dest: arg_cong [where f=Re])
+      then have st: "x \<noteq> y \<Longrightarrow> (s-t) = (of_int n * (pi * 2) / (y-x))"
+        by (force simp: field_simps)
+      show ?thesis
+        apply (rule ccontr)
+        using assms x y
+        apply (simp add: st abs_mult field_simps)
+        using st
+        apply (auto simp: dest: of_int_lessD)
+        done
+    qed
+  show ?thesis
+    using assms
+    apply (simp add: arc_def)
+    apply (simp add: part_circlepath_def inj_on_def exp_eq)
+    apply (blast intro: *)
+    done
+qed
+
+
+subsection\<open>Special case of one complete circle\<close>
+
+definition circlepath :: "[complex, real, real] \<Rightarrow> complex"
+  where "circlepath z r \<equiv> part_circlepath z r 0 (2*pi)"
+
+lemma circlepath: "circlepath z r = (\<lambda>x. z + r * exp(2 * of_real pi * ii * of_real x))"
+  by (simp add: circlepath_def part_circlepath_def linepath_def algebra_simps)
+
+lemma pathstart_circlepath [simp]: "pathstart (circlepath z r) = z + r"
+  by (simp add: circlepath_def)
+
+lemma pathfinish_circlepath [simp]: "pathfinish (circlepath z r) = z + r"
+  by (simp add: circlepath_def) (metis exp_two_pi_i mult.commute)
+
+proposition has_vector_derivative_circlepath [derivative_intros]:
+ "((circlepath z r) has_vector_derivative (2 * pi * ii * r * exp (2 * of_real pi * ii * of_real x)))
+   (at x within X)"
+  apply (simp add: circlepath_def scaleR_conv_of_real)
+  apply (rule derivative_eq_intros)
+  apply (simp add: algebra_simps)
+  done
+
+corollary vector_derivative_circlepath:
+   "vector_derivative (circlepath z r) (at x) =
+    2 * pi * ii * r * exp(2 * of_real pi * ii * x)"
+using has_vector_derivative_circlepath vector_derivative_at by blast
+
+corollary vector_derivative_circlepath01:
+    "\<lbrakk>0 \<le> x; x \<le> 1\<rbrakk>
+     \<Longrightarrow> vector_derivative (circlepath z r) (at x within {0..1}) =
+          2 * pi * ii * r * exp(2 * of_real pi * ii * x)"
+  using has_vector_derivative_circlepath
+  by (auto simp: vector_derivative_at_within_ivl)
+
+lemma valid_path_circlepath [simp]: "valid_path (circlepath z r)"
+  by (simp add: circlepath_def)
+
+lemma path_circlepath [simp]: "path (circlepath z r)"
+  by (simp add: valid_path_imp_path)
+
+proposition path_image_circlepath [simp]:
+  assumes "0 \<le> r" shows "path_image (circlepath z r) = sphere z r"
+proof -
+  have *: "x \<in> (\<lambda>u. z + (cmod (x - z)) * exp (\<i> * (of_real u * (of_real pi * 2)))) ` {0..1}" for x
+  proof (cases "x = z")
+    case True then show ?thesis by force
+  next
+    case False
+    def w \<equiv> "x - z"
+    then have "w \<noteq> 0" by (simp add: False)
+    have **: "\<And>t. \<lbrakk>Re w = cos t * cmod w; Im w = sin t * cmod w\<rbrakk> \<Longrightarrow> w = of_real (cmod w) * exp (\<i> * t)"
+      using cis_conv_exp complex_eq_iff by auto
+    show ?thesis
+      apply (rule sincos_total_2pi [of "Re(w/of_real(norm w))" "Im(w/of_real(norm w))"])
+      apply (simp add: divide_simps \<open>w \<noteq> 0\<close> cmod_power2 [symmetric])
+      apply (rule_tac x="t / (2*pi)" in image_eqI)
+      apply (simp add: divide_simps \<open>w \<noteq> 0\<close>)
+      using False **
+      apply (auto simp: w_def)
+      done
+  qed
+  show ?thesis
+    unfolding circlepath path_image_def sphere_def dist_norm
+    by (force simp: assms algebra_simps norm_mult norm_minus_commute intro: *)
+qed
+
+lemma has_contour_integral_bound_circlepath_strong:
+      "\<lbrakk>(f has_contour_integral i) (circlepath z r);
+        finite k; 0 \<le> B; 0 < r;
+        \<And>x. \<lbrakk>norm(x - z) = r; x \<notin> k\<rbrakk> \<Longrightarrow> norm(f x) \<le> B\<rbrakk>
+        \<Longrightarrow> norm i \<le> B*(2*pi*r)"
+  unfolding circlepath_def
+  by (auto simp: algebra_simps in_path_image_part_circlepath dest!: has_contour_integral_bound_part_circlepath_strong)
+
+corollary has_contour_integral_bound_circlepath:
+      "\<lbrakk>(f has_contour_integral i) (circlepath z r);
+        0 \<le> B; 0 < r; \<And>x. norm(x - z) = r \<Longrightarrow> norm(f x) \<le> B\<rbrakk>
+        \<Longrightarrow> norm i \<le> B*(2*pi*r)"
+  by (auto intro: has_contour_integral_bound_circlepath_strong)
+
+proposition contour_integrable_continuous_circlepath:
+    "continuous_on (path_image (circlepath z r)) f
+     \<Longrightarrow> f contour_integrable_on (circlepath z r)"
+  by (simp add: circlepath_def contour_integrable_continuous_part_circlepath)
+
+lemma simple_path_circlepath: "simple_path(circlepath z r) \<longleftrightarrow> (r \<noteq> 0)"
+  by (simp add: circlepath_def simple_path_part_circlepath)
+
+lemma notin_path_image_circlepath [simp]: "cmod (w - z) < r \<Longrightarrow> w \<notin> path_image (circlepath z r)"
+  apply (subst path_image_circlepath)
+  apply (meson le_cases less_le_trans norm_not_less_zero)
+  apply (simp add: sphere_def dist_norm norm_minus_commute)
+  done
+
+proposition contour_integral_circlepath:
+     "0 < r \<Longrightarrow> contour_integral (circlepath z r) (\<lambda>w. 1 / (w - z)) = 2 * complex_of_real pi * \<i>"
+  apply (rule contour_integral_unique)
+  apply (simp add: has_contour_integral_def)
+  apply (subst has_integral_cong)
+  apply (simp add: vector_derivative_circlepath01)
+  using has_integral_const_real [of _ 0 1]
+  apply (force simp: circlepath)
+  done
+
+lemma winding_number_circlepath_centre: "0 < r \<Longrightarrow> winding_number (circlepath z r) z = 1"
+  apply (rule winding_number_unique_loop)
+  apply (simp_all add: sphere_def valid_path_imp_path)
+  apply (rule_tac x="circlepath z r" in exI)
+  apply (simp add: sphere_def contour_integral_circlepath)
+  done
+
+proposition winding_number_circlepath:
+  assumes "norm(w - z) < r" shows "winding_number(circlepath z r) w = 1"
+proof (cases "w = z")
+  case True then show ?thesis
+    using assms winding_number_circlepath_centre by auto
+next
+  case False
+  have [simp]: "r > 0"
+    using assms le_less_trans norm_ge_zero by blast
+  def r' \<equiv> "norm(w - z)"
+  have "r' < r"
+    by (simp add: assms r'_def)
+  have disjo: "cball z r' \<inter> sphere z r = {}"
+    using \<open>r' < r\<close> by (force simp: cball_def sphere_def)
+  have "winding_number(circlepath z r) w = winding_number(circlepath z r) z"
+    apply (rule winding_number_around_inside [where s = "cball z r'"])
+    apply (simp_all add: disjo order.strict_implies_order winding_number_circlepath_centre)
+    apply (simp_all add: False r'_def dist_norm norm_minus_commute)
+    done
+  also have "... = 1"
+    by (simp add: winding_number_circlepath_centre)
+  finally show ?thesis .
+qed
+
+
+text\<open> Hence the Cauchy formula for points inside a circle.\<close>
+
+theorem Cauchy_integral_circlepath:
+  assumes "continuous_on (cball z r) f" "f holomorphic_on (ball z r)" "norm(w - z) < r"
+  shows "((\<lambda>u. f u/(u - w)) has_contour_integral (2 * of_real pi * ii * f w))
+         (circlepath z r)"
+proof -
+  have "r > 0"
+    using assms le_less_trans norm_ge_zero by blast
+  have "((\<lambda>u. f u / (u - w)) has_contour_integral (2 * pi) * \<i> * winding_number (circlepath z r) w * f w)
+        (circlepath z r)"
+    apply (rule Cauchy_integral_formula_weak [where s = "cball z r" and k = "{}"])
+    using assms  \<open>r > 0\<close>
+    apply (simp_all add: dist_norm norm_minus_commute)
+    apply (metis at_within_interior dist_norm holomorphic_on_def interior_ball mem_ball norm_minus_commute)
+    apply (simp add: cball_def sphere_def dist_norm, clarify)
+    apply (simp add:)
+    by (metis dist_commute dist_norm less_irrefl)
+  then show ?thesis
+    by (simp add: winding_number_circlepath assms)
+qed
+
+corollary Cauchy_integral_circlepath_simple:
+  assumes "f holomorphic_on cball z r" "norm(w - z) < r"
+  shows "((\<lambda>u. f u/(u - w)) has_contour_integral (2 * of_real pi * ii * f w))
+         (circlepath z r)"
+using assms by (force simp: holomorphic_on_imp_continuous_on holomorphic_on_subset Cauchy_integral_circlepath)
+
+
+lemma no_bounded_connected_component_imp_winding_number_zero:
+  assumes g: "path g" "path_image g \<subseteq> s" "pathfinish g = pathstart g" "z \<notin> s"
+      and nb: "\<And>z. bounded (connected_component_set (- s) z) \<longrightarrow> z \<in> s"
+  shows "winding_number g z = 0"
+apply (rule winding_number_zero_in_outside)
+apply (simp_all add: assms)
+by (metis nb [of z] \<open>path_image g \<subseteq> s\<close> \<open>z \<notin> s\<close> contra_subsetD mem_Collect_eq outside outside_mono)
+
+lemma no_bounded_path_component_imp_winding_number_zero:
+  assumes g: "path g" "path_image g \<subseteq> s" "pathfinish g = pathstart g" "z \<notin> s"
+      and nb: "\<And>z. bounded (path_component_set (- s) z) \<longrightarrow> z \<in> s"
+  shows "winding_number g z = 0"
+apply (rule no_bounded_connected_component_imp_winding_number_zero [OF g])
+by (simp add: bounded_subset nb path_component_subset_connected_component)
 
 end
