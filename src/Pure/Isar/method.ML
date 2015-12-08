@@ -694,7 +694,7 @@ val _ = Theory.setup
   setup @{binding "-"} (Scan.succeed (K insert_facts))
     "insert current facts, nothing else" #>
   setup @{binding goal_cases} (Scan.lift (Scan.repeat Args.name_token) >> (fn names => fn ctxt =>
-    METHOD_CASES (fn facts => fn st =>
+    METHOD_CASES (fn _ => fn st =>
       let
         val _ =
           (case drop (Thm.nprems_of st) names of
