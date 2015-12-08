@@ -219,11 +219,8 @@ by(cases h rule: Bp.cases) auto
 context insert
 begin
 
-lemma tree_type1: "t \<in> Bp h \<Longrightarrow> tree t \<in> B h \<union> B (Suc h)"
+lemma tree_type: "t \<in> Bp h \<Longrightarrow> tree t \<in> B h \<union> B (Suc h)"
 by(cases h rule: Bp.cases) auto
-
-lemma tree_type2: "t \<in> T h \<Longrightarrow> tree t \<in> T h"
-by(cases h) auto
 
 lemma n2_type:
   "(t1 \<in> Bp h \<and> t2 \<in> T h \<longrightarrow> n2 t1 a t2 \<in> Bp (Suc h)) \<and>
@@ -297,8 +294,8 @@ next
 qed
 
 lemma insert_type:
-  "t \<in> T h \<Longrightarrow> insert x t \<in> T h \<union> T (Suc h)"
-unfolding insert_def by (metis Un_iff ins_type tree_type1 tree_type2)
+  "t \<in> B h \<Longrightarrow> insert x t \<in> B h \<union> B (Suc h)"
+unfolding insert_def by (metis ins_type(1) tree_type)
 
 end
 
@@ -459,15 +456,12 @@ proof (induction h arbitrary: x t)
   { case 2 with Suc.IH(1) show ?case by auto }
 qed auto
 
-lemma tree_type:
-  "t \<in> Um (Suc h) \<Longrightarrow> tree t : T h"
-  "t \<in> T (Suc h) \<Longrightarrow> tree t : T h \<union> T(h+1)"
+lemma tree_type: "t \<in> T (h+1) \<Longrightarrow> tree t : B (h+1) \<union> B h"
 by(auto)
 
-lemma delete_type:
-  "t \<in> T h \<Longrightarrow> delete x t \<in> T h \<union> T(h-1)"
+lemma delete_type: "t \<in> B h \<Longrightarrow> delete x t \<in> B h \<union> B(h-1)"
 unfolding delete_def
-by (cases h) (simp, metis del_type tree_type Un_iff Suc_eq_plus1 diff_Suc_1)
+by (cases h) (simp, metis del_type(1) tree_type Suc_eq_plus1 diff_Suc_1)
 
 end
 
@@ -476,7 +470,7 @@ subsection "Overall correctness"
 
 interpretation Set_by_Ordered
 where empty = N0 and isin = isin and insert = insert.insert
-and delete = delete.delete and inorder = inorder and inv = "\<lambda>t. \<exists>h. t \<in> T h"
+and delete = delete.delete and inorder = inorder and inv = "\<lambda>t. \<exists>h. t \<in> B h"
 proof (standard, goal_cases)
   case 2 thus ?case by(auto intro!: isin_set)
 next

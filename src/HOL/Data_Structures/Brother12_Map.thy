@@ -108,8 +108,8 @@ apply (fastforce simp: Bp_if_B n2_type dest: n1_type)
 done
 
 lemma update_type:
-  "t \<in> T h \<Longrightarrow> update x y t \<in> T h \<union> T (Suc h)"
-unfolding update_def by (metis Un_iff upd_type tree_type1 tree_type2)
+  "t \<in> B h \<Longrightarrow> update x y t \<in> B h \<union> B (Suc h)"
+unfolding update_def by (metis upd_type tree_type)
 
 end
 
@@ -186,9 +186,9 @@ proof (induction h arbitrary: x t)
 qed auto
 
 lemma delete_type:
-  "t \<in> T h \<Longrightarrow> delete x t \<in> T h \<union> T(h-1)"
+  "t \<in> B h \<Longrightarrow> delete x t \<in> B h \<union> B(h-1)"
 unfolding delete_def
-by (cases h) (simp, metis del_type tree_type Un_iff Suc_eq_plus1 diff_Suc_1)
+by (cases h) (simp, metis del_type(1) tree_type Suc_eq_plus1 diff_Suc_1)
 
 end
 
@@ -196,7 +196,7 @@ subsection "Overall correctness"
 
 interpretation Map_by_Ordered
 where empty = N0 and lookup = lookup and update = update.update
-and delete = delete.delete and inorder = inorder and inv = "\<lambda>t. \<exists>h. t \<in> T h"
+and delete = delete.delete and inorder = inorder and inv = "\<lambda>t. \<exists>h. t \<in> B h"
 proof (standard, goal_cases)
   case 2 thus ?case by(auto intro!: lookup_map_of)
 next
