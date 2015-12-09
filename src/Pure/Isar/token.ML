@@ -64,9 +64,9 @@ sig
   val get_files: T -> file Exn.result list
   val put_files: file Exn.result list -> T -> T
   val get_value: T -> value option
+  val reports_of_value: T -> Position.report list
   val name_value: name_value -> value
   val get_name: T -> name_value option
-  val reports_of_value: T -> Position.report list
   val declare_maxidx: T -> Proof.context -> Proof.context
   val map_facts: (string option -> thm list -> thm list) -> T -> T
   val transform: morphism -> T -> T
@@ -360,25 +360,15 @@ fun put_files [] tok = tok
 fun get_value (Token (_, _, Value v)) = v
   | get_value _ = NONE;
 
-fun get_assignable_value (Token (_, _, Assignable r)) = ! r
-  | get_assignable_value (Token (_, _, Value v)) = v
-  | get_assignable_value _ = NONE;
-
 fun map_value f (Token (x, y, Value (SOME v))) = Token (x, y, Value (SOME (f v)))
   | map_value _ tok = tok;
 
 
-(* name value *)
-
-fun name_value a = Name (a, Morphism.identity);
-
-fun get_name tok =
-  (case get_assignable_value tok of
-    SOME (Name (a, _)) => SOME a
-  | _ => NONE);
-
-
 (* reports of value *)
+
+fun get_assignable_value (Token (_, _, Assignable r)) = ! r
+  | get_assignable_value (Token (_, _, Value v)) = v
+  | get_assignable_value _ = NONE;
 
 fun reports_of_value tok =
   (case get_assignable_value tok of
@@ -392,6 +382,16 @@ fun reports_of_value tok =
         else []
       end
   | _ => []);
+
+
+(* name value *)
+
+fun name_value a = Name (a, Morphism.identity);
+
+fun get_name tok =
+  (case get_assignable_value tok of
+    SOME (Name (a, _)) => SOME a
+  | _ => NONE);
 
 
 (* maxidx *)
