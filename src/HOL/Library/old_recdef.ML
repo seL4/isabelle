@@ -2873,8 +2873,7 @@ val _ =
 
 val hints =
   @{keyword "("} |--
-    Parse.!!! (Parse.position @{keyword "hints"} -- Parse.args --| @{keyword ")"})
-  >> uncurry Token.src;
+    Parse.!!! ((Parse.token @{keyword "hints"} ::: Parse.args) --| @{keyword ")"});
 
 val recdef_decl =
   Scan.optional

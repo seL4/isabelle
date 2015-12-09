@@ -35,7 +35,7 @@ struct
 type bundle = (thm list * Token.src list) list;
 
 fun transform_bundle phi : bundle -> bundle =
-  map (fn (fact, atts) => (Morphism.fact phi fact, map (Token.transform_src phi) atts));
+  map (fn (fact, atts) => (Morphism.fact phi fact, (map o map) (Token.transform phi) atts));
 
 structure Data = Generic_Data
 (

@@ -9,6 +9,7 @@ signature ARGS =
 sig
   val context: Proof.context context_parser
   val theory: theory context_parser
+  val symbolic: Token.T parser
   val $$$ : string -> string parser
   val add: string parser
   val del: string parser
@@ -32,11 +33,10 @@ sig
   val text: string parser
   val binding: binding parser
   val alt_name: string parser
-  val symbol: string parser
   val liberal_name: string parser
   val var: indexname parser
   val internal_source: Token.src parser
-  val internal_name: (string * morphism) parser
+  val internal_name: Token.name_value parser
   val internal_typ: typ parser
   val internal_term: term parser
   val internal_fact: thm list parser
@@ -59,9 +59,6 @@ sig
   val type_name: {proper: bool, strict: bool} -> string context_parser
   val const: {proper: bool, strict: bool} -> string context_parser
   val goal_spec: ((int -> tactic) -> tactic) context_parser
-  val attribs: (xstring * Position.T -> string) -> Token.src list parser
-  val opt_attribs: (xstring * Position.T -> string) -> Token.src list parser
-  val checked_name: (xstring * Position.T -> string) -> string parser
 end;
 
 structure Args: ARGS =
@@ -121,8 +118,7 @@ val text = text_token >> Token.content_of;
 
 val binding = Parse.position name >> Binding.make;
 val alt_name = alt_string >> Token.content_of;
-val symbol = symbolic >> Token.content_of;
-val liberal_name = symbol || name;
+val liberal_name = (symbolic >> Token.content_of) || name;
 
 val var = (ident >> Token.content_of) :|-- (fn x =>
   (case Lexicon.read_variable x of SOME v => Scan.succeed v | NONE => Scan.fail));
@@ -133,39 +129,38 @@ val var = (ident >> Token.content_of) :|-- (fn x =>
 fun value dest = Scan.some (fn arg =>
   (case Token.get_value arg of SOME v => (SOME (dest v) handle Match => NONE) | NONE => NONE));
 
-fun evaluate mk eval arg =
-  let val x = eval arg in (Token.assign (SOME (mk x)) arg; x) end;
-
 val internal_source = value (fn Token.Source src => src);
-val internal_name = value (fn Token.Name a => a);
+val internal_name = value (fn Token.Name (a, _) => a);
 val internal_typ = value (fn Token.Typ T => T);
 val internal_term = value (fn Token.Term t => t);
 val internal_fact = value (fn Token.Fact (_, ths) => ths);
 val internal_attribute = value (fn Token.Attribute att => att);
 val internal_declaration = value (fn Token.Declaration decl => decl);
 
-fun named_source read = internal_source || name_token >> evaluate Token.Source read;
+fun named_source read =
+  internal_source || name_token >> Token.evaluate Token.Source read;
 
 fun named_typ read =
-  internal_typ || name_token >> evaluate Token.Typ (read o Token.inner_syntax_of);
+  internal_typ || name_token >> Token.evaluate Token.Typ (read o Token.inner_syntax_of);
 
 fun named_term read =
-  internal_term || name_token >> evaluate Token.Term (read o Token.inner_syntax_of);
+  internal_term || name_token >> Token.evaluate Token.Term (read o Token.inner_syntax_of);
 
 fun named_fact get =
   internal_fact ||
-  name_token >> evaluate Token.Fact (get o Token.content_of) >> #2 ||
-  alt_string >> evaluate Token.Fact (get o Token.inner_syntax_of) >> #2;
+  name_token >> Token.evaluate Token.Fact (get o Token.content_of) >> #2 ||
+  alt_string >> Token.evaluate Token.Fact (get o Token.inner_syntax_of) >> #2;
 
 fun named_attribute att =
   internal_attribute ||
-  name_token >> evaluate Token.Attribute (fn tok => att (Token.content_of tok, Token.pos_of tok));
+  name_token >>
+    Token.evaluate Token.Attribute (fn tok => att (Token.content_of tok, Token.pos_of tok));
 
 fun text_declaration read =
-  internal_declaration || text_token >> evaluate Token.Declaration (read o Token.input_of);
+  internal_declaration || text_token >> Token.evaluate Token.Declaration (read o Token.input_of);
 
 fun cartouche_declaration read =
-  internal_declaration || cartouche >> evaluate Token.Declaration (read o Token.input_of);
+  internal_declaration || cartouche >> Token.evaluate Token.Declaration (read o Token.input_of);
 
 
 (* terms and types *)
@@ -199,24 +194,5 @@ val from_to =
 
 val goal = Parse.keyword_improper "[" |-- Parse.!!! (from_to --| Parse.keyword_improper "]");
 fun goal_spec x = Scan.lift (Scan.optional goal (fn tac => tac 1)) x;
-
-
-(* attributes *)
-
-fun attribs check =
-  let
-    fun intern tok = check (Token.content_of tok, Token.pos_of tok);
-    val attrib_name = internal_name >> #1 || (symbolic || name_token) >> evaluate Token.name0 intern;
-    val attrib = Parse.position attrib_name -- Parse.!!! Parse.args >> uncurry Token.src;
-  in $$$ "[" |-- Parse.!!! (Parse.list attrib --| $$$ "]") end;
-
-fun opt_attribs check = Scan.optional (attribs check) [];
-
-
-(* checked name *)
-
-fun checked_name check =
-  let fun intern tok = check (Token.content_of tok, Token.pos_of tok);
-  in internal_name >> #1 || Parse.token Parse.xname >> evaluate Token.name0 intern end;
 
 end;

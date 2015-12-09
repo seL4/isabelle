@@ -58,6 +58,7 @@ sig
   val print_methods: bool -> Proof.context -> unit
   val check_name: Proof.context -> xstring * Position.T -> string
   val check_src: Proof.context -> Token.src -> Token.src
+  val check_text: Proof.context -> text -> text
   val method_syntax: (Proof.context -> method) context_parser ->
     Token.src -> Proof.context -> method
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
@@ -82,7 +83,6 @@ sig
   val position: text_range option -> Position.T
   val reports_of: text_range -> Position.report list
   val report: text_range -> unit
-  val parser': Proof.context -> int -> text_range parser
   val parser: int -> text_range parser
   val parse: text_range parser
 end;
@@ -335,7 +335,7 @@ fun map_source f (Source src) = Source (f src)
 
 fun primitive_text r = Basic (SIMPLE_METHOD o PRIMITIVE o r);
 val succeed_text = Basic (K succeed);
-val standard_text = Source (Token.src ("standard", Position.none) []);
+val standard_text = Source (Token.make_src ("standard", Position.none) []);
 val this_text = Basic this;
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
 fun sorry_text int = Basic (fn ctxt => cheating ctxt int);
@@ -390,11 +390,11 @@ fun check_name ctxt =
   in #1 o Name_Space.check context (get_methods context) end;
 
 fun check_src ctxt =
-  #1 o Token.check_src ctxt (get_methods (Context.Proof ctxt));
+  #1 o Token.check_src ctxt (get_methods o Context.Proof);
 
-fun checked_info ctxt name =
-  let val space = Name_Space.space_of_table (get_methods (Context.Proof ctxt))
-  in (Name_Space.kind_of space, Name_Space.markup space name) end;
+fun check_text ctxt (Source src) = Source (check_src ctxt src)
+  | check_text _ (Basic m) = Basic m
+  | check_text ctxt (Combinator (x, y, body)) = Combinator (x, y, map (check_text ctxt) body);
 
 
 (* method setup *)
@@ -422,10 +422,10 @@ fun method ctxt =
 
 fun method_closure ctxt src =
   let
-    val src' = Token.init_assignable_src src;
+    val src' = map Token.init_assignable src;
     val ctxt' = Context_Position.not_really ctxt;
     val _ = Seq.pull (method ctxt' src' ctxt' [] (Goal.protect 0 Drule.dummy_thm));
-  in Token.closure_src src' end;
+  in map Token.closure src' end;
 
 val closure = Config.bool (Config.declare ("Method.closure", @{here}) (K (Config.Bool true)));
 
@@ -552,11 +552,7 @@ fun sect (modifier : modifier parser) = Scan.depend (fn context =>
           | _ =>
               let
                 val ctxt = Context.proof_of context;
-                fun prep_att src =
-                  let
-                    val src' = Attrib.check_src ctxt src;
-                    val _ = List.app (Token.assign NONE) (Token.args_of_src src');
-                  in src' end;
+                val prep_att = Attrib.check_src ctxt #> map (Token.assign NONE);
                 val thms =
                   map (fn (a, bs) => (Proof_Context.get_fact ctxt a, map prep_att bs)) xthms;
                 val facts =
@@ -633,19 +629,16 @@ local
 fun is_symid_meth s =
   s <> "|" andalso s <> "?" andalso s <> "+" andalso Token.ident_or_symbolic s;
 
-fun gen_parser check_ctxt pri =
+in
+
+fun parser pri =
   let
-    val (meth_name, mk_src) =
-      (case check_ctxt of
-        NONE => (Parse.xname, Token.src)
-      | SOME ctxt =>
-         (Args.checked_name (fn (xname, _) => check_name ctxt (xname, Position.none)),
-          fn (name, pos) => fn args => Token.src_checked (name, pos) args (checked_info ctxt name)));
+    val meth_name = Parse.token Parse.xname;
 
     fun meth5 x =
-     (Parse.position meth_name >> (fn name => Source (mk_src name [])) ||
+     (meth_name >> (Source o single) ||
       Scan.ahead Parse.cartouche |-- Parse.not_eof >> (fn tok =>
-        Source (mk_src ("cartouche", Token.pos_of tok) [tok])) ||
+        Source (Token.make_src ("cartouche", Position.none) [tok])) ||
       Parse.$$$ "(" |-- Parse.!!! (meth0 --| Parse.$$$ ")")) x
     and meth4 x =
      (meth5 -- Parse.position (Parse.$$$ "?")
@@ -658,7 +651,7 @@ fun gen_parser check_ctxt pri =
             Combinator (combinator_info [pos1, pos2], Select_Goals n, [m])) ||
       meth5) x
     and meth3 x =
-     (Parse.position meth_name -- Parse.args1 is_symid_meth >> (Source o uncurry mk_src) ||
+     (meth_name ::: Parse.args1 is_symid_meth >> Source ||
       meth4) x
     and meth2 x =
       (Parse.enum1_positions "," meth3
@@ -675,10 +668,6 @@ fun gen_parser check_ctxt pri =
         handle General.Subscript => raise Fail ("Bad method parser priority " ^ string_of_int pri);
   in Scan.trace meth >> (fn (m, toks) => (m, Token.range_of toks)) end;
 
-in
-
-val parser' = gen_parser o SOME;
-val parser = gen_parser NONE;
 val parse = parser 4;
 
 end;

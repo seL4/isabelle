@@ -40,11 +40,11 @@ val cons_thms = Data.map o apsnd o cons;
 (* attribute source *)
 
 val _ = Theory.setup
-  (ML_Antiquotation.declaration @{binding attributes} (Scan.lift Parse.attribs)
-    (fn _ => fn raw_srcs => fn ctxt =>
+  (ML_Antiquotation.declaration @{binding attributes} Attrib.attribs
+    (fn _ => fn srcs => fn ctxt =>
       let val i = serial () in
         ctxt
-        |> put_attributes (i, Attrib.check_attribs ctxt raw_srcs)
+        |> put_attributes (i, srcs)
         |> ML_Context.value_decl "attributes"
             ("ML_Thms.the_attributes ML_context " ^ string_of_int i)
       end));

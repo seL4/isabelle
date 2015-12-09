@@ -6,7 +6,6 @@ Simple tools for deferred stateful token values.
 
 signature PARSE_TOOLS =
 sig
-
   datatype ('a, 'b) parse_val =
     Real_Val of 'a
   | Parse_Val of 'b * ('a -> unit);
@@ -33,7 +32,7 @@ datatype ('a, 'b) parse_val =
 fun parse_term_val scan =
   Scan.ahead Parse.not_eof -- Scan.ahead (Scan.option Args.internal_term) -- scan >>
     (fn ((_, SOME t), _) => Real_Val t
-      | ((tok, NONE), v) => Parse_Val (v, fn t => Token.assign (SOME (Token.Term t)) tok));
+      | ((tok, NONE), v) => Parse_Val (v, fn t => ignore (Token.assign (SOME (Token.Term t)) tok)));
 
 val name_term = parse_term_val Args.name_inner_syntax;
 

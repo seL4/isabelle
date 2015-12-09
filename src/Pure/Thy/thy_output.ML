@@ -95,7 +95,7 @@ fun check_command ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#1 (get_ant
 fun check_option ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt));
 
 fun command src state ctxt =
-  let val (src', f) = Token.check_src ctxt (#1 (get_antiquotations ctxt)) src
+  let val (src', f) = Token.check_src ctxt (#1 o get_antiquotations) src
   in f src' state ctxt end;
 
 fun option ((xname, pos), s) ctxt =
@@ -153,8 +153,8 @@ in
 
 val antiq =
   Parse.!!!
-    (Parse.position Parse.liberal_name -- properties -- Parse.args --| Scan.ahead Parse.eof)
-  >> (fn ((name, props), args) => (props, Token.src name args));
+    (Parse.token Parse.liberal_name -- properties -- Parse.args --| Scan.ahead Parse.eof)
+  >> (fn ((name, props), args) => (props, name :: args));
 
 end;
 
@@ -177,7 +177,8 @@ in
 
 fun eval_antiquote _ (Antiquote.Text ss) = Symbol_Pos.content ss
   | eval_antiquote state (Antiquote.Control {name, body, ...}) =
-      eval_antiq state ([], Token.src name (if null body then [] else [Token.read_cartouche body]))
+      eval_antiq state
+        ([], Token.make_src name (if null body then [] else [Token.read_cartouche body]))
   | eval_antiquote state (Antiquote.Antiq {range = (pos, _), body, ...}) =
       let
         val keywords =
@@ -418,7 +419,7 @@ fun present_thy thy command_results toks =
         in (SOME (name, pos', tags), (mk (name, source), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
-      Scan.optional (Scan.one Token.is_command_modifier -- improper >> op ::) [] --
+      Scan.optional (Scan.one Token.is_command_modifier ::: improper) [] --
       Scan.one Token.is_command -- Scan.repeat tag
       >> (fn ((cmd_mod, cmd), tags) =>
         map (fn tok => (NONE, (Basic_Token tok, ("", d)))) cmd_mod @
@@ -575,7 +576,7 @@ fun pretty_theory ctxt (name, pos) = (Theory.check ctxt (name, pos); Pretty.str 
 
 (* default output *)
 
-val str_of_source = space_implode " " o Token.unparse_src;
+val str_of_source = space_implode " " o map Token.unparse o Token.args_of_src;
 
 fun maybe_pretty_source pretty ctxt src xs =
   map (pretty ctxt) xs  (*always pretty in order to exhibit errors!*)
