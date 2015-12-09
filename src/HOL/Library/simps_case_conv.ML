@@ -212,7 +212,7 @@ end
 fun case_of_simps_cmd (bind, thms_ref) lthy =
   let
     val bind' = apsnd (map (Attrib.check_src lthy)) bind
-    val thm = (Attrib.eval_thms lthy) thms_ref |> to_case lthy
+    val thm = Attrib.eval_thms lthy thms_ref |> to_case lthy
   in
     Local_Theory.note (bind', [thm]) lthy |> snd
   end

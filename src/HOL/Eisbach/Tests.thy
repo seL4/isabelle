@@ -480,7 +480,7 @@ lemma
 
 subsection \<open>Shallow parser tests\<close>
 
-method all_args for A B methods m1 m2 uses f1 f2 declares my_thms_named = (fail)
+method all_args for A B methods m1 m2 uses f1 f2 declares my_thms_named = fail
 
 lemma True
   by (all_args True False \<open>-\<close> \<open>fail\<close> f1: TrueI f2: TrueI my_thms_named: TrueI | rule TrueI)
