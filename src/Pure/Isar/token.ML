@@ -13,7 +13,7 @@ sig
     (*delimited content*)
     String | Alt_String | Verbatim | Cartouche | Comment |
     (*special content*)
-    Error of string | Internal_Value | EOF
+    Error of string | EOF
   val str_of_kind: kind -> string
   type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   type T
@@ -63,7 +63,6 @@ sig
   val text_of: T -> string * string
   val get_files: T -> file Exn.result list
   val put_files: file Exn.result list -> T -> T
-  val make_value: string -> value -> T
   val get_value: T -> value option
   val map_value: (value -> value) -> T -> T
   val name_value: name_value -> value
@@ -120,7 +119,7 @@ datatype kind =
   (*delimited content*)
   String | Alt_String | Verbatim | Cartouche | Comment |
   (*special content*)
-  Error of string | Internal_Value | EOF;
+  Error of string | EOF;
 
 val str_of_kind =
  fn Command => "command"
@@ -139,7 +138,6 @@ val str_of_kind =
   | Verbatim => "verbatim text"
   | Cartouche => "text cartouche"
   | Comment => "comment text"
-  | Internal_Value => "internal value"
   | Error _ => "bad input"
   | EOF => "end-of-input";
 
@@ -360,9 +358,6 @@ fun put_files [] tok = tok
 
 
 (* access values *)
-
-fun make_value name v =
-  Token ((name, Position.no_range), (Internal_Value, name), Value (SOME v));
 
 fun get_value (Token (_, _, Value v)) = v
   | get_value _ = NONE;

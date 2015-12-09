@@ -242,7 +242,7 @@ fun attribute_setup name source comment =
 
 fun internal att =
   Token.make_src ("Pure.attribute", Position.none)
-    [Token.make_value "<attribute>" (Token.Attribute att)];
+    [Token.make_string ("<attribute>", Position.none) |> Token.assign (SOME (Token.Attribute att))];
 
 val _ = Theory.setup
   (setup (Binding.make ("attribute", @{here}))
