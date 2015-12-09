@@ -77,9 +77,6 @@ val dummy_free_thm = tag_free_thm Drule.dummy_thm;
 
 fun is_free_thm thm = Properties.defined (Thm.get_tags thm) free_thmN;
 
-fun is_free_fact [thm] = is_free_thm thm
-  | is_free_fact _ = false;
-
 fun free_aware_rule_attribute args f =
   Thm.rule_attribute (fn context => fn thm =>
     if exists is_free_thm (thm :: args) then dummy_free_thm

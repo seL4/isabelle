@@ -19,7 +19,6 @@ sig
   val check_src: Proof.context -> Token.src -> Token.src
   val attribs: Token.src list context_parser
   val opt_attribs: Token.src list context_parser
-  val markup_extern: Proof.context -> string -> Markup.T * xstring
   val pretty_attribs: Proof.context -> Token.src list -> Pretty.T list
   val pretty_binding: Proof.context -> binding -> string -> Pretty.T list
   val attribute: Proof.context -> Token.src -> attribute
