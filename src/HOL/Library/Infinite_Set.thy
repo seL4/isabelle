@@ -8,71 +8,7 @@ theory Infinite_Set
 imports Main
 begin
 
-subsection "Infinite Sets"
-
-text \<open>
-  Some elementary facts about infinite sets, mostly by Stephan Merz.
-  Beware! Because "infinite" merely abbreviates a negation, these
-  lemmas may not work well with \<open>blast\<close>.
-\<close>
-
-abbreviation infinite :: "'a set \<Rightarrow> bool"
-  where "infinite S \<equiv> \<not> finite S"
-
-text \<open>
-  Infinite sets are non-empty, and if we remove some elements from an
-  infinite set, the result is still infinite.
-\<close>
-
-lemma infinite_imp_nonempty: "infinite S \<Longrightarrow> S \<noteq> {}"
-  by auto
-
-lemma infinite_remove: "infinite S \<Longrightarrow> infinite (S - {a})"
-  by simp
-
-lemma Diff_infinite_finite:
-  assumes T: "finite T" and S: "infinite S"
-  shows "infinite (S - T)"
-  using T
-proof induct
-  from S
-  show "infinite (S - {})" by auto
-next
-  fix T x
-  assume ih: "infinite (S - T)"
-  have "S - (insert x T) = (S - T) - {x}"
-    by (rule Diff_insert)
-  with ih
-  show "infinite (S - (insert x T))"
-    by (simp add: infinite_remove)
-qed
-
-lemma Un_infinite: "infinite S \<Longrightarrow> infinite (S \<union> T)"
-  by simp
-
-lemma infinite_Un: "infinite (S \<union> T) \<longleftrightarrow> infinite S \<or> infinite T"
-  by simp
-
-lemma infinite_super:
-  assumes T: "S \<subseteq> T" and S: "infinite S"
-  shows "infinite T"
-proof
-  assume "finite T"
-  with T have "finite S" by (simp add: finite_subset)
-  with S show False by simp
-qed
-
-lemma infinite_coinduct [consumes 1, case_names infinite]:
-  assumes "X A"
-  and step: "\<And>A. X A \<Longrightarrow> \<exists>x\<in>A. X (A - {x}) \<or> infinite (A - {x})"
-  shows "infinite A"
-proof
-  assume "finite A"
-  then show False using \<open>X A\<close>
-    by(induction rule: finite_psubset_induct)(meson Diff_subset card_Diff1_less card_psubset finite_Diff step)
-qed    
-
-text \<open>As a concrete example, we prove that the set of natural numbers is infinite.\<close>
+text \<open>The set of natural numbers is infinite.\<close>
 
 lemma infinite_nat_iff_unbounded_le: "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n\<ge>m. n \<in> S)"
   using frequently_cofinite[of "\<lambda>x. x \<in> S"]
@@ -99,8 +35,9 @@ text \<open>
 \<close>
 
 lemma unbounded_k_infinite: "\<forall>m>k. \<exists>n>m. n \<in> S \<Longrightarrow> infinite (S::nat set)"
-  by (metis (full_types) infinite_nat_iff_unbounded_le le_imp_less_Suc not_less
-            not_less_iff_gr_or_eq sup.bounded_iff)
+apply (clarsimp simp add: finite_nat_set_iff_bounded)
+apply (drule_tac x="Suc (max m k)" in spec)
+using less_Suc_eq by fastforce
 
 lemma nat_not_finite: "finite (UNIV::nat set) \<Longrightarrow> R"
   by simp
@@ -113,45 +50,6 @@ proof
     by (rule finite_imageD)
   then show False by simp
 qed
-
-text \<open>
-  For any function with infinite domain and finite range there is some
-  element that is the image of infinitely many domain elements.  In
-  particular, any infinite sequence of elements from a finite set
-  contains some element that occurs infinitely often.
-\<close>
-
-lemma inf_img_fin_dom':
-  assumes img: "finite (f ` A)" and dom: "infinite A"
-  shows "\<exists>y \<in> f ` A. infinite (f -` {y} \<inter> A)"
-proof (rule ccontr)
-  have "A \<subseteq> (\<Union>y\<in>f ` A. f -` {y} \<inter> A)" by auto
-  moreover
-  assume "\<not> ?thesis"
-  with img have "finite (\<Union>y\<in>f ` A. f -` {y} \<inter> A)" by blast
-  ultimately have "finite A" by(rule finite_subset)
-  with dom show False by contradiction
-qed
-
-lemma inf_img_fin_domE':
-  assumes "finite (f ` A)" and "infinite A"
-  obtains y where "y \<in> f`A" and "infinite (f -` {y} \<inter> A)"
-  using assms by (blast dest: inf_img_fin_dom')
-
-lemma inf_img_fin_dom:
-  assumes img: "finite (f`A)" and dom: "infinite A"
-  shows "\<exists>y \<in> f`A. infinite (f -` {y})"
-using inf_img_fin_dom'[OF assms] by auto
-
-lemma inf_img_fin_domE:
-  assumes "finite (f`A)" and "infinite A"
-  obtains y where "y \<in> f`A" and "infinite (f -` {y})"
-  using assms by (blast dest: inf_img_fin_dom)
-
-proposition finite_image_absD:
-    fixes S :: "'a::linordered_ring set"
-    shows "finite (abs ` S) \<Longrightarrow> finite S"
-  by (rule ccontr) (auto simp: abs_eq_iff vimage_def dest: inf_img_fin_dom)
 
 text \<open>The set of integers is also infinite.\<close>
 
@@ -196,10 +94,10 @@ lemma INFM_imp_distrib: "(INFM x. P x \<longrightarrow> Q x) \<longleftrightarro
   by (simp only: imp_conv_disj frequently_disj_iff not_eventually)
 
 lemma MOST_imp_iff: "MOST x. P x \<Longrightarrow> (MOST x. P x \<longrightarrow> Q x) \<longleftrightarrow> (MOST x. Q x)"
-  by (auto intro: eventually_rev_mp eventually_elim1)
+  by (auto intro: eventually_rev_mp eventually_mono)
 
 lemma INFM_conjI: "INFM x. P x \<Longrightarrow> MOST x. Q x \<Longrightarrow> INFM x. P x \<and> Q x"
-  by (rule frequently_rev_mp[of P]) (auto elim: eventually_elim1)
+  by (rule frequently_rev_mp[of P]) (auto elim: eventually_mono)
 
 text \<open>Properties of quantifiers with injective functions.\<close>
 
@@ -272,7 +170,7 @@ lemma MOST_iff_cofinite: "(MOST x. P x) \<longleftrightarrow> finite {x. \<not> 
 lemma INFM_EX: "(\<exists>\<^sub>\<infinity>x. P x) \<Longrightarrow> (\<exists>x. P x)" by (fact frequently_ex)
 lemma ALL_MOST: "\<forall>x. P x \<Longrightarrow> \<forall>\<^sub>\<infinity>x. P x" by (fact always_eventually)
 lemma INFM_mono: "\<exists>\<^sub>\<infinity>x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> \<exists>\<^sub>\<infinity>x. Q x" by (fact frequently_elim1)
-lemma MOST_mono: "\<forall>\<^sub>\<infinity>x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> \<forall>\<^sub>\<infinity>x. Q x" by (fact eventually_elim1)
+lemma MOST_mono: "\<forall>\<^sub>\<infinity>x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> \<forall>\<^sub>\<infinity>x. Q x" by (fact eventually_mono)
 lemma INFM_disj_distrib: "(\<exists>\<^sub>\<infinity>x. P x \<or> Q x) \<longleftrightarrow> (\<exists>\<^sub>\<infinity>x. P x) \<or> (\<exists>\<^sub>\<infinity>x. Q x)" by (fact frequently_disj_iff)
 lemma MOST_rev_mp: "\<forall>\<^sub>\<infinity>x. P x \<Longrightarrow> \<forall>\<^sub>\<infinity>x. P x \<longrightarrow> Q x \<Longrightarrow> \<forall>\<^sub>\<infinity>x. Q x" by (fact eventually_rev_mp)
 lemma MOST_conj_distrib: "(\<forall>\<^sub>\<infinity>x. P x \<and> Q x) \<longleftrightarrow> (\<forall>\<^sub>\<infinity>x. P x) \<and> (\<forall>\<^sub>\<infinity>x. Q x)" by (fact eventually_conj_iff)
@@ -331,7 +229,7 @@ lemma enumerate_mono: "m < n \<Longrightarrow> infinite S \<Longrightarrow> enum
 lemma le_enumerate:
   assumes S: "infinite S"
   shows "n \<le> enumerate S n"
-  using S 
+  using S
 proof (induct n)
   case 0
   then show ?case by simp

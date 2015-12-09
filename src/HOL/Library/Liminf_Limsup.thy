@@ -100,7 +100,7 @@ qed
 lemma Liminf_eq:
   assumes "eventually (\<lambda>x. f x = g x) F"
   shows "Liminf F f = Liminf F g"
-  by (intro antisym Liminf_mono eventually_mono'[OF assms]) auto
+  by (intro antisym Liminf_mono eventually_mono[OF assms]) auto
 
 lemma Limsup_mono:
   assumes ev: "eventually (\<lambda>x. f x \<le> g x) F"
@@ -116,7 +116,7 @@ qed
 lemma Limsup_eq:
   assumes "eventually (\<lambda>x. f x = g x) net"
   shows "Limsup net f = Limsup net g"
-  by (intro antisym Limsup_mono eventually_mono'[OF assms]) auto
+  by (intro antisym Limsup_mono eventually_mono[OF assms]) auto
 
 lemma Liminf_le_Limsup:
   assumes ntriv: "\<not> trivial_limit F"
@@ -167,7 +167,7 @@ lemma le_Liminf_iff:
 proof -
   have "eventually (\<lambda>x. y < X x) F"
     if "eventually P F" "y < INFIMUM (Collect P) X" for y P
-    using that by (auto elim!: eventually_elim1 dest: less_INF_D)
+    using that by (auto elim!: eventually_mono dest: less_INF_D)
   moreover
   have "\<exists>P. eventually P F \<and> y < INFIMUM (Collect P) X"
     if "y < C" and y: "\<forall>y<C. eventually (\<lambda>x. y < X x) F" for y P
@@ -218,7 +218,7 @@ next
       then have "eventually (\<lambda>x. y < f x) F"
         using lim[THEN topological_tendstoD, of "{y <..}"] by auto
       then have "eventually (\<lambda>x. f0 \<le> f x) F"
-        using discrete by (auto elim!: eventually_elim1)
+        using discrete by (auto elim!: eventually_mono)
       then have "INFIMUM {x. f0 \<le> f x} f \<le> y"
         by (rule upper)
       moreover have "f0 \<le> INFIMUM {x. f0 \<le> f x} f"
@@ -257,7 +257,7 @@ next
       then have "eventually (\<lambda>x. f x < y) F"
         using lim[THEN topological_tendstoD, of "{..< y}"] by auto
       then have "eventually (\<lambda>x. f x \<le> f0) F"
-        using False by (auto elim!: eventually_elim1 simp: not_less)
+        using False by (auto elim!: eventually_mono simp: not_less)
       then have "y \<le> SUPREMUM {x. f x \<le> f0} f"
         by (rule lower)
       moreover have "SUPREMUM {x. f x \<le> f0} f \<le> f0"
@@ -278,14 +278,14 @@ proof (rule order_tendstoI)
   then obtain P where "eventually P F" "SUPREMUM (Collect P) f < a"
     unfolding Limsup_def INF_less_iff by auto
   then show "eventually (\<lambda>x. f x < a) F"
-    by (auto elim!: eventually_elim1 dest: SUP_lessD)
+    by (auto elim!: eventually_mono dest: SUP_lessD)
 next
   fix a assume "a < f0"
   with assms have "a < Liminf F f" by simp
   then obtain P where "eventually P F" "a < INFIMUM (Collect P) f"
     unfolding Liminf_def less_SUP_iff by auto
   then show "eventually (\<lambda>x. a < f x) F"
-    by (auto elim!: eventually_elim1 dest: less_INF_D)
+    by (auto elim!: eventually_mono dest: less_INF_D)
 qed
 
 lemma tendsto_iff_Liminf_eq_Limsup:

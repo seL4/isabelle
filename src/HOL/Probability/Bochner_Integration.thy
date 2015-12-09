@@ -727,7 +727,7 @@ proof (elim has_bochner_integral.cases)
     lim_0: "(\<lambda>i. \<integral>\<^sup>+ x. ereal (norm (f x - s i x)) \<partial>M) ----> 0"
   from order_tendstoD[OF lim_0, of "\<infinity>"]
   obtain i where f_s_fin: "(\<integral>\<^sup>+ x. ereal (norm (f x - s i x)) \<partial>M) < \<infinity>"
-    by (metis (mono_tags, lifting) eventually_False_sequentially eventually_elim1
+    by (metis (mono_tags, lifting) eventually_False_sequentially eventually_mono
               less_ereal.simps(4) zero_ereal_def)
 
   have [measurable]: "\<And>i. s i \<in> borel_measurable M"
@@ -2417,7 +2417,7 @@ proof (rule tendsto_at_topI_sequentially)
       have "eventually (\<lambda>n. x \<le> X n) sequentially"
         unfolding filterlim_at_top_ge[where c=x] by auto
       then show "(\<lambda>n. indicator {..X n} x *\<^sub>R f x) ----> f x"
-        by (intro Lim_eventually) (auto split: split_indicator elim!: eventually_elim1)
+        by (intro Lim_eventually) (auto split: split_indicator elim!: eventually_mono)
     qed
     fix n show "AE x in M. norm (indicator {..X n} x *\<^sub>R f x) \<le> norm (f x)"
       by (auto split: split_indicator)

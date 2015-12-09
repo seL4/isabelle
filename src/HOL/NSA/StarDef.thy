@@ -136,7 +136,7 @@ lemma transfer_if [transfer_intro]:
   "\<lbrakk>p \<equiv> eventually (\<lambda>n. P n) \<U>; x \<equiv> star_n X; y \<equiv> star_n Y\<rbrakk>
     \<Longrightarrow> (if p then x else y) \<equiv> star_n (\<lambda>n. if P n then X n else Y n)"
 apply (rule eq_reflection)
-apply (auto simp add: star_n_eq_iff transfer_not elim!: eventually_elim1)
+apply (auto simp add: star_n_eq_iff transfer_not elim!: eventually_mono)
 done
 
 lemma transfer_fun_eq [transfer_intro]:

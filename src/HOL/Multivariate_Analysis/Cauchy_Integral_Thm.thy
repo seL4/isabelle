@@ -3336,7 +3336,6 @@ text\<open>We can treat even non-rectifiable paths as having a "length" for boun
 
 subsection\<open>Winding Numbers\<close>
 
-text\<open>The result is an integer, but it doesn't have type @{typ int}!\<close>
 definition winding_number:: "[real \<Rightarrow> complex, complex] \<Rightarrow> complex" where
   "winding_number \<gamma> z \<equiv>
     @n. \<forall>e > 0. \<exists>p. valid_path p \<and> z \<notin> path_image p \<and>

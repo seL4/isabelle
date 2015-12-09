@@ -221,7 +221,7 @@ proof -
       using \<open>x \<in> I\<close> \<open>open I\<close> X(2)
       apply (intro integral_mono_AE integrable_add integrable_mult_right integrable_diff
                 integrable_const X q)
-      apply (elim eventually_elim1)
+      apply (elim eventually_mono)
       apply (intro convex_le_Inf_differential)
       apply (auto simp: interior_open q)
       done

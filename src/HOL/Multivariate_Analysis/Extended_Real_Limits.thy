@@ -431,7 +431,7 @@ proof (safe intro!: Liminf_eqI complete_lattice_class.Sup_upper complete_lattice
       by (simp add: mono_set)
   }
   with P show "eventually (\<lambda>x. f x \<in> S) net"
-    by (auto elim: eventually_elim1)
+    by (auto elim: eventually_mono)
 next
   fix y l
   assume S: "\<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"
@@ -470,7 +470,7 @@ proof (safe intro!: Limsup_eqI complete_lattice_class.Inf_lower complete_lattice
     have "f x \<in> S"
       by (simp add: inj_image_mem_iff) }
   with P show "eventually (\<lambda>x. f x \<in> S) net"
-    by (auto elim: eventually_elim1)
+    by (auto elim: eventually_mono)
 next
   fix y l
   assume S: "\<forall>S. open S \<longrightarrow> mono_set (uminus ` S) \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"

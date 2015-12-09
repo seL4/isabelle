@@ -290,13 +290,13 @@ lemma eventually_nhds_metric_le:
   unfolding eventually_nhds_metric by (safe, rule_tac x="d / 2" in exI, auto)
 
 lemma le_nhds: "F \<le> nhds a \<longleftrightarrow> (\<forall>S. open S \<and> a \<in> S \<longrightarrow> eventually (\<lambda>x. x \<in> S) F)"
-  unfolding le_filter_def eventually_nhds by (fast elim: eventually_elim1)
+  unfolding le_filter_def eventually_nhds by (fast elim: eventually_mono)
 
 lemma le_nhds_metric: "F \<le> nhds a \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist x a < e) F)"
-  unfolding le_filter_def eventually_nhds_metric by (fast elim: eventually_elim1)
+  unfolding le_filter_def eventually_nhds_metric by (fast elim: eventually_mono)
 
 lemma le_nhds_metric_le: "F \<le> nhds a \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist x a \<le> e) F)"
-  unfolding le_filter_def eventually_nhds_metric_le by (fast elim: eventually_elim1)
+  unfolding le_filter_def eventually_nhds_metric_le by (fast elim: eventually_mono)
 
 text \<open>Several results are easier using a "multiplied-out" variant.
 (I got this idea from Dieudonne's proof of the chain rule).\<close>
@@ -2016,15 +2016,15 @@ proof -
         case True
         have "eventually (\<lambda>n. norm (f' n x u - g' x u) \<le> e * norm u) sequentially"
           using assms(3)[folded eventually_sequentially] and \<open>0 < e\<close> and \<open>x \<in> s\<close>
-          by (fast elim: eventually_elim1)
+          by (fast elim: eventually_mono)
         then show ?thesis
-          using \<open>u = 0\<close> and \<open>0 < e\<close> by (auto elim: eventually_elim1)
+          using \<open>u = 0\<close> and \<open>0 < e\<close> by (auto elim: eventually_mono)
       next
         case False
         with \<open>0 < e\<close> have "0 < e / norm u" by simp
         then have "eventually (\<lambda>n. norm (f' n x u - g' x u) \<le> e / norm u * norm u) sequentially"
           using assms(3)[folded eventually_sequentially] and \<open>x \<in> s\<close>
-          by (fast elim: eventually_elim1)
+          by (fast elim: eventually_mono)
         then show ?thesis
           using \<open>u \<noteq> 0\<close> by simp
       qed
@@ -2250,7 +2250,7 @@ proof -
   also have "(g has_field_derivative g' x) (at x) \<longleftrightarrow>
                 ((\<lambda>x. \<Sum>n. f n x) has_field_derivative g' x) (at x)"
     using eventually_nhds_in_nhd[OF \<open>x \<in> interior s\<close>] interior_subset[of s] g(1)
-    by (intro DERIV_cong_ev) (auto elim!: eventually_elim1 simp: sums_iff)
+    by (intro DERIV_cong_ev) (auto elim!: eventually_mono simp: sums_iff)
   finally show "((\<lambda>x. \<Sum>n. f n x) has_field_derivative g' x) (at x)" .
 qed
 

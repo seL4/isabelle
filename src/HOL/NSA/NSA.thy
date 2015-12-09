@@ -1960,7 +1960,7 @@ lemma FreeUltrafilterNat_const_Finite:
      "eventually (\<lambda>n. norm (X n) = u) FreeUltrafilterNat ==> star_n X \<in> HFinite"
 apply (rule FreeUltrafilterNat_HFinite)
 apply (rule_tac x = "u + 1" in exI)
-apply (auto elim: eventually_elim1)
+apply (auto elim: eventually_mono)
 done
 
 lemma HInfinite_FreeUltrafilterNat:
@@ -1969,7 +1969,7 @@ apply (drule HInfinite_HFinite_iff [THEN iffD1])
 apply (simp add: HFinite_FreeUltrafilterNat_iff)
 apply (rule allI, drule_tac x="u + 1" in spec)
 apply (simp add: FreeUltrafilterNat.eventually_not_iff[symmetric])
-apply (auto elim: eventually_elim1)
+apply (auto elim: eventually_mono)
 done
 
 lemma lemma_Int_HI:
@@ -2106,7 +2106,7 @@ theorem HInfinite_omega [simp]: "omega \<in> HInfinite"
 apply (simp add: omega_def)
 apply (rule FreeUltrafilterNat_HInfinite)
 apply clarify
-apply (rule_tac u1 = "u-1" in eventually_mono' [OF FreeUltrafilterNat_nat_gt_real])
+apply (rule_tac u1 = "u-1" in eventually_mono [OF FreeUltrafilterNat_nat_gt_real])
 apply auto
 done
 
@@ -2200,7 +2200,7 @@ lemma real_seq_to_hypreal_Infinitesimal:
      ==> star_n X - star_of x \<in> Infinitesimal"
 unfolding star_n_diff star_of_def Infinitesimal_FreeUltrafilterNat_iff star_n_inverse
 by (auto dest!: FreeUltrafilterNat_inverse_real_of_posnat
-         intro: order_less_trans elim!: eventually_elim1)
+         intro: order_less_trans elim!: eventually_mono)
 
 lemma real_seq_to_hypreal_approx:
      "\<forall>n. norm(X n - x) < inverse(real(Suc n))
@@ -2217,6 +2217,6 @@ lemma real_seq_to_hypreal_Infinitesimal2:
       ==> star_n X - star_n Y \<in> Infinitesimal"
 unfolding Infinitesimal_FreeUltrafilterNat_iff star_n_diff
 by (auto dest!: FreeUltrafilterNat_inverse_real_of_posnat
-         intro: order_less_trans elim!: eventually_elim1)
+         intro: order_less_trans elim!: eventually_mono)
 
 end

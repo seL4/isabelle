@@ -316,7 +316,7 @@ apply (auto simp add: of_hypnat_def starfun_star_n star_n_inverse real_norm_def
       HNatInfinite_FreeUltrafilterNat_iff
       Infinitesimal_FreeUltrafilterNat_iff2)
 apply (drule_tac x="Suc m" in spec)
-apply (auto elim!: eventually_elim1)
+apply (auto elim!: eventually_mono)
 done
 
 lemma approx_FreeUltrafilterNat_iff: "star_n X @= star_n Y =

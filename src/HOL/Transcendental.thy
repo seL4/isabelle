@@ -2510,7 +2510,7 @@ lemma tendsto_powr [tendsto_intros]:
   unfolding powr_def
 proof (rule filterlim_If)
   from f show "((\<lambda>x. 0) ---> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
-    by simp (auto simp: filterlim_iff eventually_inf_principal elim: eventually_elim1 dest: t1_space_nhds)
+    by simp (auto simp: filterlim_iff eventually_inf_principal elim: eventually_mono dest: t1_space_nhds)
 qed (insert f g a, auto intro!: tendsto_intros intro: tendsto_mono inf_le1)
 
 lemma continuous_powr:
@@ -2544,12 +2544,12 @@ lemma tendsto_powr2:
   unfolding powr_def
 proof (rule filterlim_If)
   from f show "((\<lambda>x. 0) ---> (if a = 0 then 0 else exp (b * ln a))) (inf F (principal {x. f x = 0}))"
-    by simp (auto simp: filterlim_iff eventually_inf_principal elim: eventually_elim1 dest: t1_space_nhds)
+    by simp (auto simp: filterlim_iff eventually_inf_principal elim: eventually_mono dest: t1_space_nhds)
 next
   { assume "a = 0"
     with f f_nonneg have "LIM x inf F (principal {x. f x \<noteq> 0}). f x :> at_right 0"
       by (auto simp add: filterlim_at eventually_inf_principal le_less
-               elim: eventually_elim1 intro: tendsto_mono inf_le1)
+               elim: eventually_mono intro: tendsto_mono inf_le1)
     then have "((\<lambda>x. exp (g x * ln (f x))) ---> 0) (inf F (principal {x. f x \<noteq> 0}))"
       by (auto intro!: filterlim_compose[OF exp_at_bot] filterlim_compose[OF ln_at_0]
                        filterlim_tendsto_pos_mult_at_bot[OF _ \<open>0 < b\<close>]
@@ -2571,7 +2571,7 @@ proof -
     from DERIV_isCont[OF g] pos have "\<forall>\<^sub>F x in at x. 0 < g x"
       unfolding isCont_def by (rule order_tendstoD(1))
     with pos show "\<forall>\<^sub>F x in nhds x. exp (f x * ln (g x)) = g x powr f x"
-      by (auto simp: eventually_at_filter powr_def elim: eventually_elim1)
+      by (auto simp: eventually_at_filter powr_def elim: eventually_mono)
   qed
 qed
 
@@ -2610,7 +2610,7 @@ proof -
                      filterlim_tendsto_neg_mult_at_bot assms)
   also have "?X \<longleftrightarrow> ((\<lambda>x. f x powr s) ---> (0::real)) F"
     using f filterlim_at_top_dense[of f F]
-    by (intro filterlim_cong[OF refl refl]) (auto simp: neq_iff powr_def elim: eventually_elim1)
+    by (intro filterlim_cong[OF refl refl]) (auto simp: neq_iff powr_def elim: eventually_mono)
   finally show ?thesis .
 qed
 
@@ -2657,7 +2657,7 @@ proof (rule filterlim_mono_eventually)
     apply (auto simp add: field_simps)
     done
   then show "eventually (\<lambda>n. (1 + x / n) powr n = (1 + x / n) ^ n) at_top"
-    by (rule eventually_elim1) (erule powr_realpow)
+    by (rule eventually_mono) (erule powr_realpow)
   show "(\<lambda>n. (1 + x / real n) powr real n) ----> exp x"
     by (rule filterlim_compose [OF tendsto_exp_limit_at_top filterlim_real_sequentially])
 qed auto

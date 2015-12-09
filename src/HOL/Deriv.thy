@@ -218,7 +218,7 @@ subsection \<open>Composition\<close>
 
 lemma tendsto_at_iff_tendsto_nhds_within: "f x = y \<Longrightarrow> (f ---> y) (at x within s) \<longleftrightarrow> (f ---> y) (inf (nhds x) (principal s))"
   unfolding tendsto_def eventually_inf_principal eventually_at_filter
-  by (intro ext all_cong imp_cong) (auto elim!: eventually_elim1)
+  by (intro ext all_cong imp_cong) (auto elim!: eventually_mono)
 
 lemma has_derivative_in_compose:
   assumes f: "(f has_derivative f') (at x within s)"
@@ -903,7 +903,7 @@ proof (rule filterlim_cong)
   moreover from * have "f x = g x" by (auto simp: eventually_nhds)
   moreover assume "x = y" "u = v"
   ultimately show "eventually (\<lambda>xa. (f xa - f x) / (xa - x) = (g xa - g y) / (xa - y)) (at x)"
-    by (auto simp: eventually_at_filter elim: eventually_elim1)
+    by (auto simp: eventually_at_filter elim: eventually_mono)
 qed simp_all
 
 lemma DERIV_shift:
@@ -1679,12 +1679,12 @@ proof -
   then have "(\<zeta> ---> 0) (at_right 0)"
     by (rule tendsto_norm_zero_cancel)
   with \<zeta> have "filterlim \<zeta> (at_right 0) (at_right 0)"
-    by (auto elim!: eventually_elim1 simp: filterlim_at)
+    by (auto elim!: eventually_mono simp: filterlim_at)
   from this lim have "((\<lambda>t. f' (\<zeta> t) / g' (\<zeta> t)) ---> x) (at_right 0)"
     by (rule_tac filterlim_compose[of _ _ _ \<zeta>])
   ultimately have "((\<lambda>t. f t / g t) ---> x) (at_right 0)" (is ?P)
     by (rule_tac filterlim_cong[THEN iffD1, OF refl refl])
-       (auto elim: eventually_elim1)
+       (auto elim: eventually_mono)
   also have "?P \<longleftrightarrow> ?thesis"
     by (rule filterlim_cong) (auto simp: f_def g_def eventually_at_filter)
   finally show ?thesis .
@@ -1753,7 +1753,7 @@ proof safe
 
   moreover
   have "eventually (\<lambda>t. 0 < g t) (at_right 0)" "eventually (\<lambda>t. g a < g t) (at_right 0)"
-    using g_0 by (auto elim: eventually_elim1 simp: filterlim_at_top_dense)
+    using g_0 by (auto elim: eventually_mono simp: filterlim_at_top_dense)
 
   moreover
   have inv_g: "((\<lambda>x. inverse (g x)) ---> 0) (at_right 0)"
@@ -1765,7 +1765,7 @@ proof safe
     by (simp add: inverse_eq_divide)
   from this[unfolded tendsto_iff, rule_format, of 1]
   have "eventually (\<lambda>x. norm (1 - g a / g x) < 2) (at_right 0)"
-    by (auto elim!: eventually_elim1 simp: dist_real_def)
+    by (auto elim!: eventually_mono simp: dist_real_def)
 
   moreover
   from inv_g have "((\<lambda>t. norm ((f a - x * g a) * inverse (g t))) ---> norm ((f a - x * g a) * 0)) (at_right 0)"

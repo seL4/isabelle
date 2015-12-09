@@ -471,7 +471,7 @@ lemma trivial_limit_at_right_real [simp]:
 
 lemma at_eq_sup_left_right: "at (x::'a::linorder_topology) = sup (at_left x) (at_right x)"
   by (auto simp: eventually_at_filter filter_eq_iff eventually_sup 
-           elim: eventually_elim2 eventually_elim1)
+           elim: eventually_elim2 eventually_mono)
 
 lemma eventually_at_split:
   "eventually P (at (x::'a::linorder_topology)) \<longleftrightarrow> eventually P (at_left x) \<and> eventually P (at_right x)"
@@ -551,7 +551,7 @@ proof (rule order_tendstoI)
   fix a assume "a < max x y"
   then show "eventually (\<lambda>x. a < max (X x) (Y x)) net"
     using order_tendstoD(1)[OF X, of a] order_tendstoD(1)[OF Y, of a]
-    by (auto simp: less_max_iff_disj elim: eventually_elim1)
+    by (auto simp: less_max_iff_disj elim: eventually_mono)
 next
   fix a assume "max x y < a"
   then show "eventually (\<lambda>x. max (X x) (Y x) < a) net"
@@ -572,7 +572,7 @@ next
   fix a assume "min x y < a"
   then show "eventually (\<lambda>x. min (X x) (Y x) < a) net"
     using order_tendstoD(2)[OF X, of a] order_tendstoD(2)[OF Y, of a]
-    by (auto simp: min_less_iff_disj elim: eventually_elim1)
+    by (auto simp: min_less_iff_disj elim: eventually_mono)
 qed
 
 lemma tendsto_ident_at [tendsto_intros, simp, intro]: "((\<lambda>x. x) ---> a) (at a within s)"
@@ -613,14 +613,14 @@ lemma increasing_tendsto:
   assumes bdd: "eventually (\<lambda>n. f n \<le> l) F"
       and en: "\<And>x. x < l \<Longrightarrow> eventually (\<lambda>n. x < f n) F"
   shows "(f ---> l) F"
-  using assms by (intro order_tendstoI) (auto elim!: eventually_elim1)
+  using assms by (intro order_tendstoI) (auto elim!: eventually_mono)
 
 lemma decreasing_tendsto:
   fixes f :: "_ \<Rightarrow> 'a::order_topology"
   assumes bdd: "eventually (\<lambda>n. l \<le> f n) F"
       and en: "\<And>x. l < x \<Longrightarrow> eventually (\<lambda>n. f n < x) F"
   shows "(f ---> l) F"
-  using assms by (intro order_tendstoI) (auto elim!: eventually_elim1)
+  using assms by (intro order_tendstoI) (auto elim!: eventually_mono)
 
 lemma tendsto_sandwich:
   fixes f g h :: "'a \<Rightarrow> 'b::order_topology"
@@ -773,7 +773,7 @@ qed
 lemma tendsto_at_within_iff_tendsto_nhds:
   "(g ---> g l) (at l within S) \<longleftrightarrow> (g ---> g l) (inf (nhds l) (principal S))"
   unfolding tendsto_def eventually_at_filter eventually_inf_principal
-  by (intro ext all_cong imp_cong) (auto elim!: eventually_elim1)
+  by (intro ext all_cong imp_cong) (auto elim!: eventually_mono)
 
 subsection \<open>Limits on sequences\<close>
 
@@ -1152,7 +1152,7 @@ proof atomize_elim
   {
     fix F S assume "\<forall>n. F n \<in> A n" "open S" "x \<in> S"
     with A(3)[of S] have "eventually (\<lambda>n. F n \<in> S) sequentially"
-      by (auto elim: eventually_elim1 simp: subset_eq)
+      by (auto elim: eventually_mono simp: subset_eq)
   }
   with A show "\<exists>A. (\<forall>i. open (A i)) \<and> (\<forall>i. x \<in> A i) \<and> (\<forall>F. (\<forall>n. F n \<in> A n) \<longrightarrow> F ----> x)"
     by (intro exI[of _ A]) (auto simp: tendsto_def)
@@ -1187,7 +1187,7 @@ proof (safe intro!: sequentially_imp_eventually_nhds_within)
     by (auto simp: eventually_inf_principal eventually_nhds)
   moreover fix f assume "\<forall>n. f n \<in> s" "f ----> a"
   ultimately show "eventually (\<lambda>n. P (f n)) sequentially"
-    by (auto dest!: topological_tendstoD elim: eventually_elim1)
+    by (auto dest!: topological_tendstoD elim: eventually_mono)
 qed
 
 lemma (in first_countable_topology) eventually_nhds_iff_sequentially:
@@ -1243,7 +1243,7 @@ lemma LIM_cong_limit: "f -- x --> L \<Longrightarrow> K = L \<Longrightarrow> f 
 lemma tendsto_at_iff_tendsto_nhds:
   "g -- l --> g l \<longleftrightarrow> (g ---> g l) (nhds l)"
   unfolding tendsto_def eventually_at_filter
-  by (intro ext all_cong imp_cong) (auto elim!: eventually_elim1)
+  by (intro ext all_cong imp_cong) (auto elim!: eventually_mono)
 
 lemma tendsto_compose:
   "g -- l --> g l \<Longrightarrow> (f ---> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) ---> g l) F"
@@ -1758,7 +1758,7 @@ proof (rule openI)
   with \<open>finite D\<close> have "eventually (\<lambda>y. y \<notin> \<Union>D) (nhds y)"
     by (simp add: eventually_ball_finite)
   with \<open>s \<subseteq> \<Union>D\<close> have "eventually (\<lambda>y. y \<notin> s) (nhds y)"
-    by (auto elim!: eventually_mono')
+    by (auto elim!: eventually_mono)
   thus "\<exists>t. open t \<and> y \<in> t \<and> t \<subseteq> - s"
     by (simp add: eventually_nhds subset_eq)
 qed

@@ -243,7 +243,7 @@ lemma not_ex_hypreal_of_real_eq_omega:
 apply (simp add: omega_def star_of_def star_n_eq_iff)
 apply clarify
 apply (rule_tac x2="x-1" in lemma_finite_omega_set [THEN FreeUltrafilterNat.finite, THEN notE])
-apply (erule eventually_mono')
+apply (erule eventually_mono)
 apply auto
 done
 

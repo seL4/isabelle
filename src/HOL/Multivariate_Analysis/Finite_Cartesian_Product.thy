@@ -224,7 +224,7 @@ proof (rule topological_tendstoI)
   hence "eventually (\<lambda>x. \<forall>i. f x $ i \<in> A i) net"
     by (rule eventually_all_finite)
   thus "eventually (\<lambda>x. f x \<in> S) net"
-    by (rule eventually_elim1, simp add: S)
+    by (rule eventually_mono, simp add: S)
 qed
 
 lemma tendsto_vec_lambda [tendsto_intros]:

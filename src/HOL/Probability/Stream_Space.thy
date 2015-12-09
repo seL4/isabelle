@@ -238,7 +238,7 @@ proof -
   { fix n have "AE x in stream_space M. P (x !! n)"
     proof (induct n)
       case 0 with P show ?case
-        by (subst AE_stream_space) (auto elim!: eventually_elim1)
+        by (subst AE_stream_space) (auto elim!: eventually_mono)
     next
       case (Suc n) then show ?case
         by (subst AE_stream_space) auto

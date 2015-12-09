@@ -750,7 +750,7 @@ proof -
     with borel have "A \<in> sets M" "AE x in M. x \<in> A \<longrightarrow> h x \<le> 0"
       by (auto simp add: null_sets_density_iff)
     with pos sets.sets_into_space have "AE x in M. x \<notin> A"
-      by (elim eventually_elim1) (auto simp: not_le[symmetric])
+      by (elim eventually_mono) (auto simp: not_le[symmetric])
     then have "A \<in> null_sets M"
       using \<open>A \<in> sets M\<close> by (simp add: AE_iff_null_sets)
     with ac show "A \<in> null_sets N"

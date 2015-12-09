@@ -83,7 +83,7 @@ proof (intro exI conjI allI)
   show "0 < max K 1" by simp
 next
   show "eventually (\<lambda>x. norm (f x) \<le> max K 1) F"
-    using K by (rule eventually_elim1, simp)
+    using K by (rule eventually_mono, simp)
 qed
 
 lemma BfunE:
@@ -897,10 +897,10 @@ proof -
   with f have "eventually (\<lambda>x. dist (f x) a < norm a) F"
     by (rule tendstoD)
   then have "eventually (\<lambda>x. f x \<noteq> 0) F"
-    unfolding dist_norm by (auto elim!: eventually_elim1)
+    unfolding dist_norm by (auto elim!: eventually_mono)
   with a have "eventually (\<lambda>x. inverse (f x) - inverse a =
     - (inverse (f x) * (f x - a) * inverse a)) F"
-    by (auto elim!: eventually_elim1 simp: inverse_diff_inverse)
+    by (auto elim!: eventually_mono simp: inverse_diff_inverse)
   moreover have "Zfun (\<lambda>x. - (inverse (f x) * (f x - a) * inverse a)) F"
     by (intro Zfun_minus Zfun_mult_left
       bounded_bilinear.Bfun_prod_Zfun [OF bounded_bilinear_mult]
@@ -1149,7 +1149,7 @@ proof safe
   then have "eventually (\<lambda>x. x < inverse Z) (nhds 0)"
     by (auto simp add: eventually_nhds_metric dist_real_def intro!: exI[of _ "\<bar>inverse Z\<bar>"])
   then show "eventually (\<lambda>x. x \<noteq> 0 \<longrightarrow> x \<in> {0<..} \<longrightarrow> Z \<le> inverse x) (nhds 0)"
-    by (auto elim!: eventually_elim1 simp: inverse_eq_divide field_simps)
+    by (auto elim!: eventually_mono simp: inverse_eq_divide field_simps)
 qed
 
 lemma tendsto_inverse_0:
@@ -1202,7 +1202,7 @@ lemma filterlim_inverse_at_right_top: "LIM x at_top. inverse x :> at_right (0::r
 lemma filterlim_inverse_at_top:
   "(f ---> (0 :: real)) F \<Longrightarrow> eventually (\<lambda>x. 0 < f x) F \<Longrightarrow> LIM x F. inverse (f x) :> at_top"
   by (intro filterlim_compose[OF filterlim_inverse_at_top_right])
-     (simp add: filterlim_def eventually_filtermap eventually_elim1 at_within_def le_principal)
+     (simp add: filterlim_def eventually_filtermap eventually_mono at_within_def le_principal)
 
 lemma filterlim_inverse_at_bot_neg:
   "LIM x (at_left (0::real)). inverse x :> at_bot"
@@ -1335,7 +1335,7 @@ lemma filterlim_tendsto_pos_mult_at_top:
 proof safe
   fix Z :: real assume "0 < Z"
   from f \<open>0 < c\<close> have "eventually (\<lambda>x. c / 2 < f x) F"
-    by (auto dest!: tendstoD[where e="c / 2"] elim!: eventually_elim1
+    by (auto dest!: tendstoD[where e="c / 2"] elim!: eventually_mono
              simp: dist_real_def abs_real_def split: split_if_asm)
   moreover from g have "eventually (\<lambda>x. (Z / c * 2) \<le> g x) F"
     unfolding filterlim_at_top by auto
@@ -1409,7 +1409,7 @@ lemma filterlim_tendsto_add_at_top:
 proof safe
   fix Z :: real assume "0 < Z"
   from f have "eventually (\<lambda>x. c - 1 < f x) F"
-    by (auto dest!: tendstoD[where e=1] elim!: eventually_elim1 simp: dist_real_def)
+    by (auto dest!: tendstoD[where e=1] elim!: eventually_mono simp: dist_real_def)
   moreover from g have "eventually (\<lambda>x. Z - (c - 1) \<le> g x) F"
     unfolding filterlim_at_top by auto
   ultimately show "eventually (\<lambda>x. Z \<le> f x + g x) F"

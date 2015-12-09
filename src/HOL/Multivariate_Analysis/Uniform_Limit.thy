@@ -28,7 +28,7 @@ lemma uniform_limit_iff:
     (fastforce
       simp: eventually_principal uniformly_on_def
       intro: bexI[where x="min a b" for a b]
-      elim: eventually_elim1)+
+      elim: eventually_mono)+
 
 lemma uniform_limitD:
   "uniform_limit S f l F \<Longrightarrow> e > 0 \<Longrightarrow> \<forall>\<^sub>F n in F. \<forall>x\<in>S. dist (f n x) (l x) < e"
@@ -103,7 +103,7 @@ lemma
   assumes "x \<in> S"
   shows "((\<lambda>y. f y x) ---> l x) F"
   using assms
-  by (auto intro!: tendstoI simp: eventually_elim1 dest!: uniform_limitD)
+  by (auto intro!: tendstoI simp: eventually_mono dest!: uniform_limitD)
 
 lemma uniform_limit_theorem:
   assumes c: "\<forall>\<^sub>F n in F. continuous_on A (f n)"
@@ -115,7 +115,7 @@ proof safe
   fix x assume "x \<in> A"
   then have "\<forall>\<^sub>F n in F. (f n ---> f n x) (at x within A)" "((\<lambda>n. f n x) ---> l x) F"
     using c ul
-    by (auto simp: continuous_on_def eventually_elim1 tendsto_uniform_limitI)
+    by (auto simp: continuous_on_def eventually_mono tendsto_uniform_limitI)
   then show "(l ---> l x) (at x within A)"
     by (rule swap_uniform_limit) fact+
 qed
@@ -451,7 +451,7 @@ lemma uniform_limit_null_comparison:
   using assms(2)
 proof (rule metric_uniform_limit_imp_uniform_limit)
   show "\<forall>\<^sub>F x in F. \<forall>y\<in>S. dist (f x y) 0 \<le> dist (g x y) 0"
-    using assms(1) by (rule eventually_elim1) (force simp add: dist_norm)
+    using assms(1) by (rule eventually_mono) (force simp add: dist_norm)
 qed
 
 lemma uniform_limit_on_union:
@@ -477,7 +477,7 @@ lemma uniform_limit_on_Union:
 
 lemma uniform_limit_on_subset:
   "uniform_limit J f g F \<Longrightarrow> I \<subseteq> J \<Longrightarrow> uniform_limit I f g F"
-  by (auto intro!: uniform_limitI dest!: uniform_limitD intro: eventually_mono')
+  by (auto intro!: uniform_limitI dest!: uniform_limitD intro: eventually_mono)
 
 lemma uniformly_convergent_add:
   "uniformly_convergent_on A f \<Longrightarrow> uniformly_convergent_on A g\<Longrightarrow>

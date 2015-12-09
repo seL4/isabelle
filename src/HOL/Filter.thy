@@ -67,11 +67,6 @@ lemma eventuallyI: "(\<And>x. P x) \<Longrightarrow> eventually P F"
   by (auto intro: always_eventually)
 
 lemma eventually_mono:
-  "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually P F \<Longrightarrow> eventually Q F"
-  unfolding eventually_def
-  by (rule is_filter.mono [OF is_filter_Rep_filter])
-
-lemma eventually_mono':
   "\<lbrakk>eventually P F; \<And>x. P x \<Longrightarrow> Q x\<rbrakk> \<Longrightarrow> eventually Q F"
   unfolding eventually_def
   by (blast intro: is_filter.mono [OF is_filter_Rep_filter])
@@ -91,7 +86,7 @@ proof -
   have "eventually (\<lambda>x. (P x \<longrightarrow> Q x) \<and> P x) F"
     using assms by (rule eventually_conj)
   then show ?thesis
-    by (blast intro: eventually_mono')
+    by (blast intro: eventually_mono)
 qed
 
 lemma eventually_rev_mp:
@@ -103,12 +98,6 @@ using assms(2) assms(1) by (rule eventually_mp)
 lemma eventually_conj_iff:
   "eventually (\<lambda>x. P x \<and> Q x) F \<longleftrightarrow> eventually P F \<and> eventually Q F"
   by (auto intro: eventually_conj elim: eventually_rev_mp)
-
-lemma eventually_elim1:
-  assumes "eventually (\<lambda>i. P i) F"
-  assumes "\<And>i. P i \<Longrightarrow> Q i"
-  shows "eventually (\<lambda>i. Q i) F"
-  using assms by (auto elim!: eventually_rev_mp)
 
 lemma eventually_elim2:
   assumes "eventually (\<lambda>i. P i) F"
@@ -135,10 +124,10 @@ lemma eventually_ex: "(\<forall>\<^sub>Fx in F. \<exists>y. P x y) \<longleftrig
 proof
   assume "\<forall>\<^sub>Fx in F. \<exists>y. P x y"
   then have "\<forall>\<^sub>Fx in F. P x (SOME y. P x y)"
-    by (auto intro: someI_ex eventually_elim1)
+    by (auto intro: someI_ex eventually_mono)
   then show "\<exists>Y. \<forall>\<^sub>Fx in F. P x (Y x)"
     by auto
-qed (auto intro: eventually_elim1)
+qed (auto intro: eventually_mono)
 
 lemma not_eventually_impI: "eventually P F \<Longrightarrow> \<not> eventually Q F \<Longrightarrow> \<not> eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
   by (auto intro: eventually_mp)
@@ -152,7 +141,7 @@ lemma eventually_subst:
 proof -
   from assms have "eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
       and "eventually (\<lambda>x. Q x \<longrightarrow> P x) F"
-    by (auto elim: eventually_elim1)
+    by (auto elim: eventually_mono)
   then show ?thesis by (auto elim: eventually_elim2)
 qed
 
@@ -346,7 +335,7 @@ instance proof
     unfolding le_filter_def eventually_inf by (auto intro: eventually_True) }
   { assume "F \<le> F'" and "F \<le> F''" thus "F \<le> inf F' F''"
     unfolding le_filter_def eventually_inf
-    by (auto intro: eventually_mono' [OF eventually_conj]) }
+    by (auto intro: eventually_mono [OF eventually_conj]) }
   { show "F \<le> sup F F'" and "F' \<le> sup F F'"
     unfolding le_filter_def eventually_sup by simp_all }
   { assume "F \<le> F''" and "F' \<le> F''" thus "sup F F' \<le> F''"
@@ -434,7 +423,7 @@ proof -
       assume "?F P" then guess X ..
       moreover assume "\<forall>x. P x \<longrightarrow> Q x"
       ultimately show "?F Q"
-        by (intro exI[of _ X]) (auto elim: eventually_elim1)
+        by (intro exI[of _ X]) (auto elim: eventually_mono)
     qed }
   note eventually_F = this
 
@@ -553,7 +542,7 @@ lemma eventually_principal: "eventually P (principal S) \<longleftrightarrow> (\
   by (rule eventually_Abs_filter, rule is_filter.intro) auto
 
 lemma eventually_inf_principal: "eventually P (inf F (principal s)) \<longleftrightarrow> eventually (\<lambda>x. x \<in> s \<longrightarrow> P x) F"
-  unfolding eventually_inf eventually_principal by (auto elim: eventually_elim1)
+  unfolding eventually_inf eventually_principal by (auto elim: eventually_mono)
 
 lemma principal_UNIV[simp]: "principal UNIV = top"
   by (auto simp: filter_eq_iff eventually_principal)
@@ -571,7 +560,7 @@ lemma le_principal: "F \<le> principal A \<longleftrightarrow> eventually (\<lam
   unfolding le_filter_def eventually_principal
   apply safe
   apply (erule_tac x="\<lambda>x. x \<in> A" in allE)
-  apply (auto elim: eventually_elim1)
+  apply (auto elim: eventually_mono)
   done
 
 lemma principal_inject[iff]: "principal A = principal B \<longleftrightarrow> A = B"
@@ -877,7 +866,7 @@ subsection \<open>Limits to @{const at_top} and @{const at_bot}\<close>
 lemma filterlim_at_top:
   fixes f :: "'a \<Rightarrow> ('b::linorder)"
   shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. Z \<le> f x) F)"
-  by (auto simp: filterlim_iff eventually_at_top_linorder elim!: eventually_elim1)
+  by (auto simp: filterlim_iff eventually_at_top_linorder elim!: eventually_mono)
 
 lemma filterlim_at_top_mono:
   "LIM x F. f x :> at_top \<Longrightarrow> eventually (\<lambda>x. f x \<le> (g x::'a::linorder)) F \<Longrightarrow>
@@ -887,7 +876,7 @@ lemma filterlim_at_top_mono:
 lemma filterlim_at_top_dense:
   fixes f :: "'a \<Rightarrow> ('b::unbounded_dense_linorder)"
   shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. Z < f x) F)"
-  by (metis eventually_elim1[of _ F] eventually_gt_at_top order_less_imp_le
+  by (metis eventually_mono[of _ F] eventually_gt_at_top order_less_imp_le
             filterlim_at_top[of f F] filterlim_iff[of f at_top F])
 
 lemma filterlim_at_top_ge:
@@ -924,7 +913,7 @@ lemma filterlim_at_top_gt:
 lemma filterlim_at_bot:
   fixes f :: "'a \<Rightarrow> ('b::linorder)"
   shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. f x \<le> Z) F)"
-  by (auto simp: filterlim_iff eventually_at_bot_linorder elim!: eventually_elim1)
+  by (auto simp: filterlim_iff eventually_at_bot_linorder elim!: eventually_mono)
 
 lemma filterlim_at_bot_dense:
   fixes f :: "'a \<Rightarrow> ('b::{dense_linorder, no_bot})"
@@ -935,12 +924,12 @@ proof (auto simp add: filterlim_at_bot[of f F])
   assume "\<forall>Z. eventually (\<lambda>x. f x \<le> Z) F"
   hence "eventually (\<lambda>x. f x \<le> Z') F" by auto
   thus "eventually (\<lambda>x. f x < Z) F"
-    apply (rule eventually_mono')
+    apply (rule eventually_mono)
     using 1 by auto
   next
     fix Z :: 'b
     show "\<forall>Z. eventually (\<lambda>x. f x < Z) F \<Longrightarrow> eventually (\<lambda>x. f x \<le> Z) F"
-      by (drule spec [of _ Z], erule eventually_mono', auto simp add: less_imp_le)
+      by (drule spec [of _ Z], erule eventually_mono, auto simp add: less_imp_le)
 qed
 
 lemma filterlim_at_bot_le:
@@ -950,7 +939,7 @@ lemma filterlim_at_bot_le:
 proof safe
   fix Z assume *: "\<forall>Z\<le>c. eventually (\<lambda>x. Z \<ge> f x) F"
   with *[THEN spec, of "min Z c"] show "eventually (\<lambda>x. Z \<ge> f x) F"
-    by (auto elim!: eventually_elim1)
+    by (auto elim!: eventually_mono)
 qed simp
 
 lemma filterlim_at_bot_lt:

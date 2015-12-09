@@ -2444,7 +2444,7 @@ proof (intro topological_tendstoI)
   then have S: "open S" "ereal x \<in> ereal ` S"
     by (simp_all add: inj_image_mem_iff)
   show "eventually (\<lambda>x. real_of_ereal (f x) \<in> S) net"
-    by (auto intro: eventually_mono' [OF lim[THEN topological_tendstoD, OF open_ereal, OF S]])
+    by (auto intro: eventually_mono [OF lim[THEN topological_tendstoD, OF open_ereal, OF S]])
 qed
 
 lemma lim_ereal[simp]: "((\<lambda>n. ereal (f n)) ---> ereal x) net \<longleftrightarrow> (f ---> x) net"
@@ -2456,7 +2456,7 @@ proof -
     fix l :: ereal
     assume "\<forall>r. eventually (\<lambda>x. ereal r < f x) F"
     from this[THEN spec, of "real_of_ereal l"] have "l \<noteq> \<infinity> \<Longrightarrow> eventually (\<lambda>x. l < f x) F"
-      by (cases l) (auto elim: eventually_elim1)
+      by (cases l) (auto elim: eventually_mono)
   }
   then show ?thesis
     by (auto simp: order_tendsto_iff)
@@ -2477,7 +2477,7 @@ proof safe
   then have "eventually (\<lambda>z. f z \<in> {..< B}) F"
     by auto
   ultimately show "eventually (\<lambda>z. f z \<in> S) F"
-    by (auto elim!: eventually_elim1)
+    by (auto elim!: eventually_mono)
 next
   fix x
   assume "\<forall>S. open S \<longrightarrow> -\<infinity> \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F"
@@ -2571,7 +2571,7 @@ proof (intro topological_tendstoI)
     by auto
   from tendsto[THEN topological_tendstoD, OF this]
   show "eventually (\<lambda>x. ereal (real_of_ereal (f x)) \<in> S) net"
-    by (elim eventually_elim1) (auto simp: ereal_real)
+    by (elim eventually_mono) (auto simp: ereal_real)
 qed
 
 lemma ereal_mult_cancel_left:

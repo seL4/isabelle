@@ -73,8 +73,6 @@ lemma cInf_finite_le_iff:
   shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<ge> Inf S \<longleftrightarrow> (\<exists>x\<in>S. a \<ge> x)"
   by (metis cInf_eq_Min Min_le_iff)
 
-(*declare not_less[simp] not_le[simp]*)
-
 lemmas scaleR_simps = scaleR_zero_left scaleR_minus_left scaleR_left_diff_distrib
   scaleR_zero_right scaleR_minus_right scaleR_right_diff_distrib scaleR_eq_0_iff
   scaleR_cancel_left scaleR_cancel_right scaleR_add_right scaleR_add_left real_vector_class.scaleR_one

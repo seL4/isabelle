@@ -886,7 +886,7 @@ proof
       finally have "dist (f (r n)) l < e" by simp
     }
     ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
-      by (rule eventually_elim1)
+      by (rule eventually_mono)
   }
   hence "((f \<circ> r) ---> l) sequentially" unfolding o_def tendsto_iff by simp
   with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially" by auto

@@ -1787,4 +1787,118 @@ qed
 
 hide_const (open) Finite_Set.fold
 
+
+subsection "Infinite Sets"
+
+text \<open>
+  Some elementary facts about infinite sets, mostly by Stephan Merz.
+  Beware! Because "infinite" merely abbreviates a negation, these
+  lemmas may not work well with \<open>blast\<close>.
+\<close>
+
+abbreviation infinite :: "'a set \<Rightarrow> bool"
+  where "infinite S \<equiv> \<not> finite S"
+
+text \<open>
+  Infinite sets are non-empty, and if we remove some elements from an
+  infinite set, the result is still infinite.
+\<close>
+
+lemma infinite_imp_nonempty: "infinite S \<Longrightarrow> S \<noteq> {}"
+  by auto
+
+lemma infinite_remove: "infinite S \<Longrightarrow> infinite (S - {a})"
+  by simp
+
+lemma Diff_infinite_finite:
+  assumes T: "finite T" and S: "infinite S"
+  shows "infinite (S - T)"
+  using T
+proof induct
+  from S
+  show "infinite (S - {})" by auto
+next
+  fix T x
+  assume ih: "infinite (S - T)"
+  have "S - (insert x T) = (S - T) - {x}"
+    by (rule Diff_insert)
+  with ih
+  show "infinite (S - (insert x T))"
+    by (simp add: infinite_remove)
+qed
+
+lemma Un_infinite: "infinite S \<Longrightarrow> infinite (S \<union> T)"
+  by simp
+
+lemma infinite_Un: "infinite (S \<union> T) \<longleftrightarrow> infinite S \<or> infinite T"
+  by simp
+
+lemma infinite_super:
+  assumes T: "S \<subseteq> T" and S: "infinite S"
+  shows "infinite T"
+proof
+  assume "finite T"
+  with T have "finite S" by (simp add: finite_subset)
+  with S show False by simp
+qed
+
+proposition infinite_coinduct [consumes 1, case_names infinite]:
+  assumes "X A"
+  and step: "\<And>A. X A \<Longrightarrow> \<exists>x\<in>A. X (A - {x}) \<or> infinite (A - {x})"
+  shows "infinite A"
+proof
+  assume "finite A"
+  then show False using \<open>X A\<close>
+  proof (induction rule: finite_psubset_induct)
+    case (psubset A)
+    then obtain x where "x \<in> A" "X (A - {x}) \<or> infinite (A - {x})"
+      using local.step psubset.prems by blast
+    then have "X (A - {x})"
+      using psubset.hyps by blast
+    show False
+      apply (rule psubset.IH [where B = "A - {x}"])
+      using \<open>x \<in> A\<close> apply blast
+      by (simp add: \<open>X (A - {x})\<close>)
+  qed
+qed
+
+text \<open>
+  For any function with infinite domain and finite range there is some
+  element that is the image of infinitely many domain elements.  In
+  particular, any infinite sequence of elements from a finite set
+  contains some element that occurs infinitely often.
+\<close>
+
+lemma inf_img_fin_dom':
+  assumes img: "finite (f ` A)" and dom: "infinite A"
+  shows "\<exists>y \<in> f ` A. infinite (f -` {y} \<inter> A)"
+proof (rule ccontr)
+  have "A \<subseteq> (\<Union>y\<in>f ` A. f -` {y} \<inter> A)" by auto
+  moreover
+  assume "\<not> ?thesis"
+  with img have "finite (\<Union>y\<in>f ` A. f -` {y} \<inter> A)" by blast
+  ultimately have "finite A" by(rule finite_subset)
+  with dom show False by contradiction
+qed
+
+lemma inf_img_fin_domE':
+  assumes "finite (f ` A)" and "infinite A"
+  obtains y where "y \<in> f`A" and "infinite (f -` {y} \<inter> A)"
+  using assms by (blast dest: inf_img_fin_dom')
+
+lemma inf_img_fin_dom:
+  assumes img: "finite (f`A)" and dom: "infinite A"
+  shows "\<exists>y \<in> f`A. infinite (f -` {y})"
+using inf_img_fin_dom'[OF assms] by auto
+
+lemma inf_img_fin_domE:
+  assumes "finite (f`A)" and "infinite A"
+  obtains y where "y \<in> f`A" and "infinite (f -` {y})"
+  using assms by (blast dest: inf_img_fin_dom)
+
+proposition finite_image_absD:
+    fixes S :: "'a::linordered_ring set"
+    shows "finite (abs ` S) \<Longrightarrow> finite S"
+  by (rule ccontr) (auto simp: abs_eq_iff vimage_def dest: inf_img_fin_dom)
+
 end

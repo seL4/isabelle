@@ -2310,7 +2310,7 @@ lemma Lim_at_infinity:
   by (auto simp add: tendsto_iff eventually_at_infinity)
 
 lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
-  by (rule topological_tendstoI, auto elim: eventually_mono')
+  by (rule topological_tendstoI, auto elim: eventually_mono)
 
 text\<open>The expected monotonicity property.\<close>
 
@@ -2348,7 +2348,7 @@ proof
   next
     assume "?rhs"
     then show "?lhs"
-      by (auto elim: eventually_elim1 simp: eventually_at_filter)
+      by (auto elim: eventually_mono simp: eventually_at_filter)
   }
 qed
 
@@ -2429,7 +2429,7 @@ proof
     assume "open S" "x \<in> S"
     from A(3)[OF this] \<open>\<And>n. f n \<in> A n\<close>
     show "eventually (\<lambda>x. f x \<in> S) sequentially"
-      by (auto elim!: eventually_elim1)
+      by (auto elim!: eventually_mono)
   qed
   ultimately show ?rhs by fast
 next
@@ -2459,7 +2459,7 @@ lemma Lim_null_comparison:
   using assms(2)
 proof (rule metric_tendsto_imp_tendsto)
   show "eventually (\<lambda>x. dist (f x) 0 \<le> dist (g x) 0) net"
-    using assms(1) by (rule eventually_elim1) (simp add: dist_norm)
+    using assms(1) by (rule eventually_mono) (simp add: dist_norm)
 qed
 
 lemma Lim_transform_bound:
@@ -3206,7 +3206,7 @@ proof -
       unfolding closure_sequential by auto
     have "\<forall>n. f n \<in> S \<longrightarrow> dist x (f n) \<le> a" using a by simp
     then have "eventually (\<lambda>n. dist x (f n) \<le> a) sequentially"
-      by (rule eventually_mono, simp add: f(1))
+      by (simp add: f(1))
     have "dist x y \<le> a"
       apply (rule Lim_dist_ubound [of sequentially f])
       apply (rule trivial_limit_sequentially)
@@ -3808,7 +3808,7 @@ proof (intro allI iffI impI compact_fip[THEN iffD2] notI)
     by auto
   moreover
   have ev_Z: "\<And>z. z \<in> Z \<Longrightarrow> eventually (\<lambda>x. x \<in> z) F"
-    unfolding Z_def by (auto elim: eventually_elim1 intro: set_mp[OF closure_subset])
+    unfolding Z_def by (auto elim: eventually_mono intro: set_mp[OF closure_subset])
   have "(\<forall>B \<subseteq> Z. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {})"
   proof (intro allI impI)
     fix B assume "finite B" "B \<subseteq> Z"
@@ -4485,7 +4485,7 @@ proof
         by auto
     }
     ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
-      by (rule eventually_elim1)
+      by (rule eventually_mono)
   }
   then have *: "((f \<circ> r) ---> l) sequentially"
     unfolding o_def tendsto_iff by simp
@@ -5559,7 +5559,7 @@ proof (rule topological_tendstoI)
   then have "eventually (\<lambda>n. x n \<in> T) sequentially"
     using assms T_def by (auto simp: tendsto_def)
   then show "eventually (\<lambda>n. (f \<circ> x) n \<in> S) sequentially"
-    using T_def by (auto elim!: eventually_elim1)
+    using T_def by (auto elim!: eventually_mono)
 qed
 
 lemma continuous_on_open:
@@ -5734,7 +5734,7 @@ proof -
     using \<open>open U\<close> and \<open>f x \<in> U\<close>
     unfolding tendsto_def by fast
   then have "eventually (\<lambda>y. f y \<noteq> a) (at x within s)"
-    using \<open>a \<notin> U\<close> by (fast elim: eventually_mono')
+    using \<open>a \<notin> U\<close> by (fast elim: eventually_mono)
   then show ?thesis
     using \<open>f x \<noteq> a\<close> by (auto simp: dist_commute zero_less_dist_iff eventually_at)
 qed
