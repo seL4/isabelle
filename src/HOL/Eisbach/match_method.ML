@@ -70,8 +70,8 @@ fun pos_of dyn = Parse_Tools.the_parse_val dyn |> Binding.pos_of;
 
 (*FIXME: Dynamic facts modify the background theory, so we have to resort
   to token replacement for matched facts. *)
-fun dynamic_fact ctxt =
-  bound_term -- Args.opt_attribs (Attrib.check_name ctxt);
+val dynamic_fact =
+  Scan.lift bound_term -- Attrib.opt_attribs;
 
 type match_args = {multi : bool, cut : int};
 
@@ -86,17 +86,17 @@ val parse_match_args =
       ss {multi = false, cut = ~1});
 
 fun parse_named_pats match_kind =
-  Args.context :|-- (fn ctxt =>
-    Scan.lift (Parse.and_list1
-      (Scan.option (dynamic_fact ctxt --| Args.colon) :--
-        (fn opt_dyn =>
-          if is_none opt_dyn orelse nameable_match match_kind
-          then Parse_Tools.name_term -- parse_match_args
-          else
-            let val b = #1 (the opt_dyn)
-            in error ("Cannot bind fact name in term match" ^ Position.here (pos_of b)) end))
-        -- for_fixes -- (@{keyword "\<Rightarrow>"} |-- Parse.token Parse.cartouche))
-  >> (fn ((ts, fixes), cartouche) =>
+  Args.context --
+  Parse.and_list1'
+    (Scan.option (dynamic_fact --| Scan.lift Args.colon) :--
+      (fn opt_dyn =>
+        if is_none opt_dyn orelse nameable_match match_kind
+        then Scan.lift (Parse_Tools.name_term -- parse_match_args)
+        else
+          let val b = #1 (the opt_dyn)
+          in error ("Cannot bind fact name in term match" ^ Position.here (pos_of b)) end)) --
+  Scan.lift (for_fixes -- (@{keyword "\<Rightarrow>"} |-- Parse.token Parse.cartouche))
+  >> (fn ((ctxt, ts), (fixes, cartouche)) =>
     (case Token.get_value cartouche of
       SOME (Token.Source src) =>
         let
@@ -205,7 +205,7 @@ fun parse_named_pats match_kind =
           val morphism =
             Variable.export_morphism ctxt6
               (ctxt
-                |> Token.declare_maxidx_src src
+                |> fold Token.declare_maxidx src
                 |> Variable.declare_maxidx (Variable.maxidx_of ctxt6));
 
           val pats' = map (Term.map_types Type_Infer.paramify_vars #> Morphism.term morphism) pats;
@@ -213,14 +213,13 @@ fun parse_named_pats match_kind =
 
           fun close_src src =
             let
-              val src' = Token.closure_src src |> Token.transform_src morphism;
+              val src' = src |> map (Token.closure #> Token.transform morphism);
               val _ =
-                map2 (fn tok1 => fn tok2 =>
-                  (case Token.get_value tok2 of
-                    SOME value => Token.assign (SOME value) tok1
-                  | NONE => ()))
-                  (Token.args_of_src src)
-                  (Token.args_of_src src');
+                (Token.args_of_src src ~~ Token.args_of_src src')
+                |> List.app (fn (tok, tok') =>
+                  (case Token.get_value tok' of
+                    SOME value => ignore (Token.assign (SOME value) tok)
+                  | NONE => ()));
             in src' end;
 
           val binds' =
@@ -241,11 +240,11 @@ fun parse_named_pats match_kind =
           val match_args = map (fn (_, (_, match_args)) => match_args) ts;
           val binds'' = (binds' ~~ match_args) ~~ pats';
 
-          val src' = Token.transform_src morphism src;
+          val src' = map (Token.transform morphism) src;
           val _ = Token.assign (SOME (Token.Source src')) cartouche;
         in
           (binds'', real_fixes', text)
-        end)));
+        end));
 
 
 fun dest_internal_fact t =
@@ -285,14 +284,14 @@ fun do_inst fact_insts' env text ctxt =
     fun apply_attribute (head, (fact, atts)) (fact_insts, ctxt) =
       let
         val morphism = fact_morphism fact_insts;
-        val atts' = map (Attrib.attribute ctxt o Token.transform_src morphism) atts;
+        val atts' = map (Attrib.attribute ctxt o map (Token.transform morphism)) atts;
         val (fact'', ctxt') = fold_map (Thm.proof_attributes atts') fact ctxt;
       in ((head, fact'') :: fact_insts, ctxt') end;
 
      (*TODO: What to do about attributes that raise errors?*)
     val (fact_insts', ctxt') = fold_rev (apply_attribute) fact_insts ([], ctxt);
 
-    val text' = Method.map_source (Token.transform_src (fact_morphism fact_insts')) text;
+    val text' = (Method.map_source o map) (Token.transform (fact_morphism fact_insts')) text;
   in
     (text', ctxt')
   end;

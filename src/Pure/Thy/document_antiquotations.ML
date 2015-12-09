@@ -115,8 +115,6 @@ val _ = Theory.setup
       Scan.lift (Parse.position (Parse.reserved "by") -- Method.parse -- Scan.option Method.parse))
     (fn {source, context = ctxt, ...} => fn ((prop_token, prop), (((_, by_pos), m1), m2)) =>
       let
-        val prop_src = Token.src (Token.name_of_src source) [prop_token];
-
         val reports = (by_pos, Markup.keyword1) :: maps Method.reports_of (m1 :: the_list m2);
         val _ = Context_Position.reports ctxt reports;
 
@@ -126,7 +124,8 @@ val _ = Theory.setup
           |> Proof.global_terminal_proof (m1, m2);
       in
         Thy_Output.output ctxt
-          (Thy_Output.maybe_pretty_source Thy_Output.pretty_term ctxt prop_src [prop])
+          (Thy_Output.maybe_pretty_source
+            Thy_Output.pretty_term ctxt [hd source, prop_token] [prop])
       end));
 
 

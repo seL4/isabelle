@@ -435,7 +435,7 @@ end;
 
 (* attributes *)
 
-val attrib = position liberal_name -- !!! args >> uncurry Token.src;
+val attrib = token liberal_name ::: !!! args;
 val attribs = $$$ "[" |-- list attrib --| $$$ "]";
 val opt_attribs = Scan.optional attribs [];
 

@@ -183,7 +183,7 @@ val scan_letdigs =
   Scan.many (Symbol.is_ascii_letdig o Symbol_Pos.symbol);
 
 val scan_alphanumeric =
-  Scan.one (Symbol.is_ascii_letter o Symbol_Pos.symbol) -- scan_letdigs >> op ::;
+  Scan.one (Symbol.is_ascii_letter o Symbol_Pos.symbol) ::: scan_letdigs;
 
 val scan_symbolic =
   Scan.many1 (member (op =) (raw_explode "!#$%&*+-/:<=>?@\\^`|~") o Symbol_Pos.symbol);
