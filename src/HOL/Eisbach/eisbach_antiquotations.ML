@@ -15,7 +15,7 @@ val _ =
       (Args.context -- Scan.lift (Args.mode "drop_cases") -- Scan.lift (Parse.position Parse.name)
         >> (fn ((ctxt, drop_cases), nameref) =>
           let
-            val ((targs, (factargs, margs)), _) = Method_Closure.get_inner_method ctxt nameref;
+            val ((targs, (factargs, margs)), _) = Method_Closure.get_method ctxt nameref;
 
             val has_factargs = not (null factargs);
 
@@ -34,9 +34,9 @@ val _ =
             val ML_context = ML_Context.struct_name ctxt ^ ".ML_context";
             val ml_inner =
               ML_Syntax.atomic
-                ("Method_Closure.get_inner_method " ^  ML_context ^
+                ("Method_Closure.get_method " ^  ML_context ^
                   ML_Syntax.print_pair ML_Syntax.print_string ML_Syntax.print_position nameref ^
-                  "|> (fn ((targs, (_, margs)), text) => Method_Closure.eval_inner_method " ^
+                  "|> (fn ((targs, (_, margs)), text) => Method_Closure.eval_method " ^
                   ML_context ^ " ((targs, margs), text))");
 
             val drop_cases_suffix =

@@ -21,9 +21,9 @@ sig
   val read_closure_input: Proof.context -> Input.source -> Method.text * Token.src
   val method_text: Method.text context_parser
   val method_evaluate: Method.text -> Proof.context -> Method.method
-  val get_inner_method: Proof.context -> string * Position.T ->
+  val get_method: Proof.context -> string * Position.T ->
     (term list * (string list * string list)) * Method.text
-  val eval_inner_method: Proof.context -> (term list * string list) * Method.text ->
+  val eval_method: Proof.context -> (term list * string list) * Method.text ->
     term list -> (string * thm list) list -> (Proof.context -> Method.method) list ->
     Proof.context -> Method.method
   val method_definition: binding -> (binding * typ option * mixfix) list ->
@@ -276,7 +276,7 @@ fun add_method binding ((fixes, declares, methods), text) lthy =
           (map (Morphism_name phi) declares, map (Morphism_name phi) methods)),
           (Method.map_source o map) (Token.transform phi) text))));
 
-fun get_inner_method ctxt (xname, pos) =
+fun get_method ctxt (xname, pos) =
   let
     val name = Method.check_name ctxt (xname, pos);
   in
@@ -285,7 +285,7 @@ fun get_inner_method ctxt (xname, pos) =
     | NONE => error ("Unknown Eisbach method: " ^ quote name ^ Position.here pos))
   end;
 
-fun eval_inner_method ctxt0 header fixes attribs methods =
+fun eval_method ctxt0 header fixes attribs methods =
   let
     val ((term_args, hmethods), text) = header;
 
