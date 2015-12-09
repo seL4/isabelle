@@ -64,13 +64,11 @@ sig
   val get_files: T -> file Exn.result list
   val put_files: file Exn.result list -> T -> T
   val get_value: T -> value option
-  val map_value: (value -> value) -> T -> T
   val name_value: name_value -> value
   val get_name: T -> name_value option
   val reports_of_value: T -> Position.report list
-  val map_nested_values: (value -> value) -> T -> T
   val declare_maxidx: T -> Proof.context -> Proof.context
-  val map_facts: (thm list -> thm list) -> T -> T
+  val map_facts: (string option -> thm list -> thm list) -> T -> T
   val transform: morphism -> T -> T
   val init_assignable: T -> T
   val assign: value option -> T -> T
@@ -369,9 +367,6 @@ fun get_assignable_value (Token (_, _, Assignable r)) = ! r
 fun map_value f (Token (x, y, Value (SOME v))) = Token (x, y, Value (SOME (f v)))
   | map_value _ tok = tok;
 
-fun map_nested_values f =
-  map_value (fn Source src => Source (map (map_nested_values f) src) | x => f x);
-
 
 (* name value *)
 
@@ -421,7 +416,7 @@ fun map_facts f =
   map_value (fn v =>
     (case v of
       Source src => Source (map (map_facts f) src)
-    | Fact (a, ths) => Fact (a, f ths)
+    | Fact (a, ths) => Fact (a, f a ths)
     | _ => v));
 
 

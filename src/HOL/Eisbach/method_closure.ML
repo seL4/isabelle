@@ -210,10 +210,8 @@ fun evaluate_dynamic_thm ctxt name =
 
 
 fun evaluate_named_theorems ctxt =
-  (Method.map_source o map o Token.map_nested_values)
-    (fn Token.Fact (SOME name, _) =>
-          Token.Fact (SOME name, evaluate_dynamic_thm ctxt name)
-      | x => x);
+  (Method.map_source o map o Token.map_facts)
+    (fn SOME name => K (evaluate_dynamic_thm ctxt name) | NONE => I);
 
 fun method_evaluate text ctxt facts =
   let val ctxt' = Config.put Method.closure false ctxt in
