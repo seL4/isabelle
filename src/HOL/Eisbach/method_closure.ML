@@ -16,10 +16,10 @@ sig
   val free_aware_rule_attribute: thm list -> (Context.generic -> thm -> thm) -> Thm.attribute
   val wrap_attribute: {handle_all_errs : bool, declaration : bool} ->
     Binding.binding -> theory -> theory
-  val read_inner_method: Proof.context -> Token.src -> Method.text
-  val read_text_closure: Proof.context -> Token.src -> Token.src * Method.text
-  val read_inner_text_closure: Proof.context -> Input.source -> Token.src * Method.text
-  val parse_method: Method.text context_parser
+  val read: Proof.context -> Token.src -> Method.text
+  val read_closure: Proof.context -> Token.src -> Method.text * Token.src
+  val read_closure_input: Proof.context -> Input.source -> Method.text * Token.src
+  val method_text: Method.text context_parser
   val method_evaluate: Method.text -> Proof.context -> Method.method
   val get_inner_method: Proof.context -> string * Position.T ->
     (term list * (string list * string list)) * Method.text
@@ -113,51 +113,43 @@ fun wrap_attribute args binding thy =
     |> snd
   end;
 
-(* thm semantics for combined methods with internal parser. Simulates outer syntax parsing. *)
-(* Creates closures for each combined method while parsing, based on the parse context *)
 
-fun read_inner_method ctxt src =
+(* read method text *)
+
+fun read ctxt src =
   let
-    val toks = Token.args_of_src src;
     val parser =
       Parse.!!! (Method.parser 0 --| Scan.ahead Parse.eof)
       >> apfst (Method.check_text ctxt);
   in
-    (case Scan.read Token.stopper parser toks of
-      SOME (method_text, pos) => (Method.report (method_text, pos); method_text)
-    | NONE => error ("Failed to parse method" ^ Position.here (#2 (Token.name_of_src src))))
+    (case Scan.read Token.stopper parser src of
+      SOME (text, range) => (Method.report (text, range); text)
+    | NONE =>
+        error ("Failed to parse method" ^ Position.here (Position.set_range (Token.range_of src))))
   end;
 
-fun read_text_closure ctxt src0 =
+fun read_closure ctxt src0 =
   let
     val src1 = map Token.init_assignable src0;
-    val method_text = read_inner_method ctxt src1;
-    val method_text' = Method.map_source (Method.method_closure ctxt) method_text;
+    val text = read ctxt src1 |> Method.map_source (Method.method_closure ctxt);
     val src2 = map Token.closure src1;
-  in (src2, method_text') end;
+  in (text, src2) end;
 
-fun read_inner_text_closure ctxt input =
-  let
-    val keywords = Thy_Header.get_keywords' ctxt;
-    val toks =
-      Input.source_explode input
-      |> Token.read_no_commands keywords (Scan.one Token.not_eof);
-  in read_text_closure ctxt (Token.make_src ("", Input.pos_of input) toks) end;
+fun read_closure_input ctxt =
+  Input.source_explode #>
+  Token.read_no_commands (Thy_Header.get_keywords' ctxt) (Scan.one Token.not_eof) #>
+  read_closure ctxt;
 
 
-val parse_method =
+val method_text =
   Args.context -- Scan.lift (Parse.token Parse.cartouche) >> (fn (ctxt, tok) =>
     (case Token.get_value tok of
-      NONE =>
+      SOME (Token.Source src) => read ctxt src
+    | _ =>
         let
-          val input = Token.input_of tok;
-          val (src, text) = read_inner_text_closure ctxt input;
+          val (text, src) = read_closure_input ctxt (Token.input_of tok);
           val _ = Token.assign (SOME (Token.Source src)) tok;
-        in text end
-    | SOME (Token.Source src) => read_inner_method ctxt src
-    | SOME _ =>
-        error ("Unexpected inner token value for method cartouche" ^
-          Position.here (Token.pos_of tok))));
+        in text end));
 
 
 fun parse_term_args args =
@@ -268,9 +260,8 @@ fun parse_method_args method_names =
         val inner_update = method o update_dynamic_method (name, K (method ctxt));
       in update_dynamic_method (name, inner_update) ctxt end;
 
-    fun do_parse t = parse_method >> pair t;
     fun rep [] x = Scan.succeed [] x
-      | rep (t :: ts) x  = (do_parse t ::: rep ts) x;
+      | rep (t :: ts) x = ((method_text >> pair t) ::: rep ts) x;
   in rep method_names >> fold bind_method end;
 
 
@@ -345,7 +336,7 @@ fun gen_method_definition add_fixes name vars uses attribs methods source lthy =
         (parser term_args
           (fn (fixes, decl) => fn ctxt => get_recursive_method ctxt fixes (decl ctxt))) "(internal)";
 
-    val (src, text) = read_text_closure lthy3 source;
+    val (text, src) = read_closure lthy3 source;
 
     val morphism =
       Variable.export_morphism lthy3
@@ -379,8 +370,7 @@ val _ =
       ((Scan.optional (@{keyword "methods"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
         (Scan.optional (@{keyword "uses"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) [])) --
       (Scan.optional (@{keyword "declares"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
-      Parse.!!! (@{keyword "="} |-- Parse.position (Parse.args1 (K true))
-        >> (fn (args, pos) => Token.make_src ("", pos) args))
+      Parse.!!! (@{keyword "="} |-- Parse.args1 (K true))
       >> (fn ((((name, vars), (methods, uses)), attribs), src) =>
         method_definition_cmd name vars uses attribs methods src));
 

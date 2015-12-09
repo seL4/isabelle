@@ -100,7 +100,7 @@ fun parse_named_pats match_kind =
     (case Token.get_value cartouche of
       SOME (Token.Source src) =>
         let
-          val text = Method_Closure.read_inner_method ctxt src
+          val text = Method_Closure.read ctxt src;
           val ts' =
             map
               (fn (b, (Parse_Tools.Real_Val v, match_args)) =>
@@ -109,8 +109,7 @@ fun parse_named_pats match_kind =
                 | _ => raise Fail "Expected closed term") ts
           val fixes' = map (fn ((p, _), _) => Parse_Tools.the_real_val p) fixes
         in (ts', fixes', text) end
-    | SOME _ => error "Unexpected token value in match cartouche"
-    | NONE =>
+    | _ =>
         let
           val (fix_names, ctxt3) = ctxt
             |> Proof_Context.add_fixes_cmd
@@ -200,7 +199,7 @@ fun parse_named_pats match_kind =
             |> (fn ctxt => fold2 upd_ctxt binds pats ([], ctxt) |> apfst rev)
             ||> Proof_Context.restore_mode ctxt;
 
-          val (src, text) = Method_Closure.read_inner_text_closure ctxt6 (Token.input_of cartouche);
+          val (text, src) = Method_Closure.read_closure_input ctxt6 (Token.input_of cartouche);
 
           val morphism =
             Variable.export_morphism ctxt6

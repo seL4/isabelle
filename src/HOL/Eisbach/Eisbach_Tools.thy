@@ -55,7 +55,7 @@ ML \<open>
 \<close>
 
 method_setup catch = \<open>
-  Method_Closure.parse_method -- Method_Closure.parse_method >>
+  Method_Closure.method_text -- Method_Closure.method_text >>
     (fn (text, text') => fn ctxt => fn using => fn st =>
       let
         val method = Method_Closure.method_evaluate text ctxt using;
