@@ -108,7 +108,7 @@ fun transform_ctxt phi = map_ctxt
   term = Morphism.term phi,
   pattern = Morphism.term phi,
   fact = Morphism.fact phi,
-  attrib = Token.transform_src phi};
+  attrib = map (Token.transform phi)};
 
 
 
@@ -513,14 +513,14 @@ fun init' elem context =
 fun activate_i elem ctxt =
   let
     val elem' =
-      (case map_ctxt_attrib Token.init_assignable_src elem of
+      (case (map_ctxt_attrib o map) Token.init_assignable elem of
         Defines defs =>
           Defines (defs |> map (fn ((a, atts), (t, ps)) =>
             ((Thm.def_binding_optional (Binding.name (#1 (#1 (Local_Defs.cert_def ctxt t)))) a, atts),
               (t, ps))))
       | e => e);
     val ctxt' = Context.proof_map (init elem') ctxt;
-  in (map_ctxt_attrib Token.closure_src elem', ctxt') end;
+  in ((map_ctxt_attrib o map) Token.closure elem', ctxt') end;
 
 fun activate raw_elem ctxt =
   let val elem = raw_elem |> map_ctxt

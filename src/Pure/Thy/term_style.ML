@@ -24,7 +24,6 @@ structure Data = Theory_Data
 );
 
 val get_data = Data.get o Proof_Context.theory_of;
-val get_style = Name_Space.get o get_data;
 
 fun setup binding style thy =
   Data.map (#2 o Name_Space.define (Context.Theory thy) true (binding, style)) thy;
@@ -33,9 +32,9 @@ fun setup binding style thy =
 (* style parsing *)
 
 fun parse_single ctxt =
-  Parse.position Parse.xname -- Parse.args >> (fn (name, args) =>
+  Parse.token Parse.xname ::: Parse.args >> (fn src0 =>
     let
-      val (src, parse) = Token.check_src ctxt (get_data ctxt) (Token.src name args);
+      val (src, parse) = Token.check_src ctxt get_data src0;
       val (f, _) = Token.syntax (Scan.lift parse) src ctxt;
     in f ctxt end);
 

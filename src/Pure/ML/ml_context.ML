@@ -108,7 +108,7 @@ fun print_antiquotations verbose ctxt =
   |> Pretty.writeln;
 
 fun apply_antiquotation src ctxt =
-  let val (src', f) = Token.check_src ctxt (get_antiquotations ctxt) src
+  let val (src', f) = Token.check_src ctxt get_antiquotations src
   in f src' ctxt end;
 
 
@@ -117,8 +117,7 @@ fun apply_antiquotation src ctxt =
 local
 
 val antiq =
-  Parse.!!! (Parse.position Parse.xname -- Parse.args --| Scan.ahead Parse.eof)
-  >> uncurry Token.src;
+  Parse.!!! ((Parse.token Parse.xname ::: Parse.args) --| Scan.ahead Parse.eof);
 
 fun make_env name visible =
   (ML_Lex.tokenize
@@ -154,7 +153,7 @@ fun eval_antiquotes (ants, pos) opt_context =
           fun expand (Antiquote.Text tok) ctxt = (K ([], [tok]), ctxt)
             | expand (Antiquote.Control {name, range, body}) ctxt =
                 expand_src range
-                  (Token.src name (if null body then [] else [Token.read_cartouche body])) ctxt
+                  (Token.make_src name (if null body then [] else [Token.read_cartouche body])) ctxt
             | expand (Antiquote.Antiq {range, body, ...}) ctxt =
                 expand_src range
                   (Token.read_antiq (Thy_Header.get_keywords' ctxt) antiq (body, #1 range)) ctxt;

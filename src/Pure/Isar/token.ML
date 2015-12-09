@@ -17,26 +17,20 @@ sig
   val str_of_kind: kind -> string
   type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   type T
-  type src
+  type src = T list
+  type name_value = {name: string, kind: string, print: Proof.context -> Markup.T * xstring}
   datatype value =
     Source of src |
     Literal of bool * Markup.T |
-    Name of string * morphism |
+    Name of name_value * morphism |
     Typ of typ |
     Term of term |
     Fact of string option * thm list |
     Attribute of morphism -> attribute |
     Declaration of declaration |
     Files of file Exn.result list
-  val name0: string -> value
   val pos_of: T -> Position.T
   val range_of: T list -> Position.range
-  val src: xstring * Position.T -> T list -> src
-  val src_checked: string * Position.T -> T list -> string * Markup.T -> src
-  val name_of_src: src -> string * Position.T
-  val args_of_src: src -> T list
-  val range_of_src: src -> Position.T
-  val check_src: Proof.context -> 'a Name_Space.table -> src -> src * 'a
   val eof: T
   val is_eof: T -> bool
   val not_eof: T -> bool
@@ -65,7 +59,6 @@ sig
   val reports: Keyword.keywords -> T -> Position.report_text list
   val markups: Keyword.keywords -> T -> Markup.T list
   val unparse: T -> string
-  val unparse_src: src -> string list
   val print: T -> string
   val text_of: T -> string * string
   val get_files: T -> file Exn.result list
@@ -73,20 +66,22 @@ sig
   val make_value: string -> value -> T
   val get_value: T -> value option
   val map_value: (value -> value) -> T -> T
+  val name_value: name_value -> value
+  val get_name: T -> name_value option
   val reports_of_value: T -> Position.report list
-  val map_values: (value -> value) -> src -> src
+  val map_nested_values: (value -> value) -> T -> T
   val declare_maxidx: T -> Proof.context -> Proof.context
-  val declare_maxidx_src: src -> Proof.context -> Proof.context
   val map_facts: (thm list -> thm list) -> T -> T
-  val map_facts_src: (thm list -> thm list) -> src -> src
   val transform: morphism -> T -> T
-  val transform_src: morphism -> src -> src
   val init_assignable: T -> T
-  val init_assignable_src: src -> src
-  val assign: value option -> T -> unit
+  val assign: value option -> T -> T
+  val evaluate: ('a -> value) -> (T -> 'a) -> T -> 'a
   val closure: T -> T
-  val closure_src: src -> src
   val pretty_value: Proof.context -> T -> Pretty.T
+  val name_of_src: src -> string * Position.T
+  val args_of_src: src -> T list
+  val checked_src: src -> bool
+  val check_src: Proof.context -> (Proof.context -> 'a Name_Space.table) -> src -> src * 'a
   val pretty_src: Proof.context -> src -> Pretty.T
   val ident_or_symbolic: string -> bool
   val source': bool -> Keyword.keywords -> (Symbol_Pos.T, 'a) Source.source ->
@@ -101,6 +96,8 @@ sig
   val read_cartouche: Symbol_Pos.T list -> T
   val explode: Keyword.keywords -> Position.T -> string -> T list
   val make: (int * int) * string -> Position.T -> T * Position.T
+  val make_string: string * Position.T -> T
+  val make_src: string * Position.T -> T list -> src
   type 'a parser = T list -> 'a * T list
   type 'a context_parser = Context.generic * T list -> 'a * (Context.generic * T list)
   val read_no_commands: Keyword.keywords -> 'a parser -> Symbol_Pos.T list -> 'a list
@@ -162,13 +159,9 @@ val delimited_kind = member (op =) [String, Alt_String, Verbatim, Cartouche, Com
 
 type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T};
 
-datatype T = Token of (Symbol_Pos.text * Position.range) * (kind * string) * slot
+type name_value = {name: string, kind: string, print: Proof.context -> Markup.T * xstring};
 
-and src =
-  Src of
-   {name: string * Position.T,
-    args: T list,
-    checked: (string * Markup.T) option}
+datatype T = Token of (Symbol_Pos.text * Position.range) * (kind * string) * slot
 
 and slot =
   Slot |
@@ -176,9 +169,9 @@ and slot =
   Assignable of value option Unsynchronized.ref
 
 and value =
-  Source of src |
+  Source of T list |
   Literal of bool * Markup.T |
-  Name of string * morphism |
+  Name of name_value * morphism |
   Typ of typ |
   Term of term |
   Fact of string option * thm list |  (*optional name for dynamic fact, i.e. fact "variable"*)
@@ -186,7 +179,7 @@ and value =
   Declaration of declaration |
   Files of file Exn.result list;
 
-fun name0 a = Name (a, Morphism.identity);
+type src = T list;
 
 
 (* position *)
@@ -194,36 +187,14 @@ fun name0 a = Name (a, Morphism.identity);
 fun pos_of (Token ((_, (pos, _)), _, _)) = pos;
 fun end_pos_of (Token ((_, (_, pos)), _, _)) = pos;
 
+fun reset_pos pos (Token ((x, _), y, z)) =
+  let val pos' = Position.reset_range pos
+  in Token ((x, (pos', pos')), y, z) end;
+
 fun range_of (toks as tok :: _) =
       let val pos' = end_pos_of (List.last toks)
       in Position.range (pos_of tok) pos' end
   | range_of [] = Position.no_range;
-
-
-(* src *)
-
-fun src name args = Src {name = name, args = args, checked = NONE};
-fun src_checked name args checked = Src {name = name, args = args, checked = SOME checked};
-
-fun map_args f (Src {name, args, checked}) =
-  Src {name = name, args = map f args, checked = checked};
-
-fun name_of_src (Src {name, ...}) = name;
-fun args_of_src (Src {args, ...}) = args;
-
-fun range_of_src (Src {name = (_, pos), args, ...}) =
-  if null args then pos
-  else Position.set_range (pos, #2 (range_of args));
-
-fun check_src _ table (src as Src {name = (name, _), checked = SOME _, ...}) =
-      (src, Name_Space.get table name)
-  | check_src ctxt table (Src {name = (xname, pos), args, checked = NONE}) =
-      let
-        val (name, x) = Name_Space.check (Context.Proof ctxt) table (xname, pos);
-        val space = Name_Space.space_of_table table;
-        val kind = Name_Space.kind_of space;
-        val markup = Name_Space.markup space name;
-      in (src_checked (name, pos) args (kind, markup), x) end;
 
 
 (* stopper *)
@@ -360,8 +331,6 @@ fun unparse (Token (_, (kind, x), _)) =
   | EOF => ""
   | _ => x);
 
-fun unparse_src (Src {args, ...}) = map unparse args;
-
 fun print tok = Markup.markups (markups Keyword.empty_keywords tok) (unparse tok);
 
 fun text_of tok =
@@ -398,18 +367,28 @@ fun make_value name v =
 fun get_value (Token (_, _, Value v)) = v
   | get_value _ = NONE;
 
-fun map_value f (Token (x, y, Value (SOME v))) = Token (x, y, Value (SOME (f v)))
-  | map_value _ tok = tok;
-
-fun map_values f =
-  (map_args o map_value) (fn Source src => Source (map_values f src) | x => f x);
-
-
-(* reports of value *)
-
 fun get_assignable_value (Token (_, _, Assignable r)) = ! r
   | get_assignable_value (Token (_, _, Value v)) = v
   | get_assignable_value _ = NONE;
+
+fun map_value f (Token (x, y, Value (SOME v))) = Token (x, y, Value (SOME (f v)))
+  | map_value _ tok = tok;
+
+fun map_nested_values f =
+  map_value (fn Source src => Source (map (map_nested_values f) src) | x => f x);
+
+
+(* name value *)
+
+fun name_value a = Name (a, Morphism.identity);
+
+fun get_name tok =
+  (case get_assignable_value tok of
+    SOME (Name (a, _)) => SOME a
+  | _ => NONE);
+
+
+(* reports of value *)
 
 fun reports_of_value tok =
   (case get_assignable_value tok of
@@ -429,7 +408,7 @@ fun reports_of_value tok =
 
 fun declare_maxidx tok =
   (case get_value tok of
-    SOME (Source src) => declare_maxidx_src src
+    SOME (Source src) => fold declare_maxidx src
   | SOME (Typ T) => Variable.declare_maxidx (Term.maxidx_of_typ T)
   | SOME (Term t) => Variable.declare_maxidx (Term.maxidx_of_term t)
   | SOME (Fact (_, ths)) => fold (Variable.declare_maxidx o Thm.maxidx_of) ths
@@ -438,8 +417,7 @@ fun declare_maxidx tok =
       (fn ctxt =>
         let val ctxt' = Context.proof_map (Morphism.form decl) ctxt
         in Variable.declare_maxidx (Variable.maxidx_of ctxt') ctxt end)
-  | _ => I)
-and declare_maxidx_src src = fold declare_maxidx (args_of_src src);
+  | _ => I);
 
 
 (* fact values *)
@@ -447,10 +425,9 @@ and declare_maxidx_src src = fold declare_maxidx (args_of_src src);
 fun map_facts f =
   map_value (fn v =>
     (case v of
-      Source src => Source (map_facts_src f src)
+      Source src => Source (map (map_facts f) src)
     | Fact (a, ths) => Fact (a, f ths)
-    | _ => v))
-and map_facts_src f = map_args (map_facts f);
+    | _ => v));
 
 
 (* transform *)
@@ -458,7 +435,7 @@ and map_facts_src f = map_args (map_facts f);
 fun transform phi =
   map_value (fn v =>
     (case v of
-      Source src => Source (transform_src phi src)
+      Source src => Source (map (transform phi) src)
     | Literal _ => v
     | Name (a, psi) => Name (a, psi $> phi)
     | Typ T => Typ (Morphism.typ phi T)
@@ -466,28 +443,31 @@ fun transform phi =
     | Fact (a, ths) => Fact (a, Morphism.fact phi ths)
     | Attribute att => Attribute (Morphism.transform phi att)
     | Declaration decl => Declaration (Morphism.transform phi decl)
-    | Files _ => v))
-and transform_src phi = map_args (transform phi);
+    | Files _ => v));
 
 
 (* static binding *)
 
 (*1st stage: initialize assignable slots*)
-fun init_assignable (Token (x, y, Slot)) = Token (x, y, Assignable (Unsynchronized.ref NONE))
-  | init_assignable (tok as Token (_, _, Assignable r)) = (r := NONE; tok)
-  | init_assignable tok = tok;
-
-val init_assignable_src = map_args init_assignable;
+fun init_assignable tok =
+  (case tok of
+    Token (x, y, Slot) => Token (x, y, Assignable (Unsynchronized.ref NONE))
+  | Token (_, _, Value _) => tok
+  | Token (_, _, Assignable r) => (r := NONE; tok));
 
 (*2nd stage: assign values as side-effect of scanning*)
-fun assign v (Token (_, _, Assignable r)) = r := v
-  | assign _ _ = ();
+fun assign v tok =
+  (case tok of
+    Token (x, y, Slot) => Token (x, y, Value v)
+  | Token (_, _, Value _) => tok
+  | Token (_, _, Assignable r) => (r := v; tok));
+
+fun evaluate mk eval arg =
+  let val x = eval arg in (assign (SOME (mk x)) arg; x) end;
 
 (*3rd stage: static closure of final values*)
 fun closure (Token (x, y, Assignable (Unsynchronized.ref v))) = Token (x, y, Value v)
   | closure tok = tok;
-
-val closure_src = map_args closure;
 
 
 (* pretty *)
@@ -497,22 +477,60 @@ fun pretty_value ctxt tok =
     SOME (Literal markup) =>
       let val x = content_of tok
       in Pretty.mark_str (keyword_markup markup x, x) end
-  | SOME (Name (a, _)) => Pretty.str (quote a)
+  | SOME (Name ({print, ...}, _)) => Pretty.quote (Pretty.mark_str (print ctxt))
   | SOME (Typ T) => Syntax.pretty_typ ctxt T
   | SOME (Term t) => Syntax.pretty_term ctxt t
   | SOME (Fact (_, ths)) =>
       Pretty.enclose "(" ")" (Pretty.breaks (map (Pretty.backquote o Thm.pretty_thm ctxt) ths))
   | _ => Pretty.marks_str (markups Keyword.empty_keywords tok, unparse tok));
 
+
+(* src *)
+
+fun dest_src [] = raise Fail "Empty token source"
+  | dest_src (head :: args) = (head, args);
+
+fun name_of_src src =
+  let
+    val head = #1 (dest_src src);
+    val name =
+      (case get_name head of
+        SOME {name, ...} => name
+      | NONE => content_of head);
+  in (name, pos_of head) end;
+
+val args_of_src = #2 o dest_src;
+
 fun pretty_src ctxt src =
   let
-    val Src {name = (name, _), args, checked} = src;
+    val (head, args) = dest_src src;
     val prt_name =
-      (case checked of
-        NONE => Pretty.str name
-      | SOME (_, markup) => Pretty.mark_str (markup, name));
-    val prt_arg = pretty_value ctxt;
-  in Pretty.block (Pretty.breaks (prt_name :: map prt_arg args)) end;
+      (case get_name head of
+        SOME {print, ...} => Pretty.mark_str (print ctxt)
+      | NONE => Pretty.str (content_of head));
+  in Pretty.block (Pretty.breaks (Pretty.quote prt_name :: map (pretty_value ctxt) args)) end;
+
+fun checked_src (head :: _) = is_some (get_name head)
+  | checked_src [] = true;
+
+fun check_src ctxt get_table src =
+  let
+    val (head, args) = dest_src src;
+    val table = get_table ctxt;
+  in
+    (case get_name head of
+      SOME {name, ...} => (src, Name_Space.get table name)
+    | NONE =>
+        let
+          val (name, x) =
+            Name_Space.check (Context.Proof ctxt) table (content_of head, pos_of head);
+          val kind = Name_Space.kind_of (Name_Space.space_of_table table);
+          fun print ctxt' =
+            Name_Space.markup_extern ctxt' (Name_Space.space_of_table (get_table ctxt')) name;
+          val value = name_value {name = name, kind = kind, print = print};
+          val head' = closure (assign (SOME value) head);
+        in (head' :: args, x) end)
+  end;
 
 
 
@@ -660,13 +678,19 @@ fun make ((k, n), s) pos =
     val pos' = Position.advance_offset n pos;
     val range = Position.range pos pos';
     val tok =
-      if k < Vector.length immediate_kinds then
+      if 0 <= k andalso k < Vector.length immediate_kinds then
         Token ((s, range), (Vector.sub (immediate_kinds, k), s), Slot)
       else
         (case explode Keyword.empty_keywords pos s of
           [tok] => tok
         | _ => Token ((s, range), (Error (err_prefix ^ "exactly one token expected"), s), Slot))
   in (tok, pos') end;
+
+fun make_string (s, pos) =
+  #1 (make ((~1, 0), Symbol_Pos.quote_string_qq s) Position.none)
+  |> reset_pos pos;
+
+fun make_src a args = make_string a :: args;
 
 
 
@@ -696,9 +720,10 @@ fun read_antiq keywords scan (syms, pos) =
 
 (* wrapped syntax *)
 
-fun syntax_generic scan (Src {name = (name, pos), args = args0, checked}) context =
+fun syntax_generic scan src context =
   let
-    val args1 = map init_assignable args0;
+    val (name, pos) = name_of_src src;
+    val args1 = map init_assignable (args_of_src src);
     fun reported_text () =
       if Context_Position.is_visible_generic context then
         ((pos, Markup.operator) :: maps (reports_of_value o closure) args1)
@@ -709,12 +734,16 @@ fun syntax_generic scan (Src {name = (name, pos), args = args0, checked}) contex
       (SOME x, (context', [])) =>
         let val _ = Output.report (reported_text ())
         in (x, context') end
-    | (_, (_, args2)) =>
+    | (_, (context', args2)) =>
         let
           val print_name =
-            (case checked of
+            (case get_name (hd src) of
               NONE => quote name
-            | SOME (kind, markup) => plain_words kind ^ " " ^ quote (Markup.markup markup name));
+            | SOME {kind, print, ...} =>
+                let
+                  val ctxt' = Context.proof_of context';
+                  val (markup, xname) = print ctxt';
+                in plain_words kind ^ " " ^ quote (Markup.markup markup xname) end);
           val print_args =
             if null args2 then "" else ":\n  " ^ space_implode " " (map print args2);
         in

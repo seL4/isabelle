@@ -123,6 +123,8 @@ sig
   val get_fact_single: Proof.context -> Facts.ref -> thm
   val get_thms: Proof.context -> xstring -> thm list
   val get_thm: Proof.context -> xstring -> thm
+  val add_thms_dynamic: binding * (Context.generic -> thm list) ->
+    Proof.context -> string * Proof.context
   val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
@@ -234,9 +236,13 @@ structure Data = Proof_Data
 
 fun rep_data ctxt = Data.get ctxt |> (fn Data rep => rep);
 
-fun map_data f =
-  Data.map (fn Data {mode, syntax, tsig, consts, facts, cases} =>
-    make_data (f (mode, syntax, tsig, consts, facts, cases)));
+fun map_data_result f ctxt =
+  let
+    val Data {mode, syntax, tsig, consts, facts, cases} = Data.get ctxt;
+    val (res, data') = f (mode, syntax, tsig, consts, facts, cases) ||> make_data;
+  in (res, Data.put data' ctxt) end;
+
+fun map_data f = snd o map_data_result (pair () o f);
 
 fun set_mode mode = map_data (fn (_, syntax, tsig, consts, facts, cases) =>
   (mode, syntax, tsig, consts, facts, cases));
@@ -264,9 +270,12 @@ fun map_consts f =
   map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
     (mode, syntax, tsig, f consts, facts, cases));
 
-fun map_facts f =
-  map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
-    (mode, syntax, tsig, consts, f facts, cases));
+fun map_facts_result f =
+  map_data_result (fn (mode, syntax, tsig, consts, facts, cases) =>
+    let val (res, facts') = f facts
+    in (res, (mode, syntax, tsig, consts, facts', cases)) end);
+
+fun map_facts f = snd o map_facts_result (pair () o f);
 
 fun map_cases f =
   map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
@@ -990,6 +999,9 @@ end;
 
 
 (* facts *)
+
+fun add_thms_dynamic arg ctxt =
+  ctxt |> map_facts_result (Facts.add_dynamic (Context.Proof ctxt) arg);
 
 local
 

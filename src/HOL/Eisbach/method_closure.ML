@@ -77,9 +77,6 @@ val dummy_free_thm = tag_free_thm Drule.dummy_thm;
 
 fun is_free_thm thm = Properties.defined (Thm.get_tags thm) free_thmN;
 
-fun is_free_fact [thm] = is_free_thm thm
-  | is_free_fact _ = false;
-
 fun free_aware_rule_attribute args f =
   Thm.rule_attribute (fn context => fn thm =>
     if exists is_free_thm (thm :: args) then dummy_free_thm
@@ -87,13 +84,13 @@ fun free_aware_rule_attribute args f =
 
 fun free_aware_attribute thy {handle_all_errs, declaration} src (context, thm) =
   let
-    val src' = Token.init_assignable_src src;
+    val src' = map Token.init_assignable src;
     fun apply_att thm = (Attrib.attribute_global thy src') (context, thm);
     val _ =
       if handle_all_errs then (try apply_att Drule.dummy_thm; ())
       else (apply_att Drule.dummy_thm; ()) handle THM _ => () | TERM _ => () | TYPE _ => ();
 
-    val src'' = Token.closure_src src';
+    val src'' = map Token.closure src';
     val thms =
       map_filter Token.get_value (Token.args_of_src src'')
       |> map_filter (fn (Token.Fact (_, f)) => SOME f | _ => NONE)
@@ -109,7 +106,8 @@ fun wrap_attribute args binding thy =
   let
     val name = Binding.name_of binding;
     val name' = Attrib.check_name_generic (Context.Theory thy) (name, Position.none);
-    fun get_src src = Token.src (name', Token.range_of_src src) (Token.args_of_src src);
+    fun get_src src =
+      Token.make_src (name', Position.set_range (Token.range_of src)) (Token.args_of_src src);
   in
     Attrib.define_global binding (free_aware_attribute thy args o get_src) "" thy
     |> snd
@@ -121,24 +119,22 @@ fun wrap_attribute args binding thy =
 fun read_inner_method ctxt src =
   let
     val toks = Token.args_of_src src;
-    val parser = Parse.!!! (Method.parser' ctxt 0 --| Scan.ahead Parse.eof);
+    val parser =
+      Parse.!!! (Method.parser 0 --| Scan.ahead Parse.eof)
+      >> apfst (Method.check_text ctxt);
   in
     (case Scan.read Token.stopper parser toks of
       SOME (method_text, pos) => (Method.report (method_text, pos); method_text)
     | NONE => error ("Failed to parse method" ^ Position.here (#2 (Token.name_of_src src))))
   end;
 
-fun read_text_closure ctxt source =
+fun read_text_closure ctxt src0 =
   let
-    val src = Token.init_assignable_src source;
-    val method_text = read_inner_method ctxt src;
+    val src1 = map Token.init_assignable src0;
+    val method_text = read_inner_method ctxt src1;
     val method_text' = Method.map_source (Method.method_closure ctxt) method_text;
-    (*FIXME: Does not markup method parameters. Needs to be done by Method.parser' directly. *)
-    val _ =
-      Method.map_source (fn src => (try (Method.check_name ctxt) (Token.name_of_src src); src))
-        method_text;
-    val src' = Token.closure_src src;
-  in (src', method_text') end;
+    val src2 = map Token.closure src1;
+  in (src2, method_text') end;
 
 fun read_inner_text_closure ctxt input =
   let
@@ -146,7 +142,7 @@ fun read_inner_text_closure ctxt input =
     val toks =
       Input.source_explode input
       |> Token.read_no_commands keywords (Scan.one Token.not_eof);
-  in read_text_closure ctxt (Token.src ("", Input.pos_of input) toks) end;
+  in read_text_closure ctxt (Token.make_src ("", Input.pos_of input) toks) end;
 
 
 val parse_method =
@@ -154,9 +150,9 @@ val parse_method =
     (case Token.get_value tok of
       NONE =>
         let
-           val input = Token.input_of tok;
-           val (src, text) = read_inner_text_closure ctxt input;
-           val _ = Token.assign (SOME (Token.Source src)) tok;
+          val input = Token.input_of tok;
+          val (src, text) = read_inner_text_closure ctxt input;
+          val _ = Token.assign (SOME (Token.Source src)) tok;
         in text end
     | SOME (Token.Source src) => read_inner_method ctxt src
     | SOME _ =>
@@ -181,7 +177,7 @@ fun parse_term_args args =
         | do_parse t = error ("Unexpected method parameter: " ^ Syntax.string_of_term ctxt' t);
 
        fun rep [] x = Scan.succeed [] x
-         | rep (t :: ts) x  = (do_parse t -- rep ts >> op ::) x;
+         | rep (t :: ts) x  = (do_parse t ::: rep ts) x;
 
       fun check ts =
         let
@@ -213,7 +209,7 @@ fun check_attrib ctxt attrib =
 
 fun instantiate_text env text =
   let val morphism = Morphism.term_morphism "instantiate_text" (Envir.norm_term env);
-  in Method.map_source (Token.transform_src morphism) text end;
+  in (Method.map_source o map) (Token.transform morphism) text end;
 
 fun evaluate_dynamic_thm ctxt name =
   (case try (Named_Theorems.get ctxt) name of
@@ -222,7 +218,7 @@ fun evaluate_dynamic_thm ctxt name =
 
 
 fun evaluate_named_theorems ctxt =
-  (Method.map_source o Token.map_values)
+  (Method.map_source o map o Token.map_nested_values)
     (fn Token.Fact (SOME name, _) =>
           Token.Fact (SOME name, evaluate_dynamic_thm ctxt name)
       | x => x);
@@ -274,7 +270,7 @@ fun parse_method_args method_names =
 
     fun do_parse t = parse_method >> pair t;
     fun rep [] x = Scan.succeed [] x
-      | rep (t :: ts) x  = (do_parse t -- rep ts >> op ::) x;
+      | rep (t :: ts) x  = (do_parse t ::: rep ts) x;
   in rep method_names >> fold bind_method end;
 
 
@@ -289,7 +285,7 @@ fun add_method binding ((fixes, declares, methods), text) lthy =
       (Symtab.update (Local_Theory.full_name lthy binding,
         (((map (Morphism.term phi) fixes),
           (map (Morphism_name phi) declares, map (Morphism_name phi) methods)),
-          Method.map_source (Token.transform_src phi) text))));
+          (Method.map_source o map) (Token.transform phi) text))));
 
 fun get_inner_method ctxt (xname, pos) =
   let
@@ -355,10 +351,10 @@ fun gen_method_definition add_fixes name vars uses attribs methods source lthy =
       Variable.export_morphism lthy3
         (lthy
           |> Proof_Context.transfer (Proof_Context.theory_of lthy3)
-          |> Token.declare_maxidx_src src
+          |> fold Token.declare_maxidx src
           |> Variable.declare_maxidx (Variable.maxidx_of lthy3));
 
-    val text' = Method.map_source (Token.transform_src morphism) text;
+    val text' = (Method.map_source o map) (Token.transform morphism) text;
     val term_args' = map (Morphism.term morphism) term_args;
 
     fun real_exec ts ctxt =
@@ -383,8 +379,9 @@ val _ =
       ((Scan.optional (@{keyword "methods"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
         (Scan.optional (@{keyword "uses"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) [])) --
       (Scan.optional (@{keyword "declares"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
-      Parse.!!! (@{keyword "="}
-        |-- (Parse.position (Parse.args1 (K true)) >> (fn (args, pos) => Token.src ("", pos) args)))
-      >> (fn ((((name, vars), (methods, uses)), attribs), source) =>
-        method_definition_cmd name vars uses attribs methods source));
+      Parse.!!! (@{keyword "="} |-- Parse.position (Parse.args1 (K true))
+        >> (fn (args, pos) => Token.make_src ("", pos) args))
+      >> (fn ((((name, vars), (methods, uses)), attribs), src) =>
+        method_definition_cmd name vars uses attribs methods src));
+
 end;

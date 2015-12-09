@@ -17,6 +17,8 @@ sig
   val check_name_generic: Context.generic -> xstring * Position.T -> string
   val check_name: Proof.context -> xstring * Position.T -> string
   val check_src: Proof.context -> Token.src -> Token.src
+  val attribs: Token.src list context_parser
+  val opt_attribs: Token.src list context_parser
   val pretty_attribs: Proof.context -> Token.src list -> Pretty.T list
   val pretty_binding: Proof.context -> binding -> string -> Pretty.T list
   val attribute: Proof.context -> Token.src -> attribute
@@ -49,8 +51,6 @@ sig
   val thm: thm context_parser
   val thms: thm list context_parser
   val multi_thm: thm list context_parser
-  val check_attribs: Proof.context -> Token.src list -> Token.src list
-  val read_attribs: Proof.context -> Input.source -> Token.src list
   val transform_facts: morphism ->
     (Attrib.binding * (thm list * Token.src list) list) list ->
     (Attrib.binding * (thm list * Token.src list) list) list
@@ -150,11 +150,25 @@ fun check_name_generic context = #1 o Name_Space.check context (Attributes.get c
 val check_name = check_name_generic o Context.Proof;
 
 fun check_src ctxt src =
- (Context_Position.report ctxt (Token.range_of_src src) Markup.language_attribute;
-  #1 (Token.check_src ctxt (get_attributes ctxt) src));
+  let
+    val _ =
+      if Token.checked_src src then ()
+      else
+        Context_Position.report ctxt
+          (Position.set_range (Token.range_of src)) Markup.language_attribute;
+  in #1 (Token.check_src ctxt get_attributes src) end;
+
+val attribs =
+  Args.context -- Scan.lift Parse.attribs
+    >> (fn (ctxt, srcs) => map (check_src ctxt) srcs);
+
+val opt_attribs = Scan.optional attribs [];
 
 
 (* pretty printing *)
+
+fun markup_extern ctxt =
+  Name_Space.markup_extern ctxt (Name_Space.space_of_table (get_attributes ctxt));
 
 fun pretty_attribs _ [] = []
   | pretty_attribs ctxt srcs = [Pretty.enum "," "[" "]" (map (Token.pretty_src ctxt) srcs)];
@@ -227,7 +241,7 @@ fun attribute_setup name source comment =
 (* internal attribute *)
 
 fun internal att =
-  Token.src ("Pure.attribute", Position.none)
+  Token.make_src ("Pure.attribute", Position.none)
     [Token.make_value "<attribute>" (Token.Attribute att)];
 
 val _ = Theory.setup
@@ -256,7 +270,7 @@ fun gen_thm pick = Scan.depend (fn context =>
       let val (a, ths) = get (Facts.Named ((name, pos), NONE))
       in (if is_sel then NONE else a, ths) end;
   in
-    Parse.$$$ "[" |-- Args.attribs (check_name_generic context) --| Parse.$$$ "]" >> (fn srcs =>
+    Parse.$$$ "[" |-- Scan.pass context attribs --| Parse.$$$ "]" >> (fn srcs =>
       let
         val atts = map (attribute_generic context) srcs;
         val (th', context') = fold (uncurry o Thm.apply_attribute) atts (Drule.dummy_thm, context);
@@ -268,7 +282,7 @@ fun gen_thm pick = Scan.depend (fn context =>
       (fn ((name, pos), sel) =>
         Args.named_fact (get_named (is_some sel) pos) --| Scan.option Parse.thm_sel
           >> (fn fact => (name, Facts.Named ((name, pos), sel), fact))))
-    -- Args.opt_attribs (check_name_generic context) >> (fn ((name, thmref, fact), srcs) =>
+    -- Scan.pass context opt_attribs >> (fn ((name, thmref, fact), srcs) =>
       let
         val ths = Facts.select thmref fact;
         val atts = map (attribute_generic context) srcs;
@@ -286,30 +300,11 @@ val thms = Scan.repeats multi_thm;
 end;
 
 
-(* read attribute source *)
-
-fun check_attribs ctxt raw_srcs =
-  let
-    val srcs = map (check_src ctxt) raw_srcs;
-    val _ = map (attribute ctxt) srcs;
-  in srcs end;
-
-fun read_attribs ctxt source =
-  let
-    val keywords = Thy_Header.get_keywords' ctxt;
-    val syms = Input.source_explode source;
-  in
-    (case Token.read_no_commands keywords Parse.attribs syms of
-      [raw_srcs] => check_attribs ctxt raw_srcs
-    | _ => error ("Malformed attributes" ^ Position.here (Input.pos_of source)))
-  end;
-
-
 (* transform fact expressions *)
 
 fun transform_facts phi = map (fn ((a, atts), bs) =>
-  ((Morphism.binding phi a, map (Token.transform_src phi) atts),
-    bs |> map (fn (ths, btts) => (Morphism.fact phi ths, map (Token.transform_src phi) btts))));
+  ((Morphism.binding phi a, (map o map) (Token.transform phi) atts),
+    bs |> map (fn (ths, btts) => (Morphism.fact phi ths, (map o map) (Token.transform phi) btts))));
 
 
 
@@ -321,9 +316,9 @@ local
 
 fun apply_att src (context, th) =
   let
-    val src1 = Token.init_assignable_src src;
+    val src1 = map Token.init_assignable src;
     val result = attribute_generic context src1 (context, th);
-    val src2 = Token.closure_src src1;
+    val src2 = map Token.closure src1;
   in (src2, result) end;
 
 fun err msg src =
