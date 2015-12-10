@@ -3,6 +3,7 @@
 set TEMP_WINDOWS=%TEMP%
 set HOME=%HOMEDRIVE%%HOMEPATH%
 set PATH=%CD%\bin;%PATH%
+set LANG=en_US.UTF-8
 set CHERE_INVOKING=true
 
 echo This is the GNU Bash interpreter of Cygwin.
