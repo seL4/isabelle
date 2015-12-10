@@ -477,7 +477,7 @@ fun pretty_value ctxt tok =
 
 (* src *)
 
-fun dest_src [] = raise Fail "Empty token source"
+fun dest_src ([]: src) = raise Fail "Empty token source"
   | dest_src (head :: args) = (head, args);
 
 fun name_of_src src =
