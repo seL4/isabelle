@@ -2335,7 +2335,7 @@ proof -
   thus ?th1 ?th2
     using Float_representation_aux[of m e]
     unfolding x_def[symmetric]
-    by (auto dest: not_leE)
+    by (auto dest: not_le_imp_less)
 qed
 
 lemma ln_shifted_float:

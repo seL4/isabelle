@@ -12,24 +12,47 @@ imports
 begin
 
 lemma cSup_abs_le: (* TODO: move to Conditionally_Complete_Lattices.thy? *)
-  fixes S :: "real set"
+  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
   shows "S \<noteq> {} \<Longrightarrow> (\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Sup S\<bar> \<le> a"
   apply (auto simp add: abs_le_iff intro: cSup_least)
   by (metis bdd_aboveI cSup_upper neg_le_iff_le order_trans)
 
 lemma cInf_abs_ge:
-  fixes S :: "real set"
-  shows "S \<noteq> {} \<Longrightarrow> (\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Inf S\<bar> \<le> a"
-  using cSup_abs_le [of "uminus ` S"]
-  by (fastforce simp add: Inf_real_def)
+  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
+  assumes "S \<noteq> {}" and bdd: "\<And>x. x\<in>S \<Longrightarrow> \<bar>x\<bar> \<le> a"
+  shows "\<bar>Inf S\<bar> \<le> a"
+proof -
+  have "Sup (uminus ` S) = - (Inf S)"
+  proof (rule antisym)
+    show "- (Inf S) \<le> Sup(uminus ` S)"
+      apply (subst minus_le_iff)
+      apply (rule cInf_greatest [OF \<open>S \<noteq> {}\<close>])
+      apply (subst minus_le_iff)
+      apply (rule cSup_upper, force)
+      using bdd apply (force simp add: abs_le_iff bdd_above_def)
+      done
+  next
+    show "Sup (uminus ` S) \<le> - Inf S"
+      apply (rule cSup_least)
+       using \<open>S \<noteq> {}\<close> apply (force simp add: )
+      apply clarsimp  
+      apply (rule cInf_lower)
+      apply assumption
+      using bdd apply (simp add: bdd_below_def)
+      apply (rule_tac x="-a" in exI)
+      apply force
+      done
+  qed
+  with cSup_abs_le [of "uminus ` S"] assms show ?thesis by fastforce
+qed
 
 lemma cSup_asclose:
-  fixes S :: "real set"
+  fixes S :: "('a::{linordered_idom,conditionally_complete_linorder}) set"
   assumes S: "S \<noteq> {}"
     and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e"
   shows "\<bar>Sup S - l\<bar> \<le> e"
 proof -
-  have th: "\<And>(x::real) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e"
+  have th: "\<And>(x::'a) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e"
     by arith
   have "bdd_above S"
     using b by (auto intro!: bdd_aboveI[of _ "l + e"])
@@ -53,26 +76,6 @@ proof -
     by (simp add: Inf_real_def)
 qed
 
-lemma cSup_finite_ge_iff:
-  fixes S :: "real set"
-  shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<le> Sup S \<longleftrightarrow> (\<exists>x\<in>S. a \<le> x)"
-  by (metis cSup_eq_Max Max_ge_iff)
-
-lemma cSup_finite_le_iff:
-  fixes S :: "real set"
-  shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<ge> Sup S \<longleftrightarrow> (\<forall>x\<in>S. a \<ge> x)"
-  by (metis cSup_eq_Max Max_le_iff)
-
-lemma cInf_finite_ge_iff:
-  fixes S :: "real set"
-  shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<le> Inf S \<longleftrightarrow> (\<forall>x\<in>S. a \<le> x)"
-  by (metis cInf_eq_Min Min_ge_iff)
-
-lemma cInf_finite_le_iff:
-  fixes S :: "real set"
-  shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<ge> Inf S \<longleftrightarrow> (\<exists>x\<in>S. a \<ge> x)"
-  by (metis cInf_eq_Min Min_le_iff)
-
 lemmas scaleR_simps = scaleR_zero_left scaleR_minus_left scaleR_left_diff_distrib
   scaleR_zero_right scaleR_minus_right scaleR_right_diff_distrib scaleR_eq_0_iff
   scaleR_cancel_left scaleR_cancel_right scaleR_add_right scaleR_add_left real_vector_class.scaleR_one
@@ -87,7 +90,6 @@ subsection \<open>Sundries\<close>
 lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
 lemma conjunctD3: assumes "a \<and> b \<and> c" shows a b c using assms by auto
 lemma conjunctD4: assumes "a \<and> b \<and> c \<and> d" shows a b c d using assms by auto
-lemma conjunctD5: assumes "a \<and> b \<and> c \<and> d \<and> e" shows a b c d e using assms by auto
 
 declare norm_triangle_ineq4[intro]
 
@@ -5145,17 +5147,11 @@ next
           done
       }
       assume as': "p \<noteq> {}"
-      from real_arch_simple[of "Sup((\<lambda>(x,k). norm(f x)) ` p)"] guess N ..
+      from real_arch_simple[of "Max((\<lambda>(x,k). norm(f x)) ` p)"] guess N ..
       then have N: "\<forall>x\<in>(\<lambda>(x, k). norm (f x)) ` p. x \<le> real N"
-        apply (subst(asm) cSup_finite_le_iff)
-        using as as'
-        apply auto
-        done
+        by (meson Max_ge as(1) dual_order.trans finite_imageI tagged_division_of_finite)
       have "\<forall>i. \<exists>q. q tagged_division_of (cbox a b) \<and> (d i) fine q \<and> (\<forall>(x, k)\<in>p. k \<subseteq> (d i) x \<longrightarrow> (x, k) \<in> q)"
-        apply rule
-        apply (rule tagged_division_finer[OF as(1) d(1)])
-        apply auto
-        done
+        by (auto intro: tagged_division_finer[OF as(1) d(1)])
       from choice[OF this] guess q .. note q=conjunctD3[OF this[rule_format]]
       have *: "\<And>i. (\<Sum>(x, k)\<in>q i. content k *\<^sub>R indicator s x) \<ge> (0::real)"
         apply (rule setsum_nonneg)

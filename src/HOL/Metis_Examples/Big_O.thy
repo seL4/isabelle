@@ -25,7 +25,7 @@ lemma bigo_pos_const:
     \<longleftrightarrow> (\<exists>c. 0 < c \<and> (\<forall>x. abs(h x) \<le> c * abs (f x)))"
   by (metis (no_types) abs_ge_zero
       algebra_simps mult.comm_neutral
-      mult_nonpos_nonneg not_leE order_trans zero_less_one)
+      mult_nonpos_nonneg not_le_imp_less order_trans zero_less_one)
 
 (*** Now various verions with an increasing shrink factor ***)
 
@@ -686,7 +686,7 @@ apply (case_tac "0 <= f x - k x")
  apply simp
  apply (subst abs_of_nonneg)
   apply (drule_tac x = x in spec) back
-  apply (metis diff_less_0_iff_less linorder_not_le not_leE xt1(12) xt1(6))
+  apply (metis diff_less_0_iff_less linorder_not_le not_le_imp_less xt1(12) xt1(6))
  apply (metis add_minus_cancel diff_le_eq le_diff_eq uminus_add_conv_diff)
 by (metis abs_ge_zero linorder_linear max.absorb1 max.commute)
 

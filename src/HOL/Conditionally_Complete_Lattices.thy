@@ -413,11 +413,11 @@ lemma less_cSupE:
 
 lemma less_cSupD:
   "X \<noteq> {} \<Longrightarrow> z < Sup X \<Longrightarrow> \<exists>x\<in>X. z < x"
-  by (metis less_cSup_iff not_leE bdd_above_def)
+  by (metis less_cSup_iff not_le_imp_less bdd_above_def)
 
 lemma cInf_lessD:
   "X \<noteq> {} \<Longrightarrow> Inf X < z \<Longrightarrow> \<exists>x\<in>X. x < z"
-  by (metis cInf_less_iff not_leE bdd_below_def)
+  by (metis cInf_less_iff not_le_imp_less bdd_below_def)
 
 lemma complete_interval:
   assumes "a < b" and "P a" and "\<not> P b"

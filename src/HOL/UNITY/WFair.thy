@@ -488,7 +488,7 @@ apply (simp (no_asm) add:Image_singleton)
 apply clarify
 apply (case_tac "m<l")
  apply (blast intro: leadsTo_weaken_R diff_less_mono2)
-apply (blast intro: not_leE subset_imp_leadsTo)
+apply (blast intro: not_le_imp_less subset_imp_leadsTo)
 done
 
 

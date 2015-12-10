@@ -3599,7 +3599,7 @@ lemma sofl_test:
       apply (simp (no_asm), arith)
      apply (simp (no_asm), arith)
     apply (rule notI [THEN notnotD],
-           drule leI not_leE,
+           drule leI not_le_imp_less,
            drule sbintrunc_inc sbintrunc_dec,      
            simp)+
   done

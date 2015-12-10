@@ -82,7 +82,7 @@ lemma not_eq_extremum:
   "a \<noteq> top \<longleftrightarrow> a \<prec> top"
   by (auto simp add: order_iff_strict intro: not_eq_order_implies_strict extremum)
 
-end  
+end
 
 
 subsection \<open>Syntactic orders\<close>
@@ -97,7 +97,7 @@ notation
   less_eq  ("(_/ <= _)" [51, 51] 50) and
   less  ("op <") and
   less  ("(_/ < _)"  [51, 51] 50)
-  
+
 notation (xsymbols)
   less_eq  ("op \<le>") and
   less_eq  ("(_/ \<le> _)"  [51, 51] 50)
@@ -149,13 +149,13 @@ by (drule less_not_sym, erule contrapos_np) simp
 text \<open>Transitivity.\<close>
 
 lemma less_trans: "x < y \<Longrightarrow> y < z \<Longrightarrow> x < z"
-by (auto simp add: less_le_not_le intro: order_trans) 
+by (auto simp add: less_le_not_le intro: order_trans)
 
 lemma le_less_trans: "x \<le> y \<Longrightarrow> y < z \<Longrightarrow> x < z"
-by (auto simp add: less_le_not_le intro: order_trans) 
+by (auto simp add: less_le_not_le intro: order_trans)
 
 lemma less_le_trans: "x < y \<Longrightarrow> y \<le> z \<Longrightarrow> x < z"
-by (auto simp add: less_le_not_le intro: order_trans) 
+by (auto simp add: less_le_not_le intro: order_trans)
 
 
 text \<open>Useful for simplification, but too risky to include by default.\<close>
@@ -360,8 +360,7 @@ unfolding not_less .
 lemma leD: "y \<le> x \<Longrightarrow> \<not> x < y"
 unfolding not_less .
 
-(*FIXME inappropriate name (or delete altogether)*)
-lemma not_leE: "\<not> y \<le> x \<Longrightarrow> x < y"
+lemma not_le_imp_less: "\<not> y \<le> x \<Longrightarrow> x < y"
 unfolding not_le .
 
 text \<open>Dual order\<close>
@@ -516,11 +515,11 @@ begin
    is not a parameter of the locale. *)
 
 declare less_irrefl [THEN notE, order add less_reflE: order "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool" "op <=" "op <"]
-  
+
 declare order_refl  [order add le_refl: order "op = :: 'a => 'a => bool" "op <=" "op <"]
-  
+
 declare less_imp_le [order add less_imp_le: order "op = :: 'a => 'a => bool" "op <=" "op <"]
-  
+
 declare antisym [order add eqI: order "op = :: 'a => 'a => bool" "op <=" "op <"]
 
 declare eq_refl [order add eqD1: order "op = :: 'a => 'a => bool" "op <=" "op <"]
@@ -528,9 +527,9 @@ declare eq_refl [order add eqD1: order "op = :: 'a => 'a => bool" "op <=" "op <"
 declare sym [THEN eq_refl, order add eqD2: order "op = :: 'a => 'a => bool" "op <=" "op <"]
 
 declare less_trans [order add less_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"]
-  
+
 declare less_le_trans [order add less_le_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"]
-  
+
 declare le_less_trans [order add le_less_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"]
 
 declare order_trans [order add le_trans: order "op = :: 'a => 'a => bool" "op <=" "op <"]
@@ -950,7 +949,7 @@ lemma xt1 [no_atp]:
   "(x::'a::order) > y ==> y > z ==> x > z"
   "(a::'a::order) >= b ==> a ~= b ==> a > b"
   "(a::'a::order) ~= b ==> a >= b ==> a > b"
-  "a = f b ==> b > c ==> (!!x y. x > y ==> f x > f y) ==> a > f c" 
+  "a = f b ==> b > c ==> (!!x y. x > y ==> f x > f y) ==> a > f c"
   "a > b ==> f b = c ==> (!!x y. x > y ==> f x > f y) ==> f a > c"
   "a = f b ==> b >= c ==> (!!x y. x >= y ==> f x >= f y) ==> a >= f c"
   "a >= b ==> f b = c ==> (!! x y. x >= y ==> f x >= f y) ==> f a >= c"
@@ -990,11 +989,11 @@ by (subgoal_tac "f a > f b", force, force)
 
 lemmas xtrans = xt1 xt2 xt3 xt4 xt5 xt6 xt7 xt8 xt9
 
-(* 
+(*
   Since "a >= b" abbreviates "b <= a", the abbreviation "..." stands
   for the wrong thing in an Isar proof.
 
-  The extra transitivity rules can be used as follows: 
+  The extra transitivity rules can be used as follows:
 
 lemma "(a::'a::order) > z"
 proof -
@@ -1145,7 +1144,7 @@ next
     with \<open>f x \<le> f y\<close> show False by simp
   qed
 qed
-  
+
 lemma strict_mono_less:
   assumes "strict_mono f"
   shows "f x < f y \<longleftrightarrow> x < y"
@@ -1317,10 +1316,10 @@ qed
 
 end
 
-class no_top = order + 
+class no_top = order +
   assumes gt_ex: "\<exists>y. x < y"
 
-class no_bot = order + 
+class no_bot = order +
   assumes lt_ex: "\<exists>y. y < x"
 
 class unbounded_dense_linorder = dense_linorder + no_top + no_bot

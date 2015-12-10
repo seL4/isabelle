@@ -3958,7 +3958,7 @@ text\<open>Courtesy of Matthias Daum (2 lemmas):\<close>
 lemma take_replicate[simp]: "take i (replicate k x) = replicate (min i k) x"
 apply (case_tac "k \<le> i")
  apply  (simp add: min_def)
-apply (drule not_leE)
+apply (drule not_le_imp_less)
 apply (simp add: min_def)
 apply (subgoal_tac "replicate k x = replicate i x @ replicate (k - i) x")
  apply  simp

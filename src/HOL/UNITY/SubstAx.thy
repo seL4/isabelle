@@ -361,7 +361,7 @@ apply (rule_tac f = f and f1 = "%k. l - k"
 apply (simp add: Image_singleton, clarify)
 apply (case_tac "m<l")
  apply (blast intro: LeadsTo_weaken_R diff_less_mono2)
-apply (blast intro: not_leE subset_imp_LeadsTo)
+apply (blast intro: not_le_imp_less subset_imp_LeadsTo)
 done
 
 

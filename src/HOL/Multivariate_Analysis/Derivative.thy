@@ -9,21 +9,6 @@ theory Derivative
 imports Brouwer_Fixpoint Operator_Norm Uniform_Limit
 begin
 
-lemma netlimit_at_vector: (* TODO: move *)
-  fixes a :: "'a::real_normed_vector"
-  shows "netlimit (at a) = a"
-proof (cases "\<exists>x. x \<noteq> a")
-  case True then obtain x where x: "x \<noteq> a" ..
-  have "\<not> trivial_limit (at a)"
-    unfolding trivial_limit_def eventually_at dist_norm
-    apply clarsimp
-    apply (rule_tac x="a + scaleR (d / 2) (sgn (x - a))" in exI)
-    apply (simp add: norm_sgn sgn_zero_iff x)
-    done
-  then show ?thesis
-    by (rule netlimit_within [of a UNIV])
-qed simp
-
 declare has_derivative_bounded_linear[dest]
 
 subsection \<open>Derivatives\<close>

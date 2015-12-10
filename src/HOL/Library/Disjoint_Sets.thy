@@ -79,7 +79,7 @@ lemma disjoint_family_Suc:
   "(\<And>n. A n \<subseteq> A (Suc n)) \<Longrightarrow> disjoint_family (\<lambda>i. A (Suc i) - A i)"
   using lift_Suc_mono_le[of A]
   by (auto simp add: disjoint_family_on_def)
-     (metis insert_absorb insert_subset le_SucE le_antisym not_leE less_imp_le)
+     (metis insert_absorb insert_subset le_SucE le_antisym not_le_imp_less less_imp_le)
 
 lemma disjoint_family_on_disjoint_image:
   "disjoint_family_on A I \<Longrightarrow> disjoint (A ` I)"

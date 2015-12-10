@@ -875,7 +875,7 @@ apply (simp add: singleton_matrix_def, auto)
 apply (subst RepAbs_matrix)
 apply auto
 apply (simp add: Suc_le_eq)
-apply (rule not_leE)
+apply (rule not_le_imp_less)
 apply (subst nrows_le)
 by simp
 qed
@@ -891,7 +891,7 @@ apply (simp add: singleton_matrix_def, auto)
 apply (subst RepAbs_matrix)
 apply auto
 apply (simp add: Suc_le_eq)
-apply (rule not_leE)
+apply (rule not_le_imp_less)
 apply (subst ncols_le)
 by simp
 qed
