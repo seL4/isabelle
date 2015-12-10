@@ -4,7 +4,7 @@
 
 ## global parameters
 
-CYGWIN_MIRROR="http://isabelle.in.tum.de/cygwin_2015"
+CYGWIN_MIRROR="http://isabelle.in.tum.de/cygwin_2016"
 
 
 ## diagnostics
