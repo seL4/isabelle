@@ -1,20 +1,20 @@
 (* Author:     Giampaolo Bella, Catania University
 *)
 
-section{*Theory of smartcards*}
+section\<open>Theory of smartcards\<close>
 
 theory Smartcard
 imports EventSC "../All_Symmetric"
 begin
 
-text{*  
+text\<open>
 As smartcards handle long-term (symmetric) keys, this theoy extends and 
 supersedes theory Private.thy
 
 An agent is bad if she reveals her PIN to the spy, not the shared key that
 is embedded in her card. An agent's being bad implies nothing about her 
 smartcard, which independently may be stolen or cloned.
-*}
+\<close>
 
 axiomatization
   shrK    :: "agent => key" and  (*long-term keys saved in smart cards*)
@@ -25,9 +25,9 @@ axiomatization
   Pairkey :: "agent * agent => nat" and
   pairK   :: "agent * agent => key"
 where
-  inj_shrK: "inj shrK" and  --{*No two smartcards store the same key*}
-  inj_crdK: "inj crdK" and  --{*Nor do two cards*}
-  inj_pin : "inj pin" and   --{*Nor do two agents have the same pin*}
+  inj_shrK: "inj shrK" and  \<comment>\<open>No two smartcards store the same key\<close>
+  inj_crdK: "inj crdK" and  \<comment>\<open>Nor do two cards\<close>
+  inj_pin : "inj pin" and   \<comment>\<open>Nor do two agents have the same pin\<close>
 
   (*pairK is injective on each component, if we assume encryption to be a PRF
     or at least collision free *)
@@ -49,7 +49,7 @@ primrec illegalUse :: "card  => bool" where
   illegalUse_def: "illegalUse (Card A) = ( (Card A \<in> stolen \<and> A \<in> bad)  \<or>  Card A \<in> cloned )"
 
 
-text{*initState must be defined with care*}
+text\<open>initState must be defined with care\<close>
 
 overloading
   initState \<equiv> initState
@@ -76,7 +76,7 @@ primrec initState where
 
 end
 
-text{*Still relying on axioms*}
+text\<open>Still relying on axioms\<close>
 axiomatization where
   Key_supply_ax:  "finite KK \<Longrightarrow> \<exists> K. K \<notin> KK & Key K \<notin> used evs" and
 
@@ -89,7 +89,7 @@ axiomatization where
 
 
 
-subsection{*Basic properties of shrK*}
+subsection\<open>Basic properties of shrK\<close>
 
 (*Injectiveness: Agents' long-term keys are distinct.*)
 declare inj_shrK [THEN inj_eq, iff]
@@ -106,14 +106,14 @@ lemma analz_Decrypt' [dest]:
      "\<lbrakk> Crypt K X \<in> analz H;  Key K  \<in> analz H \<rbrakk> \<Longrightarrow> X \<in> analz H"
 by auto
 
-text{*Now cancel the @{text dest} attribute given to
- @{text analz.Decrypt} in its declaration.*}
+text\<open>Now cancel the \<open>dest\<close> attribute given to
+ \<open>analz.Decrypt\<close> in its declaration.\<close>
 declare analz.Decrypt [rule del]
 
-text{*Rewrites should not refer to  @{term "initState(Friend i)"} because
-  that expression is not in normal form.*}
+text\<open>Rewrites should not refer to  @{term "initState(Friend i)"} because
+  that expression is not in normal form.\<close>
 
-text{*Added to extend initstate with set of nonces*}
+text\<open>Added to extend initstate with set of nonces\<close>
 lemma parts_image_Nonce [simp]: "parts (Nonce`N) = Nonce`N"
 apply auto
 apply (erule parts.induct)
@@ -135,7 +135,7 @@ lemma Crypt_imp_keysFor: "Crypt K X \<in> H \<Longrightarrow> K \<in> keysFor H"
 by (drule Crypt_imp_invKey_keysFor, simp)
 
 
-subsection{*Function "knows"*}
+subsection\<open>Function "knows"\<close>
 
 (*Spy knows the pins of bad agents!*)
 lemma Spy_knows_bad [intro!]: "A \<in> bad \<Longrightarrow> Key (pin A) \<in> knows Spy evs"
@@ -260,7 +260,7 @@ declare pin_neq [THEN not_sym, simp]
 declare pairK_neq [THEN not_sym, simp]
 
 
-subsection{*Fresh nonces*}
+subsection\<open>Fresh nonces\<close>
 
 lemma Nonce_notin_initState [iff]: "Nonce N \<notin> parts (initState (Friend i))"
 by auto
@@ -276,7 +276,7 @@ done
 So, we must use old-style supply fresh nonce theorems relying on the appropriate axiom*)
 
 
-subsection{*Supply fresh nonces for possibility theorems.*}
+subsection\<open>Supply fresh nonces for possibility theorems.\<close>
 
 
 lemma Nonce_supply1: "\<exists>N. Nonce N \<notin> used evs"
@@ -309,14 +309,14 @@ done
 
 
 
-text{*Unlike the corresponding property of nonces, we cannot prove
+text\<open>Unlike the corresponding property of nonces, we cannot prove
     @{term "finite KK \<Longrightarrow> \<exists>K. K \<notin> KK & Key K \<notin> used evs"}.
     We have infinitely many agents and there is nothing to stop their
     long-term keys from exhausting all the natural numbers.  Instead,
-    possibility theorems must assume the existence of a few keys.*}
+    possibility theorems must assume the existence of a few keys.\<close>
 
 
-subsection{*Specialized Rewriting for Theorems About @{term analz} and Image*}
+subsection\<open>Specialized Rewriting for Theorems About @{term analz} and Image\<close>
 
 lemma subset_Compl_range_shrK: "A \<subseteq> - (range shrK) \<Longrightarrow> shrK x \<notin> A"
 by blast
@@ -343,7 +343,7 @@ by blast
     erase occurrences of forwarded message components (X). **)
 
 lemmas analz_image_freshK_simps =
-       simp_thms mem_simps --{*these two allow its use with @{text "only:"}*}
+       simp_thms mem_simps \<comment>\<open>these two allow its use with \<open>only:\<close>\<close>
        disj_comms 
        image_insert [THEN sym] image_Un [THEN sym] empty_subsetI insert_subset
        analz_insert_eq Un_upper2 [THEN analz_mono, THEN [2] rev_subsetD]
@@ -358,10 +358,10 @@ lemma analz_image_freshK_lemma:
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 
-subsection{*Tactics for possibility theorems*}
+subsection\<open>Tactics for possibility theorems\<close>
 
 ML
-{*
+\<open>
 structure Smartcard =
 struct
 
@@ -390,7 +390,7 @@ val analz_image_freshK_ss =
                delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
                addsimps @{thms analz_image_freshK_simps})
 end
-*}
+\<close>
 
 
 (*Lets blast_tac perform this step without needing the simplifier*)
@@ -400,22 +400,22 @@ by auto
 
 (*Specialized methods*)
 
-method_setup analz_freshK = {*
+method_setup analz_freshK = \<open>
     Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac ctxt [allI, ballI, impI]),
           REPEAT_FIRST (resolve_tac ctxt @{thms analz_image_freshK_lemma}),
-          ALLGOALS (asm_simp_tac (put_simpset Smartcard.analz_image_freshK_ss ctxt))]))) *}
+          ALLGOALS (asm_simp_tac (put_simpset Smartcard.analz_image_freshK_ss ctxt))])))\<close>
     "for proving the Session Key Compromise theorem"
 
-method_setup possibility = {*
+method_setup possibility = \<open>
     Scan.succeed (fn ctxt =>
-        SIMPLE_METHOD (Smartcard.possibility_tac ctxt)) *}
+        SIMPLE_METHOD (Smartcard.possibility_tac ctxt))\<close>
     "for proving possibility theorems"
 
-method_setup basic_possibility = {*
+method_setup basic_possibility = \<open>
     Scan.succeed (fn ctxt =>
-        SIMPLE_METHOD (Smartcard.basic_possibility_tac ctxt)) *}
+        SIMPLE_METHOD (Smartcard.basic_possibility_tac ctxt))\<close>
     "for proving possibility theorems"
 
 lemma knows_subset_knows_Cons: "knows A evs \<subseteq> knows A (e # evs)"

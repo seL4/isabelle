@@ -21,8 +21,8 @@ abbreviation f_con :: nat where "f_con == 4"
 
 
 definition broken :: "agent set" where    
-    --{*the compromised honest agents; TTP is included as it's not allowed to
-        use the protocol*}
+    \<comment>\<open>the compromised honest agents; TTP is included as it's not allowed to
+        use the protocol\<close>
    "broken == bad - {Spy}"
 
 declare broken_def [simp]
@@ -89,7 +89,7 @@ declare symKey_neq_priEK [simp]
 declare symKey_neq_priEK [THEN not_sym, simp]
 
 
-text{*A "possibility property": there are traces that reach the end*}
+text\<open>A "possibility property": there are traces that reach the end\<close>
 lemma "[|A \<noteq> B; TTP \<noteq> A; TTP \<noteq> B; K \<in> symKeys|] ==>
      \<exists>L. \<exists>evs \<in> zg.
            Notes TTP {|Number f_con, Agent A, Agent B, Nonce L, Key K,
@@ -104,7 +104,7 @@ apply (rule_tac [2] zg.Nil
 apply (basic_possibility, auto)
 done
 
-subsection {*Basic Lemmas*}
+subsection \<open>Basic Lemmas\<close>
 
 lemma Gets_imp_Says:
      "[| Gets B X \<in> set evs; evs \<in> zg |] ==> \<exists>A. Says A B X \<in> set evs"
@@ -117,8 +117,8 @@ lemma Gets_imp_knows_Spy:
 by (blast dest!: Gets_imp_Says Says_imp_knows_Spy)
 
 
-text{*Lets us replace proofs about @{term "used evs"} by simpler proofs 
-about @{term "parts (spies evs)"}.*}
+text\<open>Lets us replace proofs about @{term "used evs"} by simpler proofs 
+about @{term "parts (spies evs)"}.\<close>
 lemma Crypt_used_imp_spies:
      "[| Crypt K X \<in> used evs; evs \<in> zg |]
       ==> Crypt K X \<in> parts (spies evs)"
@@ -137,7 +137,7 @@ apply (erule rev_mp)
 apply (erule zg.induct, auto)
 done
 
-text{*For reasoning about C, which is encrypted in message ZG2*}
+text\<open>For reasoning about C, which is encrypted in message ZG2\<close>
 lemma ZG2_msg_in_parts_spies:
      "[|Gets B {|F, B', L, C, X|} \<in> set evs; evs \<in> zg|]
       ==> C \<in> parts (spies evs)"
@@ -150,7 +150,7 @@ apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, auto)
 done
 
-text{*So that blast can use it too*}
+text\<open>So that blast can use it too\<close>
 declare  Spy_see_priK [THEN [2] rev_iffD1, dest!]
 
 lemma Spy_analz_priK [simp]:
@@ -158,12 +158,12 @@ lemma Spy_analz_priK [simp]:
 by auto 
 
 
-subsection{*About NRO: Validity for @{term B}*}
+subsection\<open>About NRO: Validity for @{term B}\<close>
 
-text{*Below we prove that if @{term NRO} exists then @{term A} definitely
-sent it, provided @{term A} is not broken.*}
+text\<open>Below we prove that if @{term NRO} exists then @{term A} definitely
+sent it, provided @{term A} is not broken.\<close>
 
-text{*Strong conclusion for a good agent*}
+text\<open>Strong conclusion for a good agent\<close>
 lemma NRO_validity_good:
      "[|NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
         NRO \<in> parts (spies evs);
@@ -182,7 +182,7 @@ apply (erule rev_mp)
 apply (erule zg.induct, simp_all)
 done
 
-text{*Holds also for @{term "A = Spy"}!*}
+text\<open>Holds also for @{term "A = Spy"}!\<close>
 theorem NRO_validity:
      "[|Gets B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs;
         NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
@@ -191,19 +191,19 @@ theorem NRO_validity:
 apply (drule Gets_imp_Says, assumption) 
 apply clarify 
 apply (frule NRO_sender, auto)
-txt{*We are left with the case where the sender is @{term Spy} and not
+txt\<open>We are left with the case where the sender is @{term Spy} and not
   equal to @{term A}, because @{term "A \<notin> bad"}. 
-  Thus theorem @{text NRO_validity_good} applies.*}
+  Thus theorem \<open>NRO_validity_good\<close> applies.\<close>
 apply (blast dest: NRO_validity_good [OF refl])
 done
 
 
-subsection{*About NRR: Validity for @{term A}*}
+subsection\<open>About NRR: Validity for @{term A}\<close>
 
-text{*Below we prove that if @{term NRR} exists then @{term B} definitely
-sent it, provided @{term B} is not broken.*}
+text\<open>Below we prove that if @{term NRR} exists then @{term B} definitely
+sent it, provided @{term B} is not broken.\<close>
 
-text{*Strong conclusion for a good agent*}
+text\<open>Strong conclusion for a good agent\<close>
 lemma NRR_validity_good:
      "[|NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
         NRR \<in> parts (spies evs);
@@ -222,7 +222,7 @@ apply (erule rev_mp)
 apply (erule zg.induct, simp_all)
 done
 
-text{*Holds also for @{term "B = Spy"}!*}
+text\<open>Holds also for @{term "B = Spy"}!\<close>
 theorem NRR_validity:
      "[|Says B' A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs;
         NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
@@ -230,18 +230,18 @@ theorem NRR_validity:
     ==> Says B A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs"
 apply clarify 
 apply (frule NRR_sender, auto)
-txt{*We are left with the case where @{term "B' = Spy"} and  @{term "B' \<noteq> B"},
-  i.e. @{term "B \<notin> bad"}, when we can apply @{text NRR_validity_good}.*}
+txt\<open>We are left with the case where @{term "B' = Spy"} and  @{term "B' \<noteq> B"},
+  i.e. @{term "B \<notin> bad"}, when we can apply \<open>NRR_validity_good\<close>.\<close>
  apply (blast dest: NRR_validity_good [OF refl])
 done
 
 
-subsection{*Proofs About @{term sub_K}*}
+subsection\<open>Proofs About @{term sub_K}\<close>
 
-text{*Below we prove that if @{term sub_K} exists then @{term A} definitely
-sent it, provided @{term A} is not broken.  *}
+text\<open>Below we prove that if @{term sub_K} exists then @{term A} definitely
+sent it, provided @{term A} is not broken.\<close>
 
-text{*Strong conclusion for a good agent*}
+text\<open>Strong conclusion for a good agent\<close>
 lemma sub_K_validity_good:
      "[|sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
         sub_K \<in> parts (spies evs);
@@ -251,7 +251,7 @@ apply clarify
 apply (erule rev_mp)
 apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
-txt{*Fake*} 
+txt\<open>Fake\<close> 
 apply (blast dest!: Fake_parts_sing_imp_Un)
 done
 
@@ -262,7 +262,7 @@ apply (erule rev_mp)
 apply (erule zg.induct, simp_all)
 done
 
-text{*Holds also for @{term "A = Spy"}!*}
+text\<open>Holds also for @{term "A = Spy"}!\<close>
 theorem sub_K_validity:
      "[|Gets TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs;
         sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
@@ -271,19 +271,19 @@ theorem sub_K_validity:
 apply (drule Gets_imp_Says, assumption) 
 apply clarify 
 apply (frule sub_K_sender, auto)
-txt{*We are left with the case where the sender is @{term Spy} and not
+txt\<open>We are left with the case where the sender is @{term Spy} and not
   equal to @{term A}, because @{term "A \<notin> bad"}. 
-  Thus theorem @{text sub_K_validity_good} applies.*}
+  Thus theorem \<open>sub_K_validity_good\<close> applies.\<close>
 apply (blast dest: sub_K_validity_good [OF refl])
 done
 
 
 
-subsection{*Proofs About @{term con_K}*}
+subsection\<open>Proofs About @{term con_K}\<close>
 
-text{*Below we prove that if @{term con_K} exists, then @{term TTP} has it,
+text\<open>Below we prove that if @{term con_K} exists, then @{term TTP} has it,
 and therefore @{term A} and @{term B}) can get it too.  Moreover, we know
-that @{term A} sent @{term sub_K}*}
+that @{term A} sent @{term sub_K}\<close>
 
 lemma con_K_validity:
      "[|con_K \<in> used evs;
@@ -296,15 +296,15 @@ apply clarify
 apply (erule rev_mp)
 apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply (blast dest!: Fake_parts_sing_imp_Un)
-txt{*ZG2*} 
+txt\<open>ZG2\<close> 
 apply (blast dest: parts_cut)
 done
 
-text{*If @{term TTP} holds @{term con_K} then @{term A} sent
+text\<open>If @{term TTP} holds @{term con_K} then @{term A} sent
  @{term sub_K}.  We assume that @{term A} is not broken.  Importantly, nothing
-  needs to be assumed about the form of @{term con_K}!*}
+  needs to be assumed about the form of @{term con_K}!\<close>
 lemma Notes_TTP_imp_Says_A:
      "[|Notes TTP {|Number f_con, Agent A, Agent B, Nonce L, Key K, con_K|}
            \<in> set evs;
@@ -315,13 +315,13 @@ apply clarify
 apply (erule rev_mp)
 apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
-txt{*ZG4*}
+txt\<open>ZG4\<close>
 apply clarify 
 apply (rule sub_K_validity, auto) 
 done
 
-text{*If @{term con_K} exists, then @{term A} sent @{term sub_K}.  We again
-   assume that @{term A} is not broken. *}
+text\<open>If @{term con_K} exists, then @{term A} sent @{term sub_K}.  We again
+   assume that @{term A} is not broken.\<close>
 theorem B_sub_K_validity:
      "[|con_K \<in> used evs;
         con_K = Crypt (priK TTP) {|Number f_con, Agent A, Agent B,
@@ -332,13 +332,13 @@ theorem B_sub_K_validity:
 by (blast dest: con_K_validity Notes_TTP_imp_Says_A)
 
 
-subsection{*Proving fairness*}
+subsection\<open>Proving fairness\<close>
 
-text{*Cannot prove that, if @{term B} has NRO, then  @{term A} has her NRR.
+text\<open>Cannot prove that, if @{term B} has NRO, then  @{term A} has her NRR.
 It would appear that @{term B} has a small advantage, though it is
-useless to win disputes: @{term B} needs to present @{term con_K} as well.*}
+useless to win disputes: @{term B} needs to present @{term con_K} as well.\<close>
 
-text{*Strange: unicity of the label protects @{term A}?*}
+text\<open>Strange: unicity of the label protects @{term A}?\<close>
 lemma A_unicity: 
      "[|NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, Crypt K M|};
         NRO \<in> parts (spies evs);
@@ -351,13 +351,13 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, auto) 
-txt{*ZG1: freshness*}
+txt\<open>ZG1: freshness\<close>
 apply (blast dest: parts.Body) 
 done
 
 
-text{*Fairness lemma: if @{term sub_K} exists, then @{term A} holds 
-NRR.  Relies on unicity of labels.*}
+text\<open>Fairness lemma: if @{term sub_K} exists, then @{term A} holds 
+NRR.  Relies on unicity of labels.\<close>
 lemma sub_K_implies_NRR:
      "[| NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, Crypt K M|};
          NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, Crypt K M|};
@@ -372,11 +372,11 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply blast 
-txt{*ZG1: freshness*}
+txt\<open>ZG1: freshness\<close>
 apply (blast dest: parts.Body) 
-txt{*ZG3*} 
+txt\<open>ZG3\<close> 
 apply (blast dest: A_unicity [OF refl]) 
 done
 
@@ -386,16 +386,16 @@ lemma Crypt_used_imp_L_used:
       ==> L \<in> used evs"
 apply (erule rev_mp)
 apply (erule zg.induct, auto)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply (blast dest!: Fake_parts_sing_imp_Un)
-txt{*ZG2: freshness*}
+txt\<open>ZG2: freshness\<close>
 apply (blast dest: parts.Body) 
 done
 
 
-text{*Fairness for @{term A}: if @{term con_K} and @{term NRO} exist, 
+text\<open>Fairness for @{term A}: if @{term con_K} and @{term NRO} exist, 
 then @{term A} holds NRR.  @{term A} must be uncompromised, but there is no
-assumption about @{term B}.*}
+assumption about @{term B}.\<close>
 theorem A_fairness_NRO:
      "[|con_K \<in> used evs;
         NRO \<in> parts (spies evs);
@@ -410,21 +410,21 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
-   txt{*Fake*}
+   txt\<open>Fake\<close>
    apply (simp add: parts_insert_knows_A) 
    apply (blast dest: Fake_parts_sing_imp_Un) 
-  txt{*ZG1*}
+  txt\<open>ZG1\<close>
   apply (blast dest: Crypt_used_imp_L_used) 
- txt{*ZG2*}
+ txt\<open>ZG2\<close>
  apply (blast dest: parts_cut)
-txt{*ZG4*} 
+txt\<open>ZG4\<close> 
 apply (blast intro: sub_K_implies_NRR [OF refl] 
              dest: Gets_imp_knows_Spy [THEN parts.Inj])
 done
 
-text{*Fairness for @{term B}: NRR exists at all, then @{term B} holds NRO.
+text\<open>Fairness for @{term B}: NRR exists at all, then @{term B} holds NRO.
 @{term B} must be uncompromised, but there is no assumption about @{term
-A}. *}
+A}.\<close>
 theorem B_fairness_NRR:
      "[|NRR \<in> used evs;
         NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
@@ -435,16 +435,15 @@ apply clarify
 apply (erule rev_mp)
 apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply (blast dest!: Fake_parts_sing_imp_Un)
-txt{*ZG2*}
+txt\<open>ZG2\<close>
 apply (blast dest: parts_cut)
 done
 
 
-text{*If @{term con_K} exists at all, then @{term B} can get it, by @{text
-con_K_validity}.  Cannot conclude that also NRO is available to @{term B},
+text\<open>If @{term con_K} exists at all, then @{term B} can get it, by \<open>con_K_validity\<close>.  Cannot conclude that also NRO is available to @{term B},
 because if @{term A} were unfair, @{term A} could build message 3 without
-building message 1, which contains NRO. *}
+building message 1, which contains NRO.\<close>
 
 end

@@ -1,15 +1,15 @@
 (*  Author:     Giampaolo Bella, Catania University
 *)
 
-section{*Bella's modification of the Shoup-Rubin protocol*}
+section\<open>Bella's modification of the Shoup-Rubin protocol\<close>
 
 theory ShoupRubinBella imports Smartcard begin
 
-text{*The modifications are that message 7 now mentions A, while message 10
+text\<open>The modifications are that message 7 now mentions A, while message 10
 now mentions Nb and B. The lack of explicitness of the original version was
 discovered by investigating adherence to the principle of Goal
 Availability. Only the updated version makes the goals of confidentiality,
-authentication and key distribution available to both peers.*}
+authentication and key distribution available to both peers.\<close>
 
 axiomatization sesK :: "nat*key => key"
 where
@@ -742,7 +742,7 @@ declare pairK_disj_sesK [THEN not_sym, iff]
 
 
 ML
-{*
+\<open>
 structure ShoupRubinBella =
 struct
 
@@ -767,18 +767,18 @@ fun analz_prepare_tac ctxt =
          REPEAT_FIRST (eresolve_tac ctxt [asm_rl, conjE] ORELSE' hyp_subst_tac ctxt)
 
 end
-*}
+\<close>
 
-method_setup prepare = {*
-    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubinBella.prepare_tac ctxt)) *}
+method_setup prepare = \<open>
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubinBella.prepare_tac ctxt))\<close>
   "to launch a few simple facts that will help the simplifier"
 
-method_setup parts_prepare = {*
-    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubinBella.parts_prepare_tac ctxt)) *}
+method_setup parts_prepare = \<open>
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubinBella.parts_prepare_tac ctxt))\<close>
   "additional facts to reason about parts"
 
-method_setup analz_prepare = {*
-    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubinBella.analz_prepare_tac ctxt)) *}
+method_setup analz_prepare = \<open>
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubinBella.analz_prepare_tac ctxt))\<close>
   "additional facts to reason about analz"
 
 
@@ -823,7 +823,7 @@ lemma analz_image_Key_Un_Nonce: "analz (Key`K \<union> Nonce`N) = Key`K \<union>
 apply auto
 done
 
-method_setup sc_analz_freshK = {*
+method_setup sc_analz_freshK = \<open>
     Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac ctxt [allI, ballI, impI]),
@@ -832,7 +832,7 @@ method_setup sc_analz_freshK = {*
               addsimps [@{thm knows_Spy_Inputs_secureM_srb_Spy},
                   @{thm knows_Spy_Outpts_secureM_srb_Spy},
                   @{thm shouprubin_assumes_securemeans},
-                  @{thm analz_image_Key_Un_Nonce}]))]))) *}
+                  @{thm analz_image_Key_Un_Nonce}]))])))\<close>
     "for proving the Session Key Compromise theorem for smartcard protocols"
 
 
@@ -1319,7 +1319,7 @@ apply (erule srb.induct)
 apply auto
 done
 
-text{*@{term step2_integrity} also is a reliability theorem*}
+text\<open>@{term step2_integrity} also is a reliability theorem\<close>
 lemma Says_Server_message_form: 
      "\<lbrakk> Says Server A \<lbrace>Pk, Certificate\<rbrace> \<in> set evs;  
          evs \<in> srb \<rbrakk>                   
@@ -1332,11 +1332,11 @@ apply (blast dest!: Outpts_Server_not_evs)+
 done
 (*cannot be made useful to A in form of a Gets event*)
 
-text{*
+text\<open>
   step4integrity is @{term Outpts_A_Card_form_4}
 
   step7integrity is @{term Outpts_B_Card_form_7}
-*}
+\<close>
 
 lemma step8_integrity: 
      "\<lbrakk> Says B A \<lbrace>Nonce Nb, Certificate\<rbrace> \<in> set evs;  
@@ -1350,9 +1350,9 @@ apply auto
 done
 
 
-text{*  step9integrity is @{term Inputs_A_Card_form_9}
+text\<open>step9integrity is @{term Inputs_A_Card_form_9}
         step10integrity is @{term Outpts_A_Card_form_10}.
-*}
+\<close>
 
 
 lemma step11_integrity: 

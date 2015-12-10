@@ -2,19 +2,19 @@
     Author:     Giampaolo Bella, Catania University
 *)
 
-section{*Bella's version of the Otway-Rees protocol*}
+section\<open>Bella's version of the Otway-Rees protocol\<close>
 
 
 theory OtwayReesBella imports Public begin
 
-text{*Bella's modifications to a version of the Otway-Rees protocol taken from
+text\<open>Bella's modifications to a version of the Otway-Rees protocol taken from
 the BAN paper only concern message 7. The updated protocol makes the goal of
 key distribution of the session key available to A. Investigating the
 principle of Goal Availability undermines the BAN claim about the original
 protocol, that "this protocol does not make use of Kab as an encryption key,
 so neither principal can know whether the key is known to the other". The
 updated protocol makes no use of the session key to encrypt but informs A that
-B knows it.*}
+B knows it.\<close>
 
 inductive_set orb :: "event list set"
  where
@@ -76,7 +76,7 @@ declare analz_into_parts [dest]
 declare Fake_parts_insert_in_Un  [dest]
 
 
-text{*Fragile proof, with backtracking in the possibility call.*}
+text\<open>Fragile proof, with backtracking in the possibility call.\<close>
 lemma possibility_thm: "\<lbrakk>A \<noteq> Server; B \<noteq> Server; Key K \<notin> used[]\<rbrakk>    
       \<Longrightarrow>   \<exists> evs \<in> orb.           
      Says B A \<lbrace>Nonce M, Crypt (shrK A) \<lbrace>Nonce Na, Key K\<rbrace>\<rbrace> \<in> set evs"
@@ -125,15 +125,15 @@ lemmas OR2_parts_knows_Spy =
     OR2_analz_knows_Spy [THEN analz_into_parts]
 
 ML
-{*
+\<open>
 fun parts_explicit_tac ctxt i =
     forward_tac ctxt [@{thm Oops_parts_knows_Spy}] (i+7) THEN
     forward_tac ctxt [@{thm OR4_parts_knows_Spy}]  (i+6) THEN
     forward_tac ctxt [@{thm OR2_parts_knows_Spy}]  (i+4)
-*}
+\<close>
  
-method_setup parts_explicit = {*
-    Scan.succeed (SIMPLE_METHOD' o parts_explicit_tac) *}
+method_setup parts_explicit = \<open>
+    Scan.succeed (SIMPLE_METHOD' o parts_explicit_tac)\<close>
   "to explicitly state that some message components belong to parts knows Spy"
 
 
@@ -159,10 +159,10 @@ done
 
 
 
-subsection{* Proofs involving analz *}
+subsection\<open>Proofs involving analz\<close>
 
-text{*Describes the form of K and NA when the Server sends this message.  Also
-  for Oops case.*}
+text\<open>Describes the form of K and NA when the Server sends this message.  Also
+  for Oops case.\<close>
 lemma Says_Server_message_form: 
 "\<lbrakk>Says Server B  \<lbrace>Nonce M, Crypt (shrK B) \<lbrace>X, Nonce Nb, Key K\<rbrace>\<rbrace> \<in> set evs;  
      evs \<in> orb\<rbrakk>                                            
@@ -233,7 +233,7 @@ lemma analz_image_freshCryptK_lemma:
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 ML
-{*
+\<open>
 structure OtwayReesBella =
 struct
 
@@ -244,23 +244,23 @@ val analz_image_freshK_ss =
       addsimps @{thms analz_image_freshK_simps})
 
 end
-*}
+\<close>
 
-method_setup analz_freshCryptK = {*
+method_setup analz_freshCryptK = \<open>
     Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac ctxt [allI, ballI, impI]),
           REPEAT_FIRST (resolve_tac ctxt @{thms analz_image_freshCryptK_lemma}),
           ALLGOALS (asm_simp_tac
-            (put_simpset OtwayReesBella.analz_image_freshK_ss ctxt))]))) *}
+            (put_simpset OtwayReesBella.analz_image_freshK_ss ctxt))])))\<close>
   "for proving useful rewrite rule"
 
 
-method_setup disentangle = {*
+method_setup disentangle = \<open>
     Scan.succeed
      (fn ctxt => SIMPLE_METHOD
       (REPEAT_FIRST (eresolve_tac ctxt [asm_rl, conjE, disjE] 
-                   ORELSE' hyp_subst_tac ctxt))) *}
+                   ORELSE' hyp_subst_tac ctxt)))\<close>
   "for eliminating conjunctions, disjunctions and the like"
 
 
@@ -303,21 +303,21 @@ apply (erule orb.induct)
 apply (frule_tac [7] Gets_Server_message_form)
 apply (frule_tac [9] Says_Server_message_form)
 apply disentangle
-txt{*letting the simplifier solve OR2*}
+txt\<open>letting the simplifier solve OR2\<close>
 apply (drule_tac [5] Gets_imp_knows_Spy [THEN analz.Inj, THEN analz.Snd, THEN analz.Snd, THEN analz.Snd])
 apply (simp_all (no_asm_simp) add: analz_insert_eq pushes split_ifs)
 apply (spy_analz)
-txt{*OR1*}
+txt\<open>OR1\<close>
 apply blast
-txt{*Oops*}
+txt\<open>Oops\<close>
 prefer 4 apply (blast dest: analz_insert_freshCryptK)
-txt{*OR4 - ii*}
+txt\<open>OR4 - ii\<close>
 prefer 3 apply (blast)
-txt{*OR3*}
+txt\<open>OR3\<close>
 (*adding Gets_imp_ and Says_imp_ for efficiency*)
 apply (blast dest: 
        A_trusts_OR1 unique_Na Key_not_used analz_insert_freshCryptK)
-txt{*OR4 - i *}
+txt\<open>OR4 - i\<close>
 apply clarify
 apply (simp add: pushes split_ifs)
 apply (case_tac "Aaa\<in>bad")
@@ -370,7 +370,7 @@ apply (fastforce dest!: Gets_imp_knows [THEN analz.Inj] analz.Decrypt)
 done
 
 
-text{*Other properties as for the original protocol*}
+text\<open>Other properties as for the original protocol\<close>
 
 
 end

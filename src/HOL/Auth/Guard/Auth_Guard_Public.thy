@@ -2,7 +2,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-section {* Blanqui's "guard" concept: protocol-independent secrecy *}
+section \<open>Blanqui's "guard" concept: protocol-independent secrecy\<close>
 
 theory Auth_Guard_Public
 imports

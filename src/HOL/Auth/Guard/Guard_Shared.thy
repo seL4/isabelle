@@ -3,21 +3,21 @@
     Copyright   2002  University of Cambridge
 *)
 
-section{*lemmas on guarded messages for protocols with symmetric keys*}
+section\<open>lemmas on guarded messages for protocols with symmetric keys\<close>
 
 theory Guard_Shared imports Guard GuardK "../Shared" begin
 
-subsection{*Extensions to Theory @{text Shared}*}
+subsection\<open>Extensions to Theory \<open>Shared\<close>\<close>
 
 declare initState.simps [simp del]
 
-subsubsection{*a little abbreviation*}
+subsubsection\<open>a little abbreviation\<close>
 
 abbreviation
   Ciph :: "agent => msg => msg" where
   "Ciph A X == Crypt (shrK A) X"
 
-subsubsection{*agent associated to a key*}
+subsubsection\<open>agent associated to a key\<close>
 
 definition agt :: "key => agent" where
 "agt K == @A. K = shrK A"
@@ -25,7 +25,7 @@ definition agt :: "key => agent" where
 lemma agt_shrK [simp]: "agt (shrK A) = A"
 by (simp add: agt_def)
 
-subsubsection{*basic facts about @{term initState}*}
+subsubsection\<open>basic facts about @{term initState}\<close>
 
 lemma no_Crypt_in_parts_init [simp]: "Crypt K X ~:parts (initState A)"
 by (cases A, auto simp: initState.simps)
@@ -44,7 +44,7 @@ by (auto simp: initState.simps)
 lemma keyset_init [iff]: "keyset (initState A)"
 by (cases A, auto simp: keyset_def initState.simps)
 
-subsubsection{*sets of symmetric keys*}
+subsubsection\<open>sets of symmetric keys\<close>
 
 definition shrK_set :: "key set => bool" where
 "shrK_set Ks == ALL K. K:Ks --> (EX A. K = shrK A)"
@@ -58,7 +58,7 @@ by (simp add: shrK_set_def)
 lemma shrK_set2 [iff]: "shrK_set {shrK A, shrK B}"
 by (simp add: shrK_set_def)
 
-subsubsection{*sets of good keys*}
+subsubsection\<open>sets of good keys\<close>
 
 definition good :: "key set => bool" where
 "good Ks == ALL K. K:Ks --> agt K ~:bad"
@@ -73,9 +73,9 @@ lemma good2 [simp]: "[| A ~:bad; B ~:bad |] ==> good {shrK A, shrK B}"
 by (simp add: good_def)
 
 
-subsection{*Proofs About Guarded Messages*}
+subsection\<open>Proofs About Guarded Messages\<close>
 
-subsubsection{*small hack*}
+subsubsection\<open>small hack\<close>
 
 lemma shrK_is_invKey_shrK: "shrK A = invKey (shrK A)"
 by simp
@@ -88,7 +88,7 @@ lemma "Nonce n:parts {X} ==> Crypt (shrK A) X:guard n {shrK A}"
 apply (rule shrK_is_invKey_shrK_substI, rule invKey_invKey_substI)
 by (rule Guard_Nonce, simp+)
 
-subsubsection{*guardedness results on nonces*}
+subsubsection\<open>guardedness results on nonces\<close>
 
 lemma guard_ciph [simp]: "shrK A:Ks ==> Ciph A X:guard n Ks"
 by (rule Guard_Nonce, simp)
@@ -120,7 +120,7 @@ Gets_correct p; one_step p |] ==> Guard n Ks (knows_max' (Friend C) evs)"
 apply (rule_tac H="knows_max (Friend C) evs" in Guard_mono)
 by (auto simp: knows_max_def)
 
-subsubsection{*guardedness results on keys*}
+subsubsection\<open>guardedness results on keys\<close>
 
 lemma GuardK_init [simp]: "n ~:range shrK ==> GuardK n Ks (initState B)"
 by (induct B, auto simp: GuardK_def initState.simps)
@@ -146,7 +146,7 @@ Gets_correct p; one_step p |] ==> GuardK n A (knows_max' (Friend C) evs)"
 apply (rule_tac H="knows_max (Friend C) evs" in GuardK_mono)
 by (auto simp: knows_max_def)
 
-subsubsection{*regular protocols*}
+subsubsection\<open>regular protocols\<close>
 
 definition regular :: "event list set => bool" where
 "regular p == ALL evs A. evs:p --> (Key (shrK A):parts (spies evs)) = (A:bad)"

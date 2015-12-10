@@ -2,7 +2,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-section {* Conventional protocols: rely on conventional Message, Event and Public -- Public-key protocols *}
+section \<open>Conventional protocols: rely on conventional Message, Event and Public -- Public-key protocols\<close>
 
 theory Auth_Public
 imports

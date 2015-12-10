@@ -3,11 +3,11 @@
     Copyright   1996  University of Cambridge
 *)
 
-section{*The Woo-Lam Protocol*}
+section\<open>The Woo-Lam Protocol\<close>
 
 theory WooLam imports Public begin
 
-text{*Simplified version from page 11 of
+text\<open>Simplified version from page 11 of
   Abadi and Needham (1996). 
   Prudent Engineering Practice for Cryptographic Protocols.
   IEEE Trans. S.E. 22(1), pages 6-15.
@@ -15,7 +15,7 @@ text{*Simplified version from page 11 of
 Note: this differs from the Woo-Lam protocol discussed by Lowe (1996):
   Some New Attacks upon Security Protocols.
   Computer Security Foundations Workshop
-*}
+\<close>
 
 inductive_set woolam :: "event list set"
   where

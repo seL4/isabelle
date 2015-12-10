@@ -6,7 +6,7 @@ Inductive relation "ns_public" for the Needham-Schroeder Public-Key protocol.
 Version incorporating Lowe's fix (inclusion of B's identity in round 2).
 *)
 
-section{*Verifying the Needham-Schroeder-Lowe Public-Key Protocol*}
+section\<open>Verifying the Needham-Schroeder-Lowe Public-Key Protocol\<close>
 
 theory NS_Public imports Public begin
 
@@ -63,7 +63,7 @@ lemma Spy_analz_priEK [simp]:
       "evs \<in> ns_public \<Longrightarrow> (Key (priEK A) \<in> analz (spies evs)) = (A \<in> bad)"
 by auto
 
-subsection{*Authenticity properties obtained from NS2*}
+subsection\<open>Authenticity properties obtained from NS2\<close>
 
 
 (*It is impossible to re-use a nonce in both NS1 and NS2, provided the nonce
@@ -135,7 +135,7 @@ apply (blast intro!: analz_insertI)
 done
 
 
-subsection{*Authenticity properties obtained from NS2*}
+subsection\<open>Authenticity properties obtained from NS2\<close>
 
 (*Unicity for NS2: nonce NB identifies nonce NA and agents A, B 
   [unicity of B makes Lowe's fix work]
@@ -180,7 +180,7 @@ theorem B_trusts_NS3:
       \<Longrightarrow> Says A B (Crypt (pubEK B) (Nonce NB)) \<in> set evs"
 by (blast intro: B_trusts_NS3_lemma)
 
-subsection{*Overall guarantee for B*}
+subsection\<open>Overall guarantee for B\<close>
 
 (*If NS3 has been sent and the nonce NB agrees with the nonce B joined with
   NA, then A initiated the run using NA.*)

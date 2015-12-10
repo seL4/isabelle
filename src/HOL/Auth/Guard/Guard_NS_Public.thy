@@ -5,11 +5,11 @@
 Incorporating Lowe's fix (inclusion of B's identity in round 2).
 *)
 
-section{*Needham-Schroeder-Lowe Public-Key Protocol*}
+section\<open>Needham-Schroeder-Lowe Public-Key Protocol\<close>
 
 theory Guard_NS_Public imports Guard_Public begin
 
-subsection{*messages used in the protocol*}
+subsection\<open>messages used in the protocol\<close>
 
 abbreviation (input)
   ns1 :: "agent => agent => nat => event" where
@@ -32,7 +32,7 @@ abbreviation (input)
   "ns3 A B NB == Says A B (Crypt (pubK B) (Nonce NB))"
 
 
-subsection{*definition of the protocol*}
+subsection\<open>definition of the protocol\<close>
 
 inductive_set nsp :: "event list set"
 where
@@ -49,13 +49,13 @@ where
 | NS3: "!!A B B' NA NB evs3. [| evs3:nsp; ns1 A B NA:set evs3; ns2' B' B A NA NB:set evs3 |] ==>
   ns3 A B NB # evs3:nsp"
 
-subsection{*declarations for tactics*}
+subsection\<open>declarations for tactics\<close>
 
 declare knows_Spy_partsEs [elim]
 declare Fake_parts_insert [THEN subsetD, dest]
 declare initState.simps [simp del]
 
-subsection{*general properties of nsp*}
+subsection\<open>general properties of nsp\<close>
 
 lemma nsp_has_no_Gets: "evs:nsp ==> ALL A X. Gets A X ~:set evs"
 by (erule nsp.induct, auto)
@@ -77,7 +77,7 @@ lemma nsp_is_regular [iff]: "regular nsp"
 apply (simp only: regular_def, clarify)
 by (erule nsp.induct, auto simp: initState.simps knows.simps)
 
-subsection{*nonce are used only once*}
+subsection\<open>nonce are used only once\<close>
 
 lemma NA_is_uniq [rule_format]: "evs:nsp ==>
 Crypt (pubK B) {|Nonce NA, Agent A|}:parts (spies evs)
@@ -106,7 +106,7 @@ Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}:parts (spies evs)
 apply (erule nsp.induct, simp_all)
 by (blast intro: analz_insertI)+
 
-subsection{*guardedness of NA*}
+subsection\<open>guardedness of NA\<close>
 
 lemma ns1_imp_Guard [rule_format]: "[| evs:nsp; A ~:bad; B ~:bad |] ==>
 ns1 A B NA:set evs --> Guard NA {priK A,priK B} (spies evs)"
@@ -133,7 +133,7 @@ apply (drule Guard_Nonce_analz, simp+)
 apply (drule Says_imp_knows_Spy)+
 by (drule no_Nonce_NS1_NS2, auto)
 
-subsection{*guardedness of NB*}
+subsection\<open>guardedness of NB\<close>
 
 lemma ns2_imp_Guard [rule_format]: "[| evs:nsp; A ~:bad; B ~:bad |] ==>
 ns2 B A NA NB:set evs --> Guard NB {priK A,priK B} (spies evs)" 
@@ -163,7 +163,7 @@ apply auto[1]
 apply (auto simp add: guard.No_Nonce)
 done
 
-subsection{*Agents' Authentication*}
+subsection\<open>Agents' Authentication\<close>
 
 lemma B_trusts_NS1: "[| evs:nsp; A ~:bad; B ~:bad |] ==>
 Crypt (pubK B) {|Nonce NA, Agent A|}:parts (spies evs)

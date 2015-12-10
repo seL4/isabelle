@@ -3,11 +3,11 @@
     Copyright   2002  University of Cambridge
 *)
 
-section{*Yahalom Protocol*}
+section\<open>Yahalom Protocol\<close>
 
 theory Guard_Yahalom imports "../Shared" Guard_Shared begin
 
-subsection{*messages used in the protocol*}
+subsection\<open>messages used in the protocol\<close>
 
 abbreviation (input)
   ya1 :: "agent => agent => nat => event" where
@@ -45,7 +45,7 @@ abbreviation (input)
   "ya4' A' B K NB Y == Says A' B {|Y, Crypt K (Nonce NB)|}"
 
 
-subsection{*definition of the protocol*}
+subsection\<open>definition of the protocol\<close>
 
 inductive_set ya :: "event list set"
 where
@@ -65,13 +65,13 @@ where
 | YA4: "[| evs4:ya; ya1 A B NA:set evs4; ya3' S Y A B NA NB K:set evs4 |]
   ==> ya4 A B K NB Y # evs4:ya"
 
-subsection{*declarations for tactics*}
+subsection\<open>declarations for tactics\<close>
 
 declare knows_Spy_partsEs [elim]
 declare Fake_parts_insert [THEN subsetD, dest]
 declare initState.simps [simp del]
 
-subsection{*general properties of ya*}
+subsection\<open>general properties of ya\<close>
 
 lemma ya_has_no_Gets: "evs:ya ==> ALL A X. Gets A X ~:set evs"
 by (erule ya.induct, auto)
@@ -94,7 +94,7 @@ apply (simp only: regular_def, clarify)
 apply (erule ya.induct, simp_all add: initState.simps knows.simps)
 by (auto dest: parts_sub)
 
-subsection{*guardedness of KAB*}
+subsection\<open>guardedness of KAB\<close>
 
 lemma Guard_KAB [rule_format]: "[| evs:ya; A ~:bad; B ~:bad |] ==>
 ya3 A B NA NB K:set evs --> GuardK K {shrK A,shrK B} (spies evs)" 
@@ -115,7 +115,7 @@ apply (drule_tac A=Server in Key_neq, simp+, rule No_Key, simp)
 apply (blast dest: Says_imp_spies in_GuardK_kparts)
 by blast
 
-subsection{*session keys are not symmetric keys*}
+subsection\<open>session keys are not symmetric keys\<close>
 
 lemma KAB_isnt_shrK [rule_format]: "evs:ya ==>
 ya3 A B NA NB K:set evs --> K ~:range shrK"
@@ -124,7 +124,7 @@ by (erule ya.induct, auto)
 lemma ya3_shrK: "evs:ya ==> ya3 A B NA NB (shrK C) ~:set evs"
 by (blast dest: KAB_isnt_shrK)
 
-subsection{*ya2' implies ya1'*}
+subsection\<open>ya2' implies ya1'\<close>
 
 lemma ya2'_parts_imp_ya1'_parts [rule_format]:
      "[| evs:ya; B ~:bad |] ==>
@@ -136,7 +136,7 @@ lemma ya2'_imp_ya1'_parts: "[| ya2' B' A B NA NB:set evs; evs:ya; B ~:bad |]
 ==> {|Agent A, Nonce NA|}:spies evs"
 by (blast dest: Says_imp_spies ya2'_parts_imp_ya1'_parts)
 
-subsection{*uniqueness of NB*}
+subsection\<open>uniqueness of NB\<close>
 
 lemma NB_is_uniq_in_ya2'_parts [rule_format]: "[| evs:ya; B ~:bad; B' ~:bad |] ==>
 Ciph B {|Agent A, Nonce NA, Nonce NB|}:parts (spies evs) -->
@@ -153,7 +153,7 @@ ya2' C' A' B' NA' NB:set evs; evs:ya; B ~:bad; B' ~:bad |]
 ==> A=A' & B=B' & NA=NA'"
 by (drule NB_is_uniq_in_ya2'_parts, auto dest: Says_imp_spies)
 
-subsection{*ya3' implies ya2'*}
+subsection\<open>ya3' implies ya2'\<close>
 
 lemma ya3'_parts_imp_ya2'_parts [rule_format]: "[| evs:ya; A ~:bad |] ==>
 Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|}:parts (spies evs)
@@ -177,7 +177,7 @@ lemma ya3'_imp_ya2': "[| ya3' S Y A B NA NB K:set evs; evs:ya; A ~:bad |]
 ==> (EX B'. ya2' B' A B NA NB:set evs)"
 by (drule ya3'_parts_imp_ya2', auto dest: Says_imp_spies)
 
-subsection{*ya3' implies ya3*}
+subsection\<open>ya3' implies ya3\<close>
 
 lemma ya3'_parts_imp_ya3 [rule_format]: "[| evs:ya; A ~:bad |] ==>
 Ciph A {|Agent B, Key K, Nonce NA, Nonce NB|}:parts(spies evs)
@@ -190,7 +190,7 @@ lemma ya3'_imp_ya3: "[| ya3' S Y A B NA NB K:set evs; evs:ya; A ~:bad |]
 ==> ya3 A B NA NB K:set evs"
 by (blast dest: Says_imp_spies ya3'_parts_imp_ya3)
 
-subsection{*guardedness of NB*}
+subsection\<open>guardedness of NB\<close>
 
 definition ya_keys :: "agent => agent => nat => nat => event list => key set" where
 "ya_keys A B NA NB evs == {shrK A,shrK B} Un {K. ya3 A B NA NB K:set evs}"

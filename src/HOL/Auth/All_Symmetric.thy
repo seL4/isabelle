@@ -2,7 +2,7 @@ theory All_Symmetric
 imports Message
 begin
 
-text {* All keys are symmetric *}
+text \<open>All keys are symmetric\<close>
 
 defs all_symmetric_def: "all_symmetric \<equiv> True"
 

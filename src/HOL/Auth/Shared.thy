@@ -16,12 +16,12 @@ consts
 
 specification (shrK)
   inj_shrK: "inj shrK"
-  --{*No two agents have the same long-term key*}
+  \<comment>\<open>No two agents have the same long-term key\<close>
    apply (rule exI [of _ "case_agent 0 (\<lambda>n. n + 2) 1"]) 
    apply (simp add: inj_on_def split: agent.split) 
    done
 
-text{*Server knows all long-term keys; other agents know only their own*}
+text\<open>Server knows all long-term keys; other agents know only their own\<close>
 
 overloading
   initState \<equiv> initState
@@ -35,7 +35,7 @@ primrec initState where
 end
 
 
-subsection{*Basic properties of shrK*}
+subsection\<open>Basic properties of shrK\<close>
 
 (*Injectiveness: Agents' long-term keys are distinct.*)
 lemmas shrK_injective = inj_shrK [THEN inj_eq]
@@ -51,12 +51,12 @@ lemma analz_Decrypt' [dest]:
      "[| Crypt K X \<in> analz H;  Key K  \<in> analz H |] ==> X \<in> analz H"
 by auto
 
-text{*Now cancel the @{text dest} attribute given to
- @{text analz.Decrypt} in its declaration.*}
+text\<open>Now cancel the \<open>dest\<close> attribute given to
+ \<open>analz.Decrypt\<close> in its declaration.\<close>
 declare analz.Decrypt [rule del]
 
-text{*Rewrites should not refer to  @{term "initState(Friend i)"} because
-  that expression is not in normal form.*}
+text\<open>Rewrites should not refer to  @{term "initState(Friend i)"} because
+  that expression is not in normal form.\<close>
 
 lemma keysFor_parts_initState [simp]: "keysFor (parts (initState C)) = {}"
 apply (unfold keysFor_def)
@@ -73,7 +73,7 @@ lemma Crypt_imp_keysFor: "Crypt K X \<in> H ==> K \<in> keysFor H"
 by (metis Crypt_imp_invKey_keysFor invKey_K)
 
 
-subsection{*Function "knows"*}
+subsection\<open>Function "knows"\<close>
 
 (*Spy sees shared keys of agents!*)
 lemma Spy_knows_Spy_bad [intro!]: "A: bad ==> Key (shrK A) \<in> knows Spy evs"
@@ -108,7 +108,7 @@ lemmas shrK_sym_neq = shrK_neq [THEN not_sym]
 declare shrK_sym_neq [simp]
 
 
-subsection{*Fresh nonces*}
+subsection\<open>Fresh nonces\<close>
 
 lemma Nonce_notin_initState [iff]: "Nonce N \<notin> parts (initState B)"
 by (induct_tac "B", auto)
@@ -117,7 +117,7 @@ lemma Nonce_notin_used_empty [simp]: "Nonce N \<notin> used []"
 by (simp add: used_Nil)
 
 
-subsection{*Supply fresh nonces for possibility theorems.*}
+subsection\<open>Supply fresh nonces for possibility theorems.\<close>
 
 (*In any trace, there is an upper bound N on the greatest nonce in use.*)
 lemma Nonce_supply_lemma: "\<exists>N. ALL n. N<=n --> Nonce n \<notin> used evs"
@@ -152,14 +152,14 @@ apply (rule Nonce_supply_lemma [THEN exE])
 apply (rule someI, blast)
 done
 
-text{*Unlike the corresponding property of nonces, we cannot prove
+text\<open>Unlike the corresponding property of nonces, we cannot prove
     @{term "finite KK ==> \<exists>K. K \<notin> KK & Key K \<notin> used evs"}.
     We have infinitely many agents and there is nothing to stop their
     long-term keys from exhausting all the natural numbers.  Instead,
-    possibility theorems must assume the existence of a few keys.*}
+    possibility theorems must assume the existence of a few keys.\<close>
 
 
-subsection{*Specialized Rewriting for Theorems About @{term analz} and Image*}
+subsection\<open>Specialized Rewriting for Theorems About @{term analz} and Image\<close>
 
 lemma subset_Compl_range: "A <= - (range shrK) ==> shrK x \<notin> A"
 by blast
@@ -175,7 +175,7 @@ by blast
     erase occurrences of forwarded message components (X). **)
 
 lemmas analz_image_freshK_simps =
-       simp_thms mem_simps --{*these two allow its use with @{text "only:"}*}
+       simp_thms mem_simps \<comment>\<open>these two allow its use with \<open>only:\<close>\<close>
        disj_comms 
        image_insert [THEN sym] image_Un [THEN sym] empty_subsetI insert_subset
        analz_insert_eq Un_upper2 [THEN analz_mono, THEN [2] rev_subsetD]
@@ -189,10 +189,10 @@ lemma analz_image_freshK_lemma:
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 
-subsection{*Tactics for possibility theorems*}
+subsection\<open>Tactics for possibility theorems\<close>
 
 ML
-{*
+\<open>
 structure Shared =
 struct
 
@@ -223,7 +223,7 @@ val analz_image_freshK_ss =
       addsimps @{thms analz_image_freshK_simps})
 
 end
-*}
+\<close>
 
 
 
@@ -234,20 +234,20 @@ by auto
 
 (*Specialized methods*)
 
-method_setup analz_freshK = {*
+method_setup analz_freshK = \<open>
     Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac ctxt [allI, ballI, impI]),
           REPEAT_FIRST (resolve_tac ctxt @{thms analz_image_freshK_lemma}),
-          ALLGOALS (asm_simp_tac (put_simpset Shared.analz_image_freshK_ss ctxt))]))) *}
+          ALLGOALS (asm_simp_tac (put_simpset Shared.analz_image_freshK_ss ctxt))])))\<close>
     "for proving the Session Key Compromise theorem"
 
-method_setup possibility = {*
-    Scan.succeed (fn ctxt => SIMPLE_METHOD (Shared.possibility_tac ctxt)) *}
+method_setup possibility = \<open>
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (Shared.possibility_tac ctxt))\<close>
     "for proving possibility theorems"
 
-method_setup basic_possibility = {*
-    Scan.succeed (fn ctxt => SIMPLE_METHOD (Shared.basic_possibility_tac ctxt)) *}
+method_setup basic_possibility = \<open>
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (Shared.basic_possibility_tac ctxt))\<close>
     "for proving possibility theorems"
 
 lemma knows_subset_knows_Cons: "knows A evs <= knows A (e # evs)"

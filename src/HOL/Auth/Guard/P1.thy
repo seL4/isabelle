@@ -7,11 +7,11 @@ From G. Karjoth, N. Asokan and C. Gulcu
 Mobiles Agents 1998, LNCS 1477.
 *)
 
-section{*Protocol P1*}
+section\<open>Protocol P1\<close>
 
 theory P1 imports "../Public" Guard_Public List_Msg begin
 
-subsection{*Protocol Definition*}
+subsection\<open>Protocol Definition\<close>
 
 (******************************************************************************
 
@@ -30,8 +30,8 @@ it is not necessary in our modelization since crypto is assumed to be strong
 (Crypt in injective)
 ******************************************************************************)
 
-subsubsection{*offer chaining:
-B chains his offer for A with the head offer of L for sending it to C*}
+subsubsection\<open>offer chaining:
+B chains his offer for A with the head offer of L for sending it to C\<close>
 
 definition chain :: "agent => nat => agent => msg => agent => msg" where
 "chain B ofr A L C ==
@@ -48,7 +48,7 @@ by (auto simp: chain_def Let_def)
 lemma Nonce_in_chain [iff]: "Nonce ofr:parts {chain B ofr A L C}"
 by (auto simp: chain_def sign_def)
 
-subsubsection{*agent whose key is used to sign an offer*}
+subsubsection\<open>agent whose key is used to sign an offer\<close>
 
 fun shop :: "msg => msg" where
 "shop {|B,X,Crypt K H|} = Agent (agt K)"
@@ -56,7 +56,7 @@ fun shop :: "msg => msg" where
 lemma shop_chain [simp]: "shop (chain B ofr A L C) = Agent B"
 by (simp add: chain_def sign_def)
 
-subsubsection{*nonce used in an offer*}
+subsubsection\<open>nonce used in an offer\<close>
 
 fun nonce :: "msg => msg" where
 "nonce {|B,{|Crypt K ofr,m2|},CryptH|} = ofr"
@@ -64,7 +64,7 @@ fun nonce :: "msg => msg" where
 lemma nonce_chain [simp]: "nonce (chain B ofr A L C) = Nonce ofr"
 by (simp add: chain_def sign_def)
 
-subsubsection{*next shop*}
+subsubsection\<open>next shop\<close>
 
 fun next_shop :: "msg => agent" where
 "next_shop {|B,{|m1,Hash{|headL,Agent C|}|},CryptH|} = C"
@@ -72,7 +72,7 @@ fun next_shop :: "msg => agent" where
 lemma next_shop_chain [iff]: "next_shop (chain B ofr A L C) = C"
 by (simp add: chain_def sign_def)
 
-subsubsection{*anchor of the offer list*}
+subsubsection\<open>anchor of the offer list\<close>
 
 definition anchor :: "agent => nat => agent => msg" where
 "anchor A n B == chain A n A (cons nil nil) B"
@@ -93,7 +93,7 @@ by (simp add: anchor_def)
 lemma next_shop_anchor [iff]: "next_shop (anchor A n B) = B"
 by (simp add: anchor_def)
 
-subsubsection{*request event*}
+subsubsection\<open>request event\<close>
 
 definition reqm :: "agent => nat => nat => msg => agent => msg" where
 "reqm A r n I B == {|Agent A, Number r, cons (Agent A) (cons (Agent B) I),
@@ -113,7 +113,7 @@ lemma req_inj [iff]: "(req A r n I B = req A' r' n' I' B')
 = (A=A' & r=r' & n=n' & I=I' & B=B')"
 by (auto simp: req_def)
 
-subsubsection{*propose event*}
+subsubsection\<open>propose event\<close>
 
 definition prom :: "agent => nat => agent => nat => msg => msg =>
 msg => agent => msg" where
@@ -136,7 +136,7 @@ lemma pro_inj [dest]: "pro B ofr A r I L J C = pro B' ofr' A' r' I' L' J' C'
 ==> B=B' & ofr=ofr' & A=A' & r=r' & L=L' & C=C'"
 by (auto simp: pro_def dest: prom_inj)
 
-subsubsection{*protocol*}
+subsubsection\<open>protocol\<close>
 
 inductive_set p1 :: "event list set"
 where
@@ -151,7 +151,7 @@ where
   I:agl; J:agl; isin (Agent C, app (J, del (Agent B, I)));
   Nonce ofr ~:used evsp |] ==> pro B ofr A r I (cons M L) J C # evsp : p1"
 
-subsubsection{*Composition of Traces*}
+subsubsection\<open>Composition of Traces\<close>
 
 lemma "evs':p1 ==> 
        evs:p1 & (ALL n. Nonce n:used evs' --> Nonce n ~:used evs) --> 
@@ -165,7 +165,7 @@ apply (drule_tac x=ofr in spec, simp add: pro_def, blast)
 apply (erule_tac A'=A' in p1.Propose, auto simp: pro_def)
 done
 
-subsubsection{*Valid Offer Lists*}
+subsubsection\<open>Valid Offer Lists\<close>
 
 inductive_set
   valid :: "agent => nat => agent => msg set"
@@ -176,7 +176,7 @@ where
 | Propose [intro]: "L:valid A n B
 ==> cons (chain (next_shop (head L)) ofr A L C) L:valid A n B"
 
-subsubsection{*basic properties of valid*}
+subsubsection\<open>basic properties of valid\<close>
 
 lemma valid_not_empty: "L:valid A n B ==> EX M L'. L = cons M L'"
 by (erule valid.cases, auto)
@@ -184,24 +184,24 @@ by (erule valid.cases, auto)
 lemma valid_pos_len: "L:valid A n B ==> 0 < len L"
 by (erule valid.induct, auto)
 
-subsubsection{*offers of an offer list*}
+subsubsection\<open>offers of an offer list\<close>
 
 definition offer_nonces :: "msg => msg set" where
 "offer_nonces L == {X. X:parts {L} & (EX n. X = Nonce n)}"
 
-subsubsection{*the originator can get the offers*}
+subsubsection\<open>the originator can get the offers\<close>
 
 lemma "L:valid A n B ==> offer_nonces L <= analz (insert L (initState A))"
 by (erule valid.induct, auto simp: anchor_def chain_def sign_def
 offer_nonces_def initState.simps)
 
-subsubsection{*list of offers*}
+subsubsection\<open>list of offers\<close>
 
 fun offers :: "msg => msg" where
 "offers (cons M L) = cons {|shop M, nonce M|} (offers L)" |
 "offers other = nil"
 
-subsubsection{*list of agents whose keys are used to sign a list of offers*}
+subsubsection\<open>list of agents whose keys are used to sign a list of offers\<close>
 
 fun shops :: "msg => msg" where
 "shops (cons M L) = cons (shop M) (shops L)" |
@@ -210,7 +210,7 @@ fun shops :: "msg => msg" where
 lemma shops_in_agl: "L:valid A n B ==> shops L:agl"
 by (erule valid.induct, auto simp: anchor_def chain_def sign_def)
 
-subsubsection{*builds a trace from an itinerary*}
+subsubsection\<open>builds a trace from an itinerary\<close>
 
 fun offer_list :: "agent * nat * agent * msg * nat => msg" where
 "offer_list (A,n,B,nil,ofr) = cons (anchor A n B) nil" |
@@ -240,20 +240,20 @@ trace (B,ofr,A,r,nil,L,AI))"
 
 declare trace'_def [simp]
 
-subsubsection{*there is a trace in which the originator receives a valid answer*}
+subsubsection\<open>there is a trace in which the originator receives a valid answer\<close>
 
 lemma p1_not_empty: "evs:p1 ==> req A r n I B:set evs -->
 (EX evs'. evs'@evs:p1 & pro B' ofr A r I' L J A:set evs' & L:valid A n B)"
 oops
 
 
-subsection{*properties of protocol P1*}
+subsection\<open>properties of protocol P1\<close>
 
-text{*publicly verifiable forward integrity:
-anyone can verify the validity of an offer list*}
+text\<open>publicly verifiable forward integrity:
+anyone can verify the validity of an offer list\<close>
 
-subsubsection{*strong forward integrity:
-except the last one, no offer can be modified*}
+subsubsection\<open>strong forward integrity:
+except the last one, no offer can be modified\<close>
 
 lemma strong_forward_integrity: "ALL L. Suc i < len L
 --> L:valid A n B & repl (L,Suc i,M):valid A n B --> M = ith (L,Suc i)"
@@ -273,8 +273,8 @@ apply (frule len_not_empty, clarsimp)
 apply (ind_cases "{|x,l'|}:valid A n B" for x l')
 by (drule_tac x=l' in spec, simp, blast)
 
-subsubsection{*insertion resilience:
-except at the beginning, no offer can be inserted*}
+subsubsection\<open>insertion resilience:
+except at the beginning, no offer can be inserted\<close>
 
 lemma chain_isnt_head [simp]: "L:valid A n B ==>
 head L ~= chain (next_shop (head L)) ofr A L C"
@@ -298,8 +298,8 @@ apply (ind_cases "{|x,ins(l',Suc na,M)|}:valid A n B" for x l' na)
 apply (frule len_not_empty, clarsimp)
 by (drule_tac x=l' in spec, clarsimp)
 
-subsubsection{*truncation resilience:
-only shop i can truncate at offer i*}
+subsubsection\<open>truncation resilience:
+only shop i can truncate at offer i\<close>
 
 lemma truncation_resilience: "ALL L. L:valid A n B --> Suc i < len L
 --> cons M (trunc (L,Suc i)):valid A n B --> shop M = shop (ith (L,i))"
@@ -318,19 +318,19 @@ apply (ind_cases "{|x,l'|}:valid A n B" for x l')
 apply (frule len_not_empty, clarsimp)
 by (drule_tac x=l' in spec, clarsimp)
 
-subsubsection{*declarations for tactics*}
+subsubsection\<open>declarations for tactics\<close>
 
 declare knows_Spy_partsEs [elim]
 declare Fake_parts_insert [THEN subsetD, dest]
 declare initState.simps [simp del]
 
-subsubsection{*get components of a message*}
+subsubsection\<open>get components of a message\<close>
 
 lemma get_ML [dest]: "Says A' B {|A,r,I,M,L|}:set evs ==>
 M:parts (spies evs) & L:parts (spies evs)"
 by blast
 
-subsubsection{*general properties of p1*}
+subsubsection\<open>general properties of p1\<close>
 
 lemma reqm_neq_prom [iff]:
 "reqm A r n I B ~= prom B' ofr A' r' I' (cons M L) J C"
@@ -369,7 +369,7 @@ apply (simp_all add: initState.simps knows.simps pro_def prom_def
                      req_def reqm_def anchor_def chain_def sign_def)
 by (auto dest: no_Key_in_agl no_Key_in_appdel parts_trans)
 
-subsubsection{*private keys are safe*}
+subsubsection\<open>private keys are safe\<close>
 
 lemma priK_parts_Friend_imp_bad [rule_format,dest]:
      "[| evs:p1; Friend B ~= A |]
@@ -395,7 +395,7 @@ apply (rule_tac p=p1 in knows_max'_sub_spies', simp+)
 apply (drule_tac H="spies evs" in parts_sub)
 by (auto dest: knows'_sub_knows [THEN subsetD] priK_notin_initState_Friend)
 
-subsubsection{*general guardedness properties*}
+subsubsection\<open>general guardedness properties\<close>
 
 lemma agl_guard [intro]: "I:agl ==> I:guard n Ks"
 by (erule agl.induct, auto)
@@ -412,7 +412,7 @@ lemma Says_Nonce_not_used_guard: "[| Says A' B {|A'',r,I,L|}:set evs;
 Nonce n ~:used evs |] ==> L:guard n Ks"
 by (drule not_used_not_parts, auto)
 
-subsubsection{*guardedness of messages*}
+subsubsection\<open>guardedness of messages\<close>
 
 lemma chain_guard [iff]: "chain B ofr A L C:guard n {priK A}"
 by (case_tac "ofr=n", auto simp: chain_def sign_def)
@@ -443,7 +443,7 @@ lemma prom_guard_Nonce_neq [intro]: "[| n ~= ofr; I:agl; J:agl;
 L:guard n {priK A} |] ==> prom B ofr A' r I L J C:guard n {priK A}"
 by (auto simp: prom_def)
 
-subsubsection{*Nonce uniqueness*}
+subsubsection\<open>Nonce uniqueness\<close>
 
 lemma uniq_Nonce_in_chain [dest]: "Nonce k:parts {chain B ofr A L C} ==> k=ofr"
 by (auto simp: chain_def sign_def)
@@ -459,7 +459,7 @@ lemma uniq_Nonce_in_prom [dest]: "[| Nonce k:parts {prom B ofr A r I L J C};
 I:agl; J:agl; Nonce k ~:parts {L} |] ==> k=ofr"
 by (auto simp: prom_def dest: no_Nonce_in_agl no_Nonce_in_appdel)
 
-subsubsection{*requests are guarded*}
+subsubsection\<open>requests are guarded\<close>
 
 lemma req_imp_Guard [rule_format]: "[| evs:p1; A ~:bad |] ==>
 req A r n I B:set evs --> Guard n {priK A} (spies evs)"
@@ -477,7 +477,7 @@ apply (rule_tac B="spies' evs" in subset_trans)
 apply (rule_tac p=p1 in knows_max'_sub_spies', simp+)
 by (rule knows'_sub_knows)
 
-subsubsection{*propositions are guarded*}
+subsubsection\<open>propositions are guarded\<close>
 
 lemma pro_imp_Guard [rule_format]: "[| evs:p1; B ~:bad; A ~:bad |] ==>
 pro B ofr A r I (cons M L) J C:set evs --> Guard ofr {priK A} (spies evs)"
@@ -526,8 +526,8 @@ apply (rule_tac B="spies' evs" in subset_trans)
 apply (rule_tac p=p1 in knows_max'_sub_spies', simp+)
 by (rule knows'_sub_knows)
 
-subsubsection{*data confidentiality:
-no one other than the originator can decrypt the offers*}
+subsubsection\<open>data confidentiality:
+no one other than the originator can decrypt the offers\<close>
 
 lemma Nonce_req_notin_spies: "[| evs:p1; req A r n I B:set evs; A ~:bad |]
 ==> Nonce n ~:analz (spies evs)"
@@ -550,8 +550,8 @@ apply (clarify, frule_tac A=A in pro_imp_Guard_Friend, simp+)
 apply (simp add: knows_max_def, drule Guard_invKey_keyset, simp+)
 by (drule priK_notin_knows_max_Friend, auto simp: knows_max_def)
 
-subsubsection{*non repudiability:
-an offer signed by B has been sent by B*}
+subsubsection\<open>non repudiability:
+an offer signed by B has been sent by B\<close>
 
 lemma Crypt_reqm: "[| Crypt (priK A) X:parts {reqm A' r n I B}; I:agl |] ==> A=A'"
 by (auto simp: reqm_def anchor_def chain_def sign_def dest: no_Crypt_in_agl)

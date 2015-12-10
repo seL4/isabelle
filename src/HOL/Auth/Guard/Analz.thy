@@ -3,14 +3,14 @@
     Copyright   2001  University of Cambridge
 *)
 
-section{*Decomposition of Analz into two parts*}
+section\<open>Decomposition of Analz into two parts\<close>
 
 theory Analz imports Extensions begin
 
-text{*decomposition of @{term analz} into two parts: 
-      @{term pparts} (for pairs) and analz of @{term kparts}*}
+text\<open>decomposition of @{term analz} into two parts: 
+      @{term pparts} (for pairs) and analz of @{term kparts}\<close>
 
-subsection{*messages that do not contribute to analz*}
+subsection\<open>messages that do not contribute to analz\<close>
 
 inductive_set
   pparts :: "msg set => msg set"
@@ -20,7 +20,7 @@ where
 | Fst [dest]: "[| {|X,Y|}:pparts H; is_MPair X |] ==> X:pparts H"
 | Snd [dest]: "[| {|X,Y|}:pparts H; is_MPair Y |] ==> Y:pparts H"
 
-subsection{*basic facts about @{term pparts}*}
+subsection\<open>basic facts about @{term pparts}\<close>
 
 lemma pparts_is_MPair [dest]: "X:pparts H ==> is_MPair X"
 by (erule pparts.induct, auto)
@@ -98,13 +98,13 @@ lemmas pparts_insert_substI = pparts_insert_eq [THEN ssubst]
 lemma in_pparts: "Y:pparts H ==> EX X. X:H & Y:pparts {X}"
 by (erule pparts.induct, auto)
 
-subsection{*facts about @{term pparts} and @{term parts}*}
+subsection\<open>facts about @{term pparts} and @{term parts}\<close>
 
 lemma pparts_no_Nonce [dest]: "[| X:pparts {Y}; Nonce n ~:parts {Y} |]
 ==> Nonce n ~:parts {X}"
 by (erule pparts.induct, simp_all)
 
-subsection{*facts about @{term pparts} and @{term analz}*}
+subsection\<open>facts about @{term pparts} and @{term analz}\<close>
 
 lemma pparts_analz: "X:pparts H ==> X:analz H"
 by (erule pparts.induct, auto)
@@ -112,7 +112,7 @@ by (erule pparts.induct, auto)
 lemma pparts_analz_sub: "[| X:pparts G; G<=H |] ==> X:analz H"
 by (auto dest: pparts_sub pparts_analz)
 
-subsection{*messages that contribute to analz*}
+subsection\<open>messages that contribute to analz\<close>
 
 inductive_set
   kparts :: "msg set => msg set"
@@ -122,7 +122,7 @@ where
 | Fst [intro]: "[| {|X,Y|}:pparts H; not_MPair X |] ==> X:kparts H"
 | Snd [intro]: "[| {|X,Y|}:pparts H; not_MPair Y |] ==> Y:kparts H"
 
-subsection{*basic facts about @{term kparts}*}
+subsection\<open>basic facts about @{term kparts}\<close>
 
 lemma kparts_not_MPair [dest]: "X:kparts H ==> not_MPair X"
 by (erule kparts.induct, auto)
@@ -195,7 +195,7 @@ by (erule kparts.induct, auto dest: in_pparts)
 lemma kparts_has_no_pair [iff]: "has_no_pair (kparts H)"
 by auto
 
-subsection{*facts about @{term kparts} and @{term parts}*}
+subsection\<open>facts about @{term kparts} and @{term parts}\<close>
 
 lemma kparts_no_Nonce [dest]: "[| X:kparts {Y}; Nonce n ~:parts {Y} |]
 ==> Nonce n ~:parts {X}"
@@ -212,7 +212,7 @@ lemma Crypt_kparts_Nonce_parts [dest]: "[| Crypt K Y:kparts {Z};
 Nonce n:parts {Y} |] ==> Nonce n:parts {Z}"
 by auto
 
-subsection{*facts about @{term kparts} and @{term analz}*}
+subsection\<open>facts about @{term kparts} and @{term analz}\<close>
 
 lemma kparts_analz: "X:kparts H ==> X:analz H"
 by (erule kparts.induct, auto dest: pparts_analz)
@@ -247,7 +247,7 @@ lemma Crypt_insert_synth:
 by (metis Fake_parts_insert_in_Un Nonce_kparts_synth UnE analz_conj_parts synth_simps(5))
 
 
-subsection{*analz is pparts + analz of kparts*}
+subsection\<open>analz is pparts + analz of kparts\<close>
 
 lemma analz_pparts_kparts: "X:analz H ==> X:pparts H | X:analz (kparts H)"
 by (erule analz.induct, auto) 

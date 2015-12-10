@@ -1,4 +1,4 @@
-section{*Theory of Events for Security Protocols that use smartcards*}
+section\<open>Theory of Events for Security Protocols that use smartcards\<close>
 
 theory EventSC
 imports
@@ -11,7 +11,7 @@ consts  (*Initial states of agents -- parameter of the construction*)
 
 datatype card = Card agent
 
-text{*Four new events express the traffic between an agent and his card*}
+text\<open>Four new events express the traffic between an agent and his card\<close>
 datatype  
   event = Says  agent agent msg
         | Notes agent       msg
@@ -32,7 +32,7 @@ abbreviation
   "insecureM == \<not>secureM"
 
 
-text{*Spy has access to his own key for spoof messages, but Server is secure*}
+text\<open>Spy has access to his own key for spoof messages, but Server is secure\<close>
 specification (bad)
   Spy_in_bad     [iff]: "Spy \<in> bad"
   Server_not_bad [iff]: "Server \<notin> bad"
@@ -95,9 +95,9 @@ primrec
                   | C_Gets C X   => used evs
                   | Outpts C A X  => parts{X} \<union> (used evs)
                   | A_Gets A X   => used evs)"
-    --{*@{term Gets} always follows @{term Says} in real protocols. 
+    \<comment>\<open>@{term Gets} always follows @{term Says} in real protocols. 
        Likewise, @{term C_Gets} will always have to follow @{term Inputs}
-       and @{term A_Gets} will always have to follow @{term Outpts}*}
+       and @{term A_Gets} will always have to follow @{term Outpts}\<close>
 
 lemma Notes_imp_used [rule_format]: "Notes A X \<in> set evs \<longrightarrow> X \<in> used evs"
 apply (induct_tac evs)
@@ -116,7 +116,7 @@ apply (auto split: event.split)
 done
 
 
-subsection{*Function @{term knows}*}
+subsection\<open>Function @{term knows}\<close>
 
 (*Simplifying   
  parts(insert X (knows Spy evs)) = parts{X} \<union> parts(knows Spy evs).
@@ -127,8 +127,8 @@ lemma knows_Spy_Says [simp]:
      "knows Spy (Says A B X # evs) = insert X (knows Spy evs)"
 by simp
 
-text{*Letting the Spy see "bad" agents' notes avoids redundant case-splits
-      on whether @{term "A=Spy"} and whether @{term "A\<in>bad"}*}
+text\<open>Letting the Spy see "bad" agents' notes avoids redundant case-splits
+      on whether @{term "A=Spy"} and whether @{term "A\<in>bad"}\<close>
 lemma knows_Spy_Notes [simp]:
      "knows Spy (Notes A X # evs) =  
           (if A\<in>bad then insert X (knows Spy evs) else knows Spy evs)"
@@ -192,7 +192,7 @@ by (simp add: subset_insertI)
 
 
 
-text{*Spy sees what is sent on the traffic*}
+text\<open>Spy sees what is sent on the traffic\<close>
 lemma Says_imp_knows_Spy [rule_format]:
      "Says A B X \<in> set evs \<longrightarrow> X \<in> knows Spy evs"
 apply (induct_tac "evs")
@@ -237,15 +237,15 @@ done
 
 
 
-text{*Elimination rules: derive contradictions from old Says events containing
-  items known to be fresh*}
+text\<open>Elimination rules: derive contradictions from old Says events containing
+  items known to be fresh\<close>
 lemmas knows_Spy_partsEs =
      Says_imp_knows_Spy [THEN parts.Inj, elim_format]
      parts.Body [elim_format]
 
 
 
-subsection{*Knowledge of Agents*}
+subsection\<open>Knowledge of Agents\<close>
 
 lemma knows_Inputs: "knows A (Inputs A C X # evs) = insert X (knows A evs)"
 by simp
@@ -287,21 +287,21 @@ lemma knows_subset_knows_A_Gets: "knows A evs \<subseteq> knows A (A_Gets A' X #
 by (simp add: subset_insertI)
 
 
-text{*Agents know what they say*}
+text\<open>Agents know what they say\<close>
 lemma Says_imp_knows [rule_format]: "Says A B X \<in> set evs \<longrightarrow> X \<in> knows A evs"
 apply (induct_tac "evs")
 apply (simp_all (no_asm_simp) split add: event.split)
 apply blast
 done
 
-text{*Agents know what they note*}
+text\<open>Agents know what they note\<close>
 lemma Notes_imp_knows [rule_format]: "Notes A X \<in> set evs \<longrightarrow> X \<in> knows A evs"
 apply (induct_tac "evs")
 apply (simp_all (no_asm_simp) split add: event.split)
 apply blast
 done
 
-text{*Agents know what they receive*}
+text\<open>Agents know what they receive\<close>
 lemma Gets_imp_knows_agents [rule_format]:
      "A \<noteq> Spy \<longrightarrow> Gets A X \<in> set evs \<longrightarrow> X \<in> knows A evs"
 apply (induct_tac "evs")
@@ -390,7 +390,7 @@ done
 
 
 
-text{*NOTE REMOVAL--laws above are cleaner, as they don't involve "case"*}
+text\<open>NOTE REMOVAL--laws above are cleaner, as they don't involve "case"\<close>
 declare knows_Cons [simp del]
         used_Nil [simp del] used_Cons [simp del]
 
@@ -404,7 +404,7 @@ apply (blast intro: knows_subset_knows_Cons [THEN subsetD])
 done
 
 
-text{*For proving @{text new_keys_not_used}*}
+text\<open>For proving \<open>new_keys_not_used\<close>\<close>
 lemma keysFor_parts_insert:
      "\<lbrakk> K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H) \<rbrakk>   
       \<Longrightarrow> K \<in> keysFor (parts (G \<union> H)) \<or> Key (invKey K) \<in> parts H" 

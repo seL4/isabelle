@@ -8,7 +8,7 @@ Very similar to Guard except:
 - the hypothesis Key n ~:G (keyset G) is added
 *)
 
-section{*protocol-independent confidentiality theorem on keys*}
+section\<open>protocol-independent confidentiality theorem on keys\<close>
 
 theory GuardK
 imports Analz Extensions
@@ -28,7 +28,7 @@ where
 | Crypt [intro]: "X:guardK n Ks ==> Crypt K X:guardK n Ks"
 | Pair [intro]: "[| X:guardK n Ks; Y:guardK n Ks |] ==> {|X,Y|}:guardK n Ks"
 
-subsection{*basic facts about @{term guardK}*}
+subsection\<open>basic facts about @{term guardK}\<close>
 
 lemma Nonce_is_guardK [iff]: "Nonce p:guardK n Ks"
 by auto
@@ -77,12 +77,12 @@ lemma guardK_extand: "[| X:guardK n Ks; Ks <= Ks';
 [| K:Ks'; K ~:Ks |] ==> Key K ~:parts {X} |] ==> X:guardK n Ks'"
 by (erule guardK.induct, auto)
 
-subsection{*guarded sets*}
+subsection\<open>guarded sets\<close>
 
 definition GuardK :: "nat => key set => msg set => bool" where
 "GuardK n Ks H == ALL X. X:H --> X:guardK n Ks"
 
-subsection{*basic facts about @{term GuardK}*}
+subsection\<open>basic facts about @{term GuardK}\<close>
 
 lemma GuardK_empty [iff]: "GuardK n Ks {}"
 by (simp add: GuardK_def)
@@ -152,7 +152,7 @@ lemma GuardK_extand: "[| GuardK n Ks G; Ks <= Ks';
 [| K:Ks'; K ~:Ks |] ==> Key K ~:parts G |] ==> GuardK n Ks' G"
 by (auto simp: GuardK_def dest: guardK_extand parts_sub)
 
-subsection{*set obtained by decrypting a message*}
+subsection\<open>set obtained by decrypting a message\<close>
 
 abbreviation (input)
   decrypt :: "msg set => key => msg => msg set" where
@@ -168,25 +168,25 @@ done
 lemma parts_decrypt: "[| Crypt K Y:H; X:parts (decrypt H K Y) |] ==> X:parts H"
 by (erule parts.induct, auto intro: parts.Fst parts.Snd parts.Body)
 
-subsection{*number of Crypt's in a message*}
+subsection\<open>number of Crypt's in a message\<close>
 
 fun crypt_nb :: "msg => nat" where
 "crypt_nb (Crypt K X) = Suc (crypt_nb X)" |
 "crypt_nb {|X,Y|} = crypt_nb X + crypt_nb Y" |
 "crypt_nb X = 0" (* otherwise *)
 
-subsection{*basic facts about @{term crypt_nb}*}
+subsection\<open>basic facts about @{term crypt_nb}\<close>
 
 lemma non_empty_crypt_msg: "Crypt K Y:parts {X} ==> crypt_nb X \<noteq> 0"
 by (induct X, simp_all, safe, simp_all)
 
-subsection{*number of Crypt's in a message list*}
+subsection\<open>number of Crypt's in a message list\<close>
 
 primrec cnb :: "msg list => nat" where
 "cnb [] = 0" |
 "cnb (X#l) = crypt_nb X + cnb l"
 
-subsection{*basic facts about @{term cnb}*}
+subsection\<open>basic facts about @{term cnb}\<close>
 
 lemma cnb_app [simp]: "cnb (l @ l') = cnb l + cnb l'"
 by (induct l, auto)
@@ -207,7 +207,7 @@ by (erule parts.induct, auto simp: in_set_conv_decomp)
 lemma non_empty_crypt: "Crypt K Y:parts (set l) ==> cnb l \<noteq> 0"
 by (induct l, auto dest: non_empty_crypt_msg parts_insert_substD)
 
-subsection{*list of kparts*}
+subsection\<open>list of kparts\<close>
 
 lemma kparts_msg_set: "EX l. kparts {X} = set l & cnb l = crypt_nb X"
 apply (induct X, simp_all)
@@ -228,20 +228,20 @@ apply (rule_tac x="l''@l'" in exI, simp)
 apply (rule kparts_insert_substI, simp)
 by (rule kparts_msg_set)
 
-subsection{*list corresponding to "decrypt"*}
+subsection\<open>list corresponding to "decrypt"\<close>
 
 definition decrypt' :: "msg list => key => msg => msg list" where
 "decrypt' l K Y == Y # remove l (Crypt K Y)"
 
 declare decrypt'_def [simp]
 
-subsection{*basic facts about @{term decrypt'}*}
+subsection\<open>basic facts about @{term decrypt'}\<close>
 
 lemma decrypt_minus: "decrypt (set l) K Y <= set (decrypt' l K Y)"
 by (induct l, auto)
 
-text{*if the analysis of a finite guarded set gives n then it must also give
-one of the keys of Ks*}
+text\<open>if the analysis of a finite guarded set gives n then it must also give
+one of the keys of Ks\<close>
 
 lemma GuardK_invKey_by_list [rule_format]: "ALL l. cnb l = p
 --> GuardK n Ks (set l) --> Key n:analz (set l)
@@ -289,8 +289,8 @@ lemma GuardK_invKey: "[| Key n:analz G; GuardK n Ks G |]
 ==> EX K. K:Ks & Key K:analz G"
 by (auto dest: analz_needs_only_finite GuardK_invKey_finite)
 
-text{*if the analyse of a finite guarded set and a (possibly infinite) set of
-keys gives n then it must also gives Ks*}
+text\<open>if the analyse of a finite guarded set and a (possibly infinite) set of
+keys gives n then it must also gives Ks\<close>
 
 lemma GuardK_invKey_keyset: "[| Key n:analz (G Un H); GuardK n Ks G; finite G;
 keyset H; Key n ~:H |] ==> EX K. K:Ks & Key K:analz (G Un H)"

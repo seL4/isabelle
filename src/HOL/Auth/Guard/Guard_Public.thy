@@ -7,11 +7,11 @@ Lemmas on guarded messages for public protocols.
 
 theory Guard_Public imports Guard "../Public" Extensions begin
 
-subsection{*Extensions to Theory @{text Public}*}
+subsection\<open>Extensions to Theory \<open>Public\<close>\<close>
 
 declare initState.simps [simp del]
 
-subsubsection{*signature*}
+subsubsection\<open>signature\<close>
 
 definition sign :: "agent => msg => msg" where
 "sign A X == {|Agent A, X, Crypt (priK A) (Hash X)|}"
@@ -19,7 +19,7 @@ definition sign :: "agent => msg => msg" where
 lemma sign_inj [iff]: "(sign A X = sign A' X') = (A=A' & X=X')"
 by (auto simp: sign_def)
 
-subsubsection{*agent associated to a key*}
+subsubsection\<open>agent associated to a key\<close>
 
 definition agt :: "key => agent" where
 "agt K == @A. K = priK A | K = pubK A"
@@ -30,7 +30,7 @@ by (simp add: agt_def)
 lemma agt_pubK [simp]: "agt (pubK A) = A"
 by (simp add: agt_def)
 
-subsubsection{*basic facts about @{term initState}*}
+subsubsection\<open>basic facts about @{term initState}\<close>
 
 lemma no_Crypt_in_parts_init [simp]: "Crypt K X ~:parts (initState A)"
 by (cases A, auto simp: initState.simps)
@@ -49,7 +49,7 @@ by (auto simp: initState.simps)
 lemma keyset_init [iff]: "keyset (initState A)"
 by (cases A, auto simp: keyset_def initState.simps)
 
-subsubsection{*sets of private keys*}
+subsubsection\<open>sets of private keys\<close>
 
 definition priK_set :: "key set => bool" where
 "priK_set Ks == ALL K. K:Ks --> (EX A. K = priK A)"
@@ -63,7 +63,7 @@ by (simp add: priK_set_def)
 lemma priK_set2 [iff]: "priK_set {priK A, priK B}"
 by (simp add: priK_set_def)
 
-subsubsection{*sets of good keys*}
+subsubsection\<open>sets of good keys\<close>
 
 definition good :: "key set => bool" where
 "good Ks == ALL K. K:Ks --> agt K ~:bad"
@@ -77,7 +77,7 @@ by (simp add: good_def)
 lemma good2 [simp]: "[| A ~:bad; B ~:bad |] ==> good {priK A, priK B}"
 by (simp add: good_def)
 
-subsubsection{*greatest nonce used in a trace, 0 if there is no nonce*}
+subsubsection\<open>greatest nonce used in a trace, 0 if there is no nonce\<close>
 
 primrec greatest :: "event list => nat"
 where
@@ -90,7 +90,7 @@ apply (drule used_sub_parts_used, safe)
 apply (drule greatest_msg_is_greatest, arith)
 by simp
 
-subsubsection{*function giving a new nonce*}
+subsubsection\<open>function giving a new nonce\<close>
 
 definition new :: "event list => nat" where
 "new evs == Suc (greatest evs)"
@@ -98,9 +98,9 @@ definition new :: "event list => nat" where
 lemma new_isnt_used [iff]: "Nonce (new evs) ~:used evs"
 by (clarify, drule greatest_is_greatest, auto simp: new_def)
 
-subsection{*Proofs About Guarded Messages*}
+subsection\<open>Proofs About Guarded Messages\<close>
 
-subsubsection{*small hack necessary because priK is defined as the inverse of pubK*}
+subsubsection\<open>small hack necessary because priK is defined as the inverse of pubK\<close>
 
 lemma pubK_is_invKey_priK: "pubK A = invKey (priK A)"
 by simp
@@ -113,7 +113,7 @@ lemma "Nonce n:parts {X} ==> Crypt (pubK A) X:guard n {priK A}"
 apply (rule pubK_is_invKey_priK_substI, rule invKey_invKey_substI)
 by (rule Guard_Nonce, simp+)
 
-subsubsection{*guardedness results*}
+subsubsection\<open>guardedness results\<close>
 
 lemma sign_guard [intro]: "X:guard n Ks ==> sign A X:guard n Ks"
 by (auto simp: sign_def)
@@ -142,7 +142,7 @@ Gets_correct p; one_step p |] ==> Guard n Ks (knows_max' (Friend C) evs)"
 apply (rule_tac H="knows_max (Friend C) evs" in Guard_mono)
 by (auto simp: knows_max_def)
 
-subsubsection{*regular protocols*}
+subsubsection\<open>regular protocols\<close>
 
 definition regular :: "event list set => bool" where
 "regular p == ALL evs A. evs:p --> (Key (priK A):parts (spies evs)) = (A:bad)"

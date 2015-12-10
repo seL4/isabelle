@@ -2,18 +2,18 @@
     Author:     Giampaolo Bella, Catania University
 *)
 
-section{*The Kerberos Protocol, BAN Version, with Gets event*}
+section\<open>The Kerberos Protocol, BAN Version, with Gets event\<close>
 
 theory Kerberos_BAN_Gets imports Public begin
 
-text{*From page 251 of
+text\<open>From page 251 of
   Burrows, Abadi and Needham (1989).  A Logic of Authentication.
   Proc. Royal Soc. 426
 
   Confidentiality (secrecy) and authentication properties rely on
   temporal checks: strong guarantees in a little abstracted - but
   very realistic - model.
-*}
+\<close>
 
 (* Temporal modelization: session keys can be leaked
                           ONLY when they have expired *)
@@ -26,14 +26,14 @@ consts
     (*Duration of the authenticator*)
     authlife :: nat
 
-text{*The ticket should remain fresh for two journeys on the network at least*}
-text{*The Gets event causes longer traces for the protocol to reach its end*}
+text\<open>The ticket should remain fresh for two journeys on the network at least\<close>
+text\<open>The Gets event causes longer traces for the protocol to reach its end\<close>
 specification (sesKlife)
   sesKlife_LB [iff]: "4 \<le> sesKlife"
     by blast
 
-text{*The authenticator only for one journey*}
-text{*The Gets event causes longer traces for the protocol to reach its end*}
+text\<open>The authenticator only for one journey\<close>
+text\<open>The Gets event causes longer traces for the protocol to reach its end\<close>
 specification (authlife)
   authlife_LB [iff]:    "2 \<le> authlife"
     by blast
@@ -119,7 +119,7 @@ declare Fake_parts_insert_in_Un [dest]
 declare knows_Spy_partsEs [elim]
 
 
-text{*A "possibility property": there are traces that reach the end.*}
+text\<open>A "possibility property": there are traces that reach the end.\<close>
 lemma "\<lbrakk>Key K \<notin> used []; K \<in> symKeys\<rbrakk>
        \<Longrightarrow> \<exists>Timestamp. \<exists>evs \<in> bankerb_gets.
              Says B A (Crypt K (Number Timestamp))
@@ -136,8 +136,8 @@ apply (possibility, simp_all (no_asm_simp) add: used_Cons)
 done
 
 
-text{*Lemmas about reception invariant: if a message is received it certainly
-was sent*}
+text\<open>Lemmas about reception invariant: if a message is received it certainly
+was sent\<close>
 lemma Gets_imp_Says :
      "\<lbrakk> Gets B X \<in> set evs; evs \<in> bankerb_gets \<rbrakk> \<Longrightarrow> \<exists>A. Says A B X \<in> set evs"
 apply (erule rev_mp)
@@ -164,7 +164,7 @@ lemma Gets_imp_knows_analz:
 apply (blast dest: Gets_imp_knows [THEN analz.Inj])
 done
 
-text{*Lemmas for reasoning about predicate "before"*}
+text\<open>Lemmas for reasoning about predicate "before"\<close>
 lemma used_Says_rev: "used (evs @ [Says A B X]) = parts {X} \<union> (used evs)"
 apply (induct_tac "evs")
 apply simp
@@ -220,7 +220,7 @@ done
 
 (**** Inductive proofs about bankerb_gets ****)
 
-text{*Forwarding Lemma for reasoning about the encrypted portion of message BK3*}
+text\<open>Forwarding Lemma for reasoning about the encrypted portion of message BK3\<close>
 lemma BK3_msg_in_parts_knows_Spy:
      "\<lbrakk>Gets A (Crypt KA \<lbrace>Timestamp, B, K, X\<rbrace>) \<in> set evs; evs \<in> bankerb_gets \<rbrakk> 
       \<Longrightarrow> X \<in> parts (knows Spy evs)"
@@ -234,7 +234,7 @@ apply blast
 done
 
 
-text{*Spy never sees another agent's shared key! (unless it's bad at start)*}
+text\<open>Spy never sees another agent's shared key! (unless it's bad at start)\<close>
 lemma Spy_see_shrK [simp]:
      "evs \<in> bankerb_gets \<Longrightarrow> (Key (shrK A) \<in> parts (knows Spy evs)) = (A \<in> bad)"
 apply (erule bankerb_gets.induct)
@@ -255,7 +255,7 @@ by (blast dest: Spy_see_shrK)
 lemmas Spy_analz_shrK_D = analz_subset_parts [THEN subsetD, THEN Spy_see_shrK_D,  dest!]
 
 
-text{*Nobody can have used non-existent keys!*}
+text\<open>Nobody can have used non-existent keys!\<close>
 lemma new_keys_not_used [simp]:
     "\<lbrakk>Key K \<notin> used evs; K \<in> symKeys; evs \<in> bankerb_gets\<rbrakk>
      \<Longrightarrow> K \<notin> keysFor (parts (knows Spy evs))"
@@ -263,15 +263,15 @@ apply (erule rev_mp)
 apply (erule bankerb_gets.induct)
 apply (frule_tac [8] Oops_parts_knows_Spy)
 apply (frule_tac [6] BK3_msg_in_parts_knows_Spy, simp_all)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply (force dest!: keysFor_parts_insert)
-txt{*BK2, BK3, BK4*}
+txt\<open>BK2, BK3, BK4\<close>
 apply (force dest!: analz_shrK_Decrypt)+
 done
 
-subsection{* Lemmas concerning the form of items passed in messages *}
+subsection\<open>Lemmas concerning the form of items passed in messages\<close>
 
-text{*Describes the form of K, X and K' when the Server sends this message.*}
+text\<open>Describes the form of K, X and K' when the Server sends this message.\<close>
 lemma Says_Server_message_form:
      "\<lbrakk> Says Server A (Crypt K' \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>)
          \<in> set evs; evs \<in> bankerb_gets \<rbrakk>
@@ -286,21 +286,21 @@ lemma Says_Server_message_form:
 apply (unfold before_def)
 apply (erule rev_mp)
 apply (erule bankerb_gets.induct, simp_all)
-txt{*We need this simplification only for Message 2*}
+txt\<open>We need this simplification only for Message 2\<close>
 apply (simp (no_asm) add: takeWhile_tail)
 apply auto
-txt{*Two subcases of Message 2. Subcase: used before*}
+txt\<open>Two subcases of Message 2. Subcase: used before\<close>
 apply (blast dest: used_evs_rev [THEN equalityD2, THEN contra_subsetD] 
                    used_takeWhile_used)
-txt{*subcase: CT before*}
+txt\<open>subcase: CT before\<close>
 apply (fastforce dest!: set_evs_rev [THEN equalityD2, THEN contra_subsetD, THEN takeWhile_void])
 done
 
 
-text{*If the encrypted message appears then it originated with the Server
+text\<open>If the encrypted message appears then it originated with the Server
   PROVIDED that A is NOT compromised!
   This allows A to verify freshness of the session key.
-*}
+\<close>
 lemma Kab_authentic:
      "\<lbrakk> Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, X\<rbrace>
            \<in> parts (knows Spy evs);
@@ -314,8 +314,8 @@ apply (frule_tac [6] BK3_msg_in_parts_knows_Spy, simp_all, blast)
 done
 
 
-text{*If the TICKET appears then it originated with the Server*}
-text{*FRESHNESS OF THE SESSION KEY to B*}
+text\<open>If the TICKET appears then it originated with the Server\<close>
+text\<open>FRESHNESS OF THE SESSION KEY to B\<close>
 lemma ticket_authentic:
      "\<lbrakk> Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace> \<in> parts (knows Spy evs);
          B \<notin> bad;  evs \<in> bankerb_gets \<rbrakk>
@@ -330,9 +330,9 @@ apply (frule_tac [6] BK3_msg_in_parts_knows_Spy, simp_all, blast)
 done
 
 
-text{*EITHER describes the form of X when the following message is sent,
+text\<open>EITHER describes the form of X when the following message is sent,
   OR     reduces it to the Fake case.
-  Use @{text Says_Server_message_form} if applicable.*}
+  Use \<open>Says_Server_message_form\<close> if applicable.\<close>
 lemma Gets_Server_message_form:
      "\<lbrakk> Gets A (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, X\<rbrace>)
             \<in> set evs;
@@ -345,7 +345,7 @@ apply (blast dest!: Kab_authentic Says_Server_message_form)
 done
 
 
-text{*Reliability guarantees: honest agents act as we expect*}
+text\<open>Reliability guarantees: honest agents act as we expect\<close>
 
 lemma BK3_imp_Gets:
    "\<lbrakk> Says A B \<lbrace>Ticket, Crypt K \<lbrace>Agent A, Number Ta\<rbrace>\<rbrace> \<in> set evs;
@@ -394,7 +394,7 @@ done
 ****)
 
 
-text{* Session keys are not used to encrypt other session keys *}
+text\<open>Session keys are not used to encrypt other session keys\<close>
 lemma analz_image_freshK [rule_format (no_asm)]:
      "evs \<in> bankerb_gets \<Longrightarrow>
    \<forall>K KK. KK \<subseteq> - (range shrK) \<longrightarrow>
@@ -413,7 +413,7 @@ lemma analz_insert_freshK:
 by (simp only: analz_image_freshK analz_image_freshK_simps)
 
 
-text{* The session key K uniquely identifies the message *}
+text\<open>The session key K uniquely identifies the message\<close>
 lemma unique_session_keys:
      "\<lbrakk> Says Server A
            (Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, X\<rbrace>) \<in> set evs;
@@ -425,7 +425,7 @@ apply (erule rev_mp)
 apply (erule bankerb_gets.induct)
 apply (frule_tac [8] Oops_parts_knows_Spy)
 apply (frule_tac [6] BK3_msg_in_parts_knows_Spy, simp_all)
-txt{*BK2: it can't be a new key*}
+txt\<open>BK2: it can't be a new key\<close>
 apply blast
 done
 
@@ -451,13 +451,13 @@ done
 
 
 
-subsection{*Non-temporal guarantees, explicitly relying on non-occurrence of
-oops events - refined below by temporal guarantees*}
+subsection\<open>Non-temporal guarantees, explicitly relying on non-occurrence of
+oops events - refined below by temporal guarantees\<close>
 
-text{*Non temporal treatment of confidentiality*}
+text\<open>Non temporal treatment of confidentiality\<close>
 
-text{* Lemma: the session key sent in msg BK2 would be lost by oops
-    if the spy could see it! *}
+text\<open>Lemma: the session key sent in msg BK2 would be lost by oops
+    if the spy could see it!\<close>
 lemma lemma_conf [rule_format (no_asm)]:
      "\<lbrakk> A \<notin> bad;  B \<notin> bad;  evs \<in> bankerb_gets \<rbrakk>
   \<Longrightarrow> Says Server A
@@ -469,21 +469,21 @@ apply (erule bankerb_gets.induct)
 apply (frule_tac [8] Says_Server_message_form)
 apply (frule_tac [6] Gets_Server_message_form [THEN disjE])
 apply (simp_all (no_asm_simp) add: analz_insert_eq analz_insert_freshK pushes)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply spy_analz
-txt{*BK2*}
+txt\<open>BK2\<close>
 apply (blast intro: parts_insertI)
-txt{*BK3*}
+txt\<open>BK3\<close>
 apply (case_tac "Aa \<in> bad")
  prefer 2 apply (blast dest: Kab_authentic unique_session_keys)
 apply (blast dest: Gets_imp_knows_Spy [THEN analz.Inj] Crypt_Spy_analz_bad elim!: MPair_analz)
-txt{*Oops*}
+txt\<open>Oops\<close>
 apply (blast dest: unique_session_keys)
 done
 
 
-text{*Confidentiality for the Server: Spy does not see the keys sent in msg BK2
-as long as they have not expired.*}
+text\<open>Confidentiality for the Server: Spy does not see the keys sent in msg BK2
+as long as they have not expired.\<close>
 lemma Confidentiality_S:
      "\<lbrakk> Says Server A
           (Crypt K' \<lbrace>Number Tk, Agent B, Key K, Ticket\<rbrace>) \<in> set evs;
@@ -494,7 +494,7 @@ apply (frule Says_Server_message_form, assumption)
 apply (blast intro: lemma_conf)
 done
 
-text{*Confidentiality for Alice*}
+text\<open>Confidentiality for Alice\<close>
 lemma Confidentiality_A:
      "\<lbrakk> Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, X\<rbrace> \<in> parts (knows Spy evs);
         Notes Spy \<lbrace>Number Tk, Key K\<rbrace> \<notin> set evs;
@@ -502,7 +502,7 @@ lemma Confidentiality_A:
       \<rbrakk> \<Longrightarrow> Key K \<notin> analz (knows Spy evs)"
 by (blast dest!: Kab_authentic Confidentiality_S)
 
-text{*Confidentiality for Bob*}
+text\<open>Confidentiality for Bob\<close>
 lemma Confidentiality_B:
      "\<lbrakk> Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>
           \<in> parts (knows Spy evs);
@@ -512,9 +512,9 @@ lemma Confidentiality_B:
 by (blast dest!: ticket_authentic Confidentiality_S)
 
 
-text{*Non temporal treatment of authentication*}
+text\<open>Non temporal treatment of authentication\<close>
 
-text{*Lemmas @{text lemma_A} and @{text lemma_B} in fact are common to both temporal and non-temporal treatments*}
+text\<open>Lemmas \<open>lemma_A\<close> and \<open>lemma_B\<close> in fact are common to both temporal and non-temporal treatments\<close>
 lemma lemma_A [rule_format]:
      "\<lbrakk> A \<notin> bad; B \<notin> bad; evs \<in> bankerb_gets \<rbrakk>
       \<Longrightarrow>
@@ -529,11 +529,11 @@ apply (frule_tac [8] Oops_parts_knows_Spy)
 apply (frule_tac [6] Gets_Server_message_form)
 apply (frule_tac [7] BK3_msg_in_parts_knows_Spy, analz_mono_contra)
 apply (simp_all (no_asm_simp) add: all_conj_distrib)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply blast
-txt{*BK2*}
+txt\<open>BK2\<close>
 apply (force dest: Crypt_imp_invKey_keysFor)
-txt{*BK3*}
+txt\<open>BK3\<close>
 apply (blast dest: Kab_authentic unique_session_keys)
 done
 lemma lemma_B [rule_format]:
@@ -548,19 +548,19 @@ apply (frule_tac [8] Oops_parts_knows_Spy)
 apply (frule_tac [6] Gets_Server_message_form)
 apply (drule_tac [7] BK3_msg_in_parts_knows_Spy, analz_mono_contra)
 apply (simp_all (no_asm_simp) add: all_conj_distrib)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply blast
-txt{*BK2*} 
+txt\<open>BK2\<close> 
 apply (force dest: Crypt_imp_invKey_keysFor)
-txt{*BK4*}
+txt\<open>BK4\<close>
 apply (blast dest: ticket_authentic unique_session_keys
                    Gets_imp_knows_Spy [THEN analz.Inj] Crypt_Spy_analz_bad)
 done
 
 
-text{*The "r" suffix indicates theorems where the confidentiality assumptions are relaxed by the corresponding arguments.*}
+text\<open>The "r" suffix indicates theorems where the confidentiality assumptions are relaxed by the corresponding arguments.\<close>
 
-text{*Authentication of A to B*}
+text\<open>Authentication of A to B\<close>
 lemma B_authenticates_A_r:
      "\<lbrakk> Crypt K \<lbrace>Agent A, Number Ta\<rbrace> \<in> parts (knows Spy evs);
          Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>  \<in> parts (knows Spy evs);
@@ -572,7 +572,7 @@ by (blast dest!: ticket_authentic
           intro!: lemma_A
           elim!: Confidentiality_S [THEN [2] rev_notE])
 
-text{*Authentication of B to A*}
+text\<open>Authentication of B to A\<close>
 lemma A_authenticates_B_r:
      "\<lbrakk> Crypt K (Number Ta) \<in> parts (knows Spy evs);
         Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, X\<rbrace> \<in> parts (knows Spy evs);
@@ -602,14 +602,14 @@ apply (blast dest!: Kab_authentic intro!: lemma_B)
 done
 
 
-subsection{*Temporal guarantees, relying on a temporal check that insures that
-no oops event occurred. These are available in the sense of goal availability*}
+subsection\<open>Temporal guarantees, relying on a temporal check that insures that
+no oops event occurred. These are available in the sense of goal availability\<close>
 
 
-text{*Temporal treatment of confidentiality*}
+text\<open>Temporal treatment of confidentiality\<close>
 
-text{* Lemma: the session key sent in msg BK2 would be EXPIRED
-    if the spy could see it! *}
+text\<open>Lemma: the session key sent in msg BK2 would be EXPIRED
+    if the spy could see it!\<close>
 lemma lemma_conf_temporal [rule_format (no_asm)]:
      "\<lbrakk> A \<notin> bad;  B \<notin> bad;  evs \<in> bankerb_gets \<rbrakk>
   \<Longrightarrow> Says Server A
@@ -621,21 +621,21 @@ apply (erule bankerb_gets.induct)
 apply (frule_tac [8] Says_Server_message_form)
 apply (frule_tac [6] Gets_Server_message_form [THEN disjE])
 apply (simp_all (no_asm_simp) add: less_SucI analz_insert_eq analz_insert_freshK pushes)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply spy_analz
-txt{*BK2*}
+txt\<open>BK2\<close>
 apply (blast intro: parts_insertI less_SucI)
-txt{*BK3*}
+txt\<open>BK3\<close>
 apply (case_tac "Aa \<in> bad")
  prefer 2 apply (blast dest: Kab_authentic unique_session_keys)
 apply (blast dest: Gets_imp_knows_Spy [THEN analz.Inj] Crypt_Spy_analz_bad elim!: MPair_analz intro: less_SucI)
-txt{*Oops: PROOF FAILS if unsafe intro below*}
+txt\<open>Oops: PROOF FAILS if unsafe intro below\<close>
 apply (blast dest: unique_session_keys intro!: less_SucI)
 done
 
 
-text{*Confidentiality for the Server: Spy does not see the keys sent in msg BK2
-as long as they have not expired.*}
+text\<open>Confidentiality for the Server: Spy does not see the keys sent in msg BK2
+as long as they have not expired.\<close>
 lemma Confidentiality_S_temporal:
      "\<lbrakk> Says Server A
           (Crypt K' \<lbrace>Number T, Agent B, Key K, X\<rbrace>) \<in> set evs;
@@ -646,7 +646,7 @@ apply (frule Says_Server_message_form, assumption)
 apply (blast intro: lemma_conf_temporal)
 done
 
-text{*Confidentiality for Alice*}
+text\<open>Confidentiality for Alice\<close>
 lemma Confidentiality_A_temporal:
      "\<lbrakk> Crypt (shrK A) \<lbrace>Number T, Agent B, Key K, X\<rbrace> \<in> parts (knows Spy evs);
          \<not> expiredK T evs;
@@ -654,7 +654,7 @@ lemma Confidentiality_A_temporal:
       \<rbrakk> \<Longrightarrow> Key K \<notin> analz (knows Spy evs)"
 by (blast dest!: Kab_authentic Confidentiality_S_temporal)
 
-text{*Confidentiality for Bob*}
+text\<open>Confidentiality for Bob\<close>
 lemma Confidentiality_B_temporal:
      "\<lbrakk> Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>
           \<in> parts (knows Spy evs);
@@ -664,9 +664,9 @@ lemma Confidentiality_B_temporal:
 by (blast dest!: ticket_authentic Confidentiality_S_temporal)
 
 
-text{*Temporal treatment of authentication*}
+text\<open>Temporal treatment of authentication\<close>
 
-text{*Authentication of A to B*}
+text\<open>Authentication of A to B\<close>
 lemma B_authenticates_A_temporal:
      "\<lbrakk> Crypt K \<lbrace>Agent A, Number Ta\<rbrace> \<in> parts (knows Spy evs);
          Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>
@@ -679,7 +679,7 @@ by (blast dest!: ticket_authentic
           intro!: lemma_A
           elim!: Confidentiality_S_temporal [THEN [2] rev_notE])
 
-text{*Authentication of B to A*}
+text\<open>Authentication of B to A\<close>
 lemma A_authenticates_B_temporal:
      "\<lbrakk> Crypt K (Number Ta) \<in> parts (knows Spy evs);
          Crypt (shrK A) \<lbrace>Number Tk, Agent B, Key K, X\<rbrace>
@@ -691,7 +691,7 @@ by (blast dest!: Kab_authentic
           intro!: lemma_B elim!: Confidentiality_S_temporal [THEN [2] rev_notE])
 
 
-subsection{*Combined guarantees of key distribution and non-injective agreement on the session keys*}
+subsection\<open>Combined guarantees of key distribution and non-injective agreement on the session keys\<close>
 
 lemma B_authenticates_and_keydist_to_A:
      "\<lbrakk> Gets B \<lbrace>Crypt (shrK B) \<lbrace>Number Tk, Agent A, Key K\<rbrace>,

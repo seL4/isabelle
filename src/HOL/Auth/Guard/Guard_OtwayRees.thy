@@ -3,11 +3,11 @@
     Copyright   2002  University of Cambridge
 *)
 
-section{*Otway-Rees Protocol*}
+section\<open>Otway-Rees Protocol\<close>
 
 theory Guard_OtwayRees imports Guard_Shared begin
 
-subsection{*messages used in the protocol*}
+subsection\<open>messages used in the protocol\<close>
 
 abbreviation
   nil :: "msg" where
@@ -54,7 +54,7 @@ abbreviation
   or4' :: "agent => agent => nat => key => event" where
   "or4' B' A NA K == Says B' A {|Nonce NA, Ciph A {|Nonce NA, Key K|}, nil|}"
 
-subsection{*definition of the protocol*}
+subsection\<open>definition of the protocol\<close>
 
 inductive_set or :: "event list set"
 where
@@ -74,13 +74,13 @@ where
 | OR4: "[| evs4:or; or2 A B NA NB X:set evs4; or3' S Y A B NA NB K:set evs4 |]
   ==> or4 A B NA X # evs4:or"
 
-subsection{*declarations for tactics*}
+subsection\<open>declarations for tactics\<close>
 
 declare knows_Spy_partsEs [elim]
 declare Fake_parts_insert [THEN subsetD, dest]
 declare initState.simps [simp del]
 
-subsection{*general properties of or*}
+subsection\<open>general properties of or\<close>
 
 lemma or_has_no_Gets: "evs:or ==> ALL A X. Gets A X ~:set evs"
 by (erule or.induct, auto)
@@ -98,7 +98,7 @@ by (erule or.induct, auto)
 lemma or_has_only_Says [iff]: "has_only_Says or"
 by (auto simp: has_only_Says_def dest: or_has_only_Says')
 
-subsection{*or is regular*}
+subsection\<open>or is regular\<close>
 
 lemma or1'_parts_spies [dest]: "or1' A' A B NA X:set evs
 ==> X:parts (spies evs)"
@@ -117,7 +117,7 @@ apply (simp only: regular_def, clarify)
 apply (erule or.induct, simp_all add: initState.simps knows.simps)
 by (auto dest: parts_sub)
 
-subsection{*guardedness of KAB*}
+subsection\<open>guardedness of KAB\<close>
 
 lemma Guard_KAB [rule_format]: "[| evs:or; A ~:bad; B ~:bad |] ==>
 or3 A B NA NB K:set evs --> GuardK K {shrK A,shrK B} (spies evs)" 
@@ -138,7 +138,7 @@ apply (drule_tac A=Server in Key_neq, simp+, rule No_Key, simp)
 (* OR4 *)
 by (blast dest: Says_imp_spies in_GuardK_kparts)
 
-subsection{*guardedness of NB*}
+subsection\<open>guardedness of NB\<close>
 
 lemma Guard_NB [rule_format]: "[| evs:or; B ~:bad |] ==>
 or2 A B NA NB X:set evs --> Guard NB {shrK B} (spies evs)" 

@@ -10,7 +10,7 @@ From page 260 of
   Proc. Royal Soc. 426 (1989)
 *)
 
-section{*Verifying the Needham-Schroeder Public-Key Protocol*}
+section\<open>Verifying the Needham-Schroeder Public-Key Protocol\<close>
 
 theory NS_Public_Bad imports Public begin
 
@@ -203,9 +203,9 @@ apply clarify
 apply (frule_tac A' = A in 
        Says_imp_knows_Spy [THEN parts.Inj, THEN unique_NB], auto)
 apply (rename_tac evs3 B' C)
-txt{*This is the attack!
+txt\<open>This is the attack!
 @{subgoals[display,indent=0,margin=65]}
-*}
+\<close>
 oops
 
 (*

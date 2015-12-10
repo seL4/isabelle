@@ -1,7 +1,7 @@
 (*  Author:     Giampaolo Bella, Catania University
 *)
 
-section{*Original Shoup-Rubin protocol*}
+section\<open>Original Shoup-Rubin protocol\<close>
 
 theory ShoupRubin imports Smartcard begin
 
@@ -732,7 +732,7 @@ declare pairK_disj_sesK [THEN not_sym, iff]
 
 
 ML
-{*
+\<open>
 structure ShoupRubin =
 struct
 
@@ -758,18 +758,18 @@ fun analz_prepare_tac ctxt =
          REPEAT_FIRST (eresolve_tac ctxt [asm_rl, conjE] ORELSE' hyp_subst_tac ctxt)
 
 end
-*}
+\<close>
 
-method_setup prepare = {*
-    Scan.succeed (SIMPLE_METHOD o ShoupRubin.prepare_tac) *}
+method_setup prepare = \<open>
+    Scan.succeed (SIMPLE_METHOD o ShoupRubin.prepare_tac)\<close>
   "to launch a few simple facts that will help the simplifier"
 
-method_setup parts_prepare = {*
-    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubin.parts_prepare_tac ctxt)) *}
+method_setup parts_prepare = \<open>
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubin.parts_prepare_tac ctxt))\<close>
   "additional facts to reason about parts"
 
-method_setup analz_prepare = {*
-    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubin.analz_prepare_tac ctxt)) *}
+method_setup analz_prepare = \<open>
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubin.analz_prepare_tac ctxt))\<close>
   "additional facts to reason about analz"
 
 
@@ -813,7 +813,7 @@ lemma analz_image_Key_Un_Nonce: "analz (Key`K \<union> Nonce`N) = Key`K \<union>
 apply auto
 done
 
-method_setup sc_analz_freshK = {*
+method_setup sc_analz_freshK = \<open>
     Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST
@@ -823,7 +823,7 @@ method_setup sc_analz_freshK = {*
           addsimps [@{thm knows_Spy_Inputs_secureM_sr_Spy},
                     @{thm knows_Spy_Outpts_secureM_sr_Spy},
                     @{thm shouprubin_assumes_securemeans}, 
-                    @{thm analz_image_Key_Un_Nonce}]))]))) *}
+                    @{thm analz_image_Key_Un_Nonce}]))])))\<close>
     "for proving the Session Key Compromise theorem for smartcard protocols"
 
 
@@ -1320,7 +1320,7 @@ apply (erule sr.induct)
 apply auto
 done
 
-text{*@{term step2_integrity} also is a reliability theorem*}
+text\<open>@{term step2_integrity} also is a reliability theorem\<close>
 lemma Says_Server_message_form: 
      "\<lbrakk> Says Server A \<lbrace>Pk, Certificate\<rbrace> \<in> set evs;  
          evs \<in> sr \<rbrakk>                   
@@ -1333,11 +1333,11 @@ apply (blast dest!: Outpts_Server_not_evs)+
 done
 (*cannot be made useful to A in form of a Gets event*)
 
-text{*
+text\<open>
   step4integrity is @{term Outpts_A_Card_form_4}
 
   step7integrity is @{term Outpts_B_Card_form_7}
-*}
+\<close>
 
 lemma step8_integrity: 
      "\<lbrakk> Says B A \<lbrace>Nonce Nb, Certificate\<rbrace> \<in> set evs;  
@@ -1351,10 +1351,10 @@ apply auto
 done
 
 
-text{*  step9integrity is @{term Inputs_A_Card_form_9}
+text\<open>step9integrity is @{term Inputs_A_Card_form_9}
 
         step10integrity is @{term Outpts_A_Card_form_10}.
-*}
+\<close>
 
 lemma step11_integrity: 
      "\<lbrakk> Says A B (Certificate) \<in> set evs; 

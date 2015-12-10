@@ -3,13 +3,13 @@
     Copyright   2001  University of Cambridge
 *)
 
-section {*Extensions to Standard Theories*}
+section \<open>Extensions to Standard Theories\<close>
 
 theory Extensions
 imports "../Event"
 begin
 
-subsection{*Extensions to Theory @{text Set}*}
+subsection\<open>Extensions to Theory \<open>Set\<close>\<close>
 
 lemma eq: "[| !!x. x:A ==> x:B; !!x. x:B ==> x:A |] ==> A=B"
 by auto
@@ -21,9 +21,9 @@ lemma in_sub: "x:A ==> {x}<=A"
 by auto
 
 
-subsection{*Extensions to Theory @{text List}*}
+subsection\<open>Extensions to Theory \<open>List\<close>\<close>
 
-subsubsection{*"remove l x" erase the first element of "l" equal to "x"*}
+subsubsection\<open>"remove l x" erase the first element of "l" equal to "x"\<close>
 
 primrec remove :: "'a list => 'a => 'a list" where
 "remove [] y = []" |
@@ -32,9 +32,9 @@ primrec remove :: "'a list => 'a => 'a list" where
 lemma set_remove: "set (remove l x) <= set l"
 by (induct l, auto)
 
-subsection{*Extensions to Theory @{text Message}*}
+subsection\<open>Extensions to Theory \<open>Message\<close>\<close>
 
-subsubsection{*declarations for tactics*}
+subsubsection\<open>declarations for tactics\<close>
 
 declare analz_subset_parts [THEN subsetD, dest]
 declare parts_insert2 [simp]
@@ -43,12 +43,12 @@ declare split_if_asm [split]
 declare analz_insertI [intro]
 declare Un_Diff [simp]
 
-subsubsection{*extract the agent number of an Agent message*}
+subsubsection\<open>extract the agent number of an Agent message\<close>
 
 primrec agt_nb :: "msg => agent" where
 "agt_nb (Agent A) = A"
 
-subsubsection{*messages that are pairs*}
+subsubsection\<open>messages that are pairs\<close>
 
 definition is_MPair :: "msg => bool" where
 "is_MPair X == EX Y Z. X = {|Y,Z|}"
@@ -90,7 +90,7 @@ definition has_no_pair :: "msg set => bool" where
 
 declare has_no_pair_def [simp]
 
-subsubsection{*well-foundedness of messages*}
+subsubsection\<open>well-foundedness of messages\<close>
 
 lemma wf_Crypt1 [iff]: "Crypt K X ~= X"
 by (induct X, auto)
@@ -104,7 +104,7 @@ by (erule parts.induct, auto)
 lemma wf_Crypt_parts [iff]: "Crypt K X ~:parts {X}"
 by (auto dest: parts_size)
 
-subsubsection{*lemmas on keysFor*}
+subsubsection\<open>lemmas on keysFor\<close>
 
 definition usekeys :: "msg set => key set" where
 "usekeys G == {K. EX Y. Crypt K Y:G}"
@@ -120,7 +120,7 @@ apply (subgoal_tac "{Ka. EX Xa. (Ka=K & Xa=X) | Crypt Ka Xa:F}
 by (subgoal_tac "{K. EX X. Crypt K X = x | Crypt K X:F} = usekeys F",
 auto simp: usekeys_def)
 
-subsubsection{*lemmas on parts*}
+subsubsection\<open>lemmas on parts\<close>
 
 lemma parts_sub: "[| X:parts G; G<=H |] ==> X:parts H"
 by (auto dest: parts_mono)
@@ -153,7 +153,7 @@ lemma parts_parts_Crypt: "[| Crypt K X:parts G; Nonce n:parts {X} |]
 ==> Nonce n:parts G"
 by (blast intro: parts.Body dest: parts_parts)
 
-subsubsection{*lemmas on synth*}
+subsubsection\<open>lemmas on synth\<close>
 
 lemma synth_sub: "[| X:synth G; G<=H |] ==> X:synth H"
 by (auto dest: synth_mono)
@@ -162,7 +162,7 @@ lemma Crypt_synth [rule_format]: "[| X:synth G; Key K ~:G |] ==>
 Crypt K Y:parts {X} --> Crypt K Y:parts G"
 by (erule synth.induct, auto dest: parts_sub)
 
-subsubsection{*lemmas on analz*}
+subsubsection\<open>lemmas on analz\<close>
 
 lemma analz_UnI1 [intro]: "X:analz G ==> X:analz (G Un H)"
   by (subgoal_tac "G <= G Un H") (blast dest: analz_mono)+
@@ -194,7 +194,7 @@ by (erule analz.induct, auto)
 lemma notin_analz_insert: "X ~:analz (insert Y G) ==> X ~:analz G"
 by auto
 
-subsubsection{*lemmas on parts, synth and analz*}
+subsubsection\<open>lemmas on parts, synth and analz\<close>
 
 lemma parts_invKey [rule_format,dest]:"X:parts {Y} ==>
 X:analz (insert (Crypt K Y) H) --> X ~:analz H --> Key (invKey K):analz H"
@@ -213,7 +213,7 @@ apply (frule parts_mono)
 apply auto
 done
 
-subsubsection{*greatest nonce used in a message*}
+subsubsection\<open>greatest nonce used in a message\<close>
 
 fun greatest_msg :: "msg => nat"
 where
@@ -225,7 +225,7 @@ where
 lemma greatest_msg_is_greatest: "Nonce n:parts {X} ==> n <= greatest_msg X"
 by (induct X, auto)
 
-subsubsection{*sets of keys*}
+subsubsection\<open>sets of keys\<close>
 
 definition keyset :: "msg set => bool" where
 "keyset G == ALL X. X:G --> (EX K. X = Key K)"
@@ -245,7 +245,7 @@ by auto
 lemma parts_keyset [simp]: "keyset G ==> parts G = G"
 by (auto, erule parts.induct, auto)
 
-subsubsection{*keys a priori necessary for decrypting the messages of G*}
+subsubsection\<open>keys a priori necessary for decrypting the messages of G\<close>
 
 definition keysfor :: "msg set => msg set" where
 "keysfor G == Key ` keysFor (parts G)"
@@ -265,7 +265,7 @@ by (auto dest: keysfor_Crypt)
 lemma finite_keysfor [intro]: "finite G ==> finite (keysfor G)"
 by (auto simp: keysfor_def intro: finite_UN_I)
 
-subsubsection{*only the keys necessary for G are useful in analz*}
+subsubsection\<open>only the keys necessary for G are useful in analz\<close>
 
 lemma analz_keyset: "keyset H ==>
 analz (G Un H) = H - keysfor G Un (analz (G Un (H Int keysfor G)))"
@@ -280,10 +280,10 @@ by (auto intro: analz_sub)
 lemmas analz_keyset_substD = analz_keyset [THEN sym, THEN ssubst]
 
 
-subsection{*Extensions to Theory @{text Event}*}
+subsection\<open>Extensions to Theory \<open>Event\<close>\<close>
 
 
-subsubsection{*general protocol properties*}
+subsubsection\<open>general protocol properties\<close>
 
 definition is_Says :: "event => bool" where
 "is_Says ev == (EX A B X. ev = Says A B X)"
@@ -330,7 +330,7 @@ lemma has_only_Says_imp_Gets_correct [simp]: "has_only_Says p
 ==> Gets_correct p"
 by (auto simp: has_only_Says_def Gets_correct_def)
 
-subsubsection{*lemma on knows*}
+subsubsection\<open>lemma on knows\<close>
 
 lemma Says_imp_spies2: "Says A B {|X,Y|}:set evs ==> Y:parts (spies evs)"
 by (drule Says_imp_spies, drule parts.Inj, drule parts.Snd, simp)
@@ -339,7 +339,7 @@ lemma Says_not_parts: "[| Says A B X:set evs; Y ~:parts (spies evs) |]
 ==> Y ~:parts {X}"
 by (auto dest: Says_imp_spies parts_parts)
 
-subsubsection{*knows without initState*}
+subsubsection\<open>knows without initState\<close>
 
 primrec knows' :: "agent => event list => msg set" where
   knows'_Nil: "knows' A [] = {}" |
@@ -361,7 +361,7 @@ abbreviation
   spies' :: "event list => msg set" where
   "spies' == knows' Spy"
 
-subsubsection{*decomposition of knows into knows' and initState*}
+subsubsection\<open>decomposition of knows into knows' and initState\<close>
 
 lemma knows_decomp: "knows A evs = knows' A evs Un (initState A)"
 by (induct evs, auto split: event.split simp: knows.simps)
@@ -394,12 +394,12 @@ lemma knows'_sub_spies': "[| evs:p; has_only_Says p; one_step p |]
 ==> knows' A evs <= spies' evs"
 by (induct evs, auto split: event.splits)
 
-subsubsection{*knows' is finite*}
+subsubsection\<open>knows' is finite\<close>
 
 lemma finite_knows' [iff]: "finite (knows' A evs)"
 by (induct evs, auto split: event.split simp: knows.simps)
 
-subsubsection{*monotonicity of knows*}
+subsubsection\<open>monotonicity of knows\<close>
 
 lemma knows_sub_Cons: "knows A evs <= knows A (ev#evs)"
 by(cases A, induct evs, auto simp: knows.simps split:event.split)
@@ -413,8 +413,8 @@ apply (simp add: knows_decomp)
 apply (rename_tac a b c)
 by (case_tac a, auto simp: knows.simps)
 
-subsubsection{*maximum knowledge an agent can have
-includes messages sent to the agent*}
+subsubsection\<open>maximum knowledge an agent can have
+includes messages sent to the agent\<close>
 
 primrec knows_max' :: "agent => event list => msg set" where
 knows_max'_def_Nil: "knows_max' A [] = {}" |
@@ -442,7 +442,7 @@ abbreviation
   spies_max :: "event list => msg set" where
   "spies_max evs == knows_max Spy evs"
 
-subsubsection{*basic facts about @{term knows_max}*}
+subsubsection\<open>basic facts about @{term knows_max}\<close>
 
 lemma spies_max_spies [iff]: "spies_max evs = spies evs"
 by (induct evs, auto simp: knows_max_def split: event.splits)
@@ -484,7 +484,7 @@ by (simp add: in_set_conv_decomp, clarify, simp add: knows_max'_app)
 lemma Says_from_knows_max': "Says A B X:set evs ==> X:knows_max' A evs"
 by (simp add: in_set_conv_decomp, clarify, simp add: knows_max'_app)
 
-subsubsection{*used without initState*}
+subsubsection\<open>used without initState\<close>
 
 primrec used' :: "event list => msg set" where
 "used' [] = {}" |
@@ -511,7 +511,7 @@ apply (case_tac a, simp_all)
 apply (blast dest: parts_trans)+ 
 done
 
-subsubsection{*monotonicity of used*}
+subsubsection\<open>monotonicity of used\<close>
 
 lemma used_sub_Cons: "used evs <= used (ev#evs)"
 by (induct evs, (induct ev, auto)+)
@@ -550,7 +550,7 @@ apply (drule_tac evs'=evs' in used_appIR)
 apply (drule_tac evs'=evs in used_appIL)
 by simp
 
-subsubsection{*lemmas on used and knows*}
+subsubsection\<open>lemmas on used and knows\<close>
 
 lemma initState_used: "X:parts (initState A) ==> X:used evs"
 by (induct evs, auto simp: used.simps split: event.split)
@@ -605,7 +605,7 @@ lemma not_used_not_known_max: "[| evs:p; X ~:used evs;
 Gets_correct p; one_step p |] ==> X ~:parts (knows_max A evs)"
 by (case_tac "A=Spy", auto dest: not_used_not_spied known_max_used)
 
-subsubsection{*a nonce or key in a message cannot equal a fresh nonce or key*}
+subsubsection\<open>a nonce or key in a message cannot equal a fresh nonce or key\<close>
 
 lemma Nonce_neq [dest]: "[| Nonce n' ~:used evs;
 Says A B X:set evs; Nonce n:parts {X} |] ==> n ~= n'"
@@ -615,7 +615,7 @@ lemma Key_neq [dest]: "[| Key n' ~:used evs;
 Says A B X:set evs; Key n:parts {X} |] ==> n ~= n'"
 by (drule not_used_not_spied, auto dest: Says_imp_knows_Spy parts_sub)
 
-subsubsection{*message of an event*}
+subsubsection\<open>message of an event\<close>
 
 primrec msg :: "event => msg"
 where

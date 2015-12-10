@@ -3,11 +3,11 @@
     Copyright   1996  University of Cambridge
 *)
 
-section{*The Yahalom Protocol, Variant 2*}
+section\<open>The Yahalom Protocol, Variant 2\<close>
 
 theory Yahalom2 imports Public begin
 
-text{*
+text\<open>
 This version trades encryption of NB for additional explicitness in YM3.
 Also in YM3, care is taken to make the two certificates distinct.
 
@@ -16,7 +16,7 @@ From page 259 of
   Proc. Royal Soc. 426
 
 This theory has the prototypical example of a secrecy relation, KeyCryptNonce.
-*}
+\<close>
 
 inductive_set yahalom :: "event list set"
   where
@@ -81,7 +81,7 @@ declare parts.Body  [dest]
 declare Fake_parts_insert_in_Un  [dest]
 declare analz_into_parts [dest]
 
-text{*A "possibility property": there are traces that reach the end*}
+text\<open>A "possibility property": there are traces that reach the end\<close>
 lemma "Key K \<notin> used []
        ==> \<exists>X NB. \<exists>evs \<in> yahalom.
              Says A B {|X, Crypt K (Nonce NB)|} \<in> set evs"
@@ -98,7 +98,7 @@ lemma Gets_imp_Says:
      "[| Gets B X \<in> set evs; evs \<in> yahalom |] ==> \<exists>A. Says A B X \<in> set evs"
 by (erule rev_mp, erule yahalom.induct, auto)
 
-text{*Must be proved separately for each protocol*}
+text\<open>Must be proved separately for each protocol\<close>
 lemma Gets_imp_knows_Spy:
      "[| Gets B X \<in> set evs; evs \<in> yahalom |]  ==> X \<in> knows Spy evs"
 by (blast dest!: Gets_imp_Says Says_imp_knows_Spy)
@@ -106,10 +106,10 @@ by (blast dest!: Gets_imp_Says Says_imp_knows_Spy)
 declare Gets_imp_knows_Spy [THEN analz.Inj, dest]
 
 
-subsection{*Inductive Proofs*}
+subsection\<open>Inductive Proofs\<close>
 
-text{*Result for reasoning about the encrypted portion of messages.
-Lets us treat YM4 using a similar argument as for the Fake case.*}
+text\<open>Result for reasoning about the encrypted portion of messages.
+Lets us treat YM4 using a similar argument as for the Fake case.\<close>
 lemma YM4_analz_knows_Spy:
      "[| Gets A {|NB, Crypt (shrK A) Y, X|} \<in> set evs;  evs \<in> yahalom |]
       ==> X \<in> analz (knows Spy evs)"
@@ -122,7 +122,7 @@ lemmas YM4_parts_knows_Spy =
 (** Theorems of the form X \<notin> parts (knows Spy evs) imply that NOBODY
     sends messages containing X! **)
 
-text{*Spy never sees a good agent's shared key!*}
+text\<open>Spy never sees a good agent's shared key!\<close>
 lemma Spy_see_shrK [simp]:
      "evs \<in> yahalom ==> (Key (shrK A) \<in> parts (knows Spy evs)) = (A \<in> bad)"
 by (erule yahalom.induct, force,
@@ -136,26 +136,26 @@ lemma Spy_see_shrK_D [dest!]:
      "[|Key (shrK A) \<in> parts (knows Spy evs);  evs \<in> yahalom|] ==> A \<in> bad"
 by (blast dest: Spy_see_shrK)
 
-text{*Nobody can have used non-existent keys!  
-    Needed to apply @{text analz_insert_Key}*}
+text\<open>Nobody can have used non-existent keys!  
+    Needed to apply \<open>analz_insert_Key\<close>\<close>
 lemma new_keys_not_used [simp]:
     "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> yahalom|]
      ==> K \<notin> keysFor (parts (spies evs))"
 apply (erule rev_mp)
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy, simp_all)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply (force dest!: keysFor_parts_insert)
-txt{*YM3*}
+txt\<open>YM3\<close>
 apply blast
-txt{*YM4*}
+txt\<open>YM4\<close>
 apply auto
 apply (blast dest!: Gets_imp_knows_Spy [THEN parts.Inj])
 done
 
 
-text{*Describes the form of K when the Server sends this message.  Useful for
-  Oops as well as main secrecy property.*}
+text\<open>Describes the form of K when the Server sends this message.  Useful for
+  Oops as well as main secrecy property.\<close>
 lemma Says_Server_message_form:
      "[| Says Server A {|nb', Crypt (shrK A) {|Agent B, Key K, na|}, X|}
           \<in> set evs;  evs \<in> yahalom |]
@@ -191,7 +191,7 @@ lemma analz_insert_freshK:
 by (simp only: analz_image_freshK analz_image_freshK_simps)
 
 
-text{*The Key K uniquely identifies the Server's  message*}
+text\<open>The Key K uniquely identifies the Server's  message\<close>
 lemma unique_session_keys:
      "[| Says Server A
           {|nb, Crypt (shrK A) {|Agent B, Key K, na|}, X|} \<in> set evs;
@@ -201,12 +201,12 @@ lemma unique_session_keys:
      ==> A=A' & B=B' & na=na' & nb=nb'"
 apply (erule rev_mp, erule rev_mp)
 apply (erule yahalom.induct, simp_all)
-txt{*YM3, by freshness*}
+txt\<open>YM3, by freshness\<close>
 apply blast
 done
 
 
-subsection{*Crucial Secrecy Property: Spy Does Not See Key @{term KAB}*}
+subsection\<open>Crucial Secrecy Property: Spy Does Not See Key @{term KAB}\<close>
 
 lemma secrecy_lemma:
      "[| A \<notin> bad;  B \<notin> bad;  evs \<in> yahalom |]
@@ -223,7 +223,7 @@ apply (blast dest: unique_session_keys)+  (*YM3, Oops*)
 done
 
 
-text{*Final version*}
+text\<open>Final version\<close>
 lemma Spy_not_see_encrypted_key:
      "[| Says Server A
             {|nb, Crypt (shrK A) {|Agent B, Key K, na|},
@@ -236,13 +236,13 @@ by (blast dest: secrecy_lemma Says_Server_message_form)
 
 
 
-text{*This form is an immediate consequence of the previous result.  It is
+text\<open>This form is an immediate consequence of the previous result.  It is
 similar to the assertions established by other methods.  It is equivalent
 to the previous result in that the Spy already has @{term analz} and
 @{term synth} at his disposal.  However, the conclusion
 @{term "Key K \<notin> knows Spy evs"} appears not to be inductive: all the cases
 other than Fake are trivial, while Fake requires
-@{term "Key K \<notin> analz (knows Spy evs)"}. *}
+@{term "Key K \<notin> analz (knows Spy evs)"}.\<close>
 lemma Spy_not_know_encrypted_key:
      "[| Says Server A
             {|nb, Crypt (shrK A) {|Agent B, Key K, na|},
@@ -254,10 +254,10 @@ lemma Spy_not_know_encrypted_key:
 by (blast dest: Spy_not_see_encrypted_key)
 
 
-subsection{*Security Guarantee for A upon receiving YM3*}
+subsection\<open>Security Guarantee for A upon receiving YM3\<close>
 
-text{*If the encrypted message appears then it originated with the Server.
-  May now apply @{text Spy_not_see_encrypted_key}, subject to its conditions.*}
+text\<open>If the encrypted message appears then it originated with the Server.
+  May now apply \<open>Spy_not_see_encrypted_key\<close>, subject to its conditions.\<close>
 lemma A_trusts_YM3:
      "[| Crypt (shrK A) {|Agent B, Key K, na|} \<in> parts (knows Spy evs);
          A \<notin> bad;  evs \<in> yahalom |]
@@ -268,12 +268,12 @@ lemma A_trusts_YM3:
 apply (erule rev_mp)
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy, simp_all)
-txt{*Fake, YM3*}
+txt\<open>Fake, YM3\<close>
 apply blast+
 done
 
-text{*The obvious combination of @{text A_trusts_YM3} with 
-@{text Spy_not_see_encrypted_key}*}
+text\<open>The obvious combination of \<open>A_trusts_YM3\<close> with 
+\<open>Spy_not_see_encrypted_key\<close>\<close>
 theorem A_gets_good_key:
      "[| Crypt (shrK A) {|Agent B, Key K, na|} \<in> parts (knows Spy evs);
          \<forall>nb. Notes Spy {|na, nb, Key K|} \<notin> set evs;
@@ -282,10 +282,10 @@ theorem A_gets_good_key:
 by (blast dest!: A_trusts_YM3 Spy_not_see_encrypted_key)
 
 
-subsection{*Security Guarantee for B upon receiving YM4*}
+subsection\<open>Security Guarantee for B upon receiving YM4\<close>
 
-text{*B knows, by the first part of A's message, that the Server distributed
-  the key for A and B, and has associated it with NB.*}
+text\<open>B knows, by the first part of A's message, that the Server distributed
+  the key for A and B, and has associated it with NB.\<close>
 lemma B_trusts_YM4_shrK:
      "[| Crypt (shrK B) {|Agent A, Agent B, Key K, Nonce NB|}
            \<in> parts (knows Spy evs);
@@ -298,16 +298,16 @@ lemma B_trusts_YM4_shrK:
 apply (erule rev_mp)
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy, simp_all)
-txt{*Fake, YM3*}
+txt\<open>Fake, YM3\<close>
 apply blast+
 done
 
 
-text{*With this protocol variant, we don't need the 2nd part of YM4 at all:
-  Nonce NB is available in the first part.*}
+text\<open>With this protocol variant, we don't need the 2nd part of YM4 at all:
+  Nonce NB is available in the first part.\<close>
 
-text{*What can B deduce from receipt of YM4?  Stronger and simpler than Yahalom
-  because we do not have to show that NB is secret. *}
+text\<open>What can B deduce from receipt of YM4?  Stronger and simpler than Yahalom
+  because we do not have to show that NB is secret.\<close>
 lemma B_trusts_YM4:
      "[| Gets B {|Crypt (shrK B) {|Agent A, Agent B, Key K, Nonce NB|},  X|}
            \<in> set evs;
@@ -320,8 +320,8 @@ lemma B_trusts_YM4:
 by (blast dest!: B_trusts_YM4_shrK)
 
 
-text{*The obvious combination of @{text B_trusts_YM4} with 
-@{text Spy_not_see_encrypted_key}*}
+text\<open>The obvious combination of \<open>B_trusts_YM4\<close> with 
+\<open>Spy_not_see_encrypted_key\<close>\<close>
 theorem B_gets_good_key:
      "[| Gets B {|Crypt (shrK B) {|Agent A, Agent B, Key K, Nonce NB|}, X|}
            \<in> set evs;
@@ -331,9 +331,9 @@ theorem B_gets_good_key:
 by (blast dest!: B_trusts_YM4 Spy_not_see_encrypted_key)
 
 
-subsection{*Authenticating B to A*}
+subsection\<open>Authenticating B to A\<close>
 
-text{*The encryption in message YM2 tells us it cannot be faked.*}
+text\<open>The encryption in message YM2 tells us it cannot be faked.\<close>
 lemma B_Said_YM2:
      "[| Crypt (shrK B) {|Agent A, Nonce NA|} \<in> parts (knows Spy evs);
          B \<notin> bad;  evs \<in> yahalom |]
@@ -343,12 +343,12 @@ lemma B_Said_YM2:
 apply (erule rev_mp)
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy, simp_all)
-txt{*Fake, YM2*}
+txt\<open>Fake, YM2\<close>
 apply blast+
 done
 
 
-text{*If the server sends YM3 then B sent YM2, perhaps with a different NB*}
+text\<open>If the server sends YM3 then B sent YM2, perhaps with a different NB\<close>
 lemma YM3_auth_B_to_A_lemma:
      "[| Says Server A {|nb, Crypt (shrK A) {|Agent B, Key K, Nonce NA|}, X|}
            \<in> set evs;
@@ -358,11 +358,11 @@ lemma YM3_auth_B_to_A_lemma:
                        \<in> set evs"
 apply (erule rev_mp)
 apply (erule yahalom.induct, simp_all)
-txt{*Fake, YM2, YM3*}
+txt\<open>Fake, YM2, YM3\<close>
 apply (blast dest!: B_Said_YM2)+
 done
 
-text{*If A receives YM3 then B has used nonce NA (and therefore is alive)*}
+text\<open>If A receives YM3 then B has used nonce NA (and therefore is alive)\<close>
 theorem YM3_auth_B_to_A:
      "[| Gets A {|nb, Crypt (shrK A) {|Agent B, Key K, Nonce NA|}, X|}
            \<in> set evs;
@@ -373,17 +373,17 @@ theorem YM3_auth_B_to_A:
 by (blast dest!: A_trusts_YM3 YM3_auth_B_to_A_lemma)
 
 
-subsection{*Authenticating A to B*}
+subsection\<open>Authenticating A to B\<close>
 
-text{*using the certificate @{term "Crypt K (Nonce NB)"}*}
+text\<open>using the certificate @{term "Crypt K (Nonce NB)"}\<close>
 
-text{*Assuming the session key is secure, if both certificates are present then
+text\<open>Assuming the session key is secure, if both certificates are present then
   A has said NB.  We can't be sure about the rest of A's message, but only
   NB matters for freshness.  Note that @{term "Key K \<notin> analz (knows Spy evs)"}
-  must be the FIRST antecedent of the induction formula.*}
+  must be the FIRST antecedent of the induction formula.\<close>
 
-text{*This lemma allows a use of @{text unique_session_keys} in the next proof,
-  which otherwise is extremely slow.*}
+text\<open>This lemma allows a use of \<open>unique_session_keys\<close> in the next proof,
+  which otherwise is extremely slow.\<close>
 lemma secure_unique_session_keys:
      "[| Crypt (shrK A) {|Agent B, Key K, na|} \<in> analz (spies evs);
          Crypt (shrK A') {|Agent B', Key K, na'|} \<in> analz (spies evs);
@@ -404,20 +404,20 @@ lemma Auth_A_to_B_lemma [rule_format]:
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy)
 apply (analz_mono_contra, simp_all)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply blast
-txt{*YM3: by @{text new_keys_not_used}, the message
-   @{term "Crypt K (Nonce NB)"} could not exist*}
+txt\<open>YM3: by \<open>new_keys_not_used\<close>, the message
+   @{term "Crypt K (Nonce NB)"} could not exist\<close>
 apply (force dest!: Crypt_imp_keysFor)
-txt{*YM4: was   @{term "Crypt K (Nonce NB)"} the very last message?  If so, 
-    apply unicity of session keys; if not, use the induction hypothesis*}
+txt\<open>YM4: was   @{term "Crypt K (Nonce NB)"} the very last message?  If so, 
+    apply unicity of session keys; if not, use the induction hypothesis\<close>
 apply (blast dest!: B_trusts_YM4_shrK dest: secure_unique_session_keys)
 done
 
 
-text{*If B receives YM4 then A has used nonce NB (and therefore is alive).
+text\<open>If B receives YM4 then A has used nonce NB (and therefore is alive).
   Moreover, A associates K with NB (thus is talking about the same run).
-  Other premises guarantee secrecy of K.*}
+  Other premises guarantee secrecy of K.\<close>
 theorem YM4_imp_A_Said_YM3 [rule_format]:
      "[| Gets B {|Crypt (shrK B) {|Agent A, Agent B, Key K, Nonce NB|},
                   Crypt K (Nonce NB)|} \<in> set evs;

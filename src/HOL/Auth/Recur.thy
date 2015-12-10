@@ -3,11 +3,11 @@
     Copyright   1996  University of Cambridge
 *)
 
-section{*The Otway-Bull Recursive Authentication Protocol*}
+section\<open>The Otway-Bull Recursive Authentication Protocol\<close>
 
 theory Recur imports Public begin
 
-text{*End marker for message bundles*}
+text\<open>End marker for message bundles\<close>
 abbreviation
   END :: "msg" where
   "END == Number 0"
@@ -117,7 +117,7 @@ declare Fake_parts_insert_in_Un  [dest]
 **)
 
 
-text{*Simplest case: Alice goes directly to the server*}
+text\<open>Simplest case: Alice goes directly to the server\<close>
 lemma "Key K \<notin> used [] 
        ==> \<exists>NA. \<exists>evs \<in> recur.
               Says Server A {|Crypt (shrK A) {|Key K, Agent Server, Nonce NA|},
@@ -129,7 +129,7 @@ apply (possibility, simp add: used_Cons)
 done
 
 
-text{*Case two: Alice, Bob and the server*}
+text\<open>Case two: Alice, Bob and the server\<close>
 lemma "[| Key K \<notin> used []; Key K' \<notin> used []; K \<noteq> K';
           Nonce NA \<notin> used []; Nonce NB \<notin> used []; NA < NB |]
        ==> \<exists>NA. \<exists>evs \<in> recur.
@@ -176,7 +176,7 @@ apply (erule rev_mp, erule respond.induct)
 apply (auto dest: Key_not_used respond_imp_not_used)
 done
 
-text{*Simple inductive reasoning about responses*}
+text\<open>Simple inductive reasoning about responses\<close>
 lemma respond_imp_responses:
      "(PA,RB,KAB) \<in> respond evs ==> RB \<in> responses evs"
 apply (erule respond.induct)
@@ -210,7 +210,7 @@ lemmas RA4_parts_spies =  RA4_analz_spies [THEN analz_into_parts]
 lemma Spy_see_shrK [simp]:
      "evs \<in> recur ==> (Key (shrK A) \<in> parts (spies evs)) = (A \<in> bad)"
 apply (erule recur.induct, auto)
-txt{*RA3.  It's ugly to call auto twice, but it seems necessary.*}
+txt\<open>RA3.  It's ugly to call auto twice, but it seems necessary.\<close>
 apply (auto dest: Key_in_parts_respond simp add: parts_insert_spies)
 done
 
@@ -244,7 +244,7 @@ apply (simp_all del: image_insert
 done 
 
 
-text{*Version for the protocol.  Proof is easy, thanks to the lemma.*}
+text\<open>Version for the protocol.  Proof is easy, thanks to the lemma.\<close>
 lemma raw_analz_image_freshK:
  "evs \<in> recur ==>
    \<forall>K KK. KK \<subseteq> - (range shrK) -->
@@ -254,7 +254,7 @@ apply (erule recur.induct)
 apply (drule_tac [4] RA2_analz_spies,
        drule_tac [5] respond_imp_responses,
        drule_tac [6] RA4_analz_spies, analz_freshK, spy_analz)
-txt{*RA3*}
+txt\<open>RA3\<close>
 apply (simp_all add: resp_analz_image_freshK_lemma)
 done
 
@@ -276,7 +276,7 @@ by (simp del: image_insert
          add: analz_image_freshK_simps raw_analz_image_freshK)
 
 
-text{*Everything that's hashed is already in past traffic. *}
+text\<open>Everything that's hashed is already in past traffic.\<close>
 lemma Hash_imp_body:
      "[| Hash {|Key(shrK A), X|} \<in> parts (spies evs);
          evs \<in> recur;  A \<notin> bad |] ==> X \<in> parts (spies evs)"
@@ -285,9 +285,9 @@ apply (erule recur.induct,
        drule_tac [6] RA4_parts_spies,
        drule_tac [5] respond_imp_responses,
        drule_tac [4] RA2_parts_spies)
-txt{*RA3 requires a further induction*}
+txt\<open>RA3 requires a further induction\<close>
 apply (erule_tac [5] responses.induct, simp_all)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply (blast intro: parts_insertI)
 done
 
@@ -307,10 +307,10 @@ apply (erule rev_mp, erule rev_mp)
 apply (erule recur.induct,
        drule_tac [5] respond_imp_responses)
 apply (force, simp_all)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply blast
 apply (erule_tac [3] responses.induct)
-txt{*RA1,2: creation of new Nonce*}
+txt\<open>RA1,2: creation of new Nonce\<close>
 apply simp_all
 apply (blast dest!: Hash_imp_body)+
 done
@@ -339,14 +339,14 @@ lemma resp_analz_insert_lemma:
 apply (erule rev_mp, erule responses.induct)
 apply (simp_all del: image_insert
              add: analz_image_freshK_simps resp_analz_image_freshK_lemma)
-txt{*Simplification using two distinct treatments of "image"*}
+txt\<open>Simplification using two distinct treatments of "image"\<close>
 apply (simp add: parts_insert2, blast)
 done
 
 lemmas resp_analz_insert =
        resp_analz_insert_lemma [OF _ raw_analz_image_freshK]
 
-text{*The last key returned by respond indeed appears in a certificate*}
+text\<open>The last key returned by respond indeed appears in a certificate\<close>
 lemma respond_certificate:
      "(Hash[Key(shrK A)] {|Agent A, B, NA, P|}, RA, K) \<in> respond evs
       ==> Crypt (shrK A) {|Key K, B, NA|} \<in> parts {RA}"
@@ -392,12 +392,12 @@ apply (frule_tac [2] respond_imp_not_used)
 apply (simp_all del: image_insert
                 add: analz_image_freshK_simps split_ifs shrK_in_analz_respond
                      resp_analz_image_freshK parts_insert2)
-txt{*Base case of respond*}
+txt\<open>Base case of respond\<close>
 apply blast
-txt{*Inductive step of respond*}
+txt\<open>Inductive step of respond\<close>
 apply (intro allI conjI impI, simp_all)
-txt{*by unicity, either @{term "B=Aa"} or @{term "B=A'"}, a contradiction
-     if @{term "B \<in> bad"}*}   
+txt\<open>by unicity, either @{term "B=Aa"} or @{term "B=A'"}, a contradiction
+     if @{term "B \<in> bad"}\<close>   
 apply (blast dest: unique_session_keys respond_certificate)
 apply (blast dest!: respond_certificate)
 apply (blast dest!: resp_analz_insert)
@@ -414,21 +414,21 @@ apply (drule_tac [4] RA2_analz_spies,
        frule_tac [5] respond_imp_responses,
        drule_tac [6] RA4_analz_spies,
        simp_all add: split_ifs analz_insert_eq analz_insert_freshK)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply spy_analz
-txt{*RA2*}
+txt\<open>RA2\<close>
 apply blast 
-txt{*RA3*}
+txt\<open>RA3\<close>
 apply (simp add: parts_insert_spies)
 apply (metis Key_in_parts_respond parts.Body parts.Fst resp_analz_insert 
              respond_Spy_not_see_session_key usedI)
-txt{*RA4*}
+txt\<open>RA4\<close>
 apply blast 
 done
 
 (**** Authenticity properties for Agents ****)
 
-text{*The response never contains Hashes*}
+text\<open>The response never contains Hashes\<close>
 lemma Hash_in_parts_respond:
      "[| Hash {|Key (shrK B), M|} \<in> parts (insert RB H);
          (PB,RB,K) \<in> respond evs |]
@@ -437,10 +437,10 @@ apply (erule rev_mp)
 apply (erule respond_imp_responses [THEN responses.induct], auto)
 done
 
-text{*Only RA1 or RA2 can have caused such a part of a message to appear.
+text\<open>Only RA1 or RA2 can have caused such a part of a message to appear.
   This result is of no use to B, who cannot verify the Hash.  Moreover,
   it can say nothing about how recent A's message is.  It might later be
-  used to prove B's presence to A at the run's conclusion.*}
+  used to prove B's presence to A at the run's conclusion.\<close>
 lemma Hash_auth_sender [rule_format]:
      "[| Hash {|Key(shrK A), Agent A, Agent B, NA, P|} \<in> parts(spies evs);
          A \<notin> bad;  evs \<in> recur |]
@@ -451,7 +451,7 @@ apply (erule recur.induct,
        drule_tac [6] RA4_parts_spies,
        drule_tac [4] RA2_parts_spies,
        simp_all)
-txt{*Fake, RA3*}
+txt\<open>Fake, RA3\<close>
 apply (blast dest: Hash_in_parts_respond)+
 done
 
@@ -460,23 +460,23 @@ done
 **)
 
 
-text{*Certificates can only originate with the Server.*}
+text\<open>Certificates can only originate with the Server.\<close>
 lemma Cert_imp_Server_msg:
      "[| Crypt (shrK A) Y \<in> parts (spies evs);
          A \<notin> bad;  evs \<in> recur |]
       ==> \<exists>C RC. Says Server C RC \<in> set evs  &
                    Crypt (shrK A) Y \<in> parts {RC}"
 apply (erule rev_mp, erule recur.induct, simp_all)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply blast
-txt{*RA1*}
+txt\<open>RA1\<close>
 apply blast
-txt{*RA2: it cannot be a new Nonce, contradiction.*}
+txt\<open>RA2: it cannot be a new Nonce, contradiction.\<close>
 apply blast
-txt{*RA3.  Pity that the proof is so brittle: this step requires the rewriting,
-       which however would break all other steps.*}
+txt\<open>RA3.  Pity that the proof is so brittle: this step requires the rewriting,
+       which however would break all other steps.\<close>
 apply (simp add: parts_insert_spies, blast)
-txt{*RA4*}
+txt\<open>RA4\<close>
 apply blast
 done
 

@@ -3,15 +3,15 @@
     Copyright   1996  University of Cambridge
 *)
 
-section{*Needham-Schroeder Shared-Key Protocol and the Issues Property*}
+section\<open>Needham-Schroeder Shared-Key Protocol and the Issues Property\<close>
 
 theory NS_Shared imports Public begin
 
-text{*
+text\<open>
 From page 247 of
   Burrows, Abadi and Needham (1989).  A Logic of Authentication.
   Proc. Royal Soc. 426
-*}
+\<close>
 
 definition
  (* A is the true creator of X if she has sent X and X never appeared on
@@ -88,7 +88,7 @@ declare Fake_parts_insert_in_Un  [dest]
 declare analz_into_parts [dest]
 
 
-text{*A "possibility property": there are traces that reach the end*}
+text\<open>A "possibility property": there are traces that reach the end\<close>
 lemma "[| A \<noteq> Server; Key K \<notin> used []; K \<in> symKeys |]
        ==> \<exists>N. \<exists>evs \<in> ns_shared.
                     Says A B (Crypt K \<lbrace>Nonce N, Nonce N\<rbrace>) \<in> set evs"
@@ -105,25 +105,25 @@ lemma "A \<noteq> Server \<Longrightarrow> \<exists>evs \<in> ns_shared.
 *)
 
 
-subsection{*Inductive proofs about @{term ns_shared}*}
+subsection\<open>Inductive proofs about @{term ns_shared}\<close>
 
-subsubsection{*Forwarding lemmas, to aid simplification*}
+subsubsection\<open>Forwarding lemmas, to aid simplification\<close>
 
-text{*For reasoning about the encrypted portion of message NS3*}
+text\<open>For reasoning about the encrypted portion of message NS3\<close>
 lemma NS3_msg_in_parts_spies:
      "Says S A (Crypt KA \<lbrace>N, B, K, X\<rbrace>) \<in> set evs \<Longrightarrow> X \<in> parts (spies evs)"
 by blast
 
-text{*For reasoning about the Oops message*}
+text\<open>For reasoning about the Oops message\<close>
 lemma Oops_parts_spies:
      "Says Server A (Crypt (shrK A) \<lbrace>NA, B, K, X\<rbrace>) \<in> set evs
             \<Longrightarrow> K \<in> parts (spies evs)"
 by blast
 
-text{*Theorems of the form @{term "X \<notin> parts (spies evs)"} imply that NOBODY
-    sends messages containing @{term X}*}
+text\<open>Theorems of the form @{term "X \<notin> parts (spies evs)"} imply that NOBODY
+    sends messages containing @{term X}\<close>
 
-text{*Spy never sees another agent's shared key! (unless it's bad at start)*}
+text\<open>Spy never sees another agent's shared key! (unless it's bad at start)\<close>
 lemma Spy_see_shrK [simp]:
      "evs \<in> ns_shared \<Longrightarrow> (Key (shrK A) \<in> parts (spies evs)) = (A \<in> bad)"
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, simp_all, blast+)
@@ -134,20 +134,20 @@ lemma Spy_analz_shrK [simp]:
 by auto
 
 
-text{*Nobody can have used non-existent keys!*}
+text\<open>Nobody can have used non-existent keys!\<close>
 lemma new_keys_not_used [simp]:
     "[|Key K \<notin> used evs; K \<in> symKeys; evs \<in> ns_shared|]
      ==> K \<notin> keysFor (parts (spies evs))"
 apply (erule rev_mp)
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, simp_all)
-txt{*Fake, NS2, NS4, NS5*}
+txt\<open>Fake, NS2, NS4, NS5\<close>
 apply (force dest!: keysFor_parts_insert, blast+)
 done
 
 
-subsubsection{*Lemmas concerning the form of items passed in messages*}
+subsubsection\<open>Lemmas concerning the form of items passed in messages\<close>
 
-text{*Describes the form of K, X and K' when the Server sends this message.*}
+text\<open>Describes the form of K, X and K' when the Server sends this message.\<close>
 lemma Says_Server_message_form:
      "\<lbrakk>Says Server A (Crypt K' \<lbrace>N, Agent B, Key K, X\<rbrace>) \<in> set evs;
        evs \<in> ns_shared\<rbrakk>
@@ -157,7 +157,7 @@ lemma Says_Server_message_form:
 by (erule rev_mp, erule ns_shared.induct, auto)
 
 
-text{*If the encrypted message appears then it originated with the Server*}
+text\<open>If the encrypted message appears then it originated with the Server\<close>
 lemma A_trusts_NS2:
      "\<lbrakk>Crypt (shrK A) \<lbrace>NA, Agent B, Key K, X\<rbrace> \<in> parts (spies evs);
        A \<notin> bad;  evs \<in> ns_shared\<rbrakk>
@@ -172,9 +172,9 @@ lemma cert_A_form:
       \<Longrightarrow> K \<notin> range shrK \<and>  X = (Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>)"
 by (blast dest!: A_trusts_NS2 Says_Server_message_form)
 
-text{*EITHER describes the form of X when the following message is sent,
+text\<open>EITHER describes the form of X when the following message is sent,
   OR     reduces it to the Fake case.
-  Use @{text Says_Server_message_form} if applicable.*}
+  Use \<open>Says_Server_message_form\<close> if applicable.\<close>
 lemma Says_S_message_form:
      "\<lbrakk>Says S A (Crypt (shrK A) \<lbrace>Nonce NA, Agent B, Key K, X\<rbrace>) \<in> set evs;
        evs \<in> ns_shared\<rbrakk>
@@ -204,23 +204,23 @@ by (blast dest!: A_trusts_NS2 Says_Server_message_form)
  A more general formula must be proved inductively.
 ****)
 
-text{*NOT useful in this form, but it says that session keys are not used
+text\<open>NOT useful in this form, but it says that session keys are not used
   to encrypt messages containing other keys, in the actual protocol.
-  We require that agents should behave like this subsequently also.*}
+  We require that agents should behave like this subsequently also.\<close>
 lemma  "\<lbrakk>evs \<in> ns_shared;  Kab \<notin> range shrK\<rbrakk> \<Longrightarrow>
          (Crypt KAB X) \<in> parts (spies evs) \<and>
          Key K \<in> parts {X} \<longrightarrow> Key K \<in> parts (spies evs)"
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, simp_all)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply (blast dest: parts_insert_subset_Un)
-txt{*Base, NS4 and NS5*}
+txt\<open>Base, NS4 and NS5\<close>
 apply auto
 done
 
 
-subsubsection{*Session keys are not used to encrypt other session keys*}
+subsubsection\<open>Session keys are not used to encrypt other session keys\<close>
 
-text{*The equality makes the induction hypothesis easier to apply*}
+text\<open>The equality makes the induction hypothesis easier to apply\<close>
 
 lemma analz_image_freshK [rule_format]:
  "evs \<in> ns_shared \<Longrightarrow>
@@ -230,7 +230,7 @@ lemma analz_image_freshK [rule_format]:
 apply (erule ns_shared.induct)
 apply (drule_tac [8] Says_Server_message_form)
 apply (erule_tac [5] Says_S_message_form [THEN disjE], analz_freshK, spy_analz)
-txt{*NS2, NS3*}
+txt\<open>NS2, NS3\<close>
 apply blast+ 
 done
 
@@ -242,9 +242,9 @@ lemma analz_insert_freshK:
 by (simp only: analz_image_freshK analz_image_freshK_simps)
 
 
-subsubsection{*The session key K uniquely identifies the message*}
+subsubsection\<open>The session key K uniquely identifies the message\<close>
 
-text{*In messages of this form, the session key uniquely identifies the rest*}
+text\<open>In messages of this form, the session key uniquely identifies the rest\<close>
 lemma unique_session_keys:
      "\<lbrakk>Says Server A (Crypt (shrK A) \<lbrace>NA, Agent B, Key K, X\<rbrace>) \<in> set evs;
        Says Server A' (Crypt (shrK A') \<lbrace>NA', Agent B', Key K, X'\<rbrace>) \<in> set evs;
@@ -252,9 +252,9 @@ lemma unique_session_keys:
 by (erule rev_mp, erule rev_mp, erule ns_shared.induct, simp_all, blast+)
 
 
-subsubsection{*Crucial secrecy property: Spy doesn't see the keys sent in NS2*}
+subsubsection\<open>Crucial secrecy property: Spy doesn't see the keys sent in NS2\<close>
 
-text{*Beware of @{text "[rule_format]"} and the universal quantifier!*}
+text\<open>Beware of \<open>[rule_format]\<close> and the universal quantifier!\<close>
 lemma secrecy_lemma:
      "\<lbrakk>Says Server A (Crypt (shrK A) \<lbrace>NA, Agent B, Key K,
                                       Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>\<rbrace>)
@@ -268,18 +268,18 @@ apply (frule_tac [7] Says_Server_message_form)
 apply (frule_tac [4] Says_S_message_form)
 apply (erule_tac [5] disjE)
 apply (simp_all add: analz_insert_eq analz_insert_freshK pushes split_ifs, spy_analz)
-txt{*NS2*}
+txt\<open>NS2\<close>
 apply blast
-txt{*NS3*}
+txt\<open>NS3\<close>
 apply (blast dest!: Crypt_Spy_analz_bad A_trusts_NS2
              dest:  Says_imp_knows_Spy analz.Inj unique_session_keys)
-txt{*Oops*}
+txt\<open>Oops\<close>
 apply (blast dest: unique_session_keys)
 done
 
 
 
-text{*Final version: Server's message in the most abstract form*}
+text\<open>Final version: Server's message in the most abstract form\<close>
 lemma Spy_not_see_encrypted_key:
      "\<lbrakk>Says Server A (Crypt K' \<lbrace>NA, Agent B, Key K, X\<rbrace>) \<in> set evs;
        \<forall>NB. Notes Spy \<lbrace>NA, NB, Key K\<rbrace> \<notin> set evs;
@@ -288,9 +288,9 @@ lemma Spy_not_see_encrypted_key:
 by (blast dest: Says_Server_message_form secrecy_lemma)
 
 
-subsection{*Guarantees available at various stages of protocol*}
+subsection\<open>Guarantees available at various stages of protocol\<close>
 
-text{*If the encrypted message appears then it originated with the Server*}
+text\<open>If the encrypted message appears then it originated with the Server\<close>
 lemma B_trusts_NS3:
      "\<lbrakk>Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace> \<in> parts (spies evs);
        B \<notin> bad;  evs \<in> ns_shared\<rbrakk>
@@ -311,14 +311,14 @@ lemma A_trusts_NS4_lemma [rule_format]:
       Says B A (Crypt K (Nonce NB)) \<in> set evs"
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
 apply (analz_mono_contra, simp_all, blast)
-txt{*NS2: contradiction from the assumptions @{term "Key K \<notin> used evs2"} and
-    @{term "Crypt K (Nonce NB) \<in> parts (spies evs2)"} *} 
+txt\<open>NS2: contradiction from the assumptions @{term "Key K \<notin> used evs2"} and
+    @{term "Crypt K (Nonce NB) \<in> parts (spies evs2)"}\<close> 
 apply (force dest!: Crypt_imp_keysFor)
-txt{*NS4*}
+txt\<open>NS4\<close>
 apply (metis B_trusts_NS3 Crypt_Spy_analz_bad Says_imp_analz_Spy Says_imp_parts_knows_Spy analz.Fst unique_session_keys)
 done
 
-text{*This version no longer assumes that K is secure*}
+text\<open>This version no longer assumes that K is secure\<close>
 lemma A_trusts_NS4:
      "\<lbrakk>Crypt K (Nonce NB) \<in> parts (spies evs);
        Crypt (shrK A) \<lbrace>NA, Agent B, Key K, X\<rbrace> \<in> parts (spies evs);
@@ -328,9 +328,9 @@ lemma A_trusts_NS4:
 by (blast intro: A_trusts_NS4_lemma
           dest: A_trusts_NS2 Spy_not_see_encrypted_key)
 
-text{*If the session key has been used in NS4 then somebody has forwarded
+text\<open>If the session key has been used in NS4 then somebody has forwarded
   component X in some instance of NS4.  Perhaps an interesting property,
-  but not needed (after all) for the proofs below.*}
+  but not needed (after all) for the proofs below.\<close>
 theorem NS4_implies_NS3 [rule_format]:
   "evs \<in> ns_shared \<Longrightarrow>
      Key K \<notin> analz (spies evs) \<longrightarrow>
@@ -341,9 +341,9 @@ apply (erule ns_shared.induct, force)
 apply (drule_tac [4] NS3_msg_in_parts_spies)
 apply analz_mono_contra
 apply (simp_all add: ex_disj_distrib, blast)
-txt{*NS2*}
+txt\<open>NS2\<close>
 apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)
-txt{*NS4*}
+txt\<open>NS4\<close>
 apply (metis B_trusts_NS3 Crypt_Spy_analz_bad Says_imp_analz_Spy Says_imp_parts_knows_Spy analz.Fst unique_session_keys)
 done
 
@@ -359,16 +359,16 @@ lemma B_trusts_NS5_lemma [rule_format]:
 apply (erule ns_shared.induct, force)
 apply (drule_tac [4] NS3_msg_in_parts_spies)
 apply (analz_mono_contra, simp_all, blast)
-txt{*NS2*}
+txt\<open>NS2\<close>
 apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)
-txt{*NS5*}
+txt\<open>NS5\<close>
 apply (blast dest!: A_trusts_NS2
              dest: Says_imp_knows_Spy [THEN analz.Inj]
                    unique_session_keys Crypt_Spy_analz_bad)
 done
 
 
-text{*Very strong Oops condition reveals protocol's weakness*}
+text\<open>Very strong Oops condition reveals protocol's weakness\<close>
 lemma B_trusts_NS5:
      "\<lbrakk>Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace> \<in> parts (spies evs);
        Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace> \<in> parts (spies evs);
@@ -378,9 +378,9 @@ lemma B_trusts_NS5:
 by (blast intro: B_trusts_NS5_lemma
           dest: B_trusts_NS3 Spy_not_see_encrypted_key)
 
-text{*Unaltered so far wrt original version*}
+text\<open>Unaltered so far wrt original version\<close>
 
-subsection{*Lemmas for reasoning about predicate "Issues"*}
+subsection\<open>Lemmas for reasoning about predicate "Issues"\<close>
 
 lemma spies_Says_rev: "spies (evs @ [Says A B X]) = insert X (spies evs)"
 apply (induct_tac "evs")
@@ -414,15 +414,15 @@ lemma spies_takeWhile: "spies (takeWhile P evs) <=  spies evs"
 apply (induct_tac "evs")
 apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
-txt{* Resembles @{text"used_subset_append"} in theory Event.*}
+txt\<open>Resembles \<open>used_subset_append\<close> in theory Event.\<close>
 done
 
 lemmas parts_spies_takeWhile_mono = spies_takeWhile [THEN parts_mono]
 
 
-subsection{*Guarantees of non-injective agreement on the session key, and
+subsection\<open>Guarantees of non-injective agreement on the session key, and
 of key distribution. They also express forms of freshness of certain messages,
-namely that agents were alive after something happened.*}
+namely that agents were alive after something happened.\<close>
 
 lemma B_Issues_A:
      "\<lbrakk> Says B A (Crypt K (Nonce Nb)) \<in> set evs;
@@ -437,24 +437,24 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule ns_shared.induct, analz_mono_contra)
 apply (simp_all)
-txt{*fake*}
+txt\<open>fake\<close>
 apply blast
 apply (simp_all add: takeWhile_tail)
-txt{*NS3 remains by pure coincidence!*}
+txt\<open>NS3 remains by pure coincidence!\<close>
 apply (force dest!: A_trusts_NS2 Says_Server_message_form)
-txt{*NS4 would be the non-trivial case can be solved by Nb being used*}
+txt\<open>NS4 would be the non-trivial case can be solved by Nb being used\<close>
 apply (blast dest: parts_spies_takeWhile_mono [THEN subsetD]
                    parts_spies_evs_revD2 [THEN subsetD])
 done
 
-text{*Tells A that B was alive after she sent him the session key.  The
+text\<open>Tells A that B was alive after she sent him the session key.  The
 session key must be assumed confidential for this deduction to be meaningful,
 but that assumption can be relaxed by the appropriate argument.
 
 Precisely, the theorem guarantees (to A) key distribution of the session key
 to B. It also guarantees (to A) non-injective agreement of B with A on the
 session key. Both goals are available to A in the sense of Goal Availability.
-*}
+\<close>
 lemma A_authenticates_and_keydist_to_B:
      "\<lbrakk>Crypt K (Nonce NB) \<in> parts (spies evs);
        Crypt (shrK A) \<lbrace>NA, Agent B, Key K, X\<rbrace> \<in> parts (spies evs);
@@ -474,13 +474,13 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule ns_shared.induct, analz_mono_contra)
 apply (simp_all)
-txt{*Fake*}
+txt\<open>Fake\<close>
 apply blast
-txt{*NS2*}
+txt\<open>NS2\<close>
 apply (force dest!: Crypt_imp_keysFor)
-txt{*NS3*}
+txt\<open>NS3\<close>
 apply (metis NS3_msg_in_parts_spies parts_cut_eq)
-txt{*NS5, the most important case, can be solved by unicity*}
+txt\<open>NS5, the most important case, can be solved by unicity\<close>
 apply (metis A_trusts_NS2 Crypt_Spy_analz_bad Says_imp_analz_Spy Says_imp_parts_knows_Spy analz.Fst analz.Snd unique_session_keys)
 done
 
@@ -497,20 +497,20 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule ns_shared.induct, analz_mono_contra)
 apply (simp_all)
-txt{*fake*}
+txt\<open>fake\<close>
 apply blast
 apply (simp_all add: takeWhile_tail)
-txt{*NS3 remains by pure coincidence!*}
+txt\<open>NS3 remains by pure coincidence!\<close>
 apply (force dest!: A_trusts_NS2 Says_Server_message_form)
-txt{*NS5 is the non-trivial case and cannot be solved as in @{term B_Issues_A}! because NB is not fresh. We need @{term A_trusts_NS5}, proved for this very purpose*}
+txt\<open>NS5 is the non-trivial case and cannot be solved as in @{term B_Issues_A}! because NB is not fresh. We need @{term A_trusts_NS5}, proved for this very purpose\<close>
 apply (blast dest: A_trusts_NS5 parts_spies_takeWhile_mono [THEN subsetD]
         parts_spies_evs_revD2 [THEN subsetD])
 done
 
-text{*Tells B that A was alive after B issued NB.
+text\<open>Tells B that A was alive after B issued NB.
 
 Precisely, the theorem guarantees (to B) key distribution of the session key to A. It also guarantees (to B) non-injective agreement of A with B on the session key. Both goals are available to B in the sense of Goal Availability.
-*}
+\<close>
 lemma B_authenticates_and_keydist_to_A:
      "\<lbrakk>Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace> \<in> parts (spies evs);
        Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace> \<in> parts (spies evs);
