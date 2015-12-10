@@ -35,5 +35,7 @@
   <splash>
     <file>{SPLASH}</file>
     <waitForWindow>true</waitForWindow>
+    <timeout>120</timeout>
+    <timeoutErr>false</timeoutErr>
   </splash>
 </launch4jConfig>
