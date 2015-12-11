@@ -776,7 +776,7 @@ fun real_match using ctxt fixes m text pats goal =
                 val goal' =
                   DROP_CASES (Method_Closure.method_evaluate text ctxt' using) focused_goal
                   |> Seq.maps (DETERM (do_retrofit ctxt'))
-                  |> Seq.map (fn goal => ([]: cases, goal));
+                  |> Seq.map (fn goal => ([]: Rule_Cases.cases, goal));
               in goal' end;
           in
             Seq.map apply_text texts

@@ -7,7 +7,7 @@ structure NominalInduct:
 sig
   val nominal_induct_tac: Proof.context -> bool -> (binding option * (term * bool)) option list list ->
     (string * typ) list -> (string * typ) list list -> thm list ->
-    thm list -> int -> Rule_Cases.cases_tactic
+    thm list -> int -> cases_tactic
   val nominal_induct_method: (Proof.context -> Proof.method) context_parser
 end =
 struct

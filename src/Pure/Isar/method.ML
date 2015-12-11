@@ -4,8 +4,21 @@
 Isar proof methods.
 *)
 
+infix 1 THEN_ALL_NEW_CASES;
+
+signature BASIC_METHOD =
+sig
+  type cases_state = Rule_Cases.cases * thm
+  type cases_tactic = thm -> cases_state Seq.seq
+  val CASES: Rule_Cases.cases -> tactic -> cases_tactic
+  val EMPTY_CASES: tactic -> cases_tactic
+  val SUBGOAL_CASES: (term * int -> cases_tactic) -> int -> cases_tactic
+  val THEN_ALL_NEW_CASES: (int -> cases_tactic) * (int -> tactic) -> int -> cases_tactic
+end;
+
 signature METHOD =
 sig
+  include BASIC_METHOD
   type method = thm list -> cases_tactic
   val METHOD_CASES: (thm list -> cases_tactic) -> method
   val METHOD: (thm list -> tactic) -> method
@@ -92,7 +105,25 @@ struct
 
 (** proof methods **)
 
-(* method *)
+(* tactics with cases *)
+
+type cases_state = Rule_Cases.cases * thm;
+type cases_tactic = thm -> cases_state Seq.seq;
+
+fun CASES cases tac st = Seq.map (pair cases) (tac st);
+fun EMPTY_CASES tac = CASES [] tac;
+
+fun SUBGOAL_CASES tac i st =
+  (case try Logic.nth_prem (i, Thm.prop_of st) of
+    SOME goal => tac (goal, i) st
+  | NONE => Seq.empty);
+
+fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
+  st |> tac1 i |> Seq.maps (fn (cases, st') =>
+    CASES cases (Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st)) st');
+
+
+(* type method *)
 
 type method = thm list -> cases_tactic;
 
@@ -732,6 +763,9 @@ val unfold = unfold_meth;
 val fold = fold_meth;
 
 end;
+
+structure Basic_Method: BASIC_METHOD = Method;
+open Basic_Method;
 
 val METHOD_CASES = Method.METHOD_CASES;
 val METHOD = Method.METHOD;
