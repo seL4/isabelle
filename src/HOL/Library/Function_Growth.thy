@@ -7,6 +7,40 @@ theory Function_Growth
 imports Main Preorder Discrete
 begin
 
+(* FIXME move *)
+
+context linorder
+begin
+
+lemma mono_invE:
+  fixes f :: "'a \<Rightarrow> 'b::order"
+  assumes "mono f"
+  assumes "f x < f y"
+  obtains "x < y"
+proof
+  show "x < y"
+  proof (rule ccontr)
+    assume "\<not> x < y"
+    then have "y \<le> x" by simp
+    with \<open>mono f\<close> obtain "f y \<le> f x" by (rule monoE)
+    with \<open>f x < f y\<close> show False by simp
+  qed
+qed
+
+end
+
+lemma (in semidom_divide) power_diff:
+  fixes a :: 'a
+  assumes "a \<noteq> 0"
+  assumes "m \<ge> n"
+  shows "a ^ (m - n) = (a ^ m) div (a ^ n)"
+proof -
+  def q == "m - n"
+  moreover with assms have "m = q + n" by (simp add: q_def)
+  ultimately show ?thesis using `a \<noteq> 0` by (simp add: power_add)
+qed
+
+
 subsection \<open>Motivation\<close>
 
 text \<open>
@@ -80,7 +114,7 @@ text \<open>
   restricted to @{typ nat}, see note above on \<open>(\<lesssim>)\<close>.
 \<close>
 
-lemma equiv_funI [intro?]:
+lemma equiv_funI:
   assumes "\<exists>c\<^sub>1>0. \<exists>c\<^sub>2>0. \<exists>n. \<forall>m>n. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m"
   shows "f \<cong> g"
   unfolding equiv_fun_def by (rule assms)
@@ -91,7 +125,7 @@ lemma not_equiv_funI:
   shows "\<not> f \<cong> g"
   using assms unfolding equiv_fun_def linorder_not_le [symmetric] by blast
 
-lemma equiv_funE [elim?]:
+lemma equiv_funE:
   assumes "f \<cong> g"
   obtains n c\<^sub>1 c\<^sub>2 where "c\<^sub>1 > 0" and "c\<^sub>2 > 0"
     and "\<And>m. m > n \<Longrightarrow> f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m"
@@ -160,7 +194,7 @@ text \<open>
   is that the situation is dual to the definition of \<open>O\<close>: the definition
   works since \<open>c\<close> may become arbitrary small.  Since this is not possible
   within @{term \<nat>}, we push the coefficient to the left hand side instead such
-  that it become arbitrary big instead.
+  that it may become arbitrary big instead.
 \<close>
 
 lemma less_fun_strongI:
@@ -192,7 +226,7 @@ subsection \<open>\<open>\<lesssim>\<close> is a preorder\<close>
 text \<open>This yields all lemmas relating \<open>\<lesssim>\<close>, \<open>\<prec>\<close> and \<open>\<cong>\<close>.\<close>
 
 interpretation fun_order: preorder_equiv less_eq_fun less_fun
-  rewrites "preorder_equiv.equiv less_eq_fun = equiv_fun"
+  rewrites "fun_order.equiv = equiv_fun"
 proof -
   interpret preorder: preorder_equiv less_eq_fun less_fun
   proof
@@ -236,7 +270,7 @@ proof -
       assume "f \<cong> g"
       then obtain n c\<^sub>1 c\<^sub>2 where "c\<^sub>1 > 0" and "c\<^sub>2 > 0"
         and *: "\<And>m. m > n \<Longrightarrow> f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m"
-        by rule blast
+        by (rule equiv_funE) blast
       have "\<forall>m>n. f m \<le> c\<^sub>1 * g m"
       proof (rule allI, rule impI)
         fix m
@@ -271,10 +305,12 @@ proof -
       qed
       with \<open>c\<^sub>1 > 0\<close> \<open>c\<^sub>2 > 0\<close> have "\<exists>c\<^sub>1>0. \<exists>c\<^sub>2>0. \<exists>n.
         \<forall>m>n. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m" by blast
-      then show "f \<cong> g" ..
+      then show "f \<cong> g" by (rule equiv_funI)
     qed
   qed
 qed
+
+declare fun_order.antisym [intro?]
 
 
 subsection \<open>Simple examples\<close>
@@ -288,15 +324,79 @@ text \<open>
 
 text \<open>@{prop "(\<lambda>n. f n + k) \<cong> f"}\<close>
 
-text \<open>@{prop "(\<lambda>n. Suc k * f n) \<cong> f"}\<close>
+lemma equiv_fun_mono_const:
+  assumes "mono f" and "\<exists>n. f n > 0"
+  shows "(\<lambda>n. f n + k) \<cong> f"
+proof (cases "k = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  show ?thesis
+  proof
+    show "(\<lambda>n. f n + k) \<lesssim> f"
+    proof
+      from `\<exists>n. f n > 0` obtain n where "f n > 0" ..
+      have "\<forall>m>n. f m + k \<le> Suc k * f m"
+      proof (rule allI, rule impI)
+        fix m
+        assume "n < m"
+        with `mono f` have "f n \<le> f m"
+          using less_imp_le_nat monoE by blast
+        with  `0 < f n` have "0 < f m" by auto
+        then obtain l where "f m = Suc l" by (cases "f m") simp_all
+        then show "f m + k \<le> Suc k * f m" by simp
+      qed
+      then show "\<exists>c>0. \<exists>n. \<forall>m>n. f m + k \<le> c * f m" by blast
+    qed
+    show "f \<lesssim> (\<lambda>n. f n + k)"
+    proof
+      have "f m \<le> 1 * (f m + k)" for m by simp
+      then show "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * (f m + k)" by blast
+    qed
+  qed
+qed
 
-lemma "f \<lesssim> (\<lambda>n. f n + g n)"
+lemma
+  assumes "strict_mono f"
+  shows "(\<lambda>n. f n + k) \<cong> f"
+proof (rule equiv_fun_mono_const)
+  from assms show "mono f" by (rule strict_mono_mono)
+  show "\<exists>n. 0 < f n"
+  proof (rule ccontr)
+    assume "\<not> (\<exists>n. 0 < f n)"
+    then have "\<And>n. f n = 0" by simp
+    then have "f 0 = f 1" by simp
+    moreover from `strict_mono f` have "f 0 < f 1"
+      by (simp add: strict_mono_def) 
+    ultimately show False by simp
+  qed
+qed
+  
+lemma
+  "(\<lambda>n. Suc k * f n) \<cong> f"
+proof
+  show "(\<lambda>n. Suc k * f n) \<lesssim> f"
+  proof
+    have "Suc k * f m \<le> Suc k * f m" for m by simp
+    then show "\<exists>c>0. \<exists>n. \<forall>m>n. Suc k * f m \<le> c * f m" by blast
+  qed
+  show "f \<lesssim> (\<lambda>n. Suc k * f n)"
+  proof
+    have "f m \<le> 1 * (Suc k * f m)" for m by simp
+    then show "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * (Suc k * f m)" by blast
+  qed
+qed
+
+lemma
+  "f \<lesssim> (\<lambda>n. f n + g n)"
   by rule auto
 
-lemma "(\<lambda>_. 0) \<prec> (\<lambda>n. Suc k)"
+lemma
+  "(\<lambda>_. 0) \<prec> (\<lambda>n. Suc k)"
   by (rule less_fun_strongI) auto
 
-lemma "(\<lambda>_. k) \<prec> Discrete.log"
+lemma
+  "(\<lambda>_. k) \<prec> Discrete.log"
 proof (rule less_fun_strongI)
   fix c :: nat
   have "\<forall>m>2 ^ (Suc (c * k)). c * k < Discrete.log m"
@@ -311,10 +411,14 @@ proof (rule less_fun_strongI)
   qed
   then show "\<exists>n. \<forall>m>n. c * k < Discrete.log m" ..
 qed
-  
+
+(*lemma
+  "Discrete.log \<prec> Discrete.sqrt"
+proof (rule less_fun_strongI)*)
 text \<open>@{prop "Discrete.log \<prec> Discrete.sqrt"}\<close>
 
-lemma "Discrete.sqrt \<prec> id"
+lemma
+  "Discrete.sqrt \<prec> id"
 proof (rule less_fun_strongI)
   fix c :: nat
   assume "0 < c"
@@ -334,13 +438,17 @@ proof (rule less_fun_strongI)
   then show "\<exists>n. \<forall>m>n. c * Discrete.sqrt m < id m" ..
 qed
 
-lemma "id \<prec> (\<lambda>n. n\<^sup>2)"
+lemma
+  "id \<prec> (\<lambda>n. n\<^sup>2)"
   by (rule less_fun_strongI) (auto simp add: power2_eq_square)
 
-lemma "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. n ^ Suc k)"
+lemma
+  "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. n ^ Suc k)"
   by (rule less_fun_strongI) auto
 
+(*lemma 
+  "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. 2 ^ n)"
+proof (rule less_fun_strongI)*)
 text \<open>@{prop "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. 2 ^ n)"}\<close>
 
 end
-
