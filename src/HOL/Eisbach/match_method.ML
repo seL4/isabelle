@@ -650,7 +650,7 @@ fun match_facts ctxt fixes prop_pats get =
     |> Seq.map (apsnd (morphism_env morphism))
   end;
 
-fun real_match using goal_ctxt fixes m text pats goal =
+fun real_match using goal_ctxt fixes m text pats st =
   let
     fun make_fact_matches ctxt get =
       let
@@ -662,10 +662,9 @@ fun real_match using goal_ctxt fixes m text pats goal =
 
     fun make_term_matches ctxt get =
       let
-        val pats' =
-          map
-            (fn ((SOME _, _), _) => error "Cannot name term match"
-              | ((_, x), t) => (((NONE, x), []), Logic.mk_term t)) pats;
+        val pats' = map
+          (fn ((SOME _, _), _) => error "Cannot name term match"
+            | ((_, x), t) => (((NONE, x), []), Logic.mk_term t)) pats;
 
         val thm_of = Drule.mk_term o Thm.cterm_of ctxt;
         fun get' t = get (Logic.dest_term t) |> map thm_of;
@@ -676,13 +675,13 @@ fun real_match using goal_ctxt fixes m text pats goal =
   in
     (case m of
       Match_Fact net =>
-        Seq.map (fn (text, ctxt') => Method_Closure.method_evaluate text ctxt' using goal)
+        Seq.map (fn (text, ctxt') => Method_Closure.method_evaluate text ctxt' using st)
           (make_fact_matches goal_ctxt (Item_Net.retrieve net))
     | Match_Term net =>
-        Seq.map (fn (text, ctxt') => Method_Closure.method_evaluate text ctxt' using goal)
+        Seq.map (fn (text, ctxt') => Method_Closure.method_evaluate text ctxt' using st)
           (make_term_matches goal_ctxt (Item_Net.retrieve net))
     | match_kind =>
-        if Thm.no_prems goal then Seq.empty
+        if Thm.no_prems st then Seq.empty
         else
           let
             fun focus_cases f g =
@@ -691,10 +690,10 @@ fun real_match using goal_ctxt fixes m text pats goal =
               | Match_Concl => g
               | _ => raise Fail "Match kind fell through");
 
-            val (goal_thins, goal) = get_thinned_prems goal;
+            val (goal_thins, st') = get_thinned_prems st;
 
             val ((local_premids, {context = focus_ctxt, params, asms, concl, ...}), focused_goal) =
-              focus_cases (K Subgoal.focus_prems) focus_concl goal_ctxt 1 NONE goal
+              focus_cases (K Subgoal.focus_prems) focus_concl goal_ctxt 1 NONE st'
               |>> augment_focus;
 
             val texts =
@@ -706,14 +705,15 @@ fun real_match using goal_ctxt fixes m text pats goal =
                      #> is_local ? filter (fn (p, _) => exists (fn id' => id' = p) local_premids)
                      #> order_list))
                 (fn _ =>
-                  make_term_matches focus_ctxt (fn _ => [Logic.strip_imp_concl (Thm.term_of concl)]))
+                  make_term_matches focus_ctxt
+                    (fn _ => [Logic.strip_imp_concl (Thm.term_of concl)]))
                 ();
 
             (*TODO: How to handle cases? *)
 
-            fun do_retrofit inner_ctxt goal' =
+            fun do_retrofit inner_ctxt st1 =
               let
-                val (goal'_thins, goal') = get_thinned_prems goal';
+                val (goal_thins', st2) = get_thinned_prems st1;
 
                 val thinned_prems =
                   ((subtract (eq_fst (op =))
@@ -726,48 +726,43 @@ fun real_match using goal_ctxt fixes m text pats goal =
 
                 val all_thinned_prems =
                   thinned_prems @
-                  map (fn (id, prem) => (id, (NONE, SOME prem))) (goal'_thins @ goal_thins);
+                    map (fn (id, prem) => (id, (NONE, SOME prem))) (goal_thins' @ goal_thins);
 
                 val (thinned_local_prems, thinned_extra_prems) =
                   List.partition (fn (id, _) => member (op =) local_premids id) all_thinned_prems;
 
                 val local_thins =
-                  thinned_local_prems
-                  |> map (fn (_, (SOME t, _)) => Thm.term_of t
-                           | (_, (_, SOME pt)) => Thm.term_of pt |> Logic.dest_term);
+                  thinned_local_prems |> map
+                    (fn (_, (SOME t, _)) => Thm.term_of t
+                      | (_, (_, SOME pt)) => Thm.term_of pt |> Logic.dest_term);
 
                 val extra_thins =
-                  thinned_extra_prems
-                  |> map (fn (id, (SOME ct, _)) => (id, Drule.mk_term ct |> Thm.cprop_of)
-                           | (id, (_, SOME pt)) => (id, pt))
+                  thinned_extra_prems |> map
+                    (fn (id, (SOME ct, _)) => (id, Drule.mk_term ct |> Thm.cprop_of)
+                      | (id, (_, SOME pt)) => (id, pt))
                   |> map (hyp_from_ctermid inner_ctxt);
 
-                val n_subgoals = Thm.nprems_of goal';
+                val n_subgoals = Thm.nprems_of st2;
                 fun prep_filter t =
                   Term.subst_bounds (map (Thm.term_of o snd) params |> rev, Term.strip_all_body t);
                 fun filter_test prems t =
                   if member (op =) prems t then SOME (remove1 (op aconv) t prems) else NONE;
               in
-                Subgoal.retrofit inner_ctxt goal_ctxt params asms 1 goal' goal |>
-                (if n_subgoals = 0 orelse null local_thins then I
-                 else
-                  Seq.map (Goal.restrict 1 n_subgoals)
-                  #> Seq.maps (ALLGOALS (fn i =>
-                      DETERM (filter_prems_tac' goal_ctxt prep_filter filter_test local_thins i)))
-                  #> Seq.map (Goal.unrestrict 1))
-                  |> Seq.map (fold Thm.weaken extra_thins)
+                Subgoal.retrofit inner_ctxt goal_ctxt params asms 1 st2 st |>
+                 (if n_subgoals = 0 orelse null local_thins then I
+                  else
+                    Seq.map (Goal.restrict 1 n_subgoals)
+                    #> Seq.maps (ALLGOALS (fn i =>
+                        DETERM (filter_prems_tac' goal_ctxt prep_filter filter_test local_thins i)))
+                    #> Seq.map (Goal.unrestrict 1))
+                |> Seq.map (fold Thm.weaken extra_thins)
               end;
 
             fun apply_text (text, ctxt') =
-              let
-                val goal' =
-                  DROP_CASES (Method_Closure.method_evaluate text ctxt' using) focused_goal
-                  |> Seq.maps (DETERM (do_retrofit ctxt'))
-                  |> Seq.map (fn goal => ([]: Rule_Cases.cases, goal));
-              in goal' end;
-          in
-            Seq.map apply_text texts
-          end)
+              DROP_CASES (Method_Closure.method_evaluate text ctxt' using) focused_goal
+              |> Seq.maps (DETERM (do_retrofit ctxt'))
+              |> Seq.map (pair ([]: Rule_Cases.cases));
+          in Seq.map apply_text texts end)
   end;
 
 val _ =
