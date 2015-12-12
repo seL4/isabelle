@@ -312,18 +312,6 @@ fun prep_fact_pat ((x, args), pat) ctxt =
     ((((Option.map prep_head x, args), params''), pat''), ctxt')
   end;
 
-fun recalculate_maxidx env =
-  let
-    val tenv = Envir.term_env env;
-    val tyenv = Envir.type_env env;
-    val max_tidx = Vartab.fold (fn (_, (_, t)) => curry Int.max (maxidx_of_term t)) tenv ~1;
-    val max_Tidx = Vartab.fold (fn (_, (_, T)) => curry Int.max (maxidx_of_typ T)) tyenv ~1;
-  in
-    Envir.Envir
-      {maxidx = Int.max (Int.max (max_tidx, max_Tidx), Envir.maxidx_of env),
-        tenv = tenv, tyenv = tyenv}
-  end
-
 fun morphism_env morphism env =
   let
     val tenv = Envir.term_env env
