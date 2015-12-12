@@ -1,4 +1,4 @@
-
+  
 (* Author: Florian Haftmann, TU Muenchen *)
 
 section \<open>Comparing growth of functions on natural numbers by a preorder relation\<close>
