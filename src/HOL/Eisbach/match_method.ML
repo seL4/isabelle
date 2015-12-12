@@ -650,7 +650,7 @@ fun match_facts ctxt fixes prop_pats get =
     |> Seq.map (apsnd (morphism_env morphism))
   end;
 
-fun real_match using ctxt fixes m text pats goal =
+fun real_match using goal_ctxt fixes m text pats goal =
   let
     fun make_fact_matches ctxt get =
       let
@@ -677,10 +677,10 @@ fun real_match using ctxt fixes m text pats goal =
     (case m of
       Match_Fact net =>
         Seq.map (fn (text, ctxt') => Method_Closure.method_evaluate text ctxt' using goal)
-          (make_fact_matches ctxt (Item_Net.retrieve net))
+          (make_fact_matches goal_ctxt (Item_Net.retrieve net))
     | Match_Term net =>
         Seq.map (fn (text, ctxt') => Method_Closure.method_evaluate text ctxt' using goal)
-          (make_term_matches ctxt (Item_Net.retrieve net))
+          (make_term_matches goal_ctxt (Item_Net.retrieve net))
     | match_kind =>
         if Thm.no_prems goal then Seq.empty
         else
@@ -694,7 +694,7 @@ fun real_match using ctxt fixes m text pats goal =
             val (goal_thins, goal) = get_thinned_prems goal;
 
             val ((local_premids, {context = focus_ctxt, params, asms, concl, ...}), focused_goal) =
-              focus_cases (K Subgoal.focus_prems) focus_concl ctxt 1 NONE goal
+              focus_cases (K Subgoal.focus_prems) focus_concl goal_ctxt 1 NONE goal
               |>> augment_focus;
 
             val texts =
@@ -748,12 +748,12 @@ fun real_match using ctxt fixes m text pats goal =
                 fun filter_test prems t =
                   if member (op =) prems t then SOME (remove1 (op aconv) t prems) else NONE;
               in
-                Subgoal.retrofit inner_ctxt ctxt params asms 1 goal' goal |>
+                Subgoal.retrofit inner_ctxt goal_ctxt params asms 1 goal' goal |>
                 (if n_subgoals = 0 orelse null local_thins then I
                  else
                   Seq.map (Goal.restrict 1 n_subgoals)
                   #> Seq.maps (ALLGOALS (fn i =>
-                      DETERM (filter_prems_tac' ctxt prep_filter filter_test local_thins i)))
+                      DETERM (filter_prems_tac' goal_ctxt prep_filter filter_test local_thins i)))
                   #> Seq.map (Goal.unrestrict 1))
                   |> Seq.map (fold Thm.weaken extra_thins)
               end;
