@@ -1054,20 +1054,9 @@ lemma mset_insort [simp]: "mset (insort x xs) = mset xs + {#x#}"
 lemma mset_map: "mset (map f xs) = image_mset f (mset xs)"
   by (induct xs) simp_all
 
-definition mset_set :: "'a set \<Rightarrow> 'a multiset"
-where
-  "mset_set = folding.F (\<lambda>x M. {#x#} + M) {#}"
-
-interpretation mset_set: folding "\<lambda>x M. {#x#} + M" "{#}"
-rewrites
-  "folding.F (\<lambda>x M. {#x#} + M) {#} = mset_set"
-proof -
-  interpret comp_fun_commute "\<lambda>x M. {#x#} + M"
-    by standard (simp add: fun_eq_iff ac_simps)
-  show "folding (\<lambda>x M. {#x#} + M)"
-    by standard (fact comp_fun_commute)
-  from mset_set_def show "folding.F (\<lambda>x M. {#x#} + M) {#} = mset_set" ..
-qed
+permanent_interpretation mset_set: folding "\<lambda>x M. {#x#} + M" "{#}"
+  defines mset_set = "folding.F (\<lambda>x M. {#x#} + M) {#}"
+  by standard (simp add: fun_eq_iff ac_simps)
 
 lemma count_mset_set [simp]:
   "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> count (mset_set A) x = 1" (is "PROP ?P")
@@ -1218,15 +1207,8 @@ notation Groups.one ("1")
 context comm_monoid_add
 begin
 
-definition msetsum :: "'a multiset \<Rightarrow> 'a"
-  where "msetsum = comm_monoid_mset.F plus 0"
-
 sublocale msetsum: comm_monoid_mset plus 0
-  rewrites "comm_monoid_mset.F plus 0 = msetsum"
-proof -
-  show "comm_monoid_mset plus 0" ..
-  from msetsum_def show "comm_monoid_mset.F plus 0 = msetsum" ..
-qed
+  defines msetsum = msetsum.F ..
 
 lemma (in semiring_1) msetsum_replicate_mset [simp]:
   "msetsum (replicate_mset n a) = of_nat n * a"
@@ -1276,15 +1258,8 @@ translations
 context comm_monoid_mult
 begin
 
-definition msetprod :: "'a multiset \<Rightarrow> 'a"
-  where "msetprod = comm_monoid_mset.F times 1"
-
 sublocale msetprod: comm_monoid_mset times 1
-  rewrites "comm_monoid_mset.F times 1 = msetprod"
-proof -
-  show "comm_monoid_mset times 1" ..
-  show "comm_monoid_mset.F times 1 = msetprod" using msetprod_def ..
-qed
+  defines msetprod = msetprod.F ..
 
 lemma msetprod_empty:
   "msetprod {#} = 1"
