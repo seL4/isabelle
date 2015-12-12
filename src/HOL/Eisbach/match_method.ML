@@ -76,14 +76,13 @@ val dynamic_fact =
 type match_args = {multi : bool, cut : int};
 
 val parse_match_args =
-  Scan.optional (Args.parens (Parse.enum1 ","
-    (Args.$$$ "multi" -- Scan.succeed ~1 || Args.$$$ "cut" -- Scan.optional Parse.nat 1))) [] >>
-    (fn ss =>
-      fold (fn s => fn {multi, cut} =>
-        (case s of
-          ("multi", _) => {multi = true, cut = cut}
-        | ("cut", n) => {multi = multi, cut = n}))
-      ss {multi = false, cut = ~1});
+  Scan.optional
+    (Args.parens
+      (Parse.enum1 ","
+        (Args.$$$ "multi" >> (fn _ => fn {cut, ...} => {multi = true, cut = cut}) ||
+         Args.$$$ "cut" |-- Scan.optional Parse.nat 1
+          >> (fn n => fn {multi, ...} => {multi = multi, cut = n})))) []
+  >> (fn fs => fold I fs {multi = false, cut = ~1});
 
 fun parse_named_pats match_kind =
   Args.context --
