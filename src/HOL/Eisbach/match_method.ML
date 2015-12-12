@@ -748,13 +748,12 @@ fun real_match using goal_ctxt fixes m text pats st =
                 fun filter_test prems t =
                   if member (op =) prems t then SOME (remove1 (op aconv) t prems) else NONE;
               in
-                Subgoal.retrofit inner_ctxt goal_ctxt params asms 1 st2 st |>
-                 (if n_subgoals = 0 orelse null local_thins then I
-                  else
-                    Seq.map (Goal.restrict 1 n_subgoals)
-                    #> Seq.maps (ALLGOALS (fn i =>
-                        DETERM (filter_prems_tac' goal_ctxt prep_filter filter_test local_thins i)))
-                    #> Seq.map (Goal.unrestrict 1))
+                Subgoal.retrofit inner_ctxt goal_ctxt params asms 1 st2 st
+                |> (n_subgoals > 0 andalso not (null local_thins)) ?
+                    (Seq.map (Goal.restrict 1 n_subgoals)
+                      #> Seq.maps (ALLGOALS (fn i =>
+                          DETERM (filter_prems_tac' goal_ctxt prep_filter filter_test local_thins i)))
+                      #> Seq.map (Goal.unrestrict 1))
                 |> Seq.map (fold Thm.weaken extra_thins)
               end;
 
