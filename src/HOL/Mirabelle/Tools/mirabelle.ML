@@ -154,7 +154,7 @@ fun step_hook tr pre post =
 fun can_apply time tac st =
   let
     val {context = ctxt, facts, goal} = Proof.goal st
-    val full_tac = HEADGOAL (Method.insert_tac facts THEN' tac ctxt)
+    val full_tac = HEADGOAL (Method.insert_tac ctxt facts THEN' tac ctxt)
   in
     (case try (TimeLimit.timeLimit time (Seq.pull o full_tac)) goal of
       SOME (SOME _) => true

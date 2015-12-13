@@ -1082,7 +1082,7 @@ fun mk_rel_coinduct_ind_tac ctxt m ks unfolds set_map0ss j set_induct =
 fun mk_rel_coinduct_tac ctxt CIHs in_rels in_Jrels helper_indss helper_coind1s helper_coind2s =
   let val n = length in_rels;
   in
-    Method.insert_tac CIHs 1 THEN
+    Method.insert_tac ctxt CIHs 1 THEN
     unfold_thms_tac ctxt (@{thm choice_iff} :: @{thm ex_simps(6)[symmetric]} :: in_rels) THEN
     REPEAT_DETERM (etac ctxt exE 1) THEN
     CONJ_WRAP' (fn (in_Jrel, (helper_inds, (helper_coind1, helper_coind2))) =>

@@ -1579,8 +1579,7 @@ fun primcorec_ursive_cmd auto opts (raw_fixes, raw_specs_of) lthy =
 val primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
   lthy
   |> Proof.theorem NONE after_qed goalss
-  |> Proof.refine (Method.primitive_text (K I))
-  |> Seq.hd) ooo primcorec_ursive_cmd false;
+  |> Proof.refine_singleton (Method.primitive_text (K I))) ooo primcorec_ursive_cmd false;
 
 val primcorec_cmd = (fn (goalss, after_qed, lthy) =>
     lthy |> after_qed (map (fn [] => [] | _ => use_primcorecursive ()) goalss)) ooo

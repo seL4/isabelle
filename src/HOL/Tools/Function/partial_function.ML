@@ -62,8 +62,6 @@ fun lookup_mode ctxt =
 
 (*** Automated monotonicity proofs ***)
 
-fun strip_cases ctac = ctac #> Seq.map snd;
-
 (*rewrite conclusion with k-th assumtion*)
 fun rewrite_with_asm_tac ctxt k =
   Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
@@ -95,7 +93,7 @@ val split_cases_tac = Subgoal.FOCUS_PARAMS (fn {context = ctxt, ...} =>
        | SOME (arg, conv) =>
            let open Conv in
               if Term.is_open arg then no_tac
-              else ((DETERM o strip_cases o Induct.cases_tac ctxt false [[SOME arg]] NONE [])
+              else ((DETERM o Method.NO_CONTEXT_TACTIC ctxt o Induct.cases_tac false [[SOME arg]] NONE [])
                 THEN_ALL_NEW (rewrite_with_asm_tac ctxt 0)
                 THEN_ALL_NEW eresolve_tac ctxt @{thms thin_rl}
                 THEN_ALL_NEW (CONVERSION

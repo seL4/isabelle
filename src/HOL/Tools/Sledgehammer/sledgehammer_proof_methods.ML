@@ -114,7 +114,7 @@ fun string_of_proof_method ctxt ss meth =
   end
 
 fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
-  Method.insert_tac local_facts THEN'
+  Method.insert_tac ctxt local_facts THEN'
   (case meth of
     Metis_Method (type_enc_opt, lam_trans_opt) =>
     let
@@ -131,7 +131,7 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
   | Simp_Size_Method =>
     Simplifier.asm_full_simp_tac (ctxt addsimps (@{thm size_ne_size_imp_ne} :: global_facts))
   | _ =>
-    Method.insert_tac global_facts THEN'
+    Method.insert_tac ctxt global_facts THEN'
     (case meth of
       SATx_Method => SAT.satx_tac ctxt
     | Blast_Method => blast_tac ctxt

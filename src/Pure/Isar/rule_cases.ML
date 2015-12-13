@@ -4,27 +4,14 @@
 Annotations and local contexts of rules.
 *)
 
-infix 1 THEN_ALL_NEW_CASES;
-
-signature BASIC_RULE_CASES =
-sig
-  type cases
-  type cases_state = cases * thm
-  type cases_tactic = thm -> cases_state Seq.seq
-  val CASES: cases -> tactic -> cases_tactic
-  val EMPTY_CASES: tactic -> cases_tactic
-  val SUBGOAL_CASES: (term * int -> cases_tactic) -> int -> cases_tactic
-  val THEN_ALL_NEW_CASES: (int -> cases_tactic) * (int -> tactic) -> int -> cases_tactic
-end
-
 signature RULE_CASES =
 sig
-  include BASIC_RULE_CASES
   datatype T = Case of
    {fixes: (binding * typ) list,
     assumes: (string * term list) list,
     binds: (indexname * term option) list,
     cases: (string * T) list}
+  type cases = (string * T option) list
   val case_hypsN: string
   val strip_params: term -> (string * typ) list
   type info = ((string * string list) * string list) list
@@ -181,25 +168,6 @@ fun apply args =
   in appl end;
 
 end;
-
-
-
-(** tactics with cases **)
-
-type cases_state = cases * thm;
-type cases_tactic = thm -> cases_state Seq.seq;
-
-fun CASES cases tac st = Seq.map (pair cases) (tac st);
-fun EMPTY_CASES tac = CASES [] tac;
-
-fun SUBGOAL_CASES tac i st =
-  (case try Logic.nth_prem (i, Thm.prop_of st) of
-    SOME goal => tac (goal, i) st
-  | NONE => Seq.empty);
-
-fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
-  st |> tac1 i |> Seq.maps (fn (cases, st') =>
-    CASES cases (Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st)) st');
 
 
 
@@ -483,6 +451,3 @@ fun strict_mutual_rule ctxt ths =
   | SOME res => res);
 
 end;
-
-structure Basic_Rule_Cases: BASIC_RULE_CASES = Rule_Cases;
-open Basic_Rule_Cases;

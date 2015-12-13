@@ -76,14 +76,13 @@ val dynamic_fact =
 type match_args = {multi : bool, cut : int};
 
 val parse_match_args =
-  Scan.optional (Args.parens (Parse.enum1 ","
-    (Args.$$$ "multi" -- Scan.succeed ~1 || Args.$$$ "cut" -- Scan.optional Parse.nat 1))) [] >>
-    (fn ss =>
-      fold (fn s => fn {multi, cut} =>
-        (case s of
-          ("multi", _) => {multi = true, cut = cut}
-        | ("cut", n) => {multi = multi, cut = n}))
-      ss {multi = false, cut = ~1});
+  Scan.optional
+    (Args.parens
+      (Parse.enum1 ","
+        (Args.$$$ "multi" >> (fn _ => fn {cut, ...} => {multi = true, cut = cut}) ||
+         Args.$$$ "cut" |-- Scan.optional Parse.nat 1
+          >> (fn n => fn {multi, ...} => {multi = multi, cut = n})))) []
+  >> (fn fs => fold I fs {multi = false, cut = ~1});
 
 fun parse_named_pats match_kind =
   Args.context --
@@ -295,9 +294,6 @@ fun do_inst fact_insts' env text ctxt =
     (text', ctxt')
   end;
 
-fun DROP_CASES (tac: cases_tactic) : tactic =
-  tac #> Seq.map (fn (_, st) => st);
-
 fun prep_fact_pat ((x, args), pat) ctxt =
   let
     val ((params, pat'), ctxt') = Variable.focus NONE pat ctxt;
@@ -312,18 +308,6 @@ fun prep_fact_pat ((x, args), pat) ctxt =
   in
     ((((Option.map prep_head x, args), params''), pat''), ctxt')
   end;
-
-fun recalculate_maxidx env =
-  let
-    val tenv = Envir.term_env env;
-    val tyenv = Envir.type_env env;
-    val max_tidx = Vartab.fold (fn (_, (_, t)) => curry Int.max (maxidx_of_term t)) tenv ~1;
-    val max_Tidx = Vartab.fold (fn (_, (_, T)) => curry Int.max (maxidx_of_typ T)) tyenv ~1;
-  in
-    Envir.Envir
-      {maxidx = Int.max (Int.max (max_tidx, max_Tidx), Envir.maxidx_of env),
-        tenv = tenv, tyenv = tyenv}
-  end
 
 fun morphism_env morphism env =
   let
@@ -663,7 +647,7 @@ fun match_facts ctxt fixes prop_pats get =
     |> Seq.map (apsnd (morphism_env morphism))
   end;
 
-fun real_match using ctxt fixes m text pats goal =
+fun real_match using goal_ctxt fixes m text pats st =
   let
     fun make_fact_matches ctxt get =
       let
@@ -675,10 +659,9 @@ fun real_match using ctxt fixes m text pats goal =
 
     fun make_term_matches ctxt get =
       let
-        val pats' =
-          map
-            (fn ((SOME _, _), _) => error "Cannot name term match"
-              | ((_, x), t) => (((NONE, x), []), Logic.mk_term t)) pats;
+        val pats' = map
+          (fn ((SOME _, _), _) => error "Cannot name term match"
+            | ((_, x), t) => (((NONE, x), []), Logic.mk_term t)) pats;
 
         val thm_of = Drule.mk_term o Thm.cterm_of ctxt;
         fun get' t = get (Logic.dest_term t) |> map thm_of;
@@ -689,13 +672,17 @@ fun real_match using ctxt fixes m text pats goal =
   in
     (case m of
       Match_Fact net =>
-        Seq.map (fn (text, ctxt') => Method_Closure.method_evaluate text ctxt' using goal)
-          (make_fact_matches ctxt (Item_Net.retrieve net))
+        make_fact_matches goal_ctxt (Item_Net.retrieve net)
+        |> Seq.map (fn (text, ctxt') =>
+          Method_Closure.method_evaluate text ctxt' using (ctxt', st)
+          |> Seq.filter_results |> Seq.map snd)
     | Match_Term net =>
-        Seq.map (fn (text, ctxt') => Method_Closure.method_evaluate text ctxt' using goal)
-          (make_term_matches ctxt (Item_Net.retrieve net))
+        make_term_matches goal_ctxt (Item_Net.retrieve net)
+        |> Seq.map (fn (text, ctxt') =>
+          Method_Closure.method_evaluate text ctxt' using (ctxt', st)
+          |> Seq.filter_results |> Seq.map snd)
     | match_kind =>
-        if Thm.no_prems goal then Seq.empty
+        if Thm.no_prems st then Seq.empty
         else
           let
             fun focus_cases f g =
@@ -704,10 +691,10 @@ fun real_match using ctxt fixes m text pats goal =
               | Match_Concl => g
               | _ => raise Fail "Match kind fell through");
 
-            val (goal_thins, goal) = get_thinned_prems goal;
+            val (goal_thins, st') = get_thinned_prems st;
 
             val ((local_premids, {context = focus_ctxt, params, asms, concl, ...}), focused_goal) =
-              focus_cases (K Subgoal.focus_prems) focus_concl ctxt 1 NONE goal
+              focus_cases (K Subgoal.focus_prems) focus_concl goal_ctxt 1 NONE st'
               |>> augment_focus;
 
             val texts =
@@ -719,14 +706,15 @@ fun real_match using ctxt fixes m text pats goal =
                      #> is_local ? filter (fn (p, _) => exists (fn id' => id' = p) local_premids)
                      #> order_list))
                 (fn _ =>
-                  make_term_matches focus_ctxt (fn _ => [Logic.strip_imp_concl (Thm.term_of concl)]))
+                  make_term_matches focus_ctxt
+                    (fn _ => [Logic.strip_imp_concl (Thm.term_of concl)]))
                 ();
 
             (*TODO: How to handle cases? *)
 
-            fun do_retrofit inner_ctxt goal' =
+            fun do_retrofit inner_ctxt st1 =
               let
-                val (goal'_thins, goal') = get_thinned_prems goal';
+                val (goal_thins', st2) = get_thinned_prems st1;
 
                 val thinned_prems =
                   ((subtract (eq_fst (op =))
@@ -739,68 +727,63 @@ fun real_match using ctxt fixes m text pats goal =
 
                 val all_thinned_prems =
                   thinned_prems @
-                  map (fn (id, prem) => (id, (NONE, SOME prem))) (goal'_thins @ goal_thins);
+                    map (fn (id, prem) => (id, (NONE, SOME prem))) (goal_thins' @ goal_thins);
 
                 val (thinned_local_prems, thinned_extra_prems) =
                   List.partition (fn (id, _) => member (op =) local_premids id) all_thinned_prems;
 
                 val local_thins =
-                  thinned_local_prems
-                  |> map (fn (_, (SOME t, _)) => Thm.term_of t
-                           | (_, (_, SOME pt)) => Thm.term_of pt |> Logic.dest_term);
+                  thinned_local_prems |> map
+                    (fn (_, (SOME t, _)) => Thm.term_of t
+                      | (_, (_, SOME pt)) => Thm.term_of pt |> Logic.dest_term);
 
                 val extra_thins =
-                  thinned_extra_prems
-                  |> map (fn (id, (SOME ct, _)) => (id, Drule.mk_term ct |> Thm.cprop_of)
-                           | (id, (_, SOME pt)) => (id, pt))
+                  thinned_extra_prems |> map
+                    (fn (id, (SOME ct, _)) => (id, Drule.mk_term ct |> Thm.cprop_of)
+                      | (id, (_, SOME pt)) => (id, pt))
                   |> map (hyp_from_ctermid inner_ctxt);
 
-                val n_subgoals = Thm.nprems_of goal';
+                val n_subgoals = Thm.nprems_of st2;
                 fun prep_filter t =
                   Term.subst_bounds (map (Thm.term_of o snd) params |> rev, Term.strip_all_body t);
                 fun filter_test prems t =
                   if member (op =) prems t then SOME (remove1 (op aconv) t prems) else NONE;
               in
-                Subgoal.retrofit inner_ctxt ctxt params asms 1 goal' goal |>
-                (if n_subgoals = 0 orelse null local_thins then I
-                 else
-                  Seq.map (Goal.restrict 1 n_subgoals)
-                  #> Seq.maps (ALLGOALS (fn i =>
-                      DETERM (filter_prems_tac' ctxt prep_filter filter_test local_thins i)))
-                  #> Seq.map (Goal.unrestrict 1))
-                  |> Seq.map (fold Thm.weaken extra_thins)
+                Subgoal.retrofit inner_ctxt goal_ctxt params asms 1 st2 st
+                |> (n_subgoals > 0 andalso not (null local_thins)) ?
+                    (Seq.map (Goal.restrict 1 n_subgoals)
+                      #> Seq.maps (ALLGOALS (fn i =>
+                          DETERM (filter_prems_tac' goal_ctxt prep_filter filter_test local_thins i)))
+                      #> Seq.map (Goal.unrestrict 1))
+                |> Seq.map (fold Thm.weaken extra_thins)
               end;
 
             fun apply_text (text, ctxt') =
-              let
-                val goal' =
-                  DROP_CASES (Method_Closure.method_evaluate text ctxt' using) focused_goal
-                  |> Seq.maps (DETERM (do_retrofit ctxt'))
-                  |> Seq.map (fn goal => ([]: cases, goal));
-              in goal' end;
-          in
-            Seq.map apply_text texts
-          end)
+              Method.NO_CONTEXT_TACTIC ctxt'
+                (Method_Closure.method_evaluate text ctxt' using) focused_goal
+              |> Seq.maps (DETERM (do_retrofit ctxt'));
+          in Seq.map apply_text texts end)
   end;
-
-val match_parser =
-  parse_match_kind :-- (fn kind =>
-      Scan.lift @{keyword "in"} |-- Parse.enum1' "\<bar>" (parse_named_pats kind)) >>
-    (fn (matches, bodies) => fn ctxt => fn using =>
-      Method.RUNTIME (fn st =>
-        let
-          fun exec (pats, fixes, text) goal =
-            let
-              val ctxt' =
-                fold Variable.declare_term fixes ctxt
-                |> fold (fn (_, t) => Variable.declare_term t) pats; (*Is this a good idea? We really only care about the maxidx*)
-            in real_match using ctxt' fixes matches text pats goal end;
-        in Seq.flat (Seq.FIRST (map exec bodies) st) end));
 
 val _ =
   Theory.setup
     (Method.setup @{binding match}
-      (match_parser >> (fn m => fn ctxt => METHOD_CASES (m ctxt)))
+      (parse_match_kind :--
+        (fn kind => Scan.lift @{keyword "in"} |-- Parse.enum1' "\<bar>" (parse_named_pats kind)) >>
+        (fn (matches, bodies) => fn ctxt =>
+          CONTEXT_METHOD (fn using => Method.RUNTIME (fn (goal_ctxt, st) =>
+            let
+              fun exec (pats, fixes, text) st' =
+                let
+                  val ctxt' =
+                    fold Variable.declare_term fixes ctxt
+                    (*FIXME Is this a good idea? We really only care about the maxidx*)
+                    |> fold (fn (_, t) => Variable.declare_term t) pats;
+                in real_match using ctxt' fixes matches text pats st' end;
+            in
+              Seq.flat (Seq.FIRST (map exec bodies) st)
+              |> Method.CONTEXT goal_ctxt
+            end))))
       "structural analysis/matching on goals");
 
 end;

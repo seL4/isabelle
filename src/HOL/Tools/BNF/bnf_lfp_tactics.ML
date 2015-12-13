@@ -356,7 +356,7 @@ fun mk_init_ex_mor_tac ctxt Abs_inverse copy card_of_min_algs mor_Rep mor_comp m
   let
     val n = length card_of_min_algs;
   in
-    EVERY' [Method.insert_tac (map (fn thm => thm RS @{thm ex_bij_betw}) card_of_min_algs),
+    EVERY' [Method.insert_tac ctxt (map (fn thm => thm RS @{thm ex_bij_betw}) card_of_min_algs),
       REPEAT_DETERM o dtac ctxt meta_spec, REPEAT_DETERM o etac ctxt exE, rtac ctxt rev_mp,
       rtac ctxt copy, REPEAT_DETERM_N n o assume_tac ctxt,
       rtac ctxt impI, REPEAT_DETERM o eresolve_tac ctxt [exE, conjE], REPEAT_DETERM_N n o rtac ctxt exI,

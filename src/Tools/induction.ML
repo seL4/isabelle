@@ -7,10 +7,9 @@ name "IH".
 
 signature INDUCTION =
 sig
-  val induction_tac: Proof.context -> bool ->
-    (binding option * (term * bool)) option list list ->
+  val induction_tac: bool -> (binding option * (term * bool)) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
-    thm list -> int -> cases_tactic
+    thm list -> int -> context_tactic
 end
 
 structure Induction: INDUCTION =

@@ -319,7 +319,7 @@ fun mk_in_bd_tac ctxt live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_ma
       unfold_thms_tac ctxt [bd_card_order RS @{thm card_order_csum_cone_cexp_def}] THEN
       unfold_thms_tac ctxt @{thms cprod_def Field_card_of} THEN
       EVERY' [rtac ctxt (Drule.rotate_prems 1 ctrans), rtac ctxt surj_imp_ordLeq_inst, rtac ctxt subsetI,
-        Method.insert_tac inserts, REPEAT_DETERM o dtac ctxt meta_spec,
+        Method.insert_tac ctxt inserts, REPEAT_DETERM o dtac ctxt meta_spec,
         REPEAT_DETERM o eresolve_tac ctxt [exE, Tactic.make_elim conjunct1], etac ctxt CollectE,
         if live = 1 then K all_tac
         else REPEAT_DETERM_N (live - 2) o (etac ctxt conjE THEN' rotate_tac ~1) THEN' etac ctxt conjE,

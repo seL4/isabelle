@@ -429,7 +429,7 @@ fun gen_find_theorems filter ctxt opt_goal opt_limit rem_dups raw_criteria =
     val assms =
       Proof_Context.get_fact ctxt (Facts.named "local.assms")
         handle ERROR _ => [];
-    val add_prems = Seq.hd o TRY (Method.insert_tac assms 1);
+    val add_prems = Seq.hd o TRY (Method.insert_tac ctxt assms 1);
     val opt_goal' = Option.map add_prems opt_goal;
   in
     filter ctxt (all_facts_of ctxt)

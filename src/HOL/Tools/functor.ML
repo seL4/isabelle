@@ -128,10 +128,11 @@ fun make_comp_prop ctxt variances (tyco, mapper) =
       (mapper21 $ (mapper32 $ x), mapper31 $ x);
     val comp_prop = fold_rev Logic.all (map Free (args21 @ args32)) eq1;
     val compositionality_prop = fold_rev Logic.all (map Free (args21 @ args32) @ [x]) eq2;
-    fun prove_compositionality ctxt comp_thm = Goal.prove_sorry ctxt [] [] compositionality_prop
-      (K (ALLGOALS (Method.insert_tac [@{thm fun_cong} OF [comp_thm]]
-        THEN' Simplifier.asm_lr_simp_tac (put_simpset compositionality_ss ctxt)
-        THEN_ALL_NEW (Goal.assume_rule_tac ctxt))));
+    fun prove_compositionality ctxt comp_thm =
+      Goal.prove_sorry ctxt [] [] compositionality_prop
+        (K (ALLGOALS (Method.insert_tac ctxt [@{thm fun_cong} OF [comp_thm]]
+          THEN' Simplifier.asm_lr_simp_tac (put_simpset compositionality_ss ctxt)
+          THEN_ALL_NEW (Goal.assume_rule_tac ctxt))));
   in (comp_prop, prove_compositionality) end;
 
 val identity_ss =
@@ -152,9 +153,10 @@ fun make_id_prop ctxt variances (tyco, mapper) =
     val rhs = HOLogic.id_const T;
     val (id_prop, identity_prop) =
       apply2 (HOLogic.mk_Trueprop o HOLogic.mk_eq o rpair rhs) (lhs1, lhs2);
-    fun prove_identity ctxt id_thm = Goal.prove_sorry ctxt [] [] identity_prop
-      (K (ALLGOALS (Method.insert_tac [id_thm] THEN'
-        Simplifier.asm_lr_simp_tac (put_simpset identity_ss ctxt))));
+    fun prove_identity ctxt id_thm =
+      Goal.prove_sorry ctxt [] [] identity_prop
+        (K (ALLGOALS (Method.insert_tac ctxt [id_thm] THEN'
+          Simplifier.asm_lr_simp_tac (put_simpset identity_ss ctxt))));
   in (id_prop, prove_identity) end;
 
 

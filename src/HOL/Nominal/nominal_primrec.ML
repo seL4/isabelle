@@ -372,11 +372,10 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
           |> snd
         end)
       [goals] |>
-    Proof.apply (Method.Basic (fn ctxt => fn _ =>
-      EMPTY_CASES
+    Proof.refine_singleton (Method.Basic (fn ctxt => fn _ =>
+      Method.CONTEXT_TACTIC
        (rewrite_goals_tac ctxt defs_thms THEN
-        compose_tac ctxt (false, rule, length rule_prems) 1))) |>
-    Seq.hd
+        compose_tac ctxt (false, rule, length rule_prems) 1)))
   end;
 
 in

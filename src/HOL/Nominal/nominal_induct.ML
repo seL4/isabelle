@@ -5,9 +5,9 @@ The nominal induct proof method.
 
 structure NominalInduct:
 sig
-  val nominal_induct_tac: Proof.context -> bool -> (binding option * (term * bool)) option list list ->
+  val nominal_induct_tac: bool -> (binding option * (term * bool)) option list list ->
     (string * typ) list -> (string * typ) list list -> thm list ->
-    thm list -> int -> Rule_Cases.cases_tactic
+    thm list -> int -> context_tactic
   val nominal_induct_method: (Proof.context -> Proof.method) context_parser
 end =
 struct
@@ -81,7 +81,7 @@ fun rename_params_rule internal xs rule =
 
 (* nominal_induct_tac *)
 
-fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
+fun nominal_induct_tac simp def_insts avoiding fixings rules facts i (ctxt, st) =
   let
     val ((insts, defs), defs_ctxt) = fold_map Induct.add_defs def_insts ctxt |>> split_list;
     val atomized_defs = map (map (Conv.fconv_rule (Induct.atomize_cterm ctxt))) defs;
@@ -94,8 +94,8 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
     fun rule_cases ctxt r =
       let val r' = if simp then Induct.simplified_rule ctxt r else r
       in Rule_Cases.make_nested ctxt (Thm.prop_of r') (Induct.rulified_term ctxt r') end;
-  in
-    (fn i => fn st =>
+
+    fun context_tac _ _ =
       rules
       |> inst_mutual_rule ctxt insts avoiding
       |> Rule_Cases.consume ctxt (flat defs) facts
@@ -108,7 +108,7 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
               val xs = nth_list fixings (j - 1);
               val k = nth concls (j - 1) + more_consumes
             in
-              Method.insert_tac (more_facts @ adefs) THEN'
+              Method.insert_tac ctxt (more_facts @ adefs) THEN'
                 (if simp then
                    Induct.rotate_tac k (length adefs) THEN'
                    Induct.arbitrary_tac defs_ctxt k (List.partition (member op = frees) xs |> op @)
@@ -120,13 +120,13 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
             Induct.guess_instance ctxt
               (finish_rule (Induct.internalize ctxt more_consumes rule)) i st'
             |> Seq.maps (fn rule' =>
-              CASES (rule_cases ctxt rule' cases)
+              CONTEXT_CASES (rule_cases ctxt rule' cases)
                 (resolve_tac ctxt [rename_params_rule false [] rule'] i THEN
-                  PRIMITIVE (singleton (Proof_Context.export defs_ctxt ctxt))) st'))))
-    THEN_ALL_NEW_CASES
+                  PRIMITIVE (singleton (Proof_Context.export defs_ctxt ctxt))) (ctxt, st'))));
+  in
+    (context_tac CONTEXT_THEN_ALL_NEW
       ((if simp then Induct.simplify_tac ctxt THEN' (TRY o Induct.trivial_tac ctxt)
-        else K all_tac)
-       THEN_ALL_NEW Induct.rulify_tac ctxt)
+        else K all_tac) THEN_ALL_NEW Induct.rulify_tac ctxt)) i (ctxt, st)
   end;
 
 
@@ -169,8 +169,8 @@ val nominal_induct_method =
   Scan.lift (Args.mode Induct.no_simpN) --
   (Parse.and_list' (Scan.repeat (unless_more_args def_inst)) --
     avoiding -- fixing -- rule_spec) >>
-  (fn (no_simp, (((x, y), z), w)) => fn ctxt => fn facts =>
-    HEADGOAL (nominal_induct_tac ctxt (not no_simp) x y z w facts));
+  (fn (no_simp, (((x, y), z), w)) => fn _ => fn facts =>
+    (nominal_induct_tac (not no_simp) x y z w facts 1));
 
 end;
 

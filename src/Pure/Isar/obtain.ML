@@ -266,7 +266,7 @@ fun result tac facts ctxt =
     val ((thesis_var, thesis), thesis_ctxt) = obtain_thesis ctxt;
     val st = Goal.init (Thm.cterm_of ctxt thesis);
     val rule =
-      (case SINGLE (Method.insert_tac facts 1 THEN tac thesis_ctxt) st of
+      (case SINGLE (Method.insert_tac thesis_ctxt facts 1 THEN tac thesis_ctxt) st of
         NONE => raise THM ("Obtain.result: tactic failed", 0, facts)
       | SOME th =>
           check_result thesis_ctxt thesis (Raw_Simplifier.norm_hhf thesis_ctxt (Goal.conclude th)));
@@ -413,9 +413,8 @@ fun gen_guess prep_var raw_vars int state =
       (SOME before_qed) after_qed
       [] [] [(Thm.empty_binding, [(Logic.mk_term goal, []), (goal, [])])]
     |> snd
-    |> Proof.refine (Method.primitive_text (fn _ => fn _ =>
-        Goal.init (Thm.cterm_of ctxt thesis)))
-    |> Seq.hd
+    |> Proof.refine_singleton
+        (Method.primitive_text (fn _ => fn _ => Goal.init (Thm.cterm_of ctxt thesis)))
   end;
 
 in

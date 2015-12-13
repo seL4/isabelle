@@ -895,7 +895,9 @@ val global_setup =
   Method.setup @{binding linarith}
     (Scan.succeed (fn ctxt =>
       METHOD (fn facts =>
-        HEADGOAL (Method.insert_tac (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
+        HEADGOAL
+          (Method.insert_tac ctxt
+            (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
           THEN' tac ctxt)))) "linear arithmetic" #>
   Arith_Data.add_tactic "linear arithmetic" tac;
 

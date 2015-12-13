@@ -70,7 +70,8 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
         ((name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
          (if all_goals andalso Thm.nprems_of (#goal (Proof.goal st)) > 1 then "[1]" else ""))
         I (#goal o Proof.goal)
-        (apply_named_method_on_first_goal (Proof.context_of st) (name ^ attrs)) st
+        (apply_named_method_on_first_goal (Proof.context_of st) (name ^ attrs)
+          #> Seq.filter_results) st
     end
   else
     NONE;

@@ -970,7 +970,7 @@ fun ideal_tac add_ths del_ths ctxt =
      val cfs = (map swap o #multi_ideal thy evs ps)
                    (map Thm.dest_arg1 (conjuncts bod))
      val ws = map (exitac ctxt o AList.lookup op aconvc cfs) evs
-    in EVERY (rev ws) THEN Method.insert_tac prems 1
+    in EVERY (rev ws) THEN Method.insert_tac ctxt prems 1
         THEN ring_tac add_ths del_ths ctxt 1
    end
   in

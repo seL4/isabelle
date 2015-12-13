@@ -407,7 +407,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy =
       by (simp add: eq_onp_same_args rel_fun_eq_onp_rel)}
 
     fun lift_sel_tac exhaust_rule dt_rules wits ctxt i =
-        (Method.insert_tac wits THEN' 
+        (Method.insert_tac ctxt wits THEN' 
          eq_onp_to_top_tac ctxt THEN' (* normalize *)
          rtac ctxt unfold_lift_sel_rsp THEN'
          case_tac exhaust_rule ctxt THEN_ALL_NEW (
@@ -559,7 +559,7 @@ and constr qty (quot_thm, (lthy, rel_eq_onps)) =
         val TFrees = Term.add_tfreesT qty []
 
         fun non_empty_typedef_tac non_empty_pred ctxt i =
-          (Method.insert_tac [non_empty_pred] THEN' 
+          (Method.insert_tac ctxt [non_empty_pred] THEN' 
             SELECT_GOAL (Local_Defs.unfold_tac ctxt [mem_Collect_eq]) THEN' assume_tac ctxt) i
         val uTname = unique_Tname (rty, qty)
         val Tdef_set = HOLogic.mk_Collect ("x", rty, pred $ Free("x", rty));

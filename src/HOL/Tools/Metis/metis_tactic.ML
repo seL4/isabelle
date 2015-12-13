@@ -272,7 +272,7 @@ val has_tvar = exists_type (exists_subtype (fn TVar _ => true | _ => false)) o T
 
 fun metis_method ((override_type_encs, lam_trans), ths) ctxt facts =
   let val (schem_facts, nonschem_facts) = List.partition has_tvar facts in
-    HEADGOAL (Method.insert_tac nonschem_facts THEN'
+    HEADGOAL (Method.insert_tac ctxt nonschem_facts THEN'
       CHANGED_PROP o metis_tac (these override_type_encs)
         (the_default default_metis_lam_trans lam_trans) ctxt (schem_facts @ ths))
   end
