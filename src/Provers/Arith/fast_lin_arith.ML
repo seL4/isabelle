@@ -695,7 +695,7 @@ fun simpset_lin_arith_tac ctxt = SUBGOAL (fn (A, i) =>
   end);
 
 fun prems_lin_arith_tac ctxt =
-  Method.insert_tac (Simplifier.prems_of ctxt) THEN'
+  Method.insert_tac ctxt (Simplifier.prems_of ctxt) THEN'
   simpset_lin_arith_tac ctxt;
 
 fun lin_arith_tac ctxt =

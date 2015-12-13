@@ -306,10 +306,10 @@ fun method inst_tac tac =
   Args.goal_spec -- Scan.optional (Scan.lift (named_insts --| Args.$$$ "in")) ([], []) --
   Attrib.thms >> (fn ((quant, (insts, fixes)), thms) => fn ctxt => METHOD (fn facts =>
     if null insts andalso null fixes
-    then quant (Method.insert_tac facts THEN' tac ctxt thms)
+    then quant (Method.insert_tac ctxt facts THEN' tac ctxt thms)
     else
       (case thms of
-        [thm] => quant (Method.insert_tac facts THEN' inst_tac ctxt insts fixes thm)
+        [thm] => quant (Method.insert_tac ctxt facts THEN' inst_tac ctxt insts fixes thm)
       | _ => error "Cannot have instantiations with multiple rules")));
 
 

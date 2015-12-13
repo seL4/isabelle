@@ -165,12 +165,12 @@ text \<open>Here we see 3 individual subgoals in the same way as regular
 
 section \<open>Proof methods\<close>
 
-text \<open>A \<open>method\<close> is a function \<open>context \<rightarrow> thm\<^sup>* \<rightarrow> goal
-  \<rightarrow> (cases \<times> goal)\<^sup>*\<^sup>*\<close> that operates on the full Isar goal
-  configuration with context, goal facts, and tactical goal state and
-  enumerates possible follow-up goal states, with the potential
-  addition of named extensions of the proof context (\<^emph>\<open>cases\<close>).
-  The latter feature is rarely used.
+text \<open>
+  A \<open>method\<close> is a function \<open>thm\<^sup>* \<rightarrow> context * goal \<rightarrow> (context \<times> goal)\<^sup>*\<^sup>*\<close>
+  that operates on the full Isar goal configuration with context, goal facts,
+  and tactical goal state and enumerates possible follow-up goal states. Under
+  normal circumstances, the goal context remains unchanged, but it is also
+  possible to declare named extensions of the proof context (\<^emph>\<open>cases\<close>).
 
   This means a proof method is like a structurally enhanced tactic
   (cf.\ \secref{sec:tactics}).  The well-formedness conditions for
@@ -287,11 +287,11 @@ text \<open>A \<open>method\<close> is a function \<open>context \<rightarrow> t
 text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type Proof.method} \\
-  @{index_ML METHOD_CASES: "(thm list -> cases_tactic) -> Proof.method"} \\
+  @{index_ML CONTEXT_METHOD: "(thm list -> context_tactic) -> Proof.method"} \\
   @{index_ML METHOD: "(thm list -> tactic) -> Proof.method"} \\
   @{index_ML SIMPLE_METHOD: "tactic -> Proof.method"} \\
   @{index_ML SIMPLE_METHOD': "(int -> tactic) -> Proof.method"} \\
-  @{index_ML Method.insert_tac: "thm list -> int -> tactic"} \\
+  @{index_ML Method.insert_tac: "Proof.context -> thm list -> int -> tactic"} \\
   @{index_ML Method.setup: "binding -> (Proof.context -> Proof.method) context_parser ->
   string -> theory -> theory"} \\
   \end{mldecls}
@@ -299,9 +299,11 @@ text %mlref \<open>
   \<^descr> Type @{ML_type Proof.method} represents proof methods as
   abstract type.
 
-  \<^descr> @{ML METHOD_CASES}~\<open>(fn facts => cases_tactic)\<close> wraps
-  \<open>cases_tactic\<close> depending on goal facts as proof method with
-  cases; the goal context is passed via method syntax.
+  \<^descr> @{ML CONTEXT_METHOD}~\<open>(fn facts => context_tactic)\<close> wraps \<open>context_tactic\<close>
+  depending on goal facts as a general proof method that may change the proof
+  context dynamically. A typical operation is @{ML
+  Proof_Context.update_cases}, which is wrapped up as combinator @{index_ML
+  CONTEXT_CASES} for convenience.
 
   \<^descr> @{ML METHOD}~\<open>(fn facts => tactic)\<close> wraps \<open>tactic\<close> depending on goal facts as regular proof method; the goal
   context is passed via method syntax.
@@ -315,7 +317,7 @@ text %mlref \<open>
   addresses a specific subgoal as simple proof method that operates on
   subgoal 1.  Goal facts are inserted into the subgoal then the \<open>tactic\<close> is applied.
 
-  \<^descr> @{ML Method.insert_tac}~\<open>facts i\<close> inserts \<open>facts\<close> into subgoal \<open>i\<close>.  This is convenient to reproduce
+  \<^descr> @{ML Method.insert_tac}~\<open>ctxt facts i\<close> inserts \<open>facts\<close> into subgoal \<open>i\<close>.  This is convenient to reproduce
   part of the @{ML SIMPLE_METHOD} or @{ML SIMPLE_METHOD'} wrapping
   within regular @{ML METHOD}, for example.
 
@@ -348,7 +350,7 @@ begin
   have "A \<and> B"
     using a and b
     ML_val \<open>@{Isar.goal}\<close>
-    apply (tactic \<open>Method.insert_tac facts 1\<close>)
+    apply (tactic \<open>Method.insert_tac @{context} facts 1\<close>)
     apply (tactic \<open>(resolve_tac @{context} @{thms conjI} THEN_ALL_NEW assume_tac @{context}) 1\<close>)
     done
 end

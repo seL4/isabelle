@@ -121,7 +121,7 @@ fun mk_partial_elim_rules ctxt result =
 
         fun prep_subgoal_tac i =
           REPEAT (eresolve_tac ctxt @{thms Pair_inject} i)
-          THEN Method.insert_tac (case asms_thms of thm :: thms => (thm RS sym) :: thms) i
+          THEN Method.insert_tac ctxt (case asms_thms of thm :: thms => (thm RS sym) :: thms) i
           THEN propagate_tac ctxt i
           THEN TRY ((EqSubst.eqsubst_asm_tac ctxt [1] psimps i) THEN assume_tac ctxt i)
           THEN bool_subst_tac ctxt i;

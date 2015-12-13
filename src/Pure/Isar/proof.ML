@@ -35,8 +35,9 @@ sig
   val has_bottom_goal: state -> bool
   val using_facts: thm list -> state -> state
   val pretty_state: state -> Pretty.T list
-  val refine: Method.text -> state -> state Seq.seq
-  val refine_end: Method.text -> state -> state Seq.seq
+  val refine: Method.text -> state -> state Seq.result Seq.seq
+  val refine_end: Method.text -> state -> state Seq.result Seq.seq
+  val refine_singleton: Method.text -> state -> state
   val refine_insert: thm list -> state -> state
   val refine_primitive: (Proof.context -> thm -> thm) -> state -> state
   val raw_goal: state -> {context: context, facts: thm list, goal: thm}
@@ -90,14 +91,11 @@ sig
   val end_block: state -> state
   val begin_notepad: context -> state
   val end_notepad: state -> context
-  val proof: Method.text option -> state -> state Seq.seq
-  val proof_results: Method.text_range option -> state -> state Seq.result Seq.seq
+  val proof: Method.text_range option -> state -> state Seq.result Seq.seq
   val defer: int -> state -> state
   val prefer: int -> state -> state
-  val apply: Method.text -> state -> state Seq.seq
-  val apply_end: Method.text -> state -> state Seq.seq
-  val apply_results: Method.text_range -> state -> state Seq.result Seq.seq
-  val apply_end_results: Method.text_range -> state -> state Seq.result Seq.seq
+  val apply: Method.text_range -> state -> state Seq.result Seq.seq
+  val apply_end: Method.text_range -> state -> state Seq.result Seq.seq
   val local_qed: Method.text_range option * bool -> state -> state
   val theorem: Method.text option -> (thm list list -> context -> context) ->
     (term * term list) list list -> context -> state
@@ -424,14 +422,13 @@ fun goal_cases ctxt st =
 
 fun apply_method text ctxt state =
   find_goal state |> (fn (goal_ctxt, {statement, using, goal, before_qed, after_qed}) =>
-    Method.evaluate text ctxt using goal
-    |> Seq.map (fn (meth_cases, goal') =>
+    Method.evaluate text ctxt using (goal_ctxt, goal)
+    |> Seq.map_result (fn (goal_ctxt', goal') =>
       let
-        val goal_ctxt' = goal_ctxt
-          |> Proof_Context.update_cases_legacy (no_goal_cases goal @ goal_cases ctxt goal')
-          |> Proof_Context.update_cases meth_cases;
+        val goal_ctxt'' = goal_ctxt'
+          |> Proof_Context.update_cases_legacy (no_goal_cases goal @ goal_cases ctxt goal');
         val state' = state
-          |> map_goal (K (goal_ctxt', statement, using, goal', before_qed, after_qed));
+          |> map_goal (K (goal_ctxt'', statement, using, goal', before_qed, after_qed));
       in state' end));
 
 in
@@ -439,11 +436,13 @@ in
 fun refine text state = apply_method text (context_of state) state;
 fun refine_end text state = apply_method text (#1 (find_goal state)) state;
 
-fun refine_insert ths =
-  Seq.hd o refine (Method.Basic (K (Method.insert ths)));
+fun refine_singleton text = refine text #> Seq.the_result "";
 
-fun refine_primitive r =  (* FIXME Seq.Error!? *)
-  Seq.hd o refine (Method.Basic (fn ctxt => fn _ => EMPTY_CASES (PRIMITIVE (r ctxt))));
+fun refine_insert ths =
+  refine_singleton (Method.Basic (K (Method.insert ths)));
+
+fun refine_primitive r =
+  refine_singleton (Method.Basic (fn ctxt => fn _ => Method.CONTEXT_TACTIC (PRIMITIVE (r ctxt))));
 
 end;
 
@@ -924,17 +923,15 @@ val end_notepad =
 (* sub-proofs *)
 
 fun proof opt_text =
-  assert_backward
-  #> refine (the_default Method.standard_text opt_text)
-  #> Seq.map
-    (using_facts []
-      #> enter_forward
-      #> open_block
-      #> reset_goal);
-
-fun proof_results arg =
-  Seq.APPEND (proof (Method.text arg) #> Seq.make_results,
-    method_error "initial" (Method.position arg));
+  Seq.APPEND
+    (assert_backward
+      #> refine (the_default Method.standard_text (Method.text opt_text))
+      #> Seq.map_result
+        (using_facts []
+          #> enter_forward
+          #> open_block
+          #> reset_goal),
+     method_error "initial" (Method.position opt_text));
 
 fun end_proof bot (prev_pos, (opt_text, immed)) =
   let
@@ -951,8 +948,8 @@ fun end_proof bot (prev_pos, (opt_text, immed)) =
       |> assert_current_goal true
       |> using_facts []
       |> `before_qed |-> (refine o the_default Method.succeed_text)
-      |> Seq.maps (refine finish_text)
-      |> Seq.make_results, method_error "terminal" terminal_pos)
+      |> Seq.maps_results (refine finish_text),
+      method_error "terminal" terminal_pos)
     #> Seq.maps_results (Seq.single o finished_goal finished_pos)
   end;
 
@@ -966,21 +963,18 @@ fun check_result msg sq =
 
 fun defer i =
   assert_no_chain #>
-  refine (Method.Basic (fn _ => METHOD (fn _ => ASSERT_SUBGOAL defer_tac i))) #> Seq.hd;
+  refine_singleton (Method.Basic (fn _ => METHOD (fn _ => ASSERT_SUBGOAL defer_tac i)));
 
 fun prefer i =
   assert_no_chain #>
-  refine (Method.Basic (fn _ => METHOD (fn _ => ASSERT_SUBGOAL prefer_tac i))) #> Seq.hd;
+  refine_singleton (Method.Basic (fn _ => METHOD (fn _ => ASSERT_SUBGOAL prefer_tac i)));
 
-fun apply text = assert_backward #> refine text #> Seq.map (using_facts []);
+fun apply (text, (pos, _)) =
+  Seq.APPEND (assert_backward #> refine text #> Seq.map_result (using_facts []),
+    method_error "" pos);
 
-fun apply_end text = assert_forward #> refine_end text;
-
-fun apply_results (text, (pos, _)) =
-  Seq.APPEND (apply text #> Seq.make_results, method_error "" pos);
-
-fun apply_end_results (text, (pos, _)) =
-  Seq.APPEND (apply_end text #> Seq.make_results, method_error "" pos);
+fun apply_end (text, (pos, _)) =
+  Seq.APPEND (assert_forward #> refine_end text, method_error "" pos);
 
 
 
@@ -1002,10 +996,9 @@ fun implicit_vars props =
   in map (Logic.mk_term o Var) vars end;
 
 fun refine_terms n =
-  refine (Method.Basic (fn ctxt => EMPTY_CASES o
+  refine_singleton (Method.Basic (fn ctxt => Method.CONTEXT_TACTIC o
     K (HEADGOAL (PRECISE_CONJUNCTS n
-      (HEADGOAL (CONJUNCTS (ALLGOALS (resolve_tac ctxt [Drule.termI]))))))))
-  #> Seq.hd;
+      (HEADGOAL (CONJUNCTS (ALLGOALS (resolve_tac ctxt [Drule.termI]))))))));
 
 in
 
@@ -1042,7 +1035,7 @@ fun generic_goal kind before_qed after_qed goal_ctxt goal_propss result_binds st
     |> chaining ? (`the_facts #-> using_facts)
     |> reset_facts
     |> not (null vars) ? refine_terms (length goal_propss)
-    |> null goal_props ? (refine (Method.Basic Method.assumption) #> Seq.hd)
+    |> null goal_props ? refine_singleton (Method.Basic Method.assumption)
   end;
 
 fun generic_qed state =
@@ -1151,7 +1144,7 @@ fun global_qed arg =
 local
 
 fun terminal_proof qeds initial terminal =
-  proof_results (SOME initial) #> Seq.maps_results (qeds (#2 (#2 initial), terminal))
+  proof (SOME initial) #> Seq.maps_results (qeds (#2 (#2 initial), terminal))
   #> Seq.the_result "";
 
 in

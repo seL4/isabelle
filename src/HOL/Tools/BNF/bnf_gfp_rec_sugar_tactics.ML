@@ -54,7 +54,7 @@ fun distinct_in_prems_tac ctxt distincts =
   assume_tac ctxt;
 
 fun mk_primcorec_nchotomy_tac ctxt exhaust_discs =
-  HEADGOAL (Method.insert_tac exhaust_discs THEN' clean_blast_tac ctxt);
+  HEADGOAL (Method.insert_tac ctxt exhaust_discs THEN' clean_blast_tac ctxt);
 
 fun mk_primcorec_exhaust_tac ctxt frees n nchotomy =
   let val ks = 1 upto n in

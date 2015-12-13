@@ -47,7 +47,7 @@ sig
   val ALLGOALS: (int -> tactic) -> tactic
   val SOMEGOAL: (int -> tactic) -> tactic
   val FIRSTGOAL: (int -> tactic) -> tactic
-  val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
+  val HEADGOAL: (int -> tactic) -> tactic
   val REPEAT_SOME: (int -> tactic) -> tactic
   val REPEAT_DETERM_SOME: (int -> tactic) -> tactic
   val REPEAT_FIRST: (int -> tactic) -> tactic
@@ -358,7 +358,7 @@ fun SOLVED' tac i st =
   following usual convention for subgoal-based tactics.*)
 fun (tac1 THEN_ALL_NEW tac2) i st =
   st |> (tac1 i THEN (fn st' =>
-    Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st) st'));
+    st' |> Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st)));
 
 (*Repeatedly dig into any emerging subgoals.*)
 fun REPEAT_ALL_NEW tac =

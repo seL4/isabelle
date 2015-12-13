@@ -626,6 +626,12 @@ remove '!' and add '?' as required.
 
 *** ML ***
 
+* Isar proof methods are based on a slightly more general type
+context_tactic, which allows to change the proof context dynamically
+(e.g. to update cases) and indicate explicit Seq.Error results. Former
+METHOD_CASES is superseded by CONTEXT_METHOD; further combinators are
+provided in src/Pure/Isar/method.ML for convenience. INCOMPATIBILITY.
+
 * Antiquotation @{undefined} or \<^undefined> inlines (raise Match).
 
 * The auxiliary module Pure/display.ML has been eliminated. Its

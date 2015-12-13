@@ -4,34 +4,35 @@
 Isar proof methods.
 *)
 
-infix 1 THEN_ALL_NEW_CASES;
+infix 1 CONTEXT_THEN_ALL_NEW;
 
 signature BASIC_METHOD =
 sig
-  type cases_state = Rule_Cases.cases * thm
-  type cases_tactic = thm -> cases_state Seq.seq
-  val CASES: Rule_Cases.cases -> tactic -> cases_tactic
-  val EMPTY_CASES: tactic -> cases_tactic
-  val SUBGOAL_CASES: (term * int -> cases_tactic) -> int -> cases_tactic
-  val THEN_ALL_NEW_CASES: (int -> cases_tactic) * (int -> tactic) -> int -> cases_tactic
+  type context_state = Proof.context * thm
+  type context_tactic = context_state -> context_state Seq.result Seq.seq
+  val CONTEXT_CASES: Rule_Cases.cases -> tactic -> context_tactic
+  val CONTEXT_SUBGOAL: (term * int -> context_tactic) -> int -> context_tactic
+  val CONTEXT_THEN_ALL_NEW: (int -> context_tactic) * (int -> tactic) -> int -> context_tactic
 end;
 
 signature METHOD =
 sig
   include BASIC_METHOD
-  type method = thm list -> cases_tactic
-  val METHOD_CASES: (thm list -> cases_tactic) -> method
+  type method = thm list -> context_tactic
+  val CONTEXT: Proof.context -> thm Seq.seq -> context_state Seq.result Seq.seq
+  val CONTEXT_TACTIC: tactic -> context_tactic
+  val NO_CONTEXT_TACTIC: Proof.context -> context_tactic -> tactic
+  val CONTEXT_METHOD: (thm list -> context_tactic) -> method
   val METHOD: (thm list -> tactic) -> method
   val fail: method
   val succeed: method
-  val insert_tac: thm list -> int -> tactic
+  val insert_tac: Proof.context -> thm list -> int -> tactic
   val insert: thm list -> method
-  val insert_facts: method
   val SIMPLE_METHOD: tactic -> method
   val SIMPLE_METHOD': (int -> tactic) -> method
   val SIMPLE_METHOD'': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
-  val goal_cases_tac: Proof.context -> string list -> cases_tactic
-  val cheating: Proof.context -> bool -> method
+  val goal_cases_tac: string list -> context_tactic
+  val cheating: bool -> method
   val intro: Proof.context -> thm list -> method
   val elim: Proof.context -> thm list -> method
   val unfold: thm list -> Proof.context -> method
@@ -83,9 +84,9 @@ sig
   val closure: bool Config.T
   val method_cmd: Proof.context -> Token.src -> Proof.context -> method
   val detect_closure_state: thm -> bool
-  val STATIC: (unit -> unit) -> cases_tactic
-  val RUNTIME: cases_tactic -> cases_tactic
-  val sleep: Time.time -> cases_tactic
+  val STATIC: (unit -> unit) -> context_tactic
+  val RUNTIME: context_tactic -> context_tactic
+  val sleep: Time.time -> context_tactic
   val evaluate: text -> Proof.context -> method
   type modifier = {init: Proof.context -> Proof.context, attribute: attribute, pos: Position.T}
   val modifier: attribute -> Position.T -> modifier
@@ -105,33 +106,44 @@ struct
 
 (** proof methods **)
 
-(* tactics with cases *)
+(* tactics with proof context / cases *)
 
-type cases_state = Rule_Cases.cases * thm;
-type cases_tactic = thm -> cases_state Seq.seq;
+type context_state = Proof.context * thm;
+type context_tactic = context_state -> context_state Seq.result Seq.seq;
 
-fun CASES cases tac st = Seq.map (pair cases) (tac st);
-fun EMPTY_CASES tac = CASES [] tac;
+fun CONTEXT ctxt : thm Seq.seq -> context_state Seq.result Seq.seq =
+  Seq.map (Seq.Result o pair ctxt);
 
-fun SUBGOAL_CASES tac i st =
-  (case try Logic.nth_prem (i, Thm.prop_of st) of
-    SOME goal => tac (goal, i) st
-  | NONE => Seq.empty);
+fun CONTEXT_TACTIC tac : context_tactic =
+  fn (ctxt, st) => CONTEXT ctxt (tac st);
 
-fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
-  st |> tac1 i |> Seq.maps (fn (cases, st') =>
-    CASES cases (Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st)) st');
+fun NO_CONTEXT_TACTIC ctxt (tac: context_tactic) st =
+  tac (ctxt, st) |> Seq.filter_results |> Seq.map snd;
+
+fun CONTEXT_CASES cases tac : context_tactic =
+  fn (ctxt, st) => CONTEXT (Proof_Context.update_cases cases ctxt) (tac st);
+
+fun CONTEXT_SUBGOAL tac i : context_tactic =
+  fn (ctxt, st) =>
+    (case try Logic.nth_prem (i, Thm.prop_of st) of
+      SOME goal => tac (goal, i) (ctxt, st)
+    | NONE => Seq.empty);
+
+fun (tac1 CONTEXT_THEN_ALL_NEW tac2) i : context_tactic =
+  fn (ctxt, st) =>
+    (ctxt, st) |> tac1 i |> Seq.maps_results (fn (ctxt', st') =>
+      CONTEXT ctxt' ((Seq.INTERVAL tac2 i (i + Thm.nprems_of st' - Thm.nprems_of st)) st'));
 
 
 (* type method *)
 
-type method = thm list -> cases_tactic;
+type method = thm list -> context_tactic;
 
-fun METHOD_CASES tac : method =
-  fn facts => Seq.THEN (ALLGOALS Goal.conjunction_tac, tac facts);
+fun CONTEXT_METHOD tac : method =
+  fn facts => CONTEXT_TACTIC (ALLGOALS Goal.conjunction_tac) #> Seq.maps_results (tac facts);
 
 fun METHOD tac : method =
-  fn facts => EMPTY_CASES (ALLGOALS Goal.conjunction_tac THEN tac facts);
+  fn facts => CONTEXT_TACTIC (ALLGOALS Goal.conjunction_tac THEN tac facts);
 
 val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
@@ -139,42 +151,42 @@ val succeed = METHOD (K all_tac);
 
 (* insert facts *)
 
-local
+fun insert_tac _ [] _ = all_tac
+  | insert_tac ctxt facts i =
+      EVERY (map (fn r => resolve_tac ctxt [Drule.forall_intr_vars r COMP_INCR revcut_rl] i) facts);
 
-fun cut_rule_tac rule =
-  resolve0_tac [Drule.forall_intr_vars rule COMP_INCR revcut_rl];
+fun insert thms =
+  CONTEXT_METHOD (fn _ => fn (ctxt, st) => st |> ALLGOALS (insert_tac ctxt thms) |> CONTEXT ctxt);
 
-in
 
-fun insert_tac [] _ = all_tac
-  | insert_tac facts i = EVERY (map (fn th => cut_rule_tac th i) facts);
+fun SIMPLE_METHOD tac =
+  CONTEXT_METHOD (fn facts => fn (ctxt, st) =>
+    st |> (ALLGOALS (insert_tac ctxt facts) THEN tac) |> CONTEXT ctxt);
 
-val insert_facts = METHOD (ALLGOALS o insert_tac);
-fun insert thms = METHOD (fn _ => ALLGOALS (insert_tac thms));
+fun SIMPLE_METHOD'' quant tac =
+  CONTEXT_METHOD (fn facts => fn (ctxt, st) =>
+    st |> quant (insert_tac ctxt facts THEN' tac) |> CONTEXT ctxt);
 
-fun SIMPLE_METHOD tac = METHOD (fn facts => ALLGOALS (insert_tac facts) THEN tac);
-fun SIMPLE_METHOD'' quant tac = METHOD (fn facts => quant (insert_tac facts THEN' tac));
 val SIMPLE_METHOD' = SIMPLE_METHOD'' HEADGOAL;
-
-end;
 
 
 (* goals as cases *)
 
-fun goal_cases_tac ctxt case_names st =
-  let
-    val cases =
-      (if null case_names then map string_of_int (1 upto Thm.nprems_of st) else case_names)
-      |> map (rpair [] o rpair [])
-      |> Rule_Cases.make_common ctxt (Thm.prop_of (Rule_Cases.internalize_params st));
-  in Seq.single (cases, st) end;
+fun goal_cases_tac case_names : context_tactic =
+  fn (ctxt, st) =>
+    let
+      val cases =
+        (if null case_names then map string_of_int (1 upto Thm.nprems_of st) else case_names)
+        |> map (rpair [] o rpair [])
+        |> Rule_Cases.make_common ctxt (Thm.prop_of (Rule_Cases.internalize_params st));
+    in CONTEXT_CASES cases all_tac (ctxt, st) end;
 
 
 (* cheating *)
 
-fun cheating ctxt int = METHOD (fn _ => fn st =>
+fun cheating int = CONTEXT_METHOD (fn _ => fn (ctxt, st) =>
   if int orelse Config.get ctxt quick_and_dirty then
-    ALLGOALS (Skip_Proof.cheat_tac ctxt) st
+    CONTEXT ctxt (ALLGOALS (Skip_Proof.cheat_tac ctxt) st)
   else error "Cheating requires quick_and_dirty mode!");
 
 
@@ -195,7 +207,7 @@ fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (Local_Defs.fold_tac ctxt t
 fun atomize false ctxt =
       SIMPLE_METHOD' (CHANGED_PROP o Object_Logic.atomize_prems_tac ctxt)
   | atomize true ctxt =
-      EMPTY_CASES o K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac ctxt));
+      CONTEXT_TACTIC o K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac ctxt));
 
 
 (* this -- resolve facts directly *)
@@ -293,7 +305,7 @@ end;
 (* intros_tac -- pervasive search spanned by intro rules *)
 
 fun gen_intros_tac goals ctxt intros facts =
-  goals (insert_tac facts THEN'
+  goals (insert_tac ctxt facts THEN'
       REPEAT_ALL_NEW (resolve_tac ctxt intros))
     THEN Tactic.distinct_subgoals_tac;
 
@@ -369,7 +381,7 @@ val succeed_text = Basic (K succeed);
 val standard_text = Source (Token.make_src ("standard", Position.none) []);
 val this_text = Basic this;
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
-fun sorry_text int = Basic (fn ctxt => cheating ctxt int);
+fun sorry_text int = Basic (fn _ => cheating int);
 
 fun finish_text (NONE, immed) = Basic (finish immed)
   | finish_text (SOME txt, immed) =
@@ -455,7 +467,7 @@ fun method_closure ctxt src =
   let
     val src' = map Token.init_assignable src;
     val ctxt' = Context_Position.not_really ctxt;
-    val _ = Seq.pull (method ctxt' src' ctxt' [] (Goal.protect 0 Drule.dummy_thm));
+    val _ = Seq.pull (method ctxt' src' ctxt' [] (ctxt', Goal.protect 0 Drule.dummy_thm));
   in map Token.closure src' end;
 
 val closure = Config.bool (Config.declare ("Method.closure", @{here}) (K (Config.Bool true)));
@@ -473,39 +485,47 @@ fun detect_closure_state st =
     NONE => false
   | SOME t => Term.is_dummy_pattern t);
 
-fun STATIC test st =
-  if detect_closure_state st then (test (); Seq.single ([], st)) else Seq.empty;
+fun STATIC test : context_tactic =
+  fn (ctxt, st) =>
+    if detect_closure_state st then (test (); Seq.single (Seq.Result (ctxt, st))) else Seq.empty;
 
-fun RUNTIME (tac: cases_tactic) st =
-  if detect_closure_state st then Seq.empty else tac st;
+fun RUNTIME (tac: context_tactic) (ctxt, st) =
+  if detect_closure_state st then Seq.empty else tac (ctxt, st);
 
-fun sleep t = RUNTIME (fn st => (OS.Process.sleep t; Seq.single ([], st)));
+fun sleep t = RUNTIME (fn ctxt_st => (OS.Process.sleep t; Seq.single (Seq.Result ctxt_st)));
 
 
 (* evaluate method text *)
 
 local
 
-fun APPEND_CASES (tac: cases_tactic) ((cases, st): cases_state) =
-  tac st |> Seq.map (fn (cases', st') => (cases @ cases', st'));
-
-fun BYPASS_CASES (tac: tactic) ((cases, st): cases_state) =
-  tac st |> Seq.map (pair cases);
-
 val op THEN = Seq.THEN;
 
-val preparation = BYPASS_CASES (ALLGOALS Goal.conjunction_tac);
+fun BYPASS_CONTEXT (tac: tactic) =
+  fn result =>
+    (case result of
+      Seq.Error _ => Seq.single result
+    | Seq.Result (ctxt, st) => tac st |> CONTEXT ctxt);
+
+val preparation = BYPASS_CONTEXT (ALLGOALS Goal.conjunction_tac);
 
 fun RESTRICT_GOAL i n method =
-  BYPASS_CASES (PRIMITIVE (Goal.restrict i n)) THEN
+  BYPASS_CONTEXT (PRIMITIVE (Goal.restrict i n)) THEN
   method THEN
-  BYPASS_CASES (PRIMITIVE (Goal.unrestrict i));
+  BYPASS_CONTEXT (PRIMITIVE (Goal.unrestrict i));
 
 fun SELECT_GOAL method i = RESTRICT_GOAL i 1 method;
 
-fun (method1 THEN_ALL_NEW method2) i (st: cases_state) =
-  st |> (method1 i THEN (fn st' =>
-    Seq.INTERVAL method2 i (i + Thm.nprems_of (snd st') - Thm.nprems_of (snd st)) st'));
+fun (method1 THEN_ALL_NEW method2) i (result : context_state Seq.result) =
+  (case result of
+    Seq.Error _ => Seq.single result
+  | Seq.Result (_, st) =>
+      result |> method1 i
+      |> Seq.maps (fn result' =>
+          (case result' of
+            Seq.Error _ => Seq.single result'
+          | Seq.Result (_, st') =>
+              result' |> Seq.INTERVAL method2 i (i + Thm.nprems_of st' - Thm.nprems_of st))))
 
 fun COMBINATOR1 comb [meth] = comb meth
   | COMBINATOR1 _ _ = raise Fail "Method combinator requires exactly one argument";
@@ -514,7 +534,7 @@ fun combinator Then = Seq.EVERY
   | combinator Then_All_New =
       (fn [] => Seq.single
         | methods =>
-            preparation THEN foldl1 (op THEN_ALL_NEW) (map SELECT_GOAL methods) 1)
+            preparation THEN (foldl1 (op THEN_ALL_NEW) (map SELECT_GOAL methods) 1))
   | combinator Orelse = Seq.FIRST
   | combinator Try = COMBINATOR1 Seq.TRY
   | combinator Repeat1 = COMBINATOR1 Seq.REPEAT1
@@ -525,15 +545,16 @@ in
 
 fun evaluate text ctxt =
   let
-    fun eval (Basic meth) = APPEND_CASES o meth ctxt
-      | eval (Source src) = APPEND_CASES o method_cmd ctxt src ctxt
+    fun eval0 m facts = Seq.single #> Seq.maps_results (m facts);
+    fun eval (Basic m) = eval0 (m ctxt)
+      | eval (Source src) = eval0 (method_cmd ctxt src ctxt)
       | eval (Combinator (_, c, txts)) =
           let
             val comb = combinator c;
             val meths = map eval txts;
           in fn facts => comb (map (fn meth => meth facts) meths) end;
     val meth = eval text;
-  in fn facts => fn st => meth facts ([], st) end;
+  in fn facts => fn ctxt_st => meth facts (Seq.Result ctxt_st) end;
 
 end;
 
@@ -711,21 +732,19 @@ val _ = Theory.setup
   setup @{binding succeed} (Scan.succeed (K succeed)) "succeed" #>
   setup @{binding sleep} (Scan.lift Parse.real >> (fn s => fn _ => fn _ => sleep (seconds s)))
     "succeed after delay (in seconds)" #>
-  setup @{binding "-"} (Scan.succeed (K insert_facts))
+  setup @{binding "-"} (Scan.succeed (K (SIMPLE_METHOD all_tac)))
     "insert current facts, nothing else" #>
-  setup @{binding goal_cases} (Scan.lift (Scan.repeat Args.name_token) >> (fn names => fn ctxt =>
-    METHOD_CASES (fn _ => fn st =>
-      let
-        val _ =
-          (case drop (Thm.nprems_of st) names of
-            [] => ()
-          | bad =>
-              if detect_closure_state st then ()
-              else
-                (* FIXME Seq.Error *)
-                error ("Excessive case names: " ^ commas_quote (map Token.content_of bad) ^
-                  Position.here (Position.set_range (Token.range_of bad))));
-      in goal_cases_tac ctxt (map Token.content_of names) st end)))
+  setup @{binding goal_cases} (Scan.lift (Scan.repeat Args.name_token) >> (fn names => fn _ =>
+    CONTEXT_METHOD (fn _ => fn (ctxt, st) =>
+      (case drop (Thm.nprems_of st) names of
+        [] => NONE
+      | bad =>
+          if detect_closure_state st then NONE
+          else
+            SOME (fn () => ("Excessive case names: " ^ commas_quote (map Token.content_of bad) ^
+              Position.here (Position.set_range (Token.range_of bad)))))
+      |> (fn SOME msg => Seq.single (Seq.Error msg)
+           | NONE => goal_cases_tac (map Token.content_of names) (ctxt, st)))))
     "bind cases for goals" #>
   setup @{binding insert} (Attrib.thms >> (K o insert))
     "insert theorems, ignoring facts" #>
@@ -754,7 +773,7 @@ val _ = Theory.setup
       "rotate assumptions of goal" #>
   setup @{binding tactic} (parse_tactic >> (K o METHOD))
     "ML tactic as proof method" #>
-  setup @{binding raw_tactic} (parse_tactic >> (fn tac => fn _ => EMPTY_CASES o tac))
+  setup @{binding raw_tactic} (parse_tactic >> (fn tac => fn _ => CONTEXT_TACTIC o tac))
     "ML tactic as raw proof method");
 
 
@@ -767,7 +786,7 @@ end;
 structure Basic_Method: BASIC_METHOD = Method;
 open Basic_Method;
 
-val METHOD_CASES = Method.METHOD_CASES;
+val CONTEXT_METHOD = Method.CONTEXT_METHOD;
 val METHOD = Method.METHOD;
 val SIMPLE_METHOD = Method.SIMPLE_METHOD;
 val SIMPLE_METHOD' = Method.SIMPLE_METHOD';

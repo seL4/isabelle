@@ -294,9 +294,6 @@ fun do_inst fact_insts' env text ctxt =
     (text', ctxt')
   end;
 
-fun DROP_CASES (tac: cases_tactic) : tactic =
-  tac #> Seq.map (fn (_, st) => st);
-
 fun prep_fact_pat ((x, args), pat) ctxt =
   let
     val ((params, pat'), ctxt') = Variable.focus NONE pat ctxt;
@@ -675,11 +672,15 @@ fun real_match using goal_ctxt fixes m text pats st =
   in
     (case m of
       Match_Fact net =>
-        Seq.map (fn (text, ctxt') => Method_Closure.method_evaluate text ctxt' using st)
-          (make_fact_matches goal_ctxt (Item_Net.retrieve net))
+        make_fact_matches goal_ctxt (Item_Net.retrieve net)
+        |> Seq.map (fn (text, ctxt') =>
+          Method_Closure.method_evaluate text ctxt' using (ctxt', st)
+          |> Seq.filter_results |> Seq.map snd)
     | Match_Term net =>
-        Seq.map (fn (text, ctxt') => Method_Closure.method_evaluate text ctxt' using st)
-          (make_term_matches goal_ctxt (Item_Net.retrieve net))
+        make_term_matches goal_ctxt (Item_Net.retrieve net)
+        |> Seq.map (fn (text, ctxt') =>
+          Method_Closure.method_evaluate text ctxt' using (ctxt', st)
+          |> Seq.filter_results |> Seq.map snd)
     | match_kind =>
         if Thm.no_prems st then Seq.empty
         else
@@ -758,9 +759,9 @@ fun real_match using goal_ctxt fixes m text pats st =
               end;
 
             fun apply_text (text, ctxt') =
-              DROP_CASES (Method_Closure.method_evaluate text ctxt' using) focused_goal
-              |> Seq.maps (DETERM (do_retrofit ctxt'))
-              |> Seq.map (pair ([]: Rule_Cases.cases));
+              Method.NO_CONTEXT_TACTIC ctxt'
+                (Method_Closure.method_evaluate text ctxt' using) focused_goal
+              |> Seq.maps (DETERM (do_retrofit ctxt'));
           in Seq.map apply_text texts end)
   end;
 
@@ -770,16 +771,19 @@ val _ =
       (parse_match_kind :--
         (fn kind => Scan.lift @{keyword "in"} |-- Parse.enum1' "\<bar>" (parse_named_pats kind)) >>
         (fn (matches, bodies) => fn ctxt =>
-          METHOD_CASES (fn using => Method.RUNTIME (fn st =>
+          CONTEXT_METHOD (fn using => Method.RUNTIME (fn (goal_ctxt, st) =>
             let
-              fun exec (pats, fixes, text) goal =
+              fun exec (pats, fixes, text) st' =
                 let
                   val ctxt' =
                     fold Variable.declare_term fixes ctxt
                     (*FIXME Is this a good idea? We really only care about the maxidx*)
                     |> fold (fn (_, t) => Variable.declare_term t) pats;
-                in real_match using ctxt' fixes matches text pats goal end;
-            in Seq.flat (Seq.FIRST (map exec bodies) st) end))))
+                in real_match using ctxt' fixes matches text pats st' end;
+            in
+              Seq.flat (Seq.FIRST (map exec bodies) st)
+              |> Method.CONTEXT goal_ctxt
+            end))))
       "structural analysis/matching on goals");
 
 end;

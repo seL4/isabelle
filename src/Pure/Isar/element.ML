@@ -272,7 +272,7 @@ fun prove_witness ctxt t tac =
 local
 
 val refine_witness =
-  Proof.refine (Method.Basic (fn ctxt => EMPTY_CASES o
+  Proof.refine_singleton (Method.Basic (fn ctxt => Method.CONTEXT_TACTIC o
     K (ALLGOALS (CONJUNCTS (ALLGOALS (CONJUNCTS (TRYALL (resolve_tac ctxt [Drule.protectI]))))))));
 
 fun gen_witness_proof proof after_qed wit_propss eq_props =
@@ -283,7 +283,7 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
     fun after_qed' thmss =
       let val (wits, eqs) = split_last ((map o map) Thm.close_derivation thmss);
       in after_qed ((map2 o map2) (curry Witness) wit_propss wits) eqs end;
-  in proof after_qed' propss #> refine_witness #> Seq.hd end;
+  in proof after_qed' propss #> refine_witness end;
 
 fun proof_local cmd goal_ctxt int after_qed propp =
   let

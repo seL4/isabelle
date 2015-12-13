@@ -1706,8 +1706,7 @@ fun bnf_cmd (raw_csts, raw_plugins) =
       (lthy
        |> Proof.theorem NONE (uncurry (register_bnf plugins key) oo after_qed mk_wit_thms)
          (map (single o rpair []) goals @ nontriv_wit_goals)
-       |> Proof.refine (Method.primitive_text (K I))
-       |> Seq.hd)
+       |> Proof.refine_singleton (Method.primitive_text (K I)))
   end) o prepare_def Do_Inline (user_policy Note_Some) false I Syntax.read_typ Syntax.read_term
     NONE Binding.empty Binding.empty [] raw_csts;
 

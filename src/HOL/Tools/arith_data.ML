@@ -48,8 +48,8 @@ val _ =
       (Scan.succeed (fn ctxt =>
         METHOD (fn facts =>
           HEADGOAL
-          (Method.insert_tac (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
-            THEN' arith_tac ctxt))))
+            (Method.insert_tac ctxt (rev (Named_Theorems.get ctxt @{named_theorems arith}) @ facts)
+              THEN' arith_tac ctxt))))
       "various arithmetic decision procedures");
 
 

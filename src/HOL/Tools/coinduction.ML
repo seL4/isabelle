@@ -8,7 +8,7 @@ Coinduction method that avoids some boilerplate compared to coinduct.
 
 signature COINDUCTION =
 sig
-  val coinduction_tac: Proof.context -> term list -> thm option -> thm list -> cases_tactic
+  val coinduction_tac: term list -> thm option -> thm list -> int -> context_tactic
 end;
 
 structure Coinduction : COINDUCTION =
@@ -37,85 +37,85 @@ fun DELETE_PREMS_AFTER skip tac i st =
     (THEN_ALL_NEW_SKIP skip tac (REPEAT_DETERM_N n o eresolve0_tac [thin_rl])) i st
   end;
 
-fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (fn (goal, _) =>
-  let
-    val lhs_of_eq = HOLogic.dest_Trueprop #> HOLogic.dest_eq #> fst;
-    fun find_coinduct t =
-      Induct.find_coinductP ctxt t @
-      (try (Induct.find_coinductT ctxt o fastype_of o lhs_of_eq) t |> the_default [])
-    val raw_thm =
-      (case opt_raw_thm of
-        SOME raw_thm => raw_thm
-      | NONE => goal |> Logic.strip_assums_concl |> find_coinduct |> hd);
-    val skip = Integer.max 1 (Rule_Cases.get_consumes raw_thm) - 1
-    val cases = Rule_Cases.get raw_thm |> fst
-  in
-    HEADGOAL (
-      Object_Logic.rulify_tac ctxt THEN'
-      Method.insert_tac prems THEN'
-      Object_Logic.atomize_prems_tac ctxt THEN'
-      DELETE_PREMS_AFTER skip (Subgoal.FOCUS (fn {concl, context = ctxt, params, prems, ...} =>
-        let
-          val vars = raw_vars @ map (Thm.term_of o snd) params;
-          val names_ctxt = ctxt
-            |> fold Variable.declare_names vars
-            |> fold Variable.declare_thm (raw_thm :: prems);
-          val thm_concl = Thm.cprop_of raw_thm |> strip_imp_concl;
-          val (instT, inst) = Thm.match (thm_concl, concl);
-          val rhoTs = map (fn (v, T) => (TVar v, Thm.typ_of T)) instT;
-          val rhots = map (fn (v, t) => (Var v, Thm.term_of t)) inst;
-          val xs = hd (Thm.prems_of raw_thm) |> HOLogic.dest_Trueprop |> strip_comb |> snd
-            |> map (subst_atomic_types rhoTs);
-          val raw_eqs = map (fn x => (x, AList.lookup op aconv rhots x |> the)) xs;
-          val ((names, ctxt), Ts) = map_split (apfst fst o dest_Var o fst) raw_eqs
-            |>> (fn names => Variable.variant_fixes names names_ctxt) ;
-          val eqs =
-            @{map 3} (fn name => fn T => fn (_, rhs) =>
-              HOLogic.mk_eq (Free (name, T), rhs))
-            names Ts raw_eqs;
-          val phi = eqs @ map (HOLogic.dest_Trueprop o Thm.prop_of) prems
-            |> try (Library.foldr1 HOLogic.mk_conj)
-            |> the_default @{term True}
-            |> Ctr_Sugar_Util.list_exists_free vars
-            |> Term.map_abs_vars (Variable.revert_fixed ctxt)
-            |> fold_rev Term.absfree (names ~~ Ts)
-            |> Thm.cterm_of ctxt;
-          val thm = infer_instantiate' ctxt [SOME phi] raw_thm;
-          val e = length eqs;
-          val p = length prems;
-        in
-          HEADGOAL (EVERY' [resolve_tac ctxt [thm],
-            EVERY' (map (fn var =>
-              resolve_tac ctxt
-                [infer_instantiate' ctxt [NONE, SOME (Thm.cterm_of ctxt var)] exI]) vars),
-            if p = 0 then Ctr_Sugar_Util.CONJ_WRAP' (K (resolve_tac ctxt [refl])) eqs
-            else
-              REPEAT_DETERM_N e o (resolve_tac ctxt [conjI] THEN' resolve_tac ctxt [refl]) THEN'
-              Ctr_Sugar_Util.CONJ_WRAP' (resolve_tac ctxt o single) prems,
-            K (ALLGOALS_SKIP skip
-               (REPEAT_DETERM_N (length vars) o (eresolve_tac ctxt [exE] THEN' rotate_tac ~1) THEN'
-               DELETE_PREMS_AFTER 0 (Subgoal.FOCUS (fn {prems, params, context = ctxt, ...} =>
-                 (case prems of
-                   [] => all_tac
-                 | inv :: case_prems =>
-                     let
-                       val (init, last) = funpow_yield (p + e - 1) (HOLogic.conj_elim ctxt) inv;
-                       val inv_thms = init @ [last];
-                       val eqs = take e inv_thms;
-                       fun is_local_var t =
-                         member (fn (t, (_, t')) => t aconv (Thm.term_of t')) params t;
-                        val (eqs, assms') =
-                          filter_in_out (is_local_var o lhs_of_eq o Thm.prop_of) eqs;
-                        val assms = assms' @ drop e inv_thms
-                      in
-                        HEADGOAL (Method.insert_tac (assms @ case_prems)) THEN
-                        Ctr_Sugar_General_Tactics.unfold_thms_tac ctxt eqs
-                      end)) ctxt)))])
-        end) ctxt) THEN'
-      K (prune_params_tac ctxt))
-    #> Seq.maps (fn st =>
-      CASES (Rule_Cases.make_common ctxt (Thm.prop_of st) cases) all_tac st)
-  end));
+fun coinduction_tac raw_vars opt_raw_thm prems =
+  CONTEXT_SUBGOAL (fn (goal, i) => fn (ctxt, st) =>
+    let
+      val lhs_of_eq = HOLogic.dest_Trueprop #> HOLogic.dest_eq #> fst;
+      fun find_coinduct t =
+        Induct.find_coinductP ctxt t @
+        (try (Induct.find_coinductT ctxt o fastype_of o lhs_of_eq) t |> the_default []);
+      val raw_thm =
+        (case opt_raw_thm of
+          SOME raw_thm => raw_thm
+        | NONE => goal |> Logic.strip_assums_concl |> find_coinduct |> hd);
+      val skip = Integer.max 1 (Rule_Cases.get_consumes raw_thm) - 1;
+      val cases = Rule_Cases.get raw_thm |> fst;
+    in
+      ((Object_Logic.rulify_tac ctxt THEN'
+        Method.insert_tac ctxt prems THEN'
+        Object_Logic.atomize_prems_tac ctxt THEN'
+        DELETE_PREMS_AFTER skip (Subgoal.FOCUS (fn {concl, context = ctxt, params, prems, ...} =>
+          let
+            val vars = raw_vars @ map (Thm.term_of o snd) params;
+            val names_ctxt = ctxt
+              |> fold Variable.declare_names vars
+              |> fold Variable.declare_thm (raw_thm :: prems);
+            val thm_concl = Thm.cprop_of raw_thm |> strip_imp_concl;
+            val (instT, inst) = Thm.match (thm_concl, concl);
+            val rhoTs = map (fn (v, T) => (TVar v, Thm.typ_of T)) instT;
+            val rhots = map (fn (v, t) => (Var v, Thm.term_of t)) inst;
+            val xs = hd (Thm.prems_of raw_thm) |> HOLogic.dest_Trueprop |> strip_comb |> snd
+              |> map (subst_atomic_types rhoTs);
+            val raw_eqs = map (fn x => (x, AList.lookup op aconv rhots x |> the)) xs;
+            val ((names, ctxt), Ts) = map_split (apfst fst o dest_Var o fst) raw_eqs
+              |>> (fn names => Variable.variant_fixes names names_ctxt) ;
+            val eqs =
+              @{map 3} (fn name => fn T => fn (_, rhs) =>
+                HOLogic.mk_eq (Free (name, T), rhs))
+              names Ts raw_eqs;
+            val phi = eqs @ map (HOLogic.dest_Trueprop o Thm.prop_of) prems
+              |> try (Library.foldr1 HOLogic.mk_conj)
+              |> the_default @{term True}
+              |> Ctr_Sugar_Util.list_exists_free vars
+              |> Term.map_abs_vars (Variable.revert_fixed ctxt)
+              |> fold_rev Term.absfree (names ~~ Ts)
+              |> Thm.cterm_of ctxt;
+            val thm = infer_instantiate' ctxt [SOME phi] raw_thm;
+            val e = length eqs;
+            val p = length prems;
+          in
+            HEADGOAL (EVERY' [resolve_tac ctxt [thm],
+              EVERY' (map (fn var =>
+                resolve_tac ctxt
+                  [infer_instantiate' ctxt [NONE, SOME (Thm.cterm_of ctxt var)] exI]) vars),
+              if p = 0 then Ctr_Sugar_Util.CONJ_WRAP' (K (resolve_tac ctxt [refl])) eqs
+              else
+                REPEAT_DETERM_N e o (resolve_tac ctxt [conjI] THEN' resolve_tac ctxt [refl]) THEN'
+                Ctr_Sugar_Util.CONJ_WRAP' (resolve_tac ctxt o single) prems,
+              K (ALLGOALS_SKIP skip
+                 (REPEAT_DETERM_N (length vars) o (eresolve_tac ctxt [exE] THEN' rotate_tac ~1) THEN'
+                 DELETE_PREMS_AFTER 0 (Subgoal.FOCUS (fn {prems, params, context = ctxt, ...} =>
+                   (case prems of
+                     [] => all_tac
+                   | inv :: case_prems =>
+                       let
+                         val (init, last) = funpow_yield (p + e - 1) (HOLogic.conj_elim ctxt) inv;
+                         val inv_thms = init @ [last];
+                         val eqs = take e inv_thms;
+                         fun is_local_var t =
+                           member (fn (t, (_, t')) => t aconv (Thm.term_of t')) params t;
+                          val (eqs, assms') =
+                            filter_in_out (is_local_var o lhs_of_eq o Thm.prop_of) eqs;
+                          val assms = assms' @ drop e inv_thms
+                        in
+                          HEADGOAL (Method.insert_tac ctxt (assms @ case_prems)) THEN
+                          Ctr_Sugar_General_Tactics.unfold_thms_tac ctxt eqs
+                        end)) ctxt)))])
+          end) ctxt) THEN'
+        K (prune_params_tac ctxt)) i) st
+      |> Seq.maps (fn st' =>
+        CONTEXT_CASES (Rule_Cases.make_common ctxt (Thm.prop_of st') cases) all_tac (ctxt, st'))
+    end);
 
 local
 
@@ -152,8 +152,8 @@ val _ =
   Theory.setup
     (Method.setup @{binding coinduction}
       (arbitrary -- Scan.option coinduct_rule >>
-        (fn (arbitrary, opt_rule) => fn ctxt => fn facts =>
-          Seq.DETERM (coinduction_tac ctxt arbitrary opt_rule facts)))
+        (fn (arbitrary, opt_rule) => fn _ => fn facts =>
+          Seq.DETERM (coinduction_tac arbitrary opt_rule facts 1)))
       "coinduction on types or predicates/sets");
 
 end;

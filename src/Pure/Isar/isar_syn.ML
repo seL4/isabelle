@@ -699,16 +699,16 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_keyword apply} "initial goal refinement step (unstructured)"
-    (Method.parse >> (fn m => (Method.report m; Toplevel.proofs (Proof.apply_results m))));
+    (Method.parse >> (fn m => (Method.report m; Toplevel.proofs (Proof.apply m))));
 
 val _ =
   Outer_Syntax.command @{command_keyword apply_end} "terminal goal refinement step (unstructured)"
-    (Method.parse >> (fn m => (Method.report m; Toplevel.proofs (Proof.apply_end_results m))));
+    (Method.parse >> (fn m => (Method.report m; Toplevel.proofs (Proof.apply_end m))));
 
 val _ =
   Outer_Syntax.command @{command_keyword proof} "backward proof step"
     (Scan.option Method.parse >> (fn m =>
-      (Option.map Method.report m; Toplevel.proofs (Proof.proof_results m))));
+      (Option.map Method.report m; Toplevel.proofs (Proof.proof m))));
 
 
 (* subgoal focus *)

@@ -370,12 +370,12 @@ fun simp_method more_mods meth =
 fun method_setup more_mods =
   Method.setup @{binding simp}
     (simp_method more_mods (fn ctxt => fn tac => fn facts =>
-      HEADGOAL (Method.insert_tac facts THEN'
+      HEADGOAL (Method.insert_tac ctxt facts THEN'
         (CHANGED_PROP oo tac) ctxt)))
     "simplification" #>
   Method.setup @{binding simp_all}
     (simp_method more_mods (fn ctxt => fn tac => fn facts =>
-      ALLGOALS (Method.insert_tac facts) THEN
+      ALLGOALS (Method.insert_tac ctxt facts) THEN
         (CHANGED_PROP o PARALLEL_ALLGOALS o tac) ctxt))
     "simplification (all goals)";
 

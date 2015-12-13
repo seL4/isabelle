@@ -345,10 +345,9 @@ fun prepare_lift_bnf prepare_name prepare_sort prepare_term prepare_thm =
   (fn (goals, after_qed, definitions, lthy) =>
     lthy
     |> Proof.theorem NONE after_qed (map (single o rpair []) goals)
-    |> Proof.refine (Method.Basic (fn ctxt => SIMPLE_METHOD (unfold_thms_tac ctxt definitions)))
-    |> Seq.hd
-    |> Proof.refine (Method.primitive_text (K I))
-    |> Seq.hd) oo
+    |> Proof.refine_singleton
+        (Method.Basic (fn ctxt => SIMPLE_METHOD (unfold_thms_tac ctxt definitions)))
+    |> Proof.refine_singleton (Method.primitive_text (K I))) oo
   prepare_common prepare_name prepare_sort prepare_term prepare_thm o apfst (apfst (apsnd SOME));
 
 fun prepare_solve prepare_name prepare_typ prepare_sort prepare_thm tacs =

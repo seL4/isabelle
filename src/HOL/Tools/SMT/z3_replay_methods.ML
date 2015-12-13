@@ -133,7 +133,7 @@ fun by_tac ctxt thms ns ts t tac =
 fun prove ctxt t tac = by_tac ctxt [] [] [] t (K o tac)
 
 fun prop_tac ctxt prems =
-  Method.insert_tac prems
+  Method.insert_tac ctxt prems
   THEN' SUBGOAL (fn (prop, i) =>
     if Term.size_of_term prop > 100 then SAT.satx_tac ctxt i
     else (Classical.fast_tac ctxt ORELSE' Clasimp.force_tac ctxt) i)
@@ -324,7 +324,7 @@ val cong_dest_rules = @{lemma
   by fast+}
 
 fun cong_full ctxt thms t = prove ctxt t (fn ctxt' =>
-  Method.insert_tac thms
+  Method.insert_tac ctxt thms
   THEN' (Classical.fast_tac ctxt'
     ORELSE' dresolve_tac ctxt cong_dest_rules
     THEN' Classical.fast_tac ctxt'))
@@ -615,7 +615,7 @@ fun nnf_neg ctxt = nnf ctxt Z3_Proof.Nnf_Neg
 (* theory lemmas *)
 
 fun arith_th_lemma_tac ctxt prems =
-  Method.insert_tac prems
+  Method.insert_tac ctxt prems
   THEN' SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms z3div_def z3mod_def})
   THEN' Arith_Data.arith_tac ctxt
 
