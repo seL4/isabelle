@@ -338,10 +338,10 @@ fun match_filter_env is_newly_fixed pat_vars fixes params env =
 
     val tenv' = tenv |> fold (Vartab.delete_safe) extra_vars;
     val env' =
-      Envir.Envir {maxidx = Envir.maxidx_of env, tenv = tenv', tyenv = Envir.type_env env}
+      Envir.Envir {maxidx = Envir.maxidx_of env, tenv = tenv', tyenv = Envir.type_env env};
 
     val all_params_bound = forall (fn SOME (_, Free (x, _)) => is_newly_fixed x | _ => false) params';
-    val all_params_distinct = not (has_duplicates (op =) params');
+    val all_params_distinct = not (has_duplicates (eq_option (eq_pair (op =) (op aconv))) params');
 
     val pat_fixes = inter (eq_fst (op =)) fixes_vars pat_vars;
     val all_pat_fixes_bound = forall (fn (xi, _) => is_some (Vartab.lookup tenv' xi)) pat_fixes;
@@ -747,7 +747,7 @@ fun real_match using goal_ctxt fixes m text pats st =
                 fun prep_filter t =
                   Term.subst_bounds (map (Thm.term_of o snd) params |> rev, Term.strip_all_body t);
                 fun filter_test prems t =
-                  if member (op =) prems t then SOME (remove1 (op aconv) t prems) else NONE;
+                  if member (op aconv) prems t then SOME (remove1 (op aconv) t prems) else NONE;
               in
                 Subgoal.retrofit inner_ctxt goal_ctxt params asms 1 st2 st
                 |> (n_subgoals > 0 andalso not (null local_thins)) ?
