@@ -8,7 +8,8 @@ Coinduction method that avoids some boilerplate compared to coinduct.
 
 signature COINDUCTION =
 sig
-  val coinduction_tac: term list -> thm option -> thm list -> int -> context_tactic
+  val coinduction_context_tactic: term list -> thm option -> thm list -> int -> context_tactic
+  val coinduction_tac: Proof.context -> term list -> thm option -> thm list -> int -> tactic
 end;
 
 structure Coinduction : COINDUCTION =
@@ -37,7 +38,7 @@ fun DELETE_PREMS_AFTER skip tac i st =
     (THEN_ALL_NEW_SKIP skip tac (REPEAT_DETERM_N n o eresolve0_tac [thin_rl])) i st
   end;
 
-fun coinduction_tac raw_vars opt_raw_thm prems =
+fun coinduction_context_tactic raw_vars opt_raw_thm prems =
   CONTEXT_SUBGOAL (fn (goal, i) => fn (ctxt, st) =>
     let
       val lhs_of_eq = HOLogic.dest_Trueprop #> HOLogic.dest_eq #> fst;
@@ -117,6 +118,10 @@ fun coinduction_tac raw_vars opt_raw_thm prems =
         CONTEXT_CASES (Rule_Cases.make_common ctxt (Thm.prop_of st') cases) all_tac (ctxt, st'))
     end);
 
+fun coinduction_tac ctxt x1 x2 x3 x4 =
+  Method.NO_CONTEXT_TACTIC ctxt (coinduction_context_tactic x1 x2 x3 x4);
+
+
 local
 
 val ruleN = "rule"
@@ -153,7 +158,7 @@ val _ =
     (Method.setup @{binding coinduction}
       (arbitrary -- Scan.option coinduct_rule >>
         (fn (arbitrary, opt_rule) => fn _ => fn facts =>
-          Seq.DETERM (coinduction_tac arbitrary opt_rule facts 1)))
+          Seq.DETERM (coinduction_context_tactic arbitrary opt_rule facts 1)))
       "coinduction on types or predicates/sets");
 
 end;

@@ -71,17 +71,32 @@ sig
   val rotate_tac: int -> int -> int -> tactic
   val internalize: Proof.context -> int -> thm -> thm
   val guess_instance: Proof.context -> thm -> int -> thm -> thm Seq.seq
-  val cases_tac: bool -> term option list list -> thm option -> thm list -> int -> context_tactic
+  val cases_context_tactic: bool -> term option list list -> thm option ->
+    thm list -> int -> context_tactic
+  val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
+    thm list -> int -> tactic
   val get_inductT: Proof.context -> term option list list -> thm list list
-  val gen_induct_tac: ((Rule_Cases.info * int) * thm -> (Rule_Cases.info * int) * thm) ->
+  val gen_induct_context_tactic: ((Rule_Cases.info * int) * thm -> (Rule_Cases.info * int) * thm) ->
     bool -> (binding option * (term * bool)) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
     thm list -> int -> context_tactic
-  val induct_tac: bool -> (binding option * (term * bool)) option list list ->
+  val gen_induct_tac: Proof.context ->
+    ((Rule_Cases.info * int) * thm -> (Rule_Cases.info * int) * thm) ->
+    bool -> (binding option * (term * bool)) option list list ->
+    (string * typ) list list -> term option list -> thm list option ->
+    thm list -> int -> tactic
+  val induct_context_tactic: bool ->
+    (binding option * (term * bool)) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
     thm list -> int -> context_tactic
-  val coinduct_tac: term option list -> term option list -> thm option ->
+  val induct_tac: Proof.context -> bool ->
+    (binding option * (term * bool)) option list list ->
+    (string * typ) list list -> term option list -> thm list option ->
+    thm list -> int -> tactic
+  val coinduct_context_tactic: term option list -> term option list -> thm option ->
     thm list -> int -> context_tactic
+  val coinduct_tac: Proof.context -> term option list -> term option list -> thm option ->
+    thm list -> int -> tactic
   val gen_induct_setup: binding ->
    (bool -> (binding option * (term * bool)) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
@@ -477,7 +492,7 @@ fun get_casesP ctxt (fact :: _) = find_casesP ctxt (Thm.concl_of fact)
 
 in
 
-fun cases_tac simp insts opt_rule facts i : context_tactic =
+fun cases_context_tactic simp insts opt_rule facts i : context_tactic =
   fn (ctxt, st) =>
     let
       fun inst_rule r =
@@ -517,6 +532,9 @@ fun cases_tac simp insts opt_rule facts i : context_tactic =
                 (if simp then TRY o trivial_tac ctxt else K all_tac)) i) (ctxt, st)
         end)
     end;
+
+fun cases_tac ctxt x1 x2 x3 x4 x5 =
+  Method.NO_CONTEXT_TACTIC ctxt (cases_context_tactic x1 x2 x3 x4 x5);
 
 end;
 
@@ -739,7 +757,7 @@ fun get_inductT ctxt insts =
 fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of fact))
   | get_inductP _ _ = [];
 
-fun gen_induct_tac mod_cases simp def_insts arbitrary taking opt_rule facts =
+fun gen_induct_context_tactic mod_cases simp def_insts arbitrary taking opt_rule facts =
   CONTEXT_SUBGOAL (fn (_, i) => fn (ctxt, st) =>
     let
       val ((insts, defs), defs_ctxt) = fold_map add_defs def_insts ctxt |>> split_list;
@@ -806,7 +824,13 @@ fun gen_induct_tac mod_cases simp def_insts arbitrary taking opt_rule facts =
          THEN_ALL_NEW rulify_tac ctxt)) i (ctxt, st)
     end)
 
-val induct_tac = gen_induct_tac I;
+val induct_context_tactic = gen_induct_context_tactic I;
+
+fun gen_induct_tac ctxt x1 x2 x3 x4 x5 x6 x7 x8 =
+  Method.NO_CONTEXT_TACTIC ctxt (gen_induct_context_tactic x1 x2 x3 x4 x5 x6 x7 x8);
+
+fun induct_tac ctxt x1 x2 x3 x4 x5 x6 x7 =
+  Method.NO_CONTEXT_TACTIC ctxt (induct_context_tactic x1 x2 x3 x4 x5 x6 x7);
 
 
 
@@ -831,7 +855,7 @@ fun main_prop_of th =
 
 in
 
-fun coinduct_tac inst taking opt_rule facts =
+fun coinduct_context_tactic inst taking opt_rule facts =
   CONTEXT_SUBGOAL (fn (goal, i) => fn (ctxt, st) =>
     let
       fun inst_rule r =
@@ -855,6 +879,9 @@ fun coinduct_tac inst taking opt_rule facts =
               (Thm.prop_of (Rule_Cases.internalize_params rule')) cases)
             (Method.insert_tac ctxt more_facts i THEN resolve_tac ctxt [rule'] i) (ctxt, st)))
     end);
+
+fun coinduct_tac ctxt x1 x2 x3 x4 x5 =
+  Method.NO_CONTEXT_TACTIC ctxt (coinduct_context_tactic x1 x2 x3 x4 x5);
 
 end;
 
@@ -930,13 +957,13 @@ val _ =
         (Parse.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) >>
         (fn (no_simp, (insts, opt_rule)) => fn _ =>
           CONTEXT_METHOD (fn facts =>
-            Seq.DETERM (cases_tac (not no_simp) insts opt_rule facts 1))))
+            Seq.DETERM (cases_context_tactic (not no_simp) insts opt_rule facts 1))))
       "case analysis on types or predicates/sets" #>
-    gen_induct_setup @{binding induct} induct_tac #>
+    gen_induct_setup @{binding induct} induct_context_tactic #>
      Method.local_setup @{binding coinduct}
       (Scan.repeat (unless_more_args inst) -- taking -- Scan.option coinduct_rule >>
         (fn ((insts, taking), opt_rule) => fn _ => fn facts =>
-          Seq.DETERM (coinduct_tac insts taking opt_rule facts 1)))
+          Seq.DETERM (coinduct_context_tactic insts taking opt_rule facts 1)))
       "coinduction on types or predicates/sets");
 
 end;
