@@ -123,10 +123,6 @@ fun map_pred_data f
   mk_pred_data
     (f (pos, (((intros, elim), preprocessed), (function_names, (predfun_data, needs_random)))))
 
-fun eq_option eq (NONE, NONE) = true
-  | eq_option eq (SOME x, SOME y) = eq (x, y)
-  | eq_option eq _ = false
-
 fun eq_pred_data (PredData d1, PredData d2) =
   eq_list (eq_pair (op =) Thm.eq_thm) (#intros d1, #intros d2) andalso
   eq_option Thm.eq_thm (#elim d1, #elim d2)
