@@ -741,7 +741,7 @@ val _ = Theory.setup
       | bad =>
           if detect_closure_state st then NONE
           else
-            SOME (fn () => ("Excessive case names: " ^ commas_quote (map Token.content_of bad) ^
+            SOME (fn () => ("Excessive case name(s): " ^ commas_quote (map Token.content_of bad) ^
               Position.here (Position.set_range (Token.range_of bad)))))
       |> (fn SOME msg => Seq.single (Seq.Error msg)
            | NONE => goal_cases_tac (map Token.content_of names) (ctxt, st)))))
