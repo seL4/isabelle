@@ -245,8 +245,8 @@ val _ =
           val read_insts = read_of_insts (not unchecked) context args;
         in
           Thm.rule_attribute (fn context => fn thm =>
-            if Method_Closure.is_free_thm thm andalso unchecked
-            then Method_Closure.dummy_free_thm
+            if Thm.is_free_dummy thm andalso unchecked
+            then Drule.free_dummy_thm
             else read_instantiate_closed (Context.proof_of context) (read_insts thm) thm)
         end))
       "positional instantiation of theorem");

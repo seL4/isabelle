@@ -94,6 +94,7 @@ sig
   val cterm_add_frees: cterm -> cterm list -> cterm list
   val cterm_add_vars: cterm -> cterm list -> cterm list
   val dummy_thm: thm
+  val free_dummy_thm: thm
   val is_sort_constraint: term -> bool
   val sort_constraintI: thm
   val sort_constraint_eq: thm
@@ -628,6 +629,7 @@ val cterm_add_frees = Thm.add_frees o mk_term;
 val cterm_add_vars = Thm.add_vars o mk_term;
 
 val dummy_thm = mk_term (certify Term.dummy_prop);
+val free_dummy_thm = Thm.tag_free_dummy dummy_thm;
 
 
 (* sort_constraint *)

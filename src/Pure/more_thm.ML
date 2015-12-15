@@ -97,6 +97,8 @@ sig
   val untag_rule: string -> thm -> thm
   val tag: string * string -> attribute
   val untag: string -> attribute
+  val is_free_dummy: thm -> bool
+  val tag_free_dummy: thm -> thm
   val def_name: string -> string
   val def_name_optional: string -> string -> string
   val def_binding: Binding.binding -> Binding.binding
@@ -582,6 +584,13 @@ fun untag_rule s = Thm.map_tags (filter_out (fn (s', _) => s = s'));
 
 fun tag tg = rule_attribute (K (tag_rule tg));
 fun untag s = rule_attribute (K (untag_rule s));
+
+
+(* free dummy thm -- for abstract closure *)
+
+val free_dummyN = "free_dummy";
+fun is_free_dummy thm = Properties.defined (Thm.get_tags thm) free_dummyN;
+val tag_free_dummy = tag_rule (free_dummyN, "");
 
 
 (* def_name *)

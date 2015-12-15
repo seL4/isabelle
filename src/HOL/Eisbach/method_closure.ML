@@ -10,9 +10,6 @@ existing ones with their usual syntax.
 
 signature METHOD_CLOSURE =
 sig
-  val tag_free_thm: thm -> thm
-  val is_free_thm: thm -> bool
-  val dummy_free_thm: thm
   val wrap_attribute: {handle_all_errs : bool, declaration : bool} ->
     Binding.binding -> theory -> theory
   val read: Proof.context -> Token.src -> Method.text
@@ -69,13 +66,6 @@ val put_recursive_method = Local_Data.map o apsnd o K;
 
 (* free thm *)
 
-val free_thmN = "Method_Closure.free_thm";
-fun tag_free_thm thm = Thm.tag_rule (free_thmN, "") thm;
-
-val dummy_free_thm = tag_free_thm Drule.dummy_thm;
-
-fun is_free_thm thm = Properties.defined (Thm.get_tags thm) free_thmN;
-
 fun free_aware_attribute thy {handle_all_errs, declaration} src (context, thm) =
   let
     val src' = map Token.init_assignable src;
@@ -90,9 +80,9 @@ fun free_aware_attribute thy {handle_all_errs, declaration} src (context, thm) =
       |> map_filter (fn (Token.Fact (_, f)) => SOME f | _ => NONE)
       |> flat;
   in
-    if exists is_free_thm (thm :: thms) then
+    if exists Thm.is_free_dummy (thm :: thms) then
       if declaration then (NONE, NONE)
-      else (NONE, SOME dummy_free_thm)
+      else (NONE, SOME Drule.free_dummy_thm)
     else apply_att thm
   end;
 
@@ -241,7 +231,7 @@ fun empty_named_thm named_thm ctxt =
 fun dummy_named_thm named_thm ctxt =
   let
     val ctxt' = empty_named_thm named_thm ctxt;
-    val (_, ctxt'') = Thm.proof_attributes [Named_Theorems.add named_thm] dummy_free_thm ctxt';
+    val (_, ctxt'') = Thm.proof_attributes [Named_Theorems.add named_thm] Drule.free_dummy_thm ctxt';
   in ctxt'' end;
 
 fun parse_method_args method_names =
