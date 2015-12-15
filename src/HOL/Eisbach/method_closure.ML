@@ -13,7 +13,6 @@ sig
   val tag_free_thm: thm -> thm
   val is_free_thm: thm -> bool
   val dummy_free_thm: thm
-  val free_aware_rule_attribute: thm list -> (Context.generic -> thm -> thm) -> Thm.attribute
   val wrap_attribute: {handle_all_errs : bool, declaration : bool} ->
     Binding.binding -> theory -> theory
   val read: Proof.context -> Token.src -> Method.text
@@ -76,11 +75,6 @@ fun tag_free_thm thm = Thm.tag_rule (free_thmN, "") thm;
 val dummy_free_thm = tag_free_thm Drule.dummy_thm;
 
 fun is_free_thm thm = Properties.defined (Thm.get_tags thm) free_thmN;
-
-fun free_aware_rule_attribute args f =
-  Thm.rule_attribute (fn context => fn thm =>
-    if exists is_free_thm (thm :: args) then dummy_free_thm
-    else f context thm);
 
 fun free_aware_attribute thy {handle_all_errs, declaration} src (context, thm) =
   let
