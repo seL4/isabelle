@@ -594,8 +594,8 @@ simplifies to "top". INCOMPATIBILITY.
 fixpoint theorem for increasing functions in chain-complete partial
 orders.
 
-* Multivariate_Analysis/Cauchy_Integral_Thm: Complex path integrals, Cauchy's
-integral theorem, winding numbers and Cauchy's integral formula, ported from HOL Light
+* Multivariate_Analysis/Cauchy_Integral_Thm: Contour integrals (= complex path integrals),
+Cauchy's integral theorem, winding numbers and Cauchy's integral formula, ported from HOL Light
 
 * Multivariate_Analysis: Added topological concepts such as connected components,
 homotopic paths and the inside or outside of a set.

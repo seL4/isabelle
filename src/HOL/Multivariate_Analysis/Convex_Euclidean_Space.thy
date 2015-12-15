@@ -6359,6 +6359,9 @@ lemma convex_contains_segment:
   "convex s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. closed_segment a b \<subseteq> s)"
   unfolding convex_alt closed_segment_def by auto
 
+lemma closed_segment_subset: "\<lbrakk>x \<in> s; y \<in> s; convex s\<rbrakk> \<Longrightarrow> closed_segment x y \<subseteq> s"
+  by (simp add: convex_contains_segment)
+
 lemma closed_segment_subset_convex_hull:
     "\<lbrakk>x \<in> convex hull s; y \<in> convex hull s\<rbrakk> \<Longrightarrow> closed_segment x y \<subseteq> convex hull s"
   using convex_contains_segment by blast

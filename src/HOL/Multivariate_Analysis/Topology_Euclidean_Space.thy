@@ -826,6 +826,9 @@ lemma mem_ball [simp]: "y \<in> ball x e \<longleftrightarrow> dist x y < e"
 lemma mem_cball [simp]: "y \<in> cball x e \<longleftrightarrow> dist x y \<le> e"
   by (simp add: cball_def)
 
+lemma mem_sphere [simp]: "y \<in> sphere x e \<longleftrightarrow> dist x y = e"
+  by (simp add: sphere_def)
+
 lemma ball_trivial [simp]: "ball x 0 = {}"
   by (simp add: ball_def)
 

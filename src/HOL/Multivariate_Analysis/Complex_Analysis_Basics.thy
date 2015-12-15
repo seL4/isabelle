@@ -261,6 +261,7 @@ lemma Lim_null_comparison_Re:
 
 subsection\<open>Holomorphic functions\<close>
 
+text{*Could be generalized to real normed fields, but in practice that would only include the reals*}
 definition complex_differentiable :: "[complex \<Rightarrow> complex, complex filter] \<Rightarrow> bool"
            (infixr "(complex'_differentiable)" 50)
   where "f complex_differentiable F \<equiv> \<exists>f'. (f has_field_derivative f') F"
@@ -481,13 +482,13 @@ lemma complex_derivative_chain:
     \<Longrightarrow> deriv (g o f) x = deriv g (f x) * deriv f x"
   by (metis DERIV_deriv_iff_complex_differentiable DERIV_chain DERIV_imp_deriv)
 
-lemma complex_derivative_linear: "deriv (\<lambda>w. c * w) = (\<lambda>z. c)"
+lemma deriv_linear: "deriv (\<lambda>w. c * w) = (\<lambda>z. c)"
   by (metis DERIV_imp_deriv DERIV_cmult_Id)
 
-lemma complex_derivative_ident: "deriv (\<lambda>w. w) = (\<lambda>z. 1)"
+lemma deriv_ident: "deriv (\<lambda>w. w) = (\<lambda>z. 1)"
   by (metis DERIV_imp_deriv DERIV_ident)
 
-lemma complex_derivative_const: "deriv (\<lambda>w. c) = (\<lambda>z. 0)"
+lemma deriv_const: "deriv (\<lambda>w. c) = (\<lambda>z. 0)"
   by (metis DERIV_imp_deriv DERIV_const)
 
 lemma complex_derivative_add:
@@ -797,11 +798,11 @@ qed
 
 lemma complex_derivative_cmult_at:
   "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. c * f w) z = c * deriv f z"
-by (auto simp: complex_derivative_mult_at complex_derivative_const analytic_on_const)
+by (auto simp: complex_derivative_mult_at deriv_const analytic_on_const)
 
 lemma complex_derivative_cmult_right_at:
   "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. f w * c) z = deriv f z * c"
-by (auto simp: complex_derivative_mult_at complex_derivative_const analytic_on_const)
+by (auto simp: complex_derivative_mult_at deriv_const analytic_on_const)
 
 subsection\<open>Complex differentiation of sequences and series\<close>
 

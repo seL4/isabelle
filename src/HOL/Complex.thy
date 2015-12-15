@@ -784,7 +784,10 @@ lemma complex_exp_exists: "\<exists>a r. z = complex_of_real r * exp a"
   apply (rule_tac x = "ii * complex_of_real a" in exI, auto)
   done
 
-lemma exp_two_pi_i [simp]: "exp(2 * complex_of_real pi * ii) = 1"
+lemma exp_pi_i [simp]: "exp(of_real pi * ii) = -1"
+  by (metis cis_conv_exp cis_pi mult.commute)
+
+lemma exp_two_pi_i [simp]: "exp(2 * of_real pi * ii) = 1"
   by (simp add: exp_eq_polar complex_eq_iff)
 
 subsubsection \<open>Complex argument\<close>
