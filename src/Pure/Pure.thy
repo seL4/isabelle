@@ -128,26 +128,26 @@ attribute_setup kind =
 
 attribute_setup THEN =
   \<open>Scan.lift (Scan.optional (Args.bracks Parse.nat) 1) -- Attrib.thm
-    >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => A RSN (i, B)))\<close>
+    >> (fn (i, B) => Thm.rule_attribute [B] (fn _ => fn A => A RSN (i, B)))\<close>
   "resolution with rule"
 
 attribute_setup OF =
-  \<open>Attrib.thms >> (fn Bs => Thm.rule_attribute (fn _ => fn A => A OF Bs))\<close>
+  \<open>Attrib.thms >> (fn Bs => Thm.rule_attribute Bs (fn _ => fn A => A OF Bs))\<close>
   "rule resolved with facts"
 
 attribute_setup rename_abs =
   \<open>Scan.lift (Scan.repeat (Args.maybe Args.name)) >> (fn vs =>
-    Thm.rule_attribute (K (Drule.rename_bvars' vs)))\<close>
+    Thm.rule_attribute [] (K (Drule.rename_bvars' vs)))\<close>
   "rename bound variables in abstractions"
 
 attribute_setup unfolded =
   \<open>Attrib.thms >> (fn ths =>
-    Thm.rule_attribute (fn context => Local_Defs.unfold (Context.proof_of context) ths))\<close>
+    Thm.rule_attribute ths (fn context => Local_Defs.unfold (Context.proof_of context) ths))\<close>
   "unfolded definitions"
 
 attribute_setup folded =
   \<open>Attrib.thms >> (fn ths =>
-    Thm.rule_attribute (fn context => Local_Defs.fold (Context.proof_of context) ths))\<close>
+    Thm.rule_attribute ths (fn context => Local_Defs.fold (Context.proof_of context) ths))\<close>
   "folded definitions"
 
 attribute_setup consumes =
@@ -181,11 +181,11 @@ attribute_setup rule_format =
   "result put into canonical rule format"
 
 attribute_setup elim_format =
-  \<open>Scan.succeed (Thm.rule_attribute (K Tactic.make_elim))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (K Tactic.make_elim))\<close>
   "destruct rule turned into elimination rule format"
 
 attribute_setup no_vars =
-  \<open>Scan.succeed (Thm.rule_attribute (fn context => fn th =>
+  \<open>Scan.succeed (Thm.rule_attribute [] (fn context => fn th =>
     let
       val ctxt = Variable.set_body false (Context.proof_of context);
       val ((_, [th']), _) = Variable.import true [th] ctxt;
@@ -202,7 +202,7 @@ attribute_setup rulify =
 
 attribute_setup rotated =
   \<open>Scan.lift (Scan.optional Parse.int 1
-    >> (fn n => Thm.rule_attribute (fn _ => rotate_prems n)))\<close>
+    >> (fn n => Thm.rule_attribute [] (fn _ => rotate_prems n)))\<close>
   "rotated theorem premises"
 
 attribute_setup defn =
@@ -210,7 +210,7 @@ attribute_setup defn =
   "declaration of definitional transformations"
 
 attribute_setup abs_def =
-  \<open>Scan.succeed (Thm.rule_attribute (fn context =>
+  \<open>Scan.succeed (Thm.rule_attribute [] (fn context =>
     Local_Defs.meta_rewrite_rule (Context.proof_of context) #> Drule.abs_def))\<close>
   "abstract over free variables of definitional theorem"
 

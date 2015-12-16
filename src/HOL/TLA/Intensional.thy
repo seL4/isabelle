@@ -256,12 +256,13 @@ fun int_use ctxt th =
 \<close>
 
 attribute_setup int_unlift =
-  \<open>Scan.succeed (Thm.rule_attribute (int_unlift o Context.proof_of))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (int_unlift o Context.proof_of))\<close>
 attribute_setup int_rewrite =
-  \<open>Scan.succeed (Thm.rule_attribute (int_rewrite o Context.proof_of))\<close>
-attribute_setup flatten = \<open>Scan.succeed (Thm.rule_attribute (K flatten))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (int_rewrite o Context.proof_of))\<close>
+attribute_setup flatten =
+  \<open>Scan.succeed (Thm.rule_attribute [] (K flatten))\<close>
 attribute_setup int_use =
-  \<open>Scan.succeed (Thm.rule_attribute (int_use o Context.proof_of))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (int_use o Context.proof_of))\<close>
 
 lemma Not_Rall: "\<turnstile> (\<not>(\<forall>x. F x)) = (\<exists>x. \<not>F x)"
   by (simp add: Valid_def)

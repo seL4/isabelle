@@ -113,10 +113,10 @@ val _ =
   Theory.setup
    (Attrib.setup @{binding split_format}
       (Scan.lift (Args.parens (Args.$$$ "complete")
-        >> K (Thm.rule_attribute (complete_split_rule o Context.proof_of))))
+        >> K (Thm.rule_attribute [] (complete_split_rule o Context.proof_of))))
       "split pair-typed subterms in premises, or function arguments" #>
     Attrib.setup @{binding split_rule}
-      (Scan.succeed (Thm.rule_attribute (split_rule o Context.proof_of)))
+      (Scan.succeed (Thm.rule_attribute [] (split_rule o Context.proof_of)))
       "curries ALL function variables occurring in a rule's conclusion");
 
 end;

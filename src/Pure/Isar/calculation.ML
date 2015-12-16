@@ -85,12 +85,13 @@ val sym_del =
 
 (* symmetric *)
 
-val symmetric = Thm.rule_attribute (fn context => fn th =>
-  (case Seq.chop 2
-      (Drule.multi_resolves (SOME (Context.proof_of context)) [th] (#2 (#1 (Data.get context)))) of
-    ([th'], _) => Drule.zero_var_indexes th'
-  | ([], _) => raise THM ("symmetric: no unifiers", 1, [th])
-  | _ => raise THM ("symmetric: multiple unifiers", 1, [th])));
+val symmetric =
+  Thm.rule_attribute [] (fn context => fn th =>
+    (case Seq.chop 2
+        (Drule.multi_resolves (SOME (Context.proof_of context)) [th] (#2 (#1 (Data.get context)))) of
+      ([th'], _) => Drule.zero_var_indexes th'
+    | ([], _) => raise THM ("symmetric: no unifiers", 1, [th])
+    | _ => raise THM ("symmetric: multiple unifiers", 1, [th])));
 
 
 (* concrete syntax *)

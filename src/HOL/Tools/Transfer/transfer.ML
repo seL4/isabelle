@@ -847,11 +847,11 @@ val transfer_domain_attribute =
 
 (* Attributes for transferred rules *)
 
-fun transferred_attribute thms = Thm.rule_attribute
-  (fn context => transferred (Context.proof_of context) thms)
+fun transferred_attribute thms =
+  Thm.rule_attribute thms (fn context => transferred (Context.proof_of context) thms)
 
-fun untransferred_attribute thms = Thm.rule_attribute
-  (fn context => untransferred (Context.proof_of context) thms)
+fun untransferred_attribute thms =
+  Thm.rule_attribute thms (fn context => untransferred (Context.proof_of context) thms)
 
 val transferred_attribute_parser =
   Attrib.thms >> transferred_attribute

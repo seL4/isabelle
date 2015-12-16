@@ -404,7 +404,7 @@ fun rename_params xss th =
   |> fold_index (fn (i, xs) => Thm.rename_params_rule (xs, i + 1)) xss
   |> save th;
 
-fun params xss = Thm.rule_attribute (K (rename_params xss));
+fun params xss = Thm.rule_attribute [] (K (rename_params xss));
 
 
 

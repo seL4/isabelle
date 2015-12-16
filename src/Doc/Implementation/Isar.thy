@@ -512,7 +512,8 @@ text \<open>An \<^emph>\<open>attribute\<close> is a function \<open>context \<t
 text %mlref \<open>
   \begin{mldecls}
   @{index_ML_type attribute} \\
-  @{index_ML Thm.rule_attribute: "(Context.generic -> thm -> thm) -> attribute"} \\
+  @{index_ML Thm.rule_attribute: "thm list ->
+  (Context.generic -> thm -> thm) -> attribute"} \\
   @{index_ML Thm.declaration_attribute: "
   (thm -> Context.generic -> Context.generic) -> attribute"} \\
   @{index_ML Attrib.setup: "binding -> attribute context_parser ->
@@ -522,12 +523,19 @@ text %mlref \<open>
   \<^descr> Type @{ML_type attribute} represents attributes as concrete
   type alias.
 
-  \<^descr> @{ML Thm.rule_attribute}~\<open>(fn context => rule)\<close> wraps
-  a context-dependent rule (mapping on @{ML_type thm}) as attribute.
+  \<^descr> @{ML Thm.rule_attribute}~\<open>thms (fn context => rule)\<close> wraps a
+  context-dependent rule (mapping on @{ML_type thm}) as attribute.
 
-  \<^descr> @{ML Thm.declaration_attribute}~\<open>(fn thm => decl)\<close>
-  wraps a theorem-dependent declaration (mapping on @{ML_type
-  Context.generic}) as attribute.
+  The \<open>thms\<close> are additional parameters: when forming an abstract closure, the
+  system may provide dummy facts that are propagated according to strict
+  evaluation discipline. In that case, \<open>rule\<close> is bypassed.
+
+  \<^descr> @{ML Thm.declaration_attribute}~\<open>(fn thm => decl)\<close> wraps a
+  theorem-dependent declaration (mapping on @{ML_type Context.generic}) as
+  attribute.
+
+  When forming an abstract closure, the system may provide a dummy fact as
+  \<open>thm\<close>. In that case, \<open>decl\<close> is bypassed.
 
   \<^descr> @{ML Attrib.setup}~\<open>name parser description\<close> provides
   the functionality of the Isar command @{command attribute_setup} as

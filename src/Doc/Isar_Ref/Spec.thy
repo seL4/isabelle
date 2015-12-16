@@ -1066,7 +1066,7 @@ text \<open>
 (*<*)experiment begin(*>*)
   attribute_setup my_rule =
     \<open>Attrib.thms >> (fn ths =>
-      Thm.rule_attribute
+      Thm.rule_attribute ths
         (fn context: Context.generic => fn th: thm =>
           let val th' = th OF ths
           in th' end))\<close>

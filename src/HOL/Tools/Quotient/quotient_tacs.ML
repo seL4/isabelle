@@ -755,7 +755,7 @@ fun lifted ctxt qtys simps rthm =
 
 (* lifting as an attribute *)
 
-val lifted_attrib = Thm.rule_attribute (fn context =>
+val lifted_attrib = Thm.rule_attribute [] (fn context =>
   let
     val ctxt = Context.proof_of context
     val qtys = map #qtyp (Quotient_Info.dest_quotients ctxt)
