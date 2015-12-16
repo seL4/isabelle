@@ -931,7 +931,7 @@ text \<open>
 
     attribute_setup get_split_rule =
       \<open>Args.term >> (fn t =>
-        Thm.rule_attribute (fn context => fn _ =>
+        Thm.rule_attribute [] (fn context => fn _ =>
           (case get_split_rule (Context.proof_of context) t of
             SOME thm => thm
           | NONE => Drule.dummy_thm)))\<close>

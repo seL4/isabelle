@@ -190,7 +190,7 @@ fun eq_mp_tac ctxt i = ematch_tac ctxt [Data.not_elim, Data.imp_elim] i THEN eq_
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
 fun swapify intrs = intrs RLN (2, [Data.swap]);
-val swapped = Thm.rule_attribute (fn _ => fn th => th RSN (2, Data.swap));
+val swapped = Thm.rule_attribute [] (fn _ => fn th => th RSN (2, Data.swap));
 
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)

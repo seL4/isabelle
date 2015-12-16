@@ -167,9 +167,6 @@ val opt_attribs = Scan.optional attribs [];
 
 (* pretty printing *)
 
-fun markup_extern ctxt =
-  Name_Space.markup_extern ctxt (Name_Space.space_of_table (get_attributes ctxt));
-
 fun pretty_attribs _ [] = []
   | pretty_attribs ctxt srcs = [Pretty.enum "," "[" "]" (map (Token.pretty_src ctxt) srcs)];
 

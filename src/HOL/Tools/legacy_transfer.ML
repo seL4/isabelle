@@ -253,7 +253,7 @@ val _ =
     "install transfer data" #>
     Attrib.setup @{binding transferred}
       (selection -- these (keyword_colon leavingN |-- names)
-        >> (fn (selection, leave) => Thm.rule_attribute (fn context =>
+        >> (fn (selection, leave) => Thm.rule_attribute [] (fn context =>
               Conjunction.intr_balanced o transfer context selection leave)))
     "transfer theorems");
 

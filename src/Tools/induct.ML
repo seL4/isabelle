@@ -312,7 +312,9 @@ fun mk_att f g name =
   Thm.mixed_attribute (fn (context, thm) =>
     let
       val thm' = g thm;
-      val context' = Data.map (f (name, Thm.trim_context thm')) context;
+      val context' =
+        if Thm.is_free_dummy thm then context
+        else Data.map (f (name, Thm.trim_context thm')) context;
     in (context', thm') end);
 
 fun del_att which =

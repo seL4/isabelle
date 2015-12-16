@@ -349,7 +349,7 @@ fun to_pred thms context thm =
     Rule_Cases.save thm
   end;
 
-val to_pred_att = Thm.rule_attribute o to_pred;
+val to_pred_att = Thm.rule_attribute [] o to_pred;
 
 
 (**** convert theorem in predicate notation to set notation ****)
@@ -385,7 +385,7 @@ fun to_set thms context thm =
     Rule_Cases.save thm
   end;
 
-val to_set_att = Thm.rule_attribute o to_set;
+val to_set_att = Thm.rule_attribute [] o to_set;
 
 
 (**** definition of inductive sets ****)

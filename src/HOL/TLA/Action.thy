@@ -123,11 +123,11 @@ fun action_use ctxt th =
 \<close>
 
 attribute_setup action_unlift =
-  \<open>Scan.succeed (Thm.rule_attribute (action_unlift o Context.proof_of))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (action_unlift o Context.proof_of))\<close>
 attribute_setup action_rewrite =
-  \<open>Scan.succeed (Thm.rule_attribute (action_rewrite o Context.proof_of))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (action_rewrite o Context.proof_of))\<close>
 attribute_setup action_use =
-  \<open>Scan.succeed (Thm.rule_attribute (action_use o Context.proof_of))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (action_use o Context.proof_of))\<close>
 
 
 (* =========================== square / angle brackets =========================== *)

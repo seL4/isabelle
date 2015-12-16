@@ -10,12 +10,6 @@ existing ones with their usual syntax.
 
 signature METHOD_CLOSURE =
 sig
-  val tag_free_thm: thm -> thm
-  val is_free_thm: thm -> bool
-  val dummy_free_thm: thm
-  val free_aware_rule_attribute: thm list -> (Context.generic -> thm -> thm) -> Thm.attribute
-  val wrap_attribute: {handle_all_errs : bool, declaration : bool} ->
-    Binding.binding -> theory -> theory
   val read: Proof.context -> Token.src -> Method.text
   val read_closure: Proof.context -> Token.src -> Method.text * Token.src
   val read_closure_input: Proof.context -> Input.source -> Method.text * Token.src
@@ -66,52 +60,6 @@ val update_dynamic_method = Local_Data.map o apfst o Symtab.update;
 
 val get_recursive_method = #2 o Local_Data.get;
 val put_recursive_method = Local_Data.map o apsnd o K;
-
-
-(* free thm *)
-
-val free_thmN = "Method_Closure.free_thm";
-fun tag_free_thm thm = Thm.tag_rule (free_thmN, "") thm;
-
-val dummy_free_thm = tag_free_thm Drule.dummy_thm;
-
-fun is_free_thm thm = Properties.defined (Thm.get_tags thm) free_thmN;
-
-fun free_aware_rule_attribute args f =
-  Thm.rule_attribute (fn context => fn thm =>
-    if exists is_free_thm (thm :: args) then dummy_free_thm
-    else f context thm);
-
-fun free_aware_attribute thy {handle_all_errs, declaration} src (context, thm) =
-  let
-    val src' = map Token.init_assignable src;
-    fun apply_att thm = (Attrib.attribute_global thy src') (context, thm);
-    val _ =
-      if handle_all_errs then (try apply_att Drule.dummy_thm; ())
-      else (apply_att Drule.dummy_thm; ()) handle THM _ => () | TERM _ => () | TYPE _ => ();
-
-    val src'' = map Token.closure src';
-    val thms =
-      map_filter Token.get_value (Token.args_of_src src'')
-      |> map_filter (fn (Token.Fact (_, f)) => SOME f | _ => NONE)
-      |> flat;
-  in
-    if exists is_free_thm (thm :: thms) then
-      if declaration then (NONE, NONE)
-      else (NONE, SOME dummy_free_thm)
-    else apply_att thm
-  end;
-
-fun wrap_attribute args binding thy =
-  let
-    val name = Binding.name_of binding;
-    val name' = Attrib.check_name_generic (Context.Theory thy) (name, Position.none);
-    fun get_src src =
-      Token.make_src (name', Position.set_range (Token.range_of src)) (Token.args_of_src src);
-  in
-    Attrib.define_global binding (free_aware_attribute thy args o get_src) "" thy
-    |> snd
-  end;
 
 
 (* read method text *)
@@ -247,7 +195,7 @@ fun empty_named_thm named_thm ctxt =
 fun dummy_named_thm named_thm ctxt =
   let
     val ctxt' = empty_named_thm named_thm ctxt;
-    val (_, ctxt'') = Thm.proof_attributes [Named_Theorems.add named_thm] dummy_free_thm ctxt';
+    val (_, ctxt'') = Thm.proof_attributes [Named_Theorems.add named_thm] Drule.free_dummy_thm ctxt';
   in ctxt'' end;
 
 fun parse_method_args method_names =

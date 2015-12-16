@@ -213,7 +213,7 @@ fun gen_rulify full ctxt =
 val rulify = gen_rulify true;
 val rulify_no_asm = gen_rulify false;
 
-val rule_format = Thm.rule_attribute (rulify o Context.proof_of);
-val rule_format_no_asm = Thm.rule_attribute (rulify_no_asm o Context.proof_of);
+val rule_format = Thm.rule_attribute [] (rulify o Context.proof_of);
+val rule_format_no_asm = Thm.rule_attribute [] (rulify_no_asm o Context.proof_of);
 
 end;

@@ -96,7 +96,8 @@ fun annotation_rule thm1 thm2 =
     Rule_Cases.name names o Rule_Cases.put_consumes (SOME (cons1 + cons2))
   end
 
-fun annotation thm1 thm2 = Thm.rule_attribute (K (annotation_rule thm1 thm2))
+fun annotation thm1 thm2 =
+  Thm.rule_attribute [thm1, thm2] (K (annotation_rule thm1 thm2))
 
 fun combine_annotated ctxt thm1 thm2 =
   combine ctxt thm1 thm2
@@ -111,7 +112,7 @@ val _ =
       let
         fun combine_list ctxt = fold (fn x => fn y => combine_annotated ctxt y x)
       in
-        Attrib.thms >> (fn thms => Thm.rule_attribute (fn ctxt => fn thm =>
+        Attrib.thms >> (fn thms => Thm.rule_attribute thms (fn ctxt => fn thm =>
           combine_list (Context.proof_of ctxt) thms thm))
       end
     "product with other case rules")

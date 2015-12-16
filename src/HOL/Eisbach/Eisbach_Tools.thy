@@ -76,7 +76,7 @@ ML \<open>
       in Conjunction.curry_balanced (length conjs) thm end;
 \<close>
 
-attribute_setup uncurry = \<open>Scan.succeed (Thm.rule_attribute (K uncurry_rule))\<close>
-attribute_setup curry = \<open>Scan.succeed (Thm.rule_attribute (K curry_rule))\<close>
+attribute_setup uncurry = \<open>Scan.succeed (Thm.rule_attribute [] (K uncurry_rule))\<close>
+attribute_setup curry = \<open>Scan.succeed (Thm.rule_attribute [] (K curry_rule))\<close>
 
 end

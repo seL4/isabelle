@@ -321,7 +321,7 @@ let
       handle THM _ => th RS (@{thm guarantees_INT_right_iff} RS iffD1))
     handle THM _ => th;
 in
-  Scan.succeed (Thm.rule_attribute (K normalized))
+  Scan.succeed (Thm.rule_attribute [] (K normalized))
 end
 *}
 

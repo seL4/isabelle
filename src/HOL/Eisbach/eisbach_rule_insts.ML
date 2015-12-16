@@ -228,8 +228,11 @@ val _ =
     (Attrib.setup @{binding "where"}
       (Scan.lift
         (Parse.and_list1 (Args.var -- (Args.$$$ "=" |-- Parse_Tools.name_term)) -- Parse.for_fixes)
-        >> (fn args => let val args' = read_where_insts args in Thm.rule_attribute (fn context =>
-            read_instantiate_closed (Context.proof_of context) args') end))
+        >> (fn args =>
+            let val args' = read_where_insts args in
+              Thm.mixed_attribute (fn (context, thm) =>
+                (context, read_instantiate_closed (Context.proof_of context) args' thm))
+            end))
       "named instantiation of theorem");
 
 val _ =
@@ -244,10 +247,12 @@ val _ =
         let
           val read_insts = read_of_insts (not unchecked) context args;
         in
-          Thm.rule_attribute (fn context => fn thm =>
-            if Method_Closure.is_free_thm thm andalso unchecked
-            then Method_Closure.dummy_free_thm
-            else read_instantiate_closed (Context.proof_of context) (read_insts thm) thm)
+          Thm.mixed_attribute (fn (context, thm) =>
+            let val thm' =
+              if Thm.is_free_dummy thm andalso unchecked
+              then Drule.free_dummy_thm
+              else read_instantiate_closed (Context.proof_of context) (read_insts thm) thm
+            in (context, thm') end)
         end))
       "positional instantiation of theorem");
 

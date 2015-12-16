@@ -182,7 +182,7 @@ val named_insts =
 val _ = Theory.setup
   (Attrib.setup @{binding "where"}
     (Scan.lift named_insts >> (fn args =>
-      Thm.rule_attribute (fn context => uncurry (where_rule (Context.proof_of context)) args)))
+      Thm.rule_attribute [] (fn context => uncurry (where_rule (Context.proof_of context)) args)))
     "named instantiation of theorem");
 
 
@@ -202,7 +202,7 @@ in
 val _ = Theory.setup
   (Attrib.setup @{binding "of"}
     (Scan.lift (insts -- Parse.for_fixes) >> (fn args =>
-      Thm.rule_attribute (fn context => uncurry (of_rule (Context.proof_of context)) args)))
+      Thm.rule_attribute [] (fn context => uncurry (of_rule (Context.proof_of context)) args)))
     "positional instantiation of theorem");
 
 end;

@@ -171,7 +171,7 @@ fun parse_named_pats match_kind =
                   val param_thm = map (Drule.mk_term o Thm.cterm_of ctxt' o Free) abs_nms
                     |> Conjunction.intr_balanced
                     |> Drule.generalize ([], map fst abs_nms)
-                    |> Method_Closure.tag_free_thm;
+                    |> Thm.tag_free_dummy;
 
                   val atts = map (Attrib.attribute ctxt') att;
                   val (param_thm', ctxt'') = Thm.proof_attributes atts param_thm ctxt';
@@ -183,7 +183,7 @@ fun parse_named_pats match_kind =
 
                   val [head_thm, body_thm] =
                     Drule.zero_var_indexes_list (map label_thm [param_thm, param_thm'])
-                    |> map Method_Closure.tag_free_thm;
+                    |> map Thm.tag_free_dummy;
 
                   val ctxt''' =
                     Attrib.local_notes "" [((b, []), [([body_thm], [])])] ctxt''

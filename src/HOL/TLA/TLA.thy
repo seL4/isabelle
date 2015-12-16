@@ -124,13 +124,13 @@ fun try_rewrite ctxt th = temp_rewrite ctxt th handle THM _ => temp_use ctxt th;
 \<close>
 
 attribute_setup temp_unlift =
-  \<open>Scan.succeed (Thm.rule_attribute (temp_unlift o Context.proof_of))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (temp_unlift o Context.proof_of))\<close>
 attribute_setup temp_rewrite =
-  \<open>Scan.succeed (Thm.rule_attribute (temp_rewrite o Context.proof_of))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (temp_rewrite o Context.proof_of))\<close>
 attribute_setup temp_use =
-  \<open>Scan.succeed (Thm.rule_attribute (temp_use o Context.proof_of))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (temp_use o Context.proof_of))\<close>
 attribute_setup try_rewrite =
-  \<open>Scan.succeed (Thm.rule_attribute (try_rewrite o Context.proof_of))\<close>
+  \<open>Scan.succeed (Thm.rule_attribute [] (try_rewrite o Context.proof_of))\<close>
 
 
 (* ------------------------------------------------------------------------- *)

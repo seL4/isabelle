@@ -84,19 +84,10 @@ sig
   type attribute = Context.generic * thm -> Context.generic option * thm option
   type binding = binding * attribute list
   val empty_binding: binding
-  val rule_attribute: (Context.generic -> thm -> thm) -> attribute
-  val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
-  val mixed_attribute: (Context.generic * thm -> Context.generic * thm) -> attribute
-  val apply_attribute: attribute -> thm -> Context.generic -> thm * Context.generic
-  val attribute_declaration: attribute -> thm -> Context.generic -> Context.generic
-  val theory_attributes: attribute list -> thm -> theory -> thm * theory
-  val proof_attributes: attribute list -> thm -> Proof.context -> thm * Proof.context
-  val no_attributes: 'a -> 'a * 'b list
-  val simple_fact: 'a -> ('a * 'b list) list
   val tag_rule: string * string -> thm -> thm
   val untag_rule: string -> thm -> thm
-  val tag: string * string -> attribute
-  val untag: string -> attribute
+  val is_free_dummy: thm -> bool
+  val tag_free_dummy: thm -> thm
   val def_name: string -> string
   val def_name_optional: string -> string -> string
   val def_binding: Binding.binding -> Binding.binding
@@ -107,6 +98,17 @@ sig
   val theoremK: string
   val legacy_get_kind: thm -> string
   val kind_rule: string -> thm -> thm
+  val rule_attribute: thm list -> (Context.generic -> thm -> thm) -> attribute
+  val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
+  val mixed_attribute: (Context.generic * thm -> Context.generic * thm) -> attribute
+  val apply_attribute: attribute -> thm -> Context.generic -> thm * Context.generic
+  val attribute_declaration: attribute -> thm -> Context.generic -> Context.generic
+  val theory_attributes: attribute list -> thm -> theory -> thm * theory
+  val proof_attributes: attribute list -> thm -> Proof.context -> thm * Proof.context
+  val no_attributes: 'a -> 'a * 'b list
+  val simple_fact: 'a -> ('a * 'b list) list
+  val tag: string * string -> attribute
+  val untag: string -> attribute
   val kind: string -> attribute
   val register_proofs: thm list -> theory -> theory
   val join_theory_proofs: theory -> unit
@@ -541,38 +543,6 @@ fun add_def_global unchecked overloaded arg thy =
 
 
 
-(** attributes **)
-
-(*attributes subsume any kind of rules or context modifiers*)
-type attribute = Context.generic * thm -> Context.generic option * thm option;
-
-type binding = binding * attribute list;
-val empty_binding: binding = (Binding.empty, []);
-
-fun rule_attribute f (x, th) = (NONE, SOME (f x th));
-fun declaration_attribute f (x, th) = (SOME (f th x), NONE);
-fun mixed_attribute f (x, th) = let val (x', th') = f (x, th) in (SOME x', SOME th') end;
-
-fun apply_attribute (att: attribute) th x =
-  let val (x', th') = att (x, check_hyps x (Thm.transfer (Context.theory_of x) th))
-  in (the_default th th', the_default x x') end;
-
-fun attribute_declaration att th x = #2 (apply_attribute att th x);
-
-fun apply_attributes mk dest =
-  let
-    fun app [] th x = (th, x)
-      | app (att :: atts) th x = apply_attribute att th (mk x) ||> dest |-> app atts;
-  in app end;
-
-val theory_attributes = apply_attributes Context.Theory Context.the_theory;
-val proof_attributes = apply_attributes Context.Proof Context.the_proof;
-
-fun no_attributes x = (x, []);
-fun simple_fact x = [(x, [])];
-
-
-
 (*** theorem tags ***)
 
 (* add / delete tags *)
@@ -580,8 +550,12 @@ fun simple_fact x = [(x, [])];
 fun tag_rule tg = Thm.map_tags (insert (op =) tg);
 fun untag_rule s = Thm.map_tags (filter_out (fn (s', _) => s = s'));
 
-fun tag tg = rule_attribute (K (tag_rule tg));
-fun untag s = rule_attribute (K (untag_rule s));
+
+(* free dummy thm -- for abstract closure *)
+
+val free_dummyN = "free_dummy";
+fun is_free_dummy thm = Properties.defined (Thm.get_tags thm) free_dummyN;
+val tag_free_dummy = tag_rule (free_dummyN, "");
 
 
 (* def_name *)
@@ -614,7 +588,50 @@ val theoremK = "theorem";
 fun legacy_get_kind thm = the_default "" (Properties.get (Thm.get_tags thm) Markup.kindN);
 
 fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
-fun kind k = rule_attribute (K (k <> "" ? kind_rule k));
+
+
+
+(** attributes **)
+
+(*attributes subsume any kind of rules or context modifiers*)
+type attribute = Context.generic * thm -> Context.generic option * thm option;
+
+type binding = binding * attribute list;
+val empty_binding: binding = (Binding.empty, []);
+
+fun rule_attribute ths f (x, th) =
+  (NONE,
+    (case find_first is_free_dummy (th :: ths) of
+      SOME th' => SOME th'
+    | NONE => SOME (f x th)));
+
+fun declaration_attribute f (x, th) =
+  (if is_free_dummy th then NONE else SOME (f th x), NONE);
+
+fun mixed_attribute f (x, th) =
+  let val (x', th') = f (x, th) in (SOME x', SOME th') end;
+
+fun apply_attribute (att: attribute) th x =
+  let val (x', th') = att (x, check_hyps x (Thm.transfer (Context.theory_of x) th))
+  in (the_default th th', the_default x x') end;
+
+fun attribute_declaration att th x = #2 (apply_attribute att th x);
+
+fun apply_attributes mk dest =
+  let
+    fun app [] th x = (th, x)
+      | app (att :: atts) th x = apply_attribute att th (mk x) ||> dest |-> app atts;
+  in app end;
+
+val theory_attributes = apply_attributes Context.Theory Context.the_theory;
+val proof_attributes = apply_attributes Context.Proof Context.the_proof;
+
+fun no_attributes x = (x, []);
+fun simple_fact x = [(x, [])];
+
+fun tag tg = rule_attribute [] (K (tag_rule tg));
+fun untag s = rule_attribute [] (K (untag_rule s));
+fun kind k = rule_attribute [] (K (k <> "" ? kind_rule k));
 
 
 (* forked proofs *)
