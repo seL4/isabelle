@@ -180,8 +180,23 @@ object Markup
 
   /* pretty printing */
 
-  val Block = new Markup_Int("block", "indent")
-  val Break = new Markup_Int("break", "width")
+  val Indent = new Properties.Int("indent")
+  val Block = new Markup_Int("block", Indent.name)
+
+  val Width = new Properties.Int("width")
+  object Break
+  {
+    val name = "break"
+    def apply(w: Int, i: Int): Markup = Markup(name, Width(w) ::: Indent(i))
+    def unapply(markup: Markup): Option[(Int, Int)] =
+      if (markup.name == name) {
+        (markup.properties, markup.properties) match {
+          case (Width(w), Indent(i)) => Some((w, i))
+          case _ => None
+        }
+      }
+      else None
+  }
 
   val ITEM = "item"
   val BULLET = "bullet"

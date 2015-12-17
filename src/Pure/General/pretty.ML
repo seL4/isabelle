@@ -27,6 +27,7 @@ sig
   type T
   val str: string -> T
   val brk: int -> T
+  val brk_indent: int -> int -> T
   val fbrk: T
   val breaks: T list -> T list
   val fbreaks: T list -> T list
@@ -126,12 +127,12 @@ abstype T =
     Block of (Output.output * Output.output) * T list * int * int
       (*markup output, body, indentation, length*)
   | String of Output.output * int  (*text, length*)
-  | Break of bool * int  (*mandatory flag, width if not taken*)
+  | Break of bool * int * int  (*mandatory flag, width if not taken, extra indentation if taken*)
 with
 
 fun length (Block (_, _, _, len)) = len
   | length (String (_, len)) = len
-  | length (Break (_, wd)) = wd;
+  | length (Break (_, wd, _)) = wd;
 
 
 
@@ -139,8 +140,9 @@ fun length (Block (_, _, _, len)) = len
 
 val str = String o Output.output_width;
 
-fun brk wd = Break (false, wd);
-val fbrk = Break (true, 1);
+fun brk wd = Break (false, wd, 0);
+fun brk_indent wd ind = Break (false, wd, ind);
+val fbrk = Break (true, 1, 0);
 
 fun breaks prts = Library.separate (brk 1) prts;
 fun fbreaks prts = Library.separate fbrk prts;
@@ -197,7 +199,7 @@ fun big_list name prts = block (fbreaks (str name :: prts));
 fun indent 0 prt = prt
   | indent n prt = blk (0, [str (spaces n), prt]);
 
-fun unbreakable (Break (_, wd)) = String (output_spaces wd, wd)
+fun unbreakable (Break (_, wd, _)) = String (output_spaces wd, wd)
   | unbreakable (Block (m, es, indent, wd)) = Block (m, map unbreakable es, indent, wd)
   | unbreakable (e as String _) = e;
 
@@ -284,14 +286,14 @@ fun formatted margin input =
                 (*if this block was broken then force the next break*)
                 val es' = if nl < #nl btext then forcenext es else es;
               in format (es', block, after) btext end
-          | Break (force, wd) =>
+          | Break (force, wd, ind) =>
               (*no break if text to next break fits on this line
                 or if breaking would add only breakgain to space*)
               format (es, block, after)
                 (if not force andalso
                     pos + wd <= Int.max (margin - breakdist (es, after), blockin + breakgain)
                   then text |> blanks wd  (*just insert wd blanks*)
-                  else text |> newline |> indentation block)
+                  else text |> newline |> indentation block |> blanks ind)
           | String str => format (es, block, after) (string str text));
   in
     #tx (format ([input], (Buffer.empty, 0), 0) empty)
@@ -311,9 +313,9 @@ fun symbolic prt =
           Buffer.markup (Markup.block indent) (fold out prts) #>
           Buffer.add en
       | out (String (s, _)) = Buffer.add s
-      | out (Break (false, wd)) =
-          Buffer.markup (Markup.break wd) (Buffer.add (output_spaces wd))
-      | out (Break (true, _)) = Buffer.add (Output.output "\n");
+      | out (Break (false, wd, ind)) =
+          Buffer.markup (Markup.break wd ind) (Buffer.add (output_spaces wd))
+      | out (Break (true, _, _)) = Buffer.add (Output.output "\n");
   in out prt Buffer.empty end;
 
 (*unformatted output*)
@@ -321,7 +323,7 @@ fun unformatted prt =
   let
     fun fmt (Block ((bg, en), prts, _, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
       | fmt (String (s, _)) = Buffer.add s
-      | fmt (Break (_, wd)) = Buffer.add (output_spaces wd);
+      | fmt (Break (_, wd, _)) = Buffer.add (output_spaces wd);
   in fmt prt Buffer.empty end;
 
 

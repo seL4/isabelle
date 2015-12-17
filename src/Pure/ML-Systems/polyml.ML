@@ -132,10 +132,10 @@ val error_depth = PolyML.error_depth;
 
 val pretty_ml =
   let
-    fun convert _ (PolyML.PrettyBreak (wd, _)) = ML_Pretty.Break (false, wd)
+    fun convert _ (PolyML.PrettyBreak (width, offset)) = ML_Pretty.Break (false, width, offset)
       | convert _ (PolyML.PrettyBlock (_, _,
             [PolyML.ContextProperty ("fbrk", _)], [PolyML.PrettyString " "])) =
-          ML_Pretty.Break (true, 1)
+          ML_Pretty.Break (true, 1, 0)
       | convert len (PolyML.PrettyBlock (ind, _, context, prts)) =
           let
             fun property name default =
@@ -150,8 +150,8 @@ val pretty_ml =
           ML_Pretty.String (s, case Int.fromString len of SOME i => i | NONE => size s)
   in convert "" end;
 
-fun ml_pretty (ML_Pretty.Break (false, wd)) = PolyML.PrettyBreak (wd, 0)
-  | ml_pretty (ML_Pretty.Break (true, _)) =
+fun ml_pretty (ML_Pretty.Break (false, width, offset)) = PolyML.PrettyBreak (width, offset)
+  | ml_pretty (ML_Pretty.Break (true, _, _)) =
       PolyML.PrettyBlock (0, false, [PolyML.ContextProperty ("fbrk", "")],
         [PolyML.PrettyString " "])
   | ml_pretty (ML_Pretty.Block ((bg, en), prts, ind)) =

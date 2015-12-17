@@ -66,7 +66,7 @@ sig
   val indentN: string
   val blockN: string val block: int -> T
   val widthN: string
-  val breakN: string val break: int -> T
+  val breakN: string val break: int -> int -> T
   val fbreakN: string val fbreak: T
   val itemN: string val item: T
   val wordsN: string val words: T
@@ -381,7 +381,8 @@ val indentN = "indent";
 val (blockN, block) = markup_int "block" indentN;
 
 val widthN = "width";
-val (breakN, break) = markup_int "break" widthN;
+val breakN = "break";
+fun break w i = (breakN, [(widthN, print_int w), (indentN, print_int i)]);
 
 val (fbreakN, fbreak) = markup_elem "fbreak";
 

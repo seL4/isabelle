@@ -119,8 +119,9 @@ fun ml_pprint pps =
           (str bg; PrettyPrint.openHOVBox pps (PrettyPrint.Rel (dest_int ind));
             List.app pprint prts; PrettyPrint.closeBox pps; str en)
       | pprint (ML_Pretty.String (s, _)) = str s
-      | pprint (ML_Pretty.Break (false, wd)) = PrettyPrint.break pps {nsp = dest_int wd, offset = 0}
-      | pprint (ML_Pretty.Break (true, _)) = PrettyPrint.newline pps;
+      | pprint (ML_Pretty.Break (false, width, offset)) =
+          PrettyPrint.break pps {nsp = dest_int width, offset = dest_int offset}
+      | pprint (ML_Pretty.Break (true, _, _)) = PrettyPrint.newline pps;
   in pprint end;
 
 fun toplevel_pp context path pp =

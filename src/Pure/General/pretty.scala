@@ -56,12 +56,12 @@ object Pretty
 
   object Break
   {
-    def apply(w: Int): XML.Tree =
-      XML.Elem(Markup.Break(w), List(XML.Text(spaces(w))))
+    def apply(w: Int, i: Int = 0): XML.Tree =
+      XML.Elem(Markup.Break(w, i), List(XML.Text(spaces(w))))
 
-    def unapply(tree: XML.Tree): Option[Int] =
+    def unapply(tree: XML.Tree): Option[(Int, Int)] =
       tree match {
-        case XML.Elem(Markup.Break(w), _) => Some(w)
+        case XML.Elem(Markup.Break(w, i), _) => Some((w, i))
         case _ => None
       }
   }
@@ -111,7 +111,7 @@ object Pretty
 
     def breakdist(trees: XML.Body, after: Double): Double =
       trees match {
-        case Break(_) :: _ => 0.0
+        case Break(_, _) :: _ => 0.0
         case FBreak :: _ => 0.0
         case t :: ts => content_length(t) + breakdist(ts, after)
         case Nil => after
@@ -121,7 +121,7 @@ object Pretty
       trees match {
         case Nil => Nil
         case FBreak :: _ => trees
-        case Break(_) :: ts => FBreak :: ts
+        case Break(_, _) :: ts => FBreak :: ts
         case t :: ts => t :: forcenext(ts)
       }
 
@@ -139,10 +139,10 @@ object Pretty
           val ts1 = if (text.nl < btext.nl) forcenext(ts) else ts
           format(ts1, blockin, after, btext)
 
-        case Break(wd) :: ts =>
+        case Break(wd, ind) :: ts =>
           if (text.pos + wd <= ((margin - breakdist(ts, after)) max (blockin + breakgain)))
             format(ts, blockin, after, text.blanks(wd))
-          else format(ts, blockin, after, text.newline.blanks(blockin))
+          else format(ts, blockin, after, text.newline.blanks(blockin + ind))
         case FBreak :: ts => format(ts, blockin, after, text.newline.blanks(blockin))
 
         case XML.Wrapped_Elem(markup, body1, body2) :: ts =>
@@ -175,7 +175,7 @@ object Pretty
     def fmt(tree: XML.Tree): XML.Body =
       tree match {
         case Block(_, body) => body.flatMap(fmt)
-        case Break(wd) => List(XML.Text(spaces(wd)))
+        case Break(wd, _) => List(XML.Text(spaces(wd)))
         case FBreak => List(XML.Text(space))
         case XML.Wrapped_Elem(markup, body1, body2) =>
           List(XML.Wrapped_Elem(markup, body1, body2.flatMap(fmt)))

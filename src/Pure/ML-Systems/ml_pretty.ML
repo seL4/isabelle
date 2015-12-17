@@ -10,11 +10,11 @@ struct
 datatype pretty =
   Block of (string * string) * pretty list * int |
   String of string * int |
-  Break of bool * int;
+  Break of bool * int * int;
 
 fun block prts = Block (("", ""), prts, 2);
 fun str s = String (s, size s);
-fun brk wd = Break (false, wd);
+fun brk width = Break (false, width, 0);
 
 fun pair pretty1 pretty2 ((x, y), depth: int) =
   block [str "(", pretty1 (x, depth), str ",", brk 1, pretty2 (y, depth - 1), str ")"];
