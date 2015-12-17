@@ -8,11 +8,12 @@ section \<open>Elementary topology in Euclidean space.\<close>
 
 theory Topology_Euclidean_Space
 imports
-  Complex_Main
+  "~~/src/HOL/Library/Indicator_Function"
   "~~/src/HOL/Library/Countable_Set"
   "~~/src/HOL/Library/FuncSet"
   Linear_Algebra
   Norm_Arith
+  
 begin
 
 lemma image_affinity_interval:
@@ -5734,6 +5735,60 @@ proof -
     apply (erule_tac x="f x" in ballE)
     apply (auto simp add: dist_norm)
     done
+qed
+
+lemma isCont_indicator: 
+  fixes x :: "'a::t2_space"
+  shows "isCont (indicator A :: 'a \<Rightarrow> real) x = (x \<notin> frontier A)"
+proof auto
+  fix x
+  assume cts_at: "isCont (indicator A :: 'a \<Rightarrow> real) x" and fr: "x \<in> frontier A"
+  with continuous_at_open have 1: "\<forall>V::real set. open V \<and> indicator A x \<in> V \<longrightarrow>
+    (\<exists>U::'a set. open U \<and> x \<in> U \<and> (\<forall>y\<in>U. indicator A y \<in> V))" by auto
+  show False
+  proof (cases "x \<in> A")
+    assume x: "x \<in> A"
+    hence "indicator A x \<in> ({0<..<2} :: real set)" by simp
+    hence "\<exists>U. open U \<and> x \<in> U \<and> (\<forall>y\<in>U. indicator A y \<in> ({0<..<2} :: real set))"
+      using 1 open_greaterThanLessThan by blast
+    then guess U .. note U = this
+    hence "\<forall>y\<in>U. indicator A y > (0::real)"
+      unfolding greaterThanLessThan_def by auto
+    hence "U \<subseteq> A" using indicator_eq_0_iff by force
+    hence "x \<in> interior A" using U interiorI by auto
+    thus ?thesis using fr unfolding frontier_def by simp
+  next
+    assume x: "x \<notin> A"
+    hence "indicator A x \<in> ({-1<..<1} :: real set)" by simp
+    hence "\<exists>U. open U \<and> x \<in> U \<and> (\<forall>y\<in>U. indicator A y \<in> ({-1<..<1} :: real set))"
+      using 1 open_greaterThanLessThan by blast
+    then guess U .. note U = this
+    hence "\<forall>y\<in>U. indicator A y < (1::real)"
+      unfolding greaterThanLessThan_def by auto
+    hence "U \<subseteq> -A" by auto
+    hence "x \<in> interior (-A)" using U interiorI by auto
+    thus ?thesis using fr interior_complement unfolding frontier_def by auto
+  qed
+next
+  assume nfr: "x \<notin> frontier A"
+  hence "x \<in> interior A \<or> x \<in> interior (-A)"
+    by (auto simp: frontier_def closure_interior)
+  thus "isCont ((indicator A)::'a \<Rightarrow> real) x"
+  proof
+    assume int: "x \<in> interior A"
+    hence "\<exists>U. open U \<and> x \<in> U \<and> U \<subseteq> A" unfolding interior_def by auto
+    then guess U .. note U = this
+    hence "\<forall>y\<in>U. indicator A y = (1::real)" unfolding indicator_def by auto
+    hence "continuous_on U (indicator A)" by (simp add: continuous_on_const indicator_eq_1_iff)
+    thus ?thesis using U continuous_on_eq_continuous_at by auto
+  next
+    assume ext: "x \<in> interior (-A)"
+    hence "\<exists>U. open U \<and> x \<in> U \<and> U \<subseteq> -A" unfolding interior_def by auto
+    then guess U .. note U = this
+    hence "\<forall>y\<in>U. indicator A y = (0::real)" unfolding indicator_def by auto
+    hence "continuous_on U (indicator A)" by (smt U continuous_on_topological indicator_def)
+    thus ?thesis using U continuous_on_eq_continuous_at by auto
+  qed
 qed
 
 text \<open>Making a continuous function avoid some value in a neighbourhood.\<close>

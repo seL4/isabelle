@@ -2450,6 +2450,16 @@ qed
 lemma lim_ereal[simp]: "((\<lambda>n. ereal (f n)) ---> ereal x) net \<longleftrightarrow> (f ---> x) net"
   by (auto dest!: lim_real_of_ereal)
 
+lemma convergent_real_imp_convergent_ereal:
+  assumes "convergent a"
+  shows "convergent (\<lambda>n. ereal (a n))" and "lim (\<lambda>n. ereal (a n)) = ereal (lim a)"
+proof -
+  from assms obtain L where L: "a ----> L" unfolding convergent_def ..
+  hence lim: "(\<lambda>n. ereal (a n)) ----> ereal L" using lim_ereal by auto
+  thus "convergent (\<lambda>n. ereal (a n))" unfolding convergent_def ..
+  thus "lim (\<lambda>n. ereal (a n)) = ereal (lim a)" using lim L limI by metis
+qed
+
 lemma tendsto_PInfty: "(f ---> \<infinity>) F \<longleftrightarrow> (\<forall>r. eventually (\<lambda>x. ereal r < f x) F)"
 proof -
   {
@@ -3223,7 +3233,6 @@ proof-
   thus "(\<Sum>x. ereal (f x)) \<noteq> -\<infinity>" by simp_all
 qed
 
-
 lemma SUP_ereal_add_directed:
   fixes f g :: "'a \<Rightarrow> ereal"
   assumes nonneg: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i" "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> g i"
@@ -3291,50 +3300,6 @@ proof (subst (1 2) suminf_ereal_eq_SUP)
     apply (subst SUP_ereal_setsum_directed)
     apply (auto intro!: assms simp: finite_subset)
     done
-qed
-
-subsection \<open>More Limits\<close>
-
-lemma convergent_limsup_cl:
-  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
-  shows "convergent X \<Longrightarrow> limsup X = lim X"
-  by (auto simp: convergent_def limI lim_imp_Limsup)
-
-lemma lim_increasing_cl:
-  assumes "\<And>n m. n \<ge> m \<Longrightarrow> f n \<ge> f m"
-  obtains l where "f ----> (l::'a::{complete_linorder,linorder_topology})"
-proof
-  show "f ----> (SUP n. f n)"
-    using assms
-    by (intro increasing_tendsto)
-       (auto simp: SUP_upper eventually_sequentially less_SUP_iff intro: less_le_trans)
-qed
-
-lemma lim_decreasing_cl:
-  assumes "\<And>n m. n \<ge> m \<Longrightarrow> f n \<le> f m"
-  obtains l where "f ----> (l::'a::{complete_linorder,linorder_topology})"
-proof
-  show "f ----> (INF n. f n)"
-    using assms
-    by (intro decreasing_tendsto)
-       (auto simp: INF_lower eventually_sequentially INF_less_iff intro: le_less_trans)
-qed
-
-lemma compact_complete_linorder:
-  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
-  shows "\<exists>l r. subseq r \<and> (X \<circ> r) ----> l"
-proof -
-  obtain r where "subseq r" and mono: "monoseq (X \<circ> r)"
-    using seq_monosub[of X]
-    unfolding comp_def
-    by auto
-  then have "(\<forall>n m. m \<le> n \<longrightarrow> (X \<circ> r) m \<le> (X \<circ> r) n) \<or> (\<forall>n m. m \<le> n \<longrightarrow> (X \<circ> r) n \<le> (X \<circ> r) m)"
-    by (auto simp add: monoseq_def)
-  then obtain l where "(X \<circ> r) ----> l"
-     using lim_increasing_cl[of "X \<circ> r"] lim_decreasing_cl[of "X \<circ> r"]
-     by auto
-  then show ?thesis
-    using \<open>subseq r\<close> by auto
 qed
 
 lemma ereal_dense3:

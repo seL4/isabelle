@@ -3391,6 +3391,60 @@ proof -
   ultimately show ?thesis by auto
 qed
 
+lemma continuous_ge_on_Ioo:
+  assumes "continuous_on {c..d} g" "\<And>x. x \<in> {c<..<d} \<Longrightarrow> g x \<ge> a" "c < d" "x \<in> {c..d}"
+  shows "g (x::real) \<ge> (a::real)"
+proof-
+  from assms(3) have "{c..d} = closure {c<..<d}" by (rule closure_greaterThanLessThan[symmetric])
+  also from assms(2) have "{c<..<d} \<subseteq> (g -` {a..} \<inter> {c..d})" by auto
+  hence "closure {c<..<d} \<subseteq> closure (g -` {a..} \<inter> {c..d})" by (rule closure_mono)
+  also from assms(1) have "closed (g -` {a..} \<inter> {c..d})"
+    by (auto simp: continuous_on_closed_vimage)
+  hence "closure (g -` {a..} \<inter> {c..d}) = g -` {a..} \<inter> {c..d}" by simp
+  finally show ?thesis using \<open>x \<in> {c..d}\<close> by auto 
+qed 
+
+lemma interior_real_semiline':
+  fixes a :: real
+  shows "interior {..a} = {..<a}"
+proof -
+  {
+    fix y
+    assume "a > y"
+    then have "y \<in> interior {..a}"
+      apply (simp add: mem_interior)
+      apply (rule_tac x="(a-y)" in exI)
+      apply (auto simp add: dist_norm)
+      done
+  }
+  moreover
+  {
+    fix y
+    assume "y \<in> interior {..a}"
+    then obtain e where e: "e > 0" "cball y e \<subseteq> {..a}"
+      using mem_interior_cball[of y "{..a}"] by auto
+    moreover from e have "y + e \<in> cball y e"
+      by (auto simp add: cball_def dist_norm)
+    ultimately have "a \<ge> y + e" by auto
+    then have "a > y" using e by auto
+  }
+  ultimately show ?thesis by auto
+qed
+
+lemma interior_atLeastAtMost_real: "interior {a..b} = {a<..<b :: real}"
+proof-
+  have "{a..b} = {a..} \<inter> {..b}" by auto
+  also have "interior ... = {a<..} \<inter> {..<b}" 
+    by (simp add: interior_real_semiline interior_real_semiline')
+  also have "... = {a<..<b}" by auto
+  finally show ?thesis .
+qed
+
+lemma frontier_real_Iic:
+  fixes a :: real
+  shows "frontier {..a} = {a}"
+  unfolding frontier_def by (auto simp add: interior_real_semiline')
+
 lemma rel_interior_real_box:
   fixes a b :: real
   assumes "a < b"

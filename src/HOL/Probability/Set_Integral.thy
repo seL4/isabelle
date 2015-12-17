@@ -14,13 +14,6 @@ begin
     Notation
 *)
 
-syntax
-"_ascii_lebesgue_integral" :: "pttrn \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-("(3LINT (1_)/|(_)./ _)" [0,110,60] 60)
-
-translations
-"LINT x|M. f" == "CONST lebesgue_integral M (\<lambda>x. f)"
-
 abbreviation "set_borel_measurable M A f \<equiv> (\<lambda>x. indicator A x *\<^sub>R f x) \<in> borel_measurable M"
 
 abbreviation "set_integrable M A f \<equiv> integrable M (\<lambda>x. indicator A x *\<^sub>R f x)"

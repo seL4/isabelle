@@ -351,5 +351,53 @@ proof -
   finally show ?thesis
     by (auto simp: Liminf_def)
 qed
+subsection \<open>More Limits\<close>
+
+lemma convergent_limsup_cl:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
+  shows "convergent X \<Longrightarrow> limsup X = lim X"
+  by (auto simp: convergent_def limI lim_imp_Limsup)
+
+lemma convergent_liminf_cl:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
+  shows "convergent X \<Longrightarrow> liminf X = lim X"
+  by (auto simp: convergent_def limI lim_imp_Liminf)
+
+lemma lim_increasing_cl:
+  assumes "\<And>n m. n \<ge> m \<Longrightarrow> f n \<ge> f m"
+  obtains l where "f ----> (l::'a::{complete_linorder,linorder_topology})"
+proof
+  show "f ----> (SUP n. f n)"
+    using assms
+    by (intro increasing_tendsto)
+       (auto simp: SUP_upper eventually_sequentially less_SUP_iff intro: less_le_trans)
+qed
+
+lemma lim_decreasing_cl:
+  assumes "\<And>n m. n \<ge> m \<Longrightarrow> f n \<le> f m"
+  obtains l where "f ----> (l::'a::{complete_linorder,linorder_topology})"
+proof
+  show "f ----> (INF n. f n)"
+    using assms
+    by (intro decreasing_tendsto)
+       (auto simp: INF_lower eventually_sequentially INF_less_iff intro: le_less_trans)
+qed
+
+lemma compact_complete_linorder:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder,linorder_topology}"
+  shows "\<exists>l r. subseq r \<and> (X \<circ> r) ----> l"
+proof -
+  obtain r where "subseq r" and mono: "monoseq (X \<circ> r)"
+    using seq_monosub[of X]
+    unfolding comp_def
+    by auto
+  then have "(\<forall>n m. m \<le> n \<longrightarrow> (X \<circ> r) m \<le> (X \<circ> r) n) \<or> (\<forall>n m. m \<le> n \<longrightarrow> (X \<circ> r) n \<le> (X \<circ> r) m)"
+    by (auto simp add: monoseq_def)
+  then obtain l where "(X \<circ> r) ----> l"
+     using lim_increasing_cl[of "X \<circ> r"] lim_decreasing_cl[of "X \<circ> r"]
+     by auto
+  then show ?thesis
+    using \<open>subseq r\<close> by auto
+qed
 
 end
