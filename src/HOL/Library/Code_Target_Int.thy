@@ -5,7 +5,7 @@
 section \<open>Implementation of integer numbers by target-language integers\<close>
 
 theory Code_Target_Int
-imports Main
+imports "../GCD"
 begin
 
 code_datatype int_of_integer
@@ -94,6 +94,15 @@ lemma [code]:
 lemma [code]:
   "k < l \<longleftrightarrow> (of_int k :: integer) < of_int l"
   by transfer rule
+
+lemma gcd_int_of_integer [code]:
+  "gcd (int_of_integer x) (int_of_integer y) = int_of_integer (gcd x y)"
+by transfer rule
+
+lemma lcm_int_of_integer [code]:
+  "lcm (int_of_integer x) (int_of_integer y) = int_of_integer (lcm x y)"
+by transfer rule
+
 end
 
 lemma (in ring_1) of_int_code_if:

@@ -2196,4 +2196,33 @@ lemmas Gcd_empty_nat = Gcd_empty [where ?'a = nat]
 lemmas Gcd_empty_int = Gcd_empty [where ?'a = int]
   and Gcd_insert_int = Gcd_insert [where ?'a = int]
 
+subsection \<open>gcd and lcm instances for @{typ integer}\<close>
+
+instantiation integer :: gcd begin
+context includes integer.lifting begin
+lift_definition gcd_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer" is gcd .
+lift_definition lcm_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer" is lcm .
+end
+instance ..
+end
+lifting_update integer.lifting
+lifting_forget integer.lifting
+
+context includes integer.lifting begin
+
+lemma gcd_code_integer [code]:
+  "gcd k l = \<bar>if l = (0::integer) then k else gcd l (\<bar>k\<bar> mod \<bar>l\<bar>)\<bar>"
+by transfer(fact gcd_code_int)
+
+lemma lcm_code_integer [code]: "lcm (a::integer) b = (abs a) * (abs b) div gcd a b"
+by transfer(fact lcm_altdef_int)
+
+end
+
+code_printing constant "gcd :: integer \<Rightarrow> _"
+  \<rightharpoonup> (OCaml) "Big'_int.gcd'_big'_int"
+  and (Haskell) "Prelude.gcd"
+  and (Scala) "_.gcd'((_)')"
+  -- \<open>There is no gcd operation in the SML standard library, so no code setup for SML\<close>
+
 end
