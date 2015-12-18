@@ -648,6 +648,12 @@ code_printing
     and (Haskell) infix 4 "<"
     and (Scala) infixl 4 "<"
     and (Eval) infixl 6 "<"
+| constant "abs :: integer \<Rightarrow> _" \<rightharpoonup>
+    (SML) "IntInf.abs"
+    and (OCaml) "Big'_int.abs'_big'_int"
+    and (Haskell) "Prelude.abs"
+    and (Scala) "_.abs"
+    and (Eval) "abs"
 
 code_identifier
   code_module Code_Numeral \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
