@@ -8,11 +8,11 @@ structure ML_Pretty =
 struct
 
 datatype pretty =
-  Block of (string * string) * pretty list * int |
+  Block of (string * string) * pretty list * bool * int |
   String of string * int |
   Break of bool * int * int;
 
-fun block prts = Block (("", ""), prts, 2);
+fun block prts = Block (("", ""), prts, false, 2);
 fun str s = String (s, size s);
 fun brk width = Break (false, width, 0);
 
