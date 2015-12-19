@@ -110,13 +110,13 @@ val add_indent = Buffer.add o output_spaces;
 abstype T =
     Block of (Output.output * Output.output) * bool * int * T list * int
       (*markup output, consistent, indentation, body, length*)
-  | String of Output.output * int  (*text, length*)
   | Break of bool * int * int  (*mandatory flag, width if not taken, extra indentation if taken*)
+  | Str of Output.output * int  (*text, length*)
 with
 
 fun length (Block (_, _, _, _, len)) = len
-  | length (String (_, len)) = len
-  | length (Break (_, wd, _)) = wd;
+  | length (Break (_, wd, _)) = wd
+  | length (Str (_, len)) = len;
 
 fun body_length [] len = len
   | body_length (e :: es) len = body_length es (length e + len);
@@ -128,7 +128,7 @@ fun markup_block m indent es = make_block (Markup.output m) false indent es;
 
 (** derived operations to create formatting expressions **)
 
-val str = String o Output.output_width;
+val str = Str o Output.output_width;
 
 fun brk wd = Break (false, wd, 0);
 fun brk_indent wd ind = Break (false, wd, ind);
@@ -181,10 +181,10 @@ fun big_list name prts = block (fbreaks (str name :: prts));
 fun indent 0 prt = prt
   | indent n prt = blk (0, [str (Symbol.spaces n), prt]);
 
-fun unbreakable (Break (_, wd, _)) = String (output_spaces wd, wd)
-  | unbreakable (Block (m, consistent, indent, es, len)) =
+fun unbreakable (Block (m, consistent, indent, es, len)) =
       Block (m, consistent, indent, map unbreakable es, len)
-  | unbreakable (e as String _) = e;
+  | unbreakable (Break (_, wd, _)) = Str (output_spaces wd, wd)
+  | unbreakable (e as Str _) = e;
 
 
 
@@ -233,8 +233,7 @@ fun indentation (buf, len) {tx, ind, pos, nl} : text =
 (*Add the lengths of the expressions until the next Break; if no Break then
   include "after", to account for text following this block.*)
 fun break_dist (Break _ :: _, _) = 0
-  | break_dist (Block (_, _, _, _, len) :: es, after) = len + break_dist (es, after)
-  | break_dist (String (_, len) :: es, after) = len + break_dist (es, after)
+  | break_dist (e :: es, after) = length e + break_dist (es, after)
   | break_dist ([], after) = after;
 
 val force_break = fn Break (false, wd, ind) => Break (true, wd, ind) | e => e;
@@ -282,7 +281,7 @@ fun formatted margin input =
                     pos + wd <= Int.max (margin - break_dist (es, after), blockin + breakgain)
                  then text |> blanks wd  (*just insert wd blanks*)
                  else text |> newline |> indentation block |> blanks ind)
-          | String str => format (es, block, after) (string str text));
+          | Str str => format (es, block, after) (string str text));
   in
     #tx (format ([input], (Buffer.empty, 0), 0) empty)
   end;
@@ -300,18 +299,18 @@ fun symbolic prt =
           Buffer.add bg #>
           Buffer.markup (Markup.block consistent indent) (fold out prts) #>
           Buffer.add en
-      | out (String (s, _)) = Buffer.add s
       | out (Break (false, wd, ind)) =
           Buffer.markup (Markup.break wd ind) (Buffer.add (output_spaces wd))
-      | out (Break (true, _, _)) = Buffer.add (Output.output "\n");
+      | out (Break (true, _, _)) = Buffer.add (Output.output "\n")
+      | out (Str (s, _)) = Buffer.add s;
   in out prt Buffer.empty end;
 
 (*unformatted output*)
 fun unformatted prt =
   let
     fun fmt (Block ((bg, en), _, _, prts, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
-      | fmt (String (s, _)) = Buffer.add s
-      | fmt (Break (_, wd, _)) = Buffer.add (output_spaces wd);
+      | fmt (Break (_, wd, _)) = Buffer.add (output_spaces wd)
+      | fmt (Str (s, _)) = Buffer.add s;
   in fmt prt Buffer.empty end;
 
 
@@ -368,13 +367,13 @@ fun writeln_chunks2 prts =
 
 fun to_ML (Block (m, consistent, indent, prts, _)) =
       ML_Pretty.Block (m, consistent, indent, map to_ML prts)
-  | to_ML (String s) = ML_Pretty.String s
-  | to_ML (Break b) = ML_Pretty.Break b;
+  | to_ML (Break b) = ML_Pretty.Break b
+  | to_ML (Str s) = ML_Pretty.String s;
 
 fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
       make_block m consistent indent (map from_ML prts)
-  | from_ML (ML_Pretty.String s) = String s
-  | from_ML (ML_Pretty.Break b) = Break b;
+  | from_ML (ML_Pretty.Break b) = Break b
+  | from_ML (ML_Pretty.String s) = Str s;
 
 end;
 
