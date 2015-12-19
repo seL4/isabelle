@@ -24,6 +24,8 @@ object Pretty
   {
     val unit: Double
     def apply(s: String): Double
+    def content_length(body: XML.Body): Double =
+      XML.traverse_text(body)(0.0)(_ + apply(_))
   }
 
   object Metric_Default extends Metric
@@ -103,14 +105,11 @@ object Pretty
     val breakgain = margin / 20
     val emergencypos = (margin / 2).round.toInt
 
-    def content_length(body: XML.Body): Double =
-      XML.traverse_text(body)(0.0)(_ + metric(_))
-
     def break_dist(trees: XML.Body, after: Double): Double =
       trees match {
         case Break(_, _) :: _ => 0.0
         case FBreak :: _ => 0.0
-        case t :: ts => content_length(List(t)) + break_dist(ts, after)
+        case t :: ts => metric.content_length(List(t)) + break_dist(ts, after)
         case Nil => after
       }
 
@@ -135,10 +134,8 @@ object Pretty
         case Block(consistent, indent, body) :: ts =>
           val pos1 = (text.pos + indent).ceil.toInt
           val pos2 = pos1 % emergencypos
-          val blockin1 =
-            if (pos1 < emergencypos) pos1
-            else pos2
-          val blen = content_length(body)
+          val blockin1 = if (pos1 < emergencypos) pos1 else pos2
+          val blen = metric.content_length(body)
           val d = break_dist(ts, after)
           val body1 = if (consistent && text.pos + blen > margin - d) force_all(body) else body
           val btext = format(body1, blockin1, d, text)
