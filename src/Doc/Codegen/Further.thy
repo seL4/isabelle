@@ -139,7 +139,8 @@ subsection \<open>Locales and interpretation\<close>
 
 text \<open>
   A technical issue comes to surface when generating code from
-  specifications stemming from locale interpretation.
+  specifications stemming from locale interpretation into global
+  theories.
 
   Let us assume a locale specifying a power operation on arbitrary
   types:
@@ -177,7 +178,7 @@ end %quote
 
 text \<open>
   After an interpretation of this locale (say, @{command_def
-  interpretation} @{text "fun_power:"} @{term [source] "power (\<lambda>n (f
+  global_interpretation} @{text "fun_power:"} @{term [source] "power (\<lambda>n (f
   :: 'a \<Rightarrow> 'a). f ^^ n)"}), one could naively expect to have a constant @{text
   "fun_power.powers :: nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"} for which code
   can be generated.  But this not the case: internally, the term
@@ -185,12 +186,11 @@ text \<open>
   term @{term [source] "power.powers (\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"}
   (see @{cite "isabelle-locale"} for the details behind).
 
-  Fortunately, a succint solution is available:
-  @{command permanent_interpretation} with a dedicated
+  Fortunately, a succint solution is available: a dedicated
   rewrite definition:
 \<close>
 
-permanent_interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"
+global_interpretation %quote fun_power: power "(\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"
   defines funpows = fun_power.powers
   by unfold_locales
     (simp_all add: fun_eq_iff funpow_mult mult.commute)

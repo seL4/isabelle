@@ -346,12 +346,15 @@ example:
     notation right.derived ("\<odot>''")
   end
 
-* Command 'sublocale' accepts rewrite definitions after keyword
+* Command 'global_interpreation' issues interpretations into
+global theories, with optional rewrite definitions following keyword
 'defines'.
 
-* Command 'permanent_interpretation' is available in Pure, without
-need to load a separate theory.  Keyword 'defines' identifies
-rewrite definitions, keyword 'rewrites' identifies rewrite equations.
+* Command 'sublocale' accepts optional rewrite definitions after
+keyword 'defines'.
+
+* Command 'permanent_interpretation' has been discontinued.  Use
+'global_interpretation' or 'sublocale' instead.
 INCOMPATIBILITY.
 
 * Command 'print_definitions' prints dependencies of definitional

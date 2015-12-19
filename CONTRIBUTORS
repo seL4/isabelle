@@ -6,6 +6,10 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* Autumn 2015: Florian Haftmann, TUM
+  Rewrite definitions for global interpretations and
+  sublocale declarations.
+
 * Autumn 2015: Andreas Lochbihler
   Bourbaki-Witt fixpoint theorem for increasing functions on
   chain-complete partial orders.

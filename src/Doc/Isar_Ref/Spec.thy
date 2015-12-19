@@ -607,9 +607,8 @@ text \<open>
   \begin{matharray}{rcl}
     @{command "interpretation"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close> \\
     @{command_def "interpret"} & : & \<open>proof(state) | proof(chain) \<rightarrow> proof(prove)\<close> \\
-    @{command_def "interpretation"} & : & \<open>theory \<rightarrow> proof(prove)\<close> \\
+    @{command_def "global_interpretation"} & : & \<open>theory | local_theory \<rightarrow> proof(prove)\<close> \\
     @{command_def "sublocale"} & : & \<open>theory | local_theory \<rightarrow> proof(prove)\<close> \\
-    @{command_def "permanent_interpretation"} & : & \<open>local_theory \<rightarrow> proof(prove)\<close> \\
     @{command_def "print_dependencies"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
     @{command_def "print_interps"}\<open>\<^sup>*\<close> & :  & \<open>context \<rightarrow>\<close> \\
   \end{matharray}
@@ -618,22 +617,18 @@ text \<open>
   added to the current context. This requires proof (of the instantiated
   specification) and is called \<^emph>\<open>locale interpretation\<close>. Interpretation is
   possible within arbitrary local theories (\<^theory_text>\<open>interpretation\<close>), within proof
-  bodies (\<^theory_text>\<open>interpret\<close>), into global theories (another variant of
-  \<^theory_text>\<open>interpretation\<close>) and into locales (\<^theory_text>\<open>sublocale\<close>). As a generalization,
-  interpretation into arbitrary local theories is possible, although this is
-  only implemented by certain targets (\<^theory_text>\<open>permanent_interpretation\<close>).
+  bodies (\<^theory_text>\<open>interpret\<close>), into global theories (\<^theory_text>\<open>global_interpretation\<close>) and
+  into locales (\<^theory_text>\<open>sublocale\<close>).
 
   @{rail \<open>
     @@{command interpretation} @{syntax locale_expr} equations?
     ;
     @@{command interpret} @{syntax locale_expr} equations?
     ;
-    @@{command interpretation} @{syntax locale_expr} equations?
-    ;
-    @@{command sublocale} (@{syntax nameref} ('<' | '\<subseteq>'))? @{syntax locale_expr} \<newline>
+    @@{command global_interpretation} @{syntax locale_expr} \<newline>
       definitions? equations?
     ;
-    @@{command permanent_interpretation} @{syntax locale_expr} \<newline>
+    @@{command sublocale} (@{syntax nameref} ('<' | '\<subseteq>'))? @{syntax locale_expr} \<newline>
       definitions? equations?
     ;
     @@{command print_dependencies} '!'? @{syntax locale_expr}
@@ -666,13 +661,13 @@ text \<open>
 
   Given definitions \<open>defs\<close> produce corresponding definitions in the local
   theory's underlying target \<^emph>\<open>and\<close> amend the morphism with the equations
-  stemming from the symmetric of the definitions. Hence they need not be
+  stemming from the symmetric of those definitions. Hence these need not be
   proved explicitly the user. Such rewrite definitions are a even more useful
   device for interpreting concepts introduced through definitions, but they
   are only supported for interpretation commands operating in a local theory
   whose implementing target actually supports this.  Note that despite
   the suggestive \<^theory_text>\<open>and\<close> connective, \<open>defs\<close>
-  are parsed sequentially without mutual recursion.
+  are processed sequentially without mutual recursion.
 
   \<^descr> \<^theory_text>\<open>interpretation expr rewrites eqns\<close> interprets \<open>expr\<close> into a local theory
   such that its lifetime is limited to the current context block (e.g. a
@@ -682,17 +677,21 @@ text \<open>
   interpreted locale instances, as would be the case with @{command
   sublocale}.
 
+  When used on the level of a global theory, there is no end of a current
+  context block, hence \<^theory_text>\<open>interpretation\<close> behaves identically to
+  \<^theory_text>\<open>global_interpretation\<close> then.
+
   \<^descr> \<^theory_text>\<open>interpret expr rewrites eqns\<close> interprets \<open>expr\<close> into a proof context:
   the interpretation and its declarations disappear when closing the current
   proof block. Note that for \<^theory_text>\<open>interpret\<close> the \<open>eqns\<close> should be explicitly
   universally quantified.
 
-  \<^descr> \<^theory_text>\<open>interpretation expr rewrites eqns\<close> interprets \<open>expr\<close> into a global
-  theory.
+  \<^descr> \<^theory_text>\<open>global_interpretation defines "defs" rewrites eqns\<close> interprets \<open>expr\<close>
+  into a global theory.
 
   When adding declarations to locales, interpreted versions of these
   declarations are added to the global theory for all interpretations in the
-  global theory as well. That is, interpretations in global theories
+  global theory as well. That is, interpretations into global theories
   dynamically participate in any declarations added to locales.
 
   Free variables in the interpreted expression are allowed. They are turned
@@ -724,20 +723,6 @@ text \<open>
   locale argument must be omitted. The command then refers to the locale (or
   class) target of the context block.
 
-  \<^descr> \<^theory_text>\<open>permanent_interpretation defines "defs" rewrites eqns\<close> interprets \<open>expr\<close>
-  into the target of the current local theory. When adding declarations to
-  locales, interpreted versions of these declarations are added to any target
-  for all interpretations in that target as well. That is, permanent
-  interpretations dynamically participate in any declarations added to
-  locales.
-  
-  The local theory's underlying target must explicitly support permanent
-  interpretations. Prominent examples are global theories (where
-  \<^theory_text>\<open>permanent_interpretation\<close> technically corresponds to \<^theory_text>\<open>interpretation\<close>)
-  and locales (where \<^theory_text>\<open>permanent_interpretation\<close> technically corresponds to
-  \<^theory_text>\<open>sublocale\<close>). Unnamed contexts (see \secref{sec:target}) are not
-  admissible.
-
   \<^descr> \<^theory_text>\<open>print_dependencies expr\<close> is useful for understanding the effect of an
   interpretation of \<open>expr\<close> in the current context. It lists all locale
   instances for which interpretations would be added to the current context.
@@ -750,7 +735,6 @@ text \<open>
   current theory or proof context, including those due to a combination of an
   \<^theory_text>\<open>interpretation\<close> or \<^theory_text>\<open>interpret\<close> and one or several \<^theory_text>\<open>sublocale\<close>
   declarations.
-
 
   \begin{warn}
     If a global theory inherits declarations (body elements) for a locale from
