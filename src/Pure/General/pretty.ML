@@ -255,8 +255,9 @@ fun breakdist (Break _ :: _, _) = 0
   | breakdist ([], after) = after;
 
 (*Search for the next break (at this or higher levels) and force it to occur.*)
+val forcebreak = fn Break (false, wd, ind) => Break (true, wd, ind) | e => e;
 fun forcenext [] = []
-  | forcenext (Break _ :: es) = fbrk :: es
+  | forcenext ((e as Break _) :: es) = forcebreak e :: es
   | forcenext (e :: es) = e :: forcenext es;
 
 in
