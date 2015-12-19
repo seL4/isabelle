@@ -12,28 +12,27 @@ The object to be printed is given as a tree with indentation and line
 breaking information.  A "break" inserts a newline if the text until
 the next break is too long to fit on the current line.  After the newline,
 text is indented to the level of the enclosing block.  Normally, if a block
-is broken then all enclosing blocks will also be broken.  Only "inconsistent
-breaks" are provided.
+is broken then all enclosing blocks will also be broken.
 
-The stored length of a block is used in breakdist (to treat each inner block as
+The stored length of a block is used in break_dist (to treat each inner block as
 a unit for breaking).
 *)
 
 signature PRETTY =
 sig
-  val spaces: int -> string
   val default_indent: string -> int -> Output.output
   val add_mode: string -> (string -> int -> Output.output) -> unit
   type T
+  val make_block: Output.output * Output.output -> bool -> int -> T list -> T
   val str: string -> T
   val brk: int -> T
+  val brk_indent: int -> int -> T
   val fbrk: T
   val breaks: T list -> T list
   val fbreaks: T list -> T list
   val blk: int * T list -> T
   val block: T list -> T
   val strs: string list -> T
-  val raw_markup: Output.output * Output.output -> int * T list -> T
   val markup: Markup.T -> T list -> T
   val mark: Markup.T -> T -> T
   val mark_str: Markup.T * string -> T
@@ -81,23 +80,9 @@ end;
 structure Pretty: PRETTY =
 struct
 
-(** spaces **)
-
-local
-  val small_spaces = Vector.tabulate (65, fn i => replicate_string i Symbol.space);
-in
-  fun spaces k =
-    if k < 64 then Vector.sub (small_spaces, k)
-    else
-      replicate_string (k div 64) (Vector.sub (small_spaces, 64)) ^
-        Vector.sub (small_spaces, k mod 64);
-end;
-
-
-
 (** print mode operations **)
 
-fun default_indent (_: string) = spaces;
+fun default_indent (_: string) = Symbol.spaces;
 
 local
   val default = {indent = default_indent};
@@ -115,7 +100,7 @@ end;
 
 fun mode_indent x y = #indent (get_mode ()) x y;
 
-val output_spaces = Output.output o spaces;
+val output_spaces = Output.output o Symbol.spaces;
 val add_indent = Buffer.add o output_spaces;
 
 
@@ -123,41 +108,40 @@ val add_indent = Buffer.add o output_spaces;
 (** printing items: compound phrases, strings, and breaks **)
 
 abstype T =
-    Block of (Output.output * Output.output) * T list * int * int
-      (*markup output, body, indentation, length*)
-  | String of Output.output * int  (*text, length*)
-  | Break of bool * int  (*mandatory flag, width if not taken*)
+    Block of (Output.output * Output.output) * bool * int * T list * int
+      (*markup output, consistent, indentation, body, length*)
+  | Break of bool * int * int  (*mandatory flag, width if not taken, extra indentation if taken*)
+  | Str of Output.output * int  (*text, length*)
 with
 
-fun length (Block (_, _, _, len)) = len
-  | length (String (_, len)) = len
-  | length (Break (_, wd)) = wd;
+fun length (Block (_, _, _, _, len)) = len
+  | length (Break (_, wd, _)) = wd
+  | length (Str (_, len)) = len;
+
+fun body_length [] len = len
+  | body_length (e :: es) len = body_length es (length e + len);
+
+fun make_block m consistent indent es = Block (m, consistent, indent, es, body_length es 0);
+fun markup_block m indent es = make_block (Markup.output m) false indent es;
 
 
 
 (** derived operations to create formatting expressions **)
 
-val str = String o Output.output_width;
+val str = Str o Output.output_width;
 
-fun brk wd = Break (false, wd);
-val fbrk = Break (true, 1);
+fun brk wd = Break (false, wd, 0);
+fun brk_indent wd ind = Break (false, wd, ind);
+val fbrk = Break (true, 1, 0);
 
 fun breaks prts = Library.separate (brk 1) prts;
 fun fbreaks prts = Library.separate fbrk prts;
 
-fun raw_markup m (indent, es) =
-  let
-    fun sum [] k = k
-      | sum (e :: es) k = sum es (length e + k);
-  in Block (m, es, indent, sum es 0) end;
-
-fun markup_block m arg = raw_markup (Markup.output m) arg;
-
-val blk = markup_block Markup.empty;
+fun blk (ind, es) = markup_block Markup.empty ind es;
 fun block prts = blk (2, prts);
 val strs = block o breaks o map str;
 
-fun markup m prts = markup_block m (0, prts);
+fun markup m = markup_block m 0;
 fun mark m prt = if m = Markup.empty then prt else markup m [prt];
 fun mark_str (m, s) = mark m (str s);
 fun marks_str (ms, s) = fold_rev mark ms (str s);
@@ -195,11 +179,12 @@ fun str_list lpar rpar strs = list lpar rpar (map str strs);
 fun big_list name prts = block (fbreaks (str name :: prts));
 
 fun indent 0 prt = prt
-  | indent n prt = blk (0, [str (spaces n), prt]);
+  | indent n prt = blk (0, [str (Symbol.spaces n), prt]);
 
-fun unbreakable (Break (_, wd)) = String (output_spaces wd, wd)
-  | unbreakable (Block (m, es, indent, wd)) = Block (m, map unbreakable es, indent, wd)
-  | unbreakable (e as String _) = e;
+fun unbreakable (Block (m, consistent, indent, es, len)) =
+      Block (m, consistent, indent, map unbreakable es, len)
+  | unbreakable (Break (_, wd, _)) = Str (output_spaces wd, wd)
+  | unbreakable (e as Str _) = e;
 
 
 
@@ -247,15 +232,17 @@ fun indentation (buf, len) {tx, ind, pos, nl} : text =
 
 (*Add the lengths of the expressions until the next Break; if no Break then
   include "after", to account for text following this block.*)
-fun breakdist (Break _ :: _, _) = 0
-  | breakdist (Block (_, _, _, len) :: es, after) = len + breakdist (es, after)
-  | breakdist (String (_, len) :: es, after) = len + breakdist (es, after)
-  | breakdist ([], after) = after;
+fun break_dist (Break _ :: _, _) = 0
+  | break_dist (e :: es, after) = length e + break_dist (es, after)
+  | break_dist ([], after) = after;
+
+val force_break = fn Break (false, wd, ind) => Break (true, wd, ind) | e => e;
+val force_all = map force_break;
 
 (*Search for the next break (at this or higher levels) and force it to occur.*)
-fun forcenext [] = []
-  | forcenext (Break _ :: es) = fbrk :: es
-  | forcenext (e :: es) = e :: forcenext es;
+fun force_next [] = []
+  | force_next ((e as Break _) :: es) = force_break e :: es
+  | force_next (e :: es) = e :: force_next es;
 
 in
 
@@ -270,29 +257,31 @@ fun formatted margin input =
     fun format ([], _, _) text = text
       | format (e :: es, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
           (case e of
-            Block ((bg, en), bes, indent, _) =>
+            Block ((bg, en), consistent, indent, bes, blen) =>
               let
                 val pos' = pos + indent;
                 val pos'' = pos' mod emergencypos;
                 val block' =
                   if pos' < emergencypos then (ind |> add_indent indent, pos')
                   else (add_indent pos'' Buffer.empty, pos'');
+                val d = break_dist (es, after)
+                val bes' = if consistent andalso pos + blen > margin - d then force_all bes else bes;
                 val btext: text = text
                   |> control bg
-                  |> format (bes, block', breakdist (es, after))
+                  |> format (bes', block', d)
                   |> control en;
                 (*if this block was broken then force the next break*)
-                val es' = if nl < #nl btext then forcenext es else es;
+                val es' = if nl < #nl btext then force_next es else es;
               in format (es', block, after) btext end
-          | Break (force, wd) =>
+          | Break (force, wd, ind) =>
               (*no break if text to next break fits on this line
                 or if breaking would add only breakgain to space*)
               format (es, block, after)
                 (if not force andalso
-                    pos + wd <= Int.max (margin - breakdist (es, after), blockin + breakgain)
-                  then text |> blanks wd  (*just insert wd blanks*)
-                  else text |> newline |> indentation block)
-          | String str => format (es, block, after) (string str text));
+                    pos + wd <= Int.max (margin - break_dist (es, after), blockin + breakgain)
+                 then text |> blanks wd  (*just insert wd blanks*)
+                 else text |> newline |> indentation block |> blanks ind)
+          | Str str => format (es, block, after) (string str text));
   in
     #tx (format ([input], (Buffer.empty, 0), 0) empty)
   end;
@@ -305,23 +294,23 @@ end;
 (*symbolic markup -- no formatting*)
 fun symbolic prt =
   let
-    fun out (Block ((bg, en), [], _, _)) = Buffer.add bg #> Buffer.add en
-      | out (Block ((bg, en), prts, indent, _)) =
+    fun out (Block ((bg, en), _, _, [], _)) = Buffer.add bg #> Buffer.add en
+      | out (Block ((bg, en), consistent, indent, prts, _)) =
           Buffer.add bg #>
-          Buffer.markup (Markup.block indent) (fold out prts) #>
+          Buffer.markup (Markup.block consistent indent) (fold out prts) #>
           Buffer.add en
-      | out (String (s, _)) = Buffer.add s
-      | out (Break (false, wd)) =
-          Buffer.markup (Markup.break wd) (Buffer.add (output_spaces wd))
-      | out (Break (true, _)) = Buffer.add (Output.output "\n");
+      | out (Break (false, wd, ind)) =
+          Buffer.markup (Markup.break wd ind) (Buffer.add (output_spaces wd))
+      | out (Break (true, _, _)) = Buffer.add (Output.output "\n")
+      | out (Str (s, _)) = Buffer.add s;
   in out prt Buffer.empty end;
 
 (*unformatted output*)
 fun unformatted prt =
   let
-    fun fmt (Block ((bg, en), prts, _, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
-      | fmt (String (s, _)) = Buffer.add s
-      | fmt (Break (_, wd)) = Buffer.add (output_spaces wd);
+    fun fmt (Block ((bg, en), _, _, prts, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
+      | fmt (Break (_, wd, _)) = Buffer.add (output_spaces wd)
+      | fmt (Str (s, _)) = Buffer.add s;
   in fmt prt Buffer.empty end;
 
 
@@ -376,13 +365,15 @@ fun writeln_chunks2 prts =
 
 (** ML toplevel pretty printing **)
 
-fun to_ML (Block (m, prts, ind, _)) = ML_Pretty.Block (m, map to_ML prts, ind)
-  | to_ML (String s) = ML_Pretty.String s
-  | to_ML (Break b) = ML_Pretty.Break b;
+fun to_ML (Block (m, consistent, indent, prts, _)) =
+      ML_Pretty.Block (m, consistent, indent, map to_ML prts)
+  | to_ML (Break b) = ML_Pretty.Break b
+  | to_ML (Str s) = ML_Pretty.String s;
 
-fun from_ML (ML_Pretty.Block (m, prts, ind)) = raw_markup m (ind, map from_ML prts)
-  | from_ML (ML_Pretty.String s) = String s
-  | from_ML (ML_Pretty.Break b) = Break b;
+fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
+      make_block m consistent indent (map from_ML prts)
+  | from_ML (ML_Pretty.Break b) = Break b
+  | from_ML (ML_Pretty.String s) = Str s;
 
 end;
 

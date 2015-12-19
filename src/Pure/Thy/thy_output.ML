@@ -602,7 +602,7 @@ fun output ctxt prts =
 
 fun verbatim_text ctxt =
   if Config.get ctxt display then
-    split_lines #> map (prefix (Pretty.spaces (Config.get ctxt indent))) #> cat_lines #>
+    split_lines #> map (prefix (Symbol.spaces (Config.get ctxt indent))) #> cat_lines #>
     Latex.output_ascii #> Latex.environment "isabellett"
   else
     split_lines #>
