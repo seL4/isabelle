@@ -6,7 +6,7 @@
 section \<open>Hilbert's Epsilon-Operator and the Axiom of Choice\<close>
 
 theory Hilbert_Choice
-imports Nat Wellfounded
+imports Wellfounded
 keywords "specification" :: thy_goal
 begin
 
