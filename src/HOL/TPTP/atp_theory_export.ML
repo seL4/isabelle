@@ -75,12 +75,11 @@ fun run_atp ctxt format problem =
                 | SOME failure => string_of_atp_failure failure))
   in outcome end
 
-fun is_problem_line_reprovable ctxt format prelude axioms deps
-                               (Formula (ident', _, phi, _, _)) =
+fun is_problem_line_reprovable ctxt format prelude axioms deps (Formula (ident', _, phi, _, _)) =
     is_none (run_atp ctxt format
-        ((factsN, Formula (ident', Conjecture, phi, NONE, []) ::
-                  map_filter (Symtab.lookup axioms) deps) ::
-         prelude))
+      ((factsN,
+        Formula (ident', Conjecture, phi, NONE, []) :: map_filter (Symtab.lookup axioms) deps) ::
+       prelude))
   | is_problem_line_reprovable _ _ _ _ _ _ = false
 
 fun inference_term _ [] = NONE
@@ -93,7 +92,7 @@ fun inference_term _ [] = NONE
     |> SOME
 
 fun add_inferences_to_problem_line ctxt format check_infs prelude axioms infers
-        (line as Formula ((ident, alt), Axiom, phi, NONE, tms)) =
+      (line as Formula ((ident, alt), Axiom, phi, NONE, info)) =
     let
       val deps =
         case these (AList.lookup (op =) infers ident) of
@@ -106,7 +105,7 @@ fun add_inferences_to_problem_line ctxt format check_infs prelude axioms infers
           else
             deps
     in
-      Formula ((ident, alt), Lemma, phi, inference_term check_infs deps, tms)
+      Formula ((ident, alt), Lemma, phi, inference_term check_infs deps, info)
     end
   | add_inferences_to_problem_line _ _ _ _ _ _ line = line
 
@@ -170,7 +169,7 @@ fun problem_of_theory ctxt thy format infer_policy type_enc =
       facts
       |> map (fn ((_, loc), th) =>
         ((Thm.get_name_hint th, loc), th |> Thm.prop_of |> mono ? monomorphize_term ctxt))
-      |> generate_atp_problem ctxt format Axiom type_enc Exporter combsN false false true []
+      |> generate_atp_problem ctxt true format Axiom type_enc Exporter combsN false false true []
         @{prop False}
       |> #1 |> sort_by (heading_sort_key o fst)
     val prelude = fst (split_last problem)
@@ -269,13 +268,13 @@ fun include_line base_name =
 val hol_base_name = encode_meta "HOL"
 
 fun should_generate_problem thy base_name (Formula ((_, alt), _, _, _, _)) =
-  case try (Global_Theory.get_thm thy) alt of
+  (case try (Global_Theory.get_thm thy) alt of
     SOME th =>
-    (* This is a crude hack to detect theorems stated and proved by the user (as
-       opposed to those derived by various packages). In addition, we leave out
-       everything in "HOL" as too basic to be interesting. *)
+    (* This is a crude hack to detect theorems stated and proved by the user (as opposed to those
+       derived by various packages). In addition, we leave out everything in "HOL" as too basic to
+       be interesting. *)
     Thm.legacy_get_kind th <> "" andalso base_name <> hol_base_name
-  | NONE => false
+  | NONE => false)
 
 (* Convention: theoryname__goalname *)
 fun problem_name_of base_name n alt =
@@ -342,13 +341,12 @@ fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
       | write_problem_files n seen_facts includes seen_ss
           ((base_name, fact_line :: fact_lines) :: groups) =
         let
-          val (ident, alt, pname, sname, conj) =
+          val (alt, pname, sname, conj) =
             (case fact_line of
               Formula ((ident, alt), _, phi, _, _) =>
-              (ident, alt, problem_name_of base_name n (encode_meta alt),
+              (alt, problem_name_of base_name n (encode_meta alt),
                suggestion_name_of base_name n (encode_meta alt),
                Formula ((ident, alt), Conjecture, phi, NONE, [])))
-
           val fact = the (Symtab.lookup fact_tab alt)
           val fact_s = tptp_string_of_line format fact_line
         in

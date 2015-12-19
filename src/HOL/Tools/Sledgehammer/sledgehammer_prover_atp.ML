@@ -235,6 +235,7 @@ fun run_atp mode name
             val num_facts =
               Real.ceil (max_fact_factor * Real.fromInt best_max_facts) + max_fact_factor_fudge
               |> Integer.min (length facts)
+            val generate_info = (case format of DFG _ => true | _ => false)
             val strictness = if strict then Strict else Non_Strict
             val type_enc = type_enc |> choose_type_enc strictness best_type_enc format
             val sound = is_type_enc_sound type_enc
@@ -273,8 +274,8 @@ fun run_atp mode name
                       generate_waldmeister_problem ctxt hyp_ts concl_t
                       #> (fn (a, b, c, d, e) => (a, b, c, d, SOME e))
                     else
-                      generate_atp_problem ctxt format prem_role type_enc atp_mode lam_trans
-                        uncurried_aliases readable_names true hyp_ts concl_t
+                      generate_atp_problem ctxt generate_info format prem_role type_enc atp_mode
+                        lam_trans uncurried_aliases readable_names true hyp_ts concl_t
                       #> (fn (a, b, c, d) => (a, b, c, d, NONE)))
 
             fun sel_weights () = atp_problem_selection_weights atp_problem

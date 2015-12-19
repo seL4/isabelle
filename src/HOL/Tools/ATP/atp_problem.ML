@@ -98,7 +98,7 @@ sig
   val tptp_empty_list : string
   val dfg_individual_type : string
   val isabelle_info_prefix : string
-  val isabelle_info : string -> int -> (string, 'a) atp_term list
+  val isabelle_info : bool -> string -> int -> (string, 'a) atp_term list
   val extract_isabelle_status : (string, 'a) atp_term list -> string option
   val extract_isabelle_rank : (string, 'a) atp_term list -> int
   val inductionN : string
@@ -138,6 +138,7 @@ sig
     ('c -> 'e) -> ('a, 'b, 'c, 'd) atp_formula -> ('a, 'b, 'e, 'd) atp_formula
   val strip_atype : 'a atp_type -> 'a list * ('a atp_type list * 'a atp_type)
   val is_format_higher_order : atp_format -> bool
+  val tptp_string_of_format : atp_format -> string
   val tptp_string_of_line : atp_format -> string atp_problem_line -> string
   val lines_of_atp_problem :
     atp_format -> term_order -> (unit -> (string * int) list)
@@ -271,12 +272,16 @@ val minimum_rank = 0
 val default_rank = 1000
 val default_term_order_weight = 1
 
-(* Currently, only SPASS 3.8ds can process Isabelle metainformation. *)
-fun isabelle_info status rank =
-  [] |> rank <> default_rank
-        ? cons (ATerm ((isabelle_info_prefix ^ rankN, []),
-                       [ATerm ((string_of_int rank, []), [])]))
-     |> status <> "" ? cons (ATerm ((isabelle_info_prefix ^ status, []), []))
+(* Currently, only SPASS 3.8ds and (to a lesser extent) Metis can process Isabelle
+   metainformation. *)
+fun isabelle_info generate_info status rank =
+  if generate_info then
+    [] |> rank <> default_rank
+          ? cons (ATerm ((isabelle_info_prefix ^ rankN, []),
+                         [ATerm ((string_of_int rank, []), [])]))
+       |> status <> "" ? cons (ATerm ((isabelle_info_prefix ^ status, []), []))
+  else
+    []
 
 fun extract_isabelle_status (ATerm ((s, []), []) :: _) =
     try (unprefix isabelle_info_prefix) s
@@ -542,13 +547,16 @@ fun tptp_string_of_line format (Type_Decl (ident, ty, ary)) =
   | tptp_string_of_line format (Sym_Decl (ident, sym, ty)) =
     tptp_string_of_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^
     " : " ^ string_of_type format ty ^ ").\n"
-  | tptp_string_of_line format (Formula ((ident, alt), kind, phi, source, _)) =
+  | tptp_string_of_line format (Formula ((ident, alt), kind, phi, source, info)) =
     tptp_string_of_format format ^ "(" ^ ident ^ ", " ^
     tptp_string_of_role kind ^ "," ^ "\n    (" ^
     tptp_string_of_formula format phi ^ ")" ^
     (case source of
       SOME tm => ", " ^ tptp_string_of_term format tm
-    | NONE => "") ^
+    | NONE => if null info then "" else ", []") ^
+    (case info of
+      [] => ""
+    | tms => ", [" ^ commas (map (tptp_string_of_term format) tms) ^ "]") ^
     ")." ^ maybe_alt alt ^ "\n"
 
 fun tptp_lines format =

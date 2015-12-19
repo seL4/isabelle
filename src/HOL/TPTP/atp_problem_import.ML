@@ -315,6 +315,7 @@ fun translate_tptp_file thy format_str file_name =
       | "DFG" => (DFG Monomorphic, "mono_native", liftingN)
       | _ => error ("Unknown format " ^ quote format_str ^
         " (expected \"FOF\", \"TF0\", \"TH0\", or \"DFG\")"))
+    val generate_info = false
     val uncurried_aliases = false
     val readable_names = true
     val presimp = true
@@ -322,7 +323,8 @@ fun translate_tptp_file thy format_str file_name =
       map (apfst (rpair (Global, Non_Rec_Def))) defs @
       map (apfst (rpair (Global, General))) nondefs
     val (atp_problem, _, _, _) =
-      generate_atp_problem ctxt format Hypothesis (type_enc_of_string Strict type_enc) Translator
+      generate_atp_problem ctxt generate_info format Hypothesis (type_enc_of_string Strict type_enc)
+        Translator
         lam_trans uncurried_aliases readable_names presimp [] conj facts
 
     val ord = effective_term_order ctxt spassN
