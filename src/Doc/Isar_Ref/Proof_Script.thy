@@ -102,8 +102,8 @@ text \<open>
   apply} sequences.
 
   The current goal state, which is essentially a hidden part of the Isar/VM
-  configurtation, is turned into a proof context and remaining conclusion.
-  This correponds to @{command fix}~/ @{command assume}~/ @{command show} in
+  configuration, is turned into a proof context and remaining conclusion.
+  This corresponds to @{command fix}~/ @{command assume}~/ @{command show} in
   structured proofs, but the text of the parameters, premises and conclusion
   is not given explicitly.
 
