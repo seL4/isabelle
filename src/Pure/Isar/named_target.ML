@@ -89,8 +89,12 @@ fun abbrev ("", _) = Generic_Target.theory_abbrev
 fun declaration ("", _) flags decl = Generic_Target.theory_declaration decl
   | declaration (locale, _) flags decl = Generic_Target.locale_declaration locale flags decl;
 
-fun subscription ("", _) = Generic_Target.theory_registration
-  | subscription (locale, _) = Generic_Target.locale_dependency locale;
+fun theory_registration ("", _) = Generic_Target.theory_registration
+  | theory_registration _ = (fn _ => error "Not possible in theory target");
+
+fun locale_dependency ("", false) = (fn _ => error "Not possible in locale target")
+  | locale_dependency ("", true) = (fn _ => error "Not possible in class target")
+  | locale_dependency (locale, _) = Generic_Target.locale_dependency locale;
 
 fun pretty (target, is_class) ctxt =
   if target = "" then
@@ -144,7 +148,8 @@ fun gen_init before_exit target thy =
         notes = Generic_Target.notes (notes name_data),
         abbrev = abbrev name_data,
         declaration = declaration name_data,
-        subscription = subscription name_data,
+        theory_registration = theory_registration name_data,
+        locale_dependency = locale_dependency name_data,
         pretty = pretty name_data,
         exit = the_default I before_exit
           #> Local_Theory.target_of #> Sign.change_end_local}

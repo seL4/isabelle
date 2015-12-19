@@ -1054,7 +1054,7 @@ lemma mset_insort [simp]: "mset (insort x xs) = mset xs + {#x#}"
 lemma mset_map: "mset (map f xs) = image_mset f (mset xs)"
   by (induct xs) simp_all
 
-permanent_interpretation mset_set: folding "\<lambda>x M. {#x#} + M" "{#}"
+global_interpretation mset_set: folding "\<lambda>x M. {#x#} + M" "{#}"
   defines mset_set = "folding.F (\<lambda>x M. {#x#} + M) {#}"
   by standard (simp add: fun_eq_iff ac_simps)
 

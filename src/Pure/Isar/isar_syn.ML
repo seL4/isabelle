@@ -407,12 +407,24 @@ val interpretation_args =
     Scan.optional
       (@{keyword "rewrites"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) [];
 
+val _ =
+  Outer_Syntax.command @{command_keyword interpret}
+    "prove interpretation of locale expression in proof context"
+    (interpretation_args >> (fn (expr, equations) =>
+      Toplevel.proof' (Interpretation.interpret_cmd expr equations)));
+
 val interpretation_args_with_defs =
   Parse.!!! Parse_Spec.locale_expression --
     (Scan.optional (@{keyword "defines"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"
       -- ((Parse.binding -- Parse.opt_mixfix') --| @{keyword "="} -- Parse.term))) [] --
     Scan.optional
       (@{keyword "rewrites"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) []);
+
+val _ =
+  Outer_Syntax.local_theory_to_proof @{command_keyword global_interpretation}
+    "prove interpretation of locale expression into global theory"
+    (interpretation_args_with_defs
+      >> (fn (expr, (defs, equations)) => Interpretation.global_interpretation_cmd expr defs equations));
 
 val _ =
   Outer_Syntax.command @{command_keyword sublocale}
@@ -424,22 +436,11 @@ val _ =
         Toplevel.local_theory_to_proof NONE NONE (Interpretation.sublocale_cmd expr defs equations)));
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_keyword permanent_interpretation}
-    "prove interpretation of locale expression into named theory"
-    (interpretation_args_with_defs
-      >> (fn (expr, (defs, equations)) => Interpretation.permanent_interpretation_cmd expr defs equations));
-
-val _ =
   Outer_Syntax.command @{command_keyword interpretation}
-    "prove interpretation of locale expression in local theory"
+    "prove interpretation of locale expression in local theory or into global theory"
     (interpretation_args >> (fn (expr, equations) =>
-      Toplevel.local_theory_to_proof NONE NONE (Interpretation.interpretation_cmd expr equations)));
+      Toplevel.local_theory_to_proof NONE NONE (Interpretation.isar_interpretation_cmd expr equations)));
 
-val _ =
-  Outer_Syntax.command @{command_keyword interpret}
-    "prove interpretation of locale expression in proof context"
-    (interpretation_args >> (fn (expr, equations) =>
-      Toplevel.proof' (Interpretation.interpret_cmd expr equations)));
 
 
 (* classes *)

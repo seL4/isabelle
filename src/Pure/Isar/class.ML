@@ -686,7 +686,8 @@ fun instantiation (tycos, vs, sort) thy =
         notes = Generic_Target.notes Generic_Target.theory_target_notes,
         abbrev = Generic_Target.abbrev Generic_Target.theory_target_abbrev,
         declaration = K Generic_Target.theory_declaration,
-        subscription = Generic_Target.theory_registration,
+        theory_registration = Generic_Target.theory_registration,
+        locale_dependency = fn _ => error "Not possible in instantiation target",
         pretty = pretty,
         exit = conclude #> Local_Theory.target_of #> Sign.change_end_local}
   end;

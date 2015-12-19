@@ -35,8 +35,8 @@ theory Pure
   and "include" "including" :: prf_decl
   and "print_bundles" :: diag
   and "context" "locale" "experiment" :: thy_decl_block
-  and "permanent_interpretation" "interpretation" "sublocale" :: thy_goal
   and "interpret" :: prf_goal % "proof"
+  and "interpretation" "global_interpretation" "sublocale" :: thy_goal
   and "class" :: thy_decl_block
   and "subclass" :: thy_goal
   and "instantiation" :: thy_decl_block

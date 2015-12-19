@@ -102,7 +102,7 @@ fun plus_parity :: "parity \<Rightarrow> parity \<Rightarrow> parity" where
 text{* First we instantiate the abstract value interface and prove that the
 functions on type @{typ parity} have all the necessary properties: *}
 
-permanent_interpretation Val_semilattice
+global_interpretation Val_semilattice
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 proof (standard, goal_cases) txt{* subgoals are the locale axioms *}
   case 1 thus ?case by(auto simp: less_eq_parity_def)
@@ -124,7 +124,7 @@ text{* Instantiating the abstract interpretation locale requires no more
 proofs (they happened in the instatiation above) but delivers the
 instantiated abstract interpreter which we call @{text AI_parity}: *}
 
-permanent_interpretation Abs_Int
+global_interpretation Abs_Int
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 defines aval_parity = aval' and step_parity = step' and AI_parity = AI
 ..
@@ -155,7 +155,7 @@ value "show_acom (the(AI_parity test2_parity))"
 
 subsubsection "Termination"
 
-permanent_interpretation Abs_Int_mono
+global_interpretation Abs_Int_mono
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 proof (standard, goal_cases)
   case (1 _ a1 _ a2) thus ?case
@@ -166,7 +166,7 @@ qed
 definition m_parity :: "parity \<Rightarrow> nat" where
 "m_parity x = (if x = Either then 0 else 1)"
 
-permanent_interpretation Abs_Int_measure
+global_interpretation Abs_Int_measure
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 and m = m_parity and h = "1"
 proof (standard, goal_cases)

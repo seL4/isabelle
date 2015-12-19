@@ -11,33 +11,38 @@ sig
   type 'a rewrites = (Attrib.binding * 'a) list
 
   (*interpretation in proofs*)
-  val interpret: Expression.expression_i -> term rewrites -> bool -> Proof.state -> Proof.state
-  val interpret_cmd: Expression.expression -> string rewrites -> bool -> Proof.state -> Proof.state
+  val interpret: Expression.expression_i ->
+    term rewrites -> bool -> Proof.state -> Proof.state
+  val interpret_cmd: Expression.expression ->
+    string rewrites -> bool -> Proof.state -> Proof.state
 
-  (*algebraic view*)
+  (*interpretation in local theories*)
+  val interpretation: Expression.expression_i ->
+    term rewrites -> local_theory -> Proof.state
+  val interpretation_cmd: Expression.expression ->
+    string rewrites -> local_theory -> Proof.state
+
+  (*interpretation into global theories*)
   val global_interpretation: Expression.expression_i ->
-    term defines -> term rewrites -> theory -> Proof.state
-  val global_sublocale: string -> Expression.expression_i ->
-    term defines -> term rewrites -> theory -> Proof.state
-  val global_sublocale_cmd: xstring * Position.T -> Expression.expression ->
-    string defines -> string rewrites -> theory -> Proof.state
+    term defines -> term rewrites -> local_theory -> Proof.state
+  val global_interpretation_cmd: Expression.expression ->
+    string defines -> string rewrites -> local_theory -> Proof.state
+
+  (*interpretation between locales*)
   val sublocale: Expression.expression_i ->
     term defines -> term rewrites -> local_theory -> Proof.state
   val sublocale_cmd: Expression.expression ->
     string defines -> string rewrites -> local_theory -> Proof.state
-
-  (*local-theory-based view*)
-  val ephemeral_interpretation: Expression.expression_i ->
-    term rewrites -> local_theory -> Proof.state
-  val permanent_interpretation: Expression.expression_i ->
-    term defines -> term rewrites -> local_theory -> Proof.state
-  val permanent_interpretation_cmd: Expression.expression ->
-    string defines -> string rewrites -> local_theory -> Proof.state
+  val global_sublocale: string -> Expression.expression_i ->
+    term defines -> term rewrites -> theory -> Proof.state
+  val global_sublocale_cmd: xstring * Position.T -> Expression.expression ->
+    string defines -> string rewrites -> theory -> Proof.state
 
   (*mixed Isar interface*)
-  val interpretation: Expression.expression_i -> term rewrites -> local_theory -> Proof.state
-  val interpretation_cmd: Expression.expression -> string rewrites ->
-    local_theory -> Proof.state
+  val isar_interpretation: Expression.expression_i ->
+    term rewrites -> local_theory -> Proof.state
+  val isar_interpretation_cmd: Expression.expression ->
+    string rewrites -> local_theory -> Proof.state
 end;
 
 structure Interpretation : INTERPRETATION =
@@ -172,27 +177,45 @@ fun gen_interpret prep_interpretation expression raw_eqns int state =
 in
 
 fun interpret expression = gen_interpret cert_interpretation expression;
+
 fun interpret_cmd raw_expression = gen_interpret read_interpretation raw_expression;
 
 end;
 
 
-(* algebraic view *)
+(* interpretation in local theories *)
+
+fun interpretation expression =
+  generic_interpretation cert_interpretation Element.witness_proof_eqs
+    Local_Theory.notes_kind Locale.activate_fragment expression;
+
+fun interpretation_cmd raw_expression =
+  generic_interpretation read_interpretation Element.witness_proof_eqs
+    Local_Theory.notes_kind Locale.activate_fragment raw_expression;
+
+
+(* interpretation into global theories *)
+
+fun global_interpretation expression =
+  generic_interpretation_with_defs cert_interpretation Element.witness_proof_eqs
+    Local_Theory.notes_kind Local_Theory.theory_registration expression;
+
+fun global_interpretation_cmd raw_expression =
+  generic_interpretation_with_defs read_interpretation Element.witness_proof_eqs
+    Local_Theory.notes_kind Local_Theory.theory_registration raw_expression;
+
+
+(* interpretation between locales *)
+
+fun sublocale expression =
+  generic_interpretation_with_defs cert_interpretation Element.witness_proof_eqs
+    Local_Theory.notes_kind Local_Theory.locale_dependency expression;
+
+fun sublocale_cmd raw_expression =
+  generic_interpretation_with_defs read_interpretation Element.witness_proof_eqs
+    Local_Theory.notes_kind Local_Theory.locale_dependency raw_expression;
 
 local
-
-fun gen_global_interpretation prep_interpretation expression
-    raw_defs raw_eqns thy = 
-  let
-    val lthy = Named_Target.theory_init thy;
-    fun setup_proof after_qed =
-      Element.witness_proof_eqs
-        (fn wits => fn eqs => after_qed wits eqs #> Local_Theory.exit);
-  in
-    lthy |>
-      generic_interpretation_with_defs prep_interpretation setup_proof
-        Local_Theory.notes_kind Local_Theory.subscription expression raw_defs raw_eqns
-  end;
 
 fun gen_global_sublocale prep_loc prep_interpretation
     raw_locale expression raw_defs raw_eqns thy =
@@ -204,56 +227,16 @@ fun gen_global_sublocale prep_loc prep_interpretation
   in
     lthy |>
       generic_interpretation_with_defs prep_interpretation setup_proof
-        Local_Theory.notes_kind Local_Theory.subscription expression raw_defs raw_eqns
+        Local_Theory.notes_kind Local_Theory.locale_dependency expression raw_defs raw_eqns
   end;
 
-fun subscribe_locale_only lthy =
-  let
-    val _ =
-      if Named_Target.is_theory lthy
-      then error "Not possible on level of global theory"
-      else ();
-  in Local_Theory.subscription end;
-
-fun gen_sublocale prep_interpretation expression raw_defs raw_eqns lthy =
-  generic_interpretation_with_defs prep_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind (subscribe_locale_only lthy) expression raw_defs raw_eqns lthy;
-
 in
 
-fun global_interpretation expression =
-  gen_global_interpretation cert_interpretation expression;
 fun global_sublocale expression =
   gen_global_sublocale (K I) cert_interpretation expression;
+
 fun global_sublocale_cmd raw_expression =
   gen_global_sublocale Locale.check read_interpretation raw_expression;
-fun sublocale expression =
-  gen_sublocale cert_interpretation expression;
-fun sublocale_cmd raw_expression =
-  gen_sublocale read_interpretation raw_expression;
-
-end;
-
-
-(* local-theory-based view *)
-
-local
-
-fun gen_permanent_interpretation prep_interpretation expression raw_defs raw_eqns =
-  Local_Theory.assert_bottom true
-  #> generic_interpretation_with_defs prep_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind Local_Theory.subscription expression raw_defs raw_eqns
-
-in
-
-fun ephemeral_interpretation expression =
-  generic_interpretation cert_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind Locale.activate_fragment expression;
-
-fun permanent_interpretation expression =
-  gen_permanent_interpretation cert_interpretation expression;
-fun permanent_interpretation_cmd raw_expression =
-  gen_permanent_interpretation read_interpretation raw_expression;
 
 end;
 
@@ -262,21 +245,21 @@ end;
 
 local
 
-fun subscribe_or_activate lthy =
+fun register_or_activate lthy =
   if Named_Target.is_theory lthy
-  then Local_Theory.subscription
+  then Local_Theory.theory_registration
   else Locale.activate_fragment;
 
-fun gen_local_theory_interpretation prep_interpretation expression raw_eqns lthy =
+fun gen_isar_interpretation prep_interpretation expression raw_eqns lthy =
   generic_interpretation prep_interpretation Element.witness_proof_eqs
-    Local_Theory.notes_kind (subscribe_or_activate lthy) expression raw_eqns lthy;
+    Local_Theory.notes_kind (register_or_activate lthy) expression raw_eqns lthy;
 
 in
 
-fun interpretation expression =
-  gen_local_theory_interpretation cert_interpretation expression;
-fun interpretation_cmd raw_expression =
-  gen_local_theory_interpretation read_interpretation raw_expression;
+fun isar_interpretation expression =
+  gen_isar_interpretation cert_interpretation expression;
+fun isar_interpretation_cmd raw_expression =
+  gen_isar_interpretation read_interpretation raw_expression;
 
 end;
 

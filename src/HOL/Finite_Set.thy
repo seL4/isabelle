@@ -1209,7 +1209,7 @@ text \<open>
   But now that we have @{const fold} things are easy:
 \<close>
 
-permanent_interpretation card: folding "\<lambda>_. Suc" 0
+global_interpretation card: folding "\<lambda>_. Suc" 0
   defines card = "folding.F (\<lambda>_. Suc) 0"
   by standard rule
 

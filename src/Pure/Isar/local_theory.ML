@@ -52,7 +52,9 @@ sig
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
   val declaration: {syntax: bool, pervasive: bool} -> declaration -> local_theory -> local_theory
-  val subscription: string * morphism -> (morphism * bool) option -> morphism ->
+  val theory_registration: string * morphism -> (morphism * bool) option -> morphism ->
+    local_theory -> local_theory
+  val locale_dependency: string * morphism -> (morphism * bool) option -> morphism ->
     local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> local_theory -> local_theory
@@ -92,7 +94,9 @@ type operations =
   abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
   declaration: {syntax: bool, pervasive: bool} -> declaration -> local_theory -> local_theory,
-  subscription: string * morphism -> (morphism * bool) option -> morphism ->
+  theory_registration: string * morphism -> (morphism * bool) option -> morphism ->
+     local_theory -> local_theory,
+  locale_dependency: string * morphism -> (morphism * bool) option -> morphism ->
      local_theory -> local_theory,
   pretty: local_theory -> Pretty.T list,
   exit: local_theory -> Proof.context};
@@ -267,8 +271,10 @@ val define = operation2 #define false;
 val define_internal = operation2 #define true;
 val notes_kind = operation2 #notes;
 val declaration = operation2 #declaration;
-fun subscription dep_morph mixin export =
-  assert_bottom true #> operation (fn ops => #subscription ops dep_morph mixin export);
+fun theory_registration dep_morph mixin export =
+  assert_bottom true #> operation (fn ops => #theory_registration ops dep_morph mixin export);
+fun locale_dependency dep_morph mixin export =
+  assert_bottom true #> operation (fn ops => #locale_dependency ops dep_morph mixin export);
 
 
 (* theorems *)

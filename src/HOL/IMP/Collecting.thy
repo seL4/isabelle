@@ -94,7 +94,7 @@ by(auto simp: post_def less_eq_acom_def last_conv_nth[OF annos_ne] anno_def
 definition Inf_acom :: "com \<Rightarrow> 'a::complete_lattice acom set \<Rightarrow> 'a acom" where
 "Inf_acom c M = annotate (\<lambda>p. INF C:M. anno C p) c"
 
-permanent_interpretation
+global_interpretation
   Complete_Lattice "{C. strip C = c}" "Inf_acom c" for c
 proof (standard, goal_cases)
   case 1 thus ?case
