@@ -11,20 +11,11 @@ object Pretty
 {
   /* spaces */
 
-  val space = " "
+  def spaces(n: Int): XML.Body =
+    if (n == 0) Nil
+    else List(XML.Text(Symbol.spaces(n)))
 
-  private val static_spaces = space * 4000
-
-  def spaces(k: Int): String =
-  {
-    require(k >= 0)
-    if (k < static_spaces.length) static_spaces.substring(0, k)
-    else space * k
-  }
-
-  def spaces_body(k: Int): XML.Body =
-    if (k == 0) Nil
-    else List(XML.Text(spaces(k)))
+  val space: XML.Body = spaces(1)
 
 
   /* text metric -- standardized to width of space */
@@ -61,7 +52,7 @@ object Pretty
   object Break
   {
     def apply(w: Int, i: Int = 0): XML.Tree =
-      XML.Elem(Markup.Break(w, i), spaces_body(w))
+      XML.Elem(Markup.Break(w, i), spaces(w))
 
     def unapply(tree: XML.Tree): Option[(Int, Int)] =
       tree match {
@@ -73,9 +64,9 @@ object Pretty
   val FBreak = XML.Text("\n")
 
   def item(body: XML.Body): XML.Tree =
-    Block(false, 2, XML.elem(Markup.BULLET, List(XML.Text(space))) :: XML.Text(space) :: body)
+    Block(false, 2, XML.elem(Markup.BULLET, space) :: space ::: body)
 
-  val Separator = List(XML.elem(Markup.SEPARATOR, List(XML.Text(space))), FBreak)
+  val Separator = List(XML.elem(Markup.SEPARATOR, space), FBreak)
   def separate(ts: List[XML.Tree]): XML.Body = Library.separate(Separator, ts.map(List(_))).flatten
 
 
@@ -105,7 +96,7 @@ object Pretty
       def string(s: String): Text =
         if (s == "") this
         else copy(tx = XML.Text(s) :: tx, pos = pos + metric(s))
-      def blanks(wd: Int): Text = string(spaces(wd))
+      def blanks(wd: Int): Text = string(Symbol.spaces(wd))
       def content: XML.Body = tx.reverse
     }
 
@@ -125,7 +116,7 @@ object Pretty
 
     def force_all(trees: XML.Body): XML.Body =
       trees flatMap {
-        case Break(_, ind) => FBreak :: spaces_body(ind)
+        case Break(_, ind) => FBreak :: spaces(ind)
         case tree => List(tree)
       }
 
@@ -133,7 +124,7 @@ object Pretty
       trees match {
         case Nil => Nil
         case FBreak :: _ => trees
-        case Break(_, ind) :: ts => FBreak :: spaces_body(ind) ::: ts
+        case Break(_, ind) :: ts => FBreak :: spaces(ind) ::: ts
         case t :: ts => t :: force_next(ts)
       }
 
@@ -190,8 +181,8 @@ object Pretty
     def fmt(tree: XML.Tree): XML.Body =
       tree match {
         case Block(_, _, body) => body.flatMap(fmt)
-        case Break(wd, _) => spaces_body(wd)
-        case FBreak => List(XML.Text(space))
+        case Break(wd, _) => spaces(wd)
+        case FBreak => space
         case XML.Wrapped_Elem(markup, body1, body2) =>
           List(XML.Wrapped_Elem(markup, body1, body2.flatMap(fmt)))
         case XML.Elem(markup, body) => List(XML.Elem(markup, body.flatMap(fmt)))
