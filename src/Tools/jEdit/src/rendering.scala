@@ -506,7 +506,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* tooltips */
 
   private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
-    Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)
+    Pretty.block(XML.Text(kind) :: Pretty.brk(1) :: body)
 
   private def timing_threshold: Double = options.real("jedit_timing_threshold")
 
@@ -585,7 +585,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       case tips =>
         val r = Text.Range(results.head.range.start, results.last.range.stop)
         val all_tips = (tips.filter(_._1) ++ tips.filter(!_._1).lastOption.toList).map(_._2)
-        Some(Text.Info(r, Library.separate(Pretty.FBreak, all_tips)))
+        Some(Text.Info(r, Library.separate(Pretty.fbrk, all_tips)))
     }
   }
 
