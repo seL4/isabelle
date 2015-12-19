@@ -108,8 +108,8 @@ val add_indent = Buffer.add o output_spaces;
 (** printing items: compound phrases, strings, and breaks **)
 
 abstype T =
-    Block of (Output.output * Output.output) * T list * bool * int * int
-      (*markup output, body, consistent, indentation, length*)
+    Block of (Output.output * Output.output) * bool * int * T list * int
+      (*markup output, consistent, indentation, body, length*)
   | String of Output.output * int  (*text, length*)
   | Break of bool * int * int  (*mandatory flag, width if not taken, extra indentation if taken*)
 with
@@ -121,7 +121,7 @@ fun length (Block (_, _, _, _, len)) = len
 fun body_length [] len = len
   | body_length (e :: es) len = body_length es (length e + len);
 
-fun make_block m consistent indent es = Block (m, es, consistent, indent, body_length es 0);
+fun make_block m consistent indent es = Block (m, consistent, indent, es, body_length es 0);
 fun markup_block m indent es = make_block (Markup.output m) false indent es;
 
 
@@ -182,7 +182,8 @@ fun indent 0 prt = prt
   | indent n prt = blk (0, [str (Symbol.spaces n), prt]);
 
 fun unbreakable (Break (_, wd, _)) = String (output_spaces wd, wd)
-  | unbreakable (Block (m, es, _, indent, wd)) = Block (m, map unbreakable es, false, indent, wd)
+  | unbreakable (Block (m, consistent, indent, es, len)) =
+      Block (m, consistent, indent, map unbreakable es, len)
   | unbreakable (e as String _) = e;
 
 
@@ -257,7 +258,7 @@ fun formatted margin input =
     fun format ([], _, _) text = text
       | format (e :: es, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
           (case e of
-            Block ((bg, en), bes, consistent, indent, blen) =>
+            Block ((bg, en), consistent, indent, bes, blen) =>
               let
                 val pos' = pos + indent;
                 val pos'' = pos' mod emergencypos;
@@ -294,8 +295,8 @@ end;
 (*symbolic markup -- no formatting*)
 fun symbolic prt =
   let
-    fun out (Block ((bg, en), [], _, _, _)) = Buffer.add bg #> Buffer.add en
-      | out (Block ((bg, en), prts, consistent, indent, _)) =
+    fun out (Block ((bg, en), _, _, [], _)) = Buffer.add bg #> Buffer.add en
+      | out (Block ((bg, en), consistent, indent, prts, _)) =
           Buffer.add bg #>
           Buffer.markup (Markup.block consistent indent) (fold out prts) #>
           Buffer.add en
@@ -308,7 +309,7 @@ fun symbolic prt =
 (*unformatted output*)
 fun unformatted prt =
   let
-    fun fmt (Block ((bg, en), prts, _, _, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
+    fun fmt (Block ((bg, en), _, _, prts, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
       | fmt (String (s, _)) = Buffer.add s
       | fmt (Break (_, wd, _)) = Buffer.add (output_spaces wd);
   in fmt prt Buffer.empty end;
@@ -365,12 +366,12 @@ fun writeln_chunks2 prts =
 
 (** ML toplevel pretty printing **)
 
-fun to_ML (Block (m, prts, consistent, indent, _)) =
-      ML_Pretty.Block (m, map to_ML prts, consistent, indent)
+fun to_ML (Block (m, consistent, indent, prts, _)) =
+      ML_Pretty.Block (m, consistent, indent, map to_ML prts)
   | to_ML (String s) = ML_Pretty.String s
   | to_ML (Break b) = ML_Pretty.Break b;
 
-fun from_ML (ML_Pretty.Block (m, prts, consistent, indent)) =
+fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
       make_block m consistent indent (map from_ML prts)
   | from_ML (ML_Pretty.String s) = String s
   | from_ML (ML_Pretty.Break b) = Break b;

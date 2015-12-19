@@ -145,7 +145,7 @@ val pretty_ml =
             val bg = property "begin" "";
             val en = property "end" "";
             val len' = property "length" len;
-          in ML_Pretty.Block ((bg, en), map (convert len') prts, consistent, ind) end
+          in ML_Pretty.Block ((bg, en), consistent, ind, map (convert len') prts) end
       | convert len (PolyML.PrettyString s) =
           ML_Pretty.String (s, case Int.fromString len of SOME i => i | NONE => size s)
   in convert "" end;
@@ -154,7 +154,7 @@ fun ml_pretty (ML_Pretty.Break (false, width, offset)) = PolyML.PrettyBreak (wid
   | ml_pretty (ML_Pretty.Break (true, _, _)) =
       PolyML.PrettyBlock (0, false, [PolyML.ContextProperty ("fbrk", "")],
         [PolyML.PrettyString " "])
-  | ml_pretty (ML_Pretty.Block ((bg, en), prts, consistent, ind)) =
+  | ml_pretty (ML_Pretty.Block ((bg, en), consistent, ind, prts)) =
       let val context =
         (if bg = "" then [] else [PolyML.ContextProperty ("begin", bg)]) @
         (if en = "" then [] else [PolyML.ContextProperty ("end", en)])

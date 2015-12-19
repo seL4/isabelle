@@ -115,9 +115,12 @@ fun ml_pprint pps =
   let
     fun str "" = ()
       | str s = PrettyPrint.string pps s;
-    fun pprint (ML_Pretty.Block ((bg, en), prts, ind)) =
-          (str bg; PrettyPrint.openHOVBox pps (PrettyPrint.Rel (dest_int ind));
-            List.app pprint prts; PrettyPrint.closeBox pps; str en)
+    fun pprint (ML_Pretty.Block ((bg, en), consistent, ind, prts)) =
+         (str bg;
+          (if consistent then PrettyPrint.openHVBox else PrettyPrint.openHOVBox) pps
+            (PrettyPrint.Rel (dest_int ind));
+          List.app pprint prts; PrettyPrint.closeBox pps;
+          str en)
       | pprint (ML_Pretty.String (s, _)) = str s
       | pprint (ML_Pretty.Break (false, width, offset)) =
           PrettyPrint.break pps {nsp = dest_int width, offset = dest_int offset}
