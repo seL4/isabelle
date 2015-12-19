@@ -108,8 +108,6 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
       locate_button, pretty_text_area.search_label, pretty_text_area.search_field, zoom)
   add(controls.peer, BorderLayout.NORTH)
 
-  override def focusOnDefaultComponent { update_button.requestFocus }
-
 
   /* main */
 
