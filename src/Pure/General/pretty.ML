@@ -66,7 +66,7 @@ sig
   val writeln: T -> unit
   val symbolic_output: T -> Output.output
   val symbolic_string_of: T -> string
-  val str_of: T -> string
+  val unformatted_string_of: T -> string
   val markup_chunks: Markup.T -> T list -> T
   val chunks: T list -> T
   val chunks2: T list -> T
@@ -332,7 +332,7 @@ val writeln = Output.writeln o string_of;
 val symbolic_output = Buffer.content o symbolic;
 val symbolic_string_of = Output.escape o symbolic_output;
 
-val str_of = Output.escape o Buffer.content o unformatted;
+val unformatted_string_of = Output.escape o Buffer.content o unformatted;
 
 
 (* chunks *)

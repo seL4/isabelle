@@ -171,7 +171,7 @@ fun pretty path =
   let val s = implode_path path
   in Pretty.mark (Markup.path s) (Pretty.str (quote s)) end;
 
-val print = Pretty.str_of o pretty;
+val print = Pretty.unformatted_string_of o pretty;
 
 
 (* base element *)

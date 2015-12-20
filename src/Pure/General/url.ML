@@ -81,7 +81,7 @@ end;
 
 val pretty = Pretty.mark_str o `Markup.url o implode_url;
 
-val print = Pretty.str_of o pretty;
+val print = Pretty.unformatted_string_of o pretty;
 
 
 (*final declarations of this structure!*)

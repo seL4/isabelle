@@ -592,8 +592,9 @@ fun output ctxt prts =
         #> space_implode "\\isasep\\isanewline%\n"
         #> Latex.environment "isabelle"
       else
-        map ((if Config.get ctxt break then string_of_margin ctxt else Pretty.str_of) #>
-          Output.output)
+        map
+          ((if Config.get ctxt break then string_of_margin ctxt else Pretty.unformatted_string_of)
+            #> Output.output)
         #> space_implode "\\isasep\\isanewline%\n"
         #> enclose "\\isa{" "}");
 

@@ -147,7 +147,8 @@ val empty = Defs Itemtab.empty;
 fun disjoint_specs context c (i, {description = a, pos = pos_a, lhs = Ts, ...}: spec) =
   Inttab.forall (fn (j, {description = b, pos = pos_b, lhs = Us, ...}: spec) =>
     i = j orelse disjoint_args (Ts, Us) orelse
-      error ("Clash of specifications for " ^ Pretty.str_of (pretty_item context c) ^ ":\n" ^
+      error ("Clash of specifications for " ^
+        Pretty.unformatted_string_of (pretty_item context c) ^ ":\n" ^
         "  " ^ quote a ^ Position.here pos_a ^ "\n" ^
         "  " ^ quote b ^ Position.here pos_b));
 

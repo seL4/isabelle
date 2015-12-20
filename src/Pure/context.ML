@@ -179,7 +179,7 @@ fun pretty_abbrev_thy thy =
     val abbrev = if n > 5 then "..." :: List.drop (names, n - 5) else names;
   in Pretty.str_list "{" "}" abbrev end;
 
-val str_of_thy = Pretty.str_of o pretty_abbrev_thy;
+val str_of_thy = Pretty.unformatted_string_of o pretty_abbrev_thy;
 
 fun get_theory thy name =
   if theory_name thy <> name then

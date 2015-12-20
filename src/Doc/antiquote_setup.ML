@@ -130,13 +130,15 @@ val _ =
               Output.output
                 (Thy_Output.string_of_margin ctxt
                   (Pretty.indent (Config.get ctxt Thy_Output.indent) p)) ^
-              "\\rulename{" ^ Output.output (Pretty.str_of (Thy_Output.pretty_text ctxt name)) ^ "}")
+              "\\rulename{" ^
+              Output.output (Pretty.unformatted_string_of (Thy_Output.pretty_text ctxt name)) ^ "}")
             #> space_implode "\\par\\smallskip%\n"
             #> Latex.environment "isabelle"
           else
             map (fn (p, name) =>
-              Output.output (Pretty.str_of p) ^
-              "\\rulename{" ^ Output.output (Pretty.str_of (Thy_Output.pretty_text ctxt name)) ^ "}")
+              Output.output (Pretty.unformatted_string_of p) ^
+              "\\rulename{" ^
+              Output.output (Pretty.unformatted_string_of (Thy_Output.pretty_text ctxt name)) ^ "}")
             #> space_implode "\\par\\smallskip%\n"
             #> enclose "\\isa{" "}")));
 
