@@ -76,6 +76,8 @@ fun flatten _ (CONTEXT (ctxt, exn)) = flatten (SOME ctxt) exn
         SOME exns => maps (flatten context) exns
       | NONE => [(context, identify exn)]);
 
+val print_thy = Pretty.unformatted_string_of o Context.pretty_abbrev_thy;
+
 in
 
 fun exn_messages_ids e =
@@ -104,8 +106,7 @@ fun exn_messages_ids e =
             | ERROR "" => "Error"
             | ERROR msg => msg
             | Fail msg => raised exn "Fail" [msg]
-            | THEORY (msg, thys) =>
-                raised exn "THEORY" (msg :: map (robust Context.str_of_thy) thys)
+            | THEORY (msg, thys) => raised exn "THEORY" (msg :: map (robust print_thy) thys)
             | Ast.AST (msg, asts) =>
                 raised exn "AST" (msg :: map (robust (Pretty.string_of o Ast.pretty_ast)) asts)
             | TYPE (msg, Ts, ts) =>

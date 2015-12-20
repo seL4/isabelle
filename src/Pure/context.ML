@@ -37,9 +37,7 @@ sig
   val theory_name: theory -> string
   val PureN: string
   val pretty_thy: theory -> Pretty.T
-  val string_of_thy: theory -> string
   val pretty_abbrev_thy: theory -> Pretty.T
-  val str_of_thy: theory -> string
   val get_theory: theory -> string -> theory
   val this_theory: theory -> string -> theory
   val eq_thy_id: theory_id * theory_id -> bool
@@ -170,7 +168,6 @@ fun display_names thy =
   in rev (name :: ancestor_names) end;
 
 val pretty_thy = Pretty.str_list "{" "}" o display_names;
-val string_of_thy = Pretty.string_of o pretty_thy;
 
 fun pretty_abbrev_thy thy =
   let
@@ -178,8 +175,6 @@ fun pretty_abbrev_thy thy =
     val n = length names;
     val abbrev = if n > 5 then "..." :: List.drop (names, n - 5) else names;
   in Pretty.str_list "{" "}" abbrev end;
-
-val str_of_thy = Pretty.unformatted_string_of o pretty_abbrev_thy;
 
 fun get_theory thy name =
   if theory_name thy <> name then
