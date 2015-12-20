@@ -139,8 +139,8 @@ qed
 subsection \<open>Linear closure\<close>
 
 text \<open>
-  The \<^emph>\<open>linear closure\<close> of a vector \<open>x\<close> is the set of all scalar multiples
-  of \<open>x\<close>.
+  The \<^emph>\<open>linear closure\<close> of a vector \<open>x\<close> is the set of all scalar multiples of
+  \<open>x\<close>.
 \<close>
 
 definition lin :: "('a::{minus,plus,zero}) \<Rightarrow> 'a set"
@@ -318,7 +318,7 @@ proof -
   qed
 qed
 
-text\<open>The sum of two subspaces is a vectorspace.\<close>
+text \<open>The sum of two subspaces is a vectorspace.\<close>
 
 lemma sum_vs [intro?]:
     "U \<unlhd> E \<Longrightarrow> V \<unlhd> E \<Longrightarrow> vectorspace E \<Longrightarrow> vectorspace (U + V)"
@@ -328,10 +328,10 @@ lemma sum_vs [intro?]:
 subsection \<open>Direct sums\<close>
 
 text \<open>
-  The sum of \<open>U\<close> and \<open>V\<close> is called \<^emph>\<open>direct\<close>, iff the zero element is the
-  only common element of \<open>U\<close> and \<open>V\<close>. For every element \<open>x\<close> of the direct
-  sum of \<open>U\<close> and \<open>V\<close> the decomposition in \<open>x = u + v\<close> with \<open>u \<in> U\<close> and
-  \<open>v \<in> V\<close> is unique.
+  The sum of \<open>U\<close> and \<open>V\<close> is called \<^emph>\<open>direct\<close>, iff the zero element is the only
+  common element of \<open>U\<close> and \<open>V\<close>. For every element \<open>x\<close> of the direct sum of
+  \<open>U\<close> and \<open>V\<close> the decomposition in \<open>x = u + v\<close> with \<open>u \<in> U\<close> and \<open>v \<in> V\<close> is
+  unique.
 \<close>
 
 lemma decomp:
@@ -434,8 +434,8 @@ qed
 
 text \<open>
   Since for any element \<open>y + a \<cdot> x'\<close> of the direct sum of a vectorspace \<open>H\<close>
-  and the linear closure of \<open>x'\<close> the components \<open>y \<in> H\<close> and \<open>a\<close> are unique,
-  it follows from \<open>y \<in> H\<close> that \<open>a = 0\<close>.
+  and the linear closure of \<open>x'\<close> the components \<open>y \<in> H\<close> and \<open>a\<close> are unique, it
+  follows from \<open>y \<in> H\<close> that \<open>a = 0\<close>.
 \<close>
 
 lemma decomp_H'_H:
