@@ -162,26 +162,4 @@ object Pretty
   def string_of(input: XML.Body, margin: Double = margin_default,
       metric: Metric = Metric_Default): String =
     XML.content(formatted(input, margin, metric))
-
-
-  /* unformatted output */
-
-  def unformatted(input: XML.Body): XML.Body =
-  {
-    def fmt(tree: XML.Tree): XML.Body =
-      tree match {
-        case XML.Wrapped_Elem(markup, body1, body2) =>
-          List(XML.Wrapped_Elem(markup, body1, body2.flatMap(fmt)))
-        case XML.Elem(markup, body) =>
-          markup match {
-            case Markup.Block(_, _) => body.flatMap(fmt)
-            case Markup.Break(wd, _) => spaces(wd)
-            case _ => List(XML.Elem(markup, body.flatMap(fmt)))
-          }
-        case XML.Text(s) => List(XML.Text(s.replace('\n', ' ')))
-      }
-    input.flatMap(fmt)
-  }
-
-  def str_of(input: XML.Body): String = XML.content(unformatted(input))
 }
