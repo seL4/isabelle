@@ -11,8 +11,11 @@ object Pretty
 {
   /* XML constructors */
 
-  def spaces(n: Int): XML.Body = if (n == 0) Nil else List(XML.Text(Symbol.spaces(n)))
-  val space: XML.Body = spaces(1)
+  val space: XML.Body = List(XML.Text(Symbol.space))
+  def spaces(n: Int): XML.Body =
+    if (n == 0) Nil
+    else if (n == 1) space
+    else List(XML.Text(Symbol.spaces(n)))
 
   def block(consistent: Boolean, indent: Int, body: XML.Body): XML.Tree =
     XML.Elem(Markup.Block(consistent, indent), body)
@@ -45,79 +48,79 @@ object Pretty
 
   /* markup trees with physical blocks and breaks */
 
-  sealed abstract class Tree { def length: Double }
-  case class Block(
+  private sealed abstract class Tree { def length: Double }
+  private case class Block(
     markup: Option[(Markup, Option[XML.Body])],
     consistent: Boolean, indent: Int, body: List[Tree], length: Double) extends Tree
-  case class Str(string: String, length: Double) extends Tree
-  case class Break(force: Boolean, width: Int, indent: Int) extends Tree
+  private case class Break(force: Boolean, width: Int, indent: Int) extends Tree
   { def length: Double = width.toDouble }
+  private case class Str(string: String, length: Double) extends Tree
 
-  val FBreak = Break(true, 1, 0)
+  private val FBreak = Break(true, 1, 0)
 
-  def make_block(
+  private def make_block(
       markup: Option[(Markup, Option[XML.Body])],
       consistent: Boolean,
       indent: Int,
       body: List[Tree]): Tree =
     Block(markup, consistent, indent, body, (0.0 /: body) { case (n, t) => n + t.length })
 
-  def make_tree(metric: Metric, xml: XML.Body): List[Tree] =
-    xml flatMap {
-      case XML.Wrapped_Elem(markup, body1, body2) =>
-        List(make_block(Some(markup, Some(body1)), false, 0, make_tree(metric, body2)))
-      case XML.Elem(markup, body) =>
-        markup match {
-          case Markup.Block(consistent, indent) =>
-            List(make_block(None, consistent, indent, make_tree(metric, body)))
-          case Markup.Break(width, indent) =>
-            List(Break(false, width, indent))
-          case Markup(Markup.ITEM, _) =>
-            List(make_block(None, false, 2,
-              make_tree(metric, XML.elem(Markup.BULLET, space) :: space ::: body)))
-          case _ =>
-            List(make_block(Some((markup, None)), false, 0, make_tree(metric, body)))
-        }
-      case XML.Text(text) =>
-        Library.separate(FBreak, split_lines(text).map(s => Str(s, metric(s))))
-    }
-
 
   /* formatted output */
+
+  private sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0)
+  {
+    def newline: Text = copy(tx = fbrk :: tx, pos = 0.0, nl = nl + 1)
+    def string(s: String, len: Double): Text =
+      copy(tx = if (s == "") tx else XML.Text(s) :: tx, pos = pos + len)
+    def blanks(wd: Int): Text = string(Symbol.spaces(wd), wd.toDouble)
+    def content: XML.Body = tx.reverse
+  }
+
+  private def break_dist(trees: List[Tree], after: Double): Double =
+    trees match {
+      case (_: Break) :: _ => 0.0
+      case t :: ts => t.length + break_dist(ts, after)
+      case Nil => after
+    }
+
+  private def force_break(tree: Tree): Tree =
+    tree match { case Break(false, wd, ind) => Break(true, wd, ind) case _ => tree }
+  private def force_all(trees: List[Tree]): List[Tree] = trees.map(force_break(_))
+
+  private def force_next(trees: List[Tree]): List[Tree] =
+    trees match {
+      case Nil => Nil
+      case (t: Break) :: ts => force_break(t) :: ts
+      case t :: ts => t :: force_next(ts)
+    }
 
   private val margin_default = 76.0
 
   def formatted(input: XML.Body, margin: Double = margin_default,
     metric: Metric = Metric_Default): XML.Body =
   {
-    sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0)
-    {
-      def newline: Text = copy(tx = fbrk :: tx, pos = 0.0, nl = nl + 1)
-      def string(s: String, len: Double): Text =
-        copy(tx = if (s == "") tx else XML.Text(s) :: tx, pos = pos + len)
-      def blanks(wd: Int): Text = string(Symbol.spaces(wd), wd.toDouble)
-      def content: XML.Body = tx.reverse
-    }
-
     val breakgain = margin / 20
     val emergencypos = (margin / 2).round.toInt
 
-    def break_dist(trees: List[Tree], after: Double): Double =
-      trees match {
-        case (_: Break) :: _ => 0.0
-        case t :: ts => t.length + break_dist(ts, after)
-        case Nil => after
-      }
-
-    def force_break(tree: Tree): Tree =
-      tree match { case Break(false, wd, ind) => Break(true, wd, ind) case _ => tree }
-    def force_all(trees: List[Tree]): List[Tree] = trees.map(force_break(_))
-
-    def force_next(trees: List[Tree]): List[Tree] =
-      trees match {
-        case Nil => Nil
-        case (t: Break) :: ts => force_break(t) :: ts
-        case t :: ts => t :: force_next(ts)
+    def make_tree(inp: XML.Body): List[Tree] =
+      inp flatMap {
+        case XML.Wrapped_Elem(markup, body1, body2) =>
+          List(make_block(Some(markup, Some(body1)), false, 0, make_tree(body2)))
+        case XML.Elem(markup, body) =>
+          markup match {
+            case Markup.Block(consistent, indent) =>
+              List(make_block(None, consistent, indent, make_tree(body)))
+            case Markup.Break(width, indent) =>
+              List(Break(false, width, indent))
+            case Markup(Markup.ITEM, _) =>
+              List(make_block(None, false, 2,
+                make_tree(XML.elem(Markup.BULLET, space) :: space ::: body)))
+            case _ =>
+              List(make_block(Some((markup, None)), false, 0, make_tree(body)))
+          }
+        case XML.Text(text) =>
+          Library.separate(FBreak, split_lines(text).map(s => Str(s, metric(s))))
       }
 
     def format(trees: List[Tree], blockin: Int, after: Double, text: Text): Text =
@@ -153,7 +156,7 @@ object Pretty
 
         case Str(s, len) :: ts => format(ts, blockin, after, text.string(s, len))
       }
-    format(make_tree(metric, input), 0, 0.0, Text()).content
+    format(make_tree(input), 0, 0.0, Text()).content
   }
 
   def string_of(input: XML.Body, margin: Double = margin_default,
