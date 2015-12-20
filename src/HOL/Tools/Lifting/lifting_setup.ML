@@ -368,16 +368,13 @@ in
             in
               if null non_trivial_assms then ()
               else
-                let
-                  val pretty_msg = Pretty.block ([Pretty.str "Non-trivial assumptions in ",
-                    Pretty.str thm_name,
-                    Pretty.str " transfer rule found:",
-                    Pretty.brk 1] @ 
-                    ((Pretty.commas o map (Syntax.pretty_term ctxt)) non_trivial_assms) @
-                                       [Pretty.str "."])
-                in
-                  warning (Pretty.str_of pretty_msg)
-                end
+                Pretty.block ([Pretty.str "Non-trivial assumptions in ",
+                  Pretty.str thm_name,
+                  Pretty.str " transfer rule found:",
+                  Pretty.brk 1] @ 
+                  Pretty.commas (map (Syntax.pretty_term ctxt) non_trivial_assms))
+                |> Pretty.string_of
+                |> warning
             end
         end
   
