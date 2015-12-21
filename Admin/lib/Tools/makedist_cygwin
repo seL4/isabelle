@@ -55,7 +55,7 @@ chmod +x "$TARGET/isabelle/cygwin.exe"
   --site "$CYGWIN_MIRROR" --no-verify \
   --local-package-dir 'C:\temp' \
   --root "$(cygpath -w "$TARGET")" \
-  --packages perl,perl-libwww-perl,rlwrap,unzip,vim \
+  --packages perl,perl-libwww-perl,rlwrap,unzip,nano \
   --no-shortcuts --no-startmenu --no-desktop --quiet-mode
 
 [ "$?" = 0 -a -e "$TARGET/etc" ] || exit 2
@@ -67,8 +67,6 @@ for NAME in hosts protocols services networks passwd group
 do
   rm -f "$TARGET/etc/$NAME"
 done
-
-ln -s cygperl5_14.dll "$TARGET/bin/cygperl5_14_2.dll"
 
 rm "$TARGET/Cygwin.bat"
 
