@@ -1410,6 +1410,9 @@ subsection \<open>Real measure values\<close>
 lemma measure_nonneg: "0 \<le> measure M A"
   using emeasure_nonneg[of M A] unfolding measure_def by (auto intro: real_of_ereal_pos)
 
+lemma zero_less_measure_iff: "0 < measure M A \<longleftrightarrow> measure M A \<noteq> 0"
+  using measure_nonneg[of M A] by (auto simp add: le_less)
+
 lemma measure_le_0_iff: "measure M X \<le> 0 \<longleftrightarrow> measure M X = 0"
   using measure_nonneg[of M X] by auto
 

@@ -904,6 +904,12 @@ syntax
 translations
   "\<integral> x. f \<partial>M" == "CONST lebesgue_integral M (\<lambda>x. f)"
 
+syntax
+  "_ascii_lebesgue_integral" :: "pttrn \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real" ("(3LINT (1_)/|(_)./ _)" [0,110,60] 60)
+
+translations
+  "LINT x|M. f" == "CONST lebesgue_integral M (\<lambda>x. f)"
+
 lemma has_bochner_integral_integral_eq: "has_bochner_integral M f x \<Longrightarrow> integral\<^sup>L M f = x"
   by (metis the_equality has_bochner_integral_eq lebesgue_integral_def)
 
@@ -2580,6 +2586,33 @@ proof -
   show ?thesis unfolding *
     by (simp add: integral_distr[symmetric, OF measurable_pair_swap' f] distr_pair_swap[symmetric])
 qed
+
+lemma (in pair_sigma_finite) Fubini_integrable:
+  fixes f :: "_ \<Rightarrow> _::{banach, second_countable_topology}"
+  assumes f[measurable]: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
+    and integ1: "integrable M1 (\<lambda>x. \<integral> y. norm (f (x, y)) \<partial>M2)"
+    and integ2: "AE x in M1. integrable M2 (\<lambda>y. f (x, y))"
+  shows "integrable (M1 \<Otimes>\<^sub>M M2) f"
+proof (rule integrableI_bounded)
+  have "(\<integral>\<^sup>+ p. norm (f p) \<partial>(M1 \<Otimes>\<^sub>M M2)) = (\<integral>\<^sup>+ x. (\<integral>\<^sup>+ y. norm (f (x, y)) \<partial>M2) \<partial>M1)"
+    by (simp add: M2.nn_integral_fst [symmetric])
+  also have "\<dots> = (\<integral>\<^sup>+ x. \<bar>\<integral>y. norm (f (x, y)) \<partial>M2\<bar> \<partial>M1)"
+    apply (intro nn_integral_cong_AE)
+    using integ2
+  proof eventually_elim
+    fix x assume "integrable M2 (\<lambda>y. f (x, y))"
+    then have f: "integrable M2 (\<lambda>y. norm (f (x, y)))"
+      by simp
+    then have "(\<integral>\<^sup>+y. ereal (norm (f (x, y))) \<partial>M2) = ereal (LINT y|M2. norm (f (x, y)))"
+      by (rule nn_integral_eq_integral) simp
+    also have "\<dots> = ereal \<bar>LINT y|M2. norm (f (x, y))\<bar>"
+      using f by (auto intro!: abs_of_nonneg[symmetric] integral_nonneg_AE)
+    finally show "(\<integral>\<^sup>+y. ereal (norm (f (x, y))) \<partial>M2) = ereal \<bar>LINT y|M2. norm (f (x, y))\<bar>" .
+  qed
+  also have "\<dots> < \<infinity>"
+    using integ1 by (simp add: integrable_iff_bounded integral_nonneg_AE)
+  finally show "(\<integral>\<^sup>+ p. norm (f p) \<partial>(M1 \<Otimes>\<^sub>M M2)) < \<infinity>" .
+qed fact
 
 lemma (in pair_sigma_finite) emeasure_pair_measure_finite:
   assumes A: "A \<in> sets (M1 \<Otimes>\<^sub>M M2)" and finite: "emeasure (M1 \<Otimes>\<^sub>M M2) A < \<infinity>"

@@ -2451,6 +2451,20 @@ lemma has_vector_derivative_at_within:
   unfolding has_vector_derivative_def
   by (rule has_derivative_at_within)
 
+lemma has_vector_derivative_weaken:
+  fixes x D and f g s t
+  assumes f: "(f has_vector_derivative D) (at x within t)"
+    and "x \<in> s" "s \<subseteq> t" 
+    and "\<And>x. x \<in> s \<Longrightarrow> f x = g x"
+  shows "(g has_vector_derivative D) (at x within s)"
+proof -
+  have "(f has_vector_derivative D) (at x within s) \<longleftrightarrow> (g has_vector_derivative D) (at x within s)"
+    unfolding has_vector_derivative_def has_derivative_iff_norm
+    using assms by (intro conj_cong Lim_cong_within refl) auto
+  then show ?thesis
+    using has_vector_derivative_within_subset[OF f `s \<subseteq> t`] by simp
+qed
+
 lemma has_vector_derivative_transform_within:
   assumes "0 < d"
     and "x \<in> s"

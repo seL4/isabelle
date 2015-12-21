@@ -204,7 +204,7 @@ fun prepare_facts ctxt facts =
 fun measurable_tac ctxt facts =
   let
     fun debug_fact msg thm () =
-      msg ^ " " ^ Pretty.str_of (Syntax.pretty_term ctxt (Thm.prop_of thm))
+      msg ^ " " ^ Pretty.unformatted_string_of (Syntax.pretty_term ctxt (Thm.prop_of thm))
 
     fun IF' c t i = COND (c i) (t i) no_tac
 

@@ -23,13 +23,13 @@ consts
 subsection \<open>Vector space laws\<close>
 
 text \<open>
-  A \<^emph>\<open>vector space\<close> is a non-empty set \<open>V\<close> of elements from @{typ 'a} with
-  the following vector space laws: The set \<open>V\<close> is closed under addition and
-  scalar multiplication, addition is associative and commutative; \<open>- x\<close> is
-  the inverse of \<open>x\<close> wrt.\ addition and \<open>0\<close> is the neutral element of
-  addition. Addition and multiplication are distributive; scalar
-  multiplication is associative and the real number \<open>1\<close> is the neutral
-  element of scalar multiplication.
+  A \<^emph>\<open>vector space\<close> is a non-empty set \<open>V\<close> of elements from @{typ 'a} with the
+  following vector space laws: The set \<open>V\<close> is closed under addition and scalar
+  multiplication, addition is associative and commutative; \<open>- x\<close> is the
+  inverse of \<open>x\<close> wrt.\ addition and \<open>0\<close> is the neutral element of addition.
+  Addition and multiplication are distributive; scalar multiplication is
+  associative and the real number \<open>1\<close> is the neutral element of scalar
+  multiplication.
 \<close>
 
 locale vectorspace =
@@ -78,8 +78,10 @@ qed
 lemmas add_ac = add_assoc add_commute add_left_commute
 
 
-text \<open>The existence of the zero element of a vector space follows from the
-  non-emptiness of carrier set.\<close>
+text \<open>
+  The existence of the zero element of a vector space follows from the
+  non-emptiness of carrier set.
+\<close>
 
 lemma zero [iff]: "0 \<in> V"
 proof -

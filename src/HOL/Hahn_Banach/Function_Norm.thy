@@ -11,8 +11,8 @@ begin
 subsection \<open>Continuous linear forms\<close>
 
 text \<open>
-  A linear form \<open>f\<close> on a normed vector space \<open>(V, \<parallel>\<cdot>\<parallel>)\<close> is \<^emph>\<open>continuous\<close>,
-  iff it is bounded, i.e.
+  A linear form \<open>f\<close> on a normed vector space \<open>(V, \<parallel>\<cdot>\<parallel>)\<close> is \<^emph>\<open>continuous\<close>, iff
+  it is bounded, i.e.
   \begin{center}
   \<open>\<exists>c \<in> R. \<forall>x \<in> V. \<bar>f x\<bar> \<le> c \<cdot> \<parallel>x\<parallel>\<close>
   \end{center}
@@ -52,20 +52,20 @@ text \<open>
   \<open>\<parallel>f\<parallel> = \<sup>x \<noteq> 0. \<bar>f x\<bar> / \<parallel>x\<parallel>\<close>
   \end{center}
 
-  For the case \<open>V = {0}\<close> the supremum would be taken from an empty set.
-  Since \<open>\<real>\<close> is unbounded, there would be no supremum. To avoid this
-  situation it must be guaranteed that there is an element in this set. This
-  element must be \<open>{} \<ge> 0\<close> so that \<open>fn_norm\<close> has the norm properties.
-  Furthermore it does not have to change the norm in all other cases, so it
-  must be \<open>0\<close>, as all other elements are \<open>{} \<ge> 0\<close>.
+  For the case \<open>V = {0}\<close> the supremum would be taken from an empty set. Since
+  \<open>\<real>\<close> is unbounded, there would be no supremum. To avoid this situation it
+  must be guaranteed that there is an element in this set. This element must
+  be \<open>{} \<ge> 0\<close> so that \<open>fn_norm\<close> has the norm properties. Furthermore it does
+  not have to change the norm in all other cases, so it must be \<open>0\<close>, as all
+  other elements are \<open>{} \<ge> 0\<close>.
 
   Thus we define the set \<open>B\<close> where the supremum is taken from as follows:
   \begin{center}
   \<open>{0} \<union> {\<bar>f x\<bar> / \<parallel>x\<parallel>. x \<noteq> 0 \<and> x \<in> F}\<close>
   \end{center}
 
-  \<open>fn_norm\<close> is equal to the supremum of \<open>B\<close>, if the supremum exists
-  (otherwise it is undefined).
+  \<open>fn_norm\<close> is equal to the supremum of \<open>B\<close>, if the supremum exists (otherwise
+  it is undefined).
 \<close>
 
 locale fn_norm =

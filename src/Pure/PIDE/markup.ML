@@ -64,9 +64,9 @@ sig
   val urlN: string val url: string -> T
   val docN: string val doc: string -> T
   val indentN: string
-  val blockN: string val block: int -> T
   val widthN: string
-  val breakN: string val break: int -> T
+  val blockN: string val block: bool -> int -> T
+  val breakN: string val break: int -> int -> T
   val fbreakN: string val fbreak: T
   val itemN: string val item: T
   val wordsN: string val words: T
@@ -377,11 +377,21 @@ val (docN, doc) = markup_string "doc" nameN;
 
 (* pretty printing *)
 
+val consistentN = "consistent";
 val indentN = "indent";
-val (blockN, block) = markup_int "block" indentN;
-
 val widthN = "width";
-val (breakN, break) = markup_int "break" widthN;
+
+val blockN = "block";
+fun block c i =
+  (blockN,
+    (if c then [(consistentN, print_bool c)] else []) @
+    (if i <> 0 then [(indentN, print_int i)] else []));
+
+val breakN = "break";
+fun break w i =
+  (breakN,
+    (if w <> 0 then [(widthN, print_int w)] else []) @
+    (if i <> 0 then [(indentN, print_int i)] else []));
 
 val (fbreakN, fbreak) = markup_elem "fbreak";
 

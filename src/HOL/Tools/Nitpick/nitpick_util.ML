@@ -280,9 +280,8 @@ val indent_size = 2
 val maybe_quote = ATP_Util.maybe_quote
 
 fun pretty_maybe_quote keywords pretty =
-  let val s = Pretty.str_of pretty in
-    if maybe_quote keywords s = s then pretty else Pretty.quote pretty
-  end
+  let val s = Pretty.unformatted_string_of pretty
+  in if maybe_quote keywords s = s then pretty else Pretty.quote pretty end
 
 val hashw = ATP_Util.hashw
 val hashw_string = ATP_Util.hashw_string

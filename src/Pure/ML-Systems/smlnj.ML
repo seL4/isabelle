@@ -74,7 +74,12 @@ fun ml_prompts p1 p2 =
   (Control.primaryPrompt := p1; Control.secondaryPrompt := p2);
 
 (*dummy implementation*)
-fun profile (n: int) f x = f x;
+structure ML_Profiling =
+struct
+  fun profile_time (_: (int * string) list -> unit) f x = f x;
+  fun profile_time_thread (_: (int * string) list -> unit) f x = f x;
+  fun profile_allocations (_: (int * string) list -> unit) f x = f x;
+end;
 
 (*dummy implementation*)
 fun print_exception_trace (_: exn -> string) (_: string -> unit) f = f ();
@@ -115,12 +120,16 @@ fun ml_pprint pps =
   let
     fun str "" = ()
       | str s = PrettyPrint.string pps s;
-    fun pprint (ML_Pretty.Block ((bg, en), prts, ind)) =
-          (str bg; PrettyPrint.openHOVBox pps (PrettyPrint.Rel (dest_int ind));
-            List.app pprint prts; PrettyPrint.closeBox pps; str en)
+    fun pprint (ML_Pretty.Block ((bg, en), consistent, ind, prts)) =
+         (str bg;
+          (if consistent then PrettyPrint.openHVBox else PrettyPrint.openHOVBox) pps
+            (PrettyPrint.Rel (dest_int ind));
+          List.app pprint prts; PrettyPrint.closeBox pps;
+          str en)
       | pprint (ML_Pretty.String (s, _)) = str s
-      | pprint (ML_Pretty.Break (false, wd)) = PrettyPrint.break pps {nsp = dest_int wd, offset = 0}
-      | pprint (ML_Pretty.Break (true, _)) = PrettyPrint.newline pps;
+      | pprint (ML_Pretty.Break (false, width, offset)) =
+          PrettyPrint.break pps {nsp = dest_int width, offset = dest_int offset}
+      | pprint (ML_Pretty.Break (true, _, _)) = PrettyPrint.newline pps;
   in pprint end;
 
 fun toplevel_pp context path pp =

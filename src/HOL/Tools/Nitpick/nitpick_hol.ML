@@ -575,11 +575,6 @@ fun mk_flat_tuple _ [t] = t
 fun dest_n_tuple 1 t = [t]
   | dest_n_tuple n t = HOLogic.dest_prod t ||> dest_n_tuple (n - 1) |> op ::
 
-type typedef_info =
-  {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
-   prop_of_Rep: thm, set_name: string option, Abs_inverse: thm option,
-   Rep_inverse: thm option}
-
 fun typedef_info ctxt s =
   if is_frac_type ctxt (Type (s, [])) then
     SOME {abs_type = Type (s, []), rep_type = @{typ "int * int"},

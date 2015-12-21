@@ -156,7 +156,7 @@ fun pretty (Binding {prefix, qualifier, name, pos, ...}) =
       [Pretty.str (Long_Name.implode (map #1 (prefix @ qualifier) @ [name]))]
     |> Pretty.quote;
 
-val print = Pretty.str_of o pretty;
+val print = Pretty.unformatted_string_of o pretty;
 
 val pp = pretty o set_pos Position.none;
 

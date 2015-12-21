@@ -1467,6 +1467,35 @@ proof -
     by simp
 qed
 
+lemma is_real_interval:
+  assumes S: "is_interval S"
+  shows "\<exists>a b::real. S = {} \<or> S = UNIV \<or> S = {..<b} \<or> S = {..b} \<or> S = {a<..} \<or> S = {a..} \<or>
+    S = {a<..<b} \<or> S = {a<..b} \<or> S = {a..<b} \<or> S = {a..b}"
+  using S unfolding is_interval_1 by (blast intro: interval_cases)
+
+lemma real_interval_borel_measurable:
+  assumes "is_interval (S::real set)"
+  shows "S \<in> sets borel"
+proof -
+  from assms is_real_interval have "\<exists>a b::real. S = {} \<or> S = UNIV \<or> S = {..<b} \<or> S = {..b} \<or>
+    S = {a<..} \<or> S = {a..} \<or> S = {a<..<b} \<or> S = {a<..b} \<or> S = {a..<b} \<or> S = {a..b}" by auto
+  then guess a ..
+  then guess b ..
+  thus ?thesis
+    by auto
+qed
+
+lemma borel_measurable_mono:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "mono f"
+  shows "f \<in> borel_measurable borel"
+proof (subst borel_measurable_iff_ge, auto simp add:)
+  fix a :: real
+  have "is_interval {w. a \<le> f w}"
+    unfolding is_interval_1 using assms by (auto dest: monoD intro: order.trans)
+  thus "{w. a \<le> f w} \<in> sets borel" using real_interval_borel_measurable by auto  
+qed
+
 no_notation
   eucl_less (infix "<e" 50)
 

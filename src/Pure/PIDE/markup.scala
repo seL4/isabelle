@@ -180,8 +180,41 @@ object Markup
 
   /* pretty printing */
 
-  val Block = new Markup_Int("block", "indent")
-  val Break = new Markup_Int("break", "width")
+  val Consistent = new Properties.Boolean("consistent")
+  val Indent = new Properties.Int("indent")
+  val Width = new Properties.Int("width")
+
+  object Block
+  {
+    val name = "block"
+    def apply(c: Boolean, i: Int): Markup =
+      Markup(name,
+        (if (c) Consistent(c) else Nil) :::
+        (if (i != 0) Indent(i) else Nil))
+    def unapply(markup: Markup): Option[(Boolean, Int)] =
+      if (markup.name == name) {
+        val c = Consistent.unapply(markup.properties).getOrElse(false)
+        val i = Indent.unapply(markup.properties).getOrElse(0)
+        Some((c, i))
+      }
+      else None
+  }
+
+  object Break
+  {
+    val name = "break"
+    def apply(w: Int, i: Int): Markup =
+      Markup(name,
+        (if (w != 0) Width(w) else Nil) :::
+        (if (i != 0) Indent(i) else Nil))
+    def unapply(markup: Markup): Option[(Int, Int)] =
+      if (markup.name == name) {
+        val w = Width.unapply(markup.properties).getOrElse(0)
+        val i = Indent.unapply(markup.properties).getOrElse(0)
+        Some((w, i))
+      }
+      else None
+  }
 
   val ITEM = "item"
   val BULLET = "bullet"

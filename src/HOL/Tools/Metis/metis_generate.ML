@@ -227,7 +227,7 @@ fun generate_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
     *)
     val lam_trans = if lam_trans = combsN then no_lamsN else lam_trans
     val (atp_problem, _, lifted, sym_tab) =
-      generate_atp_problem ctxt CNF Hypothesis type_enc Metis lam_trans false false false []
+      generate_atp_problem ctxt true CNF Hypothesis type_enc Metis lam_trans false false false []
         @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^

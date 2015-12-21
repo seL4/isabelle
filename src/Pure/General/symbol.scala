@@ -21,6 +21,20 @@ object Symbol
   type Range = Text.Range
 
 
+  /* spaces */
+
+  val space = " "
+
+  private val static_spaces = space * 4000
+
+  def spaces(n: Int): String =
+  {
+    require(n >= 0)
+    if (n < static_spaces.length) static_spaces.substring(0, n)
+    else space * n
+  }
+
+
   /* ASCII characters */
 
   def is_ascii_letter(c: Char): Boolean = 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z'
@@ -425,7 +439,7 @@ object Symbol
       "\\<Xi>", "\\<Pi>", "\\<Sigma>", "\\<Upsilon>", "\\<Phi>",
       "\\<Psi>", "\\<Omega>")
 
-    val blanks = recode_set(" ", "\t", "\n", "\u000B", "\f", "\r", "\r\n")
+    val blanks = recode_set(space, "\t", "\n", "\u000B", "\f", "\r", "\r\n")
 
     val sym_chars =
       Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")

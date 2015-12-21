@@ -11,14 +11,12 @@ begin
 subsection \<open>The graph of a function\<close>
 
 text \<open>
-  We define the \<^emph>\<open>graph\<close> of a (real) function \<open>f\<close> with
-  domain \<open>F\<close> as the set
+  We define the \<^emph>\<open>graph\<close> of a (real) function \<open>f\<close> with domain \<open>F\<close> as the set
   \begin{center}
   \<open>{(x, f x). x \<in> F}\<close>
   \end{center}
-  So we are modeling partial functions by specifying the domain and
-  the mapping function. We use the term ``function'' also for its
-  graph.
+  So we are modeling partial functions by specifying the domain and the
+  mapping function. We use the term ``function'' also for its graph.
 \<close>
 
 type_synonym 'a graph = "('a \<times> real) set"
@@ -41,8 +39,8 @@ lemma graphE [elim?]:
 subsection \<open>Functions ordered by domain extension\<close>
 
 text \<open>
-  A function \<open>h'\<close> is an extension of \<open>h\<close>, iff the graph of
-  \<open>h\<close> is a subset of the graph of \<open>h'\<close>.
+  A function \<open>h'\<close> is an extension of \<open>h\<close>, iff the graph of \<open>h\<close> is a subset of
+  the graph of \<open>h'\<close>.
 \<close>
 
 lemma graph_extI:
@@ -93,8 +91,8 @@ qed
 subsection \<open>Norm-preserving extensions of a function\<close>
 
 text \<open>
-  Given a linear form \<open>f\<close> on the space \<open>F\<close> and a seminorm \<open>p\<close> on \<open>E\<close>. The
-  set of all linear extensions of \<open>f\<close>, to superspaces \<open>H\<close> of \<open>F\<close>, which are
+  Given a linear form \<open>f\<close> on the space \<open>F\<close> and a seminorm \<open>p\<close> on \<open>E\<close>. The set
+  of all linear extensions of \<open>f\<close>, to superspaces \<open>H\<close> of \<open>F\<close>, which are
   bounded by \<open>p\<close>, is defined as follows.
 \<close>
 

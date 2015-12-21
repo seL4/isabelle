@@ -389,11 +389,11 @@ lemma interval_integral_Ico:
            simp add: interval_lebesgue_integral_def einterval_iff)
 
 lemma interval_integral_Ioi:
-  "\<bar>a\<bar> < \<infinity> \<Longrightarrow> (LBINT x=a..\<infinity>. f x) = (LBINT x : {real a <..}. f x)"
+  "\<bar>a\<bar> < \<infinity> \<Longrightarrow> (LBINT x=a..\<infinity>. f x) = (LBINT x : {real_of_ereal a <..}. f x)"
   by (auto simp add: interval_lebesgue_integral_def einterval_iff)
 
 lemma interval_integral_Ioo:
-  "a \<le> b \<Longrightarrow> \<bar>a\<bar> < \<infinity> ==> \<bar>b\<bar> < \<infinity> \<Longrightarrow> (LBINT x=a..b. f x) = (LBINT x : {real a <..< real b}. f x)"
+  "a \<le> b \<Longrightarrow> \<bar>a\<bar> < \<infinity> ==> \<bar>b\<bar> < \<infinity> \<Longrightarrow> (LBINT x=a..b. f x) = (LBINT x : {real_of_ereal a <..< real_of_ereal b}. f x)"
   by (auto simp add: interval_lebesgue_integral_def einterval_iff)
 
 lemma interval_integral_discrete_difference:

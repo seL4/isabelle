@@ -163,7 +163,8 @@ fun stature_of_thm global assms chained css name th =
 fun fact_of_ref ctxt keywords chained css (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
-    val bracket = implode (map (enclose "[" "]" o Pretty.str_of o Token.pretty_src ctxt) args)
+    val bracket =
+      implode (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src ctxt) args)
 
     fun nth_name j =
       (case xref of

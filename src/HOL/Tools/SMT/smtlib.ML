@@ -186,6 +186,6 @@ fun pretty_tree (Num i) = Pretty.str (string_of_int i)
   | pretty_tree (S trees) =
       Pretty.enclose "(" ")" (Pretty.separate "" (map pretty_tree trees))
 
-val str_of = Pretty.str_of o pretty_tree
+val str_of = Pretty.unformatted_string_of o pretty_tree
 
 end;

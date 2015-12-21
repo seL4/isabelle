@@ -1805,6 +1805,13 @@ fun add_ctr_sugar ctr exhaust inject sel_thms =
      distinct_discsss = [], exhaust_discs = [], exhaust_sels = [], collapses = [], expands = [],
      split_sels = [], split_sel_asms = [], case_eq_ifs = []};
 
+fun lhs_of_equation (Const (@{const_name Pure.eq}, _) $ t $ _) = t
+  | lhs_of_equation (@{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t $ _)) = t;
+
+fun add_spec_rule rule =
+  let val head = head_of (lhs_of_equation (Thm.prop_of rule)) in
+    Spec_Rules.add_global Spec_Rules.Equational ([head], [rule])
+  end;
 
 (* definition *)
 
@@ -2040,7 +2047,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
                 map (Thm.no_attributes o apfst (Binding.concealed o Binding.name))) upd_specs
           ||>> (Global_Theory.add_defs false o
                 map (rpair [Code.add_default_eqn_attribute]
-                o apfst (Binding.concealed o Binding.name))) (*FIXME Spec_Rules (?)*)
+                o apfst (Binding.concealed o Binding.name)))
             [make_spec, fields_spec, extend_spec, truncate_spec]);
     val defs_ctxt = Proof_Context.init_global defs_thy;
 
@@ -2052,7 +2059,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
 
     (*selectors*)
     val sel_conv_props =
-       map (fn (c, x as Free (_, T)) => mk_sel r_rec0 (c, T) === x) named_vars_more;
+      map (fn (c, x as Free (_, T)) => mk_sel r_rec0 (c, T) === x) named_vars_more;
 
     (*updates*)
     fun mk_upd_prop i (c, T) =
@@ -2239,8 +2246,6 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
         sel_convs' upd_convs' sel_defs' upd_defs' fold_congs' unfold_congs' splits' derived_defs'
         surjective' equality' induct_scheme' induct' cases_scheme' cases' simps' iffs';
 
-    val sels = map (fst o Logic.dest_equals o Thm.prop_of) sel_defs;
-
     val final_thy =
       thms_thy'
       |> put_record name info
@@ -2253,6 +2258,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
       |> add_fieldext (extension_name, snd extension) names
       |> add_code ext_tyco vs extT ext simps' ext_inject
       |> add_ctr_sugar (Const ext) cases_scheme' ext_inject sel_convs'
+      |> fold add_spec_rule (sel_convs' @ upd_convs' @ derived_defs')
       |> Sign.restore_naming thy0;
 
   in final_thy end;

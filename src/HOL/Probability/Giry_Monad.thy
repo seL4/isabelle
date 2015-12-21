@@ -91,9 +91,9 @@ proof (cases "a < b")
   from mono have inj: "inj_on g {a..b}" by (rule strict_mono_on_imp_inj_on)
   from mono have mono': "mono_on g {a..b}" by (rule strict_mono_on_imp_mono_on)
   from mono' derivg have "\<And>x. x \<in> {a<..<b} \<Longrightarrow> g' x \<ge> 0"
-    by (rule mono_on_imp_deriv_nonneg) (auto simp: interior_atLeastAtMost_real)
+    by (rule mono_on_imp_deriv_nonneg) auto
   from contg' this have derivg_nonneg: "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<ge> 0"
-    by (rule continuous_ge_on_Iii) (simp_all add: \<open>a < b\<close>)
+    by (rule continuous_ge_on_Ioo) (simp_all add: \<open>a < b\<close>)
 
   from derivg have contg: "continuous_on {a..b} g" by (rule has_real_derivative_imp_continuous_on)
   have A: "h -` {a..b} = {g a..g b}"

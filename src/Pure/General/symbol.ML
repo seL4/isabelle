@@ -7,6 +7,7 @@ Generalized characters with infinitely many named symbols.
 signature SYMBOL =
 sig
   type symbol = string
+  val spaces: int -> string
   val STX: symbol
   val DEL: symbol
   val space: symbol
@@ -93,6 +94,16 @@ val STX = chr 2;
 val DEL = chr 127;
 
 val space = chr 32;
+
+local
+  val small_spaces = Vector.tabulate (65, fn i => replicate_string i space);
+in
+  fun spaces n =
+    if n < 64 then Vector.sub (small_spaces, n)
+    else
+      replicate_string (n div 64) (Vector.sub (small_spaces, 64)) ^
+        Vector.sub (small_spaces, n mod 64);
+end;
 
 val comment = "\\<comment>";
 

@@ -592,8 +592,9 @@ fun output ctxt prts =
         #> space_implode "\\isasep\\isanewline%\n"
         #> Latex.environment "isabelle"
       else
-        map ((if Config.get ctxt break then string_of_margin ctxt else Pretty.str_of) #>
-          Output.output)
+        map
+          ((if Config.get ctxt break then string_of_margin ctxt else Pretty.unformatted_string_of)
+            #> Output.output)
         #> space_implode "\\isasep\\isanewline%\n"
         #> enclose "\\isa{" "}");
 
@@ -602,7 +603,7 @@ fun output ctxt prts =
 
 fun verbatim_text ctxt =
   if Config.get ctxt display then
-    split_lines #> map (prefix (Pretty.spaces (Config.get ctxt indent))) #> cat_lines #>
+    split_lines #> map (prefix (Symbol.spaces (Config.get ctxt indent))) #> cat_lines #>
     Latex.output_ascii #> Latex.environment "isabellett"
   else
     split_lines #>

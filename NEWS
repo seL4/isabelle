@@ -672,6 +672,13 @@ named local fixes. This has the potential to improve stability of proof
 tools, but can also cause INCOMPATIBILITY for tools that don't observe
 the proof context discipline.
 
+* The following combinators for low-level profiling of the ML runtime
+system are available:
+
+  profile_time          (*CPU time*)
+  profile_time_thread   (*CPU time on this thread*)
+  profile_allocations   (*overall heap allocations*)
+
 
 *** System ***
 

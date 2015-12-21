@@ -132,11 +132,11 @@ val error_depth = PolyML.error_depth;
 
 val pretty_ml =
   let
-    fun convert _ (PolyML.PrettyBreak (wd, _)) = ML_Pretty.Break (false, wd)
+    fun convert _ (PolyML.PrettyBreak (width, offset)) = ML_Pretty.Break (false, width, offset)
       | convert _ (PolyML.PrettyBlock (_, _,
             [PolyML.ContextProperty ("fbrk", _)], [PolyML.PrettyString " "])) =
-          ML_Pretty.Break (true, 1)
-      | convert len (PolyML.PrettyBlock (ind, _, context, prts)) =
+          ML_Pretty.Break (true, 1, 0)
+      | convert len (PolyML.PrettyBlock (ind, consistent, context, prts)) =
           let
             fun property name default =
               (case List.find (fn PolyML.ContextProperty (a, _) => name = a | _ => false) context of
@@ -145,20 +145,20 @@ val pretty_ml =
             val bg = property "begin" "";
             val en = property "end" "";
             val len' = property "length" len;
-          in ML_Pretty.Block ((bg, en), map (convert len') prts, ind) end
+          in ML_Pretty.Block ((bg, en), consistent, ind, map (convert len') prts) end
       | convert len (PolyML.PrettyString s) =
           ML_Pretty.String (s, case Int.fromString len of SOME i => i | NONE => size s)
   in convert "" end;
 
-fun ml_pretty (ML_Pretty.Break (false, wd)) = PolyML.PrettyBreak (wd, 0)
-  | ml_pretty (ML_Pretty.Break (true, _)) =
+fun ml_pretty (ML_Pretty.Break (false, width, offset)) = PolyML.PrettyBreak (width, offset)
+  | ml_pretty (ML_Pretty.Break (true, _, _)) =
       PolyML.PrettyBlock (0, false, [PolyML.ContextProperty ("fbrk", "")],
         [PolyML.PrettyString " "])
-  | ml_pretty (ML_Pretty.Block ((bg, en), prts, ind)) =
+  | ml_pretty (ML_Pretty.Block ((bg, en), consistent, ind, prts)) =
       let val context =
         (if bg = "" then [] else [PolyML.ContextProperty ("begin", bg)]) @
         (if en = "" then [] else [PolyML.ContextProperty ("end", en)])
-      in PolyML.PrettyBlock (ind, false, context, map ml_pretty prts) end
+      in PolyML.PrettyBlock (ind, consistent, context, map ml_pretty prts) end
   | ml_pretty (ML_Pretty.String (s, len)) =
       if len = size s then PolyML.PrettyString s
       else PolyML.PrettyBlock

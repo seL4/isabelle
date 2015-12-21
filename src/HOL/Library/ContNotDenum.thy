@@ -143,4 +143,20 @@ lemma uncountable_half_open_interval_2:
   using uncountable_open_interval [of a b]
   by (metis countable_Un_iff ivl_disj_un_singleton(4))
 
+lemma real_interval_avoid_countable_set:
+  fixes a b :: real and A :: "real set"
+  assumes "a < b" and "countable A"
+  shows "\<exists>x\<in>{a<..<b}. x \<notin> A"
+proof -
+  from `countable A` have "countable (A \<inter> {a<..<b})" by auto
+  moreover with `a < b` have "\<not> countable {a<..<b}" 
+    by (simp add: uncountable_open_interval)
+  ultimately have "A \<inter> {a<..<b} \<noteq> {a<..<b}" by auto
+  hence "A \<inter> {a<..<b} \<subset> {a<..<b}" 
+    by (intro psubsetI, auto)
+  hence "\<exists>x. x \<in> {a<..<b} - A \<inter> {a<..<b}"
+    by (rule psubset_imp_ex_mem)
+  thus ?thesis by auto
+qed
+
 end

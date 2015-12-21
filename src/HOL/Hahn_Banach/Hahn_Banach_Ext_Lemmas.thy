@@ -9,14 +9,13 @@ imports Function_Norm
 begin
 
 text \<open>
-  In this section the following context is presumed. Let \<open>E\<close> be a real
-  vector space with a seminorm \<open>q\<close> on \<open>E\<close>. \<open>F\<close> is a subspace of \<open>E\<close> and \<open>f\<close>
-  a linear function on \<open>F\<close>. We consider a subspace \<open>H\<close> of \<open>E\<close> that is a
-  superspace of \<open>F\<close> and a linear form \<open>h\<close> on \<open>H\<close>. \<open>H\<close> is a not equal to \<open>E\<close>
-  and \<open>x\<^sub>0\<close> is an element in \<open>E - H\<close>. \<open>H\<close> is extended to the direct sum \<open>H'
-  = H + lin x\<^sub>0\<close>, so for any \<open>x \<in> H'\<close> the decomposition of \<open>x = y + a \<cdot> x\<close>
-  with \<open>y \<in> H\<close> is unique. \<open>h'\<close> is defined on \<open>H'\<close> by \<open>h' x = h y + a \<cdot> \<xi>\<close>
-  for a certain \<open>\<xi>\<close>.
+  In this section the following context is presumed. Let \<open>E\<close> be a real vector
+  space with a seminorm \<open>q\<close> on \<open>E\<close>. \<open>F\<close> is a subspace of \<open>E\<close> and \<open>f\<close> a linear
+  function on \<open>F\<close>. We consider a subspace \<open>H\<close> of \<open>E\<close> that is a superspace of
+  \<open>F\<close> and a linear form \<open>h\<close> on \<open>H\<close>. \<open>H\<close> is a not equal to \<open>E\<close> and \<open>x\<^sub>0\<close> is an
+  element in \<open>E - H\<close>. \<open>H\<close> is extended to the direct sum \<open>H' = H + lin x\<^sub>0\<close>, so
+  for any \<open>x \<in> H'\<close> the decomposition of \<open>x = y + a \<cdot> x\<close> with \<open>y \<in> H\<close> is
+  unique. \<open>h'\<close> is defined on \<open>H'\<close> by \<open>h' x = h y + a \<cdot> \<xi>\<close> for a certain \<open>\<xi>\<close>.
 
   Subsequently we show some properties of this extension \<open>h'\<close> of \<open>h\<close>.
 
@@ -82,8 +81,8 @@ qed
 
 text \<open>
   \<^medskip>
-  The function \<open>h'\<close> is defined as a \<open>h' x = h y + a \<cdot> \<xi>\<close> where
-  \<open>x = y + a \<cdot> \<xi>\<close> is a linear extension of \<open>h\<close> to \<open>H'\<close>.
+  The function \<open>h'\<close> is defined as a \<open>h' x = h y + a \<cdot> \<xi>\<close> where \<open>x = y + a \<cdot> \<xi>\<close>
+  is a linear extension of \<open>h\<close> to \<open>H'\<close>.
 \<close>
 
 lemma h'_lf:
