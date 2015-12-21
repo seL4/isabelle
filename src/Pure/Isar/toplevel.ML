@@ -26,7 +26,6 @@ sig
   val pretty_state: state -> Pretty.T list
   val string_of_state: state -> string
   val pretty_abstract: state -> Pretty.T
-  val profiling: int Unsynchronized.ref
   type transition
   val empty: transition
   val name_of: transition -> string
@@ -203,9 +202,6 @@ fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
 
 (** toplevel transitions **)
-
-val profiling = Unsynchronized.ref 0;
-
 
 (* node transactions -- maintaining stable checkpoints *)
 
@@ -568,10 +564,7 @@ fun app int (tr as Transition {name, trans, ...}) =
   setmp_thread_position tr (fn state =>
     let
       val timing_start = Timing.start ();
-
-      val (result, opt_err) =
-         state |> (apply_trans int trans |> ! profiling > 0 ? profile (! profiling));
-
+      val (result, opt_err) = apply_trans int trans state;
       val timing_result = Timing.result timing_start;
       val timing_props =
         Markup.command_timing :: (Markup.nameN, name_of tr) :: Position.properties_of (pos_of tr);

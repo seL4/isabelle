@@ -74,7 +74,12 @@ fun ml_prompts p1 p2 =
   (Control.primaryPrompt := p1; Control.secondaryPrompt := p2);
 
 (*dummy implementation*)
-fun profile (n: int) f x = f x;
+structure ML_Profiling =
+struct
+  fun profile_time (_: (int * string) list -> unit) f x = f x;
+  fun profile_time_thread (_: (int * string) list -> unit) f x = f x;
+  fun profile_allocations (_: (int * string) list -> unit) f x = f x;
+end;
 
 (*dummy implementation*)
 fun print_exception_trace (_: exn -> string) (_: string -> unit) f = f ();

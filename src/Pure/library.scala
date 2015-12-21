@@ -205,7 +205,10 @@ object Library
     try { Some(new Regex(s)) } catch { case ERROR(_) => None }
 
 
-  /* canonical list operations */
+  /* lists */
+
+  def take_prefix[A](pred: A => Boolean, xs: List[A]): (List[A], List[A]) =
+    (xs.takeWhile(pred), xs.dropWhile(pred))
 
   def member[A, B](xs: List[A])(x: B): Boolean = xs.contains(x)
   def insert[A](x: A)(xs: List[A]): List[A] = if (xs.contains(x)) xs else x :: xs

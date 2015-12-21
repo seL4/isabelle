@@ -21,6 +21,7 @@ sig
   val debug_function_result: state -> ML_Name_Space.valueVal
   val debug_location: state -> 'location
   val debug_name_space: state -> ML_Name_Space.T
+  val debug_local_name_space: state -> ML_Name_Space.T
 end;
 
 structure ML_Debugger: ML_DEBUGGER =
@@ -58,5 +59,6 @@ fun debug_function_arg () = fail ();
 fun debug_function_result () = fail ();
 fun debug_location () = fail ();
 fun debug_name_space () = fail ();
+fun debug_local_name_space () = fail ();
 
 end;

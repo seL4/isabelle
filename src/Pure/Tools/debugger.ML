@@ -191,7 +191,7 @@ fun print_vals thread_name index SML txt =
     fun print x =
       Pretty.from_ML (ML_Name_Space.display_val (x, ML_Options.get_print_depth (), space));
     fun print_all () =
-      #allVal (ML_Debugger.debug_name_space (the_debug_state thread_name index)) ()
+      #allVal (ML_Debugger.debug_local_name_space (the_debug_state thread_name index)) ()
       |> sort_by #1 |> map (Pretty.item o single o print o #2)
       |> Pretty.chunks |> Pretty.string_of |> writeln_message;
   in Context.setmp_thread_data (SOME context) print_all () end;
