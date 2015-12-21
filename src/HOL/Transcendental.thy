@@ -4680,7 +4680,7 @@ declare
   DERIV_arctan[THEN DERIV_chain2, derivative_intros]
   DERIV_arctan[THEN DERIV_chain2, unfolded has_field_derivative_def, derivative_intros]
 
-lemma filterlim_tan_at_right: "filterlim tan at_bot (at_right (- pi/2))"
+lemma filterlim_tan_at_right: "filterlim tan at_bot (at_right (- (pi/2)))"
   by (rule filterlim_at_bot_at_right[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])
      (auto simp: arctan le_less eventually_at dist_real_def simp del: less_divide_eq_numeral1
            intro!: tan_monotone exI[of _ "pi/2"])
