@@ -22,6 +22,7 @@ sig
   val debug_function_result: state -> ML_Name_Space.valueVal
   val debug_location: state -> location
   val debug_name_space: state -> ML_Name_Space.T
+  val debug_local_name_space: state -> ML_Name_Space.T
 end;
 
 structure ML_Debugger: ML_DEBUGGER =
@@ -66,5 +67,6 @@ val debug_function_arg = PolyML.DebuggerInterface.debugFunctionArg;
 val debug_function_result = PolyML.DebuggerInterface.debugFunctionResult;
 val debug_location = PolyML.DebuggerInterface.debugLocation;
 val debug_name_space = PolyML.DebuggerInterface.debugNameSpace;
+val debug_local_name_space = PolyML.DebuggerInterface.debugLocalNameSpace;
 
 end;
