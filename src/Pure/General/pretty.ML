@@ -118,11 +118,22 @@ fun length (Block (_, _, _, _, len)) = len
   | length (Break (_, wd, _)) = wd
   | length (Str (_, len)) = len;
 
-fun body_length [] len = len
-  | body_length (e :: es) len = body_length es (length e + len);
+fun make_block markup consistent indent body =
+  let
+    fun body_length prts len =
+      let
+        val (line, rest) = take_prefix (fn Break (true, _, _) => false | _ => true) prts;
+        val len' = Int.max (fold (Integer.add o length) line 0, len);
+      in
+        (case rest of
+          Break (true, _, ind) :: rest' =>
+            body_length (Break (false, indent + ind, 0) :: rest') len'
+        | [] => len')
+      end;
+  in Block (markup, consistent, indent, body, body_length body 0) end;
 
-fun make_block m consistent indent es = Block (m, consistent, indent, es, body_length es 0);
-fun markup_block m indent es = make_block (Markup.output m) false indent es;
+fun markup_block markup indent es =
+  make_block (Markup.output markup) false indent es;
 
 
 
