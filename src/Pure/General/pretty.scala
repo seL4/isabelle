@@ -63,7 +63,20 @@ object Pretty
       consistent: Boolean,
       indent: Int,
       body: List[Tree]): Tree =
-    Block(markup, consistent, indent, body, (0.0 /: body) { case (n, t) => n + t.length })
+  {
+    def body_length(prts: List[Tree], len: Double): Double =
+    {
+      val (line, rest) =
+        Library.take_prefix[Tree]({ case Break(true, _, _) => false case _ => true }, prts)
+      val len1 = ((0.0 /: line) { case (l, t) => l + t.length }) max len
+      rest match {
+        case Break(true, _, ind) :: rest1 =>
+          body_length(Break(false, indent + ind, 0) :: rest1, len1)
+        case Nil => len1
+      }
+    }
+    Block(markup, consistent, indent, body, body_length(body, 0.0))
+  }
 
 
   /* formatted output */
