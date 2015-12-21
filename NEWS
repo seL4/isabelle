@@ -346,16 +346,14 @@ example:
     notation right.derived ("\<odot>''")
   end
 
-* Command 'global_interpreation' issues interpretations into
-global theories, with optional rewrite definitions following keyword
+* Command 'global_interpretation' issues interpretations into global
+theories, with optional rewrite definitions following keyword 'defines'.
+
+* Command 'sublocale' accepts optional rewrite definitions after keyword
 'defines'.
 
-* Command 'sublocale' accepts optional rewrite definitions after
-keyword 'defines'.
-
-* Command 'permanent_interpretation' has been discontinued.  Use
-'global_interpretation' or 'sublocale' instead.
-INCOMPATIBILITY.
+* Command 'permanent_interpretation' has been discontinued. Use
+'global_interpretation' or 'sublocale' instead. INCOMPATIBILITY.
 
 * Command 'print_definitions' prints dependencies of definitional
 specifications. This functionality used to be part of 'print_theory'.
