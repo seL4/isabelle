@@ -11,39 +11,37 @@ imports
 begin
 
 text \<open>
-  We give a simple mathematical model of the basic structures
-  underlying the Unix file-system, together with a few fundamental
-  operations that could be imagined to be performed internally by the
-  Unix kernel.  This forms the basis for the set of Unix system-calls
-  to be introduced later (see \secref{sec:unix-trans}), which are the
-  actual interface offered to processes running in user-space.
+  We give a simple mathematical model of the basic structures underlying the
+  Unix file-system, together with a few fundamental operations that could be
+  imagined to be performed internally by the Unix kernel. This forms the basis
+  for the set of Unix system-calls to be introduced later (see
+  \secref{sec:unix-trans}), which are the actual interface offered to
+  processes running in user-space.
 
-  \medskip Basically, any Unix file is either a \emph{plain file} or a
-  \emph{directory}, consisting of some \emph{content} plus
-  \emph{attributes}.  The content of a plain file is plain text.  The
-  content of a directory is a mapping from names to further
-  files.\footnote{In fact, this is the only way that names get
-  associated with files.  In Unix files do \emph{not} have a name in
-  itself.  Even more, any number of names may be associated with the
-  very same file due to \emph{hard links} (although this is excluded
-  from our model).}  Attributes include information to control various
-  ways to access the file (read, write etc.).
+  \<^medskip>
+  Basically, any Unix file is either a \<^emph>\<open>plain file\<close> or a \<^emph>\<open>directory\<close>,
+  consisting of some \<^emph>\<open>content\<close> plus \<^emph>\<open>attributes\<close>. The content of a plain
+  file is plain text. The content of a directory is a mapping from names to
+  further files.\<^footnote>\<open>In fact, this is the only way that names get associated with
+  files. In Unix files do \<^emph>\<open>not\<close> have a name in itself. Even more, any number
+  of names may be associated with the very same file due to \<^emph>\<open>hard links\<close>
+  (although this is excluded from our model).\<close> Attributes include information
+  to control various ways to access the file (read, write etc.).
 
-  Our model will be quite liberal in omitting excessive detail that is
-  easily seen to be ``irrelevant'' for the aspects of Unix
-  file-systems to be discussed here.  First of all, we ignore
-  character and block special files, pipes, sockets, hard links,
-  symbolic links, and mount points.
+  Our model will be quite liberal in omitting excessive detail that is easily
+  seen to be ``irrelevant'' for the aspects of Unix file-systems to be
+  discussed here. First of all, we ignore character and block special files,
+  pipes, sockets, hard links, symbolic links, and mount points.
 \<close>
 
 
 subsection \<open>Names\<close>
 
 text \<open>
-  User ids and file name components shall be represented by natural
-  numbers (without loss of generality).  We do not bother about
-  encoding of actual names (e.g.\ strings), nor a mapping between user
-  names and user ids as would be present in a reality.
+  User ids and file name components shall be represented by natural numbers
+  (without loss of generality). We do not bother about encoding of actual
+  names (e.g.\ strings), nor a mapping between user names and user ids as
+  would be present in a reality.
 \<close>
 
 type_synonym uid = nat
@@ -54,29 +52,28 @@ type_synonym path = "name list"
 subsection \<open>Attributes\<close>
 
 text \<open>
-  Unix file attributes mainly consist of \emph{owner} information and
-  a number of \emph{permission} bits which control access for
-  ``user'', ``group'', and ``others'' (see the Unix man pages @{text
-  "chmod(2)"} and @{text "stat(2)"} for more details).
+  Unix file attributes mainly consist of \<^emph>\<open>owner\<close> information and a number of
+  \<^emph>\<open>permission\<close> bits which control access for ``user'', ``group'', and
+  ``others'' (see the Unix man pages \<open>chmod(2)\<close> and \<open>stat(2)\<close> for more
+  details).
 
-  \medskip Our model of file permissions only considers the ``others''
-  part.  The ``user'' field may be omitted without loss of overall
-  generality, since the owner is usually able to change it anyway by
-  performing @{text chmod}.\footnote{The inclined Unix expert may try
-  to figure out some exotic arrangements of a real-world Unix
-  file-system such that the owner of a file is unable to apply the
-  @{text chmod} system call.}  We omit ``group'' permissions as a
-  genuine simplification as we just do not intend to discuss a model
-  of multiple groups and group membership, but pretend that everyone
-  is member of a single global group.\footnote{A general HOL model of
-  user group structures and related issues is given in
-  @{cite "Naraschewski:2001"}.}
+  \<^medskip>
+  Our model of file permissions only considers the ``others'' part. The
+  ``user'' field may be omitted without loss of overall generality, since the
+  owner is usually able to change it anyway by performing \<open>chmod\<close>.\<^footnote>\<open>The
+  inclined Unix expert may try to figure out some exotic arrangements of a
+  real-world Unix file-system such that the owner of a file is unable to apply
+  the \<open>chmod\<close> system call.\<close> We omit ``group'' permissions as a genuine
+  simplification as we just do not intend to discuss a model of multiple
+  groups and group membership, but pretend that everyone is member of a single
+  global group.\<^footnote>\<open>A general HOL model of user group structures and related
+  issues is given in @{cite "Naraschewski:2001"}.\<close>
 \<close>
 
 datatype perm =
     Readable
   | Writable
-  | Executable    -- "(ignored)"
+  | Executable    \<comment> "(ignored)"
 
 type_synonym perms = "perm set"
 
@@ -85,59 +82,56 @@ record att =
   others :: perms
 
 text \<open>
-  For plain files @{term Readable} and @{term Writable} specify read
-  and write access to the actual content, i.e.\ the string of text
-  stored here.  For directories @{term Readable} determines if the set
-  of entry names may be accessed, and @{term Writable} controls the
-  ability to create or delete any entries (both plain files or
-  sub-directories).
+  For plain files @{term Readable} and @{term Writable} specify read and write
+  access to the actual content, i.e.\ the string of text stored here. For
+  directories @{term Readable} determines if the set of entry names may be
+  accessed, and @{term Writable} controls the ability to create or delete any
+  entries (both plain files or sub-directories).
 
-  As another simplification, we ignore the @{term Executable}
-  permission altogether.  In reality it would indicate executable
-  plain files (also known as ``binaries''), or control actual lookup
-  of directory entries (recall that mere directory browsing is
-  controlled via @{term Readable}).  Note that the latter means that
-  in order to perform any file-system operation whatsoever, all
-  directories encountered on the path would have to grant @{term
-  Executable}.  We ignore this detail and pretend that all directories
-  give @{term Executable} permission to anybody.
+  As another simplification, we ignore the @{term Executable} permission
+  altogether. In reality it would indicate executable plain files (also known
+  as ``binaries''), or control actual lookup of directory entries (recall that
+  mere directory browsing is controlled via @{term Readable}). Note that the
+  latter means that in order to perform any file-system operation whatsoever,
+  all directories encountered on the path would have to grant @{term
+  Executable}. We ignore this detail and pretend that all directories give
+  @{term Executable} permission to anybody.
 \<close>
 
 
 subsection \<open>Files\<close>
 
 text \<open>
-  In order to model the general tree structure of a Unix file-system
-  we use the arbitrarily branching datatype @{typ "('a, 'b, 'c) env"}
-  from the standard library of Isabelle/HOL
-  @{cite "Bauer-et-al:2002:HOL-Library"}.  This type provides
-  constructors @{term Val} and @{term Env} as follows:
+  In order to model the general tree structure of a Unix file-system we use
+  the arbitrarily branching datatype @{typ "('a, 'b, 'c) env"} from the
+  standard library of Isabelle/HOL @{cite "Bauer-et-al:2002:HOL-Library"}.
+  This type provides constructors @{term Val} and @{term Env} as follows:
 
-  \medskip
+  \<^medskip>
   {\def\isastyleminor{\isastyle}
   \begin{tabular}{l}
   @{term [source] "Val :: 'a \<Rightarrow> ('a, 'b, 'c) env"} \\
   @{term [source] "Env :: 'b \<Rightarrow> ('c \<Rightarrow> ('a, 'b, 'c) env option) \<Rightarrow> ('a, 'b, 'c) env"} \\
   \end{tabular}}
-  \medskip
+  \<^medskip>
 
-  Here the parameter @{typ 'a} refers to plain values occurring at
-  leaf positions, parameter @{typ 'b} to information kept with inner
-  branch nodes, and parameter @{typ 'c} to the branching type of the
-  tree structure.  For our purpose we use the type instance with @{typ
-  "att \<times> string"} (representing plain files), @{typ att} (for
-  attributes of directory nodes), and @{typ name} (for the index type
-  of directory nodes).
+  Here the parameter @{typ 'a} refers to plain values occurring at leaf
+  positions, parameter @{typ 'b} to information kept with inner branch nodes,
+  and parameter @{typ 'c} to the branching type of the tree structure. For our
+  purpose we use the type instance with @{typ "att \<times> string"} (representing
+  plain files), @{typ att} (for attributes of directory nodes), and @{typ
+  name} (for the index type of directory nodes).
 \<close>
 
 type_synonym "file" = "(att \<times> string, att, name) env"
 
 text \<open>
-  \medskip The HOL library also provides @{term lookup} and @{term
-  update} operations for general tree structures with the subsequent
-  primitive recursive characterizations.
+  \<^medskip>
+  The HOL library also provides @{term lookup} and @{term update} operations
+  for general tree structures with the subsequent primitive recursive
+  characterizations.
 
-  \medskip
+  \<^medskip>
   {\def\isastyleminor{\isastyle}
   \begin{tabular}{l}
   @{term [source] "lookup :: ('a, 'b, 'c) env \<Rightarrow> 'c list \<Rightarrow> ('a, 'b, 'c) env option"} \\
@@ -148,15 +142,15 @@ text \<open>
   @{thm [display, indent = 2, eta_contract = false] lookup_eq [no_vars]}
   @{thm [display, indent = 2, eta_contract = false] update_eq [no_vars]}
 
-  Several further properties of these operations are proven in
-  @{cite "Bauer-et-al:2002:HOL-Library"}.  These will be routinely used
-  later on without further notice.
+  Several further properties of these operations are proven in @{cite
+  "Bauer-et-al:2002:HOL-Library"}. These will be routinely used later on
+  without further notice.
 
-  \bigskip Apparently, the elements of type @{typ "file"} contain an
-  @{typ att} component in either case.  We now define a few auxiliary
-  operations to manipulate this field uniformly, following the
-  conventions for record types in Isabelle/HOL
-  @{cite "Nipkow-et-al:2000:HOL"}.
+  \<^bigskip>
+  Apparently, the elements of type @{typ "file"} contain an @{typ att}
+  component in either case. We now define a few auxiliary operations to
+  manipulate this field uniformly, following the conventions for record types
+  in Isabelle/HOL @{cite "Nipkow-et-al:2000:HOL"}.
 \<close>
 
 definition
@@ -191,12 +185,11 @@ lemma [simp]: "map_attributes f (Env att dir) = Env (f att) dir"
 subsection \<open>Initial file-systems\<close>
 
 text \<open>
-  Given a set of \emph{known users} a file-system shall be initialized
-  by providing an empty home directory for each user, with read-only
-  access for everyone else.  (Note that we may directly use the user
-  id as home directory name, since both types have been identified.)
-  Certainly, the very root directory is owned by the super user (who
-  has user id 0).
+  Given a set of \<^emph>\<open>known users\<close> a file-system shall be initialized by
+  providing an empty home directory for each user, with read-only access for
+  everyone else. (Note that we may directly use the user id as home directory
+  name, since both types have been identified.) Certainly, the very root
+  directory is owned by the super user (who has user id 0).
 \<close>
 
 definition
@@ -209,15 +202,15 @@ definition
 subsection \<open>Accessing file-systems\<close>
 
 text \<open>
-  The main internal file-system operation is access of a file by a
-  user, requesting a certain set of permissions.  The resulting @{typ
-  "file option"} indicates if a file had been present at the
-  corresponding @{typ path} and if access was granted according to the
-  permissions recorded within the file-system.
+  The main internal file-system operation is access of a file by a user,
+  requesting a certain set of permissions. The resulting @{typ "file option"}
+  indicates if a file had been present at the corresponding @{typ path} and if
+  access was granted according to the permissions recorded within the
+  file-system.
 
-  Note that by the rules of Unix file-system security (e.g.\
-  @{cite "Tanenbaum:1992"}) both the super-user and owner may always
-  access a file unconditionally (in our simplified model).
+  Note that by the rules of Unix file-system security (e.g.\ @{cite
+  "Tanenbaum:1992"}) both the super-user and owner may always access a file
+  unconditionally (in our simplified model).
 \<close>
 
 definition
@@ -232,15 +225,17 @@ definition
         else None)"
 
 text \<open>
-  \medskip Successful access to a certain file is the main
-  prerequisite for system-calls to be applicable (cf.\
-  \secref{sec:unix-trans}).  Any modification of the file-system is
-  then performed using the basic @{term update} operation.
+  \<^medskip>
+  Successful access to a certain file is the main prerequisite for
+  system-calls to be applicable (cf.\ \secref{sec:unix-trans}). Any
+  modification of the file-system is then performed using the basic @{term
+  update} operation.
 
-  \medskip We see that @{term access} is just a wrapper for the basic
-  @{term lookup} function, with additional checking of
-  attributes. Subsequently we establish a few auxiliary facts that
-  stem from the primitive @{term lookup} used within @{term access}.
+  \<^medskip>
+  We see that @{term access} is just a wrapper for the basic @{term lookup}
+  function, with additional checking of attributes. Subsequently we establish
+  a few auxiliary facts that stem from the primitive @{term lookup} used
+  within @{term access}.
 \<close>
 
 lemma access_empty_lookup: "access root path uid {} = lookup root path"
@@ -269,19 +264,18 @@ section \<open>File-system transitions \label{sec:unix-trans}\<close>
 subsection \<open>Unix system calls \label{sec:unix-syscall}\<close>
 
 text \<open>
-  According to established operating system design (cf.\
-  @{cite "Tanenbaum:1992"}) user space processes may only initiate system
-  operations by a fixed set of \emph{system-calls}.  This enables the
-  kernel to enforce certain security policies in the first
-  place.\footnote{Incidently, this is the very same principle employed
-  by any ``LCF-style'' theorem proving system according to Milner's
-  principle of ``correctness by construction'', such as Isabelle/HOL
-  itself.}
+  According to established operating system design (cf.\ @{cite
+  "Tanenbaum:1992"}) user space processes may only initiate system operations
+  by a fixed set of \<^emph>\<open>system-calls\<close>. This enables the kernel to enforce
+  certain security policies in the first place.\<^footnote>\<open>Incidently, this is the very
+  same principle employed by any ``LCF-style'' theorem proving system
+  according to Milner's principle of ``correctness by construction'', such as
+  Isabelle/HOL itself.\<close>
 
-  \medskip In our model of Unix we give a fixed datatype @{text
-  operation} for the syntax of system-calls, together with an
-  inductive definition of file-system state transitions of the form
-  @{text "root \<midarrow>x\<rightarrow> root'"} for the operational semantics.
+  \<^medskip>
+  In our model of Unix we give a fixed datatype \<open>operation\<close> for the syntax of
+  system-calls, together with an inductive definition of file-system state
+  transitions of the form \<open>root \<midarrow>x\<rightarrow> root'\<close> for the operational semantics.
 \<close>
 
 datatype operation =
@@ -295,11 +289,10 @@ datatype operation =
   | Readdir uid "name set" path
 
 text \<open>
-  The @{typ uid} field of an operation corresponds to the
-  \emph{effective user id} of the underlying process, although our
-  model never mentions processes explicitly.  The other parameters are
-  provided as arguments by the caller; the @{term path} one is common
-  to all kinds of system-calls.
+  The @{typ uid} field of an operation corresponds to the \<^emph>\<open>effective user id\<close>
+  of the underlying process, although our model never mentions processes
+  explicitly. The other parameters are provided as arguments by the caller;
+  the @{term path} one is common to all kinds of system-calls.
 \<close>
 
 primrec uid_of :: "operation \<Rightarrow> uid"
@@ -325,26 +318,24 @@ where
 | "path_of (Readdir uid names path) = path"
 
 text \<open>
-  \medskip Note that we have omitted explicit @{text Open} and @{text
-  Close} operations, pretending that @{term Read} and @{term Write}
-  would already take care of this behind the scenes.  Thus we have
-  basically treated actual sequences of real system-calls @{text
-  "open"}--@{text read}/@{text write}--@{text close} as atomic.
+  \<^medskip>
+  Note that we have omitted explicit \<open>Open\<close> and \<open>Close\<close> operations, pretending
+  that @{term Read} and @{term Write} would already take care of this behind
+  the scenes. Thus we have basically treated actual sequences of real
+  system-calls \<open>open\<close>--\<open>read\<close>/\<open>write\<close>--\<open>close\<close> as atomic.
 
-  In principle, this could make big a difference in a model with
-  explicit concurrent processes.  On the other hand, even on a real
-  Unix system the exact scheduling of concurrent @{text "open"} and
-  @{text close} operations does \emph{not} directly affect the success
-  of corresponding @{text read} or @{text write}.  Unix allows several
-  processes to have files opened at the same time, even for writing!
+  In principle, this could make big a difference in a model with explicit
+  concurrent processes. On the other hand, even on a real Unix system the
+  exact scheduling of concurrent \<open>open\<close> and \<open>close\<close> operations does \<^emph>\<open>not\<close>
+  directly affect the success of corresponding \<open>read\<close> or \<open>write\<close>. Unix allows
+  several processes to have files opened at the same time, even for writing!
   Certainly, the result from reading the contents later may be hard to
-  predict, but the system-calls involved here will succeed in any
-  case.
+  predict, but the system-calls involved here will succeed in any case.
 
-  \bigskip The operational semantics of system calls is now specified
-  via transitions of the file-system configuration.  This is expressed
-  as an inductive relation (although there is no actual recursion
-  involved here).
+  \<^bigskip>
+  The operational semantics of system calls is now specified via transitions
+  of the file-system configuration. This is expressed as an inductive relation
+  (although there is no actual recursion involved here).
 \<close>
 
 inductive transition :: "file \<Rightarrow> operation \<Rightarrow> file \<Rightarrow> bool"
@@ -393,19 +384,18 @@ where
       root \<midarrow>(Readdir uid names path)\<rightarrow> root"
 
 text \<open>
-  \medskip Certainly, the above specification is central to the whole
-  formal development.  Any of the results to be established later on
-  are only meaningful to the outside world if this transition system
-  provides an adequate model of real Unix systems.  This kind of
-  ``reality-check'' of a formal model is the well-known problem of
-  \emph{validation}.
+  \<^medskip>
+  Certainly, the above specification is central to the whole formal
+  development. Any of the results to be established later on are only
+  meaningful to the outside world if this transition system provides an
+  adequate model of real Unix systems. This kind of ``reality-check'' of a
+  formal model is the well-known problem of \<^emph>\<open>validation\<close>.
 
-  If in doubt, one may consider to compare our definition with the
-  informal specifications given the corresponding Unix man pages, or
-  even peek at an actual implementation such as
-  @{cite "Torvalds-et-al:Linux"}.  Another common way to gain confidence
-  into the formal model is to run simple simulations (see
-  \secref{sec:unix-examples}), and check the results with that of
+  If in doubt, one may consider to compare our definition with the informal
+  specifications given the corresponding Unix man pages, or even peek at an
+  actual implementation such as @{cite "Torvalds-et-al:Linux"}. Another common
+  way to gain confidence into the formal model is to run simple simulations
+  (see \secref{sec:unix-examples}), and check the results with that of
   experiments performed on a real Unix system.
 \<close>
 
@@ -413,13 +403,12 @@ text \<open>
 subsection \<open>Basic properties of single transitions \label{sec:unix-single-trans}\<close>
 
 text \<open>
-  The transition system @{text "root \<midarrow>x\<rightarrow> root'"} defined above
-  determines a unique result @{term root'} from given @{term root} and
-  @{term x} (this is holds rather trivially, since there is even only
-  one clause for each operation).  This uniqueness statement will
-  simplify our subsequent development to some extent, since we only
-  have to reason about a partial function rather than a general
-  relation.
+  The transition system \<open>root \<midarrow>x\<rightarrow> root'\<close> defined above determines a unique
+  result @{term root'} from given @{term root} and @{term x} (this is holds
+  rather trivially, since there is even only one clause for each operation).
+  This uniqueness statement will simplify our subsequent development to some
+  extent, since we only have to reason about a partial function rather than a
+  general relation.
 \<close>
 
 theorem transition_uniq:
@@ -454,9 +443,9 @@ next
 qed
 
 text \<open>
-  \medskip Apparently, file-system transitions are \emph{type-safe} in
-  the sense that the result of transforming an actual directory yields
-  again a directory.
+  \<^medskip>
+  Apparently, file-system transitions are \<^emph>\<open>type-safe\<close> in the sense that the
+  result of transforming an actual directory yields again a directory.
 \<close>
 
 theorem transition_type_safe:
@@ -478,22 +467,20 @@ qed
 
 text \<open>
   The previous result may be seen as the most basic invariant on the
-  file-system state that is enforced by any proper kernel
-  implementation.  So user processes --- being bound to the
-  system-call interface --- may never mess up a file-system such that
-  the root becomes a plain file instead of a directory, which would be
-  a strange situation indeed.
+  file-system state that is enforced by any proper kernel implementation. So
+  user processes --- being bound to the system-call interface --- may never
+  mess up a file-system such that the root becomes a plain file instead of a
+  directory, which would be a strange situation indeed.
 \<close>
 
 
 subsection \<open>Iterated transitions\<close>
 
 text \<open>
-  Iterated system transitions via finite sequences of system
-  operations are modeled inductively as follows.  In a sense, this
-  relation describes the cumulative effect of the sequence of
-  system-calls issued by a number of running processes over a finite
-  amount of time.
+  Iterated system transitions via finite sequences of system operations are
+  modeled inductively as follows. In a sense, this relation describes the
+  cumulative effect of the sequence of system-calls issued by a number of
+  running processes over a finite amount of time.
 \<close>
 
 inductive transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"
@@ -503,9 +490,9 @@ where
 | cons: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow> root' =xs\<Rightarrow> root'' \<Longrightarrow> root =(x # xs)\<Rightarrow> root''"
 
 text \<open>
-  \medskip We establish a few basic facts relating iterated
-  transitions with single ones, according to the recursive structure
-  of lists.
+  \<^medskip>
+  We establish a few basic facts relating iterated transitions with single
+  ones, according to the recursive structure of lists.
 \<close>
 
 lemma transitions_nil_eq: "root =[]\<Rightarrow> root' = (root = root')"
@@ -530,10 +517,9 @@ next
 qed
 
 text \<open>
-  The next two rules show how to ``destruct'' known transition
-  sequences.  Note that the second one actually relies on the
-  uniqueness property of the basic transition system (see
-  \secref{sec:unix-single-trans}).
+  The next two rules show how to ``destruct'' known transition sequences. Note
+  that the second one actually relies on the uniqueness property of the basic
+  transition system (see \secref{sec:unix-single-trans}).
 \<close>
 
 lemma transitions_nilD: "root =[]\<Rightarrow> root' \<Longrightarrow> root' = root"
@@ -551,10 +537,11 @@ proof -
 qed
 
 text \<open>
-  \medskip The following fact shows how an invariant @{term Q} of
-  single transitions with property @{term P} may be transferred to
-  iterated transitions.  The proof is rather obvious by rule induction
-  over the definition of @{term "root =xs\<Rightarrow> root'"}.
+  \<^medskip>
+  The following fact shows how an invariant @{term Q} of single transitions
+  with property @{term P} may be transferred to iterated transitions. The
+  proof is rather obvious by rule induction over the definition of @{term
+  "root =xs\<Rightarrow> root'"}.
 \<close>
 
 lemma transitions_invariant:
@@ -576,9 +563,8 @@ qed
 
 text \<open>
   As an example of applying the previous result, we transfer the basic
-  type-safety property (see \secref{sec:unix-single-trans}) from
-  single transitions to iterated ones, which is a rather obvious
-  result indeed.
+  type-safety property (see \secref{sec:unix-single-trans}) from single
+  transitions to iterated ones, which is a rather obvious result indeed.
 \<close>
 
 theorem transitions_type_safe:
@@ -594,35 +580,32 @@ qed
 section \<open>Executable sequences\<close>
 
 text \<open>
-  An inductively defined relation such as the one of @{text "root \<midarrow>x\<rightarrow>
-  root'"} (see \secref{sec:unix-syscall}) has two main aspects.  First
-  of all, the resulting system admits a certain set of transition
-  rules (introductions) as given in the specification.  Furthermore,
-  there is an explicit least-fixed-point construction involved, which
-  results in induction (and case-analysis) rules to eliminate known
-  transitions in an exhaustive manner.
+  An inductively defined relation such as the one of \<open>root \<midarrow>x\<rightarrow> root'\<close> (see
+  \secref{sec:unix-syscall}) has two main aspects. First of all, the resulting
+  system admits a certain set of transition rules (introductions) as given in
+  the specification. Furthermore, there is an explicit least-fixed-point
+  construction involved, which results in induction (and case-analysis) rules
+  to eliminate known transitions in an exhaustive manner.
 
-  \medskip Subsequently, we explore our transition system in an
-  experimental style, mainly using the introduction rules with basic
-  algebraic properties of the underlying structures.  The technique
-  closely resembles that of Prolog combined with functional evaluation
-  in a very simple manner.
+  \<^medskip>
+  Subsequently, we explore our transition system in an experimental style,
+  mainly using the introduction rules with basic algebraic properties of the
+  underlying structures. The technique closely resembles that of Prolog
+  combined with functional evaluation in a very simple manner.
 
-  Just as the ``closed-world assumption'' is left implicit in Prolog,
-  we do not refer to induction over the whole transition system here.
-  So this is still purely positive reasoning about possible
-  executions; exhaustive reasoning will be employed only later on (see
-  \secref{sec:unix-bogosity}), when we shall demonstrate that certain
-  behavior is \emph{not} possible.
+  Just as the ``closed-world assumption'' is left implicit in Prolog, we do
+  not refer to induction over the whole transition system here. So this is
+  still purely positive reasoning about possible executions; exhaustive
+  reasoning will be employed only later on (see \secref{sec:unix-bogosity}),
+  when we shall demonstrate that certain behavior is \<^emph>\<open>not\<close> possible.
 \<close>
 
 
 subsection \<open>Possible transitions\<close>
 
 text \<open>
-  Rather obviously, a list of system operations can be executed within
-  a certain state if there is a result state reached by an iterated
-  transition.
+  Rather obviously, a list of system operations can be executed within a
+  certain state if there is a result state reached by an iterated transition.
 \<close>
 
 definition "can_exec root xs = (\<exists>root'. root =xs\<Rightarrow> root')"
@@ -635,8 +618,9 @@ lemma can_exec_cons:
   unfolding can_exec_def by (blast intro: transitions.intros)
 
 text \<open>
-  \medskip In case that we already know that a certain sequence can be
-  executed we may destruct it backwardly into individual transitions.
+  \<^medskip>
+  In case that we already know that a certain sequence can be executed we may
+  destruct it backwardly into individual transitions.
 \<close>
 
 lemma can_exec_snocD: "can_exec root (xs @ [y])
@@ -651,7 +635,8 @@ next
       x: "root \<midarrow>x\<rightarrow> r" and
       xs_y: "r =(xs @ [y])\<Rightarrow> root''"
     by (auto simp add: can_exec_def transitions_nil_eq transitions_cons_eq)
-  from xs_y Cons.hyps obtain root' r' where xs: "r =xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> r'"
+  from xs_y Cons.hyps obtain root' r'
+    where xs: "r =xs\<Rightarrow> root'" and y: "root' \<midarrow>y\<rightarrow> r'"
     unfolding can_exec_def by blast
   from x xs have "root =(x # xs)\<Rightarrow> root'"
     by (rule transitions.cons)
@@ -662,12 +647,11 @@ qed
 subsection \<open>Example executions \label{sec:unix-examples}\<close>
 
 text \<open>
-  We are now ready to perform a few experiments within our formal
-  model of Unix system-calls.  The common technique is to alternate
-  introduction rules of the transition system (see
-  \secref{sec:unix-trans}), and steps to solve any emerging side
-  conditions using algebraic properties of the underlying file-system
-  structures (see \secref{sec:unix-file-system}).
+  We are now ready to perform a few experiments within our formal model of
+  Unix system-calls. The common technique is to alternate introduction rules
+  of the transition system (see \secref{sec:unix-trans}), and steps to solve
+  any emerging side conditions using algebraic properties of the underlying
+  file-system structures (see \secref{sec:unix-file-system}).
 \<close>
 
 lemmas eval = access_def init_def
@@ -675,26 +659,26 @@ lemmas eval = access_def init_def
 theorem "u \<in> users \<Longrightarrow> can_exec (init users)
     [Mkdir u perms [u, name]]"
   apply (rule can_exec_cons)
-    -- \<open>back-chain @{term can_exec} (of @{term [source] Cons})\<close>
+    \<comment> \<open>back-chain @{term can_exec} (of @{term [source] Cons})\<close>
   apply (rule mkdir)
-    -- \<open>back-chain @{term Mkdir}\<close>
+    \<comment> \<open>back-chain @{term Mkdir}\<close>
   apply (force simp add: eval)+
-    -- \<open>solve preconditions of @{term Mkdir}\<close>
+    \<comment> \<open>solve preconditions of @{term Mkdir}\<close>
   apply (simp add: eval)
-    -- \<open>peek at resulting dir (optional)\<close>
+    \<comment> \<open>peek at resulting dir (optional)\<close>
   txt \<open>@{subgoals [display]}\<close>
   apply (rule can_exec_nil)
-    -- \<open>back-chain @{term can_exec} (of @{term [source] Nil})\<close>
+    \<comment> \<open>back-chain @{term can_exec} (of @{term [source] Nil})\<close>
   done
 
 text \<open>
-  By inspecting the result shown just before the final step above, we
-  may gain confidence that our specification of Unix system-calls
-  actually makes sense.  Further common errors are usually exhibited
-  when preconditions of transition rules fail unexpectedly.
+  By inspecting the result shown just before the final step above, we may gain
+  confidence that our specification of Unix system-calls actually makes sense.
+  Further common errors are usually exhibited when preconditions of transition
+  rules fail unexpectedly.
 
-  \medskip Here are a few further experiments, using the same
-  techniques as before.
+  \<^medskip>
+  Here are a few further experiments, using the same techniques as before.
 \<close>
 
 theorem "u \<in> users \<Longrightarrow> can_exec (init users)
@@ -743,19 +727,19 @@ theorem "u \<in> users \<Longrightarrow> Writable \<in> perms\<^sub>1 \<Longrigh
 section \<open>Odd effects --- treated formally \label{sec:unix-bogosity}\<close>
 
 text \<open>
-  We are now ready to give a completely formal treatment of the
-  slightly odd situation discussed in the introduction (see
-  \secref{sec:unix-intro}): the file-system can easily reach a state
-  where a user is unable to remove his very own directory, because it
-  is still populated by items placed there by another user in an
-  uncouth manner.
+  We are now ready to give a completely formal treatment of the slightly odd
+  situation discussed in the introduction (see \secref{sec:unix-intro}): the
+  file-system can easily reach a state where a user is unable to remove his
+  very own directory, because it is still populated by items placed there by
+  another user in an uncouth manner.
 \<close>
+
 
 subsection \<open>The general procedure \label{sec:unix-inv-procedure}\<close>
 
 text \<open>
-  The following theorem expresses the general procedure we are
-  following to achieve the main result.
+  The following theorem expresses the general procedure we are following to
+  achieve the main result.
 \<close>
 
 theorem general_procedure:
@@ -781,24 +765,23 @@ proof -
 qed
 
 text \<open>
-  Here @{prop "P x"} refers to the restriction on file-system
-  operations that are admitted after having reached the critical
-  configuration; according to the problem specification this will
-  become @{prop "uid_of x = user\<^sub>1"} later on.  Furthermore,
-  @{term y} refers to the operations we claim to be impossible to
-  perform afterwards, we will take @{term Rmdir} later.  Moreover
-  @{term Q} is a suitable (auxiliary) invariant over the file-system;
-  choosing @{term Q} adequately is very important to make the proof
-  work (see \secref{sec:unix-inv-lemmas}).
+  Here @{prop "P x"} refers to the restriction on file-system operations that
+  are admitted after having reached the critical configuration; according to
+  the problem specification this will become @{prop "uid_of x = user\<^sub>1"} later
+  on. Furthermore, @{term y} refers to the operations we claim to be
+  impossible to perform afterwards, we will take @{term Rmdir} later. Moreover
+  @{term Q} is a suitable (auxiliary) invariant over the file-system; choosing
+  @{term Q} adequately is very important to make the proof work (see
+  \secref{sec:unix-inv-lemmas}).
 \<close>
 
 
 subsection \<open>The particular situation\<close>
 
 text \<open>
-  We introduce a few global declarations and axioms to describe our
-  particular situation considered here.  Thus we avoid excessive use
-  of local parameters in the subsequent development.
+  We introduce a few global declarations and axioms to describe our particular
+  situation considered here. Thus we avoid excessive use of local parameters
+  in the subsequent development.
 \<close>
 
 context
@@ -829,18 +812,18 @@ definition "bogus_path = [user\<^sub>1, name\<^sub>1, name\<^sub>2]"
 
 text \<open>
   The @{term bogus} operations are the ones that lead into the uncouth
-  situation; @{term bogus_path} is the key position within the
-  file-system where things go awry.
+  situation; @{term bogus_path} is the key position within the file-system
+  where things go awry.
 \<close>
 
 
 subsection \<open>Invariance lemmas \label{sec:unix-inv-lemmas}\<close>
 
 text \<open>
-  The following invariant over the root file-system describes the
-  bogus situation in an abstract manner: located at a certain @{term
-  path} within the file-system is a non-empty directory that is
-  neither owned nor writable by @{term user\<^sub>1}.
+  The following invariant over the root file-system describes the bogus
+  situation in an abstract manner: located at a certain @{term path} within
+  the file-system is a non-empty directory that is neither owned nor writable
+  by @{term user\<^sub>1}.
 \<close>
 
 definition
@@ -851,35 +834,29 @@ definition
       access root path user\<^sub>1 {Writable} = None)"
 
 text \<open>
-  Following the general procedure (see
-  \secref{sec:unix-inv-procedure}) we will now establish the three key
-  lemmas required to yield the final result.
+  Following the general procedure (see \secref{sec:unix-inv-procedure}) we
+  will now establish the three key lemmas required to yield the final result.
 
-  \begin{enumerate}
+    \<^enum> The invariant is sufficiently strong to entail the pathological case
+    that @{term user\<^sub>1} is unable to remove the (owned) directory at @{term
+    "[user\<^sub>1, name\<^sub>1]"}.
 
-  \item The invariant is sufficiently strong to entail the
-  pathological case that @{term user\<^sub>1} is unable to remove the
-  (owned) directory at @{term "[user\<^sub>1, name\<^sub>1]"}.
+    \<^enum> The invariant does hold after having executed the @{term bogus} list of
+    operations (starting with an initial file-system configuration).
 
-  \item The invariant does hold after having executed the @{term
-  bogus} list of operations (starting with an initial file-system
-  configuration).
+    \<^enum> The invariant is preserved by any file-system operation performed by
+    @{term user\<^sub>1} alone, without any help by other users.
 
-  \item The invariant is preserved by any file-system operation
-  performed by @{term user\<^sub>1} alone, without any help by other
-  users.
+  As the invariant appears both as assumptions and conclusions in the course
+  of proof, its formulation is rather critical for the whole development to
+  work out properly. In particular, the third step is very sensitive to the
+  invariant being either too strong or too weak. Moreover the invariant has to
+  be sufficiently abstract, lest the proof become cluttered by confusing
+  detail.
 
-  \end{enumerate}
-
-  As the invariant appears both as assumptions and conclusions in the
-  course of proof, its formulation is rather critical for the whole
-  development to work out properly.  In particular, the third step is
-  very sensitive to the invariant being either too strong or too weak.
-  Moreover the invariant has to be sufficiently abstract, lest the
-  proof become cluttered by confusing detail.
-
-  \medskip The first two lemmas are technically straight forward ---
-  we just have to inspect rather special cases.
+  \<^medskip>
+  The first two lemmas are technically straight forward --- we just have to
+  inspect rather special cases.
 \<close>
 
 lemma cannot_rmdir:
@@ -906,19 +883,19 @@ lemma
   apply (unfold bogus_def bogus_path_def)
   apply (drule transitions_consD, rule transition.intros,
       (force simp add: eval)+, (simp add: eval)?)+
-    -- "evaluate all operations"
+    \<comment> "evaluate all operations"
   apply (drule transitions_nilD)
-    -- "reach final result"
+    \<comment> "reach final result"
   apply (simp add: invariant_def eval)
-    -- "check the invariant"
+    \<comment> "check the invariant"
   done
 
 text \<open>
-  \medskip At last we are left with the main effort to show that the
-  ``bogosity'' invariant is preserved by any file-system operation
-  performed by @{term user\<^sub>1} alone.  Note that this holds for
-  any @{term path} given, the particular @{term bogus_path} is not
-  required here.
+  \<^medskip>
+  At last we are left with the main effort to show that the ``bogosity''
+  invariant is preserved by any file-system operation performed by @{term
+  user\<^sub>1} alone. Note that this holds for any @{term path} given, the
+  particular @{term bogus_path} is not required here.
 \<close>
 
 lemma preserve_invariant:
@@ -1059,9 +1036,9 @@ qed
 subsection \<open>Putting it all together \label{sec:unix-main-result}\<close>
 
 text \<open>
-  The main result is now imminent, just by composing the three
-  invariance lemmas (see \secref{sec:unix-inv-lemmas}) according the the
-  overall procedure (see \secref{sec:unix-inv-procedure}).
+  The main result is now imminent, just by composing the three invariance
+  lemmas (see \secref{sec:unix-inv-lemmas}) according the the overall
+  procedure (see \secref{sec:unix-inv-procedure}).
 \<close>
 
 corollary

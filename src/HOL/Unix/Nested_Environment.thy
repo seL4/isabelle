@@ -9,13 +9,12 @@ imports Main
 begin
 
 text \<open>
-  Consider a partial function @{term [source] "e :: 'a \<Rightarrow> 'b option"};
-  this may be understood as an \emph{environment} mapping indexes
-  @{typ 'a} to optional entry values @{typ 'b} (cf.\ the basic theory
-  @{text Map} of Isabelle/HOL).  This basic idea is easily generalized
-  to that of a \emph{nested environment}, where entries may be either
-  basic values or again proper environments.  Then each entry is
-  accessed by a \emph{path}, i.e.\ a list of indexes leading to its
+  Consider a partial function @{term [source] "e :: 'a \<Rightarrow> 'b option"}; this may
+  be understood as an \<^emph>\<open>environment\<close> mapping indexes @{typ 'a} to optional
+  entry values @{typ 'b} (cf.\ the basic theory \<open>Map\<close> of Isabelle/HOL). This
+  basic idea is easily generalized to that of a \<^emph>\<open>nested environment\<close>, where
+  entries may be either basic values or again proper environments. Then each
+  entry is accessed by a \<^emph>\<open>path\<close>, i.e.\ a list of indexes leading to its
   position within the structure.
 \<close>
 
@@ -24,23 +23,23 @@ datatype (dead 'a, dead 'b, dead 'c) env =
   | Env 'b  "'c \<Rightarrow> ('a, 'b, 'c) env option"
 
 text \<open>
-  \medskip In the type @{typ "('a, 'b, 'c) env"} the parameter @{typ
-  'a} refers to basic values (occurring in terminal positions), type
-  @{typ 'b} to values associated with proper (inner) environments, and
-  type @{typ 'c} with the index type for branching.  Note that there
-  is no restriction on any of these types.  In particular, arbitrary
-  branching may yield rather large (transfinite) tree structures.
+  \<^medskip>
+  In the type @{typ "('a, 'b, 'c) env"} the parameter @{typ 'a} refers to
+  basic values (occurring in terminal positions), type @{typ 'b} to values
+  associated with proper (inner) environments, and type @{typ 'c} with the
+  index type for branching. Note that there is no restriction on any of these
+  types. In particular, arbitrary branching may yield rather large
+  (transfinite) tree structures.
 \<close>
 
 
 subsection \<open>The lookup operation\<close>
 
 text \<open>
-  Lookup in nested environments works by following a given path of
-  index elements, leading to an optional result (a terminal value or
-  nested environment).  A \emph{defined position} within a nested
-  environment is one where @{term lookup} at its path does not yield
-  @{term None}.
+  Lookup in nested environments works by following a given path of index
+  elements, leading to an optional result (a terminal value or nested
+  environment). A \<^emph>\<open>defined position\<close> within a nested environment is one where
+  @{term lookup} at its path does not yield @{term None}.
 \<close>
 
 primrec lookup :: "('a, 'b, 'c) env \<Rightarrow> 'c list \<Rightarrow> ('a, 'b, 'c) env option"
@@ -57,8 +56,9 @@ where
 hide_const lookup_option
 
 text \<open>
-  \medskip The characteristic cases of @{term lookup} are expressed by
-  the following equalities.
+  \<^medskip>
+  The characteristic cases of @{term lookup} are expressed by the following
+  equalities.
 \<close>
 
 theorem lookup_nil: "lookup e [] = Some e"
@@ -91,10 +91,10 @@ theorem lookup_eq:
   by (simp split: list.split env.split)
 
 text \<open>
-  \medskip Displaced @{term lookup} operations, relative to a certain
-  base path prefix, may be reduced as follows.  There are two cases,
-  depending whether the environment actually extends far enough to
-  follow the base path.
+  \<^medskip>
+  Displaced @{term lookup} operations, relative to a certain base path prefix,
+  may be reduced as follows. There are two cases, depending whether the
+  environment actually extends far enough to follow the base path.
 \<close>
 
 theorem lookup_append_none:
@@ -177,10 +177,10 @@ next
 qed
 
 text \<open>
-  \medskip Successful @{term lookup} deeper down an environment
-  structure means we are able to peek further up as well.  Note that
-  this is basically just the contrapositive statement of @{thm
-  [source] lookup_append_none} above.
+  \<^medskip>
+  Successful @{term lookup} deeper down an environment structure means we are
+  able to peek further up as well. Note that this is basically just the
+  contrapositive statement of @{thm [source] lookup_append_none} above.
 \<close>
 
 theorem lookup_some_append:
@@ -194,9 +194,9 @@ proof -
 qed
 
 text \<open>
-  The subsequent statement describes in more detail how a successful
-  @{term lookup} with a non-empty path results in a certain situation
-  at any upper position.
+  The subsequent statement describes in more detail how a successful @{term
+  lookup} with a non-empty path results in a certain situation at any upper
+  position.
 \<close>
 
 theorem lookup_some_upper:
@@ -239,10 +239,9 @@ qed
 subsection \<open>The update operation\<close>
 
 text \<open>
-  Update at a certain position in a nested environment may either
-  delete an existing entry, or overwrite an existing one.  Note that
-  update at undefined positions is simple absorbed, i.e.\ the
-  environment is left unchanged.
+  Update at a certain position in a nested environment may either delete an
+  existing entry, or overwrite an existing one. Note that update at undefined
+  positions is simple absorbed, i.e.\ the environment is left unchanged.
 \<close>
 
 primrec update :: "'c list \<Rightarrow> ('a, 'b, 'c) env option \<Rightarrow>
@@ -265,8 +264,9 @@ where
 hide_const update_option
 
 text \<open>
-  \medskip The characteristic cases of @{term update} are expressed by
-  the following equalities.
+  \<^medskip>
+  The characteristic cases of @{term update} are expressed by the following
+  equalities.
 \<close>
 
 theorem update_nil_none: "update [] None env = env"
@@ -315,9 +315,10 @@ lemma update_eq:
   by (simp split: list.split env.split option.split)
 
 text \<open>
-  \medskip The most basic correspondence of @{term lookup} and @{term
-  update} states that after @{term update} at a defined position,
-  subsequent @{term lookup} operations would yield the new value.
+  \<^medskip>
+  The most basic correspondence of @{term lookup} and @{term update} states
+  that after @{term update} at a defined position, subsequent @{term lookup}
+  operations would yield the new value.
 \<close>
 
 theorem lookup_update_some:
@@ -362,11 +363,11 @@ next
 qed
 
 text \<open>
-  \medskip The properties of displaced @{term update} operations are
-  analogous to those of @{term lookup} above.  There are two cases:
-  below an undefined position @{term update} is absorbed altogether,
-  and below a defined positions @{term update} affects subsequent
-  @{term lookup} operations in the obvious way.
+  \<^medskip>
+  The properties of displaced @{term update} operations are analogous to those
+  of @{term lookup} above. There are two cases: below an undefined position
+  @{term update} is absorbed altogether, and below a defined positions @{term
+  update} affects subsequent @{term lookup} operations in the obvious way.
 \<close>
 
 theorem update_append_none:
@@ -457,10 +458,10 @@ next
 qed
 
 text \<open>
-  \medskip Apparently, @{term update} does not affect the result of
-  subsequent @{term lookup} operations at independent positions, i.e.\
-  in case that the paths for @{term update} and @{term lookup} fork at
-  a certain point.
+  \<^medskip>
+  Apparently, @{term update} does not affect the result of subsequent @{term
+  lookup} operations at independent positions, i.e.\ in case that the paths
+  for @{term update} and @{term lookup} fork at a certain point.
 \<close>
 
 theorem lookup_update_other:
