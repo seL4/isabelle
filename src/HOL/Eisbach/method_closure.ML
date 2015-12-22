@@ -20,10 +20,10 @@ sig
   val eval_method: Proof.context -> (term list * string list) * Method.text ->
     term list -> (string * thm list) list -> (Proof.context -> Method.method) list ->
     Proof.context -> Method.method
-  val method: binding -> (binding * typ option * mixfix) list ->
-    binding list -> binding list -> binding list -> Token.src -> local_theory -> local_theory
-  val method_cmd: binding -> (binding * string option * mixfix) list ->
-    binding list -> binding list -> binding list -> Token.src -> local_theory -> local_theory
+  val method: binding -> (binding * typ option * mixfix) list -> binding list ->
+    binding list -> binding list -> Token.src -> local_theory -> string * local_theory
+  val method_cmd: binding -> (binding * string option * mixfix) list -> binding list ->
+    binding list -> binding list -> Token.src -> local_theory -> string * local_theory
 end;
 
 structure Method_Closure: METHOD_CLOSURE =
@@ -161,7 +161,7 @@ fun method_evaluate text ctxt =
 
 fun method_instantiate env text =
   let
-    val morphism = Morphism.term_morphism "instantiate_text" (Envir.norm_term env);
+    val morphism = Morphism.term_morphism "method_instantiate" (Envir.norm_term env);
     val text' = (Method.map_source o map) (Token.transform morphism) text;
   in method_evaluate text' end;
 
@@ -254,7 +254,8 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
       |> add_fixes vars |-> fold_map Proof_Context.inferred_param |>> map Free;
 
     val (named_thms, modifiers) = map (check_attrib lthy2) (declares @ uses) |> split_list;
-    val self_name :: method_names = map (Local_Theory.full_name lthy2) (name :: methods);
+    val method_name = Local_Theory.full_name lthy2 name;
+    val method_names = map (Local_Theory.full_name lthy2) methods;
 
     fun parser args eval =
       apfst (Config.put_generic Method.old_section_parser true) #>
@@ -293,6 +294,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     |> Proof_Context.restore_naming lthy
     |> Method.local_setup name real_parser "(defined in Eisbach)"
     |> add_method name ((term_args', named_thms, method_names), text')
+    |> pair method_name
   end;
 
 in
@@ -310,6 +312,6 @@ val _ =
       (Scan.optional (@{keyword "declares"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
       Parse.!!! (@{keyword "="} |-- Parse.args1 (K true)) >>
       (fn ((((name, vars), (methods, uses)), declares), src) =>
-        method_cmd name vars uses declares methods src));
+        #2 o method_cmd name vars uses declares methods src));
 
 end;
