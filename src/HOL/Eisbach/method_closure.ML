@@ -254,7 +254,6 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
       |> add_fixes vars |-> fold_map Proof_Context.inferred_param |>> map Free;
 
     val (named_thms, modifiers) = map (check_attrib lthy2) (declares @ uses) |> split_list;
-    val method_name = Local_Theory.full_name lthy2 name;
     val method_names = map (Local_Theory.full_name lthy2) methods;
 
     fun parser args eval =
@@ -294,7 +293,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     |> Proof_Context.restore_naming lthy
     |> Method.local_setup name real_parser "(defined in Eisbach)"
     |> add_method name ((term_args', named_thms, method_names), text')
-    |> pair method_name
+    |> pair (Local_Theory.full_name lthy name)
   end;
 
 in
