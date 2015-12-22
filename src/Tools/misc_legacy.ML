@@ -6,13 +6,8 @@ Misc legacy stuff -- to be phased out eventually.
 signature MISC_LEGACY =
 sig
   val add_term_names: term * string list -> string list
-  val add_typ_tvars: typ * (indexname * sort) list -> (indexname * sort) list
-  val add_typ_tfree_names: typ * string list -> string list
-  val add_typ_tfrees: typ * (string * sort) list -> (string * sort) list
   val add_term_tvars: term * (indexname * sort) list -> (indexname * sort) list
   val add_term_tfrees: term * (string * sort) list -> (string * sort) list
-  val add_term_tfree_names: term * string list -> string list
-  val typ_tfrees: typ -> (string * sort) list
   val typ_tvars: typ -> (indexname * sort) list
   val term_tfrees: term -> (string * sort) list
   val term_tvars: term -> (indexname * sort) list
@@ -24,7 +19,6 @@ sig
   val get_def: theory -> xstring -> thm
   val METAHYPS: Proof.context -> (thm list -> tactic) -> int -> tactic
   val freeze_thaw_robust: Proof.context -> thm -> thm * (int -> thm -> thm)
-  val freeze_thaw: Proof.context -> thm -> thm * (thm -> thm)
 end;
 
 structure Misc_Legacy: MISC_LEGACY =
@@ -269,28 +263,6 @@ fun freeze_thaw_robust ctxt th =
              fun thaw i th' = (*i is non-negative increment for Var indexes*)
                  th' |> forall_intr_list (map #2 insts)
                      |> forall_elim_list (map (Thm.incr_indexes_cterm i o #1) insts)
-         in  (Thm.instantiate ([], map (apfst (dest_Var o Thm.term_of)) insts) fth, thaw)  end
- end;
-
-(*Basic version of the function above. No option to rename Vars apart in thaw.
-  The Frees created from Vars have nice names.*)
-fun freeze_thaw ctxt th =
- let val fth = Thm.legacy_freezeT th
- in
-   case Thm.fold_terms Term.add_vars fth [] of
-       [] => (fth, fn x => x)
-     | vars =>
-         let fun newName (ix, _) (pairs, used) =
-                   let val v = singleton (Name.variant_list used) (string_of_indexname ix)
-                   in  ((ix,v)::pairs, v::used)  end;
-             val (alist, _) =
-                 fold_rev newName vars ([], Thm.fold_terms Term.add_free_names fth [])
-             fun mk_inst (v, T) =
-                apply2 (Thm.cterm_of ctxt) (Var (v, T), Free (the (AList.lookup (op =) alist v), T))
-             val insts = map mk_inst vars
-             fun thaw th' =
-                 th' |> forall_intr_list (map #2 insts)
-                     |> forall_elim_list (map #1 insts)
          in  (Thm.instantiate ([], map (apfst (dest_Var o Thm.term_of)) insts) fth, thaw)  end
  end;
 

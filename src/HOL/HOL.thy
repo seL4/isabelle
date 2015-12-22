@@ -1974,8 +1974,8 @@ ML \<open>
       | wrong_prem (Bound _) = true
       | wrong_prem _ = false;
     val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
+    fun smp i = funpow i (fn m => filter_right ([spec] RL m)) [mp];
   in
-    fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
     fun smp_tac ctxt j = EVERY' [dresolve_tac ctxt (smp j), assume_tac ctxt];
   end;
 
