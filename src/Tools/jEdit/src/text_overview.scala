@@ -114,7 +114,8 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
           val rendering = doc_view.get_rendering()
           val overview = get_overview()
 
-          if (!rendering.snapshot.is_outdated) {
+          if (rendering.snapshot.is_outdated) invoke()
+          else {
             cancel()
 
             val line_offsets =
