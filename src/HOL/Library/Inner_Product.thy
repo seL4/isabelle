@@ -213,6 +213,10 @@ lemmas bounded_linear_inner_left =
 lemmas bounded_linear_inner_right =
   bounded_bilinear.bounded_linear_right [OF bounded_bilinear_inner]
 
+lemmas bounded_linear_inner_left_comp = bounded_linear_inner_left[THEN bounded_linear_compose]
+
+lemmas bounded_linear_inner_right_comp = bounded_linear_inner_right[THEN bounded_linear_compose]
+
 lemmas has_derivative_inner_right [derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_inner_right]
 

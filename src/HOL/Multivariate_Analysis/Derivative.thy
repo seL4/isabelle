@@ -9,6 +9,27 @@ theory Derivative
 imports Brouwer_Fixpoint Operator_Norm Uniform_Limit
 begin
 
+lemma onorm_inner_left:
+  assumes "bounded_linear r"
+  shows "onorm (\<lambda>x. r x \<bullet> f) \<le> onorm r * norm f"
+proof (rule onorm_bound)
+  fix x
+  have "norm (r x \<bullet> f) \<le> norm (r x) * norm f"
+    by (simp add: Cauchy_Schwarz_ineq2)
+  also have "\<dots> \<le> onorm r * norm x * norm f"
+    by (intro mult_right_mono onorm assms norm_ge_zero)
+  finally show "norm (r x \<bullet> f) \<le> onorm r * norm f * norm x"
+    by (simp add: ac_simps)
+qed (intro mult_nonneg_nonneg norm_ge_zero onorm_pos_le assms)
+
+lemma onorm_inner_right:
+  assumes "bounded_linear r"
+  shows "onorm (\<lambda>x. f \<bullet> r x) \<le> norm f * onorm r"
+  apply (subst inner_commute)
+  apply (rule onorm_inner_left[OF assms, THEN order_trans])
+  apply simp
+  done
+
 declare has_derivative_bounded_linear[dest]
 
 subsection \<open>Derivatives\<close>
@@ -505,18 +526,6 @@ lemma frechet_derivative_within_cbox:
 
 
 subsection \<open>The traditional Rolle theorem in one dimension\<close>
-
-lemma linear_componentwise:
-  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_inner"
-  assumes lf: "linear f"
-  shows "(f x) \<bullet> j = (\<Sum>i\<in>Basis. (x\<bullet>i) * (f i\<bullet>j))" (is "?lhs = ?rhs")
-proof -
-  have "?rhs = (\<Sum>i\<in>Basis. (x\<bullet>i) *\<^sub>R (f i))\<bullet>j"
-    by (simp add: inner_setsum_left)
-  then show ?thesis
-    unfolding linear_setsum_mul[OF lf, symmetric]
-    unfolding euclidean_representation ..
-qed
 
 text \<open>Derivatives of local minima and maxima are zero.\<close>
 
@@ -1713,10 +1722,6 @@ injectivity. It's only for this we need continuity of the derivative,
 except of course if we want the fact that the inverse derivative is
 also continuous. So if we know for some other reason that the inverse
 function exists, it's OK.\<close>
-
-lemma bounded_linear_sub: "bounded_linear f \<Longrightarrow> bounded_linear g \<Longrightarrow> bounded_linear (\<lambda>x. f x - g x)"
-  using bounded_linear_add[of f "\<lambda>x. - g x"] bounded_linear_minus[of g]
-  by (auto simp add: algebra_simps)
 
 lemma has_derivative_locally_injective:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"

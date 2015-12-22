@@ -1404,6 +1404,15 @@ lemma diff_right:
   "prod a (b - b') = prod a b - prod a b'"
 by (rule additive.diff [OF additive_right])
 
+lemma setsum_left:
+  "prod (setsum g S) x = setsum ((\<lambda>i. prod (g i) x)) S"
+by (rule additive.setsum [OF additive_left])
+
+lemma setsum_right:
+  "prod x (setsum g S) = setsum ((\<lambda>i. (prod x (g i)))) S"
+by (rule additive.setsum [OF additive_right])
+
+
 lemma bounded_linear_left:
   "bounded_linear (\<lambda>a. a ** b)"
 apply (cut_tac bounded, safe)
@@ -1462,6 +1471,21 @@ proof -
     apply (simp add: f.bounded)
     done
 qed
+
+lemma bounded_linear_sub: "bounded_linear f \<Longrightarrow> bounded_linear g \<Longrightarrow> bounded_linear (\<lambda>x. f x - g x)"
+  using bounded_linear_add[of f "\<lambda>x. - g x"] bounded_linear_minus[of g]
+  by (auto simp add: algebra_simps)
+
+lemma bounded_linear_setsum:
+  fixes f :: "'i \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> bounded_linear (f i)"
+  shows "bounded_linear (\<lambda>x. \<Sum>i\<in>I. f i x)"
+proof cases
+  assume "finite I"
+  from this show ?thesis
+    using assms
+    by (induct I) (auto intro!: bounded_linear_add)
+qed simp
 
 lemma bounded_linear_compose:
   assumes "bounded_linear f"
@@ -1542,6 +1566,12 @@ lemma bounded_linear_scaleR_left: "bounded_linear (\<lambda>r. scaleR r x)"
 lemma bounded_linear_scaleR_right: "bounded_linear (\<lambda>x. scaleR r x)"
   using bounded_bilinear_scaleR
   by (rule bounded_bilinear.bounded_linear_right)
+
+lemmas bounded_linear_scaleR_const =
+  bounded_linear_scaleR_left[THEN bounded_linear_compose]
+
+lemmas bounded_linear_const_scaleR =
+  bounded_linear_scaleR_right[THEN bounded_linear_compose]
 
 lemma bounded_linear_of_real: "bounded_linear (\<lambda>r. of_real r)"
   unfolding of_real_def by (rule bounded_linear_scaleR_left)

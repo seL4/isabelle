@@ -5388,6 +5388,24 @@ next
     unfolding uniformly_continuous_on_def by blast
 qed
 
+lemma continuous_on_tendsto_compose:
+  assumes f_cont: "continuous_on s f"
+  assumes g: "(g ---> l) F"
+  assumes l: "l \<in> s"
+  assumes ev: "\<forall>\<^sub>F x in F. g x \<in> s"
+  shows "((\<lambda>x. f (g x)) ---> f l) F"
+proof -
+  from f_cont have f: "(f ---> f l) (at l within s)"
+    by (auto simp: l continuous_on)
+  have i: "((\<lambda>x. if g x = l then f l else f (g x)) ---> f l) F"
+    by (rule filterlim_If)
+      (auto intro!: filterlim_compose[OF f] eventually_conj tendsto_mono[OF _ g]
+        simp: filterlim_at eventually_inf_principal eventually_mono[OF ev])
+  show ?thesis
+    by (rule filterlim_cong[THEN iffD1[OF _ i]]) auto
+qed
+
+
 text\<open>The usual transformation theorems.\<close>
 
 lemma continuous_transform_within:
@@ -8451,18 +8469,8 @@ qed
 
 lemma cball_eq_ball_iff:
   fixes x :: "'a :: euclidean_space"
-  shows "cball x d = ball y e \<longleftrightarrow> d < 0 \<and> e \<le> 0" (is "?lhs = ?rhs")
-proof
-  assume ?lhs
-  then show ?rhs
-    apply (auto simp add: set_eq_subset ball_subset_cball_iff cball_subset_ball_iff algebra_simps)
-    apply (metis add_increasing2 add_le_cancel_right add_less_same_cancel1 dist_not_less_zero less_le_trans zero_le_dist)
-    apply (metis add_less_same_cancel1 dist_not_less_zero less_le_trans not_le)
-    using \<open>?lhs\<close> ball_eq_empty cball_eq_empty apply blast+
-    done
-next
-  assume ?rhs then show ?lhs  using ball_eq_cball_iff by blast
-qed
+  shows "cball x d = ball y e \<longleftrightarrow> d < 0 \<and> e \<le> 0"
+  using ball_eq_cball_iff by blast
 
 no_notation
   eucl_less (infix "<e" 50)

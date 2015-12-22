@@ -96,6 +96,20 @@ lemma onorm_pos_lt:
   shows "0 < onorm f \<longleftrightarrow> \<not> (\<forall>x. f x = 0)"
   by (simp add: less_le onorm_pos_le [OF f] onorm_eq_0 [OF f])
 
+lemma onorm_id_le: "onorm (\<lambda>x. x) \<le> 1"
+  by (rule onorm_bound) simp_all
+
+lemma onorm_id: "onorm (\<lambda>x. x::'a::{real_normed_vector, perfect_space}) = 1"
+proof (rule antisym[OF onorm_id_le])
+  have "{0::'a} \<noteq> UNIV" by (metis not_open_singleton open_UNIV)
+  then obtain x :: 'a where "x \<noteq> 0" by fast
+  hence "1 \<le> norm x / norm x"
+    by simp
+  also have "\<dots> \<le> onorm (\<lambda>x::'a. x)"
+    by (rule le_onorm) (rule bounded_linear_ident)
+  finally show "1 \<le> onorm (\<lambda>x::'a. x)" .
+qed
+
 lemma onorm_compose:
   assumes f: "bounded_linear f"
   assumes g: "bounded_linear g"
@@ -142,6 +156,46 @@ proof (cases "r = 0")
     then have "onorm (\<lambda>x. inverse r *\<^sub>R r *\<^sub>R f x) \<le> \<bar>inverse r\<bar> * onorm (\<lambda>x. r *\<^sub>R f x)"
       by (rule onorm_scaleR_lemma)
     with \<open>r \<noteq> 0\<close> show "\<bar>r\<bar> * onorm f \<le> onorm (\<lambda>x. r *\<^sub>R f x)"
+      by (simp add: inverse_eq_divide pos_le_divide_eq mult.commute)
+  qed
+qed (simp add: onorm_zero)
+
+lemma onorm_scaleR_left_lemma:
+  assumes r: "bounded_linear r"
+  shows "onorm (\<lambda>x. r x *\<^sub>R f) \<le> onorm r * norm f"
+proof (rule onorm_bound)
+  fix x
+  have "norm (r x *\<^sub>R f) = norm (r x) * norm f"
+    by simp
+  also have "\<dots> \<le> onorm r * norm x * norm f"
+    by (intro mult_right_mono onorm r norm_ge_zero)
+  finally show "norm (r x *\<^sub>R f) \<le> onorm r * norm f * norm x"
+    by (simp add: ac_simps)
+qed (intro mult_nonneg_nonneg norm_ge_zero onorm_pos_le r)
+
+lemma onorm_scaleR_left:
+  assumes f: "bounded_linear r"
+  shows "onorm (\<lambda>x. r x *\<^sub>R f) = onorm r * norm f"
+proof (cases "f = 0")
+  assume "f \<noteq> 0"
+  show ?thesis
+  proof (rule order_antisym)
+    show "onorm (\<lambda>x. r x *\<^sub>R f) \<le> onorm r * norm f"
+      using f by (rule onorm_scaleR_left_lemma)
+  next
+    have bl1: "bounded_linear (\<lambda>x. r x *\<^sub>R f)"
+      by (metis bounded_linear_scaleR_const f)
+    have "bounded_linear (\<lambda>x. r x * norm f)"
+      by (metis bounded_linear_mult_const f)
+    from onorm_scaleR_left_lemma[OF this, of "inverse (norm f)"]
+    have "onorm r \<le> onorm (\<lambda>x. r x * norm f) * inverse (norm f)"
+      using `f \<noteq> 0`
+      by (simp add: inverse_eq_divide)
+    also have "onorm (\<lambda>x. r x * norm f) \<le> onorm (\<lambda>x. r x *\<^sub>R f)"
+      by (rule onorm_bound)
+        (auto simp: abs_mult bl1 onorm_pos_le intro!: order_trans[OF _ onorm])
+    finally show "onorm r * norm f \<le> onorm (\<lambda>x. r x *\<^sub>R f)"
+      using `f \<noteq> 0`
       by (simp add: inverse_eq_divide pos_le_divide_eq mult.commute)
   qed
 qed (simp add: onorm_zero)

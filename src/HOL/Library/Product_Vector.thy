@@ -449,6 +449,10 @@ lemma bounded_linear_snd: "bounded_linear snd"
   using snd_add snd_scaleR
   by (rule bounded_linear_intro [where K=1], simp add: norm_prod_def)
 
+lemmas bounded_linear_fst_comp = bounded_linear_fst[THEN bounded_linear_compose]
+
+lemmas bounded_linear_snd_comp = bounded_linear_snd[THEN bounded_linear_compose]
+
 lemma bounded_linear_Pair:
   assumes f: "bounded_linear f"
   assumes g: "bounded_linear g"
