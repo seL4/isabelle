@@ -1449,6 +1449,12 @@ corollary closed_vimage[continuous_intros]:
   shows "closed (f -` s)"
   using closed_vimage_Int [OF assms] by simp
 
+lemma continuous_on_empty: "continuous_on {} f"
+  by (simp add: continuous_on_def)
+
+lemma continuous_on_sing: "continuous_on {x} f"
+  by (simp add: continuous_on_def at_within_def)
+
 lemma continuous_on_open_Union:
   "(\<And>s. s \<in> S \<Longrightarrow> open s) \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> continuous_on s f) \<Longrightarrow> continuous_on (\<Union>S) f"
   unfolding continuous_on_def by safe (metis open_Union at_within_open UnionI)
