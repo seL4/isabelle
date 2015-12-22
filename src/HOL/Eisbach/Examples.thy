@@ -41,13 +41,13 @@ method match_test =
      print_fact U\<close>)
 
 lemma "\<And>x. P x \<and> Q x \<Longrightarrow> A x \<and> B x \<Longrightarrow> R x y \<Longrightarrow> True"
-  apply match_test  -- \<open>Valid match, but not quite what we were expecting..\<close>
-  back  -- \<open>Can backtrack over matches, exploring all bindings\<close>
+  apply match_test  \<comment> \<open>Valid match, but not quite what we were expecting..\<close>
+  back  \<comment> \<open>Can backtrack over matches, exploring all bindings\<close>
   back
   back
   back
   back
-  back  -- \<open>Found the other conjunction\<close>
+  back  \<comment> \<open>Found the other conjunction\<close>
   back
   back
   back
@@ -57,7 +57,7 @@ text \<open>Use matching to avoid "improper" methods\<close>
 
 lemma focus_test:
   shows "\<And>x. \<forall>x. P x \<Longrightarrow> P x"
-  apply (my_spec "x :: 'a", assumption)?  -- \<open>Wrong x\<close>
+  apply (my_spec "x :: 'a", assumption)?  \<comment> \<open>Wrong x\<close>
   apply (match conclusion in "P x" for x \<Rightarrow> \<open>my_spec x, assumption\<close>)
   done
 
@@ -102,7 +102,7 @@ method my_spec_guess2 =
      print_term Q\<close>)
 
 lemma "\<forall>x. P x \<longrightarrow> Q x \<Longrightarrow> Q x \<Longrightarrow> Q x"
-  apply my_spec_guess2?  -- \<open>Fails. Note that both "P"s must match\<close>
+  apply my_spec_guess2?  \<comment> \<open>Fails. Note that both "P"s must match\<close>
   oops
 
 lemma "\<forall>x. P x \<longrightarrow> Q x \<Longrightarrow> P x \<Longrightarrow> Q x"
@@ -141,7 +141,7 @@ lemma "P"
 subsection \<open>Solves combinator\<close>
 
 lemma "A \<Longrightarrow> B \<Longrightarrow> A \<and> B"
-  apply (solves \<open>rule conjI\<close>)?  -- \<open>Doesn't solve the goal!\<close>
+  apply (solves \<open>rule conjI\<close>)?  \<comment> \<open>Doesn't solve the goal!\<close>
   apply (solves \<open>rule conjI, assumption, assumption\<close>)
   done
 
@@ -184,7 +184,7 @@ lemma "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> P y \<Longright
   done
 
 lemma "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow>  P z \<Longrightarrow> P y \<Longrightarrow> Q y"
-  apply (solves \<open>guess_all, prop_solver\<close>)  -- \<open>Try it without solve\<close>
+  apply (solves \<open>guess_all, prop_solver\<close>)  \<comment> \<open>Try it without solve\<close>
   done
 
 method guess_ex =
