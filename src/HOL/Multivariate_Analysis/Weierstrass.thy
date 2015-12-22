@@ -203,7 +203,7 @@ begin
     apply (rule cSUP_upper, assumption)
     by (simp add: bounded_imp_bdd_above compact compact_continuous_image compact_imp_bounded continuous_on_rabs)
 
-lemma normf_least: "s \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> s \<Longrightarrow> \<bar>f x\<bar> \<le> M) \<Longrightarrow> normf f \<le> M"
+  lemma normf_least: "s \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> s \<Longrightarrow> \<bar>f x\<bar> \<le> M) \<Longrightarrow> normf f \<le> M"
     by (simp add: normf_def cSUP_least)
 
 end
