@@ -2356,6 +2356,10 @@ definition deriv :: "('a \<Rightarrow> 'a::real_normed_field) \<Rightarrow> 'a \
 lemma DERIV_imp_deriv: "DERIV f x :> f' \<Longrightarrow> deriv f x = f'"
   unfolding deriv_def by (metis some_equality DERIV_unique)
 
+lemma DERIV_deriv_iff_has_field_derivative:
+  "DERIV f x :> deriv f x \<longleftrightarrow> (\<exists>f'. (f has_field_derivative f') (at x))"
+  by (auto simp: has_field_derivative_def DERIV_imp_deriv)
+  
 lemma DERIV_deriv_iff_real_differentiable:
   fixes x :: real
   shows "DERIV f x :> deriv f x \<longleftrightarrow> f differentiable at x"

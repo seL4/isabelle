@@ -855,6 +855,9 @@ lemma centre_in_cball [simp]: "x \<in> cball x e \<longleftrightarrow> 0 \<le> e
 lemma ball_subset_cball [simp,intro]: "ball x e \<subseteq> cball x e"
   by (simp add: subset_eq)
 
+lemma sphere_cball [simp,intro]: "sphere z r \<subseteq> cball z r"
+  by force
+
 lemma subset_ball[intro]: "d \<le> e \<Longrightarrow> ball x d \<subseteq> ball x e"
   by (simp add: subset_eq)
 
