@@ -20,9 +20,9 @@ sig
   val eval_method: Proof.context -> (term list * string list) * Method.text ->
     term list -> (string * thm list) list -> (Proof.context -> Method.method) list ->
     Proof.context -> Method.method
-  val method_definition: binding -> (binding * typ option * mixfix) list ->
+  val method: binding -> (binding * typ option * mixfix) list ->
     binding list -> binding list -> binding list -> Token.src -> local_theory -> local_theory
-  val method_definition_cmd: binding -> (binding * string option * mixfix) list ->
+  val method_cmd: binding -> (binding * string option * mixfix) list ->
     binding list -> binding list -> binding list -> Token.src -> local_theory -> local_theory
 end;
 
@@ -256,8 +256,7 @@ fun eval_method ctxt0 header fixes attribs methods =
 
 local
 
-fun gen_method_definition add_fixes
-    name vars uses declares methods source lthy =
+fun gen_method add_fixes name vars uses declares methods source lthy =
   let
     val (uses_internal, lthy1) = lthy
       |> Proof_Context.concealed
@@ -314,8 +313,8 @@ fun gen_method_definition add_fixes
 
 in
 
-val method_definition = gen_method_definition Proof_Context.add_fixes;
-val method_definition_cmd = gen_method_definition Proof_Context.add_fixes_cmd;
+val method = gen_method Proof_Context.add_fixes;
+val method_cmd = gen_method Proof_Context.add_fixes_cmd;
 
 end;
 
@@ -327,6 +326,6 @@ val _ =
       (Scan.optional (@{keyword "declares"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
       Parse.!!! (@{keyword "="} |-- Parse.args1 (K true)) >>
       (fn ((((name, vars), (methods, uses)), declares), src) =>
-        method_definition_cmd name vars uses declares methods src));
+        method_cmd name vars uses declares methods src));
 
 end;
