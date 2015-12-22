@@ -8,6 +8,7 @@ signature NAMED_THEOREMS =
 sig
   val member: Proof.context -> string -> thm -> bool
   val get: Proof.context -> string -> thm list
+  val clear: string -> Context.generic -> Context.generic
   val add_thm: string -> thm -> Context.generic -> Context.generic
   val del_thm: string -> thm -> Context.generic -> Context.generic
   val add: string -> attribute
@@ -54,6 +55,8 @@ fun content context =
   rev o map (Thm.transfer (Context.theory_of context)) o Item_Net.content o the_entry context;
 
 val get = content o Context.Proof;
+
+fun clear name = map_entry name (K Thm.full_rules);
 
 fun add_thm name th = map_entry name (Item_Net.update (Thm.trim_context th));
 fun del_thm name = map_entry name o Item_Net.remove;

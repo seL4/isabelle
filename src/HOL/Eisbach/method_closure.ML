@@ -182,19 +182,10 @@ fun setup_local_method binding lthy =
     |> Method.local_setup binding (Scan.succeed get_method) "(internal)"
   end;
 
-(* FIXME: In general we need the ability to override all dynamic facts.
-   This is also slow: we need Named_Theorems.only *)
-fun empty_named_thm named_thm ctxt =
-  let
-    val contents = Named_Theorems.get ctxt named_thm;
-    val attrib = snd oo Thm.proof_attributes [Named_Theorems.del named_thm];
-  in fold attrib contents ctxt end;
-
-fun dummy_named_thm named_thm ctxt =
-  let
-    val ctxt' = empty_named_thm named_thm ctxt;
-    val (_, ctxt'') = Thm.proof_attributes [Named_Theorems.add named_thm] Drule.free_dummy_thm ctxt';
-  in ctxt'' end;
+fun dummy_named_thm named_thm =
+  Context.proof_map
+    (Named_Theorems.clear named_thm
+      #> Named_Theorems.add_thm named_thm Drule.free_dummy_thm);
 
 fun parse_method_args method_names =
   let
@@ -277,7 +268,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
       (parse_term_args args --
         parse_method_args method_names --|
         (Scan.depend (fn context =>
-              Scan.succeed (Context.map_proof (fold empty_named_thm uses_internal) context, ())) --
+          Scan.succeed (fold Named_Theorems.clear uses_internal context, ())) --
          Method.sections modifiers) >> eval);
 
     val lthy3 = lthy2
