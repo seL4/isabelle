@@ -118,6 +118,7 @@ sig
     (term list list * (indexname * term) list)
   val fact_tac: Proof.context -> thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
+  val lookup_fact: Proof.context -> string -> (bool * thm list) option
   val get_fact_generic: Context.generic -> Facts.ref -> string option * thm list
   val get_fact: Proof.context -> Facts.ref -> thm list
   val get_fact_single: Proof.context -> Facts.ref -> thm
@@ -941,6 +942,16 @@ end;
 
 
 (* get facts *)
+
+fun lookup_fact ctxt name =
+  let
+    val context = Context.Proof ctxt;
+    val thy = Proof_Context.theory_of ctxt;
+  in
+    (case Facts.lookup context (facts_of ctxt) name of
+      NONE => Facts.lookup context (Global_Theory.facts_of thy) name
+    | some => some)
+  end;
 
 local
 

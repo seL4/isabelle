@@ -147,20 +147,17 @@ fun check_attrib ctxt attrib =
   in (named_thm, parser) end;
 
 
-fun evaluate_dynamic_thm ctxt name =
-  (case try (Named_Theorems.get ctxt) name of
-    SOME thms => thms
-  | NONE => Proof_Context.get_thms ctxt name);
-
-
-fun evaluate_named_theorems ctxt =
-  (Method.map_source o map o Token.map_facts)
-    (fn SOME name => K (evaluate_dynamic_thm ctxt name) | NONE => I);
-
 fun method_evaluate text ctxt facts =
-  let val ctxt' = Config.put Method.closure false ctxt in
-    Method.RUNTIME (fn st => Method.evaluate (evaluate_named_theorems ctxt' text) ctxt' facts st)
-  end;
+  let
+    val eval_named_theorems =
+      (Method.map_source o map o Token.map_facts)
+        (fn SOME name =>
+              (case Proof_Context.lookup_fact ctxt name of
+                SOME (false, ths) => K ths
+              | _ => I)
+          | NONE => I);
+    val ctxt' = Config.put Method.closure false ctxt;
+  in Method.RUNTIME (fn st => Method.evaluate (eval_named_theorems text) ctxt' facts st) end;
 
 fun method_instantiate env text =
   let
