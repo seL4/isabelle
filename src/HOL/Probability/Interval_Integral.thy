@@ -302,6 +302,19 @@ next
              split: split_indicator)
 qed
 
+lemma interval_lebesgue_integral_0_infty:
+  "interval_lebesgue_integrable M 0 \<infinity> f \<longleftrightarrow> set_integrable M {0<..} f"
+  "interval_lebesgue_integral M 0 \<infinity> f = (LINT x:{0<..}|M. f x)"
+  unfolding zero_ereal_def 
+  by (auto simp: interval_lebesgue_integral_le_eq interval_lebesgue_integrable_def)
+
+lemma interval_integral_to_infinity_eq: "(LINT x=ereal a..\<infinity> | M. f x) = (LINT x : {a<..} | M. f x)"
+  unfolding interval_lebesgue_integral_def by auto
+
+lemma interval_integrable_to_infinity_eq: "(interval_lebesgue_integrable M a \<infinity> f) = 
+  (set_integrable M {a<..} f)"
+  unfolding interval_lebesgue_integrable_def by auto
+
 (*
     Basic properties of integration over an interval wrt lebesgue measure.
 *)
