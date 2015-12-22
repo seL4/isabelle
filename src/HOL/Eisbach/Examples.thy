@@ -154,7 +154,7 @@ method prop_solver declares intros elims subst =
   (assumption |
     rule intros | erule elims |
     subst subst | subst (asm) subst |
-    (erule notE; solves \<open>prop_solver\<close>))+
+    (erule notE; solves prop_solver))+
 
 lemmas [intros] =
   conjI
@@ -199,7 +199,7 @@ lemma "P x \<Longrightarrow> \<exists>x. P x"
   done
 
 method fol_solver =
-  ((guess_ex | guess_all | prop_solver) ; solves \<open>fol_solver\<close>)
+  ((guess_ex | guess_all | prop_solver); solves fol_solver)
 
 declare
   allI [intros]
@@ -241,7 +241,7 @@ lemma
   assumes imps: "A \<Longrightarrow> B \<Longrightarrow> C" "D \<Longrightarrow> C" "E \<Longrightarrow> D \<Longrightarrow> A"
   shows "(A \<longrightarrow> B \<longrightarrow> C) \<and> (D \<longrightarrow> C)"
     by (match imps[uncurry] in H[curry]:"_ \<Longrightarrow> C" (cut, multi) \<Rightarrow>
-                    \<open>match H in "E \<Longrightarrow> _" \<Rightarrow> \<open>fail\<close>
+                    \<open>match H in "E \<Longrightarrow> _" \<Rightarrow> fail
                                       \<bar> _ \<Rightarrow> \<open>simp add: H\<close>\<close>)
 
 end

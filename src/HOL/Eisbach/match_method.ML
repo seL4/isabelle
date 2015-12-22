@@ -94,9 +94,9 @@ fun parse_named_pats match_kind =
         else
           let val b = #1 (the opt_dyn)
           in error ("Cannot bind fact name in term match" ^ Position.here (pos_of b)) end)) --
-  Scan.lift (for_fixes -- (@{keyword "\<Rightarrow>"} |-- Parse.token Parse.cartouche))
-  >> (fn ((ctxt, ts), (fixes, cartouche)) =>
-    (case Token.get_value cartouche of
+  Scan.lift (for_fixes -- (@{keyword "\<Rightarrow>"} |-- Parse.token Parse.text))
+  >> (fn ((ctxt, ts), (fixes, body)) =>
+    (case Token.get_value body of
       SOME (Token.Source src) =>
         let
           val text = Method_Closure.read ctxt src;
@@ -198,7 +198,7 @@ fun parse_named_pats match_kind =
             |> (fn ctxt => fold2 upd_ctxt binds pats ([], ctxt) |> apfst rev)
             ||> Proof_Context.restore_mode ctxt;
 
-          val (text, src) = Method_Closure.read_closure_input ctxt6 (Token.input_of cartouche);
+          val (text, src) = Method_Closure.read_closure_input ctxt6 (Token.input_of body);
 
           val morphism =
             Variable.export_morphism ctxt6
@@ -239,7 +239,7 @@ fun parse_named_pats match_kind =
           val binds'' = (binds' ~~ match_args) ~~ pats';
 
           val src' = map (Token.transform morphism) src;
-          val _ = Token.assign (SOME (Token.Source src')) cartouche;
+          val _ = Token.assign (SOME (Token.Source src')) body;
         in
           (binds'', real_fixes', text)
         end));

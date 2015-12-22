@@ -284,7 +284,7 @@ text \<open>
   further defined in @{cite "isabelle-isar-ref"}.
 
   @{rail \<open>
-    @@{method match} kind @'in' (pattern '\<Rightarrow>' cartouche + '\<bar>')
+    @@{method match} kind @'in' (pattern '\<Rightarrow>' @{syntax text} + '\<bar>')
     ;
     kind:
       (@'conclusion' | @'premises' ('(' 'local' ')')? |

@@ -90,7 +90,7 @@ fun read_closure_input ctxt =
 
 
 val method_text =
-  Args.context -- Scan.lift (Parse.token Parse.cartouche) >> (fn (ctxt, tok) =>
+  Args.context -- Scan.lift (Parse.token Parse.text) >> (fn (ctxt, tok) =>
     (case Token.get_value tok of
       SOME (Token.Source src) => read ctxt src
     | _ =>

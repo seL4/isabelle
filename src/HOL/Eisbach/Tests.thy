@@ -21,7 +21,7 @@ lemma
   apply foo
   done
 
-method abs_used for P = (match (P) in "\<lambda>a. ?Q" \<Rightarrow> \<open>fail\<close> \<bar> _ \<Rightarrow> \<open>-\<close>)
+method abs_used for P = (match (P) in "\<lambda>a. ?Q" \<Rightarrow> fail \<bar> _ \<Rightarrow> -)
 
 
 subsection \<open>Match Tests\<close>
@@ -74,10 +74,10 @@ begin
   fix C
   have "(\<And>x :: 'a. A x)  \<Longrightarrow> (\<And>z. B z) \<Longrightarrow> A y \<Longrightarrow> B x \<and> B x \<and> A y"
     apply (intro conjI)
-    apply (match premises in Y: "\<And>z :: 'a. A z" and Y'[intro]:"\<And>z :: 'b. B z" \<Rightarrow> \<open>fastforce\<close>)
-    apply (match premises in Y: "\<And>z :: 'a. A z"  \<Rightarrow> \<open>match premises in Y'[intro]:"\<And>z :: 'b. B z" \<Rightarrow> \<open>fastforce\<close>\<close>)
+    apply (match premises in Y: "\<And>z :: 'a. A z" and Y'[intro]:"\<And>z :: 'b. B z" \<Rightarrow> fastforce)
+    apply (match premises in Y: "\<And>z :: 'a. A z"  \<Rightarrow> \<open>match premises in Y'[intro]:"\<And>z :: 'b. B z" \<Rightarrow> fastforce\<close>)
     apply (match premises in Y[thin]: "\<And>z :: 'a. A z"  \<Rightarrow> \<open>(match premises in Y':"\<And>z :: 'a. A z" \<Rightarrow> \<open>print_fact Y,fail\<close> \<bar> _ \<Rightarrow> \<open>print_fact Y\<close>)\<close>)
-    (*apply (match premises in Y: "\<And>z :: 'b. B z"  \<Rightarrow> \<open>(match premises in Y'[thin]:"\<And>z :: 'b. B z" \<Rightarrow> \<open>(match premises in Y':"\<And>z :: 'a. A z" \<Rightarrow> \<open>fail\<close> \<bar> Y': _ \<Rightarrow> \<open>-\<close>)\<close>)\<close>)*)
+    (*apply (match premises in Y: "\<And>z :: 'b. B z"  \<Rightarrow> \<open>(match premises in Y'[thin]:"\<And>z :: 'b. B z" \<Rightarrow> \<open>(match premises in Y':"\<And>z :: 'a. A z" \<Rightarrow> fail \<bar> Y': _ \<Rightarrow> -)\<close>)\<close>)*)
     apply assumption
     done
 
@@ -97,14 +97,14 @@ begin
   fix A B C x
   have "(\<And>x :: 'a. A x) \<Longrightarrow> (\<And>y :: 'a. B y) \<Longrightarrow> C y \<Longrightarrow> (A x \<and> B y \<and> C y)"
     apply (match premises in Y[thin]: "\<And>z :: 'a. ?A z" (multi) \<Rightarrow> \<open>intro conjI, (rule Y)+\<close>)
-    apply (match premises in Y[thin]: "\<And>z :: 'a. ?A z" (multi) \<Rightarrow> \<open>fail\<close> \<bar> "C y" \<Rightarrow> \<open>-\<close>) (* multi-match must bind something *)
+    apply (match premises in Y[thin]: "\<And>z :: 'a. ?A z" (multi) \<Rightarrow> fail \<bar> "C y" \<Rightarrow> -) (* multi-match must bind something *)
     apply (match premises in Y: "C y" \<Rightarrow> \<open>rule Y\<close>)
     done
 
   fix A B C x
   have "(\<And>x :: 'a. A x) \<Longrightarrow> (\<And>y :: 'a. B y) \<Longrightarrow> C y \<Longrightarrow> (A x \<and> B y \<and> C y)"
     apply (match premises in Y[thin]: "\<And>z. ?A z" (multi) \<Rightarrow> \<open>intro conjI, (rule Y)+\<close>)
-    apply (match premises in Y[thin]: "\<And>z. ?A z" (multi) \<Rightarrow> \<open>fail\<close> \<bar> "C y" \<Rightarrow> \<open>-\<close>) (* multi-match must bind something *)
+    apply (match premises in Y[thin]: "\<And>z. ?A z" (multi) \<Rightarrow> fail \<bar> "C y" \<Rightarrow> -) (* multi-match must bind something *)
     apply (match premises in Y: "C y" \<Rightarrow> \<open>rule Y\<close>)
     done
 
@@ -117,9 +117,9 @@ begin
   fix A B C x
   have "(\<And>y :: 'a. B y \<and> C y) \<Longrightarrow> (\<And>x :: 'a. A x \<and> B x) \<Longrightarrow> (\<And>y :: 'a. A y \<and> C y) \<Longrightarrow> C y \<Longrightarrow> (A x \<and> B y \<and> C y)"
     apply (match premises in Y: "\<And>x :: 'a. P x \<and> ?U x" (multi) for P \<Rightarrow>
-                                  \<open>match (P) in B \<Rightarrow> \<open>fail\<close>
-                                        \<bar> "\<lambda>a. B" \<Rightarrow> \<open>fail\<close>
-                                        \<bar> _ \<Rightarrow> \<open>-\<close>,
+                                  \<open>match (P) in B \<Rightarrow> fail
+                                        \<bar> "\<lambda>a. B" \<Rightarrow> fail
+                                        \<bar> _ \<Rightarrow> -,
                                   intro conjI, (rule Y[THEN conjunct1])\<close>)
     apply (rule dup)
     apply (match premises in Y':"\<And>x :: 'a. ?U x \<and> Q x" and Y: "\<And>x :: 'a. Q x \<and> ?U x" (multi)  for Q \<Rightarrow> \<open>insert Y[THEN conjunct1]\<close>)
@@ -139,7 +139,7 @@ begin
     apply (match asms in Y: "\<And>z a. ?A (z :: 'a) (a :: 'a) \<and> R" (multi) for R \<Rightarrow> \<open>rule Y[where a=x,THEN conjunct1]\<close>)
     apply (match asms in Y: "\<And>z a. ?A (z :: 'a) (a :: 'a) \<and> R" (multi) for R \<Rightarrow> \<open>rule Y[where a=x,THEN conjunct1]\<close>)
     apply (match asms in Y: "\<And>z a. ?A (z :: 'a) (a :: 'a) \<and> R" (multi) for R \<Rightarrow> \<open>rule Y[where z=x,THEN conjunct1]\<close>)
-    apply (match asms in Y: "\<And>z a. A (z :: 'a) (a :: 'a) \<and> R"  for R \<Rightarrow> \<open>fail\<close> \<bar> _ \<Rightarrow> \<open>-\<close>)
+    apply (match asms in Y: "\<And>z a. A (z :: 'a) (a :: 'a) \<and> R"  for R \<Rightarrow> fail \<bar> _ \<Rightarrow> -)
     apply (rule asms[THEN conjunct1])
     done
 
@@ -188,7 +188,7 @@ begin
   assume X: "A \<and> B" "A \<and> C" C
   have "A \<and> B \<and> C"
     by (match X in H: "A \<and> ?H" (multi, cut) \<Rightarrow>
-          \<open>match H in "A \<and> C" and "A \<and> B" \<Rightarrow> \<open>fail\<close>\<close>
+          \<open>match H in "A \<and> C" and "A \<and> B" \<Rightarrow> fail\<close>
         | simp add: X)
 
 
@@ -199,10 +199,10 @@ begin
   have "(\<And>x. A x \<and> B) \<Longrightarrow> B \<and> C \<Longrightarrow> C"
     apply (match premises in H:"\<And>x. A x \<and> B" \<Rightarrow>
                      \<open>match premises in H'[thin]: "\<And>x. A x \<and> B" \<Rightarrow>
-                      \<open>match premises in H'':"\<And>x. A x \<and> B" \<Rightarrow> \<open>fail\<close>
-                                         \<bar> _ \<Rightarrow> \<open>-\<close>\<close>
-                      ,match premises in H'':"\<And>x. A x \<and> B" \<Rightarrow> \<open>fail\<close> \<bar> _ \<Rightarrow> \<open>-\<close>\<close>)
-    apply (match premises in H:"\<And>x. A x \<and> B" \<Rightarrow> \<open>fail\<close>
+                      \<open>match premises in H'':"\<And>x. A x \<and> B" \<Rightarrow> fail
+                                         \<bar> _ \<Rightarrow> -\<close>
+                      ,match premises in H'':"\<And>x. A x \<and> B" \<Rightarrow> fail \<bar> _ \<Rightarrow> -\<close>)
+    apply (match premises in H:"\<And>x. A x \<and> B" \<Rightarrow> fail
                               \<bar> H':_ \<Rightarrow> \<open>rule H'[THEN conjunct2]\<close>)
     done
 
@@ -214,7 +214,7 @@ begin
   assume asms: "C \<and> D"
   have "B \<and> C \<Longrightarrow> C"
     by (match premises in _ \<Rightarrow> \<open>insert asms,
-            match premises (local) in "B \<and> C" \<Rightarrow> \<open>fail\<close>
+            match premises (local) in "B \<and> C" \<Rightarrow> fail
                                   \<bar> H:"C \<and> D" \<Rightarrow> \<open>rule H[THEN conjunct1]\<close>\<close>)
 end
 
@@ -233,13 +233,13 @@ schematic_goal "?A x \<Longrightarrow> A x"
 lemma
   assumes A: "P \<and> Q"
   shows "P"
-  by ((match A in "P \<and> Q" \<Rightarrow> \<open>fail\<close> \<bar> "?H" \<Rightarrow> \<open>-\<close>) | simp add: A)
+  by ((match A in "P \<and> Q" \<Rightarrow> fail \<bar> "?H" \<Rightarrow> -) | simp add: A)
 
 lemma
   assumes A: "D \<and> C" "A \<and> B" "A \<longrightarrow> B"
   shows "A"
   apply ((match A in U: "P \<and> Q" (cut) and "P' \<longrightarrow> Q'" for P Q P' Q' \<Rightarrow>
-      \<open>simp add: U\<close> \<bar> "?H" \<Rightarrow> \<open>-\<close>) | -)
+      \<open>simp add: U\<close> \<bar> "?H" \<Rightarrow> -) | -)
   apply (simp add: A)
   done
 
@@ -283,8 +283,8 @@ method recursion_example' for A :: bool and B :: bool uses facts =
   (match facts in
     H: "A" and H': "B" \<Rightarrow> \<open>recursion_example' "A" "B" facts: H TrueI\<close>
   \<bar> "A" and "True" \<Rightarrow> \<open>recursion_example' "A" "B" facts: TrueI\<close>
-  \<bar> "True" \<Rightarrow> \<open>-\<close>
-  \<bar> "PROP ?P" \<Rightarrow> \<open>fail\<close>)
+  \<bar> "True" \<Rightarrow> -
+  \<bar> "PROP ?P" \<Rightarrow> fail)
 
 lemma
   assumes asms: "A" "B"
@@ -460,9 +460,9 @@ end
 
 subsection \<open>Proper context for method parameters\<close>
 
-method add_simp methods m uses f = (match f in H[simp]:_ \<Rightarrow> \<open>m\<close>)
+method add_simp methods m uses f = (match f in H[simp]:_ \<Rightarrow> m)
 
-method add_my_thms methods m uses f = (match f in H[my_thms_named]:_ \<Rightarrow> \<open>m\<close>)
+method add_my_thms methods m uses f = (match f in H[my_thms_named]:_ \<Rightarrow> m)
 
 method rule_my_thms = (rule my_thms_named)
 method rule_my_thms' declares my_thms_named = (rule my_thms_named)
@@ -472,9 +472,9 @@ lemma
   shows
   "(A \<or> B) \<and> A \<and> A \<and> A"
   apply (intro conjI)
-  apply (add_simp \<open>add_simp \<open>simp\<close> f: B\<close> f: A)
-  apply (add_my_thms \<open>rule_my_thms\<close> f:A)
-  apply (add_my_thms \<open>rule_my_thms'\<close> f:A)
+  apply (add_simp \<open>add_simp simp f: B\<close> f: A)
+  apply (add_my_thms rule_my_thms f:A)
+  apply (add_my_thms rule_my_thms' f:A)
   apply (add_my_thms \<open>rule my_thms_named\<close> f:A)
   done
 
@@ -483,7 +483,7 @@ subsection \<open>Shallow parser tests\<close>
 method all_args for A B methods m1 m2 uses f1 f2 declares my_thms_named = fail
 
 lemma True
-  by (all_args True False \<open>-\<close> \<open>fail\<close> f1: TrueI f2: TrueI my_thms_named: TrueI | rule TrueI)
+  by (all_args True False - fail f1: TrueI f2: TrueI my_thms_named: TrueI | rule TrueI)
 
 subsection \<open>Method name internalization test\<close>
 
