@@ -147,10 +147,6 @@ fun check_attrib ctxt attrib =
   in (named_thm, parser) end;
 
 
-fun instantiate_text env text =
-  let val morphism = Morphism.term_morphism "instantiate_text" (Envir.norm_term env);
-  in (Method.map_source o map) (Token.transform morphism) text end;
-
 fun evaluate_dynamic_thm ctxt name =
   (case try (Named_Theorems.get ctxt) name of
     SOME thms => thms
@@ -166,11 +162,11 @@ fun method_evaluate text ctxt facts =
     Method.RUNTIME (fn st => Method.evaluate (evaluate_named_theorems ctxt' text) ctxt' facts st)
   end;
 
-fun evaluate_method_def fix_env raw_text ctxt =
+fun method_instantiate env text =
   let
-    val text = raw_text
-      |> instantiate_text fix_env;
-  in method_evaluate text ctxt end;
+    val morphism = Morphism.term_morphism "instantiate_text" (Envir.norm_term env);
+    val text' = (Method.map_source o map) (Token.transform morphism) text;
+  in method_evaluate text' end;
 
 fun setup_local_method binding lthy =
   let
@@ -236,9 +232,9 @@ fun eval_method ctxt0 header fixes attribs methods =
 
     val setup_ctxt = fold add_thms attribs
       #> fold update_dynamic_method (hmethods ~~ methods)
-      #> put_recursive_method (fn fixes => evaluate_method_def (match fixes) text);
+      #> put_recursive_method (fn xs => method_instantiate (match xs) text);
   in
-    fn ctxt => evaluate_method_def (match fixes) text (setup_ctxt ctxt)
+    fn ctxt => method_instantiate (match fixes) text (setup_ctxt ctxt)
   end;
 
 
@@ -290,7 +286,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     val term_args' = map (Morphism.term morphism) term_args;
 
     fun real_exec ts ctxt =
-      evaluate_method_def (match_term_args ctxt term_args' ts) text' ctxt;
+      method_instantiate (match_term_args ctxt term_args' ts) text' ctxt;
     val real_parser =
       parser term_args' (fn (fixes, decl) => fn ctxt =>
         real_exec fixes (put_recursive_method real_exec (decl ctxt)));
