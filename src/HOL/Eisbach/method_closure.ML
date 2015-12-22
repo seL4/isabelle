@@ -182,8 +182,6 @@ fun setup_local_method binding lthy =
     |> Method.local_setup binding (Scan.succeed get_method) "(internal)"
   end;
 
-fun setup_local_fact binding = Named_Theorems.declare binding "";
-
 (* FIXME: In general we need the ability to override all dynamic facts.
    This is also slow: we need Named_Theorems.only *)
 fun empty_named_thm named_thm ctxt =
@@ -252,20 +250,27 @@ fun eval_method ctxt0 header fixes attribs methods =
     fn ctxt => evaluate_method_def (match fixes) text (setup_ctxt ctxt)
   end;
 
-fun gen_method_definition add_fixes name vars uses attribs methods source lthy =
+
+
+(** Isar command **)
+
+local
+
+fun gen_method_definition add_fixes
+    name vars uses declares methods source lthy =
   let
-    val (uses_nms, lthy1) = lthy
+    val (uses_internal, lthy1) = lthy
       |> Proof_Context.concealed
       |> Local_Theory.open_target |-> Proof_Context.private_scope
       |> Local_Theory.map_background_naming (Name_Space.add_path (Binding.name_of name))
       |> Config.put Method.old_section_parser true
       |> fold setup_local_method methods
-      |> fold_map setup_local_fact uses;
+      |> fold_map (fn b => Named_Theorems.declare b "") uses;
 
     val (term_args, lthy2) = lthy1
       |> add_fixes vars |-> fold_map Proof_Context.inferred_param |>> map Free;
 
-    val (named_thms, modifiers) = map (check_attrib lthy2) (attribs @ uses) |> split_list;
+    val (named_thms, modifiers) = map (check_attrib lthy2) (declares @ uses) |> split_list;
     val self_name :: method_names = map (Local_Theory.full_name lthy2) (name :: methods);
 
     fun parser args eval =
@@ -273,7 +278,7 @@ fun gen_method_definition add_fixes name vars uses attribs methods source lthy =
       (parse_term_args args --
         parse_method_args method_names --|
         (Scan.depend (fn context =>
-              Scan.succeed (Context.map_proof (fold empty_named_thm uses_nms) context, ())) --
+              Scan.succeed (Context.map_proof (fold empty_named_thm uses_internal) context, ())) --
          Method.sections modifiers) >> eval);
 
     val lthy3 = lthy2
@@ -307,8 +312,12 @@ fun gen_method_definition add_fixes name vars uses attribs methods source lthy =
     |> add_method name ((term_args', named_thms, method_names), text')
   end;
 
+in
+
 val method_definition = gen_method_definition Proof_Context.add_fixes;
 val method_definition_cmd = gen_method_definition Proof_Context.add_fixes_cmd;
+
+end;
 
 val _ =
   Outer_Syntax.local_theory @{command_keyword method} "Eisbach method definition"
@@ -316,8 +325,8 @@ val _ =
       ((Scan.optional (@{keyword "methods"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
         (Scan.optional (@{keyword "uses"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) [])) --
       (Scan.optional (@{keyword "declares"} |-- Parse.!!! (Scan.repeat1 Parse.binding)) []) --
-      Parse.!!! (@{keyword "="} |-- Parse.args1 (K true))
-      >> (fn ((((name, vars), (methods, uses)), attribs), src) =>
-        method_definition_cmd name vars uses attribs methods src));
+      Parse.!!! (@{keyword "="} |-- Parse.args1 (K true)) >>
+      (fn ((((name, vars), (methods, uses)), declares), src) =>
+        method_definition_cmd name vars uses declares methods src));
 
 end;
