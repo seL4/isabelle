@@ -27,7 +27,6 @@ session RAW =
     "RAW/overloading_smlnj.ML"
     "RAW/polyml-5.5.2.ML"
     "RAW/polyml-5.6.ML"
-    "RAW/polyml-5.6.ML"
     "RAW/polyml.ML"
     "RAW/pp_dummy.ML"
     "RAW/proper_int.ML"
