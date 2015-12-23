@@ -594,17 +594,26 @@ qed
 
 subsection \<open>concrete bounded linear functions\<close>
 
-lemma bounded_linear_bounded_bilinear_blinfun_applyI: --"TODO: transfer rule!"
-  assumes n: "bounded_bilinear (\<lambda>i x. (blinfun_apply (f x) i))"
-  shows "bounded_linear f"
-proof (unfold_locales, safe intro!: blinfun_eqI)
-  fix i
-  interpret bounded_bilinear "\<lambda>i x. f x i" by fact
-  show "f (x + y) i = (f x + f y) i" "f (r *\<^sub>R x) i = (r *\<^sub>R f x) i" for r x y
-    by (auto intro!: blinfun_eqI simp: blinfun.bilinear_simps)
-  from _ nonneg_bounded show "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
-    by (rule ex_reg) (auto intro!: onorm_bound simp: norm_blinfun.rep_eq assms ac_simps)
-qed
+lemma transfer_bounded_bilinear_bounded_linearI:
+  assumes "g = (\<lambda>i x. (blinfun_apply (f i) x))"
+  shows "bounded_bilinear g = bounded_linear f"
+proof
+  assume "bounded_bilinear g"
+  then interpret bounded_bilinear f by (simp add: assms)
+  show "bounded_linear f"
+  proof (unfold_locales, safe intro!: blinfun_eqI)
+    fix i
+    show "f (x + y) i = (f x + f y) i" "f (r *\<^sub>R x) i = (r *\<^sub>R f x) i" for r x y
+      by (auto intro!: blinfun_eqI simp: blinfun.bilinear_simps)
+    from _ nonneg_bounded show "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
+      by (rule ex_reg) (auto intro!: onorm_bound simp: norm_blinfun.rep_eq ac_simps)
+  qed
+qed (auto simp: assms intro!: blinfun.comp)
+
+lemma transfer_bounded_bilinear_bounded_linear[transfer_rule]:
+  "(rel_fun (rel_fun op = (pcr_blinfun op = op =)) op =) bounded_bilinear bounded_linear"
+  by (auto simp: pcr_blinfun_def cr_blinfun_def rel_fun_def OO_def
+    intro!: transfer_bounded_bilinear_bounded_linearI)
 
 context bounded_bilinear
 begin
@@ -614,14 +623,14 @@ lift_definition prod_left::"'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'c" is "(\
 declare prod_left.rep_eq[simp]
 
 lemma bounded_linear_prod_left[bounded_linear]: "bounded_linear prod_left"
-  by (rule bounded_linear_bounded_bilinear_blinfun_applyI) (auto simp: bounded_bilinear_axioms)
+  by transfer (rule flip)
 
 lift_definition prod_right::"'a \<Rightarrow> 'b \<Rightarrow>\<^sub>L 'c" is "(\<lambda>a b. prod a b)"
   by (rule bounded_linear_right)
 declare prod_right.rep_eq[simp]
 
 lemma bounded_linear_prod_right[bounded_linear]: "bounded_linear prod_right"
-  by (rule bounded_linear_bounded_bilinear_blinfun_applyI) (auto simp: flip)
+  by transfer (rule bounded_bilinear_axioms)
 
 end
 
@@ -678,8 +687,7 @@ lift_definition blinfun_inner_right::"'a::real_inner \<Rightarrow> 'a \<Rightarr
 declare blinfun_inner_right.rep_eq[simp]
 
 lemma bounded_linear_blinfun_inner_right[bounded_linear]: "bounded_linear blinfun_inner_right"
-  by (rule bounded_linear_bounded_bilinear_blinfun_applyI)
-    (auto simp: bounded_bilinear.flip[OF bounded_bilinear_inner])
+  by transfer (rule bounded_bilinear_inner)
 
 
 lift_definition blinfun_inner_left::"'a::real_inner \<Rightarrow> 'a \<Rightarrow>\<^sub>L real" is "\<lambda>x y. y \<bullet> x"
@@ -687,7 +695,7 @@ lift_definition blinfun_inner_left::"'a::real_inner \<Rightarrow> 'a \<Rightarro
 declare blinfun_inner_left.rep_eq[simp]
 
 lemma bounded_linear_blinfun_inner_left[bounded_linear]: "bounded_linear blinfun_inner_left"
-  by (rule bounded_linear_bounded_bilinear_blinfun_applyI) (auto simp: bounded_bilinear_inner)
+  by transfer (rule bounded_bilinear.flip[OF bounded_bilinear_inner])
 
 
 lift_definition blinfun_scaleR_right::"real \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'a::real_normed_vector" is "op *\<^sub>R"
@@ -695,8 +703,7 @@ lift_definition blinfun_scaleR_right::"real \<Rightarrow> 'a \<Rightarrow>\<^sub
 declare blinfun_scaleR_right.rep_eq[simp]
 
 lemma bounded_linear_blinfun_scaleR_right[bounded_linear]: "bounded_linear blinfun_scaleR_right"
-  by (rule bounded_linear_bounded_bilinear_blinfun_applyI)
-    (auto simp: bounded_bilinear.flip[OF bounded_bilinear_scaleR])
+  by transfer (rule bounded_bilinear_scaleR)
 
 
 lift_definition blinfun_scaleR_left::"'a::real_normed_vector \<Rightarrow> real \<Rightarrow>\<^sub>L 'a" is "\<lambda>x y. y *\<^sub>R x"
@@ -704,7 +711,7 @@ lift_definition blinfun_scaleR_left::"'a::real_normed_vector \<Rightarrow> real 
 lemmas [simp] = blinfun_scaleR_left.rep_eq
 
 lemma bounded_linear_blinfun_scaleR_left[bounded_linear]: "bounded_linear blinfun_scaleR_left"
-  by (rule bounded_linear_bounded_bilinear_blinfun_applyI) (auto simp: bounded_bilinear_scaleR)
+  by transfer (rule bounded_bilinear.flip[OF bounded_bilinear_scaleR])
 
 
 lift_definition blinfun_mult_right::"'a \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'a::real_normed_algebra" is "op *"
@@ -712,8 +719,7 @@ lift_definition blinfun_mult_right::"'a \<Rightarrow> 'a \<Rightarrow>\<^sub>L '
 declare blinfun_mult_right.rep_eq[simp]
 
 lemma bounded_linear_blinfun_mult_right[bounded_linear]: "bounded_linear blinfun_mult_right"
-  by (rule bounded_linear_bounded_bilinear_blinfun_applyI)
-    (auto simp: bounded_bilinear.flip[OF bounded_bilinear_mult])
+  by transfer (rule bounded_bilinear_mult)
 
 
 lift_definition blinfun_mult_left::"'a::real_normed_algebra \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'a" is "\<lambda>x y. y * x"
@@ -721,6 +727,6 @@ lift_definition blinfun_mult_left::"'a::real_normed_algebra \<Rightarrow> 'a \<R
 lemmas [simp] = blinfun_mult_left.rep_eq
 
 lemma bounded_linear_blinfun_mult_left[bounded_linear]: "bounded_linear blinfun_mult_left"
-  by (rule bounded_linear_bounded_bilinear_blinfun_applyI) (auto simp: bounded_bilinear_mult)
+  by transfer (rule bounded_bilinear.flip[OF bounded_bilinear_mult])
 
 end

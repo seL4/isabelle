@@ -827,18 +827,6 @@ proof -
     by (rule Zfun_imp_Zfun)
 qed
 
-lemma (in bounded_bilinear) flip:
-  "bounded_bilinear (\<lambda>x y. y ** x)"
-  apply standard
-  apply (rule add_right)
-  apply (rule add_left)
-  apply (rule scaleR_right)
-  apply (rule scaleR_left)
-  apply (subst mult.commute)
-  using bounded
-  apply blast
-  done
-
 lemma (in bounded_bilinear) Bfun_prod_Zfun:
   assumes f: "Bfun f F"
   assumes g: "Zfun g F"

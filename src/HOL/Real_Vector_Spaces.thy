@@ -1435,6 +1435,43 @@ lemma prod_diff_prod:
   "(x ** y - a ** b) = (x - a) ** (y - b) + (x - a) ** b + a ** (y - b)"
 by (simp add: diff_left diff_right)
 
+lemma flip: "bounded_bilinear (\<lambda>x y. y ** x)"
+  apply standard
+  apply (rule add_right)
+  apply (rule add_left)
+  apply (rule scaleR_right)
+  apply (rule scaleR_left)
+  apply (subst mult.commute)
+  using bounded
+  apply blast
+  done
+
+lemma comp1:
+  assumes "bounded_linear g"
+  shows "bounded_bilinear (\<lambda>x. op ** (g x))"
+proof unfold_locales
+  interpret g: bounded_linear g by fact
+  show "\<And>a a' b. g (a + a') ** b = g a ** b + g a' ** b"
+    "\<And>a b b'. g a ** (b + b') = g a ** b + g a ** b'"
+    "\<And>r a b. g (r *\<^sub>R a) ** b = r *\<^sub>R (g a ** b)"
+    "\<And>a r b. g a ** (r *\<^sub>R b) = r *\<^sub>R (g a ** b)"
+    by (auto simp: g.add add_left add_right g.scaleR scaleR_left scaleR_right)
+  from g.nonneg_bounded nonneg_bounded
+  obtain K L
+  where nn: "0 \<le> K" "0 \<le> L"
+    and K: "\<And>x. norm (g x) \<le> norm x * K"
+    and L: "\<And>a b. norm (a ** b) \<le> norm a * norm b * L"
+    by auto
+  have "norm (g a ** b) \<le> norm a * K * norm b * L" for a b
+    by (auto intro!:  order_trans[OF K] order_trans[OF L] mult_mono simp: nn)
+  then show "\<exists>K. \<forall>a b. norm (g a ** b) \<le> norm a * norm b * K"
+    by (auto intro!: exI[where x="K * L"] simp: ac_simps)
+qed
+
+lemma comp:
+  "bounded_linear f \<Longrightarrow> bounded_linear g \<Longrightarrow> bounded_bilinear (\<lambda>x y. f x ** g y)"
+  by (rule bounded_bilinear.flip[OF bounded_bilinear.comp1[OF bounded_bilinear.flip[OF comp1]]])
+
 end
 
 lemma bounded_linear_ident[simp]: "bounded_linear (\<lambda>x. x)"
