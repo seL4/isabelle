@@ -65,16 +65,12 @@ val put_recursive_method = Local_Data.map o apsnd o K;
 (* read method text *)
 
 fun read ctxt src =
-  let
-    val parser =
-      Parse.!!! (Method.parser 0 --| Scan.ahead Parse.eof)
-      >> apfst (Method.check_text ctxt);
-  in
-    (case Scan.read Token.stopper parser src of
-      SOME (text, range) => (Method.report (text, range); text)
-    | NONE =>
-        error ("Failed to parse method" ^ Position.here (Position.set_range (Token.range_of src))))
-  end;
+  (case Scan.read Token.stopper (Parse.!!! (Method.parser 0 --| Scan.ahead Parse.eof)) src of
+    SOME (text, range) =>
+      if Method.checked_text text then text
+      else (Method.report (text, range); Method.check_text ctxt text)
+  | NONE =>
+      error ("Failed to parse method" ^ Position.here (Position.set_range (Token.range_of src))));
 
 fun read_closure ctxt src0 =
   let
