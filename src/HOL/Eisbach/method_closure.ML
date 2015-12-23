@@ -231,19 +231,19 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     val (named_thms, modifiers) = map (check_attrib lthy2) (declares @ uses) |> split_list;
     val method_names = map (Local_Theory.full_name lthy2) methods;
 
-    fun parser args eval =
+    fun parser args =
       apfst (Config.put_generic Method.old_section_parser true) #>
       (parse_term_args args --
         parse_method_args method_names --|
         (Scan.depend (fn context =>
           Scan.succeed (fold Named_Theorems.clear uses_internal context, ())) --
-         Method.sections modifiers) >> eval);
+         Method.sections modifiers));
 
     val lthy3 = lthy2
       |> fold dummy_named_thm named_thms
       |> Method.local_setup (Binding.make (Binding.name_of name, Position.none))
-        (parser term_args
-          (fn (fixes, decl) => fn ctxt => get_recursive_method ctxt fixes (decl ctxt))) "(internal)";
+        (parser term_args >> (fn (fixes, decl) =>
+          fn ctxt => get_recursive_method ctxt fixes (decl ctxt))) "(internal)";
 
     val (text, src) = read_closure lthy3 source;
 
@@ -260,7 +260,7 @@ fun gen_method add_fixes name vars uses declares methods source lthy =
     fun real_exec ts ctxt =
       method_instantiate (match_term_args ctxt term_args' ts) text' ctxt;
     val real_parser =
-      parser term_args' (fn (fixes, decl) => fn ctxt =>
+      parser term_args' >> (fn (fixes, decl) => fn ctxt =>
         real_exec fixes (put_recursive_method real_exec (decl ctxt)));
   in
     lthy3
