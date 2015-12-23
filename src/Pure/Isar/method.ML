@@ -73,6 +73,7 @@ sig
   val check_name: Proof.context -> xstring * Position.T -> string
   val check_src: Proof.context -> Token.src -> Token.src
   val check_text: Proof.context -> text -> text
+  val checked_text: text -> bool
   val method_syntax: (Proof.context -> method) context_parser ->
     Token.src -> Proof.context -> method
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
@@ -438,6 +439,10 @@ fun check_src ctxt =
 fun check_text ctxt (Source src) = Source (check_src ctxt src)
   | check_text _ (Basic m) = Basic m
   | check_text ctxt (Combinator (x, y, body)) = Combinator (x, y, map (check_text ctxt) body);
+
+fun checked_text (Source src) = Token.checked_src src
+  | checked_text (Basic _) = true
+  | checked_text (Combinator (_, _, body)) = forall checked_text body;
 
 
 (* method setup *)
