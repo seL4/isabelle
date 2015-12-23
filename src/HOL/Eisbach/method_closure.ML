@@ -29,7 +29,7 @@ end;
 structure Method_Closure: METHOD_CLOSURE =
 struct
 
-(* context data *)
+(* context data for ML antiquotation *)
 
 structure Data = Generic_Data
 (
@@ -61,6 +61,8 @@ fun add_method binding ((fixes, declares, methods), text) lthy =
           (map (Morphism_name phi) declares, map (Morphism_name phi) methods)),
           (Method.map_source o map) (Token.transform phi) text))));
 
+
+(* context data for method definition *)
 
 structure Local_Data = Proof_Data
 (
@@ -114,16 +116,7 @@ val method_text =
         in text end));
 
 
-fun check_attrib ctxt attrib =
-  let
-    val name = Binding.name_of attrib;
-    val pos = Binding.pos_of attrib;
-    val named_thm = Named_Theorems.check ctxt (name, pos);
-    val parser: Method.modifier parser =
-      Args.$$$ name -- Args.colon >>
-        K {init = I, attribute = Named_Theorems.add named_thm, pos = pos};
-  in (named_thm, parser) end;
-
+(* evaluate method text *)
 
 fun method_evaluate text ctxt =
   let
@@ -143,6 +136,12 @@ fun method_instantiate env text =
     val text' = (Method.map_source o map) (Token.transform morphism) text;
   in method_evaluate text' end;
 
+
+
+(** Isar command **)
+
+local
+
 fun setup_local_method binding lthy =
   let
     val full_name = Local_Theory.full_name lthy binding;
@@ -153,28 +152,20 @@ fun setup_local_method binding lthy =
     |> Method.local_setup binding (Scan.succeed get_method) "(internal)"
   end;
 
+fun check_attrib ctxt attrib =
+  let
+    val name = Binding.name_of attrib;
+    val pos = Binding.pos_of attrib;
+    val named_thm = Named_Theorems.check ctxt (name, pos);
+    val parser: Method.modifier parser =
+      Args.$$$ name -- Args.colon >>
+        K {init = I, attribute = Named_Theorems.add named_thm, pos = pos};
+  in (named_thm, parser) end;
+
 fun dummy_named_thm named_thm =
   Context.proof_map
     (Named_Theorems.clear named_thm
       #> Named_Theorems.add_thm named_thm Drule.free_dummy_thm);
-
-fun parse_method_args method_names =
-  let
-    fun bind_method (name, text) ctxt =
-      let
-        val method = method_evaluate text;
-        val inner_update = method o update_dynamic_method (name, K (method ctxt));
-      in update_dynamic_method (name, inner_update) ctxt end;
-
-    fun rep [] x = Scan.succeed [] x
-      | rep (t :: ts) x = ((method_text >> pair t) ::: rep ts) x;
-  in rep method_names >> fold bind_method end;
-
-
-
-(** Isar command **)
-
-local
 
 fun parse_term_args args =
   Args.context :|-- (fn ctxt =>
@@ -211,6 +202,18 @@ fun match_term_args ctxt args ts =
       fold (fn ((xi, T), t) => Vartab.update_new (xi, (T, t)))
         (map Term.dest_Var args ~~ ts) Vartab.empty;
   in Envir.Envir {maxidx = ~1, tenv = tenv, tyenv = tyenv} end;
+
+fun parse_method_args method_names =
+  let
+    fun bind_method (name, text) ctxt =
+      let
+        val method = method_evaluate text;
+        val inner_update = method o update_dynamic_method (name, K (method ctxt));
+      in update_dynamic_method (name, inner_update) ctxt end;
+
+    fun rep [] x = Scan.succeed [] x
+      | rep (t :: ts) x = ((method_text >> pair t) ::: rep ts) x;
+  in rep method_names >> fold bind_method end;
 
 fun gen_method add_fixes name vars uses declares methods source lthy =
   let
