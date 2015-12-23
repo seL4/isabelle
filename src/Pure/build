@@ -49,8 +49,8 @@ ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 [ -z "$ML_SYSTEM" ] && fail "Missing ML_SYSTEM settings!"
 
 COMPAT=""
-[ -f "ML-Systems/${ML_SYSTEM_BASE}.ML" ] && COMPAT="ML-Systems/${ML_SYSTEM_BASE}.ML"
-[ -f "ML-Systems/${ML_SYSTEM}.ML" ] && COMPAT="ML-Systems/${ML_SYSTEM}.ML"
+[ -f "RAW/${ML_SYSTEM_BASE}.ML" ] && COMPAT="RAW/${ML_SYSTEM_BASE}.ML"
+[ -f "RAW/${ML_SYSTEM}.ML" ] && COMPAT="RAW/${ML_SYSTEM}.ML"
 [ -z "$COMPAT" ] && fail "Missing compatibility file for ML system \"$ML_SYSTEM\"!"
 
 
