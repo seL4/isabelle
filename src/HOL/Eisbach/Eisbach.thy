@@ -19,7 +19,6 @@ ML_file "parse_tools.ML"
 ML_file "method_closure.ML"
 ML_file "eisbach_rule_insts.ML"
 ML_file "match_method.ML"
-ML_file "eisbach_antiquotations.ML"
 
 method solves methods m = (m; fail)
 
