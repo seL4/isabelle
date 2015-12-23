@@ -475,7 +475,7 @@ fun auto_fixes t ctxt = ctxt
 (* dummy patterns *)
 
 fun fix_dummy_patterns (Const ("Pure.dummy_pattern", T)) ctxt =
-      let val ([x], ctxt') = add_fixes [Name.uu_] ctxt
+      let val ([x], ctxt') = ctxt |> set_body true |> add_fixes [Name.uu_] ||> restore_body ctxt
       in (Free (x, T), ctxt') end
   | fix_dummy_patterns (Abs (x, T, b)) ctxt =
       let val (b', ctxt') = fix_dummy_patterns b ctxt
