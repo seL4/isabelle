@@ -445,17 +445,6 @@ lemma Gcd_set [code_unfold]:
   "Gcd (set as) = foldr gcd as 0"
   by (induct as) simp_all
 
-end  
-
-class semiring_Lcm = semiring_Gcd +
-  assumes Lcm_Gcd: "Lcm A = Gcd {b. \<forall>a\<in>A. a dvd b}"
-begin
-
-lemma dvd_Lcm:
-  assumes "a \<in> A"
-  shows "a dvd Lcm A"
-  using assms by (auto intro: Gcd_greatest simp add: Lcm_Gcd)
-
 lemma Gcd_image_normalize [simp]:
   "Gcd (normalize ` A) = Gcd A"
 proof -
@@ -472,6 +461,17 @@ proof -
   then show ?thesis
     by (auto intro: associated_eqI)
 qed
+
+end  
+
+class semiring_Lcm = semiring_Gcd +
+  assumes Lcm_Gcd: "Lcm A = Gcd {b. \<forall>a\<in>A. a dvd b}"
+begin
+
+lemma dvd_Lcm:
+  assumes "a \<in> A"
+  shows "a dvd Lcm A"
+  using assms by (auto intro: Gcd_greatest simp add: Lcm_Gcd)
 
 lemma Lcm_least:
   assumes "\<And>b. b \<in> A \<Longrightarrow> b dvd a"
@@ -493,10 +493,37 @@ next
   with False show ?thesis
     by simp
 qed
-  
+
+lemma Gcd_Lcm:
+  "Gcd A = Lcm {b. \<forall>a\<in>A. b dvd a}"
+  by (rule associated_eqI) (auto intro: Gcd_dvd dvd_Lcm Gcd_greatest Lcm_least)
+ 
 lemma Lcm_empty [simp]:
   "Lcm {} = 1"
   by (simp add: Lcm_Gcd)
+
+lemma Lcm_insert [simp]:
+  "Lcm (insert a A) = lcm a (Lcm A)"
+proof (rule sym)
+  have "lcm a (Lcm A) dvd Lcm (insert a A)"
+    by (auto intro: dvd_Lcm Lcm_least)
+  moreover have "Lcm (insert a A) dvd lcm a (Lcm A)"
+  proof (rule Lcm_least)
+    fix b
+    assume "b \<in> insert a A"
+    then show "b dvd lcm a (Lcm A)"
+    proof
+      assume "b = a" then show ?thesis by simp
+    next
+      assume "b \<in> A"
+      then have "b dvd Lcm A" by (rule dvd_Lcm)
+      moreover have "Lcm A dvd lcm a (Lcm A)" by simp
+      ultimately show ?thesis by (blast intro: dvd_trans)
+    qed
+  qed
+  ultimately show "lcm a (Lcm A) = Lcm (insert a A)"
+    by (rule associated_eqI) (simp_all add: lcm_eq_0_iff)
+qed
 
 lemma Lcm_1_iff [simp]:
   "Lcm A = 1 \<longleftrightarrow> (\<forall>a\<in>A. is_unit a)" (is "?P \<longleftrightarrow> ?Q")
@@ -521,15 +548,6 @@ next
     by simp
 qed
 
-lemma Lcm_UNIV [simp]:
-  "Lcm UNIV = 0"
-proof -
-  have "0 dvd Lcm UNIV"
-    by (rule dvd_Lcm) simp
-  then show ?thesis
-    by simp
-qed
-
 lemma Lcm_eq_0_I:
   assumes "0 \<in> A"
   shows "Lcm A = 0"
@@ -540,34 +558,21 @@ proof -
     by simp
 qed
 
-lemma Gcd_Lcm:
-  "Gcd A = Lcm {b. \<forall>a\<in>A. b dvd a}"
-  by (rule associated_eqI) (auto intro: associatedI Gcd_dvd dvd_Lcm Gcd_greatest Lcm_least
-    simp add: unit_factor_Gcd unit_factor_Lcm)
+lemma Lcm_UNIV [simp]:
+  "Lcm UNIV = 0"
+  by (rule Lcm_eq_0_I) simp
 
-lemma Lcm_insert [simp]:
-  "Lcm (insert a A) = lcm a (Lcm A)"
-proof (rule sym)
-  have "lcm a (Lcm A) dvd Lcm (insert a A)"
-    by (auto intro: dvd_Lcm Lcm_least)
-  moreover have "Lcm (insert a A) dvd lcm a (Lcm A)"
-  proof (rule Lcm_least)
-    fix b
-    assume "b \<in> insert a A"
-    then show "b dvd lcm a (Lcm A)"
-    proof
-      assume "b = a" then show ?thesis by simp
-    next
-      assume "b \<in> A"
-      then have "b dvd Lcm A" by (rule dvd_Lcm)
-      moreover have "Lcm A dvd lcm a (Lcm A)" by simp
-      ultimately show ?thesis by (blast intro: dvd_trans)
-    qed
-  qed
-  ultimately show "lcm a (Lcm A) = Lcm (insert a A)"
-    by (rule associated_eqI) (simp_all add: lcm_eq_0_iff)
+lemma Lcm_0_iff:
+  assumes "finite A"
+  shows "Lcm A = 0 \<longleftrightarrow> 0 \<in> A"
+proof (cases "A = {}")
+  case True then show ?thesis by simp
+next
+  case False with assms show ?thesis
+    by (induct A rule: finite_ne_induct)
+      (auto simp add: lcm_eq_0_iff)
 qed
-  
+
 lemma Lcm_set [code_unfold]:
   "Lcm (set as) = foldr lcm as 1"
   by (induct as) simp_all
@@ -1940,14 +1945,10 @@ Gcd is defined via Lcm to facilitate the proof that we have a complete lattice.
 instantiation nat :: Gcd
 begin
 
-definition
-  "Lcm (M::nat set) = (if finite M then semilattice_neutr_set.F lcm 1 M else 0)"
-
 interpretation semilattice_neutr_set lcm "1::nat" ..
 
-lemma Lcm_nat_infinite:
-  "\<not> finite M \<Longrightarrow> Lcm M = (0::nat)"
-  by (simp add: Lcm_nat_def)
+definition
+  "Lcm (M::nat set) = (if finite M then F M else 0)"
 
 lemma Lcm_nat_empty:
   "Lcm {} = (1::nat)"
@@ -1955,7 +1956,36 @@ lemma Lcm_nat_empty:
 
 lemma Lcm_nat_insert:
   "Lcm (insert n M) = lcm (n::nat) (Lcm M)"
-  by (cases "finite M") (simp_all add: Lcm_nat_def Lcm_nat_infinite del: One_nat_def)
+  by (cases "finite M") (auto simp add: Lcm_nat_def simp del: One_nat_def)
+
+lemma Lcm_nat_infinite:
+  "infinite M \<Longrightarrow> Lcm M = (0::nat)"
+  by (simp add: Lcm_nat_def)
+
+lemma dvd_Lcm_nat [simp]:
+  fixes M :: "nat set"
+  assumes "m \<in> M"
+  shows "m dvd Lcm M"
+proof -
+  from assms have "insert m M = M" by auto
+  moreover have "m dvd Lcm (insert m M)"
+    by (simp add: Lcm_nat_insert)
+  ultimately show ?thesis by simp
+qed
+
+lemma Lcm_dvd_nat [simp]:
+  fixes M :: "nat set"
+  assumes "\<forall>m\<in>M. m dvd n"
+  shows "Lcm M dvd n"
+proof (cases "n = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  then have "finite {d. d dvd n}" by (rule finite_divisors_nat)
+  moreover have "M \<subseteq> {d. d dvd n}" using assms by fast
+  ultimately have "finite M" by (rule rev_finite_subset)
+  then show ?thesis using assms by (induct M) (simp_all add: Lcm_nat_empty Lcm_nat_insert)
+qed
 
 definition
   "Gcd (M::nat set) = Lcm {d. \<forall>m\<in>M. d dvd m}"
@@ -1964,27 +1994,21 @@ instance ..
 
 end
 
-lemma dvd_Lcm_nat [simp]:
-  fixes M :: "nat set"
-  assumes "m \<in> M"
-  shows "m dvd Lcm M"
-proof (cases "finite M")
-  case False then show ?thesis by (simp add: Lcm_nat_infinite)
-next
-  case True then show ?thesis using assms by (induct M) (auto simp add: Lcm_nat_insert)
-qed
-
-lemma Lcm_dvd_nat [simp]:
-  fixes M :: "nat set"
-  assumes "\<forall>m\<in>M. m dvd n"
-  shows "Lcm M dvd n"
-proof (cases "n = 0")
-  assume "n \<noteq> 0"
-  hence "finite {d. d dvd n}" by (rule finite_divisors_nat)
-  moreover have "M \<subseteq> {d. d dvd n}" using assms by fast
-  ultimately have "finite M" by (rule rev_finite_subset)
-  then show ?thesis using assms by (induct M) (simp_all add: Lcm_nat_empty Lcm_nat_insert)
+instance nat :: semiring_Gcd
+proof
+  show "Gcd N dvd n" if "n \<in> N" for N and n :: nat
+  using that by (induct N rule: infinite_finite_induct)
+    (auto simp add: Gcd_nat_def)
+  show "n dvd Gcd N" if "\<And>m. m \<in> N \<Longrightarrow> n dvd m" for N and n :: nat
+  using that by (induct N rule: infinite_finite_induct)
+    (auto simp add: Gcd_nat_def)
 qed simp
+
+instance nat :: semiring_Lcm
+proof
+  show "Lcm N = Gcd {m. \<forall>n\<in>N. n dvd m}" for N :: "nat set"
+    by (rule associated_eqI) (auto intro!: Gcd_dvd Gcd_greatest)
+qed
 
 interpretation gcd_lcm_complete_lattice_nat:
   complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat"
@@ -2002,42 +2026,6 @@ qed
 declare gcd_lcm_complete_lattice_nat.Inf_image_eq [simp del]
 declare gcd_lcm_complete_lattice_nat.Sup_image_eq [simp del]
 
-instance nat :: semiring_Gcd
-proof
-  show "Gcd N dvd n" if "n \<in> N" for N and n :: nat
-    using that by (fact gcd_lcm_complete_lattice_nat.Inf_lower)
-next
-  show "n dvd Gcd N" if "\<And>m. m \<in> N \<Longrightarrow> n dvd m" for N and n :: nat
-    using that by (simp only: gcd_lcm_complete_lattice_nat.Inf_greatest)
-next
-  show "normalize (Gcd N) = Gcd N" for N :: "nat set"
-    by simp
-qed
-
-instance nat :: semiring_Lcm
-proof
-  have uf: "unit_factor (Lcm N) = 1" if "0 < Lcm N" for N :: "nat set"
-  proof (cases "finite N")
-    case False with that show ?thesis by (simp add: Lcm_nat_infinite)
-  next
-    case True then show ?thesis
-    using that proof (induct N)
-      case empty then show ?case by simp
-    next
-      case (insert n N)
-      have "lcm n (Lcm N) \<noteq> 0 \<longleftrightarrow> n \<noteq> 0 \<and> Lcm N \<noteq> 0"
-        using lcm_eq_0_iff [of n "Lcm N"] by simp
-      then have "lcm n (Lcm N) > 0 \<longleftrightarrow> n > 0 \<and> Lcm N > 0"
-        unfolding neq0_conv .
-      with insert show ?case
-        by (simp add: Lcm_nat_insert unit_factor_lcm)
-    qed
-  qed
-  show "Lcm N = Gcd {m. \<forall>n\<in>N. n dvd m}" for N :: "nat set"
-    by (rule associated_eqI) (auto intro!: associatedI Gcd_dvd Gcd_greatest
-      simp add: unit_factor_Gcd uf)
-qed
-
 lemma Lcm_empty_nat:
   "Lcm {} = (1::nat)"
   by (fact Lcm_empty)
@@ -2051,8 +2039,10 @@ lemma Lcm_eq_0 [simp]:
   by (rule Lcm_eq_0_I)
 
 lemma Lcm0_iff [simp]:
-  "finite (M::nat set) \<Longrightarrow> M \<noteq> {} \<Longrightarrow> Lcm M = 0 \<longleftrightarrow> 0 \<in> M"
-  by (induct rule: finite_ne_induct) auto
+  fixes M :: "nat set"
+  assumes "finite M" and "M \<noteq> {}"
+  shows "Lcm M = 0 \<longleftrightarrow> 0 \<in> M"
+  using assms by (simp add: Lcm_0_iff)
 
 text\<open>Alternative characterizations of Gcd:\<close>
 
