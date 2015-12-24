@@ -168,14 +168,34 @@ apply (drule in_shrK_set, simp+, clarify)
 apply (frule_tac A=A in shrK_analz_iff_bad)
 by (simp add: knows_decomp)+
 
-lemma GuardK_Key_analz: "[| GuardK n Ks (spies evs); evs:p;
-shrK_set Ks; good Ks; regular p; n ~:range shrK |] ==> Key n ~:analz (spies evs)"
-apply (clarify, simp only: knows_decomp)
-apply (drule GuardK_invKey_keyset, clarify, simp+, simp add: initState.simps image_eq_UN)
-apply clarify
-apply (drule in_good, simp)
-apply (drule in_shrK_set, simp+, clarify)
-apply (frule_tac A=A in shrK_analz_iff_bad)
-by (simp add: knows_decomp)+
+lemma GuardK_Key_analz:
+  assumes "GuardK n Ks (spies evs)" "evs \<in> p" "shrK_set Ks"
+    "good Ks" "regular p" "n \<notin> range shrK"
+  shows "Key n \<notin> analz (spies evs)"
+proof (rule ccontr)
+  assume "\<not> Key n \<notin> analz (knows Spy evs)"
+  then have *: "Key n \<in> analz (spies' evs \<union> initState Spy)"
+    by (simp add: knows_decomp)
+  from \<open>GuardK n Ks (spies evs)\<close>
+  have "GuardK n Ks (spies' evs \<union> initState Spy)"
+    by (simp add: knows_decomp)  
+  then have "GuardK n Ks (spies' evs)"
+    and "finite (spies' evs)" "keyset (initState Spy)"
+    by simp_all
+  moreover have "Key n \<notin> initState Spy"
+    using \<open>n \<notin> range shrK\<close> by (simp add: image_iff initState_Spy)
+  ultimately obtain K
+    where "K \<in> Ks" and **: "Key K \<in> analz (spies' evs \<union> initState Spy)"
+    using * by (auto dest: GuardK_invKey_keyset)
+  from \<open>K \<in> Ks\<close> and \<open>good Ks\<close> have "agt K \<notin> bad"
+    by (auto dest: in_good)
+  from \<open>K \<in> Ks\<close> \<open>shrK_set Ks\<close> obtain A
+    where "K = shrK A"
+    by (auto dest: in_shrK_set)
+  then have "agt K \<in> bad"
+    using ** \<open>evs \<in> p\<close> \<open>regular p\<close> shrK_analz_iff_bad [of evs p "agt K"]
+    by (simp add: knows_decomp)
+  with \<open>agt K \<notin> bad\<close> show False by simp
+qed
 
 end
