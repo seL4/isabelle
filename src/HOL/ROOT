@@ -99,6 +99,7 @@ session "HOL-Induct" in Induct = HOL +
   theories [quick_and_dirty]
     Common_Patterns
   theories
+    Nested_Datatype
     QuoDataType
     QuoNestedDataType
     Term
@@ -548,7 +549,6 @@ session "HOL-ex" in ex = HOL +
     Adhoc_Overloading_Examples
     Iff_Oracle
     Coercion_Examples
-    Higher_Order_Logic
     Abstract_NAT
     Guess
     Fundefs
@@ -622,11 +622,13 @@ session "HOL-ex" in ex = HOL +
 
 session "HOL-Isar_Examples" in Isar_Examples = HOL +
   description {*
-    Miscellaneous Isabelle/Isar examples for Higher-Order Logic.
+    Miscellaneous Isabelle/Isar examples.
   *}
   theories [document = false]
     "~~/src/HOL/Library/Lattice_Syntax"
     "../Number_Theory/Primes"
+  theories [quick_and_dirty]
+    Structured_Statements
   theories
     Basic_Logic
     Cantor
@@ -639,12 +641,11 @@ session "HOL-Isar_Examples" in Isar_Examples = HOL +
     Hoare_Ex
     Knaster_Tarski
     Mutilated_Checkerboard
-    Nested_Datatype
     Peirce
     Puzzle
     Summation
-  theories [quick_and_dirty]
-    Structured_Statements
+    First_Order_Logic
+    Higher_Order_Logic
   document_files
     "root.bib"
     "root.tex"

@@ -1,4 +1,4 @@
-(*  Title:      FOL/ex/First_Order_Logic.thy
+(*  Title:      HOL/Isar_Examples/First_Order_Logic.thy
     Author:     Makarius
 *)
 
@@ -6,8 +6,7 @@ section \<open>A simple formulation of First-Order Logic\<close>
 
 text \<open>
   The subsequent theory development illustrates single-sorted intuitionistic
-  first-order logic with equality, formulated within the Pure framework. So
-  this is strictly speaking an example of Isabelle/Pure, not Isabelle/FOL.
+  first-order logic with equality, formulated within the Pure framework.
 \<close>
 
 theory First_Order_Logic

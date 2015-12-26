@@ -25,7 +25,6 @@ session "FOL-ex" in ex = FOL +
     Examples for First-Order Logic.
   *}
   theories
-    First_Order_Logic
     Natural_Numbers
     Intro
     Nat

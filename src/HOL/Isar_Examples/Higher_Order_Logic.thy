@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Higher_Order_Logic.thy
+(*  Title:      HOL/Isar_Examples/Higher_Order_Logic.thy
     Author:     Makarius
 *)
 
