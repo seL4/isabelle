@@ -8,6 +8,8 @@ theory Cantor
 imports Main
 begin
 
+subsection \<open>Mathematical statement and proof\<close>
+
 text \<open>
   Cantor's Theorem states that there is no surjection from
   a set to its powerset.  The proof works by diagonalization.  E.g.\ see
@@ -15,20 +17,22 @@ text \<open>
   \<^item> @{url "https://en.wikipedia.org/wiki/Cantor's_diagonal_argument"}
 \<close>
 
-theorem Cantor: "\<not> (\<exists>f :: 'a \<Rightarrow> 'a set. \<forall>A :: 'a set. \<exists>x :: 'a. f x = A)"
+theorem Cantor: "\<not> (\<exists>f :: 'a \<Rightarrow> 'a set. \<forall>A :: 'a set. \<exists>x :: 'a. A = f x)"
 proof
-  assume "\<exists>f :: 'a \<Rightarrow> 'a set. \<forall>A. \<exists>x. f x = A"
-  then obtain f :: "'a \<Rightarrow> 'a set" where *: "\<forall>A. \<exists>x. f x = A" ..
+  assume "\<exists>f :: 'a \<Rightarrow> 'a set. \<forall>A. \<exists>x. A = f x"
+  then obtain f :: "'a \<Rightarrow> 'a set" where *: "\<forall>A. \<exists>x. A = f x" ..
   let ?D = "{x. x \<notin> f x}"
-  from * obtain a where "f a = ?D" by blast
+  from * obtain a where "?D = f a" by blast
   moreover have "a \<in> ?D \<longleftrightarrow> a \<notin> f a" by blast
   ultimately show False by blast
 qed
 
 
+subsection \<open>Automated proofs\<close>
+
 text \<open>
-  Here are shorter proofs via automated proof tools, but without any hints why
-  and how it works.
+  These automated proofs are much shorter, but lack information why and how it
+  works.
 \<close>
 
 theorem "\<not> (\<exists>f :: 'a \<Rightarrow> 'a set. \<forall>A. \<exists>x. f x = A)"
@@ -38,14 +42,47 @@ theorem "\<not> (\<exists>f :: 'a \<Rightarrow> 'a set. \<forall>A. \<exists>x. 
   by force
 
 
+subsection \<open>Elementary version in higher-order predicate logic\<close>
+
+text \<open>
+  The subsequent formulation bypasses set notation of HOL; it uses elementary
+  \<open>\<lambda>\<close>-calculus and predicate logic, with standard introduction and elimination
+  rules. This also shows that the proof does not require classical reasoning.
+\<close>
+
+lemma iff_contradiction:
+  assumes *: "\<not> A \<longleftrightarrow> A"
+  shows False
+proof (rule notE)
+  show "\<not> A"
+  proof
+    assume A
+    with * have "\<not> A" ..
+    from this and \<open>A\<close> show False ..
+  qed
+  with * show A ..
+qed
+
+theorem Cantor': "\<not> (\<exists>f :: 'a \<Rightarrow> 'a \<Rightarrow> bool. \<forall>A :: 'a \<Rightarrow> bool. \<exists>x :: 'a. A = f x)"
+proof
+  assume "\<exists>f :: 'a \<Rightarrow> 'a \<Rightarrow> bool. \<forall>A :: 'a \<Rightarrow> bool. \<exists>x. A = f x"
+  then obtain f :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where *: "\<forall>A. \<exists>x. A = f x" ..
+  let ?D = "\<lambda>x. \<not> f x x"
+  from * have "\<exists>x. ?D = f x" ..
+  then obtain a where "?D = f a" ..
+  then have "?D a \<longleftrightarrow> f a a" using refl by (rule subst)
+  then show False by (rule iff_contradiction)
+qed
+
+
 subsection \<open>Classic Isabelle/HOL example\<close>
 
 text \<open>
-  The following treatment of Cantor's Theorem follows the classic from the
-  early 1990s, e.g.\ see the file @{verbatim "92/HOL/ex/set.ML"} in Isabelle92
-  or @{cite \<open>\S18.7\<close> "paulson-isa-book"}. The old tactic scripts synthesize
-  key information of the proof by refinement of schematic goal states. In
-  contrast, the Isar proof needs to say explicitly what is proven.
+  The following treatment of Cantor's Theorem follows the classic example from
+  the early 1990s, e.g.\ see the file @{verbatim "92/HOL/ex/set.ML"} in
+  Isabelle92 or @{cite \<open>\S18.7\<close> "paulson-isa-book"}. The old tactic scripts
+  synthesize key information of the proof by refinement of schematic goal
+  states. In contrast, the Isar proof needs to say explicitly what is proven.
 
   \<^bigskip>
   Cantor's Theorem states that every set has more subsets than it has
