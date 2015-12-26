@@ -9,16 +9,16 @@ imports Main
 begin
 
 text \<open>
-  We formalize basic concepts of Computational Tree Logic (CTL)
-  @{cite "McMillan-PhDThesis" and "McMillan-LectureNotes"} within the
-  simply-typed set theory of HOL.
+  We formalize basic concepts of Computational Tree Logic (CTL) @{cite
+  "McMillan-PhDThesis" and "McMillan-LectureNotes"} within the simply-typed
+  set theory of HOL.
 
-  By using the common technique of ``shallow embedding'', a CTL
-  formula is identified with the corresponding set of states where it
-  holds.  Consequently, CTL operations such as negation, conjunction,
-  disjunction simply become complement, intersection, union of sets.
-  We only require a separate operation for implication, as point-wise
-  inclusion is usually not encountered in plain set-theory.
+  By using the common technique of ``shallow embedding'', a CTL formula is
+  identified with the corresponding set of states where it holds.
+  Consequently, CTL operations such as negation, conjunction, disjunction
+  simply become complement, intersection, union of sets. We only require a
+  separate operation for implication, as point-wise inclusion is usually not
+  encountered in plain set-theory.
 \<close>
 
 lemmas [intro!] = Int_greatest Un_upper2 Un_upper1 Int_lower1 Int_lower2
@@ -34,55 +34,52 @@ lemma [intro!]: "p \<subseteq> (q \<rightarrow> p)" unfolding imp_def by rule
 
 
 text \<open>
-  \smallskip The CTL path operators are more interesting; they are
-  based on an arbitrary, but fixed model \<open>\<M>\<close>, which is simply
-  a transition relation over states @{typ "'a"}.
+  \<^smallskip>
+  The CTL path operators are more interesting; they are based on an arbitrary,
+  but fixed model \<open>\<M>\<close>, which is simply a transition relation over states
+  @{typ 'a}.
 \<close>
 
 axiomatization \<M> :: "('a \<times> 'a) set"
 
 text \<open>
-  The operators \<open>\<EX>\<close>, \<open>\<EF>\<close>, \<open>\<EG>\<close> are taken
-  as primitives, while \<open>\<AX>\<close>, \<open>\<AF>\<close>, \<open>\<AG>\<close> are
-  defined as derived ones.  The formula \<open>\<EX> p\<close> holds in a
-  state @{term s}, iff there is a successor state @{term s'} (with
-  respect to the model @{term \<M>}), such that @{term p} holds in
-  @{term s'}.  The formula \<open>\<EF> p\<close> holds in a state @{term
-  s}, iff there is a path in \<open>\<M>\<close>, starting from @{term s},
-  such that there exists a state @{term s'} on the path, such that
-  @{term p} holds in @{term s'}.  The formula \<open>\<EG> p\<close> holds
-  in a state @{term s}, iff there is a path, starting from @{term s},
-  such that for all states @{term s'} on the path, @{term p} holds in
-  @{term s'}.  It is easy to see that \<open>\<EF> p\<close> and \<open>\<EG> p\<close> may be expressed using least and greatest fixed points
-  @{cite "McMillan-PhDThesis"}.
+  The operators \<open>\<EX>\<close>, \<open>\<EF>\<close>, \<open>\<EG>\<close> are taken as primitives, while
+  \<open>\<AX>\<close>, \<open>\<AF>\<close>, \<open>\<AG>\<close> are defined as derived ones. The formula \<open>\<EX> p\<close>
+  holds in a state @{term s}, iff there is a successor state @{term s'} (with
+  respect to the model @{term \<M>}), such that @{term p} holds in @{term s'}.
+  The formula \<open>\<EF> p\<close> holds in a state @{term s}, iff there is a path in
+  \<open>\<M>\<close>, starting from @{term s}, such that there exists a state @{term s'} on
+  the path, such that @{term p} holds in @{term s'}. The formula \<open>\<EG> p\<close>
+  holds in a state @{term s}, iff there is a path, starting from @{term s},
+  such that for all states @{term s'} on the path, @{term p} holds in @{term
+  s'}. It is easy to see that \<open>\<EF> p\<close> and \<open>\<EG> p\<close> may be expressed using
+  least and greatest fixed points @{cite "McMillan-PhDThesis"}.
 \<close>
 
-definition
-  EX  ("\<EX> _" [80] 90) where "\<EX> p = {s. \<exists>s'. (s, s') \<in> \<M> \<and> s' \<in> p}"
-definition
-  EF ("\<EF> _" [80] 90)  where "\<EF> p = lfp (\<lambda>s. p \<union> \<EX> s)"
-definition
-  EG ("\<EG> _" [80] 90)  where "\<EG> p = gfp (\<lambda>s. p \<inter> \<EX> s)"
+definition EX  ("\<EX> _" [80] 90)
+  where [simp]: "\<EX> p = {s. \<exists>s'. (s, s') \<in> \<M> \<and> s' \<in> p}"
+definition EF ("\<EF> _" [80] 90)
+  where [simp]: "\<EF> p = lfp (\<lambda>s. p \<union> \<EX> s)"
+definition EG ("\<EG> _" [80] 90)
+  where [simp]: "\<EG> p = gfp (\<lambda>s. p \<inter> \<EX> s)"
 
 text \<open>
-  \<open>\<AX>\<close>, \<open>\<AF>\<close> and \<open>\<AG>\<close> are now defined
-  dually in terms of \<open>\<EX>\<close>, \<open>\<EF>\<close> and \<open>\<EG>\<close>.
+  \<open>\<AX>\<close>, \<open>\<AF>\<close> and \<open>\<AG>\<close> are now defined dually in terms of \<open>\<EX>\<close>,
+  \<open>\<EF>\<close> and \<open>\<EG>\<close>.
 \<close>
 
-definition
-  AX  ("\<AX> _" [80] 90) where "\<AX> p = - \<EX> - p"
-definition
-  AF  ("\<AF> _" [80] 90) where "\<AF> p = - \<EG> - p"
-definition
-  AG  ("\<AG> _" [80] 90) where "\<AG> p = - \<EF> - p"
-
-lemmas [simp] = EX_def EG_def AX_def EF_def AF_def AG_def
+definition AX  ("\<AX> _" [80] 90)
+  where [simp]: "\<AX> p = - \<EX> - p"
+definition AF  ("\<AF> _" [80] 90)
+  where [simp]: "\<AF> p = - \<EG> - p"
+definition AG  ("\<AG> _" [80] 90)
+  where [simp]: "\<AG> p = - \<EF> - p"
 
 
 subsection \<open>Basic fixed point properties\<close>
 
 text \<open>
-  First of all, we use the de-Morgan property of fixed points
+  First of all, we use the de-Morgan property of fixed points.
 \<close>
 
 lemma lfp_gfp: "lfp f = - gfp (\<lambda>s::'a set. - (f (- s)))"
@@ -118,12 +115,14 @@ lemma gfp_lfp': "- gfp f = lfp (\<lambda>s::'a set. - (f (- s)))"
   by (simp add: lfp_gfp)
 
 text \<open>
-  in order to give dual fixed point representations of @{term "AF p"}
-  and @{term "AG p"}:
+  In order to give dual fixed point representations of @{term "\<AF> p"} and
+  @{term "\<AG> p"}:
 \<close>
 
-lemma AF_lfp: "\<AF> p = lfp (\<lambda>s. p \<union> \<AX> s)" by (simp add: lfp_gfp)
-lemma AG_gfp: "\<AG> p = gfp (\<lambda>s. p \<inter> \<AX> s)" by (simp add: lfp_gfp)
+lemma AF_lfp: "\<AF> p = lfp (\<lambda>s. p \<union> \<AX> s)"
+  by (simp add: lfp_gfp)
+lemma AG_gfp: "\<AG> p = gfp (\<lambda>s. p \<inter> \<AX> s)"
+  by (simp add: lfp_gfp)
 
 lemma EF_fp: "\<EF> p = p \<union> \<EX> \<EF> p"
 proof -
@@ -144,10 +143,10 @@ proof -
 qed
 
 text \<open>
-  From the greatest fixed point definition of @{term "\<AG> p"}, we
-  derive as a consequence of the Knaster-Tarski theorem on the one
-  hand that @{term "\<AG> p"} is a fixed point of the monotonic
-  function @{term "\<lambda>s. p \<inter> \<AX> s"}.
+  From the greatest fixed point definition of @{term "\<AG> p"}, we derive as
+  a consequence of the Knaster-Tarski theorem on the one hand that @{term
+  "\<AG> p"} is a fixed point of the monotonic function
+  @{term "\<lambda>s. p \<inter> \<AX> s"}.
 \<close>
 
 lemma AG_fp: "\<AG> p = p \<inter> \<AX> \<AG> p"
@@ -157,9 +156,8 @@ proof -
 qed
 
 text \<open>
-  This fact may be split up into two inequalities (merely using
-  transitivity of \<open>\<subseteq>\<close>, which is an instance of the overloaded
-  \<open>\<le>\<close> in Isabelle/HOL).
+  This fact may be split up into two inequalities (merely using transitivity
+  of \<open>\<subseteq>\<close>, which is an instance of the overloaded \<open>\<le>\<close> in Isabelle/HOL).
 \<close>
 
 lemma AG_fp_1: "\<AG> p \<subseteq> p"
@@ -175,11 +173,11 @@ proof -
 qed
 
 text \<open>
-  On the other hand, we have from the Knaster-Tarski fixed point
-  theorem that any other post-fixed point of @{term "\<lambda>s. p \<inter> AX s"} is
-  smaller than @{term "AG p"}.  A post-fixed point is a set of states
-  @{term q} such that @{term "q \<subseteq> p \<inter> AX q"}.  This leads to the
-  following co-induction principle for @{term "AG p"}.
+  On the other hand, we have from the Knaster-Tarski fixed point theorem that
+  any other post-fixed point of @{term "\<lambda>s. p \<inter> \<AX> s"} is smaller than
+  @{term "\<AG> p"}. A post-fixed point is a set of states @{term q} such that
+  @{term "q \<subseteq> p \<inter> \<AX> q"}. This leads to the following co-induction
+  principle for @{term "\<AG> p"}.
 \<close>
 
 lemma AG_I: "q \<subseteq> p \<inter> \<AX> q \<Longrightarrow> q \<subseteq> \<AG> p"
@@ -189,10 +187,10 @@ lemma AG_I: "q \<subseteq> p \<inter> \<AX> q \<Longrightarrow> q \<subseteq> \<
 subsection \<open>The tree induction principle \label{sec:calc-ctl-tree-induct}\<close>
 
 text \<open>
-  With the most basic facts available, we are now able to establish a
-  few more interesting results, leading to the \emph{tree induction}
-  principle for \<open>AG\<close> (see below).  We will use some elementary
-  monotonicity and distributivity rules.
+  With the most basic facts available, we are now able to establish a few more
+  interesting results, leading to the \<^emph>\<open>tree induction\<close> principle for \<open>\<AG>\<close>
+  (see below). We will use some elementary monotonicity and distributivity
+  rules.
 \<close>
 
 lemma AX_int: "\<AX> (p \<inter> q) = \<AX> p \<inter> \<AX> q" by auto 
@@ -201,21 +199,21 @@ lemma AG_mono: "p \<subseteq> q \<Longrightarrow> \<AG> p \<subseteq> \<AG> q"
   by (simp only: AG_gfp, rule gfp_mono) auto 
 
 text \<open>
-  The formula @{term "AG p"} implies @{term "AX p"} (we use
-  substitution of \<open>\<subseteq>\<close> with monotonicity).
+  The formula @{term "AG p"} implies @{term "AX p"} (we use substitution of
+  \<open>\<subseteq>\<close> with monotonicity).
 \<close>
 
 lemma AG_AX: "\<AG> p \<subseteq> \<AX> p"
 proof -
   have "\<AG> p \<subseteq> \<AX> \<AG> p" by (rule AG_fp_2)
-  also have "\<AG> p \<subseteq> p" by (rule AG_fp_1) moreover note AX_mono
+  also have "\<AG> p \<subseteq> p" by (rule AG_fp_1)
+  moreover note AX_mono
   finally show ?thesis .
 qed
 
 text \<open>
-  Furthermore we show idempotency of the \<open>\<AG>\<close> operator.
-  The proof is a good example of how accumulated facts may get
-  used to feed a single rule step.
+  Furthermore we show idempotency of the \<open>\<AG>\<close> operator. The proof is a good
+  example of how accumulated facts may get used to feed a single rule step.
 \<close>
 
 lemma AG_AG: "\<AG> \<AG> p = \<AG> p"
@@ -231,13 +229,14 @@ next
 qed
 
 text \<open>
-  \smallskip We now give an alternative characterization of the \<open>\<AG>\<close> operator, which describes the \<open>\<AG>\<close> operator in
-  an ``operational'' way by tree induction: In a state holds @{term
-  "AG p"} iff in that state holds @{term p}, and in all reachable
-  states @{term s} follows from the fact that @{term p} holds in
-  @{term s}, that @{term p} also holds in all successor states of
-  @{term s}.  We use the co-induction principle @{thm [source] AG_I}
-  to establish this in a purely algebraic manner.
+  \<^smallskip>
+  We now give an alternative characterization of the \<open>\<AG>\<close> operator, which
+  describes the \<open>\<AG>\<close> operator in an ``operational'' way by tree induction:
+  In a state holds @{term "AG p"} iff in that state holds @{term p}, and in
+  all reachable states @{term s} follows from the fact that @{term p} holds in
+  @{term s}, that @{term p} also holds in all successor states of @{term s}.
+  We use the co-induction principle @{thm [source] AG_I} to establish this in
+  a purely algebraic manner.
 \<close>
 
 theorem AG_induct: "p \<inter> \<AG> (p \<rightarrow> \<AX> p) = \<AG> p"
@@ -284,9 +283,8 @@ qed
 subsection \<open>An application of tree induction \label{sec:calc-ctl-commute}\<close>
 
 text \<open>
-  Further interesting properties of CTL expressions may be
-  demonstrated with the help of tree induction; here we show that
-  \<open>\<AX>\<close> and \<open>\<AG>\<close> commute.
+  Further interesting properties of CTL expressions may be demonstrated with
+  the help of tree induction; here we show that \<open>\<AX>\<close> and \<open>\<AG>\<close> commute.
 \<close>
 
 theorem AG_AX_commute: "\<AG> \<AX> p = \<AX> \<AG> p"
