@@ -43,14 +43,14 @@ lemma ack_less_ack_Suc2 [iff]: "ack i j < ack i (Suc j)"
 by (induct i j rule: ack.induct) simp_all
 
 
-text \<open>PROPERTY A 5, monotonicity for @{text "<"}\<close>
+text \<open>PROPERTY A 5, monotonicity for \<open><\<close>\<close>
 
 lemma ack_less_mono2: "j < k ==> ack i j < ack i k"
 using lift_Suc_mono_less[where f = "ack i"]
 by (metis ack_less_ack_Suc2)
 
 
-text \<open>PROPERTY A 5', monotonicity for @{text \<le>}\<close>
+text \<open>PROPERTY A 5', monotonicity for \<open>\<le>\<close>\<close>
 
 lemma ack_le_mono2: "j \<le> k ==> ack i j \<le> ack i k"
 apply (simp add: order_le_less)
@@ -91,14 +91,14 @@ lemma ack_1 [simp]: "ack (Suc 0) j = j + 2"
 by (induct j) simp_all
 
 
-text \<open>PROPERTY A 9.  The unary @{text 1} and @{text 2} in @{term
+text \<open>PROPERTY A 9.  The unary \<open>1\<close> and \<open>2\<close> in @{term
   ack} is essential for the rewriting.\<close>
 
 lemma ack_2 [simp]: "ack (Suc (Suc 0)) j = 2 * j + 3"
 by (induct j) simp_all
 
 
-text \<open>PROPERTY A 7, monotonicity for @{text "<"} [not clear why
+text \<open>PROPERTY A 7, monotonicity for \<open><\<close> [not clear why
   @{thm [source] ack_1} is now needed first!]\<close>
 
 lemma ack_less_mono1_aux: "ack i k < ack (Suc (i +i')) k"
@@ -118,7 +118,7 @@ apply (blast intro!: ack_less_mono1_aux)
 done
 
 
-text \<open>PROPERTY A 7', monotonicity for @{text "\<le>"}\<close>
+text \<open>PROPERTY A 7', monotonicity for \<open>\<le>\<close>\<close>
 
 lemma ack_le_mono1: "i \<le> j ==> ack i k \<le> ack j k"
 apply (simp add: order_le_less)
@@ -153,8 +153,7 @@ done
 
 
 text \<open>PROPERTY A 12.  Article uses existential quantifier but the ALF proof
-  used @{text "k + 4"}.  Quantified version must be nested @{text
-  "\<exists>k'. \<forall>i j. ..."}\<close>
+  used \<open>k + 4\<close>.  Quantified version must be nested \<open>\<exists>k'. \<forall>i j. ...\<close>\<close>
 
 lemma ack_add_bound2: "i < ack k j ==> i + j < ack (4 + k) j"
 apply (rule less_trans [of _ "ack k j + ack 0 j"])
@@ -192,7 +191,7 @@ where
     (case l of
       [] => 0
     | x # l' => rec_nat (f l') (\<lambda>y r. g (r # y # l')) x)"
-  -- \<open>Note that @{term g} is applied first to @{term "PREC f g y"} and then to @{term y}!\<close>
+  \<comment> \<open>Note that @{term g} is applied first to @{term "PREC f g y"} and then to @{term y}!\<close>
 
 inductive PRIMREC :: "(nat list => nat) => bool" where
 SC: "PRIMREC SC" |
@@ -273,7 +272,7 @@ apply (unfold PREC_def)
 apply (case_tac l)
  apply simp_all
  apply (blast intro: less_trans)
-apply (erule ssubst) -- \<open>get rid of the needless assumption\<close>
+apply (erule ssubst) \<comment> \<open>get rid of the needless assumption\<close>
 apply (induct_tac a)
  apply simp_all
  txt \<open>base case\<close>

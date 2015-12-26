@@ -15,7 +15,7 @@ subsection \<open>Regular outer syntax\<close>
 
 text \<open>Text cartouches may be used in the outer syntax category "text",
   as alternative to the traditional "verbatim" tokens.  An example is
-  this text block.\<close>  -- \<open>The same works for small side-comments.\<close>
+  this text block.\<close>  \<comment> \<open>The same works for small side-comments.\<close>
 
 notepad
 begin
@@ -33,7 +33,7 @@ begin
     [OF \<open>x = y\<close>]}.\<close>
 
   have "x = y"
-    by (tactic \<open>resolve_tac @{context} @{thms \<open>x = y\<close>} 1\<close>)  -- \<open>more cartouches involving ML\<close>
+    by (tactic \<open>resolve_tac @{context} @{thms \<open>x = y\<close>} 1\<close>)  \<comment> \<open>more cartouches involving ML\<close>
 end
 
 
@@ -134,14 +134,14 @@ term_cartouche \<open>"\001\010\100"\<close>
 
 subsubsection \<open>Further nesting: antiquotations\<close>
 
-setup -- "ML antiquotation"
+setup \<comment> "ML antiquotation"
 \<open>
   ML_Antiquotation.inline @{binding term_cartouche}
     (Args.context -- Scan.lift (Parse.inner_syntax Parse.cartouche) >>
       (fn (ctxt, s) => ML_Syntax.atomic (ML_Syntax.print_term (Syntax.read_term ctxt s))))
 \<close>
 
-setup -- "document antiquotation"
+setup \<comment> "document antiquotation"
 \<open>
   Thy_Output.antiquotation @{binding ML_cartouche}
     (Scan.lift Args.cartouche_input) (fn {context, ...} => fn source =>

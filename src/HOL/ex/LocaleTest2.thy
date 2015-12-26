@@ -466,16 +466,16 @@ proof
   qed
 qed
 
-subsubsection \<open>Total order @{text "<="} on @{typ int}\<close>
+subsubsection \<open>Total order \<open><=\<close> on @{typ int}\<close>
 
 interpretation int: dpo "op <= :: [int, int] => bool"
   rewrites "(dpo.less (op <=) (x::int) y) = (x < y)"
-  txt \<open>We give interpretation for less, but not @{text is_inf} and @{text is_sub}.\<close>
+  txt \<open>We give interpretation for less, but not \<open>is_inf\<close> and \<open>is_sub\<close>.\<close>
 proof -
   show "dpo (op <= :: [int, int] => bool)"
     proof qed auto
   then interpret int: dpo "op <= :: [int, int] => bool" .
-    txt \<open>Gives interpreted version of @{text less_def} (without condition).\<close>
+    txt \<open>Gives interpreted version of \<open>less_def\<close> (without condition).\<close>
   show "(dpo.less (op <=) (x::int) y) = (x < y)"
     by (unfold int.less_def) auto
 qed
@@ -522,16 +522,16 @@ thm int.meet_distr text \<open>from ddlat\<close>
 thm int.less_total text \<open>from dlo\<close>
 
 
-subsubsection \<open>Total order @{text "<="} on @{typ nat}\<close>
+subsubsection \<open>Total order \<open><=\<close> on @{typ nat}\<close>
 
 interpretation nat: dpo "op <= :: [nat, nat] => bool"
   rewrites "dpo.less (op <=) (x::nat) y = (x < y)"
-  txt \<open>We give interpretation for less, but not @{text is_inf} and @{text is_sub}.\<close>
+  txt \<open>We give interpretation for less, but not \<open>is_inf\<close> and \<open>is_sub\<close>.\<close>
 proof -
   show "dpo (op <= :: [nat, nat] => bool)"
     proof qed auto
   then interpret nat: dpo "op <= :: [nat, nat] => bool" .
-    txt \<open>Gives interpreted version of @{text less_def} (without condition).\<close>
+    txt \<open>Gives interpreted version of \<open>less_def\<close> (without condition).\<close>
   show "dpo.less (op <=) (x::nat) y = (x < y)"
     apply (unfold nat.less_def)
     apply auto
@@ -573,16 +573,16 @@ thm nat.meet_distr text \<open>from ddlat\<close>
 thm nat.less_total text \<open>from ldo\<close>
 
 
-subsubsection \<open>Lattice @{text "dvd"} on @{typ nat}\<close>
+subsubsection \<open>Lattice \<open>dvd\<close> on @{typ nat}\<close>
 
 interpretation nat_dvd: dpo "op dvd :: [nat, nat] => bool"
   rewrites "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
-  txt \<open>We give interpretation for less, but not @{text is_inf} and @{text is_sub}.\<close>
+  txt \<open>We give interpretation for less, but not \<open>is_inf\<close> and \<open>is_sub\<close>.\<close>
 proof -
   show "dpo (op dvd :: [nat, nat] => bool)"
     proof qed (auto simp: dvd_def)
   then interpret nat_dvd: dpo "op dvd :: [nat, nat] => bool" .
-    txt \<open>Gives interpreted version of @{text less_def} (without condition).\<close>
+    txt \<open>Gives interpreted version of \<open>less_def\<close> (without condition).\<close>
   show "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
     apply (unfold nat_dvd.less_def)
     apply auto
@@ -626,7 +626,7 @@ lemma "gcd x y dvd (x::nat)"
   apply (rule nat_dvd.meet_left) done
 
 
-subsection \<open>Group example with defined operations @{text inv} and @{text unit}\<close>
+subsection \<open>Group example with defined operations \<open>inv\<close> and \<open>unit\<close>\<close>
 
 subsubsection \<open>Locale declarations and lemmas\<close>
 

@@ -15,13 +15,13 @@ refute_params [satsolver = "cdclite"]
 
 lemma "P \<and> Q"
 apply (rule conjI)
-refute [expect = genuine] 1  -- \<open>refutes @{term "P"}\<close>
-refute [expect = genuine] 2  -- \<open>refutes @{term "Q"}\<close>
-refute [expect = genuine]    -- \<open>equivalent to 'refute 1'\<close>
-  -- \<open>here 'refute 3' would cause an exception, since we only have 2 subgoals\<close>
-refute [maxsize = 5, expect = genuine]   -- \<open>we can override parameters ...\<close>
+refute [expect = genuine] 1  \<comment> \<open>refutes @{term "P"}\<close>
+refute [expect = genuine] 2  \<comment> \<open>refutes @{term "Q"}\<close>
+refute [expect = genuine]    \<comment> \<open>equivalent to 'refute 1'\<close>
+  \<comment> \<open>here 'refute 3' would cause an exception, since we only have 2 subgoals\<close>
+refute [maxsize = 5, expect = genuine]   \<comment> \<open>we can override parameters ...\<close>
 refute [satsolver = "cdclite", expect = genuine] 2
-  -- \<open>... and specify a subgoal at the same time\<close>
+  \<comment> \<open>... and specify a subgoal at the same time\<close>
 oops
 
 (*****************************************************************************)
@@ -704,7 +704,7 @@ oops
 
 lemma "P Suc"
 refute [maxsize = 3, expect = none]
--- \<open>@{term Suc} is a partial function (regardless of the size
+\<comment> \<open>@{term Suc} is a partial function (regardless of the size
       of the model), hence @{term "P Suc"} is undefined and no
       model will be found\<close>
 oops
@@ -802,7 +802,7 @@ refute [expect = potential]
 oops
 
 lemma "finite x"
-refute -- \<open>no finite countermodel exists\<close>
+refute \<comment> \<open>no finite countermodel exists\<close>
 oops
 
 lemma "(x::nat) + y = 0"

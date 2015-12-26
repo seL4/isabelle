@@ -52,7 +52,7 @@ lemma prime_not_square:
 subsection \<open>Main theorem\<close>
 
 text \<open>
-  The square root of any prime number (including @{text 2}) is
+  The square root of any prime number (including \<open>2\<close>) is
   irrational.
 \<close>
 

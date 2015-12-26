@@ -277,7 +277,7 @@ using assms
 (*
 by sat
 *)
-by rawsat  -- \<open>this is without CNF conversion\<close>
+by rawsat  \<comment> \<open>this is without CNF conversion\<close>
 
 (* Translated from TPTP problem library: MSC007-1.008.dimacs *)
 
@@ -490,7 +490,7 @@ using assms
 (*
 by sat
 *)
-by rawsat  -- \<open>this is without CNF conversion\<close>
+by rawsat  \<comment> \<open>this is without CNF conversion\<close>
 
 (* Old sequent clause representation ("[c_i, p, ~q, \<dots>] \<turnstile> False"):
    sat, zchaff_with_proofs: 8705 resolution steps in

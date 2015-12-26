@@ -138,7 +138,7 @@ next
   have ant: "0 < Suc M" by fact
   {
     have suc: "?LHS (Suc M) = ?RHS (Suc M)"
-    proof cases -- "show that LHS = c and RHS = c, and thus LHS = RHS"
+    proof cases \<comment> "show that LHS = c and RHS = c, and thus LHS = RHS"
       assume mz: "M=0"
       {
         then have
@@ -274,8 +274,8 @@ that the harmonic series is divergent.\<close>
 theorem DivergenceOfHarmonicSeries:
   shows "\<not>summable (\<lambda>n. 1/real (Suc n))"
   (is "\<not>summable ?f")
-proof -- "by contradiction"
-  let ?s = "suminf ?f" -- "let ?s equal the sum of the harmonic series"
+proof \<comment> "by contradiction"
+  let ?s = "suminf ?f" \<comment> "let ?s equal the sum of the harmonic series"
   assume sf: "summable ?f"
   then obtain n::nat where ndef: "n = nat \<lceil>2 * ?s\<rceil>" by simp
   then have ngt: "1 + real n/2 > ?s" by linarith

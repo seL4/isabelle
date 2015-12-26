@@ -31,9 +31,9 @@ term "EXPR (a + b + c)"
 term "EXPR (a + b + c + VAR x + VAR y + 1)"
 term "EXPR (VAR (f w) + VAR x)"
 
-term "Expr (\<lambda>env. env x)"    -- \<open>improper\<close>
+term "Expr (\<lambda>env. env x)"    \<comment> \<open>improper\<close>
 term "Expr (\<lambda>env. f env)"
-term "Expr (\<lambda>env. f env + env x)"    -- \<open>improper\<close>
+term "Expr (\<lambda>env. f env + env x)"    \<comment> \<open>improper\<close>
 term "Expr (\<lambda>env. f env y z)"
 term "Expr (\<lambda>env. f env + g y env)"
 term "Expr (\<lambda>env. f env + g env y + h a env z)"

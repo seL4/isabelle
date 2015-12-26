@@ -35,26 +35,25 @@ lemma [intro!]: "p \<subseteq> (q \<rightarrow> p)" unfolding imp_def by rule
 
 text \<open>
   \smallskip The CTL path operators are more interesting; they are
-  based on an arbitrary, but fixed model @{text \<M>}, which is simply
+  based on an arbitrary, but fixed model \<open>\<M>\<close>, which is simply
   a transition relation over states @{typ "'a"}.
 \<close>
 
 axiomatization \<M> :: "('a \<times> 'a) set"
 
 text \<open>
-  The operators @{text \<EX>}, @{text \<EF>}, @{text \<EG>} are taken
-  as primitives, while @{text \<AX>}, @{text \<AF>}, @{text \<AG>} are
-  defined as derived ones.  The formula @{text "\<EX> p"} holds in a
+  The operators \<open>\<EX>\<close>, \<open>\<EF>\<close>, \<open>\<EG>\<close> are taken
+  as primitives, while \<open>\<AX>\<close>, \<open>\<AF>\<close>, \<open>\<AG>\<close> are
+  defined as derived ones.  The formula \<open>\<EX> p\<close> holds in a
   state @{term s}, iff there is a successor state @{term s'} (with
   respect to the model @{term \<M>}), such that @{term p} holds in
-  @{term s'}.  The formula @{text "\<EF> p"} holds in a state @{term
-  s}, iff there is a path in @{text \<M>}, starting from @{term s},
+  @{term s'}.  The formula \<open>\<EF> p\<close> holds in a state @{term
+  s}, iff there is a path in \<open>\<M>\<close>, starting from @{term s},
   such that there exists a state @{term s'} on the path, such that
-  @{term p} holds in @{term s'}.  The formula @{text "\<EG> p"} holds
+  @{term p} holds in @{term s'}.  The formula \<open>\<EG> p\<close> holds
   in a state @{term s}, iff there is a path, starting from @{term s},
   such that for all states @{term s'} on the path, @{term p} holds in
-  @{term s'}.  It is easy to see that @{text "\<EF> p"} and @{text
-  "\<EG> p"} may be expressed using least and greatest fixed points
+  @{term s'}.  It is easy to see that \<open>\<EF> p\<close> and \<open>\<EG> p\<close> may be expressed using least and greatest fixed points
   @{cite "McMillan-PhDThesis"}.
 \<close>
 
@@ -66,9 +65,8 @@ definition
   EG ("\<EG> _" [80] 90)  where "\<EG> p = gfp (\<lambda>s. p \<inter> \<EX> s)"
 
 text \<open>
-  @{text "\<AX>"}, @{text "\<AF>"} and @{text "\<AG>"} are now defined
-  dually in terms of @{text "\<EX>"}, @{text "\<EF>"} and @{text
-  "\<EG>"}.
+  \<open>\<AX>\<close>, \<open>\<AF>\<close> and \<open>\<AG>\<close> are now defined
+  dually in terms of \<open>\<EX>\<close>, \<open>\<EF>\<close> and \<open>\<EG>\<close>.
 \<close>
 
 definition
@@ -160,8 +158,8 @@ qed
 
 text \<open>
   This fact may be split up into two inequalities (merely using
-  transitivity of @{text "\<subseteq>" }, which is an instance of the overloaded
-  @{text "\<le>"} in Isabelle/HOL).
+  transitivity of \<open>\<subseteq>\<close>, which is an instance of the overloaded
+  \<open>\<le>\<close> in Isabelle/HOL).
 \<close>
 
 lemma AG_fp_1: "\<AG> p \<subseteq> p"
@@ -193,7 +191,7 @@ subsection \<open>The tree induction principle \label{sec:calc-ctl-tree-induct}\
 text \<open>
   With the most basic facts available, we are now able to establish a
   few more interesting results, leading to the \emph{tree induction}
-  principle for @{text AG} (see below).  We will use some elementary
+  principle for \<open>AG\<close> (see below).  We will use some elementary
   monotonicity and distributivity rules.
 \<close>
 
@@ -204,7 +202,7 @@ lemma AG_mono: "p \<subseteq> q \<Longrightarrow> \<AG> p \<subseteq> \<AG> q"
 
 text \<open>
   The formula @{term "AG p"} implies @{term "AX p"} (we use
-  substitution of @{text "\<subseteq>"} with monotonicity).
+  substitution of \<open>\<subseteq>\<close> with monotonicity).
 \<close>
 
 lemma AG_AX: "\<AG> p \<subseteq> \<AX> p"
@@ -215,7 +213,7 @@ proof -
 qed
 
 text \<open>
-  Furthermore we show idempotency of the @{text "\<AG>"} operator.
+  Furthermore we show idempotency of the \<open>\<AG>\<close> operator.
   The proof is a good example of how accumulated facts may get
   used to feed a single rule step.
 \<close>
@@ -233,8 +231,7 @@ next
 qed
 
 text \<open>
-  \smallskip We now give an alternative characterization of the @{text
-  "\<AG>"} operator, which describes the @{text "\<AG>"} operator in
+  \smallskip We now give an alternative characterization of the \<open>\<AG>\<close> operator, which describes the \<open>\<AG>\<close> operator in
   an ``operational'' way by tree induction: In a state holds @{term
   "AG p"} iff in that state holds @{term p}, and in all reachable
   states @{term s} follows from the fact that @{term p} holds in
@@ -289,7 +286,7 @@ subsection \<open>An application of tree induction \label{sec:calc-ctl-commute}\
 text \<open>
   Further interesting properties of CTL expressions may be
   demonstrated with the help of tree induction; here we show that
-  @{text \<AX>} and @{text \<AG>} commute.
+  \<open>\<AX>\<close> and \<open>\<AG>\<close> commute.
 \<close>
 
 theorem AG_AX_commute: "\<AG> \<AX> p = \<AX> \<AG> p"

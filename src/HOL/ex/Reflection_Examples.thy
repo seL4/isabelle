@@ -11,40 +11,40 @@ begin
 text \<open>This theory presents two methods: reify and reflection\<close>
 
 text \<open>
-Consider an HOL type @{text \<sigma>}, the structure of which is not recongnisable
+Consider an HOL type \<open>\<sigma>\<close>, the structure of which is not recongnisable
 on the theory level.  This is the case of @{typ bool}, arithmetical terms such as @{typ int},
-@{typ real} etc \dots  In order to implement a simplification on terms of type @{text \<sigma>} we
+@{typ real} etc \dots  In order to implement a simplification on terms of type \<open>\<sigma>\<close> we
 often need its structure.  Traditionnaly such simplifications are written in ML,
 proofs are synthesized.
 
-An other strategy is to declare an HOL datatype @{text \<tau>} and an HOL function (the
-interpretation) that maps elements of @{text \<tau>} to elements of @{text \<sigma>}.
+An other strategy is to declare an HOL datatype \<open>\<tau>\<close> and an HOL function (the
+interpretation) that maps elements of \<open>\<tau>\<close> to elements of \<open>\<sigma>\<close>.
 
-The functionality of @{text reify} then is, given a term @{text t} of type @{text \<sigma>},
-to compute a term @{text s} of type @{text \<tau>}.  For this it needs equations for the
+The functionality of \<open>reify\<close> then is, given a term \<open>t\<close> of type \<open>\<sigma>\<close>,
+to compute a term \<open>s\<close> of type \<open>\<tau>\<close>.  For this it needs equations for the
 interpretation.
 
-N.B: All the interpretations supported by @{text reify} must have the type
-@{text "'a list \<Rightarrow> \<tau> \<Rightarrow> \<sigma>"}.  The method @{text reify} can also be told which subterm
-of the current subgoal should be reified.  The general call for @{text reify} is
-@{text "reify eqs (t)"}, where @{text eqs} are the defining equations of the interpretation
-and @{text "(t)"} is an optional parameter which specifies the subterm to which reification
-should be applied to.  If @{text "(t)"} is abscent, @{text reify} tries to reify the whole
+N.B: All the interpretations supported by \<open>reify\<close> must have the type
+\<open>'a list \<Rightarrow> \<tau> \<Rightarrow> \<sigma>\<close>.  The method \<open>reify\<close> can also be told which subterm
+of the current subgoal should be reified.  The general call for \<open>reify\<close> is
+\<open>reify eqs (t)\<close>, where \<open>eqs\<close> are the defining equations of the interpretation
+and \<open>(t)\<close> is an optional parameter which specifies the subterm to which reification
+should be applied to.  If \<open>(t)\<close> is abscent, \<open>reify\<close> tries to reify the whole
 subgoal.
 
-The method @{text reflection} uses @{text reify} and has a very similar signature:
-@{text "reflection corr_thm eqs (t)"}.  Here again @{text eqs} and @{text "(t)"}
-are as described above and @{text corr_thm} is a theorem proving
-@{prop "I vs (f t) = I vs t"}.  We assume that @{text I} is the interpretation
-and @{text f} is some useful and executable simplification of type @{text "\<tau> \<Rightarrow> \<tau>"}.
-The method @{text reflection} applies reification and hence the theorem @{prop "t = I xs s"}
-and hence using @{text corr_thm} derives @{prop "t = I xs (f s)"}.  It then uses
+The method \<open>reflection\<close> uses \<open>reify\<close> and has a very similar signature:
+\<open>reflection corr_thm eqs (t)\<close>.  Here again \<open>eqs\<close> and \<open>(t)\<close>
+are as described above and \<open>corr_thm\<close> is a theorem proving
+@{prop "I vs (f t) = I vs t"}.  We assume that \<open>I\<close> is the interpretation
+and \<open>f\<close> is some useful and executable simplification of type \<open>\<tau> \<Rightarrow> \<tau>\<close>.
+The method \<open>reflection\<close> applies reification and hence the theorem @{prop "t = I xs s"}
+and hence using \<open>corr_thm\<close> derives @{prop "t = I xs (f s)"}.  It then uses
 normalization by equational rewriting to prove @{prop "f s = s'"} which almost finishes
 the proof of @{prop "t = t'"} where @{prop "I xs s' = t'"}.
 \<close>
 
 text \<open>Example 1 : Propositional formulae and NNF.\<close>
-text \<open>The type @{text fm} represents simple propositional formulae:\<close>
+text \<open>The type \<open>fm\<close> represents simple propositional formulae:\<close>
 
 datatype form = TrueF | FalseF | Less nat nat
   | And form form | Or form form | Neg form | ExQ form
@@ -81,8 +81,8 @@ lemma "Q \<longrightarrow> (D \<and> F \<and> ((\<not> D) \<and> (\<not> F)))"
   apply (reify Ifm.simps)
 oops
 
-text \<open>Method @{text reify} maps a @{typ bool} to an @{typ fm}.  For this it needs the 
-semantics of @{text fm}, i.e.\ the rewrite rules in @{text Ifm.simps}.\<close>
+text \<open>Method \<open>reify\<close> maps a @{typ bool} to an @{typ fm}.  For this it needs the 
+semantics of \<open>fm\<close>, i.e.\ the rewrite rules in \<open>Ifm.simps\<close>.\<close>
 
 text \<open>You can also just pick up a subterm to reify.\<close>
 lemma "Q \<longrightarrow> (D \<and> F \<and> ((\<not> D) \<and> (\<not> F)))"
@@ -134,7 +134,7 @@ oops
 
 text \<open>Example 2: Simple arithmetic formulae\<close>
 
-text \<open>The type @{text num} reflects linear expressions over natural number\<close>
+text \<open>The type \<open>num\<close> reflects linear expressions over natural number\<close>
 datatype num = C nat | Add num num | Mul nat num | Var nat | CN nat nat num
 
 text \<open>This is just technical to make recursive definitions easier.\<close>
@@ -161,15 +161,15 @@ text \<open>Let's reify some nat expressions \dots\<close>
 lemma "4 * (2 * x + (y::nat)) + f a \<noteq> 0"
   apply (reify Inum.simps ("4 * (2 * x + (y::nat)) + f a"))
 oops
-text \<open>We're in a bad situation! @{text x}, @{text y} and @{text f} have been recongnized
+text \<open>We're in a bad situation! \<open>x\<close>, \<open>y\<close> and \<open>f\<close> have been recongnized
 as constants, which is correct but does not correspond to our intuition of the constructor C.
 It should encapsulate constants, i.e. numbers, i.e. numerals.\<close>
 
-text \<open>So let's leave the @{text "Inum_C"} equation at the end and see what happens \dots\<close>
+text \<open>So let's leave the \<open>Inum_C\<close> equation at the end and see what happens \dots\<close>
 lemma "4 * (2 * x + (y::nat)) \<noteq> 0"
   apply (reify Inum_Var Inum_Add Inum_Mul Inum_CN Inum_C ("4 * (2 * x + (y::nat))"))
 oops
-text \<open>Hm, let's specialize @{text Inum_C} with numerals.\<close>
+text \<open>Hm, let's specialize \<open>Inum_C\<close> with numerals.\<close>
 
 lemma Inum_number: "Inum (C (numeral t)) vs = numeral t" by simp
 lemmas Inum_eqs = Inum_Var Inum_Add Inum_Mul Inum_CN Inum_number
@@ -185,7 +185,7 @@ lemma "1 * (2 * x + (y::nat) + 0 + 1) \<noteq> 0"
   apply (reify Inum_eqs ("1 * (2 * x + (y::nat) + 0 + 1)"))
 oops
 
-text \<open>Oh!! 0 is not a variable \dots\ Oh! 0 is not a @{text "numeral"} \dots\ thing.
+text \<open>Oh!! 0 is not a variable \dots\ Oh! 0 is not a \<open>numeral\<close> \dots\ thing.
 The same for 1. So let's add those equations, too.\<close>
 
 lemma Inum_01: "Inum (C 0) vs = 0" "Inum (C 1) vs = 1" "Inum (C(Suc n)) vs = Suc n"
@@ -200,7 +200,7 @@ lemma "1 * (2 * x + (y::nat) + 0 + 1) \<noteq> 0"
 oops
 
 text \<open>Okay, let's try reflection. Some simplifications on @{typ num} follow. You can
-  skim until the main theorem @{text linum}.\<close>
+  skim until the main theorem \<open>linum\<close>.\<close>
   
 fun lin_add :: "num \<Rightarrow> num \<Rightarrow> num"
 where

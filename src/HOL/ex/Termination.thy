@@ -9,7 +9,7 @@ theory Termination
 imports Main "~~/src/HOL/Library/Multiset"
 begin
 
-subsection \<open>Manually giving termination relations using @{text relation} and
+subsection \<open>Manually giving termination relations using \<open>relation\<close> and
 @{term measure}\<close>
 
 function sum :: "nat \<Rightarrow> nat \<Rightarrow> nat"
@@ -29,10 +29,10 @@ by pat_completeness auto
 termination by (relation "measures [\<lambda>(i, N). N, \<lambda>(i,N). N + 1 - i]") auto
 
 
-subsection \<open>@{text lexicographic_order}: Trivial examples\<close>
+subsection \<open>\<open>lexicographic_order\<close>: Trivial examples\<close>
 
 text \<open>
-  The @{text fun} command uses the method @{text lexicographic_order} by default,
+  The \<open>fun\<close> command uses the method \<open>lexicographic_order\<close> by default,
   so it is not explicitly invoked.
 \<close>
 
@@ -168,9 +168,9 @@ where
 
 
 
-subsection \<open>Refined analysis: The @{text size_change} method\<close>
+subsection \<open>Refined analysis: The \<open>size_change\<close> method\<close>
 
-text \<open>Unsolvable for @{text lexicographic_order}\<close>
+text \<open>Unsolvable for \<open>lexicographic_order\<close>\<close>
 
 function fun1 :: "nat * nat \<Rightarrow> nat"
 where
@@ -183,7 +183,7 @@ termination by size_change
 
 
 text \<open>
-  @{text lexicographic_order} can do the following, but it is much slower. 
+  \<open>lexicographic_order\<close> can do the following, but it is much slower. 
 \<close>
 
 function
@@ -227,7 +227,7 @@ where
            0
       )"
 by pat_completeness auto
-termination by size_change -- \<open>requires Multiset\<close>
+termination by size_change \<comment> \<open>requires Multiset\<close>
 
 definition negate :: "int \<Rightarrow> int"
 where "negate i = - i"

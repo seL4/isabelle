@@ -34,7 +34,7 @@ function sieve :: "nat \<Rightarrow> bool list \<Rightarrow> bool list" where
     | p#ps' \<Rightarrow> let n = m - length ps' in takeWhile Not ps @ p # sieve m (mark n n ps'))"
 by pat_completeness auto
 
-termination -- \<open>tuning of this proof is left as an exercise to the reader\<close>
+termination \<comment> \<open>tuning of this proof is left as an exercise to the reader\<close>
   apply (relation "measure (length \<circ> snd)")
   apply rule
   apply (auto simp add: length_dropWhile_le)
@@ -67,7 +67,7 @@ function factorise_from :: "nat \<Rightarrow> nat \<Rightarrow> nat list" where
     else [])" 
 by pat_completeness auto
 
-termination factorise_from -- \<open>tuning of this proof is left as an exercise to the reader\<close>
+termination factorise_from \<comment> \<open>tuning of this proof is left as an exercise to the reader\<close>
 term measure
 apply (relation "measure (\<lambda>(k, n). 2 * n - k)")
 apply (auto simp add: prod_eq_iff)

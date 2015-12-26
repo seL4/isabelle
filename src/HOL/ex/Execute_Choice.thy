@@ -57,7 +57,7 @@ lemma valuesum_choice:
   unfolding valuesum_def  by transfer (simp add: setsum_diff)
 
 text \<open>
-  Given @{text valuesum_rec} as initial description, we stepwise refine it to something executable;
+  Given \<open>valuesum_rec\<close> as initial description, we stepwise refine it to something executable;
   first, we formally insert the constructor @{term Mapping} and split the one equation into two,
   where the second one provides the necessary context:
 \<close>
@@ -72,7 +72,7 @@ text \<open>
   As a side effect the precondition disappears (but note this has nothing to do with choice!).
   The first equation deals with the uncritical empty case and can already be used for code generation.
 
-  Using @{text valuesum_choice}, we are able to prove an executable version of @{term valuesum}:
+  Using \<open>valuesum_choice\<close>, we are able to prove an executable version of @{term valuesum}:
 \<close>
 
 lemma valuesum_rec_exec [code]:

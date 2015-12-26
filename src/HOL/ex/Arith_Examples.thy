@@ -9,18 +9,18 @@ imports Main
 begin
 
 text \<open>
-  The @{text arith} method is used frequently throughout the Isabelle
+  The \<open>arith\<close> method is used frequently throughout the Isabelle
   distribution.  This file merely contains some additional tests and special
   corner cases.  Some rather technical remarks:
 
   @{ML Lin_Arith.simple_tac} is a very basic version of the tactic.  It performs no
   meta-to-object-logic conversion, and only some splitting of operators.
   @{ML Lin_Arith.tac} performs meta-to-object-logic conversion, full
-  splitting of operators, and NNF normalization of the goal.  The @{text arith}
-  method combines them both, and tries other methods (e.g.~@{text presburger})
+  splitting of operators, and NNF normalization of the goal.  The \<open>arith\<close>
+  method combines them both, and tries other methods (e.g.~\<open>presburger\<close>)
   as well.  This is the one that you should use in your proofs!
 
-  An @{text arith}-based simproc is available as well (see @{ML
+  An \<open>arith\<close>-based simproc is available as well (see @{ML
   Lin_Arith.simproc}), which---for performance
   reasons---however does even less splitting than @{ML Lin_Arith.simple_tac}
   at the moment (namely inequalities only).  (On the other hand, it

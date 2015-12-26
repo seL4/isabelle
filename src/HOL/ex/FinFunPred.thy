@@ -126,7 +126,7 @@ lemma finfun_leD [elim]: "\<lbrakk> A \<le> B; A $ x \<rbrakk> \<Longrightarrow>
 by(simp add: le_finfun_def)
 
 text \<open>Bounded quantification.
-  Warning: @{text "finfun_Ball"} and @{text "finfun_Ex"} may raise an exception, they should not be used for quickcheck
+  Warning: \<open>finfun_Ball\<close> and \<open>finfun_Ex\<close> may raise an exception, they should not be used for quickcheck
 \<close>
 
 definition finfun_Ball_except :: "'a list \<Rightarrow> 'a pred\<^sub>f \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
@@ -237,7 +237,7 @@ lemma iso_finfun_minus [code_unfold]:
 by(simp)
 
 text \<open>
-  Do not declare the following two theorems as @{text "[code_unfold]"},
+  Do not declare the following two theorems as \<open>[code_unfold]\<close>,
   because this causes quickcheck to fail frequently when bounded quantification is used which raises an exception.
   For code generation, the same problems occur, but then, no randomly generated FinFun is usually around.
 \<close>

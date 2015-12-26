@@ -75,19 +75,19 @@ lemma "(| xpos = m, ypos = n, ... = p |) (| xpos:= 0 |) = (| xpos = 0, ypos = n,
 text \<open>\medskip Equality of records.\<close>
 
 lemma "n = n' ==> p = p' ==> (| xpos = n, ypos = p |) = (| xpos = n', ypos = p' |)"
-  -- "introduction of concrete record equality"
+  \<comment> "introduction of concrete record equality"
   by simp
 
 lemma "(| xpos = n, ypos = p |) = (| xpos = n', ypos = p' |) ==> n = n'"
-  -- "elimination of concrete record equality"
+  \<comment> "elimination of concrete record equality"
   by simp
 
 lemma "r (| xpos := n |) (| ypos := m |) = r (| ypos := m |) (| xpos := n |)"
-  -- "introduction of abstract record equality"
+  \<comment> "introduction of abstract record equality"
   by simp
 
 lemma "r (| xpos := n |) = r (| xpos := n' |) ==> n = n'"
-  -- "elimination of abstract record equality (manual proof)"
+  \<comment> "elimination of abstract record equality (manual proof)"
 proof -
   assume "r (| xpos := n |) = r (| xpos := n' |)" (is "?lhs = ?rhs")
   then have "xpos ?lhs = xpos ?rhs" by simp
@@ -149,7 +149,7 @@ definition foo5 :: nat
   where "foo5 = getX (| xpos = 1, ypos = 0 |)"
 
 
-text \<open>\medskip Manipulating the ``@{text "..."}'' (more) part.\<close>
+text \<open>\medskip Manipulating the ``\<open>...\<close>'' (more) part.\<close>
 
 definition incX :: "'a point_scheme => 'a point_scheme"
   where "incX r = (| xpos = xpos r + 1, ypos = ypos r, ... = point.more r |)"
@@ -188,7 +188,7 @@ consts foo9 :: "(| xpos :: nat, ypos :: nat, colour :: colour, ... :: 'a |)"
 
 
 text \<open>
- Functions on @{text point} schemes work for @{text cpoints} as well.
+ Functions on \<open>point\<close> schemes work for \<open>cpoints\<close> as well.
 \<close>
 
 definition foo10 :: nat

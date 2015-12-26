@@ -15,10 +15,10 @@ text \<open>
 
 lemmas [simp] =
   ring_distribs
-  diff_mult_distrib diff_mult_distrib2 --\<open>for type nat\<close>
+  diff_mult_distrib diff_mult_distrib2 \<comment>\<open>for type nat\<close>
 
 text \<open>
-  \medskip The sum of the first @{text n} odd numbers equals @{text n}
+  \medskip The sum of the first \<open>n\<close> odd numbers equals \<open>n\<close>
   squared.
 \<close>
 
@@ -27,7 +27,7 @@ lemma sum_of_odds: "(\<Sum>i=0..<n. Suc (i + i)) = n * n"
 
 
 text \<open>
-  \medskip The sum of the first @{text n} odd squares.
+  \medskip The sum of the first \<open>n\<close> odd squares.
 \<close>
 
 lemma sum_of_odd_squares:
@@ -36,7 +36,7 @@ lemma sum_of_odd_squares:
 
 
 text \<open>
-  \medskip The sum of the first @{text n} odd cubes
+  \medskip The sum of the first \<open>n\<close> odd cubes
 \<close>
 
 lemma sum_of_odd_cubes:
@@ -45,8 +45,8 @@ lemma sum_of_odd_cubes:
   by (induct n) auto
 
 text \<open>
-  \medskip The sum of the first @{text n} positive integers equals
-  @{text "n (n + 1) / 2"}.\<close>
+  \medskip The sum of the first \<open>n\<close> positive integers equals
+  \<open>n (n + 1) / 2\<close>.\<close>
 
 lemma sum_of_naturals:
     "2 * (\<Sum>i=0..n. i) = n * Suc n"
@@ -86,7 +86,7 @@ lemma sum_of_fourth_powers:
     n * Suc n * Suc (2 * n) * (3 * n * n + 3 * n - 1)"
   apply (induct n)
    apply simp_all
-  apply (case_tac n)  -- \<open>eliminates the subtraction\<close> 
+  apply (case_tac n)  \<comment> \<open>eliminates the subtraction\<close> 
    apply (simp_all (no_asm_simp))
   done
 
@@ -108,7 +108,7 @@ lemma of_nat_sum_of_fourth_powers:
 
 
 text \<open>
-  \medskip Sums of geometric series: @{text 2}, @{text 3} and the
+  \medskip Sums of geometric series: \<open>2\<close>, \<open>3\<close> and the
   general case.
 \<close>
 

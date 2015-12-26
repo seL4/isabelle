@@ -11,9 +11,8 @@ subsection\<open>Traditional Classical Reasoner\<close>
 
 text\<open>The machine "griffon" mentioned below is a 2.5GHz Power Mac G5.\<close>
 
-text\<open>Taken from @{text "FOL/Classical.thy"}. When porting examples from
-first-order logic, beware of the precedence of @{text "="} versus @{text
-"\<leftrightarrow>"}.\<close>
+text\<open>Taken from \<open>FOL/Classical.thy\<close>. When porting examples from
+first-order logic, beware of the precedence of \<open>=\<close> versus \<open>\<leftrightarrow>\<close>.\<close>
 
 lemma "(P --> Q | R) --> (P-->Q) | (P-->R)"
 by blast
@@ -430,7 +429,7 @@ lemma "(\<forall>x y z. R(x,y) & R(y,z) --> R(x,z)) &
        (\<forall>x. \<exists>y. R(x,y)) -->
        ~ (\<forall>x. P x = (\<forall>y. R(x,y) --> ~ P y))"
 by (tactic\<open>Meson.safe_best_meson_tac @{context} 1\<close>)
-    --\<open>In contrast, @{text meson} is SLOW: 7.6s on griffon\<close>
+    \<comment>\<open>In contrast, \<open>meson\<close> is SLOW: 7.6s on griffon\<close>
 
 
 subsubsection\<open>Pelletier's examples\<close>
@@ -645,7 +644,7 @@ lemma "(\<forall>z. \<exists>w. \<forall>x. \<exists>y.
       (\<forall>x z. ~P x z --> (\<exists>y. Q y z)) &
       ((\<exists>x y. Q x y) --> (\<forall>x. R x x))
     --> (\<forall>x. \<exists>y. R x y)"
-by blast --\<open>causes unification tracing messages\<close>
+by blast \<comment>\<open>causes unification tracing messages\<close>
 
 
 text\<open>Problem 38\<close>  text\<open>Quite hard: 422 Horn clauses!!\<close>
@@ -724,7 +723,7 @@ lemma "(\<forall>x. wolf x \<longrightarrow> animal x) & (\<exists>x. wolf x) &
        (\<forall>x. (caterpillar x \<or> snail x) \<longrightarrow> (\<exists>y. plant y & eats x y))
        \<longrightarrow> (\<exists>x y. animal x & animal y & (\<exists>z. grain z & eats y z & eats x y))"
 by (tactic\<open>Meson.safe_best_meson_tac @{context} 1\<close>)
-    --\<open>Nearly twice as fast as @{text meson},
+    \<comment>\<open>Nearly twice as fast as \<open>meson\<close>,
         which performs iterative deepening rather than best-first search\<close>
 
 text\<open>The Los problem. Circulated by John Harrison\<close>
@@ -756,7 +755,7 @@ oops
 text\<open>Problem 55\<close>
 
 text\<open>Non-equational version, from Manthey and Bry, CADE-9 (Springer, 1988).
-  @{text meson} cannot report who killed Agatha.\<close>
+  \<open>meson\<close> cannot report who killed Agatha.\<close>
 lemma "lives agatha & lives butler & lives charles &
        (killed agatha agatha | killed butler agatha | killed charles agatha) &
        (\<forall>x y. killed x y --> hates x y & ~richer x y) &
@@ -802,13 +801,13 @@ lemma
  shows True
 proof -
   from a b d have "\<forall>x. T(i x x)" by blast
-  from a b c d have "\<forall>x. T(i x (n(n x)))" --\<open>Problem 66\<close>
+  from a b c d have "\<forall>x. T(i x (n(n x)))" \<comment>\<open>Problem 66\<close>
     by metis
-  from a b c d have "\<forall>x. T(i (n(n x)) x)" --\<open>Problem 67\<close>
+  from a b c d have "\<forall>x. T(i (n(n x)) x)" \<comment>\<open>Problem 67\<close>
     by meson
-      --\<open>4.9s on griffon. 51061 inferences, depth 21\<close>
+      \<comment>\<open>4.9s on griffon. 51061 inferences, depth 21\<close>
   from a b c' d have "\<forall>x. T(i x (n(n x)))" 
-      --\<open>Problem 68: not proved.  Listed as satisfiable in TPTP (LCL078-1)\<close>
+      \<comment>\<open>Problem 68: not proved.  Listed as satisfiable in TPTP (LCL078-1)\<close>
 oops
 
 text\<open>Problem 71, as found in TPTP (SYN007+1.005)\<close>

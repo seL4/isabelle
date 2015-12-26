@@ -379,17 +379,17 @@ proof
   show "wf ?R" by simp
 
   fix M N M' N' :: "'a trm"
-  show "((M, M'), (M \<cdot> N, M' \<cdot> N')) \<in> ?R" -- "Inner call"
+  show "((M, M'), (M \<cdot> N, M' \<cdot> N')) \<in> ?R" \<comment> "Inner call"
     by (rule measures_lesseq) (auto intro: card_mono)
 
-  fix \<theta>                                   -- "Outer call"
+  fix \<theta>                                   \<comment> "Outer call"
   assume inner: "unify_dom (M, M')"
     "unify M M' = Some \<theta>"
 
   from unify_eliminates[OF inner]
   show "((N \<lhd> \<theta>, N' \<lhd> \<theta>), (M \<cdot> N, M' \<cdot> N')) \<in>?R"
   proof
-    -- \<open>Either a variable is eliminated \ldots\<close>
+    \<comment> \<open>Either a variable is eliminated \ldots\<close>
     assume "(\<exists>v\<in>vars_of M \<union> vars_of M'. elim \<theta> v)"
     then obtain v 
       where "elim \<theta> v" 
@@ -402,7 +402,7 @@ proof
     thus ?thesis
       by (auto intro!: measures_less intro: psubset_card_mono)
   next
-    -- \<open>Or the substitution is empty\<close>
+    \<comment> \<open>Or the substitution is empty\<close>
     assume "\<theta> \<doteq> []"
     hence "N \<lhd> \<theta> = N" 
       and "N' \<lhd> \<theta> = N'" by auto
@@ -417,7 +417,7 @@ subsection \<open>Unification returns a Most General Unifier\<close>
 lemma unify_computes_MGU:
   "unify M N = Some \<sigma> \<Longrightarrow> MGU \<sigma> M N"
 proof (induct M N arbitrary: \<sigma> rule: unify.induct)
-  case (7 M N M' N' \<sigma>) -- "The interesting case"
+  case (7 M N M' N' \<sigma>) \<comment> "The interesting case"
 
   then obtain \<theta>1 \<theta>2 
     where "unify M M' = Some \<theta>1"

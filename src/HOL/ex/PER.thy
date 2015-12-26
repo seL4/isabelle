@@ -11,8 +11,8 @@ begin
 text \<open>
   Higher-order quotients are defined over partial equivalence
   relations (PERs) instead of total ones.  We provide axiomatic type
-  classes @{text "equiv < partial_equiv"} and a type constructor
-  @{text "'a quot"} with basic operations.  This development is based
+  classes \<open>equiv < partial_equiv\<close> and a type constructor
+  \<open>'a quot\<close> with basic operations.  This development is based
   on:
 
   Oscar Slotosch: \emph{Higher Order Quotients and their
@@ -25,9 +25,9 @@ text \<open>
 subsection \<open>Partial equivalence\<close>
 
 text \<open>
-  Type class @{text partial_equiv} models partial equivalence
-  relations (PERs) using the polymorphic @{text "\<sim> :: 'a \<Rightarrow> 'a \<Rightarrow>
-  bool"} relation, which is required to be symmetric and transitive,
+  Type class \<open>partial_equiv\<close> models partial equivalence
+  relations (PERs) using the polymorphic \<open>\<sim> :: 'a \<Rightarrow> 'a \<Rightarrow>
+  bool\<close> relation, which is required to be symmetric and transitive,
   but not necessarily reflexive.
 \<close>
 
@@ -64,7 +64,7 @@ qed
 subsection \<open>Equivalence on function spaces\<close>
 
 text \<open>
-  The @{text \<sim>} relation is lifted to function spaces.  It is
+  The \<open>\<sim>\<close> relation is lifted to function spaces.  It is
   important to note that this is \emph{not} the direct product, but a
   structural one corresponding to the congruence property.
 \<close>
@@ -117,8 +117,8 @@ subsection \<open>Total equivalence\<close>
 
 text \<open>
   The class of total equivalence relations on top of PERs.  It
-  coincides with the standard notion of equivalence, i.e.\ @{text "\<sim>
-  :: 'a \<Rightarrow> 'a \<Rightarrow> bool"} is required to be reflexive, transitive and
+  coincides with the standard notion of equivalence, i.e.\ \<open>\<sim>
+  :: 'a \<Rightarrow> 'a \<Rightarrow> bool\<close> is required to be reflexive, transitive and
   symmetric.
 \<close>
 
@@ -148,7 +148,7 @@ qed
 subsection \<open>Quotient types\<close>
 
 text \<open>
-  The quotient type @{text "'a quot"} consists of all
+  The quotient type \<open>'a quot\<close> consists of all
   \emph{equivalence classes} over elements of the base type @{typ 'a}.
 \<close>
 

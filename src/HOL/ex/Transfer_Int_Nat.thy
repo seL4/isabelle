@@ -114,7 +114,7 @@ lemma ZN_setsum [transfer_rule]:
   apply simp_all
   done
 
-text \<open>For derived operations, we can use the @{text "transfer_prover"}
+text \<open>For derived operations, we can use the \<open>transfer_prover\<close>
   method to help generate transfer rules.\<close>
 
 lemma ZN_listsum [transfer_rule]: "(list_all2 ZN ===> ZN) listsum listsum"
@@ -159,8 +159,8 @@ apply transfer
 apply fact
 done
 
-text \<open>The @{text "fixing"} option prevents generalization over the free
-  variable @{text "n"}, allowing the local transfer rule to be used.\<close>
+text \<open>The \<open>fixing\<close> option prevents generalization over the free
+  variable \<open>n\<close>, allowing the local transfer rule to be used.\<close>
 
 lemma
   assumes [transfer_rule]: "ZN x n"
@@ -185,7 +185,7 @@ apply transfer
 apply fact
 done
 
-text \<open>Quantifiers over higher types (e.g. @{text "nat list"}) are
+text \<open>Quantifiers over higher types (e.g. \<open>nat list\<close>) are
   transferred to a readable formula thanks to the transfer domain rule @{thm Domainp_ZN}\<close>
 
 lemma

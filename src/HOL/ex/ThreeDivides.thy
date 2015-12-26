@@ -23,7 +23,7 @@ significant digit of the decimal denotation of the number n and the
 sum ranges over all digits. Then $$ (n - \sum{n_j}) = \sum{n_j * (10^j
 - 1)} $$ We know $\forall j\; 3|(10^j - 1) $ and hence $3|LHS$,
 therefore $$\forall n\; 3|n \Longleftrightarrow 3|\sum{n_j}$$
-@{text "\<box>"}
+\<open>\<box>\<close>
 \<close>
 
 
@@ -31,8 +31,8 @@ subsection \<open>Formal proof\<close>
 
 subsubsection \<open>Miscellaneous summation lemmas\<close>
 
-text \<open>If $a$ divides @{text "A x"} for all x then $a$ divides any
-sum over terms of the form @{text "(A x)*(P x)"} for arbitrary $P$.\<close>
+text \<open>If $a$ divides \<open>A x\<close> for all x then $a$ divides any
+sum over terms of the form \<open>(A x)*(P x)\<close> for arbitrary $P$.\<close>
 
 lemma div_sum:
   fixes a::nat and n::nat
@@ -84,14 +84,14 @@ next
   thus ?case by simp
 qed
 
-text \<open>Expanding on the previous lemma and lemma @{text "div_sum"}.\<close>
+text \<open>Expanding on the previous lemma and lemma \<open>div_sum\<close>.\<close>
 lemma three_divs_1:
   fixes D :: "nat \<Rightarrow> nat"
   shows "3 dvd (\<Sum>x<nd. D x * (10^x - 1))"
   by (subst mult.commute, rule div_sum) (simp add: three_divs_0 [simplified])
 
-text \<open>Using lemmas @{text "digit_diff_split"} and 
-@{text "three_divs_1"} we now prove the following lemma. 
+text \<open>Using lemmas \<open>digit_diff_split\<close> and 
+\<open>three_divs_1\<close> we now prove the following lemma. 
 \<close>
 lemma three_divs_2:
   fixes nd::nat and D::"nat\<Rightarrow>nat"
@@ -136,8 +136,7 @@ subsubsection \<open>Three Divides Natural\<close>
 
 text \<open>This section shows that for all natural numbers we can
 generate a sequence of digits less than ten that represent the decimal
-expansion of the number. We then use the lemma @{text
-"three_div_general"} to prove our final theorem.\<close>
+expansion of the number. We then use the lemma \<open>three_div_general\<close> to prove our final theorem.\<close>
 
 
 text \<open>\medskip Definitions of length and digit sum.\<close>
@@ -146,7 +145,7 @@ text \<open>This section introduces some functions to calculate the
 required properties of natural numbers. We then proceed to prove some
 properties of these functions.
 
-The function @{text "nlen"} returns the number of digits in a natural
+The function \<open>nlen\<close> returns the number of digits in a natural
 number n.\<close>
 
 fun nlen :: "nat \<Rightarrow> nat"
@@ -154,7 +153,7 @@ where
   "nlen 0 = 0"
 | "nlen x = 1 + nlen (x div 10)"
 
-text \<open>The function @{text "sumdig"} returns the sum of all digits in
+text \<open>The function \<open>sumdig\<close> returns the sum of all digits in
 some number n.\<close>
 
 definition
@@ -214,8 +213,8 @@ qed
 
 text \<open>\medskip Final theorem.\<close>
 
-text \<open>We now combine the general theorem @{text "three_div_general"}
-and existence result of @{text "exp_exists"} to prove our final
+text \<open>We now combine the general theorem \<open>three_div_general\<close>
+and existence result of \<open>exp_exists\<close> to prove our final
 theorem.\<close>
 
 theorem three_divides_nat:

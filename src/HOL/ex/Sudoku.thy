@@ -12,9 +12,9 @@ begin
 text \<open>
   See the paper ``A SAT-based Sudoku Solver'' (Tjark Weber, published at
   LPAR'05) for further explanations.  (The paper describes an older version of
-  this theory that used the model finder @{text refute} to find Sudoku
-  solutions.  The @{text refute} tool has since been superseded by
-  @{text nitpick}, which is used below.)
+  this theory that used the model finder \<open>refute\<close> to find Sudoku
+  solutions.  The \<open>refute\<close> tool has since been superseded by
+  \<open>nitpick\<close>, which is used below.)
 \<close>
 
 no_notation Groups.one_class.one ("1")

@@ -30,7 +30,7 @@ fun term_vars :: "('a, 'b) term \<Rightarrow> 'b set" where
 
 text \<open>However, also for \emph{rules} (i.e., pairs of terms) and term
 rewrite systems (i.e., sets of rules), the set of variables makes
-sense. Thus we introduce an unspecified constant @{text vars}.\<close>
+sense. Thus we introduce an unspecified constant \<open>vars\<close>.\<close>
 
 consts vars :: "'a \<Rightarrow> 'b set"
 
@@ -69,7 +69,7 @@ no_adhoc_overloading
 
 text \<open>As stated earlier, the overloaded constant is only used for
 input and output. Internally, always a variant is used, as can be
-observed by the configuration option @{text show_variants}.\<close>
+observed by the configuration option \<open>show_variants\<close>.\<close>
 
 adhoc_overloading
   vars term_vars
@@ -173,7 +173,7 @@ lemmas Rep_perm_simps =
 section \<open>Permutation Types\<close>
 
 text \<open>We want to be able to apply permutations to arbitrary types. To
-this end we introduce a constant @{text PERMUTE} together with
+this end we introduce a constant \<open>PERMUTE\<close> together with
 convenient infix syntax.\<close>
 
 consts PERMUTE :: "'a perm \<Rightarrow> 'b \<Rightarrow> 'b" (infixr "\<bullet>" 75)

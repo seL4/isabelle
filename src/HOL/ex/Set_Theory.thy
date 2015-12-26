@@ -31,14 +31,14 @@ schematic_goal "a \<noteq> b \<Longrightarrow> a \<in> ?X \<and> b \<notin> ?X"
   by blast
 
 
-subsection \<open>Examples for the @{text blast} paper\<close>
+subsection \<open>Examples for the \<open>blast\<close> paper\<close>
 
 lemma "(\<Union>x \<in> C. f x \<union> g x) = \<Union>(f ` C)  \<union>  \<Union>(g ` C)"
-  -- \<open>Union-image, called @{text Un_Union_image} in Main HOL\<close>
+  \<comment> \<open>Union-image, called \<open>Un_Union_image\<close> in Main HOL\<close>
   by blast
 
 lemma "(\<Inter>x \<in> C. f x \<inter> g x) = \<Inter>(f ` C) \<inter> \<Inter>(g ` C)"
-  -- \<open>Inter-image, called @{text Int_Inter_image} in Main HOL\<close>
+  \<comment> \<open>Inter-image, called \<open>Int_Inter_image\<close> in Main HOL\<close>
   by blast
 
 lemma singleton_example_1:
@@ -47,30 +47,30 @@ lemma singleton_example_1:
 
 lemma singleton_example_2:
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-  -- \<open>Variant of the problem above.\<close>
+  \<comment> \<open>Variant of the problem above.\<close>
   by blast
 
 lemma "\<exists>!x. f (g x) = x \<Longrightarrow> \<exists>!y. g (f y) = y"
-  -- \<open>A unique fixpoint theorem --- @{text fast}/@{text best}/@{text meson} all fail.\<close>
+  \<comment> \<open>A unique fixpoint theorem --- \<open>fast\<close>/\<open>best\<close>/\<open>meson\<close> all fail.\<close>
   by metis
 
 
 subsection \<open>Cantor's Theorem: There is no surjection from a set to its powerset\<close>
 
 lemma cantor1: "\<not> (\<exists>f:: 'a \<Rightarrow> 'a set. \<forall>S. \<exists>x. f x = S)"
-  -- \<open>Requires best-first search because it is undirectional.\<close>
+  \<comment> \<open>Requires best-first search because it is undirectional.\<close>
   by best
 
 schematic_goal "\<forall>f:: 'a \<Rightarrow> 'a set. \<forall>x. f x \<noteq> ?S f"
-  -- \<open>This form displays the diagonal term.\<close>
+  \<comment> \<open>This form displays the diagonal term.\<close>
   by best
 
 schematic_goal "?S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
-  -- \<open>This form exploits the set constructs.\<close>
+  \<comment> \<open>This form exploits the set constructs.\<close>
   by (rule notI, erule rangeE, best)
 
 schematic_goal "?S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
-  -- \<open>Or just this!\<close>
+  \<comment> \<open>Or just this!\<close>
   by best
 
 
@@ -102,7 +102,7 @@ theorem Schroeder_Bernstein:
     \<Longrightarrow> \<exists>h:: 'a \<Rightarrow> 'b. inj h \<and> surj h"
   apply (rule decomposition [where f=f and g=g, THEN exE])
   apply (rule_tac x = "(\<lambda>z. if z \<in> x then f z else inv g z)" in exI) 
-    --\<open>The term above can be synthesized by a sufficiently detailed proof.\<close>
+    \<comment>\<open>The term above can be synthesized by a sufficiently detailed proof.\<close>
   apply (rule bij_if_then_else)
      apply (rule_tac [4] refl)
     apply (rule_tac [2] inj_on_inv_into)
@@ -166,38 +166,38 @@ text \<open>
 \<close>
 
 lemma "\<exists>A. (\<forall>x \<in> A. x \<le> (0::int))"
-  -- \<open>Example 1, page 295.\<close>
+  \<comment> \<open>Example 1, page 295.\<close>
   by force
 
 lemma "D \<in> F \<Longrightarrow> \<exists>G. \<forall>A \<in> G. \<exists>B \<in> F. A \<subseteq> B"
-  -- \<open>Example 2.\<close>
+  \<comment> \<open>Example 2.\<close>
   by force
 
 lemma "P a \<Longrightarrow> \<exists>A. (\<forall>x \<in> A. P x) \<and> (\<exists>y. y \<in> A)"
-  -- \<open>Example 3.\<close>
+  \<comment> \<open>Example 3.\<close>
   by force
 
 lemma "a < b \<and> b < (c::int) \<Longrightarrow> \<exists>A. a \<notin> A \<and> b \<in> A \<and> c \<notin> A"
-  -- \<open>Example 4.\<close>
-  by auto --\<open>slow\<close>
+  \<comment> \<open>Example 4.\<close>
+  by auto \<comment>\<open>slow\<close>
 
 lemma "P (f b) \<Longrightarrow> \<exists>s A. (\<forall>x \<in> A. P x) \<and> f s \<in> A"
-  -- \<open>Example 5, page 298.\<close>
+  \<comment> \<open>Example 5, page 298.\<close>
   by force
 
 lemma "P (f b) \<Longrightarrow> \<exists>s A. (\<forall>x \<in> A. P x) \<and> f s \<in> A"
-  -- \<open>Example 6.\<close>
+  \<comment> \<open>Example 6.\<close>
   by force
 
 lemma "\<exists>A. a \<notin> A"
-  -- \<open>Example 7.\<close>
+  \<comment> \<open>Example 7.\<close>
   by force
 
 lemma "(\<forall>u v. u < (0::int) \<longrightarrow> u \<noteq> abs v)
     \<longrightarrow> (\<exists>A::int set. -2 \<in> A & (\<forall>y. abs y \<notin> A))"
-  -- \<open>Example 8 needs a small hint.\<close>
+  \<comment> \<open>Example 8 needs a small hint.\<close>
   by force
-    -- \<open>not @{text blast}, which can't simplify @{text "-2 < 0"}\<close>
+    \<comment> \<open>not \<open>blast\<close>, which can't simplify \<open>-2 < 0\<close>\<close>
 
 text \<open>Example 9 omitted (requires the reals).\<close>
 
@@ -205,19 +205,19 @@ text \<open>The paper has no Example 10!\<close>
 
 lemma "(\<forall>A. 0 \<in> A \<and> (\<forall>x \<in> A. Suc x \<in> A) \<longrightarrow> n \<in> A) \<and>
   P 0 \<and> (\<forall>x. P x \<longrightarrow> P (Suc x)) \<longrightarrow> P n"
-  -- \<open>Example 11: needs a hint.\<close>
+  \<comment> \<open>Example 11: needs a hint.\<close>
 by(metis nat.induct)
 
 lemma
   "(\<forall>A. (0, 0) \<in> A \<and> (\<forall>x y. (x, y) \<in> A \<longrightarrow> (Suc x, Suc y) \<in> A) \<longrightarrow> (n, m) \<in> A)
     \<and> P n \<longrightarrow> P m"
-  -- \<open>Example 12.\<close>
+  \<comment> \<open>Example 12.\<close>
   by auto
 
 lemma
   "(\<forall>x. (\<exists>u. x = 2 * u) = (\<not> (\<exists>v. Suc x = 2 * v))) \<longrightarrow>
     (\<exists>A. \<forall>x. (x \<in> A) = (Suc x \<notin> A))"
-  -- \<open>Example EO1: typo in article, and with the obvious fix it seems
+  \<comment> \<open>Example EO1: typo in article, and with the obvious fix it seems
       to require arithmetic reasoning.\<close>
   apply clarify
   apply (rule_tac x = "{x. \<exists>u. x = 2 * u}" in exI, auto)

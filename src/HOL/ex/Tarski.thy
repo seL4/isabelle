@@ -196,13 +196,13 @@ lemma (in PO) po_subset_po:
      "S \<subseteq> A ==> (| pset = S, order = induced S r |) \<in> PartialOrder"
 apply (simp (no_asm) add: PartialOrder_def)
 apply auto
--- \<open>refl\<close>
+\<comment> \<open>refl\<close>
 apply (simp add: refl_on_def induced_def)
 apply (blast intro: reflE)
--- \<open>antisym\<close>
+\<comment> \<open>antisym\<close>
 apply (simp add: antisym_def induced_def)
 apply (blast intro: antisymE)
--- \<open>trans\<close>
+\<comment> \<open>trans\<close>
 apply (simp add: trans_def induced_def)
 apply (blast intro: transE)
 done
@@ -441,7 +441,7 @@ done
 
 text \<open>
   Reduce the sublattice property by using substructural properties;
-  abandoned see @{text "Tarski_4.ML"}.
+  abandoned see \<open>Tarski_4.ML\<close>.
 \<close>
 
 lemma (in CLF) [simp]:
@@ -490,13 +490,13 @@ lemma (in CLF) lubH_le_flubH:
 apply (rule lub_least, fast)
 apply (rule f_in_funcset [THEN funcset_mem])
 apply (rule lub_in_lattice, fast)
--- \<open>@{text "\<forall>x:H. (x, f (lub H r)) \<in> r"}\<close>
+\<comment> \<open>\<open>\<forall>x:H. (x, f (lub H r)) \<in> r\<close>\<close>
 apply (rule ballI)
 apply (rule transE)
--- \<open>instantiates @{text "(x, ???z) \<in> order cl to (x, f x)"},\<close>
--- \<open>because of the def of @{text H}\<close>
+\<comment> \<open>instantiates \<open>(x, ???z) \<in> order cl to (x, f x)\<close>,\<close>
+\<comment> \<open>because of the def of \<open>H\<close>\<close>
 apply fast
--- \<open>so it remains to show @{text "(f x, f (lub H cl)) \<in> r"}\<close>
+\<comment> \<open>so it remains to show \<open>(f x, f (lub H cl)) \<in> r\<close>\<close>
 apply (rule_tac f = "f" in monotoneE)
 apply (rule monotone_f, fast)
 apply (rule lub_in_lattice, fast)
@@ -564,7 +564,7 @@ apply (simp add: lubH_least_fixf)
 done
 
 lemma (in CLF) glbH_is_fixp: "H = {x. (f x, x) \<in> r & x \<in> A} ==> glb H cl \<in> P"
-  -- \<open>Tarski for glb\<close>
+  \<comment> \<open>Tarski for glb\<close>
 apply (simp add: glb_dual_lub P_def A_def r_def)
 apply (rule dualA_iff [THEN subst])
 apply (rule CLF.lubH_is_fixp)
@@ -627,7 +627,7 @@ apply (simp add: S_intv_cl)
 apply (rule ballI)
 apply (simp add: interval_lemma1)
 apply (simp add: isLub_upper)
--- \<open>@{text "(L, b) \<in> r"}\<close>
+\<comment> \<open>\<open>(L, b) \<in> r\<close>\<close>
 apply (simp add: isLub_least interval_lemma2)
 done
 
@@ -657,38 +657,38 @@ apply (frule S_intv_cl [THEN CL_imp_ex_isLub])
 prefer 2 apply assumption
 apply assumption
 apply (erule exE)
--- \<open>define the lub for the interval as\<close>
+\<comment> \<open>define the lub for the interval as\<close>
 apply (rule_tac x = "if S = {} then a else L" in exI)
 apply (simp (no_asm_simp) add: isLub_def split del: split_if)
 apply (intro impI conjI)
--- \<open>@{text "(if S = {} then a else L) \<in> interval r a b"}\<close>
+\<comment> \<open>\<open>(if S = {} then a else L) \<in> interval r a b\<close>\<close>
 apply (simp add: CL_imp_PO L_in_interval)
 apply (simp add: left_in_interval)
--- \<open>lub prop 1\<close>
+\<comment> \<open>lub prop 1\<close>
 apply (case_tac "S = {}")
--- \<open>@{text "S = {}, y \<in> S = False => everything"}\<close>
+\<comment> \<open>\<open>S = {}, y \<in> S = False => everything\<close>\<close>
 apply fast
--- \<open>@{text "S \<noteq> {}"}\<close>
+\<comment> \<open>\<open>S \<noteq> {}\<close>\<close>
 apply simp
--- \<open>@{text "\<forall>y:S. (y, L) \<in> induced (interval r a b) r"}\<close>
+\<comment> \<open>\<open>\<forall>y:S. (y, L) \<in> induced (interval r a b) r\<close>\<close>
 apply (rule ballI)
 apply (simp add: induced_def  L_in_interval)
 apply (rule conjI)
 apply (rule subsetD)
 apply (simp add: S_intv_cl, assumption)
 apply (simp add: isLub_upper)
--- \<open>@{text "\<forall>z:interval r a b. (\<forall>y:S. (y, z) \<in> induced (interval r a b) r \<longrightarrow> (if S = {} then a else L, z) \<in> induced (interval r a b) r"}\<close>
+\<comment> \<open>\<open>\<forall>z:interval r a b. (\<forall>y:S. (y, z) \<in> induced (interval r a b) r \<longrightarrow> (if S = {} then a else L, z) \<in> induced (interval r a b) r\<close>\<close>
 apply (rule ballI)
 apply (rule impI)
 apply (case_tac "S = {}")
--- \<open>@{text "S = {}"}\<close>
+\<comment> \<open>\<open>S = {}\<close>\<close>
 apply simp
 apply (simp add: induced_def  interval_def)
 apply (rule conjI)
 apply (rule reflE, assumption)
 apply (rule interval_not_empty)
 apply (simp add: interval_def)
--- \<open>@{text "S \<noteq> {}"}\<close>
+\<comment> \<open>\<open>S \<noteq> {}\<close>\<close>
 apply simp
 apply (simp add: induced_def  L_in_interval)
 apply (rule isLub_least, assumption)
@@ -785,11 +785,11 @@ apply (rule lub_least)
 apply (rule Y_subset_A)
 apply (rule f_in_funcset [THEN funcset_mem])
 apply (rule lubY_in_A)
--- \<open>@{text "Y \<subseteq> P ==> f x = x"}\<close>
+\<comment> \<open>\<open>Y \<subseteq> P ==> f x = x\<close>\<close>
 apply (rule ballI)
 apply (rule_tac t = "x" in fix_imp_eq [THEN subst])
 apply (erule Y_ss [simplified P_def, THEN subsetD])
--- \<open>@{text "reduce (f x, f (lub Y cl)) \<in> r to (x, lub Y cl) \<in> r"} by monotonicity\<close>
+\<comment> \<open>\<open>reduce (f x, f (lub Y cl)) \<in> r to (x, lub Y cl) \<in> r\<close> by monotonicity\<close>
 apply (rule_tac f = "f" in monotoneE)
 apply (rule monotone_f)
 apply (simp add: Y_subset_A [THEN subsetD])
@@ -811,13 +811,13 @@ apply (simp add: intY1_def  interval_def)
 apply (rule conjI)
 apply (rule transE)
 apply (rule lubY_le_flubY)
--- \<open>@{text "(f (lub Y cl), f x) \<in> r"}\<close>
+\<comment> \<open>\<open>(f (lub Y cl), f x) \<in> r\<close>\<close>
 apply (rule_tac f=f in monotoneE)
 apply (rule monotone_f)
 apply (rule lubY_in_A)
 apply (simp add: intY1_def interval_def  intY1_elem)
 apply (simp add: intY1_def  interval_def)
--- \<open>@{text "(f x, Top cl) \<in> r"}\<close>
+\<comment> \<open>\<open>(f x, Top cl) \<in> r\<close>\<close>
 apply (rule Top_prop)
 apply (rule f_in_funcset [THEN funcset_mem])
 apply (simp add: intY1_def interval_def  intY1_elem)
@@ -874,11 +874,11 @@ lemma (in Tarski) tarski_full_lemma:
      "\<exists>L. isLub Y (| pset = P, order = induced P r |) L"
 apply (rule_tac x = "v" in exI)
 apply (simp add: isLub_def)
--- \<open>@{text "v \<in> P"}\<close>
+\<comment> \<open>\<open>v \<in> P\<close>\<close>
 apply (simp add: v_in_P)
 apply (rule conjI)
--- \<open>@{text v} is lub\<close>
--- \<open>@{text "1. \<forall>y:Y. (y, v) \<in> induced P r"}\<close>
+\<comment> \<open>\<open>v\<close> is lub\<close>
+\<comment> \<open>\<open>1. \<forall>y:Y. (y, v) \<in> induced P r\<close>\<close>
 apply (rule ballI)
 apply (simp add: induced_def subsetD v_in_P)
 apply (rule conjI)

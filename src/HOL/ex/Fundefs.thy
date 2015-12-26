@@ -39,7 +39,7 @@ where
 | "add (Suc x) y = Suc (add x y)"
 
 thm add.simps
-thm add.induct -- \<open>Note the curried induction predicate\<close>
+thm add.induct \<comment> \<open>Note the curried induction predicate\<close>
 
 
 subsection \<open>Nested recursion\<close>
@@ -50,7 +50,7 @@ where
 | "nz (Suc x) = nz (nz x)"
 by pat_completeness auto
 
-lemma nz_is_zero: -- \<open>A lemma we need to prove termination\<close>
+lemma nz_is_zero: \<comment> \<open>A lemma we need to prove termination\<close>
   assumes trm: "nz_dom x"
   shows "nz x = 0"
 using trm
@@ -137,7 +137,7 @@ function ev :: "nat \<Rightarrow> bool"
 where
   "ev (2 * n) = True"
 | "ev (2 * n + 1) = False"
-proof -  -- \<open>completeness is more difficult here \dots\<close>
+proof -  \<comment> \<open>completeness is more difficult here \dots\<close>
   fix P :: bool
     and x :: nat
   assume c1: "\<And>n. x = 2 * n \<Longrightarrow> P"
@@ -154,7 +154,7 @@ proof -  -- \<open>completeness is more difficult here \dots\<close>
     with divmod have "x = 2 * (x div 2) + 1" by simp
     with c2 show "P" .
   qed
-qed presburger+ -- \<open>solve compatibility with presburger\<close> 
+qed presburger+ \<comment> \<open>solve compatibility with presburger\<close> 
 termination by lexicographic_order
 
 thm ev.simps
@@ -213,7 +213,7 @@ end
 thm my_monoid.foldL.simps
 thm my_monoid.foldR_foldL
 
-subsection \<open>@{text fun_cases}\<close>
+subsection \<open>\<open>fun_cases\<close>\<close>
 
 subsubsection \<open>Predecessor\<close>
 
@@ -265,7 +265,7 @@ fun xor :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 
 thm xor.elims
 
-text \<open>@{text fun_cases} does not only recognise function equations, but also works with
+text \<open>\<open>fun_cases\<close> does not only recognise function equations, but also works with
    functions that return a boolean, e.g.:\<close>
 
 fun_cases xor_TrueE: "xor a b" and xor_FalseE: "\<not>xor a b"

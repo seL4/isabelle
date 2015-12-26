@@ -22,7 +22,7 @@ ML \<open>
     CHANGED (asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimprocs ps) 1)
 \<close>
 
-subsection \<open>Cancellation simprocs from @{text Nat.thy}\<close>
+subsection \<open>Cancellation simprocs from \<open>Nat.thy\<close>\<close>
 
 notepad begin
   fix a b c d :: nat
@@ -59,7 +59,7 @@ notepad begin
 end
 (* TODO: more tests for Groups.group_cancel_{add,diff,eq,less,le} *)
 
-subsection \<open>@{text int_combine_numerals}\<close>
+subsection \<open>\<open>int_combine_numerals\<close>\<close>
 
 (* FIXME: int_combine_numerals often unnecessarily regroups addition
 and rewrites subtraction to negation. Ideally it should behave more
@@ -128,7 +128,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text inteq_cancel_numerals}\<close>
+subsection \<open>\<open>inteq_cancel_numerals\<close>\<close>
 
 notepad begin
   fix i j k u vv w y z w' y' z' :: "'a::comm_ring_1"
@@ -151,7 +151,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text intless_cancel_numerals}\<close>
+subsection \<open>\<open>intless_cancel_numerals\<close>\<close>
 
 notepad begin
   fix b c i j k u y :: "'a::linordered_idom"
@@ -172,7 +172,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text ring_eq_cancel_numeral_factor}\<close>
+subsection \<open>\<open>ring_eq_cancel_numeral_factor\<close>\<close>
 
 notepad begin
   fix x y :: "'a::{idom,ring_char_0}"
@@ -197,7 +197,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text int_div_cancel_numeral_factors}\<close>
+subsection \<open>\<open>int_div_cancel_numeral_factors\<close>\<close>
 
 notepad begin
   fix x y z :: "'a::{semiring_div,comm_ring_1,ring_char_0}"
@@ -220,7 +220,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text ring_less_cancel_numeral_factor}\<close>
+subsection \<open>\<open>ring_less_cancel_numeral_factor\<close>\<close>
 
 notepad begin
   fix x y :: "'a::linordered_idom"
@@ -245,7 +245,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text ring_le_cancel_numeral_factor}\<close>
+subsection \<open>\<open>ring_le_cancel_numeral_factor\<close>\<close>
 
 notepad begin
   fix x y :: "'a::linordered_idom"
@@ -276,7 +276,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text divide_cancel_numeral_factor}\<close>
+subsection \<open>\<open>divide_cancel_numeral_factor\<close>\<close>
 
 notepad begin
   fix x y z :: "'a::{field,ring_char_0}"
@@ -298,7 +298,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text ring_eq_cancel_factor}\<close>
+subsection \<open>\<open>ring_eq_cancel_factor\<close>\<close>
 
 notepad begin
   fix a b c d k x y :: "'a::idom"
@@ -323,7 +323,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text int_div_cancel_factor}\<close>
+subsection \<open>\<open>int_div_cancel_factor\<close>\<close>
 
 notepad begin
   fix a b c d k uu x y :: "'a::semiring_div"
@@ -347,9 +347,9 @@ notepad begin
 end
 
 lemma shows "a*(b*c)/(y*z) = d*(b::'a::linordered_field)*(x*a)/z"
-oops -- "FIXME: need simproc to cover this case"
+oops \<comment> "FIXME: need simproc to cover this case"
 
-subsection \<open>@{text divide_cancel_factor}\<close>
+subsection \<open>\<open>divide_cancel_factor\<close>\<close>
 
 notepad begin
   fix a b c d k uu x y :: "'a::field"
@@ -375,9 +375,9 @@ end
 lemma
   fixes a b c d x y z :: "'a::linordered_field"
   shows "a*(b*c)/(y*z) = d*(b)*(x*a)/z"
-oops -- "FIXME: need simproc to cover this case"
+oops \<comment> "FIXME: need simproc to cover this case"
 
-subsection \<open>@{text linordered_ring_less_cancel_factor}\<close>
+subsection \<open>\<open>linordered_ring_less_cancel_factor\<close>\<close>
 
 notepad begin
   fix x y z :: "'a::linordered_idom"
@@ -404,7 +404,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text linordered_ring_le_cancel_factor}\<close>
+subsection \<open>\<open>linordered_ring_le_cancel_factor\<close>\<close>
 
 notepad begin
   fix x y z :: "'a::linordered_idom"
@@ -417,7 +417,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text field_combine_numerals}\<close>
+subsection \<open>\<open>field_combine_numerals\<close>\<close>
 
 notepad begin
   fix x y z uu :: "'a::{field,ring_char_0}"
@@ -445,9 +445,9 @@ lemma
   fixes x :: "'a::{linordered_field}"
   shows "2/3 * x + x / 3 = uu"
 apply (tactic \<open>test @{context} [@{simproc field_combine_numerals}]\<close>)?
-oops -- "FIXME: test fails"
+oops \<comment> "FIXME: test fails"
 
-subsection \<open>@{text nat_combine_numerals}\<close>
+subsection \<open>\<open>nat_combine_numerals\<close>\<close>
 
 notepad begin
   fix i j k m n u :: nat
@@ -475,7 +475,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text nateq_cancel_numerals}\<close>
+subsection \<open>\<open>nateq_cancel_numerals\<close>\<close>
 
 notepad begin
   fix i j k l oo u uu vv w y z w' y' z' :: "nat"
@@ -522,7 +522,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text natless_cancel_numerals}\<close>
+subsection \<open>\<open>natless_cancel_numerals\<close>\<close>
 
 notepad begin
   fix length :: "'a \<Rightarrow> nat" and l1 l2 xs :: "'a" and f :: "nat \<Rightarrow> 'a"
@@ -543,7 +543,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text natle_cancel_numerals}\<close>
+subsection \<open>\<open>natle_cancel_numerals\<close>\<close>
 
 notepad begin
   fix length :: "'a \<Rightarrow> nat" and l2 l3 :: "'a" and f :: "nat \<Rightarrow> 'a"
@@ -570,7 +570,7 @@ notepad begin
   }
 end
 
-subsection \<open>@{text natdiff_cancel_numerals}\<close>
+subsection \<open>\<open>natdiff_cancel_numerals\<close>\<close>
 
 notepad begin
   fix length :: "'a \<Rightarrow> nat" and l2 l3 :: "'a" and f :: "nat \<Rightarrow> 'a"
@@ -630,9 +630,9 @@ end
 
 subsection \<open>Factor-cancellation simprocs for type @{typ nat}\<close>
 
-text \<open>@{text nat_eq_cancel_factor}, @{text nat_less_cancel_factor},
-@{text nat_le_cancel_factor}, @{text nat_divide_cancel_factor}, and
-@{text nat_dvd_cancel_factor}.\<close>
+text \<open>\<open>nat_eq_cancel_factor\<close>, \<open>nat_less_cancel_factor\<close>,
+\<open>nat_le_cancel_factor\<close>, \<open>nat_divide_cancel_factor\<close>, and
+\<open>nat_dvd_cancel_factor\<close>.\<close>
 
 notepad begin
   fix a b c d k x y uu :: nat

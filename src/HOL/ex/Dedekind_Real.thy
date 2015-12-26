@@ -13,7 +13,7 @@ begin
 
 section \<open>Positive real numbers\<close>
 
-text\<open>Could be generalized and moved to @{text Groups}\<close>
+text\<open>Could be generalized and moved to \<open>Groups\<close>\<close>
 lemma add_eq_exists: "\<exists>x. a+x = (b::rat)"
 by (rule_tac x="b-a" in exI, simp)
 
@@ -250,7 +250,7 @@ apply (auto simp add: add_set_def)
 done
 
 text\<open>Part 2 of Dedekind sections definition.  A structured version of
-this proof is @{text preal_not_mem_mult_set_Ex} below.\<close>
+this proof is \<open>preal_not_mem_mult_set_Ex\<close> below.\<close>
 lemma preal_not_mem_add_set_Ex:
      "[|cut A; cut B|] ==> \<exists>q>0. q \<notin> add_set A B"
 apply (insert preal_exists_bound [of A] preal_exists_bound [of B], auto) 
@@ -881,7 +881,7 @@ apply (rule preal_mult_inverse)
 done
 
 
-text\<open>Theorems needing @{text Gleason9_34}\<close>
+text\<open>Theorems needing \<open>Gleason9_34\<close>\<close>
 
 lemma Rep_preal_self_subset: "Rep_preal (R) \<subseteq> Rep_preal(R + S)"
 proof 
@@ -1443,7 +1443,7 @@ proof
 qed
 
 
-subsection\<open>The @{text "\<le>"} Ordering\<close>
+subsection\<open>The \<open>\<le>\<close> Ordering\<close>
 
 lemma real_le_refl: "w \<le> (w::real)"
 by (cases w, force simp add: real_le_def)
@@ -1544,7 +1544,7 @@ apply (cases x, cases y)
 apply (simp add: linorder_not_le [where 'a = real, symmetric] 
                  linorder_not_le [where 'a = preal] 
                   real_zero_def real_le real_mult)
-  --\<open>Reduce to the (simpler) @{text "\<le>"} relation\<close>
+  \<comment>\<open>Reduce to the (simpler) \<open>\<le>\<close> relation\<close>
 apply (auto dest!: less_add_left_Ex
      simp add: algebra_simps preal_self_less_add_left)
 done
@@ -1670,11 +1670,11 @@ subsection \<open>Completeness of Positive Reals\<close>
 text \<open>
   Supremum property for the set of positive reals
 
-  Let @{text "P"} be a non-empty set of positive reals, with an upper
-  bound @{text "y"}.  Then @{text "P"} has a least upper bound
-  (written @{text "S"}).
+  Let \<open>P\<close> be a non-empty set of positive reals, with an upper
+  bound \<open>y\<close>.  Then \<open>P\<close> has a least upper bound
+  (written \<open>S\<close>).
 
-  FIXME: Can the premise be weakened to @{text "\<forall>x \<in> P. x\<le> y"}?
+  FIXME: Can the premise be weakened to \<open>\<forall>x \<in> P. x\<le> y\<close>?
 \<close>
 
 lemma posreal_complete:
@@ -1908,8 +1908,8 @@ proof (rule ccontr)
 qed
 
 text \<open>
-  There must be other proofs, e.g. @{text Suc} of the largest
-  integer in the cut representing @{text "x"}.
+  There must be other proofs, e.g. \<open>Suc\<close> of the largest
+  integer in the cut representing \<open>x\<close>.
 \<close>
 
 lemma reals_Archimedean2: "\<exists>n. (x::real) < of_nat (n::nat)"
