@@ -9,8 +9,10 @@ theory Mutilated_Checkerboard
 imports Main
 begin
 
-text \<open>The Mutilated Checker Board Problem, formalized inductively. See @{cite
-  "paulson-mutilated-board"} for the original tactic script version.\<close>
+text \<open>
+  The Mutilated Checker Board Problem, formalized inductively. See @{cite
+  "paulson-mutilated-board"} for the original tactic script version.
+\<close>
 
 subsection \<open>Tilings\<close>
 

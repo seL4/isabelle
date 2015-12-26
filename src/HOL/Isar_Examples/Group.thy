@@ -1,5 +1,5 @@
 (*  Title:      HOL/Isar_Examples/Group.thy
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 *)
 
 section \<open>Basic group theory\<close>
@@ -10,17 +10,21 @@ begin
 
 subsection \<open>Groups and calculational reasoning\<close> 
 
-text \<open>Groups over signature \<open>(* :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>, 1 :: \<alpha>, inverse :: \<alpha> \<Rightarrow> \<alpha>)\<close>
-  are defined as an axiomatic type class as follows. Note that the parent
-  class \<open>times\<close> is provided by the basic HOL theory.\<close>
+text \<open>
+  Groups over signature \<open>(* :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>, 1 :: \<alpha>, inverse :: \<alpha> \<Rightarrow> \<alpha>)\<close> are
+  defined as an axiomatic type class as follows. Note that the parent class
+  \<open>times\<close> is provided by the basic HOL theory.
+\<close>
 
 class group = times + one + inverse +
   assumes group_assoc: "(x * y) * z = x * (y * z)"
     and group_left_one: "1 * x = x"
     and group_left_inverse: "inverse x * x = 1"
 
-text \<open>The group axioms only state the properties of left one and inverse,
-  the right versions may be derived as follows.\<close>
+text \<open>
+  The group axioms only state the properties of left one and inverse, the
+  right versions may be derived as follows.
+\<close>
 
 theorem (in group) group_right_inverse: "x * inverse x = 1"
 proof -
@@ -43,8 +47,10 @@ proof -
   finally show ?thesis .
 qed
 
-text \<open>With \<open>group_right_inverse\<close> already available, \<open>group_right_one\<close>
-  \label{thm:group-right-one} is now established much easier.\<close>
+text \<open>
+  With \<open>group_right_inverse\<close> already available, \<open>group_right_one\<close>
+  is now established much easier.
+\<close>
 
 theorem (in group) group_right_one: "x * 1 = x"
 proof -
@@ -63,23 +69,23 @@ text \<open>
   \<^medskip>
   The calculational proof style above follows typical presentations given in
   any introductory course on algebra. The basic technique is to form a
-  transitive chain of equations, which in turn are established by
-  simplifying with appropriate rules. The low-level logical details of
-  equational reasoning are left implicit.
+  transitive chain of equations, which in turn are established by simplifying
+  with appropriate rules. The low-level logical details of equational
+  reasoning are left implicit.
 
   Note that ``\<open>\<dots>\<close>'' is just a special term variable that is bound
-  automatically to the argument\footnote{The argument of a curried infix
-  expression happens to be its right-hand side.} of the last fact achieved
-  by any local assumption or proven statement. In contrast to \<open>?thesis\<close>, the
-  ``\<open>\<dots>\<close>'' variable is bound \<^emph>\<open>after\<close> the proof is finished.
+  automatically to the argument\<^footnote>\<open>The argument of a curried infix expression
+  happens to be its right-hand side.\<close> of the last fact achieved by any local
+  assumption or proven statement. In contrast to \<open>?thesis\<close>, the ``\<open>\<dots>\<close>''
+  variable is bound \<^emph>\<open>after\<close> the proof is finished.
 
-  There are only two separate Isar language elements for calculational
-  proofs: ``\isakeyword{also}'' for initial or intermediate calculational
-  steps, and ``\isakeyword{finally}'' for exhibiting the result of a
-  calculation. These constructs are not hardwired into Isabelle/Isar, but
-  defined on top of the basic Isar/VM interpreter. Expanding the
-  \isakeyword{also} and \isakeyword{finally} derived language elements,
-  calculations may be simulated by hand as demonstrated below.\<close>
+  There are only two separate Isar language elements for calculational proofs:
+  ``\<^theory_text>\<open>also\<close>'' for initial or intermediate calculational steps, and
+  ``\<^theory_text>\<open>finally\<close>'' for exhibiting the result of a calculation. These constructs
+  are not hardwired into Isabelle/Isar, but defined on top of the basic
+  Isar/VM interpreter. Expanding the \<^theory_text>\<open>also\<close> and \<^theory_text>\<open>finally\<close> derived language
+  elements, calculations may be simulated by hand as demonstrated below.
+\<close>
 
 theorem (in group) "x * 1 = x"
 proof -
@@ -112,30 +118,35 @@ proof -
   show ?thesis .
 qed
 
-text \<open>Note that this scheme of calculations is not restricted to plain
+text \<open>
+  Note that this scheme of calculations is not restricted to plain
   transitivity. Rules like anti-symmetry, or even forward and backward
-  substitution work as well. For the actual implementation of
-  \isacommand{also} and \isacommand{finally}, Isabelle/Isar maintains
-  separate context information of ``transitivity'' rules. Rule selection
-  takes place automatically by higher-order unification.\<close>
+  substitution work as well. For the actual implementation of \<^theory_text>\<open>also\<close> and
+  \<^theory_text>\<open>finally\<close>, Isabelle/Isar maintains separate context information of
+  ``transitivity'' rules. Rule selection takes place automatically by
+  higher-order unification.
+\<close>
 
 
 subsection \<open>Groups as monoids\<close>
 
-text \<open>Monoids over signature \<open>(* :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>, 1 :: \<alpha>)\<close> are defined like
-  this.\<close>
+text \<open>
+  Monoids over signature \<open>(* :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>, 1 :: \<alpha>)\<close> are defined like this.
+\<close>
 
 class monoid = times + one +
   assumes monoid_assoc: "(x * y) * z = x * (y * z)"
     and monoid_left_one: "1 * x = x"
     and monoid_right_one: "x * 1 = x"
 
-text \<open>Groups are \<^emph>\<open>not\<close> yet monoids directly from the definition. For
-  monoids, \<open>right_one\<close> had to be included as an axiom, but for groups both
-  \<open>right_one\<close> and \<open>right_inverse\<close> are derivable from the other axioms. With
-  \<open>group_right_one\<close> derived as a theorem of group theory (see
-  page~\pageref{thm:group-right-one}), we may still instantiate
-  \<open>group \<subseteq> monoid\<close> properly as follows.\<close>
+text \<open>
+  Groups are \<^emph>\<open>not\<close> yet monoids directly from the definition. For monoids,
+  \<open>right_one\<close> had to be included as an axiom, but for groups both \<open>right_one\<close>
+  and \<open>right_inverse\<close> are derivable from the other axioms. With
+  \<open>group_right_one\<close> derived as a theorem of group theory (see @{thm
+  group_right_one}), we may still instantiate \<open>group \<subseteq> monoid\<close> properly as
+  follows.
+\<close>
 
 instance group \<subseteq> monoid
   by intro_classes
@@ -143,18 +154,21 @@ instance group \<subseteq> monoid
       rule group_left_one,
       rule group_right_one)
 
-text \<open>The \isacommand{instance} command actually is a version of
-  \isacommand{theorem}, setting up a goal that reflects the intended class
-  relation (or type constructor arity). Thus any Isar proof language element
-  may be involved to establish this statement. When concluding the proof,
-  the result is transformed into the intended type signature extension
-  behind the scenes.\<close>
+text \<open>
+  The \<^theory_text>\<open>instance\<close> command actually is a version of \<^theory_text>\<open>theorem\<close>, setting up a
+  goal that reflects the intended class relation (or type constructor arity).
+  Thus any Isar proof language element may be involved to establish this
+  statement. When concluding the proof, the result is transformed into the
+  intended type signature extension behind the scenes.
+\<close>
 
 
 subsection \<open>More theorems of group theory\<close>
 
-text \<open>The one element is already uniquely determined by preserving
-  an \<^emph>\<open>arbitrary\<close> group element.\<close>
+text \<open>
+  The one element is already uniquely determined by preserving an \<^emph>\<open>arbitrary\<close>
+  group element.
+\<close>
 
 theorem (in group) group_one_equality:
   assumes eq: "e * x = x"
@@ -173,7 +187,9 @@ proof -
   finally show ?thesis .
 qed
 
-text \<open>Likewise, the inverse is already determined by the cancel property.\<close>
+text \<open>
+  Likewise, the inverse is already determined by the cancel property.
+\<close>
 
 theorem (in group) group_inverse_equality:
   assumes eq: "x' * x = 1"
@@ -192,7 +208,9 @@ proof -
   finally show ?thesis .
 qed
 
-text \<open>The inverse operation has some further characteristic properties.\<close>
+text \<open>
+  The inverse operation has some further characteristic properties.
+\<close>
 
 theorem (in group) group_inverse_times: "inverse (x * y) = inverse y * inverse x"
 proof (rule group_inverse_equality)

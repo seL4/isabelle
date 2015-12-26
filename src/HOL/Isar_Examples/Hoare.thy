@@ -1,5 +1,5 @@
 (*  Title:      HOL/Isar_Examples/Hoare.thy
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
 A formulation of Hoare logic suitable for Isar.
 *)
@@ -12,10 +12,12 @@ begin
 
 subsection \<open>Abstract syntax and semantics\<close>
 
-text \<open>The following abstract syntax and semantics of Hoare Logic over
-  \<^verbatim>\<open>WHILE\<close> programs closely follows the existing tradition in Isabelle/HOL
-  of formalizing the presentation given in @{cite \<open>\S6\<close> "Winskel:1993"}. See
-  also @{file "~~/src/HOL/Hoare"} and @{cite "Nipkow:1998:Winskel"}.\<close>
+text \<open>
+  The following abstract syntax and semantics of Hoare Logic over \<^verbatim>\<open>WHILE\<close>
+  programs closely follows the existing tradition in Isabelle/HOL of
+  formalizing the presentation given in @{cite \<open>\S6\<close> "Winskel:1993"}. See also
+  @{file "~~/src/HOL/Hoare"} and @{cite "Nipkow:1998:Winskel"}.
+\<close>
 
 type_synonym 'a bexp = "'a set"
 type_synonym 'a assn = "'a set"
@@ -59,15 +61,17 @@ lemma ValidD [dest?]:
 
 subsection \<open>Primitive Hoare rules\<close>
 
-text \<open>From the semantics defined above, we derive the standard set of
-  primitive Hoare rules; e.g.\ see @{cite \<open>\S6\<close> "Winskel:1993"}. Usually,
-  variant forms of these rules are applied in actual proof, see also
-  \S\ref{sec:hoare-isar} and \S\ref{sec:hoare-vcg}.
+text \<open>
+  From the semantics defined above, we derive the standard set of primitive
+  Hoare rules; e.g.\ see @{cite \<open>\S6\<close> "Winskel:1993"}. Usually, variant forms
+  of these rules are applied in actual proof, see also \S\ref{sec:hoare-isar}
+  and \S\ref{sec:hoare-vcg}.
 
   \<^medskip>
   The \<open>basic\<close> rule represents any kind of atomic access to the state space.
   This subsumes the common rules of \<open>skip\<close> and \<open>assign\<close>, as formulated in
-  \S\ref{sec:hoare-isar}.\<close>
+  \S\ref{sec:hoare-isar}.
+\<close>
 
 theorem basic: "\<turnstile> {s. f s \<in> P} (Basic f) P"
 proof
@@ -78,8 +82,10 @@ proof
   with s show "s' \<in> P" by simp
 qed
 
-text \<open>The rules for sequential commands and semantic consequences are
-  established in a straight forward manner as follows.\<close>
+text \<open>
+  The rules for sequential commands and semantic consequences are established
+  in a straight forward manner as follows.
+\<close>
 
 theorem seq: "\<turnstile> P c1 Q \<Longrightarrow> \<turnstile> Q c2 R \<Longrightarrow> \<turnstile> P (c1; c2) R"
 proof
@@ -104,9 +110,10 @@ proof
   with QQ' show "s' \<in> Q'" ..
 qed
 
-text \<open>The rule for conditional commands is directly reflected by the
-  corresponding semantics; in the proof we just have to look closely which
-  cases apply.\<close>
+text \<open>
+  The rule for conditional commands is directly reflected by the corresponding
+  semantics; in the proof we just have to look closely which cases apply.
+\<close>
 
 theorem cond:
   assumes case_b: "\<turnstile> (P \<inter> b) c1 Q"
@@ -134,11 +141,13 @@ proof
   qed
 qed
 
-text \<open>The \<open>while\<close> rule is slightly less trivial --- it is the only one based
-  on recursion, which is expressed in the semantics by a Kleene-style least
+text \<open>
+  The \<open>while\<close> rule is slightly less trivial --- it is the only one based on
+  recursion, which is expressed in the semantics by a Kleene-style least
   fixed-point construction. The auxiliary statement below, which is by
   induction on the number of iterations is the main point to be proven; the
-  rest is by routine application of the semantics of \<^verbatim>\<open>WHILE\<close>.\<close>
+  rest is by routine application of the semantics of \<^verbatim>\<open>WHILE\<close>.
+\<close>
 
 theorem while:
   assumes body: "\<turnstile> (P \<inter> b) c P"
@@ -164,13 +173,14 @@ qed
 
 subsection \<open>Concrete syntax for assertions\<close>
 
-text \<open>We now introduce concrete syntax for describing commands (with
-  embedded expressions) and assertions. The basic technique is that of
-  semantic ``quote-antiquote''. A \<^emph>\<open>quotation\<close> is a syntactic entity
-  delimited by an implicit abstraction, say over the state space. An
-  \<^emph>\<open>antiquotation\<close> is a marked expression within a quotation that refers the
-  implicit argument; a typical antiquotation would select (or even update)
-  components from the state.
+text \<open>
+  We now introduce concrete syntax for describing commands (with embedded
+  expressions) and assertions. The basic technique is that of semantic
+  ``quote-antiquote''. A \<^emph>\<open>quotation\<close> is a syntactic entity delimited by an
+  implicit abstraction, say over the state space. An \<^emph>\<open>antiquotation\<close> is a
+  marked expression within a quotation that refers the implicit argument; a
+  typical antiquotation would select (or even update) components from the
+  state.
 
   We will see some examples later in the concrete rules and applications.
 
@@ -182,7 +192,8 @@ text \<open>We now introduce concrete syntax for describing commands (with
   concrete syntactic representation of our Hoare language, the actual ``ML
   drivers'' is quite involved. Just note that the we re-use the basic
   quote/antiquote translations as already defined in Isabelle/Pure (see @{ML
-  Syntax_Trans.quote_tr}, and @{ML Syntax_Trans.quote_tr'},).\<close>
+  Syntax_Trans.quote_tr}, and @{ML Syntax_Trans.quote_tr'},).
+\<close>
 
 syntax
   "_quote" :: "'b \<Rightarrow> ('a \<Rightarrow> 'b)"
@@ -211,9 +222,11 @@ parse_translation \<open>
   in [(@{syntax_const "_quote"}, K quote_tr)] end
 \<close>
 
-text \<open>As usual in Isabelle syntax translations, the part for printing is
-  more complicated --- we cannot express parts as macro rules as above.
-  Don't look here, unless you have to do similar things for yourself.\<close>
+text \<open>
+  As usual in Isabelle syntax translations, the part for printing is more
+  complicated --- we cannot express parts as macro rules as above. Don't look
+  here, unless you have to do similar things for yourself.
+\<close>
 
 print_translation \<open>
   let
@@ -242,14 +255,16 @@ print_translation \<open>
 
 subsection \<open>Rules for single-step proof \label{sec:hoare-isar}\<close>
 
-text \<open>We are now ready to introduce a set of Hoare rules to be used in
-  single-step structured proofs in Isabelle/Isar. We refer to the concrete
-  syntax introduce above.
+text \<open>
+  We are now ready to introduce a set of Hoare rules to be used in single-step
+  structured proofs in Isabelle/Isar. We refer to the concrete syntax
+  introduce above.
 
   \<^medskip>
   Assertions of Hoare Logic may be manipulated in calculational proofs, with
   the inclusion expressed in terms of sets or predicates. Reversed order is
-  supported as well.\<close>
+  supported as well.
+\<close>
 
 lemma [trans]: "\<turnstile> P c Q \<Longrightarrow> P' \<subseteq> P \<Longrightarrow> \<turnstile> P' c Q"
   by (unfold Valid_def) blast
@@ -276,10 +291,11 @@ lemma [trans]:
   by (simp add: Valid_def)
 
 
-text \<open>Identity and basic assignments.\footnote{The \<open>hoare\<close> method introduced
-  in \S\ref{sec:hoare-vcg} is able to provide proper instances for any
-  number of basic assignments, without producing additional verification
-  conditions.}\<close>
+text \<open>
+  Identity and basic assignments.\<^footnote>\<open>The \<open>hoare\<close> method introduced in
+  \S\ref{sec:hoare-vcg} is able to provide proper instances for any number of
+  basic assignments, without producing additional verification conditions.\<close>
+\<close>
 
 lemma skip [intro?]: "\<turnstile> P SKIP P"
 proof -
@@ -290,20 +306,22 @@ qed
 lemma assign: "\<turnstile> P [\<acute>a/\<acute>x::'a] \<acute>x := \<acute>a P"
   by (rule basic)
 
-text \<open>Note that above formulation of assignment corresponds to our
-  preferred way to model state spaces, using (extensible) record types in
-  HOL @{cite "Naraschewski-Wenzel:1998:HOOL"}. For any record field \<open>x\<close>,
-  Isabelle/HOL provides a functions \<open>x\<close> (selector) and \<open>x_update\<close> (update).
-  Above, there is only a place-holder appearing for the latter kind of
-  function: due to concrete syntax \<open>\<acute>x := \<acute>a\<close> also contains
-  \<open>x_update\<close>.\footnote{Note that due to the external nature of HOL record
-  fields, we could not even state a general theorem relating selector and
-  update functions (if this were required here); this would only work for
-  any particular instance of record fields introduced so far.}
+text \<open>
+  Note that above formulation of assignment corresponds to our preferred way
+  to model state spaces, using (extensible) record types in HOL @{cite
+  "Naraschewski-Wenzel:1998:HOOL"}. For any record field \<open>x\<close>, Isabelle/HOL
+  provides a functions \<open>x\<close> (selector) and \<open>x_update\<close> (update). Above, there is
+  only a place-holder appearing for the latter kind of function: due to
+  concrete syntax \<open>\<acute>x := \<acute>a\<close> also contains \<open>x_update\<close>.\<^footnote>\<open>Note that due to the
+  external nature of HOL record fields, we could not even state a general
+  theorem relating selector and update functions (if this were required here);
+  this would only work for any particular instance of record fields introduced
+  so far.\<close>
 
   \<^medskip>
-  Sequential composition --- normalizing with associativity achieves proper
-  of chunks of code verified separately.\<close>
+  Sequential composition --- normalizing with associativity achieves proper of
+  chunks of code verified separately.
+\<close>
 
 lemmas [trans, intro?] = seq
 
@@ -342,15 +360,17 @@ lemma [intro?]:
 
 subsection \<open>Verification conditions \label{sec:hoare-vcg}\<close>
 
-text \<open>We now load the \<^emph>\<open>original\<close> ML file for proof scripts and tactic
-  definition for the Hoare Verification Condition Generator (see @{file
+text \<open>
+  We now load the \<^emph>\<open>original\<close> ML file for proof scripts and tactic definition
+  for the Hoare Verification Condition Generator (see @{file
   "~~/src/HOL/Hoare/"}). As far as we are concerned here, the result is a
   proof method \<open>hoare\<close>, which may be applied to a Hoare Logic assertion to
-  extract purely logical verification conditions. It is important to note
-  that the method requires \<^verbatim>\<open>WHILE\<close> loops to be fully annotated with
-  invariants beforehand. Furthermore, only \<^emph>\<open>concrete\<close> pieces of code are
-  handled --- the underlying tactic fails ungracefully if supplied with
-  meta-variables or parameters, for example.\<close>
+  extract purely logical verification conditions. It is important to note that
+  the method requires \<^verbatim>\<open>WHILE\<close> loops to be fully annotated with invariants
+  beforehand. Furthermore, only \<^emph>\<open>concrete\<close> pieces of code are handled --- the
+  underlying tactic fails ungracefully if supplied with meta-variables or
+  parameters, for example.
+\<close>
 
 lemma SkipRule: "p \<subseteq> q \<Longrightarrow> Valid p (Basic id) q"
   by (auto simp add: Valid_def)

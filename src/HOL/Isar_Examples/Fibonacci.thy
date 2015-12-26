@@ -18,9 +18,8 @@ theory Fibonacci
 imports "../Number_Theory/Primes"
 begin
 
-text_raw \<open>\footnote{Isar version by Gertrud Bauer.  Original tactic
-  script by Larry Paulson.  A few proofs of laws taken from
-  @{cite "Concrete-Math"}.}\<close>
+text_raw \<open>\<^footnote>\<open>Isar version by Gertrud Bauer. Original tactic script by Larry
+  Paulson. A few proofs of laws taken from @{cite "Concrete-Math"}.\<close>\<close>
 
 
 declare One_nat_def [simp]

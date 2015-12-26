@@ -4,12 +4,14 @@ theory Puzzle
 imports Main
 begin
 
-text_raw \<open>\footnote{A question from ``Bundeswettbewerb Mathematik''.
-  Original pen-and-paper proof due to Herbert Ehler; Isabelle tactic
-  script by Tobias Nipkow.}\<close>
+text_raw \<open>\<^footnote>\<open>A question from ``Bundeswettbewerb Mathematik''. Original
+  pen-and-paper proof due to Herbert Ehler; Isabelle tactic script by Tobias
+  Nipkow.\<close>\<close>
 
-text \<open>\<^bold>\<open>Problem.\<close> Given some function \<open>f: \<nat> \<rightarrow> \<nat>\<close> such that
-  \<open>f (f n) < f (Suc n)\<close> for all \<open>n\<close>. Demonstrate that \<open>f\<close> is the identity.\<close>
+text \<open>
+  \<^bold>\<open>Problem.\<close> Given some function \<open>f: \<nat> \<rightarrow> \<nat>\<close> such that \<open>f (f n) < f (Suc n)\<close>
+  for all \<open>n\<close>. Demonstrate that \<open>f\<close> is the identity.
+\<close>
 
 theorem
   assumes f_ax: "\<And>n. f (f n) < f (Suc n)"
