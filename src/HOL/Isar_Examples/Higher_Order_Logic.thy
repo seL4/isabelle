@@ -46,9 +46,12 @@ axiomatization equal :: "'a \<Rightarrow> 'a \<Rightarrow> o"  (infixl "=" 50)
   where refl [intro]: "x = x"
     and subst: "x = y \<Longrightarrow> P x \<Longrightarrow> P y"
 
+abbreviation iff :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longleftrightarrow>" 25)
+  where "A \<longleftrightarrow> B \<equiv> A = B"
+
 axiomatization
   where ext [intro]: "(\<And>x. f x = g x) \<Longrightarrow> f = g"
-    and iff [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A = B"
+    and iff [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> (B \<Longrightarrow> A) \<Longrightarrow> A \<longleftrightarrow> B"
 
 theorem sym [sym]:
   assumes "x = y"
@@ -64,10 +67,10 @@ lemma [trans]: "P x \<Longrightarrow> x = y \<Longrightarrow> P y"
 theorem trans [trans]: "x = y \<Longrightarrow> y = z \<Longrightarrow> x = z"
   by (rule subst)
 
-theorem iff1 [elim]: "A = B \<Longrightarrow> A \<Longrightarrow> B"
+theorem iff1 [elim]: "A \<longleftrightarrow> B \<Longrightarrow> A \<Longrightarrow> B"
   by (rule subst)
 
-theorem iff2 [elim]: "A = B \<Longrightarrow> B \<Longrightarrow> A"
+theorem iff2 [elim]: "A \<longleftrightarrow> B \<Longrightarrow> B \<Longrightarrow> A"
   by (rule subst) (rule sym)
 
 
@@ -247,6 +250,39 @@ proof -
     qed
   qed
   finally show thesis .
+qed
+
+
+subsection \<open>Cantor's Theorem\<close>
+
+text \<open>
+  Cantor's Theorem states that there is no surjection from a set to its
+  powerset. The subsequent formulation uses elementary \<open>\<lambda>\<close>-calculus and
+  predicate logic, with standard introduction and elimination rules.
+\<close>
+
+lemma iff_contradiction:
+  assumes *: "\<not> A \<longleftrightarrow> A"
+  shows C
+proof (rule notE)
+  show "\<not> A"
+  proof
+    assume A
+    with * have "\<not> A" ..
+    from this and \<open>A\<close> show \<bottom> ..
+  qed
+  with * show A ..
+qed
+
+theorem Cantor: "\<not> (\<exists>f :: 'a \<Rightarrow> 'a \<Rightarrow> o. \<forall>A :: 'a \<Rightarrow> o. \<exists>x :: 'a. A = f x)"
+proof
+  assume "\<exists>f :: 'a \<Rightarrow> 'a \<Rightarrow> o. \<forall>A. \<exists>x. A = f x"
+  then obtain f :: "'a \<Rightarrow> 'a \<Rightarrow> o" where *: "\<forall>A. \<exists>x. A = f x" ..
+  let ?D = "\<lambda>x. \<not> f x x"
+  from * have "\<exists>x. ?D = f x" ..
+  then obtain a where "?D = f a" ..
+  then have "?D a \<longleftrightarrow> f a a" using refl by (rule subst)
+  then show \<bottom> by (rule iff_contradiction)
 qed
 
 
