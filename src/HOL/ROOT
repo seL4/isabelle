@@ -735,10 +735,13 @@ session "HOL-Probability" in "Probability" = "HOL-Multivariate_Analysis" +
     "~~/src/HOL/Library/Diagonal_Subsequence"
   theories
     Probability
-    "ex/Dining_Cryptographers"
-    "ex/Koepf_Duermuth_Countermeasure"
-    "ex/Measure_Not_CCC"
   document_files "root.tex"
+
+session "HOL-Probability-ex" in "Probability/ex" = "HOL-Probability" +
+  theories
+    "Dining_Cryptographers"
+    "Koepf_Duermuth_Countermeasure"
+    "Measure_Not_CCC"
 
 session "HOL-Nominal" in Nominal = HOL +
   options [document = false]
