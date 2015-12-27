@@ -14,7 +14,7 @@ theory Extend imports Guar begin
 definition
   (*MOVE to Relation.thy?*)
   Restrict :: "[ 'a set, ('a*'b) set] => ('a*'b) set"
-  where "Restrict A r = r \<inter> (A <*> UNIV)"
+  where "Restrict A r = r \<inter> (A \<times> UNIV)"
 
 definition
   good_map :: "['a*'b => 'c] => bool"
@@ -23,7 +23,7 @@ definition
   
 definition
   extend_set :: "['a*'b => 'c, 'a set] => 'c set"
-  where "extend_set h A = h ` (A <*> UNIV)"
+  where "extend_set h A = h ` (A \<times> UNIV)"
 
 definition
   project_set :: "['a*'b => 'c, 'c set] => 'a set"

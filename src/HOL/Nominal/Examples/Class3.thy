@@ -2265,7 +2265,7 @@ using a
 by (induct rule: SNa.induct) (blast)
 
 lemma wf_SNa_restricted:
-  shows "wf (A_Redu_set \<inter> (UNIV <*> SNa_set))"
+  shows "wf (A_Redu_set \<inter> (UNIV \<times> SNa_set))"
 apply(unfold wf_def)
 apply(intro strip)
 apply(case_tac "SNa x")
@@ -2280,7 +2280,7 @@ apply(fast)
 done
 
 definition SNa_Redu :: "(trm \<times> trm) set" where
-  "SNa_Redu \<equiv> A_Redu_set \<inter> (UNIV <*> SNa_set)"
+  "SNa_Redu \<equiv> A_Redu_set \<inter> (UNIV \<times> SNa_set)"
 
 lemma wf_SNa_Redu:
   shows "wf SNa_Redu"

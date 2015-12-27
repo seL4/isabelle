@@ -476,6 +476,8 @@ simplify porting old theories:
 
   notation iff  (infixr "<->" 25)
 
+  notation Times  (infixr "<*>" 80)
+
   type_notation Map.map  (infixr "~=>" 0)
   notation Map.map_comp  (infixl "o'_m" 55)
 

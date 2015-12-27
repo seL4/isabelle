@@ -281,7 +281,7 @@ This should make cardinal reasoning more direct and natural.  *)
 subsection \<open>Product\<close>
 
 definition cprod (infixr "*c" 80) where
-  "r1 *c r2 = |Field r1 <*> Field r2|"
+  "r1 *c r2 = |Field r1 \<times> Field r2|"
 
 lemma card_order_cprod:
   assumes "card_order r1" "card_order r2"

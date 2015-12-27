@@ -1005,12 +1005,8 @@ definition Sigma :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow
   Sigma_def: "Sigma A B == UN x:A. UN y:B x. {Pair x y}"
 
 abbreviation
-  Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"
-    (infixr "<*>" 80) where
-  "A <*> B == Sigma A (%_. B)"
-
-notation (xsymbols)
-  Times  (infixr "\<times>" 80)
+  Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  (infixr "\<times>" 80) where
+  "A \<times> B == Sigma A (%_. B)"
 
 hide_const (open) Times
 
@@ -1057,16 +1053,16 @@ lemma Sigma_mono: "[| A <= C; !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma 
 lemma Sigma_empty1 [simp]: "Sigma {} B = {}"
   by blast
 
-lemma Sigma_empty2 [simp]: "A <*> {} = {}"
+lemma Sigma_empty2 [simp]: "A \<times> {} = {}"
   by blast
 
-lemma UNIV_Times_UNIV [simp]: "UNIV <*> UNIV = UNIV"
+lemma UNIV_Times_UNIV [simp]: "UNIV \<times> UNIV = UNIV"
   by auto
 
-lemma Compl_Times_UNIV1 [simp]: "- (UNIV <*> A) = UNIV <*> (-A)"
+lemma Compl_Times_UNIV1 [simp]: "- (UNIV \<times> A) = UNIV \<times> (-A)"
   by auto
 
-lemma Compl_Times_UNIV2 [simp]: "- (A <*> UNIV) = (-A) <*> UNIV"
+lemma Compl_Times_UNIV2 [simp]: "- (A \<times> UNIV) = (-A) \<times> UNIV"
   by auto
 
 lemma mem_Sigma_iff [iff]: "((a,b): Sigma A B) = (a:A & b:B(a))"
@@ -1075,10 +1071,10 @@ lemma mem_Sigma_iff [iff]: "((a,b): Sigma A B) = (a:A & b:B(a))"
 lemma Sigma_empty_iff: "(SIGMA i:I. X i) = {} \<longleftrightarrow> (\<forall>i\<in>I. X i = {})"
   by auto
 
-lemma Times_subset_cancel2: "x:C ==> (A <*> C <= B <*> C) = (A <= B)"
+lemma Times_subset_cancel2: "x:C ==> (A \<times> C <= B \<times> C) = (A <= B)"
   by blast
 
-lemma Times_eq_cancel2: "x:C ==> (A <*> C = B <*> C) = (A = B)"
+lemma Times_eq_cancel2: "x:C ==> (A \<times> C = B \<times> C) = (A = B)"
   by (blast elim: equalityE)
 
 lemma Collect_case_prod_Sigma:

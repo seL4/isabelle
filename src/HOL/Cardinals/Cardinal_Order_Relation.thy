@@ -489,7 +489,7 @@ by auto
 
 lemma card_of_Times_ordLeq_infinite:
 "\<lbrakk>\<not>finite C; |A| \<le>o |C|; |B| \<le>o |C|\<rbrakk>
- \<Longrightarrow> |A <*> B| \<le>o |C|"
+ \<Longrightarrow> |A \<times> B| \<le>o |C|"
 by(simp add: card_of_Sigma_ordLeq_infinite)
 
 corollary Plus_infinite_bij_betw:
@@ -621,7 +621,7 @@ proof-
   ordIso_symmetric by blast
   hence "|A| <o |?C|"  "|B| <o |?C|"
   using LESS1 LESS2 ordLess_ordIso_trans by blast+
-  hence  "|A <*> B| <o |?C|" using INF
+  hence  "|A \<times> B| <o |?C|" using INF
   card_of_Times_ordLess_infinite by blast
   thus ?thesis using 1 ordLess_ordIso_trans by blast
 qed
@@ -1502,12 +1502,12 @@ by (metis card_of_Func_mono[OF A12 B] card_of_Func_option_Func
 
 lemma card_of_Pfunc_Pow_Func_option:
 assumes "B \<noteq> {}"
-shows "|Pfunc A B| \<le>o |Pow A <*> Func_option A B|"
+shows "|Pfunc A B| \<le>o |Pow A \<times> Func_option A B|"
 proof-
   have "|Pfunc A B| =o |\<Union>A' \<in> Pow A. Func_option A' B|" (is "_ =o ?K")
     unfolding Pfunc_Func_option by(rule card_of_refl)
   also have "?K \<le>o |Sigma (Pow A) (\<lambda> A'. Func_option A' B)|" using card_of_UNION_Sigma .
-  also have "|Sigma (Pow A) (\<lambda> A'. Func_option A' B)| \<le>o |Pow A <*> Func_option A B|"
+  also have "|Sigma (Pow A) (\<lambda> A'. Func_option A' B)| \<le>o |Pow A \<times> Func_option A B|"
     apply(rule card_of_Sigma_mono1) using card_of_Func_option_mono[OF _ assms] by auto
   finally show ?thesis .
 qed

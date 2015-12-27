@@ -495,7 +495,7 @@ by blast
 
 (*** Bounding theorems ***)
 
-lemma dprod_Sigma: "(dprod (A <*> B) (C <*> D)) <= (uprod A C) <*> (uprod B D)"
+lemma dprod_Sigma: "(dprod (A \<times> B) (C \<times> D)) <= (uprod A C) \<times> (uprod B D)"
 by blast
 
 lemmas dprod_subset_Sigma = subset_trans [OF dprod_mono dprod_Sigma]
@@ -505,7 +505,7 @@ lemma dprod_subset_Sigma2:
     "(dprod (Sigma A B) (Sigma C D)) <= Sigma (uprod A C) (Split (%x y. uprod (B x) (D y)))"
 by auto
 
-lemma dsum_Sigma: "(dsum (A <*> B) (C <*> D)) <= (usum A C) <*> (usum B D)"
+lemma dsum_Sigma: "(dsum (A \<times> B) (C \<times> D)) <= (usum A C) \<times> (usum B D)"
 by blast
 
 lemmas dsum_subset_Sigma = subset_trans [OF dsum_mono dsum_Sigma]

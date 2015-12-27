@@ -73,7 +73,7 @@ lemma GrD1: "(x, fx) \<in> Gr A f \<Longrightarrow> x \<in> A"
 lemma GrD2: "(x, fx) \<in> Gr A f \<Longrightarrow> f x = fx"
   unfolding Gr_def by simp
 
-lemma Gr_incl: "Gr A f \<subseteq> A <*> B \<longleftrightarrow> f ` A \<subseteq> B"
+lemma Gr_incl: "Gr A f \<subseteq> A \<times> B \<longleftrightarrow> f ` A \<subseteq> B"
   unfolding Gr_def by auto
 
 lemma subset_Collect_iff: "B \<subseteq> A \<Longrightarrow> (B \<subseteq> {x \<in> A. P x}) = (\<forall>x \<in> B. P x)"
@@ -137,7 +137,7 @@ lemma relImage_proj:
   by (auto simp: proj_preserves)
 
 lemma relImage_relInvImage:
-  assumes "R \<subseteq> f ` A <*> f ` A"
+  assumes "R \<subseteq> f ` A \<times> f ` A"
   shows "relImage (relInvImage A R f) f = R"
   using assms unfolding relImage_def relInvImage_def by fast
 

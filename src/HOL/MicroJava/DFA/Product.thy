@@ -16,7 +16,7 @@ definition sup :: "'a ebinop \<Rightarrow> 'b ebinop \<Rightarrow> ('a * 'b)ebin
 "sup f g == %(a1,b1)(a2,b2). Err.sup Pair (a1 +_f a2) (b1 +_g b2)"
 
 definition esl :: "'a esl \<Rightarrow> 'b esl \<Rightarrow> ('a * 'b ) esl" where
-"esl == %(A,rA,fA) (B,rB,fB). (A <*> B, le rA rB, sup fA fB)"
+"esl == %(A,rA,fA) (B,rB,fB). (A \<times> B, le rA rB, sup fA fB)"
 
 abbreviation
   lesubprod_sntax :: "'a * 'b \<Rightarrow> 'a ord \<Rightarrow> 'b ord \<Rightarrow> 'a * 'b \<Rightarrow> bool"
@@ -57,7 +57,7 @@ done
 
 lemma closed_lift2_sup:
   "\<lbrakk> closed (err A) (lift2 f); closed (err B) (lift2 g) \<rbrakk> \<Longrightarrow> 
-  closed (err(A<*>B)) (lift2(sup f g))"
+  closed (err(A\<times>B)) (lift2(sup f g))"
 apply (unfold closed_def plussub_def lift2_def err_def sup_def)
 apply (simp split: err.split)
 apply blast

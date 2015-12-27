@@ -42,7 +42,7 @@ declare PLam_stable [simp]
 lemma TimerArray_leadsTo_zero:
      "finite I  
       ==> (plam i: I. Timer) : UNIV leadsTo {(s,uu). ALL i:I. s i = 0}"
-apply (erule_tac A'1 = "%i. lift_set i ({0} <*> UNIV)" 
+apply (erule_tac A'1 = "%i. lift_set i ({0} \<times> UNIV)" 
        in finite_stable_completion [THEN leadsTo_weaken])
 apply auto
 (*Safety property, already reduced to the single Timer case*)
@@ -51,7 +51,7 @@ apply auto
 (*Progress property for the array of Timers*)
 apply (rule_tac f = "sub i o fst" in lessThan_induct)
 apply (case_tac "m")
-(*Annoying need to massage the conditions to have the form (... <*> UNIV)*)
+(*Annoying need to massage the conditions to have the form (... \<times> UNIV)*)
 apply (auto intro: subset_imp_leadsTo 
         simp add: insert_absorb 
                   lift_set_Un_distrib [symmetric] lessThan_Suc [symmetric] 

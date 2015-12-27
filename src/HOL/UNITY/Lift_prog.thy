@@ -270,13 +270,13 @@ lemma delete_map_neq_apply:
      "[| delete_map j g = delete_map j g';  i\<noteq>j |] ==> g i = g' i"
 by force
 
-(*A set of the form (A <*> UNIV) ignores the second (dummy) state component*)
+(*A set of the form (A \<times> UNIV) ignores the second (dummy) state component*)
 
-lemma vimage_o_fst_eq [simp]: "(f o fst) -` A = (f-`A) <*> UNIV"
+lemma vimage_o_fst_eq [simp]: "(f o fst) -` A = (f-`A) \<times> UNIV"
 by auto
 
 lemma vimage_sub_eq_lift_set [simp]:
-     "(sub i -`A) <*> UNIV = lift_set i (A <*> UNIV)"
+     "(sub i -`A) \<times> UNIV = lift_set i (A \<times> UNIV)"
 by auto
 
 lemma mem_lift_act_iff [iff]: 
@@ -288,7 +288,7 @@ done
 
 lemma preserves_snd_lift_stable:
      "[| F \<in> preserves snd;  i\<noteq>j |]  
-      ==> lift j F \<in> stable (lift_set i (A <*> UNIV))"
+      ==> lift j F \<in> stable (lift_set i (A \<times> UNIV))"
 apply (auto simp add: lift_def lift_set_def stable_def constrains_def 
                       rename_def extend_def mem_rename_set_iff)
 apply (auto dest!: preserves_imp_eq simp add: lift_map_def drop_map_def)
@@ -298,9 +298,9 @@ done
 (*If i\<noteq>j then lift j F  does nothing to lift_set i, and the 
   premise ensures A \<subseteq> B.*)
 lemma constrains_imp_lift_constrains:
-    "[| F i \<in> (A <*> UNIV) co (B <*> UNIV);   
+    "[| F i \<in> (A \<times> UNIV) co (B \<times> UNIV);   
         F j \<in> preserves snd |]   
-     ==> lift j (F j) \<in> (lift_set i (A <*> UNIV)) co (lift_set i (B <*> UNIV))"
+     ==> lift j (F j) \<in> (lift_set i (A \<times> UNIV)) co (lift_set i (B \<times> UNIV))"
 apply (cases "i=j")
 apply (simp add: lift_def lift_set_def rename_constrains)
 apply (erule preserves_snd_lift_stable[THEN stableD, THEN constrains_weaken_R],
@@ -310,8 +310,8 @@ done
 
 (*USELESS??*)
 lemma lift_map_image_Times:
-     "lift_map i ` (A <*> UNIV) =  
-      (\<Union>s \<in> A. \<Union>f. {insert_map i s f}) <*> UNIV"
+     "lift_map i ` (A \<times> UNIV) =  
+      (\<Union>s \<in> A. \<Union>f. {insert_map i s f}) \<times> UNIV"
 apply (auto intro!: bexI image_eqI simp add: lift_map_def)
 apply (rule split_conv [symmetric])
 done

@@ -3108,7 +3108,7 @@ lemma product_composition_lemma:
     setsum (\<lambda>(k,m). a$k * b$m * (c^k * d^m) $ n) {(k,m). k + m \<le> n}"  (is "?l = ?r")
 proof -
   let ?S = "{(k::nat, m::nat). k + m \<le> n}"
-  have s: "?S \<subseteq> {0..n} <*> {0..n}" by (auto simp add: subset_eq)
+  have s: "?S \<subseteq> {0..n} \<times> {0..n}" by (auto simp add: subset_eq)
   have f: "finite {(k::nat, m::nat). k + m \<le> n}"
     apply (rule finite_subset[OF s])
     apply auto

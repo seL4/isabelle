@@ -48,9 +48,9 @@ done
 
 lemma PLam_constrains:
      "[| i \<in> I;  \<forall>j. F j \<in> preserves snd |]
-      ==> (PLam I F \<in> (lift_set i (A <*> UNIV)) co
-                      (lift_set i (B <*> UNIV)))  =
-          (F i \<in> (A <*> UNIV) co (B <*> UNIV))"
+      ==> (PLam I F \<in> (lift_set i (A \<times> UNIV)) co
+                      (lift_set i (B \<times> UNIV)))  =
+          (F i \<in> (A \<times> UNIV) co (B \<times> UNIV))"
 apply (simp add: PLam_def JN_constrains)
 apply (subst insert_Diff [symmetric], assumption)
 apply (simp add: lift_constrains)
@@ -59,8 +59,8 @@ done
 
 lemma PLam_stable:
      "[| i \<in> I;  \<forall>j. F j \<in> preserves snd |]
-      ==> (PLam I F \<in> stable (lift_set i (A <*> UNIV))) =
-          (F i \<in> stable (A <*> UNIV))"
+      ==> (PLam I F \<in> stable (lift_set i (A \<times> UNIV))) =
+          (F i \<in> stable (A \<times> UNIV))"
 by (simp add: stable_def PLam_constrains)
 
 lemma PLam_transient:
@@ -70,9 +70,9 @@ by (simp add: JN_transient PLam_def)
 
 text{*This holds because the @{term "F j"} cannot change @{term "lift_set i"}*}
 lemma PLam_ensures:
-     "[| i \<in> I;  F i \<in> (A <*> UNIV) ensures (B <*> UNIV);
+     "[| i \<in> I;  F i \<in> (A \<times> UNIV) ensures (B \<times> UNIV);
          \<forall>j. F j \<in> preserves snd |]
-      ==> PLam I F \<in> lift_set i (A <*> UNIV) ensures lift_set i (B <*> UNIV)"
+      ==> PLam I F \<in> lift_set i (A \<times> UNIV) ensures lift_set i (B \<times> UNIV)"
 apply (simp add: ensures_def PLam_constrains PLam_transient
               lift_set_Un_distrib [symmetric] lift_set_Diff_distrib [symmetric]
               Times_Un_distrib1 [symmetric] Times_Diff_distrib1 [symmetric])
@@ -82,11 +82,11 @@ done
 
 lemma PLam_leadsTo_Basis:
      "[| i \<in> I;
-         F i \<in> ((A <*> UNIV) - (B <*> UNIV)) co
-               ((A <*> UNIV) \<union> (B <*> UNIV));
-         F i \<in> transient ((A <*> UNIV) - (B <*> UNIV));
+         F i \<in> ((A \<times> UNIV) - (B \<times> UNIV)) co
+               ((A \<times> UNIV) \<union> (B \<times> UNIV));
+         F i \<in> transient ((A \<times> UNIV) - (B \<times> UNIV));
          \<forall>j. F j \<in> preserves snd |]
-      ==> PLam I F \<in> lift_set i (A <*> UNIV) leadsTo lift_set i (B <*> UNIV)"
+      ==> PLam I F \<in> lift_set i (A \<times> UNIV) leadsTo lift_set i (B \<times> UNIV)"
 by (rule PLam_ensures [THEN leadsTo_Basis], rule_tac [2] ensuresI)
 
 
@@ -94,9 +94,9 @@ by (rule PLam_ensures [THEN leadsTo_Basis], rule_tac [2] ensuresI)
 (** invariant **)
 
 lemma invariant_imp_PLam_invariant:
-     "[| F i \<in> invariant (A <*> UNIV);  i \<in> I;
+     "[| F i \<in> invariant (A \<times> UNIV);  i \<in> I;
          \<forall>j. F j \<in> preserves snd |]
-      ==> PLam I F \<in> invariant (lift_set i (A <*> UNIV))"
+      ==> PLam I F \<in> invariant (lift_set i (A \<times> UNIV))"
 by (auto simp add: PLam_stable invariant_def)
 
 

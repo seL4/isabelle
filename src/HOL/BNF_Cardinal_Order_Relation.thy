@@ -788,7 +788,7 @@ proof-
 qed
 
 lemma card_of_Times_Plus_distrib:
-  "|A <*> (B <+> C)| =o |A <*> B <+> A <*> C|" (is "|?RHS| =o |?LHS|")
+  "|A \<times> (B <+> C)| =o |A \<times> B <+> A \<times> C|" (is "|?RHS| =o |?LHS|")
 proof -
   let ?f = "\<lambda>(a, bc). case bc of Inl b \<Rightarrow> Inl (a, b) | Inr c \<Rightarrow> Inr (a, c)"
   have "bij_betw ?f ?RHS ?LHS" unfolding bij_betw_def inj_on_def by force
@@ -1038,7 +1038,7 @@ qed
 
 lemma card_of_Times_ordLeq_infinite_Field:
 "\<lbrakk>\<not>finite (Field r); |A| \<le>o r; |B| \<le>o r; Card_order r\<rbrakk>
- \<Longrightarrow> |A <*> B| \<le>o r"
+ \<Longrightarrow> |A \<times> B| \<le>o r"
 by(simp add: card_of_Sigma_ordLeq_infinite_Field)
 
 lemma card_of_Times_infinite_simps:
@@ -1619,7 +1619,7 @@ qed
 subsection \<open>Others\<close>
 
 lemma card_of_Func_Times:
-"|Func (A <*> B) C| =o |Func A (Func B C)|"
+"|Func (A \<times> B) C| =o |Func A (Func B C)|"
 unfolding card_of_ordIso[symmetric]
 using bij_betw_curr by blast
 
@@ -1661,7 +1661,7 @@ apply(rule ordIso_symmetric) proof(intro card_of_ordIsoI)
 qed
 
 lemma Func_Times_Range:
-  "|Func A (B <*> C)| =o |Func A B <*> Func A C|" (is "|?LHS| =o |?RHS|")
+  "|Func A (B \<times> C)| =o |Func A B \<times> Func A C|" (is "|?LHS| =o |?RHS|")
 proof -
   let ?F = "\<lambda>fg. (\<lambda>x. if x \<in> A then fst (fg x) else undefined,
                   \<lambda>x. if x \<in> A then snd (fg x) else undefined)"

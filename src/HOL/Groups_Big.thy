@@ -350,7 +350,7 @@ proof -
 qed
 
 lemma cartesian_product:
-   "F (\<lambda>x. F (g x) B) A = F (case_prod g) (A <*> B)"
+   "F (\<lambda>x. F (g x) B) A = F (case_prod g) (A \<times> B)"
 apply (rule sym)
 apply (cases "finite A") 
  apply (cases "finite B") 
@@ -1032,15 +1032,15 @@ by(simp add: card_eq_setsum setsum.Sigma del:setsum_constant)
 
 (*
 lemma SigmaI_insert: "y \<notin> A ==>
-  (SIGMA x:(insert y A). B x) = (({y} <*> (B y)) \<union> (SIGMA x: A. B x))"
+  (SIGMA x:(insert y A). B x) = (({y} \<times> (B y)) \<union> (SIGMA x: A. B x))"
   by auto
 *)
 
-lemma card_cartesian_product: "card (A <*> B) = card(A) * card(B)"
+lemma card_cartesian_product: "card (A \<times> B) = card(A) * card(B)"
   by (cases "finite A \<and> finite B")
     (auto simp add: card_eq_0_iff dest: finite_cartesian_productD1 finite_cartesian_productD2)
 
-lemma card_cartesian_product_singleton:  "card({x} <*> A) = card(A)"
+lemma card_cartesian_product_singleton:  "card({x} \<times> A) = card(A)"
 by (simp add: card_cartesian_product)
 
 

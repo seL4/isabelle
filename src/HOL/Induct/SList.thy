@@ -10,8 +10,8 @@ Enriched theory of lists; mutual indirect recursive data-types.
 
 Definition of type 'a list (strict lists) by a least fixed point
 
-We use          list(A) == lfp(%Z. {NUMB(0)} <+> A <*> Z)
-and not         list    == lfp(%Z. {NUMB(0)} <+> range(Leaf) <*> Z)
+We use          list(A) == lfp(%Z. {NUMB(0)} <+> A \<times> Z)
+and not         list    == lfp(%Z. {NUMB(0)} <+> range(Leaf) \<times> Z)
 
 so that list can serve as a "functor" for defining other recursive types.
 

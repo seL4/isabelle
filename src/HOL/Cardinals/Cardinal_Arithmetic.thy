@@ -51,8 +51,8 @@ fixes A :: "'a set"
 shows "|A \<times> {x}| =o |A|"
 proof -
   def f \<equiv> "\<lambda>(a::'a,b::'b). (a)"
-  have "A \<subseteq> f ` (A <*> {x})" unfolding f_def by (auto simp: image_iff)
-  hence "bij_betw f (A <*> {x}) A"  unfolding bij_betw_def inj_on_def f_def by fastforce
+  have "A \<subseteq> f ` (A \<times> {x})" unfolding f_def by (auto simp: image_iff)
+  hence "bij_betw f (A \<times> {x}) A"  unfolding bij_betw_def inj_on_def f_def by fastforce
   thus ?thesis using card_of_ordIso by blast
 qed
 

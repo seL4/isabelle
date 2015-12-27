@@ -173,7 +173,7 @@ definition Q_set :: "int set"
   where "Q_set = {x. 0 < x & x \<le> ((q - 1) div 2) }"
   
 definition S :: "(int * int) set"
-  where "S = P_set <*> Q_set"
+  where "S = P_set \<times> Q_set"
 
 definition S1 :: "(int * int) set"
   where "S1 = { (x, y). (x, y):S & ((p * y) < (q * x)) }"

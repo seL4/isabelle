@@ -32,7 +32,7 @@ lemmas wfPUNIVI = wfUNIVI [to_pred]
 text\<open>Restriction to domain @{term A} and range @{term B}.  If @{term r} is
     well-founded over their intersection, then @{term "wf r"}\<close>
 lemma wfI: 
- "[| r \<subseteq> A <*> B; 
+ "[| r \<subseteq> A \<times> B; 
      !!x P. [|\<forall>x. (\<forall>y. (y,x) : r --> P y) --> P x;  x : A; x : B |] ==> P x |]
   ==>  wf r"
   unfolding wf_def by blast

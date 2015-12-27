@@ -1515,19 +1515,19 @@ definition curr where
 "curr A f \<equiv> \<lambda> a. if a \<in> A then \<lambda>b. f (a,b) else undefined"
 
 lemma curr_in:
-assumes f: "f \<in> Func (A <*> B) C"
+assumes f: "f \<in> Func (A \<times> B) C"
 shows "curr A f \<in> Func A (Func B C)"
 using assms unfolding curr_def Func_def by auto
 
 lemma curr_inj:
-assumes "f1 \<in> Func (A <*> B) C" and "f2 \<in> Func (A <*> B) C"
+assumes "f1 \<in> Func (A \<times> B) C" and "f2 \<in> Func (A \<times> B) C"
 shows "curr A f1 = curr A f2 \<longleftrightarrow> f1 = f2"
 proof safe
   assume c: "curr A f1 = curr A f2"
   show "f1 = f2"
   proof (rule ext, clarify)
     fix a b show "f1 (a, b) = f2 (a, b)"
-    proof (cases "(a,b) \<in> A <*> B")
+    proof (cases "(a,b) \<in> A \<times> B")
       case False
       thus ?thesis using assms unfolding Func_def by auto
     next
@@ -1540,7 +1540,7 @@ qed
 
 lemma curr_surj:
 assumes "g \<in> Func A (Func B C)"
-shows "\<exists> f \<in> Func (A <*> B) C. curr A f = g"
+shows "\<exists> f \<in> Func (A \<times> B) C. curr A f = g"
 proof
   let ?f = "\<lambda> ab. if fst ab \<in> A \<and> snd ab \<in> B then g (fst ab) (snd ab) else undefined"
   show "curr A ?f = g"
@@ -1557,11 +1557,11 @@ proof
       thus ?thesis using True unfolding Func_def curr_def by auto
     qed
   qed
-  show "?f \<in> Func (A <*> B) C" using assms unfolding Func_def mem_Collect_eq by auto
+  show "?f \<in> Func (A \<times> B) C" using assms unfolding Func_def mem_Collect_eq by auto
 qed
 
 lemma bij_betw_curr:
-"bij_betw (curr A) (Func (A <*> B) C) (Func A (Func B C))"
+"bij_betw (curr A) (Func (A \<times> B) C) (Func A (Func B C))"
 unfolding bij_betw_def inj_on_def image_def
 apply (intro impI conjI ballI)
 apply (erule curr_inj[THEN iffD1], assumption+)
