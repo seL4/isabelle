@@ -113,11 +113,8 @@ notation (xsymbols output)
   not_equal  (infix "\<noteq>" 50)
 
 abbreviation (iff)
-  iff :: "[bool, bool] \<Rightarrow> bool"  (infixr "<->" 25) where
-  "A <-> B \<equiv> A = B"
-
-notation (xsymbols)
-  iff  (infixr "\<longleftrightarrow>" 25)
+  iff :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<longleftrightarrow>" 25) where
+  "A \<longleftrightarrow> B \<equiv> A = B"
 
 syntax "_The" :: "[pttrn, bool] \<Rightarrow> 'a"  ("(3THE _./ _)" [0, 10] 10)
 translations "THE x. P" \<rightleftharpoons> "CONST The (\<lambda>x. P)"

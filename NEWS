@@ -474,6 +474,8 @@ INCOMPATIBILITY, standard syntax with symbols should be used instead.
 The subsequent commands help to reproduce the old forms, e.g. to
 simplify porting old theories:
 
+  notation iff  (infixr "<->" 25)
+
   type_notation Map.map  (infixr "~=>" 0)
   notation Map.map_comp  (infixl "o'_m" 55)
 

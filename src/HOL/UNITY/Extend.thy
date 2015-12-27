@@ -18,7 +18,7 @@ definition
 
 definition
   good_map :: "['a*'b => 'c] => bool"
-  where "good_map h <-> surj h & (\<forall>x y. fst (inv h (h (x,y))) = x)"
+  where "good_map h \<longleftrightarrow> surj h & (\<forall>x y. fst (inv h (h (x,y))) = x)"
      (*Using the locale constant "f", this is  f (h (x,y))) = x*)
   
 definition

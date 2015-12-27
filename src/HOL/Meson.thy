@@ -22,8 +22,7 @@ lemma not_conjD: "~(P&Q) ==> ~P | ~Q"
   and not_exD: "!!P. ~(\<exists>x. P(x)) ==> \<forall>x. ~P(x)"
   by fast+
 
-text \<open>Removal of \<open>-->\<close> and \<open><->\<close> (positive and
-negative occurrences)\<close>
+text \<open>Removal of \<open>\<longrightarrow>\<close> and \<open>\<longleftrightarrow>\<close> (positive and negative occurrences)\<close>
 
 lemma imp_to_disjD: "P-->Q ==> ~P | Q"
   and not_impD: "~(P-->Q) ==> P & ~Q"

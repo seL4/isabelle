@@ -17,9 +17,9 @@ begin
 instantiation program :: (type) ord
 begin
 
-definition component_def: "F \<le> H <-> (\<exists>G. F\<squnion>G = H)"
+definition component_def: "F \<le> H \<longleftrightarrow> (\<exists>G. F\<squnion>G = H)"
 
-definition strict_component_def: "F < (H::'a program) <-> (F \<le> H & F \<noteq> H)"
+definition strict_component_def: "F < (H::'a program) \<longleftrightarrow> (F \<le> H & F \<noteq> H)"
 
 instance ..
 

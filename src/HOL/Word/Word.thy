@@ -1425,7 +1425,7 @@ lemma udvd_nat_alt: "a udvd b = (EX n>=0. unat b = n * unat a)"
   apply force
   done
 
-lemma udvd_iff_dvd: "x udvd y <-> unat x dvd unat y"
+lemma udvd_iff_dvd: "x udvd y \<longleftrightarrow> unat x dvd unat y"
   unfolding dvd_def udvd_nat_alt by force
 
 lemmas unat_mono = word_less_nat_alt [THEN iffD1]
@@ -3273,7 +3273,7 @@ lemma and_mask_lt_2p: "uint (w AND mask n) < 2 ^ n"
 lemma eq_mod_iff: "0 < (n::int) \<Longrightarrow> b = b mod n \<longleftrightarrow> 0 \<le> b \<and> b < n"
   by (simp add: int_mod_lem eq_sym_conv)
 
-lemma mask_eq_iff: "(w AND mask n) = w <-> uint w < 2 ^ n"
+lemma mask_eq_iff: "(w AND mask n) = w \<longleftrightarrow> uint w < 2 ^ n"
   apply (simp add: and_mask_bintr)
   apply (simp add: word_ubin.inverse_norm)
   apply (simp add: eq_mod_iff bintrunc_mod2p min_def)
@@ -3691,7 +3691,7 @@ lemma word_split_bl':
   done
 
 lemma word_split_bl: "std = size c - size b \<Longrightarrow> 
-    (a = of_bl (take std (to_bl c)) & b = of_bl (drop std (to_bl c))) <-> 
+    (a = of_bl (take std (to_bl c)) & b = of_bl (drop std (to_bl c))) \<longleftrightarrow> 
     word_split c = (a, b)"
   apply (rule iffI)
    defer
@@ -3729,7 +3729,7 @@ lemma test_bit_split:
     (\<forall>n::nat. b !! n \<longleftrightarrow> n < size b \<and> c !! n) \<and> (\<forall>m::nat. a !! m \<longleftrightarrow> m < size a \<and> c !! (m + size b))"
   by (simp add: test_bit_split')
 
-lemma test_bit_split_eq: "word_split c = (a, b) <-> 
+lemma test_bit_split_eq: "word_split c = (a, b) \<longleftrightarrow> 
   ((ALL n::nat. b !! n = (n < size b & c !! n)) &
     (ALL m::nat. a !! m = (m < size a & c !! (m + size b))))"
   apply (rule_tac iffI)

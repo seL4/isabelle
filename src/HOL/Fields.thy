@@ -1116,7 +1116,7 @@ lemma divide_less_eq_1_pos [simp]:
 by (auto simp add: divide_less_eq)
 
 lemma divide_less_eq_1_neg [simp]:
-  "a < 0 \<Longrightarrow> b/a < 1 <-> a < b"
+  "a < 0 \<Longrightarrow> b/a < 1 \<longleftrightarrow> a < b"
 by (auto simp add: divide_less_eq)
 
 lemma eq_divide_eq_1 [simp]:

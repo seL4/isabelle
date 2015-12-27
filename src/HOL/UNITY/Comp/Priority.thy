@@ -22,11 +22,11 @@ consts
 text{*Following the definitions given in section 4.4 *}
 
 definition highest :: "[vertex, (vertex*vertex)set]=>bool"
-  where "highest i r <-> A i r = {}"
+  where "highest i r \<longleftrightarrow> A i r = {}"
     --{* i has highest priority in r *}
   
 definition lowest :: "[vertex, (vertex*vertex)set]=>bool"
-  where "lowest i r <-> R i r = {}"
+  where "lowest i r \<longleftrightarrow> R i r = {}"
     --{* i has lowest priority in r *}
 
 definition act :: command

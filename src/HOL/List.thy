@@ -3445,7 +3445,7 @@ by force
 lemma remdups_adj_altdef: "(remdups_adj xs = ys) \<longleftrightarrow>
   (\<exists>f::nat => nat. mono f & f ` {0 ..< size xs} = {0 ..< size ys}
     \<and> (\<forall>i < size xs. xs!i = ys!(f i))
-    \<and> (\<forall>i. i + 1 < size xs \<longrightarrow> (xs!i = xs!(i+1) <-> f i = f(i+1))))" (is "?L \<longleftrightarrow> (\<exists>f. ?p f xs ys)")
+    \<and> (\<forall>i. i + 1 < size xs \<longrightarrow> (xs!i = xs!(i+1) \<longleftrightarrow> f i = f(i+1))))" (is "?L \<longleftrightarrow> (\<exists>f. ?p f xs ys)")
 proof
   assume ?L
   then show "\<exists>f. ?p f xs ys"

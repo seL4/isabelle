@@ -538,7 +538,7 @@ lemma sbintrunc_bintrunc' [simp]:
   by (cases n) (auto simp del: bintrunc.Suc)
 
 lemma bin_sbin_eq_iff: 
-  "bintrunc (Suc n) x = bintrunc (Suc n) y <-> 
+  "bintrunc (Suc n) x = bintrunc (Suc n) y \<longleftrightarrow> 
    sbintrunc n x = sbintrunc n y"
   apply (rule iffI)
    apply (rule box_equals [OF _ sbintrunc_bintrunc sbintrunc_bintrunc])
@@ -548,7 +548,7 @@ lemma bin_sbin_eq_iff:
   done
 
 lemma bin_sbin_eq_iff':
-  "0 < n \<Longrightarrow> bintrunc n x = bintrunc n y <-> 
+  "0 < n \<Longrightarrow> bintrunc n x = bintrunc n y \<longleftrightarrow> 
             sbintrunc (n - 1) x = sbintrunc (n - 1) y"
   by (cases n) (simp_all add: bin_sbin_eq_iff del: bintrunc.Suc)
 
