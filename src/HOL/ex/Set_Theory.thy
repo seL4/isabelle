@@ -74,18 +74,18 @@ schematic_goal "?S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
   by best
 
 
-subsection \<open>The Schröder-Berstein Theorem\<close>
+subsection \<open>The Schröder-Bernstein Theorem\<close>
 
-lemma disj_lemma: "- (f ` X) = g ` (-X) \<Longrightarrow> f a = g b \<Longrightarrow> a \<in> X \<Longrightarrow> b \<in> X"
+lemma disj_lemma: "- (f ` X) = g' ` (-X) \<Longrightarrow> f a = g' b \<Longrightarrow> a \<in> X \<Longrightarrow> b \<in> X"
   by blast
 
 lemma surj_if_then_else:
-  "-(f ` X) = g ` (-X) \<Longrightarrow> surj (\<lambda>z. if z \<in> X then f z else g z)"
+  "-(f ` X) = g' ` (-X) \<Longrightarrow> surj (\<lambda>z. if z \<in> X then f z else g' z)"
   by (simp add: surj_def) blast
 
 lemma bij_if_then_else:
-  "inj_on f X \<Longrightarrow> inj_on g (-X) \<Longrightarrow> -(f ` X) = g ` (-X) \<Longrightarrow>
-    h = (\<lambda>z. if z \<in> X then f z else g z) \<Longrightarrow> inj h \<and> surj h"
+  "inj_on f X \<Longrightarrow> inj_on g' (-X) \<Longrightarrow> -(f ` X) = g' ` (-X) \<Longrightarrow>
+    h = (\<lambda>z. if z \<in> X then f z else g' z) \<Longrightarrow> inj h \<and> surj h"
   apply (unfold inj_on_def)
   apply (simp add: surj_if_then_else)
   apply (blast dest: disj_lemma sym)
