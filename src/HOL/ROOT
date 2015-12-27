@@ -632,6 +632,7 @@ session "HOL-Isar_Examples" in Isar_Examples = HOL +
   theories
     Basic_Logic
     Cantor
+    Schroeder_Bernstein
     Drinker
     Expr_Compiler
     Fibonacci
